@@ -1,5 +1,25 @@
 import { describe, it, expect } from 'vitest';
-import { validIsraeliId, normSearch } from '../validate';
+import { validIsraeliId, normSearch, formatIsraeliPhone } from '../validate';
+
+describe('formatIsraeliPhone — נרמול משותף לטופסי משפחה+תומך', () => {
+  it('מוסיף 0 מוביל וחוצץ למספר נייד', () => {
+    expect(formatIsraeliPhone('521234567')).toBe('052-1234567');
+  });
+  it('קידומת בינלאומית 972/00972 → 0 מקומי', () => {
+    expect(formatIsraeliPhone('+972521234567')).toBe('052-1234567');
+    expect(formatIsraeliPhone('00972521234567')).toBe('052-1234567');
+  });
+  it('אידמפוטנטי — הרצה חוזרת לא משנה (עריכה חוזרת של משפחה)', () => {
+    const once = formatIsraeliPhone('521234567');
+    expect(formatIsraeliPhone(once)).toBe(once);
+    const land = formatIsraeliPhone('0212345678');
+    expect(formatIsraeliPhone(land)).toBe(land);
+  });
+  it('ריק נשאר ריק (טלפון שני לא חובה)', () => {
+    expect(formatIsraeliPhone('')).toBe('');
+    expect(formatIsraeliPhone('   ')).toBe('');
+  });
+});
 
 describe('validIsraeliId', () => {
   it('accepts a valid ID with correct check digit (000000018)', () => {

@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { emptyFamily, type Family, type FamilyStatus } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { validIsraeliId } from '../../lib/validate';
+import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { isoToday, LANGUAGE_OPTIONS, MARITAL_OPTIONS, OTHER, OTHER_LABEL } from './lib';
 
@@ -121,8 +121,9 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
       fatherId: f.fatherId.trim(),
       mother: f.mother.trim(),
       motherId: f.motherId.trim(),
-      phone: f.phone.trim(),
-      phone2: f.phone2.trim(),
+      // עקבי עם טופס התומכ/ת: מנרמלים לפורמט ישראלי בשמירה (0 מוביל, 972→0, מקפים)
+      phone: formatIsraeliPhone(f.phone),
+      phone2: formatIsraeliPhone(f.phone2),
       email: f.email.trim(),
       city: f.city.trim(),
       address: f.address.trim(),
