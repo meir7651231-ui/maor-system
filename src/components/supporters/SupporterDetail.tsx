@@ -12,6 +12,7 @@ import { HebDateInput } from '../HebDateInput';
 import { chipStyle, fmtDate, isoToday, supScore, supTier, totalLabel } from './lib';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
+import { AyinCard } from './AyinCard';
 
 function InfoRow(props: { k: string; v: string; ltr?: boolean }) {
   return (
@@ -43,6 +44,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const config = useApp((s) => s.config);
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
+  const ayinOn = featureOn(config, 'supporters.ayin');
 
   const [editOpen, setEditOpen] = useState(false);
   const [donOpen, setDonOpen] = useState(false);
@@ -224,6 +226,9 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           </div>
         )}
       </div>
+
+      {/* מעקב טיפול רב-שלבי */}
+      {ayinOn && <AyinCard supporter={sp} />}
 
       {/* היסטוריית תרומות */}
       <div className="card" style={{ padding: 0 }}>

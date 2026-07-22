@@ -8,10 +8,15 @@ import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
-import { Btn, Chip, Empty, PageHead, Select, TextInput } from '../ui';
+import { ayinDailyRows, featLabel } from '../../lib/ayin';
+import { downloadCsv } from '../../lib/csvx';
+import { Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { chipStyle, fmtDate, isoToday, supScore, supTier, TIER_ORDER, totalLabel } from './lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
+import { AyinBoard } from './AyinBoard';
+import { SupporterImport } from './SupporterImport';
+import { CustomExport } from '../reports/CustomExport';
 
 type SortKey = 'name' | 'phone' | 'count' | 'ils' | 'usd' | 'last' | 'nextDate';
 
@@ -60,6 +65,9 @@ export function SupportersView() {
   const config = useApp((s) => s.config);
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
+  const ayinOn = featureOn(config, 'supporters.ayin');
+  const importOn = featureOn(config, 'settings.import');
+  const toast = useApp((s) => s.toast);
 
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
@@ -67,6 +75,19 @@ export function SupportersView() {
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [expOpen, setExpOpen] = useState(false);
+
+  /** דוח יומי של מעקב הטיפול — כל מי שטופל היום. */
+  function dailyReport() {
+    const rows = ayinDailyRows(config, db.supporters, isoToday());
+    if (rows.length <= 1) {
+      toast('עדיין לא עודכן אף פריט היום — עדכנו בכרטיס והדוח יתמלא');
+      return;
+    }
+    downloadCsv('ayin-daily-' + isoToday() + '.csv', rows);
+    toast('דוח יומי: ' + (rows.length - 1) + ' פריטים שטופלו היום — הקובץ ירד');
+  }
 
   const selected = db.supporters.find((s) => s.id === selId);
   if (selected) return <SupporterDetail supporter={selected} onBack={() => setSelId(null)} />;
@@ -126,11 +147,28 @@ export function SupportersView() {
         title="💛 משפחות תומכות"
         sub={countLabel}
         actions={
-          <Btn kind="primary" onClick={() => setFormOpen(true)}>
-            + תומכת חדשה
-          </Btn>
+          <>
+            {importOn && (
+              <Btn onClick={() => setImportOpen(true)} title="ייבוא תומכות מקובץ CSV">
+                ⬆ ייבוא
+              </Btn>
+            )}
+            <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
+              📊 דו"ח מותאם
+            </Btn>
+            {ayinOn && (
+              <Btn onClick={dailyReport} title={'דוח יומי — ' + featLabel(config)}>
+                📋 דוח יומי
+              </Btn>
+            )}
+            <Btn kind="primary" onClick={() => setFormOpen(true)}>
+              + תומכת חדשה
+            </Btn>
+          </>
         }
       />
+
+      {ayinOn && <AyinBoard onOpen={setSelId} />}
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 260px', minWidth: 220 }}>
@@ -249,6 +287,14 @@ export function SupportersView() {
           }}
         />
       )}
+
+      {importOpen && (
+        <Modal title="⬆ ייבוא תומכות מ-CSV" onClose={() => setImportOpen(false)}>
+          <SupporterImport onDone={() => setImportOpen(false)} />
+        </Modal>
+      )}
+
+      {expOpen && <CustomExport target="supporters" onClose={() => setExpOpen(false)} />}
     </div>
   );
 }

@@ -84,7 +84,11 @@ function migrateCred(raw: unknown): FamilyCred {
   return { score, log };
 }
 
-/** מיגרציה מגרסאות קודמות של הסכמה (כולל v1 של האב-טיפוס). */
+/**
+ * מיגרציה מגרסאות קודמות של הסכמה (כולל v1 של האב-טיפוס).
+ * v3: נוסף שדה supporter.ayin (מעקב טיפול) — אופציונלי; תומכות קיימות
+ * עוברות כמות שהן (ayin נשאר undefined עד השימוש הראשון), אין צורך בטרנספורמציה.
+ */
 export function migrate(raw: unknown): Db | null {
   if (!raw || typeof raw !== 'object') return null;
   const db = raw as Partial<Db> & { v?: number };

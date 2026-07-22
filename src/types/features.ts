@@ -57,6 +57,7 @@ export const FEATURES: FeatureDef[] = [
   // ——— תורמים ———
   { key: 'supporters.rfm', label: 'דירוג תורמים', desc: 'דירוג RFM — תדירות, עדכניות וסכום תרומות', module: 'supporters' },
   { key: 'supporters.nextdate', label: 'יעדי קשר', desc: 'תזכורות ותאריכי יעד לקשר הבא עם תורם', module: 'supporters' },
+  { key: 'supporters.ayin', label: 'מעקב טיפול רב-שלבי', desc: 'תהליך טיפול מרובה-שלבים לכל תומך/ת — שמות, מעקב, תזכורות ודוח יומי', module: 'supporters' },
 
   // ——— מסך הבית ———
   { key: 'home.digest', label: 'תקציר הבוקר', desc: 'תקציר יומי בראש מסך הבית', module: 'home' },
@@ -106,4 +107,14 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'entity.donation', label: 'תרומה', fallback: 'תרומה' },
   { key: 'entity.enrollment', label: 'שיבוץ', fallback: 'שיבוץ' },
   { key: 'entity.cred', label: 'מדד אמינות', fallback: 'מדד אמינות' },
+
+  // ——— מעקב טיפול (feature supporters.ayin) — כללי וניתן לשינוי-שם מלא ———
+  { key: 'nav.ayin', label: 'שם מעקב הטיפול', fallback: 'מעקב טיפול' },
+  { key: 'entity.ayinItem', label: 'פריט למעקב (יחיד)', fallback: 'שם לטיפול' },
+  { key: 'entity.ayinUnit', label: 'מונה הפריט', fallback: 'כמות' },
+  { key: 'ayin.stage.new', label: 'שלב מעקב 1', fallback: 'חדש' },
+  { key: 'ayin.stage.lead', label: 'שלב מעקב 2', fallback: 'בהכנה' },
+  { key: 'ayin.stage.eyes', label: 'שלב מעקב 3', fallback: 'רישום' },
+  { key: 'ayin.stage.answer', label: 'שלב מעקב 4', fallback: 'מסירה' },
+  { key: 'ayin.stage.done', label: 'שלב מעקב 5', fallback: 'הושלם' },
 ];

@@ -13,6 +13,7 @@ import { normalizePhone, normSearch } from '../../lib/validate';
 import { parseAnyDate, parseCsv } from '../../lib/csvx';
 import { Btn, Field, FormError } from '../ui';
 import { isoToday, Section, SectionNote } from './lib';
+import { SupporterImport } from '../supporters/SupporterImport';
 
 /** מפתח זיהוי כפילויות: שם מנורמל + טלפון מנורמל. */
 function famKey(name: string, phone: string): string {
@@ -195,6 +196,9 @@ export function ImportSection() {
       </Btn>
 
       <KidsImport />
+
+      <h3 style={{ fontSize: 15, fontWeight: 700, margin: '18px 0 6px' }}>תומכות (CSV)</h3>
+      <SupporterImport />
 
       <SectionNote>אחרי הייבוא אפשר להשלים לכל משפחה את שאר הפרטים ובני המשפחה במסך המשפחות.</SectionNote>
     </Section>

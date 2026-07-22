@@ -8,11 +8,13 @@ import { allMembers, useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { downloadCsv, type Cell } from '../../lib/csvx';
+import { buildCourseDailyRows } from '../../lib/courseDaily';
 import { Btn, Empty } from '../ui';
 import { CourseForm } from './CourseForm';
 import { EnrollModal } from './EnrollModal';
 import { ManageModal } from './ManageModal';
 import { AbsenceModal } from './AbsenceModal';
+import { CustomExport } from '../reports/CustomExport';
 import {
   DAY_NAMES,
   TINTS,
@@ -58,6 +60,7 @@ export function CourseDetail(props: { course: Course }) {
 
   const c = props.course;
   const [modal, setModal] = useState<ModalState>(null);
+  const [expOpen, setExpOpen] = useState(false);
   const [noteVal, setNoteVal] = useState(c.notes);
   const [sessDay, setSessDay] = useState('0');
   const [sessTime, setSessTime] = useState('17:00');
@@ -111,6 +114,21 @@ export function CourseDetail(props: { course: Course }) {
     }
     downloadCsv('course-' + c.name + '.csv', rows);
     toast('רשימת התלמידים של "' + c.name + '" ירדה — כולל רגישויות למורה');
+  }
+
+  /** דו"ח יומי מפורט — מפגש-מפגש מ-start עד end, מי פעיל כולל חיסורים. */
+  function exportDaily() {
+    const { rows, days } = buildCourseDailyRows(c, db);
+    if (!c.start || !c.end) {
+      toast('לחוג חסר תאריך התחלה/סיום — עדכנו בעריכת הקורס');
+      return;
+    }
+    if (days === 0) {
+      toast('אין מפגשים בטווח התאריכים של החוג');
+      return;
+    }
+    downloadCsv('course-daily-' + c.name + '.csv', rows);
+    toast('דו"ח יומי מפורט של "' + c.name + '" ירד — ' + days + ' ימי פעילות');
   }
 
   function setGroup(e: Enrollment, v: string, first: string) {
@@ -205,7 +223,12 @@ export function CourseDetail(props: { course: Course }) {
               (c.price ? '₪' + c.price + ' לחודש' : '—')}
           </div>
         </div>
-        <Btn onClick={() => setModal({ kind: 'edit' })}>✎ עריכת קורס</Btn>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
+            📊 דו"ח מותאם
+          </Btn>
+          <Btn onClick={() => setModal({ kind: 'edit' })}>✎ עריכת קורס</Btn>
+        </div>
       </div>
 
       {/* הגריד רספונסיבי (global.css) — במובייל הסרגל הצדדי יורד מתחת לעמודה הראשית */}
@@ -223,6 +246,9 @@ export function CourseDetail(props: { course: Course }) {
                     ⬇ תדפיס למורה
                   </Btn>
                 )}
+                <Btn sm onClick={exportDaily} title='דו"ח יומי מפורט — מפגש-מפגש כולל חיסורים'>
+                  ⬇ דו"ח יומי מפורט
+                </Btn>
                 <Btn sm disabled={full} onClick={() => setModal({ kind: 'enroll' })}>
                   {full ? 'הקורס מלא' : '+ שיבוץ תלמיד'}
                 </Btn>
@@ -485,6 +511,7 @@ export function CourseDetail(props: { course: Course }) {
       {modal?.kind === 'absence' && (
         <AbsenceModal enrollmentId={modal.enrollmentId} course={c} onClose={() => setModal(null)} />
       )}
+      {expOpen && <CustomExport target="courses" onClose={() => setExpOpen(false)} />}
     </div>
   );
 }

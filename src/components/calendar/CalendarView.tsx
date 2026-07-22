@@ -25,6 +25,7 @@ import {
 } from './calLib';
 import { EventModal } from './EventModal';
 import { DayModal } from './DayModal';
+import { CustomExport } from '../reports/CustomExport';
 
 const MAX_PILLS = 3;
 
@@ -156,6 +157,7 @@ export function CalendarView() {
   const [modal, setModal] = useState<ModalState | null>(null);
   const [dayIso, setDayIso] = useState<string | null>(null);
   const [filters, setFilters] = useState<CalFilters>(DEFAULT_FILTERS);
+  const [expOpen, setExpOpen] = useState(false);
 
   // גייטים ברמת פיצ'ר: תצוגת יום (calendar.dayview) ושכבות נגזרות (calendar.layers)
   const dayviewOn = featureOn(config, 'calendar.dayview');
@@ -241,6 +243,9 @@ export function CalendarView() {
               {hebMode ? 'גריד עברי ✓' : 'גריד לועזי'}
             </Btn>
             <Btn onClick={goToday}>היום</Btn>
+            <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
+              📊 דו"ח מותאם
+            </Btn>
             <Btn kind="primary" onClick={() => setModal({ ev: null, date: isoOf(new Date()) })}>
               + אירוע חדש
             </Btn>
@@ -399,6 +404,7 @@ export function CalendarView() {
         />
       )}
       {modal && <EventModal ev={modal.ev} date={modal.date} onClose={() => setModal(null)} />}
+      {expOpen && <CustomExport target="events" onClose={() => setExpOpen(false)} />}
     </div>
   );
 }

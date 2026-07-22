@@ -253,6 +253,49 @@ export interface Donation {
   cat: string;
 }
 
+/**
+ * מעקב טיפול רב-שלבי (feature key supporters.ayin) — תהליך גנרי הניתן
+ * לשינוי-שם מלא דרך מילון המונחים (nav.ayin / entity.ayinItem / entity.ayinUnit
+ * ותוויות השלבים ayin.stage.*). מפתחות השלבים הפנימיים קבועים; רק התצוגה משתנה.
+ */
+export type AyinStage = 'new' | 'lead' | 'eyes' | 'answer' | 'done';
+
+/** פריט למעקב — שם + מונה (eyes) + סימון שהטיפול בפריט בוצע. */
+export interface AyinName {
+  id: Id;
+  name: string;
+  /** מונה ('' = לא נרשם עדיין). */
+  eyes: number | '';
+  done: boolean;
+}
+
+/** תשובה/הערה מתוארכת בתהליך הטיפול. */
+export interface AyinAnswer {
+  date: IsoDate;
+  note: string;
+}
+
+/** רשומת היסטוריה של מונה (eyes) לפי תאריך. */
+export interface AyinLog {
+  date: IsoDate;
+  eyes: number;
+  name?: string;
+}
+
+/** תיק טיפול פר-תומכ/ת — נשאר undefined עד השימוש הראשון. */
+export interface AyinCase {
+  stage: AyinStage;
+  note: string;
+  answeredNote: string;
+  answerPushed: boolean;
+  nextTalk: IsoDate;
+  nextTalkTime: TimeHM;
+  lastTouch: IsoDate;
+  names: AyinName[];
+  answers: AyinAnswer[];
+  log: AyinLog[];
+}
+
 export interface Supporter {
   id: Id;
   name: string;
@@ -276,6 +319,24 @@ export interface Supporter {
   /** אירוע 'שיחה' שנוצר אוטומטית ביומן. */
   nextEventId?: Id;
   donations: Donation[];
+  /** תיק מעקב טיפול רב-שלבי (feature supporters.ayin) — אופציונלי. */
+  ayin?: AyinCase;
+}
+
+/** תיק טיפול ריק — נוצר בשימוש הראשון בכרטיס/לוח. */
+export function emptyAyin(): AyinCase {
+  return {
+    stage: 'new',
+    note: '',
+    answeredNote: '',
+    answerPushed: false,
+    nextTalk: '',
+    nextTalkTime: '',
+    lastTouch: '',
+    names: [],
+    answers: [],
+    log: [],
+  };
 }
 
 export interface NotifPrefs {
@@ -329,7 +390,7 @@ export interface Db {
   attnDone: Record<string, string>;
 }
 
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 
 export function emptyDb(): Db {
   return {

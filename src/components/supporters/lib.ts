@@ -4,6 +4,7 @@
  */
 import type { CSSProperties } from 'react';
 import type { Supporter } from '../../types/domain';
+import { normSearch } from '../../lib/validate';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
@@ -83,4 +84,109 @@ export function totalLabel(sp: Supporter): string {
   const ils = sp.ils ? '₪' + sp.ils.toLocaleString('he-IL') : '';
   const usd = sp.usd ? '$' + sp.usd.toLocaleString('he-IL') : '';
   return ils && usd ? ils + ' + ' + usd : ils || usd || '—';
+}
+
+/* ── ייבוא תומכות מ-CSV — עדכון-או-הוספה לפי שם מנורמל (טהור, נבדק ביחידה) ── */
+
+/** נרמול שם להשוואה — נרמול חיפוש עברי + הסרת רווחים. */
+export function normName(s: string): string {
+  return normSearch(s).replace(/\s/g, '');
+}
+
+/** שורת ייבוא תומכת אחת (העמודות מהתבנית). */
+export interface SupporterImportRow {
+  name: string;
+  phone: string;
+  email: string;
+  idNum: string;
+  address: string;
+  cat: string;
+  forWho: string;
+}
+
+/** תוכנית ייבוא — אילו קיימות יעודכנו ואילו חדשות ייווצרו. */
+export interface SupporterImportPlan {
+  /** עדכון תומכת קיימת (id) עם ערכי השורה. */
+  updates: { id: string; row: SupporterImportRow }[];
+  /** תומכות חדשות להוספה (אחרי מיזוג כפילויות בתוך הקובץ עצמו). */
+  inserts: SupporterImportRow[];
+}
+
+/** מיזוג שדות שאינם ריקים מ-b לתוך a (a גובר כשקיים; b ממלא חוסרים). */
+function fillEmpty(a: SupporterImportRow, b: SupporterImportRow): SupporterImportRow {
+  const out = { ...a };
+  (Object.keys(b) as (keyof SupporterImportRow)[]).forEach((k) => {
+    if (!out[k] && b[k]) out[k] = b[k];
+  });
+  return out;
+}
+
+/**
+ * תכנון ייבוא — הצלבה לפי שם מנורמל: שם קיים ⇒ עדכון, שם חדש ⇒ הוספה.
+ * כפילויות בתוך הקובץ מתמזגות לרשומה אחת (הראשונה גוברת, השאר ממלאות חוסרים).
+ * טהור — לא נוגע ב-store; שורות ללא שם מדולגות.
+ */
+export function planSupporterImport(
+  rows: SupporterImportRow[],
+  existing: Supporter[],
+): SupporterImportPlan {
+  const byName = new Map<string, string>();
+  for (const sp of existing) byName.set(normName(sp.name), sp.id);
+  const updates: SupporterImportPlan['updates'] = [];
+  const inserts: SupporterImportRow[] = [];
+  const insertIdx = new Map<string, number>();
+  for (const r of rows) {
+    const nm = r.name.trim();
+    if (!nm) continue;
+    const key = normName(nm);
+    const existId = byName.get(key);
+    if (existId) {
+      updates.push({ id: existId, row: r });
+      continue;
+    }
+    const idx = insertIdx.get(key);
+    if (idx != null) {
+      inserts[idx] = fillEmpty(inserts[idx], r);
+      continue;
+    }
+    insertIdx.set(key, inserts.length);
+    inserts.push(r);
+  }
+  return { updates, inserts };
+}
+
+/** החלת שורת ייבוא על תומכת קיימת — ערך לא-ריק בשורה דורס, אחרת נשמר הקיים. */
+export function mergeSupporterRow(sp: Supporter, row: SupporterImportRow): Supporter {
+  return {
+    ...sp,
+    name: row.name.trim() || sp.name,
+    phone: row.phone ? fixPhone(row.phone.trim()) : sp.phone,
+    email: row.email.trim() || sp.email,
+    idNum: row.idNum.trim() || sp.idNum,
+    address: row.address.trim() || sp.address,
+    cat: row.cat.trim() || sp.cat,
+    forWho: row.forWho.trim() || sp.forWho,
+  };
+}
+
+/** יצירת תומכת חדשה משורת ייבוא (מונים ותרומות מתחילים מאפס). */
+export function newSupporterFromRow(id: string, row: SupporterImportRow): Supporter {
+  return {
+    id,
+    name: row.name.trim(),
+    phone: fixPhone(row.phone.trim()),
+    email: row.email.trim(),
+    idNum: row.idNum.trim(),
+    address: row.address.trim(),
+    cat: row.cat.trim(),
+    forWho: row.forWho.trim(),
+    notes: '',
+    count: 0,
+    ils: 0,
+    usd: 0,
+    first: '',
+    last: '',
+    nextDate: '',
+    donations: [],
+  };
 }

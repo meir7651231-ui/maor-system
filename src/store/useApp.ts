@@ -8,8 +8,11 @@
  */
 import { create } from 'zustand';
 import {
+  emptyAyin,
   emptyDb,
   type Absence,
+  type AyinCase,
+  type AyinStage,
   type Course,
   type CredLogEntry,
   type Db,
@@ -25,6 +28,7 @@ import {
 } from '../types/domain';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, loadOrgConfig, saveConfigOverride } from '../lib/config';
+import { featLabel, planAddName, planAyinAdvance, revertPatch } from '../lib/ayin';
 import { dailySnapshot, exportBackupFile, loadDb, saveDb, setPersistNamespace } from './persist';
 import type { CloudStatus, CloudUser } from './cloudSync';
 
@@ -140,6 +144,27 @@ interface AppState {
   deleteSupporter: (id: string) => void;
   addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => void;
 
+  // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
+  // ולכן סנכרון הענן והביטול עובדים כרגיל. פעולות שכותבות ללוח מייצרות OrgEvent.
+  /** הכפתור-החכם — מקדם לשלב הבא ומסנכרן אירוע ללוח. */
+  ayinAdvance: (id: string) => void;
+  /** קפיצה חזרה לשלב שהושלם (או איפוס לשלב הראשון). */
+  ayinRevert: (id: string, stage: AyinStage) => void;
+  ayinAddName: (id: string, name: string, eyes: number | '') => void;
+  ayinToggleName: (id: string, nameId: string) => void;
+  ayinSetNameEyes: (id: string, nameId: string, eyes: number | '') => void;
+  ayinRemoveName: (id: string, nameId: string) => void;
+  ayinAddAnswer: (id: string, note: string) => void;
+  ayinEditAnswer: (id: string, index: number, note: string) => void;
+  ayinDeleteAnswer: (id: string, index: number) => void;
+  /** קביעת מועד "לדבר שוב" — שדות בלבד (התזכורת נכתבת ב-ayinCallAgain). */
+  ayinSetNextTalk: (id: string, date: string, time: string) => void;
+  /** 🔁 שוב — כותב תזכורת ללוח לפי מועד "לדבר שוב". */
+  ayinCallAgain: (id: string) => void;
+  ayinLogEyes: (id: string, eyes: number, name?: string) => void;
+  /** מחזור חדש — איפוס התיק תוך שמירת ההיסטוריה (log + answers). */
+  ayinRestart: (id: string) => void;
+
   // גיבוי ושחזור
   exportBackup: () => void;
   restoreDb: (db: Db) => void;
@@ -246,6 +271,43 @@ export const useApp = create<AppState>()((set, get) => {
     const out = list.slice();
     out[i] = item;
     return out;
+  }
+
+  /** תיק הטיפול הנוכחי של תומכ/ת (emptyAyin אם עדיין אין), או null. */
+  function curAyin(id: string): { sp: Supporter; a: AyinCase } | null {
+    const sp = get().db.supporters.find((s) => s.id === id);
+    if (!sp) return null;
+    return { sp, a: sp.ayin ?? emptyAyin() };
+  }
+
+  /** החלת patch על תיק הטיפול — יוצר את התיק בשימוש הראשון; touch מעדכן lastTouch. */
+  function setAyin(id: string, patch: Partial<AyinCase>, touch = true): void {
+    const today = isoToday();
+    setDb((db) => ({
+      supporters: db.supporters.map((sp) =>
+        sp.id !== id
+          ? sp
+          : { ...sp, ayin: { ...(sp.ayin ?? emptyAyin()), ...patch, ...(touch ? { lastTouch: today } : {}) } },
+      ),
+    }));
+  }
+
+  /** אירוע לוח למעקב הטיפול — type 'call', priority 'orange' (מיפוי 'yellow' של האב-טיפוס). */
+  function ayinEvent(sp: Supporter, a: AyinCase, title: string, done: boolean): void {
+    get().upsertEvent({
+      id: get().nextId('ev'),
+      title,
+      date: a.nextTalk || isoToday(),
+      time: a.nextTalkTime || '',
+      type: 'call',
+      customType: '',
+      notes: featLabel(get().config) + ' · ' + (sp.phone || ''),
+      price: 0,
+      roomId: '',
+      famId: '',
+      priority: 'orange',
+      done,
+    });
   }
 
   return {
@@ -552,6 +614,119 @@ export const useApp = create<AppState>()((set, get) => {
           };
         }),
       }));
+    },
+
+    // ── מעקב טיפול רב-שלבי ──
+    ayinAdvance(id) {
+      const c = curAyin(id);
+      if (!c) return;
+      const plan = planAyinAdvance(get().config, c.sp.name, c.a);
+      if (!plan) return;
+      if (plan.event) ayinEvent(c.sp, c.a, plan.event.title, plan.event.done);
+      setAyin(id, plan.patch);
+      get().toast(plan.toast);
+    },
+    ayinRevert(id, stage) {
+      if (!curAyin(id)) return;
+      setAyin(id, revertPatch(stage));
+    },
+    ayinAddName(id, name, eyes) {
+      const c = curAyin(id);
+      if (!c) return;
+      // בדיקה מקדימה (בלי מזהה) כדי לא לבזבז seq על כשל
+      const probe = planAddName(c.a, name, eyes, '');
+      if (!probe.ok) {
+        get().toast(probe.error);
+        return;
+      }
+      const plan = planAddName(c.a, name, eyes, get().nextId('an'));
+      if (!plan.ok) return;
+      setAyin(id, plan.log ? { names: plan.names, log: plan.log } : { names: plan.names });
+      get().toast('"' + name.trim() + '" נוסף לרשימה');
+    },
+    ayinToggleName(id, nameId) {
+      const c = curAyin(id);
+      if (!c) return;
+      let msg = '';
+      const names = c.a.names.map((n) => {
+        if (n.id !== nameId) return n;
+        const done = !n.done;
+        msg = n.name + (done ? ' — בוצע ✓' : ' — הוחזר לממתין');
+        return { ...n, done };
+      });
+      setAyin(id, { names });
+      if (msg) get().toast(msg);
+    },
+    ayinSetNameEyes(id, nameId, eyes) {
+      const c = curAyin(id);
+      if (!c) return;
+      const names = c.a.names.map((n) => (n.id === nameId ? { ...n, eyes } : n));
+      setAyin(id, { names });
+    },
+    ayinRemoveName(id, nameId) {
+      const c = curAyin(id);
+      if (!c) return;
+      const target = c.a.names.find((n) => n.id === nameId);
+      setAyin(id, { names: c.a.names.filter((n) => n.id !== nameId) });
+      if (target) get().toast('"' + target.name + '" הוסר מהרשימה');
+    },
+    ayinAddAnswer(id, note) {
+      const c = curAyin(id);
+      if (!c) return;
+      const nt = note.trim();
+      if (!nt) {
+        get().toast('כתבו תשובה/הערה לפני השמירה');
+        return;
+      }
+      setAyin(id, { answers: [{ date: isoToday(), note: nt }, ...c.a.answers], answeredNote: nt });
+      get().toast('ההערה נשמרה — מסונכרנת לדוח היומי ולכרטיס');
+    },
+    ayinEditAnswer(id, index, note) {
+      const c = curAyin(id);
+      if (!c) return;
+      const nt = note.trim();
+      if (!nt) {
+        get().toast('כתבו תשובה/הערה לפני השמירה');
+        return;
+      }
+      const answers = c.a.answers.map((x, i) => (i === index ? { date: isoToday(), note: nt } : x));
+      setAyin(id, { answers, answeredNote: nt });
+      get().toast('ההערה עודכנה');
+    },
+    ayinDeleteAnswer(id, index) {
+      const c = curAyin(id);
+      if (!c) return;
+      setAyin(id, { answers: c.a.answers.filter((_, i) => i !== index) });
+      get().toast('ההערה נמחקה');
+    },
+    ayinSetNextTalk(id, date, time) {
+      setAyin(id, { nextTalk: date, nextTalkTime: time });
+    },
+    ayinCallAgain(id) {
+      const c = curAyin(id);
+      if (!c) return;
+      ayinEvent(c.sp, c.a, featLabel(get().config) + ': לדבר שוב — ' + c.sp.name, false);
+      setAyin(id, {});
+      get().toast('נכנסת לתזכורת בלוח');
+    },
+    ayinLogEyes(id, eyes, name) {
+      const c = curAyin(id);
+      if (!c) return;
+      const entry = name ? { date: isoToday(), eyes, name } : { date: isoToday(), eyes };
+      setAyin(id, { log: [entry, ...c.a.log] });
+      get().toast('נרשם בהיסטוריה');
+    },
+    ayinRestart(id) {
+      // איפוס התיק העובד — שומר את log ו-answers כהיסטוריה
+      setAyin(id, {
+        stage: 'new',
+        names: [],
+        note: '',
+        nextTalk: '',
+        nextTalkTime: '',
+        answerPushed: false,
+      });
+      get().toast('נפתח מחזור חדש מההתחלה — ההיסטוריה נשמרה');
     },
 
     exportBackup() {
