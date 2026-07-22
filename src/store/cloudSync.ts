@@ -11,13 +11,8 @@
  *    800ms, מחשב diffDb ודוחף. תור לא-מקוון מנוהל ע"י Firestore עצמו.
  */
 import type { Db } from '../types/domain';
-import {
-  diffDb,
-  emptyDiff,
-  fullDbDiff,
-  ENTITY_COLLECTIONS,
-  type EntityCol,
-} from '../lib/cloud-diff';
+import { diffDb, emptyDiff, fullDbDiff } from '../lib/cloud-diff';
+import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
 import { pullAll, pushDiff, subscribeAll, type RemotePartial } from '../lib/cloud';
 
 // יצוא-מחדש של שכבת ה-auth — ל-useApp יש import דינמי אחד בלבד (המודול הזה)
@@ -53,64 +48,6 @@ function withRemoteFlag(fn: () => void): void {
   } finally {
     applyingRemote = false;
   }
-}
-
-/** מיזוג שינויי אוסף מרוחקים לרשימה מקומית — upsert לפי id, מחוקים יוצאים. */
-function applyEntityPartial(
-  db: Db,
-  col: string,
-  docs: Array<{ id: string; data: unknown; deleted: boolean }>,
-): Db {
-  if (!(ENTITY_COLLECTIONS as readonly string[]).includes(col)) return db;
-  const key = col as EntityCol;
-  const list = db[key] as Array<{ id: string }>;
-  const deleted = new Set(docs.filter((d) => d.deleted).map((d) => d.id));
-  const incoming = new Map(
-    docs
-      .filter((d) => !d.deleted)
-      .map((d) => [d.id, { ...(d.data as Record<string, unknown>), id: d.id }]),
-  );
-  // עדכונים במקומם (שומר סדר), חדשים לראש הרשימה — כמו upsertIn של ה-store
-  const kept = list
-    .filter((x) => !deleted.has(x.id))
-    .map((x) => {
-      const inc = incoming.get(x.id);
-      if (inc) {
-        incoming.delete(x.id);
-        return inc as unknown as { id: string };
-      }
-      return x;
-    });
-  const next = [...(incoming.values() as Iterable<{ id: string }>), ...kept];
-  if (JSON.stringify(next) === JSON.stringify(list)) return db;
-  return { ...db, [key]: next } as Db;
-}
-
-/** מיזוג מסמך meta/org מרוחק — שדות שאינם ישויות; seq תמיד המקסימום. */
-function applyMetaPartial(db: Db, meta: Record<string, unknown>): Db {
-  const next: Db = { ...db };
-  let changed = false;
-  const assign = <K extends keyof Db>(k: K, v: unknown) => {
-    if (v === undefined) return;
-    if (JSON.stringify(db[k]) !== JSON.stringify(v)) {
-      next[k] = v as Db[K];
-      changed = true;
-    }
-  };
-  assign('orgName', meta.orgName);
-  assign('orgSite', meta.orgSite);
-  assign('orgDonate', meta.orgDonate);
-  assign('orgGoal', meta.orgGoal);
-  assign('notif', meta.notif);
-  assign('reports', meta.reports);
-  assign('ui', meta.ui);
-  assign('attnDone', meta.attnDone);
-  // seq: לעולם לא מקטינים — מונע התנגשות מזהים בין מכשירים
-  if (typeof meta.seq === 'number' && Number.isFinite(meta.seq) && meta.seq > db.seq) {
-    next.seq = meta.seq;
-    changed = true;
-  }
-  return changed ? next : db;
 }
 
 function onRemote(partial: RemotePartial): void {
