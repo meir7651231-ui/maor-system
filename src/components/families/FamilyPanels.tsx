@@ -308,7 +308,8 @@ function fmtDM(iso: string): string {
 /** שורות דוח המשפחה המלא (port של expReport מהמקור) — טקסט להורדה. */
 function familyReportLines(db: Db, f: Family): string[] {
   const ids = new Set(f.members.map((m) => m.id));
-  const tier = tierOf(f.cred?.score ?? 500);
+  // ברירת המחדל 700 זהה לכל שאר המשטחים (emptyFamily · כרטיס · finder · בית) — בלי פער
+  const tier = tierOf(f.cred?.score ?? 700);
   const L: string[] = [
     'דוח משפחה מלא — משפחת ' + f.name,
     'הופק: ' + hebDateFull(isoToday()) + ' · ' + new Date().toLocaleString('he-IL'),

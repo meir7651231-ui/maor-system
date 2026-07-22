@@ -15,7 +15,7 @@ import { Btn, Chip, Field, FormError, TextInput } from '../ui';
 import { buildHandoffHtml, downloadTextFile, INTEGRATION_LABELS, THEME_LABELS } from './handoff';
 import { featureEffectiveOn, WIZARD_SECTIONS, type WizardSectionDef } from './sections';
 
-const DEFAULT_APP_URL = 'https://meir7651231-ui.github.io/maor-system/';
+const DEFAULT_APP_URL = 'https://meir7651231-ui.github.io/buildsmart/maor/';
 
 /**
  * "פלטפורמה אחת — אלפי עמותות" (רצועת ה-white-label ממוקאפ צֹהַר):
