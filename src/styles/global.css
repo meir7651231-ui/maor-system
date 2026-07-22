@@ -1,0 +1,2514 @@
+/* עיצוב גלובלי — RTL תחילה. כל הצבעים דרך משתני :root;
+   ברירת המחדל כאן היא ערכת "אור ראשון", וערכות נוספות דורסות ב-themes.css. */
+
+:root {
+  --bg: #f6f3ec;
+  --panel: #fffdf8;
+  --ink: #2e2c26;
+  --ink-soft: #4d463c;
+  --ink-faint: #8a8172;
+  --line: #ded7c8;
+  --line-soft: #ece7db;
+  --hover-bg: #faf8f2;
+  --accent: #f3c76b;
+  --accent-deep: #a05008;
+  /* כינויים היסטוריים — רכיבים קיימים עדיין מפנים אליהם */
+  --amber: var(--accent);
+  --amber-deep: var(--accent-deep);
+  --dark: #211d17;
+  --green: #2e7d32;
+  --red: #b3261e;
+  --orange: #b45309;
+  --nav-bg: #211d17;
+  --nav-ink: #f7f3ea;
+  --nav-ink-soft: #d9d2c4;
+  --nav-hover-bg: rgba(243, 199, 107, 0.12);
+  --nav-active-bg: var(--accent);
+  --nav-active-ink: #211d17;
+  --primary-bg: #211d17;
+  --primary-ink: var(--accent);
+  --primary-hover-bg: #35302a;
+  --toast-bg: #211d17;
+  --toast-ink: #f7f3ea;
+  --error-bg: #fdecea;
+  --overlay: rgba(33, 29, 23, 0.45);
+  --overlay-soft: rgba(33, 29, 23, 0.35);
+  --radius: 12px;
+  --shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  --shadow-lift: 0 6px 24px rgba(33, 29, 23, 0.14);
+  font-size: 16px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  direction: rtl;
+}
+
+body {
+  /* רקע הדף וגופן הגוף מתחלפים פר-ערכה (--page-bg / --font-body ב-themes.css) */
+  background: var(--page-bg, var(--bg));
+  color: var(--ink);
+  font-family:
+    var(--font-body, "Heebo"),
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  /* גוף 15px/1.55 כמו במוקאפים (צֹהַר 14.5 — דריסה למטה) — לא 16px הדפדפני */
+  font-size: 15px;
+  line-height: 1.55;
+  min-height: 100vh;
+  /* באנר הבית של קהילה נמתח לרוחב הצג (50% − 50vw) — חותך את שארית פס הגלילה */
+  overflow-x: clip;
+}
+
+:root[data-theme="tsohar"] body {
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  width: 100%;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent-deep);
+  outline-offset: 1px;
+}
+
+/* נגישות: מצב ניגודיות גבוהה (מנצח ערכת נושא — themes.css נטען לפני הקובץ הזה) */
+:root[data-contrast="high"] {
+  --bg: #ffffff;
+  --panel: #ffffff;
+  --ink: #000000;
+  --ink-soft: #1a1a1a;
+  --ink-faint: #333333;
+  --line: #666666;
+  --line-soft: #666666;
+  --hover-bg: #f2f2f2;
+}
+
+/* נגישות: ביטול אנימציות */
+:root[data-noanim="1"] *,
+:root[data-noanim="1"] *::before,
+:root[data-noanim="1"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* פריסת האפליקציה — סרגל עליון (מוקאפים סבב 2): הכרום מתחלף פר-ערכה
+   דרך משתני --nav2-* / --font-display המוגדרים ב-themes.css. */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100vh;
+}
+
+.app-top {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  /* שורת הניווט מיושרת לעמודת התוכן (1200px) — כמו במוקאפים של היכל/קהילה */
+  padding: 10px max(22px, calc(50% - 600px));
+  background: var(--nav2-bg);
+  color: var(--nav2-ink);
+  border-bottom: 1px solid var(--nav2-line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 18px;
+  font-weight: 800;
+  font-family: var(--font-display);
+  white-space: nowrap;
+  color: var(--nav2-ink);
+}
+
+.brand img {
+  height: 26px;
+  border-radius: 6px;
+}
+
+.brand-name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+/* רצועת הקישורים — גלולה פעילה, גלילה אופקית במסכים צרים (390px נשאר שמיש) */
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.app-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.app-nav button {
+  padding: 7px 13px;
+  border-radius: 999px;
+  color: var(--nav2-ink-soft);
+  font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.app-nav button:hover {
+  background: var(--nav2-hover-bg);
+  color: var(--nav2-ink);
+}
+
+.app-nav button.active {
+  background: var(--nav2-active-bg);
+  color: var(--nav2-active-ink);
+  font-weight: 700;
+}
+
+/* כלים בקצה השמאלי — חיפוש, הגדרות, משתמש הענן */
+.top-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+  min-width: 0;
+}
+
+.nav-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--nav2-ink) 26%, transparent);
+  color: var(--nav2-ink-soft);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.nav-search:hover {
+  background: var(--nav2-hover-bg);
+  color: var(--nav2-ink);
+}
+
+.nav-search kbd {
+  font: inherit;
+  font-size: 11px;
+  direction: ltr;
+  border: 1px solid color-mix(in srgb, var(--nav2-ink) 22%, transparent);
+  border-radius: 6px;
+  padding: 0 6px;
+}
+
+.nav-gear {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+  color: var(--nav2-ink-soft);
+}
+
+.nav-gear:hover {
+  background: var(--nav2-hover-bg);
+}
+
+.nav-gear.active {
+  background: var(--nav2-active-bg);
+  color: var(--nav2-active-ink);
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--nav2-ink-soft);
+  min-width: 0;
+}
+
+.nav-user-mail {
+  direction: ltr;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-user > button {
+  padding: 2px 9px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--nav2-ink) 26%, transparent);
+  flex-shrink: 0;
+}
+
+.nav-user > button:hover {
+  background: var(--nav2-hover-bg);
+}
+
+.app-main {
+  flex: 1;
+  padding: 24px 28px 64px;
+  /* עמודת תוכן ~1200px ממורכזת עם אוויר בצדדים — כמו במוקאפים (1120–1180px) */
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* אור ראשון (mock-desktop): התוכן צמוד לסרגל-הצד — לא ממורכז בתוך side-body */
+.app-side.side-wide + .side-body .app-main {
+  margin-inline: 0;
+}
+
+@media (max-width: 760px) {
+  .app-top {
+    padding: 8px 12px;
+    gap: 4px 10px;
+  }
+  /* הרצועה יורדת לשורה שנייה ברוחב מלא ונגללת אופקית */
+  .app-nav {
+    order: 10;
+    flex-basis: 100%;
+  }
+  .nav-search-label,
+  .nav-search kbd,
+  .nav-user-mail {
+    display: none;
+  }
+  .app-main {
+    padding: 16px 14px 64px;
+  }
+}
+
+/* ═══════════ שלד סרגל-צד — ערכת צֹהַר (מוקאפ סבב 3) ═══════════
+   רצועת אייקונים דקה בצד ימין (RTL) + שורת כותרת עם חיפוש-פקודה רחב.
+   הצבעים דרך משתני --side-* (themes.css). מתחת ל-760px App.tsx מרנדר
+   את שלד הסרגל העליון במקום (matchMedia) — אין צורך ב-media כאן. */
+
+.app-shell.shell-side {
+  flex-direction: row;
+}
+
+.app-side {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  /* רצועת האייקונים של צֹהַר — 64px כמו במוקאפ; הווריאנט הרחב דורס ל-212px */
+  width: 64px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 7px 10px;
+  background: var(--side-bg);
+  border-inline-end: 1px solid var(--side-line);
+  z-index: 50;
+}
+
+.side-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.side-logo img {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+/* באין לוגו — ריבוע accent עם האות הראשונה של שם הארגון (aside .logo במוקאפ) */
+.side-logo-fallback {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.side-nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* קישור = אייקון + תווית קטנה מתחתיו (נגישות + בודקי טקסט); פעיל = גלולה מלאה */
+.side-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 2px 6px;
+  border-radius: 12px;
+  color: var(--side-ink-soft);
+  flex-shrink: 0;
+}
+
+.side-link .side-ico {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.side-link .nav-label {
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.side-link:hover {
+  background: var(--side-hover-bg);
+  color: var(--side-ink);
+}
+
+.side-link.active {
+  background: var(--side-active-bg);
+  color: var(--side-active-ink);
+  font-weight: 700;
+}
+
+/* ⚙️ הגדרות — נעוץ לתחתית הרצועה */
+.side-gear {
+  margin-top: auto;
+}
+
+.side-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* שורת הכותרת: מיתוג ימין · חיפוש-פקודה רחב במרכז · פעולות ראשיות שמאל */
+.side-head {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 10px 22px;
+  background: var(--side-bg);
+  border-bottom: 1px solid var(--side-line);
+}
+
+/* בשורת הכותרת הרקע בהיר — הדיו של המיתוג/משתמש מגיע מהערכה, לא מ---nav2-* */
+.side-head .brand {
+  color: var(--side-ink);
+}
+
+.side-brand-sub {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--ink-faint);
+}
+
+.side-head .nav-user {
+  color: var(--ink-soft);
+}
+
+.side-head .nav-user > button {
+  border-color: var(--line);
+}
+
+.side-head .nav-user > button:hover {
+  background: var(--hover-bg);
+}
+
+/* צ'יפ החיפוש הרחב — נראה כשדה קלט, פותח את פלטת הפקודות (Ctrl+K) */
+.side-search {
+  flex: 1 1 240px;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: var(--ink-faint);
+  font-size: 13.5px;
+  text-align: right;
+  min-width: 0;
+}
+
+.side-search:hover {
+  border-color: var(--accent);
+  color: var(--ink-soft);
+}
+
+.side-search-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-search kbd {
+  margin-inline-start: auto;
+  font: inherit;
+  font-size: 11px;
+  direction: ltr;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+
+.side-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+  flex-shrink: 0;
+}
+
+/* רכיבים משותפים */
+
+.card {
+  /* רקע הכרטיס פר-ערכה — היכל מקבל גרדיאנט "גאלה" עדין (--card-bg ב-themes.css) */
+  background: var(--card-bg, var(--panel));
+  border: 1px solid var(--panel-line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+/* טיפוגרפיית תצוגה — סריף Frank Ruhl Libre באור ראשון/היכל, Rubik בצֹהַר,
+   Suez One בקהילה (--font-display פר-ערכה, themes.css) */
+h1,
+.page-title,
+.hm-hero-title {
+  font-family: var(--font-display);
+}
+
+/* מספרי הנתונים — גופן נפרד פר-ערכה (סריף בהיכל, Suez One בקהילה, גוף בשאר) */
+.hm-stat-value {
+  font-family: var(--font-stat, var(--font-body));
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.page-sub {
+  color: var(--ink-faint);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink-soft);
+  transition: background 0.15s;
+}
+
+.btn:hover {
+  background: var(--bg);
+}
+
+.btn.primary {
+  background: var(--primary-bg);
+  border-color: var(--primary-bg);
+  color: var(--primary-ink);
+}
+
+.btn.primary:hover {
+  background: var(--primary-hover-bg);
+}
+
+.btn.danger {
+  color: var(--red);
+  border-color: var(--red);
+}
+
+.btn.sm {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink-soft);
+}
+
+.chip.on {
+  background: var(--primary-bg);
+  border-color: var(--primary-bg);
+  color: var(--primary-ink);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.field > label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0 14px;
+}
+
+.form-error {
+  background: var(--error-bg);
+  color: var(--red);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+/* מודאל */
+
+.modal-back {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 16px;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.modal {
+  background: var(--panel);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lift);
+  width: 100%;
+  max-width: 640px;
+  padding: 20px 22px;
+}
+
+.modal > h2 {
+  font-size: 19px;
+  margin-bottom: 16px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  margin-top: 16px;
+}
+
+/* טוסטים */
+
+.toasts {
+  position: fixed;
+  bottom: 20px;
+  inset-inline-start: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 200;
+}
+
+.toast {
+  background: var(--toast-bg);
+  color: var(--toast-ink);
+  padding: 10px 16px;
+  border-radius: 10px;
+  box-shadow: var(--shadow-lift);
+  font-size: 14px;
+  max-width: 420px;
+}
+
+/* כרטיס חוג — עמודה ראשית גמישה + סרגל צד 340px; במסך צר (מובייל)
+   הסרגל היה מוחץ את העמודה הראשית לרוחב אפסי — נערמים לעמודה אחת */
+.crs-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .crs-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* טבלאות */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th {
+  text-align: right;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  font-weight: 600;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.table tr:hover td {
+  background: var(--hover-bg);
+}
+
+.empty {
+  text-align: center;
+  color: var(--ink-faint);
+  padding: 48px 16px;
+  font-size: 15px;
+}
+
+/* פלטת פקודות */
+
+.palette-back {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-soft);
+  display: flex;
+  justify-content: center;
+  padding-top: 12vh;
+  z-index: 150;
+}
+
+.palette {
+  width: 100%;
+  max-width: 560px;
+  height: fit-content;
+  background: var(--panel);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lift);
+  overflow: hidden;
+}
+
+.palette input {
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 14px 16px;
+  font-size: 16px;
+}
+
+.palette .results {
+  max-height: 48vh;
+  overflow-y: auto;
+}
+
+.palette .results button {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 14.5px;
+  text-align: right;
+}
+
+.palette .results button:hover,
+.palette .results button.sel {
+  background: var(--bg);
+}
+
+@media print {
+  .app-top,
+  .app-side,
+  .side-head,
+  .toasts,
+  .no-print {
+    display: none !important;
+  }
+  .app-main {
+    padding: 0;
+  }
+}
+
+/* ═══════════ 🎡 גלגל החוגים (components/wheel/CourseWheel) ═══════════
+   אוברליי כהה theme-aware (--toast-bg כהה בכל הערכות, --toast-ink בהיר בכולן),
+   גלגל SVG עם 4 גווני accent, פס זהב, נורות, קונפטי וכרטיס תוצאה. */
+
+.wheel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background:
+    radial-gradient(
+      120% 90% at 50% 30%,
+      rgba(0, 0, 0, 0) 40%,
+      rgba(0, 0, 0, 0.4) 100%
+    ),
+    color-mix(in srgb, var(--toast-bg) 88%, transparent);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 22px 14px;
+}
+
+.wheel-shell {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  height: fit-content;
+  padding-bottom: 30px;
+  color: var(--toast-ink);
+  animation: wheel-fade-in 0.25s ease-out;
+}
+
+@keyframes wheel-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.wheel-head {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  padding: 0 40px;
+}
+
+.wheel-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--accent);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.wheel-sub {
+  font-size: 13.5px;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.wheel-close {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--toast-ink) 35%, transparent);
+  color: var(--toast-ink);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.wheel-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ── נעילות (chips) ── */
+
+.wheel-locks {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.wheel-lock-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.wheel-lock-label {
+  min-width: 58px;
+  font-size: 12.5px;
+  font-weight: 700;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+.wheel-lock-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wheel-chip {
+  border: 1px solid color-mix(in srgb, var(--toast-ink) 35%, transparent);
+  color: var(--toast-ink);
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    background 0.15s,
+    transform 0.15s;
+}
+
+.wheel-chip:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+.wheel-chip.on {
+  background: var(--primary-bg);
+  border-color: var(--accent);
+  color: var(--primary-ink);
+  font-weight: 700;
+}
+
+.wheel-chip:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* ── הגלגל עצמו ── */
+
+.wheel-stage {
+  position: relative;
+  width: min(78vw, 560px);
+}
+
+.wheel-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 14px 44px rgba(0, 0, 0, 0.45));
+}
+
+.wheel-base {
+  fill: var(--toast-bg);
+}
+
+.wheel-seg {
+  stroke: color-mix(in srgb, var(--accent) 40%, transparent);
+  stroke-width: 1;
+}
+
+.wheel-seg.shade-0 {
+  fill: color-mix(in srgb, var(--accent) 58%, var(--toast-bg));
+}
+
+.wheel-seg.shade-1 {
+  fill: color-mix(in srgb, var(--accent) 40%, var(--toast-bg));
+}
+
+.wheel-seg.shade-2 {
+  fill: color-mix(in srgb, var(--accent) 24%, var(--toast-bg));
+}
+
+.wheel-seg.shade-3 {
+  fill: color-mix(in srgb, var(--accent) 11%, var(--toast-bg));
+}
+
+.wheel-seg.win {
+  stroke: var(--accent);
+  stroke-width: 3;
+  animation: wheel-win 0.8s ease-in-out 4;
+}
+
+@keyframes wheel-win {
+  50% {
+    filter: brightness(1.6);
+  }
+}
+
+.wheel-seg-text {
+  fill: color-mix(in srgb, var(--toast-ink) 94%, transparent);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: color-mix(in srgb, var(--toast-bg) 60%, transparent);
+  stroke-width: 2.5px;
+  pointer-events: none;
+}
+
+.wheel-rim {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 9;
+}
+
+.wheel-rim-inner {
+  fill: none;
+  stroke: var(--accent-deep);
+  stroke-width: 1.5;
+  opacity: 0.85;
+}
+
+.wheel-bulb {
+  fill: var(--toast-ink);
+  stroke: var(--accent-deep);
+  stroke-width: 1;
+  animation: wheel-bulb 1.2s ease-in-out infinite;
+}
+
+.wheel-bulb.alt {
+  animation-delay: 0.6s;
+}
+
+@keyframes wheel-bulb {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.wheel-pointer {
+  fill: var(--accent);
+  stroke: var(--toast-bg);
+  stroke-width: 2;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4));
+}
+
+.wheel-hub {
+  fill: var(--toast-bg);
+  stroke: var(--accent);
+  stroke-width: 5;
+}
+
+.wheel-count {
+  font-size: 12.5px;
+  opacity: 0.7;
+}
+
+/* ── כפתור הסיבוב, ריק ותוצאה ── */
+
+.wheel-spin-btn {
+  background: var(--primary-bg);
+  color: var(--primary-ink);
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  padding: 12px 46px;
+  font-size: 19px;
+  font-weight: 800;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.wheel-spin-btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.wheel-spin-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.wheel-empty {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed color-mix(in srgb, var(--toast-ink) 45%, transparent);
+  color: var(--toast-ink);
+  border-radius: 14px;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.wheel-result {
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--accent);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lift);
+  padding: 18px 22px;
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+  animation: wheel-slide-up 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.12);
+}
+
+@keyframes wheel-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}
+
+.wheel-result-tag {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-deep);
+}
+
+.wheel-result-name {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 4px 0 2px;
+}
+
+.wheel-result-meta {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+
+.wheel-result-spots {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-deep);
+  margin-top: 6px;
+}
+
+.wheel-result-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── קונפטי זהב ── */
+
+.wheel-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.wheel-confetti span {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  border-radius: 2px;
+  opacity: 0;
+  animation: wheel-confetti-pop 1.4s ease-out forwards;
+}
+
+.wheel-confetti .shade-0 {
+  background: var(--accent);
+}
+
+.wheel-confetti .shade-1 {
+  background: color-mix(in srgb, var(--accent) 55%, var(--toast-ink));
+}
+
+.wheel-confetti .shade-2 {
+  background: var(--accent-deep);
+}
+
+.wheel-confetti .shade-3 {
+  background: color-mix(in srgb, var(--accent) 70%, var(--toast-bg));
+}
+
+@keyframes wheel-confetti-pop {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  55% {
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rz));
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(var(--dx) * 1.1), calc(var(--dy) * 0.35))
+      rotate(calc(var(--rz) * 1.4)) scale(0.7);
+    opacity: 0;
+  }
+}
+
+/* ═══════════ 🏠 מסך הבית (components/home) — עיצוב ברמת המוקאפים ═══════════
+   כל הצבעים דרך משתני ערכה: --hero-* / --stat-* / --bday-* מוגדרים
+   ב-themes.css (fallback ב-:root שם + דריסה בכל אחת מ-4 הערכות). */
+
+/* ── רצועת ה-hero — באנר גרדיאנט מעוגל ברוחב מלא ── */
+
+.hm-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--hero-bg);
+  color: var(--hero-ink);
+  border-radius: 20px;
+  padding: 24px 26px 26px;
+  box-shadow: var(--shadow);
+}
+
+.hm-hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hm-hero-title {
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.hm-hero-sub {
+  color: var(--hero-ink-soft);
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.hm-hero-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+/* כפתורים על הגרדיאנט — כולל primary וכפתור "עריכת הלוח" — בזכוכית אחידה */
+.hm-hero .btn,
+.hm-hero .btn.primary {
+  background: var(--hero-btn-bg);
+  border: 1px solid var(--hero-btn-line);
+  color: var(--hero-btn-ink);
+  backdrop-filter: blur(3px);
+}
+
+.hm-hero .btn:hover,
+.hm-hero .btn.primary:hover {
+  background: var(--hero-btn-line);
+}
+
+/* כרטיסי הנתונים / באנר יום ההולדת "עולים" על שולי ה-hero (מוקאפ SaaS).
+   ההורה הוא flex column עם gap 18px — לכן ‎-58px נותן חפיפה של ‎40px בפועל. */
+.hm-hero + .hm-stats,
+.hm-hero + .hm-bday {
+  margin-top: -58px;
+}
+
+/* כשהאח הבא אכן חופף — ל-hero מרווח תחתון שהכרטיסים "יושבים" עליו */
+.hm-hero:has(+ .hm-stats),
+.hm-hero:has(+ .hm-bday) {
+  padding-bottom: 74px;
+}
+
+/* ── 🎂 באנר ימי הולדת היום ── */
+
+.hm-bday {
+  position: relative;
+  background: var(--bday-bg);
+  color: var(--bday-ink);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 6px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* השורה — עוטפת את הכפתור הראשי + כפתור פעולה אופציונלי (קהילה) */
+.hm-bday-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.hm-bday-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  padding: 8px 6px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* 🎉 "לברך במפגש" (קהילה) — גלולה צבעונית שמנווטת לחוג של היום */
+.hm-bday-cta {
+  background: var(--bday-cta-bg, var(--bday-ink));
+  color: #fff;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-inline-end: 6px;
+}
+
+.hm-bday-cta:hover {
+  filter: brightness(1.15);
+}
+
+.hm-bday-ico {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.hm-bday-title {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: var(--bday-ink);
+}
+
+.hm-bday-sub {
+  font-size: 13px;
+  color: var(--bday-ink-soft);
+  margin-top: 1px;
+}
+
+/* ── 📊 כרטיסי נתונים ── */
+
+.hm-stats {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  gap: 12px;
+}
+
+.hm-stat {
+  text-align: right;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px 12px;
+}
+
+.hm-stat-head {
+  display: flex;
+  align-items: center;
+  gap: 8px 10px;
+  /* ערך ארוך (₪705,000) + צ'יפ מגמה — הצ'יפ יורד שורה במקום לחפוף */
+  flex-wrap: wrap;
+}
+
+.hm-stat-ico {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--stat-tint);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.hm-stat-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hm-stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.hm-stat-label {
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  font-weight: 600;
+}
+
+.hm-stat-chip {
+  margin-inline-start: auto;
+  align-self: flex-start;
+  background: color-mix(in srgb, var(--green) 14%, var(--panel));
+  color: var(--green);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.hm-stat-sub {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+/* ספארקליין עמודות — רק כשיש נתונים חודשיים אמיתיים (createdAt / תרומות) */
+.hm-stat-spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 24px;
+  margin-top: auto;
+}
+
+.hm-stat-spark i {
+  flex: 1;
+  background: var(--stat-bar);
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+}
+
+.hm-stat-spark i:last-child {
+  background: var(--spark-hot, var(--accent-deep));
+}
+
+/* ── כותרות מקטע אחידות — אמוג'י + כותרת מודגשת + קו דק ── */
+
+.hm-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.hm-head h2 {
+  font-size: 16.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── שורות פריטים (תקציר / היום / דורש טיפול) ── */
+
+.hm-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 6px;
+  border-radius: 8px;
+  text-align: right;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.hm-row:hover {
+  background: var(--hover-bg);
+}
+
+/* חץ פעולה RTL — "לטפל ←" */
+.hm-arrow {
+  margin-inline-start: auto;
+  color: var(--accent-deep);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── 📅 המפגשים של היום — כרטיס-שורה עם גלולת שעה וכפתור נוכחות ── */
+
+.hm-meet {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: var(--panel);
+}
+
+.hm-meet-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  cursor: pointer;
+}
+
+.hm-meet-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.hm-meet-sub {
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+
+.hm-time {
+  direction: ltr;
+  background: var(--stat-tint);
+  color: var(--accent-deep);
+  border-radius: 9px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.hm-pill-btn {
+  background: var(--stat-tint);
+  color: var(--accent-deep);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.hm-pill-btn:hover {
+  background: var(--hero-btn-line);
+}
+
+/* ── 🏆 ספר הזהב — פס התקדמות יחסי לתורם המוביל ── */
+
+.hm-gold-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 5px 6px;
+}
+
+.hm-gold-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13.5px;
+}
+
+.hm-gold-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line-soft);
+  overflow: hidden;
+}
+
+.hm-gold-bar > i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-deep));
+}
+
+/* ── 🤝 אמינות קהילתית — ספירת דרגות ── */
+
+.hm-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.hm-tier {
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ── ⚡ פעולות מהירות (ווידג'ט) ── */
+
+.hm-quick {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── ✏️ עריכת הלוח — ספריית ווידג'טים ככרטיסים ── */
+
+.hm-lib {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.hm-lib-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  box-shadow: var(--shadow);
+}
+
+.hm-lib-card b {
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+/* ── ✏️ עריכת הלוח — קישור-אייקון שקט בפינת העמוד (לא כפתור בולט) ── */
+
+/* הסלקטור המלא מנצח את `.hm-hero > *` (position: relative של קהילה) */
+.hm-hero > .hm-edit-link {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 12px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  opacity: 0.4;
+  color: inherit;
+  cursor: pointer;
+}
+
+.hm-hero > .hm-edit-link:hover,
+.hm-hero > .hm-edit-link:focus-visible {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* ── שתי עמודות המוקאפ (פריסת ברירת המחדל בלבד) — ימין רחבה, שמאל צרה ── */
+
+.hm-cols {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.hm-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+:root[data-theme="heichal"] .hm-cols {
+  grid-template-columns: 1.3fr 1fr;
+  gap: 18px;
+}
+
+:root[data-theme="heichal"] .hm-col {
+  gap: 18px;
+}
+
+:root[data-theme="kehila"] .hm-cols {
+  grid-template-columns: 1.3fr 1fr;
+}
+
+:root[data-theme="tsohar"] .hm-cols {
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .hm-cols {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .hm-hero {
+    padding: 18px 16px 20px;
+  }
+  .hm-hero:has(+ .hm-stats),
+  .hm-hero:has(+ .hm-bday) {
+    padding-bottom: 64px;
+  }
+  .hm-hero-title {
+    font-size: 22px;
+  }
+}
+
+/* נגישות: הדגשת כפתורים וקישורים (הגדרות ← נגישות) */
+:root[data-links="1"] a {
+  text-decoration: underline;
+}
+
+:root[data-links="1"] .btn:not(:focus-visible),
+:root[data-links="1"] button:not(:focus-visible) {
+  outline: 1px solid var(--accent-deep);
+  outline-offset: 1px;
+}
+
+/* נגישות: ריווח טקסט מוגדל */
+:root[data-spacing="1"] body {
+  letter-spacing: 0.03em;
+  word-spacing: 0.08em;
+  line-height: 1.75;
+}
+
+/* ═══════════ ✨ היכל — "ערב גאלה" (mock-heichal, אחד-לאחד) ═══════════
+   ברכה ("כתר") ממורכזת בסריף ישירות על רקע הדף — בלי כרטיס — עם קו שיער
+   זהב דקורטיבי מעליה; רצועת נתונים אחת עם מפרידים אנכיים; כותרות פאנל
+   בזהב עם קו-שיער נמשך. שאר המסכים יורשים דרך --panel / --line / --font-*. */
+
+/* הכתר: לא כרטיס — טקסט ממורכז על הקנבס הכהה */
+:root[data-theme="heichal"] .hm-hero {
+  background: none;
+  border: none;
+  box-shadow: none;
+  text-align: center;
+  padding: 32px 16px 6px;
+}
+
+/* קו השיער הזהוב הדקורטיבי מעל הברכה — 180px כמו במוקאפ */
+:root[data-theme="heichal"] .hm-hero::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  inset-inline: calc(50% - 90px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e9bd63, transparent);
+}
+
+:root[data-theme="heichal"] .hm-hero-top {
+  flex-direction: column;
+  align-items: center;
+}
+
+/* h1 בזהב בהיר עם הילה רכה (crown h1 במוקאפ) */
+:root[data-theme="heichal"] .hm-hero-title {
+  font-size: 34px;
+  font-weight: 900;
+  color: #f7dfa8;
+  text-shadow: 0 0 34px rgba(233, 189, 99, 0.25);
+}
+
+:root[data-theme="heichal"] .hm-hero-sub {
+  font-size: 14.5px;
+}
+
+:root[data-theme="heichal"] .hm-hero-actions {
+  justify-content: center;
+}
+
+/* כפתורי הפעולה על הכתר — גלולות מתאר זהב (סגנון ה"נוכחות" במוקאפ) */
+:root[data-theme="heichal"] .hm-hero .btn,
+:root[data-theme="heichal"] .hm-hero .btn.primary {
+  border-radius: 999px;
+  backdrop-filter: none;
+}
+
+:root[data-theme="heichal"] .hm-hero .btn:hover,
+:root[data-theme="heichal"] .hm-hero .btn.primary:hover {
+  background: rgba(233, 189, 99, 0.1);
+}
+
+/* רצועת הנתונים — פס אחד עם מפרידי קו-שיער אנכיים, בלי כרטיסים צפים */
+:root[data-theme="heichal"] .hm-hero:has(+ .hm-stats) {
+  padding-bottom: 24px;
+}
+
+:root[data-theme="heichal"] .hm-hero + .hm-stats {
+  margin-top: 0;
+}
+
+:root[data-theme="heichal"] .hm-stats {
+  gap: 0;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+:root[data-theme="heichal"] .hm-stat {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  border-inline-start: 1px solid var(--line);
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  padding: 18px 12px 15px;
+}
+
+:root[data-theme="heichal"] .hm-stat:first-child {
+  border-inline-start: 0;
+}
+
+/* תווית קטנה מעל, מספר זהב-בהיר גדול בסריף 900, דלתא ירוקה מתחת — בלי עיגול אייקון */
+:root[data-theme="heichal"] .hm-stat-ico,
+:root[data-theme="heichal"] .hm-stat-spark {
+  display: none;
+}
+
+:root[data-theme="heichal"] .hm-stat-head {
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+:root[data-theme="heichal"] .hm-stat-meta {
+  flex-direction: column-reverse;
+  align-items: center;
+}
+
+:root[data-theme="heichal"] .hm-stat-value {
+  color: #f7dfa8;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+:root[data-theme="heichal"] .hm-stat-label {
+  color: var(--ink-faint);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+:root[data-theme="heichal"] .hm-stat-chip {
+  margin-inline-start: 0;
+  align-self: center;
+  background: transparent;
+  padding: 0 8px;
+}
+
+:root[data-theme="heichal"] .hm-stat-sub {
+  color: var(--ink-soft);
+}
+
+/* כותרות פאנל — Heebo 700 בזהב + קו-שיער שנמשך עד קצה הכותרת (card h2 במוקאפ) */
+:root[data-theme="heichal"] .hm-head {
+  border-bottom: 0;
+  padding-bottom: 2px;
+}
+
+:root[data-theme="heichal"] .hm-head h2 {
+  color: var(--accent);
+  font-size: 15px;
+  letter-spacing: 0.5px;
+}
+
+/* כותרות הפאנל במוקאפ הן טקסט זהב נקי — בלי אמוג'י ("סדר היום", "ספר הזהב") */
+:root[data-theme="heichal"] .hm-head h2 > span[aria-hidden] {
+  display: none;
+}
+
+:root[data-theme="heichal"] .hm-head::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(270deg, var(--line), transparent);
+}
+
+/* גלולת השעה בשורות "סדר היום" — טקסט זהב מודגש בלי רקע (row .time במוקאפ) */
+:root[data-theme="heichal"] .hm-time {
+  background: transparent;
+  color: var(--accent);
+  font-size: 14px;
+  padding: 5px 2px;
+  min-width: 52px;
+}
+
+/* מפגשי היום — שורות שטוחות עם קו-שיער תחתון במקום קופסאות (row במוקאפ) */
+:root[data-theme="heichal"] .hm-meet {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid #262115;
+  padding: 10px 2px;
+}
+
+:root[data-theme="heichal"] .hm-meet:last-of-type {
+  border-bottom: none;
+}
+
+/* פס ההתקדמות בספר הזהב — זהב→זהב-עמום על תשתית חומה (bar במוקאפ) */
+:root[data-theme="heichal"] .hm-gold-bar {
+  background: #2a2517;
+  height: 3px;
+}
+
+:root[data-theme="heichal"] .hm-gold-bar > i {
+  background: linear-gradient(270deg, #e9bd63, #8a6c2f);
+}
+
+/* הסרגל העליון: מותג בזהב-בהיר, גלולה פעילה עם גרדיאנט וטבעת זהב-עמום פנימית */
+:root[data-theme="heichal"] .brand {
+  color: #f7dfa8;
+  font-weight: 900;
+  font-size: 22px;
+}
+
+:root[data-theme="heichal"] .app-nav button.active {
+  box-shadow: inset 0 0 0 1px #8a6c2f;
+}
+
+/* כיתוב "היכל" קטן מתחת לשם הארגון בסרגל העליון (כמו במוקאפ) */
+:root[data-theme="heichal"] .brand-name::after {
+  content: "היכל";
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 5px;
+  color: var(--accent);
+  font-family: var(--font-body);
+}
+
+/* גלולות "נוכחות" במתאר זהב דק (row .go במוקאפ) */
+:root[data-theme="heichal"] .hm-pill-btn {
+  background: transparent;
+  border: 1px solid #8a6c2f;
+  color: var(--accent);
+}
+
+:root[data-theme="heichal"] .hm-pill-btn:hover {
+  background: rgba(233, 189, 99, 0.1);
+  border-color: var(--accent);
+}
+
+/* ═══════════ 🪟 צֹהַר — דשבורד SaaS בהיר (mock-tsohar, אחד-לאחד) ═══════════
+   אין באנר: הברכה היא שורת כותרת רזה על רקע הדף; כרטיסי הנתונים בגריד רגיל
+   (בלי חפיפה), תווית מעל מספר, ספארק בטורקיז רך; צ'יפים כגלולות רכות. */
+
+:root[data-theme="tsohar"] .hm-hero {
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 4px 2px 2px;
+}
+
+/* בלי חפיפת כרטיסים על ה-hero — במוקאפ הכול גריד רגוע */
+:root[data-theme="tsohar"] .hm-hero:has(+ .hm-stats),
+:root[data-theme="tsohar"] .hm-hero:has(+ .hm-bday) {
+  padding-bottom: 8px;
+}
+
+:root[data-theme="tsohar"] .hm-hero + .hm-stats,
+:root[data-theme="tsohar"] .hm-hero + .hm-bday {
+  margin-top: 0;
+}
+
+/* "בוקר טוב 👋" — Rubik 600 21px, והתאריך באותה שורה (head במוקאפ) */
+:root[data-theme="tsohar"] .hm-hero-title {
+  font-size: 21px;
+  font-weight: 600;
+}
+
+:root[data-theme="tsohar"] .hm-hero-top > div {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+:root[data-theme="tsohar"] .hm-hero-sub {
+  font-size: 13.5px;
+  margin-top: 0;
+}
+
+:root[data-theme="tsohar"] .hm-hero-actions {
+  margin-top: 12px;
+}
+
+/* כפתור ראשי טורקיז מלא (btn.p במוקאפ); המשניים לבנים עם מסגרת 1.5px */
+:root[data-theme="tsohar"] .hm-hero .btn {
+  border-width: 1.5px;
+  backdrop-filter: none;
+}
+
+:root[data-theme="tsohar"] .hm-hero .btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+:root[data-theme="tsohar"] .hm-hero .btn:hover {
+  background: var(--hover-bg);
+}
+
+:root[data-theme="tsohar"] .hm-hero .btn.primary:hover {
+  background: var(--accent-deep);
+}
+
+/* כרטיסי נתונים: תווית קטנה מעל, מספר Rubik 600 26px — בלי עיגול אייקון */
+:root[data-theme="tsohar"] .hm-stat-ico {
+  display: none;
+}
+
+:root[data-theme="tsohar"] .hm-stat-meta {
+  flex-direction: column-reverse;
+  align-items: flex-start;
+}
+
+:root[data-theme="tsohar"] .hm-stat-value {
+  font-size: 26px;
+  font-weight: 600;
+}
+
+:root[data-theme="tsohar"] .hm-stat-label {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* כפתורים ושדות — מסגרת 1.5px ופינות 10px כמו במוקאפ */
+:root[data-theme="tsohar"] .btn {
+  border-width: 1.5px;
+  font-size: 13px;
+}
+
+/* כותרות טבלה קטנות ומרווחות (th במוקאפ) */
+:root[data-theme="tsohar"] .table th {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+}
+
+/* רצועת האייקונים (סרגל-הצד): פעיל = ריבוע טורקיז רך עם טבעת פנימית 1.5px */
+:root[data-theme="tsohar"] .side-link.active {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+/* ═══════════ 🧸 קהילה — חם ומשחקי (mock-kehila, אחד-לאחד) ═══════════
+   באנר טורקיז ברוחב מלא שממשיך את הסרגל העליון, פינות תחתונות 34px
+   ועיגולים דקורטיביים; כרטיסי הנתונים "נעוצים" בתחתיתו; Suez One לכותרות. */
+
+/* הרצועה העליונה — הקישורים יושבים בגלולה שקופה (bar nav במוקאפ) */
+:root[data-theme="kehila"] .app-top {
+  border-bottom: none;
+}
+
+:root[data-theme="kehila"] .app-nav {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 4px;
+}
+
+:root[data-theme="kehila"] .app-nav button {
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 6px 14px;
+}
+
+:root[data-theme="kehila"] .brand {
+  font-weight: 400;
+  font-size: 22px;
+}
+
+:root[data-theme="kehila"] .nav-search {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: transparent;
+}
+
+/* הבאנר נמשך מהסרגל העליון לרוחב הצג המלא — שוליים שליליים עד קצות החלון
+   (50% − 50vw), והריפוד הפנימי מיישר את הברכה חזרה לעמודת התוכן (1200px).
+   הגלישה האופקית הזעירה (רוחב פס הגלילה) נחתכת ע"י overflow-x: clip על body. */
+:root[data-theme="kehila"] .app-main > div > .hm-hero {
+  margin: -24px calc(50% - 50vw) 0;
+  border-radius: 0 0 34px 34px;
+  padding: 20px max(30px, calc(50vw - 572px)) 64px;
+}
+
+@media (max-width: 760px) {
+  :root[data-theme="kehila"] .app-main > div > .hm-hero {
+    margin: -16px -14px 0;
+    padding: 18px 16px 56px;
+  }
+}
+
+/* עיגולים דקורטיביים שקופים-למחצה (top::before/::after במוקאפ) */
+:root[data-theme="kehila"] .hm-hero::before {
+  content: "";
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  top: -140px;
+  inset-inline-start: -80px;
+}
+
+:root[data-theme="kehila"] .hm-hero::after {
+  content: "";
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+  bottom: -110px;
+  inset-inline-end: 120px;
+}
+
+.hm-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* "בוקר טוב! יום שני שמח 🌞" — Suez One 400 36px (hello h1 במוקאפ) */
+:root[data-theme="kehila"] .hm-hero-title {
+  font-weight: 400;
+  font-size: 36px;
+}
+
+/* הכרטיסים נעוצים בתחתית הבאנר (main margin-top -44px במוקאפ) */
+:root[data-theme="kehila"] .app-main > div > .hm-hero:has(+ .hm-stats),
+:root[data-theme="kehila"] .app-main > div > .hm-hero:has(+ .hm-bday) {
+  padding-bottom: 86px;
+}
+
+:root[data-theme="kehila"] .hm-hero + .hm-stats,
+:root[data-theme="kehila"] .hm-hero + .hm-bday {
+  margin-top: -62px;
+}
+
+/* אריח נתון: אייקון בריבוע פסטל מעוגל 46px, מספר Suez One 25px — בלי צ'יפ/סאב/ספארק */
+:root[data-theme="kehila"] .hm-stat {
+  border-color: transparent;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 14px -8px rgba(43, 38, 32, 0.25);
+  gap: 0;
+}
+
+:root[data-theme="kehila"] .hm-stat-sub,
+:root[data-theme="kehila"] .hm-stat-chip,
+:root[data-theme="kehila"] .hm-stat-spark {
+  display: none;
+}
+
+:root[data-theme="kehila"] .hm-stat-ico {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  font-size: 21px;
+}
+
+/* מחזור הפסטלים של המוקאפ: טורקיז · זהב · אלמוג · שזיף */
+:root[data-theme="kehila"] .hm-stat:nth-of-type(4n + 1) .hm-stat-ico {
+  background: #e0f3f0;
+}
+
+:root[data-theme="kehila"] .hm-stat:nth-of-type(4n + 2) .hm-stat-ico {
+  background: #fdf1d7;
+}
+
+:root[data-theme="kehila"] .hm-stat:nth-of-type(4n + 3) .hm-stat-ico {
+  background: #fdeae6;
+}
+
+:root[data-theme="kehila"] .hm-stat:nth-of-type(4n) .hm-stat-ico {
+  background: #f0e8fb;
+}
+
+:root[data-theme="kehila"] .hm-stat-value {
+  font-weight: 400;
+  font-size: 25px;
+}
+
+/* כותרות פאנל — Suez One 400 18px בלי קו תחתון (card h2 במוקאפ) */
+:root[data-theme="kehila"] .hm-head {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+:root[data-theme="kehila"] .hm-head h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 18px;
+}
+
+/* מונה "שווה לטפל" — גלולת אלמוג (h2 .cnt במוקאפ) */
+:root[data-theme="kehila"] .hm-head .chip {
+  background: #e8604c;
+  border-color: #e8604c;
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* מפגש היום: שורה על רקע שמנת מעוגל, שעה ב-Suez One על טורקיז רך,
+   וכפתור "נוכחות" טורקיז מלא (sess במוקאפ) */
+:root[data-theme="kehila"] .hm-meet {
+  background: var(--bg);
+  border: none;
+  border-radius: 15px;
+  padding: 11px 14px;
+}
+
+:root[data-theme="kehila"] .hm-time {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 16px;
+  background: #e0f3f0;
+  color: var(--accent);
+  border-radius: 11px;
+  padding: 6px 11px;
+}
+
+:root[data-theme="kehila"] .hm-pill-btn {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  padding: 7px 15px;
+}
+
+:root[data-theme="kehila"] .hm-pill-btn:hover {
+  background: var(--accent-deep);
+}
+
+/* חץ פעולה "לטפל ←" — טקסט טורקיז נקי (att .act במוקאפ) */
+:root[data-theme="kehila"] .hm-arrow {
+  color: var(--accent);
+  font-size: 12px;
+}
+
+/* שורות "שווה לטפל" — מפריד מקווקו חם (att במוקאפ) */
+:root[data-theme="kehila"] .hm-row {
+  border-radius: 0;
+  border-bottom: 1.5px dashed var(--line);
+}
+
+:root[data-theme="kehila"] .hm-row:last-child {
+  border-bottom: none;
+}
+
+/* תגי הקהילה (אמינות): אריח ממורכז על שמנת, מספר Suez One (badge במוקאפ) */
+:root[data-theme="kehila"] .hm-tier {
+  background: var(--bg);
+  border: none;
+  border-radius: 15px;
+  align-items: center;
+  text-align: center;
+  padding: 11px 8px;
+}
+
+:root[data-theme="kehila"] .hm-tier > b {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+/* באנר יום ההולדת: עוגה גדולה, כותרת Suez One, CTA זהב (bday במוקאפ) */
+:root[data-theme="kehila"] .hm-bday-ico {
+  font-size: 34px;
+}
+
+:root[data-theme="kehila"] .hm-bday-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 17px;
+}
+
+/* ═══════════ 🌅 אור ראשון — נייר חם וזהב (mock-or-rishon, אחד-לאחד) ═══════════
+   hero ככרטיס שמנת עם זוהר זהב בפינה; אריחי נתונים עם פס זהב אנכי בקצה
+   (בלי עיגולי אייקון ובלי ספארק); כפתור ראשי "לילה" עם טקסט זהב. */
+
+:root[data-theme="or-rishon"] .hm-hero,
+:root:not([data-theme]) .hm-hero {
+  border: 1px solid var(--line);
+}
+
+:root[data-theme="or-rishon"] .hm-hero-title {
+  font-size: 32px;
+  font-weight: 900;
+}
+
+/* כפתור ראשי במוקאפ (btn.gold): רקע לילה, טקסט זהב, צל רך */
+:root[data-theme="or-rishon"] .hm-hero .btn.primary {
+  background: #211d17;
+  border-color: #211d17;
+  color: #f3c76b;
+  box-shadow: 0 4px 14px -6px rgba(33, 29, 23, 0.55);
+  backdrop-filter: none;
+}
+
+:root[data-theme="or-rishon"] .hm-hero .btn.primary:hover {
+  background: #35302a;
+}
+
+:root[data-theme="or-rishon"] .hm-hero .btn {
+  backdrop-filter: none;
+}
+
+:root[data-theme="or-rishon"] .hm-hero .btn:hover {
+  border-color: var(--accent);
+  background: var(--hero-btn-bg);
+}
+
+/* בלי חפיפת כרטיסים — במוקאפ האריחים בגריד רגיל מתחת ל-hero */
+:root[data-theme="or-rishon"] .hm-hero:has(+ .hm-stats),
+:root[data-theme="or-rishon"] .hm-hero:has(+ .hm-bday) {
+  padding-bottom: 26px;
+}
+
+:root[data-theme="or-rishon"] .hm-hero + .hm-stats,
+:root[data-theme="or-rishon"] .hm-hero + .hm-bday {
+  margin-top: -4px;
+}
+
+/* אריח נתון: פס זהב אנכי בקצה, תווית מעל מספר Heebo 700 — בלי אייקון וספארק */
+:root[data-theme="or-rishon"] .hm-stat {
+  position: relative;
+  overflow: hidden;
+}
+
+:root[data-theme="or-rishon"] .hm-stat::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+:root[data-theme="or-rishon"] .hm-stat-ico,
+:root[data-theme="or-rishon"] .hm-stat-spark {
+  display: none;
+}
+
+:root[data-theme="or-rishon"] .hm-stat-meta {
+  flex-direction: column-reverse;
+  align-items: flex-start;
+}
+
+:root[data-theme="or-rishon"] .hm-stat-value {
+  font-size: 27px;
+  font-weight: 700;
+}
+
+:root[data-theme="or-rishon"] .hm-stat-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* גלולת שעה — פינות 8px כמו במוקאפ (row .time) */
+:root[data-theme="or-rishon"] .hm-time {
+  border-radius: 8px;
+}
+
+/* צ'יפ בכותרת פאנל — זהב-רך על זהב-עמוק (h2 .chip במוקאפ) */
+:root[data-theme="or-rishon"] .hm-head .chip {
+  background: var(--stat-tint);
+  border-color: transparent;
+  color: var(--accent-deep);
+  font-weight: 600;
+  font-size: 11.5px;
+}
+
+/* מפריד שורות מקווקו עדין (row/att במוקאפ) */
+:root[data-theme="or-rishon"] .hm-meet {
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px dashed #eee5d3;
+}
+
+:root[data-theme="or-rishon"] .hm-meet:last-of-type {
+  border-bottom: none;
+}
+
+/* ═══════════ שלד סרגל-צד רחב — אור ראשון בדסקטופ (mock-desktop) ═══════════
+   פס "לילה" 212px בצד ימין: מיתוג בסריף זהב, קו-שיער זוהר, קישורי
+   אייקון+תווית בשורה, גלולה פעילה זהב מלאה, וצ'יפ חיפוש בתחתית. */
+
+.app-side.side-wide {
+  width: 212px;
+  padding: 22px 14px 14px;
+  gap: 2px;
+  align-items: stretch;
+}
+
+.side-wide .side-brand {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 21px;
+  color: var(--accent);
+  padding: 0 10px 6px;
+  letter-spacing: 0.2px;
+}
+
+.side-wide .side-brand small {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 11.5px;
+  color: #a99d85;
+  letter-spacing: 1.5px;
+  margin-top: 2px;
+}
+
+.side-wide .side-brand img {
+  height: 26px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+/* קו-השיער הזוהר מתחת למיתוג (nav .glow במוקאפ) */
+.side-wide .side-glow {
+  height: 2px;
+  background: linear-gradient(270deg, var(--accent), transparent);
+  border-radius: 2px;
+  margin: 0 10px 16px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.side-wide .side-nav {
+  flex: initial;
+  gap: 2px;
+}
+
+.side-wide .side-link {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 14.5px;
+}
+
+.side-wide .side-link .side-ico {
+  font-size: 16px;
+}
+
+.side-wide .side-link .nav-label {
+  font-size: 14.5px;
+  font-weight: 400;
+}
+
+.side-wide .side-link.active {
+  box-shadow: 0 2px 10px -2px rgba(243, 199, 107, 0.5);
+}
+
+.side-wide .side-link.active .nav-label {
+  font-weight: 700;
+}
+
+.side-wide .side-gear {
+  margin-top: 0;
+}
+
+.side-wide .side-sp {
+  flex: 1;
+}
+
+/* צ'יפ החיפוש בתחתית הפס (nav .k במוקאפ) — פותח את פלטת הפקודות */
+.side-wide .side-k {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #a99d85;
+  padding: 8px 12px;
+  border: 1px solid var(--side-line);
+  border-radius: 9px;
+  text-align: right;
+}
+
+.side-wide .side-k:hover {
+  background: var(--side-hover-bg);
+  color: var(--side-ink);
+}
+
+.side-wide .side-k kbd {
+  margin-inline-start: auto;
+  font: inherit;
+  font-size: 11px;
+  direction: ltr;
+  background: var(--side-line);
+  border-radius: 5px;
+  padding: 1px 7px;
+}
+
+/* צ'יפ משתמש הענן בתחתית הפס הרחב */
+.side-wide .nav-user {
+  color: var(--side-ink-soft);
+  padding: 8px 4px 0;
+}
+
+.side-wide .nav-user > button {
+  border-color: var(--side-line);
+}

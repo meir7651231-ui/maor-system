@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מאור החסד — הדמיית עיצוב "אור ראשון"</title>
+<link rel="stylesheet" href="fonts/fonts-inline.css">
+<style>
+  :root{
+    --paper:#f6f3ec; --card:#fffdf8; --card-line:#e7dfd0;
+    --ink:#241f18; --ink-soft:#57503f; --ink-faint:#94886f;
+    --gold:#f3c76b; --gold-soft:#f9e5bb; --gold-deep:#a05008;
+    --night:#211d17; --night-2:#2c261e;
+    --good:#4a7031; --warn:#a05008; --crit:#a8321e;
+    --r:14px; --shadow:0 1px 3px rgba(36,31,24,.07),0 8px 24px -18px rgba(36,31,24,.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font:15px/1.55 'Heebo',sans-serif;-webkit-font-smoothing:antialiased}
+  .num{font-variant-numeric:tabular-nums}
+  .shell{display:flex;min-height:100vh}
+
+  /* ─ sidebar ─ */
+  nav{width:212px;background:linear-gradient(180deg,var(--night) 0%,var(--night-2) 100%);color:#efe7d6;padding:22px 14px;display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+  nav .brand{font:900 21px 'Frank Ruhl Libre',serif;color:var(--gold);padding:0 10px 6px;letter-spacing:.2px}
+  nav .brand small{display:block;font:400 11.5px 'Heebo';color:#a99d85;letter-spacing:1.5px;margin-top:2px}
+  nav .glow{height:2px;background:linear-gradient(270deg,var(--gold),transparent);border-radius:2px;margin:0 10px 16px;opacity:.7}
+  nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:#cfc4ac;text-decoration:none;font-size:14.5px;transition:background .15s}
+  nav a:hover{background:rgba(243,199,107,.09);color:#fff}
+  nav a.on{background:var(--gold);color:var(--night);font-weight:700;box-shadow:0 2px 10px -2px rgba(243,199,107,.5)}
+  nav .sp{flex:1}
+  nav .k{font-size:12px;color:#7d7360;padding:8px 12px;border:1px solid #3a332a;border-radius:9px;display:flex;gap:8px;align-items:center}
+  nav .k b{background:#3a332a;border-radius:5px;padding:1px 7px;font-weight:500}
+
+  main{flex:1;padding:26px 32px 48px;max-width:1120px}
+
+  /* ─ hero ─ */
+  .hero{position:relative;border-radius:18px;padding:26px 28px 22px;background:
+    radial-gradient(420px 190px at 88% -30%, rgba(243,199,107,.34), transparent 70%),
+    radial-gradient(300px 150px at 65% -20%, rgba(249,229,187,.5), transparent 70%),
+    var(--card);
+    border:1px solid var(--card-line);box-shadow:var(--shadow);overflow:hidden}
+  .hero h1{font:900 32px/1.2 'Frank Ruhl Libre',serif}
+  .hero .date{color:var(--ink-soft);margin-top:5px;font-size:14.5px}
+  .hero .date b{color:var(--gold-deep);font-weight:500}
+  .acts{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+  .btn{border:1px solid var(--card-line);background:var(--card);border-radius:11px;padding:8px 15px;font:600 13.5px 'Heebo';color:var(--ink-soft);cursor:pointer;transition:.15s}
+  .btn:hover{border-color:var(--gold);transform:translateY(-1px)}
+  .btn.gold{background:var(--night);border-color:var(--night);color:var(--gold);box-shadow:0 4px 14px -6px rgba(33,29,23,.55)}
+
+  /* ─ stat tiles ─ */
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:16px 0}
+  .tile{background:var(--card);border:1px solid var(--card-line);border-radius:var(--r);padding:15px 17px 13px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .tile::after{content:'';position:absolute;inset-inline-start:0;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--gold)}
+  .tile .l{font-size:12.5px;color:var(--ink-faint);font-weight:500;letter-spacing:.3px}
+  .tile .v{font:700 27px/1.25 'Heebo';margin-top:2px}
+  .tile .s{font-size:12.5px;color:var(--ink-soft);margin-top:1px}
+  .tile .s .up{color:var(--good);font-weight:600}
+
+  /* ─ carousel ─ */
+  .carousel{display:flex;align-items:center;gap:14px;background:linear-gradient(270deg,var(--gold-soft),var(--card) 55%);border:1px solid var(--card-line);border-radius:var(--r);padding:12px 18px;box-shadow:var(--shadow);margin-bottom:16px}
+  .carousel .ico{font-size:26px;filter:drop-shadow(0 2px 3px rgba(160,80,8,.25))}
+  .carousel .t b{font-weight:700}
+  .carousel .t span{color:var(--ink-soft);font-size:13.5px;display:block}
+  .dots{margin-inline-start:auto;display:flex;gap:5px}
+  .dots i{width:6px;height:6px;border-radius:50%;background:#d9cdb4}
+  .dots i.on{background:var(--gold-deep);width:16px;border-radius:4px}
+
+  .cols{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--card-line);border-radius:var(--r);box-shadow:var(--shadow);padding:17px 19px}
+  .card h2{font:700 15.5px 'Heebo';display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .card h2 .chip{margin-inline-start:auto;font:600 11.5px 'Heebo';color:var(--gold-deep);background:var(--gold-soft);border-radius:99px;padding:2px 10px}
+
+  /* today rows */
+  .row{display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px dashed #eee5d3}
+  .row:last-child{border-bottom:none}
+  .row .time{font:700 13.5px 'Heebo';color:var(--gold-deep);background:var(--gold-soft);border-radius:8px;padding:3px 9px;min-width:52px;text-align:center}
+  .row .what b{font-weight:600;font-size:14.5px}
+  .row .what span{display:block;font-size:12.5px;color:var(--ink-faint)}
+  .row .go{margin-inline-start:auto;font:600 12.5px 'Heebo';color:var(--gold-deep);cursor:pointer;white-space:nowrap}
+
+  /* attention rows */
+  .att{display:flex;gap:10px;align-items:flex-start;padding:9px 2px;border-bottom:1px dashed #eee5d3}
+  .att:last-child{border-bottom:none}
+  .att .dot{width:9px;height:9px;border-radius:50%;margin-top:6px;flex-shrink:0}
+  .att.crit .dot{background:var(--crit);box-shadow:0 0 0 3px rgba(168,50,30,.14)}
+  .att.warn .dot{background:var(--gold-deep);box-shadow:0 0 0 3px rgba(160,80,8,.13)}
+  .att b{font-weight:600;font-size:14px}
+  .att span{display:block;font-size:12.5px;color:var(--ink-soft)}
+  .att .tag{font:600 11px 'Heebo';border-radius:99px;padding:1px 8px;margin-inline-start:6px;vertical-align:1px}
+  .att.crit .tag{color:var(--crit);background:rgba(168,50,30,.09)}
+  .att.warn .tag{color:var(--gold-deep);background:var(--gold-soft)}
+
+  /* gauge */
+  .gaugebox{display:flex;gap:18px;align-items:center;margin-top:4px}
+  .tiers{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1}
+  .tier{border:1px solid var(--card-line);border-radius:11px;padding:8px 11px;background:var(--paper)}
+  .tier b{font:700 17px 'Heebo';display:block}
+  .tier span{font-size:11.5px;color:var(--ink-faint)}
+  .tier.gold-t{border-color:var(--gold);background:linear-gradient(180deg,#fdf6e4,var(--paper))}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{text-align:right;font-size:11.5px;color:var(--ink-faint);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--card-line);letter-spacing:.4px}
+  td{padding:9px 8px;border-bottom:1px solid #f1ead9}
+  tr:hover td{background:#fbf7ec}
+  .st{font:600 11.5px 'Heebo';border-radius:99px;padding:2px 10px}
+  .st.ok{color:var(--good);background:rgba(74,112,49,.1)}
+  .st.wait{color:var(--gold-deep);background:var(--gold-soft)}
+  .avatar{width:26px;height:26px;border-radius:50%;background:var(--night);color:var(--gold);display:inline-flex;align-items:center;justify-content:center;font:700 12px 'Heebo';margin-inline-end:8px;vertical-align:middle}
+
+  footer{margin-top:22px;color:var(--ink-faint);font-size:12px;text-align:center}
+
+  @media (max-width:760px){
+    .shell{flex-direction:column}
+    nav{flex-direction:row;width:100%;height:auto;position:fixed;bottom:0;z-index:9;padding:7px 6px;gap:0;overflow-x:auto;align-items:center}
+    nav .brand,nav .glow,nav .sp,nav .k{display:none}
+    nav a{flex-direction:column;gap:2px;font-size:10.5px;padding:6px 9px;white-space:nowrap}
+    main{padding:16px 14px 96px}
+    .hero{padding:20px 18px}
+    .hero h1{font-size:25px}
+    .tiles{grid-template-columns:1fr 1fr;gap:10px}
+    .cols{grid-template-columns:1fr}
+    .acts .btn{font-size:12.5px;padding:7px 11px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav>
+    <div class="brand">מאור החסד<small>מ ע ר כ ת &nbsp; נ י ה ו ל</small></div>
+    <div class="glow"></div>
+    <a class="on" href="#">🏠 בית</a>
+    <a href="#">👨‍👩‍👧‍👦 משפחות</a>
+    <a href="#">🎨 חוגים</a>
+    <a href="#">📅 לוח שנה</a>
+    <a href="#">📖 יומן חדרים</a>
+    <a href="#">💛 תורמים</a>
+    <a href="#">📊 דוחות</a>
+    <a href="#">⚙️ הגדרות</a>
+    <div class="sp"></div>
+    <div class="k">🔍 חיפוש מהיר <b>Ctrl K</b></div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <h1>בוקר טוב, מאור החסד</h1>
+      <div class="date">יום שני, <b>ו׳ באב תשפ״ו</b> · 20/07/2026 &nbsp;·&nbsp; היום: 3 מפגשי חוגים · 2 ימי הולדת · יעד קשר אחד</div>
+      <div class="acts">
+        <button class="btn gold">+ משפחה חדשה</button>
+        <button class="btn">✓ ניקוב מהיר</button>
+        <button class="btn">🎂 מי חוגג השבוע?</button>
+        <button class="btn">📖 יומן חדרים</button>
+        <button class="btn">📊 דוחות</button>
+      </div>
+    </section>
+
+    <section class="tiles">
+      <div class="tile"><div class="l">משפחות פעילות</div><div class="v num">128</div><div class="s"><span class="up">‎+3</span> החודש · 6 ממתינות</div></div>
+      <div class="tile"><div class="l">ילדים בחוגים</div><div class="v num">214</div><div class="s">ב-17 חוגים פעילים</div></div>
+      <div class="tile"><div class="l">גבייה החודש</div><div class="v num">₪18,420</div><div class="s">יתרות פתוחות: <b class="num">₪2,150</b></div></div>
+      <div class="tile"><div class="l">תרומות החודש</div><div class="v num">₪42,600</div><div class="s">מ-11 תורמים · <span class="up">‎+₪6,000</span></div></div>
+    </section>
+
+    <section class="carousel">
+      <div class="ico">🎂</div>
+      <div class="t"><b>רומי כהן חוגגת היום 9</b><span>חוג ציור · קבוצה א׳ — אולי לברך בתחילת המפגש?</span></div>
+      <div class="dots"><i class="on"></i><i></i><i></i><i></i></div>
+    </section>
+
+    <div class="cols">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <h2>☀️ היום · יום שני <span class="chip">ו׳ באב</span></h2>
+          <div class="row"><div class="time num">16:00</div><div class="what"><b>ציור — קבוצה א׳</b><span>אולם ראשי · המורה תמר · 12 רשומות</span></div><div class="go">נוכחות ←</div></div>
+          <div class="row"><div class="time num">17:00</div><div class="what"><b>פיתוח קול</b><span>חדר 2 · המורה ליאה · 8 רשומות</span></div><div class="go">נוכחות ←</div></div>
+          <div class="row"><div class="time num">18:30</div><div class="what"><b>התעמלות נשים</b><span>אולם ראשי · 15 רשומות</span></div><div class="go">נוכחות ←</div></div>
+          <div class="row"><div class="time num">20:00</div><div class="what"><b>📞 יעד קשר — גב׳ פרידמן (תורמת)</b><span>לתאם ביקור · 052-000-0000</span></div><div class="go">בוצע ✓</div></div>
+        </div>
+
+        <div class="card">
+          <h2>👨‍👩‍👧‍👦 משפחות אחרונות</h2>
+          <table>
+            <tr><th>משפחה</th><th>עיר</th><th>ילדים</th><th>סטטוס</th><th>הצטרפה</th></tr>
+            <tr><td><span class="avatar">א</span>אברמוב</td><td>בני ברק</td><td class="num">4</td><td><span class="st ok">פעילה</span></td><td class="num">18/07</td></tr>
+            <tr><td><span class="avatar">מ</span>מזרחי</td><td>ירושלים</td><td class="num">2</td><td><span class="st wait">ממתינה</span></td><td class="num">17/07</td></tr>
+            <tr><td><span class="avatar">ש</span>שרעבי</td><td>בני ברק</td><td class="num">5</td><td><span class="st ok">פעילה</span></td><td class="num">15/07</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <h2>🔔 דורש טיפול <span class="chip">5</span></h2>
+          <div class="att crit"><div class="dot"></div><div><b>משפחת לוי — יתרת חוב ₪450</b><span class="tag">עבר יעד</span><span>תאריך היעד היה 15/07 · חוג כינור</span></div></div>
+          <div class="att crit"><div class="dot"></div><div><b>אזכרה — משפחת גולדשטיין</b><span class="tag">מחר</span><span>ז׳ באב · לוודא עם המשפחה</span></div></div>
+          <div class="att warn"><div class="dot"></div><div><b>הכרטיסייה של אגם פרץ מסתיימת</b><span class="tag">נותר 1</span><span>אפייה · להציע חידוש בהגעה הבאה</span></div></div>
+          <div class="att warn"><div class="dot"></div><div><b>6 משפחות ממתינות לאישור</b><span>הוותיקה שבהן — 12 יום</span></div></div>
+          <div class="att warn"><div class="dot"></div><div><b>חוג גיטרה כמעט מלא</b><span class="tag num">11/12</span><span>לשקול פתיחת קבוצה ב׳</span></div></div>
+        </div>
+
+        <div class="card">
+          <h2>🤝 אמינות קהילתית</h2>
+          <div class="gaugebox">
+            <svg width="118" height="76" viewBox="0 0 118 76" aria-label="ממוצע אמינות 720 מתוך 1000">
+              <path d="M 10 68 A 49 49 0 0 1 108 68" fill="none" stroke="#ece3d0" stroke-width="9" stroke-linecap="round"/>
+              <path d="M 10 68 A 49 49 0 0 1 108 68" fill="none" stroke="#f3c76b" stroke-width="9" stroke-linecap="round" stroke-dasharray="111 154" />
+              <text x="59" y="58" text-anchor="middle" font-family="Heebo" font-weight="700" font-size="21" fill="#241f18">720</text>
+              <text x="59" y="72" text-anchor="middle" font-family="Heebo" font-size="10" fill="#94886f">ממוצע / 1000</text>
+            </svg>
+            <div class="tiers">
+              <div class="tier gold-t"><b class="num">42</b><span>🦁 דרגת אריה</span></div>
+              <div class="tier"><b class="num">61</b><span>💪 דרגת איתן</span></div>
+              <div class="tier"><b class="num">18</b><span>🌱 יציב</span></div>
+              <div class="tier"><b class="num">7</b><span>⚠️ בסיכון</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>הדמיית עיצוב · קונספט «אור ראשון» · מאור החסד v3 — הנתונים להמחשה בלבד</footer>
+  </main>
+</div>
+</body>
+</html>

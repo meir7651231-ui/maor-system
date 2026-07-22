@@ -1,0 +1,361 @@
+/* ערכות נושא — דריסת משתני העיצוב לפי :root[data-theme="..."].
+ * ברירת המחדל (אור ראשון) מוגדרת ב-global.css; קובץ זה נטען לפניו
+ * כדי שמצב ניגודיות גבוהה (data-contrast) ינצח כל ערכה.
+ * כל הערכים המספריים כאן חולצו אחד-לאחד מהמוקאפים המאושרים
+ * (mock-or-rishon / mock-heichal / mock-tsohar / mock-kehila).
+ * דריסת צבע ארגונית: --accent נקבע inline על documentElement (lib/config.ts)
+ * ולכן גובר על כל ערכה — --nav-active-bg ו---primary-* נגזרים ממנו.
+ */
+
+/* ── משתני מסך הבית והכרום — fallback גלובלי = ערכת "אור ראשון" ──
+ * הקובץ הזה נטען לפני global.css, אבל המשתנים האלה מוגדרים רק כאן,
+ * ולכן ה-fallback שורד; כל ערכה דורסת אותם בבלוק שלה למטה. */
+:root {
+  /* hero במוקאפ אור ראשון: כרטיס שמנת עם זוהר זהב רדיאלי בפינה העליונה */
+  --hero-bg:
+    radial-gradient(
+      420px 190px at 88% -30%,
+      rgba(243, 199, 107, 0.34),
+      transparent 70%
+    ),
+    radial-gradient(
+      300px 150px at 65% -20%,
+      rgba(249, 229, 187, 0.5),
+      transparent 70%
+    ),
+    #fffdf8;
+  --hero-ink: #241f18;
+  --hero-ink-soft: #57503f;
+  --hero-btn-bg: #fffdf8;
+  --hero-btn-ink: #57503f;
+  --hero-btn-line: #e7dfd0;
+  --stat-tint: #f9e5bb;
+  --stat-bar: #ece3d0;
+  --spark-hot: #a05008;
+  --bday-bg: linear-gradient(270deg, #f9e5bb, #fffdf8 55%);
+  --bday-ink: #241f18;
+  --bday-ink-soft: #57503f;
+  --bday-cta-bg: #a05008;
+  /* ── כרום הסרגל העליון (מובייל באור ראשון: זהות ה"לילה" של סרגל-הצד) ── */
+  --nav2-bg: #211d17;
+  --nav2-ink: #efe7d6;
+  --nav2-ink-soft: #cfc4ac;
+  --nav2-hover-bg: rgba(243, 199, 107, 0.09);
+  --nav2-active-bg: #f3c76b;
+  --nav2-active-ink: #211d17;
+  --nav2-line: #3a332a;
+  /* טיפוגרפיה: גוף Heebo, כותרות תצוגה Frank Ruhl Libre (המוקאפ), מספרי נתונים Heebo */
+  --font-body:
+    "Heebo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display:
+    "Frank Ruhl Libre", "David", "Noto Serif Hebrew", "Times New Roman", serif;
+  --font-stat: var(--font-body);
+  --page-bg: var(--bg);
+  --card-bg: var(--panel);
+  --panel-line: var(--line);
+  /* ── שלד סרגל-צד — אור ראשון: פס "לילה" רחב; צֹהַר: רצועת אייקונים לבנה ── */
+  --side-bg: linear-gradient(180deg, #211d17 0%, #2c261e 100%);
+  --side-ink: #efe7d6;
+  --side-ink-soft: #cfc4ac;
+  --side-hover-bg: rgba(243, 199, 107, 0.09);
+  --side-active-bg: #f3c76b;
+  --side-active-ink: #211d17;
+  --side-line: #3a332a;
+}
+
+/* ── אור ראשון — שמנת, ענבר וזהב (mock-or-rishon: נייר חם + סרגל-צד לילה) ── */
+:root[data-theme="or-rishon"] {
+  --hero-bg:
+    radial-gradient(
+      420px 190px at 88% -30%,
+      rgba(243, 199, 107, 0.34),
+      transparent 70%
+    ),
+    radial-gradient(
+      300px 150px at 65% -20%,
+      rgba(249, 229, 187, 0.5),
+      transparent 70%
+    ),
+    #fffdf8;
+  --hero-ink: #241f18;
+  --hero-ink-soft: #57503f;
+  --hero-btn-bg: #fffdf8;
+  --hero-btn-ink: #57503f;
+  --hero-btn-line: #e7dfd0;
+  --stat-tint: #f9e5bb;
+  --stat-bar: #ece3d0;
+  --spark-hot: #a05008;
+  --bday-bg: linear-gradient(270deg, #f9e5bb, #fffdf8 55%);
+  --bday-ink: #241f18;
+  --bday-ink-soft: #57503f;
+  --bday-cta-bg: #a05008;
+  --bg: #f6f3ec;
+  --panel: #fffdf8;
+  --ink: #241f18;
+  --ink-soft: #57503f;
+  --ink-faint: #94886f;
+  --line: #e7dfd0;
+  --line-soft: #f1ead9;
+  --hover-bg: #fbf7ec;
+  --accent: #f3c76b;
+  --accent-deep: #a05008;
+  --dark: #211d17;
+  --green: #4a7031;
+  --red: #a8321e;
+  --orange: #a05008;
+  --nav-bg: #211d17;
+  --nav-ink: #f7f3ea;
+  --nav-ink-soft: #d9d2c4;
+  --nav-hover-bg: rgba(243, 199, 107, 0.12);
+  --nav-active-bg: var(--accent);
+  --nav-active-ink: #211d17;
+  --primary-bg: #211d17;
+  --primary-ink: var(--accent);
+  --primary-hover-bg: #35302a;
+  --toast-bg: #211d17;
+  --toast-ink: #f7f3ea;
+  --error-bg: #fdecea;
+  --overlay: rgba(33, 29, 23, 0.45);
+  --overlay-soft: rgba(33, 29, 23, 0.35);
+  --radius: 14px;
+  --shadow:
+    0 1px 3px rgba(36, 31, 24, 0.07), 0 8px 24px -18px rgba(36, 31, 24, 0.25);
+  --shadow-lift: 0 6px 24px rgba(33, 29, 23, 0.14);
+  --nav2-bg: #211d17;
+  --nav2-ink: #efe7d6;
+  --nav2-ink-soft: #cfc4ac;
+  --nav2-hover-bg: rgba(243, 199, 107, 0.09);
+  --nav2-active-bg: #f3c76b;
+  --nav2-active-ink: #211d17;
+  --nav2-line: #3a332a;
+  --font-body:
+    "Heebo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display:
+    "Frank Ruhl Libre", "David", "Noto Serif Hebrew", "Times New Roman", serif;
+  --font-stat: var(--font-body);
+  --page-bg: var(--bg);
+  --card-bg: var(--panel);
+  --panel-line: var(--line);
+  --side-bg: linear-gradient(180deg, #211d17 0%, #2c261e 100%);
+  --side-ink: #efe7d6;
+  --side-ink-soft: #cfc4ac;
+  --side-hover-bg: rgba(243, 199, 107, 0.09);
+  --side-active-bg: #f3c76b;
+  --side-active-ink: #211d17;
+  --side-line: #3a332a;
+}
+
+/* ── היכל — כהה ויוקרתי: זהב על שחור-חום, קווי שיער מוזהבים (mock-heichal) ── */
+:root[data-theme="heichal"] {
+  /* ה"כתר" במוקאפ אינו כרטיס — global.css מרוקן את הרקע; הערך כאן ל-fallback בלבד */
+  --hero-bg: transparent;
+  --hero-ink: #f7dfa8;
+  --hero-ink-soft: #c4b795;
+  --hero-btn-bg: transparent;
+  --hero-btn-ink: #e9bd63;
+  --hero-btn-line: #8a6c2f;
+  --stat-tint: rgba(233, 189, 99, 0.14);
+  --stat-bar: #2a2517;
+  --spark-hot: #e9bd63;
+  --bday-bg: linear-gradient(120deg, #2d1e26 0%, #33270f 100%);
+  --bday-ink: #f3c9dd;
+  --bday-ink-soft: #c4b795;
+  --bday-cta-bg: #8a6c2f;
+  --bg: #12100c;
+  --page-bg: radial-gradient(1200px 500px at 50% -200px, #241f15, #12100c) fixed;
+  --panel: #1b1812;
+  --card-bg: linear-gradient(180deg, #221e16, #1b1812);
+  --ink: #f2ead8;
+  --ink-soft: #c4b795;
+  --ink-faint: #847a61;
+  --line: #332d21;
+  --line-soft: #262115;
+  --hover-bg: #221e16;
+  --accent: #e9bd63;
+  --accent-deep: #d9a84e;
+  --dark: #453a24;
+  --green: #9dc472;
+  --red: #e58a75;
+  --orange: #e2a85c;
+  --nav-bg: #0b0906;
+  --nav-ink: #f2ead8;
+  --nav-ink-soft: #a89b7f;
+  --nav-hover-bg: rgba(233, 189, 99, 0.12);
+  --nav-active-bg: var(--accent);
+  --nav-active-ink: #12100c;
+  --primary-bg: var(--accent);
+  --primary-ink: #1b1509;
+  --primary-hover-bg: #f0cc7f;
+  --toast-bg: #2c2618;
+  --toast-ink: #f2ead8;
+  --error-bg: #3c211d;
+  --overlay: rgba(0, 0, 0, 0.6);
+  --overlay-soft: rgba(0, 0, 0, 0.5);
+  --radius: 16px;
+  --shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  --shadow-lift: 0 6px 24px rgba(0, 0, 0, 0.6);
+  /* כרום: הניווט "צף" על הקנבס הכהה; הקו מתחת לסרגל = חום-זהב עמום כמו במוקאפ */
+  --nav2-bg: #12100c;
+  --nav2-ink: #f2ead8;
+  --nav2-ink-soft: #c4b795;
+  --nav2-hover-bg: rgba(233, 189, 99, 0.1);
+  --nav2-active-bg: linear-gradient(180deg, #2c2618, #241f14);
+  --nav2-active-ink: #f7dfa8;
+  --nav2-line: #332d21;
+  --font-body:
+    "Heebo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display:
+    "Frank Ruhl Libre", "David", "Noto Serif Hebrew", "Times New Roman", serif;
+  /* מספרי הנתונים ברצועה — סריף חגיגי כמו במוקאפ (kpi .v) */
+  --font-stat:
+    "Frank Ruhl Libre", "David", "Noto Serif Hebrew", "Times New Roman", serif;
+  --panel-line: #332d21;
+  --side-bg: #0b0906;
+  --side-ink: #f2ead8;
+  --side-ink-soft: #b5a884;
+  --side-hover-bg: rgba(233, 189, 99, 0.1);
+  --side-active-bg: rgba(233, 189, 99, 0.16);
+  --side-active-ink: #e9bd63;
+  --side-line: #332d21;
+}
+
+/* ── צֹהַר — SaaS בהיר ונקי: לבן, אפור חם וטורקיז (mock-tsohar) ── */
+:root[data-theme="tsohar"] {
+  /* במוקאפ אין באנר — הברכה יושבת ישירות על רקע הדף (global.css מרוקן את הכרטיס) */
+  --hero-bg: transparent;
+  --hero-ink: #1c1a17;
+  --hero-ink-soft: #98918a;
+  --hero-btn-bg: #ffffff;
+  --hero-btn-ink: #55504a;
+  --hero-btn-line: #e8e4dc;
+  --stat-tint: #e2f1ee;
+  --stat-bar: #e2f1ee;
+  --spark-hot: #0e7a6c;
+  --bday-bg: linear-gradient(120deg, #fdeff5 0%, #fff7ee 100%);
+  --bday-ink: #a81c5f;
+  --bday-ink-soft: #6b6459;
+  --bday-cta-bg: #a81c5f;
+  --bg: #faf9f7;
+  --panel: #ffffff;
+  --ink: #1c1a17;
+  --ink-soft: #55504a;
+  --ink-faint: #98918a;
+  --line: #e8e4dc;
+  --line-soft: #f1eee8;
+  --hover-bg: #fbfaf7;
+  --accent: #0e7a6c;
+  --accent-deep: #0a5d53;
+  --dark: #1c1a17;
+  --green: #3e7d2e;
+  --red: #b3362a;
+  --orange: #a1620a;
+  --nav-bg: #ffffff;
+  --nav-ink: #1c1a17;
+  --nav-ink-soft: #5f594f;
+  --nav-hover-bg: rgba(14, 122, 108, 0.08);
+  --nav-active-bg: var(--accent);
+  --nav-active-ink: #ffffff;
+  --primary-bg: var(--accent);
+  --primary-ink: #ffffff;
+  --primary-hover-bg: var(--accent-deep);
+  --toast-bg: #1c1a17;
+  --toast-ink: #faf9f7;
+  --error-bg: #fdecea;
+  --overlay: rgba(28, 26, 23, 0.4);
+  --overlay-soft: rgba(28, 26, 23, 0.3);
+  --radius: 14px;
+  --shadow: 0 1px 3px rgba(28, 26, 23, 0.07);
+  --shadow-lift: 0 6px 24px rgba(28, 26, 23, 0.12);
+  /* כרום סרגל עליון (מובייל): רצועה לבנה נקייה, גלולה פעילה בטורקיז רך */
+  --nav2-bg: #ffffff;
+  --nav2-ink: #1c1a17;
+  --nav2-ink-soft: #55504a;
+  --nav2-hover-bg: #f1eee8;
+  --nav2-active-bg: #e2f1ee;
+  --nav2-active-ink: #0a5d53;
+  --nav2-line: #e8e4dc;
+  --font-body:
+    "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display:
+    "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-stat: var(--font-body);
+  --page-bg: var(--bg);
+  --card-bg: var(--panel);
+  --panel-line: var(--line);
+  /* שלד סרגל-הצד: רצועה לבנה 64px, פעיל = ריבוע טורקיז רך + טבעת פנימית (מוקאפ) */
+  --side-bg: #ffffff;
+  --side-ink: #0a5d53;
+  --side-ink-soft: #98918a;
+  --side-hover-bg: #f1eee8;
+  --side-active-bg: #e2f1ee;
+  --side-active-ink: #0a5d53;
+  --side-line: #e8e4dc;
+}
+
+/* ── קהילה — חם ומשחקי: שמנת חמה, טורקיז ופינות מעוגלות (mock-kehila) ── */
+:root[data-theme="kehila"] {
+  --hero-bg: linear-gradient(135deg, #178f80, #1da28f 55%, #3fb3a0);
+  --hero-ink: #ffffff;
+  --hero-ink-soft: rgba(255, 255, 255, 0.9);
+  --hero-btn-bg: rgba(255, 255, 255, 0.16);
+  --hero-btn-ink: #ffffff;
+  --hero-btn-line: rgba(255, 255, 255, 0.42);
+  --stat-tint: #e0f3f0;
+  --stat-bar: #e0f3f0;
+  --spark-hot: #178f80;
+  --bday-bg: linear-gradient(135deg, #fdf1d7, #ffffff);
+  --bday-ink: #2b2620;
+  --bday-ink-soft: #6b6152;
+  --bday-cta-bg: #f0a92e;
+  --bg: #fdf8ef;
+  --panel: #ffffff;
+  --ink: #2b2620;
+  --ink-soft: #6b6152;
+  --ink-faint: #a2957e;
+  --line: #efe5d3;
+  --line-soft: #f4ecdd;
+  --hover-bg: #faf4e6;
+  --accent: #178f80;
+  --accent-deep: #0e6f63;
+  --dark: #14554d;
+  --nav-bg: linear-gradient(180deg, #1a9c8b 0%, #0e6f63 100%);
+  --nav-ink: #ffffff;
+  --nav-ink-soft: #cdeae6;
+  --nav-hover-bg: rgba(255, 255, 255, 0.14);
+  --nav-active-bg: #ffffff;
+  --nav-active-ink: #178f80;
+  --primary-bg: var(--accent);
+  --primary-ink: #ffffff;
+  --primary-hover-bg: var(--accent-deep);
+  --toast-bg: #14554d;
+  --toast-ink: #ffffff;
+  --error-bg: #fdecea;
+  --overlay: rgba(20, 85, 77, 0.4);
+  --overlay-soft: rgba(20, 85, 77, 0.3);
+  --radius: 20px;
+  --shadow: 0 2px 14px -8px rgba(43, 38, 32, 0.22);
+  --shadow-lift: 0 10px 30px -12px rgba(43, 38, 32, 0.35);
+  /* כרום: הרצועה העליונה היא ראש הבאנר הטורקיזי — הקישורים בגלולה שקופה */
+  --nav2-bg: linear-gradient(135deg, #178f80, #1da28f 130%);
+  --nav2-ink: #ffffff;
+  --nav2-ink-soft: #eafaf7;
+  --nav2-hover-bg: rgba(255, 255, 255, 0.16);
+  --nav2-active-bg: #ffffff;
+  --nav2-active-ink: #178f80;
+  --nav2-line: rgba(255, 255, 255, 0.001);
+  --font-body:
+    "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Suez One", "David", "Noto Serif Hebrew", serif;
+  --font-stat: "Suez One", "David", "Noto Serif Hebrew", serif;
+  --page-bg: var(--bg);
+  --card-bg: var(--panel);
+  /* הכרטיסים במוקאפ ללא מסגרת — צל רך בלבד */
+  --panel-line: transparent;
+  --side-bg: #ffffff;
+  --side-ink: #2b2620;
+  --side-ink-soft: #6b6152;
+  --side-hover-bg: rgba(23, 143, 128, 0.1);
+  --side-active-bg: #178f80;
+  --side-active-ink: #ffffff;
+  --side-line: #efe5d3;
+}

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>צֹהַר — פלטפורמה לכל עמותה</title>
+<link rel="stylesheet" href="fonts/fonts2-inline.css">
+<style>
+  :root{
+    --bg:#faf9f7; --panel:#ffffff; --line:#e8e4dc; --line-2:#f1eee8;
+    --ink:#1c1a17; --ink-soft:#55504a; --ink-faint:#98918a;
+    --accent:#0e7a6c; --accent-soft:#e2f1ee; --accent-ink:#0a5d53;
+    --good:#3e7d2e; --warn:#a1620a; --crit:#b3362a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font:14.5px/1.5 'Rubik',sans-serif}
+  .num{font-variant-numeric:tabular-nums}
+  .shell{display:flex;min-height:100vh}
+
+  /* icon rail */
+  aside{width:64px;background:var(--panel);border-inline-start:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:6px;flex-shrink:0}
+  aside .logo{width:38px;height:38px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font:800 17px 'Rubik';margin-bottom:10px}
+  aside a{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink-faint);text-decoration:none}
+  aside a.on{background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 1.5px var(--accent)}
+  aside a:hover{background:var(--line-2)}
+  aside .sp{flex:1}
+
+  .body{flex:1;display:flex;flex-direction:column}
+
+  /* command bar */
+  .topbar{display:flex;align-items:center;gap:14px;padding:11px 24px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .org{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14px}
+  .org .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
+  .org small{color:var(--ink-faint);font-weight:400}
+  .cmd{flex:1;max-width:520px;margin:0 auto;border:1.5px solid var(--line);background:var(--bg);border-radius:11px;padding:8px 14px;color:var(--ink-faint);font-size:13.5px;display:flex;gap:10px;align-items:center}
+  .cmd b{margin-inline-start:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:0 7px;font-weight:500;font-size:12px}
+  .avatar-g{display:flex}
+  .avatar-g i{width:28px;height:28px;border-radius:50%;border:2px solid #fff;background:var(--accent-soft);color:var(--accent-ink);font:600 11px 'Rubik';display:flex;align-items:center;justify-content:center;margin-inline-start:-7px}
+  .live{font-size:11.5px;color:var(--good);background:rgba(62,125,46,.09);border-radius:99px;padding:3px 10px;font-weight:500}
+
+  main{flex:1;padding:22px 26px;max-width:1180px;width:100%;margin:0 auto}
+  .head{display:flex;align-items:baseline;gap:14px;margin-bottom:16px}
+  .head h1{font:600 21px 'Rubik'}
+  .head span{color:var(--ink-faint);font-size:13.5px}
+  .head .btn{margin-inline-start:auto}
+  .btn{border:1.5px solid var(--line);background:var(--panel);border-radius:10px;padding:7px 14px;font:500 13px 'Rubik';cursor:pointer;color:var(--ink-soft)}
+  .btn.p{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .c3{grid-column:span 3}.c4{grid-column:span 4}.c6{grid-column:span 6}.c8{grid-column:span 8}.c12{grid-column:span 12}
+  .kl{font-size:12px;color:var(--ink-faint)}
+  .kv{font:600 26px/1.3 'Rubik';margin-top:1px}
+  .ks{font-size:12px;color:var(--ink-soft);margin-top:1px}
+  .ks .up{color:var(--good);font-weight:500}
+  .spark{margin-top:8px;height:26px;display:flex;align-items:flex-end;gap:3px}
+  .spark i{flex:1;background:var(--accent-soft);border-radius:3px 3px 0 0}
+  .spark i.hot{background:var(--accent)}
+
+  .card h2{font:600 14.5px 'Rubik';margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .card h2 .all{margin-inline-start:auto;font:500 12px 'Rubik';color:var(--accent-ink);cursor:pointer}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:right;font-size:11px;color:var(--ink-faint);font-weight:500;padding:5px 8px;border-bottom:1px solid var(--line);letter-spacing:.4px}
+  td{padding:8px;border-bottom:1px solid var(--line-2)}
+  tr:hover td{background:#fbfaf7}
+  .pill{font:500 11px 'Rubik';border-radius:99px;padding:2px 9px}
+  .pill.ok{color:var(--good);background:rgba(62,125,46,.09)}
+  .pill.warn{color:var(--warn);background:rgba(161,98,10,.1)}
+  .pill.crit{color:var(--crit);background:rgba(179,54,42,.09)}
+
+  /* white-label strip */
+  .platform{background:linear-gradient(180deg,#f4f2ed,var(--panel));border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .platform h2{font:600 14.5px 'Rubik';margin-bottom:3px}
+  .platform p{font-size:12.5px;color:var(--ink-soft);margin-bottom:12px}
+  .themes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .theme{border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;cursor:pointer}
+  .theme.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .theme .strip{height:34px;display:flex;align-items:center;padding:0 10px;gap:6px;color:#fff;font:600 11.5px 'Rubik'}
+  .theme .strip i{width:14px;height:14px;border-radius:4px;background:rgba(255,255,255,.35)}
+  .theme .mini{padding:8px 10px;font-size:10.5px;color:var(--ink-faint)}
+  .theme .mini b{display:block;color:var(--ink);font-size:11.5px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside>
+    <div class="logo">צ</div>
+    <a class="on" href="#" title="בית">🏠</a>
+    <a href="#" title="משפחות">👥</a>
+    <a href="#" title="חוגים">🎨</a>
+    <a href="#" title="לוח">📅</a>
+    <a href="#" title="יומן">📖</a>
+    <a href="#" title="תורמים">💛</a>
+    <a href="#" title="דוחות">📊</a>
+    <div class="sp"></div>
+    <a href="#" title="הגדרות">⚙️</a>
+  </aside>
+
+  <div class="body">
+    <div class="topbar">
+      <div class="org"><span class="dot"></span>מאור החסד <small>· בני ברק</small></div>
+      <div class="cmd">🔍 חיפוש או פקודה — משפחה, חוג, תורם, דוח… <b>Ctrl K</b></div>
+      <span class="live">● 4 מחוברות כעת</span>
+      <div class="avatar-g"><i>רב</i><i>שר</i><i>ת</i><i>+2</i></div>
+    </div>
+
+    <main>
+      <div class="head">
+        <h1>בוקר טוב 👋</h1>
+        <span>יום שני · ו׳ באב תשפ״ו · 20/07/2026</span>
+        <button class="btn p">+ משפחה חדשה</button>
+        <button class="btn">ניקוב מהיר</button>
+      </div>
+
+      <div class="grid">
+        <div class="card c3"><div class="kl">משפחות פעילות</div><div class="kv num">128</div><div class="ks"><span class="up">‎+3</span> החודש</div>
+          <div class="spark"><i style="height:35%"></i><i style="height:45%"></i><i style="height:40%"></i><i style="height:55%"></i><i style="height:60%"></i><i style="height:58%"></i><i class="hot" style="height:72%"></i></div></div>
+        <div class="card c3"><div class="kl">ילדים בחוגים</div><div class="kv num">214</div><div class="ks">ב-17 חוגים</div>
+          <div class="spark"><i style="height:50%"></i><i style="height:52%"></i><i style="height:60%"></i><i style="height:57%"></i><i style="height:65%"></i><i style="height:70%"></i><i class="hot" style="height:74%"></i></div></div>
+        <div class="card c3"><div class="kl">גבייה החודש</div><div class="kv num">₪18,420</div><div class="ks">פתוח: ₪2,150</div>
+          <div class="spark"><i style="height:30%"></i><i style="height:42%"></i><i style="height:38%"></i><i style="height:55%"></i><i style="height:48%"></i><i style="height:66%"></i><i class="hot" style="height:80%"></i></div></div>
+        <div class="card c3"><div class="kl">תרומות החודש</div><div class="kv num">₪42,600</div><div class="ks"><span class="up">‎+₪6,000</span> · 11 תורמים</div>
+          <div class="spark"><i style="height:25%"></i><i style="height:60%"></i><i style="height:35%"></i><i style="height:45%"></i><i style="height:75%"></i><i style="height:50%"></i><i class="hot" style="height:88%"></i></div></div>
+
+        <div class="card c8">
+          <h2>📌 היום במערכת <span class="all">ללוח המלא ←</span></h2>
+          <table>
+            <tr><th>שעה</th><th>מה</th><th>איפה</th><th>רשומות</th><th>סטטוס</th><th></th></tr>
+            <tr><td class="num">16:00</td><td><b>ציור — קבוצה א׳</b></td><td>אולם ראשי</td><td class="num">12</td><td><span class="pill ok">מאושר</span></td><td style="color:var(--accent-ink);font-weight:500">נוכחות ←</td></tr>
+            <tr><td class="num">17:00</td><td><b>פיתוח קול</b></td><td>חדר 2</td><td class="num">8</td><td><span class="pill ok">מאושר</span></td><td style="color:var(--accent-ink);font-weight:500">נוכחות ←</td></tr>
+            <tr><td class="num">18:30</td><td><b>התעמלות נשים</b></td><td>אולם ראשי</td><td class="num">15</td><td><span class="pill warn">חדר כמעט מלא</span></td><td style="color:var(--accent-ink);font-weight:500">נוכחות ←</td></tr>
+            <tr><td class="num">20:00</td><td><b>📞 יעד קשר — גב׳ פרידמן</b></td><td>—</td><td>—</td><td><span class="pill warn">ממתין</span></td><td style="color:var(--accent-ink);font-weight:500">בוצע ✓</td></tr>
+          </table>
+        </div>
+
+        <div class="card c4">
+          <h2>🔔 דורש טיפול <span class="all">5</span></h2>
+          <table>
+            <tr><td><b>משפחת לוי</b> — חוב ₪450</td><td style="width:70px"><span class="pill crit">עבר יעד</span></td></tr>
+            <tr><td><b>אזכרה</b> — גולדשטיין, ז׳ באב</td><td><span class="pill crit">מחר</span></td></tr>
+            <tr><td><b>אגם פרץ</b> — כרטיסייה</td><td><span class="pill warn">נותר 1</span></td></tr>
+            <tr><td><b>6 משפחות</b> ממתינות</td><td><span class="pill warn">12 יום</span></td></tr>
+            <tr><td><b>גיטרה</b> כמעט מלא</td><td><span class="pill warn num">11/12</span></td></tr>
+          </table>
+        </div>
+
+        <div class="platform c12">
+          <h2>🏗️ פלטפורמה אחת — אלפי עמותות, כל אחת בצבעים שלה</h2>
+          <p>אותה מערכת בדיוק; כל ארגון בוחר צבע, לוגו ושם — והמערכת כולה מתלבשת עליו. כך זה נראה אצל ארגונים אחרים:</p>
+          <div class="themes">
+            <div class="theme on"><div class="strip" style="background:#0e7a6c"><i></i>מאור החסד</div><div class="mini"><b>ירוק צהר</b>הארגון שלך</div></div>
+            <div class="theme"><div class="strip" style="background:#8a3ffc"><i></i>יד ביד ת״א</div><div class="mini"><b>סגול רויאל</b>ארגון חונכות</div></div>
+            <div class="theme"><div class="strip" style="background:#b3362a"><i></i>לב פתוח</div><div class="mini"><b>אדום שני</b>בית תמחוי</div></div>
+            <div class="theme"><div class="strip" style="background:#1554b0"><i></i>אופק לילדים</div><div class="mini"><b>כחול עומק</b>קרן מלגות</div></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מאור החסד — קונספט «קהילה»</title>
+<link rel="stylesheet" href="fonts/fonts2-inline.css">
+<style>
+  :root{
+    --bg:#fdf8ef; --panel:#ffffff; --line:#efe5d3;
+    --ink:#2b2620; --ink-soft:#6b6152; --ink-faint:#a2957e;
+    --coral:#e8604c; --coral-soft:#fdeae6;
+    --teal:#178f80; --teal-soft:#e0f3f0;
+    --gold:#f0a92e; --gold-soft:#fdf1d7;
+    --plum:#8d5bd4; --plum-soft:#f0e8fb;
+    --r:20px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font:15px/1.55 'Rubik',sans-serif}
+  .num{font-variant-numeric:tabular-nums}
+
+  .top{background:linear-gradient(135deg,#178f80,#1da28f 55%,#3fb3a0);border-radius:0 0 34px 34px;padding:22px 30px 68px;color:#fff;position:relative;overflow:hidden}
+  .top::after{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.08);top:-140px;inset-inline-start:-80px}
+  .top::before{content:'';position:absolute;width:190px;height:190px;border-radius:50%;background:rgba(255,255,255,.07);bottom:-110px;inset-inline-end:120px}
+  .bar{display:flex;align-items:center;gap:18px;position:relative;z-index:1}
+  .bar .brand{font:400 24px 'Suez One',serif}
+  .bar nav{display:flex;gap:2px;background:rgba(255,255,255,.14);border-radius:99px;padding:4px}
+  .bar nav a{color:#eafaf7;text-decoration:none;font-size:13.5px;padding:6px 14px;border-radius:99px;font-weight:500}
+  .bar nav a.on{background:#fff;color:var(--teal)}
+  .bar .srch{margin-inline-start:auto;background:rgba(255,255,255,.16);border-radius:99px;padding:8px 16px;font-size:13px;color:#eafaf7}
+  .hello{position:relative;z-index:1;margin-top:26px}
+  .hello h1{font:400 36px/1.15 'Suez One',serif}
+  .hello p{opacity:.9;margin-top:4px;font-size:14.5px}
+
+  main{max-width:1120px;margin:-44px auto 0;padding:0 26px 56px;position:relative;z-index:2}
+
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+  .tile{background:var(--panel);border-radius:var(--r);padding:16px 18px;box-shadow:0 2px 14px -8px rgba(43,38,32,.25);display:flex;gap:13px;align-items:center}
+  .tile .ic{width:46px;height:46px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+  .tile .v{font:400 25px/1.2 'Suez One'}
+  .tile .l{font-size:12px;color:var(--ink-faint)}
+  .t1 .ic{background:var(--teal-soft)} .t2 .ic{background:var(--gold-soft)}
+  .t3 .ic{background:var(--coral-soft)} .t4 .ic{background:var(--plum-soft)}
+
+  .cols{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;align-items:start}
+  .card{background:var(--panel);border-radius:var(--r);padding:18px 20px;box-shadow:0 2px 14px -8px rgba(43,38,32,.22)}
+  .card h2{font:400 18px 'Suez One';display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .card h2 .cnt{margin-inline-start:auto;font:600 12px 'Rubik';background:var(--coral);color:#fff;border-radius:99px;padding:2px 10px}
+
+  .sess{display:flex;align-items:center;gap:13px;background:var(--bg);border-radius:15px;padding:11px 14px;margin-bottom:9px}
+  .sess:last-child{margin-bottom:0}
+  .sess .tm{font:400 16px 'Suez One';color:var(--teal);background:var(--teal-soft);border-radius:11px;padding:6px 11px}
+  .sess b{font-weight:600;font-size:14.5px}
+  .sess span{display:block;font-size:12.5px;color:var(--ink-faint)}
+  .sess .go{margin-inline-start:auto;background:var(--teal);color:#fff;border:none;border-radius:99px;padding:7px 15px;font:600 12.5px 'Rubik';cursor:pointer}
+
+  .att{display:flex;gap:12px;align-items:center;padding:10px 4px;border-bottom:1.5px dashed var(--line)}
+  .att:last-child{border:none}
+  .att .em{width:38px;height:38px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+  .att.c .em{background:var(--coral-soft)} .att.g .em{background:var(--gold-soft)}
+  .att b{font-size:14px;font-weight:600}
+  .att span{display:block;font-size:12px;color:var(--ink-faint)}
+  .att .act{margin-inline-start:auto;font:600 12px 'Rubik';color:var(--teal);white-space:nowrap;cursor:pointer}
+
+  .bday{background:linear-gradient(135deg,var(--gold-soft),#fff);border-radius:var(--r);padding:16px 20px;box-shadow:0 2px 14px -8px rgba(43,38,32,.22);display:flex;gap:14px;align-items:center;margin-bottom:14px}
+  .bday .cake{font-size:34px}
+  .bday b{font:400 17px 'Suez One'}
+  .bday span{display:block;font-size:13px;color:var(--ink-soft)}
+  .bday .cta{margin-inline-start:auto;background:var(--gold);color:#fff;border:none;border-radius:99px;padding:8px 17px;font:600 13px 'Rubik';cursor:pointer;white-space:nowrap}
+
+  .badges{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+  .badge{background:var(--bg);border-radius:15px;padding:11px 8px;text-align:center}
+  .badge .e{font-size:22px}
+  .badge b{display:block;font:400 16px 'Suez One'}
+  .badge span{font-size:10.5px;color:var(--ink-faint)}
+  .badge.win{background:linear-gradient(180deg,var(--gold-soft),var(--bg));box-shadow:inset 0 0 0 1.5px var(--gold)}
+
+  footer{text-align:center;color:var(--ink-faint);font-size:12px;margin-top:22px}
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="bar">
+      <div class="brand">מאור החסד 🌟</div>
+      <nav><a class="on" href="#">בית</a><a href="#">משפחות</a><a href="#">חוגים</a><a href="#">לוח</a><a href="#">יומן</a><a href="#">תורמים</a><a href="#">דוחות</a></nav>
+      <div class="srch">🔍 חיפוש · Ctrl K</div>
+    </div>
+    <div class="hello">
+      <h1>בוקר טוב! יום שני שמח 🌞</h1>
+      <p>ו׳ באב תשפ״ו · 3 מפגשים היום · 2 ימי הולדת · הקהילה שלך מחכה</p>
+    </div>
+  </div>
+
+  <main>
+    <div class="tiles">
+      <div class="tile t1"><div class="ic">👨‍👩‍👧‍👦</div><div><div class="v num">128</div><div class="l">משפחות פעילות</div></div></div>
+      <div class="tile t2"><div class="ic">🎨</div><div><div class="v num">214</div><div class="l">ילדים בחוגים</div></div></div>
+      <div class="tile t3"><div class="ic">💰</div><div><div class="v num">₪18,420</div><div class="l">גבייה החודש</div></div></div>
+      <div class="tile t4"><div class="ic">💜</div><div><div class="v num">₪42,600</div><div class="l">תרומות החודש</div></div></div>
+    </div>
+
+    <div class="bday">
+      <div class="cake">🎂</div>
+      <div><b>רומי כהן חוגגת היום 9!</b><span>חוג ציור · קבוצה א׳ — היא מגיעה ב-16:00, אולי נפתיע?</span></div>
+      <button class="cta">🎉 לברך במפגש</button>
+    </div>
+
+    <div class="cols">
+      <div class="card">
+        <h2>☀️ המפגשים של היום</h2>
+        <div class="sess"><div class="tm num">16:00</div><div><b>ציור — קבוצה א׳</b><span>אולם ראשי · המורה תמר · 12 ילדות</span></div><button class="go">נוכחות ✓</button></div>
+        <div class="sess"><div class="tm num">17:00</div><div><b>פיתוח קול</b><span>חדר 2 · המורה ליאה · 8 ילדות</span></div><button class="go">נוכחות ✓</button></div>
+        <div class="sess"><div class="tm num">18:30</div><div><b>התעמלות נשים</b><span>אולם ראשי · 15 רשומות</span></div><button class="go">נוכחות ✓</button></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <h2>🔔 שווה לטפל <span class="cnt">5</span></h2>
+          <div class="att c"><div class="em">💳</div><div><b>משפחת לוי — חוב ₪450</b><span>עבר תאריך היעד · חוג כינור</span></div><div class="act">לטפל ←</div></div>
+          <div class="att c"><div class="em">🕯️</div><div><b>אזכרה מחר — גולדשטיין</b><span>ז׳ באב · לוודא עם המשפחה</span></div><div class="act">התקשרי ←</div></div>
+          <div class="att g"><div class="em">🎟️</div><div><b>הכרטיסייה של אגם נגמרת</b><span>נותר ניקוב אחד · אפייה</span></div><div class="act">חידוש ←</div></div>
+          <div class="att g"><div class="em">⏳</div><div><b>6 משפחות ממתינות</b><span>הוותיקה — כבר 12 יום</span></div><div class="act">לאשר ←</div></div>
+        </div>
+
+        <div class="card">
+          <h2>🏅 הקהילה שלנו</h2>
+          <div class="badges">
+            <div class="badge win"><div class="e">🦁</div><b class="num">42</b><span>דרגת אריה</span></div>
+            <div class="badge"><div class="e">💪</div><b class="num">61</b><span>איתן</span></div>
+            <div class="badge"><div class="e">🌱</div><b class="num">18</b><span>יציב</span></div>
+            <div class="badge"><div class="e">🤝</div><b class="num">720</b><span>ממוצע אמינות</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>קונספט «קהילה» · הדמיה — הנתונים להמחשה בלבד</footer>
+  </main>
+</body>
+</html>

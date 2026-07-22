@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מאור החסד — קונספט «היכל»</title>
+<link rel="stylesheet" href="fonts/fonts-inline.css">
+<style>
+  :root{
+    --bg:#12100c; --panel:#1b1812; --panel-2:#221e16; --line:#332d21;
+    --ink:#f2ead8; --ink-soft:#c4b795; --ink-faint:#847a61;
+    --gold:#e9bd63; --gold-hi:#f7dfa8; --gold-dim:#8a6c2f;
+    --good:#9dc472; --crit:#e58a75;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:radial-gradient(1200px 500px at 50% -200px,#241f15,var(--bg));color:var(--ink);font:15px/1.55 'Heebo',sans-serif;min-height:100vh}
+  .num{font-variant-numeric:tabular-nums}
+
+  header{display:flex;align-items:center;gap:26px;padding:16px 34px;border-bottom:1px solid var(--line)}
+  header .brand{font:900 22px 'Frank Ruhl Libre',serif;color:var(--gold-hi)}
+  header .brand em{font-style:normal;color:var(--gold);font-size:12px;display:block;letter-spacing:3px;font-family:'Heebo';font-weight:400}
+  header nav{display:flex;gap:4px}
+  header nav a{color:var(--ink-soft);text-decoration:none;font-size:14px;padding:7px 14px;border-radius:99px}
+  header nav a.on{color:var(--gold-hi);background:linear-gradient(180deg,#2c2618,#241f14);box-shadow:inset 0 0 0 1px var(--gold-dim)}
+  header .search{margin-inline-start:auto;color:var(--ink-faint);font-size:13px;border:1px solid var(--line);border-radius:10px;padding:7px 14px;display:flex;gap:10px;align-items:center}
+  header .search b{background:var(--panel-2);border-radius:5px;padding:0 7px;font-weight:500}
+
+  main{max-width:1150px;margin:0 auto;padding:30px 34px 60px}
+  .crown{text-align:center;margin-bottom:26px}
+  .crown .hairline{width:180px;height:1px;margin:0 auto 18px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+  .crown h1{font:900 34px/1.2 'Frank Ruhl Libre',serif;color:var(--gold-hi);text-shadow:0 0 34px rgba(233,189,99,.25)}
+  .crown p{color:var(--ink-soft);margin-top:6px;font-size:14.5px}
+  .crown p b{color:var(--gold);font-weight:500}
+
+  .band{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:22px}
+  .kpi{background:linear-gradient(180deg,var(--panel-2),var(--panel));padding:18px 20px 15px;text-align:center}
+  .kpi .l{font-size:12px;color:var(--ink-faint);letter-spacing:1px}
+  .kpi .v{font:900 30px/1.3 'Frank Ruhl Libre',serif;color:var(--gold-hi);margin-top:3px}
+  .kpi .s{font-size:12.5px;color:var(--ink-soft)}
+  .kpi .s .up{color:var(--good)}
+
+  .cols{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:start}
+  .card{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:19px 22px}
+  .card h2{font:700 15px 'Heebo';color:var(--gold);letter-spacing:.5px;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .card h2::after{content:'';flex:1;height:1px;background:linear-gradient(270deg,var(--line),transparent)}
+  .card .sub{color:var(--ink-faint);font-size:12.5px;margin-bottom:12px}
+
+  .row{display:flex;align-items:center;gap:14px;padding:11px 2px;border-bottom:1px solid #262115}
+  .row:last-child{border:none}
+  .row .time{font:700 14px 'Heebo';color:var(--gold);min-width:52px}
+  .row .what b{font-weight:600}
+  .row .what span{display:block;font-size:12.5px;color:var(--ink-faint)}
+  .row .go{margin-inline-start:auto;color:var(--gold);font-size:12.5px;border:1px solid var(--gold-dim);border-radius:99px;padding:4px 13px;cursor:pointer}
+  .row .go:hover{background:rgba(233,189,99,.1)}
+
+  .att{display:flex;gap:11px;padding:10px 2px;border-bottom:1px solid #262115;align-items:flex-start}
+  .att:last-child{border:none}
+  .att .flame{font-size:15px;margin-top:1px}
+  .att b{font-weight:600;font-size:14px}
+  .att span{display:block;font-size:12.5px;color:var(--ink-soft)}
+  .att .tag{font:600 11px 'Heebo';color:var(--crit);border:1px solid rgba(229,138,117,.4);border-radius:99px;padding:1px 9px;margin-inline-start:8px;vertical-align:1px}
+  .att.w .tag{color:var(--gold);border-color:var(--gold-dim)}
+
+  .donors{display:flex;flex-direction:column;gap:10px}
+  .donor{display:flex;align-items:center;gap:12px}
+  .donor .m{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#2c2618,#1b1812);border:1px solid var(--gold-dim);color:var(--gold-hi);display:flex;align-items:center;justify-content:center;font:700 14px 'Frank Ruhl Libre'}
+  .donor .t b{font-size:14px}
+  .donor .t span{display:block;font-size:12px;color:var(--ink-faint)}
+  .donor .amt{margin-inline-start:auto;font:900 17px 'Frank Ruhl Libre';color:var(--gold-hi)}
+  .bar{height:3px;border-radius:3px;background:#2a2517;margin-top:5px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(270deg,var(--gold),var(--gold-dim));border-radius:3px}
+
+  footer{text-align:center;color:var(--ink-faint);font-size:12px;margin-top:30px}
+  footer .hairline{width:120px;height:1px;margin:0 auto 12px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent)}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">מאור החסד<em>ה י כ ל</em></div>
+  <nav>
+    <a class="on" href="#">בית</a><a href="#">משפחות</a><a href="#">חוגים</a><a href="#">לוח שנה</a><a href="#">יומן</a><a href="#">תורמים</a><a href="#">דוחות</a>
+  </nav>
+  <div class="search">🔍 חיפוש בכל המערכת <b>Ctrl K</b></div>
+</header>
+<main>
+  <div class="crown">
+    <div class="hairline"></div>
+    <h1>ערב טוב, מאור החסד</h1>
+    <p>יום שני, <b>ו׳ באב תשפ״ו</b> · 20/07/2026 · הערב: מפגש אחד · אזכרה מחר</p>
+  </div>
+
+  <div class="band">
+    <div class="kpi"><div class="l">משפחות</div><div class="v num">128</div><div class="s"><span class="up">‎+3</span> החודש</div></div>
+    <div class="kpi"><div class="l">ילדים בחוגים</div><div class="v num">214</div><div class="s">17 חוגים</div></div>
+    <div class="kpi"><div class="l">גבייה החודש</div><div class="v num">₪18,420</div><div class="s">פתוח: ₪2,150</div></div>
+    <div class="kpi"><div class="l">תרומות השנה</div><div class="v num">₪312,900</div><div class="s"><span class="up">‎+9%</span> משנה שעברה</div></div>
+  </div>
+
+  <div class="cols">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="card">
+        <h2>סדר היום</h2>
+        <div class="sub">יום שני · ו׳ באב · 3 מפגשים ויעד קשר אחד</div>
+        <div class="row"><div class="time num">16:00</div><div class="what"><b>ציור — קבוצה א׳</b><span>אולם ראשי · המורה תמר · 12 רשומות</span></div><div class="go">נוכחות</div></div>
+        <div class="row"><div class="time num">17:00</div><div class="what"><b>פיתוח קול</b><span>חדר 2 · המורה ליאה · 8 רשומות</span></div><div class="go">נוכחות</div></div>
+        <div class="row"><div class="time num">18:30</div><div class="what"><b>התעמלות נשים</b><span>אולם ראשי · 15 רשומות</span></div><div class="go">נוכחות</div></div>
+        <div class="row"><div class="time num">20:00</div><div class="what"><b>📞 גב׳ פרידמן — תורמת</b><span>לתאם ביקור</span></div><div class="go">בוצע</div></div>
+      </div>
+
+      <div class="card">
+        <h2>נר תמיד — דורש טיפול</h2>
+        <div class="sub">5 נושאים פתוחים</div>
+        <div class="att"><div class="flame">🕯️</div><div><b>משפחת לוי — יתרת חוב ₪450</b><span class="tag">עבר יעד</span><span>תאריך היעד היה 15/07 · חוג כינור</span></div></div>
+        <div class="att"><div class="flame">🕯️</div><div><b>אזכרה — משפחת גולדשטיין</b><span class="tag">מחר · ז׳ באב</span><span>לוודא עם המשפחה</span></div></div>
+        <div class="att w"><div class="flame">🕯️</div><div><b>הכרטיסייה של אגם פרץ מסתיימת</b><span class="tag">נותר 1</span><span>אפייה · להציע חידוש</span></div></div>
+        <div class="att w"><div class="flame">🕯️</div><div><b>6 משפחות ממתינות לאישור</b><span>הוותיקה — 12 יום</span></div></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="card">
+        <h2>ספר הזהב · תורמים</h2>
+        <div class="sub">החודש · ₪42,600 מ-11 תורמים</div>
+        <div class="donors">
+          <div class="donor"><div class="m">פ</div><div class="t"><b>משפ׳ פרידמן</b><span>זהב · 14 תרומות</span><div class="bar"><i style="width:88%"></i></div></div><div class="amt num">₪18,000</div></div>
+          <div class="donor"><div class="m">ג</div><div class="t"><b>גולדשטיין ושות׳</b><span>זהב · 9 תרומות</span><div class="bar"><i style="width:64%"></i></div></div><div class="amt num">₪12,500</div></div>
+          <div class="donor"><div class="m">א</div><div class="t"><b>קרן אור-לציון</b><span>כסף · 4 תרומות</span><div class="bar"><i style="width:41%"></i></div></div><div class="amt num">₪8,100</div></div>
+          <div class="donor"><div class="m">ב</div><div class="t"><b>ר׳ ברוכים</b><span>כסף · 6 תרומות</span><div class="bar"><i style="width:22%"></i></div></div><div class="amt num">₪4,000</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>הלוח העברי</h2>
+        <div class="sub">השבוע</div>
+        <div class="row"><div class="time">ז׳ אב</div><div class="what"><b>אזכרה — גולדשטיין</b><span>חוזר מדי שנה בתאריך העברי</span></div></div>
+        <div class="row"><div class="time">ט׳ אב</div><div class="what"><b>תשעה באב</b><span>אין פעילות · צום</span></div></div>
+        <div class="row"><div class="time">ט״ו אב</div><div class="what"><b>ט״ו באב</b><span>אירוע קהילה שנתי 🎉</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer><div class="hairline"></div>קונספט «היכל» · הדמיה — הנתונים להמחשה בלבד</footer>
+</main>
+</body>
+</html>
