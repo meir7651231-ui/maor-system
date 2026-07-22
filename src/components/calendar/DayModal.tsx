@@ -114,6 +114,9 @@ export function DayModal(props: {
         <Btn sm onClick={() => shift(-1)} title="יום קודם">
           › יום קודם
         </Btn>
+        <Btn sm onClick={() => onShift(isoOf(new Date()))} title="חזרה להיום">
+          היום
+        </Btn>
         <Btn sm onClick={() => shift(1)} title="יום הבא">
           יום הבא ‹
         </Btn>

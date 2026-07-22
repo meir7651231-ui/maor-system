@@ -7,7 +7,8 @@ import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
-import { Btn, Chip, Empty, PageHead, TextInput } from '../ui';
+import { Btn, Chip, Empty, PageHead } from '../ui';
+import { HebDateInput } from '../HebDateInput';
 import {
   DAY_NAMES,
   buildSlots,
@@ -122,9 +123,9 @@ export function DiaryView() {
           <Btn sm onClick={() => shiftDay(-1)} title="יום קודם">
             › יום קודם
           </Btn>
-          <div style={{ width: 170 }}>
-            <TextInput
-              type="date"
+          <div style={{ minWidth: 220 }}>
+            {/* קלט תאריך עברי (ראשי) + לועזי — תאריך עברי חובה בכל שדה */}
+            <HebDateInput
               value={date}
               onChange={(v) => {
                 setDate(v || isoToday());
@@ -132,6 +133,9 @@ export function DiaryView() {
               }}
             />
           </div>
+          <Btn sm onClick={() => { setDate(isoToday()); setOpenKey(null); }} title="חזרה להיום">
+            היום
+          </Btn>
           <Btn sm onClick={() => shiftDay(1)} title="יום הבא">
             יום הבא ‹
           </Btn>

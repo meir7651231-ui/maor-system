@@ -7,6 +7,7 @@ import type { Teacher } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { validIsraeliId, normalizePhone } from '../../lib/validate';
 import { Btn, Empty, Field, FormError, Modal, TextInput } from '../ui';
+import { HebDateInput } from '../HebDateInput';
 import { Section, SectionNote } from './lib';
 
 export function TeachersSection() {
@@ -197,7 +198,8 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
           <TextInput value={f.payRate} onChange={(v) => set({ payRate: v })} type="number" dir="ltr" />
         </Field>
         <Field label="תחילת עבודה">
-          <TextInput value={f.startDate} onChange={(v) => set({ startDate: v })} type="date" dir="ltr" />
+          {/* תאריך עברי (ראשי) + לועזי — תאריך עברי חובה בכל שדה */}
+          <HebDateInput value={f.startDate} onChange={(v) => set({ startDate: v })} />
         </Field>
       </div>
       <Field label="הערות">
