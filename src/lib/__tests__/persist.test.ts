@@ -108,4 +108,32 @@ describe('migrate', () => {
     expect(db!.families).toEqual([]);
     expect(db!.events).toEqual([]);
   });
+
+  it('מבטיח מזהי בני-משפחה ייחודיים גלובלית (id כפול בין שתי משפחות)', () => {
+    const db = migrate({
+      v: DB_VERSION,
+      families: [
+        { id: 'f1', name: 'כהן', members: [{ id: 'm1', first: 'רוני' }] },
+        { id: 'f2', name: 'לוי', members: [{ id: 'm1', first: 'דני' }] }, // אותו id!
+      ],
+    })!;
+    const allIds = db.families.flatMap((f) => f.members.map((m) => m.id));
+    expect(new Set(allIds).size).toBe(allIds.length); // אין כפילות גלובלית
+    // ההופעה הראשונה שומרת על id המקורי; השנייה קיבלה id חדש
+    expect(db.families[0].members[0].id).toBe('m1');
+    expect(db.families[1].members[0].id).not.toBe('m1');
+    // השמות נשמרו — לא אבדו נתונים
+    expect(db.families[0].members[0].first).toBe('רוני');
+    expect(db.families[1].members[0].first).toBe('דני');
+  });
+
+  it('בן-משפחה בלי id מקבל id ייחודי (לא ריק, לא מתנגש)', () => {
+    const db = migrate({
+      v: DB_VERSION,
+      families: [{ id: 'f1', name: 'כהן', members: [{ first: 'רוני' }, { first: 'שירה' }] }],
+    })!;
+    const ids = db.families[0].members.map((m) => m.id);
+    expect(ids.every(Boolean)).toBe(true);
+    expect(new Set(ids).size).toBe(2);
+  });
 });

@@ -112,15 +112,36 @@ export function migrate(raw: unknown): Db | null {
   };
   // היגיינה: מזהים חסרים, כפילויות, מערכים חסרים בתוך משפחות
   const seen = new Set<string>();
+  // מזהי בני-משפחה חייבים להיות ייחודיים גלובלית: deleteMember מסנן שיבוצים
+  // לפי memberId על פני כל ה-DB, ולכן id כפול בין שתי משפחות (מיובא/ממוזג)
+  // היה גורם למחיקת בן-משפחה באחת למחוק בטעות את שיבוצי השנייה. משכפלים →
+  // מזהה חדש ייחודי (השיבוצים הדו-משמעיים נשארים על ההופעה הראשונה).
+  const seenMember = new Set<string>();
+  let mSeq = 0;
+  const freshMemberId = (): string => {
+    let id: string;
+    do {
+      id = 'mx' + mSeq++;
+    } while (seenMember.has(id));
+    return id;
+  };
   merged.families = merged.families
     .filter(Boolean)
-    .map((f, i) => ({
-      ...f,
-      id: f.id || 'fx' + i,
-      members: Array.isArray(f.members) ? f.members : [],
-      docs: migrateDocs(f.docs),
-      cred: migrateCred(f.cred),
-    }))
+    .map((f, i) => {
+      const members = (Array.isArray(f.members) ? f.members : []).map((m, j) => {
+        let id = m?.id || 'fm' + i + '_' + j;
+        if (seenMember.has(id)) id = freshMemberId();
+        seenMember.add(id);
+        return { ...m, id };
+      });
+      return {
+        ...f,
+        id: f.id || 'fx' + i,
+        members,
+        docs: migrateDocs(f.docs),
+        cred: migrateCred(f.cred),
+      };
+    })
     .filter((f) => !seen.has(f.id) && !!seen.add(f.id));
   return merged;
 }

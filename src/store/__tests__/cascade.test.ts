@@ -6,7 +6,8 @@
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useApp } from '../useApp';
-import { emptyDb, emptyFamily } from '../../types/domain';
+import { migrate } from '../persist';
+import { emptyDb, emptyFamily, DB_VERSION } from '../../types/domain';
 import type { Course, Db, Enrollment, Family, Member } from '../../types/domain';
 import { enrollCount } from '../../components/courses/lib';
 import { homeStats } from '../../components/home/homeData';
@@ -96,5 +97,30 @@ describe('🧹 מחיקת בן-משפחה — מנקה את שיבוציו בל�
     expect(db().families.find((f) => f.id === 'f1')!.members.length).toBe(0);
     expect(db().enrollments.map((e) => e.id)).toEqual(['e2']);
     expect(enrollCount(db(), 'c1')).toBe(0);
+  });
+});
+
+describe('🛡️ הגנת דליפה חוצה-משפחות: id כפול אחרי migrate לא גורם למחיקה שגויה', () => {
+  it('deleteMember במשפחה השנייה לא מוחק את שיבוץ הראשונה', () => {
+    // migrate מבטיח id ייחודי: לשתי המשפחות היה m1; השנייה קיבלה id חדש
+    const migrated = migrate({
+      v: DB_VERSION,
+      families: [
+        { id: 'f1', name: 'כהן', members: [{ id: 'm1', first: 'רוני' }] },
+        { id: 'f2', name: 'לוי', members: [{ id: 'm1', first: 'דני' }] },
+      ],
+      // השיבוץ מפנה ל-m1 (של המשפחה הראשונה, שנשמר)
+      enrollments: [
+        { id: 'e1', memberId: 'm1', courseId: 'c1', plan: 'monthly', status: 'active',
+          enrolledAt: '2024-02-01', group: '', totalDue: 0, purchased: 0, used: 0,
+          payments: [], absences: [], dueDate: '', note: '' },
+      ],
+    })!;
+    useApp.getState().setDb(() => migrated);
+    const f2mid = db().families[1].members[0].id; // ה-id החדש שהוקצה
+    expect(f2mid).not.toBe('m1');
+    useApp.getState().deleteMember('f2', f2mid);
+    // שיבוץ המשפחה הראשונה שרד — אין דליפה
+    expect(db().enrollments.map((e) => e.id)).toEqual(['e1']);
   });
 });
