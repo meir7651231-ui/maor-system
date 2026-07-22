@@ -32,11 +32,11 @@ function course(id: string, name: string): Course {
     description: '', sector: '',
   } as Course;
 }
-function enr(id: string, memberId: string, courseId: string): Enrollment {
+function enr(id: string, memberId: string, courseId: string, over: Partial<Enrollment> = {}): Enrollment {
   return {
     id, memberId, courseId, plan: 'monthly', purchased: 0, used: 0, group: '',
     absences: [], payments: [], totalDue: 0, dueDate: '', status: 'active', note: '',
-    enrolledAt: '2024-02-01',
+    enrolledAt: '2024-02-01', ...over,
   };
 }
 
@@ -98,6 +98,61 @@ describe('🧹 מחיקת בן-משפחה — מנקה את שיבוציו בל�
     expect(db().families.find((f) => f.id === 'f1')!.members.length).toBe(0);
     expect(db().enrollments.map((e) => e.id)).toEqual(['e2']);
     expect(enrollCount(db(), 'c1')).toBe(0);
+  });
+});
+
+describe('🔔 ניקוי תזכורות יתומות: מחיקת ישות מנקה את אירוע היומן המקושר', () => {
+  const evOf = (id: string, over: Record<string, unknown> = {}) =>
+    ({ id, type: 'reminder', title: 'ת', date: '2026-07-22', time: '', famId: '', done: false,
+      priority: 'orange', customType: '', notes: '', price: 0, roomId: '', ...over }) as unknown as Db['events'][number];
+
+  it('deleteEnrollment מנקה את תזכורת התשלום (dueEventId)', () => {
+    useApp.getState().setDb(() => ({
+      ...emptyDb(),
+      enrollments: [enr('e1', 'm1', 'c1', { dueEventId: 'due1' } as Partial<Enrollment>)],
+      events: [evOf('due1'), evOf('keep')],
+    }));
+    useApp.getState().deleteEnrollment('e1');
+    expect(db().events.map((e) => e.id)).toEqual(['keep']);
+  });
+
+  it('deleteCourse מנקה תזכורות תשלום של כל שיבוציו', () => {
+    useApp.getState().setDb(() => ({
+      ...emptyDb(),
+      courses: [course('c1', 'ציור'), course('c2', 'גיטרה')],
+      enrollments: [
+        enr('e1', 'm1', 'c1', { dueEventId: 'due1' } as Partial<Enrollment>),
+        enr('e2', 'm2', 'c2', { dueEventId: 'due2' } as Partial<Enrollment>),
+      ],
+      events: [evOf('due1'), evOf('due2')],
+    }));
+    useApp.getState().deleteCourse('c1');
+    expect(db().events.map((e) => e.id)).toEqual(['due2']); // due1 נוקה, due2 (חוג אחר) נשאר
+  });
+
+  it('deleteSupporter מנקה את תזכורת יעד-הקשר (nextEventId)', () => {
+    useApp.getState().setDb(() => ({
+      ...emptyDb(),
+      supporters: [
+        { id: 's1', name: 'פרידמן', phone: '', email: '', address: '', idNum: '', cat: '', forWho: '',
+          notes: '', count: 0, ils: 0, usd: 0, first: '', last: '', nextDate: '2026-08-01',
+          nextEventId: 'call1', donations: [] },
+      ] as Db['supporters'],
+      events: [evOf('call1', { type: 'call' }), evOf('keep')],
+    }));
+    useApp.getState().deleteSupporter('s1');
+    expect(db().events.map((e) => e.id)).toEqual(['keep']);
+  });
+
+  it('deleteMember מנקה תזכורות תשלום של שיבוציו', () => {
+    useApp.getState().setDb(() => ({
+      ...emptyDb(),
+      families: [fam('f1', 'כהן', [member('m1', 'רוני')])],
+      enrollments: [enr('e1', 'm1', 'c1', { dueEventId: 'due1' } as Partial<Enrollment>)],
+      events: [evOf('due1')],
+    }));
+    useApp.getState().deleteMember('f1', 'm1');
+    expect(db().events.length).toBe(0);
   });
 });
 

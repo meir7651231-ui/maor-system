@@ -459,12 +459,18 @@ export const useApp = create<AppState>()((set, get) => {
       }));
     },
     deleteMember(famId, memberId) {
-      setDb((db) => ({
-        families: db.families.map((f) =>
-          f.id === famId ? { ...f, members: f.members.filter((m) => m.id !== memberId) } : f,
-        ),
-        enrollments: db.enrollments.filter((e) => e.memberId !== memberId),
-      }));
+      setDb((db) => {
+        const orphanEv = new Set(
+          db.enrollments.filter((e) => e.memberId === memberId).map((e) => e.dueEventId).filter(Boolean),
+        );
+        return {
+          families: db.families.map((f) =>
+            f.id === famId ? { ...f, members: f.members.filter((m) => m.id !== memberId) } : f,
+          ),
+          enrollments: db.enrollments.filter((e) => e.memberId !== memberId),
+          events: db.events.filter((ev) => !orphanEv.has(ev.id)),
+        };
+      });
     },
     addCred(famId, delta, reason) {
       const fam = get().db.families.find((f) => f.id === famId);
@@ -538,16 +544,30 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => ({ courses: upsertIn(db.courses, course) }));
     },
     deleteCourse(id) {
-      setDb((db) => ({
-        courses: db.courses.filter((c) => c.id !== id),
-        enrollments: db.enrollments.filter((e) => e.courseId !== id),
-      }));
+      setDb((db) => {
+        // ניקוי מדורג גם של תזכורות התשלום המקושרות (dueEventId) — אחרת נשארות
+        // תזכורות יתומות בלוח לשיבוצים שנמחקו.
+        const orphanEv = new Set(
+          db.enrollments.filter((e) => e.courseId === id).map((e) => e.dueEventId).filter(Boolean),
+        );
+        return {
+          courses: db.courses.filter((c) => c.id !== id),
+          enrollments: db.enrollments.filter((e) => e.courseId !== id),
+          events: db.events.filter((ev) => !orphanEv.has(ev.id)),
+        };
+      });
     },
     upsertEnrollment(e) {
       setDb((db) => ({ enrollments: upsertIn(db.enrollments, e) }));
     },
     deleteEnrollment(id) {
-      setDb((db) => ({ enrollments: db.enrollments.filter((e) => e.id !== id) }));
+      setDb((db) => {
+        const evId = db.enrollments.find((e) => e.id === id)?.dueEventId;
+        return {
+          enrollments: db.enrollments.filter((e) => e.id !== id),
+          ...(evId ? { events: db.events.filter((ev) => ev.id !== evId) } : {}),
+        };
+      });
     },
     punch(enrollmentId) {
       setDb((db) => ({
@@ -598,7 +618,15 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => ({ supporters: upsertIn(db.supporters, s) }));
     },
     deleteSupporter(id) {
-      setDb((db) => ({ supporters: db.supporters.filter((s) => s.id !== id) }));
+      setDb((db) => {
+        // ניקוי מדורג של תזכורת "יעד קשר" המקושרת (nextEventId) — אחרת נשארת
+        // תזכורת יתומה בלוח לתומכ/ת שנמחק/ה.
+        const evId = db.supporters.find((s) => s.id === id)?.nextEventId;
+        return {
+          supporters: db.supporters.filter((s) => s.id !== id),
+          ...(evId ? { events: db.events.filter((ev) => ev.id !== evId) } : {}),
+        };
+      });
     },
     addDonation(supporterId, donation) {
       const rid = 'D-' + get().db.seq;
