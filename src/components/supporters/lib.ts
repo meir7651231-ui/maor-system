@@ -5,6 +5,7 @@
 import type { CSSProperties } from 'react';
 import type { Supporter } from '../../types/domain';
 import { normSearch } from '../../lib/validate';
+import { isoToday as isoTodayLocal } from '../../lib/date-util';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
@@ -15,7 +16,7 @@ export function fmtDate(iso: string): string {
 }
 
 export function isoToday(): string {
-  return new Date().toISOString().slice(0, 10);
+  return isoTodayLocal();
 }
 
 /** שווי כולל בש"ח — דולר לפי שער 3.7 (כמו במקור). */

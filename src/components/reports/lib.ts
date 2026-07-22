@@ -2,6 +2,7 @@
 
 import type { Db, Enrollment } from '../../types/domain';
 import { allMembers, type MemberWithFamily } from '../../store/useApp';
+import { isoToday as isoTodayLocal } from '../../lib/date-util';
 
 /** טווח תאריכים — ISO או '' (ללא גבול). */
 export interface DateRange {
@@ -10,7 +11,7 @@ export interface DateRange {
 }
 
 export function isoToday(): string {
-  return new Date().toISOString().slice(0, 10);
+  return isoTodayLocal();
 }
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */

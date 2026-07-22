@@ -12,6 +12,7 @@ import type { OrgConfig } from '../types/config';
 import type { Cell } from './csvx';
 import { termOf } from './config';
 import { normSearch } from './validate';
+import { isoToday } from './date-util';
 
 /** סדר השלבים — קבוע; התוויות נגזרות דרך termOf. */
 export const AYIN_STAGES: readonly AyinStage[] = ['new', 'lead', 'eyes', 'answer', 'done'];
@@ -185,13 +186,9 @@ export function planAddName(
   }
   const names = [...a.names, { id, name: nm, eyes, done: false }];
   if (eyes !== '' && eyes != null) {
-    return { ok: true, names, log: [{ date: today(), eyes: +eyes, name: nm }, ...a.log] };
+    return { ok: true, names, log: [{ date: isoToday(), eyes: +eyes, name: nm }, ...a.log] };
   }
   return { ok: true, names };
-}
-
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
 }
 
 /**

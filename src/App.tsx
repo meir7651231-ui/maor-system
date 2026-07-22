@@ -11,6 +11,7 @@ import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
 import { featureOn, moduleOn, termOf } from './lib/config';
 import { hebDateFull } from './lib/hebrew';
+import { isoToday } from './lib/date-util';
 import { todaySessions } from './components/home/homeData';
 import { Btn } from './components/ui';
 import { BuilderWizard } from './components/builder/BuilderWizard';
@@ -122,7 +123,7 @@ export default function App() {
   useEffect(() => {
     const tick = setInterval(() => {
       try {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = isoToday();
         if (localStorage.getItem('maor_autoexp') === today) return;
         const [eh, em] = (localStorage.getItem('maor_dayend') || '17:00').split(':').map(Number);
         const endMin = (Number.isFinite(eh) ? eh : 17) * 60 + (Number.isFinite(em) ? em : 0);
@@ -376,7 +377,7 @@ export default function App() {
             {config.logoDataUri && <img src={config.logoDataUri} alt="" />}
             <span className="brand-name">
               {orgName}
-              <span className="side-brand-sub">{hebDateFull(new Date().toISOString().slice(0, 10))}</span>
+              <span className="side-brand-sub">{hebDateFull(isoToday())}</span>
             </span>
           </div>
           {/* צ'יפ חיפוש-פקודה רחב — אותו מנגנון בדיוק כמו Ctrl+K */}

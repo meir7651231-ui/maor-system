@@ -3,6 +3,7 @@
  * ורשימת הציוד הסטנדרטית לחדרים.
  */
 import type { ReactNode } from 'react';
+import { isoToday as isoTodayLocal } from '../../lib/date-util';
 
 /** תאריך ISO ‏→ DD/MM/YYYY לתצוגה. */
 export function fmtDate(iso: string): string {
@@ -21,7 +22,7 @@ export function fmtDateTime(iso: string): string {
 
 /** היום בפורמט ISO ‏(YYYY-MM-DD). */
 export function isoToday(): string {
-  return new Date().toISOString().slice(0, 10);
+  return isoTodayLocal();
 }
 
 /** רשימת הציוד הסטנדרטית לחדרים — כמו במערכת המקורית. */

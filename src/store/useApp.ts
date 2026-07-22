@@ -29,6 +29,7 @@ import {
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, loadOrgConfig, saveConfigOverride } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
+import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { featLabel, planAddName, planAyinAdvance, revertPatch } from '../lib/ayin';
 import { dailySnapshot, exportBackupFile, loadDb, saveDb, setPersistNamespace } from './persist';
 import type { CloudStatus, CloudUser } from './cloudSync';
@@ -185,13 +186,16 @@ let toastSeq = 1;
 type CloudSyncModule = typeof import('./cloudSync');
 let cloudMod: CloudSyncModule | null = null;
 
+// חותמת "היום" מקומית (לא UTC) — מקור-אמת אחד ב-date-util
 function isoToday(): string {
-  return new Date().toISOString().slice(0, 10);
+  return isoTodayLocal();
 }
 
-/** תאריך ISO במרחק ימים מהיום (שלילי = אחורה). */
+/** תאריך ISO במרחק ימים מהיום (שלילי = אחורה) — מקומי. */
 function isoDaysAgo(days: number): string {
-  return new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return isoLocal(d);
 }
 
 /** מפתח localStorage המבטיח ריצת דעיכה אחת ביום. */

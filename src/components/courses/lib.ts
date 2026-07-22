@@ -4,6 +4,7 @@
  */
 import type { CSSProperties } from 'react';
 import type { Course, CourseSession, Db, Enrollment, PricingModel } from '../../types/domain';
+import { isoToday as isoTodayLocal } from '../../lib/date-util';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
@@ -14,7 +15,7 @@ export function fmtDate(iso: string): string {
 }
 
 export function isoToday(): string {
-  return new Date().toISOString().slice(0, 10);
+  return isoTodayLocal();
 }
 
 /** גיל בשנים מלאות מתאריך לידה, או null אם אין תאריך. */

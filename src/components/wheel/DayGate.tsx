@@ -8,13 +8,14 @@ import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
+import { isoToday as isoTodayLocal } from '../../lib/date-util';
 import { Btn } from '../ui';
 
 const DAY_KEY = 'maor_day';
 const DAY_END_KEY = 'maor_dayend';
 
 function isoToday(): string {
-  return new Date().toISOString().slice(0, 10);
+  return isoTodayLocal();
 }
 
 export function DayGate() {

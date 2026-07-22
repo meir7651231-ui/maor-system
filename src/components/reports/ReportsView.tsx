@@ -10,6 +10,7 @@ import { useApp } from '../../store/useApp';
 import { featureOn, moduleOn } from '../../lib/config';
 import { Btn, Field, FormError, PageHead, TextInput } from '../ui';
 import { fmtDate, isoToday, rangeLabel, type DateRange } from './lib';
+import { isoDaysAgo } from '../../lib/date-util';
 import { AttendanceSection, EnrollmentSection } from './sections1';
 import { DonationsSection, FamiliesSection, PunchSection } from './sections2';
 import { ReportPrefsSection } from './prefs';
@@ -19,11 +20,9 @@ type SectionId = 'enroll' | 'attend' | 'donations' | 'families' | 'punch';
 /** קיצורי טווח נפוצים. */
 function presets(): { label: string; range: DateRange }[] {
   const today = isoToday();
-  const back30 = new Date();
-  back30.setDate(back30.getDate() - 30);
   return [
     { label: 'החודש', range: { from: today.slice(0, 8) + '01', to: today } },
-    { label: '30 ימים אחרונים', range: { from: back30.toISOString().slice(0, 10), to: today } },
+    { label: '30 ימים אחרונים', range: { from: isoDaysAgo(30), to: today } },
     { label: 'השנה', range: { from: today.slice(0, 4) + '-01-01', to: today } },
     { label: 'הכול', range: { from: '', to: '' } },
   ];
