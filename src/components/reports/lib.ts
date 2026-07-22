@@ -35,12 +35,14 @@ export function rangeLabel(r: DateRange): string {
 
 /** סה"כ ששולם בשיבוץ (כל התשלומים). */
 export function paidOf(e: Enrollment): number {
-  return e.payments.reduce((a, p) => a + p.amount, 0);
+  return (e.payments || []).reduce((a, p) => a + (Number.isFinite(p.amount) ? p.amount : 0), 0);
 }
 
 /** תשלומים שהתקבלו בתוך טווח התאריכים. */
 export function paidInRange(e: Enrollment, r: DateRange): number {
-  return e.payments.filter((p) => inRange(p.date, r)).reduce((a, p) => a + p.amount, 0);
+  return (e.payments || [])
+    .filter((p) => inRange(p.date, r))
+    .reduce((a, p) => a + (Number.isFinite(p.amount) ? p.amount : 0), 0);
 }
 
 /** יתרת חוב — סה"כ עסקה פחות ששולם, לא שלילית (כמו payBal במקור). */

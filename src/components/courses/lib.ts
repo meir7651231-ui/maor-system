@@ -77,9 +77,9 @@ export function modelMeta(c: Course): { label: string; bg: string; c: string } {
   return { label: 'מנוי חודשי', bg: '#e4f5ea', c: '#12803c' };
 }
 
-/** סכום ששולם עד כה על השיבוץ. */
+/** סכום ששולם עד כה על השיבוץ — סכומים לא-מספריים (NaN מקלט פגום) נספרים כ-0. */
 export function paidOf(e: Enrollment): number {
-  return e.payments.reduce((a, p) => a + p.amount, 0);
+  return (e.payments || []).reduce((a, p) => a + (Number.isFinite(p.amount) ? p.amount : 0), 0);
 }
 
 /** יתרת חוב — max(0, סה"כ עסקה - שולם). */
