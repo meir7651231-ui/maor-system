@@ -3,7 +3,7 @@
  * מורה נבחרת מרשימה או נוצרת inline ('__add'); קטגוריה ומסלול תקופה תומכים ב-'__other'.
  */
 import { useState } from 'react';
-import type { Course, Gender, Teacher, Weekday } from '../../types/domain';
+import type { Course, Gender, PricingModel, Teacher, Weekday } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
 import { normalizePhone } from '../../lib/validate';
@@ -23,7 +23,7 @@ interface CourseFormState {
   price2: string;
   price1Name: string;
   price2Name: string;
-  model: 'monthly' | 'punch';
+  model: PricingModel;
   size: string;
   start: string;
   end: string;
@@ -243,9 +243,13 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
         <Field label="מסלול תמחור">
           <Select
             value={f.model}
-            onChange={(v) => set({ model: v === 'punch' ? 'punch' : 'monthly' })}
+            onChange={(v) =>
+              set({ model: (['monthly', 'half_year', 'year', 'punch'].includes(v) ? v : 'monthly') as typeof f.model })
+            }
             options={[
               { value: 'monthly', label: 'מנוי חודשי' },
+              { value: 'half_year', label: 'מנוי חצי-שנתי' },
+              { value: 'year', label: 'מנוי שנתי' },
               { value: 'punch', label: 'כרטיסייה (ניקובים)' },
             ]}
           />

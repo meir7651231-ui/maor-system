@@ -3,7 +3,7 @@
  * עזרים מקומיים בלבד — אין כאן גישה ל-store או ל-DOM.
  */
 import type { CSSProperties } from 'react';
-import type { Course, CourseSession, Db, Enrollment } from '../../types/domain';
+import type { Course, CourseSession, Db, Enrollment, PricingModel } from '../../types/domain';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
@@ -53,11 +53,28 @@ export function groupOptionsOf(c: Course): { v: string; t: string }[] {
   });
 }
 
+/** שם המסלול (יחיד) — פורט מ-planWord באב-הטיפוס. */
+export function planWord(model: PricingModel): string {
+  return model === 'punch'
+    ? 'כרטיסייה'
+    : model === 'half_year'
+      ? 'מנוי חצי-שנתי'
+      : model === 'year'
+        ? 'מנוי שנתי'
+        : 'מנוי חודשי';
+}
+
+/** סיומת תקופת המחיר — "לחודש" / "לחצי שנה" / "לשנה" (פורט מ-pricePer). */
+export function priceSuffix(model: PricingModel): string {
+  return model === 'half_year' ? 'לחצי שנה' : model === 'year' ? 'לשנה' : model === 'punch' ? '' : 'לחודש';
+}
+
 /** תווית + צבעי מסלול התמחור. */
 export function modelMeta(c: Course): { label: string; bg: string; c: string } {
-  return c.model === 'punch'
-    ? { label: 'כרטיסייה · ' + c.size + ' ניקובים', bg: '#fdf1d4', c: '#9a6414' }
-    : { label: 'מנוי חודשי', bg: '#e4f5ea', c: '#12803c' };
+  if (c.model === 'punch') return { label: 'כרטיסייה · ' + c.size + ' ניקובים', bg: '#fdf1d4', c: '#9a6414' };
+  if (c.model === 'half_year') return { label: 'מנוי חצי-שנתי', bg: '#e7edf5', c: '#3a5a86' };
+  if (c.model === 'year') return { label: 'מנוי שנתי', bg: '#efe7f3', c: '#7c3aed' };
+  return { label: 'מנוי חודשי', bg: '#e4f5ea', c: '#12803c' };
 }
 
 /** סכום ששולם עד כה על השיבוץ. */
@@ -110,7 +127,7 @@ export function enrollStatusMeta(e: Enrollment): { label: string; bg: string; c:
 
 /** תווית המסלול בשורת תלמיד — כולל הקפאה/סיום, חיסורים ויתרת חוב (כמו planLabel במקור). */
 export function planLabelOf(e: Enrollment): string {
-  let s = e.plan === 'punch' ? 'כרטיסייה · ' + e.purchased : 'מנוי חודשי';
+  let s = e.plan === 'punch' ? 'כרטיסייה · ' + e.purchased : planWord(e.plan);
   if (e.status === 'paused') s += ' · מוקפא ⏸';
   else if (e.status === 'ended') s += ' · הסתיים';
   if (e.absences.length) s += ' · ' + e.absences.length + ' חיס׳';

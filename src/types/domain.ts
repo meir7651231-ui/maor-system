@@ -98,7 +98,7 @@ export interface CourseSession {
   label: string;
 }
 
-export type PricingModel = 'monthly' | 'punch';
+export type PricingModel = 'monthly' | 'half_year' | 'year' | 'punch';
 
 export interface Course {
   id: Id;

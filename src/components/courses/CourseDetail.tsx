@@ -25,6 +25,7 @@ import {
   groupOptionsOf,
   modelMeta,
   planLabelOf,
+  priceSuffix,
   sessionsOf,
 } from './lib';
 
@@ -46,6 +47,7 @@ type ModalState =
 export function CourseDetail(props: { course: Course }) {
   const db = useApp((s) => s.db);
   const selectCourse = useApp((s) => s.selectCourse);
+  const deleteCourse = useApp((s) => s.deleteCourse);
   const upsertCourse = useApp((s) => s.upsertCourse);
   const upsertEnrollment = useApp((s) => s.upsertEnrollment);
   const punch = useApp((s) => s.punch);
@@ -220,7 +222,7 @@ export function CourseDetail(props: { course: Course }) {
           </div>
           <div style={{ fontSize: 13, color: 'var(--ink-faint)', marginTop: 3 }}>
             {(c.audience || 'כללי') + ' · מורה: ' + (teacher?.name ?? '—') + ' · ' + (room?.name ?? '—') + ' · ' +
-              (c.price ? '₪' + c.price + ' לחודש' : '—')}
+              (c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—')}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -228,6 +230,24 @@ export function CourseDetail(props: { course: Course }) {
             📊 דו"ח מותאם
           </Btn>
           <Btn onClick={() => setModal({ kind: 'edit' })}>✎ עריכת קורס</Btn>
+          <Btn
+            kind="danger"
+            onClick={() => {
+              const n = enrolled.length;
+              const msg =
+                'למחוק את הקורס "' + c.name + '"?' +
+                (n ? ' פעולה זו תמחק גם את ' + n + ' השיבוצים שלו (כולל תשלומים ונוכחות).' : '') +
+                '\n\nלא ניתן לבטל.';
+              if (window.confirm(msg)) {
+                deleteCourse(c.id);
+                selectCourse(null);
+                toast('הקורס נמחק');
+              }
+            }}
+            title="מחיקת הקורס וכל השיבוצים שלו"
+          >
+            🗑 מחיקה
+          </Btn>
         </div>
       </div>
 
@@ -459,7 +479,7 @@ export function CourseDetail(props: { course: Course }) {
             {detailRow('קהל יעד', c.audience || 'כללי')}
             {detailRow('מורה', teacher?.name ?? '—')}
             {detailRow('טלפון המורה', teacher?.phone || '—')}
-            {detailRow('מחיר מלא', c.price ? '₪' + c.price + ' לחודש' : '—')}
+            {detailRow('מחיר מלא', c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—')}
             {discountsOn && detailRow(c.price1Name || 'הנחה 1', c.price1 ? '₪' + c.price1 : '—', '#12803c')}
             {discountsOn && detailRow(c.price2Name || 'הנחה 2', c.price2 ? '₪' + c.price2 : '—', '#7c3aed')}
             {detailRow('מסלול', mm.label)}

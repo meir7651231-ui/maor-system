@@ -12,7 +12,7 @@ import { numMatch } from '../families/lib';
 import { CourseForm } from './CourseForm';
 import { CourseDetail } from './CourseDetail';
 import { CourseWheel } from '../wheel/CourseWheel';
-import { DAY_LETTERS, TINTS, chipStyle, enrollCount, modelMeta } from './lib';
+import { DAY_LETTERS, TINTS, chipStyle, enrollCount, modelMeta, priceSuffix } from './lib';
 
 type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2';
 
@@ -256,7 +256,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                       fontSize: 12,
                     }}
                   >
-                    <span style={{ fontWeight: 700 }}>{c.price ? '₪' + c.price + ' לחודש' : '—'}</span>
+                    <span style={{ fontWeight: 700 }}>{c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—'}</span>
                     <span style={{ fontWeight: 700, color: countColor(c, n) }}>
                       {n + '/' + (c.maxStudents || '∞') + ' תלמידים'}
                     </span>
