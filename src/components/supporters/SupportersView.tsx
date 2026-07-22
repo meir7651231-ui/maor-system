@@ -8,7 +8,7 @@ import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
-import { ayinDailyRows, featLabel } from '../../lib/ayin';
+import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { chipStyle, fmtDate, isoToday, supScore, supTier, TIER_ORDER, totalLabel } from './lib';
@@ -28,7 +28,9 @@ type SortKey =
   | 'usd'
   | 'last'
   | 'nextDate'
-  | 'score';
+  | 'score'
+  | 'stage'
+  | 'eyes';
 
 const HEAD: { key: SortKey; label: string }[] = [
   { key: 'name', label: 'תומכ/ת' },
@@ -41,6 +43,8 @@ const HEAD: { key: SortKey; label: string }[] = [
   { key: 'last', label: 'תרומה אחרונה' },
   { key: 'nextDate', label: 'קשר הבא' },
   { key: 'score', label: 'ציון RFM' },
+  { key: 'stage', label: 'שלב טיפול' },
+  { key: 'eyes', label: 'כמות' },
 ];
 
 function sortVal(sp: Supporter, key: SortKey): string | number {
@@ -65,6 +69,10 @@ function sortVal(sp: Supporter, key: SortKey): string | number {
       return sp.nextDate || '';
     case 'score':
       return supScore(sp);
+    case 'stage':
+      return sp.ayin ? stageIndex(sp.ayin.stage) : -1;
+    case 'eyes':
+      return sp.ayin ? eyesTotal(sp.ayin) : -1;
   }
 }
 
@@ -221,7 +229,10 @@ export function SupportersView() {
             <thead>
               <tr>
                 {HEAD.filter(
-                  (h) => (nextOn || h.key !== 'nextDate') && (rfmOn || h.key !== 'score'),
+                  (h) =>
+                    (nextOn || h.key !== 'nextDate') &&
+                    (rfmOn || h.key !== 'score') &&
+                    (ayinOn || (h.key !== 'stage' && h.key !== 'eyes')),
                 ).map((h) => {
                   const dir = sort && sort.key === h.key ? sort.dir : 0;
                   return (
@@ -286,6 +297,8 @@ export function SupportersView() {
                     </td>
                   )}
                   {rfmOn && <td style={{ fontWeight: 700 }}>{supScore(sp)}</td>}
+                  {ayinOn && <td>{sp.ayin && ayinActive(sp.ayin) ? stageLabel(config, sp.ayin.stage) : '—'}</td>}
+                  {ayinOn && <td>{sp.ayin && eyesTotal(sp.ayin) ? eyesTotal(sp.ayin) : '—'}</td>}
                   {rfmOn && (
                     <td>
                       <TierChip sp={sp} />
