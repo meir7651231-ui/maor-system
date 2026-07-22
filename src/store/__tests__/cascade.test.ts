@@ -11,6 +11,7 @@ import { emptyDb, emptyFamily, DB_VERSION } from '../../types/domain';
 import type { Course, Db, Enrollment, Family, Member } from '../../types/domain';
 import { enrollCount } from '../../components/courses/lib';
 import { homeStats } from '../../components/home/homeData';
+import { supTotalIls } from '../../components/supporters/lib';
 
 function member(id: string, first: string): Member {
   return {
@@ -97,6 +98,36 @@ describe('🧹 מחיקת בן-משפחה — מנקה את שיבוציו בל�
     expect(db().families.find((f) => f.id === 'f1')!.members.length).toBe(0);
     expect(db().enrollments.map((e) => e.id)).toEqual(['e2']);
     expect(enrollCount(db(), 'c1')).toBe(0);
+  });
+});
+
+describe('💱 סיווג מטבע אחיד: תרומה עם cur ריק/₪ = שקל בכל המשטחים', () => {
+  function seedWithSupporter() {
+    useApp.getState().setDb(() => ({
+      ...emptyDb(),
+      supporters: [
+        { id: 's1', name: 'פרידמן', phone: '', email: '', address: '', idNum: '', cat: '',
+          forWho: '', notes: '', count: 0, ils: 0, usd: 0, first: '', last: '', nextDate: '',
+          donations: [] },
+      ] as Db['supporters'],
+    }));
+  }
+  it('cur ריק → נספר כשקל בצבירה ובבית (זהים)', () => {
+    seedWithSupporter();
+    // עוקפים את הטופס (שמגביל ל-₪/$) כדי לדמות נתון מיובא/legacy עם cur ריק
+    useApp.getState().addDonation('s1', { date: '2026-07-22', amount: 300, cur: '' as never, cat: '' });
+    const sp = db().supporters[0];
+    expect(sp.ils).toBe(300); // הצבירה סופרת אותו כשקל (cur !== '$')
+    const s = homeStats(db(), new Date('2026-07-22T12:00:00'));
+    expect(s.donIls).toBe(300);
+    expect(supTotalIls(sp)).toBe(s.donIls); // כרטיס = בית, בלי פער
+  });
+  it('cur=$ → נספר כדולר, לא כשקל', () => {
+    seedWithSupporter();
+    useApp.getState().addDonation('s1', { date: '2026-07-22', amount: 100, cur: '$', cat: '' });
+    const sp = db().supporters[0];
+    expect(sp.usd).toBe(100);
+    expect(sp.ils).toBe(0);
   });
 });
 

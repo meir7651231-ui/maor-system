@@ -611,7 +611,9 @@ export const useApp = create<AppState>()((set, get) => {
             ...s,
             donations,
             count: donations.length,
-            ils: s.ils + (donation.cur === '₪' ? donation.amount : 0),
+            // מטבע: $ = דולר, כל השאר (₪/ריק/מיובא) = שקל — עקבי עם הבית,
+            // הקיר והביקורת, כך שאף תרומה לא נופלת בין הכיסאות בסכומים.
+            ils: s.ils + (donation.cur !== '$' ? donation.amount : 0),
             usd: s.usd + (donation.cur === '$' ? donation.amount : 0),
             first: s.first || donation.date,
             last: donation.date > (s.last || '') ? donation.date : s.last,

@@ -99,7 +99,7 @@ function allIlsDonations(db: Db): DonRow[] {
   const out: DonRow[] = [];
   for (const s of db.supporters) {
     for (const d of s.donations) {
-      if (d.cur !== '₪') continue;
+      if (d.cur === '$') continue; // $ = דולר; כל השאר (₪/ריק/מיובא) = שקל — עקבי עם הבית והצבירה
       out.push({ name: s.name, supporterId: s.id, date: d.date, amount: d.amount });
     }
   }
