@@ -140,10 +140,28 @@ export function expandQuery(q: string): string[] {
 /**
  * ציון פריט מול שאילתה: לכל מילה בשאילתה — הציון הטוב ביותר על פני
  * (הרחבות × מונחים). כל מילה חייבת להתאים (AND); הציון הכולל הוא סכום המיטב.
+ *
+ * בנוסף — מעבר "ביטוי שלם": שאילתה רב-מילתית שכולה מפתח/כינוי ב-XLAT
+ * ("בני ברק"↔"bnei brak", "פתח תקווה"↔"petah tikva") מורחבת כמכלול, כי
+ * הפיצול-למילים היה מפספס תעתיקים רב-מילתיים לגמרי. max() בלבד — לעולם לא מוריד
+ * ציון, כך שסמנטיקת ה-AND לשאילתות רגילות נשמרת.
  */
 export function smartScore(q: string, terms: string[]): number {
   const toks = normSearch(q).split(/\s+/).filter(Boolean);
   if (!toks.length) return 0;
+
+  // מעבר ביטוי שלם (רק כשיש יותר ממילה אחת — אחרת זהה למעבר הרגיל)
+  let phrase = 0;
+  if (toks.length > 1) {
+    for (const exp of expandQuery(q.trim())) {
+      for (const term of terms) {
+        phrase = Math.max(phrase, scoreTerm(exp, term));
+        if (phrase >= 100) break;
+      }
+      if (phrase >= 100) break;
+    }
+  }
+
   let total = 0;
   for (const tok of toks) {
     let best = 0;
@@ -154,10 +172,13 @@ export function smartScore(q: string, terms: string[]): number {
       }
       if (best >= 100) break;
     }
-    if (!best) return 0; // מילה בלי שום התאמה — הפריט נפסל
+    if (!best) {
+      total = 0; // מילה בלי התאמה פוסלת את מעבר ה-AND
+      break;
+    }
     total += best;
   }
-  return total;
+  return Math.max(total, phrase);
 }
 
 /**

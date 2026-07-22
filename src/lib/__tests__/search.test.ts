@@ -93,6 +93,20 @@ describe('smartScore', () => {
   it('returns 0 for an empty query', () => {
     expect(smartScore('', ['כהן'])).toBe(0);
   });
+
+  it('תעתיק רב-מילתי: "bnei brak" מוצא "בני ברק" (מעבר ביטוי שלם)', () => {
+    expect(smartScore('bnei brak', ['בני ברק'])).toBe(100);
+    expect(smartScore('petah tikva', ['פתח תקווה'])).toBe(100);
+  });
+  it('תעתיק רב-מילתי הפוך: "בני ברק" מוצא כינוי לועזי', () => {
+    expect(smartScore('בני ברק', ['bnei brak'])).toBe(100);
+  });
+  it('לא מגדיל התאמות שווא: שאילתה רב-מילתית שאינה XLAT עדיין AND', () => {
+    // "כהן זזזז" — טוקן שני בלי התאמה → נדחה (הביטוי כולו אינו מפתח XLAT)
+    expect(smartScore('כהן זזזז', ['כהן'])).toBe(0);
+    // שתי מילים תואמות עדיין מסתכמות כרגיל (ה-max לא מוריד)
+    expect(smartScore('דוד כהן', ['דוד', 'כהן'])).toBe(200);
+  });
 });
 
 describe('smartFilter', () => {
