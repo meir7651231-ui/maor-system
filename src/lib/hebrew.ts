@@ -43,10 +43,16 @@ export function hebParts(d: Date): HebParts {
   return { day: +get('day'), month: get('month'), year: +get('year') };
 }
 
-/** "ט״ו אלול תשפ״ו" מתוך תאריך ISO. */
+/**
+ * "ט״ו אלול תשפ״ו" מתוך תאריך ISO.
+ * שימוש בצהריים מקומי (T12:00:00) ולא בחצות: `new Date('YYYY-MM-DD')` נפרש
+ * כחצות UTC, ובאזורי זמן ממערב ל-UTC (יבשת אמריקה) זה נופל ליום הקודם מקומית
+ * וגורם לתאריך העברי לסטות ביום. צהריים חסין לכך ולשעון קיץ — עקבי עם שאר
+ * שכבת התאריכים (hebToIsoEn · isoToHebParts · homeData).
+ */
 export function hebDateFull(iso: string): string {
   if (!iso) return '';
-  const d = new Date(iso);
+  const d = new Date(iso.slice(0, 10) + 'T12:00:00');
   if (isNaN(d.getTime())) return '';
   return `${gem(hebParts(d).day)} ${fmtHM.format(d)} ${gemYear(fmtHY.format(d))}`;
 }
