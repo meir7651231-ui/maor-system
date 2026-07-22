@@ -33,12 +33,21 @@ export function buildCourseDailyRows(c: Course, db: Db): { rows: Cell[][]; days:
 
   const start = new Date(c.start + 'T12:00:00');
   const end = new Date(c.end + 'T12:00:00');
+  // תקרת בטיחות: קורס לגיטימי הוא שנתי/דו-שנתי (עד ~100 ימי מפגש). טווח ענק
+  // (טעות הקלדה בשנת הסיום, למשל 2202) היה מייצר עשרות אלפי שורות עם hebDateFull
+  // (Intl) יקר לכל שורה — הקפאה של הדפדפן. עוצרים ומסמנים קטיעה.
+  const MAX_DAYS = 500;
   let days = 0;
+  let truncated = false;
   for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
     const iso = isoOf(d);
     const dow = d.getDay();
     const sess = sessions.filter((ss) => ss.day === dow);
     if (!sess.length) continue;
+    if (days >= MAX_DAYS) {
+      truncated = true;
+      break;
+    }
     days++;
     for (const ss of sess) {
       const slot = (ss.label || 'קבוצה') + ' · ' + (ss.time || '');
@@ -68,6 +77,9 @@ export function buildCourseDailyRows(c: Course, db: Db): { rows: Cell[][]; days:
         rows.push([hebDateFull(iso), fmtD(iso), DAY_NAMES[dow], slot, dayStatus, mf?.first || '', mf?.famName || '', attend]);
       }
     }
+  }
+  if (truncated) {
+    rows.push(['—', '—', '—', '—', `הדוח נקטע ב-${MAX_DAYS} ימי מפגש — בדקו את תאריך הסיום של החוג`, '', '', '']);
   }
   return { rows, days };
 }

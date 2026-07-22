@@ -88,6 +88,22 @@ describe('buildCourseDailyRows', () => {
     const { rows } = buildCourseDailyRows(course(), { ...emptyDb(), courses: [course()] });
     expect(rows.slice(1).every((r) => r[4] === 'אין רשומות')).toBe(true);
   });
+
+  it('קוטע דוח על טווח ענק (טעות הקלדה בשנת הסיום) ולא קורס', () => {
+    // מפגש שבועי ביום ראשון על פני ~180 שנה — ללא התקרה זה עשרות אלפי שורות
+    const wide = course({ start: '2022-01-01', end: '2202-01-01', weekday: 0, time: '17:00' });
+    const { rows, days } = buildCourseDailyRows(wide, { ...emptyDb(), courses: [wide] });
+    expect(days).toBe(500); // התקרה
+    expect(rows.length).toBeLessThan(600); // חסום — לא עשרות אלפים
+    expect(rows[rows.length - 1][4]).toContain('נקטע'); // שורת קטיעה
+  });
+
+  it('קורס שנתי רגיל אינו נקטע ואין שורת קטיעה', () => {
+    const annual = course({ start: '2026-01-04', end: '2026-12-26', weekday: 0, time: '17:00' });
+    const { rows, days } = buildCourseDailyRows(annual, { ...emptyDb(), courses: [annual] });
+    expect(days).toBeLessThan(500);
+    expect(rows.every((r) => !String(r[4]).includes('נקטע'))).toBe(true);
+  });
 });
 
 /* עזרים מינימליים לישויות שאין להן תבנית ריקה מיוצאת */
