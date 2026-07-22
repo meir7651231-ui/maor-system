@@ -137,6 +137,10 @@ function DayCell(props: {
 const FILTER_CHIPS: { key: keyof Omit<CalFilters, 'urgentOnly'>; label: string }[] = [
   { key: 'events', label: 'אירועים' },
   { key: 'courses', label: 'חוגים' },
+  { key: 'holidays', label: 'חגים' },
+  { key: 'reminders', label: 'תזכורות' },
+  { key: 'calls', label: 'טלפונים' },
+  { key: 'family', label: 'משפחתיים' },
   { key: 'bdays', label: 'ימי הולדת' },
   { key: 'joins', label: 'הצטרפות' },
   { key: 'enrolls', label: 'הרשמות' },
@@ -168,9 +172,23 @@ export function CalendarView() {
     () => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches,
     [],
   );
-  // כשהשכבות כבויות — ימי הולדת / הצטרפויות / הרשמות נכבים בכוח (אירועים וחוגים נשארים)
+  // כשהשכבות כבויות — כל השכבות הנגזרות/העדינות נכבות בכוח, ונשארים רק
+  // אירועים (catch-all) וחוגים: ימי הולדת · הצטרפויות · הרשמות · חגים ·
+  // תזכורות · טלפונים · משפחתיים.
   const effFilters = useMemo<CalFilters>(
-    () => (layersOn ? filters : { ...filters, bdays: false, joins: false, enrolls: false }),
+    () =>
+      layersOn
+        ? filters
+        : {
+            ...filters,
+            bdays: false,
+            joins: false,
+            enrolls: false,
+            holidays: false,
+            reminders: false,
+            calls: false,
+            family: false,
+          },
     [filters, layersOn],
   );
 
@@ -179,7 +197,13 @@ export function CalendarView() {
     [db, hebMode, hebAnchor, ym],
   );
   const cells = useMemo(
-    () => grid.cells.map((c) => ({ ...c, items: c.items.filter((it) => allowItem(it, effFilters)) })),
+    () =>
+      grid.cells.map((c) => ({
+        ...c,
+        // שכבת החגים — גלולת החג מוסתרת כשהשכבה כבויה (כמו שאר השכבות)
+        holiday: effFilters.holidays ? c.holiday : null,
+        items: c.items.filter((it) => allowItem(it, effFilters)),
+      })),
     [grid, effFilters],
   );
   const upcoming = useMemo(() => upcomingRows(db, 14), [db]);

@@ -63,7 +63,8 @@ export function DayModal(props: {
 
   const d = useMemo(() => new Date(iso + 'T12:00:00'), [iso]);
   const items = useMemo(() => dayItems(db, d).filter((it) => allowItem(it, filters)), [db, d, filters]);
-  const holiday = holidayOf(d);
+  // שכבת החגים — מכובדת גם בתצוגת היום (מוסתרת כשהשכבה כבויה)
+  const holiday = filters.holidays ? holidayOf(d) : null;
   // calendar.blocking כבוי — באנר "יום חסום" מוסתר
   const block = featureOn(config, 'calendar.blocking') ? blockReason(d, 'course') : null;
 

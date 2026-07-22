@@ -14,7 +14,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type ReactElement, ty
 import type { View } from '../../store/useApp';
 import type { Db, Family, OrgEvent } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
-import { Btn } from '../ui';
+import { Btn, Chip } from '../ui';
 import { hebDateFull } from '../../lib/hebrew';
 import { featureOn, moduleOn } from '../../lib/config';
 import { tierOf } from '../families/lib';
@@ -716,10 +716,19 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
 function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, data, navTo, markAttnDone, unmarkAttnDone } = ctx;
   const [showDone, setShowDone] = useState(false);
+  // סינון לפי תגית (קטגוריית הפריט) — מצב מקומי בלבד, ללא התמדה. ברירת מחדל "הכל".
+  const [careFilter, setCareFilter] = useState<string | null>(null);
   // מרכז טיפול: הפרדת פריטים פתוחים מפריטים שסומנו "טופל"
   const attnDone = db.attnDone ?? {};
   const openAttn = data.attention.filter((a) => !attnDone[a.key]);
   const doneAttn = data.attention.filter((a) => attnDone[a.key]);
+  // צ'יפ סינון לכל תגית קיימת בפריטים הפתוחים + מונה; "הכל" מנקה את הסינון.
+  const tagCounts: Record<string, number> = {};
+  for (const a of openAttn) tagCounts[a.tag] = (tagCounts[a.tag] ?? 0) + 1;
+  const tags = Object.keys(tagCounts);
+  // תגית שסומנה אך נעלמה (כל פריטיה טופלו) — מתאפסת בחן ל"הכל"
+  const activeTag = careFilter && tagCounts[careFilter] ? careFilter : null;
+  const shownAttn = activeTag ? openAttn.filter((a) => a.tag === activeTag) : openAttn;
   // שפת המוקאפ: היכל "נר תמיד" (עם 🕯️ בכל שורה) · קהילה "שווה לטפל"
   const theme = themeOf(ctx);
   const isHeichal = theme === 'heichal';
@@ -733,7 +742,20 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
       {openAttn.length === 0 && (
         <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>הכל מטופל ✓</div>
       )}
-      {openAttn.slice(0, 8).map((a) => (
+      {/* שורת סינון לפי תגית — רק כשיש יותר מתגית אחת (אחרת אין מה לסנן) */}
+      {tags.length > 1 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 2 }}>
+          <Chip on={!activeTag} onClick={() => setCareFilter(null)}>
+            {'הכל · ' + openAttn.length}
+          </Chip>
+          {tags.map((t) => (
+            <Chip key={t} on={activeTag === t} onClick={() => setCareFilter(t)}>
+              {t + ' · ' + tagCounts[t]}
+            </Chip>
+          ))}
+        </div>
+      )}
+      {shownAttn.slice(0, 8).map((a) => (
         <div key={a.key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <button
             type="button"
@@ -751,8 +773,8 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
           </Btn>
         </div>
       ))}
-      {openAttn.length > 8 && (
-        <div style={softEmpty}>+{openAttn.length - 8} פריטים נוספים</div>
+      {shownAttn.length > 8 && (
+        <div style={softEmpty}>+{shownAttn.length - 8} פריטים נוספים</div>
       )}
       {doneAttn.length > 0 && (
         <button

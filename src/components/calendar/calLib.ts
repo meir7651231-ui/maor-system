@@ -193,11 +193,20 @@ export interface DayItem {
 /* ---------- פילטרים לשכבות ---------- */
 
 export interface CalFilters {
+  /** אירועים ארגוניים/מותאמים (catch-all) — org/custom/שאר. */
   events: boolean;
   courses: boolean;
   bdays: boolean;
   joins: boolean;
   enrolls: boolean;
+  /** חגים ומועדים (מחושבים לרשת). */
+  holidays: boolean;
+  /** תזכורות — אירועים מסוג 'reminder'. */
+  reminders: boolean;
+  /** טלפונים — אירועים מסוג 'call'. */
+  calls: boolean;
+  /** אירועים משפחתיים — שמחה/אזכרה/יום נישואים/יום הולדת המקושרים למשפחה (famId). */
+  family: boolean;
   urgentOnly: boolean;
 }
 
@@ -207,6 +216,10 @@ export const DEFAULT_FILTERS: CalFilters = {
   bdays: true,
   joins: true,
   enrolls: true,
+  holidays: true,
+  reminders: true,
+  calls: true,
+  family: true,
   urgentOnly: false,
 };
 
@@ -217,7 +230,14 @@ export function allowItem(it: DayItem, f: CalFilters): boolean {
   if (it.layer === 'join') return f.joins;
   if (it.layer === 'enroll') return f.enrolls;
   if (it.courseId) return f.courses;
-  if (it.ev) return f.events;
+  if (it.ev) {
+    // פירוק שכבת האירועים לשכבות עדינות: תזכורות · טלפונים · אירועים
+    // משפחתיים (famId) — והשאר (org/custom) תחת ה-catch-all של 'events'.
+    if (it.ev.type === 'reminder') return f.reminders;
+    if (it.ev.type === 'call') return f.calls;
+    if (it.ev.famId) return f.family;
+    return f.events;
+  }
   return true;
 }
 

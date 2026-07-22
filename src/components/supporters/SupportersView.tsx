@@ -18,24 +18,41 @@ import { AyinBoard } from './AyinBoard';
 import { SupporterImport } from './SupporterImport';
 import { CustomExport } from '../reports/CustomExport';
 
-type SortKey = 'name' | 'phone' | 'count' | 'ils' | 'usd' | 'last' | 'nextDate';
+type SortKey =
+  | 'name'
+  | 'cat'
+  | 'phone'
+  | 'email'
+  | 'count'
+  | 'ils'
+  | 'usd'
+  | 'last'
+  | 'nextDate'
+  | 'score';
 
 const HEAD: { key: SortKey; label: string }[] = [
   { key: 'name', label: 'תומכ/ת' },
+  { key: 'cat', label: 'קטגוריה' },
   { key: 'phone', label: 'טלפון' },
+  { key: 'email', label: 'אימייל' },
   { key: 'count', label: 'תרומות' },
   { key: 'ils', label: 'סה"כ ₪' },
   { key: 'usd', label: 'סה"כ $' },
   { key: 'last', label: 'תרומה אחרונה' },
   { key: 'nextDate', label: 'קשר הבא' },
+  { key: 'score', label: 'ציון RFM' },
 ];
 
 function sortVal(sp: Supporter, key: SortKey): string | number {
   switch (key) {
     case 'name':
       return sp.name;
+    case 'cat':
+      return sp.cat || '';
     case 'phone':
       return sp.phone || '';
+    case 'email':
+      return sp.email || '';
     case 'count':
       return sp.count;
     case 'ils':
@@ -46,6 +63,8 @@ function sortVal(sp: Supporter, key: SortKey): string | number {
       return sp.last || '';
     case 'nextDate':
       return sp.nextDate || '';
+    case 'score':
+      return supScore(sp);
   }
 }
 
@@ -201,7 +220,9 @@ export function SupportersView() {
           <table className="table">
             <thead>
               <tr>
-                {HEAD.filter((h) => nextOn || h.key !== 'nextDate').map((h) => {
+                {HEAD.filter(
+                  (h) => (nextOn || h.key !== 'nextDate') && (rfmOn || h.key !== 'score'),
+                ).map((h) => {
                   const dir = sort && sort.key === h.key ? sort.dir : 0;
                   return (
                     <th
@@ -236,7 +257,9 @@ export function SupportersView() {
                       </div>
                     )}
                   </td>
+                  <td>{sp.cat || '—'}</td>
                   <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.phone || '—'}</td>
+                  <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.email || '—'}</td>
                   <td title="מתי וכמה בכל תרומה — בכרטיס">{sp.count}</td>
                   <td>{sp.ils ? '₪' + sp.ils.toLocaleString('he-IL') : '—'}</td>
                   <td>{sp.usd ? '$' + sp.usd.toLocaleString('he-IL') : '—'}</td>
@@ -262,6 +285,7 @@ export function SupportersView() {
                       )}
                     </td>
                   )}
+                  {rfmOn && <td style={{ fontWeight: 700 }}>{supScore(sp)}</td>}
                   {rfmOn && (
                     <td>
                       <TierChip sp={sp} />
