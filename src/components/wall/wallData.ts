@@ -17,7 +17,7 @@
  * · טיקר — משפחות חדשות, תרומות אחרונות, כרטיסיות שהושלמו וימי הולדת של היום (עד 8).
  */
 import type { Db, EventType, Supporter } from '../../types/domain';
-import { gem, gemYear, holidayOf } from '../../lib/hebrew';
+import { gem, gemYear, holidayOf, hebAnnualEq } from '../../lib/hebrew';
 import { eventOccursOn, evLabel, hpOf, isoOf, sessionsOf } from '../calendar/calLib';
 
 export interface WallKpi {
@@ -270,14 +270,15 @@ export function buildWeek(db: Db, now: Date): WallWeekRow[] {
 }
 
 /** בני משפחה שיום הולדתם העברי חל היום. */
-function birthdaysToday(db: Db, todayIso: string): { first: string; age: number }[] {
+export function birthdaysToday(db: Db, todayIso: string): { first: string; age: number }[] {
   const hp = hpOf(todayIso);
   const out: { first: string; age: number }[] = [];
   for (const f of db.families) {
     for (const m of f.members) {
       if (!m.birth || todayIso <= m.birth) continue;
       const bh = hpOf(m.birth);
-      if (bh.day === hp.day && bh.month === hp.month) out.push({ first: m.first, age: hp.year - bh.year });
+      // נרמול אדר משותף — יום-הולדת עברי ב"אדר" מופיע בקיר גם בשנה מעוברת (אדר ב׳)
+      if (hebAnnualEq(bh, hp)) out.push({ first: m.first, age: hp.year - bh.year });
     }
   }
   return out;
