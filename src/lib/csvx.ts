@@ -84,9 +84,15 @@ export function parseAnyDate(v: string): string {
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   const m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$/);
   if (m) {
+    const day = +m[1];
+    const mon = +m[2];
     let y = +m[3];
     if (y < 100) y += y > 26 ? 1900 : 2000;
-    return y + '-' + String(+m[2]).padStart(2, '0') + '-' + String(+m[1]).padStart(2, '0');
+    // אימות טווח + קיום התאריך בפועל (31/02, חודש 13 וכו' → ריק, לא זבל)
+    if (mon < 1 || mon > 12 || day < 1 || day > 31) return '';
+    const probe = new Date(Date.UTC(y, mon - 1, day));
+    if (probe.getUTCFullYear() !== y || probe.getUTCMonth() !== mon - 1 || probe.getUTCDate() !== day) return '';
+    return y + '-' + String(mon).padStart(2, '0') + '-' + String(day).padStart(2, '0');
   }
   if (/^\d{4,5}$/.test(s)) {
     const b = new Date(Date.UTC(1899, 11, 30));

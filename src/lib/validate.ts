@@ -4,6 +4,7 @@
 export function validIsraeliId(id: string): boolean {
   const s = String(id).trim();
   if (!/^\d{5,9}$/.test(s)) return false;
+  if (!/[1-9]/.test(s)) return false; // ת"ז של אפסים בלבד אינה תקינה
   const p = s.padStart(9, '0');
   let sum = 0;
   for (let i = 0; i < 9; i++) {
@@ -31,8 +32,16 @@ export function normalizePhone(raw: string): string {
  */
 export function formatIsraeliPhone(raw: string): string {
   const s = String(raw || '').trim();
-  const d = s.replace(/\D/g, '');
-  if (!d || d[0] === '0') return s;
+  let d = s.replace(/\D/g, '');
+  // קידומת בינלאומית 972/00972 → 0 מקומי (מספרים מיובאים מגיעים כך)
+  if (d.startsWith('00972')) d = '0' + d.slice(5);
+  else if (d.startsWith('972')) d = '0' + d.slice(3);
+  if (!d) return s;
+  if (d[0] === '0') {
+    if (d.length === 10) return d.slice(0, 3) + '-' + d.slice(3);
+    if (d.length === 9) return d.slice(0, 2) + '-' + d.slice(2);
+    return d;
+  }
   if (d.length === 9) return '0' + d.slice(0, 2) + '-' + d.slice(2);
   if (d.length === 8) return '0' + d[0] + '-' + d.slice(1);
   return s;
