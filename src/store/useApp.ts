@@ -28,6 +28,7 @@ import {
 } from '../types/domain';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, loadOrgConfig, saveConfigOverride } from '../lib/config';
+import { formatIsraeliPhone } from '../lib/validate';
 import { featLabel, planAddName, planAyinAdvance, revertPatch } from '../lib/ayin';
 import { dailySnapshot, exportBackupFile, loadDb, saveDb, setPersistNamespace } from './persist';
 import type { CloudStatus, CloudUser } from './cloudSync';
@@ -169,6 +170,9 @@ interface AppState {
   exportBackup: () => void;
   restoreDb: (db: Db) => void;
   resetAll: () => void;
+
+  /** תיקון טלפונים אוטומטי — השלמת 0 מוביל בכל המשפחות/בני המשפחה. */
+  fixAllPhones: () => void;
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -732,6 +736,25 @@ export const useApp = create<AppState>()((set, get) => {
     exportBackup() {
       exportBackupFile(get().db);
       get().toast('קובץ גיבוי מלא ירד למחשב ✓');
+    },
+    fixAllPhones() {
+      let n = 0;
+      setDb((db) => ({
+        families: db.families.map((f) => {
+          const fix = (v: string) => {
+            const nv = formatIsraeliPhone(v);
+            if (nv !== String(v || '').trim() && nv) n++;
+            return nv || v;
+          };
+          return {
+            ...f,
+            phone: fix(f.phone),
+            phone2: fix(f.phone2),
+            members: f.members.map((m) => ({ ...m, phone: fix(m.phone), phone2: fix(m.phone2) })),
+          };
+        }),
+      }));
+      get().toast(n ? 'נוסף 0 מוביל ל-' + n + ' טלפונים' : 'לא נמצאו טלפונים חסרי 0');
     },
     restoreDb(db) {
       const prev = get().db;

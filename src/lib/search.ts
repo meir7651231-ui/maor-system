@@ -92,7 +92,10 @@ export function levenshtein(a: string, b: string): number {
 /**
  * ציון התאמה של שאילתה מול מונח בודד (שניהם מנורמלים עם normSearch):
  * 100 זהה · 80 תחילית · 70 גזע-ריבוי (ים/ות) · 62 תת-מחרוזת ·
- * 58 ללא אימות קריאה (י/ו) · 45 מרחק עריכה ≤ 1 · 0 אין התאמה.
+ * 58 ללא אימות קריאה (י/ו) · מרחק עריכה מדורג ‎52-4d‎ · 0 אין התאמה.
+ *
+ * סובלנות שגיאות כתיב מדורגת (פורט נאמן מהאב-טיפוס): מונח באורך ≥6 מרשה
+ * מרחק לוינשטיין עד 2 (48 לשגיאה אחת, 44 לשתיים), מונח קצר יותר — עד 1 (48).
  */
 export function scoreTerm(q: string, term: string): number {
   const nq = normSearch(q);
@@ -111,7 +114,10 @@ export function scoreTerm(q: string, term: string): number {
     const sq = nq.replace(/[יו]/g, '');
     const st = nt.replace(/[יו]/g, '');
     if (sq.length >= 2 && sq === st) return 58;
-    if (levenshtein(nq, nt) <= 1) return 45;
+    // מונח ארוך (≥6) סובל שתי שגיאות; קצר יותר — אחת. הציון יורד 4 לכל שגיאה.
+    const max = nt.length >= 6 ? 2 : 1;
+    const d = levenshtein(nq, nt);
+    if (d <= max) return 52 - d * 4;
   }
   return 0;
 }

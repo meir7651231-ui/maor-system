@@ -15,6 +15,7 @@ import { ExportSection } from './ExportSection';
 import { ImportSection } from './ImportSection';
 import { AccessSection } from './AccessSection';
 import { ThemeSection } from './ThemeSection';
+import { AuditSection } from './AuditSection';
 
 /** feature key פר-סעיף — סעיף בלי מפתח (ארגון/ערכה/התראות/גיבוי/נגישות) לעולם אינו מוסתר. */
 const SECTIONS: { id: string; label: string; feature?: string }[] = [
@@ -26,6 +27,7 @@ const SECTIONS: { id: string; label: string; feature?: string }[] = [
   { id: 'sec-backup', label: 'גיבוי ושחזור' },
   { id: 'sec-export', label: 'ייצוא נתונים', feature: 'settings.export' },
   { id: 'sec-import', label: 'ייבוא נתונים', feature: 'settings.import' },
+  { id: 'sec-audit', label: 'בדיקת תקינות', feature: 'settings.audit' },
   { id: 'sec-access', label: 'נגישות' },
   { id: 'sec-reset', label: 'איפוס', feature: 'settings.reset' },
 ];
@@ -55,6 +57,7 @@ export function SettingsView() {
       <BackupSection />
       {secOn('sec-export') && <ExportSection />}
       {secOn('sec-import') && <ImportSection />}
+      {secOn('sec-audit') && <AuditSection />}
       <AccessSection />
       {secOn('sec-reset') && <ResetSection />}
     </div>

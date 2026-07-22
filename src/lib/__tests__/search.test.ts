@@ -62,8 +62,15 @@ describe('scoreTerm', () => {
     expect(scoreTerm('דויד', 'דוד')).toBe(58);
   });
 
-  it('tolerates a single typo via levenshtein', () => {
-    expect(scoreTerm('כהאן', 'כהן')).toBe(45);
+  it('tolerates a single typo via levenshtein (graded 52-4d → 48)', () => {
+    expect(scoreTerm('כהאן', 'כהן')).toBe(48);
+  });
+
+  it('tolerates two typos only for a long enough term (≥6) → 44', () => {
+    // מונח ארוך (6 אותיות, ללא אותיות סופיות/ניקוד): שתי החלפות → lev=2 → 44
+    expect(scoreTerm('אבגדזח', 'אבגדהו')).toBe(44);
+    // מונח קצר (4 אותיות): שתי שגיאות מעבר לסף — נדחה
+    expect(scoreTerm('אבזח', 'אבגד')).toBe(0);
   });
 
   it('returns 0 for no match or empty input', () => {
@@ -91,9 +98,9 @@ describe('smartScore', () => {
 describe('smartFilter', () => {
   const names = ['כהן', 'לוי', 'מזרחי'];
 
-  it("typo tolerance: 'כהאן' matches 'כהן' (score 45)", () => {
+  it("typo tolerance: 'כהאן' matches 'כהן' (graded score 48)", () => {
     expect(smartFilter('כהאן', names, (n) => [n])).toEqual(['כהן']);
-    expect(smartScore('כהאן', ['כהן'])).toBe(45);
+    expect(smartScore('כהאן', ['כהן'])).toBe(48);
   });
 
   it('sorts by score descending and respects limit', () => {

@@ -29,15 +29,19 @@ export function ExportSection() {
       [
         'שם משפחה', 'סטטוס', 'שם האב', 'ת"ז האב', 'שם האם', 'ת"ז האם', 'טלפון', 'טלפון נוסף',
         'אימייל', 'עיר', 'כתובת', 'קהילה', 'מצב משפחתי', 'שפה', 'קופת צדקה', 'ספח מלא', 'הנחה',
-        'מדד אמינות', 'מס׳ בני משפחה', 'מס׳ ילדים', 'תאריך הצטרפות', 'הערות',
+        'מדד אמינות', 'מס׳ בני משפחה', 'מס׳ ילדים', 'קורסים', 'יתרת תשלומים', 'תאריך הצטרפות', 'הערות',
       ],
     ];
     for (const f of db.families) {
+      // קורסים = מס׳ שיבוצים של בני המשפחה · יתרת תשלומים = סכום החובות הפתוחים
+      const memberIds = new Set(f.members.map((m) => m.id));
+      const ens = db.enrollments.filter((e) => memberIds.has(e.memberId));
+      const bal = ens.reduce((a, e) => a + payBal(e), 0);
       rows.push([
         f.name, STATUS_META[f.status].label, f.father, f.fatherId, f.mother, f.motherId, f.phone,
         f.phone2, f.email, f.city, f.address, f.community, f.maritalStatus, f.language, f.tzedaka,
         f.fullSefach ? 'כן' : 'לא', f.discount, f.cred?.score ?? '', f.members.length,
-        f.members.filter((m) => !m.isParent).length, fmtDate(f.createdAt), f.notes,
+        f.members.filter((m) => !m.isParent).length, ens.length, bal, fmtDate(f.createdAt), f.notes,
       ]);
     }
     downloadCsv('maor-families.csv', rows);
