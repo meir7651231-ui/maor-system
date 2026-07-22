@@ -13,7 +13,7 @@ import {
   type OrgEvent,
 } from '../../types/domain';
 import { allMembers, type MemberWithFamily } from '../../store/useApp';
-import { hebParts, type HebParts } from '../../lib/hebrew';
+import { hebParts, hebAnnualEq, type HebParts } from '../../lib/hebrew';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 
 /** מפת המודולים הפעילים (config.modules) — חסר = פעיל; false = כבוי. */
@@ -96,16 +96,6 @@ function hebPartsOfIso(iso: string): HebParts {
 }
 
 /**
- * נרמול אדר לחזרה שנתית: בשנה פשוטה יש "אדר" אחד, בשנה מעוברת "אדר א׳" + "אדר ב׳".
- * מבחינת מיקום — האדר של שנה פשוטה מקביל ל"אדר ב׳" (שניהם צמודים לניסן), ולכן
- * אזכרה/יום-נישואים שנקבע ב"אדר" רגיל חוזר ב"אדר ב׳" של שנה מעוברת (וההפך).
- * בלי הנרמול הזה אירוע עברי כזה פשוט נעלם מהלוח בשנה מעוברת — איבוד נתונים.
- */
-function adarNorm(monthEn: string): string {
-  return monthEn === 'Adar II' ? 'Adar' : monthEn;
-}
-
-/**
  * אירועי הארגון החלים בתאריך נתון (לא כולל אירועים שסומנו "טופל"):
  * התאמה לועזית ישירה, או חזרה שנתית לפי התאריך העברי (אזכרה/נישואים/הולדת).
  */
@@ -117,8 +107,7 @@ export function eventsOnDate(db: Db, d: Date): OrgEvent[] {
     if (ev.done || !ev.date) continue;
     let hit = ev.date === iso;
     if (!hit && HEBREW_RECURRING.has(ev.type) && iso > ev.date) {
-      const oh = hebPartsOfIso(ev.date);
-      hit = adarNorm(oh.month) === adarNorm(hp.month) && oh.day === hp.day;
+      hit = hebAnnualEq(hebPartsOfIso(ev.date), hp);
     }
     if (hit) out.push(ev);
   }

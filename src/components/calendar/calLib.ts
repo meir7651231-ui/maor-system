@@ -12,7 +12,7 @@ import {
   type EventType,
   type OrgEvent,
 } from '../../types/domain';
-import { gem, gemYear, hebParts, holidayOf, type HebParts } from '../../lib/hebrew';
+import { gem, gemYear, hebParts, hebAnnualEq, holidayOf, type HebParts } from '../../lib/hebrew';
 
 /* ---------- תאריכים ---------- */
 
@@ -164,8 +164,9 @@ export function eventOccursOn(ev: OrgEvent, iso: string, hp: HebParts): boolean 
   if (!ev.date) return false;
   if (ev.date === iso) return true;
   if (!HEBREW_RECURRING.has(ev.type) || iso <= ev.date) return false;
-  const oh = hpOf(ev.date);
-  return oh.day === hp.day && oh.month === hp.month;
+  // נרמול אדר משותף — כך שאזכרה/נישואים ב"אדר" רגיל חוזרים ב"אדר ב׳" מעוברת,
+  // בדיוק כמו בלוח הבית (eventsOnDate). בלי זה האירוע נעלם מהלוח בשנה מעוברת.
+  return hebAnnualEq(hpOf(ev.date), hp);
 }
 
 export interface DayItem {
@@ -271,7 +272,7 @@ export function dayItems(db: Db, d: Date): DayItem[] {
     for (const m of f.members) {
       if (!m.birth || iso <= m.birth) continue;
       const bh = hpOf(m.birth);
-      if (bh.day !== hp.day || bh.month !== hp.month) continue;
+      if (!hebAnnualEq(bh, hp)) continue; // נרמול אדר — יום-הולדת עברי לא נעלם בשנה מעוברת
       const age = hp.year - bh.year;
       out.push({
         key: 'bd-' + m.id,

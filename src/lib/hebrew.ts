@@ -36,6 +36,28 @@ export interface HebParts {
   year: number;
 }
 
+/**
+ * נרמול אדר לחזרה שנתית: בשנה פשוטה יש "אדר" אחד, בשנה מעוברת "אדר א׳"+"אדר ב׳".
+ * מיקומית האדר של שנה פשוטה מקביל ל"אדר ב׳" (שניהם צמודים לניסן), ולכן אזכרה/
+ * יום-נישואים/יום-הולדת שנקבע ב"אדר" רגיל חוזר ב"אדר ב׳" של שנה מעוברת (וההפך).
+ * בלי הנרמול אירוע/יום-הולדת עברי כזה נעלם מכל המשטחים בשנה מעוברת — איבוד נתונים.
+ */
+export function adarNorm(monthEn: string): string {
+  return monthEn === 'Adar II' ? 'Adar' : monthEn;
+}
+
+/**
+ * שוויון יום+חודש עברי לצורך חזרה שנתית (עם נרמול אדר). מקור-אמת יחיד לכל
+ * המשטחים: לוח הבית (eventsOnDate) · רשת הלוח (dayItems/eventOccursOn) ·
+ * אירועים קרובים (upcomingRows) — כדי שלא ייווצר פער ביניהם.
+ */
+export function hebAnnualEq(
+  a: { day: number; month: string },
+  b: { day: number; month: string },
+): boolean {
+  return a.day === b.day && adarNorm(a.month) === adarNorm(b.month);
+}
+
 /** מפרק תאריך לועזי לחלקי התאריך העברי (חודש בשם אנגלי — 'Tishri', 'Adar II'…). */
 export function hebParts(d: Date): HebParts {
   const parts = fmtParts.formatToParts(d);

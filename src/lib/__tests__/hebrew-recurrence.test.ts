@@ -5,7 +5,10 @@
  */
 import { describe, expect, it } from 'vitest';
 import { hebToIso, isHebLeapYear } from '../hebdate';
+import { hebAnnualEq } from '../hebrew';
 import { eventsOnDate } from '../../components/home/homeData';
+import { eventOccursOn, dayItems } from '../../components/calendar/calLib';
+import { hpOf } from '../../components/calendar/calLib';
 import { emptyDb } from '../../types/domain';
 import type { Db, OrgEvent } from '../../types/domain';
 
@@ -83,4 +86,47 @@ describe('✅ בקרה: חודש רגיל (ניסן) חוזר כרגיל, בלי
   const db = dbWith(memorial('m3', origIso));
   it('10 ניסן חוזר ב-10 ניסן בשנה הבאה', () =>
     expect(eventsOnDate(db, noon(nextNisan)).some((e) => e.id === 'm3')).toBe(true));
+});
+
+describe('🔬 hebAnnualEq — מקור-האמת המשותף', () => {
+  it('אדר ≡ אדר ב׳, אבל אדר ≠ אדר א׳', () => {
+    expect(hebAnnualEq({ day: 15, month: 'Adar' }, { day: 15, month: 'Adar II' })).toBe(true);
+    expect(hebAnnualEq({ day: 15, month: 'Adar' }, { day: 15, month: 'Adar I' })).toBe(false);
+  });
+  it('יום שונה = לא שווה', () =>
+    expect(hebAnnualEq({ day: 15, month: 'Nisan' }, { day: 16, month: 'Nisan' })).toBe(false));
+});
+
+describe('📅 אותו תיקון חייב לחול על הלוח (calLib), לא רק על הבית', () => {
+  const origIso = hebToIso(15, 'אדר', common)!;
+  const leapAdar2 = hebToIso(15, 'אדר ב׳', leap)!;
+  const leapAdar1 = hebToIso(15, 'אדר א׳', leap)!;
+  const ev = memorial('cm', origIso);
+
+  it('eventOccursOn: מופיע ב-אדר ב׳ מעוברת (עקבי עם הבית)', () =>
+    expect(eventOccursOn(ev, leapAdar2, hpOf(leapAdar2))).toBe(true));
+  it('eventOccursOn: לא מופיע ב-אדר א׳', () =>
+    expect(eventOccursOn(ev, leapAdar1, hpOf(leapAdar1))).toBe(false));
+  it('רשת הלוח (dayItems) מציגה את האזכרה ב-אדר ב׳ מעוברת', () => {
+    const db = dbWith(ev);
+    const items = dayItems(db, noon(leapAdar2));
+    expect(items.some((it) => it.ev?.id === 'cm')).toBe(true);
+  });
+});
+
+describe('🎂 יום-הולדת עברי בלוח — לא נעלם בשנה מעוברת', () => {
+  it('בן-משפחה שנולד ב-אדר מוצג בלוח ב-אדר ב׳ מעוברת', () => {
+    const birthIso = hebToIso(12, 'אדר', common)!;
+    const leapAdar2 = hebToIso(12, 'אדר ב׳', leap)!;
+    const db = {
+      ...emptyDb(),
+      families: [
+        {
+          id: 'f1', name: 'כהן', createdAt: '2020-01-01', members: [{ id: 'm1', first: 'רוני', birth: birthIso }],
+        },
+      ],
+    } as unknown as Db;
+    const items = dayItems(db, noon(leapAdar2));
+    expect(items.some((it) => it.layer === 'bday')).toBe(true);
+  });
 });
