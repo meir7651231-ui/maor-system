@@ -9,7 +9,7 @@ import type { OrgConfig } from '../types/config';
 import type { Cell } from './csvx';
 import { featureOn } from './config';
 import { featLabel, itemLabel, stageLabel, unitLabel } from './ayin';
-import { hebDateFull, hebParts } from './hebrew';
+import { hebDateFull, hebParts, hebAnnualEq } from './hebrew';
 
 export type ExportTarget = 'courses' | 'events' | 'supporters';
 
@@ -129,7 +129,16 @@ export function buildCustomExport(
         pick({
           name: c.name,
           teacher: (t?.name || '') + (t?.phone ? ' ' + t.phone : ''),
-          model: (c.model === 'punch' ? 'כרטיסייה' : 'מנוי חודשי') + ' · ₪' + (c.price || 0),
+          model:
+            (c.model === 'punch'
+              ? 'כרטיסייה'
+              : c.model === 'half_year'
+                ? 'מנוי חצי-שנתי'
+                : c.model === 'year'
+                  ? 'מנוי שנתי'
+                  : 'מנוי חודשי') +
+            ' · ₪' +
+            (c.price || 0),
           occ: ens.length + '/' + (c.maxStudents || '—'),
           students: ens.map((e) => memberFirst.get(e.memberId) || '').filter(Boolean).join(' · '),
           pays: payN + ' תשלומים · ₪' + paySum,
@@ -158,8 +167,8 @@ export function buildCustomExport(
         const d0 = new Date(range.from + 'T12:00:00');
         const d1 = new Date(range.to + 'T12:00:00');
         for (let dd = new Date(d0), k = 0; dd <= d1 && k < 366; dd.setDate(dd.getDate() + 1), k++) {
-          const hp = hebParts(dd);
-          if (hp.day === oh.day && hp.month === oh.month) occ.push({ ...rec, date: isoOf(dd) });
+          // נרמול אדר משותף — עקבי עם הלוח והבית; בלעדיו אזכרה ב"אדר" נעדרת מהייצוא בשנה מעוברת
+          if (hebAnnualEq(hebParts(dd), oh)) occ.push({ ...rec, date: isoOf(dd) });
         }
       } else if (inR(ev.date, range) || (!range.from && !range.to)) {
         occ.push({ ...rec, date: ev.date });

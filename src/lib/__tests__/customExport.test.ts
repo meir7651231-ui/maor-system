@@ -89,4 +89,34 @@ describe('buildCustomExport — field selection', () => {
     expect(rows[1][0]).toBe('כנס');
     expect(rows[1][1]).toBe('10/05/2026');
   });
+
+  it('אזכרה עברית ב"אדר" מופיעה בייצוא גם בשנה מעוברת (נרמול אדר, עקבי עם הלוח)', () => {
+    // 5786 (תשפ"ו) פשוטה; 5787 מעוברת. אזכרה שנקבעה ב-אדר תשפ"ו — נבדוק ב-אדר ב׳ תשפ"ז
+    // (טווח לועזי שמכסה אדר ב׳ תשפ"ז: מרץ 2027). התאריך המקורי: ~פברואר 2026.
+    const db: Db = {
+      ...emptyDb(),
+      events: [
+        { id: 'm1', title: 'אזכרה', date: '2026-02-24', time: '', type: 'memorial', customType: '', notes: '', price: 0, roomId: '', famId: '', priority: 'green', done: false },
+      ],
+    };
+    // הטווח מכסה את כל אדר ב׳ תשפ"ז (מרץ 2027) — האזכרה חייבת להופיע פעם אחת לפחות
+    const rows = buildCustomExport(cfg(), db, 'events', { from: '2027-02-01', to: '2027-04-15' }, ['title', 'gdate']);
+    expect(rows.length).toBeGreaterThanOrEqual(2); // כותרת + לפחות מופע אחד
+    expect(rows.slice(1).every((r) => r[0] === 'אזכרה')).toBe(true);
+  });
+
+  it('תווית מסלול בייצוא חוגים כוללת חצי-שנתי/שנתי (לא "חודשי" גורף)', () => {
+    const mk = (id: string, model: string) =>
+      ({ id, name: id, teacherId: '', roomId: '', cat: '', audience: '', semester: 'שנתי', model,
+         size: 0, price: 500, price1: 0, price2: 0, price1Name: '', price2Name: '', maxStudents: 20,
+         ageMin: 0, ageMax: 99, gender: 'all', weekday: 1, time: '16:00', start: '2026-01-01',
+         end: '2026-12-31', sessions: [], img: '', active: true, notes: '', description: '', sector: '' });
+    const db = { ...emptyDb(), courses: [mk('half', 'half_year'), mk('yr', 'year')] } as unknown as Db;
+    const rows = buildCustomExport(cfg(), db, 'courses', { from: '', to: '' }, ['name', 'model']);
+    const half = rows.find((r) => r[0] === 'half')!;
+    const yr = rows.find((r) => r[0] === 'yr')!;
+    expect(String(half[1])).toContain('חצי-שנתי');
+    expect(String(yr[1])).toContain('שנתי');
+    expect(String(half[1])).not.toContain('חודשי');
+  });
 });
