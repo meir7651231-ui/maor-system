@@ -513,8 +513,10 @@ export const useApp = create<AppState>()((set, get) => {
         families: db.families.map((f) => {
           const score = f.cred?.score ?? 700;
           if (score <= 0) return f; // אין לאן לרדת
-          const last = f.cred?.log?.[0];
-          if (last && last.date >= cutoff) return f; // הייתה פעילות לאחרונה
+          // בסיס הפעילות: רשומת הלוג האחרונה, ובהיעדרה — תאריך ההצטרפות. בלי fallback
+          // ל-createdAt, משפחה חדשה (log ריק) נצבעה כ"לא פעילה" ונדעכה מיד ביום הצטרפותה.
+          const lastActivity = f.cred?.log?.[0]?.date || f.createdAt || '';
+          if (lastActivity && lastActivity >= cutoff) return f; // פעילות/הצטרפות לאחרונה
           n++;
           return {
             ...f,
