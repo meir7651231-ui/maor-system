@@ -20,7 +20,9 @@ export function isoToday(): string {
 /** גיל בשנים מלאות מתאריך לידה, או null אם אין תאריך. */
 export function ageOf(birth: string): number | null {
   if (!birth) return null;
-  const d = new Date(birth);
+  // צהריים מקומי — new Date('YYYY-MM-DD') הוא חצות UTC, ובאזור זמן ממערב ל-UTC
+  // הוא נופל ליום הקודם מקומית וגורם לגיל לסטות ביום סביב יום ההולדת.
+  const d = new Date(birth.slice(0, 10) + 'T12:00:00');
   if (isNaN(d.getTime())) return null;
   const n = new Date();
   let a = n.getFullYear() - d.getFullYear();
