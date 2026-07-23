@@ -142,7 +142,7 @@ export interface Absence {
 }
 
 export interface Payment {
-  /** מספר קבלה R-{seq}. */
+  /** מספר קבלה R-{receiptSeq} — רציף לכל הקבלות. */
   rid: string;
   date: IsoDate;
   amount: number;
@@ -245,7 +245,7 @@ export const HEBREW_RECURRING: ReadonlySet<EventType> = new Set([
 ] as EventType[]);
 
 export interface Donation {
-  /** מספר אסמכתה D-{seq}. */
+  /** מספר אסמכתה D-{donationSeq} — רציף לכל קבלות התרומה. */
   rid: string;
   date: IsoDate;
   amount: number;
@@ -371,6 +371,10 @@ export interface Db {
   savedAt: string;
   /** מונה מזהים משותף לכל הישויות. */
   seq: number;
+  /** מונה קבלות חוגים (R-) — רציף ונפרד מ-seq, כנדרש לקבלות מס. */
+  receiptSeq: number;
+  /** מונה קבלות תרומה (D-) — רציף ונפרד מ-seq, כנדרש לקבלות מס. */
+  donationSeq: number;
   families: Family[];
   enrollments: Enrollment[];
   courses: Course[];
@@ -390,13 +394,15 @@ export interface Db {
   attnDone: Record<string, string>;
 }
 
-export const DB_VERSION = 3;
+export const DB_VERSION = 4;
 
 export function emptyDb(): Db {
   return {
     v: DB_VERSION,
     savedAt: new Date().toISOString(),
     seq: 100,
+    receiptSeq: 1,
+    donationSeq: 1,
     families: [],
     enrollments: [],
     courses: [],

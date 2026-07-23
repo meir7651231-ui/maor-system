@@ -104,12 +104,22 @@ export interface BirthdayHit {
   age: number;
 }
 
-/** ימי הולדת (לועזיים) של בני משפחה בתאריך נתון — כמו במקור. */
+/**
+ * ימי הולדת של בני משפחה בתאריך נתון — חזרה שנתית לפי התאריך העברי,
+ * זהה בדיוק ליומן (calLib): נרמול אדר + גיל בשנים עבריות. כך יום ההולדת
+ * נדלק באותו יום בבית וביומן, בעקביות עם אזכרות וימי נישואין.
+ */
 export function birthdaysOn(db: Db, d: Date): BirthdayHit[] {
-  const key = isoOf(d).slice(5);
-  return allMembers(db)
-    .filter((m) => m.birth && m.birth.slice(5) === key)
-    .map((m) => ({ member: m, age: d.getFullYear() - +m.birth.slice(0, 4) }));
+  const iso = isoOf(d);
+  const hp = hebParts(d);
+  const out: BirthdayHit[] = [];
+  for (const m of allMembers(db)) {
+    if (!m.birth || iso <= m.birth) continue;
+    const bh = hebPartsOfIso(m.birth);
+    if (!hebAnnualEq(bh, hp)) continue;
+    out.push({ member: m, age: hp.year - bh.year });
+  }
+  return out;
 }
 
 export interface HomeStats {

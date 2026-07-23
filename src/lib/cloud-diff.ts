@@ -53,6 +53,8 @@ export function metaOf(db: Db): Record<string, unknown> {
     reports: db.reports,
     ui: db.ui,
     seq: db.seq,
+    receiptSeq: db.receiptSeq,
+    donationSeq: db.donationSeq,
     attnDone: db.attnDone,
     savedAt: db.savedAt,
   };

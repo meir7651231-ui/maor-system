@@ -109,7 +109,26 @@ export function migrate(raw: unknown): Db | null {
     reports: { ...base.reports, ...(db.reports ?? {}) },
     ui: { ...base.ui, ...(db.ui ?? {}) },
     seq: Math.max(db.seq ?? 0, base.seq),
+    receiptSeq: db.receiptSeq ?? base.receiptSeq,
+    donationSeq: db.donationSeq ?? base.donationSeq,
   };
+  // גרסאות ישנות מיספרו קבלות מתוך seq המשותף. מזריעים את המונים הרציפים
+  // מעל המספר הגבוה ביותר שכבר הונפק, כדי שהמספור הבא יימשך רציף וללא התנגשות.
+  const maxRid = (prefix: string, rids: string[]): number =>
+    rids.reduce((mx, rid) => {
+      const n = rid?.startsWith(prefix) ? parseInt(rid.slice(prefix.length), 10) : NaN;
+      return Number.isFinite(n) && n >= mx ? n + 1 : mx;
+    }, 0);
+  const rNext = maxRid(
+    'R-',
+    merged.enrollments.flatMap((e) => (Array.isArray(e.payments) ? e.payments.map((p) => p.rid) : [])),
+  );
+  const dNext = maxRid(
+    'D-',
+    merged.supporters.flatMap((s) => (Array.isArray(s.donations) ? s.donations.map((d) => d.rid) : [])),
+  );
+  if (rNext > merged.receiptSeq) merged.receiptSeq = rNext;
+  if (dNext > merged.donationSeq) merged.donationSeq = dNext;
   // היגיינה: מזהים חסרים, כפילויות, מערכים חסרים בתוך משפחות
   const seen = new Set<string>();
   // מזהי בני-משפחה חייבים להיות ייחודיים גלובלית: deleteMember מסנן שיבוצים

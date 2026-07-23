@@ -1,7 +1,9 @@
 {
- "v": 2,
- "savedAt": "2026-07-23T18:45:07.715Z",
- "seq": 1003,
+ "v": 4,
+ "savedAt": "2026-07-23T21:11:21.034Z",
+ "seq": 654,
+ "receiptSeq": 274,
+ "donationSeq": 77,
  "families": [
   {
    "id": "f128",
@@ -6642,7 +6644,7 @@
  ],
  "enrollments": [
   {
-   "id": "e467",
+   "id": "e464",
    "memberId": "m129",
    "courseId": "c114",
    "plan": "monthly",
@@ -6652,19 +6654,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-464",
+     "rid": "R-1",
      "date": "2026-04-21",
      "amount": 160,
      "method": "אשראי"
     },
     {
-     "rid": "R-465",
+     "rid": "R-2",
      "date": "2026-03-02",
      "amount": 160,
      "method": "מזומן"
     },
     {
-     "rid": "R-466",
+     "rid": "R-3",
      "date": "2026-03-24",
      "amount": 160,
      "method": "הוראת קבע"
@@ -6677,7 +6679,7 @@
    "enrolledAt": "2026-02-13"
   },
   {
-   "id": "e469",
+   "id": "e465",
    "memberId": "m137",
    "courseId": "c125",
    "plan": "monthly",
@@ -6687,7 +6689,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-468",
+     "rid": "R-4",
      "date": "2026-06-29",
      "amount": 160,
      "method": "הוראת קבע"
@@ -6700,7 +6702,7 @@
    "enrolledAt": "2026-01-18"
   },
   {
-   "id": "e473",
+   "id": "e466",
    "memberId": "m144",
    "courseId": "c121",
    "plan": "punch",
@@ -6710,19 +6712,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-470",
+     "rid": "R-5",
      "date": "2026-04-19",
      "amount": 300,
      "method": "אשראי"
     },
     {
-     "rid": "R-471",
+     "rid": "R-6",
      "date": "2026-05-06",
      "amount": 300,
      "method": "אשראי"
     },
     {
-     "rid": "R-472",
+     "rid": "R-7",
      "date": "2026-05-23",
      "amount": 300,
      "method": "העברה בנקאית"
@@ -6735,7 +6737,7 @@
    "enrolledAt": "2026-01-29"
   },
   {
-   "id": "e475",
+   "id": "e467",
    "memberId": "m149",
    "courseId": "c118",
    "plan": "monthly",
@@ -6745,7 +6747,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-474",
+     "rid": "R-8",
      "date": "2026-04-18",
      "amount": 170,
      "method": "מזומן"
@@ -6758,7 +6760,7 @@
    "enrolledAt": "2025-12-20"
   },
   {
-   "id": "e478",
+   "id": "e468",
    "memberId": "m152",
    "courseId": "c126",
    "plan": "punch",
@@ -6774,13 +6776,13 @@
    ],
    "payments": [
     {
-     "rid": "R-476",
+     "rid": "R-9",
      "date": "2026-06-10",
      "amount": 200,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-477",
+     "rid": "R-10",
      "date": "2026-05-08",
      "amount": 200,
      "method": "מזומן"
@@ -6793,7 +6795,7 @@
    "enrolledAt": "2026-02-05"
   },
   {
-   "id": "e482",
+   "id": "e469",
    "memberId": "m160",
    "courseId": "c126",
    "plan": "punch",
@@ -6803,19 +6805,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-479",
+     "rid": "R-11",
      "date": "2026-04-07",
      "amount": 200,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-480",
+     "rid": "R-12",
      "date": "2026-04-12",
      "amount": 200,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-481",
+     "rid": "R-13",
      "date": "2026-05-01",
      "amount": 200,
      "method": "הוראת קבע"
@@ -6828,7 +6830,7 @@
    "enrolledAt": "2026-04-01"
   },
   {
-   "id": "e486",
+   "id": "e470",
    "memberId": "m164",
    "courseId": "c124",
    "plan": "monthly",
@@ -6838,19 +6840,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-483",
+     "rid": "R-14",
      "date": "2026-04-03",
      "amount": 175,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-484",
+     "rid": "R-15",
      "date": "2026-05-13",
      "amount": 175,
      "method": "מזומן"
     },
     {
-     "rid": "R-485",
+     "rid": "R-16",
      "date": "2026-04-15",
      "amount": 175,
      "method": "העברה בנקאית"
@@ -6863,7 +6865,7 @@
    "enrolledAt": "2025-12-27"
   },
   {
-   "id": "e488",
+   "id": "e471",
    "memberId": "m169",
    "courseId": "c127",
    "plan": "punch",
@@ -6873,7 +6875,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-487",
+     "rid": "R-17",
      "date": "2026-04-22",
      "amount": 240,
      "method": "הוראת קבע"
@@ -6886,7 +6888,7 @@
    "enrolledAt": "2025-12-23"
   },
   {
-   "id": "e492",
+   "id": "e472",
    "memberId": "m174",
    "courseId": "c117",
    "plan": "monthly",
@@ -6896,19 +6898,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-489",
+     "rid": "R-18",
      "date": "2026-04-20",
      "amount": 190,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-490",
+     "rid": "R-19",
      "date": "2026-04-12",
      "amount": 190,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-491",
+     "rid": "R-20",
      "date": "2026-05-19",
      "amount": 190,
      "method": "אשראי"
@@ -6921,7 +6923,7 @@
    "enrolledAt": "2026-03-20"
   },
   {
-   "id": "e494",
+   "id": "e473",
    "memberId": "m182",
    "courseId": "c115",
    "plan": "punch",
@@ -6937,7 +6939,7 @@
    ],
    "payments": [
     {
-     "rid": "R-493",
+     "rid": "R-21",
      "date": "2026-03-23",
      "amount": 270,
      "method": "אשראי"
@@ -6950,7 +6952,7 @@
    "enrolledAt": "2026-03-03"
   },
   {
-   "id": "e496",
+   "id": "e474",
    "memberId": "m186",
    "courseId": "c114",
    "plan": "monthly",
@@ -6960,7 +6962,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-495",
+     "rid": "R-22",
      "date": "2026-03-10",
      "amount": 160,
      "method": "הוראת קבע"
@@ -6973,7 +6975,7 @@
    "enrolledAt": "2026-01-13"
   },
   {
-   "id": "e498",
+   "id": "e475",
    "memberId": "m189",
    "courseId": "c125",
    "plan": "monthly",
@@ -6983,7 +6985,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-497",
+     "rid": "R-23",
      "date": "2026-05-26",
      "amount": 160,
      "method": "מזומן"
@@ -6996,7 +6998,7 @@
    "enrolledAt": "2026-06-02"
   },
   {
-   "id": "e500",
+   "id": "e476",
    "memberId": "m193",
    "courseId": "c121",
    "plan": "punch",
@@ -7006,7 +7008,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-499",
+     "rid": "R-24",
      "date": "2026-04-19",
      "amount": 300,
      "method": "אשראי"
@@ -7019,7 +7021,7 @@
    "enrolledAt": "2026-04-06"
   },
   {
-   "id": "e502",
+   "id": "e477",
    "memberId": "m206",
    "courseId": "c115",
    "plan": "punch",
@@ -7029,7 +7031,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-501",
+     "rid": "R-25",
      "date": "2026-04-17",
      "amount": 270,
      "method": "העברה בנקאית"
@@ -7042,7 +7044,7 @@
    "enrolledAt": "2026-06-21"
   },
   {
-   "id": "e504",
+   "id": "e478",
    "memberId": "m211",
    "courseId": "c126",
    "plan": "punch",
@@ -7058,7 +7060,7 @@
    ],
    "payments": [
     {
-     "rid": "R-503",
+     "rid": "R-26",
      "date": "2026-03-11",
      "amount": 200,
      "method": "מזומן"
@@ -7071,7 +7073,7 @@
    "enrolledAt": "2026-05-25"
   },
   {
-   "id": "e507",
+   "id": "e479",
    "memberId": "m218",
    "courseId": "c122",
    "plan": "punch",
@@ -7081,13 +7083,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-505",
+     "rid": "R-27",
      "date": "2026-06-07",
      "amount": 330,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-506",
+     "rid": "R-28",
      "date": "2026-03-20",
      "amount": 330,
      "method": "הוראת קבע"
@@ -7100,7 +7102,7 @@
    "enrolledAt": "2026-01-22"
   },
   {
-   "id": "e510",
+   "id": "e480",
    "memberId": "m224",
    "courseId": "c120",
    "plan": "monthly",
@@ -7110,13 +7112,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-508",
+     "rid": "R-29",
      "date": "2026-06-27",
      "amount": 220,
      "method": "מזומן"
     },
     {
-     "rid": "R-509",
+     "rid": "R-30",
      "date": "2026-04-14",
      "amount": 220,
      "method": "מזומן"
@@ -7129,7 +7131,7 @@
    "enrolledAt": "2025-12-16"
   },
   {
-   "id": "e514",
+   "id": "e481",
    "memberId": "m231",
    "courseId": "c117",
    "plan": "monthly",
@@ -7139,19 +7141,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-511",
+     "rid": "R-31",
      "date": "2026-05-08",
      "amount": 190,
      "method": "אשראי"
     },
     {
-     "rid": "R-512",
+     "rid": "R-32",
      "date": "2026-03-28",
      "amount": 190,
      "method": "מזומן"
     },
     {
-     "rid": "R-513",
+     "rid": "R-33",
      "date": "2026-05-24",
      "amount": 190,
      "method": "מזומן"
@@ -7164,7 +7166,7 @@
    "enrolledAt": "2026-01-11"
   },
   {
-   "id": "e516",
+   "id": "e482",
    "memberId": "m238",
    "courseId": "c115",
    "plan": "punch",
@@ -7174,7 +7176,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-515",
+     "rid": "R-34",
      "date": "2026-02-24",
      "amount": 270,
      "method": "מזומן"
@@ -7187,7 +7189,7 @@
    "enrolledAt": "2026-05-20"
   },
   {
-   "id": "e520",
+   "id": "e483",
    "memberId": "m245",
    "courseId": "c125",
    "plan": "monthly",
@@ -7203,19 +7205,19 @@
    ],
    "payments": [
     {
-     "rid": "R-517",
+     "rid": "R-35",
      "date": "2026-03-09",
      "amount": 160,
      "method": "מזומן"
     },
     {
-     "rid": "R-518",
+     "rid": "R-36",
      "date": "2026-06-14",
      "amount": 160,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-519",
+     "rid": "R-37",
      "date": "2026-04-07",
      "amount": 160,
      "method": "הוראת קבע"
@@ -7228,7 +7230,7 @@
    "enrolledAt": "2026-05-24"
   },
   {
-   "id": "e524",
+   "id": "e484",
    "memberId": "m249",
    "courseId": "c121",
    "plan": "punch",
@@ -7238,19 +7240,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-521",
+     "rid": "R-38",
      "date": "2026-03-30",
      "amount": 300,
      "method": "אשראי"
     },
     {
-     "rid": "R-522",
+     "rid": "R-39",
      "date": "2026-05-25",
      "amount": 300,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-523",
+     "rid": "R-40",
      "date": "2026-03-31",
      "amount": 300,
      "method": "הוראת קבע"
@@ -7263,7 +7265,7 @@
    "enrolledAt": "2026-01-18"
   },
   {
-   "id": "e527",
+   "id": "e485",
    "memberId": "m253",
    "courseId": "c125",
    "plan": "monthly",
@@ -7273,13 +7275,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-525",
+     "rid": "R-41",
      "date": "2026-07-02",
      "amount": 160,
      "method": "מזומן"
     },
     {
-     "rid": "R-526",
+     "rid": "R-42",
      "date": "2026-05-01",
      "amount": 160,
      "method": "העברה בנקאית"
@@ -7292,7 +7294,7 @@
    "enrolledAt": "2026-01-19"
   },
   {
-   "id": "e531",
+   "id": "e486",
    "memberId": "m260",
    "courseId": "c116",
    "plan": "monthly",
@@ -7302,19 +7304,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-528",
+     "rid": "R-43",
      "date": "2026-05-14",
      "amount": 200,
      "method": "אשראי"
     },
     {
-     "rid": "R-529",
+     "rid": "R-44",
      "date": "2026-03-13",
      "amount": 200,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-530",
+     "rid": "R-45",
      "date": "2026-07-08",
      "amount": 200,
      "method": "מזומן"
@@ -7327,7 +7329,7 @@
    "enrolledAt": "2026-02-06"
   },
   {
-   "id": "e535",
+   "id": "e487",
    "memberId": "m266",
    "courseId": "c115",
    "plan": "punch",
@@ -7337,19 +7339,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-532",
+     "rid": "R-46",
      "date": "2026-04-16",
      "amount": 270,
      "method": "אשראי"
     },
     {
-     "rid": "R-533",
+     "rid": "R-47",
      "date": "2026-06-12",
      "amount": 270,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-534",
+     "rid": "R-48",
      "date": "2026-05-23",
      "amount": 270,
      "method": "אשראי"
@@ -7362,7 +7364,7 @@
    "enrolledAt": "2025-12-29"
   },
   {
-   "id": "e537",
+   "id": "e488",
    "memberId": "m274",
    "courseId": "c124",
    "plan": "monthly",
@@ -7378,7 +7380,7 @@
    ],
    "payments": [
     {
-     "rid": "R-536",
+     "rid": "R-49",
      "date": "2026-04-25",
      "amount": 175,
      "method": "הוראת קבע"
@@ -7391,7 +7393,7 @@
    "enrolledAt": "2026-05-18"
   },
   {
-   "id": "e539",
+   "id": "e489",
    "memberId": "m282",
    "courseId": "c122",
    "plan": "punch",
@@ -7401,7 +7403,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-538",
+     "rid": "R-50",
      "date": "2026-02-23",
      "amount": 330,
      "method": "מזומן"
@@ -7414,7 +7416,7 @@
    "enrolledAt": "2026-05-01"
   },
   {
-   "id": "e541",
+   "id": "e490",
    "memberId": "m286",
    "courseId": "c117",
    "plan": "monthly",
@@ -7424,7 +7426,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-540",
+     "rid": "R-51",
      "date": "2026-04-22",
      "amount": 190,
      "method": "מזומן"
@@ -7437,7 +7439,7 @@
    "enrolledAt": "2026-01-08"
   },
   {
-   "id": "e544",
+   "id": "e491",
    "memberId": "m290",
    "courseId": "c115",
    "plan": "punch",
@@ -7447,13 +7449,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-542",
+     "rid": "R-52",
      "date": "2026-06-02",
      "amount": 270,
      "method": "אשראי"
     },
     {
-     "rid": "R-543",
+     "rid": "R-53",
      "date": "2026-06-01",
      "amount": 270,
      "method": "העברה בנקאית"
@@ -7466,7 +7468,7 @@
    "enrolledAt": "2026-03-29"
   },
   {
-   "id": "e548",
+   "id": "e492",
    "memberId": "m297",
    "courseId": "c123",
    "plan": "monthly",
@@ -7476,19 +7478,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-545",
+     "rid": "R-54",
      "date": "2026-06-19",
      "amount": 185,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-546",
+     "rid": "R-55",
      "date": "2026-05-23",
      "amount": 185,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-547",
+     "rid": "R-56",
      "date": "2026-04-17",
      "amount": 185,
      "method": "העברה בנקאית"
@@ -7501,7 +7503,7 @@
    "enrolledAt": "2026-02-19"
   },
   {
-   "id": "e551",
+   "id": "e493",
    "memberId": "m309",
    "courseId": "c119",
    "plan": "monthly",
@@ -7517,13 +7519,13 @@
    ],
    "payments": [
     {
-     "rid": "R-549",
+     "rid": "R-57",
      "date": "2026-05-07",
      "amount": 150,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-550",
+     "rid": "R-58",
      "date": "2026-05-20",
      "amount": 150,
      "method": "מזומן"
@@ -7536,7 +7538,7 @@
    "enrolledAt": "2026-03-21"
   },
   {
-   "id": "e555",
+   "id": "e494",
    "memberId": "m317",
    "courseId": "c118",
    "plan": "monthly",
@@ -7546,19 +7548,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-552",
+     "rid": "R-59",
      "date": "2026-05-28",
      "amount": 170,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-553",
+     "rid": "R-60",
      "date": "2026-06-14",
      "amount": 170,
      "method": "אשראי"
     },
     {
-     "rid": "R-554",
+     "rid": "R-61",
      "date": "2026-05-20",
      "amount": 170,
      "method": "העברה בנקאית"
@@ -7571,7 +7573,7 @@
    "enrolledAt": "2026-02-25"
   },
   {
-   "id": "e557",
+   "id": "e495",
    "memberId": "m320",
    "courseId": "c125",
    "plan": "monthly",
@@ -7581,7 +7583,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-556",
+     "rid": "R-62",
      "date": "2026-06-19",
      "amount": 160,
      "method": "אשראי"
@@ -7594,7 +7596,7 @@
    "enrolledAt": "2026-06-09"
   },
   {
-   "id": "e559",
+   "id": "e496",
    "memberId": "m327",
    "courseId": "c121",
    "plan": "punch",
@@ -7604,7 +7606,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-558",
+     "rid": "R-63",
      "date": "2026-06-14",
      "amount": 300,
      "method": "אשראי"
@@ -7617,7 +7619,7 @@
    "enrolledAt": "2026-01-29"
   },
   {
-   "id": "e563",
+   "id": "e497",
    "memberId": "m334",
    "courseId": "c124",
    "plan": "monthly",
@@ -7627,19 +7629,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-560",
+     "rid": "R-64",
      "date": "2026-05-10",
      "amount": 175,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-561",
+     "rid": "R-65",
      "date": "2026-05-31",
      "amount": 175,
      "method": "מזומן"
     },
     {
-     "rid": "R-562",
+     "rid": "R-66",
      "date": "2026-03-21",
      "amount": 175,
      "method": "אשראי"
@@ -7652,7 +7654,7 @@
    "enrolledAt": "2026-02-03"
   },
   {
-   "id": "e564",
+   "id": "e498",
    "memberId": "m339",
    "courseId": "c120",
    "plan": "monthly",
@@ -7674,7 +7676,7 @@
    "enrolledAt": "2026-04-26"
   },
   {
-   "id": "e568",
+   "id": "e499",
    "memberId": "m343",
    "courseId": "c122",
    "plan": "punch",
@@ -7684,19 +7686,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-565",
+     "rid": "R-67",
      "date": "2026-05-22",
      "amount": 330,
      "method": "אשראי"
     },
     {
-     "rid": "R-566",
+     "rid": "R-68",
      "date": "2026-04-23",
      "amount": 330,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-567",
+     "rid": "R-69",
      "date": "2026-04-22",
      "amount": 330,
      "method": "אשראי"
@@ -7709,7 +7711,7 @@
    "enrolledAt": "2026-06-05"
   },
   {
-   "id": "e570",
+   "id": "e500",
    "memberId": "m350",
    "courseId": "c117",
    "plan": "monthly",
@@ -7719,7 +7721,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-569",
+     "rid": "R-70",
      "date": "2026-05-17",
      "amount": 190,
      "method": "מזומן"
@@ -7732,7 +7734,7 @@
    "enrolledAt": "2026-06-06"
   },
   {
-   "id": "e573",
+   "id": "e501",
    "memberId": "m356",
    "courseId": "c127",
    "plan": "punch",
@@ -7742,13 +7744,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-571",
+     "rid": "R-71",
      "date": "2026-04-21",
      "amount": 240,
      "method": "מזומן"
     },
     {
-     "rid": "R-572",
+     "rid": "R-72",
      "date": "2026-03-22",
      "amount": 240,
      "method": "העברה בנקאית"
@@ -7761,7 +7763,7 @@
    "enrolledAt": "2026-06-21"
   },
   {
-   "id": "e577",
+   "id": "e502",
    "memberId": "m360",
    "courseId": "c123",
    "plan": "monthly",
@@ -7771,19 +7773,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-574",
+     "rid": "R-73",
      "date": "2026-05-30",
      "amount": 185,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-575",
+     "rid": "R-74",
      "date": "2026-05-23",
      "amount": 185,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-576",
+     "rid": "R-75",
      "date": "2026-05-15",
      "amount": 185,
      "method": "אשראי"
@@ -7796,7 +7798,7 @@
    "enrolledAt": "2026-05-10"
   },
   {
-   "id": "e580",
+   "id": "e503",
    "memberId": "m367",
    "courseId": "c118",
    "plan": "monthly",
@@ -7812,13 +7814,13 @@
    ],
    "payments": [
     {
-     "rid": "R-578",
+     "rid": "R-76",
      "date": "2026-05-13",
      "amount": 170,
      "method": "מזומן"
     },
     {
-     "rid": "R-579",
+     "rid": "R-77",
      "date": "2026-05-19",
      "amount": 170,
      "method": "העברה בנקאית"
@@ -7831,7 +7833,7 @@
    "enrolledAt": "2026-06-21"
   },
   {
-   "id": "e582",
+   "id": "e504",
    "memberId": "m374",
    "courseId": "c114",
    "plan": "monthly",
@@ -7841,7 +7843,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-581",
+     "rid": "R-78",
      "date": "2026-05-26",
      "amount": 160,
      "method": "אשראי"
@@ -7854,7 +7856,7 @@
    "enrolledAt": "2026-03-12"
   },
   {
-   "id": "e586",
+   "id": "e505",
    "memberId": "m378",
    "courseId": "c125",
    "plan": "monthly",
@@ -7864,19 +7866,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-583",
+     "rid": "R-79",
      "date": "2026-05-04",
      "amount": 160,
      "method": "מזומן"
     },
     {
-     "rid": "R-584",
+     "rid": "R-80",
      "date": "2026-03-28",
      "amount": 160,
      "method": "אשראי"
     },
     {
-     "rid": "R-585",
+     "rid": "R-81",
      "date": "2026-06-07",
      "amount": 160,
      "method": "מזומן"
@@ -7889,7 +7891,7 @@
    "enrolledAt": "2026-05-06"
   },
   {
-   "id": "e587",
+   "id": "e506",
    "memberId": "m382",
    "courseId": "c124",
    "plan": "monthly",
@@ -7905,7 +7907,7 @@
    "enrolledAt": "2026-05-14"
   },
   {
-   "id": "e589",
+   "id": "e507",
    "memberId": "m386",
    "courseId": "c115",
    "plan": "punch",
@@ -7915,7 +7917,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-588",
+     "rid": "R-82",
      "date": "2026-04-16",
      "amount": 270,
      "method": "אשראי"
@@ -7928,7 +7930,7 @@
    "enrolledAt": "2026-04-14"
   },
   {
-   "id": "e591",
+   "id": "e508",
    "memberId": "m390",
    "courseId": "c117",
    "plan": "monthly",
@@ -7944,7 +7946,7 @@
    ],
    "payments": [
     {
-     "rid": "R-590",
+     "rid": "R-83",
      "date": "2026-05-11",
      "amount": 190,
      "method": "אשראי"
@@ -7957,7 +7959,7 @@
    "enrolledAt": "2025-12-19"
   },
   {
-   "id": "e595",
+   "id": "e509",
    "memberId": "m403",
    "courseId": "c122",
    "plan": "punch",
@@ -7967,19 +7969,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-592",
+     "rid": "R-84",
      "date": "2026-06-22",
      "amount": 330,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-593",
+     "rid": "R-85",
      "date": "2026-06-10",
      "amount": 330,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-594",
+     "rid": "R-86",
      "date": "2026-06-22",
      "amount": 330,
      "method": "מזומן"
@@ -7992,7 +7994,7 @@
    "enrolledAt": "2026-01-08"
   },
   {
-   "id": "e597",
+   "id": "e510",
    "memberId": "m407",
    "courseId": "c125",
    "plan": "monthly",
@@ -8002,7 +8004,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-596",
+     "rid": "R-87",
      "date": "2026-06-26",
      "amount": 160,
      "method": "מזומן"
@@ -8015,7 +8017,7 @@
    "enrolledAt": "2026-04-24"
   },
   {
-   "id": "e600",
+   "id": "e511",
    "memberId": "m413",
    "courseId": "c121",
    "plan": "punch",
@@ -8025,13 +8027,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-598",
+     "rid": "R-88",
      "date": "2026-06-13",
      "amount": 300,
      "method": "אשראי"
     },
     {
-     "rid": "R-599",
+     "rid": "R-89",
      "date": "2026-06-04",
      "amount": 300,
      "method": "העברה בנקאית"
@@ -8044,7 +8046,7 @@
    "enrolledAt": "2026-04-03"
   },
   {
-   "id": "e602",
+   "id": "e512",
    "memberId": "m420",
    "courseId": "c118",
    "plan": "monthly",
@@ -8054,7 +8056,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-601",
+     "rid": "R-90",
      "date": "2026-04-05",
      "amount": 170,
      "method": "מזומן"
@@ -8067,7 +8069,7 @@
    "enrolledAt": "2026-02-26"
   },
   {
-   "id": "e606",
+   "id": "e513",
    "memberId": "m423",
    "courseId": "c116",
    "plan": "monthly",
@@ -8083,19 +8085,19 @@
    ],
    "payments": [
     {
-     "rid": "R-603",
+     "rid": "R-91",
      "date": "2026-04-28",
      "amount": 200,
      "method": "מזומן"
     },
     {
-     "rid": "R-604",
+     "rid": "R-92",
      "date": "2026-06-03",
      "amount": 200,
      "method": "מזומן"
     },
     {
-     "rid": "R-605",
+     "rid": "R-93",
      "date": "2026-05-06",
      "amount": 200,
      "method": "הוראת קבע"
@@ -8108,7 +8110,7 @@
    "enrolledAt": "2026-04-30"
   },
   {
-   "id": "e608",
+   "id": "e514",
    "memberId": "m427",
    "courseId": "c114",
    "plan": "monthly",
@@ -8118,7 +8120,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-607",
+     "rid": "R-94",
      "date": "2026-03-03",
      "amount": 160,
      "method": "הוראת קבע"
@@ -8131,7 +8133,7 @@
    "enrolledAt": "2025-12-19"
   },
   {
-   "id": "e611",
+   "id": "e515",
    "memberId": "m130",
    "courseId": "c114",
    "plan": "monthly",
@@ -8141,13 +8143,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-609",
+     "rid": "R-95",
      "date": "2026-03-18",
      "amount": 160,
      "method": "מזומן"
     },
     {
-     "rid": "R-610",
+     "rid": "R-96",
      "date": "2026-04-25",
      "amount": 160,
      "method": "הוראת קבע"
@@ -8160,7 +8162,7 @@
    "enrolledAt": "2026-03-10"
   },
   {
-   "id": "e613",
+   "id": "e516",
    "memberId": "m138",
    "courseId": "c125",
    "plan": "monthly",
@@ -8170,7 +8172,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-612",
+     "rid": "R-97",
      "date": "2026-06-10",
      "amount": 160,
      "method": "אשראי"
@@ -8183,7 +8185,7 @@
    "enrolledAt": "2026-05-18"
   },
   {
-   "id": "e615",
+   "id": "e517",
    "memberId": "m145",
    "courseId": "c121",
    "plan": "punch",
@@ -8193,7 +8195,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-614",
+     "rid": "R-98",
      "date": "2026-05-16",
      "amount": 300,
      "method": "אשראי"
@@ -8206,7 +8208,7 @@
    "enrolledAt": "2026-04-23"
   },
   {
-   "id": "e619",
+   "id": "e518",
    "memberId": "m150",
    "courseId": "c118",
    "plan": "monthly",
@@ -8222,19 +8224,19 @@
    ],
    "payments": [
     {
-     "rid": "R-616",
+     "rid": "R-99",
      "date": "2026-04-20",
      "amount": 170,
      "method": "אשראי"
     },
     {
-     "rid": "R-617",
+     "rid": "R-100",
      "date": "2026-03-06",
      "amount": 170,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-618",
+     "rid": "R-101",
      "date": "2026-07-07",
      "amount": 170,
      "method": "העברה בנקאית"
@@ -8247,7 +8249,7 @@
    "enrolledAt": "2026-03-25"
   },
   {
-   "id": "e621",
+   "id": "e519",
    "memberId": "m153",
    "courseId": "c116",
    "plan": "monthly",
@@ -8257,7 +8259,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-620",
+     "rid": "R-102",
      "date": "2026-04-09",
      "amount": 200,
      "method": "אשראי"
@@ -8270,7 +8272,7 @@
    "enrolledAt": "2026-01-10"
   },
   {
-   "id": "e624",
+   "id": "e520",
    "memberId": "m161",
    "courseId": "c126",
    "plan": "punch",
@@ -8280,13 +8282,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-622",
+     "rid": "R-103",
      "date": "2026-03-09",
      "amount": 200,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-623",
+     "rid": "R-104",
      "date": "2026-06-20",
      "amount": 200,
      "method": "אשראי"
@@ -8299,7 +8301,7 @@
    "enrolledAt": "2026-05-13"
   },
   {
-   "id": "e626",
+   "id": "e521",
    "memberId": "m165",
    "courseId": "c117",
    "plan": "monthly",
@@ -8309,7 +8311,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-625",
+     "rid": "R-105",
      "date": "2026-03-17",
      "amount": 190,
      "method": "אשראי"
@@ -8322,7 +8324,7 @@
    "enrolledAt": "2026-01-16"
   },
   {
-   "id": "e630",
+   "id": "e522",
    "memberId": "m170",
    "courseId": "c127",
    "plan": "punch",
@@ -8332,19 +8334,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-627",
+     "rid": "R-106",
      "date": "2026-06-06",
      "amount": 240,
      "method": "אשראי"
     },
     {
-     "rid": "R-628",
+     "rid": "R-107",
      "date": "2026-05-24",
      "amount": 240,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-629",
+     "rid": "R-108",
      "date": "2026-06-13",
      "amount": 240,
      "method": "אשראי"
@@ -8357,7 +8359,7 @@
    "enrolledAt": "2026-02-14"
   },
   {
-   "id": "e632",
+   "id": "e523",
    "memberId": "m175",
    "courseId": "c117",
    "plan": "monthly",
@@ -8373,7 +8375,7 @@
    ],
    "payments": [
     {
-     "rid": "R-631",
+     "rid": "R-109",
      "date": "2026-02-26",
      "amount": 190,
      "method": "אשראי"
@@ -8386,7 +8388,7 @@
    "enrolledAt": "2026-02-14"
   },
   {
-   "id": "e636",
+   "id": "e524",
    "memberId": "m183",
    "courseId": "c115",
    "plan": "punch",
@@ -8396,19 +8398,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-633",
+     "rid": "R-110",
      "date": "2026-03-12",
      "amount": 270,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-634",
+     "rid": "R-111",
      "date": "2026-05-23",
      "amount": 270,
      "method": "מזומן"
     },
     {
-     "rid": "R-635",
+     "rid": "R-112",
      "date": "2026-07-11",
      "amount": 270,
      "method": "מזומן"
@@ -8421,7 +8423,7 @@
    "enrolledAt": "2026-01-29"
   },
   {
-   "id": "e639",
+   "id": "e525",
    "memberId": "m187",
    "courseId": "c114",
    "plan": "monthly",
@@ -8431,13 +8433,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-637",
+     "rid": "R-113",
      "date": "2026-06-04",
      "amount": 160,
      "method": "מזומן"
     },
     {
-     "rid": "R-638",
+     "rid": "R-114",
      "date": "2026-03-03",
      "amount": 160,
      "method": "הוראת קבע"
@@ -8450,7 +8452,7 @@
    "enrolledAt": "2026-03-29"
   },
   {
-   "id": "e641",
+   "id": "e526",
    "memberId": "m190",
    "courseId": "c121",
    "plan": "punch",
@@ -8460,7 +8462,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-640",
+     "rid": "R-115",
      "date": "2026-03-12",
      "amount": 300,
      "method": "אשראי"
@@ -8473,7 +8475,7 @@
    "enrolledAt": "2026-03-28"
   },
   {
-   "id": "e643",
+   "id": "e527",
    "memberId": "m194",
    "courseId": "c121",
    "plan": "punch",
@@ -8483,7 +8485,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-642",
+     "rid": "R-116",
      "date": "2026-02-26",
      "amount": 300,
      "method": "הוראת קבע"
@@ -8496,7 +8498,7 @@
    "enrolledAt": "2026-03-01"
   },
   {
-   "id": "e645",
+   "id": "e528",
    "memberId": "m207",
    "courseId": "c115",
    "plan": "punch",
@@ -8512,7 +8514,7 @@
    ],
    "payments": [
     {
-     "rid": "R-644",
+     "rid": "R-117",
      "date": "2026-06-08",
      "amount": 270,
      "method": "העברה בנקאית"
@@ -8525,7 +8527,7 @@
    "enrolledAt": "2026-01-30"
   },
   {
-   "id": "e647",
+   "id": "e529",
    "memberId": "m212",
    "courseId": "c126",
    "plan": "punch",
@@ -8535,7 +8537,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-646",
+     "rid": "R-118",
      "date": "2026-06-10",
      "amount": 200,
      "method": "אשראי"
@@ -8548,7 +8550,7 @@
    "enrolledAt": "2026-06-18"
   },
   {
-   "id": "e648",
+   "id": "e530",
    "memberId": "m219",
    "courseId": "c124",
    "plan": "monthly",
@@ -8564,7 +8566,7 @@
    "enrolledAt": "2025-12-30"
   },
   {
-   "id": "e652",
+   "id": "e531",
    "memberId": "m225",
    "courseId": "c117",
    "plan": "monthly",
@@ -8574,19 +8576,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-649",
+     "rid": "R-119",
      "date": "2026-03-11",
      "amount": 190,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-650",
+     "rid": "R-120",
      "date": "2026-03-22",
      "amount": 190,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-651",
+     "rid": "R-121",
      "date": "2026-05-10",
      "amount": 190,
      "method": "העברה בנקאית"
@@ -8599,7 +8601,7 @@
    "enrolledAt": "2026-06-08"
   },
   {
-   "id": "e654",
+   "id": "e532",
    "memberId": "m232",
    "courseId": "c127",
    "plan": "punch",
@@ -8609,7 +8611,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-653",
+     "rid": "R-122",
      "date": "2026-03-19",
      "amount": 240,
      "method": "אשראי"
@@ -8622,7 +8624,7 @@
    "enrolledAt": "2026-02-25"
   },
   {
-   "id": "e658",
+   "id": "e533",
    "memberId": "m239",
    "courseId": "c115",
    "plan": "punch",
@@ -8638,19 +8640,19 @@
    ],
    "payments": [
     {
-     "rid": "R-655",
+     "rid": "R-123",
      "date": "2026-03-30",
      "amount": 270,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-656",
+     "rid": "R-124",
      "date": "2026-07-08",
      "amount": 270,
      "method": "מזומן"
     },
     {
-     "rid": "R-657",
+     "rid": "R-125",
      "date": "2026-05-06",
      "amount": 270,
      "method": "העברה בנקאית"
@@ -8663,7 +8665,7 @@
    "enrolledAt": "2026-01-13"
   },
   {
-   "id": "e660",
+   "id": "e534",
    "memberId": "m246",
    "courseId": "c125",
    "plan": "monthly",
@@ -8673,7 +8675,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-659",
+     "rid": "R-126",
      "date": "2026-05-02",
      "amount": 160,
      "method": "העברה בנקאית"
@@ -8686,7 +8688,7 @@
    "enrolledAt": "2026-04-13"
   },
   {
-   "id": "e662",
+   "id": "e535",
    "memberId": "m250",
    "courseId": "c121",
    "plan": "punch",
@@ -8696,7 +8698,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-661",
+     "rid": "R-127",
      "date": "2026-02-28",
      "amount": 300,
      "method": "העברה בנקאית"
@@ -8709,7 +8711,7 @@
    "enrolledAt": "2026-02-27"
   },
   {
-   "id": "e665",
+   "id": "e536",
    "memberId": "m254",
    "courseId": "c118",
    "plan": "monthly",
@@ -8719,13 +8721,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-663",
+     "rid": "R-128",
      "date": "2026-03-08",
      "amount": 170,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-664",
+     "rid": "R-129",
      "date": "2026-07-09",
      "amount": 170,
      "method": "הוראת קבע"
@@ -8738,7 +8740,7 @@
    "enrolledAt": "2025-12-30"
   },
   {
-   "id": "e667",
+   "id": "e537",
    "memberId": "m261",
    "courseId": "c121",
    "plan": "punch",
@@ -8748,7 +8750,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-666",
+     "rid": "R-130",
      "date": "2026-06-29",
      "amount": 300,
      "method": "העברה בנקאית"
@@ -8761,7 +8763,7 @@
    "enrolledAt": "2025-12-25"
   },
   {
-   "id": "e669",
+   "id": "e538",
    "memberId": "m267",
    "courseId": "c115",
    "plan": "punch",
@@ -8777,7 +8779,7 @@
    ],
    "payments": [
     {
-     "rid": "R-668",
+     "rid": "R-131",
      "date": "2026-04-14",
      "amount": 270,
      "method": "הוראת קבע"
@@ -8790,7 +8792,7 @@
    "enrolledAt": "2026-05-21"
   },
   {
-   "id": "e671",
+   "id": "e539",
    "memberId": "m275",
    "courseId": "c124",
    "plan": "monthly",
@@ -8800,7 +8802,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-670",
+     "rid": "R-132",
      "date": "2026-07-04",
      "amount": 175,
      "method": "מזומן"
@@ -8813,7 +8815,7 @@
    "enrolledAt": "2026-06-09"
   },
   {
-   "id": "e675",
+   "id": "e540",
    "memberId": "m283",
    "courseId": "c120",
    "plan": "monthly",
@@ -8823,19 +8825,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-672",
+     "rid": "R-133",
      "date": "2026-04-12",
      "amount": 220,
      "method": "אשראי"
     },
     {
-     "rid": "R-673",
+     "rid": "R-134",
      "date": "2026-03-30",
      "amount": 220,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-674",
+     "rid": "R-135",
      "date": "2026-06-19",
      "amount": 220,
      "method": "העברה בנקאית"
@@ -8848,7 +8850,7 @@
    "enrolledAt": "2026-02-27"
   },
   {
-   "id": "e677",
+   "id": "e541",
    "memberId": "m287",
    "courseId": "c117",
    "plan": "monthly",
@@ -8858,7 +8860,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-676",
+     "rid": "R-136",
      "date": "2026-03-04",
      "amount": 190,
      "method": "העברה בנקאית"
@@ -8871,7 +8873,7 @@
    "enrolledAt": "2025-12-26"
   },
   {
-   "id": "e681",
+   "id": "e542",
    "memberId": "m291",
    "courseId": "c115",
    "plan": "punch",
@@ -8881,19 +8883,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-678",
+     "rid": "R-137",
      "date": "2026-02-28",
      "amount": 270,
      "method": "מזומן"
     },
     {
-     "rid": "R-679",
+     "rid": "R-138",
      "date": "2026-07-11",
      "amount": 270,
      "method": "מזומן"
     },
     {
-     "rid": "R-680",
+     "rid": "R-139",
      "date": "2026-07-08",
      "amount": 270,
      "method": "העברה בנקאית"
@@ -8906,7 +8908,7 @@
    "enrolledAt": "2026-05-31"
   },
   {
-   "id": "e685",
+   "id": "e543",
    "memberId": "m298",
    "courseId": "c123",
    "plan": "monthly",
@@ -8922,19 +8924,19 @@
    ],
    "payments": [
     {
-     "rid": "R-682",
+     "rid": "R-140",
      "date": "2026-06-20",
      "amount": 185,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-683",
+     "rid": "R-141",
      "date": "2026-07-02",
      "amount": 185,
      "method": "אשראי"
     },
     {
-     "rid": "R-684",
+     "rid": "R-142",
      "date": "2026-04-10",
      "amount": 185,
      "method": "אשראי"
@@ -8947,7 +8949,7 @@
    "enrolledAt": "2026-05-30"
   },
   {
-   "id": "e689",
+   "id": "e544",
    "memberId": "m310",
    "courseId": "c121",
    "plan": "punch",
@@ -8957,19 +8959,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-686",
+     "rid": "R-143",
      "date": "2026-07-05",
      "amount": 300,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-687",
+     "rid": "R-144",
      "date": "2026-07-08",
      "amount": 300,
      "method": "מזומן"
     },
     {
-     "rid": "R-688",
+     "rid": "R-145",
      "date": "2026-05-01",
      "amount": 300,
      "method": "הוראת קבע"
@@ -8982,7 +8984,7 @@
    "enrolledAt": "2026-05-31"
   },
   {
-   "id": "e692",
+   "id": "e545",
    "memberId": "m318",
    "courseId": "c114",
    "plan": "monthly",
@@ -8992,13 +8994,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-690",
+     "rid": "R-146",
      "date": "2026-06-02",
      "amount": 160,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-691",
+     "rid": "R-147",
      "date": "2026-06-08",
      "amount": 160,
      "method": "הוראת קבע"
@@ -9011,7 +9013,7 @@
    "enrolledAt": "2026-04-15"
   },
   {
-   "id": "e693",
+   "id": "e546",
    "memberId": "m321",
    "courseId": "c116",
    "plan": "monthly",
@@ -9027,7 +9029,7 @@
    "enrolledAt": "2026-03-01"
   },
   {
-   "id": "e697",
+   "id": "e547",
    "memberId": "m328",
    "courseId": "c121",
    "plan": "punch",
@@ -9037,19 +9039,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-694",
+     "rid": "R-148",
      "date": "2026-05-28",
      "amount": 300,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-695",
+     "rid": "R-149",
      "date": "2026-06-21",
      "amount": 300,
      "method": "מזומן"
     },
     {
-     "rid": "R-696",
+     "rid": "R-150",
      "date": "2026-05-05",
      "amount": 300,
      "method": "אשראי"
@@ -9062,7 +9064,7 @@
    "enrolledAt": "2026-02-05"
   },
   {
-   "id": "e700",
+   "id": "e548",
    "memberId": "m335",
    "courseId": "c124",
    "plan": "monthly",
@@ -9078,13 +9080,13 @@
    ],
    "payments": [
     {
-     "rid": "R-698",
+     "rid": "R-151",
      "date": "2026-05-04",
      "amount": 175,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-699",
+     "rid": "R-152",
      "date": "2026-05-21",
      "amount": 175,
      "method": "אשראי"
@@ -9097,7 +9099,7 @@
    "enrolledAt": "2026-04-02"
   },
   {
-   "id": "e703",
+   "id": "e549",
    "memberId": "m340",
    "courseId": "c120",
    "plan": "monthly",
@@ -9107,13 +9109,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-701",
+     "rid": "R-153",
      "date": "2026-05-26",
      "amount": 220,
      "method": "אשראי"
     },
     {
-     "rid": "R-702",
+     "rid": "R-154",
      "date": "2026-05-23",
      "amount": 220,
      "method": "העברה בנקאית"
@@ -9126,7 +9128,7 @@
    "enrolledAt": "2026-01-14"
   },
   {
-   "id": "e705",
+   "id": "e550",
    "memberId": "m344",
    "courseId": "c122",
    "plan": "punch",
@@ -9136,7 +9138,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-704",
+     "rid": "R-155",
      "date": "2026-04-19",
      "amount": 330,
      "method": "מזומן"
@@ -9149,7 +9151,7 @@
    "enrolledAt": "2026-04-09"
   },
   {
-   "id": "e707",
+   "id": "e551",
    "memberId": "m351",
    "courseId": "c115",
    "plan": "punch",
@@ -9159,7 +9161,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-706",
+     "rid": "R-156",
      "date": "2026-04-27",
      "amount": 270,
      "method": "העברה בנקאית"
@@ -9172,7 +9174,7 @@
    "enrolledAt": "2026-01-12"
   },
   {
-   "id": "e711",
+   "id": "e552",
    "memberId": "m357",
    "courseId": "c127",
    "plan": "punch",
@@ -9182,19 +9184,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-708",
+     "rid": "R-157",
      "date": "2026-05-29",
      "amount": 240,
      "method": "מזומן"
     },
     {
-     "rid": "R-709",
+     "rid": "R-158",
      "date": "2026-06-10",
      "amount": 240,
      "method": "אשראי"
     },
     {
-     "rid": "R-710",
+     "rid": "R-159",
      "date": "2026-04-17",
      "amount": 240,
      "method": "הוראת קבע"
@@ -9207,7 +9209,7 @@
    "enrolledAt": "2026-03-03"
   },
   {
-   "id": "e714",
+   "id": "e553",
    "memberId": "m361",
    "courseId": "c121",
    "plan": "punch",
@@ -9223,13 +9225,13 @@
    ],
    "payments": [
     {
-     "rid": "R-712",
+     "rid": "R-160",
      "date": "2026-04-09",
      "amount": 300,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-713",
+     "rid": "R-161",
      "date": "2026-03-20",
      "amount": 300,
      "method": "העברה בנקאית"
@@ -9242,7 +9244,7 @@
    "enrolledAt": "2026-04-11"
   },
   {
-   "id": "e716",
+   "id": "e554",
    "memberId": "m368",
    "courseId": "c118",
    "plan": "monthly",
@@ -9252,7 +9254,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-715",
+     "rid": "R-162",
      "date": "2026-05-17",
      "amount": 170,
      "method": "אשראי"
@@ -9265,7 +9267,7 @@
    "enrolledAt": "2025-12-17"
   },
   {
-   "id": "e718",
+   "id": "e555",
    "memberId": "m375",
    "courseId": "c114",
    "plan": "monthly",
@@ -9275,7 +9277,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-717",
+     "rid": "R-163",
      "date": "2026-03-19",
      "amount": 160,
      "method": "אשראי"
@@ -9288,7 +9290,7 @@
    "enrolledAt": "2026-06-05"
   },
   {
-   "id": "e722",
+   "id": "e556",
    "memberId": "m379",
    "courseId": "c126",
    "plan": "punch",
@@ -9298,19 +9300,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-719",
+     "rid": "R-164",
      "date": "2026-07-05",
      "amount": 200,
      "method": "אשראי"
     },
     {
-     "rid": "R-720",
+     "rid": "R-165",
      "date": "2026-03-06",
      "amount": 200,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-721",
+     "rid": "R-166",
      "date": "2026-02-26",
      "amount": 200,
      "method": "הוראת קבע"
@@ -9323,7 +9325,7 @@
    "enrolledAt": "2026-04-11"
   },
   {
-   "id": "e726",
+   "id": "e557",
    "memberId": "m383",
    "courseId": "c121",
    "plan": "punch",
@@ -9333,19 +9335,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-723",
+     "rid": "R-167",
      "date": "2026-07-04",
      "amount": 300,
      "method": "מזומן"
     },
     {
-     "rid": "R-724",
+     "rid": "R-168",
      "date": "2026-05-20",
      "amount": 300,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-725",
+     "rid": "R-169",
      "date": "2026-04-12",
      "amount": 300,
      "method": "אשראי"
@@ -9358,7 +9360,7 @@
    "enrolledAt": "2026-05-08"
   },
   {
-   "id": "e729",
+   "id": "e558",
    "memberId": "m387",
    "courseId": "c120",
    "plan": "monthly",
@@ -9374,13 +9376,13 @@
    ],
    "payments": [
     {
-     "rid": "R-727",
+     "rid": "R-170",
      "date": "2026-05-28",
      "amount": 220,
      "method": "אשראי"
     },
     {
-     "rid": "R-728",
+     "rid": "R-171",
      "date": "2026-02-26",
      "amount": 220,
      "method": "העברה בנקאית"
@@ -9393,7 +9395,7 @@
    "enrolledAt": "2026-04-08"
   },
   {
-   "id": "e731",
+   "id": "e559",
    "memberId": "m391",
    "courseId": "c126",
    "plan": "punch",
@@ -9403,7 +9405,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-730",
+     "rid": "R-172",
      "date": "2026-05-30",
      "amount": 200,
      "method": "הוראת קבע"
@@ -9416,7 +9418,7 @@
    "enrolledAt": "2026-04-24"
   },
   {
-   "id": "e733",
+   "id": "e560",
    "memberId": "m404",
    "courseId": "c122",
    "plan": "punch",
@@ -9426,7 +9428,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-732",
+     "rid": "R-173",
      "date": "2026-05-20",
      "amount": 330,
      "method": "העברה בנקאית"
@@ -9439,7 +9441,7 @@
    "enrolledAt": "2026-06-23"
   },
   {
-   "id": "e735",
+   "id": "e561",
    "memberId": "m408",
    "courseId": "c117",
    "plan": "monthly",
@@ -9449,7 +9451,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-734",
+     "rid": "R-174",
      "date": "2026-03-23",
      "amount": 190,
      "method": "אשראי"
@@ -9462,7 +9464,7 @@
    "enrolledAt": "2026-01-04"
   },
   {
-   "id": "e739",
+   "id": "e562",
    "memberId": "m414",
    "courseId": "c121",
    "plan": "punch",
@@ -9472,19 +9474,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-736",
+     "rid": "R-175",
      "date": "2026-05-24",
      "amount": 300,
      "method": "אשראי"
     },
     {
-     "rid": "R-737",
+     "rid": "R-176",
      "date": "2026-02-25",
      "amount": 300,
      "method": "מזומן"
     },
     {
-     "rid": "R-738",
+     "rid": "R-177",
      "date": "2026-05-13",
      "amount": 300,
      "method": "הוראת קבע"
@@ -9497,7 +9499,7 @@
    "enrolledAt": "2026-05-16"
   },
   {
-   "id": "e743",
+   "id": "e563",
    "memberId": "m421",
    "courseId": "c123",
    "plan": "monthly",
@@ -9513,19 +9515,19 @@
    ],
    "payments": [
     {
-     "rid": "R-740",
+     "rid": "R-178",
      "date": "2026-03-18",
      "amount": 185,
      "method": "אשראי"
     },
     {
-     "rid": "R-741",
+     "rid": "R-179",
      "date": "2026-03-27",
      "amount": 185,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-742",
+     "rid": "R-180",
      "date": "2026-03-31",
      "amount": 185,
      "method": "הוראת קבע"
@@ -9538,7 +9540,7 @@
    "enrolledAt": "2026-02-15"
   },
   {
-   "id": "e745",
+   "id": "e564",
    "memberId": "m424",
    "courseId": "c119",
    "plan": "monthly",
@@ -9548,7 +9550,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-744",
+     "rid": "R-181",
      "date": "2026-06-10",
      "amount": 150,
      "method": "העברה בנקאית"
@@ -9561,7 +9563,7 @@
    "enrolledAt": "2026-02-11"
   },
   {
-   "id": "e749",
+   "id": "e565",
    "memberId": "m428",
    "courseId": "c126",
    "plan": "punch",
@@ -9571,19 +9573,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-746",
+     "rid": "R-182",
      "date": "2026-02-26",
      "amount": 200,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-747",
+     "rid": "R-183",
      "date": "2026-05-05",
      "amount": 200,
      "method": "אשראי"
     },
     {
-     "rid": "R-748",
+     "rid": "R-184",
      "date": "2026-03-09",
      "amount": 200,
      "method": "אשראי"
@@ -9596,7 +9598,7 @@
    "enrolledAt": "2026-06-14"
   },
   {
-   "id": "e752",
+   "id": "e566",
    "memberId": "m131",
    "courseId": "c115",
    "plan": "punch",
@@ -9606,13 +9608,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-750",
+     "rid": "R-185",
      "date": "2026-04-20",
      "amount": 270,
      "method": "אשראי"
     },
     {
-     "rid": "R-751",
+     "rid": "R-186",
      "date": "2026-04-13",
      "amount": 270,
      "method": "מזומן"
@@ -9625,7 +9627,7 @@
    "enrolledAt": "2026-05-18"
   },
   {
-   "id": "e756",
+   "id": "e567",
    "memberId": "m139",
    "courseId": "c125",
    "plan": "monthly",
@@ -9635,19 +9637,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-753",
+     "rid": "R-187",
      "date": "2026-04-01",
      "amount": 160,
      "method": "מזומן"
     },
     {
-     "rid": "R-754",
+     "rid": "R-188",
      "date": "2026-06-24",
      "amount": 160,
      "method": "אשראי"
     },
     {
-     "rid": "R-755",
+     "rid": "R-189",
      "date": "2026-04-30",
      "amount": 160,
      "method": "העברה בנקאית"
@@ -9660,7 +9662,7 @@
    "enrolledAt": "2026-04-24"
   },
   {
-   "id": "e759",
+   "id": "e568",
    "memberId": "m146",
    "courseId": "c121",
    "plan": "punch",
@@ -9676,13 +9678,13 @@
    ],
    "payments": [
     {
-     "rid": "R-757",
+     "rid": "R-190",
      "date": "2026-07-08",
      "amount": 300,
      "method": "אשראי"
     },
     {
-     "rid": "R-758",
+     "rid": "R-191",
      "date": "2026-05-27",
      "amount": 300,
      "method": "מזומן"
@@ -9695,7 +9697,7 @@
    "enrolledAt": "2026-05-16"
   },
   {
-   "id": "e762",
+   "id": "e569",
    "memberId": "m154",
    "courseId": "c115",
    "plan": "punch",
@@ -9705,13 +9707,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-760",
+     "rid": "R-192",
      "date": "2026-05-13",
      "amount": 270,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-761",
+     "rid": "R-193",
      "date": "2026-07-13",
      "amount": 270,
      "method": "הוראת קבע"
@@ -9724,7 +9726,7 @@
    "enrolledAt": "2026-01-16"
   },
   {
-   "id": "e763",
+   "id": "e570",
    "memberId": "m166",
    "courseId": "c116",
    "plan": "monthly",
@@ -9740,7 +9742,7 @@
    "enrolledAt": "2026-01-07"
   },
   {
-   "id": "e766",
+   "id": "e571",
    "memberId": "m171",
    "courseId": "c122",
    "plan": "punch",
@@ -9750,13 +9752,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-764",
+     "rid": "R-194",
      "date": "2026-06-15",
      "amount": 330,
      "method": "אשראי"
     },
     {
-     "rid": "R-765",
+     "rid": "R-195",
      "date": "2026-03-28",
      "amount": 330,
      "method": "מזומן"
@@ -9769,7 +9771,7 @@
    "enrolledAt": "2026-05-25"
   },
   {
-   "id": "e770",
+   "id": "e572",
    "memberId": "m176",
    "courseId": "c117",
    "plan": "monthly",
@@ -9779,19 +9781,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-767",
+     "rid": "R-196",
      "date": "2026-03-11",
      "amount": 190,
      "method": "מזומן"
     },
     {
-     "rid": "R-768",
+     "rid": "R-197",
      "date": "2026-06-05",
      "amount": 190,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-769",
+     "rid": "R-198",
      "date": "2026-03-24",
      "amount": 190,
      "method": "אשראי"
@@ -9804,7 +9806,7 @@
    "enrolledAt": "2026-03-19"
   },
   {
-   "id": "e772",
+   "id": "e573",
    "memberId": "m191",
    "courseId": "c127",
    "plan": "punch",
@@ -9820,7 +9822,7 @@
    ],
    "payments": [
     {
-     "rid": "R-771",
+     "rid": "R-199",
      "date": "2026-04-02",
      "amount": 240,
      "method": "העברה בנקאית"
@@ -9833,7 +9835,7 @@
    "enrolledAt": "2026-05-14"
   },
   {
-   "id": "e774",
+   "id": "e574",
    "memberId": "m195",
    "courseId": "c123",
    "plan": "monthly",
@@ -9843,7 +9845,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-773",
+     "rid": "R-200",
      "date": "2026-06-13",
      "amount": 185,
      "method": "מזומן"
@@ -9856,7 +9858,7 @@
    "enrolledAt": "2026-02-16"
   },
   {
-   "id": "e776",
+   "id": "e575",
    "memberId": "m208",
    "courseId": "c119",
    "plan": "monthly",
@@ -9866,7 +9868,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-775",
+     "rid": "R-201",
      "date": "2026-05-16",
      "amount": 150,
      "method": "הוראת קבע"
@@ -9879,7 +9881,7 @@
    "enrolledAt": "2026-02-21"
   },
   {
-   "id": "e778",
+   "id": "e576",
    "memberId": "m213",
    "courseId": "c114",
    "plan": "monthly",
@@ -9889,7 +9891,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-777",
+     "rid": "R-202",
      "date": "2026-06-23",
      "amount": 160,
      "method": "העברה בנקאית"
@@ -9902,7 +9904,7 @@
    "enrolledAt": "2026-04-23"
   },
   {
-   "id": "e782",
+   "id": "e577",
    "memberId": "m220",
    "courseId": "c125",
    "plan": "monthly",
@@ -9912,19 +9914,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-779",
+     "rid": "R-203",
      "date": "2026-06-09",
      "amount": 160,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-780",
+     "rid": "R-204",
      "date": "2026-06-08",
      "amount": 160,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-781",
+     "rid": "R-205",
      "date": "2026-05-13",
      "amount": 160,
      "method": "העברה בנקאית"
@@ -9937,7 +9939,7 @@
    "enrolledAt": "2026-03-02"
   },
   {
-   "id": "e785",
+   "id": "e578",
    "memberId": "m226",
    "courseId": "c121",
    "plan": "punch",
@@ -9953,13 +9955,13 @@
    ],
    "payments": [
     {
-     "rid": "R-783",
+     "rid": "R-206",
      "date": "2026-05-05",
      "amount": 300,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-784",
+     "rid": "R-207",
      "date": "2026-07-09",
      "amount": 300,
      "method": "מזומן"
@@ -9972,7 +9974,7 @@
    "enrolledAt": "2026-01-01"
   },
   {
-   "id": "e787",
+   "id": "e579",
    "memberId": "m233",
    "courseId": "c115",
    "plan": "punch",
@@ -9982,7 +9984,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-786",
+     "rid": "R-208",
      "date": "2026-04-21",
      "amount": 270,
      "method": "הוראת קבע"
@@ -9995,7 +9997,7 @@
    "enrolledAt": "2026-03-23"
   },
   {
-   "id": "e789",
+   "id": "e580",
    "memberId": "m240",
    "courseId": "c126",
    "plan": "punch",
@@ -10005,7 +10007,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-788",
+     "rid": "R-209",
      "date": "2026-03-05",
      "amount": 200,
      "method": "העברה בנקאית"
@@ -10018,7 +10020,7 @@
    "enrolledAt": "2026-01-27"
   },
   {
-   "id": "e793",
+   "id": "e581",
    "memberId": "m255",
    "courseId": "c124",
    "plan": "monthly",
@@ -10028,19 +10030,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-790",
+     "rid": "R-210",
      "date": "2026-07-11",
      "amount": 175,
      "method": "אשראי"
     },
     {
-     "rid": "R-791",
+     "rid": "R-211",
      "date": "2026-04-13",
      "amount": 175,
      "method": "מזומן"
     },
     {
-     "rid": "R-792",
+     "rid": "R-212",
      "date": "2026-05-16",
      "amount": 175,
      "method": "הוראת קבע"
@@ -10053,7 +10055,7 @@
    "enrolledAt": "2025-12-18"
   },
   {
-   "id": "e797",
+   "id": "e582",
    "memberId": "m262",
    "courseId": "c120",
    "plan": "monthly",
@@ -10063,19 +10065,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-794",
+     "rid": "R-213",
      "date": "2026-05-14",
      "amount": 220,
      "method": "מזומן"
     },
     {
-     "rid": "R-795",
+     "rid": "R-214",
      "date": "2026-06-11",
      "amount": 220,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-796",
+     "rid": "R-215",
      "date": "2026-03-30",
      "amount": 220,
      "method": "הוראת קבע"
@@ -10088,7 +10090,7 @@
    "enrolledAt": "2026-02-26"
   },
   {
-   "id": "e801",
+   "id": "e583",
    "memberId": "m268",
    "courseId": "c127",
    "plan": "punch",
@@ -10104,19 +10106,19 @@
    ],
    "payments": [
     {
-     "rid": "R-798",
+     "rid": "R-216",
      "date": "2026-06-03",
      "amount": 240,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-799",
+     "rid": "R-217",
      "date": "2026-05-13",
      "amount": 240,
      "method": "אשראי"
     },
     {
-     "rid": "R-800",
+     "rid": "R-218",
      "date": "2026-06-29",
      "amount": 240,
      "method": "הוראת קבע"
@@ -10129,7 +10131,7 @@
    "enrolledAt": "2025-12-22"
   },
   {
-   "id": "e805",
+   "id": "e584",
    "memberId": "m276",
    "courseId": "c123",
    "plan": "monthly",
@@ -10139,19 +10141,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-802",
+     "rid": "R-219",
      "date": "2026-03-03",
      "amount": 185,
      "method": "אשראי"
     },
     {
-     "rid": "R-803",
+     "rid": "R-220",
      "date": "2026-06-17",
      "amount": 185,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-804",
+     "rid": "R-221",
      "date": "2026-02-28",
      "amount": 185,
      "method": "אשראי"
@@ -10164,7 +10166,7 @@
    "enrolledAt": "2026-03-13"
   },
   {
-   "id": "e809",
+   "id": "e585",
    "memberId": "m288",
    "courseId": "c125",
    "plan": "monthly",
@@ -10174,19 +10176,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-806",
+     "rid": "R-222",
      "date": "2026-06-10",
      "amount": 160,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-807",
+     "rid": "R-223",
      "date": "2026-02-27",
      "amount": 160,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-808",
+     "rid": "R-224",
      "date": "2026-04-21",
      "amount": 160,
      "method": "העברה בנקאית"
@@ -10199,7 +10201,7 @@
    "enrolledAt": "2026-02-24"
   },
   {
-   "id": "e811",
+   "id": "e586",
    "memberId": "m292",
    "courseId": "c121",
    "plan": "punch",
@@ -10209,7 +10211,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-810",
+     "rid": "R-225",
      "date": "2026-03-03",
      "amount": 300,
      "method": "הוראת קבע"
@@ -10222,7 +10224,7 @@
    "enrolledAt": "2026-05-24"
   },
   {
-   "id": "e815",
+   "id": "e587",
    "memberId": "m299",
    "courseId": "c118",
    "plan": "monthly",
@@ -10232,19 +10234,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-812",
+     "rid": "R-226",
      "date": "2026-06-10",
      "amount": 170,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-813",
+     "rid": "R-227",
      "date": "2026-02-28",
      "amount": 170,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-814",
+     "rid": "R-228",
      "date": "2026-02-24",
      "amount": 170,
      "method": "אשראי"
@@ -10257,7 +10259,7 @@
    "enrolledAt": "2026-03-21"
   },
   {
-   "id": "e818",
+   "id": "e588",
    "memberId": "m311",
    "courseId": "c121",
    "plan": "punch",
@@ -10273,13 +10275,13 @@
    ],
    "payments": [
     {
-     "rid": "R-816",
+     "rid": "R-229",
      "date": "2026-06-23",
      "amount": 300,
      "method": "אשראי"
     },
     {
-     "rid": "R-817",
+     "rid": "R-230",
      "date": "2026-03-09",
      "amount": 300,
      "method": "העברה בנקאית"
@@ -10292,7 +10294,7 @@
    "enrolledAt": "2026-03-14"
   },
   {
-   "id": "e820",
+   "id": "e589",
    "memberId": "m322",
    "courseId": "c115",
    "plan": "punch",
@@ -10302,7 +10304,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-819",
+     "rid": "R-231",
      "date": "2026-03-28",
      "amount": 270,
      "method": "אשראי"
@@ -10315,7 +10317,7 @@
    "enrolledAt": "2026-04-15"
   },
   {
-   "id": "e824",
+   "id": "e590",
    "memberId": "m329",
    "courseId": "c126",
    "plan": "punch",
@@ -10325,19 +10327,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-821",
+     "rid": "R-232",
      "date": "2026-03-10",
      "amount": 200,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-822",
+     "rid": "R-233",
      "date": "2026-02-26",
      "amount": 200,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-823",
+     "rid": "R-234",
      "date": "2026-05-28",
      "amount": 200,
      "method": "מזומן"
@@ -10350,7 +10352,7 @@
    "enrolledAt": "2026-06-23"
   },
   {
-   "id": "e828",
+   "id": "e591",
    "memberId": "m336",
    "courseId": "c120",
    "plan": "monthly",
@@ -10360,19 +10362,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-825",
+     "rid": "R-235",
      "date": "2026-05-24",
      "amount": 220,
      "method": "אשראי"
     },
     {
-     "rid": "R-826",
+     "rid": "R-236",
      "date": "2026-07-04",
      "amount": 220,
      "method": "מזומן"
     },
     {
-     "rid": "R-827",
+     "rid": "R-237",
      "date": "2026-06-08",
      "amount": 220,
      "method": "אשראי"
@@ -10385,7 +10387,7 @@
    "enrolledAt": "2026-02-13"
   },
   {
-   "id": "e831",
+   "id": "e592",
    "memberId": "m341",
    "courseId": "c117",
    "plan": "monthly",
@@ -10395,13 +10397,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-829",
+     "rid": "R-238",
      "date": "2026-04-10",
      "amount": 190,
      "method": "אשראי"
     },
     {
-     "rid": "R-830",
+     "rid": "R-239",
      "date": "2026-03-24",
      "amount": 190,
      "method": "מזומן"
@@ -10414,7 +10416,7 @@
    "enrolledAt": "2026-03-20"
   },
   {
-   "id": "e833",
+   "id": "e593",
    "memberId": "m345",
    "courseId": "c115",
    "plan": "punch",
@@ -10430,7 +10432,7 @@
    ],
    "payments": [
     {
-     "rid": "R-832",
+     "rid": "R-240",
      "date": "2026-03-31",
      "amount": 270,
      "method": "העברה בנקאית"
@@ -10443,7 +10445,7 @@
    "enrolledAt": "2026-02-26"
   },
   {
-   "id": "e834",
+   "id": "e594",
    "memberId": "m352",
    "courseId": "c123",
    "plan": "monthly",
@@ -10459,7 +10461,7 @@
    "enrolledAt": "2026-02-05"
   },
   {
-   "id": "e838",
+   "id": "e595",
    "memberId": "m362",
    "courseId": "c121",
    "plan": "punch",
@@ -10469,19 +10471,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-835",
+     "rid": "R-241",
      "date": "2026-04-09",
      "amount": 300,
      "method": "אשראי"
     },
     {
-     "rid": "R-836",
+     "rid": "R-242",
      "date": "2026-06-08",
      "amount": 300,
      "method": "הוראת קבע"
     },
     {
-     "rid": "R-837",
+     "rid": "R-243",
      "date": "2026-06-24",
      "amount": 300,
      "method": "הוראת קבע"
@@ -10494,7 +10496,7 @@
    "enrolledAt": "2026-06-12"
   },
   {
-   "id": "e840",
+   "id": "e596",
    "memberId": "m369",
    "courseId": "c118",
    "plan": "monthly",
@@ -10504,7 +10506,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-839",
+     "rid": "R-244",
      "date": "2026-02-25",
      "amount": 170,
      "method": "הוראת קבע"
@@ -10517,7 +10519,7 @@
    "enrolledAt": "2026-05-12"
   },
   {
-   "id": "e843",
+   "id": "e597",
    "memberId": "m388",
    "courseId": "c116",
    "plan": "monthly",
@@ -10527,13 +10529,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-841",
+     "rid": "R-245",
      "date": "2026-04-05",
      "amount": 200,
      "method": "אשראי"
     },
     {
-     "rid": "R-842",
+     "rid": "R-246",
      "date": "2026-04-13",
      "amount": 200,
      "method": "מזומן"
@@ -10546,7 +10548,7 @@
    "enrolledAt": "2026-05-26"
   },
   {
-   "id": "e845",
+   "id": "e598",
    "memberId": "m392",
    "courseId": "c121",
    "plan": "punch",
@@ -10562,7 +10564,7 @@
    ],
    "payments": [
     {
-     "rid": "R-844",
+     "rid": "R-247",
      "date": "2026-06-19",
      "amount": 300,
      "method": "הוראת קבע"
@@ -10575,7 +10577,7 @@
    "enrolledAt": "2026-02-20"
   },
   {
-   "id": "e849",
+   "id": "e599",
    "memberId": "m405",
    "courseId": "c124",
    "plan": "monthly",
@@ -10585,19 +10587,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-846",
+     "rid": "R-248",
      "date": "2026-06-23",
      "amount": 175,
      "method": "מזומן"
     },
     {
-     "rid": "R-847",
+     "rid": "R-249",
      "date": "2026-03-26",
      "amount": 175,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-848",
+     "rid": "R-250",
      "date": "2026-03-29",
      "amount": 175,
      "method": "אשראי"
@@ -10610,7 +10612,7 @@
    "enrolledAt": "2026-02-16"
   },
   {
-   "id": "e851",
+   "id": "e600",
    "memberId": "m409",
    "courseId": "c120",
    "plan": "monthly",
@@ -10620,7 +10622,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-850",
+     "rid": "R-251",
      "date": "2026-06-16",
      "amount": 220,
      "method": "אשראי"
@@ -10633,7 +10635,7 @@
    "enrolledAt": "2026-06-10"
   },
   {
-   "id": "e853",
+   "id": "e601",
    "memberId": "m415",
    "courseId": "c122",
    "plan": "punch",
@@ -10643,7 +10645,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-852",
+     "rid": "R-252",
      "date": "2026-04-01",
      "amount": 330,
      "method": "הוראת קבע"
@@ -10656,7 +10658,7 @@
    "enrolledAt": "2026-03-26"
   },
   {
-   "id": "e857",
+   "id": "e602",
    "memberId": "m429",
    "courseId": "c115",
    "plan": "punch",
@@ -10666,19 +10668,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-854",
+     "rid": "R-253",
      "date": "2026-05-14",
      "amount": 270,
      "method": "מזומן"
     },
     {
-     "rid": "R-855",
+     "rid": "R-254",
      "date": "2026-05-11",
      "amount": 270,
      "method": "אשראי"
     },
     {
-     "rid": "R-856",
+     "rid": "R-255",
      "date": "2026-03-29",
      "amount": 270,
      "method": "העברה בנקאית"
@@ -10691,7 +10693,7 @@
    "enrolledAt": "2026-05-20"
   },
   {
-   "id": "e859",
+   "id": "e603",
    "memberId": "m132",
    "courseId": "c117",
    "plan": "monthly",
@@ -10707,7 +10709,7 @@
    ],
    "payments": [
     {
-     "rid": "R-858",
+     "rid": "R-256",
      "date": "2026-05-22",
      "amount": 190,
      "method": "אשראי"
@@ -10720,7 +10722,7 @@
    "enrolledAt": "2026-02-21"
   },
   {
-   "id": "e861",
+   "id": "e604",
    "memberId": "m140",
    "courseId": "c127",
    "plan": "punch",
@@ -10730,7 +10732,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-860",
+     "rid": "R-257",
      "date": "2026-03-01",
      "amount": 240,
      "method": "מזומן"
@@ -10743,7 +10745,7 @@
    "enrolledAt": "2025-12-23"
   },
   {
-   "id": "e864",
+   "id": "e605",
    "memberId": "m155",
    "courseId": "c123",
    "plan": "monthly",
@@ -10753,13 +10755,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-862",
+     "rid": "R-258",
      "date": "2026-06-07",
      "amount": 185,
      "method": "מזומן"
     },
     {
-     "rid": "R-863",
+     "rid": "R-259",
      "date": "2026-04-03",
      "amount": 185,
      "method": "הוראת קבע"
@@ -10772,7 +10774,7 @@
    "enrolledAt": "2026-01-04"
   },
   {
-   "id": "e867",
+   "id": "e606",
    "memberId": "m172",
    "courseId": "c119",
    "plan": "monthly",
@@ -10782,13 +10784,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-865",
+     "rid": "R-260",
      "date": "2026-04-22",
      "amount": 150,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-866",
+     "rid": "R-261",
      "date": "2026-03-13",
      "amount": 150,
      "method": "מזומן"
@@ -10801,7 +10803,7 @@
    "enrolledAt": "2026-05-20"
   },
   {
-   "id": "e870",
+   "id": "e607",
    "memberId": "m177",
    "courseId": "c114",
    "plan": "monthly",
@@ -10811,13 +10813,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-868",
+     "rid": "R-262",
      "date": "2026-04-05",
      "amount": 160,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-869",
+     "rid": "R-263",
      "date": "2026-06-28",
      "amount": 160,
      "method": "העברה בנקאית"
@@ -10830,7 +10832,7 @@
    "enrolledAt": "2026-03-13"
   },
   {
-   "id": "e872",
+   "id": "e608",
    "memberId": "m196",
    "courseId": "c125",
    "plan": "monthly",
@@ -10846,7 +10848,7 @@
    ],
    "payments": [
     {
-     "rid": "R-871",
+     "rid": "R-264",
      "date": "2026-04-15",
      "amount": 160,
      "method": "העברה בנקאית"
@@ -10859,7 +10861,7 @@
    "enrolledAt": "2026-01-15"
   },
   {
-   "id": "e874",
+   "id": "e609",
    "memberId": "m214",
    "courseId": "c121",
    "plan": "punch",
@@ -10869,7 +10871,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-873",
+     "rid": "R-265",
      "date": "2026-05-19",
      "amount": 300,
      "method": "אשראי"
@@ -10882,7 +10884,7 @@
    "enrolledAt": "2025-12-24"
   },
   {
-   "id": "e876",
+   "id": "e610",
    "memberId": "m221",
    "courseId": "c121",
    "plan": "punch",
@@ -10892,7 +10894,7 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-875",
+     "rid": "R-266",
      "date": "2026-06-06",
      "amount": 300,
      "method": "העברה בנקאית"
@@ -10905,7 +10907,7 @@
    "enrolledAt": "2025-12-22"
   },
   {
-   "id": "e880",
+   "id": "e611",
    "memberId": "m227",
    "courseId": "c118",
    "plan": "monthly",
@@ -10915,19 +10917,19 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-877",
+     "rid": "R-267",
      "date": "2026-06-18",
      "amount": 170,
      "method": "העברה בנקאית"
     },
     {
-     "rid": "R-878",
+     "rid": "R-268",
      "date": "2026-03-25",
      "amount": 170,
      "method": "מזומן"
     },
     {
-     "rid": "R-879",
+     "rid": "R-269",
      "date": "2026-06-09",
      "amount": 170,
      "method": "העברה בנקאית"
@@ -10940,7 +10942,7 @@
    "enrolledAt": "2026-04-11"
   },
   {
-   "id": "e883",
+   "id": "e612",
    "memberId": "m234",
    "courseId": "c122",
    "plan": "punch",
@@ -10950,13 +10952,13 @@
    "absences": [],
    "payments": [
     {
-     "rid": "R-881",
+     "rid": "R-270",
      "date": "2026-04-27",
      "amount": 330,
      "method": "מזומן"
     },
     {
-     "rid": "R-882",
+     "rid": "R-271",
      "date": "2026-03-05",
      "amount": 330,
      "method": "העברה בנקאית"
@@ -10969,7 +10971,7 @@
    "enrolledAt": "2026-05-24"
   },
   {
-   "id": "e886",
+   "id": "e613",
    "memberId": "m241",
    "courseId": "c126",
    "plan": "punch",
@@ -10985,13 +10987,13 @@
    ],
    "payments": [
     {
-     "rid": "R-884",
+     "rid": "R-272",
      "date": "2026-06-17",
      "amount": 200,
      "method": "אשראי"
     },
     {
-     "rid": "R-885",
+     "rid": "R-273",
      "date": "2026-03-21",
      "amount": 200,
      "method": "אשראי"
@@ -11485,7 +11487,7 @@
  ],
  "events": [
   {
-   "id": "ev887",
+   "id": "ev614",
    "title": "ישיבת צוות חודשית",
    "date": "2026-07-26",
    "time": "17:15",
@@ -11499,7 +11501,7 @@
    "done": false
   },
   {
-   "id": "ev888",
+   "id": "ev615",
    "title": "ערב הוקרה למתנדבים",
    "date": "2026-08-04",
    "time": "11:15",
@@ -11513,7 +11515,7 @@
    "done": false
   },
   {
-   "id": "ev889",
+   "id": "ev616",
    "title": "רישום לקייטנת הקיץ נפתח",
    "date": "2026-07-28",
    "time": "18:15",
@@ -11527,7 +11529,7 @@
    "done": false
   },
   {
-   "id": "ev890",
+   "id": "ev617",
    "title": "הזמנת ציוד יצירה",
    "date": "2026-07-25",
    "time": "18:15",
@@ -11541,7 +11543,7 @@
    "done": false
   },
   {
-   "id": "ev891",
+   "id": "ev618",
    "title": "שיחה עם מנהל בית הספר",
    "date": "2026-07-27",
    "time": "18:15",
@@ -11555,7 +11557,7 @@
    "done": false
   },
   {
-   "id": "ev892",
+   "id": "ev619",
    "title": "ביקור בית — משפחה חדשה",
    "date": "2026-07-30",
    "time": "10:30",
@@ -11569,7 +11571,7 @@
    "done": false
   },
   {
-   "id": "ev893",
+   "id": "ev620",
    "title": "הצגת סוף שנה — חזרה כללית",
    "date": "2026-08-12",
    "time": "11:15",
@@ -11583,7 +11585,7 @@
    "done": false
   },
   {
-   "id": "ev894",
+   "id": "ev621",
    "title": "בדיקת בטיחות שנתית לאולם",
    "date": "2026-08-17",
    "time": "12:15",
@@ -11597,7 +11599,7 @@
    "done": false
   },
   {
-   "id": "ev895",
+   "id": "ev622",
    "title": "ישיבת ועד עמותה",
    "date": "2026-08-01",
    "time": "17:30",
@@ -11611,7 +11613,7 @@
    "done": false
   },
   {
-   "id": "ev896",
+   "id": "ev623",
    "title": "סיור במרכז קהילתי חדש",
    "date": "2026-08-07",
    "time": "9:30",
@@ -11625,7 +11627,7 @@
    "done": false
   },
   {
-   "id": "ev897",
+   "id": "ev624",
    "title": "תיאום הסעות לטיול",
    "date": "2026-07-29",
    "time": "10:00",
@@ -11639,7 +11641,7 @@
    "done": false
   },
   {
-   "id": "ev898",
+   "id": "ev625",
    "title": "חידוש ביטוח צד ג׳",
    "date": "2026-08-10",
    "time": "10:00",
@@ -11653,7 +11655,7 @@
    "done": false
   },
   {
-   "id": "ev899",
+   "id": "ev626",
    "title": "מפגש הורים — חוגי טכנולוגיה",
    "date": "2026-08-03",
    "time": "18:00",
@@ -11667,7 +11669,7 @@
    "done": false
   },
   {
-   "id": "ev900",
+   "id": "ev627",
    "title": "הכנת דו\"ח רבעוני לרשם",
    "date": "2026-08-06",
    "time": "19:00",
@@ -11681,7 +11683,7 @@
    "done": false
   },
   {
-   "id": "ev901",
+   "id": "ev628",
    "title": "אזכרה — כהן",
    "date": "2026-08-12",
    "time": "19:30",
@@ -11695,7 +11697,7 @@
    "done": false
   },
   {
-   "id": "ev902",
+   "id": "ev629",
    "title": "אזכרה — אמסלם",
    "date": "2026-08-13",
    "time": "19:30",
@@ -11709,7 +11711,7 @@
    "done": false
   },
   {
-   "id": "ev903",
+   "id": "ev630",
    "title": "אזכרה — הורוביץ",
    "date": "2026-07-25",
    "time": "19:30",
@@ -11723,7 +11725,7 @@
    "done": false
   },
   {
-   "id": "ev904",
+   "id": "ev631",
    "title": "אזכרה — סויסה",
    "date": "2026-08-12",
    "time": "19:30",
@@ -11737,7 +11739,7 @@
    "done": false
   },
   {
-   "id": "ev905",
+   "id": "ev632",
    "title": "יום הולדת — לאה כהן",
    "date": "2026-07-24",
    "time": "",
@@ -11751,7 +11753,7 @@
    "done": false
   },
   {
-   "id": "ev906",
+   "id": "ev633",
    "title": "יום הולדת — עמיחי פרץ",
    "date": "2026-07-28",
    "time": "",
@@ -11765,7 +11767,7 @@
    "done": false
   },
   {
-   "id": "ev907",
+   "id": "ev634",
    "title": "יום הולדת — מנחם אברהם",
    "date": "2026-08-01",
    "time": "",
@@ -11779,7 +11781,7 @@
    "done": false
   },
   {
-   "id": "ev908",
+   "id": "ev635",
    "title": "יום הולדת — דניאל אוחיון",
    "date": "2026-08-05",
    "time": "",
@@ -11793,7 +11795,7 @@
    "done": false
   },
   {
-   "id": "ev909",
+   "id": "ev636",
    "title": "יום נישואין — זוהר",
    "date": "2026-08-02",
    "time": "",
@@ -11807,7 +11809,7 @@
    "done": false
   },
   {
-   "id": "ev910",
+   "id": "ev637",
    "title": "מסיבת חנוכה קהילתית",
    "date": "2026-07-09",
    "time": "18:00",
@@ -11821,7 +11823,7 @@
    "done": true
   },
   {
-   "id": "ev911",
+   "id": "ev638",
    "title": "ישיבת תקציב שנתית",
    "date": "2026-06-30",
    "time": "18:00",
@@ -12083,7 +12085,7 @@
  ],
  "supporters": [
   {
-   "id": "sp919",
+   "id": "sp639",
    "name": "הרב יחיאל גרינוולד",
    "phone": "053-2919417",
    "email": "donor1@example.com",
@@ -12100,49 +12102,49 @@
    "nextDate": "2026-07-11",
    "donations": [
     {
-     "rid": "D-917",
+     "rid": "D-6",
      "date": "2026-01-06",
      "amount": 6450,
      "cur": "₪",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-918",
+     "rid": "D-7",
      "date": "2025-11-28",
      "amount": 6450,
      "cur": "₪",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-913",
+     "rid": "D-2",
      "date": "2025-10-04",
      "amount": 6450,
      "cur": "₪",
      "cat": "סל מזון לחג"
     },
     {
-     "rid": "D-912",
+     "rid": "D-1",
      "date": "2025-09-24",
      "amount": 6450,
      "cur": "₪",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-915",
+     "rid": "D-4",
      "date": "2025-06-03",
      "amount": 6450,
      "cur": "₪",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-916",
+     "rid": "D-5",
      "date": "2025-05-27",
      "amount": 6450,
      "cur": "₪",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-914",
+     "rid": "D-3",
      "date": "2025-02-11",
      "amount": 6450,
      "cur": "₪",
@@ -12151,7 +12153,7 @@
    ]
   },
   {
-   "id": "sp924",
+   "id": "sp640",
    "name": "קרן משפחת שטיינברג",
    "phone": "052-1602392",
    "email": "donor2@example.com",
@@ -12168,28 +12170,28 @@
    "nextDate": "2026-07-13",
    "donations": [
     {
-     "rid": "D-920",
+     "rid": "D-8",
      "date": "2026-05-11",
      "amount": 30000,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-922",
+     "rid": "D-10",
      "date": "2025-11-11",
      "amount": 30000,
      "cur": "₪",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-923",
+     "rid": "D-11",
      "date": "2025-10-27",
      "amount": 30000,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-921",
+     "rid": "D-9",
      "date": "2025-05-25",
      "amount": 30000,
      "cur": "₪",
@@ -12198,7 +12200,7 @@
    ]
   },
   {
-   "id": "sp929",
+   "id": "sp641",
    "name": "אליעזר ברנד ובניו בע\"מ",
    "phone": "054-1943479",
    "email": "donor3@example.com",
@@ -12215,28 +12217,28 @@
    "nextDate": "",
    "donations": [
     {
-     "rid": "D-925",
+     "rid": "D-12",
      "date": "2025-12-24",
      "amount": 17000,
      "cur": "₪",
      "cat": "מלגות לחוגים"
     },
     {
-     "rid": "D-928",
+     "rid": "D-15",
      "date": "2025-06-19",
      "amount": 17000,
      "cur": "₪",
      "cat": "סל מזון לחג"
     },
     {
-     "rid": "D-926",
+     "rid": "D-13",
      "date": "2025-02-06",
      "amount": 17000,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-927",
+     "rid": "D-14",
      "date": "2024-11-02",
      "amount": 17000,
      "cur": "₪",
@@ -12245,7 +12247,7 @@
    ]
   },
   {
-   "id": "sp937",
+   "id": "sp642",
    "name": "גב׳ שולמית הרשקוביץ",
    "phone": "058-8959235",
    "email": "donor4@example.com",
@@ -12262,49 +12264,49 @@
    "nextDate": "",
    "donations": [
     {
-     "rid": "D-935",
+     "rid": "D-21",
      "date": "2025-12-01",
      "amount": 3150,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-932",
+     "rid": "D-18",
      "date": "2025-10-25",
      "amount": 3150,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-936",
+     "rid": "D-22",
      "date": "2025-09-05",
      "amount": 3150,
      "cur": "₪",
      "cat": "סל מזון לחג"
     },
     {
-     "rid": "D-931",
+     "rid": "D-17",
      "date": "2025-08-03",
      "amount": 3150,
      "cur": "₪",
      "cat": "סל מזון לחג"
     },
     {
-     "rid": "D-930",
+     "rid": "D-16",
      "date": "2025-05-17",
      "amount": 3150,
      "cur": "₪",
      "cat": "סל מזון לחג"
     },
     {
-     "rid": "D-933",
+     "rid": "D-19",
      "date": "2024-12-31",
      "amount": 3150,
      "cur": "₪",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-934",
+     "rid": "D-20",
      "date": "2024-09-28",
      "amount": 3150,
      "cur": "₪",
@@ -12313,7 +12315,7 @@
    ]
   },
   {
-   "id": "sp940",
+   "id": "sp643",
    "name": "קרן ידידות ירושלים",
    "phone": "052-1518476",
    "email": "donor5@example.com",
@@ -12330,14 +12332,14 @@
    "nextDate": "2026-07-31",
    "donations": [
     {
-     "rid": "D-938",
+     "rid": "D-23",
      "date": "2026-05-07",
      "amount": 47500,
      "cur": "₪",
      "cat": "סל מזון לחג"
     },
     {
-     "rid": "D-939",
+     "rid": "D-24",
      "date": "2026-01-20",
      "amount": 47500,
      "cur": "₪",
@@ -12346,7 +12348,7 @@
    ]
   },
   {
-   "id": "sp949",
+   "id": "sp644",
    "name": "מרדכי פלדמן",
    "phone": "054-8932967",
    "email": "donor6@example.com",
@@ -12363,56 +12365,56 @@
    "nextDate": "",
    "donations": [
     {
-     "rid": "D-946",
+     "rid": "D-30",
      "date": "2026-04-15",
      "amount": 1900,
      "cur": "₪",
      "cat": "סל מזון לחג"
     },
     {
-     "rid": "D-943",
+     "rid": "D-27",
      "date": "2025-10-08",
      "amount": 1900,
      "cur": "₪",
      "cat": "מלגות לחוגים"
     },
     {
-     "rid": "D-942",
+     "rid": "D-26",
      "date": "2025-08-26",
      "amount": 1900,
      "cur": "₪",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-947",
+     "rid": "D-31",
      "date": "2025-03-24",
      "amount": 1900,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-945",
+     "rid": "D-29",
      "date": "2025-03-11",
      "amount": 1900,
      "cur": "₪",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-944",
+     "rid": "D-28",
      "date": "2024-12-07",
      "amount": 1900,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-948",
+     "rid": "D-32",
      "date": "2024-12-02",
      "amount": 1900,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-941",
+     "rid": "D-25",
      "date": "2024-10-14",
      "amount": 1900,
      "cur": "₪",
@@ -12421,7 +12423,7 @@
    ]
   },
   {
-   "id": "sp955",
+   "id": "sp645",
    "name": "חברת בוני העיר בע\"מ",
    "phone": "052-5608009",
    "email": "donor7@example.com",
@@ -12438,35 +12440,35 @@
    "nextDate": "",
    "donations": [
     {
-     "rid": "D-953",
+     "rid": "D-36",
      "date": "2026-02-01",
      "amount": 10800,
      "cur": "₪",
      "cat": "סל מזון לחג"
     },
     {
-     "rid": "D-950",
+     "rid": "D-33",
      "date": "2026-01-24",
      "amount": 10800,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-952",
+     "rid": "D-35",
      "date": "2025-09-30",
      "amount": 10800,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-951",
+     "rid": "D-34",
      "date": "2025-05-23",
      "amount": 10800,
      "cur": "₪",
      "cat": "סל מזון לחג"
     },
     {
-     "rid": "D-954",
+     "rid": "D-37",
      "date": "2024-12-23",
      "amount": 10800,
      "cur": "₪",
@@ -12475,7 +12477,7 @@
    ]
   },
   {
-   "id": "sp963",
+   "id": "sp646",
    "name": "משפחת רוטשילד-אדלר",
    "phone": "052-6805188",
    "email": "donor8@example.com",
@@ -12492,49 +12494,49 @@
    "nextDate": "",
    "donations": [
     {
-     "rid": "D-961",
+     "rid": "D-43",
      "date": "2026-05-29",
      "amount": 11450,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-962",
+     "rid": "D-44",
      "date": "2025-12-16",
      "amount": 11450,
      "cur": "₪",
      "cat": "סל מזון לחג"
     },
     {
-     "rid": "D-960",
+     "rid": "D-42",
      "date": "2025-08-11",
      "amount": 11450,
      "cur": "₪",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-956",
+     "rid": "D-38",
      "date": "2025-03-10",
      "amount": 11450,
      "cur": "₪",
      "cat": "מלגות לחוגים"
     },
     {
-     "rid": "D-959",
+     "rid": "D-41",
      "date": "2025-01-05",
      "amount": 11450,
      "cur": "₪",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-958",
+     "rid": "D-40",
      "date": "2024-10-11",
      "amount": 11450,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-957",
+     "rid": "D-39",
      "date": "2024-10-01",
      "amount": 11450,
      "cur": "₪",
@@ -12543,7 +12545,7 @@
    ]
   },
   {
-   "id": "sp968",
+   "id": "sp647",
    "name": "קרן החסד ע\"ש רחל",
    "phone": "052-2300895",
    "email": "donor9@example.com",
@@ -12560,28 +12562,28 @@
    "nextDate": "2026-08-01",
    "donations": [
     {
-     "rid": "D-964",
+     "rid": "D-45",
      "date": "2026-05-31",
      "amount": 9000,
      "cur": "₪",
      "cat": "סל מזון לחג"
     },
     {
-     "rid": "D-965",
+     "rid": "D-46",
      "date": "2025-10-31",
      "amount": 9000,
      "cur": "₪",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-967",
+     "rid": "D-48",
      "date": "2024-10-07",
      "amount": 9000,
      "cur": "₪",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-966",
+     "rid": "D-47",
      "date": "2024-09-27",
      "amount": 9000,
      "cur": "₪",
@@ -12590,7 +12592,7 @@
    ]
   },
   {
-   "id": "sp976",
+   "id": "sp648",
    "name": "יעקב ומרים זילברשטיין",
    "phone": "054-3255441",
    "email": "donor10@example.com",
@@ -12607,49 +12609,49 @@
    "nextDate": "",
    "donations": [
     {
-     "rid": "D-970",
+     "rid": "D-50",
      "date": "2026-07-03",
      "amount": 4000,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-971",
+     "rid": "D-51",
      "date": "2026-04-20",
      "amount": 4000,
      "cur": "₪",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-973",
+     "rid": "D-53",
      "date": "2026-03-27",
      "amount": 4000,
      "cur": "₪",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-974",
+     "rid": "D-54",
      "date": "2025-12-21",
      "amount": 4000,
      "cur": "₪",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-969",
+     "rid": "D-49",
      "date": "2025-08-07",
      "amount": 4000,
      "cur": "₪",
      "cat": "מלגות לחוגים"
     },
     {
-     "rid": "D-972",
+     "rid": "D-52",
      "date": "2025-08-04",
      "amount": 4000,
      "cur": "₪",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-975",
+     "rid": "D-55",
      "date": "2024-12-14",
      "amount": 4000,
      "cur": "₪",
@@ -12658,7 +12660,7 @@
    ]
   },
   {
-   "id": "sp981",
+   "id": "sp649",
    "name": "דוד אוחנה",
    "phone": "054-8533698",
    "email": "donor11@example.com",
@@ -12675,28 +12677,28 @@
    "nextDate": "",
    "donations": [
     {
-     "rid": "D-979",
+     "rid": "D-58",
      "date": "2026-03-16",
      "amount": 2400,
      "cur": "₪",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-980",
+     "rid": "D-59",
      "date": "2025-11-29",
      "amount": 2400,
      "cur": "₪",
      "cat": "מלגות לחוגים"
     },
     {
-     "rid": "D-978",
+     "rid": "D-57",
      "date": "2025-11-11",
      "amount": 2400,
      "cur": "₪",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-977",
+     "rid": "D-56",
      "date": "2025-06-03",
      "amount": 2400,
      "cur": "₪",
@@ -12705,7 +12707,7 @@
    ]
   },
   {
-   "id": "sp989",
+   "id": "sp650",
    "name": "מאפיית הזהב בע\"מ",
    "phone": "052-9946597",
    "email": "donor12@example.com",
@@ -12722,49 +12724,49 @@
    "nextDate": "",
    "donations": [
     {
-     "rid": "D-983",
+     "rid": "D-61",
      "date": "2026-07-07",
      "amount": 2550,
      "cur": "₪",
      "cat": "מלגות לחוגים"
     },
     {
-     "rid": "D-984",
+     "rid": "D-62",
      "date": "2026-06-04",
      "amount": 2550,
      "cur": "₪",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-985",
+     "rid": "D-63",
      "date": "2026-01-28",
      "amount": 2550,
      "cur": "₪",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-986",
+     "rid": "D-64",
      "date": "2026-01-08",
      "amount": 2550,
      "cur": "₪",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-982",
+     "rid": "D-60",
      "date": "2025-08-02",
      "amount": 2550,
      "cur": "₪",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-988",
+     "rid": "D-66",
      "date": "2025-03-12",
      "amount": 2550,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-987",
+     "rid": "D-65",
      "date": "2024-08-23",
      "amount": 2550,
      "cur": "₪",
@@ -12773,7 +12775,7 @@
    ]
   },
   {
-   "id": "sp993",
+   "id": "sp651",
    "name": "פרופ׳ נתן וייסמן",
    "phone": "058-9974950",
    "email": "donor13@example.com",
@@ -12790,21 +12792,21 @@
    "nextDate": "2026-07-28",
    "donations": [
     {
-     "rid": "D-991",
+     "rid": "D-68",
      "date": "2026-01-06",
      "amount": 14000,
      "cur": "₪",
      "cat": "מלגות לחוגים"
     },
     {
-     "rid": "D-992",
+     "rid": "D-69",
      "date": "2025-06-05",
      "amount": 14000,
      "cur": "₪",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-990",
+     "rid": "D-67",
      "date": "2024-10-02",
      "amount": 14000,
      "cur": "₪",
@@ -12813,7 +12815,7 @@
    ]
   },
   {
-   "id": "sp999",
+   "id": "sp652",
    "name": "קהילת אהבת ישראל — ניו יורק",
    "phone": "054-2173124",
    "email": "donor14@example.com",
@@ -12830,35 +12832,35 @@
    "nextDate": "",
    "donations": [
     {
-     "rid": "D-998",
+     "rid": "D-74",
      "date": "2025-12-23",
      "amount": 30000,
      "cur": "$",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-995",
+     "rid": "D-71",
      "date": "2025-10-16",
      "amount": 30000,
      "cur": "₪",
      "cat": "מלגות לחוגים"
     },
     {
-     "rid": "D-994",
+     "rid": "D-70",
      "date": "2025-06-01",
      "amount": 30000,
      "cur": "$",
      "cat": "ציוד ומבנה"
     },
     {
-     "rid": "D-996",
+     "rid": "D-72",
      "date": "2025-03-29",
      "amount": 30000,
      "cur": "$",
      "cat": "קייטנת קיץ"
     },
     {
-     "rid": "D-997",
+     "rid": "D-73",
      "date": "2024-12-10",
      "amount": 30000,
      "cur": "₪",
@@ -12867,7 +12869,7 @@
    ]
   },
   {
-   "id": "sp1002",
+   "id": "sp653",
    "name": "שמעון טוויל",
    "phone": "050-8862076",
    "email": "donor15@example.com",
@@ -12884,14 +12886,14 @@
    "nextDate": "",
    "donations": [
     {
-     "rid": "D-1001",
+     "rid": "D-76",
      "date": "2026-03-11",
      "amount": 6000,
      "cur": "₪",
      "cat": "כללי"
     },
     {
-     "rid": "D-1000",
+     "rid": "D-75",
      "date": "2025-03-03",
      "amount": 6000,
      "cur": "₪",

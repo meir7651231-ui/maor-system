@@ -592,9 +592,9 @@ export const useApp = create<AppState>()((set, get) => {
       }));
     },
     addPayment(enrollmentId, payment) {
-      const rid = 'R-' + get().db.seq;
+      const rid = 'R-' + get().db.receiptSeq;
       setDb((db) => ({
-        seq: db.seq + 1,
+        receiptSeq: db.receiptSeq + 1,
         enrollments: db.enrollments.map((e) =>
           e.id === enrollmentId ? { ...e, payments: [{ ...payment, rid }, ...e.payments] } : e,
         ),
@@ -635,9 +635,9 @@ export const useApp = create<AppState>()((set, get) => {
       });
     },
     addDonation(supporterId, donation) {
-      const rid = 'D-' + get().db.seq;
+      const rid = 'D-' + get().db.donationSeq;
       setDb((db) => ({
-        seq: db.seq + 1,
+        donationSeq: db.donationSeq + 1,
         supporters: db.supporters.map((s) => {
           if (s.id !== supporterId) return s;
           const donations = [{ ...donation, rid }, ...s.donations];

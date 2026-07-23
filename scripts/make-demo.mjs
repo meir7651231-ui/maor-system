@@ -92,6 +92,9 @@ const TZEDAKA = ['', '', '', 'קרן עזרה וחסד', 'קופת העיר', '�
 
 let seq = 100;
 const nextId = (prefix) => prefix + seq++;
+// מוני קבלות רציפים ונפרדים (כמו במערכת) — R- לחוגים, D- לתרומות
+let receiptSeq = 1;
+let donationSeq = 1;
 
 // ─── מורים (8) וחדרים (6) ───
 
@@ -307,7 +310,7 @@ outer: for (let round = 0; round < 4; round++) {
     const payments = [];
     for (let p = 0; p < paidCount; p++) {
       payments.push({
-        rid: 'R-' + seq++,
+        rid: 'R-' + receiptSeq++,
         date: iso(daysFromToday(-between(10, 150))),
         amount: punch ? Math.round(totalDue / 2) : course.price,
         method: pick(['אשראי', 'מזומן', 'העברה בנקאית', 'הוראת קבע']),
@@ -470,7 +473,7 @@ const supporters = SUPPORTER_DEFS.map(([name, cat, target], i) => {
     if (isUsd) usd += amount;
     else ils += amount;
     donations.push({
-      rid: 'D-' + seq++,
+      rid: 'D-' + donationSeq++,
       date: iso(daysFromToday(-between(10, 700))),
       amount,
       cur: isUsd ? '$' : '₪',
@@ -508,9 +511,11 @@ const supporters = SUPPORTER_DEFS.map(([name, cat, target], i) => {
 // ─── הרכבת מסמך ה-DB (v2) ───
 
 const db = {
-  v: 2,
+  v: 4,
   savedAt: new Date().toISOString(),
   seq,
+  receiptSeq,
+  donationSeq,
   families,
   enrollments,
   courses,

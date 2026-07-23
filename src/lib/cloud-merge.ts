@@ -67,10 +67,16 @@ export function applyMetaPartial(db: Db, meta: Record<string, unknown>): Db {
   assign('reports', meta.reports);
   assign('ui', meta.ui);
   assign('attnDone', meta.attnDone);
-  // seq: לעולם לא מקטינים — מונע התנגשות מזהים בין מכשירים
-  if (typeof meta.seq === 'number' && Number.isFinite(meta.seq) && meta.seq > db.seq) {
-    next.seq = meta.seq;
-    changed = true;
-  }
+  // מונים: לעולם לא מקטינים — מונע התנגשות מזהים/מספרי-קבלה בין מכשירים
+  const bumpCounter = (k: 'seq' | 'receiptSeq' | 'donationSeq') => {
+    const v = meta[k];
+    if (typeof v === 'number' && Number.isFinite(v) && v > db[k]) {
+      next[k] = v;
+      changed = true;
+    }
+  };
+  bumpCounter('seq');
+  bumpCounter('receiptSeq');
+  bumpCounter('donationSeq');
   return changed ? next : db;
 }
