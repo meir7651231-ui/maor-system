@@ -17,7 +17,8 @@ export function isoToday(): string {
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
   if (!iso) return '';
-  const [y, m, d] = iso.split('-');
+  const [y, m, d] = iso.slice(0, 10).split('-');
+  if (!y || !m || !d) return iso; // קלט פגום → מוחזר כמו-שהוא (בלי "undefined/undefined/..")
   return `${d}/${m}/${y}`;
 }
 
