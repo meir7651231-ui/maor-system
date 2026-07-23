@@ -147,7 +147,8 @@ export function PunchSection(props: SectionProps) {
   const idx = nameIndex(db);
 
   const head = ['תלמיד/ה', 'משפחה', 'חוג', 'נרכשו', 'נוצלו', 'יתרה', 'מצב'];
-  const punch = db.enrollments.filter((e) => e.plan === 'punch');
+  // שיבוץ שהסתיים (תלמיד/ה שעזב/ה) אינו זקוק לחידוש — לא מציגים בדו"ח מצב הכרטיסיות
+  const punch = db.enrollments.filter((e) => e.plan === 'punch' && e.status !== 'ended');
   const rows: Row[] = punch
     .map((e) => {
       const m = idx.get(e.memberId);
