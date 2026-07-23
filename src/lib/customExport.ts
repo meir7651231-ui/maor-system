@@ -4,12 +4,13 @@
  * אירועים חוזרים (אזכרה/יום נישואין/יום הולדת) מורחבים על פני הטווח.
  * שדות המתייחסים למעקב הטיפול נכללים רק כשהפיצ'ר supporters.ayin דלוק.
  */
-import { HEBREW_RECURRING, type Db, type EventType } from '../types/domain';
+import { HEBREW_RECURRING, type Db } from '../types/domain';
 import type { OrgConfig } from '../types/config';
 import type { Cell } from './csvx';
 import { featureOn } from './config';
 import { featLabel, itemLabel, stageLabel, unitLabel } from './ayin';
 import { hebDateFull, hebParts, hebAnnualEq } from './hebrew';
+import { EV_META } from './eventMeta';
 
 export type ExportTarget = 'courses' | 'events' | 'supporters';
 
@@ -23,17 +24,6 @@ export interface ExpField {
   label: string;
 }
 
-/** תוויות סוגי אירועים (עקבי עם EV_META בלוח השנה) — כאן בלי React. */
-const EVENT_TYPE_LABEL: Record<EventType, string> = {
-  reminder: 'תזכורת',
-  call: 'טלפון',
-  wedding: 'חתונה',
-  memorial: 'אזכרה',
-  anniversary: 'יום נישואים',
-  bday: 'יום הולדת',
-  org: 'אירוע',
-  custom: 'אירוע',
-};
 
 /** הגדרות השדות ליעד — תוויות מעקב הטיפול עוברות דרך מילון המונחים. */
 export function expFieldDefs(cfg: OrgConfig, target: ExportTarget): ExpField[] {
@@ -156,7 +146,7 @@ export function buildCustomExport(
       if (!ev.date) continue;
       const rec = {
         title: ev.title,
-        type: ev.customType || EVENT_TYPE_LABEL[ev.type],
+        type: ev.customType || EV_META[ev.type].label,
         time: ev.time || '',
         fam: db.families.find((f) => f.id === ev.famId)?.name || '',
         notes: ev.notes || '',

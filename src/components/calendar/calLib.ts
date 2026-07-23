@@ -7,7 +7,6 @@
 import {
   HEBREW_RECURRING,
   type Db,
-  type EventType,
   type OrgEvent,
 } from '../../types/domain';
 import { gem, gemYear, hebParts, hebAnnualEq, holidayOf, type HebParts } from '../../lib/hebrew';
@@ -15,6 +14,8 @@ import { isoLocal } from '../../lib/date-util';
 import { sessionsOf } from '../courses/lib';
 // sessionsOf — מקור-אמת יחיד בקורסים; מיוצא מחדש (wallData מייבא אותו מכאן)
 export { sessionsOf };
+import { EV_META, evLabel } from '../../lib/eventMeta';
+export { EV_META, evLabel }; // מיוצא מחדש — wallData מייבא evLabel מכאן
 
 /* ---------- תאריכים ---------- */
 
@@ -52,18 +53,7 @@ export function hpOf(iso: string, d?: Date): HebParts {
 
 export const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'] as const;
 
-/* ---------- מטא של סוגי אירועים (צבעים ותוויות verbatim מהמקור) ---------- */
-
-export const EV_META: Record<EventType, { label: string; bg: string; c: string }> = {
-  reminder: { label: 'תזכורת', bg: '#efe7f3', c: '#7c3aed' },
-  call: { label: 'טלפון', bg: '#dff0ec', c: '#0f766e' },
-  wedding: { label: 'חתונה', bg: '#fdeee0', c: '#b45309' },
-  memorial: { label: 'אזכרה', bg: '#eceae2', c: '#4d463c' },
-  anniversary: { label: 'יום נישואים', bg: '#fbeef3', c: '#be185d' },
-  bday: { label: 'יום הולדת', bg: '#fbeef3', c: '#be185d' },
-  org: { label: 'אירוע', bg: '#e7edf5', c: '#3a5a86' },
-  custom: { label: 'אירוע', bg: '#e7edf5', c: '#3a5a86' },
-};
+/* ---------- מטא של סוגי אירועים — מקור-אמת יחיד ב-lib/eventMeta ---------- */
 
 export const SESSION_META = { label: 'מפגש קורס', bg: '#fdf1d4', c: '#9a6414' } as const;
 export const HOLIDAY_META = { label: 'חג ומועד', bg: '#e4f5ea', c: '#12803c' } as const;
@@ -74,9 +64,6 @@ export const PRIORITY_COLOR: Record<string, string> = {
   green: '#16a34a',
 };
 
-export function evLabel(ev: OrgEvent): string {
-  return (ev.type === 'custom' && ev.customType) || EV_META[ev.type].label;
-}
 
 
 /* ---------- חסימות לוח ---------- */

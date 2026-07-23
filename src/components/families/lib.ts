@@ -133,17 +133,8 @@ export const LANGUAGE_OPTIONS = ['עברית', 'יידיש', 'רוסית', 'צר
 export const OTHER = '__other';
 export const OTHER_LABEL = 'אחר — הקלדה חופשית…';
 
-/** תוויות/צבעי סוגי אירועים (כמו evMeta במקור). */
-export const EVENT_META: Record<string, { label: string; bg: string; c: string }> = {
-  reminder: { label: 'תזכורת', bg: '#efe7f3', c: '#7c3aed' },
-  call: { label: 'טלפון', bg: '#dff0ec', c: '#0f766e' },
-  wedding: { label: 'חתונה', bg: '#fdeee0', c: '#b45309' },
-  memorial: { label: 'אזכרה', bg: '#eceae2', c: '#4d463c' },
-  anniversary: { label: 'יום נישואים', bg: '#fbeef3', c: '#be185d' },
-  bday: { label: 'יום הולדת', bg: '#fbeef3', c: '#be185d' },
-  org: { label: 'אירוע', bg: '#e7edf5', c: '#3a5a86' },
-  custom: { label: 'אירוע', bg: '#e7edf5', c: '#3a5a86' },
-};
+/** תוויות/צבעי סוגי אירועים — מקור-אמת יחיד ב-lib/eventMeta (בשם EVENT_META לתאימות). */
+export { EV_META as EVENT_META } from '../../lib/eventMeta';
 
 /** צ'יפ סטטוס/דרגה קטן בסגנון אחיד. */
 export function chipStyle(bg: string, c: string): CSSProperties {

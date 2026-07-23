@@ -16,6 +16,9 @@ import { allMembers, type MemberWithFamily } from '../../store/useApp';
 import { hebParts, hebAnnualEq, type HebParts } from '../../lib/hebrew';
 import { payBal, sessionsOf } from '../courses/lib';
 import { isoLocal } from '../../lib/date-util';
+// תוויות/צבעי סוגי אירועים — מקור-אמת יחיד ב-lib/eventMeta (מיוצא מחדש לתאימות)
+import { EV_META, evLabel } from '../../lib/eventMeta';
+export { EV_META, evLabel };
 import type { ModuleKey, OrgConfig } from '../../types/config';
 
 /** מפת המודולים הפעילים (config.modules) — חסר = פעיל; false = כבוי. */
@@ -43,21 +46,6 @@ export const ST_META: Record<FamilyStatus, { label: string; bg: string; c: strin
   inactive: { label: 'לא פעילה', bg: '#eceae2', c: '#8b8474' },
 };
 
-/** תוויות וצבעי סוגי אירועים (verbatim מהמקור). */
-export const EV_META: Record<EventType, { label: string; bg: string; c: string }> = {
-  reminder: { label: 'תזכורת', bg: '#efe7f3', c: '#7c3aed' },
-  call: { label: 'טלפון', bg: '#dff0ec', c: '#0f766e' },
-  wedding: { label: 'חתונה', bg: '#fdeee0', c: '#b45309' },
-  memorial: { label: 'אזכרה', bg: '#eceae2', c: '#4d463c' },
-  anniversary: { label: 'יום נישואים', bg: '#fbeef3', c: '#be185d' },
-  bday: { label: 'יום הולדת', bg: '#fbeef3', c: '#be185d' },
-  org: { label: 'אירוע', bg: '#e7edf5', c: '#3a5a86' },
-  custom: { label: 'אירוע', bg: '#e7edf5', c: '#3a5a86' },
-};
-
-export function evLabel(ev: OrgEvent): string {
-  return (ev.type === 'custom' && ev.customType) || EV_META[ev.type].label;
-}
 
 
 /** האם החוג פעיל בתאריך נתון (טווח start–end). */
