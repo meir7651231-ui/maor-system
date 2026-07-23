@@ -5,6 +5,7 @@
 import type { CSSProperties } from 'react';
 import type { Course, CourseSession, Db, Enrollment, OrgEvent, Room } from '../../types/domain';
 import { HOLIDAYS, hebParts } from '../../lib/hebrew';
+import { planWord } from '../courses/lib';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
@@ -227,9 +228,11 @@ export function inactiveRoomCourses(db: Db, iso: string): { course: Course; room
   return out;
 }
 
-/** תווית מסלול קצרה לשורת תלמיד/ה ביומן. */
+/** תווית מסלול קצרה לשורת תלמיד/ה ביומן — עקבי עם מודול הקורסים (planWord). */
 export function planLabelOf(e: Enrollment): string {
-  return e.plan === 'punch' ? `כרטיסייה · יתרה ${Math.max(0, e.purchased - e.used)}/${e.purchased}` : 'מנוי חודשי';
+  return e.plan === 'punch'
+    ? `כרטיסייה · יתרה ${Math.max(0, e.purchased - e.used)}/${e.purchased}`
+    : planWord(e.plan);
 }
 
 /** תוויות סטטוס שיבוץ (כמו במודול הקורסים). */
