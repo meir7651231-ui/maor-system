@@ -7,6 +7,7 @@ import { Chip } from '../ui';
 import type { Cell } from './csv';
 import { ReportTable, Section, type Row } from './parts';
 import { balanceOf, fmtDate, nameIndex, paidInRange, type DateRange } from './lib';
+import { enrollCount } from '../courses/lib';
 
 interface SectionProps {
   db: Db;
@@ -25,23 +26,26 @@ export function EnrollmentSection(props: SectionProps & { range: DateRange; rang
   let totOut = 0;
   const rows: Row[] = db.courses.map((c) => {
     const ens = db.enrollments.filter((e) => e.courseId === c.id);
+    // תפוסה = משובצים נוכחיים (פעיל+מוקפא) כמו בכל האפליקציה; הכספים על כל השיבוצים
+    // (גם בוגרים שעזבו עם חוב/תשלום בטווח).
+    const current = enrollCount(db, c.id);
     const income = ens.reduce((a, e) => a + paidInRange(e, range), 0);
     const out = ens.reduce((a, e) => a + balanceOf(e), 0);
     const teacher = db.teachers.find((t) => t.id === c.teacherId);
-    totEnrolled += ens.length;
+    totEnrolled += current;
     totIncome += income;
     totOut += out;
     return {
       cells: [
         c.name,
         teacher?.name ?? '',
-        ens.length,
+        current,
         c.maxStudents || '—',
-        c.maxStudents ? Math.round((ens.length / c.maxStudents) * 100) + '%' : '—',
+        c.maxStudents ? Math.round((current / c.maxStudents) * 100) + '%' : '—',
         income,
         out,
       ],
-      warn: c.maxStudents > 0 && ens.length > c.maxStudents,
+      warn: c.maxStudents > 0 && current > c.maxStudents,
       open: () => selectCourse(c.id),
     };
   });
