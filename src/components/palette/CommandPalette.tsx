@@ -77,7 +77,7 @@ export function CommandPalette() {
   const setPalette = useApp((s) => s.setPalette);
   const exportBackup = useApp((s) => s.exportBackup);
   const lockNow = useApp((s) => s.lockNow);
-  const hasLock = useApp((s) => !!s.db.security.primary || !!s.db.security.secondary);
+  const hasLock = useApp((s) => !!s.lock.primary || !!s.lock.secondary);
   const punch = useApp((s) => s.punch);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);

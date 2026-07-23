@@ -29,7 +29,7 @@ import {
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, loadOrgConfig, saveConfigOverride } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
-import { hashPin, DEFAULT_LOCK_ZONES } from '../lib/lock';
+import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { featLabel, planAddName, planAyinAdvance, revertPatch } from '../lib/ayin';
 import { dailySnapshot, exportBackupFile, loadDb, saveDb, setPersistNamespace } from './persist';
@@ -74,6 +74,8 @@ interface AppState {
   /** מצב פתיחת הנעילות — לכל הסשן (לא נשמר ב-db). */
   unlockedPrimary: boolean;
   unlockedAdmin: boolean;
+  /** קודי הנעילה — נשמרים במכשיר בלבד (localStorage), לא ב-db/גיבוי/ענן. */
+  lock: LockCfg;
   /** קונפיגורציית הארגון — localStorage ← config.json ← ברירת מחדל. */
   config: OrgConfig;
   /** מצב חיבור הענן (Firebase) — ראו CloudState. */
@@ -180,10 +182,12 @@ interface AppState {
   fixAllPhones: () => void;
 
   // נעילת גישה
-  /** קביעת/שינוי/הסרת קוד נעילה (null = הסרה). מגבב לפני שמירה. */
+  /** קביעת/שינוי/הסרת קוד נעילה (null = הסרה). מגבב ושומר במכשיר בלבד. */
   setLockCode: (kind: 'primary' | 'secondary', pin: string | null) => Promise<void>;
   /** עדכון האזורים שהנעילה המשנית מגנה עליהם. */
   setLockZones: (zones: string[]) => void;
+  /** איפוס מלא של הנעילה (שכחתי קוד) — מוחק קודים מהמכשיר, הנתונים נשארים. */
+  clearLock: () => void;
   /** סימון נעילה כפתוחה (לאחר קוד תקין) — נשמר לסשן. */
   markUnlocked: (kind: 'primary' | 'secondary') => void;
   /** נעילה מיידית — סוגר את שתי הרמות וחוזר לבית. */
@@ -362,6 +366,7 @@ export const useApp = create<AppState>()((set, get) => {
     paletteOpen: false,
     unlockedPrimary: readSess(SESS.p),
     unlockedAdmin: readSess(SESS.a),
+    lock: readLock(),
     config: DEFAULT_CONFIG,
     cloud: { enabled: false, authReady: true, user: null, status: 'idle' },
 
@@ -370,12 +375,23 @@ export const useApp = create<AppState>()((set, get) => {
       // בידוד נתונים בין לקוחות על אותו host — חייב לקרות לפני loadDb
       setPersistNamespace(config.slug);
       const { db, corrupt } = await loadDb();
+      // אימוץ חד-פעמי: גרסה קודמת שמרה קודים ב-db.security (מסונכרן). מעבירים
+      // אותם לאחסון המקומי (במכשיר בלבד) ומנקים מה-db, כדי שלא יסונכרנו/יגובו.
+      let lock = get().lock;
+      if (!lock.primary && !lock.secondary && (db.security?.primary || db.security?.secondary)) {
+        lock = { ...db.security };
+        writeLock(lock);
+      }
+      if (db.security?.primary || db.security?.secondary || db.security?.zones) {
+        db.security = {};
+      }
       const cloudOn = !!config.firebase;
       set({
         db,
         corrupt,
         config,
         ready: true,
+        lock,
         cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle' },
       });
       // חיבור ענן — opt-in פר-ארגון; בלי config.firebase שום דבר לא משתנה
@@ -828,19 +844,28 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     async setLockCode(kind, pin) {
-      const security = { ...get().db.security };
+      const lock: LockCfg = { ...get().lock };
       if (pin === null) {
-        delete security[kind];
+        delete lock[kind];
         // הסרת הקוד המשני — מנקים גם את רשימת האזורים (מיותרת בלי קוד)
-        if (kind === 'secondary') delete security.zones;
+        if (kind === 'secondary') delete lock.zones;
       } else {
-        security[kind] = await hashPin(pin);
-        if (kind === 'secondary' && !security.zones) security.zones = [...DEFAULT_LOCK_ZONES];
+        lock[kind] = await hashPin(pin);
+        if (kind === 'secondary' && !lock.zones) lock.zones = [...DEFAULT_LOCK_ZONES];
       }
-      setDb(() => ({ security }));
+      writeLock(lock);
+      set({ lock });
     },
     setLockZones(zones) {
-      setDb((db) => ({ security: { ...db.security, zones } }));
+      const lock: LockCfg = { ...get().lock, zones };
+      writeLock(lock);
+      set({ lock });
+    },
+    clearLock() {
+      writeLock({});
+      writeSess(SESS.p, null);
+      writeSess(SESS.a, null);
+      set({ lock: {}, unlockedPrimary: false, unlockedAdmin: false });
     },
     markUnlocked(kind) {
       if (kind === 'primary') {

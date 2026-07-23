@@ -8,11 +8,11 @@ import { migrate } from '../persist';
 import { emptyDb } from '../../types/domain';
 import { verifyPin, DEFAULT_LOCK_ZONES } from '../../lib/lock';
 
-const sec = () => useApp.getState().db.security;
+const sec = () => useApp.getState().lock;
 
 beforeEach(() => {
   useApp.getState().setDb(() => emptyDb());
-  useApp.setState({ unlockedPrimary: false, unlockedAdmin: false });
+  useApp.setState({ unlockedPrimary: false, unlockedAdmin: false, lock: {} });
 });
 
 describe('🔒 setLockCode — קביעה/אימות/הסרה', () => {
@@ -63,6 +63,21 @@ describe('🔓 markUnlocked / lockNow — מצב פתיחה לסשן', () => {
     expect(useApp.getState().unlockedPrimary).toBe(false);
     expect(useApp.getState().unlockedAdmin).toBe(false);
     expect(useApp.getState().view).toBe('home');
+  });
+});
+
+describe('🆘 clearLock — שכחתי קוד: איפוס מקומי בלי אובדן נתונים', () => {
+  it('מוחק את כל הקודים ופותח, הנתונים נשארים', async () => {
+    const s = useApp.getState();
+    s.setDb(() => ({ ...emptyDb(), orgName: 'עמותה בדיקה' }));
+    await s.setLockCode('primary', '4321');
+    await s.setLockCode('secondary', '8765');
+    s.clearLock();
+    expect(sec().primary).toBeUndefined();
+    expect(sec().secondary).toBeUndefined();
+    expect(useApp.getState().unlockedPrimary).toBe(false);
+    // הנתונים לא נגעו — הקוד נשמר במכשיר בלבד, לא ב-db
+    expect(useApp.getState().db.orgName).toBe('עמותה בדיקה');
   });
 });
 

@@ -1,7 +1,7 @@
 /**
  * מסך נעילה — מקלדת ספרות להזנת קוד. משמש גם לנעילה הראשית (כניסה לכל
- * המערכת) וגם למשנית (אזור מוגן/מנהל). מאמת מול הגיבוב השמור ב-db.security
- * וקורא ל-onUnlock בהצלחה. אין דלף של הקוד — רק אימות גיבוב.
+ * המערכת) וגם למשנית (אזור מוגן/מנהל). מאמת מול הגיבוב השמור במכשיר (store.lock)
+ * וקורא ל-onUnlock בהצלחה. "שכחתי קוד" מאפס מקומית בלי לאבד נתונים.
  */
 import { useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
@@ -16,7 +16,8 @@ export function LockScreen({
   kind: 'primary' | 'secondary';
   onUnlock: () => void;
 }) {
-  const hash = useApp((s) => s.db.security[kind]);
+  const hash = useApp((s) => s.lock[kind]);
+  const clearLock = useApp((s) => s.clearLock);
   const config = useApp((s) => s.config);
   const dbOrgName = useApp((s) => s.db.orgName);
   const orgName = config.orgName || dbOrgName;
@@ -35,6 +36,16 @@ export function LockScreen({
   const back = () => {
     setError('');
     setPin((p) => p.slice(0, -1));
+  };
+
+  const forgot = () => {
+    const msg = primary
+      ? 'לאפס את קוד הכניסה? הקוד יימחק מהמכשיר הזה והמערכת תיפתח. הנתונים יישארו — רק הנעילה תבוטל.'
+      : 'לאפס את קוד המנהל? כל קודי הנעילה יימחקו מהמכשיר הזה. הנתונים יישארו.';
+    if (window.confirm(msg)) {
+      clearLock();
+      onUnlock();
+    }
   };
 
   const submit = async () => {
@@ -123,6 +134,23 @@ export function LockScreen({
             ✓
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={forgot}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--ink-faint)',
+            fontSize: 12.5,
+            textDecoration: 'underline',
+            cursor: 'pointer',
+            marginTop: 14,
+            padding: 4,
+          }}
+        >
+          שכחתי את הקוד
+        </button>
       </div>
     </div>
   );

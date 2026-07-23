@@ -1,7 +1,8 @@
 /**
  * הגדרות ← נעילת גישה — ניהול שני קודים:
  * ראשית (כניסה לכל המערכת) ומשנית ("מנהל", לאזורים רגישים + בחירת אזורים).
- * הקוד נשמר מגובב (ראה lib/lock) ונכלל בגיבוי/סנכרון. הגנת-גישה, לא הצפנה.
+ * הקוד נשמר מגובב במכשיר בלבד (localStorage, ראה lib/lock) — לא בגיבוי ולא
+ * בענן. הגנת-גישה מפני עיון מזדמן, לא הצפנת נתונים.
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
@@ -10,7 +11,7 @@ import { Section, SectionNote } from './lib';
 import { isValidPin, LOCK_ZONES, DEFAULT_LOCK_ZONES } from '../../lib/lock';
 
 function CodeManager({ kind, title, desc }: { kind: 'primary' | 'secondary'; title: string; desc: string }) {
-  const isSet = useApp((s) => !!s.db.security[kind]);
+  const isSet = useApp((s) => !!s.lock[kind]);
   const setLockCode = useApp((s) => s.setLockCode);
   const toast = useApp((s) => s.toast);
 
@@ -102,8 +103,8 @@ function CodeManager({ kind, title, desc }: { kind: 'primary' | 'secondary'; tit
 }
 
 function SecondaryZones() {
-  const secondarySet = useApp((s) => !!s.db.security.secondary);
-  const zones = useApp((s) => s.db.security.zones);
+  const secondarySet = useApp((s) => !!s.lock.secondary);
+  const zones = useApp((s) => s.lock.zones);
   const setLockZones = useApp((s) => s.setLockZones);
   if (!secondarySet) return null;
   const active = zones ?? DEFAULT_LOCK_ZONES;
@@ -123,7 +124,7 @@ function SecondaryZones() {
 }
 
 function LockNowButton() {
-  const hasCode = useApp((s) => !!s.db.security.primary || !!s.db.security.secondary);
+  const hasCode = useApp((s) => !!s.lock.primary || !!s.lock.secondary);
   const lockNow = useApp((s) => s.lockNow);
   if (!hasCode) return null;
   return (
@@ -158,8 +159,9 @@ export function SecuritySection() {
       />
       <SecondaryZones />
       <SectionNote>
-        הקודים נשמרים מגובבים ונכללים בגיבוי ובסנכרון. זו הגנת-גישה מפני עיון מזדמן, לא הצפנת נתונים.
-        שכחתם קוד? אפשר לשחזר גיבוי או לנקות את נתוני הדפדפן כדי לאפס.
+        הקודים נשמרים מגובבים <b>במכשיר הזה בלבד</b> — לא בגיבוי ולא בענן, כך שכל מכשיר נועל בנפרד.
+        זו הגנת-גישה מפני עיון מזדמן, לא הצפנת נתונים (מי שניגש למכשיר טכנית יכול לעקוף).
+        שכחתם קוד? במסך הנעילה יש "שכחתי את הקוד" — איפוס מקומי בלי לאבד נתונים.
       </SectionNote>
     </Section>
   );

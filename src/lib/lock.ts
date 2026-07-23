@@ -21,6 +21,37 @@ export const DEFAULT_LOCK_ZONES: LockZone[] = ['wizard', 'settings'];
 
 const SALT = 'maor.lock.v1::';
 
+/**
+ * קודי הנעילה נשמרים במכשיר בלבד (localStorage) — לא ב-db, ולכן לא בגיבוי
+ * ולא בסנכרון הענן. כך: גיבוי לא "מחזיר" נעילה, ו"שכחתי קוד" = איפוס מקומי
+ * בלי לאבד נתונים. הקוד מגובב; זו הרתעה מפני עיון מזדמן, לא הצפנת נתונים.
+ */
+export interface LockCfg {
+  primary?: string;
+  secondary?: string;
+  zones?: string[];
+}
+
+const LOCK_KEY = 'maor_lock';
+
+export function readLock(): LockCfg {
+  try {
+    const raw = localStorage.getItem(LOCK_KEY);
+    return raw ? (JSON.parse(raw) as LockCfg) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function writeLock(cfg: LockCfg): void {
+  try {
+    if (!cfg.primary && !cfg.secondary) localStorage.removeItem(LOCK_KEY);
+    else localStorage.setItem(LOCK_KEY, JSON.stringify(cfg));
+  } catch {
+    /* localStorage חסום (מצב פרטי) — הנעילה תפעל לסשן הנוכחי בלבד */
+  }
+}
+
 /** קוד תקין: 4–8 ספרות. */
 export function isValidPin(pin: string): boolean {
   return /^\d{4,8}$/.test(pin);

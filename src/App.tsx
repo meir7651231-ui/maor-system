@@ -75,7 +75,7 @@ export default function App() {
   const exportBackup = useApp((s) => s.exportBackup);
   const cloud = useApp((s) => s.cloud);
   const cloudSignOut = useApp((s) => s.cloudSignOut);
-  const security = useApp((s) => s.db.security);
+  const lock = useApp((s) => s.lock);
   // הערכה המוחלת בפועל — העדפת המשתמש (db.ui.theme) גוברת על ערכת הארגון
   const uiTheme = useApp((s) => s.db.ui.theme);
   const openFamilyForm = useApp((s) => s.openFamilyForm);
@@ -171,7 +171,7 @@ export default function App() {
   }
 
   // נעילה ראשית — קוד כניסה לכל המערכת (אחרי שער הענן, אם קיים)
-  if (security.primary && !unlockedPrimary) {
+  if (lock.primary && !unlockedPrimary) {
     return (
       <>
         <LockScreen kind="primary" onUnlock={() => markUnlocked('primary')} />
@@ -181,9 +181,9 @@ export default function App() {
   }
 
   // נעילה משנית — קוד "מנהל" לאזורים הרגישים (זהה לכל הסשן לאחר פתיחה אחת)
-  const lockZones = security.zones ?? DEFAULT_LOCK_ZONES;
+  const lockZones = lock.zones ?? DEFAULT_LOCK_ZONES;
   const adminNeededFor = (zone: string) =>
-    !!security.secondary && lockZones.includes(zone) && !unlockedAdmin;
+    !!lock.secondary && lockZones.includes(zone) && !unlockedAdmin;
   const onAdminUnlock = () => markUnlocked('secondary');
 
   const Current = VIEWS[view];
