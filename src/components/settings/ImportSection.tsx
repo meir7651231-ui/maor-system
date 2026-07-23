@@ -9,7 +9,7 @@ import { useState, type ChangeEvent } from 'react';
 import { emptyFamily, emptyMember, type Family, type Member } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { parseBackupFile } from '../../store/persist';
-import { normalizePhone, normSearch } from '../../lib/validate';
+import { normalizePhone, normSearch, formatIsraeliPhone } from '../../lib/validate';
 import { parseAnyDate, parseCsv } from '../../lib/csvx';
 import { Btn, Field, FormError } from '../ui';
 import { isoToday, Section, SectionNote } from './lib';
@@ -125,7 +125,7 @@ export function ImportSection() {
         name: r.name,
         father: r.father,
         mother: r.mother,
-        phone: normalizePhone(r.phone),
+        phone: formatIsraeliPhone(r.phone),
         city: r.city,
       });
       added++;
@@ -435,7 +435,7 @@ function KidsImport() {
         createdAt: isoToday(),
         name: g.surname || '—',
         city: g.city,
-        phone: normalizePhone(g.phone),
+        phone: formatIsraeliPhone(g.phone),
         members: g.ms.map((m) => ({ ...m, id: 'm' + seq++ })),
       }));
       newFams = fresh.length;

@@ -4,7 +4,7 @@
  */
 import type { CSSProperties } from 'react';
 import type { Supporter } from '../../types/domain';
-import { normSearch } from '../../lib/validate';
+import { normSearch, formatIsraeliPhone } from '../../lib/validate';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
@@ -70,14 +70,13 @@ export function chipStyle(bg: string, c: string): CSSProperties {
   };
 }
 
-/** עיצוב טלפון ישראלי חסר-אפס — כמו fixPhone במקור. */
+/**
+ * עיצוב טלפון ישראלי — מאוחד עם formatIsraeliPhone כדי שאותו מספר יעוצב זהה
+ * בכל הטפסים (תומכים/משפחות/מורים). קודם היה מימוש נפרד שלא טיפל בקידומת 972
+ * ולא הוסיף מקף למספר שכבר מתחיל ב-0 — פער חוצה-מערכת.
+ */
 export function fixPhone(p: string): string {
-  const raw = String(p || '').trim();
-  const d = raw.replace(/\D/g, '');
-  if (!d || d[0] === '0') return raw;
-  if (d.length === 9) return '0' + d.slice(0, 2) + '-' + d.slice(2);
-  if (d.length === 8) return '0' + d[0] + '-' + d.slice(1);
-  return raw;
+  return formatIsraeliPhone(p);
 }
 
 /** "₪1,200 + $300" או "—" כשאין כלום. */

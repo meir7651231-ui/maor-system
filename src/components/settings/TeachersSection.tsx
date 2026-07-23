@@ -5,7 +5,7 @@
 import { useRef, useState } from 'react';
 import type { Teacher } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { validIsraeliId, normalizePhone } from '../../lib/validate';
+import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Empty, Field, FormError, Modal, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { Section, SectionNote } from './lib';
@@ -149,8 +149,8 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
 
     const fields: Omit<Teacher, 'id'> = {
       name,
-      phone: normalizePhone(f.phone.trim()),
-      phone2: normalizePhone(f.phone2.trim()),
+      phone: formatIsraeliPhone(f.phone.trim()),
+      phone2: formatIsraeliPhone(f.phone2.trim()),
       email: f.email.trim(),
       idNum: f.idNum.trim(),
       address: f.address.trim(),

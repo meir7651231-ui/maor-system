@@ -1,5 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import { validIsraeliId, normSearch, formatIsraeliPhone } from '../validate';
+import { fixPhone } from '../../components/supporters/lib';
+
+describe('עקביות עיצוב טלפון חוצה-טפסים (תומכים=משפחות=מורים)', () => {
+  // fixPhone (תומכים/מורים דרך אותו מקור) חייב להיות זהה ל-formatIsraeliPhone (משפחות)
+  for (const input of ['0521234567', '521234567', '+972521234567', '00972521234567', '0212345678', '', '  ']) {
+    it(`אותו פלט לקלט "${input}"`, () => {
+      expect(fixPhone(input)).toBe(formatIsraeliPhone(input));
+    });
+  }
+  it('972 מטופל בכל המסלולים (לא נשאר גולמי)', () => {
+    expect(fixPhone('+972521234567')).toBe('052-1234567');
+  });
+  it('מספר שכבר מתחיל ב-0 מקבל מקף בכל המסלולים', () => {
+    expect(fixPhone('0521234567')).toBe('052-1234567');
+  });
+});
 
 describe('formatIsraeliPhone — נרמול משותף לטופסי משפחה+תומך', () => {
   it('מוסיף 0 מוביל וחוצץ למספר נייד', () => {

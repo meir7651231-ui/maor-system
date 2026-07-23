@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { Course, Gender, PricingModel, Teacher, Weekday } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
-import { normalizePhone } from '../../lib/validate';
+import { formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { ADD_TEACHER, CAT_OPTIONS, courseDateError, DAY_NAMES, OTHER, OTHER_LABEL, SEMESTER_OPTIONS } from './lib';
@@ -142,7 +142,7 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
         const nt: Teacher = {
           id: nextId('t'),
           name: tn,
-          phone: normalizePhone(f.newTeacherPhone.trim()),
+          phone: formatIsraeliPhone(f.newTeacherPhone.trim()),
           phone2: '',
           email: '',
           idNum: '',
