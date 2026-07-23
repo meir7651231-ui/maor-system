@@ -24,6 +24,23 @@ describe('gem', () => {
     expect(gem(0)).toBe('');
     expect(gem(NaN)).toBe('');
   });
+
+  it('קלט שלילי → ריק (לא "undefined" מאינדקס שלילי)', () => {
+    expect(gem(-5)).toBe('');
+    expect(gem(-100)).toBe('');
+    expect(gem(-5)).not.toContain('undefined');
+  });
+
+  it('קלט לא-שלם → מעוגל כלפי מטה, בלי "undefined"', () => {
+    expect(gem(15.9)).toBe('ט״ו'); // floor(15.9)=15
+    expect(gem(5.5)).toBe('ה׳');
+    expect(gem(15.9)).not.toContain('undefined');
+  });
+
+  it('אינסוף → ריק', () => {
+    expect(gem(Infinity)).toBe('');
+    expect(gem(-Infinity)).toBe('');
+  });
 });
 
 describe('gemYear', () => {

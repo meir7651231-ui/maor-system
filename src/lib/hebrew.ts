@@ -11,10 +11,10 @@ const fmtParts = new Intl.DateTimeFormat('en-u-ca-hebrew', {
   year: 'numeric',
 });
 
-/** גימטריה: 15→ט״ו, 5786→תשפ״ו. */
+/** גימטריה: 15→ט״ו, 5786→תשפ״ו. קלט לא-חוקי (שלילי / לא-שלם / NaN) → ''. */
 export function gem(n: number): string {
-  n = +n;
-  if (!n) return '';
+  n = Math.floor(+n);
+  if (!Number.isFinite(n) || n <= 0) return ''; // מונע פלט "undefined" מאינדקסים שליליים/שבורים
   const U = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט'];
   const T = ['', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ'];
   const H = ['', 'ק', 'ר', 'ש', 'ת', 'תק', 'תר', 'תש', 'תת', 'תתק'];
