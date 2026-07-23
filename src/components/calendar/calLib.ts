@@ -6,14 +6,15 @@
  */
 import {
   HEBREW_RECURRING,
-  type Course,
-  type CourseSession,
   type Db,
   type EventType,
   type OrgEvent,
 } from '../../types/domain';
 import { gem, gemYear, hebParts, hebAnnualEq, holidayOf, type HebParts } from '../../lib/hebrew';
 import { isoLocal } from '../../lib/date-util';
+import { sessionsOf } from '../courses/lib';
+// sessionsOf — מקור-אמת יחיד בקורסים; מיוצא מחדש (wallData מייבא אותו מכאן)
+export { sessionsOf };
 
 /* ---------- תאריכים ---------- */
 
@@ -77,10 +78,6 @@ export function evLabel(ev: OrgEvent): string {
   return (ev.type === 'custom' && ev.customType) || EV_META[ev.type].label;
 }
 
-/** מפגשי חוג — כמו במקור: אם אין sessions, נגזר מפגש יחיד מ-weekday/time. */
-export function sessionsOf(c: Course): CourseSession[] {
-  return c.sessions && c.sessions.length ? c.sessions : [{ day: c.weekday, time: c.time, label: '' }];
-}
 
 /* ---------- חסימות לוח ---------- */
 

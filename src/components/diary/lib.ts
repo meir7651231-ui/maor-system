@@ -5,7 +5,7 @@
 import type { CSSProperties } from 'react';
 import type { Course, CourseSession, Db, Enrollment, OrgEvent, Room } from '../../types/domain';
 import { HOLIDAYS, hebParts } from '../../lib/hebrew';
-import { planWord } from '../courses/lib';
+import { planWord, sessionsOf } from '../courses/lib';
 import { isoLocal } from '../../lib/date-util';
 // nextSessionDate — מקור-אמת יחיד במודול הקורסים (היה עותק זהה כאן)
 export { nextSessionDate } from '../courses/lib';
@@ -44,10 +44,6 @@ export function minToHM(min: number): string {
   return pad2(Math.floor(min / 60)) + ':' + pad2(min % 60);
 }
 
-/** המפגשים בפועל — fallback למפגש יחיד מהשדות הראשיים (כמו sessionsOf במקור). */
-export function sessionsOf(c: Course): CourseSession[] {
-  return c.sessions && c.sessions.length ? c.sessions : [{ day: c.weekday, time: c.time, label: '' }];
-}
 
 /** תווית קבוצה — label או "קבוצה N" לפי המיקום (כמו במודול הקורסים). */
 export function groupLabelOf(ss: CourseSession, i: number): string {

@@ -14,7 +14,7 @@ import {
 } from '../../types/domain';
 import { allMembers, type MemberWithFamily } from '../../store/useApp';
 import { hebParts, hebAnnualEq, type HebParts } from '../../lib/hebrew';
-import { payBal } from '../courses/lib';
+import { payBal, sessionsOf } from '../courses/lib';
 import { isoLocal } from '../../lib/date-util';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 
@@ -59,10 +59,6 @@ export function evLabel(ev: OrgEvent): string {
   return (ev.type === 'custom' && ev.customType) || EV_META[ev.type].label;
 }
 
-/** מפגשי חוג — כמו במקור: אם אין sessions, נגזר מפגש יחיד מ-weekday/time. */
-export function sessionsOf(c: Course): CourseSession[] {
-  return c.sessions && c.sessions.length ? c.sessions : [{ day: c.weekday, time: c.time, label: '' }];
-}
 
 /** האם החוג פעיל בתאריך נתון (טווח start–end). */
 export function courseActiveOn(c: Course, iso: string): boolean {
