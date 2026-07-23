@@ -18,6 +18,18 @@ export function isoToday(): string {
   return isoTodayLocal();
 }
 
+/**
+ * ולידציית טווח תאריכי החוג — מחזיר הודעת שגיאה או null. תאריך סיום מוקדם
+ * מתאריך התחלה גורם ל-courseActiveOn להיות false תמיד, כך שהחוג נעלם בשקט
+ * מהיומן/הלוח/מפגשי-היום. נתפס בשמירה במקום להיעלם.
+ */
+export function courseDateError(start: string, end: string): string | null {
+  if (start && end && end < start) {
+    return 'תאריך הסיום מוקדם מתאריך ההתחלה — החוג לא יופיע בלוח. תקנו את התאריכים';
+  }
+  return null;
+}
+
 /** גיל בשנים מלאות מתאריך לידה, או null אם אין תאריך. */
 export function ageOf(birth: string): number | null {
   if (!birth) return null;

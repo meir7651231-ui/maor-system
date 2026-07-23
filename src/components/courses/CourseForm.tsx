@@ -9,7 +9,7 @@ import { featureOn } from '../../lib/config';
 import { normalizePhone } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { ADD_TEACHER, CAT_OPTIONS, DAY_NAMES, OTHER, OTHER_LABEL, SEMESTER_OPTIONS } from './lib';
+import { ADD_TEACHER, CAT_OPTIONS, courseDateError, DAY_NAMES, OTHER, OTHER_LABEL, SEMESTER_OPTIONS } from './lib';
 
 interface CourseFormState {
   name: string;
@@ -161,6 +161,8 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
     const ageMin = f.ageMin === '' ? 3 : Math.max(0, +f.ageMin || 0);
     const ageMax = f.ageMax === '' ? 99 : Math.max(1, +f.ageMax || 99);
     if (ageMax < ageMin) return setError('"עד גיל" חייב להיות גדול מ"מגיל"');
+    const dateErr = courseDateError(f.start, f.end);
+    if (dateErr) return setError(dateErr);
 
     const fields = {
       name: f.name.trim(),
