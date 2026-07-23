@@ -96,24 +96,10 @@ export default function App() {
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
-  // נעילת גישה — פתיחה נשמרת לכל הסשן (טאב) בלבד, לא נשמרת לצמיתות
-  const readUnlock = (k: string) => {
-    try {
-      return sessionStorage.getItem(k) === '1';
-    } catch {
-      return false;
-    }
-  };
-  const [unlockedPrimary, setUnlockedPrimary] = useState(() => readUnlock('maorUnlockP'));
-  const [unlockedAdmin, setUnlockedAdmin] = useState(() => readUnlock('maorUnlockA'));
-  const unlock = (k: string, set: (v: boolean) => void) => {
-    set(true);
-    try {
-      sessionStorage.setItem(k, '1');
-    } catch {
-      /* מצב פרטי — הפתיחה תישאר בזיכרון הרכיב בלבד */
-    }
-  };
+  // נעילת גישה — מצב הפתיחה מנוהל ב-store (משותף, נשמר לסשן)
+  const unlockedPrimary = useApp((s) => s.unlockedPrimary);
+  const unlockedAdmin = useApp((s) => s.unlockedAdmin);
+  const markUnlocked = useApp((s) => s.markUnlocked);
 
   // אשף ההרכבה — למטמיע בלבד, נפתח עם #builder בכתובת
   const [builderOpen, setBuilderOpen] = useState(() => window.location.hash === '#builder');
@@ -188,7 +174,7 @@ export default function App() {
   if (security.primary && !unlockedPrimary) {
     return (
       <>
-        <LockScreen kind="primary" onUnlock={() => unlock('maorUnlockP', setUnlockedPrimary)} />
+        <LockScreen kind="primary" onUnlock={() => markUnlocked('primary')} />
         {toastsEl}
       </>
     );
@@ -198,7 +184,7 @@ export default function App() {
   const lockZones = security.zones ?? DEFAULT_LOCK_ZONES;
   const adminNeededFor = (zone: string) =>
     !!security.secondary && lockZones.includes(zone) && !unlockedAdmin;
-  const onAdminUnlock = () => unlock('maorUnlockA', setUnlockedAdmin);
+  const onAdminUnlock = () => markUnlocked('secondary');
 
   const Current = VIEWS[view];
   const syncDot = SYNC_DOT[cloud.status] ?? SYNC_DOT.idle;

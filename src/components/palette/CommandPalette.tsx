@@ -76,6 +76,8 @@ export function CommandPalette() {
   const selectCourse = useApp((s) => s.selectCourse);
   const setPalette = useApp((s) => s.setPalette);
   const exportBackup = useApp((s) => s.exportBackup);
+  const lockNow = useApp((s) => s.lockNow);
+  const hasLock = useApp((s) => !!s.db.security.primary || !!s.db.security.secondary);
   const punch = useApp((s) => s.punch);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
@@ -167,8 +169,22 @@ export function CommandPalette() {
         },
       });
     }
+    // נעילה עכשיו — רק כשהוגדר קוד כלשהו
+    if (hasLock) {
+      actions.push({
+        key: 'act-lock',
+        icon: '🔒',
+        title: 'נעילה עכשיו',
+        sub: 'נועל את המערכת — הכניסה הבאה תדרוש קוד',
+        terms: toTerms(['נעילה עכשיו', 'נעל', 'לנעול', 'יציאה', 'נעילה', 'lock']),
+        run: () => {
+          lockNow();
+          setPalette(false);
+        },
+      });
+    }
     return [...nav, ...actions];
-  }, [go, selectFamily, exportBackup, setPalette, wheelOn, wallOn]);
+  }, [go, selectFamily, exportBackup, setPalette, wheelOn, wallOn, hasLock, lockNow]);
 
   /** כרטיסיות מסתיימות — שיבוצי כרטיסייה פעילים עם ≤2 ניקובים שנותרו. */
   const expiringCmds = useMemo<Cmd[]>(() => {

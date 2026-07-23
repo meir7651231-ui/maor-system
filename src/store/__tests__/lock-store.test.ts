@@ -12,6 +12,7 @@ const sec = () => useApp.getState().db.security;
 
 beforeEach(() => {
   useApp.getState().setDb(() => emptyDb());
+  useApp.setState({ unlockedPrimary: false, unlockedAdmin: false });
 });
 
 describe('🔒 setLockCode — קביעה/אימות/הסרה', () => {
@@ -40,6 +41,28 @@ describe('🔒 setLockCode — קביעה/אימות/הסרה', () => {
     expect(sec().primary).toBeUndefined();
     expect(sec().secondary).toBeTruthy();
     expect(sec().zones).toEqual(['wizard']);
+  });
+});
+
+describe('🔓 markUnlocked / lockNow — מצב פתיחה לסשן', () => {
+  it('markUnlocked מדליק את הדגל המתאים בלבד', () => {
+    const s = useApp.getState();
+    expect(useApp.getState().unlockedPrimary).toBe(false);
+    s.markUnlocked('primary');
+    expect(useApp.getState().unlockedPrimary).toBe(true);
+    expect(useApp.getState().unlockedAdmin).toBe(false);
+    s.markUnlocked('secondary');
+    expect(useApp.getState().unlockedAdmin).toBe(true);
+  });
+  it('lockNow סוגר את שתי הרמות וחוזר לבית', () => {
+    const s = useApp.getState();
+    s.markUnlocked('primary');
+    s.markUnlocked('secondary');
+    s.go('settings');
+    s.lockNow();
+    expect(useApp.getState().unlockedPrimary).toBe(false);
+    expect(useApp.getState().unlockedAdmin).toBe(false);
+    expect(useApp.getState().view).toBe('home');
   });
 });
 

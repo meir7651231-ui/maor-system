@@ -122,6 +122,22 @@ function SecondaryZones() {
   );
 }
 
+function LockNowButton() {
+  const hasCode = useApp((s) => !!s.db.security.primary || !!s.db.security.secondary);
+  const lockNow = useApp((s) => s.lockNow);
+  if (!hasCode) return null;
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <Btn kind="primary" onClick={lockNow}>
+        🔒 נעילה עכשיו
+      </Btn>
+      <span style={{ fontSize: 12, color: 'var(--ink-faint)', marginInlineStart: 8 }}>
+        נועל מיד — הכניסה הבאה תדרוש קוד.
+      </span>
+    </div>
+  );
+}
+
 export function SecuritySection() {
   return (
     <Section
@@ -129,6 +145,7 @@ export function SecuritySection() {
       title="🔒 נעילת גישה"
       sub="קוד כניסה למערכת וקוד מנהל לאזורים רגישים · הדמו נשאר פתוח כל עוד לא נקבע קוד"
     >
+      <LockNowButton />
       <CodeManager
         kind="primary"
         title="🔒 נעילה ראשית — כניסה למערכת"

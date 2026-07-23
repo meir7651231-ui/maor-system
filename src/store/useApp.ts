@@ -71,6 +71,9 @@ interface AppState {
   selCourseId: string | null;
   toasts: Toast[];
   paletteOpen: boolean;
+  /** מצב פתיחת הנעילות — לכל הסשן (לא נשמר ב-db). */
+  unlockedPrimary: boolean;
+  unlockedAdmin: boolean;
   /** קונפיגורציית הארגון — localStorage ← config.json ← ברירת מחדל. */
   config: OrgConfig;
   /** מצב חיבור הענן (Firebase) — ראו CloudState. */
@@ -181,6 +184,28 @@ interface AppState {
   setLockCode: (kind: 'primary' | 'secondary', pin: string | null) => Promise<void>;
   /** עדכון האזורים שהנעילה המשנית מגנה עליהם. */
   setLockZones: (zones: string[]) => void;
+  /** סימון נעילה כפתוחה (לאחר קוד תקין) — נשמר לסשן. */
+  markUnlocked: (kind: 'primary' | 'secondary') => void;
+  /** נעילה מיידית — סוגר את שתי הרמות וחוזר לבית. */
+  lockNow: () => void;
+}
+
+/** קריאה/כתיבה בטוחה ל-sessionStorage (מצב פרטי עלול לזרוק). */
+const SESS = { p: 'maorUnlockP', a: 'maorUnlockA' } as const;
+function readSess(k: string): boolean {
+  try {
+    return sessionStorage.getItem(k) === '1';
+  } catch {
+    return false;
+  }
+}
+function writeSess(k: string, v: string | null): void {
+  try {
+    if (v === null) sessionStorage.removeItem(k);
+    else sessionStorage.setItem(k, v);
+  } catch {
+    /* מצב פרטי — המצב יישאר בזיכרון ה-store בלבד */
+  }
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -335,6 +360,8 @@ export const useApp = create<AppState>()((set, get) => {
     selCourseId: null,
     toasts: [],
     paletteOpen: false,
+    unlockedPrimary: readSess(SESS.p),
+    unlockedAdmin: readSess(SESS.a),
     config: DEFAULT_CONFIG,
     cloud: { enabled: false, authReady: true, user: null, status: 'idle' },
 
@@ -814,6 +841,21 @@ export const useApp = create<AppState>()((set, get) => {
     },
     setLockZones(zones) {
       setDb((db) => ({ security: { ...db.security, zones } }));
+    },
+    markUnlocked(kind) {
+      if (kind === 'primary') {
+        writeSess(SESS.p, '1');
+        set({ unlockedPrimary: true });
+      } else {
+        writeSess(SESS.a, '1');
+        set({ unlockedAdmin: true });
+      }
+    },
+    lockNow() {
+      writeSess(SESS.p, null);
+      writeSess(SESS.a, null);
+      set({ unlockedPrimary: false, unlockedAdmin: false, view: 'home' });
+      get().toast('המערכת ננעלה 🔒');
     },
 
     restoreDb(db) {
