@@ -3,8 +3,16 @@
  * (planWord/priceSuffix/modelMeta) לכל ארבעת סוגי המסלול.
  */
 import { describe, expect, it } from 'vitest';
-import { courseDateError, planWord, priceSuffix, modelMeta } from '../../components/courses/lib';
-import type { Course, PricingModel } from '../../types/domain';
+import { courseDateError, planWord, priceSuffix, modelMeta, enrollCount } from '../../components/courses/lib';
+import { emptyDb } from '../../types/domain';
+import type { Course, Db, Enrollment, PricingModel } from '../../types/domain';
+
+function enr(id: string, courseId: string, status: Enrollment['status']): Enrollment {
+  return {
+    id, memberId: 'm', courseId, plan: 'monthly', status, enrolledAt: '2026-01-01', group: '',
+    totalDue: 0, purchased: 0, used: 0, payments: [], absences: [], dueDate: '', note: '',
+  };
+}
 
 describe('courseDateError', () => {
   it('סוף מוקדם מהתחלה → שגיאה (החוג היה נעלם מהלוח)', () => {
@@ -34,6 +42,22 @@ describe('planWord / priceSuffix — כל ארבעת המסלולים', () => {
       expect(priceSuffix(model)).toBe(suffix);
     });
   }
+});
+
+describe('enrollCount — תפוסה (פעיל+מוקפא, ללא שהסתיים)', () => {
+  const db = (...st: Enrollment['status'][]): Db => ({
+    ...emptyDb(),
+    enrollments: st.map((s, i) => enr('e' + i, 'c1', s)),
+  });
+  it('סופר פעילים ומוקפאים', () => {
+    expect(enrollCount(db('active', 'paused', 'active'), 'c1')).toBe(3);
+  });
+  it('לא סופר שהסתיים (המקום פנוי)', () => {
+    expect(enrollCount(db('active', 'ended', 'ended'), 'c1')).toBe(1);
+  });
+  it('חוג עם בוגרים בלבד → תפוסה 0 (לא "מלא" מזויף)', () => {
+    expect(enrollCount(db('ended', 'ended', 'ended'), 'c1')).toBe(0);
+  });
 });
 
 describe('modelMeta — תווית מלאה', () => {

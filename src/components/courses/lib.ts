@@ -102,9 +102,13 @@ export function payBal(e: Enrollment): number {
   return Math.max(0, (e.totalDue || 0) - paidOf(e));
 }
 
-/** מספר המשובצים לקורס (כולל מוקפאים — כמו במקור, לצורך תפוסה). */
+/**
+ * מספר המשובצים התופסים מקום בקורס — פעילים + מוקפאים. שיבוץ שהסתיים ('ended')
+ * פינה את מקומו ולכן אינו נספר לתפוסה; אחרת קורס עם בוגרים רבים היה נראה "מלא"
+ * וחוסם רישום חדש בשקר (JoinModal/EnrollModal), וגם התפוסה המוצגת הייתה מנופחת.
+ */
 export function enrollCount(db: Db, courseId: string): number {
-  return db.enrollments.filter((e) => e.courseId === courseId).length;
+  return db.enrollments.filter((e) => e.courseId === courseId && e.status !== 'ended').length;
 }
 
 /** המפגש הקרוב הבא של הקורס (לזכאות השלמה בחיסור — 48 שעות). */
