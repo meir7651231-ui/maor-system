@@ -7,7 +7,8 @@ import { useState } from 'react';
 import type { Room } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { Btn, Chip, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
-import { ROOM_EQUIPMENT, Section, SectionNote } from './lib';
+import { Section, SectionNote } from './lib';
+import { ROOM_EQUIPMENT } from './helpers';
 
 const SLOT_OPTIONS = ['30', '45', '60', '90'].map((v) => ({ value: v, label: v + ' דקות' }));
 const YES_NO = (yes: string, no: string) => [

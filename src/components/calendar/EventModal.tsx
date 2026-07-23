@@ -16,8 +16,8 @@ import {
   type OrgEvent,
 } from '../../types/domain';
 
-/** תוויות סוגי האירוע בעברית. */
-export const TYPE_OPTIONS: { value: EventType; label: string }[] = [
+/** תוויות סוגי האירוע בעברית (מקומי — לא נדרש ייצוא). */
+const TYPE_OPTIONS: { value: EventType; label: string }[] = [
   { value: 'org', label: 'ארגוני' },
   { value: 'reminder', label: 'תזכורת' },
   { value: 'call', label: 'שיחה' },

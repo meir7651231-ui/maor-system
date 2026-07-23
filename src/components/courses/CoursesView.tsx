@@ -2,7 +2,7 @@
  * מסך ניהול הקורסים — גריד/רשימה (db.ui.crsView), חיפוש וסינון לפי קטגוריה
  * וסמסטר, קורס חדש, וכרטיס קורס מלא בבחירה.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp, useCourse } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
@@ -67,7 +67,10 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const [formOpen, setFormOpen] = useState(false);
 
   const view = db.ui.crsView;
-  const teacherName = (id: string) => db.teachers.find((t) => t.id === id)?.name ?? '—';
+  const teacherName = useCallback(
+    (id: string) => db.teachers.find((t) => t.id === id)?.name ?? '—',
+    [db.teachers],
+  );
 
   const cats = useMemo(() => [...new Set(db.courses.map((c) => c.cat).filter(Boolean))], [db.courses]);
   const sems = useMemo(() => [...new Set(db.courses.map((c) => c.semester).filter(Boolean))], [db.courses]);
@@ -105,7 +108,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       const cc = typeof va === 'string' ? va.localeCompare(String(vb), 'he') : va - (vb as number);
       return cc * sort.dir;
     });
-  }, [db, q, cat, sem, colF, sort]);
+  }, [db, q, cat, sem, colF, sort, teacherName]);
 
   const clickSort = (key: CrsSortKey) =>
     setSort((s) => (s?.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));

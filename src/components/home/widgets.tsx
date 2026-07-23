@@ -10,6 +10,11 @@
  * - כל הנתונים המוצגים נגזרים מה-Db האמיתי בלבד (homeData / wallData) —
  *   לעולם אין מספרים מומצאים; אין נתונים חודשיים אמיתיים ⇒ אין ספארקליין.
  */
+// רישום הווידג'טים (HOME_WIDGETS) מכיל render: (ctx) => <Widget/> — כלומר הנתונים
+// מקושרים מעצם טבעם לרכיבי הרינדור, ולכן חייבים לחיות באותו קובץ .tsx. פיצול היה
+// פוגע בעיצוב. כיבוי ממוקד של כלל ה-Fast-Refresh (רלוונטי רק ל-HMR בפיתוח, אפס
+// השפעה על המוצר) — קו-לוקיישן מכוון ומוצדק.
+/* oxlint-disable react/only-export-components */
 import { useEffect, useMemo, useState, type CSSProperties, type ReactElement, type ReactNode } from 'react';
 import type { View } from '../../store/useApp';
 import type { Db, Family, OrgEvent } from '../../types/domain';

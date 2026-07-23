@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { numMatch } from '../../components/families/lib';
-import { finderAxisValue, finderMatches } from '../../components/families/FamilyFinder';
+import { finderAxisValue, finderMatches } from '../../components/families/lib';
 import { emptyDb, emptyFamily } from '../../types/domain';
 import type { Db, Family } from '../../types/domain';
 

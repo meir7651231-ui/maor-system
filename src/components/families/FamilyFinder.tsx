@@ -3,44 +3,8 @@
  * אחרי ציר (עיר → קהילה → מצב משפחתי → …), המונה במרכז והטבלה למטה
  * מסתננים חי, וכפתור החלה ממפה את הבחירות למסנני הטבלה הרגילים.
  */
-import type { Db, Family } from '../../types/domain';
-import { famEnrollments, STATUS_META, tierOf } from './lib';
-
-/** צירי הצלילה — לפי סדר הקדימות במקור. */
-export const FINDER_AXES: [string, string][] = [
-  ['city', 'עיר'],
-  ['comm', 'קהילה'],
-  ['marital', 'מצב משפחתי'],
-  ['status', 'סטטוס'],
-  ['cred', 'אמינות'],
-  ['kids', 'ילדים'],
-  ['enrolled', 'חוגים'],
-  ['sefach', 'ספח מלא'],
-  ['lang', 'שפה'],
-];
-
-/** ערך המשפחה בציר נתון — תוויות עבריות כמו במקור. */
-export function finderAxisValue(db: Db, f: Family, axis: string): string {
-  switch (axis) {
-    case 'city': return f.city || '';
-    case 'comm': return f.community || '';
-    case 'marital': return f.maritalStatus || 'לא ידוע';
-    case 'status': return STATUS_META[f.status].label;
-    case 'cred': return tierOf(f.cred?.score ?? 700).label;
-    case 'kids': return f.members.some((m) => !m.isParent) ? 'עם ילדים' : 'בלי ילדים';
-    case 'enrolled': return famEnrollments(db, f).length ? 'משתתפות בחוגים' : 'לא משתתפות';
-    case 'sefach': return f.fullSefach ? 'קיים' : 'חסר';
-    case 'lang': return f.language || '';
-    default: return '';
-  }
-}
-
-/** המשפחות העוברות את נעילות הגלגל — משמש גם לסינון הטבלה החי. */
-export function finderMatches(db: Db, locks: Record<string, string>): Family[] {
-  return db.families.filter((f) =>
-    Object.entries(locks).every(([k, v]) => finderAxisValue(db, f, k) === v),
-  );
-}
+import type { Db } from '../../types/domain';
+import { FINDER_AXES, finderAxisValue } from './lib';
 
 const WHEEL_COLORS = ['#f3c76b', '#b45309', '#7c3aed', '#0f766e', '#be185d'];
 

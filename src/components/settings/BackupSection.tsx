@@ -8,7 +8,8 @@ import type { Db } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { listSnapshots, loadSnapshot, parseBackupFile } from '../../store/persist';
 import { Btn, FormError } from '../ui';
-import { fmtDate, fmtDateTime, Section, SectionNote } from './lib';
+import { Section, SectionNote } from './lib';
+import { fmtDate, fmtDateTime } from './helpers';
 
 /** אישור דריסה עם סיכום מה נדרס ומה נכנס. */
 function confirmRestore(incoming: Db, sourceLabel: string): boolean {

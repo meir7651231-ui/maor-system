@@ -11,8 +11,8 @@ import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, famEnrollments, numMatch, STATUS_META, tierOf } from './lib';
-import { FamilyFinder, finderAxisValue } from './FamilyFinder';
+import { chipStyle, famEnrollments, finderAxisValue, numMatch, STATUS_META, tierOf } from './lib';
+import { FamilyFinder } from './FamilyFinder';
 import { FamilyForm } from './FamilyForm';
 import { FamilyDetail } from './FamilyDetail';
 

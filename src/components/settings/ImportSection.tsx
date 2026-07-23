@@ -12,7 +12,8 @@ import { parseBackupFile } from '../../store/persist';
 import { normalizePhone, normSearch, formatIsraeliPhone } from '../../lib/validate';
 import { parseAnyDate, parseCsv } from '../../lib/csvx';
 import { Btn, Field, FormError } from '../ui';
-import { isoToday, Section, SectionNote } from './lib';
+import { Section, SectionNote } from './lib';
+import { isoToday } from './helpers';
 import { SupporterImport } from '../supporters/SupporterImport';
 
 /** מפתח זיהוי כפילויות: שם מנורמל + טלפון מנורמל. */
