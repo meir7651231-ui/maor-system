@@ -83,13 +83,14 @@ export function ImportSection() {
   function importCsv() {
     setError('');
     setSummary('');
-    const lines = csv.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    // מנתח CSV אמיתי — תומך בפסיקים/גרשיים/מעברי-שורה בתוך שדה (שם "כהן, בן דוד",
+    // עיר עם פסיק). הפיצול הנאיבי הקודם (split(',')) שיבש שמות/ערים כאלה.
+    const parsed = parseCsv(csv);
     let skippedNoName = 0;
     let skippedExisting = 0;
     const rows: { name: string; father: string; mother: string; phone: string; city: string }[] = [];
-    lines.forEach((line, i) => {
-      const cells = line.split(',').map((c) => c.trim().replace(/^"|"$/g, ''));
-      const name = cells[0] ?? '';
+    parsed.forEach((cells, i) => {
+      const name = (cells[0] ?? '').trim();
       // דילוג על שורת כותרת אם קיימת
       if (i === 0 && ['name', 'שם', 'שם משפחה', 'משפחה'].includes(name.toLowerCase())) return;
       if (!name) {
@@ -98,10 +99,10 @@ export function ImportSection() {
       }
       rows.push({
         name,
-        father: cells[1] ?? '',
-        mother: cells[2] ?? '',
-        phone: cells[3] ?? '',
-        city: cells[4] ?? '',
+        father: (cells[1] ?? '').trim(),
+        mother: (cells[2] ?? '').trim(),
+        phone: (cells[3] ?? '').trim(),
+        city: (cells[4] ?? '').trim(),
       });
     });
     if (!rows.length) {
