@@ -5,6 +5,30 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='38' fill='%23f3c76b'/><circle cx='50' cy='50' r='20' fill='%23b45309'/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#211d17" />
+    <!-- מגן מסך-לבן: אחרי פריסה חדשה, index.html ישן מהמטמון מצביע על קובצי assets
+         עם hash שכבר נמחקו → 404 → מסך לבן. מאזין ללחיצת-כשל של סקריפט ה-assets
+         ומרענן פעם אחת (שומר-ריצה מונע לולאה) כדי למשוך את ה-index.html הטרי. -->
+    <script>
+      window.addEventListener(
+        'error',
+        function (e) {
+          var t = e && e.target;
+          if (t && t.tagName === 'SCRIPT' && /\/assets\/index-.*\.js/.test(t.src || '')) {
+            if (!sessionStorage.getItem('maorAssetReload')) {
+              sessionStorage.setItem('maorAssetReload', '1');
+              location.reload();
+            }
+          }
+        },
+        true,
+      );
+      window.addEventListener('load', function () {
+        // טעינה תקינה — מאפסים כדי שהמגן יעבוד שוב בפריסה הבאה
+        setTimeout(function () {
+          sessionStorage.removeItem('maorAssetReload');
+        }, 4000);
+      });
+    </script>
     <!-- גופני המוקאפים (Heebo · Frank Ruhl Libre · Rubik · Suez One) — נטענים ראשונים,
          בנתיב יחסי כדי לשרוד פריסה תחת תת-נתיב (base: './') -->
     <link rel="stylesheet" href="./fonts/fonts.css" />
