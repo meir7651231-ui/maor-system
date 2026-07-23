@@ -392,9 +392,24 @@ export interface Db {
   ui: UiPrefs;
   /** פריטי "דורש טיפול" שסומנו כטופלו — מפתח פריט → תאריך הסימון (ISO). */
   attnDone: Record<string, string>;
+  /** נעילת גישה — קודים מגובבים (לא טקסט גלוי). ריק = אין נעילה. */
+  security: SecurityCfg;
 }
 
-export const DB_VERSION = 4;
+/**
+ * נעילה דו-שכבתית:
+ * - primary: קוד כניסה לכל המערכת.
+ * - secondary: קוד "מנהל" נוסף המגן על אזורים רגישים (zones).
+ * הקודים נשמרים מגובבים (SHA-256). הגנת-גישה מפני עיון מזדמן — לא הצפנת נתונים.
+ */
+export interface SecurityCfg {
+  primary?: string;
+  secondary?: string;
+  /** מפתחות האזורים שהנעילה המשנית מגנה עליהם (ראה lib/lock). */
+  zones?: string[];
+}
+
+export const DB_VERSION = 5;
 
 export function emptyDb(): Db {
   return {
@@ -418,6 +433,7 @@ export function emptyDb(): Db {
     reports: { daily: true, weekly: true, monthly: false, quarterly: false },
     ui: { famView: 'list', crsView: 'grid' },
     attnDone: {},
+    security: {},
   };
 }
 

@@ -111,6 +111,7 @@ export function migrate(raw: unknown): Db | null {
     seq: Math.max(db.seq ?? 0, base.seq),
     receiptSeq: db.receiptSeq ?? base.receiptSeq,
     donationSeq: db.donationSeq ?? base.donationSeq,
+    security: db.security ?? base.security,
   };
   // גרסאות ישנות מיספרו קבלות מתוך seq המשותף. מזריעים את המונים הרציפים
   // מעל המספר הגבוה ביותר שכבר הונפק, כדי שהמספור הבא יימשך רציף וללא התנגשות.

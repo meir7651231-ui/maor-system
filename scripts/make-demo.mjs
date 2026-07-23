@@ -511,11 +511,12 @@ const supporters = SUPPORTER_DEFS.map(([name, cat, target], i) => {
 // ─── הרכבת מסמך ה-DB (v2) ───
 
 const db = {
-  v: 4,
+  v: 5,
   savedAt: new Date().toISOString(),
   seq,
   receiptSeq,
   donationSeq,
+  security: {}, // הדמו פתוח — אין קוד נעילה
   families,
   enrollments,
   courses,

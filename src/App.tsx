@@ -28,6 +28,8 @@ import { CommandPalette } from './components/palette/CommandPalette';
 import { DemoDrop } from './components/DemoDrop';
 import { DayGate } from './components/wheel/DayGate';
 import { LoginScreen } from './components/cloud/LoginScreen';
+import { LockScreen } from './components/lock/LockScreen';
+import { DEFAULT_LOCK_ZONES } from './lib/lock';
 
 /** צבע נקודת הסטטוס של סנכרון הענן — ירוק = synced. */
 const SYNC_DOT: Record<string, { color: string; title: string }> = {
@@ -73,6 +75,7 @@ export default function App() {
   const exportBackup = useApp((s) => s.exportBackup);
   const cloud = useApp((s) => s.cloud);
   const cloudSignOut = useApp((s) => s.cloudSignOut);
+  const security = useApp((s) => s.db.security);
   // הערכה המוחלת בפועל — העדפת המשתמש (db.ui.theme) גוברת על ערכת הארגון
   const uiTheme = useApp((s) => s.db.ui.theme);
   const openFamilyForm = useApp((s) => s.openFamilyForm);
@@ -92,6 +95,25 @@ export default function App() {
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
   }, []);
+
+  // נעילת גישה — פתיחה נשמרת לכל הסשן (טאב) בלבד, לא נשמרת לצמיתות
+  const readUnlock = (k: string) => {
+    try {
+      return sessionStorage.getItem(k) === '1';
+    } catch {
+      return false;
+    }
+  };
+  const [unlockedPrimary, setUnlockedPrimary] = useState(() => readUnlock('maorUnlockP'));
+  const [unlockedAdmin, setUnlockedAdmin] = useState(() => readUnlock('maorUnlockA'));
+  const unlock = (k: string, set: (v: boolean) => void) => {
+    set(true);
+    try {
+      sessionStorage.setItem(k, '1');
+    } catch {
+      /* מצב פרטי — הפתיחה תישאר בזיכרון הרכיב בלבד */
+    }
+  };
 
   // אשף ההרכבה — למטמיע בלבד, נפתח עם #builder בכתובת
   const [builderOpen, setBuilderOpen] = useState(() => window.location.hash === '#builder');
@@ -162,6 +184,22 @@ export default function App() {
     );
   }
 
+  // נעילה ראשית — קוד כניסה לכל המערכת (אחרי שער הענן, אם קיים)
+  if (security.primary && !unlockedPrimary) {
+    return (
+      <>
+        <LockScreen kind="primary" onUnlock={() => unlock('maorUnlockP', setUnlockedPrimary)} />
+        {toastsEl}
+      </>
+    );
+  }
+
+  // נעילה משנית — קוד "מנהל" לאזורים הרגישים (זהה לכל הסשן לאחר פתיחה אחת)
+  const lockZones = security.zones ?? DEFAULT_LOCK_ZONES;
+  const adminNeededFor = (zone: string) =>
+    !!security.secondary && lockZones.includes(zone) && !unlockedAdmin;
+  const onAdminUnlock = () => unlock('maorUnlockA', setUnlockedAdmin);
+
   const Current = VIEWS[view];
   const syncDot = SYNC_DOT[cloud.status] ?? SYNC_DOT.idle;
 
@@ -219,9 +257,15 @@ export default function App() {
 
   const mainEl = (
     <main className="app-main">
-      {famCount === 0 && <DemoDrop />}
-      <DayGate />
-      <Current />
+      {adminNeededFor(view) ? (
+        <LockScreen kind="secondary" onUnlock={onAdminUnlock} />
+      ) : (
+        <>
+          {famCount === 0 && <DemoDrop />}
+          <DayGate />
+          <Current />
+        </>
+      )}
     </main>
   );
 
@@ -416,14 +460,19 @@ export default function App() {
 
       {paletteOpen && <CommandPalette />}
 
-      {builderOpen && (
-        <BuilderWizard
-          onClose={() => {
-            window.location.hash = '';
-            setBuilderOpen(false);
-          }}
-        />
-      )}
+      {builderOpen &&
+        (adminNeededFor('wizard') ? (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
+            <LockScreen kind="secondary" onUnlock={onAdminUnlock} />
+          </div>
+        ) : (
+          <BuilderWizard
+            onClose={() => {
+              window.location.hash = '';
+              setBuilderOpen(false);
+            }}
+          />
+        ))}
 
       {wallOpen && featureOn(config, 'home.impactwall') && (
         <ImpactWall

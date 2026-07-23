@@ -67,6 +67,7 @@ export function applyMetaPartial(db: Db, meta: Record<string, unknown>): Db {
   assign('reports', meta.reports);
   assign('ui', meta.ui);
   assign('attnDone', meta.attnDone);
+  assign('security', meta.security);
   // מונים: לעולם לא מקטינים — מונע התנגשות מזהים/מספרי-קבלה בין מכשירים
   const bumpCounter = (k: 'seq' | 'receiptSeq' | 'donationSeq') => {
     const v = meta[k];

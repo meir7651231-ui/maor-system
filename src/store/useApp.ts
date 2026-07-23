@@ -29,6 +29,7 @@ import {
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, loadOrgConfig, saveConfigOverride } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
+import { hashPin, DEFAULT_LOCK_ZONES } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { featLabel, planAddName, planAyinAdvance, revertPatch } from '../lib/ayin';
 import { dailySnapshot, exportBackupFile, loadDb, saveDb, setPersistNamespace } from './persist';
@@ -174,6 +175,12 @@ interface AppState {
 
   /** תיקון טלפונים אוטומטי — השלמת 0 מוביל בכל המשפחות/בני המשפחה. */
   fixAllPhones: () => void;
+
+  // נעילת גישה
+  /** קביעת/שינוי/הסרת קוד נעילה (null = הסרה). מגבב לפני שמירה. */
+  setLockCode: (kind: 'primary' | 'secondary', pin: string | null) => Promise<void>;
+  /** עדכון האזורים שהנעילה המשנית מגנה עליהם. */
+  setLockZones: (zones: string[]) => void;
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -792,6 +799,23 @@ export const useApp = create<AppState>()((set, get) => {
       }));
       get().toast(n ? 'נוסף 0 מוביל ל-' + n + ' טלפונים' : 'לא נמצאו טלפונים חסרי 0');
     },
+
+    async setLockCode(kind, pin) {
+      const security = { ...get().db.security };
+      if (pin === null) {
+        delete security[kind];
+        // הסרת הקוד המשני — מנקים גם את רשימת האזורים (מיותרת בלי קוד)
+        if (kind === 'secondary') delete security.zones;
+      } else {
+        security[kind] = await hashPin(pin);
+        if (kind === 'secondary' && !security.zones) security.zones = [...DEFAULT_LOCK_ZONES];
+      }
+      setDb(() => ({ security }));
+    },
+    setLockZones(zones) {
+      setDb((db) => ({ security: { ...db.security, zones } }));
+    },
+
     restoreDb(db) {
       const prev = get().db;
       set({ db });
