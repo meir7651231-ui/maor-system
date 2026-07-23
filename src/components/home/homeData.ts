@@ -15,15 +15,15 @@ import {
 import { allMembers, type MemberWithFamily } from '../../store/useApp';
 import { hebParts, hebAnnualEq, type HebParts } from '../../lib/hebrew';
 import { payBal } from '../courses/lib';
+import { isoLocal } from '../../lib/date-util';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 
 /** מפת המודולים הפעילים (config.modules) — חסר = פעיל; false = כבוי. */
 export type ModulesMap = OrgConfig['modules'];
 
-/** ISO מקומי (ללא הזחת אזור זמן של toISOString). */
+/** ISO מקומי (מקור-אמת יחיד ב-date-util — ללא הזחת אזור זמן של toISOString). */
 export function isoOf(d: Date): string {
-  const p2 = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+  return isoLocal(d);
 }
 
 /** תצוגת תאריך DD/MM/YYYY מתוך ISO — ללא new Date (בטוח מאזורי זמן). */

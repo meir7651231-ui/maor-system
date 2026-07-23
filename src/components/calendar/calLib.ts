@@ -13,6 +13,7 @@ import {
   type OrgEvent,
 } from '../../types/domain';
 import { gem, gemYear, hebParts, hebAnnualEq, holidayOf, type HebParts } from '../../lib/hebrew';
+import { isoLocal } from '../../lib/date-util';
 
 /* ---------- תאריכים ---------- */
 
@@ -20,10 +21,9 @@ const fmtHebMonth = new Intl.DateTimeFormat('he-u-ca-hebrew', { month: 'long' })
 const fmtHebYear = new Intl.DateTimeFormat('he-u-ca-hebrew', { year: 'numeric' });
 const fmtMonthYear = new Intl.DateTimeFormat('he', { month: 'long', year: 'numeric' });
 
-/** ISO מקומי (ללא הזחת אזור זמן של toISOString). */
+/** ISO מקומי (מקור-אמת יחיד ב-date-util). */
 export function isoOf(d: Date): string {
-  const p2 = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+  return isoLocal(d);
 }
 
 /** תצוגת תאריך DD/MM/YYYY מתוך ISO. */

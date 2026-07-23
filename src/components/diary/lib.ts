@@ -6,6 +6,7 @@ import type { CSSProperties } from 'react';
 import type { Course, CourseSession, Db, Enrollment, OrgEvent, Room } from '../../types/domain';
 import { HOLIDAYS, hebParts } from '../../lib/hebrew';
 import { planWord } from '../courses/lib';
+import { isoLocal } from '../../lib/date-util';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
@@ -15,10 +16,9 @@ export function fmtDate(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
-/** ISO מקומי (לא UTC) — למניעת גלישת יום בסביבות אזורי-זמן. */
+/** ISO מקומי (מקור-אמת יחיד ב-date-util) — למניעת גלישת יום באזורי-זמן. */
 export function localIso(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  return isoLocal(d);
 }
 
 export function isoToday(): string {
