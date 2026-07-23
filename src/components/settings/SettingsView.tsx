@@ -15,6 +15,7 @@ import { ExportSection } from './ExportSection';
 import { ImportSection } from './ImportSection';
 import { AccessSection } from './AccessSection';
 import { SecuritySection } from './SecuritySection';
+import { EncryptionSection } from './EncryptionSection';
 import { ThemeSection } from './ThemeSection';
 import { AuditSection } from './AuditSection';
 
@@ -61,6 +62,7 @@ export function SettingsView() {
       {secOn('sec-audit') && <AuditSection />}
       <AccessSection />
       <SecuritySection />
+      <EncryptionSection />
       {secOn('sec-reset') && <ResetSection />}
     </div>
   );

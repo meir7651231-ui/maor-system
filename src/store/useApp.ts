@@ -32,7 +32,17 @@ import { formatIsraeliPhone } from '../lib/validate';
 import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { featLabel, planAddName, planAyinAdvance, revertPatch } from '../lib/ayin';
-import { dailySnapshot, exportBackupFile, loadDb, saveDb, setPersistNamespace } from './persist';
+import {
+  dailySnapshot,
+  exportBackupFile,
+  loadDb,
+  saveDb,
+  setPersistNamespace,
+  decryptAndLoad,
+  beginEncryption,
+  stopEncryption,
+  changeEncryptionPassword as persistChangePw,
+} from './persist';
 import type { CloudStatus, CloudUser } from './cloudSync';
 
 export type View =
@@ -76,6 +86,10 @@ interface AppState {
   unlockedAdmin: boolean;
   /** קודי הנעילה — נשמרים במכשיר בלבד (localStorage), לא ב-db/גיבוי/ענן. */
   lock: LockCfg;
+  /** הצפנת נתונים במנוחה פעילה. */
+  encrypted: boolean;
+  /** נטענה שמירה מוצפנת — ממתינים לקוד פענוח לפני שימוש. */
+  needDecrypt: boolean;
   /** קונפיגורציית הארגון — localStorage ← config.json ← ברירת מחדל. */
   config: OrgConfig;
   /** מצב חיבור הענן (Firebase) — ראו CloudState. */
@@ -188,6 +202,16 @@ interface AppState {
   setLockZones: (zones: string[]) => void;
   /** איפוס מלא של הנעילה (שכחתי קוד) — מוחק קודים מהמכשיר, הנתונים נשארים. */
   clearLock: () => void;
+
+  // הצפנת נתונים במנוחה
+  /** פענוח שמירה מוצפנת בקוד (סיסמה) או מפתח שחזור. false = קוד שגוי. */
+  decryptUnlock: (secret: string, via: 'pass' | 'rec') => Promise<boolean>;
+  /** הפעלת הצפנה — מחזיר מפתח שחזור להצגה חד-פעמית. */
+  enableEncryption: (password: string) => Promise<string>;
+  /** כיבוי הצפנה — הנתונים חוזרים להישמר גלויים. */
+  disableEncryption: () => Promise<void>;
+  /** החלפת סיסמת הצפנה. false = הסיסמה הישנה שגויה. */
+  changeEncryptionPassword: (oldPw: string, newPw: string) => Promise<boolean>;
   /** סימון נעילה כפתוחה (לאחר קוד תקין) — נשמר לסשן. */
   markUnlocked: (kind: 'primary' | 'secondary') => void;
   /** נעילה מיידית — סוגר את שתי הרמות וחוזר לבית. */
@@ -271,6 +295,43 @@ export const useApp = create<AppState>()((set, get) => {
   /** עדכון שדה cloud חלקי. */
   function setCloud(patch: Partial<CloudState>) {
     set((s) => ({ cloud: { ...s.cloud, ...patch } }));
+  }
+
+  /**
+   * צעדים שאחרי טעינת ה-DB (גלוי או לאחר פענוח): ערכה, צילום יומי, ניקוי
+   * "טופל" ישן, ודעיכת אי-פעילות פעם ביום. משותף ל-init ול-decryptUnlock.
+   */
+  function postLoad(db: Db, corrupt: boolean) {
+    const config = get().config;
+    applyTheme(db.ui.theme ?? config.theme, db.ui.accent ?? config.accent);
+    void dailySnapshot(db);
+    if (corrupt) {
+      get().toast('⚠ הנתונים השמורים נמצאו פגומים — נשמר עותק בצד. שחזרו מגיבוי דרך הגדרות ← ייבוא');
+    }
+    const pruneCutoff = isoDaysAgo(30);
+    const stale = Object.entries(db.attnDone ?? {}).filter(([, d]) => d < pruneCutoff);
+    if (stale.length) {
+      setDb((cur) => {
+        const attnDone = { ...cur.attnDone };
+        for (const [k] of stale) delete attnDone[k];
+        return { attnDone };
+      });
+    }
+    const today = isoToday();
+    let ranToday = false;
+    try {
+      ranToday = localStorage.getItem(DECAY_LS_KEY) === today;
+    } catch {
+      /* localStorage חסום */
+    }
+    if (!ranToday) {
+      try {
+        localStorage.setItem(DECAY_LS_KEY, today);
+      } catch {
+        /* אין מקום / מצב פרטי */
+      }
+      get().runDecay();
+    }
   }
 
   /**
@@ -367,6 +428,8 @@ export const useApp = create<AppState>()((set, get) => {
     unlockedPrimary: readSess(SESS.p),
     unlockedAdmin: readSess(SESS.a),
     lock: readLock(),
+    encrypted: false,
+    needDecrypt: false,
     config: DEFAULT_CONFIG,
     cloud: { enabled: false, authReady: true, user: null, status: 'idle' },
 
@@ -374,7 +437,21 @@ export const useApp = create<AppState>()((set, get) => {
       const config = await loadOrgConfig();
       // בידוד נתונים בין לקוחות על אותו host — חייב לקרות לפני loadDb
       setPersistNamespace(config.slug);
-      const { db, corrupt } = await loadDb();
+      const res = await loadDb();
+      const cloudOn = !!config.firebase;
+      if (res.encrypted) {
+        // שמירה מוצפנת — ממתינים לקוד פענוח; ה-db עדיין ריק (לא נחשף)
+        set({
+          config,
+          ready: true,
+          encrypted: true,
+          needDecrypt: true,
+          cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle' },
+        });
+        applyTheme(config.theme, config.accent); // ערכה בסיסית עד הפענוח
+        return;
+      }
+      const { db, corrupt } = res;
       // אימוץ חד-פעמי: גרסה קודמת שמרה קודים ב-db.security (מסונכרן). מעבירים
       // אותם לאחסון המקומי (במכשיר בלבד) ומנקים מה-db, כדי שלא יסונכרנו/יגובו.
       let lock = get().lock;
@@ -385,49 +462,19 @@ export const useApp = create<AppState>()((set, get) => {
       if (db.security?.primary || db.security?.secondary || db.security?.zones) {
         db.security = {};
       }
-      const cloudOn = !!config.firebase;
       set({
         db,
         corrupt,
         config,
         ready: true,
         lock,
+        encrypted: false,
+        needDecrypt: false,
         cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle' },
       });
       // חיבור ענן — opt-in פר-ארגון; בלי config.firebase שום דבר לא משתנה
       if (config.firebase) void connectCloud(config.firebase);
-      // ערכת הנושא: העדפת משתמש (db.ui) גוברת על ברירת המחדל של הארגון
-      applyTheme(db.ui.theme ?? config.theme, db.ui.accent ?? config.accent);
-      void dailySnapshot(db);
-      if (corrupt) {
-        get().toast('⚠ הנתונים השמורים נמצאו פגומים — נשמר עותק בצד. שחזרו מגיבוי דרך הגדרות ← ייבוא');
-      }
-      // ניקוי סימוני "טופל" ישנים (30+ ימים) — שומר על המפה קטנה
-      const pruneCutoff = isoDaysAgo(30);
-      const stale = Object.entries(db.attnDone ?? {}).filter(([, d]) => d < pruneCutoff);
-      if (stale.length) {
-        setDb((cur) => {
-          const attnDone = { ...cur.attnDone };
-          for (const [k] of stale) delete attnDone[k];
-          return { attnDone };
-        });
-      }
-      // דעיכת אי-פעילות — ריצה אחת ביום (guard ב-localStorage)
-      const today = isoToday();
-      let ranToday = false;
-      try {
-        ranToday = localStorage.getItem(DECAY_LS_KEY) === today;
-      } catch {
-        /* localStorage חסום — נריץ בכל טעינה, לא קריטי */
-      }
-      if (!ranToday) {
-        try {
-          localStorage.setItem(DECAY_LS_KEY, today);
-        } catch {
-          /* אין מקום / מצב פרטי */
-        }
-        get().runDecay();
-      }
+      postLoad(db, corrupt);
     },
 
     setDb,
@@ -820,8 +867,11 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     exportBackup() {
-      exportBackupFile(get().db);
-      get().toast('קובץ גיבוי מלא ירד למחשב ✓');
+      void exportBackupFile(get().db).then(() => {
+        get().toast(
+          get().encrypted ? 'גיבוי מוצפן ירד — שמרו את הסיסמה/מפתח השחזור ✓' : 'קובץ גיבוי מלא ירד למחשב ✓',
+        );
+      });
     },
     fixAllPhones() {
       let n = 0;
@@ -866,6 +916,28 @@ export const useApp = create<AppState>()((set, get) => {
       writeSess(SESS.p, null);
       writeSess(SESS.a, null);
       set({ lock: {}, unlockedPrimary: false, unlockedAdmin: false });
+    },
+
+    async decryptUnlock(secret, via) {
+      const db = await decryptAndLoad(secret, via);
+      if (!db) return false;
+      if (db.security?.primary || db.security?.secondary || db.security?.zones) db.security = {};
+      set({ db, encrypted: true, needDecrypt: false, corrupt: false });
+      postLoad(db, false);
+      return true;
+    },
+    async enableEncryption(password) {
+      const recoveryKey = await beginEncryption(get().db, password);
+      set({ encrypted: true, needDecrypt: false });
+      return recoveryKey;
+    },
+    async disableEncryption() {
+      await stopEncryption(get().db);
+      set({ encrypted: false, needDecrypt: false });
+      get().toast('ההצפנה בוטלה — הנתונים נשמרים גלויים');
+    },
+    async changeEncryptionPassword(oldPw, newPw) {
+      return persistChangePw(oldPw, newPw);
     },
     markUnlocked(kind) {
       if (kind === 'primary') {

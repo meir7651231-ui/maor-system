@@ -15,6 +15,34 @@ import {
   type FamilyCred,
   type FamilyDoc,
 } from '../types/domain';
+import {
+  isEncrypted,
+  openDek,
+  decryptDb,
+  reencryptDb,
+  encryptDb,
+  rewrapPassword,
+  genRecoveryKey,
+  type EncEnvelope,
+} from '../lib/crypto';
+
+/**
+ * מצב ההצפנה מוחזק בזיכרון בלבד: ה-DEK (מפתח הנתונים) והמעטפת הנוכחית.
+ * נקבע רק לאחר פענוח מוצלח (unlock/enable). saveDb משתמש בהם כדי לכתוב מוצפן.
+ * לעולם לא נשמר לדיסק — סגירת הדפדפן מוחקת אותו, ואז צריך שוב סיסמה.
+ */
+let dek: CryptoKey | null = null;
+let envelope: EncEnvelope | null = null;
+
+/** האם השמירה הנוכחית מוצפנת (יש DEK בזיכרון). */
+export function isCryptoActive(): boolean {
+  return !!dek && !!envelope;
+}
+/** ניקוי מצב ההצפנה מהזיכרון (נעילה/התנתקות). */
+export function clearCrypto(): void {
+  dek = null;
+  envelope = null;
+}
 
 let LS_KEY = 'maor_db';
 let LS_CORRUPT_KEY = 'maor_db_corrupt';
@@ -169,53 +197,132 @@ export function migrate(raw: unknown): Db | null {
 export interface LoadResult {
   db: Db;
   corrupt: boolean;
+  /** השמירה מוצפנת — נדרש קוד לפני שאפשר לפענח (db יהיה ריק עד decryptAndLoad). */
+  encrypted?: boolean;
 }
 
-/** טעינה: localStorage תחילה, נפילה ל-IndexedDB, ואז DB ריק. */
-export async function loadDb(): Promise<LoadResult> {
-  let corrupt = false;
+/** קורא את הערך הגולמי (מפוענח-JSON) מ-localStorage ואז מ-IndexedDB. */
+async function readRaw(): Promise<unknown> {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (raw) {
-      try {
-        const parsed = migrate(JSON.parse(raw));
-        if (parsed) return { db: parsed, corrupt };
-        corrupt = true;
-        localStorage.setItem(LS_CORRUPT_KEY, raw);
-      } catch {
-        corrupt = true;
-        try {
-          localStorage.setItem(LS_CORRUPT_KEY, raw);
-        } catch {
-          /* אין מקום — נוותר על שימור העותק הפגום */
-        }
-      }
-    }
+    if (raw) return JSON.parse(raw);
   } catch {
-    /* localStorage חסום (מצב פרטי) — ננסה IndexedDB */
+    /* חסום או JSON פגום — ננסה IndexedDB */
   }
   try {
-    const fromIdb = migrate(await (await getIdb()).get(IDB_STORE, 'current'));
-    if (fromIdb) return { db: fromIdb, corrupt };
+    return await (await getIdb()).get(IDB_STORE, 'current');
   } catch {
-    /* IndexedDB לא זמין */
+    return null;
   }
-  return { db: emptyDb(), corrupt };
 }
 
-/** שמירה לשתי השכבות. מחזיר false אם שתיהן נכשלו. */
+/** טעינה: localStorage תחילה, נפילה ל-IndexedDB, ואז DB ריק. מזהה מעטפת מוצפנת. */
+export async function loadDb(): Promise<LoadResult> {
+  const raw = await readRaw();
+  if (isEncrypted(raw)) {
+    // מוצפן — לא מפענחים כאן (אין קוד). מחזירים דגל; App יבקש קוד.
+    envelope = raw;
+    return { db: emptyDb(), corrupt: false, encrypted: true };
+  }
+  const parsed = migrate(raw);
+  if (parsed) return { db: parsed, corrupt: false };
+  // לא-null אך לא תקין → פגום; שומרים עותק אם אפשר
+  if (raw) {
+    try {
+      localStorage.setItem(LS_CORRUPT_KEY, JSON.stringify(raw));
+    } catch {
+      /* אין מקום */
+    }
+    return { db: emptyDb(), corrupt: true };
+  }
+  return { db: emptyDb(), corrupt: false };
+}
+
+/**
+ * פענוח השמירה המוצפנת בעזרת קוד (סיסמה) או מפתח שחזור.
+ * מצליח → קובע DEK+מעטפת בזיכרון ומחזיר את ה-Db. נכשל → null (קוד שגוי).
+ */
+export async function decryptAndLoad(secret: string, via: 'pass' | 'rec'): Promise<Db | null> {
+  if (!envelope) return null;
+  const key = await openDek(envelope, secret, via);
+  if (!key) return null;
+  try {
+    const json = await decryptDb(envelope, key);
+    const parsed = migrate(JSON.parse(json));
+    if (!parsed) return null;
+    dek = key;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+/** הפעלת הצפנה על DB קיים — מייצר מעטפת + מפתח שחזור, כותב, ומחזיר את המפתח. */
+export async function beginEncryption(db: Db, password: string): Promise<string> {
+  const recoveryKey = genRecoveryKey();
+  const env = await encryptDb(JSON.stringify({ ...db, savedAt: new Date().toISOString() }), password, recoveryKey);
+  const key = await openDek(env, password, 'pass');
+  if (!key) throw new Error('כשל בהפעלת ההצפנה');
+  dek = key;
+  envelope = env;
+  await writeEnvelope(env);
+  return recoveryKey;
+}
+
+/** כיבוי הצפנה — כותב את ה-DB כטקסט גלוי ומנקה את מצב ההצפנה. */
+export async function stopEncryption(db: Db): Promise<void> {
+  dek = null;
+  envelope = null;
+  await saveDb(db); // נכתב גלוי (אין DEK)
+  try {
+    // ודא שהעותק המוצפן הישן לא נשאר ב-IndexedDB
+    await (await getIdb()).put(IDB_STORE, { ...db, savedAt: new Date().toISOString() }, 'current');
+  } catch {
+    /* לא קריטי */
+  }
+}
+
+/** החלפת סיסמה — מאמת ישן, עוטף מחדש את ה-DEK בסיסמה חדשה. false = ישן שגוי. */
+export async function changeEncryptionPassword(oldPw: string, newPw: string): Promise<boolean> {
+  if (!envelope || !dek) return false;
+  const check = await openDek(envelope, oldPw, 'pass');
+  if (!check) return false;
+  envelope = await rewrapPassword(envelope, dek, newPw);
+  await writeEnvelope(envelope);
+  return true;
+}
+
+/** כתיבת מעטפת מוצפנת לשתי השכבות. */
+async function writeEnvelope(env: EncEnvelope): Promise<void> {
+  const json = JSON.stringify(env);
+  try {
+    localStorage.setItem(LS_KEY, json);
+  } catch {
+    /* מכסה מלאה */
+  }
+  try {
+    await (await getIdb()).put(IDB_STORE, env, 'current');
+  } catch {
+    /* IndexedDB נכשל */
+  }
+}
+
+/** שמירה לשתי השכבות. מחזיר false אם שתיהן נכשלו. מצפין אם ההצפנה פעילה. */
 export async function saveDb(db: Db): Promise<boolean> {
   const doc: Db = { ...db, savedAt: new Date().toISOString() };
   const json = JSON.stringify(doc);
+  // הצפנה פעילה → כותבים מעטפת מוצפנת (אותו DEK, data מעודכן)
+  const payload: string = dek && envelope ? JSON.stringify((envelope = await reencryptDb(envelope, dek, json))) : json;
+  const idbValue: unknown = dek && envelope ? envelope : doc;
   let ok = false;
   try {
-    localStorage.setItem(LS_KEY, json);
+    localStorage.setItem(LS_KEY, payload);
     ok = true;
   } catch {
     /* מכסה מלאה / מצב פרטי */
   }
   try {
-    await (await getIdb()).put(IDB_STORE, doc, 'current');
+    await (await getIdb()).put(IDB_STORE, idbValue, 'current');
     ok = true;
   } catch {
     /* IndexedDB נכשל */
@@ -223,12 +330,15 @@ export async function saveDb(db: Db): Promise<boolean> {
   return ok;
 }
 
-/** צילום יומי ל-IndexedDB — טבעת של SNAPSHOT_KEEP ימים. */
+/** צילום יומי ל-IndexedDB — טבעת של SNAPSHOT_KEEP ימים. מוצפן אם ההצפנה פעילה. */
 export async function dailySnapshot(db: Db): Promise<void> {
   try {
     const d = await getIdb();
     const key = new Date().toISOString().slice(0, 10);
-    await d.put(IDB_SNAPSHOTS, { ...db, savedAt: new Date().toISOString() }, key);
+    const doc = { ...db, savedAt: new Date().toISOString() };
+    // הצפנה פעילה → הצילום נשמר מוצפן, אחרת נדלוף נתונים גלויים ב-IndexedDB
+    const value: unknown = dek && envelope ? await reencryptDb(envelope, dek, JSON.stringify(doc)) : doc;
+    await d.put(IDB_SNAPSHOTS, value, key);
     const keys = (await d.getAllKeys(IDB_SNAPSHOTS)).sort();
     while (keys.length > SNAPSHOT_KEEP) {
       await d.delete(IDB_SNAPSHOTS, keys.shift()!);
@@ -249,25 +359,45 @@ export async function listSnapshots(): Promise<string[]> {
 
 export async function loadSnapshot(key: string): Promise<Db | null> {
   try {
-    return migrate(await (await getIdb()).get(IDB_SNAPSHOTS, key));
+    const raw = await (await getIdb()).get(IDB_SNAPSHOTS, key);
+    // צילום מוצפן — מפענחים עם ה-DEK הפעיל (המשתמש כבר מחובר)
+    if (isEncrypted(raw)) {
+      if (!dek) return null;
+      return migrate(JSON.parse(await decryptDb(raw, dek)));
+    }
+    return migrate(raw);
   } catch {
     return null;
   }
 }
 
-/** ייצוא קובץ גיבוי JSON (הורדה בדפדפן). */
-export function exportBackupFile(db: Db): void {
-  const blob = new Blob([JSON.stringify({ ...db, savedAt: new Date().toISOString() }, null, 1)], {
-    type: 'application/json',
-  });
+/** ייצוא קובץ גיבוי JSON (הורדה בדפדפן). מוצפן אם ההצפנה פעילה. */
+export async function exportBackupFile(db: Db): Promise<void> {
+  const doc = { ...db, savedAt: new Date().toISOString() };
+  // הצפנה פעילה → הגיבוי יורד מוצפן (שחזור ידרוש סיסמה/מפתח שחזור)
+  const content =
+    dek && envelope
+      ? JSON.stringify((envelope = await reencryptDb(envelope, dek, JSON.stringify(doc))), null, 1)
+      : JSON.stringify(doc, null, 1);
+  const blob = new Blob([content], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `maor-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  const enc = dek ? '-encrypted' : '';
+  a.download = `maor-backup${enc}-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 
-/** ייבוא קובץ גיבוי — מחזיר DB תקין או זורק שגיאה בעברית. */
+/** האם טקסט הגיבוי הוא מעטפת מוצפנת (שחזורו דורש סיסמה/מפתח שחזור). */
+export function isEncryptedBackup(text: string): boolean {
+  try {
+    return isEncrypted(JSON.parse(text));
+  } catch {
+    return false;
+  }
+}
+
+/** ייבוא קובץ גיבוי גלוי — מחזיר DB תקין או זורק שגיאה בעברית. */
 export function parseBackupFile(text: string): Db {
   let raw: unknown;
   try {
@@ -275,7 +405,28 @@ export function parseBackupFile(text: string): Db {
   } catch {
     throw new Error('הקובץ אינו JSON תקין');
   }
+  if (isEncrypted(raw)) {
+    throw new Error('זהו קובץ גיבוי מוצפן — יש לשחזר אותו דרך "שחזור גיבוי מוצפן" עם הסיסמה או מפתח השחזור');
+  }
   const db = migrate(raw);
   if (!db) throw new Error('הקובץ אינו קובץ גיבוי של מאור החסד (או גרסה חדשה מדי)');
   return db;
+}
+
+/** ייבוא קובץ גיבוי מוצפן עם סיסמה/מפתח שחזור. null = קוד שגוי / קובץ פגום. */
+export async function decryptBackupFile(text: string, secret: string, via: 'pass' | 'rec'): Promise<Db | null> {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    return null;
+  }
+  if (!isEncrypted(raw)) return null;
+  const key = await openDek(raw, secret, via);
+  if (!key) return null;
+  try {
+    return migrate(JSON.parse(await decryptDb(raw, key)));
+  } catch {
+    return null;
+  }
 }

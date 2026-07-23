@@ -29,6 +29,7 @@ import { DemoDrop } from './components/DemoDrop';
 import { DayGate } from './components/wheel/DayGate';
 import { LoginScreen } from './components/cloud/LoginScreen';
 import { LockScreen } from './components/lock/LockScreen';
+import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
 
 /** צבע נקודת הסטטוס של סנכרון הענן — ירוק = synced. */
@@ -76,6 +77,7 @@ export default function App() {
   const cloud = useApp((s) => s.cloud);
   const cloudSignOut = useApp((s) => s.cloudSignOut);
   const lock = useApp((s) => s.lock);
+  const needDecrypt = useApp((s) => s.needDecrypt);
   // הערכה המוחלת בפועל — העדפת המשתמש (db.ui.theme) גוברת על ערכת הארגון
   const uiTheme = useApp((s) => s.db.ui.theme);
   const openFamilyForm = useApp((s) => s.openFamilyForm);
@@ -158,6 +160,16 @@ export default function App() {
       ))}
     </div>
   );
+
+  // שער הצפנה — שמירה מוצפנת שנטענה מחייבת קוד פענוח לפני כל דבר אחר
+  if (needDecrypt) {
+    return (
+      <>
+        <EncUnlockScreen />
+        {toastsEl}
+      </>
+    );
+  }
 
   // שער הענן: ארגון עם config.firebase מחייב התחברות לפני הכניסה לאפליקציה
   if (cloud.enabled && !cloud.authReady) return <div className="empty">מתחבר…</div>;

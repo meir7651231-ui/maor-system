@@ -6,7 +6,13 @@
 import { useEffect, useState, type ChangeEvent } from 'react';
 import type { Db } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { listSnapshots, loadSnapshot, parseBackupFile } from '../../store/persist';
+import {
+  listSnapshots,
+  loadSnapshot,
+  parseBackupFile,
+  isEncryptedBackup,
+  decryptBackupFile,
+} from '../../store/persist';
 import { Btn, FormError } from '../ui';
 import { Section, SectionNote } from './lib';
 import { fmtDate, fmtDateTime } from './helpers';
@@ -43,7 +49,25 @@ export function BackupSection() {
     if (!file) return;
     setError('');
     try {
-      const parsed = parseBackupFile(await file.text());
+      const text = await file.text();
+      // קובץ גיבוי מוצפן — מבקשים סיסמה, ובכשל מציעים מפתח שחזור
+      if (isEncryptedBackup(text)) {
+        const pw = window.prompt('קובץ גיבוי מוצפן — הזינו את סיסמת ההצפנה (בטלו כדי להשתמש במפתח שחזור):');
+        let parsed = pw ? await decryptBackupFile(text, pw, 'pass') : null;
+        if (!parsed) {
+          const rec = window.prompt('הזינו מפתח שחזור (או בטלו):');
+          parsed = rec ? await decryptBackupFile(text, rec.trim().toUpperCase(), 'rec') : null;
+        }
+        if (!parsed) {
+          setError('הפענוח נכשל — סיסמה או מפתח שחזור שגויים');
+          return;
+        }
+        if (!confirmRestore(parsed, 'מקובץ גיבוי מוצפן')) return;
+        restoreDb(parsed);
+        void listSnapshots().then(setSnaps);
+        return;
+      }
+      const parsed = parseBackupFile(text);
       if (!confirmRestore(parsed, 'מקובץ הגיבוי')) return;
       restoreDb(parsed);
       void listSnapshots().then(setSnaps);
