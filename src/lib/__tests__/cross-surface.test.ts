@@ -11,7 +11,7 @@ import { famEnrollments, famHistoryOf } from '../../components/families/lib';
 import { paidInRange, balanceOf } from '../../components/reports/lib';
 import { supTotalIls } from '../../components/supporters/lib';
 import { tierOf } from '../../components/families/lib';
-import { homeStats, monthDonationSum, credSummary } from '../../components/home/homeData';
+import { homeStats, monthDonationSum, credSummary, attentionItems } from '../../components/home/homeData';
 import { ayinDailyRows } from '../../lib/ayin';
 import { runAudit } from '../audit';
 import { DEFAULT_CONFIG } from '../../types/config';
@@ -82,6 +82,24 @@ describe('💳 תשלום — נרשם בשיבוץ + יתרה + היסטורי�
     expect(famHistoryOf(db, F1).some((h) => h.tag === 'תשלום')).toBe(true));
   it('🚫 אין דליפה: היסטוריית f2 בלי תשלום', () =>
     expect(famHistoryOf(db, F2).some((h) => h.tag === 'תשלום')).toBe(false));
+});
+
+describe('💳 יתרת תשלום — אזהרת החוב בבית עקבית עם מסך הקורסים (אותו payBal)', () => {
+  it('תשלום פגום (NaN) לא מסתיר חוב אמיתי מאזהרת הבית', () => {
+    const db = baseDb();
+    db.enrollments = [
+      enr('e1', 'm1', 'c1', {
+        totalDue: 300, dueDate: '2026-01-01', // עבר המועד
+        payments: [{ rid: 'R', amount: NaN, date: '2026-01-01', method: 'מזומן' } as never],
+      }),
+    ];
+    const e = db.enrollments[0];
+    // מסך הקורסים: יתרה חיובית אמיתית (NaN מנוטרל)
+    expect(payBal(e)).toBe(300);
+    // לוח הבית: פריט "תשלום" מופיע (אותו חישוב) — לא נבלע בגלל NaN
+    const items = attentionItems(db, new Date(TODAY + 'T12:00:00'), {});
+    expect(items.some((it) => it.tag === 'תשלום')).toBe(true);
+  });
 });
 
 describe('🎓 שיבוץ — נספר בחוג + בכרטיס משפחה + בסטטיסטיקת הבית, בלי לדלוף לחוג אחר', () => {

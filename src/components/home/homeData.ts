@@ -14,6 +14,7 @@ import {
 } from '../../types/domain';
 import { allMembers, type MemberWithFamily } from '../../store/useApp';
 import { hebParts, hebAnnualEq, type HebParts } from '../../lib/hebrew';
+import { payBal } from '../courses/lib';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 
 /** מפת המודולים הפעילים (config.modules) — חסר = פעיל; false = כבוי. */
@@ -217,10 +218,6 @@ function daysBetween(fromIso: string, toIso: string): number {
   );
 }
 
-/** יתרת תשלום פתוחה בשיבוץ (סה"כ עסקה פחות תקבולים). */
-function payBal(totalDue: number, payments: { amount: number }[]): number {
-  return (totalDue || 0) - payments.reduce((a, p) => a + p.amount, 0);
-}
 
 /**
  * פאנל "דורש טיפול":
@@ -284,7 +281,7 @@ export function attentionItems(db: Db, now: Date, modules: ModulesMap): Attentio
 
   // שיבוצים עם יתרת תשלום שעבר מועדה (שיבוצים = נתוני מודול החוגים)
   for (const e of on('courses') ? db.enrollments : []) {
-    const bal = payBal(e.totalDue, e.payments);
+    const bal = payBal(e); // מקור-אמת משותף (הגנת NaN + max(0)) — עקבי עם מסך הקורסים
     if (bal > 0 && e.dueDate && e.dueDate <= todayIso) {
       const m = members.find((x) => x.id === e.memberId);
       const c = db.courses.find((x) => x.id === e.courseId);
