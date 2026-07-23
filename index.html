@@ -9,6 +9,34 @@
          עם hash שכבר נמחקו → 404 → מסך לבן. מאזין ללחיצת-כשל של סקריפט ה-assets
          ומרענן פעם אחת (שומר-ריצה מונע לולאה) כדי למשוך את ה-index.html הטרי. -->
     <script>
+      // רוצח service-worker תקוע: לאפליקציה הזו אין SW משלה. אם SW ישן מגרסה
+      // קודמת (או מפרויקט אחר באותו origin) שולט בעמוד — הוא מגיש assets ישנים
+      // מהמטמון ומשאיר מסך לבן (בדיוק מה שקורה בפרופיל רגיל אך לא ב"גלישה בסתר").
+      // מבטלים כל רישום ששולט בעמוד, מנקים caches ומרעננים פעם אחת.
+      (function () {
+        if (!('serviceWorker' in navigator)) return;
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          var controlsUs = regs.filter(function (r) {
+            return location.href.indexOf(r.scope) === 0;
+          });
+          if (!controlsUs.length) return;
+          Promise.all(controlsUs.map(function (r) { return r.unregister(); }))
+            .then(function () {
+              return window.caches
+                ? caches.keys().then(function (keys) {
+                    return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+                  })
+                : null;
+            })
+            .then(function () {
+              if (!sessionStorage.getItem('maorSwKilled')) {
+                sessionStorage.setItem('maorSwKilled', '1');
+                location.reload();
+              }
+            });
+        });
+      })();
+
       window.addEventListener(
         'error',
         function (e) {
