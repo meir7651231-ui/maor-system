@@ -18,6 +18,7 @@ import {
   isoToday,
   payBal,
   paidOf,
+  planWord,
 } from './lib';
 
 export function ManageModal(props: { enrollmentId: string; course: Course; onClose: () => void }) {
@@ -190,7 +191,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         <strong style={{ fontSize: 14 }}>
           {(m?.first ?? '—') + ' ' + (m?.famName ?? '')} · {c.name}
         </strong>
-        <span style={chipStyle('#f6ead1', '#9a6414')}>{en.plan === 'punch' ? 'כרטיסייה' : 'מנוי חודשי'}</span>
+        <span style={chipStyle('#f6ead1', '#9a6414')}>{en.plan === 'punch' ? 'כרטיסייה' : planWord(en.plan)}</span>
         <span style={chipStyle(st.bg, st.c)}>{st.label}</span>
       </div>
       <div style={{ fontSize: 13, color: 'var(--ink-soft)', fontWeight: 600, marginBottom: 12 }}>

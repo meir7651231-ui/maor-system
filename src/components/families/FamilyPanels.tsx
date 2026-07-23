@@ -10,7 +10,7 @@ import { featureOn, moduleOn } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, TextInput } from '../ui';
 import { downloadText } from '../reports/csv';
-import { paidOf, payBal } from '../courses/lib';
+import { paidOf, payBal, planWord } from '../courses/lib';
 import { ageOf, chipStyle, EVENT_META, famHistoryOf, fmtDate, isoToday, STATUS_META, tierOf } from './lib';
 import { JoinModal } from './JoinModal';
 
@@ -228,7 +228,7 @@ export function EnrollPanel(props: { fam: Family }) {
                     <td style={{ fontWeight: 600 }}>{m?.first ?? '—'}</td>
                     <td>{c?.name ?? '—'}</td>
                     <td>
-                      {(e.plan === 'punch' ? 'כרטיסייה · ' + e.purchased + ' ניקובים' : 'מנוי חודשי') +
+                      {(e.plan === 'punch' ? 'כרטיסייה · ' + e.purchased + ' ניקובים' : planWord(e.plan)) +
                         (e.group ? ' · ' + e.group : '')}
                     </td>
                     <td>
@@ -349,7 +349,7 @@ function familyReportLines(db: Db, f: Family): string[] {
     const paid = paidOf(e);
     L.push(
       '• ' + first + ' — ' + cname + (e.group ? ' · ' + e.group : '') + ' · ' +
-        (e.plan === 'punch' ? 'כרטיסייה ' + (e.purchased - e.used) + '/' + e.purchased : 'מנוי חודשי') +
+        (e.plan === 'punch' ? 'כרטיסייה ' + (e.purchased - e.used) + '/' + e.purchased : planWord(e.plan)) +
         (e.enrolledAt ? ' · נרשם ' + hebDateFull(e.enrolledAt) : '') +
         (e.status === 'paused' ? ' · מוקפא' : e.status === 'ended' ? ' · הסתיים' : ''),
     );

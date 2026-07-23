@@ -7,7 +7,7 @@ import { downloadCsv, type Cell } from '../../lib/csvx';
 import { Btn } from '../ui';
 import { Section, SectionNote } from './lib';
 import { ageOf, fmtDate, STATUS_META } from '../families/lib';
-import { DAY_NAMES, paidOf, payBal } from '../courses/lib';
+import { DAY_NAMES, paidOf, payBal, planWord, modelMeta } from '../courses/lib';
 import { supScore, supTier, supTotalIls } from '../supporters/lib';
 
 const ENROLL_STATUS: Record<string, string> = { active: 'פעיל', paused: 'מוקפא', ended: 'הסתיים' };
@@ -83,7 +83,7 @@ export function ExportSection() {
       rows.push([
         c.name, c.cat, c.audience ?? '', db.teachers.find((t) => t.id === c.teacherId)?.name ?? '',
         db.rooms.find((r) => r.id === c.roomId)?.name ?? '',
-        c.model === 'punch' ? 'כרטיסייה · ' + c.size + ' ניקובים' : 'מנוי חודשי', c.price,
+        modelMeta(c).label, c.price,
         DAY_NAMES[c.weekday] ?? '', c.time,
         db.enrollments.filter((e) => e.courseId === c.id).length, c.maxStudents || '',
         c.semester, fmtDate(c.start), fmtDate(c.end), c.notes,
@@ -127,7 +127,7 @@ export function ExportSection() {
       const c = db.courses.find((x) => x.id === e.courseId);
       rows.push([
         m?.first ?? '', m?.famName ?? '', c?.name ?? '',
-        e.plan === 'punch' ? 'כרטיסייה' : 'מנוי חודשי', e.group,
+        e.plan === 'punch' ? 'כרטיסייה' : planWord(e.plan), e.group,
         e.plan === 'punch' ? e.purchased : '', e.used,
         e.plan === 'punch' ? e.purchased - e.used : '', e.totalDue || '', paidOf(e), payBal(e),
         ENROLL_STATUS[e.status] ?? e.status, fmtDate(e.enrolledAt), e.note,
