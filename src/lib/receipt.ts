@@ -22,12 +22,17 @@ export interface ReceiptInfo {
   site?: string;
 }
 
-export function downloadReceipt(o: ReceiptInfo): void {
+/**
+ * שורות הקבלה — טהור (בלי DOM), כדי שאפשר לבדוק את התוכן ובעיקר את התאריך.
+ * הלועזי מפורש בצהריים מקומי (T12:00:00) כמו hebDateFull — אחרת באזור זמן ממערב
+ * ל-UTC הלועזי היה נופל ליום הקודם וסותר את התאריך העברי על אותה קבלה.
+ */
+export function receiptLines(o: ReceiptInfo): string[] {
   const cur = o.currency || '₪';
-  const d = new Date(o.date);
+  const d = new Date(o.date.slice(0, 10) + 'T12:00:00');
   const gregorian = isNaN(d.getTime()) ? o.date : d.toLocaleDateString('he-IL');
   const heb = hebDateFull(o.date);
-  const lines = [
+  return [
     'קבלה — ' + (o.orgName || 'מאור החסד'),
     'קבלה מס׳: ' + o.rid,
     // תאריך עברי + לועזי, כמו באב-טיפוס
@@ -39,6 +44,10 @@ export function downloadReceipt(o: ReceiptInfo): void {
     o.site ? 'אתר: ' + o.site : '',
     'תודה על תמיכתכם',
   ];
+}
+
+export function downloadReceipt(o: ReceiptInfo): void {
+  const lines = receiptLines(o);
   // כמו באב-טיפוס: שורות ריקות מסוננות, BOM בתחילת הקובץ
   const text = '\uFEFF' + lines.filter((x) => x !== '').join('\n');
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });

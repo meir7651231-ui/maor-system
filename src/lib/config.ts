@@ -85,7 +85,8 @@ function normalize(raw: unknown): OrgConfig | null {
     slug: typeof c.slug === 'string' && c.slug ? c.slug : DEFAULT_CONFIG.slug,
     orgName: typeof c.orgName === 'string' ? c.orgName : DEFAULT_CONFIG.orgName,
     theme: typeof c.theme === 'string' && c.theme ? c.theme : DEFAULT_CONFIG.theme,
-    modules: c.modules && typeof c.modules === 'object' ? { ...c.modules } : {},
+    modules:
+      c.modules && typeof c.modules === 'object' && !Array.isArray(c.modules) ? { ...c.modules } : {},
     features:
       c.features && typeof c.features === 'object' && !Array.isArray(c.features)
         ? { ...c.features }
