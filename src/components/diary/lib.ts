@@ -7,6 +7,8 @@ import type { Course, CourseSession, Db, Enrollment, OrgEvent, Room } from '../.
 import { HOLIDAYS, hebParts } from '../../lib/hebrew';
 import { planWord } from '../courses/lib';
 import { isoLocal } from '../../lib/date-util';
+// nextSessionDate — מקור-אמת יחיד במודול הקורסים (היה עותק זהה כאן)
+export { nextSessionDate } from '../courses/lib';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
@@ -52,20 +54,6 @@ export function groupLabelOf(ss: CourseSession, i: number): string {
   return ss.label || 'קבוצה ' + (i + 1);
 }
 
-/** המפגש הקרוב הבא של הקורס (לזכאות השלמה בחיסור — 48 שעות). */
-export function nextSessionDate(c: Course): Date | null {
-  const n = new Date();
-  let best: Date | null = null;
-  for (const ss of sessionsOf(c)) {
-    const t = (ss.time || '17:00').split(':');
-    const d = new Date(n.getFullYear(), n.getMonth(), n.getDate(), +t[0], +(t[1] ?? 0) || 0);
-    let add = (ss.day - d.getDay() + 7) % 7;
-    if (add === 0 && d <= n) add = 7;
-    d.setDate(d.getDate() + add);
-    if (!best || d < best) best = d;
-  }
-  return best;
-}
 
 /** חגים שבהם אין פעילות כלל (מתוך לוח החגים המשותף). */
 const FULL_HOLIDAYS = [
