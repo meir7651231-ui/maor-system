@@ -461,6 +461,28 @@ export default function App() {
       {builderOpen &&
         (adminNeededFor('wizard') ? (
           <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
+            <button
+              type="button"
+              onClick={() => {
+                window.location.hash = '';
+                setBuilderOpen(false);
+              }}
+              title="חזרה — סגירת האשף בלי לפתוח את האזור המוגן"
+              style={{
+                position: 'absolute',
+                insetInlineStart: 16,
+                top: 16,
+                zIndex: 1,
+                background: 'none',
+                border: 'none',
+                color: 'var(--ink-faint)',
+                fontSize: 13,
+                cursor: 'pointer',
+                padding: 8,
+              }}
+            >
+              ✕ חזרה
+            </button>
             <LockScreen kind="secondary" onUnlock={onAdminUnlock} />
           </div>
         ) : (

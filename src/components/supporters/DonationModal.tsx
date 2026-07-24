@@ -34,8 +34,8 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
       setError('בחרו תאריך תרומה');
       return;
     }
-    // מספר האסמכתה נגזר מה-seq הנוכחי — בדיוק כפי ש-addDonation שב-store מחשב אותו
-    const rid = 'D-' + useApp.getState().db.seq;
+    // מספר האסמכתה נגזר מה-donationSeq הנוכחי — בדיוק כפי ש-addDonation שב-store מחשב אותו
+    const rid = 'D-' + useApp.getState().db.donationSeq;
     addDonation(props.supporter.id, { date, amount: amt, cur, cat: cat.trim() });
     // core.receipts כבוי — התרומה נרשמת כרגיל, רק הורדת הקבלה והטוסט שלה מדולגים
     if (receiptsOn) {

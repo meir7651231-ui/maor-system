@@ -87,6 +87,15 @@ export function ReportTable(props: { head: string[]; rows: Row[]; foot?: Cell[] 
               <th
                 key={i}
                 onClick={() => clickSort(i)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    clickSort(i);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`מיון לפי ${h}`}
                 title="מיון לפי העמודה — לחיצה נוספת הופכת כיוון"
                 style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
               >

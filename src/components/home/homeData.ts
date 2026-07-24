@@ -14,7 +14,7 @@ import {
 } from '../../types/domain';
 import { allMembers, type MemberWithFamily } from '../../store/useApp';
 import { hebParts, hebAnnualEq, type HebParts } from '../../lib/hebrew';
-import { payBal, sessionsOf } from '../courses/lib';
+import { payBal, sessionsOf, enrollCount } from '../courses/lib';
 import { isoLocal } from '../../lib/date-util';
 // תוויות/צבעי סוגי אירועים — מקור-אמת יחיד ב-lib/eventMeta (מיוצא מחדש לתאימות)
 import { EV_META, evLabel } from '../../lib/eventMeta';
@@ -402,10 +402,7 @@ export function attentionItems(db: Db, now: Date, modules: ModulesMap): Attentio
   // חוגים שכמעט מלאים (80% ומעלה מהמקומות) — פריט לכל חוג (עד 3), אחר כך צבירה — מודול חוגים בלבד
   const filling = (on('courses') ? db.courses : [])
     .filter((c) => c.maxStudents > 0)
-    .map((c) => ({
-      c,
-      n: db.enrollments.filter((e) => e.courseId === c.id && e.status === 'active').length,
-    }))
+    .map((c) => ({ c, n: enrollCount(db, c.id) }))
     .filter(({ c, n }) => n >= c.maxStudents * 0.8)
     .sort((a, b) => b.n / b.c.maxStudents - a.n / a.c.maxStudents);
   for (const { c, n } of filling.slice(0, 3)) {

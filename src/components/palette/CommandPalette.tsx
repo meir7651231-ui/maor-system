@@ -11,6 +11,7 @@ import { allMembers, useApp, type View } from '../../store/useApp';
 import { featureOn, moduleOn } from '../../lib/config';
 import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
+import { DEFAULT_LOCK_ZONES } from '../../lib/lock';
 
 /** פריט בר-הפעלה בפלטה: אייקון + כותרת + שורת משנה + פעולה. */
 interface Cmd {
@@ -78,6 +79,11 @@ export function CommandPalette() {
   const exportBackup = useApp((s) => s.exportBackup);
   const lockNow = useApp((s) => s.lockNow);
   const hasLock = useApp((s) => !!s.lock.primary || !!s.lock.secondary);
+  // נעילת מנהל (משנית) — לא לאנדקס PII של אזורים נעולים לפני פתיחה.
+  // מקביל ל-adminNeededFor ב-App: fallback ל-DEFAULT_LOCK_ZONES כש-zones לא הוגדר.
+  const lockSecondary = useApp((s) => !!s.lock.secondary);
+  const lockZones = useApp((s) => s.lock.zones ?? DEFAULT_LOCK_ZONES);
+  const unlockedAdmin = useApp((s) => s.unlockedAdmin);
   const punch = useApp((s) => s.punch);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
@@ -228,6 +234,7 @@ export function CommandPalette() {
   /** ישויות מהנתונים — משפחות, בני משפחה, חוגים, מורים, תורמים, מסמכים ואירועים פתוחים. */
   const entityCmds = useMemo<Cmd[]>(() => {
     const out: Cmd[] = [];
+    const zoneLocked = (z: string) => lockSecondary && lockZones.includes(z) && !unlockedAdmin;
     for (const f of db.families) {
       out.push({
         key: 'fam-' + f.id,
@@ -277,7 +284,7 @@ export function CommandPalette() {
         },
       });
     }
-    for (const t of teachersOn ? db.teachers : []) {
+    for (const t of teachersOn && !zoneLocked('settings') ? db.teachers : []) {
       out.push({
         key: 'tch-' + t.id,
         icon: '🧑‍🏫',
@@ -300,7 +307,7 @@ export function CommandPalette() {
         },
       });
     }
-    for (const sp of supportersOn ? db.supporters : []) {
+    for (const sp of supportersOn && !zoneLocked('supporters') ? db.supporters : []) {
       out.push({
         key: 'sup-' + sp.id,
         icon: '💛',
@@ -343,7 +350,21 @@ export function CommandPalette() {
       });
     }
     return out;
-  }, [db, go, selectFamily, selectCourse, setPalette, coursesOn, teachersOn, supportersOn, famDocsOn, calendarOn]);
+  }, [
+    db,
+    go,
+    selectFamily,
+    selectCourse,
+    setPalette,
+    coursesOn,
+    teachersOn,
+    supportersOn,
+    famDocsOn,
+    calendarOn,
+    lockSecondary,
+    lockZones,
+    unlockedAdmin,
+  ]);
 
   /** דירוג חכם (smartFilter) על מונחי החיפוש המנורמלים. עד 12 תוצאות.
    * שאילתה ריקה: ניווט + פעולות ואחריהם "כרטיסיות מסתיימות".

@@ -10,7 +10,7 @@ export type Cell = string | number;
 export function csvEscape(x: Cell): string {
   let v = String(x ?? '');
   // תא שמתחיל בתו נוסחה מקבל גרש מוביל — כמו ב-reports/csv.ts
-  if (/^[=+\-@]/.test(v)) v = "'" + v;
+  if (/^[=+\-@\t\r]/.test(v)) v = "'" + v;
   return v.includes(',') || v.includes('"') || v.includes('\n')
     ? '"' + v.replace(/"/g, '""') + '"'
     : v;

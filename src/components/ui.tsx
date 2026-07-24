@@ -2,7 +2,7 @@
  * רכיבי UI משותפים — כל המודולים משתמשים אך ורק ברכיבים האלה
  * לטפסים, מודאלים וכפתורים, כדי לשמור על שפה עיצובית אחת.
  */
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 export function Btn(props: {
   children: ReactNode;
@@ -39,16 +39,55 @@ export function Chip(props: { children: ReactNode; on?: boolean; onClick?: () =>
 }
 
 export function Modal(props: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    const focusables = () =>
+      Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      );
+    // העברת פוקוס פנימה עם הפתיחה — לאלמנט הראשון או לדיאלוג עצמו.
+    (focusables()[0] ?? dialogRef.current)?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') props.onClose();
+      if (e.key === 'Escape') {
+        props.onClose();
+        return;
+      }
+      if (e.key === 'Tab') {
+        // מלכודת Tab — שמירת הפוקוס בתוך הדיאלוג.
+        const items = focusables();
+        if (items.length === 0) {
+          e.preventDefault();
+          dialogRef.current?.focus();
+          return;
+        }
+        const first = items[0];
+        const last = items[items.length - 1];
+        const active = document.activeElement;
+        if (e.shiftKey && (active === first || active === dialogRef.current)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [props]);
   return (
     <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && props.onClose()}>
-      <div className="modal" style={props.wide ? { maxWidth: 880 } : undefined} role="dialog" aria-label={props.title}>
+      <div
+        ref={dialogRef}
+        className="modal"
+        style={props.wide ? { maxWidth: 880 } : undefined}
+        role="dialog"
+        aria-modal="true"
+        aria-label={props.title}
+        tabIndex={-1}
+      >
         <h2>{props.title}</h2>
         {props.children}
       </div>

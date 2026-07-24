@@ -7,7 +7,7 @@ import { downloadCsv, type Cell } from '../../lib/csvx';
 import { Btn } from '../ui';
 import { Section, SectionNote } from './lib';
 import { ageOf, fmtDate, STATUS_META } from '../families/lib';
-import { DAY_NAMES, paidOf, payBal, planWord, modelMeta } from '../courses/lib';
+import { DAY_NAMES, paidOf, payBal, planWord, modelMeta, enrollCount } from '../courses/lib';
 import { supScore, supTier, supTotalIls } from '../supporters/lib';
 
 const ENROLL_STATUS: Record<string, string> = { active: 'פעיל', paused: 'מוקפא', ended: 'הסתיים' };
@@ -85,7 +85,7 @@ export function ExportSection() {
         db.rooms.find((r) => r.id === c.roomId)?.name ?? '',
         modelMeta(c).label, c.price,
         DAY_NAMES[c.weekday] ?? '', c.time,
-        db.enrollments.filter((e) => e.courseId === c.id).length, c.maxStudents || '',
+        enrollCount(db, c.id), c.maxStudents || '',
         c.semester, fmtDate(c.start), fmtDate(c.end), c.notes,
       ]);
     }

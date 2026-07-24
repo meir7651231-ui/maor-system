@@ -11,6 +11,7 @@ import { featureOn } from './config';
 import { featLabel, itemLabel, stageLabel, unitLabel } from './ayin';
 import { hebDateFull, hebParts, hebAnnualEq } from './hebrew';
 import { EV_META } from './eventMeta';
+import { enrollCount } from '../components/courses/lib';
 
 export type ExportTarget = 'courses' | 'events' | 'supporters';
 
@@ -129,7 +130,7 @@ export function buildCustomExport(
                   : 'מנוי חודשי') +
             ' · ₪' +
             (c.price || 0),
-          occ: ens.length + '/' + (c.maxStudents || '—'),
+          occ: enrollCount(db, c.id) + '/' + (c.maxStudents || '—'),
           students: ens.map((e) => memberFirst.get(e.memberId) || '').filter(Boolean).join(' · '),
           pays: payN + ' תשלומים · ₪' + paySum,
           abs: absN + ' חיסורים',
@@ -156,9 +157,10 @@ export function buildCustomExport(
         const oh = hebParts(new Date(ev.date + 'T12:00:00'));
         const d0 = new Date(range.from + 'T12:00:00');
         const d1 = new Date(range.to + 'T12:00:00');
-        for (let dd = new Date(d0), k = 0; dd <= d1 && k < 366; dd.setDate(dd.getDate() + 1), k++) {
-          // נרמול אדר משותף — עקבי עם הלוח והבית; בלעדיו אזכרה ב"אדר" נעדרת מהייצוא בשנה מעוברת
-          if (hebAnnualEq(hebParts(dd), oh)) occ.push({ ...rec, date: isoOf(dd) });
+        for (let dd = new Date(d0); dd <= d1; dd.setDate(dd.getDate() + 1)) {
+          // נרמול אדר משותף — עקבי עם הלוח והבית; בלעדיו אזכרה ב"אדר" נעדרת מהייצוא בשנה מעוברת.
+          // חסם תחתון >= ev.date — עקבי עם eventsOnDate/eventOccursOn; בלעדיו נוצרות שורות רפאים לפני האירוע.
+          if (isoOf(dd) >= ev.date && hebAnnualEq(hebParts(dd), oh)) occ.push({ ...rec, date: isoOf(dd) });
         }
       } else if (inR(ev.date, range) || (!range.from && !range.to)) {
         occ.push({ ...rec, date: ev.date });

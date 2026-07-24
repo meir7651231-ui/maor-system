@@ -11,7 +11,7 @@
  *    800ms, מחשב diffDb ודוחף. תור לא-מקוון מנוהל ע"י Firestore עצמו.
  */
 import type { Db } from '../types/domain';
-import { diffDb, emptyDiff, fullDbDiff } from '../lib/cloud-diff';
+import { diffDb, emptyDiff, ENTITY_COLLECTIONS, fullDbDiff } from '../lib/cloud-diff';
 import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
 import { pullAll, pushDiff, subscribeAll, type RemotePartial } from '../lib/cloud';
 
@@ -71,10 +71,13 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
   h.setStatus('connecting');
   try {
     const cloudDb = await pullAll();
+    // אם stopCloudSync רץ במקביל (יציאה/פקיעת טוקן במהלך ה-pull) hooks כבר אופס —
+    // אין להמשיך ולהפעיל מחדש סנכרון לחשבון שיצא.
+    if (hooks !== h) return;
     const local = h.getDb();
     if (cloudDb === null) {
       // פרויקט ענן ריק — הגירה ראשונה: מעלים את כל הנתונים המקומיים
-      if (local.families.length) {
+      if (ENTITY_COLLECTIONS.some((c) => local[c].length)) {
         await pushDiff(fullDbDiff(local));
         h.toast('הנתונים הועלו לענן ✓');
       }
@@ -118,7 +121,11 @@ async function flushPush(): Promise<void> {
     await pushDiff(diff);
     if (active) hooks?.setStatus('synced');
   } catch {
+    // כשל שאינו-offline: משחזרים את הדלתא הממתינה כדי שתידחף בעריכה הבאה.
+    // base תמיד המוקדם ביותר; latest נשמר אם עריכה מקבילה כבר קבעה חדש יותר.
     if (active) {
+      pushBase = base;
+      pushLatest ??= latest;
       hooks?.setStatus('error');
       hooks?.toast('⚠ הדחיפה לענן נכשלה — הנתונים שמורים מקומית ויסונכרנו בהמשך');
     }

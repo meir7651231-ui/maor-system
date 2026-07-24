@@ -100,8 +100,8 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       toast('הקלידו סכום תשלום תקין');
       return;
     }
-    // מספר הקבלה נגזר מה-seq הנוכחי — בדיוק כפי ש-addPayment שב-store מחשב אותו
-    const rid = 'R-' + useApp.getState().db.seq;
+    // מספר הקבלה נגזר מ-receiptSeq הנוכחי — בדיוק כפי ש-addPayment שב-store מחשב אותו
+    const rid = 'R-' + useApp.getState().db.receiptSeq;
     const date = payDate || isoToday();
     const method = payMethod || 'מזומן';
     addPayment(en.id, { date, amount: amt, method });

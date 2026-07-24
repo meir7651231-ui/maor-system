@@ -154,7 +154,7 @@ export async function loadOrgConfig(): Promise<OrgConfig> {
     }
   }
   const override = readConfigOverride();
-  if (override) return override;
+  if (override && (!slug || override.slug === slug)) return override;
   try {
     const res = await fetch('./config.json', { cache: 'no-cache' });
     if (res.ok) {

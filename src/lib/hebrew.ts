@@ -60,6 +60,7 @@ export function hebAnnualEq(
 
 /** מפרק תאריך לועזי לחלקי התאריך העברי (חודש בשם אנגלי — 'Tishri', 'Adar II'…). */
 export function hebParts(d: Date): HebParts {
+  if (isNaN(d.getTime())) return { day: 0, month: '', year: 0 }; // תאריך לא-חוקי → חלקים בטוחים (מונע RangeError ב-formatToParts)
   const parts = fmtParts.formatToParts(d);
   const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '';
   return { day: +get('day'), month: get('month'), year: +get('year') };

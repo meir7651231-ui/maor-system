@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { Gender, Member } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
-import { validIsraeliId } from '../../lib/validate';
+import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -90,8 +90,8 @@ export function MemberForm(props: { famId: string; member: Member | null; onClos
       gender: f.gender,
       birth: f.birth,
       idNum: f.idNum.trim(),
-      phone: f.phone.trim(),
-      phone2: f.phone2.trim(),
+      phone: formatIsraeliPhone(f.phone.trim()),
+      phone2: formatIsraeliPhone(f.phone2.trim()),
       school: f.school.trim(),
       grade: f.grade.trim(),
       health: f.health.trim(),

@@ -8,7 +8,7 @@ export type Cell = string | number;
 function esc(x: Cell): string {
   let v = String(x ?? '');
   // הגנת CSV injection — תא שמתחיל בתו נוסחה מקבל גרש מוביל
-  if (/^[=+\-@]/.test(v)) v = "'" + v;
+  if (/^[=+\-@\t\r]/.test(v)) v = "'" + v;
   return v.includes(',') || v.includes('"') || v.includes('\n')
     ? '"' + v.replace(/"/g, '""') + '"'
     : v;

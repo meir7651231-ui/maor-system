@@ -258,8 +258,16 @@ function isoDaysAgo(days: number): string {
   return isoLocal(d);
 }
 
-/** מפתח localStorage המבטיח ריצת דעיכה אחת ביום. */
+/**
+ * מפתח localStorage המבטיח ריצת דעיכה אחת ביום.
+ * ממורחב-שמות פר-ארגון (כמו setPersistNamespace ב-persist.ts) כדי ששני ארגונים
+ * על אותו host (?org=<slug>) לא יחלקו את דגל "רצה היום" — אחרת הראשון שנפתח
+ * חוסם את דעיכת אי-הפעילות של כל האחרים באותו יום. slug 'default' שומר על המפתח הישן.
+ */
 const DECAY_LS_KEY = 'maor_decay';
+function decayKey(slug: string): string {
+  return !slug || slug === 'default' ? DECAY_LS_KEY : `${DECAY_LS_KEY}:${slug}`;
+}
 
 /**
  * מקדם מגמה (TrendFactor) — לפי 3 רשומות הלוג האחרונות:
@@ -318,15 +326,16 @@ export const useApp = create<AppState>()((set, get) => {
       });
     }
     const today = isoToday();
+    const lsKey = decayKey(config.slug);
     let ranToday = false;
     try {
-      ranToday = localStorage.getItem(DECAY_LS_KEY) === today;
+      ranToday = localStorage.getItem(lsKey) === today;
     } catch {
       /* localStorage חסום */
     }
     if (!ranToday) {
       try {
-        localStorage.setItem(DECAY_LS_KEY, today);
+        localStorage.setItem(lsKey, today);
       } catch {
         /* אין מקום / מצב פרטי */
       }
@@ -746,7 +755,7 @@ export const useApp = create<AppState>()((set, get) => {
             // הקיר והביקורת, כך שאף תרומה לא נופלת בין הכיסאות בסכומים.
             ils: s.ils + (donation.cur !== '$' ? donation.amount : 0),
             usd: s.usd + (donation.cur === '$' ? donation.amount : 0),
-            first: s.first || donation.date,
+            first: !s.first || donation.date < s.first ? donation.date : s.first,
             last: donation.date > (s.last || '') ? donation.date : s.last,
           };
         }),
@@ -929,6 +938,10 @@ export const useApp = create<AppState>()((set, get) => {
     async enableEncryption(password) {
       const recoveryKey = await beginEncryption(get().db, password);
       set({ encrypted: true, needDecrypt: false });
+      // beginEncryption צילם את ה-db בכניסה וכתב את אותו צילום מוצפן; עריכות
+      // שקרו במהלך ה-PBKDF2 הארוך (משתמש / setDbFromRemote) עלולות להידרס.
+      // dek כבר נקבע — שמירה מיידית מצפינה את המצב הנוכחי ככתיבה אחרונה.
+      void saveDb(get().db);
       return recoveryKey;
     },
     async disableEncryption() {
