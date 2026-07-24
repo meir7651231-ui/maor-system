@@ -90,11 +90,14 @@ export function CommandPalette() {
 
   // גייטים למודולים ופיצ'רים — פריט של מודול/פיצ'ר כבוי לא מאונדקס בפלטה.
   // featureOn מחזיר false גם כשמודול האב כבוי, לכן אין צורך בבדיקה כפולה.
+  const familiesOn = moduleOn(config, 'families');
   const coursesOn = moduleOn(config, 'courses');
   const wheelOn = featureOn(config, 'courses.wheel');
   const punchOn = featureOn(config, 'courses.punch');
   const supportersOn = moduleOn(config, 'supporters');
   const calendarOn = moduleOn(config, 'calendar');
+  const diaryOn = moduleOn(config, 'diary');
+  const reportsOn = moduleOn(config, 'reports');
   const teachersOn = featureOn(config, 'settings.teachers');
   const famDocsOn = featureOn(config, 'families.docs');
   const wallOn = featureOn(config, 'home.impactwall');
@@ -105,7 +108,19 @@ export function CommandPalette() {
 
   /** ניווט + פעולות — מוצגים גם כשאין שאילתה. */
   const baseCmds = useMemo<Cmd[]>(() => {
-    const nav: Cmd[] = NAV_CMDS.map((n) => ({
+    // ניווט למודול כבוי חושף את המסך המלא (ל-App אין הפניה פר-מודול) — לכן
+    // מסננים פקודות ניווט לפי מצב המודול; בית והגדרות תמיד נגישים.
+    const navOn: Partial<Record<View, boolean>> = {
+      families: familiesOn,
+      courses: coursesOn,
+      calendar: calendarOn,
+      diary: diaryOn,
+      supporters: supportersOn,
+      reports: reportsOn,
+    };
+    const nav: Cmd[] = NAV_CMDS.filter(
+      (n) => n.view === 'home' || n.view === 'settings' || navOn[n.view] !== false,
+    ).map((n) => ({
       key: 'nav-' + n.view,
       icon: n.icon,
       title: n.label,
@@ -116,8 +131,10 @@ export function CommandPalette() {
         setPalette(false);
       },
     }));
-    const actions: Cmd[] = [
-      {
+    const actions: Cmd[] = [];
+    // משפחה חדשה — פותח את מסך המשפחות; מוסתר כשמודול המשפחות כבוי
+    if (familiesOn) {
+      actions.push({
         key: 'act-new-family',
         icon: '➕',
         title: 'משפחה חדשה',
@@ -127,19 +144,19 @@ export function CommandPalette() {
           selectFamily(null);
           setPalette(false);
         },
+      });
+    }
+    actions.push({
+      key: 'act-backup',
+      icon: '⬇️',
+      title: 'הורדת גיבוי מלא',
+      sub: 'קובץ גיבוי JSON יורד למחשב',
+      terms: toTerms(['הורדת גיבוי מלא', 'גיבוי', 'ייצוא', 'שמירה', 'backup']),
+      run: () => {
+        exportBackup();
+        setPalette(false);
       },
-      {
-        key: 'act-backup',
-        icon: '⬇️',
-        title: 'הורדת גיבוי מלא',
-        sub: 'קובץ גיבוי JSON יורד למחשב',
-        terms: toTerms(['הורדת גיבוי מלא', 'גיבוי', 'ייצוא', 'שמירה', 'backup']),
-        run: () => {
-          exportBackup();
-          setPalette(false);
-        },
-      },
-    ];
+    });
     // גלגל החוגים — דורש מודול חוגים + פיצ'ר courses.wheel
     if (wheelOn) {
       actions.push({
@@ -190,7 +207,22 @@ export function CommandPalette() {
       });
     }
     return [...nav, ...actions];
-  }, [go, selectFamily, exportBackup, setPalette, wheelOn, wallOn, hasLock, lockNow]);
+  }, [
+    go,
+    selectFamily,
+    exportBackup,
+    setPalette,
+    familiesOn,
+    coursesOn,
+    calendarOn,
+    diaryOn,
+    supportersOn,
+    reportsOn,
+    wheelOn,
+    wallOn,
+    hasLock,
+    lockNow,
+  ]);
 
   /** כרטיסיות מסתיימות — שיבוצי כרטיסייה פעילים עם ≤2 ניקובים שנותרו. */
   const expiringCmds = useMemo<Cmd[]>(() => {
@@ -235,7 +267,7 @@ export function CommandPalette() {
   const entityCmds = useMemo<Cmd[]>(() => {
     const out: Cmd[] = [];
     const zoneLocked = (z: string) => lockSecondary && lockZones.includes(z) && !unlockedAdmin;
-    for (const f of db.families) {
+    for (const f of familiesOn ? db.families : []) {
       out.push({
         key: 'fam-' + f.id,
         icon: '👨‍👩‍👧‍👦',
@@ -257,7 +289,7 @@ export function CommandPalette() {
         },
       });
     }
-    for (const m of allMembers(db)) {
+    for (const m of familiesOn ? allMembers(db) : []) {
       out.push({
         key: 'mem-' + m.famId + '-' + m.id,
         icon: m.isParent ? '🧑' : m.gender === 'f' ? '👧' : '👦',
@@ -356,6 +388,7 @@ export function CommandPalette() {
     selectFamily,
     selectCourse,
     setPalette,
+    familiesOn,
     coursesOn,
     teachersOn,
     supportersOn,

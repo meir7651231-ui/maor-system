@@ -14,7 +14,7 @@ import {
 } from '../../types/domain';
 import { allMembers, type MemberWithFamily } from '../../store/useApp';
 import { hebParts, hebAnnualEq, type HebParts } from '../../lib/hebrew';
-import { payBal, sessionsOf, enrollCount } from '../courses/lib';
+import { payBal, sessionsOf } from '../courses/lib';
 import { isoLocal } from '../../lib/date-util';
 // תוויות/צבעי סוגי אירועים — מקור-אמת יחיד ב-lib/eventMeta (מיוצא מחדש לתאימות)
 import { EV_META, evLabel } from '../../lib/eventMeta';
@@ -276,7 +276,7 @@ export function attentionItems(db: Db, now: Date, modules: ModulesMap): Attentio
   // שיבוצים עם יתרת תשלום שעבר מועדה (שיבוצים = נתוני מודול החוגים)
   for (const e of on('courses') ? db.enrollments : []) {
     const bal = payBal(e); // מקור-אמת משותף (הגנת NaN + max(0)) — עקבי עם מסך הקורסים
-    if (bal > 0 && e.dueDate && e.dueDate <= todayIso) {
+    if (bal > 0 && e.dueDate && e.dueDate < todayIso) {
       const m = members.find((x) => x.id === e.memberId);
       const c = db.courses.find((x) => x.id === e.courseId);
       out.push({
@@ -400,9 +400,15 @@ export function attentionItems(db: Db, now: Date, modules: ModulesMap): Attentio
   }
 
   // חוגים שכמעט מלאים (80% ומעלה מהמקומות) — פריט לכל חוג (עד 3), אחר כך צבירה — מודול חוגים בלבד
+  // ספירת תפוסה מראש במעבר יחיד (O(E)) — זהה ל-enrollCount (מחריג 'ended') אך ללא
+  // סריקה מלאה לכל חוג, שהפכה את הלולאה ל-O(C×E) בכל כתיבה ל-DB.
+  const enrollByCourse = new Map<string, number>();
+  for (const e of on('courses') ? db.enrollments : []) {
+    if (e.status !== 'ended') enrollByCourse.set(e.courseId, (enrollByCourse.get(e.courseId) ?? 0) + 1);
+  }
   const filling = (on('courses') ? db.courses : [])
     .filter((c) => c.maxStudents > 0)
-    .map((c) => ({ c, n: enrollCount(db, c.id) }))
+    .map((c) => ({ c, n: enrollByCourse.get(c.id) ?? 0 }))
     .filter(({ c, n }) => n >= c.maxStudents * 0.8)
     .sort((a, b) => b.n / b.c.maxStudents - a.n / a.c.maxStudents);
   for (const { c, n } of filling.slice(0, 3)) {

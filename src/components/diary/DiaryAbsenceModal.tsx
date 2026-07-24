@@ -29,8 +29,9 @@ export function DiaryAbsenceModal(props: {
   if (!en) return null;
 
   const ns = nextSessionDate(props.course);
-  const hrs = ns ? Math.round((ns.getTime() - Date.now()) / 3600000) : null;
-  const eligible = hrs != null && hrs >= 48;
+  const rawHrs = ns ? (ns.getTime() - Date.now()) / 3600000 : null;
+  const hrs = rawHrs != null ? Math.round(rawHrs) : null;
+  const eligible = rawHrs != null && rawHrs >= 48;
 
   const sessionLabel = ns
     ? 'המפגש הקרוב: יום ' + DAY_NAMES[ns.getDay()] + ' ' + pad2(ns.getHours()) + ':' + pad2(ns.getMinutes()) + ' — בעוד ' + hrs + ' שעות'

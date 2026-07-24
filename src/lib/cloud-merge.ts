@@ -7,14 +7,28 @@ import type { Db } from '../types/domain';
 import { ENTITY_COLLECTIONS, type EntityCol } from './cloud-diff';
 
 /**
- * חיזוק מסמך משפחה מרוחק: מסמך שנכתב בגרסה ישנה / נערך ידנית ב-Firestore עלול
- * להגיע בלי members (או עם ערך לא-מערך). נתיב pullAll עובר migrate ומתוקן, אבל
- * המיזוג החי מיזג גולמי — ו-allMembers/famHistoryOf שמריצים
- * `for (const m of f.members)` היו קורסים. מבטיחים מערך לפני המיזוג.
+ * חיזוק מסמך ישות מרוחק: מסמך שנכתב בגרסה ישנה / נערך ידנית ב-Firestore עלול
+ * להגיע בלי שדות-רשימה (או עם ערך לא-מערך). נתיב pullAll עובר migrate ומתוקן
+ * (persist.ts מגן על families.members/docs, enrollments.payments/absences,
+ * supporters.donations), אבל המיזוג החי מיזג גולמי — וצרכנים שמריצים
+ * `for (const m of f.members)` / `fam.docs` (famHistoryOf), `en.payments`/
+ * `en.absences` (ManageModal/reports), `sp.donations` (customExport) היו קורסים.
+ * מבטיחים מערך לכל שדה-רשימה לפני המיזוג, בהתאמה למיגרציה.
  */
+const LIST_FIELDS: Record<string, readonly string[]> = {
+  families: ['members', 'docs'],
+  enrollments: ['payments', 'absences'],
+  supporters: ['donations'],
+};
+
 export function sanitizeIncoming(col: string, item: Record<string, unknown>): Record<string, unknown> {
-  if (col === 'families' && !Array.isArray(item.members)) return { ...item, members: [] };
-  return item;
+  const fields = LIST_FIELDS[col];
+  if (!fields) return item;
+  let out = item;
+  for (const f of fields) {
+    if (!Array.isArray(out[f])) out = { ...out, [f]: [] };
+  }
+  return out;
 }
 
 /** מיזוג שינויי אוסף מרוחקים לרשימה מקומית — upsert לפי id, מחוקים יוצאים. */

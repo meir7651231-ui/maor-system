@@ -5,7 +5,7 @@
  */
 import { useMemo, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, moduleOn } from '../../lib/config';
 import { Btn, Chip, Empty, PageHead } from '../ui';
 import type { OrgEvent } from '../../types/domain';
 import {
@@ -166,6 +166,11 @@ export function CalendarView() {
   // גייטים ברמת פיצ'ר: תצוגת יום (calendar.dayview) ושכבות נגזרות (calendar.layers)
   const dayviewOn = featureOn(config, 'calendar.dayview');
   const layersOn = featureOn(config, 'calendar.layers');
+  // כיבוי מודול משורשר לשכבות הנגזרות מהמודול הכבוי: משפחות → ימי-הולדת ·
+  // הצטרפות · משפחתיים · הרשמות; חוגים → מפגשי-קורס · הרשמות. השכבה מכובה
+  // גם אם השכבות (calendar.layers) עצמן פעילות — אחרת פריטי המודול הכבוי דולפים.
+  const familiesModOn = moduleOn(config, 'families');
+  const coursesModOn = moduleOn(config, 'courses');
   // מסך מגע: הגלולות ממלאות את התא ובולעות כל נגיעה — נפתח דרכן את תצוגת היום,
   // והפריטים עצמם נגישים מתוכה עם שטחי מגע גדולים
   const coarsePointer = useMemo(
@@ -175,22 +180,23 @@ export function CalendarView() {
   // כשהשכבות כבויות — כל השכבות הנגזרות/העדינות נכבות בכוח, ונשארים רק
   // אירועים (catch-all) וחוגים: ימי הולדת · הצטרפויות · הרשמות · חגים ·
   // תזכורות · טלפונים · משפחתיים.
-  const effFilters = useMemo<CalFilters>(
-    () =>
-      layersOn
-        ? filters
-        : {
-            ...filters,
-            bdays: false,
-            joins: false,
-            enrolls: false,
-            holidays: false,
-            reminders: false,
-            calls: false,
-            family: false,
-          },
-    [filters, layersOn],
-  );
+  const effFilters = useMemo<CalFilters>(() => {
+    let f = layersOn
+      ? filters
+      : {
+          ...filters,
+          bdays: false,
+          joins: false,
+          enrolls: false,
+          holidays: false,
+          reminders: false,
+          calls: false,
+          family: false,
+        };
+    if (!familiesModOn) f = { ...f, bdays: false, joins: false, family: false, enrolls: false };
+    if (!coursesModOn) f = { ...f, courses: false, enrolls: false };
+    return f;
+  }, [filters, layersOn, familiesModOn, coursesModOn]);
 
   const grid = useMemo(
     () => (hebMode ? buildHebrewGrid(db, hebAnchor) : buildGregorianGrid(db, ym.y, ym.m)),
@@ -279,7 +285,15 @@ export function CalendarView() {
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 14 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-faint)' }}>שכבות:</span>
-        {FILTER_CHIPS.filter((fc) => layersOn || fc.key === 'events' || fc.key === 'courses').map((fc) => (
+        {FILTER_CHIPS.filter((fc) => {
+          // ללא שכבות מוצגים רק אירועים + חוגים (כמו קודם)
+          if (!layersOn && fc.key !== 'events' && fc.key !== 'courses') return false;
+          // מודול כבוי → הצ'יפ של השכבה הנגזרת מוסתר (אחרת נראה דלוק אך חסר-אפקט)
+          if (!familiesModOn && (fc.key === 'bdays' || fc.key === 'joins' || fc.key === 'family' || fc.key === 'enrolls'))
+            return false;
+          if (!coursesModOn && (fc.key === 'courses' || fc.key === 'enrolls')) return false;
+          return true;
+        }).map((fc) => (
           <Chip
             key={fc.key}
             on={filters[fc.key]}

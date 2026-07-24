@@ -621,7 +621,8 @@ export const useApp = create<AppState>()((set, get) => {
           if (score <= 0) return f; // אין לאן לרדת
           // בסיס הפעילות: רשומת הלוג האחרונה, ובהיעדרה — תאריך ההצטרפות. בלי fallback
           // ל-createdAt, משפחה חדשה (log ריק) נצבעה כ"לא פעילה" ונדעכה מיד ביום הצטרפותה.
-          const lastActivity = f.cred?.log?.[0]?.date || f.createdAt || '';
+          const lastActivity =
+            f.cred?.log?.find((l) => l.reason !== 'דעיכה — חוסר פעילות')?.date || f.createdAt || '';
           if (lastActivity && lastActivity >= cutoff) return f; // פעילות/הצטרפות לאחרונה
           n++;
           return {

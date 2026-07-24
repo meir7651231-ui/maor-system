@@ -30,6 +30,8 @@ const META_KEYS = [
   'reports',
   'ui',
   'seq',
+  'receiptSeq',
+  'donationSeq',
   'attnDone',
 ] as const;
 

@@ -1,13 +1,23 @@
 /** סעיפי דוח: סיכום רישום לחוגים + נוכחות וחיסורים. */
 
 import { useState } from 'react';
-import type { Db } from '../../types/domain';
+import type { Db, Enrollment } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { Chip } from '../ui';
 import type { Cell } from './csv';
 import { ReportTable, Section, type Row } from './parts';
 import { balanceOf, fmtDate, nameIndex, paidInRange, type DateRange } from './lib';
-import { enrollCount } from '../courses/lib';
+
+/** אינדוקס שיבוצים לפי קורס — מעבר יחיד על db.enrollments במקום סריקה מלאה לכל קורס. */
+function enrollmentsByCourse(db: Db): Map<string, Enrollment[]> {
+  const m = new Map<string, Enrollment[]>();
+  for (const e of db.enrollments) {
+    const arr = m.get(e.courseId);
+    if (arr) arr.push(e);
+    else m.set(e.courseId, [e]);
+  }
+  return m;
+}
 
 interface SectionProps {
   db: Db;
@@ -24,11 +34,12 @@ export function EnrollmentSection(props: SectionProps & { range: DateRange; rang
   let totEnrolled = 0;
   let totIncome = 0;
   let totOut = 0;
+  const ensByCourse = enrollmentsByCourse(db);
   const rows: Row[] = db.courses.map((c) => {
-    const ens = db.enrollments.filter((e) => e.courseId === c.id);
+    const ens = ensByCourse.get(c.id) ?? [];
     // תפוסה = משובצים נוכחיים (פעיל+מוקפא) כמו בכל האפליקציה; הכספים על כל השיבוצים
-    // (גם בוגרים שעזבו עם חוב/תשלום בטווח).
-    const current = enrollCount(db, c.id);
+    // (גם בוגרים שעזבו עם חוב/תשלום בטווח). enrollCount = ens ללא 'ended'.
+    const current = ens.filter((e) => e.status !== 'ended').length;
     const income = ens.reduce((a, e) => a + paidInRange(e, range), 0);
     const out = ens.reduce((a, e) => a + balanceOf(e), 0);
     const teacher = db.teachers.find((t) => t.id === c.teacherId);
@@ -77,8 +88,9 @@ export function AttendanceSection(props: SectionProps) {
   let tAbs = 0;
   let tNoshow = 0;
   let tMakeup = 0;
+  const ensByCourse = enrollmentsByCourse(db);
   const courseRows: Row[] = db.courses.map((c) => {
-    const ens = db.enrollments.filter((e) => e.courseId === c.id);
+    const ens = ensByCourse.get(c.id) ?? [];
     let abs = 0;
     let noshow = 0;
     let makeup = 0;

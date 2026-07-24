@@ -34,6 +34,7 @@ export function ReportsView() {
   // סעיפי הדוחות נגזרים מדגלי המודולים: רישום/נוכחות/כרטיסיות ← חוגים · תרומות ← תומכות
   const coursesOn = moduleOn(config, 'courses');
   const supportersOn = moduleOn(config, 'supporters');
+  const familiesOn = moduleOn(config, 'families');
   const [range, setRange] = useState<DateRange>({ from: '', to: '' });
   const [printing, setPrinting] = useState<SectionId | 'all' | null>(null);
 
@@ -125,7 +126,9 @@ export function ReportsView() {
           onPrint={() => setPrinting('donations')}
         />
       )}
-      <FamiliesSection db={db} hidden={hide('families')} onPrint={() => setPrinting('families')} />
+      {familiesOn && (
+        <FamiliesSection db={db} hidden={hide('families')} onPrint={() => setPrinting('families')} />
+      )}
       {coursesOn && <PunchSection db={db} hidden={hide('punch')} onPrint={() => setPrinting('punch')} />}
 
       <ReportPrefsSection />

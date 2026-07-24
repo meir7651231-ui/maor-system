@@ -9,7 +9,9 @@ import { allMembers } from '../../store/useApp';
 import { emptyDb } from '../../types/domain';
 import type { Db } from '../../types/domain';
 
-const fam = (id: string, name: string, members: unknown[] = []) => ({ id, name, members }) as never;
+// משפחה אמיתית תמיד נושאת מערך docs (migrate מבטיח זאת), ולכן גם sanitizeIncoming
+// מוסיף docs:[] — הסטאב חייב לשקף זאת כדי שבדיקת ה-no-op (echo-loop) תישאר תקפה.
+const fam = (id: string, name: string, members: unknown[] = []) => ({ id, name, members, docs: [] }) as never;
 
 describe('applyEntityPartial', () => {
   it('הוספה מרוחקת → נכנס, בלי לגעת בקיים', () => {

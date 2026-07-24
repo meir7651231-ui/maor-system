@@ -7,6 +7,7 @@
  * אין שרת. הנתונים חיים אצל הלקוח — ולכן כל שכבה כאן קריטית.
  */
 import { openDB, type IDBPDatabase } from 'idb';
+import { isoLocal } from '../lib/date-util';
 import {
   DB_VERSION,
   emptyDb,
@@ -380,7 +381,7 @@ export async function saveDb(db: Db): Promise<boolean> {
 export async function dailySnapshot(db: Db): Promise<void> {
   try {
     const d = await getIdb();
-    const key = new Date().toISOString().slice(0, 10);
+    const key = isoLocal(new Date());
     const doc = { ...db, savedAt: new Date().toISOString() };
     // הצפנה פעילה → הצילום נשמר מוצפן, אחרת נדלוף נתונים גלויים ב-IndexedDB
     const value: unknown = dek && envelope ? await reencryptDb(envelope, dek, JSON.stringify(doc)) : doc;
@@ -429,7 +430,7 @@ export async function exportBackupFile(db: Db): Promise<void> {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   const enc = dek ? '-encrypted' : '';
-  a.download = `maor-backup${enc}-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `maor-backup${enc}-${isoLocal(new Date())}.json`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }

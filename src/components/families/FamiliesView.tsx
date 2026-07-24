@@ -3,7 +3,7 @@
  * הקלדה ולתעתיק) + צ'יפים של חיזוי, סינון סטטוס/עיר/קהילה, מיון בלחיצה על
  * כותרת עמודה, שורת סינון-עמודות, פאנל סינון מורחב וגלגל מאתר המשפחות.
  */
-import { useEffect, useState, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import type { Family } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
@@ -11,7 +11,7 @@ import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, famEnrollments, finderAxisValue, numMatch, STATUS_META, tierOf } from './lib';
+import { chipStyle, finderAxisValue, numMatch, STATUS_META, tierOf } from './lib';
 import { FamilyFinder } from './FamilyFinder';
 import { FamilyForm } from './FamilyForm';
 import { FamilyDetail } from './FamilyDetail';
@@ -92,6 +92,20 @@ export function FamiliesView() {
     }
   }, [famFormReq, ackFamilyForm]);
 
+  // ספירת שיבוצים לכל משפחה — נבנית פעם אחת לכל שינוי db במקום סריקת
+  // db.enrollments המלאה בכל קריאה של famEnrollments (סינון 116/123 + מיון 147
+  // + כל שורה מוצגת 455/506) — מונע O(F×E) בכל הקשה על שדה חיפוש/סינון.
+  const enrollCount = useMemo(() => {
+    const m2f = new Map<string, string>();
+    for (const f of db.families) for (const m of f.members) m2f.set(m.id, f.id);
+    const cnt = new Map<string, number>();
+    for (const e of db.enrollments) {
+      const fid = m2f.get(e.memberId);
+      if (fid) cnt.set(fid, (cnt.get(fid) || 0) + 1);
+    }
+    return cnt;
+  }, [db]);
+
   const selected = db.families.find((f) => f.id === selFamilyId);
   if (selected) return <FamilyDetail family={selected} />;
 
@@ -113,14 +127,14 @@ export function FamiliesView() {
       if (!pd || !((f.phone || '') + (f.phone2 || '')).replace(/\D/g, '').includes(pd)) return false;
     }
     if (!numMatch(colF.kids, kidsOf(f).length)) return false;
-    if (!numMatch(colF.courses, famEnrollments(db, f).length)) return false;
+    if (!numMatch(colF.courses, enrollCount.get(f.id) || 0)) return false;
     if (colF.status !== 'all' && f.status !== colF.status) return false;
     // הפאנל המורחב
     if (adv.mar !== 'all' && (f.maritalStatus || '') !== adv.mar) return false;
     if (adv.lang !== 'all' && (f.language || '') !== adv.lang) return false;
     if (adv.sefach !== 'all' && f.fullSefach !== (adv.sefach === 'yes')) return false;
     if (adv.kids !== 'all' && kidsOf(f).length > 0 !== (adv.kids === 'yes')) return false;
-    if (adv.enrolled !== 'all' && famEnrollments(db, f).length > 0 !== (adv.enrolled === 'yes')) return false;
+    if (adv.enrolled !== 'all' && (enrollCount.get(f.id) || 0) > 0 !== (adv.enrolled === 'yes')) return false;
     if (adv.tier !== 'all' && tierOf(f.cred?.score ?? 700).key !== adv.tier) return false;
     return true;
   });
@@ -144,7 +158,7 @@ export function FamiliesView() {
     key === 'name' ? f.name
     : key === 'phone' ? f.phone || ''
     : key === 'kids' ? kidsOf(f).length
-    : key === 'courses' ? famEnrollments(db, f).length
+    : key === 'courses' ? enrollCount.get(f.id) || 0
     : { active: 0, pending: 1, inactive: 2 }[f.status] ?? 3;
   const filtered = sort
     ? [...searched].sort((a, b) => {
@@ -452,7 +466,7 @@ export function FamiliesView() {
                   {[parents, f.city].filter(Boolean).join(' · ') || '—'}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
-                  {kids.length} ילדים · {famEnrollments(db, f).length} חוגים
+                  {kids.length} ילדים · {enrollCount.get(f.id) || 0} חוגים
                   {f.createdAt ? ' · נרשמה ' + hebDateFull(f.createdAt) : ''}
                 </div>
               </div>
@@ -503,7 +517,7 @@ export function FamiliesView() {
                       .map((m) => m.first)
                       .join(', ') + (kids.length > 3 ? ' +' + (kids.length - 3) : '')
                   : '—';
-                const enrolls = famEnrollments(db, f).length;
+                const enrolls = enrollCount.get(f.id) || 0;
                 return (
                   <tr
                     key={f.id}

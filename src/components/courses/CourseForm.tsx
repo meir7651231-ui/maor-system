@@ -119,7 +119,9 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
 
   function save() {
     if (!f.name.trim()) return setError('שם הקורס הוא שדה חובה');
-    if (f.price && (isNaN(+f.price) || +f.price < 0)) return setError('המחיר חייב להיות מספר חיובי');
+    if (!f.roomId) return setError('יש לבחור חדר פעילות');
+    if ([f.price, f.price1, f.price2].some((p) => p && (isNaN(+p) || +p < 0)))
+      return setError('המחיר חייב להיות מספר חיובי');
     if (f.model === 'punch' && (!f.size || +f.size <= 0))
       return setError('בכרטיסייה יש להגדיר מספר ניקובים גדול מ-0');
     let cat = f.catSel;
@@ -132,6 +134,13 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
       if (!f.semOther.trim()) return setError('בחרתם מסלול "אחר" — הקלידו את שם המסלול');
       semester = f.semOther.trim();
     }
+    const weekday = Math.min(5, Math.max(0, +f.weekday || 0)) as Weekday;
+    const time = f.time || '17:00';
+    const ageMin = f.ageMin === '' ? 3 : Math.max(0, +f.ageMin || 0);
+    const ageMax = f.ageMax === '' ? 99 : Math.max(1, +f.ageMax || 99);
+    if (ageMax < ageMin) return setError('"עד גיל" חייב להיות גדול מ"מגיל"');
+    const dateErr = courseDateError(f.start, f.end);
+    if (dateErr) return setError(dateErr);
     let teacherId = f.teacherId;
     if (f.teacherId === ADD_TEACHER) {
       const tn = f.newTeacherName.trim();
@@ -156,13 +165,6 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
         teacherId = nt.id;
       }
     }
-    const weekday = Math.min(5, Math.max(0, +f.weekday || 0)) as Weekday;
-    const time = f.time || '17:00';
-    const ageMin = f.ageMin === '' ? 3 : Math.max(0, +f.ageMin || 0);
-    const ageMax = f.ageMax === '' ? 99 : Math.max(1, +f.ageMax || 99);
-    if (ageMax < ageMin) return setError('"עד גיל" חייב להיות גדול מ"מגיל"');
-    const dateErr = courseDateError(f.start, f.end);
-    if (dateErr) return setError(dateErr);
 
     const fields = {
       name: f.name.trim(),
