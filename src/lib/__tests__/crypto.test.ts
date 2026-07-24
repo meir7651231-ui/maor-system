@@ -14,16 +14,18 @@ import {
   isEncrypted,
 } from '../crypto';
 
-const JSON1 = JSON.stringify({ families: [{ id: 'f1', name: 'כהן' }], secret: 'ת"ז 123' });
+const JSON1 = JSON.stringify({ families: [{ id: 'f1', name: 'כהן' }], secret: 'מידע סודי' });
 
 describe('🔐 encrypt/decrypt — הלוך-חזור', () => {
   it('מצפין ומפענח חזרה בדיוק, והטקסט המקורי לא מופיע במעטפת', async () => {
     const env = await encryptDb(JSON1, 'passw0rd', genRecoveryKey());
     expect(isEncrypted(env)).toBe(true);
-    // הנתונים הגלויים לא נמצאים במעטפת (הצפנה אמיתית)
+    // הנתונים הגלויים לא נמצאים במעטפת (הצפנה אמיתית). בודקים מחרוזות עבריות
+    // בלבד — base64 הוא ASCII, ולכן עברית לא יכולה להופיע בו במקרה (מחרוזת
+    // קצרה כמו "123" כן עלולה להופיע אקראית ב-base64 ולכן אינה בדיקה תקינה).
     const blob = JSON.stringify(env);
     expect(blob).not.toContain('כהן');
-    expect(blob).not.toContain('123');
+    expect(blob).not.toContain('סודי');
     const dek = await openDek(env, 'passw0rd', 'pass');
     expect(dek).not.toBeNull();
     expect(await decryptDb(env, dek!)).toBe(JSON1);

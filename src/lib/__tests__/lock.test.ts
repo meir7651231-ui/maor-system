@@ -19,8 +19,8 @@ describe('🔒 hashPin — דטרמיניסטי, לא הפיך-בקלות, לא 
     const a = await hashPin('1234');
     const b = await hashPin('1234');
     expect(a).toBe(b);
-    expect(a).toMatch(/^[0-9a-f]{64}$/);
-    expect(a).not.toContain('1234');
+    expect(a).toMatch(/^[0-9a-f]{64}$/); // גיבוב 64-hex — לא הקוד הגלוי
+    expect(a).not.toBe('1234'); // (לא בודקים toContain: "1234" הוא hex תקין ועלול להופיע במקרה)
   });
   it('קודים שונים → גיבוב שונה', async () => {
     expect(await hashPin('1234')).not.toBe(await hashPin('1235'));
