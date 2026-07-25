@@ -165,32 +165,32 @@ export function migrate(raw: unknown): Db | null {
   // בשני מכשירים) עלול להנפיק rid זהה לשתי קבלות. פס זה רץ בכל טעינה ובכל
   // משיכה מהענן (pullAll→migrate): שומר את ההופעה הראשונה של כל rid וממספר מחדש
   // כפילויות מהמונה הזרוע. הקבלה עצמה נוצרת on-demand מ-p.rid, כך שהמספר מתוקן.
+  // מנרמלים גם את שדות-הרשימה הפנימיים ל-[] כשהם חסרים (לא רק כשהם כבר מערך) —
+  // מסמך שהגיע מהענן/גיבוי ללא payments/absences/donations היה משאיר undefined,
+  // וקוד ש-.map/.filter עליהם (paidOf, sessionsOf, דוחות) היה קורס.
   const seenR = new Set<string>();
-  merged.enrollments = merged.enrollments.map((e) =>
-    Array.isArray(e.payments)
-      ? {
-          ...e,
-          payments: e.payments.map((p) => {
-            if (p.rid && seenR.has(p.rid)) return { ...p, rid: 'R-' + merged.receiptSeq++ };
-            if (p.rid) seenR.add(p.rid);
-            return p;
-          }),
-        }
-      : e,
-  );
+  merged.enrollments = merged.enrollments.map((e) => ({
+    ...e,
+    payments: Array.isArray(e.payments)
+      ? e.payments.map((p) => {
+          if (p.rid && seenR.has(p.rid)) return { ...p, rid: 'R-' + merged.receiptSeq++ };
+          if (p.rid) seenR.add(p.rid);
+          return p;
+        })
+      : [],
+    absences: Array.isArray(e.absences) ? e.absences : [],
+  }));
   const seenD = new Set<string>();
-  merged.supporters = merged.supporters.map((s) =>
-    Array.isArray(s.donations)
-      ? {
-          ...s,
-          donations: s.donations.map((d) => {
-            if (d.rid && seenD.has(d.rid)) return { ...d, rid: 'D-' + merged.donationSeq++ };
-            if (d.rid) seenD.add(d.rid);
-            return d;
-          }),
-        }
-      : s,
-  );
+  merged.supporters = merged.supporters.map((s) => ({
+    ...s,
+    donations: Array.isArray(s.donations)
+      ? s.donations.map((d) => {
+          if (d.rid && seenD.has(d.rid)) return { ...d, rid: 'D-' + merged.donationSeq++ };
+          if (d.rid) seenD.add(d.rid);
+          return d;
+        })
+      : [],
+  }));
   // היגיינה: מזהים חסרים, כפילויות, מערכים חסרים בתוך משפחות
   const seen = new Set<string>();
   // מזהי בני-משפחה חייבים להיות ייחודיים גלובלית: deleteMember מסנן שיבוצים

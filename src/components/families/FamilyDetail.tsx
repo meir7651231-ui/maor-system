@@ -118,6 +118,16 @@ export function FamilyDetail(props: { family: Family }) {
   /** undefined=סגור · null=בן משפחה חדש · Member=עריכה */
   const [memberModal, setMemberModal] = useState<Member | null | undefined>(undefined);
 
+  // FamiliesView מרנדר FamilyDetail בלי key, וה-command palette מחליף משפחה בלי
+  // unmount — בלי איפוס, טופס עריכה/בן-משפחה שנשאר פתוח היה קשור למשפחה הקודמת.
+  // איפוס נגזר בזמן render (כמו ב-CourseDetail) כשמזהה המשפחה משתנה.
+  const [prevFamilyId, setPrevFamilyId] = useState(fam.id);
+  if (prevFamilyId !== fam.id) {
+    setPrevFamilyId(fam.id);
+    setEditOpen(false);
+    setMemberModal(undefined);
+  }
+
   const st = STATUS_META[fam.status];
   const parents = [fam.father, fam.mother].filter(Boolean).join(' ו');
   const addressLine = [fam.address, fam.city].filter(Boolean).join(', ');

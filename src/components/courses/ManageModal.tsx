@@ -12,6 +12,7 @@ import { HebDateInput } from '../HebDateInput';
 import {
   PAY_METHODS,
   chipStyle,
+  enrollCount,
   enrollStatusMeta,
   fmtDate,
   groupOptionsOf,
@@ -47,6 +48,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   const [payDate, setPayDate] = useState(isoToday());
   const [buyQty, setBuyQty] = useState('');
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [armedAt, setArmedAt] = useState(0);
 
   if (!en) return null;
   const m = allMembers(db).find((x) => x.id === en.memberId);
@@ -96,7 +98,9 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   function addPay() {
     if (!en) return;
     const amt = Math.round((+payAmt || 0) * 100) / 100;
-    if (!amt || amt <= 0) {
+    // Number.isFinite חוסם Infinity/NaN (קלט כמו "1e400") — אחרת Infinity עובר את
+    // הבדיקה, נשמר, מסודר ל-null ב-JSON, והיתרה/הקבלה משתבשות. כמו DonationModal.
+    if (!Number.isFinite(amt) || amt <= 0) {
       toast('הקלידו סכום תשלום תקין');
       return;
     }
@@ -127,7 +131,13 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
 
   function buyPunches() {
     if (!en) return;
-    const qty = +(buyQty || c.size || 12);
+    // דורשים כמות מפורשת (בלי fallback ל-c.size) — אחרת לחיצה כפולה: הקליק
+    // הראשון טוען ומאפס את השדה, והשני נופל ל-c.size וטוען מנה שנייה בטעות.
+    if (!buyQty.trim()) {
+      toast('הקלידו כמות ניקובים לטעינה');
+      return;
+    }
+    const qty = +buyQty;
     if (isNaN(qty) || qty <= 0 || qty > 200 || !Number.isInteger(qty)) {
       toast('כמות ניקובים לא תקינה');
       return;
@@ -136,7 +146,16 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       en.plan === 'punch'
         ? { ...en, purchased: en.purchased + qty }
         : { ...en, plan: 'punch', purchased: qty, used: 0 };
-    if (next.status === 'ended') next.status = 'active';
+    if (next.status === 'ended') {
+      // חידוש שיבוץ שהסתיים מחזיר אותו לתפוסה — חייב לעבור את שער הקיבולת כמו
+      // רישום חדש (enrollCount אינו סופר 'ended', לכן n הוא התפוסה הנוכחית).
+      const n = enrollCount(db, c.id);
+      if (n >= (c.maxStudents || 999)) {
+        toast('החוג מלא (' + n + '/' + c.maxStudents + ') — לא ניתן לחדש שיבוץ שהסתיים');
+        return;
+      }
+      next.status = 'active';
+    }
     upsertEnrollment(next);
     setBuyQty('');
     toast('כרטיסייה נטענה: +' + qty + ' ניקובים · יתרה חדשה ' + (next.purchased - next.used));
@@ -171,8 +190,13 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     if (!en) return;
     if (!confirmRemove) {
       setConfirmRemove(true);
+      setArmedAt(Date.now());
       return;
     }
+    // לחיצה כפולה טבעית משגרת שני קליקים; React מספיק לרנדר מחדש בין השניים, כך
+    // שהקליק השני היה מוחק בלי שהמשתמש הספיק לקרוא את "לאשר הסרה סופית?". חוסמים
+    // אישור שנוחת פחות מ-400ms מרגע הזריון — נדרשת לחיצה שנייה מכוונת.
+    if (Date.now() - armedAt < 400) return;
     if (en.dueEventId) deleteEvent(en.dueEventId);
     deleteEnrollment(en.id);
     toast('השיבוץ הוסר לצמיתות — כולל תזכורת התשלום מהלוח');

@@ -432,6 +432,7 @@ export const useApp = create<AppState>()((set, get) => {
       price: 0,
       roomId: '',
       famId: '',
+      spId: sp.id,
       priority: 'orange',
       done,
     });
@@ -757,10 +758,12 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => {
         // ניקוי מדורג של תזכורת "יעד קשר" המקושרת (nextEventId) — אחרת נשארת
         // תזכורת יתומה בלוח לתומכ/ת שנמחק/ה.
+        // ניקוי גם של אירועי מעקב עי"ן (spId) — נכתבו עם famId ריק ולכן לא נוקו
+        // ע"י מחיקת המשפחה; בלי זה נשארות תזכורות יתומות בלוח לתומכ/ת שנמחק/ה.
         const evId = db.supporters.find((s) => s.id === id)?.nextEventId;
         return {
           supporters: db.supporters.filter((s) => s.id !== id),
-          ...(evId ? { events: db.events.filter((ev) => ev.id !== evId) } : {}),
+          events: db.events.filter((ev) => ev.id !== evId && ev.spId !== id),
         };
       });
     },

@@ -2,7 +2,7 @@
  * מודאל אירוע — הוספה ועריכה של אירוע יומן על כל שדות OrgEvent,
  * כולל הד תאריך עברי וחיווי חזרה שנתית, ומחיקה בדפוס שתי-לחיצות.
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
@@ -84,6 +84,7 @@ export function EventModal(props: {
   }));
   const [error, setError] = useState('');
   const [armDelete, setArmDelete] = useState(false);
+  const armedAt = useRef(0);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF((p) => ({ ...p, [k]: v }));
 
@@ -117,7 +118,9 @@ export function EventModal(props: {
       setError('בחרתם סוג "מותאם" — הקלידו את סוג האירוע');
       return;
     }
-    if (f.price.trim() && isNaN(Number(f.price))) {
+    if (f.price.trim() && !Number.isFinite(Number(f.price))) {
+      // !Number.isFinite חוסם גם NaN וגם Infinity (קלט "1e400") — אחרת Infinity
+      // עובר ונשמר, מסודר ל-null ומשחית את שדה המחיר.
       setError('מחיר האירוע חייב להיות מספר');
       return;
     }
@@ -161,8 +164,13 @@ export function EventModal(props: {
     if (!ev) return;
     if (!armDelete) {
       setArmDelete(true);
+      armedAt.current = Date.now();
       return;
     }
+    // מתעלמים מאישור שנוחת פחות מ-400ms מהזריון — לחיצה כפולה טבעית משגרת שני
+    // קליקים, וה-render של הזריון קורה ביניהם; בלי זה הקליק השני היה מוחק בלי
+    // שהמשתמש הספיק לקרוא את "לחצו שוב לאישור".
+    if (Date.now() - armedAt.current < 400) return;
     deleteEvent(ev.id);
     toast('האירוע נמחק מהלוח');
     onClose();

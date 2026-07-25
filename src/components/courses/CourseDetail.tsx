@@ -2,7 +2,7 @@
  * כרטיס קורס — תלמידים רשומים (ניקוב, ⚙ ניהול, ✕ חיסור, שיוך קבוצה),
  * שעות פעילות וקבוצות (עורך המפגשים) ופרטי הקורס.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Course, Enrollment, Weekday } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
@@ -82,7 +82,10 @@ export function CourseDetail(props: { course: Course }) {
   const teacher = db.teachers.find((t) => t.id === c.teacherId);
   const room = db.rooms.find((r) => r.id === c.roomId);
   const enrolled = db.enrollments.filter((e) => e.courseId === c.id);
-  const members = allMembers(db);
+  // ממואיזים לפי db: allMembers רץ מחדש בכל render (גם בהקלדה), וה-.find לכל שורה
+  // נתן O(מספר-שיבוצים × סה"כ-חברים). Map ממזהה→חבר הופך את זה ל-O(1) לשורה.
+  const members = useMemo(() => allMembers(db), [db]);
+  const memberById = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
   const sessions = sessionsOf(c);
   // קבוצות כבויות בקונפיגורציה → התנהגות קבוצה-יחידה (אין בוררי קבוצה ואין עורך)
   const groups = groupsOn ? groupOptionsOf(c) : [];
@@ -111,7 +114,7 @@ export function CourseDetail(props: { course: Course }) {
       ['תלמיד/ה', 'גיל', 'משפחה', 'טלפון', 'קבוצה', 'מסלול', 'יתרה', 'רגישויות/רפואי', 'הערה'],
     ];
     for (const e of enrolled) {
-      const m = members.find((x) => x.id === e.memberId);
+      const m = memberById.get(e.memberId);
       const fam = db.families.find((f) => f.id === m?.famId);
       rows.push([
         m?.first ?? '',
@@ -311,7 +314,7 @@ export function CourseDetail(props: { course: Course }) {
                   </thead>
                   <tbody>
                     {enrolled.map((e) => {
-                      const m = members.find((x) => x.id === e.memberId);
+                      const m = memberById.get(e.memberId);
                       const isPunch = e.plan === 'punch';
                       const rem = e.purchased - e.used;
                       const barColor = rem <= 0 ? '#dc2626' : rem <= 2 ? '#d97706' : '#16a34a';

@@ -13,14 +13,20 @@ import type { DbDiff } from '../../lib/cloud-diff';
 
 const pushed: DbDiff[] = [];
 let cloudReturn: Db | null = null;
+let onPush: (() => void) | null = null; // hook לגירוי logout באמצע push
+let subscribeCalls = 0;
 
 vi.mock('../../lib/cloud', () => ({
   pullAll: () => Promise.resolve(cloudReturn),
   pushDiff: (d: DbDiff) => {
     pushed.push(d);
+    onPush?.();
     return Promise.resolve();
   },
-  subscribeAll: () => () => {},
+  subscribeAll: () => {
+    subscribeCalls++;
+    return () => {};
+  },
   // re-exports ש-cloudSync מייצא מחדש — לא בשימוש בבדיקה
   initCloud: () => {},
   resetPassword: () => Promise.resolve(),
@@ -37,6 +43,8 @@ const db = (fams: Family[]): Db => ({ ...emptyDb(), families: fams });
 beforeEach(() => {
   pushed.length = 0;
   cloudReturn = null;
+  onPush = null;
+  subscribeCalls = 0;
   stopCloudSync();
 });
 
@@ -68,5 +76,23 @@ describe('☁️ ratchet — מיזוג בחיבור ראשון (HIGH)', () => {
     expect(setIds).toContain('fLocal');
     expect(setIds).not.toContain('fCloud');
     expect(pushed[0].deletes).toEqual([]);
+  });
+
+  it('logout באמצע ה-push לא מחיה מנוי חי ולא כותב synced (HIGH re-guard)', async () => {
+    const local = db([fam('fLocal', 'אופליין')]);
+    cloudReturn = db([fam('fCloud', 'ענן')]);
+    const statuses: string[] = [];
+    // מדמים logout בדיוק כשה-push רץ (stopCloudSync מאפס hooks → active נשאר false)
+    onPush = () => stopCloudSync();
+    await startCloudSync({
+      getDb: () => local,
+      setDbFromRemote: () => {},
+      toast: () => {},
+      setStatus: (s) => statuses.push(s),
+    });
+    // אחרי logout: אין התקנת מנוי Firestore, ואין כתיבת 'synced' מעל ה-'idle'
+    expect(subscribeCalls).toBe(0);
+    expect(statuses[statuses.length - 1]).toBe('idle');
+    expect(statuses).not.toContain('synced');
   });
 });

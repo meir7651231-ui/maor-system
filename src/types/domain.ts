@@ -233,6 +233,8 @@ export interface OrgEvent {
   roomId: Id | '';
   /** קישור למשפחה (אזכרה/שמחה/תזכורת). */
   famId: Id | '';
+  /** קישור לתומכ/ת (תזכורת מעקב עי"ן) — לניקוי מדורג במחיקת תומך. */
+  spId?: Id;
   priority: EventPriority;
   done: boolean;
 }

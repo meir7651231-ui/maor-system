@@ -99,6 +99,11 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
       const additions = diffDb(cloudDb, merged);
       if (!emptyDiff(additions)) await pushDiff(additions);
     }
+    // התנתקות (logout) יכולה לרוץ סינכרונית במהלך ה-push-ים למעלה; אז hooks אופס
+    // ו-stopCloudSync כבר סיים. בלי שער נוסף כאן היינו מחיים active=true, מתקינים
+    // מנוי Firestore חי לחשבון שיצא (דליפה — stopCloudSync כבר רץ), וכותבים
+    // 'synced' אחרי ה-'idle'. מגן על שני ה-await (81 ו-100), כמו השער בשורה 76.
+    if (hooks !== h) return;
     active = true;
     unsubAll = subscribeAll(onRemote, () => {
       hooks?.setStatus('error');
@@ -146,6 +151,12 @@ async function flushPush(): Promise<void> {
       pushLatest ??= latest;
       hooks?.setStatus('error');
       hooks?.toast('⚠ הדחיפה לענן נכשלה — הנתונים שמורים מקומית ויסונכרנו בהמשך');
+      // flushPush נקרא רק מטיימר ה-debounce של cloudOnDbChange (עריכת משתמש). בלי
+      // תזמון-מחדש, דלתא שנכשלה הייתה תלויה לנצח עד העריכה הבאה. מתזמנים ניסיון
+      // חוזר עם backoff (5s, לא זמן ה-debounce) כדי לא להיכנס ללולאה הדוקה על
+      // כשל מתמשך (permission-denied). stopCloudSync מנקה את pushTimer.
+      clearTimeout(pushTimer);
+      pushTimer = setTimeout(() => void flushPush(), 5000);
     }
   }
 }

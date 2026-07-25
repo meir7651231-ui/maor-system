@@ -2,7 +2,15 @@
  * רכיבי UI משותפים — כל המודולים משתמשים אך ורק ברכיבים האלה
  * לטפסים, מודאלים וכפתורים, כדי לשמור על שפה עיצובית אחת.
  */
-import { useEffect, useRef, type ReactNode } from 'react';
+import {
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useId,
+  useRef,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 
 export function Btn(props: {
   children: ReactNode;
@@ -40,22 +48,30 @@ export function Chip(props: { children: ReactNode; on?: boolean; onClick?: () =>
 
 export function Modal(props: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const focusables = () =>
+    Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      ) ?? []
+    );
+  // פוקוס פנימה בפתיחה + החזרתו לפותח בסגירה — פעם אחת בלבד (mount/unmount).
+  // חשוב שזה לא יהיה תלוי ב-props: אובייקט props הוא reference חדש בכל render,
+  // ואפקט עם [props] היה מריץ מחדש refocus בכל הקלדה וגונב את הפוקוס מהשדה.
   useEffect(() => {
-    const focusables = () =>
-      Array.from(
-        dialogRef.current?.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
-        ) ?? []
-      );
-    // העברת פוקוס פנימה עם הפתיחה — לאלמנט הראשון או לדיאלוג עצמו.
+    const opener = document.activeElement as HTMLElement | null;
     (focusables()[0] ?? dialogRef.current)?.focus();
+    return () => opener?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // מאזין Escape + מלכודת Tab — נקשר מחדש רק כש-onClose משתנה, לא בכל render.
+  useEffect(() => {
+    const onClose = props.onClose;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        props.onClose();
+        onClose();
         return;
       }
       if (e.key === 'Tab') {
-        // מלכודת Tab — שמירת הפוקוס בתוך הדיאלוג.
         const items = focusables();
         if (items.length === 0) {
           e.preventDefault();
@@ -76,7 +92,7 @@ export function Modal(props: { title: string; onClose: () => void; children: Rea
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [props]);
+  }, [props.onClose]);
   return (
     <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && props.onClose()}>
       <div
@@ -96,10 +112,16 @@ export function Modal(props: { title: string; onClose: () => void; children: Rea
 }
 
 export function Field(props: { label: string; children: ReactNode }) {
+  // קושרים label לפקד דרך id ייחודי (htmlFor) — כך שדות בלי placeholder (טלפון 2,
+  // מין, הערות) מקבלים שם נגיש לקורא-מסך. מזריקים את ה-id לפקד הבודד ב-cloneElement.
+  const id = useId();
+  const child = isValidElement(props.children)
+    ? cloneElement(props.children as ReactElement<{ id?: string }>, { id })
+    : props.children;
   return (
     <div className="field">
-      <label>{props.label}</label>
-      {props.children}
+      <label htmlFor={id}>{props.label}</label>
+      {child}
     </div>
   );
 }
@@ -110,9 +132,11 @@ export function TextInput(props: {
   placeholder?: string;
   type?: string;
   dir?: 'rtl' | 'ltr';
+  id?: string;
 }) {
   return (
     <input
+      id={props.id}
       type={props.type ?? 'text'}
       value={props.value}
       dir={props.dir}
@@ -126,9 +150,10 @@ export function Select(props: {
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
+  id?: string;
 }) {
   return (
-    <select value={props.value} onChange={(e) => props.onChange(e.target.value)}>
+    <select id={props.id} value={props.value} onChange={(e) => props.onChange(e.target.value)}>
       {props.options.map((o) => (
         <option key={o.value} value={o.value}>
           {o.label}
@@ -140,7 +165,13 @@ export function Select(props: {
 
 export function FormError(props: { error: string }) {
   if (!props.error) return null;
-  return <div className="form-error">{props.error}</div>;
+  // role="alert" (מרמז aria-live=assertive) — ההודעה נכנסת ל-DOM דינמית ותוקרא
+  // ע"י קורא-מסך ברגע ההוספה.
+  return (
+    <div className="form-error" role="alert">
+      {props.error}
+    </div>
+  );
 }
 
 export function Empty(props: { children: ReactNode }) {

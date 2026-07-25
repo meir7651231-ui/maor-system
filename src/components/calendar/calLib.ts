@@ -91,6 +91,13 @@ export function blockReason(d: Date, kind: 'org' | 'course' = 'org'): string | n
   if (kind === 'course' && dow === 5) return 'יום שישי (שעתיים לפני שבת)';
   const hol = holidayOf(d);
   if (hol && FULL_HOLIDAYS.includes(hol)) return hol;
+  // צום תשעה באב נדחה: כשט' באב חל בשבת, הצום נצפה בי' באב (ראשון). ט' באב עצמו
+  // נחסם כ'שבת', אך י' באב — הצום בפועל — לא היה נחסם. שער dow===0 מונע חישוב hp
+  // מיותר ברוב הימים; חל גם על org וגם על course כמו תשעה באב המקורי.
+  if (dow === 0) {
+    const hpAv = hpOf(isoOf(d), d);
+    if (hpAv.month === 'Av' && hpAv.day === 10) return 'תשעה באב (נדחה)';
+  }
   if (kind === 'course') {
     const hp = hpOf(isoOf(d), d);
     if ((hp.month === 'Tishri' && hp.day >= 16 && hp.day <= 21) || (hp.month === 'Nisan' && hp.day >= 16 && hp.day <= 20))

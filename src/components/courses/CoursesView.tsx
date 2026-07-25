@@ -12,7 +12,7 @@ import { numMatch } from '../families/lib';
 import { CourseForm } from './CourseForm';
 import { CourseDetail } from './CourseDetail';
 import { CourseWheel } from '../wheel/CourseWheel';
-import { DAY_LETTERS, TINTS, chipStyle, enrollCount, modelMeta, priceSuffix } from './lib';
+import { DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix } from './lib';
 
 type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2';
 
@@ -75,6 +75,17 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const cats = useMemo(() => [...new Set(db.courses.map((c) => c.cat).filter(Boolean))], [db.courses]);
   const sems = useMemo(() => [...new Set(db.courses.map((c) => c.semester).filter(Boolean))], [db.courses]);
 
+  // ספירת שיבוצים לכל חוג במעבר O(E) יחיד, במקום enrollCount(db,c.id) (סריקה מלאה)
+  // שנקרא בפילטר, בממיין, ובכל שורה מרונדרת — כלומר O(חוגים × שיבוצים) לכל render.
+  const enrollCounts = useMemo(() => {
+    const cnt = new Map<string, number>();
+    for (const e of db.enrollments) {
+      if (e.status === 'ended') continue;
+      cnt.set(e.courseId, (cnt.get(e.courseId) || 0) + 1);
+    }
+    return cnt;
+  }, [db.enrollments]);
+
   const shown = useMemo(() => {
     const nq = normSearch(q);
     const list = db.courses.filter((c) => {
@@ -84,7 +95,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       if (colF.audience.trim() && !normSearch(c.audience || '').includes(normSearch(colF.audience))) return false;
       if (colF.teacher.trim() && !normSearch(teacherName(c.teacherId)).includes(normSearch(colF.teacher))) return false;
       if (colF.model !== 'all' && c.model !== colF.model) return false;
-      if (!numMatch(colF.count, enrollCount(db, c.id))) return false;
+      if (!numMatch(colF.count, (enrollCounts.get(c.id) || 0))) return false;
       if (!numMatch(colF.price, c.price || 0)) return false;
       if (nq) {
         const hay = normSearch([c.name, teacherName(c.teacherId), c.cat, c.audience ?? ''].join(' '));
@@ -98,7 +109,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       : sort.key === 'audience' ? c.audience || ''
       : sort.key === 'teacher' ? teacherName(c.teacherId)
       : sort.key === 'model' ? c.model
-      : sort.key === 'count' ? enrollCount(db, c.id)
+      : sort.key === 'count' ? (enrollCounts.get(c.id) || 0)
       : sort.key === 'price1' ? c.price1 || 0
       : sort.key === 'price2' ? c.price2 || 0
       : c.price || 0;
@@ -108,7 +119,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       const cc = typeof va === 'string' ? va.localeCompare(String(vb), 'he') : va - (vb as number);
       return cc * sort.dir;
     });
-  }, [db, q, cat, sem, colF, sort, teacherName]);
+  }, [db, q, cat, sem, colF, sort, teacherName, enrollCounts]);
 
   const clickSort = (key: CrsSortKey) =>
     setSort((s) => (s?.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
@@ -211,7 +222,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 14 }}>
           {shown.map((c, i) => {
             const mm = modelMeta(c);
-            const n = enrollCount(db, c.id);
+            const n = (enrollCounts.get(c.id) || 0);
             return (
               <div
                 key={c.id}
@@ -311,7 +322,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             <tbody>
               {shown.map((c) => {
                 const mm = modelMeta(c);
-                const n = enrollCount(db, c.id);
+                const n = (enrollCounts.get(c.id) || 0);
                 return (
                   <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => selectCourse(c.id)}>
                     <td style={{ fontWeight: 700 }}>{c.name}</td>

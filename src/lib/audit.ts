@@ -156,10 +156,14 @@ export function runAudit(db: Db): AuditIssue[] {
   }
 
   // ——— לוגיקה: תשלום-יתר בשיבוצים ———
+  // אינדקס חבר→משפחה במעבר יחיד, במקום find מקונן לכל שיבוץ (O(שיבוצים×משפחות×חברים)).
+  const famByMember = new Map<string, Family>();
+  for (const f of (Array.isArray(db.families) ? db.families : []))
+    for (const m of members(f)) famByMember.set(m.id, f);
   for (const e of (Array.isArray(db.enrollments) ? db.enrollments : [])) {
     const paid = (e.payments || []).reduce((a, x) => a + x.amount, 0);
     if (e.totalDue && paid > e.totalDue) {
-      const fam = db.families.find((f2) => members(f2).some((m2) => m2.id === e.memberId));
+      const fam = famByMember.get(e.memberId);
       if (fam) add('לוגיקה', 'משפחת ' + fam.name + ': שולם ₪' + paid + ' — יותר מסה"כ העסקה (₪' + e.totalDue + '). בדקו החזר או עדכנו את הסכום', fam.id);
     }
   }

@@ -20,14 +20,10 @@
             return location.href.indexOf(r.scope) === 0;
           });
           if (!controlsUs.length) return;
+          // לא מוחקים caches: מאור לא רושמת SW ולא מחזיקה caches משלה, ואחרי
+          // unregister+reload ה-SW הזר כבר לא שולט בעמוד ולא יכול להגיש assets ישנים.
+          // מחיקה גורפת של caches.keys() הייתה מוחקת מטמון של אפליקציה אחרת באותו origin.
           Promise.all(controlsUs.map(function (r) { return r.unregister(); }))
-            .then(function () {
-              return window.caches
-                ? caches.keys().then(function (keys) {
-                    return Promise.all(keys.map(function (k) { return caches.delete(k); }));
-                  })
-                : null;
-            })
             .then(function () {
               if (!sessionStorage.getItem('maorSwKilled')) {
                 sessionStorage.setItem('maorSwKilled', '1');
