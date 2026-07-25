@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import type { NotifPrefs } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, isAdminUser } from '../../lib/config';
 import { Btn, Chip, Field, FormError, PageHead, TextInput } from '../ui';
 import { Section, SectionNote, Toggle } from './lib';
 import { TeachersSection } from './TeachersSection';
@@ -36,8 +36,10 @@ const SECTIONS: { id: string; label: string; feature?: string }[] = [
 
 export function SettingsView() {
   const config = useApp((s) => s.config);
+  const cloudUser = useApp((s) => s.cloud.user);
   const sections = SECTIONS.filter((s) => !s.feature || featureOn(config, s.feature));
   const secOn = (id: string) => sections.some((s) => s.id === id);
+  const isAdmin = isAdminUser(config, cloudUser?.email);
 
   return (
     <div>
@@ -48,6 +50,10 @@ export function SettingsView() {
             {s.label}
           </Chip>
         ))}
+        {/* כניסה לאשף ההקמה — צ'יפ גלוי למנהל-על בלבד, מחליף את הצורך ב-#builder ידני */}
+        {isAdmin && (
+          <Chip onClick={() => { window.location.hash = '#builder'; }}>🎛️ אשף ההקמה</Chip>
+        )}
       </div>
 
       <OrgSection />
