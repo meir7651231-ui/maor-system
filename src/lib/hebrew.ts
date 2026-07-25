@@ -46,16 +46,36 @@ export function adarNorm(monthEn: string): string {
   return monthEn === 'Adar II' ? 'Adar' : monthEn;
 }
 
+/** האם שם החודש הוא אדר כלשהו (רגיל / א׳ / ב׳). */
+function isAdar(m: string): boolean {
+  return m === 'Adar' || m === 'Adar I' || m === 'Adar II';
+}
+
 /**
- * שוויון יום+חודש עברי לצורך חזרה שנתית (עם נרמול אדר). מקור-אמת יחיד לכל
- * המשטחים: לוח הבית (eventsOnDate) · רשת הלוח (dayItems/eventOccursOn) ·
- * אירועים קרובים (upcomingRows) — כדי שלא ייווצר פער ביניהם.
+ * שוויון יום+חודש עברי לחזרה שנתית — **א-סימטרי לפי תפקיד**: הארגומנט הראשון הוא
+ * *עוגן* (תאריך האירוע/יום-ההולדת המקורי), השני הוא *היום הנבדק* בשנה הנוכחית.
+ * מקור-אמת יחיד לכל המשטחים (בית · לוח · קרובים · ייצוא) כדי שלא ייווצר פער.
+ *
+ * כלל אדר (החלטת המשתמש — "אדר רגיל → אדר ב׳"):
+ *  · שנה פשוטה (ליום הנבדק חודש 'Adar' יחיד) — כל עוגן-אדר נופל עליו.
+ *  · שנה מעוברת: עוגן ב-'Adar' רגיל או 'Adar II' → נופל על אדר ב׳ (לא אדר א׳),
+ *    כך שאזכרה/יום-הולדת חוזר פעם אחת בלבד; עוגן ב-'Adar I' → נופל על אדר א׳.
+ * הא-סימטריות הכרחית: קריסה סימטרית של שלושת האדרים הייתה מפעילה אירוע אדר-רגיל
+ * גם באדר א׳ וגם באדר ב׳ (כפילות), ועוגן אדר-א׳ היה נעלם משנה פשוטה (הבאג המקורי).
  */
 export function hebAnnualEq(
-  a: { day: number; month: string },
-  b: { day: number; month: string },
+  anchor: { day: number; month: string },
+  query: { day: number; month: string },
 ): boolean {
-  return a.day === b.day && adarNorm(a.month) === adarNorm(b.month);
+  if (anchor.day !== query.day) return false;
+  if (isAdar(anchor.month) || isAdar(query.month)) {
+    if (!isAdar(anchor.month) || !isAdar(query.month)) return false; // אחד אדר, השני לא
+    if (query.month === 'Adar') return true; // שנה פשוטה — אדר יחיד בולע כל עוגן-אדר
+    if (query.month === 'Adar II') return anchor.month === 'Adar' || anchor.month === 'Adar II';
+    if (query.month === 'Adar I') return anchor.month === 'Adar I';
+    return false;
+  }
+  return anchor.month === query.month;
 }
 
 /** מפרק תאריך לועזי לחלקי התאריך העברי (חודש בשם אנגלי — 'Tishri', 'Adar II'…). */

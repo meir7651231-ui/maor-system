@@ -95,6 +95,28 @@ describe('🔬 hebAnnualEq — מקור-האמת המשותף', () => {
   });
   it('יום שונה = לא שווה', () =>
     expect(hebAnnualEq({ day: 15, month: 'Nisan' }, { day: 16, month: 'Nisan' })).toBe(false));
+
+  describe('🔁 ratchet — א-סימטריית אדר (פאס-6, החלטת המשתמש: אדר רגיל → אדר ב׳)', () => {
+    const A = 'Adar', A1 = 'Adar I', A2 = 'Adar II';
+    it('עוגן אדר-רגיל בשנה מעוברת: נופל על אדר ב׳ בלבד — פעם אחת, לא כפילות', () => {
+      expect(hebAnnualEq({ day: 10, month: A }, { day: 10, month: A2 })).toBe(true);
+      expect(hebAnnualEq({ day: 10, month: A }, { day: 10, month: A1 })).toBe(false);
+    });
+    it('עוגן אדר-א׳ לא נעלם בשנה פשוטה: נופל על אדר היחיד (הבאג המקורי)', () => {
+      expect(hebAnnualEq({ day: 7, month: A1 }, { day: 7, month: A })).toBe(true);
+      // ...אבל בשנה מעוברת נשאר על אדר א׳ בלבד
+      expect(hebAnnualEq({ day: 7, month: A1 }, { day: 7, month: A1 })).toBe(true);
+      expect(hebAnnualEq({ day: 7, month: A1 }, { day: 7, month: A2 })).toBe(false);
+    });
+    it('עוגן אדר-ב׳: שנה פשוטה→אדר, מעוברת→אדר ב׳', () => {
+      expect(hebAnnualEq({ day: 3, month: A2 }, { day: 3, month: A })).toBe(true);
+      expect(hebAnnualEq({ day: 3, month: A2 }, { day: 3, month: A2 })).toBe(true);
+      expect(hebAnnualEq({ day: 3, month: A2 }, { day: 3, month: A1 })).toBe(false);
+    });
+    it('אדר מול חודש רגיל — לא שווה', () => {
+      expect(hebAnnualEq({ day: 15, month: A }, { day: 15, month: 'Nisan' })).toBe(false);
+    });
+  });
 });
 
 describe('📅 אותו תיקון חייב לחול על הלוח (calLib), לא רק על הבית', () => {

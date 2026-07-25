@@ -31,7 +31,7 @@ import { applyTheme, loadOrgConfig, saveConfigOverride } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
-import { featLabel, planAddName, planAyinAdvance, revertPatch } from '../lib/ayin';
+import { featLabel, planAddName, planAyinAdvance, revertPatch, stageIndex } from '../lib/ayin';
 import {
   dailySnapshot,
   exportBackupFile,
@@ -419,10 +419,13 @@ export const useApp = create<AppState>()((set, get) => {
     }));
   }
 
-  /** אירוע לוח למעקב הטיפול — type 'call', priority 'orange' (מיפוי 'yellow' של האב-טיפוס). */
-  function ayinEvent(sp: Supporter, a: AyinCase, title: string, done: boolean): void {
+  /**
+   * אירוע לוח למעקב הטיפול — type 'call', priority 'orange'. evId ניתן להזרקה
+   * כדי ש-ayinAdvance ישמור אותו על התיק (ל-revert); ברירת מחדל — מזהה חדש.
+   */
+  function ayinEvent(sp: Supporter, a: AyinCase, title: string, done: boolean, evId = get().nextId('ev')): void {
     get().upsertEvent({
-      id: get().nextId('ev'),
+      id: evId,
       title,
       date: a.nextTalk || isoToday(),
       time: a.nextTalkTime || '',
@@ -801,13 +804,41 @@ export const useApp = create<AppState>()((set, get) => {
       if (!c) return;
       const plan = planAyinAdvance(get().config, c.sp.name, c.a);
       if (!plan) return;
-      if (plan.event) ayinEvent(c.sp, c.a, plan.event.title, plan.event.done);
-      setAyin(id, plan.patch);
+      let patch = plan.patch;
+      if (plan.event) {
+        // שומרים את מזהה אירוע-הלוח על התיק, לפי שלב-מקור המעבר (או 'answerPush'),
+        // כדי ש-revert יוכל למחוק אותו ולמנוע יתומים/כפילות ב-re-advance.
+        const evId = get().nextId('ev');
+        const key = c.a.stage === 'answer' && !c.a.answerPushed ? 'answerPush' : c.a.stage;
+        ayinEvent(c.sp, c.a, plan.event.title, plan.event.done, evId);
+        patch = { ...patch, boardEventIds: { ...(c.a.boardEventIds ?? {}), [key]: evId } };
+      }
+      setAyin(id, patch);
       get().toast(plan.toast);
     },
     ayinRevert(id, stage) {
-      if (!curAyin(id)) return;
-      setAyin(id, revertPatch(stage));
+      const c = curAyin(id);
+      if (!c) return;
+      // מוחקים אירועי-לוח של מעברים שכעת מבוטלים (סף לפי שלב-היעד של כל מעבר),
+      // כדי שלא יישארו תזכורות יתומות בלוח ו-re-advance לא ייצור כפילות.
+      const KEEP_MIN: Record<string, number> = { new: 1, lead: 2, eyes: 3, answerPush: 3, answer: 4 };
+      const si = stageIndex(stage);
+      const kept: Partial<Record<string, string>> = {};
+      const drop = new Set<string>();
+      for (const [k, evId] of Object.entries(c.a.boardEventIds ?? {})) {
+        if (!evId) continue;
+        if (si < (KEEP_MIN[k] ?? 99)) drop.add(evId);
+        else kept[k] = evId;
+      }
+      const today = isoToday();
+      setDb((db) => ({
+        events: db.events.filter((e) => !drop.has(e.id)),
+        supporters: db.supporters.map((sp) =>
+          sp.id !== id
+            ? sp
+            : { ...sp, ayin: { ...(sp.ayin ?? emptyAyin()), ...revertPatch(stage), boardEventIds: kept, lastTouch: today } },
+        ),
+      }));
     },
     ayinAddName(id, name, eyes) {
       const c = curAyin(id);

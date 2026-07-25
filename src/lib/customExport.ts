@@ -160,7 +160,8 @@ export function buildCustomExport(
         for (let dd = new Date(d0); dd <= d1; dd.setDate(dd.getDate() + 1)) {
           // נרמול אדר משותף — עקבי עם הלוח והבית; בלעדיו אזכרה ב"אדר" נעדרת מהייצוא בשנה מעוברת.
           // חסם תחתון >= ev.date — עקבי עם eventsOnDate/eventOccursOn; בלעדיו נוצרות שורות רפאים לפני האירוע.
-          if (isoOf(dd) >= ev.date && hebAnnualEq(hebParts(dd), oh)) occ.push({ ...rec, date: isoOf(dd) });
+          // (עוגן, יום-נבדק) — oh הוא תאריך האירוע המקורי, dd היום שנסרק; הסדר קריטי מאז שהשוויון א-סימטרי.
+          if (isoOf(dd) >= ev.date && hebAnnualEq(oh, hebParts(dd))) occ.push({ ...rec, date: isoOf(dd) });
         }
       } else if (inR(ev.date, range) || (!range.from && !range.to)) {
         occ.push({ ...rec, date: ev.date });

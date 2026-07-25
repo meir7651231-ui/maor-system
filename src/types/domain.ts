@@ -296,6 +296,13 @@ export interface AyinCase {
   names: AyinName[];
   answers: AyinAnswer[];
   log: AyinLog[];
+  /**
+   * מזהי אירועי-הלוח שנוצרו במעברי-השלב, לפי שלב-המקור של המעבר
+   * ('new'/'lead'/'eyes'/'answer') + 'answerPush' (מעבר הדחיפה). מאפשר ל-revert
+   * למחוק את האירועים של המעברים המבוטלים, כך שלא יישארו יתומים ו-re-advance
+   * לא ייצור כפילות. undefined בתיקים ישנים (מטופל כ-{}).
+   */
+  boardEventIds?: Partial<Record<string, Id>>;
 }
 
 export interface Supporter {
