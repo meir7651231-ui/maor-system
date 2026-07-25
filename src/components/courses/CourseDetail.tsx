@@ -240,9 +240,11 @@ export function CourseDetail(props: { course: Course }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
-            📊 דו"ח מותאם
-          </Btn>
+          {featureOn(cfg, 'courses.printout.custom') && (
+            <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
+              📊 דו"ח מותאם
+            </Btn>
+          )}
           <Btn onClick={() => setModal({ kind: 'edit' })}>{'✎ עריכת ' + termOf(cfg, 'entity.course', 'חוג')}</Btn>
           <Btn
             kind="danger"
@@ -280,9 +282,11 @@ export function CourseDetail(props: { course: Course }) {
                     ⬇ תדפיס למורה
                   </Btn>
                 )}
-                <Btn sm onClick={exportDaily} title='דו"ח יומי מפורט — מפגש-מפגש כולל חיסורים'>
-                  ⬇ דו"ח יומי מפורט
-                </Btn>
+                {featureOn(cfg, 'courses.printout.daily') && (
+                  <Btn sm onClick={exportDaily} title='דו"ח יומי מפורט — מפגש-מפגש כולל חיסורים'>
+                    ⬇ דו"ח יומי מפורט
+                  </Btn>
+                )}
                 <Btn sm disabled={full} onClick={() => setModal({ kind: 'enroll' })}>
                   {full ? 'ה' + termOf(cfg, 'entity.course', 'חוג') + ' מלא' : '+ שיבוץ תלמיד'}
                 </Btn>

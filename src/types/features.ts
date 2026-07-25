@@ -43,6 +43,12 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.groups', label: 'קבוצות מרובות', desc: 'ניהול כמה קבוצות במקביל לאותו חוג', module: 'courses' },
   { key: 'courses.wheel', label: 'גלגל החוגים', desc: 'תצוגת גלגל שבועית של מערכת החוגים', module: 'courses' },
   { key: 'courses.printout', label: 'תדפיס למורה', desc: 'הדפסת רשימת משתתפים ונוכחות למורה', module: 'courses' },
+  // תת-יכולות עדינות (עצמאיות — בלוק/כפתור נפרד לכל אחת)
+  { key: 'courses.punch.buy', label: 'קניית/טעינת כרטיסייה', desc: 'תיבת טעינת הניקובים בניהול השיבוץ', module: 'courses' },
+  { key: 'courses.punch.undo', label: 'ביטול ניקוב אחרון', desc: 'כפתור ביטול הניקוב האחרון', module: 'courses' },
+  { key: 'courses.punch.switchmonthly', label: 'מעבר למנוי חודשי', desc: 'כפתור המרת כרטיסייה למנוי', module: 'courses' },
+  { key: 'courses.printout.daily', label: 'דו"ח יומי מפורט', desc: 'כפתור הדו"ח היומי מפגש-מפגש', module: 'courses' },
+  { key: 'courses.printout.custom', label: 'דו"ח מותאם (חוג)', desc: 'כפתור הדו"ח המותאם בכרטיס החוג', module: 'courses' },
   { key: 'courses.discounts', label: 'מדרגות מחיר', desc: 'הנחות ומדרגות מחיר לפי מספר נרשמים', module: 'courses' },
 
   // ——— לוח שנה ———

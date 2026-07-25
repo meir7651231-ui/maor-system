@@ -308,7 +308,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       </div>
       )}
 
-      {punchOn && (
+      {punchOn && featureOn(cfg, 'courses.punch.buy') && (
       <div
         style={{
           border: '1.5px solid #f3c76b',
@@ -336,7 +336,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {punchOn && en.plan === 'punch' && (
+        {punchOn && featureOn(cfg, 'courses.punch.switchmonthly') && en.plan === 'punch' && (
           <Btn
             sm
             onClick={() => {
@@ -347,7 +347,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
             מעבר למנוי חודשי
           </Btn>
         )}
-        {punchOn && (
+        {punchOn && featureOn(cfg, 'courses.punch.undo') && (
           <Btn sm onClick={undoPunch} title="מבטל את הניקוב האחרון ומחזיר את היתרה">
             ↩ ביטול ניקוב אחרון
           </Btn>
