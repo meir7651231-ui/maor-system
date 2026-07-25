@@ -123,3 +123,38 @@ describe('🔒 ratchet — isAdminUser (גישת אשף/נושא לפי מייל
     expect(isAdminUser(cfg({ adminEmails: [] }), null)).toBe(true);
   });
 });
+
+describe('🔒 ratchet — פיצול calendar.blocking לשני תת-דגלים עצמאיים', () => {
+  // הגייט בקומפוננטות הוא: featureOn(parent) && featureOn(child).
+  const gate = (c: OrgConfig, child: string) =>
+    featureOn(c, 'calendar.blocking') && featureOn(c, 'calendar.blocking.' + child);
+
+  it('ברירת מחדל — שתי היכולות פעילות', () => {
+    expect(gate(cfg(), 'roomclash')).toBe(true);
+    expect(gate(cfg(), 'shabbat')).toBe(true);
+  });
+
+  it('כיבוי roomclash לא נוגע ב-shabbat (עצמאות)', () => {
+    const c = cfg({ features: { 'calendar.blocking.roomclash': false } });
+    expect(gate(c, 'roomclash')).toBe(false);
+    expect(gate(c, 'shabbat')).toBe(true);
+  });
+
+  it('כיבוי shabbat לא נוגע ב-roomclash (עצמאות)', () => {
+    const c = cfg({ features: { 'calendar.blocking.shabbat': false } });
+    expect(gate(c, 'shabbat')).toBe(false);
+    expect(gate(c, 'roomclash')).toBe(true);
+  });
+
+  it('כיבוי ההורה calendar.blocking מכבה את שני הילדים (תאימות-אחורה)', () => {
+    const c = cfg({ features: { 'calendar.blocking': false } });
+    expect(gate(c, 'roomclash')).toBe(false);
+    expect(gate(c, 'shabbat')).toBe(false);
+  });
+
+  it('כיבוי מודול calendar מכבה את שני הילדים', () => {
+    const c = cfg({ modules: { calendar: false } });
+    expect(gate(c, 'roomclash')).toBe(false);
+    expect(gate(c, 'shabbat')).toBe(false);
+  });
+});

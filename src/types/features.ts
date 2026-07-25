@@ -55,6 +55,9 @@ export const FEATURES: FeatureDef[] = [
   { key: 'calendar.dayview', label: 'תצוגת יום', desc: 'מעבר לתצוגת יום מפורטת בלוח השנה', module: 'calendar' },
   { key: 'calendar.layers', label: 'שכבות אירועים', desc: 'שכבות ימי הולדת, הצטרפות והרשמות על הלוח', module: 'calendar' },
   { key: 'calendar.blocking', label: 'חסימת שבת/חג והתנגשויות', desc: 'חסימת שבתות וחגים והתרעה על התנגשויות', module: 'calendar' },
+  // חסימות הלוח — שתי היכולות ניתנות לכיבוי בנפרד (תת-דגלים של calendar.blocking)
+  { key: 'calendar.blocking.roomclash', label: 'התרעת התנגשות חדר', desc: 'חסימת שמירת אירוע כשחדר תפוס באותה שעה', module: 'calendar' },
+  { key: 'calendar.blocking.shabbat', label: 'חסימת שבת/חג', desc: 'חסימת אירוע ארגוני בשבת ובחג + באנר "יום חסום"', module: 'calendar' },
   // שכבות הלוח — כל שכבה ניתנת לכיבוי בנפרד (עצמאי לחלוטין)
   { key: 'calendar.layers.bdays', label: 'שכבת ימי הולדת', desc: 'גלולות ימי ההולדת בלוח', module: 'calendar' },
   { key: 'calendar.layers.joins', label: 'שכבת הצטרפות', desc: 'גלולות שנות ההצטרפות בלוח', module: 'calendar' },

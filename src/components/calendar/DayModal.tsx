@@ -65,8 +65,11 @@ export function DayModal(props: {
   const items = useMemo(() => dayItems(db, d).filter((it) => allowItem(it, filters)), [db, d, filters]);
   // שכבת החגים — מכובדת גם בתצוגת היום (מוסתרת כשהשכבה כבויה)
   const holiday = filters.holidays ? holidayOf(d) : null;
-  // calendar.blocking כבוי — באנר "יום חסום" מוסתר
-  const block = featureOn(config, 'calendar.blocking') ? blockReason(d, 'course') : null;
+  // calendar.blocking (או תת-הדגל shabbat) כבוי — באנר "יום חסום" מוסתר
+  const block =
+    featureOn(config, 'calendar.blocking') && featureOn(config, 'calendar.blocking.shabbat')
+      ? blockReason(d, 'course')
+      : null;
 
   // "כל היום": חג + השכבות ללא שעה (ימי הולדת · הצטרפויות · הרשמות)
   const allDay = items.filter((it) => it.sort === 2 || it.sort === 2.4 || it.sort === 2.6);

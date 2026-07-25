@@ -127,13 +127,15 @@ export function EventModal(props: {
     // ולידציות חסימה — מדולגות כשהפיצ'ר calendar.blocking כבוי
     if (featureOn(config, 'calendar.blocking')) {
       // התנגשות חדר — אירוע אחר או מפגש חוג באותה שעה (כמו במקור)
-      const clash = roomClashError(db, f, ev?.id);
-      if (clash) {
-        setError(clash);
-        return;
+      if (featureOn(config, 'calendar.blocking.roomclash')) {
+        const clash = roomClashError(db, f, ev?.id);
+        if (clash) {
+          setError(clash);
+          return;
+        }
       }
       // אירוע ארגוני אסור בשבת ובחג מלא
-      if (f.type === 'org') {
+      if (f.type === 'org' && featureOn(config, 'calendar.blocking.shabbat')) {
         const blocked = orgBlockError(f.date);
         if (blocked) {
           setError(blocked);
