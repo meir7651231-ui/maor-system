@@ -9,6 +9,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
 import { clearConfigOverride } from '../../lib/config';
+import { VERTICAL_PACKS, applyVerticalPack } from '../../lib/verticalPacks';
 import { DEFAULT_CONFIG, type ModuleKey, type OrgConfig } from '../../types/config';
 import { FEATURES, TERM_DEFS, type FeatureDef, type TermDef } from '../../types/features';
 import { Btn, Chip, Field, FormError, TextInput } from '../ui';
@@ -327,6 +328,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   const searching = q.length > 0;
   /** שורת צ'יפי-הניווט — מיתוג, מקטע לכל מסך, והרחבות (בסדר המסכים באפליקציה). */
   const navChips: { domId: string; key: string; label: string }[] = [
+    { domId: 'wz-vertical', key: 'vertical', label: '🏢 סוג העסק' },
     { domId: 'wz-branding', key: 'branding', label: '🏷️ מיתוג' },
     ...WIZARD_SECTIONS.map((s) => ({ domId: `wz-${s.id}`, key: s.id, label: `${s.emoji} ${s.title}` })),
     { domId: 'wz-integrations', key: 'integrations', label: '🔌 הרחבות' },
@@ -495,6 +497,47 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px 18px 40px' }}>
+        {/* סוג עסק — חבילת-ורטיקל בלחיצה: מחילה סט מונחים + מודולים כנקודת-פתיחה */}
+        {!searching && (
+          <SectionShell
+            id="wz-vertical"
+            emoji="🏢"
+            title="סוג העסק"
+            meta="נקודת פתיחה — כוונון ידני בהמשך"
+            open={isOpen('vertical', true)}
+            onToggleOpen={() => flipOpen('vertical', true)}
+          >
+            <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', padding: '2px 0 10px' }}>
+              בחירה מחילה מונחים ומודולים מותאמים לענף. שאר ההגדרות (מיתוג, ענן, יכולות) נשמרות — ואפשר לכוונן הכול ידני למטה.
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {VERTICAL_PACKS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => {
+                    setConfig(applyVerticalPack(config, p.id));
+                    toast(`חבילת "${p.label}" הוחלה — המונחים והמודולים עודכנו`);
+                  }}
+                  style={{
+                    flex: '1 1 140px',
+                    textAlign: 'start',
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    border: '1px solid var(--line)',
+                    background: 'var(--bg)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ fontSize: 15, fontWeight: 700 }}>
+                    {p.emoji} {p.label}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 2 }}>{p.sub}</div>
+                </button>
+              ))}
+            </div>
+          </SectionShell>
+        )}
         {/* מיתוג — שם, מזהה, לוגו, ערכה וצבע (מוסתר בזמן חיפוש יכולות) */}
         {!searching && (
           <SectionShell
