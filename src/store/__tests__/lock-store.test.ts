@@ -88,3 +88,18 @@ describe('🔒 מיגרציה — DB ישן ללא security מקבל ברירת 
     expect(m.security).toEqual({});
   });
 });
+
+describe('🆘 ratchet — restoreDb מנקה db.security מגיבוי ישן (פאס-4)', () => {
+  it('גיבוי שנושא קודי נעילה מגובבים → הם לא נשמרים ולא מאומצים כנעילת מכשיר', () => {
+    const legacy = {
+      ...emptyDb(),
+      orgName: 'גיבוי-ישן',
+      security: { primary: 'HASH-לא-ידוע', secondary: 'HASH2', zones: ['wizard', 'settings'] },
+    } as unknown as ReturnType<typeof emptyDb>;
+    useApp.getState().restoreDb(legacy);
+    // security נוקה — אחרת ה-init הבא היה קובע PIN שהמשתמש אינו יודע
+    expect(useApp.getState().db.security).toEqual({});
+    // שאר הנתונים שוחזרו כרגיל
+    expect(useApp.getState().db.orgName).toBe('גיבוי-ישן');
+  });
+});

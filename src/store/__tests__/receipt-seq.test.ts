@@ -102,3 +102,55 @@ describe('🧾 מיגרציה — הזרעת המונים מעל קבלות קי
     expect(m.donationSeq).toBe(1);
   });
 });
+
+describe('🧾 ratchet — המונה לא נצרך על יעד חסר (פאס-5)', () => {
+  it('addPayment לשיבוץ לא-קיים → receiptSeq לא מתקדם, אין קבלה מדולגת', () => {
+    const s = useApp.getState();
+    const before = db().receiptSeq;
+    s.addPayment('לא-קיים', pay(1));
+    expect(db().receiptSeq).toBe(before); // לא נצרך
+    s.addPayment('e1', pay(1)); // השיבוץ האמיתי מקבל R-{before}, לא R-{before+1}
+    expect(rids()).toEqual(['R-' + before]);
+  });
+  it('addDonation לתומך לא-קיים → donationSeq לא מתקדם', () => {
+    const s = useApp.getState();
+    const before = db().donationSeq;
+    s.addDonation('לא-קיים', don(1));
+    expect(db().donationSeq).toBe(before);
+    s.addDonation('sp1', don(1));
+    expect(dids()).toEqual(['D-' + before]);
+  });
+});
+
+describe('🧾 ratchet — שחזור גיבוי ישן לא מנמיך מוני קבלות (פאס-5)', () => {
+  it('restoreDb עם receiptSeq/donationSeq נמוכים → מורמים לערך החי (אין מספר כפול)', () => {
+    const s = useApp.getState();
+    s.setDb(() => ({ ...seed(), receiptSeq: 50, donationSeq: 30, seq: 99 }));
+    // גיבוי ישן נושא מונים נמוכים
+    s.restoreDb({ ...seed(), receiptSeq: 20, donationSeq: 10, seq: 40 } as Db);
+    expect(db().receiptSeq).toBe(50); // לא ירד ל-20
+    expect(db().donationSeq).toBe(30);
+    expect(db().seq).toBe(99);
+  });
+});
+
+describe('🧾 ratchet — מיגרציה ממספרת מחדש rid כפול (פאס-5)', () => {
+  it('שני תשלומים עם אותו R-5 → אחד מקבל מספר חדש ייחודי', () => {
+    const old = {
+      ...seed(),
+      enrollments: [
+        {
+          ...seed().enrollments[0],
+          payments: [
+            { rid: 'R-5', date: '2025-01-01', amount: 100, method: 'מזומן' },
+            { rid: 'R-5', date: '2025-01-02', amount: 100, method: 'מזומן' },
+          ],
+        },
+      ],
+    } as unknown;
+    const m = migrate(old)!;
+    const ids = m.enrollments[0].payments.map((p) => p.rid);
+    expect(new Set(ids).size).toBe(2); // אין עוד כפילות
+    expect(ids.filter((r) => r === 'R-5').length).toBe(1); // ההופעה הראשונה נשמרה
+  });
+});

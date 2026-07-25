@@ -37,6 +37,8 @@ import {
   exportBackupFile,
   loadDb,
   saveDb,
+  flushSaveSync,
+  isIdbBackupMissing,
   setPersistNamespace,
   decryptAndLoad,
   beginEncryption,
@@ -237,6 +239,7 @@ function writeSess(k: string, v: string | null): void {
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+let idbWarned = false; // אזהרת "שכבת גיבוי חסרה" ניתנת פעם אחת לסשן (השמירה כל 500ms)
 let toastSeq = 1;
 
 /**
@@ -274,7 +277,9 @@ function decayKey(slug: string): string {
  * כולן חיוביות → 1.2, כולן שליליות → 0.8, ביניים לפי היחס. לוג ריק → 1.
  */
 function trendFactor(log: CredLogEntry[]): number {
-  const last3 = log.slice(0, 3);
+  // רשומות דעיכה אוטומטיות אינן "פעילות" (כמו ב-runDecay), ולכן אינן מהוות
+  // אות מגמה שלילי — אחרת משפחה שסתם לא הייתה פעילה נענשת פעמיים.
+  const last3 = log.filter((e) => e.reason !== 'דעיכה — חוסר פעילות').slice(0, 3);
   if (!last3.length) return 1;
   return 0.8 + 0.4 * (last3.filter((e) => e.delta > 0).length / last3.length);
 }
@@ -288,6 +293,12 @@ export const useApp = create<AppState>()((set, get) => {
       if (ok !== get().saveOk) set({ saveOk: ok });
       if (!ok) {
         get().toast('⚠ השמירה נכשלה — הורידו גיבוי מלא ובדקו מקום פנוי בדפדפן');
+      } else if (isIdbBackupMissing() && !idbWarned) {
+        // LS נשמר אך שכבת הגיבוי (IndexedDB) לא זמינה — אזהרה חד-פעמית, לא בכל שמירה.
+        idbWarned = true;
+        get().toast('⚠ שכבת הגיבוי (IndexedDB) אינה זמינה — מומלץ להוריד גיבוי מלא');
+      } else if (!isIdbBackupMissing()) {
+        idbWarned = false;
       }
     }, 500);
   }
@@ -312,7 +323,9 @@ export const useApp = create<AppState>()((set, get) => {
   function postLoad(db: Db, corrupt: boolean) {
     const config = get().config;
     applyTheme(db.ui.theme ?? config.theme, db.ui.accent ?? config.accent);
-    void dailySnapshot(db);
+    // אין לצלם DB פגום/ריק — אחרת emptyDb ידרוס את הצילום היומי התקין של היום
+    // (dailySnapshot כותב לפי מפתח-היום ללא תנאי) ויאבד את גיבוי-הבטיחות.
+    if (!corrupt) void dailySnapshot(db);
     if (corrupt) {
       get().toast('⚠ הנתונים השמורים נמצאו פגומים — נשמר עותק בצד. שחזרו מגיבוי דרך הגדרות ← ייבוא');
     }
@@ -619,6 +632,9 @@ export const useApp = create<AppState>()((set, get) => {
         families: db.families.map((f) => {
           const score = f.cred?.score ?? 700;
           if (score <= 0) return f; // אין לאן לרדת
+          // אידמפוטנטיות: אם כבר נרשמה דעיכה היום (טעינה חוזרת, מצב פרטי שאיפס את
+          // דגל ה-localStorage, או סנכרון של רשומת דעיכה ממכשיר אחר) — לא לדעוך שוב.
+          if (f.cred?.log?.some((l) => l.date === today && l.reason === 'דעיכה — חוסר פעילות')) return f;
           // בסיס הפעילות: רשומת הלוג האחרונה, ובהיעדרה — תאריך ההצטרפות. בלי fallback
           // ל-createdAt, משפחה חדשה (log ריק) נצבעה כ"לא פעילה" ונדעכה מיד ביום הצטרפותה.
           const lastActivity =
@@ -699,6 +715,13 @@ export const useApp = create<AppState>()((set, get) => {
       }));
     },
     addPayment(enrollmentId, payment) {
+      // שער לפני צריכת המונה: אם השיבוץ נעלם (למשל נמחק בסנכרון ממכשיר אחר בעוד
+      // הטופס פתוח), אין לקדם את receiptSeq — אחרת מספר קבלה R-{n} מדולג לצמיתות
+      // (פוגם ברציפות הקבלות) והתשלום אובד בשקט. עקבי עם addCred/deleteTeacher.
+      if (!get().db.enrollments.some((e) => e.id === enrollmentId)) {
+        get().toast('השיבוץ לא נמצא — התשלום לא נרשם');
+        return;
+      }
       const rid = 'R-' + get().db.receiptSeq;
       setDb((db) => ({
         receiptSeq: db.receiptSeq + 1,
@@ -742,6 +765,12 @@ export const useApp = create<AppState>()((set, get) => {
       });
     },
     addDonation(supporterId, donation) {
+      // שער לפני צריכת המונה: תומכ/ת שנעלם/ה (נמחק/ה בסנכרון בעוד הטופס פתוח) לא
+      // יצרוך את donationSeq — אחרת D-{n} מדולג לצמיתות והתרומה אובדת בשקט.
+      if (!get().db.supporters.some((s) => s.id === supporterId)) {
+        get().toast('התומך/ת לא נמצא/ה — התרומה לא נשמרה');
+        return;
+      }
       const rid = 'D-' + get().db.donationSeq;
       setDb((db) => ({
         donationSeq: db.donationSeq + 1,
@@ -933,6 +962,13 @@ export const useApp = create<AppState>()((set, get) => {
       if (!db) return false;
       if (db.security?.primary || db.security?.secondary || db.security?.zones) db.security = {};
       set({ db, encrypted: true, needDecrypt: false, corrupt: false });
+      // חיבור ענן לארגון מוצפן: init חוזר מוקדם במסלול res.encrypted (לפני
+      // connectCloud), ולכן החיבור לא נעשה שם. בלי זה, ארגון עם config.firebase
+      // שהופעלה בו הצפנה נתקע לצמיתות על "מתחבר…" (cloud.enabled && !authReady)
+      // אחרי הפענוח, כי watchAuth שמעדכן authReady לעולם לא רץ. cloud.enabled
+      // כבר נקבע ב-init; כאן משלימים את החיבור בפועל (פעם אחת).
+      const cfg = get().config;
+      if (cfg.firebase && !cloudMod) void connectCloud(cfg.firebase);
       postLoad(db, false);
       return true;
     },
@@ -971,6 +1007,21 @@ export const useApp = create<AppState>()((set, get) => {
 
     restoreDb(db) {
       const prev = get().db;
+      // ניקוי security כמו ב-init/decryptUnlock: גיבוי/צילום/עותק-ענן ישן עלול
+      // עדיין לשאת קודי נעילה מגובבים ב-db.security. בלי הניקוי הם היו נשמרים,
+      // מסונכרנים ומצולמים (הדליפה שהמיגרציה נועדה למנוע), וה-init הבא היה מאמץ
+      // אותם כנעילת מכשיר — קובע PIN שהמשתמש אינו יודע ועלול לנעול אותו בחוץ.
+      if (db.security?.primary || db.security?.secondary || db.security?.zones) db.security = {};
+      // מוני קבלות: גיבוי ישן נושא ערכים נמוכים (migrate זורע רק מתוך ה-rids שלו).
+      // בלי clamp, pushDiff היה דורס את מסמך ה-meta המשותף בענן לערך נמוך יותר
+      // → הקבלה הבאה מקבלת מספר שכבר הונפק (כפילות). מרימים לערך החי לפני set וגם
+      // לפני הדחיפה לענן (לכן משכתבים את db, לא רק את התוכן של set).
+      db = {
+        ...db,
+        seq: Math.max(prev.seq, db.seq),
+        receiptSeq: Math.max(prev.receiptSeq, db.receiptSeq),
+        donationSeq: Math.max(prev.donationSeq, db.donationSeq),
+      };
       set({ db });
       scheduleSave();
       cloudMod?.cloudOnDbChange(prev, db);
@@ -995,6 +1046,29 @@ useApp.subscribe((s, prev) => {
     applyTheme(s.db.ui.theme ?? s.config.theme, s.db.ui.accent ?? s.config.accent);
   }
 });
+
+// סנכרון קוד הנעילה בין טאבים פתוחים: הנעילה נטענת פעם אחת ב-init (readLock)
+// ומוחזקת ב-state, אך setLockCode/setLockZones/clearLock בטאב אחר כותבים
+// למפתח ה-localStorage המשותף ('maor_lock'). בלי מאזין, טאב שכבר פתוח היה
+// ממשיך להחזיק את הנעילה הישנה — אזור שהוגן זה עתה בטאב אחר נשאר פתוח אצלו
+// עד רענון. אירוע 'storage' מתפרסם רק לטאבים האחרים (לא לזה שכתב) — טוענים
+// מחדש מהמקור המשותף. e.key === null = localStorage.clear() → גם אז נטען מחדש.
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'maor_lock' || e.key === null) {
+      useApp.setState({ lock: readLock() });
+    }
+  });
+  // שמירה סינכרונית ביציאה: scheduleSave עובד דרך debounce של 500ms. סגירת
+  // הטאב/מעבר-אפליקציה בחלון הזה היה מאבד את השינוי האחרון. pagehide/hidden
+  // כותבים סינכרונית מיד (flushSaveSync); הטיימר התלוי, אם עוד יירה, פשוט
+  // יכתוב את אותו מצב (אידמפוטנטי).
+  const flush = () => flushSaveSync(useApp.getState().db);
+  window.addEventListener('pagehide', flush);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flush();
+  });
+}
 
 /** בוחרי עזר נפוצים. */
 

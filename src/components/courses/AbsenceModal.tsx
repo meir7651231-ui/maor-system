@@ -24,7 +24,11 @@ export function AbsenceModal(props: { enrollmentId: string; course: Course; onCl
     if (!reason.trim()) return setError('נימוק הוא שדה חובה');
     const ns = nextSessionDate(props.course);
     const eligible = ns ? (ns.getTime() - Date.now()) / 3600000 >= 48 : false;
-    const punchDown = (kind === 'noshow' || !eligible) && en.plan === 'punch' && en.used < en.purchased;
+    const punchDown =
+      (kind === 'noshow' || !eligible) &&
+      en.plan === 'punch' &&
+      en.status === 'active' &&
+      en.used < en.purchased;
     upsertEnrollment({
       ...en,
       absences: [
@@ -44,7 +48,7 @@ export function AbsenceModal(props: { enrollmentId: string; course: Course; onCl
         ? 'No-Show נרשם (-20 אמינות)'
         : eligible
           ? 'החיסור נרשם — זכאי/ת להשלמה'
-          : 'החיסור נרשם' + (en.plan === 'punch' ? ' והניקוב ירד' : ''),
+          : 'החיסור נרשם' + (punchDown ? ' והניקוב ירד' : ''),
     );
     props.onClose();
   }

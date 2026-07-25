@@ -40,6 +40,9 @@ export function paidOf(e: Enrollment): number {
   return (e.payments || []).reduce((a, p) => a + (Number.isFinite(p.amount) ? p.amount : 0), 0);
 }
 
+/** עיגול לשתי ספרות אחרי הנקודה — סכומי כסף מצטברים כ-float וזולגים (0.1+0.2). */
+export const round2 = (x: number): number => Math.round(x * 100) / 100;
+
 /** תשלומים שהתקבלו בתוך טווח התאריכים. */
 export function paidInRange(e: Enrollment, r: DateRange): number {
   return (e.payments || [])

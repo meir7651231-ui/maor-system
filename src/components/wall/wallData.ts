@@ -144,7 +144,9 @@ export function buildPodium(db: Db, monthKey: string, yearKey: string): WallPodi
   if (!rows.length) {
     rows = db.supporters
       .filter((s: Supporter) => s.ils > 0)
-      .map((s) => ({ name: s.name, amount: s.ils, count: s.count }));
+      // amount=s.ils הוא סכום השקלים בלבד; count חייב לספור תרומות-שקל בלבד (לא
+      // סה"כ כל המטבעות) כדי שהתווית 'N תרומות' תתאים לסכום המוצג.
+      .map((s) => ({ name: s.name, amount: s.ils, count: s.donations.filter((d) => d.cur !== '$').length }));
     scopeLabel = 'מאז ומעולם';
   }
   rows.sort((a, b) => b.amount - a.amount);
@@ -295,9 +297,12 @@ export function buildWallData(db: Db, now = new Date()): WallData {
   const raisedThisYear = dons.reduce((s, d) => s + (d.date.startsWith(yearKey) ? d.amount : 0), 0);
   const goal = db.orgGoal > 0 ? db.orgGoal : 0;
   const pct = goal > 0 ? Math.min(1, raisedThisYear / goal) : null;
-  const hebYearGem = gemYear(fmtHebYear.format(now));
+  // raisedThisYear מסכם לפי השנה הלועזית (yearKey, ראה תיעוד בראש הקובץ), ולכן
+  // התווית חייבת לומר "השנה" ולא שנה עברית בגימטריה — אחרת סקופ הסכום והתווית
+  // מתפצלים (תרומה מ-אוקטובר נכנסת לתשפ"ז אך לא ל-2026), ובנקודות מסוימות אף
+  // מוצג אחוז שגוי מול השנה הלא-נכונה. עקבי עם שאר תגי ה-KPI ("השנה").
   const goalLine =
-    pct !== null ? `${Math.round(pct * 100)}% מיעד ${hebYearGem} · ${fmtIls(goal)}` : null;
+    pct !== null ? `${Math.round(pct * 100)}% מיעד השנה · ${fmtIls(goal)}` : null;
 
   /* --- שישה KPI צד --- */
   const famTotal = db.families.length;

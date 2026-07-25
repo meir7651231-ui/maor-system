@@ -10,6 +10,7 @@ import {
   monthKey,
   monthLabel,
   nameIndex,
+  round2,
   STATUS_LABEL,
   type DateRange,
 } from './lib';
@@ -57,13 +58,13 @@ export function DonationsSection(props: SectionProps & { range: DateRange; range
   const monthHead = ['חודש', 'תרומות', 'סה"כ ₪', 'סה"כ $'];
   const monthRows: Row[] = [...byMonth.entries()]
     .sort((a, b) => (a[0] < b[0] ? 1 : -1))
-    .map(([k, s]) => ({ cells: [monthLabel(k), s.n, s.ils, s.usd] }));
-  const monthFoot: Cell[] = ['סה"כ', total.n, total.ils, total.usd];
+    .map(([k, s]) => ({ cells: [monthLabel(k), s.n, round2(s.ils), round2(s.usd)] }));
+  const monthFoot: Cell[] = ['סה"כ', total.n, round2(total.ils), round2(total.usd)];
 
   const catHead = ['קטגוריה', 'תרומות', 'סה"כ ₪', 'סה"כ $'];
   const catRows: Row[] = [...byCat.entries()]
     .sort((a, b) => b[1].ils + b[1].usd - (a[1].ils + a[1].usd))
-    .map(([k, s]) => ({ cells: [k, s.n, s.ils, s.usd] }));
+    .map(([k, s]) => ({ cells: [k, s.n, round2(s.ils), round2(s.usd)] }));
 
   return (
     <Section

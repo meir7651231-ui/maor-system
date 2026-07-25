@@ -63,7 +63,8 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
       return setError('הקורס מלא — הגעתם למקסימום התלמידים שהוגדר');
     const isPunch = c.model === 'punch';
     const bought = isPunch ? +(purchased || c.size || 12) : 0;
-    if (isPunch && (isNaN(bought) || bought <= 0)) return setError('מספר ניקובים חייב להיות גדול מ-0');
+    if (isPunch && (isNaN(bought) || bought <= 0 || !Number.isInteger(bought)))
+      return setError('מספר ניקובים חייב להיות גדול מ-0');
 
     const enrollment: Enrollment = {
       id: nextId('e'),

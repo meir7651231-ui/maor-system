@@ -62,12 +62,22 @@ export function CourseDetail(props: { course: Course }) {
   const discountsOn = featureOn(cfg, 'courses.discounts');
 
   const c = props.course;
+  const [prevCourseId, setPrevCourseId] = useState(c.id);
   const [modal, setModal] = useState<ModalState>(null);
   const [expOpen, setExpOpen] = useState(false);
   const [noteVal, setNoteVal] = useState(c.notes);
   const [sessDay, setSessDay] = useState('0');
   const [sessTime, setSessTime] = useState('17:00');
   const [sessLabel, setSessLabel] = useState('');
+
+  // מעבר לכרטיס קורס אחר בלי unmount (למשל בחירת חוג מפלטת הפקודות בזמן
+  // שכרטיס פתוח) — הרכיב אינו ממופתח לפי id, ולכן חוצץ ההערה המקומי היה
+  // נשאר של הקורס הקודם, ושמירה הייתה דורסת את הערת הקורס החדש בטקסט הישן.
+  if (prevCourseId !== c.id) {
+    setPrevCourseId(c.id);
+    setNoteVal(c.notes);
+    setModal(null);
+  }
 
   const teacher = db.teachers.find((t) => t.id === c.teacherId);
   const room = db.rooms.find((r) => r.id === c.roomId);
@@ -155,7 +165,7 @@ export function CourseDetail(props: { course: Course }) {
     if (sessions.length <= 1) return toast('חייבת להישאר לפחות קבוצה אחת');
     const lbl = groupLabelOf(sessions[i], i);
     const next = sessions.filter((_, j) => j !== i);
-    upsertCourse({ ...c, sessions: next });
+    upsertCourse({ ...c, sessions: next, weekday: next[0].day, time: next[0].time });
     let moved = 0;
     for (const e of enrolled) {
       if (e.group === lbl) {

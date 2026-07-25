@@ -9,7 +9,8 @@ function esc(x: Cell): string {
   let v = String(x ?? '');
   // הגנת CSV injection — תא שמתחיל בתו נוסחה מקבל גרש מוביל
   if (/^[=+\-@\t\r]/.test(v)) v = "'" + v;
-  return v.includes(',') || v.includes('"') || v.includes('\n')
+  // כולל \r (עקבי עם csvx.ts csvEscape) — אחרת \r פנימי שובר שורה בפענוח/אקסל
+  return v.includes(',') || v.includes('"') || v.includes('\n') || v.includes('\r')
     ? '"' + v.replace(/"/g, '""') + '"'
     : v;
 }

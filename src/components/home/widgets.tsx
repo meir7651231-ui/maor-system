@@ -1035,7 +1035,7 @@ function PunchlowWidget({ ctx }: { ctx: HomeCtx }) {
  * כפתור של מודול/פיצ'ר כבוי מוסתר.
  */
 function QuickWidget({ ctx }: { ctx: HomeCtx }) {
-  const { config, data, go, selectCourse, exportBackup, toast } = ctx;
+  const { config, data, go, selectCourse, exportBackup } = ctx;
   const familiesOn = moduleOn(config, 'families');
   const coursesOn = moduleOn(config, 'courses');
   const punchOn = coursesOn && featureOn(config, 'courses.punch');
@@ -1068,10 +1068,7 @@ function QuickWidget({ ctx }: { ctx: HomeCtx }) {
           </Btn>
         )}
         <Btn
-          onClick={() => {
-            exportBackup();
-            toast('קובץ גיבוי מלא ירד למחשב ✓');
-          }}
+          onClick={() => exportBackup()}
           title="הורדת קובץ גיבוי מלא — כמו בהגדרות ← גיבוי"
         >
           ⬇ גיבוי

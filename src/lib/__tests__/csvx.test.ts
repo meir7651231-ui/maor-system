@@ -4,7 +4,7 @@
  * זה המנתח שמזין את ייבוא המשפחות.
  */
 import { describe, expect, it } from 'vitest';
-import { parseCsv, csvEscape, toCsv } from '../csvx';
+import { parseCsv, csvEscape, toCsv, parseAnyDate } from '../csvx';
 
 describe('parseCsv', () => {
   it('שדה מצוטט עם פסיק פנימי נשאר שלם ("כהן, בן דוד")', () => {
@@ -42,5 +42,25 @@ describe('csvEscape — הגנת הזרקת נוסחאות', () => {
   it('תא עם פסיק/גרשיים מצוטט', () => {
     expect(csvEscape('a,b')).toBe('"a,b"');
     expect(csvEscape('a"b')).toBe('"a""b"');
+  });
+});
+
+describe('🗓️ ratchet — parseAnyDate לא מפרש שנה בת 4 ספרות כסריאל אקסל (פאס-4)', () => {
+  it('שנת-לידה חשופה (2025/2010/1975) → ריק, לא תאריך ~1905 שגוי', () => {
+    // /^\d{4,5}$/ תפס "2025"→1905-07-17; אחרי התיקון (/^\d{5}$/) נופל לריק.
+    expect(parseAnyDate('2025')).toBe('');
+    expect(parseAnyDate('2010')).toBe('');
+    expect(parseAnyDate('1975')).toBe('');
+  });
+  it('סריאל אקסל אמיתי (5 ספרות) עדיין מתפרש, וגם ISO/D-M-Y', () => {
+    expect(parseAnyDate('45292')).toBe('2024-01-01');
+    expect(parseAnyDate('2024-03-15')).toBe('2024-03-15');
+    expect(parseAnyDate('15/03/2024')).toBe('2024-03-15');
+  });
+  it('ISO בלתי-אפשרי נדחה כמו בענף D/M/Y (פאס-5), תקין נשמר', () => {
+    expect(parseAnyDate('2015-06-31')).toBe(''); // ליוני אין 31
+    expect(parseAnyDate('2019-02-30')).toBe(''); // לפברואר אין 30
+    expect(parseAnyDate('2020-13-01')).toBe(''); // אין חודש 13
+    expect(parseAnyDate('2020-02-29')).toBe('2020-02-29'); // שנה מעוברת — תקין
   });
 });

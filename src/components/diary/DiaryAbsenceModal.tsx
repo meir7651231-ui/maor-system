@@ -38,7 +38,7 @@ export function DiaryAbsenceModal(props: {
     : '';
   const eligLabel = eligible
     ? '✓ מעל 48 שעות מראש — זכאי/ת להשלמה, הניקוב לא יירד'
-    : '⚠ פחות מ-48 שעות — לא זכאי/ת להשלמה' + (en.plan === 'punch' ? ', הניקוב יירד' : '');
+    : '⚠ פחות מ-48 שעות — לא זכאי/ת להשלמה' + (en.plan === 'punch' && en.status === 'active' ? ', הניקוב יירד' : '');
 
   function save() {
     if (!en) return props.onClose();
@@ -50,7 +50,7 @@ export function DiaryAbsenceModal(props: {
       noshow: kind === 'noshow',
     });
     // ביטול מאוחר / No-Show בכרטיסייה — הניקוב יורד (punch שומר בעצמו על יתרה ותוכנית)
-    if ((kind === 'noshow' || !eligible) && en.plan === 'punch' && en.used < en.purchased) punch(en.id);
+    if ((kind === 'noshow' || !eligible) && en.plan === 'punch' && en.status === 'active' && en.used < en.purchased) punch(en.id);
     const fam = db.families.find((f) => f.members.some((m) => m.id === en.memberId));
     if (fam) {
       if (kind === 'noshow') addCred(fam.id, -20, 'No-Show: ' + props.course.name);
@@ -62,7 +62,7 @@ export function DiaryAbsenceModal(props: {
         ? 'No-Show נרשם (-20 אמינות)'
         : eligible
           ? 'החיסור נרשם — זכאי/ת להשלמה'
-          : 'החיסור נרשם' + (en.plan === 'punch' ? ' והניקוב ירד' : ''),
+          : 'החיסור נרשם' + (en.plan === 'punch' && en.status === 'active' ? ' והניקוב ירד' : ''),
     );
     props.onClose();
   }

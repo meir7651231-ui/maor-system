@@ -128,7 +128,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   function buyPunches() {
     if (!en) return;
     const qty = +(buyQty || c.size || 12);
-    if (isNaN(qty) || qty <= 0 || qty > 200) {
+    if (isNaN(qty) || qty <= 0 || qty > 200 || !Number.isInteger(qty)) {
       toast('כמות ניקובים לא תקינה');
       return;
     }

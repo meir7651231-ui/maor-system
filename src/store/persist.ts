@@ -34,6 +34,8 @@ import {
  */
 let dek: CryptoKey | null = null;
 let envelope: EncEnvelope | null = null;
+// שכבת הגיבוי (IndexedDB) נכשלה בשמירה האחרונה בעוד localStorage הצליח.
+let idbBackupMissing = false;
 
 /** האם השמירה הנוכחית מוצפנת (יש DEK בזיכרון). */
 export function isCryptoActive(): boolean {
@@ -159,6 +161,36 @@ export function migrate(raw: unknown): Db | null {
   );
   if (rNext > merged.receiptSeq) merged.receiptSeq = rNext;
   if (dNext > merged.donationSeq) merged.donationSeq = dNext;
+  // הגנה על ייחודיות מספרי-קבלה בנתונים: מרוץ בין-מכשירי (אותו receiptSeq נקרא
+  // בשני מכשירים) עלול להנפיק rid זהה לשתי קבלות. פס זה רץ בכל טעינה ובכל
+  // משיכה מהענן (pullAll→migrate): שומר את ההופעה הראשונה של כל rid וממספר מחדש
+  // כפילויות מהמונה הזרוע. הקבלה עצמה נוצרת on-demand מ-p.rid, כך שהמספר מתוקן.
+  const seenR = new Set<string>();
+  merged.enrollments = merged.enrollments.map((e) =>
+    Array.isArray(e.payments)
+      ? {
+          ...e,
+          payments: e.payments.map((p) => {
+            if (p.rid && seenR.has(p.rid)) return { ...p, rid: 'R-' + merged.receiptSeq++ };
+            if (p.rid) seenR.add(p.rid);
+            return p;
+          }),
+        }
+      : e,
+  );
+  const seenD = new Set<string>();
+  merged.supporters = merged.supporters.map((s) =>
+    Array.isArray(s.donations)
+      ? {
+          ...s,
+          donations: s.donations.map((d) => {
+            if (d.rid && seenD.has(d.rid)) return { ...d, rid: 'D-' + merged.donationSeq++ };
+            if (d.rid) seenD.add(d.rid);
+            return d;
+          }),
+        }
+      : s,
+  );
   // היגיינה: מזהים חסרים, כפילויות, מערכים חסרים בתוך משפחות
   const seen = new Set<string>();
   // מזהי בני-משפחה חייבים להיות ייחודיים גלובלית: deleteMember מסנן שיבוצים
@@ -166,12 +198,24 @@ export function migrate(raw: unknown): Db | null {
   // היה גורם למחיקת בן-משפחה באחת למחוק בטעות את שיבוצי השנייה. משכפלים →
   // מזהה חדש ייחודי (השיבוצים הדו-משמעיים נשארים על ההופעה הראשונה).
   const seenMember = new Set<string>();
+  // סורקים מראש את כל מזהי בני-המשפחה הגולמיים. 'mx'N נשמרים ל-DB וחוזרים
+  // למיגרציה, ו-mSeq מתאפס בכל ריצה — לכן מזהה מחודש עלול להיווצר כ-'mx'N
+  // שכבר שייך לבן-משפחה אמיתי שטרם בוקר ב-map. שער כפול: seenMember (מזהים
+  // שכבר הוקצו בריצה) + allMemberIds (מזהים אמיתיים שטרם בוקרו) — מזהה חדש
+  // חייב להימנע משניהם, אחרת נשחית מזהה אמיתי ונייתם את שיבוציו.
+  const allMemberIds = new Set<string>();
+  for (const f of merged.families) {
+    if (!f) continue;
+    for (const m of Array.isArray(f.members) ? f.members : []) {
+      if (m?.id) allMemberIds.add(m.id);
+    }
+  }
   let mSeq = 0;
   const freshMemberId = (): string => {
     let id: string;
     do {
       id = 'mx' + mSeq++;
-    } while (seenMember.has(id));
+    } while (seenMember.has(id) || allMemberIds.has(id));
     return id;
   };
   merged.families = merged.families
@@ -179,7 +223,10 @@ export function migrate(raw: unknown): Db | null {
     .map((f, i) => {
       const members = (Array.isArray(f.members) ? f.members : []).map((m, j) => {
         let id = m?.id || 'fm' + i + '_' + j;
-        if (seenMember.has(id)) id = freshMemberId();
+        // מזהה אמיתי: id===m.id, וכל האמיתיים כבר ב-allMemberIds — לכן פוסחים על
+        // הבדיקה מולו. מזהה מסונתז ('fm'…): m?.id שקרי → נבדק גם מול allMemberIds
+        // כדי שלא יתנגש במזהה אמיתי שטרם בוקר.
+        if (seenMember.has(id) || (allMemberIds.has(id) && id !== m?.id)) id = freshMemberId();
         seenMember.add(id);
         return { ...m, id };
       });
@@ -227,6 +274,22 @@ export async function loadDb(): Promise<LoadResult> {
   }
   const parsed = migrate(raw);
   if (parsed) return { db: parsed, corrupt: false };
+  // ה-LS החזיר ערך תקין-JSON אך ש-migrate דחה (למשל '[]', ‏42, אובייקט ללא v,
+  // או v גבוה מדי) → לפני שמכריזים פגום, מתייעצים עם העותק השני ב-IndexedDB.
+  let idbRaw: unknown = null;
+  try {
+    idbRaw = await (await getIdb()).get(IDB_STORE, 'current');
+  } catch {
+    /* IDB חסום */
+  }
+  if (idbRaw && idbRaw !== raw) {
+    if (isEncrypted(idbRaw)) {
+      envelope = idbRaw as EncEnvelope;
+      return { db: emptyDb(), corrupt: false, encrypted: true };
+    }
+    const idbParsed = migrate(idbRaw);
+    if (idbParsed) return { db: idbParsed, corrupt: false };
+  }
   // לא-null אך לא תקין → פגום; שומרים עותק אם אפשר
   if (raw) {
     try {
@@ -295,7 +358,9 @@ export async function beginEncryption(db: Db, password: string): Promise<string>
 export async function stopEncryption(db: Db): Promise<void> {
   dek = null;
   envelope = null;
-  await saveDb(db); // נכתב גלוי (אין DEK)
+  // כיבוי מכוון — עוקפים את שער ה-multi-tab של saveDb (שאחרת היה מסרב לדרוס
+  // את המעטפת המוצפנת בטקסט גלוי) כדי שהכיבוי אכן ייכתב.
+  await saveDb(db, { plaintext: true }); // נכתב גלוי (אין DEK)
   try {
     // ודא שהעותק המוצפן הישן לא נשאר ב-IndexedDB
     await (await getIdb()).put(IDB_STORE, { ...db, savedAt: new Date().toISOString() }, 'current');
@@ -342,15 +407,44 @@ async function writeEnvelope(env: EncEnvelope): Promise<void> {
   }
 }
 
-/** שמירה לשתי השכבות. מחזיר false אם שתיהן נכשלו. מצפין אם ההצפנה פעילה. */
-export async function saveDb(db: Db): Promise<boolean> {
+/**
+ * שמירה לשתי השכבות. מחזיר false אם שתיהן נכשלו. מצפין אם ההצפנה פעילה.
+ * opts.plaintext=true = כתיבה גלויה מכוונת (stopEncryption) שעוקפת את שער
+ * ה-multi-tab למטה.
+ */
+export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<boolean> {
   const doc: Db = { ...db, savedAt: new Date().toISOString() };
   const json = JSON.stringify(doc);
+  // ⚠️ רב-טאבי: מצב ההצפנה (dek/envelope) הוא ברמת-מודול ולכן פרטי לכל טאב,
+  // בלי סנכרון בין טאבים. לפני שדורסים את הערך המאוחסן, קוראים אותו מחדש:
+  //  • טאב גלוי (dek==null) שרואה מעטפת מוצפנת = טאב אחר הפעיל הצפנה → אסור
+  //    לדרוס אותה בטקסט גלוי (היה מדליף משפחות/טלפונים/תורמים בגלוי).
+  //  • טאב מוצפן שהמעטפת בזיכרונו התיישנה (טאב אחר החליף סיסמה) → מאמצים את
+  //    עטיפת-הסיסמה הטרייה מהמאוחסן, אחרת reencryptDb היה משחזר את הסיסמה הישנה.
+  if (!opts?.plaintext) {
+    const stored = await readRaw();
+    if (dek && envelope) {
+      if (isEncrypted(stored)) {
+        // wrapRec/saltRec זהים ⇒ אותו DEK (רק החלפת סיסמה) → מאמצים את עטיפת
+        // הסיסמה הטרייה. שונים ⇒ הצפנה הופעלה מחדש עם DEK אחר בטאב אחר; ה-DEK
+        // שבידינו מיושן וכתיבה תשחית — נמנעים מדריסה.
+        if (stored.wrapRec === envelope.wrapRec && stored.saltRec === envelope.saltRec) {
+          envelope = { ...envelope, saltPass: stored.saltPass, wrapPass: stored.wrapPass, iter: stored.iter };
+        } else {
+          return false;
+        }
+      }
+      // stored גלוי/חסר → המעטפת שבזיכרון מוסמכת (למשל מיד אחרי beginEncryption)
+    } else if (isEncrypted(stored)) {
+      return false; // טאב גלוי מול מעטפת מוצפנת של טאב אחר — לא דורסים
+    }
+  }
   // הצפנה פעילה → כותבים מעטפת מוצפנת (אותו DEK, data מעודכן)
   const payload: string = dek && envelope ? JSON.stringify((envelope = await reencryptDb(envelope, dek, json))) : json;
   const idbValue: unknown = dek && envelope ? envelope : doc;
   let ok = false;
   let lsOk = false;
+  let idbOk = false;
   try {
     localStorage.setItem(LS_KEY, payload);
     ok = true;
@@ -361,6 +455,7 @@ export async function saveDb(db: Db): Promise<boolean> {
   try {
     await (await getIdb()).put(IDB_STORE, idbValue, 'current');
     ok = true;
+    idbOk = true;
     // LS נכשל (מכסה מלאה) אך IDB הצליח → מוחקים את העותק הישן ב-LS. אחרת
     // readRaw היה מחזיר את ה-snapshot הקריא שקדם למכסה, וכל עריכה שנשמרה
     // רק ל-IndexedDB לאחר מכן הייתה נעלמת בטעינה הבאה (איבוד נתונים שקט).
@@ -374,7 +469,39 @@ export async function saveDb(db: Db): Promise<boolean> {
   } catch {
     /* IndexedDB נכשל */
   }
+  // מעקב שכבת-הגיבוי: LS נכתב אך IDB נכשל = אין עותק שני (Safari פרטי / IDB חסום).
+  if (lsOk && !idbOk) idbBackupMissing = true;
+  else if (idbOk) idbBackupMissing = false;
   return ok;
+}
+
+/** האם שכבת הגיבוי (IndexedDB) חסרה בשמירה האחרונה — לאזהרה חד-פעמית ב-UI. */
+export function isIdbBackupMissing(): boolean {
+  return idbBackupMissing;
+}
+
+/**
+ * שמירה סינכרונית ומיטבית ביציאה (pagehide/visibility hidden), לפני ש-debounce
+ * של scheduleSave הספיק לירות. גלוי בלבד — הצפנה אינה אפשרית סינכרונית, ואז
+ * נופלים ל-saveDb האסינכרוני (best-effort). כמו saveDb, לא דורסים מעטפת מוצפנת
+ * של טאב אחר בטקסט גלוי.
+ */
+export function flushSaveSync(db: Db): void {
+  if (isCryptoActive()) {
+    void saveDb(db);
+    return;
+  }
+  try {
+    const cur = localStorage.getItem(LS_KEY);
+    if (cur && isEncrypted(JSON.parse(cur))) return; // טאב אחר הצפין — לא לדרוס גלוי
+  } catch {
+    /* JSON פגום — ממשיכים לכתיבה */
+  }
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({ ...db, savedAt: new Date().toISOString() }));
+  } catch {
+    /* מכסה מלאה */
+  }
 }
 
 /** צילום יומי ל-IndexedDB — טבעת של SNAPSHOT_KEEP ימים. מוצפן אם ההצפנה פעילה. */
@@ -460,7 +587,12 @@ export function parseBackupFile(text: string): Db {
   return db;
 }
 
-/** ייבוא קובץ גיבוי מוצפן עם סיסמה/מפתח שחזור. null = קוד שגוי / קובץ פגום. */
+/**
+ * ייבוא קובץ גיבוי מוצפן עם סיסמה/מפתח שחזור.
+ * null = הסוד שגוי (openDek נכשל) → המסך יציע לנסות מפתח שחזור.
+ * זריקה = הסוד נכון אך התוכן המפוענח פגום או מגרסה חדשה מדי → אין טעם לנסות
+ * מפתח שחזור; המסך מציג את הודעת השגיאה כפי שהיא (במקום "סיסמה שגויה").
+ */
 export async function decryptBackupFile(text: string, secret: string, via: 'pass' | 'rec'): Promise<Db | null> {
   let raw: unknown;
   try {
@@ -470,10 +602,20 @@ export async function decryptBackupFile(text: string, secret: string, via: 'pass
   }
   if (!isEncrypted(raw)) return null;
   const key = await openDek(raw, secret, via);
-  if (!key) return null;
+  if (!key) return null; // סוד שגוי — הבחנה שנשמרת עבור זרימת ה-fallback במסך
+  // מכאן הסוד נכון: כישלון פענוח/JSON/מיגרציה = קובץ פגום/חדש מדי, לא סוד שגוי.
+  let json: string;
   try {
-    return migrate(JSON.parse(await decryptDb(raw, key)));
+    json = await decryptDb(raw, key);
   } catch {
-    return null;
+    throw new Error('הקובץ המוצפן פוענח אך תוכנו פגום — לא ניתן לשחזר ממנו');
   }
+  let parsed: Db | null;
+  try {
+    parsed = migrate(JSON.parse(json));
+  } catch {
+    throw new Error('הקובץ המוצפן פוענח אך תוכנו פגום — לא ניתן לשחזר ממנו');
+  }
+  if (!parsed) throw new Error('הקובץ אינו קובץ גיבוי של מאור החסד (או גרסה חדשה מדי)');
+  return parsed;
 }

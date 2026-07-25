@@ -23,13 +23,15 @@ const scoreOf = (id: string) => useApp.getState().db.families.find((f) => f.id =
 beforeEach(() => useApp.getState().setDb(() => ({ ...emptyDb() }) as Partial<Db>));
 
 describe('🕰️ ratchet — רשומת דעיכה אינה נחשבת "פעילות"', () => {
-  it('משפחה ותיקה שהרשומה היחידה שלה היא דעיכה מהיום — עדיין נדעכת', () => {
+  it('משפחה ותיקה שהרשומה היחידה שלה היא דעיכה ישנה — עדיין נדעכת', () => {
+    // רשומת דעיכה ישנה (לא מהיום) אינה נחשבת "פעילות" ולכן אינה מאפסת את שעון
+    // 14 הימים → המשפחה נדעכת שוב. (דעיכה מהיום דווקא כן חוסמת — אידמפוטנטיות.)
     useApp.getState().setDb(() => ({
       ...emptyDb(),
-      families: [fam('old', { cred: { score: 700, log: [{ date: iso(0), delta: -2, reason: 'דעיכה — חוסר פעילות' }] } })],
+      families: [fam('old', { cred: { score: 700, log: [{ date: iso(20), delta: -2, reason: 'דעיכה — חוסר פעילות' }] } })],
     }) as Partial<Db>);
     useApp.getState().runDecay();
-    expect(scoreOf('old')).toBe(698); // הדעיכה מהיום לא "מאפסת את השעון"
+    expect(scoreOf('old')).toBe(698); // הדעיכה הישנה לא "מאפסת את השעון"
   });
 
   it('פעילות אמיתית מהשבוע כן מונעת דעיכה (לא נשבר)', () => {
@@ -39,5 +41,16 @@ describe('🕰️ ratchet — רשומת דעיכה אינה נחשבת "פעי�
     }) as Partial<Db>);
     useApp.getState().runDecay();
     expect(scoreOf('active')).toBe(700);
+  });
+
+  it('🔁 ratchet (פאס-5) — runDecay אידמפוטנטי: שתי ריצות ביום = דעיכה אחת', () => {
+    useApp.getState().setDb(() => ({
+      ...emptyDb(),
+      families: [fam('idle', { cred: { score: 700, log: [] } })],
+    }) as Partial<Db>);
+    useApp.getState().runDecay();
+    expect(scoreOf('idle')).toBe(698);
+    useApp.getState().runDecay(); // טעינה חוזרת / סנכרון — אסור לדעוך שוב היום
+    expect(scoreOf('idle')).toBe(698);
   });
 });

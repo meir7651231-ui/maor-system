@@ -192,7 +192,8 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
     if (n >= (c.maxStudents || 999)) return setError('החוג מלא (' + n + '/' + c.maxStudents + ')');
     const isPunch = c.model === 'punch';
     const bought = isPunch ? +(purchased || c.size || 12) : 0;
-    if (isPunch && (isNaN(bought) || bought <= 0)) return setError('מספר ניקובים חייב להיות גדול מ-0');
+    if (isPunch && (isNaN(bought) || bought <= 0 || !Number.isInteger(bought)))
+      return setError('מספר ניקובים חייב להיות גדול מ-0');
 
     let memberId = resolvedId;
     if (!memberId) {

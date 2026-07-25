@@ -230,7 +230,7 @@ export function allowItem(it: DayItem, f: CalFilters): boolean {
 export function dayItems(db: Db, d: Date): DayItem[] {
   const iso = isoOf(d);
   const hp = hpOf(iso, d);
-  const hol = holidayOf(d);
+  const courseBlock = blockReason(d, 'course');
   const out: DayItem[] = [];
 
   for (const ev of db.events) {
@@ -324,19 +324,19 @@ export function dayItems(db: Db, d: Date): DayItem[] {
   for (const c of db.courses) {
     if (c.start && iso < c.start) continue;
     if (c.end && iso > c.end) continue;
-    for (const ss of sessionsOf(c)) {
+    for (const [i, ss] of sessionsOf(c).entries()) {
       if (ss.day !== dow) continue;
       out.push({
-        key: `crs-${c.id}-${ss.label || ss.time}`,
+        key: `crs-${c.id}-${i}-${ss.label || ss.time}`,
         label: (ss.time ? ss.time + ' · ' : '') + c.name + (ss.label ? ' · ' + ss.label : ''),
-        title: c.name + (ss.label ? ' — ' + ss.label : '') + (hol ? ' · לא מתקיים — ' + hol : ''),
+        title: c.name + (ss.label ? ' — ' + ss.label : '') + (courseBlock ? ' · לא מתקיים — ' + courseBlock : ''),
         bg: SESSION_META.bg,
         c: SESSION_META.c,
         typeLabel: SESSION_META.label,
         sort: 3,
         prC: 'transparent',
         courseId: c.id,
-        skipped: !!hol,
+        skipped: !!courseBlock,
       });
     }
   }

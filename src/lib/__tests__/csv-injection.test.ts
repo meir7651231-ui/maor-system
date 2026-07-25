@@ -10,7 +10,11 @@ import reportsCsvSrc from '../../components/reports/csv.ts?raw';
 describe('🛡️ csvEscape — כל תווי הנוסחה מקבלים גרש מוביל', () => {
   for (const c of ['=', '+', '-', '@', '\t', '\r']) {
     it(`תא שמתחיל ב-${JSON.stringify(c)} מוגן בגרש`, () => {
-      expect(csvEscape(c + 'HYPERLINK(1)').startsWith("'")).toBe(true);
+      // תא שמכיל \r (או פסיק/גרשיים/שורה) גם עטוף במרכאות לשמירה על round-trip;
+      // הגרש-המוביל שמנטרל את הנוסחה חייב להיות בפנים. מקלפים עטיפה אם קיימת.
+      const esc = csvEscape(c + 'HYPERLINK(1)');
+      const inner = esc.startsWith('"') ? esc.slice(1, -1).replace(/""/g, '"') : esc;
+      expect(inner.startsWith("'")).toBe(true);
     });
   }
   it('תא רגיל לא משתנה', () => {

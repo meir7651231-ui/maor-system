@@ -82,8 +82,22 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
         h.toast('הנתונים הועלו לענן ✓');
       }
     } else {
-      // בענן יש נתונים — הם האמת; ההתמדה המקומית ממשיכה לשמור אותם כרגיל
-      withRemoteFlag(() => h.setDbFromRemote(cloudDb));
+      // בענן יש נתונים — הם האמת בקונפליקט, אך רשומות מקומיות-בלבד (עבודה
+      // לא-מקוונת לפני החיבור הראשון) אסור שיידרסו. מאחדים לפי id: הענן מנצח
+      // בהתנגשות, והתוספות המקומיות נשמרות ונדחפות לענן. בלי זה, כל עבודה
+      // מקומית שקדמה לחיבור הראשון נמחקת בשקט.
+      const merged: Db = { ...cloudDb };
+      for (const col of ENTITY_COLLECTIONS) {
+        const cloudList = cloudDb[col] as Array<{ id: string }>;
+        const cloudIds = new Set(cloudList.map((x) => x.id));
+        const localOnly = (local[col] as Array<{ id: string }>).filter((x) => !cloudIds.has(x.id));
+        if (localOnly.length) (merged[col] as Array<{ id: string }>) = [...cloudList, ...localOnly];
+      }
+      withRemoteFlag(() => h.setDbFromRemote(merged));
+      // diffDb(cloudDb, merged) = רק התוספות המקומיות (merged ⊇ ישויות הענן, אין
+      // מחיקות), וללא שינוי meta (merged שומר את meta של הענן) → הענן נשאר סמכותי.
+      const additions = diffDb(cloudDb, merged);
+      if (!emptyDiff(additions)) await pushDiff(additions);
     }
     active = true;
     unsubAll = subscribeAll(onRemote, () => {
@@ -112,7 +126,11 @@ export function stopCloudSync(): void {
 async function flushPush(): Promise<void> {
   if (!active || !pushBase || !pushLatest) return;
   const base = pushBase;
-  const latest = pushLatest;
+  // מבססים את הדחיפה על ה-store החי אחרי מיזוג-מרוחק, לא על ה-snapshot שנתפס
+  // ב-cloudOnDbChange. במהלך ה-debounce ‏(800ms) ייתכן ש-onRemote החליף את ה-DB
+  // (applyingRemote חוסם עדכון של pushLatest), וכך pushLatest התיישן והיה מחייה
+  // מסמך ישן של מכשיר A מעל השינוי המאושר של B. hooks מובטח לא-null בזמן active.
+  const latest = hooks?.getDb() ?? pushLatest;
   pushBase = null;
   pushLatest = null;
   const diff = diffDb(base, latest);

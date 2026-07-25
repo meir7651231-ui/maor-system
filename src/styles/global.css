@@ -811,6 +811,24 @@ h1,
 }
 
 @media print {
+  /* הדפסה על נייר לבן — לנטרל ערכות כהות (היכל) כדי שהטקסט יישאר קריא.
+     דפדפנים אינם מדפיסים רקעים כברירת מחדל, כך שדיו בהיר (--ink בהיכל
+     #f2ead8) היה יוצא כמעט בלתי-נראה על לבן. !important על משתני העיצוב
+     גובר על ‎:root[data-theme="..."]‎ (themes.css) ללא תלות בספֶּציפיוּת. */
+  :root {
+    color-scheme: light !important;
+    --bg: #ffffff !important;
+    --page-bg: #ffffff !important;
+    --panel: #ffffff !important;
+    --card-bg: #ffffff !important;
+    --ink: #000000 !important;
+    --ink-soft: #222222 !important;
+    --ink-faint: #555555 !important;
+    --line: #bbbbbb !important;
+    --line-soft: #d5d5d5 !important;
+    --panel-line: #bbbbbb !important;
+    --hover-bg: #ffffff !important;
+  }
   .app-top,
   .app-side,
   .side-head,
@@ -1330,6 +1348,12 @@ h1,
 
 .hm-bday-cta:hover {
   filter: brightness(1.15);
+}
+
+/* בקהילה ‎--bday-cta-bg=#f0a92e‎ (ענבר בהיר) — טקסט לבן עליו ≈2.0 ניגודיות,
+   נכשל ב-WCAG AA. דיו כהה (‎--bday-ink=#2b2620‎) על אותו ענבר ≈7.4 — עובר. */
+:root[data-theme="kehila"] .hm-bday-cta {
+  color: var(--bday-ink);
 }
 
 .hm-bday-ico {

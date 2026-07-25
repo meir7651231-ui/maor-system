@@ -65,7 +65,7 @@ const ctlBtn = (disabled: boolean): CSSProperties => ({
   height: 26,
   borderRadius: 8,
   border: '1px solid var(--line, #e7dfd0)',
-  background: 'var(--card, #fffdf8)',
+  background: 'var(--card-bg, #fffdf8)',
   color: 'var(--ink-soft, #57503f)',
   fontSize: 11,
   display: 'inline-flex',

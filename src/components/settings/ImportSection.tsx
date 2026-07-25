@@ -113,12 +113,16 @@ export function ImportSection() {
     const existing = new Set(useApp.getState().db.families.map((f) => famKey(f.name, f.phone)));
     let added = 0;
     for (const r of rows) {
+      // dedup לפי שם+טלפון. כשהטלפון ריק, famKey מצטמצם ל-"שם|" — שתי משפחות
+      // שונות עם אותו שם-משפחה ובלי טלפון היו מתמזגות בטעות (השנייה נבלעת).
+      // מדדפים רק כשיש טלפון אמיתי; ללא טלפון — לא מזהים ככפילות.
+      const hasPhone = !!normalizePhone(r.phone);
       const key = famKey(r.name, r.phone);
-      if (existing.has(key)) {
+      if (hasPhone && existing.has(key)) {
         skippedExisting++;
         continue;
       }
-      existing.add(key);
+      if (hasPhone) existing.add(key);
       upsertFamily({
         ...emptyFamily(),
         id: nextId('f'),

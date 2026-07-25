@@ -6,7 +6,7 @@ import { useApp } from '../../store/useApp';
 import { Chip } from '../ui';
 import type { Cell } from './csv';
 import { ReportTable, Section, type Row } from './parts';
-import { balanceOf, fmtDate, nameIndex, paidInRange, type DateRange } from './lib';
+import { balanceOf, fmtDate, nameIndex, paidInRange, round2, type DateRange } from './lib';
 
 /** אינדוקס שיבוצים לפי קורס — מעבר יחיד על db.enrollments במקום סריקה מלאה לכל קורס. */
 function enrollmentsByCourse(db: Db): Map<string, Enrollment[]> {
@@ -53,14 +53,14 @@ export function EnrollmentSection(props: SectionProps & { range: DateRange; rang
         current,
         c.maxStudents || '—',
         c.maxStudents ? Math.round((current / c.maxStudents) * 100) + '%' : '—',
-        income,
-        out,
+        round2(income),
+        round2(out),
       ],
       warn: c.maxStudents > 0 && current > c.maxStudents,
       open: () => selectCourse(c.id),
     };
   });
-  const foot: Cell[] = ['סה"כ', '', totEnrolled, '', '', totIncome, totOut];
+  const foot: Cell[] = ['סה"כ', '', totEnrolled, '', '', round2(totIncome), round2(totOut)];
 
   return (
     <Section

@@ -12,6 +12,7 @@ import {
   parseBackupFile,
   isEncryptedBackup,
   decryptBackupFile,
+  isCryptoActive,
 } from '../../store/persist';
 import { Btn, FormError } from '../ui';
 import { Section, SectionNote } from './lib';
@@ -63,6 +64,15 @@ export function BackupSection() {
           return;
         }
         if (!confirmRestore(parsed, 'מקובץ גיבוי מוצפן')) return;
+        // הקובץ מוצפן אך ההצפנה כבויה במכשיר — restoreDb יכתוב את הנתונים הרגישים
+        // בגלוי. מזהירים לפני, שכן ה-store לבדו אינו יודע שהמקור היה מוצפן.
+        if (
+          !isCryptoActive() &&
+          !window.confirm(
+            'קובץ הגיבוי מוצפן, אך ההצפנה כבויה במכשיר זה — הנתונים הרגישים (בריאות, ת"ז, טלפונים, תורמים) ייכתבו גלויים ללא הצפנה. להמשיך בשחזור?',
+          )
+        )
+          return;
         restoreDb(parsed);
         void listSnapshots().then(setSnaps);
         return;
