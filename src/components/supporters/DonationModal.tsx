@@ -17,6 +17,8 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const receiptsOn = featureOn(config, 'core.receipts');
+  // supporters.multicur כבוי — אין בורר מטבע, הכול נרשם בשקלים
+  const multiCurOn = featureOn(config, 'supporters.multicur');
 
   const [date, setDate] = useState(isoToday());
   const [amount, setAmount] = useState('');
@@ -70,16 +72,18 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         <Field label="סכום">
           <TextInput value={amount} onChange={setAmount} type="number" dir="ltr" placeholder="0" />
         </Field>
-        <Field label="מטבע">
-          <Select
-            value={cur}
-            onChange={(v) => setCur(v === '$' ? '$' : '₪')}
-            options={[
-              { value: '₪', label: '₪ שקל' },
-              { value: '$', label: '$ דולר' },
-            ]}
-          />
-        </Field>
+        {multiCurOn && (
+          <Field label="מטבע">
+            <Select
+              value={cur}
+              onChange={(v) => setCur(v === '$' ? '$' : '₪')}
+              options={[
+                { value: '₪', label: '₪ שקל' },
+                { value: '$', label: '$ דולר' },
+              ]}
+            />
+          </Field>
+        )}
         <Field label="קטגוריה">
           <TextInput value={cat} onChange={setCat} placeholder="מלגות, פעילות, כללי…" />
         </Field>
