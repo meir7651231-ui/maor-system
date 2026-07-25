@@ -8,7 +8,7 @@
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
-import { clearConfigOverride } from '../../lib/config';
+import { clearConfigOverride, normalizeConfig } from '../../lib/config';
 import { VERTICAL_PACKS, applyVerticalPack } from '../../lib/verticalPacks';
 import { DEFAULT_CONFIG, type ModuleKey, type OrgConfig } from '../../types/config';
 import { FEATURES, TERM_DEFS, type FeatureDef, type TermDef } from '../../types/features';
@@ -281,6 +281,36 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
     downloadTextFile(`config-${config.slug}.json`, configJson, 'application/json');
     downloadTextFile(`handoff-${config.slug}.html`, buildHandoffHtml(config, appUrl, installer));
     toast('📦 החבילה ירדה: config + דף מסירה. את ה-config מעלים ל-public/c/' + config.slug + '/');
+  };
+
+  /**
+   * טעינת config.json שמור — לפתיחה-מחדש ועריכה של מערכת לקוח קיימת. הקובץ
+   * עובר normalizeConfig (אותו נרמול של הטעינה הרגילה), כך שקלט פגום נדחה בבטחה.
+   * מוחל חי דרך setConfig + ערכה/צבע, בדיוק כמו בחירת חבילה.
+   */
+  const importConfig = (file: File | undefined) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(String(reader.result));
+      } catch {
+        toast('שגיאה בקריאת הקובץ — ודאו שזה config.json תקין');
+        return;
+      }
+      const cfg = normalizeConfig(parsed);
+      if (!cfg) {
+        toast('קובץ ה-config אינו תקין — לא נטען');
+        return;
+      }
+      setConfig(cfg);
+      setTheme(cfg.theme);
+      setAccent(cfg.accent);
+      setSlugTouched(true);
+      toast('✅ נטען config של "' + (cfg.orgName || cfg.slug) + '" — אפשר לערוך ולייצא מחדש');
+    };
+    reader.readAsText(file);
   };
 
   const resetToDefault = () => {
@@ -717,6 +747,34 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <Btn kind="primary" onClick={createPackage}>📦 צור חבילה — config + דף מסירה</Btn>
+          <label
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              fontSize: 13,
+              fontWeight: 600,
+              padding: '8px 14px',
+              borderRadius: 10,
+              border: '1px solid var(--line)',
+              background: 'var(--hover-bg, var(--panel))',
+              color: 'var(--ink-soft)',
+              cursor: 'pointer',
+            }}
+            title="טעינת config.json שמור — פתיחה ועריכה של מערכת לקוח קיימת"
+          >
+            📂 טען config שמור לעריכה
+            <input
+              type="file"
+              accept="application/json,.json"
+              onChange={(e) => {
+                importConfig(e.target.files?.[0]);
+                e.target.value = '';
+              }}
+              style={{ display: 'none' }}
+            />
+          </label>
           <Btn onClick={resetToDefault}>איפוס האשף לברירת מחדל</Btn>
         </div>
 

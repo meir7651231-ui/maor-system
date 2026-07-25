@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { featureOn, isAdminUser, termOf } from '../config';
+import { featureOn, isAdminUser, normalizeConfig, termOf } from '../config';
 import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 import { FEATURES, TERM_DEFS } from '../../types/features';
 
@@ -156,5 +156,55 @@ describe('🔒 ratchet — פיצול calendar.blocking לשני תת-דגלים
     const c = cfg({ modules: { calendar: false } });
     expect(gate(c, 'roomclash')).toBe(false);
     expect(gate(c, 'shabbat')).toBe(false);
+  });
+});
+
+describe('🔒 ratchet — normalizeConfig (ייבוא config שמור באשף)', () => {
+  it('סבב מלא ייצוא→ייבוא שומר modules/features/terms/firebase/admin/theme', () => {
+    const rich = cfg({
+      orgName: 'קליניקת דוגמה',
+      slug: 'demo-clinic',
+      theme: 'heichal',
+      accent: '#abcdef',
+      modules: { courses: false, diary: false },
+      features: { 'home.stats': false, 'supporters.multicur': false },
+      terms: { 'nav.families': 'מטופלים', 'entity.room': 'חדר טיפול' },
+      firebase: { apiKey: 'k', authDomain: 'a', projectId: 'p', appId: 'x' },
+      adminEmails: ['boss@clinic.com'],
+    });
+    // מדמה בדיוק את מסלול הייצוא→ייבוא: JSON.stringify ואז parse+normalize
+    const round = normalizeConfig(JSON.parse(JSON.stringify(rich)));
+    expect(round).not.toBeNull();
+    expect(round!.orgName).toBe('קליניקת דוגמה');
+    expect(round!.slug).toBe('demo-clinic');
+    expect(round!.theme).toBe('heichal');
+    expect(round!.modules.courses).toBe(false);
+    expect(round!.modules.diary).toBe(false);
+    expect(round!.features!['home.stats']).toBe(false);
+    expect(round!.features!['supporters.multicur']).toBe(false);
+    expect(round!.terms!['nav.families']).toBe('מטופלים');
+    expect(round!.firebase?.projectId).toBe('p');
+    expect(round!.adminEmails).toEqual(['boss@clinic.com']);
+  });
+
+  it('קלט פגום → null (לא מוחל על המערכת)', () => {
+    expect(normalizeConfig(null)).toBeNull();
+    expect(normalizeConfig('not-json')).toBeNull();
+    expect(normalizeConfig([1, 2, 3])).toBeNull();
+    expect(normalizeConfig({ foo: 'bar' })).toBeNull(); // אין slug/orgName/theme
+  });
+
+  it('שדות חסרים מתמלאים מברירת המחדל (modules/features/terms = {})', () => {
+    const min = normalizeConfig({ orgName: 'מינימלי' });
+    expect(min).not.toBeNull();
+    expect(min!.modules).toEqual({});
+    expect(min!.features).toEqual({});
+    expect(min!.terms).toEqual({});
+  });
+
+  it('firebase פגום (חסר שדה חובה) מוסר — לא מופעל גייט התחברות בטעות', () => {
+    const c = normalizeConfig({ orgName: 'x', firebase: { apiKey: 'k' } });
+    expect(c).not.toBeNull();
+    expect(c!.firebase).toBeUndefined();
   });
 });

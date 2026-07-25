@@ -72,8 +72,8 @@ function normalizeFirebase(raw: unknown): FirebaseOrgConfig | undefined {
   return out;
 }
 
-/** נרמול קלט לא-אמין (localStorage / רשת) לצורת OrgConfig מלאה, או null אם לא שמיש. */
-function normalize(raw: unknown): OrgConfig | null {
+/** נרמול קלט לא-אמין (localStorage / רשת / קובץ מיובא) לצורת OrgConfig מלאה, או null אם לא שמיש. */
+export function normalizeConfig(raw: unknown): OrgConfig | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   const c = raw as Partial<OrgConfig>;
   if (typeof c.slug !== 'string' && typeof c.orgName !== 'string' && typeof c.theme !== 'string') {
@@ -123,7 +123,7 @@ export function isAdminUser(config: OrgConfig, email: string | null | undefined)
 export function readConfigOverride(): OrgConfig | null {
   try {
     const raw = localStorage.getItem(LS_CONFIG_KEY);
-    return raw ? normalize(JSON.parse(raw)) : null;
+    return raw ? normalizeConfig(JSON.parse(raw)) : null;
   } catch {
     return null;
   }
@@ -165,7 +165,7 @@ export async function loadOrgConfig(): Promise<OrgConfig> {
     try {
       const res = await fetch(`./c/${slug}/config.json`, { cache: 'no-cache' });
       if (res.ok) {
-        const cfg = normalize(await res.json());
+        const cfg = normalizeConfig(await res.json());
         if (cfg) return { ...cfg, slug };
       }
     } catch {
@@ -177,7 +177,7 @@ export async function loadOrgConfig(): Promise<OrgConfig> {
   try {
     const res = await fetch('./config.json', { cache: 'no-cache' });
     if (res.ok) {
-      const cfg = normalize(await res.json());
+      const cfg = normalizeConfig(await res.json());
       if (cfg) return cfg;
     }
   } catch {
