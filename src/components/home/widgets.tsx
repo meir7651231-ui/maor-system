@@ -1130,7 +1130,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     slot: 'full',
     removable: true,
     // ימי ההולדת נגזרים מבני המשפחה — כבוי כשמודול המשפחות כבוי
-    visible: (cfg) => moduleOn(cfg, 'families'),
+    visible: (cfg) => moduleOn(cfg, 'families') && featureOn(cfg, 'home.bdays'),
     render: (ctx) => <BdaysWidget ctx={ctx} />,
   },
   digest: {
@@ -1159,8 +1159,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     icon: '📊',
     slot: 'full',
     removable: true,
-    // הגריד עצמו תמיד מוצג — כרטיסים בודדים מוסתרים לפי מודול (כמו במקור)
-    visible: () => true,
+    visible: (cfg) => featureOn(cfg, 'home.stats'),
     render: (ctx) => <StatsWidget ctx={ctx} />,
   },
   today: {
@@ -1169,9 +1168,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     icon: '📅',
     slot: 'half',
     removable: true,
-    // הפאנל תמיד מוצג (גם אירועים וימי הולדת) — רשימת המפגשים בתוכו
-    // כפופה למודול החוגים דרך data.sessions (כמו במקור)
-    visible: () => true,
+    visible: (cfg) => featureOn(cfg, 'home.today'),
     render: (ctx) => <TodayWidget ctx={ctx} />,
   },
   attention: {
@@ -1190,8 +1187,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     icon: '👨‍👩‍👧‍👦',
     slot: 'full',
     removable: true,
-    // טבלת משפחות — כבויה כשמודול המשפחות כבוי
-    visible: (cfg) => moduleOn(cfg, 'families'),
+    visible: (cfg) => moduleOn(cfg, 'families') && featureOn(cfg, 'home.recent'),
     render: (ctx) => <RecentWidget ctx={ctx} />,
   },
   goldbook: {
@@ -1200,8 +1196,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     icon: '🏆',
     slot: 'half',
     removable: true,
-    // נתוני תורמים — מוסתר כשמודול התורמים כבוי
-    visible: (cfg) => moduleOn(cfg, 'supporters'),
+    visible: (cfg) => moduleOn(cfg, 'supporters') && featureOn(cfg, 'home.goldbook'),
     render: (ctx) => <GoldbookWidget ctx={ctx} />,
   },
   hebcal: {
@@ -1210,8 +1205,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     icon: '📜',
     slot: 'half',
     removable: true,
-    // נתוני לוח השנה — מוסתר כשמודול לוח השנה כבוי
-    visible: (cfg) => moduleOn(cfg, 'calendar'),
+    visible: (cfg) => moduleOn(cfg, 'calendar') && featureOn(cfg, 'home.hebcal'),
     render: (ctx) => <HebcalWidget ctx={ctx} />,
   },
   community: {
@@ -1220,8 +1214,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     icon: '🤝',
     slot: 'half',
     removable: true,
-    // featureOn משרשר גם את מודול המשפחות (קידומת 'families')
-    visible: (cfg) => featureOn(cfg, 'families.cred'),
+    visible: (cfg) => featureOn(cfg, 'families.cred') && featureOn(cfg, 'home.community'),
     render: (ctx) => <CommunityWidget ctx={ctx} />,
   },
   contacts: {
@@ -1230,8 +1223,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     icon: '💛',
     slot: 'half',
     removable: true,
-    // featureOn משרשר גם את מודול התורמים (קידומת 'supporters')
-    visible: (cfg) => featureOn(cfg, 'supporters.nextdate'),
+    visible: (cfg) => featureOn(cfg, 'supporters.nextdate') && featureOn(cfg, 'home.contacts'),
     render: (ctx) => <ContactsWidget ctx={ctx} />,
   },
   punchlow: {
@@ -1240,8 +1232,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     icon: '🎫',
     slot: 'half',
     removable: true,
-    // featureOn משרשר גם את מודול החוגים (קידומת 'courses')
-    visible: (cfg) => featureOn(cfg, 'courses.punch'),
+    visible: (cfg) => featureOn(cfg, 'courses.punch') && featureOn(cfg, 'home.punchlow'),
     render: (ctx) => <PunchlowWidget ctx={ctx} />,
   },
   quick: {
@@ -1250,8 +1241,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     icon: '⚡',
     slot: 'full',
     removable: true,
-    // תמיד זמין — כפתורים בודדים בתוכו כפופים למודול/פיצ'ר שלהם
-    visible: () => true,
+    visible: (cfg) => featureOn(cfg, 'home.quick'),
     render: (ctx) => <QuickWidget ctx={ctx} />,
   },
 };

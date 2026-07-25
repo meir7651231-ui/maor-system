@@ -65,6 +65,17 @@ export const FEATURES: FeatureDef[] = [
   { key: 'home.care', label: 'דורש טיפול', desc: 'רשימת פריטים הדורשים טיפול במסך הבית', module: 'home' },
   { key: 'home.board', label: 'לוח נבנה אישית', desc: 'עריכת מסך הבית: הוספה, הסרה וסידור ווידג\'טים', module: 'home' },
   { key: 'home.impactwall', label: 'קיר ההשפעה ✨', desc: 'מסך ראווה לטלוויזיה ולערבי גיוס — מונים חיים וזוהרים', module: 'home' },
+  // ווידג'טים עדינים — כל אחד ניתן להסתרה בנפרד ממסך הבית (עצמאי לחלוטין)
+  { key: 'home.bdays', label: 'ווידג\'ט: ימי הולדת היום', desc: 'הבאנר החם של החוגגים במסך הבית', module: 'home' },
+  { key: 'home.stats', label: 'ווידג\'ט: כרטיסי נתונים', desc: 'גריד כרטיסי הסיכום במסך הבית', module: 'home' },
+  { key: 'home.today', label: 'ווידג\'ט: לוח "היום"', desc: 'מפגשים, אירועים וימי הולדת של היום', module: 'home' },
+  { key: 'home.recent', label: 'ווידג\'ט: משפחות אחרונות', desc: 'טבלת המשפחות האחרונות שנוספו', module: 'home' },
+  { key: 'home.goldbook', label: 'ווידג\'ט: ספר הזהב', desc: 'פודיום התורמים המובילים', module: 'home' },
+  { key: 'home.hebcal', label: 'ווידג\'ט: הלוח העברי', desc: 'הפריטים הקרובים בלוח העברי', module: 'home' },
+  { key: 'home.community', label: 'ווידג\'ט: אמינות קהילתית', desc: 'גריד הדרגות וממוצע האמינות', module: 'home' },
+  { key: 'home.contacts', label: 'ווידג\'ט: יעדי קשר', desc: 'רשימת יעדי הקשר עם תורמים', module: 'home' },
+  { key: 'home.punchlow', label: 'ווידג\'ט: מלאי כרטיסיות', desc: 'כרטיסיות עם יתרה נמוכה', module: 'home' },
+  { key: 'home.quick', label: 'ווידג\'ט: פעולות מהירות', desc: 'פאנל הפעולות המהירות במסך הבית', module: 'home' },
 
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },
