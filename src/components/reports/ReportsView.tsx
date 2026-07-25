@@ -105,7 +105,7 @@ export function ReportsView() {
         </div>
       </div>
 
-      {coursesOn && (
+      {coursesOn && featureOn(config, 'reports.enroll') && (
         <EnrollmentSection
           db={db}
           range={range}
@@ -114,10 +114,10 @@ export function ReportsView() {
           onPrint={() => setPrinting('enroll')}
         />
       )}
-      {coursesOn && (
+      {coursesOn && featureOn(config, 'reports.attendance') && (
         <AttendanceSection db={db} hidden={hide('attend')} onPrint={() => setPrinting('attend')} />
       )}
-      {supportersOn && (
+      {supportersOn && featureOn(config, 'reports.donations') && (
         <DonationsSection
           db={db}
           range={range}
@@ -126,12 +126,14 @@ export function ReportsView() {
           onPrint={() => setPrinting('donations')}
         />
       )}
-      {familiesOn && (
+      {familiesOn && featureOn(config, 'reports.families') && (
         <FamiliesSection db={db} hidden={hide('families')} onPrint={() => setPrinting('families')} />
       )}
-      {coursesOn && <PunchSection db={db} hidden={hide('punch')} onPrint={() => setPrinting('punch')} />}
+      {coursesOn && featureOn(config, 'reports.punch') && (
+        <PunchSection db={db} hidden={hide('punch')} onPrint={() => setPrinting('punch')} />
+      )}
 
-      <ReportPrefsSection />
+      {featureOn(config, 'reports.periodic') && <ReportPrefsSection />}
     </div>
   );
 }

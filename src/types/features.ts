@@ -77,6 +77,14 @@ export const FEATURES: FeatureDef[] = [
   { key: 'home.punchlow', label: 'ווידג\'ט: מלאי כרטיסיות', desc: 'כרטיסיות עם יתרה נמוכה', module: 'home' },
   { key: 'home.quick', label: 'ווידג\'ט: פעולות מהירות', desc: 'פאנל הפעולות המהירות במסך הבית', module: 'home' },
 
+  // ——— דוחות (סעיף לכל סוג דוח — עצמאי לחלוטין) ———
+  { key: 'reports.enroll', label: 'דוח רישום לחוגים', desc: 'סעיף סיכום הרישום, התפוסה וההכנסות', module: 'reports' },
+  { key: 'reports.attendance', label: 'דוח נוכחות', desc: 'סעיף הנוכחות והחיסורים', module: 'reports' },
+  { key: 'reports.donations', label: 'דוח תרומות', desc: 'סעיף סיכום התרומות לפי חודש וקטגוריה', module: 'reports' },
+  { key: 'reports.families', label: 'דוח מבט-על משפחות', desc: 'סעיף ספירות סטטוס/עיר/קהילה', module: 'reports' },
+  { key: 'reports.punch', label: 'דוח כרטיסיות ניקוב', desc: 'סעיף מצב הכרטיסיות ויתרות נמוכות', module: 'reports' },
+  { key: 'reports.periodic', label: 'דוחות תקופתיים', desc: 'מתגי יומי/שבועי/חודשי והפקה מיידית', module: 'reports' },
+
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },
   { key: 'settings.teachers', label: 'ניהול מורים', desc: 'הוספה ועריכה של מורים בהגדרות', module: 'settings' },
