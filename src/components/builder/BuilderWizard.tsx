@@ -82,6 +82,7 @@ function suggestSlug(name: string): string {
 
 /** מעטפת מקטע מתקפל: כותרת-כפתור (חץ + שם + ספירה) + טוגל-אב אופציונלי. */
 function SectionShell(props: {
+  id?: string;
   emoji: string;
   title: string;
   meta?: string;
@@ -92,7 +93,9 @@ function SectionShell(props: {
 }) {
   return (
     <section
+      id={props.id}
       style={{
+        scrollMarginTop: 8,
         border: '1px solid var(--line)',
         borderRadius: 10,
         marginBottom: 8,
@@ -312,8 +315,22 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   const flipOpen = (id: string, def = false) =>
     setOpen((o) => ({ ...o, [id]: !(o[id] ?? def) }));
 
+  /** צ'יפ ניווט (כמו במסך ההגדרות): פותח את המקטע וגולל אליו. */
+  const jumpTo = (domId: string, key: string) => {
+    setOpen((o) => ({ ...o, [key]: true }));
+    requestAnimationFrame(() =>
+      document.getElementById(domId)?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+    );
+  };
+
   const q = query.trim();
   const searching = q.length > 0;
+  /** שורת צ'יפי-הניווט — מיתוג, מקטע לכל מסך, והרחבות (בסדר המסכים באפליקציה). */
+  const navChips: { domId: string; key: string; label: string }[] = [
+    { domId: 'wz-branding', key: 'branding', label: '🏷️ מיתוג' },
+    ...WIZARD_SECTIONS.map((s) => ({ domId: `wz-${s.id}`, key: s.id, label: `${s.emoji} ${s.title}` })),
+    { domId: 'wz-integrations', key: 'integrations', label: '🔌 הרחבות' },
+  ];
 
   /** מקטע מודול אחד — יכולות + מונחים, מסונן לפי החיפוש. */
   const renderModuleSection = (sec: WizardSectionDef) => {
@@ -331,6 +348,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
     return (
       <SectionShell
         key={sec.id}
+        id={`wz-${sec.id}`}
         emoji={sec.emoji}
         title={sec.title}
         meta={feats.length ? `${onCount}/${feats.length} יכולות` : undefined}
@@ -448,12 +466,39 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             {activeCount} יכולות פעילות מתוך {FEATURES.length}
           </span>
         </div>
+        {/* שורת ניווט מהיר — צ'יפים למקטעים, כמו במסך ההגדרות. מוסתר בזמן חיפוש
+            (אז ממילא כל המקטעים פרוסים). */}
+        {!searching && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }} className="no-print">
+            {navChips.map((c) => (
+              <button
+                key={c.domId}
+                type="button"
+                onClick={() => jumpTo(c.domId, c.key)}
+                style={{
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  padding: '4px 10px',
+                  borderRadius: 999,
+                  border: '1px solid var(--line)',
+                  background: 'var(--hover-bg, var(--panel))',
+                  color: 'var(--ink-soft)',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px 18px 40px' }}>
         {/* מיתוג — שם, מזהה, לוגו, ערכה וצבע (מוסתר בזמן חיפוש יכולות) */}
         {!searching && (
           <SectionShell
+            id="wz-branding"
             emoji="🏷️"
             title="מיתוג"
             open={isOpen('branding', true)}
@@ -597,6 +642,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
         {/* הרחבות — נשארות כ-chips (מוסתר בזמן חיפוש יכולות) */}
         {!searching && (
           <SectionShell
+            id="wz-integrations"
             emoji="🔌"
             title="הרחבות שנמכרו"
             meta="יופעלו בפגישת המשך"
