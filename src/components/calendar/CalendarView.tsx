@@ -195,8 +195,21 @@ export function CalendarView() {
         };
     if (!familiesModOn) f = { ...f, bdays: false, joins: false, family: false, enrolls: false };
     if (!coursesModOn) f = { ...f, courses: false, enrolls: false };
+    // גייט עדין פר-שכבה: כל שכבה ניתנת לכיבוי בנפרד (calendar.layers.<x>),
+    // מעבר לגייט-האב calendar.layers. כבויה → נכפית false (עצמאי לחלוטין).
+    const lyr = (k: string) => featureOn(config, 'calendar.layers.' + k);
+    f = {
+      ...f,
+      bdays: f.bdays && lyr('bdays'),
+      joins: f.joins && lyr('joins'),
+      enrolls: f.enrolls && lyr('enrolls'),
+      holidays: f.holidays && lyr('holidays'),
+      reminders: f.reminders && lyr('reminders'),
+      calls: f.calls && lyr('calls'),
+      family: f.family && lyr('family'),
+    };
     return f;
-  }, [filters, layersOn, familiesModOn, coursesModOn]);
+  }, [filters, layersOn, familiesModOn, coursesModOn, config]);
 
   const grid = useMemo(
     () => (hebMode ? buildHebrewGrid(db, hebAnchor) : buildGregorianGrid(db, ym.y, ym.m)),
@@ -292,6 +305,9 @@ export function CalendarView() {
           if (!familiesModOn && (fc.key === 'bdays' || fc.key === 'joins' || fc.key === 'family' || fc.key === 'enrolls'))
             return false;
           if (!coursesModOn && (fc.key === 'courses' || fc.key === 'enrolls')) return false;
+          // צ'יפ שכבה עם גייט עדין כבוי — מוסתר (אחרת נראה אך חסר-אפקט)
+          if (fc.key !== 'events' && fc.key !== 'courses' && !featureOn(config, 'calendar.layers.' + fc.key))
+            return false;
           return true;
         }).map((fc) => (
           <Chip

@@ -49,6 +49,14 @@ export const FEATURES: FeatureDef[] = [
   { key: 'calendar.dayview', label: 'תצוגת יום', desc: 'מעבר לתצוגת יום מפורטת בלוח השנה', module: 'calendar' },
   { key: 'calendar.layers', label: 'שכבות אירועים', desc: 'שכבות ימי הולדת, הצטרפות והרשמות על הלוח', module: 'calendar' },
   { key: 'calendar.blocking', label: 'חסימת שבת/חג והתנגשויות', desc: 'חסימת שבתות וחגים והתרעה על התנגשויות', module: 'calendar' },
+  // שכבות הלוח — כל שכבה ניתנת לכיבוי בנפרד (עצמאי לחלוטין)
+  { key: 'calendar.layers.bdays', label: 'שכבת ימי הולדת', desc: 'גלולות ימי ההולדת בלוח', module: 'calendar' },
+  { key: 'calendar.layers.joins', label: 'שכבת הצטרפות', desc: 'גלולות שנות ההצטרפות בלוח', module: 'calendar' },
+  { key: 'calendar.layers.enrolls', label: 'שכבת הרשמות', desc: 'גלולות ההרשמה לחוגים בלוח', module: 'calendar' },
+  { key: 'calendar.layers.holidays', label: 'שכבת חגים', desc: 'סימון החגים בתאי הלוח', module: 'calendar' },
+  { key: 'calendar.layers.reminders', label: 'שכבת תזכורות', desc: 'אירועי תזכורת בלוח', module: 'calendar' },
+  { key: 'calendar.layers.calls', label: 'שכבת טלפונים', desc: 'אירועי שיחה בלוח', module: 'calendar' },
+  { key: 'calendar.layers.family', label: 'שכבת אירועים משפחתיים', desc: 'אירועים המשויכים למשפחה בלוח', module: 'calendar' },
 
   // ——— יומן חדרים ———
   { key: 'diary.booking', label: 'הזמנת משבצת', desc: 'הזמנת משבצת זמן בחדר ישירות מהיומן', module: 'diary' },
