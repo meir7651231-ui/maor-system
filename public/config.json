@@ -3,5 +3,13 @@
   "orgName": "",
   "theme": "or-rishon",
   "modules": {},
-  "features": {}
+  "features": {},
+  "firebase": {
+    "apiKey": "AIzaSyCVvJvJAnTEWSzdtmONXcZyRijHdrvPeIo",
+    "authDomain": "maor-system.firebaseapp.com",
+    "projectId": "maor-system",
+    "storageBucket": "maor-system.firebasestorage.app",
+    "messagingSenderId": "437845665303",
+    "appId": "1:437845665303:web:955fa5636e5b408ae7de52"
+  }
 }
