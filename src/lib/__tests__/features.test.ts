@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { featureOn, termOf } from '../config';
+import { featureOn, isAdminUser, termOf } from '../config';
 import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 import { FEATURES, TERM_DEFS } from '../../types/features';
 
@@ -106,5 +106,20 @@ describe('FEATURES registry sanity', () => {
     for (const t of TERM_DEFS) {
       expect(t.fallback.trim().length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('🔒 ratchet — isAdminUser (גישת אשף/נושא לפי מייל, פאס-8)', () => {
+  it('adminEmails מוגדר → רק המייל ברשימה הוא אדמין (case-insensitive)', () => {
+    const c = cfg({ adminEmails: ['meir7651231@gmail.com'] });
+    expect(isAdminUser(c, 'meir7651231@gmail.com')).toBe(true);
+    expect(isAdminUser(c, 'MEIR7651231@Gmail.com')).toBe(true); // אותיות רישיות
+    expect(isAdminUser(c, 'someone@else.com')).toBe(false); // לקוח אחר — לא אדמין
+    expect(isAdminUser(c, null)).toBe(false); // ללא מייל מול רשימה מוגדרת
+    expect(isAdminUser(c, undefined)).toBe(false);
+  });
+  it('adminEmails ריק/חסר → אין הגבלה (כל אחד אדמין, תאימות-אחורה)', () => {
+    expect(isAdminUser(cfg(), 'anyone@x.com')).toBe(true);
+    expect(isAdminUser(cfg({ adminEmails: [] }), null)).toBe(true);
   });
 });

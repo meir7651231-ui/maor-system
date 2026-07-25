@@ -9,7 +9,7 @@
  */
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
-import { featureOn, moduleOn, termOf } from './lib/config';
+import { featureOn, isAdminUser, moduleOn, termOf } from './lib/config';
 import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
 import { todaySessions } from './components/home/homeData';
@@ -197,6 +197,8 @@ export default function App() {
   const adminNeededFor = (zone: string) =>
     !!lock.secondary && lockZones.includes(zone) && !unlockedAdmin;
   const onAdminUnlock = () => markUnlocked('secondary');
+  // מנהל-על לפי מייל (config.adminEmails) — רק הוא פותח את האשף ומשנה ערכת נושא.
+  const isAdmin = isAdminUser(config, cloud.user?.email);
 
   const Current = VIEWS[view];
   const syncDot = SYNC_DOT[cloud.status] ?? SYNC_DOT.idle;
@@ -459,7 +461,9 @@ export default function App() {
       {paletteOpen && <CommandPalette />}
 
       {builderOpen &&
-        (adminNeededFor('wizard') ? (
+        (!isAdmin ? (
+          // אשף ההקמה — למנהל-על בלבד (לפי המייל). משתמש-לקוח שמנסה #builder
+          // מקבל הודעת אין-הרשאה, לא את האשף.
           <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
             <button
               type="button"
@@ -467,7 +471,7 @@ export default function App() {
                 window.location.hash = '';
                 setBuilderOpen(false);
               }}
-              title="חזרה — סגירת האשף בלי לפתוח את האזור המוגן"
+              title="חזרה"
               style={{
                 position: 'absolute',
                 insetInlineStart: 16,
@@ -483,7 +487,9 @@ export default function App() {
             >
               ✕ חזרה
             </button>
-            <LockScreen kind="secondary" onUnlock={onAdminUnlock} />
+            <div className="empty" style={{ marginTop: 120 }}>
+              🔒 אשף ההקמה זמין למנהל המערכת בלבד.
+            </div>
           </div>
         ) : (
           <BuilderWizard

@@ -97,7 +97,26 @@ function normalize(raw: unknown): OrgConfig | null {
   const fb = normalizeFirebase(c.firebase);
   if (fb) cfg.firebase = fb;
   else delete cfg.firebase;
+  // מיילי-אדמין — רק מחרוזות לא-ריקות; ריק/לא-מערך → מוסר (אין הגבלה)
+  const admins = Array.isArray(c.adminEmails)
+    ? c.adminEmails.filter((e): e is string => typeof e === 'string' && e.trim() !== '')
+    : [];
+  if (admins.length) cfg.adminEmails = admins;
+  else delete cfg.adminEmails;
   return cfg;
+}
+
+/**
+ * האם המשתמש הנוכחי מנהל-על. ריק/חסר adminEmails = אין הגבלה (true לכולם, כמו
+ * היום). מוגדר = רק מי שמיילו ברשימה (case-insensitive). ללא מייל מול רשימה
+ * מוגדרת = לא-אדמין (משתמש-לקוח שאינו ברשימה).
+ */
+export function isAdminUser(config: OrgConfig, email: string | null | undefined): boolean {
+  const admins = config.adminEmails;
+  if (!admins || admins.length === 0) return true;
+  if (!email) return false;
+  const e = email.trim().toLowerCase();
+  return admins.some((a) => a.trim().toLowerCase() === e);
 }
 
 /** דריסת הריצה השמורה בדפדפן, אם קיימת ותקינה. */

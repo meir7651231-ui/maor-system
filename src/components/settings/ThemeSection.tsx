@@ -4,6 +4,7 @@
  * נעשית ב-store (applyTheme) — כאן רק תצוגה ופעולות.
  */
 import { useApp } from '../../store/useApp';
+import { isAdminUser } from '../../lib/config';
 import { Btn } from '../ui';
 import { Section, SectionNote } from './lib';
 
@@ -139,6 +140,7 @@ export function ThemeSection() {
   const uiTheme = useApp((s) => s.db.ui.theme);
   const uiAccent = useApp((s) => s.db.ui.accent);
   const config = useApp((s) => s.config);
+  const cloudUser = useApp((s) => s.cloud.user);
   const setTheme = useApp((s) => s.setTheme);
   const setAccent = useApp((s) => s.setAccent);
   const toast = useApp((s) => s.toast);
@@ -147,6 +149,16 @@ export function ThemeSection() {
   const activeDef = THEMES.find((t) => t.key === activeKey) ?? THEMES[0];
   const accent = uiAccent ?? config.accent ?? activeDef.accent;
   const customized = !!(uiAccent ?? config.accent);
+  const isAdmin = isAdminUser(config, cloudUser?.email);
+
+  // משתמש שאינו מנהל-על — תצוגה בלבד; שינוי ערכת נושא/צבע שמור למנהל.
+  if (!isAdmin) {
+    return (
+      <Section id="sec-theme" title="🎨 ערכת נושא" sub={'המראה נקבע ע"י מנהל המערכת'}>
+        <SectionNote>{'🔒 ערכת הנושא מנוהלת ע"י מנהל המערכת. הנוכחית: '}{activeDef.name}.</SectionNote>
+      </Section>
+    );
+  }
 
   return (
     <Section id="sec-theme" title="🎨 ערכת נושא" sub="המראה נשמר בנתונים ונכלל בקובץ הגיבוי">
