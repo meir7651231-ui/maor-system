@@ -5,6 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { VERTICAL_PACKS, applyVerticalPack } from '../verticalPacks';
+import { TERM_DEFS } from '../../types/features';
 import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 
 const base: OrgConfig = {
@@ -60,6 +61,34 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
       expect(p.label).toBeTruthy();
       expect(typeof p.terms).toBe('object');
       expect(typeof p.modules).toBe('object');
+    }
+  });
+
+  it('מזהי החבילות ייחודיים', () => {
+    const ids = VERTICAL_PACKS.map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('🔒 כל מפתח-מונח בכל חבילה קיים ב-TERM_DEFS (אין תיוג ל"מפתח מת")', () => {
+    const known = new Set(TERM_DEFS.map((t) => t.key));
+    for (const p of VERTICAL_PACKS) {
+      for (const key of Object.keys(p.terms)) {
+        expect(known.has(key), `חבילה ${p.id} — מפתח לא מוכר: ${key}`).toBe(true);
+      }
+    }
+  });
+
+  it('חבילות חדשות: חדרים/צי-רכב/מוסך/אירוח — מכבות חוגים ומתייגות את מנוע ההזמנות', () => {
+    for (const id of ['rooms', 'fleet', 'garage', 'hospitality']) {
+      const c = applyVerticalPack(base, id);
+      expect(c.modules.courses, `${id} — חוגים צריכים להיות כבויים`).toBe(false);
+      // מנוע ה-diary (נכס-להזמנה) הוא הליבה בכל הארבע — חובה תיוג חדר
+      expect(c.terms!['entity.room'], `${id} — entity.room חייב תיוג`).toBeTruthy();
+      // מנוע ה-ayin ממופה ל-pipeline של הענף — שלב אחרון מוגדר
+      expect(c.terms!['ayin.stage.done'], `${id} — שלב סיום חייב תיוג`).toBeTruthy();
+      // שמירת firebase/admin גם בחבילות החדשות
+      expect(c.firebase?.projectId).toBe('p');
+      expect(c.adminEmails).toEqual(['admin@x.com']);
     }
   });
 });
