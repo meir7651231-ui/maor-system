@@ -93,6 +93,8 @@ export function SupportersView() {
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
   const ayinOn = featureOn(config, 'supporters.ayin');
+  const customReportOn = featureOn(config, 'supporters.customreport');
+  const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');
   const importOn = featureOn(config, 'settings.import');
   const toast = useApp((s) => s.toast);
 
@@ -180,10 +182,12 @@ export function SupportersView() {
                 ⬆ ייבוא
               </Btn>
             )}
-            <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
-              📊 דו"ח מותאם
-            </Btn>
-            {ayinOn && (
+            {customReportOn && (
+              <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
+                📊 דו"ח מותאם
+              </Btn>
+            )}
+            {ayinOn && dailyReportOn && (
               <Btn onClick={dailyReport} title={'דוח יומי — ' + featLabel(config)}>
                 📋 דוח יומי
               </Btn>
