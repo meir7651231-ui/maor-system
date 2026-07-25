@@ -21,7 +21,7 @@ import type { Db, Family, OrgEvent } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { Btn, Chip } from '../ui';
 import { hebDateFull } from '../../lib/hebrew';
-import { featureOn, moduleOn } from '../../lib/config';
+import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { tierOf } from '../families/lib';
 import { buildPodium, buildWeek, fmtIls } from '../wall/wallData';
 import {
@@ -360,8 +360,14 @@ function HeroWidget({ ctx }: { ctx: HomeCtx }) {
             </Btn>
           )}
           {calendarOn && <Btn onClick={() => go('calendar')}>{isOrRishon ? '🎂 מי חוגג השבוע?' : 'מי חוגג השבוע?'}</Btn>}
-          {diaryOn && <Btn onClick={() => go('diary')}>{isOrRishon ? '📖 יומן חדרים' : 'יומן חדרים'}</Btn>}
-          {supportersOn && !isOrRishon && <Btn onClick={() => go('supporters')}>תורמים</Btn>}
+          {diaryOn && (
+            <Btn onClick={() => go('diary')}>
+              {(isOrRishon ? '📖 ' : '') + termOf(config, 'nav.diary', 'יומן חדרים')}
+            </Btn>
+          )}
+          {supportersOn && !isOrRishon && (
+            <Btn onClick={() => go('supporters')}>{termOf(config, 'nav.supporters', 'תורמים')}</Btn>
+          )}
           {reportsOn && <Btn onClick={() => go('reports')}>{isOrRishon ? '📊 דוחות' : 'דוחות'}</Btn>}
         </div>
       )}

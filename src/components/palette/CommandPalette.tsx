@@ -8,7 +8,7 @@
  */
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { allMembers, useApp, type View } from '../../store/useApp';
-import { featureOn, moduleOn } from '../../lib/config';
+import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { DEFAULT_LOCK_ZONES } from '../../lib/lock';
@@ -120,17 +120,24 @@ export function CommandPalette() {
     };
     const nav: Cmd[] = NAV_CMDS.filter(
       (n) => n.view === 'home' || n.view === 'settings' || navOn[n.view] !== false,
-    ).map((n) => ({
-      key: 'nav-' + n.view,
-      icon: n.icon,
-      title: n.label,
-      sub: 'מעבר למסך',
-      terms: toTerms([n.label, 'מסך', 'ניווט', 'מעבר']),
-      run: () => {
-        go(n.view);
-        setPalette(false);
-      },
-    }));
+    ).map((n) => {
+      // תיוג-מחדש פר-עסק: בית/הגדרות ללא מונח (קבועים); שאר המסכים דרך termOf.
+      // חיפוש כולל גם את התווית המותאמת וגם את ברירת-המחדל (alias) כדי שהשם הישן
+      // ("תורמים") והחדש ("מטופלים") ימצאו את אותו מסך.
+      const label =
+        n.view === 'home' || n.view === 'settings' ? n.label : termOf(config, 'nav.' + n.view, n.label);
+      return {
+        key: 'nav-' + n.view,
+        icon: n.icon,
+        title: label,
+        sub: 'מעבר למסך',
+        terms: toTerms([label, n.label, 'מסך', 'ניווט', 'מעבר']),
+        run: () => {
+          go(n.view);
+          setPalette(false);
+        },
+      };
+    });
     const actions: Cmd[] = [];
     // משפחה חדשה — פותח את מסך המשפחות; מוסתר כשמודול המשפחות כבוי
     if (familiesOn) {
@@ -208,6 +215,7 @@ export function CommandPalette() {
     }
     return [...nav, ...actions];
   }, [
+    config,
     go,
     selectFamily,
     exportBackup,
