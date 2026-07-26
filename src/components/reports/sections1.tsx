@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { Db, Enrollment } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import { Chip } from '../ui';
 import type { Cell } from './csv';
 import { ReportTable, Section, type Row } from './parts';
@@ -29,7 +30,16 @@ interface SectionProps {
 export function EnrollmentSection(props: SectionProps & { range: DateRange; rangeText: string }) {
   const { db, range } = props;
   const selectCourse = useApp((s) => s.selectCourse);
-  const head = ['חוג', 'מורה', 'רשומים', 'מקסימום', 'תפוסה', 'הכנסות בטווח (₪)', 'יתרת חוב (₪)'];
+  const config = useApp((s) => s.config);
+  const head = [
+    termOf(config, 'entity.course', 'חוג'),
+    termOf(config, 'entity.teacher', 'מורה'),
+    'רשומים',
+    'מקסימום',
+    'תפוסה',
+    'הכנסות בטווח (₪)',
+    'יתרת חוב (₪)',
+  ];
 
   let totEnrolled = 0;
   let totIncome = 0;
@@ -64,7 +74,7 @@ export function EnrollmentSection(props: SectionProps & { range: DateRange; rang
 
   return (
     <Section
-      title="📚 סיכום רישום לחוגים"
+      title={'📚 סיכום רישום ל' + termOf(config, 'nav.courses', 'חוגים')}
       sub={'הכנסות מתשלומים בטווח: ' + props.rangeText + ' · יתרת חוב — מצב נוכחי'}
       hidden={props.hidden}
       onPrint={props.onPrint}
@@ -81,10 +91,18 @@ export function AttendanceSection(props: SectionProps) {
   const { db } = props;
   const selectCourse = useApp((s) => s.selectCourse);
   const selectFamily = useApp((s) => s.selectFamily);
+  const config = useApp((s) => s.config);
   const [mode, setMode] = useState<'course' | 'member'>('course');
   const idx = nameIndex(db);
 
-  const courseHead = ['חוג', 'מורה', 'שיבוצים', 'חיסורים', 'ללא הודעה (No-Show)', 'זכאי השלמה'];
+  const courseHead = [
+    termOf(config, 'entity.course', 'חוג'),
+    termOf(config, 'entity.teacher', 'מורה'),
+    'שיבוצים',
+    'חיסורים',
+    'ללא הודעה (No-Show)',
+    'זכאי השלמה',
+  ];
   let tAbs = 0;
   let tNoshow = 0;
   let tMakeup = 0;
@@ -109,7 +127,15 @@ export function AttendanceSection(props: SectionProps) {
   });
   const courseFoot: Cell[] = ['סה"כ', '', db.enrollments.length, tAbs, tNoshow, tMakeup];
 
-  const memberHead = ['תלמיד/ה', 'משפחה', 'חוג', 'חיסורים', 'ללא הודעה', 'זכאי השלמה', 'חיסור אחרון'];
+  const memberHead = [
+    'תלמיד/ה',
+    termOf(config, 'entity.family', 'משפחה'),
+    termOf(config, 'entity.course', 'חוג'),
+    'חיסורים',
+    'ללא הודעה',
+    'זכאי השלמה',
+    'חיסור אחרון',
+  ];
   const memberRows: Row[] = db.enrollments
     .filter((e) => e.absences.length > 0)
     .map((e) => {
@@ -153,7 +179,7 @@ export function AttendanceSection(props: SectionProps) {
       extra={
         <>
           <Chip on={isCourse} onClick={() => setMode('course')}>
-            לפי חוג
+            {'לפי ' + termOf(config, 'entity.course', 'חוג')}
           </Chip>
           <Chip on={!isCourse} onClick={() => setMode('member')}>
             לפי תלמיד/ה

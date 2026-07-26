@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import type { Course, Gender, PricingModel, Teacher, Weekday } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -214,27 +214,35 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
   }
 
   return (
-    <Modal title={props.course ? 'עריכת קורס' : 'קורס חדש'} onClose={props.onClose} wide>
+    <Modal
+      title={
+        props.course
+          ? 'עריכת ' + termOf(cfg, 'entity.course', 'חוג')
+          : 'הוספת ' + termOf(cfg, 'entity.course', 'חוג')
+      }
+      onClose={props.onClose}
+      wide
+    >
       <div className="form-grid">
-        <Field label="שם הקורס *">
+        <Field label={'שם ה' + termOf(cfg, 'entity.course', 'חוג') + ' *'}>
           <TextInput value={f.name} onChange={(v) => set({ name: v })} placeholder="לדוגמה: שחמט" />
         </Field>
-        <Field label="מורה">
+        <Field label={termOf(cfg, 'entity.teacher', 'מורה')}>
           <Select
             value={f.teacherId}
             onChange={(v) => set({ teacherId: v })}
             options={[
               ...db.teachers.map((t) => ({ value: t.id, label: t.name })),
-              { value: ADD_TEACHER, label: '＋ הוספת מורה חדשה…' },
+              { value: ADD_TEACHER, label: '＋ הוספת ' + termOf(cfg, 'entity.teacher', 'מורה') + '…' },
             ]}
           />
         </Field>
         {f.teacherId === ADD_TEACHER && (
           <>
-            <Field label="שם המורה החדשה *">
+            <Field label={'שם ' + termOf(cfg, 'entity.teacher', 'המורה') + ' *'}>
               <TextInput value={f.newTeacherName} onChange={(v) => set({ newTeacherName: v })} />
             </Field>
-            <Field label="טלפון המורה">
+            <Field label={'טלפון ' + termOf(cfg, 'entity.teacher', 'המורה')}>
               <TextInput
                 value={f.newTeacherPhone}
                 onChange={(v) => set({ newTeacherPhone: v })}
@@ -282,14 +290,14 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
             <TextInput value={f.size} onChange={(v) => set({ size: v })} placeholder="10" dir="ltr" />
           </Field>
         )}
-        <Field label="חדר פעילות *">
+        <Field label={termOf(cfg, 'entity.room', 'חדר') + ' פעילות *'}>
           <Select
             value={f.roomId}
             onChange={(v) => set({ roomId: v })}
             options={
               db.rooms.length
                 ? db.rooms.map((r) => ({ value: r.id, label: r.name }))
-                : [{ value: '', label: 'אין חדרים במערכת' }]
+                : [{ value: '', label: 'אין ' + termOf(cfg, 'entity.rooms', 'חדרים') + ' במערכת' }]
             }
           />
         </Field>

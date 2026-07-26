@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import type { Course, Enrollment, OrgEvent } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { downloadReceipt } from '../../lib/receipt';
 import { Btn, Field, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -210,7 +210,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       : 'הגדירו סה"כ עסקה ותקבלו מעקב יתרה';
 
   return (
-    <Modal title="⚙ ניהול שיבוץ" onClose={props.onClose}>
+    <Modal title={'⚙ ניהול ' + termOf(cfg, 'entity.enrollment', 'שיבוץ')} onClose={props.onClose}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
         <strong style={{ fontSize: 14 }}>
           {(m?.first ?? '—') + ' ' + (m?.famName ?? '')} · {c.name}

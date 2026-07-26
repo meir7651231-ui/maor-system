@@ -5,7 +5,7 @@
 import { useMemo, useState } from 'react';
 import type { Course, Enrollment } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { smartFilter } from '../../lib/search';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { enrollCount, groupOptionsOf, isoToday } from './lib';
@@ -88,7 +88,7 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
   }
 
   return (
-    <Modal title="שיבוץ תלמיד/ה לקורס" onClose={props.onClose}>
+    <Modal title={termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' ל' + termOf(cfg, 'entity.course', 'חוג')} onClose={props.onClose}>
       <Field label="תלמיד/ה * (הקלדה חכמה — שם או משפחה)">
         <TextInput
           value={q}

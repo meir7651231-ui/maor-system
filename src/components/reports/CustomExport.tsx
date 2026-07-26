@@ -30,7 +30,11 @@ export function CustomExport(props: { target: ExportTarget; onClose: () => void 
   );
 
   const label =
-    props.target === 'supporters' ? termOf(cfg, 'nav.supporters', 'תורמים') : TARGET_LABEL[props.target];
+    props.target === 'supporters'
+      ? termOf(cfg, 'nav.supporters', 'תורמים')
+      : props.target === 'courses'
+        ? termOf(cfg, 'nav.courses', 'חוגים')
+        : TARGET_LABEL[props.target];
 
   /** קיצור טווח נוח — החודש / השנה / הכול. */
   function preset(kind: 'month' | 'year' | 'all') {

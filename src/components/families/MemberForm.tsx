@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import type { Gender, Member } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
@@ -110,7 +110,7 @@ export function MemberForm(props: { famId: string; member: Member | null; onClos
 
   return (
     <Modal
-      title={props.member ? 'עריכת ' + props.member.first : 'הוספת בן משפחה'}
+      title={props.member ? 'עריכת ' + props.member.first : 'הוספת ' + termOf(config, 'entity.member', 'בן משפחה')}
       onClose={props.onClose}
     >
       <div className="form-grid">

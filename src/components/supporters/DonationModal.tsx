@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { downloadReceipt } from '../../lib/receipt';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -63,7 +63,10 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
   }
 
   return (
-    <Modal title={'רישום תרומה — ' + props.supporter.name} onClose={props.onClose}>
+    <Modal
+      title={'רישום ' + termOf(config, 'entity.donation', 'תרומה') + ' — ' + props.supporter.name}
+      onClose={props.onClose}
+    >
       <FormError error={error} />
       <div className="form-grid">
         <Field label="תאריך">

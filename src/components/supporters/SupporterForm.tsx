@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import { normSearch, validIsraeliId } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, TextInput } from '../ui';
 import { fixPhone } from './lib';
@@ -20,6 +21,7 @@ export function SupporterForm(props: SupporterFormProps) {
   const upsertSupporter = useApp((s) => s.upsertSupporter);
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
 
   const sp = props.supporter;
   const [f, setF] = useState({
@@ -96,7 +98,11 @@ export function SupporterForm(props: SupporterFormProps) {
 
   return (
     <Modal
-      title={sp ? 'כרטיס תומכ/ת — עריכה מלאה' : 'תומכת חדשה — כרטיס מלא'}
+      title={
+        sp
+          ? 'כרטיס ' + termOf(config, 'entity.supporter', 'תומך/ת') + ' — עריכה מלאה'
+          : 'הוספת ' + termOf(config, 'entity.supporter', 'תומך/ת') + ' — כרטיס מלא'
+      }
       onClose={() => props.onClose()}
     >
       <FormError error={error} />
@@ -119,7 +125,7 @@ export function SupporterForm(props: SupporterFormProps) {
         <Field label="קטגוריה">
           <TextInput value={f.cat} onChange={set('cat')} placeholder="קרן / עסק / פרטי…" />
         </Field>
-        <Field label="ייעוד התרומה (עבור)">
+        <Field label={'ייעוד ' + termOf(config, 'entity.donation', 'התרומה') + ' (עבור)'}>
           <TextInput value={f.forWho} onChange={set('forWho')} placeholder="מלגות, פעילות, כללי…" />
         </Field>
         <Field label="הערות">

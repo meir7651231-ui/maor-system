@@ -5,6 +5,7 @@
  */
 import { useState, type ChangeEvent } from 'react';
 import { useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import { parseCsv } from '../../lib/csvx';
 import { downloadCsv } from '../../lib/csvx';
 import { Btn, Field, FormError } from '../ui';
@@ -63,6 +64,7 @@ function parseRows(text: string): SupporterImportRow[] {
 export function SupporterImport(props: { onDone?: () => void }) {
   const setDb = useApp((s) => s.setDb);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
 
   const [csv, setCsv] = useState('');
   const [error, setError] = useState('');
@@ -157,7 +159,7 @@ export function SupporterImport(props: { onDone?: () => void }) {
         />
       </Field>
       <Btn kind="primary" onClick={() => run()} disabled={!csv.trim()}>
-        ייבוא התומכות
+        {'ייבוא ' + termOf(config, 'nav.supporters', 'התומכים')}
       </Btn>
     </div>
   );

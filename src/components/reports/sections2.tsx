@@ -2,6 +2,7 @@
 
 import type { Db, Donation } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import type { Cell } from './csv';
 import { ReportTable, Section, type Row } from './parts';
 import {
@@ -95,6 +96,7 @@ export function DonationsSection(props: SectionProps & { range: DateRange; range
 /** 4. מבט-על משפחות — ספירות לפי סטטוס, עיר וקהילה. */
 export function FamiliesSection(props: SectionProps) {
   const { db } = props;
+  const config = useApp((s) => s.config);
 
   const statusRows: Row[] = (['active', 'pending', 'inactive'] as const).map((st) => ({
     cells: [STATUS_LABEL[st], db.families.filter((f) => f.status === st).length],
@@ -113,7 +115,7 @@ export function FamiliesSection(props: SectionProps) {
 
   return (
     <Section
-      title="👨‍👩‍👧‍👦 מבט-על משפחות"
+      title={'👨‍👩‍👧‍👦 מבט-על ' + termOf(config, 'nav.families', 'משפחות')}
       sub={db.families.length + ' משפחות · ' + children + ' ילדים'}
       hidden={props.hidden}
       onPrint={props.onPrint}
@@ -145,9 +147,18 @@ export function FamiliesSection(props: SectionProps) {
 export function PunchSection(props: SectionProps) {
   const { db } = props;
   const selectFamily = useApp((s) => s.selectFamily);
+  const config = useApp((s) => s.config);
   const idx = nameIndex(db);
 
-  const head = ['תלמיד/ה', 'משפחה', 'חוג', 'נרכשו', 'נוצלו', 'יתרה', 'מצב'];
+  const head = [
+    'תלמיד/ה',
+    termOf(config, 'entity.family', 'משפחה'),
+    termOf(config, 'entity.course', 'חוג'),
+    'נרכשו',
+    'נוצלו',
+    'יתרה',
+    'מצב',
+  ];
   // שיבוץ שהסתיים (תלמיד/ה שעזב/ה) אינו זקוק לחידוש — לא מציגים בדו"ח מצב הכרטיסיות
   const punch = db.enrollments.filter((e) => e.plan === 'punch' && e.status !== 'ended');
   const rows: Row[] = punch

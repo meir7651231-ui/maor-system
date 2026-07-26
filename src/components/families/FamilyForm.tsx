@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { emptyFamily, type Family, type FamilyStatus } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { isoToday, LANGUAGE_OPTIONS, MARITAL_OPTIONS, OTHER, OTHER_LABEL } from './lib';
@@ -97,6 +98,7 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
   const families = useApp((s) => s.db.families);
+  const config = useApp((s) => s.config);
   const communities = [...new Set(families.map((fam) => fam.community).filter(Boolean))];
 
   const [f, setF] = useState<FamFormState>(() => initState(props.family));
@@ -150,9 +152,17 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
   }
 
   return (
-    <Modal title={props.family ? 'עריכת משפחה — ' + props.family.name : 'משפחה חדשה'} onClose={props.onClose} wide>
+    <Modal
+      title={
+        props.family
+          ? 'עריכת ' + termOf(config, 'entity.family', 'משפחה') + ' — ' + props.family.name
+          : 'הוספת ' + termOf(config, 'entity.family', 'משפחה')
+      }
+      onClose={props.onClose}
+      wide
+    >
       <div className="form-grid">
-        <Field label="שם משפחה *">
+        <Field label={'שם ' + termOf(config, 'entity.family', 'משפחה') + ' *'}>
           <TextInput value={f.name} onChange={(v) => set({ name: v })} placeholder="כהן" />
         </Field>
         <Field label="טלפון ראשי">

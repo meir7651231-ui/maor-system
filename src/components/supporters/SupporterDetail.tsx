@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -133,7 +133,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div>
-        <Btn onClick={props.onBack}>→ כל התומכות</Btn>
+        <Btn onClick={props.onBack}>{'→ כל ' + termOf(config, 'nav.supporters', 'התומכים')}</Btn>
       </div>
 
       {/* כותרת הכרטיס */}
@@ -169,7 +169,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Btn kind="primary" onClick={() => setDonOpen(true)}>
-            + רישום תרומה
+            ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
           </Btn>
           <Btn onClick={thankYouCall} title="תזכורת טלפון לתודה — נכנסת ללוח השנה">
             📞 תודה
@@ -194,13 +194,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
         {/* פרטי קשר */}
         <div className="card">
-          <h3 style={{ fontSize: 15, marginBottom: 8 }}>פרטי התומכ/ת</h3>
+          <h3 style={{ fontSize: 15, marginBottom: 8 }}>{'פרטי ' + termOf(config, 'entity.supporter', 'התומך/ת')}</h3>
           <InfoRow k="טלפון" v={sp.phone || '—'} ltr />
           <InfoRow k="אימייל" v={sp.email || '—'} ltr />
           <InfoRow k="כתובת" v={sp.address || '—'} />
           <InfoRow k='ת"ז' v={sp.idNum || '—'} ltr />
           <InfoRow k="קטגוריה" v={sp.cat || '—'} />
-          <InfoRow k="ייעוד התרומה" v={sp.forWho || '—'} />
+          <InfoRow k={'ייעוד ' + termOf(config, 'entity.donation', 'התרומה')} v={sp.forWho || '—'} />
           {sp.notes && <InfoRow k="הערות" v={sp.notes} />}
         </div>
 
@@ -235,11 +235,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
           <h3 style={{ fontSize: 15 }}>כל התרומות — מתי וכמה ({donations.length})</h3>
           <Btn sm onClick={() => setDonOpen(true)}>
-            + רישום תרומה
+            ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
           </Btn>
         </div>
         {donations.length === 0 ? (
-          <Empty>עדיין אין תרומות מתועדות — רשמו את הראשונה עם "+ רישום תרומה"</Empty>
+          <Empty>{'עדיין אין תרומות מתועדות — רשמו עם "➕ רישום ' + termOf(config, 'entity.donation', 'תרומה') + '"'}</Empty>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="table">

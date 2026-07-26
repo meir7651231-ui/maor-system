@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import type { Family, Member } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty } from '../ui';
 import { ageOf, chipStyle, fmtDate, STATUS_META } from './lib';
@@ -152,7 +152,7 @@ export function FamilyDetail(props: { family: Family }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div>
-        <Btn onClick={() => selectFamily(null)}>→ כל המשפחות</Btn>
+        <Btn onClick={() => selectFamily(null)}>{'→ כל ' + termOf(config, 'nav.families', 'משפחות')}</Btn>
       </div>
 
       {/* כותרת הכרטיס */}
@@ -241,7 +241,7 @@ export function FamilyDetail(props: { family: Family }) {
       <section className="card">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700 }}>בני המשפחה</h2>
-          <Btn onClick={() => setMemberModal(null)}>+ הוספת בן משפחה</Btn>
+          <Btn onClick={() => setMemberModal(null)}>➕ הוספת {termOf(config, 'entity.member', 'בן משפחה')}</Btn>
         </div>
         {fam.members.length === 0 ? (
           <Empty>עדיין לא נרשמו בני משפחה</Empty>

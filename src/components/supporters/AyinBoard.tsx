@@ -5,6 +5,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import {
   AYIN_STAGES,
   ayinActionVisible,
@@ -155,7 +156,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
       {open &&
         (rows.length === 0 ? (
           <div style={{ fontSize: 12.5, color: '#9a8a63', padding: '6px 2px' }}>
-            אין פריטים פעילים בלוח — פתחו כרטיס תומכ/ת והתחילו מעקב.
+            {'אין פריטים פעילים בלוח — פתחו כרטיס ' + termOf(cfg, 'entity.supporter', 'תומך/ת') + ' והתחילו מעקב.'}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>

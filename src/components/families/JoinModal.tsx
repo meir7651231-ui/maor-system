@@ -7,6 +7,7 @@
 import { useMemo, useRef, useState } from 'react';
 import type { Enrollment, Family, Member } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import { smartFilter } from '../../lib/search';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { ageOf, isoToday } from './lib';
@@ -59,6 +60,7 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
   const upsertEnrollment = useApp((s) => s.upsertEnrollment);
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
 
   // המשפחה נקראת חיה מה-store — כך בן משפחה שנוסף תוך כדי שיבוץ מופיע מיד
   const fam = db.families.find((f) => f.id === props.family.id) ?? props.family;
@@ -249,7 +251,16 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
   if (memberFormOpen) return <MemberForm famId={fam.id} member={null} onClose={closeMemberForm} />;
 
   return (
-    <Modal title={'שיבוץ לחוג — משפחת ' + fam.name} onClose={props.onClose}>
+    <Modal
+      title={
+        termOf(config, 'entity.enrollment', 'שיבוץ') +
+        ' ל' +
+        termOf(config, 'entity.course', 'חוג') +
+        ' — משפחת ' +
+        fam.name
+      }
+      onClose={props.onClose}
+    >
       <Field label="ילד/ה או הורה * (הקלדה חכמה)">
         <TextInput
           value={memberQ}
@@ -273,12 +284,12 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
             onClick={openMemberForm}
             style={{ ...listRowStyle, color: '#9a6414', borderBottom: 'none' }}
           >
-            ＋ בן/בת משפחה חדש/ה — הוספה מהירה וחזרה אוטומטית לשיבוץ
+            {'➕ הוספת ' + termOf(config, 'entity.member', 'בן/בת משפחה') + ' — הוספה מהירה וחזרה אוטומטית לשיבוץ'}
           </button>
         </div>
       )}
 
-      <Field label="חוג * (שם, קטגוריה או מורה)">
+      <Field label={termOf(config, 'entity.course', 'חוג') + ' * (שם, קטגוריה או מורה)'}>
         <TextInput
           value={courseQ}
           onChange={(v) => {

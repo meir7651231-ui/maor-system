@@ -206,7 +206,7 @@ export function CourseDetail(props: { course: Course }) {
         onClick={() => selectCourse(null)}
         style={{ color: 'var(--ink-faint)', fontSize: 13, fontWeight: 700, marginBottom: 10 }}
       >
-        → כל הקורסים
+        {'→ כל ' + termOf(cfg, 'nav.courses', 'חוגים')}
       </button>
 
       <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 15, marginBottom: 14 }}>
@@ -288,7 +288,7 @@ export function CourseDetail(props: { course: Course }) {
                   </Btn>
                 )}
                 <Btn sm disabled={full} onClick={() => setModal({ kind: 'enroll' })}>
-                  {full ? 'ה' + termOf(cfg, 'entity.course', 'חוג') + ' מלא' : '+ שיבוץ תלמיד'}
+                  {full ? 'ה' + termOf(cfg, 'entity.course', 'חוג') + ' מלא' : '➕ ' + termOf(cfg, 'entity.enrollment', 'שיבוץ')}
                 </Btn>
               </div>
             </div>
@@ -302,7 +302,7 @@ export function CourseDetail(props: { course: Course }) {
               </div>
             )}
             {enrolled.length === 0 ? (
-              <Empty>אין תלמידים רשומים — לחצו על "שיבוץ תלמיד"</Empty>
+              <Empty>{'אין תלמידים רשומים — לחצו על "' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' תלמיד"'}</Empty>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table className="table">
@@ -492,17 +492,17 @@ export function CourseDetail(props: { course: Course }) {
         </div>
 
         <section className="card">
-          <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>פרטי הקורס</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>{'פרטי ה' + termOf(cfg, 'entity.course', 'חוג')}</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             {detailRow('קהל יעד', c.audience || 'כללי')}
-            {detailRow('מורה', teacher?.name ?? '—')}
+            {detailRow(termOf(cfg, 'entity.teacher', 'מורה'), teacher?.name ?? '—')}
             {detailRow('טלפון המורה', teacher?.phone || '—')}
             {detailRow('מחיר מלא', c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—')}
             {discountsOn && detailRow(c.price1Name || 'הנחה 1', c.price1 ? '₪' + c.price1 : '—', '#12803c')}
             {discountsOn && detailRow(c.price2Name || 'הנחה 2', c.price2 ? '₪' + c.price2 : '—', '#7c3aed')}
             {detailRow('מסלול', mm.label)}
             {detailRow('סמסטר', c.semester || 'שנתי')}
-            {detailRow('חדר פעילות', room?.name ?? '—')}
+            {detailRow(termOf(cfg, 'entity.room', 'חדר') + ' פעילות', room?.name ?? '—')}
             {detailRow('תפוסה', enrollCount(db, c.id) + ' מתוך ' + (c.maxStudents || '∞'))}
             {detailRow(
               'תקופת פעילות (עברי)',
@@ -517,7 +517,7 @@ export function CourseDetail(props: { course: Course }) {
             <div style={{ height: 1, background: 'var(--line)' }} />
             <div>
               <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-soft)', marginBottom: 5 }}>
-                📝 הערות פנימיות על החוג
+                {'📝 הערות פנימיות על ה' + termOf(cfg, 'entity.course', 'חוג')}
               </div>
               <div style={{ display: 'flex', gap: 7 }}>
                 <input

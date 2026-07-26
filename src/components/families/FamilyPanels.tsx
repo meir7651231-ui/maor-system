@@ -6,7 +6,7 @@
 import { useState, type ReactNode } from 'react';
 import type { Db, Family, FamilyDoc } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, moduleOn } from '../../lib/config';
+import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, TextInput } from '../ui';
 import { downloadText } from '../reports/csv';
@@ -96,6 +96,7 @@ export function DocsPanel(props: { fam: Family }) {
 export function CredPanel(props: { fam: Family }) {
   const addCred = useApp((s) => s.addCred);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
   const [overrideVal, setOverrideVal] = useState('');
 
   const cred = props.fam.cred;
@@ -114,7 +115,7 @@ export function CredPanel(props: { fam: Family }) {
   }
 
   return (
-    <SectionCard title="מדד אמינות" actions={<span style={chipStyle(tier.bg, tier.c)}>{tier.label}</span>}>
+    <SectionCard title={termOf(config, 'entity.cred', 'מדד אמינות')} actions={<span style={chipStyle(tier.bg, tier.c)}>{tier.label}</span>}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
         <span style={{ fontSize: 30, fontWeight: 800, lineHeight: 1 }}>{cred.score}</span>
         <span style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 600 }}>/ 1000</span>
@@ -200,11 +201,25 @@ export function EnrollPanel(props: { fam: Family }) {
 
   return (
     <SectionCard
-      title="קורסים פעילים וניקובים"
-      actions={joinOn ? <Btn onClick={() => setJoinOpen(true)}>+ שיבוץ לחוג</Btn> : undefined}
+      title={termOf(config, 'nav.courses', 'חוגים') + ' פעילים וניקובים'}
+      actions={
+        joinOn ? (
+          <Btn onClick={() => setJoinOpen(true)}>
+            ➕ {termOf(config, 'entity.enrollment', 'שיבוץ')} ל{termOf(config, 'entity.course', 'חוג')}
+          </Btn>
+        ) : undefined
+      }
     >
       {list.length === 0 ? (
-        <Empty>{joinOn ? 'אין שיבוצים פעילים — לחצו על "+ שיבוץ לחוג"' : 'אין שיבוצים פעילים'}</Empty>
+        <Empty>
+          {joinOn
+            ? 'אין שיבוצים פעילים — לחצו על "➕ ' +
+              termOf(config, 'entity.enrollment', 'שיבוץ') +
+              ' ל' +
+              termOf(config, 'entity.course', 'חוג') +
+              '"'
+            : 'אין שיבוצים פעילים'}
+        </Empty>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table className="table">

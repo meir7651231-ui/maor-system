@@ -349,7 +349,9 @@ function HeroWidget({ ctx }: { ctx: HomeCtx }) {
       {actionsOn && (
         <div className="hm-hero-actions">
           {familiesOn && (
-            <Btn kind="primary" onClick={() => go('families')}>+ משפחה חדשה</Btn>
+            <Btn kind="primary" onClick={() => go('families')}>
+              ➕ הוספת {termOf(config, 'entity.family', 'משפחה')}
+            </Btn>
           )}
           {coursesOn && (
             <Btn
@@ -588,7 +590,9 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
       {!isKehila && (
         <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-faint)' }}>המפגשים של היום</div>
       )}
-      {data.sessions.length === 0 && <div style={softEmpty}>אין מפגשי חוגים היום</div>}
+      {data.sessions.length === 0 && (
+        <div style={softEmpty}>אין מפגשי {termOf(config, 'nav.courses', 'חוגים')} היום</div>
+      )}
       {isTsohar && data.sessions.length > 0 && (
         /* הטבלה גוללת בתוך עצמה במסך צר — הגוף לעולם לא גולל אופקית */
         <div style={{ overflowX: 'auto' }}>
@@ -820,18 +824,21 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
 
 /** משפחות אחרונות — טבלה + מצב ריק. */
 function RecentWidget({ ctx }: { ctx: HomeCtx }) {
-  const { data, go, selectFamily } = ctx;
+  const { config, data, go, selectFamily } = ctx;
+  const famPlural = termOf(config, 'nav.families', 'משפחות');
   return (
     <Panel
       icon="👨‍👩‍👧‍👦"
-      title="משפחות אחרונות"
-      action={<Btn sm onClick={() => go('families')}>כל המשפחות ←</Btn>}
+      title={famPlural + ' אחרונות'}
+      action={<Btn sm onClick={() => go('families')}>{'כל ' + famPlural + ' ←'}</Btn>}
     >
       {data.recent.length === 0 ? (
         <div className="empty">
-          אין משפחות עדיין — הוסיפו את המשפחה הראשונה
+          אין {famPlural} עדיין — הוסיפו את הראשונ/ה
           <div style={{ marginTop: 12 }}>
-            <Btn kind="primary" onClick={() => go('families')}>+ משפחה חדשה</Btn>
+            <Btn kind="primary" onClick={() => go('families')}>
+              ➕ הוספת {termOf(config, 'entity.family', 'משפחה')}
+            </Btn>
           </div>
         </div>
       ) : (
@@ -943,20 +950,21 @@ function HebcalWidget({ ctx }: { ctx: HomeCtx }) {
  * דרגות/צבעים — reuse של tierOf ממודול המשפחות (950/800/500), בלי לשכפל נוסחה.
  */
 function CommunityWidget({ ctx }: { ctx: HomeCtx }) {
-  const { db, go } = ctx;
+  const { db, config, go } = ctx;
   const s = credSummary(db, (score) => tierOf(score).key);
   // מטא של ארבע הדרגות — ציון מייצג לכל טווח מחזיר את התווית/צבע המקוריים
   const meta = [tierOf(960), tierOf(850), tierOf(600), tierOf(100)];
   const isKehila = themeOf(ctx) === 'kehila';
+  const famPlural = termOf(config, 'nav.families', 'משפחות');
   return (
     <Panel
       icon={isKehila ? '🏅' : '🤝'}
       title={isKehila ? 'הקהילה שלנו' : 'אמינות קהילתית'}
       badge={s.total > 0 ? `ממוצע ${s.avg}` : undefined}
-      action={<Btn sm onClick={() => go('families')}>למשפחות ←</Btn>}
+      action={<Btn sm onClick={() => go('families')}>{'ל' + famPlural + ' ←'}</Btn>}
     >
       {s.total === 0 ? (
-        <div style={softEmpty}>אין משפחות עדיין</div>
+        <div style={softEmpty}>{'אין ' + famPlural + ' עדיין'}</div>
       ) : (
         <div className="hm-tier-grid">
           {meta.map((t) => (
@@ -1056,8 +1064,8 @@ function QuickWidget({ ctx }: { ctx: HomeCtx }) {
       </div>
       <div className="hm-quick">
         {familiesOn && (
-          <Btn kind="primary" onClick={() => go('families')} title="למסך המשפחות — הוספת משפחה">
-            👨‍👩‍👧‍👦 + משפחה
+          <Btn kind="primary" onClick={() => go('families')} title="למסך המשפחות — הוספה">
+            👨‍👩‍👧‍👦 {termOf(config, 'entity.family', 'משפחה')}
           </Btn>
         )}
         {punchOn && (
