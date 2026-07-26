@@ -4,7 +4,7 @@
  */
 import { useMemo, useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { hebDateFull } from '../../lib/hebrew';
@@ -89,8 +89,11 @@ export function EventModal(props: {
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF((p) => ({ ...p, [k]: v }));
 
   const roomOptions = useMemo(
-    () => [{ value: '', label: 'ללא חדר' }, ...rooms.map((r) => ({ value: r.id, label: r.name }))],
-    [rooms],
+    () => [
+      { value: '', label: 'ללא ' + termOf(config, 'entity.room', 'חדר') },
+      ...rooms.map((r) => ({ value: r.id, label: r.name })),
+    ],
+    [rooms, config],
   );
   const famOptions = useMemo(
     () => [
@@ -221,11 +224,11 @@ export function EventModal(props: {
         <Field label="מחיר האירוע (₪)">
           <TextInput type="number" value={f.price} onChange={(v) => set('price', v)} dir="ltr" placeholder="0" />
         </Field>
-        <Field label="חדר (רשות)">
+        <Field label={termOf(config, 'entity.room', 'חדר') + ' (רשות)'}>
           <Select value={f.roomId} onChange={(v) => set('roomId', v)} options={roomOptions} />
         </Field>
         <div style={{ gridColumn: '1 / -1' }}>
-          <Field label="שיוך למשפחה (רשות)">
+          <Field label={'שיוך ל' + termOf(config, 'entity.family', 'משפחה') + ' (רשות)'}>
             <Select value={f.famId} onChange={(v) => set('famId', v)} options={famOptions} />
           </Field>
         </div>

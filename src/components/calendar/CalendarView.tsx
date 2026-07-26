@@ -5,7 +5,7 @@
  */
 import { useMemo, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, moduleOn } from '../../lib/config';
+import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { Btn, Chip, Empty, PageHead } from '../ui';
 import type { OrgEvent } from '../../types/domain';
 import {
@@ -315,7 +315,7 @@ export function CalendarView() {
             on={filters[fc.key]}
             onClick={() => setFilters((p) => ({ ...p, [fc.key]: !p[fc.key] }))}
           >
-            {fc.label}
+            {fc.key === 'courses' ? termOf(config, 'nav.courses', 'חוגים') : fc.label}
           </Chip>
         ))}
         <Chip on={filters.urgentOnly} onClick={() => setFilters((p) => ({ ...p, urgentOnly: !p.urgentOnly }))}>

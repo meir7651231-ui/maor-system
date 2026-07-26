@@ -414,7 +414,7 @@ function HistoryPanel(props: { fam: Family }) {
         <div style={{ display: 'flex', gap: 6 }}>
           {reportOn && (
             <Btn sm onClick={exportReport}>
-              ⬇ דוח משפחה
+              ⬇ דוח {termOf(config, 'entity.family', 'משפחה')}
             </Btn>
           )}
           <Btn sm onClick={() => setOpen((v) => !v)}>

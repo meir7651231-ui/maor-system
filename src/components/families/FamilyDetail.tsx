@@ -192,9 +192,9 @@ export function FamilyDetail(props: { family: Family }) {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Btn onClick={() => setEditOpen(true)}>✎ עריכת משפחה</Btn>
+          <Btn onClick={() => setEditOpen(true)}>✎ עריכת {termOf(config, 'entity.family', 'משפחה')}</Btn>
           <Btn kind="danger" onClick={onDeleteFamily}>
-            🗑 מחיקת משפחה
+            🗑 מחיקת {termOf(config, 'entity.family', 'משפחה')}
           </Btn>
         </div>
       </div>
