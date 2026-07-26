@@ -115,6 +115,7 @@ export const FEATURES: FeatureDef[] = [
 
   // ——— ליבה ———
   { key: 'core.receipts', label: 'קבלות להורדה', desc: 'הפקת קבלות להורדה על תשלומים ותרומות', module: 'core' },
+  { key: 'core.timer', label: 'טיימר כסף', desc: 'שעון-עצר/טיימר לחיוב לפי זמן — תעריף לשעה, תקרות זמן/סכום וגביית תשלום', module: 'core' },
   { key: 'core.daygate', label: 'מסך פתיחת יום', desc: 'מסך פתיחת יום בכניסה הראשונה של היום', module: 'core' },
 ];
 
@@ -136,6 +137,7 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'nav.diary', label: 'שם יומן החדרים', fallback: 'יומן חדרים' },
   { key: 'nav.supporters', label: 'שם מסך התורמים', fallback: 'תורמים' },
   { key: 'nav.reports', label: 'שם מסך הדוחות', fallback: 'דוחות' },
+  { key: 'nav.timer', label: 'שם טיימר הכסף', fallback: 'טיימר כסף' },
 
   // ——— ישויות ———
   { key: 'entity.family', label: 'משפחה (יחיד)', fallback: 'משפחה' },

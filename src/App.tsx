@@ -16,6 +16,7 @@ import { todaySessions } from './components/home/homeData';
 import { Btn } from './components/ui';
 import { BuilderWizard } from './components/builder/BuilderWizard';
 import { ImpactWall } from './components/wall/ImpactWall';
+import { MoneyTimer } from './components/timer/MoneyTimer';
 import { HomeView } from './components/home/HomeView';
 import { FamiliesView } from './components/families/FamiliesView';
 import { CoursesView } from './components/courses/CoursesView';
@@ -107,10 +108,13 @@ export default function App() {
   const [builderOpen, setBuilderOpen] = useState(() => window.location.hash === '#builder');
   // קיר ההשפעה — מצב ראווה במסך מלא, נפתח עם #wall (feature: home.impactwall)
   const [wallOpen, setWallOpen] = useState(() => window.location.hash === '#wall');
+  // טיימר כסף — נפתח עם #timer (feature: core.timer)
+  const [timerOpen, setTimerOpen] = useState(() => window.location.hash === '#timer');
   useEffect(() => {
     const onHash = () => {
       setBuilderOpen(window.location.hash === '#builder');
       setWallOpen(window.location.hash === '#wall');
+      setTimerOpen(window.location.hash === '#timer');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -505,6 +509,15 @@ export default function App() {
           onClose={() => {
             window.location.hash = '';
             setWallOpen(false);
+          }}
+        />
+      )}
+
+      {timerOpen && featureOn(config, 'core.timer') && (
+        <MoneyTimer
+          onClose={() => {
+            window.location.hash = '';
+            setTimerOpen(false);
           }}
         />
       )}

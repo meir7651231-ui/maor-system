@@ -1055,6 +1055,7 @@ function QuickWidget({ ctx }: { ctx: HomeCtx }) {
   const punchOn = coursesOn && featureOn(config, 'courses.punch');
   const supportersOn = moduleOn(config, 'supporters');
   const receiptsOn = featureOn(config, 'core.receipts') && (supportersOn || coursesOn);
+  const timerOn = featureOn(config, 'core.timer');
   return (
     <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 14 }}>
       <div className="hm-head">
@@ -1063,6 +1064,17 @@ function QuickWidget({ ctx }: { ctx: HomeCtx }) {
         </h2>
       </div>
       <div className="hm-quick">
+        {timerOn && (
+          <Btn
+            kind="primary"
+            onClick={() => {
+              window.location.hash = '#timer';
+            }}
+            title={termOf(config, 'nav.timer', 'טיימר כסף') + ' — חיוב לפי זמן'}
+          >
+            ⏱️ {termOf(config, 'nav.timer', 'טיימר כסף')}
+          </Btn>
+        )}
         {familiesOn && (
           <Btn kind="primary" onClick={() => go('families')} title="למסך המשפחות — הוספה">
             👨‍👩‍👧‍👦 {termOf(config, 'entity.family', 'משפחה')}
