@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, moduleOn } from '../../lib/config';
+import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { Btn, Field, FormError, PageHead, TextInput } from '../ui';
 import { fmtDate, isoToday, rangeLabel, type DateRange } from './lib';
 import { isoDaysAgo } from '../../lib/date-util';
@@ -58,7 +58,7 @@ export function ReportsView() {
   return (
     <div>
       <PageHead
-        title="דוחות"
+        title={termOf(config, 'nav.reports', 'דוחות')}
         sub={'סיכומי רישום, נוכחות, תרומות ומשפחות · הופק: ' + fmtDate(isoToday())}
         actions={
           <span className="no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import type { Family } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
@@ -272,8 +272,8 @@ export function FamiliesView() {
   return (
     <div>
       <PageHead
-        title="משפחות"
-        sub={filtered.length + ' משפחות · ' + totalKids + ' ילדים'}
+        title={termOf(config, 'nav.families', 'משפחות')}
+        sub={filtered.length + ' ' + termOf(config, 'nav.families', 'משפחות') + ' · ' + totalKids + ' ילדים'}
         actions={
           <>
             <Btn onClick={toggleView} title="החלפת תצוגה: רשימה / גריד">

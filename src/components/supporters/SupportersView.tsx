@@ -5,7 +5,7 @@
 import { useState, type KeyboardEvent } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
@@ -173,7 +173,7 @@ export function SupportersView() {
   return (
     <div>
       <PageHead
-        title="💛 משפחות תומכות"
+        title={'💛 ' + termOf(config, 'nav.supporters', 'משפחות תומכות')}
         sub={countLabel}
         actions={
           <>

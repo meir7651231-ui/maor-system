@@ -162,7 +162,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   return (
     <div>
       <PageHead
-        title="ניהול קורסים"
+        title={termOf(cfg, 'nav.courses', 'ניהול קורסים')}
         sub={
           shown.length === db.courses.length
             ? db.courses.length + ' קורסים פעילים'

@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Chip, Empty, PageHead } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -69,7 +69,10 @@ export function DiaryView() {
 
   return (
     <div>
-      <PageHead title="יומן חדרים" sub="נוכחות ולוח יומי לכל חדר — בחרו חדר ותאריך" />
+      <PageHead
+        title={termOf(cfg, 'nav.diary', 'יומן חדרים')}
+        sub={'נוכחות ולוח יומי לכל ' + termOf(cfg, 'entity.room', 'חדר') + ' — בחרו ' + termOf(cfg, 'entity.room', 'חדר') + ' ותאריך'}
+      />
 
       {warn.length > 0 && (
         <div
