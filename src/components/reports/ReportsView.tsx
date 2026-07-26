@@ -59,7 +59,14 @@ export function ReportsView() {
     <div>
       <PageHead
         title={termOf(config, 'nav.reports', 'דוחות')}
-        sub={'סיכומי רישום, נוכחות, תרומות ומשפחות · הופק: ' + fmtDate(isoToday())}
+        sub={
+          'סיכומי רישום, נוכחות, ' +
+          termOf(config, 'entity.donations', 'תרומות') +
+          ' ו' +
+          termOf(config, 'nav.families', 'משפחות') +
+          ' · הופק: ' +
+          fmtDate(isoToday())
+        }
         actions={
           <span className="no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {featureOn(config, 'home.impactwall') && (
@@ -81,7 +88,7 @@ export function ReportsView() {
 
       <div className="card no-print" style={{ marginTop: 4 }}>
         <h2 style={{ fontSize: 15, marginBottom: 8 }}>
-          🗓 טווח תאריכים — לדוחות תשלומים ותרומות ({rangeText})
+          🗓 טווח תאריכים — לדוחות תשלומים ו{termOf(config, 'entity.donations', 'תרומות')} ({rangeText})
         </h2>
         <FormError error={rangeError} />
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'flex-end' }}>

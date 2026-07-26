@@ -6,6 +6,7 @@
 
 import type { ReportPrefs } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Chip } from '../ui';
 import { downloadText } from './csv';
@@ -22,6 +23,7 @@ export function ReportPrefsSection() {
   const db = useApp((s) => s.db);
   const setDb = useApp((s) => s.setDb);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
 
   function toggle(key: keyof ReportPrefs) {
     setDb((d) => ({ reports: { ...d.reports, [key]: !d.reports[key] } }));
@@ -36,14 +38,25 @@ export function ReportPrefsSection() {
       'דו"ח ' + label + ' — ' + (useApp.getState().config.orgName || db.orgName || 'העמותה'),
       'הופק: ' + hebDateFull(isoToday()) + ' · ' + new Date().toLocaleString('he-IL'),
       '',
-      'משפחות: ' +
+      termOf(config, 'nav.families', 'משפחות') +
+        ': ' +
         db.families.length +
         ' (' +
         db.families.filter((f) => f.status === 'active').length +
         ' פעילות, ' +
         db.families.filter((f) => f.status === 'pending').length +
         ' ממתינות)',
-      'תלמידים: ' + allM.length + ' · שיבוצים: ' + db.enrollments.length + ' · חוגים: ' + db.courses.length,
+      termOf(config, 'entity.students', 'תלמידים') +
+        ': ' +
+        allM.length +
+        ' · ' +
+        termOf(config, 'entity.enrollments', 'שיבוצים') +
+        ': ' +
+        db.enrollments.length +
+        ' · ' +
+        termOf(config, 'nav.courses', 'חוגים') +
+        ': ' +
+        db.courses.length,
       'חיסורים מתועדים: ' + abs,
       '',
       'יתרות נמוכות (' + low.length + '):',

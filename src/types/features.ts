@@ -139,14 +139,21 @@ export const TERM_DEFS: TermDef[] = [
 
   // ——— ישויות ———
   { key: 'entity.family', label: 'משפחה (יחיד)', fallback: 'משפחה' },
+  // סמיכות — קידומת לפני שם פרטי: "משפחת כהן". בעסק אחר: "לקוח כהן"/"מטופל כהן".
+  { key: 'entity.familyOf', label: 'משפחה (סמיכות: "משפחת דוד")', fallback: 'משפחת' },
   { key: 'entity.member', label: 'בן/בת משפחה', fallback: 'בן/בת משפחה' },
+  { key: 'entity.members', label: 'בני משפחה (רבים)', fallback: 'בני משפחה' },
   { key: 'entity.course', label: 'חוג (יחיד)', fallback: 'חוג' },
   { key: 'entity.teacher', label: 'מורה', fallback: 'מורה' },
   { key: 'entity.room', label: 'חדר', fallback: 'חדר' },
   { key: 'entity.rooms', label: 'חדרים (רבים)', fallback: 'חדרים' },
+  { key: 'entity.student', label: 'תלמיד/ה', fallback: 'תלמיד/ה' },
+  { key: 'entity.students', label: 'תלמידים (רבים)', fallback: 'תלמידים' },
   { key: 'entity.supporter', label: 'תורם', fallback: 'תורם' },
   { key: 'entity.donation', label: 'תרומה', fallback: 'תרומה' },
+  { key: 'entity.donations', label: 'תרומות (רבים)', fallback: 'תרומות' },
   { key: 'entity.enrollment', label: 'שיבוץ', fallback: 'שיבוץ' },
+  { key: 'entity.enrollments', label: 'שיבוצים (רבים)', fallback: 'שיבוצים' },
   { key: 'entity.cred', label: 'מדד אמינות', fallback: 'מדד אמינות' },
 
   // ——— מעקב טיפול (feature supporters.ayin) — כללי וניתן לשינוי-שם מלא ———

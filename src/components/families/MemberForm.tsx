@@ -104,7 +104,7 @@ export function MemberForm(props: { famId: string; member: Member | null; onClos
     };
     if (props.member?.isParent) member.isParent = true;
     upsertMember(props.famId, member);
-    toast(props.member ? 'פרטי ' + first + ' עודכנו' : first + ' נוסף/ה למשפחה');
+    toast(props.member ? 'פרטי ' + first + ' עודכנו' : first + ' נוסף/ה ל' + termOf(config, 'entity.family', 'משפחה'));
     props.onClose();
   }
 

@@ -37,10 +37,16 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
       .filter((m) => !enrolledIds.has(m.id))
       .map((m) => ({
         id: m.id,
-        label: (m.isParent ? (m.gender === 'f' ? 'אמא — ' : 'אבא — ') : '') + m.first + ' · משפחת ' + m.famName,
+        label:
+          (m.isParent ? (m.gender === 'f' ? 'אמא — ' : 'אבא — ') : '') +
+          m.first +
+          ' · ' +
+          termOf(cfg, 'entity.familyOf', 'משפחת') +
+          ' ' +
+          m.famName,
         terms: [m.first, m.famName, (m.phone || '').replace(/\D/g, ''), m.idNum].filter(Boolean),
       }));
-  }, [db, c.id]);
+  }, [db, c.id, cfg]);
 
   // חיפוש חכם — סבלני לשגיאות הקלדה ולתעתיק, לפי שם/משפחה/טלפון/ת"ז
   const matches = useMemo(() => {
@@ -56,11 +62,11 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
   }
 
   function save() {
-    if (!memberId) return setError('יש לבחור תלמיד/ה');
+    if (!memberId) return setError('יש לבחור ' + termOf(cfg, 'entity.student', 'תלמיד/ה'));
     if (db.enrollments.some((e) => e.memberId === memberId && e.courseId === c.id))
-      return setError('כבר משובץ/ת לחוג הזה');
+      return setError('כבר משובץ/ת ל' + termOf(cfg, 'entity.course', 'חוג') + ' הזה');
     if (enrollCount(db, c.id) >= (c.maxStudents || 999))
-      return setError('הקורס מלא — הגעתם למקסימום התלמידים שהוגדר');
+      return setError('ה' + termOf(cfg, 'entity.course', 'חוג') + ' מלא — הגעתם למקסימום ה' + termOf(cfg, 'entity.students', 'תלמידים') + ' שהוגדר');
     const isPunch = c.model === 'punch';
     const bought = isPunch ? +(purchased || c.size || 12) : 0;
     if (isPunch && (isNaN(bought) || bought <= 0 || !Number.isInteger(bought)))
@@ -83,13 +89,13 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
       enrolledAt: isoToday(),
     };
     upsertEnrollment(enrollment);
-    toast('התלמיד/ה שובצ/ה לקורס');
+    toast('ה' + termOf(cfg, 'entity.student', 'תלמיד/ה') + ' שובצ/ה ל' + termOf(cfg, 'entity.course', 'חוג'));
     props.onClose();
   }
 
   return (
     <Modal title={termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' ל' + termOf(cfg, 'entity.course', 'חוג')} onClose={props.onClose}>
-      <Field label="תלמיד/ה * (הקלדה חכמה — שם או משפחה)">
+      <Field label={termOf(cfg, 'entity.student', 'תלמיד/ה') + ' * (הקלדה חכמה — שם או ' + termOf(cfg, 'entity.family', 'משפחה') + ')'}>
         <TextInput
           value={q}
           onChange={(v) => {
@@ -132,13 +138,13 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
           ))}
           {matches.length === 0 && (
             <div style={{ padding: '8px 12px', fontSize: 12.5, color: 'var(--ink-faint)' }}>
-              לא נמצאו תלמידים פנויים — בדקו את האיות או הוסיפו בן משפחה במסך המשפחות
+              {'לא נמצאו ' + termOf(cfg, 'entity.students', 'תלמידים') + ' פנויים — בדקו את האיות או הוסיפו בן משפחה במסך המשפחות'}
             </div>
           )}
         </div>
       )}
       {groups.length > 0 && (
-        <Field label="קבוצה — מסונכרן לקבוצות החוג">
+        <Field label={'קבוצה — מסונכרן לקבוצות ה' + termOf(cfg, 'entity.course', 'חוג')}>
           <Select
             value={group}
             onChange={setGroup}
@@ -154,7 +160,7 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
       <FormError error={error} />
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>
-          שיבוץ
+          {termOf(cfg, 'entity.enrollment', 'שיבוץ')}
         </Btn>
         <Btn onClick={props.onClose}>ביטול</Btn>
       </div>

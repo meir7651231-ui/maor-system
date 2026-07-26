@@ -151,7 +151,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       // רישום חדש (enrollCount אינו סופר 'ended', לכן n הוא התפוסה הנוכחית).
       const n = enrollCount(db, c.id);
       if (n >= (c.maxStudents || 999)) {
-        toast('החוג מלא (' + n + '/' + c.maxStudents + ') — לא ניתן לחדש שיבוץ שהסתיים');
+        toast('ה' + termOf(cfg, 'entity.course', 'חוג') + ' מלא (' + n + '/' + c.maxStudents + ') — לא ניתן לחדש ' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' שהסתיים');
         return;
       }
       next.status = 'active';
@@ -176,13 +176,17 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     if (!en) return;
     const paused = en.status !== 'paused';
     upsertEnrollment({ ...en, status: paused ? 'paused' : 'active' });
-    toast(paused ? 'השיבוץ הוקפא — הניקוב נחסם עד הפשרה' : 'השיבוץ הופשר וחזר לפעילות');
+    toast(
+      paused
+        ? 'ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' הוקפא — הניקוב נחסם עד הפשרה'
+        : 'ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' הופשר וחזר לפעילות',
+    );
   }
 
   function endEnroll() {
     if (!en) return;
     upsertEnrollment({ ...en, status: 'ended' });
-    toast('השיבוץ סומן כהסתיים');
+    toast('ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' סומן כהסתיים');
   }
 
   /** הסרה סופית — אישור דו-שלבי; מוחקת גם את תזכורת התשלום מהלוח. */
@@ -199,7 +203,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     if (Date.now() - armedAt < 400) return;
     if (en.dueEventId) deleteEvent(en.dueEventId);
     deleteEnrollment(en.id);
-    toast('השיבוץ הוסר לצמיתות — כולל תזכורת התשלום מהלוח');
+    toast('ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' הוסר לצמיתות — כולל תזכורת התשלום מהלוח');
     props.onClose();
   }
 
@@ -223,7 +227,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       </div>
 
       {groups.length > 0 && (
-        <Field label="קבוצה — מסונכרן לקבוצות הקיימות בחוג">
+        <Field label={'קבוצה — מסונכרן לקבוצות הקיימות ב' + termOf(cfg, 'entity.course', 'חוג')}>
           <Select
             value={en.group}
             onChange={(v) => {
@@ -235,14 +239,14 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         </Field>
       )}
 
-      <Field label="📝 הערה על התלמיד/ה בחוג">
+      <Field label={'📝 הערה על ה' + termOf(cfg, 'entity.student', 'תלמיד/ה') + ' ב' + termOf(cfg, 'entity.course', 'חוג')}>
         <div style={{ display: 'flex', gap: 8 }}>
           <TextInput value={note} onChange={setNote} placeholder="לדוגמה: רגישות, הסעה, העדפת קבוצה…" />
           <Btn
             sm
             onClick={() => {
               upsertEnrollment({ ...en, note: note.trim() });
-              toast(note.trim() ? 'ההערה נשמרה — מוצגת ברשימת התלמידים' : 'ההערה נמחקה');
+              toast(note.trim() ? 'ההערה נשמרה — מוצגת ברשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') : 'ההערה נמחקה');
             }}
           >
             שמירה
@@ -341,7 +345,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
             sm
             onClick={() => {
               upsertEnrollment({ ...en, plan: 'monthly' });
-              toast('השיבוץ הועבר למנוי חודשי');
+              toast('ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' הועבר למנוי חודשי');
             }}
           >
             מעבר למנוי חודשי
@@ -356,10 +360,10 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
           {en.status === 'paused' ? '▶ הפשרה — חזרה לפעילות' : '⏸ הקפאה זמנית'}
         </Btn>
         <Btn sm onClick={endEnroll}>
-          סיום שיבוץ
+          {'סיום ' + termOf(cfg, 'entity.enrollment', 'שיבוץ')}
         </Btn>
         <Btn sm kind="danger" onClick={remove}>
-          {confirmRemove ? 'לאשר הסרה סופית?' : 'הסרת השיבוץ'}
+          {confirmRemove ? 'לאשר הסרה סופית?' : 'הסרת ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ')}
         </Btn>
       </div>
       <div className="modal-actions">

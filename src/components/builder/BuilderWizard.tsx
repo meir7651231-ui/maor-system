@@ -167,6 +167,9 @@ function FeatureRow(props: { f: FeatureDef; on: boolean; onToggle: (on: boolean)
 
 /** שורת מונח — ✏️ + תווית + שדה שינוי-שם (placeholder = ברירת המחדל). */
 function TermRow(props: { t: TermDef; value: string; onChange: (v: string) => void }) {
+  // התצוגה החיה — מה שיופיע בפועל באפליקציה: הדריסה אם הוקלדה, אחרת ברירת המחדל.
+  const effective = props.value.trim() || props.t.fallback;
+  const overridden = props.value.trim() !== '' && props.value.trim() !== props.t.fallback;
   return (
     <label
       style={{
@@ -185,6 +188,21 @@ function TermRow(props: { t: TermDef; value: string; onChange: (v: string) => vo
         onChange={(e) => props.onChange(e.target.value)}
         style={{ flex: 1, minWidth: 0, fontSize: 13, padding: '4px 8px' }}
       />
+      <span
+        title="כך זה מופיע באפליקציה"
+        style={{
+          flex: '0 0 auto',
+          maxWidth: 110,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          fontSize: 11.5,
+          fontWeight: 600,
+          color: overridden ? 'var(--accent-deep, var(--accent))' : 'var(--ink-faint)',
+        }}
+      >
+        → {effective}
+      </span>
     </label>
   );
 }

@@ -40,7 +40,7 @@ export function SupporterForm(props: SupporterFormProps) {
 
   function save() {
     if (!f.name.trim()) {
-      setError('שם התומכ/ת הוא שדה חובה');
+      setError('שם ' + termOf(config, 'entity.supporter', 'התומך/ת') + ' הוא שדה חובה');
       return;
     }
     const idn = f.idNum.trim();
@@ -61,7 +61,7 @@ export function SupporterForm(props: SupporterFormProps) {
 
     if (sp) {
       upsertSupporter({ ...sp, ...vals });
-      toast('כרטיס התומכ/ת עודכן — משתקף מיד בטבלה, בחיפוש ובגיבוי');
+      toast('כרטיס ' + termOf(config, 'entity.supporter', 'התומך/ת') + ' עודכן — משתקף מיד בטבלה, בחיפוש ובגיבוי');
       props.onClose();
       return;
     }
@@ -76,7 +76,7 @@ export function SupporterForm(props: SupporterFormProps) {
           (!digits || !x.phone || x.phone.replace(/\D/g, '') === digits),
       );
     if (dup) {
-      setError('תומכת בשם הזה כבר קיימת — פתחו את הכרטיס שלה מהטבלה');
+      setError(termOf(config, 'entity.supporter', 'תומך/ת') + ' בשם הזה כבר קיימ/ת — פתחו את הכרטיס מהטבלה');
       return;
     }
 
@@ -92,7 +92,7 @@ export function SupporterForm(props: SupporterFormProps) {
       nextDate: '',
       donations: [],
     });
-    toast('התומכת "' + vals.name + '" נוספה — אפשר לרשום לה תרומה בכרטיס');
+    toast('ה' + termOf(config, 'entity.supporter', 'תומך/ת') + ' "' + vals.name + '" נוסף/ה — אפשר לרשום ' + termOf(config, 'entity.donation', 'תרומה') + ' בכרטיס');
     props.onClose(id);
   }
 

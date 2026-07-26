@@ -39,6 +39,7 @@ function addTo(map: Map<string, Sums>, key: string, d: Donation): void {
 /** 3. סיכום תרומות — לפי חודש ולפי קטגוריה, בטווח התאריכים. */
 export function DonationsSection(props: SectionProps & { range: DateRange; rangeText: string }) {
   const { db, range } = props;
+  const config = useApp((s) => s.config);
 
   const byMonth = new Map<string, Sums>();
   const byCat = new Map<string, Sums>();
@@ -69,7 +70,7 @@ export function DonationsSection(props: SectionProps & { range: DateRange; range
 
   return (
     <Section
-      title="💛 סיכום תרומות"
+      title={'💛 סיכום ' + termOf(config, 'entity.donations', 'תרומות')}
       sub={'טווח: ' + props.rangeText + ' · ' + total.n + ' תרומות'}
       hidden={props.hidden}
       onPrint={props.onPrint}
@@ -121,7 +122,7 @@ export function FamiliesSection(props: SectionProps) {
       onPrint={props.onPrint}
       csvName="maor-families-overview.csv"
       csvRows={() => [
-        ['קבוצה', 'ערך', 'משפחות'],
+        ['קבוצה', 'ערך', termOf(config, 'nav.families', 'משפחות')],
         ...statusRows.map((r) => ['סטטוס', ...r.cells]),
         ...cityRows.map((r) => ['עיר', ...r.cells]),
         ...communityRows.map((r) => ['קהילה', ...r.cells]),
@@ -135,9 +136,9 @@ export function FamiliesSection(props: SectionProps) {
           alignItems: 'start',
         }}
       >
-        <ReportTable head={['סטטוס', 'משפחות']} rows={statusRows} />
-        <ReportTable head={['עיר', 'משפחות']} rows={cityRows} />
-        <ReportTable head={['קהילה', 'משפחות']} rows={communityRows} />
+        <ReportTable head={['סטטוס', termOf(config, 'nav.families', 'משפחות')]} rows={statusRows} />
+        <ReportTable head={['עיר', termOf(config, 'nav.families', 'משפחות')]} rows={cityRows} />
+        <ReportTable head={['קהילה', termOf(config, 'nav.families', 'משפחות')]} rows={communityRows} />
       </div>
     </Section>
   );

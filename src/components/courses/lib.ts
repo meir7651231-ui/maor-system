@@ -4,6 +4,8 @@
  */
 import type { CSSProperties } from 'react';
 import type { Course, CourseSession, Db, Enrollment, PricingModel } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
@@ -23,9 +25,10 @@ export function isoToday(): string {
  * מתאריך התחלה גורם ל-courseActiveOn להיות false תמיד, כך שהחוג נעלם בשקט
  * מהיומן/הלוח/מפגשי-היום. נתפס בשמירה במקום להיעלם.
  */
-export function courseDateError(start: string, end: string): string | null {
+export function courseDateError(start: string, end: string, config?: OrgConfig): string | null {
   if (start && end && end < start) {
-    return 'תאריך הסיום מוקדם מתאריך ההתחלה — החוג לא יופיע בלוח. תקנו את התאריכים';
+    const courseWord = config ? termOf(config, 'entity.course', 'חוג') : 'חוג';
+    return 'תאריך הסיום מוקדם מתאריך ההתחלה — ה' + courseWord + ' לא יופיע בלוח. תקנו את התאריכים';
   }
   return null;
 }

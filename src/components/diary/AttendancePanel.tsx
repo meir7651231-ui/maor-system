@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import type { Course, Enrollment } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import { Btn, Empty } from '../ui';
 import { chipStyle, enrollStatusMeta, enrollmentsForSession, planLabelOf } from './lib';
 import { DiaryAbsenceModal } from './DiaryAbsenceModal';
@@ -16,6 +17,7 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number })
   const upsertEnrollment = useApp((s) => s.upsertEnrollment);
   const addCred = useApp((s) => s.addCred);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
 
   const [absFor, setAbsFor] = useState<{ id: string; who: string } | null>(null);
   const [histFor, setHistFor] = useState<{ id: string; who: string } | null>(null);
@@ -32,8 +34,10 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number })
 
   /** רישום נוכחות — כרטיסייה דרך punch של ה-store; מנוי חודשי — מונה ידני (כמו במקור). */
   function present(e: Enrollment) {
-    if (e.status === 'paused') return toast('השיבוץ מוקפא — הפשירו אותו בניהול השיבוץ (⚙)');
-    if (e.status === 'ended') return toast('השיבוץ הסתיים — ניתן לחדש בניהול השיבוץ (⚙)');
+    if (e.status === 'paused')
+      return toast('השיבוץ מוקפא — הפשירו אותו בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
+    if (e.status === 'ended')
+      return toast('השיבוץ הסתיים — ניתן לחדש בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
     if (e.plan === 'punch' && e.used >= e.purchased) return toast('אין יתרת שיעורים — נדרש חידוש כרטיסייה');
     if (e.plan === 'punch') punch(e.id);
     else upsertEnrollment({ ...e, used: e.used + 1 });

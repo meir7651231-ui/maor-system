@@ -29,11 +29,11 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
   function save() {
     const amt = Math.round(Number(amount) * 100) / 100;
     if (!amount.trim() || !isFinite(amt) || amt <= 0) {
-      setError('הקלידו סכום תרומה תקין');
+      setError('הקלידו סכום ' + termOf(config, 'entity.donation', 'תרומה') + ' תקין');
       return;
     }
     if (!date) {
-      setError('בחרו תאריך תרומה');
+      setError('בחרו תאריך ' + termOf(config, 'entity.donation', 'תרומה'));
       return;
     }
     // מספר האסמכתה נגזר מה-donationSeq הנוכחי — בדיוק כפי ש-addDonation שב-store מחשב אותו
@@ -52,7 +52,9 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
       });
     }
     toast(
-      'נרשמה תרומה ' +
+      'נרשם/ה ' +
+        termOf(config, 'entity.donation', 'תרומה') +
+        ' ' +
         (cur === '$' ? '$' : '₪') +
         amt.toLocaleString('he-IL') +
         (receiptsOn ? ' — קבלה ' + rid : '') +
@@ -93,7 +95,7 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
       </div>
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>
-          רישום התרומה
+          {'רישום ' + termOf(config, 'entity.donation', 'התרומה')}
         </Btn>
         <Btn onClick={props.onClose}>ביטול</Btn>
       </div>

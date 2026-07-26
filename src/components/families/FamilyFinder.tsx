@@ -4,7 +4,9 @@
  * מסתננים חי, וכפתור החלה ממפה את הבחירות למסנני הטבלה הרגילים.
  */
 import type { Db } from '../../types/domain';
-import { FINDER_AXES, finderAxisValue } from './lib';
+import { useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
+import { finderAxes, finderAxisValue } from './lib';
 
 const WHEEL_COLORS = ['#f3c76b', '#b45309', '#7c3aed', '#0f766e', '#be185d'];
 
@@ -18,6 +20,8 @@ export function FamilyFinder(props: {
   onOpenFamily: (id: string) => void;
 }) {
   const { db, locks, rot } = props;
+  const config = useApp((s) => s.config);
+  const axes = finderAxes(config);
 
   // צלילה ציר-אחרי-ציר: ציר נעול מסנן ומוצג כצ'יפ; הציר הפתוח הראשון
   // עם 2+ אפשרויות עולה על הגלגל; ציר עם אפשרות אחת מדולג.
@@ -26,7 +30,7 @@ export function FamilyFinder(props: {
   let axis: { key: string; label: string } | null = null;
   let wheelOpts: { label: string; value: string }[] = [];
 
-  for (const [key, label] of FINDER_AXES) {
+  for (const [key, label] of axes) {
     if (locks[key] !== undefined) {
       matched = matched.filter((f) => finderAxisValue(db, f, key) === locks[key]);
       chips.push({ label: label + ': ' + locks[key], key });
@@ -51,7 +55,7 @@ export function FamilyFinder(props: {
   const removeLock = (key: string) => {
     // שחרור צ'יפ מפיל גם את כל הנעילות שאחריו — הצלילה חוזרת לאותה נקודה.
     const next: Record<string, string> = {};
-    for (const [k] of FINDER_AXES) {
+    for (const [k] of axes) {
       if (k === key) break;
       if (locks[k] !== undefined) next[k] = locks[k];
     }
@@ -73,7 +77,7 @@ export function FamilyFinder(props: {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
         <div style={{ fontSize: 14, fontWeight: 800 }}>
-          <span style={{ color: 'var(--accent)' }}>✦</span> מאתר המשפחות — הטבלה למטה מסתננת חי
+          <span style={{ color: 'var(--accent)' }}>✦</span> מאתר ה{termOf(config, 'nav.families', 'משפחות')} — הטבלה למטה מסתננת חי
         </div>
         <div style={{ display: 'flex', gap: 7 }}>
           <button type="button" className="btn sm" onClick={() => props.onLocks({}, 137)}>איפוס</button>
@@ -139,7 +143,7 @@ export function FamilyFinder(props: {
           }}
         >
           <div style={{ fontSize: 30, fontWeight: 800, lineHeight: 1 }}>{matched.length}</div>
-          <div style={{ fontSize: 10.5, color: 'var(--ink-faint)', fontWeight: 700, marginTop: 3 }}>משפחות תואמות</div>
+          <div style={{ fontSize: 10.5, color: 'var(--ink-faint)', fontWeight: 700, marginTop: 3 }}>{termOf(config, 'nav.families', 'משפחות')}</div>
         </div>
         {wheelOpts.map((o, i) => {
           const ang = Math.round(-90 + (i * 360) / wheelOpts.length);
@@ -183,7 +187,7 @@ export function FamilyFinder(props: {
               onClick={() => props.onOpenFamily(f.id)}
               title={[f.city, f.community, f.phone].filter(Boolean).join(' · ') || undefined}
             >
-              משפחת {f.name}
+              {termOf(config, 'entity.familyOf', 'משפחת')} {f.name}
             </button>
           ))}
           {matched.length > 8 && (

@@ -59,14 +59,14 @@ export function HomeView() {
       // מודול כבוי ⇒ הנגזרת ריקה — כך כל צרכני data במורד מוגנים אוטומטית
       events: calendarOn ? eventsOnDate(db, now) : [],
       bdays: familiesOn ? birthdaysOn(db, now) : [],
-      attention: attentionItems(db, now, config.modules),
-      digest: digestLines(db, now, config.modules),
-      carousel: carouselItems(db, now, config.modules),
+      attention: attentionItems(db, now, config.modules, config),
+      digest: digestLines(db, now, config.modules, config),
+      carousel: carouselItems(db, now, config.modules, config),
       recent: familiesOn ? recentFamilies(db, 5) : [],
       holiday: holidayOf(now),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [db, todayIso, config.modules, coursesOn, calendarOn, familiesOn],
+    [db, todayIso, config, config.modules, coursesOn, calendarOn, familiesOn],
   );
 
   // ניווט ממוגן-מודולים: לעולם לא מנווט למסך של מודול כבוי (no-op במקום קריסה/דליפה)

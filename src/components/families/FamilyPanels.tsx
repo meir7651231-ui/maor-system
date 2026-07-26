@@ -5,6 +5,7 @@
  */
 import { useState, type ReactNode } from 'react';
 import type { Db, Family, FamilyDoc } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
 import { useApp } from '../../store/useApp';
 import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
@@ -321,16 +322,16 @@ function fmtDM(iso: string): string {
 }
 
 /** שורות דוח המשפחה המלא (port של expReport מהמקור) — טקסט להורדה. */
-function familyReportLines(db: Db, f: Family): string[] {
+function familyReportLines(db: Db, f: Family, config: OrgConfig): string[] {
   const ids = new Set(f.members.map((m) => m.id));
   // ברירת המחדל 700 זהה לכל שאר המשטחים (emptyFamily · כרטיס · finder · בית) — בלי פער
   const tier = tierOf(f.cred?.score ?? 700);
   const L: string[] = [
-    'דוח משפחה מלא — משפחת ' + f.name,
+    'דוח ' + termOf(config, 'entity.family', 'משפחה') + ' מלא — ' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + f.name,
     'הופק: ' + hebDateFull(isoToday()) + ' · ' + new Date().toLocaleString('he-IL'),
     '='.repeat(46),
     '',
-    '— פרטי המשפחה —',
+    '— פרטי ה' + termOf(config, 'entity.family', 'משפחה') + ' —',
     'אב: ' + (f.father || '—') + (f.fatherId ? ' · ת"ז ' + f.fatherId : ''),
     'אם: ' + (f.mother || '—') + (f.motherId ? ' · ת"ז ' + f.motherId : ''),
     'טלפון: ' + (f.phone || '—') + (f.phone2 ? ' · ' + f.phone2 : '') + (f.email ? ' · ' + f.email : ''),
@@ -339,10 +340,10 @@ function familyReportLines(db: Db, f: Family): string[] {
     'סטטוס: ' + STATUS_META[f.status].label +
       (f.createdAt ? ' · הצטרפה: ' + hebDateFull(f.createdAt) + ' (' + fmtDate(f.createdAt) + ')' : ''),
     'קופת צדקה: ' + (f.tzedaka || '—') + ' · הנחה: ' + (f.discount || '—') + ' · ספח מלא: ' + (f.fullSefach ? 'קיים' : 'חסר'),
-    'מדד אמינות: ' + (f.cred?.score ?? '—') + ' (' + tier.label + ')',
+    termOf(config, 'entity.cred', 'מדד אמינות') + ': ' + (f.cred?.score ?? '—') + ' (' + tier.label + ')',
   ];
   if (f.notes) L.push('הערות: ' + f.notes);
-  L.push('', '— בני המשפחה —');
+  L.push('', '— ' + termOf(config, 'entity.members', 'בני משפחה') + ' —');
   for (const m of f.members) {
     const age = ageOf(m.birth);
     L.push(
@@ -353,8 +354,8 @@ function familyReportLines(db: Db, f: Family): string[] {
         (m.health ? ' · רגישויות: ' + m.health : ''),
     );
   }
-  if (!f.members.length) L.push('(אין בני משפחה)');
-  L.push('', '— שיבוצים לחוגים —');
+  if (!f.members.length) L.push('(אין ' + termOf(config, 'entity.members', 'בני משפחה') + ')');
+  L.push('', '— ' + termOf(config, 'entity.enrollments', 'שיבוצים') + ' ל' + termOf(config, 'nav.courses', 'חוגים') + ' —');
   let anyE = false;
   for (const e of db.enrollments) {
     if (!ids.has(e.memberId)) continue;
@@ -403,8 +404,8 @@ function HistoryPanel(props: { fam: Family }) {
   const hist = famHistoryOf(db, props.fam);
 
   function exportReport() {
-    downloadText('family-' + props.fam.name + '.txt', familyReportLines(db, props.fam));
-    toast('דוח המשפחה המלא ירד למחשב');
+    downloadText('family-' + props.fam.name + '.txt', familyReportLines(db, props.fam, config));
+    toast('דוח ה' + termOf(config, 'entity.family', 'משפחה') + ' המלא ירד למחשב');
   }
 
   return (

@@ -52,8 +52,8 @@ export function DiaryView() {
   const d = new Date(date + 'T12:00:00');
   const validDate = !isNaN(d.getTime());
   const blocked = validDate ? blockReason(d) : null;
-  const slots = room && validDate ? buildSlots(db, room, date, blocked) : [];
-  const warn = inactiveRoomCourses(db, validDate ? date : isoToday());
+  const slots = room && validDate ? buildSlots(db, room, date, blocked, cfg) : [];
+  const warn = inactiveRoomCourses(db, validDate ? date : isoToday(), cfg);
   const maxWeekly = Math.max(1, ...db.rooms.map((r) => weeklyRoomSessions(db, r.id, date)));
 
   function shiftDay(n: number) {
@@ -87,7 +87,7 @@ export function DiaryView() {
             marginBottom: 12,
           }}
         >
-          ⚠ חוגים המשויכים לחדר לא פעיל — עדכנו את שיוך החדר בכרטיס החוג או הפעילו את החדר מחדש:{' '}
+          ⚠ {termOf(cfg, 'nav.courses', 'חוגים')} המשויכים ל{termOf(cfg, 'entity.room', 'חדר')} לא פעיל — עדכנו את שיוך החדר בכרטיס החוג או הפעילו את החדר מחדש:{' '}
           {warn.map((w, i) => (
             <span key={w.course.id}>
               {i > 0 && ' · '}
@@ -292,7 +292,7 @@ export function DiaryView() {
             time: booking.time,
             roomId: booking.roomId,
             type: 'org',
-            notes: 'חדר: ' + booking.roomName,
+            notes: termOf(cfg, 'entity.room', 'חדר') + ': ' + booking.roomName,
           }}
           saveToast="ההזמנה נכנסה — המשבצת מסומנת תפוסה ביומן"
           onClose={() => setBooking(null)}

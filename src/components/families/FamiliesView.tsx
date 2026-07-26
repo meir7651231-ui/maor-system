@@ -21,10 +21,11 @@ function kidsOf(f: Family) {
 }
 
 function TierDot(props: { f: Family }) {
+  const config = useApp((s) => s.config);
   const tier = tierOf(props.f.cred.score);
   return (
     <span
-      title={'מדד אמינות: ' + props.f.cred.score + ' — ' + tier.label}
+      title={termOf(config, 'entity.cred', 'מדד אמינות') + ': ' + props.f.cred.score + ' — ' + tier.label}
       style={{
         display: 'inline-block',
         width: 9,
@@ -288,7 +289,11 @@ export function FamiliesView() {
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 260px', minWidth: 220 }}>
-          <TextInput value={q} onChange={setQ} placeholder="חיפוש לפי שם משפחה, הורה, ילד או טלפון…" />
+          <TextInput
+            value={q}
+            onChange={setQ}
+            placeholder={'חיפוש לפי שם ' + termOf(config, 'entity.family', 'משפחה') + ', הורה, ילד או טלפון…'}
+          />
         </div>
         <Select
           value={status}
@@ -332,10 +337,10 @@ export function FamiliesView() {
               setFinderOpen(!finderOpen);
               if (finderOpen) setFwLocks({});
             }}
-            title="מאתר המשפחות — הגלגל נפתח כאן בדף והטבלה מסתננת חי"
+            title={'מאתר ה' + termOf(config, 'nav.families', 'משפחות') + ' — הגלגל נפתח כאן בדף והטבלה מסתננת חי'}
             kind={finderOpen ? 'primary' : undefined}
           >
-            🎡 מאתר המשפחות
+            🎡 מאתר ה{termOf(config, 'nav.families', 'משפחות')}
           </Btn>
         )}
       </div>
@@ -462,7 +467,9 @@ export function FamiliesView() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   {credOn && <TierDot f={f} />}
-                  <span style={{ fontWeight: 700, fontSize: 15, flex: 1 }}>משפחת {f.name}</span>
+                  <span style={{ fontWeight: 700, fontSize: 15, flex: 1 }}>
+                    {termOf(config, 'entity.familyOf', 'משפחת')} {f.name}
+                  </span>
                   <span style={chipStyle(st.bg, st.c)}>{st.label}</span>
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
@@ -532,7 +539,9 @@ export function FamiliesView() {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                         {credOn && <TierDot f={f} />}
-                        <span style={{ fontWeight: 700 }}>משפחת {f.name}</span>
+                        <span style={{ fontWeight: 700 }}>
+                          {termOf(config, 'entity.familyOf', 'משפחת')} {f.name}
+                        </span>
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{kidsLine}</div>
                     </td>

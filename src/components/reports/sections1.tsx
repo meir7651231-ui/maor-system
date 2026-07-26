@@ -98,7 +98,7 @@ export function AttendanceSection(props: SectionProps) {
   const courseHead = [
     termOf(config, 'entity.course', 'חוג'),
     termOf(config, 'entity.teacher', 'מורה'),
-    'שיבוצים',
+    termOf(config, 'entity.enrollments', 'שיבוצים'),
     'חיסורים',
     'ללא הודעה (No-Show)',
     'זכאי השלמה',
@@ -128,7 +128,7 @@ export function AttendanceSection(props: SectionProps) {
   const courseFoot: Cell[] = ['סה"כ', '', db.enrollments.length, tAbs, tNoshow, tMakeup];
 
   const memberHead = [
-    'תלמיד/ה',
+    termOf(config, 'entity.student', 'תלמיד/ה'),
     termOf(config, 'entity.family', 'משפחה'),
     termOf(config, 'entity.course', 'חוג'),
     'חיסורים',
@@ -182,7 +182,7 @@ export function AttendanceSection(props: SectionProps) {
             {'לפי ' + termOf(config, 'entity.course', 'חוג')}
           </Chip>
           <Chip on={!isCourse} onClick={() => setMode('member')}>
-            לפי תלמיד/ה
+            {'לפי ' + termOf(config, 'entity.student', 'תלמיד/ה')}
           </Chip>
         </>
       }

@@ -94,8 +94,8 @@ export function CourseDetail(props: { course: Course }) {
   const full = enrollCount(db, c.id) >= (c.maxStudents || 999);
 
   function doPunch(e: Enrollment) {
-    if (e.status === 'paused') return toast('השיבוץ מוקפא — הפשירו אותו בניהול השיבוץ (⚙)');
-    if (e.status === 'ended') return toast('השיבוץ הסתיים — ניתן לחדש בניהול השיבוץ (⚙)');
+    if (e.status === 'paused') return toast('ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' מוקפא — הפשירו אותו בניהול ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
+    if (e.status === 'ended') return toast('ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' הסתיים — ניתן לחדש בניהול ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
     if (e.plan === 'punch' && e.used >= e.purchased) {
       setModal({ kind: 'manage', enrollmentId: e.id });
       return;
@@ -111,7 +111,7 @@ export function CourseDetail(props: { course: Course }) {
   /** תדפיס למורה — CSV של התלמידים הרשומים, כולל רגישויות (port של exportCourseStudents). */
   function exportStudents() {
     const rows: Cell[][] = [
-      ['תלמיד/ה', 'גיל', 'משפחה', 'טלפון', 'קבוצה', 'מסלול', 'יתרה', 'רגישויות/רפואי', 'הערה'],
+      [termOf(cfg, 'entity.student', 'תלמיד/ה'), 'גיל', termOf(cfg, 'entity.family', 'משפחה'), 'טלפון', 'קבוצה', 'מסלול', 'יתרה', 'רגישויות/רפואי', 'הערה'],
     ];
     for (const e of enrolled) {
       const m = memberById.get(e.memberId);
@@ -129,18 +129,18 @@ export function CourseDetail(props: { course: Course }) {
       ]);
     }
     downloadCsv('course-' + c.name + '.csv', rows);
-    toast('רשימת התלמידים של "' + c.name + '" ירדה — כולל רגישויות למורה');
+    toast('רשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') + ' של "' + c.name + '" ירדה — כולל רגישויות ל' + termOf(cfg, 'entity.teacher', 'מורה'));
   }
 
   /** דו"ח יומי מפורט — מפגש-מפגש מ-start עד end, מי פעיל כולל חיסורים. */
   function exportDaily() {
     const { rows, days } = buildCourseDailyRows(c, db);
     if (!c.start || !c.end) {
-      toast('לחוג חסר תאריך התחלה/סיום — עדכנו בעריכת הקורס');
+      toast('ל' + termOf(cfg, 'entity.course', 'חוג') + ' חסר תאריך התחלה/סיום — עדכנו בעריכת ה' + termOf(cfg, 'entity.course', 'חוג'));
       return;
     }
     if (days === 0) {
-      toast('אין מפגשים בטווח התאריכים של החוג');
+      toast('אין מפגשים בטווח התאריכים של ה' + termOf(cfg, 'entity.course', 'חוג'));
       return;
     }
     downloadCsv('course-daily-' + c.name + '.csv', rows);
@@ -176,7 +176,7 @@ export function CourseDetail(props: { course: Course }) {
         moved++;
       }
     }
-    toast('הקבוצה הוסרה' + (moved ? ' · ' + moved + ' תלמידים סונכרנו ל"ללא שיוך"' : ' מלוח הפעילות'));
+    toast('הקבוצה הוסרה' + (moved ? ' · ' + moved + ' ' + termOf(cfg, 'entity.students', 'תלמידים') + ' סונכרנו ל"ללא שיוך"' : ' מלוח הפעילות'));
   }
 
   const groupCounts =
@@ -235,7 +235,7 @@ export function CourseDetail(props: { course: Course }) {
             <span style={chipStyle(mm.bg, mm.c)}>{mm.label}</span>
           </div>
           <div style={{ fontSize: 13, color: 'var(--ink-faint)', marginTop: 3 }}>
-            {(c.audience || 'כללי') + ' · מורה: ' + (teacher?.name ?? '—') + ' · ' + (room?.name ?? '—') + ' · ' +
+            {(c.audience || 'כללי') + ' · ' + termOf(cfg, 'entity.teacher', 'מורה') + ': ' + (teacher?.name ?? '—') + ' · ' + (room?.name ?? '—') + ' · ' +
               (c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—')}
           </div>
         </div>
@@ -251,16 +251,16 @@ export function CourseDetail(props: { course: Course }) {
             onClick={() => {
               const n = enrolled.length;
               const msg =
-                'למחוק את הקורס "' + c.name + '"?' +
-                (n ? ' פעולה זו תמחק גם את ' + n + ' השיבוצים שלו (כולל תשלומים ונוכחות).' : '') +
+                'למחוק את ה' + termOf(cfg, 'entity.course', 'חוג') + ' "' + c.name + '"?' +
+                (n ? ' פעולה זו תמחק גם את ' + n + ' ה' + termOf(cfg, 'entity.enrollments', 'שיבוצים') + ' שלו (כולל תשלומים ונוכחות).' : '') +
                 '\n\nלא ניתן לבטל.';
               if (window.confirm(msg)) {
                 deleteCourse(c.id);
                 selectCourse(null);
-                toast('הקורס נמחק');
+                toast('ה' + termOf(cfg, 'entity.course', 'חוג') + ' נמחק');
               }
             }}
-            title="מחיקת הקורס וכל השיבוצים שלו"
+            title={'מחיקת ה' + termOf(cfg, 'entity.course', 'חוג') + ' וכל ה' + termOf(cfg, 'entity.enrollments', 'שיבוצים') + ' שלו'}
           >
             🗑 מחיקה
           </Btn>
@@ -272,14 +272,14 @@ export function CourseDetail(props: { course: Course }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
           <section className="card">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 800 }}>תלמידים רשומים</h2>
+              <h2 style={{ fontSize: 15, fontWeight: 800 }}>{termOf(cfg, 'entity.students', 'תלמידים') + ' רשומים'}</h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 600 }}>
                   {enrollCount(db, c.id) + '/' + (c.maxStudents || '∞') + ' רשומים'}
                 </span>
                 {printoutOn && (
-                  <Btn sm disabled={!enrolled.length} onClick={exportStudents} title="הורדת רשימת התלמידים כ-CSV למורה — כולל רגישויות">
-                    ⬇ תדפיס למורה
+                  <Btn sm disabled={!enrolled.length} onClick={exportStudents} title={'הורדת רשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') + ' כ-CSV ל' + termOf(cfg, 'entity.teacher', 'מורה') + ' — כולל רגישויות'}>
+                    {'⬇ תדפיס ל' + termOf(cfg, 'entity.teacher', 'מורה')}
                   </Btn>
                 )}
                 {featureOn(cfg, 'courses.printout.daily') && (
@@ -302,14 +302,14 @@ export function CourseDetail(props: { course: Course }) {
               </div>
             )}
             {enrolled.length === 0 ? (
-              <Empty>{'אין תלמידים רשומים — לחצו על "' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' תלמיד"'}</Empty>
+              <Empty>{'אין ' + termOf(cfg, 'entity.students', 'תלמידים') + ' רשומים — לחצו על "' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' ' + termOf(cfg, 'entity.student', 'תלמיד/ה') + '"'}</Empty>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table className="table">
                   <thead>
                     <tr>
-                      <th>תלמיד/ה</th>
-                      <th>משפחה</th>
+                      <th>{termOf(cfg, 'entity.student', 'תלמיד/ה')}</th>
+                      <th>{termOf(cfg, 'entity.family', 'משפחה')}</th>
                       <th>קבוצה</th>
                       <th>מסלול</th>
                       <th>יתרה</th>
@@ -334,7 +334,7 @@ export function CourseDetail(props: { course: Course }) {
                               </div>
                             )}
                           </td>
-                          <td>{m ? 'משפחת ' + m.famName : '—'}</td>
+                          <td>{m ? termOf(cfg, 'entity.familyOf', 'משפחת') + ' ' + m.famName : '—'}</td>
                           <td>
                             {groups.length > 0 ? (
                               <select
@@ -401,7 +401,7 @@ export function CourseDetail(props: { course: Course }) {
                               )}
                               <Btn
                                 sm
-                                title="ניהול שיבוץ: קניית כרטיסייה, מסלול, הקפאה, הסרה"
+                                title={'ניהול ' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ': קניית כרטיסייה, מסלול, הקפאה, הסרה'}
                                 onClick={() => setModal({ kind: 'manage', enrollmentId: e.id })}
                               >
                                 ⚙
@@ -496,7 +496,7 @@ export function CourseDetail(props: { course: Course }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             {detailRow('קהל יעד', c.audience || 'כללי')}
             {detailRow(termOf(cfg, 'entity.teacher', 'מורה'), teacher?.name ?? '—')}
-            {detailRow('טלפון המורה', teacher?.phone || '—')}
+            {detailRow('טלפון ' + termOf(cfg, 'entity.teacher', 'מורה'), teacher?.phone || '—')}
             {detailRow('מחיר מלא', c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—')}
             {discountsOn && detailRow(c.price1Name || 'הנחה 1', c.price1 ? '₪' + c.price1 : '—', '#12803c')}
             {discountsOn && detailRow(c.price2Name || 'הנחה 2', c.price2 ? '₪' + c.price2 : '—', '#7c3aed')}
@@ -530,7 +530,7 @@ export function CourseDetail(props: { course: Course }) {
                   kind="primary"
                   onClick={() => {
                     upsertCourse({ ...c, notes: noteVal.trim() });
-                    toast('ההערה על החוג נשמרה');
+                    toast('ההערה על ה' + termOf(cfg, 'entity.course', 'חוג') + ' נשמרה');
                   }}
                 >
                   שמירה

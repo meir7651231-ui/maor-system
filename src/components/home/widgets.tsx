@@ -384,7 +384,7 @@ function HeroWidget({ ctx }: { ctx: HomeCtx }) {
  * קהילה: כשלחוגג/ת יש מפגש היום מתווסף כפתור "🎉 לברך במפגש" — ניווט לחוג.
  */
 function BdaysWidget({ ctx }: { ctx: HomeCtx }) {
-  const { db, data, selectFamily, selectCourse } = ctx;
+  const { db, config, data, selectFamily, selectCourse } = ctx;
   const isKehila = themeOf(ctx) === 'kehila';
   if (!data.bdays.length) return null;
   return (
@@ -409,7 +409,7 @@ function BdaysWidget({ ctx }: { ctx: HomeCtx }) {
                   {b.member.first} {verb} היום {b.age}!
                 </span>
                 <span className="hm-bday-sub">
-                  {'משפחת ' + b.member.famName +
+                  {termOf(config, 'entity.familyOf', 'משפחת') + ' ' + b.member.famName +
                     (ts ? ` · ${ts.course.name}${ts.session.time ? ' · ' + ts.session.time : ''}` : '')}
                 </span>
               </span>
@@ -505,7 +505,7 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
       {familiesOn && (
         <StatCard
           icon="🧒"
-          label="בני משפחה"
+          label={termOf(config, 'entity.members', 'בני משפחה')}
           value={String(s.membersTotal)}
           sub={`מהם ${s.childrenTotal} ילדים`}
           onClick={() => go('families')}
@@ -692,7 +692,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
           <span style={chipStyle(ctx, EV_META[ev.type].bg, EV_META[ev.type].c)}>{evLabel(ev)}</span>
           <span>
             {(ev.time ? ev.time + ' · ' : '') + ev.title}
-            {ev.famId ? ' · משפחת ' + famName(ev.famId) : ''}
+            {ev.famId ? ' · ' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + famName(ev.famId) : ''}
           </span>
           {ev.priority !== 'green' && (
             <span
@@ -719,7 +719,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
         >
           <span style={chipStyle(ctx, '#fbeef3', '#be185d')}>יום הולדת</span>
           <span>
-            {b.member.first} ({b.age}) · משפחת {b.member.famName}
+            {b.member.first} ({b.age}) · {termOf(config, 'entity.familyOf', 'משפחת')} {b.member.famName}
           </span>
         </button>
       ))}
@@ -858,7 +858,7 @@ function RecentWidget({ ctx }: { ctx: HomeCtx }) {
             <tbody>
               {data.recent.map((f) => (
                 <tr key={f.id} onClick={() => selectFamily(f.id)} style={{ cursor: 'pointer' }} title="לכרטיס המשפחה">
-                  <td style={{ fontWeight: 600 }}>משפחת {f.name}</td>
+                  <td style={{ fontWeight: 600 }}>{termOf(config, 'entity.familyOf', 'משפחת')} {f.name}</td>
                   <td dir="ltr" style={{ textAlign: 'right' }}>{f.phone || '—'}</td>
                   <td>{f.city || '—'}</td>
                   <td>{f.members.filter((m) => !m.isParent).length}</td>
@@ -883,7 +883,7 @@ function RecentWidget({ ctx }: { ctx: HomeCtx }) {
  * (buildPodium: החודש ← נפילה לשנה ← סה"כ מצטבר). פס התקדמות יחסי למוביל.
  */
 function GoldbookWidget({ ctx }: { ctx: HomeCtx }) {
-  const { db, todayIso, go } = ctx;
+  const { db, config, todayIso, go } = ctx;
   const podium = buildPodium(db, todayIso.slice(0, 7), todayIso.slice(0, 4));
   const max = podium.rows[0]?.amount ?? 0;
   const medals = ['🥇', '🥈', '🥉'];
@@ -894,7 +894,7 @@ function GoldbookWidget({ ctx }: { ctx: HomeCtx }) {
       badge={podium.rows.length ? podium.scopeLabel : undefined}
       action={<Btn sm onClick={() => go('supporters')}>לתורמים ←</Btn>}
     >
-      {podium.rows.length === 0 && <div style={softEmpty}>אין תרומות עדיין</div>}
+      {podium.rows.length === 0 && <div style={softEmpty}>{'אין ' + termOf(config, 'entity.donations', 'תרומות') + ' עדיין'}</div>}
       {podium.rows.map((r, i) => (
         <div key={r.name + i} className="hm-gold-row">
           <div className="hm-gold-line">

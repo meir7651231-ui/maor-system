@@ -19,7 +19,9 @@ import { isoLocal } from '../../lib/date-util';
 // תוויות/צבעי סוגי אירועים — מקור-אמת יחיד ב-lib/eventMeta (מיוצא מחדש לתאימות)
 import { EV_META, evLabel } from '../../lib/eventMeta';
 export { EV_META, evLabel };
+import { DEFAULT_CONFIG } from '../../types/config';
 import type { ModuleKey, OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 
 /** מפת המודולים הפעילים (config.modules) — חסר = פעיל; false = כבוי. */
 export type ModulesMap = OrgConfig['modules'];
@@ -224,7 +226,12 @@ function daysBetween(fromIso: string, toIso: string): number {
  * modules — חוזה המודולים (types/config.ts): פריטים של מודול כבוי מושמטים
  * (חוגים: room/debt/punch/fill · תורמים: supnext) בלי לגעת בנתונים עצמם.
  */
-export function attentionItems(db: Db, now: Date, modules: ModulesMap): AttentionItem[] {
+export function attentionItems(
+  db: Db,
+  now: Date,
+  modules: ModulesMap,
+  config: OrgConfig = DEFAULT_CONFIG,
+): AttentionItem[] {
   const on = (m: ModuleKey) => modules[m] !== false;
   const todayIso = isoOf(now);
   const members = allMembers(db);
@@ -263,7 +270,7 @@ export function attentionItems(db: Db, now: Date, modules: ModulesMap): Attentio
     if (room && !room.active) {
       out.push({
         key: 'room:' + c.id,
-        tag: 'חדר',
+        tag: termOf(config, 'entity.room', 'חדר'),
         tagBg: '#fdeaea',
         tagC: '#b91c1c',
         title: `"${c.name}" משויך לחדר כבוי (${room.name}) — הפעילו את החדר או העבירו את החוג`,
@@ -329,8 +336,8 @@ export function attentionItems(db: Db, now: Date, modules: ModulesMap): Attentio
       tagC: '#9a6414',
       title:
         pending.length === 1
-          ? `משפחה אחת ממתינה לאישור · ${wait} ימים`
-          : `${pending.length} משפחות ממתינות לאישור · הוותיקה ממתינה ${wait} ימים`,
+          ? `${termOf(config, 'entity.family', 'משפחה')} אחת ממתינה לאישור · ${wait} ימים`
+          : `${pending.length} ${termOf(config, 'nav.families', 'משפחות')} ממתינות לאישור · הוותיקה ממתינה ${wait} ימים`,
       sev: 'warn',
       nav: { kind: 'family', id: oldest.id },
     });
@@ -345,7 +352,7 @@ export function attentionItems(db: Db, now: Date, modules: ModulesMap): Attentio
     const crit = late > 7;
     out.push({
       key: 'supnext:' + sp.id,
-      tag: 'תורם',
+      tag: termOf(config, 'entity.supporter', 'תורם'),
       tagBg: crit ? '#fdeaea' : '#fdf1d4',
       tagC: crit ? '#b91c1c' : '#9a6414',
       title: `יעד קשר — ${sp.name} · באיחור ${late} ימים`,
@@ -356,7 +363,7 @@ export function attentionItems(db: Db, now: Date, modules: ModulesMap): Attentio
   if (lateSup.length > 3) {
     out.push({
       key: 'supnext:more',
-      tag: 'תורם',
+      tag: termOf(config, 'entity.supporter', 'תורם'),
       tagBg: '#fdf1d4',
       tagC: '#9a6414',
       title: `+${lateSup.length - 3} תורמים נוספים עברו יעד קשר`,
@@ -375,8 +382,8 @@ export function attentionItems(db: Db, now: Date, modules: ModulesMap): Attentio
       tagC: '#3a5a86',
       title:
         noSefach.length === 1
-          ? 'משפחה אחת ללא ספח ת"ז מלא'
-          : `${noSefach.length} משפחות ללא ספח ת"ז מלא`,
+          ? `${termOf(config, 'entity.family', 'משפחה')} אחת ללא ספח ת"ז מלא`
+          : `${noSefach.length} ${termOf(config, 'nav.families', 'משפחות')} ללא ספח ת"ז מלא`,
       sev: 'warn',
       nav: { kind: 'family', id: noSefach[0].id },
     });
@@ -392,8 +399,8 @@ export function attentionItems(db: Db, now: Date, modules: ModulesMap): Attentio
       tagC: '#b91c1c',
       title:
         redCred.length === 1
-          ? 'משפחה אחת במדד אמינות אדום'
-          : `${redCred.length} משפחות במדד אמינות אדום`,
+          ? `${termOf(config, 'entity.family', 'משפחה')} אחת במדד אמינות אדום`
+          : `${redCred.length} ${termOf(config, 'nav.families', 'משפחות')} במדד אמינות אדום`,
       sev: 'crit',
       nav: { kind: 'family', id: redCred[0].id },
     });
@@ -418,7 +425,7 @@ export function attentionItems(db: Db, now: Date, modules: ModulesMap): Attentio
       tag: full ? 'מלא' : 'מתמלא',
       tagBg: '#fdf1d4',
       tagC: '#9a6414',
-      title: `חוג ${c.name} — ${n}/${c.maxStudents}` + (full ? ' · מלא!' : ''),
+      title: `${termOf(config, 'entity.course', 'חוג')} ${c.name} — ${n}/${c.maxStudents}` + (full ? ' · מלא!' : ''),
       sev: 'warn',
       nav: { kind: 'course', id: c.id },
     });
@@ -429,7 +436,7 @@ export function attentionItems(db: Db, now: Date, modules: ModulesMap): Attentio
       tag: 'מתמלא',
       tagBg: '#fdf1d4',
       tagC: '#9a6414',
-      title: `+${filling.length - 3} חוגים נוספים כמעט מלאים`,
+      title: `+${filling.length - 3} ${termOf(config, 'nav.courses', 'חוגים')} נוספים כמעט מלאים`,
       sev: 'warn',
       nav: { kind: 'course', id: filling[3].c.id },
     });
@@ -463,14 +470,19 @@ export interface DigestLine {
  * modules — חוזה המודולים: שורות של מודול כבוי מושמטות (חוגים: punch/today),
  * וספירת הקריטיים עוברת דרך attentionItems עם אותה מפה — כך אין אי-התאמה.
  */
-export function digestLines(db: Db, now: Date, modules: ModulesMap): DigestLine[] {
+export function digestLines(
+  db: Db,
+  now: Date,
+  modules: ModulesMap,
+  config: OrgConfig = DEFAULT_CONFIG,
+): DigestLine[] {
   const on = (m: ModuleKey) => modules[m] !== false;
   const members = allMembers(db);
   const out: DigestLine[] = [];
 
   // שבוע דחוף — פריטים קריטיים שטרם סומנו כטופלו
   const done = db.attnDone ?? {};
-  const crit = attentionItems(db, now, modules).filter((a) => a.sev === 'crit' && !done[a.key]);
+  const crit = attentionItems(db, now, modules, config).filter((a) => a.sev === 'crit' && !done[a.key]);
   if (crit.length) {
     out.push({
       key: 'urgent',
@@ -512,8 +524,8 @@ export function digestLines(db: Db, now: Date, modules: ModulesMap): DigestLine[
       key: 'pending',
       text:
         pend.length === 1
-          ? `משפחה אחת ממתינה לאישור: ${pend[0].name}`
-          : `${pend.length} משפחות ממתינות לאישור: ${pend.map((f) => f.name).slice(0, 3).join(', ')}`,
+          ? `${termOf(config, 'entity.family', 'משפחה')} אחת ממתינה לאישור: ${pend[0].name}`
+          : `${pend.length} ${termOf(config, 'nav.families', 'משפחות')} ממתינות לאישור: ${pend.map((f) => f.name).slice(0, 3).join(', ')}`,
       nav: { kind: 'family', id: pend[0].id },
     });
   }
@@ -573,7 +585,7 @@ export function digestLines(db: Db, now: Date, modules: ModulesMap): DigestLine[
     out.push({
       key: 'bday',
       text:
-        `יום הולדת היום ל${bd[0].member.first} (משפחת ${bd[0].member.famName})` +
+        `יום הולדת היום ל${bd[0].member.first} (${termOf(config, 'entity.familyOf', 'משפחת')} ${bd[0].member.famName})` +
         (bd.length > 1 ? ` +${bd.length - 1} נוספים` : ''),
       nav: { kind: 'family', id: bd[0].member.famId },
     });
@@ -719,7 +731,12 @@ const CAR_ICONS: Partial<Record<EventType, string>> = { memorial: '🕯️', bda
  * birthdaysOn) ואירועים מיוחדים (כולל חזרה עברית דרך eventsOnDate).
  * עד 10 פריטים, בסדר כרונולוגי.
  */
-export function carouselItems(db: Db, now: Date, modules: ModulesMap = {}): CarouselItem[] {
+export function carouselItems(
+  db: Db,
+  now: Date,
+  modules: ModulesMap = {},
+  config: OrgConfig = DEFAULT_CONFIG,
+): CarouselItem[] {
   const on = (m: ModuleKey) => modules[m] !== false;
   const SPECIAL: ReadonlySet<EventType> = new Set([
     'wedding',
@@ -738,7 +755,7 @@ export function carouselItems(db: Db, now: Date, modules: ModulesMap = {}): Caro
         key: `bd:${b.member.id}:${i}`,
         icon: '🎂',
         title: `יום הולדת — ${b.member.first} (${b.age})`,
-        sub: `משפחת ${b.member.famName} · ${when}`,
+        sub: `${termOf(config, 'entity.familyOf', 'משפחת')} ${b.member.famName} · ${when}`,
         cta: 'לכרטיס המשפחה ←',
         nav: { kind: 'family', id: b.member.famId },
       });

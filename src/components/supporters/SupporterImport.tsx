@@ -112,7 +112,7 @@ export function SupporterImport(props: { onDone?: () => void }) {
         plan.updates.length +
         ' קיימות',
     );
-    toast('ייבוא תומכות: +' + plan.inserts.length + ' · ✎' + plan.updates.length);
+    toast('ייבוא ' + termOf(config, 'nav.supporters', 'תומכים') + ': +' + plan.inserts.length + ' · ✎' + plan.updates.length);
     setCsv('');
     props.onDone?.();
   }
@@ -120,8 +120,8 @@ export function SupporterImport(props: { onDone?: () => void }) {
   return (
     <div>
       <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-        שורה לכל תומכ/ת, בסדר: <b>{HEADERS.join(', ')}</b>. ההצלבה לפי שם — קיימות יעודכנו, חדשות
-        יתווספו.
+        {'שורה לכל ' + termOf(config, 'entity.supporter', 'תומכ/ת') + ', בסדר: '}
+        <b>{HEADERS.join(', ')}</b>. ההצלבה לפי שם — קיימות יעודכנו, חדשות יתווספו.
       </p>
       <FormError error={error} />
       {summary && (

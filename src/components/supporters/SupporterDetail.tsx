@@ -118,14 +118,16 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     }
     if (sp.nextEventId) deleteEvent(sp.nextEventId);
     deleteSupporter(sp.id);
-    toast('התומכת "' + sp.name + '" נמחקה מהמערכת');
+    toast('ה' + termOf(config, 'entity.supporter', 'תומך/ת') + ' "' + sp.name + '" נמחק/ה מהמערכת');
     props.onBack();
   }
 
   const donations = [...sp.donations].sort((a, b) => b.date.localeCompare(a.date));
   const statsLine =
     sp.count +
-    ' תרומות · ' +
+    ' ' +
+    termOf(config, 'entity.donations', 'תרומות') +
+    ' · ' +
     totalLabel(sp) +
     (sp.first ? ' · מ-' + hebDateFull(sp.first) : '') +
     (sp.last ? ' · אחרונה ' + hebDateFull(sp.last) : '');
@@ -233,13 +235,15 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       {/* היסטוריית תרומות */}
       <div className="card" style={{ padding: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
-          <h3 style={{ fontSize: 15 }}>כל התרומות — מתי וכמה ({donations.length})</h3>
+          <h3 style={{ fontSize: 15 }}>
+            {'כל ה' + termOf(config, 'entity.donations', 'תרומות') + ' — מתי וכמה'} ({donations.length})
+          </h3>
           <Btn sm onClick={() => setDonOpen(true)}>
             ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
           </Btn>
         </div>
         {donations.length === 0 ? (
-          <Empty>{'עדיין אין תרומות מתועדות — רשמו עם "➕ רישום ' + termOf(config, 'entity.donation', 'תרומה') + '"'}</Empty>
+          <Empty>{'עדיין אין ' + termOf(config, 'entity.donations', 'תרומות') + ' מתועדות — רשמו עם "➕ רישום ' + termOf(config, 'entity.donation', 'תרומה') + '"'}</Empty>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="table">

@@ -98,9 +98,12 @@ export function EventModal(props: {
   const famOptions = useMemo(
     () => [
       { value: '', label: 'ללא שיוך' },
-      ...families.map((fam) => ({ value: fam.id, label: 'משפחת ' + fam.name })),
+      ...families.map((fam) => ({
+        value: fam.id,
+        label: termOf(config, 'entity.familyOf', 'משפחת') + ' ' + fam.name,
+      })),
     ],
-    [families],
+    [families, config],
   );
 
   const recurring = HEBREW_RECURRING.has(f.type);
@@ -131,7 +134,7 @@ export function EventModal(props: {
     if (featureOn(config, 'calendar.blocking')) {
       // התנגשות חדר — אירוע אחר או מפגש חוג באותה שעה (כמו במקור)
       if (featureOn(config, 'calendar.blocking.roomclash')) {
-        const clash = roomClashError(db, f, ev?.id);
+        const clash = roomClashError(db, config, f, ev?.id);
         if (clash) {
           setError(clash);
           return;

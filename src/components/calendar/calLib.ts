@@ -11,6 +11,8 @@ import {
 } from '../../types/domain';
 import { gem, gemYear, hebParts, hebAnnualEq, holidayOf, type HebParts } from '../../lib/hebrew';
 import { isoLocal } from '../../lib/date-util';
+import { termOf } from '../../lib/config';
+import type { OrgConfig } from '../../types/config';
 import { sessionsOf } from '../courses/lib';
 // sessionsOf — מקור-אמת יחיד בקורסים; מיוצא מחדש (wallData מייבא אותו מכאן)
 export { sessionsOf };
@@ -119,10 +121,12 @@ export function orgBlockError(dateIso: string): string | null {
  */
 export function roomClashError(
   db: Db,
+  config: OrgConfig,
   form: { date: string; time: string; roomId: string },
   excludeEventId?: string,
 ): string | null {
   if (!form.roomId || !form.time || !form.date) return null;
+  const room = termOf(config, 'entity.room', 'חדר');
   const hr = parseInt(form.time, 10);
   const clashEv = db.events.find(
     (x) =>
@@ -132,7 +136,7 @@ export function roomClashError(
       x.date === form.date &&
       parseInt(x.time || '-1', 10) === hr,
   );
-  if (clashEv) return 'החדר תפוס בשעה זו: "' + clashEv.title + '" — בחרו שעה או חדר אחרים';
+  if (clashEv) return 'ה' + room + ' תפוס בשעה זו: "' + clashEv.title + '" — בחרו שעה או ' + room + ' אחרים';
   const dow = dateOf(form.date).getDay();
   const clashC = db.courses.find(
     (c) =>
@@ -141,7 +145,18 @@ export function roomClashError(
       (!c.end || form.date <= c.end) &&
       sessionsOf(c).some((ss) => ss.day === dow && parseInt(ss.time, 10) === hr),
   );
-  if (clashC) return 'בשעה זו מתקיים החוג "' + clashC.name + '" בחדר הזה — בחרו שעה או חדר אחרים';
+  if (clashC)
+    return (
+      'בשעה זו מתקיים ה' +
+      termOf(config, 'entity.course', 'חוג') +
+      ' "' +
+      clashC.name +
+      '" ב' +
+      room +
+      ' הזה — בחרו שעה או ' +
+      room +
+      ' אחרים'
+    );
   return null;
 }
 

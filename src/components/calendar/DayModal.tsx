@@ -5,7 +5,7 @@
  */
 import { useMemo, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { Btn, Empty, Modal } from '../ui';
 import { hebDateFull, holidayOf } from '../../lib/hebrew';
 import type { OrgEvent } from '../../types/domain';
@@ -145,7 +145,8 @@ export function DayModal(props: {
             marginBottom: 10,
           }}
         >
-          היום חסום לתזמון חוגים: {block}
+          {'היום חסום לתזמון ' + termOf(config, 'nav.courses', 'חוגים') + ': '}
+          {block}
         </div>
       )}
 
@@ -206,7 +207,7 @@ export function DayModal(props: {
                   selectCourse(it.courseId as string);
                   onClose();
                 }}
-                title="מעבר לכרטיס החוג"
+                title={'מעבר לכרטיס ה' + termOf(config, 'entity.course', 'חוג')}
               >
                 לניקוב ←
               </Btn>

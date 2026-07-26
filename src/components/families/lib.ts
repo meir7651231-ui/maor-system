@@ -4,6 +4,8 @@
  */
 import type { CSSProperties } from 'react';
 import type { Db, Enrollment, Family, FamilyStatus } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
@@ -63,18 +65,20 @@ export function famEnrollments(db: Db, fam: Family): Enrollment[] {
 /* ── מאתר המשפחות (גלגל הסינון) — עזרים טהורים (הועברו מ-FamilyFinder כדי
    שקובץ הרכיב יישאר רכיבים בלבד; משמש גם את FamiliesView) ── */
 
-/** צירי הצלילה — לפי סדר הקדימות במקור. */
-export const FINDER_AXES: [string, string][] = [
-  ['city', 'עיר'],
-  ['comm', 'קהילה'],
-  ['marital', 'מצב משפחתי'],
-  ['status', 'סטטוס'],
-  ['cred', 'אמינות'],
-  ['kids', 'ילדים'],
-  ['enrolled', 'חוגים'],
-  ['sefach', 'ספח מלא'],
-  ['lang', 'שפה'],
-];
+/** צירי הצלילה — לפי סדר הקדימות במקור. תוויות הצירים נגזרות מהמילון (config). */
+export function finderAxes(config: OrgConfig): [string, string][] {
+  return [
+    ['city', 'עיר'],
+    ['comm', 'קהילה'],
+    ['marital', 'מצב משפחתי'],
+    ['status', 'סטטוס'],
+    ['cred', termOf(config, 'entity.cred', 'אמינות')],
+    ['kids', 'ילדים'],
+    ['enrolled', termOf(config, 'nav.courses', 'חוגים')],
+    ['sefach', 'ספח מלא'],
+    ['lang', 'שפה'],
+  ];
+}
 
 /** ערך המשפחה בציר נתון — תוויות עבריות כמו במקור. */
 export function finderAxisValue(db: Db, f: Family, axis: string): string {

@@ -108,7 +108,7 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
 
   function save() {
     const name = f.name.trim();
-    if (!name) return setError('שם משפחה הוא שדה חובה');
+    if (!name) return setError('שם ' + termOf(config, 'entity.family', 'משפחה') + ' הוא שדה חובה');
     if (f.maritalSel === OTHER && !f.maritalOther.trim())
       return setError('בחרתם "אחר" במצב משפחתי — הקלידו את הערך');
     if (f.fatherId.trim() && !validIsraeliId(f.fatherId.trim()))
@@ -141,12 +141,12 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
 
     if (props.family) {
       upsertFamily({ ...props.family, ...fields });
-      toast('פרטי המשפחה עודכנו');
+      toast('פרטי ה' + termOf(config, 'entity.family', 'משפחה') + ' עודכנו');
     } else {
       const id = nextId('f');
       upsertFamily({ ...emptyFamily(), ...fields, id, createdAt: isoToday() });
       selectFamily(id);
-      toast('משפחת ' + name + ' נוצרה');
+      toast('יצירת ' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + name + ' הושלמה');
     }
     props.onClose();
   }

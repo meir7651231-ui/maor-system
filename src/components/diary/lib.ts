@@ -4,6 +4,8 @@
  */
 import type { CSSProperties } from 'react';
 import type { Course, CourseSession, Db, Enrollment, OrgEvent, Room } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import { HOLIDAYS, hebParts } from '../../lib/hebrew';
 import { planWord, sessionsOf } from '../courses/lib';
 import { isoLocal } from '../../lib/date-util';
@@ -103,7 +105,13 @@ function courseOnDate(c: Course, iso: string): boolean {
  * 15:00–16:00 — ניקיון יומי קבוע בכל החדרים (כמו במקור). מפגשים מחוץ לשעות
  * הפעילות מתווספים בסוף כדי שרישום נוכחות תמיד יהיה נגיש.
  */
-export function buildSlots(db: Db, room: Room, iso: string, blocked: string | null): DiarySlot[] {
+export function buildSlots(
+  db: Db,
+  room: Room,
+  iso: string,
+  blocked: string | null,
+  config: OrgConfig,
+): DiarySlot[] {
   const from = Number.isNaN(timeToMin(room.from)) ? 8 * 60 : timeToMin(room.from);
   const to = Number.isNaN(timeToMin(room.to)) ? 20 * 60 : timeToMin(room.to);
   const step = room.slot > 0 ? room.slot : 60;
@@ -132,7 +140,7 @@ export function buildSlots(db: Db, room: Room, iso: string, blocked: string | nu
             key: `crs|${hh}|${c.id}|${i}`,
             time: ss[i].time || hh,
             kind: 'course',
-            label: 'חוג: ' + c.name,
+            label: termOf(config, 'entity.course', 'חוג') + ': ' + c.name,
             bg: '#fdf1d4',
             c: '#9a6414',
             course: c,
@@ -167,7 +175,7 @@ export function buildSlots(db: Db, room: Room, iso: string, blocked: string | nu
         key: `out|${c.id}|${i}`,
         time: ss[i].time || '—',
         kind: 'course',
-        label: 'חוג: ' + c.name + ' · מחוץ לשעות הפעילות של החדר',
+        label: termOf(config, 'entity.course', 'חוג') + ': ' + c.name + ' · מחוץ לשעות הפעילות של החדר',
         bg: '#fdf1d4',
         c: '#9a6414',
         course: c,
@@ -200,13 +208,17 @@ export function weeklyRoomSessions(db: Db, roomId: string, iso: string): number 
 }
 
 /** חוגים (שלא הסתיימו) המשויכים לחדר לא פעיל או לחדר שאינו קיים. */
-export function inactiveRoomCourses(db: Db, iso: string): { course: Course; roomName: string }[] {
+export function inactiveRoomCourses(
+  db: Db,
+  iso: string,
+  config: OrgConfig,
+): { course: Course; roomName: string }[] {
   const out: { course: Course; roomName: string }[] = [];
   for (const c of db.courses) {
     if (c.end && iso > c.end) continue;
     if (!c.roomId) continue;
     const room = db.rooms.find((r) => r.id === c.roomId);
-    if (!room) out.push({ course: c, roomName: 'חדר לא קיים' });
+    if (!room) out.push({ course: c, roomName: termOf(config, 'entity.room', 'חדר') + ' לא קיים' });
     else if (!room.active) out.push({ course: c, roomName: room.name });
   }
   return out;

@@ -178,7 +178,7 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
   function save() {
     if (!memberSel) return setError('יש לבחור ילד/ה או הורה');
     const c = db.courses.find((x) => x.id === courseId);
-    if (!c) return setError('יש לבחור חוג');
+    if (!c) return setError('יש לבחור ' + termOf(config, 'entity.course', 'חוג'));
 
     // הורה וירטואלי — אם כבר קיים Member הורה מאותו המין, משתמשים בו
     const isVirtual = memberSel === VIRT_FATHER || memberSel === VIRT_MOTHER;
@@ -189,9 +189,10 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
     const resolvedId = isVirtual ? existingParent?.id : memberSel;
 
     if (resolvedId && db.enrollments.some((e) => e.memberId === resolvedId && e.courseId === c.id))
-      return setError('כבר משובץ/ת לחוג הזה');
+      return setError('כבר משובץ/ת ל' + termOf(config, 'entity.course', 'חוג'));
     const n = enrollCount(db, c.id);
-    if (n >= (c.maxStudents || 999)) return setError('החוג מלא (' + n + '/' + c.maxStudents + ')');
+    if (n >= (c.maxStudents || 999))
+      return setError('ה' + termOf(config, 'entity.course', 'חוג') + ' מלא/ה (' + n + '/' + c.maxStudents + ')');
     const isPunch = c.model === 'punch';
     const bought = isPunch ? +(purchased || c.size || 12) : 0;
     if (isPunch && (isNaN(bought) || bought <= 0 || !Number.isInteger(bought)))
@@ -256,7 +257,9 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
         termOf(config, 'entity.enrollment', 'שיבוץ') +
         ' ל' +
         termOf(config, 'entity.course', 'חוג') +
-        ' — משפחת ' +
+        ' — ' +
+        termOf(config, 'entity.familyOf', 'משפחת') +
+        ' ' +
         fam.name
       }
       onClose={props.onClose}
@@ -284,7 +287,10 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
             onClick={openMemberForm}
             style={{ ...listRowStyle, color: '#9a6414', borderBottom: 'none' }}
           >
-            {'➕ הוספת ' + termOf(config, 'entity.member', 'בן/בת משפחה') + ' — הוספה מהירה וחזרה אוטומטית לשיבוץ'}
+            {'➕ הוספת ' +
+              termOf(config, 'entity.member', 'בן/בת משפחה') +
+              ' — הוספה מהירה וחזרה אוטומטית ל' +
+              termOf(config, 'entity.enrollment', 'שיבוץ')}
           </button>
         </div>
       )}
@@ -297,7 +303,7 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
             setCourseListOpen(true);
             setCourseId('');
           }}
-          placeholder="הקלידו שם חוג, קטגוריה או מורה…"
+          placeholder={'הקלידו שם ' + termOf(config, 'entity.course', 'חוג') + ', קטגוריה או מורה…'}
         />
       </Field>
       {courseListOpen && (

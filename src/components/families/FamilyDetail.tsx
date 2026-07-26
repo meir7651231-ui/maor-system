@@ -36,6 +36,7 @@ const MEDIA_LABELS: { key: keyof Member; label: string }[] = [
 ];
 
 function MemberCard(props: { m: Member; onEdit: () => void; onDelete: () => void }) {
+  const config = useApp((s) => s.config);
   const m = props.m;
   const age = ageOf(m.birth);
   const gLabel = m.isParent ? (m.gender === 'f' ? 'אם' : 'אב') : m.gender === 'f' ? 'בת' : 'בן';
@@ -95,7 +96,7 @@ function MemberCard(props: { m: Member; onEdit: () => void; onDelete: () => void
         <Btn sm onClick={props.onEdit} title="עריכה">
           ✎
         </Btn>
-        <Btn sm kind="danger" onClick={props.onDelete} title="הסרה מהמשפחה">
+        <Btn sm kind="danger" onClick={props.onDelete} title={'הסרה מה' + termOf(config, 'entity.family', 'משפחה')}>
           🗑
         </Btn>
       </div>
@@ -134,19 +135,37 @@ export function FamilyDetail(props: { family: Family }) {
 
   function onDeleteFamily() {
     const ok = window.confirm(
-      'למחוק את משפחת ' + fam.name + '? הפעולה תמחק גם את בני המשפחה, השיבוצים והאירועים המקושרים.',
+      'למחוק את ' +
+        termOf(config, 'entity.familyOf', 'משפחת') +
+        ' ' +
+        fam.name +
+        '? הפעולה תמחק גם את ' +
+        termOf(config, 'entity.members', 'בני משפחה') +
+        ', ' +
+        termOf(config, 'entity.enrollments', 'שיבוצים') +
+        ' והאירועים המקושרים.',
     );
     if (!ok) return;
     deleteFamily(fam.id);
     selectFamily(null);
-    toast('משפחת ' + fam.name + ' נמחקה מהמערכת');
+    toast('מחיקת ' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + fam.name + ' הושלמה');
   }
 
   function onDeleteMember(m: Member) {
-    const ok = window.confirm('להסיר את ' + m.first + ' ממשפחת ' + fam.name + '? השיבוצים שלו/ה יימחקו גם כן.');
+    const ok = window.confirm(
+      'להסיר את ' +
+        m.first +
+        ' מ' +
+        termOf(config, 'entity.familyOf', 'משפחת') +
+        ' ' +
+        fam.name +
+        '? ' +
+        termOf(config, 'entity.enrollments', 'שיבוצים') +
+        ' שלו/ה יימחקו גם כן.',
+    );
     if (!ok) return;
     deleteMember(fam.id, m.id);
-    toast(m.first + ' הוסר/ה מהמשפחה');
+    toast(m.first + ' הוסר/ה מה' + termOf(config, 'entity.family', 'משפחה'));
   }
 
   return (
@@ -178,7 +197,7 @@ export function FamilyDetail(props: { family: Family }) {
         <div style={{ flex: 1, minWidth: 200 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <h1 className="page-title" style={{ marginBottom: 0 }}>
-              משפחת {fam.name}
+              {termOf(config, 'entity.familyOf', 'משפחת')} {fam.name}
             </h1>
             <span style={chipStyle(st.bg, st.c)}>{st.label}</span>
             {fam.community && <span style={chipStyle('#eceae2', '#4d463c')}>{fam.community}</span>}
@@ -240,11 +259,11 @@ export function FamilyDetail(props: { family: Family }) {
       {/* בני המשפחה */}
       <section className="card">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700 }}>בני המשפחה</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700 }}>{termOf(config, 'entity.members', 'בני משפחה')}</h2>
           <Btn onClick={() => setMemberModal(null)}>➕ הוספת {termOf(config, 'entity.member', 'בן משפחה')}</Btn>
         </div>
         {fam.members.length === 0 ? (
-          <Empty>עדיין לא נרשמו בני משפחה</Empty>
+          <Empty>עדיין לא נרשמו {termOf(config, 'entity.members', 'בני משפחה')}</Empty>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
             {fam.members.map((m) => (

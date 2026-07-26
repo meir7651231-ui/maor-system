@@ -175,7 +175,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                       props.onOpen(sp.id);
                     }
                   }}
-                  title="פתיחת כרטיס התומכת"
+                  title={'פתיחת כרטיס ' + termOf(cfg, 'entity.supporter', 'התומך/ת')}
                   style={{
                     display: 'grid',
                     gridTemplateColumns: 'minmax(90px,.9fr) 1.6fr 1.1fr .8fr .8fr auto',

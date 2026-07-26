@@ -118,8 +118,8 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
   const set = (patch: Partial<CourseFormState>) => setF((p) => ({ ...p, ...patch }));
 
   function save() {
-    if (!f.name.trim()) return setError('שם הקורס הוא שדה חובה');
-    if (!f.roomId) return setError('יש לבחור חדר פעילות');
+    if (!f.name.trim()) return setError('שם ה' + termOf(cfg, 'entity.course', 'חוג') + ' הוא שדה חובה');
+    if (!f.roomId) return setError('יש לבחור ' + termOf(cfg, 'entity.room', 'חדר') + ' פעילות');
     if ([f.price, f.price1, f.price2].some((p) => p && (isNaN(+p) || +p < 0)))
       return setError('המחיר חייב להיות מספר חיובי');
     if (f.model === 'punch' && (!f.size || +f.size <= 0))
@@ -139,12 +139,12 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
     const ageMin = f.ageMin === '' ? 3 : Math.max(0, +f.ageMin || 0);
     const ageMax = f.ageMax === '' ? 99 : Math.max(1, +f.ageMax || 99);
     if (ageMax < ageMin) return setError('"עד גיל" חייב להיות גדול מ"מגיל"');
-    const dateErr = courseDateError(f.start, f.end);
+    const dateErr = courseDateError(f.start, f.end, cfg);
     if (dateErr) return setError(dateErr);
     let teacherId = f.teacherId;
     if (f.teacherId === ADD_TEACHER) {
       const tn = f.newTeacherName.trim();
-      if (!tn) return setError('בחרתם "הוספת מורה" — הקלידו את שם המורה');
+      if (!tn) return setError('בחרתם "הוספת ' + termOf(cfg, 'entity.teacher', 'מורה') + '" — הקלידו את שם ה' + termOf(cfg, 'entity.teacher', 'מורה'));
       const existing = db.teachers.find((t) => t.name === tn);
       if (existing) teacherId = existing.id;
       else {
@@ -190,14 +190,14 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
       semester,
     };
     const room = db.rooms.find((r) => r.id === f.roomId);
-    const roomName = room ? room.name : 'החדר';
+    const roomName = room ? room.name : 'ה' + termOf(cfg, 'entity.room', 'חדר');
 
     if (props.course) {
       const sessions = props.course.sessions.length
         ? props.course.sessions.map((ss, i) => (i === 0 ? { ...ss, day: weekday, time } : ss))
         : [{ day: weekday, time, label: '' }];
       upsertCourse({ ...props.course, ...fields, sessions });
-      toast('הקורס עודכן — משתקף ביומן ' + roomName + ' ובלוח');
+      toast('ה' + termOf(cfg, 'entity.course', 'חוג') + ' עודכן — משתקף ביומן ' + roomName + ' ובלוח');
     } else {
       const id = nextId('c');
       upsertCourse({
@@ -208,7 +208,7 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
         notes: '',
       });
       selectCourse(id);
-      toast('הקורס "' + fields.name + '" נוצר — נכנס ליומן ' + roomName + ', ללוח ולגלגל');
+      toast('ה' + termOf(cfg, 'entity.course', 'חוג') + ' "' + fields.name + '" נוצר — נכנס ליומן ' + roomName + ', ללוח ולגלגל');
     }
     props.onClose();
   }
@@ -311,7 +311,7 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
         <Field label="שעה">
           <TextInput value={f.time} onChange={(v) => set({ time: v })} type="time" />
         </Field>
-        <Field label="מקסימום תלמידים">
+        <Field label={'מקסימום ' + termOf(cfg, 'entity.students', 'תלמידים')}>
           <TextInput value={f.maxStudents} onChange={(v) => set({ maxStudents: v })} placeholder="12" dir="ltr" />
         </Field>
         <Field label="קטגוריה (לגלגל)">
@@ -378,9 +378,9 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
           marginBottom: 12,
         }}
       >
-        ✓ החוג ישתקף אוטומטית ביומן החדר שנבחר, בלוח השנה ובגלגל "מצא חוג"
+        {'✓ ה' + termOf(cfg, 'entity.course', 'חוג') + ' ישתקף אוטומטית ביומן ה' + termOf(cfg, 'entity.room', 'חדר') + ' שנבחר, בלוח השנה ובגלגל "מצא ' + termOf(cfg, 'entity.course', 'חוג') + '"'}
       </div>
-      <Field label="תיאור — על הקורס והמורה">
+      <Field label={'תיאור — על ה' + termOf(cfg, 'entity.course', 'חוג') + ' וה' + termOf(cfg, 'entity.teacher', 'מורה')}>
         <textarea rows={2} value={f.description} onChange={(e) => set({ description: e.target.value })} />
       </Field>
       <FormError error={error} />
