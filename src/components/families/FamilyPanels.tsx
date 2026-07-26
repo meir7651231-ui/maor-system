@@ -383,7 +383,7 @@ function familyReportLines(db: Db, f: Family, config: OrgConfig): string[] {
   }
   if (!anyE) L.push('(אין שיבוצים)');
   L.push('', '— היסטוריית פעולות —');
-  const hist = famHistoryOf(db, f);
+  const hist = famHistoryOf(db, f, config);
   for (const h of hist) L.push('[' + fmtDate(h.date) + '] ' + h.tag + ': ' + h.text);
   if (!hist.length) L.push('(אין פעולות מתועדות)');
   return L;
@@ -401,7 +401,7 @@ function HistoryPanel(props: { fam: Family }) {
   const reportOn = featureOn(config, 'families.report');
   const [open, setOpen] = useState(false);
 
-  const hist = famHistoryOf(db, props.fam);
+  const hist = famHistoryOf(db, props.fam, config);
 
   function exportReport() {
     downloadText('family-' + props.fam.name + '.txt', familyReportLines(db, props.fam, config));

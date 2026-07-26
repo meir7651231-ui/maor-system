@@ -212,8 +212,8 @@ export function CalendarView() {
   }, [filters, layersOn, familiesModOn, coursesModOn, config]);
 
   const grid = useMemo(
-    () => (hebMode ? buildHebrewGrid(db, hebAnchor) : buildGregorianGrid(db, ym.y, ym.m)),
-    [db, hebMode, hebAnchor, ym],
+    () => (hebMode ? buildHebrewGrid(db, hebAnchor, config) : buildGregorianGrid(db, ym.y, ym.m, config)),
+    [db, hebMode, hebAnchor, ym, config],
   );
   const cells = useMemo(
     () =>
@@ -366,7 +366,7 @@ export function CalendarView() {
       >
         <span style={{ fontWeight: 600, color: 'var(--ink-faint)' }}>מקרא:</span>
         {[
-          SESSION_META,
+          { ...SESSION_META, label: 'מפגש ' + termOf(config, 'entity.course', 'חוג') },
           EV_META.org,
           EV_META.reminder,
           EV_META.call,

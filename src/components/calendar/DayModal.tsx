@@ -62,7 +62,10 @@ export function DayModal(props: {
   const selectFamily = useApp((s) => s.selectFamily);
 
   const d = useMemo(() => new Date(iso + 'T12:00:00'), [iso]);
-  const items = useMemo(() => dayItems(db, d).filter((it) => allowItem(it, filters)), [db, d, filters]);
+  const items = useMemo(
+    () => dayItems(db, d, config).filter((it) => allowItem(it, filters)),
+    [db, d, filters, config],
+  );
   // שכבת החגים — מכובדת גם בתצוגת היום (מוסתרת כשהשכבה כבויה)
   const holiday = filters.holidays ? holidayOf(d) : null;
   // calendar.blocking (או תת-הדגל shabbat) כבוי — באנר "יום חסום" מוסתר

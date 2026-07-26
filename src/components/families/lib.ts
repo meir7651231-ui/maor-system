@@ -4,7 +4,7 @@
  */
 import type { CSSProperties } from 'react';
 import type { Db, Enrollment, Family, FamilyStatus } from '../../types/domain';
-import type { OrgConfig } from '../../types/config';
+import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
 
@@ -132,14 +132,14 @@ export interface FamHistoryEntry {
  * הצטרפות · לוג מדד האמינות · מסמכים · שיבוצים · תשלומים · היעדרויות.
  * ממוינת מהחדש לישן, עד 40 הפעולות האחרונות.
  */
-export function famHistoryOf(db: Db, fam: Family): FamHistoryEntry[] {
+export function famHistoryOf(db: Db, fam: Family, config: OrgConfig = DEFAULT_CONFIG): FamHistoryEntry[] {
   const out: FamHistoryEntry[] = [];
   const push = (date: string, tag: string, bg: string, c: string, text: string) => {
     if (date) out.push({ date, tag, bg, c, text });
   };
   if (fam.createdAt) push(fam.createdAt, 'הצטרפות', '#e7edf5', '#3a5a86', 'המשפחה הצטרפה');
   for (const l of fam.cred?.log ?? []) {
-    push(l.date, 'אמינות', '#f6ead1', '#9a6414', l.reason + ' (' + (l.delta > 0 ? '+' : '') + l.delta + ' נק׳)');
+    push(l.date, termOf(config, 'entity.cred', 'אמינות'), '#f6ead1', '#9a6414', l.reason + ' (' + (l.delta > 0 ? '+' : '') + l.delta + ' נק׳)');
   }
   for (const d of fam.docs) push(d.addedAt, 'מסמך', '#eceae2', '#4d463c', 'מסמך נוסף: ' + d.name);
   const ids = new Set(fam.members.map((m) => m.id));
@@ -149,7 +149,7 @@ export function famHistoryOf(db: Db, fam: Family): FamHistoryEntry[] {
     const cname = db.courses.find((x) => x.id === e.courseId)?.name ?? '';
     push(
       e.enrolledAt,
-      'שיבוץ',
+      termOf(config, 'entity.enrollment', 'שיבוץ'),
       '#eef7e6',
       '#3f6212',
       'נרשמ/ה ' + first + ' ל' + cname + (e.group ? ' · ' + e.group : ''),

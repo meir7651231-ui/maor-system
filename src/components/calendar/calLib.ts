@@ -12,7 +12,7 @@ import {
 import { gem, gemYear, hebParts, hebAnnualEq, holidayOf, type HebParts } from '../../lib/hebrew';
 import { isoLocal } from '../../lib/date-util';
 import { termOf } from '../../lib/config';
-import type { OrgConfig } from '../../types/config';
+import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 import { sessionsOf } from '../courses/lib';
 // sessionsOf — מקור-אמת יחיד בקורסים; מיוצא מחדש (wallData מייבא אותו מכאן)
 export { sessionsOf };
@@ -249,10 +249,12 @@ export function allowItem(it: DayItem, f: CalFilters): boolean {
 }
 
 /** כל מה שקורה ביום: אירועים (כולל חוזרים) + מפגשי חוגים. חג מוחזר בנפרד בתא. */
-export function dayItems(db: Db, d: Date): DayItem[] {
+export function dayItems(db: Db, d: Date, config: OrgConfig = DEFAULT_CONFIG): DayItem[] {
   const iso = isoOf(d);
   const hp = hpOf(iso, d);
   const courseBlock = blockReason(d, 'course');
+  const famOf = termOf(config, 'entity.familyOf', 'משפחת');
+  const courseWord = termOf(config, 'entity.course', 'חוג');
   const out: DayItem[] = [];
 
   for (const ev of db.events) {
@@ -283,7 +285,7 @@ export function dayItems(db: Db, d: Date): DayItem[] {
       out.push({
         key: 'bd-' + m.id,
         label: `🎂 יום הולדת — ${m.first} (${age})`,
-        title: `🎂 יום הולדת — ${m.first} (${age}) · משפחת ${f.name}`,
+        title: `🎂 יום הולדת — ${m.first} (${age}) · ${famOf} ${f.name}`,
         bg: EV_META.bday.bg,
         c: EV_META.bday.c,
         typeLabel: 'יום הולדת',
@@ -301,8 +303,8 @@ export function dayItems(db: Db, d: Date): DayItem[] {
     const n = +iso.slice(0, 4) - +f.createdAt.slice(0, 4);
     out.push({
       key: 'join-' + f.id,
-      label: `🏠 ${n} שנים למשפחת ${f.name}`,
-      title: `🏠 ${n} שנים למשפחת ${f.name} במערכת`,
+      label: `🏠 ${n} שנים ל${famOf} ${f.name}`,
+      title: `🏠 ${n} שנים ל${famOf} ${f.name} במערכת`,
       bg: '#e7edf5',
       c: '#3a5a86',
       typeLabel: 'הצטרפות',
@@ -331,10 +333,10 @@ export function dayItems(db: Db, d: Date): DayItem[] {
     out.push({
       key: 'enr-' + e.id,
       label: `📝 נרשמ/ה ${em.first} — ${ec.name}`,
-      title: `📝 הרשמה לחוג: ${em.first}` + (ef ? ` (משפחת ${ef.name})` : '') + ` ← ${ec.name}`,
+      title: `📝 הרשמה ל${courseWord}: ${em.first}` + (ef ? ` (${famOf} ${ef.name})` : '') + ` ← ${ec.name}`,
       bg: '#eef7e6',
       c: '#3f6212',
-      typeLabel: 'הרשמה לחוג',
+      typeLabel: 'הרשמה ל' + courseWord,
       sort: 2.6,
       prC: 'transparent',
       courseId: ec.id,
@@ -354,7 +356,7 @@ export function dayItems(db: Db, d: Date): DayItem[] {
         title: c.name + (ss.label ? ' — ' + ss.label : '') + (courseBlock ? ' · לא מתקיים — ' + courseBlock : ''),
         bg: SESSION_META.bg,
         c: SESSION_META.c,
-        typeLabel: SESSION_META.label,
+        typeLabel: 'מפגש ' + courseWord,
         sort: 3,
         prC: 'transparent',
         courseId: c.id,
@@ -392,7 +394,14 @@ export interface CalGrid {
   nextIso: string | null;
 }
 
-function makeCell(db: Db, d: Date, inMonth: boolean, todayIso: string, hebMode: boolean): CalCell {
+function makeCell(
+  db: Db,
+  d: Date,
+  inMonth: boolean,
+  todayIso: string,
+  hebMode: boolean,
+  config: OrgConfig = DEFAULT_CONFIG,
+): CalCell {
   const iso = isoOf(d);
   const hp = hpOf(iso, d);
   return {
@@ -403,19 +412,24 @@ function makeCell(db: Db, d: Date, inMonth: boolean, todayIso: string, hebMode: 
     inMonth,
     isToday: iso === todayIso,
     holiday: holidayOf(d),
-    items: dayItems(db, d),
+    items: dayItems(db, d, config),
   };
 }
 
 /** רשת חודש לועזי — 42 תאים קבועים, ראשון עד שבת. */
-export function buildGregorianGrid(db: Db, year: number, month: number): CalGrid {
+export function buildGregorianGrid(
+  db: Db,
+  year: number,
+  month: number,
+  config: OrgConfig = DEFAULT_CONFIG,
+): CalGrid {
   const first = new Date(year, month, 1);
   const gridStart = new Date(year, month, 1 - first.getDay());
   const todayIso = isoOf(new Date());
   const cells: CalCell[] = [];
   for (let i = 0; i < 42; i++) {
     const d = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
-    cells.push(makeCell(db, d, d.getMonth() === month, todayIso, false));
+    cells.push(makeCell(db, d, d.getMonth() === month, todayIso, false, config));
   }
   const last = new Date(year, month + 1, 0);
   const m1 = fmtHebMonth.format(first);
@@ -430,7 +444,7 @@ export function buildGregorianGrid(db: Db, year: number, month: number): CalGrid
 }
 
 /** רשת חודש עברי מלא (א׳–ל׳) סביב תאריך עוגן — כמו במקור. */
-export function buildHebrewGrid(db: Db, anchorIso: string): CalGrid {
+export function buildHebrewGrid(db: Db, anchorIso: string, config: OrgConfig = DEFAULT_CONFIG): CalGrid {
   const anchor = dateOf(anchorIso);
   const hp0 = hpOf(anchorIso, anchor);
   // א׳ בחודש: הליכה אחורה לפי היום העברי של העוגן.
@@ -453,7 +467,7 @@ export function buildHebrewGrid(db: Db, anchorIso: string): CalGrid {
   for (let i = 0; i < count; i++) {
     const d = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
     const iso = isoOf(d);
-    cells.push(makeCell(db, d, iso >= hmStart && iso <= hmEnd, todayIso, true));
+    cells.push(makeCell(db, d, iso >= hmStart && iso <= hmEnd, todayIso, true, config));
   }
 
   const prevD = new Date(first);
