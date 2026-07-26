@@ -179,7 +179,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
               {view === 'list' ? '▦ גריד' : '☰ רשימה'}
             </Btn>
             <Btn kind="primary" onClick={() => setFormOpen(true)}>
-              + {termOf(cfg, 'entity.course', 'חוג')} חדש
+              ➕ הוספת {termOf(cfg, 'entity.course', 'חוג')}
             </Btn>
           </>
         }
@@ -216,7 +216,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
 
       {shown.length === 0 ? (
         <Empty>
-          {db.courses.length === 0 ? 'עדיין אין קורסים — לחצו על "+ קורס חדש"' : 'אין קורסים תואמים לסינון'}
+          {db.courses.length === 0
+            ? 'עדיין אין ' + termOf(cfg, 'nav.courses', 'חוגים') + ' — לחצו על "➕ הוספת ' + termOf(cfg, 'entity.course', 'חוג') + '"'
+            : 'אין ' + termOf(cfg, 'nav.courses', 'חוגים') + ' תואמים לסינון'}
         </Empty>
       ) : view === 'grid' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 14 }}>
@@ -285,9 +287,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
           <table className="table">
             <thead>
               <tr>
-                {thSort('name', 'שם חוג')}
+                {thSort('name', 'שם ' + termOf(cfg, 'entity.course', 'חוג'))}
                 {thSort('audience', 'קהל')}
-                {thSort('teacher', 'מורה')}
+                {thSort('teacher', termOf(cfg, 'entity.teacher', 'מורה'))}
                 {thSort('model', 'מסלול')}
                 <th>יום</th>
                 {thSort('count', 'תלמידים')}

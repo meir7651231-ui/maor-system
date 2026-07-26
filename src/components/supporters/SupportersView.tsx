@@ -193,7 +193,7 @@ export function SupportersView() {
               </Btn>
             )}
             <Btn kind="primary" onClick={() => setFormOpen(true)}>
-              + תומכת חדשה
+              ➕ הוספת {termOf(config, 'entity.supporter', 'תומך/ת')}
             </Btn>
           </>
         }
@@ -224,9 +224,12 @@ export function SupportersView() {
       )}
 
       {db.supporters.length === 0 ? (
-        <Empty>עדיין אין משפחות תומכות — הוסיפו תומכת ראשונה עם "+ תומכת חדשה"</Empty>
+        <Empty>
+          עדיין אין {termOf(config, 'nav.supporters', 'תומכים')} — הוסיפו עם "➕ הוספת{' '}
+          {termOf(config, 'entity.supporter', 'תומך/ת')}"
+        </Empty>
       ) : list.length === 0 ? (
-        <Empty>לא נמצאו תומכות התואמות את החיפוש והסינון</Empty>
+        <Empty>לא נמצאו {termOf(config, 'nav.supporters', 'תומכים')} התואמים את החיפוש והסינון</Empty>
       ) : (
         <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
           <table className="table">

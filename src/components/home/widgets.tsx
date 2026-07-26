@@ -492,7 +492,7 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
       {familiesOn && (
         <StatCard
           icon="👨‍👩‍👧‍👦"
-          label="משפחות"
+          label={termOf(config, 'nav.families', 'משפחות')}
           value={String(s.famTotal)}
           sub={`${s.famActive} פעילות · ${s.famPending} ממתינות · ${s.famInactive} לא פעילות`}
           chip={famNew > 0 ? `+${famNew} החודש` : undefined}
@@ -512,7 +512,7 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
       {coursesOn && (
         <StatCard
           icon="🎨"
-          label="חוגים פעילים"
+          label={termOf(config, 'nav.courses', 'חוגים') + ' פעילים'}
           value={String(s.activeCourses)}
           sub={`${s.activeEnrollments} שיבוצים פעילים מתוך ${s.enrollTotal}`}
           onClick={() => go('courses')}

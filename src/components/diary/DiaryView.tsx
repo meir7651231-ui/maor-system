@@ -106,7 +106,7 @@ export function DiaryView() {
       <div className="card" style={{ marginBottom: 14 }}>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
           {activeRooms.length === 0 ? (
-            <span style={{ color: 'var(--ink-faint)', fontSize: 14 }}>אין חדרים פעילים</span>
+            <span style={{ color: 'var(--ink-faint)', fontSize: 14 }}>אין {termOf(cfg, 'entity.rooms', 'חדרים')} פעילים</span>
           ) : (
             activeRooms.map((r) => (
               <Chip
@@ -156,7 +156,9 @@ export function DiaryView() {
       </div>
 
       {!room ? (
-        <Empty>אין חדרים פעילים — הפעילו חדר בהגדרות החדרים כדי להשתמש ביומן</Empty>
+        <Empty>
+          אין {termOf(cfg, 'entity.rooms', 'חדרים')} פעילים — הפעילו {termOf(cfg, 'entity.room', 'חדר')} בהגדרות כדי להשתמש ביומן
+        </Empty>
       ) : (
         <div className="card" style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
@@ -177,12 +179,14 @@ export function DiaryView() {
                 marginBottom: 10,
               }}
             >
-              היום חסום לתזמון חוגים: {blocked}
+              היום חסום לתזמון {termOf(cfg, 'nav.courses', 'חוגים')}: {blocked}
             </div>
           )}
 
           <div style={{ border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}>
-            {slots.length === 0 && <Empty>אין משבצות להצגה — בדקו את שעות הפעילות של החדר</Empty>}
+            {slots.length === 0 && (
+              <Empty>אין משבצות להצגה — בדקו את שעות הפעילות של {termOf(cfg, 'entity.room', 'החדר')}</Empty>
+            )}
             {slots.map((sl) => {
               const enrolledCount =
                 sl.course && sl.sessionIndex != null
@@ -246,9 +250,11 @@ export function DiaryView() {
 
       {utilizationOn && (
       <div className="card">
-        <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>ניצולת חדרים — מפגשים בשבוע</h2>
+        <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>
+          ניצולת {termOf(cfg, 'entity.rooms', 'חדרים')} — מפגשים בשבוע
+        </h2>
         {db.rooms.length === 0 ? (
-          <Empty>אין חדרים במערכת</Empty>
+          <Empty>אין {termOf(cfg, 'entity.rooms', 'חדרים')} במערכת</Empty>
         ) : (
           db.rooms.map((r) => {
             const n = weeklyRoomSessions(db, r.id, date);

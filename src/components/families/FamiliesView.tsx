@@ -280,7 +280,7 @@ export function FamiliesView() {
               {famView === 'grid' ? '☰ רשימה' : '▦ גריד'}
             </Btn>
             <Btn kind="primary" onClick={() => setFormOpen(true)}>
-              + משפחה חדשה
+              ➕ הוספת {termOf(config, 'entity.family', 'משפחה')}
             </Btn>
           </>
         }
@@ -438,9 +438,12 @@ export function FamiliesView() {
       )}
 
       {db.families.length === 0 ? (
-        <Empty>עדיין אין משפחות במערכת — הוסיפו משפחה ראשונה עם "+ משפחה חדשה"</Empty>
+        <Empty>
+          עדיין אין {termOf(config, 'nav.families', 'משפחות')} במערכת — הוסיפו עם "➕ הוספת{' '}
+          {termOf(config, 'entity.family', 'משפחה')}"
+        </Empty>
       ) : filtered.length === 0 ? (
-        <Empty>לא נמצאו משפחות התואמות את החיפוש והסינון</Empty>
+        <Empty>לא נמצאו {termOf(config, 'nav.families', 'משפחות')} התואמות את החיפוש והסינון</Empty>
       ) : famView === 'grid' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
           {filtered.map((f) => {
@@ -478,11 +481,11 @@ export function FamiliesView() {
           <table className="table">
             <thead>
               <tr>
-                {thSort('name', 'משפחה')}
+                {thSort('name', termOf(config, 'entity.family', 'משפחה'))}
                 <th>הורים</th>
                 {thSort('phone', 'טלפון')}
                 {thSort('kids', 'ילדים')}
-                {thSort('courses', 'חוגים')}
+                {thSort('courses', termOf(config, 'nav.courses', 'חוגים'))}
                 {thSort('status', 'סטטוס')}
               </tr>
               {colFOn && (

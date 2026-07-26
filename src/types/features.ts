@@ -143,6 +143,7 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'entity.course', label: 'חוג (יחיד)', fallback: 'חוג' },
   { key: 'entity.teacher', label: 'מורה', fallback: 'מורה' },
   { key: 'entity.room', label: 'חדר', fallback: 'חדר' },
+  { key: 'entity.rooms', label: 'חדרים (רבים)', fallback: 'חדרים' },
   { key: 'entity.supporter', label: 'תורם', fallback: 'תורם' },
   { key: 'entity.donation', label: 'תרומה', fallback: 'תרומה' },
   { key: 'entity.enrollment', label: 'שיבוץ', fallback: 'שיבוץ' },

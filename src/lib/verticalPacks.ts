@@ -96,6 +96,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     terms: {
       'nav.diary': 'לוח חללים',
       'entity.room': 'חלל',
+      'entity.rooms': 'חללים',
       'nav.families': 'שוכרים',
       'entity.family': 'שוכר',
       'entity.member': 'איש קשר',
@@ -120,6 +121,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     terms: {
       'nav.diary': 'לוח רכבים',
       'entity.room': 'רכב',
+      'entity.rooms': 'רכבים',
       'nav.families': 'לקוחות',
       'entity.family': 'לקוח',
       'entity.member': 'נהג',
@@ -147,6 +149,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'entity.member': 'רכב/פריט',
       'nav.diary': 'עמדות עבודה',
       'entity.room': 'עמדה',
+      'entity.rooms': 'עמדות',
       'nav.supporters': 'לקוחות קבועים',
       'entity.supporter': 'לקוח',
       'entity.donation': 'תשלום',
@@ -168,6 +171,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     terms: {
       'nav.diary': 'לוח יחידות',
       'entity.room': 'יחידת אירוח',
+      'entity.rooms': 'יחידות אירוח',
       'nav.families': 'אורחים',
       'entity.family': 'אורח',
       'entity.member': 'מלווה',
