@@ -101,6 +101,8 @@ export function CommandPalette() {
   const teachersOn = featureOn(config, 'settings.teachers');
   const famDocsOn = featureOn(config, 'families.docs');
   const wallOn = featureOn(config, 'home.impactwall');
+  const timerOn = featureOn(config, 'core.timer');
+  const cashboxOn = featureOn(config, 'core.cashbox');
 
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
@@ -199,6 +201,36 @@ export function CommandPalette() {
         },
       });
     }
+    // טיימר כסף — חיוב לפי זמן (feature: core.timer)
+    if (timerOn) {
+      const tl = termOf(config, 'nav.timer', 'טיימר כסף');
+      actions.push({
+        key: 'act-timer',
+        icon: '⏱️',
+        title: tl,
+        sub: 'חיוב לפי זמן — שעון עצר/טיימר',
+        terms: toTerms([tl, 'טיימר', 'שעון עצר', 'חיוב לפי זמן', 'timer']),
+        run: () => {
+          window.location.hash = '#timer';
+          setPalette(false);
+        },
+      });
+    }
+    // קופה רושמת — קבלת מזומן ועודף (feature: core.cashbox)
+    if (cashboxOn) {
+      const cl = termOf(config, 'nav.cashbox', 'קופה רושמת');
+      actions.push({
+        key: 'act-cashbox',
+        icon: '💵',
+        title: cl,
+        sub: 'קבלת מזומן, עודף וחשבונית',
+        terms: toTerms([cl, 'קופה', 'מזומן', 'עודף', 'חשבונית', 'cash']),
+        run: () => {
+          window.location.hash = '#cashbox';
+          setPalette(false);
+        },
+      });
+    }
     // נעילה עכשיו — רק כשהוגדר קוד כלשהו
     if (hasLock) {
       actions.push({
@@ -228,6 +260,8 @@ export function CommandPalette() {
     reportsOn,
     wheelOn,
     wallOn,
+    timerOn,
+    cashboxOn,
     hasLock,
     lockNow,
   ]);

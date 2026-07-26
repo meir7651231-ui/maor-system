@@ -9,7 +9,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { Btn, Modal } from '../ui';
 
 const LS_KEY = 'maor_timer_collections';
@@ -70,7 +70,19 @@ export function MoneyTimer({ onClose }: { onClose: () => void }) {
 
   const [mode, setMode] = useState<Mode>('stopwatch');
   const [rate, setRate] = useState(String(defaultRate || ''));
-  const [client, setClient] = useState('');
+  // שם לקוח מוזן-מראש (מכרטיס הלקוח) — נקרא פעם אחת מ-sessionStorage.
+  const [client, setClient] = useState(() => {
+    try {
+      const v = sessionStorage.getItem('maor_timer_client');
+      if (v) {
+        sessionStorage.removeItem('maor_timer_client');
+        return v;
+      }
+    } catch {
+      /* חסום */
+    }
+    return '';
+  });
   const [timerMin, setTimerMin] = useState('30'); // יעד לטיימר (דק׳)
   const [timeCapMin, setTimeCapMin] = useState(''); // תקרת זמן (שעון-עצר)
   const [moneyCap, setMoneyCap] = useState(''); // תקרת סכום
@@ -161,6 +173,16 @@ export function MoneyTimer({ onClose }: { onClose: () => void }) {
     toast('נגבה ' + money(amt) + (rec.client ? ' · ' + rec.client : ''));
     reset();
     setClient('');
+    // אם הקופה הרושמת פעילה — ממשיכים אליה עם הסכום מוכן (עודף + חשבונית).
+    if (featureOn(config, 'core.cashbox')) {
+      try {
+        sessionStorage.setItem('maor_cashbox_amount', String(amt));
+      } catch {
+        /* חסום */
+      }
+      onClose();
+      window.location.hash = '#cashbox';
+    }
   }
 
   const todayIso = new Date().toISOString().slice(0, 10);

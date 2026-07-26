@@ -17,6 +17,7 @@ import { Btn } from './components/ui';
 import { BuilderWizard } from './components/builder/BuilderWizard';
 import { ImpactWall } from './components/wall/ImpactWall';
 import { MoneyTimer } from './components/timer/MoneyTimer';
+import { CashRegister } from './components/timer/CashRegister';
 import { HomeView } from './components/home/HomeView';
 import { FamiliesView } from './components/families/FamiliesView';
 import { CoursesView } from './components/courses/CoursesView';
@@ -110,11 +111,14 @@ export default function App() {
   const [wallOpen, setWallOpen] = useState(() => window.location.hash === '#wall');
   // טיימר כסף — נפתח עם #timer (feature: core.timer)
   const [timerOpen, setTimerOpen] = useState(() => window.location.hash === '#timer');
+  // קופה רושמת — נפתחת עם #cashbox (feature: core.cashbox)
+  const [cashboxOpen, setCashboxOpen] = useState(() => window.location.hash === '#cashbox');
   useEffect(() => {
     const onHash = () => {
       setBuilderOpen(window.location.hash === '#builder');
       setWallOpen(window.location.hash === '#wall');
       setTimerOpen(window.location.hash === '#timer');
+      setCashboxOpen(window.location.hash === '#cashbox');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -518,6 +522,15 @@ export default function App() {
           onClose={() => {
             window.location.hash = '';
             setTimerOpen(false);
+          }}
+        />
+      )}
+
+      {cashboxOpen && featureOn(config, 'core.cashbox') && (
+        <CashRegister
+          onClose={() => {
+            window.location.hash = '';
+            setCashboxOpen(false);
           }}
         />
       )}

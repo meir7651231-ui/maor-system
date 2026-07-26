@@ -211,6 +211,22 @@ export function FamilyDetail(props: { family: Family }) {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {featureOn(config, 'core.timer') && (
+            <Btn
+              kind="primary"
+              onClick={() => {
+                try {
+                  sessionStorage.setItem('maor_timer_client', fam.name);
+                } catch {
+                  /* חסום */
+                }
+                window.location.hash = '#timer';
+              }}
+              title={termOf(config, 'nav.timer', 'טיימר כסף') + ' — חיוב לפי זמן ל' + fam.name}
+            >
+              ⏱️ {termOf(config, 'nav.timer', 'טיימר כסף')}
+            </Btn>
+          )}
           <Btn onClick={() => setEditOpen(true)}>✎ עריכת {termOf(config, 'entity.family', 'משפחה')}</Btn>
           <Btn kind="danger" onClick={onDeleteFamily}>
             🗑 מחיקת {termOf(config, 'entity.family', 'משפחה')}
