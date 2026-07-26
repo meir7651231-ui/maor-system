@@ -1057,6 +1057,7 @@ function QuickWidget({ ctx }: { ctx: HomeCtx }) {
   const receiptsOn = featureOn(config, 'core.receipts') && (supportersOn || coursesOn);
   const timerOn = featureOn(config, 'core.timer');
   const cashboxOn = featureOn(config, 'core.cashbox');
+  const bodymapOn = featureOn(config, 'core.bodymap');
   return (
     <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 14 }}>
       <div className="hm-head">
@@ -1084,6 +1085,16 @@ function QuickWidget({ ctx }: { ctx: HomeCtx }) {
             title={termOf(config, 'nav.cashbox', 'קופה רושמת') + ' — קבלת מזומן ועודף'}
           >
             💵 {termOf(config, 'nav.cashbox', 'קופה רושמת')}
+          </Btn>
+        )}
+        {bodymapOn && (
+          <Btn
+            onClick={() => {
+              window.location.hash = '#bodymap';
+            }}
+            title={termOf(config, 'nav.bodymap', 'אזורי טיפול') + ' — מעקב טיפולים'}
+          >
+            🧍 {termOf(config, 'nav.bodymap', 'אזורי טיפול')}
           </Btn>
         )}
         {familiesOn && (

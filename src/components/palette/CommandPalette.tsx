@@ -103,6 +103,7 @@ export function CommandPalette() {
   const wallOn = featureOn(config, 'home.impactwall');
   const timerOn = featureOn(config, 'core.timer');
   const cashboxOn = featureOn(config, 'core.cashbox');
+  const bodymapOn = featureOn(config, 'core.bodymap');
 
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
@@ -231,6 +232,21 @@ export function CommandPalette() {
         },
       });
     }
+    // מפת אזורי טיפול (feature: core.bodymap)
+    if (bodymapOn) {
+      const bl = termOf(config, 'nav.bodymap', 'אזורי טיפול');
+      actions.push({
+        key: 'act-bodymap',
+        icon: '🧍',
+        title: bl,
+        sub: 'מעקב טיפולים לפי אזורי גוף',
+        terms: toTerms([bl, 'אזורי טיפול', 'מפת גוף', 'טיפולים', 'body']),
+        run: () => {
+          window.location.hash = '#bodymap';
+          setPalette(false);
+        },
+      });
+    }
     // נעילה עכשיו — רק כשהוגדר קוד כלשהו
     if (hasLock) {
       actions.push({
@@ -262,6 +278,7 @@ export function CommandPalette() {
     wallOn,
     timerOn,
     cashboxOn,
+    bodymapOn,
     hasLock,
     lockNow,
   ]);

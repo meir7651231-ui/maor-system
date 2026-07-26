@@ -227,6 +227,21 @@ export function FamilyDetail(props: { family: Family }) {
               ⏱️ {termOf(config, 'nav.timer', 'טיימר כסף')}
             </Btn>
           )}
+          {featureOn(config, 'core.bodymap') && (
+            <Btn
+              onClick={() => {
+                try {
+                  sessionStorage.setItem('maor_bodymap_client', fam.name);
+                } catch {
+                  /* חסום */
+                }
+                window.location.hash = '#bodymap';
+              }}
+              title={termOf(config, 'nav.bodymap', 'אזורי טיפול') + ' — ' + fam.name}
+            >
+              🧍 {termOf(config, 'nav.bodymap', 'אזורי טיפול')}
+            </Btn>
+          )}
           <Btn onClick={() => setEditOpen(true)}>✎ עריכת {termOf(config, 'entity.family', 'משפחה')}</Btn>
           <Btn kind="danger" onClick={onDeleteFamily}>
             🗑 מחיקת {termOf(config, 'entity.family', 'משפחה')}
