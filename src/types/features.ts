@@ -111,6 +111,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'settings.teachers', label: 'ניהול מורים', desc: 'הוספה ועריכה של מורים בהגדרות', module: 'settings' },
   { key: 'settings.import', label: 'ייבוא נתונים', desc: 'ייבוא נתונים מקובץ אל המערכת', module: 'settings' },
   { key: 'settings.audit', label: 'בדיקת תקינות נתונים', desc: 'סריקת כפילויות, ת"ז, טלפונים ולוגיקה — מסך ממצאים ותיקון אוטומטי', module: 'settings' },
+  { key: 'settings.dedup', label: 'איחוד כפילויות משפחות', desc: 'זיהוי משפחות כפולות (טלפון/שם+עיר) ומיזוגן לרשומה אחת — בלי אובדן נתונים', module: 'settings' },
   { key: 'settings.export', label: 'ייצוא נתונים', desc: 'ייצוא גיבוי ונתונים לקובץ', module: 'settings' },
   { key: 'settings.reset', label: 'איפוס מערכת', desc: 'מחיקת כל הנתונים ואיפוס המערכת', module: 'settings' },
 

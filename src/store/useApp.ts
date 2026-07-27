@@ -29,6 +29,7 @@ import {
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, loadOrgConfig, saveConfigOverride } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
+import { mergeFamilies } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { featLabel, planAddName, planAyinAdvance, revertPatch, stageIndex } from '../lib/ayin';
@@ -137,6 +138,8 @@ interface AppState {
   // משפחות ובני משפחה
   upsertFamily: (fam: Family) => void;
   deleteFamily: (id: string) => void;
+  /** מיזוג כפילויות — כל ה-loserIds נספגים לתוך keeperId (בלי אובדן בני-משפחה/שיבוצים). */
+  mergeFamilyGroup: (keeperId: string, loserIds: string[]) => void;
   upsertMember: (famId: string, member: Member) => void;
   deleteMember: (famId: string, memberId: string) => void;
   addCred: (famId: string, delta: number, reason: string) => void;
@@ -570,6 +573,28 @@ export const useApp = create<AppState>()((set, get) => {
           events: db.events.filter((ev) => ev.famId !== id),
         };
       });
+    },
+    mergeFamilyGroup(keeperId, loserIds) {
+      // מיזוג בטוח — בני-המשפחה של ה-losers עוברים לשומר עם אותם מזהים, כך
+      // שהשיבוצים/התשלומים שלהם נשארים תקינים (בניגוד ל-deleteFamily שמוחק
+      // אותם). אירועי ה-losers מופנים לשומר. פעולה אטומית אחת.
+      const losers = new Set(loserIds.filter((id) => id !== keeperId));
+      if (!losers.size) return;
+      setDb((db) => {
+        const keeper = db.families.find((f) => f.id === keeperId);
+        if (!keeper) return {};
+        const loserFams = db.families.filter((f) => losers.has(f.id));
+        if (!loserFams.length) return {};
+        const merged = mergeFamilies(keeper, loserFams);
+        return {
+          families: db.families
+            .filter((f) => !losers.has(f.id))
+            .map((f) => (f.id === keeperId ? merged : f)),
+          // אירועים המשויכים ל-loser עוברים לשומר (בני-המשפחה כבר בו)
+          events: db.events.map((ev) => (ev.famId && losers.has(ev.famId) ? { ...ev, famId: keeperId } : ev)),
+        };
+      });
+      get().toast('מוזגו ' + losers.size + ' רשומות אל המשפחה שנבחרה ✓');
     },
     upsertMember(famId, member) {
       setDb((db) => ({

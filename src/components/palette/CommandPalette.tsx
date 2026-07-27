@@ -104,6 +104,7 @@ export function CommandPalette() {
   const timerOn = featureOn(config, 'core.timer');
   const cashboxOn = featureOn(config, 'core.cashbox');
   const bodymapOn = featureOn(config, 'core.bodymap');
+  const dedupOn = featureOn(config, 'settings.dedup') && familiesOn;
 
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
@@ -247,6 +248,20 @@ export function CommandPalette() {
         },
       });
     }
+    // איחוד כפילויות משפחות (feature: settings.dedup)
+    if (dedupOn) {
+      actions.push({
+        key: 'act-dedup',
+        icon: '🔀',
+        title: 'איחוד כפילויות',
+        sub: 'זיהוי ומיזוג משפחות כפולות',
+        terms: toTerms(['איחוד כפילויות', 'כפילות', 'מיזוג', 'כפולות', 'dedup', 'merge']),
+        run: () => {
+          window.location.hash = '#dedup';
+          setPalette(false);
+        },
+      });
+    }
     // נעילה עכשיו — רק כשהוגדר קוד כלשהו
     if (hasLock) {
       actions.push({
@@ -279,6 +294,7 @@ export function CommandPalette() {
     timerOn,
     cashboxOn,
     bodymapOn,
+    dedupOn,
     hasLock,
     lockNow,
   ]);

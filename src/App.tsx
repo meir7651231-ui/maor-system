@@ -19,6 +19,7 @@ import { ImpactWall } from './components/wall/ImpactWall';
 import { MoneyTimer } from './components/timer/MoneyTimer';
 import { CashRegister } from './components/timer/CashRegister';
 import { BodyMap } from './components/timer/BodyMap';
+import { DedupModal } from './components/families/DedupModal';
 import { HomeView } from './components/home/HomeView';
 import { FamiliesView } from './components/families/FamiliesView';
 import { CoursesView } from './components/courses/CoursesView';
@@ -116,6 +117,8 @@ export default function App() {
   const [cashboxOpen, setCashboxOpen] = useState(() => window.location.hash === '#cashbox');
   // מפת אזורי טיפול — נפתחת עם #bodymap (feature: core.bodymap)
   const [bodymapOpen, setBodymapOpen] = useState(() => window.location.hash === '#bodymap');
+  // איחוד כפילויות — נפתח עם #dedup (feature: settings.dedup)
+  const [dedupOpen, setDedupOpen] = useState(() => window.location.hash === '#dedup');
   useEffect(() => {
     const onHash = () => {
       setBuilderOpen(window.location.hash === '#builder');
@@ -123,6 +126,7 @@ export default function App() {
       setTimerOpen(window.location.hash === '#timer');
       setCashboxOpen(window.location.hash === '#cashbox');
       setBodymapOpen(window.location.hash === '#bodymap');
+      setDedupOpen(window.location.hash === '#dedup');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -544,6 +548,15 @@ export default function App() {
           onClose={() => {
             window.location.hash = '';
             setBodymapOpen(false);
+          }}
+        />
+      )}
+
+      {dedupOpen && featureOn(config, 'settings.dedup') && (
+        <DedupModal
+          onClose={() => {
+            window.location.hash = '';
+            setDedupOpen(false);
           }}
         />
       )}

@@ -280,6 +280,11 @@ export function FamiliesView() {
             <Btn onClick={toggleView} title="החלפת תצוגה: רשימה / גריד">
               {famView === 'grid' ? '☰ רשימה' : '▦ גריד'}
             </Btn>
+            {featureOn(config, 'settings.dedup') && (
+              <Btn onClick={() => { window.location.hash = '#dedup'; }} title="זיהוי ומיזוג משפחות כפולות">
+                🔀 כפילויות
+              </Btn>
+            )}
             <Btn kind="primary" onClick={() => setFormOpen(true)}>
               ➕ הוספת {termOf(config, 'entity.family', 'משפחה')}
             </Btn>
