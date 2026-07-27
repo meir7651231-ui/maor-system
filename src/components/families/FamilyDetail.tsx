@@ -202,6 +202,8 @@ export function FamilyDetail(props: { family: Family }) {
             <span style={chipStyle(st.bg, st.c)}>{st.label}</span>
             {fam.community && <span style={chipStyle('#eceae2', '#4d463c')}>{fam.community}</span>}
             {fam.discount && <span style={chipStyle('#fdf1d4', '#9a6414')}>🏷 {fam.discount}</span>}
+            {!!fam.kidsHome && <span style={chipStyle('#eef7e6', '#3f6212')}>🏠 {fam.kidsHome} ילדים בבית</span>}
+            {!!fam.kidsMarried && <span style={chipStyle('#e7edf5', '#3a5a86')}>💍 {fam.kidsMarried} נשואים</span>}
             {fam.createdAt && (
               <span style={chipStyle('#e7edf5', '#3a5a86')}>הצטרפה {hebDateFull(fam.createdAt)}</span>
             )}

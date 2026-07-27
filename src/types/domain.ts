@@ -85,6 +85,10 @@ export interface Family {
   discount: string;
   status: FamilyStatus;
   notes: string;
+  /** מספר ילדים בבית (אגרגט לרווחה) — אופציונלי, ברירת מחדל 0. */
+  kidsHome?: number;
+  /** מספר ילדים נשואים (אגרגט לרווחה) — אופציונלי, ברירת מחדל 0. */
+  kidsMarried?: number;
   members: Member[];
   docs: FamilyDoc[];
   cred: FamilyCred;

@@ -31,6 +31,8 @@ interface FamFormState {
   discount: string;
   status: FamilyStatus;
   notes: string;
+  kidsHome: string;
+  kidsMarried: string;
 }
 
 function initState(family: Family | null): FamFormState {
@@ -56,6 +58,8 @@ function initState(family: Family | null): FamFormState {
       discount: '',
       status: 'active',
       notes: '',
+      kidsHome: '',
+      kidsMarried: '',
     };
   }
   const maritalSel = !family.maritalStatus
@@ -89,6 +93,8 @@ function initState(family: Family | null): FamFormState {
     discount: family.discount,
     status: family.status,
     notes: family.notes,
+    kidsHome: family.kidsHome ? String(family.kidsHome) : '',
+    kidsMarried: family.kidsMarried ? String(family.kidsMarried) : '',
   };
 }
 
@@ -137,6 +143,8 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
       discount: f.discount.trim(),
       status: f.status,
       notes: f.notes,
+      kidsHome: Math.max(0, Number(f.kidsHome) || 0),
+      kidsMarried: Math.max(0, Number(f.kidsMarried) || 0),
     };
 
     if (props.family) {
@@ -239,6 +247,12 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
         </Field>
         <Field label="הנחה">
           <TextInput value={f.discount} onChange={(v) => set({ discount: v })} placeholder="לדוגמה: הנחת אחים 10%" />
+        </Field>
+        <Field label="ילדים בבית">
+          <TextInput type="number" dir="ltr" value={f.kidsHome} onChange={(v) => set({ kidsHome: v })} placeholder="0" />
+        </Field>
+        <Field label="ילדים נשואים">
+          <TextInput type="number" dir="ltr" value={f.kidsMarried} onChange={(v) => set({ kidsMarried: v })} placeholder="0" />
         </Field>
         <Field label="ספח מלא">
           <Select
