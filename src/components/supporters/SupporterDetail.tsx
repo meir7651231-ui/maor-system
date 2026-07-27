@@ -13,6 +13,7 @@ import { chipStyle, fmtDate, isoToday, supScore, supTier, totalLabel } from './l
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
+import { DonationCalendar } from './DonationCalendar';
 
 function InfoRow(props: { k: string; v: string; ltr?: boolean }) {
   return (
@@ -231,6 +232,16 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
 
       {/* מעקב טיפול רב-שלבי */}
       {ayinOn && <AyinCard supporter={sp} />}
+
+      {/* לוח-חודש של תרומות (feature: supporters.doncal) */}
+      {featureOn(config, 'supporters.doncal') && sp.donations.length > 0 && (
+        <div className="card">
+          <h3 style={{ fontSize: 15, marginBottom: 10 }}>
+            🗓 {termOf(config, 'entity.donations', 'תרומות')} לפי חודש
+          </h3>
+          <DonationCalendar supporter={sp} />
+        </div>
+      )}
 
       {/* היסטוריית תרומות */}
       <div className="card" style={{ padding: 0 }}>
