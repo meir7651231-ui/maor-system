@@ -8,7 +8,7 @@
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
-import { clearConfigOverride, normalizeConfig } from '../../lib/config';
+import { clearConfigOverride, featureOn, normalizeConfig } from '../../lib/config';
 import { VERTICAL_PACKS, applyVerticalPack } from '../../lib/verticalPacks';
 import { DEFAULT_CONFIG, type ModuleKey, type OrgConfig } from '../../types/config';
 import { FEATURES, TERM_DEFS, type FeatureDef, type TermDef } from '../../types/features';
@@ -598,6 +598,25 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             <Field label="שם הארגון">
               <TextInput value={config.orgName} onChange={setName} placeholder="למשל: מאור החסד" />
             </Field>
+            {featureOn(config, 'core.taxreceipt') && (
+              <>
+                <Field label='מספר עמותה/מלכ"ר (לקבלת סעיף 46)'>
+                  <TextInput
+                    value={config.orgTaxId ?? ''}
+                    onChange={(v) => patch({ orgTaxId: v })}
+                    dir="ltr"
+                    placeholder="580000000"
+                  />
+                </Field>
+                <Field label="שם החותם על קבלות">
+                  <TextInput
+                    value={config.orgSignatory ?? ''}
+                    onChange={(v) => patch({ orgSignatory: v })}
+                    placeholder="למשל: הגזבר"
+                  />
+                </Field>
+              </>
+            )}
             <Field label="מזהה לקוח (לועזי, לכתובת)">
               <TextInput
                 value={config.slug}

@@ -41,14 +41,21 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
     addDonation(props.supporter.id, { date, amount: amt, cur, cat: cat.trim() });
     // core.receipts כבוי — התרומה נרשמת כרגיל, רק הורדת הקבלה והטוסט שלה מדולגים
     if (receiptsOn) {
+      const cfg = useApp.getState().config;
+      const taxReceipt = featureOn(cfg, 'core.taxreceipt');
       downloadReceipt({
         rid,
-        orgName: useApp.getState().config.orgName || useApp.getState().db.orgName,
+        orgName: cfg.orgName || useApp.getState().db.orgName,
         payer: props.supporter.name,
         amount: amt,
         currency: cur,
         date,
         forWhat: 'תרומה — ' + (cat.trim() || 'כללי'),
+        // קבלת סעיף 46 פורמלית — כשהיכולת דלוקה
+        taxReceipt,
+        orgTaxId: cfg.orgTaxId,
+        signatory: cfg.orgSignatory,
+        payerId: props.supporter.idNum || undefined,
       });
     }
     toast(

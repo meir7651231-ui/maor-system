@@ -24,6 +24,10 @@ export interface OrgConfig {
   theme: string;
   /** דריסת צבע הדגשה ארגוני (hex) — נכתב כ---accent על ה-DOM. */
   accent?: string;
+  /** מספר עמותה/מלכ"ר — מופיע בקבלת סעיף 46. */
+  orgTaxId?: string;
+  /** שם החותם על קבלות סעיף 46. */
+  orgSignatory?: string;
   /** מודולים פעילים — מפתח חסר = פעיל; false = מוסתר מהניווט. */
   modules: Partial<Record<ModuleKey, boolean>>;
   /**

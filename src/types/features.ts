@@ -118,6 +118,7 @@ export const FEATURES: FeatureDef[] = [
   // ——— ליבה ———
   { key: 'core.receipts', label: 'קבלות להורדה', desc: 'הפקת קבלות להורדה על תשלומים ותרומות', module: 'core' },
   { key: 'core.timer', label: 'טיימר כסף', desc: 'שעון-עצר/טיימר לחיוב לפי זמן — תעריף לשעה, תקרות זמן/סכום וגביית תשלום', module: 'core' },
+  { key: 'core.taxreceipt', label: 'קבלת סעיף 46', desc: 'קבלות תרומה פורמליות מוכרות-מס (§46) — סכום במילים, ת"ז, מספר עמותה וחתימה', module: 'core' },
   { key: 'core.cashbox', label: 'קופה רושמת', desc: 'קבלת מזומן במטבעות/שטרות, חישוב עודף והפקת חשבונית', module: 'core' },
   { key: 'core.bodymap', label: 'מפת אזורי טיפול', desc: 'מעקב טיפולים לפי אזורי גוף — בוצע מול יעד לכל אזור, פר-לקוח', module: 'core' },
   { key: 'core.daygate', label: 'מסך פתיחת יום', desc: 'מסך פתיחת יום בכניסה הראשונה של היום', module: 'core' },

@@ -42,3 +42,31 @@ describe('receiptLines', () => {
     expect(withMethod.some((l) => l.startsWith('אתר'))).toBe(true);
   });
 });
+
+describe('🔒 ratchet — קבלת סעיף 46 פורמלית', () => {
+  const tax = {
+    rid: 'D-42', orgName: 'מאור החסד', payer: 'ישראל ישראלי', amount: 1800, currency: '₪',
+    date: '2026-01-15', forWhat: 'תרומה — כללי', taxReceipt: true as const,
+    orgTaxId: '580123456', signatory: 'הגזבר', payerId: '123456782',
+  };
+  it('כוללת נוסח §46, מספר עמותה, ת"ז, סכום-במילים וחתימה', () => {
+    const txt = receiptLines(tax).join('\n');
+    expect(txt).toContain('סעיף 46');
+    expect(txt).toContain('580123456');
+    expect(txt).toContain('123456782');
+    expect(txt).toContain('אלף ושמונה מאות שקלים'); // סכום במילים
+    expect(txt).toContain('הגזבר');
+    expect(txt).toContain('D-42');
+  });
+  it('קבלה רגילה (taxReceipt=false) ללא נוסח §46', () => {
+    const txt = receiptLines({ ...tax, taxReceipt: false }).join('\n');
+    expect(txt).not.toContain('לפי סעיף 46');
+    expect(txt).toContain('תודה על תמיכתכם');
+  });
+  it('שדות עמותה/ת"ז ריקים — לא שוברים, השורות מושמטות', () => {
+    const txt = receiptLines({ ...tax, orgTaxId: undefined, payerId: undefined, signatory: undefined }).join('\n');
+    expect(txt).toContain('סעיף 46');
+    expect(txt).not.toContain('מס׳ עמותה');
+    expect(txt).not.toContain('ת"ז / ח"פ');
+  });
+});

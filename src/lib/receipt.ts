@@ -3,6 +3,7 @@
  * הקובץ נפתח ב-Notepad/Excel, ולכן מתחיל ב-BOM כדי שהעברית תזוהה כ-UTF-8.
  */
 import { hebDateFull } from './hebrew';
+import { amountInWords } from './hebrewNumber';
 
 export interface ReceiptInfo {
   /** מספר אסמכתה (D-{seq} / R-{seq}). */
@@ -20,6 +21,14 @@ export interface ReceiptInfo {
   forWhat: string;
   /** אתר הארגון — שורה אופציונלית בתחתית. */
   site?: string;
+  /** קבלת סעיף 46 פורמלית — מוסיף סכום-במילים, ת"ז תורם, נוסח §46 וחתימה. */
+  taxReceipt?: boolean;
+  /** מספר עמותה/מלכ"ר (למילוי בהגדרות/אשף). */
+  orgTaxId?: string;
+  /** ת"ז / ח"פ התורם. */
+  payerId?: string;
+  /** שם החותם על הקבלה. */
+  signatory?: string;
 }
 
 /**
@@ -32,6 +41,36 @@ export function receiptLines(o: ReceiptInfo): string[] {
   const d = new Date(o.date.slice(0, 10) + 'T12:00:00');
   const gregorian = isNaN(d.getTime()) ? o.date : d.toLocaleDateString('he-IL');
   const heb = hebDateFull(o.date);
+
+  // קבלת סעיף 46 פורמלית — פריסה רשמית עם סכום-במילים, ת"ז ונוסח §46.
+  if (o.taxReceipt) {
+    const curSym = cur === '$' ? '$' : '₪';
+    const words = amountInWords(o.amount, cur === '$' ? '$' : '₪');
+    return [
+      (o.orgName || 'מאור החסד'),
+      o.orgTaxId ? 'מס׳ עמותה/מלכ"ר: ' + o.orgTaxId : '',
+      '',
+      'קבלה על תרומה — לפי סעיף 46 לפקודת מס הכנסה',
+      'קבלה מס׳: ' + o.rid,
+      'תאריך: ' + (heb ? heb + ' · ' : '') + gregorian,
+      '',
+      'התקבל בתודה מאת: ' + o.payer,
+      o.payerId ? 'ת"ז / ח"פ: ' + o.payerId : '',
+      'סכום: ' + curSym + o.amount.toLocaleString('he-IL'),
+      'במילים: ' + words,
+      o.method ? 'אמצעי תשלום: ' + o.method : '',
+      'עבור: ' + o.forWhat,
+      '',
+      'תרומה זו מוכרת לצורכי מס לפי סעיף 46 לפקודת מס הכנסה.',
+      'קבלה זו מהווה אסמכתא לתרומה שהתקבלה.',
+      '',
+      'בכבוד רב,',
+      (o.signatory ? o.signatory : '') + '  ______________________',
+      'חתימה וחותמת',
+      o.site ? 'אתר: ' + o.site : '',
+    ];
+  }
+
   return [
     'קבלה — ' + (o.orgName || 'מאור החסד'),
     'קבלה מס׳: ' + o.rid,
