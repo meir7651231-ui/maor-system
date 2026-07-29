@@ -836,7 +836,7 @@ export const useApp = create<AppState>()((set, get) => {
         const evId = get().nextId('ev');
         const key = c.a.stage === 'answer' && !c.a.answerPushed ? 'answerPush' : c.a.stage;
         ayinEvent(c.sp, c.a, plan.event.title, plan.event.done, evId);
-        patch = { ...patch, boardEventIds: { ...(c.a.boardEventIds ?? {}), [key]: evId } };
+        patch = { ...patch, boardEventIds: { ...c.a.boardEventIds, [key]: evId } };
       }
       setAyin(id, patch);
       get().toast(plan.toast);

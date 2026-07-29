@@ -181,7 +181,7 @@ function buildPulse(db: Db, now: Date): WallPulse {
   const keys: string[] = [];
   for (let i = 11; i >= 0; i--) keys.push(monthKeyAt(now, -i));
   const idx = new Map(keys.map((k, i) => [k, i]));
-  const values = new Array<number>(12).fill(0);
+  const values = Array.from({ length: 12 }, () => 0);
   const add = (iso: string, w: number) => {
     const i = idx.get(iso.slice(0, 7));
     if (i !== undefined) values[i] += w;

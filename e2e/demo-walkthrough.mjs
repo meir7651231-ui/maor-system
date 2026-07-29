@@ -126,7 +126,7 @@ if (await clickIf('main', 'פרידמן') || await clickIf('main button', 'פר�
   if (await clickIf('button', 'רישום תרומה')) {
     const amt = page.locator('.modal input[type="number"], .modal input').nth(1);
     if (await amt.count()) { await amt.fill('500'); }
-    await clickIf('.modal button', 'רישום התרומה') || await saveModal();
+    if (!(await clickIf('.modal button', 'רישום התרומה'))) await saveModal();
     await wait(500);
     T('נרשמה תרומה', true);
   }

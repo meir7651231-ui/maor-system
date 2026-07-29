@@ -18,8 +18,8 @@ export function validIsraeliId(id: string): boolean {
 /** נרמול טלפון: מסיר רווחים/מקפים, מוסיף 0 מוביל אם חסר. */
 export function normalizePhone(raw: string): string {
   let s = String(raw || '').replace(/[\s\-().]/g, '');
-  if (/^972/.test(s)) s = '0' + s.slice(3);
-  if (/^\+972/.test(raw)) s = '0' + raw.replace(/[\s\-().]/g, '').slice(4);
+  if (s.startsWith('972')) s = '0' + s.slice(3);
+  if (raw.startsWith('+972')) s = '0' + raw.replace(/[\s\-().]/g, '').slice(4);
   return s;
 }
 

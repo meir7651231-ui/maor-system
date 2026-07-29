@@ -252,7 +252,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
 
   /** הדלקה = מחיקת המפתח (חסר = פעיל) — שומר על config.json נקי מרעש. */
   const setFeatures = (keys: string[], on: boolean) => {
-    const features = { ...(config.features ?? {}) };
+    const features = { ...config.features };
     for (const k of keys) {
       if (on) delete features[k];
       else features[k] = false;
@@ -261,7 +261,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   };
 
   const setTerm = (key: string, value: string) => {
-    const terms = { ...(config.terms ?? {}) };
+    const terms = { ...config.terms };
     if (value) terms[key] = value;
     else delete terms[key];
     patch({ terms });
@@ -269,7 +269,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
 
   const toggleIntegration = (k: string) => {
     const cur = config.integrations?.[k]?.enabled ?? false;
-    patch({ integrations: { ...(config.integrations ?? {}), [k]: { enabled: !cur } } });
+    patch({ integrations: { ...config.integrations, [k]: { enabled: !cur } } });
   };
 
   const pickTheme = (theme: string) => {
