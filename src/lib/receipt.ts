@@ -29,6 +29,24 @@ export interface ReceiptInfo {
   payerId?: string;
   /** שם החותם על הקבלה. */
   signatory?: string;
+  /**
+   * סיכום העסקה (feature courses.receipt.summary) — שורות "סה"כ עסקה / שולם עד
+   * כה / יתרה / תשלום הבא" כמו legacy receipt() (legacy-main-script.js:1258-1266).
+   * מועבר רק כשהדגל דלוק — בלעדיו הקבלה זהה לקודמת.
+   */
+  summary?: {
+    totalDue: number;
+    paidSoFar: number;
+    balance: number;
+    /** תאריך התשלום הבא (ISO) — שורה עברי+לועזי כשקיים. */
+    nextDate?: string;
+  };
+}
+
+/** לועזי בפורמט he-IL בצהריים מקומי — עקבי עם שורת התאריך של הקבלה. */
+function hebrewLocaleDate(iso: string): string {
+  const d = new Date(iso.slice(0, 10) + 'T12:00:00');
+  return isNaN(d.getTime()) ? iso : d.toLocaleDateString('he-IL');
 }
 
 /**
@@ -80,6 +98,13 @@ export function receiptLines(o: ReceiptInfo): string[] {
     'סכום: ' + cur + o.amount,
     o.method ? 'אמצעי תשלום: ' + o.method : '',
     'עבור: ' + o.forWhat,
+    // סיכום העסקה — verbatim מלגאסי receipt() (legacy:1264-1265)
+    o.summary
+      ? 'סה"כ עסקה: ₪' + o.summary.totalDue + ' · שולם עד כה: ₪' + o.summary.paidSoFar + ' · יתרה: ₪' + o.summary.balance
+      : '',
+    o.summary?.nextDate
+      ? 'תשלום הבא: ' + hebDateFull(o.summary.nextDate) + ' · ' + hebrewLocaleDate(o.summary.nextDate)
+      : '',
     o.site ? 'אתר: ' + o.site : '',
     'תודה על תמיכתכם',
   ];

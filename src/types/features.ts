@@ -51,6 +51,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.printout.daily', label: 'דו"ח יומי מפורט', desc: 'כפתור הדו"ח היומי מפגש-מפגש', module: 'courses' },
   { key: 'courses.printout.custom', label: 'דו"ח מותאם (חוג)', desc: 'כפתור הדו"ח המותאם בכרטיס החוג', module: 'courses' },
   { key: 'courses.discounts', label: 'מדרגות מחיר', desc: 'הנחות ומדרגות מחיר לפי מספר נרשמים', module: 'courses' },
+  { key: 'courses.receipt.summary', label: 'קבלה מלאה', desc: 'שורות "סה"כ עסקה / שולם עד כה / יתרה / תשלום הבא" על הקבלה + הורדה חוזרת פר-תשלום', module: 'courses' },
 
   // ——— לוח שנה ———
   { key: 'calendar.dayview', label: 'תצוגת יום', desc: 'מעבר לתצוגת יום מפורטת בלוח השנה', module: 'calendar' },
