@@ -132,6 +132,35 @@ try {
   pass('הורדת גיבוי מלא עובדת', !!(await d.path()) || !!d.suggestedFilename());
 } catch (e) { pass('הורדת גיבוי מלא עובדת', false, e.message.slice(0, 60)); }
 
+// ── מסע 6: ייבוא גיבוי לגאסי (P0.1) — הקובץ החי → React בלי לאבד כלום ──
+try {
+  const fixture = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'legacy-backup.json');
+  await navTo('הגדרות');
+  await pg.waitForTimeout(600);
+  pg.once('dialog', (d) => void d.accept()); // confirm הדריסה של שחזור מקובץ
+  await pg.locator('label:has-text("⬆ שחזור מקובץ גיבוי") input[type=file]').setInputFiles(fixture);
+  await pg.waitForTimeout(1500); // debounce השמירה ל-localStorage הוא 500ms
+  const db = await pg.evaluate(() => { try { return JSON.parse(localStorage.getItem('maor_db')); } catch { return null; } });
+  const counts = db && db.families.length === 3 && db.supporters.length === 2 && db.courses.length === 1 &&
+    db.enrollments.length === 1 && db.teachers.length === 1 && db.rooms.length === 1;
+  const idsKept = db && db.families.map((f) => f.id).join(',') === 'fr12,wd7,fb3' && db.supporters[0].id === 'spi105';
+  const histKept = db && db.supporters[0].hist && db.supporters[0].hist.length === 2;
+  // ספירות על המסך — מסך המשפחות מציג את שלוש המשפחות מהגיבוי
+  await navTo('משפחות');
+  await pg.waitForTimeout(600);
+  const t1 = await txt();
+  const onScreen = t1.includes('פרידמן') && t1.includes('וידר') && t1.includes('פישביין');
+  pass('ייבוא גיבוי לגאסי — ספירות זהות, ids נשמרו, hist נשמר', !!(counts && idsKept && histKept && onScreen),
+    db ? `fam=${db.families.length} sup=${db.supporters.length}` : 'db=null');
+  // hist מוצג בכרטיס התומכת — 'מהקובץ ההיסטורי' (legacy supDonEvents)
+  await navTo('תורמים');
+  await pg.waitForTimeout(500);
+  await pg.locator('text=גולדשטיין').first().click();
+  await pg.waitForTimeout(600);
+  const t2 = await txt();
+  pass('כרטיס התומכת מציג תרומות "מהקובץ ההיסטורי"', t2.includes('מהקובץ ההיסטורי') && t2.includes('קבלה D-3'));
+} catch (e) { pass('ייבוא גיבוי לגאסי', false, e.message.slice(0, 60)); }
+
 // ── סיכום ──
 console.log('\n── סיכום ──');
 const failed = results.filter((r) => !r.ok);

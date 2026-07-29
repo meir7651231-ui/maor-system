@@ -79,6 +79,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.doncal', label: 'לוח תרומות בכרטיס', desc: 'לוח-חודש חזותי של תרומות התורם/ת + יעד הקשר הבא, בכרטיס התורם', module: 'supporters' },
   { key: 'supporters.customreport', label: 'דו"ח מותאם (תומכים)', desc: 'כפתור ייצוא דו"ח מותאם במסך התומכים', module: 'supporters' },
   { key: 'supporters.ayin.dailyreport', label: 'דוח יומי — מעקב טיפול', desc: 'כפתור ייצוא הדוח היומי של מעקב הטיפול (תת-דגל של מעקב טיפול)', module: 'supporters' },
+  { key: 'supporters.hist', label: 'תרומות מהקובץ ההיסטורי', desc: 'מיזוג התרומות שהגיעו מהקובץ ההיסטורי (גיבוי לגאסי) לרשימת "כל התרומות" בכרטיס', module: 'supporters' },
 
   // ——— מסך הבית ———
   { key: 'home.digest', label: 'תקציר הבוקר', desc: 'תקציר יומי בראש מסך הבית', module: 'home' },

@@ -86,6 +86,41 @@ export function totalLabel(sp: Supporter): string {
   return ils && usd ? ils + ' + ' + usd : ils || usd || '—';
 }
 
+/* ── "כל התרומות" — מיזוג קבלות + הקובץ ההיסטורי (feature supporters.hist) ── */
+
+/** שורת תצוגה ברשימת "כל התרומות" — קבלה, רשומת hist או ציון first/last. */
+export interface SupDonEvent {
+  date: string;
+  amount: number;
+  cur: '₪' | '$' | '';
+  /** מקור השורה: 'קבלה R-N' / 'מהקובץ ההיסטורי' / 'תרומה ראשונה (מהקובץ)'. */
+  src: string;
+  rid?: string;
+}
+
+/**
+ * מיזוג התרומות לתצוגה — verbatim מהלגאסי (legacy-main-script.js:1486-1495,
+ * supDonEvents): donations עם 'קבלה <rid>' + hist עם 'מהקובץ ההיסטורי';
+ * כשאין hist — שורות first/last (סכום 0) כ"תרומה ראשונה/אחרונה (מהקובץ)",
+ * רק אם תאריכן לא מופיע כבר. ממוין מהחדש לישן.
+ */
+export function supDonEvents(sp: Supporter): SupDonEvent[] {
+  const out: SupDonEvent[] = (sp.donations || []).map((d) => ({
+    date: d.date,
+    amount: d.amount,
+    cur: d.cur || '₪',
+    src: 'קבלה ' + d.rid,
+    rid: d.rid,
+  }));
+  for (const h of sp.hist || []) out.push({ date: h.d, amount: h.a, cur: h.c || '₪', src: 'מהקובץ ההיסטורי' });
+  if (!(sp.hist || []).length) {
+    const seen = new Set(out.map((x) => x.date));
+    if (sp.first && !seen.has(sp.first)) out.push({ date: sp.first, amount: 0, cur: '', src: 'תרומה ראשונה (מהקובץ)' });
+    if (sp.last && sp.last !== sp.first && !seen.has(sp.last)) out.push({ date: sp.last, amount: 0, cur: '', src: 'תרומה אחרונה (מהקובץ)' });
+  }
+  return out.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+}
+
 /* ── ייבוא תומכות מ-CSV — עדכון-או-הוספה לפי שם מנורמל (טהור, נבדק ביחידה) ── */
 
 /** נרמול שם להשוואה — נרמול חיפוש עברי + הסרת רווחים. */

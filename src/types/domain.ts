@@ -332,6 +332,8 @@ export interface Supporter {
   /** אירוע 'שיחה' שנוצר אוטומטית ביומן. */
   nextEventId?: Id;
   donations: Donation[];
+  /** תרומות מהקובץ ההיסטורי (לגאסי hist) — לא קבלות; מוצג בכרטיס התומכת. */
+  hist?: { d: IsoDate; a: number; c?: '₪' | '$' }[];
   /** תיק מעקב טיפול רב-שלבי (feature supporters.ayin) — אופציונלי. */
   ayin?: AyinCase;
 }

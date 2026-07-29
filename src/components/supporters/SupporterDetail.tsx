@@ -9,7 +9,7 @@ import { featureOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { chipStyle, fmtDate, isoToday, supScore, supTier, totalLabel } from './lib';
+import { chipStyle, fmtDate, isoToday, supDonEvents, supScore, supTier, totalLabel } from './lib';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
@@ -46,6 +46,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
   const ayinOn = featureOn(config, 'supporters.ayin');
+  const histOn = featureOn(config, 'supporters.hist');
 
   const [editOpen, setEditOpen] = useState(false);
   const [donOpen, setDonOpen] = useState(false);
@@ -123,7 +124,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     props.onBack();
   }
 
-  const donations = [...sp.donations].sort((a, b) => b.date.localeCompare(a.date));
+  // רשימת "כל התרומות" — עם הדגל: מיזוג קבלות + הקובץ ההיסטורי כמו בלגאסי
+  // (supDonEvents); בלעדיו: הקבלות בלבד (ההתנהגות הקודמת).
+  const donRows = histOn
+    ? supDonEvents(sp)
+    : [...sp.donations]
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .map((d) => ({ date: d.date, amount: d.amount, cur: d.cur || ('₪' as const), src: 'קבלה ' + d.rid, rid: d.rid }));
   const statsLine =
     sp.count +
     ' ' +
@@ -247,13 +254,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       <div className="card" style={{ padding: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
           <h3 style={{ fontSize: 15 }}>
-            {'כל ה' + termOf(config, 'entity.donations', 'תרומות') + ' — מתי וכמה'} ({donations.length})
+            {'כל ה' + termOf(config, 'entity.donations', 'תרומות') + ' — מתי וכמה'} ({donRows.length})
           </h3>
           <Btn sm onClick={() => setDonOpen(true)}>
             ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
           </Btn>
         </div>
-        {donations.length === 0 ? (
+        {donRows.length === 0 ? (
           <Empty>{'עדיין אין ' + termOf(config, 'entity.donations', 'תרומות') + ' מתועדות — רשמו עם "➕ רישום ' + termOf(config, 'entity.donation', 'תרומה') + '"'}</Empty>
         ) : (
           <div style={{ overflowX: 'auto' }}>
@@ -264,19 +271,21 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                   <th>תאריך עברי</th>
                   <th>סכום</th>
                   <th>קטגוריה</th>
-                  <th>קבלה</th>
+                  <th>{histOn ? 'מקור' : 'קבלה'}</th>
                 </tr>
               </thead>
               <tbody>
-                {donations.map((d) => (
-                  <tr key={d.rid}>
-                    <td>{fmtDate(d.date)}</td>
-                    <td>{hebDateFull(d.date)}</td>
+                {donRows.map((r, i) => (
+                  <tr key={r.rid ?? r.src + '|' + r.date + '|' + i}>
+                    <td>{fmtDate(r.date)}</td>
+                    <td>{hebDateFull(r.date)}</td>
                     <td style={{ fontWeight: 700 }}>
-                      {(d.cur === '$' ? '$' : '₪') + d.amount.toLocaleString('he-IL')}
+                      {r.cur === '' ? '—' : (r.cur === '$' ? '$' : '₪') + r.amount.toLocaleString('he-IL')}
                     </td>
-                    <td>{d.cat || '—'}</td>
-                    <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--ink-faint)' }}>{d.rid}</td>
+                    <td>{(r.rid && sp.donations.find((d) => d.rid === r.rid)?.cat) || '—'}</td>
+                    <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--ink-faint)' }}>
+                      {histOn ? r.src : r.rid}
+                    </td>
                   </tr>
                 ))}
               </tbody>
