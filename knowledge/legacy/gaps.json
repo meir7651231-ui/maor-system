@@ -1,0 +1,1059 @@
+[
+ {
+  "domain": "courses",
+  "gaps": [
+   {
+    "feature": "ניקוב נוכחות (punch) עם חסימות ואישור כפול",
+    "status": "different",
+    "evidence_legacy": "punch() חוסם 'paused'/'ended'/כרטיסייה מנוצלת; props.punchConfirm (באפליקציה החיה true) דורש לחיצה שנייה 'לאשר ניקוב?' עם timeout של 3 שניות (confirmingId); הצלחה: used++, טוסט 'הניקוב נרשם בהצלחה', +5 אמינות 'נוכחות (Check-in)'",
+    "evidence_react": "src/components/courses/CourseDetail.tsx (doPunch, שורות 96-109) ו-src/components/diary/AttendancePanel.tsx (present, שורות 36-47): כל החסימות קיימות עם אותם טוסטים ('השיבוץ מוקפא…', 'אין יתרת שיעורים — נדרש חידוש כרטיסייה'), +5 אמינות, וכפתור 'חידוש ←' ביתרה 0 שפותח את מודל הניהול. src/store/useApp.ts punch() (שורה 730)",
+    "detail": "אין מנגנון אישור כפול לניקוב: בלגאסי החי לחיצה ראשונה מציגה 'לאשר ניקוב?' ל-3 שניות ורק השנייה מנקבת; ב-React לחיצה אחת מנקבת מיד — סיכון לניקוב בטעות. גם 'ניקוב מהיר' מהבית (App.tsx שורה 245) רק מנווט לכרטיס החוג ואינו מנקב",
+    "importance": "medium"
+   },
+   {
+    "feature": "רישום חיסור — כלל 48 שעות, No-Show ושריפת ניקוב",
+    "status": "present",
+    "evidence_legacy": "saveAbsence: נימוק חובה, absKind cancel/noshow, זכאות השלמה רק אם המפגש הבא >=48 שעות, No-Show/ביטול מאוחר בכרטיסייה שורף ניקוב, אמינות -20/-10/0, טוסטים ייעודיים; מודל absence מציג 'המפגש הקרוב… בעוד N שעות' ושורת זכאות צבועה",
+    "evidence_react": "src/components/courses/AbsenceModal.tsx ו-src/components/diary/DiaryAbsenceModal.tsx: אותו חישוב בדיוק ((ns-now)/3600000>=48 דרך nextSessionDate ב-src/components/courses/lib.ts:118), שריפת ניקוב באותם תנאים, addCred -20/-10/0 עם אותם תיאורים, אותם טוסטים. DiaryAbsenceModal כולל את שורת המפגש הקרוב והזכאות הצבועה ('✓ מעל 48 שעות מראש — זכאי/ת להשלמה, הניקוב לא יירד'); היסטוריית חיסורים ב-AbsenceHistoryModal.tsx",
+    "importance": "high"
+   },
+   {
+    "feature": "מודל נתונים — קורס (שדות, כיתות, קהל, תמונה, סיד)",
+    "status": "partial",
+    "evidence_legacy": "קורס עם gradeMin/gradeMax (גן–י\"ב), audience (טקסט חופשי בטופס), img (תמונות), sector, price1/price2 עם שמות; סיד של 23 קורסים ו-19 מורות",
+    "evidence_react": "src/types/domain.ts (Course, שורות 107-137): כל שדות הליבה קיימים כולל price1/price2/price1Name/price2Name, sessions, semester, cat; audience ו-img קיימים רק כאופציונליים לתצוגה. src/components/courses/CourseForm.tsx: אין שדות audience/img/gradeMin/gradeMax בטופס; sector קבוע 'הכל' (שורה 206). emptyDb() ב-domain.ts מתחיל ריק — אין נתוני סיד",
+    "detail": "חסרים לגמרי: gradeMin/gradeMax (טווח כיתות) בכל הקוד (grep ריק); עריכת 'קהל יעד' (audience) — מוצג בטבלה/כרטיס אך לא ניתן להזנה; תמונת קורס (הגריד מציג אות בלבד); נתוני הסיד. מדרגות המחיר קיימות מאחורי דגל courses.discounts",
+    "importance": "medium"
+   },
+   {
+    "feature": "ריבוי מפגשים/קבוצות (sessions) + גזירה אוטומטית מ-audience",
+    "status": "partial",
+    "evidence_legacy": "sessions נגזרות אוטומטית מ-regex על audience ('N קבוצות'→'קבוצה א׳/ב׳…', 'N פעמים'→'מפגש N', עד 5, ימים בקפיצות של 2); sessionsOf עם fallback; nextSession; עריכת קורס מעדכנת sessions[0]",
+    "evidence_react": "src/components/courses/lib.ts: sessionsOf/groupLabelOf/groupOptionsOf/nextSessionDate — פורט נאמן; src/components/courses/CourseForm.tsx שורות 196-198: sessions[0] מתעדכן מהטופס; עורך קבוצות ידני מלא ב-CourseDetail.tsx (addSession/removeSession)",
+    "detail": "הגזירה האוטומטית של קבוצות מטקסט ה-audience לא קיימת (אין regex 'קבוצות|פעמים' בקוד) — קבוצות נוספות רק ידנית מעורך הקבוצות בכרטיס החוג. בפועל שקול תפעולית אך שונה בזרימה",
+    "importance": "low"
+   },
+   {
+    "feature": "שיבוץ תלמיד/הורה לחוג (saveEnroll/saveJoin) כולל הורים __pf/__pm",
+    "status": "present",
+    "evidence_legacy": "saveEnroll/saveJoin: בדיקת קיבולת מול maxStudents (999 ברירת מחדל), כפילות member+course, purchased ברירת מחדל c.size ו->0 בכרטיסייה, הורים וירטואליים '__pf/__pm' שיוצרים Member עם isParent ו-id 'mp', שיוך קבוצה, טוסט '{שם} שובצ/ה ל\"{חוג}\"'",
+    "evidence_react": "src/components/courses/EnrollModal.tsx (save, שורות 64-94) ו-src/components/families/JoinModal.tsx (save, שורות 178-249): כל הבדיקות עם אותן הודעות ('הקורס מלא…', 'כבר משובץ/ת…', 'מספר ניקובים חייב להיות גדול מ-0'); JoinModal מממש VIRT_FATHER/VIRT_MOTHER שיוצרים Member isParent עם nextId('mp') ושם מההורה או 'אבא'/'אמא'; enrollCount ב-courses/lib.ts:113 (משופר — לא סופר 'ended')",
+    "importance": "high"
+   },
+   {
+    "feature": "טופס קורס — מורה חדשה inline, קטגוריה/מסלול 'אחר', ולידציות",
+    "status": "present",
+    "evidence_legacy": "saveCourse: שם חובה, מחיר חיובי, punch מחייב size>0, ageMax>=ageMin, cat/semester '__other' מחייבים טקסט, teacherId '__add' יוצר מורה (דה-דופ לפי שם, fixPhone), ברירות מחדל (ageMin→3, ageMax→99, weekday 0-5, maxStudents 12, start/end תשפ\"ו), טוסטים 'נוצר — נכנס ליומן… ללוח ולגלגל'",
+    "evidence_react": "src/components/courses/CourseForm.tsx: כל הוולידציות עם אותן הודעות בדיוק (שורות 120-143), ADD_TEACHER '__add' עם דה-דופ ו-formatIsraeliPhone (שורות 144-167), OTHER '__other' לקטגוריה/סמסטר, ברירות מחדל זהות (initState: start 2025-09-01, end 2026-07-31, weekday 0, time 17:00, maxStudents 12, gender f, cat העשרה), תאריכי עברי דרך HebDateInput, אותם טוסטים. חסרה רק אזהרת 'החדר כבוי' בשמירה — מפוצה באזהרה גורפת ביומן (src/components/diary/lib.ts inactiveRoomCourses)",
+    "importance": "high"
+   },
+   {
+    "feature": "תוויות כיתות (gradeLabel/gradeRange, גן–י\"ב)",
+    "status": "missing",
+    "evidence_legacy": "מיפוי gan→'גן', 1-12→'א׳'..'י״ב'; gradeRange 'א׳–ד׳'; שדות gradeMin/gradeMax בטופס הקורס ותצוגה 'כיתות' בכרטיס",
+    "evidence_react": "grep על gradeMin/gradeMax/gradeLabel/'מכיתה' בכל src/ — אפס תוצאות; Course ב-src/types/domain.ts ללא שדות כיתה (רק Member.grade כטקסט חופשי); CourseForm.tsx ו-CourseDetail.tsx ללא כיתות",
+    "detail": "כל ממד הכיתות של קורס (טווח מכיתה/עד כיתה + תצוגה בכרטיס ובגלגל) לא הועבר — הסינון הגילי היחיד הוא ageMin/ageMax",
+    "importance": "medium"
+   },
+   {
+    "feature": "חדרים — מודל מלא, הגדרות, חדר חדש",
+    "status": "present",
+    "evidence_legacy": "Room עם name/active/slot(60)/cap/location/rate/from 08:00/to 20:00/access/notes/eq; saveRoomSet/saveRoom: שם חובה וייחודי; chips הצעות שם; סיד 12 חדרים כולל 5 ב'המקום החדש'",
+    "evidence_react": "src/types/domain.ts (Room, שורות 195-213) — כל השדות; src/components/settings/RoomsSection.tsx — טבלה + מודל הגדרות מלא (סטטוס, משבצת 30/45/60/90, קיבולת, מיקום, תעריף, שעות, נגישות, chips ציוד מ-ROOM_EQUIPMENT, הערות עם placeholder 'מפתח אצל אב הבית…'), שם חובה+ייחודי ('כבר קיים חדר בשם הזה'), slot ברירת מחדל 60",
+    "detail": "פערים קטנים: אין chips הצעות-שם לחדר חדש, אין מחיקת חדר (במכוון — משביתים), ואין נתוני סיד (12 החדרים כולל 'המקום החדש' הם דמו של הלגאסי)",
+    "importance": "medium"
+   },
+   {
+    "feature": "יתרת תשלום (payBal) ושדות תשלום על שיבוץ",
+    "status": "present",
+    "evidence_legacy": "payBal(e)=max(0,totalDue−Σpayments); עיגול תמידי ל-2 ספרות; שיבוץ נושא payments[]/totalDue/dueDate",
+    "evidence_react": "src/components/courses/lib.ts (paidOf/payBal, שורות 99-106) — נוסחה זהה עם הקשחה ל-NaN; src/types/domain.ts Enrollment (payments/totalDue/dueDate/dueEventId); עיגול Math.round(x*100)/100 ב-ManageModal.tsx (saveTotalDue שורה 65, addPay שורה 100)",
+    "importance": "high"
+   },
+   {
+    "feature": "קבלה על תשלום (קובץ txt)",
+    "status": "partial",
+    "evidence_legacy": "receipt(): 'receipt-{rid}.txt' עם BOM: 'קבלה — {orgName}', מס׳ קבלה, תאריך עברי+לועזי, 'משפחת X · שם · חוג: Y', 'התקבל: ₪X (שיטה)', שורות 'סה\"כ עסקה … שולם עד כה … יתרה', 'תשלום הבא: {תאריך עברי}' אם יש dueDate, 'תודה רבה!'; כפתור '🧾 קבלה' להורדה חוזרת לכל תשלום ברשימה",
+    "evidence_react": "src/lib/receipt.ts (receiptLines/downloadReceipt): BOM, receipt-{rid}.txt, כותרת, מס׳ קבלה, עברי+לועזי, משלם, סכום, אמצעי, 'עבור: {חוג}', 'תודה על תמיכתכם'; בנוסף מצב קבלת סעיף 46 פורמלית עם סכום-במילים. src/components/courses/ManageModal.tsx שורות 279-297: רשימת התשלומים מציגה '🧾 {rid}' כטקסט בלבד",
+    "detail": "חסרות בקבלה שורות מצב העסקה (סה\"כ/שולם עד כה/יתרה) ושורת 'תשלום הבא' בעברי; ואין כפתור הורדה-חוזרת של קבלה לתשלום היסטורי — בלגאסי כל תשלום ברשימה ניתן להורדה שוב. באג ידוע: הקבלה יורדת גם אם ה-store דחה את התשלום (CLAUDE.md #5)",
+    "importance": "high"
+   },
+   {
+    "feature": "רישום תשלום + זיכוי אמינות (addPay)",
+    "status": "present",
+    "evidence_legacy": "addPay: עיגול 2 ספרות, 'הקלידו סכום תשלום תקין', רשומה {R-seq,date,amount,method}, טוסט 'התקבל ₪X · יתרה ₪Y — הקבלה ירדה למחשב', הורדת קבלה אוטומטית, +5 אמינות 'תשלום התקבל (₪X)'; אמצעי ברירת מחדל 'מזומן'; אמצעים: מזומן/העברה בנקאית/צ'ק/אשראי/ביט",
+    "evidence_react": "src/components/courses/ManageModal.tsx (addPay, שורות 98-130): ולידציה זהה + חסימת Infinity, R-seq רציף דרך useApp.addPayment (src/store/useApp.ts:746 עם שער נגד דילוג מונה), הורדת קבלה אוטומטית (מאחורי core.receipts), טוסט זהה, addCred +5 'תשלום התקבל (₪X)'; PAY_METHODS זהים ב-src/components/courses/lib.ts:138; תוספת: בחירת תאריך תשלום עברי",
+    "importance": "high"
+   },
+   {
+    "feature": "תשלום הבא — תזכורת אוטומטית ללוח (savePayDue)",
+    "status": "present",
+    "evidence_legacy": "savePayDue: en.dueDate + אירוע 'reminder' priority 'orange' בכותרת 'תשלום יתרה — {שם} ({חוג})', מקושר dueEventId עם famId; טוסטים 'נקבע תשלום הבא ל-{תאריך} — נוספה תזכורת ללוח השנה' / 'תאריך התשלום הבא נוקה'",
+    "evidence_react": "src/components/courses/ManageModal.tsx (saveDueDate, שורות 69-96): כותרת, type, priority, famId, dueEventId וטוסטים זהים; מחיקת שיבוץ/קורס מנקה את האירוע (useApp.ts deleteEnrollment/deleteCourse)",
+    "detail": "באג ידוע קטן: ניקוי התאריך משאיר את אירוע התזכורת יתום בלוח (CLAUDE.md #6) — בלגאסי לא נבדק אם נוקה",
+    "importance": "high"
+   },
+   {
+    "feature": "קניית/טעינת כרטיסייה (buyPunches)",
+    "status": "different",
+    "evidence_legacy": "qty = buyQty או c.size או 12 (ברירת מחדל אוטומטית); 0<qty≤200; המרת מנוי לכרטיסייה עם used=0; 'ended' חוזר ל-'active' אוטומטית; טוסט 'כרטיסייה נטענה: +X ניקובים · יתרה חדשה Y'",
+    "evidence_react": "src/components/courses/ManageModal.tsx (buyPunches, שורות 132-162): אותה ולידציה (0<qty≤200 + שלם), אותה המרה, אותו טוסט וכותרות ('קניית / טעינת כרטיסייה' / 'מעבר לכרטיסייה (קנייה ראשונה)'); מאחורי courses.punch.buy",
+    "detail": "שני שינויים מכוונים: (1) הכמות חובה — אין נפילה ל-c.size/12 (מונע טעינה כפולה בלחיצה כפולה, ה-placeholder מציג את c.size); (2) חידוש שיבוץ 'ended' עובר שער קיבולת — אם החוג מלא החידוש נחסם, בלגאסי חזר ל-active תמיד",
+    "importance": "medium"
+   },
+   {
+    "feature": "מודל ניהול שיבוץ (⚙ mg) — תצוגה מלאה ופעולות",
+    "status": "partial",
+    "evidence_legacy": "mg: badges מסלול+סטטוס, balanceLabel ('N מתוך M' / 'N נוכחויות מתחילת החודש'), totalDue placeholder מחיר הקורס, balLine תלת-מצבי עם צבעי #b45309/#12803c, רשימת תשלומים עם קבלה חוזרת, בחירת קבוצה, הערת תלמיד, הקפאה/הפשרה, סיום, הסרה דו-שלבית (פג אחרי 3500ms) שמוחקת גם את אירוע התשלום, 'מעבר למנוי חודשי', '↩ ביטול ניקוב אחרון' עם החזר מדויק מהלוג, קישור 'לכרטיס החוג ←'; נפתח גם מכרטיס המשפחה",
+    "evidence_react": "src/components/courses/ManageModal.tsx: badges, balanceLabel זהה, placeholder מחיר, balLine תלת-מצבי עם אותם צבעים (שורה 269), קבוצה עם טוסטים זהים, הערה, הקפאה/סיום/הסרה דו-שלבית שמוחקת את dueEventId, מעבר למנוי חודשי, ביטול ניקוב — הכל מאחורי דגלים (courses.payments/punch.buy/punch.undo/punch.switchmonthly)",
+    "detail": "פערים: (1) undoPunch מחזיר תמיד -5 'ביטול ניקוב — תיקון טעות' — הלגאסי (mgUndo) מאתר את רשומת ה-Check-in האחרונה בלוג ומחזיר את הדלתא המדויקת (שעשויה להיות +6 עם TrendFactor) — החזר לא מדויק; (2) אין הורדת קבלה חוזרת פר-תשלום; (3) אין קישור 'לכרטיס החוג ←'; (4) אישור ההסרה לא פג אוטומטית אחרי 3500ms (נוסף שער 400ms נגד דאבל-קליק); (5) המודל נגיש רק מכרטיס החוג — לא מכרטיס המשפחה",
+    "importance": "high"
+   },
+   {
+    "feature": "שיבוץ תלמיד חדש + יצירת משפחה בו-במקום (saveEnrollNew)",
+    "status": "partial",
+    "evidence_legacy": "saveEnrollNew: famId '__new' יוצר משפחה חדשה תוך כדי שיבוץ (dedup לפי normName, cred 700, fixPhone), קישור 'לא נמצא/ה במערכת? + הוספת בן משפחה חדש ושיבוץ' במודל enroll, שורת '＋ משפחה חדשה: \"X\"' בהקלדה, טוסט 'משפחת X נוצרה, Y נוסף/ה … ושובצ/ה ל\"Z\"'",
+    "evidence_react": "src/components/courses/EnrollModal.tsx: אין זרימת הוספה — הודעת הריק מפנה 'הוסיפו בן משפחה במסך המשפחות' (שורה 141); src/components/families/JoinModal.tsx שורות 164-176: יש '➕ הוספת בן/בת משפחה — הוספה מהירה וחזרה אוטומטית לשיבוץ' (MemberForm + בחירה אוטומטית של הנוסף/ת); grep '__new|משפחה חדשה' במודלי הקורסים — אין יצירת משפחה",
+    "detail": "הוספת בן-משפחה תוך כדי שיבוץ קיימת רק מכיוון כרטיס המשפחה (JoinModal); יצירת משפחה חדשה שלמה בלי לצאת מהמסך — ומסלול ההוספה במודל השיבוץ שבכרטיס החוג — חסרים",
+    "importance": "medium"
+   },
+   {
+    "feature": "כרטיס מורה מלא (openTeacher/saveTeacherFull)",
+    "status": "present",
+    "evidence_legacy": "שדות name/phone/phone2/email/idNum/address/specialty/payRate/startDate/notes; ולידציות: שם חובה, validId ת\"ז, regex אימייל, תעריף מספר, ייחודיות שם; טוסטים 'כרטיס המורה עודכן — משתקף בכל החוגים, החיפוש והייצוא' / 'המורה X נוספה — זמינה לשיבוץ בכל חוג'",
+    "evidence_react": "src/components/settings/TeachersSection.tsx (TeacherForm): כל השדות, כל הוולידציות עם אותן הודעות בדיוק (validIsraeliId מ-src/lib/validate.ts, אותו regex אימייל), אותם טוסטים; מחיקה דו-שלבית + חסימת מחיקת מורה עם חוגים (useApp.deleteTeacher)",
+    "importance": "medium"
+   },
+   {
+    "feature": "הסרת קבוצה מקורס + סנכרון תלמידים",
+    "status": "present",
+    "evidence_legacy": "חייבת להישאר קבוצה אחת; הסרה מאפסת group לשיבוצים; טוסט 'הקבוצה הוסרה · N תלמידים סונכרנו ל\"ללא שיוך\"'; groupCounts עם פלטת 5 צבעים + 'ללא שיוך · N'",
+    "evidence_react": "src/components/courses/CourseDetail.tsx (removeSession, שורות 166-180): 'חייבת להישאר לפחות קבוצה אחת', איפוס group, אותו טוסט; groupCounts (שורות 182-194) עם GROUP_PALETTE של 5 צבעים ו-'ללא שיוך · N'; addSession עם 'שם הקבוצה (רשות)' ו-placeholder 'קבוצה ב׳ / בוקר'",
+    "importance": "medium"
+   },
+   {
+    "feature": "טבלת קורסים — פילטרי עמודות, מיון, עמודות מחיר",
+    "status": "partial",
+    "evidence_legacy": "crsColF: name/audience/teacher (contains), model (בחירה all/monthly/half_year/year/punch), count/price ב-numMatch ('5+', '100-200'); מיון 8 עמודות כולל price1/price2; modelMeta; צבעי מונה אדום במלא/כתום מ-80%; עמודות p1 ירוק p2 סגול",
+    "evidence_react": "src/components/courses/CoursesView.tsx: colF זהה עם numMatch (מ-families/lib), מיון כל 8 המפתחות, modelMeta זהה (courses/lib.ts:91), countColor אדום/כתום-80% (שורה 159), עמודות הנחה 1 (#12803c) והנחה 2 (#7c3aed) עם שמות מותאמים; מעבר גריד/רשימה נשמר ב-db.ui.crsView",
+    "detail": "בפילטר עמודת המסלול יש רק 'הכל/מנוי חודשי/כרטיסייה' — חסרות אפשרויות חצי-שנתי/שנתי (CoursesView.tsx שורות 306-315); וחסר לגמרי gating לפי תפקיד — אין מושג role במערכת (מורה שרואה רק את הקורסים שלה, פעולות adminOnly) — grep 'role' ב-config/features ריק",
+    "importance": "medium"
+   },
+   {
+    "feature": "כרטיס קורס — פרטים, ייצואים, מחיקה, תזכורת ללוח",
+    "status": "partial",
+    "evidence_legacy": "כרטיס עם תמונה/אות, badge מסלול, תקופת פעילות עברי+לועזי, טלפון מורה, capacityLabel, isFull ('הקורס מלא'), '⬇ דו\"ח יומי מפורט', '⬇ תדפיס למורה' (כולל רגישויות), '📊 דו\"ח מותאם', '🔔 תזכורת ללוח' (אירוע עם החדר בהערות), עריכה, מחיקה דו-שלבית, הערות פנימיות inline, כיתות gradeLabel",
+    "evidence_react": "src/components/courses/CourseDetail.tsx: אות+tint, badge, פרטי עברי+לועזי (hebDateFull), טלפון מורה, 'N מתוך max', כפתור מושבת 'החוג מלא', exportStudents (תדפיס למורה עם עמודת 'רגישויות/רפואי'), exportDaily (src/lib/courseDaily.ts — מפגש-מפגש כולל חיסורים ו-cap בטיחות 500 ימים), CustomExport (courses.printout.custom), הערות פנימיות inline עם placeholder זהה, מחיקה עם window.confirm שמפרט את מספר השיבוצים",
+    "detail": "חסר כפתור '🔔 תזכורת ללוח' ליצירת אירוע תזכורת לחוג (grep 'תזכורת' בתיקיית courses — קיים רק לתשלום); אין תמונת קורס; אין שורת כיתות; המחיקה ב-window.confirm במקום שני קליקים (שקול פונקציונלית)",
+    "importance": "medium"
+   },
+   {
+    "feature": "בורר שיבוץ חכם במודל enroll (typeahead + הורים + משפחה חדשה)",
+    "status": "partial",
+    "evidence_legacy": "אפשרויות: כל הלא-משובצים + הורים סינתטיים '__pf:{famId}'/'__pm:{famId}' ('אבא — X · משפחת Y'), חיפוש smartRank+XLAT, שורת '＋ משפחה חדשה: \"X\"' כשאין התאמה",
+    "evidence_react": "src/components/courses/EnrollModal.tsx (options/matches, שורות 34-55): typeahead עם smartFilter (src/lib/search.ts — כולל XLAT מלא שהועתק כלשונו, שורות 12-60) על שם/משפחה/טלפון/ת\"ז; הורים שכבר קיימים כ-Member מוצגים עם קידומת אבא/אמא",
+    "detail": "במודל שבכרטיס החוג אין הורים סינתטיים למשפחות שההורה שלהן טרם נוצר כ-Member (קיים רק ב-JoinModal מכרטיס המשפחה), ואין שורת יצירת משפחה חדשה מהחיפוש",
+    "importance": "medium"
+   },
+   {
+    "feature": "רצועת חדרים חיה (LIVE) במסך החוגים",
+    "status": "missing",
+    "evidence_legacy": "רצועת 'חדרי פעילות — תצוגה חיה' במסך ניהול הקורסים: צ'יפ LIVE ירוק עם pulse/spin לחדר שמתקיים בו חוג היום, 'פנוי'/'כבוי', תוויות 'היום: {קורס} · {שעה}', toggle הפעלה, ⚙ הגדרות, פתיחת יומן החדר, '+ חדר חדש', 'ניקיון יומי 15:00–16:00'",
+    "evidence_react": "src/components/courses/CoursesView.tsx — אין שום רצועת חדרים (grep 'LIVE|תצוגה חיה|חדרי פעילות' — אפס במסך החוגים); הפונקציונליות פוצלה: יומן חדרים מלא ב-src/components/diary/DiaryView.tsx (משבצות, ניקיון 15:00-16:00, הזמנה, נוכחות) ו-toggle/הגדרות/חדר-חדש ב-src/components/settings/RoomsSection.tsx",
+    "detail": "התצוגה החיה עצמה (מי LIVE עכשיו, מהחוגים) לא קיימת באף מסך; המשתמש צריך לעבור ליומן החדרים כדי לראות את היום של חדר. תפעולית מכוסה ברובו, ויזואלית-שיווקית חסר",
+    "importance": "medium"
+   },
+   {
+    "feature": "שורת שיבוץ עם ניקוב ויתרה בכרטיס המשפחה",
+    "status": "partial",
+    "evidence_legacy": "גם בכרטיס משפחה וגם בכרטיס קורס: פס יתרה צבעוני (אדום ≤0/כתום ≤2/ירוק), כפתור ניקוב דו-שלבי, 'חידוש ←', planLabel עם חיסורים/📝/💳 יתרה/'נרשם {תאריך עברי}', כפתור חיסור, ⚙ ניהול",
+    "evidence_react": "בכרטיס הקורס (src/components/courses/CourseDetail.tsx שורות 320-420) — מלא: פס יתרה עם אותם צבעים/ספים, 'חידוש ←', planLabelOf עם חיסורים/📝/💳 (courses/lib.ts:151), ⚙ וחיסור. בכרטיס המשפחה (src/components/families/FamilyPanels.tsx שורות 203-268) — טבלה לקריאה בלבד: מסלול/יתרה צבעונית/סטטוס/קבוצה, בלי כפתורי ניקוב/⚙/חיסור ובלי תאריך הרשמה",
+    "detail": "מהמשפחה אי אפשר לנקב, לרשום חיסור או לפתוח ניהול שיבוץ — חובה לעבור לכרטיס החוג; בלגאסי כל הפעולות זמינות משני הכיוונים",
+    "importance": "high"
+   },
+   {
+    "feature": "שיוך קבוצה מהיר לתלמיד",
+    "status": "present",
+    "evidence_legacy": "setGroup בכרטיס קורס — select ששומר מיד עם 'X שויך/ה לY' / 'הוסר השיוך של X'; במודל הניהול 'שויך/ה לקבוצה: Y' / 'הוסר שיוך הקבוצה'",
+    "evidence_react": "src/components/courses/CourseDetail.tsx (setGroup, שורות 150-153 + select בשורות 339-355 עם title 'שינוי קבוצה — נשמר מיד ומשתקף בלוח') ו-ManageModal.tsx שורות 229-240 — טוסטים זהים; מאחורי דגל courses.groups",
+    "importance": "medium"
+   },
+   {
+    "feature": "גלגל התאמת חוגים (wheel)",
+    "status": "different",
+    "evidence_legacy": "אשף סינון סיבובי: צירים בסדר מגזר→גיל→מגדר→יום→סוג, דילוג ציר עם אופציה אחת ('X · דולג'), נעילות עם הסרה משורשרת, טבעת conic-gradient, תוצאות עם זמינות ('מלא'/'X נותרו'/'מקום פנוי') וכפתור שיבוץ ישיר (אדמין) שפותח enroll עם purchased=size, סנכרון רשימת החוגים לגלגל (_wcsIds)",
+    "evidence_react": "src/components/wheel/CourseWheel.tsx: גלגל מזל SVG אקראי (crypto.getRandomValues, rAF ease-out ~4.2ש, קונפטי) עם נעילות סינון שטוחות: מגדר/גיל (4 טווחים קבועים 3-6/7-10/11-14/15+)/יום/קטגוריה; כרטיס תוצאה עם זמינות ('נותרו X מקומות'/'החוג מלא — כדאי לבדוק רשימת המתנה') ומחיר; מאחורי courses.wheel",
+    "detail": "המכניקה שונה מהותית: במקום אשף צירים דטרמיניסטי עם מגזר ושיבוץ ישיר — גלגל הגרלה; אין ציר מגזר, אין דילוג/הסרת נעילות משורשרת, אין כפתור שיבוץ מהגלגל (רק 'לכרטיס החוג ←'), ואין סנכרון הטבלה לתוצאות הסינון",
+    "importance": "medium"
+   },
+   {
+    "feature": "רמזי התאמה בשיבוץ (גיל/מגדר/התנגשות לו\"ז)",
+    "status": "partial",
+    "evidence_legacy": "בבחירת ילד: '✓ גיל מתאים — בן/בת X, טווח החוג 3–18' (ירוק) / 'שימו לב: גיל X מחוץ לטווח' (צהוב), 'החוג מיועד לבנים/לבנות בלבד' (אדום), ובדיקת התנגשות לו\"ז מול כל השיבוצים הקיימים של הילד — השוואת יום+שעה בין כל ה-sessions ('התנגשות לו\"ז: X כבר רשום/ה ל\"Y\" ביום Z'); סינון רשימת החוגים לפי גיל/מגדר עם 'להצגת כל החוגים'",
+    "evidence_react": "src/components/families/JoinModal.tsx (hints, שורות 127-145): רמז גיל ('✓ גיל מתאים — X (טווח החוג lo–hi)' #12803c / 'שימו לב: גיל X מחוץ לטווח המומלץ' #9a6414) ורמז מגדר — נוסח וצבעים תואמים; מייעצים ולא חוסמים",
+    "detail": "חסרה בדיקת התנגשות לוח-זמנים מול שיבוצים קיימים של הילד (אין בשום קובץ); ב-EnrollModal (מכרטיס החוג) אין רמזים כלל; רשימת החוגים ב-JoinModal לא מסוננת לפי גיל/מגדר/מקום-פנוי (מציגה את כל הפעילים) ולכן גם אין toggleJoinShowAll",
+    "importance": "medium"
+   },
+   {
+    "feature": "מד תפוסת חוגים בדשבורד (crsG) + הכנסה חודשית משוקללת",
+    "status": "missing",
+    "evidence_legacy": "ווידג'ט דשבורד: אחוז תפוסה לכל חוג, ממוצע עם מחט, היסטוגרמת עמודות אינטראקטיבית עם tooltip וזוהר אדום למלא, הכנסה חודשית משוקללת (monthly=מחיר, half_year=/6, year=/12, punch=0 — '₪X לחודש (מנויים חודשיים בלבד)'), צ'יפים ('N חוגים/כרטיסייה/מנוי/מלאים'), Top-3 לפי תפוסה",
+    "evidence_react": "אין ווידג'ט כזה: grep 'היסטוגרמ|ממוצע|Top' ב-src/components/home/widgets.tsx — רק ווידג'ט אמינות; grep 'price/6|/ 12' — אין נוסחת הכנסה חודשית משוקללת בשום מקום (src/lib/customExport.ts:126 רק תווית מסלול). קיים חלקית: תפוסה% בדוח הרישום (src/components/reports/sections1.tsx שורות 48-72), פריטי 'מלא/מתמלא' (80%+) ב'דורש טיפול' (src/components/home/homeData.ts שורות 409-439), וצבעי תפוסה ברשימת הקורסים",
+    "detail": "המד הוויזואלי, ההיסטוגרמה, Top-3 ונוסחת ההכנסה החודשית המשוקללת לא הועברו; דוחות ההכנסה ב-React מבוססי תשלומים בפועל בטווח (paidInRange) — גישה שונה (ואמינה יותר) אך לא מספקת תחזית חודשית",
+    "importance": "medium"
+   },
+   {
+    "feature": "יומן חדר (diary) — משבצות, הזמנה, ימים חסומים",
+    "status": "present",
+    "evidence_legacy": "modal diary: משבצות ליום לפי slot החדר, תפוס/פנוי, כפתור 'הזמנה' לפנויות, אזהרת יום חסום (blockReason: שבת/שישי/חגים מלאים/חוה\"מ), ניווט ימים, ⚙, ניקיון 15:00-16:00",
+    "evidence_react": "src/components/diary/DiaryView.tsx + src/components/diary/lib.ts: buildSlots לפי from/to/slot של החדר, משבצות קורס/אירוע/חסום/פנוי/ניקיון (15:00-16:00 'כמו במקור'), blockReason זהה כולל רשימת FULL_HOLIDAYS ותאריכי חוה\"מ (תשרי 16-21, ניסן 16-20), הזמנת משבצת פנויה דרך EventModal (דגל diary.booking), ניווט יום קודם/היום/הבא, פאנל נוכחות פר-מפגש, ניצולת שבועית (diary.utilization), מפגשים מחוץ לשעות מוצגים בסוף",
+    "importance": "high"
+   },
+   {
+    "feature": "מסך ניהול קורסים — כפתורים, גריד/רשימה",
+    "status": "present",
+    "evidence_legacy": "'✦ מצא חוג', '📊 דו\"ח מותאם', '+ קורס חדש' (אדמין), toggle גריד/רשימה, גריד עם תמונה/אות + badge + מחיר/תפוסה",
+    "evidence_react": "src/components/courses/CoursesView.tsx: '🎡 מצא חוג' (courses.wheel), '➕ הוספת חוג', toggle '▦ גריד/☰ רשימה' (נשמר ב-db.ui.crsView), חיפוש חופשי + פילטרי קטגוריה/סמסטר, גריד עם אות על tint + badge מסלול + מחיר ותפוסה צבועה; דו\"ח מותאם זמין מכרטיס החוג (CourseDetail) וממסך הדוחות",
+    "detail": "כפתור הדו\"ח המותאם אינו ברמת מסך הרשימה אלא בכרטיס החוג; אין תמונות קורסים (אות בלבד); אין הבחנת אדמין (אין roles)",
+    "importance": "medium"
+   },
+   {
+    "feature": "ניקוב מהיר מהבית + ביטול ניקוב אחרון",
+    "status": "partial",
+    "evidence_legacy": "'ניקוב מהיר' מהבית (quickPunchGo לפי חוג היום), '↩ ביטול ניקוב אחרון' שמחזיר יתרה ומחזיר ניקוד מדויק מהלוג",
+    "evidence_react": "src/App.tsx (quickPunch, שורות 244-249) + src/components/home/widgets.tsx שורות 359-361, 1108: כפתור 'ניקוב מהיר' שמנווט לכרטיס החוג הקרוב של היום; src/components/courses/ManageModal.tsx (undoPunch, שורות 164-173): '↩ ביטול ניקוב אחרון' מחזיר used-1 ו-addCred(-5)",
+    "detail": "ביטול הניקוב מחזיר קבוע -5 ולא את הדלתא המדויקת מרשומת ה-Check-in האחרונה (mgUndo בלגאסי) — כשה-TrendFactor העניק +6, ההחזר משאיר נקודה עודפת",
+    "importance": "low"
+   }
+  ],
+  "summary": "תחום החוגים/נוכחות/תשלומים הוא הבשל ביותר ב-maor-system — רוב לוגיקת הליבה של הלגאסי פורטה נאמנה ולעיתים אף הוקשחה: כלל 48 השעות לחיסורים על כל דלתות האמינות (+5/-20/-10/0), שיבוץ עם בדיקות קיבולת/כפילות והורים וירטואליים __pf/__pm, מודל ניהול השיבוץ עם תשלומים רציפים (R-seq), תזכורת \"תשלום הבא\" ללוח, קניית כרטיסייה, טופס קורס עם מורה-inline ו-'אחר', כרטיס מורה וחדרים מלאים, יומן חדרים עם blockReason זהה, ותדפיסים (למורה + יומי מפורט) — הכל קיים עם מחרוזות זהות ומאחורי דגלי פיצ'ר. הפערים המהותיים שנמצאו: (1) כרטיס המשפחה הפך לקריאה-בלבד — אין ניקוב/חיסור/ניהול שיבוץ מהמשפחה, רק מכרטיס החוג; (2) אין אישור-כפול לניקוב (punchConfirm) — לחיצה אחת מנקבת; (3) הקבלה חסרה את שורות מצב העסקה ו\"תשלום הבא\", ואין הורדת קבלה חוזרת לתשלום היסטורי; (4) יצירת משפחה חדשה תוך כדי שיבוץ (saveEnrollNew) לא קיימת; (5) חסרים לגמרי: טווח כיתות (gradeMin/gradeMax), רצועת החדרים החיה (LIVE) במסך החוגים, מד התפוסה בדשבורד עם ההכנסה החודשית המשוקללת, רמז התנגשות לו\"ז, gating לפי תפקיד מורה, ותזכורת-ללוח מכרטיס החוג; (6) גלגל החוגים מומש כגלגל מזל אקראי ולא כאשף הסינון הסיבובי, ו-undoPunch מחזיר -5 קבוע במקום החזר מדויק. בסך הכל: מנוע העסקים שלם ברמה גבוהה, והפערים מתרכזים בזרימות-נוחות (פעולות מהמשפחה, יצירה-במקום) ובשכבות ויזואליזציה (LIVE, מד תפוסה, גלגל)."
+ },
+ {
+  "domain": "data",
+  "gaps": [
+   {
+    "feature": "שכבת persist ושחזור DB מ-localStorage עם הגנות",
+    "status": "present",
+    "evidence_legacy": "מפתח 'maorclean2_db' עם v:1 ו-savedAt; debounce 500ms; JSON פגום/גרסה שגויה נשמר ב-'maorclean2_db_corrupt' + טוסט; תיקון id חסר 'fx'+i, נרמול members/docs, דה-דופ לפי id; כשל שמירה → טוסט חד-פעמי",
+    "evidence_react": "src/store/persist.ts — מפתח 'maor_db' (DB_VERSION=5), migrate() עם דה-דופ לפי id, id חסר 'fx'+i, נרמול members/docs/cred, עותק פגום ל-'maor_db_corrupt'; src/store/useApp.ts:292-307 — debounce 500ms + טוסט '⚠ השמירה נכשלה'; useApp.ts:332-334 טוסט DB פגום. בנוסף: שכבת IndexedDB שנייה + 30 צילומים יומיים + הצפנה AES-GCM + namespace פר-ארגון + שער ריבוי-טאבים",
+    "detail": "הפונקציונליות קיימת ומורחבת משמעותית. דלתא אחת מהותית: שם המפתח שונה (maorclean2_db → maor_db) — נתוני לקוח שחיים ב-localStorage של האפליקציה הישנה לא ייטענו אוטומטית; מעבר מחייב ייצוא גיבוי JSON מהישנה וייבוא בחדשה",
+    "importance": "high"
+   },
+   {
+    "feature": "גיבוי מלא JSON + שחזור",
+    "status": "present",
+    "evidence_legacy": "exportBackup מוריד 'maor-backup-YYYY-MM-DD.json'; applyBackup מאמת families, משלים id 'fb'+i, מדה-דופ, משחזר teachers/seq, טוסט 'הגיבוי שוחזר במלואו'",
+    "evidence_react": "src/store/persist.ts:549-621 — exportBackupFile ('maor-backup[-encrypted]-YYYY-MM-DD.json'), parseBackupFile עם שגיאות בעברית ('הקובץ אינו JSON תקין' / 'אינו קובץ גיבוי של מאור החסד'), decryptBackupFile לגיבוי מוצפן; src/components/settings/BackupSection.tsx — שחזור עם דו-שיח אישור שמסכם מה נדרס, שחזור מצילומים יומיים",
+    "detail": "קיים ומשופר: אישור לפני דריסה (לא היה בלגאסי), תמיכה בגיבוי מוצפן, שחזור מ-30 צילומים יומיים. נוסחי ההודעות שונים מעט",
+    "importance": "high"
+   },
+   {
+    "feature": "שער פתיחת יום (dayGate) + גיבוי אוטומטי בשעת סיום",
+    "status": "present",
+    "evidence_legacy": "מסך חסימה יומי לפי 'maorclean2_day'; שעת סיום 'maorclean2_dayend' (ברירת מחדל 17:00); interval 60ש׳ מוריד גיבוי פעם ביום ('maorclean2_autoexp') עם טוסט ייעודי; אופציית שחזור מהשער",
+    "evidence_react": "src/components/wheel/DayGate.tsx — מודאל פתיחת יום פעם ביום ('maor_day'), קביעת 'maor_dayend' (17:00), כפתור 'שחזור מגיבוי…'; src/App.tsx:147-166 — tick של 60 שניות, 'maor_autoexp' פעם ביום, exportBackup אוטומטי אחרי שעת הסיום. מגודר featureOn('core.daygate')",
+    "detail": "זהה מהותית. דלתות קטנות: מוצג רק כשיש משפחות (מערכת ריקה בלי טקס); הגיבוי האוטומטי לא מציג את טוסט 'הגיעה שעת הסיום...' הייעודי; מפתחות ה-localStorage עוקפים את בידוד ה-namespace הרב-ארגוני (באג ידוע מס' 3 ב-CLAUDE.md)",
+    "importance": "medium"
+   },
+   {
+    "feature": "בלוקי נתונים מוטמעים (#fam-data / #widows-data / #sup-data / #img-data)",
+    "status": "missing",
+    "evidence_legacy": "3 תגי script מוטמעים מזריקים נתוני אמת: משפחות ('fr', רק בלי DB), אלמנות ('wd', מוחלפות לפי כמות, נדחפות לראש + טוסט 'נוספו N משפחות אלמנות'), תומכות (מיזוג hist לפי טלפון/שם); #img-data מחליף תמונות קורסים ב-data-URIs",
+    "evidence_react": "לא קיים מנגנון הזרקה מוטמע — נבדקו index.html, src/components/DemoDrop.tsx (טוען public/demo.json דרך fetch או קובץ גיבוי בגרירה), src/store/persist.ts. אין קידומות 'fr'/'wd', אין מיזוג hist ייעודי, אין מפת תמונות",
+    "detail": "המנגנון הוחלף בכוונה ב-DemoDrop (דמו + גיבוי). מה שאבד בפועל: זרימת 'משפחות אלמנות' כקבוצה מוזרקת עם ספירה נפרדת (statWidows), מיזוג hist של תומכות מקובץ, ותמונות הקורסים המוטמעות. נתוני האמת של הלקוח יעברו דרך ייבוא גיבוי — אך צריך שקובץ ה-JSON של הישנה יעבור migrate (נתמך)",
+    "importance": "medium"
+   },
+   {
+    "feature": "מודל ייבוא רב-סוגי (5 סוגים) עם סיכום לפני החלה",
+    "status": "partial",
+    "evidence_legacy": "importKind: members/families/supporters/ayin/backup במודל אחד; JSON מזוהה כגיבוי; fallback windows-1255 לכל קובץ; processImport בונה סיכום (line1/line2/unmatchedLine/canApply) ורק אז applyImport; ייבוא משפחות ב-13 עמודות קבועות עם ניקויים (ביתר→ביתר עילית, '#NAME?', רמז אלמן, מצב משפחתי, קהילה ברירת מחדל)",
+    "evidence_react": "src/components/settings/ImportSection.tsx — ייבוא ילדים מלא בשני שלבים (analyze→preview עם matched/unmatched/ambiguous + התפלגות שיטות זיהוי, קסקדה ת\"ז הורה→טלפון→שם+אם→עיר, כותרות גמישות, windows-1255 fallback, parseAnyDate); ייבוא משפחות מהדבקת CSV — 5 עמודות בלבד (שם, אב, אם, טלפון, עיר) ומוחל מיידית ללא תצוגה מקדימה; ייבוא JSON כמיזוג משפחות-חדשות-בלבד; src/components/supporters/SupporterImport.tsx — הצלבה לפי שם, מוחל מיידית ללא סיכום-לפני-החלה",
+    "detail": "הפערים: (1) ייבוא משפחות מצומצם מ-13 עמודות ל-5 — אין ת\"ז אב/אם, כתובת, מצב משפחתי, קהילה, הערות, ואין הניקויים הייעודיים (עיר, אלמן, סטטוס מהערות); (2) לתומכות ולמשפחות אין שלב סיכום/אישור לפני החלה (רק לילדים); (3) fallback windows-1255 רק בייבוא ילדים — קובצי תומכות/משפחות בקידוד ישן ישתבשו; (4) ייבוא גיליון עיניים (ayin) חסר לגמרי",
+    "importance": "high"
+   },
+   {
+    "feature": "ייצוא בפורמט הייבוא (תבניות round-trip לעריכה באקסל)",
+    "status": "partial",
+    "evidence_legacy": "exportImportFormat מוריד לכל סוג ייבוא CSV של הנתונים הקיימים בכותרות המדויקות של הייבוא (maor-import-members/families/supporters.csv, maor-ayin-eyes.csv) — עריכה באקסל והחזרה",
+    "evidence_react": "src/components/supporters/SupporterImport.tsx:73-78 — רק 'תבנית לדוגמה' (supporters-template.csv עם שורת דוגמה, לא הנתונים עצמם). maor-members.csv מ-ExportSection במקרה תואם את כותרות ייבוא הילדים הגמישות, אבל לא מוצג/מתועד כ-round-trip. אין ייצוא בפורמט ייבוא למשפחות ולעיניים",
+    "detail": "זרימת 'ייצא→ערוך באקסל→החזר' המלאה לא קיימת; יש רק תבנית ריקה לתומכות, וייצוא בני-משפחה שעשוי לעבוד בפועל לילדים",
+    "importance": "medium"
+   },
+   {
+    "feature": "גיליון עיניים (ayin) — ייצוא מלא + ייבוא חוזר",
+    "status": "partial",
+    "evidence_legacy": "'maor-ayin-eyes.csv' עם עמודות [תומכת, טלפון, שם למסירה, כמה עיניים, נמסר, שולם, תשובה/הערה, עופרת בוצעה]; ייבוא חוזר מעדכן eyes+לוג היסטוריה, paid, answers (דה-דופ), stage→'eyes', lastTouch; זיהוי 'כן' לפי regex",
+    "evidence_react": "src/lib/ayin.ts:198-225 — ayinDailyRows: דוח יומי בלבד ('ayin-daily-<תאריך>.csv', מי שטופל היום, כותרות דרך termOf); src/components/supporters/SupportersView.tsx:117. לא נמצא ייצוא גיליון מלא בפורמט הלגאסי ולא ייבוא חוזר שמעדכן eyes/paid/answers/stage (נבדקו SupporterImport.tsx, ImportSection.tsx, ayin.ts, AyinBoard.tsx)",
+    "detail": "קיים רק הדוח היומי; חסר כל מעגל ה-round-trip: ייצוא הגיליון המלא עם עמודות נמסר/שולם/עופרת, וייבוא חוזר שמעדכן את התיקים. מגודר supporters.ayin",
+    "importance": "medium"
+   },
+   {
+    "feature": "דוחות תקופתיים (יומי/שבועי/חודשי/רבעוני)",
+    "status": "present",
+    "evidence_legacy": "state.reports עם 4 מתגים + genReport(freq) → 'maor-report-{freq}.txt': כותרת, תאריך עברי, שורת נמענים, מוני משפחות/תלמידים/שיבוצים/חוגים, חיסורים, יתרות נמוכות (purchased-used<=2)",
+    "evidence_react": "src/components/reports/prefs.tsx — 4 מתגים נשמרים ב-db.reports, 'הפק עכשיו ⬇' → downloadText('maor-report-<label>.txt') עם hebDateFull, אותם מונים ורשימת יתרות נמוכות (punch, לא-ended, יתרה<=2). BOM נוסף ב-downloadText. מגודר reports.periodic",
+    "detail": "נאמן למקור; הושמטה בכוונה שורת 'נמענים: בעל אירוע...' הפיקטיבית (מתועד בקוד). הסינון ליתרות מוסיף status!=='ended' — שיפור קל",
+    "importance": "medium"
+   },
+   {
+    "feature": "בדיקת נתונים (runAudit) — 8 קטגוריות",
+    "status": "partial",
+    "evidence_legacy": "8 קטגוריות צבועות; חוקי טלפון (5 סוגים), ת\"ז ספרת ביקורת, כפילויות (שם+אם/טלפון/ת\"ז עם dupIds להשוואה), לוגיקה (אלמן+שני הורים, נשואים בלי הורים, תשלום>totalDue), ילדים (גיל 0-25, כפול), קשר; תומכות: גם nextDate שעבר וגם תרומה<=0; עד 80 שורות + 'ייצאו את הדוח המלא'; fixPhones; sendAuditToCare",
+    "evidence_react": "src/lib/audit.ts — פורט נאמן: אותן 8 קטגוריות + אותם צבעים (AUDIT_CAT_COLORS), phoneIssue זהה (9-10 עם 0 תקין, 8='חסרה ספרת 0', <7='קצר מדי'), ת\"ז, כפילויות, לוגיקה כולל תשלום-יתר, ילדים 0-25 + כפול לפי שם+לידה, קשר; תומכות: ת\"ז/טלפון/אימייל/כפילות שם + בדיקה חדשה של אי-התאמת מצבור מול פירוט. src/components/settings/AuditSection.tsx — קיבוץ+מונים, כל שורה פותחת כרטיס, fixAllPhones, ייצוא 'maor-data-audit.txt'",
+    "detail": "חסרות שתי בדיקות תומכות: nextDate שעבר ('עבר תאריך היעד לקשר') ותרומה בסכום<=0; ממצא כפילות פותח את כרטיס המשפחה אך לא מודל השוואת-כפילויות (dupIds→DedupModal קיים אך לא מחווט מהביקורת); אין 'שליחה למרכז הטיפול'. אין קאפ 80 שורות (מציג הכל — שיפור)",
+    "importance": "medium"
+   },
+   {
+    "feature": "ייצואי CSV ישירים (משפחות/חוגים/שיבוצים/תומכות)",
+    "status": "partial",
+    "evidence_legacy": "exportFamiliesCSV (17 עמודות כולל מדד אמינות, יתרת תשלומים), exportCoursesCSV (16 עמודות כולל טלפון מורה, קבוצות, הנחה 1/2, גיל), exportEnrollCSV (15 עמודות כולל חיסורים ותשלום הבא), exportSupportersCSV (כולל ת\"ז ותאריך יעד)",
+    "evidence_react": "src/components/settings/ExportSection.tsx — maor-families.csv (24 עמודות, סופרסט של המקור כולל cred ויתרה), maor-members.csv (חדש), maor-courses.csv (15 עמודות), maor-enrollments.csv (14 עמודות), maor-supporters.csv (15 עמודות כולל ציון+דרגה+שווי לפי 3.7)",
+    "detail": "משפחות ותומכות — כיסוי מלא כמעט (חסרות בתומכות עמודות ת\"ז ותאריך יעד). חוגים — חסרות: טלפון המורה, רשימת הקבוצות (sessions), הנחה 1/הנחה 2 (price1/price2 קיימים ב-domain.ts:115-118 אך לא מיוצאים), טווח גיל (ageMin-ageMax). שיבוצים — חסרות: מס' חיסורים ותאריך 'תשלום הבא' (dueDate)",
+    "importance": "high"
+   },
+   {
+    "feature": "ייצוא אירועים CSV ישיר (maor-events.csv)",
+    "status": "different",
+    "evidence_legacy": "exportEventsCSV — קובץ ישיר עם 10 עמודות: תאריך עברי, לועזי, שעה, סוג, כותרת, משפחה, חדר, מחיר, דחיפות ('דחוף'/'בינוני'/'רגיל'), בוצע",
+    "evidence_react": "src/components/calendar/CalendarView.tsx:289-290,461 — רק 'דו\"ח מותאם' (CustomExport target='events'); src/lib/customExport.ts:42-52 — שדות: כותרת, סוג, תאריך עברי+לועזי, שעה, משפחה, הערות, בוצע. אין ייצוא בלחיצה אחת ואין עמודות חדר/מחיר/דחיפות",
+    "detail": "הייצוא קיים רק דרך מודל הדו\"ח המותאם (בחירת שדות), וחסרות בו עמודות חדר, מחיר ודחיפות. הרחבת אירועים עבריים חוזרים בטווח — קיימת (hebAnnualEq)",
+    "importance": "medium"
+   },
+   {
+    "feature": "בונה דוחות מותאם (expM) — 3 יעדים + טווח תאריכים",
+    "status": "partial",
+    "evidence_legacy": "expFieldDefs: קורסים 14 שדות (כולל 'סה\"כ הכנסות' לפי נוסחת ההכנסה החודשית, 'תלמידים + טלפון + יתרה'), אירועים 9, תומכות 17 (כולל ציון/דרגה/סה\"כ עיניים/שולם); טווח עברי או לועזי (hb2Sel); עמודת הערות נערכת פר-שורה (expWithNotes + noteSeed); בחר-הכל/נקה; קבצים '{target}-report-{from}_{to}.csv'",
+    "evidence_react": "src/lib/customExport.ts + src/components/reports/CustomExport.tsx — 3 יעדים (חוגים מ-CoursesView, אירועים מ-CalendarView, תומכות), טווח לועזי עם קיצורים (החודש/השנה/הכול), הרחבת אירועים חוזרים לפי תאריך עברי, תומכות רק עם פעילות בטווח, טוסטים 'בחרו לפחות נתון אחד'/'אין נתונים בטווח שנבחר'; קובץ 'custom-{target}-{from}_{to}.csv'",
+    "detail": "השלד קיים אך מצומצם: קורסים 7 שדות במקום 14 (אין 'סה\"כ הכנסות' חודשי, אין רשימת תלמידים+טלפון+יתרה), תומכות 4-8 שדות במקום 17 (אין ציון/דרגה/סכומים מצטברים/ת\"ז); אין מצב טווח עברי; אין עמודת הערות ידניות עם תצוגה מקדימה נערכת; אין כפתורי בחר-הכל/נקה (ברירת מחדל הכל מסומן); שם קובץ שונה",
+    "importance": "medium"
+   },
+   {
+    "feature": "דוח משפחה מלא (txt)",
+    "status": "present",
+    "evidence_legacy": "exportFamilyReport → 'family-report-{שם}.txt': פרטי משפחה (כולל מדד אמינות+דרגה, ספח, קופת צדקה), בני משפחה (מגדר/לידה עברי+לועזי/גיל/רגישויות), שיבוצים עם קבלות 🧾 וחיסורים ✕, היסטוריית פעולות מלאה",
+    "evidence_react": "src/components/families/FamilyPanels.tsx:324-409 — familyReportLines: פורט מלא של כל המקטעים (פרטים+cred+tier, בני משפחה, שיבוצים עם 🧾/✕/📝, היסטוריה מ-famHistoryOf), הורדה כ-'family-<שם>.txt' עם טוסט. מגודר families.report",
+    "detail": "נאמן למקור; שם הקובץ 'family-<שם>.txt' במקום 'family-report-<שם>.txt' — קוסמטי",
+    "importance": "medium"
+   },
+   {
+    "feature": "ייצוא רשימת תלמידי חוג + דוח יומי מפורט לחוג",
+    "status": "present",
+    "evidence_legacy": "exportCourseStudents ('course-{שם}.csv' עם רגישויות); exportCourseDaily — דורש start/end, מפרט כל יום פעילות לפי sessions, סטטוסי נוכחות ('לא הופיעה'/'חיסור · סיבה'/'מוקפא'), טוסטים ייעודיים",
+    "evidence_react": "src/components/courses/CourseDetail.tsx:111-148 — exportStudents ('course-<שם>.csv' כולל רגישויות/רפואי, מסלול, יתרה) ו-exportDaily ('course-daily-<שם>.csv') דרך src/lib/courseDaily.ts — פורט נאמן כולל פילטר פעילים (לא-ended, enrolledAt<=תאריך, התאמת קבוצה), סטטוסי נוכחות זהים, טוסטים לחסר start/end ול-0 ימים",
+    "detail": "זהה, עם תוספת בטיחות: תקרת 500 ימי מפגש נגד טווח שגוי (courseDaily.ts:39). עמודת 'מסלול' של התלמידה הושמטה מהדוח היומי (8 עמודות במקום 9)",
+    "importance": "medium"
+   },
+   {
+    "feature": "נרמול טלפונים (fixPhone / fixAllPhones)",
+    "status": "present",
+    "evidence_legacy": "fixPhone: 9 ספרות בלי 0 → '0XX-...', 8 ספרות → '0X-...'; fixAllPhones על phone/phone2 של משפחות וחברים עם טוסט",
+    "evidence_react": "src/lib/validate.ts:33 — formatIsraeliPhone (כולל טיפול ב-+972/00972 — הרחבה); src/store/useApp.ts:974-985 — fixAllPhones; כפתור 'תיקון טלפונים אוטומטי' ב-AuditSection.tsx:50; בדיקת שוויון ל-fixPhone המקורי ב-src/lib/__tests__/validate.test.ts",
+    "detail": "זהה ומכוסה בבדיקות; מטפל גם בקידומת בינלאומית שהמקור לא טיפל בה",
+    "importance": "medium"
+   },
+   {
+    "feature": "הורדת CSV מוקשחת (BOM + הגנת injection)",
+    "status": "present",
+    "evidence_legacy": "csvDown: BOM, גרש מוביל לערכים שמתחילים ב-=+-@, הכפלת מרכאות, revokeObjectURL אחרי 5 שניות",
+    "evidence_react": "src/lib/csvx.ts:10-31 ו-src/components/reports/csv.ts:8-29 — csvEscape/esc זהים (ואף מרחיבים ל-\\t\\r), BOM ‏﻿, revoke אחרי 5000ms; parseCsv מלא לייבוא",
+    "detail": "זהה ומורחב; קיים בשני עותקים עקביים (csvx.ts + reports/csv.ts)",
+    "importance": "low"
+   },
+   {
+    "feature": "קבלות טקסט (תשלום R- / תרומה D-)",
+    "status": "present",
+    "evidence_legacy": "קבלת תשלום 'receipt-<rid>.txt' (סה\"כ עסקה/שולם/יתרה/תשלום הבא בעברי); קבלת תרומה 'donation-<rid>.txt' (סכום ₪/$, מצטבר, 'תזכו למצוות!'); BOM",
+    "evidence_react": "src/lib/receipt.ts — receiptLines/downloadReceipt עם BOM, תאריך עברי+לועזי, ובנוסף קבלת סעיף 46 פורמלית עם סכום-במילים; src/components/supporters/DonationModal.tsx:40-47 — rid 'D-'+donationSeq; מונים רציפים נפרדים receiptSeq/donationSeq ב-persist.ts:149-193 עם ריפוי rid כפולים",
+    "detail": "קיים ומורחב (קבלת מס §46). דלתות: שם קובץ אחיד 'receipt-<rid>.txt' גם לתרומות (במקום 'donation-'); באג ידוע — סכום-במילים שגוי לאלפים עגולים 11K-999K (hebrewNumber.ts:41), וקבלה יורדת גם כשה-store דחה (מתועדים ב-CLAUDE.md)",
+    "importance": "medium"
+   },
+   {
+    "feature": "פילטרים ותצוגות רוחביים (סטטוס/עיר/קהילה, חיפוש תומכות)",
+    "status": "present",
+    "evidence_legacy": "statusFilter/cityFilter/commFilter/supQ/q ב-state, importKind, dupIds, calFilters וכו'",
+    "evidence_react": "src/components/families/FamiliesView.tsx — סינון סטטוס/עיר/קהילה + מיון (לפי הערת הכותרת ומימוש הקובץ); SupportersView עם חיפוש ומיון; DedupModal קיים ב-families/DedupModal.tsx",
+    "detail": "הפילטרים המרכזיים קיימים; dupIds כמעבר ישיר מהביקורת להשוואה — לא מחווט (ראו סעיף הביקורת)",
+    "importance": "low"
+   },
+   {
+    "feature": "ייצוא CSV מהיר מהפלטה (maor-hachesed-families.csv) + העתקת טלפונים",
+    "status": "missing",
+    "evidence_legacy": "dlCSV מהפלטה — 8 עמודות (משפחה,אב,אם,טלפון,עיר,קהילה,סטטוס,ילדים) בקובץ 'maor-hachesed-families.csv'; copyPhones מעתיק 'משפחת X: טלפון' ללוח",
+    "evidence_react": "לא נמצא — נבדקו src/components/palette/CommandPalette.tsx (אין ייצוא/clipboard) ו-src/components/families/FamiliesView.tsx (אין downloadCsv/copyPhones). קיים רק הייצוא המלא מ-ExportSection",
+    "detail": "שתי פעולות הנוחות המהירות חסרות; ייצוא המשפחות המלא מכסה את הצורך בעקיפין אך לא בלחיצה אחת מהפלטה ולא העתקת טלפונים ללוח",
+    "importance": "low"
+   },
+   {
+    "feature": "פריימוורק DC runtime + שפת תבניות + אריזת single-file",
+    "status": "different",
+    "evidence_legacy": "מיקרו-פריימוורק פנימי סביב React UMD עם תבניות {{expr}}/sc-for/sc-if, ו-window.__resources לאריזת הכל בקובץ HTML יחיד",
+    "evidence_react": "הריפו כולו — React 19 + TypeScript + Vite 8 + Zustand (package.json, src/main.tsx); אתר סטטי ב-dist/ במקום קובץ יחיד; אין (ולא צריך) מקבילה ל-runtime",
+    "detail": "החלפה ארכיטקטונית מכוונת. ההשלכה היחידה ללקוח: אין עוד ארטיפקט 'קובץ HTML אחד שנשלח במייל' — ההפצה היא אתר פרוס (gh-pages) עם white-label דרך ?org=",
+    "importance": "low"
+   }
+  ],
+  "summary": "בתחום הנתונים (persist, גיבויים, ייבוא/ייצוא ודוחות) ה-React app מכסה את רוב הלגאסי ולעיתים עולה עליו: שכבת ההתמדה שודרגה לשלוש שכבות (localStorage + IndexedDB + 30 צילומים יומיים) עם הצפנה ושער ריבוי-טאבים; גיבוי/שחזור JSON, גיבוי סוף-יום עם DayGate, דוחות תקופתיים, דוח משפחה מלא, דוחות חוג (תלמידים + יומי), ביקורת נתונים, נרמול טלפונים וקבלות — כולם קיימים כפורטים נאמנים וברובם מכוסים בבדיקות. הפערים המהותיים מתרכזים בזרימות הייבוא/ייצוא: ייבוא משפחות הצטמצם מ-13 עמודות עם ניקויים ל-5 עמודות בלי תצוגה מקדימה; אין ייבוא/ייצוא גיליון עיניים (round-trip); fallback ל-windows-1255 קיים רק בייבוא ילדים; אין ייצוא אירועים ישיר (רק דרך הדו\"ח המותאם, בלי חדר/מחיר/דחיפות); בונה הדוחות המותאם איבד את מצב הטווח העברי, עמודת ההערות הנערכת ואת רוב השדות (קורסים 7/14, תומכות ~8/17); וייצוא החוגים/שיבוצים חסר עמודות (טלפון מורה, הנחות, גיל, חיסורים, תשלום הבא). נקודה תפעולית חשובה למעבר: מפתח ה-localStorage שונה (maorclean2_db → maor_db), כך שנתוני הלקוח מהאפליקציה החיה לא ייטענו אוטומטית — נדרש ייצוא גיבוי מהישנה וייבוא בחדשה."
+ },
+ {
+  "domain": "events",
+  "gaps": [
+   {
+    "feature": "מודל אירוע + סוגים וחזרה שנתית עברית",
+    "status": "partial",
+    "evidence_legacy": "אירוע עם id/title/date/time/type/customType/notes/price/roomId/famId/priority/done; חזרה שנתית לסוגי recur לפי השוואת חודש+יום עבריים עם cache _hpc; לחיצה על אירוע עם famId מנווטת לכרטיס המשפחה (dayEvents nav: openFam)",
+    "evidence_react": "src/types/domain.ts:227-251 — OrgEvent עם כל השדות + spId נוסף; HEBREW_RECURRING (memorial/anniversary/bday); src/components/calendar/calLib.ts:169-176 — eventOccursOn עם hebAnnualEq ו-cache hpOf; src/components/calendar/CalendarView.tsx:261-265 — onItem פותח תמיד את מודאל העריכה, אין ניווט לכרטיס משפחה",
+    "detail": "המודל והחזרה השנתית קיימים במלואם (ואף משופרים: hebAnnualEq מנרמל אדר↔אדר ב׳ בשנה מעוברת — בלגאסי אירוע אדר נעלם בשנה מעוברת). הפער היחיד: בלגאסי לחיצה על גלולת אירוע עם famId פתחה את כרטיס המשפחה; ב-React לחיצה תמיד פותחת עריכת אירוע — הניווט למשפחה אבד",
+    "importance": "medium"
+   },
+   {
+    "feature": "לוח שנה דו-מצבי — חודש עברי אמיתי או לועזי",
+    "status": "different",
+    "evidence_legacy": "calHebMode ברירת מחדל true (שורה 25 ב-state) — הלוח נפתח בגריד עברי מלא; זיהוי 29/30 ימים, calHebAnchor, ניווט prevIso/nextIso, 42 תאים במצב לועזי, dayNum 'D.M'",
+    "evidence_react": "src/components/calendar/CalendarView.tsx:159 — useState(false): ברירת המחדל היא גריד לועזי; buildHebrewGrid ב-calLib.ts:447-484 זהה למקור (זיהוי 29/30, עוגן, prevIso/nextIso, dayNum 'D.M'); toggleHeb עם שמירת הקשר",
+    "detail": "המנגנון כולו קיים אחד-לאחד, אבל ברירת המחדל התהפכה: הלגאסי החי נפתח במצב עברי (calHebMode:true), ה-React נפתח במצב לועזי (hebMode=false). לקוח שרגיל לראות חודש עברי בכניסה ללוח יקבל גריד לועזי",
+    "importance": "medium"
+   },
+   {
+    "feature": "שכבות היום (dayEvents) — 7 סוגי פריטים",
+    "status": "different",
+    "evidence_legacy": "יום הולדת לפי MM-DD לועזי (m.birth.slice(5)===iso.slice(5)); 'הצטרפות · שם' מוצג ביום ה-createdAt עצמו בלבד (f.createdAt===iso); חגים sort 0, אירועים 0.5/1, יום הולדת 2, הצטרפות 2.4, הרשמה 2.6, מפגש קורס 3",
+    "evidence_react": "src/components/calendar/calLib.ts:252-369 — dayItems: כל 7 השכבות עם אותם sort וצבעים; ימי הולדת בשורות 279-298 לפי חזרה עברית (hebAnnualEq) עם גיל בשנים עבריות; הצטרפות בשורות 301-316 — רק ימי-שנה ('N שנים למשפחת X'), iso <= createdAt מדולג",
+    "detail": "שני שינויי-כלל מכוונים: (1) ימי הולדת עברו מהשוואת MM-DD לועזית לחזרה לפי התאריך העברי — יום ההולדת ידלוק ביום אחר מהלגאסי; (2) שכבת ההצטרפות: הלגאסי הציג 'הצטרפות משפחת X' ביום ההצטרפות עצמו בלבד, ה-React מציג רק ימי-שנה מהשנה שאחרי — הפריט ביום ההצטרפות עצמו נעלם. שאר השכבות (חג/אירועים+פס עדיפות/הרשמות/מפגשים) זהות",
+    "importance": "medium"
+   },
+   {
+    "feature": "פילטרי שכבות + מצב 'דחופים בלבד'",
+    "status": "different",
+    "evidence_legacy": "allowE: session→courses, joinKind (הצטרפות+הרשמה יחד)→joins, sort 0→holidays, sort 2→bdays, reminder→reminders, call→calls, org→org, כל שאר סוגי האירועים (חתונה/אזכרה וכו')→family; calUrgentOnly רק priority==='red'",
+    "evidence_react": "src/components/calendar/calLib.ts:200-249 — CalFilters + allowItem; urgentOnly זהה; src/components/calendar/CalendarView.tsx:137-147, 299-324 — 9 צ'יפים + 'דחוף בלבד', מגודרים ב-calendar.layers + calendar.layers.<x> + כיבוי משורשר של מודולים",
+    "detail": "כל הפילטרים קיימים אך חלוקת השכבות שונה: (1) הלגאסי איחד הצטרפויות והרשמות תחת צ'יפ 'joins' אחד — ה-React מפצל ל'הצטרפות'+'הרשמות' (שיפור); (2) שיוך אירוע לשכבה: בלגאסי 'family' = כל אירוע שאינו org/reminder/call (לפי סוג); ב-React 'family' = אירוע עם famId, וכל השאר נופלים ל-catch-all 'אירועים' — חתונה בלי famId תסונן דרך צ'יפ אחר מאשר בלגאסי. הכל מאחורי דגלים (featureOn) — נחשב קיים",
+    "importance": "low"
+   },
+   {
+    "feature": "פאנל 'קרובים' עם פעולות ישירות",
+    "status": "different",
+    "evidence_legacy": "buildCal: סריקת 30 יום קדימה, עד 8 פריטים, כולל כל פריטי dayEvents שאינם מפגשי קורס (גם ימי הולדת/הצטרפויות), מכבד את calFilters (allowE), עם edit + markDone + nav לפריט",
+    "evidence_react": "src/components/calendar/calLib.ts:505-530 — upcomingRows(db, 14): סורק 14 יום, ללא תקרת פריטים, אירועי db.events בלבד (לא ימי הולדת/שכבות), לא מסונן לפי הצ'יפים; CalendarView.tsx:383-448 — עריכה ✎ + '✓ בוצע' לשיחות עם הטוסט 'השיחה סומנה כבוצעה' (זהה)",
+    "detail": "הפערים: טווח 14 יום במקום 30; אין תקרת 8 פריטים; הרשימה כוללת רק אירועי יומן — ימי הולדת ושכבות נגזרות שהופיעו ברשימת 'קרובים' בלגאסי לא מופיעים, ואין ניווט לכרטיס משפחה מהרשימה; הפילטרים של הלוח לא חלים עליה. edit ו-markDone קיימים במדויק",
+    "importance": "medium"
+   },
+   {
+    "feature": "שמירת אירוע — התנגשויות חדר/חוג וחסימת תאריכים",
+    "status": "partial",
+    "evidence_legacy": "saveEvent: כותרת+תאריך חובה; __other→customType; התנגשות קשיחה חדר+שעה מול אירוע/מפגש חוג; org חסום בתאריך חסום; אזהרה רכה ' · ⚠ התנגשות עם \"X\" בשעה Y' על אירוע אחר באותה שעה בכל חדר; evReturn חוזר ליומן עם 'ההזמנה נכנסה — המשבצת מסומנת תפוסה ביומן'",
+    "evidence_react": "src/components/calendar/EventModal.tsx:114-169 — ולידציות כותרת/תאריך/customType/מחיר; roomClashError + orgBlockError ב-calLib.ts:112-161 עם אותן הודעות ('החדר תפוס בשעה זו…', 'בשעה זו מתקיים החוג…'), מאחורי calendar.blocking(.roomclash/.shabbat); src/components/diary/DiaryView.tsx:287-300 — booking עם saveToast זהה מילה-במילה",
+    "detail": "החסימות הקשיחות וה-evReturn קיימים במדויק. חסר: האזהרה הרכה — בלגאסי שמירה מוצלחת עם אירוע אחר באותה שעה (בחדר אחר/בלי חדר) הוסיפה לטוסט ' · ⚠ התנגשות עם \"X\" בשעה Y'; ב-React אין שום התרעה על התנגשות כלל-מערכתית שאינה חוסמת (grep 'התנגשות' — קיים רק ב-roomClashError)",
+    "importance": "medium"
+   },
+   {
+    "feature": "חסימת שבת/חגים/חול המועד (blockReason)",
+    "status": "present",
+    "evidence_legacy": "שבת לכל; שישי לקורסים ('יום שישי (שעתיים לפני שבת)'); FULL — 9 חגים; חול המועד תשרי 16-21 / ניסן 16-20 לקורסים; HOLIDAYS static — 19 מועדים כולל חנוכה/צומות/ט״ו בשבט/פורים/ל״ג בעומר/ט״ו באב/ערב ר״ה",
+    "evidence_react": "src/components/calendar/calLib.ts:74-116 — FULL_HOLIDAYS 9 החגים במדויק + blockReason זהה (כולל תוספת: תשעה באב נדחה כשחל בשבת); עותק זהה ב-src/components/diary/lib.ts:57-80; src/lib/hebrew.ts:104-124 — HOLIDAYS עם כל 19 המועדים; מגודר ב-calendar.blocking(.shabbat)",
+    "detail": "פורט אחד-לאחד, כולל המחרוזות; ה-React אף מוסיף טיפול בצום תשעה באב נדחה. הכל מאחורי דגל (עדיין נחשב קיים)",
+    "importance": "high"
+   },
+   {
+    "feature": "תאריכון עברי מלא (גימטריה + המרות)",
+    "status": "present",
+    "evidence_legacy": "gem/gemYear עם טו/טז וגרשיים; hebDateFull 'כ״ג תמוז תשפ״ו'; hebToIso בסריקה עד 500 ימים; בורר עברי תלת-שדתי עם 'התאריך העברי הזה לא קיים בשנה שנבחרה'; Intl he/en-u-ca-hebrew",
+    "evidence_react": "src/lib/hebrew.ts:15-101 — gem/gemYear/hebDateFull/hebParts זהים; src/lib/hebdate.ts:65-115 — hebToIso בסריקת ~440 ימים (שקול), מודע-עיבור (אדר א׳/ב׳) עם cache; src/components/HebDateInput.tsx — בורר תלת-select (יום בגימטריה/חודש/שנה) עם רמז 'התאריך לא קיים בשנה זו' ושורת הד דו-לוחית",
+    "detail": "שקילות מלאה; נוסח הרמז קוצר מעט ('התאריך לא קיים בשנה זו') וה-React מוסיף רשימת חודשים מודעת-עיבור לפי השנה הנבחרת — שיפור על המקור",
+    "importance": "high"
+   },
+   {
+    "feature": "מטא-נתוני סוגי אירועים (evMeta)",
+    "status": "present",
+    "evidence_legacy": "reminder='תזכורת' סגול, call='טלפון' טורקיז, wedding='חתונה', memorial='אזכרה' recur, anniversary='יום נישואים' recur, bday recur, org/default='אירוע'; customType עוקף תווית בכל התצוגות",
+    "evidence_react": "src/lib/eventMeta.ts — EV_META עם אותן תוויות וצבעים (reminder #7c3aed, call #0f766e וכו'); evLabel מכבד customType; recur ממודל ב-HEBREW_RECURRING (src/types/domain.ts:247-251); מקור-אמת יחיד לכל המשטחים (לוח/בית/ייצוא)",
+    "detail": "זהה; ה-recur הופרד מהמטא לסט טיפוסים — אותה סמנטיקה",
+    "importance": "medium"
+   },
+   {
+    "feature": "מופע הבא של אירוע חוזר (nextOccurLabel)",
+    "status": "missing",
+    "evidence_legacy": "nextOccurLabel: לאירוע recur סריקה עד 400 ימים קדימה למציאת התאמת חודש+יום עבריים והצגת התאריך הלועזי + יום בגימטריה + חודש עברי; לאירוע רגיל — לועזי + עברי מלא",
+    "evidence_react": "grep 'nextOccur' על כל src — אין; EventModal.tsx:109-111 מציג רק 'תאריך עברי: … · חוזר מדי שנה בתאריך העברי הזה' בלי לחשב מתי המופע הבא; החישוב קיים בפועל רק בייצוא (customExport.ts:156-165 מרחיב מופעים בטווח) וברשת הלוח עצמה",
+    "detail": "אין בשום מקום תצוגת 'המופע הבא של האזכרה יחול ב-…' — המשתמש רואה שהאירוע חוזר אבל לא מתי המופע הקרוב. פונקציונלית הלוח מציג את המופע כשמנווטים אליו, כך שהפער תצוגתי בלבד",
+    "importance": "low"
+   },
+   {
+    "feature": "שכבות סינון לוח שנה (צ'יפים — CALF)",
+    "status": "present",
+    "evidence_legacy": "8 שכבות: courses/bdays/holidays/org/reminders/calls/family/joins; מצב פעיל רקע כהה #211d17 וטקסט זהוב; נשמר ב-calFilters",
+    "evidence_react": "src/components/calendar/CalendarView.tsx:137-147 — 9 צ'יפים (פיצול joins→הצטרפות+הרשמות, org→'אירועים' catch-all) + 'דחוף בלבד'; רכיב Chip משותף (styling שונה מהלגאסי); state מקומי, לא מותמד — כמו הלגאסי (state בזיכרון)",
+    "detail": "כל השכבות מכוסות; ההבדלים הקוסמטיים (צבעי צ'יפ) וחלוקת השכבות פורטו בשורת הפילטרים לעיל",
+    "importance": "low"
+   },
+   {
+    "feature": "תקציר בוקר (digest) בבית",
+    "status": "present",
+    "evidence_legacy": "6 שורות: כרטיסייה אוזלת ('נגמרה הכרטיסייה'/'נשאר ניקוב אחד'/'נשארו N ניקובים… כדאי להציע חידוש'), משפחות ממתינות + 3 שמות, 'היום: …', 'תזכורות טלפון פתוחות' עד מחר, 'מיוחדים השבוע' עד 2, 'יום הולדת היום ל…'; ברירת מחדל 'הכל מעודכן — אין משימות דחופות הבוקר'",
+    "evidence_react": "src/components/home/homeData.ts:473-598 — digestLines עם כל 6 השורות באותם ניסוחים וספים (isoAddDays(1), עד 2 מיוחדים מ-4 הסוגים, 3 שמות ראשונים), + שורת 'שבוע דחוף' חדשה כשיש פריטים קריטיים; מגודר home.digest",
+    "detail": "פורט מלא מילה-במילה + תוספת שורת דחיפות; מודע-מודולים (שורות של מודול כבוי מושמטות)",
+    "importance": "high"
+   },
+   {
+    "feature": "קרוסלת אירועים קרובים בבית",
+    "status": "different",
+    "evidence_legacy": "סריקת 14 ימים: ימי הולדת + כל אירוע לא-בוצע עם אייקוני ICM — memorial 🕯, wedding/anniversary 💍, bday 🎂, call 📞, reminder 🔔, org ✦; מקס' 10 פריטים / 8 נקודות; מתחלפת כל 5000ms",
+    "evidence_react": "src/components/home/homeData.ts:727-776 — carouselItems: 14 ימים, עד 10 פריטים, 'היום!/מחר/בעוד N ימים', CTA 'לכרטיס המשפחה ←'/'ללוח השנה ←', טקסטי ריק זהים ('אין אירועים קרובים'/'14 הימים הקרובים שקטים'); widgets.tsx:175-241 — רוטציה 5000ms + נקודות; מגודר home.carousel",
+    "detail": "שני פערים: (1) תזכורות ושיחות (call/reminder) לא נכנסות לקרוסלה — הלגאסי כלל כל אירוע לא-בוצע, ה-React רק wedding/memorial/anniversary/bday/org/custom; (2) סט האייקונים צומצם — 🕯️ לאזכרה, 🎂 ליום הולדת, וכל השאר 🎉 (אין 💍/📞/🔔/✦). הרוטציה, המבנה והטקסטים זהים",
+    "importance": "low"
+   },
+   {
+    "feature": "תצוגת יום בלוח השנה (dayV)",
+    "status": "partial",
+    "evidence_legacy": "כותרת Intl מלאה + שורה עברית; הפרדת כל-היום/מתוזמן ממוין לפי שעה; שורת חוג עם sub 'מורה · חדר · N רשומים' ו'לניקוב ←'; אירוע — sub מההערות ו'עריכה'; 'N אירועים ביום זה'; blockReason; ניווט יום קדימה/אחורה; '+ אירוע חדש'",
+    "evidence_react": "src/components/calendar/DayModal.tsx — כותרת Intl + שורה עברית (hebDateFull), חלוקת כל-היום (sort 2/2.4/2.6)/שורות מתוזמנות ממוינות, 'N אירועים ביום זה', באנר 'היום חסום לתזמון חוגים: …', ניווט קודם/היום/הבא, '+ אירוע חדש', 'לניקוב ←' ו'עריכה' — הכל קיים; מגודר calendar.dayview",
+    "detail": "חסרה שורת המשנה: בלגאסי שורת מפגש חוג הציגה 'מורה · חדר · N רשומים' ואירוע הציג את ההערות — ב-React השורה מציגה רק שעה+תווית+סוג בלי מורה/חדר/מונה רשומים ובלי notes. שאר ההתנהגות זהה (כולל allDay ב-sort 2.4/2.6 שהלגאסי דווקא לא כלל ב-allDay — הרחבה קטנה)",
+    "importance": "low"
+   },
+   {
+    "feature": "יומן חדר (diary)",
+    "status": "present",
+    "evidence_legacy": "מודאל יומן לחדר: משבצות מ-from עד to (8-20), 15:00 'ניקיון יומי (15:00–16:00)', זיהוי 'חוג: X'/'אירוע: X'/'חסום — סיבה'/'פנוי', משבצת פנויה מזמינה אירוע עם notes='חדר: X' ו-evReturn, כותרת 'משבצות של 60 דק׳ · עד N משתתפים · נגיש · עד 3 פריטי ציוד', ניווט יום, כפתור להגדרות החדר",
+    "evidence_react": "src/components/diary/lib.ts:108-189 — buildSlots: from/to עם ברירות 8:00/20:00, ניקיון 15:00–16:00 באותה מחרוזת, kinds free/blocked/cleaning/course/event עם אותם צבעים; DiaryView.tsx — מסך מלא (לא מודאל) עם צ'יפי חדרים, HebDateInput, הזמנת משבצת פנויה (prefill notes 'חדר: X') עם הטוסט הזהה, roomInfoLabel זהה כולל עד 3 פריטי ציוד; בנוסף: פאנל נוכחות, מפגשים מחוץ לשעות, ניצולת שבועית (diary.booking/diary.utilization)",
+    "detail": "פורט מלא ואף מורחב (נוכחות + ניצולת). הבדל זניח: אין כפתור קפיצה ישירה להגדרות החדר מתוך היומן, והיומן הוא מסך ניווט ראשי במקום מודאל",
+    "importance": "high"
+   },
+   {
+    "feature": "מודל אירוע: עברי/לועזי, עדיפות, קישורים (eventForm)",
+    "status": "partial",
+    "evidence_legacy": "שדות מלאים + בורר עברי מלא + צ'יפים מהירים לתאריך (היום/שבוע/חודש/חודשיים/3 חודשים — evQuickDates); שורת 'תאריך עברי: … · חוזר מדי שנה'; מחיקה עם 'האירוע נמחק מהלוח'; כותרות 'עריכת אירוע'/'אירוע חדש', 'שמירת שינויים'/'הוספה ללוח'",
+    "evidence_react": "src/components/calendar/EventModal.tsx — כל השדות (title/date/time/type+custom/priority/price/roomId/famId/notes/done), HebDateInput דו-לוחי, שורת התאריך העברי + הערת החזרתיות, מחיקה בשתי לחיצות עם הטוסט הזהה, כותרות וכפתורים מילה-במילה; grep 'חודשיים' — אין צ'יפי תאריך מהירים",
+    "detail": "חסרים צ'יפי התאריכים המהירים (evQuickDates: היום/שבוע/חודש/חודשיים/3 חודשים) שהיו מתחת לשדה התאריך. בנוסף תוויות הסוגים קוצרו ('ארגוני' במקום 'אירוע ארגון', 'שיחה' במקום 'תזכורת טלפון (מעקב)', בלי הסיומות '(חוזרת בתאריך העברי)' — המידע הזה עבר לשורת ההד העברית). placeholder 'בר מצווה, ברית, סיום מחזור…' נשמר",
+    "importance": "low"
+   },
+   {
+    "feature": "לוח חודשי עם גריד עברי ומצב דחוף (בקרות)",
+    "status": "present",
+    "evidence_legacy": "ניווט חודשים עברי דרך _hebNav.prevIso/nextIso; 'גריד עברי ✓'/'גריד לועזי'; goToday עם טוסט 'היום: <תאריך>'; מתג 'דחוף בלבד'; calChips; monthLabel+hebMonthLabel",
+    "evidence_react": "src/components/calendar/CalendarView.tsx:230-296 — prevMonth/nextMonth דרך grid.prevIso/nextIso, כפתור 'גריד עברי ✓'/'גריד לועזי' (זהה), goToday (בלי טוסט), 'דחוף בלבד', צ'יפים, PageHead עם שתי הכותרות",
+    "detail": "הכל קיים; פער קוסמטי יחיד — 'היום' לא מציג את הטוסט 'היום: <תאריך>'",
+    "importance": "medium"
+   },
+   {
+    "feature": "לוח שנה חודשי — מבנה המסך (markup)",
+    "status": "present",
+    "evidence_legacy": "כותרת עברית ראשית + לועזית, toggle גריד, 'היום', '+ אירוע חדש', '📊 דו\"ח מותאם', 'שכבות:' + '● דחופים בלבד', גריד ראשון–שבת, תא עם יום עברי בעיגול + לועזי קטן, גלולות עם פס דחיפות + 'עוד N', עמודת 'אירועים ותזכורות קרובים' (קוביית תאריך, נקודת דחיפות, badge, ✎, '✓ בוצע'), מקרא 6 צבעים",
+    "evidence_react": "src/components/calendar/CalendarView.tsx — כל הרכיבים: PageHead עם שתי כותרות (הראשית מתחלפת לפי המצב), '📊 דו\"ח מותאם' פותח CustomExport target='events', 'שכבות:', DayCell עם עיגול היום העברי + מספר לועזי + עד 3 גלולות עם borderRight דחיפות + '+N נוספים', section 'אירועים ותזכורות קרובים' עם קוביית תאריך/נקודה/badge/✎/'✓ בוצע', מקרא 6 פריטים",
+    "detail": "שקילות כמעט מלאה. הבדלים זעירים: הרכב המקרא — הלגאסי כלל 'יום הולדת' וה-React מציג 'אזכרה' במקומו; במצב לועזי הכותרת הראשית לועזית (בלגאסי העברית תמיד ראשית); '+N נוספים' במקום 'עוד N'",
+    "importance": "high"
+   },
+   {
+    "feature": "תצוגה יומית — מבנה המסך (markup)",
+    "status": "partial",
+    "evidence_legacy": "כותרת עברית + day.title + countLabel, badge 'חסום לתזמון חוגים: X', chips כל-היום, ציר זמן: שעה + נקודת דחיפות + פס צבע + כותרת/משנה + badge סוג + כפתור פעולה, ניווט קודם/היום/הבא, '+ אירוע', ריק 'אין אירועים ביום זה — הוסיפו אירוע'",
+    "evidence_react": "src/components/calendar/DayModal.tsx — כל המבנה קיים: כותרות, chips כל-היום, ציר זמן עם שעה/צבע/badge/כפתור פעולה, באנר חסימה, ניווט, '+ אירוע חדש'; ריק — 'אין אירועים ביום זה' (בלי 'הוסיפו אירוע')",
+    "detail": "אותו פער כמו dayV: אין שורת משנה (מורה · חדר · N רשומים / הערות אירוע) בשורות הציר; טקסט הריק קוצר. כל השאר קיים ומכבד את פילטרי הלוח (שיפור על המקור)",
+    "importance": "low"
+   },
+   {
+    "feature": "טופס אירוע — מבנה (eventModal markup)",
+    "status": "partial",
+    "evidence_legacy": "title* ('ישיבת צוות'), תאריך* עם toggle לועזי/עברי + chips תאריכים מהירים, שעה, 'מחיר האירוע (₪)', חדר (רשות), 8 סוגים עם תיאורי חזרתיות, 'רמת דחיפות' (רגיל ירוק/בינוני כתום/דחוף אדום), 'שיוך למשפחה (רשות)', שורת תאריך עברי, notes, '🗑 מחיקה'",
+    "evidence_react": "src/components/calendar/EventModal.tsx — title עם placeholder 'לדוגמה: ישיבת צוות', HebDateInput עם toggle עברי/לועזי, 'מחיר האירוע (₪)', 'חדר (רשות)', 'רמת דחיפות' עם שלוש הרמות באותם ניסוחים, 'שיוך למשפחה (רשות)', שורת התאריך העברי + חזרתיות, notes, '🗑 מחיקה' (בשתי לחיצות)",
+    "detail": "הפער היחיד המהותי: chips התאריכים המהירים (evQuickDates) חסרים; תוויות הסוגים קוצרו כמפורט לעיל. תוספת ב-React: checkbox 'בוצע ✓' בטופס",
+    "importance": "low"
+   },
+   {
+    "feature": "מרכז הטיפול",
+    "status": "partial",
+    "evidence_legacy": "careCountLabel; כפתורי '↻ רענון ממצאי בדיקה' ו'איפוס סימוני \"טופל\"'; 4 tier tiles לחיצים (מונה + אחוז בר) לסינון; chips סינון (careChips); שורות תגית+כותרת+'לטיפול ←'+'✓ טופל'; ריק '✓ הכל טופל — אין פריטים פתוחים'",
+    "evidence_react": "src/components/home/widgets.tsx:730-820 — AttentionWidget ('דורש טיפול', home.care): badge מונה, צ'יפי סינון לפי תגית עם מונים, שורות תגית+כותרת+'לטפל ←'+'✓ טופל', 'הצג שטופלו (N)' עם תאריך סימון וכפתור 'ביטול' פר-פריט, ריק 'הכל מטופל ✓'; src/types/domain.ts:406 — attnDone נשמר ב-DB; useApp.ts:149,324 — mark/unmark + ניקוי סימונים ישנים אוטומטי",
+    "detail": "הליבה (סימון טופל, סינון, מונים) קיימת כווידג'ט בבית. חסר: (1) 4 אריחי הדרגות (tier tiles עם מונה ואחוז-בר) לסינון — tierOf/credSummary קיימים ב-src/components/families/lib.ts:53-54 וב-homeData.ts:645 אך לא חוברו לווידג'ט; (2) כפתור 'איפוס סימוני טופל' גורף — יש רק ביטול פר-פריט (וניקוי אוטומטי של ישנים); (3) '↻ רענון ממצאי בדיקה' — מיותר ב-React (חישוב ריאקטיבי), אין בו פער פונקציונלי אמיתי",
+    "importance": "medium"
+   }
+  ],
+  "summary": "תחום האירועים והלוח פורט ל-maor-system ברמה גבוהה מאוד: מנוע הלוח כולו (calLib.ts, hebrew.ts, hebdate.ts, eventMeta.ts) — גריד עברי מלא, חזרה שנתית עברית (כולל שיפור דין אדר שלא היה בלגאסי), חסימות שבת/חג/חול-המועד, התנגשויות חדר, תצוגת יום, יומן חדרים (מורחב עם נוכחות וניצולת), תקציר בוקר וקרוסלה — קיימים עם המחרוזות המקוריות ומאחורי דגלי פיצ'ר. הפערים שנמצאו בקוד בפועל: (1) ברירת המחדל של הגריד התהפכה — הלגאסי נפתח בחודש עברי, ה-React בלועזי; (2) ימי הולדת עברו מ-MM-DD לועזי לחזרה עברית ופריט 'הצטרפות' ביום ההצטרפות עצמו הוחלף בימי-שנה בלבד; (3) פאנל 'קרובים' צומצם ל-14 יום, אירועי-יומן בלבד, בלי ימי הולדת ובלי ניווט למשפחה; (4) אין את האזהרה הרכה '⚠ התנגשות עם X בשעה Y' בשמירת אירוע; (5) לחיצה על אירוע עם famId פותחת עריכה במקום כרטיס המשפחה; (6) חסרים צ'יפי תאריכים מהירים בטופס האירוע, nextOccurLabel, שורת המשנה (מורה·חדר·N רשומים) בתצוגת היום, וטוסט 'היום'; (7) מרכז הטיפול קיים כווידג'ט בית עם סימון-טופל וסינון, אך בלי אריחי הדרגות ואיפוס גורף. שום פער אינו שובר-שימוש; רובם הבדלי-כלל מכוונים או קוסמטיים, והבולטים ללקוח הם ברירת המחדל של הגריד העברי והתנהגות ימי ההולדת."
+ },
+ {
+  "domain": "families",
+  "gaps": [
+   {
+    "feature": "מודל נתונים — משפחה",
+    "status": "present",
+    "evidence_legacy": "שדות מלאים: id, name, הורים+ת\"ז, phone/phone2, email, address, city, status, notes, docs[], members[], community, maritalStatus, language, tzedaka, fullSefach, discount, cred{score,log}, createdAt",
+    "evidence_react": "src/types/domain.ts (interface Family, שורות 65-96) — כל השדות קיימים אחד-לאחד, בתוספת kidsHome/kidsMarried. docs שודרגו מרשימת שמות לאובייקטים {id,name,addedAt}; fullSefach הפך boolean (במקום 'yes'/'no'); cred.log משתמש ב-reason במקום desc",
+    "detail": "אין דלתא מהותית — רק שיפורי טיפוסים. emptyFamily נותן cred 700 כמו במקור",
+    "importance": "high"
+   },
+   {
+    "feature": "מודל נתונים — בן משפחה (ילד/הורה)",
+    "status": "present",
+    "evidence_legacy": "id, first, gender, birth, idNum, phone, phone2, school, grade, health, notes, isParent + 5 דגלי מדיה (mSefach/mInvite/mRecommend/mPhotos/mVideos)",
+    "evidence_react": "src/types/domain.ts (interface Member, שורות 21-42) — כל השדות כולל isParent וחמשת דגלי המדיה",
+    "importance": "high"
+   },
+   {
+    "feature": "טופס משפחה — ולידציות, שדות '__other' ושדות מלאים (כולל familyModal)",
+    "status": "present",
+    "evidence_legacy": "שם חובה; maritalStatus/language '__other' מחייבים הקלדה; ת\"ז הורים validId עם 'ת\"ז האב אינה תקינה (ספרת ביקורת שגויה)'; community ריק→'כללי'; ברירות מחדל: status active, שפה עברית, קהילה חסידי; משפחה חדשה 'f'+seq + createdAt + unshift לראש + recentIds",
+    "evidence_react": "src/components/families/FamilyForm.tsx — כל הוולידציות ואותן הודעות שגיאה מילה-במילה; ברירות מחדל זהות (חסידי/עברית/active, initState שורות 38-63); community ריק→'כללי' (שורה 138); nextId('f') + createdAt + upsertIn לראש הרשימה + מעבר לכרטיס. תת-קהילה כקלט חופשי + צ'יפים של קהילות קיימות (מקביל ל-datalist). כל שדות familyModal קיימים (tzedaka, discount, fullSefach, kidsHome/kidsMarried)",
+    "detail": "פער זעיר: מנגנון recentIds (6 משפחות אחרונות שנפתחו) לא קיים — יש רק ווידג'ט 'משפחות אחרונות' לפי createdAt (home/homeData.ts recentFamilies). בנוסף אין גדרת 'אדמין' על '+ משפחה חדשה' — אין מערכת תפקידים ב-React בכלל",
+    "importance": "high"
+   },
+   {
+    "feature": "טופס בן משפחה — תאריך עברי, צ'יפי מדיה וזרימת 'הוסף ושבץ' (memberModal)",
+    "status": "present",
+    "evidence_legacy": "שם פרטי חובה; ת\"ז validId; לידה במצב עברי (יום בגימטריה/חודש כולל אדר א׳-ב׳/שנה בגימטריה) עם סנכרון מהלועזי; שורת תאריך עברי חיה; 5 צ'יפי תיעוד; afterMember='join' חוזר לשיבוץ עם הילד החדש",
+    "evidence_react": "src/components/families/MemberForm.tsx (ולידציות + hebLine 'בן/בת X · תאריך עברי:' + צ'יפי מדיה מאחורי דגל families.media) + src/components/HebDateInput.tsx (עברי ברירת מחדל, גימטריה, אדר א׳/ב׳, סנכרון דו-כיווני, רמז 'התאריך לא קיים בשנה זו') + src/components/families/JoinModal.tsx (openMemberForm/closeMemberForm — membersBefore ref מזהה את החדש ובוחר אותו אוטומטית)",
+    "detail": "הטוסט שונה מעט ('X נוסף/ה למשפחה' במקום 'X נוסף/ה — ממשיכים בשיבוץ מאותה נקודה'); טווח שנים 104 שנים מ-hebYearNow+3 (לעומת 96 מ-5787) — שקילות מעשית",
+    "importance": "high"
+   },
+   {
+    "feature": "מנוע מדד האמינות — credEvent/TrendFactor/runDecay/התראת אדום",
+    "status": "different",
+    "evidence_legacy": "tf=0.8+0.4*(חיוביות מ-3 אחרונות) מוחל על כל דלתא (applied=Math.round(delta*tf)); לוג נחתך ל-20; סיומת ' (TrendFactor X.X)'; ירידה לדרגת red (<500) → טוסט 'התראה למנהל: … ירדה לסטטוס אדום — SMS/מייל יישלחו בגרסה המחוברת'; runDecay ידני מההגדרות ('הרץ עכשיו'), -2 כשאין רשומת לוג ב-14 יום, תיאור 'Decay — חוסר פעילות 14+ ימים'",
+    "evidence_react": "src/store/useApp.ts — trendFactor (שורות 282-288) + addCred (627-655) + runDecay (656-688). tierOf ב-src/components/families/lib.ts זהה למקור (950/800/500 + צבעים)",
+    "detail": "ארבע דלתות שונות: (1) TrendFactor מוחל רק על דלתאות חיוביות — חיובים (No-Show -20 וכו') עוברים כמות שהם, בניגוד למקור שמכפיל גם שליליים; (2) הלוג נחתך ל-200 במקום 20; הסיומת הפכה ' (מקדם מגמה X.X)'; (3) התראת האדום עברה לסף score<300 (חציית 300 כלפי מטה) במקום ירידה לדרגת red (<500), עם נוסח אחר ('⚠ משפחת X ירדה למדד אדום — מומלץ ליצור קשר'); (4) runDecay רץ אוטומטית פעם ביום בטעינה (מפתח maor_decay) במקום כפתור ידני בהגדרות, התיאור 'דעיכה — חוסר פעילות', רשומות דעיכה לא נספרות כפעילות ויש fallback ל-createdAt (מונע דעיכת משפחה חדשה) — התנהגות עסקית שונה מהלגאסי, בחלקה משופרת",
+    "importance": "medium"
+   },
+   {
+    "feature": "פאנל מדד אמינות בכרטיס המשפחה",
+    "status": "partial",
+    "evidence_legacy": "ציון/1000, דרגה+נקודה, pct=min(100,score/10), 3 רשומות לוג עם דלתא צבועה, כפתור '+ פעולה קהילתית (15)', 'איך משפרים?' (credHelp — שורת הכללים המלאה), Override 0-1000 אדמין-בלבד עם 'ציון Override חייב להיות 0–1000' ו'הציון עודכן ידנית'",
+    "evidence_react": "src/components/families/FamilyPanels.tsx (CredPanel, שורות 97-186) — ציון/1000, צ'יפ דרגה, בר pct זהה, '+ פעולה קהילתית (15)' עם אותו reason, Override עם אותן הודעות מילה-במילה, לוג עד 8 רשומות עם צבעי דלתא; תוספת: כפתורי +5/−5 'התאמה ידנית של מנהל'. מאחורי דגל families.cred",
+    "detail": "חסר: כפתור 'איך משפרים?' שפותח את שורת כללי הניקוד; Override אינו מוגבל לאדמין (אין מערכת תפקידים). מוצגות 8 רשומות לוג במקום 3 (שיפור)",
+    "importance": "low"
+   },
+   {
+    "feature": "מד אמינות ארגוני בדשבורד (credV) + אריחי דרגות בבית (tierTiles)",
+    "status": "partial",
+    "evidence_legacy": "ממוצע עם מחט על סקאלה, היסטוגרמה 20 סלים של 50 נק' בצבעי אזור, מגמת היום (סכום דלתאות מהיום), 3 המשפחות בסיכון עם פתיחת כרטיס; tierTiles — ספירה לדרגה + פס אחוזים (מינ' 4%) + קליק שמנווט למשפחות עם fTier מסונן ו-famAdv פתוח",
+    "evidence_react": "src/components/home/homeData.ts (credSummary שורות 638-654, redCred שורות 393-405) + src/components/home/widgets.tsx (CommunityWidget שורות 948-983) — ווידג'ט 'אמינות קהילתית': ממוצע כ-badge + ספירה לכל אחת מ-4 הדרגות (reuse של tierOf), קליק כללי למסך המשפחות",
+    "detail": "חסרים: מחט/סקאלה, היסטוגרמת 20 הסלים, מגמת היום, רשימת 3 המשפחות בסיכון, פסי אחוזים, וניווט-עם-סינון-דרגה (הקליק מוביל למשפחות בלי fTier). פריט 'דורש טיפול' למשפחות אדומות קיים אך בסף שונה — score<300 במקום דרגת red <500 (homeData.ts:393)",
+    "importance": "medium"
+   },
+   {
+    "feature": "מחיקות מדורגות בשני קליקים (armDel)",
+    "status": "different",
+    "evidence_legacy": "קליק ראשון 'לאשר…?' שפג אחרי 3500ms — למשפחה (כולל בני משפחה ושיבוצים), בן משפחה, חוג, תומכת ושיבוץ (rmConfirmId), עם טוסטים מפורטים",
+    "evidence_react": "src/components/families/FamilyDetail.tsx — onDeleteFamily/onDeleteMember משתמשים ב-window.confirm (דיאלוג דפדפן) במקום שני קליקים; המפל נשמר: deleteFamily ב-src/store/useApp.ts (565-576) מוחק גם שיבוצי החברים ואירועי famId, deleteMember מוחק שיבוצים + תזכורות dueEventId. דפוס שני-הקליקים כן קיים ב-DocsPanel (הסרת מסמך), ManageModal (הסרת שיבוץ, עם חסימת 400ms נגד דאבל-קליק) ו-DedupModal ('לאשר מיזוג סופי?')",
+    "detail": "ה-UX שונה: מחיקת משפחה/בן משפחה עברה ל-window.confirm; היכן שנשמר דפוס שני-קליקים אין פקיעה אוטומטית של 3500ms (ה'חימוש' נשאר עד פעולה). הבטיחות הפונקציונלית (אישור לפני מחיקה + מפל מחיקות) קיימת במלואה",
+    "importance": "low"
+   },
+   {
+    "feature": "מיזוג כפילויות — שלושה מסלולים (dupFieldMerge / dupMerge / dupDrop) + מודל dupCmp",
+    "status": "different",
+    "evidence_legacy": "מודאל השוואה שדה-שדה על 18 שדות: הדגשת שדות שונים בצהוב, בחירת ערך פר-שדה מכל רשומה (dupPick), עריכה ידנית (dupEdit), '✓ מזג לפי הבחירה', מחיקת רשומה בודדת, '🗑 מחיקת כולן' (dupDrop), 'שתיהן תקינות — סגור'; dupMerge אוטומטי: מילוי ריקים, phone שונה→phone2, מקס' ילדים, שדרוג ל-active, הערות ' | מוזג: '",
+    "evidence_react": "src/components/families/DedupModal.tsx + src/lib/dedup.ts — זיהוי אוטומטי של קבוצות (Union-Find לפי טלפון מנורמל או שם+עיר), בחירת 'שומר' ברדיו, תצוגה מקדימה של תוצאת המיזוג, מיזוג באישור דו-שלבי, 'לא כפילות' לדחייה; mergeFamilies מממש את הלוגיקה של dupMerge (מילוי ריקים, phone2, מקס' ילדים, סטטוס גבוה, ' | מוזג: ', דה-דופ members לפי id תוך שמירת המזהים — השיבוצים שורדים). מאחורי דגל settings.dedup",
+    "detail": "מסלול המיזוג האוטומטי (dupMerge) קיים ואף בטוח יותר (בני משפחה שומרים מזהים). חסרים לגמרי: מיזוג שדה-שדה עם בחירה/עריכה ידנית פר-שדה והדגשת הבדלים בצהוב (dupFieldMerge), ומחיקת רשומות כפולות בלי מיזוג (dupDrop). קריטריון הזיהוי שונה: שם+עיר (במקום שם מנורמל+טלפון תואם/חסר); ב-audit יש גם זיהוי שם+שם-האם אך בלי כפתור מיזוג משם",
+    "importance": "medium"
+   },
+   {
+    "feature": "ציר זמן משפחתי מאוחד (famHistoryOf)",
+    "status": "partial",
+    "evidence_legacy": "איחוד כרונולוגי: הצטרפות, אמינות (+N נק׳), שיבוץ, תשלום ('תשלום ₪X (method) — חוג · rid'), חיסור/No-Show עם 'זכאי/ת השלמה', ואירועי משפחה (כולל '✓ בוצע'); עד 40 פעולות",
+    "evidence_react": "src/components/families/lib.ts (famHistoryOf, שורות 135-171) — הצטרפות, לוג אמינות עם '+N נק׳', שיבוצים, תשלומים (פורמט זהה), היעדרויות/No-Show עם 'זכאי/ת השלמה', ובנוסף מסמכים; מיון יורד ו-slice(0,40) זהים. תצוגה ב-FamilyPanels.tsx (HistoryPanel) + '⬇ דוח משפחה' מלא כ-txt (familyReportLines) מאחורי דגלי families.history/families.report",
+    "detail": "חסרה שכבת אירועי המשפחה מהלוח (כולל סימון '✓ בוצע') בציר הזמן — האירועים מוצגים בפאנל נפרד אך לא נשזרים בהיסטוריה. נוספה שכבת מסמכים שלא הייתה במקור",
+    "importance": "low"
+   },
+   {
+    "feature": "גלגל מאתר המשפחות (famWheel + famLockPass + תצוגת הגלגל החי)",
+    "status": "present",
+    "evidence_legacy": "9 צירים (עיר/קהילה/מצב משפחתי/סטטוס/אמינות/ילדים/חוגים/ספח/שפה), ברירות 'לא ידוע'/700, אופציות עם ספירה עד 8, טבעת conic מסתובבת, מונה במרכז, צ'יפי נעילה עם ✕, נעילות מסננות את הטבלה חי, 'הצג בטבלה' ממפה ל-fTier/סטטוס עם ST_REV ומדליק famAdv",
+    "evidence_react": "src/components/families/lib.ts (finderAxes/finderAxisValue/finderMatches — 9 הצירים באותו סדר, 'לא ידוע' למצב משפחתי, cred??700) + src/components/families/FamilyFinder.tsx (טבעת conic-gradient מסתובבת, מונה במרכז, צ'יפים עם ✕ ששחרורם מפיל את הנעילות שאחריהם, 8 אופציות עם ספירה, 8 תוצאות + '+N נוספות') + FamiliesView.tsx שורה 123 (סינון הטבלה חי כשהגלגל פתוח) ו-applyFinder (221-240) עם stRev/tierRev זהים. דגל families.finder",
+    "detail": "הבדל קוסמטי: כרטיס בתוך הדף במקום שכבת-על; אין טוסט 'הסינון הוחל על טבלת המשפחות' אחרי ההחלה",
+    "importance": "high"
+   },
+   {
+    "feature": "סינון וחיפוש משפחות רב-שכבתי + טבלה (מיון עמודות, colF, famAdv, גריד)",
+    "status": "present",
+    "evidence_legacy": "match(f): famLockPass+statusFilter+cityFilter+commFilter+commMulti+colF (שם/טלפון/ילדים/קורסים עם numMatch)+famAdv (מצב משפחתי/שפה/ספח/ילדים/חוגים/fTier)+חיפוש חופשי כולל בני משפחה וטלפון; advCount; מיון name/phone/kids/courses/status (סטטוס: active=0,pending=1,inactive=2, locale he); מונה; רשימה/גריד נשמר",
+    "evidence_react": "src/components/families/FamiliesView.tsx — כל השכבות: prefiltered (117-141) עם status/city/comm/commMulti/colF/adv/finder-locks, numMatch זהה (lib.ts 110-119), חיפוש חכם smartFilter על שם/הורים/עיר/קהילה/טלפונים-כספרות/שמות ילדים, sortVal עם אותו מיפוי סטטוס ו-localeCompare('he'), advCount, '⏷ סינון עמודות' עם placeholders '3 / 3+ / 2-4', תת-קהילות בבחירה מרובה, 'נקה הכל', רשימה/גריד נשמר ב-db.ui.famView",
+    "detail": "מיון בשני מצבים (▲/▼) במקום שלושה (אין מצב 'כבוי' שלישי); המונה מציג 'N משפחות · M ילדים' במקום 'X מתוך Y' — זניח",
+    "importance": "high"
+   },
+   {
+    "feature": "הצעות השלמה בחיפוש משפחות (famSuggests)",
+    "status": "present",
+    "evidence_legacy": "לפי הטוקן האחרון — prefix או Levenshtein≤1 (טוקן ≥3) על name/father/mother/city/community/שמות ילדים; עד 7; לחיצה מחליפה את הטוקן האחרון ומוסיפה רווח",
+    "evidence_react": "src/components/families/FamiliesView.tsx (שורות 176-198) — לוגיקה זהה אחד-לאחד כולל תקרת 7, צ'יפים תחת 'חיזוי:', applySuggest שמחליף את הטוקן האחרון ומוסיף רווח; levenshtein מ-src/lib/search.ts",
+    "importance": "low"
+   },
+   {
+    "feature": "כרטיס משפחה מלא — כותרת, בני משפחה, שיבוצים, מסמכים, אירועים, פרטי קשר",
+    "status": "partial",
+    "evidence_legacy": "אווטאר+badges (סטטוס/קהילה/הנחה/joined), מסכת ת\"ז, ספח, כרטיסי 'אב/אם (להשלמה)' שפותחים שיבוץ __pf/__pm או טופס isParent, צ'יפ מגדר, גיל+תאריך עברי, טבלת שיבוצים עם כפתורי ניקוב/⚙ ניהול/🤒 חיסור/🎫 כרטיסייה/מחיקה כפולה ופס יתרה צבעוני, אירועים מיוחדים עם '+ אירוע' (ברירת מחדל wedding/green) ו'הקרוב:' לחוזרים, docs עם badge ספח, היסטוריה עם '⬇ דוח מלא'",
+    "evidence_react": "src/components/families/FamilyDetail.tsx + FamilyPanels.tsx — קיימים: אווטאר, כל ה-badges (כולל discount/joined בעברי), מסכת ת\"ז '•••••'+2 עם הצג/הסתר, צ'יפ ספח, פרטים נוספים (tzedaka/שפה/קהילה/מצב משפחתי), כרטיסי חברים עם צ'יפ אם/אב/בת/בן בצבעים, 'בן/בת N'/'גיל לא ידוע', תאריך עברי+לועזי, צ'יפי מדיה, מסמכים, פאנל אמינות, EnrollPanel עם צבעי יתרה (dc2626/d97706/16a34a) ו-➕ שיבוץ, אירועים מקושרים, היסטוריה עם ⬇ דוח",
+    "detail": "חסרים בכרטיס: (1) פעולות השיבוץ בתוך הכרטיס — ניקוב, ⚙ ניהול, 🤒 חיסור, 🎫 קניית כרטיסייה ומחיקת שיבוץ. כולן קיימות במערכת אך רק מכרטיס החוג (courses/CourseDetail.tsx שורות 96-109, 395-416) ומהיומן (diary/AttendancePanel.tsx) — טבלת השיבוצים בכרטיס המשפחה היא קריאה-בלבד; (2) כרטיסי 'אב/אם (להשלמה)' — ההורים הווירטואליים קיימים רק בתוך JoinModal; (3) הוספת אירוע מהכרטיס (EventsPanel תצוגה בלבד — 'ניתן להוסיף מתוך לוח השנה') ותווית 'הקרוב:' לאירועים חוזרים",
+    "importance": "high"
+   },
+   {
+    "feature": "מודל 'שיבוץ' מכרטיס משפחה (join) — __pf/__pm, typeahead, סינון גיל/מגדר",
+    "status": "different",
+    "evidence_legacy": "typeahead חכם לבן משפחה ולחוג; הורים וירטואליים __pf/__pm שנוצרים כ-Member ('mp'+seq) בשמירה; סינון חוגים קשיח: לא רשום, לא מלא, תואם מגדר וגיל (ageMax??99; בלי תאריך לידה — רק ageMax>=16); מתג joinShowAll; '＋ אין עדיין בני משפחה — הוספה מהירה'; בחירת קבוצה",
+    "evidence_react": "src/components/families/JoinModal.tsx — typeahead כפול עם smartFilter (עד 7), הורים וירטואליים __pf/__pm שנוצרים כ-Member עם nextId('mp') ו-isParent בשמירה בלבד (184-225), חסימת כפל-שיבוץ, שער קיבולת 'מלא (n/max)', ולידציית ניקובים>0, בחירת קבוצה, ➕ הוספה מהירה וחזרה לשיבוץ. דגל families.join",
+    "detail": "היפוך גישה מהותי: הלגאסי מסנן את רשימת החוגים לפי מגדר+גיל (עם מתג 'הצג גם לא-תואמי'), וילד ללא תאריך לידה רואה רק חוגים עם ageMax>=16; ה-React מציג את כל החוגים הפעילים ונותן רמזים מייעצים לא-חוסמים ('גיל X מחוץ לטווח', 'החוג מיועד לבנות בלבד') — אין סינון, אין מתג joinShowAll, ואין כלל ageMax>=16 לחסרי תאריך לידה. סינון החוגים כן קיים לפי תאריך סיום (רק חוגים שלא הסתיימו)",
+    "importance": "medium"
+   },
+   {
+    "feature": "רשימת משפחות — כפתורי פעולה ('⬆ ייבוא', '✓ בדיקת נתונים', '✦ מצא חוג', hint חיפוש גלובלי)",
+    "status": "partial",
+    "evidence_legacy": "בראש מסך המשפחות: '⬆ ייבוא' CSV, '✓ בדיקת נתונים', '✦ מצא חוג', '+ משפחה חדשה' (אדמין), hint 'חפש \"q\" בכל המערכת ←'",
+    "evidence_react": "src/components/families/FamiliesView.tsx (actions, שורות 278-292) — קיימים: החלפת תצוגה, '🔀 כפילויות' (settings.dedup), '➕ הוספת משפחה', '🎡 מאתר המשפחות'. ייבוא ובדיקת נתונים קיימים אך הועברו להגדרות (settings/ImportSection.tsx, settings/AuditSection.tsx); גלגל 'מצא חוג' קיים אך נפתח ממסך החוגים (courses/CoursesView.tsx:49); חיפוש גלובלי קיים כפלטת Ctrl+K (palette/CommandPalette.tsx) בלי hint בתוך שדה החיפוש",
+    "detail": "כל היכולות קיימות במערכת אך נקודות הכניסה ממסך המשפחות הוסרו — משתמש שרגיל לייבא/לבדוק נתונים מתוך מסך המשפחות יצטרך לנווט להגדרות",
+    "importance": "low"
+   },
+   {
+    "feature": "בדיקת תקינות נתונים (audit) — 8 קטגוריות, ייצוא, תיקון-0, מרכז טיפול",
+    "status": "partial",
+    "evidence_legacy": "מונה 'N ממצאים', chips לפי סוג עם צבעים, שורות לחיצות, '⬇ ייצוא דוח מלא', 'תיקון אוטומטי: השלמת 0', '← למרכז הטיפול', מצב נקי '✓ לא נמצאו בעיות', עד 80 שורות; חוקי טלפון/לוגיקה/ילדים/תומכות מלאים",
+    "evidence_react": "src/lib/audit.ts (runAudit — פורט מלא: 8 הקטגוריות באותם צבעים, חוקי הטלפון זהים כולל 'כנראה חסרה ספרת 0 מובילה', לוגיקת אלמן/גרושים/נשואים, גיל 0-25, ילד כפול שם+לידה, תשלום-יתר, תומכות כולל בדיקת עקביות מצבור שלא הייתה במקור) + src/components/settings/AuditSection.tsx (מונה, chips, שורות שפותחות כרטיס, ⬇ ייצוא, '📞 תיקון טלפונים אוטומטי' דרך fixAllPhones ב-useApp.ts:974-992, '✓ לא נמצאו בעיות — הנתונים תקינים'). דגל settings.audit",
+    "detail": "חסר רק כפתור '← למרכז הטיפול' (שליחת הממצאים לרשימת 'דורש טיפול'); אין תקרת 80 שורות (מוצג הכל — שיפור). חוק 'תרומה בסכום <=0' ו'nextDate שעבר' לתומכות מכוסים חלקית דרך ווידג'ט יעדי הקשר בבית",
+    "importance": "medium"
+   }
+  ],
+  "summary": "דומיין המשפחות הוא מהמפורטים ביותר ב-maor-system והכיסוי גבוה מאוד: מודל הנתונים, שני הטפסים (כולל קלט תאריך עברי מלא עם גימטריה ואדר א׳/ב׳), הסינון הרב-שכבתי, גלגל מאתר המשפחות על 9 צירים, הצעות ההשלמה, מנגנון tierOf (950/800/500) והביקורת ב-8 קטגוריות — כולם פורטים נאמנים עם אותם ספים, נוסחים והודעות, לרוב מאחורי דגלי פיצ'ר (families.cred/finder/join/history/media/report, settings.audit/dedup). הפערים המהותיים: (1) כרטיס המשפחה איבד את פעולות התפעול היומיומי — ניקוב, ניהול שיבוץ, חיסור וקניית כרטיסייה קיימים רק מכרטיס החוג והיומן, וטבלת השיבוצים בכרטיס היא קריאה-בלבד; חסרים גם כרטיסי 'אב/אם להשלמה' והוספת אירוע מהכרטיס; (2) מנוע האמינות שונה בפרטים עסקיים — TrendFactor מוחל רק על זיכויים, התראת האדום עברה לסף 300 (במקום ירידה מתחת 500), והדעיכה רצה אוטומטית יומית במקום ידנית; (3) מיזוג הכפילויות עוצב מחדש — המסלול האוטומטי קיים ובטוח יותר (שימור מזהי בני משפחה), אך מיזוג שדה-שדה עם בחירה ידנית ומחיקת-כולן חסרים; (4) מודאל השיבוץ מציג רמזים מייעצים במקום לסנן חוגים לפי גיל/מגדר; (5) הדשבורד מציג ממוצע+ספירות דרגות אך בלי היסטוגרמה, מגמת-היום ו-3 המשפחות בסיכון. אין מערכת תפקידים (אדמין) בכלל. סך הכל: לקוח שעובד ברמת הנתונים והסינון לא ירגיש פער; לקוח שהתרגל לתפעל ניקובים וחיסורים מתוך כרטיס המשפחה ירגיש שינוי זרימה משמעותי."
+ },
+ {
+  "domain": "shell",
+  "gaps": [
+   {
+    "feature": "מנוע חיפוש חכם עם תיקון שגיאות ותעתיק (norm / scoreTerm / XLAT / smartRank)",
+    "status": "present",
+    "evidence_legacy": "norm מסיר ניקוד/אותיות סופיות/גרשיים; scoreTerm: מדויק 100, prefix 80, גזע-ריבוי 70, substring 62, הסרת י/ו 58, Levenshtein ‎52-4d (סבילות 2 לאורך ≥6, אחרת 1); smartRank — AND על טוקנים, ממוצע ציונים, עד 7 תוצאות; מילון XLAT עברית/אנגלית/רוסית/כינויים",
+    "evidence_react": "src/lib/search.ts — פורט נאמן ומוצהר: אותו סולם ציונים בדיוק (100/80/70/62/58/52-4d, סבילות 1-2 לפי אורך), XLAT הועתק כלשונו כולל 'כהן'→cohen/kohen/коэн ו'משה'→moshe/моше/מוישי; src/lib/validate.ts normSearch — ניקוד, קיפול ךםןףץ, הסרת גרשיים/מקפים. smartScore/smartFilter עם AND על טוקנים + מעבר 'ביטוי שלם' חדש לתעתיקים רב-מילתיים",
+    "detail": "הבדלים זעירים: הציון הכולל הוא סכום המיטב לכל טוקן במקום ממוצע (לא משנה את הסדר בפועל), ומגבלת התוצאות בפלטה היא 12 במקום 7. XLAT קטן מעט מהמקור (שורות 522-528 בלגאסי כוללות עוד ערכים) אך הליבה זהה",
+    "importance": "high"
+   },
+   {
+    "feature": "פלטת פקודות ⌘K — ליבה, אינדוקס ישויות והצעות תיקון",
+    "status": "partial",
+    "evidence_legacy": "Cmd/Ctrl+K פותח/סוגר; אינדוקס משפחות (+XLAT, ת\"ז/טלפונים), מסמכים/ספחים, תלמידים, חוגים, תומכות, מורים, אירועים פתוחים, שיבוצים ('הרשמה #id'); ציון 130 להתאמת מזהה מספרי; קיבוץ תוצאות לפי סוג עם badge צבעוני ועד 3 בקבוצה; הצעות 'אולי התכוונת' עד 6 (lev≤1, עברית בלבד); Enter פותח תוצאה ראשונה; סקשן 'יתרות נמוכות' עם כפתורי 'לכרטיס' ו'נקב' במצב ריק",
+    "evidence_react": "src/components/palette/CommandPalette.tsx + src/App.tsx (שורות 136-145): Ctrl+K toggle, Escape, אינדוקס משפחות/בני משפחה/חוגים/מורים/תורמים/מסמכים/אירועים-פתוחים, ספרות טלפון ות\"ז כ-terms, חיפוש שיבוץ e123 מדויק, סקשן 'כרטיסיות מסתיימות' עם כפתור 'נקב ✓' inline במצב ריק, הצעות 'אולי התכוונת' (עד 3, lev≤2), Enter מפעיל את הנבחר (ברירת מחדל הראשון)",
+    "detail": "חסר מול הלגאסי: קיבוץ תוצאות לפי סוג עם badge צבעוני (בריאקט רשימה שטוחה עד 12); כלל ציון-130 למזהים מספריים (מוחלף באינדוקס ספרות רגיל — עובד אך מדורג אחרת); הצעות תיקון 3 במקום 6. תוספת בריאקט: gating לפי אזורי נעילת-מנהל (PII של מורים/תורמים לא מאונדקס לפני פתיחת נעילה)",
+    "importance": "high"
+   },
+   {
+    "feature": "פלטת פקודות — 16 פעולות מהירות עם gating אדמין",
+    "status": "partial",
+    "evidence_legacy": "'+ משפחה חדשה', '+ קורס חדש', '+ אירוע חדש', '+ תזכורת טלפון', 'ניקוב לקורס של היום', 'משפחות ממתינות לאישור', 'מי חוגג השבוע?', 3 ייצוא CSV, 'העתקת כל הטלפונים' (clipboard בפורמט 'משפחת X: טלפון'), '+ תומכת חדשה', 'ייבוא נתונים', 'בדיקת תקינות', 'מרכז הטיפול', 'הגדרות'; adminOnly מוסתר ממורה",
+    "evidence_react": "src/components/palette/CommandPalette.tsx baseCmds: 8 פקודות ניווט + 'משפחה חדשה', 'הורדת גיבוי מלא', 'גלגל החוגים', 'קיר ההשפעה', טיימר/קופה/מפת-גוף/איחוד-כפילויות (לפי דגלים), 'נעילה עכשיו'. חלק מהפעולות קיימות במקומות אחרים: ניקוב-היום ו'מי חוגג השבוע?' ב-hero (src/components/home/widgets.tsx שורות 349-374), ייצוא/ייבוא/בדיקת-תקינות בהגדרות (ExportSection/ImportSection/AuditSection), ממתינות-לאישור כפריט 'דורש טיפול'",
+    "detail": "חסרות לגמרי מהפלטה: 'העתקת כל הטלפונים' (לא קיים בשום מקום — grep clipboard מצא רק העתקת קוד הצפנה), '+ אירוע חדש', '+ תזכורת טלפון', '+ קורס חדש', '+ תומכת חדשה' כקיצורים ישירים, 'ניקוב לקורס של היום' כפעולת פלטה. gating האדמין הוחלף ב-gating לפי דגלי פיצ'ר + אזורי נעילה",
+    "importance": "medium"
+   },
+   {
+    "feature": "הגדרות ארגון, ערוצי התראות ודוחות תקופתיים",
+    "status": "present",
+    "evidence_legacy": "orgName/orgSite/orgDonate; notif={email:true, push:false, sms:true, strong:false} עם 'דחיפה חזקה' לחירום; מתגי reports לתדירויות + 'הפק עכשיו ⬇' (genReport txt); לוגו placeholder; הכל נשמר ב-DB",
+    "evidence_react": "src/components/settings/SettingsView.tsx — OrgSection (שם*/אתר/עמוד תרומות + יעד גיוס חדש), NotifSection עם 4 המתגים ואותם תיאורים בדיוק ('עוקפת מצב שקט — לשימוש חירום בלבד'); src/types/domain.ts שורה 445 — אותן ברירות מחדל בדיוק; src/components/reports/prefs.tsx — 4 מתגי daily/weekly/monthly/quarterly + 'הפק עכשיו ⬇' נאמן ל-genReport; לוגו דרך config.logoDataUri (אשף ההקמה)",
+    "detail": "זהה כמעט אחד-לאחד, כולל ברירות המחדל של ההתראות. מתגי הדוחות עברו ממסך ההגדרות למסך הדוחות (מודול reports)",
+    "importance": "high"
+   },
+   {
+    "feature": "תפקידים והרשאות (role מנהל/מורה + punchConfirm props)",
+    "status": "different",
+    "evidence_legacy": "props.role ברירת מחדל 'מנהל'; מורה מקבלת myTeacherId='t3' ורואה רק את הקורסים שלה (visCourses) כולל התראות כרטיסיות מסוננות; פעולות פלטה adminOnly מוסתרות; props.punchConfirm (ברירת מחדל false) מחייב לחיצת אישור שנייה לניקוב עם timeout 3000ms",
+    "evidence_react": "src/lib/config.ts isAdminUser — מנהל-על לפי config.adminEmails (מגביל אשף הקמה וערכת נושא בלבד, src/App.tsx שורה 217); src/lib/lock.ts + SecuritySection — נעילת PIN דו-שכבתית עם אזורים (settings/supporters וכו'); grep 'punchConfirm' — אפס תוצאות; grep role של מורה — אפס תוצאות",
+    "detail": "מודל ההרשאות הוחלף לחלוטין: אין תפקיד 'מורה' שמסנן קורסים לקורסים-שלה — כל משתמש רואה הכל (בכפוף לנעילות PIN). punchConfirm (אישור כפול לניקוב) לא קיים — אך ברירת המחדל בלגאסי היא false, כך שההתנהגות הדיפולטית זהה. אם יש לקוח שמפעיל role='מורה' — זה פער אמיתי",
+    "importance": "medium"
+   },
+   {
+    "feature": "פאנל נגישות + זום ממשק (uiScale + 4 מתגי acc)",
+    "status": "partial",
+    "evidence_legacy": "FAB ♿ כחול קבוע נגיש מכל מסך; זום 0.8–1.6 בצעדי 0.1 ('maorclean2_ui_scale') ממומש כ-monkey-patch על React.createElement שמכפיל fontSize בלבד ('הטקסט בלבד, הפריסה נשארת'); 4 מתגים contrast/links/noanim/spacing כ-data-attrs + 'maorclean2_acc'; 'הגדרות הנגישות אופסו'",
+    "evidence_react": "src/components/settings/AccessSection.tsx — סליידר 0.8–1.5 ('maor_ui_scale') ממומש כ-body zoom (כל הממשק, לא רק טקסט); אותם 4 מתגים בדיוק עם אותם data-attributes (data-contrast/noanim/links/spacing, 'maor_acc'); כפתור 'איפוס כל הגדרות הנגישות' + טוסט 'הגדרות הנגישות אופסו'; החלה גם בעליית האפליקציה",
+    "detail": "הפערים: (1) אין FAB צף — הנגישות זמינה רק דרך מסך ההגדרות, משתמש באמצע מסך אחר צריך לנווט; (2) טווח הזום 0.8–1.5 במקום 0.8–1.6; (3) המימוש zoom מגדיל את כל הפריסה במקום טקסט-בלבד (התנהגות שונה במסכים צפופים)",
+    "importance": "medium"
+   },
+   {
+    "feature": "מעטפת RTL, טוסטים, קרוסלת בית, תצוגות נשמרות (famView/crsView)",
+    "status": "present",
+    "evidence_legacy": "lang='he' dir='rtl'; טוסט 2600ms; קרוסלת בית מתחלפת כל 5 שניות עם נקודות (סריקת 14 יום, עד 10 פריטים); famView 'list'/'grid', crsView 'grid' נשמרים",
+    "evidence_react": "index.html שורה 2 — lang=he dir=rtl; src/store/useApp.ts toast — 4000ms; src/components/home/widgets.tsx שורה 175 — קרוסלה כל 5 שניות, נעצרת בריחוף/פוקוס, נקודות, מאחורי דגל home.carousel; homeData.ts carouselItems — 14 יום; src/types/domain.ts שורות 370-371 — db.ui.famView/crsView נשמרים ומשמשים ב-FamiliesView/CoursesView",
+    "detail": "הבדל זניח: משך טוסט 4000ms במקום 2600ms. הקרוסלה שודרגה (עצירה בריחוף, נגישות tablist)",
+    "importance": "medium"
+   },
+   {
+    "feature": "ניווט אחורה היסטורי (navHist) + משפחות אחרונות שנפתחו (recentIds) + מעקב מסך מלא",
+    "status": "missing",
+    "evidence_legacy": "מחסנית ניווט עד 20 צעדים (view/selId/selCourseId/calDay) עם כפתור '↩ חזרה' קבוע בכותרת שסוגר מודלים/גלגלים/פלטה; recentIds — 6 המשפחות האחרונות שנפתחו מוזנות לרשימת 'משפחות אחרונות'; fullscreenchange→fsOn",
+    "evidence_react": "grep 'navHist|recentIds|fullscreen' על כל src — אפס תוצאות; src/store/useApp.ts go() רק מציב view ללא מחסנית; homeData.ts recentFamilies — לפי createdAt בלבד (משפחות שנוצרו לאחרונה, לא שנפתחו לאחרונה)",
+    "detail": "אין כפתור 'חזרה' גלובלי ואין היסטוריית ניווט בכלל — משתמש שקפץ מהפלטה לכרטיס משפחה לא יכול לחזור למסך הקודם בלחיצה. 'משפחות אחרונות' בבית מציג נוצרו-לאחרונה במקום נפתחו-לאחרונה — סמנטיקה שונה שהמזכירה מרגישה",
+    "importance": "medium"
+   },
+   {
+    "feature": "גלגלי סינון — גלגל החוגים ('מצא חוג') ומאתר המשפחות",
+    "status": "present",
+    "evidence_legacy": "wheelOpen/wheelLocks/wheelRot לגלגל חוגים; famWheelOpen לגלגל משפחות עם 8 צירים (עיר, קהילה, מצב משפחתי, אמינות…) שמסנן את הטבלה חי; Escape סוגר",
+    "evidence_react": "src/components/wheel/CourseWheel.tsx — גלגל SVG מסך-מלא עם נעילות מגדר/גיל/יום/קטגוריה, סיבוב rAF, קונפטי, תמיכת prefers-reduced-motion (דגל courses.wheel, נפתח גם מהפלטה); src/components/families/FamilyFinder.tsx — 'מאתר המשפחות' עם צלילה ציר-אחרי-ציר (finderAxes), מונה במרכז, טבלה מסתננת חי וכפתור החלה למסננים",
+    "detail": "שני הגלגלים קיימים ואף משודרגים; מנגנון הצירים במאתר המשפחות דינמי (ציר עם אפשרות אחת מדולג) — שקול פונקציונלית ללגאסי",
+    "importance": "medium"
+   },
+   {
+    "feature": "מצב הדגמה עצמית (Demo Mode) — סיור אוטומטי עם סמן וירטואלי",
+    "status": "missing",
+    "evidence_legacy": "startDemo/stopDemo/runDemo — תסריט ~150 שורות: סמן זהב מונפש (demoX/demoY, transition 0.65s), כתוביות (demoCap), הקלדה מדומה תו-תו, 6 פרקים על כל המערכת, כפתור '▶ הדמיה' בכותרת, '■ עצירת הדמיה (Esc)', כתובית סיום 'זו המערכת. חיה, מלאה, במקום אחד ✦'",
+    "evidence_react": "grep 'demoX|demoCap|startDemo|הדמיה' על כל src — אפס תוצאות. src/components/DemoDrop.tsx הוא דבר אחר לגמרי — באנר טעינת נתוני דמו (demo.json) למערכת ריקה",
+    "detail": "הסיור המודרך האוטומטי לא הועבר כלל. קיים תחליף חלקי ברוח אחרת: טעינת נתוני דמו להתנסות חופשית + מדריך במסירה (builder/handoff.ts). אם ההדגמה שימשה למכירות/הדרכת עובדות — זה פער",
+    "importance": "low"
+   },
+   {
+    "feature": "יומן חדרים והזמנת משבצות",
+    "status": "present",
+    "evidence_legacy": "diaryRoomId/diaryDate + מודאל 'diary'; משבצות לפי slot, '15:00 חסום לנקיון', שבת נחסמת, דפדוף ימים, כפתור 'הזמנה' למשבצת פנויה שיוצר אירוע, פתיחה גם ממסך הבית",
+    "evidence_react": "src/components/diary/DiaryView.tsx — מסך מלא (לא מודאל): בחירת חדר פעיל ותאריך (כולל HebDateInput), buildSlots לפי הגדרות החדר, blockReason (שבת/חגים), דפדוף ימים, הזמנת משבצת פנויה → EventModal עם טוסט 'ההזמנה נכנסה — המשבצת מסומנת תפוסה ביומן' (דגל diary.booking), אזהרת חוגים בחדר כבוי, ובנוסף פאנל נוכחות למפגש וניצולת שבועית (diary.utilization)",
+    "detail": "שודרג ממודאל למסך ניווט מלא עם נוכחות וניצולת. חסימת נקיון קבועה ('15:00 חסום לנקיון') הייתה נתון דמו — לא פער",
+    "importance": "medium"
+   },
+   {
+    "feature": "רשימת 'דורש טיפול' — 10 סוגי התראות",
+    "status": "different",
+    "evidence_legacy": "מלגה (pending) · חדר כבוי · תומכת nextDate · תשלום שעבר מועד · יתרת כרטיסייה · אירוע דחוף red נדחף לראש · מסמך/ספח חסר · סיכון = משפחה בדרגת cred אדומה (<500, 'נדרשת שיחת שירות') · מלא/מתמלא (100%/80%)",
+    "evidence_react": "src/components/home/homeData.ts attentionItems (שורות 229-445) — כל 9 הקטגוריות קיימות: אירועים דחופים (crit, ראשונים), חדר כבוי (אותו נוסח 'הפעילו את החדר או העבירו את החוג'), תשלום שעבר מועד, כרטיסיות, ממתינות לאישור (מצטבר), יעדי קשר תורמים (עד 3+צבירה), ספח חסר (מצטבר), אמינות אדומה, מתמלא/מלא (80%/100%) — עם gating פר-מודול",
+    "detail": "פער סף מהותי: פריט 'סיכון' בריאקט נורה רק בציון < 300 (redCred, שורה 393) בעוד שבלגאסי דרגת red היא < 500 — משפחה בציון 400 שהייתה מסומנת 'נדרשת שיחת שירות' בלגאסי לא תופיע בריאקט (וגם טוסט הירידה למדד אדום ב-useApp.ts שורה 652 נורה בחציית 300, בעוד tierOf ב-families/lib.ts עצמו כן שומר על סף 500 לדרגה). בנוסף: ממתינות/ספח הפכו לפריט מצטבר אחד במקום פריט פר-משפחה",
+    "importance": "high"
+   },
+   {
+    "feature": "מרכז הטיפול (view 'care') — סימון טופל, צ'יפים ואיחוד עם ביקורת הנתונים",
+    "status": "partial",
+    "evidence_legacy": "מסך ייעודי שמאחד attention + ממצאי runAudit (careAudit); סימון 'טופל' פר-פריט (careDone); צ'יפים לפי תג עם ספירות ('הכל · N'); careRefresh/careReset; sendAuditToCare ממודל הביקורת; עד 100 שורות",
+    "evidence_react": "src/components/home/widgets.tsx AttentionWidget (שורות 730-823) — סימון '✓ טופל' נשמר ב-db.attnDone עם תאריך (ולא רק בזיכרון!), צ'יפי סינון לפי תג עם ספירות 'הכל · N', 'הצג שטופלו (N)' + ביטול; src/components/settings/AuditSection.tsx — בדיקת התקינות קיימת כסעיף הגדרות נפרד",
+    "detail": "ליבת מרכז הטיפול (טופל/סינון/ספירות) קיימת ואף משופרת (התמדה + ביטול סימון), אבל: אין מסך care ייעודי (רק ווידג'ט בבית מוגבל ל-8 שורות גלויות), וממצאי ביקורת הנתונים אינם מוזרמים לרשימה — אין מקבילה ל-sendAuditToCare / careAudit, הביקורת חיה בנפרד בהגדרות",
+    "importance": "medium"
+   },
+   {
+    "feature": "דשבורד הבית — hero, סטטיסטיקות, יום הולדת, תקציר בוקר, אחרונות, פעולות מהירות",
+    "status": "present",
+    "evidence_legacy": "hero 'מה נעשה עכשיו?' + chips מהירים; 'תקציר הבוקר' (digestLines); סטטים תלמידים/משפחות/אלמנות/יתרות/מפגשים; כרטיס ניקוב מהיר; כרטיס יום הולדת; 5 משפחות אחרונות; todayLabel עברי מלא עם גימטריה",
+    "evidence_react": "src/components/home/HomeView.tsx + widgets.tsx — מערכת ווידג'טים שלמה: hero עם ברכה לפי שעה + תאריך עברי בגימטריה (hebDateFull) + פעולות מהירות (➕ משפחה, ניקוב מהיר לחוג של היום, מי חוגג השבוע), BdaysWidget, DigestWidget (home.digest), StatsWidget עם ספארקליינים, RecentWidget (5 לפי createdAt), QuickWidget, PunchlowWidget; פריסה ניתנת לעריכה (BoardEdit) פר-ערכה",
+    "detail": "כמעט מלא ואף עשיר יותר. חסרים קטנים: מונה 'אלמנות' בסטטים (homeStats לא סופר maritalStatus אלמן/ה), אין כפתור ניקוב ישיר בשורות היתרות הנמוכות (רק ניווט 'לחידוש ←'), ואין 'N חדרים בפעילות היום' בבית",
+    "importance": "high"
+   },
+   {
+    "feature": "גרף 'מדד אמינות הקהילה' בבית (מד מחוג + היסטוגרמה + דורשות חיזוק)",
+    "status": "partial",
+    "evidence_legacy": "showCredGraph: ממוצע /1000 עם חיווי 'חי', tier chips לחיצים, מד מחוג עם גרדיאנט וסקאלה 0/500/800/1000, היסטוגרמת 20 סלים עם צירים, ורשימת 'דורשות חיזוק' לחיצה לכרטיס",
+    "evidence_react": "src/components/home/widgets.tsx CommunityWidget (שורות 952-983) — ממוצע (badge 'ממוצע X') + ספירה לכל אחת מ-4 הדרגות עם נקודות צבע (reuse של tierOf 950/800/500 מ-families/lib.ts), כפתור מעבר למשפחות; דגלים families.cred + home.community",
+    "detail": "קיים רק סיכום מספרי: אין מד מחוג, אין היסטוגרמה, אין רשימת 'דורשות חיזוק' עם ניווט לכרטיס, וצ'יפי הדרגות אינם לחיצים לסינון. הוויזואליזציה העשירה של הלגאסי לא הועברה",
+    "importance": "medium"
+   },
+   {
+    "feature": "גרף 'תפוסת החוגים' בבית (מד ממוצע + עמודה לכל חוג + הכי מבוקשים)",
+    "status": "missing",
+    "evidence_legacy": "showCrsGraph: תפוסה ממוצעת % + שיבוצים/הכנסה, מד מחוג 0/50/100%, עמודה לחיצה לכל חוג ('לחיצה פותחת לניקוב'), מקרא צבעים (ירוק/זהב/אדום/כתום), רשימת 'הכי מבוקשים'",
+    "evidence_react": "grep 'תפוסה' — קיימת רק כשורת פרט בכרטיס חוג (CourseDetail.tsx שורה 506) וכעמודה בדוח רישום (reports/sections1.tsx); ברשימת הווידג'טים של הבית (widgets.tsx WidgetId, שורות 1131-1145) אין ווידג'ט תפוסה",
+    "detail": "אין שום ויזואליזציית תפוסה מצרפית בבית — לא מד, לא עמודות פר-חוג ולא 'הכי מבוקשים'. הנתונים עצמם קיימים (enrollCount/maxStudents) והתראות מלא/מתמלא כן מופיעות ב'דורש טיפול'",
+    "importance": "medium"
+   },
+   {
+    "feature": "הגדרות חדרים (roomset) עם ציוד",
+    "status": "present",
+    "evidence_legacy": "טופס חדר: שם, פעיל, slot (60), cap, מיקום, תעריף, שעות 08:00-20:00, נגישות, הערות + 8 צ'יפי ציוד; הצעות שמות מוכנות ('חדר בריחה', 'כסא מסאז׳ 3'…); 'N חדרים בפעילות היום'",
+    "evidence_react": "src/components/settings/RoomsSection.tsx — טבלת חדרים + מודאל מלא: סטטוס (חדר יצא משימוש = מושבת, אין מחיקה), משבצת 30/45/60/90, קיבולת, שעות, תעריף, נגישות (♿ בטבלה), הערות תפעול, וצ'יפי ציוד (ROOM_EQUIPMENT ב-helpers.ts)",
+    "detail": "מלא. חסרים קוסמטיים: צ'יפי הצעות שמות מוכנים ושורת 'N חדרים בפעילות היום' (הניצולת עברה ליומן החדרים)",
+    "importance": "medium"
+   },
+   {
+    "feature": "ניהול מורות — כרטיס מלא",
+    "status": "partial",
+    "evidence_legacy": "כרטיס מורה: name, phone, phone2, email, idNum, address, specialty, payRate, startDate עם עברי, notes; שורת 'N חוגים · M תלמידים'; רשימת החוגים שלה עם קפיצה; מחיקה חסומה עם חוגים; '📞 תזכורת קשר' יוצר אירוע call כתום",
+    "evidence_react": "src/components/settings/TeachersSection.tsx — טבלת CRUD + מודאל כרטיס עם כל השדות כולל startDate ב-HebDateInput, אימות ת\"ז (validIsraeliId) ופורמט טלפון; מחיקה בשתי לחיצות (3000ms) וחסומה כשיש חוגים משויכים; מונה חוגים בטבלה; המורות מאונדקסות בפלטה",
+    "detail": "השדות והחסימות מלאים; חסר בתוך הכרטיס: רשימת החוגים של המורה עם קפיצה לחוג, שורת סטטיסטיקת תלמידים, וכפתור '📞 תזכורת קשר' שיוצר אירוע בלוח (grep 'תזכורת קשר' בקובץ — אין)",
+    "importance": "low"
+   },
+   {
+    "feature": "גיבוי, שחזור, כשל-שמירה ואיפוס נתונים מקומיים",
+    "status": "present",
+    "evidence_legacy": "'⬇ גיבוי מלא (JSON)', '⬆ שחזור מגיבוי', חיווי כשל שמירה ('⚠ השמירה נכשלה — הורידו גיבוי מלא…'), איפוס דו-שלבי (חלון 4 שניות) שמוחק maorclean2_db + reload",
+    "evidence_react": "src/components/settings/BackupSection.tsx + useApp.exportBackup/restoreDb; useApp.ts שורה 298 — אותו טוסט כשל שמירה בדיוק ('⚠ השמירה נכשלה — הורידו גיבוי מלא ובדקו מקום פנוי בדפדפן') + טיפול ב-DB פגום (עותק בצד + טוסט, שורה 333); ResetSection ב-SettingsView.tsx — איפוס עם אישור בהקלדת 'מחיקה' + הצעת גיבוי לפני (resetAll)",
+    "detail": "מלא ואף מחוזק: האיפוס דורש הקלדת מילת אישור (חזק מדו-קליק של 4 שניות), והגיבוי ב-3 שכבות (localStorage/IndexedDB/קובץ) במקום שכבה אחת",
+    "importance": "high"
+   },
+   {
+    "feature": "מדריך שימוש (guide) — '📖 המדריך המהיר' עם מתכונים",
+    "status": "missing",
+    "evidence_legacy": "כפתור '📖 מדריך' בכותרת → מודאל עם 'אי אפשר לקלקל', סיכום מסך-מסך, ו'המתכונים המהירים' (זרימות מלאות: תשלום+קבלה, ניקוב, משפחה חדשה תוך כדי שיבוץ, גיבוי…)",
+    "evidence_react": "grep 'מדריך|guide' על src — אין מודאל מדריך; קיים רק 'מדריך מזכירה מקוצר' בתוך מסמך המסירה של אשף ההקמה (src/components/builder/handoff.ts) — מיועד למטמיע, לא נגיש למשתמשת מהמערכת",
+    "detail": "אין שכבת עזרה/מדריך מובנית בתוך האפליקציה. עבור לקוח שעובדות שלו נסמכו על 'המתכונים המהירים' — פער הדרכתי",
+    "importance": "medium"
+   },
+   {
+    "feature": "שער פתיחת יום + גיבוי סוף-יום אוטומטי",
+    "status": "present",
+    "evidence_legacy": "מודאל חוסם '☀ פתיחת יום עבודה' ('אי אפשר להתחיל לעבוד בלי להגדיר') פעם ביום, dayEnd ברירת מחדל 17:00, קישור שחזור; טיק 60 שניות שמוריד גיבוי אוטומטי פעם ביום אחרי שעת הסיום + טוסט",
+    "evidence_react": "src/components/wheel/DayGate.tsx — מודאל פתיחת יום פעם ביום ('maor_day'), שעת סיום ('maor_dayend', 17:00), כפתור 'שחזור מגיבוי…'; src/App.tsx שורות 149-166 — טיק 60 שניות שמוריד גיבוי אוטומטי פעם ביום ('maor_autoexp') אחרי שעת הסיום",
+    "detail": "הבדלים מכוונים: השער רך ולא 'חוסם' בניסוח, מופיע רק כשיש נתונים (famCount>0), וניתן לכיבוי בדגל core.daygate; הגיבוי האוטומטי יורד בלי טוסט ליווי. הליבה — טקס יומי + גיבוי סוף-יום — זהה",
+    "importance": "medium"
+   },
+   {
+    "feature": "מעטפת ניווט עליונה + עיצוב וערכות נושא",
+    "status": "different",
+    "evidence_legacy": "כותרת אחת קבועה: ניווט pill (בית/משפחות/תומכות/קורסים/לוח/הגדרות-אדמין), '↩ חזרה', '📖 מדריך', '▶ הדמיה', '⌕ חיפוש ⌘K', chip תפקיד; עיצוב יחיד — קרם/זהב glassmorphism, Heebo, min-width:1080px (דסקטופ בלבד), כתמי רקע מונפשים",
+    "evidence_react": "src/App.tsx — שלושה שלדים פר-ערכה (עליון / סרגל-צד 64px / סרגל-צד 212px), NAV של 8 מסכים (נוספו יומן חדרים ודוחות; 'הגדרות' כאייקון ⚙️ לכולם — לא אדמין-בלבד), צ'יפ חיפוש Ctrl+K, צ'יפ משתמש ענן; src/styles/themes.css — 4 ערכות (or-rishon/heichal/tsohar/kehila) עם גופנים שונים (fonts.css: Heebo, Frank Ruhl, Rubik, Suez One); רספונסיבי מלא כולל מובייל ≤760px",
+    "detail": "רה-עיצוב מכוון (white-label): ערכת הזהב-קרם היחידה הוחלפה ב-4 ערכות + מונחים מותאמים (termOf). נעלמו מהכותרת: כפתור חזרה (אין navHist), מדריך, הדמיה, ו-chip תפקיד; מסך ההגדרות נגיש לכולם (הגנה דרך נעילת PIN במקום role). לא רגרסיה תפקודית אלא שינוי שפה עיצובית — אבל לקוח שמצפה למראה הלגאסי יראה מערכת אחרת",
+    "importance": "low"
+   }
+  ],
+  "summary": "בדומיין ה-shell (חיפוש · הגדרות והרשאות · מעטפת UI) המערכת החדשה ב-/home/user/maor-system מכסה את רוב הליבה ברמה גבוהה, וחלקה אף פורט נאמן ומוצהר: מנוע החיפוש החכם (src/lib/search.ts — אותו סולם ציונים ו-XLAT מהמקור), הגדרות הארגון וההתראות (אותן ברירות מחדל וטקסטים), הנגישות, החדרים, המורות, יומן החדרים, גלגלי הסינון, שער פתיחת היום עם גיבוי סוף-יום, ומרכיבי דשבורד הבית (כולל 'דורש טיפול' עם סימון-טופל משופר). הפערים המהותיים שנמצאו: (1) סף 'סיכון' ב'דורש טיפול' ובטוסט ההתראה הוא 300 במקום דרגת red<500 של מנוע האמינות — משפחות בציון 300-499 לא יסומנו לשיחת שירות; (2) אין ניווט-אחורה (navHist) ואין recentIds — כפתור 'חזרה' הגלובלי נעלם; (3) פלטת הפקודות איבדה כמחצית מ-16 הפעולות המהירות ובראשן 'העתקת כל הטלפונים' שלא קיימת בשום מקום; (4) גרף תפוסת החוגים בבית חסר לגמרי וגרף האמינות הצטמק לסיכום מספרי; (5) מצב ההדגמה העצמית, המדריך המובנה, ותפקיד 'מורה' (סינון קורסים לפי מורה + punchConfirm) לא הועברו — ההרשאות הוחלפו במודל שונה (adminEmails + נעילות PIN). רוב הפערים הם ויזואליים/נוחות; פער הסף באמינות הוא ההתנהגותי היחיד שעלול לפגוע בלקוח קיים בשקט."
+ },
+ {
+  "domain": "supporters",
+  "summary": "דומיין התומכות ב-maor-system מכוסה ברמה גבוהה: מנוע ה-RFM (supScore עם שער 3.7 וכל הספים), הדרגות (800/600/400), רישום תרומה עם D-seq וקבלה אוטומטית, יעד קשר עם תזכורת מקושרת בלוח, פייפליין ה\"עין הרע\" המלא (חמשת השלבים, כפתור חכם, אירועי לוח, revert עם ניקוי אירועים, מחזור חדש), לוח הטיפול (ayinBoard), הדוח היומי, ייבוא CSV וייצוא מלא עם ציון ודרגה — כולם קיימים (חלקם מאחורי דגלים supporters.* ו-core.receipts, ועם תוויות גנריות דרך termOf שדורשות config כדי לשחזר את הנוסח \"עין הרע/עופרת\" המקורי). הפערים העיקריים: (1) אין שדה hist — היסטוריית התרומות \"מהקובץ ההיסטורי\" לא קיימת במודל ולא בתצוגה; (2) אין את סנכרון הגיליון הדו-כיווני maor-ayin-eyes.csv (ייבוא חוזר שמעדכן עיניים/שולם/תשובות/שלב) ואין שדה paid בתיק ayin; (3) אין לוח תרומות כלל-ארגוני (supCalAll) עם רישומי עין-הרע — לוח התרומות קיים רק בכרטיס האישי, בגריד לועזי בלבד וללא מצב חודש עברי, ללא רשימת-יום וללא שורת סיכום; (4) חסרים פילטרי-עמודה עם numMatch, היסטוגרמת הציונים, ממוצע-לתרומה ומונה 12 החודשים; (5) אין כפתור קבלה חוזר (🧾) פר-תרומה בהיסטוריה, ונוסח/שם קובץ הקבלה שונה. קביעת יעד-קשר דורשת אישור confirm ליצירת התזכורת במקום יצירה אוטומטית כמו בלגאסי.",
+  "gaps": [
+   {
+    "feature": "מודל תומכות + מודול 'עיניים/עופרת' (ayin)",
+    "status": "partial",
+    "evidence_legacy": "תומכת עם hist[] (רשומות תרומה מהקובץ ההיסטורי), ומודול ayin עם paid (שולם), answers, log, וסנכרון דו-כיווני דרך גיליון CSV ‏(maor-ayin-eyes.csv) שמעדכן בייבוא חוזר eyes/paid/answers/stage (script1 שורות 195-201, 852-869, 970-993)",
+    "evidence_react": "src/types/domain.ts שורות 267-353: Supporter כולל count/ils/usd/first/last/nextDate/donations/ayin, ‏AyinCase כולל stage/note/answeredNote/answerPushed/nextTalk/nextTalkTime/lastTouch/names/answers/log/boardEventIds — אבל אין שדה hist על Supporter ואין שדה paid ב-AyinCase (grep 'hist' על כל src לא מצא כלום בתומכות). ייבוא CSV ‏(src/components/supporters/SupporterImport.tsx + lib.ts) מטפל רק בעמודות קשר (שם/טלפון/מייל/ת\"ז/כתובת/קטגוריה/עבור) — אין ייבוא חוזר של גיליון העיניים",
+    "detail": "חסרים: (1) hist[] — רשומות תרומה היסטוריות מהקובץ; (2) ayin.paid — סימון 'שולם' בגיליון; (3) מסלול הסנכרון הדו-כיווני של גיליון העיניים (ייצוא 'maor-ayin-eyes.csv' + ייבוא חוזר שמעדכן eyes עם לוג, paid, answers עם דה-דופ, stage→'eyes' כשהעופרת בוצעה, lastTouch, וזיהוי 'כן' לפי regex). קיים רק דוח יומי חד-כיווני (ייצוא בלבד)",
+    "importance": "high"
+   },
+   {
+    "feature": "ציון RFM משוקלל לתומכות",
+    "status": "present",
+    "evidence_legacy": "supScore: tot=ils+usd*3.7; R‏ 350/280/200/120/40 לפי 30/90/180/365 יום; F‏ 300/230/160/100/50 לפי 10/5/3/2; M‏ 350/280/210/140/80/40 לפי 5000/2000/1000/500/100 (שורות 1400-1407)",
+    "evidence_react": "src/components/supporters/lib.ts שורות 22-40: supTotalIls עם שער 3.7 קבוע, supScore עם כל הספים זהים אחד-לאחד (כולל days=9999 כשאין last). מגודר supporters.rfm ‏(src/types/features.ts:75) — נחשב קיים",
+    "detail": "זהה verbatim — שער הדולר 3.7 וכל מדרגות R/F/M תואמים",
+    "importance": "high"
+   },
+   {
+    "feature": "דרגות תומכות",
+    "status": "present",
+    "evidence_legacy": "supTier: ≥800 'זהב', ≥600 'כסף', ≥400 'ארד', אחרת 'רדומה', עם שלישיית צבעים לכל דרגה (שורה 1408)",
+    "evidence_react": "src/components/supporters/lib.ts שורות 50-57: supTier עם אותם ספים (800/600/400), אותן תוויות ואותם צבעים (#fdf3dd/#9a6414 וכו'), TIER_ORDER; צ'יפ דרגה בטבלה ובכרטיס (SupportersView.tsx, SupporterDetail.tsx)",
+    "detail": "זהה — כולל צבעים",
+    "importance": "medium"
+   },
+   {
+    "feature": "קבלה על תרומה",
+    "status": "different",
+    "evidence_legacy": "supReceipt: קובץ 'donation-{rid}.txt' עם 'קבלה על תרומה — {org}', תאריך עברי+לועזי, תורם+ת\"ז, סכום+קטגוריה, שורת 'סה\"כ מצטבר: ₪X + $Y · N תרומות', וסיום 'תזכו למצוות!' (שורות 1409-1417)",
+    "evidence_react": "src/lib/receipt.ts: downloadReceipt מוריד 'receipt-{rid}.txt' עם BOM; שתי תבניות — רגילה ('קבלה — {org}', עברי+לועזי, 'תודה על תמיכתכם') ופורמלית לפי סעיף 46 (סכום במילים, ת\"ז, נוסח §46, חתימה) מאחורי core.taxreceipt. מופעל מ-DonationModal.tsx שורות 43-60 מאחורי core.receipts",
+    "detail": "ההבדלים: שם הקובץ receipt-{rid}.txt במקום donation-{rid}.txt; חסרה שורת 'סה\"כ מצטבר: ₪X + $Y · N תרומות'; הסיומת 'תודה על תמיכתכם' במקום 'תזכו למצוות!'; מנגד נוספה קבלת §46 פורמלית שלא הייתה בלגאסי. שימו לב לבאג ידוע: הקבלה יורדת גם כשה-store דחה את הרישום (CLAUDE.md באג 5)",
+    "importance": "medium"
+   },
+   {
+    "feature": "רישום תרומה",
+    "status": "present",
+    "evidence_legacy": "addDonation: ולידציה 'הקלידו סכום תרומה תקין', רשומה D-seq עם תאריך/סכום מעוגל/מטבע/קטגוריה (ברירת מחדל sp.cat), עדכון count/ils/usd/last, סנכרון הלוח האישי, טוסט וקבלה אוטומטית (שורות 1418-1431)",
+    "evidence_react": "src/store/useApp.ts שורות 798-824: addDonation עם rid='D-'+donationSeq (מונה נפרד ורציף), צבירת ils/usd לפי מטבע, עדכון first+last, count=donations.length; src/components/supporters/DonationModal.tsx: ולידציה 'הקלידו סכום … תקין', עיגול ל-2 ספרות, cat מאותחל ל-sp.cat, בורר ₪/$ מאחורי supporters.multicur, קבלה אוטומטית מאחורי core.receipts, טוסט עם מספר הקבלה; DonationCalendar מתמקם אוטומטית בחודש התרומה האחרונה",
+    "detail": "שקול פונקציונלית ואף מוקשח (שער נגד תומכת שנמחקה, count מחושב מהמערך). נוסח הטוסט שונה מעט ('נרשם/ה תרומה ₪X — קבלה D-N · הציון עודכן' במקום 'מסומנת בלוח, הציון עודכן והקבלה ירדה')",
+    "importance": "high"
+   },
+   {
+    "feature": "תאריך יעד ליצירת קשר",
+    "status": "different",
+    "evidence_legacy": "saveSupNext: קובע nextDate ותמיד יוצר/מעדכן אוטומטית אירוע לוח type 'call' priority 'orange' בכותרת 'יעד קשר — תומכת: {שם}', מקושר ב-nextEventId, עם טוסט תאריך עברי (שורות 1432-1444)",
+    "evidence_react": "src/components/supporters/SupporterDetail.tsx שורות 59-92: setNextDate — אם קיים אירוע מקושר (nextEventId) מעדכן אוטומטית; אם לא — שואל window.confirm('…להוסיף תזכורת שיחה ללוח השנה?') ורק באישור יוצר את האירוע (call/orange, אותה כותרת ואותם notes); ניקוי → 'תאריך היעד נוקה'. badge '🔔 יעד עבר'/'🎯' בטבלה (SupportersView שורות 287-305); מגודר supporters.nextdate",
+    "detail": "הדלתא: יצירת התזכורת הראשונה דורשת אישור confirm במקום להיווצר אוטומטית כמו בלגאסי — משתמש שמבטל נשאר בלי תזכורת בלוח; וכן אין סנכרון של לוח התרומות אל תאריך היעד (בלגאסי supCal קופץ לתאריך). העדכון והקישור nextEventId זהים",
+    "importance": "medium"
+   },
+   {
+    "feature": "היסטוריית תרומות מאוחדת",
+    "status": "partial",
+    "evidence_legacy": "supDonEvents: ממזג donations עם רשומות sp.hist ‏(src 'מהקובץ ההיסטורי'), וכשאין hist מוסיף סמני 'תרומה ראשונה/אחרונה (מהקובץ)' מ-first/last; ממוין יורד (שורות 1486-1495)",
+    "evidence_react": "src/components/supporters/SupporterDetail.tsx שורות 126-134, 246-286: טבלת התרומות ממוינת יורד לפי תאריך ומציגה תאריך לועזי+עברי/סכום/קטגוריה/rid; שורת הסטטיסטיקה כוללת 'מ-{עברי}' ו'אחרונה {עברי}' מ-first/last. אין שדה hist במודל (src/types/domain.ts) ואין שורות 'מהקובץ ההיסטורי'",
+    "detail": "היסטוריית ה-donations קיימת ומלאה, אבל המיזוג עם רשומות הקובץ ההיסטורי (hist) וסמני 'תרומה ראשונה/אחרונה (מהקובץ)' חסרים לגמרי — נתוני העבר של הלקוח מהקובץ לא יוצגו כשורות",
+    "importance": "medium"
+   },
+   {
+    "feature": "לוח תרומות דו-לוחי (עברי/לועזי)",
+    "status": "partial",
+    "evidence_legacy": "supCalData: גריד 42 תאים עם מצב חודש עברי אמיתי (supCalHeb — איתור א' בחודש וניווט עברי), הדגשת היום ויום נבחר, גימטריה, שורת סיכום 'X תרומות החודש · ₪Y + $Z', וקליק על יום שפותח רשימת תרומות עם ניווט לתומכת (שורות 1496-1537)",
+    "evidence_react": "src/components/supporters/DonationCalendar.tsx: גריד 42 תאים לועזי בלבד (ראשון-שבת), ניווט חודשים לועזי, יום עברי בגימטריה כתצוגת-משנה בתא, סכומי ₪/$ ומספר תרומות פר-יום, 🎯 ביום היעד; מגודר supporters.doncal ומוצג רק כשיש תרומות (SupporterDetail שורה 237)",
+    "detail": "חסרים: מצב גריד חודש-עברי (ברירת המחדל בלגאסי) עם ניווט עברי; שורת הסיכום החודשית ('X תרומות החודש · ₪Y + $Z' / 'סכומים מהקובץ ההיסטורי'); קליק על יום לרשימת התרומות של היום; הדגשת 'היום' ויום נבחר. לקהל היעד החרדי מצב החודש העברי משמעותי",
+    "importance": "medium"
+   },
+   {
+    "feature": "מודול 'עין הרע' — פייפליין שלם",
+    "status": "present",
+    "evidence_legacy": "AYIN_STAGES ‏new→lead→eyes→answer→done עם תוויות 'שיחה חדשה — לקחת שמות'/'לעשות עופרת'…; ayinAction מקדם שלב רק בתנאים (new דורש שמות, eyes דורש עין רשומה, answer עם דחיפה כפולה), יוצר אירוע לוח לכל מעבר; ayinCall יוצר תזכורת ב-nextTalk (שורות 1596-1642)",
+    "evidence_react": "src/lib/ayin.ts: ‏AYIN_STAGES זהה, ayinActionVisible עם אותם תנאי שער בדיוק, planAyinAdvance עם אירוע לוח וטוסט לכל מעבר כולל דגל answerPushed; src/store/useApp.ts שורות 827-965: advance/revert (כולל ניקוי אירועים יתומים — שיפור), addName עם דה-דופ normName, callAgain, restart ששומר היסטוריה; ayinEvent יוצר call/orange עם spId (שורות 429-445). מגודר supporters.ayin",
+    "detail": "מכונת המצבים והחוקים זהים. הבדלי עטיפה: תוויות ברירת-המחדל גנריות ('חדש/בהכנה/רישום/מסירה/הושלם', 'מעקב טיפול') — שחזור הנוסח 'עין הרע/עופרת/עיניים' דורש מילון מונחים ב-config ‏(ayin.stage.*, nav.ayin, entity.ayinItem/ayinUnit); אירועי הלוח ב-priority 'orange' במקום 'yellow' בלגאסי",
+    "importance": "high"
+   },
+   {
+    "feature": "דוח יומי עין הרע (CSV)",
+    "status": "present",
+    "evidence_legacy": "ayinDailyReport: מסנן לפי lastTouch===היום או log של היום; עמודות שם/טלפון/עיניים היום/שלב/שמות למסירה ('שם 🧿N ✓')/מתי לדבר שוב/הערה; קובץ 'ayin-hara-{תאריך}.csv'; שני טוסטים (שורות 1614-1626)",
+    "evidence_react": "src/lib/ayin.ts שורות 198-228: ayinDailyRows עם אותו סינון (lastTouch או log מהיום), אותן עמודות (כולל 'עיניים היום' מסכום ה-log של היום, שמות בפורמט 'שם ·N ✓', תשובות מחוברות ב-' | '); src/components/supporters/SupportersView.tsx שורות 111-119: הורדה כ-'ayin-daily-{תאריך}.csv' עם שני הטוסטים המקבילים; מגודר supporters.ayin.dailyreport",
+    "detail": "שקול; שם הקובץ 'ayin-daily-*' במקום 'ayin-hara-*' ונוסחי הטוסט גנריים דרך termOf. בכפתור שבמסך אין את מונה '(N)' שהופיע בלגאסי",
+    "importance": "medium"
+   },
+   {
+    "feature": "טבלת תומכות מלאה עם סינון-עמודות ומיון",
+    "status": "partial",
+    "evidence_legacy": "חיפוש חופשי (טלפון 3+ ספרות/טקסט), פילטרים פר-עמודה (supColF) עם numMatch ‏('2+', '1-5', '600+', '₪ 100+'), מיון תלת-מצבי בכותרות כולל eyes ו-stage, badge יעד, שורת סה\"כ, הגבלת 120 שורות (שורות 2794-2852, 3043)",
+    "evidence_react": "src/components/supporters/SupportersView.tsx: חיפוש חופשי זהה (qd.length>=3 לטלפון, נרמול טקסט על שם/מייל/קטגוריה/כתובת/עבור), מיון תלת-מצבי (▲/▼/כבוי) על כל העמודות כולל stage ו-eyes (sortVal שורות 50-77), badge '🔔 יעד עבר'/'🎯', כותרת 'X מתוך Y משפחות תומכות · סה\"כ ₪A + $B', סינון קטגוריה (Select) וצ'יפי דרגות",
+    "detail": "חסרים: פילטרים פר-עמודה עם תחביר numMatch ‏('N+', 'N-M', 'N') על תרומות/ציון/סה\"כ — יש רק חיפוש חופשי + קטגוריה + דרגה; אין הגבלת 120 שורות (כל הרשימה מרונדרת — הבדל ביצועים בלבד)",
+    "importance": "medium"
+   },
+   {
+    "feature": "מסלול 'עין הרע' (ayin) — pipeline CRM ייחודי בטבלה",
+    "status": "partial",
+    "evidence_legacy": "מצב ayinMode בטבלה: שמות עם מונה 🧿, סימון 'עופרת בוצעה ✓', לוג היסטורי, תשובות עם עריכה/מחיקה, nextTalk+שעה, כפתור חכם, restart עם שמירת היסטוריה, סיכום 'X שמות · Y עופרת בוצעה · Z ממתינות · 🧿 N עיניים', סינון eyes/noeyes/today/לפי-שלב ומונה 'עודכן היום' (שורות 2815-2820, 2837-2848, 2944-3010)",
+    "evidence_react": "התכולה פוצלה: עמודות שלב+כמות בטבלה (SupportersView), כרטיס מלא ב-src/components/supporters/AyinCard.tsx (שמות+מונה+done toggle+הסרה, תשובות עם עריכה/מחיקה, nextTalk+שעה+'🔁 שוב', לוג, כפתור חכם, מחזור חדש, סיכום 'N · X בוצעו · סה\"כ כמות: Y'), ולוח AyinBoard עם סינון שלב",
+    "detail": "קיים כמעט הכול, אך חסרים: סינון eyes/noeyes/'עודכן היום' (הסינון בלוח הוא לפי שלב בלבד); מונה 'עודכן היום'; סימון 'שולם' (paid); ובסיכום אין ספירת 'ממתינות' נפרדת (נגזרת מהנתונים המוצגים)",
+    "importance": "medium"
+   },
+   {
+    "feature": "לוח עין-הרע מרכזי (ayinBoard)",
+    "status": "present",
+    "evidence_legacy": "לוח לכל התומכות עם ayin פעיל: צ'יפי שלבים עם ✓, שורת שמות עם עיניים, תאריך יעד, עדכון אחרון; סינון לפי שלב, מיון target/name/last/stage, מתג הצגה/הסתרה (שורות 2903-2923)",
+    "evidence_react": "src/components/supporters/AyinBoard.tsx: סינון ayinActive (זהה לתנאי הפעילות), StageChips עם ✓ לשלבים שהושלמו, namesLine עם מונים, עמודות יעד (nextTalk) ועדכון אחרון, סינון לפי שלב, מיון target/last/name/stage (יעד ריק ממוין '9999' לסוף), מתג 'הסתר/הצג', כפתור חכם פר-שורה; מוצג בראש SupportersView כשהדגל דלוק",
+    "detail": "שקול מלא",
+    "importance": "medium"
+   },
+   {
+    "feature": "כרטיס תומכת + רישום תרומות וקבלות",
+    "status": "partial",
+    "evidence_legacy": "מודל עריכה מלאה עם ולידציה (שם חובה, ת\"ז בספרת ביקורת, fixPhone, דה-דופ שם+טלפון); רישום תרומה עם בורר עברי; היסטוריה (60) עם כפתור 🧾 קבלה פר-תרומה וקפיצה ללוח האישי; שורת סטטיסטיקה; ציון RFM; nextDate; fileDonsLine; מחיקה דו-שלבית (שורות 2873-2901, 3026-3042)",
+    "evidence_react": "src/components/supporters/SupporterForm.tsx: שם חובה, validIsraeliId, fixPhone (מאוחד עם formatIsraeliPhone), דה-דופ שם מנורמל+טלפון תואם/חסר; SupporterDetail.tsx: שורת סטטיסטיקה זהה ('N תרומות · ₪X + $Y · מ-עברי · אחרונה עברי'), פס ציון 'ציון משוקלל: X/1000 · דרגת Y — משוקלל לפי טריות (R), תדירות (F) וסכום (M)', מחיקה דו-שלבית (4000ms), טבלת תרומות עם rid; DonationModal עם HebDateInput",
+    "detail": "חסרים: כפתור 🧾 להורדה חוזרת של קבלה פר-תרומה בהיסטוריה (הקבלה יורדת רק ברגע הרישום); לחיצה על תרומה שמסמנת את היום בלוח האישי; fileDonsLine ('מהקובץ ההיסטורי: N תרומות'). ההיסטוריה לא קטומה ל-60 (מציגה הכול). טיימר החימוש 4000ms במקום 3500ms",
+    "importance": "high"
+   },
+   {
+    "feature": "לוחות שנה של תרומות (supCal)",
+    "status": "partial",
+    "evidence_legacy": "supCalAll — לוח כלל-ארגוני של כל התרומות + רישומי עין-הרע ('🧿 N עיניים', '📞 תשובה', '🔁 לדבר שוב'); supCalMine — לוח אישי כולל 🎯 יעד; מתג supCalOn (שורות 2925-2943, 3011)",
+    "evidence_react": "supCalMine ≈ src/components/supporters/DonationCalendar.tsx (לוח אישי בכרטיס עם 🎯, מאחורי supporters.doncal); supCalAll — אין: grep 'תרומ|supporter|ayin' על src/components/calendar החזיר 0 תוצאות, ואין רכיב לוח כלל-ארגוני ב-SupportersView. תזכורות ה-ayin וה-nextDate כן מגיעות ללוח השנה הראשי כאירועי 'call' (useApp.ts ‏ayinEvent שורות 429-445)",
+    "detail": "הלוח האישי קיים (בגרסה מצומצמת — ראו פער הלוח הדו-לוחי); הלוח הכלל-ארגוני של כל התרומות עם שכבות העין-הרע חסר לגמרי — תרומות אינן מופיעות בשום לוח שנה מרכזי, רק תזכורות (אירועי call) מסונכרנות",
+    "importance": "medium"
+   },
+   {
+    "feature": "פאנל דרגות והיסטוגרמת תומכות",
+    "status": "partial",
+    "evidence_legacy": "צ'יפים לפי דרגה עם ספירה שמסננים (supTierF), היסטוגרמה 10 עמודות (סלים של 100), ממוצע תרומה supAvgDon, מונה תורמות פעילות ב-12 חודשים (sup12m), ייצוא CSV וכפתור דוח ayin (שורות 3012-3025, 2859, 2901)",
+    "evidence_react": "SupportersView.tsx שורות 215-224: צ'יפי דרגות עם ספירה ('זהב · N') שמסננים (tierF) — זהה; ייצוא CSV מלא עם 'ציון' ו'דרגה' ב-src/components/settings/ExportSection.tsx שורות 100-113; דוח יומי ודו\"ח מותאם ב-SupportersView. grep 'sup12m|היסטוגרמ|ממוצע' — אין היסטוגרמה, אין ממוצע-לתרומה ואין מונה 12 חודשים בשום קובץ",
+    "detail": "חסרים: היסטוגרמת פיזור הציון (10 עמודות), ממוצע לתרומה (supAvgDon, כולל המרת $×3.7), ומונה 'תרמו ב-12 החודשים' (sup12m). הצ'יפים והייצוא קיימים",
+    "importance": "medium"
+   },
+   {
+    "feature": "מסך 💛 משפחות תומכות",
+    "status": "partial",
+    "evidence_legacy": "סטטים (sup12m, ממוצע לתרומה, היסטוגרמה), chips דרגות, כפתורים 📅 לוח תרומות / 🧿 דוח יומי (N) / ⬆ ייבוא / ⬇ אקסל / + חדשה, חיפוש, טבלה עם badge ציון·דרגה וכפתור 📞 פר-שורה, פילטרי עמודות, הערת תחתית (markup 1306-1452)",
+    "evidence_react": "SupportersView.tsx: כותרת '💛' עם ספירה וסה\"כ ₪+$, חיפוש זהה, chips דרגות, טבלה מלאה (כולל tooltip 'מתי וכמה בכל תרומה' על מונה התרומות ו-tooltip 'ציון משוקלל (R·F·M)'), ⬆ ייבוא (הצלבה לפי שם — SupporterImport), 📋 דוח יומי, 📊 דו\"ח מותאם, ➕ הוספה, והערת התחתית '💡 משפחות תומכות אינן מחוברות לקורסים…' (שורה 322). כפתור 📞 תודה קיים בכרטיס (SupporterDetail שורות 95-111) ולא בשורת הטבלה; ⬇ אקסל מלא נמצא בהגדרות (ExportSection)",
+    "detail": "חסרים במסך עצמו: שורת הסטטים (תרמו ב-12 החודשים / ממוצע לתרומה / היסטוגרמה), כפתור 📅 לוח תרומות כלל-ארגוני, כפתור 📞 פר-שורה בטבלה (הועבר לכרטיס), מונה (N) על כפתור הדוח היומי, וייצוא אקסל ישיר מהמסך (קיים בהגדרות ובדו\"ח המותאם). הערת התחתית קוצרה (בלי 'המקור: היסטוריית חיובים 2025–2026')",
+    "importance": "medium"
+   },
+   {
+    "feature": "🧿 לוח טיפול — עין הרע / עופרת (ayinBoard, markup)",
+    "status": "present",
+    "evidence_legacy": "לוח בתוך מסך התומכות: סינון שלב, מיון (🎯 יעד קרוב/עדכון אחרון/שם/שלב), toggle, עמודות שם/שלבים/שמות+עיניים/יעד/עדכון/כפתור חכם (markup 1397-1433)",
+    "evidence_react": "src/components/supporters/AyinBoard.tsx — כל האלמנטים קיימים: select סינון שלב, select מיון עם אותן 4 אפשרויות ('🎯 יעד קרוב'/'עדכון אחרון'/'שם א׳-ת׳'/'לפי שלב'), כפתור הסתר/הצג, גריד עמודות זהה וכפתור חכם עם ה-title 'מקדם לשלב הבא ומסנכרן ללוח'",
+    "detail": "שקול מלא (התוויות גנריות דרך termOf)",
+    "importance": "medium"
+   },
+   {
+    "feature": "כרטיס תומכת (supModal) — תרומות + עין הרע (markup)",
+    "status": "partial",
+    "evidence_legacy": "supStats + פס ציון, 🎯 יעד ('נשמר מיד · יוצר תזכורת'), 💰 מעקב תרומות עם רשימה לחיצה שמסמנת בלוח + 🧾 קבלה פר-תרומה, טופס תרומה עברי-ראשי, 🧿 מעקב עין הרע מלא (chips, הערה, כפתור חכם, מתי לדבר שוב+שעה, 📞 רישום תשובה, 🔁 שוב, שמות למסירה, ✓ השלמה, 🔁 מחזור חדש, log תשובות עם עריכה/מחיקה, היסטוריית עיניים), 📅 לוח אישי, טופס מלא, מחיקה כפולה (markup 2611-2812)",
+    "evidence_react": "SupporterDetail.tsx + AyinCard.tsx + DonationModal.tsx + DonationCalendar.tsx: פס ציון, יעד קשר עם HebDateInput, רישום תרומה עברי-ראשי, כל רכיבי מעקב הטיפול (שלבים לחיצים כולל revert, תשובות עם עריכה/מחיקה, nextTalk תאריך+שעה, 🔁 שוב, שמות+מונה+בוצע/הסרה, מחזור חדש, היסטוריית מונה עם עברי+לועזי), לוח אישי, מחיקה כפולה",
+    "detail": "הפערים: אין 🧾 קבלה פר-תרומה בהיסטוריה; לחיצה על תרומה לא מסמנת את היום בלוח האישי; קביעת יעד ראשונה דורשת confirm (לא 'נשמר מיד' עם תזכורת אוטומטית); תוויות השלבים גנריות עד שמגדירים מילון מונחים",
+    "importance": "high"
+   },
+   {
+    "feature": "📅 לוח תרומות — כולם ביחד (supCalAll, markup)",
+    "status": "missing",
+    "evidence_legacy": "לוח חודשי בראש מסך התומכות: גריד עברי/לועזי, ניווט חודשים, תאים עם יום עברי ראשי + לועזי משני + badge זהב עם מספר תרומות, לחיצה על יום פותחת רשימת תרומות (dayList) עם ניווט לכרטיס (markup 1336-1372)",
+    "evidence_react": "אין רכיב כזה: SupportersView.tsx מציג רק AyinBoard בראש המסך; grep 'תרומ|supporter' על src/components/calendar החזיר 0 — תרומות לא מופיעות גם בלוח השנה הראשי. הלוח היחיד הוא DonationCalendar האישי בתוך הכרטיס (supporters.doncal)",
+    "detail": "הלוח הכלל-ארגוני של כל התרומות (עם מצב עברי, badge מספר תרומות פר-יום ורשימת-יום עם ניווט לכרטיס) לא קיים בשום מקום באפליקציית React",
+    "importance": "medium"
+   }
+  ]
+ }
+]
