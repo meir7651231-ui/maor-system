@@ -1,2 +1,7 @@
 node_modules/
 dist/
+e2e/shots/
+*.tsbuildinfo
+.env
+.env.*
+.claude/settings.local.json
