@@ -293,6 +293,11 @@ export interface AyinCase {
   stage: AyinStage;
   note: string;
   answeredNote: string;
+  /**
+   * "שולם" ברמת התיק (לא פר-שם) — כך בלגאסי במפורש: ייבוא ay.paid=u.paid
+   * (legacy:990) וייצוא a.paid פר-תיק (legacy:197). אופציונלי, אין מיגרציה.
+   */
+  paid?: boolean;
   answerPushed: boolean;
   nextTalk: IsoDate;
   nextTalkTime: TimeHM;

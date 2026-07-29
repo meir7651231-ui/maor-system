@@ -33,7 +33,7 @@ import { mergeFamilies } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
-import { featLabel, planAddName, planAyinAdvance, revertPatch, stageIndex } from '../lib/ayin';
+import { applyAyinSheet, featLabel, planAddName, planAyinAdvance, revertPatch, stageIndex, type AyinSheetUpd } from '../lib/ayin';
 import {
   dailySnapshot,
   exportBackupFile,
@@ -192,6 +192,8 @@ interface AppState {
   ayinLogEyes: (id: string, eyes: number, name?: string) => void;
   /** מחזור חדש — איפוס התיק תוך שמירת ההיסטוריה (log + answers). */
   ayinRestart: (id: string) => void;
+  /** החלת גיליון עיניים שחזר (P0.4) — עוברת setDb כך שהסנכרון לענן חינם. */
+  ayinApplySheet: (upds: AyinSheetUpd[]) => void;
 
   // גיבוי ושחזור
   exportBackup: () => void;
@@ -963,6 +965,18 @@ export const useApp = create<AppState>()((set, get) => {
         answerPushed: false,
       });
       get().toast('נפתח מחזור חדש מההתחלה — ההיסטוריה נשמרה');
+    },
+    ayinApplySheet(upds) {
+      if (!upds.length) return;
+      // ההחלה עצמה טהורה (lib/ayin.applyAyinSheet, ratchet legacy:983-993) —
+      // כאן רק setDb + טוסט כמו בלגאסי, כדי שהשינוי ייכנס לשמירה ולסנכרון.
+      let logged = 0;
+      setDb((db) => {
+        const res = applyAyinSheet(db.supporters, upds, isoToday());
+        logged = res.logged;
+        return { supporters: res.supporters };
+      });
+      get().toast('עודכנו ' + upds.length + ' שמות · ' + logged + ' רישומי עיניים נכנסו להיסטוריה, ללוח התרומות ולדוח');
     },
 
     exportBackup() {

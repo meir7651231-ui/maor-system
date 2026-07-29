@@ -9,8 +9,10 @@ import { useState, type ChangeEvent } from 'react';
 import { emptyFamily, emptyMember, type Family, type Member } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { parseBackupFile } from '../../store/persist';
+import { featureOn, termOf } from '../../lib/config';
 import { normalizePhone, normSearch, formatIsraeliPhone } from '../../lib/validate';
-import { parseAnyDate, parseCsv } from '../../lib/csvx';
+import { downloadCsv, parseAnyDate, parseCsv } from '../../lib/csvx';
+import { ayinSheetRows, featLabel, parseAyinSheet, type AyinSheetParse } from '../../lib/ayin';
 import { Btn, Field, FormError } from '../ui';
 import { Section, SectionNote } from './lib';
 import { isoToday } from './helpers';
@@ -206,8 +208,115 @@ export function ImportSection() {
       <h3 style={{ fontSize: 15, fontWeight: 700, margin: '18px 0 6px' }}>תומכות (CSV)</h3>
       <SupporterImport />
 
+      <AyinSheetImport />
+
       <SectionNote>אחרי הייבוא אפשר להשלים לכל משפחה את שאר הפרטים ובני המשפחה במסך המשפחות.</SectionNote>
     </Section>
+  );
+}
+
+/* ── גיליון העיניים (P0.4, feature supporters.ayin.sheet) — round-trip:
+     ⬇ הורדת maor-ayin-eyes.csv ← מילוי בחוץ ← ⬆ ייבוא דו-שלבי (סיכום ← החלה).
+     הפענוח וההחלה טהורים ב-lib/ayin (ratchet legacy:196-198, 852-869, 983-993). ── */
+
+function AyinSheetImport() {
+  const config = useApp((s) => s.config);
+  const supporters = useApp((s) => s.db.supporters);
+  const ayinApplySheet = useApp((s) => s.ayinApplySheet);
+  const toast = useApp((s) => s.toast);
+
+  const [error, setError] = useState('');
+  const [parsed, setParsed] = useState<AyinSheetParse | null>(null);
+
+  // תת-דגל של מעקב הטיפול — שניהם חייבים להיות דלוקים (קונבנציית תת-הדגלים)
+  if (!featureOn(config, 'supporters.ayin') || !featureOn(config, 'supporters.ayin.sheet')) return null;
+
+  const feat = featLabel(config);
+
+  function download() {
+    const rows = ayinSheetRows(supporters);
+    if (rows.length === 1) {
+      toast('אין שמות למסירה במערכת');
+      return;
+    }
+    downloadCsv('maor-ayin-eyes.csv', rows);
+    toast('ירד גיליון העיניים — מלאו את העמודות והחזירו ב-⬆ ייבוא');
+  }
+
+  async function onFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setError('');
+    setParsed(null);
+    try {
+      const res = parseAyinSheet(parseCsv(await readTextFile(file)), supporters);
+      if (res.error) {
+        setError(res.error);
+        return;
+      }
+      setParsed(res);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'שגיאה בקריאת הקובץ');
+    }
+  }
+
+  function apply() {
+    if (!parsed || !parsed.upds.length) return;
+    ayinApplySheet(parsed.upds);
+    setParsed(null);
+  }
+
+  const u = parsed?.upds ?? [];
+
+  return (
+    <div style={{ marginTop: 18 }}>
+      <h3 style={{ fontSize: 15, fontWeight: 700, margin: '10px 0 6px' }}>גיליון {feat} (CSV)</h3>
+      <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
+        הורידו את הגיליון, מלאו את העמודות מחוץ למערכת (עיניים · נמסר · שולם · תשובה/הערה · עופרת
+        בוצעה) והחזירו אותו — העדכונים ייכנסו לכרטיסים, להיסטוריה ולדוח.
+      </p>
+      <FormError error={error} />
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+        <Btn onClick={download}>⬇ הורדת הגיליון</Btn>
+        <label className="btn" style={{ cursor: 'pointer', display: 'inline-flex' }}>
+          ⬆ ייבוא גיליון שמולא…
+          <input
+            type="file"
+            accept=".csv,text/csv,text/plain"
+            style={{ display: 'none' }}
+            onChange={(e) => void onFile(e)}
+          />
+        </label>
+      </div>
+      {parsed && (
+        <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px' }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>
+            {'זוהו ' + u.length + ' שמות לעדכון'}
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 6 }}>
+            {u.filter((x) => x.eyes != null).length + ' עיניים · ' +
+              u.filter((x) => x.paid != null).length + ' שולם · ' +
+              u.filter((x) => x.answer).length + ' תשובות · ' +
+              u.filter((x) => x.lead).length + ' עופרת'}
+          </div>
+          {parsed.miss > 0 && (
+            <div style={{ fontSize: 12.5, color: '#b91c1c', marginBottom: 8 }}>
+              {parsed.miss + ' שורות לא הותאמו לשם קיים במערכת'}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Btn kind="primary" onClick={apply} disabled={!u.length}>
+              {'החלת העדכונים (' + u.length + ')'}
+            </Btn>
+            <Btn onClick={() => setParsed(null)}>ביטול</Btn>
+          </div>
+        </div>
+      )}
+      <p style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 6 }}>
+        {termOf(config, 'entity.ayinUnit', 'כמות')} 0 היא ערך תקין; שורה ריקה לגמרי מדולגת.
+      </p>
+    </div>
   );
 }
 
