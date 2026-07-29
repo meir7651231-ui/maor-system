@@ -1,0 +1,33 @@
+# 🏗️ פקודת בנייה P1 — פערי החוויה המרכזיים + באגי הקבלות
+
+**מאת:** הארכיטקט · 29.7.2026 · **ענף:** `claude/what-do-you-see-bcxttj` (אין push ל-main!)
+**בסיס:** `0e6a44d` — P0 נמסר ואושר בביקורת: lint 0 (כולל החרגת legacy) · 522/522 · שלוש סוויטות e2e ירוקות.
+**כללי המשחק של P0 חלים במלואם** (BUILD-ORDER-P0 §כללים): שער לפני commit (`npm run verify` + שלוש סוויטות e2e), דגל+termOf לכל פיצ׳ר, ratchet עם הפניית שורה ללגאסי, commit `פער N ·` נפרד לכל פריט, עדכון ידע בסיום.
+**הכרעות המשתמש** (`DECISIONS-2026-07-29.md`) מחייבות — P1.3 ו-P1.7 מממשים אותן בפועל.
+
+## סדר ביצוע מחייב (אשכולות לפי תלות)
+
+### אשכול א׳ — שלמות הקבלות (קודם! נוגע בכסף ובמס)
+1. **תיקון · באג המילים באלפים** — `src/lib/hebrewNumber.ts:44-46`: עבור 11..999 אלף, `thousandWords` מחזיר `[...words0_999(th), 'אלף']` ו-`joinHeb` מדביק ו׳ למילה האחרונה ⇒ "שמונה עשר **ואלף**" בקבלת מס. תיקון: להחזיר איבר אחד — `[joinHeb(words0_999(th)) + ' אלף']`. ratchet: 11K, 18K, 21K, 100K, 999K + הקיימים ירוקים.
+2. **תיקון · קבלה רק כשה-store קיבל** — `addPayment`/`addDonation` ב-`useApp.ts` יחזירו `{ ok: boolean; rid?: string }`; `ManageModal`/`DonationModal` מורידים קבלה רק על `ok` ועם ה-rid שחזר (היום: מורידים גם על דחייה עם rid שלא הונפק). ratchet לשני המסלולים.
+3. **פער 9 · P1.2 קבלה מלאה** — `src/lib/receipt.ts` + `ManageModal`: שורות "סה"כ עסקה / שולם עד כה / יתרה / תשלום הבא {תאריך עברי}" (מקור: legacy `receipt()`) + כפתור 🧾 הורדה-חוזרת פר-תשלום קיים. דגל `courses.receipt.summary`.
+
+### אשכול ב׳ — ניקוב
+4. **פער 10 · P1.3 punchConfirm** — אישור כפול לניקוב עם timeout ‏3ש׳ (legacy 330-342: לחיצה ראשונה "לאשר ניקוב?", שנייה בתוך 3ש׳ מבצעת). דגל `courses.punch.confirm` (הכרעה 2; דלוק כברירת מחדל — כמו בקובץ החי). חל בכל נקודות הניקוב: CourseDetail, AttendancePanel, וכרטיס המשפחה (cardops מ-P0.3). ratchet על ה-state-machine (טהור).
+5. **פער 11 · P1.8 undoPunch מדויק** — `ManageModal.tsx:164`: הביטול מחזיר את הדלתא מרשומת ה-Check-in האחרונה בפועל (legacy mgUndo), לא הנחת ‎-1. ratchet.
+
+### אשכול ג׳ — תומכות
+6. **פער 12 · P1.9 יעד קשר בלי confirm + ניקוי יתומים** — `SupporterDetail.tsx:71`: יצירת התזכורת אוטומטית בלי `window.confirm` (legacy saveSupNext). ובאותו commit: פונקציית `unlinkEvent` משותפת — ניקוי `dueDate`/`nextDate` מוחק גם את האירוע המקושר (היום נשאר יתום בלוח). ratchet לשניהם.
+7. **פער 13 · P1.4 לוח תרומות כלל-ארגוני** — supCalAll (legacy 1496-1537, markup 1336-1372): לוח חודשי של כל התרומות בכל התומכות + מצב עברי + רשימת-יום בלוח האישי הקיים. דגל `supporters.doncal`.
+
+### אשכול ד׳ — שיבוץ
+8. **פער 14 · P1.7 סינון שיבוץ חכם** — `JoinModal`/`EnrollModal`: סינון חוגים אוטומטי לפי גיל/מגדר הילד + מתג "הצג הכל" + אזהרת התנגשות לו"ז מול שיבוצי הילד הקיימים (legacy 491-509). **זה מימוש הכרעה 3** — היכולת הדטרמיניסטית של אשף הלגאסי נכנסת כאן; אין לבנות UI אשף נפרד. דגל `courses.enroll.smartfilter`.
+9. **פער 15 · P1.10 יצירת משפחה מתוך שיבוץ** — `EnrollModal`: אופציית `__new` (יצירת משפחה תוך כדי) + הוספת בן-משפחה מתוך המודאל (legacy saveEnrollNew). דגל `courses.enroll.inlinecreate`.
+
+### אשכול ה׳ — ניווט ולוח
+10. **פער 16 · P1.5 navHist** — מחסנית ניווט 20 צעדים (legacy:166) + "↩ חזרה" גלובלי בשלושת שלדי הערכות + `recentIds` "נפתחו לאחרונה" (legacy:344). מימוש ב-`useApp` (go/selectFamily/selectCourse) — טהור ונבדק. דגל `shell.navhist`.
+11. **פער 17 · P1.6 השלמת הפלטה** — `CommandPalette.tsx`: פעולות — העתקת כל הטלפונים, + אירוע / + תזכורת / + חוג / + תומכת, ניקוב-מהיום; קיבוץ תוצאות לפי סוג (legacy: 16 הפעולות + copyPhones/dlCSV). דגל `shell.palette.actions`.
+12. **פער 18 · P1.1 לוח נפתח בעברי** — `CalendarView.tsx:159`: `useState(false)` → אתחול מדגל `calendar.hebdefault` (legacy `calHebMode:true`). חסר=דלוק=נפתח עברי; `false` = לועזי. לחלץ helper טהור `initialHebMode(config)` + ratchet.
+
+## Definition of Done
+כל 12 הקומיטים ירוקים ודחופים · שלוש סוויטות e2e ירוקות (להרחיב את demo-walkthrough: ניקוב-עם-אישור-כפול + סינון שיבוץ) · עדכון `gaps.json` (closed לפריטים שנסגרו) + `CLOSED-P1-*.md` · דוח מסירה לארכיטקט באותו פורמט כמו P0. **אין להתחיל P2.**
