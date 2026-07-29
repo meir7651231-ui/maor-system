@@ -616,7 +616,7 @@ export function monthlySeries(
 ): number[] {
   const idx = new Map<string, number>();
   for (let i = 0; i < months; i++) idx.set(monthKeyOf(now, i - (months - 1)), i);
-  const out = new Array<number>(months).fill(0);
+  const out = Array.from({ length: months }, () => 0);
   for (const p of points) {
     const i = idx.get((p.date || '').slice(0, 7));
     if (i !== undefined) out[i] += p.value;

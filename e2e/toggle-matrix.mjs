@@ -75,17 +75,20 @@ for (const profile of PROFILES) {
   const punchOn = coursesOn && featOff['courses.punch'] !== false;
   const famLabel = profile.config?.terms?.['nav.families'] ?? 'משפחות';
   const crsLabel = profile.config?.terms?.['nav.courses'] ?? 'חוגים';
+  // כפתורי ההוספה הם "➕ הוספת <ישות>" עם מונח דינמי (termOf)
+  const famEntity = profile.config?.terms?.['entity.family'] ?? 'משפחה';
+  const crsEntity = profile.config?.terms?.['entity.course'] ?? 'חוג';
 
-  // הזרקת הפרופיל לפני הטעינה
+  // הזרקת הפרופיל לפני הטעינה. מזריקים config גם בפרופיל "מלא" (cfg=null):
+  // localStorage גובר על config.json, וה-config המוזרק בלי firebase ⇒ ענן כבוי ⇒
+  // אין מסך "כניסה למערכת" שחוסם את הבדיקה (ראה CLAUDE.md).
   await page.goto(BASE, { waitUntil: 'networkidle' });
   await page.evaluate((cfg) => {
     localStorage.clear();
-    if (cfg) {
-      localStorage.setItem(
-        'maor_org_config',
-        JSON.stringify({ slug: 'default', orgName: 'עמותת מבחן', theme: 'or-rishon', modules: {}, ...cfg }),
-      );
-    }
+    localStorage.setItem(
+      'maor_org_config',
+      JSON.stringify({ slug: 'default', orgName: 'עמותת מבחן', theme: 'or-rishon', modules: {}, ...(cfg ?? {}) }),
+    );
     localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10)); // בלי שער יום
   }, profile.config);
   await page.reload({ waitUntil: 'networkidle' });
@@ -94,7 +97,7 @@ for (const profile of PROFILES) {
   // ── זרימה 1: יצירת משפחה ──
   await page.locator(`nav >> text=${famLabel}`).click();
   await page.waitForTimeout(300);
-  await page.locator('button', { hasText: 'משפחה חדשה' }).first().click();
+  await page.locator('button', { hasText: `הוספת ${famEntity}` }).first().click();
   await page.waitForTimeout(300);
   await page.locator('.modal input').first().fill('בדיקה-מטריצה');
   await page.locator('.modal button', { hasText: 'שמירה' }).click();
@@ -115,10 +118,19 @@ for (const profile of PROFILES) {
   }
 
   if (coursesOn) {
+    // ── זרימה 3א: יצירת חדר (חדר פעילות הוא שדה חובה בטופס החוג) ──
+    await page.locator('nav >> text=הגדרות').click();
+    await page.waitForTimeout(400);
+    await page.locator('button', { hasText: 'חדר חדש' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input').first().fill('חדר-מטריצה');
+    await page.locator('.modal button', { hasText: 'שמירת הגדרות' }).click();
+    await page.waitForTimeout(500);
+
     // ── זרימה 3: יצירת חוג ──
     await page.locator(`nav >> text=${crsLabel}`).click();
     await page.waitForTimeout(300);
-    await page.locator('button', { hasText: 'חוג חדש' }).first().click();
+    await page.locator('button', { hasText: `הוספת ${crsEntity}` }).first().click();
     await page.waitForTimeout(300);
     await page.locator('.modal input').first().fill('חוג-מטריצה');
     await page.locator('.modal button', { hasText: 'שמירה' }).click();

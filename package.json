@@ -10,7 +10,8 @@
     "test": "vitest run",
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
-    "e2e": "node e2e/toggle-matrix.mjs"
+    "e2e": "node e2e/toggle-matrix.mjs",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run build"
   },
   "dependencies": {
     "firebase": "^12.16.0",

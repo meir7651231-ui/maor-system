@@ -120,7 +120,7 @@ function initState(r: Room | null): RoomFormState {
     to: r?.to || '20:00',
     accessSel: r?.access ? 'yes' : 'no',
     notes: r?.notes ?? '',
-    eq: { ...(r?.eq ?? {}) },
+    eq: { ...r?.eq },
   };
 }
 

@@ -2,14 +2,16 @@
 
 ## ⚠️ כללי עבודה
 - **אין push ל-main ללא אישור מפורש** — push ל-main מפעיל אוטומטית deploy לפרודקשן (gh-pages) דרך `.github/workflows/deploy.yml`.
-- כל עבודה על ענף `claude/*` של הסשן.
-- **סוכן ידע:** לפני כל עבודה — לקרוא את `knowledge/ANALYSIS-2026-07-29.md` (סריקה מלאה של כל הריפו). אחרי שינוי מהותי — לעדכן את הידע (דוח חדש ב-`knowledge/` או עדכון הקובץ הקיים).
+- ענף העבודה הנוכחי: **`claude/what-do-you-see-bcxttj`** (משימת המעבר מהקובץ החי). כל עבודה על ענף `claude/*` של הסשן.
+- **סוכן ידע:** לפני כל עבודה — לקרוא את `knowledge/HANDOFF-ARCHITECT-2026-07-29.md` (מסמך המשימה הראשי) ואת `knowledge/ANALYSIS-2026-07-29.md`. אחרי שינוי מהותי — לעדכן את הידע (דוח חדש ב-`knowledge/` או עדכון הקובץ הקיים).
 
 ## 🔴 הקובץ החי של הלקוחות (הלגאסי)
 הלקוחות עובדים היום על `MaorHachesedCLEANOffline_2.html` — single-file שהתפתח **אחרי** הפורט ל-React. לפני כל החלטת פיצ'ר:
 1. `knowledge/LEGACY-GAP-2026-07-29.md` — ניתוח פערים מלא (מה חסר/שונה ב-React מול הקובץ החי) + סדר עבודה מומלץ.
 2. `knowledge/legacy/legacy-main-script.js` + `legacy-markup.html` — קוד הלגאסי המחולץ (מקור האמת להתנהגות).
 3. `knowledge/legacy/inventory.json` + `gaps.json` — 199 פיצ'רים ממופים עם סטטוס פר-פיצ'ר.
+
+**האינווריאנט העליון — אפס אובדן יכולת:** כל יכולת של הקובץ החי או נשמרת או משתדרגת. אין מחיקה. השאלה תמיד "איך משדרגים", לא "אם להכליל".
 
 **נקודות מפתח מהפער:** מפתח ה-DB בלגאסי הוא `maorclean2_db` (מעבר נתונים = גיבוי+ייבוא); ללגאסי יש `Supporter.hist[]`, גיליון עיניים round-trip, role מנהל/מורה, punchConfirm — שאין ב-React; סף "סיכון" בלגאסי 500 מול 300 ב-React; כרטיס המשפחה בלגאסי מאפשר ניקוב/חיסור/ניהול שיבוץ ישירות; הלוח נפתח בגריד עברי.
 
@@ -24,14 +26,19 @@
 ## Dev loop
 ```bash
 npm ci
-npm run typecheck     # tsc -b --noEmit — נקי
-npm run lint          # oxlint — 0 שגיאות
-npm test              # vitest — 479/479 PASS
-npm run build         # tsc -b && vite build
-npm run e2e           # toggle-matrix (דורש Chromium ב-/opt/pw-browsers)
-# ⚠️ e2e/launch-readiness.mjs שבור — נתיב buildsmart קשיח (ראה ידע §5)
+npm run verify        # השער המלא: typecheck → lint (0 אזהרות) → test (479+) → build
+npm run e2e           # toggle-matrix — 5 פרופילים (דורש build קודם)
+node e2e/demo-walkthrough.mjs      # מעבר דמו 13/13 + צילומים
+node e2e/launch-readiness.mjs      # מסעות משתמש 11/11, אפס שגיאות קונסולה
 ```
-CI (push ל-main): typecheck + vitest + build → deploy. ‏E2E ו-lint **לא** ב-CI.
+CI: `ci.yml` מריץ את השער המלא על כל push לענף claude/*; deploy מ-main בלבד.
+סביבה מתאתחלת לבד בסשן web: `.claude/hooks/session-start.sh`.
+
+### דפוסי e2e (baseline ירוק 2026-07-29)
+- כל סקריפט מזריק `maor_org_config` **ללא** `firebase` ל-localStorage לפני הטעינה (ענן כבוי ⇒ אין מסך התחברות).
+- כפתורי הוספה: `➕ הוספת <ישות>` עם מונח דינמי (`termOf`) — לא "X חדש".
+- טופס חוג דורש **חדר** (שדה חובה) — הסקריפטים יוצרים חדר דרך הגדרות קודם.
+- מחיקת IndexedDB נחסמת כשהאפליקציה פתוחה — מוחקים מדף אחר באותו origin (launch-readiness, מסע 3).
 
 ## קבצי ליבה
 | קובץ | תפקיד |
@@ -56,7 +63,7 @@ CI (push ל-main): typecheck + vitest + build → deploy. ‏E2E ו-lint **לא*
 
 ## ⚠️ באגים ידועים שטרם תוקנו (במכוון — ממתין לאישור המשתמש)
 1. 🔴 `src/lib/hebrewNumber.ts:41` — סכום-במילים שגוי לאלפים עגולים 11K–999K ("שמונה עשר ואלף") — **מגיע לקבלות סעיף 46**.
-2. 🔴 `e2e/launch-readiness.mjs:11` — נתיב קשיח `/home/user/buildsmart/maor/dist`.
+2. ~~🔴 `e2e/launch-readiness.mjs` — נתיב קשיח~~ **תוקן 2026-07-29** (נתיב יחסי + כל הסוויטה ירוקה).
 3. 🟠 ~10 מפתחות localStorage עוקפים את בידוד ה-namespace הרב-ארגוני (maor_lock, maor_autoexp, maor_cashbox_* ועוד).
 4. 🟠 העותק בענן נשמר plaintext גם כשההצפנה דלוקה; אין Firestore Rules בריפו.
 5. 🟠 DonationModal/ManageModal מורידים קבלה גם כשה-store דחה (rid שמעולם לא הונפק).

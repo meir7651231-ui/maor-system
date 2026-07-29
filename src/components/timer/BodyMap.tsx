@@ -84,7 +84,7 @@ export function BodyMap({ onClose }: { onClose: () => void }) {
 
   const bump = (zoneId: string, by: number) => {
     setStore((s) => {
-      const cm = { ...(s[clientKey] ?? {}) };
+      const cm = { ...s[clientKey] };
       const cur = cm[zoneId] ?? { done: 0, target: 0 };
       cm[zoneId] = { ...cur, done: Math.max(0, cur.done + by) };
       const next = { ...s, [clientKey]: cm };
@@ -94,7 +94,7 @@ export function BodyMap({ onClose }: { onClose: () => void }) {
   };
   const setTarget = (zoneId: string, target: number) => {
     setStore((s) => {
-      const cm = { ...(s[clientKey] ?? {}) };
+      const cm = { ...s[clientKey] };
       const cur = cm[zoneId] ?? { done: 0, target: 0 };
       cm[zoneId] = { ...cur, target: Math.max(0, target) };
       const next = { ...s, [clientKey]: cm };

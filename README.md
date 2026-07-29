@@ -3,7 +3,8 @@
 מערכת ניהול מלאה לעמותה: משפחות ובני משפחה, חוגים ושיבוצים, כרטיסיות ותשלומים,
 נוכחות והיעדרויות, לוח שנה עברי-לועזי, יומני חדרים, תורמים ותרומות, דוחות והגדרות.
 
-בנייה חדשה ונקייה (React 18 + TypeScript + Vite) של אב-הטיפוס `MaorSystemClean.html`.
+בנייה חדשה ונקייה (React 19 + TypeScript + Vite) של אב-הטיפוס `MaorSystemClean.html`.
+סנכרון ענן (Firebase) הוא opt-in פר-ארגון דרך `config.json` — בלעדיו המערכת סטטית לחלוטין.
 
 ## ארכיטקטורה
 
@@ -48,12 +49,14 @@ maor/
 ## פיתוח
 
 ```bash
-cd maor
 npm install
 npm run dev        # שרת פיתוח
+npm run verify     # השער המלא: typecheck + lint + test + build
 npm run typecheck  # בדיקת טיפוסים
-npm test           # בדיקות יחידה
+npm run lint       # oxlint — 0 אזהרות
+npm test           # בדיקות יחידה (vitest)
 npm run build      # בנייה ל-dist/
+npm run e2e        # מטריצת קצה-לקצה בדפדפן (דורש build קודם)
 ```
 
 ## פריסה (Deploy)
