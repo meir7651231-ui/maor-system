@@ -104,11 +104,13 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       toast('הקלידו סכום תשלום תקין');
       return;
     }
-    // מספר הקבלה נגזר מ-receiptSeq הנוכחי — בדיוק כפי ש-addPayment שב-store מחשב אותו
-    const rid = 'R-' + useApp.getState().db.receiptSeq;
     const date = payDate || isoToday();
     const method = payMethod || 'מזומן';
-    addPayment(en.id, { date, amount: amt, method });
+    // הקבלה יורדת רק כשה-store קיבל את התשלום, ועם ה-rid שהונפק בפועל —
+    // קודם ניחשנו rid מ-receiptSeq והורדנו קבלה גם על דחייה (rid שמעולם לא הונפק).
+    const res = addPayment(en.id, { date, amount: amt, method });
+    if (!res.ok || !res.rid) return; // ה-store כבר הציג טוסט דחייה
+    const rid = res.rid;
     // קבלות כבויות בקונפיגורציה → התשלום נרשם, אך ללא הורדת קבלה וללא טוסט הקבלה
     if (receiptsOn) {
       downloadReceipt({

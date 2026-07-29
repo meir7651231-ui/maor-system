@@ -158,7 +158,8 @@ interface AppState {
   deleteEnrollment: (id: string) => void;
   punch: (enrollmentId: string) => void;
   addAbsence: (enrollmentId: string, absence: Absence) => void;
-  addPayment: (enrollmentId: string, payment: Omit<Payment, 'rid'>) => void;
+  /** רישום תשלום — {ok:false} כשה-store דחה (השיבוץ נעלם); rid רק כשהונפק בפועל. */
+  addPayment: (enrollmentId: string, payment: Omit<Payment, 'rid'>) => { ok: boolean; rid?: string };
 
   // יומן ואירועים
   upsertEvent: (ev: OrgEvent) => void;
@@ -170,7 +171,8 @@ interface AppState {
   upsertRoom: (r: Room) => void;
   upsertSupporter: (s: Supporter) => void;
   deleteSupporter: (id: string) => void;
-  addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => void;
+  /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
+  addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => { ok: boolean; rid?: string };
 
   // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
   // ולכן סנכרון הענן והביטול עובדים כרגיל. פעולות שכותבות ללוח מייצרות OrgEvent.
@@ -752,7 +754,7 @@ export const useApp = create<AppState>()((set, get) => {
       // (פוגם ברציפות הקבלות) והתשלום אובד בשקט. עקבי עם addCred/deleteTeacher.
       if (!get().db.enrollments.some((e) => e.id === enrollmentId)) {
         get().toast('השיבוץ לא נמצא — התשלום לא נרשם');
-        return;
+        return { ok: false };
       }
       const rid = 'R-' + get().db.receiptSeq;
       setDb((db) => ({
@@ -761,6 +763,7 @@ export const useApp = create<AppState>()((set, get) => {
           e.id === enrollmentId ? { ...e, payments: [{ ...payment, rid }, ...e.payments] } : e,
         ),
       }));
+      return { ok: true, rid };
     },
 
     upsertEvent(ev) {
@@ -803,7 +806,7 @@ export const useApp = create<AppState>()((set, get) => {
       // יצרוך את donationSeq — אחרת D-{n} מדולג לצמיתות והתרומה אובדת בשקט.
       if (!get().db.supporters.some((s) => s.id === supporterId)) {
         get().toast('התומך/ת לא נמצא/ה — התרומה לא נשמרה');
-        return;
+        return { ok: false };
       }
       const rid = 'D-' + get().db.donationSeq;
       setDb((db) => ({
@@ -824,6 +827,7 @@ export const useApp = create<AppState>()((set, get) => {
           };
         }),
       }));
+      return { ok: true, rid };
     },
 
     // ── מעקב טיפול רב-שלבי ──
