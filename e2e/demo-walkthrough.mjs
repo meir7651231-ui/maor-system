@@ -121,6 +121,34 @@ if (await clickIf('main button', '⚙')) {
   await closeModals();
 }
 
+// ── P0.3: כרטיס משפחה תפעולי (families.cardops) — שיבוץ כרטיסייה + ניקוב מהכרטיס ──
+await nav('חוגים');
+await clickIf('main button', '→ כל'); // חזרה מכרטיס החוג הפתוח לרשימת החוגים
+await clickIf('button', 'הוספת חוג');
+await fillModal('חוג התעמלות');
+const modelSel = page.locator('.modal select:has(option[value="punch"])').first();
+if (await modelSel.count()) { await modelSel.selectOption('punch'); await wait(250); }
+const sizeInp = page.locator('.modal input[placeholder="10"]').first();
+if (await sizeInp.count()) await sizeInp.fill('10');
+await saveModal(); await wait(500);
+T('נוצר חוג כרטיסייה', (await mainTxt()).includes('התעמלות'));
+await nav('משפחות');
+await page.locator('main >> text=כהן').first().click(); await wait(500);
+if (await clickIf('main button', 'שיבוץ ל')) {
+  await fillModal('רוני'); await wait(350);
+  await clickIf('.modal button', 'רוני'); await wait(200);
+  await page.locator('.modal input').nth(1).fill('התעמלות'); await wait(350);
+  await clickIf('.modal button', 'התעמלות'); await wait(200);
+  await page.locator('.modal button', { hasText: 'שיבוץ' }).last().click(); await wait(600);
+  await closeModals();
+}
+T('שיבוץ כרטיסייה מכרטיס המשפחה', (await mainTxt()).includes('10 מתוך 10'));
+// ניקוב מהכרטיס — עובר דרך אותו store.punch של מסך החוגים (P0.3)
+await clickIf('main button', 'ניקוב'); await wait(500);
+T('ניקוב מכרטיס המשפחה — היתרה ירדה', (await mainTxt()).includes('9 מתוך 10'));
+T('פעולות ⚙/🤒 והוספת אירוע זמינות בכרטיס', (await page.locator('main button', { hasText: '⚙' }).count()) > 0 && (await page.locator('main button', { hasText: '➕ אירוע' }).count()) > 0);
+await shot('כרטיס-משפחה-תפעולי');
+
 // ── תורמים + תרומה ──
 await nav('תורמים');
 await clickIf('button', 'הוספת תומך'); await fillModal('קרן פרידמן'); await saveModal(); await wait(500);

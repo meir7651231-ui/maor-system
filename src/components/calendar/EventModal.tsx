@@ -53,8 +53,8 @@ export function EventModal(props: {
   ev: OrgEvent | null;
   /** תאריך התחלתי לאירוע חדש (ISO). */
   date: string;
-  /** ערכים התחלתיים לאירוע חדש — למשל הזמנת משבצת חדר מהיומן. */
-  prefill?: { time?: string; roomId?: string; type?: EventType; notes?: string };
+  /** ערכים התחלתיים לאירוע חדש — למשל הזמנת משבצת חדר מהיומן או "➕ אירוע" מכרטיס המשפחה. */
+  prefill?: { time?: string; roomId?: string; type?: EventType; notes?: string; famId?: string };
   /** טקסט toast מותאם לשמירת אירוע חדש (ברירת מחדל: 'האירוע נוסף ללוח'). */
   saveToast?: string;
   onClose: () => void;
@@ -78,7 +78,7 @@ export function EventModal(props: {
     notes: ev?.notes ?? prefill?.notes ?? '',
     price: ev && ev.price ? String(ev.price) : '',
     roomId: ev?.roomId ?? prefill?.roomId ?? '',
-    famId: ev?.famId ?? '',
+    famId: ev?.famId ?? prefill?.famId ?? '',
     priority: ev?.priority ?? 'green',
     done: ev?.done ?? false,
   }));

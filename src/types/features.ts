@@ -36,6 +36,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'families.media', label: 'הסכמות מדיה בטופס', desc: 'שדות הסכמת צילום ופרסום בטופס המשפחה', module: 'families' },
   { key: 'families.report', label: 'דוח משפחה להורדה', desc: 'הורדת דוח מרוכז על משפחה כקובץ', module: 'families' },
   { key: 'families.finder', label: 'גלגל מאתר המשפחות', desc: 'גלגל סינון חי בתוך מסך המשפחות — צלילה ציר אחרי ציר', module: 'families' },
+  { key: 'families.cardops', label: 'פעולות תפעול בכרטיס', desc: 'ניקוב, חיסור, ניהול והסרת שיבוץ + כרטיסי אב/אם להשלמה + "➕ אירוע" — ישירות מכרטיס המשפחה', module: 'families' },
 
   // ——— חוגים ———
   { key: 'courses.punch', label: 'כרטיסיות ניקוב', desc: 'מכירת כרטיסיות וניקוב כניסות במקום מנוי', module: 'courses' },

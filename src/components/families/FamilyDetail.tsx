@@ -10,7 +10,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty } from '../ui';
 import { ageOf, chipStyle, fmtDate, STATUS_META } from './lib';
 import { FamilyForm } from './FamilyForm';
-import { MemberForm } from './MemberForm';
+import { MemberForm, type MemberPrefill } from './MemberForm';
 import { CredPanel, DocsPanel, EnrollPanel, EventsPanel } from './FamilyPanels';
 
 function InfoRow(props: { k: string; v: string }) {
@@ -104,6 +104,56 @@ function MemberCard(props: { m: Member; onEdit: () => void; onDelete: () => void
   );
 }
 
+/** כרטיס "אב/אם (להשלמה)" — הורה מטופס המשפחה שטרם מומש כ-Member (P0.3). */
+function ParentStubCard(props: { label: string; name: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={props.onClick}
+      title={'השלמת פרטי ' + props.name + ' כבן/בת משפחה'}
+      style={{
+        border: '1.5px dashed var(--line)',
+        borderRadius: 12,
+        padding: '11px 12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 11,
+        background: 'transparent',
+        cursor: 'pointer',
+        textAlign: 'right',
+      }}
+    >
+      <div
+        aria-hidden
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 99,
+          background: '#eceae2',
+          color: '#8b8474',
+          fontWeight: 800,
+          fontSize: 14,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flex: 'none',
+        }}
+      >
+        {props.name ? props.name[0] : '?'}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+          <span style={{ fontWeight: 700, fontSize: 14 }}>{props.name}</span>
+          <span style={chipStyle('#fdf1d4', '#9a6414')}>{props.label}</span>
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 2 }}>
+          לחיצה תפתח טופס מאוכלס מראש להשלמת הפרטים
+        </div>
+      </div>
+    </button>
+  );
+}
+
 export function FamilyDetail(props: { family: Family }) {
   const fam = props.family;
   const selectFamily = useApp((s) => s.selectFamily);
@@ -113,11 +163,14 @@ export function FamilyDetail(props: { family: Family }) {
   const config = useApp((s) => s.config);
   const credOn = featureOn(config, 'families.cred');
   const docsOn = featureOn(config, 'families.docs');
+  const cardOpsOn = featureOn(config, 'families.cardops');
 
   const [showIds, setShowIds] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   /** undefined=סגור · null=בן משפחה חדש · Member=עריכה */
   const [memberModal, setMemberModal] = useState<Member | null | undefined>(undefined);
+  /** אכלוס-מראש לכרטיסי "אב/אם (להשלמה)" — נפתח MemberForm עם שם ההורה מה-Family. */
+  const [parentPrefill, setParentPrefill] = useState<MemberPrefill | undefined>(undefined);
 
   // FamiliesView מרנדר FamilyDetail בלי key, וה-command palette מחליף משפחה בלי
   // unmount — בלי איפוס, טופס עריכה/בן-משפחה שנשאר פתוח היה קשור למשפחה הקודמת.
@@ -127,6 +180,7 @@ export function FamilyDetail(props: { family: Family }) {
     setPrevFamilyId(fam.id);
     setEditOpen(false);
     setMemberModal(undefined);
+    setParentPrefill(undefined);
   }
 
   const st = STATUS_META[fam.status];
@@ -295,13 +349,36 @@ export function FamilyDetail(props: { family: Family }) {
           <h2 style={{ fontSize: 16, fontWeight: 700 }}>{termOf(config, 'entity.members', 'בני משפחה')}</h2>
           <Btn onClick={() => setMemberModal(null)}>➕ הוספת {termOf(config, 'entity.member', 'בן משפחה')}</Btn>
         </div>
-        {fam.members.length === 0 ? (
+        {fam.members.length === 0 && !(cardOpsOn && (fam.father || fam.mother)) ? (
           <Empty>עדיין לא נרשמו {termOf(config, 'entity.members', 'בני משפחה')}</Empty>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
             {fam.members.map((m) => (
               <MemberCard key={m.id} m={m} onEdit={() => setMemberModal(m)} onDelete={() => onDeleteMember(m)} />
             ))}
+            {/* כרטיסי "אב/אם (להשלמה)" — הורה שקיים ב-Family אך טרם מומש כ-Member
+                (אותו תנאי כמו ההורים הווירטואליים __pf/__pm ב-JoinModal; עוגן לגאסי:
+                כרטיסי ההורים בכרטיס המשפחה). לחיצה פותחת MemberForm מאוכלס מראש. */}
+            {cardOpsOn && fam.father && !fam.members.some((x) => x.isParent && x.gender === 'm') && (
+              <ParentStubCard
+                label="אב (להשלמה)"
+                name={fam.father}
+                onClick={() => {
+                  setParentPrefill({ first: fam.father, gender: 'm', isParent: true });
+                  setMemberModal(null);
+                }}
+              />
+            )}
+            {cardOpsOn && fam.mother && !fam.members.some((x) => x.isParent && x.gender === 'f') && (
+              <ParentStubCard
+                label="אם (להשלמה)"
+                name={fam.mother}
+                onClick={() => {
+                  setParentPrefill({ first: fam.mother, gender: 'f', isParent: true });
+                  setMemberModal(null);
+                }}
+              />
+            )}
           </div>
         )}
       </section>
@@ -318,7 +395,15 @@ export function FamilyDetail(props: { family: Family }) {
 
       {editOpen && <FamilyForm family={fam} onClose={() => setEditOpen(false)} />}
       {memberModal !== undefined && (
-        <MemberForm famId={fam.id} member={memberModal} onClose={() => setMemberModal(undefined)} />
+        <MemberForm
+          famId={fam.id}
+          member={memberModal}
+          prefill={memberModal === null ? parentPrefill : undefined}
+          onClose={() => {
+            setMemberModal(undefined);
+            setParentPrefill(undefined);
+          }}
+        />
       )}
     </div>
   );
