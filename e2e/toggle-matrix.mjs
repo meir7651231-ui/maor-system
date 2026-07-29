@@ -87,7 +87,7 @@ for (const profile of PROFILES) {
     localStorage.clear();
     localStorage.setItem(
       'maor_org_config',
-      JSON.stringify({ slug: 'default', orgName: 'עמותת מבחן', theme: 'or-rishon', modules: {}, ...(cfg ?? {}) }),
+      JSON.stringify({ slug: 'default', orgName: 'עמותת מבחן', theme: 'or-rishon', modules: {}, ...cfg }),
     );
     localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10)); // בלי שער יום
   }, profile.config);
