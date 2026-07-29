@@ -15,6 +15,7 @@ import {
 import { allMembers, type MemberWithFamily } from '../../store/useApp';
 import { hebParts, hebAnnualEq, type HebParts } from '../../lib/hebrew';
 import { payBal, sessionsOf } from '../courses/lib';
+import { CRED_RED_THRESHOLD } from '../families/lib';
 import { isoLocal } from '../../lib/date-util';
 // תוויות/צבעי סוגי אירועים — מקור-אמת יחיד ב-lib/eventMeta (מיוצא מחדש לתאימות)
 import { EV_META, evLabel } from '../../lib/eventMeta';
@@ -389,8 +390,8 @@ export function attentionItems(
     });
   }
 
-  // מדד אמינות אדום — ניקוד מתחת ל-300, פריט מצטבר
-  const redCred = db.families.filter((f) => (f.cred?.score ?? 700) < 300);
+  // מדד אמינות אדום — מתחת לסף הסיכון המשותף (יישור ללגאסי: red <500), פריט מצטבר
+  const redCred = db.families.filter((f) => (f.cred?.score ?? 700) < CRED_RED_THRESHOLD);
   if (redCred.length) {
     out.push({
       key: 'redcred:families',

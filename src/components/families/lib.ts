@@ -48,11 +48,14 @@ export interface Tier {
   dot: string;
 }
 
+/** סף מדד-אמינות "סיכון" — יישור ללגאסי (tierOf red). ratchet: legacy tier red <500. */
+export const CRED_RED_THRESHOLD = 500;
+
 /** דרגת מדד האמינות — זהה לחלוקה במקור (950/800/500). */
 export function tierOf(score: number): Tier {
   if (score >= 950) return { key: 'titan', label: 'טיטאן', bg: '#fdf3dd', c: '#9a6414', dot: '#f3c76b' };
   if (score >= 800) return { key: 'lion', label: 'לביאה', bg: '#e4f5ea', c: '#12803c', dot: '#16a34a' };
-  if (score >= 500) return { key: 'pale', label: 'טעון שיפור', bg: '#fdf1d4', c: '#9a6414', dot: '#d97706' };
+  if (score >= CRED_RED_THRESHOLD) return { key: 'pale', label: 'טעון שיפור', bg: '#fdf1d4', c: '#9a6414', dot: '#d97706' };
   return { key: 'red', label: 'סיכון נטישה', bg: '#fdeaea', c: '#b91c1c', dot: '#dc2626' };
 }
 

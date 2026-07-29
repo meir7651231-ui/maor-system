@@ -32,6 +32,7 @@ import { formatIsraeliPhone } from '../lib/validate';
 import { mergeFamilies } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
+import { CRED_RED_THRESHOLD } from '../components/families/lib';
 import { featLabel, planAddName, planAyinAdvance, revertPatch, stageIndex } from '../lib/ayin';
 import {
   dailySnapshot,
@@ -648,8 +649,8 @@ export const useApp = create<AppState>()((set, get) => {
             : f,
         ),
       }));
-      // חציית סף למדד אדום — התראה למנהל
-      if (prevScore >= 300 && newScore < 300) {
+      // חציית סף למדד אדום — התראה למנהל (סף משותף, יישור ללגאסי: red <500)
+      if (prevScore >= CRED_RED_THRESHOLD && newScore < CRED_RED_THRESHOLD) {
         get().toast(`⚠ משפחת ${fam.name} ירדה למדד אדום — מומלץ ליצור קשר`);
       }
     },
