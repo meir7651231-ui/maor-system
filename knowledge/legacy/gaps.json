@@ -169,7 +169,9 @@
     "evidence_legacy": "גם בכרטיס משפחה וגם בכרטיס קורס: פס יתרה צבעוני (אדום ≤0/כתום ≤2/ירוק), כפתור ניקוב דו-שלבי, 'חידוש ←', planLabel עם חיסורים/📝/💳 יתרה/'נרשם {תאריך עברי}', כפתור חיסור, ⚙ ניהול",
     "evidence_react": "בכרטיס הקורס (src/components/courses/CourseDetail.tsx שורות 320-420) — מלא: פס יתרה עם אותם צבעים/ספים, 'חידוש ←', planLabelOf עם חיסורים/📝/💳 (courses/lib.ts:151), ⚙ וחיסור. בכרטיס המשפחה (src/components/families/FamilyPanels.tsx שורות 203-268) — טבלה לקריאה בלבד: מסלול/יתרה צבעונית/סטטוס/קבוצה, בלי כפתורי ניקוב/⚙/חיסור ובלי תאריך הרשמה",
     "detail": "מהמשפחה אי אפשר לנקב, לרשום חיסור או לפתוח ניהול שיבוץ — חובה לעבור לכרטיס החוג; בלגאסי כל הפעולות זמינות משני הכיוונים",
-    "importance": "high"
+    "importance": "high",
+    "closed": "2026-07-29",
+    "closed_by": "P0.3 — פעולות ניקוב/חיסור/ניהול/הסרה מכרטיס המשפחה (דגל families.cardops), חיווט לאותם מודאלים ואותו store.punch"
    },
    {
     "feature": "שיוך קבוצה מהיר לתלמיד",
@@ -268,7 +270,7 @@
     "status": "partial",
     "evidence_legacy": "importKind: members/families/supporters/ayin/backup במודל אחד; JSON מזוהה כגיבוי; fallback windows-1255 לכל קובץ; processImport בונה סיכום (line1/line2/unmatchedLine/canApply) ורק אז applyImport; ייבוא משפחות ב-13 עמודות קבועות עם ניקויים (ביתר→ביתר עילית, '#NAME?', רמז אלמן, מצב משפחתי, קהילה ברירת מחדל)",
     "evidence_react": "src/components/settings/ImportSection.tsx — ייבוא ילדים מלא בשני שלבים (analyze→preview עם matched/unmatched/ambiguous + התפלגות שיטות זיהוי, קסקדה ת\"ז הורה→טלפון→שם+אם→עיר, כותרות גמישות, windows-1255 fallback, parseAnyDate); ייבוא משפחות מהדבקת CSV — 5 עמודות בלבד (שם, אב, אם, טלפון, עיר) ומוחל מיידית ללא תצוגה מקדימה; ייבוא JSON כמיזוג משפחות-חדשות-בלבד; src/components/supporters/SupporterImport.tsx — הצלבה לפי שם, מוחל מיידית ללא סיכום-לפני-החלה",
-    "detail": "הפערים: (1) ייבוא משפחות מצומצם מ-13 עמודות ל-5 — אין ת\"ז אב/אם, כתובת, מצב משפחתי, קהילה, הערות, ואין הניקויים הייעודיים (עיר, אלמן, סטטוס מהערות); (2) לתומכות ולמשפחות אין שלב סיכום/אישור לפני החלה (רק לילדים); (3) fallback windows-1255 רק בייבוא ילדים — קובצי תומכות/משפחות בקידוד ישן ישתבשו; (4) ייבוא גיליון עיניים (ayin) חסר לגמרי",
+    "detail": "הפערים: (1) ייבוא משפחות מצומצם מ-13 עמודות ל-5 — אין ת\"ז אב/אם, כתובת, מצב משפחתי, קהילה, הערות, ואין הניקויים הייעודיים (עיר, אלמן, סטטוס מהערות); (2) לתומכות ולמשפחות אין שלב סיכום/אישור לפני החלה (רק לילדים); (3) fallback windows-1255 רק בייבוא ילדים — קובצי תומכות/משפחות בקידוד ישן ישתבשו; (4) ייבוא גיליון עיניים (ayin) חסר לגמרי [עדכון 2026-07-29, P0.4+P0.5: נסגרו (1) משפחות 13 עמודות + כל הניקויים, (2) preview דו-שלבי למשפחות, (3) fallback windows-1255 לכל המסלולים, (4) ייבוא גיליון עיניים. נותר: שלב סיכום לפני החלה בייבוא תומכות]",
     "importance": "high"
    },
    {
@@ -285,7 +287,9 @@
     "evidence_legacy": "'maor-ayin-eyes.csv' עם עמודות [תומכת, טלפון, שם למסירה, כמה עיניים, נמסר, שולם, תשובה/הערה, עופרת בוצעה]; ייבוא חוזר מעדכן eyes+לוג היסטוריה, paid, answers (דה-דופ), stage→'eyes', lastTouch; זיהוי 'כן' לפי regex",
     "evidence_react": "src/lib/ayin.ts:198-225 — ayinDailyRows: דוח יומי בלבד ('ayin-daily-<תאריך>.csv', מי שטופל היום, כותרות דרך termOf); src/components/supporters/SupportersView.tsx:117. לא נמצא ייצוא גיליון מלא בפורמט הלגאסי ולא ייבוא חוזר שמעדכן eyes/paid/answers/stage (נבדקו SupporterImport.tsx, ImportSection.tsx, ayin.ts, AyinBoard.tsx)",
     "detail": "קיים רק הדוח היומי; חסר כל מעגל ה-round-trip: ייצוא הגיליון המלא עם עמודות נמסר/שולם/עופרת, וייבוא חוזר שמעדכן את התיקים. מגודר supporters.ayin",
-    "importance": "medium"
+    "importance": "medium",
+    "closed": "2026-07-29",
+    "closed_by": "P0.4 — maor-ayin-eyes.csv ייצוא+ייבוא round-trip (lib/ayin, דגל supporters.ayin.sheet), בדיקת round-trip מלאה"
    },
    {
     "feature": "דוחות תקופתיים (יומי/שבועי/חודשי/רבעוני)",
@@ -607,7 +611,7 @@
     "status": "different",
     "evidence_legacy": "tf=0.8+0.4*(חיוביות מ-3 אחרונות) מוחל על כל דלתא (applied=Math.round(delta*tf)); לוג נחתך ל-20; סיומת ' (TrendFactor X.X)'; ירידה לדרגת red (<500) → טוסט 'התראה למנהל: … ירדה לסטטוס אדום — SMS/מייל יישלחו בגרסה המחוברת'; runDecay ידני מההגדרות ('הרץ עכשיו'), -2 כשאין רשומת לוג ב-14 יום, תיאור 'Decay — חוסר פעילות 14+ ימים'",
     "evidence_react": "src/store/useApp.ts — trendFactor (שורות 282-288) + addCred (627-655) + runDecay (656-688). tierOf ב-src/components/families/lib.ts זהה למקור (950/800/500 + צבעים)",
-    "detail": "ארבע דלתות שונות: (1) TrendFactor מוחל רק על דלתאות חיוביות — חיובים (No-Show -20 וכו') עוברים כמות שהם, בניגוד למקור שמכפיל גם שליליים; (2) הלוג נחתך ל-200 במקום 20; הסיומת הפכה ' (מקדם מגמה X.X)'; (3) התראת האדום עברה לסף score<300 (חציית 300 כלפי מטה) במקום ירידה לדרגת red (<500), עם נוסח אחר ('⚠ משפחת X ירדה למדד אדום — מומלץ ליצור קשר'); (4) runDecay רץ אוטומטית פעם ביום בטעינה (מפתח maor_decay) במקום כפתור ידני בהגדרות, התיאור 'דעיכה — חוסר פעילות', רשומות דעיכה לא נספרות כפעילות ויש fallback ל-createdAt (מונע דעיכת משפחה חדשה) — התנהגות עסקית שונה מהלגאסי, בחלקה משופרת",
+    "detail": "ארבע דלתות שונות: (1) TrendFactor מוחל רק על דלתאות חיוביות — חיובים (No-Show -20 וכו') עוברים כמות שהם, בניגוד למקור שמכפיל גם שליליים; (2) הלוג נחתך ל-200 במקום 20; הסיומת הפכה ' (מקדם מגמה X.X)'; (3) התראת האדום עברה לסף score<300 (חציית 300 כלפי מטה) במקום ירידה לדרגת red (<500), עם נוסח אחר ('⚠ משפחת X ירדה למדד אדום — מומלץ ליצור קשר'); (4) runDecay רץ אוטומטית פעם ביום בטעינה (מפתח maor_decay) במקום כפתור ידני בהגדרות, התיאור 'דעיכה — חוסר פעילות', רשומות דעיכה לא נספרות כפעילות ויש fallback ל-createdAt (מונע דעיכת משפחה חדשה) — התנהגות עסקית שונה מהלגאסי, בחלקה משופרת [עדכון 2026-07-29, P0.2: דלתא (3) נסגרה — סף אחיד CRED_RED_THRESHOLD=500 בכל המשטחים (tierOf/redCred/טוסט). דלתאות (1),(2),(4) הוכרעו כשדרוגי React שנשארים (DECISIONS #1); דגל families.cred.trendCreditsOnly ימומש ב-P1]",
     "importance": "medium"
    },
    {
@@ -900,7 +904,9 @@
     "evidence_legacy": "תומכת עם hist[] (רשומות תרומה מהקובץ ההיסטורי), ומודול ayin עם paid (שולם), answers, log, וסנכרון דו-כיווני דרך גיליון CSV ‏(maor-ayin-eyes.csv) שמעדכן בייבוא חוזר eyes/paid/answers/stage (script1 שורות 195-201, 852-869, 970-993)",
     "evidence_react": "src/types/domain.ts שורות 267-353: Supporter כולל count/ils/usd/first/last/nextDate/donations/ayin, ‏AyinCase כולל stage/note/answeredNote/answerPushed/nextTalk/nextTalkTime/lastTouch/names/answers/log/boardEventIds — אבל אין שדה hist על Supporter ואין שדה paid ב-AyinCase (grep 'hist' על כל src לא מצא כלום בתומכות). ייבוא CSV ‏(src/components/supporters/SupporterImport.tsx + lib.ts) מטפל רק בעמודות קשר (שם/טלפון/מייל/ת\"ז/כתובת/קטגוריה/עבור) — אין ייבוא חוזר של גיליון העיניים",
     "detail": "חסרים: (1) hist[] — רשומות תרומה היסטוריות מהקובץ; (2) ayin.paid — סימון 'שולם' בגיליון; (3) מסלול הסנכרון הדו-כיווני של גיליון העיניים (ייצוא 'maor-ayin-eyes.csv' + ייבוא חוזר שמעדכן eyes עם לוג, paid, answers עם דה-דופ, stage→'eyes' כשהעופרת בוצעה, lastTouch, וזיהוי 'כן' לפי regex). קיים רק דוח יומי חד-כיווני (ייצוא בלבד)",
-    "importance": "high"
+    "importance": "high",
+    "closed": "2026-07-29",
+    "closed_by": "P0.1+P0.4 — Supporter.hist[] במודל ובמיגרציה; AyinCase.paid; מסלול הגיליון הדו-כיווני המלא"
    },
    {
     "feature": "ציון RFM משוקלל לתומכות",
@@ -948,7 +954,9 @@
     "evidence_legacy": "supDonEvents: ממזג donations עם רשומות sp.hist ‏(src 'מהקובץ ההיסטורי'), וכשאין hist מוסיף סמני 'תרומה ראשונה/אחרונה (מהקובץ)' מ-first/last; ממוין יורד (שורות 1486-1495)",
     "evidence_react": "src/components/supporters/SupporterDetail.tsx שורות 126-134, 246-286: טבלת התרומות ממוינת יורד לפי תאריך ומציגה תאריך לועזי+עברי/סכום/קטגוריה/rid; שורת הסטטיסטיקה כוללת 'מ-{עברי}' ו'אחרונה {עברי}' מ-first/last. אין שדה hist במודל (src/types/domain.ts) ואין שורות 'מהקובץ ההיסטורי'",
     "detail": "היסטוריית ה-donations קיימת ומלאה, אבל המיזוג עם רשומות הקובץ ההיסטורי (hist) וסמני 'תרומה ראשונה/אחרונה (מהקובץ)' חסרים לגמרי — נתוני העבר של הלקוח מהקובץ לא יוצגו כשורות",
-    "importance": "medium"
+    "importance": "medium",
+    "closed": "2026-07-29",
+    "closed_by": "P0.1 — supDonEvents ממוזג בכרטיס (קבלות + מהקובץ ההיסטורי + first/last), דגל supporters.hist"
    },
    {
     "feature": "לוח תרומות דו-לוחי (עברי/לועזי)",
