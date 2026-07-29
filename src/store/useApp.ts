@@ -157,6 +157,8 @@ interface AppState {
   upsertEnrollment: (e: Enrollment) => void;
   deleteEnrollment: (id: string) => void;
   punch: (enrollmentId: string) => void;
+  /** ביטול הניקוב האחרון — מחזיר את הדלתא המדויקת מרשומת ה-Check-in (legacy mgUndo). */
+  undoPunch: (enrollmentId: string) => void;
   addAbsence: (enrollmentId: string, absence: Absence) => void;
   /** רישום תשלום — {ok:false} כשה-store דחה (השיבוץ נעלם); rid רק כשהונפק בפועל. */
   addPayment: (enrollmentId: string, payment: Omit<Payment, 'rid'>) => { ok: boolean; rid?: string };
@@ -740,6 +742,46 @@ export const useApp = create<AppState>()((set, get) => {
             : e,
         ),
       }));
+    },
+    undoPunch(enrollmentId) {
+      // ratchet legacy-main-script.js:3372 (mgUndo): הביטול מחזיר את הדלתא
+      // המדויקת מרשומת ה-Check-in האחרונה בלוג האמינות (שעשויה להיות מוגדלת
+      // במקדם מגמה), לא הנחת ‎-5 — הרשומה מוסרת, הציון יורד ב-rev, ונרשם החזר
+      // -rev. אין רשומת Check-in → נפילה ל-addCred(-5) כמו בלגאסי.
+      const en = get().db.enrollments.find((e) => e.id === enrollmentId);
+      if (!en || !en.used) {
+        get().toast('אין ניקוב לביטול');
+        return;
+      }
+      const fam = get().db.families.find((f) => f.members.some((m) => m.id === en.memberId));
+      const log = fam?.cred?.log ?? [];
+      const li = log.findIndex((l) => l.delta > 0 && l.reason.startsWith('נוכחות (Check-in)'));
+      setDb((db) => {
+        const enrollments = db.enrollments.map((e) =>
+          e.id === enrollmentId ? { ...e, used: e.used - 1 } : e,
+        );
+        if (!fam || li < 0) return { enrollments };
+        const rev = log[li].delta;
+        return {
+          enrollments,
+          families: db.families.map((f) => {
+            if (f.id !== fam.id) return f;
+            const newLog = (f.cred?.log ?? []).filter((_, i) => i !== li);
+            return {
+              ...f,
+              cred: {
+                score: Math.max(0, Math.min(1000, (f.cred?.score ?? 700) - rev)),
+                log: [
+                  { date: isoToday(), delta: -rev, reason: 'ביטול ניקוב — החזר מדויק של ניקוד הנוכחות' },
+                  ...newLog,
+                ].slice(0, 200),
+              },
+            };
+          }),
+        };
+      });
+      if (fam && li < 0) get().addCred(fam.id, -5, 'ביטול ניקוב — תיקון טעות');
+      get().toast('הניקוב האחרון בוטל — היתרה הוחזרה');
     },
     addAbsence(enrollmentId, absence) {
       setDb((db) => ({

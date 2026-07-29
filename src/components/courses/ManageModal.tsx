@@ -27,6 +27,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   const upsertEnrollment = useApp((s) => s.upsertEnrollment);
   const deleteEnrollment = useApp((s) => s.deleteEnrollment);
   const addPayment = useApp((s) => s.addPayment);
+  const storeUndoPunch = useApp((s) => s.undoPunch);
   const upsertEvent = useApp((s) => s.upsertEvent);
   const deleteEvent = useApp((s) => s.deleteEvent);
   const addCred = useApp((s) => s.addCred);
@@ -187,14 +188,10 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   }
 
   function undoPunch() {
-    if (!en || !en.used) {
-      toast('אין ניקוב לביטול');
-      return;
-    }
-    upsertEnrollment({ ...en, used: en.used - 1 });
-    const fam = famOf();
-    if (fam) addCred(fam.id, -5, 'ביטול ניקוב — תיקון טעות');
-    toast('הניקוב האחרון בוטל — היתרה הוחזרה');
+    if (!en) return;
+    // ההחזר המדויק (legacy mgUndo) ממומש ב-store — כולל הסרת רשומת ה-Check-in
+    // מהלוג והחזרת הדלתא בפועל (לא הנחת ‎-5). P1.8.
+    storeUndoPunch(en.id);
   }
 
   function togglePause() {
