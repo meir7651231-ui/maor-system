@@ -32,8 +32,9 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', a
 const ctx = await b.newContext({ viewport: { width: 1000, height: 850 }, acceptDownloads: true });
 const pg = await ctx.newPage();
 const consoleErrors = [];
-pg.on('console', (m) => { if (m.type() === 'error' && !/config\.json/.test(m.text())) consoleErrors.push(m.text()); });
-pg.on('pageerror', (e) => consoleErrors.push('[pageerror] ' + e.message));
+let collectErrors = true; // מושבת רגעית בהקפצת ה-IDB-reset (דף demo.json מייצר 404 של favicon שאינו של האפליקציה)
+pg.on('console', (m) => { if (collectErrors && m.type() === 'error' && !/config\.json/.test(m.text())) consoleErrors.push(m.text()); });
+pg.on('pageerror', (e) => { if (collectErrors) consoleErrors.push('[pageerror] ' + e.message); });
 
 const txt = () => pg.evaluate(() => document.body.innerText);
 const famCount = () => pg.evaluate(() => { try { return JSON.parse(localStorage.getItem('maor_db')).families.length; } catch { return -1; } });
@@ -48,7 +49,15 @@ const navTo = async (label) => {
 };
 
 // ── מסע 1: פתיחה ריקה — האם ההדרכה ברורה? ──
+// config מוזרק בלי firebase ⇒ ענן כבוי ⇒ אין מסך התחברות שחוסם את המסעות
+// (localStorage גובר על config.json — ראה src/lib/config.ts + CLAUDE.md).
 await pg.goto(base, { waitUntil: 'networkidle', timeout: 30000 });
+await pg.evaluate(() => {
+  localStorage.clear();
+  localStorage.setItem('maor_org_config', JSON.stringify({ slug: 'default', orgName: 'עמותת מאור החסד', theme: 'or-rishon', modules: {} }));
+  localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10));
+});
+await pg.reload({ waitUntil: 'networkidle' });
 await pg.waitForTimeout(900);
 {
   const t = await txt();
@@ -59,7 +68,7 @@ await pg.waitForTimeout(900);
 try {
   await navTo('משפחות');
   await pg.waitForTimeout(400);
-  await clickText('+ משפחה חדשה');
+  await clickText('הוספת משפחה');
   await pg.waitForTimeout(400);
   await pg.locator('input[placeholder="כהן"]').fill('משפחת בדיקה');
   await pg.locator('button:has-text("שמירה")').first().click();
@@ -69,16 +78,25 @@ try {
   pass('הוספת משפחה ראשונה נשמרת ומופיעה', c === 1 && shown, `count=${c}`);
 } catch (e) { pass('הוספת משפחה ראשונה נשמרת ומופיעה', false, e.message.slice(0, 60)); }
 
-// ── מסע 3: טעינת דמו בלחיצה ──
+// ── מסע 3: טעינת דמו בלחיצה — הזרימה האמיתית של המשתמש ──
 try {
-  // חזרה לבית כדי לראות את באנר הדמו? הבאנר מופיע רק כשאין משפחות. נטען דרך הגדרות→שחזור? לא —
-  // הכפתור בבאנר. במקום, נטען דמו דרך fetch ישיר בעמוד (כמו הכפתור) לאימות הנתיב.
+  // הבאנר מופיע רק כשאין משפחות, ו-IndexedDB גובר על localStorage — לכן איפוס
+  // מלא של שתי השכבות (כמו לקוח טרי) ואז לחיצה על הכפתור האמיתי בבאנר.
+  // מחיקת ה-IDB חייבת לקרות כשהאפליקציה לא רצה (חיבור פתוח חוסם deleteDatabase),
+  // לכן עוברים רגע לדף באותו origin בלי האפליקציה (demo.json) ומוחקים משם.
+  collectErrors = false;
+  await pg.goto(base + 'demo.json', { waitUntil: 'load' });
   await pg.evaluate(async () => {
-    const res = await fetch('./demo.json', { cache: 'no-store' });
-    localStorage.setItem('maor_db', await res.text());
+    localStorage.clear();
+    localStorage.setItem('maor_org_config', JSON.stringify({ slug: 'default', orgName: 'עמותת מאור החסד', theme: 'or-rishon', modules: {} }));
+    localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10));
+    await new Promise((resolve) => { const rq = indexedDB.deleteDatabase('maor'); rq.onsuccess = rq.onerror = rq.onblocked = resolve; });
   });
-  await pg.reload({ waitUntil: 'networkidle' });
-  await pg.waitForTimeout(900);
+  await pg.goto(base, { waitUntil: 'networkidle' });
+  collectErrors = true;
+  await pg.waitForTimeout(700);
+  await clickText('📊 טעינת נתוני דמו');
+  await pg.waitForTimeout(1500);
   pass('טעינת דמו ממלאה 60 משפחות', (await famCount()) === 60);
 } catch (e) { pass('טעינת דמו ממלאה 60 משפחות', false, e.message.slice(0, 60)); }
 

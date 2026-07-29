@@ -31,9 +31,12 @@ npm run verify   # typecheck + lint (0 אזהרות!) + test (479+) + build
 
 Chromium ל-e2e: `/opt/pw-browsers/chromium-1194/chrome-linux/chrome` (ניתן לדרוס עם `CHROME_PATH`).
 
-## ⚠️ מצב ידוע: e2e חסום ע"י מסך התחברות ענן
-`public/config.json` מכיל `firebase` ⇒ `cloud.enabled` ⇒ המערכת עולה למסך "כניסה למערכת" — ושלושת סקריפטי ה-e2e (שנכתבו לפני שכבת הענן) נעצרים שם. **הטסטים (vitest) לא מושפעים.**
-פתרון עתידי מוסכם-לתכנון: הזרקת `maor_org_config` ללא `firebase` בתחילת כל סקריפט e2e (localStorage גובר על `config.json` — ראה `src/lib/config.ts`), או פרופיל בדיקה ייעודי. עד אז — `verify` הוא השער; אל תדווח על e2e כעובר.
+## e2e — שלוש סוויטות, כולן ירוקות (baseline 2026-07-29)
+כל סקריפט מזריק `maor_org_config` **ללא** `firebase` ל-localStorage לפני הטעינה (localStorage גובר על `config.json` ⇒ ענן כבוי ⇒ אין מסך התחברות). דפוסים חשובים לתחזוקה:
+- כפתורי הוספה הם `➕ הוספת <ישות>` עם מונח דינמי (`termOf`) — לא "X חדש".
+- טופס חוג דורש **חדר** (שדה חובה) — הסקריפטים יוצרים חדר דרך הגדרות קודם.
+- איפוס מלא דורש מחיקת IndexedDB, והיא נחסמת כשהאפליקציה פתוחה — מוחקים מדף אחר באותו origin (ראה launch-readiness, מסע 3).
+- baseline: toggle-matrix כל 5 הפרופילים · demo-walkthrough 13/13 · launch-readiness 11/11, אפס שגיאות קונסולה.
 
 ## קבצי ליבה
 | קובץ | תפקיד |

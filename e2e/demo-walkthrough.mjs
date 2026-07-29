@@ -77,14 +77,18 @@ T('מסך הבית נטען', (await mainTxt()).length > 20);
 
 // ── משפחות: יצירה + ילד ──
 await nav('משפחות');
-await clickIf('button', 'משפחה חדשה'); await fillModal('משפחת כהן'); await saveModal(); await wait(400);
+await clickIf('button', 'הוספת משפחה'); await fillModal('משפחת כהן'); await saveModal(); await wait(400);
 T('נוצרה משפחה', (await mainTxt()).includes('כהן'));
 if (await clickIf('button', 'הוספת בן משפחה')) { await fillModal('רוני'); await saveModal(); await wait(400); T('נוסף ילד', (await mainTxt()).includes('רוני')); }
 await shot('כרטיס-משפחה');
 
 // ── חוגים: יצירה ──
 await nav('חוגים');
-await clickIf('button', 'חוג חדש'); await fillModal('חוג ציור'); await saveModal(); await wait(500);
+// חדר פעילות הוא שדה חובה בטופס החוג — יוצרים חדר דרך ההגדרות קודם
+await nav('הגדרות');
+if (await clickIf('button', 'חדר חדש')) { await fillModal('חדר ראשי'); await clickIf('.modal button', 'שמירת הגדרות'); await wait(400); }
+await nav('חוגים');
+await clickIf('button', 'הוספת חוג'); await fillModal('חוג ציור'); await saveModal(); await wait(500);
 T('נוצר חוג', (await mainTxt()).includes('ציור'));
 await shot('חוגים');
 
@@ -119,7 +123,7 @@ if (await clickIf('main button', '⚙')) {
 
 // ── תורמים + תרומה ──
 await nav('תורמים');
-await clickIf('button', 'תומכת חדשה'); await fillModal('קרן פרידמן'); await saveModal(); await wait(500);
+await clickIf('button', 'הוספת תומך'); await fillModal('קרן פרידמן'); await saveModal(); await wait(500);
 T('נוסף תורם', (await mainTxt()).includes('פרידמן'));
 if (await clickIf('main', 'פרידמן') || await clickIf('main button', 'פרידמן')) {
   await wait(300);
