@@ -1,0 +1,57 @@
+# maor-system («מאור החסד») — הוראות לכל סשן
+
+## ⚠️ כללי עבודה
+- **אין push ל-main ללא אישור מפורש** — push ל-main מפעיל אוטומטית deploy לפרודקשן (gh-pages) דרך `.github/workflows/deploy.yml`.
+- כל עבודה על ענף `claude/*` של הסשן.
+- **סוכן ידע:** לפני כל עבודה — לקרוא את `knowledge/ANALYSIS-2026-07-29.md` (סריקה מלאה של כל הריפו). אחרי שינוי מהותי — לעדכן את הידע (דוח חדש ב-`knowledge/` או עדכון הקובץ הקיים).
+
+## מה זה
+מערכת ניהול מלאה לעמותה: משפחות (CRM), חוגים ושיבוצים, נוכחות (מודל הפוך — רושמים רק חיסורים), לוח שנה עברי-לועזי, יומן חדרים, תורמים + קבלות סעיף 46, דוחות, הגדרות.
+
+- **סטאק:** React 19 + TypeScript + Vite 8 + Zustand. תלויות ריצה: react, react-dom, zustand, idb, firebase (נטען dynamic-import רק כשמוגדר).
+- **ארכיטקטורה:** אתר סטטי local-first. הנתונים אצל הלקוח ב-3 שכבות: localStorage (debounce 500ms) → IndexedDB (+ טבעת 30 צילומים יומיים) → קובצי גיבוי JSON. ענן Firebase = opt-in פר-ארגון. הצפנה במנוחה AES-GCM (envelope, DEK עטוף פעמיים) = opt-in.
+- **White-label אמיתי:** `?org=<slug>` → `public/c/<slug>/config.json`. ‏73 דגלי פיצ׳ר + 33 מונחים (termOf) + 8 חבילות ורטיקל + 4 ערכות נושא. חוזה הדגלים: מפתח חסר = פעיל, רק false מכבה.
+- **DB:** מסמך יחיד (DB_VERSION=5) — seq כללי + receiptSeq/donationSeq נפרדים ורציפים (קבלות מס!) + 7 מערכי ישויות. מיגרציה מצטברת אחת ב-`src/store/persist.ts` (מרפאת מונים, rid כפולים, מזהי members).
+
+## Dev loop
+```bash
+npm ci
+npm run typecheck     # tsc -b --noEmit — נקי
+npm run lint          # oxlint — 0 שגיאות
+npm test              # vitest — 479/479 PASS
+npm run build         # tsc -b && vite build
+npm run e2e           # toggle-matrix (דורש Chromium ב-/opt/pw-browsers)
+# ⚠️ e2e/launch-readiness.mjs שבור — נתיב buildsmart קשיח (ראה ידע §5)
+```
+CI (push ל-main): typecheck + vitest + build → deploy. ‏E2E ו-lint **לא** ב-CI.
+
+## קבצי ליבה
+| קובץ | תפקיד |
+|------|--------|
+| `src/App.tsx` | שלד: ניווט Zustand (בלי router), שרשרת שערים (פענוח→ענן→נעילה), מודלים ב-hash, גיבוי סוף-יום |
+| `src/types/domain.ts` | כל מודל הנתונים + DB_VERSION |
+| `src/types/features.ts` | 73 דגלים + 33 מונחים |
+| `src/store/useApp.ts` | ה-store היחיד — כל פעולות העסקים (1,154 שורות) |
+| `src/store/persist.ts` | התמדה 3 שכבות + migrate() + שער ריבוי-טאבים |
+| `src/store/cloudSync.ts` + `src/lib/cloud*.ts` | סנכרון Firestore (diff/merge, הענן מנצח, מונים רק עולים) |
+| `src/lib/hebrew.ts` + `hebdate.ts` | לוח עברי מלא על Intl בלבד (סריקה הפוכה ~440 ימים), דין אדר ב-hebAnnualEq |
+| `src/lib/config.ts` | טעינת OrgConfig, featureOn/termOf/moduleOn |
+| `src/lib/crypto.ts` + `lock.ts` | הצפנה (PBKDF2 210K) + נעילת PIN דו-שכבתית (localStorage מקומי במכוון) |
+| `src/components/ui.tsx` | ערכת UI משותפת (Modal עם focus-trap, Field נגיש) |
+
+## מוסכמות הפרויקט
+- **הפרדת טוהר:** כל מודול = `lib.ts` טהור (בלי store/DOM) + רכיבים. הלוגיקה נבדקת ביחידה.
+- **בדיקות ratchet:** כל באג שתוקן מקבל בדיקת שימור עם תיעוד הבאג בעברית. יש גם "הגנות-מקור" (`?raw` + regex על JSX) ובדיקות cross-surface.
+- **תאריכים:** תמיד ISO לועזי ב-DB; פרסור עם `T12:00:00` (צהריים מקומי); `isoToday` מ-date-util ולא toISOString.
+- **קומיטים:** קידומות עבריות — `מנוע ·` / `פער N ·` / `שדרוג ·` / `תיקון ·` / `גל N ·`.
+- מחרוזות UI עוברות `termOf`; פיצ׳רים מגודרים `featureOn`; כיבוי מודול-אב משורשר אוטומטית רק ברמת קידומת ראשונה (תת-דגלים = קונבנציה בקומפוננטות).
+
+## ⚠️ באגים ידועים שטרם תוקנו (במכוון — ממתין לאישור המשתמש)
+1. 🔴 `src/lib/hebrewNumber.ts:41` — סכום-במילים שגוי לאלפים עגולים 11K–999K ("שמונה עשר ואלף") — **מגיע לקבלות סעיף 46**.
+2. 🔴 `e2e/launch-readiness.mjs:11` — נתיב קשיח `/home/user/buildsmart/maor/dist`.
+3. 🟠 ~10 מפתחות localStorage עוקפים את בידוד ה-namespace הרב-ארגוני (maor_lock, maor_autoexp, maor_cashbox_* ועוד).
+4. 🟠 העותק בענן נשמר plaintext גם כשההצפנה דלוקה; אין Firestore Rules בריפו.
+5. 🟠 DonationModal/ManageModal מורידים קבלה גם כשה-store דחה (rid שמעולם לא הונפק).
+6. 🟠 ניקוי dueDate/nextDate משאיר אירוע יתום בלוח (המחיקות כן מנקות).
+
+הרשימה המלאה (2 חמורים, ~22 בינוניים, ~40 קלים) + המלצות מתועדפות: **`knowledge/ANALYSIS-2026-07-29.md`**.
