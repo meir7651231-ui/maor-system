@@ -6,7 +6,7 @@
 import { useState, type ChangeEvent } from 'react';
 import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
-import { parseCsv } from '../../lib/csvx';
+import { parseCsv, readCsvFileText } from '../../lib/csvx';
 import { downloadCsv } from '../../lib/csvx';
 import { Btn, Field, FormError } from '../ui';
 import {
@@ -81,7 +81,8 @@ export function SupporterImport(props: { onDone?: () => void }) {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    const txt = await file.text();
+    // helper משותף (P0.5): UTF-8 עם fallback ל-windows-1255 לקבצים מאקסל ישן
+    const txt = await readCsvFileText(file);
     setCsv(txt);
     run(txt);
   }
