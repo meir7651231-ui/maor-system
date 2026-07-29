@@ -143,8 +143,11 @@ if (await clickIf('main button', 'שיבוץ ל')) {
   await closeModals();
 }
 T('שיבוץ כרטיסייה מכרטיס המשפחה', (await mainTxt()).includes('10 מתוך 10'));
-// ניקוב מהכרטיס — עובר דרך אותו store.punch של מסך החוגים (P0.3)
-await clickIf('main button', 'ניקוב'); await wait(500);
+// ניקוב מהכרטיס — עובר דרך אותו store.punch של מסך החוגים (P0.3),
+// עם אישור כפול (P1.3, courses.punch.confirm דלוק כברירת מחדל כמו בקובץ החי)
+await clickIf('main button', 'ניקוב'); await wait(300);
+T('לחיצה ראשונה מזיינת — "לאשר ניקוב?" ובלי ירידת יתרה', (await mainTxt()).includes('לאשר ניקוב?') && (await mainTxt()).includes('10 מתוך 10'));
+await clickIf('main button', 'לאשר ניקוב?'); await wait(500);
 T('ניקוב מכרטיס המשפחה — היתרה ירדה', (await mainTxt()).includes('9 מתוך 10'));
 T('פעולות ⚙/🤒 והוספת אירוע זמינות בכרטיס', (await page.locator('main button', { hasText: '⚙' }).count()) > 0 && (await page.locator('main button', { hasText: '➕ אירוע' }).count()) > 0);
 await shot('כרטיס-משפחה-תפעולי');

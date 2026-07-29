@@ -171,3 +171,34 @@ export function chipStyle(bg: string, c: string): CSSProperties {
     whiteSpace: 'nowrap',
   };
 }
+
+/* ── punchConfirm (P1.3, feature courses.punch.confirm) — אישור כפול לניקוב ──
+   ratchet: legacy-main-script.js:330-342 (punch) — לחיצה ראשונה מזיינת
+   ("לאשר ניקוב?"), timeout ‏3 שניות מפרק את הזריון; לחיצה שנייה על אותו שיבוץ
+   בתוך החלון מבצעת. לחיצה על שיבוץ אחר מזיינת אותו מחדש. דגל כבוי = ביצוע מיידי. */
+
+export const PUNCH_CONFIRM_MS = 3000;
+
+/** זריון אישור-ניקוב — מזהה השיבוץ ורגע הזריון. */
+export interface PunchArm {
+  id: string;
+  armedAt: number;
+}
+
+/**
+ * צעד אחד במכונת-המצבים של האישור הכפול — טהור.
+ * fire=true ⇒ לבצע את הניקוב עכשיו (והזריון מתנקה); אחרת לעדכן את הזריון ל-next.
+ */
+export function punchConfirmStep(
+  confirmOn: boolean,
+  armed: PunchArm | null,
+  enrollmentId: string,
+  now: number,
+): { fire: boolean; next: PunchArm | null } {
+  if (!confirmOn) return { fire: true, next: null };
+  if (armed && armed.id === enrollmentId && now - armed.armedAt <= PUNCH_CONFIRM_MS) {
+    return { fire: true, next: null };
+  }
+  // אין זריון / שיבוץ אחר / החלון פג — מזיינים (מחדש) את השיבוץ הנוכחי
+  return { fire: false, next: { id: enrollmentId, armedAt: now } };
+}

@@ -2,11 +2,12 @@
  * פאנל נוכחות למפגש ביומן החדרים — המשובצים לקורס/לקבוצה של המפגש,
  * עם פעולות לכל תלמיד/ה: ✓ נוכחות (ניקוב), ✕ רישום חיסור, 📜 היסטוריה.
  */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Course, Enrollment } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { Btn, Empty } from '../ui';
+import { punchConfirmStep, PUNCH_CONFIRM_MS, type PunchArm } from '../courses/lib';
 import { chipStyle, enrollStatusMeta, enrollmentsForSession, planLabelOf } from './lib';
 import { DiaryAbsenceModal } from './DiaryAbsenceModal';
 import { AbsenceHistoryModal } from './AbsenceHistoryModal';
@@ -21,6 +22,10 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number })
 
   const [absFor, setAbsFor] = useState<{ id: string; who: string } | null>(null);
   const [histFor, setHistFor] = useState<{ id: string; who: string } | null>(null);
+  // אישור כפול לניקוב (P1.3, legacy:330-342) — חל גם על רישום הנוכחות מהיומן
+  const punchConfirmOn = featureOn(config, 'courses.punch.confirm');
+  const [punchArm, setPunchArm] = useState<PunchArm | null>(null);
+  const punchArmTimer = useRef(0);
 
   const members = allMembers(db);
   const rows = enrollmentsForSession(db, props.course, props.sessionIndex).map((e) => ({
@@ -39,6 +44,15 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number })
     if (e.status === 'ended')
       return toast('השיבוץ הסתיים — ניתן לחדש בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
     if (e.plan === 'punch' && e.used >= e.purchased) return toast('אין יתרת שיעורים — נדרש חידוש כרטיסייה');
+    // אישור כפול (legacy:335-338): לחיצה ראשונה מזיינת, שנייה בתוך 3ש׳ מבצעת
+    const step = punchConfirmStep(punchConfirmOn, punchArm, e.id, Date.now());
+    if (!step.fire) {
+      setPunchArm(step.next);
+      window.clearTimeout(punchArmTimer.current);
+      punchArmTimer.current = window.setTimeout(() => setPunchArm(null), PUNCH_CONFIRM_MS);
+      return;
+    }
+    setPunchArm(null);
     if (e.plan === 'punch') punch(e.id);
     else upsertEnrollment({ ...e, used: e.used + 1 });
     const fam = db.families.find((f) => f.members.some((m) => m.id === e.memberId));
@@ -85,7 +99,7 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number })
                   <td>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       <Btn sm kind="primary" title="רישום נוכחות (ניקוב)" onClick={() => present(row.e)}>
-                        ✓ נוכח/ת
+                        {punchArm?.id === row.e.id ? 'לאשר ניקוב?' : '✓ נוכח/ת'}
                       </Btn>
                       <Btn sm title="רישום חיסור (נימוק חובה)" onClick={() => setAbsFor({ id: row.e.id, who })}>
                         ✕ חיסור

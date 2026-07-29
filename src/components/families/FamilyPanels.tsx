@@ -3,7 +3,7 @@
  * שיבוצים לחוגים (כולל ＋ שיבוץ לחוג), אירועים מקושרים והיסטוריה נגזרת
  * (כולל ⬇ דוח משפחה מלא כקובץ טקסט).
  */
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { Db, Enrollment, Family, FamilyDoc } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { useApp } from '../../store/useApp';
@@ -11,7 +11,7 @@ import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, TextInput } from '../ui';
 import { downloadText } from '../reports/csv';
-import { paidOf, payBal, planWord } from '../courses/lib';
+import { paidOf, payBal, planWord, punchConfirmStep, PUNCH_CONFIRM_MS, type PunchArm } from '../courses/lib';
 import { AbsenceModal } from '../courses/AbsenceModal';
 import { ManageModal } from '../courses/ManageModal';
 import { EventModal } from '../calendar/EventModal';
@@ -201,8 +201,12 @@ export function EnrollPanel(props: { fam: Family }) {
   // פעולות תפעול מהכרטיס (P0.3, עוגן לגאסי: כרטיס המשפחה מנקב/מחסר/מנהל ישירות)
   const cardOpsOn = featureOn(config, 'families.cardops');
   const punchOn = featureOn(config, 'courses.punch');
+  // אישור כפול לניקוב (P1.3, legacy:330-342) — חל גם על הניקוב מהכרטיס
+  const punchConfirmOn = featureOn(config, 'courses.punch.confirm');
   const [joinOpen, setJoinOpen] = useState(false);
   const [opModal, setOpModal] = useState<{ kind: 'absence' | 'manage'; enrollmentId: string } | null>(null);
+  const [punchArm, setPunchArm] = useState<PunchArm | null>(null);
+  const punchArmTimer = useRef(0);
   const memberIds = new Set(props.fam.members.map((m) => m.id));
   const list = enrollments.filter((e) => memberIds.has(e.memberId));
 
@@ -219,6 +223,15 @@ export function EnrollPanel(props: { fam: Family }) {
       setOpModal({ kind: 'manage', enrollmentId: e.id });
       return;
     }
+    // אישור כפול (legacy:335-338): לחיצה ראשונה מזיינת, שנייה בתוך 3ש׳ מבצעת
+    const step = punchConfirmStep(punchConfirmOn, punchArm, e.id, Date.now());
+    if (!step.fire) {
+      setPunchArm(step.next);
+      window.clearTimeout(punchArmTimer.current);
+      punchArmTimer.current = window.setTimeout(() => setPunchArm(null), PUNCH_CONFIRM_MS);
+      return;
+    }
+    setPunchArm(null);
     punch(e.id);
     addCred(props.fam.id, 5, 'נוכחות (Check-in)');
     toast('הניקוב נרשם בהצלחה');
@@ -299,7 +312,7 @@ export function EnrollPanel(props: { fam: Family }) {
                         <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
                           {punchOn && e.plan === 'punch' && (
                             <Btn sm kind={noBalance ? 'plain' : 'primary'} onClick={() => doPunch(e)}>
-                              {noBalance ? 'חידוש ←' : 'ניקוב'}
+                              {noBalance ? 'חידוש ←' : punchArm?.id === e.id ? 'לאשר ניקוב?' : 'ניקוב'}
                             </Btn>
                           )}
                           {c && (

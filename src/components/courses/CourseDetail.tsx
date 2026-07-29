@@ -2,7 +2,7 @@
  * כרטיס קורס — תלמידים רשומים (ניקוב, ⚙ ניהול, ✕ חיסור, שיוך קבוצה),
  * שעות פעילות וקבוצות (עורך המפגשים) ופרטי הקורס.
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { Course, Enrollment, Weekday } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
@@ -27,7 +27,10 @@ import {
   modelMeta,
   planLabelOf,
   priceSuffix,
+  punchConfirmStep,
+  PUNCH_CONFIRM_MS,
   sessionsOf,
+  type PunchArm,
 } from './lib';
 
 const GROUP_PALETTE: [string, string][] = [
@@ -57,6 +60,8 @@ export function CourseDetail(props: { course: Course }) {
   const cfg = useApp((s) => s.config);
 
   const punchOn = featureOn(cfg, 'courses.punch');
+  // אישור כפול לניקוב (P1.3, legacy:330-342) — דלוק כברירת מחדל כמו בקובץ החי
+  const punchConfirmOn = featureOn(cfg, 'courses.punch.confirm');
   const groupsOn = featureOn(cfg, 'courses.groups');
   const printoutOn = featureOn(cfg, 'courses.printout');
   const discountsOn = featureOn(cfg, 'courses.discounts');
@@ -69,6 +74,9 @@ export function CourseDetail(props: { course: Course }) {
   const [sessDay, setSessDay] = useState('0');
   const [sessTime, setSessTime] = useState('17:00');
   const [sessLabel, setSessLabel] = useState('');
+  // זריון האישור הכפול לניקוב — מתפרק אוטומטית אחרי PUNCH_CONFIRM_MS (כמו בלגאסי)
+  const [punchArm, setPunchArm] = useState<PunchArm | null>(null);
+  const punchArmTimer = useRef(0);
 
   // מעבר לכרטיס קורס אחר בלי unmount (למשל בחירת חוג מפלטת הפקודות בזמן
   // שכרטיס פתוח) — הרכיב אינו ממופתח לפי id, ולכן חוצץ ההערה המקומי היה
@@ -100,6 +108,15 @@ export function CourseDetail(props: { course: Course }) {
       setModal({ kind: 'manage', enrollmentId: e.id });
       return;
     }
+    // אישור כפול (legacy:335-338): לחיצה ראשונה מזיינת, שנייה בתוך 3ש׳ מבצעת
+    const step = punchConfirmStep(punchConfirmOn, punchArm, e.id, Date.now());
+    if (!step.fire) {
+      setPunchArm(step.next);
+      window.clearTimeout(punchArmTimer.current);
+      punchArmTimer.current = window.setTimeout(() => setPunchArm(null), PUNCH_CONFIRM_MS);
+      return;
+    }
+    setPunchArm(null);
     // כרטיסייה — דרך פעולת punch של ה-store; מנוי חודשי — רישום נוכחות ידני.
     if (e.plan === 'punch') punch(e.id);
     else upsertEnrollment({ ...e, used: e.used + 1 });
@@ -396,7 +413,7 @@ export function CourseDetail(props: { course: Course }) {
                             <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
                               {punchOn && (
                                 <Btn sm kind={noBalance ? 'plain' : 'primary'} onClick={() => doPunch(e)}>
-                                  {noBalance ? 'חידוש ←' : 'ניקוב'}
+                                  {noBalance ? 'חידוש ←' : punchArm?.id === e.id ? 'לאשר ניקוב?' : 'ניקוב'}
                                 </Btn>
                               )}
                               <Btn

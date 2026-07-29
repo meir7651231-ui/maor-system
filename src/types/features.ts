@@ -46,6 +46,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.printout', label: 'תדפיס למורה', desc: 'הדפסת רשימת משתתפים ונוכחות למורה', module: 'courses' },
   // תת-יכולות עדינות (עצמאיות — בלוק/כפתור נפרד לכל אחת)
   { key: 'courses.punch.buy', label: 'קניית/טעינת כרטיסייה', desc: 'תיבת טעינת הניקובים בניהול השיבוץ', module: 'courses' },
+  { key: 'courses.punch.confirm', label: 'אישור כפול לניקוב', desc: 'לחיצה ראשונה "לאשר ניקוב?" ושנייה בתוך 3 שניות מבצעת — מונע ניקוב בטעות (כמו בקובץ החי)', module: 'courses' },
   { key: 'courses.punch.undo', label: 'ביטול ניקוב אחרון', desc: 'כפתור ביטול הניקוב האחרון', module: 'courses' },
   { key: 'courses.punch.switchmonthly', label: 'מעבר למנוי חודשי', desc: 'כפתור המרת כרטיסייה למנוי', module: 'courses' },
   { key: 'courses.printout.daily', label: 'דו"ח יומי מפורט', desc: 'כפתור הדו"ח היומי מפגש-מפגש', module: 'courses' },
