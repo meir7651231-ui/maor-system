@@ -45,7 +45,6 @@ export function TzedakaView() {
           </Chip>
         ))}
       </div>
-      {/* התוכן נבנה באשכולות 4-7 — placeholder לכל טאב עד אז */}
       {active === 'care' && (
         <HomeTab
           onOpenCoordinator={(id) => {

@@ -45,7 +45,6 @@ export function ShopView() {
           </Chip>
         ))}
       </div>
-      {/* התוכן נבנה באשכולות 4-7 — placeholder לכל טאב עד אז */}
       {active === 'catalog' && <CatalogTab />}
       {active === 'beneficiaries' && <AssignmentsTab />}
       {active === 'care' && <HomeTab />}

@@ -46,7 +46,7 @@ const PROFILES = [
   },
   {
     name: 'משפחות בלבד (כל שאר המודולים כבויים)',
-    config: { modules: { courses: false, calendar: false, diary: false, supporters: false, tzedaka: false, reports: false } },
+    config: { modules: { courses: false, calendar: false, diary: false, supporters: false, tzedaka: false, shop: false, reports: false } },
   },
   {
     name: 'מונחים מותאמים (מוטבים/שיעורים)',
@@ -216,6 +216,50 @@ for (const profile of PROFILES) {
     t('ריקון 100 ₪ נרשם והסכום מופיע', (await page.locator('main').textContent()).includes('100'));
   }
 
+  // ── חנות (BUILD-ORDER-SHOP): קישור לפי המודול + זרימה מלאה בברירת המחדל ──
+  const shopOn = modulesOff.shop !== false;
+  {
+    const navNow = (await page.locator('nav').first().textContent()) ?? '';
+    t('קישור "חנות" ' + (shopOn ? 'קיים' : 'נעדר'), navNow.includes('חנות') === shopOn);
+  }
+  if (!profile.config) {
+    await page.locator('nav >> text=חנות').click();
+    await page.waitForTimeout(400);
+    // מוצר "מוצר חתן" עם רכיב מתנה — שווי 200, מחיר סמלי 50
+    await page.locator('button', { hasText: 'הוספת מוצר' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input[placeholder="לדוגמה: מוצר חתן"]').fill('מוצר חתן');
+    await page.locator('.modal button', { hasText: '➕ רכיב' }).click();
+    await page.waitForTimeout(200);
+    await page.locator('.modal input[placeholder="לדוגמה: סט תפילין"]').fill('מתנת חתן');
+    await page.locator('.modal input[type="number"]').nth(0).fill('200');
+    await page.locator('.modal input[type="number"]').nth(1).fill('50');
+    await page.locator('.modal button', { hasText: 'שמירה' }).click();
+    await page.waitForTimeout(500);
+    t('הוספת מוצר חתן', (await page.locator('main').textContent()).includes('מוצר חתן'));
+    // שיוך למשפחה הקיימת מהזרימה הקודמת
+    await page.locator('main button', { hasText: '👥 מוטבים' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('button', { hasText: 'הוספת שיוך' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input[placeholder="הקלידו שם משפחה"]').fill('בדיקה-מטריצה');
+    await page.waitForTimeout(200);
+    await page.locator('.modal button', { hasText: 'שמירה' }).click();
+    await page.waitForTimeout(500);
+    t('הוספת שיוך למשפחה', (await page.locator('main').textContent()).includes('בדיקה-מטריצה'));
+    // מימוש — המחיר מאוכלס אוטומטית (50 = סמלי בלי הנחות) והסכום מופיע בטיפול
+    await page.locator('main button', { hasText: 'מוצר חתן' }).first().click();
+    await page.waitForTimeout(400);
+    await page.locator('main button', { hasText: '🎁 מימוש' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal button', { hasText: 'רישום המימוש' }).click();
+    await page.waitForTimeout(500);
+    await page.locator('main button', { hasText: '🏠 טיפול' }).click();
+    await page.waitForTimeout(400);
+    const shopMain = (await page.locator('main').textContent()) ?? '';
+    t('המימוש נרשם והסכומים מופיעים בטיפול', shopMain.includes('שווי שניתן · 200') && shopMain.includes('שולם סמלי · 50'));
+  }
+
   // ── זרימה 6: התמדה אחרי ריענון ──
   await page.waitForTimeout(800); // debounce שמירה
   await page.reload({ waitUntil: 'networkidle' });
@@ -253,7 +297,7 @@ for (const profile of PROFILES) {
         slug: 'default',
         orgName: 'עמותת מבחן',
         theme: 'or-rishon',
-        modules: { families: false, courses: false, calendar: false, diary: false, supporters: false, tzedaka: false, reports: false },
+        modules: { families: false, courses: false, calendar: false, diary: false, supporters: false, tzedaka: false, shop: false, reports: false },
       }),
     );
     localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10));
@@ -270,6 +314,8 @@ for (const profile of PROFILES) {
   t('הניווט נקי ממודולים כבויים', !navTxt.includes('משפחות') && !navTxt.includes('חוגים'));
   // קופות צדקה (מודול tzedaka) — כבוי ⇒ הקישור נעלם
   t('אין "קופות צדקה" כשהמודול כבוי', !navTxt.includes('קופות צדקה'));
+  // חנות (מודול shop) — כבוי ⇒ הקישור נעלם
+  t('אין "חנות" כשהמודול כבוי', !navTxt.includes('חנות'));
   t('אפס שגיאות JS בפרופיל', errors.length === 0, errors.slice(0, 2).join(' | '));
 
   console.log('\n📦 קיצון — הכול כבוי (בדיקת דליפות)');
