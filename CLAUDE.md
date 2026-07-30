@@ -23,16 +23,19 @@
 - **White-label אמיתי:** `?org=<slug>` → `public/c/<slug>/config.json`. ‏73 דגלי פיצ׳ר + 33 מונחים (termOf) + 8 חבילות ורטיקל + 4 ערכות נושא. חוזה הדגלים: מפתח חסר = פעיל, רק false מכבה.
 - **DB:** מסמך יחיד (DB_VERSION=5) — seq כללי + receiptSeq/donationSeq נפרדים ורציפים (קבלות מס!) + 7 מערכי ישויות. מיגרציה מצטברת אחת ב-`src/store/persist.ts` (מרפאת מונים, rid כפולים, מזהי members).
 
-## Dev loop
+## Dev loop — שערים מדורגים לפי רדיוס הפגיעה
 ```bash
 npm ci
-npm run verify        # השער המלא: typecheck → lint (0 אזהרות) → test (479+) → build
+npm run verify:fast   # לולאת פיתוח: typecheck → lint → test (בלי build)
+npm run verify        # שער commit: + build. נאכף אוטומטית ב-.githooks/pre-commit
 npm run e2e           # toggle-matrix — 5 פרופילים (דורש build קודם)
-node e2e/demo-walkthrough.mjs      # מעבר דמו 13/13 + צילומים
-node e2e/launch-readiness.mjs      # מסעות משתמש 11/11, אפס שגיאות קונסולה
+node e2e/demo-walkthrough.mjs      # מעבר דמו + צילומים
+node e2e/launch-readiness.mjs      # מסעות משתמש, אפס שגיאות קונסולה
 ```
+- **כל commit קוד** ⇒ verify מלא (ה-hook אוכף); commit ידע/תיעוד בלבד ⇒ lint מקוצר.
+- **שלוש סוויטות הדפדפן** ⇒ בסוף כל אשכול-עבודה ובסוף חבילה — לא על כל commit (חריג: נגעת ב-e2e/זרימת UI מרכזית).
 CI: `ci.yml` מריץ את השער המלא על כל push לענף claude/*; deploy מ-main בלבד.
-סביבה מתאתחלת לבד בסשן web: `.claude/hooks/session-start.sh`.
+סביבה מתאתחלת לבד בסשן web: `.claude/hooks/session-start.sh` (כולל חימוש ה-hooks).
 
 ### דפוסי e2e (baseline ירוק 2026-07-29)
 - כל סקריפט מזריק `maor_org_config` **ללא** `firebase` ל-localStorage לפני הטעינה (ענן כבוי ⇒ אין מסך התחברות).

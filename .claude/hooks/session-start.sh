@@ -11,6 +11,12 @@ fi
 
 cd "$REPO"
 
+# שער ה-commit המדורג — נטען מהריפו בכל סשן (הדפוס של בנייה חכמה)
+if [ -d "$REPO/.githooks" ]; then
+  git config core.hooksPath .githooks
+  chmod +x "$REPO/.githooks/"* 2>/dev/null || true
+fi
+
 # תלויות — npm install מנצל את ה-cache של הקונטיינר; מהיר כשהכול קיים
 if [ ! -d node_modules ]; then
   npm install --no-audit --no-fund 2>&1 | tail -2
