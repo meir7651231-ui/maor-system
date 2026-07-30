@@ -26,7 +26,9 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     label: 'עמותת חסד',
     sub: 'גמ"ח · קופת צדקה',
     terms: {}, // ברירות המחדל של מאור
-    modules: {}, // הכל דלוק
+    // הכל דלוק — כולל tzedaka+shop **במכוון** (חסר=דלוק; אשף 1, מטריצה מפורשת):
+    // עמותת חסד היא הלקוח החי — שתי העמודות החדשות שלה.
+    modules: {},
   },
   {
     id: 'clinic',
@@ -54,9 +56,13 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'מעקב',
       'ayin.stage.done': 'שוחרר',
     },
-    modules: {},
+    modules: { tzedaka: false, shop: false },
   },
   {
+    // ⚠️ התנגשות שמות מכוונת שנשארת: pack id 'shop' (ורטיקל קמעונאות, ותיק)
+    // ≠ מודול 'shop' (עמודת מוצרי-השירות). לא משנים את ה-id — configs קיימים
+    // בשטח מצביעים עליו. ההבחנה: ה-id חי רק ב-VERTICAL_PACKS/אשף; המודול חי
+    // ב-modules/moduleOn.
     id: 'shop',
     emoji: '🛍️',
     label: 'חנות / קמעונאות',
@@ -72,8 +78,13 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'entity.familyOf': 'לקוח',
       'entity.members': 'אנשי קשר',
       'entity.cred': 'נקודות נאמנות',
+      // מודול החנות דלוק (חסר=דלוק, במכוון) — במונחים קמעונאיים (אשף 1)
+      'nav.shop': 'מוצרים',
+      'entity.shopProduct': 'מוצר',
+      'entity.shopAssignment': 'הזמנה',
+      'entity.shopCriterion': 'מועדון',
     },
-    modules: { courses: false, diary: false },
+    modules: { courses: false, diary: false, tzedaka: false },
   },
   {
     id: 'services',
@@ -94,7 +105,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'נסגר',
       'ayin.stage.done': 'סופק',
     },
-    modules: { courses: false },
+    modules: { courses: false, tzedaka: false, shop: false },
   },
   {
     id: 'rooms',
@@ -121,7 +132,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'חוזה',
       'ayin.stage.done': 'הושכר',
     },
-    modules: { courses: false },
+    modules: { courses: false, tzedaka: false, shop: false },
   },
   {
     id: 'fleet',
@@ -148,7 +159,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'בשימוש',
       'ayin.stage.done': 'הוחזר',
     },
-    modules: { courses: false },
+    modules: { courses: false, tzedaka: false, shop: false },
   },
   {
     id: 'garage',
@@ -175,7 +186,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'מוכן לאיסוף',
       'ayin.stage.done': 'נמסר',
     },
-    modules: { courses: false },
+    modules: { courses: false, tzedaka: false, shop: false },
   },
   {
     id: 'hospitality',
@@ -203,7 +214,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'שוהה',
       'ayin.stage.done': "צ'ק-אאוט",
     },
-    modules: { courses: false },
+    modules: { courses: false, tzedaka: false, shop: false },
   },
 ];
 
