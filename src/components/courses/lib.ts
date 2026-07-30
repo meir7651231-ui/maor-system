@@ -3,7 +3,8 @@
  * עזרים מקומיים בלבד — אין כאן גישה ל-store או ל-DOM.
  */
 import type { CSSProperties } from 'react';
-import type { Course, CourseSession, Db, Enrollment, PricingModel } from '../../types/domain';
+import type { Course, CourseSession, Db, Enrollment, Family, PricingModel } from '../../types/domain';
+import { normSearch } from '../../lib/validate';
 import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
@@ -213,6 +214,43 @@ export function scheduleClashText(
     }
   }
   return null;
+}
+
+/* ── יצירת משפחה מתוך שיבוץ (P1.10, feature courses.enroll.inlinecreate) ──
+   ratchet: legacy saveEnrollNew (legacy-main-script.js:1318-1339) — בחירת משפחה
+   קיימת או '__new'; שם חדש שכבר קיים (normName) לא יוצר כפילות אלא משתמש
+   בקיימת. הצעת '__new' מופיעה רק לשאילתה ≥2 תווים בלי התאמה מדויקת (legacy:2188). */
+
+export const ENROLL_NEW_FAMILY = '__new';
+
+/** נרמול שם להשוואה — כמו normName במקור. */
+function normNameLocal(s: string): string {
+  return normSearch(s).replace(/\s/g, '');
+}
+
+/** האם להציע "＋ משפחה חדשה" עבור השאילתה — ≥2 תווים ואין משפחה בשם זהה. */
+export function offerNewFamily(families: Pick<Family, 'name'>[], q: string): boolean {
+  const t = q.trim();
+  return t.length >= 2 && !families.some((f) => normNameLocal(f.name) === normNameLocal(t));
+}
+
+/**
+ * פתרון המשפחה לשיבוץ-חדש: id קיים ⇒ הקיימת; '__new' ⇒ דה-דופ לפי normName —
+ * שם קיים משתמש בקיימת (create=false), אחרת יש ליצור חדשה (create=true).
+ */
+export function resolveEnrollFamily<F extends Pick<Family, 'id' | 'name'>>(
+  families: F[],
+  famSel: string,
+  newFamName: string,
+): { fam: F | null; create: boolean } {
+  const existing = families.find((f) => f.id === famSel);
+  if (existing) return { fam: existing, create: false };
+  if (famSel === ENROLL_NEW_FAMILY && newFamName.trim()) {
+    const dup = families.find((f) => normNameLocal(f.name) === normNameLocal(newFamName));
+    if (dup) return { fam: dup, create: false };
+    return { fam: null, create: true };
+  }
+  return { fam: null, create: false };
 }
 
 /* ── punchConfirm (P1.3, feature courses.punch.confirm) — אישור כפול לניקוב ──
