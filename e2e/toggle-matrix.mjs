@@ -398,7 +398,8 @@ for (const profile of PROFILES) {
   const main = (await page.locator('main').textContent()) ?? '';
   const navTxt = (await page.locator('nav').first().textContent()) ?? '';
   // שרידים שדלפו בעבר כשהכול כבוי — אסור שיופיעו (החוזה: כבוי = מוסתר בכל המשטחים)
-  for (const leak of ['משפחה חדשה', 'משפחות אחרונות', 'ניקוב', 'בני משפחה', 'יום הולדת', 'תורמים', 'דוחות']) {
+  // CONNECT: גם צ'יפי חוצה-העמודות (חיבור 3) אסור שידלפו כשהמודולים כבויים
+  for (const leak of ['משפחה חדשה', 'משפחות אחרונות', 'ניקוב', 'בני משפחה', 'יום הולדת', 'תורמים', 'דוחות', '🪙 קופות', '🛍 חנות']) {
     t(`אין "${leak}" כשהכול כבוי`, !main.includes(leak));
   }
   t('הניווט נקי ממודולים כבויים', !navTxt.includes('משפחות') && !navTxt.includes('חוגים'));

@@ -23,10 +23,11 @@
 
 - **סטאק:** React 19 + TypeScript + Vite 8 + Zustand. תלויות ריצה: react, react-dom, zustand, idb, firebase (נטען dynamic-import רק כשמוגדר).
 - **ארכיטקטורה:** אתר סטטי local-first. הנתונים אצל הלקוח ב-3 שכבות: localStorage (debounce 500ms) → IndexedDB (+ טבעת 30 צילומים יומיים) → קובצי גיבוי JSON. ענן Firebase = opt-in פר-ארגון. הצפנה במנוחה AES-GCM (envelope, DEK עטוף פעמיים) = opt-in.
-- **White-label אמיתי:** `?org=<slug>` → `public/c/<slug>/config.json`. ‏111 דגלי פיצ׳ר + 43 מונחים (termOf) + 8 חבילות ורטיקל + 4 ערכות נושא. חוזה הדגלים: מפתח חסר = פעיל, רק false מכבה.
+- **White-label אמיתי:** `?org=<slug>` → `public/c/<slug>/config.json`. ‏116 דגלי פיצ׳ר + 43 מונחים (termOf) + 8 חבילות ורטיקל + 4 ערכות נושא. חוזה הדגלים: מפתח חסר = פעיל, רק false מכבה.
 - **DB:** מסמך יחיד (DB_VERSION=5) — seq כללי + receiptSeq/donationSeq נפרדים ורציפים (קבלות מס!) + shopReceiptSeq (אישורי S- של החנות — לא קבלת מס) + 17 מערכי ישויות. מיגרציה מצטברת אחת ב-`src/store/persist.ts` (מרפאת מונים, rid כפולים, מזהי members, רכיבי-חנות→פריטים).
 - **מודול קופות צדקה (`tzedaka`):** עמודה מבודדת — רכזים/קופות/ריקונים/מבצעים/לוח-ייעודי/ראווה ב-`src/components/tzedaka/`; הכסף והאירועים לא זולגים לתרומות/קבלות/לוח הראשי (הכרעת בעלים 30.7, נאכף ב-ratchets). דוח: `knowledge/CLOSED-TZEDAKA-2026-07-30.md`.
 - **מודול חנות (`shop`):** עמודה מבודדת של מוצרי-שירות — קטלוג (חבילות: פגישה/קופון/מתנה/מתנת-חג) / חנויות שותפות / קריטריוני זכאות (הנחה גבוהה, לא מצטבר) / שיוכים+מימושים / לוח-ייעודי / ראווה ב-`src/components/shop/`; משרדי בלבד, בלי גיימיפיקציה, אותם כללי בידוד כמו הקופות; הגריד המשותף חולץ ל-`src/lib/monthGrid.ts`. שדרוגי SHOP2: מלאי פר-רכיב ("נותרו N" + stockOut), אישורי תשלום סמלי S- (סדרה נפרדת, taxReceipt:false — לא נוגעת ב-R-/D-), תוקף קופונים ("בתוקף עד" + couponExpired). ‏SHOP3: חידוש מלאי מהיר (StockModal), ביטול מימוש עם סימון (voidedAt — הרשומה וה-S- נשארים; החרגה דרך liveRedemptions היחיד). ‏SHOP4: פריטי קטלוג עצמאיים (ShopItem — מלאי **משותף** בין חבילות, itemOf/itemRemaining; רכיב = מצביע + דריסות מחיר), חגים נבחרים למתנת-חג (holidays), מודאל מימוש מותאם-סוג, ופגישות-עם-חדר — **חור מבוקר יחיד בבידוד (הכרעת בעלים 16):** OrgEvent מקושר (mainEventId) לתפיסת חדר דו-כיוונית; הכסף נשאר מבודד. ‏SHOP5: פגישות ביומן החדרים (דרך המקושר), "💵 גבייה בקופה" ממולא (sessionStorage — הקופה נשארת כלי ספירה), מיזוג פריטים כפולים (mergeShopItems), "פגישות קרובות" ב-HomeTab. דוחות: `knowledge/CLOSED-SHOP-2026-07-30.md` + `CLOSED-SHOP2` … `CLOSED-SHOP5`.
+- **חיבורי המערכת (CONNECT, גל B):** העמודות מחוברות לפלטה (moduleOn), לכרטיס המשפחה (פאנלי-תצוגה familypanel), למסך הבית (careCounts — מונה-עם-קפיצה בלבד, home.crosscare), לדמו, למדריך/סיור ולתדפיסים/CSV (export; מבוטל מסומן); הקופה הרושמת ממורחבת-שמות (nsLsKey). הכול תצוגה/זרימה — אפס ערבוב כספי. דוח: `knowledge/CLOSED-CONNECT-2026-07-30.md`.
 
 ## Dev loop — שערים מדורגים לפי רדיוס הפגיעה
 ```bash
@@ -55,7 +56,7 @@ CI: `ci.yml` מריץ את השער המלא על כל push לענף claude/*; d
 |------|--------|
 | `src/App.tsx` | שלד: ניווט Zustand (בלי router), שרשרת שערים (פענוח→ענן→נעילה), מודלים ב-hash, גיבוי סוף-יום |
 | `src/types/domain.ts` | כל מודל הנתונים + DB_VERSION |
-| `src/types/features.ts` | 111 דגלים + 43 מונחים |
+| `src/types/features.ts` | 116 דגלים + 43 מונחים |
 | `src/store/useApp.ts` | ה-store היחיד — כל פעולות העסקים (1,154 שורות) |
 | `src/store/persist.ts` | התמדה 3 שכבות + migrate() + שער ריבוי-טאבים |
 | `src/store/cloudSync.ts` + `src/lib/cloud*.ts` | סנכרון Firestore (diff/merge, הענן מנצח, מונים רק עולים) |
