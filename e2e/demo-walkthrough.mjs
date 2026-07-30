@@ -202,6 +202,8 @@ await wait(400);
 await clickIf('button', 'אירוע חדש');
 await wait(300);
 if (await page.locator('.modal').count()) { await fillModal('אסיפת הורים'); await saveModal(); await wait(400); T('נוצר אירוע', true); }
+// P2 אשכול ד׳: פאנל "הקרובים" נראה (פער 25)
+T('פאנל "הקרובים" נראה בלוח', (await mainTxt()).includes('הקרובים — 30 הימים הבאים'));
 await shot('לוח-שנה');
 
 // ── יומן חדרים ──
