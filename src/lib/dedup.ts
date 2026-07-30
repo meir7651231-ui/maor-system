@@ -163,3 +163,86 @@ export function mergeFamilies(keeper: Family, losers: Family[]): Family {
     notes,
   };
 }
+
+/* ── פער 21 (P2 ב׳) · מיזוג שדה-שדה — לגאסי dupFieldMerge ─────────────────────
+ * legacy-main-script.js:1643-1671: 18 שדות עם תווית, לכל שדה בוחרים מאיזו רשומה
+ * לקחת (pick) או עורכים ידנית (edit); ברירת המחדל — הרשומה הראשונה שיש לה ערך.
+ * kidsHome/kidsMarried מומרים למספר ('' ⇒ 0).
+ * שדרוג מעל הלגאסי (אפס אובדן): המבנה (members/docs/cred/סטטוס-אירועים) ממוזג
+ * בסמנטיקה הבטוחה של mergeFamilies — איחוד לפי id, בלי דה-דופ first|birth שהיה
+ * מאבד שיבוצים; רק ערכי השדות הסקלריים נבחרים ידנית. */
+
+export interface DupFieldDef {
+  key: string;
+  label: string;
+  get: (f: Family) => string;
+}
+
+/** 18 שדות המיזוג — מפתחות ותוויות verbatim מהלגאסי (שורות 1643-1653). */
+export const DUP_FIELDS: DupFieldDef[] = [
+  { key: 'name', label: 'שם משפחה', get: (f) => f.name || '' },
+  { key: 'mother', label: 'שם האם', get: (f) => f.mother || '' },
+  { key: 'father', label: 'שם האב', get: (f) => f.father || '' },
+  { key: 'phone', label: 'טלפון', get: (f) => f.phone || '' },
+  { key: 'phone2', label: 'טלפון 2', get: (f) => f.phone2 || '' },
+  { key: 'email', label: 'אימייל', get: (f) => f.email || '' },
+  { key: 'city', label: 'עיר', get: (f) => f.city || '' },
+  { key: 'address', label: 'כתובת', get: (f) => f.address || '' },
+  { key: 'motherId', label: 'ת"ז אם', get: (f) => f.motherId || '' },
+  { key: 'fatherId', label: 'ת"ז אב', get: (f) => f.fatherId || '' },
+  { key: 'community', label: 'קהילה', get: (f) => f.community || '' },
+  { key: 'language', label: 'שפה', get: (f) => f.language || '' },
+  { key: 'maritalStatus', label: 'מצב משפחתי', get: (f) => f.maritalStatus || '' },
+  { key: 'status', label: 'סטטוס', get: (f) => f.status || '' },
+  { key: 'kidsHome', label: 'ילדים בבית', get: (f) => (f.kidsHome == null ? '' : String(f.kidsHome)) },
+  { key: 'kidsMarried', label: 'ילדים נשואים', get: (f) => (f.kidsMarried == null ? '' : String(f.kidsMarried)) },
+  { key: 'createdAt', label: 'נרשמה', get: (f) => f.createdAt || '' },
+  { key: 'notes', label: 'הערות', get: (f) => f.notes || '' },
+];
+
+/** ערך שדה נבחר לפי הלגאסי: edit גובר; אחרת pick; אחרת הראשונה עם ערך. */
+export function dupFieldValue(
+  fams: Family[],
+  def: DupFieldDef,
+  pick: Record<string, number>,
+  edit: Record<string, string>,
+): string {
+  const edited = edit[def.key];
+  if (edited != null) return edited;
+  const idx = pick[def.key] ?? fams.findIndex((f) => def.get(f));
+  return def.get(fams[idx >= 0 ? idx : 0]);
+}
+
+/** מיזוג קבוצה לפי בחירת-שדות — טהור; fams[0] הוא בסיס השומר. */
+export function mergeFamiliesByFields(
+  fams: Family[],
+  pick: Record<string, number>,
+  edit: Record<string, string>,
+): Family {
+  const base = mergeFamilies(fams[0], fams.slice(1));
+  const out: Family = { ...base };
+  for (const def of DUP_FIELDS) {
+    const val = dupFieldValue(fams, def, pick, edit);
+    switch (def.key) {
+      case 'kidsHome': out.kidsHome = val === '' ? 0 : +val; break;
+      case 'kidsMarried': out.kidsMarried = val === '' ? 0 : +val; break;
+      case 'status': out.status = (val || base.status) as Family['status']; break;
+      case 'name': out.name = val; break;
+      case 'mother': out.mother = val; break;
+      case 'father': out.father = val; break;
+      case 'phone': out.phone = val; break;
+      case 'phone2': out.phone2 = val; break;
+      case 'email': out.email = val; break;
+      case 'city': out.city = val; break;
+      case 'address': out.address = val; break;
+      case 'motherId': out.motherId = val; break;
+      case 'fatherId': out.fatherId = val; break;
+      case 'community': out.community = val; break;
+      case 'language': out.language = val; break;
+      case 'maritalStatus': out.maritalStatus = val; break;
+      case 'createdAt': out.createdAt = val; break;
+      case 'notes': out.notes = val; break;
+    }
+  }
+  return out;
+}

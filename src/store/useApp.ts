@@ -29,7 +29,7 @@ import {
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, loadOrgConfig, saveConfigOverride } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
-import { mergeFamilies } from '../lib/dedup';
+import { mergeFamilies, mergeFamiliesByFields } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
@@ -157,6 +157,8 @@ interface AppState {
   deleteFamily: (id: string) => void;
   /** מיזוג כפילויות — כל ה-loserIds נספגים לתוך keeperId (בלי אובדן בני-משפחה/שיבוצים). */
   mergeFamilyGroup: (keeperId: string, loserIds: string[]) => void;
+  /** פער 21: מיזוג לפי בחירת-שדות (לגאסי dupFieldMerge) — ids[0] הוא הבסיס. */
+  mergeFamilyGroupFields: (ids: string[], pick: Record<string, number>, edit: Record<string, string>) => void;
   upsertMember: (famId: string, member: Member) => void;
   deleteMember: (famId: string, memberId: string) => void;
   addCred: (famId: string, delta: number, reason: string) => void;
@@ -679,6 +681,25 @@ export const useApp = create<AppState>()((set, get) => {
         };
       });
       get().toast('מוזגו ' + losers.size + ' רשומות אל המשפחה שנבחרה ✓');
+    },
+    mergeFamilyGroupFields(ids, pick, edit) {
+      // פער 21 (לגאסי dupFieldMerge:1654-1671): ערכי השדות לפי הבחירה; המבנה
+      // (members/docs/אירועים) בסמנטיקה הבטוחה של mergeFamilies — אפס אובדן.
+      const keeperId = ids[0];
+      const losers = new Set(ids.slice(1));
+      if (!keeperId || !losers.size) return;
+      setDb((db) => {
+        const fams = ids.map((id) => db.families.find((f) => f.id === id)).filter((f): f is Family => !!f);
+        if (fams.length < 2) return {};
+        const merged = mergeFamiliesByFields(fams, pick, edit);
+        return {
+          families: db.families
+            .filter((f) => !losers.has(f.id))
+            .map((f) => (f.id === keeperId ? merged : f)),
+          events: db.events.map((ev) => (ev.famId && losers.has(ev.famId) ? { ...ev, famId: keeperId } : ev)),
+        };
+      });
+      get().toast('הרשומות מוזגו לפי הבחירה ✓ — נשמרה רשומה אחת');
     },
     upsertMember(famId, member) {
       setDb((db) => ({
