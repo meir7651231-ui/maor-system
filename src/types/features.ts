@@ -59,6 +59,7 @@ export const FEATURES: FeatureDef[] = [
 
   // ——— לוח שנה ———
   { key: 'calendar.dayview', label: 'תצוגת יום', desc: 'מעבר לתצוגת יום מפורטת בלוח השנה', module: 'calendar' },
+  { key: 'calendar.hebdefault', label: 'הלוח נפתח בעברי', desc: 'לוח השנה נפתח בגריד החודש העברי (כמו בקובץ החי) — כבוי: נפתח בלועזי', module: 'calendar' },
   { key: 'calendar.layers', label: 'שכבות אירועים', desc: 'שכבות ימי הולדת, הצטרפות והרשמות על הלוח', module: 'calendar' },
   { key: 'calendar.blocking', label: 'חסימת שבת/חג והתנגשויות', desc: 'חסימת שבתות וחגים והתרעה על התנגשויות', module: 'calendar' },
   // חסימות הלוח — שתי היכולות ניתנות לכיבוי בנפרד (תת-דגלים של calendar.blocking)

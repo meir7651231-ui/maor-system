@@ -16,6 +16,7 @@ import {
   DEFAULT_FILTERS,
   EV_META,
   HOLIDAY_META,
+  initialHebMode,
   isoOf,
   SESSION_META,
   upcomingRows,
@@ -158,7 +159,9 @@ export function CalendarView() {
 
   const now = new Date();
   const [ym, setYm] = useState({ y: now.getFullYear(), m: now.getMonth() });
-  const [hebMode, setHebMode] = useState(false);
+  // הלוח נפתח בגריד העברי כברירת מחדל (P1.1, legacy calHebMode:true) —
+  // דגל calendar.hebdefault: חסר=דלוק=עברי; false=לועזי (initialHebMode טהור)
+  const [hebMode, setHebMode] = useState(() => initialHebMode(useApp.getState().config));
   const [hebAnchor, setHebAnchor] = useState(isoOf(now));
   const [modal, setModal] = useState<ModalState | null>(null);
   const [dayIso, setDayIso] = useState<string | null>(null);

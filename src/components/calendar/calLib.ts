@@ -11,7 +11,7 @@ import {
 } from '../../types/domain';
 import { gem, gemYear, hebParts, hebAnnualEq, holidayOf, type HebParts } from '../../lib/hebrew';
 import { isoLocal } from '../../lib/date-util';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 import { sessionsOf } from '../courses/lib';
 // sessionsOf — מקור-אמת יחיד בקורסים; מיוצא מחדש (wallData מייבא אותו מכאן)
@@ -414,6 +414,15 @@ function makeCell(
     holiday: holidayOf(d),
     items: dayItems(db, d, config),
   };
+}
+
+/**
+ * מצב הפתיחה של הלוח (P1.1, feature calendar.hebdefault) — טהור.
+ * ratchet: הלגאסי נפתח בגריד העברי (state calHebMode:true). חוזה הדגלים:
+ * מפתח חסר = דלוק = נפתח עברי; false מפורש = לועזי.
+ */
+export function initialHebMode(config: OrgConfig): boolean {
+  return featureOn(config, 'calendar.hebdefault');
 }
 
 /** רשת חודש לועזי — 42 תאים קבועים, ראשון עד שבת. */
