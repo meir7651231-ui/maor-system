@@ -23,8 +23,9 @@
 
 - **סטאק:** React 19 + TypeScript + Vite 8 + Zustand. תלויות ריצה: react, react-dom, zustand, idb, firebase (נטען dynamic-import רק כשמוגדר).
 - **ארכיטקטורה:** אתר סטטי local-first. הנתונים אצל הלקוח ב-3 שכבות: localStorage (debounce 500ms) → IndexedDB (+ טבעת 30 צילומים יומיים) → קובצי גיבוי JSON. ענן Firebase = opt-in פר-ארגון. הצפנה במנוחה AES-GCM (envelope, DEK עטוף פעמיים) = opt-in.
-- **White-label אמיתי:** `?org=<slug>` → `public/c/<slug>/config.json`. ‏101 דגלי פיצ׳ר + 33 מונחים (termOf) + 8 חבילות ורטיקל + 4 ערכות נושא. חוזה הדגלים: מפתח חסר = פעיל, רק false מכבה.
-- **DB:** מסמך יחיד (DB_VERSION=5) — seq כללי + receiptSeq/donationSeq נפרדים ורציפים (קבלות מס!) + 7 מערכי ישויות. מיגרציה מצטברת אחת ב-`src/store/persist.ts` (מרפאת מונים, rid כפולים, מזהי members).
+- **White-label אמיתי:** `?org=<slug>` → `public/c/<slug>/config.json`. ‏106 דגלי פיצ׳ר + 37 מונחים (termOf) + 8 חבילות ורטיקל + 4 ערכות נושא. חוזה הדגלים: מפתח חסר = פעיל, רק false מכבה.
+- **DB:** מסמך יחיד (DB_VERSION=5) — seq כללי + receiptSeq/donationSeq נפרדים ורציפים (קבלות מס!) + 11 מערכי ישויות. מיגרציה מצטברת אחת ב-`src/store/persist.ts` (מרפאת מונים, rid כפולים, מזהי members).
+- **מודול קופות צדקה (`tzedaka`):** עמודה מבודדת — רכזים/קופות/ריקונים/מבצעים/לוח-ייעודי/ראווה ב-`src/components/tzedaka/`; הכסף והאירועים לא זולגים לתרומות/קבלות/לוח הראשי (הכרעת בעלים 30.7, נאכף ב-ratchets). דוח: `knowledge/CLOSED-TZEDAKA-2026-07-30.md`.
 
 ## Dev loop — שערים מדורגים לפי רדיוס הפגיעה
 ```bash
@@ -53,7 +54,7 @@ CI: `ci.yml` מריץ את השער המלא על כל push לענף claude/*; d
 |------|--------|
 | `src/App.tsx` | שלד: ניווט Zustand (בלי router), שרשרת שערים (פענוח→ענן→נעילה), מודלים ב-hash, גיבוי סוף-יום |
 | `src/types/domain.ts` | כל מודל הנתונים + DB_VERSION |
-| `src/types/features.ts` | 101 דגלים + 33 מונחים |
+| `src/types/features.ts` | 106 דגלים + 37 מונחים |
 | `src/store/useApp.ts` | ה-store היחיד — כל פעולות העסקים (1,154 שורות) |
 | `src/store/persist.ts` | התמדה 3 שכבות + migrate() + שער ריבוי-טאבים |
 | `src/store/cloudSync.ts` + `src/lib/cloud*.ts` | סנכרון Firestore (diff/merge, הענן מנצח, מונים רק עולים) |

@@ -46,7 +46,7 @@ const PROFILES = [
   },
   {
     name: 'משפחות בלבד (כל שאר המודולים כבויים)',
-    config: { modules: { courses: false, calendar: false, diary: false, supporters: false, reports: false } },
+    config: { modules: { courses: false, calendar: false, diary: false, supporters: false, tzedaka: false, reports: false } },
   },
   {
     name: 'מונחים מותאמים (מוטבים/שיעורים)',
@@ -185,6 +185,37 @@ for (const profile of PROFILES) {
     t('מודול חוגים מוסתר (מכוון)', !(await page.locator('nav').textContent()).includes(crsLabel));
   }
 
+  // ── קופות צדקה (BUILD-ORDER-TZEDAKA): קישור לפי המודול + זרימה מלאה בברירת המחדל ──
+  const tzedakaOn = modulesOff.tzedaka !== false;
+  {
+    const navNow = (await page.locator('nav').first().textContent()) ?? '';
+    t('קישור "קופות צדקה" ' + (tzedakaOn ? 'קיים' : 'נעדר'), navNow.includes('קופות צדקה') === tzedakaOn);
+  }
+  if (!profile.config) {
+    await page.locator('nav >> text=קופות צדקה').click();
+    await page.waitForTimeout(400);
+    await page.locator('button', { hasText: 'הוספת רכז' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input').first().fill('רכזת-מטריצה');
+    await page.locator('.modal button', { hasText: 'שמירה' }).click();
+    await page.waitForTimeout(500);
+    t('הוספת רכז', (await page.locator('main').textContent()).includes('רכזת-מטריצה'));
+    await page.locator('main button', { hasText: 'רכזת-מטריצה' }).first().click();
+    await page.waitForTimeout(400);
+    await page.locator('button', { hasText: 'הוספת קופה' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input').first().fill('77');
+    await page.locator('.modal button', { hasText: 'שמירה' }).click();
+    await page.waitForTimeout(500);
+    t('הוספת קופה', (await page.locator('main').textContent()).includes('#77'));
+    await page.locator('main button', { hasText: '💰 ריקון' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input[type="number"]').first().fill('100');
+    await page.locator('.modal button', { hasText: 'רישום הריקון' }).click();
+    await page.waitForTimeout(500);
+    t('ריקון 100 ₪ נרשם והסכום מופיע', (await page.locator('main').textContent()).includes('100'));
+  }
+
   // ── זרימה 6: התמדה אחרי ריענון ──
   await page.waitForTimeout(800); // debounce שמירה
   await page.reload({ waitUntil: 'networkidle' });
@@ -222,7 +253,7 @@ for (const profile of PROFILES) {
         slug: 'default',
         orgName: 'עמותת מבחן',
         theme: 'or-rishon',
-        modules: { families: false, courses: false, calendar: false, diary: false, supporters: false, reports: false },
+        modules: { families: false, courses: false, calendar: false, diary: false, supporters: false, tzedaka: false, reports: false },
       }),
     );
     localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10));
@@ -237,6 +268,8 @@ for (const profile of PROFILES) {
     t(`אין "${leak}" כשהכול כבוי`, !main.includes(leak));
   }
   t('הניווט נקי ממודולים כבויים', !navTxt.includes('משפחות') && !navTxt.includes('חוגים'));
+  // קופות צדקה (מודול tzedaka) — כבוי ⇒ הקישור נעלם
+  t('אין "קופות צדקה" כשהמודול כבוי', !navTxt.includes('קופות צדקה'));
   t('אפס שגיאות JS בפרופיל', errors.length === 0, errors.slice(0, 2).join(' | '));
 
   console.log('\n📦 קיצון — הכול כבוי (בדיקת דליפות)');
