@@ -142,6 +142,12 @@ export function migrate(raw: unknown): Db | null {
     tzBoxes: Array.isArray(db.tzBoxes) ? db.tzBoxes : [],
     tzCampaigns: Array.isArray(db.tzCampaigns) ? db.tzCampaigns : [],
     tzEvents: Array.isArray(db.tzEvents) ? db.tzEvents : [],
+    // חנות מוצרי-שירות (מודול shop) — תוספת אדיטיבית, DB_VERSION נשאר 5
+    shopProducts: Array.isArray(db.shopProducts) ? db.shopProducts : [],
+    shopStores: Array.isArray(db.shopStores) ? db.shopStores : [],
+    shopCriteria: Array.isArray(db.shopCriteria) ? db.shopCriteria : [],
+    shopAssignments: Array.isArray(db.shopAssignments) ? db.shopAssignments : [],
+    shopEvents: Array.isArray(db.shopEvents) ? db.shopEvents : [],
     notif: { ...base.notif, ...db.notif },
     reports: { ...base.reports, ...db.reports },
     ui: { ...base.ui, ...db.ui },
@@ -219,6 +225,26 @@ export function migrate(raw: unknown): Db | null {
     ...b,
     collections: Array.isArray(b.collections) ? b.collections : [],
     status: TZ_STATUSES.includes(b.status) ? b.status : 'office',
+  }));
+  // חנות — ריפוי פר-רשומה: components/redemptions/criterionIds → [], סטטוס
+  // זר → 'active', discountPct נצמד ל-0–100 (לא-סופי → 0)
+  merged.shopProducts = merged.shopProducts.map((p) => ({
+    ...p,
+    components: Array.isArray(p.components) ? p.components : [],
+  }));
+  const SHOP_STATUSES = ['active', 'done', 'stopped'];
+  merged.shopAssignments = merged.shopAssignments.map((a) => ({
+    ...a,
+    redemptions: Array.isArray(a.redemptions) ? a.redemptions : [],
+    criterionIds: Array.isArray(a.criterionIds) ? a.criterionIds : [],
+    status: SHOP_STATUSES.includes(a.status) ? a.status : 'active',
+  }));
+  merged.shopCriteria = merged.shopCriteria.map((c) => ({
+    ...c,
+    discountPct:
+      typeof c.discountPct === 'number' && Number.isFinite(c.discountPct)
+        ? Math.min(100, Math.max(0, c.discountPct))
+        : 0,
   }));
   // היגיינה: מזהים חסרים, כפילויות, מערכים חסרים בתוך משפחות
   const seen = new Set<string>();

@@ -22,6 +22,9 @@ const LIST_FIELDS: Record<string, readonly string[]> = {
   // קופות צדקה — ריקונים ולוג ניקוד (BUILD-ORDER-TZEDAKA)
   tzBoxes: ['collections'],
   tzCoordinators: ['scoreLog'],
+  // חנות — רכיבי מוצר, מימושים וקריטריונים (BUILD-ORDER-SHOP)
+  shopProducts: ['components'],
+  shopAssignments: ['redemptions', 'criterionIds'],
 };
 
 export function sanitizeIncoming(col: string, item: Record<string, unknown>): Record<string, unknown> {
