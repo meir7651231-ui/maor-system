@@ -216,6 +216,56 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     },
     modules: { courses: false, tzedaka: false, shop: false },
   },
+  {
+    // ורטיקל חדש (אשף 2) — גמ"ח השאלת ציוד: מנוע החנות משמש כקטלוג-השאלות
+    // (חבילת השאלה/פריט/השאלה). עמדה מפורשת לכל 8 המודולים — המטריצה המלאה.
+    id: 'gemach',
+    emoji: '🧰',
+    label: 'גמ"ח (השאלת ציוד)',
+    sub: 'קטלוג · השאלות · תורמים',
+    terms: {
+      'nav.shop': 'גמ"ח',
+      'entity.shopProduct': 'חבילת השאלה',
+      'entity.shopItem': 'פריט',
+      'entity.shopAssignment': 'השאלה',
+      'nav.families': 'משפחות',
+      'nav.supporters': 'תורמים',
+    },
+    modules: {
+      families: true,
+      courses: false,
+      calendar: true,
+      diary: false,
+      supporters: true,
+      reports: true,
+      tzedaka: false,
+      shop: true,
+    },
+  },
+  {
+    // ורטיקל חדש (אשף 2) — ארגון מבצעי התרמה: מנוע הקופות הוא הליבה.
+    // עמדה מפורשת לכל 8 המודולים — המטריצה המלאה.
+    id: 'tzedakot',
+    emoji: '🪙',
+    label: 'ארגון מבצעי התרמה',
+    sub: 'רכזים · קופות · מבצעים',
+    terms: {
+      'nav.tzedaka': 'מבצעים',
+      'entity.tzCoordinator': 'רכז',
+      'entity.tzBox': 'קופה',
+      'entity.tzCampaign': 'מבצע',
+    },
+    modules: {
+      families: true,
+      courses: false,
+      calendar: true,
+      diary: false,
+      supporters: true,
+      reports: true,
+      tzedaka: true,
+      shop: false,
+    },
+  },
 ];
 
 /**
