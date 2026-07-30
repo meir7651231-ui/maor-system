@@ -26,9 +26,11 @@ export interface OrgCloudDoc {
   createdAt?: string;
 }
 
-/** בקשת הרשמה ממתינה — platformRequests/{uid}. */
+/** בקשת הרשמה ממתינה — platformRequests/{uid}. הזרימה מבוססת שיחה — איש קשר וטלפון. */
 export interface OrgRequestDoc {
   orgName?: string;
+  contactName?: string;
+  phone?: string;
   email?: string;
   at?: string;
 }

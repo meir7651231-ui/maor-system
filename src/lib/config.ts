@@ -207,8 +207,18 @@ export function isSuperAdmin(email: string | null | undefined): boolean {
  * ולידציית טופס ההרשמה (ענן 3) — טהורה עד גבול ה-SDK: מחזירה הודעת שגיאה
  * בעברית או '' כשהקלט תקין.
  */
-export function signUpError(orgName: string, email: string, password: string, password2: string): string {
+export function signUpError(
+  orgName: string,
+  contactName: string,
+  phone: string,
+  email: string,
+  password: string,
+  password2: string,
+): string {
   if (!orgName.trim()) return 'שם הארגון הוא שדה חובה';
+  // הזרימה מבוססת שיחה חוזרת (עדכון פקודה 30.7) — איש קשר וטלפון חובה
+  if (!contactName.trim()) return 'שם איש הקשר הוא שדה חובה';
+  if (!/^[\d+][\d\s-]{6,}$/.test(phone.trim())) return 'מספר טלפון תקין הוא שדה חובה — נחזור אליכם לאישור';
   if (!/^\S+@\S+\.\S+$/.test(email.trim())) return 'כתובת האימייל אינה תקינה';
   if (password.length < 6) return 'הסיסמה חייבת להיות לפחות 6 תווים';
   if (password !== password2) return 'הסיסמאות אינן זהות';

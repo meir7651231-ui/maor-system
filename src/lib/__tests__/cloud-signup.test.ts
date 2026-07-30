@@ -12,12 +12,15 @@ import useAppSrc from '../../store/useApp.ts?raw';
 import rulesSrc from '../../../firestore.rules?raw';
 
 describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => {
-  it('signUpError: שם ארגון חובה, מייל תקין, סיסמה ≥6 וזהה — או ריק כשתקין', () => {
-    expect(signUpError('', 'a@b.co', '123456', '123456')).toBe('שם הארגון הוא שדה חובה');
-    expect(signUpError('עמותה', 'לא-מייל', '123456', '123456')).toBe('כתובת האימייל אינה תקינה');
-    expect(signUpError('עמותה', 'a@b.co', '12345', '12345')).toBe('הסיסמה חייבת להיות לפחות 6 תווים');
-    expect(signUpError('עמותה', 'a@b.co', '123456', '654321')).toBe('הסיסמאות אינן זהות');
-    expect(signUpError('עמותה', 'a@b.co', '123456', '123456')).toBe('');
+  it('signUpError: ארגון+איש-קשר+טלפון חובה (זרימת-שיחה), מייל תקין, סיסמה ≥6 וזהה', () => {
+    expect(signUpError('', 'ישראל', '0501234567', 'a@b.co', '123456', '123456')).toBe('שם הארגון הוא שדה חובה');
+    expect(signUpError('עמותה', '', '0501234567', 'a@b.co', '123456', '123456')).toBe('שם איש הקשר הוא שדה חובה');
+    expect(signUpError('עמותה', 'ישראל', '', 'a@b.co', '123456', '123456')).toContain('טלפון');
+    expect(signUpError('עמותה', 'ישראל', 'abc', 'a@b.co', '123456', '123456')).toContain('טלפון');
+    expect(signUpError('עמותה', 'ישראל', '0501234567', 'לא-מייל', '123456', '123456')).toBe('כתובת האימייל אינה תקינה');
+    expect(signUpError('עמותה', 'ישראל', '0501234567', 'a@b.co', '12345', '12345')).toBe('הסיסמה חייבת להיות לפחות 6 תווים');
+    expect(signUpError('עמותה', 'ישראל', '0501234567', 'a@b.co', '123456', '654321')).toBe('הסיסמאות אינן זהות');
+    expect(signUpError('עמותה', 'ישראל', '050-1234567', 'a@b.co', '123456', '123456')).toBe('');
   });
 
   it('isSuperAdmin: מייל-העל בלבד, case-insensitive; הרשימה במקום אחד', () => {
@@ -36,13 +39,16 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect(useAppSrc).toMatch(/if \(!member\) return;/);
   });
 
-  it('הגנת-מקור: מסך הכניסה עם לשונית הרשמה (שם ארגון + סיסמה×2) ומסך המתנה', () => {
+  it('הגנת-מקור: לשונית הרשמה — ארגון+איש-קשר+טלפון (זרימת-שיחה)+סיסמה×2; מסך המתנה', () => {
     expect(loginSrc).toContain('הרשמה');
     expect(loginSrc).toContain('שם הארגון *');
+    expect(loginSrc).toContain('שם איש קשר *');
+    expect(loginSrc).toMatch(/טלפון.*\*/);
     expect(loginSrc).toContain('אימות סיסמה');
     expect(loginSrc).toContain('cloudSignUp');
     expect(loginSrc).toContain('PendingApprovalScreen');
-    expect(loginSrc).toContain('הבקשה נקלטה');
+    expect(loginSrc).toContain('הבקשה נקלטה!');
+    expect(loginSrc).toContain('נאשר בהקדם');
   });
 
   it('הגנת-מקור: Rules v2 — בקשות uid-תואם, ארגונים לחברים, כתיבה למיילי-על, שורש כהיום', () => {

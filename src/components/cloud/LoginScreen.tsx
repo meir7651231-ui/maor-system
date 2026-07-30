@@ -19,6 +19,8 @@ export function LoginScreen() {
 
   const [mode, setMode] = useState<'in' | 'up'>('in');
   const [orgName, setOrgName] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
@@ -31,7 +33,7 @@ export function LoginScreen() {
     e.preventDefault();
     if (busy) return;
     if (mode === 'up') {
-      const err = signUpError(orgName, email, password, password2);
+      const err = signUpError(orgName, contactName, phone, email, password, password2);
       if (err) return setError(err);
     } else if (!email.trim() || !password) {
       return setError('נא למלא אימייל וסיסמה');
@@ -40,7 +42,7 @@ export function LoginScreen() {
     setError('');
     try {
       if (mode === 'up') {
-        await cloudSignUp(orgName, email.trim(), password);
+        await cloudSignUp(orgName, contactName, phone, email.trim(), password);
         // המשתמש כעת מחובר; שער-החברות ב-App יציג את מסך ההמתנה
       } else {
         await cloudSignIn(email.trim(), password);
@@ -108,9 +110,18 @@ export function LoginScreen() {
 
         <form onSubmit={(e) => void submit(e)}>
           {mode === 'up' && (
-            <Field label="שם הארגון *">
-              <TextInput value={orgName} onChange={setOrgName} placeholder="עמותת אור" />
-            </Field>
+            <>
+              <Field label="שם הארגון *">
+                <TextInput value={orgName} onChange={setOrgName} placeholder="עמותת אור" />
+              </Field>
+              {/* הזרימה מבוססת שיחה חוזרת (עדכון פקודה 30.7) — איש קשר וטלפון חובה */}
+              <Field label="שם איש קשר *">
+                <TextInput value={contactName} onChange={setContactName} placeholder="ישראל ישראלי" />
+              </Field>
+              <Field label="טלפון (נחזור אליכם לאישור) *">
+                <TextInput value={phone} onChange={setPhone} type="tel" dir="ltr" placeholder="050-1234567" />
+              </Field>
+            </>
           )}
           <Field label="אימייל">
             <TextInput value={email} onChange={setEmail} type="email" dir="ltr" placeholder="name@example.com" />
@@ -176,9 +187,9 @@ export function PendingApprovalScreen() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 16 }}>
       <div className="card" style={{ width: 'min(420px, 94vw)', padding: 24, textAlign: 'center' }}>
         <div style={{ fontSize: 40, marginBottom: 10 }}>⏳</div>
-        <h1 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>הבקשה נקלטה</h1>
+        <h1 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>הבקשה נקלטה!</h1>
         <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.7 }}>
-          המערכת שלכם ממתינה לאישור מנהל הפלטפורמה.
+          נאשר בהקדם — נחזור אליכם בטלפון שהשארתם.
           <br />
           לאחר האישור — התחברו שוב ותקבלו מערכת מוכנה.
         </p>

@@ -132,7 +132,7 @@ interface AppState {
    * הרשמה עצמית (CLOUD2 ענן 3): יצירת משתמש Auth + כתיבת בקשה ממתינה —
    * כל מה שנרשם-חדש רשאי לכתוב. הוא נשאר במסך ההמתנה עד אישור הבעלים.
    */
-  cloudSignUp: (orgName: string, email: string, password: string) => Promise<void>;
+  cloudSignUp: (orgName: string, contactName: string, phone: string, email: string, password: string) => Promise<void>;
 
   // מחזור חיים
   init: () => Promise<void>;
@@ -735,10 +735,10 @@ export const useApp = create<AppState>()((set, get) => {
       if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
       await cloudMod.resetPassword(email);
     },
-    async cloudSignUp(orgName, email, password) {
+    async cloudSignUp(orgName, contactName, phone, email, password) {
       if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
       // הולידציה טהורה (signUpError) רצה ב-UI; כאן שער אחרון לפני ה-SDK
-      const err = signUpError(orgName, email, password, password);
+      const err = signUpError(orgName, contactName, phone, email, password, password);
       if (err) throw new Error(err);
       const uid = await cloudMod.signUp(email.trim(), password);
       // מסמך הבקשה — כל מה שנרשם-חדש רשאי לכתוב (Rules v2); כשל בכתיבה לא
@@ -746,6 +746,8 @@ export const useApp = create<AppState>()((set, get) => {
       try {
         await cloudMod.writeOrgRequest(uid, {
           orgName: orgName.trim(),
+          contactName: contactName.trim(),
+          phone: phone.trim(),
           email: email.trim().toLowerCase(),
           at: new Date().toISOString(),
         });

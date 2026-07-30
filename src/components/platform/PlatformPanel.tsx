@@ -20,6 +20,8 @@ type CloudMod = typeof import('../../store/cloudSync');
 interface ReqRow {
   uid: string;
   orgName?: string;
+  contactName?: string;
+  phone?: string;
   email?: string;
   at?: string;
 }
@@ -142,6 +144,13 @@ export function PlatformPanel(props: { onClose: () => void }) {
           {requests.map((r) => (
             <div key={r.uid} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
               <span style={{ fontWeight: 700 }}>{r.orgName || '—'}</span>
+              {r.contactName && <span style={{ fontSize: 12.5 }}>{r.contactName}</span>}
+              {/* הזרימה מבוססת שיחה — הטלפון לחיץ (tel:) */}
+              {r.phone && (
+                <a href={'tel:' + r.phone} style={{ fontSize: 12.5, direction: 'ltr', fontWeight: 700 }}>
+                  {'📞 ' + r.phone}
+                </a>
+              )}
               <span style={{ fontSize: 12.5, direction: 'ltr' }}>{r.email}</span>
               <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{(r.at ?? '').slice(0, 16).replace('T', ' ')}</span>
               <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
