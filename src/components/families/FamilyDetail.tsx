@@ -12,6 +12,9 @@ import { ageOf, chipStyle, fmtDate, STATUS_META } from './lib';
 import { FamilyForm } from './FamilyForm';
 import { MemberForm, type MemberPrefill } from './MemberForm';
 import { CredPanel, DocsPanel, EnrollPanel, EventsPanel } from './FamilyPanels';
+// פאנלי העמודות המבודדות (CONNECT חיבור 2) — תצוגה בלבד, חיים בתיקיות המודולים
+import { TzFamilyPanel } from '../tzedaka/TzFamilyPanel';
+import { ShopFamilyPanel } from '../shop/ShopFamilyPanel';
 import { useArmed } from '../useArmed';
 
 function InfoRow(props: { k: string; v: string }) {
@@ -400,6 +403,8 @@ export function FamilyDetail(props: { family: Family }) {
 
       <EnrollPanel fam={fam} />
       <EventsPanel fam={fam} />
+      {featureOn(config, 'tzedaka.familypanel') && <TzFamilyPanel famId={fam.id} />}
+      {featureOn(config, 'shop.familypanel') && <ShopFamilyPanel famId={fam.id} />}
 
       {editOpen && <FamilyForm family={fam} onClose={() => setEditOpen(false)} />}
       {memberModal !== undefined && (
