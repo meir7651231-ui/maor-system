@@ -69,7 +69,7 @@ CI: `ci.yml` מריץ את השער המלא על כל push לענף claude/*; d
 2. ~~🔴 `e2e/launch-readiness.mjs` — נתיב קשיח~~ **תוקן 2026-07-29** (נתיב יחסי + כל הסוויטה ירוקה).
 3. 🟠 ~10 מפתחות localStorage עוקפים את בידוד ה-namespace הרב-ארגוני (maor_lock, maor_autoexp, maor_cashbox_* ועוד).
 4. 🟠 העותק בענן נשמר plaintext גם כשההצפנה דלוקה; אין Firestore Rules בריפו.
-5. 🟠 DonationModal/ManageModal מורידים קבלה גם כשה-store דחה (rid שמעולם לא הונפק).
-6. 🟠 ניקוי dueDate/nextDate משאיר אירוע יתום בלוח (המחיקות כן מנקות).
+5. ~~🟠 DonationModal/ManageModal מורידים קבלה גם כשה-store דחה~~ **תוקן 2026-07-30 (P1-א׳2)** — {ok,rid} מה-store, אפס ניחוש rid ב-UI.
+6. ~~🟠 ניקוי dueDate/nextDate משאיר אירוע יתום בלוח~~ **תוקן 2026-07-30 (P1 פער 12)** — unlinkEvent משותף.
 
 הרשימה המלאה (2 חמורים, ~22 בינוניים, ~40 קלים) + המלצות מתועדפות: **`knowledge/ANALYSIS-2026-07-29.md`**.
