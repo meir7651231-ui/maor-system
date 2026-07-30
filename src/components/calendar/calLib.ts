@@ -510,6 +510,25 @@ export interface UpcomingRow {
   ev: OrgEvent;
 }
 
+/* ---------- מופע הבא של אירוע חוזר (מעבר 199/199, לגאסי nextOccurLabel) ---------- */
+
+/**
+ * המופע הבא של אירוע חוזר-בעברי מ-fromIso והלאה — סריקה עד 400 ימים
+ * (כמו nextOccurLabel בלגאסי) למציאת התאמת חודש+יום עבריים (hebAnnualEq,
+ * כולל דין אדר). אירוע לא-חוזר או שלא נמצא ⇒ ''.
+ */
+export function nextOccurIso(ev: Pick<OrgEvent, 'type' | 'date'>, fromIso: string): string {
+  if (!ev.date || !HEBREW_RECURRING.has(ev.type)) return '';
+  const oh = hpOf(ev.date);
+  const from = new Date(fromIso + 'T12:00:00');
+  for (let i = 0; i < 400; i++) {
+    const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + i);
+    const iso = isoOf(d);
+    if (iso >= ev.date && hebAnnualEq(oh, hpOf(iso, d))) return iso;
+  }
+  return '';
+}
+
 /* ---------- צ׳יפי תאריכים מהירים (P2 פער 26) ---------- */
 
 export type QuickDateKind = 'today' | 'tomorrow' | 'week' | 'month';

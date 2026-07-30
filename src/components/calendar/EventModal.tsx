@@ -8,7 +8,7 @@ import { featureOn, termOf } from '../../lib/config';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { hebDateFull } from '../../lib/hebrew';
-import { orgBlockError, QUICK_DATE_CHIPS, quickDate, roomClashError } from './calLib';
+import { nextOccurIso, orgBlockError, QUICK_DATE_CHIPS, quickDate, roomClashError } from './calLib';
 import { isoToday } from '../../lib/date-util';
 import {
   HEBREW_RECURRING,
@@ -108,8 +108,14 @@ export function EventModal(props: {
   );
 
   const recurring = HEBREW_RECURRING.has(f.type);
+  // המופע הבא (לגאסי nextOccurLabel) — מוצג רק לאירוע חוזר עם תאריך
+  const nextOcc = useMemo(
+    () => (recurring && f.date ? nextOccurIso({ type: f.type, date: f.date }, isoToday()) : ''),
+    [recurring, f.type, f.date],
+  );
   const hebLine = f.date
-    ? 'תאריך עברי: ' + hebDateFull(f.date) + (recurring ? ' · חוזר מדי שנה בתאריך העברי הזה' : '')
+    ? 'תאריך עברי: ' + hebDateFull(f.date) + (recurring ? ' · חוזר מדי שנה בתאריך העברי הזה' : '') +
+      (nextOcc && nextOcc !== f.date ? ' · המופע הבא: ' + hebDateFull(nextOcc) + ' (' + nextOcc.split('-').reverse().join('/') + ')' : '')
     : '';
 
   function save() {

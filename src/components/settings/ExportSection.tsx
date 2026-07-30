@@ -81,11 +81,14 @@ export function ExportSection() {
 
   function expCourses() {
     const db = useApp.getState().db;
-    // עמודות ההשלמה (פער 24, לפי רשימת פער 23): כיתות + סה"כ הכנסות
+    // עמודות ההשלמה (פער 24 + מעבר 199/199, לכיסוי 16 העמודות של הלגאסי):
+    // כיתות · טלפון מורה · קבוצות · הנחות · גיל · סה"כ הכנסות
     const rows: Cell[][] = [
       [
-        'שם החוג', 'קטגוריה', 'קהל יעד', ...(exportFullOn ? ['כיתות'] : []), 'מורה', 'חדר', 'מסלול',
-        'מחיר', 'יום', 'שעה', 'רשומים', ...(exportFullOn ? ['סה"כ הכנסות'] : []),
+        'שם החוג', 'קטגוריה', 'קהל יעד', ...(exportFullOn ? ['כיתות'] : []), 'מורה',
+        ...(exportFullOn ? ['טלפון מורה'] : []), 'חדר', 'מסלול',
+        'מחיר', ...(exportFullOn ? ['הנחה 1', 'הנחה 2', 'מגיל', 'עד גיל'] : []), 'יום', 'שעה',
+        ...(exportFullOn ? ['קבוצות'] : []), 'רשומים', ...(exportFullOn ? ['סה"כ הכנסות'] : []),
         'מקס׳ תלמידים', 'סמסטר', 'תחילה', 'סיום', 'הערות',
       ],
     ];
@@ -93,13 +96,17 @@ export function ExportSection() {
       const revenue = db.enrollments
         .filter((e) => e.courseId === c.id)
         .reduce((a, e) => a + paidOf(e), 0);
+      const t = db.teachers.find((x) => x.id === c.teacherId);
       rows.push([
         c.name, c.cat, c.audience ?? '',
         ...(exportFullOn ? [c.gradeMin || c.gradeMax ? [c.gradeMin, c.gradeMax].filter(Boolean).join('–') : ''] : []),
-        db.teachers.find((t) => t.id === c.teacherId)?.name ?? '',
+        t?.name ?? '',
+        ...(exportFullOn ? [t?.phone ?? ''] : []),
         db.rooms.find((r) => r.id === c.roomId)?.name ?? '',
         modelMeta(c).label, c.price,
+        ...(exportFullOn ? [c.price1 || '', c.price2 || '', c.ageMin || '', c.ageMax || ''] : []),
         DAY_NAMES[c.weekday] ?? '', c.time,
+        ...(exportFullOn ? [c.sessions.length || 1] : []),
         enrollCount(db, c.id), ...(exportFullOn ? ['₪' + revenue] : []), c.maxStudents || '',
         c.semester, fmtDate(c.start), fmtDate(c.end), c.notes,
       ]);
