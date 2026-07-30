@@ -167,6 +167,19 @@ await wait(600);
   T('מדדי האמינות נראים בבית', t.includes('מדד אמינות — תמונה מלאה') && t.includes('מגמת היום'));
 }
 
+// ── P2 אשכול ו׳: המדריך המהיר 📖 נפתח (#guide, פער 29) ──
+await page.evaluate(() => { window.location.hash = '#guide'; });
+await wait(600);
+{
+  const t = await page.evaluate(() => document.body.innerText);
+  T('המדריך המהיר נפתח ב-#guide', t.includes('המדריך המהיר') && t.includes('המתכונים המהירים:'));
+  T('קופסת "לפני הכל" במדריך', t.includes('לפני הכל:') && t.includes('אי אפשר לקלקל'));
+}
+await shot('המדריך-המהיר');
+await page.keyboard.press('Escape'); await wait(400);
+await page.evaluate(() => { window.location.hash = ''; });
+await wait(300);
+
 // ── תורמים + תרומה ──
 await nav('תורמים');
 await clickIf('button', 'הוספת תומך'); await fillModal('קרן פרידמן'); await saveModal(); await wait(500);
