@@ -172,6 +172,49 @@ export function chipStyle(bg: string, c: string): CSSProperties {
   };
 }
 
+/* ── סינון שיבוץ חכם (P1.7, feature courses.enroll.smartfilter) — הכרעה 3:
+   היכולת הדטרמיניסטית של אשף הלגאסי (התאמת חוג לפי גיל/מגדר/יום) נכנסת דרך
+   סינון רך בזרימת השיבוץ + מתג "הצג הכל" + אזהרת התנגשות לו"ז — לא כ-UI אשף. ── */
+
+/** האם החוג מתאים לפי מגדר וגיל — נתון חסר אינו מסנן (סינון רך, לא חוסם). */
+export function courseFitsMember(
+  c: Course,
+  gender: 'm' | 'f' | undefined,
+  age: number | null,
+): boolean {
+  if (c.gender && c.gender !== 'all' && gender && c.gender !== gender) return false;
+  if (age != null) {
+    if (c.ageMin && age < c.ageMin) return false;
+    if (c.ageMax && age > c.ageMax) return false;
+  }
+  return true;
+}
+
+/**
+ * אזהרת התנגשות לו"ז — מפגשי חוג-היעד מול מפגשי השיבוצים הפעילים של הילד
+ * (אותו יום ואותה שעה). מחזירה טקסט אזהרה או null. מייעץ — לא חוסם.
+ */
+export function scheduleClashText(
+  db: Pick<Db, 'courses' | 'enrollments'>,
+  memberId: string,
+  course: Course,
+): string | null {
+  const target = sessionsOf(course);
+  for (const e of db.enrollments) {
+    if (e.memberId !== memberId || e.status === 'ended' || e.courseId === course.id) continue;
+    const other = db.courses.find((x) => x.id === e.courseId);
+    if (!other) continue;
+    for (const s1 of target) {
+      for (const s2 of sessionsOf(other)) {
+        if (s1.day === s2.day && !!s1.time && s1.time === s2.time) {
+          return '⚠ התנגשות לו"ז: כבר משובצ/ת ל"' + other.name + '" — יום ' + DAY_NAMES[s1.day] + ' ' + s1.time;
+        }
+      }
+    }
+  }
+  return null;
+}
+
 /* ── punchConfirm (P1.3, feature courses.punch.confirm) — אישור כפול לניקוב ──
    ratchet: legacy-main-script.js:330-342 (punch) — לחיצה ראשונה מזיינת
    ("לאשר ניקוב?"), timeout ‏3 שניות מפרק את הזריון; לחיצה שנייה על אותו שיבוץ

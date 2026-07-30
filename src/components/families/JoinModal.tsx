@@ -7,11 +7,11 @@
 import { useMemo, useRef, useState } from 'react';
 import type { Enrollment, Family, Member } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { smartFilter } from '../../lib/search';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { ageOf, isoToday } from './lib';
-import { DAY_NAMES, enrollCount, groupOptionsOf, sessionsOf } from '../courses/lib';
+import { DAY_NAMES, courseFitsMember, enrollCount, groupOptionsOf, scheduleClashText, sessionsOf } from '../courses/lib';
 import { MemberForm } from './MemberForm';
 
 /** מזהים וירטואליים להורים שטרם קיימים כ-Member (כמו __pf/__pm במקור). */
@@ -75,6 +75,9 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
   const [group, setGroup] = useState('');
   const [error, setError] = useState('');
   const [memberFormOpen, setMemberFormOpen] = useState(false);
+  // סינון שיבוץ חכם (P1.7, הכרעה 3) — סינון רך לפי גיל/מגדר עם מתג "הצג הכל"
+  const smartOn = featureOn(config, 'courses.enroll.smartfilter');
+  const [showAll, setShowAll] = useState(false);
   const membersBefore = useRef<Set<string>>(new Set());
 
   /** בני המשפחה + הורים וירטואליים כשיש שם הורה בלי Member תואם (isParent). */
@@ -108,10 +111,6 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
     () => (memberQ.trim() ? smartFilter(memberQ, memberOptions, (o) => o.terms, 7) : memberOptions.slice(0, 7)),
     [memberQ, memberOptions],
   );
-  const courseMatches = useMemo(
-    () => (courseQ.trim() ? smartFilter(courseQ, courseOptions, (o) => o.terms, 7) : courseOptions.slice(0, 7)),
-    [courseQ, courseOptions],
-  );
 
   const course = db.courses.find((c) => c.id === courseId);
   const groups = course ? groupOptionsOf(course) : [];
@@ -124,8 +123,31 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
         ? { first: fam.mother, gender: 'f', birth: '' }
         : fam.members.find((x) => x.id === memberSel);
 
+  // סינון החוגים לפי גיל/מגדר הילד הנבחר (P1.7) — רך: "הצג הכל" מחזיר את כולם.
+  // המתאימים מחושבים בלי תלות במתג, כדי שהמתג לא ייעלם אחרי "הצג הכל".
+  const fittedCourseOptions = useMemo(() => {
+    if (!smartOn || !jm) return courseOptions;
+    const age = ageOf(jm.birth);
+    return courseOptions.filter((o) => {
+      const c = db.courses.find((x) => x.id === o.id);
+      return !c || courseFitsMember(c, jm.gender, age);
+    });
+  }, [smartOn, jm, courseOptions, db.courses]);
+  const hiddenCount = courseOptions.length - fittedCourseOptions.length;
+  const shownCourseOptions = showAll ? courseOptions : fittedCourseOptions;
+
+  const courseMatches = useMemo(
+    () => (courseQ.trim() ? smartFilter(courseQ, shownCourseOptions, (o) => o.terms, 7) : shownCourseOptions.slice(0, 7)),
+    [courseQ, shownCourseOptions],
+  );
+
   /** רמזים מייעצים — לא חוסמים שמירה (wording מהמקור). */
   const hints: { t: string; c: string }[] = [];
+  if (smartOn && jm && course && memberSel && memberSel !== VIRT_FATHER && memberSel !== VIRT_MOTHER) {
+    // אזהרת התנגשות לו"ז מול השיבוצים הקיימים של הילד (P1.7) — מייעץ, לא חוסם
+    const clash = scheduleClashText(db, memberSel, course);
+    if (clash) hints.push({ t: clash, c: '#b91c1c' });
+  }
   if (jm && course) {
     const a = ageOf(jm.birth);
     const lo = course.ageMin || 3;
@@ -295,6 +317,19 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
         </div>
       )}
 
+      {/* מתג "הצג הכל" — כשהסינון החכם מסתיר חוגים שאינם מתאימים לגיל/מגדר */}
+      {smartOn && jm && hiddenCount > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 12.5 }}>
+          <span style={{ color: 'var(--ink-soft)', fontWeight: 600 }}>
+            {showAll
+              ? 'מוצגים כל ה' + termOf(config, 'nav.courses', 'חוגים') + ' (' + hiddenCount + ' מחוץ להתאמה)'
+              : hiddenCount + ' ' + termOf(config, 'nav.courses', 'חוגים') + ' הוסתרו (לא מתאימים לגיל/מגדר)'}
+          </span>
+          <button type="button" className="chip" onClick={() => setShowAll((v) => !v)}>
+            {showAll ? 'סינון מותאם ✓' : 'הצג הכל'}
+          </button>
+        </div>
+      )}
       <Field label={termOf(config, 'entity.course', 'חוג') + ' * (שם, קטגוריה או מורה)'}>
         <TextInput
           value={courseQ}

@@ -8,7 +8,7 @@ import { allMembers, useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { smartFilter } from '../../lib/search';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
-import { enrollCount, groupOptionsOf, isoToday } from './lib';
+import { ageOf, courseFitsMember, enrollCount, groupOptionsOf, isoToday, scheduleClashText } from './lib';
 
 export function EnrollModal(props: { course: Course; onClose: () => void }) {
   const db = useApp((s) => s.db);
@@ -19,6 +19,8 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
 
   const punchOn = featureOn(cfg, 'courses.punch');
   const groupsOn = featureOn(cfg, 'courses.groups');
+  // סינון שיבוץ חכם (P1.7, הכרעה 3) — מועמדים מתאימים לגיל/מגדר החוג + "הצג הכל"
+  const smartOn = featureOn(cfg, 'courses.enroll.smartfilter');
 
   const c = props.course;
   const [q, setQ] = useState('');
@@ -27,6 +29,7 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
   const [purchased, setPurchased] = useState(c.size ? String(c.size) : '12');
   const [group, setGroup] = useState('');
   const [error, setError] = useState('');
+  const [showAll, setShowAll] = useState(false);
 
   const groups = groupsOn ? groupOptionsOf(c) : [];
 
@@ -37,6 +40,8 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
       .filter((m) => !enrolledIds.has(m.id))
       .map((m) => ({
         id: m.id,
+        gender: m.gender,
+        birth: m.birth,
         label:
           (m.isParent ? (m.gender === 'f' ? 'אמא — ' : 'אבא — ') : '') +
           m.first +
@@ -48,11 +53,22 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
       }));
   }, [db, c.id, cfg]);
 
+  // המתאימים לחוג לפי גיל/מגדר — בלי תלות במתג, כדי שהמתג לא ייעלם אחרי "הצג הכל"
+  const fitted = useMemo(
+    () => (smartOn ? options.filter((o) => courseFitsMember(c, o.gender, ageOf(o.birth))) : options),
+    [smartOn, options, c],
+  );
+  const hiddenCount = options.length - fitted.length;
+  const shownOptions = showAll ? options : fitted;
+
   // חיפוש חכם — סבלני לשגיאות הקלדה ולתעתיק, לפי שם/משפחה/טלפון/ת"ז
   const matches = useMemo(() => {
-    if (!q.trim()) return options.slice(0, 7);
-    return smartFilter(q, options, (o) => o.terms, 7);
-  }, [q, options]);
+    if (!q.trim()) return shownOptions.slice(0, 7);
+    return smartFilter(q, shownOptions, (o) => o.terms, 7);
+  }, [q, shownOptions]);
+
+  // אזהרת התנגשות לו"ז מול השיבוצים הקיימים של הילד הנבחר (P1.7) — מייעץ, לא חוסם
+  const clash = smartOn && memberId ? scheduleClashText(db, memberId, c) : null;
 
   function pick(id: string, label: string) {
     setMemberId(id);
@@ -95,6 +111,19 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
 
   return (
     <Modal title={termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' ל' + termOf(cfg, 'entity.course', 'חוג')} onClose={props.onClose}>
+      {/* מתג "הצג הכל" — כשהסינון החכם מסתיר מועמדים שאינם בטווח הגיל/מגדר */}
+      {smartOn && hiddenCount > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 12.5 }}>
+          <span style={{ color: 'var(--ink-soft)', fontWeight: 600 }}>
+            {showAll
+              ? 'מוצגים כולם (' + hiddenCount + ' מחוץ להתאמת ה' + termOf(cfg, 'entity.course', 'חוג') + ')'
+              : hiddenCount + ' מועמדים הוסתרו (מחוץ לגיל/מגדר של ה' + termOf(cfg, 'entity.course', 'חוג') + ')'}
+          </span>
+          <button type="button" className="chip" onClick={() => setShowAll((v) => !v)}>
+            {showAll ? 'סינון מותאם ✓' : 'הצג הכל'}
+          </button>
+        </div>
+      )}
       <Field label={termOf(cfg, 'entity.student', 'תלמיד/ה') + ' * (הקלדה חכמה — שם או ' + termOf(cfg, 'entity.family', 'משפחה') + ')'}>
         <TextInput
           value={q}
@@ -156,6 +185,9 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
         <Field label="ניקובים בכרטיסייה">
           <TextInput value={purchased} onChange={setPurchased} placeholder="12" dir="ltr" />
         </Field>
+      )}
+      {clash && (
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: '#b91c1c', marginBottom: 8 }}>{clash}</div>
       )}
       <FormError error={error} />
       <div className="modal-actions">

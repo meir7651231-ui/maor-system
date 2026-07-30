@@ -53,6 +53,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.printout.custom', label: 'דו"ח מותאם (חוג)', desc: 'כפתור הדו"ח המותאם בכרטיס החוג', module: 'courses' },
   { key: 'courses.discounts', label: 'מדרגות מחיר', desc: 'הנחות ומדרגות מחיר לפי מספר נרשמים', module: 'courses' },
   { key: 'courses.receipt.summary', label: 'קבלה מלאה', desc: 'שורות "סה"כ עסקה / שולם עד כה / יתרה / תשלום הבא" על הקבלה + הורדה חוזרת פר-תשלום', module: 'courses' },
+  { key: 'courses.enroll.smartfilter', label: 'סינון שיבוץ חכם', desc: 'סינון אוטומטי לפי גיל/מגדר בזרימת השיבוץ + מתג "הצג הכל" + אזהרת התנגשות לו"ז', module: 'courses' },
 
   // ——— לוח שנה ———
   { key: 'calendar.dayview', label: 'תצוגת יום', desc: 'מעבר לתצוגת יום מפורטת בלוח השנה', module: 'calendar' },

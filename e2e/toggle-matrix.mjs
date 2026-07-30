@@ -144,6 +144,10 @@ for (const profile of PROFILES) {
       await page.waitForTimeout(300);
       await page.locator('.modal input').first().fill('רוני');
       await page.waitForTimeout(400);
+      // סינון שיבוץ חכם (P1.7, דלוק כברירת מחדל) עשוי להסתיר את רוני (בן) מחוג
+      // ברירת-המחדל (בנות) — "הצג הכל" מחזיר אותו
+      const showAllBtn = page.locator('.modal button', { hasText: 'הצג הכל' });
+      if (await showAllBtn.count()) { await showAllBtn.first().click(); await page.waitForTimeout(250); }
       const opt = page.locator('.modal button', { hasText: 'רוני' }).first();
       if (await opt.count()) await opt.click();
       await page.waitForTimeout(200);

@@ -95,13 +95,17 @@ await shot('חוגים');
 // ── פתיחת כרטיס החוג → שיבוץ → תשלום+קבלה (הכל בהקשר של אותו חוג) ──
 await clickIf('[role="button"]', 'ציור'); await wait(500); // פתיחת כרטיס החוג ציור
 T('נפתח כרטיס החוג', (await mainTxt()).includes('ציור'));
-// שיבוץ מתוך כרטיס החוג (משבץ בדיוק לחוג הזה)
+// שיבוץ מתוך כרטיס החוג (משבץ בדיוק לחוג הזה) — עם הסינון החכם (P1.7):
+// רוני (בן) מוסתר מחוג-בנות כברירת מחדל, "הצג הכל" מחזיר אותו
 if (await clickIf('button', 'שיבוץ')) {
   await fillModal('רוני'); await wait(400);
+  const modalTxt = async () => (await page.locator('.modal').textContent()) ?? '';
+  T('סינון שיבוץ חכם מסתיר מועמד מחוץ למגדר החוג', (await modalTxt()).includes('הוסתרו'));
+  await clickIf('.modal button', 'הצג הכל'); await wait(300);
   await clickIf('.modal button', 'רוני'); await wait(200);
   await page.locator('.modal button', { hasText: 'שיבוץ' }).last().click(); await wait(700);
   await closeModals();
-  T('בוצע שיבוץ לחוג', (await mainTxt()).includes('רוני'));
+  T('בוצע שיבוץ לחוג (אחרי "הצג הכל")', (await mainTxt()).includes('רוני'));
   await shot('שיבוץ');
 }
 // ניהול השיבוץ (⚙ בתוך כרטיס החוג, לא גלגל ההגדרות בתפריט) → קבלת תשלום
@@ -137,6 +141,8 @@ await page.locator('main >> text=כהן').first().click(); await wait(500);
 if (await clickIf('main button', 'שיבוץ ל')) {
   await fillModal('רוני'); await wait(350);
   await clickIf('.modal button', 'רוני'); await wait(200);
+  // הסינון החכם מסתיר את חוג-הבנות מרוני — "הצג הכל" מחזיר אותו (P1.7)
+  await clickIf('.modal button', 'הצג הכל'); await wait(250);
   await page.locator('.modal input').nth(1).fill('התעמלות'); await wait(350);
   await clickIf('.modal button', 'התעמלות'); await wait(200);
   await page.locator('.modal button', { hasText: 'שיבוץ' }).last().click(); await wait(600);
