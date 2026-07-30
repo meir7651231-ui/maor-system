@@ -695,8 +695,10 @@ export function CommandPalette() {
     return paletteActionsOn ? groupPaletteResults(found) : found;
   }, [q, baseCmds, entityCmds, expiringCmds, recentCmds, db, selectCourse, setPalette, coursesOn, paletteActionsOn]);
 
-  /** "אולי התכוונת" — שאילתה ≥3 תווים בלי תוצאות: עד 3 מילים קרובות
-   * (levenshtein ≤ 2) מתוך כותרות כל הפריטים המאונדקסים. */
+  /** "אולי התכוונת" — שאילתה ≥3 תווים בלי תוצאות: עד 6 מילים קרובות
+   * (levenshtein ≤ 2) מתוך כותרות כל הפריטים המאונדקסים — כמו בלגאסי (P3
+   * אימות פריט 20). כלל ציון-130 למזהים מספריים לא פורט: הספרות מאונדקסות
+   * כ-terms ו-smartFilter מוצא אותן — אותה יכולת, דירוג שונה (שקילות מתועדת). */
   const suggestions = useMemo<string[]>(() => {
     const nq = normSearch(q);
     if (nq.length < 3 || results.length > 0) return [];
@@ -715,7 +717,7 @@ export function CommandPalette() {
       }
     }
     scored.sort((a, b) => a.d - b.d);
-    return scored.slice(0, 3).map((x) => x.w);
+    return scored.slice(0, 6).map((x) => x.w);
   }, [q, results, baseCmds, entityCmds]);
 
   // איפוס הבחירה כשהשאילתה משתנה, והצמדה לטווח כשהתוצאות מתקצרות.

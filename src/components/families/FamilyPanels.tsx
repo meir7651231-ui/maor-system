@@ -15,6 +15,7 @@ import { paidOf, payBal, planWord, punchConfirmStep, PUNCH_CONFIRM_MS, type Punc
 import { AbsenceModal } from '../courses/AbsenceModal';
 import { ManageModal } from '../courses/ManageModal';
 import { EventModal } from '../calendar/EventModal';
+import { nextOccurIso } from '../calendar/calLib';
 import { ageOf, chipStyle, CRED_HELP_TEXT, EVENT_META, famHistoryOf, fmtDate, isoToday, STATUS_META, tierOf } from './lib';
 import { useArmed } from '../useArmed';
 import { JoinModal } from './JoinModal';
@@ -416,6 +417,8 @@ export function EventsPanel(props: { fam: Family }) {
         ) : (
           list.map((ev) => {
             const meta = EVENT_META[ev.type] ?? EVENT_META.org;
+            // 'הקרוב:' לאירועים חוזרים-בעברי (P3 אימות פריט 17; לגאסי nextOccurLabel)
+            const nextOcc = nextOccurIso(ev, isoToday());
             return (
               <div
                 key={ev.id}
@@ -435,6 +438,7 @@ export function EventsPanel(props: { fam: Family }) {
                     {fmtDate(ev.date)}
                     {ev.time ? ' · ' + ev.time : ''}
                     {ev.date ? ' · ' + hebDateFull(ev.date) : ''}
+                    {nextOcc && nextOcc !== ev.date ? ' · הקרוב: ' + fmtDate(nextOcc) : ''}
                   </div>
                 </div>
               </div>
