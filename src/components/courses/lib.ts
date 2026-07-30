@@ -3,7 +3,7 @@
  * עזרים מקומיים בלבד — אין כאן גישה ל-store או ל-DOM.
  */
 import type { CSSProperties } from 'react';
-import type { Course, CourseSession, Db, Enrollment, Family, PricingModel } from '../../types/domain';
+import type { Course, CourseSession, Db, Enrollment, Family, PricingModel, Room } from '../../types/domain';
 import { normSearch } from '../../lib/validate';
 import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
@@ -55,6 +55,46 @@ export const DAY_LETTERS = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳'] as c
 /** המפגשים בפועל — fallback למפגש יחיד מהשדות הראשיים (כמו sessionsOf במקור). */
 export function sessionsOf(c: Course): CourseSession[] {
   return c.sessions && c.sessions.length ? c.sessions : [{ day: c.weekday, time: c.time, label: '' }];
+}
+
+/* ---------- רצועת חדרים LIVE (P2 פער 27, feature courses.roomslive) ---------- */
+
+export interface RoomNow {
+  room: Room;
+  /** החוג שמתקיים עכשיו בחדר — ריק = פנוי. */
+  busyWith?: Course;
+}
+
+/**
+ * מצב החדרים ברגע נתון — now מוזרק (טוהר): חדר פעיל תפוס כשמפגש של חוג
+ * בחדר חל באותו יום-שבוע והשעה בתוך [תחילת המפגש, +משך המשבצת); ברירת
+ * המחדל 60 דק׳ (slot של החדר כשמוגדר). חדרים מושבתים לא מוחזרים.
+ */
+export function roomsNow(db: Db, now: Date): RoomNow[] {
+  const day = now.getDay();
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const toMin = (t: string) => {
+    const [h, m] = t.split(':').map(Number);
+    return (h || 0) * 60 + (m || 0);
+  };
+  return db.rooms
+    .filter((r) => r.active)
+    .map((room) => {
+      let busyWith: Course | undefined;
+      for (const c of db.courses) {
+        if (c.roomId !== room.id) continue;
+        for (const s of sessionsOf(c)) {
+          if (s.day !== day || !s.time) continue;
+          const start = toMin(s.time);
+          if (mins >= start && mins < start + (room.slot || 60)) {
+            busyWith = c;
+            break;
+          }
+        }
+        if (busyWith) break;
+      }
+      return { room, busyWith };
+    });
 }
 
 /** תווית קבוצה — label או "קבוצה N" לפי המיקום. */

@@ -12,7 +12,7 @@ import { numMatch } from '../families/lib';
 import { CourseForm } from './CourseForm';
 import { CourseDetail } from './CourseDetail';
 import { CourseWheel } from '../wheel/CourseWheel';
-import { DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix } from './lib';
+import { DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
 
 type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2';
 
@@ -57,6 +57,15 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const selectCourse = useApp((s) => s.selectCourse);
   const cfg = useApp((s) => s.config);
   const wheelOn = featureOn(cfg, 'courses.wheel');
+  // רצועת חדרים LIVE (P2 פער 27) — "עכשיו" מתעדכן דקה-דקה בלי אינטראקציה
+  const roomsLiveOn = featureOn(cfg, 'courses.roomslive');
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    if (!roomsLiveOn) return;
+    const t = setInterval(() => setNowTick(Date.now()), 60_000);
+    return () => clearInterval(t);
+  }, [roomsLiveOn]);
+  const liveRooms = useMemo(() => (roomsLiveOn ? roomsNow(db, new Date(nowTick)) : []), [roomsLiveOn, db, nowTick]);
 
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
@@ -194,6 +203,36 @@ function CoursesList(props: { onOpenWheel: () => void }) {
           </>
         }
       />
+
+      {/* רצועת חדרים LIVE (P2 פער 27) — 🟢 פנוי / 🔴 שם החוג שמתקיים עכשיו */}
+      {roomsLiveOn && liveRooms.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12 }}>
+          {liveRooms.map(({ room, busyWith }) => (
+            <button
+              key={room.id}
+              type="button"
+              onClick={() => busyWith && selectCourse(busyWith.id)}
+              title={busyWith ? 'מתקיים עכשיו — פתיחת החוג' : 'החדר פנוי עכשיו'}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '4px 10px',
+                borderRadius: 999,
+                border: '1px solid var(--line)',
+                background: busyWith ? '#fdeaea' : '#e4f5ea',
+                color: busyWith ? '#b91c1c' : '#12803c',
+                cursor: busyWith ? 'pointer' : 'default',
+              }}
+            >
+              <span aria-hidden>{busyWith ? '🔴' : '🟢'}</span>
+              {room.name + (busyWith ? ' · ' + busyWith.name : ' · פנוי')}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0' }}>
         <div style={{ flex: 1, minWidth: 200 }}>
