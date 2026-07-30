@@ -8,7 +8,7 @@ import { featureOn, termOf } from '../../lib/config';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { hebDateFull } from '../../lib/hebrew';
-import { nextOccurIso, orgBlockError, QUICK_DATE_CHIPS, quickDate, roomClashError } from './calLib';
+import { nextOccurIso, orgBlockError, QUICK_DATE_CHIPS, quickDate, roomClashError, softClashSuffix } from './calLib';
 import { isoToday } from '../../lib/date-util';
 import {
   HEBREW_RECURRING,
@@ -171,7 +171,9 @@ export function EventModal(props: {
       done: f.done,
     };
     upsertEvent(next);
-    toast(ev ? 'האירוע עודכן' : (saveToast ?? 'האירוע נוסף ללוח'));
+    // אזהרה רכה (P3 פריט 5) — לא חוסמת; החסימות הקשיחות כבר עברו למעלה
+    const clashNote = softClashSuffix(db.events, next.date, next.time, next.id);
+    toast((ev ? 'האירוע עודכן' : (saveToast ?? 'האירוע נוסף ללוח')) + clashNote);
     onClose();
   }
 

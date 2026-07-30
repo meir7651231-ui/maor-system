@@ -195,6 +195,8 @@ export interface DayItem {
   layer?: 'bday' | 'join' | 'enroll';
   /** מפגש חוג שנופל על חג — מוצג מסומן כלא מתקיים. */
   skipped?: boolean;
+  /** שורת משנה בציר היום (P3 פריט 6): מורה · חדר · N רשומים / הערות אירוע. */
+  sub?: string;
 }
 
 /* ---------- פילטרים לשכבות ---------- */
@@ -270,6 +272,8 @@ export function dayItems(db: Db, d: Date, config: OrgConfig = DEFAULT_CONFIG): D
       typeLabel: evLabel(ev),
       sort: ev.priority === 'red' ? 0.5 : 1,
       prC: PRIORITY_COLOR[ev.priority] ?? 'transparent',
+      // שורת משנה (P3 פריט 6) — הערות האירוע, כמו בלגאסי
+      sub: ev.notes || '',
       ev,
     });
   }
@@ -350,6 +354,10 @@ export function dayItems(db: Db, d: Date, config: OrgConfig = DEFAULT_CONFIG): D
     if (c.end && iso > c.end) continue;
     for (const [i, ss] of sessionsOf(c).entries()) {
       if (ss.day !== dow) continue;
+      // שורת משנה (P3 פריט 6, לגאסי dayV): מורה · חדר · N רשומים
+      const tName = db.teachers.find((t) => t.id === c.teacherId)?.name;
+      const rName = db.rooms.find((r) => r.id === c.roomId)?.name;
+      const nEnrolled = db.enrollments.filter((e) => e.courseId === c.id && e.status !== 'ended').length;
       out.push({
         key: `crs-${c.id}-${i}-${ss.label || ss.time}`,
         label: (ss.time ? ss.time + ' · ' : '') + c.name + (ss.label ? ' · ' + ss.label : ''),
@@ -359,6 +367,7 @@ export function dayItems(db: Db, d: Date, config: OrgConfig = DEFAULT_CONFIG): D
         typeLabel: 'מפגש ' + courseWord,
         sort: 3,
         prC: 'transparent',
+        sub: [tName, rName, nEnrolled + ' רשומים'].filter(Boolean).join(' · '),
         courseId: c.id,
         skipped: !!courseBlock,
       });
@@ -508,6 +517,26 @@ export interface UpcomingRow {
   c: string;
   prC: string;
   ev: OrgEvent;
+}
+
+/* ---------- אזהרת התנגשות רכה (P3 פריט 5, לגאסי: ' · ⚠ התנגשות עם "X"') ---------- */
+
+/**
+ * אזהרה רכה בשמירת אירוע: אירוע אחר (לא בוצע) באותו יום ובאותה שעה — גם
+ * בחדר אחר או בלי חדר. לא חוסמת (החסימות הקשיחות ב-roomClashError);
+ * מחזירה את הסיומת לטוסט או ''.
+ */
+export function softClashSuffix(
+  events: readonly OrgEvent[],
+  date: string,
+  time: string,
+  excludeId?: string,
+): string {
+  if (!date || !time) return '';
+  const other = events.find(
+    (ev) => ev.id !== excludeId && !ev.done && ev.date === date && ev.time === time,
+  );
+  return other ? ' · ⚠ התנגשות עם "' + other.title + '" בשעה ' + time : '';
 }
 
 /* ---------- מופע הבא של אירוע חוזר (מעבר 199/199, לגאסי nextOccurLabel) ---------- */
