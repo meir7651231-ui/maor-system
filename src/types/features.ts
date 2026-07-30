@@ -22,6 +22,7 @@ export interface FeatureDef {
     | 'diary'
     | 'supporters'
     | 'reports'
+    | 'tzedaka'
     | 'home'
     | 'settings'
     | 'core'
@@ -125,6 +126,13 @@ export const FEATURES: FeatureDef[] = [
   { key: 'reports.custom.full', label: 'דו"ח מותאם מלא', desc: 'רשימות השדות המלאות מהקובץ החי (חוגים 14 · תומכות 17), טווח עברי חי, תצוגה מקדימה עם עריכת הערות ובחר-הכל/נקה', module: 'reports' },
   { key: 'reports.export.full', label: 'השלמות ייצוא CSV', desc: 'ייצוא אירועים ישיר (עברי+לועזי+עדיפות), עמודות כיתות/הכנסות בחוגים ופעולת "⬇ ייצוא CSV" בחיפוש המהיר', module: 'reports' },
 
+  // ——— קופות צדקה ———
+  { key: 'tzedaka.campaigns', label: 'מבצעי התרמה', desc: 'ניהול מבצעים עם יעד ושיוך ריקונים למבצע', module: 'tzedaka' },
+  { key: 'tzedaka.score', label: 'ניקוד רכזים', desc: 'ניקוד גיימיפיקציה אוטומטי על ריקונים + לוח מובילים', module: 'tzedaka' },
+  { key: 'tzedaka.showcase', label: 'מסך ראווה', desc: 'תצוגת ראווה של המבצע והרכזים המובילים למסך גדול', module: 'tzedaka' },
+  { key: 'tzedaka.calendar', label: 'לוח ייעודי', desc: 'לוח שנה פנימי לסבבי ריקון, מבצעים ותזכורות (מבודד מהלוח הראשי)', module: 'tzedaka' },
+  { key: 'tzedaka.inlinecreate', label: 'הוספת לא-רשומים', desc: 'יצירת משפחה חדשה או ילד/הורה חדש ישירות מתוך העמודה', module: 'tzedaka' },
+
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },
   { key: 'settings.teachers', label: 'ניהול מורים', desc: 'הוספה ועריכה של מורים בהגדרות', module: 'settings' },
@@ -176,6 +184,10 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'nav.timer', label: 'שם טיימר הכסף', fallback: 'טיימר כסף' },
   { key: 'nav.cashbox', label: 'שם הקופה הרושמת', fallback: 'קופה רושמת' },
   { key: 'nav.bodymap', label: 'שם מפת אזורי הטיפול', fallback: 'אזורי טיפול' },
+  { key: 'nav.tzedaka', label: 'שם עמודת קופות הצדקה', fallback: 'קופות צדקה' },
+  { key: 'entity.tzCoordinator', label: 'רכז/ת קופות', fallback: 'רכז' },
+  { key: 'entity.tzBox', label: 'קופת צדקה', fallback: 'קופה' },
+  { key: 'entity.tzCampaign', label: 'מבצע התרמה', fallback: 'מבצע' },
 
   // ——— ישויות ———
   { key: 'entity.family', label: 'משפחה (יחיד)', fallback: 'משפחה' },

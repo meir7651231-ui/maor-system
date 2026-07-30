@@ -56,6 +56,13 @@ export const WIZARD_SECTIONS: WizardSectionDef[] = [
       'ayin.stage.done',
     ],
   },
+  {
+    id: 'tzedaka',
+    title: 'קופות צדקה',
+    emoji: '🪙',
+    module: 'tzedaka',
+    termKeys: ['nav.tzedaka', 'entity.tzCoordinator', 'entity.tzBox', 'entity.tzCampaign'],
+  },
   { id: 'reports', title: 'דוחות', emoji: '📊', module: 'reports', termKeys: ['nav.reports'] },
   { id: 'home', title: 'מסך הבית', emoji: '🏠', termKeys: [] },
   { id: 'settings', title: 'הגדרות', emoji: '⚙️', termKeys: [] },

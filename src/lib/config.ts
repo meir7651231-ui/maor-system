@@ -15,7 +15,7 @@ export function moduleOn(cfg: OrgConfig, m: ModuleKey): boolean {
   return cfg.modules[m] !== false;
 }
 
-/** ששת מודולי הניווט הניתנים לכיבוי — קידומות של פיצ'רים שכפופות לטוגל מודול. */
+/** שבעת מודולי הניווט הניתנים לכיבוי — קידומות של פיצ'רים שכפופות לטוגל מודול. */
 const NAV_MODULE_KEYS: readonly ModuleKey[] = [
   'families',
   'courses',
@@ -23,11 +23,12 @@ const NAV_MODULE_KEYS: readonly ModuleKey[] = [
   'diary',
   'supporters',
   'reports',
+  'tzedaka',
 ];
 
 /**
  * האם פיצ'ר עדין פעיל — מפתח חסר = פעיל; רק false מכבה.
- * בנוסף, אם קידומת המפתח (הקטע שלפני הנקודה) היא אחד מששת מודולי הניווט
+ * בנוסף, אם קידומת המפתח (הקטע שלפני הנקודה) היא אחד משבעת מודולי הניווט
  * והמודול כבוי — הפיצ'ר כבוי גם הוא (כיבוי מודול משורשר לילדיו).
  * קידומות 'core' / 'home' / 'settings' אינן כפופות לטוגל מודול.
  */

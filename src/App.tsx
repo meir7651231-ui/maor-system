@@ -29,6 +29,7 @@ import { CoursesView } from './components/courses/CoursesView';
 import { CalendarView } from './components/calendar/CalendarView';
 import { DiaryView } from './components/diary/DiaryView';
 import { SupportersView } from './components/supporters/SupportersView';
+import { TzedakaView } from './components/tzedaka/TzedakaView';
 import { ReportsView } from './components/reports/ReportsView';
 import { SettingsView } from './components/settings/SettingsView';
 import { CommandPalette } from './components/palette/CommandPalette';
@@ -54,6 +55,7 @@ const NAV: { view: View; icon: string; label: string }[] = [
   { view: 'calendar', icon: '📅', label: 'לוח שנה' },
   { view: 'diary', icon: '📖', label: 'יומן חדרים' },
   { view: 'supporters', icon: '💛', label: 'תורמים' },
+  { view: 'tzedaka', icon: '🪙', label: 'קופות צדקה' },
   { view: 'reports', icon: '📊', label: 'דוחות' },
   { view: 'settings', icon: '⚙️', label: 'הגדרות' },
 ];
@@ -65,6 +67,7 @@ const VIEWS: Record<View, () => JSX.Element> = {
   calendar: CalendarView,
   diary: DiaryView,
   supporters: SupportersView,
+  tzedaka: TzedakaView,
   reports: ReportsView,
   settings: SettingsView,
 };
@@ -240,7 +243,7 @@ export default function App() {
   const nav = NAV.filter(
     (n) => n.view !== 'settings' && (n.view === 'home' || config.modules[n.view] !== false),
   );
-  // תווית קישור — מונח מותאם מהמילון לששת מסכי המודולים; בית נשאר קבוע
+  // תווית קישור — מונח מותאם מהמילון לשבעת מסכי המודולים; בית נשאר קבוע
   const labelOf = (n: (typeof NAV)[number]) =>
     n.view === 'home' ? n.label : termOf(config, `nav.${n.view}`, n.label);
 
