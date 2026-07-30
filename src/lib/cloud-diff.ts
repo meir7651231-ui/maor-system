@@ -7,7 +7,7 @@
  */
 import type { Db } from '../types/domain';
 
-/** שישה-עשר אוספי הישויות — שם האוסף ב-Firestore = שם השדה ב-Db. */
+/** שבעה-עשר אוספי הישויות — שם האוסף ב-Firestore = שם השדה ב-Db. */
 export const ENTITY_COLLECTIONS = [
   'families',
   'courses',
@@ -20,14 +20,31 @@ export const ENTITY_COLLECTIONS = [
   'tzBoxes',
   'tzCampaigns',
   'tzEvents',
+  'shopItems',
   'shopProducts',
   'shopStores',
   'shopCriteria',
   'shopAssignments',
   'shopEvents',
+  'shopIntakes',
 ] as const;
 
 export type EntityCol = (typeof ENTITY_COLLECTIONS)[number];
+
+/* ---------- נתיבים פר-ארגון (CLOUD2 ענן 1) ---------- */
+
+/**
+ * נתיב אוסף בענן: ‏cloudRoot=true ⇒ האוסף בשורש הפרויקט — **ביט-זהה להיום**
+ * (הגנה על הלקוח החי maor-hachesed); אחרת ⇒ `orgs/{slug}/{col}` (ארגון-פלטפורמה).
+ */
+export function colPath(slug: string, cloudRoot: boolean, col: string): string {
+  return cloudRoot ? col : 'orgs/' + slug + '/' + col;
+}
+
+/** נתיב מסמך ה-meta: ‏cloudRoot ⇒ ‏meta/org (כמו היום); אחרת ⇒ orgs/{slug}/meta/org. */
+export function metaPath(slug: string, cloudRoot: boolean): string {
+  return cloudRoot ? 'meta/org' : 'orgs/' + slug + '/meta/org';
+}
 
 /** שדות ה-meta שנבדקים לשינוי (savedAt מוחרג — משתנה בכל שמירה, רעש). */
 const META_KEYS = [

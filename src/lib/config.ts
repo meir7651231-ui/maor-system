@@ -99,6 +99,9 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
   const fb = normalizeFirebase(c.firebase);
   if (fb) cfg.firebase = fb;
   else delete cfg.firebase;
+  // נתיבי-שורש בענן (CLOUD2) — רק true מפורש נשמר; כל השאר = orgs/{slug}
+  if (c.cloudRoot === true) cfg.cloudRoot = true;
+  else delete cfg.cloudRoot;
   // מיילי-אדמין — רק מחרוזות לא-ריקות; ריק/לא-מערך → מוסר (אין הגבלה)
   const admins = Array.isArray(c.adminEmails)
     ? c.adminEmails.filter((e): e is string => typeof e === 'string' && e.trim() !== '')
@@ -189,6 +192,80 @@ export function clearConfigOverride(): void {
   }
 }
 
+/* ---------- פלטפורמה (CLOUD2 — טהור, בלי firebase) ---------- */
+
+/** מיילי-העל של הפלטפורמה — לוח הבקרה (#platform) ועקיפת שער-החברות. */
+export const SUPER_ADMIN_EMAILS = ['meir7651231@gmail.com'];
+
+/** האם מייל-על (case-insensitive). */
+export function isSuperAdmin(email: string | null | undefined): boolean {
+  const e = (email || '').trim().toLowerCase();
+  return !!e && SUPER_ADMIN_EMAILS.includes(e);
+}
+
+/**
+ * ולידציית טופס ההרשמה (ענן 3) — טהורה עד גבול ה-SDK: מחזירה הודעת שגיאה
+ * בעברית או '' כשהקלט תקין.
+ */
+export function signUpError(
+  orgName: string,
+  contactName: string,
+  phone: string,
+  email: string,
+  password: string,
+  password2: string,
+): string {
+  if (!orgName.trim()) return 'שם הארגון הוא שדה חובה';
+  // הזרימה מבוססת שיחה חוזרת (עדכון פקודה 30.7) — איש קשר וטלפון חובה
+  if (!contactName.trim()) return 'שם איש הקשר הוא שדה חובה';
+  if (!/^[\d+][\d\s-]{6,}$/.test(phone.trim())) return 'מספר טלפון תקין הוא שדה חובה — נחזור אליכם לאישור';
+  if (!/^\S+@\S+\.\S+$/.test(email.trim())) return 'כתובת האימייל אינה תקינה';
+  if (password.length < 6) return 'הסיסמה חייבת להיות לפחות 6 תווים';
+  if (password !== password2) return 'הסיסמאות אינן זהות';
+  return '';
+}
+
+/* ---------- קונפיג-ענן: מטמון ומיזוג עדיפויות (CLOUD2 ענן 2 — טהור, בלי firebase) ---------- */
+
+/** מפתח מטמון הקונפיג-מהענן — נפרד מדריסת-הריצה של האשף (LS_CONFIG_KEY). */
+export function cloudCfgCacheKey(slug: string): string {
+  return 'maor_cloudcfg:' + slug;
+}
+
+/** קריאת מטמון הקונפיג-מהענן — לעליית-מהירה/offline; null כשאין/פגום. */
+export function readCloudConfigCache(slug: string): OrgConfig | null {
+  try {
+    const raw = localStorage.getItem(cloudCfgCacheKey(slug));
+    const cfg = raw ? normalizeConfig(JSON.parse(raw)) : null;
+    return cfg && cfg.slug === slug ? cfg : null;
+  } catch {
+    return null;
+  }
+}
+
+/** כתיבת מטמון הקונפיג-מהענן (הקונפיג הממוזג המלא — כולל firebase לעלייה הבאה). */
+export function writeCloudConfigCache(slug: string, cfg: OrgConfig): void {
+  try {
+    localStorage.setItem(cloudCfgCacheKey(slug), JSON.stringify(cfg));
+  } catch {
+    /* localStorage חסום/מלא — המטמון הוא נוחות בלבד */
+  }
+}
+
+/**
+ * מיזוג עדיפויות (ענן > סטטי > ברירת מחדל): קונפיג-הענן גובר על הסטטי, אך
+ * ה-slug נשאר של הכתובת ו-firebase נשמר מהסטטי כשמסמך-הענן לא מגדיר (מסמך
+ * הפלטפורמה לרוב בלי credentials — הם באים מקונפיג-השורש). ‏cloudRaw לא-שמיש
+ * ⇒ הסטטי כמות שהוא (אפס שינוי כשאין ענן — ratchet).
+ */
+export function resolveOrgConfig(staticCfg: OrgConfig, cloudRaw: unknown): OrgConfig {
+  const cloud = normalizeConfig(cloudRaw);
+  if (!cloud) return staticCfg;
+  const merged: OrgConfig = { ...cloud, slug: staticCfg.slug };
+  if (!merged.firebase && staticCfg.firebase) merged.firebase = staticCfg.firebase;
+  return merged;
+}
+
 /** slug מה-URL: ?org=<slug> — פריסה אחת משרתת אינסוף לקוחות (public/c/<slug>/config.json). */
 export function orgSlugFromUrl(): string | null {
   try {
@@ -203,6 +280,12 @@ export function orgSlugFromUrl(): string | null {
 export async function loadOrgConfig(): Promise<OrgConfig> {
   // ?org=<slug> גובר על הכול — כתובת של לקוח ספציפי
   const slug = orgSlugFromUrl();
+  // מטמון קונפיג-ענן לסלאג (CLOUD2 ענן 2) — ענן גובר על הסטטי גם בעלייה
+  // מהירה/offline; מתרענן חי אחרי ההתחברות (watchOrgCloudConfig)
+  if (slug) {
+    const cached = readCloudConfigCache(slug);
+    if (cached) return cached;
+  }
   if (slug) {
     try {
       const res = await fetch(`./c/${slug}/config.json`, { cache: 'no-cache' });
@@ -220,12 +303,14 @@ export async function loadOrgConfig(): Promise<OrgConfig> {
     const res = await fetch('./config.json', { cache: 'no-cache' });
     if (res.ok) {
       const cfg = normalizeConfig(await res.json());
-      if (cfg) return cfg;
+      // ארגון-פלטפורמה בלי קובץ סטטי (CLOUD2): קונפיג-השורש נותן את
+      // ה-firebase, וה-slug מהכתובת נשמר — כך הקונפיג-מהענן יימצא אחרי הכניסה
+      if (cfg) return slug ? { ...cfg, slug } : cfg;
     }
   } catch {
     /* אין קובץ / רשת — נמשיך לברירת המחדל */
   }
-  return DEFAULT_CONFIG;
+  return slug ? { ...DEFAULT_CONFIG, slug } : DEFAULT_CONFIG;
 }
 
 /** החלת ערכת נושא + דריסת צבע הדגשה על ה-DOM. */

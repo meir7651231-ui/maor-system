@@ -7,12 +7,16 @@
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
-import type { ShopComponent, ShopProduct } from '../../types/domain';
-import { Btn, Chip, Empty } from '../ui';
+import type { ShopItem, ShopProduct } from '../../types/domain';
+import { Btn, Chip, Empty, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
-import { componentCounts, componentRemaining, productAssignments } from './lib';
+import { componentCounts, distributionListLines, filterProducts, itemOf, itemRemaining, productAssignments } from './lib';
+import { downloadText } from '../reports/csv';
 import { ProductForm } from './ProductForm';
+import { BulkRedeemModal } from './BulkAssignModal';
 import { StockModal } from './StockModal';
+import { IntakePanel } from './IntakePanel';
+import { ItemsPanel } from './ItemsPanel';
 import { StoresPanel } from './StoresPanel';
 import { CriteriaPanel } from './CriteriaPanel';
 
@@ -30,10 +34,13 @@ export function CatalogTab() {
   const toast = useApp((s) => s.toast);
   const [editing, setEditing] = useState<ShopProduct | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [stockFor, setStockFor] = useState<{ product: ShopProduct; component: ShopComponent } | null>(null);
+  const [stockFor, setStockFor] = useState<ShopItem | null>(null);
+  const [bulkRedeemFor, setBulkRedeemFor] = useState<ShopProduct | null>(null);
+  const [q, setQ] = useState('');
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const storesOn = featureOn(config, 'shop.stores');
   const criteriaOn = featureOn(config, 'shop.criteria');
+  const exportOn = featureOn(config, 'shop.export');
   const term = termOf(config, 'entity.shopProduct', 'מוצר');
 
   function removeProduct(p: ShopProduct) {
@@ -43,16 +50,20 @@ export function CatalogTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
-        <Btn kind="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>
-          ➕ הוספת {termOf(config, 'entity.shopProduct', 'מוצר')}
-        </Btn>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        {/* חיפוש הקטלוג (UX סינון 2) — filterProducts הטהור */}
+        <TextInput value={q} onChange={setQ} placeholder={'🔍 חיפוש ' + term} />
+        <span style={{ marginInlineStart: 'auto' }}>
+          <Btn kind="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>
+            ➕ הוספת {termOf(config, 'entity.shopProduct', 'מוצר')}
+          </Btn>
+        </span>
       </div>
       {db.shopProducts.length === 0 ? (
         <Empty>עדיין אין {term}ים בקטלוג — הוסיפו עם "➕ הוספת {term}"</Empty>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
-          {db.shopProducts.map((p) => {
+          {filterProducts(db.shopProducts, q, false).map((p) => {
             const counts = componentCounts(p);
             const activeCount = productAssignments(db.shopAssignments, p.id).filter((a) => a.status === 'active').length;
             return (
@@ -72,25 +83,40 @@ export function CatalogTab() {
                 {p.components.length > 0 && (
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                     {p.components.map((c) => {
-                      const rem = componentRemaining(c.id, p.id, db.shopAssignments, c.stock);
+                      const ri = itemOf(db, c);
+                      const item = db.shopItems.find((x) => x.id === c.itemId);
+                      const rem = itemRemaining(db, c.itemId);
                       const color = rem === null ? 'var(--ink-faint)' : rem === 0 ? '#b91c1c' : rem <= 2 ? '#9a6414' : 'var(--green)';
                       return (
                         <span key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color, border: '1px solid var(--line)', borderRadius: 99, padding: '1px 4px 1px 7px' }}>
-                          {c.label + (rem === null ? ' · ללא מעקב' : ' · נותרו ' + rem)}
-                          <button
-                            type="button"
-                            title="חידוש מלאי"
-                            onClick={() => setStockFor({ product: p, component: c })}
-                            style={{ border: 'none', background: 'var(--line)', borderRadius: 99, width: 16, height: 16, lineHeight: '14px', fontSize: 12, cursor: 'pointer', padding: 0 }}
-                          >
-                            +
-                          </button>
+                          {ri.name + (rem === null ? ' · ללא מעקב' : ' · נותרו ' + rem)}
+                          {item && (
+                            <button
+                              type="button"
+                              title="חידוש מלאי"
+                              onClick={() => setStockFor(item)}
+                              style={{ border: 'none', background: 'var(--line)', borderRadius: 99, width: 16, height: 16, lineHeight: '14px', fontSize: 12, cursor: 'pointer', padding: 0 }}
+                            >
+                              +
+                            </button>
+                          )}
                         </span>
                       );
                     })}
                   </div>
                 )}
-                <div style={{ display: 'flex', gap: 6, marginTop: 'auto' }}>
+                <div style={{ display: 'flex', gap: 6, marginTop: 'auto', flexWrap: 'wrap' }}>
+                  {/* חלוקה המונית (SHOP6 חנות 26) — תדפיס + סימון-חולק-לכולם */}
+                  {activeCount > 0 && exportOn && (
+                    <Btn sm onClick={() => downloadText('distribution-' + p.name + '.txt', distributionListLines(db, p.id))} title="רשימת חלוקה מודפסת — משפחה, כתובת, טלפון, רכיבים, ☐ נמסר">
+                      🖨 רשימת חלוקה
+                    </Btn>
+                  )}
+                  {activeCount > 0 && p.components.length > 0 && (
+                    <Btn sm onClick={() => setBulkRedeemFor(p)} title="מימוש לכל שיוך פעיל שטרם קיבל — הכול-או-כלום על מחסור מלאי">
+                      🎁 סימון חולק לכולם
+                    </Btn>
+                  )}
                   <Btn sm onClick={() => { setEditing(p); setFormOpen(true); }}>✏️ עריכה</Btn>
                   <Btn sm kind="danger" onClick={() => removeProduct(p)}>
                     {armed === 'shp-' + p.id ? 'בטוח/ה? לחיצה שוב מוחקת' : '🗑 מחיקה'}
@@ -101,10 +127,13 @@ export function CatalogTab() {
           })}
         </div>
       )}
+      <ItemsPanel />
+      <IntakePanel />
       {storesOn && <StoresPanel />}
       {criteriaOn && <CriteriaPanel />}
       {formOpen && <ProductForm product={editing} onClose={() => setFormOpen(false)} />}
-      {stockFor && <StockModal product={stockFor.product} component={stockFor.component} onClose={() => setStockFor(null)} />}
+      {stockFor && <StockModal item={stockFor} onClose={() => setStockFor(null)} />}
+      {bulkRedeemFor && <BulkRedeemModal product={bulkRedeemFor} onClose={() => setBulkRedeemFor(null)} />}
     </div>
   );
 }

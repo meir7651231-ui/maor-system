@@ -49,8 +49,9 @@ const PROFILES = [
     config: { modules: { courses: false, calendar: false, diary: false, supporters: false, tzedaka: false, shop: false, reports: false } },
   },
   {
-    name: 'מונחים מותאמים (מוטבים/שיעורים)',
-    config: { terms: { 'nav.families': 'מוטבים', 'nav.courses': 'שיעורים', 'entity.family': 'מוטב' } },
+    // PLATFORM אשף 4: הפרופיל מורחב לוורטיקל גמ"ח — nav.shop מתויג 'גמ"ח'
+    name: 'מונחים מותאמים (מוטבים/שיעורים/גמ"ח)',
+    config: { terms: { 'nav.families': 'מוטבים', 'nav.courses': 'שיעורים', 'entity.family': 'מוטב', 'nav.shop': 'גמ"ח' } },
   },
 ];
 
@@ -214,27 +215,51 @@ for (const profile of PROFILES) {
     await page.locator('.modal button', { hasText: 'רישום הריקון' }).click();
     await page.waitForTimeout(500);
     t('ריקון 100 ₪ נרשם והסכום מופיע', (await page.locator('main').textContent()).includes('100'));
+    // UX סינון 1: חזרה לרשימה — חיפוש (מדויק + שגוי-קלות, smartFilter) ומבט "כל הקופות"
+    await page.locator('main button', { hasText: 'כל הרכזים' }).click();
+    await page.waitForTimeout(300);
+    const tzSearch = page.locator('main input[placeholder*="חיפוש"]').first();
+    await tzSearch.fill('רכזת-מטריצה');
+    await page.waitForTimeout(300);
+    t('חיפוש הרכז מוצא', (await page.locator('main').textContent()).includes('רכזת-מטריצה'));
+    await tzSearch.fill('רכזת-מטריצא');
+    await page.waitForTimeout(300);
+    t('חיפוש שגוי-קלות מוצא (smartFilter)', (await page.locator('main').textContent()).includes('רכזת-מטריצה'));
+    await tzSearch.fill('');
+    await page.waitForTimeout(200);
+    await page.locator('main button', { hasText: '📦 כל הקופות' }).click();
+    await page.waitForTimeout(300);
+    t('מבט "כל הקופות" מציג את קופה #77', (await page.locator('main').textContent()).includes('#77'));
+    await page.locator('main button', { hasText: '📦 כל הקופות' }).click();
+    await page.waitForTimeout(200);
   }
 
   // ── חנות (BUILD-ORDER-SHOP): קישור לפי המודול + זרימה מלאה בברירת המחדל ──
   const shopOn = modulesOff.shop !== false;
+  const shopLabel = profile.config?.terms?.['nav.shop'] ?? 'חנות';
   {
     const navNow = (await page.locator('nav').first().textContent()) ?? '';
-    t('קישור "חנות" ' + (shopOn ? 'קיים' : 'נעדר'), navNow.includes('חנות') === shopOn);
+    t(`קישור "${shopLabel}" ` + (shopOn ? 'קיים' : 'נעדר'), navNow.includes(shopLabel) === shopOn);
+    // PLATFORM אשף 4: בפרופיל המונחים — 'גמ"ח' מופיע במקום 'חנות'
+    if (shopOn && shopLabel !== 'חנות') t('התיוג מחליף — "חנות" לא בניווט', !navNow.includes('חנות'));
   }
   if (!profile.config) {
     await page.locator('nav >> text=חנות').click();
     await page.waitForTimeout(400);
-    // מוצר "מוצר חתן" עם רכיב מתנה — שווי 200, מחיר סמלי 50, מלאי 3 (SHOP2)
+    // SHOP4 (מודל הפריטים): קודם פריט בקטלוג — שווי 200, סמלי 50, מלאי 3
+    await page.locator('main input[placeholder="סט תפילין"]').fill('מתנת חתן');
+    await page.locator('main input[placeholder="200"]').fill('200');
+    await page.locator('main input[placeholder="50"]').fill('50');
+    await page.locator('main input[placeholder="3"]').fill('3');
+    await page.locator('main button', { hasText: 'הוספת פריט' }).click();
+    await page.waitForTimeout(400);
+    t('הוספת פריט לקטלוג', (await page.locator('main').textContent()).includes('מתנת חתן'));
+    // חבילה "מוצר חתן" — הרכיב מצביע על הפריט (נבחר אוטומטית — הפריט הפעיל הראשון)
     await page.locator('button', { hasText: 'הוספת מוצר' }).first().click();
     await page.waitForTimeout(300);
     await page.locator('.modal input[placeholder="לדוגמה: מוצר חתן"]').fill('מוצר חתן');
     await page.locator('.modal button', { hasText: '➕ רכיב' }).click();
     await page.waitForTimeout(200);
-    await page.locator('.modal input[placeholder="לדוגמה: סט תפילין"]').fill('מתנת חתן');
-    await page.locator('.modal input[type="number"]').nth(0).fill('200');
-    await page.locator('.modal input[type="number"]').nth(1).fill('50');
-    await page.locator('.modal input[type="number"]').nth(2).fill('3');
     await page.locator('.modal button', { hasText: 'שמירה' }).click();
     await page.waitForTimeout(500);
     t('הוספת מוצר חתן', (await page.locator('main').textContent()).includes('מוצר חתן'));
@@ -248,11 +273,24 @@ for (const profile of PROFILES) {
     await page.locator('.modal button', { hasText: 'שמירה' }).click();
     await page.waitForTimeout(500);
     t('הוספת שיוך למשפחה', (await page.locator('main').textContent()).includes('בדיקה-מטריצה'));
+    // UX סינון 2: "ממתינים בלבד" מציג את השיוך (הרכיב טרם מומש ⇒ ממתין)
+    await page.locator('main button', { hasText: 'ממתינים בלבד' }).click();
+    await page.waitForTimeout(300);
+    t('"ממתינים בלבד" מציג את השיוך', (await page.locator('main').textContent()).includes('בדיקה-מטריצה'));
+    await page.locator('main button', { hasText: 'ממתינים בלבד' }).click();
+    await page.waitForTimeout(200);
     // מימוש — המחיר מאוכלס אוטומטית (50 = סמלי בלי הנחות) והסכום מופיע בטיפול
     await page.locator('main button', { hasText: 'מוצר חתן' }).first().click();
     await page.waitForTimeout(400);
     await page.locator('main button', { hasText: '🎁 מימוש' }).first().click();
     await page.waitForTimeout(300);
+    // SHOP5 (הכרעה 20): '💵 גבייה בקופה' פותח קופה ממולאת — והמודאל שורד מאחוריה
+    await page.locator('.modal button', { hasText: '💵 גבייה בקופה' }).click();
+    await page.waitForTimeout(400);
+    t('הקופה הרושמת נפתחה מהמימוש', ((await page.locator('body').textContent()) ?? '').includes('סיום והפקת חשבונית'));
+    await page.locator('.modal button', { hasText: 'ביטול' }).last().click(); // סגירת הקופה
+    await page.waitForTimeout(400);
+    t('מודאל המימוש שרד את הקופה', ((await page.locator('.modal').last().textContent().catch(() => '')) ?? '').includes('רישום המימוש'));
     await page.locator('.modal button', { hasText: 'רישום המימוש' }).click();
     await page.waitForTimeout(500);
     // SHOP2: המימוש (paid 50) הנפיק אישור S-1, והמלאי ירד 3→2
@@ -287,6 +325,112 @@ for (const profile of PROFILES) {
     await page.waitForTimeout(400);
     const voidedMain = (await page.locator('main').textContent()) ?? '';
     t('הסכומים ירדו אחרי הביטול', voidedMain.includes('שווי שניתן · 0') && voidedMain.includes('שולם סמלי · 0'));
+    // SHOP4 (הכרעה 16): פגישה עם חדר תופסת את הלוח — חדר תפוס נחסם.
+    // מוסיפים רכיב-פגישה למוצר דרך פריט חדש inline, ואז שתי פגישות באותו חדר+שעה
+    await page.locator('main button', { hasText: '🛍 קטלוג' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('main button', { hasText: '✏️ עריכה' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal button', { hasText: '➕ רכיב' }).click();
+    await page.waitForTimeout(200);
+    await page.locator('.modal button', { hasText: 'פריט חדש' }).last().click();
+    await page.waitForTimeout(200);
+    await page.locator('.modal input[placeholder="סט תפילין"]').fill('פגישת ליווי');
+    await page.locator('.modal select').last().selectOption('meeting');
+    await page.locator('.modal button', { hasText: 'יצירה וקישור' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal button', { hasText: 'שמירה' }).click();
+    await page.waitForTimeout(400);
+    await page.locator('main button', { hasText: '👥 מוטבים' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('main button', { hasText: 'מוצר חתן' }).first().click();
+    await page.waitForTimeout(400);
+    // פגישה ראשונה — חדר-מטריצה (מהזרימה של החוגים) בשעה 09:00 — נשמרת
+    await page.locator('main button', { hasText: '📅 קביעת פגישה' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input[type="time"]').fill('09:00');
+    await page.locator('.modal select:has(option:has-text("ללא חדר"))').selectOption({ label: 'חדר-מטריצה' });
+    await page.locator('.modal button', { hasText: 'שמירה' }).click();
+    await page.waitForTimeout(400);
+    t('פגישה עם חדר נשמרה', (await page.locator('.modal-back').count()) === 0);
+    // פגישה שנייה באותו חדר+שעה — נחסמת (המודאל נשאר פתוח עם שגיאת התנגשות)
+    await page.locator('main button', { hasText: '📅 קביעת פגישה' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input[type="time"]').fill('09:00');
+    await page.locator('.modal select:has(option:has-text("ללא חדר"))').selectOption({ label: 'חדר-מטריצה' });
+    await page.locator('.modal button', { hasText: 'שמירה' }).click();
+    await page.waitForTimeout(400);
+    const clashModal = (await page.locator('.modal').textContent().catch(() => '')) ?? '';
+    t('פגישה לחדר תפוס נחסמת', clashModal.includes('התנגשות'));
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    // SHOP5 (הכרעה 19): הפגישה (היום 09:00, חדר-מטריצה) מופיעה ביומן החדרים
+    await page.locator('nav >> text=יומן חדרים').click();
+    await page.waitForTimeout(500);
+    t('הפגישה מופיעה ביומן החדרים', ((await page.locator('main').textContent()) ?? '').includes('פגישת ליווי'));
+    // SHOP5 (הכרעה 22): סקשן "פגישות קרובות" בטיפול — הפגישה של היום מופיעה
+    await page.locator('nav >> text=חנות').click();
+    await page.waitForTimeout(300);
+    await page.locator('main button', { hasText: '🏠 טיפול' }).click();
+    await page.waitForTimeout(400);
+    const soonMain = (await page.locator('main').textContent()) ?? '';
+    t('סקשן פגישות קרובות מוצג עם הפגישה', soonMain.includes('פגישות קרובות') && soonMain.includes('חדר-מטריצה'));
+    // ── SHOP6 (חנות 28): קליטה → שיוך המוני → רשימת חלוקה → סימון-חולק-לכולם ──
+    // קליטת תרומה-בעין +5 ⇒ 5+5 = "נותרו 10"; יומן הקליטות מופיע
+    await page.locator('main button', { hasText: '🛍 קטלוג' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('main button[title="חידוש מלאי"]').first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input[type="number"]').first().fill('5');
+    await page.locator('.modal select').first().selectOption('donation');
+    await page.locator('.modal button', { hasText: 'עדכון המלאי' }).click();
+    await page.waitForTimeout(400);
+    const intakeMain = (await page.locator('main').textContent()) ?? '';
+    t('קליטה +5 ⇒ "נותרו 10"', intakeMain.includes('נותרו 10'));
+    t('יומן הקליטות מופיע עם הרשומה', intakeMain.includes('יומן קליטות'));
+    // שתי משפחות חדשות לשיוך ההמוני (חזרה לרשימה — כרטיס משפחה עשוי להיות פתוח)
+    for (const nm of ['המונית-א', 'המונית-ב']) {
+      await page.locator(`nav >> text=${famLabel}`).click();
+      await page.waitForTimeout(300);
+      const backBtn = page.locator('main button', { hasText: `→ כל ${famLabel}` });
+      if (await backBtn.count()) {
+        await backBtn.first().click();
+        await page.waitForTimeout(300);
+      }
+      await page.locator('button', { hasText: `הוספת ${famEntity}` }).first().click();
+      await page.waitForTimeout(300);
+      await page.locator('.modal input').first().fill(nm);
+      await page.locator('.modal button', { hasText: 'שמירה' }).click();
+      await page.waitForTimeout(500);
+    }
+    await page.locator('nav >> text=חנות').click();
+    await page.waitForTimeout(300);
+    await page.locator('main button', { hasText: '👥 מוטבים' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('main button', { hasText: '👥 שיוך המוני' }).click();
+    await page.waitForTimeout(400);
+    t('הזכאיות מוצגות (מי שכבר משויכת — מסוננת)', ((await page.locator('.modal').textContent()) ?? '').includes('2 משפחות זכאיות'));
+    await page.locator('.modal button', { hasText: 'שייך 2 משפחות' }).click(); // חימוש (useArmed)
+    await page.waitForTimeout(200);
+    await page.locator('.modal button', { hasText: 'שוב לשיוך' }).click();
+    await page.waitForTimeout(500);
+    t('השיוך ההמוני נוצר לשתי המשפחות', ((await page.locator('main').textContent()) ?? '').includes('המונית-א'));
+    // רשימת חלוקה — תדפיס יורד (דפוס תדפיס-הרכז)
+    await page.locator('main button', { hasText: '🛍 קטלוג' }).click();
+    await page.waitForTimeout(300);
+    const dl = page.waitForEvent('download', { timeout: 5000 });
+    await page.locator('main button', { hasText: '🖨 רשימת חלוקה' }).first().click();
+    t('רשימת החלוקה ירדה', !!(await dl.catch(() => null)));
+    // סימון חולק לכולם — 3 ממתינים (בדיקה-מטריצה שמימושה בוטל + שתי החדשות)
+    await page.locator('main button', { hasText: '🎁 סימון חולק לכולם' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal button', { hasText: '🎁 חלוקה לכולם' }).click();
+    await page.waitForTimeout(500);
+    t('המלאי ירד בהתאם — "נותרו 7" (10−3)', ((await page.locator('main').textContent()) ?? '').includes('נותרו 7'));
+    await page.locator('main button', { hasText: '👥 מוטבים' }).click();
+    await page.waitForTimeout(400);
+    const bulkMain = (await page.locator('main').textContent()) ?? '';
+    t('הסטטוסים "נמסר" — המשפחות החדשות מומשו 1/2', bulkMain.includes('מומשו 1/2'));
   }
 
   // ── זרימה 6: התמדה אחרי ריענון ──
@@ -337,7 +481,8 @@ for (const profile of PROFILES) {
   const main = (await page.locator('main').textContent()) ?? '';
   const navTxt = (await page.locator('nav').first().textContent()) ?? '';
   // שרידים שדלפו בעבר כשהכול כבוי — אסור שיופיעו (החוזה: כבוי = מוסתר בכל המשטחים)
-  for (const leak of ['משפחה חדשה', 'משפחות אחרונות', 'ניקוב', 'בני משפחה', 'יום הולדת', 'תורמים', 'דוחות']) {
+  // CONNECT: גם צ'יפי חוצה-העמודות (חיבור 3) אסור שידלפו כשהמודולים כבויים
+  for (const leak of ['משפחה חדשה', 'משפחות אחרונות', 'ניקוב', 'בני משפחה', 'יום הולדת', 'תורמים', 'דוחות', '🪙 קופות', '🛍 חנות']) {
     t(`אין "${leak}" כשהכול כבוי`, !main.includes(leak));
   }
   t('הניווט נקי ממודולים כבויים', !navTxt.includes('משפחות') && !navTxt.includes('חוגים'));

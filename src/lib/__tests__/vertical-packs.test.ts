@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { VERTICAL_PACKS, applyVerticalPack } from '../verticalPacks';
 import { TERM_DEFS } from '../../types/features';
-import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
+import { DEFAULT_CONFIG, type ModuleKey, type OrgConfig } from '../../types/config';
 
 const base: OrgConfig = {
   ...DEFAULT_CONFIG,
@@ -76,6 +76,57 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
         expect(known.has(key), `חבילה ${p.id} — מפתח לא מוכר: ${key}`).toBe(true);
       }
     }
+  });
+
+  it('🔒 אשף 3 — כיסוי-מלא: לכל pack, לכל ModuleKey — עמדה מוגדרת (הבאג של 30.7 — מוסך עם קופות צדקה — לא חוזר)', () => {
+    // חוזה הדגלים "חסר=דלוק" הפך מודול חדש לדלוק-בשקט בכל ורטיקל. מעתה: כל
+    // מודול חייב עמדה — או מפתח מפורש ב-modules, או רישום כאן כ-ON-מכוון.
+    // ⇒ המודול הבא שיתווסף ל-ModuleKey ישבור את הבדיקה עד שכל ורטיקל יכריע.
+    const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop'];
+    const INTENTIONAL_ON: Record<string, ModuleKey[]> = {
+      chesed: ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop'], // הלקוח החי — הכול דלוק במכוון
+      clinic: ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports'],
+      shop: ['families', 'calendar', 'supporters', 'reports', 'shop'], // מודול החנות דלוק — מונחים קמעונאיים
+      services: ['families', 'calendar', 'diary', 'supporters', 'reports'],
+      rooms: ['families', 'calendar', 'diary', 'supporters', 'reports'],
+      fleet: ['families', 'calendar', 'diary', 'supporters', 'reports'],
+      garage: ['families', 'calendar', 'diary', 'supporters', 'reports'],
+      hospitality: ['families', 'calendar', 'diary', 'supporters', 'reports'],
+      gemach: [], // המטריצה המלאה מפורשת ב-modules
+      tzedakot: [], // כנ"ל
+    };
+    for (const p of VERTICAL_PACKS) {
+      const on = INTENTIONAL_ON[p.id];
+      expect(on, `חבילה ${p.id} — חסרה רשומת INTENTIONAL_ON`).toBeDefined();
+      for (const m of ALL_MODULES) {
+        const stated = m in p.modules || on.includes(m);
+        expect(stated, `חבילה ${p.id} — למודול ${m} אין עמדה (לא ב-modules ולא ב-INTENTIONAL_ON)`).toBe(true);
+      }
+    }
+  });
+
+  it('🔒 אשף 3 — מונחי nav לעמודות דלוקות: pack מתייג שמדליק shop/tzedaka חייב שם-עמודה (לא מסך ריק-שם)', () => {
+    for (const p of VERTICAL_PACKS) {
+      // חבילת ברירות-המחדל (terms ריק = מונחי מאור עצמם) פטורה — ה-fallback הוא השם
+      if (Object.keys(p.terms).length === 0) continue;
+      if (p.modules.shop !== false) expect(p.terms['nav.shop'], `חבילה ${p.id} — shop דלוק בלי nav.shop`).toBeTruthy();
+      if (p.modules.tzedaka !== false) expect(p.terms['nav.tzedaka'], `חבילה ${p.id} — tzedaka דלוק בלי nav.tzedaka`).toBeTruthy();
+    }
+  });
+
+  it('אשף 2 — גמ"ח ומבצעי-התרמה: המנוע הנכון דלוק, המונחים נטענים', () => {
+    const g = applyVerticalPack(base, 'gemach');
+    expect(g.modules.shop).toBe(true);
+    expect(g.modules.tzedaka).toBe(false);
+    expect(g.modules.courses).toBe(false);
+    expect(g.modules.diary).toBe(false);
+    expect(g.terms!['nav.shop']).toBe('גמ"ח');
+    expect(g.terms!['entity.shopAssignment']).toBe('השאלה');
+    const t = applyVerticalPack(base, 'tzedakot');
+    expect(t.modules.tzedaka).toBe(true);
+    expect(t.modules.shop).toBe(false);
+    expect(t.terms!['nav.tzedaka']).toBe('מבצעים');
+    expect(t.terms!['entity.tzBox']).toBe('קופה');
   });
 
   it('חבילות חדשות: חדרים/צי-רכב/מוסך/אירוח — מכבות חוגים ומתייגות את מנוע ההזמנות', () => {

@@ -3,7 +3,7 @@
  * את תאריך אתמול (כפי ש-toISOString היה מחזיר באזור זמן ממזרח ל-UTC כמו ישראל).
  */
 import { describe, expect, it } from 'vitest';
-import { isoToday, isoLocal, isoDaysAgo } from '../date-util';
+import { dateInRange, isoToday, isoLocal, isoDaysAgo } from '../date-util';
 
 describe('date-util — תאריך מקומי', () => {
   it('isoLocal מרכיב YYYY-MM-DD מרכיבי הזמן המקומיים', () => {
@@ -32,5 +32,17 @@ describe('date-util — תאריך מקומי', () => {
 
   it('isoDaysAgo(0) = היום', () => {
     expect(isoDaysAgo(0)).toBe(isoToday());
+  });
+
+  // UX סינון 3 — ה-helper המשותף לסינוני-ההיסטוריה (קופות + חנות)
+  it('dateInRange: טווח כוללני, קצה ריק = פתוח', () => {
+    expect(dateInRange('2026-07-05', '2026-07-01', '2026-07-31')).toBe(true);
+    expect(dateInRange('2026-07-01', '2026-07-01', '2026-07-31')).toBe(true); // כוללני בקצה תחתון
+    expect(dateInRange('2026-07-31', '2026-07-01', '2026-07-31')).toBe(true); // כוללני בקצה עליון
+    expect(dateInRange('2026-06-30', '2026-07-01', '2026-07-31')).toBe(false);
+    expect(dateInRange('2026-08-01', '2026-07-01', '2026-07-31')).toBe(false);
+    expect(dateInRange('1999-01-01', '', '2026-07-31')).toBe(true); // from ריק = פתוח לאחור
+    expect(dateInRange('2099-01-01', '2026-07-01', '')).toBe(true); // to ריק = פתוח קדימה
+    expect(dateInRange('2026-07-05', '', '')).toBe(true); // שניהם ריקים = הכול
   });
 });

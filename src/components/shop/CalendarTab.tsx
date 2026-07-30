@@ -8,10 +8,10 @@ import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { isoToday } from '../../lib/date-util';
 import type { ShopEvent } from '../../types/domain';
-import { Btn } from '../ui';
+import { Btn, Chip } from '../ui';
 import { DAY_NAMES, PRIORITY_COLOR, SESSION_META } from '../calendar/calLib';
 import { buildMonthGrid } from '../../lib/monthGrid';
-import { assignmentRedeemed } from './lib';
+import { assignmentRedeemed, holidayAllowed, itemOf } from './lib';
 import { ShopEventModal } from './ShopEventModal';
 
 /** צבעי הסוגים — reuse מקבועי הלוח הראשי. */
@@ -29,6 +29,13 @@ const KIND_LABEL: Record<ShopEvent['kind'], string> = {
   custom: 'אחר',
 };
 
+const KIND_FILTERS: { key: ShopEvent['kind']; label: string }[] = [
+  { key: 'meeting', label: '🤝 פגישה' },
+  { key: 'delivery', label: '📦 מסירה' },
+  { key: 'holiday', label: '🕎 חג' },
+  { key: 'custom', label: '📌 אחר' },
+];
+
 export function CalendarTab() {
   const db = useApp((s) => s.db);
   const shopEvents = useApp((s) => s.db.shopEvents);
@@ -37,9 +44,12 @@ export function CalendarTab() {
   const [anchor, setAnchor] = useState(isoToday());
   const [dayIso, setDayIso] = useState<string | null>(null);
   const [modal, setModal] = useState<{ ev: ShopEvent | null; date: string } | null>(null);
+  // סינון סוגים (UX סינון 2) — ברירת הכול-דלוק; הסינון טהור, לפני buildMonthGrid
+  const [kindsOff, setKindsOff] = useState<Set<ShopEvent['kind']>>(new Set());
+  const shownEvents = useMemo(() => shopEvents.filter((e) => !kindsOff.has(e.kind)), [shopEvents, kindsOff]);
 
-  const grid = useMemo(() => buildMonthGrid(shopEvents, anchor, heb), [shopEvents, anchor, heb]);
-  const dayEvents = dayIso ? shopEvents.filter((e) => e.date === dayIso) : [];
+  const grid = useMemo(() => buildMonthGrid(shownEvents, anchor, heb), [shownEvents, anchor, heb]);
+  const dayEvents = dayIso ? shownEvents.filter((e) => e.date === dayIso) : [];
 
   // "🎁 N ממתינות" לתא-חג — שיוך פעיל עם מתנת-חג שטרם מומשה לאותו חג
   function pendingGifts(iso: string, holiday: string): number {
@@ -47,14 +57,35 @@ export function CalendarTab() {
     for (const a of db.shopAssignments) {
       if (a.status !== 'active') continue;
       const p = db.shopProducts.find((x) => x.id === a.productId);
-      for (const c of p?.components ?? [])
-        if (c.kind === 'holidayGift' && !assignmentRedeemed(a, c.id, { iso, name: holiday })) n++;
+      for (const c of p?.components ?? []) {
+        const ri = itemOf(db, c);
+        // חגים נבחרים (הכרעה 17) — הצ'יפ סופר רק מתנות לחגים שסומנו על הפריט
+        if (ri.kind === 'holidayGift' && holidayAllowed(ri, holiday) && !assignmentRedeemed(a, c.id, { iso, name: holiday })) n++;
+      }
     }
     return n;
   }
 
   return (
     <div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+        {KIND_FILTERS.map((k) => (
+          <Chip
+            key={k.key}
+            on={!kindsOff.has(k.key)}
+            onClick={() =>
+              setKindsOff((prev) => {
+                const next = new Set(prev);
+                if (next.has(k.key)) next.delete(k.key);
+                else next.add(k.key);
+                return next;
+              })
+            }
+          >
+            {k.label}
+          </Chip>
+        ))}
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
         <Btn sm onClick={() => setAnchor(grid.prevIso)}>‹ הקודם</Btn>
         <Btn sm onClick={() => setAnchor(isoToday())}>היום</Btn>

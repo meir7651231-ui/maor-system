@@ -9,7 +9,7 @@ import { migrate } from '../../../store/persist';
 import { emptyDb, type Db, type ShopAssignment, type ShopComponent, type ShopProduct, type ShopRedemption } from '../../../types/domain';
 
 function comp(over: Partial<ShopComponent>): ShopComponent {
-  return { id: 'shpc1', kind: 'gift', label: 'מתנה', storeId: '', value: 200, basePrice: 50, notes: '', ...over };
+  return { id: 'shpc1', itemId: '', kind: 'gift', label: 'מתנה', storeId: '', value: 200, basePrice: 50, notes: '', ...over };
 }
 function product(over: Partial<ShopProduct>): ShopProduct {
   return { id: 'shp1', name: 'מוצר חתן', desc: '', active: true, components: [], notes: '', ...over };
@@ -50,7 +50,7 @@ describe('🛍 ratchet — חנות 9: מלאי לרכיבים', () => {
     expect(outs[0].assignmentId).toBe('');
   });
 
-  it('מיגרציה: stock לא-סופי מוסר (בלי מעקב); שלילי → 0', () => {
+  it('מיגרציה: stock לא-סופי מוסר, שלילי → 0 — והמלאי עובר לפריט (SHOP4)', () => {
     const raw = {
       ...emptyDb(),
       shopProducts: [
@@ -65,10 +65,15 @@ describe('🛍 ratchet — חנות 9: מלאי לרכיבים', () => {
       ],
     };
     const out = migrate(raw as unknown as Record<string, unknown>)!;
-    const [c1, c2, c3, c4] = out.shopProducts[0].components;
-    expect('stock' in c1).toBe(false);
-    expect(c2.stock).toBe(0);
-    expect(c3.stock).toBe(4);
-    expect(c4.stock).toBeUndefined();
+    // מודל הפריטים (הכרעה 18): הריפוי רץ ואז המלאי עובר לפריט — הרכיב נשאר מצביע נקי
+    const itemFor = (compId: string) => {
+      const c = out.shopProducts[0].components.find((x) => x.id === compId)!;
+      expect('stock' in c).toBe(false);
+      return out.shopItems.find((i) => i.id === c.itemId)!;
+    };
+    expect('stock' in itemFor('c1')).toBe(false); // לא-סופי — הוסר עוד לפני המעבר
+    expect(itemFor('c2').stock).toBe(0);
+    expect(itemFor('c3').stock).toBe(4);
+    expect(itemFor('c4').stock).toBeUndefined();
   });
 });

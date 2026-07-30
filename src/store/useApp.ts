@@ -27,6 +27,8 @@ import {
   type ShopAssignment,
   type ShopCriterion,
   type ShopEvent,
+  type ShopIntake,
+  type ShopItem,
   type ShopProduct,
   type ShopRedemption,
   type ShopStore,
@@ -38,8 +40,10 @@ import {
   type TzEvent,
 } from '../types/domain';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
+import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
+import { roomClashError } from '../components/calendar/calLib';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, featureOn, loadOrgConfig, saveConfigOverride } from '../lib/config';
+import { applyTheme, featureOn, isSuperAdmin, loadOrgConfig, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { mergeFamilies, mergeFamiliesByFields } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
@@ -87,6 +91,12 @@ export interface CloudState {
   authReady: boolean;
   user: CloudUser | null;
   status: CloudStatus;
+  /**
+   * שער החברות (CLOUD2 ענן 3) — ארגון-פלטפורמה בלבד: ‏na=לא רלוונטי (הלקוח
+   * הקיים/מקומי) · checking=בודקים אחרי התחברות · member=חבר, האפליקציה
+   * נפתחת · pending=נרשם וממתין לאישור הבעלים — מסך המתנה, לא האפליקציה.
+   */
+  membership: 'na' | 'checking' | 'member' | 'pending';
 }
 
 interface AppState {
@@ -118,6 +128,11 @@ interface AppState {
   cloudSignIn: (email: string, password: string) => Promise<void>;
   cloudSignOut: () => Promise<void>;
   cloudResetPassword: (email: string) => Promise<void>;
+  /**
+   * הרשמה עצמית (CLOUD2 ענן 3): יצירת משתמש Auth + כתיבת בקשה ממתינה —
+   * כל מה שנרשם-חדש רשאי לכתוב. הוא נשאר במסך ההמתנה עד אישור הבעלים.
+   */
+  cloudSignUp: (orgName: string, contactName: string, phone: string, email: string, password: string) => Promise<void>;
 
   // מחזור חיים
   init: () => Promise<void>;
@@ -245,6 +260,16 @@ interface AppState {
 
   // חנות מוצרי-שירות (מודול shop — מבודד; BUILD-ORDER-SHOP-2026-07-30).
   // הכסף/המימושים/האירועים נכתבים רק למערכי shop* — לא לקבלות/תרומות/לוח הראשי.
+  /** פריט קטלוג עצמאי (SHOP4, הכרעה 18) — בעל המלאי/התוקף/החנות המשותפים. */
+  upsertShopItem: (i: ShopItem) => void;
+  /** חסום כשרכיב בחבילה מצביע על הפריט — מסירים מהחבילות קודם. */
+  deleteShopItem: (id: string) => boolean;
+  /**
+   * מיזוג פריטים כפולים (הכרעה 21): כל הרכיבים המצביעים על המקור מוסבים
+   * ליעד, המלאי מתחבר (סכום — שניהם מלאי אמיתי; שניהם בלי מעקב = נשאר
+   * בלי), המקור נמחק. המימושים לא נגעו (componentId נשאר). אותו kind בלבד.
+   */
+  mergeShopItems: (targetId: string, sourceId: string) => boolean;
   /** רכיב מוצר בלי id מקבל nextId('shpc') — ייחודיות בתוך המוצר. */
   upsertShopProduct: (p: ShopProduct) => void;
   /** חסום כשקיימים שיוכים active למוצר; מותר כשכולם done/stopped. */
@@ -258,7 +283,13 @@ interface AppState {
   upsertShopAssignment: (a: ShopAssignment) => void;
   /** מוחק + מנקה אירועי-לוח מקושרים (בלי יתומים). */
   deleteShopAssignment: (id: string) => void;
-  upsertShopEvent: (e: ShopEvent) => void;
+  /**
+   * שמירת אירוע הלוח הייעודי. פגישה-עם-חדר (חור מבוקר בבידוד — הכרעת
+   * בעלים 16, 30.7.2026): נבדקת התנגשות חדר (roomClashError) — התנגשות ⇒
+   * טוסט + false בלי שמירה; אחרת נוצר/מתעדכן OrgEvent מקושר בלוח הראשי
+   * (mainEventId). הסרת החדר ⇒ מחיקת המקושר (בלי יתומים).
+   */
+  upsertShopEvent: (e: ShopEvent) => boolean;
   deleteShopEvent: (id: string) => void;
   /**
    * רישום מימוש — דוחה paid/value לא-סופיים או שליליים בלי לגעת ב-db; paid=0
@@ -273,6 +304,31 @@ interface AppState {
    * (סדרה רציפה לא ממחזרת מספרים). ביטול-כפול נחסם.
    */
   voidShopRedemption: (assignmentId: string, redemptionId: string, reason: string) => boolean;
+  /**
+   * קליטת מלאי (SHOP6 חנות 25) — קנייה או תרומה-בעין. שער לפני מונה: qty
+   * לא-חיובי / cost שלילי / פריט לא-קיים נדחים בלי לגעת ב-db. אטומית —
+   * הרשומה נכתבת והמלאי על הפריט עולה באותו setDb. source = טקסט חופשי
+   * (בלי קישור ל-supporters — בידוד).
+   */
+  addShopIntake: (intake: Omit<ShopIntake, 'id'>) => boolean;
+  /** מחיקת קליטה מחזירה את המלאי (קטום ב-0) — יומן-קליטות, לא סדרת מס. */
+  deleteShopIntake: (id: string) => void;
+  /**
+   * שיוך המוני (SHOP6 חנות 26) — יוצר שיוכים active לכל השורות בלולאה
+   * אטומית אחת (setDb יחיד, nextId פר-שורה). דוחה רשימה ריקה / חבילה
+   * לא-קיימת בלי לגעת ב-db.
+   */
+  bulkAssignShop: (productId: string, rows: { famId: string; memberId: string; criterionIds: string[] }[]) => { ok: boolean; created: number };
+  /**
+   * חלוקה המונית של מימושים (SHOP6) — מימוש לרכיב עבור כל שיוך פעיל שטרם
+   * מומש (מדלג על מי שכבר קיבל). paid=0 קבוע — מתנת-חג/חלוקה, בלי אישור S-;
+   * גבייה פרטנית נשארת במימוש הבודד. **הכול-או-כלום:** מלאי לא מספיק ⇒
+   * עצירה עם "חסרות K יחידות" לפני כל כתיבה — db לא משתנה.
+   */
+  bulkRedeem: (productId: string, componentId: string, opts: { date: IsoDate; holiday: string }) => { ok: boolean; created: number };
+  /** רשימת המתנה לפריט (SHOP6 חנות 27) — כפול-משפחה נדחה בטוסט. */
+  addShopWait: (itemId: string, famId: string, note: string) => boolean;
+  removeShopWait: (itemId: string, famId: string) => void;
 
   // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
   // ולכן סנכרון הענן והביטול עובדים כרגיל. פעולות שכותבות ללוח מייצרות OrgEvent.
@@ -356,6 +412,8 @@ let toastSeq = 1;
  */
 type CloudSyncModule = typeof import('./cloudSync');
 let cloudMod: CloudSyncModule | null = null;
+/** unsubscribe להאזנת הקונפיג-מהענן (CLOUD2 ענן 2) — null כשלא מאזינים. */
+let cloudCfgUnsub: (() => void) | null = null;
 
 // חותמת "היום" מקומית (לא UTC) — מקור-אמת אחד ב-date-util
 function isoToday(): string {
@@ -473,26 +531,64 @@ export const useApp = create<AppState>()((set, get) => {
    * חיבור הענן — נקרא מ-init רק כשיש config.firebase. אסינכרוני ולא חוסם:
    * כל כשל כאן מחזיר את המערכת למצב מקומי-בלבד עם טוסט, בלי לפגוע בעבודה.
    */
-  async function connectCloud(fb: FirebaseOrgConfig) {
+  async function connectCloud(fb: FirebaseOrgConfig, cfg: OrgConfig) {
     try {
       const mod = await import('./cloudSync');
       cloudMod = mod;
       mod.initCloud(fb);
+      // תחום הנתיבים (CLOUD2 ענן 1): הלקוח הקיים (cloudRoot:true) = שורש —
+      // ביט-זהה להיום; ארגון-פלטפורמה = orgs/{slug}/
+      mod.setCloudScope(cfg.slug, cfg.cloudRoot === true);
       mod.watchAuth((user) => {
         const hadUser = get().cloud.user !== null;
         setCloud({ authReady: true, user, ...(user ? {} : { status: 'idle' as const }) });
         if (user && !hadUser) {
-          void mod.startCloudSync({
-            getDb: () => get().db,
-            // נתיב החלת-מרוחק: שמירה מקומית כרגיל, בלי cloudOnDbChange (אין הד)
-            setDbFromRemote: (db) => {
-              set({ db });
-              scheduleSave();
-            },
-            toast: (t) => get().toast(t),
-            setStatus: (status) => setCloud({ status }),
-          });
+          const startSync = () =>
+            void mod.startCloudSync({
+              getDb: () => get().db,
+              // נתיב החלת-מרוחק: שמירה מקומית כרגיל, בלי cloudOnDbChange (אין הד)
+              setDbFromRemote: (db) => {
+                set({ db });
+                scheduleSave();
+              },
+              toast: (t) => get().toast(t),
+              setStatus: (status) => setCloud({ status }),
+            });
+          // האזנה חיה לקונפיג (ענן 2) — הענן גובר; מטמון-ענן נפרד, לא דריסת-אשף
+          const applyCloudDoc = (orgDoc: { config?: unknown } | null) => {
+            if (!orgDoc?.config) return;
+            const merged = resolveOrgConfig(get().config, orgDoc.config);
+            set({ config: merged });
+            const { db } = get();
+            applyTheme(db.ui.theme ?? merged.theme, db.ui.accent ?? merged.accent);
+            writeCloudConfigCache(merged.slug, merged);
+          };
+          // ארגון-פלטפורמה = לא הלקוח הקיים (cloudRoot) ולא אתר-השורש (default)
+          // — אצל שניהם ההתנהגות של היום בדיוק, בלי שער-חברות ובלי קונפיג-ענן
+          const platformOrg = cfg.cloudRoot !== true && cfg.slug !== 'default';
+          if (platformOrg) {
+            // שער החברות (ענן 3): נרשם-שטרם-אושר רואה מסך המתנה — לא את
+            // האפליקציה ולא סנכרון; מייל-על עוקף (לוח הבקרה)
+            setCloud({ membership: 'checking' });
+            void mod.fetchOrgCloudConfig(cfg.slug).then((orgDoc) => {
+              const mail = user.email.trim().toLowerCase();
+              const member =
+                isSuperAdmin(user.email) ||
+                !!orgDoc?.members?.some((m) => m.trim().toLowerCase() === mail);
+              setCloud({ membership: member ? 'member' : 'pending' });
+              if (!member) return;
+              applyCloudDoc(orgDoc);
+              cloudCfgUnsub?.();
+              cloudCfgUnsub = mod.watchOrgCloudConfig(cfg.slug, applyCloudDoc);
+              startSync();
+            });
+          } else {
+            startSync();
+          }
         } else if (!user && hadUser) {
+          cloudCfgUnsub?.();
+          cloudCfgUnsub = null;
+          setCloud({ membership: 'na' });
           mod.stopCloudSync();
         }
       });
@@ -570,7 +666,7 @@ export const useApp = create<AppState>()((set, get) => {
     encrypted: false,
     needDecrypt: false,
     config: DEFAULT_CONFIG,
-    cloud: { enabled: false, authReady: true, user: null, status: 'idle' },
+    cloud: { enabled: false, authReady: true, user: null, status: 'idle', membership: 'na' },
 
     async init() {
       const config = await loadOrgConfig();
@@ -585,7 +681,7 @@ export const useApp = create<AppState>()((set, get) => {
           ready: true,
           encrypted: true,
           needDecrypt: true,
-          cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle' },
+          cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle', membership: 'na' },
         });
         applyTheme(config.theme, config.accent); // ערכה בסיסית עד הפענוח
         return;
@@ -609,10 +705,10 @@ export const useApp = create<AppState>()((set, get) => {
         lock,
         encrypted: false,
         needDecrypt: false,
-        cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle' },
+        cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle', membership: 'na' },
       });
       // חיבור ענן — opt-in פר-ארגון; בלי config.firebase שום דבר לא משתנה
-      if (config.firebase) void connectCloud(config.firebase);
+      if (config.firebase) void connectCloud(config.firebase, config);
       postLoad(db, corrupt);
     },
 
@@ -638,6 +734,27 @@ export const useApp = create<AppState>()((set, get) => {
     async cloudResetPassword(email) {
       if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
       await cloudMod.resetPassword(email);
+    },
+    async cloudSignUp(orgName, contactName, phone, email, password) {
+      if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
+      // הולידציה טהורה (signUpError) רצה ב-UI; כאן שער אחרון לפני ה-SDK
+      const err = signUpError(orgName, contactName, phone, email, password, password);
+      if (err) throw new Error(err);
+      const uid = await cloudMod.signUp(email.trim(), password);
+      // מסמך הבקשה — כל מה שנרשם-חדש רשאי לכתוב (Rules v2); כשל בכתיבה לא
+      // מפיל את ההרשמה (הבעלים יראה את המשתמש ב-Auth), אך מדווח
+      try {
+        await cloudMod.writeOrgRequest(uid, {
+          orgName: orgName.trim(),
+          contactName: contactName.trim(),
+          phone: phone.trim(),
+          email: email.trim().toLowerCase(),
+          at: new Date().toISOString(),
+        });
+      } catch {
+        get().toast('⚠ הבקשה נרשמה חלקית — צרו קשר עם מנהל המערכת');
+      }
+      // watchAuth יקלוט את המשתמש ⇒ שער-החברות יציג את מסך ההמתנה
     },
 
     // ניווט עם רישום היסטוריה (P1.5, legacy:166) — רק מעבר-מיקום אמיתי נרשם
@@ -1191,6 +1308,46 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     // ── חנות מוצרי-שירות (מודול shop — מבודד; הכרעת בעלים 30.7.2026) ──
+    upsertShopItem(i) {
+      const id = i.id || get().nextId('shi');
+      setDb((db) => ({ shopItems: upsertIn(db.shopItems, { ...i, id }) }));
+    },
+    deleteShopItem(id) {
+      const used = get().db.shopProducts.some((p) => p.components.some((c) => c.itemId === id));
+      if (used) {
+        get().toast('הפריט משובץ בחבילות — הסירו אותו מהן קודם');
+        return false;
+      }
+      setDb((db) => ({ shopItems: db.shopItems.filter((x) => x.id !== id) }));
+      return true;
+    },
+    mergeShopItems(targetId, sourceId) {
+      const target = get().db.shopItems.find((x) => x.id === targetId);
+      const source = get().db.shopItems.find((x) => x.id === sourceId);
+      if (!target || !source || targetId === sourceId) {
+        get().toast('בחרו שני פריטים שונים למיזוג');
+        return false;
+      }
+      if (target.kind !== source.kind) {
+        get().toast('מיזוג אפשרי רק בין פריטים מאותו סוג');
+        return false;
+      }
+      // המלאי מתחבר (ברירת ארכיטקט — שניהם מלאי אמיתי); שניהם בלי מעקב = נשאר בלי
+      const merged =
+        target.stock !== undefined || source.stock !== undefined
+          ? { ...target, stock: (target.stock ?? 0) + (source.stock ?? 0) }
+          : target;
+      setDb((db) => ({
+        shopItems: db.shopItems.filter((x) => x.id !== sourceId).map((x) => (x.id === targetId ? merged : x)),
+        // הסבת כל הרכיבים המצביעים על המקור — המימושים (componentId) לא נגעו
+        shopProducts: db.shopProducts.map((p) =>
+          p.components.some((c) => c.itemId === sourceId)
+            ? { ...p, components: p.components.map((c) => (c.itemId === sourceId ? { ...c, itemId: targetId } : c)) }
+            : p,
+        ),
+      }));
+      return true;
+    },
     upsertShopProduct(p) {
       const id = p.id || get().nextId('shp');
       // רכיב חדש בעורך מגיע בלי id — מקבל מזהה משלו (קידומת shpc, רק ייחודיות)
@@ -1238,18 +1395,72 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => ({ shopAssignments: upsertIn(db.shopAssignments, { ...a, id }) }));
     },
     deleteShopAssignment(id) {
-      // דפוס unlinkEvent — מוחקים גם את אירועי-הלוח הייעודי המקושרים, בלי יתומים
+      // דפוס unlinkEvent — מוחקים גם את אירועי-הלוח הייעודי המקושרים, בלי
+      // יתומים; פגישות-עם-חדר מנקות גם את המקושרים בלוח הראשי
+      const linked = get()
+        .db.shopEvents.filter((e) => e.assignmentId === id && e.mainEventId)
+        .map((e) => e.mainEventId);
       setDb((db) => ({
         shopAssignments: db.shopAssignments.filter((a) => a.id !== id),
         shopEvents: db.shopEvents.filter((e) => e.assignmentId !== id),
+        ...(linked.length ? { events: db.events.filter((ev) => !linked.includes(ev.id)) } : {}),
       }));
     },
     upsertShopEvent(e) {
+      const prev = e.id ? get().db.shopEvents.find((x) => x.id === e.id) : undefined;
+      if (e.roomId && e.kind === 'meeting') {
+        // השער לפני צריכת מונים (לקח באג-5): התנגשות ⇒ אפס נגיעה ב-db
+        // חור מבוקר בבידוד (הכרעת בעלים 16): תפיסת חדר דו-כיוונית דרך
+        // OrgEvent מקושר — אירוע קיים/חוג חוסמים את הפגישה (roomClashError),
+        // והאירוע המקושר חוסם אירועים חדשים דרך אותה בדיקה בלוח הראשי
+        const clash = roomClashError(
+          get().db,
+          get().config,
+          { date: e.date, time: e.time, roomId: e.roomId },
+          prev?.mainEventId,
+        );
+        if (clash) {
+          get().toast(clash);
+          return false;
+        }
+        const a = get().db.shopAssignments.find((x) => x.id === e.assignmentId);
+        const id = e.id || get().nextId('she');
+        const mainId = prev?.mainEventId || get().nextId('ev');
+        setDb((db) => ({
+          shopEvents: upsertIn(db.shopEvents, { ...e, id, mainEventId: mainId }),
+          events: upsertIn(db.events, {
+            id: mainId,
+            title: '🤝 פגישת ליווי — ' + (a ? beneficiaryLabel(db, a) : e.title),
+            date: e.date,
+            time: e.time || '',
+            type: 'custom',
+            customType: 'פגישת ליווי',
+            notes: e.notes,
+            price: 0,
+            roomId: e.roomId ?? '',
+            famId: a?.famId ?? '',
+            priority: 'green',
+            done: e.done,
+          }),
+        }));
+        return true;
+      }
+      // בלי חדר — מבודד כמו היום; חדר שהוסר ⇒ מחיקת המקושר (unlinkEvent, בלי יתומים)
       const id = e.id || get().nextId('she');
-      setDb((db) => ({ shopEvents: upsertIn(db.shopEvents, { ...e, id }) }));
+      const { roomId: _dropRoom, mainEventId: _dropMain, ...rest } = e;
+      setDb((db) => ({
+        shopEvents: upsertIn(db.shopEvents, { ...rest, id }),
+        ...(prev?.mainEventId ? { events: db.events.filter((ev) => ev.id !== prev.mainEventId) } : {}),
+      }));
+      return true;
     },
     deleteShopEvent(id) {
-      setDb((db) => ({ shopEvents: db.shopEvents.filter((e) => e.id !== id) }));
+      // מחיקת פגישה-עם-חדר מוחקת גם את האירוע המקושר בלוח הראשי (בלי יתומים)
+      const prev = get().db.shopEvents.find((x) => x.id === id);
+      setDb((db) => ({
+        shopEvents: db.shopEvents.filter((e) => e.id !== id),
+        ...(prev?.mainEventId ? { events: db.events.filter((ev) => ev.id !== prev.mainEventId) } : {}),
+      }));
     },
     addShopRedemption(assignmentId, r) {
       // שער לפני נגיעה ב-db (לקח באג-5): paid/value לא-סופיים או שליליים נדחים;
@@ -1303,6 +1514,140 @@ export const useApp = create<AppState>()((set, get) => {
         ),
       }));
       return true;
+    },
+    addShopIntake(intake) {
+      // שער לפני נגיעה ב-db ולפני nextId (לקח באג-5): כמות חייבת חיובית-סופית,
+      // עלות אי-שלילית-סופית, והפריט קיים
+      if (!Number.isFinite(intake.qty) || intake.qty <= 0) {
+        get().toast('כמות הקליטה חייבת להיות מספר חיובי');
+        return false;
+      }
+      if (!Number.isFinite(intake.cost) || intake.cost < 0) {
+        get().toast('עלות הקליטה חייבת להיות מספר אי-שלילי');
+        return false;
+      }
+      if (!get().db.shopItems.some((i) => i.id === intake.itemId)) {
+        get().toast('הפריט לא נמצא — הקליטה לא נשמרה');
+        return false;
+      }
+      const id = get().nextId('shn');
+      // אטומית: הרשומה + העלאת המלאי באותו setDb (מלאי בלי-מעקב מתחיל מ-0)
+      setDb((db) => ({
+        shopIntakes: [{ id, ...intake }, ...db.shopIntakes],
+        shopItems: db.shopItems.map((i) =>
+          i.id === intake.itemId ? { ...i, stock: (i.stock ?? 0) + intake.qty } : i,
+        ),
+      }));
+      return true;
+    },
+    deleteShopIntake(id) {
+      const intake = get().db.shopIntakes.find((x) => x.id === id);
+      if (!intake) return;
+      // החזרת המלאי קטומה ב-0 — אם בינתיים חולק יותר משנקלט, לא יורדים לשלילי
+      setDb((db) => ({
+        shopIntakes: db.shopIntakes.filter((x) => x.id !== id),
+        shopItems: db.shopItems.map((i) =>
+          i.id === intake.itemId ? { ...i, stock: Math.max(0, (i.stock ?? 0) - intake.qty) } : i,
+        ),
+      }));
+    },
+    bulkAssignShop(productId, rows) {
+      // שער לפני מונה (לקח באג-5): רשימה ריקה / חבילה לא-קיימת — db זהה
+      if (rows.length === 0) {
+        get().toast('לא נבחרו משפחות לשיוך');
+        return { ok: false, created: 0 };
+      }
+      if (!get().db.shopProducts.some((p) => p.id === productId)) {
+        get().toast('החבילה לא נמצאה — השיוך לא בוצע');
+        return { ok: false, created: 0 };
+      }
+      const since = isoToday();
+      const created: ShopAssignment[] = rows.map((row) => ({
+        id: get().nextId('sha'),
+        productId,
+        famId: row.famId,
+        memberId: row.memberId,
+        criterionIds: row.criterionIds,
+        since,
+        status: 'active',
+        notes: '',
+        redemptions: [],
+      }));
+      // לולאה אטומית אחת — setDb יחיד לכל השיוכים
+      setDb((db) => ({ shopAssignments: [...created, ...db.shopAssignments] }));
+      return { ok: true, created: created.length };
+    },
+    bulkRedeem(productId, componentId, opts) {
+      const db = get().db;
+      const product = db.shopProducts.find((p) => p.id === productId);
+      const comp = product?.components.find((c) => c.id === componentId);
+      if (!product || !comp) {
+        get().toast('הרכיב לא נמצא — החלוקה לא בוצעה');
+        return { ok: false, created: 0 };
+      }
+      const ri = itemOf(db, comp);
+      const holiday = ri.kind === 'holidayGift' ? opts.holiday : '';
+      // מי שכבר קיבל — מדולג (מתנת-חג: פר-חג ושנה עברית, כמו needsCare)
+      const targets = db.shopAssignments.filter(
+        (a) =>
+          a.productId === productId &&
+          a.status === 'active' &&
+          !assignmentRedeemed(a, componentId, holiday ? { iso: opts.date, name: holiday } : undefined),
+      );
+      if (targets.length === 0) {
+        get().toast('אין שיוכים פעילים שטרם קיבלו — אין מה לחלק');
+        return { ok: false, created: 0 };
+      }
+      // הכול-או-כלום (הכרעת בעלים, מהמנדט): מלאי לא מספיק ⇒ עצירה לפני כל
+      // כתיבה — שום מימוש חלקי
+      const rem = comp.itemId ? itemRemaining(db, comp.itemId) : null;
+      if (rem !== null && targets.length > rem) {
+        get().toast('חסרות ' + (targets.length - rem) + ' יחידות במלאי — החלוקה לא בוצעה');
+        return { ok: false, created: 0 };
+      }
+      // paid=0 קבוע בזרימה ההמונית — בלי אישורי S- (גבייה פרטנית = מימוש בודד);
+      // הבידוד נשמר: כתיבה ל-shopAssignments בלבד, אפס נגיעה במונים הכספיים
+      const value = comp.value ?? ri.value;
+      const ids = targets.map(() => get().nextId('shr'));
+      const targetIds = new Set(targets.map((t) => t.id));
+      setDb((cur) => ({
+        shopAssignments: cur.shopAssignments.map((a) => {
+          if (!targetIds.has(a.id)) return a;
+          const idx = targets.findIndex((t) => t.id === a.id);
+          return {
+            ...a,
+            redemptions: [
+              { id: ids[idx], componentId, date: opts.date, holiday, paid: 0, value, note: 'חלוקה המונית' },
+              ...a.redemptions,
+            ],
+          };
+        }),
+      }));
+      return { ok: true, created: targets.length };
+    },
+    addShopWait(itemId, famId, note) {
+      const it = get().db.shopItems.find((i) => i.id === itemId);
+      if (!it) {
+        get().toast('הפריט לא נמצא');
+        return false;
+      }
+      if ((it.waits ?? []).some((w) => w.famId === famId)) {
+        get().toast('המשפחה כבר ברשימת ההמתנה של הפריט');
+        return false;
+      }
+      setDb((db) => ({
+        shopItems: db.shopItems.map((i) =>
+          i.id === itemId ? { ...i, waits: [...(i.waits ?? []), { famId, date: isoToday(), note }] } : i,
+        ),
+      }));
+      return true;
+    },
+    removeShopWait(itemId, famId) {
+      setDb((db) => ({
+        shopItems: db.shopItems.map((i) =>
+          i.id === itemId ? { ...i, waits: (i.waits ?? []).filter((w) => w.famId !== famId) } : i,
+        ),
+      }));
     },
 
     // ── מעקב טיפול רב-שלבי ──
@@ -1521,7 +1866,7 @@ export const useApp = create<AppState>()((set, get) => {
       // אחרי הפענוח, כי watchAuth שמעדכן authReady לעולם לא רץ. cloud.enabled
       // כבר נקבע ב-init; כאן משלימים את החיבור בפועל (פעם אחת).
       const cfg = get().config;
-      if (cfg.firebase && !cloudMod) void connectCloud(cfg.firebase);
+      if (cfg.firebase && !cloudMod) void connectCloud(cfg.firebase, cfg);
       postLoad(db, false);
       return true;
     },

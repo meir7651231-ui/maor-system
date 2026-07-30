@@ -9,6 +9,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { nsLsKey } from '../../store/persist';
 import { featureOn, termOf } from '../../lib/config';
 import { Btn, Modal } from '../ui';
 
@@ -176,7 +177,7 @@ export function MoneyTimer({ onClose }: { onClose: () => void }) {
     // אם הקופה הרושמת פעילה — ממשיכים אליה עם הסכום מוכן (עודף + חשבונית).
     if (featureOn(config, 'core.cashbox')) {
       try {
-        sessionStorage.setItem('maor_cashbox_amount', String(amt));
+        sessionStorage.setItem(nsLsKey('maor_cashbox_amount'), String(amt));
       } catch {
         /* חסום */
       }

@@ -877,3 +877,22 @@ export function carouselItems(
   }
   return out.slice(0, 10);
 }
+
+/* ---------- מונה "דורש טיפול" של העמודות המבודדות (CONNECT חיבור 3) ---------- */
+
+import { needsCare as tzNeedsCare } from '../tzedaka/lib';
+import { needsCare as shopNeedsCare } from '../shop/lib';
+import { featureOn as featOn, moduleOn as modOn } from '../../lib/config';
+
+/**
+ * מונה פריטי-הטיפול של הקופות והחנות למסך הבית — **מונה-עם-קפיצה בלבד,
+ * אין פירוט פריטים במסך הבית** (חריג-תצוגה מבוקר, הכרעת בעלים). מגודר
+ * moduleOn + דגל home.crosscare; מודול/דגל כבויים ⇒ 0 (הצ'יפ לא מוצג).
+ */
+export function careCounts(db: Db, todayIso: string, config: OrgConfig): { tzedaka: number; shop: number } {
+  if (!featOn(config, 'home.crosscare')) return { tzedaka: 0, shop: 0 };
+  return {
+    tzedaka: modOn(config, 'tzedaka') ? tzNeedsCare(db, todayIso).length : 0,
+    shop: modOn(config, 'shop') ? shopNeedsCare(db, todayIso).length : 0,
+  };
+}

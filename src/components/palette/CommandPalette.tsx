@@ -14,6 +14,7 @@ import { normSearch } from '../../lib/validate';
 import { DEFAULT_LOCK_ZONES } from '../../lib/lock';
 import { groupPaletteResults } from '../../lib/paletteGroups';
 import { todaySessions } from '../home/homeData';
+import { beneficiaryLabel } from '../shop/lib';
 import { exportFamiliesCsv } from '../settings/ExportSection';
 
 /** פריט בר-הפעלה בפלטה: אייקון + כותרת + שורת משנה + פעולה. */
@@ -99,6 +100,9 @@ export function CommandPalette() {
   const punchOn = featureOn(config, 'courses.punch');
   const supportersOn = moduleOn(config, 'supporters');
   const calendarOn = moduleOn(config, 'calendar');
+  // העמודות המבודדות (CONNECT חיבור 1) — הפלטה מנווטת לעמודה; deep-link פנימי = שאלת מוצר עתידית
+  const tzedakaOn = moduleOn(config, 'tzedaka');
+  const shopOn = moduleOn(config, 'shop');
   const diaryOn = moduleOn(config, 'diary');
   const reportsOn = moduleOn(config, 'reports');
   const teachersOn = featureOn(config, 'settings.teachers');
@@ -614,6 +618,78 @@ export function CommandPalette() {
         },
       });
     }
+    // קופות צדקה (CONNECT חיבור 1) — רכזים בשם, קופות ב-#num; הפעולה: ניווט לעמודה
+    const tzCoordTerm = termOf(config, 'entity.tzCoordinator', 'רכז');
+    for (const c of tzedakaOn ? db.tzCoordinators : []) {
+      out.push({
+        key: 'tzc-' + c.id,
+        icon: '🪙',
+        title: c.name + ' — ' + tzCoordTerm,
+        sub: [c.phone].filter(Boolean).join(' · '),
+        terms: toTerms([c.name, tzCoordTerm, digits(c.phone), 'קופות צדקה']),
+        run: () => {
+          go('tzedaka');
+          setPalette(false);
+        },
+      });
+    }
+    const tzBoxTerm = termOf(config, 'entity.tzBox', 'קופה');
+    for (const b of tzedakaOn ? db.tzBoxes : []) {
+      const holder = db.families.find((f) => f.id === b.famId);
+      out.push({
+        key: 'tzb-' + b.id,
+        icon: '🪙',
+        title: '#' + b.num + ' — ' + tzBoxTerm,
+        sub: holder ? termOf(config, 'entity.familyOf', 'משפחת') + ' ' + holder.name : '',
+        terms: toTerms(['#' + b.num, b.num, tzBoxTerm, holder?.name, 'קופות צדקה']),
+        run: () => {
+          go('tzedaka');
+          setPalette(false);
+        },
+      });
+    }
+    // חנות (CONNECT חיבור 1) — חבילות, פריטים ושיוכים לפי שם משפחת המוטב
+    for (const p of shopOn ? db.shopProducts : []) {
+      out.push({
+        key: 'shp-' + p.id,
+        icon: '🛍',
+        title: p.name + ' — ' + termOf(config, 'entity.shopProduct', 'מוצר'),
+        sub: p.desc,
+        terms: toTerms([p.name, termOf(config, 'entity.shopProduct', 'מוצר'), 'חנות', 'חבילה']),
+        run: () => {
+          go('shop');
+          setPalette(false);
+        },
+      });
+    }
+    for (const i of shopOn ? db.shopItems : []) {
+      out.push({
+        key: 'shi-' + i.id,
+        icon: '📦',
+        title: i.name + ' — ' + termOf(config, 'entity.shopItem', 'פריט'),
+        sub: '',
+        terms: toTerms([i.name, termOf(config, 'entity.shopItem', 'פריט'), 'חנות', 'קטלוג']),
+        run: () => {
+          go('shop');
+          setPalette(false);
+        },
+      });
+    }
+    for (const a of shopOn ? db.shopAssignments : []) {
+      const who = beneficiaryLabel(db, a);
+      const prodName = db.shopProducts.find((p) => p.id === a.productId)?.name ?? '';
+      out.push({
+        key: 'sha-' + a.id,
+        icon: '🛍',
+        title: who + ' — ' + termOf(config, 'entity.shopAssignment', 'שיוך'),
+        sub: prodName,
+        terms: toTerms([who, prodName, termOf(config, 'entity.shopAssignment', 'שיוך'), 'חנות']),
+        run: () => {
+          go('shop');
+          setPalette(false);
+        },
+      });
+    }
     return out;
   }, [
     db,
@@ -627,6 +703,9 @@ export function CommandPalette() {
     supportersOn,
     famDocsOn,
     calendarOn,
+    tzedakaOn,
+    shopOn,
+    config,
     lockSecondary,
     lockZones,
     unlockedAdmin,

@@ -11,10 +11,10 @@
  */
 
 /** המסכים שהסיור עובר בהם — תת-קבוצה של View. */
-export type TourView = 'home' | 'families' | 'courses' | 'calendar' | 'settings';
+export type TourView = 'home' | 'families' | 'courses' | 'calendar' | 'tzedaka' | 'shop' | 'settings';
 
 /** מודול שמסתיר צעד כשהוא כבוי (בית/הגדרות — תמיד פעילים). */
-export type TourModule = 'families' | 'courses' | 'calendar';
+export type TourModule = 'families' | 'courses' | 'calendar' | 'tzedaka' | 'shop';
 
 export interface TourStep {
   /** המסך שהצעד מתרחש בו — הסיור מנווט אליו בפועל. */
@@ -46,6 +46,9 @@ export const TOUR_STEPS: TourStep[] = [
   { view: 'courses', module: 'courses', caption: '🎡 מאתר החוגים', anchorText: 'מצא חוג' },
   { view: 'courses', module: 'courses', caption: 'חיזוי חוגים: רק תואמי גיל ומגדר' },
   { view: 'calendar', module: 'calendar', caption: '📅 עברי + לועזי · שכבות סינון' },
+  // העמודות המבודדות (CONNECT חיבור 5) — צעד לכל עמודה, מגודר במודול שלה
+  { view: 'tzedaka', module: 'tzedaka', caption: '🪙 קופות צדקה — רכזים, קופות בבתים, ריקונים ומבצעים' },
+  { view: 'shop', module: 'shop', caption: '🛍 החנות — חבילות שירות, מלאי משותף ומימושים עם אישור' },
   { view: 'settings', caption: '⚙ ארגון, התראות, דוחות, מנוע אמינות' },
   { view: 'home', caption: 'ובחזרה הביתה — הכל התעדכן' },
   { view: 'home', caption: 'זו המערכת. חיה, מלאה, במקום אחד ✦' },

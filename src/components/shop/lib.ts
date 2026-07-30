@@ -6,9 +6,11 @@
  * supporters/enrollments. Reuse טהור: holidayOf/hebParts מ-lib/hebrew,
  * isoOf מ-calLib (lib→lib מותר).
  */
-import type { Db, Id, IsoDate, ShopAssignment, ShopComponent, ShopCriterion, ShopProduct, ShopRedemption } from '../../types/domain';
+import type { Db, Id, IsoDate, ShopAssignment, ShopAssignmentStatus, ShopComponent, ShopCriterion, ShopIntake, ShopItem, ShopProduct, ShopRedemption } from '../../types/domain';
 import { isoOf } from '../calendar/calLib';
 import { hebParts, holidayOf } from '../../lib/hebrew';
+import { smartFilter } from '../../lib/search';
+import { dateInRange } from '../../lib/date-util';
 
 /* ---------- מימושים חיים ---------- */
 
@@ -20,6 +22,79 @@ import { hebParts, holidayOf } from '../../lib/hebrew';
  */
 export function liveRedemptions(a: ShopAssignment): ShopRedemption[] {
   return a.redemptions.filter((r) => !r.voidedAt);
+}
+
+/* ---------- פריטי קטלוג (SHOP4, הכרעה 18) ---------- */
+
+/** רכיב-בחבילה מפוענח — הפריט + דריסות הרכיב (value/basePrice בלבד). */
+export interface ResolvedItem {
+  itemId: Id;
+  name: string;
+  kind: ShopComponent['kind'];
+  storeId: Id | '';
+  value: number;
+  basePrice: number;
+  stock?: number;
+  validDays?: number;
+  holidays?: string[];
+  active: boolean;
+}
+
+/**
+ * פענוח רכיב לפריט שלו + דריסות. רכיב טרום-מיגרציה (itemId ריק/מצביע
+ * שבור) נופל לשדות-התאימות של הרכיב עצמו — אין קריסה על נתונים ישנים.
+ */
+export function itemOf(db: Db, comp: ShopComponent): ResolvedItem {
+  const item = db.shopItems.find((i) => i.id === comp.itemId);
+  if (!item) {
+    return {
+      itemId: comp.itemId,
+      name: comp.label,
+      kind: comp.kind,
+      storeId: comp.storeId,
+      value: comp.value ?? 0,
+      basePrice: comp.basePrice ?? 0,
+      stock: comp.stock,
+      validDays: comp.validDays,
+      active: true,
+    };
+  }
+  return {
+    itemId: item.id,
+    name: item.name,
+    kind: item.kind,
+    storeId: item.storeId,
+    value: comp.value ?? item.value,
+    basePrice: comp.basePrice ?? item.basePrice,
+    stock: item.stock,
+    validDays: item.validDays,
+    holidays: item.holidays,
+    active: item.active,
+  };
+}
+
+/** האם החג רלוונטי לפריט מתנת-חג — ריק/חסר = כל החגים (הכרעה 17). */
+export function holidayAllowed(ri: { holidays?: string[] }, holidayName: string): boolean {
+  return !ri.holidays?.length || ri.holidays.includes(holidayName);
+}
+
+/**
+ * הנותר במלאי של פריט — לב הכרעה 18: מלאי הפריט פחות **כל** המימושים
+ * החיים של רכיבים המצביעים עליו בכל החבילות. null = ללא מעקב.
+ */
+export function itemRemaining(db: Db, itemId: Id): number | null {
+  const item = db.shopItems.find((i) => i.id === itemId);
+  if (!item || item.stock === undefined) return null;
+  let used = 0;
+  for (const a of db.shopAssignments) {
+    const p = db.shopProducts.find((x) => x.id === a.productId);
+    if (!p) continue;
+    for (const r of liveRedemptions(a)) {
+      const c = p.components.find((x) => x.id === r.componentId);
+      if (c?.itemId === itemId) used++;
+    }
+  }
+  return Math.max(0, item.stock - used);
 }
 
 /* ---------- מחיר אפקטיבי ---------- */
@@ -63,6 +138,30 @@ export function upcomingHolidays(fromIso: IsoDate, days = 45): { iso: IsoDate; n
       out.push({ iso: isoOf(d), name });
     }
   }
+  return out;
+}
+
+let holidayNamesCache: string[] | null = null;
+
+/**
+ * כל שמות החגים הייחודיים — סריקת שנה עברית מלאה (400 יום מעוגן קבוע,
+ * דטרמיניסטי) עם holidayOf; ממורש ברמת המודול (הרשימה קבועה). לבורר
+ * החגים של מתנת-חג (הכרעה 17).
+ */
+export function holidayNames(): string[] {
+  if (holidayNamesCache) return holidayNamesCache;
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const start = new Date('2026-01-01T12:00:00');
+  for (let i = 0; i < 400; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    const name = holidayOf(d);
+    if (name && !seen.has(name)) {
+      seen.add(name);
+      out.push(name);
+    }
+  }
+  holidayNamesCache = out;
   return out;
 }
 
@@ -117,7 +216,7 @@ export function componentRemaining(
  * תאריך פקיעת קופון — '' כשאין validDays (או 0) או שאין לשיוך since.
  * הפקיעה = since + validDays; יום הגבול עצמו עדיין בתוקף (פג רק למחרת).
  */
-export function couponExpiry(a: ShopAssignment, comp: ShopComponent): IsoDate | '' {
+export function couponExpiry(a: ShopAssignment, comp: { validDays?: number }): IsoDate | '' {
   if (!comp.validDays || !a.since) return '';
   const d = new Date(a.since + 'T12:00:00');
   d.setDate(d.getDate() + comp.validDays);
@@ -127,7 +226,7 @@ export function couponExpiry(a: ShopAssignment, comp: ShopComponent): IsoDate | 
 /* ---------- דורש טיפול ---------- */
 
 export interface ShopCareItem {
-  kind: 'holidayDue' | 'meetingPending' | 'couponPending' | 'couponExpired' | 'stockOut';
+  kind: 'holidayDue' | 'meetingPending' | 'couponPending' | 'couponExpired' | 'stockOut' | 'restock' | 'waitingRestocked';
   assignmentId: Id;
   componentId: Id;
   label: string;
@@ -150,9 +249,46 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
   const coupons: ShopCareItem[] = [];
   const expired: ShopCareItem[] = [];
   const stock: ShopCareItem[] = [];
+  // מלאי משותף (הכרעה 18): התרעת אזל פר-פריט — הנותר נספר על-פני כל החבילות
+  for (const item of db.shopItems) {
+    if (!item.active) continue;
+    const rem = itemRemaining(db, item.id);
+    if (rem === 0) {
+      stock.push({
+        kind: 'stockOut',
+        assignmentId: '',
+        componentId: item.id,
+        label: item.name + ' — המלאי אזל',
+        hint: 'לחדש מלאי או לעדכן את הפריט',
+      });
+    } else if (item.minStock != null && rem !== null && rem < item.minStock) {
+      // מלאי מינימום (SHOP6 חנות 25): מתחת לסף — "להצטייד" לפני שאוזל
+      stock.push({
+        kind: 'restock',
+        assignmentId: '',
+        componentId: item.id,
+        label: item.name + ' — המלאי נמוך',
+        hint: 'להצטייד: נותרו ' + rem + ' מתחת ל-' + item.minStock,
+      });
+    }
+    // רשימת המתנה (SHOP6 חנות 27): ממתינים + מלאי חזר (>0 או בלי-מעקב) —
+    // הגיע הזמן לחלק; במלאי 0 אין התרעה (עדיין אין מה לתת)
+    const waiting = item.waits ?? [];
+    if (waiting.length > 0 && rem !== 0) {
+      stock.push({
+        kind: 'waitingRestocked',
+        assignmentId: '',
+        componentId: item.id,
+        label: waiting.length + ' ממתינים ל' + item.name,
+        hint: 'המלאי חזר — אפשר לחלק לרשימת ההמתנה',
+      });
+    }
+  }
+  // תאימות לנתונים טרום-מיגרציה: רכיב בלי itemId עם מלאי משלו
   for (const p of db.shopProducts) {
     if (!p.active) continue;
     for (const comp of p.components) {
+      if (comp.itemId) continue;
       const rem = componentRemaining(comp.id, p.id, db.shopAssignments, comp.stock);
       if (rem === 0) {
         stock.push({
@@ -171,34 +307,37 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
     if (!product) continue;
     const who = beneficiaryLabel(db, a);
     for (const comp of product.components) {
-      if (comp.kind === 'holidayGift') {
+      const ri = itemOf(db, comp);
+      if (ri.kind === 'holidayGift') {
         for (const h of holidays) {
+          // חגים נבחרים (הכרעה 17): "מה מגיע" רק לחגים שסומנו על הפריט
+          if (!holidayAllowed(ri, h.name)) continue;
           if (!assignmentRedeemed(a, comp.id, h)) {
             due.push({
               kind: 'holidayDue',
               assignmentId: a.id,
               componentId: comp.id,
-              label: who + ' — ' + comp.label,
+              label: who + ' — ' + ri.name,
               hint: h.name + ' ב-' + h.iso + ' — טרם נמסרה',
             });
           }
         }
-      } else if (comp.kind === 'meeting' && !assignmentRedeemed(a, comp.id)) {
+      } else if (ri.kind === 'meeting' && !assignmentRedeemed(a, comp.id)) {
         meetings.push({
           kind: 'meetingPending',
           assignmentId: a.id,
           componentId: comp.id,
-          label: who + ' — ' + comp.label,
+          label: who + ' — ' + ri.name,
           hint: 'פגישת ליווי טרם התקיימה',
         });
-      } else if (comp.kind === 'coupon' && !assignmentRedeemed(a, comp.id)) {
-        const expiry = couponExpiry(a, comp);
+      } else if (ri.kind === 'coupon' && !assignmentRedeemed(a, comp.id)) {
+        const expiry = couponExpiry(a, ri);
         if (expiry && expiry < todayIso) {
           expired.push({
             kind: 'couponExpired',
             assignmentId: a.id,
             componentId: comp.id,
-            label: who + ' — ' + comp.label,
+            label: who + ' — ' + ri.name,
             hint: 'הקופון פג בתוקף ב-' + expiry + ' וטרם מומש',
           });
         } else {
@@ -206,7 +345,7 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
             kind: 'couponPending',
             assignmentId: a.id,
             componentId: comp.id,
-            label: who + ' — ' + comp.label,
+            label: who + ' — ' + ri.name,
             hint: expiry ? 'קופון טרם מומש · בתוקף עד ' + expiry : 'קופון טרם מומש',
           });
         }
@@ -215,6 +354,37 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
   }
   return [...due, ...meetings, ...coupons, ...expired, ...stock];
 }
+
+/* ---------- פגישות קרובות (חנות 23, הכרעה 22) ---------- */
+
+/**
+ * הפגישות הקרובות — אירועי meeting פתוחים (done=false) בטווח הימים
+ * (ברירת מחדל 2 = היום ומחר), ממוינים תאריך+שעה (בלי שעה — לסוף היום),
+ * עם שם המוטב ושם החדר. משטח התזכורות של העמודה (אין תשתית push —
+ * לא ממציאים).
+ */
+export function upcomingMeetings(
+  db: Db,
+  todayIso: IsoDate,
+  days = 2,
+): { ev: ShopEventLike; who: string; roomName: string }[] {
+  const end = new Date(todayIso + 'T12:00:00');
+  end.setDate(end.getDate() + days - 1);
+  const endIso = isoOf(end);
+  return db.shopEvents
+    .filter((e) => e.kind === 'meeting' && !e.done && e.date >= todayIso && e.date <= endIso)
+    .sort((x, y) => (x.date + '·' + (x.time || '99:99')).localeCompare(y.date + '·' + (y.time || '99:99')))
+    .map((ev) => {
+      const a = db.shopAssignments.find((x) => x.id === ev.assignmentId);
+      return {
+        ev,
+        who: a ? beneficiaryLabel(db, a) : ev.title,
+        roomName: ev.roomId ? (db.rooms.find((r) => r.id === ev.roomId)?.name ?? '') : '',
+      };
+    });
+}
+
+type ShopEventLike = Db['shopEvents'][number];
 
 /* ---------- סכומים ---------- */
 
@@ -240,6 +410,200 @@ export function subsidyTotal(assignments: readonly ShopAssignment[]): number {
 /** השיוכים של מוצר נתון. */
 export function productAssignments(assignments: readonly ShopAssignment[], productId: Id): ShopAssignment[] {
   return assignments.filter((a) => a.productId === productId);
+}
+
+/* ---------- חיפוש/סינון/מיון (UX סינון 2) — טהור, smartFilter הקיים ---------- */
+
+/** כמה רכיבים בשיוך עדיין ממתינים (לא-מומשים; מבוטל = ממתין). */
+function pendingCount(db: Db, a: ShopAssignment): number {
+  const product = db.shopProducts.find((p) => p.id === a.productId);
+  if (!product) return 0;
+  return product.components.filter((c) => !assignmentRedeemed(a, c.id)).length;
+}
+
+/** התקדמות המימוש 0..1 (בלי רכיבים = 1 — אין מה לממש). */
+function progressOf(db: Db, a: ShopAssignment): number {
+  const product = db.shopProducts.find((p) => p.id === a.productId);
+  const total = product?.components.length ?? 0;
+  if (!total) return 1;
+  return (total - pendingCount(db, a)) / total;
+}
+
+/**
+ * סינון+מיון השיוכים: q על שם המשפחה/החבילה (smartFilter); 'pending'
+ * (ברירת המחדל) = יש-רכיב-ממתין קודם, ובתוכם since עולה — הכי-ותיק-ממתין
+ * ראשון; ממומש-כולו אחרון.
+ */
+export function filterAssignments(
+  db: Db,
+  q: string,
+  status: ShopAssignmentStatus | '',
+  pendingOnly: boolean,
+  productId: Id | '',
+  sort: 'pending' | 'name' | 'progress',
+): ShopAssignment[] {
+  let list = [...db.shopAssignments];
+  if (status) list = list.filter((a) => a.status === status);
+  if (productId) list = list.filter((a) => a.productId === productId);
+  if (pendingOnly) list = list.filter((a) => pendingCount(db, a) > 0);
+  list = smartFilter(q, list, (a) => {
+    const fam = db.families.find((f) => f.id === a.famId);
+    const product = db.shopProducts.find((p) => p.id === a.productId);
+    return [fam?.name ?? '', ...(fam?.name.split(/\s+/) ?? []), product?.name ?? ''];
+  });
+  const famName = (a: ShopAssignment) => db.families.find((f) => f.id === a.famId)?.name ?? '';
+  const cmp: Record<typeof sort, (a: ShopAssignment, b: ShopAssignment) => number> = {
+    pending: (a, b) => {
+      const pa = pendingCount(db, a) > 0 ? 0 : 1;
+      const pb = pendingCount(db, b) > 0 ? 0 : 1;
+      if (pa !== pb) return pa - pb; // ממתינים קודם; ממומש-כולו אחרון
+      return (a.since || '9999').localeCompare(b.since || '9999'); // הכי-ותיק-ממתין ראשון
+    },
+    name: (a, b) => famName(a).localeCompare(famName(b), 'he'),
+    progress: (a, b) => progressOf(db, a) - progressOf(db, b),
+  };
+  return list.sort(cmp[sort]);
+}
+
+/** סינון החבילות בקטלוג — q על שם/תיאור; פעילות בלבד (רשות). */
+export function filterProducts(
+  products: readonly ShopProduct[],
+  q: string,
+  onlyActive: boolean,
+): ShopProduct[] {
+  const base = onlyActive ? products.filter((p) => p.active) : [...products];
+  return smartFilter(q, base, (p) => [p.name, p.desc]);
+}
+
+/**
+ * סינון הפריטים — q על השם; מצב מלאי: out=אזל · low=נמוך (≤2, כשיש מעקב)
+ * · untracked=ללא מעקב.
+ */
+export function filterItems(db: Db, q: string, stockState: '' | 'out' | 'low' | 'untracked'): ShopItem[] {
+  let list = [...db.shopItems];
+  if (stockState) {
+    list = list.filter((i) => {
+      const rem = itemRemaining(db, i.id);
+      if (stockState === 'untracked') return rem === null;
+      if (stockState === 'out') return rem === 0;
+      return rem !== null && rem > 0 && rem <= 2; // low
+    });
+  }
+  return smartFilter(q, list, (i) => [i.name, ...i.name.split(/\s+/)]);
+}
+
+/** סינון מימושי שיוך — טווח כוללני (dateInRange המשותף); includeVoided=true (ברירת שקיפות). */
+export function filterRedemptions(
+  a: ShopAssignment,
+  fromIso: IsoDate | '',
+  toIso: IsoDate | '',
+  includeVoided: boolean,
+): ShopRedemption[] {
+  return a.redemptions.filter(
+    (r) => dateInRange(r.date, fromIso, toIso) && (includeVoided || !r.voidedAt),
+  );
+}
+
+/* ---------- מלאי נכנס — קליטות (SHOP6 חנות 25) ---------- */
+
+/** שורת יומן-קליטות עם שם הפריט פתור — לתצוגה ב-IntakePanel. */
+export interface IntakeRow {
+  intake: ShopIntake;
+  itemName: string;
+}
+
+/**
+ * יומן הקליטות — חדש-ראשון (תאריך יורד, שוויון = סדר ההזנה שכבר חדש-ראשון)
+ * + סה"כ עלויות (תרומות-בעין = 0, לא מוסיפות).
+ */
+export function intakeLog(db: Db): { rows: IntakeRow[]; totalCost: number } {
+  const rows = db.shopIntakes
+    .map((intake) => ({ intake, itemName: db.shopItems.find((i) => i.id === intake.itemId)?.name ?? '—' }))
+    .sort((a, b) => b.intake.date.localeCompare(a.intake.date));
+  return { rows, totalCost: rows.reduce((s, r) => s + r.intake.cost, 0) };
+}
+
+/* ---------- חלוקה המונית (SHOP6 חנות 26) ---------- */
+
+/** מועמדת לשיוך המוני — משפחה זכאית עם בני-הבית לבחירה אופציונלית. */
+export interface EligibleFamily {
+  famId: Id;
+  name: string;
+  memberIds: Id[];
+}
+
+/**
+ * המשפחות הזכאיות לשיוך המוני: משפחות פעילות שיש להן — ברמת שיוך קיים
+ * כלשהו — את **כל** הקריטריונים שנבחרו (איחוד על-פני השיוכים), או כל
+ * המשפחות הפעילות כשלא נבחר קריטריון. מסונן ממי שכבר מחזיקה שיוך active
+ * לאותה חבילה (אין כפל).
+ */
+export function eligibleFamilies(db: Db, criterionIds: Id[], excludeProductId: Id): EligibleFamily[] {
+  return db.families
+    .filter((f) => f.status === 'active')
+    .filter((f) => {
+      const theirs = db.shopAssignments.filter((a) => a.famId === f.id);
+      if (theirs.some((a) => a.productId === excludeProductId && a.status === 'active')) return false;
+      if (criterionIds.length === 0) return true;
+      const held = new Set(theirs.flatMap((a) => a.criterionIds));
+      return criterionIds.every((c) => held.has(c));
+    })
+    .map((f) => ({ famId: f.id, name: f.name, memberIds: f.members.map((m) => m.id) }));
+}
+
+/**
+ * רשימת חלוקה מודפסת לחבילה — משפחה, כתובת, טלפון, רכיבים, עמודת "☐ נמסר".
+ * שיוכים active בלבד; דפוס תדפיס-הרכז מ-CONNECT (downloadText ב-UI).
+ */
+export function distributionListLines(db: Db, productId: Id): string[] {
+  const product = db.shopProducts.find((p) => p.id === productId);
+  const lines = ['רשימת חלוקה — ' + (product?.name ?? ''), '='.repeat(30)];
+  const active = db.shopAssignments.filter((a) => a.productId === productId && a.status === 'active');
+  for (const a of active) {
+    const fam = db.families.find((f) => f.id === a.famId);
+    const comps = (product?.components ?? []).map((c) => itemOf(db, c).name).filter(Boolean).join(' + ');
+    lines.push(
+      [
+        beneficiaryLabel(db, a),
+        fam ? [fam.address, fam.city].filter(Boolean).join(', ') : '',
+        fam?.phone ?? '',
+        comps,
+        '☐ נמסר',
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    );
+  }
+  if (active.length === 0) lines.push('אין שיוכים פעילים לחבילה');
+  return lines;
+}
+
+/* ---------- ייצוא (CONNECT חיבור 6) ---------- */
+
+/**
+ * שורות CSV של כל המימושים — תאריך, מוטב, פריט, חבילה, שולם, שווי, אישור,
+ * מבוטל. **מבוטל מסומן ולא מוסתר** — שקיפות מלאה בייצוא.
+ */
+export function redemptionsCsvRows(db: Db): (string | number)[][] {
+  const rows: (string | number)[][] = [['תאריך', 'מוטב', 'פריט', 'חבילה', 'שולם', 'שווי', 'אישור', 'מבוטל']];
+  for (const a of db.shopAssignments) {
+    const product = db.shopProducts.find((p) => p.id === a.productId);
+    const who = beneficiaryLabel(db, a);
+    for (const r of a.redemptions) {
+      const comp = product?.components.find((c) => c.id === r.componentId);
+      rows.push([
+        r.date,
+        who,
+        comp ? itemOf(db, comp).name : '',
+        product?.name ?? '',
+        r.paid,
+        r.value,
+        r.rid ?? '',
+        r.voidedAt ? 'בוטל ב-' + r.voidedAt : '',
+      ]);
+    }
+  }
+  return rows;
 }
 
 /* ---------- תוויות ---------- */

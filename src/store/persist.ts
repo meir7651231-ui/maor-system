@@ -60,10 +60,22 @@ const SNAPSHOT_KEEP = 30;
  */
 export function setPersistNamespace(slug: string): void {
   if (!slug || slug === 'default') return;
+  nsSlug = slug;
   LS_KEY = `maor_db:${slug}`;
   LS_CORRUPT_KEY = `maor_db_corrupt:${slug}`;
   IDB_NAME = `maor:${slug}`;
   idb = null; // חיבור קודם (אם נפתח) מצביע ל-DB הלא נכון
+}
+
+let nsSlug = '';
+
+/**
+ * מפתח localStorage/sessionStorage ממורחב-שמות — אותו כלל בדיוק כמו LS_KEY:
+ * default = המפתח הישן; אחרת `${base}:${slug}`. (CONNECT חיבור 7 — הקופה
+ * הרושמת; שאר מפתחות באג-3 נשארים שם, חלקם מקומיים-במכוון.)
+ */
+export function nsLsKey(base: string): string {
+  return nsSlug ? `${base}:${nsSlug}` : base;
 }
 
 let idb: Promise<IDBPDatabase> | null = null;
@@ -143,11 +155,14 @@ export function migrate(raw: unknown): Db | null {
     tzCampaigns: Array.isArray(db.tzCampaigns) ? db.tzCampaigns : [],
     tzEvents: Array.isArray(db.tzEvents) ? db.tzEvents : [],
     // חנות מוצרי-שירות (מודול shop) — תוספת אדיטיבית, DB_VERSION נשאר 5
+    shopItems: Array.isArray(db.shopItems) ? db.shopItems : [],
     shopProducts: Array.isArray(db.shopProducts) ? db.shopProducts : [],
     shopStores: Array.isArray(db.shopStores) ? db.shopStores : [],
     shopCriteria: Array.isArray(db.shopCriteria) ? db.shopCriteria : [],
     shopAssignments: Array.isArray(db.shopAssignments) ? db.shopAssignments : [],
     shopEvents: Array.isArray(db.shopEvents) ? db.shopEvents : [],
+    // SHOP6: יומן קליטות — תוספת אדיטיבית (גיבוי ישן = מערך ריק)
+    shopIntakes: Array.isArray(db.shopIntakes) ? db.shopIntakes : [],
     notif: { ...base.notif, ...db.notif },
     reports: { ...base.reports, ...db.reports },
     ui: { ...base.ui, ...db.ui },
@@ -258,6 +273,52 @@ export function migrate(raw: unknown): Db | null {
       return out;
     }),
   }));
+  // פריטי קטלוג — ריפוי: holidays לא-מערך → מוסר (= כל החגים);
+  // waits לא-מערך → מוסר (= אין ממתינים; SHOP6 חנות 27)
+  merged.shopItems = merged.shopItems.map((i) => {
+    let out = i;
+    if (out.holidays !== undefined && !Array.isArray(out.holidays)) {
+      const { holidays: _dropHol, ...rest } = out;
+      out = rest;
+    }
+    if (out.waits !== undefined && !Array.isArray(out.waits)) {
+      const { waits: _dropWaits, ...rest } = out;
+      out = rest;
+    }
+    return out;
+  });
+  // SHOP4 (הכרעה 18): רכיבים→פריטים — כל רכיב בלי itemId מוליד ShopItem
+  // מנתוניו; המלאי/התוקף עוברים לפריט (מקור-אמת יחיד) והרכיב הופך מצביע
+  // בלי דריסות. דטרמיניסטי וחד-פעמי: רכיב עם itemId לא נוגעים —
+  // כפל-ריצה לא יוצר פריטים כפולים. המימושים ממשיכים להיספר (componentId
+  // לא משתנה), כך שהמלאי הנותר נשמר בדיוק.
+  merged.shopProducts = merged.shopProducts.map((p) => {
+    if (!p.components.some((c) => !c.itemId)) return p;
+    return {
+      ...p,
+      components: p.components.map((c) => {
+        if (c.itemId) return c;
+        const itemId = 'shi' + merged.seq++;
+        merged.shopItems = [
+          ...merged.shopItems,
+          {
+            id: itemId,
+            name: c.label || 'פריט',
+            kind: c.kind,
+            storeId: c.storeId || '',
+            value: typeof c.value === 'number' && Number.isFinite(c.value) ? c.value : 0,
+            basePrice: typeof c.basePrice === 'number' && Number.isFinite(c.basePrice) ? c.basePrice : 0,
+            ...(c.stock !== undefined ? { stock: c.stock } : {}),
+            ...(c.validDays !== undefined ? { validDays: c.validDays } : {}),
+            active: true,
+            notes: '',
+          },
+        ];
+        const { stock: _mvStock, validDays: _mvDays, value: _mvVal, basePrice: _mvBase, ...rest } = c;
+        return { ...rest, itemId };
+      }),
+    };
+  });
   const SHOP_STATUSES = ['active', 'done', 'stopped'];
   // ייחודיות אישורי S- — אותו דפוס כמו seenR/seenD (מרוץ בין-מכשירי)
   const seenS = new Set<string>();

@@ -10,6 +10,7 @@
  */
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import {
+  createUserWithEmailAndPassword,
   getAuth,
   onAuthStateChanged,
   sendPasswordResetEmail,
@@ -35,7 +36,7 @@ import {
 import type { FirebaseOrgConfig } from '../types/config';
 import { DB_VERSION, type Db } from '../types/domain';
 import { migrate } from '../store/persist';
-import { ENTITY_COLLECTIONS, type DbDiff } from './cloud-diff';
+import { ENTITY_COLLECTIONS, colPath, metaPath, type DbDiff } from './cloud-diff';
 
 // ה-diff עצמו טהור וחי ב-cloud-diff.ts (כדי שהבדיקות לא ייגעו ב-firebase) —
 // יצוא-מחדש כאן משלים את ה-API של מנוע הענן.
@@ -50,6 +51,26 @@ export interface CloudUser {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let fsDb: Firestore | null = null;
+
+/**
+ * תחום הארגון (CLOUD2 ענן 1) — קובע את נתיבי האוספים. ברירת המחדל הבטוחה:
+ * נתיבי-שורש (ביט-זהה להיום) — כך שגם אם setCloudScope לא נקרא, הלקוח
+ * הקיים לא מושפע. ארגון-פלטפורמה מקבל orgs/{slug}/ דרך setCloudScope.
+ */
+let scope: { slug: string; cloudRoot: boolean } = { slug: 'default', cloudRoot: true };
+
+/** קביעת תחום הארגון — נקרא מ-connectCloud עם ה-config הטעון. */
+export function setCloudScope(slug: string, cloudRoot: boolean): void {
+  scope = { slug, cloudRoot };
+}
+
+/** נתיב אוסף/מטא בתחום הנוכחי — עטיפות דקות על ה-helpers הטהורים. */
+function scopedCol(col: string): string {
+  return colPath(scope.slug, scope.cloudRoot, col);
+}
+function scopedMeta(): string {
+  return metaPath(scope.slug, scope.cloudRoot);
+}
 
 /** אתחול חד-פעמי (idempotent) — קריאה חוזרת מחזירה את אותם singletons. */
 export function initCloud(fb: FirebaseOrgConfig): { auth: Auth; db: Firestore } {
@@ -76,6 +97,11 @@ function requireAuth(): Auth {
 function requireDb(): Firestore {
   if (!fsDb) throw new Error('הענן לא אותחל — פנו למנהל המערכת');
   return fsDb;
+}
+
+/** ה-Firestore המאותחל — ל-cloudConfig (CLOUD2); זורק בעברית כשהענן לא אותחל. */
+export function cloudDb(): Firestore {
+  return requireDb();
 }
 
 /** מיפוי קודי שגיאה של Firebase Auth להודעות בעברית. */
@@ -115,6 +141,24 @@ export async function signIn(email: string, password: string): Promise<void> {
   }
 }
 
+/**
+ * הרשמה עצמית (CLOUD2 ענן 3) — יוצרת משתמש Auth ומחזירה את ה-uid; המשתמש
+ * מחובר אך לא רואה כלום עד שהבעלים מאשר (שער החברות). שגיאות בעברית.
+ */
+export async function signUp(email: string, password: string): Promise<string> {
+  try {
+    const cred = await createUserWithEmailAndPassword(requireAuth(), email, password);
+    return cred.user.uid;
+  } catch (e) {
+    const code = ((e as { code?: string } | null)?.code ?? '').toString();
+    if (code === 'auth/email-already-in-use') throw new Error('האימייל כבר רשום — נסו להתחבר או לאפס סיסמה');
+    if (code === 'auth/weak-password') throw new Error('הסיסמה חלשה מדי — לפחות 6 תווים');
+    if (code === 'auth/invalid-email') throw new Error('כתובת האימייל אינה תקינה');
+    if (code === 'auth/operation-not-allowed') throw new Error('ההרשמה סגורה כרגע — פנו למנהל המערכת');
+    throw hebrewAuthError(e);
+  }
+}
+
 export async function signOutCloud(): Promise<void> {
   try {
     await signOut(requireAuth());
@@ -145,14 +189,14 @@ export async function pushDiff(diff: DbDiff): Promise<void> {
   const db = requireDb();
   const ops: Array<(b: WriteBatch) => void> = [];
   for (const s of diff.sets) {
-    ops.push((b) => b.set(doc(db, s.col, s.id), toPlain(s.data)));
+    ops.push((b) => b.set(doc(db, scopedCol(s.col), s.id), toPlain(s.data)));
   }
   for (const d of diff.deletes) {
-    ops.push((b) => b.delete(doc(db, d.col, d.id)));
+    ops.push((b) => b.delete(doc(db, scopedCol(d.col), d.id)));
   }
   if (diff.meta) {
     const meta = diff.meta;
-    ops.push((b) => b.set(doc(db, 'meta', 'org'), toPlain(meta)));
+    ops.push((b) => b.set(doc(db, scopedMeta()), toPlain(meta)));
   }
   for (let i = 0; i < ops.length; i += 400) {
     const batch = writeBatch(db);
@@ -167,11 +211,11 @@ export async function pushDiff(diff: DbDiff): Promise<void> {
  */
 export async function pullAll(): Promise<Db | null> {
   const db = requireDb();
-  const metaSnap = await getDoc(doc(db, 'meta', 'org'));
+  const metaSnap = await getDoc(doc(db, scopedMeta()));
   if (!metaSnap.exists()) return null;
   const raw: Record<string, unknown> = { ...metaSnap.data(), v: DB_VERSION };
   const snaps = await Promise.all(
-    ENTITY_COLLECTIONS.map((col) => getDocs(collection(db, col))),
+    ENTITY_COLLECTIONS.map((col) => getDocs(collection(db, scopedCol(col)))),
   );
   ENTITY_COLLECTIONS.forEach((col, i) => {
     raw[col] = snaps[i].docs.map((d) => ({ ...d.data(), id: d.id }));
@@ -196,7 +240,7 @@ export function subscribeAll(
   const db = requireDb();
   const unsubs = ENTITY_COLLECTIONS.map((col) =>
     onSnapshot(
-      collection(db, col),
+      collection(db, scopedCol(col)),
       (snap) => {
         if (snap.metadata.hasPendingWrites) return;
         const docs = snap
@@ -209,7 +253,7 @@ export function subscribeAll(
   );
   unsubs.push(
     onSnapshot(
-      doc(db, 'meta', 'org'),
+      doc(db, scopedMeta()),
       (snap) => {
         if (snap.metadata.hasPendingWrites || !snap.exists()) return;
         onRemote({ meta: snap.data() });

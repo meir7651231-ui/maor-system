@@ -117,6 +117,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'home.punchlow', label: 'ווידג\'ט: מלאי כרטיסיות', desc: 'כרטיסיות עם יתרה נמוכה', module: 'home' },
   { key: 'home.quick', label: 'ווידג\'ט: פעולות מהירות', desc: 'פאנל הפעולות המהירות במסך הבית', module: 'home' },
 
+  { key: 'home.crosscare', label: 'מונה טיפול מהעמודות', desc: 'צ\'יפי "🪙 קופות: N" / "🛍 חנות: M" בווידג\'ט הטיפול — מונה-עם-קפיצה בלבד, בלי פירוט', module: 'home' },
   // ——— דוחות (סעיף לכל סוג דוח — עצמאי לחלוטין) ———
   { key: 'reports.enroll', label: 'דוח רישום לחוגים', desc: 'סעיף סיכום הרישום, התפוסה וההכנסות', module: 'reports' },
   { key: 'reports.attendance', label: 'דוח נוכחות', desc: 'סעיף הנוכחות והחיסורים', module: 'reports' },
@@ -133,6 +134,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'tzedaka.showcase', label: 'מסך ראווה', desc: 'תצוגת ראווה של המבצע והרכזים המובילים למסך גדול', module: 'tzedaka' },
   { key: 'tzedaka.calendar', label: 'לוח ייעודי', desc: 'לוח שנה פנימי לסבבי ריקון, מבצעים ותזכורות (מבודד מהלוח הראשי)', module: 'tzedaka' },
   { key: 'tzedaka.inlinecreate', label: 'הוספת לא-רשומים', desc: 'יצירת משפחה חדשה או ילד/הורה חדש ישירות מתוך העמודה', module: 'tzedaka' },
+  { key: 'tzedaka.familypanel', label: 'פאנל בכרטיס המשפחה', desc: 'קופות שהמשפחה מחזיקה ורכזים בני הבית — תצוגה בלבד בכרטיס המשפחה', module: 'tzedaka' },
+  { key: 'tzedaka.export', label: 'תדפיס וייצוא', desc: 'תדפיס רכז לסבב שטח + ייצוא CSV של כל הריקונים', module: 'tzedaka' },
 
   // ——— חנות מוצרי-שירות ———
   { key: 'shop.stores', label: 'חנויות שותפות', desc: 'ניהול חנויות שותפות וקופונים לרכישה מסובסדת', module: 'shop' },
@@ -140,6 +143,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'shop.calendar', label: 'לוח ייעודי', desc: 'לוח פנימי לפגישות, מסירות וחגים קרובים (מבודד מהלוח הראשי)', module: 'shop' },
   { key: 'shop.showcase', label: 'מסך ראווה', desc: 'תצוגת הקטלוג וסיכומי הנתינה למסך גדול', module: 'shop' },
   { key: 'shop.inlinecreate', label: 'הוספת לא-רשומים', desc: 'יצירת משפחה/בן-משפחה חדשים ישירות מתוך העמודה', module: 'shop' },
+  { key: 'shop.familypanel', label: 'פאנל בכרטיס המשפחה', desc: 'חבילות השירות והמגיע-וטרם-נמסר של המשפחה — תצוגה בלבד בכרטיס המשפחה', module: 'shop' },
+  { key: 'shop.export', label: 'ייצוא מימושים', desc: 'ייצוא CSV של כל המימושים — כולל מבוטלים מסומנים (שקיפות)', module: 'shop' },
 
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },
@@ -201,6 +206,7 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'entity.shopStore', label: 'חנות שותפה', fallback: 'חנות' },
   { key: 'entity.shopCriterion', label: 'קריטריון זכאות', fallback: 'קריטריון' },
   { key: 'entity.shopAssignment', label: 'שיוך מוצר', fallback: 'שיוך' },
+  { key: 'entity.shopItem', label: 'פריט קטלוג', fallback: 'פריט' },
 
   // ——— ישויות ———
   { key: 'entity.family', label: 'משפחה (יחיד)', fallback: 'משפחה' },

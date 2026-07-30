@@ -5,9 +5,11 @@
  * tzEvents בלבד — אין תלות ב-db.events/supporters/enrollments.
  * Reuse טהור מ-calLib (lib→lib מותר): isoOf/hpOf/DAY_NAMES/FULL_HOLIDAYS.
  */
-import type { Db, IsoDate, TzBox, TzCampaign, TzCoordinator, TzEvent } from '../../types/domain';
+import type { Db, IsoDate, TzBox, TzBoxStatus, TzCampaign, TzCollection, TzCoordinator, TzEvent } from '../../types/domain';
 import { DAY_NAMES, isoOf } from '../calendar/calLib';
 import { buildMonthGrid, type MonthGrid, type MonthGridCell } from '../../lib/monthGrid';
+import { smartFilter } from '../../lib/search';
+import { dateInRange } from '../../lib/date-util';
 
 /* ---------- ניקוד גיימיפיקציה ---------- */
 
@@ -147,6 +149,141 @@ export function campaignProgress(campaign: TzCampaign, boxes: readonly TzBox[]):
 }
 
 /* ---------- הלוח הייעודי (מבודד — tzEvents בלבד, אין db.events!) ---------- */
+
+/* ---------- חיפוש/סינון/מיון (UX סינון 1) — טהור, smartFilter הקיים ---------- */
+
+/** הריקון האחרון של רכז — על-פני כל קופותיו ('' כשאין). */
+function coordinatorLastCollection(boxes: readonly TzBox[], coordId: string): IsoDate | '' {
+  let last: IsoDate | '' = '';
+  for (const b of coordinatorBoxes(boxes, coordId)) {
+    const l = lastCollectionIso(b);
+    if (l > last) last = l;
+  }
+  return last;
+}
+
+/**
+ * סינון+מיון הרכזים: q דרך smartFilter על השם (עברית, שגיאות-כתיב);
+ * 'stale' = ריקון-אחרון-ישן-קודם (מי שדורש דחיפה למעלה; מעולם-לא ראשון).
+ */
+export function filterCoordinators(
+  coords: readonly TzCoordinator[],
+  boxes: readonly TzBox[],
+  q: string,
+  onlyActive: boolean,
+  sort: 'name' | 'score' | 'total' | 'stale',
+): TzCoordinator[] {
+  const base = onlyActive ? coords.filter((c) => c.active) : [...coords];
+  // גם מילות השם בנפרד — כדי ששגיאת-כתיב במילה אחת תיתפס (levenshtein פר-מילה)
+  const list = smartFilter(q, base, (c) => [c.name, ...c.name.split(/\s+/)]);
+  const cmp: Record<typeof sort, (a: TzCoordinator, b: TzCoordinator) => number> = {
+    name: (a, b) => a.name.localeCompare(b.name, 'he'),
+    score: (a, b) => b.score - a.score,
+    total: (a, b) => coordinatorTotal(boxes, b.id) - coordinatorTotal(boxes, a.id),
+    stale: (a, b) =>
+      coordinatorLastCollection(boxes, a.id).localeCompare(coordinatorLastCollection(boxes, b.id)),
+  };
+  return [...list].sort(cmp[sort]);
+}
+
+export interface TzBoxRow {
+  box: TzBox;
+  coordName: string;
+  famName: string;
+  last: IsoDate | '';
+  total: number;
+}
+
+/** מבט "כל הקופות" — כל הקופות עם שם הרכז והמשפחה, חיפוש/סינון/מיון. */
+export function boxesOverview(
+  db: Db,
+  q: string,
+  status: TzBoxStatus | '',
+  sort: 'num' | 'lastCollection' | 'total',
+): TzBoxRow[] {
+  let rows: TzBoxRow[] = db.tzBoxes.map((box) => ({
+    box,
+    coordName: db.tzCoordinators.find((c) => c.id === box.coordinatorId)?.name ?? '',
+    famName: db.families.find((f) => f.id === box.famId)?.name ?? '',
+    last: lastCollectionIso(box),
+    total: boxTotal(box),
+  }));
+  if (status) rows = rows.filter((r) => r.box.status === status);
+  rows = smartFilter(q, rows, (r) => [
+    '#' + r.box.num,
+    r.box.num,
+    r.coordName,
+    ...r.coordName.split(/\s+/),
+    r.famName,
+  ]);
+  const cmp: Record<typeof sort, (a: TzBoxRow, b: TzBoxRow) => number> = {
+    num: (a, b) => (parseInt(a.box.num, 10) || 0) - (parseInt(b.box.num, 10) || 0),
+    lastCollection: (a, b) => a.last.localeCompare(b.last), // ישן/מעולם-לא ראשון — לרדיפה
+    total: (a, b) => b.total - a.total,
+  };
+  return [...rows].sort(cmp[sort]);
+}
+
+/** סינון היסטוריית ריקונים — טווח תאריכים (כוללני, dateInRange המשותף) + מבצע. */
+export function filterCollections(
+  box: TzBox,
+  fromIso: IsoDate | '',
+  toIso: IsoDate | '',
+  campaignId: string,
+): TzCollection[] {
+  return box.collections.filter(
+    (c) => dateInRange(c.date, fromIso, toIso) && (!campaignId || c.campaignId === campaignId),
+  );
+}
+
+/* ---------- תדפיס שטח וייצוא (CONNECT חיבור 6) ---------- */
+
+/**
+ * שורות תדפיס הרכז — רשימת הקופות שלו לסבב שטח: מספר, משפחה, כתובת,
+ * טלפון וריקון אחרון. טהור — ההורדה בדפוס downloadText הקיים.
+ */
+export function coordinatorPrintLines(db: Db, coordinatorId: string): string[] {
+  const coord = db.tzCoordinators.find((c) => c.id === coordinatorId);
+  const boxes = coordinatorBoxes(db.tzBoxes, coordinatorId).filter((b) => b.status === 'home' || b.status === 'office');
+  const lines = [
+    'רשימת קופות — ' + (coord?.name ?? ''),
+    '='.repeat(30),
+  ];
+  for (const b of boxes) {
+    const fam = db.families.find((f) => f.id === b.famId);
+    const last = lastCollectionIso(b);
+    lines.push(
+      [
+        '#' + b.num,
+        fam ? 'משפחת ' + fam.name : 'במשרד',
+        fam ? [fam.address, fam.city].filter(Boolean).join(', ') : '',
+        fam?.phone ?? '',
+        last ? 'ריקון אחרון: ' + last : 'טרם רוקנה',
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    );
+  }
+  if (boxes.length === 0) lines.push('אין קופות פעילות');
+  return lines;
+}
+
+/**
+ * שורות CSV של כל הריקונים — תאריך, רכז, קופה, משפחה, סכום, מבצע.
+ * שקיפות מלאה: כל ריקון שנרשם מיוצא.
+ */
+export function collectionsCsvRows(db: Db): (string | number)[][] {
+  const rows: (string | number)[][] = [['תאריך', 'רכז', 'קופה', 'משפחה', 'סכום', 'מבצע']];
+  for (const b of db.tzBoxes) {
+    const coord = db.tzCoordinators.find((c) => c.id === b.coordinatorId);
+    const fam = db.families.find((f) => f.id === b.famId);
+    for (const c of b.collections) {
+      const camp = c.campaignId ? db.tzCampaigns.find((p) => p.id === c.campaignId) : undefined;
+      rows.push([c.date, coord?.name ?? '', '#' + b.num, fam?.name ?? '', c.amount, camp?.name ?? '']);
+    }
+  }
+  return rows;
+}
 
 export type TzGridCell = MonthGridCell<TzEvent>;
 export type TzGrid = MonthGrid<TzEvent>;

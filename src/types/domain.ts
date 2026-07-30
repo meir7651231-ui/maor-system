@@ -3,7 +3,7 @@
  * כל הישויות נשמרות יחד במסמך DB אחד (ראו store/persist.ts) עם גרסת סכמה.
  */
 
-/** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp/tzc/tzb/tzp/tze/tzl/shp/shs/shc/sha/shr/she). */
+/** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp/tzc/tzb/tzp/tze/tzl/shp/shs/shc/sha/shr/she/shi). */
 export type Id = string;
 
 /** תאריך בפורמט ISO ‏(YYYY-MM-DD). */
@@ -470,20 +470,63 @@ export interface TzEvent {
 /** סוג רכיב במוצר: פגישת ליווי · קופון לחנות שותפה · מתנה · מתנת-חג (מחזורית). */
 export type ShopComponentKind = 'meeting' | 'coupon' | 'gift' | 'holidayGift';
 
-/** רכיב בתוך מוצר. value=שווי בש"ח; basePrice=המחיר הסמלי לפני הנחות קריטריונים. */
-export interface ShopComponent {
+/** פריט קטלוג עצמאי — בעל המלאי/התוקף/החנות. משותף בין חבילות (הכרעה 18). */
+export interface ShopItem {
   id: Id;
+  name: string;
   kind: ShopComponentKind;
-  label: string;
-  /** חנות שותפה (kind==='coupon' — רשות בשאר). */
+  /** חנות שותפה (kind==='coupon'). */
   storeId: Id | '';
   value: number;
   basePrice: number;
-  /** כמות במלאי — undefined = ללא מעקב; הנותר = stock פחות המימושים. */
+  /** מלאי משותף — undefined = ללא מעקב. */
   stock?: number;
-  /** ימי תוקף לקופון (kind==='coupon') — undefined/0 = ללא תוקף; נספר מ-since של השיוך. */
+  /** מלאי מינימום — מתחתיו נדלקת התרעת "להצטייד" (restock ב-needsCare). */
+  minStock?: number;
+  /** ימי תוקף (kind==='coupon'). */
+  validDays?: number;
+  /** חגים נבחרים למתנת-חג (kind==='holidayGift') — ריק/חסר = כל החגים (תאימות אחורה). */
+  holidays?: string[];
+  /** רשימת המתנה (SHOP6) — משפחות שממתינות כשהמלאי אזל; חסר = אין ממתינים. */
+  waits?: { famId: Id; date: IsoDate; note: string }[];
+  active: boolean;
+  notes: string;
+}
+
+/**
+ * רכיב בתוך חבילה — מצביע לפריט (SHOP4, הכרעה 18): מקורות האמת
+ * (שם/סוג/מלאי/תוקף/חנות) בפריט; value/basePrice כאן = דריסה רשות
+ * פר-חבילה. label/storeId/stock/validDays נשארים לתאימות-מיגרציה בלבד.
+ */
+export interface ShopComponent {
+  id: Id;
+  /** הפריט שהרכיב מצביע עליו — ריק רק בנתונים טרום-מיגרציה. */
+  itemId: Id;
+  kind: ShopComponentKind;
+  label: string;
+  /** תאימות-מיגרציה — מקור האמת בפריט. */
+  storeId: Id | '';
+  /** דריסת שווי פר-חבילה (רשות; ברירת המחדל מהפריט). */
+  value?: number;
+  /** דריסת מחיר סמלי פר-חבילה (רשות; ברירת המחדל מהפריט). */
+  basePrice?: number;
+  stock?: number;
   validDays?: number;
   notes: string;
+}
+
+/** קליטת מלאי — קנייה או תרומה-בעין. המלאי על הפריט עולה אטומית עם הרישום. */
+export interface ShopIntake {
+  id: Id;
+  itemId: Id;
+  date: IsoDate;
+  qty: number;
+  kind: 'buy' | 'donation';
+  /** מי תרם / היכן נקנה — טקסט חופשי (בלי קישור לתורמים — בידוד). */
+  source: string;
+  /** עלות כוללת בש"ח — 0 בתרומה. */
+  cost: number;
+  note: string;
 }
 
 /** מוצר בקטלוג — חבילת שירות שלמה ("מוצר חתן", "מוצר כלה"). */
@@ -547,7 +590,12 @@ export interface ShopAssignment {
   redemptions: ShopRedemption[];
 }
 
-/** אירוע הלוח הייעודי — לא ב-db.events, לא בלוח הראשי (בידוד). */
+/**
+ * אירוע הלוח הייעודי — לא ב-db.events, לא בלוח הראשי (בידוד).
+ * חריג מבוקר (SHOP4, הכרעת בעלים 16): פגישה-עם-חדר יוצרת OrgEvent מקושר
+ * בלוח הראשי (mainEventId — דפוס dueEventId/nextEventId) לתפיסת חדר
+ * דו-כיוונית; הכסף נשאר מבודד לחלוטין.
+ */
 export interface ShopEvent {
   id: Id;
   title: string;
@@ -556,11 +604,15 @@ export interface ShopEvent {
   /** meeting=פגישה · delivery=מסירה · holiday=חג · custom=אחר. */
   kind: 'meeting' | 'delivery' | 'holiday' | 'custom';
   assignmentId: Id | '';
+  /** חדר לפגישה (kind==='meeting') — מפעיל את החריג המבוקר. */
+  roomId?: Id;
+  /** האירוע המקושר בלוח הראשי — קיים רק לפגישה-עם-חדר. */
+  mainEventId?: Id;
   notes: string;
   done: boolean;
 }
 
-/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (16 מערכי ישויות). */
+/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (18 מערכי ישויות). */
 export interface Db {
   /** גרסת סכמה — העלאה מחייבת מיגרציה ב-store/persist.ts. */
   v: number;
@@ -586,11 +638,14 @@ export interface Db {
   tzCampaigns: TzCampaign[];
   tzEvents: TzEvent[];
   /** חנות מוצרי-שירות (מודול shop — מבודד). */
+  shopItems: ShopItem[];
   shopProducts: ShopProduct[];
   shopStores: ShopStore[];
   shopCriteria: ShopCriterion[];
   shopAssignments: ShopAssignment[];
   shopEvents: ShopEvent[];
+  /** יומן קליטות מלאי (SHOP6) — קנייה/תרומה-בעין; לא סדרת מס. */
+  shopIntakes: ShopIntake[];
   orgName: string;
   orgSite: string;
   orgDonate: string;
@@ -639,11 +694,13 @@ export function emptyDb(): Db {
     tzBoxes: [],
     tzCampaigns: [],
     tzEvents: [],
+    shopItems: [],
     shopProducts: [],
     shopStores: [],
     shopCriteria: [],
     shopAssignments: [],
     shopEvents: [],
+    shopIntakes: [],
     orgName: 'מאור החסד',
     orgSite: '',
     orgDonate: '',

@@ -1,55 +1,49 @@
 /**
- * ratchet — חידוש מלאי מהיר (חנות 13, הכרעת בעלים 13).
- * הגנת-מקור: כפתור החידוש בקטלוג + מסלול הפעלת-מעקב לרכיב בלי מלאי;
- * קלט לא-חיובי נדחה בלי לגעת במוצר.
+ * ratchet — חידוש מלאי מהיר (חנות 13, הכרעת בעלים 13; עבר לפריט ב-SHOP4 —
+ * המלאי המשותף חי על ShopItem, הכרעה 18).
+ * הגנת-מקור: כפתור החידוש בקטלוג + מסלול הפעלת-מעקב; קלט לא-חיובי נדחה.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useApp } from '../../../store/useApp';
 import { DEFAULT_CONFIG } from '../../../types/config';
-import { emptyDb, type ShopComponent, type ShopProduct } from '../../../types/domain';
+import { emptyDb, type ShopItem } from '../../../types/domain';
 import catalogSrc from '../CatalogTab.tsx?raw';
 import stockSrc from '../StockModal.tsx?raw';
 
-function comp(over: Partial<ShopComponent>): ShopComponent {
-  return { id: 'shpc1', kind: 'gift', label: 'מתנה', storeId: '', value: 200, basePrice: 50, notes: '', ...over };
-}
-function product(over: Partial<ShopProduct>): ShopProduct {
-  return { id: 'shp1', name: 'מוצר חתן', desc: '', active: true, components: [comp({ stock: 3 })], notes: '', ...over };
+function item(over: Partial<ShopItem>): ShopItem {
+  return { id: 'shi1', name: 'מתנה', kind: 'gift', storeId: '', value: 200, basePrice: 50, stock: 3, active: true, notes: '', ...over };
 }
 
-describe('🛍 ratchet — חנות 13: חידוש מלאי מהיר', () => {
+describe('🛍 ratchet — חנות 13: חידוש מלאי מהיר (על הפריט)', () => {
   beforeEach(() => {
     useApp.setState({ config: { ...DEFAULT_CONFIG, features: {} } });
-    useApp.getState().setDb(() => ({ ...emptyDb(), shopProducts: [product({})] }));
+    useApp.getState().setDb(() => ({ ...emptyDb(), shopItems: [item({})] }));
   });
 
-  it('הגנת-מקור: כפתור החידוש בקטלוג פותח את StockModal; מסלול הפעלת-מעקב קיים', () => {
+  it('הגנת-מקור: כפתור החידוש בקטלוג פותח את StockModal; מאז SHOP6 החידוש נרשם כקליטה', () => {
     expect(catalogSrc).toContain('title="חידוש מלאי"');
     expect(catalogSrc).toContain('StockModal');
     expect(stockSrc).toContain('הזנת כמות תפעיל מעקב');
-    expect(stockSrc).toContain('upsertShopProduct');
-    expect(stockSrc).toContain('(c.stock ?? 0) + n');
+    // עדכון ratchet מתועד (SHOP6 חנות 25): המודאל עבר מ-upsertShopItem ישיר
+    // ל-addShopIntake — הרשומה ביומן והמלאי עולים אטומית ב-store
+    expect(stockSrc).toContain('addShopIntake(');
+    expect(stockSrc).not.toContain('upsertShopItem');
   });
 
-  it('חידוש דרך upsertShopProduct מוסיף לכמות; רכיב בלי מעקב מתחיל מהכמות שהוזנה', () => {
-    // אותה פעולה שהמודאל מבצע — stock 3 + 2 = 5
-    const p = useApp.getState().db.shopProducts[0];
-    useApp.getState().upsertShopProduct({
-      ...p,
-      components: p.components.map((x) => (x.id === 'shpc1' ? { ...x, stock: (x.stock ?? 0) + 2 } : x)),
-    });
-    expect(useApp.getState().db.shopProducts[0].components[0].stock).toBe(5);
-    // רכיב בלי מעקב — stock ?? 0 ואז +4 = 4 (המעקב הופעל)
-    const untracked = comp({ id: 'shpc2', label: 'בלי מעקב' });
-    const p2 = { ...useApp.getState().db.shopProducts[0] };
-    useApp.getState().upsertShopProduct({
-      ...p2,
-      components: [{ ...untracked, stock: (untracked.stock ?? 0) + 4 }],
-    });
-    expect(useApp.getState().db.shopProducts[0].components[0].stock).toBe(4);
+  it('חידוש דרך addShopIntake מוסיף לכמות; פריט בלי מעקב מתחיל מהכמות שהוזנה', () => {
+    // אותה פעולה שהמודאל מבצע — stock 3 + 2 = 5, ורשומת קליטה נכתבת
+    const add = useApp.getState().addShopIntake;
+    expect(add({ itemId: 'shi1', date: '2026-07-30', qty: 2, kind: 'buy', source: '', cost: 0, note: '' })).toBe(true);
+    expect(useApp.getState().db.shopItems[0].stock).toBe(5);
+    expect(useApp.getState().db.shopIntakes).toHaveLength(1);
+    // פריט בלי מעקב — stock ?? 0 ואז +4 = 4 (המעקב הופעל)
+    const untracked = item({ id: 'shi2', name: 'בלי מעקב', stock: undefined });
+    useApp.getState().upsertShopItem(untracked);
+    expect(add({ itemId: 'shi2', date: '2026-07-30', qty: 4, kind: 'donation', source: 'משפחת לוי', cost: 0, note: '' })).toBe(true);
+    expect(useApp.getState().db.shopItems.find((x) => x.id === 'shi2')?.stock).toBe(4);
   });
 
-  it('קלט לא-חיובי נדחה בשער המודאל (בלי שינוי מוצר) — הגנת-מקור על השער', () => {
+  it('קלט לא-חיובי נדחה בשער המודאל (בלי שינוי פריט) — הגנת-מקור על השער', () => {
     // השער במודאל: ריק / לא-סופי / אפס-ושלילי — כולם נעצרים לפני upsert
     expect(stockSrc).toMatch(/!amount\.trim\(\) \|\| !Number\.isFinite\(n\) \|\| n <= 0/);
     expect(stockSrc).toMatch(/n <= 0[\s\S]{0,80}setError/);
