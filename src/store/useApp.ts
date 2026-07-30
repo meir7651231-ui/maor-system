@@ -33,6 +33,7 @@ import { mergeFamilies } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
+import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
 import { applyAyinSheet, featLabel, planAddName, planAyinAdvance, revertPatch, stageIndex, type AyinSheetUpd } from '../lib/ayin';
 import {
   dailySnapshot,
@@ -113,6 +114,11 @@ interface AppState {
   go: (view: View) => void;
   selectFamily: (id: string | null) => void;
   selectCourse: (id: string | null) => void;
+  /** מחסנית ניווט (עד 20) + משפחות שנפתחו לאחרונה (עד 6) — P1.5, session בלבד. */
+  navHist: NavLoc[];
+  recentIds: string[];
+  /** ↩ חזרה — שולף את המיקום האחרון ומנווט אליו בלי לרשום את החזרה כצעד. */
+  goBack: () => void;
   setPalette: (open: boolean) => void;
   /**
    * דגל בקשת "משפחה חדשה" מהכרום (כותרת צֹהַר) — FamiliesView צורך אותו
@@ -270,6 +276,11 @@ function isoToday(): string {
 }
 
 /** תאריך ISO במרחק ימים מהיום (שלילי = אחורה) — מקומי. */
+/** המיקום הנוכחי כרשומת היסטוריה (P1.5). */
+function navLocOf(s: Pick<AppState, 'view' | 'selFamilyId' | 'selCourseId'>): NavLoc {
+  return { view: s.view, selFamilyId: s.selFamilyId, selCourseId: s.selCourseId };
+}
+
 function isoDaysAgo(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() - days);
@@ -542,9 +553,51 @@ export const useApp = create<AppState>()((set, get) => {
       await cloudMod.resetPassword(email);
     },
 
-    go: (view) => set({ view }),
-    selectFamily: (id) => set({ selFamilyId: id, view: 'families' }),
-    selectCourse: (id) => set({ selCourseId: id, view: 'courses' }),
+    // ניווט עם רישום היסטוריה (P1.5, legacy:166) — רק מעבר-מיקום אמיתי נרשם
+    go: (view) =>
+      set((s) => {
+        const prev = navLocOf(s);
+        const next: NavLoc = { view, selFamilyId: s.selFamilyId, selCourseId: s.selCourseId };
+        return { view, ...(sameLoc(prev, next) ? {} : { navHist: pushNav(s.navHist, prev) }) };
+      }),
+    selectFamily: (id) =>
+      set((s) => {
+        const prev = navLocOf(s);
+        const next: NavLoc = { view: 'families', selFamilyId: id, selCourseId: s.selCourseId };
+        return {
+          selFamilyId: id,
+          view: 'families',
+          ...(sameLoc(prev, next) ? {} : { navHist: pushNav(s.navHist, prev) }),
+          // "נפתחו לאחרונה" (legacy:344-346) — רק פתיחת כרטיס, לא ניקוי הבחירה
+          ...(id ? { recentIds: pushRecent(s.recentIds, id) } : {}),
+        };
+      }),
+    selectCourse: (id) =>
+      set((s) => {
+        const prev = navLocOf(s);
+        const next: NavLoc = { view: 'courses', selFamilyId: s.selFamilyId, selCourseId: id };
+        return {
+          selCourseId: id,
+          view: 'courses',
+          ...(sameLoc(prev, next) ? {} : { navHist: pushNav(s.navHist, prev) }),
+        };
+      }),
+    navHist: [],
+    recentIds: [],
+    goBack: () =>
+      set((s) => {
+        const h = s.navHist;
+        const p = h[h.length - 1];
+        if (!p) return {};
+        // חזרה אינה נרשמת כצעד (legacy:3147 — _navBack)
+        return {
+          navHist: h.slice(0, -1),
+          view: p.view as View,
+          selFamilyId: p.selFamilyId,
+          selCourseId: p.selCourseId,
+          paletteOpen: false,
+        };
+      }),
     setPalette: (open) => set({ paletteOpen: open }),
     famFormReq: false,
     // מנקה בחירה קודמת כדי שרשימת המשפחות (והטופס) יוצגו — לא כרטיס משפחה

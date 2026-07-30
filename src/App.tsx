@@ -86,6 +86,8 @@ export default function App() {
   const uiTheme = useApp((s) => s.db.ui.theme);
   const openFamilyForm = useApp((s) => s.openFamilyForm);
   const selectCourse = useApp((s) => s.selectCourse);
+  const navHistLen = useApp((s) => s.navHist.length);
+  const goBack = useApp((s) => s.goBack);
 
   useEffect(() => {
     void init();
@@ -248,6 +250,21 @@ export default function App() {
     else go('courses');
   };
 
+  // ↩ חזרה גלובלי (P1.5, feature shell.navhist) — מוצג רק כשיש היסטוריה,
+  // בשלושת השלדים (legacy:3146 showBack)
+  const backBtn: ReactNode = featureOn(config, 'shell.navhist') && navHistLen > 0 && (
+    <button
+      type="button"
+      className="nav-back"
+      onClick={goBack}
+      title="חזרה למסך הקודם"
+      aria-label="חזרה למסך הקודם"
+      style={{ fontWeight: 800, fontSize: 13, padding: '4px 10px', borderRadius: 9, cursor: 'pointer' }}
+    >
+      ↩ חזרה
+    </button>
+  );
+
   // צ'יפ משתמש הענן — קיים בשני השלדים
   const userChip: ReactNode = cloud.enabled && cloud.user && (
     <div className="nav-user">
@@ -305,6 +322,7 @@ export default function App() {
           ))}
         </nav>
         <div className="top-tools">
+          {backBtn}
           {/* צ'יפ החיפוש — פותח את פלטת הפקודות, אותו מנגנון כמו Ctrl+K */}
           <button
             type="button"
@@ -370,6 +388,7 @@ export default function App() {
           </button>
         </nav>
         <div className="side-sp" aria-hidden />
+        {backBtn}
         <button
           type="button"
           className="side-k"
@@ -452,6 +471,7 @@ export default function App() {
             <kbd aria-hidden>Ctrl K</kbd>
           </button>
           <div className="side-actions">
+            {backBtn}
             {moduleOn(config, 'families') && (
               <Btn kind="primary" onClick={openFamilyForm} title="פתיחת טופס הוספת משפחה">
                 + משפחה חדשה

@@ -477,11 +477,36 @@ export function CommandPalette() {
   /** דירוג חכם (smartFilter) על מונחי החיפוש המנורמלים. עד 12 תוצאות.
    * שאילתה ריקה: ניווט + פעולות ואחריהם "כרטיסיות מסתיימות".
    * מזהה שיבוץ (e123): קפיצה ישירה לחוג של השיבוץ, לפני שאר התוצאות. */
+  // "נפתחו לאחרונה" (P1.5, legacy:3086) — עד 5 משפחות אחרונות בשאילתה ריקה
+  const recentIds = useApp((s) => s.recentIds);
+  const recentCmds = useMemo<Cmd[]>(() => {
+    if (!familiesOn || !featureOn(config, 'shell.navhist')) return [];
+    const out: Cmd[] = [];
+    for (const id of recentIds) {
+      if (out.length >= 5) break;
+      const f = db.families.find((x) => x.id === id);
+      if (!f) continue;
+      out.push({
+        key: 'recent-' + f.id,
+        icon: '🕘',
+        title: termOf(config, 'entity.familyOf', 'משפחת') + ' ' + f.name,
+        sub: 'נפתחה לאחרונה — פתיחת הכרטיס',
+        section: out.length === 0 ? 'נפתחו לאחרונה' : undefined,
+        terms: [],
+        run: () => {
+          selectFamily(f.id);
+          setPalette(false);
+        },
+      });
+    }
+    return out;
+  }, [recentIds, db.families, familiesOn, config, selectFamily, setPalette]);
+
   const results = useMemo<Cmd[]>(() => {
     const nq = normSearch(q);
     if (!nq) {
       const exp = expiringCmds.map((c, i) => (i === 0 ? { ...c, section: 'כרטיסיות מסתיימות' } : c));
-      return [...baseCmds, ...exp];
+      return [...recentCmds, ...baseCmds, ...exp];
     }
     const pre: Cmd[] = [];
     const t = q.trim().toLowerCase();
@@ -508,7 +533,7 @@ export function CommandPalette() {
       0,
       MAX_RESULTS,
     );
-  }, [q, baseCmds, entityCmds, expiringCmds, db, selectCourse, setPalette, coursesOn]);
+  }, [q, baseCmds, entityCmds, expiringCmds, recentCmds, db, selectCourse, setPalette, coursesOn]);
 
   /** "אולי התכוונת" — שאילתה ≥3 תווים בלי תוצאות: עד 3 מילים קרובות
    * (levenshtein ≤ 2) מתוך כותרות כל הפריטים המאונדקסים. */

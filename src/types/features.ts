@@ -14,7 +14,7 @@ export interface FeatureDef {
   label: string;
   /** תיאור קצר — מה נעלם כשמכבים. */
   desc: string;
-  /** המודול-אב; 'core'/'home'/'settings' אינם כפופים לטוגל מודול. */
+  /** המודול-אב; 'core'/'home'/'settings'/'shell' אינם כפופים לטוגל מודול. */
   module:
     | 'families'
     | 'courses'
@@ -24,7 +24,8 @@ export interface FeatureDef {
     | 'reports'
     | 'home'
     | 'settings'
-    | 'core';
+    | 'core'
+    | 'shell';
 }
 
 export const FEATURES: FeatureDef[] = [
@@ -122,6 +123,9 @@ export const FEATURES: FeatureDef[] = [
   { key: 'settings.dedup', label: 'איחוד כפילויות משפחות', desc: 'זיהוי משפחות כפולות (טלפון/שם+עיר) ומיזוגן לרשומה אחת — בלי אובדן נתונים', module: 'settings' },
   { key: 'settings.export', label: 'ייצוא נתונים', desc: 'ייצוא גיבוי ונתונים לקובץ', module: 'settings' },
   { key: 'settings.reset', label: 'איפוס מערכת', desc: 'מחיקת כל הנתונים ואיפוס המערכת', module: 'settings' },
+
+  // ——— מעטפת (shell) — ניווט ופלטת הפקודות ———
+  { key: 'shell.navhist', label: 'ניווט אחורה ↩', desc: 'מחסנית ניווט של 20 צעדים — כפתור "↩ חזרה" גלובלי + "נפתחו לאחרונה" בחיפוש', module: 'shell' },
 
   // ——— ליבה ———
   { key: 'core.receipts', label: 'קבלות להורדה', desc: 'הפקת קבלות להורדה על תשלומים ותרומות', module: 'core' },
