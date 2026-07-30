@@ -66,6 +66,16 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const [colF, setColF] = useState(EMPTY_CRS_COLF);
   const [formOpen, setFormOpen] = useState(false);
 
+  // בקשת "+ חוג" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
+  const courseFormReq = useApp((s) => s.courseFormReq);
+  const ackCourseForm = useApp((s) => s.ackCourseForm);
+  useEffect(() => {
+    if (courseFormReq) {
+      setFormOpen(true);
+      ackCourseForm();
+    }
+  }, [courseFormReq, ackCourseForm]);
+
   const view = db.ui.crsView;
   const teacherName = useCallback(
     (id: string) => db.teachers.find((t) => t.id === id)?.name ?? '—',

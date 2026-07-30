@@ -129,6 +129,16 @@ interface AppState {
   openFamilyForm: () => void;
   /** איפוס הדגל אחרי שהטופס נפתח. */
   ackFamilyForm: () => void;
+  /** בקשות פתיחת-טופס מהפלטה (P1.6) — אותו דפוס כמו famFormReq. */
+  evFormReq: '' | 'org' | 'call';
+  openEventForm: (kind?: 'org' | 'call') => void;
+  ackEventForm: () => void;
+  courseFormReq: boolean;
+  openCourseForm: () => void;
+  ackCourseForm: () => void;
+  supFormReq: boolean;
+  openSupporterForm: () => void;
+  ackSupporterForm: () => void;
 
   // ערכת נושא וקונפיגורציה
   /** קביעת קונפיגורציה חדשה + שמירתה כדריסת ריצה ב-localStorage. */
@@ -600,6 +610,15 @@ export const useApp = create<AppState>()((set, get) => {
       }),
     setPalette: (open) => set({ paletteOpen: open }),
     famFormReq: false,
+    evFormReq: '' as const,
+    openEventForm: (kind = 'org') => set({ view: 'calendar', evFormReq: kind }),
+    ackEventForm: () => set({ evFormReq: '' }),
+    courseFormReq: false,
+    openCourseForm: () => set({ view: 'courses', selCourseId: null, courseFormReq: true }),
+    ackCourseForm: () => set({ courseFormReq: false }),
+    supFormReq: false,
+    openSupporterForm: () => set({ view: 'supporters', supFormReq: true }),
+    ackSupporterForm: () => set({ supFormReq: false }),
     // מנקה בחירה קודמת כדי שרשימת המשפחות (והטופס) יוצגו — לא כרטיס משפחה
     openFamilyForm: () => set({ view: 'families', selFamilyId: null, famFormReq: true }),
     ackFamilyForm: () => set({ famFormReq: false }),

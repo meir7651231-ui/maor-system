@@ -3,7 +3,7 @@
  * מצב חודש עברי מלא (א׳–ל׳), חגים, אירועים (כולל חזרה שנתית לפי
  * התאריך העברי), מפגשי חוגים, ורשימת אירועים קרובים ל-14 יום.
  */
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { Btn, Chip, Empty, PageHead } from '../ui';
@@ -49,6 +49,8 @@ const pillStyle = (bg: string, c: string, prC: string): CSSProperties => ({
 interface ModalState {
   ev: OrgEvent | null;
   date: string;
+  /** אכלוס-מראש לסוג האירוע — '+ תזכורת טלפון' מהפלטה (P1.6). */
+  prefillType?: 'call';
 }
 
 function DayCell(props: {
@@ -160,6 +162,15 @@ export function CalendarView() {
   const [hebAnchor, setHebAnchor] = useState(isoOf(now));
   const [modal, setModal] = useState<ModalState | null>(null);
   const [dayIso, setDayIso] = useState<string | null>(null);
+  // בקשת "+ אירוע / + תזכורת" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
+  const evFormReq = useApp((s) => s.evFormReq);
+  const ackEventForm = useApp((s) => s.ackEventForm);
+  useEffect(() => {
+    if (evFormReq) {
+      setModal({ ev: null, date: isoOf(new Date()), prefillType: evFormReq === 'call' ? 'call' : undefined });
+      ackEventForm();
+    }
+  }, [evFormReq, ackEventForm]);
   const [filters, setFilters] = useState<CalFilters>(DEFAULT_FILTERS);
   const [expOpen, setExpOpen] = useState(false);
 
@@ -457,7 +468,14 @@ export function CalendarView() {
           onEdit={(ev) => setModal({ ev, date: ev.date })}
         />
       )}
-      {modal && <EventModal ev={modal.ev} date={modal.date} onClose={() => setModal(null)} />}
+      {modal && (
+        <EventModal
+          ev={modal.ev}
+          date={modal.date}
+          prefill={modal.prefillType ? { type: modal.prefillType } : undefined}
+          onClose={() => setModal(null)}
+        />
+      )}
       {expOpen && <CustomExport target="events" onClose={() => setExpOpen(false)} />}
     </div>
   );

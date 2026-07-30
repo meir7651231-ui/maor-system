@@ -126,6 +126,7 @@ export const FEATURES: FeatureDef[] = [
 
   // ——— מעטפת (shell) — ניווט ופלטת הפקודות ———
   { key: 'shell.navhist', label: 'ניווט אחורה ↩', desc: 'מחסנית ניווט של 20 צעדים — כפתור "↩ חזרה" גלובלי + "נפתחו לאחרונה" בחיפוש', module: 'shell' },
+  { key: 'shell.palette.actions', label: 'פעולות בחיפוש המהיר', desc: 'העתקת כל הטלפונים, + אירוע/תזכורת/חוג/תומכת, ניקוב-מהיום + קיבוץ תוצאות לפי סוג', module: 'shell' },
 
   // ——— ליבה ———
   { key: 'core.receipts', label: 'קבלות להורדה', desc: 'הפקת קבלות להורדה על תשלומים ותרומות', module: 'core' },

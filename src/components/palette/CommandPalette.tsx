@@ -12,6 +12,8 @@ import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { DEFAULT_LOCK_ZONES } from '../../lib/lock';
+import { groupPaletteResults } from '../../lib/paletteGroups';
+import { todaySessions } from '../home/homeData';
 
 /** פריט בר-הפעלה בפלטה: אייקון + כותרת + שורת משנה + פעולה. */
 interface Cmd {
@@ -105,6 +107,11 @@ export function CommandPalette() {
   const cashboxOn = featureOn(config, 'core.cashbox');
   const bodymapOn = featureOn(config, 'core.bodymap');
   const dedupOn = featureOn(config, 'settings.dedup') && familiesOn;
+  // פעולות הפלטה מהקובץ החי + קיבוץ תוצאות לפי סוג (P1.6)
+  const paletteActionsOn = featureOn(config, 'shell.palette.actions');
+  const openEventForm = useApp((s) => s.openEventForm);
+  const openCourseForm = useApp((s) => s.openCourseForm);
+  const openSupporterForm = useApp((s) => s.openSupporterForm);
 
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
@@ -262,6 +269,99 @@ export function CommandPalette() {
         },
       });
     }
+    // ── פעולות הפלטה מהקובץ החי (P1.6, feature shell.palette.actions,
+    //    legacy:2333-2366) — העתקת טלפונים, + אירוע/תזכורת/חוג/תומכת, ניקוב-מהיום ──
+    if (paletteActionsOn) {
+      if (familiesOn) {
+        actions.push({
+          key: 'act-copy-phones',
+          icon: '📋',
+          title: 'העתקת כל הטלפונים',
+          sub: 'רשימת חיוג ללוח ההעתקה',
+          terms: toTerms(['העתקת כל הטלפונים', 'טלפונים', 'חיוג', 'העתקה', 'רשימה']),
+          run: () => {
+            // legacy copyPhones (2341-2344): 'משפחת X: טלפון' שורה-לשורה
+            const withPhone = useApp.getState().db.families.filter((f) => f.phone);
+            const list = withPhone
+              .map((f) => termOf(config, 'entity.familyOf', 'משפחת') + ' ' + f.name + ': ' + f.phone)
+              .join('\n');
+            if (navigator.clipboard) void navigator.clipboard.writeText(list);
+            toast('הועתקו ' + withPhone.length + ' מספרי טלפון ללוח');
+            setPalette(false);
+          },
+        });
+      }
+      if (calendarOn) {
+        actions.push({
+          key: 'act-new-event',
+          icon: '📅',
+          title: '+ אירוע חדש',
+          sub: 'הוספה ללוח השנה',
+          terms: toTerms(['אירוע חדש', 'הוספה', 'לוח']),
+          run: () => {
+            openEventForm('org');
+            setPalette(false);
+          },
+        });
+        actions.push({
+          key: 'act-new-call',
+          icon: '📞',
+          title: '+ תזכורת טלפון',
+          sub: 'מעקב שיחה — נכנס ללוח השנה',
+          terms: toTerms(['תזכורת טלפון', 'שיחה', 'מעקב', 'להתקשר']),
+          run: () => {
+            openEventForm('call');
+            setPalette(false);
+          },
+        });
+      }
+      if (coursesOn) {
+        actions.push({
+          key: 'act-new-course',
+          icon: '🎨',
+          title: '+ ' + termOf(config, 'entity.course', 'חוג') + ' חדש',
+          sub: 'הגדרת ' + termOf(config, 'entity.course', 'חוג') + ' ומסלול תמחור',
+          terms: toTerms([termOf(config, 'entity.course', 'חוג') + ' חדש', 'קורס חדש', 'הוספה']),
+          run: () => {
+            openCourseForm();
+            setPalette(false);
+          },
+        });
+      }
+      if (supportersOn) {
+        actions.push({
+          key: 'act-new-supporter',
+          icon: '💛',
+          title: '+ ' + termOf(config, 'entity.supporter', 'תומך/ת') + ' חדש/ה',
+          sub: 'כרטיס מלא — ' + termOf(config, 'entity.donations', 'תרומות') + ' ומעקב',
+          terms: toTerms([termOf(config, 'entity.supporter', 'תומך/ת'), 'תומכת חדשה', 'תורמת', 'הוספה']),
+          run: () => {
+            openSupporterForm();
+            setPalette(false);
+          },
+        });
+      }
+      if (coursesOn && punchOn) {
+        const sessions = todaySessions(db, new Date());
+        actions.push({
+          key: 'act-today-punch',
+          icon: '🎫',
+          title: 'ניקוב ל' + termOf(config, 'entity.course', 'חוג') + ' של היום',
+          sub: sessions.length
+            ? sessions[0].course.name + (sessions[0].session.time ? ' · ' + sessions[0].session.time : '')
+            : 'אין מפגשים היום',
+          terms: toTerms(['ניקוב', 'נוכחות', 'היום', 'מפגש']),
+          run: () => {
+            if (sessions.length) selectCourse(sessions[0].course.id);
+            else {
+              toast('אין מפגשים היום');
+              go('courses');
+            }
+            setPalette(false);
+          },
+        });
+      }
+    }
     // נעילה עכשיו — רק כשהוגדר קוד כלשהו
     if (hasLock) {
       actions.push({
@@ -297,6 +397,14 @@ export function CommandPalette() {
     dedupOn,
     hasLock,
     lockNow,
+    paletteActionsOn,
+    punchOn,
+    db,
+    toast,
+    selectCourse,
+    openEventForm,
+    openCourseForm,
+    openSupporterForm,
   ]);
 
   /** כרטיסיות מסתיימות — שיבוצי כרטיסייה פעילים עם ≤2 ניקובים שנותרו. */
@@ -529,11 +637,13 @@ export function CommandPalette() {
         });
       }
     }
-    return [...pre, ...smartFilter(nq, [...baseCmds, ...entityCmds], (c) => c.terms, MAX_RESULTS)].slice(
+    const found = [...pre, ...smartFilter(nq, [...baseCmds, ...entityCmds], (c) => c.terms, MAX_RESULTS)].slice(
       0,
       MAX_RESULTS,
     );
-  }, [q, baseCmds, entityCmds, expiringCmds, recentCmds, db, selectCourse, setPalette, coursesOn]);
+    // קיבוץ תוצאות לפי סוג (P1.6, כמו בלגאסי) — מיון יציב לדליים + כותרות
+    return paletteActionsOn ? groupPaletteResults(found) : found;
+  }, [q, baseCmds, entityCmds, expiringCmds, recentCmds, db, selectCourse, setPalette, coursesOn, paletteActionsOn]);
 
   /** "אולי התכוונת" — שאילתה ≥3 תווים בלי תוצאות: עד 3 מילים קרובות
    * (levenshtein ≤ 2) מתוך כותרות כל הפריטים המאונדקסים. */

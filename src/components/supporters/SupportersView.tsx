@@ -2,7 +2,7 @@
  * משפחות תומכות (תורמים) — חיפוש מנורמל, סינון קטגוריה ודרגות RFM,
  * טבלה עם מיון תלת-מצבי (עולה/יורד/כבוי), טופס תומכ/ת וכרטיס מפורט.
  */
-import { useState, type KeyboardEvent } from 'react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
@@ -110,6 +110,15 @@ export function SupportersView() {
   // לוח התרומות הכלל-ארגוני (P1.4, legacy supCalOn/supCalAll) — מוצג בלחיצה
   const [orgCalOpen, setOrgCalOpen] = useState(false);
   const donCalOn = featureOn(config, 'supporters.doncal');
+  // בקשת "+ תומכת" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
+  const supFormReq = useApp((s) => s.supFormReq);
+  const ackSupporterForm = useApp((s) => s.ackSupporterForm);
+  useEffect(() => {
+    if (supFormReq) {
+      setFormOpen(true);
+      ackSupporterForm();
+    }
+  }, [supFormReq, ackSupporterForm]);
 
   /** דוח יומי של מעקב הטיפול — כל מי שטופל היום. */
   function dailyReport() {
