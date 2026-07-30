@@ -14,6 +14,7 @@ import { normSearch } from '../../lib/validate';
 import { DEFAULT_LOCK_ZONES } from '../../lib/lock';
 import { groupPaletteResults } from '../../lib/paletteGroups';
 import { todaySessions } from '../home/homeData';
+import { exportFamiliesCsv } from '../settings/ExportSection';
 
 /** פריט בר-הפעלה בפלטה: אייקון + כותרת + שורת משנה + פעולה. */
 interface Cmd {
@@ -107,9 +108,10 @@ export function CommandPalette() {
   const cashboxOn = featureOn(config, 'core.cashbox');
   const bodymapOn = featureOn(config, 'core.bodymap');
   const dedupOn = featureOn(config, 'settings.dedup') && familiesOn;
-  // המדריך המהיר (P2 פער 29) + מצב הדגמה (P2 פער 30)
+  // המדריך המהיר (P2 פער 29) + מצב הדגמה (P2 פער 30) + ייצוא CSV (P2 פער 24)
   const guideOn = featureOn(config, 'shell.guide');
   const demoOn = featureOn(config, 'shell.demo');
+  const exportFullOn = featureOn(config, 'reports.export.full');
   // פעולות הפלטה מהקובץ החי + קיבוץ תוצאות לפי סוג (P1.6)
   const paletteActionsOn = featureOn(config, 'shell.palette.actions');
   const openEventForm = useApp((s) => s.openEventForm);
@@ -300,6 +302,20 @@ export function CommandPalette() {
         },
       });
     }
+    // ⬇ ייצוא CSV מהפלטה — dlCSV מהקובץ החי (P2 פער 24, חוב P1)
+    if (exportFullOn && familiesOn) {
+      actions.push({
+        key: 'act-dlcsv',
+        icon: '⬇',
+        title: 'ייצוא CSV',
+        sub: 'קובץ המשפחות המלא — ישר מהחיפוש',
+        terms: toTerms(['ייצוא CSV', 'ייצוא', 'הורדה', 'אקסל', 'csv', 'excel']),
+        run: () => {
+          exportFamiliesCsv();
+          setPalette(false);
+        },
+      });
+    }
     // ── פעולות הפלטה מהקובץ החי (P1.6, feature shell.palette.actions,
     //    legacy:2333-2366) — העתקת טלפונים, + אירוע/תזכורת/חוג/תומכת, ניקוב-מהיום ──
     if (paletteActionsOn) {
@@ -428,6 +444,7 @@ export function CommandPalette() {
     dedupOn,
     guideOn,
     demoOn,
+    exportFullOn,
     hasLock,
     lockNow,
     paletteActionsOn,
