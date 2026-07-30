@@ -103,6 +103,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'home.goldbook', label: 'ווידג\'ט: ספר הזהב', desc: 'פודיום התורמים המובילים', module: 'home' },
   { key: 'home.hebcal', label: 'ווידג\'ט: הלוח העברי', desc: 'הפריטים הקרובים בלוח העברי', module: 'home' },
   { key: 'home.community', label: 'ווידג\'ט: אמינות קהילתית', desc: 'גריד הדרגות וממוצע האמינות', module: 'home' },
+  { key: 'home.coursemetrics', label: 'ווידג\'ט: תפוסת החוגים', desc: 'מד תפוסה ממוצעת, עמודה לכל חוג, הכנסה חודשית משוקללת ו"הכי מבוקשים"', module: 'home' },
+  { key: 'home.credmetrics', label: 'ווידג\'ט: מדד אמינות מורחב', desc: 'מד-מחוג, היסטוגרמת 20 סלים, מגמת היום ו"דורשות חיזוק"', module: 'home' },
   { key: 'home.contacts', label: 'ווידג\'ט: יעדי קשר', desc: 'רשימת יעדי הקשר עם תורמים', module: 'home' },
   { key: 'home.punchlow', label: 'ווידג\'ט: מלאי כרטיסיות', desc: 'כרטיסיות עם יתרה נמוכה', module: 'home' },
   { key: 'home.quick', label: 'ווידג\'ט: פעולות מהירות', desc: 'פאנל הפעולות המהירות במסך הבית', module: 'home' },

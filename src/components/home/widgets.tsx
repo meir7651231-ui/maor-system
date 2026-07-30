@@ -25,7 +25,11 @@ import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { tierOf } from '../families/lib';
 import { buildPodium, buildWeek, fmtIls } from '../wall/wallData';
 import {
+  courseMetrics,
+  credHistogram,
+  credNeedsBoost,
   credSummary,
+  credTodayTrend,
   DAY_NAMES,
   dueContacts,
   EV_META,
@@ -982,6 +986,119 @@ function CommunityWidget({ ctx }: { ctx: HomeCtx }) {
   );
 }
 
+/**
+ * 📊 תפוסת החוגים (פער 19, לגאסי crsG legacy-main-script.js:2630-2654):
+ * ממוצע תפוסה, עמודה לחיצה לכל חוג, הכנסה חודשית משוקללת, צ'יפים ו"הכי מבוקשים".
+ */
+function CourseMetricsWidget({ ctx }: { ctx: HomeCtx }) {
+  const { db, config, go, selectCourse } = ctx;
+  const m = courseMetrics(db);
+  const crsPlural = termOf(config, 'nav.courses', 'חוגים');
+  const openCourse = (id: string) => { selectCourse(id); go('courses'); };
+  const barColor = (pct: number) => (pct >= 100 ? '#dc2626' : pct >= 85 ? '#f3c76b' : pct >= 40 ? '#16a34a' : '#d97706');
+  return (
+    <Panel
+      icon="📊"
+      title={'תפוסת ה' + crsPlural}
+      badge={m.rows.length > 0 ? `ממוצע ${m.avgOcc}%` : undefined}
+      action={<Btn sm onClick={() => go('courses')}>{'ל' + crsPlural + ' ←'}</Btn>}
+    >
+      {m.rows.length === 0 ? (
+        <div style={softEmpty}>{'אין ' + crsPlural + ' עדיין'}</div>
+      ) : (
+        <>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
+            {m.students} שיבוצים · ₪{Math.round(m.income).toLocaleString('he-IL')} לחודש (מנויים חודשיים בלבד)
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 64, marginBottom: 8 }} role="img" aria-label="תפוסה לפי חוג">
+            {m.rows.map((r) => (
+              <button
+                key={r.course.id}
+                onClick={() => openCourse(r.course.id)}
+                title={`${r.course.name} · ${r.n}/${r.max} (${r.pct}%)`}
+                style={{
+                  flex: 1, minWidth: 6, border: 'none', cursor: 'pointer', borderRadius: '3px 3px 0 0',
+                  height: Math.max(6, r.pct) + '%', background: barColor(r.pct),
+                  boxShadow: r.pct >= 100 ? '0 0 12px rgba(220,38,38,.45)' : 'none',
+                }}
+              />
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: m.top.length ? 8 : 0 }}>
+            <span style={tagStyle('#e7edf5', '#3a5a86')}>{m.rows.length} {crsPlural}</span>
+            <span style={tagStyle('#fdf1d4', '#9a6414')}>{m.punchCount} כרטיסייה</span>
+            <span style={tagStyle('#e4f5ea', '#12803c')}>{m.monthlyCount} מנוי</span>
+            <span style={tagStyle('#fdeaea', '#b91c1c')}>{m.fullCount} מלאים</span>
+          </div>
+          {m.top.map((r) => (
+            <button key={r.course.id} className="hm-row" onClick={() => openCourse(r.course.id)} style={{ width: '100%', textAlign: 'start' }}>
+              <span aria-hidden style={{ width: 8, height: 8, borderRadius: 99, background: barColor(r.pct), flexShrink: 0 }} />
+              <span style={{ flex: 1, fontWeight: 600 }}>{r.course.name}</span>
+              <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{r.n}/{r.max}</span>
+            </button>
+          ))}
+        </>
+      )}
+    </Panel>
+  );
+}
+
+/**
+ * 🎯 מדד אמינות מורחב (פער 20, לגאסי credV/showCredGraph): מד ממוצע,
+ * היסטוגרמת 20 סלים של 50 נק', מגמת היום ו"דורשות חיזוק" לחיצות.
+ */
+function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
+  const { db, config, todayIso, go, selectFamily } = ctx;
+  const s = credSummary(db, (score) => tierOf(score).key);
+  const bins = credHistogram(db);
+  const trend = credTodayTrend(db, todayIso);
+  const boost = credNeedsBoost(db);
+  const maxBin = Math.max(1, ...bins);
+  const famPlural = termOf(config, 'nav.families', 'משפחות');
+  const openFam = (id: string) => { selectFamily(id); go('families'); };
+  return (
+    <Panel
+      icon="🎯"
+      title="מדד אמינות — תמונה מלאה"
+      badge={s.total > 0 ? `ממוצע ${s.avg}/1000` : undefined}
+      action={<Btn sm onClick={() => go('families')}>{'ל' + famPlural + ' ←'}</Btn>}
+    >
+      {s.total === 0 ? (
+        <div style={softEmpty}>{'אין ' + famPlural + ' עדיין'}</div>
+      ) : (
+        <>
+          {/* מד ממוצע — פס עם מחט (הפשטת מד-המחוג של הלגאסי, אותם עוגנים 0/500/800/1000) */}
+          <div style={{ position: 'relative', height: 10, borderRadius: 99, marginBottom: 4, background: 'linear-gradient(90deg,#dc2626 0%,#d97706 50%,#16a34a 80%,#f3c76b 100%)' }} aria-hidden>
+            <span style={{ position: 'absolute', insetInlineStart: `${Math.min(99, s.avg / 10)}%`, top: -3, width: 3, height: 16, background: 'var(--ink, #211d17)', borderRadius: 2 }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink-faint)', marginBottom: 8 }} aria-hidden>
+            <span>0</span><span>500</span><span>800</span><span>1000</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 44, marginBottom: 8 }} role="img" aria-label="התפלגות ציוני האמינות">
+            {bins.map((b, i) => (
+              <span
+                key={i}
+                title={`${i * 50}-${i * 50 + 49}: ${b}`}
+                style={{ flex: 1, borderRadius: '2px 2px 0 0', height: Math.max(4, Math.round((b / maxBin) * 100)) + '%', background: tierOf(i * 50 + 25).dot, opacity: b === 0 ? 0.25 : 1 }}
+              />
+            ))}
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: boost.length ? 8 : 0 }}>
+            מגמת היום: <b style={{ color: trend > 0 ? '#12803c' : trend < 0 ? '#b91c1c' : 'inherit' }}>{trend > 0 ? '+' + trend : trend}</b> נק׳
+          </div>
+          {boost.map((x) => (
+            <button key={x.family.id} className="hm-row" onClick={() => openFam(x.family.id)} style={{ width: '100%', textAlign: 'start' }}>
+              <span aria-hidden style={{ width: 8, height: 8, borderRadius: 99, background: tierOf(x.score).dot, flexShrink: 0 }} />
+              <span style={{ flex: 1, fontWeight: 600 }}>{'משפחת ' + x.family.name}</span>
+              <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{x.score}</span>
+            </button>
+          ))}
+        </>
+      )}
+    </Panel>
+  );
+}
+
 /** 💛 תורמים · יעדי קשר — יעדים שהגיעו/עברו (שם, תאריך, טלפון) + נתרם החודש. */
 function ContactsWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, now, go } = ctx;
@@ -1142,7 +1259,9 @@ export type WidgetId =
   | 'community'
   | 'contacts'
   | 'punchlow'
-  | 'quick';
+  | 'quick'
+  | 'coursemetrics'
+  | 'credmetrics';
 
 export interface HomeWidget {
   id: WidgetId;
@@ -1291,6 +1410,24 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     removable: true,
     visible: (cfg) => featureOn(cfg, 'home.quick'),
     render: (ctx) => <QuickWidget ctx={ctx} />,
+  },
+  coursemetrics: {
+    id: 'coursemetrics',
+    label: 'תפוסת החוגים',
+    icon: '📊',
+    slot: 'half',
+    removable: true,
+    visible: (cfg) => moduleOn(cfg, 'courses') && featureOn(cfg, 'home.coursemetrics'),
+    render: (ctx) => <CourseMetricsWidget ctx={ctx} />,
+  },
+  credmetrics: {
+    id: 'credmetrics',
+    label: 'מדד אמינות מורחב',
+    icon: '🎯',
+    slot: 'half',
+    removable: true,
+    visible: (cfg) => featureOn(cfg, 'families.cred') && featureOn(cfg, 'home.credmetrics'),
+    render: (ctx) => <CredMetricsWidget ctx={ctx} />,
   },
 };
 
