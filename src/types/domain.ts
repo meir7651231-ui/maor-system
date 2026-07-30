@@ -3,7 +3,7 @@
  * כל הישויות נשמרות יחד במסמך DB אחד (ראו store/persist.ts) עם גרסת סכמה.
  */
 
-/** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp). */
+/** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp/tzc/tzb/tzp/tze/tzl). */
 export type Id = string;
 
 /** תאריך בפורמט ISO ‏(YYYY-MM-DD). */
@@ -389,7 +389,83 @@ export interface UiPrefs {
   accent?: string;
 }
 
-/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי. */
+/* ---------- קופות צדקה (מודול tzedaka — מבודד; BUILD-ORDER-TZEDAKA-2026-07-30) ---------- */
+
+/** רישום שינוי ניקוד של רכז/ת (גיימיפיקציה) — דפוס CredLogEntry. */
+export interface TzScoreEntry {
+  date: IsoDate;
+  delta: number;
+  reason: string;
+}
+
+/** רכז/ת קופות — ילד/ה או הורה. קישור לבן-משפחה קיים = רשות. */
+export interface TzCoordinator {
+  id: Id;
+  name: string;
+  famId: Id | '';
+  memberId: Id | '';
+  phone: string;
+  notes: string;
+  active: boolean;
+  startDate: IsoDate | '';
+  /** ניקוד גיימיפיקציה — מתחיל 0, רק המודול כותב אליו. */
+  score: number;
+  scoreLog: TzScoreEntry[];
+}
+
+/** ריקון קופה — הכסף נרשם כאן בלבד (מבודד מקבלות/תרומות/דוחות — הכרעת בעלים 30.7). */
+export interface TzCollection {
+  id: Id;
+  date: IsoDate;
+  /** ₪ שלמים, כמו בכל המערכת. */
+  amount: number;
+  campaignId: Id | '';
+  note: string;
+}
+
+/** home=אצל משפחה · office=במשרד · lost=אבדה · retired=הוצאה משימוש. */
+export type TzBoxStatus = 'home' | 'office' | 'lost' | 'retired';
+
+export interface TzBox {
+  id: Id;
+  /** המספר הפיזי המודבק על הקופה. */
+  num: string;
+  coordinatorId: Id;
+  /** המשפחה המחזיקה (רשות — קופה יכולה לשבת במשרד). */
+  famId: Id | '';
+  holderKind: 'donor' | 'supported' | '';
+  since: IsoDate | '';
+  status: TzBoxStatus;
+  notes: string;
+  collections: TzCollection[];
+}
+
+export interface TzCampaign {
+  id: Id;
+  name: string;
+  start: IsoDate;
+  end: IsoDate | '';
+  /** יעד בש"ח — 0 = אין יעד. */
+  goal: number;
+  active: boolean;
+  notes: string;
+}
+
+/** אירוע הלוח הייעודי — לא נשמר ב-db.events ולא מופיע בלוח הראשי (בידוד). */
+export interface TzEvent {
+  id: Id;
+  title: string;
+  date: IsoDate;
+  time: TimeHM | '';
+  /** round=סבב ריקון · campaign=מבצע · reminder=תזכורת · custom=אחר. */
+  kind: 'round' | 'campaign' | 'reminder' | 'custom';
+  coordinatorId: Id | '';
+  boxId: Id | '';
+  notes: string;
+  done: boolean;
+}
+
+/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (11 מערכי ישויות). */
 export interface Db {
   /** גרסת סכמה — העלאה מחייבת מיגרציה ב-store/persist.ts. */
   v: number;
@@ -407,6 +483,11 @@ export interface Db {
   rooms: Room[];
   teachers: Teacher[];
   supporters: Supporter[];
+  /** קופות צדקה (מודול tzedaka — מבודד). */
+  tzCoordinators: TzCoordinator[];
+  tzBoxes: TzBox[];
+  tzCampaigns: TzCampaign[];
+  tzEvents: TzEvent[];
   orgName: string;
   orgSite: string;
   orgDonate: string;
@@ -450,6 +531,10 @@ export function emptyDb(): Db {
     rooms: [],
     teachers: [],
     supporters: [],
+    tzCoordinators: [],
+    tzBoxes: [],
+    tzCampaigns: [],
+    tzEvents: [],
     orgName: 'מאור החסד',
     orgSite: '',
     orgDonate: '',

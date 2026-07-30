@@ -136,6 +136,12 @@ export function migrate(raw: unknown): Db | null {
     rooms: Array.isArray(db.rooms) ? db.rooms : [],
     teachers: Array.isArray(db.teachers) ? db.teachers : [],
     supporters: Array.isArray(db.supporters) ? db.supporters : [],
+    // קופות צדקה (מודול tzedaka) — תוספת אדיטיבית, DB_VERSION נשאר 5:
+    // מפתח חסר בגיבוי ישן = מערך ריק מ-emptyDb
+    tzCoordinators: Array.isArray(db.tzCoordinators) ? db.tzCoordinators : [],
+    tzBoxes: Array.isArray(db.tzBoxes) ? db.tzBoxes : [],
+    tzCampaigns: Array.isArray(db.tzCampaigns) ? db.tzCampaigns : [],
+    tzEvents: Array.isArray(db.tzEvents) ? db.tzEvents : [],
     notif: { ...base.notif, ...db.notif },
     reports: { ...base.reports, ...db.reports },
     ui: { ...base.ui, ...db.ui },
@@ -199,6 +205,20 @@ export function migrate(raw: unknown): Db | null {
             typeof (h as { a?: unknown }).a === 'number' && Number.isFinite((h as { a?: unknown }).a as number))
           .map((h) => ({ d: h.d, a: h.a, ...(h.c === '$' || h.c === '₪' ? { c: h.c } : {}) }))
       : undefined,
+  }));
+  // קופות צדקה — ריפוי פר-רשומה (מודול מבודד, אותה רוח כמו שאר הריפויים):
+  // רכז: score לא-מספרי → 0, scoreLog לא-מערך → []; קופה: collections
+  // לא-מערך → [], סטטוס זר → 'office'
+  merged.tzCoordinators = merged.tzCoordinators.map((c) => ({
+    ...c,
+    score: typeof c.score === 'number' && Number.isFinite(c.score) ? c.score : 0,
+    scoreLog: Array.isArray(c.scoreLog) ? c.scoreLog : [],
+  }));
+  const TZ_STATUSES = ['home', 'office', 'lost', 'retired'];
+  merged.tzBoxes = merged.tzBoxes.map((b) => ({
+    ...b,
+    collections: Array.isArray(b.collections) ? b.collections : [],
+    status: TZ_STATUSES.includes(b.status) ? b.status : 'office',
   }));
   // היגיינה: מזהים חסרים, כפילויות, מערכים חסרים בתוך משפחות
   const seen = new Set<string>();
