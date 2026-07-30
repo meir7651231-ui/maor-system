@@ -1,21 +1,60 @@
 rules_version = '2';
-// כללי האבטחה של פרויקט הענן maor-system — מקור האמת בריפו (באג ידוע 4, חצי א').
-// הפריסה ידנית: קונסולת Firebase ← Firestore ← Rules ← הדבקה ← Publish.
-// הארכיטקטורה הנוכחית: פרויקט Firebase אחד = ארגון אחד (אוספים שטוחים בשורש —
-// ראו src/lib/cloud.ts). מנגנון הרשמה-ואישור רב-משתמשים = גל CLOUD2 בתוכנית-האב.
+// כללי האבטחה של פרויקט הענן maor-system — מקור האמת בריפו.
+// v2 (CLOUD2 ענן 3): פלטפורמה רב-ארגונית — הרשמה/אישור/חברות, לצד אוספי
+// השורש של הלקוח הקיים (allowlist כהיום).
+// הפריסה ידנית: קונסולת Firebase ← Firestore ← Rules ← הדבקה ← Publish,
+// ואז הדלקת הרשמה: Authentication ← Sign-in method ← Email/Password (enable).
+//
+// מבנה הנתונים:
+// - platformRequests/{uid} — בקשת הרשמה ממתינה (orgName, email, at).
+// - platformOrgs/{slug} — מסמך ארגון: config, members[] (מיילים באותיות
+//   קטנות), provisioned, orgName, createdAt.
+// - orgs/{slug}/{col}/{doc} — נתוני ארגון-פלטפורמה (18 אוספים + meta/org).
+// - אוספי השורש — הלקוח הקיים (cloudRoot:true), ללא שינוי.
 service cloud.firestore {
   match /databases/{database}/documents {
-    // רשימת המורשים — רק המיילים האלה ניגשים לנתונים (באותיות קטנות).
-    // הוספת משתמש = שורה כאן + Publish; ההשוואה case-insensitive.
-    function allowed() {
+    // מיילי-העל של הפלטפורמה — function אחת, מקור אמת יחיד.
+    function superAdmin() {
+      return request.auth != null
+        && request.auth.token.email.lower() in [
+          'meir7651231@gmail.com'
+        ];
+    }
+    // רשימת המורשים לאוספי השורש (הלקוח הקיים) — כהיום.
+    function allowedRoot() {
       return request.auth != null
         && request.auth.token.email.lower() in [
           'meir7651231@gmail.com'
           // + מייל המשרד של מאור החסד — יתווסף עם יצירתו
         ];
     }
+    // חברות בארגון-פלטפורמה — המייל ברשימת ה-members של מסמך הארגון.
+    function orgMember(slug) {
+      return request.auth != null
+        && request.auth.token.email.lower()
+          in get(/databases/$(database)/documents/platformOrgs/$(slug)).data.members;
+    }
+
+    // בקשות הרשמה: המשתמש יוצר רק את שלו (uid תואם); קריאה/מחיקה — מיילי-על.
+    match /platformRequests/{uid} {
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow read, delete: if superAdmin();
+    }
+
+    // מסמכי הארגונים: קריאה — חבר או מייל-על; כתיבה — מיילי-על בלבד.
+    match /platformOrgs/{slug} {
+      allow read: if superAdmin() || orgMember(slug);
+      allow write: if superAdmin();
+    }
+
+    // נתוני ארגון-פלטפורמה: קריאה/כתיבה — חבר או מייל-על.
+    match /orgs/{slug}/{col}/{docId} {
+      allow read, write: if superAdmin() || orgMember(slug);
+    }
+
+    // אוספי השורש (הלקוח הקיים, cloudRoot) — allowlist כהיום + מיילי-על.
     match /{document=**} {
-      allow read, write: if allowed();
+      allow read, write: if allowedRoot() || superAdmin();
     }
   }
 }

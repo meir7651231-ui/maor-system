@@ -43,7 +43,7 @@ import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { roomClashError } from '../components/calendar/calLib';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, featureOn, loadOrgConfig, resolveOrgConfig, saveConfigOverride, writeCloudConfigCache } from '../lib/config';
+import { applyTheme, featureOn, isSuperAdmin, loadOrgConfig, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { mergeFamilies, mergeFamiliesByFields } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
@@ -91,6 +91,12 @@ export interface CloudState {
   authReady: boolean;
   user: CloudUser | null;
   status: CloudStatus;
+  /**
+   * שער החברות (CLOUD2 ענן 3) — ארגון-פלטפורמה בלבד: ‏na=לא רלוונטי (הלקוח
+   * הקיים/מקומי) · checking=בודקים אחרי התחברות · member=חבר, האפליקציה
+   * נפתחת · pending=נרשם וממתין לאישור הבעלים — מסך המתנה, לא האפליקציה.
+   */
+  membership: 'na' | 'checking' | 'member' | 'pending';
 }
 
 interface AppState {
@@ -122,6 +128,11 @@ interface AppState {
   cloudSignIn: (email: string, password: string) => Promise<void>;
   cloudSignOut: () => Promise<void>;
   cloudResetPassword: (email: string) => Promise<void>;
+  /**
+   * הרשמה עצמית (CLOUD2 ענן 3): יצירת משתמש Auth + כתיבת בקשה ממתינה —
+   * כל מה שנרשם-חדש רשאי לכתוב. הוא נשאר במסך ההמתנה עד אישור הבעלים.
+   */
+  cloudSignUp: (orgName: string, email: string, password: string) => Promise<void>;
 
   // מחזור חיים
   init: () => Promise<void>;
@@ -532,34 +543,52 @@ export const useApp = create<AppState>()((set, get) => {
         const hadUser = get().cloud.user !== null;
         setCloud({ authReady: true, user, ...(user ? {} : { status: 'idle' as const }) });
         if (user && !hadUser) {
-          // קונפיג חי מהענן (CLOUD2 ענן 2) — ארגון-פלטפורמה בלבד; הלקוח
-          // הקיים (cloudRoot) נשאר על הקונפיג הסטטי — אפס שינוי אצלו
-          if (cfg.cloudRoot !== true) {
-            cloudCfgUnsub?.();
-            cloudCfgUnsub = mod.watchOrgCloudConfig(get().config.slug, (orgDoc) => {
-              if (!orgDoc?.config) return;
-              // הענן גובר על הסטטי; נשמר במטמון-הענן הנפרד בלבד — לא
-              // כדריסת-אשף מקומית (זו האמת מהענן, לא עריכה מקומית)
-              const merged = resolveOrgConfig(get().config, orgDoc.config);
-              set({ config: merged });
-              const { db } = get();
-              applyTheme(db.ui.theme ?? merged.theme, db.ui.accent ?? merged.accent);
-              writeCloudConfigCache(merged.slug, merged);
+          const startSync = () =>
+            void mod.startCloudSync({
+              getDb: () => get().db,
+              // נתיב החלת-מרוחק: שמירה מקומית כרגיל, בלי cloudOnDbChange (אין הד)
+              setDbFromRemote: (db) => {
+                set({ db });
+                scheduleSave();
+              },
+              toast: (t) => get().toast(t),
+              setStatus: (status) => setCloud({ status }),
             });
+          // האזנה חיה לקונפיג (ענן 2) — הענן גובר; מטמון-ענן נפרד, לא דריסת-אשף
+          const applyCloudDoc = (orgDoc: { config?: unknown } | null) => {
+            if (!orgDoc?.config) return;
+            const merged = resolveOrgConfig(get().config, orgDoc.config);
+            set({ config: merged });
+            const { db } = get();
+            applyTheme(db.ui.theme ?? merged.theme, db.ui.accent ?? merged.accent);
+            writeCloudConfigCache(merged.slug, merged);
+          };
+          // ארגון-פלטפורמה = לא הלקוח הקיים (cloudRoot) ולא אתר-השורש (default)
+          // — אצל שניהם ההתנהגות של היום בדיוק, בלי שער-חברות ובלי קונפיג-ענן
+          const platformOrg = cfg.cloudRoot !== true && cfg.slug !== 'default';
+          if (platformOrg) {
+            // שער החברות (ענן 3): נרשם-שטרם-אושר רואה מסך המתנה — לא את
+            // האפליקציה ולא סנכרון; מייל-על עוקף (לוח הבקרה)
+            setCloud({ membership: 'checking' });
+            void mod.fetchOrgCloudConfig(cfg.slug).then((orgDoc) => {
+              const mail = user.email.trim().toLowerCase();
+              const member =
+                isSuperAdmin(user.email) ||
+                !!orgDoc?.members?.some((m) => m.trim().toLowerCase() === mail);
+              setCloud({ membership: member ? 'member' : 'pending' });
+              if (!member) return;
+              applyCloudDoc(orgDoc);
+              cloudCfgUnsub?.();
+              cloudCfgUnsub = mod.watchOrgCloudConfig(cfg.slug, applyCloudDoc);
+              startSync();
+            });
+          } else {
+            startSync();
           }
-          void mod.startCloudSync({
-            getDb: () => get().db,
-            // נתיב החלת-מרוחק: שמירה מקומית כרגיל, בלי cloudOnDbChange (אין הד)
-            setDbFromRemote: (db) => {
-              set({ db });
-              scheduleSave();
-            },
-            toast: (t) => get().toast(t),
-            setStatus: (status) => setCloud({ status }),
-          });
         } else if (!user && hadUser) {
           cloudCfgUnsub?.();
           cloudCfgUnsub = null;
+          setCloud({ membership: 'na' });
           mod.stopCloudSync();
         }
       });
@@ -637,7 +666,7 @@ export const useApp = create<AppState>()((set, get) => {
     encrypted: false,
     needDecrypt: false,
     config: DEFAULT_CONFIG,
-    cloud: { enabled: false, authReady: true, user: null, status: 'idle' },
+    cloud: { enabled: false, authReady: true, user: null, status: 'idle', membership: 'na' },
 
     async init() {
       const config = await loadOrgConfig();
@@ -652,7 +681,7 @@ export const useApp = create<AppState>()((set, get) => {
           ready: true,
           encrypted: true,
           needDecrypt: true,
-          cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle' },
+          cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle', membership: 'na' },
         });
         applyTheme(config.theme, config.accent); // ערכה בסיסית עד הפענוח
         return;
@@ -676,7 +705,7 @@ export const useApp = create<AppState>()((set, get) => {
         lock,
         encrypted: false,
         needDecrypt: false,
-        cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle' },
+        cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle', membership: 'na' },
       });
       // חיבור ענן — opt-in פר-ארגון; בלי config.firebase שום דבר לא משתנה
       if (config.firebase) void connectCloud(config.firebase, config);
@@ -705,6 +734,25 @@ export const useApp = create<AppState>()((set, get) => {
     async cloudResetPassword(email) {
       if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
       await cloudMod.resetPassword(email);
+    },
+    async cloudSignUp(orgName, email, password) {
+      if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
+      // הולידציה טהורה (signUpError) רצה ב-UI; כאן שער אחרון לפני ה-SDK
+      const err = signUpError(orgName, email, password, password);
+      if (err) throw new Error(err);
+      const uid = await cloudMod.signUp(email.trim(), password);
+      // מסמך הבקשה — כל מה שנרשם-חדש רשאי לכתוב (Rules v2); כשל בכתיבה לא
+      // מפיל את ההרשמה (הבעלים יראה את המשתמש ב-Auth), אך מדווח
+      try {
+        await cloudMod.writeOrgRequest(uid, {
+          orgName: orgName.trim(),
+          email: email.trim().toLowerCase(),
+          at: new Date().toISOString(),
+        });
+      } catch {
+        get().toast('⚠ הבקשה נרשמה חלקית — צרו קשר עם מנהל המערכת');
+      }
+      // watchAuth יקלוט את המשתמש ⇒ שער-החברות יציג את מסך ההמתנה
     },
 
     // ניווט עם רישום היסטוריה (P1.5, legacy:166) — רק מעבר-מיקום אמיתי נרשם

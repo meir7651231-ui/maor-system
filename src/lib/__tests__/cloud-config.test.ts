@@ -71,10 +71,11 @@ describe('☁️ ratchet — ענן 2: קונפיג חי מהענן', () => {
   });
 
   it('הגנת-מקור: snapshot מהענן לא נשמר כדריסת-אשף; הלקוח הקיים (cloudRoot) לא מאזין', () => {
-    // בנתיב ה-snapshot: writeCloudConfigCache — כן; saveConfigOverride — לא
-    const watchBlock = useAppSrc.slice(useAppSrc.indexOf('watchOrgCloudConfig'), useAppSrc.indexOf('startCloudSync'));
-    expect(watchBlock).toContain('writeCloudConfigCache');
-    expect(watchBlock).not.toContain('saveConfigOverride');
-    expect(useAppSrc).toContain("cfg.cloudRoot !== true");
+    // בנתיב ה-snapshot (applyCloudDoc): מטמון-ענן — כן; דריסת-אשף — לא
+    const applyBlock = useAppSrc.slice(useAppSrc.indexOf('const applyCloudDoc'), useAppSrc.indexOf('const platformOrg'));
+    expect(applyBlock).toContain('writeCloudConfigCache');
+    expect(applyBlock).not.toContain('saveConfigOverride');
+    // הלקוח הקיים (cloudRoot) ואתר-השורש (default) — לא ארגון-פלטפורמה
+    expect(useAppSrc).toContain("cfg.cloudRoot !== true && cfg.slug !== 'default'");
   });
 });

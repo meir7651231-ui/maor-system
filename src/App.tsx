@@ -36,7 +36,7 @@ import { SettingsView } from './components/settings/SettingsView';
 import { CommandPalette } from './components/palette/CommandPalette';
 import { DemoDrop } from './components/DemoDrop';
 import { DayGate } from './components/wheel/DayGate';
-import { LoginScreen } from './components/cloud/LoginScreen';
+import { LoginScreen, PendingApprovalScreen } from './components/cloud/LoginScreen';
 import { LockScreen } from './components/lock/LockScreen';
 import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
@@ -210,6 +210,17 @@ export default function App() {
     return (
       <>
         <LoginScreen />
+        {toastsEl}
+      </>
+    );
+  }
+  // שער החברות (CLOUD2 ענן 3) — ארגון-פלטפורמה: נרשם-שטרם-אושר לא מגיע
+  // לאפליקציה; מסך המתנה עד אישור הבעלים ("תתחבר שוב")
+  if (cloud.enabled && cloud.membership === 'checking') return <div className="empty">מתחבר…</div>;
+  if (cloud.enabled && cloud.membership === 'pending') {
+    return (
+      <>
+        <PendingApprovalScreen />
         {toastsEl}
       </>
     );

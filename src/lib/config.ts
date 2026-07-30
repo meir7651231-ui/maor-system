@@ -192,6 +192,29 @@ export function clearConfigOverride(): void {
   }
 }
 
+/* ---------- פלטפורמה (CLOUD2 — טהור, בלי firebase) ---------- */
+
+/** מיילי-העל של הפלטפורמה — לוח הבקרה (#platform) ועקיפת שער-החברות. */
+export const SUPER_ADMIN_EMAILS = ['meir7651231@gmail.com'];
+
+/** האם מייל-על (case-insensitive). */
+export function isSuperAdmin(email: string | null | undefined): boolean {
+  const e = (email || '').trim().toLowerCase();
+  return !!e && SUPER_ADMIN_EMAILS.includes(e);
+}
+
+/**
+ * ולידציית טופס ההרשמה (ענן 3) — טהורה עד גבול ה-SDK: מחזירה הודעת שגיאה
+ * בעברית או '' כשהקלט תקין.
+ */
+export function signUpError(orgName: string, email: string, password: string, password2: string): string {
+  if (!orgName.trim()) return 'שם הארגון הוא שדה חובה';
+  if (!/^\S+@\S+\.\S+$/.test(email.trim())) return 'כתובת האימייל אינה תקינה';
+  if (password.length < 6) return 'הסיסמה חייבת להיות לפחות 6 תווים';
+  if (password !== password2) return 'הסיסמאות אינן זהות';
+  return '';
+}
+
 /* ---------- קונפיג-ענן: מטמון ומיזוג עדיפויות (CLOUD2 ענן 2 — טהור, בלי firebase) ---------- */
 
 /** מפתח מטמון הקונפיג-מהענן — נפרד מדריסת-הריצה של האשף (LS_CONFIG_KEY). */

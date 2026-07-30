@@ -72,3 +72,8 @@ export async function writeOrgCloudConfig(slug: string, config: OrgConfig): Prom
 export async function deleteOrgRequest(uid: string): Promise<void> {
   await deleteDoc(doc(cloudDb(), PLATFORM_REQUESTS, uid));
 }
+
+/** כתיבת בקשת הרשמה — המסמך היחיד שנרשם-חדש רשאי לכתוב (Rules v2). */
+export async function writeOrgRequest(uid: string, req: OrgRequestDoc): Promise<void> {
+  await setDoc(doc(cloudDb(), PLATFORM_REQUESTS, uid), JSON.parse(JSON.stringify(req)));
+}

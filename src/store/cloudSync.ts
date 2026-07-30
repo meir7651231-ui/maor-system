@@ -16,10 +16,10 @@ import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
 import { pullAll, pushDiff, subscribeAll, type RemotePartial } from '../lib/cloud';
 
 // יצוא-מחדש של שכבת ה-auth — ל-useApp יש import דינמי אחד בלבד (המודול הזה)
-export { initCloud, resetPassword, setCloudScope, signIn, signOutCloud, watchAuth } from '../lib/cloud';
+export { initCloud, resetPassword, setCloudScope, signIn, signOutCloud, signUp, watchAuth } from '../lib/cloud';
 export type { CloudUser } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
-export { deleteOrgRequest, fetchOrgCloudConfig, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc } from '../lib/cloudConfig';
+export { deleteOrgRequest, fetchOrgCloudConfig, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgRequest } from '../lib/cloudConfig';
 export type { OrgCloudDoc, OrgRequestDoc } from '../lib/cloudConfig';
 
 export type CloudStatus = 'idle' | 'connecting' | 'synced' | 'error';

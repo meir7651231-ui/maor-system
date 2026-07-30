@@ -10,6 +10,7 @@
  */
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import {
+  createUserWithEmailAndPassword,
   getAuth,
   onAuthStateChanged,
   sendPasswordResetEmail,
@@ -136,6 +137,24 @@ export async function signIn(email: string, password: string): Promise<void> {
   try {
     await signInWithEmailAndPassword(requireAuth(), email, password);
   } catch (e) {
+    throw hebrewAuthError(e);
+  }
+}
+
+/**
+ * הרשמה עצמית (CLOUD2 ענן 3) — יוצרת משתמש Auth ומחזירה את ה-uid; המשתמש
+ * מחובר אך לא רואה כלום עד שהבעלים מאשר (שער החברות). שגיאות בעברית.
+ */
+export async function signUp(email: string, password: string): Promise<string> {
+  try {
+    const cred = await createUserWithEmailAndPassword(requireAuth(), email, password);
+    return cred.user.uid;
+  } catch (e) {
+    const code = ((e as { code?: string } | null)?.code ?? '').toString();
+    if (code === 'auth/email-already-in-use') throw new Error('האימייל כבר רשום — נסו להתחבר או לאפס סיסמה');
+    if (code === 'auth/weak-password') throw new Error('הסיסמה חלשה מדי — לפחות 6 תווים');
+    if (code === 'auth/invalid-email') throw new Error('כתובת האימייל אינה תקינה');
+    if (code === 'auth/operation-not-allowed') throw new Error('ההרשמה סגורה כרגע — פנו למנהל המערכת');
     throw hebrewAuthError(e);
   }
 }
