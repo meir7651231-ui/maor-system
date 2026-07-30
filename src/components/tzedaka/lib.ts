@@ -9,6 +9,7 @@ import type { Db, IsoDate, TzBox, TzBoxStatus, TzCampaign, TzCollection, TzCoord
 import { DAY_NAMES, isoOf } from '../calendar/calLib';
 import { buildMonthGrid, type MonthGrid, type MonthGridCell } from '../../lib/monthGrid';
 import { smartFilter } from '../../lib/search';
+import { dateInRange } from '../../lib/date-util';
 
 /* ---------- ניקוד גיימיפיקציה ---------- */
 
@@ -223,7 +224,7 @@ export function boxesOverview(
   return [...rows].sort(cmp[sort]);
 }
 
-/** סינון היסטוריית ריקונים — טווח תאריכים (כוללני) + מבצע. */
+/** סינון היסטוריית ריקונים — טווח תאריכים (כוללני, dateInRange המשותף) + מבצע. */
 export function filterCollections(
   box: TzBox,
   fromIso: IsoDate | '',
@@ -231,10 +232,7 @@ export function filterCollections(
   campaignId: string,
 ): TzCollection[] {
   return box.collections.filter(
-    (c) =>
-      (!fromIso || c.date >= fromIso) &&
-      (!toIso || c.date <= toIso) &&
-      (!campaignId || c.campaignId === campaignId),
+    (c) => dateInRange(c.date, fromIso, toIso) && (!campaignId || c.campaignId === campaignId),
   );
 }
 

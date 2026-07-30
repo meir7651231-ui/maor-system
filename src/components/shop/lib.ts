@@ -10,6 +10,7 @@ import type { Db, Id, IsoDate, ShopAssignment, ShopAssignmentStatus, ShopCompone
 import { isoOf } from '../calendar/calLib';
 import { hebParts, holidayOf } from '../../lib/hebrew';
 import { smartFilter } from '../../lib/search';
+import { dateInRange } from '../../lib/date-util';
 
 /* ---------- מימושים חיים ---------- */
 
@@ -469,7 +470,7 @@ export function filterItems(db: Db, q: string, stockState: '' | 'out' | 'low' | 
   return smartFilter(q, list, (i) => [i.name, ...i.name.split(/\s+/)]);
 }
 
-/** סינון מימושי שיוך — טווח כוללני; includeVoided=true (ברירת שקיפות). */
+/** סינון מימושי שיוך — טווח כוללני (dateInRange המשותף); includeVoided=true (ברירת שקיפות). */
 export function filterRedemptions(
   a: ShopAssignment,
   fromIso: IsoDate | '',
@@ -477,10 +478,7 @@ export function filterRedemptions(
   includeVoided: boolean,
 ): ShopRedemption[] {
   return a.redemptions.filter(
-    (r) =>
-      (!fromIso || r.date >= fromIso) &&
-      (!toIso || r.date <= toIso) &&
-      (includeVoided || !r.voidedAt),
+    (r) => dateInRange(r.date, fromIso, toIso) && (includeVoided || !r.voidedAt),
   );
 }
 

@@ -22,3 +22,11 @@ export function isoDaysAgo(days: number): string {
   d.setDate(d.getDate() - days);
   return isoLocal(d);
 }
+
+/**
+ * האם תאריך ISO בטווח כוללני — קצה ריק = פתוח (UX סינון 3; ה-helper
+ * המשותף לסינוני-ההיסטוריה של הקופות והחנות — בלי כפל לוגיקה).
+ */
+export function dateInRange(iso: string, fromIso: string, toIso: string): boolean {
+  return (!fromIso || iso >= fromIso) && (!toIso || iso <= toIso);
+}
