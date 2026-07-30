@@ -87,8 +87,10 @@ describe('🛡 הגנות-מקור — חיווט למודאלים הקיימי�
     expect(detailSrc).toMatch(/cardOpsOn && fam\.mother && !fam\.members\.some\(\(x\) => x\.isParent && x\.gender === 'f'\)/);
   });
 
-  it('הסרה מהכרטיס עוברת דרך deleteEnrollment של ה-store עם confirm', () => {
+  it('הסרה מהכרטיס עוברת דרך deleteEnrollment של ה-store עם אישור לפני ביצוע', () => {
     expect(panelsSrc).toMatch(/deleteEnrollment = useApp\(\(s\) => s\.deleteEnrollment\)/);
-    expect(panelsSrc).toMatch(/window\.confirm\([\s\S]{0,300}deleteEnrollment\(e\.id\)/);
+    // P3 פריט 19: האישור עבר מ-window.confirm לדפוס שני-הקליקים (useArmed) —
+    // עדיין חובה אישור לפני המחיקה
+    expect(panelsSrc).toMatch(/confirmTwice\('enr-' \+ e\.id[\s\S]{0,400}deleteEnrollment\(e\.id\)/);
   });
 });

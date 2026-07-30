@@ -15,6 +15,7 @@ import { EnrollModal } from './EnrollModal';
 import { ManageModal } from './ManageModal';
 import { AbsenceModal } from './AbsenceModal';
 import { CustomExport } from '../reports/CustomExport';
+import { useArmed } from '../useArmed';
 import {
   DAY_NAMES,
   TINTS,
@@ -75,6 +76,8 @@ export function CourseDetail(props: { course: Course }) {
   // תפקיד מורה (P3 פריט 15) — עריכה/מחיקה מוסתרות למורה מחוברת
   const userEmail = useApp((s) => s.cloud.user?.email ?? null);
   const isTeacherUser = featureOn(cfg, 'shell.roles') && roleOf(cfg, userEmail) === 'teacher';
+  // מחיקה בשני קליקים (P3 פריט 19, shell.armdel)
+  const { armed, confirmTwice } = useArmed(featureOn(cfg, 'shell.armdel'));
 
   const c = props.course;
   const [prevCourseId, setPrevCourseId] = useState(c.id);
@@ -309,15 +312,18 @@ export function CourseDetail(props: { course: Course }) {
                 'למחוק את ה' + termOf(cfg, 'entity.course', 'חוג') + ' "' + c.name + '"?' +
                 (n ? ' פעולה זו תמחק גם את ' + n + ' ה' + termOf(cfg, 'entity.enrollments', 'שיבוצים') + ' שלו (כולל תשלומים ונוכחות).' : '') +
                 '\n\nלא ניתן לבטל.';
-              if (window.confirm(msg)) {
-                deleteCourse(c.id);
-                selectCourse(null);
-                toast('ה' + termOf(cfg, 'entity.course', 'חוג') + ' נמחק');
+              // מחיקה בשני קליקים (P3 פריט 19, לגאסי armDel)
+              if (!confirmTwice('crs-' + c.id, msg)) {
+                toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תמחק לצמיתות');
+                return;
               }
+              deleteCourse(c.id);
+              selectCourse(null);
+              toast('ה' + termOf(cfg, 'entity.course', 'חוג') + ' נמחק');
             }}
             title={'מחיקת ה' + termOf(cfg, 'entity.course', 'חוג') + ' וכל ה' + termOf(cfg, 'entity.enrollments', 'שיבוצים') + ' שלו'}
           >
-            🗑 מחיקה
+            {armed === 'crs-' + c.id ? '🗑 בטוח? עוד לחיצה' : '🗑 מחיקה'}
           </Btn>
           )}
         </div>

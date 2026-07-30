@@ -16,6 +16,7 @@ import { AbsenceModal } from '../courses/AbsenceModal';
 import { ManageModal } from '../courses/ManageModal';
 import { EventModal } from '../calendar/EventModal';
 import { ageOf, chipStyle, CRED_HELP_TEXT, EVENT_META, famHistoryOf, fmtDate, isoToday, STATUS_META, tierOf } from './lib';
+import { useArmed } from '../useArmed';
 import { JoinModal } from './JoinModal';
 
 function SectionCard(props: { title: string; actions?: ReactNode; children: ReactNode }) {
@@ -218,6 +219,8 @@ export function EnrollPanel(props: { fam: Family }) {
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const joinOn = featureOn(config, 'families.join');
+  // מחיקה בשני קליקים (P3 פריט 19, shell.armdel)
+  const { confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   // פעולות תפעול מהכרטיס (P0.3, עוגן לגאסי: כרטיס המשפחה מנקב/מחסר/מנהל ישירות)
   const cardOpsOn = featureOn(config, 'families.cardops');
   const punchOn = featureOn(config, 'courses.punch');
@@ -257,13 +260,15 @@ export function EnrollPanel(props: { fam: Family }) {
     toast('הניקוב נרשם בהצלחה');
   }
 
-  /** הסרת שיבוץ מהכרטיס — confirm כמו במסך החוגים; ה-store מוחק גם את תזכורת התשלום. */
+  /** הסרת שיבוץ מהכרטיס — שני קליקים (P3 פריט 19); ה-store מוחק גם את תזכורת התשלום. */
   function removeEnroll(e: Enrollment, memberFirst: string, courseName: string) {
-    const ok = window.confirm(
+    const msg =
       'להסיר את ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' של ' + (memberFirst || '—') +
-        ' ל"' + courseName + '"? הפעולה תמחק גם את התשלומים והנוכחות שלו.\n\nלא ניתן לבטל.',
-    );
-    if (!ok) return;
+      ' ל"' + courseName + '"? הפעולה תמחק גם את התשלומים והנוכחות שלו.\n\nלא ניתן לבטל.';
+    if (!confirmTwice('enr-' + e.id, msg)) {
+      toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תסיר לצמיתות');
+      return;
+    }
     deleteEnrollment(e.id);
     toast('ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' הוסר לצמיתות');
   }

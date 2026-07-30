@@ -39,6 +39,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'families.finder', label: 'גלגל מאתר המשפחות', desc: 'גלגל סינון חי בתוך מסך המשפחות — צלילה ציר אחרי ציר', module: 'families' },
   { key: 'families.cardops', label: 'פעולות תפעול בכרטיס', desc: 'ניקוב, חיסור, ניהול והסרת שיבוץ + כרטיסי אב/אם להשלמה + "➕ אירוע" — ישירות מכרטיס המשפחה', module: 'families' },
   { key: 'families.cred.trendCreditsOnly', label: 'מקדם מגמה על זיכויים בלבד', desc: 'דלוק: המקדם מוכפל רק על זיכויים (התנהגות המערכת); כבוי: מוכפל גם על עונשים (תאימות לקובץ החי)', module: 'families' },
+  { key: 'families.shortcuts', label: 'קיצורי ייבוא ובדיקה במסך', desc: 'כפתורי "⬆ ייבוא" ו"✓ בדיקת נתונים" בראש מסך המשפחות — קפיצה לסקשן בהגדרות (כמו בקובץ החי)', module: 'families' },
 
   // ——— חוגים ———
   { key: 'courses.punch', label: 'כרטיסיות ניקוב', desc: 'מכירת כרטיסיות וניקוב כניסות במקום מנוי', module: 'courses' },
@@ -143,6 +144,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'shell.demo', label: 'מצב הדגמה ▶', desc: 'סיור spotlight מודרך על המסכים האמיתיים לפי תסריט הקובץ החי — הבא/הקודם, Esc עוצר', module: 'shell' },
   { key: 'shell.a11yfab', label: 'כפתור נגישות צף ♿', desc: 'FAB נגיש מכל מסך — גודל אותיות 80%-160% בצעדי 10%, ניגודיות, הדגשה, עצירת אנימציות וריווח', module: 'shell' },
   { key: 'shell.roles', label: 'תפקיד מורה', desc: 'מורה מחוברת (roles.teachers בקונפיג) רואה רק את החוגים שלה; הוספה/עריכה/מחיקה והגדרות מוסתרות', module: 'shell' },
+  { key: 'shell.armdel', label: 'מחיקה בשני קליקים', desc: 'מחיקות משפחה/בן משפחה/חוג/שיבוץ בדפוס חימוש-ופקיעה 3.5ש׳ כמו בקובץ החי; כבוי = דיאלוג אישור של הדפדפן', module: 'shell' },
 
   // ——— ליבה ———
   { key: 'core.receipts', label: 'קבלות להורדה', desc: 'הפקת קבלות להורדה על תשלומים ותרומות', module: 'core' },

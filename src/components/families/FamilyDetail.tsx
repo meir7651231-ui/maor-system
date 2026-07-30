@@ -12,6 +12,7 @@ import { ageOf, chipStyle, fmtDate, STATUS_META } from './lib';
 import { FamilyForm } from './FamilyForm';
 import { MemberForm, type MemberPrefill } from './MemberForm';
 import { CredPanel, DocsPanel, EnrollPanel, EventsPanel } from './FamilyPanels';
+import { useArmed } from '../useArmed';
 
 function InfoRow(props: { k: string; v: string }) {
   return (
@@ -162,6 +163,8 @@ export function FamilyDetail(props: { family: Family }) {
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const credOn = featureOn(config, 'families.cred');
+  // מחיקות בשני קליקים (P3 פריט 19, shell.armdel; כבוי = דיאלוג דפדפן)
+  const { confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const docsOn = featureOn(config, 'families.docs');
   const cardOpsOn = featureOn(config, 'families.cardops');
 
@@ -188,36 +191,41 @@ export function FamilyDetail(props: { family: Family }) {
   const addressLine = [fam.address, fam.city].filter(Boolean).join(', ');
 
   function onDeleteFamily() {
-    const ok = window.confirm(
+    // מחיקה מדורגת בשני קליקים (P3 פריט 19, לגאסי armDel)
+    const msg =
       'למחוק את ' +
-        termOf(config, 'entity.familyOf', 'משפחת') +
-        ' ' +
-        fam.name +
-        '? הפעולה תמחק גם את ' +
-        termOf(config, 'entity.members', 'בני משפחה') +
-        ', ' +
-        termOf(config, 'entity.enrollments', 'שיבוצים') +
-        ' והאירועים המקושרים.',
-    );
-    if (!ok) return;
+      termOf(config, 'entity.familyOf', 'משפחת') +
+      ' ' +
+      fam.name +
+      '? הפעולה תמחק גם את ' +
+      termOf(config, 'entity.members', 'בני משפחה') +
+      ', ' +
+      termOf(config, 'entity.enrollments', 'שיבוצים') +
+      ' והאירועים המקושרים.';
+    if (!confirmTwice('fam-' + fam.id, msg)) {
+      toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תמחק לצמיתות');
+      return;
+    }
     deleteFamily(fam.id);
     selectFamily(null);
     toast('מחיקת ' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + fam.name + ' הושלמה');
   }
 
   function onDeleteMember(m: Member) {
-    const ok = window.confirm(
+    const msg =
       'להסיר את ' +
-        m.first +
-        ' מ' +
-        termOf(config, 'entity.familyOf', 'משפחת') +
-        ' ' +
-        fam.name +
-        '? ' +
-        termOf(config, 'entity.enrollments', 'שיבוצים') +
-        ' שלו/ה יימחקו גם כן.',
-    );
-    if (!ok) return;
+      m.first +
+      ' מ' +
+      termOf(config, 'entity.familyOf', 'משפחת') +
+      ' ' +
+      fam.name +
+      '? ' +
+      termOf(config, 'entity.enrollments', 'שיבוצים') +
+      ' שלו/ה יימחקו גם כן.';
+    if (!confirmTwice('mem-' + m.id, msg)) {
+      toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תסיר את ' + m.first);
+      return;
+    }
     deleteMember(fam.id, m.id);
     toast(m.first + ' הוסר/ה מה' + termOf(config, 'entity.family', 'משפחה'));
   }
