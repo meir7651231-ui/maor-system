@@ -7,7 +7,7 @@
 import { allMembers, useApp } from '../../store/useApp';
 import { downloadCsv, type Cell } from '../../lib/csvx';
 import { featureOn } from '../../lib/config';
-import { eventsCsvRows } from '../../lib/exportRows';
+import { eventsCsvRows, familiesImportFormatRows, supportersImportFormatRows } from '../../lib/exportRows';
 import { Btn } from '../ui';
 import { Section, SectionNote } from './lib';
 import { ageOf, fmtDate, STATUS_META } from '../families/lib';
@@ -165,13 +165,31 @@ export function ExportSection() {
     toast('קובץ השיבוצים ירד — ' + db.enrollments.length + ' שיבוצים');
   }
 
+  // ייצוא בפורמט הייבוא (P3 פריט 4) — round-trip לעריכה באקסל והחזרה
+  function expFamiliesImportFmt() {
+    const db = useApp.getState().db;
+    downloadCsv('maor-import-families.csv', familiesImportFormatRows(db));
+    toast('הקובץ בפורמט הייבוא ירד — ערכו באקסל והחזירו דרך "ייבוא משפחות"');
+  }
+  function expSupportersImportFmt() {
+    const db = useApp.getState().db;
+    downloadCsv('maor-import-supporters.csv', supportersImportFormatRows(db));
+    toast('הקובץ בפורמט הייבוא ירד — ערכו באקסל והחזירו דרך ייבוא התומכות');
+  }
+
   const buttons: { label: string; count: number; run: () => void }[] = [
     { label: '⬇ משפחות', count: counts.families, run: exportFamiliesCsv },
     { label: '⬇ בני משפחה', count: counts.members, run: expMembers },
     { label: '⬇ חוגים', count: counts.courses, run: expCourses },
     { label: '⬇ תורמים', count: counts.supporters, run: expSupporters },
     { label: '⬇ שיבוצים', count: counts.enrollments, run: expEnrollments },
-    ...(exportFullOn ? [{ label: '⬇ אירועים', count: counts.events, run: expEvents }] : []),
+    ...(exportFullOn
+      ? [
+          { label: '⬇ אירועים', count: counts.events, run: expEvents },
+          { label: '⬇ משפחות (פורמט ייבוא)', count: counts.families, run: expFamiliesImportFmt },
+          { label: '⬇ תומכות (פורמט ייבוא)', count: counts.supporters, run: expSupportersImportFmt },
+        ]
+      : []),
   ];
 
   return (

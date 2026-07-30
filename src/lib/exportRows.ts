@@ -22,6 +22,34 @@ function fmtD(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
+/* ---------- ייצוא בפורמט הייבוא (P3 פריט 4, לגאסי exportImportFormat) ----------
+ * "ייצא → ערוך באקסל → החזר": הנתונים הקיימים באותן עמודות שהייבוא מקבל.
+ * לעיניים קיים מ-P0.4 (maor-ayin-eyes.csv); כאן משפחות (13 עמודות של
+ * familiesImport) ותומכות (7 העמודות של SupporterImport). */
+
+/** משפחות בפורמט ייבוא 13 העמודות — מיפוי parseFamiliesCsv (legacy:944-960). */
+export function familiesImportFormatRows(db: Db): Cell[][] {
+  const rows: Cell[][] = [
+    ['שם', 'ת"ז אב', 'טלפון', 'שם האם', 'ת"ז אם', 'טלפון 2', 'עיר', 'כתובת', '', 'אלמן', 'קהילה', '', 'הערות'],
+  ];
+  for (const f of db.families) {
+    rows.push([
+      f.name, f.fatherId, f.phone, f.mother, f.motherId, f.phone2, f.city, f.address, '',
+      (f.maritalStatus || '').includes('אלמן') ? 'אלמן' : '', f.community, '', f.notes,
+    ]);
+  }
+  return rows;
+}
+
+/** תומכות בפורמט ייבוא 7 העמודות של SupporterImport (הצלבה לפי שם). */
+export function supportersImportFormatRows(db: Db): Cell[][] {
+  const rows: Cell[][] = [['שם', 'טלפון', 'אימייל', 'ת"ז', 'כתובת', 'קטגוריה', 'עבור']];
+  for (const sp of db.supporters) {
+    rows.push([sp.name, sp.phone, sp.email, sp.idNum, sp.address, sp.cat, sp.forWho]);
+  }
+  return rows;
+}
+
 /** שורות ייצוא האירועים — כותרת + שורה לכל אירוע, ממוינות לפי תאריך. */
 export function eventsCsvRows(db: Db): Cell[][] {
   const rows: Cell[][] = [
