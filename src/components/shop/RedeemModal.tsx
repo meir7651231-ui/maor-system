@@ -7,14 +7,16 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { featureOn } from '../../lib/config';
 import type { ShopAssignment, ShopComponent } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { isoToday } from '../../lib/date-util';
-import { componentRemaining, couponExpiry, effectivePrice, itemOf, itemRemaining, maxDiscountPct, upcomingHolidays } from './lib';
+import { beneficiaryLabel, componentRemaining, couponExpiry, effectivePrice, itemOf, itemRemaining, maxDiscountPct, upcomingHolidays } from './lib';
 
 export function RedeemModal(props: { assignment: ShopAssignment; component: ShopComponent; onClose: () => void }) {
   const db = useApp((s) => s.db);
+  const config = useApp((s) => s.config);
   const criteria = useApp((s) => s.db.shopCriteria);
   const assignments = useApp((s) => s.db.shopAssignments);
   const addShopRedemption = useApp((s) => s.addShopRedemption);
@@ -103,6 +105,27 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
         {!isMeeting && (
           <Field label='לתשלום (ש"ח) — ניתן לעריכה'>
             <TextInput value={f.paid} onChange={(v) => setF({ ...f, paid: v })} type="number" dir="ltr" />
+          </Field>
+        )}
+        {/* גבייה בקופה הרושמת (הכרעה 20) — כלי ספירה בלבד: sessionStorage +
+            ‎#cashbox; אפס כתיבה ל-db — האמת הכספית נשארת במימוש+S- */}
+        {!isMeeting && featureOn(config, 'core.cashbox') && Math.round(+f.paid) > 0 && (
+          <Field label="קבלת המזומן">
+            <Btn
+              sm
+              onClick={() => {
+                try {
+                  sessionStorage.setItem('maor_cashbox_amount', String(Math.round(+f.paid)));
+                  sessionStorage.setItem('maor_cashbox_client', beneficiaryLabel(db, a));
+                } catch {
+                  /* sessionStorage חסום — הקופה תיפתח ריקה */
+                }
+                window.location.hash = '#cashbox';
+              }}
+              title="פותח את הקופה הרושמת עם הסכום והלקוח ממולאים — המודאל נשאר פתוח"
+            >
+              💵 גבייה בקופה
+            </Btn>
           </Field>
         )}
         {!isMeeting && !isCoupon && (

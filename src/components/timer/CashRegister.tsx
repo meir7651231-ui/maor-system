@@ -6,7 +6,9 @@
  * עצמאי לחלוטין: החשבוניות נשמרות ב-localStorage ייעודי (maor_cashbox_receipts)
  * ומונה החשבוניות ב-maor_cashbox_seq — לא נוגע בסכמת ה-db ולא ברשומות הקיימות.
  * סכום התחלתי אופציונלי נמשך מ-sessionStorage (maor_cashbox_amount) — כך
- * "גבה תשלום" בטיימר-הכסף פותח את הקופה עם הסכום מוכן.
+ * "גבה תשלום" בטיימר-הכסף פותח את הקופה עם הסכום מוכן; שם לקוח ממולא
+ * נמשך מ-maor_cashbox_client (SHOP5 — "💵 גבייה בקופה" ממודאל המימוש;
+ * הקופה נשארת כלי ספירה נפרד — האמת הכספית במימושים+S-).
  *
  * גייט: core.cashbox. השם ניתן לתיוג דרך nav.cashbox.
  */
@@ -18,6 +20,7 @@ import { Btn, Modal, TextInput } from '../ui';
 const LS_RECEIPTS = 'maor_cashbox_receipts';
 const LS_SEQ = 'maor_cashbox_seq';
 const SS_AMOUNT = 'maor_cashbox_amount';
+const SS_CLIENT = 'maor_cashbox_client';
 
 /** מטבעות ושטרות בש"ח (ILS). */
 const COINS = [0.1, 0.5, 1, 2, 5, 10];
@@ -75,8 +78,22 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
     return '';
   }, []);
 
+  // שם לקוח ממולא (מהמימוש בחנות) — אותו דפוס כמו הסכום
+  const prefillClient = useMemo(() => {
+    try {
+      const v = sessionStorage.getItem(SS_CLIENT);
+      if (v) {
+        sessionStorage.removeItem(SS_CLIENT);
+        return v;
+      }
+    } catch {
+      /* חסום */
+    }
+    return '';
+  }, []);
+
   const [due, setDue] = useState(prefill);
-  const [client, setClient] = useState('');
+  const [client, setClient] = useState(prefillClient);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [receipt, setReceipt] = useState<Receipt | null>(null);
 
