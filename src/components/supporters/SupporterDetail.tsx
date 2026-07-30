@@ -40,6 +40,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const deleteSupporter = useApp((s) => s.deleteSupporter);
   const upsertEvent = useApp((s) => s.upsertEvent);
   const deleteEvent = useApp((s) => s.deleteEvent);
+  const unlinkEvent = useApp((s) => s.unlinkEvent);
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
@@ -56,10 +57,14 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const tier = supTier(score);
   const callNotes = 'משפחה תומכת · ' + (sp.phone || '') + (sp.email ? ' · ' + sp.email : '');
 
-  /** עריכת "קשר הבא" — מציעה תזכורת 'שיחה' מקושרת בלוח השנה. */
+  /**
+   * עריכת "קשר הבא" — התזכורת נוצרת/מתעדכנת אוטומטית בלי confirm (P1.9,
+   * ratchet legacy saveSupNext, legacy-main-script.js:1432-1444); ניקוי התאריך
+   * מוחק גם את התזכורת המקושרת (unlinkEvent — תיקון האירוע היתום, באג ידוע #6).
+   */
   function setNextDate(v: string) {
     if (!v) {
-      upsertSupporter({ ...sp, nextDate: '' });
+      unlinkEvent('supporterNext', sp.id);
       toast('תאריך היעד נוקה');
       return;
     }
@@ -68,7 +73,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       upsertEvent({ ...linked, title: 'יעד קשר — תומכת: ' + sp.name, date: v, done: false, notes: callNotes });
       upsertSupporter({ ...sp, nextDate: v });
       toast('נקבע תאריך יעד ' + hebDateFull(v) + ' — התזכורת בלוח השנה עודכנה');
-    } else if (window.confirm('נקבע תאריך יעד ' + fmtDate(v) + ' — להוסיף תזכורת שיחה ללוח השנה?')) {
+    } else {
       const id = nextId('ev');
       upsertEvent({
         id,
@@ -86,9 +91,6 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       });
       upsertSupporter({ ...sp, nextDate: v, nextEventId: id });
       toast('נקבע תאריך יעד ' + hebDateFull(v) + ' — נוספה תזכורת ללוח השנה');
-    } else {
-      upsertSupporter({ ...sp, nextDate: v });
-      toast('נקבע תאריך יעד ' + hebDateFull(v));
     }
   }
 

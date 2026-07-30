@@ -164,6 +164,11 @@ interface AppState {
   addPayment: (enrollmentId: string, payment: Omit<Payment, 'rid'>) => { ok: boolean; rid?: string };
 
   // יומן ואירועים
+  /**
+   * ניקוי תאריך-יעד (תומכת) / תשלום-הבא (שיבוץ) + מחיקת אירוע-הלוח המקושר —
+   * אטומי. תיקון באג ידוע #6: הניקוי השאיר אירוע יתום בלוח (המחיקות כן ניקו).
+   */
+  unlinkEvent: (kind: 'supporterNext' | 'enrollmentDue', id: string) => void;
   upsertEvent: (ev: OrgEvent) => void;
   deleteEvent: (id: string) => void;
 
@@ -808,6 +813,28 @@ export const useApp = create<AppState>()((set, get) => {
       return { ok: true, rid };
     },
 
+    unlinkEvent(kind, id) {
+      setDb((db) => {
+        if (kind === 'supporterNext') {
+          const sp = db.supporters.find((s) => s.id === id);
+          if (!sp) return {};
+          return {
+            supporters: db.supporters.map((s) =>
+              s.id === id ? { ...s, nextDate: '', nextEventId: undefined } : s,
+            ),
+            ...(sp.nextEventId ? { events: db.events.filter((e) => e.id !== sp.nextEventId) } : {}),
+          };
+        }
+        const en = db.enrollments.find((e) => e.id === id);
+        if (!en) return {};
+        return {
+          enrollments: db.enrollments.map((e) =>
+            e.id === id ? { ...e, dueDate: '', dueEventId: undefined } : e,
+          ),
+          ...(en.dueEventId ? { events: db.events.filter((e) => e.id !== en.dueEventId) } : {}),
+        };
+      });
+    },
     upsertEvent(ev) {
       setDb((db) => ({ events: upsertIn(db.events, ev) }));
     },

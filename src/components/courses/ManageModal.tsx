@@ -28,6 +28,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   const deleteEnrollment = useApp((s) => s.deleteEnrollment);
   const addPayment = useApp((s) => s.addPayment);
   const storeUndoPunch = useApp((s) => s.undoPunch);
+  const unlinkEvent = useApp((s) => s.unlinkEvent);
   const upsertEvent = useApp((s) => s.upsertEvent);
   const deleteEvent = useApp((s) => s.deleteEvent);
   const addCred = useApp((s) => s.addCred);
@@ -72,8 +73,9 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   function saveDueDate(v: string) {
     if (!en) return;
     if (!v) {
-      upsertEnrollment({ ...en, dueDate: '' });
-      toast('תאריך התשלום הבא נוקה');
+      // ניקוי + מחיקת התזכורת המקושרת מהלוח (unlinkEvent — תיקון האירוע היתום, P1.9)
+      unlinkEvent('enrollmentDue', en.id);
+      toast('תאריך התשלום הבא נוקה — התזכורת הוסרה מהלוח');
       return;
     }
     let evId = en.dueEventId;
