@@ -388,6 +388,34 @@ export function productAssignments(assignments: readonly ShopAssignment[], produ
   return assignments.filter((a) => a.productId === productId);
 }
 
+/* ---------- ייצוא (CONNECT חיבור 6) ---------- */
+
+/**
+ * שורות CSV של כל המימושים — תאריך, מוטב, פריט, חבילה, שולם, שווי, אישור,
+ * מבוטל. **מבוטל מסומן ולא מוסתר** — שקיפות מלאה בייצוא.
+ */
+export function redemptionsCsvRows(db: Db): (string | number)[][] {
+  const rows: (string | number)[][] = [['תאריך', 'מוטב', 'פריט', 'חבילה', 'שולם', 'שווי', 'אישור', 'מבוטל']];
+  for (const a of db.shopAssignments) {
+    const product = db.shopProducts.find((p) => p.id === a.productId);
+    const who = beneficiaryLabel(db, a);
+    for (const r of a.redemptions) {
+      const comp = product?.components.find((c) => c.id === r.componentId);
+      rows.push([
+        r.date,
+        who,
+        comp ? itemOf(db, comp).name : '',
+        product?.name ?? '',
+        r.paid,
+        r.value,
+        r.rid ?? '',
+        r.voidedAt ? 'בוטל ב-' + r.voidedAt : '',
+      ]);
+    }
+  }
+  return rows;
+}
+
 /* ---------- תוויות ---------- */
 
 /** "משפחת X — שם הבן/בת" (בלי בן/בת ספציפי/ת — שם המשפחה בלבד). */

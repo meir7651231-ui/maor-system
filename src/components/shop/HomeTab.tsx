@@ -5,7 +5,8 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
+import { downloadCsv } from '../reports/csv';
 import { isoToday } from '../../lib/date-util';
 import type { ShopAssignment, ShopComponent, ShopEvent } from '../../types/domain';
 import { Btn, Chip, Select } from '../ui';
@@ -17,6 +18,7 @@ import {
   holidayAllowed,
   itemOf,
   needsCare,
+  redemptionsCsvRows,
   subsidyTotal,
   upcomingHolidays,
   upcomingMeetings,
@@ -85,6 +87,10 @@ export function HomeTab() {
       {/* קיצורי פעולה */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <Btn onClick={() => setProductFormOpen(true)}>➕ {termOf(config, 'entity.shopProduct', 'מוצר')}</Btn>
+        {/* ייצוא המימושים (CONNECT חיבור 6) — מבוטל מסומן ולא מוסתר */}
+        {featureOn(config, 'shop.export') && (
+          <Btn onClick={() => downloadCsv('shop-redemptions.csv', redemptionsCsvRows(db))}>⬇ ייצוא מימושים (CSV)</Btn>
+        )}
         <Btn onClick={() => setAssignFormOpen(true)}>➕ {termOf(config, 'entity.shopAssignment', 'שיוך')}</Btn>
         {db.shopAssignments.length > 0 && (
           <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>

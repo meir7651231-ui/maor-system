@@ -9,7 +9,8 @@ import { isoToday } from '../../lib/date-util';
 import type { TzBox, TzCampaign } from '../../types/domain';
 import { Btn, Chip, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { campaignProgress, campaignTotal, grandTotal, needsCare } from './lib';
+import { campaignProgress, campaignTotal, collectionsCsvRows, grandTotal, needsCare } from './lib';
+import { downloadCsv } from '../reports/csv';
 import { CollectModal } from './CollectModal';
 import { CoordinatorForm } from './CoordinatorForm';
 import { BoxForm } from './BoxForm';
@@ -134,6 +135,10 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
       {/* קיצורי פעולה */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <Btn onClick={() => setCoordFormOpen(true)}>➕ {termOf(config, 'entity.tzCoordinator', 'רכז')}</Btn>
+        {/* ייצוא הריקונים (CONNECT חיבור 6) — שקיפות מלאה, שורות טהורות מ-lib */}
+        {featureOn(config, 'tzedaka.export') && (
+          <Btn onClick={() => downloadCsv('tz-collections.csv', collectionsCsvRows(db))}>⬇ ייצוא ריקונים (CSV)</Btn>
+        )}
         {db.tzCoordinators.length > 0 && (
           <Btn onClick={() => setBoxFormFor(db.tzCoordinators[0].id)}>➕ {termOf(config, 'entity.tzBox', 'קופה')}</Btn>
         )}

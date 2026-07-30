@@ -148,6 +148,55 @@ export function campaignProgress(campaign: TzCampaign, boxes: readonly TzBox[]):
 
 /* ---------- הלוח הייעודי (מבודד — tzEvents בלבד, אין db.events!) ---------- */
 
+/* ---------- תדפיס שטח וייצוא (CONNECT חיבור 6) ---------- */
+
+/**
+ * שורות תדפיס הרכז — רשימת הקופות שלו לסבב שטח: מספר, משפחה, כתובת,
+ * טלפון וריקון אחרון. טהור — ההורדה בדפוס downloadText הקיים.
+ */
+export function coordinatorPrintLines(db: Db, coordinatorId: string): string[] {
+  const coord = db.tzCoordinators.find((c) => c.id === coordinatorId);
+  const boxes = coordinatorBoxes(db.tzBoxes, coordinatorId).filter((b) => b.status === 'home' || b.status === 'office');
+  const lines = [
+    'רשימת קופות — ' + (coord?.name ?? ''),
+    '='.repeat(30),
+  ];
+  for (const b of boxes) {
+    const fam = db.families.find((f) => f.id === b.famId);
+    const last = lastCollectionIso(b);
+    lines.push(
+      [
+        '#' + b.num,
+        fam ? 'משפחת ' + fam.name : 'במשרד',
+        fam ? [fam.address, fam.city].filter(Boolean).join(', ') : '',
+        fam?.phone ?? '',
+        last ? 'ריקון אחרון: ' + last : 'טרם רוקנה',
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    );
+  }
+  if (boxes.length === 0) lines.push('אין קופות פעילות');
+  return lines;
+}
+
+/**
+ * שורות CSV של כל הריקונים — תאריך, רכז, קופה, משפחה, סכום, מבצע.
+ * שקיפות מלאה: כל ריקון שנרשם מיוצא.
+ */
+export function collectionsCsvRows(db: Db): (string | number)[][] {
+  const rows: (string | number)[][] = [['תאריך', 'רכז', 'קופה', 'משפחה', 'סכום', 'מבצע']];
+  for (const b of db.tzBoxes) {
+    const coord = db.tzCoordinators.find((c) => c.id === b.coordinatorId);
+    const fam = db.families.find((f) => f.id === b.famId);
+    for (const c of b.collections) {
+      const camp = c.campaignId ? db.tzCampaigns.find((p) => p.id === c.campaignId) : undefined;
+      rows.push([c.date, coord?.name ?? '', '#' + b.num, fam?.name ?? '', c.amount, camp?.name ?? '']);
+    }
+  }
+  return rows;
+}
+
 export type TzGridCell = MonthGridCell<TzEvent>;
 export type TzGrid = MonthGrid<TzEvent>;
 

@@ -9,7 +9,8 @@ import { featureOn, termOf } from '../../lib/config';
 import type { TzBox, TzCoordinator } from '../../types/domain';
 import { Btn, Chip, Empty, Field, Modal, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
-import { boxTotal, coordinatorBoxes, coordinatorTotal, lastCollectionIso } from './lib';
+import { boxTotal, coordinatorBoxes, coordinatorPrintLines, coordinatorTotal, lastCollectionIso } from './lib';
+import { downloadText } from '../reports/csv';
 import { BoxForm } from './BoxForm';
 import { CollectModal } from './CollectModal';
 import { CoordinatorForm } from './CoordinatorForm';
@@ -66,8 +67,14 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <Btn onClick={props.onBack}>{'→ כל ה' + termOf(config, 'entity.tzCoordinator', 'רכז') + 'ים'}</Btn>
+        {/* תדפיס שטח (CONNECT חיבור 6) — שורות טהורות מ-lib, הורדה בדפוס הקיים */}
+        {featureOn(config, 'tzedaka.export') && (
+          <Btn onClick={() => downloadText('coordinator-' + c.name + '.txt', coordinatorPrintLines(db, c.id))} title="רשימת הקופות לסבב שטח">
+            🖨 תדפיס {termOf(config, 'entity.tzCoordinator', 'רכז')}
+          </Btn>
+        )}
       </div>
 
       <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>

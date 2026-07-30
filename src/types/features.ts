@@ -135,6 +135,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'tzedaka.calendar', label: 'לוח ייעודי', desc: 'לוח שנה פנימי לסבבי ריקון, מבצעים ותזכורות (מבודד מהלוח הראשי)', module: 'tzedaka' },
   { key: 'tzedaka.inlinecreate', label: 'הוספת לא-רשומים', desc: 'יצירת משפחה חדשה או ילד/הורה חדש ישירות מתוך העמודה', module: 'tzedaka' },
   { key: 'tzedaka.familypanel', label: 'פאנל בכרטיס המשפחה', desc: 'קופות שהמשפחה מחזיקה ורכזים בני הבית — תצוגה בלבד בכרטיס המשפחה', module: 'tzedaka' },
+  { key: 'tzedaka.export', label: 'תדפיס וייצוא', desc: 'תדפיס רכז לסבב שטח + ייצוא CSV של כל הריקונים', module: 'tzedaka' },
 
   // ——— חנות מוצרי-שירות ———
   { key: 'shop.stores', label: 'חנויות שותפות', desc: 'ניהול חנויות שותפות וקופונים לרכישה מסובסדת', module: 'shop' },
@@ -143,6 +144,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'shop.showcase', label: 'מסך ראווה', desc: 'תצוגת הקטלוג וסיכומי הנתינה למסך גדול', module: 'shop' },
   { key: 'shop.inlinecreate', label: 'הוספת לא-רשומים', desc: 'יצירת משפחה/בן-משפחה חדשים ישירות מתוך העמודה', module: 'shop' },
   { key: 'shop.familypanel', label: 'פאנל בכרטיס המשפחה', desc: 'חבילות השירות והמגיע-וטרם-נמסר של המשפחה — תצוגה בלבד בכרטיס המשפחה', module: 'shop' },
+  { key: 'shop.export', label: 'ייצוא מימושים', desc: 'ייצוא CSV של כל המימושים — כולל מבוטלים מסומנים (שקיפות)', module: 'shop' },
 
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },
