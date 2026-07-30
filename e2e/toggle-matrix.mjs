@@ -214,6 +214,23 @@ for (const profile of PROFILES) {
     await page.locator('.modal button', { hasText: 'רישום הריקון' }).click();
     await page.waitForTimeout(500);
     t('ריקון 100 ₪ נרשם והסכום מופיע', (await page.locator('main').textContent()).includes('100'));
+    // UX סינון 1: חזרה לרשימה — חיפוש (מדויק + שגוי-קלות, smartFilter) ומבט "כל הקופות"
+    await page.locator('main button', { hasText: 'כל הרכזים' }).click();
+    await page.waitForTimeout(300);
+    const tzSearch = page.locator('main input[placeholder*="חיפוש"]').first();
+    await tzSearch.fill('רכזת-מטריצה');
+    await page.waitForTimeout(300);
+    t('חיפוש הרכז מוצא', (await page.locator('main').textContent()).includes('רכזת-מטריצה'));
+    await tzSearch.fill('רכזת-מטריצא');
+    await page.waitForTimeout(300);
+    t('חיפוש שגוי-קלות מוצא (smartFilter)', (await page.locator('main').textContent()).includes('רכזת-מטריצה'));
+    await tzSearch.fill('');
+    await page.waitForTimeout(200);
+    await page.locator('main button', { hasText: '📦 כל הקופות' }).click();
+    await page.waitForTimeout(300);
+    t('מבט "כל הקופות" מציג את קופה #77', (await page.locator('main').textContent()).includes('#77'));
+    await page.locator('main button', { hasText: '📦 כל הקופות' }).click();
+    await page.waitForTimeout(200);
   }
 
   // ── חנות (BUILD-ORDER-SHOP): קישור לפי המודול + זרימה מלאה בברירת המחדל ──
@@ -252,6 +269,12 @@ for (const profile of PROFILES) {
     await page.locator('.modal button', { hasText: 'שמירה' }).click();
     await page.waitForTimeout(500);
     t('הוספת שיוך למשפחה', (await page.locator('main').textContent()).includes('בדיקה-מטריצה'));
+    // UX סינון 2: "ממתינים בלבד" מציג את השיוך (הרכיב טרם מומש ⇒ ממתין)
+    await page.locator('main button', { hasText: 'ממתינים בלבד' }).click();
+    await page.waitForTimeout(300);
+    t('"ממתינים בלבד" מציג את השיוך', (await page.locator('main').textContent()).includes('בדיקה-מטריצה'));
+    await page.locator('main button', { hasText: 'ממתינים בלבד' }).click();
+    await page.waitForTimeout(200);
     // מימוש — המחיר מאוכלס אוטומטית (50 = סמלי בלי הנחות) והסכום מופיע בטיפול
     await page.locator('main button', { hasText: 'מוצר חתן' }).first().click();
     await page.waitForTimeout(400);
