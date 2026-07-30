@@ -375,6 +375,62 @@ for (const profile of PROFILES) {
     await page.waitForTimeout(400);
     const soonMain = (await page.locator('main').textContent()) ?? '';
     t('סקשן פגישות קרובות מוצג עם הפגישה', soonMain.includes('פגישות קרובות') && soonMain.includes('חדר-מטריצה'));
+    // ── SHOP6 (חנות 28): קליטה → שיוך המוני → רשימת חלוקה → סימון-חולק-לכולם ──
+    // קליטת תרומה-בעין +5 ⇒ 5+5 = "נותרו 10"; יומן הקליטות מופיע
+    await page.locator('main button', { hasText: '🛍 קטלוג' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('main button[title="חידוש מלאי"]').first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input[type="number"]').first().fill('5');
+    await page.locator('.modal select').first().selectOption('donation');
+    await page.locator('.modal button', { hasText: 'עדכון המלאי' }).click();
+    await page.waitForTimeout(400);
+    const intakeMain = (await page.locator('main').textContent()) ?? '';
+    t('קליטה +5 ⇒ "נותרו 10"', intakeMain.includes('נותרו 10'));
+    t('יומן הקליטות מופיע עם הרשומה', intakeMain.includes('יומן קליטות'));
+    // שתי משפחות חדשות לשיוך ההמוני (חזרה לרשימה — כרטיס משפחה עשוי להיות פתוח)
+    for (const nm of ['המונית-א', 'המונית-ב']) {
+      await page.locator(`nav >> text=${famLabel}`).click();
+      await page.waitForTimeout(300);
+      const backBtn = page.locator('main button', { hasText: `→ כל ${famLabel}` });
+      if (await backBtn.count()) {
+        await backBtn.first().click();
+        await page.waitForTimeout(300);
+      }
+      await page.locator('button', { hasText: `הוספת ${famEntity}` }).first().click();
+      await page.waitForTimeout(300);
+      await page.locator('.modal input').first().fill(nm);
+      await page.locator('.modal button', { hasText: 'שמירה' }).click();
+      await page.waitForTimeout(500);
+    }
+    await page.locator('nav >> text=חנות').click();
+    await page.waitForTimeout(300);
+    await page.locator('main button', { hasText: '👥 מוטבים' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('main button', { hasText: '👥 שיוך המוני' }).click();
+    await page.waitForTimeout(400);
+    t('הזכאיות מוצגות (מי שכבר משויכת — מסוננת)', ((await page.locator('.modal').textContent()) ?? '').includes('2 משפחות זכאיות'));
+    await page.locator('.modal button', { hasText: 'שייך 2 משפחות' }).click(); // חימוש (useArmed)
+    await page.waitForTimeout(200);
+    await page.locator('.modal button', { hasText: 'שוב לשיוך' }).click();
+    await page.waitForTimeout(500);
+    t('השיוך ההמוני נוצר לשתי המשפחות', ((await page.locator('main').textContent()) ?? '').includes('המונית-א'));
+    // רשימת חלוקה — תדפיס יורד (דפוס תדפיס-הרכז)
+    await page.locator('main button', { hasText: '🛍 קטלוג' }).click();
+    await page.waitForTimeout(300);
+    const dl = page.waitForEvent('download', { timeout: 5000 });
+    await page.locator('main button', { hasText: '🖨 רשימת חלוקה' }).first().click();
+    t('רשימת החלוקה ירדה', !!(await dl.catch(() => null)));
+    // סימון חולק לכולם — 3 ממתינים (בדיקה-מטריצה שמימושה בוטל + שתי החדשות)
+    await page.locator('main button', { hasText: '🎁 סימון חולק לכולם' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal button', { hasText: '🎁 חלוקה לכולם' }).click();
+    await page.waitForTimeout(500);
+    t('המלאי ירד בהתאם — "נותרו 7" (10−3)', ((await page.locator('main').textContent()) ?? '').includes('נותרו 7'));
+    await page.locator('main button', { hasText: '👥 מוטבים' }).click();
+    await page.waitForTimeout(400);
+    const bulkMain = (await page.locator('main').textContent()) ?? '';
+    t('הסטטוסים "נמסר" — המשפחות החדשות מומשו 1/2', bulkMain.includes('מומשו 1/2'));
   }
 
   // ── זרימה 6: התמדה אחרי ריענון ──
