@@ -1,16 +1,28 @@
 #!/bin/bash
-# שער מדורג לפי רדיוס הפגיעה של ה-commit (הדפוס של בנייה חכמה):
-#   רק ידע/תיעוד  → lint בלבד (שניות)
-#   קוד/בדיקות/e2e → npm run verify המלא (typecheck+lint+test+build)
-# סוויטות הדפדפן (e2e) אינן כאן — הן רצות בסוף כל אשכול לפי פקודת הבנייה.
+# שער commit — מיובא מהענף החי של בנייה חכמה (claude/whats-happening-LyY9G):
+#   • שערי שלמות fail-fast (דפוס שערים 81-83): ה-hook עצמו לא עקיף ולא מזויף
+#   • שער מדורג לפי רדיוס הפגיעה: ידע/תיעוד → lint; קוד → typecheck+lint+test
+#   • לקח #72: ה-build אינו כאן — הוא רץ פעם אחת ב-pre-push (לא הורג איטרציה)
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
+
+# ═══ שלמות (fail-fast, לפני כל דבר יקר) ═══
+HP=$(git config core.hooksPath || echo "")
+[[ "$HP" == ".githooks" ]] || { echo "❌ core.hooksPath שונה: '$HP' — הרץ: git config core.hooksPath .githooks"; exit 1; }
+[[ -x .githooks/pre-commit && -x .githooks/pre-push && -x .githooks/commit-msg ]] || {
+  echo "❌ hooks לא executable — הרץ: chmod +x .githooks/*"; exit 1; }
+
+# ═══ ענף — עבודה רק על claude/* (main = deploy אוטומטי לפרודקשן) ═══
+BRANCH=$(git branch --show-current 2>/dev/null || echo "")
+if [[ "$BRANCH" == "main" || "$BRANCH" == "master" ]]; then
+  echo "❌ commit ישירות על $BRANCH אסור — עבור לענף claude/*"; exit 1
+fi
 
 STAGED=$(git diff --cached --name-only)
 [ -z "$STAGED" ] && exit 0
 
+# ═══ שער מדורג ═══
 CODE_TOUCHED=$(echo "$STAGED" | grep -vE '^(knowledge/|.*\.md$)' | head -1 || true)
-
 if [ -z "$CODE_TOUCHED" ]; then
   echo "ℹ️  commit ידע/תיעוד בלבד — שער מקוצר (lint)"
   npx oxlint
@@ -19,5 +31,5 @@ if [ -z "$CODE_TOUCHED" ]; then
   exit 0
 fi
 
-echo "🔒 שער מלא (קוד ב-staging): npm run verify"
-npm run verify
+echo "🔒 שער commit (קוד ב-staging): typecheck + lint + test"
+npm run verify:fast

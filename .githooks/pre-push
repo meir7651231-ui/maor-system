@@ -1,0 +1,44 @@
+#!/bin/bash
+# שער push — מיובא מהענף החי של בנייה חכמה (claude/whats-happening-LyY9G):
+#   • חסימת push ל-main בלי אישור מפורש (main = deploy אוטומטי לפרודקשן!)
+#   • חסימת force push · הודעות commit תקינות
+#   • לקח #72 (fast-gate): ה-build המלא רץ כאן פעם אחת — לא על כל commit
+set -uo pipefail
+
+PROTECTED="main|master|production"
+REPO=$(git rev-parse --show-toplevel)
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # חסום push לענף מוגן ללא קובץ אישור מפורש
+  if echo "$remote_ref" | grep -qE "refs/heads/($PROTECTED)$"; then
+    if [[ ! -f "$REPO/.allow_push_main" ]]; then
+      echo "❌ חסום: push ל-$remote_ref = deploy לפרודקשן. נדרש אישור מפורש מהמשתמש." >&2
+      echo "   אם ניתן אישור — צור קובץ .allow_push_main עם ציטוט ההוראה." >&2
+      exit 1
+    fi
+  fi
+  # חסום force push — השרת קדימה
+  if [[ "$remote_sha" != "0000000000000000000000000000000000000000" ]]; then
+    if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+      echo "❌ חסום: השרת קדימה — force push פוגע בהיסטוריה. משוך: git pull --rebase" >&2
+      exit 1
+    fi
+  fi
+  # הודעות commit תקינות בכל מה שנדחף
+  BASE="${remote_sha}"
+  [[ "$BASE" == "0000000000000000000000000000000000000000" ]] && BASE=$(git merge-base "$local_sha" origin/main 2>/dev/null || echo "")
+  if [[ -n "$BASE" ]]; then
+    SHORT=$(git log --format="%h %s" "${BASE}..${local_sha}" 2>/dev/null | awk '{ if (length($0) < 20) { print $1; exit } }')
+    [[ -z "$SHORT" ]] || { echo "❌ commit עם הודעה קצרה מדי: $SHORT" >&2; exit 1; }
+  fi
+done
+
+# ═══ fast-gate: ה-build המלא — פעם אחת לפני היציאה מהדלת ═══
+if [[ -z "${MAOR_SKIP_BUILD:-}" ]]; then
+  echo "🏗️  שער push: npm run build"
+  ( cd "$REPO" && npm run build >/dev/null 2>&1 ) || {
+    echo "❌ build נכשל — לא דוחפים קוד שלא נבנה. (עקיפה בשעת חירום: MAOR_SKIP_BUILD=1)" >&2
+    exit 1
+  }
+fi
+exit 0

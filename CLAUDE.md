@@ -32,8 +32,10 @@ npm run e2e           # toggle-matrix — 5 פרופילים (דורש build ק�
 node e2e/demo-walkthrough.mjs      # מעבר דמו + צילומים
 node e2e/launch-readiness.mjs      # מסעות משתמש, אפס שגיאות קונסולה
 ```
-- **כל commit קוד** ⇒ verify מלא (ה-hook אוכף); commit ידע/תיעוד בלבד ⇒ lint מקוצר.
+- **commit קוד** ⇒ typecheck+lint+test (מהיר, בלי build); ידע/תיעוד בלבד ⇒ lint מקוצר. נאכף ב-`.githooks/pre-commit`.
+- **push** ⇒ build מלא פעם אחת (לקח #72 מבנייה חכמה: הכבד ב-push, לא בכל commit) + חסימת main בלי `.allow_push_main` + חסימת force push. נאכף ב-`.githooks/pre-push`.
 - **שלוש סוויטות הדפדפן** ⇒ בסוף כל אשכול-עבודה ובסוף חבילה — לא על כל commit (חריג: נגעת ב-e2e/זרימת UI מרכזית).
+- מקור השערים: הענף החי של בנייה חכמה `claude/whats-happening-LyY9G` (pre-commit 937 שורות) — לא main.
 CI: `ci.yml` מריץ את השער המלא על כל push לענף claude/*; deploy מ-main בלבד.
 סביבה מתאתחלת לבד בסשן web: `.claude/hooks/session-start.sh` (כולל חימוש ה-hooks).
 
