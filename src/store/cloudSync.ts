@@ -19,7 +19,7 @@ import { pullAll, pushDiff, subscribeAll, type RemotePartial } from '../lib/clou
 export { initCloud, resetPassword, setCloudScope, signIn, signOutCloud, signUp, watchAuth } from '../lib/cloud';
 export type { CloudUser } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
-export { deleteOrgRequest, fetchOrgCloudConfig, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgRequest } from '../lib/cloudConfig';
+export { deleteOrgRequest, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgRequests, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgRequest } from '../lib/cloudConfig';
 export type { OrgCloudDoc, OrgRequestDoc } from '../lib/cloudConfig';
 
 export type CloudStatus = 'idle' | 'connecting' | 'synced' | 'error';

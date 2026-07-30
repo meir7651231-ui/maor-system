@@ -9,7 +9,7 @@
  */
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
-import { featureOn, isAdminUser, moduleOn, roleOf, termOf } from './lib/config';
+import { featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, termOf } from './lib/config';
 import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
 import { todaySessions } from './components/home/homeData';
@@ -37,6 +37,7 @@ import { CommandPalette } from './components/palette/CommandPalette';
 import { DemoDrop } from './components/DemoDrop';
 import { DayGate } from './components/wheel/DayGate';
 import { LoginScreen, PendingApprovalScreen } from './components/cloud/LoginScreen';
+import { PlatformPanel } from './components/platform/PlatformPanel';
 import { LockScreen } from './components/lock/LockScreen';
 import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
@@ -134,6 +135,8 @@ export default function App() {
   const [guideOpen, setGuideOpen] = useState(() => window.location.hash === '#guide');
   // מצב הדגמה — סיור מודרך, נפתח עם #tour (P2 פער 30, feature: shell.demo)
   const [tourOpen, setTourOpen] = useState(() => window.location.hash === '#tour');
+  // לוח הבקרה של הפלטפורמה — #platform, למיילי-על בלבד (CLOUD2 ענן 4)
+  const [platformOpen, setPlatformOpen] = useState(() => window.location.hash === '#platform');
   useEffect(() => {
     const onHash = () => {
       setBuilderOpen(window.location.hash === '#builder');
@@ -144,6 +147,7 @@ export default function App() {
       setDedupOpen(window.location.hash === '#dedup');
       setGuideOpen(window.location.hash === '#guide');
       setTourOpen(window.location.hash === '#tour');
+      setPlatformOpen(window.location.hash === '#platform');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -596,6 +600,24 @@ export default function App() {
               setBuilderOpen(false);
             }}
           />
+        ))}
+
+      {platformOpen &&
+        (isAdmin && isSuperAdmin(cloud.user?.email) ? (
+          // לוח הבקרה של הפלטפורמה (CLOUD2 ענן 4) — מיילי-על בלבד; משתמש
+          // אחר שמנסה #platform מקבל אין-הרשאה, לא את הלוח
+          <PlatformPanel
+            onClose={() => {
+              window.location.hash = '';
+              setPlatformOpen(false);
+            }}
+          />
+        ) : (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
+            <div className="empty" style={{ marginTop: 120 }}>
+              🔒 לוח הבקרה של הפלטפורמה זמין למנהל הפלטפורמה בלבד.
+            </div>
+          </div>
         ))}
 
       {wallOpen && featureOn(config, 'home.impactwall') && (

@@ -8,7 +8,7 @@
  * ייעודיים: ‏platformOrgs/{slug} ו-platformRequests/{uid}. אותם שמות, אותה
  * סמנטיקה, נתיבים חוקיים; אין התנגשות עם 18 אוספי הישויות.
  */
-import { deleteDoc, doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, setDoc } from 'firebase/firestore';
 import { cloudDb } from './cloud';
 import type { OrgConfig } from '../types/config';
 
@@ -76,4 +76,16 @@ export async function deleteOrgRequest(uid: string): Promise<void> {
 /** כתיבת בקשת הרשמה — המסמך היחיד שנרשם-חדש רשאי לכתוב (Rules v2). */
 export async function writeOrgRequest(uid: string, req: OrgRequestDoc): Promise<void> {
   await setDoc(doc(cloudDb(), PLATFORM_REQUESTS, uid), JSON.parse(JSON.stringify(req)));
+}
+
+/** כל הבקשות הממתינות — לוח הבקרה (מיילי-על בלבד לפי Rules). */
+export async function fetchOrgRequests(): Promise<Array<OrgRequestDoc & { uid: string }>> {
+  const snap = await getDocs(collection(cloudDb(), PLATFORM_REQUESTS));
+  return snap.docs.map((d) => ({ uid: d.id, ...(d.data() as OrgRequestDoc) }));
+}
+
+/** כל ארגוני הפלטפורמה — לוח הבקרה (מיילי-על בלבד לפי Rules). */
+export async function fetchAllOrgs(): Promise<Array<OrgCloudDoc & { slug: string }>> {
+  const snap = await getDocs(collection(cloudDb(), PLATFORM_ORGS));
+  return snap.docs.map((d) => ({ slug: d.id, ...(d.data() as OrgCloudDoc) }));
 }
