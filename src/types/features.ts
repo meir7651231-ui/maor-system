@@ -118,6 +118,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'reports.families', label: 'דוח מבט-על משפחות', desc: 'סעיף ספירות סטטוס/עיר/קהילה', module: 'reports' },
   { key: 'reports.punch', label: 'דוח כרטיסיות ניקוב', desc: 'סעיף מצב הכרטיסיות ויתרות נמוכות', module: 'reports' },
   { key: 'reports.periodic', label: 'דוחות תקופתיים', desc: 'מתגי יומי/שבועי/חודשי והפקה מיידית', module: 'reports' },
+  { key: 'reports.custom.full', label: 'דו"ח מותאם מלא', desc: 'רשימות השדות המלאות מהקובץ החי (חוגים 14 · תומכות 17), טווח עברי חי, תצוגה מקדימה עם עריכת הערות ובחר-הכל/נקה', module: 'reports' },
 
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },

@@ -132,6 +132,9 @@ export interface Course {
   sector: string;
   audience?: string;
   img?: string;
+  /** טווח כיתות יעד (P2 פער 28) — 'גן', 'א'…'יב'; ריק = בלי הגבלה. */
+  gradeMin?: string;
+  gradeMax?: string;
   sessions: CourseSession[];
   notes: string;
 }
@@ -320,6 +323,8 @@ export interface Supporter {
   phone: string;
   email: string;
   address: string;
+  /** עיר (P2 פער 23 — עמודת הדוח המותאם המלא; אופציונלי, אין מיגרציה). */
+  city?: string;
   idNum: string;
   cat: string;
   /** ייעוד התרומה. */
