@@ -15,6 +15,8 @@ import { Chip, PageHead } from '../ui';
 import { CatalogTab } from './CatalogTab';
 import { AssignmentsTab } from './AssignmentsTab';
 import { HomeTab } from './HomeTab';
+import { CalendarTab } from './CalendarTab';
+import { ShowcaseTab } from './ShowcaseTab';
 
 type ShopTab = 'catalog' | 'beneficiaries' | 'care' | 'calendar' | 'showcase';
 
@@ -47,8 +49,8 @@ export function ShopView() {
       {active === 'catalog' && <CatalogTab />}
       {active === 'beneficiaries' && <AssignmentsTab />}
       {active === 'care' && <HomeTab />}
-      {active === 'calendar' && <div className="muted">📅 הלוח ייבנה באשכול 7</div>}
-      {active === 'showcase' && <div className="muted">🖼 הראווה תיבנה באשכול 7</div>}
+      {active === 'calendar' && <CalendarTab />}
+      {active === 'showcase' && <ShowcaseTab />}
     </div>
   );
 }
