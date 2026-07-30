@@ -27,7 +27,7 @@ import {
   type Teacher,
 } from '../types/domain';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, loadOrgConfig, saveConfigOverride } from '../lib/config';
+import { applyTheme, featureOn, loadOrgConfig, saveConfigOverride } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { mergeFamilies, mergeFamiliesByFields } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
@@ -741,12 +741,16 @@ export const useApp = create<AppState>()((set, get) => {
       if (!fam) return;
       const prevScore = fam.cred?.score ?? 700;
       const log = fam.cred?.log ?? [];
-      // מקדם מגמה — מוחל על זיכויים בלבד (כמו באב-טיפוס); חיובים עוברים כמות שהם
+      // מקדם מגמה (P2 פער 32, הכרעה 1 — דגל families.cred.trendCreditsOnly):
+      // חסר/true = התנהגות ה-React (מוכפל על זיכויים בלבד, עונשים כמות שהם);
+      // false = התנהגות הלגאסי (legacy:387 credEvent — Math.round(delta*tf) לכל דלתא).
+      const creditsOnly = featureOn(get().config, 'families.cred.trendCreditsOnly');
       const tf = trendFactor(log);
-      const applied = delta > 0 ? Math.round(delta * tf) : delta;
+      const scaled = delta > 0 || !creditsOnly;
+      const applied = scaled ? Math.round(delta * tf) : delta;
       const newScore = Math.max(0, Math.min(1000, prevScore + applied));
       const entryReason =
-        reason + (delta > 0 && tf !== 1 ? ` (מקדם מגמה ${tf.toFixed(1)})` : '');
+        reason + (scaled && tf !== 1 ? ` (מקדם מגמה ${tf.toFixed(1)})` : '');
       setDb((db) => ({
         families: db.families.map((f) =>
           f.id === famId

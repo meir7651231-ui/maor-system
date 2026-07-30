@@ -38,6 +38,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'families.report', label: 'דוח משפחה להורדה', desc: 'הורדת דוח מרוכז על משפחה כקובץ', module: 'families' },
   { key: 'families.finder', label: 'גלגל מאתר המשפחות', desc: 'גלגל סינון חי בתוך מסך המשפחות — צלילה ציר אחרי ציר', module: 'families' },
   { key: 'families.cardops', label: 'פעולות תפעול בכרטיס', desc: 'ניקוב, חיסור, ניהול והסרת שיבוץ + כרטיסי אב/אם להשלמה + "➕ אירוע" — ישירות מכרטיס המשפחה', module: 'families' },
+  { key: 'families.cred.trendCreditsOnly', label: 'מקדם מגמה על זיכויים בלבד', desc: 'דלוק: המקדם מוכפל רק על זיכויים (התנהגות המערכת); כבוי: מוכפל גם על עונשים (תאימות לקובץ החי)', module: 'families' },
 
   // ——— חוגים ———
   { key: 'courses.punch', label: 'כרטיסיות ניקוב', desc: 'מכירת כרטיסיות וניקוב כניסות במקום מנוי', module: 'courses' },
