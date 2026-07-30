@@ -218,16 +218,46 @@ export function chipStyle(bg: string, c: string): CSSProperties {
    סינון רך בזרימת השיבוץ + מתג "הצג הכל" + אזהרת התנגשות לו"ז — לא כ-UI אשף. ── */
 
 /** האם החוג מתאים לפי מגדר וגיל — נתון חסר אינו מסנן (סינון רך, לא חוסם). */
+/* ---------- טווח כיתות (P2 פער 28, feature courses.gradeimg) ---------- */
+
+/** סולם הכיתות — גן ואז א׳–י"ב. */
+export const GRADE_ORDER = ['גן', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט', 'י', 'יא', 'יב'] as const;
+
+/** אינדקס כיתה בסולם — סובלני לגרשיים ולקידומת "כיתה"; לא מזוהה = ‎-1. */
+export function gradeIndex(g: string | undefined): number {
+  const clean = (g || '').replace(/["'׳״]/g, '').replace(/^כיתה\s*/, '').trim();
+  if (!clean) return -1;
+  return GRADE_ORDER.indexOf(clean as (typeof GRADE_ORDER)[number]);
+}
+
+/**
+ * התאמת כיתה לחוג: אין טווח לחוג או שכיתת הילד/ה לא מזוהה ⇒ מתאים
+ * (רך — לא מסתירים על סמך מידע חסר); אחרת נדרש בתוך [gradeMin, gradeMax].
+ */
+export function gradeFits(c: Course, childGrade: string | undefined): boolean {
+  if (!c.gradeMin && !c.gradeMax) return true;
+  const gi = gradeIndex(childGrade);
+  if (gi < 0) return true;
+  const lo = gradeIndex(c.gradeMin);
+  const hi = gradeIndex(c.gradeMax);
+  if (lo >= 0 && gi < lo) return false;
+  if (hi >= 0 && gi > hi) return false;
+  return true;
+}
+
 export function courseFitsMember(
   c: Course,
   gender: 'm' | 'f' | undefined,
   age: number | null,
+  /** כיתת הילד/ה — מועברת רק כש-courses.gradeimg פעיל (פער 28). */
+  grade?: string,
 ): boolean {
   if (c.gender && c.gender !== 'all' && gender && c.gender !== gender) return false;
   if (age != null) {
     if (c.ageMin && age < c.ageMin) return false;
     if (c.ageMax && age > c.ageMax) return false;
   }
+  if (!gradeFits(c, grade)) return false;
   return true;
 }
 

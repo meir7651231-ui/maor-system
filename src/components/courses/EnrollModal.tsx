@@ -59,6 +59,7 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
         id: m.id,
         gender: m.gender,
         birth: m.birth,
+        grade: m.grade,
         label:
           (m.isParent ? (m.gender === 'f' ? 'אמא — ' : 'אבא — ') : '') +
           m.first +
@@ -70,10 +71,15 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
       }));
   }, [db, c.id, cfg]);
 
-  // המתאימים לחוג לפי גיל/מגדר — בלי תלות במתג, כדי שהמתג לא ייעלם אחרי "הצג הכל"
+  // המתאימים לחוג לפי גיל/מגדר — בלי תלות במתג, כדי שהמתג לא ייעלם אחרי "הצג הכל".
+  // כיתה נבדקת רק כש-courses.gradeimg פעיל (P2 פער 28) — אותו "הצג הכל" רך.
+  const gradeimgOn = featureOn(cfg, 'courses.gradeimg');
   const fitted = useMemo(
-    () => (smartOn ? options.filter((o) => courseFitsMember(c, o.gender, ageOf(o.birth))) : options),
-    [smartOn, options, c],
+    () =>
+      smartOn
+        ? options.filter((o) => courseFitsMember(c, o.gender, ageOf(o.birth), gradeimgOn ? o.grade : undefined))
+        : options,
+    [smartOn, options, c, gradeimgOn],
   );
   const hiddenCount = options.length - fitted.length;
   const shownOptions = showAll ? options : fitted;

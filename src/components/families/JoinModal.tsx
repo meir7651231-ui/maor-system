@@ -116,7 +116,7 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
   const groups = course ? groupOptionsOf(course) : [];
 
   /** בן המשפחה הנבחר (או ייצוג ההורה הווירטואלי) — לרמזי הגיל/מין. */
-  const jm: { first: string; gender: 'm' | 'f'; birth: string } | undefined =
+  const jm: { first: string; gender: 'm' | 'f'; birth: string; grade?: string } | undefined =
     memberSel === VIRT_FATHER
       ? { first: fam.father, gender: 'm', birth: '' }
       : memberSel === VIRT_MOTHER
@@ -125,14 +125,16 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
 
   // סינון החוגים לפי גיל/מגדר הילד הנבחר (P1.7) — רך: "הצג הכל" מחזיר את כולם.
   // המתאימים מחושבים בלי תלות במתג, כדי שהמתג לא ייעלם אחרי "הצג הכל".
+  // כיתה נבדקת רק כש-courses.gradeimg פעיל (P2 פער 28).
+  const gradeimgOn = featureOn(config, 'courses.gradeimg');
   const fittedCourseOptions = useMemo(() => {
     if (!smartOn || !jm) return courseOptions;
     const age = ageOf(jm.birth);
     return courseOptions.filter((o) => {
       const c = db.courses.find((x) => x.id === o.id);
-      return !c || courseFitsMember(c, jm.gender, age);
+      return !c || courseFitsMember(c, jm.gender, age, gradeimgOn ? jm.grade : undefined);
     });
-  }, [smartOn, jm, courseOptions, db.courses]);
+  }, [smartOn, jm, courseOptions, db.courses, gradeimgOn]);
   const hiddenCount = courseOptions.length - fittedCourseOptions.length;
   const shownCourseOptions = showAll ? courseOptions : fittedCourseOptions;
 

@@ -65,6 +65,8 @@ export function CourseDetail(props: { course: Course }) {
   const groupsOn = featureOn(cfg, 'courses.groups');
   const printoutOn = featureOn(cfg, 'courses.printout');
   const discountsOn = featureOn(cfg, 'courses.discounts');
+  // טווח כיתות + תמונת חוג (P2 פער 28)
+  const gradeimgOn = featureOn(cfg, 'courses.gradeimg');
 
   const c = props.course;
   const [prevCourseId, setPrevCourseId] = useState(c.id);
@@ -511,7 +513,17 @@ export function CourseDetail(props: { course: Course }) {
         <section className="card">
           <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>{'פרטי ה' + termOf(cfg, 'entity.course', 'חוג')}</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+            {/* תמונת חוג + טווח כיתות (P2 פער 28, feature courses.gradeimg) */}
+            {gradeimgOn && c.img && (
+              <img
+                src={c.img}
+                alt={'תמונת ה' + termOf(cfg, 'entity.course', 'חוג')}
+                style={{ width: '100%', maxHeight: 160, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--line)' }}
+              />
+            )}
             {detailRow('קהל יעד', c.audience || 'כללי')}
+            {gradeimgOn && (c.gradeMin || c.gradeMax) &&
+              detailRow('כיתות', [c.gradeMin, c.gradeMax].filter(Boolean).join('–'))}
             {detailRow(termOf(cfg, 'entity.teacher', 'מורה'), teacher?.name ?? '—')}
             {detailRow('טלפון ' + termOf(cfg, 'entity.teacher', 'מורה'), teacher?.phone || '—')}
             {detailRow('מחיר מלא', c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—')}

@@ -58,6 +58,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.enroll.smartfilter', label: 'סינון שיבוץ חכם', desc: 'סינון אוטומטי לפי גיל/מגדר בזרימת השיבוץ + מתג "הצג הכל" + אזהרת התנגשות לו"ז', module: 'courses' },
   { key: 'courses.enroll.inlinecreate', label: 'תלמיד/ה חדש/ה מתוך השיבוץ', desc: 'יצירת משפחה חדשה והוספת בן משפחה ישירות ממודאל השיבוץ — בלי לצאת מהמסך', module: 'courses' },
   { key: 'courses.roomslive', label: 'רצועת חדרים LIVE', desc: 'צ׳יפ לכל חדר בראש מסך החוגים — 🟢 פנוי / 🔴 החוג שמתקיים עכשיו (לחיצה פותחת אותו)', module: 'courses' },
+  { key: 'courses.gradeimg', label: 'טווח כיתות ותמונת חוג', desc: 'שדות מכיתה/עד-כיתה (גן–י"ב) שנכנסים לסינון השיבוץ החכם + תמונת חוג בטופס ובכרטיס', module: 'courses' },
 
   // ——— לוח שנה ———
   { key: 'calendar.dayview', label: 'תצוגת יום', desc: 'מעבר לתצוגת יום מפורטת בלוח השנה', module: 'calendar' },

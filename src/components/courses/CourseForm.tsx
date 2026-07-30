@@ -9,7 +9,7 @@ import { featureOn, termOf } from '../../lib/config';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { ADD_TEACHER, CAT_OPTIONS, courseDateError, DAY_NAMES, OTHER, OTHER_LABEL, SEMESTER_OPTIONS } from './lib';
+import { ADD_TEACHER, CAT_OPTIONS, courseDateError, DAY_NAMES, GRADE_ORDER, gradeIndex, OTHER, OTHER_LABEL, SEMESTER_OPTIONS } from './lib';
 
 interface CourseFormState {
   name: string;
@@ -37,6 +37,10 @@ interface CourseFormState {
   catOther: string;
   semSel: string;
   semOther: string;
+  /** טווח כיתות + תמונת חוג (P2 פער 28, feature courses.gradeimg). */
+  gradeMin: string;
+  gradeMax: string;
+  img: string;
 }
 
 function initState(course: Course | null, firstTeacherId: string, firstRoomId: string): CourseFormState {
@@ -67,6 +71,9 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
       catOther: '',
       semSel: 'שנתי',
       semOther: '',
+      gradeMin: '',
+      gradeMax: '',
+      img: '',
     };
   }
   const catSel = CAT_OPTIONS.includes(course.cat) ? course.cat : course.cat ? OTHER : 'העשרה';
@@ -97,6 +104,9 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
     catOther: catSel === OTHER ? course.cat : '',
     semSel,
     semOther: semSel === OTHER ? course.semester : '',
+    gradeMin: course.gradeMin || '',
+    gradeMax: course.gradeMax || '',
+    img: course.img || '',
   };
 }
 
@@ -110,6 +120,8 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
   const cfg = useApp((s) => s.config);
 
   const discountsOn = featureOn(cfg, 'courses.discounts');
+  // טווח כיתות + תמונת חוג (P2 פער 28)
+  const gradeimgOn = featureOn(cfg, 'courses.gradeimg');
 
   const [f, setF] = useState<CourseFormState>(() =>
     initState(props.course, db.teachers[0]?.id ?? '', db.rooms[0]?.id ?? ''),
@@ -139,6 +151,8 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
     const ageMin = f.ageMin === '' ? 3 : Math.max(0, +f.ageMin || 0);
     const ageMax = f.ageMax === '' ? 99 : Math.max(1, +f.ageMax || 99);
     if (ageMax < ageMin) return setError('"עד גיל" חייב להיות גדול מ"מגיל"');
+    if (f.gradeMin && f.gradeMax && gradeIndex(f.gradeMax) < gradeIndex(f.gradeMin))
+      return setError('"עד כיתה" חייבת להיות אחרי "מכיתה"');
     const dateErr = courseDateError(f.start, f.end, cfg);
     if (dateErr) return setError(dateErr);
     let teacherId = f.teacherId;
@@ -188,6 +202,9 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
       ageMax,
       cat,
       semester,
+      gradeMin: f.gradeMin,
+      gradeMax: f.gradeMax,
+      img: f.img,
     };
     const room = db.rooms.find((r) => r.id === f.roomId);
     const roomName = room ? room.name : 'ה' + termOf(cfg, 'entity.room', 'חדר');
@@ -359,6 +376,55 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
         <Field label="עד גיל">
           <TextInput value={f.ageMax} onChange={(v) => set({ ageMax: v })} placeholder="99" dir="ltr" />
         </Field>
+        {gradeimgOn && (
+          <>
+            <Field label="מכיתה">
+              <Select
+                value={f.gradeMin}
+                onChange={(v) => set({ gradeMin: v })}
+                options={[{ value: '', label: 'ללא הגבלה' }, ...GRADE_ORDER.map((g) => ({ value: g, label: g }))]}
+              />
+            </Field>
+            <Field label="עד כיתה">
+              <Select
+                value={f.gradeMax}
+                onChange={(v) => set({ gradeMax: v })}
+                options={[{ value: '', label: 'ללא הגבלה' }, ...GRADE_ORDER.map((g) => ({ value: g, label: g }))]}
+              />
+            </Field>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <Field label={'תמונת ה' + termOf(cfg, 'entity.course', 'חוג')}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  {f.img && (
+                    <img src={f.img} alt="" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--line)' }} />
+                  )}
+                  <label className="btn" style={{ cursor: 'pointer', display: 'inline-flex' }}>
+                    {f.img ? 'החלפת תמונה…' : 'העלאת תמונה…'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = '';
+                        if (!file) return;
+                        // dataURL כמו מסמכי המשפחה — נשמר בתוך ה-DB, בלי קבצים חיצוניים
+                        const reader = new FileReader();
+                        reader.onload = () => set({ img: String(reader.result) });
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </label>
+                  {f.img && (
+                    <Btn sm onClick={() => set({ img: '' })}>
+                      הסרה
+                    </Btn>
+                  )}
+                </div>
+              </Field>
+            </div>
+          </>
+        )}
         <Field label="תאריך התחלה">
           <HebDateInput value={f.start} onChange={(iso) => set({ start: iso })} />
         </Field>
