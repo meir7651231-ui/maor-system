@@ -49,8 +49,9 @@ const PROFILES = [
     config: { modules: { courses: false, calendar: false, diary: false, supporters: false, tzedaka: false, shop: false, reports: false } },
   },
   {
-    name: 'מונחים מותאמים (מוטבים/שיעורים)',
-    config: { terms: { 'nav.families': 'מוטבים', 'nav.courses': 'שיעורים', 'entity.family': 'מוטב' } },
+    // PLATFORM אשף 4: הפרופיל מורחב לוורטיקל גמ"ח — nav.shop מתויג 'גמ"ח'
+    name: 'מונחים מותאמים (מוטבים/שיעורים/גמ"ח)',
+    config: { terms: { 'nav.families': 'מוטבים', 'nav.courses': 'שיעורים', 'entity.family': 'מוטב', 'nav.shop': 'גמ"ח' } },
   },
 ];
 
@@ -235,9 +236,12 @@ for (const profile of PROFILES) {
 
   // ── חנות (BUILD-ORDER-SHOP): קישור לפי המודול + זרימה מלאה בברירת המחדל ──
   const shopOn = modulesOff.shop !== false;
+  const shopLabel = profile.config?.terms?.['nav.shop'] ?? 'חנות';
   {
     const navNow = (await page.locator('nav').first().textContent()) ?? '';
-    t('קישור "חנות" ' + (shopOn ? 'קיים' : 'נעדר'), navNow.includes('חנות') === shopOn);
+    t(`קישור "${shopLabel}" ` + (shopOn ? 'קיים' : 'נעדר'), navNow.includes(shopLabel) === shopOn);
+    // PLATFORM אשף 4: בפרופיל המונחים — 'גמ"ח' מופיע במקום 'חנות'
+    if (shopOn && shopLabel !== 'חנות') t('התיוג מחליף — "חנות" לא בניווט', !navNow.includes('חנות'));
   }
   if (!profile.config) {
     await page.locator('nav >> text=חנות').click();
