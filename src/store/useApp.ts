@@ -22,10 +22,16 @@ import {
   type Member,
   type OrgEvent,
   type Payment,
+  type IsoDate,
   type Room,
   type Supporter,
   type Teacher,
+  type TzBox,
+  type TzCampaign,
+  type TzCoordinator,
+  type TzEvent,
 } from '../types/domain';
+import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, featureOn, loadOrgConfig, saveConfigOverride } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
@@ -208,6 +214,27 @@ interface AppState {
   deleteSupporter: (id: string) => void;
   /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
   addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => { ok: boolean; rid?: string };
+
+  // קופות צדקה (מודול tzedaka — מבודד; BUILD-ORDER-TZEDAKA-2026-07-30).
+  // הכסף/האירועים/הניקוד נכתבים רק למערכי tz* — לא לקבלות/תרומות/לוח הראשי.
+  upsertTzCoordinator: (c: TzCoordinator) => void;
+  /** חסום כשיש לרכז קופות home/office; מוחק גם אירועי-לוח מקושרים (בלי יתומים). */
+  deleteTzCoordinator: (id: string) => boolean;
+  upsertTzBox: (b: TzBox) => void;
+  /** מוחק + מנקה אירועים מקושרים; האישור בשכבת ה-UI (useArmed). */
+  deleteTzBox: (id: string) => void;
+  upsertTzCampaign: (c: TzCampaign) => void;
+  /** ריקונים משויכים מקבלים campaignId:'' — אין אובדן כסף. */
+  deleteTzCampaign: (id: string) => void;
+  upsertTzEvent: (e: TzEvent) => void;
+  deleteTzEvent: (id: string) => void;
+  /** ריקון קופה — דוחה סכום לא-חוקי בלי לגעת ב-db; delta = ניקוד שנוסף לרכז. */
+  addTzCollection: (
+    boxId: string,
+    coll: { date: IsoDate; amount: number; campaignId: string; note: string },
+  ) => { ok: boolean; delta: number };
+  /** כוונון ניקוד ידני — reason חובה. */
+  addTzScore: (coordinatorId: string, delta: number, reason: string) => void;
 
   // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
   // ולכן סנכרון הענן והביטול עובדים כרגיל. פעולות שכותבות ללוח מייצרות OrgEvent.
@@ -1025,6 +1052,104 @@ export const useApp = create<AppState>()((set, get) => {
         }),
       }));
       return { ok: true, rid };
+    },
+
+    // ── קופות צדקה (מודול tzedaka — מבודד; הכרעת בעלים 30.7.2026) ──
+    upsertTzCoordinator(c) {
+      const id = c.id || get().nextId('tzc');
+      setDb((db) => ({ tzCoordinators: upsertIn(db.tzCoordinators, { ...c, id }) }));
+    },
+    deleteTzCoordinator(id) {
+      const holding = get().db.tzBoxes.some(
+        (b) => b.coordinatorId === id && (b.status === 'home' || b.status === 'office'),
+      );
+      if (holding) {
+        get().toast('יש להעביר קודם את הקופות');
+        return false;
+      }
+      // דפוס unlinkEvent — מוחקים גם את אירועי-הלוח הייעודי המקושרים, בלי יתומים
+      setDb((db) => ({
+        tzCoordinators: db.tzCoordinators.filter((c) => c.id !== id),
+        tzEvents: db.tzEvents.filter((e) => e.coordinatorId !== id),
+      }));
+      return true;
+    },
+    upsertTzBox(b) {
+      const id = b.id || get().nextId('tzb');
+      setDb((db) => ({ tzBoxes: upsertIn(db.tzBoxes, { ...b, id }) }));
+    },
+    deleteTzBox(id) {
+      setDb((db) => ({
+        tzBoxes: db.tzBoxes.filter((b) => b.id !== id),
+        tzEvents: db.tzEvents.filter((e) => e.boxId !== id),
+      }));
+    },
+    upsertTzCampaign(c) {
+      const id = c.id || get().nextId('tzp');
+      setDb((db) => ({ tzCampaigns: upsertIn(db.tzCampaigns, { ...c, id }) }));
+    },
+    deleteTzCampaign(id) {
+      // הריקונים נשארים — רק השיוך מתנקה (אין אובדן כסף)
+      setDb((db) => ({
+        tzCampaigns: db.tzCampaigns.filter((c) => c.id !== id),
+        tzBoxes: db.tzBoxes.map((b) =>
+          b.collections.some((c) => c.campaignId === id)
+            ? { ...b, collections: b.collections.map((c) => (c.campaignId === id ? { ...c, campaignId: '' } : c)) }
+            : b,
+        ),
+      }));
+    },
+    upsertTzEvent(e) {
+      const id = e.id || get().nextId('tze');
+      setDb((db) => ({ tzEvents: upsertIn(db.tzEvents, { ...e, id }) }));
+    },
+    deleteTzEvent(id) {
+      setDb((db) => ({ tzEvents: db.tzEvents.filter((e) => e.id !== id) }));
+    },
+    addTzCollection(boxId, coll) {
+      // שער לפני נגיעה ב-db (לקח באג-5): סכום לא-חיובי/לא-סופי נדחה בשקט-רועש
+      if (!Number.isFinite(coll.amount) || coll.amount <= 0) {
+        get().toast('סכום הריקון חייב להיות מספר חיובי');
+        return { ok: false, delta: 0 };
+      }
+      const box = get().db.tzBoxes.find((b) => b.id === boxId);
+      if (!box) {
+        get().toast('הקופה לא נמצאה — הריקון לא נשמר');
+        return { ok: false, delta: 0 };
+      }
+      // הניקוד מחושב מול הקופה לפני הוספת הריקון (הרצף נמדד מהריקון הקודם)
+      const scoreOn = featureOn(get().config, 'tzedaka.score');
+      const delta = scoreOn ? collectionScoreDelta(box, coll.date, coll.amount) : 0;
+      const collId = get().nextId('tzl');
+      // בידוד (הכרעת בעלים 30.7): כותבים רק ל-tzBoxes/tzCoordinators —
+      // לא ל-receiptSeq/donationSeq/supporters/enrollments/events
+      setDb((db) => ({
+        tzBoxes: db.tzBoxes.map((b) =>
+          b.id === boxId ? { ...b, collections: [{ id: collId, ...coll }, ...b.collections] } : b,
+        ),
+        tzCoordinators: delta
+          ? db.tzCoordinators.map((c) =>
+              c.id === box.coordinatorId
+                ? {
+                    ...c,
+                    score: c.score + delta,
+                    scoreLog: [{ date: coll.date, delta, reason: 'ריקון קופה ' + box.num }, ...c.scoreLog],
+                  }
+                : c,
+            )
+          : db.tzCoordinators,
+      }));
+      return { ok: true, delta };
+    },
+    addTzScore(coordinatorId, delta, reason) {
+      if (!reason.trim() || !Number.isFinite(delta) || !delta) return;
+      setDb((db) => ({
+        tzCoordinators: db.tzCoordinators.map((c) =>
+          c.id === coordinatorId
+            ? { ...c, score: c.score + delta, scoreLog: [{ date: isoToday(), delta, reason: reason.trim() }, ...c.scoreLog] }
+            : c,
+        ),
+      }));
     },
 
     // ── מעקב טיפול רב-שלבי ──
