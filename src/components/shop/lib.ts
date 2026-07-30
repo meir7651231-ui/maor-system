@@ -511,6 +511,61 @@ export function intakeLog(db: Db): { rows: IntakeRow[]; totalCost: number } {
   return { rows, totalCost: rows.reduce((s, r) => s + r.intake.cost, 0) };
 }
 
+/* ---------- חלוקה המונית (SHOP6 חנות 26) ---------- */
+
+/** מועמדת לשיוך המוני — משפחה זכאית עם בני-הבית לבחירה אופציונלית. */
+export interface EligibleFamily {
+  famId: Id;
+  name: string;
+  memberIds: Id[];
+}
+
+/**
+ * המשפחות הזכאיות לשיוך המוני: משפחות פעילות שיש להן — ברמת שיוך קיים
+ * כלשהו — את **כל** הקריטריונים שנבחרו (איחוד על-פני השיוכים), או כל
+ * המשפחות הפעילות כשלא נבחר קריטריון. מסונן ממי שכבר מחזיקה שיוך active
+ * לאותה חבילה (אין כפל).
+ */
+export function eligibleFamilies(db: Db, criterionIds: Id[], excludeProductId: Id): EligibleFamily[] {
+  return db.families
+    .filter((f) => f.status === 'active')
+    .filter((f) => {
+      const theirs = db.shopAssignments.filter((a) => a.famId === f.id);
+      if (theirs.some((a) => a.productId === excludeProductId && a.status === 'active')) return false;
+      if (criterionIds.length === 0) return true;
+      const held = new Set(theirs.flatMap((a) => a.criterionIds));
+      return criterionIds.every((c) => held.has(c));
+    })
+    .map((f) => ({ famId: f.id, name: f.name, memberIds: f.members.map((m) => m.id) }));
+}
+
+/**
+ * רשימת חלוקה מודפסת לחבילה — משפחה, כתובת, טלפון, רכיבים, עמודת "☐ נמסר".
+ * שיוכים active בלבד; דפוס תדפיס-הרכז מ-CONNECT (downloadText ב-UI).
+ */
+export function distributionListLines(db: Db, productId: Id): string[] {
+  const product = db.shopProducts.find((p) => p.id === productId);
+  const lines = ['רשימת חלוקה — ' + (product?.name ?? ''), '='.repeat(30)];
+  const active = db.shopAssignments.filter((a) => a.productId === productId && a.status === 'active');
+  for (const a of active) {
+    const fam = db.families.find((f) => f.id === a.famId);
+    const comps = (product?.components ?? []).map((c) => itemOf(db, c).name).filter(Boolean).join(' + ');
+    lines.push(
+      [
+        beneficiaryLabel(db, a),
+        fam ? [fam.address, fam.city].filter(Boolean).join(', ') : '',
+        fam?.phone ?? '',
+        comps,
+        '☐ נמסר',
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    );
+  }
+  if (active.length === 0) lines.push('אין שיוכים פעילים לחבילה');
+  return lines;
+}
+
 /* ---------- ייצוא (CONNECT חיבור 6) ---------- */
 
 /**

@@ -40,7 +40,7 @@ import {
   type TzEvent,
 } from '../types/domain';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
-import { beneficiaryLabel } from '../components/shop/lib';
+import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { roomClashError } from '../components/calendar/calLib';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, featureOn, loadOrgConfig, saveConfigOverride } from '../lib/config';
@@ -302,6 +302,19 @@ interface AppState {
   addShopIntake: (intake: Omit<ShopIntake, 'id'>) => boolean;
   /** מחיקת קליטה מחזירה את המלאי (קטום ב-0) — יומן-קליטות, לא סדרת מס. */
   deleteShopIntake: (id: string) => void;
+  /**
+   * שיוך המוני (SHOP6 חנות 26) — יוצר שיוכים active לכל השורות בלולאה
+   * אטומית אחת (setDb יחיד, nextId פר-שורה). דוחה רשימה ריקה / חבילה
+   * לא-קיימת בלי לגעת ב-db.
+   */
+  bulkAssignShop: (productId: string, rows: { famId: string; memberId: string; criterionIds: string[] }[]) => { ok: boolean; created: number };
+  /**
+   * חלוקה המונית של מימושים (SHOP6) — מימוש לרכיב עבור כל שיוך פעיל שטרם
+   * מומש (מדלג על מי שכבר קיבל). paid=0 קבוע — מתנת-חג/חלוקה, בלי אישור S-;
+   * גבייה פרטנית נשארת במימוש הבודד. **הכול-או-כלום:** מלאי לא מספיק ⇒
+   * עצירה עם "חסרות K יחידות" לפני כל כתיבה — db לא משתנה.
+   */
+  bulkRedeem: (productId: string, componentId: string, opts: { date: IsoDate; holiday: string }) => { ok: boolean; created: number };
 
   // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
   // ולכן סנכרון הענן והביטול עובדים כרגיל. פעולות שכותבות ללוח מייצרות OrgEvent.
@@ -1462,6 +1475,80 @@ export const useApp = create<AppState>()((set, get) => {
           i.id === intake.itemId ? { ...i, stock: Math.max(0, (i.stock ?? 0) - intake.qty) } : i,
         ),
       }));
+    },
+    bulkAssignShop(productId, rows) {
+      // שער לפני מונה (לקח באג-5): רשימה ריקה / חבילה לא-קיימת — db זהה
+      if (rows.length === 0) {
+        get().toast('לא נבחרו משפחות לשיוך');
+        return { ok: false, created: 0 };
+      }
+      if (!get().db.shopProducts.some((p) => p.id === productId)) {
+        get().toast('החבילה לא נמצאה — השיוך לא בוצע');
+        return { ok: false, created: 0 };
+      }
+      const since = isoToday();
+      const created: ShopAssignment[] = rows.map((row) => ({
+        id: get().nextId('sha'),
+        productId,
+        famId: row.famId,
+        memberId: row.memberId,
+        criterionIds: row.criterionIds,
+        since,
+        status: 'active',
+        notes: '',
+        redemptions: [],
+      }));
+      // לולאה אטומית אחת — setDb יחיד לכל השיוכים
+      setDb((db) => ({ shopAssignments: [...created, ...db.shopAssignments] }));
+      return { ok: true, created: created.length };
+    },
+    bulkRedeem(productId, componentId, opts) {
+      const db = get().db;
+      const product = db.shopProducts.find((p) => p.id === productId);
+      const comp = product?.components.find((c) => c.id === componentId);
+      if (!product || !comp) {
+        get().toast('הרכיב לא נמצא — החלוקה לא בוצעה');
+        return { ok: false, created: 0 };
+      }
+      const ri = itemOf(db, comp);
+      const holiday = ri.kind === 'holidayGift' ? opts.holiday : '';
+      // מי שכבר קיבל — מדולג (מתנת-חג: פר-חג ושנה עברית, כמו needsCare)
+      const targets = db.shopAssignments.filter(
+        (a) =>
+          a.productId === productId &&
+          a.status === 'active' &&
+          !assignmentRedeemed(a, componentId, holiday ? { iso: opts.date, name: holiday } : undefined),
+      );
+      if (targets.length === 0) {
+        get().toast('אין שיוכים פעילים שטרם קיבלו — אין מה לחלק');
+        return { ok: false, created: 0 };
+      }
+      // הכול-או-כלום (הכרעת בעלים, מהמנדט): מלאי לא מספיק ⇒ עצירה לפני כל
+      // כתיבה — שום מימוש חלקי
+      const rem = comp.itemId ? itemRemaining(db, comp.itemId) : null;
+      if (rem !== null && targets.length > rem) {
+        get().toast('חסרות ' + (targets.length - rem) + ' יחידות במלאי — החלוקה לא בוצעה');
+        return { ok: false, created: 0 };
+      }
+      // paid=0 קבוע בזרימה ההמונית — בלי אישורי S- (גבייה פרטנית = מימוש בודד);
+      // הבידוד נשמר: כתיבה ל-shopAssignments בלבד, אפס נגיעה במונים הכספיים
+      const value = comp.value ?? ri.value;
+      const ids = targets.map(() => get().nextId('shr'));
+      const targetIds = new Set(targets.map((t) => t.id));
+      setDb((cur) => ({
+        shopAssignments: cur.shopAssignments.map((a) => {
+          if (!targetIds.has(a.id)) return a;
+          const idx = targets.findIndex((t) => t.id === a.id);
+          return {
+            ...a,
+            redemptions: [
+              { id: ids[idx], componentId, date: opts.date, holiday, paid: 0, value, note: 'חלוקה המונית' },
+              ...a.redemptions,
+            ],
+          };
+        }),
+      }));
+      return { ok: true, created: targets.length };
     },
 
     // ── מעקב טיפול רב-שלבי ──

@@ -16,6 +16,7 @@ import { useArmed } from '../useArmed';
 import { isoToday } from '../../lib/date-util';
 import { assignmentRedeemed, beneficiaryLabel, componentRemaining, couponExpiry, filterAssignments, filterRedemptions, itemOf, itemRemaining, upcomingHolidays } from './lib';
 import { AssignmentForm } from './AssignmentForm';
+import { BulkAssignModal } from './BulkAssignModal';
 import { RedeemModal } from './RedeemModal';
 import { ShopEventModal } from './ShopEventModal';
 
@@ -207,6 +208,7 @@ export function AssignmentsTab() {
   const config = useApp((s) => s.config);
   const [selId, setSelId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const term = termOf(config, 'entity.shopAssignment', 'שיוך');
   // שורת הכלים (UX סינון 2) — הסינון והמיון טהורים ב-lib
   const [q, setQ] = useState('');
@@ -264,7 +266,9 @@ export function AssignmentsTab() {
             { value: 'progress', label: 'מיון: התקדמות' },
           ]}
         />
-        <span style={{ marginInlineStart: 'auto' }}>
+        <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
+          {/* שיוך המוני (SHOP6 חנות 26) — נדרשת חבילה קיימת */}
+          {db.shopProducts.length > 0 && <Btn onClick={() => setBulkOpen(true)}>👥 שיוך המוני</Btn>}
           <Btn kind="primary" onClick={() => setFormOpen(true)}>
             ➕ הוספת {termOf(config, 'entity.shopAssignment', 'שיוך')}
           </Btn>
@@ -325,6 +329,7 @@ export function AssignmentsTab() {
         })
       )}
       {formOpen && <AssignmentForm assignment={null} onClose={() => setFormOpen(false)} />}
+      {bulkOpen && <BulkAssignModal onClose={() => setBulkOpen(false)} />}
     </div>
   );
 }

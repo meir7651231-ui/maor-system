@@ -10,8 +10,10 @@ import { featureOn, termOf } from '../../lib/config';
 import type { ShopItem, ShopProduct } from '../../types/domain';
 import { Btn, Chip, Empty, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
-import { componentCounts, filterProducts, itemOf, itemRemaining, productAssignments } from './lib';
+import { componentCounts, distributionListLines, filterProducts, itemOf, itemRemaining, productAssignments } from './lib';
+import { downloadText } from '../reports/csv';
 import { ProductForm } from './ProductForm';
+import { BulkRedeemModal } from './BulkAssignModal';
 import { StockModal } from './StockModal';
 import { IntakePanel } from './IntakePanel';
 import { ItemsPanel } from './ItemsPanel';
@@ -33,10 +35,12 @@ export function CatalogTab() {
   const [editing, setEditing] = useState<ShopProduct | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [stockFor, setStockFor] = useState<ShopItem | null>(null);
+  const [bulkRedeemFor, setBulkRedeemFor] = useState<ShopProduct | null>(null);
   const [q, setQ] = useState('');
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const storesOn = featureOn(config, 'shop.stores');
   const criteriaOn = featureOn(config, 'shop.criteria');
+  const exportOn = featureOn(config, 'shop.export');
   const term = termOf(config, 'entity.shopProduct', 'מוצר');
 
   function removeProduct(p: ShopProduct) {
@@ -101,7 +105,18 @@ export function CatalogTab() {
                     })}
                   </div>
                 )}
-                <div style={{ display: 'flex', gap: 6, marginTop: 'auto' }}>
+                <div style={{ display: 'flex', gap: 6, marginTop: 'auto', flexWrap: 'wrap' }}>
+                  {/* חלוקה המונית (SHOP6 חנות 26) — תדפיס + סימון-חולק-לכולם */}
+                  {activeCount > 0 && exportOn && (
+                    <Btn sm onClick={() => downloadText('distribution-' + p.name + '.txt', distributionListLines(db, p.id))} title="רשימת חלוקה מודפסת — משפחה, כתובת, טלפון, רכיבים, ☐ נמסר">
+                      🖨 רשימת חלוקה
+                    </Btn>
+                  )}
+                  {activeCount > 0 && p.components.length > 0 && (
+                    <Btn sm onClick={() => setBulkRedeemFor(p)} title="מימוש לכל שיוך פעיל שטרם קיבל — הכול-או-כלום על מחסור מלאי">
+                      🎁 סימון חולק לכולם
+                    </Btn>
+                  )}
                   <Btn sm onClick={() => { setEditing(p); setFormOpen(true); }}>✏️ עריכה</Btn>
                   <Btn sm kind="danger" onClick={() => removeProduct(p)}>
                     {armed === 'shp-' + p.id ? 'בטוח/ה? לחיצה שוב מוחקת' : '🗑 מחיקה'}
@@ -118,6 +133,7 @@ export function CatalogTab() {
       {criteriaOn && <CriteriaPanel />}
       {formOpen && <ProductForm product={editing} onClose={() => setFormOpen(false)} />}
       {stockFor && <StockModal item={stockFor} onClose={() => setStockFor(null)} />}
+      {bulkRedeemFor && <BulkRedeemModal product={bulkRedeemFor} onClose={() => setBulkRedeemFor(null)} />}
     </div>
   );
 }
