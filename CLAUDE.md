@@ -11,7 +11,8 @@
 1. `knowledge/LEGACY-GAP-2026-07-29.md` — ניתוח פערים מלא (מה חסר/שונה ב-React מול הקובץ החי) + סדר עבודה מומלץ.
 2. `knowledge/legacy/legacy-main-script.js` + `legacy-markup.html` — קוד הלגאסי המחולץ (מקור האמת להתנהגות).
 3. `knowledge/legacy/inventory.json` + `gaps.json` — 199 פיצ'רים ממופים עם סטטוס פר-פיצ'ר.
-4. `knowledge/CLOSED-P2-2026-07-30.md` — דוח סגירת P2 (פערים 19–33) + מעבר 199/199: ‏53 present · 53 closed · 23 מדווחים לארכיטקט.
+4. `knowledge/CLOSED-P2-2026-07-30.md` — דוח סגירת P2 (פערים 19–33) + מעבר 199/199.
+5. `knowledge/CLOSED-P3-2026-07-30.md` — **סגירה מלאה 129/129** (53 present · 76 closed · 0 פתוחים); תפקיד מורה (shell.roles), armDel, קיצורים — כולם מאחורי דגלים.
 
 **האינווריאנט העליון — אפס אובדן יכולת:** כל יכולת של הקובץ החי או נשמרת או משתדרגת. אין מחיקה. השאלה תמיד "איך משדרגים", לא "אם להכליל".
 
@@ -22,7 +23,7 @@
 
 - **סטאק:** React 19 + TypeScript + Vite 8 + Zustand. תלויות ריצה: react, react-dom, zustand, idb, firebase (נטען dynamic-import רק כשמוגדר).
 - **ארכיטקטורה:** אתר סטטי local-first. הנתונים אצל הלקוח ב-3 שכבות: localStorage (debounce 500ms) → IndexedDB (+ טבעת 30 צילומים יומיים) → קובצי גיבוי JSON. ענן Firebase = opt-in פר-ארגון. הצפנה במנוחה AES-GCM (envelope, DEK עטוף פעמיים) = opt-in.
-- **White-label אמיתי:** `?org=<slug>` → `public/c/<slug>/config.json`. ‏98 דגלי פיצ׳ר + 33 מונחים (termOf) + 8 חבילות ורטיקל + 4 ערכות נושא. חוזה הדגלים: מפתח חסר = פעיל, רק false מכבה.
+- **White-label אמיתי:** `?org=<slug>` → `public/c/<slug>/config.json`. ‏101 דגלי פיצ׳ר + 33 מונחים (termOf) + 8 חבילות ורטיקל + 4 ערכות נושא. חוזה הדגלים: מפתח חסר = פעיל, רק false מכבה.
 - **DB:** מסמך יחיד (DB_VERSION=5) — seq כללי + receiptSeq/donationSeq נפרדים ורציפים (קבלות מס!) + 7 מערכי ישויות. מיגרציה מצטברת אחת ב-`src/store/persist.ts` (מרפאת מונים, rid כפולים, מזהי members).
 
 ## Dev loop — שערים מדורגים לפי רדיוס הפגיעה
@@ -52,7 +53,7 @@ CI: `ci.yml` מריץ את השער המלא על כל push לענף claude/*; d
 |------|--------|
 | `src/App.tsx` | שלד: ניווט Zustand (בלי router), שרשרת שערים (פענוח→ענן→נעילה), מודלים ב-hash, גיבוי סוף-יום |
 | `src/types/domain.ts` | כל מודל הנתונים + DB_VERSION |
-| `src/types/features.ts` | 98 דגלים + 33 מונחים |
+| `src/types/features.ts` | 101 דגלים + 33 מונחים |
 | `src/store/useApp.ts` | ה-store היחיד — כל פעולות העסקים (1,154 שורות) |
 | `src/store/persist.ts` | התמדה 3 שכבות + migrate() + שער ריבוי-טאבים |
 | `src/store/cloudSync.ts` + `src/lib/cloud*.ts` | סנכרון Firestore (diff/merge, הענן מנצח, מונים רק עולים) |
