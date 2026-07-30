@@ -16,7 +16,7 @@ import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
 import { pullAll, pushDiff, subscribeAll, type RemotePartial } from '../lib/cloud';
 
 // יצוא-מחדש של שכבת ה-auth — ל-useApp יש import דינמי אחד בלבד (המודול הזה)
-export { initCloud, resetPassword, signIn, signOutCloud, watchAuth } from '../lib/cloud';
+export { initCloud, resetPassword, setCloudScope, signIn, signOutCloud, watchAuth } from '../lib/cloud';
 export type { CloudUser } from '../lib/cloud';
 
 export type CloudStatus = 'idle' | 'connecting' | 'synced' | 'error';

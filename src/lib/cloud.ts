@@ -35,7 +35,7 @@ import {
 import type { FirebaseOrgConfig } from '../types/config';
 import { DB_VERSION, type Db } from '../types/domain';
 import { migrate } from '../store/persist';
-import { ENTITY_COLLECTIONS, type DbDiff } from './cloud-diff';
+import { ENTITY_COLLECTIONS, colPath, metaPath, type DbDiff } from './cloud-diff';
 
 // ה-diff עצמו טהור וחי ב-cloud-diff.ts (כדי שהבדיקות לא ייגעו ב-firebase) —
 // יצוא-מחדש כאן משלים את ה-API של מנוע הענן.
@@ -50,6 +50,26 @@ export interface CloudUser {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let fsDb: Firestore | null = null;
+
+/**
+ * תחום הארגון (CLOUD2 ענן 1) — קובע את נתיבי האוספים. ברירת המחדל הבטוחה:
+ * נתיבי-שורש (ביט-זהה להיום) — כך שגם אם setCloudScope לא נקרא, הלקוח
+ * הקיים לא מושפע. ארגון-פלטפורמה מקבל orgs/{slug}/ דרך setCloudScope.
+ */
+let scope: { slug: string; cloudRoot: boolean } = { slug: 'default', cloudRoot: true };
+
+/** קביעת תחום הארגון — נקרא מ-connectCloud עם ה-config הטעון. */
+export function setCloudScope(slug: string, cloudRoot: boolean): void {
+  scope = { slug, cloudRoot };
+}
+
+/** נתיב אוסף/מטא בתחום הנוכחי — עטיפות דקות על ה-helpers הטהורים. */
+function scopedCol(col: string): string {
+  return colPath(scope.slug, scope.cloudRoot, col);
+}
+function scopedMeta(): string {
+  return metaPath(scope.slug, scope.cloudRoot);
+}
 
 /** אתחול חד-פעמי (idempotent) — קריאה חוזרת מחזירה את אותם singletons. */
 export function initCloud(fb: FirebaseOrgConfig): { auth: Auth; db: Firestore } {
@@ -145,14 +165,14 @@ export async function pushDiff(diff: DbDiff): Promise<void> {
   const db = requireDb();
   const ops: Array<(b: WriteBatch) => void> = [];
   for (const s of diff.sets) {
-    ops.push((b) => b.set(doc(db, s.col, s.id), toPlain(s.data)));
+    ops.push((b) => b.set(doc(db, scopedCol(s.col), s.id), toPlain(s.data)));
   }
   for (const d of diff.deletes) {
-    ops.push((b) => b.delete(doc(db, d.col, d.id)));
+    ops.push((b) => b.delete(doc(db, scopedCol(d.col), d.id)));
   }
   if (diff.meta) {
     const meta = diff.meta;
-    ops.push((b) => b.set(doc(db, 'meta', 'org'), toPlain(meta)));
+    ops.push((b) => b.set(doc(db, scopedMeta()), toPlain(meta)));
   }
   for (let i = 0; i < ops.length; i += 400) {
     const batch = writeBatch(db);
@@ -167,11 +187,11 @@ export async function pushDiff(diff: DbDiff): Promise<void> {
  */
 export async function pullAll(): Promise<Db | null> {
   const db = requireDb();
-  const metaSnap = await getDoc(doc(db, 'meta', 'org'));
+  const metaSnap = await getDoc(doc(db, scopedMeta()));
   if (!metaSnap.exists()) return null;
   const raw: Record<string, unknown> = { ...metaSnap.data(), v: DB_VERSION };
   const snaps = await Promise.all(
-    ENTITY_COLLECTIONS.map((col) => getDocs(collection(db, col))),
+    ENTITY_COLLECTIONS.map((col) => getDocs(collection(db, scopedCol(col)))),
   );
   ENTITY_COLLECTIONS.forEach((col, i) => {
     raw[col] = snaps[i].docs.map((d) => ({ ...d.data(), id: d.id }));
@@ -196,7 +216,7 @@ export function subscribeAll(
   const db = requireDb();
   const unsubs = ENTITY_COLLECTIONS.map((col) =>
     onSnapshot(
-      collection(db, col),
+      collection(db, scopedCol(col)),
       (snap) => {
         if (snap.metadata.hasPendingWrites) return;
         const docs = snap
@@ -209,7 +229,7 @@ export function subscribeAll(
   );
   unsubs.push(
     onSnapshot(
-      doc(db, 'meta', 'org'),
+      doc(db, scopedMeta()),
       (snap) => {
         if (snap.metadata.hasPendingWrites || !snap.exists()) return;
         onRemote({ meta: snap.data() });

@@ -518,11 +518,14 @@ export const useApp = create<AppState>()((set, get) => {
    * חיבור הענן — נקרא מ-init רק כשיש config.firebase. אסינכרוני ולא חוסם:
    * כל כשל כאן מחזיר את המערכת למצב מקומי-בלבד עם טוסט, בלי לפגוע בעבודה.
    */
-  async function connectCloud(fb: FirebaseOrgConfig) {
+  async function connectCloud(fb: FirebaseOrgConfig, cfg: OrgConfig) {
     try {
       const mod = await import('./cloudSync');
       cloudMod = mod;
       mod.initCloud(fb);
+      // תחום הנתיבים (CLOUD2 ענן 1): הלקוח הקיים (cloudRoot:true) = שורש —
+      // ביט-זהה להיום; ארגון-פלטפורמה = orgs/{slug}/
+      mod.setCloudScope(cfg.slug, cfg.cloudRoot === true);
       mod.watchAuth((user) => {
         const hadUser = get().cloud.user !== null;
         setCloud({ authReady: true, user, ...(user ? {} : { status: 'idle' as const }) });
@@ -657,7 +660,7 @@ export const useApp = create<AppState>()((set, get) => {
         cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle' },
       });
       // חיבור ענן — opt-in פר-ארגון; בלי config.firebase שום דבר לא משתנה
-      if (config.firebase) void connectCloud(config.firebase);
+      if (config.firebase) void connectCloud(config.firebase, config);
       postLoad(db, corrupt);
     },
 
@@ -1794,7 +1797,7 @@ export const useApp = create<AppState>()((set, get) => {
       // אחרי הפענוח, כי watchAuth שמעדכן authReady לעולם לא רץ. cloud.enabled
       // כבר נקבע ב-init; כאן משלימים את החיבור בפועל (פעם אחת).
       const cfg = get().config;
-      if (cfg.firebase && !cloudMod) void connectCloud(cfg.firebase);
+      if (cfg.firebase && !cloudMod) void connectCloud(cfg.firebase, cfg);
       postLoad(db, false);
       return true;
     },

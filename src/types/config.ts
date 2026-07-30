@@ -64,6 +64,13 @@ export interface OrgConfig {
     messagingSenderId?: string;
     appId: string;
   };
+  /**
+   * נתיבי-שורש בענן (CLOUD2 ענן 1): true = האוספים יושבים בשורש הפרויקט —
+   * הלקוח הקיים (maor-hachesed), ביט-זהה להתנהגות של היום. חסר/false =
+   * ארגון-פלטפורמה — האוספים תחת orgs/{slug}/. המעבר של הלקוח הקיים
+   * ל-orgs/ — בחלון שקט, בפקודה נפרדת.
+   */
+  cloudRoot?: boolean;
 }
 
 /** קונפיגורציית Firebase של ארגון — קיצור נוחות. */

@@ -99,6 +99,9 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
   const fb = normalizeFirebase(c.firebase);
   if (fb) cfg.firebase = fb;
   else delete cfg.firebase;
+  // נתיבי-שורש בענן (CLOUD2) — רק true מפורש נשמר; כל השאר = orgs/{slug}
+  if (c.cloudRoot === true) cfg.cloudRoot = true;
+  else delete cfg.cloudRoot;
   // מיילי-אדמין — רק מחרוזות לא-ריקות; ריק/לא-מערך → מוסר (אין הגבלה)
   const admins = Array.isArray(c.adminEmails)
     ? c.adminEmails.filter((e): e is string => typeof e === 'string' && e.trim() !== '')
