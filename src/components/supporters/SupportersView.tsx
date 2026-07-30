@@ -15,6 +15,7 @@ import { chipStyle, fmtDate, isoToday, supScore, supTier, TIER_ORDER, totalLabel
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
 import { AyinBoard } from './AyinBoard';
+import { OrgDonationCalendar } from './DonationCalendar';
 import { SupporterImport } from './SupporterImport';
 import { CustomExport } from '../reports/CustomExport';
 
@@ -106,6 +107,9 @@ export function SupportersView() {
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [expOpen, setExpOpen] = useState(false);
+  // לוח התרומות הכלל-ארגוני (P1.4, legacy supCalOn/supCalAll) — מוצג בלחיצה
+  const [orgCalOpen, setOrgCalOpen] = useState(false);
+  const donCalOn = featureOn(config, 'supporters.doncal');
 
   /** דוח יומי של מעקב הטיפול — כל מי שטופל היום. */
   function dailyReport() {
@@ -200,6 +204,23 @@ export function SupportersView() {
       />
 
       {ayinOn && <AyinBoard onOpen={setSelId} />}
+
+      {/* לוח תרומות כלל-ארגוני — כל התומכות + אירועי המעקב (legacy supCalAll) */}
+      {donCalOn && (
+        <div className="card" style={{ marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <h3 style={{ fontSize: 15 }}>🗓 לוח ה{termOf(config, 'entity.donations', 'תרומות')} הכללי</h3>
+            <Btn sm onClick={() => setOrgCalOpen((v) => !v)}>
+              {orgCalOpen ? '▲ סגירה' : '▼ הצגה'}
+            </Btn>
+          </div>
+          {orgCalOpen && (
+            <div style={{ marginTop: 10 }}>
+              <OrgDonationCalendar onOpen={setSelId} />
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 260px', minWidth: 220 }}>

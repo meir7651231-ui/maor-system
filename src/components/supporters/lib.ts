@@ -121,6 +121,64 @@ export function supDonEvents(sp: Supporter): SupDonEvent[] {
   return out.sort((a, b) => String(b.date).localeCompare(String(a.date)));
 }
 
+/* ── לוח התרומות (feature supporters.doncal) — שורות הלוח האישי והכלל-ארגוני ──
+   ratchet: legacy supCalMine/supCalAll (legacy-main-script.js:2928-2944) —
+   הלוח מציג לצד התרומות גם את אירועי מעקב הטיפול (🧿 רישומים, 📞 תשובות,
+   🔁 לדבר שוב) ואת 🎯 תאריך היעד בלוח האישי. */
+
+/** רשומת-יום בלוח התרומות — תרומה/קבלה/אירוע מעקב, עם ניווט לתומכת בלוח הכללי. */
+export interface SupCalEntry {
+  date: string;
+  amount: number;
+  cur: '₪' | '$' | '';
+  src: string;
+  name?: string;
+  spId?: string;
+}
+
+/** שורות הלוח האישי של תומכת — legacy supCalMine (2940-2944). */
+export function personalCalEntries(sp: Supporter): SupCalEntry[] {
+  const out: SupCalEntry[] = supDonEvents(sp).map((e) => ({ date: e.date, amount: e.amount, cur: e.cur, src: e.src }));
+  if (sp.nextDate) out.push({ date: sp.nextDate, amount: 0, cur: '', src: '🎯 תאריך יעד לקשר הבא' });
+  for (const l of sp.ayin?.log ?? []) {
+    out.push({ date: l.date, amount: 0, cur: '', src: '🧿 ' + l.eyes + (l.name ? ' — ' + l.name : '') });
+  }
+  for (const an of sp.ayin?.answers ?? []) out.push({ date: an.date, amount: 0, cur: '', src: '📞 תשובה: ' + an.note });
+  if (sp.ayin?.nextTalk) out.push({ date: sp.ayin.nextTalk, amount: 0, cur: '', src: '🔁 לדבר שוב' });
+  return out.filter((e) => !!e.date);
+}
+
+/** שורות הלוח הכלל-ארגוני — כל התומכות (legacy supCalAll, 2928-2937). */
+export function orgCalEntries(supporters: Supporter[]): SupCalEntry[] {
+  const out: SupCalEntry[] = [];
+  for (const sp of supporters) {
+    for (const e of supDonEvents(sp)) out.push({ date: e.date, amount: e.amount, cur: e.cur, src: e.src, name: sp.name, spId: sp.id });
+    for (const l of sp.ayin?.log ?? []) {
+      out.push({ date: l.date, amount: 0, cur: '', src: '🧿 ' + l.eyes + (l.name ? ' — ' + l.name : ''), name: sp.name, spId: sp.id });
+    }
+    for (const an of sp.ayin?.answers ?? []) out.push({ date: an.date, amount: 0, cur: '', src: '📞 תשובה: ' + an.note, name: sp.name, spId: sp.id });
+    if (sp.ayin?.nextTalk) out.push({ date: sp.ayin.nextTalk, amount: 0, cur: '', src: '🔁 לדבר שוב', name: sp.name, spId: sp.id });
+  }
+  return out.filter((e) => !!e.date);
+}
+
+/** שורת סיכום החודש — 'N תרומות החודש · ₪X + $Y' (legacy supCalData monthLine). */
+export function donCalMonthLine(entries: SupCalEntry[], inMonth: (iso: string) => boolean): string {
+  let mc = 0;
+  let mi = 0;
+  let mu = 0;
+  for (const e of entries) {
+    if (!inMonth(e.date)) continue;
+    mc++;
+    if (e.cur === '$') mu += e.amount || 0;
+    else mi += e.amount || 0;
+  }
+  if (!mc) return 'אין תרומות מתועדות בחודש זה';
+  const sums =
+    (mi ? '₪' + mi.toLocaleString('he-IL') : '') + (mi && mu ? ' + ' : '') + (mu ? '$' + mu.toLocaleString('he-IL') : '');
+  return mc + ' תרומות החודש · ' + (sums || 'סכומים מהקובץ ההיסטורי');
+}
+
 /* ── ייבוא תומכות מ-CSV — עדכון-או-הוספה לפי שם מנורמל (טהור, נבדק ביחידה) ── */
 
 /** נרמול שם להשוואה — נרמול חיפוש עברי + הסרת רווחים. */
