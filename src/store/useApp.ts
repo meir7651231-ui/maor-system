@@ -193,6 +193,11 @@ interface AppState {
   unlinkEvent: (kind: 'supporterNext' | 'enrollmentDue', id: string) => void;
   upsertEvent: (ev: OrgEvent) => void;
   deleteEvent: (id: string) => void;
+  /**
+   * שליחת ממצא ביקורת למרכז הטיפול (P2 פער 22) — תזכורת אדומה להיום בלוח,
+   * כמו sendAuditToCare בלגאסי (הממצאים נשפכים ל"דורש טיפול" — לא מנגנון חדש).
+   */
+  auditToAttention: (issue: { title: string; famId?: string; spId?: string }) => void;
 
   // צוות, חדרים, תורמים
   upsertTeacher: (t: Teacher) => void;
@@ -941,6 +946,24 @@ export const useApp = create<AppState>()((set, get) => {
     },
     upsertEvent(ev) {
       setDb((db) => ({ events: upsertIn(db.events, ev) }));
+    },
+    auditToAttention(issue) {
+      get().upsertEvent({
+        id: get().nextId('ev'),
+        title: issue.title,
+        date: isoToday(),
+        time: '',
+        type: 'reminder',
+        customType: '',
+        notes: 'ממצא בדיקת נתונים',
+        price: 0,
+        roomId: '',
+        famId: issue.famId || '',
+        spId: issue.spId,
+        priority: 'red',
+        done: false,
+      });
+      get().toast('הממצא נשלח למרכז הטיפול');
     },
     deleteEvent(id) {
       setDb((db) => ({ events: db.events.filter((e) => e.id !== id) }));

@@ -2,9 +2,13 @@
  * הגדרות ← בדיקת תקינות נתונים (feature: settings.audit).
  * מריץ את מנוע הביקורת (lib/audit), מציג ממצאים מקובצים לפי קטגוריה עם מונים,
  * כל שורה פותחת את כרטיס המשפחה, וכולל "תיקון טלפונים אוטומטי" ו"ייצוא דוח מלא".
+ * ביקורת מורחבת (P2 פער 22, feature settings.audit.extra): יעד-קשר שעבר,
+ * תרומה ≤0, כפתור 📌 לשליחת ממצא למרכז הטיפול ו-🔀 לפתיחת איחוד הכפילויות.
  */
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { featureOn } from '../../lib/config';
+import { isoToday } from '../../lib/date-util';
 import { runAudit, auditReportLines, AUDIT_CATEGORIES, AUDIT_CAT_COLORS, type AuditIssue } from '../../lib/audit';
 import { downloadText } from '../reports/csv';
 import { Btn } from '../ui';
@@ -16,11 +20,15 @@ export function AuditSection() {
   const selectFamily = useApp((s) => s.selectFamily);
   const go = useApp((s) => s.go);
   const fixAllPhones = useApp((s) => s.fixAllPhones);
+  const auditToAttention = useApp((s) => s.auditToAttention);
+  const config = useApp((s) => s.config);
   const orgName = useApp((s) => s.config.orgName || s.db.orgName);
   const [ran, setRan] = useState(false);
+  const extraOn = featureOn(config, 'settings.audit.extra');
+  const dedupOn = featureOn(config, 'settings.dedup');
 
   // הביקורת נגזרת מה-Db — רצה מחדש בכל שינוי אחרי הלחיצה הראשונה
-  const issues = useMemo(() => (ran ? runAudit(db) : []), [ran, db]);
+  const issues = useMemo(() => (ran ? runAudit(db, isoToday(), extraOn) : []), [ran, db, extraOn]);
 
   const byCat = useMemo(() => {
     const m = new Map<string, AuditIssue[]>();
@@ -77,25 +85,51 @@ export function AuditSection() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {rows.map((it, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => (it.famId ? selectFamily(it.famId) : it.spId ? go('supporters') : undefined)}
-                      title={it.famId || it.spId ? 'פתיחת הכרטיס' : undefined}
-                      style={{
-                        textAlign: 'right',
-                        fontSize: 13,
-                        padding: '7px 10px',
-                        border: '1px solid var(--line)',
-                        borderRadius: 8,
-                        background: 'var(--panel)',
-                        cursor: it.famId || it.spId ? 'pointer' : 'default',
-                        color: 'var(--ink)',
-                      }}
-                    >
-                      {it.title}
-                      {(it.famId || it.spId) && <span style={{ color: 'var(--accent)', marginInlineStart: 6 }}>←</span>}
-                    </button>
+                    <div key={i} style={{ display: 'flex', gap: 4, alignItems: 'stretch' }}>
+                      <button
+                        type="button"
+                        onClick={() => (it.famId ? selectFamily(it.famId) : it.spId ? go('supporters') : undefined)}
+                        title={it.famId || it.spId ? 'פתיחת הכרטיס' : undefined}
+                        style={{
+                          flex: 1,
+                          textAlign: 'right',
+                          fontSize: 13,
+                          padding: '7px 10px',
+                          border: '1px solid var(--line)',
+                          borderRadius: 8,
+                          background: 'var(--panel)',
+                          cursor: it.famId || it.spId ? 'pointer' : 'default',
+                          color: 'var(--ink)',
+                        }}
+                      >
+                        {it.title}
+                        {(it.famId || it.spId) && <span style={{ color: 'var(--accent)', marginInlineStart: 6 }}>←</span>}
+                      </button>
+                      {extraOn && (it.famId || it.spId) && (
+                        <button
+                          type="button"
+                          onClick={() => auditToAttention(it)}
+                          title="שליחה למרכז הטיפול — תזכורת אדומה להיום"
+                          aria-label="שליחה למרכז הטיפול"
+                          style={{ border: '1px solid var(--line)', borderRadius: 8, background: 'var(--panel)', cursor: 'pointer', padding: '0 10px' }}
+                        >
+                          📌
+                        </button>
+                      )}
+                      {extraOn && dedupOn && it.cat === 'כפילות' && it.famId && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.location.hash = '#dedup';
+                          }}
+                          title="פתיחת איחוד הכפילויות"
+                          aria-label="פתיחת איחוד הכפילויות"
+                          style={{ border: '1px solid var(--line)', borderRadius: 8, background: 'var(--panel)', cursor: 'pointer', padding: '0 10px' }}
+                        >
+                          🔀
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
