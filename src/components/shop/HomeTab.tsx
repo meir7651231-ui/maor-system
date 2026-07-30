@@ -14,6 +14,7 @@ import {
   beneficiaryLabel,
   collectedPaid,
   givenValue,
+  itemOf,
   needsCare,
   subsidyTotal,
   upcomingHolidays,
@@ -45,7 +46,7 @@ export function HomeTab() {
     for (const a of activeAssignments) {
       const p = db.shopProducts.find((x) => x.id === a.productId);
       for (const c of p?.components ?? [])
-        if (c.kind === 'holidayGift' && !assignmentRedeemed(a, c.id, h)) n++;
+        if (itemOf(db, c).kind === 'holidayGift' && !assignmentRedeemed(a, c.id, h)) n++;
     }
     return n;
   }
@@ -98,7 +99,7 @@ export function HomeTab() {
                 onChange={setQuickCompId}
                 options={[
                   { value: '', label: 'בחרו רכיב' },
-                  ...quickProduct.components.map((c) => ({ value: c.id, label: c.label })),
+                  ...quickProduct.components.map((c) => ({ value: c.id, label: itemOf(db, c).name })),
                 ]}
               />
             )}

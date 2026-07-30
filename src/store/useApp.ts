@@ -27,6 +27,7 @@ import {
   type ShopAssignment,
   type ShopCriterion,
   type ShopEvent,
+  type ShopItem,
   type ShopProduct,
   type ShopRedemption,
   type ShopStore,
@@ -245,6 +246,10 @@ interface AppState {
 
   // חנות מוצרי-שירות (מודול shop — מבודד; BUILD-ORDER-SHOP-2026-07-30).
   // הכסף/המימושים/האירועים נכתבים רק למערכי shop* — לא לקבלות/תרומות/לוח הראשי.
+  /** פריט קטלוג עצמאי (SHOP4, הכרעה 18) — בעל המלאי/התוקף/החנות המשותפים. */
+  upsertShopItem: (i: ShopItem) => void;
+  /** חסום כשרכיב בחבילה מצביע על הפריט — מסירים מהחבילות קודם. */
+  deleteShopItem: (id: string) => boolean;
   /** רכיב מוצר בלי id מקבל nextId('shpc') — ייחודיות בתוך המוצר. */
   upsertShopProduct: (p: ShopProduct) => void;
   /** חסום כשקיימים שיוכים active למוצר; מותר כשכולם done/stopped. */
@@ -1191,6 +1196,19 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     // ── חנות מוצרי-שירות (מודול shop — מבודד; הכרעת בעלים 30.7.2026) ──
+    upsertShopItem(i) {
+      const id = i.id || get().nextId('shi');
+      setDb((db) => ({ shopItems: upsertIn(db.shopItems, { ...i, id }) }));
+    },
+    deleteShopItem(id) {
+      const used = get().db.shopProducts.some((p) => p.components.some((c) => c.itemId === id));
+      if (used) {
+        get().toast('הפריט משובץ בחבילות — הסירו אותו מהן קודם');
+        return false;
+      }
+      setDb((db) => ({ shopItems: db.shopItems.filter((x) => x.id !== id) }));
+      return true;
+    },
     upsertShopProduct(p) {
       const id = p.id || get().nextId('shp');
       // רכיב חדש בעורך מגיע בלי id — מקבל מזהה משלו (קידומת shpc, רק ייחודיות)

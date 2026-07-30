@@ -15,7 +15,7 @@ describe('🛍 ratchet — חנות 16: תיקוני שטח', () => {
     expect(redeemSrc).toMatch(/\{!isMeeting && \(\s*<Field label='לתשלום/);
     expect(redeemSrc).toMatch(/\{!isMeeting && !isCoupon && \(\s*<Field label='שווי שנמסר/);
     expect(redeemSrc).toMatch(/const paid = isMeeting \? 0 :/);
-    expect(redeemSrc).toMatch(/const value = isMeeting \? 0 : isCoupon \? c\.value :/);
+    expect(redeemSrc).toMatch(/const value = isMeeting \? 0 : isCoupon \? ri\.value :/);
     expect(redeemSrc).toMatch(/\{!isMeeting && \(\s*<div[^>]*>\s*\{'מחיר מלא/);
   });
 

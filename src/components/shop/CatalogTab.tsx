@@ -7,12 +7,13 @@
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
-import type { ShopComponent, ShopProduct } from '../../types/domain';
+import type { ShopItem, ShopProduct } from '../../types/domain';
 import { Btn, Chip, Empty } from '../ui';
 import { useArmed } from '../useArmed';
-import { componentCounts, componentRemaining, productAssignments } from './lib';
+import { componentCounts, itemOf, itemRemaining, productAssignments } from './lib';
 import { ProductForm } from './ProductForm';
 import { StockModal } from './StockModal';
+import { ItemsPanel } from './ItemsPanel';
 import { StoresPanel } from './StoresPanel';
 import { CriteriaPanel } from './CriteriaPanel';
 
@@ -30,7 +31,7 @@ export function CatalogTab() {
   const toast = useApp((s) => s.toast);
   const [editing, setEditing] = useState<ShopProduct | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [stockFor, setStockFor] = useState<{ product: ShopProduct; component: ShopComponent } | null>(null);
+  const [stockFor, setStockFor] = useState<ShopItem | null>(null);
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const storesOn = featureOn(config, 'shop.stores');
   const criteriaOn = featureOn(config, 'shop.criteria');
@@ -72,19 +73,23 @@ export function CatalogTab() {
                 {p.components.length > 0 && (
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                     {p.components.map((c) => {
-                      const rem = componentRemaining(c.id, p.id, db.shopAssignments, c.stock);
+                      const ri = itemOf(db, c);
+                      const item = db.shopItems.find((x) => x.id === c.itemId);
+                      const rem = itemRemaining(db, c.itemId);
                       const color = rem === null ? 'var(--ink-faint)' : rem === 0 ? '#b91c1c' : rem <= 2 ? '#9a6414' : 'var(--green)';
                       return (
                         <span key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color, border: '1px solid var(--line)', borderRadius: 99, padding: '1px 4px 1px 7px' }}>
-                          {c.label + (rem === null ? ' · ללא מעקב' : ' · נותרו ' + rem)}
-                          <button
-                            type="button"
-                            title="חידוש מלאי"
-                            onClick={() => setStockFor({ product: p, component: c })}
-                            style={{ border: 'none', background: 'var(--line)', borderRadius: 99, width: 16, height: 16, lineHeight: '14px', fontSize: 12, cursor: 'pointer', padding: 0 }}
-                          >
-                            +
-                          </button>
+                          {ri.name + (rem === null ? ' · ללא מעקב' : ' · נותרו ' + rem)}
+                          {item && (
+                            <button
+                              type="button"
+                              title="חידוש מלאי"
+                              onClick={() => setStockFor(item)}
+                              style={{ border: 'none', background: 'var(--line)', borderRadius: 99, width: 16, height: 16, lineHeight: '14px', fontSize: 12, cursor: 'pointer', padding: 0 }}
+                            >
+                              +
+                            </button>
+                          )}
                         </span>
                       );
                     })}
@@ -101,10 +106,11 @@ export function CatalogTab() {
           })}
         </div>
       )}
+      <ItemsPanel />
       {storesOn && <StoresPanel />}
       {criteriaOn && <CriteriaPanel />}
       {formOpen && <ProductForm product={editing} onClose={() => setFormOpen(false)} />}
-      {stockFor && <StockModal product={stockFor.product} component={stockFor.component} onClose={() => setStockFor(null)} />}
+      {stockFor && <StockModal item={stockFor} onClose={() => setStockFor(null)} />}
     </div>
   );
 }

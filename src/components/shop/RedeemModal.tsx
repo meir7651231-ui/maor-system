@@ -11,32 +11,35 @@ import type { ShopAssignment, ShopComponent } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { isoToday } from '../../lib/date-util';
-import { componentRemaining, couponExpiry, effectivePrice, maxDiscountPct, upcomingHolidays } from './lib';
+import { componentRemaining, couponExpiry, effectivePrice, itemOf, itemRemaining, maxDiscountPct, upcomingHolidays } from './lib';
 
 export function RedeemModal(props: { assignment: ShopAssignment; component: ShopComponent; onClose: () => void }) {
+  const db = useApp((s) => s.db);
   const criteria = useApp((s) => s.db.shopCriteria);
   const assignments = useApp((s) => s.db.shopAssignments);
   const addShopRedemption = useApp((s) => s.addShopRedemption);
   const toast = useApp((s) => s.toast);
   const a = props.assignment;
   const c = props.component;
+  // הפריט + דריסות הרכיב (SHOP4, הכרעה 18) — מקור האמת לשווי/מחיר/מלאי/תוקף
+  const ri = itemOf(db, c);
   // הסתעפות לפי סוג הרכיב (הכרעת בעלים 15)
-  const isMeeting = c.kind === 'meeting';
-  const isCoupon = c.kind === 'coupon';
+  const isMeeting = ri.kind === 'meeting';
+  const isCoupon = ri.kind === 'coupon';
 
   const pct = maxDiscountPct(a.criterionIds, criteria);
-  const price = effectivePrice(c.basePrice, a.criterionIds, criteria);
-  const holidays = c.kind === 'holidayGift' ? upcomingHolidays(isoToday(), 45) : [];
+  const price = effectivePrice(ri.basePrice, a.criterionIds, criteria);
+  const holidays = ri.kind === 'holidayGift' ? upcomingHolidays(isoToday(), 45) : [];
   // אזהרות רכות בלבד — מלאי שאזל / קופון שפקע אינם חוסמים מימוש (שיקול משרדי)
-  const remaining = componentRemaining(c.id, a.productId, assignments, c.stock);
-  const expiry = isCoupon ? couponExpiry(a, c) : '';
+  const remaining = c.itemId ? itemRemaining(db, c.itemId) : componentRemaining(c.id, a.productId, assignments, c.stock);
+  const expiry = isCoupon ? couponExpiry(a, ri) : '';
   const expired = !!expiry && expiry < isoToday();
 
   const [f, setF] = useState({
     date: isoToday(),
     holiday: holidays[0]?.name ?? '',
     paid: String(price),
-    value: c.value ? String(c.value) : '0',
+    value: ri.value ? String(ri.value) : '0',
     note: '',
   });
   const [error, setError] = useState('');
@@ -44,14 +47,14 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
   function save() {
     // פגישה — בלי כסף בכלל; קופון — השווי נלקח מהרכיב, לא מהטופס
     const paid = isMeeting ? 0 : f.paid.trim() === '' ? 0 : Math.round(+f.paid);
-    const value = isMeeting ? 0 : isCoupon ? c.value : f.value.trim() === '' ? 0 : Math.round(+f.value);
+    const value = isMeeting ? 0 : isCoupon ? ri.value : f.value.trim() === '' ? 0 : Math.round(+f.value);
     if (!Number.isFinite(paid) || paid < 0 || !Number.isFinite(value) || value < 0)
       return setError('הסכומים חייבים להיות מספרים אי-שליליים (0 = מתנה מלאה)');
-    if (c.kind === 'holidayGift' && !f.holiday) return setError('למתנת-חג נדרש לבחור חג');
+    if (ri.kind === 'holidayGift' && !f.holiday) return setError('למתנת-חג נדרש לבחור חג');
     const res = addShopRedemption(a.id, {
       componentId: c.id,
       date: f.date,
-      holiday: c.kind === 'holidayGift' ? f.holiday : '',
+      holiday: ri.kind === 'holidayGift' ? f.holiday : '',
       paid,
       value,
       note: f.note.trim(),
@@ -67,7 +70,7 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
   }
 
   return (
-    <Modal title={(isMeeting ? '🤝 קיום פגישה — ' : '🎁 מימוש — ') + c.label} onClose={props.onClose}>
+    <Modal title={(isMeeting ? '🤝 קיום פגישה — ' : '🎁 מימוש — ') + ri.name} onClose={props.onClose}>
       <FormError error={error} />
       {!isMeeting && remaining === 0 && (
         <div style={{ background: '#fdf1d4', color: '#9a6414', borderRadius: 8, padding: '7px 11px', fontSize: 12.5, marginBottom: 10 }}>
@@ -81,14 +84,14 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
       )}
       {!isMeeting && (
         <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 10 }}>
-          {'מחיר מלא ' + c.basePrice.toLocaleString('he-IL') + ' ₪ − הנחה ' + pct + '% = ' + price.toLocaleString('he-IL') + ' ₪'}
+          {'מחיר מלא ' + ri.basePrice.toLocaleString('he-IL') + ' ₪ − הנחה ' + pct + '% = ' + price.toLocaleString('he-IL') + ' ₪'}
         </div>
       )}
       <div className="form-grid">
         <Field label={isMeeting ? 'תאריך הפגישה' : 'תאריך המימוש'}>
           <HebDateInput value={f.date} onChange={(v) => setF({ ...f, date: v })} />
         </Field>
-        {c.kind === 'holidayGift' && (
+        {ri.kind === 'holidayGift' && (
           <Field label="החג *">
             <Select
               value={f.holiday}

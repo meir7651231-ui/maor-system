@@ -13,7 +13,7 @@ import { emptyDb, type Db, type ShopAssignment, type ShopComponent, type ShopPro
 import tabSrc from '../AssignmentsTab.tsx?raw';
 
 function comp(over: Partial<ShopComponent>): ShopComponent {
-  return { id: 'shpc1', kind: 'gift', label: 'מתנה', storeId: '', value: 200, basePrice: 50, notes: '', ...over };
+  return { id: 'shpc1', itemId: '', kind: 'gift', label: 'מתנה', storeId: '', value: 200, basePrice: 50, notes: '', ...over };
 }
 function product(over: Partial<ShopProduct>): ShopProduct {
   return { id: 'shp1', name: 'מוצר חתן', desc: '', active: true, components: [comp({ stock: 3 })], notes: '', ...over };

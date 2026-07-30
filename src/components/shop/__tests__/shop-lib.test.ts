@@ -30,7 +30,7 @@ import {
 } from '../../../types/domain';
 
 function comp(over: Partial<ShopComponent>): ShopComponent {
-  return { id: 'shpc1', kind: 'gift', label: 'מתנה', storeId: '', value: 200, basePrice: 50, notes: '', ...over };
+  return { id: 'shpc1', itemId: '', kind: 'gift', label: 'מתנה', storeId: '', value: 200, basePrice: 50, notes: '', ...over };
 }
 function product(over: Partial<ShopProduct>): ShopProduct {
   return { id: 'shp1', name: 'מוצר חתן', desc: '', active: true, components: [], notes: '', ...over };

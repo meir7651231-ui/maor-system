@@ -1,21 +1,20 @@
 /**
- * ➕ חידוש מלאי מהיר (חנות 13, הכרעת בעלים 13) — מיני-מודאל מהקטלוג:
- * מוסיף כמות חיובית למלאי הרכיב דרך upsertShopProduct. רכיב בלי מעקב —
- * הזנת כמות מפעילה מעקב (stock מתחיל מהכמות שהוזנה).
+ * ➕ חידוש מלאי מהיר (חנות 13; עבר לפריט ב-SHOP4 — המלאי המשותף חי על
+ * ShopItem, הכרעה 18) — מוסיף כמות חיובית למלאי הפריט דרך upsertShopItem.
+ * פריט בלי מעקב — הזנת כמות מפעילה מעקב.
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import type { ShopComponent, ShopProduct } from '../../types/domain';
+import type { ShopItem } from '../../types/domain';
 import { Btn, Field, FormError, Modal, TextInput } from '../ui';
-import { componentRemaining } from './lib';
+import { itemRemaining } from './lib';
 
-export function StockModal(props: { product: ShopProduct; component: ShopComponent; onClose: () => void }) {
-  const assignments = useApp((s) => s.db.shopAssignments);
-  const upsertShopProduct = useApp((s) => s.upsertShopProduct);
+export function StockModal(props: { item: ShopItem; onClose: () => void }) {
+  const db = useApp((s) => s.db);
+  const upsertShopItem = useApp((s) => s.upsertShopItem);
   const toast = useApp((s) => s.toast);
-  const p = props.product;
-  const c = props.component;
-  const remaining = componentRemaining(c.id, p.id, assignments, c.stock);
+  const it = props.item;
+  const remaining = itemRemaining(db, it.id);
 
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
@@ -23,21 +22,17 @@ export function StockModal(props: { product: ShopProduct; component: ShopCompone
   function save() {
     const n = Math.round(+amount);
     if (!amount.trim() || !Number.isFinite(n) || n <= 0) return setError('כמה להוסיף — מספר חיובי');
-    const newStock = (c.stock ?? 0) + n;
-    upsertShopProduct({
-      ...p,
-      components: p.components.map((x) => (x.id === c.id ? { ...x, stock: newStock } : x)),
-    });
-    const newRemaining = componentRemaining(c.id, p.id, assignments, newStock) ?? newStock;
-    toast('המלאי עודכן — נותרו ' + newRemaining);
+    const newStock = (it.stock ?? 0) + n;
+    upsertShopItem({ ...it, stock: newStock });
+    toast('המלאי עודכן — נותרו ' + ((remaining ?? 0) + n));
     props.onClose();
   }
 
   return (
-    <Modal title={'➕ חידוש מלאי — ' + c.label} onClose={props.onClose}>
+    <Modal title={'➕ חידוש מלאי — ' + it.name} onClose={props.onClose}>
       <FormError error={error} />
       <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 10 }}>
-        {remaining === null ? 'אין מעקב — הזנת כמות תפעיל מעקב מלאי לרכיב' : 'נותרו ' + remaining + ' היום'}
+        {remaining === null ? 'אין מעקב — הזנת כמות תפעיל מעקב מלאי לפריט' : 'נותרו ' + remaining + ' היום'}
       </div>
       <Field label="כמה להוסיף *">
         <TextInput value={amount} onChange={setAmount} type="number" dir="ltr" placeholder="2" />

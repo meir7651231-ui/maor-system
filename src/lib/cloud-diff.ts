@@ -7,7 +7,7 @@
  */
 import type { Db } from '../types/domain';
 
-/** שישה-עשר אוספי הישויות — שם האוסף ב-Firestore = שם השדה ב-Db. */
+/** שבעה-עשר אוספי הישויות — שם האוסף ב-Firestore = שם השדה ב-Db. */
 export const ENTITY_COLLECTIONS = [
   'families',
   'courses',
@@ -20,6 +20,7 @@ export const ENTITY_COLLECTIONS = [
   'tzBoxes',
   'tzCampaigns',
   'tzEvents',
+  'shopItems',
   'shopProducts',
   'shopStores',
   'shopCriteria',

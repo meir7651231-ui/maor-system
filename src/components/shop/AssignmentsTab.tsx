@@ -14,7 +14,7 @@ import type { ShopAssignment, ShopComponent, ShopRedemption } from '../../types/
 import { Btn, Chip, Empty } from '../ui';
 import { useArmed } from '../useArmed';
 import { isoToday } from '../../lib/date-util';
-import { assignmentRedeemed, beneficiaryLabel, componentRemaining, couponExpiry, upcomingHolidays } from './lib';
+import { assignmentRedeemed, beneficiaryLabel, componentRemaining, couponExpiry, itemOf, itemRemaining, upcomingHolidays } from './lib';
 import { AssignmentForm } from './AssignmentForm';
 import { RedeemModal } from './RedeemModal';
 
@@ -61,7 +61,7 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
       payer: beneficiaryLabel(db, a),
       amount: r.paid,
       date: r.date,
-      forWhat: 'מימוש: ' + comp.label + ' (' + (product?.name ?? '') + ') · אישור תשלום — אינו קבלה לצורכי מס',
+      forWhat: 'מימוש: ' + itemOf(db, comp).name + ' (' + (product?.name ?? '') + ') · אישור תשלום — אינו קבלה לצורכי מס',
       taxReceipt: false,
     });
   }
@@ -93,25 +93,27 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
         <Empty>למוצר אין רכיבים — הוסיפו בעריכת המוצר בקטלוג</Empty>
       ) : (
         product.components.map((c) => {
-          const nextH = c.kind === 'holidayGift' ? nextHolidays[0] : undefined;
-          const done = c.kind === 'holidayGift' ? !!nextH && assignmentRedeemed(a, c.id, nextH) : assignmentRedeemed(a, c.id);
+          const ri = itemOf(db, c);
+          const nextH = ri.kind === 'holidayGift' ? nextHolidays[0] : undefined;
+          const done = ri.kind === 'holidayGift' ? !!nextH && assignmentRedeemed(a, c.id, nextH) : assignmentRedeemed(a, c.id);
           const reds = a.redemptions.filter((r) => r.componentId === c.id);
-          const rem = componentRemaining(c.id, product.id, db.shopAssignments, c.stock);
+          // מלאי משותף (הכרעה 18) — הנותר נספר על הפריט; נתון טרום-מיגרציה נופל לרכיב
+          const rem = c.itemId ? itemRemaining(db, c.itemId) : componentRemaining(c.id, product.id, db.shopAssignments, c.stock);
           return (
             <div key={c.id} className="card" style={{ marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <span style={{ fontWeight: 700 }}>{c.label}</span>
+                <span style={{ fontWeight: 700 }}>{ri.name}</span>
                 {rem !== null && (
                   <span style={{ fontSize: 11, fontWeight: 700, color: rem === 0 ? '#b91c1c' : rem <= 2 ? '#9a6414' : 'var(--green)', border: '1px solid var(--line)', borderRadius: 99, padding: '1px 7px' }}>
                     {'נותרו ' + rem}
                   </span>
                 )}
-                {c.kind === 'holidayGift' && nextH && (
+                {ri.kind === 'holidayGift' && nextH && (
                   <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{'החג הקרוב: ' + nextH.name + ' (' + nextH.iso + ')'}</span>
                 )}
-                {c.kind === 'coupon' && couponExpiry(a, c) && (
-                  <span style={{ fontSize: 12.5, fontWeight: 700, color: couponExpiry(a, c) < isoToday() ? '#b91c1c' : 'var(--ink-faint)' }}>
-                    {couponExpiry(a, c) < isoToday() ? 'פג תוקף ב-' + couponExpiry(a, c) : 'בתוקף עד ' + couponExpiry(a, c)}
+                {ri.kind === 'coupon' && couponExpiry(a, ri) && (
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: couponExpiry(a, ri) < isoToday() ? '#b91c1c' : 'var(--ink-faint)' }}>
+                    {couponExpiry(a, ri) < isoToday() ? 'פג תוקף ב-' + couponExpiry(a, ri) : 'בתוקף עד ' + couponExpiry(a, ri)}
                   </span>
                 )}
                 {!done && <span style={{ fontSize: 12.5 }}>⏳ ממתין</span>}

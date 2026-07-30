@@ -201,6 +201,7 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'entity.shopStore', label: 'חנות שותפה', fallback: 'חנות' },
   { key: 'entity.shopCriterion', label: 'קריטריון זכאות', fallback: 'קריטריון' },
   { key: 'entity.shopAssignment', label: 'שיוך מוצר', fallback: 'שיוך' },
+  { key: 'entity.shopItem', label: 'פריט קטלוג', fallback: 'פריט' },
 
   // ——— ישויות ———
   { key: 'entity.family', label: 'משפחה (יחיד)', fallback: 'משפחה' },

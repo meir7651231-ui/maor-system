@@ -3,7 +3,7 @@
  * כל הישויות נשמרות יחד במסמך DB אחד (ראו store/persist.ts) עם גרסת סכמה.
  */
 
-/** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp/tzc/tzb/tzp/tze/tzl/shp/shs/shc/sha/shr/she). */
+/** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp/tzc/tzb/tzp/tze/tzl/shp/shs/shc/sha/shr/she/shi). */
 export type Id = string;
 
 /** תאריך בפורמט ISO ‏(YYYY-MM-DD). */
@@ -470,18 +470,41 @@ export interface TzEvent {
 /** סוג רכיב במוצר: פגישת ליווי · קופון לחנות שותפה · מתנה · מתנת-חג (מחזורית). */
 export type ShopComponentKind = 'meeting' | 'coupon' | 'gift' | 'holidayGift';
 
-/** רכיב בתוך מוצר. value=שווי בש"ח; basePrice=המחיר הסמלי לפני הנחות קריטריונים. */
-export interface ShopComponent {
+/** פריט קטלוג עצמאי — בעל המלאי/התוקף/החנות. משותף בין חבילות (הכרעה 18). */
+export interface ShopItem {
   id: Id;
+  name: string;
   kind: ShopComponentKind;
-  label: string;
-  /** חנות שותפה (kind==='coupon' — רשות בשאר). */
+  /** חנות שותפה (kind==='coupon'). */
   storeId: Id | '';
   value: number;
   basePrice: number;
-  /** כמות במלאי — undefined = ללא מעקב; הנותר = stock פחות המימושים. */
+  /** מלאי משותף — undefined = ללא מעקב. */
   stock?: number;
-  /** ימי תוקף לקופון (kind==='coupon') — undefined/0 = ללא תוקף; נספר מ-since של השיוך. */
+  /** ימי תוקף (kind==='coupon'). */
+  validDays?: number;
+  active: boolean;
+  notes: string;
+}
+
+/**
+ * רכיב בתוך חבילה — מצביע לפריט (SHOP4, הכרעה 18): מקורות האמת
+ * (שם/סוג/מלאי/תוקף/חנות) בפריט; value/basePrice כאן = דריסה רשות
+ * פר-חבילה. label/storeId/stock/validDays נשארים לתאימות-מיגרציה בלבד.
+ */
+export interface ShopComponent {
+  id: Id;
+  /** הפריט שהרכיב מצביע עליו — ריק רק בנתונים טרום-מיגרציה. */
+  itemId: Id;
+  kind: ShopComponentKind;
+  label: string;
+  /** תאימות-מיגרציה — מקור האמת בפריט. */
+  storeId: Id | '';
+  /** דריסת שווי פר-חבילה (רשות; ברירת המחדל מהפריט). */
+  value?: number;
+  /** דריסת מחיר סמלי פר-חבילה (רשות; ברירת המחדל מהפריט). */
+  basePrice?: number;
+  stock?: number;
   validDays?: number;
   notes: string;
 }
@@ -560,7 +583,7 @@ export interface ShopEvent {
   done: boolean;
 }
 
-/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (16 מערכי ישויות). */
+/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (17 מערכי ישויות). */
 export interface Db {
   /** גרסת סכמה — העלאה מחייבת מיגרציה ב-store/persist.ts. */
   v: number;
@@ -586,6 +609,7 @@ export interface Db {
   tzCampaigns: TzCampaign[];
   tzEvents: TzEvent[];
   /** חנות מוצרי-שירות (מודול shop — מבודד). */
+  shopItems: ShopItem[];
   shopProducts: ShopProduct[];
   shopStores: ShopStore[];
   shopCriteria: ShopCriterion[];
@@ -639,6 +663,7 @@ export function emptyDb(): Db {
     tzBoxes: [],
     tzCampaigns: [],
     tzEvents: [],
+    shopItems: [],
     shopProducts: [],
     shopStores: [],
     shopCriteria: [],

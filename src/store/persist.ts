@@ -143,6 +143,7 @@ export function migrate(raw: unknown): Db | null {
     tzCampaigns: Array.isArray(db.tzCampaigns) ? db.tzCampaigns : [],
     tzEvents: Array.isArray(db.tzEvents) ? db.tzEvents : [],
     // חנות מוצרי-שירות (מודול shop) — תוספת אדיטיבית, DB_VERSION נשאר 5
+    shopItems: Array.isArray(db.shopItems) ? db.shopItems : [],
     shopProducts: Array.isArray(db.shopProducts) ? db.shopProducts : [],
     shopStores: Array.isArray(db.shopStores) ? db.shopStores : [],
     shopCriteria: Array.isArray(db.shopCriteria) ? db.shopCriteria : [],
@@ -258,6 +259,38 @@ export function migrate(raw: unknown): Db | null {
       return out;
     }),
   }));
+  // SHOP4 (הכרעה 18): רכיבים→פריטים — כל רכיב בלי itemId מוליד ShopItem
+  // מנתוניו; המלאי/התוקף עוברים לפריט (מקור-אמת יחיד) והרכיב הופך מצביע
+  // בלי דריסות. דטרמיניסטי וחד-פעמי: רכיב עם itemId לא נוגעים —
+  // כפל-ריצה לא יוצר פריטים כפולים. המימושים ממשיכים להיספר (componentId
+  // לא משתנה), כך שהמלאי הנותר נשמר בדיוק.
+  merged.shopProducts = merged.shopProducts.map((p) => {
+    if (!p.components.some((c) => !c.itemId)) return p;
+    return {
+      ...p,
+      components: p.components.map((c) => {
+        if (c.itemId) return c;
+        const itemId = 'shi' + merged.seq++;
+        merged.shopItems = [
+          ...merged.shopItems,
+          {
+            id: itemId,
+            name: c.label || 'פריט',
+            kind: c.kind,
+            storeId: c.storeId || '',
+            value: typeof c.value === 'number' && Number.isFinite(c.value) ? c.value : 0,
+            basePrice: typeof c.basePrice === 'number' && Number.isFinite(c.basePrice) ? c.basePrice : 0,
+            ...(c.stock !== undefined ? { stock: c.stock } : {}),
+            ...(c.validDays !== undefined ? { validDays: c.validDays } : {}),
+            active: true,
+            notes: '',
+          },
+        ];
+        const { stock: _mvStock, validDays: _mvDays, value: _mvVal, basePrice: _mvBase, ...rest } = c;
+        return { ...rest, itemId };
+      }),
+    };
+  });
   const SHOP_STATUSES = ['active', 'done', 'stopped'];
   // ייחודיות אישורי S- — אותו דפוס כמו seenR/seenD (מרוץ בין-מכשירי)
   const seenS = new Set<string>();

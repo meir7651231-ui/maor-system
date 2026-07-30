@@ -22,6 +22,73 @@ export function liveRedemptions(a: ShopAssignment): ShopRedemption[] {
   return a.redemptions.filter((r) => !r.voidedAt);
 }
 
+/* ---------- פריטי קטלוג (SHOP4, הכרעה 18) ---------- */
+
+/** רכיב-בחבילה מפוענח — הפריט + דריסות הרכיב (value/basePrice בלבד). */
+export interface ResolvedItem {
+  itemId: Id;
+  name: string;
+  kind: ShopComponent['kind'];
+  storeId: Id | '';
+  value: number;
+  basePrice: number;
+  stock?: number;
+  validDays?: number;
+  holidays?: string[];
+  active: boolean;
+}
+
+/**
+ * פענוח רכיב לפריט שלו + דריסות. רכיב טרום-מיגרציה (itemId ריק/מצביע
+ * שבור) נופל לשדות-התאימות של הרכיב עצמו — אין קריסה על נתונים ישנים.
+ */
+export function itemOf(db: Db, comp: ShopComponent): ResolvedItem {
+  const item = db.shopItems.find((i) => i.id === comp.itemId);
+  if (!item) {
+    return {
+      itemId: comp.itemId,
+      name: comp.label,
+      kind: comp.kind,
+      storeId: comp.storeId,
+      value: comp.value ?? 0,
+      basePrice: comp.basePrice ?? 0,
+      stock: comp.stock,
+      validDays: comp.validDays,
+      active: true,
+    };
+  }
+  return {
+    itemId: item.id,
+    name: item.name,
+    kind: item.kind,
+    storeId: item.storeId,
+    value: comp.value ?? item.value,
+    basePrice: comp.basePrice ?? item.basePrice,
+    stock: item.stock,
+    validDays: item.validDays,
+    active: item.active,
+  };
+}
+
+/**
+ * הנותר במלאי של פריט — לב הכרעה 18: מלאי הפריט פחות **כל** המימושים
+ * החיים של רכיבים המצביעים עליו בכל החבילות. null = ללא מעקב.
+ */
+export function itemRemaining(db: Db, itemId: Id): number | null {
+  const item = db.shopItems.find((i) => i.id === itemId);
+  if (!item || item.stock === undefined) return null;
+  let used = 0;
+  for (const a of db.shopAssignments) {
+    const p = db.shopProducts.find((x) => x.id === a.productId);
+    if (!p) continue;
+    for (const r of liveRedemptions(a)) {
+      const c = p.components.find((x) => x.id === r.componentId);
+      if (c?.itemId === itemId) used++;
+    }
+  }
+  return Math.max(0, item.stock - used);
+}
+
 /* ---------- מחיר אפקטיבי ---------- */
 
 /**
@@ -117,7 +184,7 @@ export function componentRemaining(
  * תאריך פקיעת קופון — '' כשאין validDays (או 0) או שאין לשיוך since.
  * הפקיעה = since + validDays; יום הגבול עצמו עדיין בתוקף (פג רק למחרת).
  */
-export function couponExpiry(a: ShopAssignment, comp: ShopComponent): IsoDate | '' {
+export function couponExpiry(a: ShopAssignment, comp: { validDays?: number }): IsoDate | '' {
   if (!comp.validDays || !a.since) return '';
   const d = new Date(a.since + 'T12:00:00');
   d.setDate(d.getDate() + comp.validDays);
@@ -150,9 +217,24 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
   const coupons: ShopCareItem[] = [];
   const expired: ShopCareItem[] = [];
   const stock: ShopCareItem[] = [];
+  // מלאי משותף (הכרעה 18): התרעת אזל פר-פריט — הנותר נספר על-פני כל החבילות
+  for (const item of db.shopItems) {
+    if (!item.active) continue;
+    if (itemRemaining(db, item.id) === 0) {
+      stock.push({
+        kind: 'stockOut',
+        assignmentId: '',
+        componentId: item.id,
+        label: item.name + ' — המלאי אזל',
+        hint: 'לחדש מלאי או לעדכן את הפריט',
+      });
+    }
+  }
+  // תאימות לנתונים טרום-מיגרציה: רכיב בלי itemId עם מלאי משלו
   for (const p of db.shopProducts) {
     if (!p.active) continue;
     for (const comp of p.components) {
+      if (comp.itemId) continue;
       const rem = componentRemaining(comp.id, p.id, db.shopAssignments, comp.stock);
       if (rem === 0) {
         stock.push({
@@ -171,34 +253,35 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
     if (!product) continue;
     const who = beneficiaryLabel(db, a);
     for (const comp of product.components) {
-      if (comp.kind === 'holidayGift') {
+      const ri = itemOf(db, comp);
+      if (ri.kind === 'holidayGift') {
         for (const h of holidays) {
           if (!assignmentRedeemed(a, comp.id, h)) {
             due.push({
               kind: 'holidayDue',
               assignmentId: a.id,
               componentId: comp.id,
-              label: who + ' — ' + comp.label,
+              label: who + ' — ' + ri.name,
               hint: h.name + ' ב-' + h.iso + ' — טרם נמסרה',
             });
           }
         }
-      } else if (comp.kind === 'meeting' && !assignmentRedeemed(a, comp.id)) {
+      } else if (ri.kind === 'meeting' && !assignmentRedeemed(a, comp.id)) {
         meetings.push({
           kind: 'meetingPending',
           assignmentId: a.id,
           componentId: comp.id,
-          label: who + ' — ' + comp.label,
+          label: who + ' — ' + ri.name,
           hint: 'פגישת ליווי טרם התקיימה',
         });
-      } else if (comp.kind === 'coupon' && !assignmentRedeemed(a, comp.id)) {
-        const expiry = couponExpiry(a, comp);
+      } else if (ri.kind === 'coupon' && !assignmentRedeemed(a, comp.id)) {
+        const expiry = couponExpiry(a, ri);
         if (expiry && expiry < todayIso) {
           expired.push({
             kind: 'couponExpired',
             assignmentId: a.id,
             componentId: comp.id,
-            label: who + ' — ' + comp.label,
+            label: who + ' — ' + ri.name,
             hint: 'הקופון פג בתוקף ב-' + expiry + ' וטרם מומש',
           });
         } else {
@@ -206,7 +289,7 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
             kind: 'couponPending',
             assignmentId: a.id,
             componentId: comp.id,
-            label: who + ' — ' + comp.label,
+            label: who + ' — ' + ri.name,
             hint: expiry ? 'קופון טרם מומש · בתוקף עד ' + expiry : 'קופון טרם מומש',
           });
         }

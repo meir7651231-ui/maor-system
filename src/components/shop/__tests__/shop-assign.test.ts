@@ -25,7 +25,8 @@ describe('🛍 ratchet — חנות 5: מוטבים ומימוש', () => {
   });
 
   it('RedeemModal: המחיר מאוכלס מ-effectivePrice ומוצג פירוק "מחיר מלא − הנחה"', () => {
-    expect(redeemSrc).toContain('effectivePrice(c.basePrice, a.criterionIds, criteria)');
+    // SHOP4 (הכרעה 18): המחיר נשאב מהפריט + דריסות הרכיב (ri = itemOf)
+    expect(redeemSrc).toContain('effectivePrice(ri.basePrice, a.criterionIds, criteria)');
     expect(redeemSrc).toContain('מחיר מלא ');
     expect(redeemSrc).toContain('נרשם מימוש — שולם ');
   });
