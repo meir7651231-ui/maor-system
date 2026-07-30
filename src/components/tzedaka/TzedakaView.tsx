@@ -14,6 +14,7 @@ import { featureOn, termOf } from '../../lib/config';
 import { Chip, PageHead } from '../ui';
 import { CoordinatorsTab } from './CoordinatorsTab';
 import { HomeTab } from './HomeTab';
+import { CalendarTab } from './CalendarTab';
 
 type TzTab = 'care' | 'coordinators' | 'calendar' | 'showcase';
 
@@ -53,7 +54,7 @@ export function TzedakaView() {
         />
       )}
       {active === 'coordinators' && <CoordinatorsTab selId={selCoordId} onSelect={setSelCoordId} />}
-      {active === 'calendar' && <div className="card">📅 הלוח הייעודי — נבנה באשכול 6</div>}
+      {active === 'calendar' && <CalendarTab />}
       {active === 'showcase' && <div className="card">🏆 ראווה — נבנה באשכול 7</div>}
     </div>
   );
