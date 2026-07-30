@@ -107,8 +107,9 @@ export function CommandPalette() {
   const cashboxOn = featureOn(config, 'core.cashbox');
   const bodymapOn = featureOn(config, 'core.bodymap');
   const dedupOn = featureOn(config, 'settings.dedup') && familiesOn;
-  // המדריך המהיר (P2 פער 29)
+  // המדריך המהיר (P2 פער 29) + מצב הדגמה (P2 פער 30)
   const guideOn = featureOn(config, 'shell.guide');
+  const demoOn = featureOn(config, 'shell.demo');
   // פעולות הפלטה מהקובץ החי + קיבוץ תוצאות לפי סוג (P1.6)
   const paletteActionsOn = featureOn(config, 'shell.palette.actions');
   const openEventForm = useApp((s) => s.openEventForm);
@@ -285,6 +286,20 @@ export function CommandPalette() {
         },
       });
     }
+    // ▶ מצב הדגמה — סיור מודרך (P2 פער 30, feature shell.demo, הכרעה 4)
+    if (demoOn) {
+      actions.push({
+        key: 'act-tour',
+        icon: '▶',
+        title: 'מצב הדגמה',
+        sub: 'סיור מודרך על המסכים — בקצב שלך, Esc עוצר',
+        terms: toTerms(['מצב הדגמה', 'הדמיה', 'סיור', 'הדגמה', 'דמו', 'demo', 'tour']),
+        run: () => {
+          window.location.hash = '#tour';
+          setPalette(false);
+        },
+      });
+    }
     // ── פעולות הפלטה מהקובץ החי (P1.6, feature shell.palette.actions,
     //    legacy:2333-2366) — העתקת טלפונים, + אירוע/תזכורת/חוג/תומכת, ניקוב-מהיום ──
     if (paletteActionsOn) {
@@ -412,6 +427,7 @@ export function CommandPalette() {
     bodymapOn,
     dedupOn,
     guideOn,
+    demoOn,
     hasLock,
     lockNow,
     paletteActionsOn,

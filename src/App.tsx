@@ -21,6 +21,7 @@ import { CashRegister } from './components/timer/CashRegister';
 import { BodyMap } from './components/timer/BodyMap';
 import { DedupModal } from './components/families/DedupModal';
 import { GuideModal } from './components/GuideModal';
+import { TourOverlay } from './components/TourOverlay';
 import { HomeView } from './components/home/HomeView';
 import { FamiliesView } from './components/families/FamiliesView';
 import { CoursesView } from './components/courses/CoursesView';
@@ -124,6 +125,8 @@ export default function App() {
   const [dedupOpen, setDedupOpen] = useState(() => window.location.hash === '#dedup');
   // המדריך המהיר — נפתח עם #guide (P2 פער 29, feature: shell.guide)
   const [guideOpen, setGuideOpen] = useState(() => window.location.hash === '#guide');
+  // מצב הדגמה — סיור מודרך, נפתח עם #tour (P2 פער 30, feature: shell.demo)
+  const [tourOpen, setTourOpen] = useState(() => window.location.hash === '#tour');
   useEffect(() => {
     const onHash = () => {
       setBuilderOpen(window.location.hash === '#builder');
@@ -133,6 +136,7 @@ export default function App() {
       setBodymapOpen(window.location.hash === '#bodymap');
       setDedupOpen(window.location.hash === '#dedup');
       setGuideOpen(window.location.hash === '#guide');
+      setTourOpen(window.location.hash === '#tour');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -590,6 +594,15 @@ export default function App() {
           onClose={() => {
             window.location.hash = '';
             setGuideOpen(false);
+          }}
+        />
+      )}
+
+      {tourOpen && featureOn(config, 'shell.demo') && (
+        <TourOverlay
+          onClose={() => {
+            window.location.hash = '';
+            setTourOpen(false);
           }}
         />
       )}
