@@ -6,6 +6,7 @@ import { useRef, useState } from 'react';
 import type { Teacher } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
+import { isoToday } from '../../lib/date-util';
 import { Btn, Empty, Field, FormError, Modal, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { Section, SectionNote } from './lib';
@@ -129,6 +130,36 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
   const upsertTeacher = useApp((s) => s.upsertTeacher);
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
+  // כרטיס מורה מלא (P3 פריט 10): חוגי המורה + תזכורת קשר
+  const courses = useApp((s) => s.db.courses);
+  const enrollments = useApp((s) => s.db.enrollments);
+  const upsertEvent = useApp((s) => s.upsertEvent);
+  const selectCourse = useApp((s) => s.selectCourse);
+  const go = useApp((s) => s.go);
+  const myCourses = props.teacher ? courses.filter((c) => c.teacherId === props.teacher!.id) : [];
+  const myStudents = myCourses.reduce(
+    (n, c) => n + enrollments.filter((e) => e.courseId === c.id && e.status !== 'ended').length,
+    0,
+  );
+
+  function callReminder() {
+    if (!props.teacher) return;
+    upsertEvent({
+      id: nextId('ev'),
+      title: 'תזכורת קשר — מורה: ' + props.teacher.name,
+      date: isoToday(),
+      time: '',
+      type: 'call',
+      customType: '',
+      notes: props.teacher.phone || '',
+      price: 0,
+      roomId: '',
+      famId: '',
+      priority: 'orange',
+      done: false,
+    });
+    toast('תזכורת קשר ל' + props.teacher.name + ' נוספה ללוח להיום');
+  }
 
   const [f, setF] = useState<TeacherFormState>(() => initState(props.teacher));
   const [error, setError] = useState('');
@@ -205,6 +236,40 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
       <Field label="הערות">
         <textarea rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} />
       </Field>
+      {/* P3 פריט 10 — חוגי המורה עם קפיצה לחוג + סטטיסטיקת תלמידים + 📞 תזכורת קשר */}
+      {props.teacher && (
+        <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 12 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+            {'החוגים של המורה (' + myCourses.length + ') · ' + myStudents + ' תלמידים'}
+          </div>
+          {myCourses.length === 0 && (
+            <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>אין חוגים משויכים</div>
+          )}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {myCourses.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className="chip"
+                style={{ cursor: 'pointer' }}
+                title="מעבר לכרטיס החוג"
+                onClick={() => {
+                  selectCourse(c.id);
+                  go('courses');
+                  props.onClose();
+                }}
+              >
+                {c.name + ' ←'}
+              </button>
+            ))}
+          </div>
+          <div style={{ marginTop: 8 }}>
+            <Btn sm onClick={callReminder} title="יצירת אירוע שיחה בלוח להיום">
+              📞 תזכורת קשר
+            </Btn>
+          </div>
+        </div>
+      )}
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>
           שמירת כרטיס מורה
