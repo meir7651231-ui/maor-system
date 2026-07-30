@@ -225,7 +225,7 @@ for (const profile of PROFILES) {
   if (!profile.config) {
     await page.locator('nav >> text=חנות').click();
     await page.waitForTimeout(400);
-    // מוצר "מוצר חתן" עם רכיב מתנה — שווי 200, מחיר סמלי 50
+    // מוצר "מוצר חתן" עם רכיב מתנה — שווי 200, מחיר סמלי 50, מלאי 3 (SHOP2)
     await page.locator('button', { hasText: 'הוספת מוצר' }).first().click();
     await page.waitForTimeout(300);
     await page.locator('.modal input[placeholder="לדוגמה: מוצר חתן"]').fill('מוצר חתן');
@@ -234,6 +234,7 @@ for (const profile of PROFILES) {
     await page.locator('.modal input[placeholder="לדוגמה: סט תפילין"]').fill('מתנת חתן');
     await page.locator('.modal input[type="number"]').nth(0).fill('200');
     await page.locator('.modal input[type="number"]').nth(1).fill('50');
+    await page.locator('.modal input[type="number"]').nth(2).fill('3');
     await page.locator('.modal button', { hasText: 'שמירה' }).click();
     await page.waitForTimeout(500);
     t('הוספת מוצר חתן', (await page.locator('main').textContent()).includes('מוצר חתן'));
@@ -254,6 +255,10 @@ for (const profile of PROFILES) {
     await page.waitForTimeout(300);
     await page.locator('.modal button', { hasText: 'רישום המימוש' }).click();
     await page.waitForTimeout(500);
+    // SHOP2: המימוש (paid 50) הנפיק אישור S-1, והמלאי ירד 3→2
+    const cardTxt = (await page.locator('main').textContent()) ?? '';
+    t('אישור S-1 מופיע בשורת המימוש', cardTxt.includes('S-1'));
+    t('מלאי 3 → "נותרו 2" אחרי המימוש', cardTxt.includes('נותרו 2'));
     await page.locator('main button', { hasText: '🏠 טיפול' }).click();
     await page.waitForTimeout(400);
     const shopMain = (await page.locator('main').textContent()) ?? '';
