@@ -257,6 +257,13 @@ for (const profile of PROFILES) {
     await page.waitForTimeout(400);
     await page.locator('main button', { hasText: '🎁 מימוש' }).first().click();
     await page.waitForTimeout(300);
+    // SHOP5 (הכרעה 20): '💵 גבייה בקופה' פותח קופה ממולאת — והמודאל שורד מאחוריה
+    await page.locator('.modal button', { hasText: '💵 גבייה בקופה' }).click();
+    await page.waitForTimeout(400);
+    t('הקופה הרושמת נפתחה מהמימוש', ((await page.locator('body').textContent()) ?? '').includes('סיום והפקת חשבונית'));
+    await page.locator('.modal button', { hasText: 'ביטול' }).last().click(); // סגירת הקופה
+    await page.waitForTimeout(400);
+    t('מודאל המימוש שרד את הקופה', ((await page.locator('.modal').last().textContent().catch(() => '')) ?? '').includes('רישום המימוש'));
     await page.locator('.modal button', { hasText: 'רישום המימוש' }).click();
     await page.waitForTimeout(500);
     // SHOP2: המימוש (paid 50) הנפיק אישור S-1, והמלאי ירד 3→2
@@ -330,6 +337,17 @@ for (const profile of PROFILES) {
     t('פגישה לחדר תפוס נחסמת', clashModal.includes('התנגשות'));
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
+    // SHOP5 (הכרעה 19): הפגישה (היום 09:00, חדר-מטריצה) מופיעה ביומן החדרים
+    await page.locator('nav >> text=יומן חדרים').click();
+    await page.waitForTimeout(500);
+    t('הפגישה מופיעה ביומן החדרים', ((await page.locator('main').textContent()) ?? '').includes('פגישת ליווי'));
+    // SHOP5 (הכרעה 22): סקשן "פגישות קרובות" בטיפול — הפגישה של היום מופיעה
+    await page.locator('nav >> text=חנות').click();
+    await page.waitForTimeout(300);
+    await page.locator('main button', { hasText: '🏠 טיפול' }).click();
+    await page.waitForTimeout(400);
+    const soonMain = (await page.locator('main').textContent()) ?? '';
+    t('סקשן פגישות קרובות מוצג עם הפגישה', soonMain.includes('פגישות קרובות') && soonMain.includes('חדר-מטריצה'));
   }
 
   // ── זרימה 6: התמדה אחרי ריענון ──
