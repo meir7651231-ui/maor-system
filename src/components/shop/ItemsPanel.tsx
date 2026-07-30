@@ -9,7 +9,7 @@ import { featureOn, termOf } from '../../lib/config';
 import type { ShopComponentKind, ShopItem } from '../../types/domain';
 import { Btn, Chip, Field, FormError, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
-import { itemRemaining } from './lib';
+import { holidayNames, itemRemaining } from './lib';
 import { StockModal } from './StockModal';
 
 const KIND_OPTIONS: { value: ShopComponentKind; label: string }[] = [
@@ -19,7 +19,7 @@ const KIND_OPTIONS: { value: ShopComponentKind; label: string }[] = [
   { value: 'holidayGift', label: '🕎 מתנת-חג (מחזורית)' },
 ];
 
-const EMPTY = { name: '', kind: 'gift' as ShopComponentKind, storeId: '', value: '', basePrice: '', stock: '', validDays: '', active: true, notes: '' };
+const EMPTY = { name: '', kind: 'gift' as ShopComponentKind, storeId: '', value: '', basePrice: '', stock: '', validDays: '', holidays: [] as string[], active: true, notes: '' };
 
 export function ItemsPanel() {
   const db = useApp((s) => s.db);
@@ -47,6 +47,7 @@ export function ItemsPanel() {
       basePrice: i.basePrice ? String(i.basePrice) : '',
       stock: i.stock === undefined ? '' : String(i.stock),
       validDays: i.validDays === undefined ? '' : String(i.validDays),
+      holidays: i.holidays ?? [],
       active: i.active,
       notes: i.notes,
     });
@@ -71,6 +72,8 @@ export function ItemsPanel() {
       basePrice: Math.round(basePrice),
       ...(f.stock.trim() === '' ? {} : { stock: Math.max(0, Math.round(+f.stock)) }),
       ...(f.kind === 'coupon' && f.validDays.trim() !== '' ? { validDays: Math.max(0, Math.round(+f.validDays)) } : {}),
+      // חגים נבחרים (הכרעה 17) — ריק = כל החגים (לא נשמר)
+      ...(f.kind === 'holidayGift' && f.holidays.length > 0 ? { holidays: f.holidays } : {}),
       active: f.active,
       notes: f.notes.trim(),
     });
@@ -142,6 +145,28 @@ export function ItemsPanel() {
               <Field label="ימי תוקף (ריק = ללא תוקף)">
                 <TextInput value={f.validDays} onChange={(v) => setF({ ...f, validDays: v })} type="number" dir="ltr" placeholder="90" />
               </Field>
+            )}
+            {f.kind === 'holidayGift' && (
+              <div style={{ gridColumn: '1 / -1' }}>
+                <Field label="חגים נבחרים (ריק = כל החגים)">
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    {holidayNames().map((h) => (
+                      <Chip
+                        key={h}
+                        on={f.holidays.includes(h)}
+                        onClick={() =>
+                          setF({
+                            ...f,
+                            holidays: f.holidays.includes(h) ? f.holidays.filter((x) => x !== h) : [...f.holidays, h],
+                          })
+                        }
+                      >
+                        {h}
+                      </Chip>
+                    ))}
+                  </div>
+                </Field>
+              </div>
             )}
             {f.kind === 'coupon' && storesOn && (
               <Field label={termOf(config, 'entity.shopStore', 'חנות') + ' שותפה'}>

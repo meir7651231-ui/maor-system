@@ -11,7 +11,7 @@ import type { ShopEvent } from '../../types/domain';
 import { Btn } from '../ui';
 import { DAY_NAMES, PRIORITY_COLOR, SESSION_META } from '../calendar/calLib';
 import { buildMonthGrid } from '../../lib/monthGrid';
-import { assignmentRedeemed } from './lib';
+import { assignmentRedeemed, holidayAllowed, itemOf } from './lib';
 import { ShopEventModal } from './ShopEventModal';
 
 /** צבעי הסוגים — reuse מקבועי הלוח הראשי. */
@@ -47,8 +47,11 @@ export function CalendarTab() {
     for (const a of db.shopAssignments) {
       if (a.status !== 'active') continue;
       const p = db.shopProducts.find((x) => x.id === a.productId);
-      for (const c of p?.components ?? [])
-        if (c.kind === 'holidayGift' && !assignmentRedeemed(a, c.id, { iso, name: holiday })) n++;
+      for (const c of p?.components ?? []) {
+        const ri = itemOf(db, c);
+        // חגים נבחרים (הכרעה 17) — הצ'יפ סופר רק מתנות לחגים שסומנו על הפריט
+        if (ri.kind === 'holidayGift' && holidayAllowed(ri, holiday) && !assignmentRedeemed(a, c.id, { iso, name: holiday })) n++;
+      }
     }
     return n;
   }

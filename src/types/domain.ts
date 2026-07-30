@@ -483,6 +483,8 @@ export interface ShopItem {
   stock?: number;
   /** ימי תוקף (kind==='coupon'). */
   validDays?: number;
+  /** חגים נבחרים למתנת-חג (kind==='holidayGift') — ריק/חסר = כל החגים (תאימות אחורה). */
+  holidays?: string[];
   active: boolean;
   notes: string;
 }

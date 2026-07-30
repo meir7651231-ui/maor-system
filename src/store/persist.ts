@@ -259,6 +259,14 @@ export function migrate(raw: unknown): Db | null {
       return out;
     }),
   }));
+  // פריטי קטלוג — ריפוי: holidays לא-מערך → מוסר (= כל החגים)
+  merged.shopItems = merged.shopItems.map((i) => {
+    if (i.holidays !== undefined && !Array.isArray(i.holidays)) {
+      const { holidays: _dropHol, ...rest } = i;
+      return rest;
+    }
+    return i;
+  });
   // SHOP4 (הכרעה 18): רכיבים→פריטים — כל רכיב בלי itemId מוליד ShopItem
   // מנתוניו; המלאי/התוקף עוברים לפריט (מקור-אמת יחיד) והרכיב הופך מצביע
   // בלי דריסות. דטרמיניסטי וחד-פעמי: רכיב עם itemId לא נוגעים —

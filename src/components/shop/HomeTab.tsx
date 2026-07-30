@@ -14,6 +14,7 @@ import {
   beneficiaryLabel,
   collectedPaid,
   givenValue,
+  holidayAllowed,
   itemOf,
   needsCare,
   subsidyTotal,
@@ -45,8 +46,11 @@ export function HomeTab() {
     let n = 0;
     for (const a of activeAssignments) {
       const p = db.shopProducts.find((x) => x.id === a.productId);
-      for (const c of p?.components ?? [])
-        if (itemOf(db, c).kind === 'holidayGift' && !assignmentRedeemed(a, c.id, h)) n++;
+      for (const c of p?.components ?? []) {
+        const ri = itemOf(db, c);
+        // חגים נבחרים (הכרעה 17) — נספרות רק מתנות לחגים שסומנו על הפריט
+        if (ri.kind === 'holidayGift' && holidayAllowed(ri, h.name) && !assignmentRedeemed(a, c.id, h)) n++;
+      }
     }
     return n;
   }

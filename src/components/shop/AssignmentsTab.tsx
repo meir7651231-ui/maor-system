@@ -111,6 +111,9 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
                 {ri.kind === 'holidayGift' && nextH && (
                   <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{'החג הקרוב: ' + nextH.name + ' (' + nextH.iso + ')'}</span>
                 )}
+                {ri.kind === 'holidayGift' && !!ri.holidays?.length && (
+                  <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{'לחגים: ' + ri.holidays.join(' · ')}</span>
+                )}
                 {ri.kind === 'coupon' && couponExpiry(a, ri) && (
                   <span style={{ fontSize: 12.5, fontWeight: 700, color: couponExpiry(a, ri) < isoToday() ? '#b91c1c' : 'var(--ink-faint)' }}>
                     {couponExpiry(a, ri) < isoToday() ? 'פג תוקף ב-' + couponExpiry(a, ri) : 'בתוקף עד ' + couponExpiry(a, ri)}

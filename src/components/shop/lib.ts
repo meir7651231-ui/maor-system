@@ -66,8 +66,14 @@ export function itemOf(db: Db, comp: ShopComponent): ResolvedItem {
     basePrice: comp.basePrice ?? item.basePrice,
     stock: item.stock,
     validDays: item.validDays,
+    holidays: item.holidays,
     active: item.active,
   };
+}
+
+/** האם החג רלוונטי לפריט מתנת-חג — ריק/חסר = כל החגים (הכרעה 17). */
+export function holidayAllowed(ri: { holidays?: string[] }, holidayName: string): boolean {
+  return !ri.holidays?.length || ri.holidays.includes(holidayName);
 }
 
 /**
@@ -130,6 +136,30 @@ export function upcomingHolidays(fromIso: IsoDate, days = 45): { iso: IsoDate; n
       out.push({ iso: isoOf(d), name });
     }
   }
+  return out;
+}
+
+let holidayNamesCache: string[] | null = null;
+
+/**
+ * כל שמות החגים הייחודיים — סריקת שנה עברית מלאה (400 יום מעוגן קבוע,
+ * דטרמיניסטי) עם holidayOf; ממורש ברמת המודול (הרשימה קבועה). לבורר
+ * החגים של מתנת-חג (הכרעה 17).
+ */
+export function holidayNames(): string[] {
+  if (holidayNamesCache) return holidayNamesCache;
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const start = new Date('2026-01-01T12:00:00');
+  for (let i = 0; i < 400; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    const name = holidayOf(d);
+    if (name && !seen.has(name)) {
+      seen.add(name);
+      out.push(name);
+    }
+  }
+  holidayNamesCache = out;
   return out;
 }
 
@@ -256,6 +286,8 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
       const ri = itemOf(db, comp);
       if (ri.kind === 'holidayGift') {
         for (const h of holidays) {
+          // חגים נבחרים (הכרעה 17): "מה מגיע" רק לחגים שסומנו על הפריט
+          if (!holidayAllowed(ri, h.name)) continue;
           if (!assignmentRedeemed(a, comp.id, h)) {
             due.push({
               kind: 'holidayDue',
