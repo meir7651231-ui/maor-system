@@ -1,0 +1,21 @@
+rules_version = '2';
+// כללי האבטחה של פרויקט הענן maor-system — מקור האמת בריפו (באג ידוע 4, חצי א').
+// הפריסה ידנית: קונסולת Firebase ← Firestore ← Rules ← הדבקה ← Publish.
+// הארכיטקטורה הנוכחית: פרויקט Firebase אחד = ארגון אחד (אוספים שטוחים בשורש —
+// ראו src/lib/cloud.ts). מנגנון הרשמה-ואישור רב-משתמשים = גל CLOUD2 בתוכנית-האב.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // רשימת המורשים — רק המיילים האלה ניגשים לנתונים (באותיות קטנות).
+    // הוספת משתמש = שורה כאן + Publish; ההשוואה case-insensitive.
+    function allowed() {
+      return request.auth != null
+        && request.auth.token.email.lower() in [
+          'meir7651231@gmail.com'
+          // + מייל המשרד של מאור החסד — יתווסף עם יצירתו
+        ];
+    }
+    match /{document=**} {
+      allow read, write: if allowed();
+    }
+  }
+}
