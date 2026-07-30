@@ -343,6 +343,33 @@ export default function App() {
             <span className="nav-search-label">חיפוש בכל המערכת</span>
             <kbd aria-hidden>Ctrl K</kbd>
           </button>
+          {/* המדריך המהיר + מצב הדגמה — כפתורי כותרת כמו בקובץ החי (P2 פער 29-30) */}
+          {featureOn(config, 'shell.guide') && (
+            <button
+              type="button"
+              className="nav-gear"
+              onClick={() => {
+                window.location.hash = '#guide';
+              }}
+              title="המדריך המהיר"
+              aria-label="המדריך המהיר"
+            >
+              <span aria-hidden>📖</span>
+            </button>
+          )}
+          {featureOn(config, 'shell.demo') && (
+            <button
+              type="button"
+              className="nav-gear"
+              onClick={() => {
+                window.location.hash = '#tour';
+              }}
+              title="מצב הדגמה — סיור מודרך"
+              aria-label="מצב הדגמה"
+            >
+              <span aria-hidden>▶</span>
+            </button>
+          )}
           <button
             type="button"
             className={'nav-gear' + (view === 'settings' ? ' active' : '')}

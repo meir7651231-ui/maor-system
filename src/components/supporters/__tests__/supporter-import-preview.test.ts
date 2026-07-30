@@ -25,4 +25,10 @@ describe('🛡 הגנות-מקור — SupporterImport דו-שלבי (P2 פער 
     expect(importSrc).toMatch(/זוהו/);
     expect(importSrc).toContain('ביטול');
   });
+
+  it('הדו-שלבי מגודר בדגל supporters.import.preview (חסר=פעיל; false=החלה מיידית)', () => {
+    expect(importSrc).toContain("featureOn(config, 'supporters.import.preview')");
+    // כשהדגל כבוי — run מחיל מיד את התוכנית, בלי לחכות לאישור
+    expect(importSrc).toMatch(/if \(p && !previewOn\) apply\(p\);/);
+  });
 });

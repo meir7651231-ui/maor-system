@@ -5,7 +5,7 @@
  */
 import { useState, type ChangeEvent } from 'react';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { parseCsv, readCsvFileText } from '../../lib/csvx';
 import { downloadCsv } from '../../lib/csvx';
 import { Btn, Field, FormError } from '../ui';
@@ -70,8 +70,10 @@ export function SupporterImport(props: { onDone?: () => void }) {
   const [error, setError] = useState('');
   const [summary, setSummary] = useState('');
   // סיכום-לפני-החלה (P2 פער 33) — כמו הלגאסי (importSummary→applyImport)
-  // ובאותו דפוס דו-שלבי של ייבוא הילדים/משפחות-13
+  // ובאותו דפוס דו-שלבי של ייבוא הילדים/משפחות-13. דגל supporters.import.preview:
+  // חסר/true = דו-שלבי; false = החלה מיידית (ההתנהגות הישנה)
   const [plan, setPlan] = useState<ReturnType<typeof planSupporterImport> | null>(null);
+  const previewOn = featureOn(config, 'supporters.import.preview');
 
   function downloadTemplate() {
     downloadCsv('supporters-template.csv', [
@@ -87,7 +89,13 @@ export function SupporterImport(props: { onDone?: () => void }) {
     // helper משותף (P0.5): UTF-8 עם fallback ל-windows-1255 לקבצים מאקסל ישן
     const txt = await readCsvFileText(file);
     setCsv(txt);
-    analyze(txt);
+    run(txt);
+  }
+
+  /** נקודת הכניסה: דו-שלבי כשהדגל פעיל, אחרת פענוח+החלה מיידית. */
+  function run(text = csv) {
+    const p = analyze(text);
+    if (p && !previewOn) apply(p);
   }
 
   /** שלב 1 — פענוח והצגת סיכום; לא משנה נתונים. */
@@ -98,32 +106,34 @@ export function SupporterImport(props: { onDone?: () => void }) {
     const rows = parseRows(text);
     if (!rows.length) {
       setError('לא נמצאו שורות תקינות — ודאו שיש עמודת "שם" (חובה)');
-      return;
+      return null;
     }
-    setPlan(planSupporterImport(rows, useApp.getState().db.supporters));
+    const p = planSupporterImport(rows, useApp.getState().db.supporters);
+    setPlan(p);
+    return p;
   }
 
-  /** שלב 2 — החלה בפועל, רק אחרי אישור הסיכום. */
-  function apply() {
-    if (!plan) return;
+  /** שלב 2 — החלה בפועל, רק אחרי אישור הסיכום (או מיידית כשהדגל כבוי). */
+  function apply(p = plan) {
+    if (!p) return;
     setDb((db) => {
       let seq = db.seq;
-      const updates = new Map(plan.updates.map((u) => [u.id, u.row]));
+      const updates = new Map(p.updates.map((u) => [u.id, u.row]));
       let supporters = db.supporters.map((sp) =>
         updates.has(sp.id) ? mergeSupporterRow(sp, updates.get(sp.id)!) : sp,
       );
-      const inserts = plan.inserts.map((r) => newSupporterFromRow('sp' + seq++, r));
+      const inserts = p.inserts.map((r) => newSupporterFromRow('sp' + seq++, r));
       supporters = [...inserts, ...supporters];
       return { seq, supporters };
     });
     setSummary(
       'ההצלבה לפי שם — נוספו ' +
-        plan.inserts.length +
+        p.inserts.length +
         ' חדשות · עודכנו ' +
-        plan.updates.length +
+        p.updates.length +
         ' קיימות',
     );
-    toast('ייבוא ' + termOf(config, 'nav.supporters', 'תומכים') + ': +' + plan.inserts.length + ' · ✎' + plan.updates.length);
+    toast('ייבוא ' + termOf(config, 'nav.supporters', 'תומכים') + ': +' + p.inserts.length + ' · ✎' + p.updates.length);
     setPlan(null);
     setCsv('');
     props.onDone?.();
@@ -173,8 +183,8 @@ export function SupporterImport(props: { onDone?: () => void }) {
           style={{ fontFamily: 'monospace', fontSize: 13 }}
         />
       </Field>
-      <Btn onClick={() => analyze()} disabled={!csv.trim()}>
-        בדיקת הקובץ (שלב 1)
+      <Btn onClick={() => run()} disabled={!csv.trim()}>
+        {previewOn ? 'בדיקת הקובץ (שלב 1)' : 'ייבוא'}
       </Btn>
       {plan && (
         <div style={{ marginTop: 12, border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px' }}>
