@@ -510,6 +510,46 @@ export interface UpcomingRow {
   ev: OrgEvent;
 }
 
+/* ---------- פאנל "קרובים" מלא (P2 פער 25, feature calendar.upcoming) ---------- */
+
+export interface UpcomingDay {
+  iso: string;
+  /** היום העברי בגימטריה + שם החודש העברי לבלוק התאריך. */
+  dayGem: string;
+  monHeb: string;
+  /** תווית לועזית DD/MM/YYYY. */
+  gLabel: string;
+  /** יום ראשון/שני… */
+  weekday: string;
+  items: DayItem[];
+}
+
+/**
+ * הפריטים של 30 הימים הקרובים — אירועים (כולל חוזרים בעברי) והשכבות
+ * הנגזרות (ימי הולדת/הצטרפות/הרשמה) דרך dayItems; מפגשי חוגים מוחרגים
+ * (חוזרים שבועית — רעש). now מוזרק (טוהר); ימים ריקים לא מוחזרים.
+ * הסינון לפי הפילטרים הפעילים נעשה בתצוגה (allowItem) — הכרעה 6.
+ */
+export function upcomingItems(db: Db, now: Date, days = 30, config: OrgConfig = DEFAULT_CONFIG): UpcomingDay[] {
+  const out: UpcomingDay[] = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+    const iso = isoOf(d);
+    const items = dayItems(db, d, config).filter((it) => !it.courseId && !(it.ev && it.ev.done));
+    if (!items.length) continue;
+    const hp = hpOf(iso, d);
+    out.push({
+      iso,
+      dayGem: gem(hp.day),
+      monHeb: fmtHebMonth.format(d),
+      gLabel: fmtD(iso),
+      weekday: 'יום ' + DAY_NAMES[d.getDay()],
+      items,
+    });
+  }
+  return out;
+}
+
 /** אירועים ותזכורות ב-14 הימים הקרובים, כולל חוזרים לפי התאריך העברי. */
 export function upcomingRows(db: Db, days = 14): UpcomingRow[] {
   const out: UpcomingRow[] = [];
