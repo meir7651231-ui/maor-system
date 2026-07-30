@@ -13,6 +13,7 @@ import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { Chip, PageHead } from '../ui';
 import { CoordinatorsTab } from './CoordinatorsTab';
+import { HomeTab } from './HomeTab';
 
 type TzTab = 'care' | 'coordinators' | 'calendar' | 'showcase';
 
@@ -43,7 +44,14 @@ export function TzedakaView() {
         ))}
       </div>
       {/* התוכן נבנה באשכולות 4-7 — placeholder לכל טאב עד אז */}
-      {active === 'care' && <div className="card">🏠 טיפול משרדי — נבנה באשכול 5</div>}
+      {active === 'care' && (
+        <HomeTab
+          onOpenCoordinator={(id) => {
+            setSelCoordId(id);
+            setTab('coordinators');
+          }}
+        />
+      )}
       {active === 'coordinators' && <CoordinatorsTab selId={selCoordId} onSelect={setSelCoordId} />}
       {active === 'calendar' && <div className="card">📅 הלוח הייעודי — נבנה באשכול 6</div>}
       {active === 'showcase' && <div className="card">🏆 ראווה — נבנה באשכול 7</div>}
