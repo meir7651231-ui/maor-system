@@ -8,9 +8,9 @@ import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import type { ShopItem, ShopProduct } from '../../types/domain';
-import { Btn, Chip, Empty } from '../ui';
+import { Btn, Chip, Empty, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
-import { componentCounts, itemOf, itemRemaining, productAssignments } from './lib';
+import { componentCounts, filterProducts, itemOf, itemRemaining, productAssignments } from './lib';
 import { ProductForm } from './ProductForm';
 import { StockModal } from './StockModal';
 import { ItemsPanel } from './ItemsPanel';
@@ -32,6 +32,7 @@ export function CatalogTab() {
   const [editing, setEditing] = useState<ShopProduct | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [stockFor, setStockFor] = useState<ShopItem | null>(null);
+  const [q, setQ] = useState('');
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const storesOn = featureOn(config, 'shop.stores');
   const criteriaOn = featureOn(config, 'shop.criteria');
@@ -44,16 +45,20 @@ export function CatalogTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
-        <Btn kind="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>
-          ➕ הוספת {termOf(config, 'entity.shopProduct', 'מוצר')}
-        </Btn>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        {/* חיפוש הקטלוג (UX סינון 2) — filterProducts הטהור */}
+        <TextInput value={q} onChange={setQ} placeholder={'🔍 חיפוש ' + term} />
+        <span style={{ marginInlineStart: 'auto' }}>
+          <Btn kind="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>
+            ➕ הוספת {termOf(config, 'entity.shopProduct', 'מוצר')}
+          </Btn>
+        </span>
       </div>
       {db.shopProducts.length === 0 ? (
         <Empty>עדיין אין {term}ים בקטלוג — הוסיפו עם "➕ הוספת {term}"</Empty>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
-          {db.shopProducts.map((p) => {
+          {filterProducts(db.shopProducts, q, false).map((p) => {
             const counts = componentCounts(p);
             const activeCount = productAssignments(db.shopAssignments, p.id).filter((a) => a.status === 'active').length;
             return (

@@ -6,9 +6,10 @@
  * supporters/enrollments. Reuse טהור: holidayOf/hebParts מ-lib/hebrew,
  * isoOf מ-calLib (lib→lib מותר).
  */
-import type { Db, Id, IsoDate, ShopAssignment, ShopComponent, ShopCriterion, ShopProduct, ShopRedemption } from '../../types/domain';
+import type { Db, Id, IsoDate, ShopAssignment, ShopAssignmentStatus, ShopComponent, ShopCriterion, ShopItem, ShopProduct, ShopRedemption } from '../../types/domain';
 import { isoOf } from '../calendar/calLib';
 import { hebParts, holidayOf } from '../../lib/hebrew';
+import { smartFilter } from '../../lib/search';
 
 /* ---------- מימושים חיים ---------- */
 
@@ -386,6 +387,101 @@ export function subsidyTotal(assignments: readonly ShopAssignment[]): number {
 /** השיוכים של מוצר נתון. */
 export function productAssignments(assignments: readonly ShopAssignment[], productId: Id): ShopAssignment[] {
   return assignments.filter((a) => a.productId === productId);
+}
+
+/* ---------- חיפוש/סינון/מיון (UX סינון 2) — טהור, smartFilter הקיים ---------- */
+
+/** כמה רכיבים בשיוך עדיין ממתינים (לא-מומשים; מבוטל = ממתין). */
+function pendingCount(db: Db, a: ShopAssignment): number {
+  const product = db.shopProducts.find((p) => p.id === a.productId);
+  if (!product) return 0;
+  return product.components.filter((c) => !assignmentRedeemed(a, c.id)).length;
+}
+
+/** התקדמות המימוש 0..1 (בלי רכיבים = 1 — אין מה לממש). */
+function progressOf(db: Db, a: ShopAssignment): number {
+  const product = db.shopProducts.find((p) => p.id === a.productId);
+  const total = product?.components.length ?? 0;
+  if (!total) return 1;
+  return (total - pendingCount(db, a)) / total;
+}
+
+/**
+ * סינון+מיון השיוכים: q על שם המשפחה/החבילה (smartFilter); 'pending'
+ * (ברירת המחדל) = יש-רכיב-ממתין קודם, ובתוכם since עולה — הכי-ותיק-ממתין
+ * ראשון; ממומש-כולו אחרון.
+ */
+export function filterAssignments(
+  db: Db,
+  q: string,
+  status: ShopAssignmentStatus | '',
+  pendingOnly: boolean,
+  productId: Id | '',
+  sort: 'pending' | 'name' | 'progress',
+): ShopAssignment[] {
+  let list = [...db.shopAssignments];
+  if (status) list = list.filter((a) => a.status === status);
+  if (productId) list = list.filter((a) => a.productId === productId);
+  if (pendingOnly) list = list.filter((a) => pendingCount(db, a) > 0);
+  list = smartFilter(q, list, (a) => {
+    const fam = db.families.find((f) => f.id === a.famId);
+    const product = db.shopProducts.find((p) => p.id === a.productId);
+    return [fam?.name ?? '', ...(fam?.name.split(/\s+/) ?? []), product?.name ?? ''];
+  });
+  const famName = (a: ShopAssignment) => db.families.find((f) => f.id === a.famId)?.name ?? '';
+  const cmp: Record<typeof sort, (a: ShopAssignment, b: ShopAssignment) => number> = {
+    pending: (a, b) => {
+      const pa = pendingCount(db, a) > 0 ? 0 : 1;
+      const pb = pendingCount(db, b) > 0 ? 0 : 1;
+      if (pa !== pb) return pa - pb; // ממתינים קודם; ממומש-כולו אחרון
+      return (a.since || '9999').localeCompare(b.since || '9999'); // הכי-ותיק-ממתין ראשון
+    },
+    name: (a, b) => famName(a).localeCompare(famName(b), 'he'),
+    progress: (a, b) => progressOf(db, a) - progressOf(db, b),
+  };
+  return list.sort(cmp[sort]);
+}
+
+/** סינון החבילות בקטלוג — q על שם/תיאור; פעילות בלבד (רשות). */
+export function filterProducts(
+  products: readonly ShopProduct[],
+  q: string,
+  onlyActive: boolean,
+): ShopProduct[] {
+  const base = onlyActive ? products.filter((p) => p.active) : [...products];
+  return smartFilter(q, base, (p) => [p.name, p.desc]);
+}
+
+/**
+ * סינון הפריטים — q על השם; מצב מלאי: out=אזל · low=נמוך (≤2, כשיש מעקב)
+ * · untracked=ללא מעקב.
+ */
+export function filterItems(db: Db, q: string, stockState: '' | 'out' | 'low' | 'untracked'): ShopItem[] {
+  let list = [...db.shopItems];
+  if (stockState) {
+    list = list.filter((i) => {
+      const rem = itemRemaining(db, i.id);
+      if (stockState === 'untracked') return rem === null;
+      if (stockState === 'out') return rem === 0;
+      return rem !== null && rem > 0 && rem <= 2; // low
+    });
+  }
+  return smartFilter(q, list, (i) => [i.name, ...i.name.split(/\s+/)]);
+}
+
+/** סינון מימושי שיוך — טווח כוללני; includeVoided=true (ברירת שקיפות). */
+export function filterRedemptions(
+  a: ShopAssignment,
+  fromIso: IsoDate | '',
+  toIso: IsoDate | '',
+  includeVoided: boolean,
+): ShopRedemption[] {
+  return a.redemptions.filter(
+    (r) =>
+      (!fromIso || r.date >= fromIso) &&
+      (!toIso || r.date <= toIso) &&
+      (includeVoided || !r.voidedAt),
+  );
 }
 
 /* ---------- ייצוא (CONNECT חיבור 6) ---------- */

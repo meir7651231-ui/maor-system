@@ -23,7 +23,8 @@ describe('🛍 ratchet — חנות 7: הלוח הייעודי והראווה', 
     expect(calSrc).toContain("from '../calendar/calLib'");
     expect(calSrc).toContain('SESSION_META');
     expect(calSrc).toContain('PRIORITY_COLOR');
-    expect(calSrc).toContain('buildMonthGrid(shopEvents');
+    // מאז UX סינון 2 הלוח מסונן-סוגים לפני הבנייה (טהור) — shownEvents
+    expect(calSrc).toContain('buildMonthGrid(shownEvents');
     expect(calSrc).toContain('ממתינות');
   });
 

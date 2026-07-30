@@ -9,7 +9,7 @@ import { featureOn, termOf } from '../../lib/config';
 import type { ShopComponentKind, ShopItem } from '../../types/domain';
 import { Btn, Chip, Field, FormError, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
-import { holidayNames, itemRemaining } from './lib';
+import { filterItems, holidayNames, itemRemaining } from './lib';
 import { StockModal } from './StockModal';
 
 const KIND_OPTIONS: { value: ShopComponentKind; label: string }[] = [
@@ -40,6 +40,9 @@ export function ItemsPanel() {
   // מיזוג פריטים כפולים (הכרעה 21) — מקור נבחר + יעד מאותו סוג
   const [mergeFrom, setMergeFrom] = useState<ShopItem | null>(null);
   const [mergeTarget, setMergeTarget] = useState('');
+  // חיפוש + צ'יפי מצב-מלאי (UX סינון 2) — filterItems הטהור
+  const [itemQ, setItemQ] = useState('');
+  const [stockState, setStockState] = useState<'' | 'out' | 'low' | 'untracked'>('');
 
   function startEdit(i: ShopItem) {
     setEditId(i.id);
@@ -104,7 +107,21 @@ export function ItemsPanel() {
       </button>
       {open && (
         <div style={{ marginTop: 10 }}>
-          {db.shopItems.map((i) => {
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
+            <TextInput value={itemQ} onChange={setItemQ} placeholder={'🔍 חיפוש ' + term} />
+            {(
+              [
+                ['out', '🔴 אזל'],
+                ['low', '🟠 נמוך'],
+                ['untracked', '⚪ ללא מעקב'],
+              ] as const
+            ).map(([key, label]) => (
+              <Chip key={key} on={stockState === key} onClick={() => setStockState(stockState === key ? '' : key)}>
+                {label}
+              </Chip>
+            ))}
+          </div>
+          {filterItems(db, itemQ, stockState).map((i) => {
             const rem = itemRemaining(db, i.id);
             const kindLabel = KIND_OPTIONS.find((k) => k.value === i.kind)?.label ?? i.kind;
             return (
