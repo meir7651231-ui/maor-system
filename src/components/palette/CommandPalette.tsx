@@ -107,6 +107,8 @@ export function CommandPalette() {
   const cashboxOn = featureOn(config, 'core.cashbox');
   const bodymapOn = featureOn(config, 'core.bodymap');
   const dedupOn = featureOn(config, 'settings.dedup') && familiesOn;
+  // המדריך המהיר (P2 פער 29)
+  const guideOn = featureOn(config, 'shell.guide');
   // פעולות הפלטה מהקובץ החי + קיבוץ תוצאות לפי סוג (P1.6)
   const paletteActionsOn = featureOn(config, 'shell.palette.actions');
   const openEventForm = useApp((s) => s.openEventForm);
@@ -269,6 +271,20 @@ export function CommandPalette() {
         },
       });
     }
+    // המדריך המהיר 📖 (P2 פער 29, feature shell.guide, legacy:2891-2913)
+    if (guideOn) {
+      actions.push({
+        key: 'act-guide',
+        icon: '📖',
+        title: 'המדריך המהיר',
+        sub: 'איך עושים הכל — מסך-מסך והמתכונים המהירים',
+        terms: toTerms(['המדריך המהיר', 'מדריך', 'עזרה', 'הדרכה', 'איך', 'help', 'guide']),
+        run: () => {
+          window.location.hash = '#guide';
+          setPalette(false);
+        },
+      });
+    }
     // ── פעולות הפלטה מהקובץ החי (P1.6, feature shell.palette.actions,
     //    legacy:2333-2366) — העתקת טלפונים, + אירוע/תזכורת/חוג/תומכת, ניקוב-מהיום ──
     if (paletteActionsOn) {
@@ -395,6 +411,7 @@ export function CommandPalette() {
     cashboxOn,
     bodymapOn,
     dedupOn,
+    guideOn,
     hasLock,
     lockNow,
     paletteActionsOn,

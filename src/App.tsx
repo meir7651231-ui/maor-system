@@ -20,6 +20,7 @@ import { MoneyTimer } from './components/timer/MoneyTimer';
 import { CashRegister } from './components/timer/CashRegister';
 import { BodyMap } from './components/timer/BodyMap';
 import { DedupModal } from './components/families/DedupModal';
+import { GuideModal } from './components/GuideModal';
 import { HomeView } from './components/home/HomeView';
 import { FamiliesView } from './components/families/FamiliesView';
 import { CoursesView } from './components/courses/CoursesView';
@@ -121,6 +122,8 @@ export default function App() {
   const [bodymapOpen, setBodymapOpen] = useState(() => window.location.hash === '#bodymap');
   // איחוד כפילויות — נפתח עם #dedup (feature: settings.dedup)
   const [dedupOpen, setDedupOpen] = useState(() => window.location.hash === '#dedup');
+  // המדריך המהיר — נפתח עם #guide (P2 פער 29, feature: shell.guide)
+  const [guideOpen, setGuideOpen] = useState(() => window.location.hash === '#guide');
   useEffect(() => {
     const onHash = () => {
       setBuilderOpen(window.location.hash === '#builder');
@@ -129,6 +132,7 @@ export default function App() {
       setCashboxOpen(window.location.hash === '#cashbox');
       setBodymapOpen(window.location.hash === '#bodymap');
       setDedupOpen(window.location.hash === '#dedup');
+      setGuideOpen(window.location.hash === '#guide');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -577,6 +581,15 @@ export default function App() {
           onClose={() => {
             window.location.hash = '';
             setDedupOpen(false);
+          }}
+        />
+      )}
+
+      {guideOpen && featureOn(config, 'shell.guide') && (
+        <GuideModal
+          onClose={() => {
+            window.location.hash = '';
+            setGuideOpen(false);
           }}
         />
       )}
