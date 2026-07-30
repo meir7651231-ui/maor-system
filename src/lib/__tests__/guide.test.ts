@@ -25,7 +25,7 @@ describe('📖 ratchet — תוכן המדריך מילה-במילה מהלגא�
     );
   });
 
-  it('שבע שורות המסכים בסדר הלגאסי (legacy:2900-2908)', () => {
+  it('שורות המסכים: שבע הלגאסי בסדרן + שתי העמודות החדשות (CONNECT חיבור 5)', () => {
     expect(GUIDE_SECTIONS.map((s) => s.title)).toEqual([
       'בית',
       'משפחות',
@@ -33,13 +33,16 @@ describe('📖 ratchet — תוכן המדריך מילה-במילה מהלגא�
       'קורסים',
       'תומכות',
       'לוח שנה',
+      // הרחבה מתועדת — לא שינוי נוסח הלגאסי: העמודות נוספו לפני 'הגדרות'
+      'קופות צדקה',
+      'חנות',
       'הגדרות',
     ]);
     expect(GUIDE_SECTIONS[1].text).toBe(
       'הטבלה: לחיצה על כותרת ממיינת, ⏷ מסנן כל עמודה, ✦ סינון מורחב עם גלגל.',
     );
     expect(GUIDE_SECTIONS[2].text).toBe('ניקוב ✓, חיסור ✕, ⚙ לתשלומים וקבלות, 📜 היסטוריה + דוח מלא.');
-    expect(GUIDE_SECTIONS[6].text).toBe('ייצוא לאקסל, דוחות, מורות, וגיבוי מלא (פעם בשבוע!).');
+    expect(GUIDE_SECTIONS[8].text).toBe('ייצוא לאקסל, דוחות, מורות, וגיבוי מלא (פעם בשבוע!).');
   });
 
   it('"המתכונים המהירים" — הנוסח המלא (legacy:2909-2912)', () => {
@@ -55,10 +58,10 @@ describe('📖 ratchet — תוכן המדריך מילה-במילה מהלגא�
 
   it('סינון לפי מודולים: מודול כבוי מסתיר את שורתו; בית והגדרות תמיד נשארים', () => {
     const all = guideSections(() => true);
-    expect(all).toHaveLength(7);
+    expect(all).toHaveLength(9);
     const noCourses = guideSections((m) => m !== 'courses');
     expect(noCourses.map((s) => s.title)).not.toContain('קורסים');
-    expect(noCourses).toHaveLength(6);
+    expect(noCourses).toHaveLength(8);
     const none = guideSections(() => false);
     expect(none.map((s) => s.title)).toEqual(['בית', 'הגדרות']);
   });

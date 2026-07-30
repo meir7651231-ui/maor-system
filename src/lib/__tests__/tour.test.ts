@@ -19,10 +19,10 @@ describe('▶ ratchet — תסריט הסיור לפי runDemo (script:1133-1256
     expect(TOUR_STOP_LABEL).toBe('■ עצירת הדמיה (Esc)');
   });
 
-  it('סדר הפרקים כסדר הלגאסי: בית → משפחות → קורסים → לוח שנה → הגדרות → בית', () => {
+  it('סדר הפרקים: תסריט הלגאסי + העמודות החדשות לפני ההגדרות (CONNECT חיבור 5)', () => {
     const views = TOUR_STEPS.map((s) => s.view);
     const order = views.filter((v, i) => i === 0 || v !== views[i - 1]);
-    expect(order).toEqual(['home', 'families', 'courses', 'calendar', 'settings', 'home']);
+    expect(order).toEqual(['home', 'families', 'courses', 'calendar', 'tzedaka', 'shop', 'settings', 'home']);
   });
 
   it('סינון מודולים: מודול כבוי מוריד את צעדיו; בית/הגדרות תמיד נשארים', () => {
