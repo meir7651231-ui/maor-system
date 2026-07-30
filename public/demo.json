@@ -1,7 +1,7 @@
 {
  "v": 5,
  "savedAt": "2026-07-23T21:51:45.477Z",
- "seq": 654,
+ "seq": 800,
  "receiptSeq": 274,
  "donationSeq": 77,
  "security": {},
@@ -12921,5 +12921,256 @@
  "ui": {
   "famView": "list",
   "crsView": "grid"
- }
+ },
+ "tzCoordinators": [
+  {
+   "id": "tzc700",
+   "name": "שרה לוינשטיין",
+   "famId": "f128",
+   "memberId": "",
+   "phone": "050-7110001",
+   "notes": "",
+   "active": true,
+   "startDate": "2026-01-05",
+   "score": 47,
+   "scoreLog": [
+    {
+     "date": "2026-06-15",
+     "delta": 12,
+     "reason": "ריקון קופה 12"
+    },
+    {
+     "date": "2026-07-01",
+     "delta": 17,
+     "reason": "ריקון קופה 14"
+    }
+   ]
+  },
+  {
+   "id": "tzc701",
+   "name": "דוד פרידמן",
+   "famId": "",
+   "memberId": "",
+   "phone": "052-7110002",
+   "notes": "",
+   "active": true,
+   "startDate": "2026-03-10",
+   "score": 22,
+   "scoreLog": [
+    {
+     "date": "2026-07-10",
+     "delta": 22,
+     "reason": "ריקון קופה 21"
+    }
+   ]
+  }
+ ],
+ "tzBoxes": [
+  {
+   "id": "tzb710",
+   "num": "12",
+   "coordinatorId": "tzc700",
+   "famId": "f128",
+   "holderKind": "supported",
+   "since": "2026-02-01",
+   "status": "home",
+   "notes": "",
+   "collections": [
+    {
+     "id": "tzl720",
+     "date": "2026-06-15",
+     "amount": 120,
+     "campaignId": "tzp730",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "tzb711",
+   "num": "14",
+   "coordinatorId": "tzc700",
+   "famId": "f136",
+   "holderKind": "donor",
+   "since": "2026-02-15",
+   "status": "home",
+   "notes": "",
+   "collections": [
+    {
+     "id": "tzl721",
+     "date": "2026-07-01",
+     "amount": 340,
+     "campaignId": "tzp730",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "tzb712",
+   "num": "21",
+   "coordinatorId": "tzc701",
+   "famId": "f143",
+   "holderKind": "",
+   "since": "2026-04-01",
+   "status": "home",
+   "notes": "",
+   "collections": [
+    {
+     "id": "tzl722",
+     "date": "2026-07-10",
+     "amount": 580,
+     "campaignId": "",
+     "note": "סבב קיץ"
+    }
+   ]
+  },
+  {
+   "id": "tzb713",
+   "num": "22",
+   "coordinatorId": "tzc701",
+   "famId": "",
+   "holderKind": "",
+   "since": "",
+   "status": "office",
+   "notes": "ממתינה לשיבוץ",
+   "collections": []
+  }
+ ],
+ "tzCampaigns": [
+  {
+   "id": "tzp730",
+   "name": "מבצע אלול",
+   "start": "2026-06-01",
+   "end": "2026-09-20",
+   "goal": 5000,
+   "active": true,
+   "notes": ""
+  }
+ ],
+ "tzEvents": [
+  {
+   "id": "tze740",
+   "title": "סבב ריקון שכונה א׳",
+   "date": "2026-08-09",
+   "time": "",
+   "kind": "round",
+   "coordinatorId": "tzc700",
+   "boxId": "",
+   "notes": "",
+   "done": false
+  }
+ ],
+ "shopItems": [
+  {
+   "id": "shi750",
+   "name": "סט תפילין מהודר",
+   "kind": "gift",
+   "storeId": "",
+   "value": 1200,
+   "basePrice": 180,
+   "stock": 4,
+   "active": true,
+   "notes": ""
+  },
+  {
+   "id": "shi751",
+   "name": "קופון ריהוט לחתן",
+   "kind": "coupon",
+   "storeId": "shs770",
+   "value": 800,
+   "basePrice": 100,
+   "validDays": 90,
+   "active": true,
+   "notes": ""
+  }
+ ],
+ "shopStores": [
+  {
+   "id": "shs770",
+   "name": "ריהוט העיר",
+   "contact": "אבי",
+   "phone": "03-7110070",
+   "active": true,
+   "notes": ""
+  }
+ ],
+ "shopCriteria": [
+  {
+   "id": "shc760",
+   "name": "יתום מאם",
+   "discountPct": 50,
+   "notes": ""
+  },
+  {
+   "id": "shc761",
+   "name": "יתום מאבא",
+   "discountPct": 50,
+   "notes": ""
+  }
+ ],
+ "shopProducts": [
+  {
+   "id": "shp755",
+   "name": "מוצר חתן",
+   "desc": "חבילת ליווי מלאה לחתן",
+   "active": true,
+   "notes": "",
+   "components": [
+    {
+     "id": "shpc756",
+     "itemId": "shi750",
+     "kind": "gift",
+     "label": "סט תפילין מהודר",
+     "storeId": "",
+     "notes": ""
+    },
+    {
+     "id": "shpc757",
+     "itemId": "shi751",
+     "kind": "coupon",
+     "label": "קופון ריהוט לחתן",
+     "storeId": "shs770",
+     "notes": ""
+    }
+   ]
+  }
+ ],
+ "shopAssignments": [
+  {
+   "id": "sha765",
+   "productId": "shp755",
+   "famId": "f136",
+   "memberId": "",
+   "criterionIds": [
+    "shc760"
+   ],
+   "since": "2026-06-20",
+   "status": "active",
+   "notes": "",
+   "redemptions": [
+    {
+     "id": "shr766",
+     "rid": "S-1",
+     "componentId": "shpc756",
+     "date": "2026-07-05",
+     "holiday": "",
+     "paid": 90,
+     "value": 1200,
+     "note": ""
+    }
+   ]
+  }
+ ],
+ "shopEvents": [
+  {
+   "id": "she775",
+   "title": "מסירת קופון ריהוט",
+   "date": "2026-08-12",
+   "time": "",
+   "kind": "delivery",
+   "assignmentId": "sha765",
+   "notes": "",
+   "done": false
+  }
+ ],
+ "shopReceiptSeq": 2
 }
