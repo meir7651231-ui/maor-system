@@ -158,6 +158,15 @@ T('ניקוב מכרטיס המשפחה — היתרה ירדה', (await mainTxt
 T('פעולות ⚙/🤒 והוספת אירוע זמינות בכרטיס', (await page.locator('main button', { hasText: '⚙' }).count()) > 0 && (await page.locator('main button', { hasText: '➕ אירוע' }).count()) > 0);
 await shot('כרטיס-משפחה-תפעולי');
 
+// ── P2 אשכול א׳: מדדי הדשבורד נראים במסך הבית ──
+await nav('בית');
+await wait(600);
+{
+  const t = await mainTxt();
+  T('מדדי תפוסת החוגים נראים בבית', t.includes('תפוסת ה') && t.includes('לחודש'));
+  T('מדדי האמינות נראים בבית', t.includes('מדד אמינות — תמונה מלאה') && t.includes('מגמת היום'));
+}
+
 // ── תורמים + תרומה ──
 await nav('תורמים');
 await clickIf('button', 'הוספת תומך'); await fillModal('קרן פרידמן'); await saveModal(); await wait(500);

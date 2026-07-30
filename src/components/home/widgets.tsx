@@ -16,7 +16,7 @@
 // השפעה על המוצר) — קו-לוקיישן מכוון ומוצדק.
 /* oxlint-disable react/only-export-components */
 import { useEffect, useMemo, useState, type CSSProperties, type ReactElement, type ReactNode } from 'react';
-import type { View } from '../../store/useApp';
+import { useApp, type View } from '../../store/useApp';
 import type { Db, Family, OrgEvent } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { Btn, Chip } from '../ui';
@@ -1049,6 +1049,7 @@ function CourseMetricsWidget({ ctx }: { ctx: HomeCtx }) {
  */
 function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, todayIso, go, selectFamily } = ctx;
+  const openFamiliesByTier = useApp((s2) => s2.openFamiliesByTier);
   const s = credSummary(db, (score) => tierOf(score).key);
   const bins = credHistogram(db);
   const trend = credTodayTrend(db, todayIso);
@@ -1083,8 +1084,33 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
               />
             ))}
           </div>
-          <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: boost.length ? 8 : 0 }}>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
             מגמת היום: <b style={{ color: trend > 0 ? '#12803c' : trend < 0 ? '#b91c1c' : 'inherit' }}>{trend > 0 ? '+' + trend : trend}</b> נק׳
+            {' · 👵 ' + db.families.filter((f) => (f.maritalStatus || '').includes('אלמן')).length + ' אלמנות'}
+          </div>
+          {/* אריחי דרגות לחיצים (P2 פער 20) — מנווטים למשפחות מסוננות לפי הדרגה */}
+          <div className="hm-tier-grid" style={{ marginBottom: boost.length ? 8 : 0 }}>
+            {([
+              ['titan', tierOf(960)],
+              ['lion', tierOf(850)],
+              ['pale', tierOf(600)],
+              ['red', tierOf(100)],
+            ] as const).map(([key, t]) => (
+              <button
+                key={key}
+                type="button"
+                className="hm-tier"
+                onClick={() => openFamiliesByTier(key)}
+                title={'ל' + famPlural + ' בדרגת ' + t.label}
+                style={{ cursor: 'pointer', textAlign: 'right', background: 'transparent' }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span aria-hidden style={{ width: 8, height: 8, borderRadius: 99, background: t.dot, flexShrink: 0 }} />
+                  <span style={{ fontSize: 12.5, color: 'var(--ink-faint)', fontWeight: 600 }}>{t.label}</span>
+                </span>
+                <b style={{ fontSize: 20 }}>{s.counts[key]}</b>
+              </button>
+            ))}
           </div>
           {boost.map((x) => (
             <button key={x.family.id} className="hm-row" onClick={() => openFam(x.family.id)} style={{ width: '100%', textAlign: 'start' }}>
@@ -1437,8 +1463,9 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
  * פריסה שמורה של המשתמש תמיד גוברת; ווידג'ט שהמודול/פיצ'ר שלו כבוי פשוט מדולג.
  */
 export const THEME_LAYOUTS: Record<string, readonly WidgetId[]> = {
-  /* אור ראשון (mock-desktop) — hero, אריחים, קרוסלה, ואז שתי עמודות */
-  'or-rishon': ['hero', 'stats', 'carousel', 'today', 'recent', 'attention', 'community'],
+  /* אור ראשון (mock-desktop) — hero, אריחים, קרוסלה, ואז שתי עמודות.
+     מדדי החוגים והאמינות (P2 פערים 19-20) בברירת המחדל — כמו בדשבורד הלגאסי */
+  'or-rishon': ['hero', 'stats', 'carousel', 'today', 'recent', 'attention', 'community', 'coursemetrics', 'credmetrics'],
   /* היכל (mock-heichal) — "ערב גאלה": רצועת נתונים ושתי עמודות שקטות */
   heichal: ['hero', 'stats', 'today', 'attention', 'goldbook', 'hebcal'],
   /* צֹהַר (mock-tsohar) — דשבורד תפעולי נקי: נתונים, היום 2:1 מול דורש טיפול */
@@ -1463,7 +1490,7 @@ export interface ThemeBoardTemplate {
 
 export const THEME_TEMPLATES: Record<string, ThemeBoardTemplate> = {
   /* mock-desktop: ימין היום+משפחות אחרונות · שמאל דורש טיפול+אמינות (1.25fr/1fr) */
-  'or-rishon': { pre: ['stats', 'carousel'], colA: ['today', 'recent'], colB: ['attention', 'community'], post: [] },
+  'or-rishon': { pre: ['stats', 'carousel'], colA: ['today', 'recent'], colB: ['attention', 'community'], post: ['coursemetrics', 'credmetrics'] },
   /* mock-heichal: ימין סדר היום+נר תמיד · שמאל ספר הזהב+הלוח העברי (1.3fr/1fr) */
   heichal: { pre: ['stats'], colA: ['today', 'attention'], colB: ['goldbook', 'hebcal'], post: [] },
   /* mock-tsohar: היום כטבלה רחבה (2fr) מול דורש טיפול (1fr) */
@@ -1496,6 +1523,8 @@ export const WIDGET_LIBRARY: readonly WidgetId[] = [
   'contacts',
   'punchlow',
   'quick',
+  'coursemetrics',
+  'credmetrics',
 ];
 
 function isWidgetId(id: string): id is WidgetId {

@@ -93,6 +93,17 @@ export function FamiliesView() {
     }
   }, [famFormReq, ackFamilyForm]);
 
+  // אריחי הדרגות במדדי הבית (P2 פער 20) — כניסה עם סינון דרגת אמינות מוכן
+  const famTierReq = useApp((s) => s.famTierReq);
+  const ackFamiliesTier = useApp((s) => s.ackFamiliesTier);
+  useEffect(() => {
+    if (famTierReq) {
+      setAdv({ ...EMPTY_ADV, tier: famTierReq });
+      setAdvOn(true);
+      ackFamiliesTier();
+    }
+  }, [famTierReq, ackFamiliesTier]);
+
   // ספירת שיבוצים לכל משפחה — נבנית פעם אחת לכל שינוי db במקום סריקת
   // db.enrollments המלאה בכל קריאה של famEnrollments (סינון 116/123 + מיון 147
   // + כל שורה מוצגת 455/506) — מונע O(F×E) בכל הקשה על שדה חיפוש/סינון.

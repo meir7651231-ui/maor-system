@@ -139,6 +139,10 @@ interface AppState {
   supFormReq: boolean;
   openSupporterForm: () => void;
   ackSupporterForm: () => void;
+  /** ניווט למשפחות מסוננות לפי דרגת אמינות (אריחי הדרגות במדדי הבית, P2 פער 20). */
+  famTierReq: '' | 'titan' | 'lion' | 'pale' | 'red';
+  openFamiliesByTier: (tier: 'titan' | 'lion' | 'pale' | 'red') => void;
+  ackFamiliesTier: () => void;
 
   // ערכת נושא וקונפיגורציה
   /** קביעת קונפיגורציה חדשה + שמירתה כדריסת ריצה ב-localStorage. */
@@ -621,6 +625,9 @@ export const useApp = create<AppState>()((set, get) => {
     supFormReq: false,
     openSupporterForm: () => set({ view: 'supporters', supFormReq: true }),
     ackSupporterForm: () => set({ supFormReq: false }),
+    famTierReq: '' as const,
+    openFamiliesByTier: (tier) => set({ view: 'families', selFamilyId: null, famTierReq: tier }),
+    ackFamiliesTier: () => set({ famTierReq: '' }),
     // מנקה בחירה קודמת כדי שרשימת המשפחות (והטופס) יוצגו — לא כרטיס משפחה
     openFamilyForm: () => set({ view: 'families', selFamilyId: null, famFormReq: true }),
     ackFamilyForm: () => set({ famFormReq: false }),
