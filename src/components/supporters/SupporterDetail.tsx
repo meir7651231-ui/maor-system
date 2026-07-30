@@ -52,6 +52,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const [editOpen, setEditOpen] = useState(false);
   const [donOpen, setDonOpen] = useState(false);
   const [armDelete, setArmDelete] = useState(false);
+  // P3 פריט 11 — לחיצה על תרומה מסמנת את יומה בלוח האישי
+  const [calFocus, setCalFocus] = useState<string | null>(null);
 
   const score = supScore(sp);
   const tier = supTier(score);
@@ -248,7 +250,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <h3 style={{ fontSize: 15, marginBottom: 10 }}>
             🗓 {termOf(config, 'entity.donations', 'תרומות')} לפי חודש
           </h3>
-          <DonationCalendar supporter={sp} />
+          <DonationCalendar supporter={sp} focusIso={calFocus ?? undefined} />
         </div>
       )}
 
@@ -277,8 +279,15 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                 </tr>
               </thead>
               <tbody>
-                {donRows.map((r, i) => (
-                  <tr key={r.rid ?? r.src + '|' + r.date + '|' + i}>
+                {/* P3 פריט 11: קיטום תצוגה ל-60 (slice בלבד — הנתונים נשמרים);
+                    לחיצה על שורה מסמנת את יומה בלוח האישי (כמו בלגאסי) */}
+                {donRows.slice(0, 60).map((r, i) => (
+                  <tr
+                    key={r.rid ?? r.src + '|' + r.date + '|' + i}
+                    onClick={() => setCalFocus(r.date)}
+                    title="סימון היום בלוח התרומות האישי"
+                    style={{ cursor: 'pointer' }}
+                  >
                     <td>{fmtDate(r.date)}</td>
                     <td>{hebDateFull(r.date)}</td>
                     <td style={{ fontWeight: 700 }}>
@@ -292,6 +301,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                 ))}
               </tbody>
             </table>
+            {donRows.length > 60 && (
+              <div style={{ fontSize: 12, color: 'var(--ink-faint)', padding: '6px 2px' }}>
+                {'מוצגות 60 מתוך ' + donRows.length + ' — הכול נשמר וזמין בייצוא ובדוח המותאם'}
+              </div>
+            )}
           </div>
         )}
       </div>

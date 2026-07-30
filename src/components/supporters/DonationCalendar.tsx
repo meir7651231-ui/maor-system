@@ -6,7 +6,7 @@
  * שניהם עם מצב עברי (חודש עברי מלא א׳–ל׳) ורשימת-יום בלחיצה — legacy supCalData
  * (legacy-main-script.js:1496-1537). קריאה-בלבד — אינו משנה נתונים.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { hebParts, gem, gemYear, hebDateFull } from '../../lib/hebrew';
 import { useApp } from '../../store/useApp';
@@ -41,10 +41,22 @@ function DonCalGrid(props: {
   anchorIso: string;
   /** ניווט לתומכת מרשימת-היום (לוח כלל-ארגוני). */
   onGo?: (spId: string) => void;
+  /** סימון יום מבחוץ (P3 פריט 11) — לחיצה על תרומה בהיסטוריה מקפיצה לחודשה. */
+  focusIso?: string;
 }) {
   const [heb, setHeb] = useState(false);
   const [offset, setOffset] = useState(0);
   const [dayIso, setDayIso] = useState<string | null>(null);
+
+  // מיקוד חיצוני: קפיצה לחודש של היום המבוקש (בגריד הלועזי) + פתיחת רשימת-היום
+  useEffect(() => {
+    if (!props.focusIso) return;
+    const f = new Date(props.focusIso + 'T12:00:00');
+    const a = new Date(props.anchorIso + 'T12:00:00');
+    setHeb(false);
+    setOffset((f.getFullYear() - a.getFullYear()) * 12 + (f.getMonth() - a.getMonth()));
+    setDayIso(props.focusIso);
+  }, [props.focusIso, props.anchorIso]);
 
   const byDay = useMemo(() => {
     const m = new Map<string, SupCalEntry[]>();
@@ -251,11 +263,11 @@ function safeGem(d: Date): string {
 }
 
 /** הלוח האישי בכרטיס התומכת — תרומות + 🎯 יעד + אירועי מעקב (legacy supCalMine). */
-export function DonationCalendar({ supporter }: { supporter: Supporter }) {
+export function DonationCalendar({ supporter, focusIso }: { supporter: Supporter; focusIso?: string }) {
   const entries = useMemo(() => personalCalEntries(supporter), [supporter]);
   // עוגן — התרומה האחרונה (או היום), כמו קודם
   const last = supporter.donations.reduce((a, d) => (d.date > a ? d.date : a), '');
-  return <DonCalGrid entries={entries} anchorIso={last || localIso(new Date())} />;
+  return <DonCalGrid entries={entries} anchorIso={last || localIso(new Date())} focusIso={focusIso} />;
 }
 
 /** הלוח הכלל-ארגוני — כל התומכות (P1.4, legacy supCalAll); ניווט לכרטיס מהרשימה. */

@@ -29,6 +29,7 @@ export function SupporterForm(props: SupporterFormProps) {
     phone: sp?.phone ?? '',
     email: sp?.email ?? '',
     address: sp?.address ?? '',
+    city: sp?.city ?? '',
     idNum: sp?.idNum ?? '',
     cat: sp?.cat ?? '',
     forWho: sp?.forWho ?? '',
@@ -53,6 +54,7 @@ export function SupporterForm(props: SupporterFormProps) {
       phone: fixPhone(f.phone.trim()),
       email: f.email.trim(),
       address: f.address.trim(),
+      city: f.city.trim(),
       idNum: idn,
       cat: f.cat.trim(),
       forWho: f.forWho.trim(),
@@ -121,6 +123,10 @@ export function SupporterForm(props: SupporterFormProps) {
         </Field>
         <Field label="כתובת">
           <TextInput value={f.address} onChange={set('address')} />
+        </Field>
+        {/* עיר (P3 — סגירת סטיית P2): נכנסת לעמודת "עיר" בדוח המותאם המלא */}
+        <Field label="עיר">
+          <TextInput value={f.city} onChange={set('city')} />
         </Field>
         <Field label="קטגוריה">
           <TextInput value={f.cat} onChange={set('cat')} placeholder="קרן / עסק / פרטי…" />
