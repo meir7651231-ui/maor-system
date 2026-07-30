@@ -28,6 +28,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   const deleteEnrollment = useApp((s) => s.deleteEnrollment);
   const addPayment = useApp((s) => s.addPayment);
   const storeUndoPunch = useApp((s) => s.undoPunch);
+  const selectCourse = useApp((s) => s.selectCourse);
   const unlinkEvent = useApp((s) => s.unlinkEvent);
   const upsertEvent = useApp((s) => s.upsertEvent);
   const deleteEvent = useApp((s) => s.deleteEvent);
@@ -245,6 +246,17 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         </strong>
         <span style={chipStyle('#f6ead1', '#9a6414')}>{en.plan === 'punch' ? 'כרטיסייה' : planWord(en.plan)}</span>
         <span style={chipStyle(st.bg, st.c)}>{st.label}</span>
+        {/* לגאסי mg: קישור לכרטיס החוג (מעבר 199/199) */}
+        <button
+          type="button"
+          onClick={() => {
+            selectCourse(c.id);
+            props.onClose();
+          }}
+          style={{ border: 'none', background: 'transparent', color: 'var(--accent)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+        >
+          {'לכרטיס ה' + termOf(cfg, 'entity.course', 'חוג') + ' ←'}
+        </button>
       </div>
       <div style={{ fontSize: 13, color: 'var(--ink-soft)', fontWeight: 600, marginBottom: 12 }}>
         {en.plan === 'punch' ? 'יתרה: ' + rem + ' מתוך ' + en.purchased : en.used + ' נוכחויות מתחילת החודש'}
