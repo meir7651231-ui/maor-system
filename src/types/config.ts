@@ -11,7 +11,7 @@
  * (מסך הבית, פלטת הפקודות, כרטיס המשפחה וכו'). הפעלה מחדש מחזירה הכול כפי
  * שהיה. הבדיקה נעשית תמיד דרך moduleOn() ב-lib/config.ts (מפתח חסר = פעיל).
  */
-export type ModuleKey = 'families' | 'courses' | 'calendar' | 'diary' | 'supporters' | 'reports';
+export type ModuleKey = 'families' | 'courses' | 'calendar' | 'diary' | 'supporters' | 'reports' | 'tzedaka';
 
 export interface OrgConfig {
   /** מזהה קצר של הארגון (לשם קובץ/כתובת). */
@@ -46,6 +46,12 @@ export interface OrgConfig {
    * לא רואה/פותח את האשף ואינו יכול לשנות נושא. ההשוואה case-insensitive.
    */
   adminEmails?: string[];
+  /**
+   * תפקידים (P3 פריט 15, הכרעה 2): מיפוי מייל→teacherId למורות מחוברות.
+   * מורה רואה רק את החוגים שלה ופעולות הניהול מוסתרות. חסר/ריק = אין
+   * תפקידים — התנהגות של היום בדיוק. ההשוואה case-insensitive.
+   */
+  roles?: { teachers?: Record<string, string> };
   /**
    * חיבור ענן (Firebase) — opt-in פר-ארגון. מפתח חסר = המערכת מקומית בלבד,
    * בדיוק כמו היום. קיים = נדרשת התחברות (אימייל+סיסמה) וסנכרון Firestore.

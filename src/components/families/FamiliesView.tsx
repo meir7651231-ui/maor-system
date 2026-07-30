@@ -65,8 +65,15 @@ export function FamiliesView() {
   const selFamilyId = useApp((s) => s.selFamilyId);
   const selectFamily = useApp((s) => s.selectFamily);
   const config = useApp((s) => s.config);
+  const go = useApp((s) => s.go);
   const credOn = featureOn(config, 'families.cred');
   const finderOn = featureOn(config, 'families.finder');
+
+  // P3 פריט 18 — קיצור למקטע בהגדרות (⬆ ייבוא / ✓ בדיקת נתונים מהלגאסי)
+  function goSettingsSection(sectionId: string) {
+    go('settings');
+    setTimeout(() => document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' }), 250);
+  }
 
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('all');
@@ -92,6 +99,17 @@ export function FamiliesView() {
       ackFamilyForm();
     }
   }, [famFormReq, ackFamilyForm]);
+
+  // אריחי הדרגות במדדי הבית (P2 פער 20) — כניסה עם סינון דרגת אמינות מוכן
+  const famTierReq = useApp((s) => s.famTierReq);
+  const ackFamiliesTier = useApp((s) => s.ackFamiliesTier);
+  useEffect(() => {
+    if (famTierReq) {
+      setAdv({ ...EMPTY_ADV, tier: famTierReq });
+      setAdvOn(true);
+      ackFamiliesTier();
+    }
+  }, [famTierReq, ackFamiliesTier]);
 
   // ספירת שיבוצים לכל משפחה — נבנית פעם אחת לכל שינוי db במקום סריקת
   // db.enrollments המלאה בכל קריאה של famEnrollments (סינון 116/123 + מיון 147
@@ -283,6 +301,18 @@ export function FamiliesView() {
             {featureOn(config, 'settings.dedup') && (
               <Btn onClick={() => { window.location.hash = '#dedup'; }} title="זיהוי ומיזוג משפחות כפולות">
                 🔀 כפילויות
+              </Btn>
+            )}
+            {/* P3 פריט 18 — קיצורי הלגאסי חוזרים למסך (feature families.shortcuts):
+                מנווטים לסקשן הרלוונטי בהגדרות — היכולות עצמן שם */}
+            {featureOn(config, 'families.shortcuts') && featureOn(config, 'settings.import') && (
+              <Btn onClick={() => goSettingsSection('sec-import')} title="ייבוא נתונים — בהגדרות">
+                ⬆ ייבוא
+              </Btn>
+            )}
+            {featureOn(config, 'families.shortcuts') && featureOn(config, 'settings.audit') && (
+              <Btn onClick={() => goSettingsSection('sec-audit')} title="בדיקת תקינות נתונים — בהגדרות">
+                ✓ בדיקת נתונים
               </Btn>
             )}
             <Btn kind="primary" onClick={() => setFormOpen(true)}>

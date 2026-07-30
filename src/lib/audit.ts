@@ -67,8 +67,12 @@ export function phoneIssue(p: string | undefined): string | null {
 /**
  * הרצת הביקורת — מחזירה את כל הממצאים (לא ממוינים). הקיבוץ לקטגוריות
  * נעשה בתצוגה. הלוגיקה זהה לאב-הטיפוס עד לפרטי הניסוח.
+ *
+ * ביקורת מורחבת (P2 פער 22, feature settings.audit.extra): יעד-קשר שעבר
+ * ותרומות בסכום אפס/שלילי. todayIso מוזרק (טוהר — בלי שעון פנימי);
+ * ריק ⇒ בדיקת יעד-הקשר מדולגת. extra=false ⇒ שתי הבדיקות כבויות.
  */
-export function runAudit(db: Db): AuditIssue[] {
+export function runAudit(db: Db, todayIso = '', extra = true): AuditIssue[] {
   const issues: AuditIssue[] = [];
   const add = (cat: AuditCategory, title: string, famId?: string) => issues.push({ cat, title, famId });
   // הגנה מפני נתונים מיובאים פגומים — כלי הבדיקה לעולם לא קורס על מה שהוא בודק
@@ -191,6 +195,13 @@ export function runAudit(db: Db): AuditIssue[] {
           sumIls + (sumUsd ? ' + $' + sumUsd : '') + ' · ' + dons.length + ' תרומות)',
         spId: sp.id,
       });
+    // ——— ביקורת מורחבת (P2 פער 22) ———
+    if (extra && todayIso && sp.nextDate && sp.nextDate < todayIso)
+      issues.push({ cat: 'קשר', title: 'עבר יעד הקשר של "' + sp.name + '" (' + sp.nextDate + ')', spId: sp.id });
+    if (extra)
+      for (const d of dons)
+        if (!(d.amount > 0))
+          issues.push({ cat: 'לוגיקה', title: 'תרומה בסכום ' + d.amount + ' אצל "' + sp.name + '" (' + d.rid + ')', spId: sp.id });
     const nk = normName(sp.name);
     if (nk) (supByName[nk] = supByName[nk] || []).push(sp.id);
   }

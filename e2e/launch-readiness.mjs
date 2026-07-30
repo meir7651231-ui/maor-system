@@ -6,9 +6,10 @@
 import { chromium } from 'playwright-core';
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { extname, join, normalize } from 'node:path';
+import { extname, join, normalize, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = '/home/user/buildsmart/maor/dist';
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 const server = http.createServer(async (req, res) => {
   try {
@@ -31,8 +32,9 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', a
 const ctx = await b.newContext({ viewport: { width: 1000, height: 850 }, acceptDownloads: true });
 const pg = await ctx.newPage();
 const consoleErrors = [];
-pg.on('console', (m) => { if (m.type() === 'error' && !/config\.json/.test(m.text())) consoleErrors.push(m.text()); });
-pg.on('pageerror', (e) => consoleErrors.push('[pageerror] ' + e.message));
+let collectErrors = true; // מושבת רגעית בהקפצת ה-IDB-reset (דף demo.json מייצר 404 של favicon שאינו של האפליקציה)
+pg.on('console', (m) => { if (collectErrors && m.type() === 'error' && !/config\.json/.test(m.text())) consoleErrors.push(m.text()); });
+pg.on('pageerror', (e) => { if (collectErrors) consoleErrors.push('[pageerror] ' + e.message); });
 
 const txt = () => pg.evaluate(() => document.body.innerText);
 const famCount = () => pg.evaluate(() => { try { return JSON.parse(localStorage.getItem('maor_db')).families.length; } catch { return -1; } });
@@ -47,7 +49,15 @@ const navTo = async (label) => {
 };
 
 // ── מסע 1: פתיחה ריקה — האם ההדרכה ברורה? ──
+// config מוזרק בלי firebase ⇒ ענן כבוי ⇒ אין מסך התחברות שחוסם את המסעות
+// (localStorage גובר על config.json — ראה src/lib/config.ts + CLAUDE.md).
 await pg.goto(base, { waitUntil: 'networkidle', timeout: 30000 });
+await pg.evaluate(() => {
+  localStorage.clear();
+  localStorage.setItem('maor_org_config', JSON.stringify({ slug: 'default', orgName: 'עמותת מאור החסד', theme: 'or-rishon', modules: {} }));
+  localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10));
+});
+await pg.reload({ waitUntil: 'networkidle' });
 await pg.waitForTimeout(900);
 {
   const t = await txt();
@@ -58,7 +68,7 @@ await pg.waitForTimeout(900);
 try {
   await navTo('משפחות');
   await pg.waitForTimeout(400);
-  await clickText('+ משפחה חדשה');
+  await clickText('הוספת משפחה');
   await pg.waitForTimeout(400);
   await pg.locator('input[placeholder="כהן"]').fill('משפחת בדיקה');
   await pg.locator('button:has-text("שמירה")').first().click();
@@ -68,16 +78,25 @@ try {
   pass('הוספת משפחה ראשונה נשמרת ומופיעה', c === 1 && shown, `count=${c}`);
 } catch (e) { pass('הוספת משפחה ראשונה נשמרת ומופיעה', false, e.message.slice(0, 60)); }
 
-// ── מסע 3: טעינת דמו בלחיצה ──
+// ── מסע 3: טעינת דמו בלחיצה — הזרימה האמיתית של המשתמש ──
 try {
-  // חזרה לבית כדי לראות את באנר הדמו? הבאנר מופיע רק כשאין משפחות. נטען דרך הגדרות→שחזור? לא —
-  // הכפתור בבאנר. במקום, נטען דמו דרך fetch ישיר בעמוד (כמו הכפתור) לאימות הנתיב.
+  // הבאנר מופיע רק כשאין משפחות, ו-IndexedDB גובר על localStorage — לכן איפוס
+  // מלא של שתי השכבות (כמו לקוח טרי) ואז לחיצה על הכפתור האמיתי בבאנר.
+  // מחיקת ה-IDB חייבת לקרות כשהאפליקציה לא רצה (חיבור פתוח חוסם deleteDatabase),
+  // לכן עוברים רגע לדף באותו origin בלי האפליקציה (demo.json) ומוחקים משם.
+  collectErrors = false;
+  await pg.goto(base + 'demo.json', { waitUntil: 'load' });
   await pg.evaluate(async () => {
-    const res = await fetch('./demo.json', { cache: 'no-store' });
-    localStorage.setItem('maor_db', await res.text());
+    localStorage.clear();
+    localStorage.setItem('maor_org_config', JSON.stringify({ slug: 'default', orgName: 'עמותת מאור החסד', theme: 'or-rishon', modules: {} }));
+    localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10));
+    await new Promise((resolve) => { const rq = indexedDB.deleteDatabase('maor'); rq.onsuccess = rq.onerror = rq.onblocked = resolve; });
   });
-  await pg.reload({ waitUntil: 'networkidle' });
-  await pg.waitForTimeout(900);
+  await pg.goto(base, { waitUntil: 'networkidle' });
+  collectErrors = true;
+  await pg.waitForTimeout(700);
+  await clickText('📊 טעינת נתוני דמו');
+  await pg.waitForTimeout(1500);
   pass('טעינת דמו ממלאה 60 משפחות', (await famCount()) === 60);
 } catch (e) { pass('טעינת דמו ממלאה 60 משפחות', false, e.message.slice(0, 60)); }
 
@@ -112,6 +131,35 @@ try {
   const d = await dl;
   pass('הורדת גיבוי מלא עובדת', !!(await d.path()) || !!d.suggestedFilename());
 } catch (e) { pass('הורדת גיבוי מלא עובדת', false, e.message.slice(0, 60)); }
+
+// ── מסע 6: ייבוא גיבוי לגאסי (P0.1) — הקובץ החי → React בלי לאבד כלום ──
+try {
+  const fixture = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'legacy-backup.json');
+  await navTo('הגדרות');
+  await pg.waitForTimeout(600);
+  pg.once('dialog', (d) => void d.accept()); // confirm הדריסה של שחזור מקובץ
+  await pg.locator('label:has-text("⬆ שחזור מקובץ גיבוי") input[type=file]').setInputFiles(fixture);
+  await pg.waitForTimeout(1500); // debounce השמירה ל-localStorage הוא 500ms
+  const db = await pg.evaluate(() => { try { return JSON.parse(localStorage.getItem('maor_db')); } catch { return null; } });
+  const counts = db && db.families.length === 3 && db.supporters.length === 2 && db.courses.length === 1 &&
+    db.enrollments.length === 1 && db.teachers.length === 1 && db.rooms.length === 1;
+  const idsKept = db && db.families.map((f) => f.id).join(',') === 'fr12,wd7,fb3' && db.supporters[0].id === 'spi105';
+  const histKept = db && db.supporters[0].hist && db.supporters[0].hist.length === 2;
+  // ספירות על המסך — מסך המשפחות מציג את שלוש המשפחות מהגיבוי
+  await navTo('משפחות');
+  await pg.waitForTimeout(600);
+  const t1 = await txt();
+  const onScreen = t1.includes('פרידמן') && t1.includes('וידר') && t1.includes('פישביין');
+  pass('ייבוא גיבוי לגאסי — ספירות זהות, ids נשמרו, hist נשמר', !!(counts && idsKept && histKept && onScreen),
+    db ? `fam=${db.families.length} sup=${db.supporters.length}` : 'db=null');
+  // hist מוצג בכרטיס התומכת — 'מהקובץ ההיסטורי' (legacy supDonEvents)
+  await navTo('תורמים');
+  await pg.waitForTimeout(500);
+  await pg.locator('text=גולדשטיין').first().click();
+  await pg.waitForTimeout(600);
+  const t2 = await txt();
+  pass('כרטיס התומכת מציג תרומות "מהקובץ ההיסטורי"', t2.includes('מהקובץ ההיסטורי') && t2.includes('קבלה D-3'));
+} catch (e) { pass('ייבוא גיבוי לגאסי', false, e.message.slice(0, 60)); }
 
 // ── סיכום ──
 console.log('\n── סיכום ──');

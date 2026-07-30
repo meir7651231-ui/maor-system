@@ -5,14 +5,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp, useCourse } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, roleOf, teacherIdOf, termOf } from '../../lib/config';
 import { normSearch } from '../../lib/validate';
 import { Btn, Empty, PageHead, Select, TextInput } from '../ui';
 import { numMatch } from '../families/lib';
 import { CourseForm } from './CourseForm';
 import { CourseDetail } from './CourseDetail';
 import { CourseWheel } from '../wheel/CourseWheel';
-import { DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix } from './lib';
+import { coursesOfTeacher, DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
 
 type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2';
 
@@ -57,6 +57,20 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const selectCourse = useApp((s) => s.selectCourse);
   const cfg = useApp((s) => s.config);
   const wheelOn = featureOn(cfg, 'courses.wheel');
+  // רצועת חדרים LIVE (P2 פער 27) — "עכשיו" מתעדכן דקה-דקה בלי אינטראקציה
+  const roomsLiveOn = featureOn(cfg, 'courses.roomslive');
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    if (!roomsLiveOn) return;
+    const t = setInterval(() => setNowTick(Date.now()), 60_000);
+    return () => clearInterval(t);
+  }, [roomsLiveOn]);
+  const liveRooms = useMemo(() => (roomsLiveOn ? roomsNow(db, new Date(nowTick)) : []), [roomsLiveOn, db, nowTick]);
+  // תפקיד מורה (P3 פריט 15, הכרעה 2): מורה מחוברת רואה רק את החוגים שלה,
+  // ופעולות הניהול מוסתרות. בלי ענן/בלי roles — null ⇒ התנהגות של היום בדיוק.
+  const userEmail = useApp((s) => s.cloud.user?.email ?? null);
+  const rolesOn = featureOn(cfg, 'shell.roles');
+  const myTeacherId = rolesOn && roleOf(cfg, userEmail) === 'teacher' ? teacherIdOf(cfg, userEmail) : null;
 
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
@@ -65,6 +79,16 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const [colFOn, setColFOn] = useState(false);
   const [colF, setColF] = useState(EMPTY_CRS_COLF);
   const [formOpen, setFormOpen] = useState(false);
+
+  // בקשת "+ חוג" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
+  const courseFormReq = useApp((s) => s.courseFormReq);
+  const ackCourseForm = useApp((s) => s.ackCourseForm);
+  useEffect(() => {
+    if (courseFormReq) {
+      setFormOpen(true);
+      ackCourseForm();
+    }
+  }, [courseFormReq, ackCourseForm]);
 
   const view = db.ui.crsView;
   const teacherName = useCallback(
@@ -88,7 +112,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
 
   const shown = useMemo(() => {
     const nq = normSearch(q);
-    const list = db.courses.filter((c) => {
+    const list = coursesOfTeacher(db.courses, myTeacherId).filter((c) => {
       if (cat !== 'all' && c.cat !== cat) return false;
       if (sem !== 'all' && c.semester !== sem) return false;
       if (colF.name.trim() && !normSearch(c.name).includes(normSearch(colF.name))) return false;
@@ -178,12 +202,44 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             <Btn onClick={toggleView} title="החלפת תצוגה: גריד / רשימה">
               {view === 'list' ? '▦ גריד' : '☰ רשימה'}
             </Btn>
-            <Btn kind="primary" onClick={() => setFormOpen(true)}>
-              ➕ הוספת {termOf(cfg, 'entity.course', 'חוג')}
-            </Btn>
+            {!myTeacherId && (
+              <Btn kind="primary" onClick={() => setFormOpen(true)}>
+                ➕ הוספת {termOf(cfg, 'entity.course', 'חוג')}
+              </Btn>
+            )}
           </>
         }
       />
+
+      {/* רצועת חדרים LIVE (P2 פער 27) — 🟢 פנוי / 🔴 שם החוג שמתקיים עכשיו */}
+      {roomsLiveOn && liveRooms.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12 }}>
+          {liveRooms.map(({ room, busyWith }) => (
+            <button
+              key={room.id}
+              type="button"
+              onClick={() => busyWith && selectCourse(busyWith.id)}
+              title={busyWith ? 'מתקיים עכשיו — פתיחת החוג' : 'החדר פנוי עכשיו'}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '4px 10px',
+                borderRadius: 999,
+                border: '1px solid var(--line)',
+                background: busyWith ? '#fdeaea' : '#e4f5ea',
+                color: busyWith ? '#b91c1c' : '#12803c',
+                cursor: busyWith ? 'pointer' : 'default',
+              }}
+            >
+              <span aria-hidden>{busyWith ? '🔴' : '🟢'}</span>
+              {room.name + (busyWith ? ' · ' + busyWith.name : ' · פנוי')}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0' }}>
         <div style={{ flex: 1, minWidth: 200 }}>
@@ -310,6 +366,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                     >
                       <option value="all">הכל</option>
                       <option value="monthly">מנוי חודשי</option>
+                      {/* P3 פריט 2 — כל ארבעת המסלולים, בתוויות planWord */}
+                      <option value="half_year">מנוי חצי-שנתי</option>
+                      <option value="year">מנוי שנתי</option>
                       <option value="punch">כרטיסייה</option>
                     </select>
                   </th>

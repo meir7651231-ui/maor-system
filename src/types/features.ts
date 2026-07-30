@@ -14,7 +14,7 @@ export interface FeatureDef {
   label: string;
   /** תיאור קצר — מה נעלם כשמכבים. */
   desc: string;
-  /** המודול-אב; 'core'/'home'/'settings' אינם כפופים לטוגל מודול. */
+  /** המודול-אב; 'core'/'home'/'settings'/'shell' אינם כפופים לטוגל מודול. */
   module:
     | 'families'
     | 'courses'
@@ -22,9 +22,11 @@ export interface FeatureDef {
     | 'diary'
     | 'supporters'
     | 'reports'
+    | 'tzedaka'
     | 'home'
     | 'settings'
-    | 'core';
+    | 'core'
+    | 'shell';
 }
 
 export const FEATURES: FeatureDef[] = [
@@ -36,6 +38,9 @@ export const FEATURES: FeatureDef[] = [
   { key: 'families.media', label: 'הסכמות מדיה בטופס', desc: 'שדות הסכמת צילום ופרסום בטופס המשפחה', module: 'families' },
   { key: 'families.report', label: 'דוח משפחה להורדה', desc: 'הורדת דוח מרוכז על משפחה כקובץ', module: 'families' },
   { key: 'families.finder', label: 'גלגל מאתר המשפחות', desc: 'גלגל סינון חי בתוך מסך המשפחות — צלילה ציר אחרי ציר', module: 'families' },
+  { key: 'families.cardops', label: 'פעולות תפעול בכרטיס', desc: 'ניקוב, חיסור, ניהול והסרת שיבוץ + כרטיסי אב/אם להשלמה + "➕ אירוע" — ישירות מכרטיס המשפחה', module: 'families' },
+  { key: 'families.cred.trendCreditsOnly', label: 'מקדם מגמה על זיכויים בלבד', desc: 'דלוק: המקדם מוכפל רק על זיכויים (התנהגות המערכת); כבוי: מוכפל גם על עונשים (תאימות לקובץ החי)', module: 'families' },
+  { key: 'families.shortcuts', label: 'קיצורי ייבוא ובדיקה במסך', desc: 'כפתורי "⬆ ייבוא" ו"✓ בדיקת נתונים" בראש מסך המשפחות — קפיצה לסקשן בהגדרות (כמו בקובץ החי)', module: 'families' },
 
   // ——— חוגים ———
   { key: 'courses.punch', label: 'כרטיסיות ניקוב', desc: 'מכירת כרטיסיות וניקוב כניסות במקום מנוי', module: 'courses' },
@@ -45,14 +50,22 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.printout', label: 'תדפיס למורה', desc: 'הדפסת רשימת משתתפים ונוכחות למורה', module: 'courses' },
   // תת-יכולות עדינות (עצמאיות — בלוק/כפתור נפרד לכל אחת)
   { key: 'courses.punch.buy', label: 'קניית/טעינת כרטיסייה', desc: 'תיבת טעינת הניקובים בניהול השיבוץ', module: 'courses' },
+  { key: 'courses.punch.confirm', label: 'אישור כפול לניקוב', desc: 'לחיצה ראשונה "לאשר ניקוב?" ושנייה בתוך 3 שניות מבצעת — מונע ניקוב בטעות (כמו בקובץ החי)', module: 'courses' },
   { key: 'courses.punch.undo', label: 'ביטול ניקוב אחרון', desc: 'כפתור ביטול הניקוב האחרון', module: 'courses' },
   { key: 'courses.punch.switchmonthly', label: 'מעבר למנוי חודשי', desc: 'כפתור המרת כרטיסייה למנוי', module: 'courses' },
   { key: 'courses.printout.daily', label: 'דו"ח יומי מפורט', desc: 'כפתור הדו"ח היומי מפגש-מפגש', module: 'courses' },
   { key: 'courses.printout.custom', label: 'דו"ח מותאם (חוג)', desc: 'כפתור הדו"ח המותאם בכרטיס החוג', module: 'courses' },
   { key: 'courses.discounts', label: 'מדרגות מחיר', desc: 'הנחות ומדרגות מחיר לפי מספר נרשמים', module: 'courses' },
+  { key: 'courses.receipt.summary', label: 'קבלה מלאה', desc: 'שורות "סה"כ עסקה / שולם עד כה / יתרה / תשלום הבא" על הקבלה + הורדה חוזרת פר-תשלום', module: 'courses' },
+  { key: 'courses.enroll.smartfilter', label: 'סינון שיבוץ חכם', desc: 'סינון אוטומטי לפי גיל/מגדר בזרימת השיבוץ + מתג "הצג הכל" + אזהרת התנגשות לו"ז', module: 'courses' },
+  { key: 'courses.enroll.inlinecreate', label: 'תלמיד/ה חדש/ה מתוך השיבוץ', desc: 'יצירת משפחה חדשה והוספת בן משפחה ישירות ממודאל השיבוץ — בלי לצאת מהמסך', module: 'courses' },
+  { key: 'courses.roomslive', label: 'רצועת חדרים LIVE', desc: 'צ׳יפ לכל חדר בראש מסך החוגים — 🟢 פנוי / 🔴 החוג שמתקיים עכשיו (לחיצה פותחת אותו)', module: 'courses' },
+  { key: 'courses.gradeimg', label: 'טווח כיתות ותמונת חוג', desc: 'שדות מכיתה/עד-כיתה (גן–י"ב) שנכנסים לסינון השיבוץ החכם + תמונת חוג בטופס ובכרטיס', module: 'courses' },
 
   // ——— לוח שנה ———
   { key: 'calendar.dayview', label: 'תצוגת יום', desc: 'מעבר לתצוגת יום מפורטת בלוח השנה', module: 'calendar' },
+  { key: 'calendar.hebdefault', label: 'הלוח נפתח בעברי', desc: 'לוח השנה נפתח בגריד החודש העברי (כמו בקובץ החי) — כבוי: נפתח בלועזי', module: 'calendar' },
+  { key: 'calendar.upcoming', label: 'פאנל "הקרובים"', desc: '30 הימים הבאים מתחת ללוח — אירועים ושכבות עבריות, צ׳יפ משפחה לחיץ; כבוי: רשימת 14 הימים הישנה', module: 'calendar' },
   { key: 'calendar.layers', label: 'שכבות אירועים', desc: 'שכבות ימי הולדת, הצטרפות והרשמות על הלוח', module: 'calendar' },
   { key: 'calendar.blocking', label: 'חסימת שבת/חג והתנגשויות', desc: 'חסימת שבתות וחגים והתרעה על התנגשויות', module: 'calendar' },
   // חסימות הלוח — שתי היכולות ניתנות לכיבוי בנפרד (תת-דגלים של calendar.blocking)
@@ -79,6 +92,9 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.doncal', label: 'לוח תרומות בכרטיס', desc: 'לוח-חודש חזותי של תרומות התורם/ת + יעד הקשר הבא, בכרטיס התורם', module: 'supporters' },
   { key: 'supporters.customreport', label: 'דו"ח מותאם (תומכים)', desc: 'כפתור ייצוא דו"ח מותאם במסך התומכים', module: 'supporters' },
   { key: 'supporters.ayin.dailyreport', label: 'דוח יומי — מעקב טיפול', desc: 'כפתור ייצוא הדוח היומי של מעקב הטיפול (תת-דגל של מעקב טיפול)', module: 'supporters' },
+  { key: 'supporters.hist', label: 'תרומות מהקובץ ההיסטורי', desc: 'מיזוג התרומות שהגיעו מהקובץ ההיסטורי (גיבוי לגאסי) לרשימת "כל התרומות" בכרטיס', module: 'supporters' },
+  { key: 'supporters.ayin.sheet', label: 'גיליון מעקב להורדה/ייבוא', desc: 'ייצוא גיליון מעקב הטיפול ל-CSV, מילוי מחוץ למערכת וייבוא חזרה (תת-דגל של מעקב טיפול)', module: 'supporters' },
+  { key: 'supporters.import.preview', label: 'סיכום לפני ייבוא', desc: 'ייבוא תומכות דו-שלבי — בדיקת הקובץ והצגת חדשות/עדכונים לפני ההחלה; כבוי = החלה מיידית', module: 'supporters' },
 
   // ——— מסך הבית ———
   { key: 'home.digest', label: 'תקציר הבוקר', desc: 'תקציר יומי בראש מסך הבית', module: 'home' },
@@ -94,6 +110,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'home.goldbook', label: 'ווידג\'ט: ספר הזהב', desc: 'פודיום התורמים המובילים', module: 'home' },
   { key: 'home.hebcal', label: 'ווידג\'ט: הלוח העברי', desc: 'הפריטים הקרובים בלוח העברי', module: 'home' },
   { key: 'home.community', label: 'ווידג\'ט: אמינות קהילתית', desc: 'גריד הדרגות וממוצע האמינות', module: 'home' },
+  { key: 'home.coursemetrics', label: 'ווידג\'ט: תפוסת החוגים', desc: 'מד תפוסה ממוצעת, עמודה לכל חוג, הכנסה חודשית משוקללת ו"הכי מבוקשים"', module: 'home' },
+  { key: 'home.credmetrics', label: 'ווידג\'ט: מדד אמינות מורחב', desc: 'מד-מחוג, היסטוגרמת 20 סלים, מגמת היום ו"דורשות חיזוק"', module: 'home' },
   { key: 'home.contacts', label: 'ווידג\'ט: יעדי קשר', desc: 'רשימת יעדי הקשר עם תורמים', module: 'home' },
   { key: 'home.punchlow', label: 'ווידג\'ט: מלאי כרטיסיות', desc: 'כרטיסיות עם יתרה נמוכה', module: 'home' },
   { key: 'home.quick', label: 'ווידג\'ט: פעולות מהירות', desc: 'פאנל הפעולות המהירות במסך הבית', module: 'home' },
@@ -105,15 +123,36 @@ export const FEATURES: FeatureDef[] = [
   { key: 'reports.families', label: 'דוח מבט-על משפחות', desc: 'סעיף ספירות סטטוס/עיר/קהילה', module: 'reports' },
   { key: 'reports.punch', label: 'דוח כרטיסיות ניקוב', desc: 'סעיף מצב הכרטיסיות ויתרות נמוכות', module: 'reports' },
   { key: 'reports.periodic', label: 'דוחות תקופתיים', desc: 'מתגי יומי/שבועי/חודשי והפקה מיידית', module: 'reports' },
+  { key: 'reports.custom.full', label: 'דו"ח מותאם מלא', desc: 'רשימות השדות המלאות מהקובץ החי (חוגים 14 · תומכות 17), טווח עברי חי, תצוגה מקדימה עם עריכת הערות ובחר-הכל/נקה', module: 'reports' },
+  { key: 'reports.export.full', label: 'השלמות ייצוא CSV', desc: 'ייצוא אירועים ישיר (עברי+לועזי+עדיפות), עמודות כיתות/הכנסות בחוגים ופעולת "⬇ ייצוא CSV" בחיפוש המהיר', module: 'reports' },
+
+  // ——— קופות צדקה ———
+  { key: 'tzedaka.campaigns', label: 'מבצעי התרמה', desc: 'ניהול מבצעים עם יעד ושיוך ריקונים למבצע', module: 'tzedaka' },
+  { key: 'tzedaka.score', label: 'ניקוד רכזים', desc: 'ניקוד גיימיפיקציה אוטומטי על ריקונים + לוח מובילים', module: 'tzedaka' },
+  { key: 'tzedaka.showcase', label: 'מסך ראווה', desc: 'תצוגת ראווה של המבצע והרכזים המובילים למסך גדול', module: 'tzedaka' },
+  { key: 'tzedaka.calendar', label: 'לוח ייעודי', desc: 'לוח שנה פנימי לסבבי ריקון, מבצעים ותזכורות (מבודד מהלוח הראשי)', module: 'tzedaka' },
+  { key: 'tzedaka.inlinecreate', label: 'הוספת לא-רשומים', desc: 'יצירת משפחה חדשה או ילד/הורה חדש ישירות מתוך העמודה', module: 'tzedaka' },
 
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },
   { key: 'settings.teachers', label: 'ניהול מורים', desc: 'הוספה ועריכה של מורים בהגדרות', module: 'settings' },
   { key: 'settings.import', label: 'ייבוא נתונים', desc: 'ייבוא נתונים מקובץ אל המערכת', module: 'settings' },
+  { key: 'settings.import.families13', label: 'ייבוא משפחות 13 עמודות', desc: 'מסלול ייבוא המשפחות המלא מהקובץ החי — 13 עמודות, ניקויים אוטומטיים ותצוגה מקדימה (כבוי = מסלול 5 העמודות הישן)', module: 'settings' },
   { key: 'settings.audit', label: 'בדיקת תקינות נתונים', desc: 'סריקת כפילויות, ת"ז, טלפונים ולוגיקה — מסך ממצאים ותיקון אוטומטי', module: 'settings' },
   { key: 'settings.dedup', label: 'איחוד כפילויות משפחות', desc: 'זיהוי משפחות כפולות (טלפון/שם+עיר) ומיזוגן לרשומה אחת — בלי אובדן נתונים', module: 'settings' },
+  { key: 'settings.audit.extra', label: 'ביקורת מורחבת', desc: 'בדיקות נוספות: יעד-קשר שעבר, תרומות בסכום אפס/שלילי + שליחת ממצא למרכז הטיפול וקפיצה לאיחוד כפילויות', module: 'settings' },
+  { key: 'settings.dedup.fields', label: 'מיזוג שדה-שדה', desc: 'בחירת הערך הנכון לכל שדה (18 שדות) בין הרשומות הכפולות + מחיקת רשומה מהקבוצה', module: 'settings' },
   { key: 'settings.export', label: 'ייצוא נתונים', desc: 'ייצוא גיבוי ונתונים לקובץ', module: 'settings' },
   { key: 'settings.reset', label: 'איפוס מערכת', desc: 'מחיקת כל הנתונים ואיפוס המערכת', module: 'settings' },
+
+  // ——— מעטפת (shell) — ניווט ופלטת הפקודות ———
+  { key: 'shell.navhist', label: 'ניווט אחורה ↩', desc: 'מחסנית ניווט של 20 צעדים — כפתור "↩ חזרה" גלובלי + "נפתחו לאחרונה" בחיפוש', module: 'shell' },
+  { key: 'shell.palette.actions', label: 'פעולות בחיפוש המהיר', desc: 'העתקת כל הטלפונים, + אירוע/תזכורת/חוג/תומכת, ניקוב-מהיום + קיבוץ תוצאות לפי סוג', module: 'shell' },
+  { key: 'shell.guide', label: 'המדריך המהיר 📖', desc: 'מדריך מובנה — שורה לכל מסך + "המתכונים המהירים" מהקובץ החי, נפתח מהחיפוש המהיר', module: 'shell' },
+  { key: 'shell.demo', label: 'מצב הדגמה ▶', desc: 'סיור spotlight מודרך על המסכים האמיתיים לפי תסריט הקובץ החי — הבא/הקודם, Esc עוצר', module: 'shell' },
+  { key: 'shell.a11yfab', label: 'כפתור נגישות צף ♿', desc: 'FAB נגיש מכל מסך — גודל אותיות 80%-160% בצעדי 10%, ניגודיות, הדגשה, עצירת אנימציות וריווח', module: 'shell' },
+  { key: 'shell.roles', label: 'תפקיד מורה', desc: 'מורה מחוברת (roles.teachers בקונפיג) רואה רק את החוגים שלה; הוספה/עריכה/מחיקה והגדרות מוסתרות', module: 'shell' },
+  { key: 'shell.armdel', label: 'מחיקה בשני קליקים', desc: 'מחיקות משפחה/בן משפחה/חוג/שיבוץ בדפוס חימוש-ופקיעה 3.5ש׳ כמו בקובץ החי; כבוי = דיאלוג אישור של הדפדפן', module: 'shell' },
 
   // ——— ליבה ———
   { key: 'core.receipts', label: 'קבלות להורדה', desc: 'הפקת קבלות להורדה על תשלומים ותרומות', module: 'core' },
@@ -145,6 +184,10 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'nav.timer', label: 'שם טיימר הכסף', fallback: 'טיימר כסף' },
   { key: 'nav.cashbox', label: 'שם הקופה הרושמת', fallback: 'קופה רושמת' },
   { key: 'nav.bodymap', label: 'שם מפת אזורי הטיפול', fallback: 'אזורי טיפול' },
+  { key: 'nav.tzedaka', label: 'שם עמודת קופות הצדקה', fallback: 'קופות צדקה' },
+  { key: 'entity.tzCoordinator', label: 'רכז/ת קופות', fallback: 'רכז' },
+  { key: 'entity.tzBox', label: 'קופת צדקה', fallback: 'קופה' },
+  { key: 'entity.tzCampaign', label: 'מבצע התרמה', fallback: 'מבצע' },
 
   // ——— ישויות ———
   { key: 'entity.family', label: 'משפחה (יחיד)', fallback: 'משפחה' },

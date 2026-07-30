@@ -2,10 +2,10 @@
  * כרטיס קורס — תלמידים רשומים (ניקוב, ⚙ ניהול, ✕ חיסור, שיוך קבוצה),
  * שעות פעילות וקבוצות (עורך המפגשים) ופרטי הקורס.
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { Course, Enrollment, Weekday } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, roleOf, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { downloadCsv, type Cell } from '../../lib/csvx';
 import { buildCourseDailyRows } from '../../lib/courseDaily';
@@ -15,6 +15,7 @@ import { EnrollModal } from './EnrollModal';
 import { ManageModal } from './ManageModal';
 import { AbsenceModal } from './AbsenceModal';
 import { CustomExport } from '../reports/CustomExport';
+import { useArmed } from '../useArmed';
 import {
   DAY_NAMES,
   TINTS,
@@ -24,10 +25,15 @@ import {
   fmtDate,
   groupLabelOf,
   groupOptionsOf,
+  groupsHintFromAudience,
+  isoToday,
   modelMeta,
   planLabelOf,
   priceSuffix,
+  punchConfirmStep,
+  PUNCH_CONFIRM_MS,
   sessionsOf,
+  type PunchArm,
 } from './lib';
 
 const GROUP_PALETTE: [string, string][] = [
@@ -51,15 +57,27 @@ export function CourseDetail(props: { course: Course }) {
   const deleteCourse = useApp((s) => s.deleteCourse);
   const upsertCourse = useApp((s) => s.upsertCourse);
   const upsertEnrollment = useApp((s) => s.upsertEnrollment);
+  const upsertEvent = useApp((s) => s.upsertEvent);
+  const nextId = useApp((s) => s.nextId);
+  const go = useApp((s) => s.go);
   const punch = useApp((s) => s.punch);
   const addCred = useApp((s) => s.addCred);
   const toast = useApp((s) => s.toast);
   const cfg = useApp((s) => s.config);
 
   const punchOn = featureOn(cfg, 'courses.punch');
+  // אישור כפול לניקוב (P1.3, legacy:330-342) — דלוק כברירת מחדל כמו בקובץ החי
+  const punchConfirmOn = featureOn(cfg, 'courses.punch.confirm');
   const groupsOn = featureOn(cfg, 'courses.groups');
   const printoutOn = featureOn(cfg, 'courses.printout');
   const discountsOn = featureOn(cfg, 'courses.discounts');
+  // טווח כיתות + תמונת חוג (P2 פער 28)
+  const gradeimgOn = featureOn(cfg, 'courses.gradeimg');
+  // תפקיד מורה (P3 פריט 15) — עריכה/מחיקה מוסתרות למורה מחוברת
+  const userEmail = useApp((s) => s.cloud.user?.email ?? null);
+  const isTeacherUser = featureOn(cfg, 'shell.roles') && roleOf(cfg, userEmail) === 'teacher';
+  // מחיקה בשני קליקים (P3 פריט 19, shell.armdel)
+  const { armed, confirmTwice } = useArmed(featureOn(cfg, 'shell.armdel'));
 
   const c = props.course;
   const [prevCourseId, setPrevCourseId] = useState(c.id);
@@ -69,6 +87,9 @@ export function CourseDetail(props: { course: Course }) {
   const [sessDay, setSessDay] = useState('0');
   const [sessTime, setSessTime] = useState('17:00');
   const [sessLabel, setSessLabel] = useState('');
+  // זריון האישור הכפול לניקוב — מתפרק אוטומטית אחרי PUNCH_CONFIRM_MS (כמו בלגאסי)
+  const [punchArm, setPunchArm] = useState<PunchArm | null>(null);
+  const punchArmTimer = useRef(0);
 
   // מעבר לכרטיס קורס אחר בלי unmount (למשל בחירת חוג מפלטת הפקודות בזמן
   // שכרטיס פתוח) — הרכיב אינו ממופתח לפי id, ולכן חוצץ ההערה המקומי היה
@@ -100,6 +121,15 @@ export function CourseDetail(props: { course: Course }) {
       setModal({ kind: 'manage', enrollmentId: e.id });
       return;
     }
+    // אישור כפול (legacy:335-338): לחיצה ראשונה מזיינת, שנייה בתוך 3ש׳ מבצעת
+    const step = punchConfirmStep(punchConfirmOn, punchArm, e.id, Date.now());
+    if (!step.fire) {
+      setPunchArm(step.next);
+      window.clearTimeout(punchArmTimer.current);
+      punchArmTimer.current = window.setTimeout(() => setPunchArm(null), PUNCH_CONFIRM_MS);
+      return;
+    }
+    setPunchArm(null);
     // כרטיסייה — דרך פעולת punch של ה-store; מנוי חודשי — רישום נוכחות ידני.
     if (e.plan === 'punch') punch(e.id);
     else upsertEnrollment({ ...e, used: e.used + 1 });
@@ -240,12 +270,40 @@ export function CourseDetail(props: { course: Course }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {/* P3 פריט 3 — תזכורת ללוח על שם החוג (לגאסי: כפתור 🔔 בכרטיס) */}
+          <Btn
+            onClick={() => {
+              upsertEvent({
+                id: nextId('ev'),
+                title: 'תזכורת — ' + termOf(cfg, 'entity.course', 'חוג') + ' ' + c.name,
+                date: isoToday(),
+                time: sessionsOf(c)[0]?.time || '',
+                type: 'reminder',
+                customType: '',
+                notes: (teacher?.name ? termOf(cfg, 'entity.teacher', 'מורה') + ': ' + teacher.name : ''),
+                price: 0,
+                roomId: c.roomId || '',
+                famId: '',
+                priority: 'orange',
+                done: false,
+              });
+              toast('תזכורת ל"' + c.name + '" נוספה ללוח להיום');
+              go('calendar');
+            }}
+            title="יצירת אירוע תזכורת ללוח על שם החוג"
+          >
+            🔔 תזכורת ללוח
+          </Btn>
           {featureOn(cfg, 'courses.printout.custom') && (
             <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
               📊 דו"ח מותאם
             </Btn>
           )}
-          <Btn onClick={() => setModal({ kind: 'edit' })}>{'✎ עריכת ' + termOf(cfg, 'entity.course', 'חוג')}</Btn>
+          {/* מורה מחוברת (P3 פריט 15): עריכה ומחיקה הן פעולות ניהול — מוסתרות */}
+          {!isTeacherUser && (
+            <Btn onClick={() => setModal({ kind: 'edit' })}>{'✎ עריכת ' + termOf(cfg, 'entity.course', 'חוג')}</Btn>
+          )}
+          {!isTeacherUser && (
           <Btn
             kind="danger"
             onClick={() => {
@@ -254,16 +312,20 @@ export function CourseDetail(props: { course: Course }) {
                 'למחוק את ה' + termOf(cfg, 'entity.course', 'חוג') + ' "' + c.name + '"?' +
                 (n ? ' פעולה זו תמחק גם את ' + n + ' ה' + termOf(cfg, 'entity.enrollments', 'שיבוצים') + ' שלו (כולל תשלומים ונוכחות).' : '') +
                 '\n\nלא ניתן לבטל.';
-              if (window.confirm(msg)) {
-                deleteCourse(c.id);
-                selectCourse(null);
-                toast('ה' + termOf(cfg, 'entity.course', 'חוג') + ' נמחק');
+              // מחיקה בשני קליקים (P3 פריט 19, לגאסי armDel)
+              if (!confirmTwice('crs-' + c.id, msg)) {
+                toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תמחק לצמיתות');
+                return;
               }
+              deleteCourse(c.id);
+              selectCourse(null);
+              toast('ה' + termOf(cfg, 'entity.course', 'חוג') + ' נמחק');
             }}
             title={'מחיקת ה' + termOf(cfg, 'entity.course', 'חוג') + ' וכל ה' + termOf(cfg, 'entity.enrollments', 'שיבוצים') + ' שלו'}
           >
-            🗑 מחיקה
+            {armed === 'crs-' + c.id ? '🗑 בטוח? עוד לחיצה' : '🗑 מחיקה'}
           </Btn>
+          )}
         </div>
       </div>
 
@@ -396,7 +458,7 @@ export function CourseDetail(props: { course: Course }) {
                             <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
                               {punchOn && (
                                 <Btn sm kind={noBalance ? 'plain' : 'primary'} onClick={() => doPunch(e)}>
-                                  {noBalance ? 'חידוש ←' : 'ניקוב'}
+                                  {noBalance ? 'חידוש ←' : punchArm?.id === e.id ? 'לאשר ניקוב?' : 'ניקוב'}
                                 </Btn>
                               )}
                               <Btn
@@ -487,6 +549,31 @@ export function CourseDetail(props: { course: Course }) {
                 + הוספת קבוצה
               </Btn>
             </div>
+            {/* P3 פריט 1 — הצעה אוטומטית מטקסט קהל-היעד (לגאסי: 'קבוצות|פעמים'); לא דורס */}
+            {(() => {
+              const hint = groupsHintFromAudience(c.audience);
+              if (!hint || sessions.length >= hint) return null;
+              return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 12.5, color: 'var(--ink-soft)' }}>
+                  {'לפי קהל היעד ("' + c.audience + '") נראה שנדרשות ' + hint + ' קבוצות — כרגע ' + sessions.length + '.'}
+                  <Btn
+                    sm
+                    onClick={() => {
+                      const base = sessions[0];
+                      const add = Array.from({ length: hint - sessions.length }, (_, i) => ({
+                        day: base.day,
+                        time: base.time,
+                        label: 'קבוצה ' + (sessions.length + i + 1),
+                      }));
+                      upsertCourse({ ...c, sessions: [...sessions, ...add] });
+                      toast('נוספו ' + add.length + ' קבוצות לפי קהל היעד');
+                    }}
+                  >
+                    השלמה ל-{hint}
+                  </Btn>
+                </div>
+              );
+            })()}
           </section>
           )}
         </div>
@@ -494,7 +581,17 @@ export function CourseDetail(props: { course: Course }) {
         <section className="card">
           <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>{'פרטי ה' + termOf(cfg, 'entity.course', 'חוג')}</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+            {/* תמונת חוג + טווח כיתות (P2 פער 28, feature courses.gradeimg) */}
+            {gradeimgOn && c.img && (
+              <img
+                src={c.img}
+                alt={'תמונת ה' + termOf(cfg, 'entity.course', 'חוג')}
+                style={{ width: '100%', maxHeight: 160, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--line)' }}
+              />
+            )}
             {detailRow('קהל יעד', c.audience || 'כללי')}
+            {gradeimgOn && (c.gradeMin || c.gradeMax) &&
+              detailRow('כיתות', [c.gradeMin, c.gradeMax].filter(Boolean).join('–'))}
             {detailRow(termOf(cfg, 'entity.teacher', 'מורה'), teacher?.name ?? '—')}
             {detailRow('טלפון ' + termOf(cfg, 'entity.teacher', 'מורה'), teacher?.phone || '—')}
             {detailRow('מחיר מלא', c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—')}

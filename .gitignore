@@ -1,2 +1,9 @@
 node_modules/
 dist/
+e2e/shots/
+*.tsbuildinfo
+.env
+.env.*
+.claude/settings.local.json
+# אישור push ל-main — local-only, per-הוראה מפורשת בלבד (לעולם לא ב-git)
+.allow_push_main

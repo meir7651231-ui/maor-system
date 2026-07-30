@@ -48,11 +48,20 @@ export interface Tier {
   dot: string;
 }
 
+/** סף מדד-אמינות "סיכון" — יישור ללגאסי (tierOf red). ratchet: legacy tier red <500. */
+export const CRED_RED_THRESHOLD = 500;
+
+/** כללי הניקוד — "איך משפרים?" (P3 פריט 8) — מילה-במילה מהלגאסי (markup:961). */
+export const CRED_HELP_TEXT =
+  'נוכחות +5 · דיוק +2 · פעולה קהילתית +15 · ביטול מוקדם 0 · ' +
+  'ביטול מאוחר (‎<48ש׳) ‎-10 · No-Show ‎-20 · אי-פעילות ‎-2/יום · ' +
+  'מוכפל ב-TrendFactor (0.8–1.2) לפי 3 הפעולות האחרונות';
+
 /** דרגת מדד האמינות — זהה לחלוקה במקור (950/800/500). */
 export function tierOf(score: number): Tier {
   if (score >= 950) return { key: 'titan', label: 'טיטאן', bg: '#fdf3dd', c: '#9a6414', dot: '#f3c76b' };
   if (score >= 800) return { key: 'lion', label: 'לביאה', bg: '#e4f5ea', c: '#12803c', dot: '#16a34a' };
-  if (score >= 500) return { key: 'pale', label: 'טעון שיפור', bg: '#fdf1d4', c: '#9a6414', dot: '#d97706' };
+  if (score >= CRED_RED_THRESHOLD) return { key: 'pale', label: 'טעון שיפור', bg: '#fdf1d4', c: '#9a6414', dot: '#d97706' };
   return { key: 'red', label: 'סיכון נטישה', bg: '#fdeaea', c: '#b91c1c', dot: '#dc2626' };
 }
 
@@ -129,8 +138,8 @@ export interface FamHistoryEntry {
 
 /**
  * היסטוריית הפעולות של המשפחה (כמו famHistoryOf במקור) — נגזרת מהנתונים:
- * הצטרפות · לוג מדד האמינות · מסמכים · שיבוצים · תשלומים · היעדרויות.
- * ממוינת מהחדש לישן, עד 40 הפעולות האחרונות.
+ * הצטרפות · אירועי הלוח של המשפחה (P3 פריט 9) · לוג מדד האמינות · מסמכים ·
+ * שיבוצים · תשלומים · היעדרויות. ממוינת מהחדש לישן, עד 40 הפעולות האחרונות.
  */
 export function famHistoryOf(db: Db, fam: Family, config: OrgConfig = DEFAULT_CONFIG): FamHistoryEntry[] {
   const out: FamHistoryEntry[] = [];
@@ -138,6 +147,11 @@ export function famHistoryOf(db: Db, fam: Family, config: OrgConfig = DEFAULT_CO
     if (date) out.push({ date, tag, bg, c, text });
   };
   if (fam.createdAt) push(fam.createdAt, 'הצטרפות', '#e7edf5', '#3a5a86', 'המשפחה הצטרפה');
+  // אירועי הלוח של המשפחה (P3 פריט 9) — נשזרים בציר, כולל סימון ✓ בוצע
+  for (const ev of db.events) {
+    if (ev.famId !== fam.id || !ev.date) continue;
+    push(ev.date, 'אירוע', '#efe7f3', '#7c3aed', ev.title + (ev.time ? ' · ' + ev.time : '') + (ev.done ? ' · ✓ בוצע' : ''));
+  }
   for (const l of fam.cred?.log ?? []) {
     push(l.date, termOf(config, 'entity.cred', 'אמינות'), '#f6ead1', '#9a6414', l.reason + ' (' + (l.delta > 0 ? '+' : '') + l.delta + ' נק׳)');
   }

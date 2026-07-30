@@ -194,6 +194,10 @@ export function DayModal(props: {
               onKeyDown={(e) => e.key === 'Enter' && go(it)}
             >
               {it.label}
+              {/* שורת משנה (P3 פריט 6, לגאסי): מורה · חדר · N רשומים / הערות */}
+              {it.sub && (
+                <span style={{ display: 'block', fontSize: 11, fontWeight: 500, opacity: 0.75 }}>{it.sub}</span>
+              )}
             </span>
             <span style={{ fontSize: 11, color: 'var(--ink-faint)', fontWeight: 600, whiteSpace: 'nowrap' }}>
               {it.typeLabel}

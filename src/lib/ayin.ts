@@ -233,3 +233,176 @@ function fmtD(iso: string): string {
   const [y, m, d] = iso.split('-');
   return `${d}/${m}/${y}`;
 }
+
+/* ── גיליון העיניים — ייצוא/ייבוא round-trip (feature supporters.ayin.sheet) ──
+   ratchet: ייצוא verbatim מ-legacy-main-script.js:196-198 (exportImportFormat,
+   kind==='ayin'), ייבוא מ-legacy:852-869 (processImport) והחלה מ-legacy:983-993
+   (applyImport). שם הקובץ: maor-ayin-eyes.csv. */
+
+/** כותרת הגיליון — בדיוק כמו בלגאסי (legacy:196). */
+export const AYIN_SHEET_HEADER = [
+  'תומכת',
+  'טלפון',
+  'שם למסירה',
+  'כמה עיניים',
+  'נמסר (כן/לא)',
+  'שולם (כן/לא)',
+  'תשובה/הערה',
+  'עופרת בוצעה (כן/לא)',
+] as const;
+
+/**
+ * שורות הייצוא — שורה לכל שם בתיק (legacy:196-198): 'נמסר'=n.done,
+ * 'שולם'=paid ברמת התיק, 'תשובה'=answers[0].note או answeredNote (פסיקים→רווח),
+ * 'עופרת בוצעה'='כן' כש-stage ∈ {eyes,answer,done}. eyes ריק נשאר ריק.
+ */
+export function ayinSheetRows(supporters: Supporter[]): string[][] {
+  const rows: string[][] = [[...AYIN_SHEET_HEADER]];
+  for (const sp of supporters) {
+    const a = sp.ayin;
+    if (!a) continue;
+    const lastAns = a.answers[0];
+    const leadDone = ['eyes', 'answer', 'done'].includes(a.stage) ? 'כן' : 'לא';
+    for (const n of a.names) {
+      rows.push([
+        sp.name,
+        sp.phone || '',
+        n.name,
+        n.eyes === '' || n.eyes == null ? '' : String(n.eyes),
+        n.done ? 'כן' : 'לא',
+        a.paid ? 'כן' : 'לא',
+        (lastAns ? lastAns.note : a.answeredNote || '').replace(/,/g, ' '),
+        leadDone,
+      ]);
+    }
+  }
+  return rows;
+}
+
+/** עדכון אחד מהגיליון — הפניה לתומכת ולשם, וערכים שנמצאו בשורה (null = לא עודכן). */
+export interface AyinSheetUpd {
+  supporterId: string;
+  nameId: string;
+  eyes: number | null;
+  done: boolean | null;
+  paid: boolean | null;
+  answer: string | null;
+  lead: boolean | null;
+}
+
+export interface AyinSheetParse {
+  upds: AyinSheetUpd[];
+  /** שורות עם שם שלא הותאם לשם קיים במערכת. */
+  miss: number;
+  /** שגיאת עמודות חובה (שם למסירה / כמה עיניים) — כשקיימת, upds ריק. */
+  error?: string;
+}
+
+/**
+ * פענוח גיליון שחזר — טהור, בדיוק לפי legacy:852-869: זיהוי עמודות לפי הכלה,
+ * התאמת תומכת+שם ב-normName, yes() לפי /כן|yes|✓|v|שולם/i, שורה בלי שום ערך
+ * מדולגת, שם שלא נמצא נספר miss. eyes=0 תקין (ספרות בלבד).
+ */
+export function parseAyinSheet(rows: string[][], supporters: Supporter[]): AyinSheetParse {
+  if (rows.length < 2) return { upds: [], miss: 0, error: 'הקובץ ריק או לא בפורמט CSV' };
+  const clean = (x: string | undefined) => (x ?? '').replace(/\s+/g, ' ').trim();
+  const header = (rows[0] ?? []).map((h) => clean(h));
+  const hIdx = (keys: string[]) => header.findIndex((h) => keys.some((k) => h.includes(k)));
+  const iSup = hIdx(['תומכת', 'תומך']);
+  const iNm = hIdx(['שם למסירה', 'שם לעופרת', 'שם']);
+  const iEyes = hIdx(['עיניים']);
+  const iDone = hIdx(['נמסר']);
+  const iPaid = hIdx(['שולם', 'תשלום']);
+  const iAns = hIdx(['תשובה', 'הערה']);
+  const iLead = hIdx(['עופרת']);
+  if (iNm < 0 || iEyes < 0) {
+    return { upds: [], miss: 0, error: 'חסרות עמודות "שם למסירה" ו/או "כמה עיניים"' };
+  }
+  const yes = (v: string) => /כן|yes|✓|v|שולם/i.test(v);
+  const upds: AyinSheetUpd[] = [];
+  let miss = 0;
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r] ?? [];
+    const supN = clean(iSup >= 0 ? row[iSup] : '');
+    const nm = clean(row[iNm]);
+    if (!nm) continue;
+    const raw = clean(row[iEyes]);
+    const eyes = /^\d+$/.test(raw) ? +raw : null;
+    const doneRaw = clean(iDone >= 0 ? row[iDone] : '');
+    const paidRaw = iPaid >= 0 ? clean(row[iPaid]) : '';
+    const ansRaw = iAns >= 0 ? clean(row[iAns]) : '';
+    const leadRaw = iLead >= 0 ? clean(row[iLead]) : '';
+    const sp = supporters.find(
+      (x) =>
+        (!supN || normName(x.name) === normName(supN)) &&
+        (x.ayin?.names ?? []).some((n) => normName(n.name) === normName(nm)),
+    );
+    if (!sp) {
+      miss++;
+      continue;
+    }
+    const rec = (sp.ayin?.names ?? []).find((n) => normName(n.name) === normName(nm))!;
+    if (eyes == null && !doneRaw && !paidRaw && !ansRaw && !leadRaw) continue;
+    upds.push({
+      supporterId: sp.id,
+      nameId: rec.id,
+      eyes,
+      done: doneRaw ? yes(doneRaw) : null,
+      paid: paidRaw ? yes(paidRaw) : null,
+      answer: ansRaw || null,
+      lead: leadRaw ? yes(leadRaw) : null,
+    });
+  }
+  return { upds, miss };
+}
+
+/**
+ * החלת העדכונים — טהורה ואימוטבילית, בדיוק לפי legacy:983-993:
+ * eyes השתנה → unshift ל-log {date,eyes,name}; done; paid ברמת התיק; answer עם
+ * דה-דופ מול ההערות הקיימות + answeredNote; lead='כן' ו-stage ∉ {eyes,answer,done}
+ * → stage='eyes'; תמיד lastTouch=today. מחזירה גם את ספירת רישומי ה-log.
+ */
+export function applyAyinSheet(
+  supporters: Supporter[],
+  upds: AyinSheetUpd[],
+  today: string,
+): { supporters: Supporter[]; logged: number } {
+  let logged = 0;
+  const byId = new Map<string, AyinSheetUpd[]>();
+  for (const u of upds) {
+    const arr = byId.get(u.supporterId) ?? [];
+    arr.push(u);
+    byId.set(u.supporterId, arr);
+  }
+  const out = supporters.map((sp) => {
+    const mine = byId.get(sp.id);
+    if (!mine || !sp.ayin) return sp;
+    let a: AyinCase = { ...sp.ayin };
+    for (const u of mine) {
+      const rec = a.names.find((n) => n.id === u.nameId);
+      if (!rec) continue;
+      if (u.eyes != null && +rec.eyes !== u.eyes) {
+        a = { ...a, log: [{ date: today, eyes: u.eyes, name: rec.name }, ...a.log] };
+        logged++;
+      }
+      if (u.eyes != null || u.done != null) {
+        a = {
+          ...a,
+          names: a.names.map((n) =>
+            n.id === u.nameId
+              ? { ...n, ...(u.eyes != null ? { eyes: u.eyes } : {}), ...(u.done != null ? { done: u.done } : {}) }
+              : n,
+          ),
+        };
+      }
+      if (u.paid != null) a = { ...a, paid: u.paid };
+      if (u.answer && !a.answers.some((x) => x.note === u.answer)) {
+        a = { ...a, answers: [{ date: today, note: u.answer }, ...a.answers], answeredNote: u.answer };
+      }
+      if (u.lead && !['eyes', 'answer', 'done'].includes(a.stage)) a = { ...a, stage: 'eyes' };
+      a = { ...a, lastTouch: today };
+    }
+    return { ...sp, ayin: a };
+  });
+  return { supporters: out, logged };
+}

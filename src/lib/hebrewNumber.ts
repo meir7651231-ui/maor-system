@@ -42,8 +42,9 @@ function thousandWords(th: number): string[] {
   if (th === 1) return ['אלף'];
   if (th === 2) return ['אלפיים'];
   if (THOUSAND_CONSTRUCT[th]) return [THOUSAND_CONSTRUCT[th] + ' אלפים'];
-  // 11..999 אלף — "אחד עשר אלף" וכו׳ (יחיד "אלף")
-  return [...words0_999(th), 'אלף'];
+  // 11..999 אלף — "אחד עשר אלף" וכו׳ (יחיד "אלף"). איבר אחד: החזרת מערך שטוח
+  // גרמה ל-joinHeb להצמיד ו׳ ל"אלף" עצמו ("שמונה עשר ואלף") — על קבלת מס.
+  return [joinHeb(words0_999(th)) + ' אלף'];
 }
 
 /** מחבר רשימת מילים עם ו׳ חיברת לפני האחרונה (אם יש ≥2). */
@@ -65,7 +66,8 @@ export function integerInWords(n: number): string | null {
   if (millions) {
     if (millions === 1) groups.push('מיליון');
     else if (millions === 2) groups.push('שני מיליון');
-    else groups.push(...words0_999(millions), 'מיליון');
+    // איבר אחד — אותו באג-דפוס כמו באלפים ("שמונה עשר ומיליון")
+    else groups.push(joinHeb(words0_999(millions)) + ' מיליון');
   }
   if (thousands) groups.push(...thousandWords(thousands));
   if (rest) groups.push(...words0_999(rest));

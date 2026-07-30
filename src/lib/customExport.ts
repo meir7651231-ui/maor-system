@@ -11,7 +11,8 @@ import { featureOn } from './config';
 import { featLabel, itemLabel, stageLabel, unitLabel } from './ayin';
 import { hebDateFull, hebParts, hebAnnualEq } from './hebrew';
 import { EV_META } from './eventMeta';
-import { enrollCount } from '../components/courses/lib';
+import { DAY_NAMES, enrollCount, sessionsOf } from '../components/courses/lib';
+import { supScore, supTier } from '../components/supporters/lib';
 
 export type ExportTarget = 'courses' | 'events' | 'supporters';
 
@@ -26,17 +27,41 @@ export interface ExpField {
 }
 
 
-/** הגדרות השדות ליעד — תוויות מעקב הטיפול עוברות דרך מילון המונחים. */
+/**
+ * הגדרות השדות ליעד — תוויות מעקב הטיפול עוברות דרך מילון המונחים.
+ * הדוח המלא (P2 פער 23, feature reports.custom.full — חסר=פעיל): רשימות
+ * השדות המלאות מהלגאסי (expFieldDefs, legacy:1699-1706) — קורסים 14,
+ * תומכות 17; false = הרשימות המקוצרות שקדמו לפער.
+ */
 export function expFieldDefs(cfg: OrgConfig, target: ExportTarget): ExpField[] {
+  const full = featureOn(cfg, 'reports.custom.full');
   if (target === 'courses') {
+    if (!full) {
+      return [
+        { key: 'name', label: 'שם החוג' },
+        { key: 'teacher', label: 'מורה + טלפון' },
+        { key: 'model', label: 'מסלול ומחיר' },
+        { key: 'occ', label: 'תפוסה' },
+        { key: 'students', label: 'רשימת תלמידים' },
+        { key: 'pays', label: 'תשלומים בטווח' },
+        { key: 'abs', label: 'חיסורים בטווח' },
+      ];
+    }
     return [
       { key: 'name', label: 'שם החוג' },
       { key: 'teacher', label: 'מורה + טלפון' },
+      { key: 'grade', label: 'כיתות' },
+      { key: 'audience', label: 'קהל יעד' },
+      { key: 'room', label: 'חדר' },
+      { key: 'schedule', label: 'יום ושעה' },
       { key: 'model', label: 'מסלול ומחיר' },
       { key: 'occ', label: 'תפוסה' },
       { key: 'students', label: 'רשימת תלמידים' },
+      { key: 'studentsFull', label: 'תלמידים + טלפון + יתרה' },
       { key: 'pays', label: 'תשלומים בטווח' },
+      { key: 'revenue', label: 'סה"כ הכנסות' },
       { key: 'abs', label: 'חיסורים בטווח' },
+      { key: 'notes', label: 'הערות' },
     ];
   }
   if (target === 'events') {
@@ -51,21 +76,62 @@ export function expFieldDefs(cfg: OrgConfig, target: ExportTarget): ExpField[] {
       { key: 'done', label: 'בוצע' },
     ];
   }
+  const ayinOn = featureOn(cfg, 'supporters.ayin');
+  if (!full) {
+    const defs: ExpField[] = [
+      { key: 'name', label: 'שם' },
+      { key: 'phone', label: 'טלפון' },
+      { key: 'email', label: 'אימייל' },
+      { key: 'dons', label: 'תרומות בטווח (מספר + סכום)' },
+    ];
+    if (ayinOn) {
+      defs.push(
+        { key: 'stage', label: 'שלב ' + featLabel(cfg) },
+        { key: 'names', label: itemLabel(cfg) + ' + ' + unitLabel(cfg) },
+        { key: 'answers', label: 'תשובות/הערות בטווח' },
+        { key: 'next', label: 'תאריך יעד לקשר' },
+      );
+    }
+    return defs;
+  }
   const defs: ExpField[] = [
     { key: 'name', label: 'שם' },
     { key: 'phone', label: 'טלפון' },
     { key: 'email', label: 'אימייל' },
+    { key: 'address', label: 'כתובת' },
+    { key: 'city', label: 'עיר' },
+    { key: 'cat', label: 'קטגוריה' },
+    { key: 'forWho', label: 'עבור מי' },
     { key: 'dons', label: 'תרומות בטווח (מספר + סכום)' },
+    { key: 'donsAll', label: 'סה"כ תרומות (כל הזמן)' },
+    { key: 'tier', label: 'דירוג' },
   ];
-  if (featureOn(cfg, 'supporters.ayin')) {
+  if (ayinOn) {
     defs.push(
       { key: 'stage', label: 'שלב ' + featLabel(cfg) },
       { key: 'names', label: itemLabel(cfg) + ' + ' + unitLabel(cfg) },
+      { key: 'eyesTotal', label: 'סה"כ ' + unitLabel(cfg) },
+      { key: 'paid', label: 'שולם' },
       { key: 'answers', label: 'תשובות/הערות בטווח' },
       { key: 'next', label: 'תאריך יעד לקשר' },
     );
   }
+  defs.push({ key: 'notes', label: 'הערות' });
   return defs;
+}
+
+/**
+ * דריסת עמודה בשורות שנבנו (עריכת "הערות" בתצוגה המקדימה — P2 פער 23):
+ * לייצוא בלבד, ה-DB לא משתנה. המפתח = אינדקס השורה (0 = כותרת, לא נדרסת).
+ */
+export function overrideColumn(rows: Cell[][], colIdx: number, overrides: Record<number, string>): Cell[][] {
+  if (colIdx < 0) return rows;
+  return rows.map((r, i) => {
+    if (i === 0 || overrides[i] === undefined) return r;
+    const c = [...r];
+    c[colIdx] = overrides[i];
+    return c;
+  });
 }
 
 function inR(iso: string, r: ExportRange): boolean {
@@ -103,16 +169,23 @@ export function buildCustomExport(
   const pick = (obj: Record<string, Cell>) => defs.map((f) => obj[f.key] ?? '');
 
   if (target === 'courses') {
-    // אינדקס בני משפחה לשמות התלמידים (בלי לגעת ב-store)
-    const memberFirst = new Map<string, string>();
-    for (const fam of db.families) for (const m of fam.members) memberFirst.set(m.id, m.first);
+    // אינדקס בני משפחה לשמות התלמידים (בלי לגעת ב-store); טלפון — של הילד/ה,
+    // fallback לטלפון המשפחה (לעמודת studentsFull של הדוח המלא)
+    const memberInfo = new Map<string, { first: string; phone: string }>();
+    for (const fam of db.families)
+      for (const m of fam.members) memberInfo.set(m.id, { first: m.first, phone: m.phone || fam.phone || '' });
+    const roomName = new Map(db.rooms.map((r) => [r.id, r.name]));
     for (const c of db.courses) {
       const ens = db.enrollments.filter((e) => e.courseId === c.id);
       let payN = 0;
       let paySum = 0;
       let absN = 0;
+      let revenue = 0;
       for (const e of ens) {
-        for (const p of e.payments) if (inR(p.date, range)) { payN++; paySum += p.amount || 0; }
+        for (const p of e.payments) {
+          revenue += p.amount || 0;
+          if (inR(p.date, range)) { payN++; paySum += p.amount || 0; }
+        }
         for (const ab of e.absences) if (inR(ab.date, range)) absN++;
       }
       const t = db.teachers.find((x) => x.id === c.teacherId);
@@ -120,6 +193,12 @@ export function buildCustomExport(
         pick({
           name: c.name,
           teacher: (t?.name || '') + (t?.phone ? ' ' + t.phone : ''),
+          grade: c.gradeMin || c.gradeMax ? [c.gradeMin, c.gradeMax].filter(Boolean).join('–') : '',
+          audience: c.audience || '',
+          room: roomName.get(c.roomId) || '',
+          schedule: sessionsOf(c)
+            .map((s) => ('יום ' + DAY_NAMES[s.day] + (s.time ? ' ' + s.time : '')).trim())
+            .join(' · '),
           model:
             (c.model === 'punch'
               ? 'כרטיסייה'
@@ -131,9 +210,20 @@ export function buildCustomExport(
             ' · ₪' +
             (c.price || 0),
           occ: enrollCount(db, c.id) + '/' + (c.maxStudents || '—'),
-          students: ens.map((e) => memberFirst.get(e.memberId) || '').filter(Boolean).join(' · '),
+          students: ens.map((e) => memberInfo.get(e.memberId)?.first || '').filter(Boolean).join(' · '),
+          studentsFull: ens
+            .map((e) => {
+              const mi = memberInfo.get(e.memberId);
+              if (!mi) return '';
+              const paid = (e.payments || []).reduce((a, p) => a + (p.amount || 0), 0);
+              return mi.first + (mi.phone ? ' ' + mi.phone : '') + ' · יתרה ₪' + Math.max(0, (e.totalDue || 0) - paid);
+            })
+            .filter(Boolean)
+            .join(' | '),
           pays: payN + ' תשלומים · ₪' + paySum,
+          revenue: '₪' + revenue,
           abs: absN + ' חיסורים',
+          notes: c.notes || '',
         }),
       );
     }
@@ -200,13 +290,22 @@ export function buildCustomExport(
       name: sp.name,
       phone: sp.phone || '',
       email: sp.email || '',
+      address: sp.address || '',
+      city: sp.city || '',
+      cat: sp.cat || '',
+      forWho: sp.forWho || '',
       dons: dons.length + ' תרומות · ₪' + ils + (usd ? ' + $' + usd : ''),
+      donsAll: (sp.count || 0) + ' תרומות · ₪' + (sp.ils || 0) + (sp.usd ? ' + $' + sp.usd : ''),
+      tier: supTier(supScore(sp)).label,
+      notes: sp.notes || '',
     };
     if (ayinOn && a) {
       obj.stage = stageLabel(cfg, a.stage);
       obj.names = a.names
         .map((n) => n.name + (n.eyes !== '' && n.eyes != null ? ' ·' + n.eyes : '') + (n.done ? ' ✓' : ''))
         .join(' · ');
+      obj.eyesTotal = String(a.names.reduce((x, n) => x + (+n.eyes! || 0), 0));
+      obj.paid = a.paid ? 'כן' : 'לא';
       obj.answers = answers.map((x) => x.note).join(' | ');
       obj.next = a.nextTalk ? fmtD(a.nextTalk) + (a.nextTalkTime ? ' ' + a.nextTalkTime : '') : '';
     }

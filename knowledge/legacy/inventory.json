@@ -1,0 +1,1711 @@
+[
+ {
+  "key": "markup",
+  "behaviors": [
+   "מנוע אמינות (Credibility Engine): נוכחות +5 · דיוק +2 · פעולה קהילתית +15 · ביטול מוקדם 0 · ביטול מאוחר (<48 שעות) ‎-10 · No-Show ‎-20 · אי-פעילות ‎-2 ליום (Batch יומי אחרי 14 יום) · מוכפל ב-TrendFactor 0.8–1.2 לפי 3 הפעולות האחרונות · רצפה 0, תקרה 1000 · ירידה לאדום שולחת התראה למנהל (markup:1693, 961)",
+   "דרגות אמינות למשפחות: טיטאן (950+) · לביאה (800+) · טעון שיפור (500+) · סיכון (<500) — מוצגות כנקודת צבע בטבלה, tiles במרכז הטיפול, וסינון fTier (markup:718)",
+   "נוסחת seed לציון אמינות למשפחות מיובאות/אלמנות: score = 620 + (name.length*37 + city.length*53) % 330 (main-script:107,140)",
+   "Override ידני לציון אמינות 0–1000 — לאדמין בלבד, שדה 'עדכון ידני' בכרטיס משפחה (markup:965)",
+   "מסלולי תמחור קורס (model): monthly=מנוי חודשי · half_year=חצי-שנתי · year=שנתי · punch=כרטיסייה (ניקובים, שדה size) + שלושה מחירים: price מלא, price1Name/price1 (למשל 'אחיות / מלגה'), price2Name/price2 (למשל 'אלמנות')",
+   "אמצעי תשלום בקבלת תשלום: מזומן / העברה בנקאית / צ'ק / אשראי / ביט (markup:2175)",
+   "ציון תומכות משוקלל R·F·M (title='ציון משוקלל (R·F·M)') עם דרגות זהב/כסף/ארד; סינון עמודות כולל score '600+' ו-total '₪ 100+'",
+   "פירוק sessions מטקסט audience: regex (\\d+)\\s*(קבוצות|פעמים), מקסימום 5, יום = (weekday+i*2)%6, תווית 'קבוצה א׳/ב׳…' או 'מפגש N' (main-script:7-11)",
+   "ברירות מחדל: notif={email:true,push:false,sms:true,strong:false} · reports={daily:true,weekly:true,monthly:false,quarterly:false} · orgSite='https://maor-hachesed.org.il' · seq>=500 · שעת סיום יום 17:00 · קרוסלת בית מתחלפת כל 5 שניות",
+   "שער יום (DayGate): חובה להגדיר שעת סיום לפני עבודה; טיימר כל 60 שניות בודק ואם השעה >= שעת הסיום מוריד גיבוי מלא אוטומטית פעם ביום (maorclean2_autoexp) עם טוסט 'הגיעה שעת הסיום שהגדרתם — גיבוי סוף היום ירד אוטומטית ✓'",
+   "הרשאות: role prop enum ['מנהל','מורה'] ברירת מחדל 'מנהל'; isAdmin=(role==='מנהל'); roleLabel='מנהל/ת מערכת'/'מורה'. אדמין בלבד: טאב הגדרות, +משפחה, ייבוא, בדיקת נתונים, מחיקות, +קורס, שיבוץ, override אמינות, +חדר, הוספת/הסרת קבוצות. 'אדמין רואה הכל · מורה רואה רק את הקורסים שלו (RLS)'",
+   "punchConfirm prop (boolean, ברירת מחדל false, section 'התנהגות'): כשדולק — ניקוב דורש לחיצה שנייה לאישור (confirmingId, main-script:335)",
+   "דפוס מחיקה בלחיצה כפולה ('לחיצה שנייה מאשרת') על: משפחה, בן משפחה, קורס, שיבוץ, תומכת",
+   "קיצורי מקלדת: ⌘K/Ctrl+K פותח/סוגר את הפלטה; Esc סוגר לפי סדר עדיפות: הדמיה → פלטה → מודאל → גלגל חוגים → גלגל משפחות",
+   "תיקון אוטומטי בבדיקת נתונים: השלמת 0 מוביל לטלפונים של 8–9 ספרות (fixPhones)",
+   "חדרים: משבצות 30/45/60/90 דקות · 'ניקיון יומי 15:00–16:00' · תעריף השכרה לשעה · שעות פעילות מ/עד · נגישות · ציוד chips",
+   "לוח עברי: Intl.DateTimeFormat('he-u-ca-hebrew') — היום העברי הוא הראשי בכל תא, אזכרה/יום נישואים/יום הולדת חוזרים לפי התאריך העברי; מצב גריד 'עברי מלא (א׳–ל׳)' מול לועזי (calHebMode ברירת מחדל true)",
+   "uiScale נגישות 0.8–1.5 — מיושם ע\"י monkey-patch על React.createElement שמכפיל כל fontSize בפיקסלים (main-script:53-66)",
+   "מיסוך ת\"ז כברירת מחדל בכרטיס משפחה עם כפתור 'מיסוך תעודות זהות' (fam.toggleIds)",
+   "תאריך יעד לתומכת (supNextDate): נשמר מיד, יוצר תזכורת 📞 בלוח; עבר המועד ← נכנס ל'דורש טיפול'"
+  ],
+  "features": [
+   {
+    "domain": "ui_shell",
+    "name": "מעטפת ניווט עליונה",
+    "detail": "כותרת 'מאור החסד — מערכת ניהול' + todayLabel. ניווט pill: בית / משפחות / תומכות (title: 'משפחות תומכות — תורמים ותורמות (ללא קורסים)') / קורסים / לוח שנה / הגדרות (אדמין בלבד). כפתורים: '↩ חזרה' (showBack — חזרה למסך הקודם בכל מסך, navHist), '📖 מדריך', '▶ הדמיה' (הדמיה חיה — המערכת מדגימה את עצמה), '⌕ חיפוש ⌘K', chip תפקיד + אווטאר 'מה' (משרד ראשי)",
+    "evidence": "legacy-markup.html:394-425"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "מסך הבית",
+    "detail": "hero 'מה נעשה עכשיו?' + תיבת חיפוש 'הקלד פעולה, שם או שאלה…' (פותחת פלטה). chips מהירים: '✦ מצא חוג', 'נקב ניקוב מהיר', '+ משפחה חדשה' (אדמין), 'למי נגמרת הכרטיסייה?', 'מי חוגג השבוע?', 'ממתינות לאישור' (אדמין), '+ תזכורת טלפון'. כרטיס כהה '✦ תקציר הבוקר' (digestLines) עם 'טפל ביתרות ←' ו'ללוח השנה'. סטטים: statStudents 'תלמידים במערכת' (+statFams משפחות · statWidows אלמנות), statLow 'יתרות נמוכות', statToday 'מפגשים היום', כרטיס 'ניקוב מהיר' (todayCourseLabel + quickPunchBtn), גרף 'נוכחות השבוע' — placeholder סטטי ('תצוגת הדגמה — יחובר לנתוני נוכחות אמיתיים בגרסת הענן'), כרטיס קרוסלה מתחלף (carItem, כל 5 שניות, עם נקודות). פאנלים: 'דורש טיפול ←' (attention עם תגיות) + 'משפחות אחרונות'",
+    "evidence": "legacy-markup.html:429-637"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "גרף 'מדד אמינות הקהילה' בבית",
+    "detail": "showCredGraph: ממוצע /1000 עם חיווי 'חי' (נקודה ירוקה מהבהבת), tier chips לחיצים (count·label), מד מחוג עם גרדיאנט אדום→כתום→ירוק→זהב וסקאלה 0/500/800/1000, היסטוגרמת עמודות (credV.bars) עם צירי 0/500/800/950, ורשימת 'דורשות חיזוק' (credV.risk — שם+ציון+נקודה, לחיץ לכרטיס)",
+    "evidence": "legacy-markup.html:518-564"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "גרף 'תפוסת החוגים' בבית",
+    "detail": "showCrsGraph: תפוסה ממוצעת % + 'שיבוצים · revenue', מד מחוג 0%/50%/100%, עמודה לכל חוג לחיצה ('כל עמודה = חוג · לחיצה פותחת לניקוב'), מקרא 'ירוק בריא · זהב מתמלא · אדום מלא · כתום דורש שיווק', ורשימת 'הכי מבוקשים'",
+    "evidence": "legacy-markup.html:566-607"
+   },
+   {
+    "domain": "families",
+    "name": "רשימת משפחות — סינון וחיפוש",
+    "detail": "חיפוש 'חיפוש לפי שם משפחה, הורה, ילד או טלפון…', פילטרים: statusFilter (פעילה/ממתינה/לא פעילה), cityFilter, commFilter. כפתורים: '⬆ ייבוא' (CSV), '✓ בדיקת נתונים', '✦ מצא חוג', '+ משפחה חדשה' (אדמין). מיני-סטטים משפחות/ילדים. toggle רשימה/גריד (famView נשמר). '⏷ סינון עמודות' (colF: שם/הורה, טלפון, ילדים '3 / 3+ / 2-4', קורסים '1+', סטטוס). '✦ סינון מורחב' (famAdv): תת-קהילות בחירה מרובה + מצב משפחתי, שפה מדוברת, ספח מלא (קיים ✓/חסר), ילדים רשומים, השתתפות בחוגים, מדד אמינות (טיטאן 950+/לביאה 800+/טעון שיפור 500+/סיכון <500), 'נקה הכל'. chips 'חיזוי:' (famSuggests). hint 'חפש \"q\" בכל המערכת — תלמידים, חוגים, מורים ומסמכים ←'. מיון בלחיצה על כותרות עמודות (famHead + חץ)",
+    "evidence": "legacy-markup.html:640-826"
+   },
+   {
+    "domain": "families",
+    "name": "מאתר המשפחות — גלגל סינון חי",
+    "detail": "showFamWheel: 'מאתר המשפחות — הטבלה למטה מסתננת חי'. גלגל מסתובב (conic ring) עם אופציות מסביב, במרכז מונה 'משפחות תואמות', chips נעילה עם ✕ שחרור, 'סובבו ובחרו: <ציר>', מצבי 'כל הצירים ננעלו' / 'אין משפחות תואמות — שחררו סינון', איפוס/סגירה. גלגל זהה לחוגים (showWheel) עם 'חוגים מתאימים'",
+    "evidence": "legacy-markup.html:732-763, 1042-1073"
+   },
+   {
+    "domain": "families",
+    "name": "כרטיס משפחה",
+    "detail": "כותרת: אווטאר אות, badges סטטוס/תת-קהילה/הנחה (discountLabel)/joined. '✎ עריכת משפחה', מחיקה בלחיצה כפולה (כולל בני משפחה ושיבוצים). סקשן 'בני המשפחה': כרטיס לכל חבר — אות, שם, chip מין, 'ageLabel · hebBirth' (יום הולדת עברי), birthLabel, 📱 טלפון, כפתורים 🎫 (קניית/טעינת כרטיסייה), '+ חוג' (שיבוץ), ✎, מחיקה כפולה. סקשן 'קורסים פעילים וניקובים': עמודות תלמיד/ה·קורס·מורה·מסלול·יתרה — בר התקדמות צבעוני + balanceLabel לכרטיסייה, usedLabel למנוי; כפתורים: ניקוב (punchLabel), ⚙ ניהול שיבוץ, 🤒 חיסור (נימוק חובה), מחיקת שיבוץ כפולה. סקשן '📜 היסטוריית פעולות' עם תגיות צבע + '⬇ דוח מלא'. עמודה ימנית: מדד אמינות (ראה פיצ׳ר נפרד), 'פרטי קשר' (טלפון בית/נוסף, אימייל, כתובת, ת\"ז אב/אם עם מיסוך, מצב משפחתי, שפה, תת-קהילה, קופת צדקה), 'תיעוד ומדיה' (רשימת docs 🖇, badge ספח, '+ העלאת ספח, הזמנה, המלצה, תמונה או סרטון'), 'אירועים מיוחדים' (+ אירוע, 'חתונה, אזכרה, יום נישואים…'), 'הערות'",
+    "evidence": "legacy-markup.html:829-1027"
+   },
+   {
+    "domain": "families",
+    "name": "כרטיס אמינות במשפחה",
+    "detail": "ציון /1000, badge דרגה, בר, יומן שינויים (delta+תיאור+תאריך), כפתור '+ פעולה קהילתית (15)', 'איך משפרים?' שפותח את שורת הכללים המלאה, ואדמין: input 'Override 0–1000' + 'עדכון ידני'",
+    "evidence": "legacy-markup.html:942-968"
+   },
+   {
+    "domain": "families",
+    "name": "טופס משפחה (familyModal)",
+    "detail": "שדות: name* (שם משפחה), phone, father, fatherId ('9 ספרות'), mother, motherId, phone2, email, address, city, maritalStatus (לא ידוע/נשואים/גרושים/אלמן\\ה/פרודים/'אחר — הקלדה חופשית…'), language (עברית/יידיש/רוסית/צרפתית/אנגלית/אחר), community — input עם datalist (בחירה או הקלדה; רשימת legacy מוסתרת: כללי/ליטאי/חסידי/ספרדי/דוברי רוסית), tzedaka ('קופת העיר'), discount ('הנחת אחים 10%'), fullSefach (חסר/קיים ✓), status, notes. שגיאה ב-formError",
+    "evidence": "legacy-markup.html:1802-1868"
+   },
+   {
+    "domain": "families",
+    "name": "טופס בן משפחה (memberModal)",
+    "detail": "first*, gender (בן/בת), תאריך לידה עם toggle לועזי/עברי (סלקטים יום/חודש/שנה עבריים hbDayOpts/hbMonthOpts/hbYearOpts), idNum (רשות), שורת תאריך עברי חיה (memberFormHebLine), phone, phone2, school ('ת\"ת אור החיים'), grade ('ה׳'), health 'רגישויות / מידע רפואי', chips 'תיעוד ומדיה — מה קיים בתיק?' (memberMediaChips), notes",
+    "evidence": "legacy-markup.html:1870-1927"
+   },
+   {
+    "domain": "families",
+    "name": "מיזוג כפילויות (dupCmp)",
+    "detail": "מודאל השוואה 900px: כרטיס לכל רשומה (פתח/🗑), רשימת שדות — שדות שונים מסומנים צהוב, בחירת ערך פר-שדה מכל רשומה או עריכה ידנית, '✓ מזג לפי הבחירה' (רשומה אחת נשמרת, השאר נמחקות), '🗑 מחיקת כולן', 'שתיהן תקינות — סגור'",
+    "evidence": "legacy-markup.html:2452-2494"
+   },
+   {
+    "domain": "families",
+    "name": "בדיקת תקינות נתונים (audit)",
+    "detail": "מונה 'N ממצאים', chips סיכום לפי סוג, שורות לחיצות עם תגית. פעולות: '⬇ ייצוא דוח מלא', 'תיקון אוטומטי: השלמת 0' (0 מוביל לטלפונים 8–9 ספרות), '← למרכז הטיפול' (שולח ממצאים ל-care). מצב נקי: '✓ לא נמצאו בעיות — הנתונים תקינים'",
+    "evidence": "legacy-markup.html:2496-2535"
+   },
+   {
+    "domain": "courses",
+    "name": "מסך ניהול קורסים",
+    "detail": "כפתורים: '✦ מצא חוג' (גלגל), '📊 דו\"ח מותאם', '+ קורס חדש' (אדמין). רצועת 'חדרי פעילות — תצוגה חיה' (roomsNowLabel · 'ניקיון יומי 15:00–16:00' + '+ חדר חדש'): כרטיס חדר עם ⚙ הגדרות, מתג פעיל/לא, נקודת סטטוס חיה + liveLabel; לחיצה פותחת יומן. toggle גריד/רשימה (crsView). רשימה: 8 עמודות ממוינות + סינון עמודות (שם חוג, קהל, מורה, מסלול all/monthly/half_year/year/punch, כמות '5+ / 3-8', מחיר '₪ / 100-200') ושלוש עמודות מחיר p0/p1 (ירוק)/p2 (סגול). גריד: תמונת קורס (img-data) או אות, badge מסלול, מחיר+תפוסה",
+    "evidence": "legacy-markup.html:1030-1163"
+   },
+   {
+    "domain": "courses",
+    "name": "כרטיס קורס",
+    "detail": "כותרת: תמונה/אות, badge מסלול, 'audience · מורה: X · roomLabel · priceLabel · כיתות gradeLabel'. כפתורים: '⬇ דו\"ח יומי מפורט' (מי פעיל בכל מפגש כולל חיסורים מתאריך התחלה עד סיום), '⬇ תדפיס למורה' (גיל, קבוצה, יתרות ורגישויות), '📊 דו\"ח מותאם', '🔔 תזכורת ללוח', '✎ עריכת קורס', מחיקה כפולה (כולל שיבוצים, מהלוח והיומנים). 'תלמידים רשומים': chips ספירה לקבוצה, עמודות תלמיד/ה (+גיל)·משפחה·קבוצה (select מסונכרן 'שינוי קבוצה — נשמר מיד ומשתקף בלוח')·מסלול (+📝 הערה)·יתרה (בר או usedLabel)·פעולות (ניקוב/⚙/🤒/הסרה). 'שעות פעילות וקבוצות': chips מפגשים עם ✕, טופס הוספה (יום ראשון–שישי, שעה, 'שם הקבוצה (רשות)' למשל 'קבוצה ב׳ / בוקר'). 'פרטי הקורס': קהל יעד, מורה, טלפון המורה, מחיר מלא, שורות p1Name/p2Name, מסלול, סמסטר, חדר, תפוסה, 'תקופת פעילות (עברי)' + 'בלועזי', תיאור, '📝 הערות פנימיות על החוג' עם שמירה inline ('להביא חומרים, גבייה, הסעות…')",
+    "evidence": "legacy-markup.html:1166-1303"
+   },
+   {
+    "domain": "courses",
+    "name": "טופס קורס (courseModal)",
+    "detail": "name*, teacherId select עם '＋ הוספת מורה חדשה…' שפותח inline (newTeacherName*/newTeacherPhone), model (מנוי חודשי/חצי-שנתי/שנתי/כרטיסייה), price, בלוק הנחות: price1Name+price1, price2Name+price2, size (ניקובים בכרטיסייה, רק ב-punch), roomId*, weekday+time, maxStudents, cat 'קטגוריה (לגלגל)' (מלאכה/אמנות/העשרה/ספורט/מוזיקה/רווחה/טיפוח/קולינרי/קהילה/אחר), semester 'מסלול תקופה' (שנתי/חצי שנתי/אחר), gender קהל (נשים ובנות/בנים/הכל), ageMin/ageMax, gradeMin/gradeMax (מכיתה/עד כיתה), 'תקופת פעילות — תאריך עברי (ראשי)' התחלה+סיום (hebCS/hebCE) + התחלה/סיום לועזי, description, placeholder תמונה ('Supabase Storage בגרסה המחוברת'), הודעת סנכרון '✓ החוג ישתקף אוטומטית ביומן החדר שנבחר, בלוח השנה ובגלגל \"מצא חוג\"'",
+    "evidence": "legacy-markup.html:2008-2124"
+   },
+   {
+    "domain": "courses",
+    "name": "חדרים — הגדרות, חדש ויומן",
+    "detail": "roomSet: שם*, סטטוס פעיל/מושבת, משך משבצת 30/45/60/90 דקות, קיבולת, מיקום/קומה, תעריף השכרה לשעה ₪, שעות פעילות מ/עד, נגישות לעגלות/כיסא גלגלים, chips ציוד (roomEqChips), הערות תפעול ('מפתח אצל אב הבית, לא להזיז את הפסנתר…'). newRoom: chips הצעות שם + שם*+משבצת ('כל חדר מקבל יומן משבצות משלו — מוכן להתרחבות למקום החדש 🏗'). diary (יומן חדר): רשימת משבצות ליום עם תווית תפוס/פנוי, כפתור 'הזמנה' לפנויות, אזהרת יום חסום, ניווט ימים, ⚙",
+    "evidence": "legacy-markup.html:2343-2372, 2402-2449, 2579-2608"
+   },
+   {
+    "domain": "attendance",
+    "name": "ניקוב",
+    "detail": "כפתורי ניקוב בכרטיס משפחה ובכרטיס קורס (punchLabel דינמי), 'ניקוב מהיר' מהבית (quickPunchGo לפי todayCourseLabel), יתרה כבר בר צבעוני + pct, '↩ ביטול ניקוב אחרון' (מחזיר יתרה) במודאל הניהול. prop punchConfirm=true מחייב לחיצה שנייה. הניקוב נרשם בהיסטוריית המשפחה ומעדכן אמינות",
+    "evidence": "legacy-markup.html:903, 1235, 2192; main-script:335"
+   },
+   {
+    "domain": "attendance",
+    "name": "רישום חיסור (showAbsence)",
+    "detail": "מודאל 'רישום חיסור': שם + פרטי מפגש, שורת זכאות צבועה (absV.eligLabel), select 'סוג ההיעדרות': 'ביטול מראש' / 'לא הגיעה כלל — No-Show (‎-20 אמינות)', textarea 'נימוק החיסור *' חובה ('מחלה, אירוע משפחתי…'), 'שמירת חיסור'",
+    "evidence": "legacy-markup.html:2374-2400"
+   },
+   {
+    "domain": "payments",
+    "name": "⚙ ניהול שיבוץ — תשלומים, קבלות וכרטיסייה",
+    "detail": "מודאל: badges מסלול+סטטוס, balanceLabel, select קבוצה מסונכרן, '📝 הערה על התלמיד/ה בחוג' ('רגישות, הסעה, העדפת קבוצה…'). בלוק '💳 תשלומים וקבלות': 'סה\"כ עסקה (₪)' (totalDue), 'מתי ישלם את השאר' (date — 'נשמר מיד ויוצר תזכורת בלוח השנה'), balLine יתרה, רשימת תשלומים עם '🧾 קבלה' להורדה לכל תשלום, הוספה: סכום + אמצעי (מזומן/העברה בנקאית/צ'ק/אשראי/ביט) + '＋ קבלת תשלום'. בלוק '🎫 קניית כרטיסייה': כמות ניקובים, 'מחיר: X', 'קנייה וטעינה'. פעולות: 'מעבר למנוי חודשי' (רק punch), '↩ ביטול ניקוב אחרון', הקפאה (mg.pauseLabel), סיום (mg.endLabel), הסרה, 'לכרטיס החוג ←'",
+    "evidence": "legacy-markup.html:2126-2202"
+   },
+   {
+    "domain": "courses",
+    "name": "שיבוץ לחוג (joinModal) ושיבוץ תלמיד (enrollModal)",
+    "detail": "joinModal (מכרטיס משפחה): 'למי? *' — הקלדה חכמה עם חיזוי ותיקון שגיאות (jmList), 'חוג *' — 'עם מקום פנוי בלבד', חיפוש לפי חוג/מורה/תחום גם באנגלית; אם אין תואמים לגיל/מגדר — 'לחצו כאן להצגת כל החוגים' (toggleJoinShowAll); select קבוצה; 'ניקובים בכרטיסייה' ל-punch; רמזים (joinHints). enrollModal (מכרטיס קורס): 'תלמיד/ה *' הקלדה חכמה; קישור 'לא נמצא/ה במערכת?' פותח בלוק יצירת בן משפחה חדש inline — 'משפחה *' עם חיזוי, first*, מין, תאריך לידה; אם המשפחה לא קיימת: '✓ משפחת X תיווצר במערכת יחד עם השיבוץ — בלי לצאת מהמסך' + טלפון; '✓ הוספה למשפחה ושיבוץ לחוג'",
+    "evidence": "legacy-markup.html:2205-2341"
+   },
+   {
+    "domain": "supporters",
+    "name": "מסך 💛 משפחות תומכות",
+    "detail": "סטטים: 'תרמו ב-12 החודשים' (sup12m), 'ממוצע לתרומה', היסטוגרמת 'פיזור ציון משוקלל', chips 'דרגות (לחיצה מסננת)'. כפתורים: '📅 לוח תרומות', '🧿 דוח יומי (N)' (ayinReport — 'כל השמות שטופלו היום עם מספר העיניים'), '⬆ ייבוא' (CSV, 'הצלבה לפי שם'), '⬇ אקסל' ('כולל ציון משוקלל ודרגות'), '+ תומכת חדשה'. חיפוש 'לפי שם, טלפון, מייל או קטגוריה…'. טבלה: שם (+forWho+nextBadge), טלפון, מייל, קטגוריה, countLabel (קו תחתון — 'מתי וכמה בכל תרומה'), badge 'score · דרגה' (R·F·M), totalLabel ₪, lastLabel, כפתור 📞 (תזכורת טלפון לתודה ← לוח שנה). סינון עמודות (name/phone/email/cat/count '2+ / 1-5'/score '600+'/total '₪ 100+'). הערה: 'משפחות תומכות אינן מחוברות לקורסים — זמינות בחיפוש (⌘K), בלוח השנה (תזכורת 📞) ובגיבויים. המקור: היסטוריית חיובים 2025–2026'",
+    "evidence": "legacy-markup.html:1306-1452"
+   },
+   {
+    "domain": "supporters",
+    "name": "🧿 לוח טיפול — עין הרע / עופרת (ayinBoard)",
+    "detail": "לוח בתוך מסך התומכות: סינון שלב (כל השלבים/שיחה חדשה/לעשות עופרת/רישום עיניים/למסור תשובות/הושלם), מיון (🎯 יעד קרוב/עדכון אחרון/שם א׳-ת׳/לפי שלב), toggle הצגה. עמודות: שם · שלב הטיפול (chips) · 'שמות + עיניים' · 🎯 יעד · עדכון אחרון · 'הפעולה הבאה' — כפתור חכם ('מקדם לשלב הבא ומסנכרן ללוח')",
+    "evidence": "legacy-markup.html:1397-1433"
+   },
+   {
+    "domain": "supporters",
+    "name": "כרטיס תומכת (supModal) — תרומות + עין הרע",
+    "detail": "supStats + שורת ציון משוקלל. '🎯 תאריך יעד לקשר הבא' ('נשמר מיד · יוצר תזכורת 📞 בלוח · עבר המועד ← \"דורש טיפול\"'). '💰 מעקב תרומות': רשימת תרומות לחיצות (מסמנות בלוח למטה) עם 🧾 קבלה; הוספה: תאריך עברי (ראשי, סלקטים) + לועזי (משני), סכום, מטבע ₪/$, קטגוריה, '＋ תרומה'. '🧿 מעקב עין הרע': chips שלבים, שדה 'תשובה / הערה' ('מה למסור בטלפון…') + '💬 שמירת הערה/תשובה', כפתור פעולה חכם, '🎯 מתי לדבר שוב' (עברי/לועזי + שעה), '📞 רישום תשובה' (נכנס ללוח היום), '🔁 שוב' (תזכורת בתאריך שנבחר), '📜 שמות למסירה — לעופרת' (שם 'שרה בת רבקה' + 🧿 מספר עיניים, סימון בוצע/ממתין, הסרה), '✓ הטיפול הושלם' + '🔁 חזרה שוב — מחזור חדש' (ההיסטוריה נשמרת), '💬 תשובות והערות' log (עריכה/מחיקה), 'היסטוריית עיניים — מתי וכמה'. '📅 לוח התרומות של התומכ/ת' אישי (עברי/לועזי, תא עם נקודת זהב). טופס: name*, phone, email, ת\"ז, cat ('קבלה סעיף 46 / הסרת עין הרע…'), forWho 'עבור', address, notes. מחיקה כפולה",
+    "evidence": "legacy-markup.html:2611-2812"
+   },
+   {
+    "domain": "supporters",
+    "name": "📅 לוח תרומות — כולם ביחד (supCalAll)",
+    "detail": "לוח חודשי בראש מסך התומכות: מצב גריד עברי/לועזי, ניווט חודשים, תאים עם יום עברי ראשי + לועזי משני + badge זהב עם מספר תרומות; לחיצה על יום פותחת רשימת תרומות של אותו יום (dayList) עם ניווט לכרטיס",
+    "evidence": "legacy-markup.html:1336-1372"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "לוח שנה חודשי",
+    "detail": "כותרת עברית ראשית (hebMonthLabel) + לועזית (monthLabel), toggle 'גריד עברי מלא (א׳–ל׳)/לועזי' (calGridBtn), 'היום', '+ אירוע חדש', '📊 דו\"ח מותאם'. chips 'שכבות:' (calChips) + '● דחופים בלבד'. גריד ראשון–שבת, תא: מספר יום עברי בעיגול + לועזי קטן, pills אירועים עם פס דחיפות ימני צבעוני + 'עוד N'. עמודה צדדית: 'אירועים ותזכורות קרובים' — קוביית תאריך, נקודת דחיפות, badge סוג, ✎ עריכה, '✓ בוצע' לשיחות טלפון; 'מקרא': מפגש קורס/יום הולדת/אירוע ארגון/תזכורת/חג ומועד/תזכורת טלפון (6 צבעים)",
+    "evidence": "legacy-markup.html:1455-1547"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "תצוגה יומית",
+    "detail": "כותרת עברית + day.title + countLabel, badge 'חסום לתזמון חוגים: X' (day.hasBlock), chips אירועי כל-היום, שורות ציר זמן: שעה + נקודת דחיפות + פס צבע + כותרת/משנה + badge סוג + כפתור פעולה (dr.actionLabel), ניווט קודם/היום/הבא, '+ אירוע', ריק: 'אין אירועים ביום זה — הוסיפו אירוע'",
+    "evidence": "legacy-markup.html:1550-1587"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "טופס אירוע (eventModal)",
+    "detail": "title* ('ישיבת צוות'), תאריך* עם toggle לועזי/עברי + סלקטים עבריים + chips תאריכים מהירים (evQuickDates), שעה, 'מחיר האירוע (₪)', חדר (רשות), סוג: org 'אירוע ארגון' / reminder 'תזכורת' / call 'תזכורת טלפון (מעקב)' / wedding 'חתונה' / memorial 'אזכרה (חוזרת בתאריך העברי)' / anniversary 'יום נישואים (חוזר)' / bday 'יום הולדת (חוזר)' / אחר ('בר מצווה, ברית, סיום מחזור…'), 'רמת דחיפות' (רגיל ירוק/בינוני כתום/דחוף אדום), 'שיוך למשפחה (רשות)', שורת תאריך עברי + הערת חזרתיות, notes, '🗑 מחיקה' בעריכה",
+    "evidence": "legacy-markup.html:1929-2006"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "מרכז הטיפול",
+    "detail": "careCountLabel, כפתורים '↻ רענון ממצאי בדיקה' ו'איפוס סימוני \"טופל\"'. 4 tier tiles לחיצים (מונה+אחוז בר) לסינון, chips סינון (careChips), שורות: תגית + כותרת + 'לטיפול ←' + '✓ טופל'. ריק: '✓ הכל טופל — אין פריטים פתוחים'",
+    "evidence": "legacy-markup.html:1590-1627"
+   },
+   {
+    "domain": "search",
+    "name": "פלטת פיקוד ⌘K",
+    "detail": "מודאל חיפוש גלובלי: placeholder 'חיפוש חכם: שם, כינוי, חוג, טלפון או ת\"ז — עברית / English / по-русски…', chips 'אולי התכוונת:' (תיקון שגיאות כתיב), במצב ריק: 'פעולות מהירות' (paletteActions) + סקשן 'יתרות נמוכות — כדאי לחדש' עם כפתורי 'לכרטיס' ו'נקב' לכל שורה ('אין יתרות נמוכות כרגע 👍'), בתוצאות: קבוצות (paletteGroups) עם badge סוג לכל פריט. footer: '↵ פתיחת התוצאה הראשונה · Esc סגירה · ⌘K פתיחה מכל מקום'",
+    "evidence": "legacy-markup.html:1740-1800"
+   },
+   {
+    "domain": "settings_permissions",
+    "name": "מסך הגדרות (אדמין בלבד)",
+    "detail": "'פרטי הארגון': לוגו (+ העלאה placeholder), orgName, orgSite, orgDonate 'עמוד תרומות' ('הקישורים יופיעו בתחתית מיילים והודעות'). 'ערוצי התראות': אימייל ('סיכומים שבועיים, קבלות ותזכורות'), 'התראות פוש' ('עדכונים מיידיים לאפליקציית הצוות'), SMS ('תזכורת יום לפני מפגש וביטולים'), 'דחיפה חזקה' ('עוקפת מצב שקט — לשימוש חירום בלבד'). 'משתמשים והרשאות': 'משרד ראשי' badge 'מנהל/ת מערכת', שורות מורות + 'כרטיס מלא ✎', '+ מורה', הערת RLS, 'הזמנת משתמשים וניהול סיסמאות יחוברו ל-Supabase Auth בגרסה המחוברת'. 'מנוע אמינות (Credibility Engine)': שורת הכללים + 'Batch יומי — Decay אי-פעילות (‎-2 אחרי 14 יום)' + 'הרץ עכשיו' (runDecay). '📊 ייצוא וייבוא נתונים לאקסל' ('CSV עם עברית תקינה'): ⬆ ייבוא, ⬇ משפחות / ⬇ חוגים / ⬇ תלמידים ושיבוצים / ⬇ אירועים. 'דוחות אוטומטיים' ('נשלח לבעל האירוע ולאחראי הכללי · מייל + אזור אישי'): 4 שורות toggle + 'הפק עכשיו ⬇'. 'שמירה וגיבוי': '⬇ גיבוי מלא (JSON) — הכל', '⬆ שחזור מגיבוי', resetLocal אדום. 'שמירת הגדרות'",
+    "evidence": "legacy-markup.html:1629-1736"
+   },
+   {
+    "domain": "settings_permissions",
+    "name": "כרטיס מורה (showTeacher)",
+    "detail": "שדות: name*, specialty 'תחום / התמחות' ('תפירה, פילאטיס'), phone/phone2, email, idNum, address, payRate 'תעריף לשעה (₪)' (120), startDate 'תחילת עבודה' + תצוגה עברית (tHebStart), notes ('זמינות, החזרי נסיעות, העדפות…'). בעריכה: tStatsLine, 'החוגים של המורה (מסונכרן) — לחיצה פותחת את החוג', '📞 תזכורת קשר' (יוצר תזכורת בלוח), '🗑 הסרה' — 'אפשרי רק כשאין חוגים משויכים'",
+    "evidence": "legacy-markup.html:2815-2869"
+   },
+   {
+    "domain": "reports_export",
+    "name": "דו\"ח מותאם (expM)",
+    "detail": "מודאל ייצוא: בחירת טווח תאריכים לועזי (מ/עד date) או עברי (סלקטים ד/ח/ש לכל קצה), rangeLine, 'אילו נתונים לכלול בדו\"ח:' checkboxes עם 'בחר הכל'/'נקה הכל', '✍️ עמודת הערות לעריכה עצמית לפני הורדה' — preview שורות עם input הערה לכל שורה שנוספת כעמודה אחרונה ב-CSV, '⬇ ייצוא CSV'. נפתח מקורסים (openCourseExport) ומלוח שנה (openEventsExport)",
+    "evidence": "legacy-markup.html:2963-3024"
+   },
+   {
+    "domain": "reports_export",
+    "name": "ייבוא נתונים (showImport)",
+    "detail": "select 'מה מייבאים?': '🧿 עיניים לשמות למסירה' / 'בני משפחה (ילדים)' / 'משפחות' / 'משפחות תומכות' / 'שחזור גיבוי מלא (JSON)'. importHint דינמי + 'קובץ אקסל? שמרו קודם בתור CSV'. קלט .csv/.json, כפתור הורדת תבנית (expImportFmt/expImportLabel), סיכום ייבוא (line1/line2/unmatchedLine) וכפתור אישור (applyLabel) רק כשיש סיכום",
+    "evidence": "legacy-markup.html:2537-2576"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "שער פתיחת יום (showDayGate)",
+    "detail": "מודאל חוסם (z-120) '☀ פתיחת יום עבודה' עם התאריך העברי: 'קובעים עכשיו את שעת סיום העבודה, ובשעה זו המערכת תוריד גיבוי מלא אוטומטית. אי אפשר להתחיל לעבוד בלי להגדיר.' — input שעה (dayEndDraft, ברירת מחדל 17:00), '▶ התחל יום עבודה', '⬆ תחילת יום ממחשב אחר? שחזור מקובץ גיבוי'. מופיע פעם ביום (maorclean2_day != today)",
+    "evidence": "legacy-markup.html:2872-2888; main-script:72-102"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "פאנל נגישות ♿",
+    "detail": "FAB כחול קבוע (bottom-right). פאנל: 'גודל אותיות — הטקסט בלבד, הפריסה נשארת' עם 'א−'/אחוז/'א+' (uiScale 0.8–1.5), 4 מתגי accToggles הממופים ל-data-acc ב-CSS: contrast (filter contrast 1.22), noanim (ביטול אנימציות), links (הדגשת כפתורים/קישורים), spacing (ריווח אותיות/שורות), 'איפוס כל הגדרות הנגישות', 'הבחירות נשמרות אישית בדפדפן זה' (maorclean2_acc)",
+    "evidence": "legacy-markup.html:380-386, 2919-2942"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "מצב הדמיה (demoOn)",
+    "detail": "שכבת overlay עם סמן וירטואלי — טבעת זהב זוהרת שנעה באנימציה (demoX/demoY, transition 0.65s), בועת כיתוב תחתונה (demoCap), וכפתור אדום '■ עצירת הדמיה (Esc)'. מופעל מכפתור '▶ הדמיה' בכותרת",
+    "evidence": "legacy-markup.html:2944-2954"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "מדריך מהיר (showGuide)",
+    "detail": "מודאל '📖 המדריך המהיר': בלוק 'לפני הכל: אי אפשר לקלקל — הכל נשמר לבד…', סיכום מסך-מסך (בית/משפחות/כרטיס משפחה/קורסים/תומכות 'דרגות זהב/כסף/ארד'/לוח שנה/הגדרות '(פעם בשבוע!)'), ובלוק 'המתכונים המהירים' עם זרימות מלאות (תשלום+קבלה, ניקוב, משפחה חדשה תוך כדי שיבוץ, מצא חוג, תרומה, תדפיס למורה, גיבוי)",
+    "evidence": "legacy-markup.html:2890-2916"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "עיצוב וטמות CSS",
+    "detail": "פונט Heebo (400–800, subsets עברית/לטינית/סמלים) + IBM Plex Mono לקיצורי מקשים. פלטה: רקע קרם #f4f2ec, דיו #211d17, זהב #f3c76b, ענבר #b45309, ירוק #12803c, סגול #7c3aed. סגנון glassmorphism — rgba(255,255,255,.6-.8)+backdrop-filter blur בכל הכרטיסים; 3 כתמי רקע רדיאליים מונפשים (pulse 7-9s, oklch); scrollbar מותאם; ::selection זהב; RTL עם dir=rtl; min-width:1080px (דסקטופ בלבד); אנימציות fadeUp/fadeIn/pulse/spin; halo conic-gradient מסתובב לחדרים פעילים",
+    "evidence": "legacy-markup.html:26-392"
+   },
+   {
+    "domain": "data_persist",
+    "name": "שכבת persist ו-localStorage",
+    "detail": "מפתחות: maorclean2_db (v:1, savedAt, families, enrollments, courses, events, rooms, orgName, orgSite, orgDonate, notif, reports, seq, teachers, supporters, ui:{famView,crsView}) · maorclean2_db_corrupt (עותק גיבוי כשה-JSON פגום או v!==1, עם טוסט '⚠ הנתונים השמורים נמצאו פגומים — נשמר עותק בצד') · maorclean2_ui_scale · maorclean2_acc · maorclean2_day · maorclean2_dayend · maorclean2_autoexp. כשל שמירה ← טוסט '⚠ השמירה האוטומטית נכשלה (אחסון מלא או מצב פרטי) — הורידו גיבוי מלא עכשיו!'. dedupe משפחות לפי id בטעינה",
+    "evidence": "legacy-main-script.js:26-50, 148-157"
+   },
+   {
+    "domain": "data_persist",
+    "name": "בלוקי נתונים מוטמעים (script type=application/json)",
+    "detail": "ארבעה בלוקים ב-head: #sup-data {supporters:[]} — נטען ב-componentDidMount; אם אין תומכות בסטייט נטען כולו, אחרת ממזג רק שדה hist לפי מפתח טלפון-מנורמל/שם. #fam-data {families:[]} — נטען רק אם אין DB שמור (_fromDb); מזהים בקידומת 'fr'; טוסט 'נטענו N משפחות מהקובץ האמיתי'. #widows-data {families:[]} — משפחות אלמנות עם מזהים בקידומת 'wd': מנורמלות (members/docs/cred-seed), מוצמדות לראש רשימת המשפחות, persist מיידי, טוסט 'נוספו N משפחות אלמנות · תאריך הוספה: תשפ\"ו'; נספרות בנפרד ב-statWidows בבית. #img-data — מילון של 11 תמונות קורס base64 (s-art/s-baking/s-empowerment/s-english/s-epilation/s-fitness/s-music/s-photography/s-reflexology/s-sewing/s-writing.jpg); הסקריפט ממיר 'assets/course-*.png'→'assets/s-*.jpg' ומחליף ל-data-URI. בקובץ החי שלושת בלוקי ה-JSON ריקים (נקודות הזרקה) ורק img-data מלא (787KB)",
+    "evidence": "legacy-main-script.js:12-13, 103-146; legacy-markup.html:354-357"
+   },
+   {
+    "domain": "settings_permissions",
+    "name": "data-props של הרנטיים (DC)",
+    "detail": "בלוק data-props בתחתית הקובץ: role — enum ['מנהל','מורה'], default 'מנהל', section 'הרשאות'; punchConfirm — boolean, default false, section 'התנהגות'. נצרכים ב-render: isAdmin = (props.role ?? 'מנהל') === 'מנהל'; punchConfirm מחייב לחיצת אישור שנייה לניקוב",
+    "evidence": "legacy-markup.html:3026; legacy-main-script.js:335, 1914"
+   }
+  ],
+  "strings_sample": [
+   "מאור החסד — מערכת ניהול",
+   "מה נעשה עכשיו?",
+   "הקלד פעולה, שם או שאלה…",
+   "✦ תקציר הבוקר",
+   "למי נגמרת הכרטיסייה?",
+   "מי חוגג השבוע?",
+   "חדרי פעילות — תצוגה חיה",
+   "מדד אמינות הקהילה",
+   "תפוסת החוגים",
+   "ירוק בריא · זהב מתמלא · אדום מלא · כתום דורש שיווק",
+   "דורשות חיזוק",
+   "מאתר המשפחות — הטבלה למטה מסתננת חי",
+   "✓ כל הצירים ננעלו — אלו המשפחות שבטבלה",
+   "טיטאן (950+) · לביאה (800+) · טעון שיפור (500+) · סיכון (<500)",
+   "נוכחות +5 · דיוק +2 · פעולה קהילתית +15 · ביטול מוקדם 0 · ביטול מאוחר (‎<48ש׳) ‎-10 · No-Show ‎-20 · אי-פעילות ‎-2/יום · מוכפל ב-TrendFactor (0.8–1.2) לפי 3 הפעולות האחרונות",
+   "לא הגיעה כלל — No-Show (‎-20 אמינות)",
+   "נימוק החיסור *",
+   "⚙ ניהול שיבוץ",
+   "💳 תשלומים וקבלות",
+   "＋ קבלת תשלום",
+   "🎫 קניית כרטיסייה",
+   "↩ ביטול ניקוב אחרון",
+   "מעבר למנוי חודשי",
+   "💛 משפחות תומכות",
+   "🧿 לוח טיפול — עין הרע / עופרת",
+   "📜 שמות למסירה — לעופרת",
+   "🧿 עיניים לשמות למסירה",
+   "ציון משוקלל (R·F·M)",
+   "📅 לוח תרומות — כולם ביחד",
+   "המקור: היסטוריית חיובים 2025–2026",
+   "קבלה סעיף 46 / הסרת עין הרע…",
+   "אזכרה (חוזרת בתאריך העברי)",
+   "חסום לתזמון חוגים:",
+   "☀ פתיחת יום עבודה",
+   "⏰ מתי מסיימים לעבוד היום?",
+   "⬆ תחילת יום ממחשב אחר? שחזור מקובץ גיבוי",
+   "מנוע אמינות (Credibility Engine)",
+   "Batch יומי — Decay אי-פעילות (‎-2 אחרי 14 יום)",
+   "אדמין רואה הכל · מורה רואה רק את הקורסים שלו (RLS)",
+   "הזמנת משתמשים וניהול סיסמאות יחוברו ל-Supabase Auth בגרסה המחוברת",
+   "בדיקת תקינות נתונים",
+   "תיקון אוטומטי: השלמת 0",
+   "✓ מזג לפי הבחירה",
+   "✍️ עמודת הערות לעריכה עצמית לפני הורדה",
+   "⬇ דו\"ח יומי מפורט",
+   "⬇ תדפיס למורה",
+   "🔔 תזכורת ללוח",
+   "ניקיון יומי 15:00–16:00",
+   "✓ החוג ישתקף אוטומטית ביומן החדר שנבחר, בלוח השנה ובגלגל \"מצא חוג\"",
+   "תקופת פעילות — תאריך עברי (ראשי)",
+   "קופת צדקה",
+   "ספח מלא",
+   "מיסוך תעודות זהות — הגנת פרטיות",
+   "רגישויות / מידע רפואי",
+   "לא נמצא/ה במערכת? (זרימת משפחה חדשה תוך כדי שיבוץ)",
+   "✓ הוספה למשפחה ושיבוץ לחוג",
+   "חיפוש חכם: שם, כינוי, חוג, טלפון או ת\"ז — עברית / English / по-русски…",
+   "יתרות נמוכות — כדאי לחדש",
+   "אין יתרות נמוכות כרגע 👍",
+   "▶ הדמיה",
+   "■ עצירת הדמיה (Esc)",
+   "♿ הגדרות נגישות",
+   "גודל אותיות — הטקסט בלבד, הפריסה נשארת",
+   "תצוגת הדגמה — יחובר לנתוני נוכחות אמיתיים בגרסת הענן",
+   "⚠ השמירה האוטומטית נכשלה (אחסון מלא או מצב פרטי) — הורידו גיבוי מלא עכשיו!",
+   "נוספו N משפחות אלמנות · תאריך הוספה: תשפ\"ו",
+   "הגיעה שעת הסיום שהגדרתם — גיבוי סוף היום ירד אוטומטית ✓"
+  ],
+  "notes": "מבנה הקובץ: template של DC framework — placeholders {{ }} עם sc-if/sc-for/sc-raw-select, כל ה-CSS inline (אין classes). 11 מסכים לפי data-screen-label: בית, רשימת משפחות, כרטיס משפחה, ניהול קורסים, כרטיס קורס, משפחות תומכות, לוח שנה, תצוגה יומית, מרכז הטיפול, הגדרות + מעטפת 'מאור החסד v2'. ~23 מודאלים/אוברליים: palette, familyModal, memberModal, eventModal, courseModal, manage, joinModal, enrollModal, diary, absence, roomSet, dupCmp, audit, import, newRoom, supModal (עם supCalMine + ayCard), teacher, dayGate, guide, accPanel, demo overlay, toast, expM.\n\nwidows-data — התשובה לשאלה: זהו בלוק seed של משפחות אלמנות. הסקריפט (componentDidMount, שורות 134-146) קורא JSON {families:[]} מ-#widows-data; משפחות אלה מזוהות בקידומת id 'wd'; אם המספר בסטייט שונה מהבלוק — הן מנורמלות (members/docs ריקים, cred seed בנוסחה 620+(len*37+city*53)%330), מוצמדות לתחילת families, נשמרות ל-localStorage מיד, עם טוסט 'נוספו N משפחות אלמנות · תאריך הוספה: תשפ\"ו'. הן נספרות בנפרד בבית (statWidows 'אלמנות') וקשורות למחיר הנחה 2 בקורסים ('לדוגמה: אלמנות'). בקובץ החי שחולץ הבלוק ריק ({\"families\":[]}) — כלומר נקודת הזרקה לנתונים אמיתיים, כמו fam-data ו-sup-data (גם ריקים). img-data לעומתם מלא: 787KB, 11 תמונות קורס base64 בשמות s-*.jpg (art, baking, empowerment, english, epilation, fitness, music, photography, reflexology, sewing, writing) — הסקריפט ממפה c.img מ-assets/course-*.png ל-s-*.jpg ואז ל-data-URI.\n\nמודל נתונים (מ-persist): family{id,name,phone,phone2,father,fatherId,mother,motherId,email,address,city,maritalStatus,language,community,tzedaka,discount,fullSefach,status,notes,members[],docs[],cred{score,log[]},specialEvents,history} · course{id,name,teacherId,model,price,price1Name,price1,price2Name,price2,size,roomId,weekday,time,sessions[{day,time,label}],maxStudents,cat,semester,gender,ageMin,ageMax,gradeMin,gradeMax,start,end,hebrew period,description,img,notes} · enrollment{memberId,courseId,group,plan,purchased,used,pays[],note,totalDue,payDue,status} · supporter{name,phone,email,idNum,cat,forWho,address,notes,hist,dons,ayin{stage,names[{name,eyes,done}],answers,log,target}} · teacher{name,specialty,phone,phone2,email,idNum,address,payRate,startDate,notes} · room{name,active,slot,cap,location,rate,from,to,access,equipment,notes} · event{title,date,time,price,roomId,type,typeOther,priority,famId,notes}.\n\nquirks חשובים ל-gap analysis: (1) המסך דסקטופ בלבד — min-width:1080px, אין רספונסיביות; (2) חצי מהעלאות הן placeholders מוצהרים ('Supabase Storage/Auth בגרסה המחוברת', גרף נוכחות דמו); (3) select נסתר communityOld (כללי/ליטאי/חסידי/ספרדי/דוברי רוסית) הוחלף ב-datalist חופשי; (4) חצי ניווט הפוכים ל-RTL (› = קודם, ‹ = הבא); (5) uiScale ממומש כ-patch גלובלי על React.createElement; (6) role/punchConfirm הם props של פלטפורמת DC (עורך חיצוני, section הרשאות/התנהגות) — לא UI פנימי; (7) הדגלים ההתנהגותיים dayGate/הדמיה/עין-הרע/לוח-תרומות הם התוספות המאוחרות הבולטות מול rebuild ישן."
+ },
+ {
+  "key": "runtime",
+  "behaviors": [
+   "מפתח localStorage ראשי: 'maorclean2_db' — אובייקט { v:1, savedAt(ISO), families, enrollments, courses, events, rooms, orgName, orgSite, orgDonate, notif, reports, seq, teachers, supporters, ui:{famView, crsView} }. שמירה אוטומטית עם debounce של 500ms בכל componentDidUpdate (persist()).",
+   "אימות DB בטעינה: אם JSON.parse נכשל או db.v !== 1 — הנתונים הגולמיים נשמרים ל-'maorclean2_db_corrupt', מסומן _dbCorrupt=true והמערכת ממשיכה בלי DB. משפחות בלי id מקבלות 'fx'+index, כפילויות id מסוננות עם Set, members/docs מנורמלים למערכים.",
+   "שחזור גיבוי (applyBackup): חובה Array db.families אחרת שגיאה 'קובץ הגיבוי לא תקין (חסר families)'; ids חסרים → 'fb'+i; seq משוחזר כ-Math.max(db.seq||0, 500); teachers משוחזרים רק אם קיימים.",
+   "גיבוי אוטומטי בסוף יום: מפתחות 'maorclean2_day' (תאריך פתיחת יום ISO), 'maorclean2_dayend' (שעת סיום, ברירת מחדל '17:00'), 'maorclean2_autoexp' (סימון שכבר בוצע ייצוא היום). interval בודק: אם היום נפתח היום, טרם יוצא אוטומטית, והשעה הנוכחית >= שעת הסיום → exportBackup() אוטומטי.",
+   "שער יום (dayGate): נפתח כשdayGate=true (כלומר 'maorclean2_day' != היום). startDay() כותב את המפתחות ומציג '☀ יום העבודה נפתח — גיבוי אוטומטי יירד בשעה HH:MM'; gateRestore() פותח מודל ייבוא עם importKind='backup'.",
+   "כשל שמירה (quota/private mode): toast חד-פעמי '⚠ השמירה האוטומטית נכשלה (אחסון מלא או מצב פרטי) — הורידו גיבוי מלא עכשיו!' (_warnedSave).",
+   "זום UI: 'maorclean2_ui_scale' — בטעינה מתקבל רק 0.8–1.5; כפתורים משנים בצעדי 0.1 בטווח 0.8–1.6, מוזן ל-window.__fsScale.",
+   "נגישות: 'maorclean2_acc' — JSON של 4 דגלים: contrast/links/noanim/spacing; איפוס מחזיר '{}' וגם scale=1.",
+   "איפוס נתונים דו-שלבי: לחיצה ראשונה מציגה 'לאשר איפוס? כל השינויים המקומיים יימחקו' עם חלון 4 שניות (setTimeout), לחיצה שנייה — localStorage.removeItem('maorclean2_db') + reload.",
+   "הגנת CSV injection ב-csvDown: ערכים שמתחילים ב-= + - @ מקבלים גרש (') בתחילה; BOM ﻿ בכל קובץ ייצוא (CSV וטקסט) לתמיכה באקסל/עברית.",
+   "ייבוא CSV: קריאה כ-UTF-8, ואם מזוהה � — קריאה חוזרת בקידוד windows-1255. קובץ .json או importKind='backup' → applyBackup ישירות.",
+   "נוסחת cred לאלמנות חדשות (widows-data): score = 620 + (f.name.length*37 + (f.city||'').length*53) % 330.",
+   "אירועי אמינות בביטולים: No-Show → -20 ('No-Show נרשם (-20 אמינות)'); ביטול מאוחר <48 שעות → -10 ('ביטול מאוחר (<48 שעות)'); ביטול מוקדם → 0 ('ביטול מוקדם — שימור ניקוד').",
+   "סף יתרה נמוכה בכרטיסיות (דוח): plan==='punch' וגם purchased-used <= 2.",
+   "היסטוריית ניווט (navHist): עד 20 רשומות של {view, selId, selCourseId, calDay}; נשמרת ב-state בלבד (לא persist).",
+   "seed(): הדמו הקשיח מרוקן בקונסטרוקטור (d.families=[] וכו') — מקור האמת הוא localStorage או בלוקי ה-JSON המוטמעים. sessions לקורסים נגזרים מ-audience בביטוי /(\\d+)\\s*(קבוצות|פעמים)/ עד 5, ימים (weekday+i*2)%6, אותיות קבוצה 'אבגדה'."
+  ],
+  "features": [
+   {
+    "domain": "other",
+    "name": "פריימוורק DC runtime (dc-runtime)",
+    "detail": "מיקרו-פריימוורק פנימי העוטף React 18.3.1 UMD (legacy-res-5d29e9a9.js = react, legacy-res-9102eb6f.js = react-dom — אין בהם לוגיקת אפליקציה). הדף מכיל תבנית <x-dc> + <script data-dc-script> שמגדיר 'class Component extends DCLogic'. ב-boot התבנית מוחלפת ב-div#dc-root ומרונדרת עם ReactDOM.createRoot. DCLogic (=StreamableLogic) חושף: this.props, this.state, setState(patch|fn, cb) עם shallow-merge, forceUpdate(), componentDidMount/componentDidUpdate(prevProps)/componentWillUnmount, ו-renderVals() — מחזיר אובייקט שטוח שהתבנית מרונדרת מולו (ממוזג מעל props). זה המקביל ל-render(): כל ה-labels/handlers של ה-UI מיוצרים שם בכל רינדור.",
+    "evidence": "legacy-res-0d14ac27.js:816-851 (StreamableLogic), 842-851 (evalDcLogic — new Function שמחזיר Component)"
+   },
+   {
+    "domain": "other",
+    "name": "שפת תבניות",
+    "detail": "אינטרפולציה {{ expr }} עם resolver מוגבל (נתיבים a.b[c], ליטרלים, !, ==/!=/===/!== בלבד — לא JS מלא); לולאות <sc-for list=\"...\" as=\"item\"> עם $index; תנאים <sc-if value=\"...\">; <helmet> להזרקת אלמנטים ל-head; מאפייני style-hover/style-before וכו' מקומפלים ל-stylesheet עם !important; אירועים בכתיב lowercase (onclick→onClick, sc-camel-on-change→onChange). data-props על תג הסקריפט מספק propsMeta ו-$preview.",
+    "evidence": "legacy-res-0d14ac27.js:202-294 (expr), 611-660 (sc-for/sc-if), 296-412 (encode)"
+   },
+   {
+    "domain": "data_persist",
+    "name": "אריזת single-file",
+    "detail": "window.__resources ממפה URL→resource-id ו-window.__resourceBlobs ממפה ל-Blobs — כך React וכל המשאבים מוטמעים בקובץ אחד (fallback ל-unpkg CDN עם SRI אם אין). ל-runtime עצמו אין שום persistence — כל ה-localStorage הוא בקוד האפליקציה.",
+    "evidence": "legacy-res-0d14ac27.js:1135-1153, 1642-1685"
+   },
+   {
+    "domain": "data_persist",
+    "name": "שמירה אוטומטית ל-localStorage",
+    "detail": "persist() כותב ל-'maorclean2_db' את כל ה-state העסקי (v:1, savedAt, families, enrollments, courses, events, rooms, orgName, orgSite, orgDonate, notif, reports, seq, teachers, supporters, ui:{famView,crsView}); מופעל עם debounce 500ms מכל componentDidUpdate. בכשל — toast אזהרה חד-פעמי.",
+    "evidence": "legacy-main-script.js:148-157, 168"
+   },
+   {
+    "domain": "data_persist",
+    "name": "טעינת DB + זיהוי שחיתות",
+    "detail": "בקונסטרוקטור: JSON.parse של 'maorclean2_db'; parse שנכשל או v!==1 → העתקה ל-'maorclean2_db_corrupt' + _dbCorrupt=true. נרמול משפחות (id='fx'+i, members/docs מערכים, דה-דופ לפי id).",
+    "evidence": "legacy-main-script.js:28-35"
+   },
+   {
+    "domain": "data_persist",
+    "name": "בלוקי JSON מוטמעים (seed)",
+    "detail": "4 תגי <script type=\"application/json\"> ב-HTML: #sup-data ({supporters:[]}) — תומכות; #fam-data ({families:[]}) — משפחות, נטען רק אם אין DB (!this._fromDb); #widows-data ({families:[]}) — משפחות אלמנות עם ids שמתחילים 'wd', מתמזגות תמיד (מוחלפות הקיימות), cred ברירת מחדל לפי נוסחה, toast 'נוספו N משפחות אלמנות · תאריך הוספה: תשפ\"ו'; #img-data — מפת שם-קובץ→data-URI לתמונות קורסים (c.img מומר 'assets/course-'→'assets/s-', .png→.jpg).",
+    "evidence": "legacy-main-script.js:13, 112-146; legacy-markup.html:354-357"
+   },
+   {
+    "domain": "data_persist",
+    "name": "גיבוי מלא (exportBackup)",
+    "detail": "מוריד 'maor-backup-YYYY-MM-DD.json' — תוכן גולמי של maorclean2_db דרך Blob+createObjectURL; toast 'גיבוי מלא ירד — כולל הכל: משפחות, שיבוצים, אירועים והגדרות'. נקרא מהגדרות, מהגיבוי האוטומטי של סוף יום, ומ-importKind='backup'.",
+    "evidence": "legacy-main-script.js:170-177"
+   },
+   {
+    "domain": "data_persist",
+    "name": "גיבוי אוטומטי בסוף יום + שער יום",
+    "detail": "מפתחות maorclean2_day / maorclean2_dayend ('17:00') / maorclean2_autoexp; interval (_dayTick) מוריד גיבוי אוטומטית כשהשעה מגיעה לשעת הסיום שהוגדרה, פעם ביום, עם toast 'הגיעה שעת הסיום שהגדרתם — גיבוי סוף היום ירד אוטומטית ✓'. מסך שער בפתיחת יום חדש: startDay (קובע שעת סיום) או gateRestore (שחזור מגיבוי).",
+    "evidence": "legacy-main-script.js:72-76, 89-99, 3232-3243"
+   },
+   {
+    "domain": "data_persist",
+    "name": "שחזור מגיבוי (applyBackup)",
+    "detail": "קורא JSON, מוודא families מערך, מנרמל ('fb'+i, דה-דופ), משחזר teachers/seq (מינימום 500)/הגדרות ארגון/ui, toast 'הגיבוי שוחזר במלואו: N משפחות, M שיבוצים'. שגיאות: 'קובץ הגיבוי לא תקין (חסר families)' / 'שגיאה בקריאת הגיבוי: <msg>'.",
+    "evidence": "legacy-main-script.js:178-190"
+   },
+   {
+    "domain": "data_persist",
+    "name": "מודל ייבוא רב-סוגי",
+    "detail": "modal:'import' עם importKind ∈ {members (ברירת מחדל), families, supporters, ayin, backup}. קלט קובץ accept='.csv,.json,text/csv,application/json'; JSON→applyBackup; CSV נקרא UTF-8 עם fallback ל-windows-1255 אם מזוהה �. processImport מפורק לפי סוג; applyImport() מבצע. exportImportFormat() מוריד תבנית CSV round-trip לכל סוג ('⬇ ייצוא בפורמט הייבוא — לעריכה באקסל והחזרה').",
+    "evidence": "legacy-main-script.js:192-221, 833-845, 846-967, 3210-3228; legacy-markup.html:2555"
+   },
+   {
+    "domain": "reports_export",
+    "name": "תבניות ייבוא CSV (כותרות מדויקות)",
+    "detail": "members → 'maor-import-members.csv': [שם משפחה, שם פרטי, תאריך לידה, מין(בן/בת), ת\"ז, ת\"ז הורה, טלפון, עיר]; families → 'maor-import-families.csv': [שם, ת\"ז האב, טלפון האב, שם האם, ת\"ז האם, טלפון האם, עיר, רחוב, מספר בית, מצב משפחתי, קהילה, מספר ילדים, הערות] (לא-פעיל מסומן בהערות 'סטטוס: לא פעיל · '); supporters → 'maor-import-supporters.csv': [שם, טלפון, אימייל, ת\"ז, כתובת, קטגוריה, עבור]; ayin → 'maor-ayin-eyes.csv': [תומכת, טלפון, שם למסירה, כמה עיניים, נמסר (כן/לא), שולם (כן/לא), תשובה/הערה, עופרת בוצעה (כן/לא)].",
+    "evidence": "legacy-main-script.js:192-221"
+   },
+   {
+    "domain": "reports_export",
+    "name": "ייצוא CSV ראשי (csvDown)",
+    "detail": "פונקציה גנרית עם BOM + הגנת CSV-injection. ייצואים: exportFamiliesCSV → 'maor-families.csv' (17 עמודות כולל 'מדד אמינות', 'יתרת תשלומים', 'נרשמה'); exportCoursesCSV → 'maor-courses.csv'; exportEnrollCSV → 'maor-students.csv'; exportEventsCSV → 'maor-events.csv'; exportSupportersCSV → 'maor-supporters.csv' (toast: 'כולל ציון משוקלל ודרגות'); exportCourseStudents → 'course-<שם>.csv'; exportCourseDaily → 'course-daily-<שם>.csv'; ייצוא טווח תאריכים לפי expTarget → 'courses-report-/events-report-/supporters-report-<from>_<to>.csv'; מסך משפחות: dlCSV → 'maor-hachesed-families.csv' (8 עמודות) + copyPhones (העתקת 'משפחת X: טלפון' ללוח).",
+    "evidence": "legacy-main-script.js:1786-1822, 1445-1483, 1538-1542, 1765, 2333-2342"
+   },
+   {
+    "domain": "reports_export",
+    "name": "דוחות טקסט (.txt)",
+    "detail": "genReport(freq) → 'maor-report-<freq>.txt': כותרת דו\"ח + תאריך עברי, שורת 'נמענים: בעל אירוע + אחראי כללי · ערוצים: מייל + אזור אישי', מוני משפחות (פעילות/ממתינות), תלמידים/שיבוצים/חוגים, חיסורים, ורשימת יתרות נמוכות בכרטיסיות (purchased-used<=2). תדירויות מוגדרות ב-state.reports: {daily:true, weekly:true, monthly:false, quarterly:false}. בנוסף: exportAudit → 'maor-data-audit.txt' (ממצאי תקינות _lastAudit); exportFamilyReport(f) → 'family-report-<שם>.txt' כולל ציר-זמן famHistoryOf עם תאריכים עבריים; דוח יומי עין-הרע → 'ayin-hara-<תאריך>.csv'.",
+    "evidence": "legacy-main-script.js:783-798, 1824-1831, 1861-1899, 1616-1626"
+   },
+   {
+    "domain": "reports_export",
+    "name": "קבלות טקסט",
+    "detail": "קבלת תשלום → 'receipt-<rid>.txt' (שורות: התקבל ₪+אמצעי, 'סה\"כ עסקה', 'שולם עד כה', 'יתרה', 'תשלום הבא' בתאריך עברי, 'תודה רבה!'); קבלת תרומה → 'donation-<rid>.txt' ('קבלה על תרומה — <orgName>', מס׳ rid, תורם/ת + ת\"ז, סכום ₪/$, 'סה\"כ מצטבר' + מספר תרומות, 'תזכו למצוות!'). אין שום פיצ'ר הדפסה (window.print/window.open לא קיימים בקובץ).",
+    "evidence": "legacy-main-script.js:1260-1270, 1408-1417"
+   },
+   {
+    "domain": "settings_permissions",
+    "name": "נגישות + זום",
+    "detail": "4 מתגי נגישות ('maorclean2_acc'): contrast='ניגודיות גבוהה', links='הדגשת כפתורים וקישורים', noanim='עצירת אנימציות ותנועה', spacing='ריווח טקסט מוגדל' + כפתור איפוס ('הגדרות הנגישות אופסו'). זום UI ('maorclean2_ui_scale'): צעדי 0.1, טווח 0.8–1.6, מוצג באחוזים, מוזן ל-window.__fsScale.",
+    "evidence": "legacy-main-script.js:3184-3194"
+   },
+   {
+    "domain": "settings_permissions",
+    "name": "איפוס נתונים מקומיים",
+    "detail": "כפתור דו-שלבי: 'איפוס נתונים מקומיים' → 'לאשר איפוס? כל השינויים המקומיים יימחקו' (חלון 4 שניות) → removeItem('maorclean2_db') + reload.",
+    "evidence": "legacy-main-script.js:3404-3406"
+   }
+  ],
+  "strings_sample": [
+   "גיבוי מלא ירד — כולל הכל: משפחות, שיבוצים, אירועים והגדרות",
+   "⚠ השמירה האוטומטית נכשלה (אחסון מלא או מצב פרטי) — הורידו גיבוי מלא עכשיו!",
+   "הגיעה שעת הסיום שהגדרתם — גיבוי סוף היום ירד אוטומטית ✓",
+   "☀ יום העבודה נפתח — גיבוי אוטומטי יירד בשעה ",
+   "הגיבוי שוחזר במלואו: N משפחות, M שיבוצים",
+   "קובץ הגיבוי לא תקין (חסר families)",
+   "לאשר איפוס? כל השינויים המקומיים יימחקו",
+   "איפוס נתונים מקומיים",
+   "⬇ גיבוי מלא עכשיו (אותו פורמט לשחזור)",
+   "⬇ ייצוא בפורמט הייבוא — לעריכה באקסל והחזרה",
+   "ירד גיליון העיניים — מלאו את העמודות והחזירו ב-⬆ ייבוא",
+   "קובץ המשפחות ירד — נפתח ישירות באקסל",
+   "קובץ התומכות ירד — כולל ציון משוקלל ודרגות",
+   "הדו\"ח ה<freq> הופק וירד למחשב",
+   "נמענים: בעל אירוע + אחראי כללי · ערוצים: מייל + אזור אישי",
+   "דוח התקינות ירד למחשב (N ממצאים)",
+   "דוח המשפחה המלא ירד למחשב",
+   "קבלה על תרומה — מאור החסד",
+   "תזכו למצוות!",
+   "נוספו N משפחות אלמנות · תאריך הוספה: תשפ\"ו",
+   "הגדרות הנגישות אופסו",
+   "בחירת קובץ מהמחשב…"
+  ],
+  "notes": "הפריימוורק: dc-runtime — מיקרו-runtime פנימי (נבנה מ-dc-runtime/src/*.ts) שעוטף React 18.3.1; legacy-res-9102eb6f.js ו-legacy-res-5d29e9a9.js הם רק react-dom/react UMD ואין בהם לוגיקה עסקית. מחזור החיים: class Component extends DCLogic נאכל ב-new Function; renderVals() נקרא בכל רינדור ומחזיר אובייקט שטוח שהתבנית <x-dc> (עם {{expr}}, sc-for, sc-if, helmet, style-hover) מרונדרת מולו; setState עושה shallow-merge ומרנדר מחדש. ל-runtime אין persistence כלל — כל מפתחות ה-localStorage שייכים לאפליקציה: maorclean2_db (ראשי, v:1), maorclean2_db_corrupt, maorclean2_ui_scale, maorclean2_acc, maorclean2_day, maorclean2_dayend, maorclean2_autoexp. seed נוסף מ-4 בלוקי JSON מוטמעים: #sup-data, #fam-data, #widows-data, #img-data (legacy-markup.html:354-357). חשוב לניתוח הפערים: (1) אין הדפסה בכלל — כל ה'קבלות' וה'דוחות' הם קובצי .txt/.csv שיורדים עם BOM; (2) יש מנגנון יום-עבודה עם גיבוי אוטומטי בשעת סיום מוגדרת — פיצ'ר תפעולי בולט שקל לפספס; (3) ל-CSV יש הגנת injection וקידוד windows-1255 בייבוא; (4) seq מתחיל 100 ובשחזור נכפה מינימום 500; (5) navHist מוגבל ל-20. קבצים: /tmp/claude-0/-home-user/8862a091-aa82-5e39-bcb7-5164ade8d516/scratchpad/legacy-res-0d14ac27.js (runtime), legacy-main-script.js (אפליקציה), legacy-markup.html (בלוקי seed + input ייבוא בשורה 2555)."
+ },
+ {
+  "key": "script1",
+  "behaviors": [
+   "מנוע אמינות (cred): ציון 0–1000, ברירת מחדל 700. מדרגות tierOf: >=950 'טיטאן' (titan), >=800 'לביאה' (lion), >=500 'טעון שיפור' (pale), אחרת 'סיכון נטישה' (red) — כולל צבעי רקע/טקסט לכל מדרגה (שורות 374-379)",
+   "דלתות אמינות: ניקוב נוכחות (Check-in) = +5 · No-Show = -20 · ביטול מאוחר (<48 שעות) = -10 · ביטול מוקדם = 0 ('שימור ניקוד') · Decay אי-פעילות = -2. בהדגמה מוזכר גם 'פעולה קהילתית = +15'",
+   "נוסחת TrendFactor ב-credEvent: tf = 0.8 + 0.4*(שיעור הדלתות החיוביות מ-3 הרשומות האחרונות בלוג); applied = Math.round(delta*tf); הציון נחסם ל-[0,1000]; הלוג נחתך ל-20 רשומות; לתיאור מתווסף ' (TrendFactor X.X)' כשהוא שונה מ-1 (שורות 380-394)",
+   "ירידה למדרגת red מפעילה טוסט: 'התראה למנהל: משפחת X ירדה לסטטוס אדום — SMS/מייל יישלחו בגרסה המחוברת'",
+   "runDecay: אם אין רשומת לוג אמינות ב-14 הימים האחרונים (isoOffset(-14)) — הפחתה של 2 נקודות ורישום 'Decay — חוסר פעילות 14+ ימים' (שורות 395-404)",
+   "ציון אמינות התחלתי למשפחות מיובאות (fam-data/widows-data): score = 620 + (name.length*37 + city.length*53) % 330 (שורות 107, 140)",
+   "כלל 48 השעות לחיסור (saveAbsence): זכאות להשלמה (makeup) רק אם המפגש הבא רחוק >=48 שעות ((nextSession - now)/3600000 >= 48). ב-No-Show או ביטול מאוחר בכרטיסייה — הניקוב יורד (used++) (שורות 764-782)",
+   "punch(): חסימות — status 'paused' → 'השיבוץ מוקפא'; 'ended' → 'השיבוץ הסתיים'; ביתרה אפס בכרטיסייה → 'אין יתרת שיעורים — נדרש חידוש כרטיסייה'. props.punchConfirm (ברירת מחדל false) דורש לחיצה שנייה לאישור עם timeout של 3000ms (confirmingId) (שורות 330-342)",
+   "מודלי תמחור לקורס (planWord/pricePer): punch='כרטיסייה' (לכרטיסייה), monthly='מנוי חודשי' (לחודש), half_year='מנוי חצי-שנתי' (לחצי שנה), year='מנוי שנתי' (לשנה). לקורס גם price1/price2 עם price1Name/price2Name (מחירונים חלופיים)",
+   "ברירות מחדל לקורס חדש (emptyCourseForm): teacherId 't1', model 'monthly', start '2025-09-01', end '2026-07-31', roomId 'r2', weekday '0', time '17:00', maxStudents '12', gender 'f', cat 'העשרה', semester 'שנתי'. ב-saveCourse: ageMin ריק→3, ageMax ריק→99, weekday נחסם 0-5, maxStudents ברירת מחדל 12",
+   "ולידציות saveCourse: שם חובה; מחיר מספר חיובי; punch מחייב size>0 ('בכרטיסייה יש להגדיר מספר ניקובים גדול מ-0'); ageMax>=ageMin ('\"עד גיל\" חייב להיות גדול מ\"מגיל\"'); cat/semester '__other' מחייבים טקסט; teacherId '__add' יוצר מורה חדשה (דה-דופ לפי שם, fixPhone לטלפון)",
+   "saveEnroll: בדיקת קיבולת — מספר שיבוצים בקורס >= maxStudents (ברירת מחדל 999) → 'הקורס מלא'; בכרטיסייה purchased ברירת מחדל c.size וחייב >0. שיבוץ הורה: ערכי memberId מיוחדים '__pf:<famId>' (אב) / '__pm:<famId>' (אם) יוצרים חבר עם isParent:true, id 'mp'+seq, שם מההורה או 'אבא'/'אמא' (שורות 491-509)",
+   "יצירת sessions אוטומטית מטקסט audience: regex /(\\d+)\\s*(קבוצות|פעמים)/ — עד 5 מפגשים, day=(weekday+i*2)%6, תווית 'מפגש N' ל'פעמים' או 'קבוצה א׳/ב׳/ג׳...' (אותיות אבגדה) ל'קבוצות' (שורות 7-11)",
+   "validId: אימות ת\"ז ישראלית מלא — 5-9 ספרות, padStart ל-9, משקולות 1/2 לסירוגין, סכום ספרות, מודולו 10 (שורה 328)",
+   "blockReason: שבת חסומה תמיד; יום שישי חסום לקורסים ('יום שישי (שעתיים לפני שבת)'); חגים מלאים חוסמים הכל — FULL=[ראש השנה, ראש השנה ב׳, יום כיפור, סוכות, שמחת תורה, פסח, שביעי של פסח, שבועות, תשעה באב]; חול המועד חוסם קורסים (תשרי 16-21, ניסן 16-20). אירועי org נבדקים מול blockReason בשמירה (שורות 740-748)",
+   "בדיקת התנגשות בשמירת אירוע: התנגשות קשיחה — אותו חדר+תאריך+שעה מול אירוע קיים ('החדר תפוס בשעה זו: \"X\"') או מול מפגש קורס פעיל ('בשעה זו מתקיים החוג \"X\" בחדר הזה'); אזהרה רכה — אירוע אחר באותה שעה בכל חדר (' · ⚠ התנגשות עם \"X\" בשעה Y') (שורות 712-726)",
+   "מנוע חיפוש חכם (scoreTerm): התאמה מלאה=100, prefix=80, הסרת סיומת רבים ים/ות=70, substring=62, השוואה אחרי הסרת י/ו=58, Levenshtein (מרחק מותר 2 אם אורך>=6 אחרת 1) = 52-4*d. smartRank: פיצול לטוקנים, כל טוקן חייב להתאים, מיון לפי ממוצע, עד 7 תוצאות. norm: הסרת ניקוד, קיפול אותיות סופיות (ךםןףץ→כמנפצ), הסרת גרשיים/מקפים",
+   "מילון תעתיק XLAT (static): שמות משפחה/פרטיים/חוגים/ערים בעברית↔אנגלית↔רוסית↔כינויים (למשל 'משה'→['moshe','моше','מוישי','מוישה'], 'כהן'→['cohen','kohen','коэн'], 'מסאז׳'→['massage','массаж','עיסוי']) (שורות 522-528)",
+   "parseAnyDate: תומך ISO, D/M/Y או D.M.Y או D-M-Y עם שנת 2 ספרות (pivot: >26→19xx אחרת 20xx), ומספרים סידוריים של Excel (4-5 ספרות מ-1899-12-30) (שורות 825-832)",
+   "ייבוא ילדים (members) — קסקדת התאמה למשפחה: 1) ת\"ז הורה (>=5 ספרות, פגיעה יחידה) 2) טלפון (>=7 ספרות) 3) שם משפחה מנורמל, עם עידון לפי שם האם (הכלה דו-כיוונית) ואז לפי עיר; כפילות שם לא-פתירה → 'לא יובאו — שם משפחה כפול'. זיהוי מין: /בת|נק|f|ילדה/i. קובץ בלי כותרת: עמודה 0=משפחה, 1=פרטי (שורות 889-940)",
+   "ייבוא משפחות (עמודות קבועות): 0=שם, 1=ת\"ז אב, 2=טלפון, 3=שם האם, 4=ת\"ז אם, 5=טלפון2, 6=עיר, 7-8=כתובת, 9=רמז אלמן, 10=קהילה, 12=הערות. ניקויים: 'יריד חנוכה תשפ\"ו' → notes 'השתתפה ביריד חנוכה תשפ\"ו'; '#NAME?' מוסר; עיר 'רגיל'→''; 'ביתר'/'ביתר עלית'→'ביתר עילית'; סטטוס מ'סטטוס: לא פעיל'; מצב משפחתי מ'אלמנ'/'גרוש'→'אלמן/ה'/'גרושים' אחרת 'נשואים'; קהילה ברירת מחדל 'חסידי'. התאמה לקיימת: שם מנורמל + טלפון תואם/חסר (שורות 941-965)",
+   "קידוד קבצי ייבוא: קריאה כ-utf-8; אם מתגלה U+FFFD — קריאה חוזרת כ-windows-1255 (שורה 841)",
+   "runAudit — 8 קטגוריות עם צבעים: כפילות/ת\"ז/טלפון/אימייל/כתובת/לוגיקה/ילדים/קשר. חוקי טלפון: תקין=9-10 ספרות שמתחילות ב-0; 8 ספרות='כנראה חסרה ספרת 0 מובילה'; <7='קצר מדי'; לא מתחיל ב-0; אורך חריג. חוקי לוגיקה: אלמן/ה|גרושים|פרודים עם שני הורים או שתי ת\"ז; נשואים+פעילה בלי אף הורה; גיל ילד מחוץ ל-0-25='גיל חריג'; ילד כפול לפי שם+לידה; תשלומים מעל totalDue. תומכות: nextDate שעבר='עבר תאריך היעד לקשר'; תרומה בסכום <=0. מוצגות עד 80 שורות + צ׳יפים לפי קטגוריה (שורות 1016-1102)",
+   "גיבוי אוטומטי בסוף יום: dayGate כש-maorclean2_day != היום; טיק כל 60 שניות משווה לשעת סיום (maorclean2_dayend, ברירת מחדל '17:00') ומוריד גיבוי פעם ביום (maorclean2_autoexp) עם טוסט 'הגיעה שעת הסיום שהגדרתם — גיבוי סוף היום ירד אוטומטית ✓' (שורות 74-76, 89-102)",
+   "persist: debounce 500ms אחרי כל עדכון; DB עם v:1 ו-savedAt; DB פגום או גרסה שגויה נשמר בצד ב-maorclean2_db_corrupt וטוסט אזהרה; דה-דופ משפחות לפי id בטעינה; seq=Math.max(db.seq,500); כשל שמירה → טוסט חד-פעמי 'השמירה האוטומטית נכשלה (אחסון מלא או מצב פרטי)'",
+   "דוח תקופתי (genReport): קובץ txt עם BOM, שם 'maor-report-{freq}.txt'. תוכן: שם ארגון, תאריך עברי מלא + לועזי, 'נמענים: בעל אירוע + אחראי כללי · ערוצים: מייל + אזור אישי', ספירת משפחות לפי סטטוס, תלמידים/שיבוצים/חוגים, חיסורים מתועדים, ורשימת 'יתרות נמוכות' — כרטיסיות עם purchased-used <= 2 (שורות 783-798)",
+   "גימטריה (gem): המרת מספר לאותיות עבריות כולל טו/טז במקום יה/יו, מאות עד תתק, גרש לאות בודדת וגרשיים לפני האחרונה; gemYear = שנה מודולו 1000 (שורות 511-520)",
+   "hebToIso: המרת תאריך עברי ללועזי בסריקה של עד 500 ימים מ-1 ביוני של השנה הלועזית המשוערת (hy-3761) בעזרת Intl formatToParts (שורות 571-579)",
+   "numMatch לפילטרים מספריים: 'N+' = לפחות N, 'N-M' = טווח, 'N' = בדיוק (שורות 818-824)",
+   "uiScale: נשמר ב-maorclean2_ui_scale, תקף 0.8–1.5, ממומש ע\"י monkey-patch על React.createElement שמכפיל כל fontSize inline בפיקסלים (שורות 52-66)",
+   "לוח שנה במצב עברי (calHebMode ברירת מחדל true!): בניית גריד של חודש עברי אמיתי — זיהוי 29/30 ימים ע\"י בדיקה אם היום ה-30 באותו חודש, עוגן calHebAnchor, ניווט לחודש עברי קודם/הבא, מספר יום מוצג 'D.M' לועזי + גימטריה (שורות 645-706)",
+   "dayEvents — שכבות ליום: חגים (sort 0), אירועים בעדיפות אדומה (0.5), אירועים (1), ימי הולדת לפי MM-DD (2), 'הצטרפות' לפי createdAt של משפחה (2.4), 'הרשמה לחוג' לפי enrolledAt (2.6), 'מפגש קורס' לפי sessions בטווח start-end (3). אירועים עם meta.recur (אזכרה/יום נישואים) חוזרים לפי התאריך העברי מדי שנה (השוואת חודש+יום עבריים) (שורות 601-627)",
+   "פילטרי לוח (allowE): calFilters עם מפתחות courses/joins/holidays/bdays/reminders/calls/org/family + מצב calUrgentOnly שמציג רק priority==='red' (שורות 628-644)",
+   "מגבלות תצוגה בלוח: עד 3 גלולות לתא + '+N נוספים'; רשימת 'קרובים' — סריקת 30 יום קדימה, עד 8 פריטים, ללא מפגשי קורסים; אפשרות 'סימון בוצע' לאירוע ('השיחה סומנה כבוצעה') ועריכה מהפאנל",
+   "navHist: מעקב ניווט לפי מפתח view|selId|selCourseId|calDay, שמירת עד 20 צעדים אחורה; recentIds: עד 6 משפחות אחרונות שנפתחו",
+   "קיצורי מקלדת: Cmd/Ctrl+K לפלטת פקודות (paletteOpen); Escape בקסקדה — עצירת דמו → פלטה → מודאל → גלגל חוגים (wheelOpen) → גלגל משפחות (famWheelOpen); קרוסלה במסך הבית מתחלפת כל 5000ms",
+   "חדר: שדות name, active, slot (ברירת מחדל 60 דק׳), cap, location, rate (תעריף), from '08:00', to '20:00', access (נגישות), notes, eq (מפת ציוד). חדר כבוי בקורס → אזהרה 'החדר כבוי (מצב סימולציה — יופיע ב\"דורש טיפול\" עד הפעלתו)'",
+   "גיליון עיניים (ayin) לתומכות: ייצוא CSV 'maor-ayin-eyes.csv' עם עמודות [תומכת, טלפון, שם למסירה, כמה עיניים, נמסר (כן/לא), שולם (כן/לא), תשובה/הערה, עופרת בוצעה (כן/לא)]; ייבוא חוזר מעדכן eyes עם לוג היסטוריה {date,eyes,name}, paid, answers (דה-דופ לפי note), stage→'eyes' אם עופרת בוצעה, lastTouch; זיהוי 'כן' לפי /כן|yes|✓|v|שולם/i (שורות 195-201, 852-869, 970-984)",
+   "תומכת חדשה מייבוא נוצרת עם: id 'spi'+seq, count:0, ils:0, usd:0, first:'', last:'', nextDate:'', donations:[], hist:[] — כלומר מעקב תרומות דו-מטבעי (₪+$) (שורה 990)",
+   "קידומות id לפי מקור: 'f'+seq משפחה ידנית, 'fi' ייבוא, 'fb' גיבוי, 'fx' תיקון DB, 'fr' משפחות אמיתיות מ-fam-data, 'wd' אלמנות, 'm'+seq ילד, 'mi' ילד מיובא, 'mp' הורה משובץ, 'c' קורס, 'e' שיבוץ, 'ev' אירוע, 'r' חדר, 't' מורה, 'spi' תומכת מיובאת"
+  ],
+  "features": [
+   {
+    "domain": "data_persist",
+    "name": "איפוס נתוני הדמו והזנה מקבצים מוטמעים",
+    "detail": "בקונסטרוקטור: d.families/enrollments/courses מאופסים ל-[] מיד אחרי seed() — נתוני הדמו קיימים בקוד אך לא בשימוש. הנתונים האמיתיים נטענים מ-3 תגי script מוטמעים: '#fam-data' (משפחות אמיתיות, רק אם אין DB שמור), '#widows-data' (משפחות אלמנות עם קידומת id 'wd', מוחלפות אם הכמות השתנתה, נדחפות לראש הרשימה), '#sup-data' (תומכות; אם יש כבר תומכות — מיזוג שדה 'hist' בלבד לפי מפתח טלפון-ספרות או שם מנורמל). בנוסף '#img-data' — מפת JSON להחלפת נתיבי תמונות קורסים ב-data URIs",
+    "evidence": "legacy-main-script.js:5, 103-146"
+   },
+   {
+    "domain": "data_persist",
+    "name": "persist + שחזור DB מ-localStorage עם הגנות",
+    "detail": "מפתח 'maorclean2_db', סכמה {v:1, savedAt, families, enrollments, courses, events, rooms, orgName, orgSite, orgDonate, notif, reports, seq, teachers, supporters, ui:{famView,crsView}}. JSON פגום או v!==1 → נשמר עותק ב-'maorclean2_db_corrupt', דגל _dbCorrupt, וטוסט אחרי 1.5ש׳ המפנה לשחזור מ'⬆ ייבוא'. תיקון אוטומטי: id חסר → 'fx'+i, members/docs → מערכים, דה-דופ לפי id. שמירה ב-debounce 500ms; כשל שמירה → this._saveOk=false וטוסט חד-פעמי",
+    "evidence": "legacy-main-script.js:28-50, 148-157, 168"
+   },
+   {
+    "domain": "data_persist",
+    "name": "גיבוי מלא JSON + שחזור",
+    "detail": "exportBackup מוריד 'maor-backup-YYYY-MM-DD.json' (תוכן ה-localStorage כמו שהוא) עם טוסט 'גיבוי מלא ירד — כולל הכל: משפחות, שיבוצים, אירועים והגדרות'. applyBackup מאמת קיום מערך families ('קובץ הגיבוי לא תקין (חסר families)'), משלים id 'fb'+i, מדה-דופ, משחזר teachers, ומדווח 'הגיבוי שוחזר במלואו: N משפחות, M שיבוצים'",
+    "evidence": "legacy-main-script.js:170-190"
+   },
+   {
+    "domain": "data_persist",
+    "name": "גיבוי אוטומטי בשעת סיום יום (dayGate)",
+    "detail": "state.dayGate נדלק כשמפתח 'maorclean2_day' שונה מהיום (מסך פתיחת יום). state.dayEndDraft מ-'maorclean2_dayend' (ברירת מחדל '17:00'). setInterval של 60 שניות: אם היום נפתח ועוד לא בוצע ייצוא אוטומטי היום ('maorclean2_autoexp') והשעה הנוכחית >= שעת הסיום — מוריד גיבוי אוטומטית עם טוסט ייעודי",
+    "evidence": "legacy-main-script.js:72-76, 89-102"
+   },
+   {
+    "domain": "families",
+    "name": "מודל נתונים — משפחה",
+    "detail": "שדות: id, name, father, mother, fatherId, motherId (ת\"ז הורים), phone, phone2, email, address, city, status ('active'/'pending'/'inactive'), notes, docs[] (שמות מסמכים), members[], community (קהילה: ליטאי/חסידי/ספרדי/דוברי רוסית/כללי), maritalStatus (נשואים/אלמן/ה/גרושים/פרודים/חופשי), language (עברית/יידיש/רוסית/צרפתית), tzedaka (קופת צדקה: 'קופת העיר'/'ועד הצדקה'), fullSefach (בוליאני — ספח מלא), discount (טקסט הנחה, למשל 'הנחת אחים 10%'), cred:{score,log[]}, createdAt",
+    "evidence": "legacy-main-script.js:224-242, 297-298, 316-317"
+   },
+   {
+    "domain": "families",
+    "name": "מודל נתונים — בן משפחה (ילד/הורה)",
+    "detail": "שדות: id, first, gender ('m'/'f'), birth (ISO), idNum, phone, phone2, school (מוסד לימודים), grade (כיתה), health (מידע רפואי), notes, isParent (הורה שמשובץ לחוג), ודגלי הסכמות/תיעוד: mSefach (ספח), mInvite (הזמנה), mRecommend (המלצה), mPhotos (אישור צילום), mVideos (אישור וידאו)",
+    "evidence": "legacy-main-script.js:314-315, 498, 931"
+   },
+   {
+    "domain": "families",
+    "name": "טופס משפחה עם ולידציות ושדות 'אחר'",
+    "detail": "emptyForm: ברירות מחדל status 'active', language 'עברית', community 'חסידי', fullSefach 'no'. saveFamily: שם חובה; maritalStatus/language '__other' מחייבים הקלדה חופשית (maritalOther/langOther); ת\"ז אב/אם עוברות validId עם הודעת 'ת\"ז האב אינה תקינה (ספרת ביקורת שגויה)'; community ריק → 'כללי'. משפחה חדשה: id 'f'+seq, createdAt, unshift לראש, מעבר לכרטיס + הוספה ל-recentIds (עד 6)",
+    "evidence": "legacy-main-script.js:405-424"
+   },
+   {
+    "domain": "families",
+    "name": "טופס בן משפחה + זרימת 'הוסף ושבץ'",
+    "detail": "saveMember: שם פרטי חובה; ת\"ז עם validId. תאריך לידה ניתן להזנה גם בתאריך עברי (mbMode/hbDay/hbMonth/hbYear + hbChange שממיר ל-ISO). אם state.afterMember==='join' — אחרי ההוספה נפתח ישר מודאל שיבוץ עם הילד החדש נבחר: 'X נוסף/ה — ממשיכים בשיבוץ מאותה נקודה'",
+    "evidence": "legacy-main-script.js:425-443, 589-600"
+   },
+   {
+    "domain": "families",
+    "name": "מדד אמינות משפחתי (Credit Score) מלא",
+    "detail": "f.cred={score:0-1000, log:[{date,delta,desc}]}. credEvent מיישם TrendFactor על בסיס 3 רשומות אחרונות (0.8–1.2), חוסם לטווח, שומר 20 רשומות לוג, ומתריע בירידה ל-red. tierOf מחזיר [מפתח, תווית, bg, צבע, צבע-מודגש]: טיטאן/לביאה/טעון שיפור/סיכון נטישה. runDecay = Batch יומי ידני מההגדרות ('הרץ עכשיו') שמוריד 2 נק׳ לכל משפחה ללא פעילות 14+ ימים",
+    "evidence": "legacy-main-script.js:374-404"
+   },
+   {
+    "domain": "attendance",
+    "name": "ניקוב נוכחות (punch) עם אישור כפול אופציונלי",
+    "detail": "punch(eid): חוסם שיבוץ מוקפא ('paused'), שהסתיים ('ended') וכרטיסייה מנוצלת (used>=purchased). props.punchConfirm (ברירת מחדל false) — לחיצה ראשונה מציבה confirmingId ל-3 שניות, רק השנייה מנקבת. הצלחה: used++, טוסט 'הניקוב נרשם בהצלחה', +5 אמינות למשפחה עם תיאור 'נוכחות (Check-in)'",
+    "evidence": "legacy-main-script.js:330-342"
+   },
+   {
+    "domain": "attendance",
+    "name": "רישום חיסור עם כלל 48 שעות ו-No-Show",
+    "detail": "saveAbsence: נימוק חובה ('נימוק הוא שדה חובה'). absKind: 'cancel' (ברירת מחדל) או 'noshow'. זכאות להשלמה רק אם המפגש הבא (nextSession) רחוק >=48 שעות. רשומת חיסור: {date, reason, makeup, noshow}. No-Show או ביטול מאוחר בכרטיסייה → הניקוב נשרף (used++). אמינות: noshow -20 ('No-Show: <שם קורס>'), ביטול מאוחר -10 ('ביטול מאוחר (<48 שעות)'), מוקדם 0 ('ביטול מוקדם — שימור ניקוד'). טוסטים: 'No-Show נרשם (-20 אמינות)' / 'החיסור נרשם — זכאי/ת להשלמה' / 'החיסור נרשם והניקוב ירד'",
+    "evidence": "legacy-main-script.js:764-782"
+   },
+   {
+    "domain": "courses",
+    "name": "מודל נתונים — קורס/חוג",
+    "detail": "שדות: id, name, teacherId, roomId, weekday (0-5, אין שבת), time, cat (קטגוריה: מלאכה/אמנות/העשרה/ספורט/טיפוח/רווחה/מוזיקה/קולינרי), img, model ('monthly'/'punch'/'half_year'/'year'), size (מס׳ ניקובים בכרטיסייה), price + price1/price2/price1Name/price2Name (מחירונים נוספים בעלי שם), maxStudents, audience (טקסט חופשי: 'נשים'/'2 קבוצות'/'3 קבוצות'/'נשים ונערות'/'קהילתי'/'כללי'), description, start/end (ברירת מחדל שנה\"ל 2025-09-01 עד 2026-07-31), semester ('שנתי'), sector ('הכל'), gender ('f'/'all'), ageMin/ageMax, gradeMin/gradeMax, sessions:[{day,time,label}]. 23 קורסים בסיד (מחירים 80-260 ₪), 19 מורות {id,name,phone}",
+    "evidence": "legacy-main-script.js:243-270, 449"
+   },
+   {
+    "domain": "courses",
+    "name": "ריבוי מפגשים/קבוצות לקורס (sessions)",
+    "detail": "sessions נגזרות אוטומטית מ-audience ('N קבוצות' → 'קבוצה א׳/ב׳...', 'N פעמים' → 'מפגש 1/2...', מקסימום 5, ימים בקפיצות של 2 מודולו 6). sessionsOf(c) נופל חזרה ל-[{day:weekday,time,label:''}]. nextSession(c) מחשב את המופע הקרוב ביותר מבין כל המפגשים. בעריכת קורס — sessions[0] מתעדכן מהטופס. בהדגמה: '+ הוספת קבוצה' מוסיפה קבוצה חיה",
+    "evidence": "legacy-main-script.js:7-11, 373, 750-763"
+   },
+   {
+    "domain": "courses",
+    "name": "שיבוץ תלמיד/הורה לחוג (saveEnroll)",
+    "detail": "מודל שיבוץ: {id, memberId, courseId, plan (מודל הקורס), purchased, used, group (שיוך לקבוצה), absences[], enrolledAt, status?, payments?, totalDue?}. שיבוץ הורים דרך ערכים '__pf:'/'__pm:' שיוצרים רשומת הורה isParent במשפחה. בדיקת מלאות קורס מול maxStudents. טוסט 'התלמיד/ה שובצ/ה לקורס'",
+    "evidence": "legacy-main-script.js:491-509"
+   },
+   {
+    "domain": "courses",
+    "name": "טופס קורס — מורה חדשה inline, קטגוריה/מסלול 'אחר'",
+    "detail": "teacherId '__add' + newTeacherName/newTeacherPhone יוצר מורה תוך כדי שמירת קורס (אם השם קיים — שימוש בקיימת). cat '__other'→catOther, semester '__other'→semesterOther. אזהרת חדר כבוי בטוסט. קורס חדש: 'הקורס \"X\" נוצר — נכנס ליומן <חדר>, ללוח ולגלגל'; עדכון: 'הקורס עודכן — משתקף ביומן <חדר> ובלוח'",
+    "evidence": "legacy-main-script.js:450-490"
+   },
+   {
+    "domain": "courses",
+    "name": "תוויות כיתות (gradeLabel/gradeRange)",
+    "detail": "מיפוי gan→'גן', 1-12→'א׳'..'י״ב'; gradeRange מציג 'א׳–ד׳' או ערך יחיד. שדות gradeMin/gradeMax קיימים בטופס הקורס",
+    "evidence": "legacy-main-script.js:447-448"
+   },
+   {
+    "domain": "courses",
+    "name": "חדרים — 12 חדרים כולל 'המקום החדש', ציוד ותעריף",
+    "detail": "סיד: משרד, כסא מסאז׳ 1/2, חדר גדול (ציוד: מראות/הגברה/שולחנות מתקפלים), מטבח (מטבח מאובזר), קליניקה (הערה: 'שני כיסאות מסאז׳ — תורים לאורך כל היום דרך היומן'), אולפן (פסנתר/הגברה/מחשבים), ו-5 חדרים לא פעילים ב-location 'המקום החדש': חדר בריחה (slot 90), חדר ג׳קוזי (slot 45), חדר ירידים ('בגדים וחלוקת מתנות'), חדר אוכל, חדר הרצאות. openRoomSet/saveRoomSet: name (חובה), active, slot, cap (קיבולת), location, rate (תעריף), from/to (שעות פעילות 08:00-20:00), access (נגישות), notes, eq. הוספת חדר חדש דרך roomSetId '__new'",
+    "evidence": "legacy-main-script.js:299-312, 348-372"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "מודל אירוע + סוגים וחזרה שנתית עברית",
+    "detail": "שדות: id, title, date, time, type ('org'/'reminder'/'call'/'wedding'/'memorial'/'anniversary'/'custom'+customType), notes, price (עלות אירוע), roomId, famId (קישור למשפחה), priority ('red'/'orange'/'green'), done. אירועים עם meta.recur (evMeta — אזכרה/יום נישואים) חוזרים כל שנה לפי התאריך העברי (השוואת חודש+יום עבריים עם cache _hpc). לחיצה על אירוע עם famId מנווטת לכרטיס המשפחה",
+    "evidence": "legacy-main-script.js:291-296, 318-322, 605-614"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "לוח שנה דו-מצבי — חודש עברי אמיתי או לועזי",
+    "detail": "calHebMode ברירת מחדל true — הגריד נבנה סביב חודש עברי מלא (זיהוי 29/30 ימים), כותרת עברית בגימטריה + טווח לועזי, וניווט חודש עברי (prevIso/nextIso). במצב לועזי — 42 תאים. כל תא: מספר יום, יום עברי בגימטריה (במצב לועזי מוצג גם שם חודש עברי ב-1 בחודש), הדגשת היום, עד 3 גלולות + '+N נוספים', לחיצה פותחת תצוגת יום (calDay)",
+    "evidence": "legacy-main-script.js:645-706"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "שכבות היום (dayEvents) — 7 סוגי פריטים",
+    "detail": "חג ומועד (מ-HOLIDAYS static, 19 מועדים), אירועים (עם פס עדיפות אדום/כתום/ירוק), יום הולדת ('יום הולדת: X (משפחת Y)') לפי MM-DD, 'הצטרפות משפחת X למערכת' לפי createdAt, 'הרשמה לחוג: X ← <קורס>' לפי enrolledAt, 'מפגש קורס' לפי sessions בטווח התאריכים. לכל פריט צבעים, sort, ו-nav (ניווט למשפחה/קורס/עריכת אירוע)",
+    "evidence": "legacy-main-script.js:510, 601-627"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "פילטרי שכבות + מצב 'דחופים בלבד'",
+    "detail": "calFilters: courses/joins/holidays/bdays/reminders/calls/org/family — ברירת מחדל הכל דולק (cf[k]!==false). calUrgentOnly מציג רק אירועים עם priority='red'. בהדגמה: כפתורי 'טלפונים' ו-'● דחופים בלבד'",
+    "evidence": "legacy-main-script.js:628-644"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "פאנל 'קרובים' עם פעולות ישירות",
+    "detail": "buildCal מחשב upcoming: סריקה 30 יום קדימה, עד 8 פריטים, בלי מפגשי קורסים; לכל פריט יום עברי בגימטריה + חודש עברי, תווית סוג, edit (עריכת אירוע), markDone ('השיחה סומנה כבוצעה' — לתזכורות טלפון), ו-nav",
+    "evidence": "legacy-main-script.js:682-696"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "שמירת אירוע — התנגשויות חדר/חוג וחסימת תאריכים",
+    "detail": "saveEvent: כותרת+תאריך חובה; סוג '__other' עם typeOther→customType. חדר+שעה: התנגשות מול אירוע אחר או מפגש חוג באותו חדר/שעה חוסמת שמירה. אירוע 'org' נחסם בתאריך חסום ('התאריך חסום לתזמון אירועים: שבת/חג'). אזהרה רכה על התנגשות כלל-מערכתית באותה שעה. evReturn — כשמגיעים מיומן חדר (diary), השמירה חוזרת ליומן עם טוסט 'ההזמנה נכנסה — המשבצת מסומנת תפוסה ביומן'",
+    "evidence": "legacy-main-script.js:707-739"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "חסימת שבת/חגים/חול המועד (blockReason)",
+    "detail": "שבת חסומה לכל; שישי חסום לקורסים; 9 חגים מלאים חוסמים (FULL list); חול המועד סוכות (תשרי 16-21) ופסח (ניסן 16-20) חוסם קורסים. HOLIDAYS static כולל גם חנוכה, צום עשרה בטבת, ט״ו בשבט, פורים (אדר+אדר ב׳), ל״ג בעומר, צום י״ז בתמוז, ט״ו באב, ערב ראש השנה — מוצגים בלוח כ'חג ומועד'",
+    "evidence": "legacy-main-script.js:510, 740-748"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "תאריכון עברי מלא (גימטריה + המרות)",
+    "detail": "gem/gemYear — המרה לגימטריה עם טו/טז וגרשיים; hebDateFull — 'כ״ג תמוז תשפ״ו'; hebToIso/hb2FromIso/hb2Sel — בורר תאריך עברי תלת-שדתי (יום/חודש/שנה) עם ולידציה 'התאריך העברי הזה לא קיים בשנה שנבחרה'; Intl formatters עבריים (he/en-u-ca-hebrew)",
+    "evidence": "legacy-main-script.js:67-71, 511-521, 570-600"
+   },
+   {
+    "domain": "search",
+    "name": "מנוע חיפוש חכם עם תיקון שגיאות ותעתיק",
+    "detail": "norm — נירמול עברי (ניקוד, אותיות סופיות, גרשיים); scoreTerm — מדרג: מדויק 100, prefix 80, הסרת ריבוי ים/ות 70, substring 62, הסרת אמות קריאה י/ו 58, Levenshtein עם early-exit (סבילות 1-2 לפי אורך) 52-4d; smartRank — כל טוקן חייב להתאים, ממוצע ציונים, עד 7 תוצאות; XLAT — מילון תעתיק סטטי עברית/אנגלית/רוסית/כינויים לשמות משפחה, שמות פרטיים, חוגים וערים. בהדגמה: הקלדת 'כהאן' מוצאת את משפחת כהן",
+    "evidence": "legacy-main-script.js:522-566"
+   },
+   {
+    "domain": "search",
+    "name": "פלטת פקודות ⌘K",
+    "detail": "Cmd/Ctrl+K פותח/סוגר paletteOpen עם paletteQ; Escape סוגר בקסקדה (דמו→פלטה→מודאל→גלגלים). בהדגמה נראות פעולות מהירות בפלטה כולל 'העתקת כל הטלפונים' (רשימת חיוג ללוח ההעתקה) ו'יתרות נמוכות'",
+    "evidence": "legacy-main-script.js:81-85, 1140-1146"
+   },
+   {
+    "domain": "reports_export",
+    "name": "ייצוא CSV ב-4 פורמטים לעריכה באקסל וייבוא חוזר",
+    "detail": "exportImportFormat לפי importKind: 'members' (ילדים — שם משפחה/פרטי/לידה/מין בן-בת/ת\"ז/ת\"ז הורה/טלפון/עיר, ללא הורים isParent), 'families' (13 עמודות כולל ת\"ז אב/אם, קהילה, מצב משפחתי, מס׳ ילדים; סטטוס לא פעיל מוזרק להערות), 'supporters' (שם/טלפון/אימייל/ת\"ז/כתובת/קטגוריה/עבור), 'ayin' (גיליון עיניים — ראו supporters), 'backup' (JSON מלא). קבצים: maor-import-members/families/supporters.csv, maor-ayin-eyes.csv",
+    "evidence": "legacy-main-script.js:192-221"
+   },
+   {
+    "domain": "reports_export",
+    "name": "ייבוא CSV חכם עם תצוגת סיכום לפני החלה",
+    "detail": "handleImportFile: JSON מזוהה כגיבוי; fallback קידוד windows-1255. processImport בונה _pendImport ו-importSummary ({line1, line2, unmatchedLine, applyLabel, canApply}) — המשתמש רואה 'זוהו N...', התפלגות שיטות ההתאמה ('ת\"ז הורה: 3 · טלפון: 2'), אזהרות על כפולים/לא-מותאמים, ורק אז applyImport מבצע. parseCSVText — פרסר CSV מלא עם מרכאות כפולות",
+    "evidence": "legacy-main-script.js:833-1012, 799-816"
+   },
+   {
+    "domain": "reports_export",
+    "name": "דוחות תקופתיים (יומי/שבועי/חודשי/רבעוני)",
+    "detail": "state.reports={daily:true, weekly:true, monthly:false, quarterly:false} (מתגי תדירות בהגדרות) + genReport(freq) שמפיק קובץ txt: כותרת 'דו\"ח <תדירות> — <ארגון>', תאריך עברי, נמענים וערוצים, מונים (משפחות לפי סטטוס, תלמידים, שיבוצים, חוגים, חיסורים), ורשימת יתרות נמוכות (<=2 ניקובים שנותרו) בפורמט 'שם — קורס: נותר/סה\"כ'. כפתור 'הפק עכשיו ⬇' בהגדרות",
+    "evidence": "legacy-main-script.js:23, 783-798"
+   },
+   {
+    "domain": "reports_export",
+    "name": "בדיקת נתונים (runAudit) — סורק איכות נתונים מלא",
+    "detail": "8 קטגוריות צבועות: כפילות (שם+שם האם, טלפון משותף, ת\"ז משותפת — עם dupIds לפתיחת השוואה), ת\"ז (ספרת ביקורת לאב/אם/הורה-חבר/ילד), טלפון (5 סוגי בעיות), אימייל (regex), כתובת (עיר/כתובת חסרה לפעילות בלבד), לוגיקה (אלמן-עם-שני-הורים, נשואים-בלי-הורים, תשלום>totalDue), ילדים (בלי לידה, גיל 0-25, ילד כפול), קשר (אין שום פרט קשר). כולל ביקורת תומכות (כפילויות, ת\"ז, טלפון, אימייל, nextDate שעבר, תרומה<=0). פלט: total, rows (עד 80, כל שורה עם ניווט go), chips לפי קטגוריה, 'מוצגות 80 הראשונות מתוך N — ייצאו את הדוח המלא'. בהדגמה: 'תיקון אוטומטי: השלמת 0 לטלפונים' ו'← למרכז הטיפול' עם '✓ טופל'",
+    "evidence": "legacy-main-script.js:1016-1102"
+   },
+   {
+    "domain": "supporters",
+    "name": "מודל תומכות + מודול 'עיניים/עופרת' (ayin)",
+    "detail": "תומכת: {id, name, phone, email, idNum, address, cat (קטגוריה), forWho ('עבור'/לעילוי), count, ils, usd, first, last, nextDate (תאריך יעד לקשר), donations[], hist[], ayin}. מודול ayin: {names:[{name, eyes, done}], stage ('eyes'/'answer'/'done'), paid, answers:[{date,note}], answeredNote, log:[{date,eyes,name}], lastTouch} — מעקב 'שמות למסירה', ספירת 'כמה עיניים', 'עופרת בוצעה', תשלום ותשובות, עם סנכרון דו-כיווני דרך גיליון CSV. זהו פיצ׳ר דומיין ייחודי (טקס הסרת עין הרע ביציקת עופרת) שלא קיים ב-CRM רגיל",
+    "evidence": "legacy-main-script.js:195-201, 852-869, 970-993"
+   },
+   {
+    "domain": "settings_permissions",
+    "name": "הגדרות ארגון והתראות",
+    "detail": "orgName 'מאור החסד', orgSite 'https://maor-hachesed.org.il', orgDonate (קישור תרומה, ברירת מחדל ריק). notif={email:true, push:false, sms:true, strong:false} — 'strong' הוא 'דחיפה חזקה' לחירום (מוזכר בהדגמה). מתגי reports לתדירויות דוחות. הכל נשמר ב-DB",
+    "evidence": "legacy-main-script.js:19-23, 152"
+   },
+   {
+    "domain": "settings_permissions",
+    "name": "הרשאות דרך props + נגישות",
+    "detail": "בטווח זה: this.props.punchConfirm (ברירת מחדל false) — דרישת אישור כפול לניקוב. (props.role עם ברירת מחדל 'מנהל' ו-isAdmin=role==='מנהל' נמצא בשורה 1914, מחוץ לטווח שלי). uiScale (0.8-1.5) ב-'maorclean2_ui_scale' ממומש כ-patch גלובלי על React.createElement שמכפיל fontSize; אובייקט acc (נגישות) נטען מ-'maorclean2_acc'",
+    "evidence": "legacy-main-script.js:26-27, 52-66, 335, 1914"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "מעטפת RTL, טוסטים, קרוסלה, ניווט אחורה ומסך מלא",
+    "detail": "componentDidMount קובע lang='he' dir='rtl'. t() — טוסט 2600ms. קרוסלת בית מתחלפת כל 5 שניות (carIdx, רק ב-view 'home' בלי מודאל). navHist — היסטוריית ניווט עד 20 (view/selId/selCourseId/calDay) עם דגל _navBack. recentIds — 6 משפחות אחרונות. fullscreenchange→fsOn. תצוגות משתמש נשמרות: famView ('list'/'grid'), crsView ('grid')",
+    "evidence": "legacy-main-script.js:78-88, 158-169, 325, 343-347"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "גלגלי סינון (wheel) למשפחות ולחוגים",
+    "detail": "state: wheelOpen/wheelLocks/wheelRot (גלגל חוגים 'מצא חוג'), famWheelOpen (מאתר המשפחות — 'סינון מורחב'). לפי כיתובי ההדגמה: גלגל משפחות עם 8 צירים (עיר, קהילה, מצב משפחתי, אמינות...) שמסנן את הטבלה חי; גלגל חוגים מסנן את הגריד חי. Escape סוגר",
+    "evidence": "legacy-main-script.js:21, 83, 1177-1181, 1203-1205"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "מצב הדגמה עצמית (Demo Mode) מלא",
+    "detail": "startDemo/stopDemo/runDemo — סקריפט אוטומטי ~120 שורות עם סמן וירטואלי מונפש (demoX/demoY), כתוביות (demoCap), הקלדה מדומה תו-תו (130ms), גלילה חכמה, ו-6 פרקים: בית (אריחים לחיצים, צ׳יפים), חיפוש עם שגיאת כתיב, כרטיס משפחה (ניקוב, No-Show, ניהול שיבוץ ⚙ 'קנייה וטעינה', שיבוץ אם, העלאת ספח, פעולה קהילתית), ניקיון נתונים (ייבוא, audit, תיקון אוטומטי, מרכז הטיפול), חוגים וחדרים (יומן מטבח, הזמנת משבצת, ציוד 'מקרן', הוספת חדר בריחה), לוח שנה (שכבות, דחופים, אזכרה עברית, תצוגה יומית), הגדרות (התראות, דוח, Decay) וחזרה לדשבורד ('מדד אמינות הקהילה', 'דורש טיפול', 'תפוסת החוגים', 'פתח רשימה ↓' לניקוב מהיר). Escape עוצר",
+    "evidence": "legacy-main-script.js:1103-1250"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "יומן חדר (diary) והזמנת משבצות",
+    "detail": "state.diaryRoomId/diaryDate + מודאל 'diary'; evReturn מחזיר מהטופס ליומן. מכיתובי ההדגמה: משבצות לפי slot (60 דק׳), '15:00 חסום לנקיון', שבת נחסמת אוטומטית, דפדוף ימים ('יום הבא'), כפתור 'הזמנה' למשבצת פנויה שיוצר אירוע, ופתיחת יומן חדר גם ממסך הבית (title='פתיחת יומן החדר')",
+    "evidence": "legacy-main-script.js:22, 729-730, 1137-1138, 1192-1196"
+   },
+   {
+    "domain": "payments",
+    "name": "שדות תשלום על שיבוץ (חלקי בטווח זה)",
+    "detail": "ב-runAudit נבדק e.payments (מערך {amount}) מול e.totalDue — 'שולם ₪X — יותר מסה\"כ העסקה (₪Y). בדקו החזר או עדכנו את הסכום'. כלומר שיבוץ נושא עסקת תשלומים מצטברת. תומכת נושאת donations[] (עם amount), ils/usd מצטברים. מימוש מלא של מסכי תשלום כנראה בהמשך הקובץ",
+    "evidence": "legacy-main-script.js:1067-1072, 1092, 990"
+   },
+   {
+    "domain": "other",
+    "name": "פילטרים ותצוגות רוחביים ב-state",
+    "detail": "statusFilter ('all'), cityFilter ('all'), commFilter ('all' — קהילה), supQ (חיפוש תומכות), q (חיפוש כללי), importKind ('members'/'families'/'supporters'/'ayin'/'backup'), dupIds (השוואת כפילויות מה-audit), absKind, evReturn, afterMember, calDay, calFilters, calUrgentOnly, carIdx, fsOn, demoOn",
+    "evidence": "legacy-main-script.js:14-25, 1098"
+   }
+  ],
+  "notes": "היקף: שורות 1-1250 מתוך 3,472. נקודות מפתח לניתוח פערים מול ה-React rebuild:\n\n1) **הנתונים החיים אינם ה-seed**: שורה 5 מאפסת את families/enrollments/courses/events של הדמו. הנתונים האמיתיים מגיעים מתגי script מוטמעים ב-HTML: #fam-data (משפחות אמיתיות, ~292 לפי ההדגמה), #widows-data (אלמנות, קידומת 'wd', טוסט 'תאריך הוספה: תשפ\"ו'), #sup-data (תומכות כולל hist), #img-data (תמונות קורסים). rebuild שמסתמך על ה-seed בלבד יפספס את מנגנון ההזרקה והמיזוג.\n\n2) **מפתחות localStorage**: maorclean2_db (v:1), maorclean2_db_corrupt, maorclean2_ui_scale, maorclean2_acc, maorclean2_day, maorclean2_dayend, maorclean2_autoexp.\n\n3) **שדות מודל שקל לפספס**: משפחה — community, maritalStatus, language, tzedaka, fullSefach, discount, cred{score,log}, createdAt, docs[]; חבר — school, grade, health, isParent, mSefach/mInvite/mRecommend/mPhotos/mVideos, phone2; קורס — sessions[], price1/price2/price1Name/price2Name, gradeMin/gradeMax, sector, semester, audience; שיבוץ — group, status('paused'/'ended'), absences[{date,reason,makeup,noshow}], enrolledAt, payments[], totalDue; אירוע — famId, priority, price, customType, done; חדר — cap, rate, from/to, access, eq{}, location; תומכת — ayin{names,stage,paid,answers,log,lastTouch}, ils/usd, nextDate, forWho, hist.\n\n4) **props.role נמצא בשורה 1914** (מחוץ לטווח): role ?? 'מנהל', isAdmin = role==='מנהל' — לחלק הבא. בטווח שלי רק props.punchConfirm.\n\n5) **פיצ׳רים חריגים ל-CRM רגיל**: מודול העיניים/עופרת לתומכות (ayin), מנוע אמינות עם TrendFactor ו-Decay, לוח שנה בחודש עברי אמיתי + אירועים חוזרים לפי תאריך עברי, חסימת שבת/חגים/חוה\"מ, גיבוי אוטומטי בשעת סיום יום, מצב הדגמה עצמית עם סמן מונפש, patch גלובלי על React.createElement לסקיילינג פונטים, ותעתיק חיפוש עברית/רוסית/כינויים.\n\n6) פונקציות שהוזכרו אך מוגדרות אחרי שורה 1250 (לחלקים הבאים): evMeta, famSuffix, fixPhone, ayinOf, openSupCard, csvDown, blockReason ל'misc' לעומת 'course', וכן ה-render() כולו.",
+  "strings_sample": [
+   "מאור החסד",
+   "הניקוב נרשם בהצלחה",
+   "אין יתרת שיעורים — נדרש חידוש כרטיסייה",
+   "השיבוץ מוקפא — הפשירו אותו בניהול השיבוץ (⚙)",
+   "השיבוץ הסתיים — ניתן לחדש בניהול השיבוץ (⚙)",
+   "No-Show נרשם (-20 אמינות)",
+   "החיסור נרשם — זכאי/ת להשלמה",
+   "ביטול מאוחר (<48 שעות)",
+   "ביטול מוקדם — שימור ניקוד",
+   "נוכחות (Check-in)",
+   "Decay — חוסר פעילות 14+ ימים",
+   "Batch יומי הורץ: הפחתת אי-פעילות (-2) ל-N משפחות",
+   "התראה למנהל: משפחת X ירדה לסטטוס אדום — SMS/מייל יישלחו בגרסה המחוברת",
+   "טיטאן",
+   "לביאה",
+   "טעון שיפור",
+   "סיכון נטישה",
+   "מדד אמינות הקהילה",
+   "פעילה",
+   "ממתינה",
+   "לא פעילה",
+   "ת\"ז האב אינה תקינה (ספרת ביקורת שגויה)",
+   "שם משפחה הוא שדה חובה",
+   "נימוק הוא שדה חובה",
+   "הקורס מלא — הגעתם למקסימום התלמידים שהוגדר",
+   "בכרטיסייה יש להגדיר מספר ניקובים גדול מ-0",
+   "\"עד גיל\" חייב להיות גדול מ\"מגיל\"",
+   "בחרתם \"הוספת מורה\" — הקלידו את שם המורה",
+   "החדר תפוס בשעה זו: \"X\" — בחרו שעה או חדר אחרים",
+   "בשעה זו מתקיים החוג \"X\" בחדר הזה — בחרו שעה או חדר אחרים",
+   "התאריך חסום לתזמון אירועים: שבת",
+   "יום שישי (שעתיים לפני שבת)",
+   "חול המועד",
+   "ההזמנה נכנסה — המשבצת מסומנת תפוסה ביומן",
+   "האירוע נוסף ללוח",
+   "השיחה סומנה כבוצעה",
+   "התאריך העברי הזה לא קיים בשנה שנבחרה",
+   "יום הולדת · X",
+   "הצטרפות · X",
+   "הרשמה לחוג · X",
+   "מפגש קורס",
+   "חג ומועד",
+   "כרטיסייה",
+   "מנוי חודשי",
+   "מנוי חצי-שנתי",
+   "מנוי שנתי",
+   "קבוצה א׳",
+   "מפגש 1",
+   "גיבוי מלא ירד — כולל הכל: משפחות, שיבוצים, אירועים והגדרות",
+   "הגיעה שעת הסיום שהגדרתם — גיבוי סוף היום ירד אוטומטית ✓",
+   "⚠ הנתונים השמורים נמצאו פגומים — נשמר עותק בצד (maor_db_corrupt). שחזרו מגיבוי דרך ⬆ ייבוא",
+   "⚠ השמירה האוטומטית נכשלה (אחסון מלא או מצב פרטי) — הורידו גיבוי מלא עכשיו!",
+   "נטענו N משפחות מהקובץ האמיתי",
+   "נוספו N משפחות אלמנות · תאריך הוספה: תשפ\"ו",
+   "הגיבוי שוחזר במלואו: N משפחות, M שיבוצים",
+   "ירד גיליון העיניים — מלאו את העמודות והחזירו ב-⬆ ייבוא",
+   "שם למסירה",
+   "כמה עיניים",
+   "נמסר (כן/לא)",
+   "עופרת בוצעה (כן/לא)",
+   "אין שמות למסירה במערכת",
+   "עודכנו N שמות · M רישומי עיניים נכנסו להיסטוריה, ללוח התרומות ולדוח",
+   "השתתפה ביריד חנוכה תשפ\"ו",
+   "זוהו N שורות ילדים בקובץ",
+   "✓ הותאמו N ילדים ל-M משפחות",
+   "לא יובאו — שם משפחה כפול",
+   "הוסיפו עמודת ת\"ז הורה או טלפון לזיהוי חד-משמעי",
+   "כנראה חסרה ספרת 0 מובילה",
+   "מסומנת \"אלמן/ה\" — חייבת להיות בלי בן/בת זוג, אבל רשומים שניים",
+   "עבר תאריך היעד לקשר",
+   "מוצגות 80 הראשונות מתוך N — ייצאו את הדוח המלא",
+   "נמענים: בעל אירוע + אחראי כללי · ערוצים: מייל + אזור אישי",
+   "יתרות נמוכות",
+   "חיסורים מתועדים",
+   "דורש טיפול",
+   "תפוסת החוגים",
+   "מרכז הטיפול",
+   "✓ טופל",
+   "תיקון אוטומטי",
+   "בדיקת נתונים",
+   "סינון מורחב",
+   "מצא חוג",
+   "העתקת כל הטלפונים",
+   "רישום חיסור (נימוק חובה)",
+   "קנייה וטעינת כרטיסייה",
+   "+ שיבוץ לחוג",
+   "+ העלאת ספח",
+   "+ פעולה קהילתית",
+   "💛 פעולה קהילתית = +15 למדד האמינות",
+   "ניהול שיבוץ — קנייה, הקפאה, מסלול, הסרה",
+   "פתיחת יומן החדר",
+   "מערך הגדרות החדר",
+   "שם החדר הוא שדה חובה",
+   "החדר כבוי (מצב סימולציה — יופיע ב\"דורש טיפול\" עד הפעלתו)",
+   "הקורס \"X\" נוצר — נכנס ליומן <חדר>, ללוח ולגלגל",
+   "X נוסף/ה — ממשיכים בשיבוץ מאותה נקודה",
+   "● דחופים בלבד",
+   "דחיפה חזקה",
+   "הפק עכשיו ⬇",
+   "הרץ עכשיו",
+   "פתח רשימה ↓",
+   "👋 הדמיה מלאה — המערכת מדגימה את עצמה, על הנתונים האמיתיים",
+   "המקום החדש",
+   "חדר בריחה",
+   "חדר ג׳קוזי",
+   "חדר ירידים",
+   "בגדים וחלוקת מתנות",
+   "שני כיסאות מסאז׳ — תורים לאורך כל היום דרך היומן",
+   "קופת העיר",
+   "ועד הצדקה",
+   "הנחת אחים 10%"
+  ]
+ },
+ {
+  "key": "script2",
+  "behaviors": [
+   "ציון אמינות משפחה: ברירת מחדל 700; תשלום שהתקבל מזכה +5 נק' עם התיאור 'תשלום התקבל (₪X)'; 'פעולה קהילתית (תרומה/עזרה)' מזכה +15 נק'; Override ידני חייב להיות 0–1000 ונרשם בלוג 'Override ידני של מנהל → V' עם delta 0; אחוז מד = min(100, score/10)",
+   "דרגות אמינות משפחה (tierOf, מוצג ב-tierTiles): 'טיטאן · 950+', 'לביאה · 800+', 'טעון שיפור · 500+', 'סיכון · <500'",
+   "ציון תומכת supScore = R+F+M (מקס' 1000): המרת דולר קבועה 3.7 (tot = ils + usd*3.7); Recency לפי ימים מאז תרומה אחרונה: ≤30→350, ≤90→280, ≤180→200, ≤365→120, אחרת 40 (בלי last = 9999 ימים); Frequency לפי count: ≥10→300, ≥5→230, ≥3→160, ≥2→100, אחרת 50; Monetary: ≥5000→350, ≥2000→280, ≥1000→210, ≥500→140, ≥100→80, אחרת 40",
+   "דרגות תומכות supTier: ≥800 'זהב', ≥600 'כסף', ≥400 'ארד', אחרת 'רדומה' (כל אחת עם שלישיית צבעים)",
+   "יתרת תשלום payBal(e) = max(0, totalDue − Σ payments.amount); סכומים מעוגלים תמיד ל-2 ספרות: Math.round(x*100)/100",
+   "מזהי קבלות: תשלום 'R-'+seq, תרומה 'D-'+seq; אמצעי תשלום ברירת מחדל 'מזומן'; קבלה יורדת אוטומטית כקובץ txt עם BOM",
+   "טעינת כרטיסייה (buyPunches): כמות ברירת מחדל = buyQty או c.size או 12; חוקי: 0<qty≤200; אם plan!=='punch' — המרה לכרטיסייה עם used=0; שיבוץ ב-status 'ended' חוזר ל-'active' אוטומטית",
+   "קיבולת קורס: maxStudents ברירת מחדל 999; חסימת שיבוץ כשהקורס מלא; צבע מונה תפוסה: אדום #dc2626 במלא, כתום #9a6414 מ-80% תפוסה",
+   "צבע פס יתרת ניקובים: rem≤0 → #dc2626 (אדום), rem≤2 → #d97706 (כתום), אחרת #16a34a (ירוק); התראת 'כרטיסייה אוזלת' בסף rem≤2, ממוינת לפי rem עולה, מוצגות 5",
+   "ניקוב בשני שלבים: כפתור 'ניקוב' → 'לאשר ניקוב?'; כשהיתרה 0 הכפתור הופך ל'חידוש ←' ופותח את מודל הניהול",
+   "מחיקות בשני קליקים (armDel / quickRemoveEnroll / manageConfirm): הקליק הראשון מציג 'לאשר…?' והאישור פג אחרי 3500ms",
+   "הכנסה חודשית משוערת לקורס (בייצוא מותאם): רק שיבוצים active — monthly→price, half_year→price/6, year→price/12, punch→0; מוצג '₪X לחודש'",
+   "אירועים חוזרים לפי תאריך עברי: memorial/anniversary/bday מסומנים recur:true ב-evMeta; nextOccurLabel סורק עד 400 ימים קדימה להתאמת חודש+יום עבריים; בייצוא אירועים ההרחבה עד 366 ימים בטווח",
+   "תוויות עדיפות אירוע בייצוא: red='דחוף', yellow='בינוני', אחרת 'רגיל'; תזכורות אוטומטיות (תשלום יתרה / יעד קשר) נוצרות ב-priority 'orange'; אירועי עין הרע ב-'yellow'",
+   "fixPhone: אם הספרות לא מתחילות ב-0 — 9 ספרות → '0'+2 ספרות+'-'+היתר; 8 ספרות → '0'+ספרה+'-'+היתר; אחרת מוחזר כמו שהוא",
+   "csvDown: BOM ﻿ בראש הקובץ + הגנת CSV-injection — ערך שמתחיל ב-=+-@ מקבל גרש מוביל; מרכאות מוכפלות",
+   "חדר חדש: slot ברירת מחדל 60 דק'; שם חובה וייחודי; חדר LIVE = קורס עם roomId תואם ו-weekday של היום",
+   "מסכת ת\"ז בכרטיס משפחה: '•••••' + 2 ספרות אחרונות; מוצג מלא רק אחרי 'הצג ת\"ז' (state showIds)",
+   "הרשאות: role ברירת מחדל 'מנהל'; משתמש שאינו מנהל מקושר קשיח ל-teacherId 't3' ורואה רק את הקורסים שלו; פעולות palette עם adminOnly מסוננות",
+   "חיפוש: הצעות השלמה לפי prefix או מרחק Levenshtein ≤1 לטוקן באורך ≥3 (עד 7 הצעות במשפחות, עד 6 ב-palette, רק מונחים עבריים); חיפוש מזהים מספריים (ת\"ז/טלפון/id) מקבל ציון 130 כשהשאילתה ≥3 ספרות נקיות או ≥4 ספרות; קיבוץ תוצאות לפי סוג, מקס' 3 בקבוצה; טבלת תעתיק Component.XLAT מורחבת למונחי חיפוש",
+   "מיון משפחות לפי סטטוס: active=0, pending=1, inactive=2, אחר=3; השוואת מחרוזות ב-locale 'he'",
+   "מיזוג כפילויות אוטומטי (dupMerge): שדה ריק מתמלא מהרשומה האחרת; טלפון שונה עובר ל-phone2; kidsHome/kidsMarried לוקחים מקסימום; members+docs משורשרים; status משודרג ל-active אם אחת פעילה; הערות מצורפות עם ' | מוזג: '; במיזוג שדה-שדה (dupFieldMerge) חברי משפחה מסוננים כפולים לפי מפתח first|birth",
+   "digest בוקר: כרטיסיות אוזלות, משפחות pending (3 שמות ראשונים), קורסים של היום, תזכורות טלפון פתוחות עד מחר (isoOffset(1)), אירועים מיוחדים ב-7 ימים (מקס' 2, מהסוגים חתונה/אזכרה/יום נישואים/יום הולדת), יום הולדת היום; קרוסלת בית סורקת 14 ימים, מקס' 10 פריטים ו-8 נקודות",
+   "ימי הולדת מזוהים לפי השוואת MM-DD (birth.slice(5)); חישוב גיל חדש = שנת האירוע − שנת לידה",
+   "מודל ניהול: balLine שלושה מצבים — 'שולם ₪X מתוך ₪Y · יתרה ₪Z' / 'שולם ₪X (ללא סה\"כ עסקה)' / 'הגדירו סה\"כ עסקה ותקבלו מעקב יתרה'; צבע יתרה #b45309 כשחייבים, #12803c כשסגור",
+   "עין הרע — מכונת מצבים: new→lead→eyes→answer→done; מעבר אוטומטי רק כשיש תנאים (new דורש names, eyes דורש לפחות עין אחת רשומה); כל מעבר יוצר אירוע לוח מסוג 'call'; שלב answer דוחף שיחה חד-פעמית (דגל answerPushed)"
+  ],
+  "features": [
+   {
+    "domain": "payments",
+    "name": "מודל ניהול שיבוץ — פתיחה",
+    "detail": "openManage(eid) פותח modal 'manage' עם manageId, מאפס buyQty/payAmt, payMethod ברירת מחדל 'מזומן', manageConfirm=false, ו-mgNote נטען מ-enrollment.note",
+    "evidence": "legacy-main-script.js:1256"
+   },
+   {
+    "domain": "payments",
+    "name": "חישוב יתרת תשלום",
+    "detail": "payBal(e) = Math.max(0, totalDue − סכום payments). משמש בכל התצוגות, הייצואים והקבלות",
+    "evidence": "legacy-main-script.js:1257"
+   },
+   {
+    "domain": "payments",
+    "name": "קבלה על תשלום (קובץ txt)",
+    "detail": "receipt(en,p) מוריד 'receipt-{rid}.txt' עם BOM: כותרת 'קבלה — {orgName|מאור החסד}', 'מס׳ קבלה', תאריך עברי מלא + לועזי, 'משפחת X · שם · חוג: Y', 'התקבל: ₪X (שיטה)', 'סה\"כ עסקה … שולם עד כה … יתרה', 'תשלום הבא: {תאריך עברי}' אם קיים dueDate, וסיום 'תודה רבה!'",
+    "evidence": "legacy-main-script.js:1258-1270"
+   },
+   {
+    "domain": "payments",
+    "name": "רישום תשלום + זיכוי אמינות",
+    "detail": "addPay(): עיגול ל-2 ספרות; ולידציה 'הקלידו סכום תשלום תקין'; רשומת תשלום {rid:'R-'+seq, date, amount, method}; טוסט 'התקבל ₪X · יתרה: ₪Y — הקבלה ירדה למחשב'; הורדת קבלה אוטומטית; ומזכה את המשפחה +5 נק' אמינות דרך credEvent עם 'תשלום התקבל (₪X)'",
+    "evidence": "legacy-main-script.js:1271-1283 (addPay)"
+   },
+   {
+    "domain": "payments",
+    "name": "תשלום הבא — תזכורת אוטומטית ללוח",
+    "detail": "savePayDue(v) קובע en.dueDate ומייצר/מעדכן אירוע לוח type 'reminder' priority 'orange' בכותרת 'תשלום יתרה — {שם} ({חוג})', מקושר דרך en.dueEventId, כולל famId. טוסטים: 'נקבע תשלום הבא ל-{תאריך} — נוספה תזכורת ללוח השנה' / 'תאריך התשלום הבא נוקה'",
+    "evidence": "legacy-main-script.js:1284-1297"
+   },
+   {
+    "domain": "payments",
+    "name": "קניית/טעינת כרטיסייה",
+    "detail": "buyPunches(): qty = buyQty או c.size או 12; ולידציה 0<qty≤200 ('כמות ניקובים לא תקינה'); אם כבר punch — purchased+=qty, אחרת המרה ל-punch עם used=0; status 'ended' חוזר ל-'active'; טוסט 'כרטיסייה נטענה: +X ניקובים · יתרה חדשה Y'. כותרת החלונית: 'קניית / טעינת כרטיסייה' או 'מעבר לכרטיסייה (קנייה ראשונה)'",
+    "evidence": "legacy-main-script.js:1299-1309, 2278"
+   },
+   {
+    "domain": "payments",
+    "name": "מודל ניהול — נתונים מלאים (mg)",
+    "detail": "בניית mg: שורת מי/חוג, planWord, balanceLabel ('יתרה: N מתוך M' לכרטיסייה או 'N נוכחויות מתחילת החודש'), סטטוס מוקפא/הסתיים/פעיל עם צבעים, totalDue ניתן לעריכה (setTotalDue מעגל ל-2 ספרות, מינ' 0, placeholder = מחיר הקורס), balLine תלת-מצבי, רשימת תשלומים הפוכה עם הורדת קבלה חוזרת לכל תשלום, בחירת קבוצה (groupOptions מ-sessionsOf עם יום+שעה), pauseLabel '⏸ הקפאה זמנית'/'▶ הפשרה — חזרה לפעילות', 'סיום שיבוץ', 'הסרת השיבוץ'→'לאשר הסרה סופית?', וקישור goCourse לקורס",
+    "evidence": "legacy-main-script.js:2253-2285"
+   },
+   {
+    "domain": "courses",
+    "name": "שיבוץ תלמיד חדש + יצירת משפחה בו-במקום",
+    "detail": "saveEnrollNew(): famId '__new' יוצר משפחה חדשה (עם dedup לפי normName, cred {score:700,log:[]}, createdAt, fixPhone); שגיאות: 'יש לבחור משפחה מהרשימה — או להקליד שם חדש ולבחור \"＋ משפחה חדשה\"', 'שם פרטי הוא שדה חובה', 'הקורס מלא — הגעתם למקסימום התלמידים'; חבר חדש gender ברירת מחדל 'f'; enrollment עם plan=c.model, purchased לכרטיסייה = enrollForm.purchased או c.size או 12; טוסט 'משפחת X נוצרה, Y נוסף/ה למשפחת X ושובצ/ה ל\"Z\"'",
+    "evidence": "legacy-main-script.js:1318-1339"
+   },
+   {
+    "domain": "courses",
+    "name": "שיבוץ חבר קיים / הורה לחוג",
+    "detail": "saveJoin(): memberId מיוחד '__pf'/'__pm' יוצר אוטומטית חבר הורה (isParent:true, שם מ-fam.father/mother או 'אבא'/'אמא'); שגיאות: 'יש לבחור ילד/ה או הורה', 'יש לבחור חוג', 'כבר משובץ/ת לחוג הזה' (בדיקת כפילות member+course), 'החוג מלא (n/max)', 'מספר ניקובים חייב להיות גדול מ-0'; שומר group; טוסט '{שם} שובצ/ה ל\"{חוג}\"'",
+    "evidence": "legacy-main-script.js:1340-1366"
+   },
+   {
+    "domain": "courses",
+    "name": "כרטיס מורה מלא",
+    "detail": "openTeacher/saveTeacherFull: שדות name, phone, phone2, email, idNum, address, specialty, payRate (תעריף לשעה), startDate, notes. ולידציות: 'שם המורה הוא שדה חובה', בדיקת ספרת ביקורת ת\"ז (validId) — 'ת\"ז לא תקינה (ספרת ביקורת שגויה)', regex אימייל — 'כתובת האימייל לא תקינה', 'תעריף לשעה חייב להיות מספר', ייחודיות שם — 'כבר קיימת מורה בשם הזה'. טוסטים: 'כרטיס המורה עודכן — משתקף בכל החוגים, החיפוש והייצוא' / 'המורה X נוספה — זמינה לשיבוץ בכל חוג'. המורות נשמרות ב-this.teachers עם persist() נפרד",
+    "evidence": "legacy-main-script.js:1367-1390"
+   },
+   {
+    "domain": "courses",
+    "name": "הוספת חדר",
+    "detail": "saveRoom(): שם חובה ('שם החדר הוא שדה חובה') וייחודי ('כבר קיים חדר בשם הזה'); slot ברירת מחדל 60 דק'; טוסט 'החדר \"X\" נוסף — היומן שלו זמין ברצועת החדרים'",
+    "evidence": "legacy-main-script.js:1391-1399"
+   },
+   {
+    "domain": "courses",
+    "name": "הסרת קבוצה מקורס + סנכרון תלמידים",
+    "detail": "sessionRows.remove: חובה שתישאר קבוצה אחת ('חייבת להישאר לפחות קבוצה אחת'); הסרת קבוצה מאפסת group לכל השיבוצים שהיו בה; טוסט 'הקבוצה הוסרה · N תלמידים סונכרנו ל\"ללא שיוך\"'. groupCounts מציג צ'יפ צבעוני לכל קבוצה + 'ללא שיוך · N' בפלטת 5 צבעים מחזורית",
+    "evidence": "legacy-main-script.js:2200-2222"
+   },
+   {
+    "domain": "courses",
+    "name": "טבלת קורסים — פילטרים, מיון ותצוגה",
+    "detail": "פילטרי עמודות crsColF: name/audience/teacher (norm-contains), model (בחירה), count/price (numMatch — ביטויים מספריים); מיון crsSort לפי name/audience/teacher/model/count/price1/price2/price. modelMeta: punch='כרטיסייה · N ניקובים', half_year='מנוי חצי-שנתי', year='מנוי שנתי', ברירת מחדל 'מנוי חודשי'. תצוגת מחירים p0/p1/p2 עם price1Name/price2Name (ברירת מחדל 'הנחה 1'/'הנחה 2'); countLabel 'n/max תלמידים' עם צבע אדום במלא וכתום מ-80%",
+    "evidence": "legacy-main-script.js:2104-2142"
+   },
+   {
+    "domain": "courses",
+    "name": "כרטיס קורס נבחר",
+    "detail": "crs: תאריכים לועזי+עברי ('datesHeb'), sessCount 'N קבוצה/קבוצות', roomLabel, capacityLabel 'N מתוך max', isFull משנה כפתור ל'הקורס מלא' במקום '+ שיבוץ תלמיד', gradeLabel (gradeRange), teacherPhone, descLabel 'אין תיאור.' כברירת מחדל, מחיקה בשני קליקים 'לאשר מחיקת חוג?'",
+    "evidence": "legacy-main-script.js:2145-2231"
+   },
+   {
+    "domain": "courses",
+    "name": "בורר שיבוץ חכם (modal enroll)",
+    "detail": "אפשרויות שיבוץ כוללות את כל החברים הלא-משובצים + הורים סינתטיים '__pf:{famId}'/'__pm:{famId}' בתווית 'אבא — X · משפחת Y'; חיפוש smartRank עם טבלת תעתיק XLAT; בבחירת משפחה (enfQ) — אם השאילתה ≥2 תווים ואין משפחה בשם זה, מוצעת שורת '＋ משפחה חדשה: \"X\" — יצירה ושיבוץ בלי לצאת מהמסך'",
+    "evidence": "legacy-main-script.js:2172-2190"
+   },
+   {
+    "domain": "courses",
+    "name": "רצועת חדרים חיה (LIVE)",
+    "detail": "roomRows: חדר LIVE = קורס עם roomId של החדר ו-weekday של היום; צ'יפ 'LIVE' ירוק עם אנימציית pulse והילת spin, 'פנוי' לחדר פעיל ריק, 'כבוי' ללא פעיל; תוויות 'היום: {קורס} · {שעה}' / 'פנוי היום · 60 דק׳/משבצת' / 'לא פעיל'; toggle הפעלה, כפתור הגדרות (openRoomSet), ופתיחת יומן חדר (modal 'diary' עם diaryDate=היום)",
+    "evidence": "legacy-main-script.js:2232-2249"
+   },
+   {
+    "domain": "supporters",
+    "name": "ציון RFM משוקלל לתומכות",
+    "detail": "supScore(sp): tot=(ils)+(usd*3.7); R לפי ימים מאז sp.last: ≤30→350, ≤90→280, ≤180→200, ≤365→120, אחרת 40; F לפי sp.count: ≥10→300, ≥5→230, ≥3→160, ≥2→100, אחרת 50; M לפי tot: ≥5000→350, ≥2000→280, ≥1000→210, ≥500→140, ≥100→80, אחרת 40; הציון = R+F+M",
+    "evidence": "legacy-main-script.js:1400-1407"
+   },
+   {
+    "domain": "supporters",
+    "name": "דרגות תומכות",
+    "detail": "supTier(sc): ≥800 'זהב', ≥600 'כסף', ≥400 'ארד', אחרת 'רדומה' — כל דרגה עם רקע/צבע/מסגרת",
+    "evidence": "legacy-main-script.js:1408"
+   },
+   {
+    "domain": "supporters",
+    "name": "קבלה על תרומה",
+    "detail": "supReceipt: קובץ 'donation-{rid}.txt' — 'קבלה על תרומה — {orgName}', 'מס׳', תאריך עברי+לועזי, 'תורם/ת: {שם} · ת\"ז {idNum}', 'סכום: ₪/$ {amount} · {קטגוריה}', 'סה\"כ מצטבר: ₪X + $Y · N תרומות', וסיום 'תזכו למצוות!'",
+    "evidence": "legacy-main-script.js:1409-1417"
+   },
+   {
+    "domain": "supporters",
+    "name": "רישום תרומה",
+    "detail": "addDonation(): ולידציה 'הקלידו סכום תרומה תקין'; רשומה {rid:'D-'+seq, date: donDate או היום, amount מעוגל, cur '₪'/'$', cat מ-donCat או sp.cat}; מעדכן sp.count++, צבירה נפרדת sp.ils/sp.usd, sp.last אם חדש יותר; מסנכרן את לוח התרומות לחודש/יום התרומה (supCalY/M/Day); טוסט 'נרשמה תרומה ₪X — מסומנת בלוח, הציון עודכן והקבלה ירדה'; קבלה יורדת אוטומטית",
+    "evidence": "legacy-main-script.js:1418-1431"
+   },
+   {
+    "domain": "supporters",
+    "name": "תאריך יעד ליצירת קשר",
+    "detail": "saveSupNext(v): קובע sp.nextDate ומייצר/מעדכן אירוע לוח type 'call' priority 'orange' בכותרת 'יעד קשר — תומכת: {שם}' עם notes 'משפחה תומכת · {טלפון} · {אימייל}', מקושר דרך sp.nextEventId; טוסט 'נקבע תאריך יעד {תאריך עברי} — מסומן 🎯 בלוח התרומות ונוספה תזכורת ללוח השנה' / 'תאריך היעד נוקה'; מסנכרן את הלוח לתאריך",
+    "evidence": "legacy-main-script.js:1432-1444"
+   },
+   {
+    "domain": "supporters",
+    "name": "היסטוריית תרומות מאוחדת",
+    "detail": "supDonEvents: ממזג donations (src 'קבלה {rid}') עם רשומות היסטוריות sp.hist בשדות d/a/c (src 'מהקובץ ההיסטורי'); אם אין hist מוסיף סמני 'תרומה ראשונה (מהקובץ)' ו'תרומה אחרונה (מהקובץ)' מ-sp.first/sp.last; ממוין יורד לפי תאריך",
+    "evidence": "legacy-main-script.js:1486-1495"
+   },
+   {
+    "domain": "supporters",
+    "name": "לוח תרומות דו-לוחי (עברי/לועזי)",
+    "detail": "supCalData: גריד 42 תאים; מצב עברי (supCalHeb) מאתר את א' בחודש העברי בהליכה אחורה עד 32 ימים ומנווט ±1 יום/±30 ימים; היום מודגש ברקע 'rgba(243,199,107,.3)', יום נבחר במסגרת '2px solid #b45309'; מספרי ימים בגימטריה (gem/gemYear); שורת סיכום 'X תרומות החודש · ₪Y + $Z' / 'אין תרומות מתועדות בחודש זה' / 'סכומים מהקובץ ההיסטורי'; קליק על יום פותח רשימת תרומות עם ניווט לתומכת (supQ)",
+    "evidence": "legacy-main-script.js:1496-1537"
+   },
+   {
+    "domain": "supporters",
+    "name": "מודול 'עין הרע' — פייפליין שלם",
+    "detail": "AYIN_STAGES: new='שיחה חדשה — לקחת שמות', lead='לעשות עופרת', eyes='רישום עיניים', answer='למסור תשובות', done='הושלם'. ayinOf יוצר lazy את sp.ayin {stage,eyes,note,nextTalk,lastTouch}; ayinTouch מעדכן ומחתים lastTouch=היום; ayinAction מקדם שלב ויוצר אירוע לוח 'call' צהוב לכל מעבר ('עין הרע: לעשות עופרת — X (N שמות)', 'עופרת נעשתה — …' (done), 'עין הרע: למסור תשובות — X (🧿 N עיניים)', 'עין הרע: הטיפול הושלם — X'); ayinActionLabel מסתיר CTA כשאין תנאים ומציג 'לעשות עופרת ←'/'🫙 אישור עופרת'/'למסור תשובות ←'/'📞 דחיפה ללוח'/'✓ השלמה'; ayinCall יוצר תזכורת בכותרות 'עין הרע: שיחה ראשונית — '/'לדבר שוב — '/'למסור תשובות — ' בתאריך nextTalk",
+    "evidence": "legacy-main-script.js:1596-1642"
+   },
+   {
+    "domain": "supporters",
+    "name": "דוח יומי עין הרע (CSV)",
+    "detail": "ayinDailyReport: מסנן תומכות שטופלו היום (lastTouch===today או log עם תאריך היום); עמודות: שם, טלפון, 'עיניים היום' (סכום log של היום או eyes נוכחי), שלב, 'שמות למסירה' בפורמט 'שם 🧿N ✓', 'מתי לדבר שוב', הערה (answers מחוברים ב-' | '); קובץ 'ayin-hara-{תאריך}.csv'; טוסטים: 'עוד לא עודכן אף שם היום — עדכנו עיניים/שלב בכרטיס והדוח יתמלא' / 'דוח יומי: N שמות שטופלו היום — הקובץ ירד'",
+    "evidence": "legacy-main-script.js:1614-1626"
+   },
+   {
+    "domain": "families",
+    "name": "מחיקות מדורגות בשני קליקים",
+    "detail": "armDel(key): קליק ראשון מסמן delConfirm ופג אחרי 3500ms. deleteFamily מוחקת גם את כל שיבוצי בני המשפחה ('משפחת X נמחקה — כולל N בני משפחה והשיבוצים שלהם'); deleteMember ('X נמחק/ה מהמשפחה — כולל השיבוצים בחוגים'); deleteCourse ('החוג \"X\" נמחק — כולל N שיבוצים · הוסר גם מהלוח ומהיומנים'); deleteSupporter ('התומכת \"X\" נמחקה מהמערכת'); quickRemoveEnroll עם rmConfirmId ותווית 'לאשר מחיקה?' ('השיבוץ של X ב\"Y\" נמחק סופית')",
+    "evidence": "legacy-main-script.js:1544-1595"
+   },
+   {
+    "domain": "families",
+    "name": "מיזוג כפילויות — שלושה מסלולים",
+    "detail": "dupFields: 18 שדות ברי-מיזוג עם תוויות (שם משפחה, שם האם, שם האב, טלפון, טלפון 2, אימייל, עיר, כתובת, ת\"ז אם, ת\"ז אב, קהילה, שפה, מצב משפחתי, סטטוס, ילדים בבית, ילדים נשואים, נרשמה, הערות). dupFieldMerge — מיזוג שדה-שדה: עדיפות dupEdit ידני > dupPick > ערך ראשון שאינו ריק; members מסוננים לפי מפתח 'first|birth'; טוסט 'הרשומות מוזגו לפי הבחירה ✓ — נשמרה רשומה אחת'. dupMerge — מיזוג אוטומטי לרשומת keep (מילוי ריקים, phone שונה→phone2, מקס' ילדים, שדרוג ל-active, הערות ' | מוזג: '); טוסט 'מוזגו N רשומות ל\"X\" ✓'. dupDrop — מחיקת נבחרות ('נמחקו N רשומות')",
+    "evidence": "legacy-main-script.js:1643-1697"
+   },
+   {
+    "domain": "families",
+    "name": "ציר זמן משפחתי מאוחד",
+    "detail": "famHistoryOf: איחוד כרונולוגי (יורד) של: 'הצטרפות' (createdAt), 'אמינות' (cred.log עם '+N נק׳'), 'שיבוץ' (enrolledAt + קבוצה), 'תשלום' ('תשלום ₪X (method) — {חוג} · {rid}'), 'חיסור'/'No-Show' (+ סיבה + 'זכאי/ת השלמה' לפי דגל makeup), ואירועי משפחה (כולל '✓ בוצע'). בכרטיס מוצגות עד 40 פעולות עם 'N פעולות'",
+    "evidence": "legacy-main-script.js:1844-1860, 2057, 2091"
+   },
+   {
+    "domain": "families",
+    "name": "גלגל סינון משפחות (famLockPass)",
+    "detail": "כשה-famWheelOpen פעיל, fwLocks נועל ממדים: city, community (comm), maritalStatus (ברירת מחדל 'לא ידוע'), status (תווית stMeta), cred (דרגת tierOf, ציון ברירת מחדל 700), kids ('עם ילדים'/'בלי ילדים'), enrolled ('משתתפות בחוגים'/'לא משתתפות'), sefach ('קיים'/'חסר'), lang; משפחה עוברת רק אם כל הנעילות תואמות",
+    "evidence": "legacy-main-script.js:1310-1317"
+   },
+   {
+    "domain": "families",
+    "name": "סינון וחיפוש משפחות רב-שכבתי",
+    "detail": "match(f): famLockPass + statusFilter + cityFilter + commFilter + commMulti (רב-בחירה) + פילטרי עמודות colF (name בחיפוש מנורמל על שם+אב+אם, phone לפי ספרות בשני הטלפונים, kids/courses עם numMatch) + פילטרים מתקדמים fMar/fLang/fSefach(yes/no)/fKids(yes/no)/fEnrolled(yes/no)/fTier + חיפוש חופשי על שמות כולל בני משפחה + התאמת טלפון מספרות (qd≥2). advCount סופר פילטרים פעילים; famSort ממיין לפי name/phone/kids/courses/status",
+    "evidence": "legacy-main-script.js:1924-1980"
+   },
+   {
+    "domain": "families",
+    "name": "הצעות השלמה בחיפוש משפחות",
+    "detail": "famSuggests: לפי הטוקן האחרון — התאמת prefix או Levenshtein≤1 (לטוקן ≥3 תווים) על name/father/mother/city/community/שמות ילדים; עד 7 הצעות; לחיצה מחליפה את הטוקן האחרון בשאילתה ומוסיפה רווח",
+    "evidence": "legacy-main-script.js:1981-1999"
+   },
+   {
+    "domain": "families",
+    "name": "אריחי דרגות אמינות בבית",
+    "detail": "tierTiles: ספירת משפחות לכל דרגה — 'טיטאן · 950+', 'לביאה · 800+', 'טעון שיפור · 500+', 'סיכון · <500'; פס אחוזים עם מינימום 4%; קליק מנווט למשפחות עם fTier מסונן ו-famAdv פתוח",
+    "evidence": "legacy-main-script.js:2000-2005"
+   },
+   {
+    "domain": "families",
+    "name": "כרטיס משפחה נבחר — מלא",
+    "detail": "מסכת ת\"ז הורים ('•••••'+2 ספרות, כפתור 'הצג ת\"ז'/'הסתר ת\"ז'); צ'יפ ספח 'ספח מלא ✓'/'חסר ספח מלא' (ירוק/צהוב); שדות מצב משפחתי/שפה/קהילה/קופת צדקה (tzedaka)/הנחה (discount)/'הצטרפה {תאריך עברי}'; docs; כרטיסי הורים חסרים 'אב (להשלמה)'/'אם (להשלמה)' עם 'הורה · השלמת כרטיס ←' שפותחים שיבוץ (__pf/__pm) או טופס חבר isParent; צ'יפ מגדר לכל חבר: אם/אב/בת/בן בצבעים שונים; ageLabel 'בת/בן N' או 'גיל לא ידוע'; תאריך לידה עברי+לועזי; עריכת חבר טוענת תאריך עברי לשדות hbDay/hbMonth/hbYear; אירועים מיוחדים של המשפחה (לא בוצעו) עם 'הקרוב: ' לחוזרים; הוספת אירוע ברירת מחדל type 'wedding' priority 'green'",
+    "evidence": "legacy-main-script.js:2011-2093"
+   },
+   {
+    "domain": "families",
+    "name": "פאנל מדד אמינות בכרטיס משפחה",
+    "detail": "fam.cred: ציון, דרגה, נקודה צבעונית, pct=min(100,score/10)%, 3 רשומות לוג אחרונות עם דלתא צבועה (+ירוק/−אדום); כפתור 'social' מוסיף +15 'פעולה קהילתית (תרומה/עזרה)'; credHelp toggle; Override ידני: קלט 0–1000 ('ציון Override חייב להיות 0–1000'), נרשם בלוג 'Override ידני של מנהל → V' וטוסט 'הציון עודכן ידנית'",
+    "evidence": "legacy-main-script.js:2094-2102"
+   },
+   {
+    "domain": "attendance",
+    "name": "שורת שיבוץ עם ניקוב ויתרה",
+    "detail": "בכרטיס משפחה ובכרטיס קורס: פס יתרה pct=rem/purchased עם barColor (אדום ≤0, כתום ≤2, ירוק), balanceLabel 'N מתוך M', usedLabel 'N נוכחויות מתחילת החודש'; כפתור ניקוב דו-שלבי 'ניקוב'→'לאשר ניקוב?' (רקע #b45309 באישור), וכשהיתרה נגמרה 'חידוש ←' פותח manage; planLabel כולל 'כרטיסייה · N ניקובים', קבוצה, 'מוקפא ⏸'/'הסתיים', 'N חיסורים', '📝' להערה, '💳 יתרה ₪X', 'נרשם {תאריך עברי}'; כפתור חיסור פותח modal 'absence' עם absKind ברירת מחדל 'cancel'",
+    "evidence": "legacy-main-script.js:2015-2034, 2149-2171"
+   },
+   {
+    "domain": "attendance",
+    "name": "שיוך קבוצה מהיר לתלמיד",
+    "detail": "setGroup בכרטיס קורס: בחירת קבוצה שומרת מיידית עם טוסט 'X שויך/ה לY' / 'הוסר השיוך של X'; במודל הניהול: 'שויך/ה לקבוצה: Y' / 'הוסר שיוך הקבוצה'",
+    "evidence": "legacy-main-script.js:2158, 2277"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "מטא-נתוני סוגי אירועים",
+    "detail": "evMeta: reminder='תזכורת' (סגול), call='טלפון' (טורקיז), wedding='חתונה', memorial='אזכרה' (recur:true), anniversary='יום נישואים' (recur:true), bday='יום הולדת' (recur:true), org/ברירת מחדל='אירוע'; שדה ev.customType עוקף את התווית בכל התצוגות והייצואים",
+    "evidence": "legacy-main-script.js:1832-1842"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "מופע הבא של אירוע חוזר לפי תאריך עברי",
+    "detail": "nextOccurLabel: לאירוע recur סורק עד 400 ימים קדימה למציאת התאמת חודש+יום עבריים (hebParts) ומחזיר תאריך לועזי + יום בגימטריה + חודש עברי; לאירוע רגיל — תאריך לועזי + עברי מלא",
+    "evidence": "legacy-main-script.js:1900-1912"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "שכבות סינון לוח שנה (צ'יפים)",
+    "detail": "CALF — 8 שכבות: courses='מפגשי קורסים', bdays='ימי הולדת', holidays='חגים', org='אירועי ארגון', reminders='תזכורות', calls='טלפונים', family='משפחתיים', joins='הצטרפויות והרשמות'; מצב פעיל = רקע כהה #211d17 וטקסט זהוב #f3c76b; נשמר ב-state calFilters",
+    "evidence": "legacy-main-script.js:2006-2010"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "תקציר בוקר (digest) בבית",
+    "detail": "digestLines: (1) כרטיסייה אוזלת — 'נגמרה הכרטיסייה'/'נשאר ניקוב אחד'/'נשארו N ניקובים … כדאי להציע חידוש'; (2) 'N משפחות ממתינות לאישור: ' + 3 שמות; (3) 'היום: {קורסים בשעותיהם}'; (4) 'תזכורות טלפון פתוחות: {כותרת} (+N נוספות)' לאירועי call לא-בוצעו עד מחר; (5) 'מיוחדים השבוע — ' עד 2 מסוגי חתונה/אזכרה/יום נישואים/יום הולדת ב-7 ימים; (6) 'יום הולדת היום ל{שם} (משפחת X)'; ברירת מחדל 'הכל מעודכן — אין משימות דחופות הבוקר'",
+    "evidence": "legacy-main-script.js:2297-2311"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "קרוסלת אירועים קרובים בבית",
+    "detail": "סריקת 14 ימים: ימי הולדת (🎂, 'יום הולדת — {שם} (גיל)', 'משפחת X · היום!/מחר/בעוד N ימים', כפתור 'לכרטיס המשפחה ←') + אירועים לא-בוצעו (אייקונים ICM: memorial 🕯, wedding/anniversary 💍, birthday 🎂, call 📞, reminder 🔔, org ✦; כפתור 'ללוח השנה ←' שמנווט ליום); מקס' 10 פריטים, 8 נקודות; ריק: 'אין אירועים קרובים' / '14 הימים הקרובים שקטים'; אנימציה מתחלפת fadeUp/fadeIn לפי carIdx",
+    "evidence": "legacy-main-script.js:2313-2330"
+   },
+   {
+    "domain": "reports_export",
+    "name": "ייצוא רשימת תלמידי חוג",
+    "detail": "exportCourseStudents: עמודות תלמיד/ה, גיל, משפחה, טלפון (של החבר או המשפחה), קבוצה, מסלול ('כרטיסייה rem/purchased' או 'מנוי'), יתרה, 'רגישויות/רפואי' (m.health), הערה; קובץ 'course-{שם}.csv'; טוסט 'רשימת התלמידים של \"X\" ירדה — כולל רגישויות למורה'",
+    "evidence": "legacy-main-script.js:1445-1455"
+   },
+   {
+    "domain": "reports_export",
+    "name": "דוח יומי מפורט לחוג",
+    "detail": "exportCourseDaily: דורש c.start ו-c.end ('לחוג חסר תאריך התחלה/סיום — עדכנו בעריכת הקורס'); מפרט כל יום פעילות לפי sessionsOf לפי יום בשבוע; עמודות: תאריך עברי, תאריך לועזי, יום, קבוצה/שעה, סטטוס יום ('מתקיים'/'מוקפא'/'אין רשומות'), תלמידה פעילה, משפחה, מסלול, נוכחות/חיסור ('פעיל'/'מוקפא'/'לא הופיעה' (noshow)/'חיסור · סיבה'); פילטר פעילים: status!=='ended' ו-enrolledAt≤תאריך והתאמת קבוצה; 0 ימים → 'אין מפגשים בטווח התאריכים של החוג'; טוסט 'דו\"ח יומי מפורט של \"X\" ירד — N ימי פעילות, start–end'",
+    "evidence": "legacy-main-script.js:1456-1485"
+   },
+   {
+    "domain": "reports_export",
+    "name": "ייצוא תומכות CSV",
+    "detail": "exportSupportersCSV: עמודות שם, טלפון, אימייל, ת\"ז, כתובת, קטגוריה, 'עבור' (forWho), תרומות (count), 'סה\"כ ₪', 'סה\"כ $', 'ציון משוקלל' (supScore), 'דרגה' (supTier), 'תרומה ראשונה', 'תרומה אחרונה', 'תאריך יעד', הערות; קובץ 'maor-supporters.csv'; טוסט 'קובץ התומכות ירד — כולל ציון משוקלל ודרגות'",
+    "evidence": "legacy-main-script.js:1538-1543"
+   },
+   {
+    "domain": "reports_export",
+    "name": "בונה דוחות מותאם (3 יעדים + טווח תאריכים)",
+    "detail": "expFieldDefs: 'courses' — 14 שדות (כולל 'תשלומים בטווח', 'סה\"כ הכנסות' ['₪X לחודש' לפי הנוסחה], 'חיסורים בטווח', 'תלמידים + טלפון + יתרה'); 'events' — 9 שדות (כולל תאריך עברי ולועזי, 'בוצע'); תומכות — 17 שדות (כולל 'שלב עין הרע', 'שמות למסירה + עיניים', 'סה\"כ עיניים', 'שולם', 'תשובות/הערות בטווח'). customExportData: טווח expFrom/expTo (ברירת מחדל 0000-01-01/9999-12-31); אירועים חוזרים מורחבים לפי תאריך עברי עד 366 ימים; תומכות נכללות רק אם יש פעילות בטווח; פסיקים מוחלפים ברווח. runCustomExport: 'בחרו לפחות נתון אחד לייצוא' / 'אין נתונים בטווח שנבחר'; עמודת 'הערות ידניות' אופציונלית (expWithNotes, מפתח expTarget:key עם noteSeed); קבצים '{courses|events|supporters}-report-{from}_{to}.csv'; טוסט 'הדו\"ח ירד — N שורות · from–to'",
+    "evidence": "legacy-main-script.js:1698-1768"
+   },
+   {
+    "domain": "reports_export",
+    "name": "ייצוא משפחות CSV",
+    "detail": "exportFamiliesCSV: 17 עמודות — משפחה, אב, אם, טלפון, טלפון 2, אימייל, עיר, כתובת, קהילה, שפה, מצב משפחתי, סטטוס (תווית stMeta), ילדים (לא-הורים), קורסים (מס' שיבוצים), 'מדד אמינות' (cred.score), 'יתרת תשלומים' (סכום payBal לכל שיבוצי המשפחה), 'נרשמה'; קובץ 'maor-families.csv'; טוסט 'קובץ המשפחות ירד — נפתח ישירות באקסל'",
+    "evidence": "legacy-main-script.js:1792-1798"
+   },
+   {
+    "domain": "reports_export",
+    "name": "ייצוא חוגים CSV",
+    "detail": "exportCoursesCSV: 16 עמודות — חוג, מורה, טלפון מורה, חדר, קבוצות ('label יום X שעה | …'), 'מסלול תמחור' ('כרטיסייה N'/'מנוי חודשי'), 'מחיר מלא', 'הנחה 1', 'הנחה 2', 'מסלול תקופה' (semester), קהל, קטגוריה, גיל (ageMin-ageMax), רשומים, מקסימום, הערות; קובץ 'maor-courses.csv'",
+    "evidence": "legacy-main-script.js:1799-1807"
+   },
+   {
+    "domain": "reports_export",
+    "name": "ייצוא תלמידים ושיבוצים CSV",
+    "detail": "exportEnrollCSV: 15 עמודות — משפחה, תלמיד/ה, חוג, קבוצה, מסלול, נרכשו, נוצלו, יתרה (ניקובים), חיסורים (count), סטטוס ('מוקפא'/'הסתיים'/'פעיל'), 'סה\"כ עסקה' (totalDue), שולם, 'יתרת תשלום' (payBal), 'תשלום הבא' (dueDate), הערה; קובץ 'maor-students.csv'",
+    "evidence": "legacy-main-script.js:1808-1817"
+   },
+   {
+    "domain": "reports_export",
+    "name": "ייצוא אירועים CSV + דוח תקינות",
+    "detail": "exportEventsCSV: 10 עמודות — תאריך עברי, תאריך לועזי, שעה, סוג (customType או evMeta), כותרת, משפחה, חדר, מחיר, דחיפות, בוצע; 'maor-events.csv'. exportAudit: קובץ טקסט 'maor-data-audit.txt' — 'דוח תקינות נתונים — {orgName}' + שורות '[קטגוריה] כותרת' מ-this._lastAudit; טוסט 'דוח התקינות ירד למחשב (N ממצאים)'",
+    "evidence": "legacy-main-script.js:1818-1831"
+   },
+   {
+    "domain": "reports_export",
+    "name": "דוח משפחה מלא (txt)",
+    "detail": "exportFamilyReport: קובץ 'family-report-{שם}.txt' עם מקטעים: '— פרטי המשפחה —' (הורים+ת\"ז, טלפונים, כתובת, קהילה/שפה/מצב משפחתי, סטטוס+'הצטרפה', 'קופת צדקה'+'הנחה'+'ספח מלא: קיים/חסר', 'מדד אמינות: X (דרגה)', הערות); '— בני המשפחה —' (מגדר 'נקבה'/'זכר', תאריך לידה עברי+לועזי+גיל, בי\"ס+כיתה, טלפון, 'רגישויות:'); '— שיבוצים לחוגים —' עם שורת תשלומים, שורות קבלה 🧾 rid, שורות חיסור ✕, הערת 📝; '— היסטוריית פעולות מלאה —' מ-famHistoryOf; טוסט 'דוח המשפחה המלא ירד למחשב'",
+    "evidence": "legacy-main-script.js:1861-1899"
+   },
+   {
+    "domain": "other",
+    "name": "נרמול טלפונים ישראליים",
+    "detail": "fixPhone: ספרות שלא מתחילות ב-0 — 9 ספרות → '0'+2 ספרות+'-'+שאר, 8 ספרות → '0'+ספרה+'-'+שאר; fixAllPhones עובר על phone/phone2 של כל המשפחות והחברים; טוסט 'נוסף 0 מוביל ל-N טלפונים' / 'לא נמצאו טלפונים חסרי 0'",
+    "evidence": "legacy-main-script.js:1769-1785"
+   },
+   {
+    "domain": "data_persist",
+    "name": "הורדת CSV מוקשחת",
+    "detail": "csvDown: BOM ﻿; הגנת CSV-injection — ערכים שמתחילים ב-=+-@ מקבלים גרש; ציטוט ערכים עם פסיק/מרכאות/שורה חדשה והכפלת מרכאות; URL.revokeObjectURL אחרי 5 שניות",
+    "evidence": "legacy-main-script.js:1786-1791"
+   },
+   {
+    "domain": "search",
+    "name": "פלטת פקודות — 16 פעולות",
+    "detail": "paletteActions: '+ משפחה חדשה', '+ קורס חדש', '+ אירוע חדש', '+ תזכורת טלפון', 'ניקוב לקורס של היום' (מציג את הקורס הראשון של היום או 'אין מפגשים היום'), 'משפחות ממתינות לאישור' (עם ספירה חיה), 'מי חוגג השבוע?', 'ייצוא משפחות לאקסל (CSV)', 'ייצוא חוגים לאקסל (CSV)', 'ייצוא תלמידים ושיבוצים (CSV)', 'העתקת כל הטלפונים' (clipboard בפורמט 'משפחת X: טלפון', טוסט 'הועתקו N מספרי טלפון ללוח'), '💛 + תומכת חדשה', '⬆ ייבוא נתונים מקובץ' (CSV משפחות/ילדים), '✓ בדיקת תקינות נתונים' (modal 'audit'), 'מרכז הטיפול' (view 'care' עם careAudit=runAudit().rows), 'הגדרות מערכת'; פעולות adminOnly מוסתרות ממי שאינו מנהל; לכל פעולה שדה kw למילות חיפוש",
+    "evidence": "legacy-main-script.js:2347-2365"
+   },
+   {
+    "domain": "search",
+    "name": "מנוע חיפוש הפלטה — אינדוקס וניקוד",
+    "detail": "אינדוקס: משפחות (+תעתיק XLAT לשם/עיר, ת\"ז הורים וטלפונים כ-ids) + מסמכים ('מסמך','ספח'), תלמידים/חברים, חוגים (כולל פיצול שם לפני ' — '), תומכות, מורים, אירועים לא-בוצעו, שיבוצים ('הרשמה #id'), ופעולות. ניקוד: התאמת id מספרית = 130 (שאילתה נקייה ≥3 ספרות או ≥4 ספרות); אחרת AND על כל הטוקנים עם scoreTerm וממוצע; קיבוץ לפי סוג עם עד 3 תוצאות, מיון קבוצות לפי הציון העליון; _firstResult ל-Enter; הצעות תיקון עד 6 מ-30 התוצאות הראשונות (עברית בלבד, prefix או lev≤1)",
+    "evidence": "legacy-main-script.js:2366-2434"
+   },
+   {
+    "domain": "settings_permissions",
+    "name": "תפקידים והרשאות",
+    "detail": "role מ-this.props.role, ברירת מחדל 'מנהל'; isAdmin = role==='מנהל'; שאינו מנהל מקבל myTeacherId='t3' — visCourses מסונן לקורסים של המורה בלבד, וגם התראות הכרטיסיות (lowEnrolls) מוגבלות לקורסים הנראים; פעולות פלטה adminOnly מסוננות",
+    "evidence": "legacy-main-script.js:1914, 2104, 2112, 2286, 2365"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "סיור דמו אוטומטי (סוף התסריט)",
+    "detail": "סוף runDemo: פרקים 5–6 — לוח שנה (כיבוי שכבת 'טלפונים', מצב '● דחופים בלבד', יצירת אירוע עם דחיפות אדומה, סימון '✓ בוצע' לתזכורת טלפון, תצוגת 'היום' ודפדוף ימים), הגדרות ('הפק עכשיו ⬇' לדוח יומי, 'הרץ עכשיו' ל-Batch יומי 'Decay אי-פעילות במדד'), וחזרה לבית עם הדגשות 'מדד אמינות הקהילה', 'דורש טיפול', 'תפוסת החוגים', 'פתח רשימה ↓' לניקוב מהיר; כתובית סיום 'זו המערכת. חיה, מלאה, במקום אחד ✦'; stopDemo בסיום",
+    "evidence": "legacy-main-script.js:1200-1255"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "שורות סיכום ותוויות בית",
+    "detail": "todayLabel: יום בשבוע בעברית + יום בגימטריה + חודש עברי + שנה בגימטריה + תאריך לועזי; statFams/statKids (ילדים או fallback ל-kidsHome); lowRows (עד 5): 'הכרטיסייה נגמרה' (אדום) / 'נותרו N מתוך M' (כתום); liveRooms סופר חדרים חיים",
+    "evidence": "legacy-main-script.js:1922-1923, 1977, 2435-2438"
+   }
+  ],
+  "strings_sample": [
+   "הקלידו סכום תשלום תקין",
+   "התקבל ₪{amt} · יתרה: ₪{bal} — הקבלה ירדה למחשב",
+   "כרטיסייה נטענה: +{qty} ניקובים · יתרה חדשה {rem}",
+   "נקבע תשלום הבא ל-{date} — נוספה תזכורת ללוח השנה",
+   "תשלום יתרה — {שם} ({חוג})",
+   "הקורס מלא — הגעתם למקסימום התלמידים",
+   "כבר משובץ/ת לחוג הזה",
+   "מספר ניקובים חייב להיות גדול מ-0",
+   "＋ משפחה חדשה: \"{שם}\" — יצירה ושיבוץ בלי לצאת מהמסך",
+   "ת\"ז לא תקינה (ספרת ביקורת שגויה)",
+   "כרטיס המורה עודכן — משתקף בכל החוגים, החיפוש והייצוא",
+   "החדר \"{שם}\" נוסף — היומן שלו זמין ברצועת החדרים",
+   "נרשמה תרומה ₪{amt} — מסומנת בלוח, הציון עודכן והקבלה ירדה",
+   "תזכו למצוות!",
+   "תודה רבה!",
+   "יעד קשר — תומכת: {שם}",
+   "נקבע תאריך יעד {תאריך} — מסומן 🎯 בלוח התרומות ונוספה תזכורת ללוח השנה",
+   "רשימת התלמידים של \"{חוג}\" ירדה — כולל רגישויות למורה",
+   "לחוג חסר תאריך התחלה/סיום — עדכנו בעריכת הקורס",
+   "שיחה חדשה — לקחת שמות",
+   "לעשות עופרת",
+   "רישום עיניים",
+   "למסור תשובות",
+   "העופרת אושרה — נרשם בלוח ובדוח. עכשיו: רישום עיניים לכל שם",
+   "עין הרע: הטיפול הושלם — {שם}",
+   "עוד לא עודכן אף שם היום — עדכנו עיניים/שלב בכרטיס והדוח יתמלא",
+   "הרשומות מוזגו לפי הבחירה ✓ — נשמרה רשומה אחת",
+   "מוזגו {N} רשומות ל\"{שם}\" ✓",
+   "נוסף 0 מוביל ל-{N} טלפונים",
+   "ציון Override חייב להיות 0–1000",
+   "פעולה קהילתית (תרומה/עזרה)",
+   "חייבת להישאר לפחות קבוצה אחת",
+   "הקבוצה הוסרה · {N} תלמידים סונכרנו ל\"ללא שיוך\"",
+   "הכל מעודכן — אין משימות דחופות הבוקר",
+   "טיטאן · 950+",
+   "לביאה · 800+",
+   "טעון שיפור · 500+",
+   "סיכון · <500",
+   "זהב / כסף / ארד / רדומה",
+   "הצג ת\"ז / הסתר ת\"ז",
+   "ספח מלא ✓ / חסר ספח מלא",
+   "⏸ הקפאה זמנית",
+   "▶ הפשרה — חזרה לפעילות",
+   "לאשר ניקוב?",
+   "חידוש ←",
+   "{N} נוכחויות מתחילת החודש",
+   "הגדירו סה\"כ עסקה ותקבלו מעקב יתרה",
+   "פנוי היום · 60 דק׳/משבצת",
+   "מי חוגג השבוע?",
+   "מרכז הטיפול",
+   "14 הימים הקרובים שקטים",
+   "אב (להשלמה) / אם (להשלמה)",
+   "הורה · השלמת כרטיס ←",
+   "השיבוץ של {שם} ב\"{חוג}\" נמחק סופית",
+   "החוג \"{שם}\" נמחק — כולל {N} שיבוצים · הוסר גם מהלוח ומהיומנים",
+   "דו\"ח יומי מפורט של \"{חוג}\" ירד — {N} ימי פעילות",
+   "קובץ התומכות ירד — כולל ציון משוקלל ודרגות",
+   "אין תרומות מתועדות בחודש זה",
+   "מהקובץ ההיסטורי",
+   "תרומה ראשונה (מהקובץ)",
+   "הועתקו {N} מספרי טלפון ללוח",
+   "הדו\"ח ירד — {N} שורות · {from}–{to}",
+   "זו המערכת. חיה, מלאה, במקום אחד ✦"
+  ],
+  "notes": "מודל נתונים שנחשף בטווח 1200-2400 (legacy-main-script.js): enrollment = {id:'e'+seq, memberId, courseId, plan ('punch'|'monthly'|'half_year'|'year'), purchased, used, group, status (undefined='פעיל'|'paused'|'ended'), absences:[{date, reason, noshow, makeup}], payments:[{rid:'R-N', date, amount, method}], totalDue, dueDate, dueEventId, note, enrolledAt}. supporter = {id, name, phone, email, address, idNum, cat, forWho, notes, city, ils, usd, count, first, last, nextDate, nextEventId, donations:[{rid:'D-N', date, amount, cur '₪'/'$', cat}], hist:[{d,a,c}] (ייבוא היסטורי), ayin:{stage, eyes, note, nextTalk, nextTalkTime, lastTouch, names:[{name,eyes,done}], answers:[{date,note}], log:[{date,eyes}], paid, answerPushed}}. family.cred = {score (ברירת מחדל 700), log:[{date, delta, desc}]}; family כוללת tzedaka (קופת צדקה), discount, fullSefach, docs[], kidsHome, kidsMarried, community, language, maritalStatus. teacher = {id:'t'+seq, name, phone, phone2, email, idNum, address, specialty, payRate, startDate, notes} — נשמר ב-this.teachers (מחוץ ל-state) עם persist() מפורש. room = {id:'r'+seq, name, active, slot (דקות, ברירת מחדל 60)}. event = {id:'ev'+seq, type, title, date (ISO), time, notes, priority ('red'/'orange'/'yellow'/'green'), price, roomId, famId, done, customType}. מזהים עם מונה seq גלובלי יחיד. חריגות/quirks: saveJoin ו-saveEnrollNew מקדמים seq ב-2; addPay/savePayDue משנים אובייקטים ב-state ישירות (mutation) לפני setState; fam.cred override כותב ישירות. קבצים יורדים תמיד עם BOM \\\\uFEFF ו-revokeObjectURL אחרי 5000ms. מודלים בשמות: 'manage', 'absence', 'join', 'enroll', 'member', 'event', 'teacher', 'supporter', 'diary', 'import', 'audit', 'family', 'course'. views: 'home', 'families', 'courses', 'calendar', 'settings', 'support', 'care'. פונקציות עזר מוזכרות אך מוגדרות מחוץ לטווח: credEvent, tierOf, stMeta, punch, hebDateFull, hebParts, gem/gemYear, fmtHM/fmtHY, isoOf/isoOffset/fmtD, age, allMembers (מוסיף famId/famName לחברים), sessionsOf, planWord, pricePer, gradeRange, normName/norm, numMatch, smartRank/scoreTerm/lev, validId, runAudit, buildCal, dayEvents, openFam, openRoomSet, openEventEdit, emptyForm/emptyCourseForm, Component.XLAT (טבלת תעתיק עברית-לועזית לחיפוש). הדגשה לניתוח פערים: מודול 'עין הרע' (שלבים, עופרת, עיניים, דוח יומי), ציון RFM לתומכות עם שער דולר 3.7, לוח תרומות עברי/לועזי בגימטריה, בונה דוחות מותאם עם עמודת הערות ידניות, מיזוג כפילויות שדה-שדה, ודוח יומי-פר-מפגש לחוג — אלו פיצ'רים עשירים וייחודיים שסביר שחסרים ב-rebuild."
+ },
+ {
+  "key": "script3",
+  "behaviors": [
+   "גבלת ביטול חיסור (השלמה): זכאות רק אם נותרו 48 שעות ומעלה עד המפגש הקרוב — 'מעל 48 שעות מראש — זכאי/ת להשלמה, הניקוב לא יירד'; מתחת ל-48 שעות: לא זכאי, ואם המסלול punch — 'הניקוב יירד' (שורות 2596-2610)",
+   "שער דולר קבוע להמרה בחישובי תומכות: USD × 3.7 (מופיע בסינון עמודות, בסה\"כ ממוצע תרומה וב-supAvgDon — שורות 2810, 2823, 3024)",
+   "ציון תומכת RFM: supScore עד 1000, מוצג 'ציון משוקלל: X/1000 · דרגת Y — משוקלל לפי טריות (R), תדירות (F) וסכום (M)'; דרגות: זהב (~900), כסף (~700), ארד (~500), רדומה (~100) — ערכים מייצגים בקריאות supTier (שורות 3012-3016)",
+   "ציון אמינות משפחה (cred): ברירת מחדל 700, טווח 0-1000; אזורי צבע במד: 950+ זהב #f3c76b, 800+ ירוק #16a34a, 500+ כתום #d97706, מתחת — אדום #dc2626; היסטוגרמה 20 סלים של 50 נק' (שורות 2613-2628)",
+   "מיפוי דרגות אמינות: titan='טיטאן', lion='לביאה', pale='טעון שיפור', red='סיכון נטישה'; משפחה בדרגה אדומה נכנסת לרשימת 'דורש טיפול' עם 'נדרשת שיחת שירות' (שורות 2534, 2719)",
+   "ביטול ניקוב (mgUndo): מאתר ב-cred.log את הרישום האחרון שמתחיל ב'נוכחות (Check-in)', מחזיר בדיוק את אותה דלתא (delta הפוכה) עם תיאור 'ביטול ניקוב — החזר מדויק של ניקוד הנוכחות'; אם לא נמצא — credEvent(-5, 'ביטול ניקוב — תיקון טעות') (שורה 3372)",
+   "נוסחת הכנסה חודשית בדשבורד: רק שיבוצים active; monthly=מחיר מלא, half_year=מחיר/6, year=מחיר/12, punch=0 — תווית '₪X לחודש (מנויים חודשיים בלבד)' (שורה 2640)",
+   "צבעי תפוסת חוג: 100%+ אדום, 85%+ זהב, 40%+ ירוק, מתחת כתום; ברשימת 'דורש טיפול': מלא=n>=max, 'מתמלא' (כמעט מלא)=n>=80% מהמקסימום (שורות 2635, 2535-2537)",
+   "ברירות מחדל טווח גיל חוג לא אחידות: בגלגל החוגים וברמזי enroll — ageMin??3, ageMax??18; במודל 'שיבוץ' (join) — ageMax??99, וילד ללא תאריך לידה מקבל חוגים עם ageMax>=16 בלבד (שורות 2443, 2496, 2739-2740, 2757)",
+   "maxStudents ברירת מחדל לא אחידה: בגלגל ובסינון תפוסה 999 ('ללא מגבלה'), בדשבורד התפוסה 12 (שורות 2484, 2633)",
+   "יומן חדר: שעות פעילות מ-room.from (ברירת מחדל 8) עד room.to (20); שעה 15:00 חסומה תמיד — 'ניקיון יומי (15:00–16:00)'; משבצת תפוסה ע\"י חוג (לפי roomId+יום+שעה בתוך start/end) או אירוע; חדר כבוי='החדר מושבת בהגדרות' (שורות 2567-2594)",
+   "חיפוש-על (palette): התאמת מזהה/טלפון בציון 130 אם המחרוזת ספרתית-בלבד באורך 3+ או כל שאילתה עם 4+ ספרות; אחרת ממוצע scoreTerm על כל הטוקנים (כולם חייבים להתאים); הצעות השלמה: עד 6, עברית בלבד, startsWith או לוונשטיין<=1 מאורך 3+; Enter מריץ תוצאה ראשונה (שורות 2399-2433, 3095)",
+   "סיבוב גלגלים: בחירת אופציה מוסיפה 137° לרוטציה, הסרת נעילה +90°, איפוס +360°; ציר עם פחות מ-2 אופציות מדולג עם צ'יפ 'X · דולג'; פלטת צבעי גלגל WCOL=['#f3c76b','#b45309','#7c3aed','#0f766e','#be185d'] (שורות 2459-2482, 2683-2706)",
+   "צירי גלגל החוגים לפי סדר: מגזר, גיל, מגדר, יום, סוג חוג; קבוצות גיל AGER: 3–5, 6–8, 9–12, 13–17, 18–30, 31–59, 60+ (שורות 2441, 2458)",
+   "צירי גלגל המשפחות לפי סדר: עיר, קהילה, מצב משפחתי, סטטוס, אמינות, ילדים, חוגים, ספח מלא, שפה; מקסימום 8 אופציות ממוינות לפי שכיחות; 8 תוצאות תצוגה + 'הצג בטבלה (N)' שמתרגם נעילות לפילטרים של הטבלה (שורות 2680-2722)",
+   "זמינות חוג בגלגל: left<=0 'מלא', left<=2 'X נותרו', אחרת 'מקום פנוי'; כפתור שיבוץ רק ל-isAdmin וכשיש מקום (שורות 2487-2489)",
+   "מגבלות תצוגה: 120 שורות תומכות ('מוצגות 120 הראשונות'), 60 תרומות בכרטיס, 30 רישומי לוג עין-הרע, 100 שורות במרכז הטיפול, 7 בהצצת 'דורש טיפול' בבית, 5 יתרות נמוכות, 3 משפחות בסיכון, 3 תוצאות לקבוצת חיפוש (שורות 2826, 2893, 3009, 3196, 3174, 2435, 2628)",
+   "הגנת CSV injection ביצוא: ערך שמתחיל ב-=+-@ מקבל קידומת גרש; BOM ﻿ בראש הקובץ (שורות 2335-2337)",
+   "מניעת כפילות תומכת: normName זהה + (אין טלפון לאחת מהן או טלפון זהה) → 'תומכת בשם הזה כבר קיימת'; ת\"ז נבדקת בספרת ביקורת (validId) (שורות 3029, 3036)",
+   "שיוך ייבוא ילדים לפי סדר עדיפות: ת\"ז הורה ← טלפון ← שם משפחה+שם האם ← +עיר; 'שם משפחה כפול בלי מזהה — לא ינוחש' (שורה 3219)",
+   "שער יום עבודה (dayGate): פתיחת יום שומרת maorclean2_day + maorclean2_dayend (ברירת מחדל 17:00); 'גיבוי אוטומטי יירד בשעה X' (שורות 3229-3243)",
+   "זום ממשק: 0.8–1.6 בצעדים של 0.1, נשמר ב-maorclean2_ui_scale וב-window.__fsScale (שורות 3190-3194)",
+   "איפוס נתונים דו-שלבי: לחיצה ראשונה חימוש ('לאשר איפוס?...') עם timeout של 4 שניות, שנייה מוחקת maorclean2_db ועושה reload; גם מחיקת שיבוץ ומחיקת תומכת דו-שלביות (שורות 3404-3406, 3376, 2878)",
+   "מחיקת שיבוץ מוחקת גם את אירוע תזכורת התשלום מהלוח (dueEventId) — 'השיבוץ הוסר לצמיתות — כולל תזכורת התשלום מהלוח' (שורה 3376)",
+   "הקפאת שיבוץ חוסמת ניקוב: 'השיבוץ הוקפא — הניקוב נחסם עד הפשרה' (שורה 3374)",
+   "מחיקת מורה רק אם אין לה חוגים משויכים: 'למורה יש חוגים משויכים — העבירו אותם קודם למורה אחרת' (שורות 3426-3427)",
+   "תזכורות אוטומטיות ללוח: אירוע 'להתקשר לתודה — <שם>' מתומכת (type call), 'להתקשר למורה <שם>' בעדיפות כתומה, 'תזכורת: <חוג>' עם החדר בהערות (שורות 2836, 3430, 3162)",
+   "אירועים דחופים (priority='red') ב-7 הימים הקרובים נדחפים לראש 'דורש טיפול' עם תג 'דחוף' ונוספים לשורת digest 'דחוף השבוע: ...' (שורות 2522-2532)",
+   "קרוסלת בית: ימי הולדת (התאמה לפי MM-DD) ואירועים ל-14 יום קדימה, עד 10 פריטים, עד 8 נקודות; ריק='אין אירועים קרובים / 14 הימים הקרובים שקטים' (שורות 2318-2329)",
+   "צ'יפים מהירים לתאריך אירוע: היום/בעוד שבוע/חודש/חודשיים/שלושה חודשים = 0/7/30/60/90 ימים (שורות 3395-3396)",
+   "אירוע מסוג עברי-חוזר מציג 'חוזר מדי שנה בתאריך העברי הזה' (evMeta(type).recur) (שורה 3397)",
+   "בורר תאריך עברי: חודשים כולל אדר א'/ב', שנים 5787 ועד 96 שנים אחורה בגימטריה, ימים 1-30 בגימטריה (שורות 2767-2779)",
+   "היסטוגרמת תומכות: 10 סלים של 100 נק'; supAvgDon = (סה\"כ ₪ + $×3.7) / מס' תרומות; sup12m = תומכות עם תרומה ב-365 הימים האחרונים (שורות 3018-3025)",
+   "gating לפי תפקיד: isAdmin מסנן פעולות adminOnly בפלטה; roleLabel 'מנהל/ת מערכת' / 'מורה'; מורה רואה רק את הקורסים של t3 — 'מציג את הקורסים של <שם> בלבד'; אירועי יום מסוננים ב-allowE; שיבוץ מהגלגל רק לאדמין (שורות 2365, 2789, 3065, 2544, 2489)",
+   "קטגוריות חוג קבועות: מלאכה, אמנות, העשרה, ספורט, מוזיקה, רווחה, טיפוח, קולינרי, קהילה (+ '__other'); סמסטר: שנתי / חצי שנתי / אחר; ברירות מחדל טופס חוג: roomId='r2', weekday, time='17:00', maxStudents=12, gender='f' (שורה 3450)",
+   "רשימת ציוד חדר קבועה: מקרן, הגברה, מזגן, פסנתר, מראות, מטבח מאובזר, מחשבים, שולחנות מתקפלים; ברירות מחדל חדר חדש: פעיל, משבצת 60 דק', 08:00-20:00, נגיש, מיקום 'המקום החדש' (שורות 2654, 3272)"
+  ],
+  "features": [
+   {
+    "domain": "search",
+    "name": "פלטת פקודות (חיפוש-על גלובלי)",
+    "detail": "אינדקס חי על כל הישויות: משפחות (כולל מסמכים/'ספח' לכל משפחה), תלמידים, חוגים, תומכות, מורים, אירועים לא-סגורים, שיבוצים (לפי 'הרשמה #id') ופעולות. כל פריט עם badge צבעוני לפי סוג (משפחות/מסמכים/תלמידים/חוגים/תומכות/מורים/אירועים/פעולות). תמיכה בטרנסליטרציה דרך Component.XLAT, חיפוש לפי ת\"ז/טלפון (ספרות בלבד), ניקוד scoreTerm ממוצע, קיבוץ לפי סוג עם עד 3 תוצאות, הצעות השלמה למילה האחרונה (עד 6, לוונשטיין<=1), ו-Enter שמריץ את התוצאה הראשונה (_firstResult)",
+    "evidence": "legacy-main-script.js:2368-2434, 3090-3099"
+   },
+   {
+    "domain": "search",
+    "name": "16 פעולות מהירות בפלטה עם gating אדמין",
+    "detail": "'+ משפחה חדשה', '+ קורס חדש', '+ אירוע חדש', '+ תזכורת טלפון', 'ניקוב לקורס של היום', 'משפחות ממתינות לאישור', 'מי חוגג השבוע?', 'ייצוא משפחות לאקסל (CSV)', 'ייצוא חוגים לאקסל (CSV)', 'ייצוא תלמידים ושיבוצים (CSV)', 'העתקת כל הטלפונים', '💛 + תומכת חדשה', '⬆ ייבוא נתונים מקובץ', '✓ בדיקת תקינות נתונים', 'מרכז הטיפול', 'הגדרות מערכת'. פריטים עם adminOnly:true מוסתרים ממורה. copyPhones מעתיק 'משפחת X: טלפון' ללוח",
+    "evidence": "legacy-main-script.js:2341-2365"
+   },
+   {
+    "domain": "courses",
+    "name": "גלגל התאמת חוגים (wheel)",
+    "detail": "אשף סינון סיבובי: צירים בסדר מגזר→גיל→מגדר→יום→סוג חוג; ציר עם אופציה אחת מדולג עם צ'יפ 'X · דולג'; נעילות ניתנות להסרה (הסרה מוחקת גם את כל הנעילות שאחריה); טבעת conic-gradient מ-5 צבעים; אופציות ממוקמות ב-translateY(-108px) סביב המעגל; תוצאות עם זמינות ('מלא' / 'X נותרו' / 'מקום פנוי') וכפתור שיבוץ ישיר (אדמין בלבד) שפותח מודל enroll עם purchased=size לכרטיסייה; רשימת החוגים בטבלה מסתנכרנת לגלגל (_wcsIds)",
+    "evidence": "legacy-main-script.js:2441-2491, 3054, 3164-3173"
+   },
+   {
+    "domain": "families",
+    "name": "גלגל סינון משפחות (famWheel)",
+    "detail": "אותו מנגנון גלגל על משפחות עם 9 צירים: עיר, קהילה, מצב משפחתי, סטטוס, אמינות (דרגת cred), ילדים (עם/בלי), חוגים (משתתפות/לא), ספח מלא (קיים/חסר), שפה; אופציות עם ספירה ('ירושלים · 12'), עד 8; תצוגת 8 תוצאות + 'הצג בטבלה (N) ←' שממפה נעילות לפילטרים אמיתיים (ST_REV לסטטוס, מיפוי דרגות טיטאן/לביאה/טעון שיפור/סיכון נטישה ל-titan/lion/pale/red) ומדליק famAdv עם טוסט 'הסינון הוחל על טבלת המשפחות'",
+    "evidence": "legacy-main-script.js:2680-2722, 3105-3115"
+   },
+   {
+    "domain": "courses",
+    "name": "רמזי התאמה בשיבוץ (enrollHints/joinHints)",
+    "detail": "בעת בחירת ילד לשיבוץ: בדיקת גיל מול טווח החוג ('✓ גיל מתאים — בן/בת X, טווח החוג 3–18' ירוק / 'שימו לב: גיל X מחוץ לטווח המומלץ' צהוב), בדיקת מגדר ('החוג מיועד לבנים/לבנות בלבד' אדום), ובדיקת התנגשות לו\"ז מול כל השיבוצים הקיימים של הילד — השוואת יום+שעה בין כל ה-sessions ('התנגשות לו\"ז: X כבר רשום/ה ל\"Y\" ביום Z')",
+    "evidence": "legacy-main-script.js:2492-2508, 2756-2764"
+   },
+   {
+    "domain": "families",
+    "name": "מודל 'שיבוץ' מכרטיס משפחה (join)",
+    "detail": "בחירת בן משפחה כולל הורים וירטואליים ('__pf'/'__pm' — 'אבא — X'/'אמא — X' שנוצרים כ-members בעת שמירה); typeahead חכם (smartRank) גם לבן משפחה וגם לחוג; סינון חוגים: לא רשום כבר, לא מלא, תואם מגדר וגיל (ageMax??99; ללא תאריך לידה — רק חוגים עם ageMax>=16); מתג joinShowAll — 'מוצגים רק תואמי גיל ומגדר · הצג גם לא-תואמי גיל ←'; אם אין בני משפחה — פריט '＋ אין עדיין בני משפחה — הוספה מהירה וחזרה אוטומטית לשיבוץ' (afterMember='join'); בחירת קבוצה כשלחוג כמה sessions ('קבוצה 1 · יום ב 17:00')",
+    "evidence": "legacy-main-script.js:2723-2765, 3329-3362"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "רשימת 'דורש טיפול' (attention) — 10 סוגי התראות",
+    "detail": "מחושבת רק ב-home/care: מלגה (משפחה pending), חדר (חוג משויך לחדר כבוי — 'הפעילו את החדר או העבירו את החוג'), תומכת (nextDate הגיע), תשלום (יתרה payBal>0 ועבר dueDate — 'יתרת ₪X... עבר המועד'), יתרה (כרטיסייה נמוכה/נגמרה), דחוף (אירוע priority=red ב-7 ימים — נדחף לראש), מסמך (חסר ספח מלא למשפחה פעילה עם ילדים), סיכון (cred אדום — 'נדרשת שיחת שירות'), מלא/מתמלא (תפוסת חוג 100%/80%). כל פריט עם ניווט ישיר",
+    "evidence": "legacy-main-script.js:2509-2538"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "מרכז הטיפול (view 'care')",
+    "detail": "מאחד את רשימת attention + ממצאי runAudit (careAudit); סימון 'טופל' פר-פריט לפי מפתח tag+'|'+title (careDone, טוסט 'סומן כטופל ✓'); צ'יפים לסינון לפי תג עם ספירות ('הכל · N'); כותרת 'X פריטים פתוחים (תפעול + בדיקת נתונים) · Y סומנו כטופלו'; כפתורי careRefresh ('ממצאי בדיקת הנתונים עודכנו'), careReset ('הסימונים אופסו'), ו-sendAuditToCare מתוך מודל הביקורת ('הממצאים נשלחו למרכז הטיפול'); מוגבל ל-100 שורות",
+    "evidence": "legacy-main-script.js:2666-2679, 3174-3200"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "תצוגת יום בלוח השנה (dayV)",
+    "detail": "כותרת בפורמט Intl עברי מלא + שורה עברית (hebDateFull); הפרדה בין אירועי כל-היום (sort 0/2) לשורות מתוזמנות (sort 1/3) ממוינות לפי שעה; שורת חוג מציגה מורה · חדר · 'N רשומים' עם פעולה 'לניקוב ←'; אירוע רגיל — 'עריכה'; 'N אירועים ביום זה'; blockReason מציג ימים חסומים; ניווט יום קדימה/אחורה (shiftDay) וכפתור '+ אירוע חדש' לאותו יום",
+    "evidence": "legacy-main-script.js:2540-2565, 3048-3051"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "יומן חדר (diary modal)",
+    "detail": "לוח שעות לחדר: משבצות שעה מ-room.from עד room.to (8-20); 15:00 קבוע 'ניקיון יומי (15:00–16:00)'; זיהוי תפוסה: 'חוג: X' (לפי roomId+יום+שעה בתוך תקופת החוג), 'אירוע: X', 'חסום — <סיבה>', 'פנוי'; משבצת פנויה מזמינה ישירות אירוע עם notes='חדר: X' ו-evReturn לחזרה; כותרת עם 'משבצות של 60 דק׳ · עד N משתתפים · נגיש · <עד 3 פריטי ציוד>'; ניווט יום קדימה/אחורה וכפתור להגדרות החדר",
+    "evidence": "legacy-main-script.js:2566-2595"
+   },
+   {
+    "domain": "attendance",
+    "name": "מודל חיסור/השלמה (absence) עם כלל 48 שעות",
+    "detail": "מציג את המפגש הקרוב ('המפגש הקרוב: יום X 17:00 — בעוד N שעות'); זכאות להשלמה רק אם 48+ שעות מראש — אחרת בכרטיסייה הניקוב יירד; שדות absKind (ברירת מחדל 'cancel'), absReason, absError, saveAbsence",
+    "evidence": "legacy-main-script.js:2596-2610, 3138, 3203-3206"
+   },
+   {
+    "domain": "families",
+    "name": "מד אמינות ארגוני בדשבורד (credV)",
+    "detail": "ממוצע ציוני cred של כל המשפחות (ברירת מחדל 700), מחט על סקאלה (min(99, avg/10)%), דרגה via tierOf; היסטוגרמה של 20 עמודות (סלים של 50) בצבעי אזור (950+/800+/500+); מגמת היום — סכום כל דלתאות cred.log מהיום ('+X נק׳ היום', ירוק/אדום/אפור); 3 המשפחות בסיכון (ציון נמוך ביותר) עם פתיחת כרטיס",
+    "evidence": "legacy-main-script.js:2612-2629"
+   },
+   {
+    "domain": "courses",
+    "name": "מד תפוסת חוגים בדשבורד (crsG)",
+    "detail": "אחוז תפוסה לכל חוג (n/max, ברירת מחדל 12), ממוצע כללי עם מחט; היסטוגרמת עמודות אינטראקטיבית (עמודה=חוג, tooltip 'שם · n/max (pct%)', זוהר אדום למלא); הכנסה חודשית משוקללת (מנויים בלבד); צ'יפים: 'N חוגים', 'N כרטיסייה', 'N מנוי', 'N מלאים'; Top-3 חוגים לפי תפוסה",
+    "evidence": "legacy-main-script.js:2630-2653"
+   },
+   {
+    "domain": "supporters",
+    "name": "טבלת תומכות מלאה עם סינון-עמודות ומיון",
+    "detail": "חיפוש חופשי (טלפון 3+ ספרות או טקסט על שם/אימייל/קטגוריה/כתובת/עבור-מי); פילטרים פר-עמודה (supColF: name/phone/email/cat/count/total/score) עם numMatch לערכים מספריים; מיון בכותרות עמודה (3 מצבים ▲/▼/כבוי) כולל eyes ו-stage; עמודות: תומכ/ת, טלפון, אימייל, קטגוריה, תרומות, ציון, סה\"כ, תרומה אחרונה; badge יעד: '🔔 יעד עבר' או '🎯 <תאריך>'; סה\"כ בכותרת: 'X מתוך Y משפחות תומכות · סה\"כ ₪A + $B'; הגבלת 120 שורות",
+    "evidence": "legacy-main-script.js:2794-2852, 3043"
+   },
+   {
+    "domain": "supporters",
+    "name": "מסלול 'עין הרע' (ayin) — pipeline CRM ייחודי",
+    "detail": "מצב ayinMode בטבלה: לכל תומכת שלבים מ-Component.AYIN_STAGES (new→lead('עופרת')→eyes→...→done), רשימת שמות למסירה עם מונה עיניים 🧿 לכל שם ('an'+seq, בדיקת כפילות לפי normName), סימון 'עופרת בוצעה ✓'/'הוחזר לממתין', לוג עיניים היסטורי, רשימת תשובות (📞) עם עריכה/מחיקה, מועד 'לדבר שוב' (nextTalk+nextTalkTime) בעברי/לועזי; כפתור חכם ayinAction עם תוויות לפי שלב: '✓ השמות נלקחו → לעשות עופרת', '🫙 אישור — העופרת נעשתה (סנכרון ללוח ולדוח)', '✓ העיניים נרשמו → למסור תשובות', '📞 דחיפה ללוח — למסור תשובות'; restart פותח מחזור חדש עם שמירת היסטוריה; סיכום 'X שמות · Y עופרת בוצעה · Z ממתינות · 🧿 N עיניים'; סינון eyes/noeyes/today/לפי-שלב ומונה 'עודכן היום'",
+    "evidence": "legacy-main-script.js:2815-2820, 2837-2848, 2944-3010"
+   },
+   {
+    "domain": "supporters",
+    "name": "לוח עין-הרע מרכזי (ayinBoard)",
+    "detail": "לוח מנהלים לכל התומכות עם ayin פעיל: שרשרת צ'יפים של השלבים עם ✓ לשלבים שהושלמו, שורת שמות עם עיניים, תאריך יעד ('target'), עדכון אחרון; סינון לפי שלב ומיון לפי target/name/last/stage; מתג הצגה/הסתרה ('הסתרה ▲'/'הצגה ▼')",
+    "evidence": "legacy-main-script.js:2903-2923"
+   },
+   {
+    "domain": "supporters",
+    "name": "כרטיס תומכת + רישום תרומות וקבלות",
+    "detail": "מודל 'כרטיס תומכ/ת — עריכה מלאה' / 'תומכת חדשה — כרטיס מלא': שדות name/phone/email/address/idNum/cat/forWho/notes; ולידציה — שם חובה, ת\"ז בספרת ביקורת, fixPhone, dedupe לפי שם+טלפון; רישום תרומה: סכום, מטבע ₪/$, קטגוריה, תאריך (כולל בורר עברי hb2Sel); היסטוריית תרומות (60) עם קבלה (supReceipt) לתרומות עם rid וקפיצה ללוח האישי; שורת סטטיסטיקה 'N תרומות · ₪X + $Y · מ-<עברי> · אחרונה <עברי>'; ציון RFM עם דרגה; תאריך יעד לקשר הבא (nextDate); fileDonsLine מפרידה תרומות מקובץ היסטורי ('מהקובץ ההיסטורי: N תרומות (מצטבר בסטטיסטיקה למעלה)'); מחיקה דו-שלבית",
+    "evidence": "legacy-main-script.js:2873-2901, 3026-3042"
+   },
+   {
+    "domain": "supporters",
+    "name": "לוחות שנה של תרומות (supCal)",
+    "detail": "supCalAll — לוח כלל-ארגוני של כל אירועי התרומות + רישומי עין-הרע ('🧿 N עיניים — <שם>'), תשובות ('📞 תשובה: ...') ו'🔁 לדבר שוב'; supCalMine — לוח אישי לתומכת הנבחרת כולל '🎯 תאריך יעד לקשר הבא'; מבוסס supCalData/supDonEvents; מתג הפעלה supCalOn",
+    "evidence": "legacy-main-script.js:2925-2943, 3011"
+   },
+   {
+    "domain": "supporters",
+    "name": "פאנל דרגות והיסטוגרמת תומכות",
+    "detail": "צ'יפים לפי דרגה עם ספירה ('זהב · N' וכו') שמסננים את הטבלה (supTierF); היסטוגרמה 10 עמודות (סלים של 100 נק'); ממוצע תרומה supAvgDon; מונה תורמות פעילות ב-12 חודשים (sup12m); ייצוא CSV תומכות וכפתור דוח ayin שפותח את מודל הייצוא המותאם",
+    "evidence": "legacy-main-script.js:3012-3025, 2859, 2901"
+   },
+   {
+    "domain": "families",
+    "name": "טבלת משפחות: מיון עמודות, פילטרים ותצוגת גריד",
+    "detail": "כותרות ממוינות: משפחה/טלפון/ילדים/קורסים/סטטוס (3 מצבים); פילטרים פר-עמודה (colF: name/phone/kids/courses); פילטרים מתקדמים famAdv: מצב משפחתי, שפה, ספח, ילדים, משתתפות בחוגים, דרגת אמינות (fTier), ריבוי-קהילות (commMulti צ'יפים); מונה 'X מתוך Y משפחות' (+' — מסונן בגלגל') או 'Y משפחות · Z פעילות'; מעבר רשימה/גריד ('☰ רשימה'/'▦ גריד'); clearSearch מאפס הכל",
+    "evidence": "legacy-main-script.js:3053-3064, 3100-3118, 3148-3150, 3319, 3440"
+   },
+   {
+    "domain": "courses",
+    "name": "טבלת חוגים: עמודות מחיר מדורגות ו-gating מורה",
+    "detail": "עמודות ממוינות: חוג, קהל, מורה, מסלול, תפוסה, 'מחיר מלא', 'הנחה 1', 'הנחה 2' (price/price1/price2 עם שמות מותאמים price1Name/price2Name); פילטרים פר-עמודה (crsColF כולל model); מונה: אדמין 'N קורסים פעילים · תשפ\"ו', מורה 'N קורסים · מציג את הקורסים של <שם> בלבד'; מעבר גריד/רשימה (ברירת מחדל גריד)",
+    "evidence": "legacy-main-script.js:3065-3073, 3151-3153"
+   },
+   {
+    "domain": "courses",
+    "name": "כרטיס חוג: קבוצות (sessions), הערות, ייצוא ותזכורת",
+    "detail": "הוספת מפגש/קבוצה לחוג (sessForm: יום/שעה/תווית) — 'הקבוצה נוספה — מופיעה מיד בלוח השנה וביומן החדר'; רשימת קבוצות 'קבוצה N · יום X שעה'; הערת חוג נשמרת ונמחקת (crsNote); ייצוא רשימת תלמידים (expCourseStudents) ודוח יומי (expCourseDaily); יצירת אירוע תזכורת לחוג עם החדר בהערות",
+    "evidence": "legacy-main-script.js:3128-3137, 3154-3162"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "דשבורד בית: סטטיסטיקות, יום הולדת, אחרונות, קרוסלה",
+    "detail": "מונים: תלמידים, משפחות, אלמנות (maritalStatus==='אלמן/ה'), יתרות נמוכות, מפגשי היום; כרטיס ניקוב מהיר לקורס של היום; כרטיס יום הולדת ('יום הולדת היום' / 'יום הולדת ב<יום>' עם הגיל שימלא ומשפחה); 5 משפחות אחרונות (לפי createdAt ואז recentIds); קרוסלת 14-יום של ימי הולדת 🎂 ואירועים עם נקודות ואנימציה מתחלפת; שורות digest",
+    "evidence": "legacy-main-script.js:2318-2329, 3074-3089"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "ניווט אחורה היסטורי (navHist)",
+    "detail": "מחסנית ניווט: כפתור 'חזרה' מוצג רק כשיש היסטוריה, pop משחזר view/selId/selCourseId/calDay וסוגר את כל המודלים/הגלגלים/הפלטה; _navBack מונע דחיפה כפולה",
+    "evidence": "legacy-main-script.js:3146-3147"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "מצב הדגמה (demo mode)",
+    "detail": "startDemo/stopDemo עם סמן וירטואלי (demoX/demoY) וכיתוב מלווה (demoCap) — סיור מודרך אוטומטי במערכת",
+    "evidence": "legacy-main-script.js:3178-3180"
+   },
+   {
+    "domain": "settings_permissions",
+    "name": "פאנל נגישות + זום ממשק",
+    "detail": "4 מתגים: 'ניגודיות גבוהה', 'הדגשת כפתורים וקישורים', 'עצירת אנימציות ותנועה', 'ריווח טקסט מוגדל' — נשמרים כ-attributes על ה-DOM (accAttrs) וב-localStorage 'maorclean2_acc'; זום 80%-160% בצעדי 10% ('maorclean2_ui_scale' + window.__fsScale); 'הגדרות הנגישות אופסו'",
+    "evidence": "legacy-main-script.js:3181-3194"
+   },
+   {
+    "domain": "data_persist",
+    "name": "מודל ייבוא רב-סוגי (5 סוגים)",
+    "detail": "importKind: members (ילדים — הצלבה ת\"ז הורה←טלפון←שם משפחה+שם האם←+עיר), families (עדכון/הוספה לפי המבנה שהועלה), supporters (הצלבה לפי שם), ayin ('גיליון עיניים' — הצלבה שם תומכת+שם למסירה, כמות חדשה נרשמת אוטומטית להיסטוריה/ללוח/לדוחות), backup (JSON מלא שמחליף הכל). לכל סוג טקסט הסבר ייעודי; זרימה: handleImportFile → importSummary עם canApply → applyImport; כפתור ייצוא-בפורמט-הייבוא ('⬇ ייצוא בפורמט הייבוא — לעריכה באקסל והחזרה' / '⬇ גיבוי מלא עכשיו (אותו פורמט לשחזור)')",
+    "evidence": "legacy-main-script.js:3208-3228"
+   },
+   {
+    "domain": "data_persist",
+    "name": "שער פתיחת יום (dayGate) + גיבוי יומי",
+    "detail": "מסך חסימה יומי: בחירת שעת סיום יום (ברירת מחדל 17:00), 'startDay' שומר maorclean2_day/maorclean2_dayend ומטוסט '☀ יום העבודה נפתח — גיבוי אוטומטי יירד בשעה X'; אופציית 'שחזור' שפותחת ישר ייבוא גיבוי (importKind='backup')",
+    "evidence": "legacy-main-script.js:3229-3243"
+   },
+   {
+    "domain": "families",
+    "name": "מודל מיזוג כפילויות (dupCmp)",
+    "detail": "השוואת 2+ רשומות משפחה שדה-שדה (dupFields): הדגשת שדות שונים (diff עם רקע/מסגרת צהבהבים), בחירת ערך מכל רשומה פר-שדה (dupPick, ברירת מחדל הערך הלא-ריק הראשון) או עריכה ידנית חופשית (dupEdit עם clearEdit); כותרת 'מיזוג כפילות — N רשומות'; פעולות: מיזוג (dupFieldMerge), מחיקת רשומה בודדת (drop), מחיקת כולן (dropAll), פתיחת כרטיס",
+    "evidence": "legacy-main-script.js:3248-3269"
+   },
+   {
+    "domain": "settings_permissions",
+    "name": "הגדרות חדרים (roomset) עם ציוד",
+    "detail": "טופס חדר: שם, פעיל (activeSel), אורך משבצת (slot, 60), קיבולת (cap), מיקום, תעריף (rate), שעות מ/עד (08:00-20:00), נגישות (accessSel), הערות + 8 צ'יפי ציוד; הצעות שמות מוכנות: 'חדר בריחה', 'חדר ג׳קוזי', 'חדר ירידים ומתנות', 'חדר אוכל', 'חדר הרצאות', 'כסא מסאז׳ 3'; roomRows + 'N חדרים בפעילות היום'/'אין פעילות בחדרים היום'",
+    "evidence": "legacy-main-script.js:2654-2659, 3120-3124, 3163, 3270-3275"
+   },
+   {
+    "domain": "reports_export",
+    "name": "מתגי דוחות תקופתיים",
+    "detail": "4 דוחות: יומי/שבועי/חודשי/רבעוני — לכל אחד מתג הפעלה (reports state) וכפתור הפקה מיידית genReport(label)",
+    "evidence": "legacy-main-script.js:2660-2665, 3207"
+   },
+   {
+    "domain": "reports_export",
+    "name": "מודל ייצוא מותאם (expM) עם הערות",
+    "detail": "3 יעדים: '📊 דו\"ח קורסים מותאם', '📊 דו\"ח לוח שנה מותאם', '📊 דו\"ח תומכות מותאם'; טווח תאריכים עם מצב עברי/לועזי (hb2Sel) ושורת טווח משולבת; בחירת שדות מ-expFieldDefs עם בחר-הכל/נקה; מצב 'עם הערות' (expWithNotes) — תצוגה מקדימה של שורות הדוח עם הערה נערכת פר-שורה (noteSeed כברירת מחדל, נשמר ב-expNotes לפי target:key); runCustomExport",
+    "evidence": "legacy-main-script.js:3293-3314"
+   },
+   {
+    "domain": "reports_export",
+    "name": "ייצואי CSV ישירים + הגנת injection",
+    "detail": "exportFamiliesCSV, exportCoursesCSV, exportEnrollCSV, exportEventsCSV, exportSupportersCSV, exportAudit, exportBackup, exportCourseStudents, exportCourseDaily; ה-CSV המהיר מהפלטה: כותרות 'משפחה,אב,אם,טלפון,עיר,קהילה,סטטוס,ילדים', שם קובץ maor-hachesed-families.csv, BOM, ומנטרל =+-@ בתחילת ערך",
+    "evidence": "legacy-main-script.js:2333-2340, 3292, 3315"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "מודל אירוע: עברי/לועזי, עדיפות, קישורים",
+    "detail": "שדות eventForm: title, date, time, type (+'__other'), notes, price, roomId, famId (רשימת 'משפחת X'), priority (ברירת מחדל 'green'); בורר תאריך עברי מלא + צ'יפים מהירים (היום/שבוע/חודש/חודשיים/3 חודשים); שורת 'תאריך עברי: ... · חוזר מדי שנה בתאריך העברי הזה' לסוגים חוזרים; מחיקת אירוע ('האירוע נמחק מהלוח'); כותרת 'עריכת אירוע'/'אירוע חדש', כפתור 'שמירת שינויים'/'הוספה ללוח'",
+    "evidence": "legacy-main-script.js:3279, 3385-3400, 3464-3466"
+   },
+   {
+    "domain": "events_calendar",
+    "name": "לוח חודשי עם גריד עברי ומצב דחוף",
+    "detail": "ניווט חודשים תומך מצב עברי (calHebMode + calHebAnchor דרך _hebNav.prevIso/nextIso — ניווט לפי חודשים עבריים); כפתור 'גריד עברי ✓'/'גריד לועזי'; goToday עם טוסט 'היום: <תאריך>'; מתג 'דחוף בלבד' (calUrgentOnly, אדום); calChips; monthLabel + hebMonthLabel",
+    "evidence": "legacy-main-script.js:3144-3145, 3457-3463"
+   },
+   {
+    "domain": "attendance",
+    "name": "מודל ניהול שיבוץ (mg) — כרטיסייה ותשלומים",
+    "detail": "רכישת ניקובים (buyQty/buyPunches); ביטול ניקוב אחרון עם החזר ניקוד אמינות מדויק; מעבר למנוי חודשי ('השיבוץ הועבר למנוי חודשי'); הקפאה/הפשרה; סיום שיבוץ; הסרה דו-שלבית שמוחקת גם את אירוע התשלום; הערת שיבוץ ('מוצגת ברשימת התלמידים'); רישום תשלום: payAmt + payMethod (ברירת מחדל 'מזומן') + addPay + תאריך יעד dueDate (savePayDue)",
+    "evidence": "legacy-main-script.js:3363-3376"
+   },
+   {
+    "domain": "attendance",
+    "name": "שיבוץ מהיר מתוך מודל enroll עם הוספת ילד חדש",
+    "detail": "typeahead לבחירת תלמיד (enQ/enList); קישור מתקפל 'לא נמצא/ה במערכת? + הוספת בן משפחה חדש ושיבוץ' (enrollNewOpen) — טופס מקוצר famId (typeahead + אופציה '__new' למשפחה חדשה), שם פרטי, מגדר (ברירת מחדל לפי מגדר החוג), תאריך לידה; saveEnrollNew; purchased מאותחל לגודל הכרטיסייה בחוג punch",
+    "evidence": "legacy-main-script.js:3342-3356, 3454"
+   },
+   {
+    "domain": "families",
+    "name": "טופס בן משפחה: תאריך עברי וצ'יפי מדיה",
+    "detail": "בורר לידה במצב לועזי/עברי (mbMode) — יום בגימטריה (1-30), חודש כולל אדר א'/ב', שנה 5787-96 שנים בגימטריה; שינוי תאריך לועזי מסנכרן אוטומטית את שדות העברי (hb2FromIso); שורת 'בן/בת X · תאריך עברי: ...' או 'בחרו תאריך לידה — התאריך העברי יחושב אוטומטית'; 5 צ'יפי מסמכים/מדיה: ספח, הזמנה, המלצה, תמונות, סרטונים (mSefach/mInvite/mRecommend/mPhotos/mVideos); שדות: first, gender, birth, idNum, phone, phone2, school, grade, health, notes",
+    "evidence": "legacy-main-script.js:2766-2786, 3445-3447"
+   },
+   {
+    "domain": "settings_permissions",
+    "name": "ניהול מורות — כרטיס מלא",
+    "detail": "רשימת מורות עם 'טלפון · התמחות · N חוגים'; מודל 'כרטיס מורה — עריכה מלאה'/'+ מורה חדשה': name, phone, phone2, email, idNum, address, specialty, payRate (תעריף), startDate (עם 'התחלה בעברי'), notes; שורת סטטיסטיקה 'N חוגים · M תלמידים רשומים'; רשימת החוגים שלה עם קפיצה; מחיקה חסומה אם יש חוגים; 'להתקשר למורה' יוצר אירוע call בעדיפות כתומה; המורות נשמרות על this.teachers + persist()",
+    "evidence": "legacy-main-script.js:3413-3430"
+   },
+   {
+    "domain": "settings_permissions",
+    "name": "מסך הגדרות: ארגון, התראות, גיבוי ואיפוס",
+    "detail": "orgName, orgSite (אתר), orgDonate (קישור תרומה); לוגו — placeholder 'העלאת לוגו תחובר ל-Supabase Storage בגרסה המחוברת'; 4 מתגי התראות: email, push, sms, strong (חזק #b45309); saveSettings עם חיווי כשל ('⚠ השמירה נכשלה — הורידו גיבוי מלא ובדקו מקום פנוי בדפדפן'); exportBackup; איפוס מקומי דו-שלבי שמוחק maorclean2_db",
+    "evidence": "legacy-main-script.js:3280-3284, 3401-3412"
+   },
+   {
+    "domain": "courses",
+    "name": "טופס חוג: תמחור תלת-דרגתי, כיתות, קטגוריות",
+    "detail": "שדות: name, teacherId (כולל '__add' מורה חדשה inline עם newTeacherName/Phone), description, gradeMin/gradeMax (גן, א׳-י״ב), price + price1/price1Name + price2/price2Name (שתי דרגות הנחה בשם מותאם), model (punch עם size / monthly / half_year / year), start/end עם תצוגת 'תקופה בעברי: X עד Y', roomId, weekday, time, maxStudents, gender, ageMin/ageMax, cat (9 קטגוריות + אחר), semester (שנתי/חצי שנתי/אחר); '__other' פותח שדה חופשי לקטגוריה/סמסטר/שפה/מצב משפחתי/סוג אירוע",
+    "evidence": "legacy-main-script.js:3286-3291, 3377-3382, 3449-3453"
+   },
+   {
+    "domain": "families",
+    "name": "טופס משפחה — שדות מלאים",
+    "detail": "name, phone, father+fatherId, mother+motherId, phone2, email, address, city, status, notes, maritalStatus (+'__other'), language (ברירת מחדל 'עברית', +'__other'), community (ברירת מחדל 'כללי'), tzedaka, fullSefach (yes/no), discount; הערת קוד 'audit-fix: אין יותר ברירת־מחדל שקטה'",
+    "evidence": "legacy-main-script.js:3443-3444"
+   },
+   {
+    "domain": "other",
+    "name": "בדיקת תקינות נתונים (audit modal)",
+    "detail": "מודל audit מריץ runAudit() ומציג ממצאים; פעולות: exportAudit (ייצוא הממצאים), fixPhones (fixAllPhones — תיקון גורף של פורמט טלפונים), sendAuditToCare (שליחת הממצאים למרכז הטיפול)",
+    "evidence": "legacy-main-script.js:2611, 3247, 3276-3278"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "מדריך שימוש (guide)",
+    "detail": "מתג guideOn עם openGuide/closeGuide — שכבת הדרכה מובנית",
+    "evidence": "legacy-main-script.js:3244-3246"
+   },
+   {
+    "domain": "ui_shell",
+    "name": "רשימת יתרות נמוכות בבית (lowRows)",
+    "detail": "עד 5 שיבוצי כרטיסייה עם יתרה נמוכה: 'הכרטיסייה נגמרה' (אדום) או 'נותרו X מתוך Y' (חום-זהב); לכל שורה כפתור פתיחת כרטיס משפחה וכפתור ניקוב ישיר punch(e.id); קישור goCareLow פותח את מרכז הטיפול מסונן ל'יתרה'",
+    "evidence": "legacy-main-script.js:2435-2440, 3176"
+   }
+  ],
+  "strings_sample": [
+   "✓ מעל 48 שעות מראש — זכאי/ת להשלמה, הניקוב לא יירד",
+   "⚠ פחות מ-48 שעות — לא זכאי/ת להשלמה, הניקוב יירד",
+   "ציון משוקלל: X/1000 · דרגת זהב — משוקלל לפי טריות (R), תדירות (F) וסכום (M)",
+   "🫙 אישור — העופרת נעשתה (סנכרון ללוח ולדוח)",
+   "✓ השמות נלקחו → לעשות עופרת",
+   "📞 דחיפה ללוח — למסור תשובות",
+   "נפתח מחזור חדש מההתחלה — ההיסטוריה נשמרה",
+   "X שמות · Y עופרת בוצעה · Z ממתינות · 🧿 N עיניים",
+   "ניקיון יומי (15:00–16:00)",
+   "החדר מושבת בהגדרות",
+   "היום חסום לתזמון חוגים: <סיבה>",
+   "משפחת X ממתינה לאישור",
+   "\"X\" משויך לחדר כבוי (Y) — הפעילו את החדר או העבירו את החוג",
+   "הגיע תאריך היעד ליצירת קשר — <שם>",
+   "יתרת ₪X — <שם> (<משפחה>) · <חוג> · עבר המועד <תאריך>",
+   "משפחת X בסטטוס אדום (score) — נדרשת שיחת שירות",
+   "חסר ספח מלא — משפחת X",
+   "\"X\" כמעט מלא (n/max)",
+   "דחוף השבוע: ...",
+   "☀ יום העבודה נפתח — גיבוי אוטומטי יירד בשעה 17:00",
+   "מיזוג כפילות — N רשומות",
+   "הסינון הוחל על טבלת המשפחות",
+   "התנגשות לו\"ז: X כבר רשום/ה ל\"Y\" ביום Z",
+   "שימו לב: גיל X מחוץ לטווח המומלץ (3–18)",
+   "החוג מיועד לבנות בלבד",
+   "＋ אין עדיין בני משפחה — הוספה מהירה וחזרה אוטומטית לשיבוץ",
+   "לא נמצא/ה במערכת? + הוספת בן משפחה חדש ושיבוץ",
+   "✓ מוצגים גם חוגים לא-תואמי גיל (עם אזהרה) — לחצו לחזרה לסינון",
+   "הניקוב האחרון בוטל — היתרה הוחזרה",
+   "ביטול ניקוב — החזר מדויק של ניקוד הנוכחות",
+   "השיבוץ הוקפא — הניקוב נחסם עד הפשרה",
+   "השיבוץ הוסר לצמיתות — כולל תזכורת התשלום מהלוח",
+   "הקבוצה נוספה — מופיעה מיד בלוח השנה וביומן החדר",
+   "₪X לחודש (מנויים חודשיים בלבד)",
+   "N קורסים · מציג את הקורסים של <מורה> בלבד",
+   "N קורסים פעילים · תשפ\"ו",
+   "תומכת בשם הזה כבר קיימת — פתחו את הכרטיס שלה מהטבלה",
+   "ת\"ז לא תקינה (ספרת ביקורת)",
+   "כרטיס התומכ/ת עודכן — משתקף מיד בטבלה, בחיפוש ובגיבוי",
+   "להתקשר לתודה — <שם>",
+   "🔔 יעד עבר",
+   "🎯 תאריך יעד לקשר הבא",
+   "מהקובץ ההיסטורי: N תרומות (מצטבר בסטטיסטיקה למעלה)",
+   "X מתוך Y משפחות תומכות · סה\"כ ₪A + $B · מוצגות 120 הראשונות",
+   "גיליון עיניים: הורידו למטה ⬇, מלאו את עמודת \"כמה עיניים\" (0 גם תקין) ואת \"נמסר\", והחזירו לכאן",
+   "ההצלבה: ת\"ז הורה ← טלפון ← שם משפחה+שם האם ← +עיר. שם משפחה כפול בלי מזהה — לא ינוחש",
+   "⬇ ייצוא בפורמט הייבוא — לעריכה באקסל והחזרה",
+   "העלאת לוגו תחובר ל-Supabase Storage בגרסה המחוברת",
+   "העלאת קבצים תחובר ל-Supabase Storage בגרסה המחוברת",
+   "⚠ השמירה נכשלה — הורידו גיבוי מלא ובדקו מקום פנוי בדפדפן",
+   "לאשר איפוס? כל השינויים המקומיים יימחקו",
+   "למורה יש חוגים משויכים — העבירו אותם קודם למורה אחרת",
+   "אין ימי הולדת השבוע",
+   "14 הימים הקרובים שקטים",
+   "הממצאים נשלחו למרכז הטיפול",
+   "X פריטים פתוחים (תפעול + בדיקת נתונים)",
+   "מנהל/ת מערכת",
+   "חדר בריחה",
+   "חדר ג׳קוזי",
+   "כסא מסאז׳ 3",
+   "תקופה בעברי: X עד Y",
+   "חוזר מדי שנה בתאריך העברי הזה",
+   "📊 דו\"ח תומכות מותאם",
+   "הצג בטבלה (N) ←"
+  ],
+  "notes": "הטווח 2350-3472 הוא סוף render() — אובייקט ה-view-model הענק שמוזן לתבנית ה-HTML. מפתחות localStorage בשימוש בטווח: maorclean2_db (הנתונים), maorclean2_acc (נגישות), maorclean2_ui_scale (זום), maorclean2_day + maorclean2_dayend (שער יום/גיבוי אוטומטי). מודל נתוני תומכת: {id:'sp'+seq, name, phone, email, address, idNum, cat, forWho, notes, count, ils, usd, first, last, nextDate, donations[{rid,...}], hist[], ayin:{stage, nextTalk, nextTalkTime, note, answeredNote, answerPushed, lastTouch, names:[{id:'an'+seq, name, eyes, done}], log:[{date, eyes, name}], answers:[{date, note}], editAw}}. מודל שיבוץ: {id, memberId, courseId, purchased, used, plan, status(active/paused/ended), note, dueDate, dueEventId, payments דרך payBal/addPay}. מודל חדר: {id, name, active, slot, cap, location, rate, from, to, access, eq:{<שם ציוד>:bool}, notes}. cred של משפחה: {score(0-1000, ברירת מחדל 700), log:[{date, delta, desc}]}. שדות state בולטים לטווח: paletteQ/paletteOpen, wheelLocks/wheelRot, fwLocks/fwRot, careDone/careFilter/careAudit, supColF/supSort/supTierF/ayinMode/ayinF/ayinBoardOn/ayinBoardFilter/ayinBoardSort/supCalOn, dupIds/dupPick/dupEdit, expOpen/expTarget/expSel/expNotes/expWithNotes/expDateMode, importKind/importSummary, dayGate/dayEndDraft, navHist, famView/crsView, acc/uiScale, demoOn, guideOn, calHebMode/calHebAnchor/calUrgentOnly. נקודות ל-gap analysis: (1) מודול 'עין הרע' שלם (pipeline עופרת/עיניים/תשובות עם ייבוא ייעודי, לוח מרכזי ולוחות שנה) — פיצ'ר ייחודי שכנראה חסר ב-React; (2) אי-אחידויות מכוונות/באגים בלגאסי שכדאי להחליט לגביהן: ageMax ברירת מחדל 18 מול 99, maxStudents 12 מול 999; (3) שני placeholders ל-Supabase Storage (לוגו וקבצים) מעידים שהעלאת קבצים לא ממומשת גם בלייב; (4) sessions מרובים לחוג (קבוצות עם תווית) חוצה יומן חדר, לוח שנה, שיבוץ והתנגשויות; (5) הכפתור 'ניקוב לקורס של היום' ושדה teacherName('t3') מרמזים על מזהה מורה קשיח ל-role מורה."
+ }
+]

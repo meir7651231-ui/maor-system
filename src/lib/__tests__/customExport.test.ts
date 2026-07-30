@@ -37,11 +37,15 @@ describe('expFieldDefs — ayin columns gated by feature', () => {
   });
 
   it('omits ayin fields when supporters.ayin is off', () => {
+    // הדוח המלא (P2 פער 23) פעיל כברירת מחדל — הרשימה המלאה בלי שדות ayin
     const c = cfg({ features: { 'supporters.ayin': false } });
     const keys = expFieldDefs(c, 'supporters').map((f) => f.key);
     expect(keys).not.toContain('stage');
     expect(keys).not.toContain('names');
-    expect(keys).toEqual(['name', 'phone', 'email', 'dons']);
+    expect(keys).toEqual(['name', 'phone', 'email', 'address', 'city', 'cat', 'forWho', 'dons', 'donsAll', 'tier', 'notes']);
+    // עם reports.custom.full כבוי — הרשימה המקוצרת המקורית, ללא שינוי
+    const cOff = cfg({ features: { 'supporters.ayin': false, 'reports.custom.full': false } });
+    expect(expFieldDefs(cOff, 'supporters').map((f) => f.key)).toEqual(['name', 'phone', 'email', 'dons']);
   });
 });
 

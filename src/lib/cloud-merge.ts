@@ -19,6 +19,9 @@ const LIST_FIELDS: Record<string, readonly string[]> = {
   families: ['members', 'docs'],
   enrollments: ['payments', 'absences'],
   supporters: ['donations'],
+  // קופות צדקה — ריקונים ולוג ניקוד (BUILD-ORDER-TZEDAKA)
+  tzBoxes: ['collections'],
+  tzCoordinators: ['scoreLog'],
 };
 
 export function sanitizeIncoming(col: string, item: Record<string, unknown>): Record<string, unknown> {

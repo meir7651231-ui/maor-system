@@ -8,7 +8,8 @@ import { featureOn, termOf } from '../../lib/config';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { hebDateFull } from '../../lib/hebrew';
-import { orgBlockError, roomClashError } from './calLib';
+import { nextOccurIso, orgBlockError, QUICK_DATE_CHIPS, quickDate, roomClashError, softClashSuffix } from './calLib';
+import { isoToday } from '../../lib/date-util';
 import {
   HEBREW_RECURRING,
   type EventPriority,
@@ -53,8 +54,8 @@ export function EventModal(props: {
   ev: OrgEvent | null;
   /** תאריך התחלתי לאירוע חדש (ISO). */
   date: string;
-  /** ערכים התחלתיים לאירוע חדש — למשל הזמנת משבצת חדר מהיומן. */
-  prefill?: { time?: string; roomId?: string; type?: EventType; notes?: string };
+  /** ערכים התחלתיים לאירוע חדש — למשל הזמנת משבצת חדר מהיומן או "➕ אירוע" מכרטיס המשפחה. */
+  prefill?: { time?: string; roomId?: string; type?: EventType; notes?: string; famId?: string };
   /** טקסט toast מותאם לשמירת אירוע חדש (ברירת מחדל: 'האירוע נוסף ללוח'). */
   saveToast?: string;
   onClose: () => void;
@@ -78,7 +79,7 @@ export function EventModal(props: {
     notes: ev?.notes ?? prefill?.notes ?? '',
     price: ev && ev.price ? String(ev.price) : '',
     roomId: ev?.roomId ?? prefill?.roomId ?? '',
-    famId: ev?.famId ?? '',
+    famId: ev?.famId ?? prefill?.famId ?? '',
     priority: ev?.priority ?? 'green',
     done: ev?.done ?? false,
   }));
@@ -107,8 +108,14 @@ export function EventModal(props: {
   );
 
   const recurring = HEBREW_RECURRING.has(f.type);
+  // המופע הבא (לגאסי nextOccurLabel) — מוצג רק לאירוע חוזר עם תאריך
+  const nextOcc = useMemo(
+    () => (recurring && f.date ? nextOccurIso({ type: f.type, date: f.date }, isoToday()) : ''),
+    [recurring, f.type, f.date],
+  );
   const hebLine = f.date
-    ? 'תאריך עברי: ' + hebDateFull(f.date) + (recurring ? ' · חוזר מדי שנה בתאריך העברי הזה' : '')
+    ? 'תאריך עברי: ' + hebDateFull(f.date) + (recurring ? ' · חוזר מדי שנה בתאריך העברי הזה' : '') +
+      (nextOcc && nextOcc !== f.date ? ' · המופע הבא: ' + hebDateFull(nextOcc) + ' (' + nextOcc.split('-').reverse().join('/') + ')' : '')
     : '';
 
   function save() {
@@ -164,7 +171,9 @@ export function EventModal(props: {
       done: f.done,
     };
     upsertEvent(next);
-    toast(ev ? 'האירוע עודכן' : (saveToast ?? 'האירוע נוסף ללוח'));
+    // אזהרה רכה (P3 פריט 5) — לא חוסמת; החסימות הקשיחות כבר עברו למעלה
+    const clashNote = softClashSuffix(db.events, next.date, next.time, next.id);
+    toast((ev ? 'האירוע עודכן' : (saveToast ?? 'האירוע נוסף ללוח')) + clashNote);
     onClose();
   }
 
@@ -194,7 +203,30 @@ export function EventModal(props: {
           </Field>
         </div>
         <Field label="תאריך *">
-          <HebDateInput value={f.date} onChange={(iso) => set('date', iso)} />
+          <div>
+            {/* צ׳יפי תאריכים מהירים (P2 פער 26) — ההזזה מהיום, טהורה ב-quickDate */}
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 4 }}>
+              {QUICK_DATE_CHIPS.map(([kind, label]) => (
+                <button
+                  key={kind}
+                  type="button"
+                  onClick={() => set('date', quickDate(isoToday(), kind))}
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    padding: '2px 9px',
+                    borderRadius: 999,
+                    border: '1px solid var(--line)',
+                    background: 'var(--panel)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <HebDateInput value={f.date} onChange={(iso) => set('date', iso)} />
+          </div>
         </Field>
         <Field label="שעה">
           <TextInput type="time" value={f.time} onChange={(v) => set('time', v)} dir="ltr" />

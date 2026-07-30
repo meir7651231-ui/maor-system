@@ -22,17 +22,25 @@ import {
   type Member,
   type OrgEvent,
   type Payment,
+  type IsoDate,
   type Room,
   type Supporter,
   type Teacher,
+  type TzBox,
+  type TzCampaign,
+  type TzCoordinator,
+  type TzEvent,
 } from '../types/domain';
+import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, loadOrgConfig, saveConfigOverride } from '../lib/config';
+import { applyTheme, featureOn, loadOrgConfig, saveConfigOverride } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
-import { mergeFamilies } from '../lib/dedup';
+import { mergeFamilies, mergeFamiliesByFields } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
-import { featLabel, planAddName, planAyinAdvance, revertPatch, stageIndex } from '../lib/ayin';
+import { CRED_RED_THRESHOLD } from '../components/families/lib';
+import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
+import { applyAyinSheet, featLabel, planAddName, planAyinAdvance, revertPatch, stageIndex, type AyinSheetUpd } from '../lib/ayin';
 import {
   dailySnapshot,
   exportBackupFile,
@@ -55,6 +63,7 @@ export type View =
   | 'calendar'
   | 'diary'
   | 'supporters'
+  | 'tzedaka'
   | 'reports'
   | 'settings';
 
@@ -112,6 +121,11 @@ interface AppState {
   go: (view: View) => void;
   selectFamily: (id: string | null) => void;
   selectCourse: (id: string | null) => void;
+  /** מחסנית ניווט (עד 20) + משפחות שנפתחו לאחרונה (עד 6) — P1.5, session בלבד. */
+  navHist: NavLoc[];
+  recentIds: string[];
+  /** ↩ חזרה — שולף את המיקום האחרון ומנווט אליו בלי לרשום את החזרה כצעד. */
+  goBack: () => void;
   setPalette: (open: boolean) => void;
   /**
    * דגל בקשת "משפחה חדשה" מהכרום (כותרת צֹהַר) — FamiliesView צורך אותו
@@ -122,6 +136,20 @@ interface AppState {
   openFamilyForm: () => void;
   /** איפוס הדגל אחרי שהטופס נפתח. */
   ackFamilyForm: () => void;
+  /** בקשות פתיחת-טופס מהפלטה (P1.6) — אותו דפוס כמו famFormReq. */
+  evFormReq: '' | 'org' | 'call';
+  openEventForm: (kind?: 'org' | 'call') => void;
+  ackEventForm: () => void;
+  courseFormReq: boolean;
+  openCourseForm: () => void;
+  ackCourseForm: () => void;
+  supFormReq: boolean;
+  openSupporterForm: () => void;
+  ackSupporterForm: () => void;
+  /** ניווט למשפחות מסוננות לפי דרגת אמינות (אריחי הדרגות במדדי הבית, P2 פער 20). */
+  famTierReq: '' | 'titan' | 'lion' | 'pale' | 'red';
+  openFamiliesByTier: (tier: 'titan' | 'lion' | 'pale' | 'red') => void;
+  ackFamiliesTier: () => void;
 
   // ערכת נושא וקונפיגורציה
   /** קביעת קונפיגורציה חדשה + שמירתה כדריסת ריצה ב-localStorage. */
@@ -140,6 +168,8 @@ interface AppState {
   deleteFamily: (id: string) => void;
   /** מיזוג כפילויות — כל ה-loserIds נספגים לתוך keeperId (בלי אובדן בני-משפחה/שיבוצים). */
   mergeFamilyGroup: (keeperId: string, loserIds: string[]) => void;
+  /** פער 21: מיזוג לפי בחירת-שדות (לגאסי dupFieldMerge) — ids[0] הוא הבסיס. */
+  mergeFamilyGroupFields: (ids: string[], pick: Record<string, number>, edit: Record<string, string>) => void;
   upsertMember: (famId: string, member: Member) => void;
   deleteMember: (famId: string, memberId: string) => void;
   addCred: (famId: string, delta: number, reason: string) => void;
@@ -156,12 +186,25 @@ interface AppState {
   upsertEnrollment: (e: Enrollment) => void;
   deleteEnrollment: (id: string) => void;
   punch: (enrollmentId: string) => void;
+  /** ביטול הניקוב האחרון — מחזיר את הדלתא המדויקת מרשומת ה-Check-in (legacy mgUndo). */
+  undoPunch: (enrollmentId: string) => void;
   addAbsence: (enrollmentId: string, absence: Absence) => void;
-  addPayment: (enrollmentId: string, payment: Omit<Payment, 'rid'>) => void;
+  /** רישום תשלום — {ok:false} כשה-store דחה (השיבוץ נעלם); rid רק כשהונפק בפועל. */
+  addPayment: (enrollmentId: string, payment: Omit<Payment, 'rid'>) => { ok: boolean; rid?: string };
 
   // יומן ואירועים
+  /**
+   * ניקוי תאריך-יעד (תומכת) / תשלום-הבא (שיבוץ) + מחיקת אירוע-הלוח המקושר —
+   * אטומי. תיקון באג ידוע #6: הניקוי השאיר אירוע יתום בלוח (המחיקות כן ניקו).
+   */
+  unlinkEvent: (kind: 'supporterNext' | 'enrollmentDue', id: string) => void;
   upsertEvent: (ev: OrgEvent) => void;
   deleteEvent: (id: string) => void;
+  /**
+   * שליחת ממצא ביקורת למרכז הטיפול (P2 פער 22) — תזכורת אדומה להיום בלוח,
+   * כמו sendAuditToCare בלגאסי (הממצאים נשפכים ל"דורש טיפול" — לא מנגנון חדש).
+   */
+  auditToAttention: (issue: { title: string; famId?: string; spId?: string }) => void;
 
   // צוות, חדרים, תורמים
   upsertTeacher: (t: Teacher) => void;
@@ -169,7 +212,29 @@ interface AppState {
   upsertRoom: (r: Room) => void;
   upsertSupporter: (s: Supporter) => void;
   deleteSupporter: (id: string) => void;
-  addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => void;
+  /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
+  addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => { ok: boolean; rid?: string };
+
+  // קופות צדקה (מודול tzedaka — מבודד; BUILD-ORDER-TZEDAKA-2026-07-30).
+  // הכסף/האירועים/הניקוד נכתבים רק למערכי tz* — לא לקבלות/תרומות/לוח הראשי.
+  upsertTzCoordinator: (c: TzCoordinator) => void;
+  /** חסום כשיש לרכז קופות home/office; מוחק גם אירועי-לוח מקושרים (בלי יתומים). */
+  deleteTzCoordinator: (id: string) => boolean;
+  upsertTzBox: (b: TzBox) => void;
+  /** מוחק + מנקה אירועים מקושרים; האישור בשכבת ה-UI (useArmed). */
+  deleteTzBox: (id: string) => void;
+  upsertTzCampaign: (c: TzCampaign) => void;
+  /** ריקונים משויכים מקבלים campaignId:'' — אין אובדן כסף. */
+  deleteTzCampaign: (id: string) => void;
+  upsertTzEvent: (e: TzEvent) => void;
+  deleteTzEvent: (id: string) => void;
+  /** ריקון קופה — דוחה סכום לא-חוקי בלי לגעת ב-db; delta = ניקוד שנוסף לרכז. */
+  addTzCollection: (
+    boxId: string,
+    coll: { date: IsoDate; amount: number; campaignId: string; note: string },
+  ) => { ok: boolean; delta: number };
+  /** כוונון ניקוד ידני — reason חובה. */
+  addTzScore: (coordinatorId: string, delta: number, reason: string) => void;
 
   // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
   // ולכן סנכרון הענן והביטול עובדים כרגיל. פעולות שכותבות ללוח מייצרות OrgEvent.
@@ -191,6 +256,8 @@ interface AppState {
   ayinLogEyes: (id: string, eyes: number, name?: string) => void;
   /** מחזור חדש — איפוס התיק תוך שמירת ההיסטוריה (log + answers). */
   ayinRestart: (id: string) => void;
+  /** החלת גיליון עיניים שחזר (P0.4) — עוברת setDb כך שהסנכרון לענן חינם. */
+  ayinApplySheet: (upds: AyinSheetUpd[]) => void;
 
   // גיבוי ושחזור
   exportBackup: () => void;
@@ -258,6 +325,11 @@ function isoToday(): string {
 }
 
 /** תאריך ISO במרחק ימים מהיום (שלילי = אחורה) — מקומי. */
+/** המיקום הנוכחי כרשומת היסטוריה (P1.5). */
+function navLocOf(s: Pick<AppState, 'view' | 'selFamilyId' | 'selCourseId'>): NavLoc {
+  return { view: s.view, selFamilyId: s.selFamilyId, selCourseId: s.selCourseId };
+}
+
 function isoDaysAgo(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() - days);
@@ -530,11 +602,65 @@ export const useApp = create<AppState>()((set, get) => {
       await cloudMod.resetPassword(email);
     },
 
-    go: (view) => set({ view }),
-    selectFamily: (id) => set({ selFamilyId: id, view: 'families' }),
-    selectCourse: (id) => set({ selCourseId: id, view: 'courses' }),
+    // ניווט עם רישום היסטוריה (P1.5, legacy:166) — רק מעבר-מיקום אמיתי נרשם
+    go: (view) =>
+      set((s) => {
+        const prev = navLocOf(s);
+        const next: NavLoc = { view, selFamilyId: s.selFamilyId, selCourseId: s.selCourseId };
+        return { view, ...(sameLoc(prev, next) ? {} : { navHist: pushNav(s.navHist, prev) }) };
+      }),
+    selectFamily: (id) =>
+      set((s) => {
+        const prev = navLocOf(s);
+        const next: NavLoc = { view: 'families', selFamilyId: id, selCourseId: s.selCourseId };
+        return {
+          selFamilyId: id,
+          view: 'families',
+          ...(sameLoc(prev, next) ? {} : { navHist: pushNav(s.navHist, prev) }),
+          // "נפתחו לאחרונה" (legacy:344-346) — רק פתיחת כרטיס, לא ניקוי הבחירה
+          ...(id ? { recentIds: pushRecent(s.recentIds, id) } : {}),
+        };
+      }),
+    selectCourse: (id) =>
+      set((s) => {
+        const prev = navLocOf(s);
+        const next: NavLoc = { view: 'courses', selFamilyId: s.selFamilyId, selCourseId: id };
+        return {
+          selCourseId: id,
+          view: 'courses',
+          ...(sameLoc(prev, next) ? {} : { navHist: pushNav(s.navHist, prev) }),
+        };
+      }),
+    navHist: [],
+    recentIds: [],
+    goBack: () =>
+      set((s) => {
+        const h = s.navHist;
+        const p = h[h.length - 1];
+        if (!p) return {};
+        // חזרה אינה נרשמת כצעד (legacy:3147 — _navBack)
+        return {
+          navHist: h.slice(0, -1),
+          view: p.view as View,
+          selFamilyId: p.selFamilyId,
+          selCourseId: p.selCourseId,
+          paletteOpen: false,
+        };
+      }),
     setPalette: (open) => set({ paletteOpen: open }),
     famFormReq: false,
+    evFormReq: '' as const,
+    openEventForm: (kind = 'org') => set({ view: 'calendar', evFormReq: kind }),
+    ackEventForm: () => set({ evFormReq: '' }),
+    courseFormReq: false,
+    openCourseForm: () => set({ view: 'courses', selCourseId: null, courseFormReq: true }),
+    ackCourseForm: () => set({ courseFormReq: false }),
+    supFormReq: false,
+    openSupporterForm: () => set({ view: 'supporters', supFormReq: true }),
+    ackSupporterForm: () => set({ supFormReq: false }),
+    famTierReq: '' as const,
+    openFamiliesByTier: (tier) => set({ view: 'families', selFamilyId: null, famTierReq: tier }),
+    ackFamiliesTier: () => set({ famTierReq: '' }),
     // מנקה בחירה קודמת כדי שרשימת המשפחות (והטופס) יוצגו — לא כרטיס משפחה
     openFamilyForm: () => set({ view: 'families', selFamilyId: null, famFormReq: true }),
     ackFamilyForm: () => set({ famFormReq: false }),
@@ -596,6 +722,25 @@ export const useApp = create<AppState>()((set, get) => {
       });
       get().toast('מוזגו ' + losers.size + ' רשומות אל המשפחה שנבחרה ✓');
     },
+    mergeFamilyGroupFields(ids, pick, edit) {
+      // פער 21 (לגאסי dupFieldMerge:1654-1671): ערכי השדות לפי הבחירה; המבנה
+      // (members/docs/אירועים) בסמנטיקה הבטוחה של mergeFamilies — אפס אובדן.
+      const keeperId = ids[0];
+      const losers = new Set(ids.slice(1));
+      if (!keeperId || !losers.size) return;
+      setDb((db) => {
+        const fams = ids.map((id) => db.families.find((f) => f.id === id)).filter((f): f is Family => !!f);
+        if (fams.length < 2) return {};
+        const merged = mergeFamiliesByFields(fams, pick, edit);
+        return {
+          families: db.families
+            .filter((f) => !losers.has(f.id))
+            .map((f) => (f.id === keeperId ? merged : f)),
+          events: db.events.map((ev) => (ev.famId && losers.has(ev.famId) ? { ...ev, famId: keeperId } : ev)),
+        };
+      });
+      get().toast('הרשומות מוזגו לפי הבחירה ✓ — נשמרה רשומה אחת');
+    },
     upsertMember(famId, member) {
       setDb((db) => ({
         families: db.families.map((f) =>
@@ -629,12 +774,16 @@ export const useApp = create<AppState>()((set, get) => {
       if (!fam) return;
       const prevScore = fam.cred?.score ?? 700;
       const log = fam.cred?.log ?? [];
-      // מקדם מגמה — מוחל על זיכויים בלבד (כמו באב-טיפוס); חיובים עוברים כמות שהם
+      // מקדם מגמה (P2 פער 32, הכרעה 1 — דגל families.cred.trendCreditsOnly):
+      // חסר/true = התנהגות ה-React (מוכפל על זיכויים בלבד, עונשים כמות שהם);
+      // false = התנהגות הלגאסי (legacy:387 credEvent — Math.round(delta*tf) לכל דלתא).
+      const creditsOnly = featureOn(get().config, 'families.cred.trendCreditsOnly');
       const tf = trendFactor(log);
-      const applied = delta > 0 ? Math.round(delta * tf) : delta;
+      const scaled = delta > 0 || !creditsOnly;
+      const applied = scaled ? Math.round(delta * tf) : delta;
       const newScore = Math.max(0, Math.min(1000, prevScore + applied));
       const entryReason =
-        reason + (delta > 0 && tf !== 1 ? ` (מקדם מגמה ${tf.toFixed(1)})` : '');
+        reason + (scaled && tf !== 1 ? ` (מקדם מגמה ${tf.toFixed(1)})` : '');
       setDb((db) => ({
         families: db.families.map((f) =>
           f.id === famId
@@ -648,8 +797,8 @@ export const useApp = create<AppState>()((set, get) => {
             : f,
         ),
       }));
-      // חציית סף למדד אדום — התראה למנהל
-      if (prevScore >= 300 && newScore < 300) {
+      // חציית סף למדד אדום — התראה למנהל (סף משותף, יישור ללגאסי: red <500)
+      if (prevScore >= CRED_RED_THRESHOLD && newScore < CRED_RED_THRESHOLD) {
         get().toast(`⚠ משפחת ${fam.name} ירדה למדד אדום — מומלץ ליצור קשר`);
       }
     },
@@ -736,6 +885,46 @@ export const useApp = create<AppState>()((set, get) => {
         ),
       }));
     },
+    undoPunch(enrollmentId) {
+      // ratchet legacy-main-script.js:3372 (mgUndo): הביטול מחזיר את הדלתא
+      // המדויקת מרשומת ה-Check-in האחרונה בלוג האמינות (שעשויה להיות מוגדלת
+      // במקדם מגמה), לא הנחת ‎-5 — הרשומה מוסרת, הציון יורד ב-rev, ונרשם החזר
+      // -rev. אין רשומת Check-in → נפילה ל-addCred(-5) כמו בלגאסי.
+      const en = get().db.enrollments.find((e) => e.id === enrollmentId);
+      if (!en || !en.used) {
+        get().toast('אין ניקוב לביטול');
+        return;
+      }
+      const fam = get().db.families.find((f) => f.members.some((m) => m.id === en.memberId));
+      const log = fam?.cred?.log ?? [];
+      const li = log.findIndex((l) => l.delta > 0 && l.reason.startsWith('נוכחות (Check-in)'));
+      setDb((db) => {
+        const enrollments = db.enrollments.map((e) =>
+          e.id === enrollmentId ? { ...e, used: e.used - 1 } : e,
+        );
+        if (!fam || li < 0) return { enrollments };
+        const rev = log[li].delta;
+        return {
+          enrollments,
+          families: db.families.map((f) => {
+            if (f.id !== fam.id) return f;
+            const newLog = (f.cred?.log ?? []).filter((_, i) => i !== li);
+            return {
+              ...f,
+              cred: {
+                score: Math.max(0, Math.min(1000, (f.cred?.score ?? 700) - rev)),
+                log: [
+                  { date: isoToday(), delta: -rev, reason: 'ביטול ניקוב — החזר מדויק של ניקוד הנוכחות' },
+                  ...newLog,
+                ].slice(0, 200),
+              },
+            };
+          }),
+        };
+      });
+      if (fam && li < 0) get().addCred(fam.id, -5, 'ביטול ניקוב — תיקון טעות');
+      get().toast('הניקוב האחרון בוטל — היתרה הוחזרה');
+    },
     addAbsence(enrollmentId, absence) {
       setDb((db) => ({
         enrollments: db.enrollments.map((e) =>
@@ -749,7 +938,7 @@ export const useApp = create<AppState>()((set, get) => {
       // (פוגם ברציפות הקבלות) והתשלום אובד בשקט. עקבי עם addCred/deleteTeacher.
       if (!get().db.enrollments.some((e) => e.id === enrollmentId)) {
         get().toast('השיבוץ לא נמצא — התשלום לא נרשם');
-        return;
+        return { ok: false };
       }
       const rid = 'R-' + get().db.receiptSeq;
       setDb((db) => ({
@@ -758,10 +947,51 @@ export const useApp = create<AppState>()((set, get) => {
           e.id === enrollmentId ? { ...e, payments: [{ ...payment, rid }, ...e.payments] } : e,
         ),
       }));
+      return { ok: true, rid };
     },
 
+    unlinkEvent(kind, id) {
+      setDb((db) => {
+        if (kind === 'supporterNext') {
+          const sp = db.supporters.find((s) => s.id === id);
+          if (!sp) return {};
+          return {
+            supporters: db.supporters.map((s) =>
+              s.id === id ? { ...s, nextDate: '', nextEventId: undefined } : s,
+            ),
+            ...(sp.nextEventId ? { events: db.events.filter((e) => e.id !== sp.nextEventId) } : {}),
+          };
+        }
+        const en = db.enrollments.find((e) => e.id === id);
+        if (!en) return {};
+        return {
+          enrollments: db.enrollments.map((e) =>
+            e.id === id ? { ...e, dueDate: '', dueEventId: undefined } : e,
+          ),
+          ...(en.dueEventId ? { events: db.events.filter((e) => e.id !== en.dueEventId) } : {}),
+        };
+      });
+    },
     upsertEvent(ev) {
       setDb((db) => ({ events: upsertIn(db.events, ev) }));
+    },
+    auditToAttention(issue) {
+      get().upsertEvent({
+        id: get().nextId('ev'),
+        title: issue.title,
+        date: isoToday(),
+        time: '',
+        type: 'reminder',
+        customType: '',
+        notes: 'ממצא בדיקת נתונים',
+        price: 0,
+        roomId: '',
+        famId: issue.famId || '',
+        spId: issue.spId,
+        priority: 'red',
+        done: false,
+      });
+      get().toast('הממצא נשלח למרכז הטיפול');
     },
     deleteEvent(id) {
       setDb((db) => ({ events: db.events.filter((e) => e.id !== id) }));
@@ -800,7 +1030,7 @@ export const useApp = create<AppState>()((set, get) => {
       // יצרוך את donationSeq — אחרת D-{n} מדולג לצמיתות והתרומה אובדת בשקט.
       if (!get().db.supporters.some((s) => s.id === supporterId)) {
         get().toast('התומך/ת לא נמצא/ה — התרומה לא נשמרה');
-        return;
+        return { ok: false };
       }
       const rid = 'D-' + get().db.donationSeq;
       setDb((db) => ({
@@ -821,6 +1051,105 @@ export const useApp = create<AppState>()((set, get) => {
           };
         }),
       }));
+      return { ok: true, rid };
+    },
+
+    // ── קופות צדקה (מודול tzedaka — מבודד; הכרעת בעלים 30.7.2026) ──
+    upsertTzCoordinator(c) {
+      const id = c.id || get().nextId('tzc');
+      setDb((db) => ({ tzCoordinators: upsertIn(db.tzCoordinators, { ...c, id }) }));
+    },
+    deleteTzCoordinator(id) {
+      const holding = get().db.tzBoxes.some(
+        (b) => b.coordinatorId === id && (b.status === 'home' || b.status === 'office'),
+      );
+      if (holding) {
+        get().toast('יש להעביר קודם את הקופות');
+        return false;
+      }
+      // דפוס unlinkEvent — מוחקים גם את אירועי-הלוח הייעודי המקושרים, בלי יתומים
+      setDb((db) => ({
+        tzCoordinators: db.tzCoordinators.filter((c) => c.id !== id),
+        tzEvents: db.tzEvents.filter((e) => e.coordinatorId !== id),
+      }));
+      return true;
+    },
+    upsertTzBox(b) {
+      const id = b.id || get().nextId('tzb');
+      setDb((db) => ({ tzBoxes: upsertIn(db.tzBoxes, { ...b, id }) }));
+    },
+    deleteTzBox(id) {
+      setDb((db) => ({
+        tzBoxes: db.tzBoxes.filter((b) => b.id !== id),
+        tzEvents: db.tzEvents.filter((e) => e.boxId !== id),
+      }));
+    },
+    upsertTzCampaign(c) {
+      const id = c.id || get().nextId('tzp');
+      setDb((db) => ({ tzCampaigns: upsertIn(db.tzCampaigns, { ...c, id }) }));
+    },
+    deleteTzCampaign(id) {
+      // הריקונים נשארים — רק השיוך מתנקה (אין אובדן כסף)
+      setDb((db) => ({
+        tzCampaigns: db.tzCampaigns.filter((c) => c.id !== id),
+        tzBoxes: db.tzBoxes.map((b) =>
+          b.collections.some((c) => c.campaignId === id)
+            ? { ...b, collections: b.collections.map((c) => (c.campaignId === id ? { ...c, campaignId: '' } : c)) }
+            : b,
+        ),
+      }));
+    },
+    upsertTzEvent(e) {
+      const id = e.id || get().nextId('tze');
+      setDb((db) => ({ tzEvents: upsertIn(db.tzEvents, { ...e, id }) }));
+    },
+    deleteTzEvent(id) {
+      setDb((db) => ({ tzEvents: db.tzEvents.filter((e) => e.id !== id) }));
+    },
+    addTzCollection(boxId, coll) {
+      // שער לפני נגיעה ב-db (לקח באג-5): סכום לא-חיובי/לא-סופי נדחה בשקט-רועש
+      if (!Number.isFinite(coll.amount) || coll.amount <= 0) {
+        get().toast('סכום הריקון חייב להיות מספר חיובי');
+        return { ok: false, delta: 0 };
+      }
+      const box = get().db.tzBoxes.find((b) => b.id === boxId);
+      if (!box) {
+        get().toast('הקופה לא נמצאה — הריקון לא נשמר');
+        return { ok: false, delta: 0 };
+      }
+      // הניקוד מחושב מול הקופה לפני הוספת הריקון (הרצף נמדד מהריקון הקודם)
+      const scoreOn = featureOn(get().config, 'tzedaka.score');
+      const delta = scoreOn ? collectionScoreDelta(box, coll.date, coll.amount) : 0;
+      const collId = get().nextId('tzl');
+      // בידוד (הכרעת בעלים 30.7): כותבים רק ל-tzBoxes/tzCoordinators —
+      // לא ל-receiptSeq/donationSeq/supporters/enrollments/events
+      setDb((db) => ({
+        tzBoxes: db.tzBoxes.map((b) =>
+          b.id === boxId ? { ...b, collections: [{ id: collId, ...coll }, ...b.collections] } : b,
+        ),
+        tzCoordinators: delta
+          ? db.tzCoordinators.map((c) =>
+              c.id === box.coordinatorId
+                ? {
+                    ...c,
+                    score: c.score + delta,
+                    scoreLog: [{ date: coll.date, delta, reason: 'ריקון קופה ' + box.num }, ...c.scoreLog],
+                  }
+                : c,
+            )
+          : db.tzCoordinators,
+      }));
+      return { ok: true, delta };
+    },
+    addTzScore(coordinatorId, delta, reason) {
+      if (!reason.trim() || !Number.isFinite(delta) || !delta) return;
+      setDb((db) => ({
+        tzCoordinators: db.tzCoordinators.map((c) =>
+          c.id === coordinatorId
+            ? { ...c, score: c.score + delta, scoreLog: [{ date: isoToday(), delta, reason: reason.trim() }, ...c.scoreLog] }
+            : c,
+        ),
+      }));
     },
 
     // ── מעקב טיפול רב-שלבי ──
@@ -836,7 +1165,7 @@ export const useApp = create<AppState>()((set, get) => {
         const evId = get().nextId('ev');
         const key = c.a.stage === 'answer' && !c.a.answerPushed ? 'answerPush' : c.a.stage;
         ayinEvent(c.sp, c.a, plan.event.title, plan.event.done, evId);
-        patch = { ...patch, boardEventIds: { ...(c.a.boardEventIds ?? {}), [key]: evId } };
+        patch = { ...patch, boardEventIds: { ...c.a.boardEventIds, [key]: evId } };
       }
       setAyin(id, patch);
       get().toast(plan.toast);
@@ -962,6 +1291,18 @@ export const useApp = create<AppState>()((set, get) => {
         answerPushed: false,
       });
       get().toast('נפתח מחזור חדש מההתחלה — ההיסטוריה נשמרה');
+    },
+    ayinApplySheet(upds) {
+      if (!upds.length) return;
+      // ההחלה עצמה טהורה (lib/ayin.applyAyinSheet, ratchet legacy:983-993) —
+      // כאן רק setDb + טוסט כמו בלגאסי, כדי שהשינוי ייכנס לשמירה ולסנכרון.
+      let logged = 0;
+      setDb((db) => {
+        const res = applyAyinSheet(db.supporters, upds, isoToday());
+        logged = res.logged;
+        return { supporters: res.supporters };
+      });
+      get().toast('עודכנו ' + upds.length + ' שמות · ' + logged + ' רישומי עיניים נכנסו להיסטוריה, ללוח התרומות ולדוח');
     },
 
     exportBackup() {

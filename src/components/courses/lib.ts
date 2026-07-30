@@ -3,7 +3,8 @@
  * עזרים מקומיים בלבד — אין כאן גישה ל-store או ל-DOM.
  */
 import type { CSSProperties } from 'react';
-import type { Course, CourseSession, Db, Enrollment, PricingModel } from '../../types/domain';
+import type { Course, CourseSession, Db, Enrollment, Family, PricingModel, Room } from '../../types/domain';
+import { normSearch } from '../../lib/validate';
 import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
@@ -54,6 +55,65 @@ export const DAY_LETTERS = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳'] as c
 /** המפגשים בפועל — fallback למפגש יחיד מהשדות הראשיים (כמו sessionsOf במקור). */
 export function sessionsOf(c: Course): CourseSession[] {
   return c.sessions && c.sessions.length ? c.sessions : [{ day: c.weekday, time: c.time, label: '' }];
+}
+
+/**
+ * הצעת מספר קבוצות מטקסט קהל-היעד (P3 פריט 1; לגאסי: regex 'קבוצות|פעמים').
+ * הצעה בלבד — לא דריסה; מחוץ ל-2–12 או בלי התאמה ⇒ null.
+ */
+export function groupsHintFromAudience(audience: string | undefined): number | null {
+  const m = (audience || '').match(/(\d+)\s*(?:קבוצות|פעמים)/);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  return n >= 2 && n <= 12 ? n : null;
+}
+
+/**
+ * סינון תפקיד-מורה (P3 פריט 15, הכרעה 2): teacherId ⇒ רק החוגים שלה;
+ * null (אין תפקיד/אין ענן) ⇒ הכל, כהתנהגות של היום.
+ */
+export function coursesOfTeacher(courses: Course[], teacherId: string | null): Course[] {
+  return teacherId ? courses.filter((c) => c.teacherId === teacherId) : courses;
+}
+
+/* ---------- רצועת חדרים LIVE (P2 פער 27, feature courses.roomslive) ---------- */
+
+export interface RoomNow {
+  room: Room;
+  /** החוג שמתקיים עכשיו בחדר — ריק = פנוי. */
+  busyWith?: Course;
+}
+
+/**
+ * מצב החדרים ברגע נתון — now מוזרק (טוהר): חדר פעיל תפוס כשמפגש של חוג
+ * בחדר חל באותו יום-שבוע והשעה בתוך [תחילת המפגש, +משך המשבצת); ברירת
+ * המחדל 60 דק׳ (slot של החדר כשמוגדר). חדרים מושבתים לא מוחזרים.
+ */
+export function roomsNow(db: Db, now: Date): RoomNow[] {
+  const day = now.getDay();
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const toMin = (t: string) => {
+    const [h, m] = t.split(':').map(Number);
+    return (h || 0) * 60 + (m || 0);
+  };
+  return db.rooms
+    .filter((r) => r.active)
+    .map((room) => {
+      let busyWith: Course | undefined;
+      for (const c of db.courses) {
+        if (c.roomId !== room.id) continue;
+        for (const s of sessionsOf(c)) {
+          if (s.day !== day || !s.time) continue;
+          const start = toMin(s.time);
+          if (mins >= start && mins < start + (room.slot || 60)) {
+            busyWith = c;
+            break;
+          }
+        }
+        if (busyWith) break;
+      }
+      return { room, busyWith };
+    });
 }
 
 /** תווית קבוצה — label או "קבוצה N" לפי המיקום. */
@@ -170,4 +230,145 @@ export function chipStyle(bg: string, c: string): CSSProperties {
     color: c,
     whiteSpace: 'nowrap',
   };
+}
+
+/* ── סינון שיבוץ חכם (P1.7, feature courses.enroll.smartfilter) — הכרעה 3:
+   היכולת הדטרמיניסטית של אשף הלגאסי (התאמת חוג לפי גיל/מגדר/יום) נכנסת דרך
+   סינון רך בזרימת השיבוץ + מתג "הצג הכל" + אזהרת התנגשות לו"ז — לא כ-UI אשף. ── */
+
+/** האם החוג מתאים לפי מגדר וגיל — נתון חסר אינו מסנן (סינון רך, לא חוסם). */
+/* ---------- טווח כיתות (P2 פער 28, feature courses.gradeimg) ---------- */
+
+/** סולם הכיתות — גן ואז א׳–י"ב. */
+export const GRADE_ORDER = ['גן', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט', 'י', 'יא', 'יב'] as const;
+
+/** אינדקס כיתה בסולם — סובלני לגרשיים ולקידומת "כיתה"; לא מזוהה = ‎-1. */
+export function gradeIndex(g: string | undefined): number {
+  const clean = (g || '').replace(/["'׳״]/g, '').replace(/^כיתה\s*/, '').trim();
+  if (!clean) return -1;
+  return GRADE_ORDER.indexOf(clean as (typeof GRADE_ORDER)[number]);
+}
+
+/**
+ * התאמת כיתה לחוג: אין טווח לחוג או שכיתת הילד/ה לא מזוהה ⇒ מתאים
+ * (רך — לא מסתירים על סמך מידע חסר); אחרת נדרש בתוך [gradeMin, gradeMax].
+ */
+export function gradeFits(c: Course, childGrade: string | undefined): boolean {
+  if (!c.gradeMin && !c.gradeMax) return true;
+  const gi = gradeIndex(childGrade);
+  if (gi < 0) return true;
+  const lo = gradeIndex(c.gradeMin);
+  const hi = gradeIndex(c.gradeMax);
+  if (lo >= 0 && gi < lo) return false;
+  if (hi >= 0 && gi > hi) return false;
+  return true;
+}
+
+export function courseFitsMember(
+  c: Course,
+  gender: 'm' | 'f' | undefined,
+  age: number | null,
+  /** כיתת הילד/ה — מועברת רק כש-courses.gradeimg פעיל (פער 28). */
+  grade?: string,
+): boolean {
+  if (c.gender && c.gender !== 'all' && gender && c.gender !== gender) return false;
+  if (age != null) {
+    if (c.ageMin && age < c.ageMin) return false;
+    if (c.ageMax && age > c.ageMax) return false;
+  }
+  if (!gradeFits(c, grade)) return false;
+  return true;
+}
+
+/**
+ * אזהרת התנגשות לו"ז — מפגשי חוג-היעד מול מפגשי השיבוצים הפעילים של הילד
+ * (אותו יום ואותה שעה). מחזירה טקסט אזהרה או null. מייעץ — לא חוסם.
+ */
+export function scheduleClashText(
+  db: Pick<Db, 'courses' | 'enrollments'>,
+  memberId: string,
+  course: Course,
+): string | null {
+  const target = sessionsOf(course);
+  for (const e of db.enrollments) {
+    if (e.memberId !== memberId || e.status === 'ended' || e.courseId === course.id) continue;
+    const other = db.courses.find((x) => x.id === e.courseId);
+    if (!other) continue;
+    for (const s1 of target) {
+      for (const s2 of sessionsOf(other)) {
+        if (s1.day === s2.day && !!s1.time && s1.time === s2.time) {
+          return '⚠ התנגשות לו"ז: כבר משובצ/ת ל"' + other.name + '" — יום ' + DAY_NAMES[s1.day] + ' ' + s1.time;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/* ── יצירת משפחה מתוך שיבוץ (P1.10, feature courses.enroll.inlinecreate) ──
+   ratchet: legacy saveEnrollNew (legacy-main-script.js:1318-1339) — בחירת משפחה
+   קיימת או '__new'; שם חדש שכבר קיים (normName) לא יוצר כפילות אלא משתמש
+   בקיימת. הצעת '__new' מופיעה רק לשאילתה ≥2 תווים בלי התאמה מדויקת (legacy:2188). */
+
+export const ENROLL_NEW_FAMILY = '__new';
+
+/** נרמול שם להשוואה — כמו normName במקור. */
+function normNameLocal(s: string): string {
+  return normSearch(s).replace(/\s/g, '');
+}
+
+/** האם להציע "＋ משפחה חדשה" עבור השאילתה — ≥2 תווים ואין משפחה בשם זהה. */
+export function offerNewFamily(families: Pick<Family, 'name'>[], q: string): boolean {
+  const t = q.trim();
+  return t.length >= 2 && !families.some((f) => normNameLocal(f.name) === normNameLocal(t));
+}
+
+/**
+ * פתרון המשפחה לשיבוץ-חדש: id קיים ⇒ הקיימת; '__new' ⇒ דה-דופ לפי normName —
+ * שם קיים משתמש בקיימת (create=false), אחרת יש ליצור חדשה (create=true).
+ */
+export function resolveEnrollFamily<F extends Pick<Family, 'id' | 'name'>>(
+  families: F[],
+  famSel: string,
+  newFamName: string,
+): { fam: F | null; create: boolean } {
+  const existing = families.find((f) => f.id === famSel);
+  if (existing) return { fam: existing, create: false };
+  if (famSel === ENROLL_NEW_FAMILY && newFamName.trim()) {
+    const dup = families.find((f) => normNameLocal(f.name) === normNameLocal(newFamName));
+    if (dup) return { fam: dup, create: false };
+    return { fam: null, create: true };
+  }
+  return { fam: null, create: false };
+}
+
+/* ── punchConfirm (P1.3, feature courses.punch.confirm) — אישור כפול לניקוב ──
+   ratchet: legacy-main-script.js:330-342 (punch) — לחיצה ראשונה מזיינת
+   ("לאשר ניקוב?"), timeout ‏3 שניות מפרק את הזריון; לחיצה שנייה על אותו שיבוץ
+   בתוך החלון מבצעת. לחיצה על שיבוץ אחר מזיינת אותו מחדש. דגל כבוי = ביצוע מיידי. */
+
+export const PUNCH_CONFIRM_MS = 3000;
+
+/** זריון אישור-ניקוב — מזהה השיבוץ ורגע הזריון. */
+export interface PunchArm {
+  id: string;
+  armedAt: number;
+}
+
+/**
+ * צעד אחד במכונת-המצבים של האישור הכפול — טהור.
+ * fire=true ⇒ לבצע את הניקוב עכשיו (והזריון מתנקה); אחרת לעדכן את הזריון ל-next.
+ */
+export function punchConfirmStep(
+  confirmOn: boolean,
+  armed: PunchArm | null,
+  enrollmentId: string,
+  now: number,
+): { fire: boolean; next: PunchArm | null } {
+  if (!confirmOn) return { fire: true, next: null };
+  if (armed && armed.id === enrollmentId && now - armed.armedAt <= PUNCH_CONFIRM_MS) {
+    return { fire: true, next: null };
+  }
+  // אין זריון / שיבוץ אחר / החלון פג — מזיינים (מחדש) את השיבוץ הנוכחי
+  return { fire: false, next: { id: enrollmentId, armedAt: now } };
 }

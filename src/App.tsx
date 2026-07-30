@@ -9,7 +9,7 @@
  */
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
-import { featureOn, isAdminUser, moduleOn, termOf } from './lib/config';
+import { featureOn, isAdminUser, moduleOn, roleOf, termOf } from './lib/config';
 import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
 import { todaySessions } from './components/home/homeData';
@@ -20,12 +20,16 @@ import { MoneyTimer } from './components/timer/MoneyTimer';
 import { CashRegister } from './components/timer/CashRegister';
 import { BodyMap } from './components/timer/BodyMap';
 import { DedupModal } from './components/families/DedupModal';
+import { GuideModal } from './components/GuideModal';
+import { TourOverlay } from './components/TourOverlay';
+import { A11yFab } from './components/A11yFab';
 import { HomeView } from './components/home/HomeView';
 import { FamiliesView } from './components/families/FamiliesView';
 import { CoursesView } from './components/courses/CoursesView';
 import { CalendarView } from './components/calendar/CalendarView';
 import { DiaryView } from './components/diary/DiaryView';
 import { SupportersView } from './components/supporters/SupportersView';
+import { TzedakaView } from './components/tzedaka/TzedakaView';
 import { ReportsView } from './components/reports/ReportsView';
 import { SettingsView } from './components/settings/SettingsView';
 import { CommandPalette } from './components/palette/CommandPalette';
@@ -51,6 +55,7 @@ const NAV: { view: View; icon: string; label: string }[] = [
   { view: 'calendar', icon: '📅', label: 'לוח שנה' },
   { view: 'diary', icon: '📖', label: 'יומן חדרים' },
   { view: 'supporters', icon: '💛', label: 'תורמים' },
+  { view: 'tzedaka', icon: '🪙', label: 'קופות צדקה' },
   { view: 'reports', icon: '📊', label: 'דוחות' },
   { view: 'settings', icon: '⚙️', label: 'הגדרות' },
 ];
@@ -62,6 +67,7 @@ const VIEWS: Record<View, () => JSX.Element> = {
   calendar: CalendarView,
   diary: DiaryView,
   supporters: SupportersView,
+  tzedaka: TzedakaView,
   reports: ReportsView,
   settings: SettingsView,
 };
@@ -86,6 +92,8 @@ export default function App() {
   const uiTheme = useApp((s) => s.db.ui.theme);
   const openFamilyForm = useApp((s) => s.openFamilyForm);
   const selectCourse = useApp((s) => s.selectCourse);
+  const navHistLen = useApp((s) => s.navHist.length);
+  const goBack = useApp((s) => s.goBack);
 
   useEffect(() => {
     void init();
@@ -119,6 +127,10 @@ export default function App() {
   const [bodymapOpen, setBodymapOpen] = useState(() => window.location.hash === '#bodymap');
   // איחוד כפילויות — נפתח עם #dedup (feature: settings.dedup)
   const [dedupOpen, setDedupOpen] = useState(() => window.location.hash === '#dedup');
+  // המדריך המהיר — נפתח עם #guide (P2 פער 29, feature: shell.guide)
+  const [guideOpen, setGuideOpen] = useState(() => window.location.hash === '#guide');
+  // מצב הדגמה — סיור מודרך, נפתח עם #tour (P2 פער 30, feature: shell.demo)
+  const [tourOpen, setTourOpen] = useState(() => window.location.hash === '#tour');
   useEffect(() => {
     const onHash = () => {
       setBuilderOpen(window.location.hash === '#builder');
@@ -127,6 +139,8 @@ export default function App() {
       setCashboxOpen(window.location.hash === '#cashbox');
       setBodymapOpen(window.location.hash === '#bodymap');
       setDedupOpen(window.location.hash === '#dedup');
+      setGuideOpen(window.location.hash === '#guide');
+      setTourOpen(window.location.hash === '#tour');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -215,6 +229,9 @@ export default function App() {
   const onAdminUnlock = () => markUnlocked('secondary');
   // מנהל-על לפי מייל (config.adminEmails) — רק הוא פותח את האשף ומשנה ערכת נושא.
   const isAdmin = isAdminUser(config, cloud.user?.email);
+  // תפקיד מורה (P3 פריט 15, הכרעה 2): כניסות ההגדרות (ודרכן הייבוא) מוסתרות.
+  // בלי ענן/בלי roles — false ⇒ התנהגות של היום בדיוק. דגל shell.roles.
+  const isTeacherUser = featureOn(config, 'shell.roles') && roleOf(config, cloud.user?.email) === 'teacher';
 
   const Current = VIEWS[view];
   const syncDot = SYNC_DOT[cloud.status] ?? SYNC_DOT.idle;
@@ -226,7 +243,7 @@ export default function App() {
   const nav = NAV.filter(
     (n) => n.view !== 'settings' && (n.view === 'home' || config.modules[n.view] !== false),
   );
-  // תווית קישור — מונח מותאם מהמילון לששת מסכי המודולים; בית נשאר קבוע
+  // תווית קישור — מונח מותאם מהמילון לשבעת מסכי המודולים; בית נשאר קבוע
   const labelOf = (n: (typeof NAV)[number]) =>
     n.view === 'home' ? n.label : termOf(config, `nav.${n.view}`, n.label);
 
@@ -247,6 +264,21 @@ export default function App() {
     if (sessions.length) selectCourse(sessions[0].course.id);
     else go('courses');
   };
+
+  // ↩ חזרה גלובלי (P1.5, feature shell.navhist) — מוצג רק כשיש היסטוריה,
+  // בשלושת השלדים (legacy:3146 showBack)
+  const backBtn: ReactNode = featureOn(config, 'shell.navhist') && navHistLen > 0 && (
+    <button
+      type="button"
+      className="nav-back"
+      onClick={goBack}
+      title="חזרה למסך הקודם"
+      aria-label="חזרה למסך הקודם"
+      style={{ fontWeight: 800, fontSize: 13, padding: '4px 10px', borderRadius: 9, cursor: 'pointer' }}
+    >
+      ↩ חזרה
+    </button>
+  );
 
   // צ'יפ משתמש הענן — קיים בשני השלדים
   const userChip: ReactNode = cloud.enabled && cloud.user && (
@@ -305,6 +337,7 @@ export default function App() {
           ))}
         </nav>
         <div className="top-tools">
+          {backBtn}
           {/* צ'יפ החיפוש — פותח את פלטת הפקודות, אותו מנגנון כמו Ctrl+K */}
           <button
             type="button"
@@ -316,15 +349,44 @@ export default function App() {
             <span className="nav-search-label">חיפוש בכל המערכת</span>
             <kbd aria-hidden>Ctrl K</kbd>
           </button>
-          <button
-            type="button"
-            className={'nav-gear' + (view === 'settings' ? ' active' : '')}
-            onClick={() => go('settings')}
-            title="הגדרות"
-            aria-label="הגדרות"
-          >
-            <span aria-hidden>⚙️</span>
-          </button>
+          {/* המדריך המהיר + מצב הדגמה — כפתורי כותרת כמו בקובץ החי (P2 פער 29-30) */}
+          {featureOn(config, 'shell.guide') && (
+            <button
+              type="button"
+              className="nav-gear"
+              onClick={() => {
+                window.location.hash = '#guide';
+              }}
+              title="המדריך המהיר"
+              aria-label="המדריך המהיר"
+            >
+              <span aria-hidden>📖</span>
+            </button>
+          )}
+          {featureOn(config, 'shell.demo') && (
+            <button
+              type="button"
+              className="nav-gear"
+              onClick={() => {
+                window.location.hash = '#tour';
+              }}
+              title="מצב הדגמה — סיור מודרך"
+              aria-label="מצב הדגמה"
+            >
+              <span aria-hidden>▶</span>
+            </button>
+          )}
+          {!isTeacherUser && (
+            <button
+              type="button"
+              className={'nav-gear' + (view === 'settings' ? ' active' : '')}
+              onClick={() => go('settings')}
+              title="הגדרות"
+              aria-label="הגדרות"
+            >
+              <span aria-hidden>⚙️</span>
+            </button>
+          )}
           {userChip}
         </div>
       </header>
@@ -359,17 +421,20 @@ export default function App() {
               </button>
             );
           })}
-          <button
-            type="button"
-            className={'side-link' + (view === 'settings' ? ' active' : '')}
-            onClick={() => go('settings')}
-            title="הגדרות"
-          >
-            <span className="side-ico" aria-hidden>⚙️</span>
-            <span className="nav-label">הגדרות</span>
-          </button>
+          {!isTeacherUser && (
+            <button
+              type="button"
+              className={'side-link' + (view === 'settings' ? ' active' : '')}
+              onClick={() => go('settings')}
+              title="הגדרות"
+            >
+              <span className="side-ico" aria-hidden>⚙️</span>
+              <span className="nav-label">הגדרות</span>
+            </button>
+          )}
         </nav>
         <div className="side-sp" aria-hidden />
+        {backBtn}
         <button
           type="button"
           className="side-k"
@@ -420,16 +485,18 @@ export default function App() {
             );
           })}
         </nav>
-        <button
-          type="button"
-          className={'side-link side-gear' + (view === 'settings' ? ' active' : '')}
-          onClick={() => go('settings')}
-          title="הגדרות"
-          aria-label="הגדרות"
-        >
-          <span className="side-ico" aria-hidden>⚙️</span>
-          <span className="nav-label">הגדרות</span>
-        </button>
+        {!isTeacherUser && (
+          <button
+            type="button"
+            className={'side-link side-gear' + (view === 'settings' ? ' active' : '')}
+            onClick={() => go('settings')}
+            title="הגדרות"
+            aria-label="הגדרות"
+          >
+            <span className="side-ico" aria-hidden>⚙️</span>
+            <span className="nav-label">הגדרות</span>
+          </button>
+        )}
       </aside>
       <div className="side-body">
         <header className="side-head">
@@ -452,6 +519,7 @@ export default function App() {
             <kbd aria-hidden>Ctrl K</kbd>
           </button>
           <div className="side-actions">
+            {backBtn}
             {moduleOn(config, 'families') && (
               <Btn kind="primary" onClick={openFamilyForm} title="פתיחת טופס הוספת משפחה">
                 + משפחה חדשה
@@ -560,6 +628,26 @@ export default function App() {
           }}
         />
       )}
+
+      {guideOpen && featureOn(config, 'shell.guide') && (
+        <GuideModal
+          onClose={() => {
+            window.location.hash = '';
+            setGuideOpen(false);
+          }}
+        />
+      )}
+
+      {tourOpen && featureOn(config, 'shell.demo') && (
+        <TourOverlay
+          onClose={() => {
+            window.location.hash = '';
+            setTourOpen(false);
+          }}
+        />
+      )}
+
+      {featureOn(config, 'shell.a11yfab') && <A11yFab />}
 
       {toastsEl}
     </div>

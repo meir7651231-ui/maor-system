@@ -15,7 +15,7 @@ export function moduleOn(cfg: OrgConfig, m: ModuleKey): boolean {
   return cfg.modules[m] !== false;
 }
 
-/** ששת מודולי הניווט הניתנים לכיבוי — קידומות של פיצ'רים שכפופות לטוגל מודול. */
+/** שבעת מודולי הניווט הניתנים לכיבוי — קידומות של פיצ'רים שכפופות לטוגל מודול. */
 const NAV_MODULE_KEYS: readonly ModuleKey[] = [
   'families',
   'courses',
@@ -23,11 +23,12 @@ const NAV_MODULE_KEYS: readonly ModuleKey[] = [
   'diary',
   'supporters',
   'reports',
+  'tzedaka',
 ];
 
 /**
  * האם פיצ'ר עדין פעיל — מפתח חסר = פעיל; רק false מכבה.
- * בנוסף, אם קידומת המפתח (הקטע שלפני הנקודה) היא אחד מששת מודולי הניווט
+ * בנוסף, אם קידומת המפתח (הקטע שלפני הנקודה) היא אחד משבעת מודולי הניווט
  * והמודול כבוי — הפיצ'ר כבוי גם הוא (כיבוי מודול משורשר לילדיו).
  * קידומות 'core' / 'home' / 'settings' אינן כפופות לטוגל מודול.
  */
@@ -103,7 +104,47 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
     : [];
   if (admins.length) cfg.adminEmails = admins;
   else delete cfg.adminEmails;
+  // תפקידים (P3 פריט 15) — מפת מורות מייל→teacherId, רק זוגות מחרוזת לא-ריקים
+  const rolesRaw = c.roles as { teachers?: unknown } | undefined;
+  const teachersRaw =
+    rolesRaw && typeof rolesRaw === 'object' && rolesRaw.teachers && typeof rolesRaw.teachers === 'object'
+      ? (rolesRaw.teachers as Record<string, unknown>)
+      : null;
+  if (teachersRaw) {
+    const teachers: Record<string, string> = {};
+    for (const [k, v] of Object.entries(teachersRaw))
+      if (k.trim() && typeof v === 'string' && v.trim()) teachers[k.trim()] = v.trim();
+    if (Object.keys(teachers).length) cfg.roles = { teachers };
+    else delete cfg.roles;
+  } else delete cfg.roles;
   return cfg;
+}
+
+/* ---------- תפקידים (P3 פריט 15, הכרעה 2) ---------- */
+
+export type UserRole = 'admin' | 'teacher' | 'staff';
+
+/**
+ * תפקיד המשתמש לפי המייל המחובר: ב-adminEmails ⇒ admin; במפת roles.teachers
+ * ⇒ teacher; אחרת staff. בלי מייל (ענן כבוי) ⇒ staff — התנהגות של היום.
+ * ההשוואות case-insensitive.
+ */
+export function roleOf(config: OrgConfig, email: string | null | undefined): UserRole {
+  const e = (email || '').trim().toLowerCase();
+  if (!e) return 'staff';
+  if (config.adminEmails?.some((a) => a.trim().toLowerCase() === e)) return 'admin';
+  const teachers = config.roles?.teachers;
+  if (teachers && Object.keys(teachers).some((k) => k.trim().toLowerCase() === e)) return 'teacher';
+  return 'staff';
+}
+
+/** ה-teacherId הממופה למייל המורה — null כשאין מיפוי. */
+export function teacherIdOf(config: OrgConfig, email: string | null | undefined): string | null {
+  const e = (email || '').trim().toLowerCase();
+  const teachers = config.roles?.teachers;
+  if (!e || !teachers) return null;
+  for (const [k, v] of Object.entries(teachers)) if (k.trim().toLowerCase() === e) return v;
+  return null;
 }
 
 /**

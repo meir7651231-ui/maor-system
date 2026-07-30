@@ -136,9 +136,15 @@ export function migrate(raw: unknown): Db | null {
     rooms: Array.isArray(db.rooms) ? db.rooms : [],
     teachers: Array.isArray(db.teachers) ? db.teachers : [],
     supporters: Array.isArray(db.supporters) ? db.supporters : [],
-    notif: { ...base.notif, ...(db.notif ?? {}) },
-    reports: { ...base.reports, ...(db.reports ?? {}) },
-    ui: { ...base.ui, ...(db.ui ?? {}) },
+    // קופות צדקה (מודול tzedaka) — תוספת אדיטיבית, DB_VERSION נשאר 5:
+    // מפתח חסר בגיבוי ישן = מערך ריק מ-emptyDb
+    tzCoordinators: Array.isArray(db.tzCoordinators) ? db.tzCoordinators : [],
+    tzBoxes: Array.isArray(db.tzBoxes) ? db.tzBoxes : [],
+    tzCampaigns: Array.isArray(db.tzCampaigns) ? db.tzCampaigns : [],
+    tzEvents: Array.isArray(db.tzEvents) ? db.tzEvents : [],
+    notif: { ...base.notif, ...db.notif },
+    reports: { ...base.reports, ...db.reports },
+    ui: { ...base.ui, ...db.ui },
     seq: Math.max(db.seq ?? 0, base.seq),
     receiptSeq: db.receiptSeq ?? base.receiptSeq,
     donationSeq: db.donationSeq ?? base.donationSeq,
@@ -190,6 +196,29 @@ export function migrate(raw: unknown): Db | null {
           return d;
         })
       : [],
+    // hist מהקובץ ההיסטורי (לגאסי {d,a,c}) — נרמול: לא-מערך → undefined;
+    // איברים בלי תאריך d או סכום a מספרי — נזרקים. מטבע לא-מוכר → ברירת ₪ בתצוגה.
+    hist: Array.isArray(s.hist)
+      ? s.hist
+          .filter((h): h is { d: string; a: number; c?: '₪' | '$' } =>
+            !!h && typeof h === 'object' && !!(h as { d?: unknown }).d &&
+            typeof (h as { a?: unknown }).a === 'number' && Number.isFinite((h as { a?: unknown }).a as number))
+          .map((h) => ({ d: h.d, a: h.a, ...(h.c === '$' || h.c === '₪' ? { c: h.c } : {}) }))
+      : undefined,
+  }));
+  // קופות צדקה — ריפוי פר-רשומה (מודול מבודד, אותה רוח כמו שאר הריפויים):
+  // רכז: score לא-מספרי → 0, scoreLog לא-מערך → []; קופה: collections
+  // לא-מערך → [], סטטוס זר → 'office'
+  merged.tzCoordinators = merged.tzCoordinators.map((c) => ({
+    ...c,
+    score: typeof c.score === 'number' && Number.isFinite(c.score) ? c.score : 0,
+    scoreLog: Array.isArray(c.scoreLog) ? c.scoreLog : [],
+  }));
+  const TZ_STATUSES = ['home', 'office', 'lost', 'retired'];
+  merged.tzBoxes = merged.tzBoxes.map((b) => ({
+    ...b,
+    collections: Array.isArray(b.collections) ? b.collections : [],
+    status: TZ_STATUSES.includes(b.status) ? b.status : 'office',
   }));
   // היגיינה: מזהים חסרים, כפילויות, מערכים חסרים בתוך משפחות
   const seen = new Set<string>();
@@ -239,6 +268,29 @@ export function migrate(raw: unknown): Db | null {
       };
     })
     .filter((f) => !seen.has(f.id) && !!seen.add(f.id));
+  // שדות ארגון מגיבוי לגאסי (v:1 שומר orgName/orgSite/orgDonate ברמת השורש) —
+  // ערך לא-מחרוזתי (undefined מפורש וכד') נופל לברירת המחדל ולא מזהם את ה-Db.
+  if (typeof merged.orgName !== 'string') merged.orgName = base.orgName;
+  if (typeof merged.orgSite !== 'string') merged.orgSite = base.orgSite;
+  if (typeof merged.orgDonate !== 'string') merged.orgDonate = base.orgDonate;
+  // זריעת seq מעל כל המזהים המספריים בנתונים: הלגאסי מנפיק id בצורת prefix+seq
+  // ('spi'/'fr'/'mi'/'ev'…, legacy-main-script.js:990 ועוד), ו-nextId שלנו מנפיק
+  // prefix+seq באותה צורה — seq נמוך מהסיומת הגבוהה ביותר היה מנפיק id שכבר
+  // תפוס (למשל 'ev'N) ודורס ישות קיימת. parseInt על 'spi42' לא תופס — סורקים
+  // סיומת ספרתית בכל מזהי הישויות, כולל בני-משפחה ותומכות.
+  let maxIdNum = -1;
+  const scanId = (id: unknown): void => {
+    const m = typeof id === 'string' ? id.match(/^[A-Za-z_]+(\d+)$/) : null;
+    if (m && +m[1] > maxIdNum) maxIdNum = +m[1];
+  };
+  for (const f of merged.families) {
+    scanId(f.id);
+    for (const m of f.members) scanId(m.id);
+  }
+  for (const arr of [merged.enrollments, merged.courses, merged.events, merged.rooms, merged.teachers, merged.supporters] as { id?: unknown }[][]) {
+    for (const x of arr) scanId(x?.id);
+  }
+  if (maxIdNum >= merged.seq) merged.seq = maxIdNum + 1;
   return merged;
 }
 

@@ -1,0 +1,22 @@
+#!/bin/bash
+# בדיקת הודעת commit — מיובא מבנייה חכמה (הענף החי), מותאם למוסכמת maor:
+# קידומות עבריות (`פער N ·` / `תיקון ·` / `מנוע ·` / `ידע ·` …) במקום conventional.
+MSG_FILE="$1"
+CLEAN=$(grep -v "^#" "$MSG_FILE")
+
+LEN=$(echo -n "$CLEAN" | tr -d '\n ' | wc -c)
+if [[ "$LEN" -lt 15 ]]; then
+  echo "❌ הודעת commit קצרה מדי ($LEN תווים, מינימום 15)" >&2
+  exit 1
+fi
+
+FIRST=$(echo "$CLEAN" | head -1 | tr '[:upper:]' '[:lower:]')
+if echo "$FIRST" | grep -qE "^(wip|test|asdf|tmp|fix|update|change|123|aaa|xxx|todo)\s*$"; then
+  echo "❌ הודעת commit לא תיאורית: '$FIRST' — כתוב מה השתנה ולמה" >&2
+  exit 1
+fi
+
+if ! echo "$CLEAN" | head -1 | grep -qE "^(מנוע|פער|שדרוג|תיקון|גל|ידע|מיזוג|איכות|תשתית|e2e|CI) ·"; then
+  echo "⚠️  מומלץ: קידומת עברית של הריפו (פער N · / תיקון · / מנוע · / ידע · …)" >&2
+fi
+exit 0

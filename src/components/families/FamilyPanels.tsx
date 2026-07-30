@@ -3,16 +3,21 @@
  * שיבוצים לחוגים (כולל ＋ שיבוץ לחוג), אירועים מקושרים והיסטוריה נגזרת
  * (כולל ⬇ דוח משפחה מלא כקובץ טקסט).
  */
-import { useState, type ReactNode } from 'react';
-import type { Db, Family, FamilyDoc } from '../../types/domain';
+import { useRef, useState, type ReactNode } from 'react';
+import type { Db, Enrollment, Family, FamilyDoc } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { useApp } from '../../store/useApp';
 import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, TextInput } from '../ui';
 import { downloadText } from '../reports/csv';
-import { paidOf, payBal, planWord } from '../courses/lib';
-import { ageOf, chipStyle, EVENT_META, famHistoryOf, fmtDate, isoToday, STATUS_META, tierOf } from './lib';
+import { paidOf, payBal, planWord, punchConfirmStep, PUNCH_CONFIRM_MS, type PunchArm } from '../courses/lib';
+import { AbsenceModal } from '../courses/AbsenceModal';
+import { ManageModal } from '../courses/ManageModal';
+import { EventModal } from '../calendar/EventModal';
+import { nextOccurIso } from '../calendar/calLib';
+import { ageOf, chipStyle, CRED_HELP_TEXT, EVENT_META, famHistoryOf, fmtDate, isoToday, STATUS_META, tierOf } from './lib';
+import { useArmed } from '../useArmed';
 import { JoinModal } from './JoinModal';
 
 function SectionCard(props: { title: string; actions?: ReactNode; children: ReactNode }) {
@@ -99,6 +104,8 @@ export function CredPanel(props: { fam: Family }) {
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const [overrideVal, setOverrideVal] = useState('');
+  // "איך משפרים?" (P3 פריט 8) — קופסת כללי הניקוד מהלגאסי
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const cred = props.fam.cred;
   const tier = tierOf(cred.score);
@@ -141,7 +148,25 @@ export function CredPanel(props: { fam: Family }) {
         <Btn sm onClick={() => addCred(props.fam.id, -5, 'התאמה ידנית של מנהל')}>
           −5
         </Btn>
+        <Btn sm onClick={() => setHelpOpen((v) => !v)}>
+          איך משפרים?
+        </Btn>
       </div>
+      {helpOpen && (
+        <div
+          style={{
+            background: 'var(--paper-soft, #faf6ec)',
+            border: '1px solid var(--line)',
+            borderRadius: 10,
+            padding: '8px 11px',
+            fontSize: 11.5,
+            lineHeight: 1.7,
+            color: 'var(--ink-soft)',
+          }}
+        >
+          {CRED_HELP_TEXT}
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 8 }}>
         <div style={{ flex: 1 }}>
           <TextInput value={overrideVal} onChange={setOverrideVal} placeholder="Override 0–1000" dir="ltr" />
@@ -185,13 +210,27 @@ export function CredPanel(props: { fam: Family }) {
   );
 }
 
-/** שיבוצים לחוגים של בני המשפחה — כולל ＋ שיבוץ לחוג ישירות מהכרטיס. */
+/** שיבוצים לחוגים של בני המשפחה — כולל ＋ שיבוץ לחוג ופעולות תפעול ישירות מהכרטיס. */
 export function EnrollPanel(props: { fam: Family }) {
   const courses = useApp((s) => s.db.courses);
   const enrollments = useApp((s) => s.db.enrollments);
+  const punch = useApp((s) => s.punch);
+  const addCred = useApp((s) => s.addCred);
+  const deleteEnrollment = useApp((s) => s.deleteEnrollment);
+  const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const joinOn = featureOn(config, 'families.join');
+  // מחיקה בשני קליקים (P3 פריט 19, shell.armdel)
+  const { confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
+  // פעולות תפעול מהכרטיס (P0.3, עוגן לגאסי: כרטיס המשפחה מנקב/מחסר/מנהל ישירות)
+  const cardOpsOn = featureOn(config, 'families.cardops');
+  const punchOn = featureOn(config, 'courses.punch');
+  // אישור כפול לניקוב (P1.3, legacy:330-342) — חל גם על הניקוב מהכרטיס
+  const punchConfirmOn = featureOn(config, 'courses.punch.confirm');
   const [joinOpen, setJoinOpen] = useState(false);
+  const [opModal, setOpModal] = useState<{ kind: 'absence' | 'manage'; enrollmentId: string } | null>(null);
+  const [punchArm, setPunchArm] = useState<PunchArm | null>(null);
+  const punchArmTimer = useRef(0);
   const memberIds = new Set(props.fam.members.map((m) => m.id));
   const list = enrollments.filter((e) => memberIds.has(e.memberId));
 
@@ -199,6 +238,41 @@ export function EnrollPanel(props: { fam: Family }) {
   if (!moduleOn(config, 'courses')) return null;
 
   const STATUS: Record<string, string> = { active: 'פעיל', paused: 'מוקפא ⏸', ended: 'הסתיים' };
+
+  /** ניקוב מהכרטיס — אותן חסימות ואותו store.punch כמו doPunch במסך החוגים. */
+  function doPunch(e: Enrollment) {
+    if (e.status === 'paused') return toast('ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' מוקפא — הפשירו אותו בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
+    if (e.status === 'ended') return toast('ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' הסתיים — ניתן לחדש בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
+    if (e.used >= e.purchased) {
+      setOpModal({ kind: 'manage', enrollmentId: e.id });
+      return;
+    }
+    // אישור כפול (legacy:335-338): לחיצה ראשונה מזיינת, שנייה בתוך 3ש׳ מבצעת
+    const step = punchConfirmStep(punchConfirmOn, punchArm, e.id, Date.now());
+    if (!step.fire) {
+      setPunchArm(step.next);
+      window.clearTimeout(punchArmTimer.current);
+      punchArmTimer.current = window.setTimeout(() => setPunchArm(null), PUNCH_CONFIRM_MS);
+      return;
+    }
+    setPunchArm(null);
+    punch(e.id);
+    addCred(props.fam.id, 5, 'נוכחות (Check-in)');
+    toast('הניקוב נרשם בהצלחה');
+  }
+
+  /** הסרת שיבוץ מהכרטיס — שני קליקים (P3 פריט 19); ה-store מוחק גם את תזכורת התשלום. */
+  function removeEnroll(e: Enrollment, memberFirst: string, courseName: string) {
+    const msg =
+      'להסיר את ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' של ' + (memberFirst || '—') +
+      ' ל"' + courseName + '"? הפעולה תמחק גם את התשלומים והנוכחות שלו.\n\nלא ניתן לבטל.';
+    if (!confirmTwice('enr-' + e.id, msg)) {
+      toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תסיר לצמיתות');
+      return;
+    }
+    deleteEnrollment(e.id);
+    toast('ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' הוסר לצמיתות');
+  }
 
   return (
     <SectionCard
@@ -231,6 +305,7 @@ export function EnrollPanel(props: { fam: Family }) {
                 <th>מסלול</th>
                 <th>יתרה</th>
                 <th>סטטוס</th>
+                {cardOpsOn && <th></th>}
               </tr>
             </thead>
             <tbody>
@@ -239,6 +314,7 @@ export function EnrollPanel(props: { fam: Family }) {
                 const c = courses.find((x) => x.id === e.courseId);
                 const rem = e.purchased - e.used;
                 const barColor = rem <= 0 ? '#dc2626' : rem <= 2 ? '#d97706' : '#16a34a';
+                const noBalance = e.plan === 'punch' && rem <= 0;
                 return (
                   <tr key={e.id}>
                     <td style={{ fontWeight: 600 }}>{m?.first ?? '—'}</td>
@@ -257,6 +333,38 @@ export function EnrollPanel(props: { fam: Family }) {
                       )}
                     </td>
                     <td>{STATUS[e.status] ?? e.status}</td>
+                    {cardOpsOn && (
+                      <td>
+                        <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                          {punchOn && e.plan === 'punch' && (
+                            <Btn sm kind={noBalance ? 'plain' : 'primary'} onClick={() => doPunch(e)}>
+                              {noBalance ? 'חידוש ←' : punchArm?.id === e.id ? 'לאשר ניקוב?' : 'ניקוב'}
+                            </Btn>
+                          )}
+                          {c && (
+                            <Btn
+                              sm
+                              title="רישום חיסור (נימוק חובה)"
+                              onClick={() => setOpModal({ kind: 'absence', enrollmentId: e.id })}
+                            >
+                              🤒
+                            </Btn>
+                          )}
+                          {c && (
+                            <Btn
+                              sm
+                              title={'ניהול ' + termOf(config, 'entity.enrollment', 'שיבוץ') + ': קניית כרטיסייה, מסלול, הקפאה, הסרה'}
+                              onClick={() => setOpModal({ kind: 'manage', enrollmentId: e.id })}
+                            >
+                              ⚙
+                            </Btn>
+                          )}
+                          <Btn sm kind="danger" title={'הסרת ה' + termOf(config, 'entity.enrollment', 'שיבוץ')} onClick={() => removeEnroll(e, m?.first ?? '', c?.name ?? '—')}>
+                            🗑
+                          </Btn>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 );
               })}
@@ -265,26 +373,52 @@ export function EnrollPanel(props: { fam: Family }) {
         </div>
       )}
       {joinOn && joinOpen && <JoinModal family={props.fam} onClose={() => setJoinOpen(false)} />}
+      {cardOpsOn &&
+        opModal &&
+        (() => {
+          // חיווט למודאלים הקיימים של מסך החוגים — לא שכפול לוגיקה
+          const en = enrollments.find((x) => x.id === opModal.enrollmentId);
+          const c = en && courses.find((x) => x.id === en.courseId);
+          if (!en || !c) return null;
+          return opModal.kind === 'absence' ? (
+            <AbsenceModal enrollmentId={en.id} course={c} onClose={() => setOpModal(null)} />
+          ) : (
+            <ManageModal enrollmentId={en.id} course={c} onClose={() => setOpModal(null)} />
+          );
+        })()}
     </SectionCard>
   );
 }
 
-/** אירועים מיוחדים המקושרים למשפחה (אזכרה/שמחה/תזכורת) — תצוגה בלבד. */
+/** אירועים מיוחדים המקושרים למשפחה (אזכרה/שמחה/תזכורת) — כולל ➕ אירוע מהכרטיס. */
 export function EventsPanel(props: { fam: Family }) {
   const events = useApp((s) => s.db.events);
   const config = useApp((s) => s.config);
   const historyOn = featureOn(config, 'families.history');
+  const cardOpsOn = featureOn(config, 'families.cardops');
+  const [evOpen, setEvOpen] = useState(false);
   const list = events.filter((e) => e.famId === props.fam.id && !e.done);
 
   // פאנל ההיסטוריה מרונדר כאן כדי להופיע בכרטיס המשפחה בלי לגעת ב-FamilyDetail
   return (
     <>
-      <SectionCard title="אירועים מיוחדים">
+      <SectionCard
+        title="אירועים מיוחדים"
+        actions={
+          cardOpsOn ? (
+            <Btn sm onClick={() => setEvOpen(true)} title={'אירוע חדש המקושר ל' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + props.fam.name}>
+              ➕ אירוע
+            </Btn>
+          ) : undefined
+        }
+      >
         {list.length === 0 ? (
           <Empty>אין אירועים מקושרים למשפחה — ניתן להוסיף מתוך לוח השנה</Empty>
         ) : (
           list.map((ev) => {
             const meta = EVENT_META[ev.type] ?? EVENT_META.org;
+            // 'הקרוב:' לאירועים חוזרים-בעברי (P3 אימות פריט 17; לגאסי nextOccurLabel)
+            const nextOcc = nextOccurIso(ev, isoToday());
             return (
               <div
                 key={ev.id}
@@ -304,6 +438,7 @@ export function EventsPanel(props: { fam: Family }) {
                     {fmtDate(ev.date)}
                     {ev.time ? ' · ' + ev.time : ''}
                     {ev.date ? ' · ' + hebDateFull(ev.date) : ''}
+                    {nextOcc && nextOcc !== ev.date ? ' · הקרוב: ' + fmtDate(nextOcc) : ''}
                   </div>
                 </div>
               </div>
@@ -311,6 +446,15 @@ export function EventsPanel(props: { fam: Family }) {
           })
         )}
       </SectionCard>
+      {cardOpsOn && evOpen && (
+        <EventModal
+          ev={null}
+          date={isoToday()}
+          prefill={{ famId: props.fam.id }}
+          saveToast={'האירוע נוסף ללוח ולכרטיס ' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + props.fam.name}
+          onClose={() => setEvOpen(false)}
+        />
+      )}
       {historyOn && <HistoryPanel fam={props.fam} />}
     </>
   );

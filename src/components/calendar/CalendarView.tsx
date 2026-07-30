@@ -3,7 +3,7 @@
  * מצב חודש עברי מלא (א׳–ל׳), חגים, אירועים (כולל חזרה שנתית לפי
  * התאריך העברי), מפגשי חוגים, ורשימת אירועים קרובים ל-14 יום.
  */
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { Btn, Chip, Empty, PageHead } from '../ui';
@@ -16,8 +16,10 @@ import {
   DEFAULT_FILTERS,
   EV_META,
   HOLIDAY_META,
+  initialHebMode,
   isoOf,
   SESSION_META,
+  upcomingItems,
   upcomingRows,
   type CalCell,
   type CalFilters,
@@ -49,6 +51,8 @@ const pillStyle = (bg: string, c: string, prC: string): CSSProperties => ({
 interface ModalState {
   ev: OrgEvent | null;
   date: string;
+  /** אכלוס-מראש לסוג האירוע — '+ תזכורת טלפון' מהפלטה (P1.6). */
+  prefillType?: 'call';
 }
 
 function DayCell(props: {
@@ -156,10 +160,21 @@ export function CalendarView() {
 
   const now = new Date();
   const [ym, setYm] = useState({ y: now.getFullYear(), m: now.getMonth() });
-  const [hebMode, setHebMode] = useState(false);
+  // הלוח נפתח בגריד העברי כברירת מחדל (P1.1, legacy calHebMode:true) —
+  // דגל calendar.hebdefault: חסר=דלוק=עברי; false=לועזי (initialHebMode טהור)
+  const [hebMode, setHebMode] = useState(() => initialHebMode(useApp.getState().config));
   const [hebAnchor, setHebAnchor] = useState(isoOf(now));
   const [modal, setModal] = useState<ModalState | null>(null);
   const [dayIso, setDayIso] = useState<string | null>(null);
+  // בקשת "+ אירוע / + תזכורת" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
+  const evFormReq = useApp((s) => s.evFormReq);
+  const ackEventForm = useApp((s) => s.ackEventForm);
+  useEffect(() => {
+    if (evFormReq) {
+      setModal({ ev: null, date: isoOf(new Date()), prefillType: evFormReq === 'call' ? 'call' : undefined });
+      ackEventForm();
+    }
+  }, [evFormReq, ackEventForm]);
   const [filters, setFilters] = useState<CalFilters>(DEFAULT_FILTERS);
   const [expOpen, setExpOpen] = useState(false);
 
@@ -226,6 +241,16 @@ export function CalendarView() {
     [grid, effFilters],
   );
   const upcoming = useMemo(() => upcomingRows(db, 14), [db]);
+  // פאנל "קרובים" מלא (P2 פער 25, feature calendar.upcoming): 30 יום,
+  // שכבות עברי-נגזרות, מכבד את פילטרי-הסוג הפעילים של הלוח (הכרעה 6)
+  const upcomingOn = featureOn(config, 'calendar.upcoming');
+  const upcoming30 = useMemo(() => {
+    if (!upcomingOn) return [];
+    return upcomingItems(db, new Date(), 30, config)
+      .map((day) => ({ ...day, items: day.items.filter((it) => allowItem(it, effFilters)) }))
+      .filter((day) => day.items.length > 0);
+  }, [upcomingOn, db, config, effFilters]);
+  const famName = (id: string) => db.families.find((f) => f.id === id)?.name || '';
 
   function prevMonth() {
     if (hebMode) {
@@ -380,6 +405,90 @@ export function CalendarView() {
         ))}
       </div>
 
+      {upcomingOn && (
+        <section className="card" style={{ marginTop: 16 }}>
+          <h2 style={{ fontSize: 16.5, marginBottom: 8 }}>הקרובים — 30 הימים הבאים</h2>
+          {upcoming30.length === 0 && <Empty>אין פריטים קרובים</Empty>}
+          {upcoming30.map((day) => (
+            <div
+              key={day.iso}
+              style={{ display: 'flex', gap: 10, padding: '9px 0', borderBottom: '1px solid #ece7db', alignItems: 'flex-start' }}
+            >
+              <button
+                type="button"
+                onClick={() => setDayIso(day.iso)}
+                title={dayviewOn ? 'פתיחת סדר היום' : undefined}
+                style={{
+                  width: 46,
+                  flex: 'none',
+                  textAlign: 'center',
+                  border: '1px solid var(--line)',
+                  borderRadius: 10,
+                  padding: '4px 2px',
+                  background: 'var(--panel)',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.1 }}>{day.dayGem}</div>
+                <div style={{ fontSize: 10, color: 'var(--ink-faint)', fontWeight: 600 }}>{day.monHeb}</div>
+              </button>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', fontWeight: 600, marginBottom: 2 }}>
+                  {day.weekday + ' · ' + day.gLabel}
+                </div>
+                {day.items.map((it) => (
+                  <div key={it.key} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0', minWidth: 0 }}>
+                    <span aria-hidden style={{ width: 8, height: 8, borderRadius: 999, background: it.prC, flex: 'none' }} />
+                    <span style={{ fontSize: 13, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={it.title}>
+                      {it.label}
+                    </span>
+                    {/* הכרעה 6: צ׳יפ משפחה לפי famId — לחיצה פותחת את הכרטיס; בלי famId — צ׳יפ צבע-הסוג */}
+                    {it.famId ? (
+                      <button
+                        type="button"
+                        onClick={() => selectFamily(it.famId!)}
+                        title="פתיחת כרטיס המשפחה"
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: 999,
+                          background: it.bg,
+                          color: it.c,
+                          border: '1px solid ' + it.c,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          flex: 'none',
+                        }}
+                      >
+                        {termOf(config, 'entity.familyOf', 'משפחת') + ' ' + famName(it.famId)}
+                      </button>
+                    ) : (
+                      <span
+                        style={{ fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 999, background: it.bg, color: it.c, whiteSpace: 'nowrap', flex: 'none' }}
+                      >
+                        {it.typeLabel}
+                      </span>
+                    )}
+                    {it.ev && (
+                      <Btn sm onClick={() => setModal({ ev: it.ev!, date: it.ev!.date })} title="עריכת האירוע">
+                        ✎
+                      </Btn>
+                    )}
+                    {it.ev && it.ev.type === 'call' && (
+                      <Btn sm onClick={() => markCallDone(it.ev!)} title="סמן שיחה כבוצעה">
+                        ✓ בוצע
+                      </Btn>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {!upcomingOn && (
       <section className="card" style={{ marginTop: 16 }}>
         <h2 style={{ fontSize: 16.5, marginBottom: 8 }}>אירועים ותזכורות קרובים</h2>
         {upcoming.length === 0 && <Empty>אין אירועים קרובים</Empty>}
@@ -446,6 +555,7 @@ export function CalendarView() {
           </div>
         ))}
       </section>
+      )}
 
       {dayIso && (
         <DayModal
@@ -457,7 +567,14 @@ export function CalendarView() {
           onEdit={(ev) => setModal({ ev, date: ev.date })}
         />
       )}
-      {modal && <EventModal ev={modal.ev} date={modal.date} onClose={() => setModal(null)} />}
+      {modal && (
+        <EventModal
+          ev={modal.ev}
+          date={modal.date}
+          prefill={modal.prefillType ? { type: modal.prefillType } : undefined}
+          onClose={() => setModal(null)}
+        />
+      )}
       {expOpen && <CustomExport target="events" onClose={() => setExpOpen(false)} />}
     </div>
   );

@@ -36,9 +36,14 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
       setError('בחרו תאריך ' + termOf(config, 'entity.donation', 'תרומה'));
       return;
     }
-    // מספר האסמכתה נגזר מה-donationSeq הנוכחי — בדיוק כפי ש-addDonation שב-store מחשב אותו
-    const rid = 'D-' + useApp.getState().db.donationSeq;
-    addDonation(props.supporter.id, { date, amount: amt, cur, cat: cat.trim() });
+    // הקבלה יורדת רק כשה-store קיבל את התרומה, ועם ה-rid שהונפק בפועל —
+    // קודם ניחשנו rid מ-donationSeq והורדנו קבלה גם על דחייה (rid שמעולם לא הונפק).
+    const res = addDonation(props.supporter.id, { date, amount: amt, cur, cat: cat.trim() });
+    if (!res.ok || !res.rid) {
+      props.onClose(); // ה-store כבר הציג טוסט דחייה (התומכת נעלמה)
+      return;
+    }
+    const rid = res.rid;
     // core.receipts כבוי — התרומה נרשמת כרגיל, רק הורדת הקבלה והטוסט שלה מדולגים
     if (receiptsOn) {
       const cfg = useApp.getState().config;

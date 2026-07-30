@@ -9,7 +9,8 @@ import { featureOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { chipStyle, fmtDate, isoToday, supScore, supTier, totalLabel } from './lib';
+import { chipStyle, fmtDate, isoToday, supDonEvents, supScore, supTier, totalLabel } from './lib';
+import { downloadReceipt } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
@@ -40,25 +41,54 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const deleteSupporter = useApp((s) => s.deleteSupporter);
   const upsertEvent = useApp((s) => s.upsertEvent);
   const deleteEvent = useApp((s) => s.deleteEvent);
+  const unlinkEvent = useApp((s) => s.unlinkEvent);
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
   const ayinOn = featureOn(config, 'supporters.ayin');
+  const histOn = featureOn(config, 'supporters.hist');
+  const receiptsOn = featureOn(config, 'core.receipts');
+
+  /** 🧾 הורדה חוזרת של קבלת תרומה (P3, לגאסי supReceipt) — אותם נתונים ו-rid. */
+  function redownloadReceipt(rid: string) {
+    const d = sp.donations.find((x) => x.rid === rid);
+    if (!d) return;
+    downloadReceipt({
+      rid,
+      orgName: config.orgName || useApp.getState().db.orgName,
+      payer: sp.name,
+      amount: d.amount,
+      currency: d.cur,
+      date: d.date,
+      forWhat: 'תרומה — ' + (d.cat || 'כללי'),
+      taxReceipt: featureOn(config, 'core.taxreceipt'),
+      orgTaxId: config.orgTaxId,
+      signatory: config.orgSignatory,
+      payerId: sp.idNum || undefined,
+    });
+    toast('קבלה ' + rid + ' ירדה שוב למחשב');
+  }
 
   const [editOpen, setEditOpen] = useState(false);
   const [donOpen, setDonOpen] = useState(false);
   const [armDelete, setArmDelete] = useState(false);
+  // P3 פריט 11 — לחיצה על תרומה מסמנת את יומה בלוח האישי
+  const [calFocus, setCalFocus] = useState<string | null>(null);
 
   const score = supScore(sp);
   const tier = supTier(score);
   const callNotes = 'משפחה תומכת · ' + (sp.phone || '') + (sp.email ? ' · ' + sp.email : '');
 
-  /** עריכת "קשר הבא" — מציעה תזכורת 'שיחה' מקושרת בלוח השנה. */
+  /**
+   * עריכת "קשר הבא" — התזכורת נוצרת/מתעדכנת אוטומטית בלי confirm (P1.9,
+   * ratchet legacy saveSupNext, legacy-main-script.js:1432-1444); ניקוי התאריך
+   * מוחק גם את התזכורת המקושרת (unlinkEvent — תיקון האירוע היתום, באג ידוע #6).
+   */
   function setNextDate(v: string) {
     if (!v) {
-      upsertSupporter({ ...sp, nextDate: '' });
+      unlinkEvent('supporterNext', sp.id);
       toast('תאריך היעד נוקה');
       return;
     }
@@ -67,7 +97,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       upsertEvent({ ...linked, title: 'יעד קשר — תומכת: ' + sp.name, date: v, done: false, notes: callNotes });
       upsertSupporter({ ...sp, nextDate: v });
       toast('נקבע תאריך יעד ' + hebDateFull(v) + ' — התזכורת בלוח השנה עודכנה');
-    } else if (window.confirm('נקבע תאריך יעד ' + fmtDate(v) + ' — להוסיף תזכורת שיחה ללוח השנה?')) {
+    } else {
       const id = nextId('ev');
       upsertEvent({
         id,
@@ -85,9 +115,6 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       });
       upsertSupporter({ ...sp, nextDate: v, nextEventId: id });
       toast('נקבע תאריך יעד ' + hebDateFull(v) + ' — נוספה תזכורת ללוח השנה');
-    } else {
-      upsertSupporter({ ...sp, nextDate: v });
-      toast('נקבע תאריך יעד ' + hebDateFull(v));
     }
   }
 
@@ -123,7 +150,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     props.onBack();
   }
 
-  const donations = [...sp.donations].sort((a, b) => b.date.localeCompare(a.date));
+  // רשימת "כל התרומות" — עם הדגל: מיזוג קבלות + הקובץ ההיסטורי כמו בלגאסי
+  // (supDonEvents); בלעדיו: הקבלות בלבד (ההתנהגות הקודמת).
+  const donRows = histOn
+    ? supDonEvents(sp)
+    : [...sp.donations]
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .map((d) => ({ date: d.date, amount: d.amount, cur: d.cur || ('₪' as const), src: 'קבלה ' + d.rid, rid: d.rid }));
   const statsLine =
     sp.count +
     ' ' +
@@ -239,7 +272,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <h3 style={{ fontSize: 15, marginBottom: 10 }}>
             🗓 {termOf(config, 'entity.donations', 'תרומות')} לפי חודש
           </h3>
-          <DonationCalendar supporter={sp} />
+          <DonationCalendar supporter={sp} focusIso={calFocus ?? undefined} />
         </div>
       )}
 
@@ -247,13 +280,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       <div className="card" style={{ padding: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
           <h3 style={{ fontSize: 15 }}>
-            {'כל ה' + termOf(config, 'entity.donations', 'תרומות') + ' — מתי וכמה'} ({donations.length})
+            {'כל ה' + termOf(config, 'entity.donations', 'תרומות') + ' — מתי וכמה'} ({donRows.length})
           </h3>
           <Btn sm onClick={() => setDonOpen(true)}>
             ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
           </Btn>
         </div>
-        {donations.length === 0 ? (
+        {donRows.length === 0 ? (
           <Empty>{'עדיין אין ' + termOf(config, 'entity.donations', 'תרומות') + ' מתועדות — רשמו עם "➕ רישום ' + termOf(config, 'entity.donation', 'תרומה') + '"'}</Empty>
         ) : (
           <div style={{ overflowX: 'auto' }}>
@@ -264,23 +297,46 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                   <th>תאריך עברי</th>
                   <th>סכום</th>
                   <th>קטגוריה</th>
-                  <th>קבלה</th>
+                  <th>{histOn ? 'מקור' : 'קבלה'}</th>
+                  <th aria-hidden />
                 </tr>
               </thead>
               <tbody>
-                {donations.map((d) => (
-                  <tr key={d.rid}>
-                    <td>{fmtDate(d.date)}</td>
-                    <td>{hebDateFull(d.date)}</td>
+                {/* P3 פריט 11: קיטום תצוגה ל-60 (slice בלבד — הנתונים נשמרים);
+                    לחיצה על שורה מסמנת את יומה בלוח האישי (כמו בלגאסי) */}
+                {donRows.slice(0, 60).map((r, i) => (
+                  <tr
+                    key={r.rid ?? r.src + '|' + r.date + '|' + i}
+                    onClick={() => setCalFocus(r.date)}
+                    title="סימון היום בלוח התרומות האישי"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td>{fmtDate(r.date)}</td>
+                    <td>{hebDateFull(r.date)}</td>
                     <td style={{ fontWeight: 700 }}>
-                      {(d.cur === '$' ? '$' : '₪') + d.amount.toLocaleString('he-IL')}
+                      {r.cur === '' ? '—' : (r.cur === '$' ? '$' : '₪') + r.amount.toLocaleString('he-IL')}
                     </td>
-                    <td>{d.cat || '—'}</td>
-                    <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--ink-faint)' }}>{d.rid}</td>
+                    <td>{(r.rid && sp.donations.find((d) => d.rid === r.rid)?.cat) || '—'}</td>
+                    <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--ink-faint)' }}>
+                      {histOn ? r.src : r.rid}
+                    </td>
+                    {/* 🧾 הורדה חוזרת פר-תרומה (P3, לגאסי supReceipt) — רק לתרומות עם קבלה */}
+                    <td onClick={(e) => e.stopPropagation()}>
+                      {r.rid && receiptsOn ? (
+                        <Btn sm onClick={() => redownloadReceipt(r.rid!)} title={'הורדה חוזרת של קבלה ' + r.rid}>
+                          🧾
+                        </Btn>
+                      ) : null}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {donRows.length > 60 && (
+              <div style={{ fontSize: 12, color: 'var(--ink-faint)', padding: '6px 2px' }}>
+                {'מוצגות 60 מתוך ' + donRows.length + ' — הכול נשמר וזמין בייצוא ובדוח המותאם'}
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -16,7 +16,7 @@
 // השפעה על המוצר) — קו-לוקיישן מכוון ומוצדק.
 /* oxlint-disable react/only-export-components */
 import { useEffect, useMemo, useState, type CSSProperties, type ReactElement, type ReactNode } from 'react';
-import type { View } from '../../store/useApp';
+import { useApp, type View } from '../../store/useApp';
 import type { Db, Family, OrgEvent } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { Btn, Chip } from '../ui';
@@ -25,7 +25,11 @@ import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { tierOf } from '../families/lib';
 import { buildPodium, buildWeek, fmtIls } from '../wall/wallData';
 import {
+  courseMetrics,
+  credHistogram,
+  credNeedsBoost,
   credSummary,
+  credTodayTrend,
   DAY_NAMES,
   dueContacts,
   EV_META,
@@ -731,6 +735,10 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
 function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, data, navTo, markAttnDone, unmarkAttnDone } = ctx;
   const [showDone, setShowDone] = useState(false);
+  // איפוס גורף של סימוני "טופל" (P3 פריט 7, לגאסי careReset) — שתי לחיצות
+  const setDb = useApp((s) => s.setDb);
+  const toast = useApp((s) => s.toast);
+  const [resetArmed, setResetArmed] = useState(false);
   // סינון לפי תגית (קטגוריית הפריט) — מצב מקומי בלבד, ללא התמדה. ברירת מחדל "הכל".
   const [careFilter, setCareFilter] = useState<string | null>(null);
   // מרכז טיפול: הפרדת פריטים פתוחים מפריטים שסומנו "טופל"
@@ -818,6 +826,24 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
             </Btn>
           </div>
         ))}
+      {showDone && doneAttn.length > 0 && (
+        <button
+          type="button"
+          style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', color: resetArmed ? '#b91c1c' : undefined }}
+          onClick={() => {
+            if (!resetArmed) {
+              setResetArmed(true);
+              return;
+            }
+            setDb(() => ({ attnDone: {} }));
+            setResetArmed(false);
+            toast('הסימונים אופסו');
+          }}
+          onBlur={() => setResetArmed(false)}
+        >
+          {resetArmed ? 'בטוח? לחיצה נוספת מאפסת את כל הסימונים' : 'איפוס סימוני טופל'}
+        </button>
+      )}
     </Panel>
   );
 }
@@ -977,6 +1003,145 @@ function CommunityWidget({ ctx }: { ctx: HomeCtx }) {
             </div>
           ))}
         </div>
+      )}
+    </Panel>
+  );
+}
+
+/**
+ * 📊 תפוסת החוגים (פער 19, לגאסי crsG legacy-main-script.js:2630-2654):
+ * ממוצע תפוסה, עמודה לחיצה לכל חוג, הכנסה חודשית משוקללת, צ'יפים ו"הכי מבוקשים".
+ */
+function CourseMetricsWidget({ ctx }: { ctx: HomeCtx }) {
+  const { db, config, go, selectCourse } = ctx;
+  const m = courseMetrics(db);
+  const crsPlural = termOf(config, 'nav.courses', 'חוגים');
+  const openCourse = (id: string) => { selectCourse(id); go('courses'); };
+  const barColor = (pct: number) => (pct >= 100 ? '#dc2626' : pct >= 85 ? '#f3c76b' : pct >= 40 ? '#16a34a' : '#d97706');
+  return (
+    <Panel
+      icon="📊"
+      title={'תפוסת ה' + crsPlural}
+      badge={m.rows.length > 0 ? `ממוצע ${m.avgOcc}%` : undefined}
+      action={<Btn sm onClick={() => go('courses')}>{'ל' + crsPlural + ' ←'}</Btn>}
+    >
+      {m.rows.length === 0 ? (
+        <div style={softEmpty}>{'אין ' + crsPlural + ' עדיין'}</div>
+      ) : (
+        <>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
+            {m.students} שיבוצים · ₪{Math.round(m.income).toLocaleString('he-IL')} לחודש (מנויים חודשיים בלבד)
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 64, marginBottom: 8 }} role="img" aria-label="תפוסה לפי חוג">
+            {m.rows.map((r) => (
+              <button
+                key={r.course.id}
+                onClick={() => openCourse(r.course.id)}
+                title={`${r.course.name} · ${r.n}/${r.max} (${r.pct}%)`}
+                style={{
+                  flex: 1, minWidth: 6, border: 'none', cursor: 'pointer', borderRadius: '3px 3px 0 0',
+                  height: Math.max(6, r.pct) + '%', background: barColor(r.pct),
+                  boxShadow: r.pct >= 100 ? '0 0 12px rgba(220,38,38,.45)' : 'none',
+                }}
+              />
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: m.top.length ? 8 : 0 }}>
+            <span style={tagStyle('#e7edf5', '#3a5a86')}>{m.rows.length} {crsPlural}</span>
+            <span style={tagStyle('#fdf1d4', '#9a6414')}>{m.punchCount} כרטיסייה</span>
+            <span style={tagStyle('#e4f5ea', '#12803c')}>{m.monthlyCount} מנוי</span>
+            <span style={tagStyle('#fdeaea', '#b91c1c')}>{m.fullCount} מלאים</span>
+          </div>
+          {m.top.map((r) => (
+            <button key={r.course.id} className="hm-row" onClick={() => openCourse(r.course.id)} style={{ width: '100%', textAlign: 'start' }}>
+              <span aria-hidden style={{ width: 8, height: 8, borderRadius: 99, background: barColor(r.pct), flexShrink: 0 }} />
+              <span style={{ flex: 1, fontWeight: 600 }}>{r.course.name}</span>
+              <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{r.n}/{r.max}</span>
+            </button>
+          ))}
+        </>
+      )}
+    </Panel>
+  );
+}
+
+/**
+ * 🎯 מדד אמינות מורחב (פער 20, לגאסי credV/showCredGraph): מד ממוצע,
+ * היסטוגרמת 20 סלים של 50 נק', מגמת היום ו"דורשות חיזוק" לחיצות.
+ */
+function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
+  const { db, config, todayIso, go, selectFamily } = ctx;
+  const openFamiliesByTier = useApp((s2) => s2.openFamiliesByTier);
+  const s = credSummary(db, (score) => tierOf(score).key);
+  const bins = credHistogram(db);
+  const trend = credTodayTrend(db, todayIso);
+  const boost = credNeedsBoost(db);
+  const maxBin = Math.max(1, ...bins);
+  const famPlural = termOf(config, 'nav.families', 'משפחות');
+  const openFam = (id: string) => { selectFamily(id); go('families'); };
+  return (
+    <Panel
+      icon="🎯"
+      title="מדד אמינות — תמונה מלאה"
+      badge={s.total > 0 ? `ממוצע ${s.avg}/1000` : undefined}
+      action={<Btn sm onClick={() => go('families')}>{'ל' + famPlural + ' ←'}</Btn>}
+    >
+      {s.total === 0 ? (
+        <div style={softEmpty}>{'אין ' + famPlural + ' עדיין'}</div>
+      ) : (
+        <>
+          {/* מד ממוצע — פס עם מחט (הפשטת מד-המחוג של הלגאסי, אותם עוגנים 0/500/800/1000) */}
+          <div style={{ position: 'relative', height: 10, borderRadius: 99, marginBottom: 4, background: 'linear-gradient(90deg,#dc2626 0%,#d97706 50%,#16a34a 80%,#f3c76b 100%)' }} aria-hidden>
+            <span style={{ position: 'absolute', insetInlineStart: `${Math.min(99, s.avg / 10)}%`, top: -3, width: 3, height: 16, background: 'var(--ink, #211d17)', borderRadius: 2 }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink-faint)', marginBottom: 8 }} aria-hidden>
+            <span>0</span><span>500</span><span>800</span><span>1000</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 44, marginBottom: 8 }} role="img" aria-label="התפלגות ציוני האמינות">
+            {bins.map((b, i) => (
+              <span
+                key={i}
+                title={`${i * 50}-${i * 50 + 49}: ${b}`}
+                style={{ flex: 1, borderRadius: '2px 2px 0 0', height: Math.max(4, Math.round((b / maxBin) * 100)) + '%', background: tierOf(i * 50 + 25).dot, opacity: b === 0 ? 0.25 : 1 }}
+              />
+            ))}
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
+            מגמת היום: <b style={{ color: trend > 0 ? '#12803c' : trend < 0 ? '#b91c1c' : 'inherit' }}>{trend > 0 ? '+' + trend : trend}</b> נק׳
+            {' · 👵 ' + db.families.filter((f) => (f.maritalStatus || '').includes('אלמן')).length + ' אלמנות'}
+          </div>
+          {/* אריחי דרגות לחיצים (P2 פער 20) — מנווטים למשפחות מסוננות לפי הדרגה */}
+          <div className="hm-tier-grid" style={{ marginBottom: boost.length ? 8 : 0 }}>
+            {([
+              ['titan', tierOf(960)],
+              ['lion', tierOf(850)],
+              ['pale', tierOf(600)],
+              ['red', tierOf(100)],
+            ] as const).map(([key, t]) => (
+              <button
+                key={key}
+                type="button"
+                className="hm-tier"
+                onClick={() => openFamiliesByTier(key)}
+                title={'ל' + famPlural + ' בדרגת ' + t.label}
+                style={{ cursor: 'pointer', textAlign: 'right', background: 'transparent' }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span aria-hidden style={{ width: 8, height: 8, borderRadius: 99, background: t.dot, flexShrink: 0 }} />
+                  <span style={{ fontSize: 12.5, color: 'var(--ink-faint)', fontWeight: 600 }}>{t.label}</span>
+                </span>
+                <b style={{ fontSize: 20 }}>{s.counts[key]}</b>
+              </button>
+            ))}
+          </div>
+          {boost.map((x) => (
+            <button key={x.family.id} className="hm-row" onClick={() => openFam(x.family.id)} style={{ width: '100%', textAlign: 'start' }}>
+              <span aria-hidden style={{ width: 8, height: 8, borderRadius: 99, background: tierOf(x.score).dot, flexShrink: 0 }} />
+              <span style={{ flex: 1, fontWeight: 600 }}>{'משפחת ' + x.family.name}</span>
+              <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{x.score}</span>
+            </button>
+          ))}
+        </>
       )}
     </Panel>
   );
@@ -1142,7 +1307,9 @@ export type WidgetId =
   | 'community'
   | 'contacts'
   | 'punchlow'
-  | 'quick';
+  | 'quick'
+  | 'coursemetrics'
+  | 'credmetrics';
 
 export interface HomeWidget {
   id: WidgetId;
@@ -1292,6 +1459,24 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     visible: (cfg) => featureOn(cfg, 'home.quick'),
     render: (ctx) => <QuickWidget ctx={ctx} />,
   },
+  coursemetrics: {
+    id: 'coursemetrics',
+    label: 'תפוסת החוגים',
+    icon: '📊',
+    slot: 'half',
+    removable: true,
+    visible: (cfg) => moduleOn(cfg, 'courses') && featureOn(cfg, 'home.coursemetrics'),
+    render: (ctx) => <CourseMetricsWidget ctx={ctx} />,
+  },
+  credmetrics: {
+    id: 'credmetrics',
+    label: 'מדד אמינות מורחב',
+    icon: '🎯',
+    slot: 'half',
+    removable: true,
+    visible: (cfg) => featureOn(cfg, 'families.cred') && featureOn(cfg, 'home.credmetrics'),
+    render: (ctx) => <CredMetricsWidget ctx={ctx} />,
+  },
 };
 
 /**
@@ -1300,8 +1485,9 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
  * פריסה שמורה של המשתמש תמיד גוברת; ווידג'ט שהמודול/פיצ'ר שלו כבוי פשוט מדולג.
  */
 export const THEME_LAYOUTS: Record<string, readonly WidgetId[]> = {
-  /* אור ראשון (mock-desktop) — hero, אריחים, קרוסלה, ואז שתי עמודות */
-  'or-rishon': ['hero', 'stats', 'carousel', 'today', 'recent', 'attention', 'community'],
+  /* אור ראשון (mock-desktop) — hero, אריחים, קרוסלה, ואז שתי עמודות.
+     מדדי החוגים והאמינות (P2 פערים 19-20) בברירת המחדל — כמו בדשבורד הלגאסי */
+  'or-rishon': ['hero', 'stats', 'carousel', 'today', 'recent', 'attention', 'community', 'coursemetrics', 'credmetrics'],
   /* היכל (mock-heichal) — "ערב גאלה": רצועת נתונים ושתי עמודות שקטות */
   heichal: ['hero', 'stats', 'today', 'attention', 'goldbook', 'hebcal'],
   /* צֹהַר (mock-tsohar) — דשבורד תפעולי נקי: נתונים, היום 2:1 מול דורש טיפול */
@@ -1326,7 +1512,7 @@ export interface ThemeBoardTemplate {
 
 export const THEME_TEMPLATES: Record<string, ThemeBoardTemplate> = {
   /* mock-desktop: ימין היום+משפחות אחרונות · שמאל דורש טיפול+אמינות (1.25fr/1fr) */
-  'or-rishon': { pre: ['stats', 'carousel'], colA: ['today', 'recent'], colB: ['attention', 'community'], post: [] },
+  'or-rishon': { pre: ['stats', 'carousel'], colA: ['today', 'recent'], colB: ['attention', 'community'], post: ['coursemetrics', 'credmetrics'] },
   /* mock-heichal: ימין סדר היום+נר תמיד · שמאל ספר הזהב+הלוח העברי (1.3fr/1fr) */
   heichal: { pre: ['stats'], colA: ['today', 'attention'], colB: ['goldbook', 'hebcal'], post: [] },
   /* mock-tsohar: היום כטבלה רחבה (2fr) מול דורש טיפול (1fr) */
@@ -1359,6 +1545,8 @@ export const WIDGET_LIBRARY: readonly WidgetId[] = [
   'contacts',
   'punchlow',
   'quick',
+  'coursemetrics',
+  'credmetrics',
 ];
 
 function isWidgetId(id: string): id is WidgetId {

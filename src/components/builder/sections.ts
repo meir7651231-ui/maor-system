@@ -56,15 +56,23 @@ export const WIZARD_SECTIONS: WizardSectionDef[] = [
       'ayin.stage.done',
     ],
   },
+  {
+    id: 'tzedaka',
+    title: 'קופות צדקה',
+    emoji: '🪙',
+    module: 'tzedaka',
+    termKeys: ['nav.tzedaka', 'entity.tzCoordinator', 'entity.tzBox', 'entity.tzCampaign'],
+  },
   { id: 'reports', title: 'דוחות', emoji: '📊', module: 'reports', termKeys: ['nav.reports'] },
   { id: 'home', title: 'מסך הבית', emoji: '🏠', termKeys: [] },
   { id: 'settings', title: 'הגדרות', emoji: '⚙️', termKeys: [] },
   { id: 'core', title: 'ליבה', emoji: '🧱', termKeys: [] },
+  { id: 'shell', title: 'מעטפת וניווט', emoji: '🧭', termKeys: [] },
 ];
 
 /** המודול-אב של קבוצת פיצ'רים, או null לקבוצות שאינן ניתנות לכיבוי. */
 export function featureModuleKey(m: FeatureDef['module']): ModuleKey | null {
-  return m === 'home' || m === 'settings' || m === 'core' ? null : m;
+  return m === 'home' || m === 'settings' || m === 'core' || m === 'shell' ? null : m;
 }
 
 /** האם פיצ'ר פעיל בפועל — גם הדגל שלו וגם המודול-האב חייבים להיות דלוקים. */

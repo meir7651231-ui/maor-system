@@ -77,27 +77,35 @@ T('מסך הבית נטען', (await mainTxt()).length > 20);
 
 // ── משפחות: יצירה + ילד ──
 await nav('משפחות');
-await clickIf('button', 'משפחה חדשה'); await fillModal('משפחת כהן'); await saveModal(); await wait(400);
+await clickIf('button', 'הוספת משפחה'); await fillModal('משפחת כהן'); await saveModal(); await wait(400);
 T('נוצרה משפחה', (await mainTxt()).includes('כהן'));
 if (await clickIf('button', 'הוספת בן משפחה')) { await fillModal('רוני'); await saveModal(); await wait(400); T('נוסף ילד', (await mainTxt()).includes('רוני')); }
 await shot('כרטיס-משפחה');
 
 // ── חוגים: יצירה ──
 await nav('חוגים');
-await clickIf('button', 'חוג חדש'); await fillModal('חוג ציור'); await saveModal(); await wait(500);
+// חדר פעילות הוא שדה חובה בטופס החוג — יוצרים חדר דרך ההגדרות קודם
+await nav('הגדרות');
+if (await clickIf('button', 'חדר חדש')) { await fillModal('חדר ראשי'); await clickIf('.modal button', 'שמירת הגדרות'); await wait(400); }
+await nav('חוגים');
+await clickIf('button', 'הוספת חוג'); await fillModal('חוג ציור'); await saveModal(); await wait(500);
 T('נוצר חוג', (await mainTxt()).includes('ציור'));
 await shot('חוגים');
 
 // ── פתיחת כרטיס החוג → שיבוץ → תשלום+קבלה (הכל בהקשר של אותו חוג) ──
 await clickIf('[role="button"]', 'ציור'); await wait(500); // פתיחת כרטיס החוג ציור
 T('נפתח כרטיס החוג', (await mainTxt()).includes('ציור'));
-// שיבוץ מתוך כרטיס החוג (משבץ בדיוק לחוג הזה)
+// שיבוץ מתוך כרטיס החוג (משבץ בדיוק לחוג הזה) — עם הסינון החכם (P1.7):
+// רוני (בן) מוסתר מחוג-בנות כברירת מחדל, "הצג הכל" מחזיר אותו
 if (await clickIf('button', 'שיבוץ')) {
   await fillModal('רוני'); await wait(400);
+  const modalTxt = async () => (await page.locator('.modal').textContent()) ?? '';
+  T('סינון שיבוץ חכם מסתיר מועמד מחוץ למגדר החוג', (await modalTxt()).includes('הוסתרו'));
+  await clickIf('.modal button', 'הצג הכל'); await wait(300);
   await clickIf('.modal button', 'רוני'); await wait(200);
   await page.locator('.modal button', { hasText: 'שיבוץ' }).last().click(); await wait(700);
   await closeModals();
-  T('בוצע שיבוץ לחוג', (await mainTxt()).includes('רוני'));
+  T('בוצע שיבוץ לחוג (אחרי "הצג הכל")', (await mainTxt()).includes('רוני'));
   await shot('שיבוץ');
 }
 // ניהול השיבוץ (⚙ בתוך כרטיס החוג, לא גלגל ההגדרות בתפריט) → קבלת תשלום
@@ -117,16 +125,71 @@ if (await clickIf('main button', '⚙')) {
   await closeModals();
 }
 
+// ── P0.3: כרטיס משפחה תפעולי (families.cardops) — שיבוץ כרטיסייה + ניקוב מהכרטיס ──
+await nav('חוגים');
+await clickIf('main button', '→ כל'); // חזרה מכרטיס החוג הפתוח לרשימת החוגים
+await clickIf('button', 'הוספת חוג');
+await fillModal('חוג התעמלות');
+const modelSel = page.locator('.modal select:has(option[value="punch"])').first();
+if (await modelSel.count()) { await modelSel.selectOption('punch'); await wait(250); }
+const sizeInp = page.locator('.modal input[placeholder="10"]').first();
+if (await sizeInp.count()) await sizeInp.fill('10');
+await saveModal(); await wait(500);
+T('נוצר חוג כרטיסייה', (await mainTxt()).includes('התעמלות'));
+await nav('משפחות');
+await page.locator('main >> text=כהן').first().click(); await wait(500);
+if (await clickIf('main button', 'שיבוץ ל')) {
+  await fillModal('רוני'); await wait(350);
+  await clickIf('.modal button', 'רוני'); await wait(200);
+  // הסינון החכם מסתיר את חוג-הבנות מרוני — "הצג הכל" מחזיר אותו (P1.7)
+  await clickIf('.modal button', 'הצג הכל'); await wait(250);
+  await page.locator('.modal input').nth(1).fill('התעמלות'); await wait(350);
+  await clickIf('.modal button', 'התעמלות'); await wait(200);
+  await page.locator('.modal button', { hasText: 'שיבוץ' }).last().click(); await wait(600);
+  await closeModals();
+}
+T('שיבוץ כרטיסייה מכרטיס המשפחה', (await mainTxt()).includes('10 מתוך 10'));
+// ניקוב מהכרטיס — עובר דרך אותו store.punch של מסך החוגים (P0.3),
+// עם אישור כפול (P1.3, courses.punch.confirm דלוק כברירת מחדל כמו בקובץ החי)
+await clickIf('main button', 'ניקוב'); await wait(300);
+T('לחיצה ראשונה מזיינת — "לאשר ניקוב?" ובלי ירידת יתרה', (await mainTxt()).includes('לאשר ניקוב?') && (await mainTxt()).includes('10 מתוך 10'));
+await clickIf('main button', 'לאשר ניקוב?'); await wait(500);
+T('ניקוב מכרטיס המשפחה — היתרה ירדה', (await mainTxt()).includes('9 מתוך 10'));
+T('פעולות ⚙/🤒 והוספת אירוע זמינות בכרטיס', (await page.locator('main button', { hasText: '⚙' }).count()) > 0 && (await page.locator('main button', { hasText: '➕ אירוע' }).count()) > 0);
+await shot('כרטיס-משפחה-תפעולי');
+
+// ── P2 אשכול א׳: מדדי הדשבורד נראים במסך הבית ──
+await nav('בית');
+await wait(600);
+{
+  const t = await mainTxt();
+  T('מדדי תפוסת החוגים נראים בבית', t.includes('תפוסת ה') && t.includes('לחודש'));
+  T('מדדי האמינות נראים בבית', t.includes('מדד אמינות — תמונה מלאה') && t.includes('מגמת היום'));
+}
+
+// ── P2 אשכול ו׳: המדריך המהיר 📖 נפתח (#guide, פער 29) ──
+await page.evaluate(() => { window.location.hash = '#guide'; });
+await wait(600);
+{
+  const t = await page.evaluate(() => document.body.innerText);
+  T('המדריך המהיר נפתח ב-#guide', t.includes('המדריך המהיר') && t.includes('המתכונים המהירים:'));
+  T('קופסת "לפני הכל" במדריך', t.includes('לפני הכל:') && t.includes('אי אפשר לקלקל'));
+}
+await shot('המדריך-המהיר');
+await page.keyboard.press('Escape'); await wait(400);
+await page.evaluate(() => { window.location.hash = ''; });
+await wait(300);
+
 // ── תורמים + תרומה ──
 await nav('תורמים');
-await clickIf('button', 'תומכת חדשה'); await fillModal('קרן פרידמן'); await saveModal(); await wait(500);
+await clickIf('button', 'הוספת תומך'); await fillModal('קרן פרידמן'); await saveModal(); await wait(500);
 T('נוסף תורם', (await mainTxt()).includes('פרידמן'));
 if (await clickIf('main', 'פרידמן') || await clickIf('main button', 'פרידמן')) {
   await wait(300);
   if (await clickIf('button', 'רישום תרומה')) {
     const amt = page.locator('.modal input[type="number"], .modal input').nth(1);
     if (await amt.count()) { await amt.fill('500'); }
-    await clickIf('.modal button', 'רישום התרומה') || await saveModal();
+    if (!(await clickIf('.modal button', 'רישום התרומה'))) await saveModal();
     await wait(500);
     T('נרשמה תרומה', true);
   }
@@ -139,6 +202,8 @@ await wait(400);
 await clickIf('button', 'אירוע חדש');
 await wait(300);
 if (await page.locator('.modal').count()) { await fillModal('אסיפת הורים'); await saveModal(); await wait(400); T('נוצר אירוע', true); }
+// P2 אשכול ד׳: פאנל "הקרובים" נראה (פער 25)
+T('פאנל "הקרובים" נראה בלוח', (await mainTxt()).includes('הקרובים — 30 הימים הבאים'));
 await shot('לוח-שנה');
 
 // ── יומן חדרים ──

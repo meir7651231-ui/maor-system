@@ -5,8 +5,8 @@
  */
 import { useState, type ChangeEvent } from 'react';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
-import { parseCsv } from '../../lib/csvx';
+import { featureOn, termOf } from '../../lib/config';
+import { parseCsv, readCsvFileText } from '../../lib/csvx';
 import { downloadCsv } from '../../lib/csvx';
 import { Btn, Field, FormError } from '../ui';
 import {
@@ -69,6 +69,11 @@ export function SupporterImport(props: { onDone?: () => void }) {
   const [csv, setCsv] = useState('');
   const [error, setError] = useState('');
   const [summary, setSummary] = useState('');
+  // סיכום-לפני-החלה (P2 פער 33) — כמו הלגאסי (importSummary→applyImport)
+  // ובאותו דפוס דו-שלבי של ייבוא הילדים/משפחות-13. דגל supporters.import.preview:
+  // חסר/true = דו-שלבי; false = החלה מיידית (ההתנהגות הישנה)
+  const [plan, setPlan] = useState<ReturnType<typeof planSupporterImport> | null>(null);
+  const previewOn = featureOn(config, 'supporters.import.preview');
 
   function downloadTemplate() {
     downloadCsv('supporters-template.csv', [
@@ -81,38 +86,55 @@ export function SupporterImport(props: { onDone?: () => void }) {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    const txt = await file.text();
+    // helper משותף (P0.5): UTF-8 עם fallback ל-windows-1255 לקבצים מאקסל ישן
+    const txt = await readCsvFileText(file);
     setCsv(txt);
     run(txt);
   }
 
+  /** נקודת הכניסה: דו-שלבי כשהדגל פעיל, אחרת פענוח+החלה מיידית. */
   function run(text = csv) {
+    const p = analyze(text);
+    if (p && !previewOn) apply(p);
+  }
+
+  /** שלב 1 — פענוח והצגת סיכום; לא משנה נתונים. */
+  function analyze(text = csv) {
     setError('');
     setSummary('');
+    setPlan(null);
     const rows = parseRows(text);
     if (!rows.length) {
       setError('לא נמצאו שורות תקינות — ודאו שיש עמודת "שם" (חובה)');
-      return;
+      return null;
     }
-    const plan = planSupporterImport(rows, useApp.getState().db.supporters);
+    const p = planSupporterImport(rows, useApp.getState().db.supporters);
+    setPlan(p);
+    return p;
+  }
+
+  /** שלב 2 — החלה בפועל, רק אחרי אישור הסיכום (או מיידית כשהדגל כבוי). */
+  function apply(p = plan) {
+    if (!p) return;
     setDb((db) => {
       let seq = db.seq;
-      const updates = new Map(plan.updates.map((u) => [u.id, u.row]));
+      const updates = new Map(p.updates.map((u) => [u.id, u.row]));
       let supporters = db.supporters.map((sp) =>
         updates.has(sp.id) ? mergeSupporterRow(sp, updates.get(sp.id)!) : sp,
       );
-      const inserts = plan.inserts.map((r) => newSupporterFromRow('sp' + seq++, r));
+      const inserts = p.inserts.map((r) => newSupporterFromRow('sp' + seq++, r));
       supporters = [...inserts, ...supporters];
       return { seq, supporters };
     });
     setSummary(
       'ההצלבה לפי שם — נוספו ' +
-        plan.inserts.length +
+        p.inserts.length +
         ' חדשות · עודכנו ' +
-        plan.updates.length +
+        p.updates.length +
         ' קיימות',
     );
-    toast('ייבוא ' + termOf(config, 'nav.supporters', 'תומכים') + ': +' + plan.inserts.length + ' · ✎' + plan.updates.length);
+    toast('ייבוא ' + termOf(config, 'nav.supporters', 'תומכים') + ': +' + p.inserts.length + ' · ✎' + p.updates.length);
+    setPlan(null);
     setCsv('');
     props.onDone?.();
   }
@@ -153,14 +175,33 @@ export function SupporterImport(props: { onDone?: () => void }) {
           rows={5}
           dir="rtl"
           value={csv}
-          onChange={(e) => setCsv(e.target.value)}
+          onChange={(e) => {
+            setCsv(e.target.value);
+            setPlan(null);
+          }}
           placeholder={'שם,טלפון,אימייל,ת"ז,כתובת,קטגוריה,עבור\nישראל ישראלי,050-1234567,donor@example.com,,ירושלים,תורם פרטי,כללי'}
           style={{ fontFamily: 'monospace', fontSize: 13 }}
         />
       </Field>
-      <Btn kind="primary" onClick={() => run()} disabled={!csv.trim()}>
-        {'ייבוא ' + termOf(config, 'nav.supporters', 'התומכים')}
+      <Btn onClick={() => run()} disabled={!csv.trim()}>
+        {previewOn ? 'בדיקת הקובץ (שלב 1)' : 'ייבוא'}
       </Btn>
+      {plan && (
+        <div style={{ marginTop: 12, border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px' }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>
+            {'זוהו ' + (plan.inserts.length + plan.updates.length) + ' ' + termOf(config, 'nav.supporters', 'תומכות') + ' בקובץ'}
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
+            {'+' + plan.inserts.length + ' חדשות · ' + plan.updates.length + ' עדכונים לקיימות (הצלבה לפי שם)'}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Btn kind="primary" onClick={apply} disabled={!plan.inserts.length && !plan.updates.length}>
+              {'ייבוא ' + (plan.inserts.length + plan.updates.length) + ' ' + termOf(config, 'nav.supporters', 'תומכות')}
+            </Btn>
+            <Btn onClick={() => setPlan(null)}>ביטול</Btn>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

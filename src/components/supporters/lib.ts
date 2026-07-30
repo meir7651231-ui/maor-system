@@ -56,6 +56,33 @@ export function supTier(sc: number): SupTier {
 
 export const TIER_ORDER = ['זהב', 'כסף', 'ארד', 'רדומה'] as const;
 
+/* ---------- פאנל דרגות מורחב (P3 פריט 12) — טהור, נוסחאות הלגאסי ---------- */
+
+/** היסטוגרמת ציון — 10 סלים של 100 נקודות (legacy supBars:3018-3022). */
+export function supScoreBins(supporters: readonly Supporter[]): number[] {
+  const bins = Array(10).fill(0) as number[];
+  for (const sp of supporters) bins[Math.min(9, Math.floor(supScore(sp) / 100))]++;
+  return bins;
+}
+
+/** ממוצע לתרומה — סה"כ ₪-שקול (‎$×3.7‎) חלקי מספר התרומות (legacy supAvgDon:3024); אין תרומות ⇒ null. */
+export function supAvgDon(supporters: readonly Supporter[]): number | null {
+  const totIls = supporters.reduce((a, x) => a + supTotalIls(x), 0);
+  const totCnt = supporters.reduce((a, x) => a + (x.count || 0), 0);
+  return totCnt ? Math.round(totIls / totCnt) : null;
+}
+
+/** מונה "תרמו ב-12 החודשים" — last בתוך 365 יום מ-todayIso (legacy sup12m:3025). */
+export function sup12m(supporters: readonly Supporter[], todayIso: string): number {
+  const d = new Date(todayIso + 'T12:00:00');
+  d.setDate(d.getDate() - 365);
+  const p2 = (n: number) => String(n).padStart(2, '0');
+  const cut = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+  let n = 0;
+  for (const sp of supporters) if (sp.last && sp.last >= cut) n++;
+  return n;
+}
+
 /** צ'יפ דרגה/סטטוס קטן בסגנון אחיד. */
 export function chipStyle(bg: string, c: string): CSSProperties {
   return {
@@ -84,6 +111,99 @@ export function totalLabel(sp: Supporter): string {
   const ils = sp.ils ? '₪' + sp.ils.toLocaleString('he-IL') : '';
   const usd = sp.usd ? '$' + sp.usd.toLocaleString('he-IL') : '';
   return ils && usd ? ils + ' + ' + usd : ils || usd || '—';
+}
+
+/* ── "כל התרומות" — מיזוג קבלות + הקובץ ההיסטורי (feature supporters.hist) ── */
+
+/** שורת תצוגה ברשימת "כל התרומות" — קבלה, רשומת hist או ציון first/last. */
+export interface SupDonEvent {
+  date: string;
+  amount: number;
+  cur: '₪' | '$' | '';
+  /** מקור השורה: 'קבלה R-N' / 'מהקובץ ההיסטורי' / 'תרומה ראשונה (מהקובץ)'. */
+  src: string;
+  rid?: string;
+}
+
+/**
+ * מיזוג התרומות לתצוגה — verbatim מהלגאסי (legacy-main-script.js:1486-1495,
+ * supDonEvents): donations עם 'קבלה <rid>' + hist עם 'מהקובץ ההיסטורי';
+ * כשאין hist — שורות first/last (סכום 0) כ"תרומה ראשונה/אחרונה (מהקובץ)",
+ * רק אם תאריכן לא מופיע כבר. ממוין מהחדש לישן.
+ */
+export function supDonEvents(sp: Supporter): SupDonEvent[] {
+  const out: SupDonEvent[] = (sp.donations || []).map((d) => ({
+    date: d.date,
+    amount: d.amount,
+    cur: d.cur || '₪',
+    src: 'קבלה ' + d.rid,
+    rid: d.rid,
+  }));
+  for (const h of sp.hist || []) out.push({ date: h.d, amount: h.a, cur: h.c || '₪', src: 'מהקובץ ההיסטורי' });
+  if (!(sp.hist || []).length) {
+    const seen = new Set(out.map((x) => x.date));
+    if (sp.first && !seen.has(sp.first)) out.push({ date: sp.first, amount: 0, cur: '', src: 'תרומה ראשונה (מהקובץ)' });
+    if (sp.last && sp.last !== sp.first && !seen.has(sp.last)) out.push({ date: sp.last, amount: 0, cur: '', src: 'תרומה אחרונה (מהקובץ)' });
+  }
+  return out.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+}
+
+/* ── לוח התרומות (feature supporters.doncal) — שורות הלוח האישי והכלל-ארגוני ──
+   ratchet: legacy supCalMine/supCalAll (legacy-main-script.js:2928-2944) —
+   הלוח מציג לצד התרומות גם את אירועי מעקב הטיפול (🧿 רישומים, 📞 תשובות,
+   🔁 לדבר שוב) ואת 🎯 תאריך היעד בלוח האישי. */
+
+/** רשומת-יום בלוח התרומות — תרומה/קבלה/אירוע מעקב, עם ניווט לתומכת בלוח הכללי. */
+export interface SupCalEntry {
+  date: string;
+  amount: number;
+  cur: '₪' | '$' | '';
+  src: string;
+  name?: string;
+  spId?: string;
+}
+
+/** שורות הלוח האישי של תומכת — legacy supCalMine (2940-2944). */
+export function personalCalEntries(sp: Supporter): SupCalEntry[] {
+  const out: SupCalEntry[] = supDonEvents(sp).map((e) => ({ date: e.date, amount: e.amount, cur: e.cur, src: e.src }));
+  if (sp.nextDate) out.push({ date: sp.nextDate, amount: 0, cur: '', src: '🎯 תאריך יעד לקשר הבא' });
+  for (const l of sp.ayin?.log ?? []) {
+    out.push({ date: l.date, amount: 0, cur: '', src: '🧿 ' + l.eyes + (l.name ? ' — ' + l.name : '') });
+  }
+  for (const an of sp.ayin?.answers ?? []) out.push({ date: an.date, amount: 0, cur: '', src: '📞 תשובה: ' + an.note });
+  if (sp.ayin?.nextTalk) out.push({ date: sp.ayin.nextTalk, amount: 0, cur: '', src: '🔁 לדבר שוב' });
+  return out.filter((e) => !!e.date);
+}
+
+/** שורות הלוח הכלל-ארגוני — כל התומכות (legacy supCalAll, 2928-2937). */
+export function orgCalEntries(supporters: Supporter[]): SupCalEntry[] {
+  const out: SupCalEntry[] = [];
+  for (const sp of supporters) {
+    for (const e of supDonEvents(sp)) out.push({ date: e.date, amount: e.amount, cur: e.cur, src: e.src, name: sp.name, spId: sp.id });
+    for (const l of sp.ayin?.log ?? []) {
+      out.push({ date: l.date, amount: 0, cur: '', src: '🧿 ' + l.eyes + (l.name ? ' — ' + l.name : ''), name: sp.name, spId: sp.id });
+    }
+    for (const an of sp.ayin?.answers ?? []) out.push({ date: an.date, amount: 0, cur: '', src: '📞 תשובה: ' + an.note, name: sp.name, spId: sp.id });
+    if (sp.ayin?.nextTalk) out.push({ date: sp.ayin.nextTalk, amount: 0, cur: '', src: '🔁 לדבר שוב', name: sp.name, spId: sp.id });
+  }
+  return out.filter((e) => !!e.date);
+}
+
+/** שורת סיכום החודש — 'N תרומות החודש · ₪X + $Y' (legacy supCalData monthLine). */
+export function donCalMonthLine(entries: SupCalEntry[], inMonth: (iso: string) => boolean): string {
+  let mc = 0;
+  let mi = 0;
+  let mu = 0;
+  for (const e of entries) {
+    if (!inMonth(e.date)) continue;
+    mc++;
+    if (e.cur === '$') mu += e.amount || 0;
+    else mi += e.amount || 0;
+  }
+  if (!mc) return 'אין תרומות מתועדות בחודש זה';
+  const sums =
+    (mi ? '₪' + mi.toLocaleString('he-IL') : '') + (mi && mu ? ' + ' : '') + (mu ? '$' + mu.toLocaleString('he-IL') : '');
+  return mc + ' תרומות החודש · ' + (sums || 'סכומים מהקובץ ההיסטורי');
 }
 
 /* ── ייבוא תומכות מ-CSV — עדכון-או-הוספה לפי שם מנורמל (טהור, נבדק ביחידה) ── */

@@ -27,6 +27,9 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   const upsertEnrollment = useApp((s) => s.upsertEnrollment);
   const deleteEnrollment = useApp((s) => s.deleteEnrollment);
   const addPayment = useApp((s) => s.addPayment);
+  const storeUndoPunch = useApp((s) => s.undoPunch);
+  const selectCourse = useApp((s) => s.selectCourse);
+  const unlinkEvent = useApp((s) => s.unlinkEvent);
   const upsertEvent = useApp((s) => s.upsertEvent);
   const deleteEvent = useApp((s) => s.deleteEvent);
   const addCred = useApp((s) => s.addCred);
@@ -38,6 +41,8 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   const paymentsOn = featureOn(cfg, 'courses.payments');
   const groupsOn = featureOn(cfg, 'courses.groups');
   const receiptsOn = featureOn(cfg, 'core.receipts');
+  // קבלה מלאה (P1.2) — שורות סיכום העסקה + הורדה חוזרת פר-תשלום (legacy receipt())
+  const receiptSummaryOn = featureOn(cfg, 'courses.receipt.summary');
 
   const en = db.enrollments.find((e) => e.id === props.enrollmentId);
   const c = props.course;
@@ -69,8 +74,9 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   function saveDueDate(v: string) {
     if (!en) return;
     if (!v) {
-      upsertEnrollment({ ...en, dueDate: '' });
-      toast('תאריך התשלום הבא נוקה');
+      // ניקוי + מחיקת התזכורת המקושרת מהלוח (unlinkEvent — תיקון האירוע היתום, P1.9)
+      unlinkEvent('enrollmentDue', en.id);
+      toast('תאריך התשלום הבא נוקה — התזכורת הוסרה מהלוח');
       return;
     }
     let evId = en.dueEventId;
@@ -104,11 +110,14 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       toast('הקלידו סכום תשלום תקין');
       return;
     }
-    // מספר הקבלה נגזר מ-receiptSeq הנוכחי — בדיוק כפי ש-addPayment שב-store מחשב אותו
-    const rid = 'R-' + useApp.getState().db.receiptSeq;
     const date = payDate || isoToday();
     const method = payMethod || 'מזומן';
-    addPayment(en.id, { date, amount: amt, method });
+    // הקבלה יורדת רק כשה-store קיבל את התשלום, ועם ה-rid שהונפק בפועל —
+    // קודם ניחשנו rid מ-receiptSeq והורדנו קבלה גם על דחייה (rid שמעולם לא הונפק).
+    const res = addPayment(en.id, { date, amount: amt, method });
+    if (!res.ok || !res.rid) return; // ה-store כבר הציג טוסט דחייה
+    const rid = res.rid;
+    const newBal = Math.max(0, (en.totalDue || 0) - (paid + amt));
     // קבלות כבויות בקונפיגורציה → התשלום נרשם, אך ללא הורדת קבלה וללא טוסט הקבלה
     if (receiptsOn) {
       downloadReceipt({
@@ -119,14 +128,34 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         method,
         date,
         forWhat: c.name,
+        // שורות סיכום העסקה — רק כשהדגל דלוק (בלעדיו הקבלה כמו קודם)
+        summary: receiptSummaryOn
+          ? { totalDue: en.totalDue || 0, paidSoFar: paid + amt, balance: newBal, nextDate: en.dueDate || undefined }
+          : undefined,
       });
     }
     setPayAmt('');
-    const newBal = Math.max(0, (en.totalDue || 0) - (paid + amt));
     toast('התקבל ₪' + amt + (en.totalDue ? ' · יתרה: ₪' + newBal : '') + ' — קבלה ' + rid);
     if (receiptsOn) toast('הקבלה ירדה למחשב ✓');
     const fam = famOf();
     if (fam) addCred(fam.id, 5, 'תשלום התקבל (₪' + amt + ')');
+  }
+
+  /** 🧾 הורדה חוזרת של קבלה לתשלום קיים — כמו legacy receipt(en, p) (legacy:2272). */
+  function redownloadReceipt(p: Enrollment['payments'][number]) {
+    if (!en) return;
+    downloadReceipt({
+      rid: p.rid,
+      orgName: useApp.getState().config.orgName || db.orgName,
+      payer: ((m?.first ?? '') + ' ' + (m?.famName ?? '')).trim() || '—',
+      amount: p.amount,
+      method: p.method,
+      date: p.date,
+      forWhat: c.name,
+      // בהורדה חוזרת הסיכום משקף את המצב הנוכחי של העסקה (כמו בלגאסי)
+      summary: { totalDue: en.totalDue || 0, paidSoFar: paid, balance: bal, nextDate: en.dueDate || undefined },
+    });
+    toast('הקבלה ' + p.rid + ' ירדה שוב למחשב ✓');
   }
 
   function buyPunches() {
@@ -162,14 +191,10 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   }
 
   function undoPunch() {
-    if (!en || !en.used) {
-      toast('אין ניקוב לביטול');
-      return;
-    }
-    upsertEnrollment({ ...en, used: en.used - 1 });
-    const fam = famOf();
-    if (fam) addCred(fam.id, -5, 'ביטול ניקוב — תיקון טעות');
-    toast('הניקוב האחרון בוטל — היתרה הוחזרה');
+    if (!en) return;
+    // ההחזר המדויק (legacy mgUndo) ממומש ב-store — כולל הסרת רשומת ה-Check-in
+    // מהלוג והחזרת הדלתא בפועל (לא הנחת ‎-5). P1.8.
+    storeUndoPunch(en.id);
   }
 
   function togglePause() {
@@ -221,6 +246,17 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         </strong>
         <span style={chipStyle('#f6ead1', '#9a6414')}>{en.plan === 'punch' ? 'כרטיסייה' : planWord(en.plan)}</span>
         <span style={chipStyle(st.bg, st.c)}>{st.label}</span>
+        {/* לגאסי mg: קישור לכרטיס החוג (מעבר 199/199) */}
+        <button
+          type="button"
+          onClick={() => {
+            selectCourse(c.id);
+            props.onClose();
+          }}
+          style={{ border: 'none', background: 'transparent', color: 'var(--accent)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+        >
+          {'לכרטיס ה' + termOf(cfg, 'entity.course', 'חוג') + ' ←'}
+        </button>
       </div>
       <div style={{ fontSize: 13, color: 'var(--ink-soft)', fontWeight: 600, marginBottom: 12 }}>
         {en.plan === 'punch' ? 'יתרה: ' + rem + ' מתוך ' + en.purchased : en.used + ' נוכחויות מתחילת החודש'}
@@ -288,9 +324,19 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
                   padding: '6px 10px',
                   fontSize: 12,
                   fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
                 }}
               >
-                {fmtDate(p.date)} · ₪{p.amount} · {p.method} · 🧾 {p.rid}
+                <span style={{ flex: 1 }}>
+                  {fmtDate(p.date)} · ₪{p.amount} · {p.method} · 🧾 {p.rid}
+                </span>
+                {receiptsOn && receiptSummaryOn && (
+                  <Btn sm onClick={() => redownloadReceipt(p)} title={'הורדה חוזרת של קבלה ' + p.rid}>
+                    🧾 הורדה
+                  </Btn>
+                )}
               </div>
             ))}
           </div>

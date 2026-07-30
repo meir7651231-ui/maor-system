@@ -1,0 +1,113 @@
+{
+  "v": 1,
+  "savedAt": "2026-07-28T18:00:00.000Z",
+  "families": [
+    {
+      "id": "fr12",
+      "name": "פרידמן",
+      "father": "יעקב",
+      "mother": "רבקה",
+      "phone": "050-1112233",
+      "city": "ביתר עילית",
+      "community": "חסידי",
+      "maritalStatus": "נשואים",
+      "status": "active",
+      "notes": "",
+      "members": [
+        { "id": "mi40", "first": "שרה", "birth": "2015-03-02", "gender": "F" },
+        { "id": "mi41", "first": "משה", "birth": "2017-06-10", "gender": "M" }
+      ],
+      "docs": ["ספח.pdf"],
+      "cred": { "score": 640, "log": [{ "d": "2026-05-01", "delta": -20, "desc": "היעדרות" }] }
+    },
+    {
+      "id": "wd7",
+      "name": "וידר",
+      "father": "",
+      "mother": "מרים",
+      "phone": "052-9998877",
+      "city": "ירושלים",
+      "maritalStatus": "אלמן/ה",
+      "status": "active",
+      "members": [{ "id": "mi55", "first": "רחל", "birth": "2013-01-20", "gender": "F" }],
+      "docs": [],
+      "cred": { "score": 700, "log": [] }
+    },
+    {
+      "id": "fb3",
+      "name": "פישביין",
+      "phone": "",
+      "city": "בית שמש",
+      "status": "pending",
+      "members": [],
+      "docs": [],
+      "cred": { "score": 700, "log": [] }
+    }
+  ],
+  "enrollments": [
+    {
+      "id": "e70",
+      "memberId": "mi40",
+      "courseId": "c60",
+      "plan": "punch",
+      "purchased": 10,
+      "used": 3,
+      "status": "active",
+      "payments": [{ "rid": "R-2", "amount": 120, "date": "2026-06-01", "method": "מזומן" }],
+      "absences": []
+    }
+  ],
+  "courses": [
+    {
+      "id": "c60",
+      "name": "ריקוד",
+      "teacherId": "t5",
+      "roomId": "r2",
+      "day": 2,
+      "start": "2026-01-01",
+      "end": "2026-12-31",
+      "price": 120
+    }
+  ],
+  "events": [{ "id": "ev81", "title": "יריד חנוכה", "date": "2026-12-10", "type": "org", "done": false }],
+  "rooms": [{ "id": "r2", "name": "אולם ראשי" }],
+  "orgName": "מאור החסד",
+  "orgSite": "https://maor.example.org",
+  "orgDonate": "https://donate.example.org",
+  "notif": { "email": true, "push": false, "sms": true, "strong": false },
+  "reports": { "daily": true, "weekly": false, "monthly": false, "quarterly": false },
+  "seq": 90,
+  "teachers": [{ "id": "t5", "name": "גב׳ לוי", "phone": "053-1234567" }],
+  "supporters": [
+    {
+      "id": "spi105",
+      "name": "גולדשטיין",
+      "phone": "054-7654321",
+      "count": 3,
+      "ils": 1800,
+      "usd": 0,
+      "first": "2024-02-11",
+      "last": "2026-05-30",
+      "nextDate": "",
+      "donations": [{ "rid": "D-3", "date": "2026-05-30", "amount": 600, "cur": "₪", "cat": "כללי" }],
+      "hist": [
+        { "d": "2024-02-11", "a": 600 },
+        { "d": "2025-01-15", "a": 600, "c": "$" }
+      ]
+    },
+    {
+      "id": "spi106",
+      "name": "ברגר",
+      "phone": "",
+      "count": 0,
+      "ils": 0,
+      "usd": 0,
+      "first": "2023-11-02",
+      "last": "2024-03-08",
+      "nextDate": "",
+      "donations": [],
+      "hist": []
+    }
+  ],
+  "ui": { "famView": "grid", "crsView": "list" }
+}

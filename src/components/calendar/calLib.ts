@@ -11,7 +11,7 @@ import {
 } from '../../types/domain';
 import { gem, gemYear, hebParts, hebAnnualEq, holidayOf, type HebParts } from '../../lib/hebrew';
 import { isoLocal } from '../../lib/date-util';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 import { sessionsOf } from '../courses/lib';
 // sessionsOf — מקור-אמת יחיד בקורסים; מיוצא מחדש (wallData מייבא אותו מכאן)
@@ -195,6 +195,8 @@ export interface DayItem {
   layer?: 'bday' | 'join' | 'enroll';
   /** מפגש חוג שנופל על חג — מוצג מסומן כלא מתקיים. */
   skipped?: boolean;
+  /** שורת משנה בציר היום (P3 פריט 6): מורה · חדר · N רשומים / הערות אירוע. */
+  sub?: string;
 }
 
 /* ---------- פילטרים לשכבות ---------- */
@@ -270,6 +272,8 @@ export function dayItems(db: Db, d: Date, config: OrgConfig = DEFAULT_CONFIG): D
       typeLabel: evLabel(ev),
       sort: ev.priority === 'red' ? 0.5 : 1,
       prC: PRIORITY_COLOR[ev.priority] ?? 'transparent',
+      // שורת משנה (P3 פריט 6) — הערות האירוע, כמו בלגאסי
+      sub: ev.notes || '',
       ev,
     });
   }
@@ -350,6 +354,10 @@ export function dayItems(db: Db, d: Date, config: OrgConfig = DEFAULT_CONFIG): D
     if (c.end && iso > c.end) continue;
     for (const [i, ss] of sessionsOf(c).entries()) {
       if (ss.day !== dow) continue;
+      // שורת משנה (P3 פריט 6, לגאסי dayV): מורה · חדר · N רשומים
+      const tName = db.teachers.find((t) => t.id === c.teacherId)?.name;
+      const rName = db.rooms.find((r) => r.id === c.roomId)?.name;
+      const nEnrolled = db.enrollments.filter((e) => e.courseId === c.id && e.status !== 'ended').length;
       out.push({
         key: `crs-${c.id}-${i}-${ss.label || ss.time}`,
         label: (ss.time ? ss.time + ' · ' : '') + c.name + (ss.label ? ' · ' + ss.label : ''),
@@ -359,6 +367,7 @@ export function dayItems(db: Db, d: Date, config: OrgConfig = DEFAULT_CONFIG): D
         typeLabel: 'מפגש ' + courseWord,
         sort: 3,
         prC: 'transparent',
+        sub: [tName, rName, nEnrolled + ' רשומים'].filter(Boolean).join(' · '),
         courseId: c.id,
         skipped: !!courseBlock,
       });
@@ -414,6 +423,15 @@ function makeCell(
     holiday: holidayOf(d),
     items: dayItems(db, d, config),
   };
+}
+
+/**
+ * מצב הפתיחה של הלוח (P1.1, feature calendar.hebdefault) — טהור.
+ * ratchet: הלגאסי נפתח בגריד העברי (state calHebMode:true). חוזה הדגלים:
+ * מפתח חסר = דלוק = נפתח עברי; false מפורש = לועזי.
+ */
+export function initialHebMode(config: OrgConfig): boolean {
+  return featureOn(config, 'calendar.hebdefault');
 }
 
 /** רשת חודש לועזי — 42 תאים קבועים, ראשון עד שבת. */
@@ -499,6 +517,109 @@ export interface UpcomingRow {
   c: string;
   prC: string;
   ev: OrgEvent;
+}
+
+/* ---------- אזהרת התנגשות רכה (P3 פריט 5, לגאסי: ' · ⚠ התנגשות עם "X"') ---------- */
+
+/**
+ * אזהרה רכה בשמירת אירוע: אירוע אחר (לא בוצע) באותו יום ובאותה שעה — גם
+ * בחדר אחר או בלי חדר. לא חוסמת (החסימות הקשיחות ב-roomClashError);
+ * מחזירה את הסיומת לטוסט או ''.
+ */
+export function softClashSuffix(
+  events: readonly OrgEvent[],
+  date: string,
+  time: string,
+  excludeId?: string,
+): string {
+  if (!date || !time) return '';
+  const other = events.find(
+    (ev) => ev.id !== excludeId && !ev.done && ev.date === date && ev.time === time,
+  );
+  return other ? ' · ⚠ התנגשות עם "' + other.title + '" בשעה ' + time : '';
+}
+
+/* ---------- מופע הבא של אירוע חוזר (מעבר 199/199, לגאסי nextOccurLabel) ---------- */
+
+/**
+ * המופע הבא של אירוע חוזר-בעברי מ-fromIso והלאה — סריקה עד 400 ימים
+ * (כמו nextOccurLabel בלגאסי) למציאת התאמת חודש+יום עבריים (hebAnnualEq,
+ * כולל דין אדר). אירוע לא-חוזר או שלא נמצא ⇒ ''.
+ */
+export function nextOccurIso(ev: Pick<OrgEvent, 'type' | 'date'>, fromIso: string): string {
+  if (!ev.date || !HEBREW_RECURRING.has(ev.type)) return '';
+  const oh = hpOf(ev.date);
+  const from = new Date(fromIso + 'T12:00:00');
+  for (let i = 0; i < 400; i++) {
+    const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + i);
+    const iso = isoOf(d);
+    if (iso >= ev.date && hebAnnualEq(oh, hpOf(iso, d))) return iso;
+  }
+  return '';
+}
+
+/* ---------- צ׳יפי תאריכים מהירים (P2 פער 26) ---------- */
+
+export type QuickDateKind = 'today' | 'tomorrow' | 'week' | 'month';
+
+export const QUICK_DATE_CHIPS: ReadonlyArray<readonly [QuickDateKind, string]> = [
+  ['today', 'היום'],
+  ['tomorrow', 'מחר'],
+  ['week', 'בעוד שבוע'],
+  ['month', 'בעוד חודש'],
+];
+
+/**
+ * הזזת תאריך מהירה מ-base (ISO): היום/מחר/בעוד שבוע/בעוד חודש.
+ * חודש = אותו יום בחודש הבא דרך Date (T12:00:00 — צהריים מקומי, בלי נפילת
+ * אזור-זמן); 31 בחודש קצר גולש קדימה כהתנהגות Date הרגילה.
+ */
+export function quickDate(base: string, kind: QuickDateKind): string {
+  const d = new Date(base + 'T12:00:00');
+  if (kind === 'tomorrow') d.setDate(d.getDate() + 1);
+  else if (kind === 'week') d.setDate(d.getDate() + 7);
+  else if (kind === 'month') d.setMonth(d.getMonth() + 1);
+  return isoOf(d);
+}
+
+/* ---------- פאנל "קרובים" מלא (P2 פער 25, feature calendar.upcoming) ---------- */
+
+export interface UpcomingDay {
+  iso: string;
+  /** היום העברי בגימטריה + שם החודש העברי לבלוק התאריך. */
+  dayGem: string;
+  monHeb: string;
+  /** תווית לועזית DD/MM/YYYY. */
+  gLabel: string;
+  /** יום ראשון/שני… */
+  weekday: string;
+  items: DayItem[];
+}
+
+/**
+ * הפריטים של 30 הימים הקרובים — אירועים (כולל חוזרים בעברי) והשכבות
+ * הנגזרות (ימי הולדת/הצטרפות/הרשמה) דרך dayItems; מפגשי חוגים מוחרגים
+ * (חוזרים שבועית — רעש). now מוזרק (טוהר); ימים ריקים לא מוחזרים.
+ * הסינון לפי הפילטרים הפעילים נעשה בתצוגה (allowItem) — הכרעה 6.
+ */
+export function upcomingItems(db: Db, now: Date, days = 30, config: OrgConfig = DEFAULT_CONFIG): UpcomingDay[] {
+  const out: UpcomingDay[] = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+    const iso = isoOf(d);
+    const items = dayItems(db, d, config).filter((it) => !it.courseId && !(it.ev && it.ev.done));
+    if (!items.length) continue;
+    const hp = hpOf(iso, d);
+    out.push({
+      iso,
+      dayGem: gem(hp.day),
+      monHeb: fmtHebMonth.format(d),
+      gLabel: fmtD(iso),
+      weekday: 'יום ' + DAY_NAMES[d.getDay()],
+      items,
+    });
+  }
+  return out;
 }
 
 /** אירועים ותזכורות ב-14 הימים הקרובים, כולל חוזרים לפי התאריך העברי. */

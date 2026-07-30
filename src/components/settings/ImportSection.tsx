@@ -9,8 +9,11 @@ import { useState, type ChangeEvent } from 'react';
 import { emptyFamily, emptyMember, type Family, type Member } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { parseBackupFile } from '../../store/persist';
+import { featureOn, termOf } from '../../lib/config';
 import { normalizePhone, normSearch, formatIsraeliPhone } from '../../lib/validate';
-import { parseAnyDate, parseCsv } from '../../lib/csvx';
+import { downloadCsv, parseAnyDate, parseCsv, readCsvFileText } from '../../lib/csvx';
+import { ayinSheetRows, featLabel, parseAyinSheet, type AyinSheetParse } from '../../lib/ayin';
+import { mergeFamilyImport, parseFamiliesCsv, type FamiliesImportPlan } from '../../lib/familiesImport';
 import { Btn, Field, FormError } from '../ui';
 import { Section, SectionNote } from './lib';
 import { isoToday } from './helpers';
@@ -26,6 +29,9 @@ export function ImportSection() {
   const upsertFamily = useApp((s) => s.upsertFamily);
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
+  // מסלול 13 העמודות מהקובץ החי (P0.5) — כבוי = מסלול 5 העמודות הישן
+  const families13On = featureOn(config, 'settings.import.families13');
 
   const [error, setError] = useState('');
   const [summary, setSummary] = useState('');
@@ -182,32 +188,290 @@ export function ImportSection() {
         />
       </label>
 
-      <h3 style={{ fontSize: 15, fontWeight: 700, margin: '10px 0 6px' }}>מהדבקת CSV</h3>
-      <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-        קובץ אקסל? שמרו קודם בתור CSV (קובץ ← שמירה בשם ← CSV), פתחו בפנקס רשימות והדביקו כאן.
-        שורה לכל משפחה, בסדר הזה: <b>שם משפחה, שם האב, שם האם, טלפון, עיר</b>.
-      </p>
-      <Field label="שורות CSV">
-        <textarea
-          rows={5}
-          dir="rtl"
-          value={csv}
-          onChange={(e) => setCsv(e.target.value)}
-          placeholder={'כהן, אברהם, שרה, 050-1234567, ירושלים\nלוי, יעקב, רבקה, 052-7654321, בני ברק'}
-          style={{ fontFamily: 'monospace', fontSize: 13 }}
-        />
-      </Field>
-      <Btn kind="primary" onClick={importCsv} disabled={!csv.trim()}>
-        ייבוא המשפחות מהרשימה
-      </Btn>
+      {families13On ? (
+        <Families13Import />
+      ) : (
+        <>
+          <h3 style={{ fontSize: 15, fontWeight: 700, margin: '10px 0 6px' }}>מהדבקת CSV</h3>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
+            קובץ אקסל? שמרו קודם בתור CSV (קובץ ← שמירה בשם ← CSV), פתחו בפנקס רשימות והדביקו כאן.
+            שורה לכל משפחה, בסדר הזה: <b>שם משפחה, שם האב, שם האם, טלפון, עיר</b>.
+          </p>
+          <Field label="שורות CSV">
+            <textarea
+              rows={5}
+              dir="rtl"
+              value={csv}
+              onChange={(e) => setCsv(e.target.value)}
+              placeholder={'כהן, אברהם, שרה, 050-1234567, ירושלים\nלוי, יעקב, רבקה, 052-7654321, בני ברק'}
+              style={{ fontFamily: 'monospace', fontSize: 13 }}
+            />
+          </Field>
+          <Btn kind="primary" onClick={importCsv} disabled={!csv.trim()}>
+            ייבוא המשפחות מהרשימה
+          </Btn>
+        </>
+      )}
 
       <KidsImport />
 
       <h3 style={{ fontSize: 15, fontWeight: 700, margin: '18px 0 6px' }}>תומכות (CSV)</h3>
       <SupporterImport />
 
+      <AyinSheetImport />
+
       <SectionNote>אחרי הייבוא אפשר להשלים לכל משפחה את שאר הפרטים ובני המשפחה במסך המשפחות.</SectionNote>
     </Section>
+  );
+}
+
+/* ── ייבוא משפחות 13 עמודות (P0.5, feature settings.import.families13) —
+     המסלול המלא מהקובץ החי: מיפוי עמודות קבוע + כל הניקויים (lib/familiesImport,
+     ratchet legacy:944-960) + preview דו-שלבי לפני החלה (כמו KidsImport). ── */
+
+function Families13Import() {
+  const setDb = useApp((s) => s.setDb);
+  const toast = useApp((s) => s.toast);
+
+  const [csv, setCsv] = useState('');
+  const [error, setError] = useState('');
+  const [summary, setSummary] = useState('');
+  const [plan, setPlan] = useState<FamiliesImportPlan | null>(null);
+
+  /** שלב 1 — פענוח וניקויים; לא משנה נתונים. */
+  function analyze(text: string) {
+    setError('');
+    setSummary('');
+    setPlan(null);
+    const rows = parseCsv(text);
+    if (rows.length < 2) {
+      setError('הקובץ ריק או לא בפורמט CSV (נדרשת שורת כותרות + שורות נתונים)');
+      return;
+    }
+    const p = parseFamiliesCsv(rows, useApp.getState().db.families);
+    if (!p.news.length && !p.upds.length) {
+      setError('לא נמצאו שורות משפחה תקינות — ודאו שהשם בעמודה הראשונה');
+      return;
+    }
+    setPlan(p);
+  }
+
+  async function onFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const txt = await readTextFile(file);
+      setCsv(txt);
+      analyze(txt);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'שגיאה בקריאת הקובץ');
+    }
+  }
+
+  /** שלב 2 — החלה: עדכונים לקיימות (שדות לא-ריקים בלבד) + הוספת חדשות. */
+  function apply() {
+    if (!plan) return;
+    const { news, upds } = plan;
+    setDb((db) => {
+      let seq = db.seq;
+      const byId = new Map(upds.map((u) => [u.id, u.obj]));
+      let families = db.families.map((f) => {
+        const obj = byId.get(f.id);
+        return obj ? mergeFamilyImport(f, obj) : f;
+      });
+      const fresh: Family[] = news.map((o) => ({
+        ...emptyFamily(),
+        ...o,
+        id: 'f' + seq++,
+        createdAt: isoToday(),
+        members: [],
+        docs: [],
+      }));
+      families = [...fresh, ...families];
+      return { seq, families };
+    });
+    setPlan(null);
+    setCsv('');
+    setSummary('+' + news.length + ' משפחות חדשות · ' + upds.length + ' עודכנו');
+    toast('+' + news.length + ' משפחות חדשות · ' + upds.length + ' עודכנו');
+  }
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <h3 style={{ fontSize: 15, fontWeight: 700, margin: '10px 0 6px' }}>משפחות מהקובץ החי (13 עמודות)</h3>
+      <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
+        הקובץ המלא מהמערכת הישנה — סדר עמודות קבוע: <b>שם · ת"ז אב · טלפון · שם האם · ת"ז אם ·
+        טלפון2 · עיר · כתובת ×2 · רמז אלמן · קהילה · (—) · הערות</b>. הניקויים נעשים אוטומטית:
+        "יריד חנוכה" עובר להערות, ‎#NAME?‎ מוסר, "ביתר/ביתר עלית" ← "ביתר עילית", סטטוס ומצב
+        משפחתי מזוהים מההערות ומרמז האלמן, קהילה ריקה ← "חסידי". משפחה קיימת (שם + טלפון תואם)
+        מתעדכנת במקום להיווצר שוב.
+      </p>
+      <FormError error={error} />
+      {summary && (
+        <div
+          style={{
+            background: '#e4f5ea',
+            color: 'var(--green)',
+            borderRadius: 8,
+            padding: '8px 12px',
+            fontSize: 14,
+            marginBottom: 12,
+          }}
+        >
+          {summary}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+        <label className="btn" style={{ cursor: 'pointer', display: 'inline-flex' }}>
+          בחירת קובץ CSV…
+          <input
+            type="file"
+            accept=".csv,text/csv,text/plain"
+            style={{ display: 'none' }}
+            onChange={(e) => void onFile(e)}
+          />
+        </label>
+        <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>או הדביקו למטה</span>
+      </div>
+      <Field label="שורות CSV (כולל שורת הכותרות)">
+        <textarea
+          rows={5}
+          dir="rtl"
+          value={csv}
+          onChange={(e) => {
+            setCsv(e.target.value);
+            setPlan(null);
+          }}
+          placeholder={'שם,ת"ז אב,טלפון,שם האם,ת"ז אם,טלפון2,עיר,כתובת,המשך כתובת,רמז,קהילה,,הערות\nכהן,012345678,050-1234567,שרה,087654321,-,ירושלים,רח\' הרב קוק,12,,חסידי,,'}
+          style={{ fontFamily: 'monospace', fontSize: 13 }}
+        />
+      </Field>
+      <Btn onClick={() => analyze(csv)} disabled={!csv.trim()}>
+        בדיקת הקובץ (שלב 1)
+      </Btn>
+      {plan && (
+        <div style={{ marginTop: 12, border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px' }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>
+            {'זוהו ' + (plan.news.length + plan.upds.length) + ' משפחות בקובץ'}
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
+            {'+' + plan.news.length + ' חדשות · ' + plan.upds.length + ' עדכונים לקיימות'}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Btn kind="primary" onClick={apply}>
+              {'ייבוא ' + (plan.news.length + plan.upds.length) + ' משפחות'}
+            </Btn>
+            <Btn onClick={() => setPlan(null)}>ביטול</Btn>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── גיליון העיניים (P0.4, feature supporters.ayin.sheet) — round-trip:
+     ⬇ הורדת maor-ayin-eyes.csv ← מילוי בחוץ ← ⬆ ייבוא דו-שלבי (סיכום ← החלה).
+     הפענוח וההחלה טהורים ב-lib/ayin (ratchet legacy:196-198, 852-869, 983-993). ── */
+
+function AyinSheetImport() {
+  const config = useApp((s) => s.config);
+  const supporters = useApp((s) => s.db.supporters);
+  const ayinApplySheet = useApp((s) => s.ayinApplySheet);
+  const toast = useApp((s) => s.toast);
+
+  const [error, setError] = useState('');
+  const [parsed, setParsed] = useState<AyinSheetParse | null>(null);
+
+  // תת-דגל של מעקב הטיפול — שניהם חייבים להיות דלוקים (קונבנציית תת-הדגלים)
+  if (!featureOn(config, 'supporters.ayin') || !featureOn(config, 'supporters.ayin.sheet')) return null;
+
+  const feat = featLabel(config);
+
+  function download() {
+    const rows = ayinSheetRows(supporters);
+    if (rows.length === 1) {
+      toast('אין שמות למסירה במערכת');
+      return;
+    }
+    downloadCsv('maor-ayin-eyes.csv', rows);
+    toast('ירד גיליון העיניים — מלאו את העמודות והחזירו ב-⬆ ייבוא');
+  }
+
+  async function onFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setError('');
+    setParsed(null);
+    try {
+      const res = parseAyinSheet(parseCsv(await readTextFile(file)), supporters);
+      if (res.error) {
+        setError(res.error);
+        return;
+      }
+      setParsed(res);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'שגיאה בקריאת הקובץ');
+    }
+  }
+
+  function apply() {
+    if (!parsed || !parsed.upds.length) return;
+    ayinApplySheet(parsed.upds);
+    setParsed(null);
+  }
+
+  const u = parsed?.upds ?? [];
+
+  return (
+    <div style={{ marginTop: 18 }}>
+      <h3 style={{ fontSize: 15, fontWeight: 700, margin: '10px 0 6px' }}>גיליון {feat} (CSV)</h3>
+      <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
+        הורידו את הגיליון, מלאו את העמודות מחוץ למערכת (עיניים · נמסר · שולם · תשובה/הערה · עופרת
+        בוצעה) והחזירו אותו — העדכונים ייכנסו לכרטיסים, להיסטוריה ולדוח.
+      </p>
+      <FormError error={error} />
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+        <Btn onClick={download}>⬇ הורדת הגיליון</Btn>
+        <label className="btn" style={{ cursor: 'pointer', display: 'inline-flex' }}>
+          ⬆ ייבוא גיליון שמולא…
+          <input
+            type="file"
+            accept=".csv,text/csv,text/plain"
+            style={{ display: 'none' }}
+            onChange={(e) => void onFile(e)}
+          />
+        </label>
+      </div>
+      {parsed && (
+        <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px' }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>
+            {'זוהו ' + u.length + ' שמות לעדכון'}
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 6 }}>
+            {u.filter((x) => x.eyes != null).length + ' עיניים · ' +
+              u.filter((x) => x.paid != null).length + ' שולם · ' +
+              u.filter((x) => x.answer).length + ' תשובות · ' +
+              u.filter((x) => x.lead).length + ' עופרת'}
+          </div>
+          {parsed.miss > 0 && (
+            <div style={{ fontSize: 12.5, color: '#b91c1c', marginBottom: 8 }}>
+              {parsed.miss + ' שורות לא הותאמו לשם קיים במערכת'}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Btn kind="primary" onClick={apply} disabled={!u.length}>
+              {'החלת העדכונים (' + u.length + ')'}
+            </Btn>
+            <Btn onClick={() => setParsed(null)}>ביטול</Btn>
+          </div>
+        </div>
+      )}
+      <p style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 6 }}>
+        {termOf(config, 'entity.ayinUnit', 'כמות')} 0 היא ערך תקין; שורה ריקה לגמרי מדולגת.
+      </p>
+    </div>
   );
 }
 
@@ -236,17 +500,8 @@ function normName(s: string): string {
   return normSearch(s).replace(/\s/g, '');
 }
 
-/** קריאת קובץ טקסט: UTF-8, ואם זוהו תווי החלפה (�) — ניסיון שני ב-windows-1255. */
-async function readTextFile(file: File): Promise<string> {
-  const txt = await file.text();
-  if (!txt.includes('�')) return txt;
-  return new Promise<string>((resolve, reject) => {
-    const rd = new FileReader();
-    rd.onload = () => resolve(String(rd.result));
-    rd.onerror = () => reject(new Error('שגיאה בקריאת הקובץ'));
-    rd.readAsText(file, 'windows-1255');
-  });
-}
+/** קריאת קובץ טקסט עם fallback ל-windows-1255 — ה-helper המשותף מ-lib/csvx (P0.5). */
+const readTextFile = readCsvFileText;
 
 function KidsImport() {
   const setDb = useApp((s) => s.setDb);

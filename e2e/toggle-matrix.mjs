@@ -46,7 +46,7 @@ const PROFILES = [
   },
   {
     name: 'משפחות בלבד (כל שאר המודולים כבויים)',
-    config: { modules: { courses: false, calendar: false, diary: false, supporters: false, reports: false } },
+    config: { modules: { courses: false, calendar: false, diary: false, supporters: false, tzedaka: false, reports: false } },
   },
   {
     name: 'מונחים מותאמים (מוטבים/שיעורים)',
@@ -75,17 +75,20 @@ for (const profile of PROFILES) {
   const punchOn = coursesOn && featOff['courses.punch'] !== false;
   const famLabel = profile.config?.terms?.['nav.families'] ?? 'משפחות';
   const crsLabel = profile.config?.terms?.['nav.courses'] ?? 'חוגים';
+  // כפתורי ההוספה הם "➕ הוספת <ישות>" עם מונח דינמי (termOf)
+  const famEntity = profile.config?.terms?.['entity.family'] ?? 'משפחה';
+  const crsEntity = profile.config?.terms?.['entity.course'] ?? 'חוג';
 
-  // הזרקת הפרופיל לפני הטעינה
+  // הזרקת הפרופיל לפני הטעינה. מזריקים config גם בפרופיל "מלא" (cfg=null):
+  // localStorage גובר על config.json, וה-config המוזרק בלי firebase ⇒ ענן כבוי ⇒
+  // אין מסך "כניסה למערכת" שחוסם את הבדיקה (ראה CLAUDE.md).
   await page.goto(BASE, { waitUntil: 'networkidle' });
   await page.evaluate((cfg) => {
     localStorage.clear();
-    if (cfg) {
-      localStorage.setItem(
-        'maor_org_config',
-        JSON.stringify({ slug: 'default', orgName: 'עמותת מבחן', theme: 'or-rishon', modules: {}, ...cfg }),
-      );
-    }
+    localStorage.setItem(
+      'maor_org_config',
+      JSON.stringify({ slug: 'default', orgName: 'עמותת מבחן', theme: 'or-rishon', modules: {}, ...cfg }),
+    );
     localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10)); // בלי שער יום
   }, profile.config);
   await page.reload({ waitUntil: 'networkidle' });
@@ -94,7 +97,7 @@ for (const profile of PROFILES) {
   // ── זרימה 1: יצירת משפחה ──
   await page.locator(`nav >> text=${famLabel}`).click();
   await page.waitForTimeout(300);
-  await page.locator('button', { hasText: 'משפחה חדשה' }).first().click();
+  await page.locator('button', { hasText: `הוספת ${famEntity}` }).first().click();
   await page.waitForTimeout(300);
   await page.locator('.modal input').first().fill('בדיקה-מטריצה');
   await page.locator('.modal button', { hasText: 'שמירה' }).click();
@@ -115,10 +118,19 @@ for (const profile of PROFILES) {
   }
 
   if (coursesOn) {
+    // ── זרימה 3א: יצירת חדר (חדר פעילות הוא שדה חובה בטופס החוג) ──
+    await page.locator('nav >> text=הגדרות').click();
+    await page.waitForTimeout(400);
+    await page.locator('button', { hasText: 'חדר חדש' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input').first().fill('חדר-מטריצה');
+    await page.locator('.modal button', { hasText: 'שמירת הגדרות' }).click();
+    await page.waitForTimeout(500);
+
     // ── זרימה 3: יצירת חוג ──
     await page.locator(`nav >> text=${crsLabel}`).click();
     await page.waitForTimeout(300);
-    await page.locator('button', { hasText: 'חוג חדש' }).first().click();
+    await page.locator('button', { hasText: `הוספת ${crsEntity}` }).first().click();
     await page.waitForTimeout(300);
     await page.locator('.modal input').first().fill('חוג-מטריצה');
     await page.locator('.modal button', { hasText: 'שמירה' }).click();
@@ -132,6 +144,10 @@ for (const profile of PROFILES) {
       await page.waitForTimeout(300);
       await page.locator('.modal input').first().fill('רוני');
       await page.waitForTimeout(400);
+      // סינון שיבוץ חכם (P1.7, דלוק כברירת מחדל) עשוי להסתיר את רוני (בן) מחוג
+      // ברירת-המחדל (בנות) — "הצג הכל" מחזיר אותו
+      const showAllBtn = page.locator('.modal button', { hasText: 'הצג הכל' });
+      if (await showAllBtn.count()) { await showAllBtn.first().click(); await page.waitForTimeout(250); }
       const opt = page.locator('.modal button', { hasText: 'רוני' }).first();
       if (await opt.count()) await opt.click();
       await page.waitForTimeout(200);
@@ -167,6 +183,37 @@ for (const profile of PROFILES) {
     }
   } else {
     t('מודול חוגים מוסתר (מכוון)', !(await page.locator('nav').textContent()).includes(crsLabel));
+  }
+
+  // ── קופות צדקה (BUILD-ORDER-TZEDAKA): קישור לפי המודול + זרימה מלאה בברירת המחדל ──
+  const tzedakaOn = modulesOff.tzedaka !== false;
+  {
+    const navNow = (await page.locator('nav').first().textContent()) ?? '';
+    t('קישור "קופות צדקה" ' + (tzedakaOn ? 'קיים' : 'נעדר'), navNow.includes('קופות צדקה') === tzedakaOn);
+  }
+  if (!profile.config) {
+    await page.locator('nav >> text=קופות צדקה').click();
+    await page.waitForTimeout(400);
+    await page.locator('button', { hasText: 'הוספת רכז' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input').first().fill('רכזת-מטריצה');
+    await page.locator('.modal button', { hasText: 'שמירה' }).click();
+    await page.waitForTimeout(500);
+    t('הוספת רכז', (await page.locator('main').textContent()).includes('רכזת-מטריצה'));
+    await page.locator('main button', { hasText: 'רכזת-מטריצה' }).first().click();
+    await page.waitForTimeout(400);
+    await page.locator('button', { hasText: 'הוספת קופה' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input').first().fill('77');
+    await page.locator('.modal button', { hasText: 'שמירה' }).click();
+    await page.waitForTimeout(500);
+    t('הוספת קופה', (await page.locator('main').textContent()).includes('#77'));
+    await page.locator('main button', { hasText: '💰 ריקון' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input[type="number"]').first().fill('100');
+    await page.locator('.modal button', { hasText: 'רישום הריקון' }).click();
+    await page.waitForTimeout(500);
+    t('ריקון 100 ₪ נרשם והסכום מופיע', (await page.locator('main').textContent()).includes('100'));
   }
 
   // ── זרימה 6: התמדה אחרי ריענון ──
@@ -206,7 +253,7 @@ for (const profile of PROFILES) {
         slug: 'default',
         orgName: 'עמותת מבחן',
         theme: 'or-rishon',
-        modules: { families: false, courses: false, calendar: false, diary: false, supporters: false, reports: false },
+        modules: { families: false, courses: false, calendar: false, diary: false, supporters: false, tzedaka: false, reports: false },
       }),
     );
     localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10));
@@ -221,6 +268,8 @@ for (const profile of PROFILES) {
     t(`אין "${leak}" כשהכול כבוי`, !main.includes(leak));
   }
   t('הניווט נקי ממודולים כבויים', !navTxt.includes('משפחות') && !navTxt.includes('חוגים'));
+  // קופות צדקה (מודול tzedaka) — כבוי ⇒ הקישור נעלם
+  t('אין "קופות צדקה" כשהמודול כבוי', !navTxt.includes('קופות צדקה'));
   t('אפס שגיאות JS בפרופיל', errors.length === 0, errors.slice(0, 2).join(' | '));
 
   console.log('\n📦 קיצון — הכול כבוי (בדיקת דליפות)');

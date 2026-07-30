@@ -15,6 +15,7 @@ import {
 import { allMembers, type MemberWithFamily } from '../../store/useApp';
 import { hebParts, hebAnnualEq, type HebParts } from '../../lib/hebrew';
 import { payBal, sessionsOf } from '../courses/lib';
+import { CRED_RED_THRESHOLD } from '../families/lib';
 import { isoLocal } from '../../lib/date-util';
 // תוויות/צבעי סוגי אירועים — מקור-אמת יחיד ב-lib/eventMeta (מיוצא מחדש לתאימות)
 import { EV_META, evLabel } from '../../lib/eventMeta';
@@ -139,6 +140,8 @@ export interface HomeStats {
   donIls: number;
   donUsd: number;
   supportersTotal: number;
+  /** מונה אלמנות — פער 20 (בלגאסי homeStats כולל את הספירה הזו). */
+  widows: number;
 }
 
 export function homeStats(db: Db, now: Date): HomeStats {
@@ -175,6 +178,7 @@ export function homeStats(db: Db, now: Date): HomeStats {
     donIls,
     donUsd,
     supportersTotal: db.supporters.length,
+    widows: db.families.filter((f) => (f.maritalStatus || '').includes('אלמן')).length,
   };
 }
 
@@ -389,8 +393,8 @@ export function attentionItems(
     });
   }
 
-  // מדד אמינות אדום — ניקוד מתחת ל-300, פריט מצטבר
-  const redCred = db.families.filter((f) => (f.cred?.score ?? 700) < 300);
+  // מדד אמינות אדום — מתחת לסף הסיכון המשותף (יישור ללגאסי: red <500), פריט מצטבר
+  const redCred = db.families.filter((f) => (f.cred?.score ?? 700) < CRED_RED_THRESHOLD);
   if (redCred.length) {
     out.push({
       key: 'redcred:families',
@@ -616,7 +620,7 @@ export function monthlySeries(
 ): number[] {
   const idx = new Map<string, number>();
   for (let i = 0; i < months; i++) idx.set(monthKeyOf(now, i - (months - 1)), i);
-  const out = new Array<number>(months).fill(0);
+  const out = Array.from({ length: months }, () => 0);
   for (const p of points) {
     const i = idx.get((p.date || '').slice(0, 7));
     if (i !== undefined) out[i] += p.value;
@@ -652,6 +656,105 @@ export function credSummary(db: Db, tierKeyOf: (score: number) => 'titan' | 'lio
   }
   const total = db.families.length;
   return { avg: total > 0 ? Math.round(sum / total) : 0, counts, total };
+}
+
+/* ── פער 19 · מדדי חוגים והכנסה (home.coursemetrics) ─────────────────────────
+ * נאמן ללגאסי crsG (legacy-main-script.js:2630-2654): תפוסה פר-חוג מול
+ * maxStudents (ברירת מחדל 12), ממוצע, הכנסה חודשית משוקללת — רק שיבוצים
+ * פעילים: monthly=מחיר · half_year=/6 · year=/12 · punch=0. */
+
+export interface CourseOccupancy {
+  course: Course;
+  /** מספר השיבוצים (כמו בלגאסי — כל השיבוצים לחוג, לא רק פעילים). */
+  n: number;
+  max: number;
+  /** אחוז תפוסה, קטום ל-100. */
+  pct: number;
+}
+
+export function courseOccupancies(db: Db): CourseOccupancy[] {
+  return db.courses.map((c) => {
+    const n = db.enrollments.filter((e) => e.courseId === c.id).length;
+    const max = c.maxStudents || 12;
+    return { course: c, n, max, pct: Math.min(100, Math.round((n / max) * 100)) };
+  });
+}
+
+/** ההכנסה החודשית המשוקללת — שיבוצים פעילים בלבד (הנוסחה מהלגאסי, שורה 2640). */
+export function weightedMonthlyIncome(db: Db): number {
+  let sum = 0;
+  for (const e of db.enrollments) {
+    if ((e.status || 'active') !== 'active') continue;
+    const c = db.courses.find((x) => x.id === e.courseId);
+    if (!c) continue;
+    const p = c.price || 0;
+    sum += c.model === 'monthly' ? p : c.model === 'half_year' ? p / 6 : c.model === 'year' ? p / 12 : 0;
+  }
+  return sum;
+}
+
+export interface CourseMetrics {
+  rows: CourseOccupancy[];
+  /** ממוצע תפוסה באחוזים (0 כשאין חוגים). */
+  avgOcc: number;
+  students: number;
+  income: number;
+  fullCount: number;
+  punchCount: number;
+  monthlyCount: number;
+  /** שלושת המבוקשים — לפי תפוסה יורדת. */
+  top: CourseOccupancy[];
+}
+
+export function courseMetrics(db: Db): CourseMetrics {
+  const rows = courseOccupancies(db);
+  const avgOcc = Math.round(rows.reduce((a, r) => a + r.pct, 0) / Math.max(1, rows.length));
+  return {
+    rows,
+    avgOcc,
+    students: db.enrollments.length,
+    income: weightedMonthlyIncome(db),
+    fullCount: rows.filter((r) => r.pct >= 100).length,
+    punchCount: rows.filter((r) => r.course.model === 'punch').length,
+    monthlyCount: rows.filter((r) => r.course.model === 'monthly').length,
+    top: rows.slice().sort((a, b) => b.pct - a.pct).slice(0, 3),
+  };
+}
+
+/* ── פער 20 · מדדי אמינות מורחבים (home.credmetrics) ─────────────────────────
+ * נאמן ללגאסי credV: היסטוגרמת 20 סלים של 50 נק', מגמת-היום (סכום דלתאות
+ * מרשומות לוג של היום), ו"דורשות חיזוק" — הציונים הנמוכים ביותר. */
+
+/** היסטוגרמה — 20 סלים של 50 נקודות (0-49, 50-99, …, 950-1000). */
+export function credHistogram(db: Db): number[] {
+  const bins = Array.from({ length: 20 }, () => 0);
+  for (const f of db.families) {
+    const score = f.cred?.score ?? 700;
+    bins[Math.min(19, Math.floor(score / 50))]++;
+  }
+  return bins;
+}
+
+/** סכום דלתאות הניקוד שנרשמו היום — "מגמת היום" של הלגאסי. */
+export function credTodayTrend(db: Db, todayIso: string): number {
+  let sum = 0;
+  for (const f of db.families) {
+    for (const e of f.cred?.log ?? []) if (e.date === todayIso) sum += e.delta;
+  }
+  return sum;
+}
+
+export interface CredRiskFamily {
+  family: Family;
+  score: number;
+}
+
+/** "דורשות חיזוק" — המשפחות עם הציון הנמוך ביותר (לגאסי: risk, 3 ראשונות). */
+export function credNeedsBoost(db: Db, n = 3): CredRiskFamily[] {
+  return db.families
+    .map((f) => ({ family: f, score: f.cred?.score ?? 700 }))
+    .sort((a, b) => a.score - b.score)
+    .slice(0, n);
 }
 
 /** תורם עם יעד קשר שהגיע/עבר — לווידג'ט "יעדי קשר". */

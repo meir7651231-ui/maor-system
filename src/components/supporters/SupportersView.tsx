@@ -2,7 +2,7 @@
  * משפחות תומכות (תורמים) — חיפוש מנורמל, סינון קטגוריה ודרגות RFM,
  * טבלה עם מיון תלת-מצבי (עולה/יורד/כבוי), טופס תומכ/ת וכרטיס מפורט.
  */
-import { useState, type KeyboardEvent } from 'react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
@@ -11,10 +11,12 @@ import { hebDateFull } from '../../lib/hebrew';
 import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, fmtDate, isoToday, supScore, supTier, TIER_ORDER, totalLabel } from './lib';
+import { chipStyle, fmtDate, isoToday, sup12m, supAvgDon, supScore, supScoreBins, supTier, supTotalIls, TIER_ORDER, totalLabel } from './lib';
+import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
 import { AyinBoard } from './AyinBoard';
+import { OrgDonationCalendar } from './DonationCalendar';
 import { SupporterImport } from './SupporterImport';
 import { CustomExport } from '../reports/CustomExport';
 
@@ -30,7 +32,8 @@ type SortKey =
   | 'nextDate'
   | 'score'
   | 'stage'
-  | 'eyes';
+  | 'eyes'
+  | 'paid';
 
 const HEAD: { key: SortKey; label: string }[] = [
   { key: 'name', label: 'תומכ/ת' },
@@ -45,6 +48,8 @@ const HEAD: { key: SortKey; label: string }[] = [
   { key: 'score', label: 'ציון RFM' },
   { key: 'stage', label: 'שלב טיפול' },
   { key: 'eyes', label: 'כמות' },
+  // "שולם" ברמת התיק (P3 פריט 14; paid במודל מ-P0.4)
+  { key: 'paid', label: 'שולם' },
 ];
 
 function sortVal(sp: Supporter, key: SortKey): string | number {
@@ -73,6 +78,8 @@ function sortVal(sp: Supporter, key: SortKey): string | number {
       return sp.ayin ? stageIndex(sp.ayin.stage) : -1;
     case 'eyes':
       return sp.ayin ? eyesTotal(sp.ayin) : -1;
+    case 'paid':
+      return sp.ayin?.paid ? 1 : 0;
   }
 }
 
@@ -101,11 +108,27 @@ export function SupportersView() {
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
   const [tierF, setTierF] = useState<string | null>(null);
+  // פילטרים פר-עמודה בתחביר numMatch — 'N' / 'N+' / 'N-M' (P3 פריט 13, לגאסי scf:2809-2811)
+  const [colF, setColF] = useState({ count: '', total: '', score: '' });
+  // סינון מעקב הטיפול (P3 פריט 14, לגאסי): עם מונה / בלי מונה / עודכן היום
+  const [ayinF, setAyinF] = useState<null | 'eyes' | 'noeyes' | 'today'>(null);
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [expOpen, setExpOpen] = useState(false);
+  // לוח התרומות הכלל-ארגוני (P1.4, legacy supCalOn/supCalAll) — מוצג בלחיצה
+  const [orgCalOpen, setOrgCalOpen] = useState(false);
+  const donCalOn = featureOn(config, 'supporters.doncal');
+  // בקשת "+ תומכת" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
+  const supFormReq = useApp((s) => s.supFormReq);
+  const ackSupporterForm = useApp((s) => s.ackSupporterForm);
+  useEffect(() => {
+    if (supFormReq) {
+      setFormOpen(true);
+      ackSupporterForm();
+    }
+  }, [supFormReq, ackSupporterForm]);
 
   /** דוח יומי של מעקב הטיפול — כל מי שטופל היום. */
   function dailyReport() {
@@ -128,6 +151,14 @@ export function SupportersView() {
   let list = db.supporters.filter((sp) => {
     if (cat !== 'all' && (sp.cat || '') !== cat) return false;
     if (tierF && supTier(supScore(sp)).label !== tierF) return false;
+    // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (×3.7 כמו בלגאסי) / ציון
+    if (!numMatch(colF.count, sp.count || 0)) return false;
+    if (!numMatch(colF.total, Math.round(supTotalIls(sp)))) return false;
+    if (!numMatch(colF.score, supScore(sp))) return false;
+    // סינון מעקב הטיפול (פריט 14)
+    if (ayinF === 'eyes' && !(sp.ayin && eyesTotal(sp.ayin) > 0)) return false;
+    if (ayinF === 'noeyes' && sp.ayin && eyesTotal(sp.ayin) > 0) return false;
+    if (ayinF === 'today' && !(sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log.some((l) => l.date === today)))) return false;
     if (!q.trim()) return true;
     const phoneHit = qd.length >= 3 && (sp.phone || '').replace(/\D/g, '').includes(qd);
     const textHit =
@@ -154,7 +185,9 @@ export function SupportersView() {
 
   const tIls = db.supporters.reduce((a, x) => a + (x.ils || 0), 0);
   const tUsd = db.supporters.reduce((a, x) => a + (x.usd || 0), 0);
-  const filtered = q.trim() !== '' || cat !== 'all' || !!tierF;
+  const filtered =
+    q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF ||
+    colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';
   const countLabel =
     (filtered ? list.length + ' מתוך ' : '') +
     db.supporters.length +
@@ -201,6 +234,23 @@ export function SupportersView() {
 
       {ayinOn && <AyinBoard onOpen={setSelId} />}
 
+      {/* לוח תרומות כלל-ארגוני — כל התומכות + אירועי המעקב (legacy supCalAll) */}
+      {donCalOn && (
+        <div className="card" style={{ marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <h3 style={{ fontSize: 15 }}>🗓 לוח ה{termOf(config, 'entity.donations', 'תרומות')} הכללי</h3>
+            <Btn sm onClick={() => setOrgCalOpen((v) => !v)}>
+              {orgCalOpen ? '▲ סגירה' : '▼ הצגה'}
+            </Btn>
+          </div>
+          {orgCalOpen && (
+            <div style={{ marginTop: 10 }}>
+              <OrgDonationCalendar onOpen={setSelId} />
+            </div>
+          )}
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 260px', minWidth: 220 }}>
           <TextInput value={q} onChange={setQ} placeholder="חיפוש לפי שם, טלפון, מייל או קטגוריה…" />
@@ -213,13 +263,59 @@ export function SupportersView() {
       </div>
 
       {rfmOn && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>דרגות (לחיצה מסננת):</span>
           {TIER_ORDER.map((t) => (
             <Chip key={t} on={tierF === t} onClick={() => setTierF(tierF === t ? null : t)}>
               {t + ' · ' + tierCounts[t]}
             </Chip>
           ))}
+        </div>
+      )}
+
+      {/* P3 פריט 12 — סטטים והיסטוגרמת ציון (נוסחאות הלגאסי supBars/supAvgDon/sup12m) */}
+      {rfmOn && db.supporters.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginBottom: 14, flexWrap: 'wrap' }}>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 600 }}>
+            {'תרמו ב-12 החודשים: ' + sup12m(db.supporters, today) + ' · ממוצע לתרומה: ' +
+              (supAvgDon(db.supporters) != null ? '₪' + supAvgDon(db.supporters)!.toLocaleString('he-IL') : '—')}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 34 }} aria-label="היסטוגרמת פיזור הציון">
+            {supScoreBins(db.supporters).map((n, i) => {
+              const bins = supScoreBins(db.supporters);
+              const mx = Math.max(1, ...bins);
+              return (
+                <span
+                  key={i}
+                  title={i * 100 + '–' + (i * 100 + 99) + ': ' + n + ' תומכות'}
+                  style={{
+                    width: 10,
+                    height: Math.max(5, Math.round((n / mx) * 100)) + '%',
+                    borderRadius: 3,
+                    background: supTier(i * 100 + 50).dot,
+                    display: 'inline-block',
+                  }}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* P3 פריט 14 — סינון מעקב הטיפול: עם מונה / בלי מונה / עודכן היום */}
+      {ayinOn && db.supporters.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{featLabel(config)}:</span>
+          <Chip on={ayinF === 'eyes'} onClick={() => setAyinF(ayinF === 'eyes' ? null : 'eyes')}>
+            עם מונה
+          </Chip>
+          <Chip on={ayinF === 'noeyes'} onClick={() => setAyinF(ayinF === 'noeyes' ? null : 'noeyes')}>
+            בלי מונה
+          </Chip>
+          <Chip on={ayinF === 'today'} onClick={() => setAyinF(ayinF === 'today' ? null : 'today')}>
+            {'עודכן היום · ' +
+              db.supporters.filter((sp) => sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log.some((l) => l.date === today))).length}
+          </Chip>
         </div>
       )}
 
@@ -239,7 +335,7 @@ export function SupportersView() {
                   (h) =>
                     (nextOn || h.key !== 'nextDate') &&
                     (rfmOn || h.key !== 'score') &&
-                    (ayinOn || (h.key !== 'stage' && h.key !== 'eyes')),
+                    (ayinOn || (h.key !== 'stage' && h.key !== 'eyes' && h.key !== 'paid')),
                 ).map((h) => {
                   const dir = sort && sort.key === h.key ? sort.dir : 0;
                   return (
@@ -256,6 +352,38 @@ export function SupportersView() {
                   );
                 })}
                 {rfmOn && <th>דרגה</th>}
+                <th aria-hidden />
+              </tr>
+              {/* P3 פריט 13 — פילטרים פר-עמודה בתחביר numMatch ('3' / '3+' / '1-5'), כמו scf בלגאסי */}
+              <tr>
+                {HEAD.filter(
+                  (h) =>
+                    (nextOn || h.key !== 'nextDate') &&
+                    (rfmOn || h.key !== 'score') &&
+                    (ayinOn || (h.key !== 'stage' && h.key !== 'eyes' && h.key !== 'paid')),
+                ).map((h) =>
+                  h.key === 'count' || h.key === 'ils' || h.key === 'score' ? (
+                    <th key={h.key} style={{ padding: '3px 8px' }}>
+                      <input
+                        value={h.key === 'count' ? colF.count : h.key === 'ils' ? colF.total : colF.score}
+                        onChange={(e) =>
+                          setColF({
+                            ...colF,
+                            [h.key === 'count' ? 'count' : h.key === 'ils' ? 'total' : 'score']: e.target.value,
+                          })
+                        }
+                        placeholder={h.key === 'ils' ? '₪-שקול: 500+' : '3 / 3+ / 1-5'}
+                        aria-label={'סינון ' + h.label}
+                        style={{ width: '100%', minWidth: 70, padding: '4px 6px', fontSize: 12 }}
+                        dir="ltr"
+                      />
+                    </th>
+                  ) : (
+                    <th key={h.key} />
+                  ),
+                )}
+                {rfmOn && <th />}
+                <th aria-hidden />
               </tr>
             </thead>
             <tbody>
@@ -306,11 +434,22 @@ export function SupportersView() {
                   {rfmOn && <td style={{ fontWeight: 700 }}>{supScore(sp)}</td>}
                   {ayinOn && <td>{sp.ayin && ayinActive(sp.ayin) ? stageLabel(config, sp.ayin.stage) : '—'}</td>}
                   {ayinOn && <td>{sp.ayin && eyesTotal(sp.ayin) ? eyesTotal(sp.ayin) : '—'}</td>}
+                  {ayinOn && <td>{sp.ayin?.paid ? '✓' : '—'}</td>}
                   {rfmOn && (
                     <td>
                       <TierChip sp={sp} />
                     </td>
                   )}
+                  {/* P3 פריט 12 — 📞 פר-שורה: חיוג ישיר בלי לפתוח את הכרטיס */}
+                  <td onClick={(e) => e.stopPropagation()}>
+                    {sp.phone ? (
+                      <a href={'tel:' + sp.phone.replace(/\D/g, '')} title={'חיוג ל' + sp.name + ' — ' + sp.phone} aria-label={'חיוג ל' + sp.name}>
+                        📞
+                      </a>
+                    ) : (
+                      ''
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -31,6 +31,22 @@ export function downloadCsv(filename: string, rows: Cell[][]): void {
 }
 
 /**
+ * קריאת קובץ טקסט לייבוא: UTF-8, ואם זוהו תווי החלפה (�) — ניסיון שני
+ * ב-windows-1255 (קבצים מאקסל ישן). helper משותף לכל מסלולי הייבוא
+ * (ילדים / משפחות / תומכות / גיליון מעקב) — P0.5.
+ */
+export async function readCsvFileText(file: File): Promise<string> {
+  const txt = await file.text();
+  if (!txt.includes('�')) return txt;
+  return new Promise<string>((resolve, reject) => {
+    const rd = new FileReader();
+    rd.onload = () => resolve(String(rd.result));
+    rd.onerror = () => reject(new Error('שגיאה בקריאת הקובץ'));
+    rd.readAsText(file, 'windows-1255');
+  });
+}
+
+/**
  * פענוח CSV מלא: שדות מצוטטים ("..."), גרשיים כפולים בתוך ציטוט,
  * פסיקים ומעברי שורה בתוך שדה, CRLF. שורות ריקות לגמרי מדולגות.
  */

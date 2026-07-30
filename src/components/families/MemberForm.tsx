@@ -41,10 +41,18 @@ interface MemberFormState extends MemberMedia {
   notes: string;
 }
 
-function initState(member: Member | null): MemberFormState {
+/** ערכים התחלתיים לבן-משפחה חדש — כרטיסי "אב/אם (להשלמה)" בכרטיס המשפחה. */
+export interface MemberPrefill {
+  first?: string;
+  gender?: Gender;
+  /** יצירת ההורה כ-Member עם isParent (כמו זרימת __pf/__pm ב-JoinModal). */
+  isParent?: boolean;
+}
+
+function initState(member: Member | null, prefill?: MemberPrefill): MemberFormState {
   return {
-    first: member?.first ?? '',
-    gender: member?.gender ?? 'm',
+    first: member?.first ?? prefill?.first ?? '',
+    gender: member?.gender ?? prefill?.gender ?? 'm',
     birth: member?.birth ?? '',
     idNum: member?.idNum ?? '',
     phone: member?.phone ?? '',
@@ -61,14 +69,14 @@ function initState(member: Member | null): MemberFormState {
   };
 }
 
-export function MemberForm(props: { famId: string; member: Member | null; onClose: () => void }) {
+export function MemberForm(props: { famId: string; member: Member | null; prefill?: MemberPrefill; onClose: () => void }) {
   const upsertMember = useApp((s) => s.upsertMember);
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const mediaOn = featureOn(config, 'families.media');
 
-  const [f, setF] = useState<MemberFormState>(() => initState(props.member));
+  const [f, setF] = useState<MemberFormState>(() => initState(props.member, props.prefill));
   const [error, setError] = useState('');
 
   const set = (patch: Partial<MemberFormState>) => setF((p) => ({ ...p, ...patch }));
@@ -102,7 +110,7 @@ export function MemberForm(props: { famId: string; member: Member | null; onClos
       mVideos: f.mVideos,
       notes: f.notes,
     };
-    if (props.member?.isParent) member.isParent = true;
+    if (props.member?.isParent || (!props.member && props.prefill?.isParent)) member.isParent = true;
     upsertMember(props.famId, member);
     toast(props.member ? 'פרטי ' + first + ' עודכנו' : first + ' נוסף/ה ל' + termOf(config, 'entity.family', 'משפחה'));
     props.onClose();
