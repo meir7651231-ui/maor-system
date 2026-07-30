@@ -265,9 +265,15 @@ export function migrate(raw: unknown): Db | null {
     ...a,
     redemptions: Array.isArray(a.redemptions)
       ? a.redemptions.map((r) => {
-          if (r.rid && seenS.has(r.rid)) return { ...r, rid: 'S-' + merged.shopReceiptSeq++ };
-          if (r.rid) seenS.add(r.rid);
-          return r;
+          let out = r;
+          // חותמת ביטול מושחתת (לא-מחרוזת) → מוסרת — המימוש חוזר להיחשב חי
+          if (out.voidedAt !== undefined && typeof out.voidedAt !== 'string') {
+            const { voidedAt: _dropVoid, ...rest } = out;
+            out = rest;
+          }
+          if (out.rid && seenS.has(out.rid)) return { ...out, rid: 'S-' + merged.shopReceiptSeq++ };
+          if (out.rid) seenS.add(out.rid);
+          return out;
         })
       : [],
     criterionIds: Array.isArray(a.criterionIds) ? a.criterionIds : [],

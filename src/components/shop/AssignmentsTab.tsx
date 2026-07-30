@@ -29,6 +29,7 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
   const config = useApp((s) => s.config);
   const upsertShopAssignment = useApp((s) => s.upsertShopAssignment);
   const deleteShopAssignment = useApp((s) => s.deleteShopAssignment);
+  const voidShopRedemption = useApp((s) => s.voidShopRedemption);
   const toast = useApp((s) => s.toast);
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const a = props.assignment;
@@ -42,6 +43,13 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
     deleteShopAssignment(a.id);
     toast('ה' + termOf(config, 'entity.shopAssignment', 'שיוך') + ' נמחק');
     props.onBack();
+  }
+
+  /** ביטול עם סימון (הכרעה 14) — דו-קליק, סיבה רשות; הרשומה וה-S- נשארים. */
+  function voidRedemption(r: ShopRedemption) {
+    if (!confirmTwice('shr-' + r.id, 'לבטל את המימוש' + (r.rid ? ' (' + r.rid + ')' : '') + '? הרשומה תסומן ולא תימחק')) return;
+    const reason = window.prompt('סיבת הביטול (רשות):') ?? '';
+    if (voidShopRedemption(a.id, r.id, reason)) toast('המימוש בוטל — הרשומה נשארה מתועדת' + (r.rid ? ' (' + r.rid + ')' : ''));
   }
 
   /** הורדת אישור תשלום סמלי S- — אינו קבלת מס ואינו נושא שדות סעיף 46. */
@@ -86,39 +94,58 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
         product.components.map((c) => {
           const nextH = c.kind === 'holidayGift' ? nextHolidays[0] : undefined;
           const done = c.kind === 'holidayGift' ? !!nextH && assignmentRedeemed(a, c.id, nextH) : assignmentRedeemed(a, c.id);
-          const last = a.redemptions.find((r) => r.componentId === c.id);
+          const reds = a.redemptions.filter((r) => r.componentId === c.id);
           const rem = componentRemaining(c.id, product.id, db.shopAssignments, c.stock);
           return (
-            <div key={c.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
-              <span style={{ fontWeight: 700 }}>{c.label}</span>
-              {rem !== null && (
-                <span style={{ fontSize: 11, fontWeight: 700, color: rem === 0 ? '#b91c1c' : rem <= 2 ? '#9a6414' : 'var(--green)', border: '1px solid var(--line)', borderRadius: 99, padding: '1px 7px' }}>
-                  {'נותרו ' + rem}
-                </span>
-              )}
-              {c.kind === 'holidayGift' && nextH && (
-                <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{'החג הקרוב: ' + nextH.name + ' (' + nextH.iso + ')'}</span>
-              )}
-              {c.kind === 'coupon' && couponExpiry(a, c) && (
-                <span style={{ fontSize: 12.5, fontWeight: 700, color: couponExpiry(a, c) < isoToday() ? '#b91c1c' : 'var(--ink-faint)' }}>
-                  {couponExpiry(a, c) < isoToday() ? 'פג תוקף ב-' + couponExpiry(a, c) : 'בתוקף עד ' + couponExpiry(a, c)}
-                </span>
-              )}
-              {done && last ? (
-                <span style={{ fontSize: 12.5 }}>
-                  {'✅ מומש ב-' + last.date + ' · שולם ' + last.paid.toLocaleString('he-IL') + ' ₪' + (last.rid ? ' · ' + last.rid : '')}
-                </span>
-              ) : (
-                <span style={{ fontSize: 12.5 }}>⏳ ממתין</span>
-              )}
-              <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
-                {last?.rid && (
-                  <Btn sm onClick={() => downloadConfirmation(last, c)} title="אישור תשלום — אינו קבלה לצורכי מס">
-                    🧾 אישור
-                  </Btn>
+            <div key={c.id} className="card" style={{ marginBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontWeight: 700 }}>{c.label}</span>
+                {rem !== null && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: rem === 0 ? '#b91c1c' : rem <= 2 ? '#9a6414' : 'var(--green)', border: '1px solid var(--line)', borderRadius: 99, padding: '1px 7px' }}>
+                    {'נותרו ' + rem}
+                  </span>
                 )}
-                <Btn sm kind="primary" onClick={() => setRedeeming(c)}>🎁 מימוש</Btn>
-              </span>
+                {c.kind === 'holidayGift' && nextH && (
+                  <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{'החג הקרוב: ' + nextH.name + ' (' + nextH.iso + ')'}</span>
+                )}
+                {c.kind === 'coupon' && couponExpiry(a, c) && (
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: couponExpiry(a, c) < isoToday() ? '#b91c1c' : 'var(--ink-faint)' }}>
+                    {couponExpiry(a, c) < isoToday() ? 'פג תוקף ב-' + couponExpiry(a, c) : 'בתוקף עד ' + couponExpiry(a, c)}
+                  </span>
+                )}
+                {!done && <span style={{ fontSize: 12.5 }}>⏳ ממתין</span>}
+                <span style={{ marginInlineStart: 'auto' }}>
+                  <Btn sm kind="primary" onClick={() => setRedeeming(c)}>🎁 מימוש</Btn>
+                </span>
+              </div>
+              {reds.map((r) => (
+                <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 6, fontSize: 12.5 }}>
+                  <span style={{ textDecoration: r.voidedAt ? 'line-through' : undefined }}>
+                    {(r.voidedAt ? '' : '✅ ') + 'מומש ב-' + r.date + ' · שולם ' + r.paid.toLocaleString('he-IL') + ' ₪' + (r.rid ? ' · ' + r.rid : '')}
+                  </span>
+                  {r.voidedAt && (
+                    <span
+                      title={r.voidReason || 'ללא סיבה'}
+                      style={{ fontSize: 11, fontWeight: 700, color: '#b91c1c', border: '1px solid var(--line)', borderRadius: 99, padding: '1px 7px' }}
+                    >
+                      {'🚫 מבוטל ב-' + r.voidedAt}
+                    </span>
+                  )}
+                  <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
+                    {/* מבוטל — בלי הורדת אישור (הרישום במערכת הוא התיעוד); ה-rid נשאר מוצג */}
+                    {!r.voidedAt && r.rid && (
+                      <Btn sm onClick={() => downloadConfirmation(r, c)} title="אישור תשלום — אינו קבלה לצורכי מס">
+                        🧾 אישור
+                      </Btn>
+                    )}
+                    {!r.voidedAt && (
+                      <Btn sm kind="danger" onClick={() => voidRedemption(r)}>
+                        {armed === 'shr-' + r.id ? 'בטוח/ה? שוב מבטלת' : '🚫 ביטול'}
+                      </Btn>
+                    )}
+                  </span>
+                </div>
+              ))}
             </div>
           );
         })

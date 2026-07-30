@@ -520,6 +520,9 @@ export interface ShopRedemption {
   id: Id;
   /** אישור תשלום S-{shopReceiptSeq} — מונפק רק כש-paid>0; אינו קבלת מס. */
   rid?: string;
+  /** ביטול מתועד — המספר S- נשאר בסדרה; מבוטל מוחרג מכל הסכומים והמלאי. */
+  voidedAt?: IsoDate;
+  voidReason?: string;
   componentId: Id;
   date: IsoDate;
   holiday: string;

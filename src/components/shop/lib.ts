@@ -6,9 +6,21 @@
  * supporters/enrollments. Reuse טהור: holidayOf/hebParts מ-lib/hebrew,
  * isoOf מ-calLib (lib→lib מותר).
  */
-import type { Db, Id, IsoDate, ShopAssignment, ShopComponent, ShopCriterion, ShopProduct } from '../../types/domain';
+import type { Db, Id, IsoDate, ShopAssignment, ShopComponent, ShopCriterion, ShopProduct, ShopRedemption } from '../../types/domain';
 import { isoOf } from '../calendar/calLib';
 import { hebParts, holidayOf } from '../../lib/hebrew';
+
+/* ---------- מימושים חיים ---------- */
+
+/**
+ * המימושים החיים של שיוך — מוחרגים המבוטלים (voidedAt). ה-helper היחיד
+ * להחרגת מבוטלים: כל חישוב (סכומים/מלאי/סטטוס-מימוש) עובר דרכו — לא
+ * סינונים מפוזרים (BUILD-ORDER-SHOP3 סעיף 5). הרשומה עצמה לעולם לא
+ * נמחקת וה-S- שלה נשאר בסדרה.
+ */
+export function liveRedemptions(a: ShopAssignment): ShopRedemption[] {
+  return a.redemptions.filter((r) => !r.voidedAt);
+}
 
 /* ---------- מחיר אפקטיבי ---------- */
 
@@ -69,9 +81,10 @@ export function assignmentRedeemed(
   componentId: Id,
   holiday?: { iso: IsoDate; name: string },
 ): boolean {
-  if (!holiday) return a.redemptions.some((r) => r.componentId === componentId);
+  const live = liveRedemptions(a);
+  if (!holiday) return live.some((r) => r.componentId === componentId);
   const year = hebYearOf(holiday.iso);
-  return a.redemptions.some(
+  return live.some(
     (r) => r.componentId === componentId && r.holiday === holiday.name && !!r.date && hebYearOf(r.date) === year,
   );
 }
@@ -93,7 +106,7 @@ export function componentRemaining(
   let used = 0;
   for (const a of assignments) {
     if (a.productId !== productId) continue;
-    for (const r of a.redemptions) if (r.componentId === componentId) used++;
+    for (const r of liveRedemptions(a)) if (r.componentId === componentId) used++;
   }
   return Math.max(0, stock - used);
 }
@@ -205,17 +218,17 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
 
 /* ---------- סכומים ---------- */
 
-/** Σ השווי שנמסר בפועל (value של כל המימושים). */
+/** Σ השווי שנמסר בפועל (value של המימושים החיים — מבוטלים מוחרגים). */
 export function givenValue(assignments: readonly ShopAssignment[]): number {
   let sum = 0;
-  for (const a of assignments) for (const r of a.redemptions) sum += Number.isFinite(r.value) ? r.value : 0;
+  for (const a of assignments) for (const r of liveRedemptions(a)) sum += Number.isFinite(r.value) ? r.value : 0;
   return sum;
 }
 
-/** Σ מה ששולם בפועל במחיר הסמלי. */
+/** Σ מה ששולם בפועל במחיר הסמלי (מימושים חיים בלבד). */
 export function collectedPaid(assignments: readonly ShopAssignment[]): number {
   let sum = 0;
-  for (const a of assignments) for (const r of a.redemptions) sum += Number.isFinite(r.paid) ? r.paid : 0;
+  for (const a of assignments) for (const r of liveRedemptions(a)) sum += Number.isFinite(r.paid) ? r.paid : 0;
   return sum;
 }
 

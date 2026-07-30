@@ -267,6 +267,12 @@ interface AppState {
    * rid מוחזר רק כשהונפק בפועל — ה-UI לא מנחש (לקח באג-5).
    */
   addShopRedemption: (assignmentId: string, r: Omit<ShopRedemption, 'id' | 'rid'>) => { ok: boolean; rid?: string };
+  /**
+   * ביטול מימוש עם סימון (הכרעת בעלים 14) — הרשומה לעולם לא נמחקת:
+   * voidedAt=היום + voidReason (רשות). ה-rid נשאר בסדרה וה-מונים לא זזים
+   * (סדרה רציפה לא ממחזרת מספרים). ביטול-כפול נחסם.
+   */
+  voidShopRedemption: (assignmentId: string, redemptionId: string, reason: string) => boolean;
 
   // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
   // ולכן סנכרון הענן והביטול עובדים כרגיל. פעולות שכותבות ללוח מייצרות OrgEvent.
@@ -1271,6 +1277,32 @@ export const useApp = create<AppState>()((set, get) => {
         ),
       }));
       return rid ? { ok: true, rid } : { ok: true };
+    },
+    voidShopRedemption(assignmentId, redemptionId, reason) {
+      const a = get().db.shopAssignments.find((x) => x.id === assignmentId);
+      const r = a?.redemptions.find((x) => x.id === redemptionId);
+      if (!a || !r) {
+        get().toast('המימוש לא נמצא — הביטול לא בוצע');
+        return false;
+      }
+      if (r.voidedAt) {
+        get().toast('המימוש כבר מבוטל');
+        return false;
+      }
+      // סימון בלבד — בלי מחיקה ובלי נגיעה במונים; ה-S- נשאר בסדרה
+      setDb((db) => ({
+        shopAssignments: db.shopAssignments.map((x) =>
+          x.id === assignmentId
+            ? {
+                ...x,
+                redemptions: x.redemptions.map((y) =>
+                  y.id === redemptionId ? { ...y, voidedAt: isoToday(), voidReason: reason.trim() } : y,
+                ),
+              }
+            : x,
+        ),
+      }));
+      return true;
     },
 
     // ── מעקב טיפול רב-שלבי ──
