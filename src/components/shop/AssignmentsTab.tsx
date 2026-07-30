@@ -72,7 +72,8 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
         <Btn sm onClick={props.onBack}>→ חזרה</Btn>
         <b style={{ fontSize: 15 }}>{beneficiaryLabel(db, a)}</b>
         <span>{'· ' + (product?.name ?? 'מוצר שנמחק')}</span>
-        <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
+        {/* מובייל (SHOP4 סעיף 3): שורת הפעולות נשברת מסודר — wrap + gap אחיד */}
+        <span style={{ marginInlineStart: 'auto', display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', justifyContent: 'flex-end' }}>
           <select
             value={a.status}
             onChange={(e) => upsertShopAssignment({ ...a, status: e.target.value as ShopAssignment['status'] })}

@@ -61,11 +61,13 @@ export function HebDateInput(props: { value: string; onChange: (iso: string) => 
     ...Array.from({ length: 30 }, (_, i) => ({ value: String(i + 1), label: gem(i + 1) })),
   ];
   const monthOpts = [{ value: '', label: 'חודש' }, ...months.map((mm) => ({ value: mm, label: mm }))];
+  // תווית השנה בלי סוגריים — '(5786)' נשבר בכיווניות ונחתך במובייל (SHOP4 סעיף 2);
+  // RLM בראש התווית + unicode-bidi:plaintext על ה-select מיישרים את הספרות
   const yearOpts = [
     { value: '', label: 'שנה' },
     ...Array.from({ length: 104 }, (_, i) => {
       const yy = nowY + 3 - i;
-      return { value: String(yy), label: gemYear(yy) + ' (' + yy + ')' };
+      return { value: String(yy), label: '‏' + gemYear(yy) + ' · ' + yy };
     }),
   ];
 
@@ -89,15 +91,22 @@ export function HebDateInput(props: { value: string; onChange: (iso: string) => 
               <Select value={monthVal} onChange={(v) => apply(d, v, y)} options={monthOpts} />
             </div>
             <div style={{ flex: 1, minWidth: 104 }}>
-              <Select
+              <select
+                style={{ unicodeBidi: 'plaintext', minWidth: 96, width: '100%' }}
                 value={y}
-                onChange={(v) => {
+                onChange={(e) => {
+                  const v = e.target.value;
                   // בשינוי שנה ייתכן שהחודש שנבחר לא קיים (אדר ↔ אדר א׳/ב׳) — מנקים אותו
                   const ms = hebMonthsOf(+v || nowY);
                   apply(d, ms.includes(m) ? m : '', v);
                 }}
-                options={yearOpts}
-              />
+              >
+                {yearOpts.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           {invalid && (
