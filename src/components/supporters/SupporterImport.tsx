@@ -69,6 +69,9 @@ export function SupporterImport(props: { onDone?: () => void }) {
   const [csv, setCsv] = useState('');
   const [error, setError] = useState('');
   const [summary, setSummary] = useState('');
+  // סיכום-לפני-החלה (P2 פער 33) — כמו הלגאסי (importSummary→applyImport)
+  // ובאותו דפוס דו-שלבי של ייבוא הילדים/משפחות-13
+  const [plan, setPlan] = useState<ReturnType<typeof planSupporterImport> | null>(null);
 
   function downloadTemplate() {
     downloadCsv('supporters-template.csv', [
@@ -84,18 +87,25 @@ export function SupporterImport(props: { onDone?: () => void }) {
     // helper משותף (P0.5): UTF-8 עם fallback ל-windows-1255 לקבצים מאקסל ישן
     const txt = await readCsvFileText(file);
     setCsv(txt);
-    run(txt);
+    analyze(txt);
   }
 
-  function run(text = csv) {
+  /** שלב 1 — פענוח והצגת סיכום; לא משנה נתונים. */
+  function analyze(text = csv) {
     setError('');
     setSummary('');
+    setPlan(null);
     const rows = parseRows(text);
     if (!rows.length) {
       setError('לא נמצאו שורות תקינות — ודאו שיש עמודת "שם" (חובה)');
       return;
     }
-    const plan = planSupporterImport(rows, useApp.getState().db.supporters);
+    setPlan(planSupporterImport(rows, useApp.getState().db.supporters));
+  }
+
+  /** שלב 2 — החלה בפועל, רק אחרי אישור הסיכום. */
+  function apply() {
+    if (!plan) return;
     setDb((db) => {
       let seq = db.seq;
       const updates = new Map(plan.updates.map((u) => [u.id, u.row]));
@@ -114,6 +124,7 @@ export function SupporterImport(props: { onDone?: () => void }) {
         ' קיימות',
     );
     toast('ייבוא ' + termOf(config, 'nav.supporters', 'תומכים') + ': +' + plan.inserts.length + ' · ✎' + plan.updates.length);
+    setPlan(null);
     setCsv('');
     props.onDone?.();
   }
@@ -154,14 +165,33 @@ export function SupporterImport(props: { onDone?: () => void }) {
           rows={5}
           dir="rtl"
           value={csv}
-          onChange={(e) => setCsv(e.target.value)}
+          onChange={(e) => {
+            setCsv(e.target.value);
+            setPlan(null);
+          }}
           placeholder={'שם,טלפון,אימייל,ת"ז,כתובת,קטגוריה,עבור\nישראל ישראלי,050-1234567,donor@example.com,,ירושלים,תורם פרטי,כללי'}
           style={{ fontFamily: 'monospace', fontSize: 13 }}
         />
       </Field>
-      <Btn kind="primary" onClick={() => run()} disabled={!csv.trim()}>
-        {'ייבוא ' + termOf(config, 'nav.supporters', 'התומכים')}
+      <Btn onClick={() => analyze()} disabled={!csv.trim()}>
+        בדיקת הקובץ (שלב 1)
       </Btn>
+      {plan && (
+        <div style={{ marginTop: 12, border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px' }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>
+            {'זוהו ' + (plan.inserts.length + plan.updates.length) + ' ' + termOf(config, 'nav.supporters', 'תומכות') + ' בקובץ'}
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
+            {'+' + plan.inserts.length + ' חדשות · ' + plan.updates.length + ' עדכונים לקיימות (הצלבה לפי שם)'}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Btn kind="primary" onClick={apply} disabled={!plan.inserts.length && !plan.updates.length}>
+              {'ייבוא ' + (plan.inserts.length + plan.updates.length) + ' ' + termOf(config, 'nav.supporters', 'תומכות')}
+            </Btn>
+            <Btn onClick={() => setPlan(null)}>ביטול</Btn>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
