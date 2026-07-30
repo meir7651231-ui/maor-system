@@ -1,30 +1,38 @@
 /**
  * ➕ חידוש מלאי מהיר (חנות 13; עבר לפריט ב-SHOP4 — המלאי המשותף חי על
- * ShopItem, הכרעה 18) — מוסיף כמות חיובית למלאי הפריט דרך upsertShopItem.
- * פריט בלי מעקב — הזנת כמות מפעילה מעקב.
+ * ShopItem, הכרעה 18). מאז SHOP6 (חנות 25) כל חידוש נרשם כ**קליטה**
+ * (addShopIntake — קנייה/תרומה-בעין, ברירת 'buy'): הרשומה ביומן-הקליטות
+ * והעלאת המלאי אטומיות באותו setDb. source חופשי — בלי קישור לתורמים (בידוד).
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import type { ShopItem } from '../../types/domain';
-import { Btn, Field, FormError, Modal, TextInput } from '../ui';
+import { isoToday } from '../../lib/date-util';
+import type { ShopIntake, ShopItem } from '../../types/domain';
+import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { itemRemaining } from './lib';
 
 export function StockModal(props: { item: ShopItem; onClose: () => void }) {
   const db = useApp((s) => s.db);
-  const upsertShopItem = useApp((s) => s.upsertShopItem);
+  const addShopIntake = useApp((s) => s.addShopIntake);
   const toast = useApp((s) => s.toast);
   const it = props.item;
   const remaining = itemRemaining(db, it.id);
 
   const [amount, setAmount] = useState('');
+  const [kind, setKind] = useState<ShopIntake['kind']>('buy');
+  const [source, setSource] = useState('');
+  const [cost, setCost] = useState('');
   const [error, setError] = useState('');
 
   function save() {
     const n = Math.round(+amount);
     if (!amount.trim() || !Number.isFinite(n) || n <= 0) return setError('כמה להוסיף — מספר חיובי');
-    const newStock = (it.stock ?? 0) + n;
-    upsertShopItem({ ...it, stock: newStock });
-    toast('המלאי עודכן — נותרו ' + ((remaining ?? 0) + n));
+    // בתרומה-בעין העלות 0 קבוע; בקנייה — שדה רשות (ריק = 0)
+    const c = kind === 'donation' ? 0 : Math.round(+(cost || '0'));
+    if (!Number.isFinite(c) || c < 0) return setError('עלות — מספר אי-שלילי');
+    const ok = addShopIntake({ itemId: it.id, date: isoToday(), qty: n, kind, source: source.trim(), cost: c, note: '' });
+    if (!ok) return; // ה-store כבר הסביר בטוסט
+    toast('הקליטה נרשמה — נותרו ' + ((remaining ?? 0) + n));
     props.onClose();
   }
 
@@ -37,6 +45,24 @@ export function StockModal(props: { item: ShopItem; onClose: () => void }) {
       <Field label="כמה להוסיף *">
         <TextInput value={amount} onChange={setAmount} type="number" dir="ltr" placeholder="2" />
       </Field>
+      <Field label="סוג הקליטה">
+        <Select
+          value={kind}
+          onChange={(v) => setKind(v as ShopIntake['kind'])}
+          options={[
+            { value: 'buy', label: '🛒 קנייה' },
+            { value: 'donation', label: '🎗 תרומה בעין' },
+          ]}
+        />
+      </Field>
+      <Field label={kind === 'donation' ? 'מי תרם (טקסט חופשי)' : 'היכן נקנה'}>
+        <TextInput value={source} onChange={setSource} placeholder={kind === 'donation' ? 'משפחת לוי' : 'סיטונאות הדרום'} />
+      </Field>
+      {kind === 'buy' && (
+        <Field label="עלות כוללת בש״ח">
+          <TextInput value={cost} onChange={setCost} type="number" dir="ltr" placeholder="0" />
+        </Field>
+      )}
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>עדכון המלאי</Btn>
         <Btn onClick={props.onClose}>ביטול</Btn>

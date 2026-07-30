@@ -20,22 +20,26 @@ describe('🛍 ratchet — חנות 13: חידוש מלאי מהיר (על הפ�
     useApp.getState().setDb(() => ({ ...emptyDb(), shopItems: [item({})] }));
   });
 
-  it('הגנת-מקור: כפתור החידוש בקטלוג פותח את StockModal; המלאי מתעדכן על הפריט', () => {
+  it('הגנת-מקור: כפתור החידוש בקטלוג פותח את StockModal; מאז SHOP6 החידוש נרשם כקליטה', () => {
     expect(catalogSrc).toContain('title="חידוש מלאי"');
     expect(catalogSrc).toContain('StockModal');
     expect(stockSrc).toContain('הזנת כמות תפעיל מעקב');
-    expect(stockSrc).toContain('upsertShopItem');
-    expect(stockSrc).toContain('(it.stock ?? 0) + n');
+    // עדכון ratchet מתועד (SHOP6 חנות 25): המודאל עבר מ-upsertShopItem ישיר
+    // ל-addShopIntake — הרשומה ביומן והמלאי עולים אטומית ב-store
+    expect(stockSrc).toContain('addShopIntake(');
+    expect(stockSrc).not.toContain('upsertShopItem');
   });
 
-  it('חידוש דרך upsertShopItem מוסיף לכמות; פריט בלי מעקב מתחיל מהכמות שהוזנה', () => {
-    // אותה פעולה שהמודאל מבצע — stock 3 + 2 = 5
-    const i = useApp.getState().db.shopItems[0];
-    useApp.getState().upsertShopItem({ ...i, stock: (i.stock ?? 0) + 2 });
+  it('חידוש דרך addShopIntake מוסיף לכמות; פריט בלי מעקב מתחיל מהכמות שהוזנה', () => {
+    // אותה פעולה שהמודאל מבצע — stock 3 + 2 = 5, ורשומת קליטה נכתבת
+    const add = useApp.getState().addShopIntake;
+    expect(add({ itemId: 'shi1', date: '2026-07-30', qty: 2, kind: 'buy', source: '', cost: 0, note: '' })).toBe(true);
     expect(useApp.getState().db.shopItems[0].stock).toBe(5);
+    expect(useApp.getState().db.shopIntakes).toHaveLength(1);
     // פריט בלי מעקב — stock ?? 0 ואז +4 = 4 (המעקב הופעל)
     const untracked = item({ id: 'shi2', name: 'בלי מעקב', stock: undefined });
-    useApp.getState().upsertShopItem({ ...untracked, stock: (untracked.stock ?? 0) + 4 });
+    useApp.getState().upsertShopItem(untracked);
+    expect(add({ itemId: 'shi2', date: '2026-07-30', qty: 4, kind: 'donation', source: 'משפחת לוי', cost: 0, note: '' })).toBe(true);
     expect(useApp.getState().db.shopItems.find((x) => x.id === 'shi2')?.stock).toBe(4);
   });
 

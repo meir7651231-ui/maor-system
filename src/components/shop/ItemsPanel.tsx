@@ -19,7 +19,7 @@ const KIND_OPTIONS: { value: ShopComponentKind; label: string }[] = [
   { value: 'holidayGift', label: '🕎 מתנת-חג (מחזורית)' },
 ];
 
-const EMPTY = { name: '', kind: 'gift' as ShopComponentKind, storeId: '', value: '', basePrice: '', stock: '', validDays: '', holidays: [] as string[], active: true, notes: '' };
+const EMPTY = { name: '', kind: 'gift' as ShopComponentKind, storeId: '', value: '', basePrice: '', stock: '', minStock: '', validDays: '', holidays: [] as string[], active: true, notes: '' };
 
 export function ItemsPanel() {
   const db = useApp((s) => s.db);
@@ -53,6 +53,7 @@ export function ItemsPanel() {
       value: i.value ? String(i.value) : '',
       basePrice: i.basePrice ? String(i.basePrice) : '',
       stock: i.stock === undefined ? '' : String(i.stock),
+      minStock: i.minStock === undefined ? '' : String(i.minStock),
       validDays: i.validDays === undefined ? '' : String(i.validDays),
       holidays: i.holidays ?? [],
       active: i.active,
@@ -68,6 +69,8 @@ export function ItemsPanel() {
       return setError('שווי ומחיר סמלי חייבים להיות מספרים אי-שליליים');
     if (f.stock.trim() !== '' && (!Number.isFinite(+f.stock) || +f.stock < 0))
       return setError('מלאי חייב להיות מספר אי-שלילי (ריק = ללא מעקב)');
+    if (f.minStock.trim() !== '' && (!Number.isFinite(+f.minStock) || +f.minStock < 0))
+      return setError('מלאי מינימום חייב להיות מספר אי-שלילי (ריק = בלי התרעה)');
     if (f.validDays.trim() !== '' && (!Number.isFinite(+f.validDays) || +f.validDays < 0))
       return setError('ימי תוקף חייבים להיות מספר אי-שלילי (ריק = ללא תוקף)');
     upsertShopItem({
@@ -78,6 +81,8 @@ export function ItemsPanel() {
       value: Math.round(value),
       basePrice: Math.round(basePrice),
       ...(f.stock.trim() === '' ? {} : { stock: Math.max(0, Math.round(+f.stock)) }),
+      // מלאי מינימום (SHOP6) — מתחתיו נדלקת התרעת "להצטייד" (restock)
+      ...(f.minStock.trim() === '' ? {} : { minStock: Math.max(0, Math.round(+f.minStock)) }),
       ...(f.kind === 'coupon' && f.validDays.trim() !== '' ? { validDays: Math.max(0, Math.round(+f.validDays)) } : {}),
       // חגים נבחרים (הכרעה 17) — ריק = כל החגים (לא נשמר)
       ...(f.kind === 'holidayGift' && f.holidays.length > 0 ? { holidays: f.holidays } : {}),
@@ -200,6 +205,9 @@ export function ItemsPanel() {
             </Field>
             <Field label="מלאי (ריק = ללא מעקב)">
               <TextInput value={f.stock} onChange={(v) => setF({ ...f, stock: v })} type="number" dir="ltr" placeholder="3" />
+            </Field>
+            <Field label="מלאי מינימום (ריק = בלי התרעה)">
+              <TextInput value={f.minStock} onChange={(v) => setF({ ...f, minStock: v })} type="number" dir="ltr" placeholder="2" />
             </Field>
             {f.kind === 'coupon' && (
               <Field label="ימי תוקף (ריק = ללא תוקף)">

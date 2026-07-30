@@ -13,6 +13,7 @@ import { useArmed } from '../useArmed';
 import { componentCounts, filterProducts, itemOf, itemRemaining, productAssignments } from './lib';
 import { ProductForm } from './ProductForm';
 import { StockModal } from './StockModal';
+import { IntakePanel } from './IntakePanel';
 import { ItemsPanel } from './ItemsPanel';
 import { StoresPanel } from './StoresPanel';
 import { CriteriaPanel } from './CriteriaPanel';
@@ -112,6 +113,7 @@ export function CatalogTab() {
         </div>
       )}
       <ItemsPanel />
+      <IntakePanel />
       {storesOn && <StoresPanel />}
       {criteriaOn && <CriteriaPanel />}
       {formOpen && <ProductForm product={editing} onClose={() => setFormOpen(false)} />}

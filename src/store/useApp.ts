@@ -27,6 +27,7 @@ import {
   type ShopAssignment,
   type ShopCriterion,
   type ShopEvent,
+  type ShopIntake,
   type ShopItem,
   type ShopProduct,
   type ShopRedemption,
@@ -292,6 +293,15 @@ interface AppState {
    * (סדרה רציפה לא ממחזרת מספרים). ביטול-כפול נחסם.
    */
   voidShopRedemption: (assignmentId: string, redemptionId: string, reason: string) => boolean;
+  /**
+   * קליטת מלאי (SHOP6 חנות 25) — קנייה או תרומה-בעין. שער לפני מונה: qty
+   * לא-חיובי / cost שלילי / פריט לא-קיים נדחים בלי לגעת ב-db. אטומית —
+   * הרשומה נכתבת והמלאי על הפריט עולה באותו setDb. source = טקסט חופשי
+   * (בלי קישור ל-supporters — בידוד).
+   */
+  addShopIntake: (intake: Omit<ShopIntake, 'id'>) => boolean;
+  /** מחיקת קליטה מחזירה את המלאי (קטום ב-0) — יומן-קליטות, לא סדרת מס. */
+  deleteShopIntake: (id: string) => void;
 
   // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
   // ולכן סנכרון הענן והביטול עובדים כרגיל. פעולות שכותבות ללוח מייצרות OrgEvent.
@@ -1416,6 +1426,42 @@ export const useApp = create<AppState>()((set, get) => {
         ),
       }));
       return true;
+    },
+    addShopIntake(intake) {
+      // שער לפני נגיעה ב-db ולפני nextId (לקח באג-5): כמות חייבת חיובית-סופית,
+      // עלות אי-שלילית-סופית, והפריט קיים
+      if (!Number.isFinite(intake.qty) || intake.qty <= 0) {
+        get().toast('כמות הקליטה חייבת להיות מספר חיובי');
+        return false;
+      }
+      if (!Number.isFinite(intake.cost) || intake.cost < 0) {
+        get().toast('עלות הקליטה חייבת להיות מספר אי-שלילי');
+        return false;
+      }
+      if (!get().db.shopItems.some((i) => i.id === intake.itemId)) {
+        get().toast('הפריט לא נמצא — הקליטה לא נשמרה');
+        return false;
+      }
+      const id = get().nextId('shn');
+      // אטומית: הרשומה + העלאת המלאי באותו setDb (מלאי בלי-מעקב מתחיל מ-0)
+      setDb((db) => ({
+        shopIntakes: [{ id, ...intake }, ...db.shopIntakes],
+        shopItems: db.shopItems.map((i) =>
+          i.id === intake.itemId ? { ...i, stock: (i.stock ?? 0) + intake.qty } : i,
+        ),
+      }));
+      return true;
+    },
+    deleteShopIntake(id) {
+      const intake = get().db.shopIntakes.find((x) => x.id === id);
+      if (!intake) return;
+      // החזרת המלאי קטומה ב-0 — אם בינתיים חולק יותר משנקלט, לא יורדים לשלילי
+      setDb((db) => ({
+        shopIntakes: db.shopIntakes.filter((x) => x.id !== id),
+        shopItems: db.shopItems.map((i) =>
+          i.id === intake.itemId ? { ...i, stock: Math.max(0, (i.stock ?? 0) - intake.qty) } : i,
+        ),
+      }));
     },
 
     // ── מעקב טיפול רב-שלבי ──

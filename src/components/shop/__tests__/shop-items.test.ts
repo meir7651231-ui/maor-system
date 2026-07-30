@@ -91,9 +91,11 @@ describe('🛍 ratchet — חנות 17: פריטים עם מלאי משותף', 
     expect(itemRemaining(again, mig.id)).toBe(2);
   });
 
-  it('ענן: shopItems באוספים (17), diff set/delete ו-round-trip דרך applyEntityPartial', () => {
+  it('ענן: shopItems באוספים (18 מאז SHOP6 — shopIntakes), diff set/delete ו-round-trip דרך applyEntityPartial', () => {
     expect(ENTITY_COLLECTIONS).toContain('shopItems');
-    expect(ENTITY_COLLECTIONS).toHaveLength(17);
+    // ‏17→18: קליטות המלאי (SHOP6 חנות 25) — עדכון ratchet מתועד במנדט
+    expect(ENTITY_COLLECTIONS).toHaveLength(18);
+    expect(ENTITY_COLLECTIONS).toContain('shopIntakes');
     const prev: Db = { ...emptyDb(), shopItems: [item({}), item({ id: 'shi2', name: 'ישן' })] };
     const next: Db = { ...emptyDb(), shopItems: [item({ stock: 9 })] };
     const d = diffDb(prev, next);

@@ -6,7 +6,7 @@
  * supporters/enrollments. Reuse טהור: holidayOf/hebParts מ-lib/hebrew,
  * isoOf מ-calLib (lib→lib מותר).
  */
-import type { Db, Id, IsoDate, ShopAssignment, ShopAssignmentStatus, ShopComponent, ShopCriterion, ShopItem, ShopProduct, ShopRedemption } from '../../types/domain';
+import type { Db, Id, IsoDate, ShopAssignment, ShopAssignmentStatus, ShopComponent, ShopCriterion, ShopIntake, ShopItem, ShopProduct, ShopRedemption } from '../../types/domain';
 import { isoOf } from '../calendar/calLib';
 import { hebParts, holidayOf } from '../../lib/hebrew';
 import { smartFilter } from '../../lib/search';
@@ -226,7 +226,7 @@ export function couponExpiry(a: ShopAssignment, comp: { validDays?: number }): I
 /* ---------- דורש טיפול ---------- */
 
 export interface ShopCareItem {
-  kind: 'holidayDue' | 'meetingPending' | 'couponPending' | 'couponExpired' | 'stockOut';
+  kind: 'holidayDue' | 'meetingPending' | 'couponPending' | 'couponExpired' | 'stockOut' | 'restock';
   assignmentId: Id;
   componentId: Id;
   label: string;
@@ -252,13 +252,23 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
   // מלאי משותף (הכרעה 18): התרעת אזל פר-פריט — הנותר נספר על-פני כל החבילות
   for (const item of db.shopItems) {
     if (!item.active) continue;
-    if (itemRemaining(db, item.id) === 0) {
+    const rem = itemRemaining(db, item.id);
+    if (rem === 0) {
       stock.push({
         kind: 'stockOut',
         assignmentId: '',
         componentId: item.id,
         label: item.name + ' — המלאי אזל',
         hint: 'לחדש מלאי או לעדכן את הפריט',
+      });
+    } else if (item.minStock != null && rem !== null && rem < item.minStock) {
+      // מלאי מינימום (SHOP6 חנות 25): מתחת לסף — "להצטייד" לפני שאוזל
+      stock.push({
+        kind: 'restock',
+        assignmentId: '',
+        componentId: item.id,
+        label: item.name + ' — המלאי נמוך',
+        hint: 'להצטייד: נותרו ' + rem + ' מתחת ל-' + item.minStock,
       });
     }
   }
@@ -480,6 +490,25 @@ export function filterRedemptions(
   return a.redemptions.filter(
     (r) => dateInRange(r.date, fromIso, toIso) && (includeVoided || !r.voidedAt),
   );
+}
+
+/* ---------- מלאי נכנס — קליטות (SHOP6 חנות 25) ---------- */
+
+/** שורת יומן-קליטות עם שם הפריט פתור — לתצוגה ב-IntakePanel. */
+export interface IntakeRow {
+  intake: ShopIntake;
+  itemName: string;
+}
+
+/**
+ * יומן הקליטות — חדש-ראשון (תאריך יורד, שוויון = סדר ההזנה שכבר חדש-ראשון)
+ * + סה"כ עלויות (תרומות-בעין = 0, לא מוסיפות).
+ */
+export function intakeLog(db: Db): { rows: IntakeRow[]; totalCost: number } {
+  const rows = db.shopIntakes
+    .map((intake) => ({ intake, itemName: db.shopItems.find((i) => i.id === intake.itemId)?.name ?? '—' }))
+    .sort((a, b) => b.intake.date.localeCompare(a.intake.date));
+  return { rows, totalCost: rows.reduce((s, r) => s + r.intake.cost, 0) };
 }
 
 /* ---------- ייצוא (CONNECT חיבור 6) ---------- */

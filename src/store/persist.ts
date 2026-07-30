@@ -161,6 +161,8 @@ export function migrate(raw: unknown): Db | null {
     shopCriteria: Array.isArray(db.shopCriteria) ? db.shopCriteria : [],
     shopAssignments: Array.isArray(db.shopAssignments) ? db.shopAssignments : [],
     shopEvents: Array.isArray(db.shopEvents) ? db.shopEvents : [],
+    // SHOP6: יומן קליטות — תוספת אדיטיבית (גיבוי ישן = מערך ריק)
+    shopIntakes: Array.isArray(db.shopIntakes) ? db.shopIntakes : [],
     notif: { ...base.notif, ...db.notif },
     reports: { ...base.reports, ...db.reports },
     ui: { ...base.ui, ...db.ui },

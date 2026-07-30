@@ -481,6 +481,8 @@ export interface ShopItem {
   basePrice: number;
   /** מלאי משותף — undefined = ללא מעקב. */
   stock?: number;
+  /** מלאי מינימום — מתחתיו נדלקת התרעת "להצטייד" (restock ב-needsCare). */
+  minStock?: number;
   /** ימי תוקף (kind==='coupon'). */
   validDays?: number;
   /** חגים נבחרים למתנת-חג (kind==='holidayGift') — ריק/חסר = כל החגים (תאימות אחורה). */
@@ -509,6 +511,20 @@ export interface ShopComponent {
   stock?: number;
   validDays?: number;
   notes: string;
+}
+
+/** קליטת מלאי — קנייה או תרומה-בעין. המלאי על הפריט עולה אטומית עם הרישום. */
+export interface ShopIntake {
+  id: Id;
+  itemId: Id;
+  date: IsoDate;
+  qty: number;
+  kind: 'buy' | 'donation';
+  /** מי תרם / היכן נקנה — טקסט חופשי (בלי קישור לתורמים — בידוד). */
+  source: string;
+  /** עלות כוללת בש"ח — 0 בתרומה. */
+  cost: number;
+  note: string;
 }
 
 /** מוצר בקטלוג — חבילת שירות שלמה ("מוצר חתן", "מוצר כלה"). */
@@ -594,7 +610,7 @@ export interface ShopEvent {
   done: boolean;
 }
 
-/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (17 מערכי ישויות). */
+/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (18 מערכי ישויות). */
 export interface Db {
   /** גרסת סכמה — העלאה מחייבת מיגרציה ב-store/persist.ts. */
   v: number;
@@ -626,6 +642,8 @@ export interface Db {
   shopCriteria: ShopCriterion[];
   shopAssignments: ShopAssignment[];
   shopEvents: ShopEvent[];
+  /** יומן קליטות מלאי (SHOP6) — קנייה/תרומה-בעין; לא סדרת מס. */
+  shopIntakes: ShopIntake[];
   orgName: string;
   orgSite: string;
   orgDonate: string;
@@ -680,6 +698,7 @@ export function emptyDb(): Db {
     shopCriteria: [],
     shopAssignments: [],
     shopEvents: [],
+    shopIntakes: [],
     orgName: 'מאור החסד',
     orgSite: '',
     orgDonate: '',
