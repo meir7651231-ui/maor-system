@@ -22,6 +22,7 @@ import { BodyMap } from './components/timer/BodyMap';
 import { DedupModal } from './components/families/DedupModal';
 import { GuideModal } from './components/GuideModal';
 import { TourOverlay } from './components/TourOverlay';
+import { A11yFab } from './components/A11yFab';
 import { HomeView } from './components/home/HomeView';
 import { FamiliesView } from './components/families/FamiliesView';
 import { CoursesView } from './components/courses/CoursesView';
@@ -606,6 +607,8 @@ export default function App() {
           }}
         />
       )}
+
+      {featureOn(config, 'shell.a11yfab') && <A11yFab />}
 
       {toastsEl}
     </div>

@@ -134,6 +134,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'shell.palette.actions', label: 'פעולות בחיפוש המהיר', desc: 'העתקת כל הטלפונים, + אירוע/תזכורת/חוג/תומכת, ניקוב-מהיום + קיבוץ תוצאות לפי סוג', module: 'shell' },
   { key: 'shell.guide', label: 'המדריך המהיר 📖', desc: 'מדריך מובנה — שורה לכל מסך + "המתכונים המהירים" מהקובץ החי, נפתח מהחיפוש המהיר', module: 'shell' },
   { key: 'shell.demo', label: 'מצב הדגמה ▶', desc: 'סיור spotlight מודרך על המסכים האמיתיים לפי תסריט הקובץ החי — הבא/הקודם, Esc עוצר', module: 'shell' },
+  { key: 'shell.a11yfab', label: 'כפתור נגישות צף ♿', desc: 'FAB נגיש מכל מסך — גודל אותיות 80%-160% בצעדי 10%, ניגודיות, הדגשה, עצירת אנימציות וריווח', module: 'shell' },
 
   // ——— ליבה ———
   { key: 'core.receipts', label: 'קבלות להורדה', desc: 'הפקת קבלות להורדה על תשלומים ותרומות', module: 'core' },
