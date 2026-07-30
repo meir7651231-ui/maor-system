@@ -225,16 +225,20 @@ for (const profile of PROFILES) {
   if (!profile.config) {
     await page.locator('nav >> text=חנות').click();
     await page.waitForTimeout(400);
-    // מוצר "מוצר חתן" עם רכיב מתנה — שווי 200, מחיר סמלי 50, מלאי 3 (SHOP2)
+    // SHOP4 (מודל הפריטים): קודם פריט בקטלוג — שווי 200, סמלי 50, מלאי 3
+    await page.locator('main input[placeholder="סט תפילין"]').fill('מתנת חתן');
+    await page.locator('main input[placeholder="200"]').fill('200');
+    await page.locator('main input[placeholder="50"]').fill('50');
+    await page.locator('main input[placeholder="3"]').fill('3');
+    await page.locator('main button', { hasText: 'הוספת פריט' }).click();
+    await page.waitForTimeout(400);
+    t('הוספת פריט לקטלוג', (await page.locator('main').textContent()).includes('מתנת חתן'));
+    // חבילה "מוצר חתן" — הרכיב מצביע על הפריט (נבחר אוטומטית — הפריט הפעיל הראשון)
     await page.locator('button', { hasText: 'הוספת מוצר' }).first().click();
     await page.waitForTimeout(300);
     await page.locator('.modal input[placeholder="לדוגמה: מוצר חתן"]').fill('מוצר חתן');
     await page.locator('.modal button', { hasText: '➕ רכיב' }).click();
     await page.waitForTimeout(200);
-    await page.locator('.modal input[placeholder="לדוגמה: סט תפילין"]').fill('מתנת חתן');
-    await page.locator('.modal input[type="number"]').nth(0).fill('200');
-    await page.locator('.modal input[type="number"]').nth(1).fill('50');
-    await page.locator('.modal input[type="number"]').nth(2).fill('3');
     await page.locator('.modal button', { hasText: 'שמירה' }).click();
     await page.waitForTimeout(500);
     t('הוספת מוצר חתן', (await page.locator('main').textContent()).includes('מוצר חתן'));
@@ -287,6 +291,45 @@ for (const profile of PROFILES) {
     await page.waitForTimeout(400);
     const voidedMain = (await page.locator('main').textContent()) ?? '';
     t('הסכומים ירדו אחרי הביטול', voidedMain.includes('שווי שניתן · 0') && voidedMain.includes('שולם סמלי · 0'));
+    // SHOP4 (הכרעה 16): פגישה עם חדר תופסת את הלוח — חדר תפוס נחסם.
+    // מוסיפים רכיב-פגישה למוצר דרך פריט חדש inline, ואז שתי פגישות באותו חדר+שעה
+    await page.locator('main button', { hasText: '🛍 קטלוג' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('main button', { hasText: '✏️ עריכה' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal button', { hasText: '➕ רכיב' }).click();
+    await page.waitForTimeout(200);
+    await page.locator('.modal button', { hasText: 'פריט חדש' }).last().click();
+    await page.waitForTimeout(200);
+    await page.locator('.modal input[placeholder="סט תפילין"]').fill('פגישת ליווי');
+    await page.locator('.modal select').last().selectOption('meeting');
+    await page.locator('.modal button', { hasText: 'יצירה וקישור' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal button', { hasText: 'שמירה' }).click();
+    await page.waitForTimeout(400);
+    await page.locator('main button', { hasText: '👥 מוטבים' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('main button', { hasText: 'מוצר חתן' }).first().click();
+    await page.waitForTimeout(400);
+    // פגישה ראשונה — חדר-מטריצה (מהזרימה של החוגים) בשעה 09:00 — נשמרת
+    await page.locator('main button', { hasText: '📅 קביעת פגישה' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input[type="time"]').fill('09:00');
+    await page.locator('.modal select:has(option:has-text("ללא חדר"))').selectOption({ label: 'חדר-מטריצה' });
+    await page.locator('.modal button', { hasText: 'שמירה' }).click();
+    await page.waitForTimeout(400);
+    t('פגישה עם חדר נשמרה', (await page.locator('.modal-back').count()) === 0);
+    // פגישה שנייה באותו חדר+שעה — נחסמת (המודאל נשאר פתוח עם שגיאת התנגשות)
+    await page.locator('main button', { hasText: '📅 קביעת פגישה' }).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input[type="time"]').fill('09:00');
+    await page.locator('.modal select:has(option:has-text("ללא חדר"))').selectOption({ label: 'חדר-מטריצה' });
+    await page.locator('.modal button', { hasText: 'שמירה' }).click();
+    await page.waitForTimeout(400);
+    const clashModal = (await page.locator('.modal').textContent().catch(() => '')) ?? '';
+    t('פגישה לחדר תפוס נחסמת', clashModal.includes('התנגשות'));
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
   }
 
   // ── זרימה 6: התמדה אחרי ריענון ──
