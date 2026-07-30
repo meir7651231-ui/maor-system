@@ -331,6 +331,37 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
   return [...due, ...meetings, ...coupons, ...expired, ...stock];
 }
 
+/* ---------- פגישות קרובות (חנות 23, הכרעה 22) ---------- */
+
+/**
+ * הפגישות הקרובות — אירועי meeting פתוחים (done=false) בטווח הימים
+ * (ברירת מחדל 2 = היום ומחר), ממוינים תאריך+שעה (בלי שעה — לסוף היום),
+ * עם שם המוטב ושם החדר. משטח התזכורות של העמודה (אין תשתית push —
+ * לא ממציאים).
+ */
+export function upcomingMeetings(
+  db: Db,
+  todayIso: IsoDate,
+  days = 2,
+): { ev: ShopEventLike; who: string; roomName: string }[] {
+  const end = new Date(todayIso + 'T12:00:00');
+  end.setDate(end.getDate() + days - 1);
+  const endIso = isoOf(end);
+  return db.shopEvents
+    .filter((e) => e.kind === 'meeting' && !e.done && e.date >= todayIso && e.date <= endIso)
+    .sort((x, y) => (x.date + '·' + (x.time || '99:99')).localeCompare(y.date + '·' + (y.time || '99:99')))
+    .map((ev) => {
+      const a = db.shopAssignments.find((x) => x.id === ev.assignmentId);
+      return {
+        ev,
+        who: a ? beneficiaryLabel(db, a) : ev.title,
+        roomName: ev.roomId ? (db.rooms.find((r) => r.id === ev.roomId)?.name ?? '') : '',
+      };
+    });
+}
+
+type ShopEventLike = Db['shopEvents'][number];
+
 /* ---------- סכומים ---------- */
 
 /** Σ השווי שנמסר בפועל (value של המימושים החיים — מבוטלים מוחרגים). */

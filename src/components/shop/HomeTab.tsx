@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
-import type { ShopAssignment, ShopComponent } from '../../types/domain';
+import type { ShopAssignment, ShopComponent, ShopEvent } from '../../types/domain';
 import { Btn, Chip, Select } from '../ui';
 import {
   assignmentRedeemed,
@@ -19,10 +19,12 @@ import {
   needsCare,
   subsidyTotal,
   upcomingHolidays,
+  upcomingMeetings,
 } from './lib';
 import { ProductForm } from './ProductForm';
 import { AssignmentForm } from './AssignmentForm';
 import { RedeemModal } from './RedeemModal';
+import { ShopEventModal } from './ShopEventModal';
 
 export function HomeTab() {
   const db = useApp((s) => s.db);
@@ -31,6 +33,7 @@ export function HomeTab() {
   const today = isoToday();
 
   const [redeem, setRedeem] = useState<{ assignment: ShopAssignment; component: ShopComponent } | null>(null);
+  const [meetingEv, setMeetingEv] = useState<ShopEvent | null>(null);
   const [productFormOpen, setProductFormOpen] = useState(false);
   const [assignFormOpen, setAssignFormOpen] = useState(false);
   const [quickAssignId, setQuickAssignId] = useState('');
@@ -38,6 +41,8 @@ export function HomeTab() {
 
   const care = needsCare(db, today);
   const holidays = upcomingHolidays(today, 45);
+  const meetings = upcomingMeetings(db, today);
+  const upsertShopEvent = useApp((s) => s.upsertShopEvent);
   const activeProducts = db.shopProducts.filter((p) => p.active).length;
   const activeAssignments = db.shopAssignments.filter((a) => a.status === 'active');
 
@@ -120,6 +125,31 @@ export function HomeTab() {
         )}
       </div>
 
+      {/* פגישות קרובות (הכרעה 22) — משטח התזכורות; ריק ⇒ לא מוצג */}
+      {meetings.length > 0 && (
+        <section className="card">
+          <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>🤝 פגישות קרובות</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {meetings.map(({ ev, who, roomName }) => (
+              <div key={ev.id} style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid var(--line)', borderRadius: 10, padding: '7px 11px' }}>
+                <Chip on={ev.date === today}>{ev.date === today ? 'היום' : 'מחר'}</Chip>
+                <button
+                  type="button"
+                  onClick={() => setMeetingEv(ev)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'right', flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, padding: 0 }}
+                  title="פתיחת הפגישה"
+                >
+                  {(ev.time ? ev.time + ' · ' : '') + who + (roomName ? ' · ' + roomName : '')}
+                </button>
+                <Btn sm onClick={() => { if (upsertShopEvent({ ...ev, done: true })) toast('הפגישה סומנה כבוצעה'); }}>
+                  ✓ בוצע
+                </Btn>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* החגים הקרובים */}
       <section className="card">
         <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>🕎 החגים הקרובים ומי מקבל מה</h2>
@@ -161,6 +191,7 @@ export function HomeTab() {
       </section>
 
       {redeem && <RedeemModal assignment={redeem.assignment} component={redeem.component} onClose={() => setRedeem(null)} />}
+      {meetingEv && <ShopEventModal ev={meetingEv} date={meetingEv.date} onClose={() => setMeetingEv(null)} />}
       {productFormOpen && <ProductForm product={null} onClose={() => setProductFormOpen(false)} />}
       {assignFormOpen && <AssignmentForm assignment={null} onClose={() => setAssignFormOpen(false)} />}
     </div>
