@@ -56,6 +56,33 @@ export function supTier(sc: number): SupTier {
 
 export const TIER_ORDER = ['זהב', 'כסף', 'ארד', 'רדומה'] as const;
 
+/* ---------- פאנל דרגות מורחב (P3 פריט 12) — טהור, נוסחאות הלגאסי ---------- */
+
+/** היסטוגרמת ציון — 10 סלים של 100 נקודות (legacy supBars:3018-3022). */
+export function supScoreBins(supporters: readonly Supporter[]): number[] {
+  const bins = Array(10).fill(0) as number[];
+  for (const sp of supporters) bins[Math.min(9, Math.floor(supScore(sp) / 100))]++;
+  return bins;
+}
+
+/** ממוצע לתרומה — סה"כ ₪-שקול (‎$×3.7‎) חלקי מספר התרומות (legacy supAvgDon:3024); אין תרומות ⇒ null. */
+export function supAvgDon(supporters: readonly Supporter[]): number | null {
+  const totIls = supporters.reduce((a, x) => a + supTotalIls(x), 0);
+  const totCnt = supporters.reduce((a, x) => a + (x.count || 0), 0);
+  return totCnt ? Math.round(totIls / totCnt) : null;
+}
+
+/** מונה "תרמו ב-12 החודשים" — last בתוך 365 יום מ-todayIso (legacy sup12m:3025). */
+export function sup12m(supporters: readonly Supporter[], todayIso: string): number {
+  const d = new Date(todayIso + 'T12:00:00');
+  d.setDate(d.getDate() - 365);
+  const p2 = (n: number) => String(n).padStart(2, '0');
+  const cut = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+  let n = 0;
+  for (const sp of supporters) if (sp.last && sp.last >= cut) n++;
+  return n;
+}
+
 /** צ'יפ דרגה/סטטוס קטן בסגנון אחיד. */
 export function chipStyle(bg: string, c: string): CSSProperties {
   return {
