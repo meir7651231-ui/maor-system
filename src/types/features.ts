@@ -23,6 +23,7 @@ export interface FeatureDef {
     | 'supporters'
     | 'reports'
     | 'tzedaka'
+    | 'shop'
     | 'home'
     | 'settings'
     | 'core'
@@ -133,6 +134,13 @@ export const FEATURES: FeatureDef[] = [
   { key: 'tzedaka.calendar', label: 'לוח ייעודי', desc: 'לוח שנה פנימי לסבבי ריקון, מבצעים ותזכורות (מבודד מהלוח הראשי)', module: 'tzedaka' },
   { key: 'tzedaka.inlinecreate', label: 'הוספת לא-רשומים', desc: 'יצירת משפחה חדשה או ילד/הורה חדש ישירות מתוך העמודה', module: 'tzedaka' },
 
+  // ——— חנות מוצרי-שירות ———
+  { key: 'shop.stores', label: 'חנויות שותפות', desc: 'ניהול חנויות שותפות וקופונים לרכישה מסובסדת', module: 'shop' },
+  { key: 'shop.criteria', label: 'קריטריוני זכאות', desc: 'הנחות למחיר הסמלי לפי קריטריונים (יתום מאם/מאבא וכו׳)', module: 'shop' },
+  { key: 'shop.calendar', label: 'לוח ייעודי', desc: 'לוח פנימי לפגישות, מסירות וחגים קרובים (מבודד מהלוח הראשי)', module: 'shop' },
+  { key: 'shop.showcase', label: 'מסך ראווה', desc: 'תצוגת הקטלוג וסיכומי הנתינה למסך גדול', module: 'shop' },
+  { key: 'shop.inlinecreate', label: 'הוספת לא-רשומים', desc: 'יצירת משפחה/בן-משפחה חדשים ישירות מתוך העמודה', module: 'shop' },
+
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },
   { key: 'settings.teachers', label: 'ניהול מורים', desc: 'הוספה ועריכה של מורים בהגדרות', module: 'settings' },
@@ -188,6 +196,11 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'entity.tzCoordinator', label: 'רכז/ת קופות', fallback: 'רכז' },
   { key: 'entity.tzBox', label: 'קופת צדקה', fallback: 'קופה' },
   { key: 'entity.tzCampaign', label: 'מבצע התרמה', fallback: 'מבצע' },
+  { key: 'nav.shop', label: 'שם עמודת החנות', fallback: 'חנות' },
+  { key: 'entity.shopProduct', label: 'מוצר שירות', fallback: 'מוצר' },
+  { key: 'entity.shopStore', label: 'חנות שותפה', fallback: 'חנות' },
+  { key: 'entity.shopCriterion', label: 'קריטריון זכאות', fallback: 'קריטריון' },
+  { key: 'entity.shopAssignment', label: 'שיוך מוצר', fallback: 'שיוך' },
 
   // ——— ישויות ———
   { key: 'entity.family', label: 'משפחה (יחיד)', fallback: 'משפחה' },

@@ -64,6 +64,7 @@ export type View =
   | 'diary'
   | 'supporters'
   | 'tzedaka'
+  | 'shop'
   | 'reports'
   | 'settings';
 
