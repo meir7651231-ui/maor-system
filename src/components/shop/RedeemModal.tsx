@@ -12,6 +12,7 @@ import type { ShopAssignment, ShopComponent } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { isoToday } from '../../lib/date-util';
+import { nsLsKey } from '../../store/persist';
 import { beneficiaryLabel, componentRemaining, couponExpiry, effectivePrice, itemOf, itemRemaining, maxDiscountPct, upcomingHolidays } from './lib';
 
 export function RedeemModal(props: { assignment: ShopAssignment; component: ShopComponent; onClose: () => void }) {
@@ -115,8 +116,8 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
               sm
               onClick={() => {
                 try {
-                  sessionStorage.setItem('maor_cashbox_amount', String(Math.round(+f.paid)));
-                  sessionStorage.setItem('maor_cashbox_client', beneficiaryLabel(db, a));
+                  sessionStorage.setItem(nsLsKey('maor_cashbox_amount'), String(Math.round(+f.paid)));
+                  sessionStorage.setItem(nsLsKey('maor_cashbox_client'), beneficiaryLabel(db, a));
                 } catch {
                   /* sessionStorage חסום — הקופה תיפתח ריקה */
                 }

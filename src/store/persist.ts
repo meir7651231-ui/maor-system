@@ -60,10 +60,22 @@ const SNAPSHOT_KEEP = 30;
  */
 export function setPersistNamespace(slug: string): void {
   if (!slug || slug === 'default') return;
+  nsSlug = slug;
   LS_KEY = `maor_db:${slug}`;
   LS_CORRUPT_KEY = `maor_db_corrupt:${slug}`;
   IDB_NAME = `maor:${slug}`;
   idb = null; // חיבור קודם (אם נפתח) מצביע ל-DB הלא נכון
+}
+
+let nsSlug = '';
+
+/**
+ * מפתח localStorage/sessionStorage ממורחב-שמות — אותו כלל בדיוק כמו LS_KEY:
+ * default = המפתח הישן; אחרת `${base}:${slug}`. (CONNECT חיבור 7 — הקופה
+ * הרושמת; שאר מפתחות באג-3 נשארים שם, חלקם מקומיים-במכוון.)
+ */
+export function nsLsKey(base: string): string {
+  return nsSlug ? `${base}:${nsSlug}` : base;
 }
 
 let idb: Promise<IDBPDatabase> | null = null;

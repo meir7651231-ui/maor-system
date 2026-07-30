@@ -47,15 +47,17 @@ describe('🛍 ratchet — חנות 21: יומן + קופה רושמת', () => {
 
   it('(ב) הגנת-מקור: כפתור הקופה מאחורי הדגל ורק עם paid>0; אפס כתיבה ל-db', () => {
     expect(redeemSrc).toMatch(/featureOn\(config, 'core\.cashbox'\) && Math\.round\(\+f\.paid\) > 0/);
-    expect(redeemSrc).toContain("sessionStorage.setItem('maor_cashbox_amount'");
-    expect(redeemSrc).toContain("sessionStorage.setItem('maor_cashbox_client'");
+    // מאז CONNECT חיבור 7 המפתחות עוברים דרך nsLsKey (בידוד רב-ארגוני)
+    expect(redeemSrc).toContain("sessionStorage.setItem(nsLsKey('maor_cashbox_amount')");
+    expect(redeemSrc).toContain("sessionStorage.setItem(nsLsKey('maor_cashbox_client')");
     expect(redeemSrc).toContain("window.location.hash = '#cashbox'");
     expect(redeemSrc).toContain('💵 גבייה בקופה');
   });
 
   it('(ב-המשך) CashRegister קורא את מפתח הלקוח הממולא ונשאר מחוץ ל-db', () => {
     expect(cashSrc).toContain("const SS_CLIENT = 'maor_cashbox_client'");
-    expect(cashSrc).toContain('sessionStorage.getItem(SS_CLIENT)');
+    // מאז חיבור 7 הקריאה עוברת דרך nsLsKey (בידוד רב-ארגוני)
+    expect(cashSrc).toContain('sessionStorage.getItem(nsLsKey(SS_CLIENT))');
     // הקופה = כלי ספירה נפרד (הכרעה 20): אין setDb ואין נגיעה במימושים/S-
     expect(cashSrc).not.toContain('setDb');
     expect(cashSrc).not.toContain('addShopRedemption');

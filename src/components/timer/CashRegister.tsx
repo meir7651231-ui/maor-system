@@ -16,6 +16,8 @@ import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import { Btn, Modal, TextInput } from '../ui';
+// מפתחות הקופה ממורחבי-שמות פר-ארגון (CONNECT חיבור 7 — חלק מבאג ידוע 3)
+import { nsLsKey } from '../../store/persist';
 
 const LS_RECEIPTS = 'maor_cashbox_receipts';
 const LS_SEQ = 'maor_cashbox_seq';
@@ -37,8 +39,8 @@ interface Receipt {
 
 function nextReceiptNum(): number {
   try {
-    const n = Number(localStorage.getItem(LS_SEQ) || '0') + 1;
-    localStorage.setItem(LS_SEQ, String(n));
+    const n = Number(localStorage.getItem(nsLsKey(LS_SEQ)) || '0') + 1;
+    localStorage.setItem(nsLsKey(LS_SEQ), String(n));
     return n;
   } catch {
     return 1;
@@ -47,9 +49,9 @@ function nextReceiptNum(): number {
 
 function saveReceipt(r: Receipt): void {
   try {
-    const raw = localStorage.getItem(LS_RECEIPTS);
+    const raw = localStorage.getItem(nsLsKey(LS_RECEIPTS));
     const arr = raw ? (JSON.parse(raw) as Receipt[]) : [];
-    localStorage.setItem(LS_RECEIPTS, JSON.stringify([r, ...arr].slice(0, 200)));
+    localStorage.setItem(nsLsKey(LS_RECEIPTS), JSON.stringify([r, ...arr].slice(0, 200)));
   } catch {
     /* localStorage חסום */
   }
@@ -67,9 +69,9 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
   // סכום התחלתי מהטיימר (אם הגיע דרך "גבה תשלום").
   const prefill = useMemo(() => {
     try {
-      const v = sessionStorage.getItem(SS_AMOUNT);
+      const v = sessionStorage.getItem(nsLsKey(SS_AMOUNT));
       if (v) {
-        sessionStorage.removeItem(SS_AMOUNT);
+        sessionStorage.removeItem(nsLsKey(SS_AMOUNT));
         return v;
       }
     } catch {
@@ -81,9 +83,9 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
   // שם לקוח ממולא (מהמימוש בחנות) — אותו דפוס כמו הסכום
   const prefillClient = useMemo(() => {
     try {
-      const v = sessionStorage.getItem(SS_CLIENT);
+      const v = sessionStorage.getItem(nsLsKey(SS_CLIENT));
       if (v) {
-        sessionStorage.removeItem(SS_CLIENT);
+        sessionStorage.removeItem(nsLsKey(SS_CLIENT));
         return v;
       }
     } catch {
