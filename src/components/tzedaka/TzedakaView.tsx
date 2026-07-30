@@ -15,6 +15,7 @@ import { Chip, PageHead } from '../ui';
 import { CoordinatorsTab } from './CoordinatorsTab';
 import { HomeTab } from './HomeTab';
 import { CalendarTab } from './CalendarTab';
+import { ShowcaseTab } from './ShowcaseTab';
 
 type TzTab = 'care' | 'coordinators' | 'calendar' | 'showcase';
 
@@ -55,7 +56,7 @@ export function TzedakaView() {
       )}
       {active === 'coordinators' && <CoordinatorsTab selId={selCoordId} onSelect={setSelCoordId} />}
       {active === 'calendar' && <CalendarTab />}
-      {active === 'showcase' && <div className="card">🏆 ראווה — נבנה באשכול 7</div>}
+      {active === 'showcase' && <ShowcaseTab />}
     </div>
   );
 }
