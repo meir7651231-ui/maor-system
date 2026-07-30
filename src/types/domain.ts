@@ -3,7 +3,7 @@
  * כל הישויות נשמרות יחד במסמך DB אחד (ראו store/persist.ts) עם גרסת סכמה.
  */
 
-/** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp/tzc/tzb/tzp/tze/tzl). */
+/** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp/tzc/tzb/tzp/tze/tzl/shp/shs/shc/sha/shr/she). */
 export type Id = string;
 
 /** תאריך בפורמט ISO ‏(YYYY-MM-DD). */
@@ -465,7 +465,102 @@ export interface TzEvent {
   done: boolean;
 }
 
-/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (11 מערכי ישויות). */
+/* ---------- חנות מוצרי-שירות (מודול shop — מבודד; BUILD-ORDER-SHOP-2026-07-30) ---------- */
+
+/** סוג רכיב במוצר: פגישת ליווי · קופון לחנות שותפה · מתנה · מתנת-חג (מחזורית). */
+export type ShopComponentKind = 'meeting' | 'coupon' | 'gift' | 'holidayGift';
+
+/** רכיב בתוך מוצר. value=שווי בש"ח; basePrice=המחיר הסמלי לפני הנחות קריטריונים. */
+export interface ShopComponent {
+  id: Id;
+  kind: ShopComponentKind;
+  label: string;
+  /** חנות שותפה (kind==='coupon' — רשות בשאר). */
+  storeId: Id | '';
+  value: number;
+  basePrice: number;
+  /** כמות במלאי — undefined = ללא מעקב; הנותר = stock פחות המימושים. */
+  stock?: number;
+  /** ימי תוקף לקופון (kind==='coupon') — undefined/0 = ללא תוקף; נספר מ-since של השיוך. */
+  validDays?: number;
+  notes: string;
+}
+
+/** מוצר בקטלוג — חבילת שירות שלמה ("מוצר חתן", "מוצר כלה"). */
+export interface ShopProduct {
+  id: Id;
+  name: string;
+  desc: string;
+  img?: string;
+  active: boolean;
+  components: ShopComponent[];
+  notes: string;
+}
+
+/** חנות שותפה — הקופונים ממומשים אצלה. */
+export interface ShopStore {
+  id: Id;
+  name: string;
+  contact: string;
+  phone: string;
+  active: boolean;
+  notes: string;
+}
+
+/** קריטריון זכאות ("יתום מאם") — discountPct 0-100 על המחיר הסמלי. */
+export interface ShopCriterion {
+  id: Id;
+  name: string;
+  discountPct: number;
+  notes: string;
+}
+
+/** מימוש רכיב: paid=מה שולם בפועל; value=שווי שנמסר; holiday=שם החג (למתנת-חג). */
+export interface ShopRedemption {
+  id: Id;
+  /** אישור תשלום S-{shopReceiptSeq} — מונפק רק כש-paid>0; אינו קבלת מס. */
+  rid?: string;
+  /** ביטול מתועד — המספר S- נשאר בסדרה; מבוטל מוחרג מכל הסכומים והמלאי. */
+  voidedAt?: IsoDate;
+  voidReason?: string;
+  componentId: Id;
+  date: IsoDate;
+  holiday: string;
+  paid: number;
+  value: number;
+  note: string;
+}
+
+export type ShopAssignmentStatus = 'active' | 'done' | 'stopped';
+
+/** שיוך מוצר למוטב — משפחה, ואופציונלית בן/בת משפחה ספציפי/ת (חתן/כלה). */
+export interface ShopAssignment {
+  id: Id;
+  productId: Id;
+  famId: Id;
+  memberId: Id | '';
+  /** קריטריוני הזכאות של המוטב (מזהי ShopCriterion). */
+  criterionIds: Id[];
+  since: IsoDate | '';
+  status: ShopAssignmentStatus;
+  notes: string;
+  redemptions: ShopRedemption[];
+}
+
+/** אירוע הלוח הייעודי — לא ב-db.events, לא בלוח הראשי (בידוד). */
+export interface ShopEvent {
+  id: Id;
+  title: string;
+  date: IsoDate;
+  time: TimeHM | '';
+  /** meeting=פגישה · delivery=מסירה · holiday=חג · custom=אחר. */
+  kind: 'meeting' | 'delivery' | 'holiday' | 'custom';
+  assignmentId: Id | '';
+  notes: string;
+  done: boolean;
+}
+
+/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (16 מערכי ישויות). */
 export interface Db {
   /** גרסת סכמה — העלאה מחייבת מיגרציה ב-store/persist.ts. */
   v: number;
@@ -476,6 +571,8 @@ export interface Db {
   receiptSeq: number;
   /** מונה קבלות תרומה (D-) — רציף ונפרד מ-seq, כנדרש לקבלות מס. */
   donationSeq: number;
+  /** מונה אישורי תשלום סמלי בחנות (S-) — רציף ונפרד; אינו קבלת מס. */
+  shopReceiptSeq: number;
   families: Family[];
   enrollments: Enrollment[];
   courses: Course[];
@@ -488,6 +585,12 @@ export interface Db {
   tzBoxes: TzBox[];
   tzCampaigns: TzCampaign[];
   tzEvents: TzEvent[];
+  /** חנות מוצרי-שירות (מודול shop — מבודד). */
+  shopProducts: ShopProduct[];
+  shopStores: ShopStore[];
+  shopCriteria: ShopCriterion[];
+  shopAssignments: ShopAssignment[];
+  shopEvents: ShopEvent[];
   orgName: string;
   orgSite: string;
   orgDonate: string;
@@ -524,6 +627,7 @@ export function emptyDb(): Db {
     seq: 100,
     receiptSeq: 1,
     donationSeq: 1,
+    shopReceiptSeq: 1,
     families: [],
     enrollments: [],
     courses: [],
@@ -535,6 +639,11 @@ export function emptyDb(): Db {
     tzBoxes: [],
     tzCampaigns: [],
     tzEvents: [],
+    shopProducts: [],
+    shopStores: [],
+    shopCriteria: [],
+    shopAssignments: [],
+    shopEvents: [],
     orgName: 'מאור החסד',
     orgSite: '',
     orgDonate: '',

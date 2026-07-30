@@ -7,7 +7,7 @@
  */
 import type { Db } from '../types/domain';
 
-/** אחד-עשר אוספי הישויות — שם האוסף ב-Firestore = שם השדה ב-Db. */
+/** שישה-עשר אוספי הישויות — שם האוסף ב-Firestore = שם השדה ב-Db. */
 export const ENTITY_COLLECTIONS = [
   'families',
   'courses',
@@ -20,6 +20,11 @@ export const ENTITY_COLLECTIONS = [
   'tzBoxes',
   'tzCampaigns',
   'tzEvents',
+  'shopProducts',
+  'shopStores',
+  'shopCriteria',
+  'shopAssignments',
+  'shopEvents',
 ] as const;
 
 export type EntityCol = (typeof ENTITY_COLLECTIONS)[number];
@@ -36,6 +41,7 @@ const META_KEYS = [
   'seq',
   'receiptSeq',
   'donationSeq',
+  'shopReceiptSeq',
   'attnDone',
 ] as const;
 
@@ -61,6 +67,7 @@ export function metaOf(db: Db): Record<string, unknown> {
     seq: db.seq,
     receiptSeq: db.receiptSeq,
     donationSeq: db.donationSeq,
+    shopReceiptSeq: db.shopReceiptSeq,
     attnDone: db.attnDone,
     savedAt: db.savedAt,
   };

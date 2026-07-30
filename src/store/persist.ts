@@ -142,12 +142,19 @@ export function migrate(raw: unknown): Db | null {
     tzBoxes: Array.isArray(db.tzBoxes) ? db.tzBoxes : [],
     tzCampaigns: Array.isArray(db.tzCampaigns) ? db.tzCampaigns : [],
     tzEvents: Array.isArray(db.tzEvents) ? db.tzEvents : [],
+    // חנות מוצרי-שירות (מודול shop) — תוספת אדיטיבית, DB_VERSION נשאר 5
+    shopProducts: Array.isArray(db.shopProducts) ? db.shopProducts : [],
+    shopStores: Array.isArray(db.shopStores) ? db.shopStores : [],
+    shopCriteria: Array.isArray(db.shopCriteria) ? db.shopCriteria : [],
+    shopAssignments: Array.isArray(db.shopAssignments) ? db.shopAssignments : [],
+    shopEvents: Array.isArray(db.shopEvents) ? db.shopEvents : [],
     notif: { ...base.notif, ...db.notif },
     reports: { ...base.reports, ...db.reports },
     ui: { ...base.ui, ...db.ui },
     seq: Math.max(db.seq ?? 0, base.seq),
     receiptSeq: db.receiptSeq ?? base.receiptSeq,
     donationSeq: db.donationSeq ?? base.donationSeq,
+    shopReceiptSeq: db.shopReceiptSeq ?? base.shopReceiptSeq,
     security: db.security ?? base.security,
   };
   // גרסאות ישנות מיספרו קבלות מתוך seq המשותף. מזריעים את המונים הרציפים
@@ -165,8 +172,16 @@ export function migrate(raw: unknown): Db | null {
     'D-',
     merged.supporters.flatMap((s) => (Array.isArray(s.donations) ? s.donations.map((d) => d.rid) : [])),
   );
+  // אישורי S- של החנות — אותו דפוס זריעה (רציפות גם בגיבוי שקדם למונה)
+  const sNext = maxRid(
+    'S-',
+    merged.shopAssignments.flatMap((a) =>
+      Array.isArray(a.redemptions) ? a.redemptions.map((r) => r.rid ?? '') : [],
+    ),
+  );
   if (rNext > merged.receiptSeq) merged.receiptSeq = rNext;
   if (dNext > merged.donationSeq) merged.donationSeq = dNext;
+  if (sNext > merged.shopReceiptSeq) merged.shopReceiptSeq = sNext;
   // הגנה על ייחודיות מספרי-קבלה בנתונים: מרוץ בין-מכשירי (אותו receiptSeq נקרא
   // בשני מכשירים) עלול להנפיק rid זהה לשתי קבלות. פס זה רץ בכל טעינה ובכל
   // משיכה מהענן (pullAll→migrate): שומר את ההופעה הראשונה של כל rid וממספר מחדש
@@ -219,6 +234,57 @@ export function migrate(raw: unknown): Db | null {
     ...b,
     collections: Array.isArray(b.collections) ? b.collections : [],
     status: TZ_STATUSES.includes(b.status) ? b.status : 'office',
+  }));
+  // חנות — ריפוי פר-רשומה: components/redemptions/criterionIds → [], סטטוס
+  // זר → 'active', discountPct נצמד ל-0–100 (לא-סופי → 0)
+  merged.shopProducts = merged.shopProducts.map((p) => ({
+    ...p,
+    components: (Array.isArray(p.components) ? p.components : []).map((c) => {
+      let out = c;
+      // מלאי: לא-סופי → מוסר (בלי מעקב); שלילי → 0 (אזל)
+      if (out.stock !== undefined) {
+        if (typeof out.stock !== 'number' || !Number.isFinite(out.stock)) {
+          const { stock: _dropStock, ...rest } = out;
+          out = rest;
+        } else if (out.stock < 0) out = { ...out, stock: 0 };
+      }
+      // ימי תוקף קופון: לא-סופי → מוסר (ללא תוקף); שלילי → 0
+      if (out.validDays !== undefined) {
+        if (typeof out.validDays !== 'number' || !Number.isFinite(out.validDays)) {
+          const { validDays: _dropDays, ...rest } = out;
+          out = rest;
+        } else if (out.validDays < 0) out = { ...out, validDays: 0 };
+      }
+      return out;
+    }),
+  }));
+  const SHOP_STATUSES = ['active', 'done', 'stopped'];
+  // ייחודיות אישורי S- — אותו דפוס כמו seenR/seenD (מרוץ בין-מכשירי)
+  const seenS = new Set<string>();
+  merged.shopAssignments = merged.shopAssignments.map((a) => ({
+    ...a,
+    redemptions: Array.isArray(a.redemptions)
+      ? a.redemptions.map((r) => {
+          let out = r;
+          // חותמת ביטול מושחתת (לא-מחרוזת) → מוסרת — המימוש חוזר להיחשב חי
+          if (out.voidedAt !== undefined && typeof out.voidedAt !== 'string') {
+            const { voidedAt: _dropVoid, ...rest } = out;
+            out = rest;
+          }
+          if (out.rid && seenS.has(out.rid)) return { ...out, rid: 'S-' + merged.shopReceiptSeq++ };
+          if (out.rid) seenS.add(out.rid);
+          return out;
+        })
+      : [],
+    criterionIds: Array.isArray(a.criterionIds) ? a.criterionIds : [],
+    status: SHOP_STATUSES.includes(a.status) ? a.status : 'active',
+  }));
+  merged.shopCriteria = merged.shopCriteria.map((c) => ({
+    ...c,
+    discountPct:
+      typeof c.discountPct === 'number' && Number.isFinite(c.discountPct)
+        ? Math.min(100, Math.max(0, c.discountPct))
+        : 0,
   }));
   // היגיינה: מזהים חסרים, כפילויות, מערכים חסרים בתוך משפחות
   const seen = new Set<string>();
