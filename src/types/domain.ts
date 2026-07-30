@@ -479,6 +479,8 @@ export interface ShopComponent {
   storeId: Id | '';
   value: number;
   basePrice: number;
+  /** כמות במלאי — undefined = ללא מעקב; הנותר = stock פחות המימושים. */
+  stock?: number;
   notes: string;
 }
 

@@ -24,6 +24,8 @@ interface CompDraft {
   storeId: string;
   value: string;
   basePrice: string;
+  /** ריק = ללא מעקב מלאי. */
+  stock: string;
   notes: string;
 }
 
@@ -45,6 +47,7 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
       storeId: c.storeId,
       value: c.value ? String(c.value) : '',
       basePrice: c.basePrice ? String(c.basePrice) : '',
+      stock: c.stock === undefined ? '' : String(c.stock),
       notes: c.notes,
     })),
   );
@@ -52,7 +55,7 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
 
   function addComp() {
     // id ריק — ה-store מנפיק nextId('shpc') בשמירה
-    setComps([...comps, { id: '', kind: 'gift', label: '', storeId: '', value: '', basePrice: '', notes: '' }]);
+    setComps([...comps, { id: '', kind: 'gift', label: '', storeId: '', value: '', basePrice: '', stock: '', notes: '' }]);
   }
   function setComp(i: number, patch: Partial<CompDraft>) {
     setComps(comps.map((c, j) => (j === i ? { ...c, ...patch } : c)));
@@ -69,6 +72,8 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
       const basePrice = c.basePrice.trim() === '' ? 0 : +c.basePrice;
       if (!Number.isFinite(value) || value < 0 || !Number.isFinite(basePrice) || basePrice < 0)
         return setError('שווי ומחיר סמלי חייבים להיות מספרים אי-שליליים');
+      if (c.stock.trim() !== '' && (!Number.isFinite(+c.stock) || +c.stock < 0))
+        return setError('מלאי חייב להיות מספר אי-שלילי (ריק = ללא מעקב)');
     }
     upsertShopProduct({
       id: p?.id ?? '',
@@ -84,6 +89,8 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
         storeId: c.kind === 'coupon' ? c.storeId : '',
         value: c.value.trim() === '' ? 0 : Math.round(+c.value),
         basePrice: c.basePrice.trim() === '' ? 0 : Math.round(+c.basePrice),
+        // ריק = ללא מעקב מלאי (undefined) — לא 0, ש-0 פירושו "אזל"
+        ...(c.stock.trim() === '' ? {} : { stock: Math.max(0, Math.round(+c.stock)) }),
         notes: c.notes.trim(),
       })),
     });
@@ -132,6 +139,9 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
             </Field>
             <Field label='מחיר סמלי (ש"ח)'>
               <TextInput value={c.basePrice} onChange={(v) => setComp(i, { basePrice: v })} type="number" dir="ltr" placeholder="50" />
+            </Field>
+            <Field label="מלאי (ריק = ללא מעקב)">
+              <TextInput value={c.stock} onChange={(v) => setComp(i, { stock: v })} type="number" dir="ltr" placeholder="3" />
             </Field>
             {c.kind === 'coupon' && storesOn && (
               <Field label={termOf(config, 'entity.shopStore', 'חנות') + ' שותפה'}>

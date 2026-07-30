@@ -10,10 +10,11 @@ import type { ShopAssignment, ShopComponent } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { isoToday } from '../../lib/date-util';
-import { effectivePrice, maxDiscountPct, upcomingHolidays } from './lib';
+import { componentRemaining, effectivePrice, maxDiscountPct, upcomingHolidays } from './lib';
 
 export function RedeemModal(props: { assignment: ShopAssignment; component: ShopComponent; onClose: () => void }) {
   const criteria = useApp((s) => s.db.shopCriteria);
+  const assignments = useApp((s) => s.db.shopAssignments);
   const addShopRedemption = useApp((s) => s.addShopRedemption);
   const toast = useApp((s) => s.toast);
   const a = props.assignment;
@@ -22,6 +23,8 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
   const pct = maxDiscountPct(a.criterionIds, criteria);
   const price = effectivePrice(c.basePrice, a.criterionIds, criteria);
   const holidays = c.kind === 'holidayGift' ? upcomingHolidays(isoToday(), 45) : [];
+  // אזהרה רכה בלבד — מימוש כשהמלאי אזל אינו נחסם (שיקול משרדי)
+  const remaining = componentRemaining(c.id, a.productId, assignments, c.stock);
 
   const [f, setF] = useState({
     date: isoToday(),
@@ -54,6 +57,11 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
   return (
     <Modal title={'🎁 מימוש — ' + c.label} onClose={props.onClose}>
       <FormError error={error} />
+      {remaining === 0 && (
+        <div style={{ background: '#fdf1d4', color: '#9a6414', borderRadius: 8, padding: '7px 11px', fontSize: 12.5, marginBottom: 10 }}>
+          ⚠ המלאי אזל — המימוש אינו נחסם, אך כדאי לחדש מלאי
+        </div>
+      )}
       <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 10 }}>
         {'מחיר מלא ' + c.basePrice.toLocaleString('he-IL') + ' ₪ − הנחה ' + pct + '% = ' + price.toLocaleString('he-IL') + ' ₪'}
       </div>

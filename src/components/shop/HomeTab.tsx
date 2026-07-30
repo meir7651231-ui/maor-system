@@ -148,7 +148,8 @@ export function HomeTab() {
                 <div style={{ fontSize: 13, fontWeight: 700 }}>{item.label}</div>
                 <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{item.hint}</div>
               </div>
-              <Btn sm onClick={() => openRedeem(item.assignmentId, item.componentId)}>🎁 מימוש</Btn>
+              {/* stockOut הוא התרעת רכש — אין שיוך לממש */}
+              {item.assignmentId && <Btn sm onClick={() => openRedeem(item.assignmentId, item.componentId)}>🎁 מימוש</Btn>}
             </div>
           ))}
         </div>

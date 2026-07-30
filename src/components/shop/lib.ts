@@ -76,10 +76,32 @@ export function assignmentRedeemed(
   );
 }
 
+/* ---------- מלאי ---------- */
+
+/**
+ * הנותר במלאי לרכיב — null כשאין מעקב (stock=undefined); אחרת stock פחות
+ * סך מימושי הרכיב בכל שיוכי המוצר, קטום ב-0. המלאי נצרך במימוש —
+ * לא בשיוך (שיוך = הבטחה, מימוש = מסירה בפועל).
+ */
+export function componentRemaining(
+  componentId: Id,
+  productId: Id,
+  assignments: readonly ShopAssignment[],
+  stock: number | undefined,
+): number | null {
+  if (stock === undefined) return null;
+  let used = 0;
+  for (const a of assignments) {
+    if (a.productId !== productId) continue;
+    for (const r of a.redemptions) if (r.componentId === componentId) used++;
+  }
+  return Math.max(0, stock - used);
+}
+
 /* ---------- דורש טיפול ---------- */
 
 export interface ShopCareItem {
-  kind: 'holidayDue' | 'meetingPending' | 'couponPending';
+  kind: 'holidayDue' | 'meetingPending' | 'couponPending' | 'stockOut';
   assignmentId: Id;
   componentId: Id;
   label: string;
@@ -91,13 +113,30 @@ export const SHOP_HOLIDAY_DUE_DAYS = 30;
 
 /**
  * רשימת הטיפול המשרדי — ממוינת לפי סוג: מתנות-חג שמועדן קרב →
- * פגישות שטרם מומשו → קופונים שטרם מומשו. שיוכים active בלבד.
+ * פגישות שטרם מומשו → קופונים שטרם מומשו → מלאי שאזל. שיוכים active בלבד
+ * (מלאי — פר-רכיב במוצר active, בלי שיוך: assignmentId='').
  */
 export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
   const holidays = upcomingHolidays(todayIso, SHOP_HOLIDAY_DUE_DAYS);
   const due: ShopCareItem[] = [];
   const meetings: ShopCareItem[] = [];
   const coupons: ShopCareItem[] = [];
+  const stock: ShopCareItem[] = [];
+  for (const p of db.shopProducts) {
+    if (!p.active) continue;
+    for (const comp of p.components) {
+      const rem = componentRemaining(comp.id, p.id, db.shopAssignments, comp.stock);
+      if (rem === 0) {
+        stock.push({
+          kind: 'stockOut',
+          assignmentId: '',
+          componentId: comp.id,
+          label: comp.label + ' (' + p.name + ') — המלאי אזל',
+          hint: 'לחדש מלאי או לעדכן את הרכיב במוצר',
+        });
+      }
+    }
+  }
   for (const a of db.shopAssignments) {
     if (a.status !== 'active') continue;
     const product = db.shopProducts.find((p) => p.id === a.productId);
@@ -135,7 +174,7 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
       }
     }
   }
-  return [...due, ...meetings, ...coupons];
+  return [...due, ...meetings, ...coupons, ...stock];
 }
 
 /* ---------- סכומים ---------- */

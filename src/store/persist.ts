@@ -230,7 +230,15 @@ export function migrate(raw: unknown): Db | null {
   // זר → 'active', discountPct נצמד ל-0–100 (לא-סופי → 0)
   merged.shopProducts = merged.shopProducts.map((p) => ({
     ...p,
-    components: Array.isArray(p.components) ? p.components : [],
+    components: (Array.isArray(p.components) ? p.components : []).map((c) => {
+      // מלאי: לא-סופי → מוסר (בלי מעקב); שלילי → 0 (אזל)
+      if (c.stock === undefined) return c;
+      if (typeof c.stock !== 'number' || !Number.isFinite(c.stock)) {
+        const { stock: _drop, ...rest } = c;
+        return rest;
+      }
+      return c.stock < 0 ? { ...c, stock: 0 } : c;
+    }),
   }));
   const SHOP_STATUSES = ['active', 'done', 'stopped'];
   merged.shopAssignments = merged.shopAssignments.map((a) => ({

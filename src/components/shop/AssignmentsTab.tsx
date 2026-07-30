@@ -11,7 +11,7 @@ import type { ShopAssignment, ShopComponent } from '../../types/domain';
 import { Btn, Chip, Empty } from '../ui';
 import { useArmed } from '../useArmed';
 import { isoToday } from '../../lib/date-util';
-import { assignmentRedeemed, beneficiaryLabel, upcomingHolidays } from './lib';
+import { assignmentRedeemed, beneficiaryLabel, componentRemaining, upcomingHolidays } from './lib';
 import { AssignmentForm } from './AssignmentForm';
 import { RedeemModal } from './RedeemModal';
 
@@ -70,9 +70,15 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
           const nextH = c.kind === 'holidayGift' ? nextHolidays[0] : undefined;
           const done = c.kind === 'holidayGift' ? !!nextH && assignmentRedeemed(a, c.id, nextH) : assignmentRedeemed(a, c.id);
           const last = a.redemptions.find((r) => r.componentId === c.id);
+          const rem = componentRemaining(c.id, product.id, db.shopAssignments, c.stock);
           return (
             <div key={c.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
               <span style={{ fontWeight: 700 }}>{c.label}</span>
+              {rem !== null && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: rem === 0 ? '#b91c1c' : rem <= 2 ? '#9a6414' : 'var(--green)', border: '1px solid var(--line)', borderRadius: 99, padding: '1px 7px' }}>
+                  {'נותרו ' + rem}
+                </span>
+              )}
               {c.kind === 'holidayGift' && nextH && (
                 <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{'החג הקרוב: ' + nextH.name + ' (' + nextH.iso + ')'}</span>
               )}
