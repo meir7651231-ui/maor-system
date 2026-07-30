@@ -8,7 +8,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { isoToday } from '../../lib/date-util';
 import type { TzEvent } from '../../types/domain';
-import { Btn } from '../ui';
+import { Btn, Chip } from '../ui';
 import { PRIORITY_COLOR, SESSION_META } from '../calendar/calLib';
 import { buildTzGrid, DAY_NAMES } from './lib';
 import { TzEventModal } from './TzEventModal';
@@ -21,6 +21,13 @@ function kindColors(kind: TzEvent['kind']): { bg: string; c: string } {
   return { bg: '#e7edf5', c: '#3a5a86' };
 }
 
+const KIND_FILTERS: { key: TzEvent['kind']; label: string }[] = [
+  { key: 'round', label: '🔄 סבב' },
+  { key: 'campaign', label: '🎯 מבצע' },
+  { key: 'reminder', label: '🔔 תזכורת' },
+  { key: 'custom', label: '📌 אחר' },
+];
+
 export function CalendarTab() {
   const tzEvents = useApp((s) => s.db.tzEvents);
   // נפתח בעברי — כמו הלוח הראשי בקובץ החי
@@ -28,12 +35,33 @@ export function CalendarTab() {
   const [anchor, setAnchor] = useState(isoToday());
   const [dayIso, setDayIso] = useState<string | null>(null);
   const [modal, setModal] = useState<{ ev: TzEvent | null; date: string } | null>(null);
+  // סינון סוגים (UX סינון 1) — ברירת הכול-דלוק; הסינון טהור, לפני buildTzGrid
+  const [kindsOff, setKindsOff] = useState<Set<TzEvent['kind']>>(new Set());
+  const shownEvents = useMemo(() => tzEvents.filter((e) => !kindsOff.has(e.kind)), [tzEvents, kindsOff]);
 
-  const grid = useMemo(() => buildTzGrid(tzEvents, anchor, heb), [tzEvents, anchor, heb]);
-  const dayEvents = dayIso ? tzEvents.filter((e) => e.date === dayIso) : [];
+  const grid = useMemo(() => buildTzGrid(shownEvents, anchor, heb), [shownEvents, anchor, heb]);
+  const dayEvents = dayIso ? shownEvents.filter((e) => e.date === dayIso) : [];
 
   return (
     <div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+        {KIND_FILTERS.map((k) => (
+          <Chip
+            key={k.key}
+            on={!kindsOff.has(k.key)}
+            onClick={() =>
+              setKindsOff((prev) => {
+                const next = new Set(prev);
+                if (next.has(k.key)) next.delete(k.key);
+                else next.add(k.key);
+                return next;
+              })
+            }
+          >
+            {k.label}
+          </Chip>
+        ))}
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
         <Btn sm onClick={() => setAnchor(grid.prevIso)}>‹ הקודם</Btn>
         <Btn sm onClick={() => setAnchor(isoToday())}>היום</Btn>

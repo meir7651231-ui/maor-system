@@ -5,11 +5,11 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, moduleOn, termOf } from '../../lib/config';
 import type { TzBox, TzCoordinator } from '../../types/domain';
-import { Btn, Chip, Empty, Field, Modal, TextInput } from '../ui';
+import { Btn, Chip, Empty, Field, Modal, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
-import { boxTotal, coordinatorBoxes, coordinatorPrintLines, coordinatorTotal, lastCollectionIso } from './lib';
+import { boxTotal, coordinatorBoxes, coordinatorPrintLines, coordinatorTotal, filterCollections, lastCollectionIso } from './lib';
 import { downloadText } from '../reports/csv';
 import { BoxForm } from './BoxForm';
 import { CollectModal } from './CollectModal';
@@ -43,6 +43,13 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
   const [openHist, setOpenHist] = useState<string | null>(null);
   const [tuneOpen, setTuneOpen] = useState(false);
   const [tune, setTune] = useState({ delta: '', reason: '' });
+  // סינון היסטוריית הריקונים (UX סינון 1) — מוצג רק כשיש >5 ריקונים
+  const [histFrom, setHistFrom] = useState('');
+  const [histTo, setHistTo] = useState('');
+  const [histCamp, setHistCamp] = useState('');
+  const go = useApp((s) => s.go);
+  const selectFamily = useApp((s) => s.selectFamily);
+  const familiesOn = moduleOn(config, 'families');
 
   const holderLabel = (b: TzBox) => {
     const holder = db.families.find((x) => x.id === b.famId);
@@ -118,7 +125,14 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
             <div key={b.id} style={{ border: '1px solid var(--line)', borderRadius: 11, padding: '9px 12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontWeight: 800 }}>{'#' + b.num}</span>
-                <span style={{ fontSize: 13, minWidth: 0 }}>{holderLabel(b)}</span>
+                {/* קישור-צולב לכרטיס המשפחה (UX סינון 1) — מגודר moduleOn */}
+                {b.famId && familiesOn ? (
+                  <Btn sm onClick={() => { selectFamily(b.famId); go('families'); }} title="לכרטיס המשפחה">
+                    {holderLabel(b) + ' ←'}
+                  </Btn>
+                ) : (
+                  <span style={{ fontSize: 13, minWidth: 0 }}>{holderLabel(b)}</span>
+                )}
                 <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{STATUS_LABEL[b.status]}</span>
                 <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
                   {'ריקון אחרון: ' + (lastCollectionIso(b) || '—') + ' · סה"כ ' + boxTotal(b).toLocaleString('he-IL') + ' ₪'}
@@ -173,7 +187,26 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
               {openHist === b.id && (
                 <div style={{ marginTop: 8, borderTop: '1px solid var(--line)', paddingTop: 6 }}>
                   {b.collections.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>עדיין אין ריקונים</div>}
-                  {b.collections.map((l) => (
+                  {/* סינון ההיסטוריה (UX סינון 1) — טווח + מבצע, רק כשיש >5 ריקונים */}
+                  {b.collections.length > 5 && (
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6, alignItems: 'center', fontSize: 12.5 }}>
+                      <span>מ-</span>
+                      <input type="date" dir="ltr" value={histFrom} onChange={(e) => setHistFrom(e.target.value)} />
+                      <span>עד</span>
+                      <input type="date" dir="ltr" value={histTo} onChange={(e) => setHistTo(e.target.value)} />
+                      {db.tzCampaigns.length > 0 && (
+                        <Select
+                          value={histCamp}
+                          onChange={setHistCamp}
+                          options={[
+                            { value: '', label: 'כל ה' + termOf(config, 'entity.tzCampaign', 'מבצע') + 'ים' },
+                            ...db.tzCampaigns.map((p) => ({ value: p.id, label: p.name })),
+                          ]}
+                        />
+                      )}
+                    </div>
+                  )}
+                  {filterCollections(b, histFrom, histTo, histCamp).map((l) => (
                     <div key={l.id} style={{ display: 'flex', gap: 10, fontSize: 12.5, padding: '3px 0' }}>
                       <span style={{ color: 'var(--ink-faint)' }}>{l.date}</span>
                       <span style={{ fontWeight: 700 }}>{l.amount.toLocaleString('he-IL') + ' ₪'}</span>
