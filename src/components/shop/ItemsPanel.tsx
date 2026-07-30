@@ -27,6 +27,7 @@ export function ItemsPanel() {
   const upsertShopItem = useApp((s) => s.upsertShopItem);
   const deleteShopItem = useApp((s) => s.deleteShopItem);
   const mergeShopItems = useApp((s) => s.mergeShopItems);
+  const removeShopWait = useApp((s) => s.removeShopWait);
   const toast = useApp((s) => s.toast);
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const storesOn = featureOn(config, 'shop.stores');
@@ -129,8 +130,10 @@ export function ItemsPanel() {
           {filterItems(db, itemQ, stockState).map((i) => {
             const rem = itemRemaining(db, i.id);
             const kindLabel = KIND_OPTIONS.find((k) => k.value === i.kind)?.label ?? i.kind;
+            const waits = i.waits ?? [];
             return (
-              <div key={i.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
+              <div key={i.id} style={{ padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ fontWeight: 700 }}>{i.name}</span>
                 <span style={{ fontSize: 12 }}>{kindLabel}</span>
                 <Chip on={i.active}>{i.active ? 'פעיל' : 'לא פעיל'}</Chip>
@@ -150,6 +153,29 @@ export function ItemsPanel() {
                   <Btn sm onClick={() => startEdit(i)}>✏️</Btn>
                   <Btn sm kind="danger" onClick={() => remove(i)}>{armed === 'shi-' + i.id ? 'שוב למחיקה' : '🗑'}</Btn>
                 </span>
+              </div>
+              {/* רשימת ההמתנה של הפריט (SHOP6 חנות 27) — שם, תאריך, הסרה */}
+              {waits.length > 0 && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 4, fontSize: 12 }}>
+                  <span style={{ fontWeight: 700, color: '#9a6414' }}>{'⏳ ' + waits.length + ' ממתינים:'}</span>
+                  {waits.map((w) => {
+                    const wf = db.families.find((f) => f.id === w.famId);
+                    return (
+                      <span key={w.famId} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, border: '1px solid var(--line)', borderRadius: 99, padding: '1px 4px 1px 8px' }}>
+                        {(wf ? 'משפחת ' + wf.name : w.famId) + ' · ' + w.date}
+                        <button
+                          type="button"
+                          title="הסרה מרשימת ההמתנה"
+                          onClick={() => { removeShopWait(i.id, w.famId); toast('הוסרה מרשימת ההמתנה'); }}
+                          style={{ border: 'none', background: 'var(--line)', borderRadius: 99, width: 16, height: 16, lineHeight: '14px', fontSize: 11, cursor: 'pointer', padding: 0 }}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
               </div>
             );
           })}

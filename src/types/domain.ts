@@ -487,6 +487,8 @@ export interface ShopItem {
   validDays?: number;
   /** חגים נבחרים למתנת-חג (kind==='holidayGift') — ריק/חסר = כל החגים (תאימות אחורה). */
   holidays?: string[];
+  /** רשימת המתנה (SHOP6) — משפחות שממתינות כשהמלאי אזל; חסר = אין ממתינים. */
+  waits?: { famId: Id; date: IsoDate; note: string }[];
   active: boolean;
   notes: string;
 }

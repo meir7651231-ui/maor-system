@@ -273,13 +273,19 @@ export function migrate(raw: unknown): Db | null {
       return out;
     }),
   }));
-  // פריטי קטלוג — ריפוי: holidays לא-מערך → מוסר (= כל החגים)
+  // פריטי קטלוג — ריפוי: holidays לא-מערך → מוסר (= כל החגים);
+  // waits לא-מערך → מוסר (= אין ממתינים; SHOP6 חנות 27)
   merged.shopItems = merged.shopItems.map((i) => {
-    if (i.holidays !== undefined && !Array.isArray(i.holidays)) {
-      const { holidays: _dropHol, ...rest } = i;
-      return rest;
+    let out = i;
+    if (out.holidays !== undefined && !Array.isArray(out.holidays)) {
+      const { holidays: _dropHol, ...rest } = out;
+      out = rest;
     }
-    return i;
+    if (out.waits !== undefined && !Array.isArray(out.waits)) {
+      const { waits: _dropWaits, ...rest } = out;
+      out = rest;
+    }
+    return out;
   });
   // SHOP4 (הכרעה 18): רכיבים→פריטים — כל רכיב בלי itemId מוליד ShopItem
   // מנתוניו; המלאי/התוקף עוברים לפריט (מקור-אמת יחיד) והרכיב הופך מצביע

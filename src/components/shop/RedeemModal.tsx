@@ -21,6 +21,7 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
   const criteria = useApp((s) => s.db.shopCriteria);
   const assignments = useApp((s) => s.db.shopAssignments);
   const addShopRedemption = useApp((s) => s.addShopRedemption);
+  const addShopWait = useApp((s) => s.addShopWait);
   const toast = useApp((s) => s.toast);
   const a = props.assignment;
   const c = props.component;
@@ -76,8 +77,22 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
     <Modal title={(isMeeting ? '🤝 קיום פגישה — ' : '🎁 מימוש — ') + ri.name} onClose={props.onClose}>
       <FormError error={error} />
       {!isMeeting && remaining === 0 && (
-        <div style={{ background: '#fdf1d4', color: '#9a6414', borderRadius: 8, padding: '7px 11px', fontSize: 12.5, marginBottom: 10 }}>
-          ⚠ המלאי אזל — המימוש אינו נחסם, אך כדאי לחדש מלאי
+        <div style={{ background: '#fdf1d4', color: '#9a6414', borderRadius: 8, padding: '7px 11px', fontSize: 12.5, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span>⚠ המלאי אזל — המימוש אינו נחסם, אך כדאי לחדש מלאי</span>
+          {/* רשימת המתנה (SHOP6 חנות 27) — הצעה אוטומטית במלאי 0 */}
+          {c.itemId && (
+            <Btn
+              sm
+              onClick={() => {
+                if (addShopWait(c.itemId, a.famId, '')) {
+                  toast('נוספה לרשימת ההמתנה — תופיע התרעה כשהמלאי יחזור');
+                  props.onClose();
+                }
+              }}
+            >
+              ⏳ להוסיף לרשימת ההמתנה?
+            </Btn>
+          )}
         </div>
       )}
       {expired && (

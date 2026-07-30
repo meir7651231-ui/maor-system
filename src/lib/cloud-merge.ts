@@ -25,6 +25,8 @@ const LIST_FIELDS: Record<string, readonly string[]> = {
   // חנות — רכיבי מוצר, מימושים וקריטריונים (BUILD-ORDER-SHOP)
   shopProducts: ['components'],
   shopAssignments: ['redemptions', 'criterionIds'],
+  // רשימת ההמתנה על הפריט (SHOP6 חנות 27)
+  shopItems: ['waits'],
 };
 
 export function sanitizeIncoming(col: string, item: Record<string, unknown>): Record<string, unknown> {

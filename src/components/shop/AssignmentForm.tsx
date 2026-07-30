@@ -12,7 +12,7 @@ import { emptyFamily, emptyMember, type ShopAssignment, type ShopAssignmentStatu
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { isoToday } from '../../lib/date-util';
-import { maxDiscountPct } from './lib';
+import { itemOf, itemRemaining, maxDiscountPct } from './lib';
 
 export function AssignmentForm(props: { assignment: ShopAssignment | null; onClose: () => void }) {
   const db = useApp((s) => s.db);
@@ -21,6 +21,7 @@ export function AssignmentForm(props: { assignment: ShopAssignment | null; onClo
   const upsertFamily = useApp((s) => s.upsertFamily);
   const upsertMember = useApp((s) => s.upsertMember);
   const nextId = useApp((s) => s.nextId);
+  const addShopWait = useApp((s) => s.addShopWait);
   const toast = useApp((s) => s.toast);
   const inlineOn = featureOn(config, 'shop.inlinecreate');
   const criteriaOn = featureOn(config, 'shop.criteria');
@@ -112,9 +113,29 @@ export function AssignmentForm(props: { assignment: ShopAssignment | null; onClo
     props.onClose();
   }
 
+  // רשימת המתנה (SHOP6 חנות 27): רכיבי החבילה שאזל מלאם — הצעה אוטומטית
+  const outOfStock = (db.shopProducts.find((p) => p.id === f.productId)?.components ?? [])
+    .filter((c) => c.itemId && itemRemaining(db, c.itemId) === 0)
+    .map((c) => itemOf(db, c));
+
   return (
     <Modal title={(a ? 'עריכת ' : '➕ הוספת ') + term} onClose={props.onClose}>
       <FormError error={error} />
+      {!a && outOfStock.length > 0 && f.famId && (
+        <div style={{ background: '#fdf1d4', color: '#9a6414', borderRadius: 8, padding: '7px 11px', fontSize: 12.5, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span>{'⚠ אזל המלאי: ' + outOfStock.map((i) => i.name).join(', ')}</span>
+          <Btn
+            sm
+            onClick={() => {
+              let added = 0;
+              for (const i of outOfStock) if (addShopWait(i.itemId, f.famId, '')) added++;
+              if (added) toast('נוספה לרשימת ההמתנה של ' + added + ' פריטים');
+            }}
+          >
+            ⏳ להוסיף לרשימת ההמתנה?
+          </Btn>
+        </div>
+      )}
       <div className="form-grid">
         <Field label={termOf(config, 'entity.shopProduct', 'מוצר') + ' *'}>
           <Select

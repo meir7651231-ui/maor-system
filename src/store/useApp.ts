@@ -315,6 +315,9 @@ interface AppState {
    * עצירה עם "חסרות K יחידות" לפני כל כתיבה — db לא משתנה.
    */
   bulkRedeem: (productId: string, componentId: string, opts: { date: IsoDate; holiday: string }) => { ok: boolean; created: number };
+  /** רשימת המתנה לפריט (SHOP6 חנות 27) — כפול-משפחה נדחה בטוסט. */
+  addShopWait: (itemId: string, famId: string, note: string) => boolean;
+  removeShopWait: (itemId: string, famId: string) => void;
 
   // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
   // ולכן סנכרון הענן והביטול עובדים כרגיל. פעולות שכותבות ללוח מייצרות OrgEvent.
@@ -1549,6 +1552,30 @@ export const useApp = create<AppState>()((set, get) => {
         }),
       }));
       return { ok: true, created: targets.length };
+    },
+    addShopWait(itemId, famId, note) {
+      const it = get().db.shopItems.find((i) => i.id === itemId);
+      if (!it) {
+        get().toast('הפריט לא נמצא');
+        return false;
+      }
+      if ((it.waits ?? []).some((w) => w.famId === famId)) {
+        get().toast('המשפחה כבר ברשימת ההמתנה של הפריט');
+        return false;
+      }
+      setDb((db) => ({
+        shopItems: db.shopItems.map((i) =>
+          i.id === itemId ? { ...i, waits: [...(i.waits ?? []), { famId, date: isoToday(), note }] } : i,
+        ),
+      }));
+      return true;
+    },
+    removeShopWait(itemId, famId) {
+      setDb((db) => ({
+        shopItems: db.shopItems.map((i) =>
+          i.id === itemId ? { ...i, waits: (i.waits ?? []).filter((w) => w.famId !== famId) } : i,
+        ),
+      }));
     },
 
     // ── מעקב טיפול רב-שלבי ──

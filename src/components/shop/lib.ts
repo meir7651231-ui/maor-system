@@ -226,7 +226,7 @@ export function couponExpiry(a: ShopAssignment, comp: { validDays?: number }): I
 /* ---------- דורש טיפול ---------- */
 
 export interface ShopCareItem {
-  kind: 'holidayDue' | 'meetingPending' | 'couponPending' | 'couponExpired' | 'stockOut' | 'restock';
+  kind: 'holidayDue' | 'meetingPending' | 'couponPending' | 'couponExpired' | 'stockOut' | 'restock' | 'waitingRestocked';
   assignmentId: Id;
   componentId: Id;
   label: string;
@@ -269,6 +269,18 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
         componentId: item.id,
         label: item.name + ' — המלאי נמוך',
         hint: 'להצטייד: נותרו ' + rem + ' מתחת ל-' + item.minStock,
+      });
+    }
+    // רשימת המתנה (SHOP6 חנות 27): ממתינים + מלאי חזר (>0 או בלי-מעקב) —
+    // הגיע הזמן לחלק; במלאי 0 אין התרעה (עדיין אין מה לתת)
+    const waiting = item.waits ?? [];
+    if (waiting.length > 0 && rem !== 0) {
+      stock.push({
+        kind: 'waitingRestocked',
+        assignmentId: '',
+        componentId: item.id,
+        label: waiting.length + ' ממתינים ל' + item.name,
+        hint: 'המלאי חזר — אפשר לחלק לרשימת ההמתנה',
       });
     }
   }
