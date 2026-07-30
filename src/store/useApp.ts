@@ -24,6 +24,12 @@ import {
   type Payment,
   type IsoDate,
   type Room,
+  type ShopAssignment,
+  type ShopCriterion,
+  type ShopEvent,
+  type ShopProduct,
+  type ShopRedemption,
+  type ShopStore,
   type Supporter,
   type Teacher,
   type TzBox,
@@ -236,6 +242,26 @@ interface AppState {
   ) => { ok: boolean; delta: number };
   /** כוונון ניקוד ידני — reason חובה. */
   addTzScore: (coordinatorId: string, delta: number, reason: string) => void;
+
+  // חנות מוצרי-שירות (מודול shop — מבודד; BUILD-ORDER-SHOP-2026-07-30).
+  // הכסף/המימושים/האירועים נכתבים רק למערכי shop* — לא לקבלות/תרומות/לוח הראשי.
+  /** רכיב מוצר בלי id מקבל nextId('shpc') — ייחודיות בתוך המוצר. */
+  upsertShopProduct: (p: ShopProduct) => void;
+  /** חסום כשקיימים שיוכים active למוצר; מותר כשכולם done/stopped. */
+  deleteShopProduct: (id: string) => boolean;
+  upsertShopStore: (s: ShopStore) => void;
+  /** קופונים שמצביעים על החנות מקבלים storeId:'' — אין אובדן רכיבים. */
+  deleteShopStore: (id: string) => void;
+  upsertShopCriterion: (c: ShopCriterion) => void;
+  /** מוסר מכל criterionIds של השיוכים. */
+  deleteShopCriterion: (id: string) => void;
+  upsertShopAssignment: (a: ShopAssignment) => void;
+  /** מוחק + מנקה אירועי-לוח מקושרים (בלי יתומים). */
+  deleteShopAssignment: (id: string) => void;
+  upsertShopEvent: (e: ShopEvent) => void;
+  deleteShopEvent: (id: string) => void;
+  /** רישום מימוש — דוחה paid/value לא-סופיים או שליליים בלי לגעת ב-db; paid=0 חוקי (מתנה מלאה). */
+  addShopRedemption: (assignmentId: string, r: Omit<ShopRedemption, 'id'>) => { ok: boolean };
 
   // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
   // ולכן סנכרון הענן והביטול עובדים כרגיל. פעולות שכותבות ללוח מייצרות OrgEvent.
@@ -1151,6 +1177,90 @@ export const useApp = create<AppState>()((set, get) => {
             : c,
         ),
       }));
+    },
+
+    // ── חנות מוצרי-שירות (מודול shop — מבודד; הכרעת בעלים 30.7.2026) ──
+    upsertShopProduct(p) {
+      const id = p.id || get().nextId('shp');
+      // רכיב חדש בעורך מגיע בלי id — מקבל מזהה משלו (קידומת shpc, רק ייחודיות)
+      const components = p.components.map((c) => (c.id ? c : { ...c, id: get().nextId('shpc') }));
+      setDb((db) => ({ shopProducts: upsertIn(db.shopProducts, { ...p, id, components }) }));
+    },
+    deleteShopProduct(id) {
+      const active = get().db.shopAssignments.some((a) => a.productId === id && a.status === 'active');
+      if (active) {
+        get().toast('יש לסיים קודם את השיוכים');
+        return false;
+      }
+      setDb((db) => ({ shopProducts: db.shopProducts.filter((p) => p.id !== id) }));
+      return true;
+    },
+    upsertShopStore(s) {
+      const id = s.id || get().nextId('shs');
+      setDb((db) => ({ shopStores: upsertIn(db.shopStores, { ...s, id }) }));
+    },
+    deleteShopStore(id) {
+      // הקופונים נשארים — רק ההצבעה על החנות מתנקה (אין אובדן רכיבים)
+      setDb((db) => ({
+        shopStores: db.shopStores.filter((s) => s.id !== id),
+        shopProducts: db.shopProducts.map((p) =>
+          p.components.some((c) => c.storeId === id)
+            ? { ...p, components: p.components.map((c) => (c.storeId === id ? { ...c, storeId: '' } : c)) }
+            : p,
+        ),
+      }));
+    },
+    upsertShopCriterion(c) {
+      const id = c.id || get().nextId('shc');
+      setDb((db) => ({ shopCriteria: upsertIn(db.shopCriteria, { ...c, id }) }));
+    },
+    deleteShopCriterion(id) {
+      setDb((db) => ({
+        shopCriteria: db.shopCriteria.filter((c) => c.id !== id),
+        shopAssignments: db.shopAssignments.map((a) =>
+          a.criterionIds.includes(id) ? { ...a, criterionIds: a.criterionIds.filter((x) => x !== id) } : a,
+        ),
+      }));
+    },
+    upsertShopAssignment(a) {
+      const id = a.id || get().nextId('sha');
+      setDb((db) => ({ shopAssignments: upsertIn(db.shopAssignments, { ...a, id }) }));
+    },
+    deleteShopAssignment(id) {
+      // דפוס unlinkEvent — מוחקים גם את אירועי-הלוח הייעודי המקושרים, בלי יתומים
+      setDb((db) => ({
+        shopAssignments: db.shopAssignments.filter((a) => a.id !== id),
+        shopEvents: db.shopEvents.filter((e) => e.assignmentId !== id),
+      }));
+    },
+    upsertShopEvent(e) {
+      const id = e.id || get().nextId('she');
+      setDb((db) => ({ shopEvents: upsertIn(db.shopEvents, { ...e, id }) }));
+    },
+    deleteShopEvent(id) {
+      setDb((db) => ({ shopEvents: db.shopEvents.filter((e) => e.id !== id) }));
+    },
+    addShopRedemption(assignmentId, r) {
+      // שער לפני נגיעה ב-db (לקח באג-5): paid/value לא-סופיים או שליליים נדחים;
+      // paid=0 חוקי — מתנה מלאה בלי תשלום סמלי
+      if (!Number.isFinite(r.paid) || r.paid < 0 || !Number.isFinite(r.value) || r.value < 0) {
+        get().toast('סכום המימוש חייב להיות מספר אי-שלילי');
+        return { ok: false };
+      }
+      const found = get().db.shopAssignments.some((a) => a.id === assignmentId);
+      if (!found) {
+        get().toast('השיוך לא נמצא — המימוש לא נשמר');
+        return { ok: false };
+      }
+      const rid = get().nextId('shr');
+      // בידוד (הכרעת בעלים 30.7): כותבים רק ל-shopAssignments —
+      // לא ל-receiptSeq/donationSeq/supporters/enrollments/events
+      setDb((db) => ({
+        shopAssignments: db.shopAssignments.map((a) =>
+          a.id === assignmentId ? { ...a, redemptions: [{ id: rid, ...r }, ...a.redemptions] } : a,
+        ),
+      }));
+      return { ok: true };
     },
 
     // ── מעקב טיפול רב-שלבי ──
