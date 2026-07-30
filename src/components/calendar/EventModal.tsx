@@ -8,7 +8,8 @@ import { featureOn, termOf } from '../../lib/config';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { hebDateFull } from '../../lib/hebrew';
-import { orgBlockError, roomClashError } from './calLib';
+import { orgBlockError, QUICK_DATE_CHIPS, quickDate, roomClashError } from './calLib';
+import { isoToday } from '../../lib/date-util';
 import {
   HEBREW_RECURRING,
   type EventPriority,
@@ -194,7 +195,30 @@ export function EventModal(props: {
           </Field>
         </div>
         <Field label="תאריך *">
-          <HebDateInput value={f.date} onChange={(iso) => set('date', iso)} />
+          <div>
+            {/* צ׳יפי תאריכים מהירים (P2 פער 26) — ההזזה מהיום, טהורה ב-quickDate */}
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 4 }}>
+              {QUICK_DATE_CHIPS.map(([kind, label]) => (
+                <button
+                  key={kind}
+                  type="button"
+                  onClick={() => set('date', quickDate(isoToday(), kind))}
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    padding: '2px 9px',
+                    borderRadius: 999,
+                    border: '1px solid var(--line)',
+                    background: 'var(--panel)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <HebDateInput value={f.date} onChange={(iso) => set('date', iso)} />
+          </div>
         </Field>
         <Field label="שעה">
           <TextInput type="time" value={f.time} onChange={(v) => set('time', v)} dir="ltr" />

@@ -510,6 +510,30 @@ export interface UpcomingRow {
   ev: OrgEvent;
 }
 
+/* ---------- צ׳יפי תאריכים מהירים (P2 פער 26) ---------- */
+
+export type QuickDateKind = 'today' | 'tomorrow' | 'week' | 'month';
+
+export const QUICK_DATE_CHIPS: ReadonlyArray<readonly [QuickDateKind, string]> = [
+  ['today', 'היום'],
+  ['tomorrow', 'מחר'],
+  ['week', 'בעוד שבוע'],
+  ['month', 'בעוד חודש'],
+];
+
+/**
+ * הזזת תאריך מהירה מ-base (ISO): היום/מחר/בעוד שבוע/בעוד חודש.
+ * חודש = אותו יום בחודש הבא דרך Date (T12:00:00 — צהריים מקומי, בלי נפילת
+ * אזור-זמן); 31 בחודש קצר גולש קדימה כהתנהגות Date הרגילה.
+ */
+export function quickDate(base: string, kind: QuickDateKind): string {
+  const d = new Date(base + 'T12:00:00');
+  if (kind === 'tomorrow') d.setDate(d.getDate() + 1);
+  else if (kind === 'week') d.setDate(d.getDate() + 7);
+  else if (kind === 'month') d.setMonth(d.getMonth() + 1);
+  return isoOf(d);
+}
+
 /* ---------- פאנל "קרובים" מלא (P2 פער 25, feature calendar.upcoming) ---------- */
 
 export interface UpcomingDay {
