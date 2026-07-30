@@ -14,6 +14,7 @@ import { featureOn, termOf } from '../../lib/config';
 import { Chip, PageHead } from '../ui';
 import { CatalogTab } from './CatalogTab';
 import { AssignmentsTab } from './AssignmentsTab';
+import { HomeTab } from './HomeTab';
 
 type ShopTab = 'catalog' | 'beneficiaries' | 'care' | 'calendar' | 'showcase';
 
@@ -45,7 +46,7 @@ export function ShopView() {
       {/* התוכן נבנה באשכולות 4-7 — placeholder לכל טאב עד אז */}
       {active === 'catalog' && <CatalogTab />}
       {active === 'beneficiaries' && <AssignmentsTab />}
-      {active === 'care' && <div className="muted">🏠 הטיפול ייבנה באשכול 6</div>}
+      {active === 'care' && <HomeTab />}
       {active === 'calendar' && <div className="muted">📅 הלוח ייבנה באשכול 7</div>}
       {active === 'showcase' && <div className="muted">🖼 הראווה תיבנה באשכול 7</div>}
     </div>
