@@ -263,6 +263,30 @@ for (const profile of PROFILES) {
     await page.waitForTimeout(400);
     const shopMain = (await page.locator('main').textContent()) ?? '';
     t('המימוש נרשם והסכומים מופיעים בטיפול', shopMain.includes('שווי שניתן · 200') && shopMain.includes('שולם סמלי · 50'));
+    // SHOP3: חידוש מלאי מהיר +2 מהקטלוג ⇒ 2+2 = "נותרו 4"
+    await page.locator('main button', { hasText: '🛍 קטלוג' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('main button[title="חידוש מלאי"]').first().click();
+    await page.waitForTimeout(300);
+    await page.locator('.modal input[type="number"]').first().fill('2');
+    await page.locator('.modal button', { hasText: 'עדכון המלאי' }).click();
+    await page.waitForTimeout(400);
+    t('חידוש מלאי +2 ⇒ "נותרו 4"', ((await page.locator('main').textContent()) ?? '').includes('נותרו 4'));
+    // SHOP3: ביטול המימוש עם סימון — הרשומה נשארת והסכומים יורדים
+    await page.locator('main button', { hasText: '👥 מוטבים' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('main button', { hasText: 'מוצר חתן' }).first().click();
+    await page.waitForTimeout(400);
+    page.once('dialog', (d) => d.accept('בדיקת מטריצה'));
+    await page.locator('main button', { hasText: '🚫 ביטול' }).first().click(); // חימוש (useArmed)
+    await page.waitForTimeout(200);
+    await page.locator('main button', { hasText: 'שוב מבטלת' }).first().click(); // ביצוע + prompt לסיבה
+    await page.waitForTimeout(400);
+    t('המימוש סומן מבוטל (הרשומה נשארה)', ((await page.locator('main').textContent()) ?? '').includes('מבוטל'));
+    await page.locator('main button', { hasText: '🏠 טיפול' }).click();
+    await page.waitForTimeout(400);
+    const voidedMain = (await page.locator('main').textContent()) ?? '';
+    t('הסכומים ירדו אחרי הביטול', voidedMain.includes('שווי שניתן · 0') && voidedMain.includes('שולם סמלי · 0'));
   }
 
   // ── זרימה 6: התמדה אחרי ריענון ──
