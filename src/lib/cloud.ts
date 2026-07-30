@@ -98,6 +98,11 @@ function requireDb(): Firestore {
   return fsDb;
 }
 
+/** ה-Firestore המאותחל — ל-cloudConfig (CLOUD2); זורק בעברית כשהענן לא אותחל. */
+export function cloudDb(): Firestore {
+  return requireDb();
+}
+
 /** מיפוי קודי שגיאה של Firebase Auth להודעות בעברית. */
 function hebrewAuthError(e: unknown): Error {
   const code = ((e as { code?: string } | null)?.code ?? '').toString();

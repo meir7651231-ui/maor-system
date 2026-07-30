@@ -192,6 +192,47 @@ export function clearConfigOverride(): void {
   }
 }
 
+/* ---------- קונפיג-ענן: מטמון ומיזוג עדיפויות (CLOUD2 ענן 2 — טהור, בלי firebase) ---------- */
+
+/** מפתח מטמון הקונפיג-מהענן — נפרד מדריסת-הריצה של האשף (LS_CONFIG_KEY). */
+export function cloudCfgCacheKey(slug: string): string {
+  return 'maor_cloudcfg:' + slug;
+}
+
+/** קריאת מטמון הקונפיג-מהענן — לעליית-מהירה/offline; null כשאין/פגום. */
+export function readCloudConfigCache(slug: string): OrgConfig | null {
+  try {
+    const raw = localStorage.getItem(cloudCfgCacheKey(slug));
+    const cfg = raw ? normalizeConfig(JSON.parse(raw)) : null;
+    return cfg && cfg.slug === slug ? cfg : null;
+  } catch {
+    return null;
+  }
+}
+
+/** כתיבת מטמון הקונפיג-מהענן (הקונפיג הממוזג המלא — כולל firebase לעלייה הבאה). */
+export function writeCloudConfigCache(slug: string, cfg: OrgConfig): void {
+  try {
+    localStorage.setItem(cloudCfgCacheKey(slug), JSON.stringify(cfg));
+  } catch {
+    /* localStorage חסום/מלא — המטמון הוא נוחות בלבד */
+  }
+}
+
+/**
+ * מיזוג עדיפויות (ענן > סטטי > ברירת מחדל): קונפיג-הענן גובר על הסטטי, אך
+ * ה-slug נשאר של הכתובת ו-firebase נשמר מהסטטי כשמסמך-הענן לא מגדיר (מסמך
+ * הפלטפורמה לרוב בלי credentials — הם באים מקונפיג-השורש). ‏cloudRaw לא-שמיש
+ * ⇒ הסטטי כמות שהוא (אפס שינוי כשאין ענן — ratchet).
+ */
+export function resolveOrgConfig(staticCfg: OrgConfig, cloudRaw: unknown): OrgConfig {
+  const cloud = normalizeConfig(cloudRaw);
+  if (!cloud) return staticCfg;
+  const merged: OrgConfig = { ...cloud, slug: staticCfg.slug };
+  if (!merged.firebase && staticCfg.firebase) merged.firebase = staticCfg.firebase;
+  return merged;
+}
+
 /** slug מה-URL: ?org=<slug> — פריסה אחת משרתת אינסוף לקוחות (public/c/<slug>/config.json). */
 export function orgSlugFromUrl(): string | null {
   try {
@@ -206,6 +247,12 @@ export function orgSlugFromUrl(): string | null {
 export async function loadOrgConfig(): Promise<OrgConfig> {
   // ?org=<slug> גובר על הכול — כתובת של לקוח ספציפי
   const slug = orgSlugFromUrl();
+  // מטמון קונפיג-ענן לסלאג (CLOUD2 ענן 2) — ענן גובר על הסטטי גם בעלייה
+  // מהירה/offline; מתרענן חי אחרי ההתחברות (watchOrgCloudConfig)
+  if (slug) {
+    const cached = readCloudConfigCache(slug);
+    if (cached) return cached;
+  }
   if (slug) {
     try {
       const res = await fetch(`./c/${slug}/config.json`, { cache: 'no-cache' });
@@ -223,12 +270,14 @@ export async function loadOrgConfig(): Promise<OrgConfig> {
     const res = await fetch('./config.json', { cache: 'no-cache' });
     if (res.ok) {
       const cfg = normalizeConfig(await res.json());
-      if (cfg) return cfg;
+      // ארגון-פלטפורמה בלי קובץ סטטי (CLOUD2): קונפיג-השורש נותן את
+      // ה-firebase, וה-slug מהכתובת נשמר — כך הקונפיג-מהענן יימצא אחרי הכניסה
+      if (cfg) return slug ? { ...cfg, slug } : cfg;
     }
   } catch {
     /* אין קובץ / רשת — נמשיך לברירת המחדל */
   }
-  return DEFAULT_CONFIG;
+  return slug ? { ...DEFAULT_CONFIG, slug } : DEFAULT_CONFIG;
 }
 
 /** החלת ערכת נושא + דריסת צבע הדגשה על ה-DOM. */

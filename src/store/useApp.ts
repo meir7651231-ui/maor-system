@@ -43,7 +43,7 @@ import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { roomClashError } from '../components/calendar/calLib';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, featureOn, loadOrgConfig, saveConfigOverride } from '../lib/config';
+import { applyTheme, featureOn, loadOrgConfig, resolveOrgConfig, saveConfigOverride, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { mergeFamilies, mergeFamiliesByFields } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
@@ -401,6 +401,8 @@ let toastSeq = 1;
  */
 type CloudSyncModule = typeof import('./cloudSync');
 let cloudMod: CloudSyncModule | null = null;
+/** unsubscribe להאזנת הקונפיג-מהענן (CLOUD2 ענן 2) — null כשלא מאזינים. */
+let cloudCfgUnsub: (() => void) | null = null;
 
 // חותמת "היום" מקומית (לא UTC) — מקור-אמת אחד ב-date-util
 function isoToday(): string {
@@ -530,6 +532,21 @@ export const useApp = create<AppState>()((set, get) => {
         const hadUser = get().cloud.user !== null;
         setCloud({ authReady: true, user, ...(user ? {} : { status: 'idle' as const }) });
         if (user && !hadUser) {
+          // קונפיג חי מהענן (CLOUD2 ענן 2) — ארגון-פלטפורמה בלבד; הלקוח
+          // הקיים (cloudRoot) נשאר על הקונפיג הסטטי — אפס שינוי אצלו
+          if (cfg.cloudRoot !== true) {
+            cloudCfgUnsub?.();
+            cloudCfgUnsub = mod.watchOrgCloudConfig(get().config.slug, (orgDoc) => {
+              if (!orgDoc?.config) return;
+              // הענן גובר על הסטטי; נשמר במטמון-הענן הנפרד בלבד — לא
+              // כדריסת-אשף מקומית (זו האמת מהענן, לא עריכה מקומית)
+              const merged = resolveOrgConfig(get().config, orgDoc.config);
+              set({ config: merged });
+              const { db } = get();
+              applyTheme(db.ui.theme ?? merged.theme, db.ui.accent ?? merged.accent);
+              writeCloudConfigCache(merged.slug, merged);
+            });
+          }
           void mod.startCloudSync({
             getDb: () => get().db,
             // נתיב החלת-מרוחק: שמירה מקומית כרגיל, בלי cloudOnDbChange (אין הד)
@@ -541,6 +558,8 @@ export const useApp = create<AppState>()((set, get) => {
             setStatus: (status) => setCloud({ status }),
           });
         } else if (!user && hadUser) {
+          cloudCfgUnsub?.();
+          cloudCfgUnsub = null;
           mod.stopCloudSync();
         }
       });
