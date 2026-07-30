@@ -5,7 +5,7 @@
 import { useMemo, useRef, useState } from 'react';
 import type { Course, Enrollment, Weekday } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, roleOf, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { downloadCsv, type Cell } from '../../lib/csvx';
 import { buildCourseDailyRows } from '../../lib/courseDaily';
@@ -67,6 +67,9 @@ export function CourseDetail(props: { course: Course }) {
   const discountsOn = featureOn(cfg, 'courses.discounts');
   // טווח כיתות + תמונת חוג (P2 פער 28)
   const gradeimgOn = featureOn(cfg, 'courses.gradeimg');
+  // תפקיד מורה (P3 פריט 15) — עריכה/מחיקה מוסתרות למורה מחוברת
+  const userEmail = useApp((s) => s.cloud.user?.email ?? null);
+  const isTeacherUser = featureOn(cfg, 'shell.roles') && roleOf(cfg, userEmail) === 'teacher';
 
   const c = props.course;
   const [prevCourseId, setPrevCourseId] = useState(c.id);
@@ -264,7 +267,11 @@ export function CourseDetail(props: { course: Course }) {
               📊 דו"ח מותאם
             </Btn>
           )}
-          <Btn onClick={() => setModal({ kind: 'edit' })}>{'✎ עריכת ' + termOf(cfg, 'entity.course', 'חוג')}</Btn>
+          {/* מורה מחוברת (P3 פריט 15): עריכה ומחיקה הן פעולות ניהול — מוסתרות */}
+          {!isTeacherUser && (
+            <Btn onClick={() => setModal({ kind: 'edit' })}>{'✎ עריכת ' + termOf(cfg, 'entity.course', 'חוג')}</Btn>
+          )}
+          {!isTeacherUser && (
           <Btn
             kind="danger"
             onClick={() => {
@@ -283,6 +290,7 @@ export function CourseDetail(props: { course: Course }) {
           >
             🗑 מחיקה
           </Btn>
+          )}
         </div>
       </div>
 

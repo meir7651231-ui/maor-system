@@ -9,7 +9,7 @@
  */
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
-import { featureOn, isAdminUser, moduleOn, termOf } from './lib/config';
+import { featureOn, isAdminUser, moduleOn, roleOf, termOf } from './lib/config';
 import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
 import { todaySessions } from './components/home/homeData';
@@ -226,6 +226,9 @@ export default function App() {
   const onAdminUnlock = () => markUnlocked('secondary');
   // מנהל-על לפי מייל (config.adminEmails) — רק הוא פותח את האשף ומשנה ערכת נושא.
   const isAdmin = isAdminUser(config, cloud.user?.email);
+  // תפקיד מורה (P3 פריט 15, הכרעה 2): כניסות ההגדרות (ודרכן הייבוא) מוסתרות.
+  // בלי ענן/בלי roles — false ⇒ התנהגות של היום בדיוק. דגל shell.roles.
+  const isTeacherUser = featureOn(config, 'shell.roles') && roleOf(config, cloud.user?.email) === 'teacher';
 
   const Current = VIEWS[view];
   const syncDot = SYNC_DOT[cloud.status] ?? SYNC_DOT.idle;
@@ -370,15 +373,17 @@ export default function App() {
               <span aria-hidden>▶</span>
             </button>
           )}
-          <button
-            type="button"
-            className={'nav-gear' + (view === 'settings' ? ' active' : '')}
-            onClick={() => go('settings')}
-            title="הגדרות"
-            aria-label="הגדרות"
-          >
-            <span aria-hidden>⚙️</span>
-          </button>
+          {!isTeacherUser && (
+            <button
+              type="button"
+              className={'nav-gear' + (view === 'settings' ? ' active' : '')}
+              onClick={() => go('settings')}
+              title="הגדרות"
+              aria-label="הגדרות"
+            >
+              <span aria-hidden>⚙️</span>
+            </button>
+          )}
           {userChip}
         </div>
       </header>
@@ -413,15 +418,17 @@ export default function App() {
               </button>
             );
           })}
-          <button
-            type="button"
-            className={'side-link' + (view === 'settings' ? ' active' : '')}
-            onClick={() => go('settings')}
-            title="הגדרות"
-          >
-            <span className="side-ico" aria-hidden>⚙️</span>
-            <span className="nav-label">הגדרות</span>
-          </button>
+          {!isTeacherUser && (
+            <button
+              type="button"
+              className={'side-link' + (view === 'settings' ? ' active' : '')}
+              onClick={() => go('settings')}
+              title="הגדרות"
+            >
+              <span className="side-ico" aria-hidden>⚙️</span>
+              <span className="nav-label">הגדרות</span>
+            </button>
+          )}
         </nav>
         <div className="side-sp" aria-hidden />
         {backBtn}
@@ -475,16 +482,18 @@ export default function App() {
             );
           })}
         </nav>
-        <button
-          type="button"
-          className={'side-link side-gear' + (view === 'settings' ? ' active' : '')}
-          onClick={() => go('settings')}
-          title="הגדרות"
-          aria-label="הגדרות"
-        >
-          <span className="side-ico" aria-hidden>⚙️</span>
-          <span className="nav-label">הגדרות</span>
-        </button>
+        {!isTeacherUser && (
+          <button
+            type="button"
+            className={'side-link side-gear' + (view === 'settings' ? ' active' : '')}
+            onClick={() => go('settings')}
+            title="הגדרות"
+            aria-label="הגדרות"
+          >
+            <span className="side-ico" aria-hidden>⚙️</span>
+            <span className="nav-label">הגדרות</span>
+          </button>
+        )}
       </aside>
       <div className="side-body">
         <header className="side-head">

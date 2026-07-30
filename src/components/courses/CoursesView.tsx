@@ -5,14 +5,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp, useCourse } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, roleOf, teacherIdOf, termOf } from '../../lib/config';
 import { normSearch } from '../../lib/validate';
 import { Btn, Empty, PageHead, Select, TextInput } from '../ui';
 import { numMatch } from '../families/lib';
 import { CourseForm } from './CourseForm';
 import { CourseDetail } from './CourseDetail';
 import { CourseWheel } from '../wheel/CourseWheel';
-import { DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
+import { coursesOfTeacher, DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
 
 type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2';
 
@@ -66,6 +66,11 @@ function CoursesList(props: { onOpenWheel: () => void }) {
     return () => clearInterval(t);
   }, [roomsLiveOn]);
   const liveRooms = useMemo(() => (roomsLiveOn ? roomsNow(db, new Date(nowTick)) : []), [roomsLiveOn, db, nowTick]);
+  // תפקיד מורה (P3 פריט 15, הכרעה 2): מורה מחוברת רואה רק את החוגים שלה,
+  // ופעולות הניהול מוסתרות. בלי ענן/בלי roles — null ⇒ התנהגות של היום בדיוק.
+  const userEmail = useApp((s) => s.cloud.user?.email ?? null);
+  const rolesOn = featureOn(cfg, 'shell.roles');
+  const myTeacherId = rolesOn && roleOf(cfg, userEmail) === 'teacher' ? teacherIdOf(cfg, userEmail) : null;
 
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
@@ -107,7 +112,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
 
   const shown = useMemo(() => {
     const nq = normSearch(q);
-    const list = db.courses.filter((c) => {
+    const list = coursesOfTeacher(db.courses, myTeacherId).filter((c) => {
       if (cat !== 'all' && c.cat !== cat) return false;
       if (sem !== 'all' && c.semester !== sem) return false;
       if (colF.name.trim() && !normSearch(c.name).includes(normSearch(colF.name))) return false;
@@ -197,9 +202,11 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             <Btn onClick={toggleView} title="החלפת תצוגה: גריד / רשימה">
               {view === 'list' ? '▦ גריד' : '☰ רשימה'}
             </Btn>
-            <Btn kind="primary" onClick={() => setFormOpen(true)}>
-              ➕ הוספת {termOf(cfg, 'entity.course', 'חוג')}
-            </Btn>
+            {!myTeacherId && (
+              <Btn kind="primary" onClick={() => setFormOpen(true)}>
+                ➕ הוספת {termOf(cfg, 'entity.course', 'חוג')}
+              </Btn>
+            )}
           </>
         }
       />

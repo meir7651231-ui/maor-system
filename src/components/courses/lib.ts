@@ -57,6 +57,14 @@ export function sessionsOf(c: Course): CourseSession[] {
   return c.sessions && c.sessions.length ? c.sessions : [{ day: c.weekday, time: c.time, label: '' }];
 }
 
+/**
+ * סינון תפקיד-מורה (P3 פריט 15, הכרעה 2): teacherId ⇒ רק החוגים שלה;
+ * null (אין תפקיד/אין ענן) ⇒ הכל, כהתנהגות של היום.
+ */
+export function coursesOfTeacher(courses: Course[], teacherId: string | null): Course[] {
+  return teacherId ? courses.filter((c) => c.teacherId === teacherId) : courses;
+}
+
 /* ---------- רצועת חדרים LIVE (P2 פער 27, feature courses.roomslive) ---------- */
 
 export interface RoomNow {
