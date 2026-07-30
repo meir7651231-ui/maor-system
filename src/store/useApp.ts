@@ -39,6 +39,8 @@ import {
   type TzEvent,
 } from '../types/domain';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
+import { beneficiaryLabel } from '../components/shop/lib';
+import { roomClashError } from '../components/calendar/calLib';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, featureOn, loadOrgConfig, saveConfigOverride } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
@@ -263,7 +265,13 @@ interface AppState {
   upsertShopAssignment: (a: ShopAssignment) => void;
   /** מוחק + מנקה אירועי-לוח מקושרים (בלי יתומים). */
   deleteShopAssignment: (id: string) => void;
-  upsertShopEvent: (e: ShopEvent) => void;
+  /**
+   * שמירת אירוע הלוח הייעודי. פגישה-עם-חדר (חור מבוקר בבידוד — הכרעת
+   * בעלים 16, 30.7.2026): נבדקת התנגשות חדר (roomClashError) — התנגשות ⇒
+   * טוסט + false בלי שמירה; אחרת נוצר/מתעדכן OrgEvent מקושר בלוח הראשי
+   * (mainEventId). הסרת החדר ⇒ מחיקת המקושר (בלי יתומים).
+   */
+  upsertShopEvent: (e: ShopEvent) => boolean;
   deleteShopEvent: (id: string) => void;
   /**
    * רישום מימוש — דוחה paid/value לא-סופיים או שליליים בלי לגעת ב-db; paid=0
@@ -1256,18 +1264,72 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => ({ shopAssignments: upsertIn(db.shopAssignments, { ...a, id }) }));
     },
     deleteShopAssignment(id) {
-      // דפוס unlinkEvent — מוחקים גם את אירועי-הלוח הייעודי המקושרים, בלי יתומים
+      // דפוס unlinkEvent — מוחקים גם את אירועי-הלוח הייעודי המקושרים, בלי
+      // יתומים; פגישות-עם-חדר מנקות גם את המקושרים בלוח הראשי
+      const linked = get()
+        .db.shopEvents.filter((e) => e.assignmentId === id && e.mainEventId)
+        .map((e) => e.mainEventId);
       setDb((db) => ({
         shopAssignments: db.shopAssignments.filter((a) => a.id !== id),
         shopEvents: db.shopEvents.filter((e) => e.assignmentId !== id),
+        ...(linked.length ? { events: db.events.filter((ev) => !linked.includes(ev.id)) } : {}),
       }));
     },
     upsertShopEvent(e) {
+      const prev = e.id ? get().db.shopEvents.find((x) => x.id === e.id) : undefined;
+      if (e.roomId && e.kind === 'meeting') {
+        // השער לפני צריכת מונים (לקח באג-5): התנגשות ⇒ אפס נגיעה ב-db
+        // חור מבוקר בבידוד (הכרעת בעלים 16): תפיסת חדר דו-כיוונית דרך
+        // OrgEvent מקושר — אירוע קיים/חוג חוסמים את הפגישה (roomClashError),
+        // והאירוע המקושר חוסם אירועים חדשים דרך אותה בדיקה בלוח הראשי
+        const clash = roomClashError(
+          get().db,
+          get().config,
+          { date: e.date, time: e.time, roomId: e.roomId },
+          prev?.mainEventId,
+        );
+        if (clash) {
+          get().toast(clash);
+          return false;
+        }
+        const a = get().db.shopAssignments.find((x) => x.id === e.assignmentId);
+        const id = e.id || get().nextId('she');
+        const mainId = prev?.mainEventId || get().nextId('ev');
+        setDb((db) => ({
+          shopEvents: upsertIn(db.shopEvents, { ...e, id, mainEventId: mainId }),
+          events: upsertIn(db.events, {
+            id: mainId,
+            title: '🤝 פגישת ליווי — ' + (a ? beneficiaryLabel(db, a) : e.title),
+            date: e.date,
+            time: e.time || '',
+            type: 'custom',
+            customType: 'פגישת ליווי',
+            notes: e.notes,
+            price: 0,
+            roomId: e.roomId ?? '',
+            famId: a?.famId ?? '',
+            priority: 'green',
+            done: e.done,
+          }),
+        }));
+        return true;
+      }
+      // בלי חדר — מבודד כמו היום; חדר שהוסר ⇒ מחיקת המקושר (unlinkEvent, בלי יתומים)
       const id = e.id || get().nextId('she');
-      setDb((db) => ({ shopEvents: upsertIn(db.shopEvents, { ...e, id }) }));
+      const { roomId: _dropRoom, mainEventId: _dropMain, ...rest } = e;
+      setDb((db) => ({
+        shopEvents: upsertIn(db.shopEvents, { ...rest, id }),
+        ...(prev?.mainEventId ? { events: db.events.filter((ev) => ev.id !== prev.mainEventId) } : {}),
+      }));
+      return true;
     },
     deleteShopEvent(id) {
-      setDb((db) => ({ shopEvents: db.shopEvents.filter((e) => e.id !== id) }));
+      // מחיקת פגישה-עם-חדר מוחקת גם את האירוע המקושר בלוח הראשי (בלי יתומים)
+      const prev = get().db.shopEvents.find((x) => x.id === id);
+      setDb((db) => ({
+        shopEvents: db.shopEvents.filter((e) => e.id !== id),
+        ...(prev?.mainEventId ? { events: db.events.filter((ev) => ev.id !== prev.mainEventId) } : {}),
+      }));
     },
     addShopRedemption(assignmentId, r) {
       // שער לפני נגיעה ב-db (לקח באג-5): paid/value לא-סופיים או שליליים נדחים;

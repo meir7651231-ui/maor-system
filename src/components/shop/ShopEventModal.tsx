@@ -18,7 +18,13 @@ const KIND_OPTIONS: { value: ShopEvent['kind']; label: string }[] = [
   { value: 'custom', label: '📌 אחר' },
 ];
 
-export function ShopEventModal(props: { ev: ShopEvent | null; date: string; onClose: () => void }) {
+export function ShopEventModal(props: {
+  ev: ShopEvent | null;
+  date: string;
+  /** אכלוס מראש מכפתור "📅 קביעת פגישה" בכרטיס השיוך (SHOP4). */
+  preset?: { assignmentId: string; title: string };
+  onClose: () => void;
+}) {
   const db = useApp((s) => s.db);
   const config = useApp((s) => s.config);
   const upsertShopEvent = useApp((s) => s.upsertShopEvent);
@@ -28,11 +34,12 @@ export function ShopEventModal(props: { ev: ShopEvent | null; date: string; onCl
   const ev = props.ev;
 
   const [f, setF] = useState({
-    title: ev?.title ?? '',
+    title: ev?.title ?? props.preset?.title ?? '',
     date: ev?.date ?? props.date,
     time: ev?.time ?? '',
     kind: ev?.kind ?? ('meeting' as ShopEvent['kind']),
-    assignmentId: ev?.assignmentId ?? '',
+    assignmentId: ev?.assignmentId ?? props.preset?.assignmentId ?? '',
+    roomId: ev?.roomId ?? '',
     notes: ev?.notes ?? '',
     done: ev?.done ?? false,
   });
@@ -41,7 +48,17 @@ export function ShopEventModal(props: { ev: ShopEvent | null; date: string; onCl
   function save() {
     if (!f.title.trim()) return setError('כותרת היא שדה חובה');
     if (!f.date) return setError('יש לבחור תאריך');
-    upsertShopEvent({ id: ev?.id ?? '', ...f, title: f.title.trim(), notes: f.notes.trim() });
+    if (f.kind === 'meeting' && f.roomId && !f.time) return setError('פגישה עם חדר דורשת שעה (תפיסת הלוח לפי שעה)');
+    const { roomId, ...rest } = f;
+    const ok = upsertShopEvent({
+      id: ev?.id ?? '',
+      ...rest,
+      // חדר רק לפגישה (החריג המבוקר — הכרעת בעלים 16); שאר הסוגים מבודדים
+      ...(f.kind === 'meeting' && roomId ? { roomId } : {}),
+      title: f.title.trim(),
+      notes: f.notes.trim(),
+    });
+    if (!ok) return setError('לא נשמר — התנגשות חדר (פירוט בהודעה)');
     toast(ev ? 'האירוע עודכן' : 'האירוע נוסף ללוח החנות');
     props.onClose();
   }
@@ -64,6 +81,18 @@ export function ShopEventModal(props: { ev: ShopEvent | null; date: string; onCl
         <Field label="סוג">
           <Select value={f.kind} onChange={(v) => setF({ ...f, kind: v as ShopEvent['kind'] })} options={KIND_OPTIONS} />
         </Field>
+        {f.kind === 'meeting' && (
+          <Field label="חדר (רשות — תופס את הלוח הראשי)">
+            <Select
+              value={f.roomId}
+              onChange={(v) => setF({ ...f, roomId: v })}
+              options={[
+                { value: '', label: 'ללא חדר — פגישה פנימית' },
+                ...db.rooms.filter((r) => r.active).map((r) => ({ value: r.id, label: r.name })),
+              ]}
+            />
+          </Field>
+        )}
         <Field label="שיוך (רשות)">
           <Select
             value={f.assignmentId}

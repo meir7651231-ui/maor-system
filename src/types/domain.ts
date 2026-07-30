@@ -572,7 +572,12 @@ export interface ShopAssignment {
   redemptions: ShopRedemption[];
 }
 
-/** אירוע הלוח הייעודי — לא ב-db.events, לא בלוח הראשי (בידוד). */
+/**
+ * אירוע הלוח הייעודי — לא ב-db.events, לא בלוח הראשי (בידוד).
+ * חריג מבוקר (SHOP4, הכרעת בעלים 16): פגישה-עם-חדר יוצרת OrgEvent מקושר
+ * בלוח הראשי (mainEventId — דפוס dueEventId/nextEventId) לתפיסת חדר
+ * דו-כיוונית; הכסף נשאר מבודד לחלוטין.
+ */
 export interface ShopEvent {
   id: Id;
   title: string;
@@ -581,6 +586,10 @@ export interface ShopEvent {
   /** meeting=פגישה · delivery=מסירה · holiday=חג · custom=אחר. */
   kind: 'meeting' | 'delivery' | 'holiday' | 'custom';
   assignmentId: Id | '';
+  /** חדר לפגישה (kind==='meeting') — מפעיל את החריג המבוקר. */
+  roomId?: Id;
+  /** האירוע המקושר בלוח הראשי — קיים רק לפגישה-עם-חדר. */
+  mainEventId?: Id;
   notes: string;
   done: boolean;
 }

@@ -17,6 +17,7 @@ import { isoToday } from '../../lib/date-util';
 import { assignmentRedeemed, beneficiaryLabel, componentRemaining, couponExpiry, itemOf, itemRemaining, upcomingHolidays } from './lib';
 import { AssignmentForm } from './AssignmentForm';
 import { RedeemModal } from './RedeemModal';
+import { ShopEventModal } from './ShopEventModal';
 
 const STATUS_LABEL: Record<ShopAssignment['status'], string> = {
   active: '▶ פעיל',
@@ -35,6 +36,7 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
   const a = props.assignment;
   const product = db.shopProducts.find((p) => p.id === a.productId);
   const [redeeming, setRedeeming] = useState<ShopComponent | null>(null);
+  const [meetingOpen, setMeetingOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const nextHolidays = upcomingHolidays(isoToday(), 45);
 
@@ -120,7 +122,12 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
                   </span>
                 )}
                 {!done && <span style={{ fontSize: 12.5 }}>⏳ ממתין</span>}
-                <span style={{ marginInlineStart: 'auto' }}>
+                <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
+                  {ri.kind === 'meeting' && (
+                    <Btn sm onClick={() => setMeetingOpen(true)} title="קביעת פגישה בלוח (עם חדר — תופסת את הלוח הראשי)">
+                      📅 קביעת פגישה
+                    </Btn>
+                  )}
                   <Btn sm kind="primary" onClick={() => setRedeeming(c)}>🎁 מימוש</Btn>
                 </span>
               </div>
@@ -157,6 +164,14 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
         })
       )}
       {redeeming && <RedeemModal assignment={a} component={redeeming} onClose={() => setRedeeming(null)} />}
+      {meetingOpen && (
+        <ShopEventModal
+          ev={null}
+          date={isoToday()}
+          preset={{ assignmentId: a.id, title: '🤝 פגישת ליווי — ' + beneficiaryLabel(db, a) }}
+          onClose={() => setMeetingOpen(false)}
+        />
+      )}
       {editOpen && <AssignmentForm assignment={a} onClose={() => setEditOpen(false)} />}
     </div>
   );
