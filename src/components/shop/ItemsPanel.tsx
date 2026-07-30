@@ -26,6 +26,7 @@ export function ItemsPanel() {
   const config = useApp((s) => s.config);
   const upsertShopItem = useApp((s) => s.upsertShopItem);
   const deleteShopItem = useApp((s) => s.deleteShopItem);
+  const mergeShopItems = useApp((s) => s.mergeShopItems);
   const toast = useApp((s) => s.toast);
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const storesOn = featureOn(config, 'shop.stores');
@@ -36,6 +37,9 @@ export function ItemsPanel() {
   const [f, setF] = useState(EMPTY);
   const [error, setError] = useState('');
   const [stockFor, setStockFor] = useState<ShopItem | null>(null);
+  // מיזוג פריטים כפולים (הכרעה 21) — מקור נבחר + יעד מאותו סוג
+  const [mergeFrom, setMergeFrom] = useState<ShopItem | null>(null);
+  const [mergeTarget, setMergeTarget] = useState('');
 
   function startEdit(i: ShopItem) {
     setEditId(i.id);
@@ -118,12 +122,51 @@ export function ItemsPanel() {
                 )}
                 <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
                   <Btn sm onClick={() => setStockFor(i)} title="חידוש מלאי">➕ מלאי</Btn>
+                  <Btn sm onClick={() => { setMergeFrom(mergeFrom?.id === i.id ? null : i); setMergeTarget(''); }} title="מיזוג פריט כפול לתוך פריט אחר">
+                    ⇄ מיזוג לתוך…
+                  </Btn>
                   <Btn sm onClick={() => startEdit(i)}>✏️</Btn>
                   <Btn sm kind="danger" onClick={() => remove(i)}>{armed === 'shi-' + i.id ? 'שוב למחיקה' : '🗑'}</Btn>
                 </span>
               </div>
             );
           })}
+          {mergeFrom && (
+            <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', margin: '10px 0' }}>
+              <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>
+                {'⇄ מיזוג "' + mergeFrom.name + '" לתוך… (אותו סוג בלבד; המלאי מתחבר, המימושים נשמרים)'}
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                <Select
+                  value={mergeTarget}
+                  onChange={setMergeTarget}
+                  options={[
+                    { value: '', label: '— בחרו פריט יעד —' },
+                    ...db.shopItems
+                      .filter((x) => x.id !== mergeFrom.id && x.kind === mergeFrom.kind)
+                      .map((x) => ({ value: x.id, label: x.name })),
+                  ]}
+                />
+                <Btn
+                  sm
+                  kind="danger"
+                  onClick={() => {
+                    if (!mergeTarget) return;
+                    if (!confirmTwice('merge-' + mergeFrom.id, 'למזג את "' + mergeFrom.name + '"? הפעולה אינה הפיכה')) return;
+                    if (mergeShopItems(mergeTarget, mergeFrom.id)) {
+                      const rem = itemRemaining(useApp.getState().db, mergeTarget);
+                      toast('מוזג — ' + (rem === null ? 'ללא מעקב מלאי' : 'הנותר ' + rem));
+                      setMergeFrom(null);
+                      setMergeTarget('');
+                    }
+                  }}
+                >
+                  {armed === 'merge-' + mergeFrom.id ? 'בטוח/ה? שוב ממזגת' : '⇄ מיזוג'}
+                </Btn>
+                <Btn sm onClick={() => { setMergeFrom(null); setMergeTarget(''); }}>ביטול</Btn>
+              </div>
+            </div>
+          )}
           <FormError error={error} />
           <div className="form-grid" style={{ marginTop: 10 }}>
             <Field label={'שם ה' + term + ' *'}>

@@ -252,6 +252,12 @@ interface AppState {
   upsertShopItem: (i: ShopItem) => void;
   /** חסום כשרכיב בחבילה מצביע על הפריט — מסירים מהחבילות קודם. */
   deleteShopItem: (id: string) => boolean;
+  /**
+   * מיזוג פריטים כפולים (הכרעה 21): כל הרכיבים המצביעים על המקור מוסבים
+   * ליעד, המלאי מתחבר (סכום — שניהם מלאי אמיתי; שניהם בלי מעקב = נשאר
+   * בלי), המקור נמחק. המימושים לא נגעו (componentId נשאר). אותו kind בלבד.
+   */
+  mergeShopItems: (targetId: string, sourceId: string) => boolean;
   /** רכיב מוצר בלי id מקבל nextId('shpc') — ייחודיות בתוך המוצר. */
   upsertShopProduct: (p: ShopProduct) => void;
   /** חסום כשקיימים שיוכים active למוצר; מותר כשכולם done/stopped. */
@@ -1215,6 +1221,33 @@ export const useApp = create<AppState>()((set, get) => {
         return false;
       }
       setDb((db) => ({ shopItems: db.shopItems.filter((x) => x.id !== id) }));
+      return true;
+    },
+    mergeShopItems(targetId, sourceId) {
+      const target = get().db.shopItems.find((x) => x.id === targetId);
+      const source = get().db.shopItems.find((x) => x.id === sourceId);
+      if (!target || !source || targetId === sourceId) {
+        get().toast('בחרו שני פריטים שונים למיזוג');
+        return false;
+      }
+      if (target.kind !== source.kind) {
+        get().toast('מיזוג אפשרי רק בין פריטים מאותו סוג');
+        return false;
+      }
+      // המלאי מתחבר (ברירת ארכיטקט — שניהם מלאי אמיתי); שניהם בלי מעקב = נשאר בלי
+      const merged =
+        target.stock !== undefined || source.stock !== undefined
+          ? { ...target, stock: (target.stock ?? 0) + (source.stock ?? 0) }
+          : target;
+      setDb((db) => ({
+        shopItems: db.shopItems.filter((x) => x.id !== sourceId).map((x) => (x.id === targetId ? merged : x)),
+        // הסבת כל הרכיבים המצביעים על המקור — המימושים (componentId) לא נגעו
+        shopProducts: db.shopProducts.map((p) =>
+          p.components.some((c) => c.itemId === sourceId)
+            ? { ...p, components: p.components.map((c) => (c.itemId === sourceId ? { ...c, itemId: targetId } : c)) }
+            : p,
+        ),
+      }));
       return true;
     },
     upsertShopProduct(p) {
