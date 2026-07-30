@@ -117,6 +117,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'home.punchlow', label: 'ווידג\'ט: מלאי כרטיסיות', desc: 'כרטיסיות עם יתרה נמוכה', module: 'home' },
   { key: 'home.quick', label: 'ווידג\'ט: פעולות מהירות', desc: 'פאנל הפעולות המהירות במסך הבית', module: 'home' },
 
+  { key: 'home.crosscare', label: 'מונה טיפול מהעמודות', desc: 'צ\'יפי "🪙 קופות: N" / "🛍 חנות: M" בווידג\'ט הטיפול — מונה-עם-קפיצה בלבד, בלי פירוט', module: 'home' },
   // ——— דוחות (סעיף לכל סוג דוח — עצמאי לחלוטין) ———
   { key: 'reports.enroll', label: 'דוח רישום לחוגים', desc: 'סעיף סיכום הרישום, התפוסה וההכנסות', module: 'reports' },
   { key: 'reports.attendance', label: 'דוח נוכחות', desc: 'סעיף הנוכחות והחיסורים', module: 'reports' },

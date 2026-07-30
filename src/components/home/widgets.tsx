@@ -27,6 +27,7 @@ import { buildPodium, buildWeek, fmtIls } from '../wall/wallData';
 import {
   courseMetrics,
   credHistogram,
+  careCounts,
   credNeedsBoost,
   credSummary,
   credTodayTrend,
@@ -733,7 +734,9 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
 
 /** "דורש טיפול" — כולל מרכז טיפול (סימון טופל/ביטול) — פיצ'ר home.care. */
 function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
-  const { db, data, navTo, markAttnDone, unmarkAttnDone } = ctx;
+  const { db, data, navTo, markAttnDone, unmarkAttnDone, config, todayIso, go } = ctx;
+  // מונה העמודות המבודדות (CONNECT חיבור 3) — מונה-עם-קפיצה בלבד, בלי פירוט
+  const crossCare = careCounts(db, todayIso, config);
   const [showDone, setShowDone] = useState(false);
   // איפוס גורף של סימוני "טופל" (P3 פריט 7, לגאסי careReset) — שתי לחיצות
   const setDb = useApp((s) => s.setDb);
@@ -764,6 +767,20 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
     >
       {openAttn.length === 0 && (
         <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>הכל מטופל ✓</div>
+      )}
+      {(crossCare.tzedaka > 0 || crossCare.shop > 0) && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 2 }}>
+          {crossCare.tzedaka > 0 && (
+            <Chip on onClick={() => go('tzedaka')}>
+              {'🪙 ' + termOf(config, 'nav.tzedaka', 'קופות צדקה') + ': ' + crossCare.tzedaka}
+            </Chip>
+          )}
+          {crossCare.shop > 0 && (
+            <Chip on onClick={() => go('shop')}>
+              {'🛍 ' + termOf(config, 'nav.shop', 'חנות') + ': ' + crossCare.shop}
+            </Chip>
+          )}
+        </div>
       )}
       {/* שורת סינון לפי תגית — רק כשיש יותר מתגית אחת (אחרת אין מה לסנן) */}
       {tags.length > 1 && (
