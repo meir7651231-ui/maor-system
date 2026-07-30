@@ -735,6 +735,10 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
 function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, data, navTo, markAttnDone, unmarkAttnDone } = ctx;
   const [showDone, setShowDone] = useState(false);
+  // איפוס גורף של סימוני "טופל" (P3 פריט 7, לגאסי careReset) — שתי לחיצות
+  const setDb = useApp((s) => s.setDb);
+  const toast = useApp((s) => s.toast);
+  const [resetArmed, setResetArmed] = useState(false);
   // סינון לפי תגית (קטגוריית הפריט) — מצב מקומי בלבד, ללא התמדה. ברירת מחדל "הכל".
   const [careFilter, setCareFilter] = useState<string | null>(null);
   // מרכז טיפול: הפרדת פריטים פתוחים מפריטים שסומנו "טופל"
@@ -822,6 +826,24 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
             </Btn>
           </div>
         ))}
+      {showDone && doneAttn.length > 0 && (
+        <button
+          type="button"
+          style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', color: resetArmed ? '#b91c1c' : undefined }}
+          onClick={() => {
+            if (!resetArmed) {
+              setResetArmed(true);
+              return;
+            }
+            setDb(() => ({ attnDone: {} }));
+            setResetArmed(false);
+            toast('הסימונים אופסו');
+          }}
+          onBlur={() => setResetArmed(false)}
+        >
+          {resetArmed ? 'בטוח? לחיצה נוספת מאפסת את כל הסימונים' : 'איפוס סימוני טופל'}
+        </button>
+      )}
     </Panel>
   );
 }

@@ -15,7 +15,7 @@ import { paidOf, payBal, planWord, punchConfirmStep, PUNCH_CONFIRM_MS, type Punc
 import { AbsenceModal } from '../courses/AbsenceModal';
 import { ManageModal } from '../courses/ManageModal';
 import { EventModal } from '../calendar/EventModal';
-import { ageOf, chipStyle, EVENT_META, famHistoryOf, fmtDate, isoToday, STATUS_META, tierOf } from './lib';
+import { ageOf, chipStyle, CRED_HELP_TEXT, EVENT_META, famHistoryOf, fmtDate, isoToday, STATUS_META, tierOf } from './lib';
 import { JoinModal } from './JoinModal';
 
 function SectionCard(props: { title: string; actions?: ReactNode; children: ReactNode }) {
@@ -102,6 +102,8 @@ export function CredPanel(props: { fam: Family }) {
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const [overrideVal, setOverrideVal] = useState('');
+  // "איך משפרים?" (P3 פריט 8) — קופסת כללי הניקוד מהלגאסי
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const cred = props.fam.cred;
   const tier = tierOf(cred.score);
@@ -144,7 +146,25 @@ export function CredPanel(props: { fam: Family }) {
         <Btn sm onClick={() => addCred(props.fam.id, -5, 'התאמה ידנית של מנהל')}>
           −5
         </Btn>
+        <Btn sm onClick={() => setHelpOpen((v) => !v)}>
+          איך משפרים?
+        </Btn>
       </div>
+      {helpOpen && (
+        <div
+          style={{
+            background: 'var(--paper-soft, #faf6ec)',
+            border: '1px solid var(--line)',
+            borderRadius: 10,
+            padding: '8px 11px',
+            fontSize: 11.5,
+            lineHeight: 1.7,
+            color: 'var(--ink-soft)',
+          }}
+        >
+          {CRED_HELP_TEXT}
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 8 }}>
         <div style={{ flex: 1 }}>
           <TextInput value={overrideVal} onChange={setOverrideVal} placeholder="Override 0–1000" dir="ltr" />
