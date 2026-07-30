@@ -10,6 +10,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { chipStyle, fmtDate, isoToday, supDonEvents, supScore, supTier, totalLabel } from './lib';
+import { downloadReceipt } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
@@ -48,6 +49,27 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const nextOn = featureOn(config, 'supporters.nextdate');
   const ayinOn = featureOn(config, 'supporters.ayin');
   const histOn = featureOn(config, 'supporters.hist');
+  const receiptsOn = featureOn(config, 'core.receipts');
+
+  /** 🧾 הורדה חוזרת של קבלת תרומה (P3, לגאסי supReceipt) — אותם נתונים ו-rid. */
+  function redownloadReceipt(rid: string) {
+    const d = sp.donations.find((x) => x.rid === rid);
+    if (!d) return;
+    downloadReceipt({
+      rid,
+      orgName: config.orgName || useApp.getState().db.orgName,
+      payer: sp.name,
+      amount: d.amount,
+      currency: d.cur,
+      date: d.date,
+      forWhat: 'תרומה — ' + (d.cat || 'כללי'),
+      taxReceipt: featureOn(config, 'core.taxreceipt'),
+      orgTaxId: config.orgTaxId,
+      signatory: config.orgSignatory,
+      payerId: sp.idNum || undefined,
+    });
+    toast('קבלה ' + rid + ' ירדה שוב למחשב');
+  }
 
   const [editOpen, setEditOpen] = useState(false);
   const [donOpen, setDonOpen] = useState(false);
@@ -276,6 +298,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                   <th>סכום</th>
                   <th>קטגוריה</th>
                   <th>{histOn ? 'מקור' : 'קבלה'}</th>
+                  <th aria-hidden />
                 </tr>
               </thead>
               <tbody>
@@ -296,6 +319,14 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                     <td>{(r.rid && sp.donations.find((d) => d.rid === r.rid)?.cat) || '—'}</td>
                     <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--ink-faint)' }}>
                       {histOn ? r.src : r.rid}
+                    </td>
+                    {/* 🧾 הורדה חוזרת פר-תרומה (P3, לגאסי supReceipt) — רק לתרומות עם קבלה */}
+                    <td onClick={(e) => e.stopPropagation()}>
+                      {r.rid && receiptsOn ? (
+                        <Btn sm onClick={() => redownloadReceipt(r.rid!)} title={'הורדה חוזרת של קבלה ' + r.rid}>
+                          🧾
+                        </Btn>
+                      ) : null}
                     </td>
                   </tr>
                 ))}
