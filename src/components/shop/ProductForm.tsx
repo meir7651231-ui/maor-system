@@ -26,6 +26,8 @@ interface CompDraft {
   basePrice: string;
   /** ריק = ללא מעקב מלאי. */
   stock: string;
+  /** ימי תוקף לקופון — ריק/0 = ללא תוקף. */
+  validDays: string;
   notes: string;
 }
 
@@ -48,6 +50,7 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
       value: c.value ? String(c.value) : '',
       basePrice: c.basePrice ? String(c.basePrice) : '',
       stock: c.stock === undefined ? '' : String(c.stock),
+      validDays: c.validDays === undefined ? '' : String(c.validDays),
       notes: c.notes,
     })),
   );
@@ -55,7 +58,7 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
 
   function addComp() {
     // id ריק — ה-store מנפיק nextId('shpc') בשמירה
-    setComps([...comps, { id: '', kind: 'gift', label: '', storeId: '', value: '', basePrice: '', stock: '', notes: '' }]);
+    setComps([...comps, { id: '', kind: 'gift', label: '', storeId: '', value: '', basePrice: '', stock: '', validDays: '', notes: '' }]);
   }
   function setComp(i: number, patch: Partial<CompDraft>) {
     setComps(comps.map((c, j) => (j === i ? { ...c, ...patch } : c)));
@@ -74,6 +77,8 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
         return setError('שווי ומחיר סמלי חייבים להיות מספרים אי-שליליים');
       if (c.stock.trim() !== '' && (!Number.isFinite(+c.stock) || +c.stock < 0))
         return setError('מלאי חייב להיות מספר אי-שלילי (ריק = ללא מעקב)');
+      if (c.validDays.trim() !== '' && (!Number.isFinite(+c.validDays) || +c.validDays < 0))
+        return setError('ימי תוקף חייבים להיות מספר אי-שלילי (ריק = ללא תוקף)');
     }
     upsertShopProduct({
       id: p?.id ?? '',
@@ -91,6 +96,8 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
         basePrice: c.basePrice.trim() === '' ? 0 : Math.round(+c.basePrice),
         // ריק = ללא מעקב מלאי (undefined) — לא 0, ש-0 פירושו "אזל"
         ...(c.stock.trim() === '' ? {} : { stock: Math.max(0, Math.round(+c.stock)) }),
+        // ימי תוקף — לקופון בלבד; ריק/0 = ללא תוקף
+        ...(c.kind === 'coupon' && c.validDays.trim() !== '' ? { validDays: Math.max(0, Math.round(+c.validDays)) } : {}),
         notes: c.notes.trim(),
       })),
     });
@@ -150,6 +157,11 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
                   onChange={(v) => setComp(i, { storeId: v })}
                   options={[{ value: '', label: 'ללא' }, ...stores.filter((s) => s.active).map((s) => ({ value: s.id, label: s.name }))]}
                 />
+              </Field>
+            )}
+            {c.kind === 'coupon' && (
+              <Field label="ימי תוקף (ריק = ללא תוקף)">
+                <TextInput value={c.validDays} onChange={(v) => setComp(i, { validDays: v })} type="number" dir="ltr" placeholder="90" />
               </Field>
             )}
             <Field label="הערות">

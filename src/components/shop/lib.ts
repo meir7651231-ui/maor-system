@@ -98,10 +98,23 @@ export function componentRemaining(
   return Math.max(0, stock - used);
 }
 
+/* ---------- תוקף קופונים ---------- */
+
+/**
+ * תאריך פקיעת קופון — '' כשאין validDays (או 0) או שאין לשיוך since.
+ * הפקיעה = since + validDays; יום הגבול עצמו עדיין בתוקף (פג רק למחרת).
+ */
+export function couponExpiry(a: ShopAssignment, comp: ShopComponent): IsoDate | '' {
+  if (!comp.validDays || !a.since) return '';
+  const d = new Date(a.since + 'T12:00:00');
+  d.setDate(d.getDate() + comp.validDays);
+  return isoOf(d);
+}
+
 /* ---------- דורש טיפול ---------- */
 
 export interface ShopCareItem {
-  kind: 'holidayDue' | 'meetingPending' | 'couponPending' | 'stockOut';
+  kind: 'holidayDue' | 'meetingPending' | 'couponPending' | 'couponExpired' | 'stockOut';
   assignmentId: Id;
   componentId: Id;
   label: string;
@@ -113,14 +126,16 @@ export const SHOP_HOLIDAY_DUE_DAYS = 30;
 
 /**
  * רשימת הטיפול המשרדי — ממוינת לפי סוג: מתנות-חג שמועדן קרב →
- * פגישות שטרם מומשו → קופונים שטרם מומשו → מלאי שאזל. שיוכים active בלבד
- * (מלאי — פר-רכיב במוצר active, בלי שיוך: assignmentId='').
+ * פגישות שטרם מומשו → קופונים שטרם מומשו → קופונים שפקעו → מלאי שאזל.
+ * שיוכים active בלבד (מלאי — פר-רכיב במוצר active, בלי שיוך: assignmentId='').
+ * קופון שפקע מדווח כ-couponExpired (במקום couponPending — לא כפול).
  */
 export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
   const holidays = upcomingHolidays(todayIso, SHOP_HOLIDAY_DUE_DAYS);
   const due: ShopCareItem[] = [];
   const meetings: ShopCareItem[] = [];
   const coupons: ShopCareItem[] = [];
+  const expired: ShopCareItem[] = [];
   const stock: ShopCareItem[] = [];
   for (const p of db.shopProducts) {
     if (!p.active) continue;
@@ -164,17 +179,28 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
           hint: 'פגישת ליווי טרם התקיימה',
         });
       } else if (comp.kind === 'coupon' && !assignmentRedeemed(a, comp.id)) {
-        coupons.push({
-          kind: 'couponPending',
-          assignmentId: a.id,
-          componentId: comp.id,
-          label: who + ' — ' + comp.label,
-          hint: 'קופון טרם מומש',
-        });
+        const expiry = couponExpiry(a, comp);
+        if (expiry && expiry < todayIso) {
+          expired.push({
+            kind: 'couponExpired',
+            assignmentId: a.id,
+            componentId: comp.id,
+            label: who + ' — ' + comp.label,
+            hint: 'הקופון פג בתוקף ב-' + expiry + ' וטרם מומש',
+          });
+        } else {
+          coupons.push({
+            kind: 'couponPending',
+            assignmentId: a.id,
+            componentId: comp.id,
+            label: who + ' — ' + comp.label,
+            hint: expiry ? 'קופון טרם מומש · בתוקף עד ' + expiry : 'קופון טרם מומש',
+          });
+        }
       }
     }
   }
-  return [...due, ...meetings, ...coupons, ...stock];
+  return [...due, ...meetings, ...coupons, ...expired, ...stock];
 }
 
 /* ---------- סכומים ---------- */

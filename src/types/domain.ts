@@ -481,6 +481,8 @@ export interface ShopComponent {
   basePrice: number;
   /** כמות במלאי — undefined = ללא מעקב; הנותר = stock פחות המימושים. */
   stock?: number;
+  /** ימי תוקף לקופון (kind==='coupon') — undefined/0 = ללא תוקף; נספר מ-since של השיוך. */
+  validDays?: number;
   notes: string;
 }
 

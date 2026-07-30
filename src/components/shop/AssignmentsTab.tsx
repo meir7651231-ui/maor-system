@@ -14,7 +14,7 @@ import type { ShopAssignment, ShopComponent, ShopRedemption } from '../../types/
 import { Btn, Chip, Empty } from '../ui';
 import { useArmed } from '../useArmed';
 import { isoToday } from '../../lib/date-util';
-import { assignmentRedeemed, beneficiaryLabel, componentRemaining, upcomingHolidays } from './lib';
+import { assignmentRedeemed, beneficiaryLabel, componentRemaining, couponExpiry, upcomingHolidays } from './lib';
 import { AssignmentForm } from './AssignmentForm';
 import { RedeemModal } from './RedeemModal';
 
@@ -98,6 +98,11 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
               )}
               {c.kind === 'holidayGift' && nextH && (
                 <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{'החג הקרוב: ' + nextH.name + ' (' + nextH.iso + ')'}</span>
+              )}
+              {c.kind === 'coupon' && couponExpiry(a, c) && (
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: couponExpiry(a, c) < isoToday() ? '#b91c1c' : 'var(--ink-faint)' }}>
+                  {couponExpiry(a, c) < isoToday() ? 'פג תוקף ב-' + couponExpiry(a, c) : 'בתוקף עד ' + couponExpiry(a, c)}
+                </span>
               )}
               {done && last ? (
                 <span style={{ fontSize: 12.5 }}>

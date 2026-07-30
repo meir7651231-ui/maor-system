@@ -240,13 +240,22 @@ export function migrate(raw: unknown): Db | null {
   merged.shopProducts = merged.shopProducts.map((p) => ({
     ...p,
     components: (Array.isArray(p.components) ? p.components : []).map((c) => {
+      let out = c;
       // מלאי: לא-סופי → מוסר (בלי מעקב); שלילי → 0 (אזל)
-      if (c.stock === undefined) return c;
-      if (typeof c.stock !== 'number' || !Number.isFinite(c.stock)) {
-        const { stock: _drop, ...rest } = c;
-        return rest;
+      if (out.stock !== undefined) {
+        if (typeof out.stock !== 'number' || !Number.isFinite(out.stock)) {
+          const { stock: _dropStock, ...rest } = out;
+          out = rest;
+        } else if (out.stock < 0) out = { ...out, stock: 0 };
       }
-      return c.stock < 0 ? { ...c, stock: 0 } : c;
+      // ימי תוקף קופון: לא-סופי → מוסר (ללא תוקף); שלילי → 0
+      if (out.validDays !== undefined) {
+        if (typeof out.validDays !== 'number' || !Number.isFinite(out.validDays)) {
+          const { validDays: _dropDays, ...rest } = out;
+          out = rest;
+        } else if (out.validDays < 0) out = { ...out, validDays: 0 };
+      }
+      return out;
     }),
   }));
   const SHOP_STATUSES = ['active', 'done', 'stopped'];
