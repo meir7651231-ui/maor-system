@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { Chip, PageHead } from '../ui';
+import { CatalogTab } from './CatalogTab';
 
 type ShopTab = 'catalog' | 'beneficiaries' | 'care' | 'calendar' | 'showcase';
 
@@ -41,7 +42,7 @@ export function ShopView() {
         ))}
       </div>
       {/* התוכן נבנה באשכולות 4-7 — placeholder לכל טאב עד אז */}
-      {active === 'catalog' && <div className="muted">🛍 הקטלוג ייבנה באשכול 4</div>}
+      {active === 'catalog' && <CatalogTab />}
       {active === 'beneficiaries' && <div className="muted">👥 המוטבים ייבנו באשכול 5</div>}
       {active === 'care' && <div className="muted">🏠 הטיפול ייבנה באשכול 6</div>}
       {active === 'calendar' && <div className="muted">📅 הלוח ייבנה באשכול 7</div>}
