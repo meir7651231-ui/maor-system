@@ -12,12 +12,15 @@ import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { Chip, PageHead } from '../ui';
+import { CoordinatorsTab } from './CoordinatorsTab';
 
 type TzTab = 'care' | 'coordinators' | 'calendar' | 'showcase';
 
 export function TzedakaView() {
   const config = useApp((s) => s.config);
   const [tab, setTab] = useState<TzTab>('coordinators');
+  // נבחר-רכז — state מקומי בלבד (בידוד: אין ניווט חוצה-מסכים דרך ה-store)
+  const [selCoordId, setSelCoordId] = useState<string | null>(null);
   const calendarOn = featureOn(config, 'tzedaka.calendar');
   const showcaseOn = featureOn(config, 'tzedaka.showcase');
 
@@ -41,7 +44,7 @@ export function TzedakaView() {
       </div>
       {/* התוכן נבנה באשכולות 4-7 — placeholder לכל טאב עד אז */}
       {active === 'care' && <div className="card">🏠 טיפול משרדי — נבנה באשכול 5</div>}
-      {active === 'coordinators' && <div className="card">🧑‍🤝‍🧑 רכזים — נבנה באשכול 4</div>}
+      {active === 'coordinators' && <CoordinatorsTab selId={selCoordId} onSelect={setSelCoordId} />}
       {active === 'calendar' && <div className="card">📅 הלוח הייעודי — נבנה באשכול 6</div>}
       {active === 'showcase' && <div className="card">🏆 ראווה — נבנה באשכול 7</div>}
     </div>
