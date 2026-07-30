@@ -58,6 +58,17 @@ export function sessionsOf(c: Course): CourseSession[] {
 }
 
 /**
+ * הצעת מספר קבוצות מטקסט קהל-היעד (P3 פריט 1; לגאסי: regex 'קבוצות|פעמים').
+ * הצעה בלבד — לא דריסה; מחוץ ל-2–12 או בלי התאמה ⇒ null.
+ */
+export function groupsHintFromAudience(audience: string | undefined): number | null {
+  const m = (audience || '').match(/(\d+)\s*(?:קבוצות|פעמים)/);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  return n >= 2 && n <= 12 ? n : null;
+}
+
+/**
  * סינון תפקיד-מורה (P3 פריט 15, הכרעה 2): teacherId ⇒ רק החוגים שלה;
  * null (אין תפקיד/אין ענן) ⇒ הכל, כהתנהגות של היום.
  */

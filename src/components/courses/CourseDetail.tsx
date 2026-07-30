@@ -24,6 +24,8 @@ import {
   fmtDate,
   groupLabelOf,
   groupOptionsOf,
+  groupsHintFromAudience,
+  isoToday,
   modelMeta,
   planLabelOf,
   priceSuffix,
@@ -54,6 +56,9 @@ export function CourseDetail(props: { course: Course }) {
   const deleteCourse = useApp((s) => s.deleteCourse);
   const upsertCourse = useApp((s) => s.upsertCourse);
   const upsertEnrollment = useApp((s) => s.upsertEnrollment);
+  const upsertEvent = useApp((s) => s.upsertEvent);
+  const nextId = useApp((s) => s.nextId);
+  const go = useApp((s) => s.go);
   const punch = useApp((s) => s.punch);
   const addCred = useApp((s) => s.addCred);
   const toast = useApp((s) => s.toast);
@@ -262,6 +267,30 @@ export function CourseDetail(props: { course: Course }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {/* P3 פריט 3 — תזכורת ללוח על שם החוג (לגאסי: כפתור 🔔 בכרטיס) */}
+          <Btn
+            onClick={() => {
+              upsertEvent({
+                id: nextId('ev'),
+                title: 'תזכורת — ' + termOf(cfg, 'entity.course', 'חוג') + ' ' + c.name,
+                date: isoToday(),
+                time: sessionsOf(c)[0]?.time || '',
+                type: 'reminder',
+                customType: '',
+                notes: (teacher?.name ? termOf(cfg, 'entity.teacher', 'מורה') + ': ' + teacher.name : ''),
+                price: 0,
+                roomId: c.roomId || '',
+                famId: '',
+                priority: 'orange',
+                done: false,
+              });
+              toast('תזכורת ל"' + c.name + '" נוספה ללוח להיום');
+              go('calendar');
+            }}
+            title="יצירת אירוע תזכורת ללוח על שם החוג"
+          >
+            🔔 תזכורת ללוח
+          </Btn>
           {featureOn(cfg, 'courses.printout.custom') && (
             <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
               📊 דו"ח מותאם
@@ -514,6 +543,31 @@ export function CourseDetail(props: { course: Course }) {
                 + הוספת קבוצה
               </Btn>
             </div>
+            {/* P3 פריט 1 — הצעה אוטומטית מטקסט קהל-היעד (לגאסי: 'קבוצות|פעמים'); לא דורס */}
+            {(() => {
+              const hint = groupsHintFromAudience(c.audience);
+              if (!hint || sessions.length >= hint) return null;
+              return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 12.5, color: 'var(--ink-soft)' }}>
+                  {'לפי קהל היעד ("' + c.audience + '") נראה שנדרשות ' + hint + ' קבוצות — כרגע ' + sessions.length + '.'}
+                  <Btn
+                    sm
+                    onClick={() => {
+                      const base = sessions[0];
+                      const add = Array.from({ length: hint - sessions.length }, (_, i) => ({
+                        day: base.day,
+                        time: base.time,
+                        label: 'קבוצה ' + (sessions.length + i + 1),
+                      }));
+                      upsertCourse({ ...c, sessions: [...sessions, ...add] });
+                      toast('נוספו ' + add.length + ' קבוצות לפי קהל היעד');
+                    }}
+                  >
+                    השלמה ל-{hint}
+                  </Btn>
+                </div>
+              );
+            })()}
           </section>
           )}
         </div>

@@ -366,6 +366,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                     >
                       <option value="all">הכל</option>
                       <option value="monthly">מנוי חודשי</option>
+                      {/* P3 פריט 2 — כל ארבעת המסלולים, בתוויות planWord */}
+                      <option value="half_year">מנוי חצי-שנתי</option>
+                      <option value="year">מנוי שנתי</option>
                       <option value="punch">כרטיסייה</option>
                     </select>
                   </th>
