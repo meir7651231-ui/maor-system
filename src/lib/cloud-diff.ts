@@ -41,6 +41,7 @@ const META_KEYS = [
   'seq',
   'receiptSeq',
   'donationSeq',
+  'shopReceiptSeq',
   'attnDone',
 ] as const;
 
@@ -66,6 +67,7 @@ export function metaOf(db: Db): Record<string, unknown> {
     seq: db.seq,
     receiptSeq: db.receiptSeq,
     donationSeq: db.donationSeq,
+    shopReceiptSeq: db.shopReceiptSeq,
     attnDone: db.attnDone,
     savedAt: db.savedAt,
   };

@@ -516,6 +516,8 @@ export interface ShopCriterion {
 /** מימוש רכיב: paid=מה שולם בפועל; value=שווי שנמסר; holiday=שם החג (למתנת-חג). */
 export interface ShopRedemption {
   id: Id;
+  /** אישור תשלום S-{shopReceiptSeq} — מונפק רק כש-paid>0; אינו קבלת מס. */
+  rid?: string;
   componentId: Id;
   date: IsoDate;
   holiday: string;
@@ -564,6 +566,8 @@ export interface Db {
   receiptSeq: number;
   /** מונה קבלות תרומה (D-) — רציף ונפרד מ-seq, כנדרש לקבלות מס. */
   donationSeq: number;
+  /** מונה אישורי תשלום סמלי בחנות (S-) — רציף ונפרד; אינו קבלת מס. */
+  shopReceiptSeq: number;
   families: Family[];
   enrollments: Enrollment[];
   courses: Course[];
@@ -618,6 +622,7 @@ export function emptyDb(): Db {
     seq: 100,
     receiptSeq: 1,
     donationSeq: 1,
+    shopReceiptSeq: 1,
     families: [],
     enrollments: [],
     courses: [],

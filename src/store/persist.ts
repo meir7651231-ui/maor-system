@@ -154,6 +154,7 @@ export function migrate(raw: unknown): Db | null {
     seq: Math.max(db.seq ?? 0, base.seq),
     receiptSeq: db.receiptSeq ?? base.receiptSeq,
     donationSeq: db.donationSeq ?? base.donationSeq,
+    shopReceiptSeq: db.shopReceiptSeq ?? base.shopReceiptSeq,
     security: db.security ?? base.security,
   };
   // גרסאות ישנות מיספרו קבלות מתוך seq המשותף. מזריעים את המונים הרציפים
@@ -171,8 +172,16 @@ export function migrate(raw: unknown): Db | null {
     'D-',
     merged.supporters.flatMap((s) => (Array.isArray(s.donations) ? s.donations.map((d) => d.rid) : [])),
   );
+  // אישורי S- של החנות — אותו דפוס זריעה (רציפות גם בגיבוי שקדם למונה)
+  const sNext = maxRid(
+    'S-',
+    merged.shopAssignments.flatMap((a) =>
+      Array.isArray(a.redemptions) ? a.redemptions.map((r) => r.rid ?? '') : [],
+    ),
+  );
   if (rNext > merged.receiptSeq) merged.receiptSeq = rNext;
   if (dNext > merged.donationSeq) merged.donationSeq = dNext;
+  if (sNext > merged.shopReceiptSeq) merged.shopReceiptSeq = sNext;
   // הגנה על ייחודיות מספרי-קבלה בנתונים: מרוץ בין-מכשירי (אותו receiptSeq נקרא
   // בשני מכשירים) עלול להנפיק rid זהה לשתי קבלות. פס זה רץ בכל טעינה ובכל
   // משיכה מהענן (pullAll→migrate): שומר את ההופעה הראשונה של כל rid וממספר מחדש
@@ -241,9 +250,17 @@ export function migrate(raw: unknown): Db | null {
     }),
   }));
   const SHOP_STATUSES = ['active', 'done', 'stopped'];
+  // ייחודיות אישורי S- — אותו דפוס כמו seenR/seenD (מרוץ בין-מכשירי)
+  const seenS = new Set<string>();
   merged.shopAssignments = merged.shopAssignments.map((a) => ({
     ...a,
-    redemptions: Array.isArray(a.redemptions) ? a.redemptions : [],
+    redemptions: Array.isArray(a.redemptions)
+      ? a.redemptions.map((r) => {
+          if (r.rid && seenS.has(r.rid)) return { ...r, rid: 'S-' + merged.shopReceiptSeq++ };
+          if (r.rid) seenS.add(r.rid);
+          return r;
+        })
+      : [],
     criterionIds: Array.isArray(a.criterionIds) ? a.criterionIds : [],
     status: SHOP_STATUSES.includes(a.status) ? a.status : 'active',
   }));

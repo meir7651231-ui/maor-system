@@ -260,8 +260,13 @@ interface AppState {
   deleteShopAssignment: (id: string) => void;
   upsertShopEvent: (e: ShopEvent) => void;
   deleteShopEvent: (id: string) => void;
-  /** רישום מימוש — דוחה paid/value לא-סופיים או שליליים בלי לגעת ב-db; paid=0 חוקי (מתנה מלאה). */
-  addShopRedemption: (assignmentId: string, r: Omit<ShopRedemption, 'id'>) => { ok: boolean };
+  /**
+   * רישום מימוש — דוחה paid/value לא-סופיים או שליליים בלי לגעת ב-db; paid=0
+   * חוקי (מתנה מלאה, בלי אישור). paid>0 ⇒ מונפק אישור S-{shopReceiptSeq}
+   * (רציף ונפרד; אינו קבלת מס — לא נוגע ב-receiptSeq/donationSeq).
+   * rid מוחזר רק כשהונפק בפועל — ה-UI לא מנחש (לקח באג-5).
+   */
+  addShopRedemption: (assignmentId: string, r: Omit<ShopRedemption, 'id' | 'rid'>) => { ok: boolean; rid?: string };
 
   // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
   // ולכן סנכרון הענן והביטול עובדים כרגיל. פעולות שכותבות ללוח מייצרות OrgEvent.
@@ -1252,15 +1257,20 @@ export const useApp = create<AppState>()((set, get) => {
         get().toast('השיוך לא נמצא — המימוש לא נשמר');
         return { ok: false };
       }
-      const rid = get().nextId('shr');
-      // בידוד (הכרעת בעלים 30.7): כותבים רק ל-shopAssignments —
+      const redId = get().nextId('shr');
+      // אישור תשלום סמלי — רק כששולם בפועל; סדרה S- נפרדת (אינה קבלת מס)
+      const rid = r.paid > 0 ? 'S-' + get().db.shopReceiptSeq : undefined;
+      // בידוד (הכרעת בעלים 30.7): כותבים רק ל-shopAssignments + המונה הייעודי —
       // לא ל-receiptSeq/donationSeq/supporters/enrollments/events
       setDb((db) => ({
+        ...(rid ? { shopReceiptSeq: db.shopReceiptSeq + 1 } : {}),
         shopAssignments: db.shopAssignments.map((a) =>
-          a.id === assignmentId ? { ...a, redemptions: [{ id: rid, ...r }, ...a.redemptions] } : a,
+          a.id === assignmentId
+            ? { ...a, redemptions: [{ id: redId, ...(rid ? { rid } : {}), ...r }, ...a.redemptions] }
+            : a,
         ),
       }));
-      return { ok: true };
+      return rid ? { ok: true, rid } : { ok: true };
     },
 
     // ── מעקב טיפול רב-שלבי ──

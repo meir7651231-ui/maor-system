@@ -10,11 +10,16 @@ import redeemSrc from '../RedeemModal.tsx?raw';
 
 describe('🛍 ratchet — חנות 5: מוטבים ומימוש', () => {
   it('🛡 בידוד: אפס נגיעה בעולם התרומות/הקבלות (הכרעת בעלים 30.7)', () => {
+    // חריג יחיד ומבוקר (BUILD-ORDER-SHOP2 סעיף 10): AssignmentsTab מוריד
+    // אישור S- דרך downloadReceipt עם taxReceipt:false — הגבלותיו נאכפות
+    // ב-shop-sreceipt.test.ts; כאן נשארת האכיפה המלאה על הטופס והמודאל.
+    for (const src of [formSrc, redeemSrc]) {
+      expect(src).not.toMatch(/from '.*receipt/);
+      expect(src).not.toContain('downloadReceipt');
+    }
     for (const src of [tabSrc, formSrc, redeemSrc]) {
       expect(src).not.toMatch(/from '.*supporters/);
-      expect(src).not.toMatch(/from '.*receipt/);
       expect(src).not.toContain('addDonation');
-      expect(src).not.toContain('downloadReceipt');
     }
     expect(redeemSrc).toContain('addShopRedemption');
   });

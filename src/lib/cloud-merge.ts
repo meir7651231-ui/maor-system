@@ -88,7 +88,7 @@ export function applyMetaPartial(db: Db, meta: Record<string, unknown>): Db {
   assign('ui', meta.ui);
   assign('attnDone', meta.attnDone);
   // מונים: לעולם לא מקטינים — מונע התנגשות מזהים/מספרי-קבלה בין מכשירים
-  const bumpCounter = (k: 'seq' | 'receiptSeq' | 'donationSeq') => {
+  const bumpCounter = (k: 'seq' | 'receiptSeq' | 'donationSeq' | 'shopReceiptSeq') => {
     const v = meta[k];
     if (typeof v === 'number' && Number.isFinite(v) && v > db[k]) {
       next[k] = v;
@@ -98,5 +98,6 @@ export function applyMetaPartial(db: Db, meta: Record<string, unknown>): Db {
   bumpCounter('seq');
   bumpCounter('receiptSeq');
   bumpCounter('donationSeq');
+  bumpCounter('shopReceiptSeq');
   return changed ? next : db;
 }

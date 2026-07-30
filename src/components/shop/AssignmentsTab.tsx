@@ -7,7 +7,10 @@
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
-import type { ShopAssignment, ShopComponent } from '../../types/domain';
+// downloadReceipt משמש כאן אך ורק לאישור תשלום סמלי מסדרת S- — לא קבלת מס,
+// ובלי שדות סעיף 46 (נאכף בהגנת-מקור ב-shop-sreceipt.test.ts)
+import { downloadReceipt } from '../../lib/receipt';
+import type { ShopAssignment, ShopComponent, ShopRedemption } from '../../types/domain';
 import { Btn, Chip, Empty } from '../ui';
 import { useArmed } from '../useArmed';
 import { isoToday } from '../../lib/date-util';
@@ -39,6 +42,20 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
     deleteShopAssignment(a.id);
     toast('ה' + termOf(config, 'entity.shopAssignment', 'שיוך') + ' נמחק');
     props.onBack();
+  }
+
+  /** הורדת אישור תשלום סמלי S- — אינו קבלת מס ואינו נושא שדות סעיף 46. */
+  function downloadConfirmation(r: ShopRedemption, comp: ShopComponent) {
+    if (!r.rid) return;
+    downloadReceipt({
+      rid: r.rid,
+      orgName: config.orgName || db.orgName,
+      payer: beneficiaryLabel(db, a),
+      amount: r.paid,
+      date: r.date,
+      forWhat: 'מימוש: ' + comp.label + ' (' + (product?.name ?? '') + ') · אישור תשלום — אינו קבלה לצורכי מס',
+      taxReceipt: false,
+    });
   }
 
   return (
@@ -83,11 +100,18 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
                 <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{'החג הקרוב: ' + nextH.name + ' (' + nextH.iso + ')'}</span>
               )}
               {done && last ? (
-                <span style={{ fontSize: 12.5 }}>{'✅ מומש ב-' + last.date + ' · שולם ' + last.paid.toLocaleString('he-IL') + ' ₪'}</span>
+                <span style={{ fontSize: 12.5 }}>
+                  {'✅ מומש ב-' + last.date + ' · שולם ' + last.paid.toLocaleString('he-IL') + ' ₪' + (last.rid ? ' · ' + last.rid : '')}
+                </span>
               ) : (
                 <span style={{ fontSize: 12.5 }}>⏳ ממתין</span>
               )}
-              <span style={{ marginInlineStart: 'auto' }}>
+              <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
+                {last?.rid && (
+                  <Btn sm onClick={() => downloadConfirmation(last, c)} title="אישור תשלום — אינו קבלה לצורכי מס">
+                    🧾 אישור
+                  </Btn>
+                )}
                 <Btn sm kind="primary" onClick={() => setRedeeming(c)}>🎁 מימוש</Btn>
               </span>
             </div>

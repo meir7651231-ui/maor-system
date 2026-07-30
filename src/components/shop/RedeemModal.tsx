@@ -50,7 +50,8 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
       note: f.note.trim(),
     });
     if (!res.ok) return; // ה-store כבר הציג טוסט דחייה
-    toast('נרשם מימוש — שולם ' + paid.toLocaleString('he-IL') + ' ₪');
+    // rid מגיע רק כשהאישור הונפק בפועל (paid>0) — ה-UI לא מנחש (לקח באג-5)
+    toast('נרשם מימוש — שולם ' + paid.toLocaleString('he-IL') + ' ₪' + (res.rid ? ' · אישור ' + res.rid + ' הונפק' : ''));
     props.onClose();
   }
 
