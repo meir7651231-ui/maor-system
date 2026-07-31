@@ -8,7 +8,7 @@
  * ייעודיים: ‏platformOrgs/{slug} ו-platformRequests/{uid}. אותם שמות, אותה
  * סמנטיקה, נתיבים חוקיים; אין התנגשות עם 18 אוספי הישויות.
  */
-import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, setDoc } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, setDoc } from 'firebase/firestore';
 import { cloudDb } from './cloud';
 import type { OrgConfig } from '../types/config';
 
@@ -16,6 +16,17 @@ import type { OrgConfig } from '../types/config';
 export const PLATFORM_ORGS = 'platformOrgs';
 /** אוסף בקשות ההרשמה הממתינות. */
 export const PLATFORM_REQUESTS = 'platformRequests';
+/** אוסף לידים — "נחזור אליכם" בלי חשבון (create-only ציבורי; קריאה למיילי-על). */
+export const PLATFORM_LEADS = 'platformLeads';
+
+/** ליד "נחזור אליכם" — platformLeads/{autoId}. */
+export interface OrgLeadDoc {
+  contactName?: string;
+  phone?: string;
+  preferredTime?: string;
+  notes?: string;
+  at?: string;
+}
 
 /** מסמך ארגון בפלטפורמה — platformOrgs/{slug}. */
 export interface OrgCloudDoc {
@@ -90,4 +101,19 @@ export async function fetchOrgRequests(): Promise<Array<OrgRequestDoc & { uid: s
 export async function fetchAllOrgs(): Promise<Array<OrgCloudDoc & { slug: string }>> {
   const snap = await getDocs(collection(cloudDb(), PLATFORM_ORGS));
   return snap.docs.map((d) => ({ slug: d.id, ...(d.data() as OrgCloudDoc) }));
+}
+
+/**
+ * כתיבת ליד "נחזור אליכם" (SIGNUP מיתוג 3) — **בלי חשבון**. אוסף
+ * create-only ציבורי (Rules: allow create בלבד; קריאה למיילי-על) — לכידת-ליד
+ * בטוחה: אף אחד לא יכול לקרוא/למנות את הלידים חוץ מהבעלים.
+ */
+export async function writeOrgLead(lead: OrgLeadDoc): Promise<void> {
+  await addDoc(collection(cloudDb(), PLATFORM_LEADS), JSON.parse(JSON.stringify(lead)));
+}
+
+/** כל הלידים — לוח הבקרה (מיילי-על בלבד לפי Rules). */
+export async function fetchOrgLeads(): Promise<Array<OrgLeadDoc & { id: string }>> {
+  const snap = await getDocs(collection(cloudDb(), PLATFORM_LEADS));
+  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as OrgLeadDoc) }));
 }

@@ -133,6 +133,11 @@ interface AppState {
    * כל מה שנרשם-חדש רשאי לכתוב. הוא נשאר במסך ההמתנה עד אישור הבעלים.
    */
   cloudSignUp: (orgName: string, contactName: string, phone: string, email: string, password: string) => Promise<void>;
+  /**
+   * ליד "נחזור אליכם" (SIGNUP מיתוג 3) — **בלי חשבון**: כותב platformLeads
+   * (create-only ציבורי). מחזיר true בהצלחה. משמש את CallbackModal.
+   */
+  cloudRequestCallback: (lead: { contactName: string; phone: string; preferredTime: string; notes: string }) => Promise<boolean>;
 
   // מחזור חיים
   init: () => Promise<void>;
@@ -755,6 +760,18 @@ export const useApp = create<AppState>()((set, get) => {
         get().toast('⚠ הבקשה נרשמה חלקית — צרו קשר עם מנהל המערכת');
       }
       // watchAuth יקלוט את המשתמש ⇒ שער-החברות יציג את מסך ההמתנה
+    },
+    async cloudRequestCallback(lead) {
+      if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
+      // ליד ללא-חשבון — נכתב ל-platformLeads (create-only ציבורי)
+      await cloudMod.writeOrgLead({
+        contactName: lead.contactName.trim(),
+        phone: lead.phone.trim(),
+        preferredTime: lead.preferredTime,
+        notes: lead.notes.trim(),
+        at: new Date().toISOString(),
+      });
+      return true;
     },
 
     // ניווט עם רישום היסטוריה (P1.5, legacy:166) — רק מעבר-מיקום אמיתי נרשם
