@@ -7,3 +7,4 @@ e2e/shots/
 .claude/settings.local.json
 # אישור push ל-main — local-only, per-הוראה מפורשת בלבד (לעולם לא ב-git)
 .allow_push_main
+e2e/.tmp-*
