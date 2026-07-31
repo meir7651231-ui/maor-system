@@ -190,3 +190,18 @@
 | א2 | תאימות אחורה | הבורר מנתב דרך ה-hash הקיים; `#builder`/`#platform` ממשיכים לעבוד — תוספת, לא החלפה | AdminHub callbacks |
 | א3 | גרדי הכלים | לא שונו (`#builder`=isAdmin, `#platform`=isAdmin&&isSuperAdmin); הכפתור רק נכנס אליהם | — |
 | א4 | איחוד האשף ללוח | נדחה במכוון — גל עתידי; כאן כניסה משותפת מינימלית בלבד | — |
+
+---
+
+# ✅ הכרעות SIGNUP (מסך ההרשמה של אורביט)
+
+**31.7.2026.** מנדט: `BUILD-ORDER-SIGNUP-2026-07-31.md`; מסירה: `CLOSED-SIGNUP-2026-07-31.md`.
+
+| # | נושא | ההכרעה | מימוש |
+|---|---|---|---|
+| ז1 | three | נארז ב-bundle (import סטטי) — אפס CDN; דגל signup.hero3d, נפילה סטטית | three-scene.ts |
+| ז2 | אימות | אימייל+סיסמה בלבד; WebAuthn/SOC 2/Passkey/Google/Apple הוסרו — לא מבטיחים מה שאין | LoginScreen (הצפנה במנוחה) |
+| ז3 | "נחזור אליכם" בלי-חשבון | Rules v2 מחייבים אימות לבקשות ⇒ אוסף נפרד platformLeads (create ציבורי מוגבל-שדות, בלי read; קריאה למיילי-על) | CallbackModal + rules |
+| ז4 | "צפו בסרטון" | אין asset וידאו בחבילה — טוסט "בקרוב"; ❓ שאלה לארכיטקט אם לספק וידאו | LoginScreen |
+| ז5 | אשף 5-השלבים | לא הוטמע בגל זה — הליבה (cloudSignUp+leads) מכסה את הזרימה; ❓ שאלה אם להטמיע לזריעת industry/size/pains | — |
+| ז6 | מודול-פיצ'ר signup | קטגוריה חדשה ב-FeatureDef (לא ניתנת לכיבוי-מודול, כמו shell/core) | features.ts + sections.ts |
