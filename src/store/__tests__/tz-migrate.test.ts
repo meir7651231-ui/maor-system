@@ -29,7 +29,7 @@ describe('🪙 ratchet — קופות 1: מיגרציה אדיטיבית (DB_VER
     expect(out.tzBoxes).toEqual([]);
     expect(out.tzCampaigns).toEqual([]);
     expect(out.tzEvents).toEqual([]);
-    expect(out.v).toBe(5);
+    expect(out.v).toBe(6);
   });
 
   it('(ב) רכז עם score מושחת ו-scoreLog חסר — נרפא ל-0 ו-[]', () => {

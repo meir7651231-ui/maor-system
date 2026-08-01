@@ -163,6 +163,10 @@ export function migrate(raw: unknown): Db | null {
     shopEvents: Array.isArray(db.shopEvents) ? db.shopEvents : [],
     // SHOP6: יומן קליטות — תוספת אדיטיבית (גיבוי ישן = מערך ריק)
     shopIntakes: Array.isArray(db.shopIntakes) ? db.shopIntakes : [],
+    // SHOP7: מתנדבים/ימי-חלוקה/מסירות — אדיטיבי (v5→v6; גיבוי ישן = מערך ריק)
+    volunteers: Array.isArray(db.volunteers) ? db.volunteers : [],
+    distributionDays: Array.isArray(db.distributionDays) ? db.distributionDays : [],
+    deliveries: Array.isArray(db.deliveries) ? db.deliveries : [],
     notif: { ...base.notif, ...db.notif },
     reports: { ...base.reports, ...db.reports },
     ui: { ...base.ui, ...db.ui },

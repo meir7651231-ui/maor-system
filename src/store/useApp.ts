@@ -38,9 +38,13 @@ import {
   type TzCampaign,
   type TzCoordinator,
   type TzEvent,
+  type Volunteer,
+  type DistributionDay,
+  type Delivery,
 } from '../types/domain';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
+import { advanceStatus } from '../components/shop7/lib';
 import { roomClashError } from '../components/calendar/calLib';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, featureOn, isSuperAdmin, loadOrgConfig, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
@@ -334,6 +338,20 @@ interface AppState {
   /** רשימת המתנה לפריט (SHOP6 חנות 27) — כפול-משפחה נדחה בטוסט. */
   addShopWait: (itemId: string, famId: string, note: string) => boolean;
   removeShopWait: (itemId: string, famId: string) => void;
+
+  // מתנדבים · יום-חלוקה · מסירות (SHOP7 — מבודד; מעקב קדימה; BUILD-ORDER-SHOP7).
+  // אפס נגיעה במוני-הקבלות/הכסף — הסטטוס-קדימה חי רק ב-Delivery.
+  upsertVolunteer: (v: Volunteer) => void;
+  deleteVolunteer: (id: string) => boolean;
+  upsertDistributionDay: (d: DistributionDay) => void;
+  closeDistributionDay: (id: string, closed: boolean) => void;
+  deleteDistributionDay: (id: string) => boolean;
+  /** יוצר מסירה (pickup) משיוך-חנות פעיל, משויכת למתנדב. */
+  assignDelivery: (dayId: string, assignmentId: string, volunteerId: string) => { ok: boolean };
+  /** קידום סטטוס קדימה (pickup→enroute→delivered); delivered = סופי. */
+  advanceDelivery: (id: string) => void;
+  setDeliveryNote: (id: string, note: string) => void;
+  unassignDelivery: (id: string) => void;
 
   // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
   // ולכן סנכרון הענן והביטול עובדים כרגיל. פעולות שכותבות ללוח מייצרות OrgEvent.
@@ -1669,6 +1687,76 @@ export const useApp = create<AppState>()((set, get) => {
           i.id === itemId ? { ...i, waits: (i.waits ?? []).filter((w) => w.famId !== famId) } : i,
         ),
       }));
+    },
+
+    // ── מתנדבים · יום-חלוקה · מסירות (SHOP7) — מבודד, אפס נגיעה בכסף/קבלות ──
+    upsertVolunteer(v) {
+      const id = v.id || get().nextId('vol');
+      setDb((db) => ({ volunteers: upsertIn(db.volunteers, { ...v, id }) }));
+    },
+    deleteVolunteer(id) {
+      // חסום כשיש מסירות פתוחות למתנדב (לא מוחקים היסטוריית-מסירה בשוגג)
+      if (get().db.deliveries.some((d) => d.volunteerId === id)) {
+        get().toast('למתנדב יש מסירות משויכות — הסירו/העבירו אותן קודם');
+        return false;
+      }
+      setDb((db) => ({ volunteers: db.volunteers.filter((x) => x.id !== id) }));
+      return true;
+    },
+    upsertDistributionDay(d) {
+      const id = d.id || get().nextId('dday');
+      setDb((db) => ({ distributionDays: upsertIn(db.distributionDays, { ...d, id }) }));
+    },
+    closeDistributionDay(id, closed) {
+      setDb((db) => ({
+        distributionDays: db.distributionDays.map((x) => (x.id === id ? { ...x, closed } : x)),
+      }));
+    },
+    deleteDistributionDay(id) {
+      if (get().db.deliveries.some((d) => d.dayId === id)) {
+        get().toast('ליום יש מסירות — הסירו אותן קודם');
+        return false;
+      }
+      setDb((db) => ({ distributionDays: db.distributionDays.filter((x) => x.id !== id) }));
+      return true;
+    },
+    assignDelivery(dayId, assignmentId, volunteerId) {
+      const a = get().db.shopAssignments.find((x) => x.id === assignmentId);
+      if (!a || a.status !== 'active') {
+        get().toast('השיוך אינו פעיל');
+        return { ok: false };
+      }
+      // מניעת כפילות — אותו שיוך כבר במסירה באותו יום
+      if (get().db.deliveries.some((d) => d.dayId === dayId && d.assignmentId === assignmentId)) {
+        get().toast('השיוך כבר משובץ למסירה ביום זה');
+        return { ok: false };
+      }
+      const delivery: Delivery = {
+        id: get().nextId('del'),
+        dayId,
+        assignmentId,
+        volunteerId,
+        familyId: a.famId,
+        status: 'pickup',
+        note: '',
+      };
+      setDb((db) => ({ deliveries: [delivery, ...db.deliveries] }));
+      return { ok: true };
+    },
+    advanceDelivery(id) {
+      setDb((db) => ({
+        deliveries: db.deliveries.map((d) => {
+          if (d.id !== id || d.status === 'delivered') return d;
+          const status = advanceStatus(d.status);
+          return { ...d, status, ...(status === 'delivered' ? { deliveredAt: isoToday() } : {}) };
+        }),
+      }));
+    },
+    setDeliveryNote(id, note) {
+      setDb((db) => ({ deliveries: db.deliveries.map((d) => (d.id === id ? { ...d, note } : d)) }));
+    },
+    unassignDelivery(id) {
+      setDb((db) => ({ deliveries: db.deliveries.filter((d) => d.id !== id) }));
     },
 
     // ── מעקב טיפול רב-שלבי ──

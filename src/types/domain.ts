@@ -612,7 +612,53 @@ export interface ShopEvent {
   done: boolean;
 }
 
-/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (18 מערכי ישויות). */
+/**
+ * מודול מתנדבים · יום-חלוקה · מסירות (SHOP7 — מבודד ככמו tzedaka/shop).
+ * הכרעות-בעלים: משפחות→מתנדב ישירות · מעקב **קדימה** · מתנדב = ישות עצמאית ·
+ * הקלט = shopAssignments הקיימים (המסירה מצביעה עליהם, לא משכפלת). אפס כסף/S-.
+ */
+export interface Volunteer {
+  id: Id;
+  name: string;
+  phone: string;
+  /** אזור-חלוקה חופשי (רמז, לא-חוסם). */
+  area?: string;
+  /** קיבולת רכה — רמז בשיוך, לא מסנן. */
+  maxDeliveries?: number;
+  active: boolean;
+  note: string;
+  createdAt: IsoDate;
+}
+
+/** סטטוס מסירה — מכונה לינארית קדימה בלבד; delivered = סופי. */
+export type DeliveryStatus = 'pickup' | 'enroute' | 'delivered';
+
+export interface Delivery {
+  id: Id;
+  /** ליום-החלוקה. */
+  dayId: Id;
+  /** ל-ShopAssignment (SHOP6) — הקלט; המסירה לא משכפלת אותו. */
+  assignmentId: Id;
+  /** המתנדב המוסר. */
+  volunteerId: Id;
+  /** נגזר ל-נוחות-תצוגה (המשפחה של ה-assignment). */
+  familyId: Id;
+  status: DeliveryStatus;
+  /** חותמת מסירה (נקבע במעבר ל-delivered). */
+  deliveredAt?: IsoDate;
+  note: string;
+}
+
+export interface DistributionDay {
+  id: Id;
+  date: IsoDate;
+  title: string;
+  note: string;
+  closed: boolean;
+  createdAt: IsoDate;
+}
+
+/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (21 מערכי ישויות). */
 export interface Db {
   /** גרסת סכמה — העלאה מחייבת מיגרציה ב-store/persist.ts. */
   v: number;
@@ -646,6 +692,10 @@ export interface Db {
   shopEvents: ShopEvent[];
   /** יומן קליטות מלאי (SHOP6) — קנייה/תרומה-בעין; לא סדרת מס. */
   shopIntakes: ShopIntake[];
+  /** מתנדבים · ימי-חלוקה · מסירות (SHOP7 — מבודד; מעקב קדימה). */
+  volunteers: Volunteer[];
+  distributionDays: DistributionDay[];
+  deliveries: Delivery[];
   orgName: string;
   orgSite: string;
   orgDonate: string;
@@ -673,7 +723,7 @@ export interface SecurityCfg {
   zones?: string[];
 }
 
-export const DB_VERSION = 5;
+export const DB_VERSION = 6;
 
 export function emptyDb(): Db {
   return {
@@ -701,6 +751,9 @@ export function emptyDb(): Db {
     shopAssignments: [],
     shopEvents: [],
     shopIntakes: [],
+    volunteers: [],
+    distributionDays: [],
+    deliveries: [],
     orgName: 'מאור החסד',
     orgSite: '',
     orgDonate: '',
