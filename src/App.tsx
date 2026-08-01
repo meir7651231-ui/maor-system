@@ -9,6 +9,7 @@
  */
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
+import { nsLsKey } from './store/persist';
 import { featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, termOf } from './lib/config';
 import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
@@ -174,13 +175,13 @@ export default function App() {
     const tick = setInterval(() => {
       try {
         const today = isoToday();
-        if (localStorage.getItem('maor_autoexp') === today) return;
-        const [eh, em] = (localStorage.getItem('maor_dayend') || '17:00').split(':').map(Number);
+        if (localStorage.getItem(nsLsKey('maor_autoexp')) === today) return;
+        const [eh, em] = (localStorage.getItem(nsLsKey('maor_dayend')) || '17:00').split(':').map(Number);
         const endMin = (Number.isFinite(eh) ? eh : 17) * 60 + (Number.isFinite(em) ? em : 0);
         const now = new Date();
         if (now.getHours() * 60 + now.getMinutes() < endMin) return;
         if (!useApp.getState().db.families.length) return;
-        localStorage.setItem('maor_autoexp', today);
+        localStorage.setItem(nsLsKey('maor_autoexp'), today);
         exportBackup();
       } catch {
         /* localStorage חסום — נדלג */
