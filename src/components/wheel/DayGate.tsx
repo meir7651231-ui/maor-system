@@ -9,8 +9,10 @@ import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
+import { nsLsKey } from '../../store/persist';
 import { Btn } from '../ui';
 
+// ממורחבי-שמות (באג-3): כל ארגון על אותו host שומר יום-פתיחה נפרד.
 const DAY_KEY = 'maor_day';
 const DAY_END_KEY = 'maor_dayend';
 
@@ -30,11 +32,11 @@ export function DayGate() {
   useEffect(() => {
     if (phase !== 'init' || famCount === 0) return;
     try {
-      if (localStorage.getItem(DAY_KEY) === isoToday()) {
+      if (localStorage.getItem(nsLsKey(DAY_KEY)) === isoToday()) {
         setPhase('closed');
         return;
       }
-      setEndTime(localStorage.getItem(DAY_END_KEY) || '17:00');
+      setEndTime(localStorage.getItem(nsLsKey(DAY_END_KEY)) || '17:00');
       setPhase('open');
     } catch {
       setPhase('closed'); // localStorage חסום — בלי שער
@@ -56,7 +58,7 @@ export function DayGate() {
   function changeEnd(v: string) {
     setEndTime(v);
     try {
-      localStorage.setItem(DAY_END_KEY, v);
+      localStorage.setItem(nsLsKey(DAY_END_KEY), v);
     } catch {
       /* localStorage חסום — יחזיק עד רענון */
     }
@@ -64,7 +66,7 @@ export function DayGate() {
 
   function openDay() {
     try {
-      localStorage.setItem(DAY_KEY, today);
+      localStorage.setItem(nsLsKey(DAY_KEY), today);
     } catch {
       /* localStorage חסום */
     }

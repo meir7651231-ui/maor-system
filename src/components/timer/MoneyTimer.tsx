@@ -27,7 +27,7 @@ interface TimerCollection {
 
 function loadCollections(): TimerCollection[] {
   try {
-    const raw = localStorage.getItem(LS_KEY);
+    const raw = localStorage.getItem(nsLsKey(LS_KEY));
     const arr = raw ? (JSON.parse(raw) as unknown) : [];
     return Array.isArray(arr) ? (arr as TimerCollection[]) : [];
   } catch {
@@ -37,7 +37,7 @@ function loadCollections(): TimerCollection[] {
 
 function saveCollections(list: TimerCollection[]): void {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify(list));
+    localStorage.setItem(nsLsKey(LS_KEY), JSON.stringify(list));
   } catch {
     /* localStorage חסום — ההיסטוריה תחזיק עד רענון */
   }
@@ -74,9 +74,9 @@ export function MoneyTimer({ onClose }: { onClose: () => void }) {
   // שם לקוח מוזן-מראש (מכרטיס הלקוח) — נקרא פעם אחת מ-sessionStorage.
   const [client, setClient] = useState(() => {
     try {
-      const v = sessionStorage.getItem('maor_timer_client');
+      const v = sessionStorage.getItem(nsLsKey('maor_timer_client'));
       if (v) {
-        sessionStorage.removeItem('maor_timer_client');
+        sessionStorage.removeItem(nsLsKey('maor_timer_client'));
         return v;
       }
     } catch {

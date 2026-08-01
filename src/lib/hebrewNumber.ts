@@ -13,6 +13,10 @@ const TEENS = ['עשרה', 'אחד עשר', 'שנים עשר', 'שלושה עש�
 // אינדקס = עשרות (2=20 ...)
 const TENS = ['', '', 'עשרים', 'שלושים', 'ארבעים', 'חמישים', 'שישים', 'שבעים', 'שמונים', 'תשעים'];
 const HUNDREDS = ['', 'מאה', 'מאתיים', 'שלוש מאות', 'ארבע מאות', 'חמש מאות', 'שש מאות', 'שבע מאות', 'שמונה מאות', 'תשע מאות'];
+// צורות-נקבה 1..9 ו-10..19 — האגורה נקבה, המספר חייב להסכים במין
+// ("עשרים ושלוש אגורות", לא "…ושלושה"). היה באג: השתמשנו בצורת-הזכר (שקל).
+const ONES_F = ['', 'אחת', 'שתיים', 'שלוש', 'ארבע', 'חמש', 'שש', 'שבע', 'שמונה', 'תשע'];
+const TEENS_F = ['עשר', 'אחת עשרה', 'שתים עשרה', 'שלוש עשרה', 'ארבע עשרה', 'חמש עשרה', 'שש עשרה', 'שבע עשרה', 'שמונה עשרה', 'תשע עשרה'];
 // צורת-סמיכות לאלפים 3..10
 const THOUSAND_CONSTRUCT: Record<number, string> = {
   3: 'שלושת', 4: 'ארבעת', 5: 'חמשת', 6: 'ששת', 7: 'שבעת', 8: 'שמונת', 9: 'תשעת', 10: 'עשרת',
@@ -45,6 +49,22 @@ function thousandWords(th: number): string[] {
   // 11..999 אלף — "אחד עשר אלף" וכו׳ (יחיד "אלף"). איבר אחד: החזרת מערך שטוח
   // גרמה ל-joinHeb להצמיד ו׳ ל"אלף" עצמו ("שמונה עשר ואלף") — על קבלת מס.
   return [joinHeb(words0_999(th)) + ' אלף'];
+}
+
+/** מילות אגורות 1..99 בצורת-נקבה (סמיכות עשרות+יחידות; היחידה במין נקבה). */
+function agorotWords(n: number): string {
+  if (n < 10) return ONES_F[n];
+  if (n < 20) return TEENS_F[n - 10];
+  const t = Math.floor(n / 10);
+  const u = n % 10;
+  return u ? TENS[t] + ' ו' + ONES_F[u] : TENS[t];
+}
+
+/** ביטוי האגורות המלא (נקבה): "אגורה אחת" / "שתי אגורות" / "<מספר> אגורות". */
+function agorotPhrase(n: number): string {
+  if (n === 1) return 'אגורה אחת'; // יחיד — הספרה אחרי השם
+  if (n === 2) return 'שתי אגורות'; // 2 בודדת = סמיכות "שתי" (לא "שתיים")
+  return agorotWords(n) + ' אגורות';
 }
 
 /** מחבר רשימת מילים עם ו׳ חיברת לפני האחרונה (אם יש ≥2). */
@@ -93,8 +113,14 @@ export function amountInWords(amount: number, currency: '₪' | '$' = '₪'): st
   else if (whole === 0) s = 'אפס ' + shekelWord.many;
   else s = wholeWords + ' ' + shekelWord.many;
   if (agorot > 0) {
-    const agWords = integerInWords(agorot);
-    s += ' ו-' + (agWords ?? agorot) + ' ' + shekelWord.agName;
+    if (currency === '₪') {
+      // אגורה נקבה — מספר בצורת-נקבה + יחיד/סמיכות ("שתי אגורות").
+      s += ' ו-' + agorotPhrase(agorot);
+    } else {
+      // סנט זכר — צורת-הזכר של integerInWords מתאימה.
+      const agWords = integerInWords(agorot);
+      s += ' ו-' + (agWords ?? agorot) + ' ' + shekelWord.agName;
+    }
   }
   return s;
 }

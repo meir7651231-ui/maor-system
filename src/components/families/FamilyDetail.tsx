@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import type { Family, Member } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { nsLsKey } from '../../store/persist';
 import { featureOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty } from '../ui';
@@ -283,7 +284,7 @@ export function FamilyDetail(props: { family: Family }) {
               kind="primary"
               onClick={() => {
                 try {
-                  sessionStorage.setItem('maor_timer_client', fam.name);
+                  sessionStorage.setItem(nsLsKey('maor_timer_client'), fam.name);
                 } catch {
                   /* חסום */
                 }
@@ -298,7 +299,7 @@ export function FamilyDetail(props: { family: Family }) {
             <Btn
               onClick={() => {
                 try {
-                  sessionStorage.setItem('maor_bodymap_client', fam.name);
+                  sessionStorage.setItem(nsLsKey('maor_bodymap_client'), fam.name);
                 } catch {
                   /* חסום */
                 }

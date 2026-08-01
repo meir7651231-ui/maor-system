@@ -11,9 +11,11 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { nsLsKey } from '../../store/persist';
 import { termOf } from '../../lib/config';
 import { Btn, Modal, Select } from '../ui';
 
+// ממורחב-שמות (באג-3): נתוני אזורי-הטיפול הם פר-ארגון, לא משותפים בין ארגונים.
 const LS_KEY = 'maor_bodymap';
 
 /** אזורי הגוף ותת-האזורים — מתוך אפליקציית הייחוס. */
@@ -38,7 +40,7 @@ type Store = Record<string, ClientMap>; // clientKey → zones
 
 function loadStore(): Store {
   try {
-    const raw = localStorage.getItem(LS_KEY);
+    const raw = localStorage.getItem(nsLsKey(LS_KEY));
     const o = raw ? (JSON.parse(raw) as unknown) : {};
     return o && typeof o === 'object' && !Array.isArray(o) ? (o as Store) : {};
   } catch {
@@ -48,7 +50,7 @@ function loadStore(): Store {
 
 function saveStore(s: Store): void {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify(s));
+    localStorage.setItem(nsLsKey(LS_KEY), JSON.stringify(s));
   } catch {
     /* חסום */
   }
@@ -64,9 +66,9 @@ export function BodyMap({ onClose }: { onClose: () => void }) {
   // מפתח לקוח: id מהמשפחות, או '__free__' לשם חופשי.
   const [clientKey, setClientKey] = useState<string>(() => {
     try {
-      const v = sessionStorage.getItem('maor_bodymap_client');
+      const v = sessionStorage.getItem(nsLsKey('maor_bodymap_client'));
       if (v) {
-        sessionStorage.removeItem('maor_bodymap_client');
+        sessionStorage.removeItem(nsLsKey('maor_bodymap_client'));
         return 'free:' + v;
       }
     } catch {
