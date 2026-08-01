@@ -9,7 +9,7 @@ import { featureOn, termOf } from '../../lib/config';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { ADD_TEACHER, CAT_OPTIONS, courseDateError, DAY_NAMES, GRADE_ORDER, gradeIndex, OTHER, OTHER_LABEL, SEMESTER_OPTIONS } from './lib';
+import { ADD_TEACHER, CAT_OPTIONS, courseDateError, DAY_NAMES, defaultCourseDates, GRADE_ORDER, gradeIndex, OTHER, OTHER_LABEL, SEMESTER_OPTIONS } from './lib';
 
 interface CourseFormState {
   name: string;
@@ -45,6 +45,8 @@ interface CourseFormState {
 
 function initState(course: Course | null, firstTeacherId: string, firstRoomId: string): CourseFormState {
   if (!course) {
+    // טווח שנת-הלימודים מחושב מהיום — לא literal קשיח שפג-תוקף ומעלים חוגים חדשים.
+    const sy = defaultCourseDates();
     return {
       name: '',
       teacherId: firstTeacherId,
@@ -59,8 +61,8 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
       price2Name: '',
       model: 'monthly',
       size: '',
-      start: '2025-09-01',
-      end: '2026-07-31',
+      start: sy.start,
+      end: sy.end,
       weekday: '0',
       time: '17:00',
       maxStudents: '12',

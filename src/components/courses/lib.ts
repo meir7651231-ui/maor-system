@@ -22,6 +22,24 @@ export function isoToday(): string {
 }
 
 /**
+ * ברירת-מחדל דינמית לטווח תאריכי חוג — שנת-הלימודים הנוכחית (1.9 עד 31.7 שאחריה).
+ * חשוב: פעם היה כאן literal קשיח ('2025-09-01'/'2026-07-31'). ברגע שהתאריך הלועזי
+ * חלף את ה-end הקבוע — כל חוג חדש נולד "פג-תוקף" (end < today), נופל מהסינון
+ * `c.end >= today` ב-JoinModal/EnrollModal, ולא ניתן לשיבוץ. חושב עכשיו מהיום:
+ * מ-1.8 ואילך מתגלגלים לשנת-הלימודים הבאה, כך שחוג חדש לעולם אינו נולד פג-תוקף.
+ * (המשתמש עדיין יכול לשנות בשדות התאריך — זו רק ברירת-מחדל.)
+ */
+export function defaultCourseDates(today: string = isoTodayLocal()): { start: string; end: string } {
+  const d = new Date(today.slice(0, 10) + 'T12:00:00');
+  const y = isNaN(d.getTime()) ? new Date().getFullYear() : d.getFullYear();
+  const m = isNaN(d.getTime()) ? new Date().getMonth() : d.getMonth(); // 0-based; 7 = אוגוסט
+  // שנת-הלימודים פותחת ב-1.9. באוגוסט ואילך (m>=7) פותחים את השנה שמתחילה השנה;
+  // בספטמבר–יולי אנחנו בתוך השנה שנפתחה בספטמבר הקודם.
+  const startYear = m >= 7 ? y : y - 1;
+  return { start: `${startYear}-09-01`, end: `${startYear + 1}-07-31` };
+}
+
+/**
  * ולידציית טווח תאריכי החוג — מחזיר הודעת שגיאה או null. תאריך סיום מוקדם
  * מתאריך התחלה גורם ל-courseActiveOn להיות false תמיד, כך שהחוג נעלם בשקט
  * מהיומן/הלוח/מפגשי-היום. נתפס בשמירה במקום להיעלם.
