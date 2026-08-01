@@ -9,11 +9,12 @@ import loginSrc from '../LoginScreen.tsx?raw';
 import heroSrc from '../SignupHero.tsx?raw';
 import newsSrc from '../NewsReader.tsx?raw';
 import cbSrc from '../CallbackModal.tsx?raw';
+import videoSrc from '../VideoModal.tsx?raw';
 import cssSrc from '../../../styles/orbit.css?raw';
 import appSrc from '../../../App.tsx?raw';
 import rulesSrc from '../../../../firestore.rules?raw';
 
-const ALL = [loginSrc, heroSrc, newsSrc, cbSrc];
+const ALL = [loginSrc, heroSrc, newsSrc, cbSrc, videoSrc];
 
 describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () => {
   it('הקופי הנעול מדויק (מילה-במילה)', () => {
@@ -64,6 +65,21 @@ describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () =>
     expect(heroSrc).toContain("featureOn(config, 'signup.hero3d')");
     expect(heroSrc).toContain('mountBrainScene');
     expect(heroSrc).toContain('orbit-hero.png');
+  });
+
+  it('🪶 מיתוג 5 — three נטען דינמית (chunk נפרד): import() ל-three-scene, בלי import סטטי של mountBrainScene', () => {
+    expect(heroSrc).toContain("import('../../lib/three-scene')");
+    // אין import סטטי-של-ערך של mountBrainScene (רק import type לטיפוס)
+    expect(heroSrc).not.toMatch(/import\s*\{[^}]*mountBrainScene/);
+    expect(heroSrc).toContain("import type { BrainSceneHandle }");
+  });
+
+  it('🎬 "צפו בסרטון" פותח VideoModal (לא טוסט "בקרוב"); הווידאו on-demand', () => {
+    expect(loginSrc).toContain('VideoModal');
+    expect(loginSrc).toContain('setVideoOpen(true)');
+    expect(loginSrc).not.toContain('בקרוב');
+    expect(videoSrc).toContain('orbit/orbit-tour.webm');
+    expect(videoSrc).toContain('<video');
   });
 
   it('🛡 שער-הענן הקיים לא נשבר — App מרנדר LoginScreen ב-cloud.enabled && !user', () => {

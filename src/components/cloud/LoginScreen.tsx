@@ -14,6 +14,7 @@ import { signUpError } from '../../lib/config';
 import { SignupHero } from './SignupHero';
 import { NewsReader } from './NewsReader';
 import { CallbackModal } from './CallbackModal';
+import { VideoModal } from './VideoModal';
 
 export function LoginScreen() {
   const config = useApp((s) => s.config);
@@ -37,6 +38,7 @@ export function LoginScreen() {
   // overlays מהמוקאפ
   const [readerOpen, setReaderOpen] = useState(false);
   const [callbackOpen, setCallbackOpen] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
 
   const title = config.orgName || dbOrgName || 'אורביט';
 
@@ -123,12 +125,7 @@ export function LoginScreen() {
 
               {/* שלושת הכפתורים המשניים מהמוקאפ */}
               <div className="orbit-secondary">
-                <button
-                  type="button"
-                  className="orbit-sbtn"
-                  aria-label="צפו בסרטון: מה זה אורביט"
-                  onClick={() => toast('הסיור המצולם יתווסף בקרוב — בינתיים אפשר לקרוא את העיתון')}
-                >
+                <button type="button" className="orbit-sbtn" aria-label="צפו בסרטון: מה זה אורביט" onClick={() => setVideoOpen(true)}>
                   ▶ סרטון
                 </button>
                 <button type="button" className="orbit-sbtn" aria-label="קראו את העיתון של אורביט" onClick={() => setReaderOpen(true)}>
@@ -247,6 +244,7 @@ export function LoginScreen() {
 
       {readerOpen && <NewsReader onClose={() => setReaderOpen(false)} />}
       {callbackOpen && <CallbackModal onClose={() => setCallbackOpen(false)} />}
+      {videoOpen && <VideoModal onClose={() => setVideoOpen(false)} />}
     </div>
   );
 }

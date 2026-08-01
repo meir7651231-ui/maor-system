@@ -3,11 +3,15 @@
  * מ-three-scene (מגודר signup.hero3d) על רקע קוסמי. דגל כבוי / אין WebGL ⇒
  * רקע סטטי (`/orbit/orbit-hero.png`) לטעינה מהירה. הלוגו ותווית-הצד נשארים
  * בשתי המצבים. mount/unmount נקי דרך ה-controller.dispose.
+ *
+ * מיתוג 5 (SIGNUP2): three-scene (+three) נטען **דינמית** — Vite מפצל אותו
+ * ל-chunk נפרד שיורד רק כשה-Hero מתרנדר. הבנדל הראשי (הלקוח הקיים) לא נושא
+ * את משקל three. הטיפוס מיובא כ-import type (אינו משפיע על הבנדל).
  */
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
-import { mountBrainScene, type BrainSceneHandle } from '../../lib/three-scene';
+import type { BrainSceneHandle } from '../../lib/three-scene';
 
 // נתיב יחסי לפריסה תחת תת-נתיב (GitHub Pages /maor-system/) — כמו DemoDrop
 const base = import.meta.env.BASE_URL;
@@ -21,13 +25,19 @@ export function SignupHero() {
   useEffect(() => {
     if (!hero3d || !canvasRef.current) return;
     let handle: BrainSceneHandle | null = null;
+    let cancelled = false;
     // הרכבה עצלה — שלא תעכב את הצגת הכרטיס/הטופס
     const id = window.setTimeout(() => {
-      if (!canvasRef.current) return;
-      handle = mountBrainScene(canvasRef.current, { palette: 'Aurora', pulse: 1, bloom: 0.5 });
-      setLive(!!handle);
+      if (cancelled || !canvasRef.current) return;
+      // טעינה דינמית של three-scene (+three) — chunk נפרד, יורד רק כאן
+      void import('../../lib/three-scene').then(({ mountBrainScene }) => {
+        if (cancelled || !canvasRef.current) return;
+        handle = mountBrainScene(canvasRef.current, { palette: 'Aurora', pulse: 1, bloom: 0.5 });
+        setLive(!!handle);
+      });
     }, 30);
     return () => {
+      cancelled = true;
       window.clearTimeout(id);
       handle?.dispose();
     };

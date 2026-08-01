@@ -77,6 +77,13 @@ await page.keyboard.press('Escape');
 await page.waitForTimeout(300);
 t('Escape סוגר את העיתון', (await page.locator('.orbit-reader').count()) === 0);
 
+// צפו בסרטון (SIGNUP2) — פותח <video> (on-demand), לא טוסט "בקרוב"
+await page.locator('button', { hasText: '▶ סרטון' }).click();
+await page.waitForTimeout(400);
+t('כפתור "צפו בסרטון" פותח אלמנט וידאו', (await page.locator('.orbit-overlay video').count()) > 0);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(300);
+
 // נחזור אליכם
 await page.locator('button', { hasText: '📞 חזרו אליי' }).click();
 await page.waitForTimeout(400);
