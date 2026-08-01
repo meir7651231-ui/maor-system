@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { SUPER_ADMIN_EMAILS, isSuperAdmin, signUpError } from '../config';
 import appSrc from '../../App.tsx?raw';
 import loginSrc from '../../components/cloud/LoginScreen.tsx?raw';
+import wizardSrc from '../../components/cloud/SignupWizard.tsx?raw';
 import useAppSrc from '../../store/useApp.ts?raw';
 import rulesSrc from '../../../firestore.rules?raw';
 
@@ -39,13 +40,16 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect(useAppSrc).toMatch(/if \(!member\) return;/);
   });
 
-  it('הגנת-מקור: לשונית הרשמה — ארגון+איש-קשר+טלפון (זרימת-שיחה)+סיסמה×2; מסך המתנה', () => {
+  it('הגנת-מקור: ההרשמה = אשף — ארגון+איש-קשר+טלפון (זרימת-שיחה)+סיסמה×2; מסך המתנה', () => {
     expect(loginSrc).toContain('הרשמה');
-    expect(loginSrc).toContain('שם הארגון *');
-    expect(loginSrc).toContain('שם איש קשר *');
-    expect(loginSrc).toMatch(/טלפון.*\*/);
-    expect(loginSrc).toContain('אימות סיסמה');
-    expect(loginSrc).toContain('cloudSignUp');
+    // שדות ההרשמה עברו לאשף 5-השלבים (SignupWizard); LoginScreen מציג אותו
+    expect(loginSrc).toContain('SignupWizard');
+    expect(wizardSrc).toContain('שם הארגון *');
+    expect(wizardSrc).toContain('שם איש קשר *');
+    expect(wizardSrc).toMatch(/טלפון.*\*/);
+    expect(wizardSrc).toContain('אימות סיסמה');
+    expect(wizardSrc).toContain('cloudSignUp');
+    // מסך ההמתנה + ההצלחה נשארים ב-LoginScreen
     expect(loginSrc).toContain('PendingApprovalScreen');
     expect(loginSrc).toContain('הבקשה נקלטה!');
     expect(loginSrc).toContain('נאשר בהקדם');

@@ -66,8 +66,29 @@ await page.waitForTimeout(2500); // המתנה ל-watchAuth (null) ⇒ מסך ה
 const body = (await page.locator('body').textContent().catch(() => '')) ?? '';
 t('מסך ההרשמה עלה עם הקופי הנעול', body.includes('הוא צריך') && body.includes('מוח'));
 t('תת-הכותרת הנעולה מופיעה', body.includes('מערכת ההפעלה שמחברת את כל העסק למקום אחד'));
-t('כרטיס-הזכוכית מציג את לשונית ההרשמה', body.includes('שם הארגון') && body.includes('שם איש קשר'));
+t('ההרשמה = אשף 5-שלבים, שלב 1 (תחום)', body.includes('שלב 1 מתוך 5') && body.includes('תחום העסק'));
 t('הבאדג׳ האמיתי (בלי WebAuthn) — "הצפנה במנוחה"', body.includes('הצפנה במנוחה') && !body.includes('WebAuthn'));
+
+// אשף 5-השלבים (SIGNUP3) — מעבר מלא: תחום→גודל→צרכים→קשר
+await page.locator('.orbit-card button', { hasText: 'קליניקה' }).first().click();
+await page.waitForTimeout(150);
+await page.locator('.orbit-card button', { hasText: 'הבא' }).first().click();
+await page.waitForTimeout(250);
+let wz = (await page.locator('.orbit-card').textContent().catch(() => '')) ?? '';
+t('אשף — שלב 2 (גודל)', wz.includes('שלב 2 מתוך 5') && wz.includes('גודל הארגון'));
+await page.locator('.orbit-card button', { hasText: 'בינוני' }).first().click();
+await page.waitForTimeout(150);
+await page.locator('.orbit-card button', { hasText: 'הבא' }).first().click();
+await page.waitForTimeout(250);
+wz = (await page.locator('.orbit-card').textContent().catch(() => '')) ?? '';
+t('אשף — שלב 3 (צרכים, אופציונלי)', wz.includes('שלב 3 מתוך 5') && wz.includes('חשוב לכם'));
+await page.locator('.orbit-card button', { hasText: 'הבא' }).first().click(); // דלגו על צרכים
+await page.waitForTimeout(250);
+wz = (await page.locator('.orbit-card').textContent().catch(() => '')) ?? '';
+t('אשף — שלב 4 (פרטי קשר)', wz.includes('שלב 4 מתוך 5') && wz.includes('שם הארגון') && wz.includes('שם איש קשר'));
+// חזרה ללשונית ההרשמה מאותחלת לבדיקות ההמשך (הכפתורים המשניים)
+await page.locator('.orbit-card button', { hasText: '→ הקודם' }).first().click();
+await page.waitForTimeout(200);
 
 // עיתון
 await page.locator('button', { hasText: '📰 עיתון' }).click();

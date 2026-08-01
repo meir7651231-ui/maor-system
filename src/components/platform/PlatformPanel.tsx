@@ -12,6 +12,7 @@ import { FEATURES, TERM_DEFS } from '../../types/features';
 import type { OrgConfig } from '../../types/config';
 import { THEME_LABELS } from '../builder/handoff';
 import { VERTICAL_PACKS, applyVerticalPack } from '../../lib/verticalPacks';
+import { industryLabel, needLabel, sizeLabel } from '../../lib/signupWizard';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
 import { ALL_MODULES, MODULE_LABELS, allOffConfig, isValidSlug, orgLink, slugify } from './lib';
@@ -24,6 +25,10 @@ interface ReqRow {
   phone?: string;
   email?: string;
   at?: string;
+  // פרופיל האשף (SIGNUP3)
+  industry?: string;
+  size?: string;
+  needs?: string[];
 }
 interface OrgRow {
   slug: string;
@@ -171,6 +176,14 @@ export function PlatformPanel(props: { onClose: () => void }) {
                 <Btn sm kind="primary" onClick={() => openApprove(r)}>✓ אישור</Btn>
                 <Btn sm kind="danger" onClick={() => void reject(r)}>{armed === 'rej-' + r.uid ? 'שוב לדחייה' : '🗑 דחייה'}</Btn>
               </span>
+              {/* פרופיל האשף (SIGNUP3) — תחום · גודל · צרכים; שורה מלאה מתחת */}
+              {(r.industry || r.size || (r.needs && r.needs.length > 0)) && (
+                <div style={{ flexBasis: '100%', fontSize: 11.5, color: 'var(--ink-soft)', display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 2 }}>
+                  {r.industry && <span style={{ fontWeight: 700 }}>🏷 {industryLabel(r.industry)}</span>}
+                  {r.size && <span>· {sizeLabel(r.size)}</span>}
+                  {r.needs && r.needs.length > 0 && <span>· {r.needs.map(needLabel).join(' · ')}</span>}
+                </div>
+              )}
             </div>
           ))}
         </section>

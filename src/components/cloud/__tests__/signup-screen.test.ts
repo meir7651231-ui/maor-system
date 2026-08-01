@@ -6,6 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import loginSrc from '../LoginScreen.tsx?raw';
+import wizardSrc from '../SignupWizard.tsx?raw';
 import heroSrc from '../SignupHero.tsx?raw';
 import newsSrc from '../NewsReader.tsx?raw';
 import cbSrc from '../CallbackModal.tsx?raw';
@@ -14,7 +15,7 @@ import cssSrc from '../../../styles/orbit.css?raw';
 import appSrc from '../../../App.tsx?raw';
 import rulesSrc from '../../../../firestore.rules?raw';
 
-const ALL = [loginSrc, heroSrc, newsSrc, cbSrc, videoSrc];
+const ALL = [loginSrc, wizardSrc, heroSrc, newsSrc, cbSrc, videoSrc];
 
 describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () => {
   it('הקופי הנעול מדויק (מילה-במילה)', () => {
@@ -23,12 +24,16 @@ describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () =>
     expect(loginSrc).toContain('<em>מוח</em>');
   });
 
-  it('ההרשמה מחוברת ל-cloudSignUp הקיים; לשוניות כניסה/הרשמה', () => {
-    expect(loginSrc).toContain('cloudSignUp');
+  it('ההרשמה = אשף (SignupWizard→cloudSignUp); כניסה נפרדת; פרטי הקשר באשף', () => {
+    // ההרשמה עברה לאשף 5-השלבים; LoginScreen מציג אותו בהרשמה ומטפל בכניסה
+    expect(loginSrc).toContain('SignupWizard');
     expect(loginSrc).toContain('cloudSignIn');
-    expect(loginSrc).toContain('שם הארגון *');
-    expect(loginSrc).toContain('שם איש קשר *');
-    expect(loginSrc).toMatch(/טלפון.*\*/);
+    expect(loginSrc).toContain("mode === 'up' ?");
+    // שדות ההרשמה חיים באשף
+    expect(wizardSrc).toContain('cloudSignUp');
+    expect(wizardSrc).toContain('שם הארגון *');
+    expect(wizardSrc).toContain('שם איש קשר *');
+    expect(wizardSrc).toMatch(/טלפון.*\*/);
   });
 
   it('🛡 אין הבטחת שיטות-אימות שלא קיימות (Google/Apple/Passkey/WebAuthn)', () => {

@@ -9,7 +9,7 @@
  */
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
-import { nsLsKey } from './store/persist';
+import { nsLsKey, parseBackupFile } from './store/persist';
 import { featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, termOf } from './lib/config';
 import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
@@ -36,6 +36,7 @@ import { ReportsView } from './components/reports/ReportsView';
 import { SettingsView } from './components/settings/SettingsView';
 import { CommandPalette } from './components/palette/CommandPalette';
 import { DemoDrop } from './components/DemoDrop';
+import { DemoRibbon } from './components/DemoRibbon';
 import { DayGate } from './components/wheel/DayGate';
 import { LoginScreen, PendingApprovalScreen } from './components/cloud/LoginScreen';
 import { PlatformPanel } from './components/platform/PlatformPanel';
@@ -89,6 +90,7 @@ export default function App() {
   const paletteOpen = useApp((s) => s.paletteOpen);
   const setPalette = useApp((s) => s.setPalette);
   const init = useApp((s) => s.init);
+  const restoreDb = useApp((s) => s.restoreDb);
   const exportBackup = useApp((s) => s.exportBackup);
   const cloud = useApp((s) => s.cloud);
   const cloudSignOut = useApp((s) => s.cloudSignOut);
@@ -104,6 +106,36 @@ export default function App() {
   useEffect(() => {
     void init();
   }, [init]);
+
+  // דמו ציבורי (?org=demo): זריעה אוטומטית של נתוני-ההדגמה פעם בכל סשן — פרוספקט
+  // נוחת במערכת מלאה בלי הרשמה (הקונפיג בלי firebase ⇒ אין שער-ענן). sessionStorage:
+  // אם ניקה וטען-מחדש באותו סשן, לא נזרע שוב (מכבד את הפעולה); סשן חדש = דמו רענן.
+  useEffect(() => {
+    if (!ready || config.slug !== 'demo' || famCount > 0) return;
+    try {
+      if (sessionStorage.getItem('maor_demo_seeded') === '1') return;
+    } catch {
+      /* sessionStorage חסום — הבאנר הידני עדיין זמין */
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(`${import.meta.env.BASE_URL}demo.json`, { cache: 'no-store' });
+        if (!res.ok || cancelled) return;
+        restoreDb(parseBackupFile(await res.text()));
+        try {
+          sessionStorage.setItem('maor_demo_seeded', '1');
+        } catch {
+          /* חסום */
+        }
+      } catch {
+        /* טעינת הדמו נכשלה — הבאנר הידני (DemoDrop) עדיין זמין */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, config.slug, famCount, restoreDb]);
 
   // מובייל: מתחת ל-760px ערכת צֹהַר חוזרת לשלד הסרגל העליון (ראו הערת הקובץ)
   const [narrow, setNarrow] = useState(
@@ -361,6 +393,7 @@ export default function App() {
         <LockScreen kind="secondary" onUnlock={onAdminUnlock} />
       ) : (
         <>
+          {config.slug === 'demo' && <DemoRibbon />}
           {famCount === 0 && <DemoDrop />}
           <DayGate />
           <Current />

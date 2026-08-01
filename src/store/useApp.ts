@@ -132,7 +132,7 @@ interface AppState {
    * הרשמה עצמית (CLOUD2 ענן 3): יצירת משתמש Auth + כתיבת בקשה ממתינה —
    * כל מה שנרשם-חדש רשאי לכתוב. הוא נשאר במסך ההמתנה עד אישור הבעלים.
    */
-  cloudSignUp: (orgName: string, contactName: string, phone: string, email: string, password: string) => Promise<void>;
+  cloudSignUp: (orgName: string, contactName: string, phone: string, email: string, password: string, profile?: { industry?: string; size?: string; needs?: string[] }) => Promise<void>;
   /**
    * ליד "נחזור אליכם" (SIGNUP מיתוג 3) — **בלי חשבון**: כותב platformLeads
    * (create-only ציבורי). מחזיר true בהצלחה. משמש את CallbackModal.
@@ -740,14 +740,15 @@ export const useApp = create<AppState>()((set, get) => {
       if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
       await cloudMod.resetPassword(email);
     },
-    async cloudSignUp(orgName, contactName, phone, email, password) {
+    async cloudSignUp(orgName, contactName, phone, email, password, profile) {
       if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
       // הולידציה טהורה (signUpError) רצה ב-UI; כאן שער אחרון לפני ה-SDK
       const err = signUpError(orgName, contactName, phone, email, password, password);
       if (err) throw new Error(err);
       const uid = await cloudMod.signUp(email.trim(), password);
       // מסמך הבקשה — כל מה שנרשם-חדש רשאי לכתוב (Rules v2); כשל בכתיבה לא
-      // מפיל את ההרשמה (הבעלים יראה את המשתמש ב-Auth), אך מדווח
+      // מפיל את ההרשמה (הבעלים יראה את המשתמש ב-Auth), אך מדווח.
+      // פרופיל האשף (SIGNUP3) נשלח רק כשקיים — שדות ריקים לא נכתבים.
       try {
         await cloudMod.writeOrgRequest(uid, {
           orgName: orgName.trim(),
@@ -755,6 +756,9 @@ export const useApp = create<AppState>()((set, get) => {
           phone: phone.trim(),
           email: email.trim().toLowerCase(),
           at: new Date().toISOString(),
+          ...(profile?.industry ? { industry: profile.industry } : {}),
+          ...(profile?.size ? { size: profile.size } : {}),
+          ...(profile?.needs && profile.needs.length ? { needs: profile.needs } : {}),
         });
       } catch {
         get().toast('⚠ הבקשה נרשמה חלקית — צרו קשר עם מנהל המערכת');
