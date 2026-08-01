@@ -10,8 +10,8 @@
  */
 import { useState, type FormEvent } from 'react';
 import { useApp } from '../../store/useApp';
-import { signUpError } from '../../lib/config';
 import { SignupHero } from './SignupHero';
+import { SignupWizard } from './SignupWizard';
 import { NewsReader } from './NewsReader';
 import { CallbackModal } from './CallbackModal';
 import { VideoModal } from './VideoModal';
@@ -20,17 +20,12 @@ export function LoginScreen() {
   const config = useApp((s) => s.config);
   const dbOrgName = useApp((s) => s.db.orgName);
   const cloudSignIn = useApp((s) => s.cloudSignIn);
-  const cloudSignUp = useApp((s) => s.cloudSignUp);
   const cloudResetPassword = useApp((s) => s.cloudResetPassword);
   const toast = useApp((s) => s.toast);
 
   const [mode, setMode] = useState<'in' | 'up'>('up');
-  const [orgName, setOrgName] = useState('');
-  const [contactName, setContactName] = useState('');
-  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [password2, setPassword2] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -42,25 +37,16 @@ export function LoginScreen() {
 
   const title = config.orgName || dbOrgName || 'אורביט';
 
+  // כניסה בלבד — ההרשמה עברה לאשף 5-השלבים (SignupWizard).
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (busy) return;
-    if (mode === 'up') {
-      const err = signUpError(orgName, contactName, phone, email, password, password2);
-      if (err) return setError(err);
-    } else if (!email.trim() || !password) {
-      return setError('נא למלא אימייל וסיסמה');
-    }
+    if (!email.trim() || !password) return setError('נא למלא אימייל וסיסמה');
     setBusy(true);
     setError('');
     try {
-      if (mode === 'up') {
-        await cloudSignUp(orgName, contactName, phone, email.trim(), password);
-        setSubmitted(true);
-      } else {
-        await cloudSignIn(email.trim(), password);
-        // ההצלחה תיקלט ב-watchAuth — המסך יוחלף אוטומטית באפליקציה
-      }
+      await cloudSignIn(email.trim(), password);
+      // ההצלחה תיקלט ב-watchAuth — המסך יוחלף אוטומטית באפליקציה
     } catch (err) {
       setError(err instanceof Error ? err.message : 'הפעולה נכשלה — נסו שוב');
     } finally {
@@ -145,85 +131,58 @@ export function LoginScreen() {
                 </button>
               </div>
 
-              <div className="orbit-divider">
-                <span />
-                <small>{mode === 'up' ? 'הרשמה עם אימייל' : 'כניסה עם אימייל'}</small>
-                <span />
-              </div>
-
-              <form onSubmit={(e) => void submit(e)}>
-                {mode === 'up' && (
-                  <>
-                    <label className="orbit-label">שם הארגון *</label>
-                    <input className="orbit-input" value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="עמותת אור" />
-                    <label className="orbit-label">שם איש קשר *</label>
-                    <input className="orbit-input" value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="ישראל ישראלי" />
-                    <label className="orbit-label">טלפון (נחזור אליכם לאישור) *</label>
-                    <input className="orbit-input" type="tel" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="050-1234567" />
-                  </>
-                )}
-
-                <label className="orbit-label">כתובת אימייל</label>
-                <input className="orbit-input" type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" />
-                {mode === 'up' && (email.length > 0 || phone.length > 0) && (
-                  <div className="orbit-note">
-                    <span aria-hidden>⚠</span>
-                    <div>האימייל הזה ישמש ככניסה עתידית לאתר. ודאו שזו הכתובת הנכונה — וזכרו את הסיסמה שתבחרו.</div>
+              {mode === 'up' ? (
+                /* ההרשמה = אשף 5-שלבים (SIGNUP3): תחום→גודל→צרכים→קשר→חשבון */
+                <>
+                  <SignupWizard onDone={(em) => { setEmail(em); setSubmitted(true); }} />
+                  <p className="orbit-fine">
+                    לאחר ההרשמה — צרו קשר לאישור פתיחת המערכת. אתם מאשרים את תנאי השימוש ומדיניות הפרטיות.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="orbit-divider">
+                    <span />
+                    <small>כניסה עם אימייל</small>
+                    <span />
                   </div>
-                )}
 
-                <label className="orbit-label">סיסמה</label>
-                <div className="orbit-pass-wrap">
-                  <input
-                    className="orbit-input"
-                    type={showPass ? 'text' : 'password'}
-                    dir="ltr"
-                    style={{ paddingInlineStart: 46 }}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={mode === 'up' ? 'בחרו סיסמה חזקה' : ''}
-                  />
-                  <button type="button" className="orbit-pass-toggle" onClick={() => setShowPass((v) => !v)} aria-label="הצג או הסתר סיסמה">
-                    {eyeIcon}
-                  </button>
-                </div>
+                  <form onSubmit={(e) => void submit(e)}>
+                    <label className="orbit-label">כתובת אימייל</label>
+                    <input className="orbit-input" type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" />
 
-                {mode === 'up' && (
-                  <>
-                    <label className="orbit-label">אימות סיסמה</label>
-                    <input
-                      className="orbit-input"
-                      type={showPass ? 'text' : 'password'}
-                      dir="ltr"
-                      value={password2}
-                      onChange={(e) => setPassword2(e.target.value)}
-                    />
-                  </>
-                )}
+                    <label className="orbit-label">סיסמה</label>
+                    <div className="orbit-pass-wrap">
+                      <input
+                        className="orbit-input"
+                        type={showPass ? 'text' : 'password'}
+                        dir="ltr"
+                        style={{ paddingInlineStart: 46 }}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <button type="button" className="orbit-pass-toggle" onClick={() => setShowPass((v) => !v)} aria-label="הצג או הסתר סיסמה">
+                        {eyeIcon}
+                      </button>
+                    </div>
 
-                {error && (
-                  <div className="orbit-error">
-                    <span aria-hidden>⚠</span>
-                    <span>{error}</span>
-                  </div>
-                )}
+                    {error && (
+                      <div className="orbit-error">
+                        <span aria-hidden>⚠</span>
+                        <span>{error}</span>
+                      </div>
+                    )}
 
-                <button type="submit" className="orbit-primary" disabled={busy}>
-                  {busy ? 'רגע…' : mode === 'up' ? 'בוא נתחיל' : 'כניסה'}
-                  {!busy && <span aria-hidden>←</span>}
-                </button>
+                    <button type="submit" className="orbit-primary" disabled={busy}>
+                      {busy ? 'רגע…' : 'כניסה'}
+                      {!busy && <span aria-hidden>←</span>}
+                    </button>
 
-                {mode === 'in' && (
-                  <button type="button" className="orbit-linkbtn" onClick={() => void forgot()} disabled={busy}>
-                    שכחתי סיסמה
-                  </button>
-                )}
-              </form>
-
-              {mode === 'up' && (
-                <p className="orbit-fine">
-                  לאחר ההרשמה — צרו קשר לאישור פתיחת המערכת. אתם מאשרים את תנאי השימוש ומדיניות הפרטיות.
-                </p>
+                    <button type="button" className="orbit-linkbtn" onClick={() => void forgot()} disabled={busy}>
+                      שכחתי סיסמה
+                    </button>
+                  </form>
+                </>
               )}
             </>
           )}

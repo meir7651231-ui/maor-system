@@ -44,6 +44,11 @@ export interface OrgRequestDoc {
   phone?: string;
   email?: string;
   at?: string;
+  // פרופיל האשף (SIGNUP3) — נתוני-הכשרה לבעלים לפני האישור. Rules: אין הגבלת-שדות
+  // על platformRequests (רק uid תואם) ⇒ אין צורך בעדכון כללים.
+  industry?: string; // מזהה חבילת-ורטיקל (VERTICAL_PACKS)
+  size?: string; // 'small' | 'medium' | 'large'
+  needs?: string[]; // צרכים נבחרים (ORG_NEEDS)
 }
 
 /** משיכה חד-פעמית של מסמך הארגון — null כשאין (או אין הרשאה). */
