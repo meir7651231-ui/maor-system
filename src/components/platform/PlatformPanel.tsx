@@ -32,6 +32,14 @@ interface OrgRow {
   members?: string[];
   config?: unknown;
 }
+interface LeadRow {
+  id: string;
+  contactName?: string;
+  phone?: string;
+  preferredTime?: string;
+  notes?: string;
+  at?: string;
+}
 
 export function PlatformPanel(props: { onClose: () => void }) {
   const toast = useApp((s) => s.toast);
@@ -39,6 +47,7 @@ export function PlatformPanel(props: { onClose: () => void }) {
   const [mod, setMod] = useState<CloudMod | null>(null);
   const [requests, setRequests] = useState<ReqRow[]>([]);
   const [orgs, setOrgs] = useState<OrgRow[]>([]);
+  const [leads, setLeads] = useState<LeadRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [approveReq, setApproveReq] = useState<ReqRow | null>(null);
   const [slug, setSlug] = useState('');
@@ -50,9 +59,14 @@ export function PlatformPanel(props: { onClose: () => void }) {
 
   async function refresh(m: CloudMod) {
     setLoading(true);
-    const [reqs, all] = await Promise.all([m.fetchOrgRequests().catch(() => []), m.fetchAllOrgs().catch(() => [])]);
+    const [reqs, all, lds] = await Promise.all([
+      m.fetchOrgRequests().catch(() => []),
+      m.fetchAllOrgs().catch(() => []),
+      m.fetchOrgLeads().catch(() => []),
+    ]);
     setRequests(reqs);
     setOrgs(all);
+    setLeads(lds);
     setLoading(false);
   }
 
@@ -160,6 +174,26 @@ export function PlatformPanel(props: { onClose: () => void }) {
             </div>
           ))}
         </section>
+
+        {/* לידים "נחזור אליכם" (SIGNUP) — פניות בלי חשבון */}
+        {leads.length > 0 && (
+          <section className="card" style={{ marginBottom: 14 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>📞 פניות "נחזור אליכם" ({leads.length})</h2>
+            {leads.map((l) => (
+              <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
+                <span style={{ fontWeight: 700 }}>{l.contactName || '—'}</span>
+                {l.phone && (
+                  <a href={'tel:' + l.phone} style={{ fontSize: 12.5, direction: 'ltr', fontWeight: 700 }}>
+                    {'📞 ' + l.phone}
+                  </a>
+                )}
+                {l.preferredTime && <span style={{ fontSize: 12 }}>{'זמן נוח: ' + l.preferredTime}</span>}
+                {l.notes && <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{l.notes}</span>}
+                <span style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginInlineStart: 'auto' }}>{(l.at ?? '').slice(0, 16).replace('T', ' ')}</span>
+              </div>
+            ))}
+          </section>
+        )}
 
         {/* רשימת לקוחות */}
         <section className="card" style={{ marginBottom: 14 }}>

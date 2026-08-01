@@ -1,3 +1,3 @@
 {
-  "ignorePatterns": ["knowledge/legacy/**"]
+  "ignorePatterns": ["knowledge/legacy/**", "knowledge/orbit-design/**"]
 }

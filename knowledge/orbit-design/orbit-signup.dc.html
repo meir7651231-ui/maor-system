@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Frank+Ruhl+Libre:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;height:100%;background:#040509}
+  *{box-sizing:border-box}
+  input::placeholder{color:rgba(255,255,255,.32)}
+  input:-webkit-autofill{-webkit-text-fill-color:#fff;transition:background-color 9999s}
+  ::selection{background:rgba(150,175,255,.35);color:#fff}
+  a{color:#c9d3ff;text-decoration:none}
+  a:hover{color:#fff}
+  @keyframes reveal{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  @keyframes sheen{0%{right:-70%}55%,100%{right:140%}}
+  @keyframes grain{0%{transform:translate(0,0)}100%{transform:translate(-6%,-6%)}}
+  @keyframes chipfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  @keyframes pop{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes unfold{0%{opacity:0;transform:perspective(1700px) rotateX(-90deg)}52%{opacity:1;transform:perspective(1700px) rotateX(11deg)}100%{opacity:1;transform:perspective(1700px) rotateX(0deg)}}
+</style>
+</helmet>
+<div dir="rtl" lang="he" style="position:fixed;inset:0;overflow:hidden;background:#040509;font-family:'Heebo',system-ui,sans-serif;color:#fff">
+
+  <div style="position:absolute;inset:0;z-index:0;background:radial-gradient(130% 100% at 68% 42%,#0a0b13 0%,#060609 58%,#020204 100%)"></div>
+
+  <canvas ref="{{ canvasRef }}" style="position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1"></canvas>
+
+  <div style="position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(125% 92% at 50% 46%,transparent 54%,rgba(0,0,0,.55) 100%)"></div>
+
+  <sc-if value="{{ grainOn }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:-8%;z-index:2;pointer-events:none;opacity:.45;mix-blend-mode:overlay;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27170%27 height=%27170%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.82%27 numOctaves=%272%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27/%3E%3C/svg%3E');animation:grain 5s steps(5) infinite"></div>
+  </sc-if>
+
+  <div style="position:absolute;right:16px;top:50%;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;font-size:10.5px;letter-spacing:.4em;color:rgba(255,255,255,.26);z-index:3;pointer-events:none">ORBIT · מערכת ההפעלה לעסק</div>
+
+  <div style="position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;padding:26px clamp(26px,5vw,64px)">
+
+    <header style="display:flex;align-items:center;justify-content:space-between;animation:reveal .9s .05s both cubic-bezier(.2,.7,.2,1)">
+      <img src="assets/orbit-logo.png" alt="ORBIT" style="height:54px;width:auto;display:block;filter:drop-shadow(0 3px 20px rgba(120,160,255,.4))">
+      <div style="font-size:13.5px;color:rgba(255,255,255,.6)">יש לכם חשבון? <a href="#" style="color:#fff;font-weight:600">כניסה</a></div>
+    </header>
+
+    <main style="flex:1;display:flex;align-items:safe center;justify-content:flex-end;min-height:0;overflow-y:auto;overflow-x:hidden;padding:16px 0">
+      <div style="width:432px;max-width:calc(100vw - 40px);position:relative;animation:reveal 1s .14s both cubic-bezier(.2,.7,.2,1)">
+        <div style="position:relative;padding:34px 32px 30px;border-radius:26px;background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,.02)),rgba(9,11,18,.5);backdrop-filter:blur(28px) saturate(150%);-webkit-backdrop-filter:blur(28px) saturate(150%);border:1px solid rgba(255,255,255,.13);box-shadow:0 44px 100px -34px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.18)">
+
+          <div style="overflow:hidden;max-width:100%;margin-bottom:20px;direction:ltr;-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)">
+            <div style="display:flex;width:max-content;animation:marquee 28s linear infinite">
+              <sc-for list="{{ chipsLoop }}" as="c" hint-placeholder-count="12">
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:11px;letter-spacing:.02em;color:rgba(255,255,255,.72);white-space:nowrap;flex:none;direction:rtl;margin-right:8px">
+                  <span style="width:5px;height:5px;border-radius:50%;background:#6ad7ff;box-shadow:0 0 7px #6ad7ff;flex:none"></span>{{ c }}
+                </span>
+              </sc-for>
+            </div>
+          </div>
+
+          <sc-if value="{{ notSubmitted }}" hint-placeholder-val="{{ true }}">
+          <div>
+            <h1 style="margin:0 0 12px;font-size:26px;line-height:1.3;font-weight:700;letter-spacing:-.012em">העסק שלכם לא צריך עוד תוכנה. הוא צריך <em style="font-style:normal;font-weight:800;background:linear-gradient(118deg,#8ad9ff,#b39bff 52%,#ff9bd6);-webkit-background-clip:text;background-clip:text;color:transparent">מוח</em>.</h1>
+            <p style="margin:0 0 24px;font-size:14px;line-height:1.62;color:rgba(255,255,255,.62)">אורביט היא מערכת ההפעלה שמחברת את כל העסק למקום אחד — ונבנית במיוחד בשבילכם, בשיחת טלפון אחת.</p>
+
+            <div style="animation:reveal .8s .32s both">
+              <button type="button" style="display:flex;align-items:center;justify-content:center;gap:9px;width:100%;height:52px;border-radius:14px;border:none;cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:600;color:#0a0a12;background:linear-gradient(180deg,#ffffff,#e6e9f4);box-shadow:0 14px 34px -12px rgba(150,170,255,.6),inset 0 1px 0 #fff;transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s" style-hover="transform:translateY(-2px);box-shadow:0 20px 46px -12px rgba(150,170,255,.85),inset 0 1px 0 #fff" style-active="transform:translateY(0)">
+                <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                מה זה אורביט
+              </button>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:11px;animation:reveal .8s .4s both">
+              <button type="button" aria-label="צפו בסרטון: מה זה אורביט" style="display:flex;align-items:center;justify-content:center;height:50px;border-radius:13px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#fff;transition:.22s" style-hover="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.26);transform:translateY(-2px)">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="10 8.5 16 12 10 15.5 10 8.5" fill="currentColor" stroke="none"/></svg>
+              </button>
+              <button type="button" aria-label="קראו את העיתון של אורביט" onClick="{{ openReader }}" style="display:flex;align-items:center;justify-content:center;height:50px;border-radius:13px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#fff;transition:.22s" style-hover="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.26);transform:translateY(-2px)">
+                <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/></svg>
+              </button>
+              <button type="button" aria-label="תחזרו אליי" onClick="{{ openCallback }}" style="display:flex;align-items:center;justify-content:center;height:50px;border-radius:13px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#fff;transition:.22s" style-hover="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.26);transform:translateY(-2px)">
+                <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2a9 9 0 0 1 9 9"/><path d="M13 6a5 5 0 0 1 5 5"/><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </button>
+            </div>
+
+            <div style="animation:reveal .8s .5s both">
+              <div style="display:flex;align-items:center;gap:14px;margin:22px 0 18px">
+                <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.16))"></span>
+                <span style="font-size:10.5px;letter-spacing:.06em;color:rgba(255,255,255,.4)">או עם אימייל</span>
+                <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.16),transparent)"></span>
+              </div>
+
+              <form onSubmit="{{ onSubmit }}">
+                <label style="display:block;font-size:12.5px;font-weight:500;letter-spacing:.01em;color:rgba(255,255,255,.62);margin-bottom:9px">כתובת אימייל</label>
+                <input type="email" dir="ltr" value="{{ email }}" onChange="{{ onEmail }}" onFocus="{{ onEmailFocus }}" onBlur="{{ onEmailBlur }}" placeholder="name@orbit.co.il" style="width:100%;height:52px;border-radius:13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);color:#fff;font-size:15px;font-family:inherit;padding:0 16px;outline:none;text-align:right;transition:border-color .2s,box-shadow .2s,background .2s" style-focus="border-color:rgba(150,175,255,.72);background:rgba(255,255,255,.06);box-shadow:0 0 0 4px rgba(120,150,255,.13),0 0 36px -6px rgba(120,150,255,.5)">
+                <sc-if value="{{ showEmailNote }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:9px;margin-top:11px;padding:11px 13px;border-radius:12px;background:rgba(255,190,110,.08);border:1px solid rgba(255,190,110,.24)">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#ffc38a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                  <div style="font-size:12px;line-height:1.5;color:rgba(255,214,170,.92)">האימייל הזה ישמש ככניסה עתידית לאתר. ודאו שזו הכתובת הנכונה — וזכרו את הסיסמה שתבחרו.</div>
+                </div>
+                </sc-if>
+
+                <label style="display:block;font-size:12.5px;font-weight:500;letter-spacing:.01em;color:rgba(255,255,255,.62);margin:16px 0 9px">סיסמה</label>
+                <div style="position:relative">
+                  <input type="{{ passType }}" dir="ltr" value="{{ password }}" onChange="{{ onPassword }}" placeholder="בחרו סיסמה חזקה" style="width:100%;height:52px;border-radius:13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);color:#fff;font-size:15px;font-family:inherit;padding:0 46px 0 16px;outline:none;text-align:left;transition:border-color .2s,box-shadow .2s,background .2s" style-focus="border-color:rgba(150,175,255,.72);background:rgba(255,255,255,.06);box-shadow:0 0 0 4px rgba(120,150,255,.13),0 0 36px -6px rgba(120,150,255,.5)">
+                  <button type="button" onClick="{{ toggleShowPass }}" aria-label="הצג או הסתר סיסמה" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;cursor:pointer;color:rgba(255,255,255,.5);transition:color .2s" style-hover="color:#fff">
+                    <sc-if value="{{ passHidden }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></sc-if>
+                    <sc-if value="{{ passShown }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3.5 7 10 7a9.12 9.12 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></sc-if>
+                  </button>
+                </div>
+                <sc-if value="{{ hasPassword }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:10px;margin-top:9px">
+                  <div style="flex:1;height:5px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden">
+                    <div style="height:100%;border-radius:999px;transition:width .3s,background .3s;width:{{ pwWidth }};background:{{ pwColor }}"></div>
+                  </div>
+                  <span style="font-size:11.5px;font-weight:600;white-space:nowrap;color:{{ pwColor }}">{{ pwLabel }}</span>
+                </div>
+                </sc-if>
+
+                <sc-if value="{{ hasFormError }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:8px;margin-top:11px;padding:10px 13px;border-radius:12px;background:rgba(255,90,90,.1);border:1px solid rgba(255,90,90,.32)">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ff9a9a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                  <span style="font-size:12.5px;color:#ffb3b3">{{ formError }}</span>
+                </div>
+                </sc-if>
+                <button type="submit" style="position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:52px;margin-top:14px;border-radius:14px;border:1px solid rgba(150,170,255,.35);cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:600;color:#fff;background:linear-gradient(180deg,rgba(122,142,255,.3),rgba(120,140,255,.14));box-shadow:0 14px 38px -14px rgba(120,150,255,.7),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .25s,box-shadow .25s,background .25s" style-hover="transform:translateY(-2px);background:linear-gradient(180deg,rgba(142,160,255,.42),rgba(120,140,255,.2));box-shadow:0 20px 50px -14px rgba(120,150,255,.9)" style-before="content:'';position:absolute;top:0;right:-70%;width:42%;height:100%;background:linear-gradient(255deg,transparent,rgba(255,255,255,.4),transparent);transform:skewX(18deg);animation:sheen 3.8s ease-in-out infinite">
+                  בוא נתחיל
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
+                </button>
+              </form>
+
+              <p style="margin:16px 2px 0;font-size:11.5px;line-height:1.6;color:rgba(255,255,255,.42);text-align:center">בהמשך אתם מאשרים את <a href="#">תנאי השימוש</a> ו<a href="#">מדיניות הפרטיות</a>.</p>
+            </div>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ submitted }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:10px 4px 6px;animation:reveal .55s both cubic-bezier(.2,.7,.2,1)">
+            <div style="width:66px;height:66px;margin:2px auto 20px;border-radius:20px;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,rgba(120,224,182,.26),rgba(120,224,182,.08));border:1px solid rgba(120,224,182,.36);box-shadow:0 0 44px -6px rgba(94,230,168,.5)">
+              <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#7ef0c0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <h2 style="margin:0 0 8px;font-size:27px;font-weight:700;letter-spacing:-.01em">בדקו את הדואר</h2>
+            <p style="margin:0 0 4px;font-size:14.5px;color:rgba(255,255,255,.6);line-height:1.55">שלחנו קישור התחברות מאובטח אל</p>
+            <p dir="ltr" style="margin:0 0 24px;font-size:15px;font-weight:600;color:#fff;word-break:break-all">{{ email }}</p>
+            <button type="button" onClick="{{ onReset }}" style="height:46px;padding:0 22px;border-radius:13px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:500;color:#fff;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);transition:.22s" style-hover="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.26)">לכתובת אימייל אחרת</button>
+          </div>
+          </sc-if>
+
+        </div>
+        <div style="position:absolute;left:12%;right:12%;bottom:-26px;height:64px;background:radial-gradient(58% 100% at 50% 0,rgba(120,150,255,.28),transparent 72%);filter:blur(16px);z-index:-1;pointer-events:none"></div>
+      </div>
+    </main>
+
+    <footer style="display:flex;align-items:center;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.42);animation:reveal 1s .24s both">
+      <span>© 2026 ORBIT</span>
+      <span style="display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border-radius:50%;background:#5ee6a8;box-shadow:0 0 8px #5ee6a8;animation:pulse 2.2s infinite"></span>מוצפן מקצה לקצה · SOC 2 · WebAuthn</span>
+    </footer>
+
+  </div>
+
+  <sc-if value="{{ callbackOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeCallback }}" style="position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(3,4,8,.66);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);animation:fadein .25s ease">
+    <div onClick="{{ stop }}" style="width:404px;max-width:100%;max-height:calc(100dvh - 36px);overflow-y:auto;position:relative;padding:30px 28px 26px;border-radius:24px;background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,.02)),rgba(12,14,22,.92);backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);border:1px solid rgba(255,255,255,.14);box-shadow:0 44px 110px -30px rgba(0,0,0,.92),inset 0 1px 0 rgba(255,255,255,.16);animation:pop .32s cubic-bezier(.2,.8,.2,1)">
+      <button type="button" aria-label="סגירה" onClick="{{ closeCallback }}" style="position:absolute;top:16px;left:16px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);transition:.2s" style-hover="background:rgba(255,255,255,.1);color:#fff">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
+
+      <sc-if value="{{ callbackNotSent }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:0 0 10px">
+          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(160,178,255,.9);font-weight:600">בונים לכם את אורביט</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.5)">{{ progressLabel }}</div>
+        </div>
+        <div style="height:4px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden;margin-bottom:22px">
+          <div style="height:100%;border-radius:999px;background:linear-gradient(90deg,#7a8eff,#b98bff);width:{{ progressPct }};transition:width .4s cubic-bezier(.2,.8,.2,1)"></div>
+        </div>
+
+        <sc-if value="{{ step0 }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <h2 style="margin:0 0 6px;font-size:21px;font-weight:700;letter-spacing:-.01em">נכיר את העסק שלכם</h2>
+          <p style="margin:0 0 18px;font-size:13px;line-height:1.5;color:rgba(255,255,255,.6)">כדי שאורביט ייבנה בדיוק סביבכם — לא עוד תוכנה גנרית.</p>
+          <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.62);margin:0 0 9px">תחום העסק</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <sc-for list="{{ industryOpts }}" as="o" hint-placeholder-count="6"><button type="button" onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for>
+          </div>
+          <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.62);margin:18px 0 9px">גודל העסק</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <sc-for list="{{ sizeOpts }}" as="o" hint-placeholder-count="3"><button type="button" onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ step1 }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <h2 style="margin:0 0 6px;font-size:21px;font-weight:700;letter-spacing:-.01em">מה גוזל לכם את הזמן?</h2>
+          <p style="margin:0 0 18px;font-size:13px;line-height:1.5;color:rgba(255,255,255,.6)">כל מה שתסמנו — אורביט ייקח על עצמו.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <sc-for list="{{ painOpts }}" as="o" hint-placeholder-count="6"><button type="button" onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ step2 }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <h2 style="margin:0 0 6px;font-size:21px;font-weight:700;letter-spacing:-.01em">לאן לוקחים את העסק?</h2>
+          <p style="margin:0 0 18px;font-size:13px;line-height:1.5;color:rgba(255,255,255,.6)">נתאים את אורביט למטרה — לא רק סדר, אלא צמיחה.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <sc-for list="{{ visionOpts }}" as="o" hint-placeholder-count="5"><button type="button" onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for>
+          </div>
+          <textarea value="{{ vision }}" onChange="{{ onVision }}" placeholder="יש חלום גדול? ספרו לנו (לא חובה)" style="width:100%;min-height:80px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);color:#fff;font-size:14px;font-family:inherit;padding:12px 15px;outline:none;resize:none;line-height:1.5;margin-top:12px;transition:border-color .2s,box-shadow .2s,background .2s" style-focus="border-color:rgba(150,175,255,.72);background:rgba(255,255,255,.06);box-shadow:0 0 0 4px rgba(120,150,255,.13)"></textarea>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ step3 }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <h2 style="margin:0 0 6px;font-size:21px;font-weight:700;letter-spacing:-.01em">מאיפה הגעתם אלינו?</h2>
+          <p style="margin:0 0 18px;font-size:13px;line-height:1.5;color:rgba(255,255,255,.6)">כמעט סיימנו — עוד שנייה ואנחנו שם.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <sc-for list="{{ sourceOpts }}" as="o" hint-placeholder-count="6"><button type="button" onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ step4 }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <h2 style="margin:0 0 6px;font-size:21px;font-weight:700;letter-spacing:-.01em">אחרון — ואורביט שלכם בדרך</h2>
+          <p style="margin:0 0 18px;font-size:13px;line-height:1.5;color:rgba(255,255,255,.6)">משאירים טלפון, ובשיחה אחת המערכת שלכם קמה. בלי התחייבות.</p>
+          <form onSubmit="{{ onCbSubmit }}" style="display:flex;flex-direction:column;gap:13px">
+            <div>
+              <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.62);margin-bottom:7px">שם מלא</label>
+              <input required value="{{ cbName }}" onChange="{{ onCbName }}" placeholder="ישראל ישראלי" style="width:100%;height:48px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);color:#fff;font-size:14.5px;font-family:inherit;padding:0 15px;outline:none;transition:border-color .2s,box-shadow .2s,background .2s" style-focus="border-color:rgba(150,175,255,.72);background:rgba(255,255,255,.06);box-shadow:0 0 0 4px rgba(120,150,255,.13)">
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.62);margin-bottom:7px">טלפון</label>
+              <input required type="tel" dir="ltr" value="{{ cbPhone }}" onChange="{{ onCbPhone }}" placeholder="050-0000000" style="width:100%;height:48px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);color:#fff;font-size:14.5px;font-family:inherit;padding:0 15px;outline:none;text-align:right;transition:border-color .2s,box-shadow .2s,background .2s" style-focus="border-color:rgba(150,175,255,.72);background:rgba(255,255,255,.06);box-shadow:0 0 0 4px rgba(120,150,255,.13)">
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.62);margin-bottom:7px">מתי נוח לחזור אליכם?</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+                <sc-for list="{{ timeOpts }}" as="o" hint-placeholder-count="3"><button type="button" onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for>
+              </div>
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.62);margin-bottom:7px">הערות או שאלות</label>
+              <textarea value="{{ notes }}" onChange="{{ onNotes }}" placeholder="משהו שכדאי שנדע? שאלה? כתבו כאן (לא חובה)" style="width:100%;min-height:66px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);color:#fff;font-size:14px;font-family:inherit;padding:11px 15px;outline:none;resize:none;line-height:1.5;transition:border-color .2s,box-shadow .2s,background .2s" style-focus="border-color:rgba(150,175,255,.72);background:rgba(255,255,255,.06);box-shadow:0 0 0 4px rgba(120,150,255,.13)"></textarea>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:8px">
+              <button type="button" onClick="{{ back }}" style="height:48px;padding:0 18px;border-radius:12px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:500;color:rgba(255,255,255,.8);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);transition:.2s;flex:none" style-hover="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.26)">חזרה</button>
+              <button type="submit" style="position:relative;display:flex;align-items:center;justify-content:center;gap:8px;flex:1;height:48px;border-radius:12px;border:1px solid rgba(150,170,255,.35);cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(180deg,rgba(122,142,255,.34),rgba(120,140,255,.16));box-shadow:0 12px 32px -14px rgba(120,150,255,.7),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .25s,background .25s" style-hover="transform:translateY(-2px);background:linear-gradient(180deg,rgba(142,160,255,.44),rgba(120,140,255,.22))">כן, קבעו לי שיחה<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg></button>
+            </div>
+          </form>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ notLast }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:10px;margin-top:22px">
+          <sc-if value="{{ notFirst }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ back }}" style="height:48px;padding:0 18px;border-radius:12px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:500;color:rgba(255,255,255,.8);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);transition:.2s;flex:none" style-hover="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.26)">חזרה</button></sc-if>
+          <button type="button" onClick="{{ next }}" style="position:relative;display:flex;align-items:center;justify-content:center;gap:8px;flex:1;height:48px;border-radius:12px;border:1px solid rgba(150,170,255,.35);cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(180deg,rgba(122,142,255,.34),rgba(120,140,255,.16));box-shadow:0 12px 32px -14px rgba(120,150,255,.7),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .25s,background .25s" style-hover="transform:translateY(-2px);background:linear-gradient(180deg,rgba(142,160,255,.44),rgba(120,140,255,.22))">המשך<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg></button>
+        </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ callbackSent }}" hint-placeholder-val="{{ false }}">
+      <div style="text-align:center;padding:8px 0 2px;animation:fadein .3s ease">
+        <div style="width:60px;height:60px;margin:2px auto 16px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,rgba(120,224,182,.26),rgba(120,224,182,.08));border:1px solid rgba(120,224,182,.4);box-shadow:0 0 40px -6px rgba(94,230,168,.5)">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#7ef0c0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <h2 style="margin:0 0 7px;font-size:22px;font-weight:700;letter-spacing:-.01em">מעולה — אתם בפנים.</h2>
+        <p style="margin:0 0 20px;font-size:14px;color:rgba(255,255,255,.62);line-height:1.5">נחזור אליכם לטלפון <strong dir="ltr">{{ cbPhone }}</strong> בזמן שבחרתם, ונקים לכם את אורביט. בלי התחייבות.</p>
+        <button type="button" onClick="{{ closeCallback }}" style="height:44px;padding:0 24px;border-radius:12px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:500;color:#fff;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);transition:.2s" style-hover="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.26)">סגירה</button>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ readerOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeReader }}" style="position:absolute;inset:0;z-index:31;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(3,4,8,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fadein .28s ease">
+    <div onClick="{{ stop }}" style="position:relative;width:min(94vw,560px);height:min(94dvh,800px);box-shadow:0 40px 100px -30px rgba(0,0,0,.9)">
+      <div ref="{{ pdfRef }}" style="position:absolute;inset:0;overflow:hidden;background:#0b0c11"></div>
+      <button type="button" aria-label="סגירה" onClick="{{ closeReader }}" style="position:absolute;top:10px;left:10px;z-index:3;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;background:rgba(15,15,20,.55);border:1px solid rgba(255,255,255,.22);color:#fff;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .2s" style-hover="background:rgba(15,15,20,.9)"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;palette&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Aurora&quot;, &quot;Ember&quot;, &quot;Ice&quot;], &quot;default&quot;: &quot;Aurora&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Brain&quot; },
+  &quot;pulse&quot;: { &quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 1, &quot;min&quot;: 0.3, &quot;max&quot;: 1.6, &quot;step&quot;: 0.05, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Brain&quot; },
+  &quot;bloom&quot;: { &quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 0.5, &quot;min&quot;: 0, &quot;max&quot;: 1.8, &quot;step&quot;: 0.05, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Brain&quot; },
+  &quot;grain&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Brain&quot; }
+}">
+class Component extends DCLogic {
+  cvs = React.createRef();
+  pdfRef = React.createRef();
+  state = { email: '', submitted: false, emailFocused: false, password: '', showPass: false, readerOpen: false, chipIdx: 0, callbackOpen: false, callbackSent: false, step: 0, industry: '', size: '', pains: [], vision: '', source: '', cbName: '', cbPhone: '', cbTime: 'צהריים', notes: '' };
+  CHIPS = ['אפס אקסלים', 'קבלות בלחיצה', 'כל שקל רשום', 'הנתונים שלכם מגובים', 'שלוש שכבות גיבוי', 'הכול סובב סביבכם', 'העסק שלכם במסלול', 'המערכת זוכרת', 'מוח אחד לכל העסק', 'מערכת משלכם בשיחה אחת', 'עובד באותו יום', 'כל הצוות מסונכרן', 'פחות ניירת, יותר עסק', 'סוף החודש? כפתור', 'הכול במקום אחד'];
+  PAL = {
+    Aurora: { n1: 0x7fd4ff, n2: 0xb98bff, e: 0x4a7ad0 },
+    Ember:  { n1: 0xffcf8a, n2: 0xff6a72, e: 0xc8663c },
+    Ice:    { n1: 0xdff0ff, n2: 0x8fbfff, e: 0x5a86c0 }
+  };
+
+  async componentDidMount() {
+    const canvas = this.cvs.current;
+    if (!canvas) return;
+    let THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass;
+    try {
+      THREE = await import('three');
+      ({ EffectComposer } = await import('three/addons/postprocessing/EffectComposer.js'));
+      ({ RenderPass } = await import('three/addons/postprocessing/RenderPass.js'));
+      ({ UnrealBloomPass } = await import('three/addons/postprocessing/UnrealBloomPass.js'));
+      ({ OutputPass } = await import('three/addons/postprocessing/OutputPass.js'));
+    } catch (err) { console.warn('three load failed', err); return; }
+    if (this._dead) return;
+    this.THREE = THREE;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.95;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    this.CAMZ = 5.7; camera.position.set(0, 0, this.CAMZ);
+
+    const group = new THREE.Group(); group.position.x = 0.55; scene.add(group); this.group = group;
+
+    // ---------- neural brain (two lobes of firing nodes + synapse web) ----------
+    const R = 1.34, SEED = 430, nodes = [];
+    for (let i = 0; i < SEED; i++) {
+      const y = 1 - (i / (SEED - 1)) * 2, rad = Math.sqrt(Math.max(0, 1 - y * y)), th = i * 2.399963229;
+      const x = Math.cos(th) * rad, z = Math.sin(th) * rad;
+      const rr = R * (1 + 0.12 * Math.sin(x * 4.3 + y * 3.1) * Math.cos(z * 3.6 + y * 2.2));
+      const vx = x * rr, vy = y * rr * 0.92, vz = z * rr;
+      if (Math.abs(vx) < 0.17) continue; // central fissure → two lobes
+      nodes.push(new THREE.Vector3(vx, vy, vz));
+    }
+    const M = nodes.length;
+    const npos = new Float32Array(M * 3), nph = new Float32Array(M);
+    for (let i = 0; i < M; i++) { npos[i*3]=nodes[i].x; npos[i*3+1]=nodes[i].y; npos[i*3+2]=nodes[i].z; nph[i]=Math.random(); }
+    const ng = new THREE.BufferGeometry();
+    ng.setAttribute('position', new THREE.BufferAttribute(npos, 3));
+    ng.setAttribute('aPhase', new THREE.BufferAttribute(nph, 1));
+    const nodeU = { uTime: { value: 0 }, uPulse: { value: 0 }, uColor: { value: new THREE.Color() }, uColor2: { value: new THREE.Color() } };
+    this.nodeU = nodeU;
+    const nodeMat = new THREE.ShaderMaterial({
+      uniforms: nodeU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: `attribute float aPhase; uniform float uTime,uPulse; varying float vB;
+        void main(){ float fire=pow(0.5+0.5*sin(uTime*2.4-aPhase*6.2831),7.0);
+          vB=0.28+fire*1.05+uPulse*0.45;
+          vec4 mv=modelViewMatrix*vec4(position,1.0);
+          gl_PointSize=(46.0+fire*66.0)/(-mv.z);
+          gl_Position=projectionMatrix*mv; }`,
+      fragmentShader: `uniform vec3 uColor,uColor2; varying float vB;
+        void main(){ vec2 uv=gl_PointCoord*2.0-1.0; float d=dot(uv,uv); if(d>1.0) discard;
+          float a=smoothstep(1.0,0.0,d); vec3 c=mix(uColor,uColor2,clamp(vB*0.5,0.0,1.0));
+          gl_FragColor=vec4(c*vB, a*clamp(vB,0.0,1.0)); }`
+    });
+    group.add(new THREE.Points(ng, nodeMat));
+
+    // synapse web — nearest neighbours within same lobe
+    const ep = [], seen = new Set();
+    for (let i = 0; i < M; i++) {
+      const a = nodes[i], cand = [];
+      for (let j = 0; j < M; j++) { if (i === j || Math.sign(nodes[j].x) !== Math.sign(a.x)) continue; cand.push([a.distanceToSquared(nodes[j]), j]); }
+      cand.sort((p, q) => p[0] - q[0]);
+      for (let n = 0; n < Math.min(3, cand.length); n++) {
+        const j = cand[n][1], key = Math.min(i, j) + '_' + Math.max(i, j);
+        if (seen.has(key)) continue; seen.add(key);
+        ep.push(nodes[i].x, nodes[i].y, nodes[i].z, nodes[j].x, nodes[j].y, nodes[j].z);
+      }
+    }
+    const eg = new THREE.BufferGeometry(); eg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(ep), 3));
+    const edgeMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0.24, blending: THREE.AdditiveBlending, depthWrite: false });
+    this.edgeMat = edgeMat;
+    group.add(new THREE.LineSegments(eg, edgeMat));
+    this.applyPalette();
+
+    // ---------- orbital ring + comet ----------
+    const RING = 2.12;
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(RING, 0.02, 20, 200), new THREE.MeshBasicMaterial({ color: 0x5aa2ff, transparent: true, opacity: 0.5 }));
+    ring.rotation.set(1.15, 0.15, 0); group.add(ring);
+    const pivot = new THREE.Group(); pivot.rotation.set(1.15, 0.15, 0); group.add(pivot); this.pivot = pivot;
+    const cnode = new THREE.Mesh(new THREE.SphereGeometry(0.1, 24, 24), new THREE.MeshBasicMaterial({ color: 0xdcefff }));
+    cnode.position.set(RING, 0, 0); pivot.add(cnode);
+    for (let i = 1; i <= 10; i++) {
+      const a = -i * 0.07, s = Math.max(0.02, 0.088 - i * 0.007);
+      const tt = new THREE.Mesh(new THREE.SphereGeometry(s, 12, 12), new THREE.MeshBasicMaterial({ color: 0x7ab6ff, transparent: true, opacity: Math.max(0.05, 0.5 - i * 0.045) }));
+      tt.position.set(RING * Math.cos(a), RING * Math.sin(a), 0); pivot.add(tt);
+    }
+
+    // ambient particles + stars
+    const PN = 90, pa = new Float32Array(PN * 3);
+    for (let i = 0; i < PN; i++) { const r = 2.6 + Math.random() * 3.5, th = Math.random() * 6.283, ph = Math.acos(2 * Math.random() - 1); pa[i*3]=r*Math.sin(ph)*Math.cos(th); pa[i*3+1]=r*Math.sin(ph)*Math.sin(th); pa[i*3+2]=r*Math.cos(ph); }
+    const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pa, 3));
+    const parts = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0x9ec6ff, size: 0.035, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+    group.add(parts); this.parts = parts;
+    const SN = 300, sa = new Float32Array(SN * 3);
+    for (let i = 0; i < SN; i++) { const r = 9 + Math.random() * 13, th = Math.random() * 6.283, ph = Math.acos(2 * Math.random() - 1); sa[i*3]=r*Math.sin(ph)*Math.cos(th); sa[i*3+1]=r*Math.sin(ph)*Math.sin(th); sa[i*3+2]=r*Math.cos(ph)-6; }
+    const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sa, 3));
+    const stars = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xbfd0ff, size: 0.03, transparent: true, opacity: 0.45, depthWrite: false }));
+    scene.add(stars);
+
+    this.renderer = renderer; this.camera = camera; this.scene = scene;
+    try {
+      const composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), this.props.bloom ?? 0.5, 0.5, 0.62);
+      composer.addPass(bloom); composer.addPass(new OutputPass());
+      this.composer = composer; this.bloom = bloom;
+    } catch (e) { console.warn('composer failed', e); this.composer = null; }
+
+    const fit = () => {
+      const w = canvas.clientWidth || window.innerWidth, h = canvas.clientHeight || window.innerHeight;
+      renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+      if (this.composer) this.composer.setSize(w, h);
+      const half = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * this.CAMZ * camera.aspect;
+      const wide = THREE.MathUtils.clamp((camera.aspect - 0.78) / (1.6 - 0.78), 0, 1);
+      this._wideF = wide;
+      group.scale.setScalar(Math.min(1, half / 2.7) * (1 - wide * 0.4));
+      group.position.x = 0.15 + wide * 0.85;
+      this.setBloom();
+    };
+    this.fit = fit; window.addEventListener('resize', fit); fit();
+
+    const mo = { x: 0, y: 0 }, tg = { x: 0, y: 0 };
+    this._move = (e) => { mo.x = (e.clientX / window.innerWidth) * 2 - 1; mo.y = (e.clientY / window.innerHeight) * 2 - 1; };
+    window.addEventListener('pointermove', this._move);
+    this._readerKey = (e) => {
+      if (!this._readerWant) return;
+      if (e.key === 'ArrowLeft') this._newsShow((this._newsIdx || 0) + 1);
+      else if (e.key === 'ArrowRight') this._newsShow((this._newsIdx || 0) - 1);
+      else if (e.key === 'Escape') { this._readerWant = false; this.setState({ readerOpen: false }); }
+    };
+    window.addEventListener('keydown', this._readerKey);
+
+    const beat = (x) => Math.exp(-x * x * 62) + 0.5 * Math.exp(-(x - 0.26) * (x - 0.26) * 62);
+    const clock = new THREE.Clock();
+    const loop = () => {
+      const t = clock.getElapsedTime();
+      const ph = (t % 1.5) / 1.5, pulse = Math.min(1, beat(ph)) * (this.props.pulse ?? 1);
+      nodeU.uTime.value = t; nodeU.uPulse.value = pulse;
+      this.edgeMat.opacity = 0.17 + pulse * 0.18;
+      tg.x += (mo.x - tg.x) * 0.05; tg.y += (mo.y - tg.y) * 0.05;
+      group.rotation.y = t * 0.14 + tg.x * 0.6;
+      group.rotation.x = Math.sin(t * 0.2) * 0.07 + tg.y * 0.28;
+      this.pivot.rotation.z = -t * 0.9;
+      parts.rotation.y = t * 0.05;
+      stars.rotation.y = t * 0.012;
+      if (this.composer) this.composer.render(); else renderer.render(scene, camera);
+      this._raf = requestAnimationFrame(loop);
+    };
+    loop();
+  }
+
+  applyPalette() {
+    const p = this.PAL[this.props.palette] || this.PAL.Aurora;
+    if (this.nodeU) { this.nodeU.uColor.value.setHex(p.n1); this.nodeU.uColor2.value.setHex(p.n2); }
+    if (this.edgeMat) this.edgeMat.color.setHex(p.e);
+  }
+
+  setBloom() {
+    if (this.bloom) this.bloom.strength = (this.props.bloom ?? 0.5) * (1 - (this._wideF || 0) * 0.3);
+  }
+
+  async renderPdf() {
+    if (this._pdfBusy) return;
+    const el = this.pdfRef.current;
+    if (!el || !window.pdfjsLib) {
+      if (!el && !this._readerWant) return;
+      this._pdfRetry = (this._pdfRetry || 0) + 1;
+      if (this._pdfRetry < 80) { setTimeout(() => this.renderPdf(), 120); return; }
+      if (el) el.innerHTML = '<div style="padding:60px 20px;text-align:center;color:#6f685f;font-size:13.5px;width:100%">לא ניתן לטעון את הצפייה — פתחו בטאב חדש</div>';
+      return;
+    }
+    this._pdfBusy = true;
+    el.innerHTML = '<div style="padding:60px 20px;text-align:center;color:#6f685f;font-size:13.5px;width:100%">טוען את הגיליון…</div>';
+    try {
+      const lib = window.pdfjsLib;
+      lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf = await lib.getDocument('assets/orbit-news.pdf').promise;
+      if (!this._readerWant) { this._pdfBusy = false; return; }
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const cw = Math.max(280, Math.min(el.clientWidth - 40, 780));
+      el.innerHTML = '';
+      this._pageEls = [];
+      this._numPages = pdf.numPages;
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const base = page.getViewport({ scale: 1 });
+        const vp = page.getViewport({ scale: (cw / base.width) * dpr });
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.floor(vp.width); canvas.height = Math.floor(vp.height);
+        canvas.style.width = cw + 'px'; canvas.style.height = (vp.height / dpr) + 'px';
+        canvas.style.display = 'block'; canvas.style.background = '#fff'; canvas.style.border = '1px solid rgba(0,0,0,.18)'; canvas.style.boxShadow = '0 12px 34px -14px rgba(0,0,0,.55)';
+        const wrap = document.createElement('div');
+        wrap.style.margin = '0 auto'; wrap.style.display = (i === 1 ? 'block' : 'none');
+        wrap.appendChild(canvas);
+        el.appendChild(wrap);
+        this._pageEls.push(wrap);
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+        try { this._paperify(canvas); } catch (e) {}
+        if (!this._readerWant) break;
+      }
+      this._showReaderPage(0);
+    } catch (err) {
+      console.warn('pdf render failed', err);
+      const e2 = this.pdfRef.current;
+      if (e2) e2.innerHTML = '<div style="padding:60px 20px;text-align:center;color:#6f685f;font-size:13.5px;width:100%">לא ניתן להציג כאן — פתחו בטאב חדש</div>';
+    }
+    this._pdfBusy = false;
+  }
+
+  _paperify(canvas) {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const img = ctx.getImageData(0, 0, w, h);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      // light magenta/pink field -> newsprint cream; leave dark text, red accents, navy, white
+      if (r > 200 && b > 150 && g < r - 45 && g < b - 18) { d[i] = 244; d[i + 1] = 241; d[i + 2] = 233; }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  _mountNews() {
+    const el = this.pdfRef.current;
+    if (!el) {
+      if (!this._readerWant) return;
+      this._newsRetry = (this._newsRetry || 0) + 1;
+      if (this._newsRetry < 80) setTimeout(() => this._mountNews(), 100);
+      return;
+    }
+    if (el.querySelector('iframe')) return;
+    const f = document.createElement('iframe');
+    f.src = 'assets/orbit-flip.html';
+    f.title = 'העיתון של אורביט';
+    f.setAttribute('loading', 'eager');
+    f.style.cssText = 'width:100%;height:100%;border:none;display:block;background:#0b0c11';
+    el.appendChild(f);
+  }
+
+  _setupNewsPages() {
+    const host = this.pdfRef.current;
+    const f = host && host.querySelector('iframe');
+    let doc;
+    try { doc = f && f.contentDocument; } catch (e) { return; }
+    if (!doc) return;
+    const secs = Array.from(doc.querySelectorAll('.sheet > section'));
+    if (!secs.length) return;
+    secs.forEach(s => { s.style.minHeight = '100%'; });
+    this._newsSections = secs;
+    this._newsIdx = 0;
+    this._commitNews(0);
+  }
+
+  _commitNews(idx) {
+    const secs = this._newsSections || [];
+    if (!secs.length) return;
+    this._newsIdx = idx;
+    secs.forEach((s, i) => { s.style.display = i === idx ? '' : 'none'; });
+    const c = document.getElementById('orbitPage');
+    if (c) c.textContent = (idx + 1) + ' / ' + secs.length;
+    const host = this.pdfRef.current;
+    const f = host && host.querySelector('iframe');
+    try { if (f && f.contentWindow) f.contentWindow.scrollTo(0, 0); } catch (e) {}
+  }
+
+  _newsShow(n) {
+    const secs = this._newsSections || [];
+    if (!secs.length) return;
+    if (this._flipping) return;
+    const total = secs.length;
+    const idx = Math.max(0, Math.min(total - 1, n));
+    const cur = this._newsIdx || 0;
+    if (idx === cur) return;
+    const host = this.pdfRef.current;
+    if (!host) { this._commitNews(idx); return; }
+    const dir = idx > cur ? 1 : -1;
+    const outDeg = dir === 1 ? -92 : 92;
+    const inDeg = dir === 1 ? 88 : -88;
+    this._flipping = true;
+    host.style.transformOrigin = '50% 50%';
+    host.style.transition = 'transform .26s cubic-bezier(.4,0,.85,.35), box-shadow .26s ease';
+    host.style.boxShadow = (dir === 1 ? '' : '-') + '40px 0 60px -30px rgba(0,0,0,.55)';
+    host.style.transform = 'rotateY(' + outDeg + 'deg)';
+    setTimeout(() => {
+      this._commitNews(idx);
+      host.style.transition = 'none';
+      host.style.transform = 'rotateY(' + inDeg + 'deg)';
+      void host.offsetWidth;
+      host.style.transition = 'transform .3s cubic-bezier(.15,.7,.3,1), box-shadow .3s ease';
+      host.style.transform = 'rotateY(0deg)';
+      host.style.boxShadow = '0 0 0 rgba(0,0,0,0)';
+      setTimeout(() => { this._flipping = false; host.style.transition = ''; host.style.transform = ''; }, 320);
+    }, 260);
+  }
+
+  _showReaderPage(n) {
+    const els = this._pageEls || [];
+    if (!els.length) return;
+    const total = els.length;
+    const idx = Math.max(0, Math.min(total - 1, n));
+    this._readerIdx = idx;
+    els.forEach((w, i) => { w.style.display = i === idx ? 'block' : 'none'; });
+    const c = document.getElementById('orbitPage');
+    if (c) c.textContent = (idx + 1) + ' / ' + total;
+    const el = this.pdfRef.current; if (el) el.scrollTop = 0;
+  }
+
+  componentDidUpdate(prev, prevState) {
+    if (prev.palette !== this.props.palette) this.applyPalette();
+    if (prev.bloom !== this.props.bloom) this.setBloom();
+    if (prevState && !prevState.readerOpen && this.state.readerOpen) { this._pdfRetry = 0; this._pdfBusy = false; this.renderPdf(); }
+  }
+
+  componentWillUnmount() {
+    this._dead = true;
+    cancelAnimationFrame(this._raf);
+    if (this._chipTimer) clearInterval(this._chipTimer);
+    if (this.fit) window.removeEventListener('resize', this.fit);
+    if (this._move) window.removeEventListener('pointermove', this._move);
+    if (this._readerKey) window.removeEventListener('keydown', this._readerKey);
+  }
+
+  renderVals() {
+    const chips = ['אפס אקסלים', 'קבלות בלחיצה', 'כל שקל רשום', 'הנתונים שלכם מגובים', 'שלוש שכבות גיבוי', 'הכול סובב סביבכם', 'העסק שלכם במסלול', 'המערכת זוכרת', 'מוח אחד לכל העסק', 'מערכת משלכם בשיחה אחת', 'עובד באותו יום', 'כל הצוות מסונכרן', 'פחות ניירת, יותר עסק', 'סוף החודש? כפתור', 'הכול במקום אחד'];
+    const optBase = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '11px 12px', borderRadius: '11px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: 500, lineHeight: 1.2, textAlign: 'center', transition: '.18s', border: '1px solid rgba(255,255,255,.13)', background: 'rgba(255,255,255,.04)', color: 'rgba(255,255,255,.78)' };
+    const optAct = Object.assign({}, optBase, { background: 'rgba(122,142,255,.24)', borderColor: 'rgba(150,170,255,.65)', color: '#fff', fontWeight: 600 });
+    const one = (list, cur, set) => list.map(l => ({ label: l, style: cur === l ? optAct : optBase, onClick: () => set(l) }));
+    const multi = (list, arr, tog) => list.map(l => ({ label: l, style: arr.includes(l) ? optAct : optBase, onClick: () => tog(l) }));
+    const setK = (k) => (v) => this.setState({ [k]: v });
+    const togglePain = (v) => this.setState(s => { const p = s.pains || []; return { pains: p.includes(v) ? p.filter(x => x !== v) : [...p, v] }; });
+    const total = 5, cstep = this.state.step || 0;
+    const pw = this.state.password || '';
+    let psc = 0;
+    if (pw.length >= 8) psc++;
+    if (/[0-9]/.test(pw)) psc++;
+    if (/[^a-zA-Z0-9]/.test(pw) || (/[a-z]/.test(pw) && /[A-Z]/.test(pw))) psc++;
+    const ptier = pw.length === 0 ? 0 : (pw.length < 6 ? 1 : (psc <= 1 ? 1 : (psc === 2 ? 2 : 3)));
+    const pmap = { 0: ['0%', 'transparent', ''], 1: ['34%', '#ff8f6a', 'חלשה'], 2: ['67%', '#ffcf7a', 'בינונית'], 3: ['100%', '#5ee6a8', 'חזקה'] };
+    const pm = pmap[ptier];
+    return {
+      canvasRef: this.cvs,
+      pdfRef: this.pdfRef,
+      grainOn: this.props.grain ?? true,
+      chipsLoop: [...chips, ...chips],
+      email: this.state.email,
+      showEmailNote: this.state.emailFocused || (this.state.email || '').length > 0,
+      password: pw,
+      passType: this.state.showPass ? 'text' : 'password',
+      passHidden: !this.state.showPass,
+      passShown: !!this.state.showPass,
+      hasPassword: pw.length > 0,
+      pwWidth: pm[0], pwColor: pm[1], pwLabel: 'סיסמה ' + pm[2],
+      toggleShowPass: () => this.setState(s => ({ showPass: !s.showPass })),
+      onPassword: (e) => this.setState({ password: e.target.value, formError: '' }),
+      formError: this.state.formError || '',
+      hasFormError: !!this.state.formError,
+      readerOpen: this.state.readerOpen,
+      openReader: () => { this._readerWant = true; this._newsRetry = 0; this.setState({ readerOpen: true }); this._mountNews(); },
+      closeReader: () => { this._pdfBusy = false; this._readerWant = false; this.setState({ readerOpen: false }); },
+      readerPrev: () => this._newsShow((this._newsIdx || 0) - 1),
+      readerNext: () => this._newsShow((this._newsIdx || 0) + 1),
+      signupFromReader: () => { this._pdfBusy = false; this._readerWant = false; this.setState({ readerOpen: false }); setTimeout(() => { const el = document.querySelector('input[type=email]'); if (el) { el.focus(); el.select && el.select(); } }, 130); },
+      submitted: this.state.submitted,
+      notSubmitted: !this.state.submitted,
+      onEmail: (e) => this.setState({ email: e.target.value, formError: '' }),
+      onEmailFocus: () => this.setState({ emailFocused: true }),
+      onEmailBlur: () => this.setState({ emailFocused: false }),
+      onSubmit: (e) => { e.preventDefault(); const f = e.currentTarget; if (f && f.checkValidity && !f.checkValidity()) { f.reportValidity && f.reportValidity(); return; } if ((this.state.email || '').includes('@') && (this.state.password || '').length >= 6) this.setState({ submitted: true }); },
+      onReset: () => this.setState({ submitted: false }),
+      callbackOpen: this.state.callbackOpen,
+      callbackSent: this.state.callbackSent,
+      callbackNotSent: !this.state.callbackSent,
+      cbName: this.state.cbName,
+      cbPhone: this.state.cbPhone,
+      vision: this.state.vision,
+      notes: this.state.notes || '',
+      step0: cstep === 0, step1: cstep === 1, step2: cstep === 2, step3: cstep === 3, step4: cstep === 4,
+      notFirst: cstep > 0, notLast: cstep < total - 1, isLast: cstep === total - 1,
+      progressPct: Math.round(((cstep + 1) / total) * 100) + '%',
+      progressLabel: 'שלב ' + (cstep + 1) + ' מתוך ' + total,
+      industryOpts: one(['קליניקה', 'מוסך', 'עמותה', 'חנות', 'נותני שירות', 'אחר'], this.state.industry, setK('industry')),
+      sizeOpts: one(['1–10', '11–50', '51+'], this.state.size, setK('size')),
+      painOpts: multi(['אקסלים מפוזרים', 'גבייה וקבלות', 'תזכורות ומעקב', 'דוחות', 'כפילויות בעבודה', 'אחר'], this.state.pains || [], togglePain),
+      visionOpts: one(['לחסוך זמן', 'להגדיל הכנסות', 'סדר וארגון', 'פחות טעויות', 'לצמוח'], this.state.vision, setK('vision')),
+      sourceOpts: one(['המלצה', 'גוגל', 'רשתות חברתיות', 'כתבה', 'אירוע', 'אחר'], this.state.source, setK('source')),
+      timeOpts: one(['בוקר', 'צהריים', 'ערב'], this.state.cbTime, setK('cbTime')),
+      openCallback: () => this.setState({ callbackOpen: true, callbackSent: false, step: 0 }),
+      closeCallback: () => this.setState({ callbackOpen: false }),
+      stop: (e) => e.stopPropagation(),
+      next: () => this.setState(s => ({ step: Math.min(total - 1, s.step + 1) })),
+      back: () => this.setState(s => ({ step: Math.max(0, s.step - 1) })),
+      onVision: (e) => this.setState({ vision: e.target.value }),
+      onNotes: (e) => this.setState({ notes: e.target.value }),
+      onCbName: (e) => this.setState({ cbName: e.target.value }),
+      onCbPhone: (e) => this.setState({ cbPhone: e.target.value }),
+      onCbSubmit: (e) => { e.preventDefault(); const f = e.currentTarget; if (f && f.checkValidity && !f.checkValidity()) { f.reportValidity && f.reportValidity(); return; } this.setState({ callbackSent: true }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

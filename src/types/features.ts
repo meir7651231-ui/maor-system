@@ -27,7 +27,8 @@ export interface FeatureDef {
     | 'home'
     | 'settings'
     | 'core'
-    | 'shell';
+    | 'shell'
+    | 'signup';
 }
 
 export const FEATURES: FeatureDef[] = [
@@ -166,6 +167,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'shell.a11yfab', label: 'כפתור נגישות צף ♿', desc: 'FAB נגיש מכל מסך — גודל אותיות 80%-160% בצעדי 10%, ניגודיות, הדגשה, עצירת אנימציות וריווח', module: 'shell' },
   { key: 'shell.roles', label: 'תפקיד מורה', desc: 'מורה מחוברת (roles.teachers בקונפיג) רואה רק את החוגים שלה; הוספה/עריכה/מחיקה והגדרות מוסתרות', module: 'shell' },
   { key: 'shell.armdel', label: 'מחיקה בשני קליקים', desc: 'מחיקות משפחה/בן משפחה/חוג/שיבוץ בדפוס חימוש-ופקיעה 3.5ש׳ כמו בקובץ החי; כבוי = דיאלוג אישור של הדפדפן', module: 'shell' },
+  { key: 'signup.hero3d', label: 'כדור-מוח תלת-ממד בהרשמה', desc: 'ה-Hero של מסך ההרשמה (אורביט) מציג כדור-מוח Three.js חי; כבוי ⇒ רקע סטטי (טעינה מהירה / מכשיר חלש)', module: 'signup' },
 
   // ——— ליבה ———
   { key: 'core.receipts', label: 'קבלות להורדה', desc: 'הפקת קבלות להורדה על תשלומים ותרומות', module: 'core' },

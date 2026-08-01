@@ -38,6 +38,7 @@ import { DemoDrop } from './components/DemoDrop';
 import { DayGate } from './components/wheel/DayGate';
 import { LoginScreen, PendingApprovalScreen } from './components/cloud/LoginScreen';
 import { PlatformPanel } from './components/platform/PlatformPanel';
+import { AdminHub } from './components/AdminHub';
 import { LockScreen } from './components/lock/LockScreen';
 import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
@@ -137,6 +138,8 @@ export default function App() {
   const [tourOpen, setTourOpen] = useState(() => window.location.hash === '#tour');
   // לוח הבקרה של הפלטפורמה — #platform, למיילי-על בלבד (CLOUD2 ענן 4)
   const [platformOpen, setPlatformOpen] = useState(() => window.location.hash === '#platform');
+  // כניסת-הניהול (ADMINHUB) — בורר קטן; נפתח מכפתור 🛠 (מנהל-על בלבד), לא מ-hash
+  const [adminHubOpen, setAdminHubOpen] = useState(false);
   useEffect(() => {
     const onHash = () => {
       setBuilderOpen(window.location.hash === '#builder');
@@ -250,6 +253,10 @@ export default function App() {
   // תפקיד מורה (P3 פריט 15, הכרעה 2): כניסות ההגדרות (ודרכן הייבוא) מוסתרות.
   // בלי ענן/בלי roles — false ⇒ התנהגות של היום בדיוק. דגל shell.roles.
   const isTeacherUser = featureOn(config, 'shell.roles') && roleOf(config, cloud.user?.email) === 'teacher';
+  // כניסת-הניהול הגלויה (ADMINHUB) — מגודרת isSuperAdmin **בלבד** (לא
+  // isAdminUser, שמחזיר true לכולם כשאין adminEmails). אצל לקוח/משתמש רגיל
+  // הכפתור פשוט לא קיים ב-DOM.
+  const canAdminHub = isSuperAdmin(cloud.user?.email);
 
   const Current = VIEWS[view];
   const syncDot = SYNC_DOT[cloud.status] ?? SYNC_DOT.idle;
@@ -295,6 +302,32 @@ export default function App() {
       style={{ fontWeight: 800, fontSize: 13, padding: '4px 10px', borderRadius: 9, cursor: 'pointer' }}
     >
       ↩ חזרה
+    </button>
+  );
+
+  // כפתור כניסת-הניהול 🛠 — מגודר canAdminHub (isSuperAdmin בלבד). שתי גרסאות:
+  // nav-gear לשלד העליון, side-link לשני שלדי-הצד. פותח את הבורר AdminHub.
+  const adminGearBtn: ReactNode = canAdminHub && (
+    <button
+      type="button"
+      className="nav-gear"
+      onClick={() => setAdminHubOpen(true)}
+      title="ניהול פלטפורמה"
+      aria-label="ניהול פלטפורמה"
+    >
+      <span aria-hidden>🛠</span>
+    </button>
+  );
+  const adminSideBtn: ReactNode = canAdminHub && (
+    <button
+      type="button"
+      className="side-link"
+      onClick={() => setAdminHubOpen(true)}
+      title="ניהול פלטפורמה"
+      aria-label="ניהול פלטפורמה"
+    >
+      <span className="side-ico" aria-hidden>🛠</span>
+      <span className="nav-label">ניהול</span>
     </button>
   );
 
@@ -394,6 +427,7 @@ export default function App() {
               <span aria-hidden>▶</span>
             </button>
           )}
+          {adminGearBtn}
           {!isTeacherUser && (
             <button
               type="button"
@@ -450,6 +484,7 @@ export default function App() {
               <span className="nav-label">הגדרות</span>
             </button>
           )}
+          {adminSideBtn}
         </nav>
         <div className="side-sp" aria-hidden />
         {backBtn}
@@ -515,6 +550,7 @@ export default function App() {
             <span className="nav-label">הגדרות</span>
           </button>
         )}
+        {adminSideBtn}
       </aside>
       <div className="side-body">
         <header className="side-head">
@@ -561,6 +597,24 @@ export default function App() {
       {shell === 'side' ? sideShell : shell === 'side-wide' ? sideWideShell : topShell}
 
       {paletteOpen && <CommandPalette />}
+
+      {/* כניסת-הניהול (ADMINHUB) — נפתחת רק ממנהל-על (הכפתור מגודר canAdminHub);
+          הבורר מנתב לכלים דרך ה-hash כך שהקישורים הישנים ממשיכים לעבוד */}
+      {adminHubOpen && canAdminHub && (
+        <AdminHub
+          onClose={() => setAdminHubOpen(false)}
+          onOpenPlatform={() => {
+            setAdminHubOpen(false);
+            window.location.hash = '#platform';
+            setPlatformOpen(true);
+          }}
+          onOpenBuilder={() => {
+            setAdminHubOpen(false);
+            window.location.hash = '#builder';
+            setBuilderOpen(true);
+          }}
+        />
+      )}
 
       {builderOpen &&
         (!isAdmin ? (

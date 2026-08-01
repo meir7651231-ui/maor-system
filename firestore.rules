@@ -41,6 +41,16 @@ service cloud.firestore {
       allow read, delete: if superAdmin();
     }
 
+    // לידים "נחזור אליכם" (SIGNUP) — לכידת-ליד ציבורית **בלי חשבון**:
+    // create בלבד (בלי אימות), שדות מוגבלים; קריאה/מחיקה — מיילי-על. אין
+    // read ⇒ אי-אפשר למנות/לדלות לידים; בטוח מספיק לטופס-יצירת-קשר.
+    match /platformLeads/{leadId} {
+      allow create: if request.resource.data.keys().hasOnly(['contactName', 'phone', 'preferredTime', 'notes', 'at'])
+        && request.resource.data.phone is string
+        && request.resource.data.contactName is string;
+      allow read, update, delete: if superAdmin();
+    }
+
     // מסמכי הארגונים: קריאה — חבר או מייל-על; כתיבה — מיילי-על בלבד.
     match /platformOrgs/{slug} {
       allow read: if superAdmin() || orgMember(slug);
