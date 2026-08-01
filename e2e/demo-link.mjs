@@ -47,8 +47,10 @@ await wait(1600); // המתנה לזריעה האוטומטית של demo.json +
 
 const txt = await mainTxt();
 
-// 1. אין מסך-התחברות/ענן — הקונפיג בלי firebase
-T('אין מסך התחברות/הרשמה של ענן', !txt.includes('כניסה למערכת') && !txt.includes('הרשמה לאורביט') && !/סיסמה/.test(await (await page.locator('main').textContent().catch(() => '')) ?? txt) || (await page.locator('nav').count()) > 0);
+// 1. אין מסך-התחברות/ענן — הקונפיג בלי firebase ⇒ הניווט הראשי נטען ישר
+//    (אם הענן היה דלוק, LoginScreen היה מוצג במקום השלד — אין nav).
+const navCount = await page.locator('nav').count();
+T('אין מסך התחברות של ענן — השלד נטען ישר', navCount > 0);
 
 // 2. סרט "מצב הדגמה" מוצג
 T('סרט "מצב הדגמה" מוצג', txt.includes('מצב הדגמה'));
