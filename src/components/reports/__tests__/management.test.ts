@@ -34,6 +34,13 @@ function db(): Db {
       { collections: [{ amount: 100 }, { amount: 50 }] } as Db['tzBoxes'][number],
       { collections: [{ amount: 25 }] } as Db['tzBoxes'][number],
     ],
+    supporters: [
+      { id: 's1', donations: [
+        { rid: 'D-1', date: '', amount: 500, cur: '₪', cat: '', designation: 'אמץ משפחת כהן' },
+        { rid: 'D-2', date: '', amount: 300, cur: '₪', cat: '', designation: 'אמץ משפחת כהן' },
+        { rid: 'D-3', date: '', amount: 100, cur: '₪', cat: 'כללי' }, // בלי ייעוד — לא נספר
+      ] } as Db['supporters'][number],
+    ],
   };
 }
 
@@ -63,6 +70,12 @@ describe('📊 ratchet — מבט הנהלה', () => {
 
   it('משפחות פעילות', () => {
     expect(val(g, '👨‍👩‍👧 משפחות', 'משפחות פעילות')).toBe(2);
+  });
+
+  it('אימוצים (אמץ חתן) — קיבוץ פר-ייעוד; תרומה בלי ייעוד לא נספרת', () => {
+    expect(val(g, '🤝 אימוצים (אמץ חתן)', 'אמץ משפחת כהן')).toContain('2 תרומות');
+    expect(val(g, '🤝 אימוצים (אמץ חתן)', 'אמץ משפחת כהן')).toContain('800'); // 500+300
+    expect(val(g, '🤝 אימוצים (אמץ חתן)', 'סה"כ אימוצים (₪)')).toBe(800);
   });
 
   it('🛡 קריאה-בלבד — אין כתיבה/מוני-קבלות במקור', () => {
