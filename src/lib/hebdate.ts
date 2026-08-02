@@ -113,3 +113,31 @@ export function isoToHebParts(iso: string): { day: number; monthHe: string; year
   if (!monthHe || !p.day || !p.year) return null;
   return { day: p.day, monthHe, year: p.year };
 }
+
+/**
+ * ולידציית-ריצה (ANALYSIS §5 בינוני #2): כל המערכת נשענת על שמות-החודשים
+ * האנגליים ש-Intl (לוח 'hebrew') מפיק ('Tishri','Kislev'…). שינוי איות ב-CLDR
+ * בעדכון-דפדפן עתידי ישבור המרות-תאריך **בשקט**. הפונקציה סורקת שנה עברית ומחזירה
+ * שמות-חודשים שאינם מוכרים (ריק = תקין). נבדקת ב-CI (רשת-ביטחון אמיתית) + נקראת
+ * פעם-אחת בזול בטעינה (בדיקת חודש-היום) עם console.warn — כדי שהשבירה תהיה רועשת.
+ */
+const KNOWN_MONTHS_EN = new Set<string>([...ORDER_COMMON, ...ORDER_LEAP]); // כולל 'Adar' + 'Adar I/II'
+export function validateHebMonthNames(hebYear: number = hebYearNow()): string[] {
+  const known = KNOWN_MONTHS_EN;
+  const unknown: string[] = [];
+  const seen = new Set<string>();
+  const gy = hebYear - 3761;
+  for (let i = 0; i < 440; i++) {
+    const p = hebParts(new Date(gy, 7, 1 + i, 12));
+    if (p.year !== hebYear || seen.has(p.month)) continue;
+    seen.add(p.month);
+    if (!known.has(p.month)) unknown.push(p.month);
+  }
+  return unknown;
+}
+
+// שער-ריצה זול (O(1)): שם-החודש של היום חייב להיות מוכר. שינוי CLDR ⇒ אזהרה
+// רועשת בקונסולה במקום המרות-תאריך שגויות בשקט. אין throw — לא מפילים את האפליקציה.
+if (!KNOWN_MONTHS_EN.has(hebParts(new Date()).month)) {
+  console.warn('⚠ שם חודש עברי לא-צפוי מ-Intl — ייתכן שינוי CLDR שישבור המרות תאריך. הריצו validateHebMonthNames().');
+}

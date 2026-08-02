@@ -211,6 +211,7 @@ function NotifSection() {
 function ResetSection() {
   const resetAll = useApp((s) => s.resetAll);
   const exportBackup = useApp((s) => s.exportBackup);
+  const cloudOn = useApp((s) => s.cloud.enabled);
   const [confirmText, setConfirmText] = useState('');
   const armed = confirmText.trim() === 'מחיקה';
 
@@ -221,6 +222,24 @@ function ResetSection() {
         אירועים, תורמים, מורים, חדרים והגדרות. אין דרך לשחזר בלי קובץ גיבוי. מומלץ מאוד להוריד
         גיבוי מלא לפני.
       </p>
+      {cloudOn && (
+        <div
+          style={{
+            border: '1px solid var(--red)',
+            background: 'color-mix(in srgb, var(--red) 8%, transparent)',
+            borderRadius: 8,
+            padding: '10px 12px',
+            marginBottom: 12,
+            fontSize: 13.5,
+            lineHeight: 1.6,
+            color: 'var(--ink)',
+          }}
+        >
+          ⚠️ <b>הענן מחובר.</b> האיפוס אינו מקומי בלבד — הוא <b>מוחק גם את העותק בענן</b>, וכך
+          מוחק את הנתונים <b>בכל המכשירים המחוברים</b> (לא רק במחשב זה). ודאו שיש גיבוי, ושאף אחד
+          אינו עובד כרגע.
+        </div>
+      )}
       <div style={{ marginBottom: 12 }}>
         <Btn sm onClick={exportBackup}>
           ⬇ הורדת גיבוי מלא לפני האיפוס
