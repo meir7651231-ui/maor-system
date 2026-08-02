@@ -80,6 +80,7 @@ function OrgSection() {
   const orgSite = useApp((s) => s.db.orgSite);
   const orgDonate = useApp((s) => s.db.orgDonate);
   const orgGoal = useApp((s) => s.db.orgGoal);
+  const budget = useApp((s) => s.db.budget);
   const setDb = useApp((s) => s.setDb);
   const toast = useApp((s) => s.toast);
 
@@ -88,25 +89,29 @@ function OrgSection() {
     site: orgSite,
     donate: orgDonate,
     goal: orgGoal > 0 ? String(orgGoal) : '',
+    budget: budget > 0 ? String(budget) : '',
   });
   const [error, setError] = useState('');
 
   // סנכרון אחרי שחזור מגיבוי / ייבוא
   useEffect(() => {
-    setF({ name: orgName, site: orgSite, donate: orgDonate, goal: orgGoal > 0 ? String(orgGoal) : '' });
-  }, [orgName, orgSite, orgDonate, orgGoal]);
+    setF({ name: orgName, site: orgSite, donate: orgDonate, goal: orgGoal > 0 ? String(orgGoal) : '', budget: budget > 0 ? String(budget) : '' });
+  }, [orgName, orgSite, orgDonate, orgGoal, budget]);
 
   function save() {
     const name = f.name.trim();
     if (!name) return setError('שם הארגון הוא שדה חובה');
     const goalNum = Number(f.goal.trim() || 0);
     if (!Number.isFinite(goalNum) || goalNum < 0) return setError('יעד הגיוס חייב להיות מספר חיובי (או ריק)');
+    const budgetNum = Number(f.budget.trim() || 0);
+    if (!Number.isFinite(budgetNum) || budgetNum < 0) return setError('יעד התקציב חייב להיות מספר חיובי (או ריק)');
     setError('');
     setDb({
       orgName: name,
       orgSite: f.site.trim(),
       orgDonate: f.donate.trim(),
       orgGoal: Math.round(goalNum),
+      budget: Math.round(budgetNum),
     });
     toast('פרטי הארגון נשמרו ✓');
   }
@@ -141,6 +146,15 @@ function OrgSection() {
             onChange={(v) => setF((p) => ({ ...p, goal: v }))}
             dir="ltr"
             placeholder="0 = ללא יעד — קיר ההשפעה יציג את הסכום בלבד"
+          />
+        </Field>
+        <Field label="יעד תקציב סיוע (₪)">
+          <TextInput
+            type="number"
+            value={f.budget}
+            onChange={(v) => setF((p) => ({ ...p, budget: v }))}
+            dir="ltr"
+            placeholder="0 = ללא יעד — מבט-ההנהלה יציג את הסבסוד בלבד"
           />
         </Field>
       </div>

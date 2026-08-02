@@ -11,6 +11,7 @@ import mgmtSrc from '../management.tsx?raw';
 function db(): Db {
   return {
     ...emptyDb(),
+    budget: 0,
     families: [
       { status: 'active' } as Db['families'][number],
       { status: 'active' } as Db['families'][number],
@@ -86,6 +87,24 @@ describe('📊 ratchet — מבט הנהלה', () => {
     expect(val(g, '💰 התחשבנות', 'סבסוד נטו (העמותה ספגה)')).toBe('₪70'); // 180-110
     expect(val(g, '💰 התחשבנות', 'עלות רכש מלאי')).toBe('₪50'); // 40+10
     expect(val(g, '💰 התחשבנות', 'מימון אימוצים (הכנסה מיועדת)')).toBe('₪800');
+  });
+
+  it('יעד-תקציב (SHOP9) — 0 ⇒ אין שורות-תקציב; >0 ⇒ נותר/ניצול; חריגה כשסבסוד גובר', () => {
+    // budget=0 (ברירת-מחדל ב-db()) — אין שורת יעד/נותר/חריגה
+    expect(val(g, '💰 התחשבנות', 'יעד תקציב סיוע')).toBeUndefined();
+    expect(val(g, '💰 התחשבנות', 'נותר מהתקציב')).toBeUndefined();
+
+    // תקציב מעל הסבסוד (180-110=70) ⇒ נותר + ניצול
+    const under = managementMetrics({ ...db(), budget: 100 });
+    expect(val(under, '💰 התחשבנות', 'יעד תקציב סיוע')).toBe('₪100');
+    expect(val(under, '💰 התחשבנות', 'נותר מהתקציב')).toBe('₪30'); // 100-70
+    expect(val(under, '💰 התחשבנות', 'ניצול התקציב')).toBe('70%'); // 70/100
+
+    // תקציב מתחת לסבסוד ⇒ חריגה (בלי "נותר")
+    const over = managementMetrics({ ...db(), budget: 50 });
+    expect(val(over, '💰 התחשבנות', '⚠ חריגה מהתקציב')).toBe('₪20'); // 70-50
+    expect(val(over, '💰 התחשבנות', 'נותר מהתקציב')).toBeUndefined();
+    expect(val(over, '💰 התחשבנות', 'ניצול התקציב')).toBe('140%'); // 70/50
   });
 
   it('🛡 קריאה-בלבד — אין כתיבה/מוני-קבלות במקור', () => {
