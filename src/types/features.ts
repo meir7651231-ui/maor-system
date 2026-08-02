@@ -89,6 +89,7 @@ export const FEATURES: FeatureDef[] = [
 
   // ——— תורמים ———
   { key: 'supporters.rfm', label: 'דירוג תורמים', desc: 'דירוג RFM — תדירות, עדכניות וסכום תרומות', module: 'supporters' },
+  { key: 'supporters.sponsor', label: 'אמץ חתן/משפחה 🤝', desc: 'ייעוד תרומה לנהנה (אמץ חתן) — קבלת מס אמיתית (D-) עם ייעוד; סיכום אימוצים במבט-הנהלה', module: 'supporters' },
   { key: 'supporters.nextdate', label: 'יעדי קשר', desc: 'תזכורות ותאריכי יעד לקשר הבא עם תורם', module: 'supporters' },
   { key: 'supporters.ayin', label: 'מעקב טיפול רב-שלבי', desc: 'תהליך טיפול מרובה-שלבים לכל תומך/ת — שמות, מעקב, תזכורות ודוח יומי', module: 'supporters' },
   { key: 'supporters.multicur', label: 'מטבע כפול (₪/$)', desc: 'אפשרות לבחור מטבע דולר ברישום תרומה — כבוי: הכול בשקלים', module: 'supporters' },

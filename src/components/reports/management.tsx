@@ -33,12 +33,33 @@ export function managementMetrics(db: Db): MetricGroup[] {
 
   const activeFams = db.families.filter((f) => f.status === 'active').length;
 
-  return [
+  // אימוצים (SHOP9 "אמץ חתן") — תרומות מיועדות; קבוצה פר-ייעוד עם סה"כ.
+  const sponsor = new Map<string, { n: number; ils: number }>();
+  for (const s of db.supporters) {
+    for (const d of s.donations) {
+      if (!d.designation) continue;
+      const g = sponsor.get(d.designation) ?? { n: 0, ils: 0 };
+      g.n++;
+      if (d.cur !== '$') g.ils += d.amount;
+      sponsor.set(d.designation, g);
+    }
+  }
+
+  const groups: MetricGroup[] = [
     { title: '🚚 חלוקה', rows: [['ימי חלוקה', db.distributionDays.length], ['מסירות סה"כ', deliveries.length], ['נמסרו', delivered], ['משפחות שקיבלו', famReached], ['מתנדבים פעילים', activeVols]] },
     { title: '🛍 חנות', rows: [['שיוכים פעילים', activeAssign], ['מימושים', redemptions]] },
     { title: '🪙 קופות צדקה', rows: [['קופות', db.tzBoxes.length], ['ריקונים', collections], ['סה"כ נאסף (₪)', tzTotal]] },
     { title: '👨‍👩‍👧 משפחות', rows: [['משפחות פעילות', activeFams], ['סה"כ משפחות', db.families.length]] },
   ];
+
+  if (sponsor.size > 0) {
+    const rows: [string, number | string][] = [...sponsor.entries()].map(([name, g]) => [name, `${g.n} תרומות · ₪${g.ils.toLocaleString('he-IL')}`]);
+    const totalIls = [...sponsor.values()].reduce((a, g) => a + g.ils, 0);
+    rows.push(['סה"כ אימוצים (₪)', totalIls]);
+    groups.push({ title: '🤝 אימוצים (אמץ חתן)', rows });
+  }
+
+  return groups;
 }
 
 export function ManagementSection(props: { db: Db; hidden: boolean; onPrint: () => void }) {

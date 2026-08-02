@@ -24,6 +24,9 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
   const [amount, setAmount] = useState('');
   const [cur, setCur] = useState<'₪' | '$'>('₪');
   const [cat, setCat] = useState(props.supporter.cat || '');
+  // ייעוד "אמץ חתן/משפחה" (SHOP9) — מגודר supporters.sponsor
+  const sponsorOn = featureOn(config, 'supporters.sponsor');
+  const [designation, setDesignation] = useState('');
   const [error, setError] = useState('');
 
   function save() {
@@ -38,7 +41,8 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
     }
     // הקבלה יורדת רק כשה-store קיבל את התרומה, ועם ה-rid שהונפק בפועל —
     // קודם ניחשנו rid מ-donationSeq והורדנו קבלה גם על דחייה (rid שמעולם לא הונפק).
-    const res = addDonation(props.supporter.id, { date, amount: amt, cur, cat: cat.trim() });
+    const desig = sponsorOn ? designation.trim() : '';
+    const res = addDonation(props.supporter.id, { date, amount: amt, cur, cat: cat.trim(), ...(desig ? { designation: desig } : {}) });
     if (!res.ok || !res.rid) {
       props.onClose(); // ה-store כבר הציג טוסט דחייה (התומכת נעלמה)
       return;
@@ -55,7 +59,7 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         amount: amt,
         currency: cur,
         date,
-        forWhat: 'תרומה — ' + (cat.trim() || 'כללי'),
+        forWhat: desig ? 'אימוץ — ' + desig : 'תרומה — ' + (cat.trim() || 'כללי'),
         // קבלת סעיף 46 פורמלית — כשהיכולת דלוקה
         taxReceipt,
         orgTaxId: cfg.orgTaxId,
@@ -104,6 +108,11 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         <Field label="קטגוריה">
           <TextInput value={cat} onChange={setCat} placeholder="מלגות, פעילות, כללי…" />
         </Field>
+        {sponsorOn && (
+          <Field label="ייעוד — אמץ חתן/משפחה (אופציונלי)">
+            <TextInput value={designation} onChange={setDesignation} placeholder="למשל: אמץ משפחת כהן / חתונת דוד" />
+          </Field>
+        )}
       </div>
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>
