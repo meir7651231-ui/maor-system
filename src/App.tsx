@@ -44,6 +44,7 @@ import { PlatformPanel } from './components/platform/PlatformPanel';
 import { AdminHub } from './components/AdminHub';
 import { LockScreen } from './components/lock/LockScreen';
 import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
+import { CloudUnlockScreen } from './components/lock/CloudUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
 
 /** צבע נקודת הסטטוס של סנכרון הענן — ירוק = synced. */
@@ -266,6 +267,17 @@ export default function App() {
     return (
       <>
         <PendingApprovalScreen />
+        {toastsEl}
+      </>
+    );
+  }
+
+  // שער הצפנת-ענן (opt-in) — לארגון יש envelope ואין DEK: פתיחה בסיסמת-הצפנה
+  // לפני הכניסה. ‏needUnlock=undefined ללקוח לא-מוצפן ⇒ הגייט מדלג (ביט-זהה).
+  if (cloud.enabled && cloud.needUnlock) {
+    return (
+      <>
+        <CloudUnlockScreen />
         {toastsEl}
       </>
     );

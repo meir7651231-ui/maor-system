@@ -26,7 +26,7 @@ export function getCloudDek(): CryptoKey | null {
 }
 
 // יצוא-מחדש של שכבת ה-auth — ל-useApp יש import דינמי אחד בלבד (המודול הזה)
-export { initCloud, resetPassword, setCloudScope, signIn, signOutCloud, signUp, watchAuth } from '../lib/cloud';
+export { encryptExistingCloud, initCloud, readCloudEnvelope, resetPassword, setCloudScope, signIn, signOutCloud, signUp, watchAuth, writeCloudEnvelope } from '../lib/cloud';
 export type { CloudUser } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
 export { deleteOrgRequest, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgLeads, fetchOrgRequests, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
