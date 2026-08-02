@@ -114,7 +114,12 @@ export function parseAnyDate(v: string): string {
     const day = +m[1];
     const mon = +m[2];
     let y = +m[3];
-    if (y < 100) y += y > 26 ? 1900 : 2000;
+    // ציר דו-ספרתי דינמי: עד ~10 שנים קדימה = 20xx, אחרת 19xx. מתעדכן עם הזמן —
+    // היה קשיח על 26 ⇒ מ-2027 "27" היה נקרא בשקט כ-1927 (זיהום נתונים בייבוא).
+    if (y < 100) {
+      const cut = (new Date().getFullYear() % 100) + 10;
+      y += y <= cut ? 2000 : 1900;
+    }
     // אימות טווח + קיום התאריך בפועל (31/02, חודש 13 וכו' → ריק, לא זבל)
     if (mon < 1 || mon > 12 || day < 1 || day > 31) return '';
     const probe = new Date(Date.UTC(y, mon - 1, day));
