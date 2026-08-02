@@ -14,8 +14,9 @@ import { isoDaysAgo } from '../../lib/date-util';
 import { AttendanceSection, EnrollmentSection } from './sections1';
 import { DonationsSection, FamiliesSection, PunchSection } from './sections2';
 import { ReportPrefsSection } from './prefs';
+import { ManagementSection } from './management';
 
-type SectionId = 'enroll' | 'attend' | 'donations' | 'families' | 'punch';
+type SectionId = 'enroll' | 'attend' | 'donations' | 'families' | 'punch' | 'management';
 
 /** קיצורי טווח נפוצים. */
 function presets(): { label: string; range: DateRange }[] {
@@ -138,6 +139,9 @@ export function ReportsView() {
       )}
       {coursesOn && featureOn(config, 'reports.punch') && (
         <PunchSection db={db} hidden={hide('punch')} onPrint={() => setPrinting('punch')} />
+      )}
+      {featureOn(config, 'reports.management') && (
+        <ManagementSection db={db} hidden={hide('management')} onPrint={() => setPrinting('management')} />
       )}
 
       {featureOn(config, 'reports.periodic') && <ReportPrefsSection />}
