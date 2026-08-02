@@ -27,9 +27,10 @@ function db(): Db {
       { id: 'x3', familyId: 'f2', status: 'delivered' } as Db['deliveries'][number],
     ],
     shopAssignments: [
-      { status: 'active', redemptions: [{ voidedAt: undefined }, { voidedAt: '2026-01-01' }] } as Db['shopAssignments'][number],
-      { status: 'done', redemptions: [{ voidedAt: undefined }] } as Db['shopAssignments'][number],
+      { status: 'active', redemptions: [{ voidedAt: undefined, value: 100, paid: 30 }, { voidedAt: '2026-01-01', value: 50, paid: 0 }] } as Db['shopAssignments'][number],
+      { status: 'done', redemptions: [{ voidedAt: undefined, value: 80, paid: 80 }] } as Db['shopAssignments'][number],
     ],
+    shopIntakes: [{ cost: 40 } as Db['shopIntakes'][number], { cost: 10 } as Db['shopIntakes'][number]],
     tzBoxes: [
       { collections: [{ amount: 100 }, { amount: 50 }] } as Db['tzBoxes'][number],
       { collections: [{ amount: 25 }] } as Db['tzBoxes'][number],
@@ -76,6 +77,15 @@ describe('📊 ratchet — מבט הנהלה', () => {
     expect(val(g, '🤝 אימוצים (אמץ חתן)', 'אמץ משפחת כהן')).toContain('2 תרומות');
     expect(val(g, '🤝 אימוצים (אמץ חתן)', 'אמץ משפחת כהן')).toContain('800'); // 500+300
     expect(val(g, '🤝 אימוצים (אמץ חתן)', 'סה"כ אימוצים (₪)')).toBe(800);
+  });
+
+  it('התחשבנות (SHOP9) — שווי/נגבה/סבסוד/עלות-מלאי/מימון (מבוטל מוחרג)', () => {
+    // given = 100 (active) + 80 (done) = 180; המבוטל (50) מוחרג
+    expect(val(g, '💰 התחשבנות', 'שווי שחולק למוטבים')).toBe('₪180');
+    expect(val(g, '💰 התחשבנות', 'נגבה מהמוטבים')).toBe('₪110'); // 30+80
+    expect(val(g, '💰 התחשבנות', 'סבסוד נטו (העמותה ספגה)')).toBe('₪70'); // 180-110
+    expect(val(g, '💰 התחשבנות', 'עלות רכש מלאי')).toBe('₪50'); // 40+10
+    expect(val(g, '💰 התחשבנות', 'מימון אימוצים (הכנסה מיועדת)')).toBe('₪800');
   });
 
   it('🛡 קריאה-בלבד — אין כתיבה/מוני-קבלות במקור', () => {

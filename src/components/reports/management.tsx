@@ -6,7 +6,7 @@
 import type { Db } from '../../types/domain';
 import type { Cell } from './csv';
 import { ReportTable, Section } from './parts';
-import { expiringIntakes } from '../shop/lib';
+import { expiringIntakes, givenValue, collectedPaid, subsidyTotal } from '../shop/lib';
 import { isoToday } from '../../lib/date-util';
 
 export interface MetricGroup {
@@ -54,12 +54,30 @@ export function managementMetrics(db: Db): MetricGroup[] {
     { title: '👨‍👩‍👧 משפחות', rows: [['משפחות פעילות', activeFams], ['סה"כ משפחות', db.families.length]] },
   ];
 
+  const sponsorTotal = [...sponsor.values()].reduce((a, g) => a + g.ils, 0);
   if (sponsor.size > 0) {
     const rows: [string, number | string][] = [...sponsor.entries()].map(([name, g]) => [name, `${g.n} תרומות · ₪${g.ils.toLocaleString('he-IL')}`]);
-    const totalIls = [...sponsor.values()].reduce((a, g) => a + g.ils, 0);
-    rows.push(['סה"כ אימוצים (₪)', totalIls]);
+    rows.push(['סה"כ אימוצים (₪)', sponsorTotal]);
     groups.push({ title: '🤝 אימוצים (אמץ חתן)', rows });
   }
+
+  // 💰 התחשבנות (SHOP9 back-office) — תמונת-הכסף של הסיוע, אגרגציה טהורה:
+  // שווי שחולק · נגבה מהמוטבים · סבסוד-נטו (מה שהעמותה ספגה) · עלות-מלאי · מימון-אימוצים.
+  const given = givenValue(db.shopAssignments);
+  const paid = collectedPaid(db.shopAssignments);
+  const subsidy = subsidyTotal(db.shopAssignments);
+  const intakeCost = db.shopIntakes.reduce((a, x) => a + (x.cost || 0), 0);
+  const ils = (n: number) => '₪' + Math.round(n).toLocaleString('he-IL');
+  groups.push({
+    title: '💰 התחשבנות',
+    rows: [
+      ['שווי שחולק למוטבים', ils(given)],
+      ['נגבה מהמוטבים', ils(paid)],
+      ['סבסוד נטו (העמותה ספגה)', ils(subsidy)],
+      ['עלות רכש מלאי', ils(intakeCost)],
+      ['מימון אימוצים (הכנסה מיועדת)', ils(sponsorTotal)],
+    ],
+  });
 
   return groups;
 }
