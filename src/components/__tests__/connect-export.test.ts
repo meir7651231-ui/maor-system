@@ -6,10 +6,12 @@
 import { describe, expect, it } from 'vitest';
 import { collectionsCsvRows, coordinatorPrintLines } from '../tzedaka/lib';
 import { redemptionsCsvRows } from '../shop/lib';
+import { deliveriesCsvRows, deliveryListLines } from '../shop7/lib';
 import { emptyDb, type Db } from '../../types/domain';
 import tzHomeSrc from '../tzedaka/HomeTab.tsx?raw';
 import shopHomeSrc from '../shop/HomeTab.tsx?raw';
 import coordCardSrc from '../tzedaka/CoordinatorCard.tsx?raw';
+import shop7ViewSrc from '../shop7/Shop7View.tsx?raw';
 
 const db: Db = {
   ...emptyDb(),
@@ -28,6 +30,12 @@ const db: Db = {
         { id: 'r2', rid: 'S-2', componentId: 'c1', date: '2026-07-10', holiday: '', paid: 30, value: 100, note: '', voidedAt: '2026-07-11', voidReason: 'טעות' },
       ],
     },
+  ],
+  distributionDays: [{ id: 'dd1', date: '2026-07-20', title: 'יום א', closed: false } as unknown as Db['distributionDays'][number]],
+  volunteers: [{ id: 'v1', name: 'משה', phone: '', area: '', active: true } as unknown as Db['volunteers'][number]],
+  deliveries: [
+    { id: 'x1', dayId: 'dd1', assignmentId: 'sha1', familyId: 'f1', volunteerId: 'v1', status: 'delivered', note: '' } as unknown as Db['deliveries'][number],
+    { id: 'x2', dayId: 'dd1', assignmentId: 'sha1', familyId: 'f1', volunteerId: 'v1', status: 'pickup', note: 'קומה 3' } as unknown as Db['deliveries'][number],
   ],
 };
 
@@ -57,9 +65,27 @@ describe('🔌 ratchet — חיבור 6: תדפיסים וייצוא', () => {
     expect(live[7]).toBe('');
   });
 
+  it('CSV מסירות (shop7): כותרת + שורה לכל מסירה — שטרם-נמסר מסומן ולא מוסתר', () => {
+    const rows = deliveriesCsvRows(db);
+    expect(rows[0]).toEqual(['תאריך', 'משפחה', 'מתנדב', 'סטטוס', 'הערה']);
+    expect(rows).toHaveLength(3); // כותרת + 2 מסירות (כולל "איסוף" שטרם נמסר)
+    expect(rows).toContainEqual(['2026-07-20', 'כהן', 'משה', 'נמסר', '']);
+    expect(rows).toContainEqual(['2026-07-20', 'כהן', 'משה', 'איסוף', 'קומה 3']);
+  });
+
+  it('תדפיס מסירות (shop7): מקובץ פר-מתנדב', () => {
+    const lines = deliveryListLines(db.deliveries.map((d) => ({ ...d, familyName: 'כהן', volunteerName: 'משה' })));
+    expect(lines[0]).toContain('משה');
+    expect(lines[0]).toContain('2 מסירות');
+    expect(lines.some((l) => l.includes('כהן') && l.includes('נמסר'))).toBe(true);
+  });
+
   it('הגנת-מקור: הכפתורים מאחורי הדגלים', () => {
     expect(tzHomeSrc).toMatch(/featureOn\(config, 'tzedaka\.export'\)[\s\S]{0,200}ייצוא ריקונים/);
     expect(shopHomeSrc).toMatch(/featureOn\(config, 'shop\.export'\)[\s\S]{0,200}ייצוא מימושים/);
     expect(coordCardSrc).toMatch(/featureOn\(config, 'tzedaka\.export'\)[\s\S]{0,300}coordinatorPrintLines/);
+    // shop7 CONNECT #6 — תדפיס פר-יום + CSV, מאחורי shop7.export
+    expect(shop7ViewSrc).toMatch(/featureOn\(config, 'shop7\.export'\)[\s\S]{0,300}deliveryListLines/);
+    expect(shop7ViewSrc).toMatch(/featureOn\(config, 'shop7\.export'\)[\s\S]{0,200}deliveriesCsvRows/);
   });
 });

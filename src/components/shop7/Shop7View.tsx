@@ -5,14 +5,17 @@
  */
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import { hebDateFull } from '../../lib/hebrew';
+import { downloadCsv, downloadText } from '../reports/csv';
 import { Btn, Chip, Empty, Field, Modal, PageHead, Select, TextInput } from '../ui';
 import type { DistributionDay, Volunteer } from '../../types/domain';
 import {
   dayProgress,
+  deliveriesCsvRows,
   deliveriesOfDay,
+  deliveryListLines,
   eligibleAssignmentsForDay,
   filterVolunteers,
   statusLabel,
@@ -148,6 +151,7 @@ function VolunteerForm(props: { volunteer: Volunteer | null; onClose: () => void
 function DaysTab() {
   const days = useApp((s) => s.db.distributionDays);
   const db = useApp((s) => s.db);
+  const config = useApp((s) => s.config);
   const upsertDay = useApp((s) => s.upsertDistributionDay);
   const deleteDay = useApp((s) => s.deleteDistributionDay);
   const closeDay = useApp((s) => s.closeDistributionDay);
@@ -164,7 +168,10 @@ function DaysTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 12 }}>
+        {featureOn(config, 'shop7.export') && db.deliveries.length > 0 && (
+          <Btn sm onClick={() => downloadCsv('deliveries.csv', deliveriesCsvRows(db))}>⬇ ייצוא מסירות (CSV)</Btn>
+        )}
         <Btn kind="primary" onClick={() => setFormOpen(true)}>➕ יום חלוקה חדש</Btn>
       </div>
       {sorted.length === 0 ? (
@@ -221,6 +228,7 @@ function DayForm(props: { onClose: () => void; onSave: (d: DistributionDay) => v
 
 function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
   const db = useApp((s) => s.db);
+  const config = useApp((s) => s.config);
   const advance = useApp((s) => s.advanceDelivery);
   const unassign = useApp((s) => s.unassignDelivery);
   const setNote = useApp((s) => s.setDeliveryNote);
@@ -242,6 +250,19 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 800, fontSize: 16 }}>{props.day.title || 'יום חלוקה'} · {hebDateFull(props.day.date)}</div>
         </div>
+        {featureOn(config, 'shop7.export') && rows.length > 0 && (
+          <Btn
+            sm
+            onClick={() =>
+              downloadText(
+                'deliveries-' + props.day.date + '.txt',
+                deliveryListLines(rows.map((d) => ({ ...d, familyName: famName(d.familyId), volunteerName: volName(d.volunteerId) }))),
+              )
+            }
+          >
+            🖨 תדפיס מסירות
+          </Btn>
+        )}
         {!props.day.closed && <Btn kind="primary" onClick={() => setAssignOpen(true)}>➕ שיוך מסירה</Btn>}
       </div>
       {rows.length === 0 ? (

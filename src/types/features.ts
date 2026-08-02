@@ -153,6 +153,7 @@ export const FEATURES: FeatureDef[] = [
 
   // ——— חלוקה (shop7) ———
   { key: 'shop7.familypanel', label: 'פאנל חלוקה בכרטיס המשפחה', desc: 'מסירות המשפחה וסטטוסן (איסוף/בדרך/נמסר) — תצוגה בלבד בכרטיס המשפחה', module: 'shop7' },
+  { key: 'shop7.export', label: 'תדפיס וייצוא מסירות', desc: 'תדפיס מסירות פר-מתנדב (ליום) + ייצוא CSV של כל המסירות — כולל סטטוס (שקיפות)', module: 'shop7' },
 
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },
