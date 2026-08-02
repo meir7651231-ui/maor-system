@@ -6,6 +6,8 @@
 import type { Db } from '../../types/domain';
 import type { Cell } from './csv';
 import { ReportTable, Section } from './parts';
+import { expiringIntakes } from '../shop/lib';
+import { isoToday } from '../../lib/date-util';
 
 export interface MetricGroup {
   title: string;
@@ -47,7 +49,7 @@ export function managementMetrics(db: Db): MetricGroup[] {
 
   const groups: MetricGroup[] = [
     { title: '🚚 חלוקה', rows: [['ימי חלוקה', db.distributionDays.length], ['מסירות סה"כ', deliveries.length], ['נמסרו', delivered], ['משפחות שקיבלו', famReached], ['מתנדבים פעילים', activeVols]] },
-    { title: '🛍 חנות', rows: [['שיוכים פעילים', activeAssign], ['מימושים', redemptions]] },
+    { title: '🛍 חנות', rows: [['שיוכים פעילים', activeAssign], ['מימושים', redemptions], ['אצוות פג/עומד-לפוג', expiringIntakes(db, isoToday()).length]] },
     { title: '🪙 קופות צדקה', rows: [['קופות', db.tzBoxes.length], ['ריקונים', collections], ['סה"כ נאסף (₪)', tzTotal]] },
     { title: '👨‍👩‍👧 משפחות', rows: [['משפחות פעילות', activeFams], ['סה"כ משפחות', db.families.length]] },
   ];

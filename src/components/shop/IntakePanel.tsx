@@ -10,6 +10,7 @@ import { featureOn } from '../../lib/config';
 import { Btn } from '../ui';
 import { useArmed } from '../useArmed';
 import { intakeLog } from './lib';
+import { isoToday } from '../../lib/date-util';
 
 export function IntakePanel() {
   const db = useApp((s) => s.db);
@@ -50,7 +51,14 @@ export function IntakePanel() {
               {rows.map(({ intake, itemName }) => (
                 <tr key={intake.id} style={{ borderTop: '1px solid var(--line)' }}>
                   <td style={{ padding: '4px 6px' }}>{intake.date}</td>
-                  <td style={{ padding: '4px 6px', fontWeight: 700 }}>{itemName}</td>
+                  <td style={{ padding: '4px 6px', fontWeight: 700 }}>
+                    {itemName}
+                    {intake.expiry && (
+                      <span style={{ marginInlineStart: 6, fontSize: 11, fontWeight: 700, color: intake.expiry < isoToday() ? '#dc2626' : '#d97706' }}>
+                        ⏳ {intake.expiry < isoToday() ? 'פג ' : 'עד '}{intake.expiry}
+                      </span>
+                    )}
+                  </td>
                   <td style={{ padding: '4px 6px' }}>{intake.qty}</td>
                   <td style={{ padding: '4px 6px' }}>{intake.kind === 'donation' ? '🎗 תרומה בעין' : '🛒 קנייה'}</td>
                   <td style={{ padding: '4px 6px' }}>{intake.source || '—'}</td>
