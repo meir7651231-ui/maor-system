@@ -23,6 +23,7 @@ import { Btn, Chip } from '../ui';
 import { hebDateFull } from '../../lib/hebrew';
 import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { tierOf } from '../families/lib';
+import { liveSuggestions } from '../shop8/lib';
 import { buildPodium, buildWeek, fmtIls } from '../wall/wallData';
 import {
   courseMetrics,
@@ -1331,7 +1332,8 @@ export type WidgetId =
   | 'punchlow'
   | 'quick'
   | 'coursemetrics'
-  | 'credmetrics';
+  | 'credmetrics'
+  | 'suggest';
 
 export interface HomeWidget {
   id: WidgetId;
@@ -1348,6 +1350,35 @@ export interface HomeWidget {
   /** גייטינג קיים — ווידג'ט לא-visible מדולג ברינדור גם אם הוא בפריסה. */
   visible: (cfg: OrgConfig) => boolean;
   render: (ctx: HomeCtx) => ReactElement;
+}
+
+/**
+ * 💡 הצעות מקדימות (SHOP8) — מנוע מקדים-הצורך: חג מתקרב · גיל בית-ספר · תינוק ·
+ * כרטיסייה נגמרת. כל הצעה = כרטיס עם "טפל" (קפיצה לעמודה) ו-"התעלם" (attnDone).
+ * המנוע טהור (shop8/lib); הווידג'ט רק מציג ומחווט. אפס נגיעה בכסף.
+ */
+function SuggestWidget({ ctx }: { ctx: HomeCtx }) {
+  const { db, todayIso, go, selectFamily, markAttnDone } = ctx;
+  const items = liveSuggestions(db, todayIso);
+  return (
+    <Panel icon="💡" title="הצעות מקדימות" badge={items.length ? String(items.length) : undefined}>
+      {items.length === 0 && (
+        <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>אין הצעות פתוחות כרגע ✓</div>
+      )}
+      {items.slice(0, 8).map((s) => (
+        <div key={s.key} className="hm-row" style={{ alignItems: 'center' }}>
+          <span aria-hidden style={{ fontSize: 18 }}>{s.emoji}</span>
+          <span style={{ minWidth: 0, flex: 1 }}>
+            <b>{s.title}</b>
+            <span style={{ display: 'block', fontSize: 12, color: 'var(--ink-faint)' }}>{s.detail}</span>
+          </span>
+          <Btn sm kind="primary" onClick={() => { if (s.famId) selectFamily(s.famId); go(s.act); }}>טפל ←</Btn>
+          <Btn sm onClick={() => markAttnDone(s.key)} title="התעלם מההצעה">✕</Btn>
+        </div>
+      ))}
+      {items.length > 8 && <div style={softEmpty}>+{items.length - 8} הצעות נוספות</div>}
+    </Panel>
+  );
 }
 
 export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
@@ -1499,6 +1530,16 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     visible: (cfg) => featureOn(cfg, 'families.cred') && featureOn(cfg, 'home.credmetrics'),
     render: (ctx) => <CredMetricsWidget ctx={ctx} />,
   },
+  suggest: {
+    id: 'suggest',
+    label: 'הצעות מקדימות 💡',
+    icon: '💡',
+    slot: 'full',
+    removable: true,
+    // מנוע מקדים-הצורך (SHOP8) — נגזר מהמשפחות; כבוי כשמודול המשפחות/הדגל כבוי
+    visible: (cfg) => moduleOn(cfg, 'families') && featureOn(cfg, 'home.suggest'),
+    render: (ctx) => <SuggestWidget ctx={ctx} />,
+  },
 };
 
 /**
@@ -1509,13 +1550,13 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
 export const THEME_LAYOUTS: Record<string, readonly WidgetId[]> = {
   /* אור ראשון (mock-desktop) — hero, אריחים, קרוסלה, ואז שתי עמודות.
      מדדי החוגים והאמינות (P2 פערים 19-20) בברירת המחדל — כמו בדשבורד הלגאסי */
-  'or-rishon': ['hero', 'stats', 'carousel', 'today', 'recent', 'attention', 'community', 'coursemetrics', 'credmetrics'],
+  'or-rishon': ['hero', 'stats', 'carousel', 'today', 'recent', 'attention', 'suggest', 'community', 'coursemetrics', 'credmetrics'],
   /* היכל (mock-heichal) — "ערב גאלה": רצועת נתונים ושתי עמודות שקטות */
-  heichal: ['hero', 'stats', 'today', 'attention', 'goldbook', 'hebcal'],
+  heichal: ['hero', 'stats', 'today', 'attention', 'suggest', 'goldbook', 'hebcal'],
   /* צֹהַר (mock-tsohar) — דשבורד תפעולי נקי: נתונים, היום 2:1 מול דורש טיפול */
-  tsohar: ['hero', 'stats', 'today', 'attention', 'recent'],
+  tsohar: ['hero', 'stats', 'today', 'attention', 'suggest', 'recent'],
   /* קהילה (mock-kehila) — נתונים "נעוצים" ב-hero, באנר יום הולדת, ואז עמודות */
-  kehila: ['hero', 'stats', 'bdays', 'today', 'attention', 'community'],
+  kehila: ['hero', 'stats', 'bdays', 'today', 'attention', 'suggest', 'community'],
 };
 
 /**
@@ -1569,6 +1610,7 @@ export const WIDGET_LIBRARY: readonly WidgetId[] = [
   'quick',
   'coursemetrics',
   'credmetrics',
+  'suggest',
 ];
 
 function isWidgetId(id: string): id is WidgetId {
