@@ -159,6 +159,25 @@ describe('🔒 ratchet — פיצול calendar.blocking לשני תת-דגלים
   });
 });
 
+// ANALYSIS §5 בינוני #16 — שרשור-אבות מלא אוטומטי (הכרעת בעלים: "הוא לא שילם
+// הוא לא מקבל"). דגל-אב כבוי מכבה צאצא **בלי** בדיקה ידנית (featureOn(child) לבד).
+describe('🔒 ratchet — שרשור-אבות אוטומטי בכל העומק (#16)', () => {
+  it('כיבוי דגל-אב מכבה תת-דגל ישירות (בלי && ידני)', () => {
+    const c = cfg({ features: { 'calendar.blocking': false } });
+    expect(featureOn(c, 'calendar.blocking.roomclash')).toBe(false); // האב כבוי ⇒ הצאצא כבוי
+    expect(featureOn(c, 'calendar.blocking.shabbat')).toBe(false);
+  });
+  it('כיבוי מודול מכבה תת-תת-דגל ישירות', () => {
+    expect(featureOn(cfg({ modules: { calendar: false } }), 'calendar.blocking.roomclash')).toBe(false);
+  });
+  it('צאצא נשאר פעיל כשאף אב אינו כבוי', () => {
+    expect(featureOn(cfg(), 'calendar.blocking.roomclash')).toBe(true);
+    // כיבוי אח אינו משפיע
+    const c = cfg({ features: { 'calendar.blocking.shabbat': false } });
+    expect(featureOn(c, 'calendar.blocking.roomclash')).toBe(true);
+  });
+});
+
 describe('🔒 ratchet — normalizeConfig (ייבוא config שמור באשף)', () => {
   it('סבב מלא ייצוא→ייבוא שומר modules/features/terms/firebase/admin/theme', () => {
     const rich = cfg({

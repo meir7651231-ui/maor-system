@@ -30,13 +30,20 @@ const NAV_MODULE_KEYS: readonly ModuleKey[] = [
 
 /**
  * האם פיצ'ר עדין פעיל — מפתח חסר = פעיל; רק false מכבה.
- * בנוסף, אם קידומת המפתח (הקטע שלפני הנקודה) היא אחד מתשעת מודולי הניווט
- * והמודול כבוי — הפיצ'ר כבוי גם הוא (כיבוי מודול משורשר לילדיו).
- * קידומות 'core' / 'home' / 'settings' אינן כפופות לטוגל מודול.
+ * **שרשור-אבות מלא (הכרעת בעלים — "הוא לא שילם הוא לא מקבל"):** דגל-אב כבוי מכבה
+ * את כל צאצאיו אוטומטית. ‏featureOn('a.b.c') כבוי אם כבוי 'a.b.c' עצמו, או 'a.b',
+ * או 'a', או שמודול-הניווט 'a' כבוי. כך כיבוי פיצ'ר-אב מסתיר את כל תת-הפיצ'רים
+ * ללא צורך בבדיקה ידנית בכל קומפוננטה. קידומות 'core'/'home'/'settings' אינן
+ * מודולי-ניווט (רק שרשור-הדגלים חל עליהן, לא טוגל-מודול).
  */
 export function featureOn(cfg: OrgConfig, key: string): boolean {
-  if (cfg.features?.[key] === false) return false;
-  const prefix = key.split('.')[0] ?? '';
+  const parts = key.split('.');
+  // כל דגל-אב (וכן הדגל עצמו) שכבוי במפורש — מכבה את הצאצא
+  for (let i = 1; i <= parts.length; i++) {
+    if (cfg.features?.[parts.slice(0, i).join('.')] === false) return false;
+  }
+  // מודול-הניווט (הקידומת הראשונה) כבוי — מכבה את כל הדגלים תחתיו
+  const prefix = parts[0] ?? '';
   if ((NAV_MODULE_KEYS as readonly string[]).includes(prefix) && !moduleOn(cfg, prefix as ModuleKey)) {
     return false;
   }
