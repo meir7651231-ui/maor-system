@@ -37,6 +37,7 @@ function InfoRow(props: { k: string; v: string; ltr?: boolean }) {
 export function SupporterDetail(props: { supporter: Supporter; onBack: () => void }) {
   const sp = props.supporter;
   const events = useApp((s) => s.db.events);
+  const usdRate = useApp((s) => s.db.usdRate);
   const upsertSupporter = useApp((s) => s.upsertSupporter);
   const deleteSupporter = useApp((s) => s.deleteSupporter);
   const upsertEvent = useApp((s) => s.upsertEvent);
@@ -77,7 +78,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   // P3 פריט 11 — לחיצה על תרומה מסמנת את יומה בלוח האישי
   const [calFocus, setCalFocus] = useState<string | null>(null);
 
-  const score = supScore(sp);
+  const score = supScore(sp, usdRate);
   const tier = supTier(score);
   const callNotes = 'משפחה תומכת · ' + (sp.phone || '') + (sp.email ? ' · ' + sp.email : '');
 

@@ -52,7 +52,7 @@ const HEAD: { key: SortKey; label: string }[] = [
   { key: 'paid', label: 'שולם' },
 ];
 
-function sortVal(sp: Supporter, key: SortKey): string | number {
+function sortVal(sp: Supporter, key: SortKey, rate = 3.7): string | number {
   switch (key) {
     case 'name':
       return sp.name;
@@ -73,7 +73,7 @@ function sortVal(sp: Supporter, key: SortKey): string | number {
     case 'nextDate':
       return sp.nextDate || '';
     case 'score':
-      return supScore(sp);
+      return supScore(sp, rate);
     case 'stage':
       return sp.ayin ? stageIndex(sp.ayin.stage) : -1;
     case 'eyes':
@@ -84,8 +84,8 @@ function sortVal(sp: Supporter, key: SortKey): string | number {
 }
 
 /** צ'יפ דרגת RFM (זהב/כסף/ארד/רדומה) עם הציון בכלי-עזר. */
-function TierChip(props: { sp: Supporter }) {
-  const score = supScore(props.sp);
+function TierChip(props: { sp: Supporter; rate?: number }) {
+  const score = supScore(props.sp, props.rate);
   const tier = supTier(score);
   return (
     <span style={chipStyle(tier.bg, tier.c)} title={'ציון משוקלל (R·F·M): ' + score + '/1000'}>
@@ -96,6 +96,7 @@ function TierChip(props: { sp: Supporter }) {
 
 export function SupportersView() {
   const db = useApp((s) => s.db);
+  const rate = db.usdRate; // שער-דולר עריך — משוקלל בכל חישובי ה-₪-שקול והציון
   const config = useApp((s) => s.config);
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
@@ -150,11 +151,11 @@ export function SupportersView() {
 
   let list = db.supporters.filter((sp) => {
     if (cat !== 'all' && (sp.cat || '') !== cat) return false;
-    if (tierF && supTier(supScore(sp)).label !== tierF) return false;
-    // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (×3.7 כמו בלגאסי) / ציון
+    if (tierF && supTier(supScore(sp, rate)).label !== tierF) return false;
+    // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (לפי השער העריך) / ציון
     if (!numMatch(colF.count, sp.count || 0)) return false;
-    if (!numMatch(colF.total, Math.round(supTotalIls(sp)))) return false;
-    if (!numMatch(colF.score, supScore(sp))) return false;
+    if (!numMatch(colF.total, Math.round(supTotalIls(sp, rate)))) return false;
+    if (!numMatch(colF.score, supScore(sp, rate))) return false;
     // סינון מעקב הטיפול (פריט 14)
     if (ayinF === 'eyes' && !(sp.ayin && eyesTotal(sp.ayin) > 0)) return false;
     if (ayinF === 'noeyes' && sp.ayin && eyesTotal(sp.ayin) > 0) return false;
@@ -169,8 +170,8 @@ export function SupportersView() {
   if (sort) {
     const { key, dir } = sort;
     list = [...list].sort((a, b) => {
-      const va = sortVal(a, key);
-      const vb = sortVal(b, key);
+      const va = sortVal(a, key, rate);
+      const vb = sortVal(b, key, rate);
       const c = typeof va === 'number' ? va - (vb as number) : String(va).localeCompare(String(vb), 'he');
       return c * dir;
     });
@@ -181,7 +182,7 @@ export function SupportersView() {
 
   const catOptions = [...new Set(db.supporters.map((s) => s.cat).filter(Boolean))];
   const tierCounts: Record<string, number> = { זהב: 0, כסף: 0, ארד: 0, רדומה: 0 };
-  for (const sp of db.supporters) tierCounts[supTier(supScore(sp)).label]++;
+  for (const sp of db.supporters) tierCounts[supTier(supScore(sp, rate)).label]++;
 
   const tIls = db.supporters.reduce((a, x) => a + (x.ils || 0), 0);
   const tUsd = db.supporters.reduce((a, x) => a + (x.usd || 0), 0);
@@ -278,11 +279,11 @@ export function SupportersView() {
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginBottom: 14, flexWrap: 'wrap' }}>
           <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 600 }}>
             {'תרמו ב-12 החודשים: ' + sup12m(db.supporters, today) + ' · ממוצע לתרומה: ' +
-              (supAvgDon(db.supporters) != null ? '₪' + supAvgDon(db.supporters)!.toLocaleString('he-IL') : '—')}
+              (supAvgDon(db.supporters, rate) != null ? '₪' + supAvgDon(db.supporters, rate)!.toLocaleString('he-IL') : '—')}
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 34 }} aria-label="היסטוגרמת פיזור הציון">
-            {supScoreBins(db.supporters).map((n, i) => {
-              const bins = supScoreBins(db.supporters);
+            {supScoreBins(db.supporters, rate).map((n, i) => {
+              const bins = supScoreBins(db.supporters, rate);
               const mx = Math.max(1, ...bins);
               return (
                 <span
@@ -431,13 +432,13 @@ export function SupportersView() {
                       )}
                     </td>
                   )}
-                  {rfmOn && <td style={{ fontWeight: 700 }}>{supScore(sp)}</td>}
+                  {rfmOn && <td style={{ fontWeight: 700 }}>{supScore(sp, rate)}</td>}
                   {ayinOn && <td>{sp.ayin && ayinActive(sp.ayin) ? stageLabel(config, sp.ayin.stage) : '—'}</td>}
                   {ayinOn && <td>{sp.ayin && eyesTotal(sp.ayin) ? eyesTotal(sp.ayin) : '—'}</td>}
                   {ayinOn && <td>{sp.ayin?.paid ? '✓' : '—'}</td>}
                   {rfmOn && (
                     <td>
-                      <TierChip sp={sp} />
+                      <TierChip sp={sp} rate={rate} />
                     </td>
                   )}
                   {/* P3 פריט 12 — 📞 פר-שורה: חיוג ישיר בלי לפתוח את הכרטיס */}

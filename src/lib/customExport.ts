@@ -301,7 +301,7 @@ export function buildCustomExport(
       forWho: sp.forWho || '',
       dons: dons.length + ' תרומות · ₪' + ils + (usd ? ' + $' + usd : ''),
       donsAll: (sp.count || 0) + ' תרומות · ₪' + (sp.ils || 0) + (sp.usd ? ' + $' + sp.usd : ''),
-      tier: supTier(supScore(sp)).label,
+      tier: supTier(supScore(sp, db.usdRate)).label,
       notes: sp.notes || '',
     };
     if (ayinOn && a) {
