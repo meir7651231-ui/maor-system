@@ -170,6 +170,12 @@ export interface Enrollment {
   /** שיוך לקבוצה/מפגש (label של CourseSession). */
   group: string;
   absences: Absence[];
+  /**
+   * תאריכי-נוכחות שנרשמו (ISO) — יומן פר-מפגש להחלפה (#6: ✓ מוסיף, שנייה מסירה)
+   * ולמונה-חודשי (#10). תוספתי: ‏used נשאר מקור-האמת לצריכת-כרטיסייה (כסף);
+   * ניקובי-עבר בלי תאריך נשארים ב-used בלבד. חסר/undefined = ריק.
+   */
+  presents?: IsoDate[];
   payments: Payment[];
   totalDue: number;
   dueDate: IsoDate | '';

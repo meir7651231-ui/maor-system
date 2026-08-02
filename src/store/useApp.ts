@@ -231,6 +231,8 @@ interface AppState {
   upsertEnrollment: (e: Enrollment) => void;
   deleteEnrollment: (id: string) => void;
   punch: (enrollmentId: string) => void;
+  /** החלפת-נוכחות פר-מפגש (#6) — presents+used; false אם אין יתרת-כרטיסייה להוספה. */
+  setPresent: (enrollmentId: string, dateIso: string, present: boolean) => boolean;
   /** ביטול הניקוב האחרון — מחזיר את הדלתא המדויקת מרשומת ה-Check-in (legacy mgUndo). */
   undoPunch: (enrollmentId: string) => void;
   addAbsence: (enrollmentId: string, absence: Absence) => void;
@@ -1119,6 +1121,29 @@ export const useApp = create<AppState>()((set, get) => {
             : e,
         ),
       }));
+    },
+    /**
+     * החלפת-נוכחות פר-מפגש (#6, הכרעת בעלים "מוסיף/מסיר"): present=true מוסיף את
+     * התאריך ל-presents ומעלה used (שער-יתרה בכרטיסייה); false מסיר ומוריד used.
+     * אידמפוטנטי — אין כפל-ספירה על לחיצה חוזרת. מחזיר false אם אין יתרת-כרטיסייה
+     * להוספה. ‏used נשאר מקור-האמת לצריכה (כסף); presents = יומן-התאריכים.
+     */
+    setPresent(enrollmentId, dateIso, present) {
+      const en = get().db.enrollments.find((e) => e.id === enrollmentId);
+      if (!en) return false;
+      const has = (en.presents ?? []).includes(dateIso);
+      if (present === has) return true; // כבר במצב הרצוי — no-op אידמפוטנטי
+      if (present && en.plan === 'punch' && en.used >= en.purchased) return false; // אין יתרה
+      setDb((db) => ({
+        enrollments: db.enrollments.map((e) => {
+          if (e.id !== enrollmentId) return e;
+          const cur = e.presents ?? [];
+          return present
+            ? { ...e, presents: [...cur, dateIso], used: e.used + 1 }
+            : { ...e, presents: cur.filter((d) => d !== dateIso), used: Math.max(0, e.used - 1) };
+        }),
+      }));
+      return true;
     },
     undoPunch(enrollmentId) {
       // ratchet legacy-main-script.js:3372 (mgUndo): הביטול מחזיר את הדלתא
