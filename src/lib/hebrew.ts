@@ -52,9 +52,38 @@ function isAdar(m: string): boolean {
 }
 
 /**
+ * מטמון פר-שנה-עברית: רצף החודשים + קבוצת החודשים שיש בהם יום 30 (ל'). סריקה
+ * אחת (~440 ימים) פר שנה — מזהה חודש חסר (חשוון/כסלו בני 29, אדר-א' בשנה פשוטה).
+ * נדרש לכלל "ל׳ → א׳ בחודש הבא". טהור (hebParts בלבד — אין תלות ב-hebdate,
+ * שמייבא מכאן; מונע תלות מעגלית).
+ */
+const hebYearScan = new Map<number, { seq: string[]; has30: Set<string> }>();
+function scanHebYear(hebYear: number): { seq: string[]; has30: Set<string> } {
+  const hit = hebYearScan.get(hebYear);
+  if (hit) return hit;
+  const seq: string[] = [];
+  const has30 = new Set<string>();
+  const gy = hebYear - 3761; // 1 באוגוסט של השנה הזו קודם תמיד לא' תשרי של hebYear
+  for (let i = 0; i < 440; i++) {
+    const p = hebParts(new Date(gy, 7, 1 + i, 12));
+    if (p.year !== hebYear) continue;
+    if (!seq.includes(p.month)) seq.push(p.month);
+    if (p.day === 30) has30.add(p.month);
+  }
+  const res = { seq, has30 };
+  hebYearScan.set(hebYear, res);
+  return res;
+}
+
+/**
  * שוויון יום+חודש עברי לחזרה שנתית — **א-סימטרי לפי תפקיד**: הארגומנט הראשון הוא
  * *עוגן* (תאריך האירוע/יום-ההולדת המקורי), השני הוא *היום הנבדק* בשנה הנוכחית.
  * מקור-אמת יחיד לכל המשטחים (בית · לוח · קרובים · ייצוא) כדי שלא ייווצר פער.
+ *
+ * כלל ל׳ (החלטת המשתמש — "במקום ל אז א"): עוגן ל-ל' (30) בחודש שבשנה הנבדקת
+ * *אין בו* יום 30 (חשוון/כסלו חסרים, אדר-א' בשנה פשוטה) — האזכרה/האירוע נופל על
+ * *א' בחודש הבא* (יום ראש-חודש). בחודש שתמיד יש בו ל' (תשרי/שבט/ניסן/סיוון/אב)
+ * האירוע נשאר על ל'. בלי כפילות: הנפילה חלה רק כשאין 30. דורש את שנת היום-הנבדק.
  *
  * כלל אדר (החלטת המשתמש — "אדר רגיל → אדר ב׳"):
  *  · שנה פשוטה (ליום הנבדק חודש 'Adar' יחיד) — כל עוגן-אדר נופל עליו.
@@ -65,8 +94,15 @@ function isAdar(m: string): boolean {
  */
 export function hebAnnualEq(
   anchor: { day: number; month: string },
-  query: { day: number; month: string },
+  query: { day: number; month: string; year?: number },
 ): boolean {
+  // כלל ל׳: עוגן-30 מול א' בחודש-הבא, כשלחודש-העוגן אין 30 בשנת היום-הנבדק.
+  if (anchor.day === 30 && query.day === 1 && query.year) {
+    const { seq, has30 } = scanHebYear(query.year);
+    const qi = seq.indexOf(query.month);
+    const prev = qi > 0 ? seq[qi - 1] : null;
+    if (prev && prev === anchor.month && !has30.has(prev)) return true;
+  }
   if (anchor.day !== query.day) return false;
   if (isAdar(anchor.month) || isAdar(query.month)) {
     if (!isAdar(anchor.month) || !isAdar(query.month)) return false; // אחד אדר, השני לא
