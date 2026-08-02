@@ -22,6 +22,7 @@ export function StockModal(props: { item: ShopItem; onClose: () => void }) {
   const [kind, setKind] = useState<ShopIntake['kind']>('buy');
   const [source, setSource] = useState('');
   const [cost, setCost] = useState('');
+  const [expiry, setExpiry] = useState(''); // תפוגה לאצווה (SHOP10, מתכלה) — רשות
   const [error, setError] = useState('');
 
   function save() {
@@ -30,7 +31,7 @@ export function StockModal(props: { item: ShopItem; onClose: () => void }) {
     // בתרומה-בעין העלות 0 קבוע; בקנייה — שדה רשות (ריק = 0)
     const c = kind === 'donation' ? 0 : Math.round(+(cost || '0'));
     if (!Number.isFinite(c) || c < 0) return setError('עלות — מספר אי-שלילי');
-    const ok = addShopIntake({ itemId: it.id, date: isoToday(), qty: n, kind, source: source.trim(), cost: c, note: '' });
+    const ok = addShopIntake({ itemId: it.id, date: isoToday(), qty: n, kind, source: source.trim(), cost: c, note: '', ...(expiry ? { expiry } : {}) });
     if (!ok) return; // ה-store כבר הסביר בטוסט
     toast('הקליטה נרשמה — נותרו ' + ((remaining ?? 0) + n));
     props.onClose();
@@ -63,6 +64,9 @@ export function StockModal(props: { item: ShopItem; onClose: () => void }) {
           <TextInput value={cost} onChange={setCost} type="number" dir="ltr" placeholder="0" />
         </Field>
       )}
+      <Field label="תפוגה (אצווה מתכלה — רשות)">
+        <input type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
+      </Field>
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>עדכון המלאי</Btn>
         <Btn onClick={props.onClose}>ביטול</Btn>

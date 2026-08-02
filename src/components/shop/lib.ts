@@ -226,7 +226,7 @@ export function couponExpiry(a: ShopAssignment, comp: { validDays?: number }): I
 /* ---------- דורש טיפול ---------- */
 
 export interface ShopCareItem {
-  kind: 'holidayDue' | 'meetingPending' | 'couponPending' | 'couponExpired' | 'stockOut' | 'restock' | 'waitingRestocked';
+  kind: 'holidayDue' | 'meetingPending' | 'couponPending' | 'couponExpired' | 'stockOut' | 'restock' | 'waitingRestocked' | 'expiring';
   assignmentId: Id;
   componentId: Id;
   label: string;
@@ -352,7 +352,39 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
       }
     }
   }
-  return [...due, ...meetings, ...coupons, ...expired, ...stock];
+  // אצוות/תפוגה (SHOP10) — קליטות מתכלות שפגו או עומדות לפוג (≤7 ימים).
+  const expiring: ShopCareItem[] = expiringIntakes(db, todayIso).map((x) => ({
+    kind: 'expiring' as const,
+    assignmentId: '',
+    componentId: x.intake.itemId,
+    label: x.itemName + (x.expired ? ' — פג תוקף' : ' — עומד לפוג'),
+    hint: (x.expired ? 'פג ב-' : 'בתוקף עד ') + x.intake.expiry + ' · אצווה ' + x.intake.qty + ' יח׳',
+  }));
+  return [...due, ...meetings, ...coupons, ...expired, ...stock, ...expiring];
+}
+
+/** ימי-האזהרה לתפוגה — אצווה שפגה או תפוג בתוך כך נכנסת לרשימת הטיפול. */
+export const SHOP_EXPIRY_WARN_DAYS = 7;
+
+/** קליטות מתכלות שפגו/עומדות-לפוג (SHOP10) — טהור. */
+export function expiringIntakes(
+  db: Db,
+  todayIso: IsoDate,
+  windowDays = SHOP_EXPIRY_WARN_DAYS,
+): { intake: ShopIntake; itemName: string; expired: boolean }[] {
+  const horizon = new Date(todayIso + 'T12:00:00');
+  horizon.setDate(horizon.getDate() + windowDays);
+  const horizonIso = isoOf(horizon);
+  const out: { intake: ShopIntake; itemName: string; expired: boolean }[] = [];
+  for (const it of db.shopIntakes) {
+    if (!it.expiry || it.expiry > horizonIso) continue;
+    out.push({
+      intake: it,
+      itemName: db.shopItems.find((s) => s.id === it.itemId)?.name ?? '—',
+      expired: it.expiry < todayIso,
+    });
+  }
+  return out.sort((a, b) => (a.intake.expiry ?? '').localeCompare(b.intake.expiry ?? ''));
 }
 
 /* ---------- פגישות קרובות (חנות 23, הכרעה 22) ---------- */
