@@ -58,6 +58,38 @@ export function volunteerLoadHint(db: Db, vol: Volunteer, dayId: string): { coun
   return { count, over: count >= vol.maxDeliveries };
 }
 
+/** מסירות של משפחה (לפאנל כרטיס-המשפחה — תצוגה בלבד). */
+export function deliveriesOfFamily(db: Db, famId: string): Delivery[] {
+  return db.deliveries.filter((d) => d.familyId === famId);
+}
+
+/** מסירות "היום" שטרם נמסרו — למונה-הבית (יום מתוארך היום, סטטוס≠delivered). */
+export function pendingDeliveriesToday(db: Db, todayIso: string): Delivery[] {
+  const todayDays = new Set(db.distributionDays.filter((d) => d.date === todayIso).map((d) => d.id));
+  return db.deliveries.filter((d) => todayDays.has(d.dayId) && d.status !== 'delivered');
+}
+
+/**
+ * שורות תדפיס ליום-חלוקה — מקובצות פר-מתנדב: כותרת-מתנדב ואז
+ * "משפחה · סטטוס · הערה" לכל מסירה. familyName/volunteerName מוזרקים ב-caller.
+ */
+export function deliveryListLines(
+  rows: Array<Delivery & { familyName: string; volunteerName: string }>,
+): string[] {
+  const byVol = new Map<string, Array<Delivery & { familyName: string; volunteerName: string }>>();
+  for (const r of rows) {
+    const arr = byVol.get(r.volunteerName) ?? [];
+    arr.push(r);
+    byVol.set(r.volunteerName, arr);
+  }
+  const out: string[] = [];
+  for (const [volName, list] of byVol) {
+    out.push(`🦺 ${volName} (${list.length} מסירות)`);
+    for (const r of list) out.push(`  • ${r.familyName} · ${statusLabel(r.status)}${r.note ? ' · ' + r.note : ''}`);
+  }
+  return out;
+}
+
 /** סינון מתנדבים (שם/טלפון/אזור) דרך smartFilter. */
 export function filterVolunteers(vols: Volunteer[], q: string): Volunteer[] {
   if (!q.trim()) return vols;

@@ -16,6 +16,7 @@ import { CredPanel, DocsPanel, EnrollPanel, EventsPanel } from './FamilyPanels';
 // פאנלי העמודות המבודדות (CONNECT חיבור 2) — תצוגה בלבד, חיים בתיקיות המודולים
 import { TzFamilyPanel } from '../tzedaka/TzFamilyPanel';
 import { ShopFamilyPanel } from '../shop/ShopFamilyPanel';
+import { Shop7FamilyPanel } from '../shop7/Shop7FamilyPanel';
 import { useArmed } from '../useArmed';
 
 function InfoRow(props: { k: string; v: string }) {
@@ -406,6 +407,7 @@ export function FamilyDetail(props: { family: Family }) {
       <EventsPanel fam={fam} />
       {featureOn(config, 'tzedaka.familypanel') && <TzFamilyPanel famId={fam.id} />}
       {featureOn(config, 'shop.familypanel') && <ShopFamilyPanel famId={fam.id} />}
+      {featureOn(config, 'shop7.familypanel') && <Shop7FamilyPanel famId={fam.id} />}
 
       {editOpen && <FamilyForm family={fam} onClose={() => setEditOpen(false)} />}
       {memberModal !== undefined && (

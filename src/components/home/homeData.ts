@@ -882,6 +882,7 @@ export function carouselItems(
 
 import { needsCare as tzNeedsCare } from '../tzedaka/lib';
 import { needsCare as shopNeedsCare } from '../shop/lib';
+import { pendingDeliveriesToday } from '../shop7/lib';
 import { featureOn as featOn, moduleOn as modOn } from '../../lib/config';
 
 /**
@@ -889,10 +890,11 @@ import { featureOn as featOn, moduleOn as modOn } from '../../lib/config';
  * אין פירוט פריטים במסך הבית** (חריג-תצוגה מבוקר, הכרעת בעלים). מגודר
  * moduleOn + דגל home.crosscare; מודול/דגל כבויים ⇒ 0 (הצ'יפ לא מוצג).
  */
-export function careCounts(db: Db, todayIso: string, config: OrgConfig): { tzedaka: number; shop: number } {
-  if (!featOn(config, 'home.crosscare')) return { tzedaka: 0, shop: 0 };
+export function careCounts(db: Db, todayIso: string, config: OrgConfig): { tzedaka: number; shop: number; shop7: number } {
+  if (!featOn(config, 'home.crosscare')) return { tzedaka: 0, shop: 0, shop7: 0 };
   return {
     tzedaka: modOn(config, 'tzedaka') ? tzNeedsCare(db, todayIso).length : 0,
     shop: modOn(config, 'shop') ? shopNeedsCare(db, todayIso).length : 0,
+    shop7: modOn(config, 'shop7') ? pendingDeliveriesToday(db, todayIso).length : 0,
   };
 }

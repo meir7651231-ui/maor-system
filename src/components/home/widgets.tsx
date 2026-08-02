@@ -768,7 +768,7 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
       {openAttn.length === 0 && (
         <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>הכל מטופל ✓</div>
       )}
-      {(crossCare.tzedaka > 0 || crossCare.shop > 0) && (
+      {(crossCare.tzedaka > 0 || crossCare.shop > 0 || crossCare.shop7 > 0) && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 2 }}>
           {crossCare.tzedaka > 0 && (
             <Chip on onClick={() => go('tzedaka')}>
@@ -778,6 +778,11 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
           {crossCare.shop > 0 && (
             <Chip on onClick={() => go('shop')}>
               {'🛍 ' + termOf(config, 'nav.shop', 'חנות') + ': ' + crossCare.shop}
+            </Chip>
+          )}
+          {crossCare.shop7 > 0 && (
+            <Chip on onClick={() => go('shop7')}>
+              {'🚚 ' + termOf(config, 'nav.shop7', 'חלוקה') + ': ' + crossCare.shop7}
             </Chip>
           )}
         </div>
