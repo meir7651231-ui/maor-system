@@ -3,9 +3,14 @@
  * המערכת) וגם למשנית (אזור מוגן/מנהל). מאמת מול הגיבוב השמור במכשיר (store.lock)
  * וקורא ל-onUnlock בהצלחה. "שכחתי קוד" מאפס מקומית בלי לאבד נתונים.
  */
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
 import { verifyPin } from '../../lib/lock';
+
+/** השהיה גדֵלה אחרי כשלונות (הגבלת-קצב מול ניחוש-המוני): 3→5ש׳, 4→15ש׳, 5+→30ש׳. */
+export function cooldownFor(fails: number): number {
+  return fails >= 5 ? 30000 : fails >= 4 ? 15000 : fails >= 3 ? 5000 : 0;
+}
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
@@ -25,11 +30,22 @@ export function LockScreen({
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  // הגבלת-קצב: מונה כשלונות + חותמת-סיום להשהיה, עם ספירה-לאחור חיה
+  const [fails, setFails] = useState(0);
+  const [until, setUntil] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (until <= now) return;
+    const t = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(t);
+  }, [until, now]);
+  const remainMs = Math.max(0, until - now);
+  const cooling = remainMs > 0;
 
   const primary = kind === 'primary';
 
   const press = (d: string) => {
-    if (busy || pin.length >= 8) return;
+    if (busy || cooling || pin.length >= 8) return;
     setError('');
     setPin((p) => p + d);
   };
@@ -49,7 +65,12 @@ export function LockScreen({
   };
 
   const submit = async () => {
-    if (busy || pin.length < 4) {
+    if (busy) return;
+    if (cooling) {
+      setError(`יותר מדי ניסיונות — המתינו ${Math.ceil(remainMs / 1000)} שניות`);
+      return;
+    }
+    if (pin.length < 4) {
       setError('הקוד הוא 4–8 ספרות');
       return;
     }
@@ -57,9 +78,20 @@ export function LockScreen({
     const ok = await verifyPin(pin, hash);
     setBusy(false);
     if (ok) {
+      setFails(0);
+      setUntil(0);
       onUnlock();
     } else {
-      setError('קוד שגוי — נסו שוב');
+      const nf = fails + 1;
+      setFails(nf);
+      const cd = cooldownFor(nf);
+      if (cd) {
+        setUntil(Date.now() + cd);
+        setNow(Date.now());
+        setError(`יותר מדי ניסיונות — המתינו ${Math.ceil(cd / 1000)} שניות`);
+      } else {
+        setError('קוד שגוי — נסו שוב');
+      }
       setPin('');
     }
   };
@@ -107,27 +139,29 @@ export function LockScreen({
           ))}
         </div>
 
-        {error && (
-          <p style={{ color: 'var(--red)', fontSize: 13, fontWeight: 600, marginBottom: 10 }}>{error}</p>
+        {(error || cooling) && (
+          <p style={{ color: 'var(--red)', fontSize: 13, fontWeight: 600, marginBottom: 10 }}>
+            {cooling ? `יותר מדי ניסיונות — המתינו ${Math.ceil(remainMs / 1000)} שניות` : error}
+          </p>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, opacity: cooling ? 0.5 : 1 }}>
           {KEYS.map((k) => (
-            <button key={k} type="button" className="btn" onClick={() => press(k)} style={keyStyle}>
+            <button key={k} type="button" className="btn" onClick={() => press(k)} disabled={cooling} style={keyStyle}>
               {k}
             </button>
           ))}
-          <button type="button" className="btn" onClick={back} style={keyStyle} aria-label="מחיקה">
+          <button type="button" className="btn" onClick={back} disabled={cooling} style={keyStyle} aria-label="מחיקה">
             ⌫
           </button>
-          <button type="button" className="btn" onClick={() => press('0')} style={keyStyle}>
+          <button type="button" className="btn" onClick={() => press('0')} disabled={cooling} style={keyStyle}>
             0
           </button>
           <button
             type="button"
             className="btn"
             onClick={() => void submit()}
-            disabled={busy}
+            disabled={busy || cooling}
             style={{ ...keyStyle, background: 'var(--accent-deep)', color: 'var(--dark)', fontWeight: 700 }}
             aria-label="אישור"
           >

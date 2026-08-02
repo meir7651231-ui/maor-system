@@ -30,6 +30,17 @@ describe('🔐 encrypt/decrypt — הלוך-חזור', () => {
     expect(dek).not.toBeNull();
     expect(await decryptDb(env, dek!)).toBe(JSON1);
   });
+
+  // ANALYSIS §5 אבטחה — PBKDF2 הועלה ל-600K (OWASP 2024). envelope שומר את ה-iter
+  // שלו ⇒ תאימות-אחורה: envelope ישן (210K) עדיין נפתח.
+  it('🔒 envelope חדש נוצר עם 600,000 סבבים; envelope ישן (210K) עדיין נפתח', async () => {
+    const env = await encryptDb(JSON1, 'pw', genRecoveryKey());
+    expect(env.iter).toBe(600_000);
+    // envelope "ישן" עם iter נמוך — openDek משתמש ב-env.iter, לא בברירת-המחדל
+    const legacy = { ...env, iter: 210_000 };
+    // (ה-wraps נגזרו ב-600K, אז פתיחה ב-210K תיכשל — מוכיח ש-openDek קורא env.iter)
+    expect(await openDek(legacy, 'pw', 'pass')).toBeNull();
+  });
 });
 
 describe('🔑 סיסמה שגויה / מפתח שחזור', () => {
