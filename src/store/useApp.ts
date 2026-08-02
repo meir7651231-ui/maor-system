@@ -115,6 +115,8 @@ interface AppState {
   selCourseId: string | null;
   toasts: Toast[];
   paletteOpen: boolean;
+  /** מצב צנעה (SHOP10) — מסתיר מסכי-מקבלי-הצדקה מעיון מזדמן. Runtime, לא נשמר. */
+  privacyMode: boolean;
   /** מצב פתיחת הנעילות — לכל הסשן (לא נשמר ב-db). */
   unlockedPrimary: boolean;
   unlockedAdmin: boolean;
@@ -159,6 +161,7 @@ interface AppState {
   /** ↩ חזרה — שולף את המיקום האחרון ומנווט אליו בלי לרשום את החזרה כצעד. */
   goBack: () => void;
   setPalette: (open: boolean) => void;
+  togglePrivacy: () => void;
   /**
    * דגל בקשת "משפחה חדשה" מהכרום (כותרת צֹהַר) — FamiliesView צורך אותו
    * ופותח את אותו טופס הוספה בדיוק כמו הכפתור שבמסך עצמו.
@@ -684,6 +687,7 @@ export const useApp = create<AppState>()((set, get) => {
     selCourseId: null,
     toasts: [],
     paletteOpen: false,
+    privacyMode: false,
     unlockedPrimary: readSess(SESS.p),
     unlockedAdmin: readSess(SESS.a),
     lock: readLock(),
@@ -843,6 +847,7 @@ export const useApp = create<AppState>()((set, get) => {
         };
       }),
     setPalette: (open) => set({ paletteOpen: open }),
+    togglePrivacy: () => set((s) => ({ privacyMode: !s.privacyMode })),
     famFormReq: false,
     evFormReq: '' as const,
     openEventForm: (kind = 'org') => set({ view: 'calendar', evFormReq: kind }),

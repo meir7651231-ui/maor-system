@@ -737,7 +737,8 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
 function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, data, navTo, markAttnDone, unmarkAttnDone, config, todayIso, go } = ctx;
   // מונה העמודות המבודדות (CONNECT חיבור 3) — מונה-עם-קפיצה בלבד, בלי פירוט
-  const crossCare = careCounts(db, todayIso, config);
+  const privacyMode = useApp((s) => s.privacyMode);
+  const crossCare = privacyMode ? { tzedaka: 0, shop: 0, shop7: 0 } : careCounts(db, todayIso, config);
   const [showDone, setShowDone] = useState(false);
   // איפוס גורף של סימוני "טופל" (P3 פריט 7, לגאסי careReset) — שתי לחיצות
   const setDb = useApp((s) => s.setDb);
