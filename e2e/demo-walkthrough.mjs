@@ -116,7 +116,7 @@ if (await clickIf('main button', '⚙')) {
     await payInput.fill('120');
     await clickIf('.modal button', 'קבלת תשלום');
     await wait(500);
-    T('נרשם תשלום + נוצרה קבלה', true);
+    T('נרשם תשלום + נוצרה קבלה — בלי שגיאת JS', errors.length === 0);
     await shot('תשלום-וקבלה');
   } else {
     T('נפתח מסך ניהול השיבוץ', await page.locator('.modal').count() > 0);
@@ -191,7 +191,7 @@ if (await clickIf('main', 'פרידמן') || await clickIf('main button', 'פר�
     if (await amt.count()) { await amt.fill('500'); }
     if (!(await clickIf('.modal button', 'רישום התרומה'))) await saveModal();
     await wait(500);
-    T('נרשמה תרומה', true);
+    T('נרשמה תרומה — בלי שגיאת JS', errors.length === 0);
   }
 }
 await shot('תורמים-ותרומה');
@@ -201,7 +201,7 @@ await nav('לוח');
 await wait(400);
 await clickIf('button', 'אירוע חדש');
 await wait(300);
-if (await page.locator('.modal').count()) { await fillModal('אסיפת הורים'); await saveModal(); await wait(400); T('נוצר אירוע', true); }
+if (await page.locator('.modal').count()) { await fillModal('אסיפת הורים'); await saveModal(); await wait(400); T('נוצר אירוע — בלי שגיאת JS', errors.length === 0); }
 // P2 אשכול ד׳: פאנל "הקרובים" נראה (פער 25)
 T('פאנל "הקרובים" נראה בלוח', (await mainTxt()).includes('הקרובים — 30 הימים הבאים'));
 await shot('לוח-שנה');
@@ -221,7 +221,7 @@ await shot('דוחות');
 await nav('הגדרות');
 await wait(500);
 await shot('הגדרות');
-if (await clickIf('button', 'בדיקת תקינות')) { await wait(500); await shot('בדיקת-תקינות'); T('בדיקת תקינות רצה', true); }
+if (await clickIf('button', 'בדיקת תקינות')) { await wait(500); await shot('בדיקת-תקינות'); T('בדיקת תקינות רצה — בלי שגיאת JS', errors.length === 0); }
 
 // ── חיפוש כללי (Command Palette דרך Ctrl+K) ──
 await closeModals();
@@ -231,7 +231,7 @@ const si = page.locator('.modal input, input[type="search"], input').first();
 if (await si.count()) {
   await si.fill('כהן'); await wait(500);
   await shot('חיפוש');
-  T('חיפוש כללי (Ctrl+K) נפתח ועובד', true);
+  T('חיפוש כללי (Ctrl+K) נפתח וקיבל קלט — בלי שגיאת JS', errors.length === 0);
   await closeModals();
 } else {
   T('חיפוש כללי נפתח', false);
