@@ -52,7 +52,12 @@ export function ImportSection() {
       }
       const cur = useApp.getState().db;
       const existing = new Set(cur.families.map((f) => famKey(f.name, f.phone)));
-      const toAdd = parsed.families.filter((f) => !existing.has(famKey(f.name, f.phone)));
+      // באג #15 (הכרעת בעלים "הכי הרבה תמורה" = אפס אובדן): מדלגים רק על כפילות
+      // *מאומתת* (שם + טלפון תואמים). משפחה בלי טלפון אי-אפשר לאמת ככפילות — ולכן
+      // מוסיפים אותה (עדיף כפילות ניתנת-למיזוג מאשר איבוד-משפחה בשקט, כמו במסלול CSV).
+      const toAdd = parsed.families.filter(
+        (f) => !normalizePhone(f.phone) || !existing.has(famKey(f.name, f.phone)),
+      );
       if (!toAdd.length) {
         setSummary(`בקובץ ${parsed.families.length} משפחות — כולן כבר קיימות במערכת, לא נוסף דבר.`);
         return;
