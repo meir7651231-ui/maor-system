@@ -74,6 +74,9 @@ export function blockReason(d: Date): string | null {
   const hp = hebParts(d);
   const hol = HOLIDAYS[`${hp.month} ${hp.day}`];
   if (hol && FULL_HOLIDAYS.includes(hol)) return hol;
+  // צום תשעה באב נדחה: כשט' באב חל בשבת, הצום נצפה בי' באב (ראשון). ט' באב עצמו
+  // נחסם כ'שבת', אך י' באב — הצום בפועל — לא נחסם ביומן (בלוח calLib הדין קיים; כאן חסר).
+  if (dow === 0 && hp.month === 'Av' && hp.day === 10) return 'תשעה באב (נדחה)';
   if ((hp.month === 'Tishri' && hp.day >= 16 && hp.day <= 21) || (hp.month === 'Nisan' && hp.day >= 16 && hp.day <= 20))
     return 'חול המועד';
   return null;
