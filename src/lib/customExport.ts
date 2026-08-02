@@ -246,7 +246,12 @@ export function buildCustomExport(
       if (HEBREW_RECURRING.has(ev.type) && bounded) {
         const oh = hebParts(new Date(ev.date + 'T12:00:00'));
         const d0 = new Date(range.from + 'T12:00:00');
-        const d1 = new Date(range.to + 'T12:00:00');
+        const d1raw = new Date(range.to + 'T12:00:00');
+        // תקרת-ימים (עקבי עם courseDaily MAX_DAYS) — טעות בשנת "עד" (טווח של
+        // עשרות שנים) הקפיאה את הדפדפן בלולאה יום-יום. חוסמים ל-~11 שנים.
+        const CAP_DAYS = 4000;
+        const capped = new Date(d0.getTime() + CAP_DAYS * 86400000);
+        const d1 = d1raw < capped ? d1raw : capped;
         for (let dd = new Date(d0); dd <= d1; dd.setDate(dd.getDate() + 1)) {
           // נרמול אדר משותף — עקבי עם הלוח והבית; בלעדיו אזכרה ב"אדר" נעדרת מהייצוא בשנה מעוברת.
           // חסם תחתון >= ev.date — עקבי עם eventsOnDate/eventOccursOn; בלעדיו נוצרות שורות רפאים לפני האירוע.

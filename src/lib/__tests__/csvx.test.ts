@@ -63,4 +63,15 @@ describe('🗓️ ratchet — parseAnyDate לא מפרש שנה בת 4 ספרו�
     expect(parseAnyDate('2020-13-01')).toBe(''); // אין חודש 13
     expect(parseAnyDate('2020-02-29')).toBe('2020-02-29'); // שנה מעוברת — תקין
   });
+
+  // ratchet — ציר דו-ספרתי דינמי (באג #12): היה קשיח על 26 ⇒ מ-2027 "27"→1927.
+  it('שנה דו-ספרתית — ציר דינמי סביב השנה הנוכחית', () => {
+    const nowYY = new Date().getFullYear() % 100;
+    // כמה שנים קדימה (בתוך חלון ה-10) → 20xx
+    const nearStr = String((nowYY + 5) % 100).padStart(2, '0');
+    expect(parseAnyDate(`15/03/${nearStr}`)).toBe(`20${nearStr}-03-15`);
+    // עבר רחוק (מעל cut=nowYY+10) → 19xx
+    expect(parseAnyDate('01/01/85')).toBe('1985-01-01');
+    expect(parseAnyDate('01/01/99')).toBe('1999-01-01');
+  });
 });
