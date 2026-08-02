@@ -140,15 +140,33 @@ export function hebDateFull(iso: string): string {
 export const HOLIDAYS: Record<string, string> = {
   'Tishri 1': 'ראש השנה',
   'Tishri 2': 'ראש השנה ב׳',
+  'Tishri 3': 'צום גדליה',
   'Tishri 10': 'יום כיפור',
   'Tishri 15': 'סוכות',
   'Tishri 21': 'הושענא רבה',
   'Tishri 22': 'שמחת תורה',
+  // חנוכה — 8 ימים: כ״ה כסלו עד ב׳/ג׳ טבת (התלות באורך כסלו מטופלת ע"י כך
+  // שכ״ל בכסלו קיים רק בשנה מלאה, וג׳ טבת רק בשנה חסרה — תמיד 8 ימים בפועל).
   'Kislev 25': 'חנוכה',
+  'Kislev 26': 'חנוכה',
+  'Kislev 27': 'חנוכה',
+  'Kislev 28': 'חנוכה',
+  'Kislev 29': 'חנוכה',
+  'Kislev 30': 'חנוכה',
+  'Tevet 1': 'חנוכה',
+  'Tevet 2': 'חנוכה',
+  // ג' טבת (יום ח' של חנוכה) מטופל דינמית ב-holidayOf — רק כשכסלו היה חסר (29).
   'Tevet 10': 'צום עשרה בטבת',
   'Shevat 15': 'ט״ו בשבט',
+  // פורים קטן / שושן פורים קטן — רק בשנה מעוברת (אדר א׳)
+  'Adar I 14': 'פורים קטן',
+  'Adar I 15': 'שושן פורים קטן',
+  'Adar 13': 'תענית אסתר',
+  'Adar II 13': 'תענית אסתר',
   'Adar 14': 'פורים',
   'Adar II 14': 'פורים',
+  'Adar 15': 'שושן פורים',
+  'Adar II 15': 'שושן פורים',
   'Nisan 15': 'פסח',
   'Nisan 21': 'שביעי של פסח',
   'Iyar 18': 'ל״ג בעומר',
@@ -162,5 +180,10 @@ export const HOLIDAYS: Record<string, string> = {
 /** שם החג בתאריך נתון, אם יש. */
 export function holidayOf(d: Date): string | null {
   const p = hebParts(d);
+  // חנוכה יום ח' (ג' טבת): קיים רק בשנה שכסלו בה חסר (29) — בשנה מלאה חנוכה
+  // מסתיים ב-ב' טבת. שמירה על 8 ימים בדיוק בשתי סוגי-השנים.
+  if (p.month === 'Tevet' && p.day === 3) {
+    return scanHebYear(p.year).has30.has('Kislev') ? null : 'חנוכה';
+  }
   return HOLIDAYS[`${p.month} ${p.day}`] ?? null;
 }
