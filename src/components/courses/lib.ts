@@ -40,6 +40,16 @@ export function defaultCourseDates(today: string = isoTodayLocal()): { start: st
 }
 
 /**
+ * מונה-נוכחות חודשי (#10, הכרעת בעלים "לאפס ולשמור בדוחות"): מספר תאריכי-הנוכחות
+ * (presents) בחודש הקלנדרי של todayIso. מתאפס אוטומטית בכל חודש; ההיסטוריה המלאה
+ * נשמרת ב-used (סה"כ) וברשומות presents (לדוחות). ניקובי-עבר בלי תאריך = 0 החודש.
+ */
+export function presentsInMonth(presents: string[] | undefined, todayIso: string): number {
+  const ym = todayIso.slice(0, 7); // YYYY-MM
+  return (presents ?? []).filter((d) => typeof d === 'string' && d.slice(0, 7) === ym).length;
+}
+
+/**
  * ולידציית טווח תאריכי החוג — מחזיר הודעת שגיאה או null. תאריך סיום מוקדם
  * מתאריך התחלה גורם ל-courseActiveOn להיות false תמיד, כך שהחוג נעלם בשקט
  * מהיומן/הלוח/מפגשי-היום. נתפס בשמירה במקום להיעלם.

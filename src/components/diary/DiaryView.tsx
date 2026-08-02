@@ -238,7 +238,7 @@ export function DiaryView() {
                   </div>
                   {open && sl.course && sl.sessionIndex != null && (
                     <div style={{ padding: '0 14px' }}>
-                      <AttendancePanel course={sl.course} sessionIndex={sl.sessionIndex} />
+                      <AttendancePanel course={sl.course} sessionIndex={sl.sessionIndex} date={date} />
                     </div>
                   )}
                 </div>

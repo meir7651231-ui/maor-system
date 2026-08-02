@@ -12,10 +12,9 @@ import { chipStyle, enrollStatusMeta, enrollmentsForSession, planLabelOf } from 
 import { DiaryAbsenceModal } from './DiaryAbsenceModal';
 import { AbsenceHistoryModal } from './AbsenceHistoryModal';
 
-export function AttendancePanel(props: { course: Course; sessionIndex: number }) {
+export function AttendancePanel(props: { course: Course; sessionIndex: number; date: string }) {
   const db = useApp((s) => s.db);
-  const punch = useApp((s) => s.punch);
-  const upsertEnrollment = useApp((s) => s.upsertEnrollment);
+  const setPresent = useApp((s) => s.setPresent);
   const addCred = useApp((s) => s.addCred);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
@@ -37,12 +36,24 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number })
     return row.m ? `${row.m.first} ${row.m.famName}`.trim() : 'תלמיד/ה לא נמצא/ה';
   }
 
-  /** רישום נוכחות — כרטיסייה דרך punch של ה-store; מנוי חודשי — מונה ידני (כמו במקור). */
+  /**
+   * החלפת-נוכחות למפגש הזה (#6, הכרעת בעלים "מוסיף/מסיר"): לחיצה ראשונה רושמת
+   * נוכחות (presents+used), לחיצה שנייה על אותו מפגש מבטלת — אין כפל-ניקוב. שער-
+   * יתרה לכרטיסייה. אישור-כפול (אם דלוק) חל רק על הרישום, לא על הביטול.
+   */
   function present(e: Enrollment) {
     if (e.status === 'paused')
       return toast('השיבוץ מוקפא — הפשירו אותו בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
     if (e.status === 'ended')
       return toast('השיבוץ הסתיים — ניתן לחדש בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
+    const fam = db.families.find((f) => f.members.some((m) => m.id === e.memberId));
+    // לחיצה חוזרת על מפגש שכבר סומן נוכח — מבטלת (החלפה)
+    if ((e.presents ?? []).includes(props.date)) {
+      setPresent(e.id, props.date, false);
+      if (fam) addCred(fam.id, -5, 'ביטול נוכחות');
+      toast('הנוכחות בוטלה');
+      return;
+    }
     if (e.plan === 'punch' && e.used >= e.purchased) return toast('אין יתרת שיעורים — נדרש חידוש כרטיסייה');
     // אישור כפול (legacy:335-338): לחיצה ראשונה מזיינת, שנייה בתוך 3ש׳ מבצעת
     const step = punchConfirmStep(punchConfirmOn, punchArm, e.id, Date.now());
@@ -53,9 +64,7 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number })
       return;
     }
     setPunchArm(null);
-    if (e.plan === 'punch') punch(e.id);
-    else upsertEnrollment({ ...e, used: e.used + 1 });
-    const fam = db.families.find((f) => f.members.some((m) => m.id === e.memberId));
+    if (!setPresent(e.id, props.date, true)) return toast('אין יתרת שיעורים — נדרש חידוש כרטיסייה');
     if (fam) addCred(fam.id, 5, 'נוכחות (Check-in)');
     toast('הניקוב נרשם בהצלחה');
   }
@@ -86,6 +95,7 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number })
             {rows.map((row) => {
               const st = enrollStatusMeta(row.e);
               const who = nameOf(row) + ' · ' + props.course.name;
+              const isPresent = (row.e.presents ?? []).includes(props.date);
               return (
                 <tr key={row.e.id}>
                   <td>
@@ -98,8 +108,13 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number })
                   <td>{row.e.absences.length || '—'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      <Btn sm kind="primary" title="רישום נוכחות (ניקוב)" onClick={() => present(row.e)}>
-                        {punchArm?.id === row.e.id ? 'לאשר ניקוב?' : '✓ נוכח/ת'}
+                      <Btn
+                        sm
+                        kind={isPresent ? undefined : 'primary'}
+                        title={isPresent ? 'בוטל בלחיצה — הסרת הנוכחות למפגש זה' : 'רישום נוכחות (ניקוב)'}
+                        onClick={() => present(row.e)}
+                      >
+                        {punchArm?.id === row.e.id ? 'לאשר ניקוב?' : isPresent ? '✓ נוכח/ת · בטל' : '✓ נוכח/ת'}
                       </Btn>
                       <Btn sm title="רישום חיסור (נימוק חובה)" onClick={() => setAbsFor({ id: row.e.id, who })}>
                         ✕ חיסור

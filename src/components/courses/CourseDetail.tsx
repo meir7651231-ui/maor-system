@@ -29,6 +29,7 @@ import {
   isoToday,
   modelMeta,
   planLabelOf,
+  presentsInMonth,
   priceSuffix,
   punchConfirmStep,
   PUNCH_CONFIRM_MS,
@@ -451,7 +452,7 @@ export function CourseDetail(props: { course: Course }) {
                                 </span>
                               </div>
                             ) : (
-                              <span style={{ fontSize: 12 }}>{e.used + ' נוכחויות מתחילת החודש'}</span>
+                              <span style={{ fontSize: 12 }}>{presentsInMonth(e.presents, isoToday()) + ' נוכחויות החודש · ' + e.used + ' סה"כ'}</span>
                             )}
                           </td>
                           <td>
