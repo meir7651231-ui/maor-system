@@ -15,6 +15,16 @@ import { diffDb, emptyDiff, ENTITY_COLLECTIONS, fullDbDiff } from '../lib/cloud-
 import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
 import { pullAll, pushDiff, subscribeAll, type RemotePartial } from '../lib/cloud';
 
+// מפתח-הצפנת-הענן (opt-in) — null עד שהמשתמש מפעיל הצפנה ומזין סיסמה. כל עוד
+// null, כל קריאות הענן זהות-בייט להיום (ratchet ב-cloud.ts). האחסון בזיכרון בלבד.
+let cloudDek: CryptoKey | null = null;
+export function setCloudDek(dek: CryptoKey | null): void {
+  cloudDek = dek;
+}
+export function getCloudDek(): CryptoKey | null {
+  return cloudDek;
+}
+
 // יצוא-מחדש של שכבת ה-auth — ל-useApp יש import דינמי אחד בלבד (המודול הזה)
 export { initCloud, resetPassword, setCloudScope, signIn, signOutCloud, signUp, watchAuth } from '../lib/cloud';
 export type { CloudUser } from '../lib/cloud';
@@ -73,7 +83,7 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
   hooks = h;
   h.setStatus('connecting');
   try {
-    const cloudDb = await pullAll();
+    const cloudDb = await pullAll(cloudDek);
     // אם stopCloudSync רץ במקביל (יציאה/פקיעת טוקן במהלך ה-pull) hooks כבר אופס —
     // אין להמשיך ולהפעיל מחדש סנכרון לחשבון שיצא.
     if (hooks !== h) return;
@@ -81,7 +91,7 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
     if (cloudDb === null) {
       // פרויקט ענן ריק — הגירה ראשונה: מעלים את כל הנתונים המקומיים
       if (ENTITY_COLLECTIONS.some((c) => local[c].length)) {
-        await pushDiff(fullDbDiff(local));
+        await pushDiff(fullDbDiff(local), cloudDek);
         h.toast('הנתונים הועלו לענן ✓');
       }
     } else {
@@ -100,7 +110,7 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
       // diffDb(cloudDb, merged) = רק התוספות המקומיות (merged ⊇ ישויות הענן, אין
       // מחיקות), וללא שינוי meta (merged שומר את meta של הענן) → הענן נשאר סמכותי.
       const additions = diffDb(cloudDb, merged);
-      if (!emptyDiff(additions)) await pushDiff(additions);
+      if (!emptyDiff(additions)) await pushDiff(additions, cloudDek);
     }
     // התנתקות (logout) יכולה לרוץ סינכרונית במהלך ה-push-ים למעלה; אז hooks אופס
     // ו-stopCloudSync כבר סיים. בלי שער נוסף כאן היינו מחיים active=true, מתקינים
@@ -108,9 +118,13 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
     // 'synced' אחרי ה-'idle'. מגן על שני ה-await (81 ו-100), כמו השער בשורה 76.
     if (hooks !== h) return;
     active = true;
-    unsubAll = subscribeAll(onRemote, () => {
-      hooks?.setStatus('error');
-    });
+    unsubAll = subscribeAll(
+      onRemote,
+      () => {
+        hooks?.setStatus('error');
+      },
+      cloudDek,
+    );
     h.setStatus('synced');
   } catch (e) {
     active = false;
@@ -144,7 +158,7 @@ async function flushPush(): Promise<void> {
   const diff = diffDb(base, latest);
   if (emptyDiff(diff)) return;
   try {
-    await pushDiff(diff);
+    await pushDiff(diff, cloudDek);
     if (active) hooks?.setStatus('synced');
   } catch {
     // כשל שאינו-offline: משחזרים את הדלתא הממתינה כדי שתידחף בעריכה הבאה.
