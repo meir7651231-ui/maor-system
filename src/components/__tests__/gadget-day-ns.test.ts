@@ -7,11 +7,13 @@
  * (כולל נתוני-כסף וקליני). כולם עוברים עכשיו דרך nsLsKey (default = מפתח ישן,
  * ‏אחרת `base:slug`) ⇒ בידוד פר-ארגון. הלקוח הקיים (root/default) לא זז.
  *
- * a11y (maor_ui_scale/maor_acc) ו-maor_lock נשארים גלובליים **במכוון** —
- * העדפות-נגישות הן פר-אדם, ונעילת ה-PIN היא הכרעת-בעלים פתוחה. לא נבדקים כאן.
+ * a11y (maor_ui_scale/maor_acc) נשארים גלובליים **במכוון** — העדפות-נגישות הן
+ * פר-אדם. נעילת ה-PIN (maor_lock) עברה לפר-ארגון (הכרעת בעלים "5.3 פר ארגון").
  */
 import { describe, expect, it } from 'vitest';
 import { nsLsKey, setPersistNamespace } from '../../store/persist';
+import { lockKey } from '../../lib/lock';
+import lockSrc from '../../lib/lock.ts?raw';
 import dayGateSrc from '../wheel/DayGate.tsx?raw';
 import bodyMapSrc from '../timer/BodyMap.tsx?raw';
 import moneyTimerSrc from '../timer/MoneyTimer.tsx?raw';
@@ -66,5 +68,30 @@ describe('🔌 ratchet — באג-3: מפתחות יום/גאדג׳טים ממו
     expect(famDetailSrc).toContain("nsLsKey('maor_bodymap_client')");
     expect(famDetailSrc).not.toMatch(/setItem\('maor_timer_client',/);
     expect(famDetailSrc).not.toMatch(/setItem\('maor_bodymap_client',/);
+  });
+});
+
+// באג 5.3 (הכרעת בעלים "פר ארגון") — נעילת ה-PIN מבודדת פר-ארגון + מיגרציה רכה.
+describe('🔒 ratchet — נעילת-PIN פר-ארגון (5.3)', () => {
+  it('lockKey: default ⇒ מפתח ישן (ביט-זהה); ארגון ⇒ מפתח ממורחב; חזרה ל-default מאפסת', () => {
+    setPersistNamespace('default');
+    expect(lockKey()).toBe('maor_lock');
+    setPersistNamespace('org-x');
+    expect(lockKey()).toBe('maor_lock:org-x');
+    setPersistNamespace('default'); // באג-לוואי שתוקן: 'default' מאפס את התחום
+    expect(lockKey()).toBe('maor_lock');
+  });
+
+  it('הגנת-מקור: readLock/writeLock ניגשים דרך lockKey (פר-ארגון) + מיגרציה רכה ל-bare', () => {
+    // כתיבה/קריאה דרך lockKey() — לא מפתח קשיח
+    expect(lockSrc).toContain('const key = lockKey()');
+    expect(lockSrc).toMatch(/localStorage\.setItem\(key,/);
+    expect(lockSrc).toMatch(/localStorage\.removeItem\(key\)/);
+    // מיגרציה רכה: ארגון בלי נעילה משלו נופל חזרה ל-bare LOCK_BASE (לא מאבד PIN)
+    expect(lockSrc).toContain('key !== LOCK_BASE');
+    expect(lockSrc).toContain('localStorage.getItem(LOCK_BASE)');
+    // אין גישה ישירה למפתח קשיח 'maor_lock' (רק דרך LOCK_BASE/lockKey)
+    expect(lockSrc).not.toMatch(/getItem\('maor_lock'\)/);
+    expect(lockSrc).not.toMatch(/setItem\('maor_lock',/);
   });
 });
