@@ -37,6 +37,7 @@ import type { FirebaseOrgConfig } from '../types/config';
 import { DB_VERSION, type Db } from '../types/domain';
 import { migrate } from '../store/persist';
 import { ENTITY_COLLECTIONS, colPath, metaPath, type DbDiff } from './cloud-diff';
+import { decryptDoc, encryptDoc } from './cloudCrypto';
 
 // ה-diff עצמו טהור וחי ב-cloud-diff.ts (כדי שהבדיקות לא ייגעו ב-firebase) —
 // יצוא-מחדש כאן משלים את ה-API של מנוע הענן.
@@ -184,19 +185,24 @@ function toPlain(data: unknown): DocumentData {
   return JSON.parse(JSON.stringify(data)) as DocumentData;
 }
 
-/** דחיפת diff בכתיבות אצווה — עד 400 פעולות ל-batch (מגבלת Firestore: 500). */
-export async function pushDiff(diff: DbDiff): Promise<void> {
+/**
+ * דחיפת diff בכתיבות אצווה — עד 400 פעולות ל-batch (מגבלת Firestore: 500).
+ * dek אופציונלי (הצפנת-ענן doc-level): קיים ⇒ כל מסמך מוצפן ל-{enc,iv} לפני
+ * הכתיבה; **נעדר ⇒ נתיב plaintext ביט-זהה להיום** (ratchet). ה-id נשאר מפתח-המסמך.
+ */
+export async function pushDiff(diff: DbDiff, dek?: CryptoKey | null): Promise<void> {
   const db = requireDb();
   const ops: Array<(b: WriteBatch) => void> = [];
   for (const s of diff.sets) {
-    ops.push((b) => b.set(doc(db, scopedCol(s.col), s.id), toPlain(s.data)));
+    const body = dek ? await encryptDoc(toPlain(s.data), dek) : toPlain(s.data);
+    ops.push((b) => b.set(doc(db, scopedCol(s.col), s.id), body));
   }
   for (const d of diff.deletes) {
     ops.push((b) => b.delete(doc(db, scopedCol(d.col), d.id)));
   }
   if (diff.meta) {
-    const meta = diff.meta;
-    ops.push((b) => b.set(doc(db, scopedMeta()), toPlain(meta)));
+    const meta = dek ? await encryptDoc(toPlain(diff.meta), dek) : toPlain(diff.meta);
+    ops.push((b) => b.set(doc(db, scopedMeta()), meta));
   }
   for (let i = 0; i < ops.length; i += 400) {
     const batch = writeBatch(db);
@@ -209,17 +215,21 @@ export async function pushDiff(diff: DbDiff): Promise<void> {
  * משיכת כל הנתונים מהענן והרכבת Db תקין דרך persist.migrate.
  * null = פרויקט ריק (אין מסמך meta/org). ענן קיים אך פגום → זריקה (לא נדרוס).
  */
-export async function pullAll(): Promise<Db | null> {
+export async function pullAll(dek?: CryptoKey | null): Promise<Db | null> {
   const db = requireDb();
   const metaSnap = await getDoc(doc(db, scopedMeta()));
   if (!metaSnap.exists()) return null;
-  const raw: Record<string, unknown> = { ...metaSnap.data(), v: DB_VERSION };
+  // dek קיים ⇒ פענוח בגבול-הקריאה, לפני migrate/merge (הם נשארים על plaintext).
+  const metaData = dek ? await decryptDoc(metaSnap.data(), dek) : metaSnap.data();
+  const raw: Record<string, unknown> = { ...metaData, v: DB_VERSION };
   const snaps = await Promise.all(
     ENTITY_COLLECTIONS.map((col) => getDocs(collection(db, scopedCol(col)))),
   );
-  ENTITY_COLLECTIONS.forEach((col, i) => {
-    raw[col] = snaps[i].docs.map((d) => ({ ...d.data(), id: d.id }));
-  });
+  for (let i = 0; i < ENTITY_COLLECTIONS.length; i++) {
+    raw[ENTITY_COLLECTIONS[i]] = await Promise.all(
+      snaps[i].docs.map(async (d) => ({ ...(dek ? await decryptDoc(d.data(), dek) : d.data()), id: d.id })),
+    );
+  }
   const migrated = migrate(raw);
   if (!migrated) throw new Error('נתוני הענן אינם בפורמט מוכר — לא בוצע סנכרון');
   return migrated;
@@ -236,6 +246,7 @@ export type RemotePartial =
 export function subscribeAll(
   onRemote: (partial: RemotePartial) => void,
   onError?: (e: unknown) => void,
+  dek?: CryptoKey | null,
 ): () => void {
   const db = requireDb();
   const unsubs = ENTITY_COLLECTIONS.map((col) =>
@@ -243,10 +254,22 @@ export function subscribeAll(
       collection(db, scopedCol(col)),
       (snap) => {
         if (snap.metadata.hasPendingWrites) return;
-        const docs = snap
-          .docChanges()
-          .map((ch) => ({ id: ch.doc.id, data: ch.doc.data(), deleted: ch.type === 'removed' }));
-        if (docs.length) onRemote({ col, docs });
+        const changes = snap.docChanges();
+        if (!changes.length) return;
+        // dek נעדר ⇒ נתיב ביט-זהה להיום. קיים ⇒ פענוח לפני onRemote (מחוקים אין מה לפענח).
+        if (!dek) {
+          onRemote({ col, docs: changes.map((ch) => ({ id: ch.doc.id, data: ch.doc.data(), deleted: ch.type === 'removed' })) });
+          return;
+        }
+        void Promise.all(
+          changes.map(async (ch) => ({
+            id: ch.doc.id,
+            data: ch.type === 'removed' ? ch.doc.data() : await decryptDoc(ch.doc.data(), dek),
+            deleted: ch.type === 'removed',
+          })),
+        )
+          .then((docs) => onRemote({ col, docs }))
+          .catch((e) => onError?.(e));
       },
       (e) => onError?.(e),
     ),
@@ -256,7 +279,13 @@ export function subscribeAll(
       doc(db, scopedMeta()),
       (snap) => {
         if (snap.metadata.hasPendingWrites || !snap.exists()) return;
-        onRemote({ meta: snap.data() });
+        if (!dek) {
+          onRemote({ meta: snap.data() });
+          return;
+        }
+        void decryptDoc(snap.data(), dek)
+          .then((meta) => onRemote({ meta }))
+          .catch((e) => onError?.(e));
       },
       (e) => onError?.(e),
     ),
