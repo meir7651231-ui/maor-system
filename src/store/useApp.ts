@@ -79,6 +79,7 @@ export type View =
   | 'supporters'
   | 'tzedaka'
   | 'shop'
+  | 'shop7'
   | 'reports'
   | 'settings';
 

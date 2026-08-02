@@ -36,7 +36,7 @@ export function isValidSlug(slug: string): boolean {
 }
 
 /** כל 8 מפתחות המודולים — מקור אחד לפאנל ולקונפיג-הלידה. */
-export const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop'];
+export const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7'];
 
 /** תוויות המודולים לפאנל (בית והגדרות תמיד דלוקים — אינם ModuleKey). */
 export const MODULE_LABELS: Record<ModuleKey, string> = {
@@ -48,6 +48,7 @@ export const MODULE_LABELS: Record<ModuleKey, string> = {
   reports: 'דוחות',
   tzedaka: 'קופות צדקה',
   shop: 'חנות',
+  shop7: 'חלוקה',
 };
 
 /**

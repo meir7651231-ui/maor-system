@@ -32,6 +32,7 @@ import { DiaryView } from './components/diary/DiaryView';
 import { SupportersView } from './components/supporters/SupportersView';
 import { TzedakaView } from './components/tzedaka/TzedakaView';
 import { ShopView } from './components/shop/ShopView';
+import { Shop7View } from './components/shop7/Shop7View';
 import { ReportsView } from './components/reports/ReportsView';
 import { SettingsView } from './components/settings/SettingsView';
 import { CommandPalette } from './components/palette/CommandPalette';
@@ -62,6 +63,7 @@ const NAV: { view: View; icon: string; label: string }[] = [
   { view: 'supporters', icon: '💛', label: 'תורמים' },
   { view: 'tzedaka', icon: '🪙', label: 'קופות צדקה' },
   { view: 'shop', icon: '🛍', label: 'חנות' },
+  { view: 'shop7', icon: '🚚', label: 'חלוקה' },
   { view: 'reports', icon: '📊', label: 'דוחות' },
   { view: 'settings', icon: '⚙️', label: 'הגדרות' },
 ];
@@ -75,6 +77,7 @@ const VIEWS: Record<View, () => JSX.Element> = {
   supporters: SupportersView,
   tzedaka: TzedakaView,
   shop: ShopView,
+  shop7: Shop7View,
   reports: ReportsView,
   settings: SettingsView,
 };
