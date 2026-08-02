@@ -69,6 +69,8 @@ import {
   changeEncryptionPassword as persistChangePw,
 } from './persist';
 import type { CloudStatus, CloudUser } from './cloudSync';
+import { createCloudKey, openCloudKey } from '../lib/cloudCrypto';
+import { genRecoveryKey } from '../lib/crypto';
 
 export type View =
   | 'home'
@@ -102,6 +104,14 @@ export interface CloudState {
    * נפתחת · pending=נרשם וממתין לאישור הבעלים — מסך המתנה, לא האפליקציה.
    */
   membership: 'na' | 'checking' | 'member' | 'pending';
+  /**
+   * שער הצפנת-ענן (opt-in) — true כשלארגון יש envelope ואין DEK בזיכרון: מסך
+   * CloudUnlock מוצג לפני הכניסה, הסנכרון מושהה עד הזנת סיסמת-ההצפנה. undefined/
+   * false = אין הצפנה או שכבר נפתחה (ביט-זהה להיום ללקוח לא-מוצפן).
+   */
+  needUnlock?: boolean;
+  /** הצפנת-הענן פעילה בארגון (קיים envelope) — לתצוגת-סטטוס בהגדרות. */
+  cloudEncrypted?: boolean;
 }
 
 interface AppState {
@@ -405,6 +415,10 @@ interface AppState {
   disableEncryption: () => Promise<void>;
   /** החלפת סיסמת הצפנה. false = הסיסמה הישנה שגויה. */
   changeEncryptionPassword: (oldPw: string, newPw: string) => Promise<boolean>;
+  /** פתיחת הצפנת-ענן — הזנת סיסמה/מפתח-שחזור. false = סוד שגוי. */
+  cloudUnlock: (secret: string, via: 'pass' | 'rec') => Promise<boolean>;
+  /** הפעלת הצפנת-ענן (בעלים) — מחזיר מפתח-שחזור להצגה חד-פעמית. זורק על כשל. */
+  enableCloudEncryption: (password: string) => Promise<string>;
   /** סימון נעילה כפתוחה (לאחר קוד תקין) — נשמר לסשן. */
   markUnlocked: (kind: 'primary' | 'secondary') => void;
   /** נעילה מיידית — סוגר את שתי הרמות וחוזר לבית. */
@@ -441,6 +455,12 @@ type CloudSyncModule = typeof import('./cloudSync');
 let cloudMod: CloudSyncModule | null = null;
 /** unsubscribe להאזנת הקונפיג-מהענן (CLOUD2 ענן 2) — null כשלא מאזינים. */
 let cloudCfgUnsub: (() => void) | null = null;
+/**
+ * שער-פתיחה להצפנת-ענן (opt-in): כשלארגון יש envelope ואין DEK בזיכרון, החיבור
+ * נעצר לפני הסנכרון. שומרים כאן את ה-envelope + פונקציית-ההמשך כדי שפעולת
+ * cloudUnlock (אחרי שהמשתמש הזין סיסמה) תמשיך את הסנכרון. null = אין המתנה.
+ */
+let pendingCloudUnlock: { env: import('../lib/crypto').EncEnvelope; resume: () => void } | null = null;
 
 // חותמת "היום" מקומית (לא UTC) — מקור-אמת אחד ב-date-util
 function isoToday(): string {
@@ -581,6 +601,21 @@ export const useApp = create<AppState>()((set, get) => {
               toast: (t) => get().toast(t),
               setStatus: (status) => setCloud({ status }),
             });
+          // שער הצפנת-ענן (opt-in): אם לארגון יש envelope ואין DEK בזיכרון —
+          // עוצרים לפני הסנכרון ומציגים מסך-פתיחה. readCloudEnvelope הוא
+          // failure-safe (null בכל שגיאה) ⇒ ארגון לא-מוצפן / Rules-חוסמות =
+          // ביט-זהה להיום (מסנכרן מיד). ה-DEK ב-cloudSync (מטמון-זיכרון).
+          const gatedStart = () => {
+            void mod.readCloudEnvelope().then((env) => {
+              setCloud({ cloudEncrypted: !!env });
+              if (env && !mod.getCloudDek()) {
+                pendingCloudUnlock = { env, resume: startSync };
+                setCloud({ needUnlock: true, status: 'idle' });
+              } else {
+                startSync();
+              }
+            });
+          };
           // האזנה חיה לקונפיג (ענן 2) — הענן גובר; מטמון-ענן נפרד, לא דריסת-אשף
           const applyCloudDoc = (orgDoc: { config?: unknown } | null) => {
             if (!orgDoc?.config) return;
@@ -607,10 +642,10 @@ export const useApp = create<AppState>()((set, get) => {
               applyCloudDoc(orgDoc);
               cloudCfgUnsub?.();
               cloudCfgUnsub = mod.watchOrgCloudConfig(cfg.slug, applyCloudDoc);
-              startSync();
+              gatedStart();
             });
           } else {
-            startSync();
+            gatedStart();
           }
         } else if (!user && hadUser) {
           cloudCfgUnsub?.();
@@ -2002,6 +2037,47 @@ export const useApp = create<AppState>()((set, get) => {
     async changeEncryptionPassword(oldPw, newPw) {
       return persistChangePw(oldPw, newPw);
     },
+
+    // ===== הצפנת-ענן (opt-in, SHOP10 אשכול-הפעלה) =====
+    /**
+     * פתיחת הצפנת-הענן: המשתמש הזין סיסמת-הצפנה (או מפתח-שחזור). מחלץ את ה-DEK
+     * מה-envelope שנשמר בהמתנה, מזין אותו ל-cloudSync וממשיך את הסנכרון שהושהה.
+     * true=נפתח · false=סוד שגוי.
+     */
+    async cloudUnlock(secret, via) {
+      const pend = pendingCloudUnlock;
+      if (!pend) return false;
+      const dek = await openCloudKey(pend.env, secret, via);
+      if (!dek) return false;
+      cloudMod?.setCloudDek(dek);
+      pendingCloudUnlock = null;
+      setCloud({ needUnlock: false });
+      pend.resume();
+      return true;
+    },
+
+    /**
+     * הפעלת הצפנת-הענן (פעולת-בעלים, פעם אחת): יוצר envelope (סיסמה + מפתח-שחזור),
+     * כותב אותו לענן, מזין את ה-DEK, מגבה מקומית (כפוי) ואז מריץ מיגרציה — כותב
+     * מחדש את כל מסמכי-הענן מוצפנים. מחזיר את מפתח-השחזור (להצגה חד-פעמית).
+     * זורק בעברית על כשל. הבעלים מפעיל מההגדרות — לא רץ אוטומטית.
+     */
+    async enableCloudEncryption(password) {
+      const mod = cloudMod;
+      if (!mod) throw new Error('הענן אינו מחובר — התחברו לענן ונסו שוב');
+      if (await mod.readCloudEnvelope()) throw new Error('הצפנת-הענן כבר פעילה בארגון זה');
+      const recoveryKey = genRecoveryKey();
+      const { env, dek } = await createCloudKey(password, recoveryKey);
+      await mod.writeCloudEnvelope(env);
+      mod.setCloudDek(dek);
+      setCloud({ cloudEncrypted: true });
+      // גיבוי כפוי לפני שינוי הנתונים בענן (רשת-ביטחון אם המיגרציה נכשלת).
+      await exportBackupFile(get().db);
+      // מיגרציה: כותב מחדש את כל הנתונים מוצפנים דרך נתיב ה-push הבדוק.
+      await mod.encryptExistingCloud(get().db, dek);
+      return recoveryKey;
+    },
+
     markUnlocked(kind) {
       if (kind === 'primary') {
         writeSess(SESS.p, '1');

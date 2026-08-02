@@ -49,6 +49,15 @@ export function metaPath(slug: string, cloudRoot: boolean): string {
   return cloudRoot ? 'meta/org' : 'orgs/' + slug + '/meta/org';
 }
 
+/**
+ * נתיב מסמך ה-envelope (ה-DEK העטוף של הצפנת-הענן): ‏cloudRoot ⇒ ‏_enc/envelope
+ * (שורש הלקוח החי); אחרת ⇒ orgs/{slug}/_enc/envelope. שני מקטעים (אוסף/מסמך) = תקין
+ * ל-Firestore. ה-envelope נשמר plaintext-ciphertext — חסר-ערך בלי הסיסמה.
+ */
+export function envPath(slug: string, cloudRoot: boolean): string {
+  return cloudRoot ? '_enc/envelope' : 'orgs/' + slug + '/_enc/envelope';
+}
+
 /** שדות ה-meta שנבדקים לשינוי (savedAt מוחרג — משתנה בכל שמירה, רעש). */
 const META_KEYS = [
   'orgName',

@@ -28,6 +28,7 @@ import {
   onSnapshot,
   persistentLocalCache,
   persistentMultipleTabManager,
+  setDoc,
   writeBatch,
   type DocumentData,
   type Firestore,
@@ -36,8 +37,9 @@ import {
 import type { FirebaseOrgConfig } from '../types/config';
 import { DB_VERSION, type Db } from '../types/domain';
 import { migrate } from '../store/persist';
-import { ENTITY_COLLECTIONS, colPath, metaPath, type DbDiff } from './cloud-diff';
+import { ENTITY_COLLECTIONS, colPath, envPath, fullDbDiff, metaPath, type DbDiff } from './cloud-diff';
 import { decryptDoc, encryptDoc } from './cloudCrypto';
+import type { EncEnvelope } from './crypto';
 
 // ה-diff עצמו טהור וחי ב-cloud-diff.ts (כדי שהבדיקות לא ייגעו ב-firebase) —
 // יצוא-מחדש כאן משלים את ה-API של מנוע הענן.
@@ -71,6 +73,9 @@ function scopedCol(col: string): string {
 }
 function scopedMeta(): string {
   return metaPath(scope.slug, scope.cloudRoot);
+}
+function scopedEnv(): string {
+  return envPath(scope.slug, scope.cloudRoot);
 }
 
 /** אתחול חד-פעמי (idempotent) — קריאה חוזרת מחזירה את אותם singletons. */
@@ -209,6 +214,41 @@ export async function pushDiff(diff: DbDiff, dek?: CryptoKey | null): Promise<vo
     for (const op of ops.slice(i, i + 400)) op(batch);
     await batch.commit();
   }
+}
+
+/* ============================ הצפנת-ענן — envelope + מיגרציה ============================ */
+
+/**
+ * קריאת ה-envelope (ה-DEK העטוף) מ-`_enc/envelope`. **failure-safe:** כל שגיאה
+ * (הרשאות ה-Rules לא מתירות `_enc`, רשת, ענן-לא-אותחל) ⇒ null ⇒ הקורא ממשיך
+ * בנתיב plaintext כהיום. כך הוספת הבדיקה לזרימת-החיבור **אינה יכולה לשבור את
+ * הלקוח החי** גם אם ה-Rules של `_enc` טרם פורסמו. null = אין הצפנה בארגון הזה.
+ */
+export async function readCloudEnvelope(): Promise<EncEnvelope | null> {
+  try {
+    const snap = await getDoc(doc(requireDb(), scopedEnv()));
+    if (!snap.exists()) return null;
+    const d = snap.data();
+    // ולידציה רזה — envelope תקין בלבד; פורמט זר ⇒ מתעלמים (null).
+    return d && typeof d === 'object' && d.$enc === 2 ? (d as EncEnvelope) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** כתיבת ה-envelope (הפעלת הצפנה — פעולת-בעלים). לא failure-safe: כשל = זריקה. */
+export async function writeCloudEnvelope(env: EncEnvelope): Promise<void> {
+  await setDoc(doc(requireDb(), scopedEnv()), env as unknown as DocumentData);
+}
+
+/**
+ * מיגרציית-הצפנה חד-פעמית: כותבת מחדש את כל הנתונים (ישויות + meta) מוצפנים,
+ * דרך נתיב ה-push הקיים והבדוק (`pushDiff(fullDbDiff(db), dek)` — כל `set` מוצפן
+ * ל-{enc,iv}). ‏decryptDoc תואם-לאחור ⇒ מכשיר שקורא באמצע-מיגרציה לא קורס.
+ * הבעלים מריץ (כפתור, אחרי גיבוי כפוי) — לא רץ אוטומטית.
+ */
+export async function encryptExistingCloud(db: Db, dek: CryptoKey): Promise<void> {
+  await pushDiff(fullDbDiff(db), dek);
 }
 
 /**

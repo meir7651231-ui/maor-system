@@ -66,4 +66,20 @@ describe('🔐 ratchet — הצפנת-ענן doc-level', () => {
     expect(cloudSrc).toContain('dek ? await decryptDoc(metaSnap.data(), dek) : metaSnap.data()');
     expect(cloudSrc).toContain('if (!dek) {'); // early-return ל-onRemote בהאזנה
   });
+
+  it('🛡 הגנת-מקור: readCloudEnvelope failure-safe (try/catch → null) — לא יכול לשבור את הלקוח החי', () => {
+    // כל שגיאה בקריאת ה-envelope (Rules/רשת) ⇒ null ⇒ נתיב plaintext כהיום.
+    // בלי זה, הוספת הבדיקה לזרימת-החיבור הייתה עלולה לשבור סנכרון חי.
+    const fn = cloudSrc.slice(cloudSrc.indexOf('export async function readCloudEnvelope'));
+    const body = fn.slice(0, fn.indexOf('\n}\n'));
+    expect(body).toContain('try {');
+    expect(body).toContain('} catch {');
+    expect(body).toContain('return null;');
+  });
+
+  it('🛡 הגנת-מקור: מיגרציית-ההצפנה חוזרת על נתיב ה-push הבדוק (pushDiff+fullDbDiff+dek)', () => {
+    // encryptExistingCloud לא ממציא הצפנה — משתמש ב-pushDiff(fullDbDiff(db), dek)
+    // שכבר מוגן ratchet, כך שכל מסמך מוצפן דרך אותו קוד בדוק.
+    expect(cloudSrc).toContain('await pushDiff(fullDbDiff(db), dek);');
+  });
 });

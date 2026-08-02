@@ -62,6 +62,12 @@ service cloud.firestore {
       allow read, write: if superAdmin() || orgMember(slug);
     }
 
+    // הצפנת-ענן (opt-in) — מסמך ה-envelope (ה-DEK העטוף):
+    //   • שורש (הלקוח הקיים): `_enc/envelope` מכוסה ע"י catch-all השורש למטה.
+    //   • ארגון-פלטפורמה: `orgs/{slug}/_enc/envelope` מכוסה ע"י כלל ה-orgs למעלה.
+    // ה-envelope הוא ciphertext בלבד (חסר-ערך בלי הסיסמה) ⇒ אין חשיפה. אין צורך
+    // בכלל ייעודי; readCloudEnvelope באפליקציה הוא failure-safe בכל מקרה.
+
     // אוספי השורש (הלקוח הקיים, cloudRoot) — allowlist כהיום + מיילי-על.
     match /{document=**} {
       allow read, write: if allowedRoot() || superAdmin();

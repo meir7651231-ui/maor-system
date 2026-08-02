@@ -3,7 +3,7 @@
 > **⚙️ סטטוס יישום (1.8.2026): הליבה + החיווט יושמו — דורמנטי ובטוח.**
 > - ✅ `src/lib/cloudCrypto.ts` — encryptDoc/decryptDoc (doc-level, תאימות-לאחור) + createCloudKey/openCloudKey (envelope מעל crypto.ts). ‏7 בדיקות-יחידה (round-trip · plaintext=identity · IV ייחודי · פתיחה בסיסמה+שחזור · סוד-שגוי→null · DEK-שגוי→זריקה).
 > - ✅ `src/lib/cloud.ts` — `pushDiff`/`pullAll`/`subscribeAll` מקבלים `dek?` ומצפינים/מפענחים בגבול-החוט. **נתיב dek-נעדר ביט-זהה להיום** (ratchet הגנת-מקור). ה-diff/merge נשארו plaintext, ללא שינוי.
-> - ⏳ **נותר לאשכול-הפעלה (על הגו + חלון-המיגרציה של הבעלים):** החזקת ה-DEK ב-cloudSync + מסך-פתיחה (`CloudUnlock`) + מתג-הפעלה + מיגרציית-הנתונים-החיה + בלוק Rules ל-`_enc`. עד אז ה-DEK תמיד null ⇒ הסנכרון plaintext כהיום (הלקוח החי לא זז).
+> - ✅ **אשכול-ההפעלה יושם (2.8.2026, "עכשיו") — דורמנטי + נפרס:** DEK מוחזק ומושחל ב-cloudSync · `readCloudEnvelope`/`writeCloudEnvelope`/`encryptExistingCloud` ב-cloud.ts · שער `needUnlock` בזרימת-החיבור (`gatedStart`, failure-safe) · `CloudUnlockScreen` · `CloudEncryptionSection` (isSuperAdmin) · פעולות `cloudUnlock`/`enableCloudEncryption` · Rules `_enc` מכוסה בקיים. **נותר רק הריצה עצמה = חלון-בעלים** (סיסמה + מיגרציה חיה). ראה `RUNBOOK-CLOUD-ENCRYPTION-2026-08-02.md`. עד שהבעלים מריץ — אין envelope, ה-DEK null ⇒ הסנכרון plaintext כהיום (הלקוח החי לא זז).
 
 
 **מאת:** הארכיטקט · 1.8.2026 · הכרעת בעלים: "לעצב הצפנת-ענן מלאה עכשיו". סוגר את **באג 4** (חצי ב׳) — היום העותק בענן plaintext גם כשההצפנה המקומית דלוקה.

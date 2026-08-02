@@ -5,7 +5,7 @@
  * פלטפורמה מקבל orgs/{slug}/; ‏normalizeConfig שומר רק true מפורש.
  */
 import { describe, expect, it } from 'vitest';
-import { ENTITY_COLLECTIONS, colPath, metaPath } from '../cloud-diff';
+import { ENTITY_COLLECTIONS, colPath, envPath, metaPath } from '../cloud-diff';
 import { normalizeConfig } from '../config';
 
 describe('☁️ ratchet — ענן 1: נתיבים פר-ארגון', () => {
@@ -23,6 +23,15 @@ describe('☁️ ratchet — ענן 1: נתיבים פר-ארגון', () => {
     // מספר מקטעים תקין ל-Firestore: אוסף=אי-זוגי, מסמך=זוגי
     expect(colPath('x', false, 'families').split('/')).toHaveLength(3);
     expect(metaPath('x', false).split('/')).toHaveLength(4);
+  });
+
+  it('🔐 envelope הצפנת-ענן: שורש=_enc/envelope (ביט-זהה); ארגון=orgs/{slug}/_enc/envelope', () => {
+    // הלקוח החי (cloudRoot) — מסמך בשורש, שני מקטעים (אוסף _enc / מסמך envelope)
+    expect(envPath('maor-hachesed', true)).toBe('_enc/envelope');
+    expect(envPath('maor-hachesed', true).split('/')).toHaveLength(2);
+    // ארגון-פלטפורמה — ארבעה מקטעים (מסמך תקין ל-Firestore)
+    expect(envPath('test-demo', false)).toBe('orgs/test-demo/_enc/envelope');
+    expect(envPath('test-demo', false).split('/')).toHaveLength(4);
   });
 
   it('normalizeConfig: רק cloudRoot:true מפורש נשמר — כל השאר מוסר', () => {

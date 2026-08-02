@@ -16,6 +16,7 @@ import { ImportSection } from './ImportSection';
 import { AccessSection } from './AccessSection';
 import { SecuritySection } from './SecuritySection';
 import { EncryptionSection } from './EncryptionSection';
+import { CloudEncryptionSection } from './CloudEncryptionSection';
 import { ThemeSection } from './ThemeSection';
 import { AuditSection } from './AuditSection';
 
@@ -69,6 +70,8 @@ export function SettingsView() {
       <AccessSection />
       <SecuritySection />
       <EncryptionSection />
+      {/* הצפנת-ענן — הרכיב עצמו מגודר isSuperAdmin (מחזיר null ללא-בעלים) */}
+      <CloudEncryptionSection />
       {secOn('sec-reset') && <ResetSection />}
     </div>
   );
