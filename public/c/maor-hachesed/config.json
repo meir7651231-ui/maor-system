@@ -5,6 +5,7 @@
   "modules": {},
   "features": {},
   "terms": {},
+  "adminEmails": ["meir7651231@gmail.com"],
   "firebase": {
     "apiKey": "AIzaSyCVvJvJAnTEWSzdtmONXcZyRijHdrvPeIo",
     "authDomain": "maor-system.firebaseapp.com",
