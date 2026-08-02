@@ -28,7 +28,8 @@ describe('🧪 ratchet — דמו ציבורי (?org=demo)', () => {
     expect(appSrc).toMatch(/famCount > 0/);
     expect(appSrc).toContain("sessionStorage.getItem('maor_demo_seeded')");
     expect(appSrc).toContain("fetch(`${import.meta.env.BASE_URL}demo.json`");
-    expect(appSrc).toContain('restoreDb(parseBackupFile(');
+    // הדמו מרוענן-תאריכים לפני restoreDb (freshenDemoDb — הכרעת בעלים "תאריכים קרובים")
+    expect(appSrc).toContain('restoreDb(freshenDemoDb(parseBackupFile(');
   });
 
   it('הסרט מוצג רק במצב-דמו', () => {

@@ -13,6 +13,7 @@ import { nsLsKey, parseBackupFile } from './store/persist';
 import { featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, termOf } from './lib/config';
 import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
+import { freshenDemoDb } from './lib/demoFresh';
 import { todaySessions } from './components/home/homeData';
 import { Btn } from './components/ui';
 import { BuilderWizard } from './components/builder/BuilderWizard';
@@ -128,7 +129,7 @@ export default function App() {
       try {
         const res = await fetch(`${import.meta.env.BASE_URL}demo.json`, { cache: 'no-store' });
         if (!res.ok || cancelled) return;
-        restoreDb(parseBackupFile(await res.text()));
+        restoreDb(freshenDemoDb(parseBackupFile(await res.text()), isoToday()));
         try {
           sessionStorage.setItem('maor_demo_seeded', '1');
         } catch {

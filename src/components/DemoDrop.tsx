@@ -9,6 +9,8 @@
 import { useRef, useState, type DragEvent } from 'react';
 import { useApp } from '../store/useApp';
 import { parseBackupFile } from '../store/persist';
+import { freshenDemoDb } from '../lib/demoFresh';
+import { isoToday } from '../lib/date-util';
 import { Btn } from './ui';
 
 export function DemoDrop() {
@@ -34,7 +36,7 @@ export function DemoDrop() {
       // נתיב יחסי — עובד גם תחת תת-נתיב פריסה (base: './')
       const res = await fetch(`${import.meta.env.BASE_URL}demo.json`, { cache: 'no-store' });
       if (!res.ok) throw new Error('קובץ הדמו לא נמצא');
-      restoreDb(parseBackupFile(await res.text()));
+      restoreDb(freshenDemoDb(parseBackupFile(await res.text()), isoToday()));
       toast('נתוני הדמו נטענו — אפשר להתנסות בחופשיות ✓');
     } catch (e) {
       toast('⚠ טעינת הדמו נכשלה — ' + (e instanceof Error ? e.message : 'נסו שוב'));
