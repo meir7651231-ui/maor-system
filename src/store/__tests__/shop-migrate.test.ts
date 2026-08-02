@@ -31,7 +31,7 @@ describe('🛍 ratchet — חנות 1: מיגרציה אדיטיבית (DB_VERSI
     expect(out.shopCriteria).toEqual([]);
     expect(out.shopAssignments).toEqual([]);
     expect(out.shopEvents).toEqual([]);
-    expect(out.v).toBe(5);
+    expect(out.v).toBe(6);
   });
 
   it('(ב) שיוך בלי redemptions/criterionIds ועם סטטוס זר — נרפא ([] + active)', () => {

@@ -204,6 +204,8 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'entity.tzBox', label: 'קופת צדקה', fallback: 'קופה' },
   { key: 'entity.tzCampaign', label: 'מבצע התרמה', fallback: 'מבצע' },
   { key: 'nav.shop', label: 'שם עמודת החנות', fallback: 'חנות' },
+  { key: 'nav.shop7', label: 'שם עמודת החלוקה', fallback: 'חלוקה' },
+  { key: 'entity.volunteer', label: 'מתנדב', fallback: 'מתנדב' },
   { key: 'entity.shopProduct', label: 'מוצר שירות', fallback: 'מוצר' },
   { key: 'entity.shopStore', label: 'חנות שותפה', fallback: 'חנות' },
   { key: 'entity.shopCriterion', label: 'קריטריון זכאות', fallback: 'קריטריון' },

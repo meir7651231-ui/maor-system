@@ -12,7 +12,7 @@ describe('🔌 ratchet — חיבור 4: קובץ הדמו', () => {
 
   it('migrate(demo) עובר נקי — הדמו תואם סכמה', () => {
     expect(out).not.toBeNull();
-    expect(out!.v).toBe(5);
+    expect(out!.v).toBe(6);
   });
 
   it('העמודות החדשות מאוכלסות: רכזים/קופות/מבצע · פריטים/חבילה/קריטריונים/חנות/שיוך-עם-מימוש', () => {
@@ -25,6 +25,16 @@ describe('🔌 ratchet — חיבור 4: קובץ הדמו', () => {
     expect(out!.shopCriteria.length).toBeGreaterThanOrEqual(2);
     expect(out!.shopStores.length).toBeGreaterThanOrEqual(1);
     expect(out!.shopAssignments.some((a) => a.redemptions.length > 0)).toBe(true);
+  });
+
+  it('SHOP7: מתנדבים/יום-חלוקה/מסירה מאוכלסים; המסירה מצביעה על שיוך-חנות פעיל', () => {
+    expect(out!.volunteers.length).toBeGreaterThanOrEqual(1);
+    expect(out!.distributionDays.length).toBeGreaterThanOrEqual(1);
+    expect(out!.deliveries.length).toBeGreaterThanOrEqual(1);
+    // המסירה מצביעה על assignment ומתנדב קיימים (בידוד ⇒ הקלט מ-shopAssignments)
+    const del = out!.deliveries[0];
+    expect(out!.shopAssignments.some((a) => a.id === del.assignmentId)).toBe(true);
+    expect(out!.volunteers.some((v) => v.id === del.volunteerId)).toBe(true);
   });
 
   it('seq גבוה מכל המזהים; shopReceiptSeq זרוע מעל ה-S- בדמו; השיוך מצביע על משפחה קיימת', () => {
