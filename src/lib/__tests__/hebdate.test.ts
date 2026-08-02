@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { hebMonthsOf, hebToIso, hebYearNow, isHebLeapYear, isoToHebParts } from '../hebdate';
+import { hebMonthsOf, hebToIso, hebYearNow, isHebLeapYear, isoToHebParts, validateHebMonthNames } from '../hebdate';
+
+// ANALYSIS §5 בינוני #2 — ולידציית-ריצה לשמות-חודשי Intl. אם CLDR ישנה איות,
+// המבחן ייכשל ב-CI (שער-הפריסה) במקום שהמרות-תאריך יישברו בשקט אצל המשתמש.
+describe('🛡 ratchet — שמות-חודשי Intl תקינים (הגנה מפני שינוי CLDR)', () => {
+  it('שנה פשוטה ושנה מעוברת — אין שם-חודש לא-מוכר', () => {
+    expect(validateHebMonthNames(5786)).toEqual([]); // פשוטה
+    expect(validateHebMonthNames(5787)).toEqual([]); // מעוברת (אדר א'/ב')
+    expect(validateHebMonthNames(hebYearNow())).toEqual([]);
+  });
+});
 
 // 5786 שנה פשוטה (כסדרה, 354 ימים — חשוון בן 29) · 5787 שנה מעוברת.
 
