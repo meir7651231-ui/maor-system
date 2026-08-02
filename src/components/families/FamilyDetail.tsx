@@ -168,6 +168,7 @@ export function FamilyDetail(props: { family: Family }) {
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const credOn = featureOn(config, 'families.cred');
+  const privacyMode = useApp((s) => s.privacyMode);
   // מחיקות בשני קליקים (P3 פריט 19, shell.armdel; כבוי = דיאלוג דפדפן)
   const { confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const docsOn = featureOn(config, 'families.docs');
@@ -405,9 +406,18 @@ export function FamilyDetail(props: { family: Family }) {
 
       <EnrollPanel fam={fam} />
       <EventsPanel fam={fam} />
-      {featureOn(config, 'tzedaka.familypanel') && <TzFamilyPanel famId={fam.id} />}
-      {featureOn(config, 'shop.familypanel') && <ShopFamilyPanel famId={fam.id} />}
-      {featureOn(config, 'shop7.familypanel') && <Shop7FamilyPanel famId={fam.id} />}
+      {/* מצב-צנעה (SHOP10) מסתיר את פאנלי מקבלי-הצדקה מעיון מזדמן */}
+      {privacyMode ? (
+        <section className="card" style={{ fontSize: 13, color: 'var(--ink-faint)', textAlign: 'center' }}>
+          🕶️ מצב צנעה פעיל — מידע על סיוע/צדקה מוסתר
+        </section>
+      ) : (
+        <>
+          {featureOn(config, 'tzedaka.familypanel') && <TzFamilyPanel famId={fam.id} />}
+          {featureOn(config, 'shop.familypanel') && <ShopFamilyPanel famId={fam.id} />}
+          {featureOn(config, 'shop7.familypanel') && <Shop7FamilyPanel famId={fam.id} />}
+        </>
+      )}
 
       {editOpen && <FamilyForm family={fam} onClose={() => setEditOpen(false)} />}
       {memberModal !== undefined && (

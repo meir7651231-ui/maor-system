@@ -105,6 +105,8 @@ export default function App() {
   const selectCourse = useApp((s) => s.selectCourse);
   const navHistLen = useApp((s) => s.navHist.length);
   const goBack = useApp((s) => s.goBack);
+  const privacyMode = useApp((s) => s.privacyMode);
+  const togglePrivacy = useApp((s) => s.togglePrivacy);
 
   useEffect(() => {
     void init();
@@ -367,6 +369,34 @@ export default function App() {
     </button>
   );
 
+  // כפתור מצב-צנעה 🕶️ (SHOP10, shell.privacy) — מסתיר מסכי-מקבלי-צדקה מעיון מזדמן.
+  const privacyOn = featureOn(config, 'shell.privacy');
+  const privacyGearBtn: ReactNode = privacyOn && (
+    <button
+      type="button"
+      className="nav-gear"
+      onClick={togglePrivacy}
+      title={privacyMode ? 'בטל מצב צנעה' : 'מצב צנעה — הסתר מקבלי צדקה'}
+      aria-label="מצב צנעה"
+      aria-pressed={privacyMode}
+      style={privacyMode ? { background: 'var(--accent)', color: '#fff' } : undefined}
+    >
+      <span aria-hidden>{privacyMode ? '🕶️' : '👁'}</span>
+    </button>
+  );
+  const privacySideBtn: ReactNode = privacyOn && (
+    <button
+      type="button"
+      className="side-link"
+      onClick={togglePrivacy}
+      title={privacyMode ? 'בטל מצב צנעה' : 'מצב צנעה'}
+      aria-pressed={privacyMode}
+    >
+      <span className="side-ico" aria-hidden>{privacyMode ? '🕶️' : '👁'}</span>
+      <span className="nav-label">{privacyMode ? 'צנעה פעילה' : 'צנעה'}</span>
+    </button>
+  );
+
   // צ'יפ משתמש הענן — קיים בשני השלדים
   const userChip: ReactNode = cloud.enabled && cloud.user && (
     <div className="nav-user">
@@ -464,6 +494,7 @@ export default function App() {
               <span aria-hidden>▶</span>
             </button>
           )}
+          {privacyGearBtn}
           {adminGearBtn}
           {!isTeacherUser && (
             <button
@@ -521,6 +552,7 @@ export default function App() {
               <span className="nav-label">הגדרות</span>
             </button>
           )}
+          {privacySideBtn}
           {adminSideBtn}
         </nav>
         <div className="side-sp" aria-hidden />
@@ -587,7 +619,8 @@ export default function App() {
             <span className="nav-label">הגדרות</span>
           </button>
         )}
-        {adminSideBtn}
+        {privacySideBtn}
+          {adminSideBtn}
       </aside>
       <div className="side-body">
         <header className="side-head">
