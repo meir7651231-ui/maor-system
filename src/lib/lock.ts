@@ -5,6 +5,7 @@
  * בקובץ הגיבוי או בענן. זו הגנת-גישה מפני עיון מזדמן — לא הצפנת נתונים:
  * קוד קצר ניתן לפיצוח בכוח מול הגיבוב, ולכן אין להסתמך עליה מול תוקף נחוש.
  */
+import { nsLsKey } from '../store/persist';
 
 /** אזורים שהנעילה המשנית ("מנהל") יכולה להגן עליהם. */
 export type LockZone = 'wizard' | 'settings' | 'supporters' | 'reports';
@@ -32,11 +33,21 @@ export interface LockCfg {
   zones?: string[];
 }
 
-const LOCK_KEY = 'maor_lock';
+const LOCK_BASE = 'maor_lock';
+
+/** מפתח הנעילה בתחום הנוכחי (פר-ארגון, הכרעת בעלים 5.3). default ⇒ 'maor_lock'
+ *  (ביט-זהה להיום); ארגון-פלטפורמה ⇒ 'maor_lock:{slug}'. */
+export function lockKey(): string {
+  return nsLsKey(LOCK_BASE);
+}
 
 export function readLock(): LockCfg {
   try {
-    const raw = localStorage.getItem(LOCK_KEY);
+    const key = lockKey();
+    let raw = localStorage.getItem(key);
+    // מיגרציה רכה: ארגון ממורחב-שם ללא נעילה משלו — קורא את הנעילה הישנה
+    // (bare 'maor_lock') כדי לא לאבד PIN קיים; הכתיבה הבאה תעביר לתחום.
+    if (raw == null && key !== LOCK_BASE) raw = localStorage.getItem(LOCK_BASE);
     return raw ? (JSON.parse(raw) as LockCfg) : {};
   } catch {
     return {};
@@ -45,8 +56,9 @@ export function readLock(): LockCfg {
 
 export function writeLock(cfg: LockCfg): void {
   try {
-    if (!cfg.primary && !cfg.secondary) localStorage.removeItem(LOCK_KEY);
-    else localStorage.setItem(LOCK_KEY, JSON.stringify(cfg));
+    const key = lockKey();
+    if (!cfg.primary && !cfg.secondary) localStorage.removeItem(key);
+    else localStorage.setItem(key, JSON.stringify(cfg));
   } catch {
     /* localStorage חסום (מצב פרטי) — הנעילה תפעל לסשן הנוכחי בלבד */
   }

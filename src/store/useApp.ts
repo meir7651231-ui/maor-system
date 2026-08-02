@@ -50,7 +50,7 @@ import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types
 import { applyTheme, featureOn, isSuperAdmin, loadOrgConfig, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { mergeFamilies, mergeFamiliesByFields } from '../lib/dedup';
-import { hashPin, DEFAULT_LOCK_ZONES, readLock, writeLock, type LockCfg } from '../lib/lock';
+import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
@@ -2144,7 +2144,7 @@ useApp.subscribe((s, prev) => {
 // מחדש מהמקור המשותף. e.key === null = localStorage.clear() → גם אז נטען מחדש.
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
-    if (e.key === 'maor_lock' || e.key === null) {
+    if (e.key === null || e.key === lockKey() || e.key === 'maor_lock') {
       useApp.setState({ lock: readLock() });
     }
   });

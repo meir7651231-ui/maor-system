@@ -59,7 +59,16 @@ const SNAPSHOT_KEEP = 30;
  * חובה לקרוא לפני loadDb (init עושה זאת). slug 'default' שומר על המפתחות הישנים.
  */
 export function setPersistNamespace(slug: string): void {
-  if (!slug || slug === 'default') return;
+  if (!slug || slug === 'default') {
+    // חזרה לתחום-השורש: איפוס למפתחות הבסיס (ביט-זהה להיום ללקוח default —
+    // ה-init קורא פעם אחת; הכיוון החשוב לתיקון: מעבר-חזרה מ-slug ל-default).
+    nsSlug = '';
+    LS_KEY = 'maor_db';
+    LS_CORRUPT_KEY = 'maor_db_corrupt';
+    IDB_NAME = 'maor';
+    idb = null;
+    return;
+  }
   nsSlug = slug;
   LS_KEY = `maor_db:${slug}`;
   LS_CORRUPT_KEY = `maor_db_corrupt:${slug}`;
