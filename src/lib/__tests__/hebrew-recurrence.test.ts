@@ -88,6 +88,48 @@ describe('✅ בקרה: חודש רגיל (ניסן) חוזר כרגיל, בלי
     expect(eventsOnDate(db, noon(nextNisan)).some((e) => e.id === 'm3')).toBe(true));
 });
 
+// ANALYSIS §5 בינוני #1 — עוגן ל-ל׳ (30) נעלם בשנה שהחודש בן 29. הכרעת בעלים
+// "במקום ל אז א": ל׳ = ראש-חודש ⇒ בשנה חסרה נופל על א׳ בחודש הבא (מאומת מול הלוח).
+describe('🌙 ratchet — עוגן ל-ל׳ כסלו נופל על א׳ טבת בשנה עם כסלו חסר', () => {
+  // שנת-עוגן = כסלו מלא (30 קיים); שנת-נפילה = כסלו חסר (אין 30) הבאה אחריה
+  let anchorY = 0;
+  let shortY = 0;
+  for (let y = 5785; y < 5840; y++) {
+    if (!anchorY && hebToIso(30, 'כסלו', y)) anchorY = y;
+    else if (anchorY && y > anchorY && !hebToIso(30, 'כסלו', y)) { shortY = y; break; }
+  }
+  const origIso = hebToIso(30, 'כסלו', anchorY)!;
+  const db = dbWith(memorial('k30', origIso));
+
+  it('נמצאו שנת-עוגן (כסלו מלא) ושנת-נפילה (כסלו חסר)', () => {
+    expect(anchorY).toBeGreaterThan(0);
+    expect(shortY).toBeGreaterThan(anchorY);
+  });
+  it('1️⃣ מופיעה ביום המקורי — ל׳ כסלו', () =>
+    expect(eventsOnDate(db, noon(origIso)).some((e) => e.id === 'k30')).toBe(true));
+  it('2️⃣ FIX: בשנה עם כסלו חסר — מופיעה ב-א׳ טבת (ל׳ נעלם ⇒ ראש-חודש)', () => {
+    const tevet1 = hebToIso(1, 'טבת', shortY)!;
+    expect(eventsOnDate(db, noon(tevet1)).some((e) => e.id === 'k30')).toBe(true);
+  });
+  it('🚫 בלי כפילות: בשנה עם כסלו מלא — מופיעה ב-ל׳ כסלו ולא ב-א׳ טבת', () => {
+    const kis30 = hebToIso(30, 'כסלו', anchorY)!;
+    const tevet1 = hebToIso(1, 'טבת', anchorY)!;
+    expect(eventsOnDate(db, noon(kis30)).some((e) => e.id === 'k30')).toBe(true);
+    expect(eventsOnDate(db, noon(tevet1)).some((e) => e.id === 'k30')).toBe(false);
+  });
+});
+
+describe('✅ בקרה: חודש שתמיד יש בו ל׳ (תשרי) — נשאר על ל׳, לא זז ל-א׳ חשוון', () => {
+  const origIso = hebToIso(30, 'תשרי', 5785)!;
+  const db = dbWith(memorial('t30', origIso));
+  it('30 תשרי חוזר ב-30 תשרי בשנה הבאה — לא ב-א׳ חשוון', () => {
+    const nextTishri30 = hebToIso(30, 'תשרי', 5786)!;
+    const heshvan1 = hebToIso(1, 'חשוון', 5786)!;
+    expect(eventsOnDate(db, noon(nextTishri30)).some((e) => e.id === 't30')).toBe(true);
+    expect(eventsOnDate(db, noon(heshvan1)).some((e) => e.id === 't30')).toBe(false);
+  });
+});
+
 describe('🔬 hebAnnualEq — מקור-האמת המשותף', () => {
   it('אדר ≡ אדר ב׳, אבל אדר ≠ אדר א׳', () => {
     expect(hebAnnualEq({ day: 15, month: 'Adar' }, { day: 15, month: 'Adar II' })).toBe(true);
