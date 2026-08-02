@@ -207,7 +207,8 @@ const EV_EMOJI: Record<EventType, string> = {
 };
 
 function holidayEmoji(name: string): string {
-  return name.includes('צום') || name === 'תשעה באב' || name === 'יום כיפור' ? '📿' : '🎉';
+  // ימי-צום (כולל תענית אסתר/צום גדליה) מקבלים 📿; שאר החגים 🎉
+  return name.includes('צום') || name.includes('תענית') || name === 'תשעה באב' || name === 'יום כיפור' ? '📿' : '🎉';
 }
 
 /** 7 הימים הבאים — חגים, אירועים (כולל חזרה עברית) ומפגשי חוגים. עד 7 שורות.
