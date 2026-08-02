@@ -184,6 +184,12 @@ export interface Enrollment {
   status: EnrollmentStatus;
   note: string;
   enrolledAt: IsoDate;
+  /**
+   * תאריך סיום השיבוץ (ISO) — נקבע כשמסמנים 'ended', מתנקה בחידוש (#8). מאפשר
+   * לדוח-הנוכחות-ההיסטורי להציג תלמידה שסיימה באמצע-שנה במפגשים שקדמו לסיומה,
+   * במקום להעלים אותה רטרואקטיבית. חסר/undefined = שיבוץ ישן שהסתיים בלי תאריך.
+   */
+  endedAt?: IsoDate;
 }
 
 export interface Teacher {
