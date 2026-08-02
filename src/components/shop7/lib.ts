@@ -90,6 +90,22 @@ export function deliveryListLines(
   return out;
 }
 
+/**
+ * שורות CSV של כל המסירות — תאריך-יום · משפחה · מתנדב · סטטוס · הערה.
+ * שקיפות מלאה (כמו בשאר המודולים): מסירות שטרם נמסרו מסומנות בסטטוסן, לא מוסתרות.
+ * תצוגה בלבד — אפס כסף/S- (שמירה על בידוד המודול).
+ */
+export function deliveriesCsvRows(db: Db): (string | number)[][] {
+  const dayDate = (id: string) => db.distributionDays.find((d) => d.id === id)?.date ?? '';
+  const famName = (id: string) => db.families.find((f) => f.id === id)?.name ?? '';
+  const volName = (id: string) => db.volunteers.find((v) => v.id === id)?.name ?? '';
+  const rows: (string | number)[][] = [['תאריך', 'משפחה', 'מתנדב', 'סטטוס', 'הערה']];
+  for (const d of db.deliveries) {
+    rows.push([dayDate(d.dayId), famName(d.familyId), volName(d.volunteerId), statusLabel(d.status), d.note ?? '']);
+  }
+  return rows;
+}
+
 /** סינון מתנדבים (שם/טלפון/אזור) דרך smartFilter. */
 export function filterVolunteers(vols: Volunteer[], q: string): Volunteer[] {
   if (!q.trim()) return vols;

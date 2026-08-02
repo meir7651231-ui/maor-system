@@ -10,11 +10,12 @@ import { DEFAULT_CONFIG } from '../../types/config';
 import { FEATURES } from '../../types/features';
 import tzPanelSrc from '../tzedaka/TzFamilyPanel.tsx?raw';
 import shopPanelSrc from '../shop/ShopFamilyPanel.tsx?raw';
+import shop7PanelSrc from '../shop7/Shop7FamilyPanel.tsx?raw';
 import detailSrc from '../families/FamilyDetail.tsx?raw';
 
 describe('🔌 ratchet — חיבור 2: פאנלי כרטיס המשפחה', () => {
   it('🛡 תצוגה בלבד — אפס פעולות כתיבה בפאנלים', () => {
-    for (const src of [tzPanelSrc, shopPanelSrc]) {
+    for (const src of [tzPanelSrc, shopPanelSrc, shop7PanelSrc]) {
       expect(src).not.toMatch(/\bupsert[A-Z]/);
       expect(src).not.toMatch(/\bdelete[A-Z]/);
       expect(src).not.toContain('addTz');
@@ -27,10 +28,13 @@ describe('🔌 ratchet — חיבור 2: פאנלי כרטיס המשפחה', ()
   it('הדגלים קיימים עם module נכון — כיבוי המודול משרשר ומעלים את הפאנל', () => {
     expect(FEATURES.find((f) => f.key === 'tzedaka.familypanel')?.module).toBe('tzedaka');
     expect(FEATURES.find((f) => f.key === 'shop.familypanel')?.module).toBe('shop');
-    const off = { ...DEFAULT_CONFIG, modules: { ...DEFAULT_CONFIG.modules, tzedaka: false, shop: false } };
+    expect(FEATURES.find((f) => f.key === 'shop7.familypanel')?.module).toBe('shop7');
+    const off = { ...DEFAULT_CONFIG, modules: { ...DEFAULT_CONFIG.modules, tzedaka: false, shop: false, shop7: false } };
     expect(featureOn(off, 'tzedaka.familypanel')).toBe(false);
     expect(featureOn(off, 'shop.familypanel')).toBe(false);
+    expect(featureOn(off, 'shop7.familypanel')).toBe(false);
     expect(detailSrc).toContain("featureOn(config, 'tzedaka.familypanel') && <TzFamilyPanel");
     expect(detailSrc).toContain("featureOn(config, 'shop.familypanel') && <ShopFamilyPanel");
+    expect(detailSrc).toContain("featureOn(config, 'shop7.familypanel') && <Shop7FamilyPanel");
   });
 });

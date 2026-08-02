@@ -18,13 +18,19 @@ const db: Db = {
   shopItems: [
     { id: 'shi1', name: 'מתנה', kind: 'gift', storeId: '', value: 100, basePrice: 0, stock: 0, active: true, notes: '' } as unknown as Db['shopItems'][number],
   ],
+  // shop7: יום חלוקה מתוארך היום + מסירה שטרם נמסרה ⇒ מונה-חלוקה חיובי
+  distributionDays: [{ id: 'dd1', date: '2026-07-30', title: '', closed: false } as unknown as Db['distributionDays'][number]],
+  deliveries: [
+    { id: 'x1', dayId: 'dd1', assignmentId: 'a1', familyId: 'f1', volunteerId: 'v1', status: 'pickup', note: '' } as unknown as Db['deliveries'][number],
+  ],
 };
 
 describe('🔌 ratchet — חיבור 3: מונה טיפול חוצה-עמודות', () => {
-  it('careCounts סופר את needsCare של שתי העמודות', () => {
+  it('careCounts סופר את needsCare של שלוש העמודות (כולל חלוקה)', () => {
     const counts = careCounts(db, '2026-07-30', DEFAULT_CONFIG);
     expect(counts.tzedaka).toBeGreaterThan(0);
     expect(counts.shop).toBeGreaterThan(0);
+    expect(counts.shop7).toBeGreaterThan(0); // מסירת "היום" שטרם נמסרה
   });
 
   it('דגל כבוי ⇒ אפס; מודול כבוי ⇒ אפס לאותה עמודה בלבד', () => {
@@ -41,6 +47,8 @@ describe('🔌 ratchet — חיבור 3: מונה טיפול חוצה-עמודו
     expect(widgetsSrc).toContain('crossCare.shop > 0');
     expect(widgetsSrc).toMatch(/go\('tzedaka'\)/);
     expect(widgetsSrc).toMatch(/go\('shop'\)/);
+    expect(widgetsSrc).toContain('crossCare.shop7 > 0');
+    expect(widgetsSrc).toMatch(/go\('shop7'\)/);
     // אין פירוט פריטי עמודות במסך הבית — הווידג'ט לא קורא needsCare ישירות
     expect(widgetsSrc).not.toContain('needsCare(');
   });
