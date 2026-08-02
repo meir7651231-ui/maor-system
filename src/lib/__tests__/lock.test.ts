@@ -4,6 +4,19 @@
  */
 import { describe, expect, it } from 'vitest';
 import { hashPin, verifyPin, isValidPin } from '../lock';
+import { cooldownFor } from '../../components/lock/LockScreen';
+
+// ANALYSIS §5 אבטחה — הגבלת-קצב על מסך ה-PIN (השהיה גדֵלה מול ניחוש-המוני).
+describe('🔒 ratchet — הגבלת-קצב PIN (cooldownFor)', () => {
+  it('2 כשלונות ראשונים ללא השהיה; 3→5ש׳, 4→15ש׳, 5+→30ש׳', () => {
+    expect(cooldownFor(1)).toBe(0);
+    expect(cooldownFor(2)).toBe(0);
+    expect(cooldownFor(3)).toBe(5000);
+    expect(cooldownFor(4)).toBe(15000);
+    expect(cooldownFor(5)).toBe(30000);
+    expect(cooldownFor(9)).toBe(30000); // תקרה
+  });
+});
 
 describe('🔑 isValidPin — 4–8 ספרות בלבד', () => {
   it('מקבל 4–8 ספרות', () => {

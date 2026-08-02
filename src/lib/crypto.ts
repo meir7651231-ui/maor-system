@@ -9,7 +9,9 @@
  * שכחת את שניהם = הנתונים אבודים לצמיתות (אין דלת אחורית).
  */
 
-const PBKDF2_ITER = 210_000;
+// המלצת OWASP 2024 ל-PBKDF2-SHA256. envelope שומר את ה-iter שלו (env.iter) ⇒
+// העלאת ברירת-המחדל חלה רק על הצפנות חדשות; envelope ישן (210K) נפתח כרגיל.
+const PBKDF2_ITER = 600_000;
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
