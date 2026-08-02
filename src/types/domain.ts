@@ -709,6 +709,11 @@ export interface Db {
   orgDonate: string;
   /** יעד גיוס שנתי בש"ח — 0 = לא הוגדר (קיר ההשפעה מציג סכום בלבד). */
   orgGoal: number;
+  /**
+   * יעד-תקציב סיוע בש"ח (SHOP9 back-office) — תקרת-הסבסוד שהעמותה מוכנה לספוג.
+   * 0 = לא הוגדר (מבט-ההנהלה מציג את הסבסוד בלבד). ניתן לשינוי בכל זמן.
+   */
+  budget: number;
   notif: NotifPrefs;
   reports: ReportPrefs;
   ui: UiPrefs;
@@ -766,6 +771,7 @@ export function emptyDb(): Db {
     orgSite: '',
     orgDonate: '',
     orgGoal: 0,
+    budget: 0,
     notif: { email: true, push: false, sms: true, strong: false },
     reports: { daily: true, weekly: true, monthly: false, quarterly: false },
     ui: { famView: 'list', crsView: 'grid' },

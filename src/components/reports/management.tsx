@@ -68,16 +68,25 @@ export function managementMetrics(db: Db): MetricGroup[] {
   const subsidy = subsidyTotal(db.shopAssignments);
   const intakeCost = db.shopIntakes.reduce((a, x) => a + (x.cost || 0), 0);
   const ils = (n: number) => '₪' + Math.round(n).toLocaleString('he-IL');
-  groups.push({
-    title: '💰 התחשבנות',
-    rows: [
-      ['שווי שחולק למוטבים', ils(given)],
-      ['נגבה מהמוטבים', ils(paid)],
-      ['סבסוד נטו (העמותה ספגה)', ils(subsidy)],
-      ['עלות רכש מלאי', ils(intakeCost)],
-      ['מימון אימוצים (הכנסה מיועדת)', ils(sponsorTotal)],
-    ],
-  });
+  const reconRows: [string, number | string][] = [
+    ['שווי שחולק למוטבים', ils(given)],
+    ['נגבה מהמוטבים', ils(paid)],
+    ['סבסוד נטו (העמותה ספגה)', ils(subsidy)],
+    ['עלות רכש מלאי', ils(intakeCost)],
+    ['מימון אימוצים (הכנסה מיועדת)', ils(sponsorTotal)],
+  ];
+  // יעד-תקציב סיוע (ניתן לעריכה בהגדרות, ניתן לשינוי בכל זמן) — קריאה בלבד כאן.
+  // התקציב חוסם את הסבסוד: הסבסוד-נטו הוא ההוצאה האמיתית של העמותה.
+  const budget = db.budget || 0;
+  if (budget > 0) {
+    reconRows.push(['יעד תקציב סיוע', ils(budget)]);
+    const remain = budget - subsidy;
+    reconRows.push(
+      remain >= 0 ? ['נותר מהתקציב', ils(remain)] : ['⚠ חריגה מהתקציב', ils(-remain)],
+    );
+    reconRows.push(['ניצול התקציב', `${Math.round((subsidy / budget) * 100)}%`]);
+  }
+  groups.push({ title: '💰 התחשבנות', rows: reconRows });
 
   return groups;
 }
