@@ -714,6 +714,8 @@ export interface Db {
    * 0 = לא הוגדר (מבט-ההנהלה מציג את הסבסוד בלבד). ניתן לשינוי בכל זמן.
    */
   budget: number;
+  /** שער דולר→שקל להמרת תרומות $ (ברירת-מחדל 3.7). עריך בהגדרות, מתעדכן בכל החישובים. */
+  usdRate: number;
   notif: NotifPrefs;
   reports: ReportPrefs;
   ui: UiPrefs;
@@ -772,6 +774,7 @@ export function emptyDb(): Db {
     orgDonate: '',
     orgGoal: 0,
     budget: 0,
+    usdRate: 3.7,
     notif: { email: true, push: false, sms: true, strong: false },
     reports: { daily: true, weekly: true, monthly: false, quarterly: false },
     ui: { famView: 'list', crsView: 'grid' },

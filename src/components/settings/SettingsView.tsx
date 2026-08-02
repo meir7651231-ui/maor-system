@@ -84,6 +84,7 @@ function OrgSection() {
   const orgDonate = useApp((s) => s.db.orgDonate);
   const orgGoal = useApp((s) => s.db.orgGoal);
   const budget = useApp((s) => s.db.budget);
+  const usdRate = useApp((s) => s.db.usdRate);
   const setDb = useApp((s) => s.setDb);
   const toast = useApp((s) => s.toast);
 
@@ -93,13 +94,14 @@ function OrgSection() {
     donate: orgDonate,
     goal: orgGoal > 0 ? String(orgGoal) : '',
     budget: budget > 0 ? String(budget) : '',
+    usd: String(usdRate || 3.7),
   });
   const [error, setError] = useState('');
 
   // סנכרון אחרי שחזור מגיבוי / ייבוא
   useEffect(() => {
-    setF({ name: orgName, site: orgSite, donate: orgDonate, goal: orgGoal > 0 ? String(orgGoal) : '', budget: budget > 0 ? String(budget) : '' });
-  }, [orgName, orgSite, orgDonate, orgGoal, budget]);
+    setF({ name: orgName, site: orgSite, donate: orgDonate, goal: orgGoal > 0 ? String(orgGoal) : '', budget: budget > 0 ? String(budget) : '', usd: String(usdRate || 3.7) });
+  }, [orgName, orgSite, orgDonate, orgGoal, budget, usdRate]);
 
   function save() {
     const name = f.name.trim();
@@ -108,6 +110,8 @@ function OrgSection() {
     if (!Number.isFinite(goalNum) || goalNum < 0) return setError('יעד הגיוס חייב להיות מספר חיובי (או ריק)');
     const budgetNum = Number(f.budget.trim() || 0);
     if (!Number.isFinite(budgetNum) || budgetNum < 0) return setError('יעד התקציב חייב להיות מספר חיובי (או ריק)');
+    const usdNum = Number(f.usd.trim() || 0);
+    if (!Number.isFinite(usdNum) || usdNum <= 0) return setError('שער הדולר חייב להיות מספר חיובי');
     setError('');
     setDb({
       orgName: name,
@@ -115,6 +119,7 @@ function OrgSection() {
       orgDonate: f.donate.trim(),
       orgGoal: Math.round(goalNum),
       budget: Math.round(budgetNum),
+      usdRate: usdNum,
     });
     toast('פרטי הארגון נשמרו ✓');
   }
@@ -158,6 +163,15 @@ function OrgSection() {
             onChange={(v) => setF((p) => ({ ...p, budget: v }))}
             dir="ltr"
             placeholder="0 = ללא יעד — מבט-ההנהלה יציג את הסבסוד בלבד"
+          />
+        </Field>
+        <Field label="שער דולר→שקל">
+          <TextInput
+            type="number"
+            value={f.usd}
+            onChange={(v) => setF((p) => ({ ...p, usd: v }))}
+            dir="ltr"
+            placeholder="3.7 — מומר אוטומטית בכל חישובי התורמים"
           />
         </Field>
       </div>

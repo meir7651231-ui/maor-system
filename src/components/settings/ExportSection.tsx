@@ -130,10 +130,10 @@ export function ExportSection() {
       ],
     ];
     for (const sp of db.supporters) {
-      const score = supScore(sp);
+      const score = supScore(sp, db.usdRate);
       rows.push([
         sp.name, sp.phone, sp.email, sp.address, sp.cat, sp.forWho, sp.count, sp.ils, sp.usd,
-        Math.round(supTotalIls(sp)), fmtDate(sp.first), fmtDate(sp.last), score, supTier(score).label,
+        Math.round(supTotalIls(sp, db.usdRate)), fmtDate(sp.first), fmtDate(sp.last), score, supTier(score).label,
         sp.notes,
       ]);
     }

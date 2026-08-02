@@ -34,14 +34,23 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     expect(bins.reduce((a, b) => a + b, 0)).toBe(3);
   });
 
-  it('פריט 13: תחביר numMatch — N / N+ / N-M, וה-₪-שקול מסונן ×3.7 (הגנת-מקור)', () => {
+  it('פריט 13: תחביר numMatch — N / N+ / N-M, וה-₪-שקול מסונן לפי השער העריך (הגנת-מקור)', () => {
     expect(numMatch('3+', 5)).toBe(true);
     expect(numMatch('3+', 2)).toBe(false);
     expect(numMatch('1-5', 3)).toBe(true);
     expect(numMatch('7', 7)).toBe(true);
-    expect(viewSrc).toContain('numMatch(colF.total, Math.round(supTotalIls(sp)))');
+    expect(viewSrc).toContain('numMatch(colF.total, Math.round(supTotalIls(sp, rate)))');
     expect(viewSrc).toContain('numMatch(colF.count, sp.count || 0)');
-    expect(viewSrc).toContain('numMatch(colF.score, supScore(sp))');
+    expect(viewSrc).toContain('numMatch(colF.score, supScore(sp, rate))');
+    expect(viewSrc).toContain('const rate = db.usdRate');
+  });
+
+  // ANALYSIS §5 — שער-דולר עריך (הכרעת בעלים). השער מוזרק לחישובים; ברירת-מחדל 3.7.
+  it('שער-דולר עריך: supTotalIls/supAvgDon מכבדים את השער שהוזרק', () => {
+    const sups = [sup({ ils: 300, count: 2 }), sup({ usd: 100, count: 1 })];
+    expect(supAvgDon(sups)).toBe(Math.round(670 / 3)); // ברירת-מחדל 3.7
+    expect(supAvgDon(sups, 4)).toBe(Math.round(700 / 3)); // שער 4: 300 + 100*4 = 700
+    expect(supAvgDon(sups, 3.5)).toBe(Math.round(650 / 3)); // שער 3.5: 300 + 350
   });
 
   it('פריט 14: צ׳יפי עם/בלי מונה ועודכן-היום + עמודת שולם (הגנת-מקור)', () => {
