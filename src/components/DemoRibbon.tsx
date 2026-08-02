@@ -6,6 +6,8 @@
 import { useState } from 'react';
 import { useApp } from '../store/useApp';
 import { parseBackupFile } from '../store/persist';
+import { freshenDemoDb } from '../lib/demoFresh';
+import { isoToday } from '../lib/date-util';
 
 export function DemoRibbon() {
   const restoreDb = useApp((s) => s.restoreDb);
@@ -18,7 +20,7 @@ export function DemoRibbon() {
     try {
       const res = await fetch(`${import.meta.env.BASE_URL}demo.json`, { cache: 'no-store' });
       if (!res.ok) throw new Error('קובץ הדמו לא נמצא');
-      restoreDb(parseBackupFile(await res.text()));
+      restoreDb(freshenDemoDb(parseBackupFile(await res.text()), isoToday()));
       toast('הדמו אופס — נתוני הדגמה טריים ✓');
     } catch (e) {
       toast('⚠ איפוס הדמו נכשל — ' + (e instanceof Error ? e.message : 'נסו שוב'));
