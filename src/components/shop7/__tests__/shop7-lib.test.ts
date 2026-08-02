@@ -8,8 +8,11 @@ import type { Db, Delivery, ShopAssignment, Volunteer } from '../../../types/dom
 import {
   advanceStatus,
   dayProgress,
+  deliveriesOfFamily,
   deliveriesOfVolunteer,
+  deliveryListLines,
   eligibleAssignmentsForDay,
+  pendingDeliveriesToday,
   statusLabel,
   volunteerLoadHint,
 } from '../lib';
@@ -54,6 +57,27 @@ describe('🚚 ratchet — SHOP7 מנוע', () => {
     expect(volunteerLoadHint(db, vol('v1', 2), 'day1')).toEqual({ count: 2, over: true }); // חרג
     expect(volunteerLoadHint(db, vol('v1', 5), 'day1')).toEqual({ count: 2, over: false });
     expect(deliveriesOfVolunteer(db, 'v1', 'day1').length).toBe(2);
+  });
+
+  it('CONNECT — מסירות-משפחה, מונה-היום, שורות-תדפיס פר-מתנדב', () => {
+    const db: Db = {
+      ...emptyDb(),
+      distributionDays: [{ id: 'day1', date: '2026-08-01', title: 'חג', note: '', closed: false, createdAt: '' }, { id: 'day2', date: '2026-07-01', title: 'ישן', note: '', closed: false, createdAt: '' }],
+      deliveries: [
+        { ...del('d1', 'day1', 'v1', 'a1', 'pickup'), familyId: 'f1' },
+        { ...del('d2', 'day1', 'v1', 'a2', 'delivered'), familyId: 'f2' },
+        { ...del('d3', 'day2', 'v2', 'a3', 'pickup'), familyId: 'f1' },
+      ],
+    };
+    // מסירות-משפחה — כל המסירות של f1 (משני ימים)
+    expect(deliveriesOfFamily(db, 'f1').map((d) => d.id).sort()).toEqual(['d1', 'd3']);
+    // מונה-היום — רק יום מתוארך היום ולא-נמסר (d1); d2 נמסר, d3 יום ישן
+    expect(pendingDeliveriesToday(db, '2026-08-01').map((d) => d.id)).toEqual(['d1']);
+    // שורות-תדפיס — כותרת פר-מתנדב + שורת-מסירה
+    const rows = db.deliveries.filter((d) => d.dayId === 'day1').map((d) => ({ ...d, familyName: 'משפחה ' + d.familyId, volunteerName: 'מתנדב ' + d.volunteerId }));
+    const lines = deliveryListLines(rows);
+    expect(lines[0]).toContain('מתנדב v1');
+    expect(lines.some((l) => l.includes('משפחה f1') && l.includes('איסוף'))).toBe(true);
   });
 
   it('🛡 בידוד כספי — המנוע והפעולות לא נוגעים בקבלות/כסף/S-', () => {

@@ -24,6 +24,7 @@ export interface FeatureDef {
     | 'reports'
     | 'tzedaka'
     | 'shop'
+    | 'shop7'
     | 'home'
     | 'settings'
     | 'core'
@@ -146,6 +147,9 @@ export const FEATURES: FeatureDef[] = [
   { key: 'shop.inlinecreate', label: 'הוספת לא-רשומים', desc: 'יצירת משפחה/בן-משפחה חדשים ישירות מתוך העמודה', module: 'shop' },
   { key: 'shop.familypanel', label: 'פאנל בכרטיס המשפחה', desc: 'חבילות השירות והמגיע-וטרם-נמסר של המשפחה — תצוגה בלבד בכרטיס המשפחה', module: 'shop' },
   { key: 'shop.export', label: 'ייצוא מימושים', desc: 'ייצוא CSV של כל המימושים — כולל מבוטלים מסומנים (שקיפות)', module: 'shop' },
+
+  // ——— חלוקה (shop7) ———
+  { key: 'shop7.familypanel', label: 'פאנל חלוקה בכרטיס המשפחה', desc: 'מסירות המשפחה וסטטוסן (איסוף/בדרך/נמסר) — תצוגה בלבד בכרטיס המשפחה', module: 'shop7' },
 
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },
