@@ -140,7 +140,7 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
                 <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   <Btn sm onClick={() => setCollectFor(b)} title="רישום ריקון">💰 ריקון</Btn>
                   <Btn sm onClick={() => setBoxForm({ box: b })} title="עריכת הקופה">✏️</Btn>
-                  {b.status === 'home' && (
+                  {featureOn(config, 'tzedaka.boxstatus') && b.status === 'home' && (
                     <Btn
                       sm
                       onClick={() => {
@@ -153,7 +153,7 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
                       ⤵ למשרד
                     </Btn>
                   )}
-                  {b.status !== 'lost' && b.status !== 'retired' && (
+                  {featureOn(config, 'tzedaka.boxstatus') && b.status !== 'lost' && b.status !== 'retired' && (
                     <Btn
                       sm
                       onClick={() => {

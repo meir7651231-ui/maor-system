@@ -133,7 +133,7 @@ function VolunteerForm(props: { volunteer: Volunteer | null; onClose: () => void
       <Field label="שם *"><TextInput value={name} onChange={setName} placeholder="שם המתנדב" /></Field>
       <Field label="טלפון"><TextInput value={phone} onChange={setPhone} dir="ltr" placeholder="050-1234567" /></Field>
       <Field label="אזור חלוקה (רמז, לא-חוסם)"><TextInput value={area} onChange={setArea} placeholder="שכונה / עיר" /></Field>
-      <Field label="קיבולת מסירות ליום (רמז)"><TextInput value={maxD} onChange={setMaxD} dir="ltr" placeholder="למשל 10" /></Field>
+      {featureOn(config, 'shop7.capacity') && <Field label="קיבולת מסירות ליום (רמז)"><TextInput value={maxD} onChange={setMaxD} dir="ltr" placeholder="למשל 10" /></Field>}
       <Field label="הערה"><TextInput value={note} onChange={setNote} /></Field>
       <label style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '6px 0', fontSize: 13.5 }}>
         <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> פעיל

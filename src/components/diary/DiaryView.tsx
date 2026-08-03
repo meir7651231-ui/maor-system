@@ -74,7 +74,7 @@ export function DiaryView() {
         sub={'נוכחות ולוח יומי לכל ' + termOf(cfg, 'entity.room', 'חדר') + ' — בחרו ' + termOf(cfg, 'entity.room', 'חדר') + ' ותאריך'}
       />
 
-      {warn.length > 0 && (
+      {featureOn(cfg, 'diary.inactivewarn') && warn.length > 0 && (
         <div
           style={{
             background: '#fdeaea',
@@ -230,7 +230,7 @@ export function DiaryView() {
                         {sl.course && sl.session?.label ? ' · ' + sl.session.label : ''}
                       </span>
                     )}
-                    {sl.course && (
+                    {sl.course && featureOn(cfg, 'diary.attendance') && (
                       <Btn sm onClick={() => setOpenKey(open ? null : sl.key)} title="פתיחת פאנל נוכחות למפגש">
                         👥 נוכחות ({enrolledCount}) {open ? '▴' : '▾'}
                       </Btn>

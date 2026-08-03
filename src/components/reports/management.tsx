@@ -4,6 +4,9 @@
  * אפס נגיעה בנתונים — תצוגה/ייצוא בלבד.
  */
 import type { Db } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
+import { featureOn } from '../../lib/config';
+import { useApp } from '../../store/useApp';
 import type { Cell } from './csv';
 import { ReportTable, Section } from './parts';
 import { expiringIntakes, givenValue, collectedPaid, subsidyTotal } from '../shop/lib';
@@ -15,7 +18,8 @@ export interface MetricGroup {
 }
 
 /** אגרגציה טהורה — נבדקת ביחידה. */
-export function managementMetrics(db: Db): MetricGroup[] {
+export function managementMetrics(db: Db, config?: OrgConfig): MetricGroup[] {
+  const show = (k: string) => !config || featureOn(config, k); // בלי config (טסטים) = מוצג
   const deliveries = db.deliveries;
   const delivered = deliveries.filter((d) => d.status === 'delivered').length;
   const famReached = new Set(deliveries.map((d) => d.familyId)).size;
@@ -55,7 +59,7 @@ export function managementMetrics(db: Db): MetricGroup[] {
   ];
 
   const sponsorTotal = [...sponsor.values()].reduce((a, g) => a + g.ils, 0);
-  if (sponsor.size > 0) {
+  if (sponsor.size > 0 && show('reports.management.sponsor')) {
     const rows: [string, number | string][] = [...sponsor.entries()].map(([name, g]) => [name, `${g.n} תרומות · ₪${g.ils.toLocaleString('he-IL')}`]);
     rows.push(['סה"כ אימוצים (₪)', sponsorTotal]);
     groups.push({ title: '🤝 אימוצים (אמץ חתן)', rows });
@@ -86,13 +90,14 @@ export function managementMetrics(db: Db): MetricGroup[] {
     );
     reconRows.push(['ניצול התקציב', `${Math.round((subsidy / budget) * 100)}%`]);
   }
-  groups.push({ title: '💰 התחשבנות', rows: reconRows });
+  if (show('reports.management.recon')) groups.push({ title: '💰 התחשבנות', rows: reconRows });
 
   return groups;
 }
 
 export function ManagementSection(props: { db: Db; hidden: boolean; onPrint: () => void }) {
-  const groups = managementMetrics(props.db);
+  const config = useApp((s) => s.config);
+  const groups = managementMetrics(props.db, config);
   const csvRows = (): Cell[][] => [['קבוצה', 'מדד', 'ערך'], ...groups.flatMap((g) => g.rows.map((r) => [g.title, r[0], r[1]] as Cell[]))];
 
   return (

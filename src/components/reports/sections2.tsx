@@ -2,7 +2,7 @@
 
 import type { Db, Donation } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import type { Cell } from './csv';
 import { ReportTable, Section, type Row } from './parts';
 import {
@@ -88,8 +88,12 @@ export function DonationsSection(props: SectionProps & { range: DateRange; range
     >
       <h3 style={{ fontSize: 14.5, margin: '6px 0' }}>לפי חודש</h3>
       <ReportTable head={monthHead} rows={monthRows} foot={monthFoot} />
-      <h3 style={{ fontSize: 14.5, margin: '14px 0 6px' }}>לפי קטגוריה</h3>
-      <ReportTable head={catHead} rows={catRows} />
+      {featureOn(config, 'reports.donations.bycat') && (
+        <>
+          <h3 style={{ fontSize: 14.5, margin: '14px 0 6px' }}>לפי קטגוריה</h3>
+          <ReportTable head={catHead} rows={catRows} />
+        </>
+      )}
     </Section>
   );
 }
@@ -137,8 +141,8 @@ export function FamiliesSection(props: SectionProps) {
         }}
       >
         <ReportTable head={['סטטוס', termOf(config, 'nav.families', 'משפחות')]} rows={statusRows} />
-        <ReportTable head={['עיר', termOf(config, 'nav.families', 'משפחות')]} rows={cityRows} />
-        <ReportTable head={['קהילה', termOf(config, 'nav.families', 'משפחות')]} rows={communityRows} />
+        {featureOn(config, 'reports.families.geo') && <ReportTable head={['עיר', termOf(config, 'nav.families', 'משפחות')]} rows={cityRows} />}
+        {featureOn(config, 'reports.families.geo') && <ReportTable head={['קהילה', termOf(config, 'nav.families', 'משפחות')]} rows={communityRows} />}
       </div>
     </Section>
   );

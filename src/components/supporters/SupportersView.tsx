@@ -443,7 +443,7 @@ export function SupportersView() {
                   )}
                   {/* P3 פריט 12 — 📞 פר-שורה: חיוג ישיר בלי לפתוח את הכרטיס */}
                   <td onClick={(e) => e.stopPropagation()}>
-                    {sp.phone ? (
+                    {sp.phone && featureOn(config, 'supporters.click2call') ? (
                       <a href={'tel:' + sp.phone.replace(/\D/g, '')} title={'חיוג ל' + sp.name + ' — ' + sp.phone} aria-label={'חיוג ל' + sp.name}>
                         📞
                       </a>

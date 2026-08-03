@@ -279,20 +279,22 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         </Field>
       )}
 
-      <Field label={'📝 הערה על ה' + termOf(cfg, 'entity.student', 'תלמיד/ה') + ' ב' + termOf(cfg, 'entity.course', 'חוג')}>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <TextInput value={note} onChange={setNote} placeholder="לדוגמה: רגישות, הסעה, העדפת קבוצה…" />
-          <Btn
-            sm
-            onClick={() => {
-              upsertEnrollment({ ...en, note: note.trim() });
-              toast(note.trim() ? 'ההערה נשמרה — מוצגת ברשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') : 'ההערה נמחקה');
-            }}
-          >
-            שמירה
-          </Btn>
-        </div>
-      </Field>
+      {featureOn(cfg, 'courses.enroll.note') && (
+        <Field label={'📝 הערה על ה' + termOf(cfg, 'entity.student', 'תלמיד/ה') + ' ב' + termOf(cfg, 'entity.course', 'חוג')}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <TextInput value={note} onChange={setNote} placeholder="לדוגמה: רגישות, הסעה, העדפת קבוצה…" />
+            <Btn
+              sm
+              onClick={() => {
+                upsertEnrollment({ ...en, note: note.trim() });
+                toast(note.trim() ? 'ההערה נשמרה — מוצגת ברשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') : 'ההערה נמחקה');
+              }}
+            >
+              שמירה
+            </Btn>
+          </div>
+        </Field>
+      )}
 
       {paymentsOn && (
       <div
@@ -406,12 +408,16 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
             ↩ ביטול ניקוב אחרון
           </Btn>
         )}
-        <Btn sm onClick={togglePause}>
-          {en.status === 'paused' ? '▶ הפשרה — חזרה לפעילות' : '⏸ הקפאה זמנית'}
-        </Btn>
-        <Btn sm onClick={endEnroll}>
-          {'סיום ' + termOf(cfg, 'entity.enrollment', 'שיבוץ')}
-        </Btn>
+        {featureOn(cfg, 'courses.enroll.freeze') && (
+          <Btn sm onClick={togglePause}>
+            {en.status === 'paused' ? '▶ הפשרה — חזרה לפעילות' : '⏸ הקפאה זמנית'}
+          </Btn>
+        )}
+        {featureOn(cfg, 'courses.enroll.end') && (
+          <Btn sm onClick={endEnroll}>
+            {'סיום ' + termOf(cfg, 'entity.enrollment', 'שיבוץ')}
+          </Btn>
+        )}
         <Btn sm kind="danger" onClick={remove}>
           {confirmRemove ? 'לאשר הסרה סופית?' : 'הסרת ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ')}
         </Btn>

@@ -6,6 +6,8 @@
 
 import { useState, type ReactNode } from 'react';
 import { Btn } from '../ui';
+import { featureOn } from '../../lib/config';
+import { useApp } from '../../store/useApp';
 import { normSearch } from '../../lib/validate';
 import { numMatch } from '../families/lib';
 import { downloadCsv, type Cell } from './csv';
@@ -183,6 +185,7 @@ export function Section(props: {
   extra?: ReactNode;
   children: ReactNode;
 }) {
+  const csvOn = featureOn(useApp.getState().config, 'reports.csv');
   return (
     <section className={'card' + (props.hidden ? ' no-print' : '')} style={{ marginTop: 16 }}>
       <div
@@ -201,12 +204,16 @@ export function Section(props: {
         </div>
         <div className="no-print" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           {props.extra}
-          <Btn sm onClick={() => downloadCsv(props.csvName, props.csvRows())} title="ייצוא לאקסל — עברית תקינה">
-            ⬇ CSV
-          </Btn>
-          <Btn sm onClick={props.onPrint} title="הדפסת הסעיף בלבד">
-            🖨 הדפסה
-          </Btn>
+          {csvOn && (
+            <>
+              <Btn sm onClick={() => downloadCsv(props.csvName, props.csvRows())} title="ייצוא לאקסל — עברית תקינה">
+                ⬇ CSV
+              </Btn>
+              <Btn sm onClick={props.onPrint} title="הדפסת הסעיף בלבד">
+                🖨 הדפסה
+              </Btn>
+            </>
+          )}
         </div>
       </div>
       {props.children}
