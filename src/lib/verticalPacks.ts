@@ -17,7 +17,29 @@ export interface VerticalPack {
   terms: Record<string, string>;
   /** מודולים לכבות/להדליק. חסר = דלוק. */
   modules: Partial<Record<ModuleKey, boolean>>;
+  /**
+   * פריסֶט-פיצ'רים לענף (feature-key → on/off). חסר/undefined = הכול דלוק
+   * (ברירת-המחדל של מאור). כמו terms/modules — נקודת-פתיחה שמכוונים אחריה ידנית.
+   */
+  features?: Record<string, boolean>;
 }
+
+/**
+ * פיצ'רים ייחודיים-לעמותה שאין להם מקום בעסק מסחרי — מכובים בכל ורטיקל מסחרי,
+ * כדי שהאשף בלחיצה אחת ייתן מערכת תפורה ולא "עמותה עם שמות אחרים": קבלת §46
+ * (מסחרי משתמש בקבלה רגילה), מדד-אמינות, ספר-הזהב, קיר-ההשפעה, הקהילה, מצב-צנעה
+ * (הסתרת מקבלי-צדקה), והתרומות-ההיסטוריות הלגאסי. הליבה (core.receipts) נשארת.
+ */
+export const COMMERCIAL_OFF: Record<string, boolean> = {
+  'core.taxreceipt': false,
+  'families.cred': false,
+  'home.goldbook': false,
+  'home.impactwall': false,
+  'home.community': false,
+  'home.credmetrics': false,
+  'shell.privacy': false,
+  'supporters.hist': false,
+};
 
 export const VERTICAL_PACKS: VerticalPack[] = [
   {
@@ -57,6 +79,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.done': 'שוחרר',
     },
     modules: { tzedaka: false, shop: false },
+    features: COMMERCIAL_OFF,
   },
   {
     // ⚠️ התנגשות שמות מכוונת שנשארת: pack id 'shop' (ורטיקל קמעונאות, ותיק)
@@ -85,6 +108,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'entity.shopCriterion': 'מועדון',
     },
     modules: { courses: false, diary: false, tzedaka: false },
+    features: COMMERCIAL_OFF,
   },
   {
     id: 'services',
@@ -106,6 +130,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.done': 'סופק',
     },
     modules: { courses: false, tzedaka: false, shop: false },
+    features: COMMERCIAL_OFF,
   },
   {
     id: 'rooms',
@@ -133,6 +158,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.done': 'הושכר',
     },
     modules: { courses: false, tzedaka: false, shop: false },
+    features: COMMERCIAL_OFF,
   },
   {
     id: 'fleet',
@@ -160,6 +186,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.done': 'הוחזר',
     },
     modules: { courses: false, tzedaka: false, shop: false },
+    features: COMMERCIAL_OFF,
   },
   {
     id: 'garage',
@@ -187,6 +214,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.done': 'נמסר',
     },
     modules: { courses: false, tzedaka: false, shop: false },
+    features: COMMERCIAL_OFF,
   },
   {
     id: 'hospitality',
@@ -215,6 +243,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.done': "צ'ק-אאוט",
     },
     modules: { courses: false, tzedaka: false, shop: false },
+    features: COMMERCIAL_OFF,
   },
   {
     // ורטיקל חדש (אשף 2) — גמ"ח השאלת ציוד: מנוע החנות משמש כקטלוג-השאלות
@@ -269,12 +298,14 @@ export const VERTICAL_PACKS: VerticalPack[] = [
 ];
 
 /**
- * החלת חבילת-ורטיקל על קונפיג קיים. מחליף terms+modules בערכי החבילה; שומר את
- * כל שאר השדות (firebase/adminEmails/theme/accent/features/slug/orgName).
+ * החלת חבילת-ורטיקל על קונפיג קיים. מחליף terms+modules+features בערכי החבילה;
+ * שומר את כל שאר השדות (firebase/adminEmails/theme/accent/slug/orgName).
  * packId לא-מוכר → מחזיר את הקונפיג כמות שהוא (no-op בטוח).
  */
 export function applyVerticalPack(config: OrgConfig, packId: string): OrgConfig {
   const pack = VERTICAL_PACKS.find((p) => p.id === packId);
   if (!pack) return config;
-  return { ...config, terms: { ...pack.terms }, modules: { ...pack.modules } };
+  // terms/modules/features מוחלפים בערכי-החבילה (נקודת-פתיחה); שאר הקונפיג נשמר.
+  // features חסר בחבילה = {} = הכול דלוק (ברירת-המחדל של מאור, לוורטיקלים העמותתיים).
+  return { ...config, terms: { ...pack.terms }, modules: { ...pack.modules }, features: { ...(pack.features ?? {}) } };
 }
