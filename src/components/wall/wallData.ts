@@ -20,7 +20,7 @@ import type { Db, EventType, Supporter } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
 import { gem, gemYear, holidayOf, hebAnnualEq } from '../../lib/hebrew';
-import { eventOccursOn, evLabel, hpOf, isoOf, sessionsOf } from '../calendar/calLib';
+import { blockReason, eventOccursOn, evLabel, hpOf, isoOf, sessionsOf } from '../calendar/calLib';
 
 export interface WallKpi {
   icon: string;
@@ -102,7 +102,9 @@ function allIlsDonations(db: Db): DonRow[] {
   for (const s of db.supporters) {
     for (const d of s.donations) {
       if (d.cur === '$') continue; // $ = דולר; כל השאר (₪/ריק/מיובא) = שקל — עקבי עם הבית והצבירה
-      out.push({ name: s.name, supporterId: s.id, date: d.date, amount: d.amount });
+      // ציד-באגים 3.8.2026 (🟡): גיבוי מושחת עם amount=null/NaN הפך את raisedThisYear
+      // וטבעת-היעד ל-NaN ושבר את כל הקיר. שמירה על finite (עקבי עם supporterAggregates).
+      out.push({ name: s.name, supporterId: s.id, date: d.date, amount: Number.isFinite(d.amount) ? d.amount : 0 });
     }
   }
   return out;
@@ -253,7 +255,11 @@ export function buildWeek(db: Db, now: Date, config?: OrgConfig): WallWeekRow[] 
       });
     }
 
-    if (out.length >= 7 || hol) continue;
+    if (out.length >= 7) continue;
+    // ציד-באגים 3.8.2026 (🟡): מפגשי-חוגים הוסתרו בכל יום עם *כל* חג — כולל חגים
+    // קלים (חנוכה/פורים/ל"ג בעומר/חוה"מ) שבהם החוגים רצים כרגיל. עקבי עם הלוח
+    // ויומן-החדרים: רק חג-מלא/שבת/ערב-שבת חוסמים חוג (blockReason 'course').
+    if (blockReason(d, 'course')) continue;
     const dow = d.getDay();
     const names: string[] = [];
     let n = 0;

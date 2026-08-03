@@ -8,7 +8,7 @@
  * ייעודיים: ‏platformOrgs/{slug} ו-platformRequests/{uid}. אותם שמות, אותה
  * סמנטיקה, נתיבים חוקיים; אין התנגשות עם 18 אוספי הישויות.
  */
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, setDoc } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, deleteField, doc, FieldPath, getDoc, getDocs, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { cloudDb } from './cloud';
 import type { OrgConfig } from '../types/config';
 
@@ -153,6 +153,16 @@ export async function fetchOrgJoinRequests(slug: string): Promise<Array<OrgJoinR
 /** המנהל מוחק בקשה (אחרי אישור/דחייה). */
 export async function deleteOrgJoinRequest(slug: string, uid: string): Promise<void> {
   await deleteDoc(doc(cloudDb(), PLATFORM_ORGS, slug, 'joinRequests', uid));
+}
+
+/**
+ * מחיקת כרטיס-העובד של מייל מהענן. ‏writeOrgCloudDoc משתמש ב-merge:true שממזג-עומק
+ * מפות ⇒ השמטת מפתח *לא מוחקת* אותו (הכרטיס והמייל היו נשארים לנצח, וחוזרים באישור-מחדש).
+ * FieldPath('memberConfigs', email) + deleteField() מוחק את המפתח הנקודתי בבטחה (המייל
+ * מכיל נקודות — FieldPath מטפל בהן, לא נתיב-נקודה). ‏updateDoc — המסמך תמיד קיים כאן.
+ */
+export async function deleteOrgMemberConfig(slug: string, email: string): Promise<void> {
+  await updateDoc(doc(cloudDb(), PLATFORM_ORGS, slug), new FieldPath('memberConfigs', email), deleteField());
 }
 
 /**

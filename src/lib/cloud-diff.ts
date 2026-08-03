@@ -64,6 +64,10 @@ const META_KEYS = [
   'orgSite',
   'orgDonate',
   'orgGoal',
+  // ציד-באגים 3.8.2026 (🟡): budget (SHOP9) ו-usdRate הם סקלרים ארגוניים עריכים
+  // (ליד orgGoal) שנשמטו מסנכרון-הענן ⇒ התחשבנות/מבט-הנהלה ותיוג-תורמים סטו בין מכשירים.
+  'budget',
+  'usdRate',
   'notif',
   'reports',
   'ui',
@@ -90,6 +94,8 @@ export function metaOf(db: Db): Record<string, unknown> {
     orgSite: db.orgSite,
     orgDonate: db.orgDonate,
     orgGoal: db.orgGoal,
+    budget: db.budget,
+    usdRate: db.usdRate,
     notif: db.notif,
     reports: db.reports,
     ui: db.ui,

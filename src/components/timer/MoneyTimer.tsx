@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { nsLsKey } from '../../store/persist';
 import { featureOn, termOf } from '../../lib/config';
+import { isoToday, isoLocal } from '../../lib/date-util';
 import { Btn, Modal } from '../ui';
 
 const LS_KEY = 'maor_timer_collections';
@@ -186,9 +187,12 @@ export function MoneyTimer({ onClose }: { onClose: () => void }) {
     }
   }
 
-  const todayIso = new Date().toISOString().slice(0, 10);
+  // ציד-באגים 3.8.2026 (🟡): "גבייה היום" חושבה לפי חצות-UTC (toISOString) ולא לפי
+  // היום המקומי ⇒ בחלון-הלילה (חצות מקומי עד ~02:00) הסכום שויך ליום הלא-נכון.
+  // isoToday/isoLocal = תאריך מקומי עקבי (מ-date-util, כמו שאר המערכת).
+  const todayIso = isoToday();
   const todayTotal = collections
-    .filter((c) => c.at.slice(0, 10) === todayIso)
+    .filter((c) => isoLocal(new Date(c.at)) === todayIso)
     .reduce((a, c) => a + c.amount, 0);
 
   const bigMoney = money(amount);

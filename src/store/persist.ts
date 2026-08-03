@@ -210,6 +210,10 @@ export function migrate(raw: unknown): Db | null {
     receiptSeq: db.receiptSeq ?? base.receiptSeq,
     donationSeq: db.donationSeq ?? base.donationSeq,
     shopReceiptSeq: db.shopReceiptSeq ?? base.shopReceiptSeq,
+    // ציד-באגים 3.8.2026 (🟡): usdRate=0/null בגיבוי מושחת אִפֵּס את כל ערך-הדולר
+    // של התורמים (סכום/דירוג/tier/ייצוא). מרפאים לברירת-מחדל חיובית. budget שלילי→0.
+    usdRate: typeof db.usdRate === 'number' && db.usdRate > 0 ? db.usdRate : base.usdRate,
+    budget: typeof db.budget === 'number' && db.budget >= 0 ? db.budget : base.budget,
     security: db.security ?? base.security,
   };
   // גרסאות ישנות מיספרו קבלות מתוך seq המשותף. מזריעים את המונים הרציפים

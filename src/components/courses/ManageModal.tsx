@@ -20,6 +20,7 @@ import {
   payBal,
   paidOf,
   planWord,
+  presentsInMonth,
 } from './lib';
 
 export function ManageModal(props: { enrollmentId: string; course: Course; onClose: () => void }) {
@@ -263,7 +264,9 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         </button>
       </div>
       <div style={{ fontSize: 13, color: 'var(--ink-soft)', fontWeight: 600, marginBottom: 12 }}>
-        {en.plan === 'punch' ? 'יתרה: ' + rem + ' מתוך ' + en.purchased : en.used + ' נוכחויות מתחילת החודש'}
+        {en.plan === 'punch'
+          ? 'יתרה: ' + rem + ' מתוך ' + en.purchased
+          : presentsInMonth(en.presents, isoToday()) + ' נוכחויות החודש · ' + en.used + ' סה"כ'}
       </div>
 
       {groups.length > 0 && (
