@@ -4,7 +4,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import type { ShopEvent } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -27,6 +27,7 @@ export function ShopEventModal(props: {
 }) {
   const db = useApp((s) => s.db);
   const config = useApp((s) => s.config);
+  const room = termOf(config, 'entity.room', 'חדר');
   const upsertShopEvent = useApp((s) => s.upsertShopEvent);
   const deleteShopEvent = useApp((s) => s.deleteShopEvent);
   const toast = useApp((s) => s.toast);
@@ -48,7 +49,7 @@ export function ShopEventModal(props: {
   function save() {
     if (!f.title.trim()) return setError('כותרת היא שדה חובה');
     if (!f.date) return setError('יש לבחור תאריך');
-    if (f.kind === 'meeting' && f.roomId && !f.time) return setError('פגישה עם חדר דורשת שעה (תפיסת הלוח לפי שעה)');
+    if (f.kind === 'meeting' && f.roomId && !f.time) return setError('פגישה עם ' + room + ' דורשת שעה (תפיסת הלוח לפי שעה)');
     const { roomId, ...rest } = f;
     const ok = upsertShopEvent({
       id: ev?.id ?? '',
@@ -58,7 +59,7 @@ export function ShopEventModal(props: {
       title: f.title.trim(),
       notes: f.notes.trim(),
     });
-    if (!ok) return setError('לא נשמר — התנגשות חדר (פירוט בהודעה)');
+    if (!ok) return setError('לא נשמר — התנגשות ' + room + ' (פירוט בהודעה)');
     toast(ev ? 'האירוע עודכן' : 'האירוע נוסף ללוח החנות');
     props.onClose();
   }
@@ -82,7 +83,7 @@ export function ShopEventModal(props: {
           <Select value={f.kind} onChange={(v) => setF({ ...f, kind: v as ShopEvent['kind'] })} options={KIND_OPTIONS} />
         </Field>
         {f.kind === 'meeting' && (
-          <Field label="חדר (רשות — תופס את הלוח הראשי)">
+          <Field label={room + ' (רשות — תופס את הלוח הראשי)'}>
             <Select
               value={f.roomId}
               onChange={(v) => setF({ ...f, roomId: v })}

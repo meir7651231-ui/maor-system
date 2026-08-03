@@ -97,14 +97,14 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     }
     const linked = sp.nextEventId ? events.find((e) => e.id === sp.nextEventId) : undefined;
     if (linked) {
-      upsertEvent({ ...linked, title: 'יעד קשר — תומכת: ' + sp.name, date: v, done: false, notes: callNotes });
+      upsertEvent({ ...linked, title: 'יעד קשר — ' + termOf(config, 'entity.supporter', 'תומך/ת') + ': ' + sp.name, date: v, done: false, notes: callNotes });
       upsertSupporter({ ...sp, nextDate: v });
       toast('נקבע תאריך יעד ' + hebDateFull(v) + ' — התזכורת בלוח השנה עודכנה');
     } else {
       const id = nextId('ev');
       upsertEvent({
         id,
-        title: 'יעד קשר — תומכת: ' + sp.name,
+        title: 'יעד קשר — ' + termOf(config, 'entity.supporter', 'תומך/ת') + ': ' + sp.name,
         date: v,
         time: '',
         type: 'call',

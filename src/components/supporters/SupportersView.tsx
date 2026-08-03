@@ -192,7 +192,7 @@ export function SupportersView() {
   const countLabel =
     (filtered ? list.length + ' מתוך ' : '') +
     db.supporters.length +
-    ' משפחות תומכות · סה"כ ₪' +
+    ' ' + termOf(config, 'nav.supporters', 'משפחות תומכות') + ' · סה"כ ₪' +
     tIls.toLocaleString('he-IL') +
     ' + $' +
     tUsd.toLocaleString('he-IL');
@@ -288,7 +288,7 @@ export function SupportersView() {
               return (
                 <span
                   key={i}
-                  title={i * 100 + '–' + (i * 100 + 99) + ': ' + n + ' תומכות'}
+                  title={i * 100 + '–' + (i * 100 + 99) + ': ' + n + ' ' + termOf(config, 'nav.supporters', 'תומכות')}
                   style={{
                     width: 10,
                     height: Math.max(5, Math.round((n / mx) * 100)) + '%',

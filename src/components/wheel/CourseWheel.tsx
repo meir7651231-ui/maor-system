@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import { DAY_LETTERS, DAY_NAMES, enrollCount, sessionsOf } from '../courses/lib';
 
 const CX = 200;
@@ -87,7 +88,10 @@ function shadeOf(i: number, n: number): number {
 export function CourseWheel(props: { onClose: () => void }) {
   const { onClose } = props;
   const db = useApp((s) => s.db);
+  const config = useApp((s) => s.config);
   const selectCourse = useApp((s) => s.selectCourse);
+  const courseT = termOf(config, 'entity.course', 'חוג');
+  const coursesT = termOf(config, 'nav.courses', 'חוגים');
 
   const [locks, setLocks] = useState<Locks>({ gender: 'all', age: 'all', day: -1, cat: 'all' });
   const [rot, setRot] = useState(0);
@@ -264,7 +268,7 @@ export function CourseWheel(props: { onClose: () => void }) {
     >
       <div className="wheel-shell">
         <header className="wheel-head">
-          <h2 className="wheel-title">🎡 גלגל החוגים</h2>
+          <h2 className="wheel-title">{'🎡 גלגל ה' + coursesT}</h2>
           <p className="wheel-sub">נעלו מה שחשוב לכם — והגלגל יבחר את השאר</p>
           <button type="button" className="wheel-close" onClick={onClose} aria-label="סגירת הגלגל">
             ✕
@@ -386,7 +390,7 @@ export function CourseWheel(props: { onClose: () => void }) {
         </div>
 
         <div className="wheel-count" aria-live="polite">
-          {n === 0 ? 'אין חוגים בגלגל' : n === 1 ? 'חוג אחד בגלגל' : n + ' חוגים בגלגל'}
+          {n === 0 ? 'אין ' + coursesT + ' בגלגל' : n === 1 ? courseT + ' אחד בגלגל' : n + ' ' + coursesT + ' בגלגל'}
         </div>
 
         {n === 0 && <div className="wheel-empty">אין חוגים בסינון הזה — שחררו נעילה 🔓</div>}
@@ -414,7 +418,7 @@ export function CourseWheel(props: { onClose: () => void }) {
                   onClose();
                 }}
               >
-                לכרטיס החוג ←
+                {'לכרטיס ה' + courseT + ' ←'}
               </button>
               {n >= 2 && (
                 <button type="button" className="btn" onClick={spin}>

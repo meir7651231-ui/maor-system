@@ -33,7 +33,7 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number; d
   }));
 
   function nameOf(row: { e: Enrollment; m?: { first: string; famName: string } }): string {
-    return row.m ? `${row.m.first} ${row.m.famName}`.trim() : 'תלמיד/ה לא נמצא/ה';
+    return row.m ? `${row.m.first} ${row.m.famName}`.trim() : termOf(config, 'entity.student', 'תלמיד/ה') + ' לא נמצא/ה';
   }
 
   /**
@@ -80,12 +80,12 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number; d
       }}
     >
       {rows.length === 0 ? (
-        <Empty>אין תלמידים משובצים למפגש זה</Empty>
+        <Empty>{'אין ' + termOf(config, 'entity.students', 'תלמידים') + ' משובצים למפגש זה'}</Empty>
       ) : (
         <table className="table">
           <thead>
             <tr>
-              <th>תלמיד/ה</th>
+              <th>{termOf(config, 'entity.student', 'תלמיד/ה')}</th>
               <th>מסלול</th>
               <th>חיסורים</th>
               <th style={{ width: 190 }}>נוכחות</th>
