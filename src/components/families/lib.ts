@@ -90,7 +90,8 @@ export function finderAxes(config: OrgConfig): [string, string][] {
 }
 
 /** ערך המשפחה בציר נתון — תוויות עבריות כמו במקור. */
-export function finderAxisValue(db: Db, f: Family, axis: string): string {
+export function finderAxisValue(db: Db, f: Family, axis: string, config?: OrgConfig): string {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   switch (axis) {
     case 'city': return f.city || '';
     case 'comm': return f.community || '';
@@ -98,7 +99,7 @@ export function finderAxisValue(db: Db, f: Family, axis: string): string {
     case 'status': return STATUS_META[f.status].label;
     case 'cred': return tierOf(f.cred?.score ?? 700).label;
     case 'kids': return f.members.some((m) => !m.isParent) ? 'עם ילדים' : 'בלי ילדים';
-    case 'enrolled': return famEnrollments(db, f).length ? 'משתתפות בחוגים' : 'לא משתתפות';
+    case 'enrolled': return famEnrollments(db, f).length ? 'משתתפות ב' + T('nav.courses', 'חוגים') : 'לא משתתפות';
     case 'sefach': return f.fullSefach ? 'קיים' : 'חסר';
     case 'lang': return f.language || '';
     default: return '';
@@ -146,7 +147,7 @@ export function famHistoryOf(db: Db, fam: Family, config: OrgConfig = DEFAULT_CO
   const push = (date: string, tag: string, bg: string, c: string, text: string) => {
     if (date) out.push({ date, tag, bg, c, text });
   };
-  if (fam.createdAt) push(fam.createdAt, 'הצטרפות', '#e7edf5', '#3a5a86', 'המשפחה הצטרפה');
+  if (fam.createdAt) push(fam.createdAt, 'הצטרפות', '#e7edf5', '#3a5a86', 'ה' + termOf(config, 'entity.family', 'משפחה') + ' הצטרפה');
   // אירועי הלוח של המשפחה (P3 פריט 9) — נשזרים בציר, כולל סימון ✓ בוצע
   for (const ev of db.events) {
     if (ev.famId !== fam.id || !ev.date) continue;

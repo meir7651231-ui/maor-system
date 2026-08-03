@@ -170,7 +170,7 @@ function DaysTab() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 12 }}>
         {featureOn(config, 'shop7.export') && db.deliveries.length > 0 && (
-          <Btn sm onClick={() => downloadCsv('deliveries.csv', deliveriesCsvRows(db))}>⬇ ייצוא מסירות (CSV)</Btn>
+          <Btn sm onClick={() => downloadCsv('deliveries.csv', deliveriesCsvRows(db, config))}>⬇ ייצוא מסירות (CSV)</Btn>
         )}
         <Btn kind="primary" onClick={() => setFormOpen(true)}>➕ יום חלוקה חדש</Btn>
       </div>
@@ -270,7 +270,7 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
       ) : (
         <table className="table">
           <thead>
-            <tr><th>משפחה</th><th>מוצר</th><th>מתנדב</th><th>סטטוס</th><th>הערה</th><th></th></tr>
+            <tr><th>{termOf(config, 'entity.family', 'משפחה')}</th><th>מוצר</th><th>מתנדב</th><th>סטטוס</th><th>הערה</th><th></th></tr>
           </thead>
           <tbody>
             {rows.map((d) => (

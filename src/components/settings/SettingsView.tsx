@@ -226,15 +226,16 @@ function ResetSection() {
   const resetAll = useApp((s) => s.resetAll);
   const exportBackup = useApp((s) => s.exportBackup);
   const cloudOn = useApp((s) => s.cloud.enabled);
+  const config = useApp((s) => s.config);
+  const teacher = termOf(config, 'entity.teacher', 'מורה');
+  const teachersT = teacher === 'מורה' ? 'מורים' : teacher;
   const [confirmText, setConfirmText] = useState('');
   const armed = confirmText.trim() === 'מחיקה';
 
   return (
     <Section id="sec-reset" title="🗑 איפוס נתונים מקומיים" sub="אזור מסוכן — פעולה בלתי הפיכה">
       <p style={{ fontSize: 14, color: 'var(--ink-soft)', marginBottom: 12, lineHeight: 1.6 }}>
-        איפוס מוחק את <b>כל</b> הנתונים במחשב זה — משפחות, בני משפחה, חוגים, שיבוצים, תשלומים,
-        אירועים, תורמים, מורים, חדרים והגדרות. אין דרך לשחזר בלי קובץ גיבוי. מומלץ מאוד להוריד
-        גיבוי מלא לפני.
+        איפוס מוחק את <b>כל</b>{' הנתונים במחשב זה — ' + termOf(config, 'nav.families', 'משפחות') + ', ' + termOf(config, 'entity.members', 'בני משפחה') + ', ' + termOf(config, 'nav.courses', 'חוגים') + ', ' + termOf(config, 'entity.enrollments', 'שיבוצים') + ', תשלומים, אירועים, ' + termOf(config, 'nav.supporters', 'תורמים') + ', ' + teachersT + ', ' + termOf(config, 'entity.rooms', 'חדרים') + ' והגדרות. אין דרך לשחזר בלי קובץ גיבוי. מומלץ מאוד להוריד גיבוי מלא לפני.'}
       </p>
       {cloudOn && (
         <div

@@ -9,15 +9,15 @@ import {
   GUIDE_FOOT,
   GUIDE_INTRO,
   GUIDE_INTRO_LABEL,
-  GUIDE_RECIPES,
   GUIDE_RECIPES_LABEL,
+  guideRecipes,
   guideSections,
 } from '../lib/guide';
 import { Modal } from './ui';
 
 export function GuideModal({ onClose }: { onClose: () => void }) {
   const config = useApp((s) => s.config);
-  const sections = guideSections((m) => moduleOn(config, m));
+  const sections = guideSections((m) => moduleOn(config, m), config);
   return (
     <Modal title="📖 המדריך המהיר" onClose={onClose}>
       <div
@@ -56,7 +56,7 @@ export function GuideModal({ onClose }: { onClose: () => void }) {
       >
         <b style={{ color: 'var(--accent, #9a6414)' }}>{GUIDE_RECIPES_LABEL}</b>
         <br />
-        {GUIDE_RECIPES}
+        {guideRecipes(config)}
       </div>
       <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 10 }}>{GUIDE_FOOT}</div>
     </Modal>

@@ -278,7 +278,7 @@ export function SupportersView() {
       {rfmOn && db.supporters.length > 0 && (
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginBottom: 14, flexWrap: 'wrap' }}>
           <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 600 }}>
-            {'תרמו ב-12 החודשים: ' + sup12m(db.supporters, today) + ' · ממוצע לתרומה: ' +
+            {'תרמו ב-12 החודשים: ' + sup12m(db.supporters, today) + ' · ממוצע ל' + termOf(config, 'entity.donation', 'תרומה') + ': ' +
               (supAvgDon(db.supporters, rate) != null ? '₪' + supAvgDon(db.supporters, rate)!.toLocaleString('he-IL') : '—')}
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 34 }} aria-label="היסטוגרמת פיזור הציון">
@@ -407,7 +407,7 @@ export function SupportersView() {
                   <td>{sp.cat || '—'}</td>
                   <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.phone || '—'}</td>
                   <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.email || '—'}</td>
-                  <td title="מתי וכמה בכל תרומה — בכרטיס">{sp.count}</td>
+                  <td title={'מתי וכמה בכל ' + termOf(config, 'entity.donation', 'תרומה') + ' — בכרטיס'}>{sp.count}</td>
                   <td>{sp.ils ? '₪' + sp.ils.toLocaleString('he-IL') : '—'}</td>
                   <td>{sp.usd ? '$' + sp.usd.toLocaleString('he-IL') : '—'}</td>
                   <td title={totalLabel(sp) + (sp.last ? ' · ' + hebDateFull(sp.last) : '')}>
@@ -459,7 +459,7 @@ export function SupportersView() {
       )}
 
       <p style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 14 }}>
-        💡 משפחות תומכות אינן מחוברות לקורסים — הן זמינות בחיפוש (⌘K), בלוח השנה (תזכורת 📞) ובגיבויים.
+        💡 {termOf(config, 'nav.families', 'משפחות')} תומכות אינן מחוברות לקורסים — הן זמינות בחיפוש (⌘K), בלוח השנה (תזכורת 📞) ובגיבויים.
       </p>
 
       {formOpen && (

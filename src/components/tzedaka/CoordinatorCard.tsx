@@ -78,7 +78,7 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
         <Btn onClick={props.onBack}>{'→ כל ה' + termOf(config, 'entity.tzCoordinator', 'רכז') + 'ים'}</Btn>
         {/* תדפיס שטח (CONNECT חיבור 6) — שורות טהורות מ-lib, הורדה בדפוס הקיים */}
         {featureOn(config, 'tzedaka.export') && (
-          <Btn onClick={() => downloadText('coordinator-' + c.name + '.txt', coordinatorPrintLines(db, c.id))} title="רשימת הקופות לסבב שטח">
+          <Btn onClick={() => downloadText('coordinator-' + c.name + '.txt', coordinatorPrintLines(db, c.id, config))} title="רשימת הקופות לסבב שטח">
             🖨 תדפיס {termOf(config, 'entity.tzCoordinator', 'רכז')}
           </Btn>
         )}
@@ -127,7 +127,7 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
                 <span style={{ fontWeight: 800 }}>{'#' + b.num}</span>
                 {/* קישור-צולב לכרטיס המשפחה (UX סינון 1) — מגודר moduleOn */}
                 {b.famId && familiesOn ? (
-                  <Btn sm onClick={() => { selectFamily(b.famId); go('families'); }} title="לכרטיס המשפחה">
+                  <Btn sm onClick={() => { selectFamily(b.famId); go('families'); }} title={'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה')}>
                     {holderLabel(b) + ' ←'}
                   </Btn>
                 ) : (

@@ -79,7 +79,7 @@ export function RoomsSection() {
                   <td>{r.location || '—'}</td>
                   <td style={{ maxWidth: 220, fontSize: 12.5, color: 'var(--ink-soft)' }}>{eqSummary(r)}</td>
                   <td>
-                    <Btn sm onClick={() => setEditing(r)} title="הגדרות חדר">
+                    <Btn sm onClick={() => setEditing(r)} title={'הגדרות ' + room}>
                       ⚙ הגדרות
                     </Btn>
                   </td>
@@ -89,7 +89,7 @@ export function RoomsSection() {
           </table>
         </div>
       )}
-      <SectionNote>לחיצה על סטטוס מפעילה/משביתה את החדר מיידית — משתקף ביומן החדרים.</SectionNote>
+      <SectionNote>{'לחיצה על סטטוס מפעילה/משביתה את ה' + room + ' מיידית — משתקף ב' + termOf(config, 'nav.diary', 'יומן החדרים') + '.'}</SectionNote>
 
       {(creating || editing) && (
         <RoomForm room={editing} onClose={() => { setEditing(null); setCreating(false); }} />

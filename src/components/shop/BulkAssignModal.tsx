@@ -37,8 +37,8 @@ export function BulkAssignModal(props: { onClose: () => void }) {
 
   function save() {
     if (!productId) return setError('בחרו ' + term);
-    if (chosen.length === 0) return setError('לא נבחרו משפחות');
-    if (!confirmTwice('bulk-assign', 'לשייך ' + chosen.length + ' משפחות ל"' + (db.shopProducts.find((p) => p.id === productId)?.name ?? '') + '"?')) return;
+    if (chosen.length === 0) return setError('לא נבחרו ' + termOf(config, 'nav.families', 'משפחות'));
+    if (!confirmTwice('bulk-assign', 'לשייך ' + chosen.length + ' ' + termOf(config, 'nav.families', 'משפחות') + ' ל"' + (db.shopProducts.find((p) => p.id === productId)?.name ?? '') + '"?')) return;
     const res = bulkAssignShop(
       productId,
       chosen.map((e) => ({ famId: e.famId, memberId: memberOf[e.famId] ?? '', criterionIds })),
@@ -61,7 +61,7 @@ export function BulkAssignModal(props: { onClose: () => void }) {
         </Field>
       </div>
       {criteriaOn && db.shopCriteria.length > 0 && (
-        <Field label="סינון קריטריוני זכאות (ריק = כל המשפחות)">
+        <Field label={'סינון קריטריוני זכאות (ריק = כל ה' + termOf(config, 'nav.families', 'משפחות') + ')'}>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {db.shopCriteria.map((c) => (
               <Chip
@@ -79,7 +79,7 @@ export function BulkAssignModal(props: { onClose: () => void }) {
       )}
       <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', margin: '4px 0 8px' }}>
         {productId
-          ? eligible.length + ' משפחות זכאיות (מי שכבר משויכת לחבילה — מסוננת, אין כפל)'
+          ? eligible.length + ' ' + termOf(config, 'nav.families', 'משפחות') + ' זכאיות (מי שכבר משויכת לחבילה — מסוננת, אין כפל)'
           : 'בחרו ' + term + ' כדי לראות את הזכאיות'}
       </div>
       <div style={{ maxHeight: 300, overflowY: 'auto' }}>
@@ -100,14 +100,14 @@ export function BulkAssignModal(props: { onClose: () => void }) {
                     })
                   }
                 />
-                <span style={{ fontWeight: 700, fontSize: 13 }}>{'משפחת ' + e.name}</span>
+                <span style={{ fontWeight: 700, fontSize: 13 }}>{termOf(config, 'entity.familyOf', 'משפחת') + ' ' + e.name}</span>
               </label>
               {e.memberIds.length > 0 && (
                 <Select
                   value={memberOf[e.famId] ?? ''}
                   onChange={(v) => setMemberOf({ ...memberOf, [e.famId]: v })}
                   options={[
-                    { value: '', label: 'כל המשפחה' },
+                    { value: '', label: 'כל ה' + termOf(config, 'entity.family', 'משפחה') },
                     ...e.memberIds.map((mid) => ({ value: mid, label: fam?.members.find((m) => m.id === mid)?.first ?? mid })),
                   ]}
                 />
@@ -118,7 +118,7 @@ export function BulkAssignModal(props: { onClose: () => void }) {
       </div>
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>
-          {armed === 'bulk-assign' ? 'בטוח/ה? שוב לשיוך' : 'שייך ' + chosen.length + ' משפחות'}
+          {armed === 'bulk-assign' ? 'בטוח/ה? שוב לשיוך' : 'שייך ' + chosen.length + ' ' + termOf(config, 'nav.families', 'משפחות')}
         </Btn>
         <Btn onClick={props.onClose}>ביטול</Btn>
       </div>

@@ -15,16 +15,18 @@ import {
   isCryptoActive,
 } from '../../store/persist';
 import { Btn, FormError } from '../ui';
+import { termOf } from '../../lib/config';
 import { Section, SectionNote } from './lib';
 import { fmtDate, fmtDateTime } from './helpers';
 
 /** אישור דריסה עם סיכום מה נדרס ומה נכנס. */
 function confirmRestore(incoming: Db, sourceLabel: string): boolean {
   const cur = useApp.getState().db;
+  const config = useApp.getState().config;
   return window.confirm(
     `שחזור ${sourceLabel} ידרוס את כל הנתונים הנוכחיים במחשב זה ` +
-      `(${cur.families.length} משפחות, ${cur.courses.length} חוגים, ${cur.supporters.length} תורמים).\n` +
-      `במקומם ייכנסו הנתונים מהגיבוי: ${incoming.families.length} משפחות, ${incoming.courses.length} חוגים` +
+      `(${cur.families.length} ${termOf(config, 'nav.families', 'משפחות')}, ${cur.courses.length} ${termOf(config, 'nav.courses', 'חוגים')}, ${cur.supporters.length} ${termOf(config, 'nav.supporters', 'תורמים')}).\n` +
+      `במקומם ייכנסו הנתונים מהגיבוי: ${incoming.families.length} ${termOf(config, 'nav.families', 'משפחות')}, ${incoming.courses.length} ${termOf(config, 'nav.courses', 'חוגים')}` +
       (incoming.savedAt ? ` (נשמר ב-${fmtDateTime(incoming.savedAt)})` : '') +
       `.\n\nלהמשיך בשחזור?`,
   );

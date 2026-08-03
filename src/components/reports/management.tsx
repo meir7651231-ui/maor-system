@@ -5,7 +5,7 @@
  */
 import type { Db } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { useApp } from '../../store/useApp';
 import type { Cell } from './csv';
 import { ReportTable, Section } from './parts';
@@ -20,6 +20,7 @@ export interface MetricGroup {
 /** אגרגציה טהורה — נבדקת ביחידה. */
 export function managementMetrics(db: Db, config?: OrgConfig): MetricGroup[] {
   const show = (k: string) => !config || featureOn(config, k); // בלי config (טסטים) = מוצג
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   const deliveries = db.deliveries;
   const delivered = deliveries.filter((d) => d.status === 'delivered').length;
   const famReached = new Set(deliveries.map((d) => d.familyId)).size;
@@ -52,15 +53,15 @@ export function managementMetrics(db: Db, config?: OrgConfig): MetricGroup[] {
   }
 
   const groups: MetricGroup[] = [
-    { title: '🚚 חלוקה', rows: [['ימי חלוקה', db.distributionDays.length], ['מסירות סה"כ', deliveries.length], ['נמסרו', delivered], ['משפחות שקיבלו', famReached], ['מתנדבים פעילים', activeVols]] },
+    { title: '🚚 חלוקה', rows: [['ימי חלוקה', db.distributionDays.length], ['מסירות סה"כ', deliveries.length], ['נמסרו', delivered], [T('nav.families', 'משפחות') + ' שקיבלו', famReached], ['מתנדבים פעילים', activeVols]] },
     { title: '🛍 חנות', rows: [['שיוכים פעילים', activeAssign], ['מימושים', redemptions], ['אצוות פג/עומד-לפוג', expiringIntakes(db, isoToday()).length]] },
     { title: '🪙 קופות צדקה', rows: [['קופות', db.tzBoxes.length], ['ריקונים', collections], ['סה"כ נאסף (₪)', tzTotal]] },
-    { title: '👨‍👩‍👧 משפחות', rows: [['משפחות פעילות', activeFams], ['סה"כ משפחות', db.families.length]] },
+    { title: '👨‍👩‍👧 ' + T('nav.families', 'משפחות'), rows: [[T('nav.families', 'משפחות') + ' פעילות', activeFams], ['סה"כ ' + T('nav.families', 'משפחות'), db.families.length]] },
   ];
 
   const sponsorTotal = [...sponsor.values()].reduce((a, g) => a + g.ils, 0);
   if (sponsor.size > 0 && show('reports.management.sponsor')) {
-    const rows: [string, number | string][] = [...sponsor.entries()].map(([name, g]) => [name, `${g.n} תרומות · ₪${g.ils.toLocaleString('he-IL')}`]);
+    const rows: [string, number | string][] = [...sponsor.entries()].map(([name, g]) => [name, `${g.n} ${T('entity.donations', 'תרומות')} · ₪${g.ils.toLocaleString('he-IL')}`]);
     rows.push(['סה"כ אימוצים (₪)', sponsorTotal]);
     groups.push({ title: '🤝 אימוצים (אמץ חתן)', rows });
   }
@@ -103,7 +104,7 @@ export function ManagementSection(props: { db: Db; hidden: boolean; onPrint: () 
   return (
     <Section
       title="📊 מבט הנהלה"
-      sub="סיכום תפעולי חוצה-מודולים — חלוקה, חנות, קופות ומשפחות"
+      sub={'סיכום תפעולי חוצה-מודולים — חלוקה, חנות, קופות ו' + termOf(config, 'nav.families', 'משפחות')}
       hidden={props.hidden}
       onPrint={props.onPrint}
       csvName="management"

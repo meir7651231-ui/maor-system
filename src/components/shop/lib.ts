@@ -7,6 +7,8 @@
  * isoOf מ-calLib (lib→lib מותר).
  */
 import type { Db, Id, IsoDate, ShopAssignment, ShopAssignmentStatus, ShopComponent, ShopCriterion, ShopIntake, ShopItem, ShopProduct, ShopRedemption } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import { isoOf } from '../calendar/calLib';
 import { hebParts, holidayOf } from '../../lib/hebrew';
 import { smartFilter } from '../../lib/search';
@@ -641,9 +643,10 @@ export function redemptionsCsvRows(db: Db): (string | number)[][] {
 /* ---------- תוויות ---------- */
 
 /** "משפחת X — שם הבן/בת" (בלי בן/בת ספציפי/ת — שם המשפחה בלבד). */
-export function beneficiaryLabel(db: Db, a: ShopAssignment): string {
+export function beneficiaryLabel(db: Db, a: ShopAssignment, config?: OrgConfig): string {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   const fam = db.families.find((f) => f.id === a.famId);
-  const famLabel = fam ? 'משפחת ' + fam.name : 'משפחה לא ידועה';
+  const famLabel = fam ? T('entity.familyOf', 'משפחת') + ' ' + fam.name : T('entity.family', 'משפחה') + ' לא ידועה';
   if (!a.memberId || !fam) return famLabel;
   const m = fam.members.find((x) => x.id === a.memberId);
   return m ? famLabel + ' — ' + m.first : famLabel;

@@ -59,6 +59,32 @@ describe('✓ ratchet — מונחים עוברים דרך termOf (לכל אור
     expect(def.kpisRight[0].label).toBe('משפחות בליווי קבוע');
   });
 
+  it('סוויפ מלא — פונקציות-ליבה טהורות מכבדות שינוי-מונח (config) ונופלות לברירת-מחדל בלעדיו', async () => {
+    const cfg = {
+      ...DEFAULT_CONFIG,
+      terms: {
+        'nav.families': 'לקוחות',
+        'nav.courses': 'סדנאות',
+        'entity.course': 'סדנה',
+        'entity.familyOf': 'בית',
+      },
+    };
+    // המדריך המהיר (guide.ts) — מתכונים (משתמש ב-entity.course עבור "חוג")
+    const { guideRecipes } = await import('../guide');
+    expect(guideRecipes(cfg)).toContain('סדנה'); // "חוג" → "סדנה"
+    expect(guideRecipes()).toContain('חוג'); // בלי config — ברירת-מחדל
+    // קיבוץ תוצאות פלטת-הפקודות (paletteGroups.ts) — תוויות הקבוצות
+    const { groupPaletteResults } = await import('../paletteGroups');
+    // (בדיקת-עשן: לא קורס עם config; חתימה אופציונלית)
+    expect(() => groupPaletteResults([], cfg)).not.toThrow();
+    // מסע-ההיכרות (tour.ts) — כותרות
+    const { tourSteps } = await import('../tour');
+    const steps = tourSteps(() => true, cfg);
+    expect(JSON.stringify(steps)).toContain('לקוח'); // "משפחות" → "לקוחות" בכיתוב
+    const stepsDef = tourSteps(() => true);
+    expect(JSON.stringify(stepsDef)).toContain('משפח'); // ברירת-מחדל
+  });
+
   it('buildWeek(config) — כותרת מפגשי-החוגים עוברת termOf (הקיר + ווידג׳ט-הבית)', () => {
     const db = emptyDb();
     // חוג שמתקיים בכל יום בשבוע ⇒ בטוח יופיע בחלון 7-הימים גם אם יום-אחד חג

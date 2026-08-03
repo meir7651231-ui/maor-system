@@ -57,13 +57,13 @@ export function DonationsSection(props: SectionProps & { range: DateRange; range
     }
   }
 
-  const monthHead = ['חודש', 'תרומות', 'סה"כ ₪', 'סה"כ $'];
+  const monthHead = ['חודש', termOf(config, 'entity.donations', 'תרומות'), 'סה"כ ₪', 'סה"כ $'];
   const monthRows: Row[] = [...byMonth.entries()]
     .sort((a, b) => (a[0] < b[0] ? 1 : -1))
     .map(([k, s]) => ({ cells: [monthLabel(k), s.n, round2(s.ils), round2(s.usd)] }));
   const monthFoot: Cell[] = ['סה"כ', total.n, round2(total.ils), round2(total.usd)];
 
-  const catHead = ['קטגוריה', 'תרומות', 'סה"כ ₪', 'סה"כ $'];
+  const catHead = ['קטגוריה', termOf(config, 'entity.donations', 'תרומות'), 'סה"כ ₪', 'סה"כ $'];
   const catRows: Row[] = [...byCat.entries()]
     .sort((a, b) => b[1].ils + b[1].usd - (a[1].ils + a[1].usd))
     .map(([k, s]) => ({ cells: [k, s.n, round2(s.ils), round2(s.usd)] }));
@@ -71,7 +71,7 @@ export function DonationsSection(props: SectionProps & { range: DateRange; range
   return (
     <Section
       title={'💛 סיכום ' + termOf(config, 'entity.donations', 'תרומות')}
-      sub={'טווח: ' + props.rangeText + ' · ' + total.n + ' תרומות'}
+      sub={'טווח: ' + props.rangeText + ' · ' + total.n + ' ' + termOf(config, 'entity.donations', 'תרומות')}
       hidden={props.hidden}
       onPrint={props.onPrint}
       csvName="maor-donations-summary.csv"
@@ -121,7 +121,7 @@ export function FamiliesSection(props: SectionProps) {
   return (
     <Section
       title={'👨‍👩‍👧‍👦 מבט-על ' + termOf(config, 'nav.families', 'משפחות')}
-      sub={db.families.length + ' משפחות · ' + children + ' ילדים'}
+      sub={db.families.length + ' ' + termOf(config, 'nav.families', 'משפחות') + ' · ' + children + ' ילדים'}
       hidden={props.hidden}
       onPrint={props.onPrint}
       csvName="maor-families-overview.csv"
@@ -156,7 +156,7 @@ export function PunchSection(props: SectionProps) {
   const idx = nameIndex(db);
 
   const head = [
-    'תלמיד/ה',
+    termOf(config, 'entity.student', 'תלמיד/ה'),
     termOf(config, 'entity.family', 'משפחה'),
     termOf(config, 'entity.course', 'חוג'),
     'נרכשו',

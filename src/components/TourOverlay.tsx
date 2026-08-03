@@ -26,7 +26,7 @@ function findAnchor(text: string): Rect | null {
 export function TourOverlay({ onClose }: { onClose: () => void }) {
   const config = useApp((s) => s.config);
   const go = useApp((s) => s.go);
-  const steps = useMemo(() => tourSteps((m) => moduleOn(config, m)), [config]);
+  const steps = useMemo(() => tourSteps((m) => moduleOn(config, m), config), [config]);
   const [idx, setIdx] = useState(0);
   const [box, setBox] = useState<Rect | null>(null);
   const step = steps[idx];

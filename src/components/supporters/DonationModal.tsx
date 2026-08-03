@@ -59,7 +59,7 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         amount: amt,
         currency: cur,
         date,
-        forWhat: desig ? 'אימוץ — ' + desig : 'תרומה — ' + (cat.trim() || 'כללי'),
+        forWhat: desig ? 'אימוץ — ' + desig : termOf(config, 'entity.donation', 'תרומה') + ' — ' + (cat.trim() || 'כללי'),
         // קבלת סעיף 46 פורמלית — כשהיכולת דלוקה
         taxReceipt,
         mark: featureOn(cfg, 'core.receipt.copymark'),
@@ -110,7 +110,7 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
           <TextInput value={cat} onChange={setCat} placeholder="מלגות, פעילות, כללי…" />
         </Field>
         {sponsorOn && (
-          <Field label="ייעוד — אמץ חתן/משפחה (אופציונלי)">
+          <Field label={'ייעוד — אמץ חתן/' + termOf(config, 'entity.family', 'משפחה') + ' (אופציונלי)'}>
             <TextInput value={designation} onChange={setDesignation} placeholder="למשל: אמץ משפחת כהן / חתונת דוד" />
           </Field>
         )}

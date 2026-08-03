@@ -229,7 +229,7 @@ export function CourseWheel(props: { onClose: () => void }) {
     const max = c.maxStudents || 0;
     if (!max) return 'מקום פנוי 🟢';
     const left = Math.max(0, max - enrollCount(db, c.id));
-    if (left === 0) return 'החוג מלא — כדאי לבדוק רשימת המתנה';
+    if (left === 0) return 'ה' + courseT + ' מלא — כדאי לבדוק רשימת המתנה';
     return `נותרו ${left} מקומות`;
   }
 
@@ -263,7 +263,7 @@ export function CourseWheel(props: { onClose: () => void }) {
       className="wheel-overlay"
       role="dialog"
       aria-modal="true"
-      aria-label="גלגל החוגים"
+      aria-label={'גלגל ה' + coursesT}
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="wheel-shell">
@@ -310,7 +310,7 @@ export function CourseWheel(props: { onClose: () => void }) {
         </div>
 
         <div className="wheel-stage">
-          <svg className="wheel-svg" viewBox="0 0 400 400" role="img" aria-label={n + ' חוגים בגלגל'}>
+          <svg className="wheel-svg" viewBox="0 0 400 400" role="img" aria-label={n + ' ' + coursesT + ' בגלגל'}>
             <g transform={`rotate(${rot} ${CX} ${CY})`}>
               <circle className="wheel-base" cx={CX} cy={CY} r={R} />
               {n === 1 && courses[0] && (
@@ -393,7 +393,7 @@ export function CourseWheel(props: { onClose: () => void }) {
           {n === 0 ? 'אין ' + coursesT + ' בגלגל' : n === 1 ? courseT + ' אחד בגלגל' : n + ' ' + coursesT + ' בגלגל'}
         </div>
 
-        {n === 0 && <div className="wheel-empty">אין חוגים בסינון הזה — שחררו נעילה 🔓</div>}
+        {n === 0 && <div className="wheel-empty">{'אין ' + coursesT + ' בסינון הזה — שחררו נעילה 🔓'}</div>}
 
         {n >= 2 && (
           <button type="button" className="wheel-spin-btn" onClick={spin} disabled={spinning}>

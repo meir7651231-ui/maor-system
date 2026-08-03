@@ -5,6 +5,8 @@
  * אפס נגיעה בכסף — תצוגה/זרימה בלבד.
  */
 import type { Db } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import { holidayOf } from '../../lib/hebrew';
 
 /** יעד ה"טיפול" בהצעה — לאיזו עמודה לקפוץ. */
@@ -55,7 +57,8 @@ function upcomingHoliday(todayIso: string, windowDays: number): { name: string; 
  *  C. תינוק (גיל 0) → ערכת תינוק.
  *  D. כרטיסייה שנותרו בה ≤2 ניקובים → חידוש.
  */
-export function suggestions(db: Db, todayIso: string): Suggestion[] {
+export function suggestions(db: Db, todayIso: string, config?: OrgConfig): Suggestion[] {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   const out: Suggestion[] = [];
   const activeFams = db.families.filter((f) => f.status === 'active');
 
@@ -66,7 +69,7 @@ export function suggestions(db: Db, todayIso: string): Suggestion[] {
       key: `sug:holiday:${hol.name}`,
       emoji: '🎁',
       title: `מתנת-חג · ${hol.name} בעוד ${hol.inDays} ימים`,
-      detail: `${activeFams.length} משפחות פעילות — שקלו חלוקת מתנות לקראת החג`,
+      detail: `${activeFams.length} ${T('nav.families', 'משפחות')} פעילות — שקלו חלוקת מתנות לקראת החג`,
       act: 'shop',
     });
   }
@@ -89,8 +92,8 @@ export function suggestions(db: Db, todayIso: string): Suggestion[] {
         out.push({
           key: `sug:baby:${m.id}`,
           emoji: '👶',
-          title: `ערכת תינוק · משפחת ${f.name}`,
-          detail: `${m.first} — תינוק/ת חדש/ה במשפחה`,
+          title: `ערכת תינוק · ${T('entity.familyOf', 'משפחת')} ${f.name}`,
+          detail: `${m.first} — תינוק/ת חדש/ה ב${T('entity.family', 'משפחה')}`,
           famId: f.id,
           act: 'families',
         });
@@ -120,7 +123,7 @@ export function suggestions(db: Db, todayIso: string): Suggestion[] {
 }
 
 /** ההצעות החיות — בלי אלה שסומנו "טופל" (attnDone). */
-export function liveSuggestions(db: Db, todayIso: string): Suggestion[] {
+export function liveSuggestions(db: Db, todayIso: string, config?: OrgConfig): Suggestion[] {
   const done = db.attnDone ?? {};
-  return suggestions(db, todayIso).filter((s) => !done[s.key]);
+  return suggestions(db, todayIso, config).filter((s) => !done[s.key]);
 }

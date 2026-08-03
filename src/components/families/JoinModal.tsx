@@ -163,7 +163,9 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
     }
     if (course.gender !== 'all' && course.gender !== jm.gender)
       hints.push({
-        t: course.gender === 'm' ? 'החוג מיועד לבנים בלבד' : 'החוג מיועד לבנות בלבד',
+        t: course.gender === 'm'
+          ? 'ה' + termOf(config, 'entity.course', 'חוג') + ' מיועד לבנים בלבד'
+          : 'ה' + termOf(config, 'entity.course', 'חוג') + ' מיועד לבנות בלבד',
         c: '#9a6414',
       });
   }
@@ -352,7 +354,7 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
           ))}
           {courseMatches.length === 0 && (
             <div style={{ padding: '8px 12px', fontSize: 12.5, color: 'var(--ink-faint)' }}>
-              לא נמצאו חוגים פעילים תואמים — בדקו את האיות
+              לא נמצאו {termOf(config, 'nav.courses', 'חוגים')} פעילים תואמים — בדקו את האיות
             </div>
           )}
         </div>
@@ -369,7 +371,7 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
       )}
 
       {groups.length > 0 && (
-        <Field label="קבוצה — מסונכרן לקבוצות החוג">
+        <Field label={'קבוצה — מסונכרן לקבוצות ה' + termOf(config, 'entity.course', 'חוג')}>
           <Select
             value={group}
             onChange={setGroup}
@@ -385,7 +387,7 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
       <FormError error={error} />
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>
-          שיבוץ
+          {termOf(config, 'entity.enrollment', 'שיבוץ')}
         </Btn>
         <Btn onClick={props.onClose}>ביטול</Btn>
       </div>

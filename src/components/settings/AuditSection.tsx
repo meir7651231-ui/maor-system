@@ -28,7 +28,7 @@ export function AuditSection() {
   const dedupOn = featureOn(config, 'settings.dedup');
 
   // הביקורת נגזרת מה-Db — רצה מחדש בכל שינוי אחרי הלחיצה הראשונה
-  const issues = useMemo(() => (ran ? runAudit(db, isoToday(), extraOn) : []), [ran, db, extraOn]);
+  const issues = useMemo(() => (ran ? runAudit(db, isoToday(), extraOn, config) : []), [ran, db, extraOn, config]);
 
   const byCat = useMemo(() => {
     const m = new Map<string, AuditIssue[]>();

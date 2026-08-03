@@ -7,7 +7,7 @@
 import { HEBREW_RECURRING, type Db } from '../types/domain';
 import type { OrgConfig } from '../types/config';
 import type { Cell } from './csvx';
-import { featureOn } from './config';
+import { featureOn, termOf } from './config';
 import { featLabel, itemLabel, stageLabel, unitLabel } from './ayin';
 import { hebDateFull, hebParts, hebAnnualEq } from './hebrew';
 import { EV_META } from './eventMeta';
@@ -42,22 +42,22 @@ export function expFieldDefs(cfg: OrgConfig, target: ExportTarget): ExpField[] {
         { key: 'teacher', label: 'מורה + טלפון' },
         { key: 'model', label: 'מסלול ומחיר' },
         { key: 'occ', label: 'תפוסה' },
-        { key: 'students', label: 'רשימת תלמידים' },
+        { key: 'students', label: 'רשימת ' + termOf(cfg, 'entity.students', 'תלמידים') },
         { key: 'pays', label: 'תשלומים בטווח' },
         { key: 'abs', label: 'חיסורים בטווח' },
       ];
     }
     return [
-      { key: 'name', label: 'שם החוג' },
-      { key: 'teacher', label: 'מורה + טלפון' },
+      { key: 'name', label: 'שם ה' + termOf(cfg, 'entity.course', 'חוג') },
+      { key: 'teacher', label: termOf(cfg, 'entity.teacher', 'מורה') + ' + טלפון' },
       { key: 'grade', label: 'כיתות' },
       { key: 'audience', label: 'קהל יעד' },
-      { key: 'room', label: 'חדר' },
+      { key: 'room', label: termOf(cfg, 'entity.room', 'חדר') },
       { key: 'schedule', label: 'יום ושעה' },
       { key: 'model', label: 'מסלול ומחיר' },
       { key: 'occ', label: 'תפוסה' },
-      { key: 'students', label: 'רשימת תלמידים' },
-      { key: 'studentsFull', label: 'תלמידים + טלפון + יתרה' },
+      { key: 'students', label: 'רשימת ' + termOf(cfg, 'entity.students', 'תלמידים') },
+      { key: 'studentsFull', label: termOf(cfg, 'entity.students', 'תלמידים') + ' + טלפון + יתרה' },
       { key: 'pays', label: 'תשלומים בטווח' },
       { key: 'revenue', label: 'סה"כ הכנסות' },
       { key: 'abs', label: 'חיסורים בטווח' },
@@ -71,7 +71,7 @@ export function expFieldDefs(cfg: OrgConfig, target: ExportTarget): ExpField[] {
       { key: 'hdate', label: 'תאריך עברי' },
       { key: 'gdate', label: 'תאריך לועזי' },
       { key: 'time', label: 'שעה' },
-      { key: 'fam', label: 'משפחה' },
+      { key: 'fam', label: termOf(cfg, 'entity.family', 'משפחה') },
       { key: 'notes', label: 'הערות' },
       { key: 'done', label: 'בוצע' },
     ];
@@ -82,7 +82,7 @@ export function expFieldDefs(cfg: OrgConfig, target: ExportTarget): ExpField[] {
       { key: 'name', label: 'שם' },
       { key: 'phone', label: 'טלפון' },
       { key: 'email', label: 'אימייל' },
-      { key: 'dons', label: 'תרומות בטווח (מספר + סכום)' },
+      { key: 'dons', label: termOf(cfg, 'entity.donations', 'תרומות') + ' בטווח (מספר + סכום)' },
     ];
     if (ayinOn) {
       defs.push(
@@ -102,8 +102,8 @@ export function expFieldDefs(cfg: OrgConfig, target: ExportTarget): ExpField[] {
     { key: 'city', label: 'עיר' },
     { key: 'cat', label: 'קטגוריה' },
     { key: 'forWho', label: 'עבור מי' },
-    { key: 'dons', label: 'תרומות בטווח (מספר + סכום)' },
-    { key: 'donsAll', label: 'סה"כ תרומות (כל הזמן)' },
+    { key: 'dons', label: termOf(cfg, 'entity.donations', 'תרומות') + ' בטווח (מספר + סכום)' },
+    { key: 'donsAll', label: 'סה"כ ' + termOf(cfg, 'entity.donations', 'תרומות') + ' (כל הזמן)' },
     { key: 'tier', label: 'דירוג' },
   ];
   if (ayinOn) {
@@ -299,8 +299,8 @@ export function buildCustomExport(
       city: sp.city || '',
       cat: sp.cat || '',
       forWho: sp.forWho || '',
-      dons: dons.length + ' תרומות · ₪' + ils + (usd ? ' + $' + usd : ''),
-      donsAll: (sp.count || 0) + ' תרומות · ₪' + (sp.ils || 0) + (sp.usd ? ' + $' + sp.usd : ''),
+      dons: dons.length + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + ils + (usd ? ' + $' + usd : ''),
+      donsAll: (sp.count || 0) + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + (sp.ils || 0) + (sp.usd ? ' + $' + sp.usd : ''),
       tier: supTier(supScore(sp, db.usdRate)).label,
       notes: sp.notes || '',
     };

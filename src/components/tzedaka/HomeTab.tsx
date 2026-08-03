@@ -120,7 +120,7 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* מדדים */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <Chip on>{'🏠 אצל משפחות · ' + atHome}</Chip>
+        <Chip on>{'🏠 אצל ' + termOf(config, 'nav.families', 'משפחות') + ' · ' + atHome}</Chip>
         <Chip on={false}>{'🏢 במשרד · ' + atOffice}</Chip>
         <Chip on={false}>{'⚠ אבדו · ' + lost}</Chip>
         <Chip on={false}>{'🧑‍🤝‍🧑 פעילים · ' + activeCoords}</Chip>
@@ -137,7 +137,7 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
         <Btn onClick={() => setCoordFormOpen(true)}>➕ {termOf(config, 'entity.tzCoordinator', 'רכז')}</Btn>
         {/* ייצוא הריקונים (CONNECT חיבור 6) — שקיפות מלאה, שורות טהורות מ-lib */}
         {featureOn(config, 'tzedaka.export') && (
-          <Btn onClick={() => downloadCsv('tz-collections.csv', collectionsCsvRows(db))}>⬇ ייצוא ריקונים (CSV)</Btn>
+          <Btn onClick={() => downloadCsv('tz-collections.csv', collectionsCsvRows(db, config))}>⬇ ייצוא ריקונים (CSV)</Btn>
         )}
         {db.tzCoordinators.length > 0 && (
           <Btn onClick={() => setBoxFormFor(db.tzCoordinators[0].id)}>➕ {termOf(config, 'entity.tzBox', 'קופה')}</Btn>

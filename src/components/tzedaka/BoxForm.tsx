@@ -44,7 +44,7 @@ export function BoxForm(props: { box: TzBox | null; coordinatorId: string; onClo
     f.num.trim() !== '' && db.tzBoxes.some((x) => x.id !== b?.id && x.num === f.num.trim() && x.status !== 'retired');
 
   function createFamily() {
-    if (!newFam.name.trim()) return setError('שם המשפחה החדשה הוא שדה חובה');
+    if (!newFam.name.trim()) return setError('שם ה' + termOf(config, 'entity.family', 'משפחה') + ' החדשה הוא שדה חובה');
     const id = nextId('f');
     upsertFamily({
       ...emptyFamily(),
@@ -56,7 +56,7 @@ export function BoxForm(props: { box: TzBox | null; coordinatorId: string; onClo
     });
     setF({ ...f, famId: id, holderKind: newFam.kind });
     setNewFamOpen(false);
-    toast('משפחת ' + newFam.name.trim() + ' נוצרה במערכת וקושרה לקופה');
+    toast(termOf(config, 'entity.familyOf', 'משפחת') + ' ' + newFam.name.trim() + ' נוצרה במערכת וקושרה לקופה');
   }
 
   function save() {
@@ -118,13 +118,13 @@ export function BoxForm(props: { box: TzBox | null; coordinatorId: string; onClo
       </div>
       {inlineOn && (
         <div style={{ marginBottom: 10 }}>
-          <Btn sm onClick={() => setNewFamOpen((v) => !v)}>➕ משפחה חדשה</Btn>
+          <Btn sm onClick={() => setNewFamOpen((v) => !v)}>➕ {termOf(config, 'entity.family', 'משפחה')} חדשה</Btn>
         </div>
       )}
       {inlineOn && newFamOpen && (
         <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 10 }}>
           <div className="form-grid">
-            <Field label="שם המשפחה *">
+            <Field label={'שם ה' + termOf(config, 'entity.family', 'משפחה') + ' *'}>
               <TextInput value={newFam.name} onChange={(v) => setNewFam({ ...newFam, name: v })} />
             </Field>
             <Field label="טלפון">

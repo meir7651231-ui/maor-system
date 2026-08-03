@@ -6,12 +6,14 @@
  */
 import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import { Btn } from '../ui';
 import { fmtIls } from '../wall/wallData';
 import { componentCounts, givenValue, subsidyTotal } from './lib';
 
 function ShowcaseContent(props: { wall?: boolean }) {
   const db = useApp((s) => s.db);
+  const config = useApp((s) => s.config);
   const products = db.shopProducts.filter((p) => p.active);
   const helpedFamilies = new Set(db.shopAssignments.map((a) => a.famId)).size;
 
@@ -21,7 +23,7 @@ function ShowcaseContent(props: { wall?: boolean }) {
       <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center', fontWeight: 800, fontSize: props.wall ? 22 : 15 }}>
         <span>{'🎁 ' + fmtIls(givenValue(db.shopAssignments)) + ' שווי שניתן'}</span>
         <span>{'🤲 ' + fmtIls(subsidyTotal(db.shopAssignments)) + ' סובסידיה'}</span>
-        <span>{'👨‍👩‍👧‍👦 ' + helpedFamilies + ' משפחות נהנות'}</span>
+        <span>{'👨‍👩‍👧‍👦 ' + helpedFamilies + ' ' + termOf(config, 'nav.families', 'משפחות') + ' נהנות'}</span>
         <span>{'🛍 ' + products.length + ' מוצרים'}</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(' + (props.wall ? 280 : 230) + 'px, 1fr))', gap: 12, width: '100%', maxWidth: 980 }}>

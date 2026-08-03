@@ -268,7 +268,7 @@ export function attentionItems(
         tag: termOf(config, 'entity.room', 'חדר'),
         tagBg: '#fdeaea',
         tagC: '#b91c1c',
-        title: `"${c.name}" משויך לחדר כבוי (${room.name}) — הפעילו את החדר או העבירו את החוג`,
+        title: `"${c.name}" משויך ל${termOf(config, 'entity.room', 'חדר')} כבוי (${room.name}) — הפעילו את ה${termOf(config, 'entity.room', 'חדר')} או העבירו את ה${termOf(config, 'entity.course', 'חוג')}`,
         sev: 'crit',
         nav: { kind: 'course', id: c.id },
       });

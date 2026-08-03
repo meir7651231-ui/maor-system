@@ -176,7 +176,7 @@ export function CredPanel(props: { fam: Family }) {
         </Btn>
       </div>
       {cred.log.length === 0 ? (
-        <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>אין עדיין רישומי ניקוד למשפחה זו</div>
+        <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>אין עדיין רישומי ניקוד ל{termOf(config, 'entity.family', 'משפחה')} זו</div>
       ) : (
         <div style={{ maxHeight: 180, overflowY: 'auto' }}>
           {cred.log.slice(0, 8).map((l, i) => (
@@ -288,12 +288,14 @@ export function EnrollPanel(props: { fam: Family }) {
       {list.length === 0 ? (
         <Empty>
           {joinOn
-            ? 'אין שיבוצים פעילים — לחצו על "➕ ' +
+            ? 'אין ' +
+              termOf(config, 'entity.enrollments', 'שיבוצים') +
+              ' פעילים — לחצו על "➕ ' +
               termOf(config, 'entity.enrollment', 'שיבוץ') +
               ' ל' +
               termOf(config, 'entity.course', 'חוג') +
               '"'
-            : 'אין שיבוצים פעילים'}
+            : 'אין ' + termOf(config, 'entity.enrollments', 'שיבוצים') + ' פעילים'}
         </Empty>
       ) : (
         <div style={{ overflowX: 'auto' }}>
@@ -413,7 +415,7 @@ export function EventsPanel(props: { fam: Family }) {
         }
       >
         {list.length === 0 ? (
-          <Empty>אין אירועים מקושרים למשפחה — ניתן להוסיף מתוך לוח השנה</Empty>
+          <Empty>אין אירועים מקושרים ל{termOf(config, 'entity.family', 'משפחה')} — ניתן להוסיף מתוך לוח השנה</Empty>
         ) : (
           list.map((ev) => {
             const meta = EVENT_META[ev.type] ?? EVENT_META.org;
@@ -525,7 +527,7 @@ function familyReportLines(db: Db, f: Family, config: OrgConfig): string[] {
     }
     if (e.note) L.push('   📝 ' + e.note);
   }
-  if (!anyE) L.push('(אין שיבוצים)');
+  if (!anyE) L.push('(אין ' + termOf(config, 'entity.enrollments', 'שיבוצים') + ')');
   L.push('', '— היסטוריית פעולות —');
   const hist = famHistoryOf(db, f, config);
   for (const h of hist) L.push('[' + fmtDate(h.date) + '] ' + h.tag + ': ' + h.text);
@@ -570,10 +572,10 @@ function HistoryPanel(props: { fam: Family }) {
     >
       {!open ? (
         <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-          עד 40 הפעולות האחרונות — שיבוצים, תשלומים, היעדרויות, מדד אמינות, מסמכים והצטרפות.
+          עד 40 הפעולות האחרונות — {termOf(config, 'entity.enrollments', 'שיבוצים')}, תשלומים, היעדרויות, מדד אמינות, מסמכים והצטרפות.
         </div>
       ) : hist.length === 0 ? (
-        <Empty>אין פעולות מתועדות למשפחה זו</Empty>
+        <Empty>אין פעולות מתועדות ל{termOf(config, 'entity.family', 'משפחה')} זו</Empty>
       ) : (
         <div style={{ maxHeight: 320, overflowY: 'auto' }}>
           {hist.map((h, i) => (
