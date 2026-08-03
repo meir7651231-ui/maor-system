@@ -8,6 +8,7 @@
  */
 import { openDB, type IDBPDatabase } from 'idb';
 import { isoLocal } from '../lib/date-util';
+import { supporterAggregates } from '../lib/supporterAgg';
 import {
   DB_VERSION,
   emptyDb,
@@ -274,6 +275,13 @@ export function migrate(raw: unknown): Db | null {
     if (dPlan.newRid[k]) merged.supporters[c.si].donations[c.di] = { ...merged.supporters[c.si].donations[c.di], rid: dPlan.newRid[k]! };
   });
   merged.donationSeq = dPlan.nextSeq;
+  // ריפוי-עצמי של מצבורי-התומכת (#14, הכרעת בעלים "כל מה שיעלה בקובץ"): count/ils/
+  // usd נגזרים מ-donations+hist, כך שהכרטיס/הבית/הדוחות תואמים תמיד. first/last —
+  // המחושב, ובהיעדר תאריכים נשמר הסימון הישן (fallback ל-supDonEvents לא נשבר).
+  merged.supporters = merged.supporters.map((s) => {
+    const agg = supporterAggregates(s);
+    return { ...s, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
+  });
   // קופות צדקה — ריפוי פר-רשומה (מודול מבודד, אותה רוח כמו שאר הריפויים):
   // רכז: score לא-מספרי → 0, scoreLog לא-מערך → []; קופה: collections
   // לא-מערך → [], סטטוס זר → 'office'

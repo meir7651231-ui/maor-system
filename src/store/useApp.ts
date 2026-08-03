@@ -50,6 +50,7 @@ import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types
 import { applyTheme, featureOn, isSuperAdmin, loadOrgConfig, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
+import { supporterAggregates } from '../lib/supporterAgg';
 import { mergeFamilies, mergeFamiliesByFields } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
@@ -1328,17 +1329,9 @@ export const useApp = create<AppState>()((set, get) => {
         supporters: db.supporters.map((s) => {
           if (s.id !== supporterId) return s;
           const donations = [{ ...donation, rid }, ...s.donations];
-          return {
-            ...s,
-            donations,
-            count: donations.length,
-            // מטבע: $ = דולר, כל השאר (₪/ריק/מיובא) = שקל — עקבי עם הבית,
-            // הקיר והביקורת, כך שאף תרומה לא נופלת בין הכיסאות בסכומים.
-            ils: s.ils + (donation.cur !== '$' ? donation.amount : 0),
-            usd: s.usd + (donation.cur === '$' ? donation.amount : 0),
-            first: !s.first || donation.date < s.first ? donation.date : s.first,
-            last: donation.date > (s.last || '') ? donation.date : s.last,
-          };
+          // מצבור נגזר מ-donations+hist (#14) — מקור-אמת יחיד, עקבי עם migrate/audit.
+          const agg = supporterAggregates({ donations, hist: s.hist });
+          return { ...s, donations, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
         }),
       }));
       return { ok: true, rid };
