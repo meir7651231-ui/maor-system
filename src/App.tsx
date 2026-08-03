@@ -42,6 +42,7 @@ import { DemoRibbon } from './components/DemoRibbon';
 import { DayGate } from './components/wheel/DayGate';
 import { LoginScreen, PendingApprovalScreen } from './components/cloud/LoginScreen';
 import { PlatformPanel } from './components/platform/PlatformPanel';
+import { ManagerPanel } from './components/platform/ManagerPanel';
 import { AdminHub } from './components/AdminHub';
 import { LockScreen } from './components/lock/LockScreen';
 import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
@@ -178,6 +179,8 @@ export default function App() {
   const [tourOpen, setTourOpen] = useState(() => window.location.hash === '#tour');
   // לוח הבקרה של הפלטפורמה — #platform, למיילי-על בלבד (CLOUD2 ענן 4)
   const [platformOpen, setPlatformOpen] = useState(() => window.location.hash === '#platform');
+  // פאנל-המנהל (ORGADMIN) — #manage, למנהל-הארגון בלבד (cloud.isManager)
+  const [managerOpen, setManagerOpen] = useState(() => window.location.hash === '#manage');
   // כניסת-הניהול (ADMINHUB) — בורר קטן; נפתח מכפתור 🛠 (מנהל-על בלבד), לא מ-hash
   const [adminHubOpen, setAdminHubOpen] = useState(false);
   useEffect(() => {
@@ -191,6 +194,7 @@ export default function App() {
       setGuideOpen(window.location.hash === '#guide');
       setTourOpen(window.location.hash === '#tour');
       setPlatformOpen(window.location.hash === '#platform');
+      setManagerOpen(window.location.hash === '#manage');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -383,6 +387,24 @@ export default function App() {
     </button>
   );
 
+  // כפתור פאנל-המנהל 👥 (ORGADMIN) — מגודר cloud.isManager (מנהל-הארגון בלבד).
+  // פותח את #manage (ManagerPanel): הרשמת-עובדים, אישורים, כרטיס-עובד.
+  const openManager = () => {
+    window.location.hash = '#manage';
+    setManagerOpen(true);
+  };
+  const managerGearBtn: ReactNode = cloud.isManager && (
+    <button type="button" className="nav-gear" onClick={openManager} title="ניהול העובדות" aria-label="ניהול העובדות">
+      <span aria-hidden>👥</span>
+    </button>
+  );
+  const managerSideBtn: ReactNode = cloud.isManager && (
+    <button type="button" className="side-link" onClick={openManager} title="ניהול העובדות" aria-label="ניהול העובדות">
+      <span className="side-ico" aria-hidden>👥</span>
+      <span className="nav-label">עובדות</span>
+    </button>
+  );
+
   // כפתור מצב-צנעה 🕶️ (SHOP10, shell.privacy) — מסתיר מסכי-מקבלי-צדקה מעיון מזדמן.
   const privacyOn = featureOn(config, 'shell.privacy');
   const privacyGearBtn: ReactNode = privacyOn && (
@@ -512,6 +534,7 @@ export default function App() {
           )}
           {privacyGearBtn}
           {adminGearBtn}
+          {managerGearBtn}
           {!isTeacherUser && (
             <button
               type="button"
@@ -570,6 +593,7 @@ export default function App() {
           )}
           {privacySideBtn}
           {adminSideBtn}
+          {managerSideBtn}
         </nav>
         <div className="side-sp" aria-hidden />
         {backBtn}
@@ -637,6 +661,7 @@ export default function App() {
         )}
         {privacySideBtn}
           {adminSideBtn}
+          {managerSideBtn}
       </aside>
       <div className="side-body">
         <header className="side-head">
@@ -759,6 +784,16 @@ export default function App() {
             </div>
           </div>
         ))}
+
+      {/* פאנל-המנהל (ORGADMIN) — #manage, למנהל-הארגון בלבד (cloud.isManager) */}
+      {managerOpen && cloud.isManager && (
+        <ManagerPanel
+          onClose={() => {
+            window.location.hash = '';
+            setManagerOpen(false);
+          }}
+        />
+      )}
 
       {wallOpen && featureOn(config, 'home.impactwall') && (
         <ImpactWall

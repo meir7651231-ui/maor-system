@@ -56,6 +56,7 @@ export function PlatformPanel(props: { onClose: () => void }) {
   const [loading, setLoading] = useState(true);
   const [approveReq, setApproveReq] = useState<ReqRow | null>(null);
   const [slug, setSlug] = useState('');
+  const [managerEmail, setManagerEmail] = useState('');
   const [slugErr, setSlugErr] = useState('');
   // עורך הלקוח
   const [sel, setSel] = useState('');
@@ -90,6 +91,7 @@ export function PlatformPanel(props: { onClose: () => void }) {
   function openApprove(r: ReqRow) {
     setApproveReq(r);
     setSlug(slugify(r.orgName ?? '', orgs.map((o) => o.slug)));
+    setManagerEmail((r.email ?? '').trim().toLowerCase());
     setSlugErr('');
   }
 
@@ -97,11 +99,15 @@ export function PlatformPanel(props: { onClose: () => void }) {
     if (!mod || !approveReq) return;
     if (!isValidSlug(slug)) return setSlugErr('סלאג: אותיות לטיניות קטנות/ספרות/מקפים, 2-40 תווים');
     if (orgs.some((o) => o.slug === slug)) return setSlugErr('הסלאג כבר תפוס — בחרו אחר');
-    const email = (approveReq.email ?? '').trim().toLowerCase();
+    // ORGADMIN — מייל-העל ממנה את המנהל ידנית (ברירת-מחדל = המבקש). המנהל = חבר
+    // ראשון + org.manager; הוא ינהל את העובדות של הארגון שלו (Rules v3).
+    const mgr = managerEmail.trim().toLowerCase();
+    if (!mgr || !mgr.includes('@')) return setSlugErr('מייל המנהל חסר/לא תקין');
     // לידה all-off (הכרעת ארכיטקט) — הבעלים מדליק בלייב מה שסוכם בשיחה
     await mod.writeOrgCloudDoc(slug, {
       config: allOffConfig(slug, approveReq.orgName ?? '') as unknown as Record<string, unknown>,
-      members: email ? [email] : [],
+      manager: mgr,
+      members: [mgr],
       provisioned: false,
       orgName: approveReq.orgName ?? '',
       createdAt: new Date().toISOString(),
@@ -347,6 +353,12 @@ export function PlatformPanel(props: { onClose: () => void }) {
           <Field label="סלאג (כתובת הלקוח) *">
             <TextInput value={slug} onChange={setSlug} dir="ltr" placeholder="amutat-or" />
           </Field>
+          <Field label="מייל מנהל-הארגון *">
+            <TextInput value={managerEmail} onChange={setManagerEmail} dir="ltr" placeholder="manager@org.org" />
+          </Field>
+          <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 8 }}>
+            המנהל ינהל את העובדות של הארגון שלו (הרשמה, אישור, כרטיס-עובד) — רק בתוך מה שתדליק לו.
+          </div>
           <div className="modal-actions">
             <Btn kind="primary" onClick={() => void approve()}>✓ אישור ויצירת הארגון</Btn>
             <Btn onClick={() => setApproveReq(null)}>ביטול</Btn>

@@ -136,6 +136,25 @@ export async function fetchAllOrgs(): Promise<Array<OrgCloudDoc & { slug: string
   return snap.docs.map((d) => ({ slug: d.id, ...(d.data() as OrgCloudDoc) }));
 }
 
+/* ─────────── ORGADMIN — בקשות-הצטרפות של עובדות (subcollection של הארגון) ───────────
+ * platformOrgs/{slug}/joinRequests/{uid} — create ע"י המבקש; קריאה/מחיקה = מנהל+מייל-על. */
+
+/** עובד/ת שולח/ת בקשת-הצטרפות (create-only, uid=uid לפי Rules v3). */
+export async function writeOrgJoinRequest(slug: string, uid: string, req: OrgJoinRequestDoc): Promise<void> {
+  await setDoc(doc(cloudDb(), PLATFORM_ORGS, slug, 'joinRequests', uid), JSON.parse(JSON.stringify(req)));
+}
+
+/** המנהל מושך את הבקשות הממתינות של הארגון שלו. */
+export async function fetchOrgJoinRequests(slug: string): Promise<Array<OrgJoinRequestDoc & { uid: string }>> {
+  const snap = await getDocs(collection(cloudDb(), PLATFORM_ORGS, slug, 'joinRequests'));
+  return snap.docs.map((d) => ({ uid: d.id, ...(d.data() as OrgJoinRequestDoc) }));
+}
+
+/** המנהל מוחק בקשה (אחרי אישור/דחייה). */
+export async function deleteOrgJoinRequest(slug: string, uid: string): Promise<void> {
+  await deleteDoc(doc(cloudDb(), PLATFORM_ORGS, slug, 'joinRequests', uid));
+}
+
 /**
  * כתיבת ליד "נחזור אליכם" (SIGNUP מיתוג 3) — **בלי חשבון**. אוסף
  * create-only ציבורי (Rules: allow create בלבד; קריאה למיילי-על) — לכידת-ליד

@@ -26,6 +26,8 @@ import {
 import type { OrgCloudDoc } from '../../../lib/cloudConfig';
 import appSrc from '../../../App.tsx?raw';
 import panelSrc from '../PlatformPanel.tsx?raw';
+import managerSrc from '../ManagerPanel.tsx?raw';
+import useAppSrc from '../../../store/useApp.ts?raw';
 
 describe('☁️ ratchet — ענן 4: לוח הבקרה', () => {
   it('slugify: עברית→לטינית, ניקוי, ייחודיות עם סיומת מספרית', () => {
@@ -158,5 +160,33 @@ describe('👥 ORGADMIN — היררכיית 3 שכבות + כרטיס-עובד 
 
   it('orgJoinLink: ?org=slug&join=code', () => {
     expect(orgJoinLink('https://x.io', '/m/', 'maor', 'abc123de')).toBe('https://x.io/m/?org=maor&join=abc123de');
+  });
+});
+
+describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', () => {
+  it('מייל-על ממנה מנהל באישור: PlatformPanel כותב manager + members=[מנהל]', () => {
+    expect(panelSrc).toContain('מייל מנהל-הארגון');
+    expect(panelSrc).toContain('manager: mgr');
+    expect(panelSrc).toContain('members: [mgr]');
+  });
+
+  it('פאנל-המנהל: אשף מצומצם ל-orgEnabledModules + 3 הפעולות', () => {
+    expect(managerSrc).toContain('orgEnabledModules'); // רק מה שהבעלים הדליק
+    expect(managerSrc).toContain('joinOpen'); // מתג הרשמת-עובדים
+    expect(managerSrc).toContain('fetchOrgJoinRequests'); // מושך בקשות
+    expect(managerSrc).toContain('setEmployeeOverride'); // כרטיס-עובד
+    expect(managerSrc).toContain('deleteOrgJoinRequest'); // אישור/דחייה
+  });
+
+  it('App מגדר #manage מאחורי cloud.isManager בלבד', () => {
+    expect(appSrc).toContain("window.location.hash === '#manage'");
+    expect(appSrc).toContain('managerOpen && cloud.isManager');
+    expect(appSrc).toContain('cloud.isManager && ('); // הכפתור 👥 מגודר
+  });
+
+  it('useApp: עובד/ת מקבל/ת קונפיג-אפקטיבי + isManager + בקשת-הצטרפות ב-join', () => {
+    expect(useAppSrc).toContain('effectiveConfigFor(user.email, orgDoc');
+    expect(useAppSrc).toContain('isManager: isOrgManager(user.email');
+    expect(useAppSrc).toContain('writeOrgJoinRequest(cfg.slug, user.uid');
   });
 });

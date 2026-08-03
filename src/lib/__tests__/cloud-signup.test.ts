@@ -36,8 +36,9 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect(appSrc).toContain("membership === 'pending'");
     expect(appSrc).toContain('PendingApprovalScreen');
     // ב-store: שער החברות — startSync רק אחרי member; מסך המתנה אחרת
-    expect(useAppSrc).toContain("setCloud({ membership: member ? 'member' : 'pending' })");
-    expect(useAppSrc).toMatch(/if \(!member\) return;/);
+    // (ORGADMIN: אותה שורה נושאת גם isManager; הגייט הבסיסי לא השתנה)
+    expect(useAppSrc).toContain("membership: member ? 'member' : 'pending'");
+    expect(useAppSrc).toContain('if (!member) {');
   });
 
   it('הגנת-מקור: ההרשמה = אשף — ארגון+איש-קשר+טלפון (זרימת-שיחה)+סיסמה×2; מסך המתנה', () => {

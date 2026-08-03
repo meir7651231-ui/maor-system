@@ -29,8 +29,8 @@ export function getCloudDek(): CryptoKey | null {
 export { encryptExistingCloud, initCloud, readCloudEnvelope, resetPassword, setCloudScope, signIn, signOutCloud, signUp, watchAuth, writeCloudEnvelope } from '../lib/cloud';
 export type { CloudUser } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
-export { deleteOrgRequest, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgLeads, fetchOrgRequests, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
-export type { OrgCloudDoc, OrgLeadDoc, OrgRequestDoc } from '../lib/cloudConfig';
+export { deleteOrgRequest, deleteOrgJoinRequest, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgJoinRequests, fetchOrgLeads, fetchOrgRequests, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgJoinRequest, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
+export type { EmployeeOverride, OrgCloudDoc, OrgJoinRequestDoc, OrgLeadDoc, OrgRequestDoc } from '../lib/cloudConfig';
 
 export type CloudStatus = 'idle' | 'connecting' | 'synced' | 'error';
 
