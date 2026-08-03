@@ -28,13 +28,35 @@ export interface OrgLeadDoc {
   at?: string;
 }
 
-/** מסמך ארגון בפלטפורמה — platformOrgs/{slug}. */
+/** רמת-הרשאה של עובד/ת בארגון (ORGADMIN): מלא = הכל · מוגבל = תפקיד-מורה בממשק.
+ *  אכיפה ברמת-הממשק בלבד (מסמך-יחיד ⇒ Firestore מגדר ברמת-מסמך — ראה BUILD-ORDER-ORGADMIN). */
+export type MemberRole = 'full' | 'limited';
+
+/** מסמך ארגון בפלטפורמה — platformOrgs/{slug}.
+ *  שדות ORGADMIN (manager/memberRoles/joinOpen/joinCode) — additive: חסר = התנהגות v2. */
 export interface OrgCloudDoc {
   config?: unknown;
   members?: string[];
+  /** מייל מנהל-הארגון (lowercase) — נקבע ע"י מייל-על באישור. חסר = אין מנהל-מואצל. */
+  manager?: string;
+  /** רמת-הרשאה פר-מייל. חבר בלי רשומה = 'full' (תאימות-לאחור: חברי v2). */
+  memberRoles?: Record<string, MemberRole>;
+  /** מתג "הרשמת-עובדים" של המנהל. */
+  joinOpen?: boolean;
+  /** טוקן בקישור-ההזמנה (?org=slug&join=<code>). */
+  joinCode?: string;
   provisioned?: boolean;
   orgName?: string;
   createdAt?: string;
+}
+
+/** בקשת-הצטרפות של עובד/ת — platformOrgs/{slug}/joinRequests/{uid}. create-only ע"י המבקש. */
+export interface OrgJoinRequestDoc {
+  email?: string;
+  name?: string;
+  /** הקוד מהקישור — לבדיקה-רכה מול joinCode של הארגון (המנהל מאשר ממילא). */
+  code?: string;
+  at?: string;
 }
 
 /** בקשת הרשמה ממתינה — platformRequests/{uid}. הזרימה מבוססת שיחה — איש קשר וטלפון. */

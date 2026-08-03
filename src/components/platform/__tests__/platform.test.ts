@@ -5,7 +5,21 @@
  * מייל-על (#platform, דפוס #builder), כל מתג נכתב מיד לענן.
  */
 import { describe, expect, it } from 'vitest';
-import { ALL_MODULES, allOffConfig, isValidSlug, orgLink, slugify } from '../lib';
+import {
+  ALL_MODULES,
+  allOffConfig,
+  approveMember,
+  genJoinCode,
+  isOrgManager,
+  isValidSlug,
+  normEmail,
+  orgJoinLink,
+  orgLink,
+  removeMember,
+  roleOf,
+  slugify,
+} from '../lib';
+import type { OrgCloudDoc } from '../../../lib/cloudConfig';
 import appSrc from '../../../App.tsx?raw';
 import panelSrc from '../PlatformPanel.tsx?raw';
 
@@ -49,5 +63,57 @@ describe('☁️ ratchet — ענן 4: לוח הבקרה', () => {
     expect(panelSrc).toContain('allOffConfig(');
     expect(panelSrc).toContain('applyVerticalPack');
     expect(panelSrc).toContain('📋 העתק קישור');
+  });
+});
+
+describe('👥 ORGADMIN — היררכיית 3 שכבות (ליבה טהורה)', () => {
+  const org: OrgCloudDoc = {
+    orgName: 'מאור',
+    manager: 'boss@maor.org',
+    members: ['boss@maor.org', 'rina@maor.org'],
+    memberRoles: { 'rina@maor.org': 'limited' },
+  };
+
+  it('normEmail: trim + lowercase (זהה להשוואת ה-Rules)', () => {
+    expect(normEmail('  Boss@Maor.ORG ')).toBe('boss@maor.org');
+  });
+
+  it('isOrgManager: רק מייל-המנהל, case-insensitive', () => {
+    expect(isOrgManager('BOSS@maor.org', org)).toBe(true);
+    expect(isOrgManager('rina@maor.org', org)).toBe(false);
+    expect(isOrgManager('x@y.z', { manager: '' })).toBe(false);
+  });
+
+  it('roleOf: מנהל=full · חבר-עם-רשומה=הרשומה · חבר-בלי-רשומה=full (תאימות v2) · לא-חבר=null', () => {
+    expect(roleOf('boss@maor.org', org)).toBe('full'); // מנהל
+    expect(roleOf('rina@maor.org', org)).toBe('limited'); // רשומה מפורשת
+    expect(roleOf('dana@maor.org', { members: ['dana@maor.org'] })).toBe('full'); // חבר v2 בלי roles
+    expect(roleOf('zzz@maor.org', org)).toBeNull(); // לא-חבר
+  });
+
+  it('approveMember: מוסיף ל-members+memberRoles בלי כפילויות, מנרמל', () => {
+    const r = approveMember(org, ' Dana@Maor.org ', 'full');
+    expect(r.members).toContain('dana@maor.org');
+    expect(r.members.filter((m) => m === 'boss@maor.org')).toHaveLength(1); // בלי כפילות
+    expect(r.memberRoles['dana@maor.org']).toBe('full');
+    expect(r.memberRoles['rina@maor.org']).toBe('limited'); // קיים נשמר
+  });
+
+  it('removeMember: מוציא מ-members ומ-memberRoles', () => {
+    const r = removeMember(org, 'rina@maor.org');
+    expect(r.members).not.toContain('rina@maor.org');
+    expect(r.memberRoles['rina@maor.org']).toBeUndefined();
+    expect(r.members).toContain('boss@maor.org'); // אחרים נשמרים
+  });
+
+  it('genJoinCode: דטרמיניסטי מ-seed, 8 תווים base36', () => {
+    const a = genJoinCode('maor-1700000000');
+    expect(a).toMatch(/^[a-z0-9]{8}$/);
+    expect(genJoinCode('maor-1700000000')).toBe(a); // יציב
+    expect(genJoinCode('maor-1700000001')).not.toBe(a); // seed שונה ⇒ קוד שונה
+  });
+
+  it('orgJoinLink: ?org=slug&join=code', () => {
+    expect(orgJoinLink('https://x.io', '/m/', 'maor', 'abc123de')).toBe('https://x.io/m/?org=maor&join=abc123de');
   });
 });

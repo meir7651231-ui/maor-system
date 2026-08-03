@@ -65,3 +65,77 @@ export function allOffConfig(slug: string, orgName: string): OrgConfig {
 export function orgLink(origin: string, basePath: string, slug: string): string {
   return origin + basePath + '?org=' + slug;
 }
+
+/* ─────────────────────────── ORGADMIN — היררכיית 3 שכבות ───────────────────────────
+ * מייל-על (אתה) → מנהל-ארגון (org.manager) → עובדות (members[] + memberRoles).
+ * כל הפונקציות טהורות ונבדקות ביחידה. אילוץ-על: 'limited' = הגבלת-ממשק (מסמך-יחיד).
+ * ראה knowledge/BUILD-ORDER-ORGADMIN-2026-08-03.md. */
+
+import type { MemberRole, OrgCloudDoc } from '../../lib/cloudConfig';
+
+/** נירמול מייל — trim + אותיות-קטנות (זהה להשוואת ה-Rules). */
+export function normEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+/** קוד-הזמנה קצר ודטרמיניסטי מ-seed (הקורא מספק אנטרופיה: slug+חותם-זמן).
+ *  8 תווים base36 — לא סוד קריפטוגרפי (אישור-המנהל הוא השער), רק מגדר-רך לקישור. */
+export function genJoinCode(seed: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  let out = '';
+  let x = h >>> 0;
+  for (let i = 0; i < 8; i++) {
+    out += (x % 36).toString(36);
+    x = Math.floor(x / 36) || (h >>> 0) + i + 1;
+  }
+  return out;
+}
+
+/** קישור-הזמנה לעובד/ת — ‏{origin}{base}?org={slug}&join={code}. */
+export function orgJoinLink(origin: string, basePath: string, slug: string, code: string): string {
+  return origin + basePath + '?org=' + slug + '&join=' + code;
+}
+
+/** האם המייל הוא מנהל-הארגון (מואצל)? השוואה מנורמלת. */
+export function isOrgManager(email: string, org: Pick<OrgCloudDoc, 'manager'>): boolean {
+  const m = (org.manager ?? '').trim().toLowerCase();
+  return !!m && normEmail(email) === m;
+}
+
+/** רמת-הרשאה של מייל בארגון: מנהל=full; חבר עם רשומה=הרשומה; חבר בלי רשומה=full
+ *  (תאימות-לאחור — חברי v2 ללא memberRoles). לא-חבר=null. */
+export function roleOf(email: string, org: OrgCloudDoc): MemberRole | null {
+  const e = normEmail(email);
+  if (isOrgManager(e, org)) return 'full';
+  const members = (org.members ?? []).map((m) => m.trim().toLowerCase());
+  if (!members.includes(e)) return null;
+  return org.memberRoles?.[e] ?? 'full';
+}
+
+/** אישור בקשת-הצטרפות (טהור) — מחזיר members/memberRoles מעודכנים (בלי כפילויות). */
+export function approveMember(
+  org: OrgCloudDoc,
+  email: string,
+  role: MemberRole,
+): { members: string[]; memberRoles: Record<string, MemberRole> } {
+  const e = normEmail(email);
+  const members = [...new Set([...(org.members ?? []).map((m) => m.trim().toLowerCase()), e])];
+  const memberRoles = { ...org.memberRoles, [e]: role };
+  return { members, memberRoles };
+}
+
+/** הסרת עובד/ת (טהור) — מוציא מ-members ומ-memberRoles. מנהל לא ניתן להסרה כאן. */
+export function removeMember(
+  org: OrgCloudDoc,
+  email: string,
+): { members: string[]; memberRoles: Record<string, MemberRole> } {
+  const e = normEmail(email);
+  const members = (org.members ?? []).map((m) => m.trim().toLowerCase()).filter((m) => m !== e);
+  const memberRoles: Record<string, MemberRole> = { ...org.memberRoles };
+  delete memberRoles[e];
+  return { members, memberRoles };
+}
