@@ -24,6 +24,7 @@ import {
   enrollCount,
   fmtDate,
   groupLabelOf,
+  groupRemapOnRemoval,
   groupOptionsOf,
   groupsHintFromAudience,
   isoToday,
@@ -194,20 +195,31 @@ export function CourseDetail(props: { course: Course }) {
     toast('הקבוצה נוספה ללוח הפעילות');
   }
 
-  /** הסרת קבוצה — משאירה לפחות אחת ומסנכרנת שיבוצים ל"ללא שיוך". */
+  /**
+   * הסרת קבוצה — משאירה לפחות אחת. שיבוצי הקבוצה שהוסרה ⇒ "ללא שיוך"; שיבוצי
+   * הקבוצות שאחריה ממופים לתווית-הפוזיציונית החדשה (#9) כדי שלא יצביעו לקבוצה
+   * הלא-נכונה אחרי הזזת המספור.
+   */
   function removeSession(i: number) {
     if (sessions.length <= 1) return toast('חייבת להישאר לפחות קבוצה אחת');
-    const lbl = groupLabelOf(sessions[i], i);
+    const { removed, remap } = groupRemapOnRemoval(sessions, i);
     const next = sessions.filter((_, j) => j !== i);
     upsertCourse({ ...c, sessions: next, weekday: next[0].day, time: next[0].time });
     let moved = 0;
+    let remapped = 0;
     for (const e of enrolled) {
-      if (e.group === lbl) {
+      if (e.group === removed) {
         upsertEnrollment({ ...e, group: '' });
         moved++;
+      } else if (remap.has(e.group)) {
+        upsertEnrollment({ ...e, group: remap.get(e.group)! });
+        remapped++;
       }
     }
-    toast('הקבוצה הוסרה' + (moved ? ' · ' + moved + ' ' + termOf(cfg, 'entity.students', 'תלמידים') + ' סונכרנו ל"ללא שיוך"' : ' מלוח הפעילות'));
+    const tail =
+      (moved ? ' · ' + moved + ' ' + termOf(cfg, 'entity.students', 'תלמידים') + ' סונכרנו ל"ללא שיוך"' : '') +
+      (remapped ? ' · ' + remapped + ' עודכנו לקבוצה הנכונה' : '');
+    toast('הקבוצה הוסרה' + (tail || ' מלוח הפעילות'));
   }
 
   const groupCounts =

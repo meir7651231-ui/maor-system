@@ -149,6 +149,27 @@ export function groupLabelOf(ss: CourseSession, i: number): string {
   return ss.label || 'קבוצה ' + (i + 1);
 }
 
+/**
+ * מיפוי-שיוכים בהסרת מפגש (#8/#9): כשמסירים מפגש באינדקס removeIdx, תוויות
+ * "קבוצה N" הפוזיציוניות של המפגשים שאחריו זזות (N⇒N-1) — שיבוץ שנשמר כ"קבוצה 3"
+ * היה מצביע פתאום לקבוצה הלא-נכונה. מחזיר: removed = תווית המפגש שהוסר (שיבוציו
+ * ⇒ "ללא שיוך"), ו-remap = תווית-ישנה⇒תווית-חדשה לכל מפגש ששרד וזז. מפגש בעל
+ * label מפורש אינו זז (תוויתו קבועה), ולכן לא נכנס ל-remap. טהור.
+ */
+export function groupRemapOnRemoval(
+  sessions: CourseSession[],
+  removeIdx: number,
+): { removed: string; remap: Map<string, string> } {
+  const removed = groupLabelOf(sessions[removeIdx], removeIdx);
+  const remap = new Map<string, string>();
+  for (let k = removeIdx + 1; k < sessions.length; k++) {
+    const oldLabel = groupLabelOf(sessions[k], k);
+    const newLabel = groupLabelOf(sessions[k], k - 1);
+    if (oldLabel !== newLabel) remap.set(oldLabel, newLabel);
+  }
+  return { removed, remap };
+}
+
 /** אפשרויות שיוך קבוצה — רק כשיש יותר ממפגש אחד. */
 export function groupOptionsOf(c: Course): { v: string; t: string }[] {
   const ss = sessionsOf(c);

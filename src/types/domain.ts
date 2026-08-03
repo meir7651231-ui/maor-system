@@ -146,6 +146,11 @@ export interface Absence {
   makeup?: boolean;
   /** לא הגיע/ה ללא הודעה. */
   noshow?: boolean;
+  /**
+   * חיסור מוצדק (מחלה/אירוע) לעומת רשלנות (#7, הכרעת בעלים "תלוי אם מוצדק או
+   * רשלנות"): מוצדק ⇒ זכאי/ת להשלמה והניקוב לא יורד, גם מתחת ל-48 שעות.
+   */
+  justified?: boolean;
 }
 
 export interface Payment {

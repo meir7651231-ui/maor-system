@@ -52,6 +52,25 @@ export function groupLabelOf(ss: CourseSession, i: number): string {
   return ss.label || 'קבוצה ' + (i + 1);
 }
 
+/**
+ * זכאות-השלמה לחיסור (#7, הכרעת בעלים "תלוי אם מוצדק או רשלנות"). טהור.
+ * - No-Show לעולם אינו זכאי (רשלנות מובהקת).
+ * - חיסור מוצדק (מחלה/אירוע) זכאי להשלמה תמיד — גם מתחת ל-48 שעות.
+ * - ביטול מוקדם (≥48 שעות מראש) נשמר כזכאי גם בלי סימון "מוצדק" (אפס אובדן-
+ *   יכולת מהמודל הקיים).
+ * dropsPunch = אי-זכאות בכרטיסייה מורידה ניקוב; מוצדק/מוקדם שומר על היתרה.
+ */
+export function makeupEligibility(
+  kind: 'cancel' | 'noshow',
+  justified: boolean,
+  rawHrs: number | null,
+): { eligible: boolean; dropsPunch: boolean } {
+  if (kind === 'noshow') return { eligible: false, dropsPunch: true };
+  const earlyCancel = rawHrs != null && rawHrs >= 48;
+  const eligible = justified || earlyCancel;
+  return { eligible, dropsPunch: !eligible };
+}
+
 
 /** חגים שבהם אין פעילות כלל (מתוך לוח החגים המשותף). */
 const FULL_HOLIDAYS = [
