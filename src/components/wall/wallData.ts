@@ -17,6 +17,8 @@
  * · טיקר — משפחות חדשות, תרומות אחרונות, כרטיסיות שהושלמו וימי הולדת של היום (עד 8).
  */
 import type { Db, EventType, Supporter } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import { gem, gemYear, holidayOf, hebAnnualEq } from '../../lib/hebrew';
 import { eventOccursOn, evLabel, hpOf, isoOf, sessionsOf } from '../calendar/calLib';
 
@@ -287,8 +289,11 @@ export function birthdaysToday(db: Db, todayIso: string): { first: string; age: 
   return out;
 }
 
-/** בניית כל נתוני הקיר מה-Db — פונקציה טהורה (now ניתן להזרקה בבדיקות). */
-export function buildWallData(db: Db, now = new Date()): WallData {
+/** בניית כל נתוני הקיר מה-Db — פונקציה טהורה (now ניתן להזרקה בבדיקות).
+ *  config אופציונלי: כשמסופק, כל תווית-ישות עוברת termOf ("לכל אורך הדרך" —
+ *  שינוי-מונח באשף מגיע גם לקיר-ההשפעה הציבורי); בלעדיו נופלים למונחי ברירת-המחדל. */
+export function buildWallData(db: Db, now = new Date(), config?: OrgConfig): WallData {
+  const T = (key: string, fb: string) => (config ? termOf(config, key, fb) : fb);
   const todayIso = isoOf(now);
   const yearKey = todayIso.slice(0, 4);
   const monthKey = todayIso.slice(0, 7);
@@ -323,14 +328,14 @@ export function buildWallData(db: Db, now = new Date()): WallData {
     {
       icon: '👨‍👩‍👧‍👦',
       value: nfIls.format(famActive),
-      label: 'משפחות בליווי קבוע',
+      label: `${T('nav.families', 'משפחות')} בליווי קבוע`,
       badge: famNew > 0 ? `‎+${famNew} השנה` : undefined,
     },
     {
       icon: '🎨',
       value: nfIls.format(activeKids.size),
-      label: 'ילדים וילדות בחוגים',
-      badge: newEnrolls > 0 ? `‎+${newEnrolls} שיבוצים השנה` : undefined,
+      label: `ילדים וילדות ב${T('nav.courses', 'חוגים')}`,
+      badge: newEnrolls > 0 ? `‎+${newEnrolls} ${T('entity.enrollments', 'שיבוצים')} השנה` : undefined,
     },
     {
       icon: '🕯️',
@@ -343,13 +348,13 @@ export function buildWallData(db: Db, now = new Date()): WallData {
     {
       icon: '💛',
       value: nfIls.format(db.supporters.length),
-      label: 'תורמים שותפים',
+      label: `${T('nav.supporters', 'תורמים')} שותפים`,
       badge: newSupporters > 0 ? `‎+${newSupporters} השנה` : undefined,
     },
     {
       icon: '🏠',
       value: retention + '%',
-      label: 'מהמשפחות בליווי פעיל',
+      label: `מ${T('nav.families', 'משפחות')} בליווי פעיל`,
       badge: retention >= 90 ? '▲' : undefined,
     },
     {
@@ -395,7 +400,7 @@ export function buildWallData(db: Db, now = new Date()): WallData {
   /* --- טיקר בשורות --- */
   const ticker: string[] = [];
   const famsByDate = [...db.families].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-  for (const f of famsByDate.slice(0, 2)) ticker.push(`🎉 משפחת ${f.name} הצטרפה לקהילה`);
+  for (const f of famsByDate.slice(0, 2)) ticker.push(`🎉 ${T('entity.familyOf', 'משפחת')} ${f.name} הצטרפה לקהילה`);
   const donsByDate = [...dons].sort((a, b) => (a.date < b.date ? 1 : -1));
   for (const d of donsByDate.slice(0, 3)) ticker.push(`💛 תרומה חדשה: ${fmtIls(d.amount)} — ${d.name}`);
   const memberName = (id: string) => {
