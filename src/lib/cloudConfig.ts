@@ -28,19 +28,25 @@ export interface OrgLeadDoc {
   at?: string;
 }
 
-/** רמת-הרשאה של עובד/ת בארגון (ORGADMIN): מלא = הכל · מוגבל = תפקיד-מורה בממשק.
- *  אכיפה ברמת-הממשק בלבד (מסמך-יחיד ⇒ Firestore מגדר ברמת-מסמך — ראה BUILD-ORDER-ORGADMIN). */
-export type MemberRole = 'full' | 'limited';
+/** כרטיס-עובד (ORGADMIN) — דריסת-קונפיג אישית: המנהל מדליק/מכבה פר-עובד/ת דרך
+ *  אותו אשף של הארגון. רק **הגבלה** (false = מוסתר לעובד/ת); ריק = כמו הארגון.
+ *  אילוץ-על: ההסתרה ברמת-הממשק בלבד (מסמך-יחיד — ראה BUILD-ORDER-ORGADMIN). */
+export interface EmployeeOverride {
+  /** מודולים לכבות לעובד/ת (false = מוסתר). חסר = יורש מהארגון. */
+  modules?: Record<string, boolean>;
+  /** דגלי-פיצ'ר לכבות לעובד/ת (false = מוסתר). חסר = יורש מהארגון. */
+  features?: Record<string, boolean>;
+}
 
 /** מסמך ארגון בפלטפורמה — platformOrgs/{slug}.
- *  שדות ORGADMIN (manager/memberRoles/joinOpen/joinCode) — additive: חסר = התנהגות v2. */
+ *  שדות ORGADMIN (manager/memberConfigs/joinOpen/joinCode) — additive: חסר = התנהגות v2. */
 export interface OrgCloudDoc {
   config?: unknown;
   members?: string[];
   /** מייל מנהל-הארגון (lowercase) — נקבע ע"י מייל-על באישור. חסר = אין מנהל-מואצל. */
   manager?: string;
-  /** רמת-הרשאה פר-מייל. חבר בלי רשומה = 'full' (תאימות-לאחור: חברי v2). */
-  memberRoles?: Record<string, MemberRole>;
+  /** כרטיס-עובד פר-מייל (דריסות אישיות). חבר בלי רשומה = רואה כמו הארגון (מלא). */
+  memberConfigs?: Record<string, EmployeeOverride>;
   /** מתג "הרשמת-עובדים" של המנהל. */
   joinOpen?: boolean;
   /** טוקן בקישור-ההזמנה (?org=slug&join=<code>). */

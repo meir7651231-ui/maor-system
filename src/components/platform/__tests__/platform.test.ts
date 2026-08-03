@@ -9,14 +9,17 @@ import {
   ALL_MODULES,
   allOffConfig,
   approveMember,
+  effectiveConfigFor,
   genJoinCode,
+  isMember,
   isOrgManager,
   isValidSlug,
   normEmail,
   orgJoinLink,
   orgLink,
+  overrideOf,
   removeMember,
-  roleOf,
+  setEmployeeOverride,
   slugify,
 } from '../lib';
 import type { OrgCloudDoc } from '../../../lib/cloudConfig';
@@ -66,44 +69,71 @@ describe('☁️ ratchet — ענן 4: לוח הבקרה', () => {
   });
 });
 
-describe('👥 ORGADMIN — היררכיית 3 שכבות (ליבה טהורה)', () => {
+describe('👥 ORGADMIN — היררכיית 3 שכבות + כרטיס-עובד (ליבה טהורה)', () => {
   const org: OrgCloudDoc = {
     orgName: 'מאור',
     manager: 'boss@maor.org',
     members: ['boss@maor.org', 'rina@maor.org'],
-    memberRoles: { 'rina@maor.org': 'limited' },
+    // כרטיס-העובד של רינה: כיבו לה את התורמים ואת דגל-הדוחות
+    memberConfigs: { 'rina@maor.org': { modules: { supporters: false }, features: { 'reports.csv': false } } },
   };
+  const orgConfig = { modules: { supporters: true, families: true }, features: {} as Record<string, boolean> };
 
   it('normEmail: trim + lowercase (זהה להשוואת ה-Rules)', () => {
     expect(normEmail('  Boss@Maor.ORG ')).toBe('boss@maor.org');
   });
 
-  it('isOrgManager: רק מייל-המנהל, case-insensitive', () => {
+  it('isOrgManager / isMember: מנהל + עובדות מאושרות; זר=לא', () => {
     expect(isOrgManager('BOSS@maor.org', org)).toBe(true);
     expect(isOrgManager('rina@maor.org', org)).toBe(false);
-    expect(isOrgManager('x@y.z', { manager: '' })).toBe(false);
+    expect(isMember('rina@maor.org', org)).toBe(true);
+    expect(isMember('boss@maor.org', org)).toBe(true); // מנהל = חבר
+    expect(isMember('zzz@maor.org', org)).toBe(false);
   });
 
-  it('roleOf: מנהל=full · חבר-עם-רשומה=הרשומה · חבר-בלי-רשומה=full (תאימות v2) · לא-חבר=null', () => {
-    expect(roleOf('boss@maor.org', org)).toBe('full'); // מנהל
-    expect(roleOf('rina@maor.org', org)).toBe('limited'); // רשומה מפורשת
-    expect(roleOf('dana@maor.org', { members: ['dana@maor.org'] })).toBe('full'); // חבר v2 בלי roles
-    expect(roleOf('zzz@maor.org', org)).toBeNull(); // לא-חבר
+  it('effectiveConfigFor: מנהל=קונפיג-הארגון · עובדת=בניכוי מה שכובה בכרטיס · חבר-בלי-כרטיס=מלא', () => {
+    // מנהל — רואה הכל כמו הארגון
+    expect(effectiveConfigFor('boss@maor.org', org, orgConfig)).toBe(orgConfig);
+    // רינה — התורמים כובו לה בכרטיס
+    const rina = effectiveConfigFor('rina@maor.org', org, orgConfig);
+    expect(rina.modules.supporters).toBe(false); // כובה לה
+    expect(rina.modules.families).toBe(true); // נשאר כמו הארגון
+    expect(rina.features['reports.csv']).toBe(false); // דגל כובה לה
+    expect(orgConfig.modules.supporters).toBe(true); // המקור לא זז (טהור)
+    // עובדת בלי כרטיס — רואה כמו הארגון
+    const org2: OrgCloudDoc = { members: ['dana@maor.org'] };
+    expect(effectiveConfigFor('dana@maor.org', org2, orgConfig)).toBe(orgConfig);
   });
 
-  it('approveMember: מוסיף ל-members+memberRoles בלי כפילויות, מנרמל', () => {
-    const r = approveMember(org, ' Dana@Maor.org ', 'full');
+  it('כרטיס-עובד רק מגביל — לא מדליק מה שהארגון כיבה', () => {
+    const off = { modules: { supporters: false }, features: {} as Record<string, boolean> };
+    // הכרטיס מנסה "להדליק" supporters, אבל הארגון כבוי ⇒ נשאר כבוי
+    const orgTry: OrgCloudDoc = { members: ['x@y.z'], memberConfigs: { 'x@y.z': { modules: { supporters: true } } } };
+    expect(effectiveConfigFor('x@y.z', orgTry, off).modules.supporters).toBe(false);
+  });
+
+  it('approveMember: מוסיף ל-members בלי כפילויות, מנרמל (ללא כרטיס = מלא)', () => {
+    const r = approveMember(org, ' Dana@Maor.org ');
     expect(r.members).toContain('dana@maor.org');
-    expect(r.members.filter((m) => m === 'boss@maor.org')).toHaveLength(1); // בלי כפילות
-    expect(r.memberRoles['dana@maor.org']).toBe('full');
-    expect(r.memberRoles['rina@maor.org']).toBe('limited'); // קיים נשמר
+    expect(r.members.filter((m) => m === 'boss@maor.org')).toHaveLength(1);
   });
 
-  it('removeMember: מוציא מ-members ומ-memberRoles', () => {
+  it('setEmployeeOverride: כותב כרטיס-עובד, שומר קיימים', () => {
+    const r = setEmployeeOverride(org, 'Dana@maor.org', { modules: { families: false } });
+    expect(r.memberConfigs['dana@maor.org'].modules?.families).toBe(false);
+    expect(r.memberConfigs['rina@maor.org']).toBeDefined(); // קיים נשמר
+  });
+
+  it('overrideOf: מחזיר את הכרטיס, ריק לחבר-בלי-כרטיס', () => {
+    expect(overrideOf('rina@maor.org', org).modules?.supporters).toBe(false);
+    expect(overrideOf('boss@maor.org', org)).toEqual({});
+  });
+
+  it('removeMember: מוציא מ-members ומ-memberConfigs', () => {
     const r = removeMember(org, 'rina@maor.org');
     expect(r.members).not.toContain('rina@maor.org');
-    expect(r.memberRoles['rina@maor.org']).toBeUndefined();
-    expect(r.members).toContain('boss@maor.org'); // אחרים נשמרים
+    expect(r.memberConfigs['rina@maor.org']).toBeUndefined();
+    expect(r.members).toContain('boss@maor.org');
   });
 
   it('genJoinCode: דטרמיניסטי מ-seed, 8 תווים base36', () => {

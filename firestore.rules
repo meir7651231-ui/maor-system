@@ -68,7 +68,7 @@ service cloud.firestore {
       allow update: if superAdmin()
         || (orgManager(slug)
             && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['members', 'memberRoles', 'joinOpen', 'joinCode']));
+                 .hasOnly(['members', 'memberConfigs', 'joinOpen', 'joinCode']));
 
       // בקשות-הצטרפות של עובדות — יצירה ע"י המבקש (uid תואם); קריאה/מחיקה —
       // מנהל-הארגון או מייל-על. אישור/דחייה = המנהל מעדכן members/memberRoles למעלה
