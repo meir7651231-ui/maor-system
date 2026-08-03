@@ -28,6 +28,7 @@ import appSrc from '../../../App.tsx?raw';
 import panelSrc from '../PlatformPanel.tsx?raw';
 import managerSrc from '../ManagerPanel.tsx?raw';
 import useAppSrc from '../../../store/useApp.ts?raw';
+import settingsSrc from '../../settings/SettingsView.tsx?raw';
 
 describe('☁️ ratchet — ענן 4: לוח הבקרה', () => {
   it('slugify: עברית→לטינית, ניקוי, ייחודיות עם סיומת מספרית', () => {
@@ -188,5 +189,12 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     expect(useAppSrc).toContain('effectiveConfigFor(user.email, orgDoc');
     expect(useAppSrc).toContain('isManager: isOrgManager(user.email');
     expect(useAppSrc).toContain('writeOrgJoinRequest(cfg.slug, user.uid');
+  });
+
+  it('הגדרות: צ׳יפ לוח-בקרה (מייל-על) + ניהול-עובדות (מנהל) — בלי הקלדת hash', () => {
+    expect(settingsSrc).toContain("window.location.hash = '#platform'");
+    expect(settingsSrc).toContain('canPlatform &&'); // מגודר isSuperAdmin
+    expect(settingsSrc).toContain("window.location.hash = '#manage'");
+    expect(settingsSrc).toContain('isManager &&'); // מגודר cloud.isManager
   });
 });
