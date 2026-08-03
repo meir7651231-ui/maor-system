@@ -215,8 +215,12 @@ function holidayEmoji(name: string): string {
 
 /** 7 הימים הבאים — חגים, אירועים (כולל חזרה עברית) ומפגשי חוגים. עד 7 שורות.
  *  (exported — ווידג'ט "הלוח העברי" במסך הבית משתמש באותה נגזרת;
- *  שורות מפגשי חוגים מזוהות לפי key המסתיים ב-'-crs' לסינון כשמודול החוגים כבוי.) */
-export function buildWeek(db: Db, now: Date): WallWeekRow[] {
+ *  שורות מפגשי חוגים מזוהות לפי key המסתיים ב-'-crs' לסינון כשמודול החוגים כבוי.)
+ *  config אופציונלי: תת-התוויות ("משפחת X", "מפגשי חוגים") עוברות termOf כשמסופק. */
+export function buildWeek(db: Db, now: Date, config?: OrgConfig): WallWeekRow[] {
+  const T = (key: string, fb: string) => (config ? termOf(config, key, fb) : fb);
+  const course = T('entity.course', 'חוג');
+  const courses = T('nav.courses', 'חוגים');
   const out: WallWeekRow[] = [];
   for (let i = 0; i < 7 && out.length < 7; i++) {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
@@ -243,7 +247,7 @@ export function buildWeek(db: Db, now: Date): WallWeekRow[] {
         key: iso + '-ev-' + ev.id,
         hd,
         title: ev.title,
-        sub: [evLabel(ev), ev.time, fam && 'משפחת ' + fam.name].filter(Boolean).join(' · '),
+        sub: [evLabel(ev), ev.time, fam && T('entity.familyOf', 'משפחת') + ' ' + fam.name].filter(Boolean).join(' · '),
         emoji: EV_EMOJI[ev.type],
       });
     }
@@ -265,7 +269,7 @@ export function buildWeek(db: Db, now: Date): WallWeekRow[] {
       out.push({
         key: iso + '-crs',
         hd,
-        title: (i === 0 ? 'היום · ' : '') + (n === 1 ? 'מפגש חוג אחד' : `${n} מפגשי חוגים`),
+        title: (i === 0 ? 'היום · ' : '') + (n === 1 ? `מפגש ${course} אחד` : `${n} מפגשי ${courses}`),
         sub: names.slice(0, 3).join(' · '),
         emoji: i === 0 ? '☀️' : '🎨',
       });
@@ -432,7 +436,7 @@ export function buildWallData(db: Db, now = new Date(), config?: OrgConfig): Wal
     podium: buildPodium(db, monthKey, yearKey),
     pulse: buildPulse(db, now),
     miniKpis,
-    week: buildWeek(db, now),
+    week: buildWeek(db, now, config),
     ticker: ticker.slice(0, 8),
   };
 }

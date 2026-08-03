@@ -975,7 +975,7 @@ function GoldbookWidget({ ctx }: { ctx: HomeCtx }) {
 function HebcalWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, now, go } = ctx;
   const coursesOn = moduleOn(config, 'courses');
-  const rows = buildWeek(db, now)
+  const rows = buildWeek(db, now, config)
     .filter((r) => coursesOn || !r.key.endsWith('-crs'))
     .slice(0, 4);
   return (
