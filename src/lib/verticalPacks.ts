@@ -307,5 +307,5 @@ export function applyVerticalPack(config: OrgConfig, packId: string): OrgConfig 
   if (!pack) return config;
   // terms/modules/features מוחלפים בערכי-החבילה (נקודת-פתיחה); שאר הקונפיג נשמר.
   // features חסר בחבילה = {} = הכול דלוק (ברירת-המחדל של מאור, לוורטיקלים העמותתיים).
-  return { ...config, terms: { ...pack.terms }, modules: { ...pack.modules }, features: { ...(pack.features ?? {}) } };
+  return { ...config, terms: { ...pack.terms }, modules: { ...pack.modules }, features: { ...pack.features } };
 }

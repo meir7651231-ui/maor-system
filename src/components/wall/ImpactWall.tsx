@@ -9,6 +9,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { isoOf } from '../calendar/calLib';
 import { buildWallData, fmtIls } from './wallData';
@@ -65,7 +66,7 @@ export function ImpactWall(props: { onClose: () => void }) {
     };
   }, []);
 
-  const data = useMemo(() => buildWallData(db, now), [db, now]);
+  const data = useMemo(() => buildWallData(db, now, config), [db, now, config]);
 
   // טבעת ההתקדמות — יעד מוגדר: קשת לפי האחוז; אין יעד: טבעת מלאה עם הסכום
   const ringP = data.pct ?? 1;
@@ -179,7 +180,7 @@ export function ImpactWall(props: { onClose: () => void }) {
             </svg>
             <div className="in">
               <div className="b iw-num">{fmtIls(data.raisedThisYear)}</div>
-              <div className="l">גויסו השנה למען המשפחות</div>
+              <div className="l">גויסו השנה למען ה{termOf(config, 'nav.families', 'משפחות')}</div>
               {data.goalLine && <div className="y iw-num">{data.goalLine}</div>}
             </div>
           </div>
@@ -259,7 +260,7 @@ export function ImpactWall(props: { onClose: () => void }) {
             </svg>
             <div className="cap">
               <span>{data.pulse.startLabel}</span>
-              <span>שיבוצים, תשלומים ותרומות — מדד משוקלל</span>
+              <span>{termOf(config, 'entity.enrollments', 'שיבוצים')}, תשלומים ו{termOf(config, 'entity.donations', 'תרומות')} — מדד משוקלל</span>
               <span>{data.pulse.endLabel}</span>
             </div>
             <div className="kpis">

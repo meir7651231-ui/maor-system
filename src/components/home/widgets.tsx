@@ -522,7 +522,7 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
           icon="🎨"
           label={termOf(config, 'nav.courses', 'חוגים') + ' פעילים'}
           value={String(s.activeCourses)}
-          sub={`${s.activeEnrollments} שיבוצים פעילים מתוך ${s.enrollTotal}`}
+          sub={`${s.activeEnrollments} ${termOf(config, 'entity.enrollments', 'שיבוצים')} פעילים מתוך ${s.enrollTotal}`}
           onClick={() => go('courses')}
         />
       )}
@@ -1054,7 +1054,7 @@ function CourseMetricsWidget({ ctx }: { ctx: HomeCtx }) {
       ) : (
         <>
           <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
-            {m.students} שיבוצים · ₪{Math.round(m.income).toLocaleString('he-IL')} לחודש (מנויים חודשיים בלבד)
+            {m.students} {termOf(config, 'entity.enrollments', 'שיבוצים')} · ₪{Math.round(m.income).toLocaleString('he-IL')} לחודש (מנויים חודשיים בלבד)
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 64, marginBottom: 8 }} role="img" aria-label="תפוסה לפי חוג">
             {m.rows.map((r) => (
