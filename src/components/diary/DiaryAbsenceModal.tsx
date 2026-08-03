@@ -7,7 +7,7 @@ import { useState } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
-import { DAY_NAMES, isoToday, nextSessionDate, pad2 } from './lib';
+import { DAY_NAMES, isoToday, makeupEligibility, nextSessionDate, pad2 } from './lib';
 
 export function DiaryAbsenceModal(props: {
   enrollmentId: string;
@@ -23,6 +23,7 @@ export function DiaryAbsenceModal(props: {
 
   const [reason, setReason] = useState('');
   const [kind, setKind] = useState<'cancel' | 'noshow'>('cancel');
+  const [justified, setJustified] = useState(false);
   const [error, setError] = useState('');
 
   const en = db.enrollments.find((e) => e.id === props.enrollmentId);
@@ -31,36 +32,39 @@ export function DiaryAbsenceModal(props: {
   const ns = nextSessionDate(props.course);
   const rawHrs = ns ? (ns.getTime() - Date.now()) / 3600000 : null;
   const hrs = rawHrs != null ? Math.round(rawHrs) : null;
-  const eligible = rawHrs != null && rawHrs >= 48;
+  // #7: זכאות = מוצדק או ביטול-מוקדם (≥48ש׳); No-Show לעולם לא זכאי.
+  const { eligible } = makeupEligibility(kind, justified, rawHrs);
 
   const sessionLabel = ns
     ? 'המפגש הקרוב: יום ' + DAY_NAMES[ns.getDay()] + ' ' + pad2(ns.getHours()) + ':' + pad2(ns.getMinutes()) + ' — בעוד ' + hrs + ' שעות'
     : '';
   const eligLabel = eligible
-    ? '✓ מעל 48 שעות מראש — זכאי/ת להשלמה, הניקוב לא יירד'
-    : '⚠ פחות מ-48 שעות — לא זכאי/ת להשלמה' + (en.plan === 'punch' && en.status === 'active' ? ', הניקוב יירד' : '');
+    ? (justified ? '✓ חיסור מוצדק — זכאי/ת להשלמה, הניקוב לא יירד' : '✓ מעל 48 שעות מראש — זכאי/ת להשלמה, הניקוב לא יירד')
+    : '⚠ רשלנות / פחות מ-48 שעות — לא זכאי/ת להשלמה' + (en.plan === 'punch' && en.status === 'active' ? ', הניקוב יירד' : '');
 
   function save() {
     if (!en) return props.onClose();
     if (!reason.trim()) return setError('נימוק הוא שדה חובה');
+    const { eligible: elig, dropsPunch } = makeupEligibility(kind, justified, rawHrs);
     addAbsence(en.id, {
       date: isoToday(),
       reason: reason.trim(),
-      makeup: eligible && kind !== 'noshow',
+      makeup: elig,
       noshow: kind === 'noshow',
+      justified: kind !== 'noshow' && justified,
     });
-    // ביטול מאוחר / No-Show בכרטיסייה — הניקוב יורד (punch שומר בעצמו על יתרה ותוכנית)
-    if ((kind === 'noshow' || !eligible) && en.plan === 'punch' && en.status === 'active' && en.used < en.purchased) punch(en.id);
+    // רשלנות (ביטול מאוחר לא-מוצדק) / No-Show בכרטיסייה — הניקוב יורד
+    if (dropsPunch && en.plan === 'punch' && en.status === 'active' && en.used < en.purchased) punch(en.id);
     const fam = db.families.find((f) => f.members.some((m) => m.id === en.memberId));
     if (fam) {
       if (kind === 'noshow') addCred(fam.id, -20, 'No-Show: ' + props.course.name);
-      else if (!eligible) addCred(fam.id, -10, 'ביטול מאוחר (<48 שעות)');
-      else addCred(fam.id, 0, 'ביטול מוקדם — שימור ניקוד');
+      else if (elig) addCred(fam.id, 0, justified ? 'חיסור מוצדק — שימור ניקוד' : 'ביטול מוקדם — שימור ניקוד');
+      else addCred(fam.id, -10, 'ביטול מאוחר (<48 שעות, לא מוצדק)');
     }
     toast(
       kind === 'noshow'
         ? 'No-Show נרשם (-20 אמינות)'
-        : eligible
+        : elig
           ? 'החיסור נרשם — זכאי/ת להשלמה'
           : 'החיסור נרשם' + (en.plan === 'punch' && en.status === 'active' ? ' והניקוב ירד' : ''),
     );
@@ -94,6 +98,12 @@ export function DiaryAbsenceModal(props: {
           ]}
         />
       </Field>
+      {kind === 'cancel' && (
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, margin: '2px 0 10px', cursor: 'pointer' }}>
+          <input type="checkbox" checked={justified} onChange={(e) => setJustified(e.currentTarget.checked)} />
+          <span>חיסור מוצדק (מחלה / אירוע משפחתי) — זכאי/ת להשלמה גם מתחת ל-48 שעות</span>
+        </label>
+      )}
       <Field label="נימוק החיסור *">
         <TextInput value={reason} onChange={setReason} placeholder="לדוגמה: מחלה, אירוע משפחתי…" />
       </Field>

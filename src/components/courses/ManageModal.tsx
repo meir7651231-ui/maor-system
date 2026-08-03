@@ -184,6 +184,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         return;
       }
       next.status = 'active';
+      next.endedAt = undefined; // חידוש מנקה את תאריך-הסיום (#8)
     }
     upsertEnrollment(next);
     setBuyQty('');
@@ -210,7 +211,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
 
   function endEnroll() {
     if (!en) return;
-    upsertEnrollment({ ...en, status: 'ended' });
+    upsertEnrollment({ ...en, status: 'ended', endedAt: isoToday() });
     toast('ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' סומן כהסתיים');
   }
 

@@ -51,12 +51,14 @@ export function buildCourseDailyRows(c: Course, db: Db): { rows: Cell[][]; days:
     days++;
     for (const ss of sess) {
       const slot = (ss.label || 'קבוצה') + ' · ' + (ss.time || '');
-      // תלמידה "פעילה" במפגש — לא הסתיים, שובצה עד היום, ושייכת לקבוצת המפגש
+      // תלמידה "פעילה" במפגש — שובצה עד היום ושייכת לקבוצת המפגש. שיבוץ שהסתיים
+      // (#8) עדיין כלול במפגשים שקדמו לתאריך-הסיום שלו, כדי שלא ייעלם רטרואקטיבית
+      // מהדוח ההיסטורי; שיבוץ-ישן שהסתיים בלי endedAt נשאר מוחרג (אין תאריך אמין).
       const active = enrolls.filter(
         (e) =>
-          e.status !== 'ended' &&
           (!e.enrolledAt || e.enrolledAt <= iso) &&
-          (!ss.label || !e.group || e.group === ss.label),
+          (!ss.label || !e.group || e.group === ss.label) &&
+          (e.status !== 'ended' || (!!e.endedAt && iso < e.endedAt)),
       );
       if (!active.length) {
         rows.push([hebDateFull(iso), fmtD(iso), DAY_NAMES[dow], slot, 'אין רשומות', '', '', '']);

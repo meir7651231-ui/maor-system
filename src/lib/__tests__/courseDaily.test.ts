@@ -104,6 +104,36 @@ describe('buildCourseDailyRows', () => {
     expect(days).toBeLessThan(500);
     expect(rows.every((r) => !String(r[4]).includes('נקטע'))).toBe(true);
   });
+
+  // #8 (הכרעת בעלים "8כן"): תלמידה שסיימה באמצע-שנה לא נעלמת רטרואקטיבית מהדוח
+  // ההיסטורי — היא כלולה במפגשים שקדמו ל-endedAt בלבד.
+  it('שיבוץ שהסתיים עם endedAt מופיע במפגשים שקדמו לסיום ולא באלה שאחריו', () => {
+    // ימי-ראשון בטווח: 2026-07-05 ו-2026-07-12. סיום 2026-07-10 ⇒ 05 בלבד.
+    const db: Db = {
+      ...emptyDb(),
+      families: [{ ...blankFamily(), id: 'f1', name: 'כהן', members: [{ ...blankMember(), id: 'm1', first: 'רוני' }] }],
+      courses: [course()],
+      enrollments: [enroll({ status: 'ended', endedAt: '2026-07-10' })],
+    };
+    const { rows } = buildCourseDailyRows(course(), db);
+    const named = rows.slice(1).filter((r) => r[5] === 'רוני');
+    expect(named).toHaveLength(1); // רק המפגש שלפני הסיום
+    expect(named[0][1]).toBe('05/07/2026');
+    // המפגש שאחרי הסיום — "אין רשומות", בלי השם
+    const after = rows.slice(1).find((r) => r[1] === '12/07/2026');
+    expect(after?.[4]).toBe('אין רשומות');
+  });
+
+  it('שיבוץ ישן שהסתיים בלי endedAt נשאר מוחרג (אין תאריך אמין) — התנהגות קודמת נשמרת', () => {
+    const db: Db = {
+      ...emptyDb(),
+      families: [{ ...blankFamily(), id: 'f1', name: 'כהן', members: [{ ...blankMember(), id: 'm1', first: 'רוני' }] }],
+      courses: [course()],
+      enrollments: [enroll({ status: 'ended' })], // בלי endedAt
+    };
+    const { rows } = buildCourseDailyRows(course(), db);
+    expect(rows.slice(1).every((r) => r[5] !== 'רוני')).toBe(true);
+  });
 });
 
 /* עזרים מינימליים לישויות שאין להן תבנית ריקה מיוצאת */

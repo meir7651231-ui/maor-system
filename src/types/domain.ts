@@ -146,6 +146,11 @@ export interface Absence {
   makeup?: boolean;
   /** לא הגיע/ה ללא הודעה. */
   noshow?: boolean;
+  /**
+   * חיסור מוצדק (מחלה/אירוע) לעומת רשלנות (#7, הכרעת בעלים "תלוי אם מוצדק או
+   * רשלנות"): מוצדק ⇒ זכאי/ת להשלמה והניקוב לא יורד, גם מתחת ל-48 שעות.
+   */
+  justified?: boolean;
 }
 
 export interface Payment {
@@ -184,6 +189,12 @@ export interface Enrollment {
   status: EnrollmentStatus;
   note: string;
   enrolledAt: IsoDate;
+  /**
+   * תאריך סיום השיבוץ (ISO) — נקבע כשמסמנים 'ended', מתנקה בחידוש (#8). מאפשר
+   * לדוח-הנוכחות-ההיסטורי להציג תלמידה שסיימה באמצע-שנה במפגשים שקדמו לסיומה,
+   * במקום להעלים אותה רטרואקטיבית. חסר/undefined = שיבוץ ישן שהסתיים בלי תאריך.
+   */
+  endedAt?: IsoDate;
 }
 
 export interface Teacher {
