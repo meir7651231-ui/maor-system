@@ -49,6 +49,7 @@ import { roomClashError } from '../components/calendar/calLib';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, featureOn, isSuperAdmin, loadOrgConfig, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
+import { deviceTag, makeId } from '../lib/ids';
 import { mergeFamilies, mergeFamiliesByFields } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
@@ -782,7 +783,8 @@ export const useApp = create<AppState>()((set, get) => {
     nextId(prefix) {
       const seq = get().db.seq;
       setDb({ seq: seq + 1 });
-      return prefix + seq;
+      // #5: תג-מכשיר מונע התנגשות-מזהים בין שני מכשירים לא-מקוונים באותו seq.
+      return makeId(prefix, seq, deviceTag());
     },
 
     async cloudSignIn(email, password) {
