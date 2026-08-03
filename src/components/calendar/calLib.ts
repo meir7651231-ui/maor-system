@@ -42,11 +42,15 @@ function dateOf(iso: string): Date {
   return new Date(iso + 'T12:00:00');
 }
 
-/** חלקי תאריך עברי עם מטמון לפי ISO — Intl יקר, והרשת קוראת עשרות פעמים. */
+/** חלקי תאריך עברי עם מטמון לפי ISO — Intl יקר, והרשת קוראת עשרות פעמים.
+ *  מטמון חסום (HP_CACHE_MAX): ניווט-לוח ארוך הגדיל אותו ללא-גבול; בחריגה מנקים
+ *  (hebParts טהור ⇒ בנייה-מחדש חינמית מבחינת נכונות). */
+const HP_CACHE_MAX = 3000;
 const hpCache = new Map<string, HebParts>();
 export function hpOf(iso: string, d?: Date): HebParts {
   let hp = hpCache.get(iso);
   if (!hp) {
+    if (hpCache.size >= HP_CACHE_MAX) hpCache.clear();
     hp = hebParts(d ?? dateOf(iso));
     hpCache.set(iso, hp);
   }

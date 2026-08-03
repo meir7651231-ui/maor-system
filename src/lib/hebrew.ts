@@ -123,6 +123,24 @@ export function hebParts(d: Date): HebParts {
 }
 
 /**
+ * hebParts ממומואיז לפי מחרוזת-ISO (חלקי-התאריך העברי דטרמיניסטיים לכל יום).
+ * מטמון **חסום** (HP_CACHE_MAX): homeData ו-calLib החזיקו כל אחד Map ללא-גבול
+ * שגדל עם כל תאריך שנצפה (ניווט-לוח ארוך = דליפת-זיכרון איטית). בחריגה מהתקרה
+ * מנקים — hebParts טהור, אז הבנייה-מחדש חינמית מבחינת נכונות. משותף לשני הקוראים.
+ */
+const HP_CACHE_MAX = 3000;
+const hpCacheShared = new Map<string, HebParts>();
+export function hebPartsOfIso(iso: string): HebParts {
+  let hp = hpCacheShared.get(iso);
+  if (!hp) {
+    if (hpCacheShared.size >= HP_CACHE_MAX) hpCacheShared.clear();
+    hp = hebParts(new Date(iso.slice(0, 10) + 'T12:00:00'));
+    hpCacheShared.set(iso, hp);
+  }
+  return hp;
+}
+
+/**
  * "ט״ו אלול תשפ״ו" מתוך תאריך ISO.
  * שימוש בצהריים מקומי (T12:00:00) ולא בחצות: `new Date('YYYY-MM-DD')` נפרש
  * כחצות UTC, ובאזורי זמן ממערב ל-UTC (יבשת אמריקה) זה נופל ליום הקודם מקומית

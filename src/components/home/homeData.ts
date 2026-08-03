@@ -13,7 +13,7 @@ import {
   type OrgEvent,
 } from '../../types/domain';
 import { allMembers, type MemberWithFamily } from '../../store/useApp';
-import { hebParts, hebAnnualEq, type HebParts } from '../../lib/hebrew';
+import { hebParts, hebPartsOfIso, hebAnnualEq } from '../../lib/hebrew';
 import { payBal, sessionsOf } from '../courses/lib';
 import { CRED_RED_THRESHOLD } from '../families/lib';
 import { isoLocal } from '../../lib/date-util';
@@ -73,15 +73,6 @@ export function todaySessions(db: Db, now: Date): TodaySession[] {
   return out.sort((a, b) => (a.session.time || '').localeCompare(b.session.time || ''));
 }
 
-const hpCache = new Map<string, HebParts>();
-function hebPartsOfIso(iso: string): HebParts {
-  let hp = hpCache.get(iso);
-  if (!hp) {
-    hp = hebParts(new Date(iso + 'T12:00:00'));
-    hpCache.set(iso, hp);
-  }
-  return hp;
-}
 
 /**
  * אירועי הארגון החלים בתאריך נתון (לא כולל אירועים שסומנו "טופל"):
