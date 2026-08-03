@@ -10,6 +10,7 @@ import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import type { ShopComponentKind, ShopProduct } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
+import { PhotoField } from '../PhotoField';
 
 const NEW_ITEM_KINDS: { value: ShopComponentKind; label: string }[] = [
   { value: 'meeting', label: '🤝 פגישת ליווי' },
@@ -38,7 +39,7 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
   const term = termOf(config, 'entity.shopProduct', 'מוצר');
   const itemTerm = termOf(config, 'entity.shopItem', 'פריט');
 
-  const [f, setF] = useState({ name: p?.name ?? '', desc: p?.desc ?? '', active: p?.active ?? true, notes: p?.notes ?? '' });
+  const [f, setF] = useState({ name: p?.name ?? '', desc: p?.desc ?? '', active: p?.active ?? true, notes: p?.notes ?? '', img: p?.img ?? '' });
   const [comps, setComps] = useState<CompDraft[]>(
     (p?.components ?? []).map((c) => ({
       id: c.id,
@@ -101,7 +102,7 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
       id: p?.id ?? '',
       name: f.name.trim(),
       desc: f.desc.trim(),
-      ...(p?.img ? { img: p.img } : {}),
+      ...(f.img ? { img: f.img } : {}),
       active: f.active,
       notes: f.notes.trim(),
       components: comps.map((c) => {
@@ -144,6 +145,7 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
       <Field label="תיאור">
         <TextInput value={f.desc} onChange={(v) => setF({ ...f, desc: v })} placeholder="חבילת ליווי מלאה לחתן בר-מצווה" />
       </Field>
+      <PhotoField label={'תמונת ה' + term} value={f.img || undefined} onChange={(img) => setF({ ...f, img: img ?? '' })} />
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '10px 0 6px' }}>
         <b>רכיבי ה{term} — {itemTerm}ים מהקטלוג</b>

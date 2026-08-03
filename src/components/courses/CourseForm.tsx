@@ -9,6 +9,7 @@ import { featureOn, termOf } from '../../lib/config';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
+import { pickAndCompressImage } from '../../lib/imagePick';
 import { ADD_TEACHER, CAT_OPTIONS, courseDateError, DAY_NAMES, defaultCourseDates, GRADE_ORDER, gradeIndex, OTHER, OTHER_LABEL, SEMESTER_OPTIONS } from './lib';
 
 interface CourseFormState {
@@ -410,10 +411,9 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
                         const file = e.target.files?.[0];
                         e.target.value = '';
                         if (!file) return;
-                        // dataURL כמו מסמכי המשפחה — נשמר בתוך ה-DB, בלי קבצים חיצוניים
-                        const reader = new FileReader();
-                        reader.onload = () => set({ img: String(reader.result) });
-                        reader.readAsDataURL(file);
+                        // כיווץ ל-thumbnail (פיצ'ר גלריה) — נשמר ב-DB, בלי לפוצץ את
+                        // מכסת ה-localStorage בתמונה מלאה; נוסע עם הסנכרון והגיבוי.
+                        void pickAndCompressImage(file).then((img) => set({ img })).catch(() => {});
                       }}
                     />
                   </label>
