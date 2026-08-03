@@ -152,6 +152,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       method: p.method,
       date: p.date,
       forWhat: c.name,
+      copy: true, // הורדה חוזרת ⇒ "העתק נאמן למקור" (5.5d)
       // בהורדה חוזרת הסיכום משקף את המצב הנוכחי של העסקה (כמו בלגאסי)
       summary: { totalDue: en.totalDue || 0, paidSoFar: paid, balance: bal, nextDate: en.dueDate || undefined },
     });

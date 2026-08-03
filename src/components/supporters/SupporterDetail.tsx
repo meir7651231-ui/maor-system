@@ -68,6 +68,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       orgTaxId: config.orgTaxId,
       signatory: config.orgSignatory,
       payerId: sp.idNum || undefined,
+      copy: true, // הורדה חוזרת ⇒ "העתק נאמן למקור" (5.5d)
     });
     toast('קבלה ' + rid + ' ירדה שוב למחשב');
   }

@@ -45,6 +45,7 @@ describe('🧾 ratchet — שורות סיכום העסקה (legacy:1264-1265)',
   it('בלי summary (דגל כבוי): הקבלה זהה לצורתה הקודמת — אין שורות סיכום', () => {
     const lines = receiptLines(BASE).filter((x) => x !== '');
     expect(lines).toEqual([
+      'מקור', // סימון מקור/העתק (5.5d) — הנפקה ראשונה = מקור
       'קבלה — מאור החסד',
       'קבלה מס׳: R-7',
       'תאריך: ' + hebDateFull('2026-07-29') + ' · ' + new Date('2026-07-29T12:00:00').toLocaleDateString('he-IL'),
