@@ -28,13 +28,41 @@ export interface OrgLeadDoc {
   at?: string;
 }
 
-/** מסמך ארגון בפלטפורמה — platformOrgs/{slug}. */
+/** כרטיס-עובד (ORGADMIN) — דריסת-קונפיג אישית: המנהל מדליק/מכבה פר-עובד/ת דרך
+ *  אותו אשף של הארגון. רק **הגבלה** (false = מוסתר לעובד/ת); ריק = כמו הארגון.
+ *  אילוץ-על: ההסתרה ברמת-הממשק בלבד (מסמך-יחיד — ראה BUILD-ORDER-ORGADMIN). */
+export interface EmployeeOverride {
+  /** מודולים לכבות לעובד/ת (false = מוסתר). חסר = יורש מהארגון. */
+  modules?: Record<string, boolean>;
+  /** דגלי-פיצ'ר לכבות לעובד/ת (false = מוסתר). חסר = יורש מהארגון. */
+  features?: Record<string, boolean>;
+}
+
+/** מסמך ארגון בפלטפורמה — platformOrgs/{slug}.
+ *  שדות ORGADMIN (manager/memberConfigs/joinOpen/joinCode) — additive: חסר = התנהגות v2. */
 export interface OrgCloudDoc {
   config?: unknown;
   members?: string[];
+  /** מייל מנהל-הארגון (lowercase) — נקבע ע"י מייל-על באישור. חסר = אין מנהל-מואצל. */
+  manager?: string;
+  /** כרטיס-עובד פר-מייל (דריסות אישיות). חבר בלי רשומה = רואה כמו הארגון (מלא). */
+  memberConfigs?: Record<string, EmployeeOverride>;
+  /** מתג "הרשמת-עובדים" של המנהל. */
+  joinOpen?: boolean;
+  /** טוקן בקישור-ההזמנה (?org=slug&join=<code>). */
+  joinCode?: string;
   provisioned?: boolean;
   orgName?: string;
   createdAt?: string;
+}
+
+/** בקשת-הצטרפות של עובד/ת — platformOrgs/{slug}/joinRequests/{uid}. create-only ע"י המבקש. */
+export interface OrgJoinRequestDoc {
+  email?: string;
+  name?: string;
+  /** הקוד מהקישור — לבדיקה-רכה מול joinCode של הארגון (המנהל מאשר ממילא). */
+  code?: string;
+  at?: string;
 }
 
 /** בקשת הרשמה ממתינה — platformRequests/{uid}. הזרימה מבוססת שיחה — איש קשר וטלפון. */
@@ -106,6 +134,25 @@ export async function fetchOrgRequests(): Promise<Array<OrgRequestDoc & { uid: s
 export async function fetchAllOrgs(): Promise<Array<OrgCloudDoc & { slug: string }>> {
   const snap = await getDocs(collection(cloudDb(), PLATFORM_ORGS));
   return snap.docs.map((d) => ({ slug: d.id, ...(d.data() as OrgCloudDoc) }));
+}
+
+/* ─────────── ORGADMIN — בקשות-הצטרפות של עובדות (subcollection של הארגון) ───────────
+ * platformOrgs/{slug}/joinRequests/{uid} — create ע"י המבקש; קריאה/מחיקה = מנהל+מייל-על. */
+
+/** עובד/ת שולח/ת בקשת-הצטרפות (create-only, uid=uid לפי Rules v3). */
+export async function writeOrgJoinRequest(slug: string, uid: string, req: OrgJoinRequestDoc): Promise<void> {
+  await setDoc(doc(cloudDb(), PLATFORM_ORGS, slug, 'joinRequests', uid), JSON.parse(JSON.stringify(req)));
+}
+
+/** המנהל מושך את הבקשות הממתינות של הארגון שלו. */
+export async function fetchOrgJoinRequests(slug: string): Promise<Array<OrgJoinRequestDoc & { uid: string }>> {
+  const snap = await getDocs(collection(cloudDb(), PLATFORM_ORGS, slug, 'joinRequests'));
+  return snap.docs.map((d) => ({ uid: d.id, ...(d.data() as OrgJoinRequestDoc) }));
+}
+
+/** המנהל מוחק בקשה (אחרי אישור/דחייה). */
+export async function deleteOrgJoinRequest(slug: string, uid: string): Promise<void> {
+  await deleteDoc(doc(cloudDb(), PLATFORM_ORGS, slug, 'joinRequests', uid));
 }
 
 /**

@@ -46,6 +46,8 @@ import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { advanceStatus } from '../components/shop7/lib';
 import { roomClashError } from '../components/calendar/calLib';
+import { effectiveConfigFor, isOrgManager } from '../components/platform/lib';
+import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, featureOn, isSuperAdmin, loadOrgConfig, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
@@ -116,6 +118,8 @@ export interface CloudState {
   needUnlock?: boolean;
   /** הצפנת-הענן פעילה בארגון (קיים envelope) — לתצוגת-סטטוס בהגדרות. */
   cloudEncrypted?: boolean;
+  /** ORGADMIN — המשתמש המחובר הוא מנהל-הארגון (org.manager) ⇒ פאנל-המנהל 👥. */
+  isManager?: boolean;
 }
 
 interface AppState {
@@ -648,13 +652,16 @@ export const useApp = create<AppState>()((set, get) => {
             });
           };
           // האזנה חיה לקונפיג (ענן 2) — הענן גובר; מטמון-ענן נפרד, לא דריסת-אשף
-          const applyCloudDoc = (orgDoc: { config?: unknown } | null) => {
+          const applyCloudDoc = (orgDoc: OrgCloudDoc | null) => {
             if (!orgDoc?.config) return;
             const merged = resolveOrgConfig(get().config, orgDoc.config);
-            set({ config: merged });
+            // ORGADMIN — עובד/ת: הקונפיג-האפקטיבי = קונפיג-הארגון בניכוי כרטיס-העובד
+            // (רק הגבלה); מנהל/מייל-על = מלא. מנהל משנה כרטיס ⇒ העובד רואה חי (watch).
+            const eff = effectiveConfigFor(user.email, orgDoc, merged);
+            set({ config: eff });
             const { db } = get();
-            applyTheme(db.ui.theme ?? merged.theme, db.ui.accent ?? merged.accent);
-            writeCloudConfigCache(merged.slug, merged);
+            applyTheme(db.ui.theme ?? eff.theme, db.ui.accent ?? eff.accent);
+            writeCloudConfigCache(eff.slug, eff);
           };
           // ארגון-פלטפורמה = לא הלקוח הקיים (cloudRoot) ולא אתר-השורש (default)
           // — אצל שניהם ההתנהגות של היום בדיוק, בלי שער-חברות ובלי קונפיג-ענן
@@ -668,8 +675,26 @@ export const useApp = create<AppState>()((set, get) => {
               const member =
                 isSuperAdmin(user.email) ||
                 !!orgDoc?.members?.some((m) => m.trim().toLowerCase() === mail);
-              setCloud({ membership: member ? 'member' : 'pending' });
-              if (!member) return;
+              // ORGADMIN — האם המשתמש הוא מנהל-הארגון (org.manager)? ⇒ פאנל-המנהל 👥
+              setCloud({ membership: member ? 'member' : 'pending', isManager: isOrgManager(user.email, orgDoc ?? {}) });
+              if (!member) {
+                // ORGADMIN — עובד/ת שהגיעה דרך קישור-הזמנה (?join=code): רישום בקשה
+                // שהמנהל יראה ויאשר (create-only, uid תואם לפי Rules v3; idempotent).
+                const joinCode = new URLSearchParams(window.location.search).get('join');
+                if (joinCode && user.uid) {
+                  void mod
+                    .writeOrgJoinRequest(cfg.slug, user.uid, {
+                      email: user.email,
+                      name: user.email.split('@')[0],
+                      code: joinCode,
+                      at: isoToday(),
+                    })
+                    .catch(() => {
+                      /* אין הרשאה/רשת — מסך ההמתנה נשאר; המנהל יזמין שוב */
+                    });
+                }
+                return;
+              }
               applyCloudDoc(orgDoc);
               cloudCfgUnsub?.();
               cloudCfgUnsub = mod.watchOrgCloudConfig(cfg.slug, applyCloudDoc);

@@ -34,6 +34,13 @@ service cloud.firestore {
         && request.auth.token.email.lower()
           in get(/databases/$(database)/documents/platformOrgs/$(slug)).data.members;
     }
+    // מנהל-ארגון מואצל (ORGADMIN v3) — המייל שווה לשדה manager של הארגון.
+    // המנהל מנהל את העובדות של הארגון שלו בלבד; מייל-העל מעל כולם.
+    function orgManager(slug) {
+      return request.auth != null
+        && request.auth.token.email.lower()
+          == get(/databases/$(database)/documents/platformOrgs/$(slug)).data.get('manager', '');
+    }
 
     // בקשות הרשמה: המשתמש יוצר רק את שלו (uid תואם); קריאה/מחיקה — מיילי-על.
     match /platformRequests/{uid} {
@@ -51,10 +58,25 @@ service cloud.firestore {
       allow read, update, delete: if superAdmin();
     }
 
-    // מסמכי הארגונים: קריאה — חבר או מייל-על; כתיבה — מיילי-על בלבד.
+    // מסמכי הארגונים: קריאה — חבר או מייל-על.
+    // כתיבה מלאה (config/manager/provisioned) — מייל-על בלבד.
+    // עדכון חלקי — מנהל-הארגון, אך **רק** לשדות ניהול-העובדות שלו
+    // (members/memberRoles/joinOpen/joinCode); לא נוגע ב-config/manager/provisioned.
     match /platformOrgs/{slug} {
       allow read: if superAdmin() || orgMember(slug);
-      allow write: if superAdmin();
+      allow create, delete: if superAdmin();
+      allow update: if superAdmin()
+        || (orgManager(slug)
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['members', 'memberConfigs', 'joinOpen', 'joinCode']));
+
+      // בקשות-הצטרפות של עובדות — יצירה ע"י המבקש (uid תואם); קריאה/מחיקה —
+      // מנהל-הארגון או מייל-על. אישור/דחייה = המנהל מעדכן members/memberRoles למעלה
+      // ואז מוחק את הבקשה.
+      match /joinRequests/{uid} {
+        allow create: if request.auth != null && request.auth.uid == uid;
+        allow read, delete: if superAdmin() || orgManager(slug);
+      }
     }
 
     // נתוני ארגון-פלטפורמה: קריאה/כתיבה — חבר או מייל-על.

@@ -65,3 +65,112 @@ export function allOffConfig(slug: string, orgName: string): OrgConfig {
 export function orgLink(origin: string, basePath: string, slug: string): string {
   return origin + basePath + '?org=' + slug;
 }
+
+/* ─────────────────────────── ORGADMIN — היררכיית 3 שכבות ───────────────────────────
+ * מייל-על (אתה) → מנהל-ארגון (org.manager) → עובדות (members[] + memberRoles).
+ * כל הפונקציות טהורות ונבדקות ביחידה. אילוץ-על: 'limited' = הגבלת-ממשק (מסמך-יחיד).
+ * ראה knowledge/BUILD-ORDER-ORGADMIN-2026-08-03.md. */
+
+import type { EmployeeOverride, OrgCloudDoc } from '../../lib/cloudConfig';
+
+/** נירמול מייל — trim + אותיות-קטנות (זהה להשוואת ה-Rules). */
+export function normEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+/** קוד-הזמנה קצר ודטרמיניסטי מ-seed (הקורא מספק אנטרופיה: slug+חותם-זמן).
+ *  8 תווים base36 — לא סוד קריפטוגרפי (אישור-המנהל הוא השער), רק מגדר-רך לקישור. */
+export function genJoinCode(seed: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  let out = '';
+  let x = h >>> 0;
+  for (let i = 0; i < 8; i++) {
+    out += (x % 36).toString(36);
+    x = Math.floor(x / 36) || (h >>> 0) + i + 1;
+  }
+  return out;
+}
+
+/** קישור-הזמנה לעובד/ת — ‏{origin}{base}?org={slug}&join={code}. */
+export function orgJoinLink(origin: string, basePath: string, slug: string, code: string): string {
+  return origin + basePath + '?org=' + slug + '&join=' + code;
+}
+
+/** האם המייל הוא מנהל-הארגון (מואצל)? השוואה מנורמלת. */
+export function isOrgManager(email: string, org: Pick<OrgCloudDoc, 'manager'>): boolean {
+  const m = (org.manager ?? '').trim().toLowerCase();
+  return !!m && normEmail(email) === m;
+}
+
+/**
+ * טווח-הכפתורים שהמנהל בכלל רואה באשף-הייחודי שלו = **רק המודולים שהבעלים
+ * הדליק לארגון** (הכרעת-בעלים: "רק את הכפתורים שאני הדלקתי"; מה שלא-שודרג/לא-נקנה
+ * לא מופיע). ארגון נולד all-off ⇒ 'לא-false' = מה שהבעלים הדליק בפועל. טהור.
+ * את אלה המנהל מחלק בין העובדות (כרטיס-עובד); לעולם לא יכול לחרוג מהם.
+ */
+export function orgEnabledModules(orgConfig: { modules?: Record<string, boolean> }): ModuleKey[] {
+  return ALL_MODULES.filter((m) => orgConfig.modules?.[m] !== false);
+}
+
+/** האם המייל חבר בארגון (עובד/ת מאושרת או מנהל)? */
+export function isMember(email: string, org: OrgCloudDoc): boolean {
+  const e = normEmail(email);
+  if (isOrgManager(e, org)) return true;
+  return (org.members ?? []).map((m) => m.trim().toLowerCase()).includes(e);
+}
+
+/** כרטיס-העובד של מייל (דריסות אישיות). מנהל/חבר-בלי-כרטיס = ריק (רואה כמו הארגון). */
+export function overrideOf(email: string, org: OrgCloudDoc): EmployeeOverride {
+  return org.memberConfigs?.[normEmail(email)] ?? {};
+}
+
+/**
+ * הקונפיג האפקטיבי של עובד/ת = קונפיג-הארגון **בניכוי** מה שהמנהל כיבה לה
+ * בכרטיס-העובד (רק הגבלה — לא מדליקה מה שהארגון כיבה). מנהל = קונפיג-הארגון כמו-שהוא.
+ * זהה בסמנטיקה ל-featureOn/moduleOn (false=כבוי; חסר=יורש). טהור — לב האכיפה בממשק.
+ */
+export function effectiveConfigFor<
+  T extends { modules?: Record<string, boolean>; features?: Record<string, boolean> },
+>(email: string, org: OrgCloudDoc, orgConfig: T): T {
+  if (isOrgManager(email, org)) return orgConfig;
+  const ov = overrideOf(email, org);
+  if (!ov.modules && !ov.features) return orgConfig;
+  const modules = { ...orgConfig.modules };
+  for (const [m, v] of Object.entries(ov.modules ?? {})) if (v === false) modules[m] = false;
+  const features = { ...orgConfig.features };
+  for (const [k, v] of Object.entries(ov.features ?? {})) if (v === false) features[k] = false;
+  return { ...orgConfig, modules, features };
+}
+
+/** אישור בקשת-הצטרפות (טהור) — מוסיף ל-members (בלי כפילויות, מנורמל). ללא דריסות = מלא. */
+export function approveMember(org: OrgCloudDoc, email: string): { members: string[] } {
+  const e = normEmail(email);
+  const members = [...new Set([...(org.members ?? []).map((m) => m.trim().toLowerCase()), e])];
+  return { members };
+}
+
+/** קביעת כרטיס-עובד (טהור) — כותב/מעדכן את דריסות המייל. */
+export function setEmployeeOverride(
+  org: OrgCloudDoc,
+  email: string,
+  override: EmployeeOverride,
+): { memberConfigs: Record<string, EmployeeOverride> } {
+  const e = normEmail(email);
+  return { memberConfigs: { ...org.memberConfigs, [e]: override } };
+}
+
+/** הסרת עובד/ת (טהור) — מוציא מ-members ומ-memberConfigs. מנהל לא ניתן להסרה כאן. */
+export function removeMember(
+  org: OrgCloudDoc,
+  email: string,
+): { members: string[]; memberConfigs: Record<string, EmployeeOverride> } {
+  const e = normEmail(email);
+  const members = (org.members ?? []).map((m) => m.trim().toLowerCase()).filter((m) => m !== e);
+  const memberConfigs: Record<string, EmployeeOverride> = { ...org.memberConfigs };
+  delete memberConfigs[e];
+  return { members, memberConfigs };
+}
