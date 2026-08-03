@@ -146,16 +146,18 @@ export function ItemsPanel() {
                   </span>
                 )}
                 <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
-                  <Btn sm onClick={() => setStockFor(i)} title="חידוש מלאי">➕ מלאי</Btn>
-                  <Btn sm onClick={() => { setMergeFrom(mergeFrom?.id === i.id ? null : i); setMergeTarget(''); }} title="מיזוג פריט כפול לתוך פריט אחר">
-                    ⇄ מיזוג לתוך…
-                  </Btn>
+                  {featureOn(config, 'shop.stock') && <Btn sm onClick={() => setStockFor(i)} title="חידוש מלאי">➕ מלאי</Btn>}
+                  {featureOn(config, 'shop.merge') && (
+                    <Btn sm onClick={() => { setMergeFrom(mergeFrom?.id === i.id ? null : i); setMergeTarget(''); }} title="מיזוג פריט כפול לתוך פריט אחר">
+                      ⇄ מיזוג לתוך…
+                    </Btn>
+                  )}
                   <Btn sm onClick={() => startEdit(i)}>✏️</Btn>
                   <Btn sm kind="danger" onClick={() => remove(i)}>{armed === 'shi-' + i.id ? 'שוב למחיקה' : '🗑'}</Btn>
                 </span>
               </div>
               {/* רשימת ההמתנה של הפריט (SHOP6 חנות 27) — שם, תאריך, הסרה */}
-              {waits.length > 0 && (
+              {featureOn(config, 'shop.waitlist') && waits.length > 0 && (
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 4, fontSize: 12 }}>
                   <span style={{ fontWeight: 700, color: '#9a6414' }}>{'⏳ ' + waits.length + ' ממתינים:'}</span>
                   {waits.map((w) => {

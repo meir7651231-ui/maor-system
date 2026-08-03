@@ -7,7 +7,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import type { ShopComponentKind, ShopProduct } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { PhotoField } from '../PhotoField';
@@ -145,7 +145,9 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
       <Field label="תיאור">
         <TextInput value={f.desc} onChange={(v) => setF({ ...f, desc: v })} placeholder="חבילת ליווי מלאה לחתן בר-מצווה" />
       </Field>
-      <PhotoField label={'תמונת ה' + term} value={f.img || undefined} onChange={(img) => setF({ ...f, img: img ?? '' })} />
+      {featureOn(config, 'shop.photo') && (
+        <PhotoField label={'תמונת ה' + term} value={f.img || undefined} onChange={(img) => setF({ ...f, img: img ?? '' })} />
+      )}
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '10px 0 6px' }}>
         <b>רכיבי ה{term} — {itemTerm}ים מהקטלוג</b>

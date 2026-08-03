@@ -69,7 +69,7 @@ export function CatalogTab() {
             return (
               <div key={p.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  {p.img && (
+                  {featureOn(config, 'shop.photo') && p.img && (
                     <img src={p.img} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--line)' }} />
                   )}
                   <span style={{ fontWeight: 800, fontSize: 15 }}>{p.name}</span>
@@ -115,7 +115,7 @@ export function CatalogTab() {
                       🖨 רשימת חלוקה
                     </Btn>
                   )}
-                  {activeCount > 0 && p.components.length > 0 && (
+                  {featureOn(config, 'shop.bulkredeem') && activeCount > 0 && p.components.length > 0 && (
                     <Btn sm onClick={() => setBulkRedeemFor(p)} title="מימוש לכל שיוך פעיל שטרם קיבל — הכול-או-כלום על מחסור מלאי">
                       🎁 סימון חולק לכולם
                     </Btn>
@@ -131,7 +131,7 @@ export function CatalogTab() {
         </div>
       )}
       <ItemsPanel />
-      <IntakePanel />
+      {featureOn(config, 'shop.stock') && <IntakePanel />}
       {storesOn && <StoresPanel />}
       {criteriaOn && <CriteriaPanel />}
       {formOpen && <ProductForm product={editing} onClose={() => setFormOpen(false)} />}

@@ -324,9 +324,11 @@ export function FamilyDetail(props: { family: Family }) {
         <section className="card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <h2 style={{ fontSize: 16, fontWeight: 700 }}>פרטי קשר והורים</h2>
-            <Btn sm onClick={() => setShowIds((v) => !v)}>
-              {showIds ? 'הסתר ת"ז' : 'הצג ת"ז'}
-            </Btn>
+            {featureOn(config, 'families.showid') && (
+              <Btn sm onClick={() => setShowIds((v) => !v)}>
+                {showIds ? 'הסתר ת"ז' : 'הצג ת"ז'}
+              </Btn>
+            )}
           </div>
           <InfoRow k="שם האב" v={fam.father || '—'} />
           <InfoRow k={'ת"ז האב'} v={maskId(fam.fatherId, showIds)} />

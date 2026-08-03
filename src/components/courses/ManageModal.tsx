@@ -128,6 +128,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         method,
         date,
         forWhat: c.name,
+        mark: featureOn(cfg, 'core.receipt.copymark'),
         // שורות סיכום העסקה — רק כשהדגל דלוק (בלעדיו הקבלה כמו קודם)
         summary: receiptSummaryOn
           ? { totalDue: en.totalDue || 0, paidSoFar: paid + amt, balance: newBal, nextDate: en.dueDate || undefined }
@@ -153,6 +154,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       date: p.date,
       forWhat: c.name,
       copy: true, // הורדה חוזרת ⇒ "העתק נאמן למקור" (5.5d)
+      mark: featureOn(cfg, 'core.receipt.copymark'),
       // בהורדה חוזרת הסיכום משקף את המצב הנוכחי של העסקה (כמו בלגאסי)
       summary: { totalDue: en.totalDue || 0, paidSoFar: paid, balance: bal, nextDate: en.dueDate || undefined },
     });

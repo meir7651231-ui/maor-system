@@ -10,9 +10,11 @@ import { isoToday } from '../../lib/date-util';
 import type { ShopIntake, ShopItem } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { itemRemaining } from './lib';
+import { featureOn } from '../../lib/config';
 
 export function StockModal(props: { item: ShopItem; onClose: () => void }) {
   const db = useApp((s) => s.db);
+  const config = useApp((s) => s.config);
   const addShopIntake = useApp((s) => s.addShopIntake);
   const toast = useApp((s) => s.toast);
   const it = props.item;
@@ -64,9 +66,11 @@ export function StockModal(props: { item: ShopItem; onClose: () => void }) {
           <TextInput value={cost} onChange={setCost} type="number" dir="ltr" placeholder="0" />
         </Field>
       )}
-      <Field label="תפוגה (אצווה מתכלה — רשות)">
-        <input type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
-      </Field>
+      {featureOn(config, 'shop.expiry') && (
+        <Field label="תפוגה (אצווה מתכלה — רשות)">
+          <input type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
+        </Field>
+      )}
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>עדכון המלאי</Btn>
         <Btn onClick={props.onClose}>ביטול</Btn>

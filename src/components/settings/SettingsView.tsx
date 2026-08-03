@@ -58,18 +58,18 @@ export function SettingsView() {
       </div>
 
       <OrgSection />
-      <ThemeSection />
+      {featureOn(config, 'settings.theme') && <ThemeSection />}
       {secOn('sec-teachers') && <TeachersSection />}
       {secOn('sec-rooms') && <RoomsSection />}
-      <NotifSection />
+      {featureOn(config, 'settings.notif') && <NotifSection />}
       {/* גיבוי ושחזור לעולם אינו מוסתר — בטיחות נתונים */}
-      <BackupSection />
+      {featureOn(config, 'settings.backup') && <BackupSection />}
       {secOn('sec-export') && <ExportSection />}
       {secOn('sec-import') && <ImportSection />}
       {secOn('sec-audit') && <AuditSection />}
-      <AccessSection />
-      <SecuritySection />
-      <EncryptionSection />
+      {featureOn(config, 'settings.access') && <AccessSection />}
+      {featureOn(config, 'shell.lock') && <SecuritySection />}
+      {featureOn(config, 'settings.encryption') && <EncryptionSection />}
       {/* הצפנת-ענן — הרכיב עצמו מגודר isSuperAdmin (מחזיר null ללא-בעלים) */}
       <CloudEncryptionSection />
       {secOn('sec-reset') && <ResetSection />}

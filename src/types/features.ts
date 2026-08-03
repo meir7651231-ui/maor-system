@@ -44,6 +44,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'families.cardops', label: 'פעולות תפעול בכרטיס', desc: 'ניקוב, חיסור, ניהול והסרת שיבוץ + כרטיסי אב/אם להשלמה + "➕ אירוע" — ישירות מכרטיס המשפחה', module: 'families' },
   { key: 'families.cred.trendCreditsOnly', label: 'מקדם מגמה על זיכויים בלבד', desc: 'דלוק: המקדם מוכפל רק על זיכויים (התנהגות המערכת); כבוי: מוכפל גם על עונשים (תאימות לקובץ החי)', module: 'families' },
   { key: 'families.shortcuts', label: 'קיצורי ייבוא ובדיקה במסך', desc: 'כפתורי "⬆ ייבוא" ו"✓ בדיקת נתונים" בראש מסך המשפחות — קפיצה לסקשן בהגדרות (כמו בקובץ החי)', module: 'families' },
+  { key: 'families.showid', label: 'חשיפת ת"ז בכרטיס', desc: 'כפתור "הצג ת"ז" שחושף מספרי ת"ז של ההורים (PII) — כבוי מסתיר לגמרי', module: 'families' },
+  { key: 'families.filter', label: 'סינון מורחב', desc: 'פאנל סינון נפתח במסך המשפחות (מצב משפחתי/שפה/ספח/ילדים/חוגים/אמינות)', module: 'families' },
 
   // ——— חוגים ———
   { key: 'courses.punch', label: 'כרטיסיות ניקוב', desc: 'מכירת כרטיסיות וניקוב כניסות במקום מנוי', module: 'courses' },
@@ -150,6 +152,16 @@ export const FEATURES: FeatureDef[] = [
   { key: 'shop.inlinecreate', label: 'הוספת לא-רשומים', desc: 'יצירת משפחה/בן-משפחה חדשים ישירות מתוך העמודה', module: 'shop' },
   { key: 'shop.familypanel', label: 'פאנל בכרטיס המשפחה', desc: 'חבילות השירות והמגיע-וטרם-נמסר של המשפחה — תצוגה בלבד בכרטיס המשפחה', module: 'shop' },
   { key: 'shop.export', label: 'ייצוא מימושים', desc: 'ייצוא CSV של כל המימושים — כולל מבוטלים מסומנים (שקיפות)', module: 'shop' },
+  { key: 'shop.photo', label: 'תמונת מוצר', desc: 'העלאת תמונה למוצר בקטלוג (מכווצת) + תצוגה בכרטיס', module: 'shop' },
+  { key: 'shop.stock', label: 'מלאי וקליטות', desc: 'מעקב מלאי פר-פריט, חידוש מהיר ויומן קליטות (מלאי נכנס)', module: 'shop' },
+  { key: 'shop.expiry', label: 'תפוגת אצווה', desc: 'תאריך-תפוגה בקליטת מלאי → התרעת "פג-תוקף" בטיפול', module: 'shop' },
+  { key: 'shop.waitlist', label: 'רשימות המתנה', desc: 'רישום ממתינים לפריט שאזל + הצעה אוטומטית בחידוש מלאי', module: 'shop' },
+  { key: 'shop.bulkassign', label: 'שיוך המוני', desc: 'שיוך מוצר לכל המשפחות הזכאות בבת-אחת', module: 'shop' },
+  { key: 'shop.bulkredeem', label: 'חלוקה המונית', desc: 'סימון "חולק לכולם" — מימוש מרוכז עם רשימת חלוקה', module: 'shop' },
+  { key: 'shop.sreceipt', label: 'אישור תשלום סמלי', desc: 'הורדה חוזרת של אישור S- (לא קבלת מס) על מימוש', module: 'shop' },
+  { key: 'shop.void', label: 'ביטול מימוש', desc: 'ביטול מימוש עם סימון סיבה (הרשומה נשמרת, מוחרגת מהחי)', module: 'shop' },
+  { key: 'shop.meeting', label: 'קביעת פגישה ביומן', desc: 'קישור מימוש לתפיסת חדר ביומן החדרים הראשי (החור המבוקר בבידוד)', module: 'shop' },
+  { key: 'shop.merge', label: 'מיזוג פריטים כפולים', desc: 'איחוד שני פריטי-קטלוג לאחד (בלתי-הפיך)', module: 'shop' },
 
   // ——— חלוקה (shop7) ———
   { key: 'shop7.familypanel', label: 'פאנל חלוקה בכרטיס המשפחה', desc: 'מסירות המשפחה וסטטוסן (איסוף/בדרך/נמסר) — תצוגה בלבד בכרטיס המשפחה', module: 'shop7' },
@@ -166,6 +178,11 @@ export const FEATURES: FeatureDef[] = [
   { key: 'settings.dedup.fields', label: 'מיזוג שדה-שדה', desc: 'בחירת הערך הנכון לכל שדה (18 שדות) בין הרשומות הכפולות + מחיקת רשומה מהקבוצה', module: 'settings' },
   { key: 'settings.export', label: 'ייצוא נתונים', desc: 'ייצוא גיבוי ונתונים לקובץ', module: 'settings' },
   { key: 'settings.reset', label: 'איפוס מערכת', desc: 'מחיקת כל הנתונים ואיפוס המערכת', module: 'settings' },
+  { key: 'settings.backup', label: 'גיבוי ושחזור', desc: 'סעיף "גיבוי ושחזור" בהגדרות — הורדת גיבוי מלא, שחזור מקובץ וצילומים יומיים', module: 'settings' },
+  { key: 'settings.encryption', label: 'סעיף הצפנה', desc: 'סעיף "הצפנת נתונים" בהגדרות — הפעלה, סיסמה, מפתח-שחזור והחלפת-סיסמה', module: 'settings' },
+  { key: 'settings.access', label: 'סעיף נגישות', desc: 'סעיף "נגישות" בהגדרות — גודל טקסט, ניגודיות, אנימציות וריווח', module: 'settings' },
+  { key: 'settings.notif', label: 'ערוצי התראות', desc: 'סעיף "ערוצי התראות" בהגדרות — אימייל/פוש/SMS', module: 'settings' },
+  { key: 'settings.theme', label: 'בורר ערכת נושא', desc: 'סעיף "ערכת נושא" בהגדרות — בחירת ערכה וצבע הדגשה (למנהל)', module: 'settings' },
 
   // ——— מעטפת (shell) — ניווט ופלטת הפקודות ———
   { key: 'shell.navhist', label: 'ניווט אחורה ↩', desc: 'מחסנית ניווט של 20 צעדים — כפתור "↩ חזרה" גלובלי + "נפתחו לאחרונה" בחיפוש', module: 'shell' },
@@ -175,6 +192,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'shell.demo', label: 'מצב הדגמה ▶', desc: 'סיור spotlight מודרך על המסכים האמיתיים לפי תסריט הקובץ החי — הבא/הקודם, Esc עוצר', module: 'shell' },
   { key: 'shell.a11yfab', label: 'כפתור נגישות צף ♿', desc: 'FAB נגיש מכל מסך — גודל אותיות 80%-160% בצעדי 10%, ניגודיות, הדגשה, עצירת אנימציות וריווח', module: 'shell' },
   { key: 'shell.roles', label: 'תפקיד מורה', desc: 'מורה מחוברת (roles.teachers בקונפיג) רואה רק את החוגים שלה; הוספה/עריכה/מחיקה והגדרות מוסתרות', module: 'shell' },
+  { key: 'shell.lock', label: 'נעילת PIN', desc: 'סעיף "נעילת גישה" בהגדרות — קוד ראשי/מנהל, אזורים מוגנים ו"נעילה עכשיו" (מסך הפענוח נשאר פעיל אם כבר הוגדר קוד)', module: 'shell' },
+  { key: 'shell.palette', label: 'פלטת פקודות וחיפוש-על', desc: 'פלטת ⌘K וצ׳יפ "חיפוש בכל המערכת" — כבוי מסתיר את החיפוש הגלובלי', module: 'shell' },
   { key: 'shell.armdel', label: 'מחיקה בשני קליקים', desc: 'מחיקות משפחה/בן משפחה/חוג/שיבוץ בדפוס חימוש-ופקיעה 3.5ש׳ כמו בקובץ החי; כבוי = דיאלוג אישור של הדפדפן', module: 'shell' },
   { key: 'signup.hero3d', label: 'כדור-מוח תלת-ממד בהרשמה', desc: 'ה-Hero של מסך ההרשמה (אורביט) מציג כדור-מוח Three.js חי; כבוי ⇒ רקע סטטי (טעינה מהירה / מכשיר חלש)', module: 'signup' },
 
@@ -185,6 +204,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'core.cashbox', label: 'קופה רושמת', desc: 'קבלת מזומן במטבעות/שטרות, חישוב עודף והפקת חשבונית', module: 'core' },
   { key: 'core.bodymap', label: 'מפת אזורי טיפול', desc: 'מעקב טיפולים לפי אזורי גוף — בוצע מול יעד לכל אזור, פר-לקוח', module: 'core' },
   { key: 'core.daygate', label: 'מסך פתיחת יום', desc: 'מסך פתיחת יום בכניסה הראשונה של היום', module: 'core' },
+  { key: 'core.receipt.copymark', label: 'סימון מקור/העתק', desc: 'שורת "מקור" / "העתק נאמן למקור" בראש הקבלה (הוראות ניהול ספרים)', module: 'core' },
+  { key: 'core.dayendbackup', label: 'גיבוי אוטומטי בסוף-יום', desc: 'הורדת קובץ גיבוי אוטומטית אחרי שעת-הסיום היומית', module: 'core' },
 ];
 
 /** הגדרת מונח במילון המונחים — label לתצוגה במסך ההגדרות, fallback = ברירת המחדל. */
