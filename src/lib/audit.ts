@@ -6,6 +6,7 @@
  */
 import type { Db, Family } from '../types/domain';
 import { validIsraeliId, normName } from './validate';
+import { supporterAggregates } from './supporterAgg';
 import { ageOf } from '../components/families/lib';
 
 export type AuditCategory =
@@ -182,24 +183,23 @@ export function runAudit(db: Db, todayIso = '', extra = true): AuditIssue[] {
     if (sp.email && !EMAIL_RE.test(sp.email)) issues.push({ cat: 'אימייל', title: 'תומכ/ת ' + sp.name + ': אימייל לא תקין (' + sp.email + ')', spId: sp.id });
     // עקביות מצבור מול פירוט התרומות — הכרטיס מציג sp.ils/usd אך לוח הבית סוכם את
     // sp.donations; פער ביניהם (מיובא/נערך ידנית) גורם לשני מסכים להראות סכומים שונים.
-    const dons = Array.isArray(sp.donations) ? sp.donations : [];
-    const sumIls = dons.filter((d) => d.cur !== '$').reduce((a, d) => a + (Number.isFinite(d.amount) ? d.amount : 0), 0);
-    const sumUsd = dons.filter((d) => d.cur === '$').reduce((a, d) => a + (Number.isFinite(d.amount) ? d.amount : 0), 0);
+    // #14 (הכרעת בעלים "כל מה שיעלה בקובץ") — המצבור נגזר מ-donations+hist יחד.
+    const agg = supporterAggregates(sp);
     const off = (a: number, b: number) => Math.abs((a || 0) - (b || 0)) > 0.5;
-    if (off(sp.ils, sumIls) || off(sp.usd, sumUsd) || (sp.count || 0) !== dons.length)
+    if (off(sp.ils, agg.ils) || off(sp.usd, agg.usd) || (sp.count || 0) !== agg.count)
       issues.push({
         cat: 'לוגיקה',
         title:
           'תומכ/ת ' + sp.name + ': הסכום המצטבר הרשום (₪' + (sp.ils || 0) +
           (sp.usd ? ' + $' + sp.usd : '') + ' · ' + (sp.count || 0) + ' תרומות) לא תואם את פירוט התרומות (₪' +
-          sumIls + (sumUsd ? ' + $' + sumUsd : '') + ' · ' + dons.length + ' תרומות)',
+          agg.ils + (agg.usd ? ' + $' + agg.usd : '') + ' · ' + agg.count + ' תרומות)',
         spId: sp.id,
       });
     // ——— ביקורת מורחבת (P2 פער 22) ———
     if (extra && todayIso && sp.nextDate && sp.nextDate < todayIso)
       issues.push({ cat: 'קשר', title: 'עבר יעד הקשר של "' + sp.name + '" (' + sp.nextDate + ')', spId: sp.id });
     if (extra)
-      for (const d of dons)
+      for (const d of Array.isArray(sp.donations) ? sp.donations : [])
         if (!(d.amount > 0))
           issues.push({ cat: 'לוגיקה', title: 'תרומה בסכום ' + d.amount + ' אצל "' + sp.name + '" (' + d.rid + ')', spId: sp.id });
     const nk = normName(sp.name);

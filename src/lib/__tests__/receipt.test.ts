@@ -69,4 +69,14 @@ describe('🔒 ratchet — קבלת סעיף 46 פורמלית', () => {
     expect(txt).not.toContain('מס׳ עמותה');
     expect(txt).not.toContain('ת"ז / ח"פ');
   });
+
+  // 5.5d (הכרעת בעלים "הכל") — סימון מקור/העתק לקבלה ממוחשבת (הוראות ניהול ספרים).
+  it('הנפקה ראשונה מסומנת "מקור"; הורדה חוזרת (copy) "העתק נאמן למקור"', () => {
+    expect(receiptLines(tax)[0]).toBe('מקור'); // ברירת-מחדל
+    expect(receiptLines({ ...tax, copy: false })[0]).toBe('מקור');
+    expect(receiptLines({ ...tax, copy: true })[0]).toBe('העתק נאמן למקור');
+    // חל גם על הקבלה הרגילה (לא-§46)
+    expect(receiptLines({ ...base, copy: true })[0]).toBe('העתק נאמן למקור');
+    expect(receiptLines(base)[0]).toBe('מקור');
+  });
 });
