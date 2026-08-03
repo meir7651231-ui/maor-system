@@ -49,6 +49,7 @@ import { roomClashError } from '../components/calendar/calLib';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, featureOn, isSuperAdmin, loadOrgConfig, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
+import { deviceTag, makeId } from '../lib/ids';
 import { mergeFamilies, mergeFamiliesByFields } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
@@ -62,6 +63,8 @@ import {
   saveDb,
   flushSaveSync,
   isIdbBackupMissing,
+  currentDbKey,
+  readStoredPlainDb,
   setPersistNamespace,
   decryptAndLoad,
   beginEncryption,
@@ -446,6 +449,8 @@ function writeSess(k: string, v: string | null): void {
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+let dirty = false; // עריכה מקומית שטרם נשמרה — שער ריבוי-הטאבים לא ידרוס אותה (#3)
+let mtGuardOn = false; // מאזין ה-storage מותקן פעם אחת
 let idbWarned = false; // אזהרת "שכבת גיבוי חסרה" ניתנת פעם אחת לסשן (השמירה כל 500ms)
 let toastSeq = 1;
 
@@ -510,6 +515,7 @@ export const useApp = create<AppState>()((set, get) => {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(async () => {
       const ok = await saveDb(get().db);
+      if (ok) dirty = false; // נשמר — שער ריבוי-הטאבים רשאי שוב לאמץ כתיבה חיצונית
       if (ok !== get().saveOk) set({ saveOk: ok });
       if (!ok) {
         get().toast('⚠ השמירה נכשלה — הורידו גיבוי מלא ובדקו מקום פנוי בדפדפן');
@@ -526,6 +532,7 @@ export const useApp = create<AppState>()((set, get) => {
   function setDb(patch: Partial<Db> | ((db: Db) => Partial<Db>)) {
     const prev = get().db;
     set((s) => ({ db: { ...s.db, ...(typeof patch === 'function' ? patch(s.db) : patch) } }));
+    dirty = true; // עריכה מקומית ממתינה — שער ריבוי-הטאבים לא ידרוס אותה (#3)
     scheduleSave();
     // דחיפה לענן (debounced במודול הענן) — no-op כשאין ענן / בזמן החלת שינוי מרוחק
     cloudMod?.cloudOnDbChange(prev, get().db);
@@ -534,6 +541,27 @@ export const useApp = create<AppState>()((set, get) => {
   /** עדכון שדה cloud חלקי. */
   function setCloud(patch: Partial<CloudState>) {
     set((s) => ({ cloud: { ...s.cloud, ...patch } }));
+  }
+
+  /**
+   * שער ריבוי-טאבים (#3): שני טאבים גלויים באותו origin חלקו last-writer-wins —
+   * טאב מיושן דרס בשקט עריכה של טאב אחר. עכשיו טאב שמקבל אירוע storage על מפתח
+   * ה-DB, שאין לו עריכה מקומית ממתינה (dirty), ושהערך החיצוני חדש יותר (savedAt),
+   * מאמץ את המצב החיצוני במקום לדרוס אותו. עריכה מקומית ממתינה ⇒ לא נוגעים (כוונת
+   * המשתמש בטאב הפעיל מנצחת, כמו קודם). מוצפן/פגום ⇒ null ⇒ אין אימוץ.
+   */
+  function startMultiTabGuard() {
+    if (mtGuardOn || typeof window === 'undefined') return;
+    mtGuardOn = true;
+    window.addEventListener('storage', (e) => {
+      if (e.key !== currentDbKey() || e.newValue == null) return;
+      if (dirty || get().needDecrypt || get().encrypted) return;
+      const ext = readStoredPlainDb(e.newValue);
+      if (!ext || !ext.savedAt) return;
+      const cur = get().db.savedAt;
+      if (cur && ext.savedAt <= cur) return; // לא חדש יותר — אין מה לאמץ
+      set({ db: ext }); // אימוץ הכתיבה החיצונית; בלי scheduleSave (כבר מאוחסן)
+    });
   }
 
   /**
@@ -775,6 +803,7 @@ export const useApp = create<AppState>()((set, get) => {
       // חיבור ענן — opt-in פר-ארגון; בלי config.firebase שום דבר לא משתנה
       if (config.firebase) void connectCloud(config.firebase, config);
       postLoad(db, corrupt);
+      startMultiTabGuard(); // שער ריבוי-טאבים (#3)
     },
 
     setDb,
@@ -782,7 +811,8 @@ export const useApp = create<AppState>()((set, get) => {
     nextId(prefix) {
       const seq = get().db.seq;
       setDb({ seq: seq + 1 });
-      return prefix + seq;
+      // #5: תג-מכשיר מונע התנגשות-מזהים בין שני מכשירים לא-מקוונים באותו seq.
+      return makeId(prefix, seq, deviceTag());
     },
 
     async cloudSignIn(email, password) {

@@ -456,6 +456,29 @@ async function readRaw(): Promise<unknown> {
   }
 }
 
+/** מפתח ה-DB בתחום הנוכחי — לזיהוי אירוע storage הרלוונטי (שער ריבוי-הטאבים #3). */
+export function currentDbKey(): string {
+  return LS_KEY;
+}
+
+/**
+ * קריאה סינכרונית של ה-DB המאוחסן הגלוי — לשער ריבוי-הטאבים (#3): טאב שראה
+ * שטאב אחר כתב DB חדש יותר מאמץ אותו במקום לדרוס אותו בשמירה הבאה. מוצפן ⇒ null
+ * (שער-ההצפנה ב-saveDb כבר מונע דריסת-מעטפת בטקסט גלוי; לא נוגעים כאן). null גם
+ * בהיעדר/פגום.
+ */
+export function readStoredPlainDb(raw?: string | null): Db | null {
+  try {
+    const s = raw !== undefined ? raw : localStorage.getItem(LS_KEY);
+    if (!s) return null;
+    const parsed = JSON.parse(s);
+    if (isEncrypted(parsed)) return null;
+    return migrate(parsed);
+  } catch {
+    return null;
+  }
+}
+
 /** טעינה: localStorage תחילה, נפילה ל-IndexedDB, ואז DB ריק. מזהה מעטפת מוצפנת. */
 export async function loadDb(): Promise<LoadResult> {
   const raw = await readRaw();
