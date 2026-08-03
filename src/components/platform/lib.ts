@@ -106,6 +106,16 @@ export function isOrgManager(email: string, org: Pick<OrgCloudDoc, 'manager'>): 
   return !!m && normEmail(email) === m;
 }
 
+/**
+ * טווח-הכפתורים שהמנהל בכלל רואה באשף-הייחודי שלו = **רק המודולים שהבעלים
+ * הדליק לארגון** (הכרעת-בעלים: "רק את הכפתורים שאני הדלקתי"; מה שלא-שודרג/לא-נקנה
+ * לא מופיע). ארגון נולד all-off ⇒ 'לא-false' = מה שהבעלים הדליק בפועל. טהור.
+ * את אלה המנהל מחלק בין העובדות (כרטיס-עובד); לעולם לא יכול לחרוג מהם.
+ */
+export function orgEnabledModules(orgConfig: { modules?: Record<string, boolean> }): ModuleKey[] {
+  return ALL_MODULES.filter((m) => orgConfig.modules?.[m] !== false);
+}
+
 /** האם המייל חבר בארגון (עובד/ת מאושרת או מנהל)? */
 export function isMember(email: string, org: OrgCloudDoc): boolean {
   const e = normEmail(email);

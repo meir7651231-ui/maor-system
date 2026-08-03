@@ -12,6 +12,7 @@ import {
   effectiveConfigFor,
   genJoinCode,
   isMember,
+  orgEnabledModules,
   isOrgManager,
   isValidSlug,
   normEmail,
@@ -122,6 +123,18 @@ describe('👥 ORGADMIN — היררכיית 3 שכבות + כרטיס-עובד 
     const r = setEmployeeOverride(org, 'Dana@maor.org', { modules: { families: false } });
     expect(r.memberConfigs['dana@maor.org'].modules?.families).toBe(false);
     expect(r.memberConfigs['rina@maor.org']).toBeDefined(); // קיים נשמר
+  });
+
+  it('orgEnabledModules: רק מה שהבעלים הדליק (לא-false) — "רק הכפתורים שאני הדלקתי"', () => {
+    // ארגון all-off שהבעלים הדליק בו רק משפחות+חוגים
+    const cfg = allOffConfig('maor', 'מאור');
+    cfg.modules.families = true;
+    cfg.modules.courses = true;
+    const scope = orgEnabledModules(cfg);
+    expect(scope).toContain('families');
+    expect(scope).toContain('courses');
+    expect(scope).not.toContain('supporters'); // לא הודלק ⇒ המנהל לא רואה
+    expect(scope).not.toContain('shop');
   });
 
   it('overrideOf: מחזיר את הכרטיס, ריק לחבר-בלי-כרטיס', () => {
