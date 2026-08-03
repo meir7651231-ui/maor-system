@@ -46,7 +46,7 @@ export function TeachersSection() {
     <Section
       id="sec-teachers"
       title={'👩‍🏫 ' + teachersT}
-      sub={'לחיצה על ✎ פותחת כרטיס מלא לעריכה · ' + teacher + ' עם חוגים משויכים לא ניתן/ת למחיקה'}
+      sub={'לחיצה על ✎ פותחת כרטיס מלא לעריכה · ' + teacher + ' עם ' + termOf(config, 'nav.courses', 'חוגים') + ' משויכים לא ניתן/ת למחיקה'}
     >
       <div style={{ marginBottom: 10 }}>
         <Btn kind="primary" sm onClick={() => setCreating(true)}>
@@ -65,7 +65,7 @@ export function TeachersSection() {
                 <th>אימייל</th>
                 <th>התמחות</th>
                 <th>תעריף לשעה</th>
-                <th>חוגים</th>
+                <th>{termOf(config, 'nav.courses', 'חוגים')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -94,7 +94,7 @@ export function TeachersSection() {
           </table>
         </div>
       )}
-      <SectionNote>{'כרטיס ה' + teacher + ' משתקף בכל החוגים, בחיפוש ובייצוא.'}</SectionNote>
+      <SectionNote>{'כרטיס ה' + teacher + ' משתקף בכל ה' + termOf(config, 'nav.courses', 'חוגים') + ', בחיפוש ובייצוא.'}</SectionNote>
 
       {(creating || editing) && (
         <TeacherForm teacher={editing} onClose={() => { setEditing(null); setCreating(false); }} />
@@ -199,10 +199,10 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
     };
     if (props.teacher) {
       upsertTeacher({ ...fields, id: props.teacher.id });
-      toast('כרטיס ה' + teacher + ' עודכן — משתקף בכל החוגים, החיפוש והייצוא');
+      toast('כרטיס ה' + teacher + ' עודכן — משתקף בכל ה' + termOf(config, 'nav.courses', 'חוגים') + ', החיפוש והייצוא');
     } else {
       upsertTeacher({ ...fields, id: nextId('t') });
-      toast('ה' + teacher + ' ' + name + ' נוסף/ה — זמין/ה לשיבוץ בכל חוג');
+      toast('ה' + teacher + ' ' + name + ' נוסף/ה — זמין/ה ל' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' בכל ' + termOf(config, 'entity.course', 'חוג'));
     }
     props.onClose();
   }
@@ -247,10 +247,10 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
       {props.teacher && (
         <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 12 }}>
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
-            {'החוגים של ה' + teacher + ' (' + myCourses.length + ') · ' + myStudents + ' ' + termOf(config, 'entity.students', 'תלמידים')}
+            {'ה' + termOf(config, 'nav.courses', 'חוגים') + ' של ה' + teacher + ' (' + myCourses.length + ') · ' + myStudents + ' ' + termOf(config, 'entity.students', 'תלמידים')}
           </div>
           {myCourses.length === 0 && (
-            <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>אין חוגים משויכים</div>
+            <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{'אין ' + termOf(config, 'nav.courses', 'חוגים') + ' משויכים'}</div>
           )}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {myCourses.map((c) => (

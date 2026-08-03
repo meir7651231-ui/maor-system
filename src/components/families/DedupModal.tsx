@@ -9,7 +9,7 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { DUP_FIELDS, findDuplicateGroups, mergeFamilies } from '../../lib/dedup';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { Btn, Empty, Modal } from '../ui';
 
 export function DedupModal({ onClose }: { onClose: () => void }) {
@@ -44,7 +44,7 @@ export function DedupModal({ onClose }: { onClose: () => void }) {
     <Modal title="🔀 איחוד כפילויות" onClose={onClose} wide>
       <p style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 12 }}>
         זוהו {groups.length} קבוצות כפילות (טלפון משותף או שם+עיר זהים). בחרו את הרשומה שתישאר (השומר) — השאר יימוזגו
-        לתוכה: כל בני-המשפחה, המסמכים והשיבוצים נשמרים, שדות ריקים יתמלאו. אין מחיקת נתונים כספיים.
+        לתוכה: כל בני-ה{termOf(config, 'entity.family', 'משפחה')}, המסמכים וה{termOf(config, 'entity.enrollments', 'שיבוצים')} נשמרים, שדות ריקים יתמלאו. אין מחיקת נתונים כספיים.
       </p>
 
       {visible.length === 0 ? (
@@ -78,7 +78,7 @@ export function DedupModal({ onClose }: { onClose: () => void }) {
                           {[f.phone, f.city].filter(Boolean).join(' · ')}
                         </span>
                         <span style={{ color: 'var(--ink-faint)', fontSize: 11 }}>
-                          {f.members.length} בני משפחה · {enrollCount(memIds)} שיבוצים
+                          {f.members.length} {termOf(config, 'entity.members', 'בני משפחה')} · {enrollCount(memIds)} {termOf(config, 'entity.enrollments', 'שיבוצים')}
                         </span>
                         {keeperId === f.id && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-deep, var(--accent))' }}>← שומר</span>}
                         {fieldsOn && (
@@ -162,8 +162,8 @@ export function DedupModal({ onClose }: { onClose: () => void }) {
 
                 {preview && (
                   <div style={{ fontSize: 12, color: 'var(--ink-soft)', background: 'var(--bg)', borderRadius: 8, padding: '6px 10px', marginBottom: 8 }}>
-                    <b>תצוגה מקדימה לאחר מיזוג:</b> {preview.name} · {previewMembers.size} בני משפחה ·{' '}
-                    {enrollCount(previewMembers)} שיבוצים{preview.phone ? ' · ' + preview.phone : ''}
+                    <b>תצוגה מקדימה לאחר מיזוג:</b> {preview.name} · {previewMembers.size} {termOf(config, 'entity.members', 'בני משפחה')} ·{' '}
+                    {enrollCount(previewMembers)} {termOf(config, 'entity.enrollments', 'שיבוצים')}{preview.phone ? ' · ' + preview.phone : ''}
                     {preview.phone2 ? ' / ' + preview.phone2 : ''}
                   </div>
                 )}

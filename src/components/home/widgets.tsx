@@ -407,7 +407,7 @@ function BdaysWidget({ ctx }: { ctx: HomeCtx }) {
               type="button"
               className="hm-bday-main"
               onClick={() => selectFamily(b.member.famId)}
-              title="לכרטיס המשפחה"
+              title={'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה')}
             >
               <span className="hm-bday-ico" aria-hidden>🎂</span>
               <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, textAlign: 'right' }}>
@@ -425,7 +425,7 @@ function BdaysWidget({ ctx }: { ctx: HomeCtx }) {
                 type="button"
                 className="hm-bday-cta"
                 onClick={() => selectCourse(ts.course.id)}
-                title={'לחוג ' + ts.course.name + ' — לברך במפגש של היום'}
+                title={'ל' + termOf(config, 'entity.course', 'חוג') + ' ' + ts.course.name + ' — לברך במפגש של היום'}
               >
                 🎉 לברך במפגש
               </button>
@@ -538,7 +538,7 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
       {supportersOn && (
         <StatCard
           icon="💛"
-          label="תרומות"
+          label={termOf(config, 'entity.donations', 'תרומות')}
           value={'₪' + s.donIls.toLocaleString('he-IL')}
           sub={(s.donUsd ? `+ $${s.donUsd.toLocaleString('he-IL')} · ` : '') + `${s.supportersTotal} תורמים`}
           chip={donMonth > 0 ? `+${fmtIls(donMonth)} החודש` : undefined}
@@ -625,7 +625,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
                     key={ts.course.id + '-' + i}
                     onClick={() => selectCourse(ts.course.id)}
                     style={{ cursor: 'pointer' }}
-                    title="לכרטיס החוג"
+                    title={'לכרטיס ה' + termOf(config, 'entity.course', 'חוג')}
                   >
                     <td>
                       <span className="hm-time">{ts.session.time || '—'}</span>
@@ -645,7 +645,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
                           e.stopPropagation();
                           selectCourse(ts.course.id);
                         }}
-                        title="פתיחת כרטיס החוג לניהול נוכחות"
+                        title={'פתיחת כרטיס ה' + termOf(config, 'entity.course', 'חוג') + ' לניהול נוכחות'}
                       >
                         נוכחות ✓
                       </button>
@@ -666,7 +666,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
           return (
             <div key={ts.course.id + '-' + i} className="hm-meet">
               <span className="hm-time">{ts.session.time || '—'}</span>
-              <button type="button" className="hm-meet-main" onClick={() => selectCourse(ts.course.id)} title="לכרטיס החוג">
+              <button type="button" className="hm-meet-main" onClick={() => selectCourse(ts.course.id)} title={'לכרטיס ה' + termOf(config, 'entity.course', 'חוג')}>
                 <span className="hm-meet-title">
                   {ts.course.name}
                   {ts.session.label ? ' · ' + ts.session.label : ''}
@@ -677,7 +677,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
                 type="button"
                 className="hm-pill-btn"
                 onClick={() => selectCourse(ts.course.id)}
-                title="פתיחת כרטיס החוג לניהול נוכחות"
+                title={'פתיחת כרטיס ה' + termOf(config, 'entity.course', 'חוג') + ' לניהול נוכחות'}
               >
                 נוכחות ✓
               </button>
@@ -693,7 +693,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
           type="button"
           className="hm-row"
           onClick={() => (ev.famId ? selectFamily(ev.famId) : go('calendar'))}
-          title={ev.famId ? 'לכרטיס המשפחה' : 'ללוח השנה'}
+          title={ev.famId ? 'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה') : 'ללוח השנה'}
         >
           <span style={chipStyle(ctx, EV_META[ev.type].bg, EV_META[ev.type].c)}>{evLabel(ev)}</span>
           <span>
@@ -721,7 +721,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
           type="button"
           className="hm-row"
           onClick={() => selectFamily(b.member.famId)}
-          title="לכרטיס המשפחה"
+          title={'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה')}
         >
           <span style={chipStyle(ctx, '#fbeef3', '#be185d')}>יום הולדת</span>
           <span>
@@ -897,7 +897,7 @@ function RecentWidget({ ctx }: { ctx: HomeCtx }) {
           <table className="table">
             <thead>
               <tr>
-                <th>משפחה</th>
+                <th>{termOf(config, 'entity.family', 'משפחה')}</th>
                 <th>טלפון</th>
                 <th>עיר</th>
                 <th>ילדים</th>
@@ -907,7 +907,7 @@ function RecentWidget({ ctx }: { ctx: HomeCtx }) {
             </thead>
             <tbody>
               {data.recent.map((f) => (
-                <tr key={f.id} onClick={() => selectFamily(f.id)} style={{ cursor: 'pointer' }} title="לכרטיס המשפחה">
+                <tr key={f.id} onClick={() => selectFamily(f.id)} style={{ cursor: 'pointer' }} title={'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה')}>
                   <td style={{ fontWeight: 600 }}>{termOf(config, 'entity.familyOf', 'משפחת')} {f.name}</td>
                   <td dir="ltr" style={{ textAlign: 'right' }}>{f.phone || '—'}</td>
                   <td>{f.city || '—'}</td>
@@ -934,7 +934,7 @@ function RecentWidget({ ctx }: { ctx: HomeCtx }) {
  */
 function GoldbookWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, todayIso, go } = ctx;
-  const podium = buildPodium(db, todayIso.slice(0, 7), todayIso.slice(0, 4));
+  const podium = buildPodium(db, todayIso.slice(0, 7), todayIso.slice(0, 4), config);
   const max = podium.rows[0]?.amount ?? 0;
   const medals = ['🥇', '🥈', '🥉'];
   return (
@@ -975,7 +975,7 @@ function GoldbookWidget({ ctx }: { ctx: HomeCtx }) {
 function HebcalWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, now, go } = ctx;
   const coursesOn = moduleOn(config, 'courses');
-  const rows = buildWeek(db, now)
+  const rows = buildWeek(db, now, config)
     .filter((r) => coursesOn || !r.key.endsWith('-crs'))
     .slice(0, 4);
   return (
@@ -1056,7 +1056,7 @@ function CourseMetricsWidget({ ctx }: { ctx: HomeCtx }) {
           <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
             {m.students} {termOf(config, 'entity.enrollments', 'שיבוצים')} · ₪{Math.round(m.income).toLocaleString('he-IL')} לחודש (מנויים חודשיים בלבד)
           </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 64, marginBottom: 8 }} role="img" aria-label="תפוסה לפי חוג">
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 64, marginBottom: 8 }} role="img" aria-label={'תפוסה לפי ' + termOf(config, 'entity.course', 'חוג')}>
             {m.rows.map((r) => (
               <button
                 key={r.course.id}
@@ -1161,7 +1161,7 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
           {boost.map((x) => (
             <button key={x.family.id} className="hm-row" onClick={() => openFam(x.family.id)} style={{ width: '100%', textAlign: 'start' }}>
               <span aria-hidden style={{ width: 8, height: 8, borderRadius: 99, background: tierOf(x.score).dot, flexShrink: 0 }} />
-              <span style={{ flex: 1, fontWeight: 600 }}>{'משפחת ' + x.family.name}</span>
+              <span style={{ flex: 1, fontWeight: 600 }}>{termOf(config, 'entity.familyOf', 'משפחת') + ' ' + x.family.name}</span>
               <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{x.score}</span>
             </button>
           ))}
@@ -1210,7 +1210,7 @@ function ContactsWidget({ ctx }: { ctx: HomeCtx }) {
 
 /** 🎫 מלאי כרטיסיות — כרטיסיות פעילות עם ≤2 ניקובים שנותרו (בן משפחה, חוג, יתרה). */
 function PunchlowWidget({ ctx }: { ctx: HomeCtx }) {
-  const { db, navTo } = ctx;
+  const { db, navTo, config } = ctx;
   const items = punchLow(db);
   return (
     <Panel icon="🎫" title="מלאי כרטיסיות" badge={items.length ? String(items.length) : undefined}>
@@ -1218,7 +1218,7 @@ function PunchlowWidget({ ctx }: { ctx: HomeCtx }) {
         <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>כל הכרטיסיות במלאי תקין ✓</div>
       )}
       {items.slice(0, 6).map((p) => (
-        <button key={p.key} type="button" className="hm-row" onClick={() => navTo(p.nav)} title="לכרטיס המשפחה">
+        <button key={p.key} type="button" className="hm-row" onClick={() => navTo(p.nav)} title={'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה')}>
           <span style={chipStyle(ctx, '#efe7f3', '#7c3aed')}>{p.left}/{p.total}</span>
           <span style={{ minWidth: 0 }}>
             {p.member} ({p.famName}) · {p.course}
@@ -1287,14 +1287,14 @@ function QuickWidget({ ctx }: { ctx: HomeCtx }) {
           </Btn>
         )}
         {familiesOn && (
-          <Btn kind="primary" onClick={() => go('families')} title="למסך המשפחות — הוספה">
+          <Btn kind="primary" onClick={() => go('families')} title={'למסך ה' + termOf(config, 'nav.families', 'משפחות') + ' — הוספה'}>
             👨‍👩‍👧‍👦 {termOf(config, 'entity.family', 'משפחה')}
           </Btn>
         )}
         {punchOn && (
           <Btn
             onClick={() => (data.sessions.length ? selectCourse(data.sessions[0].course.id) : go('courses'))}
-            title={data.sessions.length ? 'ניקוב מהיר — ' + data.sessions[0].course.name : 'למסך החוגים'}
+            title={data.sessions.length ? 'ניקוב מהיר — ' + data.sessions[0].course.name : 'למסך ה' + termOf(config, 'nav.courses', 'חוגים')}
           >
             ✓ ניקוב
           </Btn>
@@ -1359,8 +1359,8 @@ export interface HomeWidget {
  * המנוע טהור (shop8/lib); הווידג'ט רק מציג ומחווט. אפס נגיעה בכסף.
  */
 function SuggestWidget({ ctx }: { ctx: HomeCtx }) {
-  const { db, todayIso, go, selectFamily, markAttnDone } = ctx;
-  const items = liveSuggestions(db, todayIso);
+  const { db, todayIso, go, selectFamily, markAttnDone, config } = ctx;
+  const items = liveSuggestions(db, todayIso, config);
   return (
     <Panel icon="💡" title="הצעות מקדימות" badge={items.length ? String(items.length) : undefined}>
       {items.length === 0 && (

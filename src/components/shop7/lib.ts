@@ -4,6 +4,8 @@
  * shopAssignments הפעילים (המסירה מצביעה, לא משכפלת); אפס כסף/S-.
  */
 import type { Db, Delivery, DeliveryStatus, ShopAssignment, Volunteer } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import { smartFilter } from '../../lib/search';
 
 /** סדר המכונה הלינארית — קדימה בלבד. */
@@ -95,11 +97,12 @@ export function deliveryListLines(
  * שקיפות מלאה (כמו בשאר המודולים): מסירות שטרם נמסרו מסומנות בסטטוסן, לא מוסתרות.
  * תצוגה בלבד — אפס כסף/S- (שמירה על בידוד המודול).
  */
-export function deliveriesCsvRows(db: Db): (string | number)[][] {
+export function deliveriesCsvRows(db: Db, config?: OrgConfig): (string | number)[][] {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   const dayDate = (id: string) => db.distributionDays.find((d) => d.id === id)?.date ?? '';
   const famName = (id: string) => db.families.find((f) => f.id === id)?.name ?? '';
   const volName = (id: string) => db.volunteers.find((v) => v.id === id)?.name ?? '';
-  const rows: (string | number)[][] = [['תאריך', 'משפחה', 'מתנדב', 'סטטוס', 'הערה']];
+  const rows: (string | number)[][] = [['תאריך', T('entity.family', 'משפחה'), 'מתנדב', 'סטטוס', 'הערה']];
   for (const d of db.deliveries) {
     rows.push([dayDate(d.dayId), famName(d.familyId), volName(d.volunteerId), statusLabel(d.status), d.note ?? '']);
   }

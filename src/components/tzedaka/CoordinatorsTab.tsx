@@ -63,7 +63,7 @@ export function CoordinatorsTab(props: { selId: string | null; onSelect: (id: st
           </>
         ) : (
           <>
-            <TextInput value={boxQ} onChange={setBoxQ} placeholder="🔍 מספר / רכז / משפחה" />
+            <TextInput value={boxQ} onChange={setBoxQ} placeholder={'🔍 מספר / רכז / ' + termOf(config, 'entity.family', 'משפחה')} />
             <Select
               value={boxStatus}
               onChange={(v) => setBoxStatus(v as TzBoxStatus | '')}
@@ -106,7 +106,7 @@ export function CoordinatorsTab(props: { selId: string | null; onSelect: (id: st
               <span style={{ fontSize: 13 }}>{r.coordName}</span>
               {r.famName &&
                 (familiesOn ? (
-                  <Btn sm onClick={() => { selectFamily(r.box.famId); go('families'); }} title="לכרטיס המשפחה">
+                  <Btn sm onClick={() => { selectFamily(r.box.famId); go('families'); }} title={'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה')}>
                     {termOf(config, 'entity.familyOf', 'משפחת') + ' ' + r.famName + ' ←'}
                   </Btn>
                 ) : (

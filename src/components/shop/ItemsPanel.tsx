@@ -164,7 +164,7 @@ export function ItemsPanel() {
                     const wf = db.families.find((f) => f.id === w.famId);
                     return (
                       <span key={w.famId} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, border: '1px solid var(--line)', borderRadius: 99, padding: '1px 4px 1px 8px' }}>
-                        {(wf ? 'משפחת ' + wf.name : w.famId) + ' · ' + w.date}
+                        {(wf ? termOf(config, 'entity.familyOf', 'משפחת') + ' ' + wf.name : w.famId) + ' · ' + w.date}
                         <button
                           type="button"
                           title="הסרה מרשימת ההמתנה"

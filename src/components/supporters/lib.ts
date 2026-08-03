@@ -4,6 +4,8 @@
  */
 import type { CSSProperties } from 'react';
 import type { Supporter } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import { normSearch, formatIsraeliPhone } from '../../lib/validate';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
 
@@ -131,7 +133,8 @@ export interface SupDonEvent {
  * כשאין hist — שורות first/last (סכום 0) כ"תרומה ראשונה/אחרונה (מהקובץ)",
  * רק אם תאריכן לא מופיע כבר. ממוין מהחדש לישן.
  */
-export function supDonEvents(sp: Supporter): SupDonEvent[] {
+export function supDonEvents(sp: Supporter, config?: OrgConfig): SupDonEvent[] {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   const out: SupDonEvent[] = (sp.donations || []).map((d) => ({
     date: d.date,
     amount: d.amount,
@@ -142,8 +145,8 @@ export function supDonEvents(sp: Supporter): SupDonEvent[] {
   for (const h of sp.hist || []) out.push({ date: h.d, amount: h.a, cur: h.c || '₪', src: 'מהקובץ ההיסטורי' });
   if (!(sp.hist || []).length) {
     const seen = new Set(out.map((x) => x.date));
-    if (sp.first && !seen.has(sp.first)) out.push({ date: sp.first, amount: 0, cur: '', src: 'תרומה ראשונה (מהקובץ)' });
-    if (sp.last && sp.last !== sp.first && !seen.has(sp.last)) out.push({ date: sp.last, amount: 0, cur: '', src: 'תרומה אחרונה (מהקובץ)' });
+    if (sp.first && !seen.has(sp.first)) out.push({ date: sp.first, amount: 0, cur: '', src: T('entity.donation', 'תרומה') + ' ראשונה (מהקובץ)' });
+    if (sp.last && sp.last !== sp.first && !seen.has(sp.last)) out.push({ date: sp.last, amount: 0, cur: '', src: T('entity.donation', 'תרומה') + ' אחרונה (מהקובץ)' });
   }
   return out.sort((a, b) => String(b.date).localeCompare(String(a.date)));
 }
@@ -190,7 +193,8 @@ export function orgCalEntries(supporters: Supporter[]): SupCalEntry[] {
 }
 
 /** שורת סיכום החודש — 'N תרומות החודש · ₪X + $Y' (legacy supCalData monthLine). */
-export function donCalMonthLine(entries: SupCalEntry[], inMonth: (iso: string) => boolean): string {
+export function donCalMonthLine(entries: SupCalEntry[], inMonth: (iso: string) => boolean, config?: OrgConfig): string {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   let mc = 0;
   let mi = 0;
   let mu = 0;
@@ -200,10 +204,10 @@ export function donCalMonthLine(entries: SupCalEntry[], inMonth: (iso: string) =
     if (e.cur === '$') mu += e.amount || 0;
     else mi += e.amount || 0;
   }
-  if (!mc) return 'אין תרומות מתועדות בחודש זה';
+  if (!mc) return 'אין ' + T('entity.donations', 'תרומות') + ' מתועדות בחודש זה';
   const sums =
     (mi ? '₪' + mi.toLocaleString('he-IL') : '') + (mi && mu ? ' + ' : '') + (mu ? '$' + mu.toLocaleString('he-IL') : '');
-  return mc + ' תרומות החודש · ' + (sums || 'סכומים מהקובץ ההיסטורי');
+  return mc + ' ' + T('entity.donations', 'תרומות') + ' החודש · ' + (sums || 'סכומים מהקובץ ההיסטורי');
 }
 
 /* ── ייבוא תומכות מ-CSV — עדכון-או-הוספה לפי שם מנורמל (טהור, נבדק ביחידה) ── */

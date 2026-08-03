@@ -3,8 +3,10 @@
  * מי פעיל בכל מפגש כולל חיסורים. שורה ראשונה = כותרות. days = מספר ימי הפעילות.
  */
 import type { Course, Db } from '../types/domain';
+import type { OrgConfig } from '../types/config';
 import type { Cell } from './csvx';
 import { hebDateFull } from './hebrew';
+import { termOf } from './config';
 
 const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
@@ -18,9 +20,10 @@ function fmtD(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
-export function buildCourseDailyRows(c: Course, db: Db): { rows: Cell[][]; days: number } {
+export function buildCourseDailyRows(c: Course, db: Db, config?: OrgConfig): { rows: Cell[][]; days: number } {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   const rows: Cell[][] = [
-    ['תאריך עברי', 'תאריך לועזי', 'יום', 'קבוצה/שעה', 'סטטוס יום', 'תלמידה פעילה', 'משפחה', 'סטטוס נוכחות'],
+    ['תאריך עברי', 'תאריך לועזי', 'יום', 'קבוצה/שעה', 'סטטוס יום', 'תלמידה פעילה', T('entity.family', 'משפחה'), 'סטטוס נוכחות'],
   ];
   if (!c.start || !c.end) return { rows, days: 0 };
 
@@ -81,7 +84,7 @@ export function buildCourseDailyRows(c: Course, db: Db): { rows: Cell[][]; days:
     }
   }
   if (truncated) {
-    rows.push(['—', '—', '—', '—', `הדוח נקטע ב-${MAX_DAYS} ימי מפגש — בדקו את תאריך הסיום של החוג`, '', '', '']);
+    rows.push(['—', '—', '—', '—', `הדוח נקטע ב-${MAX_DAYS} ימי מפגש — בדקו את תאריך הסיום של ה${T('entity.course', 'חוג')}`, '', '', '']);
   }
   return { rows, days };
 }

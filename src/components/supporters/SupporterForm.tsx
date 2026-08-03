@@ -110,7 +110,7 @@ export function SupporterForm(props: SupporterFormProps) {
       <FormError error={error} />
       <div className="form-grid">
         <Field label="שם מלא *">
-          <TextInput value={f.name} onChange={set('name')} placeholder="שם התומכ/ת או המשפחה" />
+          <TextInput value={f.name} onChange={set('name')} placeholder={'שם התומכ/ת או ה' + termOf(config, 'entity.family', 'משפחה')} />
         </Field>
         <Field label="טלפון">
           <TextInput value={f.phone} onChange={set('phone')} dir="ltr" placeholder="050-0000000" />

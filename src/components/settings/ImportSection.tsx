@@ -47,7 +47,7 @@ export function ImportSection() {
     try {
       const parsed = parseBackupFile(await file.text());
       if (!parsed.families.length) {
-        setError('בקובץ הגיבוי אין משפחות לייבוא');
+        setError('בקובץ הגיבוי אין ' + termOf(config, 'nav.families', 'משפחות') + ' לייבוא');
         return;
       }
       const cur = useApp.getState().db;
@@ -59,7 +59,7 @@ export function ImportSection() {
         (f) => !normalizePhone(f.phone) || !existing.has(famKey(f.name, f.phone)),
       );
       if (!toAdd.length) {
-        setSummary(`בקובץ ${parsed.families.length} משפחות — כולן כבר קיימות במערכת, לא נוסף דבר.`);
+        setSummary(`בקובץ ${parsed.families.length} ${termOf(config, 'nav.families', 'משפחות')} — כולן כבר קיימות במערכת, לא נוסף דבר.`);
         return;
       }
       // עדכון אטומי אחד: מזהים חדשים לכל משפחה ולכל בן משפחה (מונע התנגשות מזהים)
@@ -82,10 +82,10 @@ export function ImportSection() {
       });
       const skipped = parsed.families.length - added;
       setSummary(
-        `נוספו ${added} משפחות ו-${members} בני משפחה מהגיבוי` +
+        `נוספו ${added} ${termOf(config, 'nav.families', 'משפחות')} ו-${members} ${termOf(config, 'entity.members', 'בני משפחה')} מהגיבוי` +
           (skipped ? ` · ${skipped} דולגו (כבר קיימות)` : ''),
       );
-      toast('נוספו ' + added + ' משפחות');
+      toast('נוספו ' + added + ' ' + termOf(config, 'nav.families', 'משפחות'));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'שגיאה בקריאת הקובץ');
     }
@@ -118,7 +118,7 @@ export function ImportSection() {
       });
     });
     if (!rows.length) {
-      setError('לא נמצאו שורות תקינות — הפורמט: שם משפחה, שם האב, שם האם, טלפון, עיר (שורה לכל משפחה)');
+      setError('לא נמצאו שורות תקינות — הפורמט: שם משפחה, שם האב, שם האם, טלפון, עיר (שורה לכל ' + termOf(config, 'entity.family', 'משפחה') + ')');
       return;
     }
     const existing = new Set(useApp.getState().db.families.map((f) => famKey(f.name, f.phone)));
@@ -147,7 +147,7 @@ export function ImportSection() {
       added++;
     }
     setSummary(
-      `נוספו ${added} משפחות` +
+      `נוספו ${added} ${termOf(config, 'nav.families', 'משפחות')}` +
         (skippedExisting ? ` · ${skippedExisting} דולגו (כבר קיימות)` : '') +
         (skippedNoName ? ` · ${skippedNoName} שורות ללא שם דולגו` : ''),
     );
@@ -159,7 +159,7 @@ export function ImportSection() {
     <Section
       id="sec-import"
       title="⬆ ייבוא נתונים"
-      sub="קליטת משפחות ובני משפחה מהמערכת הישנה — קובץ גיבוי JSON, הדבקת CSV או ייבוא ילדים חכם מ-CSV"
+      sub={'קליטת ' + termOf(config, 'nav.families', 'משפחות') + ' ו' + termOf(config, 'entity.members', 'בני משפחה') + ' מהמערכת הישנה — קובץ גיבוי JSON, הדבקת CSV או ייבוא ילדים חכם מ-CSV'}
     >
       <FormError error={error} />
       {summary && (
@@ -179,9 +179,7 @@ export function ImportSection() {
 
       <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>מקובץ גיבוי (JSON)</h3>
       <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-        בחרו קובץ גיבוי של המערכת הישנה — משפחות ובני המשפחה שלהן יתווספו למערכת. משפחות שכבר
-        קיימות (לפי שם וטלפון) לא ייובאו שוב. הנתונים הקיימים אינם נדרסים — לשחזור מלא השתמשו
-        בסקשן "גיבוי ושחזור".
+        {'בחרו קובץ גיבוי של המערכת הישנה — ' + termOf(config, 'nav.families', 'משפחות') + ' ובני ה' + termOf(config, 'entity.family', 'משפחה') + ' שלהן יתווספו למערכת. ' + termOf(config, 'nav.families', 'משפחות') + ' שכבר קיימות (לפי שם וטלפון) לא ייובאו שוב. הנתונים הקיימים אינם נדרסים — לשחזור מלא השתמשו בסקשן "גיבוי ושחזור".'}
       </p>
       <label className="btn" style={{ cursor: 'pointer', marginBottom: 18, display: 'inline-flex' }}>
         בחירת קובץ JSON…
@@ -200,7 +198,7 @@ export function ImportSection() {
           <h3 style={{ fontSize: 15, fontWeight: 700, margin: '10px 0 6px' }}>מהדבקת CSV</h3>
           <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
             קובץ אקסל? שמרו קודם בתור CSV (קובץ ← שמירה בשם ← CSV), פתחו בפנקס רשימות והדביקו כאן.
-            שורה לכל משפחה, בסדר הזה: <b>שם משפחה, שם האב, שם האם, טלפון, עיר</b>.
+            שורה לכל {termOf(config, 'entity.family', 'משפחה')}, בסדר הזה: <b>שם משפחה, שם האב, שם האם, טלפון, עיר</b>.
           </p>
           <Field label="שורות CSV">
             <textarea
@@ -213,7 +211,7 @@ export function ImportSection() {
             />
           </Field>
           <Btn kind="primary" onClick={importCsv} disabled={!csv.trim()}>
-            ייבוא המשפחות מהרשימה
+            {'ייבוא ה' + termOf(config, 'nav.families', 'משפחות') + ' מהרשימה'}
           </Btn>
         </>
       )}
@@ -225,7 +223,7 @@ export function ImportSection() {
 
       <AyinSheetImport />
 
-      <SectionNote>אחרי הייבוא אפשר להשלים לכל משפחה את שאר הפרטים ובני המשפחה במסך המשפחות.</SectionNote>
+      <SectionNote>{'אחרי הייבוא אפשר להשלים לכל ' + termOf(config, 'entity.family', 'משפחה') + ' את שאר הפרטים ובני ה' + termOf(config, 'entity.family', 'משפחה') + ' במסך ה' + termOf(config, 'nav.families', 'משפחות') + '.'}</SectionNote>
     </Section>
   );
 }
@@ -237,6 +235,7 @@ export function ImportSection() {
 function Families13Import() {
   const setDb = useApp((s) => s.setDb);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
 
   const [csv, setCsv] = useState('');
   const [error, setError] = useState('');
@@ -255,7 +254,7 @@ function Families13Import() {
     }
     const p = parseFamiliesCsv(rows, useApp.getState().db.families);
     if (!p.news.length && !p.upds.length) {
-      setError('לא נמצאו שורות משפחה תקינות — ודאו שהשם בעמודה הראשונה');
+      setError('לא נמצאו שורות ' + termOf(config, 'entity.family', 'משפחה') + ' תקינות — ודאו שהשם בעמודה הראשונה');
       return;
     }
     setPlan(p);
@@ -298,18 +297,18 @@ function Families13Import() {
     });
     setPlan(null);
     setCsv('');
-    setSummary('+' + news.length + ' משפחות חדשות · ' + upds.length + ' עודכנו');
-    toast('+' + news.length + ' משפחות חדשות · ' + upds.length + ' עודכנו');
+    setSummary('+' + news.length + ' ' + termOf(config, 'nav.families', 'משפחות') + ' חדשות · ' + upds.length + ' עודכנו');
+    toast('+' + news.length + ' ' + termOf(config, 'nav.families', 'משפחות') + ' חדשות · ' + upds.length + ' עודכנו');
   }
 
   return (
     <div style={{ marginTop: 10 }}>
-      <h3 style={{ fontSize: 15, fontWeight: 700, margin: '10px 0 6px' }}>משפחות מהקובץ החי (13 עמודות)</h3>
+      <h3 style={{ fontSize: 15, fontWeight: 700, margin: '10px 0 6px' }}>{termOf(config, 'nav.families', 'משפחות') + ' מהקובץ החי (13 עמודות)'}</h3>
       <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
         הקובץ המלא מהמערכת הישנה — סדר עמודות קבוע: <b>שם · ת"ז אב · טלפון · שם האם · ת"ז אם ·
         טלפון2 · עיר · כתובת ×2 · רמז אלמן · קהילה · (—) · הערות</b>. הניקויים נעשים אוטומטית:
         "יריד חנוכה" עובר להערות, ‎#NAME?‎ מוסר, "ביתר/ביתר עלית" ← "ביתר עילית", סטטוס ומצב
-        משפחתי מזוהים מההערות ומרמז האלמן, קהילה ריקה ← "חסידי". משפחה קיימת (שם + טלפון תואם)
+        משפחתי מזוהים מההערות ומרמז האלמן, קהילה ריקה ← "חסידי". {termOf(config, 'entity.family', 'משפחה')} קיימת (שם + טלפון תואם)
         מתעדכנת במקום להיווצר שוב.
       </p>
       <FormError error={error} />
@@ -358,14 +357,14 @@ function Families13Import() {
       {plan && (
         <div style={{ marginTop: 12, border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px' }}>
           <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>
-            {'זוהו ' + (plan.news.length + plan.upds.length) + ' משפחות בקובץ'}
+            {'זוהו ' + (plan.news.length + plan.upds.length) + ' ' + termOf(config, 'nav.families', 'משפחות') + ' בקובץ'}
           </div>
           <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
             {'+' + plan.news.length + ' חדשות · ' + plan.upds.length + ' עדכונים לקיימות'}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <Btn kind="primary" onClick={apply}>
-              {'ייבוא ' + (plan.news.length + plan.upds.length) + ' משפחות'}
+              {'ייבוא ' + (plan.news.length + plan.upds.length) + ' ' + termOf(config, 'nav.families', 'משפחות')}
             </Btn>
             <Btn onClick={() => setPlan(null)}>ביטול</Btn>
           </div>
@@ -511,6 +510,7 @@ const readTextFile = readCsvFileText;
 function KidsImport() {
   const setDb = useApp((s) => s.setDb);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
 
   const [csv, setCsv] = useState('');
   const [error, setError] = useState('');
@@ -711,8 +711,8 @@ function KidsImport() {
     setPreview(null);
     setCsv('');
     setSummary(
-      'יובאו ' + total + ' ילדים — ' + matched.length + ' למשפחות קיימות' +
-        (newFams ? ' · נוצרו ' + newFams + ' משפחות חדשות' : '') +
+      'יובאו ' + total + ' ילדים — ' + matched.length + ' ל' + termOf(config, 'nav.families', 'משפחות') + ' קיימות' +
+        (newFams ? ' · נוצרו ' + newFams + ' ' + termOf(config, 'nav.families', 'משפחות') + ' חדשות' : '') +
         (preview.ambiguous.length ? ' · ' + preview.ambiguous.length + ' דו-משמעיים דולגו' : ''),
     );
     toast('יובאו ' + total + ' ילדים');
@@ -747,8 +747,8 @@ function KidsImport() {
       <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
         קובץ CSV עם שורת כותרות — סדר העמודות גמיש, העמודות מזוהות לפי הכותרת:{' '}
         <b>שם / שם פרטי · משפחה / שם משפחה · ת"ז הורה · טלפון · עיר · תאריך לידה · בית ספר · כיתה</b>{' '}
-        (וגם: שם האם, מין/מגדר, ת"ז הילד). לכל שורה מאותרת המשפחה לפי ת"ז הורה ← טלפון ← שם
-        משפחה+שם האם ← שם משפחה+עיר; ילדים ללא משפחה קיימת יקבלו משפחה חדשה.
+        (וגם: שם האם, מין/מגדר, ת"ז הילד). לכל שורה מאותרת ה{termOf(config, 'entity.family', 'משפחה')} לפי ת"ז הורה ← טלפון ← שם
+        משפחה+שם האם ← שם משפחה+עיר; ילדים ללא {termOf(config, 'entity.family', 'משפחה')} קיימת יקבלו {termOf(config, 'entity.family', 'משפחה')} חדשה.
       </p>
       <FormError error={error} />
       {summary && (
@@ -798,7 +798,7 @@ function KidsImport() {
         <div style={{ marginTop: 12, border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px' }}>
           <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>
             {'זוהו ' + (preview.matched.length + preview.unmatched.length + preview.ambiguous.length) + ' שורות ילדים: '}
-            {'✓ ' + preview.matched.length + ' נמצאה משפחה · ' +
+            {'✓ ' + preview.matched.length + ' נמצאה ' + termOf(config, 'entity.family', 'משפחה') + ' · ' +
               preview.unmatched.length + ' לא נמצאה — תיווצר חדשה · ' +
               preview.ambiguous.length + ' דו-משמעי — דלג'}
           </div>
@@ -812,7 +812,7 @@ function KidsImport() {
               <thead>
                 <tr>
                   <th>ילד/ה</th>
-                  <th>משפחה בקובץ</th>
+                  <th>{termOf(config, 'entity.family', 'משפחה') + ' בקובץ'}</th>
                   <th>תוצאה</th>
                 </tr>
               </thead>
@@ -821,21 +821,21 @@ function KidsImport() {
                   <tr key={'m' + i}>
                     <td style={{ fontWeight: 600 }}>{x.first}</td>
                     <td>{x.surname || '—'}</td>
-                    <td>{resultChip('#e4f5ea', '#12803c', '✓ משפחת ' + x.famName + ' (' + x.how + ')')}</td>
+                    <td>{resultChip('#e4f5ea', '#12803c', '✓ ' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + x.famName + ' (' + x.how + ')')}</td>
                   </tr>
                 ))}
                 {preview.unmatched.map((x, i) => (
                   <tr key={'u' + i}>
                     <td style={{ fontWeight: 600 }}>{x.first}</td>
                     <td>{x.surname || '—'}</td>
-                    <td>{resultChip('#fdf1d4', '#9a6414', 'לא נמצאה — תיווצר משפחה חדשה')}</td>
+                    <td>{resultChip('#fdf1d4', '#9a6414', 'לא נמצאה — תיווצר ' + termOf(config, 'entity.family', 'משפחה') + ' חדשה')}</td>
                   </tr>
                 ))}
                 {preview.ambiguous.map((x, i) => (
                   <tr key={'a' + i}>
                     <td style={{ fontWeight: 600 }}>{x.first}</td>
                     <td>{x.surname || '—'}</td>
-                    <td>{resultChip('#fdeaea', '#b91c1c', 'דו-משמעי (' + x.count + ' משפחות) — דלג')}</td>
+                    <td>{resultChip('#fdeaea', '#b91c1c', 'דו-משמעי (' + x.count + ' ' + termOf(config, 'nav.families', 'משפחות') + ') — דלג')}</td>
                   </tr>
                 ))}
               </tbody>

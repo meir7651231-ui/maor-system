@@ -164,8 +164,8 @@ export function CommandPalette() {
       actions.push({
         key: 'act-new-family',
         icon: '➕',
-        title: 'משפחה חדשה',
-        sub: 'מעבר למסך המשפחות לרישום',
+        title: termOf(config, 'entity.family', 'משפחה') + ' חדשה',
+        sub: 'מעבר למסך ה' + termOf(config, 'nav.families', 'משפחות') + ' לרישום',
         terms: toTerms(['משפחה חדשה', 'הוספה', 'רישום', 'קליטה']),
         run: () => {
           selectFamily(null);
@@ -189,8 +189,8 @@ export function CommandPalette() {
       actions.push({
         key: 'act-wheel',
         icon: '🎡',
-        title: 'גלגל החוגים',
-        sub: 'סיבוב מזל שבוחר חוג',
+        title: 'גלגל ה' + termOf(config, 'nav.courses', 'חוגים'),
+        sub: 'סיבוב מזל שבוחר ' + termOf(config, 'entity.course', 'חוג'),
         terms: toTerms(['גלגל החוגים', 'גלגל', 'מזל', 'הגרלה', 'מצא חוג', 'wheel']),
         run: () => {
           try {
@@ -270,7 +270,7 @@ export function CommandPalette() {
         key: 'act-dedup',
         icon: '🔀',
         title: 'איחוד כפילויות',
-        sub: 'זיהוי ומיזוג משפחות כפולות',
+        sub: 'זיהוי ומיזוג ' + termOf(config, 'nav.families', 'משפחות') + ' כפולות',
         terms: toTerms(['איחוד כפילויות', 'כפילות', 'מיזוג', 'כפולות', 'dedup', 'merge']),
         run: () => {
           window.location.hash = '#dedup';
@@ -312,7 +312,7 @@ export function CommandPalette() {
         key: 'act-dlcsv',
         icon: '⬇',
         title: 'ייצוא CSV',
-        sub: 'קובץ המשפחות המלא — ישר מהחיפוש',
+        sub: 'קובץ ה' + termOf(config, 'nav.families', 'משפחות') + ' המלא — ישר מהחיפוש',
         terms: toTerms(['ייצוא CSV', 'ייצוא', 'הורדה', 'אקסל', 'csv', 'excel']),
         run: () => {
           exportFamiliesCsv();
@@ -478,7 +478,7 @@ export function CommandPalette() {
         key: 'punch-' + e.id,
         icon: '🎟️',
         title: `${m.first} · ${c.name} · נותרו ${left}`,
-        sub: left === 0 ? 'הכרטיסייה נגמרה' : 'Enter — מעבר לחוג',
+        sub: left === 0 ? 'הכרטיסייה נגמרה' : 'Enter — מעבר ל' + termOf(config, 'entity.course', 'חוג'),
         terms: [],
         run: () => {
           selectCourse(c.id);
@@ -498,7 +498,7 @@ export function CommandPalette() {
       if (out.length >= 5) break;
     }
     return out;
-  }, [db, punch, toast, selectCourse, setPalette, punchOn]);
+  }, [db, punch, toast, selectCourse, setPalette, punchOn, config]);
 
   /** ישויות מהנתונים — משפחות, בני משפחה, חוגים, מורים, תורמים, מסמכים ואירועים פתוחים. */
   const entityCmds = useMemo<Cmd[]>(() => {
@@ -508,7 +508,7 @@ export function CommandPalette() {
       out.push({
         key: 'fam-' + f.id,
         icon: '👨‍👩‍👧‍👦',
-        title: 'משפחת ' + f.name,
+        title: termOf(config, 'entity.familyOf', 'משפחת') + ' ' + f.name,
         sub: [f.city, f.phone].filter(Boolean).join(' · '),
         terms: toTerms([
           f.name,
@@ -531,7 +531,7 @@ export function CommandPalette() {
         key: 'mem-' + m.famId + '-' + m.id,
         icon: m.isParent ? '🧑' : m.gender === 'f' ? '👧' : '👦',
         title: (m.first + ' ' + m.famName).trim(),
-        sub: ['משפחת ' + m.famName, m.phone].filter(Boolean).join(' · '),
+        sub: [termOf(config, 'entity.familyOf', 'משפחת') + ' ' + m.famName, m.phone].filter(Boolean).join(' · '),
         terms: toTerms([m.first, m.famName, m.school, m.grade, digits(m.phone), m.idNum]),
         run: () => {
           selectFamily(m.famId);
@@ -595,7 +595,7 @@ export function CommandPalette() {
           key: 'doc-' + f.id + '-' + doc.id,
           icon: '📄',
           title: doc.name,
-          sub: ['משפחת ' + f.name, fmtDate(doc.addedAt)].filter(Boolean).join(' · '),
+          sub: [termOf(config, 'entity.familyOf', 'משפחת') + ' ' + f.name, fmtDate(doc.addedAt)].filter(Boolean).join(' · '),
           terms: toTerms([doc.name, f.name, 'משפחת ' + f.name, 'מסמך', 'קובץ']),
           run: () => {
             selectFamily(f.id);
@@ -756,8 +756,8 @@ export function CommandPalette() {
         pre.push({
           key: 'enr-' + e.id,
           icon: '🎫',
-          title: 'שיבוץ ' + e.id + (m ? ' — ' + m.first : ''),
-          sub: c.name + ' · מעבר לכרטיס החוג',
+          title: termOf(config, 'entity.enrollment', 'שיבוץ') + ' ' + e.id + (m ? ' — ' + m.first : ''),
+          sub: c.name + ' · מעבר לכרטיס ה' + termOf(config, 'entity.course', 'חוג'),
           terms: [],
           run: () => {
             selectCourse(c.id);
@@ -771,8 +771,8 @@ export function CommandPalette() {
       MAX_RESULTS,
     );
     // קיבוץ תוצאות לפי סוג (P1.6, כמו בלגאסי) — מיון יציב לדליים + כותרות
-    return paletteActionsOn ? groupPaletteResults(found) : found;
-  }, [q, baseCmds, entityCmds, expiringCmds, recentCmds, db, selectCourse, setPalette, coursesOn, paletteActionsOn]);
+    return paletteActionsOn ? groupPaletteResults(found, config) : found;
+  }, [q, baseCmds, entityCmds, expiringCmds, recentCmds, db, selectCourse, setPalette, coursesOn, paletteActionsOn, config]);
 
   /** "אולי התכוונת" — שאילתה ≥3 תווים בלי תוצאות: עד 6 מילים קרובות
    * (levenshtein ≤ 2) מתוך כותרות כל הפריטים המאונדקסים — כמו בלגאסי (P3
@@ -847,7 +847,7 @@ export function CommandPalette() {
           autoFocus
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="חיפוש: מסך, משפחה, שם, חוג, מורה, תורם, מסמך או פעולה…"
+          placeholder={'חיפוש: מסך, ' + termOf(config, 'entity.family', 'משפחה') + ', שם, ' + termOf(config, 'entity.course', 'חוג') + ', ' + termOf(config, 'entity.teacher', 'מורה') + ', ' + termOf(config, 'entity.supporter', 'תורם') + ', מסמך או פעולה…'}
           aria-label="חיפוש מהיר בכל המערכת"
         />
         <div className="results" ref={listRef} role="listbox" aria-label="תוצאות חיפוש">

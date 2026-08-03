@@ -111,7 +111,7 @@ export function CatalogTab() {
                 <div style={{ display: 'flex', gap: 6, marginTop: 'auto', flexWrap: 'wrap' }}>
                   {/* חלוקה המונית (SHOP6 חנות 26) — תדפיס + סימון-חולק-לכולם */}
                   {activeCount > 0 && exportOn && (
-                    <Btn sm onClick={() => downloadText('distribution-' + p.name + '.txt', distributionListLines(db, p.id))} title="רשימת חלוקה מודפסת — משפחה, כתובת, טלפון, רכיבים, ☐ נמסר">
+                    <Btn sm onClick={() => downloadText('distribution-' + p.name + '.txt', distributionListLines(db, p.id))} title={'רשימת חלוקה מודפסת — ' + termOf(config, 'entity.family', 'משפחה') + ', כתובת, טלפון, רכיבים, ☐ נמסר'}>
                       🖨 רשימת חלוקה
                     </Btn>
                   )}

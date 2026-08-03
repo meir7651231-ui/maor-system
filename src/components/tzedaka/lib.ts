@@ -6,6 +6,8 @@
  * Reuse טהור מ-calLib (lib→lib מותר): isoOf/hpOf/DAY_NAMES/FULL_HOLIDAYS.
  */
 import type { Db, IsoDate, TzBox, TzBoxStatus, TzCampaign, TzCollection, TzCoordinator, TzEvent } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import { DAY_NAMES, isoOf } from '../calendar/calLib';
 import { buildMonthGrid, type MonthGrid, type MonthGridCell } from '../../lib/monthGrid';
 import { smartFilter } from '../../lib/search';
@@ -242,7 +244,8 @@ export function filterCollections(
  * שורות תדפיס הרכז — רשימת הקופות שלו לסבב שטח: מספר, משפחה, כתובת,
  * טלפון וריקון אחרון. טהור — ההורדה בדפוס downloadText הקיים.
  */
-export function coordinatorPrintLines(db: Db, coordinatorId: string): string[] {
+export function coordinatorPrintLines(db: Db, coordinatorId: string, config?: OrgConfig): string[] {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   const coord = db.tzCoordinators.find((c) => c.id === coordinatorId);
   const boxes = coordinatorBoxes(db.tzBoxes, coordinatorId).filter((b) => b.status === 'home' || b.status === 'office');
   const lines = [
@@ -255,7 +258,7 @@ export function coordinatorPrintLines(db: Db, coordinatorId: string): string[] {
     lines.push(
       [
         '#' + b.num,
-        fam ? 'משפחת ' + fam.name : 'במשרד',
+        fam ? T('entity.familyOf', 'משפחת') + ' ' + fam.name : 'במשרד',
         fam ? [fam.address, fam.city].filter(Boolean).join(', ') : '',
         fam?.phone ?? '',
         last ? 'ריקון אחרון: ' + last : 'טרם רוקנה',
@@ -272,8 +275,9 @@ export function coordinatorPrintLines(db: Db, coordinatorId: string): string[] {
  * שורות CSV של כל הריקונים — תאריך, רכז, קופה, משפחה, סכום, מבצע.
  * שקיפות מלאה: כל ריקון שנרשם מיוצא.
  */
-export function collectionsCsvRows(db: Db): (string | number)[][] {
-  const rows: (string | number)[][] = [['תאריך', 'רכז', 'קופה', 'משפחה', 'סכום', 'מבצע']];
+export function collectionsCsvRows(db: Db, config?: OrgConfig): (string | number)[][] {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
+  const rows: (string | number)[][] = [['תאריך', 'רכז', 'קופה', T('entity.family', 'משפחה'), 'סכום', 'מבצע']];
   for (const b of db.tzBoxes) {
     const coord = db.tzCoordinators.find((c) => c.id === b.coordinatorId);
     const fam = db.families.find((f) => f.id === b.famId);

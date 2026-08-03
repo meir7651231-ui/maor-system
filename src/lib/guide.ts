@@ -7,7 +7,8 @@
  *
  * קובץ טהור: אין React/DOM/store — כשירות ל-port עתידי (Dart).
  */
-import type { ModuleKey } from '../types/config';
+import type { ModuleKey, OrgConfig } from '../types/config';
+import { termOf } from './config';
 
 export interface GuideSection {
   /** מודול שמסתיר את השורה כשהוא כבוי; ריק = תמיד מוצג (בית/הגדרות). */
@@ -86,7 +87,48 @@ export const GUIDE_RECIPES =
 export const GUIDE_FOOT =
   'המדריך המלא והמפורט נמצא בקובץ "מדריך למשתמש" — מסך-מסך וכפתור-כפתור.';
 
-/** סינון השורות לפי מודולים פעילים — שורה בלי מודול תמיד נשארת. */
-export function guideSections(isModuleOn: (m: ModuleKey) => boolean): GuideSection[] {
-  return GUIDE_SECTIONS.filter((s) => !s.module || isModuleOn(s.module));
+/** החלפת תת-מחרוזת גלובלית (בלי regex) — לתרגום מונחי-ישות בגוף השורות. */
+function swap(s: string, from: string, to: string): string {
+  return s.split(from).join(to);
+}
+
+/**
+ * סינון השורות לפי מודולים פעילים — שורה בלי מודול תמיד נשארת.
+ * מונחי-הישות בכותרות (ללא term) ובגוף השורות עוברים termOf כדי שהתיוג פר-עסק
+ * יחלחל למדריך; בלי config = הנוסח מהלגאסי מילה-במילה (ratchet — GUIDE_SECTIONS
+ * עצמו לא נגע). כותרות עם term מתורגמות ברכיב (termOf על s.term).
+ */
+export function guideSections(isModuleOn: (m: ModuleKey) => boolean, config?: OrgConfig): GuideSection[] {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
+  const loc = (s: GuideSection): GuideSection => {
+    let { title, text } = s;
+    if (title === 'כרטיס משפחה') title = 'כרטיס ' + T('entity.family', 'משפחה');
+    text = swap(text, 'חדרים חיים', T('entity.rooms', 'חדרים') + ' חיים');
+    text = swap(text, 'על חדר', 'על ' + T('entity.room', 'חדר'));
+    text = swap(text, 'בתוך חוג', 'בתוך ' + T('entity.course', 'חוג'));
+    text = swap(text, 'תדפיס למורה', 'תדפיס ל' + T('entity.teacher', 'מורה'));
+    text = swap(text, '＋ תרומה', '＋ ' + T('entity.donation', 'תרומה'));
+    text = swap(text, 'שיוך למשפחה', 'שיוך ל' + T('entity.family', 'משפחה'));
+    return title === s.title && text === s.text ? s : { ...s, title, text };
+  };
+  return GUIDE_SECTIONS.filter((s) => !s.module || isModuleOn(s.module)).map(loc);
+}
+
+/**
+ * "המתכונים המהירים" ממותג-מחדש — מונחי-הישות עוברים termOf; בלי config =
+ * GUIDE_RECIPES מילה-במילה (ratchet — הקבוע עצמו לא נגע, נשאר fallback).
+ */
+export function guideRecipes(config?: OrgConfig): string {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
+  let r = GUIDE_RECIPES;
+  r = swap(r, 'ליד השיבוץ', 'ליד ה' + T('entity.enrollment', 'שיבוץ'));
+  r = swap(r, 'כדי שיבוץ', 'כדי ' + T('entity.enrollment', 'שיבוץ'));
+  r = swap(r, 'משפחה חדשה', T('entity.family', 'משפחה') + ' חדשה');
+  r = swap(r, 'חוג מתאים', T('entity.course', 'חוג') + ' מתאים');
+  r = swap(r, 'מצא חוג', 'מצא ' + T('entity.course', 'חוג'));
+  r = swap(r, 'החוג', 'ה' + T('entity.course', 'חוג'));
+  r = swap(r, 'למורה', 'ל' + T('entity.teacher', 'מורה'));
+  r = swap(r, '← ＋ תרומה', '← ＋ ' + T('entity.donation', 'תרומה'));
+  r = swap(r, 'תרומה ←', T('entity.donation', 'תרומה') + ' ←');
+  return r;
 }

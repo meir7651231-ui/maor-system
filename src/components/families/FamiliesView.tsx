@@ -299,7 +299,7 @@ export function FamiliesView() {
               {famView === 'grid' ? '☰ רשימה' : '▦ גריד'}
             </Btn>
             {featureOn(config, 'settings.dedup') && (
-              <Btn onClick={() => { window.location.hash = '#dedup'; }} title="זיהוי ומיזוג משפחות כפולות">
+              <Btn onClick={() => { window.location.hash = '#dedup'; }} title={'זיהוי ומיזוג ' + termOf(config, 'nav.families', 'משפחות') + ' כפולות'}>
                 🔀 כפילויות
               </Btn>
             )}
@@ -353,7 +353,7 @@ export function FamiliesView() {
         {famView === 'list' && (
           <Btn
             onClick={() => setColFOn(!colFOn)}
-            title="שורת סינון מתחת לכל עמודה: שם, טלפון, ילדים (3 / 3+ / 2-4), חוגים וסטטוס"
+            title={'שורת סינון מתחת לכל עמודה: שם, טלפון, ילדים (3 / 3+ / 2-4), ' + termOf(config, 'nav.courses', 'חוגים') + ' וסטטוס'}
             kind={colFOn || colFActive ? 'primary' : undefined}
           >
             ⏷ סינון עמודות
@@ -362,7 +362,7 @@ export function FamiliesView() {
         {featureOn(config, 'families.filter') && (
           <Btn
             onClick={() => setAdvOn(!advOn)}
-            title="מסננים מתקדמים: מצב משפחתי, שפה, ספח, ילדים, חוגים ומדד אמינות"
+            title={'מסננים מתקדמים: מצב משפחתי, שפה, ספח, ילדים, ' + termOf(config, 'nav.courses', 'חוגים') + ' ומדד אמינות'}
             kind={advOn || advCount > 0 ? 'primary' : undefined}
           >
             ✦ סינון מורחב{advCount > 0 ? ' · ' + advCount : ''}
@@ -423,7 +423,7 @@ export function FamiliesView() {
             <Select value={adv.kids} onChange={(v) => setAdv({ ...adv, kids: v })} options={YES_NO('עם ילדים', 'בלי ילדים')} />
           </div>
           <div className="field" style={{ margin: 0 }}>
-            <label>השתתפות בחוגים</label>
+            <label>השתתפות ב{termOf(config, 'nav.courses', 'חוגים')}</label>
             <Select
               value={adv.enrolled}
               onChange={(v) => setAdv({ ...adv, enrolled: v })}
@@ -513,7 +513,7 @@ export function FamiliesView() {
                   {[parents, f.city].filter(Boolean).join(' · ') || '—'}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
-                  {kids.length} ילדים · {enrollCount.get(f.id) || 0} חוגים
+                  {kids.length} ילדים · {enrollCount.get(f.id) || 0} {termOf(config, 'nav.courses', 'חוגים')}
                   {f.createdAt ? ' · נרשמה ' + hebDateFull(f.createdAt) : ''}
                 </div>
               </div>

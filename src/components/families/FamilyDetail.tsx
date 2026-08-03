@@ -112,11 +112,12 @@ function MemberCard(props: { m: Member; onEdit: () => void; onDelete: () => void
 
 /** כרטיס "אב/אם (להשלמה)" — הורה מטופס המשפחה שטרם מומש כ-Member (P0.3). */
 function ParentStubCard(props: { label: string; name: string; onClick: () => void }) {
+  const config = useApp((s) => s.config);
   return (
     <button
       type="button"
       onClick={props.onClick}
-      title={'השלמת פרטי ' + props.name + ' כבן/בת משפחה'}
+      title={'השלמת פרטי ' + props.name + ' כ' + termOf(config, 'entity.member', 'בן/בת משפחה')}
       style={{
         border: '1.5px dashed var(--line)',
         borderRadius: 12,
@@ -354,7 +355,7 @@ export function FamilyDetail(props: { family: Family }) {
             </span>
           </div>
           <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6 }}>
-            {fam.notes || 'אין הערות למשפחה זו.'}
+            {fam.notes || 'אין הערות ל' + termOf(config, 'entity.family', 'משפחה') + ' זו.'}
           </div>
         </section>
       </div>

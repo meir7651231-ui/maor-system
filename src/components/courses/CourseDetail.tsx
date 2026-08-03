@@ -166,7 +166,7 @@ export function CourseDetail(props: { course: Course }) {
 
   /** דו"ח יומי מפורט — מפגש-מפגש מ-start עד end, מי פעיל כולל חיסורים. */
   function exportDaily() {
-    const { rows, days } = buildCourseDailyRows(c, db);
+    const { rows, days } = buildCourseDailyRows(c, db, cfg);
     if (!c.start || !c.end) {
       toast('ל' + termOf(cfg, 'entity.course', 'חוג') + ' חסר תאריך התחלה/סיום — עדכנו בעריכת ה' + termOf(cfg, 'entity.course', 'חוג'));
       return;

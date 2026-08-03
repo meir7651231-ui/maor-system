@@ -88,7 +88,7 @@ export function ShopEventModal(props: {
               value={f.roomId}
               onChange={(v) => setF({ ...f, roomId: v })}
               options={[
-                { value: '', label: 'ללא חדר — פגישה פנימית' },
+                { value: '', label: 'ללא ' + room + ' — פגישה פנימית' },
                 ...db.rooms.filter((r) => r.active).map((r) => ({ value: r.id, label: r.name })),
               ]}
             />
@@ -102,7 +102,7 @@ export function ShopEventModal(props: {
               { value: '', label: 'ללא' },
               ...db.shopAssignments.map((a) => ({
                 value: a.id,
-                label: beneficiaryLabel(db, a) + ' · ' + (db.shopProducts.find((p) => p.id === a.productId)?.name ?? ''),
+                label: beneficiaryLabel(db, a, config) + ' · ' + (db.shopProducts.find((p) => p.id === a.productId)?.name ?? ''),
               })),
             ]}
           />

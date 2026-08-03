@@ -63,7 +63,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       amount: d.amount,
       currency: d.cur,
       date: d.date,
-      forWhat: 'תרומה — ' + (d.cat || 'כללי'),
+      forWhat: termOf(config, 'entity.donation', 'תרומה') + ' — ' + (d.cat || 'כללי'),
       taxReceipt: featureOn(config, 'core.taxreceipt'),
       orgTaxId: config.orgTaxId,
       signatory: config.orgSignatory,
@@ -82,7 +82,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
 
   const score = supScore(sp, usdRate);
   const tier = supTier(score);
-  const callNotes = 'משפחה תומכת · ' + (sp.phone || '') + (sp.email ? ' · ' + sp.email : '');
+  const callNotes = termOf(config, 'entity.family', 'משפחה') + ' תומכת · ' + (sp.phone || '') + (sp.email ? ' · ' + sp.email : '');
 
   /**
    * עריכת "קשר הבא" — התזכורת נוצרת/מתעדכנת אוטומטית בלי confirm (P1.9,
@@ -156,7 +156,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   // רשימת "כל התרומות" — עם הדגל: מיזוג קבלות + הקובץ ההיסטורי כמו בלגאסי
   // (supDonEvents); בלעדיו: הקבלות בלבד (ההתנהגות הקודמת).
   const donRows = histOn
-    ? supDonEvents(sp)
+    ? supDonEvents(sp, config)
     : [...sp.donations]
         .sort((a, b) => b.date.localeCompare(a.date))
         .map((d) => ({ date: d.date, amount: d.amount, cur: d.cur || ('₪' as const), src: 'קבלה ' + d.rid, rid: d.rid }));

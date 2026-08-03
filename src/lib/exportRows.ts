@@ -6,7 +6,9 @@
  * דרך csvx בלבד (העברית תקינה באקסל — UTF-8 BOM).
  */
 import type { Db } from '../types/domain';
+import type { OrgConfig } from '../types/config';
 import type { Cell } from './csvx';
+import { termOf } from './config';
 import { hebDateFull } from './hebrew';
 import { EV_META } from './eventMeta';
 
@@ -51,9 +53,10 @@ export function supportersImportFormatRows(db: Db): Cell[][] {
 }
 
 /** שורות ייצוא האירועים — כותרת + שורה לכל אירוע, ממוינות לפי תאריך. */
-export function eventsCsvRows(db: Db): Cell[][] {
+export function eventsCsvRows(db: Db, config?: OrgConfig): Cell[][] {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   const rows: Cell[][] = [
-    ['כותרת', 'סוג אירוע', 'תאריך עברי', 'תאריך לועזי', 'שעה', 'משפחה', 'עדיפות', 'הערות', 'בוצע'],
+    ['כותרת', 'סוג אירוע', 'תאריך עברי', 'תאריך לועזי', 'שעה', T('entity.family', 'משפחה'), 'עדיפות', 'הערות', 'בוצע'],
   ];
   const evs = [...db.events].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
   for (const ev of evs) {

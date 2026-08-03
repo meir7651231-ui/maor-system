@@ -5,6 +5,8 @@
  * (בלי store/DOM) כדי שתהיה ניתנת לבדיקה ולהרצה חוזרת.
  */
 import type { Db, Family } from '../types/domain';
+import type { OrgConfig } from '../types/config';
+import { termOf } from './config';
 import { validIsraeliId, normName } from './validate';
 import { supporterAggregates } from './supporterAgg';
 import { ageOf } from '../components/families/lib';
@@ -73,8 +75,9 @@ export function phoneIssue(p: string | undefined): string | null {
  * ותרומות בסכום אפס/שלילי. todayIso מוזרק (טוהר — בלי שעון פנימי);
  * ריק ⇒ בדיקת יעד-הקשר מדולגת. extra=false ⇒ שתי הבדיקות כבויות.
  */
-export function runAudit(db: Db, todayIso = '', extra = true): AuditIssue[] {
+export function runAudit(db: Db, todayIso = '', extra = true, config?: OrgConfig): AuditIssue[] {
   const issues: AuditIssue[] = [];
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   const add = (cat: AuditCategory, title: string, famId?: string) => issues.push({ cat, title, famId });
   // הגנה מפני נתונים מיובאים פגומים — כלי הבדיקה לעולם לא קורס על מה שהוא בודק
   const members = (f: Family) => (Array.isArray(f.members) ? f.members : []);
@@ -107,55 +110,55 @@ export function runAudit(db: Db, todayIso = '', extra = true): AuditIssue[] {
       const key = a.map((f) => f.id).sort().join();
       if (!seenPair.has(key)) {
         seenPair.add(key);
-        add('כפילות', 'טלפון ' + k + ' משותף ל-' + a.length + ' משפחות: ' + a.map((f) => f.name).slice(0, 3).join(', '), a[0].id);
+        add('כפילות', 'טלפון ' + k + ' משותף ל-' + a.length + ' ' + T('nav.families', 'משפחות') + ': ' + a.map((f) => f.name).slice(0, 3).join(', '), a[0].id);
       }
     }
   }
   for (const k in g3) {
     const a = [...new Set(g3[k])];
-    if (a.length > 1) add('כפילות', 'ת"ז ' + k + ' מופיעה ב-' + a.length + ' משפחות: ' + a.map((f) => f.name).slice(0, 2).join(', '), a[0].id);
+    if (a.length > 1) add('כפילות', 'ת"ז ' + k + ' מופיעה ב-' + a.length + ' ' + T('nav.families', 'משפחות') + ': ' + a.map((f) => f.name).slice(0, 2).join(', '), a[0].id);
   }
 
   // ——— בדיקות פר-משפחה ———
   for (const f of (Array.isArray(db.families) ? db.families : [])) {
     for (const [idn, who] of [[f.fatherId, 'אב'], [f.motherId, 'אם']] as [string, string][]) {
       const d = digits(idn);
-      if (d.length && !validIsraeliId(d)) add('ת"ז', 'משפחת ' + f.name + ': ת"ז ' + who + ' לא עוברת ספרת ביקורת (' + idn + ')', f.id);
+      if (d.length && !validIsraeliId(d)) add('ת"ז', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': ת"ז ' + who + ' לא עוברת ספרת ביקורת (' + idn + ')', f.id);
     }
     for (const p of [f.phone, f.phone2]) {
       const pi = phoneIssue(p);
-      if (pi) add('טלפון', 'משפחת ' + f.name + ': ' + pi, f.id);
+      if (pi) add('טלפון', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': ' + pi, f.id);
     }
-    if (f.email && !EMAIL_RE.test(f.email)) add('אימייל', 'משפחת ' + f.name + ': אימייל לא תקין (' + f.email + ')', f.id);
+    if (f.email && !EMAIL_RE.test(f.email)) add('אימייל', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': אימייל לא תקין (' + f.email + ')', f.id);
     if (f.status !== 'inactive') {
-      if (!f.city) add('כתובת', 'משפחת ' + f.name + ': חסרה עיר', f.id);
-      else if (!f.address) add('כתובת', 'משפחת ' + f.name + ': יש עיר אבל חסרה כתובת', f.id);
+      if (!f.city) add('כתובת', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': חסרה עיר', f.id);
+      else if (!f.address) add('כתובת', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': יש עיר אבל חסרה כתובת', f.id);
     }
     const single = f.maritalStatus === 'אלמן/ה' || f.maritalStatus === 'גרושים' || f.maritalStatus === 'פרודים';
     if (single && f.father && f.mother)
-      add('לוגיקה', 'משפחת ' + f.name + ': מסומנת "' + f.maritalStatus + '" — אמורה להיות בלי בן/בת זוג, אבל רשומים שניים (' + f.father + ' + ' + f.mother + ')', f.id);
+      add('לוגיקה', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': מסומנת "' + f.maritalStatus + '" — אמורה להיות בלי בן/בת זוג, אבל רשומים שניים (' + f.father + ' + ' + f.mother + ')', f.id);
     else if (single && digits(f.fatherId) && digits(f.motherId))
-      add('לוגיקה', 'משפחת ' + f.name + ': מסומנת "' + f.maritalStatus + '" אבל רשומות שתי תעודות זהות של בני זוג', f.id);
+      add('לוגיקה', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': מסומנת "' + f.maritalStatus + '" אבל רשומות שתי תעודות זהות של בני זוג', f.id);
     if (f.maritalStatus === 'נשואים' && f.status === 'active' && !f.father && !f.mother)
-      add('לוגיקה', 'משפחת ' + f.name + ': מסומנת נשואים אבל לא רשום אף בן זוג', f.id);
-    if (!digits(f.phone) && !digits(f.phone2) && !f.email) add('קשר', 'משפחת ' + f.name + ': אין שום פרט קשר (טלפון או אימייל)', f.id);
+      add('לוגיקה', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': מסומנת נשואים אבל לא רשום אף בן זוג', f.id);
+    if (!digits(f.phone) && !digits(f.phone2) && !f.email) add('קשר', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': אין שום פרט קשר (טלפון או אימייל)', f.id);
 
     const seenKid = new Set<string>();
     for (const m of members(f)) {
       if (m.isParent) {
-        if (m.idNum && !validIsraeliId(m.idNum)) add('ת"ז', 'משפחת ' + f.name + ': ת"ז של ' + m.first + ' (הורה) לא תקינה', f.id);
+        if (m.idNum && !validIsraeliId(m.idNum)) add('ת"ז', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': ת"ז של ' + m.first + ' (הורה) לא תקינה', f.id);
         continue;
       }
-      if (!m.birth) add('ילדים', 'משפחת ' + f.name + ': ל' + m.first + ' אין תאריך לידה', f.id);
+      if (!m.birth) add('ילדים', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': ל' + m.first + ' אין תאריך לידה', f.id);
       else {
         const a = ageOf(m.birth);
-        if (a != null && (a < 0 || a > 25)) add('ילדים', 'משפחת ' + f.name + ': גיל חריג ל' + m.first + ' (' + a + ')', f.id);
+        if (a != null && (a < 0 || a > 25)) add('ילדים', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': גיל חריג ל' + m.first + ' (' + a + ')', f.id);
       }
-      if (m.idNum && !validIsraeliId(m.idNum)) add('ת"ז', 'משפחת ' + f.name + ': ת"ז של ' + m.first + ' לא תקינה', f.id);
+      if (m.idNum && !validIsraeliId(m.idNum)) add('ת"ז', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': ת"ז של ' + m.first + ' לא תקינה', f.id);
       const mp = phoneIssue(m.phone);
-      if (mp) add('טלפון', 'משפחת ' + f.name + ': טלפון של ' + m.first + ' — ' + mp, f.id);
+      if (mp) add('טלפון', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': טלפון של ' + m.first + ' — ' + mp, f.id);
       const kk = m.first + '|' + (m.birth || '');
-      if (seenKid.has(kk)) add('כפילות', 'משפחת ' + f.name + ': הילד/ה ' + m.first + ' מופיע/ה פעמיים', f.id);
+      if (seenKid.has(kk)) add('כפילות', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': הילד/ה ' + m.first + ' מופיע/ה פעמיים', f.id);
       seenKid.add(kk);
     }
   }
@@ -169,7 +172,7 @@ export function runAudit(db: Db, todayIso = '', extra = true): AuditIssue[] {
     const paid = (e.payments || []).reduce((a, x) => a + x.amount, 0);
     if (e.totalDue && paid > e.totalDue) {
       const fam = famByMember.get(e.memberId);
-      if (fam) add('לוגיקה', 'משפחת ' + fam.name + ': שולם ₪' + paid + ' — יותר מסה"כ העסקה (₪' + e.totalDue + '). בדקו החזר או עדכנו את הסכום', fam.id);
+      if (fam) add('לוגיקה', T('entity.familyOf', 'משפחת') + ' ' + fam.name + ': שולם ₪' + paid + ' — יותר מסה"כ העסקה (₪' + e.totalDue + '). בדקו החזר או עדכנו את הסכום', fam.id);
     }
   }
 
@@ -191,8 +194,8 @@ export function runAudit(db: Db, todayIso = '', extra = true): AuditIssue[] {
         cat: 'לוגיקה',
         title:
           'תומכ/ת ' + sp.name + ': הסכום המצטבר הרשום (₪' + (sp.ils || 0) +
-          (sp.usd ? ' + $' + sp.usd : '') + ' · ' + (sp.count || 0) + ' תרומות) לא תואם את פירוט התרומות (₪' +
-          agg.ils + (agg.usd ? ' + $' + agg.usd : '') + ' · ' + agg.count + ' תרומות)',
+          (sp.usd ? ' + $' + sp.usd : '') + ' · ' + (sp.count || 0) + ' ' + T('entity.donations', 'תרומות') + ') לא תואם את פירוט ה' + T('entity.donations', 'תרומות') + ' (₪' +
+          agg.ils + (agg.usd ? ' + $' + agg.usd : '') + ' · ' + agg.count + ' ' + T('entity.donations', 'תרומות') + ')',
         spId: sp.id,
       });
     // ——— ביקורת מורחבת (P2 פער 22) ———
@@ -201,7 +204,7 @@ export function runAudit(db: Db, todayIso = '', extra = true): AuditIssue[] {
     if (extra)
       for (const d of Array.isArray(sp.donations) ? sp.donations : [])
         if (!(d.amount > 0))
-          issues.push({ cat: 'לוגיקה', title: 'תרומה בסכום ' + d.amount + ' אצל "' + sp.name + '" (' + d.rid + ')', spId: sp.id });
+          issues.push({ cat: 'לוגיקה', title: T('entity.donation', 'תרומה') + ' בסכום ' + d.amount + ' אצל "' + sp.name + '" (' + d.rid + ')', spId: sp.id });
     const nk = normName(sp.name);
     if (nk) (supByName[nk] = supByName[nk] || []).push(sp.id);
   }

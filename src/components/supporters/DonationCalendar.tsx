@@ -8,6 +8,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import type { Supporter } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
 import { hebParts, gem, gemYear, hebDateFull } from '../../lib/hebrew';
 import { useApp } from '../../store/useApp';
 import { Btn } from '../ui';
@@ -43,6 +44,8 @@ function DonCalGrid(props: {
   onGo?: (spId: string) => void;
   /** סימון יום מבחוץ (P3 פריט 11) — לחיצה על תרומה בהיסטוריה מקפיצה לחודשה. */
   focusIso?: string;
+  /** קונפיג הארגון — לתרגום מונח "תרומות" בשורת-הסיכום (termOf). */
+  config?: OrgConfig;
 }) {
   const [heb, setHeb] = useState(false);
   const [offset, setOffset] = useState(0);
@@ -137,7 +140,7 @@ function DonCalGrid(props: {
   }, [heb, offset, anchor, byDay]);
 
   const inShownMonth = (iso: string) => view.cells.some((c) => c.iso === iso && c.inMonth);
-  const monthLine = donCalMonthLine(props.entries, inShownMonth);
+  const monthLine = donCalMonthLine(props.entries, inShownMonth, props.config);
   const dayList = dayIso ? byDay.get(dayIso) ?? [] : [];
 
   const money = (n: number, sym: string) => sym + Math.round(n).toLocaleString('he-IL');
@@ -265,14 +268,16 @@ function safeGem(d: Date): string {
 /** הלוח האישי בכרטיס התומכת — תרומות + 🎯 יעד + אירועי מעקב (legacy supCalMine). */
 export function DonationCalendar({ supporter, focusIso }: { supporter: Supporter; focusIso?: string }) {
   const entries = useMemo(() => personalCalEntries(supporter), [supporter]);
+  const config = useApp((s) => s.config);
   // עוגן — התרומה האחרונה (או היום), כמו קודם
   const last = supporter.donations.reduce((a, d) => (d.date > a ? d.date : a), '');
-  return <DonCalGrid entries={entries} anchorIso={last || localIso(new Date())} focusIso={focusIso} />;
+  return <DonCalGrid entries={entries} anchorIso={last || localIso(new Date())} focusIso={focusIso} config={config} />;
 }
 
 /** הלוח הכלל-ארגוני — כל התומכות (P1.4, legacy supCalAll); ניווט לכרטיס מהרשימה. */
 export function OrgDonationCalendar(props: { onOpen: (spId: string) => void }) {
   const supporters = useApp((s) => s.db.supporters);
+  const config = useApp((s) => s.config);
   const entries = useMemo(() => orgCalEntries(supporters), [supporters]);
-  return <DonCalGrid entries={entries} anchorIso={localIso(new Date())} onGo={props.onOpen} />;
+  return <DonCalGrid entries={entries} anchorIso={localIso(new Date())} onGo={props.onOpen} config={config} />;
 }

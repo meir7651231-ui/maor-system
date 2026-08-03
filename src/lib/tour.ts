@@ -9,6 +9,8 @@
  *
  * קובץ טהור: אין React/DOM/store — לוגיקת הצעדים והגאומטריה נבדקות ביחידה.
  */
+import type { OrgConfig } from '../types/config';
+import { termOf } from './config';
 
 /** המסכים שהסיור עובר בהם — תת-קבוצה של View. */
 export type TourView = 'home' | 'families' | 'courses' | 'calendar' | 'tzedaka' | 'shop' | 'settings';
@@ -54,9 +56,22 @@ export const TOUR_STEPS: TourStep[] = [
   { view: 'home', caption: 'זו המערכת. חיה, מלאה, במקום אחד ✦' },
 ];
 
-/** סינון הצעדים לפי מודולים פעילים — צעד בלי מודול תמיד נשאר. */
-export function tourSteps(isModuleOn: (m: TourModule) => boolean): TourStep[] {
-  return TOUR_STEPS.filter((s) => !s.module || isModuleOn(s.module));
+/**
+ * סינון הצעדים לפי מודולים פעילים — צעד בלי מודול תמיד נשאר.
+ * הכיתובים/עוגנים ממותגים-מחדש דרך termOf (התיוג פר-עסק מחלחל לסיור); בלי
+ * config = הנוסח מהלגאסי מילה-במילה (ratchet — TOUR_STEPS עצמו לא נגע).
+ */
+export function tourSteps(isModuleOn: (m: TourModule) => boolean, config?: OrgConfig): TourStep[] {
+  const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
+  const loc = (s: TourStep): TourStep => {
+    const caption = s.caption
+      .replace('מאתר המשפחות', 'מאתר ה' + T('nav.families', 'משפחות'))
+      .replace('מאתר החוגים', 'מאתר ה' + T('nav.courses', 'חוגים'))
+      .replace('חיזוי חוגים', 'חיזוי ' + T('nav.courses', 'חוגים'));
+    const anchorText = s.anchorText === 'מצא חוג' ? 'מצא ' + T('entity.course', 'חוג') : s.anchorText;
+    return caption === s.caption && anchorText === s.anchorText ? s : { ...s, caption, anchorText };
+  };
+  return TOUR_STEPS.filter((s) => !s.module || isModuleOn(s.module)).map(loc);
 }
 
 /**

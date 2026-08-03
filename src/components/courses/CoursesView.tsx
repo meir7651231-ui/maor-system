@@ -195,8 +195,8 @@ function CoursesList(props: { onOpenWheel: () => void }) {
         actions={
           <>
             {wheelOn && (
-              <Btn onClick={props.onOpenWheel} title="גלגל מזל שבוחר חוג לפי הסינון שלכם">
-                🎡 מצא חוג
+              <Btn onClick={props.onOpenWheel} title={'גלגל מזל שבוחר ' + termOf(cfg, 'entity.course', 'חוג') + ' לפי הסינון שלכם'}>
+                🎡 מצא {termOf(cfg, 'entity.course', 'חוג')}
               </Btn>
             )}
             {featureOn(cfg, 'courses.viewtoggle') && (
@@ -221,7 +221,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
               key={room.id}
               type="button"
               onClick={() => busyWith && selectCourse(busyWith.id)}
-              title={busyWith ? 'מתקיים עכשיו — פתיחת החוג' : 'החדר פנוי עכשיו'}
+              title={busyWith ? 'מתקיים עכשיו — פתיחת ה' + termOf(cfg, 'entity.course', 'חוג') : 'ה' + termOf(cfg, 'entity.room', 'חדר') + ' פנוי עכשיו'}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -245,7 +245,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0' }}>
         <div style={{ flex: 1, minWidth: 200 }}>
-          <TextInput value={q} onChange={setQ} placeholder="חיפוש לפי שם, מורה, קהל או קטגוריה…" />
+          <TextInput value={q} onChange={setQ} placeholder={'חיפוש לפי שם, ' + termOf(cfg, 'entity.teacher', 'מורה') + ', קהל או קטגוריה…'} />
         </div>
         <div style={{ width: 170 }}>
           <Select
@@ -264,7 +264,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
         {view === 'list' && featureOn(cfg, 'courses.colfilter') && (
           <Btn
             onClick={() => setColFOn(!colFOn)}
-            title="שורת סינון מתחת לכל עמודה: שם, קהל, מורה, מסלול, תלמידים (3 / 3+ / 2-4) ומחיר"
+            title={'שורת סינון מתחת לכל עמודה: שם, קהל, ' + termOf(cfg, 'entity.teacher', 'מורה') + ', מסלול, ' + termOf(cfg, 'entity.students', 'תלמידים') + ' (3 / 3+ / 2-4) ומחיר'}
             kind={colFOn || colFActive ? 'primary' : undefined}
           >
             ⏷ סינון עמודות

@@ -123,7 +123,8 @@ function sessionsHeldEstimate(db: Db, todayIso: string): number {
 
 /** ספר הזהב — top-3 לפי החודש, נפילה לשנה ואז לסה"כ מצטבר.
  *  (exported — ווידג'ט "ספר הזהב" במסך הבית משתמש באותה נוסחה בדיוק.) */
-export function buildPodium(db: Db, monthKey: string, yearKey: string): WallPodium {
+export function buildPodium(db: Db, monthKey: string, yearKey: string, config?: OrgConfig): WallPodium {
+  const T = (key: string, fb: string) => (config ? termOf(config, key, fb) : fb);
   const dons = allIlsDonations(db);
   const agg = (filter: (d: DonRow) => boolean) => {
     const m = new Map<string, { name: string; amount: number; count: number }>();
@@ -154,7 +155,7 @@ export function buildPodium(db: Db, monthKey: string, yearKey: string): WallPodi
   rows.sort((a, b) => b.amount - a.amount);
   const top = rows.slice(0, 3).map((r) => ({
     name: r.name,
-    sub: r.count === 1 ? 'תרומה אחת' : `${r.count} תרומות`,
+    sub: r.count === 1 ? `${T('entity.donation', 'תרומה')} אחת` : `${r.count} ${T('entity.donations', 'תרומות')}`,
     amount: r.amount,
   }));
   const rest = rows.slice(3);
@@ -215,8 +216,12 @@ function holidayEmoji(name: string): string {
 
 /** 7 הימים הבאים — חגים, אירועים (כולל חזרה עברית) ומפגשי חוגים. עד 7 שורות.
  *  (exported — ווידג'ט "הלוח העברי" במסך הבית משתמש באותה נגזרת;
- *  שורות מפגשי חוגים מזוהות לפי key המסתיים ב-'-crs' לסינון כשמודול החוגים כבוי.) */
-export function buildWeek(db: Db, now: Date): WallWeekRow[] {
+ *  שורות מפגשי חוגים מזוהות לפי key המסתיים ב-'-crs' לסינון כשמודול החוגים כבוי.)
+ *  config אופציונלי: תת-התוויות ("משפחת X", "מפגשי חוגים") עוברות termOf כשמסופק. */
+export function buildWeek(db: Db, now: Date, config?: OrgConfig): WallWeekRow[] {
+  const T = (key: string, fb: string) => (config ? termOf(config, key, fb) : fb);
+  const course = T('entity.course', 'חוג');
+  const courses = T('nav.courses', 'חוגים');
   const out: WallWeekRow[] = [];
   for (let i = 0; i < 7 && out.length < 7; i++) {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
@@ -243,7 +248,7 @@ export function buildWeek(db: Db, now: Date): WallWeekRow[] {
         key: iso + '-ev-' + ev.id,
         hd,
         title: ev.title,
-        sub: [evLabel(ev), ev.time, fam && 'משפחת ' + fam.name].filter(Boolean).join(' · '),
+        sub: [evLabel(ev), ev.time, fam && T('entity.familyOf', 'משפחת') + ' ' + fam.name].filter(Boolean).join(' · '),
         emoji: EV_EMOJI[ev.type],
       });
     }
@@ -265,7 +270,7 @@ export function buildWeek(db: Db, now: Date): WallWeekRow[] {
       out.push({
         key: iso + '-crs',
         hd,
-        title: (i === 0 ? 'היום · ' : '') + (n === 1 ? 'מפגש חוג אחד' : `${n} מפגשי חוגים`),
+        title: (i === 0 ? 'היום · ' : '') + (n === 1 ? `מפגש ${course} אחד` : `${n} מפגשי ${courses}`),
         sub: names.slice(0, 3).join(' · '),
         emoji: i === 0 ? '☀️' : '🎨',
       });
@@ -402,7 +407,7 @@ export function buildWallData(db: Db, now = new Date(), config?: OrgConfig): Wal
   const famsByDate = [...db.families].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   for (const f of famsByDate.slice(0, 2)) ticker.push(`🎉 ${T('entity.familyOf', 'משפחת')} ${f.name} הצטרפה לקהילה`);
   const donsByDate = [...dons].sort((a, b) => (a.date < b.date ? 1 : -1));
-  for (const d of donsByDate.slice(0, 3)) ticker.push(`💛 תרומה חדשה: ${fmtIls(d.amount)} — ${d.name}`);
+  for (const d of donsByDate.slice(0, 3)) ticker.push(`💛 ${T('entity.donation', 'תרומה')} חדשה: ${fmtIls(d.amount)} — ${d.name}`);
   const memberName = (id: string) => {
     for (const f of db.families) {
       const m = f.members.find((x) => x.id === id);
@@ -429,10 +434,10 @@ export function buildWallData(db: Db, now = new Date(), config?: OrgConfig): Wal
     goalLine,
     kpisRight,
     kpisLeft,
-    podium: buildPodium(db, monthKey, yearKey),
+    podium: buildPodium(db, monthKey, yearKey, config),
     pulse: buildPulse(db, now),
     miniKpis,
-    week: buildWeek(db, now),
+    week: buildWeek(db, now, config),
     ticker: ticker.slice(0, 8),
   };
 }

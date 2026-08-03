@@ -209,7 +209,7 @@ export function DiaryView() {
                           cursor: 'pointer',
                           border: '1px dashed #9cc9ab',
                         }}
-                        title="הזמנת המשבצת — פתיחת אירוע חדש בחדר ובשעה האלה"
+                        title={'הזמנת המשבצת — פתיחת אירוע חדש ב' + termOf(cfg, 'entity.room', 'חדר') + ' ובשעה האלה'}
                         onClick={() =>
                           setBooking({ date, time: sl.time, roomId: room.id, roomName: room.name })
                         }

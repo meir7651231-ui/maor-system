@@ -42,7 +42,7 @@ export function CoordinatorForm(props: { coordinator: TzCoordinator | null; onCl
   const fam = db.families.find((x) => x.id === f.famId);
 
   function createFamily() {
-    if (!newFam.name.trim()) return setError('שם המשפחה החדשה הוא שדה חובה');
+    if (!newFam.name.trim()) return setError('שם ה' + termOf(config, 'entity.family', 'משפחה') + ' החדשה הוא שדה חובה');
     const id = nextId('f');
     upsertFamily({
       ...emptyFamily(),
@@ -55,11 +55,11 @@ export function CoordinatorForm(props: { coordinator: TzCoordinator | null; onCl
     });
     setF({ ...f, famId: id, memberId: '' });
     setNewFamOpen(false);
-    toast('משפחת ' + newFam.name.trim() + ' נוצרה במערכת וקושרה');
+    toast(termOf(config, 'entity.familyOf', 'משפחת') + ' ' + newFam.name.trim() + ' נוצרה במערכת וקושרה');
   }
 
   function createMember() {
-    if (!f.famId) return setError('בחרו קודם משפחה');
+    if (!f.famId) return setError('בחרו קודם ' + termOf(config, 'entity.family', 'משפחה'));
     if (!newMem.first.trim()) return setError('שם הילד/ההורה החדש הוא שדה חובה');
     const id = nextId('m');
     upsertMember(f.famId, {
@@ -71,7 +71,7 @@ export function CoordinatorForm(props: { coordinator: TzCoordinator | null; onCl
     });
     setF({ ...f, memberId: id });
     setNewMemOpen(false);
-    toast(newMem.first.trim() + ' נוסף/ה לכרטיס המשפחה וקושר/ה');
+    toast(newMem.first.trim() + ' נוסף/ה לכרטיס ה' + termOf(config, 'entity.family', 'משפחה') + ' וקושר/ה');
   }
 
   function save() {
@@ -126,7 +126,7 @@ export function CoordinatorForm(props: { coordinator: TzCoordinator | null; onCl
           />
         </Field>
         {fam && (
-          <Field label="בן/בת המשפחה (רשות)">
+          <Field label={termOf(config, 'entity.member', 'בן/בת המשפחה') + ' (רשות)'}>
             <Select
               value={f.memberId}
               onChange={(v) => setF({ ...f, memberId: v })}
@@ -140,14 +140,14 @@ export function CoordinatorForm(props: { coordinator: TzCoordinator | null; onCl
       </div>
       {inlineOn && (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-          <Btn sm onClick={() => setNewFamOpen((v) => !v)}>➕ משפחה חדשה</Btn>
+          <Btn sm onClick={() => setNewFamOpen((v) => !v)}>➕ {termOf(config, 'entity.family', 'משפחה')} חדשה</Btn>
           {fam && <Btn sm onClick={() => setNewMemOpen((v) => !v)}>➕ ילד/הורה חדש</Btn>}
         </div>
       )}
       {inlineOn && newFamOpen && (
         <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 10 }}>
           <div className="form-grid">
-            <Field label="שם המשפחה *">
+            <Field label={'שם ה' + termOf(config, 'entity.family', 'משפחה') + ' *'}>
               <TextInput value={newFam.name} onChange={(v) => setNewFam({ ...newFam, name: v })} />
             </Field>
             <Field label="טלפון">

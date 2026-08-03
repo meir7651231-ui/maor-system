@@ -6,7 +6,7 @@
  */
 import { allMembers, useApp } from '../../store/useApp';
 import { downloadCsv, type Cell } from '../../lib/csvx';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { eventsCsvRows, familiesImportFormatRows, supportersImportFormatRows } from '../../lib/exportRows';
 import { Btn } from '../ui';
 import { Section, SectionNote } from './lib';
@@ -18,12 +18,13 @@ const ENROLL_STATUS: Record<string, string> = { active: 'פעיל', paused: 'מ�
 
 /** ייצוא המשפחות — פונקציה חשופה גם לפעולת "⬇ ייצוא CSV" בפלטה (P2 פער 24). */
 export function exportFamiliesCsv(): void {
-  const { db, toast } = useApp.getState();
+  const { db, toast, config } = useApp.getState();
   const rows: Cell[][] = [
     [
       'שם משפחה', 'סטטוס', 'שם האב', 'ת"ז האב', 'שם האם', 'ת"ז האם', 'טלפון', 'טלפון נוסף',
       'אימייל', 'עיר', 'כתובת', 'קהילה', 'מצב משפחתי', 'שפה', 'קופת צדקה', 'ספח מלא', 'הנחה',
-      'מדד אמינות', 'מס׳ בני משפחה', 'מס׳ ילדים', 'קורסים', 'יתרת תשלומים', 'תאריך הצטרפות', 'הערות',
+      'מדד אמינות', 'מס׳ ' + termOf(config, 'entity.members', 'בני משפחה'), 'מס׳ ילדים',
+      termOf(config, 'nav.courses', 'קורסים'), 'יתרת תשלומים', 'תאריך הצטרפות', 'הערות',
     ],
   ];
   for (const f of db.families) {
@@ -39,7 +40,7 @@ export function exportFamiliesCsv(): void {
     ]);
   }
   downloadCsv('maor-families.csv', rows);
-  toast('קובץ המשפחות ירד — ' + db.families.length + ' משפחות');
+  toast('קובץ ה' + termOf(config, 'nav.families', 'משפחות') + ' ירד — ' + db.families.length + ' ' + termOf(config, 'nav.families', 'משפחות'));
 }
 
 export function ExportSection() {
@@ -61,7 +62,8 @@ export function ExportSection() {
     const rows: Cell[][] = [
       [
         'שם פרטי', 'שם משפחה', 'תפקיד', 'מגדר', 'תאריך לידה', 'גיל', 'ת"ז', 'טלפון', 'טלפון נוסף',
-        'בית ספר', 'כיתה', 'טלפון המשפחה', 'אימייל המשפחה', 'עיר', 'רגישויות/רפואי', 'הערות',
+        'בית ספר', 'כיתה', 'טלפון ה' + termOf(config, 'entity.family', 'משפחה'),
+        'אימייל ה' + termOf(config, 'entity.family', 'משפחה'), 'עיר', 'רגישויות/רפואי', 'הערות',
       ],
     ];
     let n = 0;
@@ -76,7 +78,7 @@ export function ExportSection() {
       }
     }
     downloadCsv('maor-members.csv', rows);
-    toast('קובץ בני המשפחה ירד — ' + n + ' רשומות');
+    toast('קובץ בני ה' + termOf(config, 'entity.family', 'משפחה') + ' ירד — ' + n + ' רשומות');
   }
 
   function expCourses() {
@@ -85,11 +87,11 @@ export function ExportSection() {
     // כיתות · טלפון מורה · קבוצות · הנחות · גיל · סה"כ הכנסות
     const rows: Cell[][] = [
       [
-        'שם החוג', 'קטגוריה', 'קהל יעד', ...(exportFullOn ? ['כיתות'] : []), 'מורה',
-        ...(exportFullOn ? ['טלפון מורה'] : []), 'חדר', 'מסלול',
+        'שם ה' + termOf(config, 'entity.course', 'חוג'), 'קטגוריה', 'קהל יעד', ...(exportFullOn ? ['כיתות'] : []), termOf(config, 'entity.teacher', 'מורה'),
+        ...(exportFullOn ? ['טלפון ' + termOf(config, 'entity.teacher', 'מורה')] : []), termOf(config, 'entity.room', 'חדר'), 'מסלול',
         'מחיר', ...(exportFullOn ? ['הנחה 1', 'הנחה 2', 'מגיל', 'עד גיל'] : []), 'יום', 'שעה',
         ...(exportFullOn ? ['קבוצות'] : []), 'רשומים', ...(exportFullOn ? ['סה"כ הכנסות'] : []),
-        'מקס׳ תלמידים', 'סמסטר', 'תחילה', 'סיום', 'הערות',
+        'מקס׳ ' + termOf(config, 'entity.students', 'תלמידים'), 'סמסטר', 'תחילה', 'סיום', 'הערות',
       ],
     ];
     for (const c of db.courses) {
@@ -112,12 +114,12 @@ export function ExportSection() {
       ]);
     }
     downloadCsv('maor-courses.csv', rows);
-    toast('קובץ החוגים ירד — ' + db.courses.length + ' חוגים');
+    toast('קובץ ה' + termOf(config, 'nav.courses', 'חוגים') + ' ירד — ' + db.courses.length + ' ' + termOf(config, 'nav.courses', 'חוגים'));
   }
 
   function expEvents() {
     const db = useApp.getState().db;
-    downloadCsv('maor-events.csv', eventsCsvRows(db));
+    downloadCsv('maor-events.csv', eventsCsvRows(db, config));
     toast('קובץ האירועים ירד — ' + db.events.length + ' אירועים');
   }
 
@@ -125,8 +127,8 @@ export function ExportSection() {
     const db = useApp.getState().db;
     const rows: Cell[][] = [
       [
-        'שם', 'טלפון', 'אימייל', 'כתובת', 'קטגוריה', 'ייעוד', 'מס׳ תרומות', 'סה"כ ₪', 'סה"כ $',
-        'שווי כולל (₪)', 'תרומה ראשונה', 'תרומה אחרונה', 'ציון', 'דרגה', 'הערות',
+        'שם', 'טלפון', 'אימייל', 'כתובת', 'קטגוריה', 'ייעוד', 'מס׳ ' + termOf(config, 'entity.donations', 'תרומות'), 'סה"כ ₪', 'סה"כ $',
+        'שווי כולל (₪)', termOf(config, 'entity.donation', 'תרומה') + ' ראשונה', termOf(config, 'entity.donation', 'תרומה') + ' אחרונה', 'ציון', 'דרגה', 'הערות',
       ],
     ];
     for (const sp of db.supporters) {
@@ -138,7 +140,7 @@ export function ExportSection() {
       ]);
     }
     downloadCsv('maor-supporters.csv', rows);
-    toast('קובץ התורמים ירד — ' + db.supporters.length + ' תורמים');
+    toast('קובץ ה' + termOf(config, 'nav.supporters', 'תורמים') + ' ירד — ' + db.supporters.length + ' ' + termOf(config, 'nav.supporters', 'תורמים'));
   }
 
   function expEnrollments() {
@@ -146,8 +148,8 @@ export function ExportSection() {
     const members = allMembers(db);
     const rows: Cell[][] = [
       [
-        'תלמיד/ה', 'משפחה', 'חוג', 'מסלול', 'קבוצה', 'ניקובים שנרכשו', 'נוצלו', 'יתרת ניקובים',
-        'סה"כ עסקה', 'שולם', 'יתרת חוב', 'סטטוס', 'תאריך שיבוץ', 'הערה',
+        termOf(config, 'entity.student', 'תלמיד/ה'), termOf(config, 'entity.family', 'משפחה'), termOf(config, 'entity.course', 'חוג'), 'מסלול', 'קבוצה', 'ניקובים שנרכשו', 'נוצלו', 'יתרת ניקובים',
+        'סה"כ עסקה', 'שולם', 'יתרת חוב', 'סטטוס', 'תאריך ' + termOf(config, 'entity.enrollment', 'שיבוץ'), 'הערה',
       ],
     ];
     for (const e of db.enrollments) {
@@ -162,14 +164,14 @@ export function ExportSection() {
       ]);
     }
     downloadCsv('maor-enrollments.csv', rows);
-    toast('קובץ השיבוצים ירד — ' + db.enrollments.length + ' שיבוצים');
+    toast('קובץ ה' + termOf(config, 'entity.enrollments', 'שיבוצים') + ' ירד — ' + db.enrollments.length + ' ' + termOf(config, 'entity.enrollments', 'שיבוצים'));
   }
 
   // ייצוא בפורמט הייבוא (P3 פריט 4) — round-trip לעריכה באקסל והחזרה
   function expFamiliesImportFmt() {
     const db = useApp.getState().db;
     downloadCsv('maor-import-families.csv', familiesImportFormatRows(db));
-    toast('הקובץ בפורמט הייבוא ירד — ערכו באקסל והחזירו דרך "ייבוא משפחות"');
+    toast('הקובץ בפורמט הייבוא ירד — ערכו באקסל והחזירו דרך "ייבוא ' + termOf(config, 'nav.families', 'משפחות') + '"');
   }
   function expSupportersImportFmt() {
     const db = useApp.getState().db;
@@ -178,15 +180,15 @@ export function ExportSection() {
   }
 
   const buttons: { label: string; count: number; run: () => void }[] = [
-    { label: '⬇ משפחות', count: counts.families, run: exportFamiliesCsv },
-    { label: '⬇ בני משפחה', count: counts.members, run: expMembers },
-    { label: '⬇ חוגים', count: counts.courses, run: expCourses },
-    { label: '⬇ תורמים', count: counts.supporters, run: expSupporters },
-    { label: '⬇ שיבוצים', count: counts.enrollments, run: expEnrollments },
+    { label: '⬇ ' + termOf(config, 'nav.families', 'משפחות'), count: counts.families, run: exportFamiliesCsv },
+    { label: '⬇ ' + termOf(config, 'entity.members', 'בני משפחה'), count: counts.members, run: expMembers },
+    { label: '⬇ ' + termOf(config, 'nav.courses', 'חוגים'), count: counts.courses, run: expCourses },
+    { label: '⬇ ' + termOf(config, 'nav.supporters', 'תורמים'), count: counts.supporters, run: expSupporters },
+    { label: '⬇ ' + termOf(config, 'entity.enrollments', 'שיבוצים'), count: counts.enrollments, run: expEnrollments },
     ...(exportFullOn
       ? [
           { label: '⬇ אירועים', count: counts.events, run: expEvents },
-          { label: '⬇ משפחות (פורמט ייבוא)', count: counts.families, run: expFamiliesImportFmt },
+          { label: '⬇ ' + termOf(config, 'nav.families', 'משפחות') + ' (פורמט ייבוא)', count: counts.families, run: expFamiliesImportFmt },
           { label: '⬇ תומכות (פורמט ייבוא)', count: counts.supporters, run: expSupportersImportFmt },
         ]
       : []),

@@ -69,7 +69,7 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
     downloadReceipt({
       rid: r.rid,
       orgName: config.orgName || db.orgName,
-      payer: beneficiaryLabel(db, a),
+      payer: beneficiaryLabel(db, a, config),
       amount: r.paid,
       date: r.date,
       forWhat: 'מימוש: ' + itemOf(db, comp).name + ' (' + (product?.name ?? '') + ') · אישור תשלום — אינו קבלה לצורכי מס',
@@ -84,10 +84,10 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
         {/* קישור-צולב לכרטיס המשפחה (UX סינון 2) — מגודר moduleOn */}
         {familiesOn ? (
           <Btn sm onClick={() => { selectFamily(a.famId); go('families'); }} title="לכרטיס המשפחה">
-            <b style={{ fontSize: 14 }}>{beneficiaryLabel(db, a) + ' ←'}</b>
+            <b style={{ fontSize: 14 }}>{beneficiaryLabel(db, a, config) + ' ←'}</b>
           </Btn>
         ) : (
-          <b style={{ fontSize: 15 }}>{beneficiaryLabel(db, a)}</b>
+          <b style={{ fontSize: 15 }}>{beneficiaryLabel(db, a, config)}</b>
         )}
         <span>{'· ' + (product?.name ?? 'מוצר שנמחק')}</span>
         {/* מובייל (SHOP4 סעיף 3): שורת הפעולות נשברת מסודר — wrap + gap אחיד */}
@@ -150,7 +150,7 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
                 {!done && <span style={{ fontSize: 12.5 }}>⏳ ממתין</span>}
                 <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
                   {ri.kind === 'meeting' && featureOn(config, 'shop.meeting') && (
-                    <Btn sm onClick={() => setMeetingOpen(true)} title="קביעת פגישה בלוח (עם חדר — תופסת את הלוח הראשי)">
+                    <Btn sm onClick={() => setMeetingOpen(true)} title={'קביעת פגישה בלוח (עם ' + termOf(config, 'entity.room', 'חדר') + ' — תופסת את הלוח הראשי)'}>
                       📅 קביעת פגישה
                     </Btn>
                   )}
@@ -194,7 +194,7 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
         <ShopEventModal
           ev={null}
           date={isoToday()}
-          preset={{ assignmentId: a.id, title: '🤝 פגישת ליווי — ' + beneficiaryLabel(db, a) }}
+          preset={{ assignmentId: a.id, title: '🤝 פגישת ליווי — ' + beneficiaryLabel(db, a, config) }}
           onClose={() => setMeetingOpen(false)}
         />
       )}
@@ -235,7 +235,7 @@ export function AssignmentsTab() {
   return (
     <div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <TextInput value={q} onChange={setQ} placeholder="🔍 משפחה / חבילה" />
+        <TextInput value={q} onChange={setQ} placeholder={'🔍 ' + termOf(config, 'entity.family', 'משפחה') + ' / חבילה'} />
         <Select
           value={status}
           onChange={(v) => setStatus(v as ShopAssignment['status'] | '')}
@@ -262,7 +262,7 @@ export function AssignmentsTab() {
           onChange={(v) => setSort(v as typeof sort)}
           options={[
             { value: 'pending', label: 'מיון: ותיק-ממתין ראשון' },
-            { value: 'name', label: 'מיון: שם משפחה' },
+            { value: 'name', label: 'מיון: שם ' + termOf(config, 'entity.family', 'משפחה') },
             { value: 'progress', label: 'מיון: התקדמות' },
           ]}
         />
@@ -306,7 +306,7 @@ export function AssignmentsTab() {
                         <span style={{ fontWeight: 800 }}>{product?.name ?? 'מוצר שנמחק'}</span>
                         <Chip on={a.status === 'active'}>{STATUS_LABEL[a.status]}</Chip>
                       </div>
-                      <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{beneficiaryLabel(db, a)}</div>
+                      <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{beneficiaryLabel(db, a, config)}</div>
                       <div style={{ fontSize: 12.5 }}>
                         {'מומשו ' + doneCount + '/' + total + ' רכיבים'}
                         <div style={{ background: 'var(--line)', borderRadius: 6, height: 6, marginTop: 4 }}>
