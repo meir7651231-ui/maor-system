@@ -14,12 +14,14 @@ import {
   MODULE_LABELS,
   approveMember,
   genJoinCode,
+  orgEnabledFeatures,
   orgEnabledModules,
   orgJoinLink,
   overrideOf,
   removeMember,
   setEmployeeOverride,
 } from './lib';
+import { FEATURES } from '../../types/features';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import type { OrgCloudDoc, OrgJoinRequestDoc } from '../../lib/cloudConfig';
 
@@ -38,6 +40,7 @@ export function ManagerPanel(props: { onClose: () => void }) {
   const [reqs, setReqs] = useState<JoinRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openCard, setOpenCard] = useState('');
+  const [featModule, setFeatModule] = useState('');
 
   async function refresh(m: CloudMod) {
     setLoading(true);
@@ -65,6 +68,9 @@ export function ManagerPanel(props: { onClose: () => void }) {
 
   // הכפתורים שהמנהל בכלל רואה = רק מה שהבעלים הדליק לארגון (התקרה)
   const scope: ModuleKey[] = orgEnabledModules((config as OrgConfig) ?? {});
+  // תת-הדגלים שהמנהל יכול לחלק = דגלים דלוקים-בארגון תחת מודול-דלוק (אותה תקרה)
+  const featScope = orgEnabledFeatures((config as OrgConfig) ?? {}, FEATURES);
+  const featGroups = [...new Set(featScope.map((f) => f.module))];
   const employees = (org?.members ?? []).filter((m) => m.trim().toLowerCase() !== managerMail.trim().toLowerCase());
   const inviteLink =
     org?.joinCode && typeof window !== 'undefined'
@@ -103,6 +109,16 @@ export function ManagerPanel(props: { onClose: () => void }) {
     const curOff = ov.modules?.[m] === false;
     const nextModules = { ...ov.modules, [m]: curOff ? true : false }; // curOff→הדלקה · דלוק→כיבוי
     const { memberConfigs } = setEmployeeOverride(org, email, { ...ov, modules: nextModules });
+    await mod.writeOrgCloudDoc(slug, { memberConfigs });
+    await refresh(mod);
+  }
+
+  async function toggleFeatureFor(email: string, key: string) {
+    if (!mod || !org) return;
+    const ov = overrideOf(email, org);
+    const curOff = ov.features?.[key] === false;
+    const nextFeatures = { ...ov.features, [key]: curOff ? true : false }; // curOff→הדלקה · דלוק→כיבוי
+    const { memberConfigs } = setEmployeeOverride(org, email, { ...ov, features: nextFeatures });
     await mod.writeOrgCloudDoc(slug, { memberConfigs });
     await refresh(mod);
   }
@@ -187,6 +203,37 @@ export function ManagerPanel(props: { onClose: () => void }) {
                         </Chip>
                       ))}
                     </div>
+
+                    {/* תת-דגלים פר-עובד/ת — לפי מודול, בתוך תקרת-הארגון (100% שליטה) */}
+                    {featGroups.length > 0 && (
+                      <div style={{ marginTop: 10 }}>
+                        <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
+                          דגלים עדינים (לפי מודול) — הדלקה/כיבוי פר-עובד/ת:
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+                          {featGroups.map((g) => (
+                            <Chip key={g} on={featModule === g} onClick={() => setFeatModule(featModule === g ? '' : g)}>
+                              {g}
+                            </Chip>
+                          ))}
+                        </div>
+                        {featModule && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                            {featScope
+                              .filter((f) => f.module === featModule)
+                              .map((f) => (
+                                <Chip
+                                  key={f.key}
+                                  on={ov.features?.[f.key] !== false}
+                                  onClick={() => void toggleFeatureFor(email, f.key)}
+                                >
+                                  {f.label}
+                                </Chip>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
