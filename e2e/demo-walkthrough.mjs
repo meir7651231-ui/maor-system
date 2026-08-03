@@ -116,7 +116,13 @@ if (await clickIf('main button', '⚙')) {
     await payInput.fill('120');
     await clickIf('.modal button', 'קבלת תשלום');
     await wait(500);
-    T('נרשם תשלום + נוצרה קבלה — בלי שגיאת JS', errors.length === 0);
+    // #22: אימות-תוצאה אמיתי — התשלום נשמר ב-DB (לא רק "בלי שגיאת JS", שתמיד עבר).
+    const paid120 = await page.evaluate(
+      () => JSON.parse(localStorage.getItem('maor_db') || '{}').enrollments?.some(
+        (e) => e.payments?.some((p) => p.amount === 120 && typeof p.rid === 'string' && p.rid.startsWith('R-')),
+      ) ?? false,
+    );
+    T('נרשם תשלום 120 עם קבלה R- (נשמר ב-DB) — בלי שגיאת JS', errors.length === 0 && paid120);
     await shot('תשלום-וקבלה');
   } else {
     T('נפתח מסך ניהול השיבוץ', await page.locator('.modal').count() > 0);
@@ -187,11 +193,19 @@ T('נוסף תורם', (await mainTxt()).includes('פרידמן'));
 if (await clickIf('main', 'פרידמן') || await clickIf('main button', 'פרידמן')) {
   await wait(300);
   if (await clickIf('button', 'רישום תרומה')) {
-    const amt = page.locator('.modal input[type="number"], .modal input').nth(1);
+    // שדה הסכום הוא היחיד מסוג number (שדה התאריך = select/type=date); nth(1) על
+    // איחוד-הקלטים פספס אותו כשהתאריך בגריד-עברי ⇒ התרומה לא נשמרה בשקט (#22).
+    const amt = page.locator('.modal input[type="number"]').first();
     if (await amt.count()) { await amt.fill('500'); }
     if (!(await clickIf('.modal button', 'רישום התרומה'))) await saveModal();
     await wait(500);
-    T('נרשמה תרומה — בלי שגיאת JS', errors.length === 0);
+    // #22: אימות-תוצאה אמיתי — התרומה נשמרה ב-DB עם קבלת-מס D- (לא רק "בלי שגיאה").
+    const don500 = await page.evaluate(
+      () => JSON.parse(localStorage.getItem('maor_db') || '{}').supporters?.some(
+        (s) => s.donations?.some((d) => d.amount === 500 && typeof d.rid === 'string' && d.rid.startsWith('D-')),
+      ) ?? false,
+    );
+    T('נרשמה תרומה 500 עם קבלת-מס D- (נשמר ב-DB) — בלי שגיאת JS', errors.length === 0 && don500);
   }
 }
 await shot('תורמים-ותרומה');
