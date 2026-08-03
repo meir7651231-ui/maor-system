@@ -300,7 +300,7 @@ export function EnrollPanel(props: { fam: Family }) {
           <table className="table">
             <thead>
               <tr>
-                <th>תלמיד/ה</th>
+                <th>{termOf(config, 'entity.student', 'תלמיד/ה')}</th>
                 <th>קורס</th>
                 <th>מסלול</th>
                 <th>יתרה</th>

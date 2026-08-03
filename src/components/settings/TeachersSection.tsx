@@ -8,6 +8,7 @@ import { useApp } from '../../store/useApp';
 import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
 import { isoToday } from '../../lib/date-util';
 import { Btn, Empty, Field, FormError, Modal, TextInput } from '../ui';
+import { termOf } from '../../lib/config';
 import { HebDateInput } from '../HebDateInput';
 import { Section, SectionNote } from './lib';
 
@@ -16,6 +17,10 @@ export function TeachersSection() {
   const courses = useApp((s) => s.db.courses);
   const deleteTeacher = useApp((s) => s.deleteTeacher);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
+  const teacher = termOf(config, 'entity.teacher', 'מורה');
+  // רבים: אם המונח ברירת-המחדל ("מורה") — "מורים"; אחרת המונח כמות-שהוא (אין מפתח-רבים).
+  const teachersT = teacher === 'מורה' ? 'מורים' : teacher;
 
   const [editing, setEditing] = useState<Teacher | null>(null);
   const [creating, setCreating] = useState(false);
@@ -31,8 +36,8 @@ export function TeachersSection() {
     }
     setArmedId(null);
     const res = deleteTeacher(id);
-    if (!res.ok) toast('⚠ ' + (res.error ?? 'לא ניתן למחוק את המורה'));
-    else toast('המורה נמחקה מהמערכת');
+    if (!res.ok) toast('⚠ ' + (res.error ?? 'לא ניתן למחוק את ה' + teacher));
+    else toast('ה' + teacher + ' נמחק/ה מהמערכת');
   }
 
   const coursesOf = (id: string) => courses.filter((c) => c.teacherId === id).length;
@@ -40,16 +45,16 @@ export function TeachersSection() {
   return (
     <Section
       id="sec-teachers"
-      title="👩‍🏫 מורים"
-      sub="לחיצה על ✎ פותחת כרטיס מלא לעריכה · מורה עם חוגים משויכים לא ניתנת למחיקה"
+      title={'👩‍🏫 ' + teachersT}
+      sub={'לחיצה על ✎ פותחת כרטיס מלא לעריכה · ' + teacher + ' עם חוגים משויכים לא ניתן/ת למחיקה'}
     >
       <div style={{ marginBottom: 10 }}>
         <Btn kind="primary" sm onClick={() => setCreating(true)}>
-          + מורה
+          {'+ ' + teacher}
         </Btn>
       </div>
       {teachers.length === 0 ? (
-        <Empty>אין מורים במערכת עדיין — הוסיפו מורה ראשונה</Empty>
+        <Empty>{'אין ' + teachersT + ' עדיין — הוסיפו ' + teacher + ' ראשון/ה'}</Empty>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table className="table">
@@ -89,7 +94,7 @@ export function TeachersSection() {
           </table>
         </div>
       )}
-      <SectionNote>כרטיס המורה משתקף בכל החוגים, בחיפוש ובייצוא.</SectionNote>
+      <SectionNote>{'כרטיס ה' + teacher + ' משתקף בכל החוגים, בחיפוש ובייצוא.'}</SectionNote>
 
       {(creating || editing) && (
         <TeacherForm teacher={editing} onClose={() => { setEditing(null); setCreating(false); }} />
@@ -130,6 +135,8 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
   const upsertTeacher = useApp((s) => s.upsertTeacher);
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
+  const teacher = termOf(config, 'entity.teacher', 'מורה');
   // כרטיס מורה מלא (P3 פריט 10): חוגי המורה + תזכורת קשר
   const courses = useApp((s) => s.db.courses);
   const enrollments = useApp((s) => s.db.enrollments);
@@ -146,7 +153,7 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
     if (!props.teacher) return;
     upsertEvent({
       id: nextId('ev'),
-      title: 'תזכורת קשר — מורה: ' + props.teacher.name,
+      title: 'תזכורת קשר — ' + teacher + ': ' + props.teacher.name,
       date: isoToday(),
       time: '',
       type: 'call',
@@ -167,7 +174,7 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
 
   function save() {
     const name = f.name.trim();
-    if (!name) return setError('שם המורה הוא שדה חובה');
+    if (!name) return setError('שם ה' + teacher + ' הוא שדה חובה');
     if (f.idNum.trim() && !validIsraeliId(f.idNum.trim()))
       return setError('ת"ז לא תקינה (ספרת ביקורת שגויה)');
     if (f.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.trim()))
@@ -176,7 +183,7 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
       return setError('תעריף לשעה חייב להיות מספר');
     const existing = useApp.getState().db.teachers;
     if (!props.teacher && existing.some((x) => x.name === name))
-      return setError('כבר קיימת מורה בשם הזה');
+      return setError('כבר קיים/ת ' + teacher + ' בשם הזה');
 
     const fields: Omit<Teacher, 'id'> = {
       name,
@@ -192,16 +199,16 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
     };
     if (props.teacher) {
       upsertTeacher({ ...fields, id: props.teacher.id });
-      toast('כרטיס המורה עודכן — משתקף בכל החוגים, החיפוש והייצוא');
+      toast('כרטיס ה' + teacher + ' עודכן — משתקף בכל החוגים, החיפוש והייצוא');
     } else {
       upsertTeacher({ ...fields, id: nextId('t') });
-      toast('המורה ' + name + ' נוספה — זמינה לשיבוץ בכל חוג');
+      toast('ה' + teacher + ' ' + name + ' נוסף/ה — זמין/ה לשיבוץ בכל חוג');
     }
     props.onClose();
   }
 
   return (
-    <Modal title={props.teacher ? 'כרטיס מורה — עריכה מלאה' : '+ מורה חדשה'} onClose={props.onClose} wide>
+    <Modal title={props.teacher ? 'כרטיס ' + teacher + ' — עריכה מלאה' : '+ ' + teacher + ' חדש/ה'} onClose={props.onClose} wide>
       <FormError error={error} />
       <div className="form-grid">
         <Field label="שם מלא *">
@@ -240,7 +247,7 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
       {props.teacher && (
         <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 12 }}>
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
-            {'החוגים של המורה (' + myCourses.length + ') · ' + myStudents + ' תלמידים'}
+            {'החוגים של ה' + teacher + ' (' + myCourses.length + ') · ' + myStudents + ' ' + termOf(config, 'entity.students', 'תלמידים')}
           </div>
           {myCourses.length === 0 && (
             <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>אין חוגים משויכים</div>
@@ -272,7 +279,7 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
       )}
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>
-          שמירת כרטיס מורה
+          {'שמירת כרטיס ' + teacher}
         </Btn>
         <Btn onClick={props.onClose}>ביטול</Btn>
       </div>

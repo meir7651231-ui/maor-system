@@ -7,6 +7,7 @@ import { useState } from 'react';
 import type { Room } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { Btn, Chip, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
+import { termOf } from '../../lib/config';
 import { Section, SectionNote } from './lib';
 import { ROOM_EQUIPMENT } from './helpers';
 
@@ -19,6 +20,9 @@ const YES_NO = (yes: string, no: string) => [
 export function RoomsSection() {
   const rooms = useApp((s) => s.db.rooms);
   const upsertRoom = useApp((s) => s.upsertRoom);
+  const config = useApp((s) => s.config);
+  const room = termOf(config, 'entity.room', 'חדר');
+  const roomsT = termOf(config, 'entity.rooms', 'חדרים');
   const [editing, setEditing] = useState<Room | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -30,16 +34,16 @@ export function RoomsSection() {
   return (
     <Section
       id="sec-rooms"
-      title="🚪 חדרים"
-      sub="חדרי הפעילות משמשים את יומן החדרים ואת שיבוץ החוגים · חדר שאינו בשימוש מסמנים כמושבת"
+      title={'🚪 ' + roomsT}
+      sub={roomsT + ' משמשים את היומן ואת השיבוצים · ' + room + ' שאינו בשימוש מסמנים כמושבת'}
     >
       <div style={{ marginBottom: 10 }}>
         <Btn kind="primary" sm onClick={() => setCreating(true)}>
-          + חדר חדש
+          {'+ ' + room + ' חדש'}
         </Btn>
       </div>
       {rooms.length === 0 ? (
-        <Empty>אין חדרים במערכת עדיין — הוסיפו חדר ראשון</Empty>
+        <Empty>{'אין ' + roomsT + ' עדיין — הוסיפו ' + room + ' ראשון'}</Empty>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table className="table">
@@ -128,6 +132,8 @@ function RoomForm(props: { room: Room | null; onClose: () => void }) {
   const upsertRoom = useApp((s) => s.upsertRoom);
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
+  const room = termOf(config, 'entity.room', 'חדר');
 
   const [f, setF] = useState<RoomFormState>(() => initState(props.room));
   const [error, setError] = useState('');
@@ -138,9 +144,9 @@ function RoomForm(props: { room: Room | null; onClose: () => void }) {
 
   function save() {
     const name = f.name.trim();
-    if (!name) return setError('שם החדר הוא שדה חובה');
+    if (!name) return setError('שם ה' + room + ' הוא שדה חובה');
     const rooms = useApp.getState().db.rooms;
-    if (!props.room && rooms.some((r) => r.name === name)) return setError('כבר קיים חדר בשם הזה');
+    if (!props.room && rooms.some((r) => r.name === name)) return setError('כבר קיים ' + room + ' בשם הזה');
 
     const fields: Omit<Room, 'id'> = {
       name,
@@ -157,19 +163,19 @@ function RoomForm(props: { room: Room | null; onClose: () => void }) {
     };
     if (props.room) {
       upsertRoom({ ...fields, id: props.room.id });
-      toast('הגדרות החדר נשמרו — משתקפות ביומן ובלוח');
+      toast('הגדרות ה' + room + ' נשמרו — משתקפות ביומן ובלוח');
     } else {
       upsertRoom({ ...fields, id: nextId('r') });
-      toast('החדר "' + name + '" נוסף בהצלחה');
+      toast('ה' + room + ' "' + name + '" נוסף בהצלחה');
     }
     props.onClose();
   }
 
   return (
-    <Modal title={props.room ? '⚙ הגדרות חדר — ' + props.room.name : '+ חדר חדש'} onClose={props.onClose} wide>
+    <Modal title={props.room ? '⚙ הגדרות ' + room + ' — ' + props.room.name : '+ ' + room + ' חדש'} onClose={props.onClose} wide>
       <FormError error={error} />
       <div className="form-grid">
-        <Field label="שם החדר *">
+        <Field label={'שם ה' + room + ' *'}>
           <TextInput value={f.name} onChange={(v) => set({ name: v })} />
         </Field>
         <Field label="סטטוס">
@@ -197,7 +203,7 @@ function RoomForm(props: { room: Room | null; onClose: () => void }) {
           <Select value={f.accessSel} onChange={(v) => set({ accessSel: v })} options={YES_NO('נגיש ✓', 'לא נגיש')} />
         </Field>
       </div>
-      <Field label="ציוד בחדר">
+      <Field label={'ציוד ב' + room}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {eqKeys.map((k) => (
             <Chip key={k} on={!!f.eq[k]} onClick={() => set({ eq: { ...f.eq, [k]: !f.eq[k] } })}>

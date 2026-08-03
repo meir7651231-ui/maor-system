@@ -318,7 +318,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                     <span style={chipStyle(mm.bg, mm.c)}>{mm.label}</span>
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 2 }}>
-                    {(c.audience || 'כללי') + ' · מורה: ' + teacherName(c.teacherId)}
+                    {(c.audience || 'כללי') + ' · ' + termOf(cfg, 'entity.teacher', 'מורה') + ': ' + teacherName(c.teacherId)}
                   </div>
                   <div
                     style={{
@@ -332,7 +332,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                   >
                     <span style={{ fontWeight: 700 }}>{c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—'}</span>
                     <span style={{ fontWeight: 700, color: countColor(c, n) }}>
-                      {n + '/' + (c.maxStudents || '∞') + ' תלמידים'}
+                      {n + '/' + (c.maxStudents || '∞') + ' ' + termOf(cfg, 'entity.students', 'תלמידים')}
                     </span>
                   </div>
                 </div>
@@ -350,7 +350,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                 {thSort('teacher', termOf(cfg, 'entity.teacher', 'מורה'))}
                 {thSort('model', 'מסלול')}
                 <th>יום</th>
-                {thSort('count', 'תלמידים')}
+                {thSort('count', termOf(cfg, 'entity.students', 'תלמידים'))}
                 {thSort('price', 'מחיר')}
                 {thSort('price1', 'הנחה 1')}
                 {thSort('price2', 'הנחה 2')}
@@ -359,7 +359,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                 <tr>
                   {colInput('name', 'שם…')}
                   {colInput('audience', 'קהל…')}
-                  {colInput('teacher', 'מורה…')}
+                  {colInput('teacher', termOf(cfg, 'entity.teacher', 'מורה') + '…')}
                   <th style={{ padding: '4px 8px' }}>
                     <select
                       value={colF.model}

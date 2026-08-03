@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import type { NotifPrefs } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, isAdminUser } from '../../lib/config';
+import { featureOn, isAdminUser, termOf } from '../../lib/config';
 import { Btn, Chip, Field, FormError, PageHead, TextInput } from '../ui';
 import { Section, SectionNote, Toggle } from './lib';
 import { TeachersSection } from './TeachersSection';
@@ -48,7 +48,7 @@ export function SettingsView() {
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }} className="no-print">
         {sections.map((s) => (
           <Chip key={s.id} onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth' })}>
-            {s.label}
+            {s.id === 'sec-teachers' ? termOf(config, 'entity.teacher', 'מורה') : s.id === 'sec-rooms' ? termOf(config, 'entity.rooms', 'חדרים') : s.label}
           </Chip>
         ))}
         {/* כניסה לאשף ההקמה — צ'יפ גלוי למנהל-על בלבד, מחליף את הצורך ב-#builder ידני */}
