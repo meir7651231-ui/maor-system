@@ -34,6 +34,8 @@ export interface ReceiptInfo {
    * "מקור"; הורדה חוזרת (redownloadReceipt) = "העתק נאמן למקור". חסר ⇒ מקור.
    */
   copy?: boolean;
+  /** הצגת שורת מקור/העתק (feature core.receipt.copymark). חסר/true = מוצג. */
+  mark?: boolean;
   /**
    * סיכום העסקה (feature courses.receipt.summary) — שורות "סה"כ עסקה / שולם עד
    * כה / יתרה / תשלום הבא" כמו legacy receipt() (legacy-main-script.js:1258-1266).
@@ -70,7 +72,7 @@ export function receiptLines(o: ReceiptInfo): string[] {
     const curSym = cur === '$' ? '$' : '₪';
     const words = amountInWords(o.amount, cur === '$' ? '$' : '₪');
     return [
-      (o.copy ? 'העתק נאמן למקור' : 'מקור'),
+      ...(o.mark === false ? [] : [o.copy ? 'העתק נאמן למקור' : 'מקור']),
       (o.orgName || 'מאור החסד'),
       o.orgTaxId ? 'מס׳ עמותה/מלכ"ר: ' + o.orgTaxId : '',
       '',
@@ -96,7 +98,7 @@ export function receiptLines(o: ReceiptInfo): string[] {
   }
 
   return [
-    (o.copy ? 'העתק נאמן למקור' : 'מקור'),
+    ...(o.mark === false ? [] : [o.copy ? 'העתק נאמן למקור' : 'מקור']),
     'קבלה — ' + (o.orgName || 'מאור החסד'),
     'קבלה מס׳: ' + o.rid,
     // תאריך עברי + לועזי, כמו באב-טיפוס

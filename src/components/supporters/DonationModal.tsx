@@ -62,6 +62,7 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         forWhat: desig ? 'אימוץ — ' + desig : 'תרומה — ' + (cat.trim() || 'כללי'),
         // קבלת סעיף 46 פורמלית — כשהיכולת דלוקה
         taxReceipt,
+        mark: featureOn(cfg, 'core.receipt.copymark'),
         orgTaxId: cfg.orgTaxId,
         signatory: cfg.orgSignatory,
         payerId: props.supporter.idNum || undefined,

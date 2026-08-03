@@ -201,7 +201,7 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setPalette(!useApp.getState().paletteOpen);
+        if (featureOn(config, 'shell.palette')) setPalette(!useApp.getState().paletteOpen);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -213,6 +213,7 @@ export default function App() {
   useEffect(() => {
     const tick = setInterval(() => {
       try {
+        if (!featureOn(useApp.getState().config, 'core.dayendbackup')) return;
         const today = isoToday();
         if (localStorage.getItem(nsLsKey('maor_autoexp')) === today) return;
         const [eh, em] = (localStorage.getItem(nsLsKey('maor_dayend')) || '17:00').split(':').map(Number);
@@ -470,16 +471,18 @@ export default function App() {
         <div className="top-tools">
           {backBtn}
           {/* צ'יפ החיפוש — פותח את פלטת הפקודות, אותו מנגנון כמו Ctrl+K */}
-          <button
-            type="button"
-            className="nav-search"
-            onClick={() => setPalette(true)}
-            title="חיפוש בכל המערכת (Ctrl+K)"
-          >
-            <span aria-hidden>🔍</span>
-            <span className="nav-search-label">חיפוש בכל המערכת</span>
-            <kbd aria-hidden>Ctrl K</kbd>
-          </button>
+          {featureOn(config, 'shell.palette') && (
+            <button
+              type="button"
+              className="nav-search"
+              onClick={() => setPalette(true)}
+              title="חיפוש בכל המערכת (Ctrl+K)"
+            >
+              <span aria-hidden>🔍</span>
+              <span className="nav-search-label">חיפוש בכל המערכת</span>
+              <kbd aria-hidden>Ctrl K</kbd>
+            </button>
+          )}
           {/* המדריך המהיר + מצב הדגמה — כפתורי כותרת כמו בקובץ החי (P2 פער 29-30) */}
           {featureOn(config, 'shell.guide') && (
             <button
@@ -679,7 +682,7 @@ export default function App() {
     <div className={'app-shell' + (shell === 'top' ? '' : ' shell-side')}>
       {shell === 'side' ? sideShell : shell === 'side-wide' ? sideWideShell : topShell}
 
-      {paletteOpen && <CommandPalette />}
+      {paletteOpen && featureOn(config, 'shell.palette') && <CommandPalette />}
 
       {/* כניסת-הניהול (ADMINHUB) — נפתחת רק ממנהל-על (הכפתור מגודר canAdminHub);
           הבורר מנתב לכלים דרך ה-hash כך שהקישורים הישנים ממשיכים לעבוד */}

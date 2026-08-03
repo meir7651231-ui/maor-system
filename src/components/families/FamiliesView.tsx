@@ -359,13 +359,15 @@ export function FamiliesView() {
             ⏷ סינון עמודות
           </Btn>
         )}
-        <Btn
-          onClick={() => setAdvOn(!advOn)}
-          title="מסננים מתקדמים: מצב משפחתי, שפה, ספח, ילדים, חוגים ומדד אמינות"
-          kind={advOn || advCount > 0 ? 'primary' : undefined}
-        >
-          ✦ סינון מורחב{advCount > 0 ? ' · ' + advCount : ''}
-        </Btn>
+        {featureOn(config, 'families.filter') && (
+          <Btn
+            onClick={() => setAdvOn(!advOn)}
+            title="מסננים מתקדמים: מצב משפחתי, שפה, ספח, ילדים, חוגים ומדד אמינות"
+            kind={advOn || advCount > 0 ? 'primary' : undefined}
+          >
+            ✦ סינון מורחב{advCount > 0 ? ' · ' + advCount : ''}
+          </Btn>
+        )}
         {finderOn && (
           <Btn
             onClick={() => {

@@ -149,7 +149,7 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
                 )}
                 {!done && <span style={{ fontSize: 12.5 }}>⏳ ממתין</span>}
                 <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
-                  {ri.kind === 'meeting' && (
+                  {ri.kind === 'meeting' && featureOn(config, 'shop.meeting') && (
                     <Btn sm onClick={() => setMeetingOpen(true)} title="קביעת פגישה בלוח (עם חדר — תופסת את הלוח הראשי)">
                       📅 קביעת פגישה
                     </Btn>
@@ -172,12 +172,12 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
                   )}
                   <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
                     {/* מבוטל — בלי הורדת אישור (הרישום במערכת הוא התיעוד); ה-rid נשאר מוצג */}
-                    {!r.voidedAt && r.rid && (
+                    {featureOn(config, 'shop.sreceipt') && !r.voidedAt && r.rid && (
                       <Btn sm onClick={() => downloadConfirmation(r, c)} title="אישור תשלום — אינו קבלה לצורכי מס">
                         🧾 אישור
                       </Btn>
                     )}
-                    {!r.voidedAt && (
+                    {featureOn(config, 'shop.void') && !r.voidedAt && (
                       <Btn sm kind="danger" onClick={() => voidRedemption(r)}>
                         {armed === 'shr-' + r.id ? 'בטוח/ה? שוב מבטלת' : '🚫 ביטול'}
                       </Btn>
@@ -268,7 +268,7 @@ export function AssignmentsTab() {
         />
         <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
           {/* שיוך המוני (SHOP6 חנות 26) — נדרשת חבילה קיימת */}
-          {db.shopProducts.length > 0 && <Btn onClick={() => setBulkOpen(true)}>👥 שיוך המוני</Btn>}
+          {featureOn(config, 'shop.bulkassign') && db.shopProducts.length > 0 && <Btn onClick={() => setBulkOpen(true)}>👥 שיוך המוני</Btn>}
           <Btn kind="primary" onClick={() => setFormOpen(true)}>
             ➕ הוספת {termOf(config, 'entity.shopAssignment', 'שיוך')}
           </Btn>

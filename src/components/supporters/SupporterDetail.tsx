@@ -69,6 +69,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       signatory: config.orgSignatory,
       payerId: sp.idNum || undefined,
       copy: true, // הורדה חוזרת ⇒ "העתק נאמן למקור" (5.5d)
+      mark: featureOn(config, 'core.receipt.copymark'),
     });
     toast('קבלה ' + rid + ' ירדה שוב למחשב');
   }
