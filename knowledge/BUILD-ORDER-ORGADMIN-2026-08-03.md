@@ -78,6 +78,21 @@
    מסכים לפי דגל); מנהל/full = הכל.
 7. **תיעוד + 3 סוויטות + פריסה** (app-side). Rules v3 publish = הבעלים.
 
+## ✅ סטטוס יישום (3.8.2026) — הושלם והופץ
+כל 7 השלבים נבנו, אומתו (1072 בדיקות + 3 סוויטות דפדפן) והופצו:
+- **1-2 · תשתית:** `EmployeeOverride`/`memberConfigs`, ליבה טהורה (normEmail/genJoinCode/
+  orgJoinLink/isOrgManager/isMember/roleOf→effectiveConfigFor/approveMember/
+  setEmployeeOverride/removeMember/orgEnabledModules), Rules v3, cloud API
+  (writeOrgJoinRequest/fetchOrgJoinRequests/deleteOrgJoinRequest).
+- **3 · מייל-על:** שדה מייל-מנהל באישור (PlatformPanel) → manager+members.
+- **4 · פאנל-מנהל:** `ManagerPanel` (#manage, cloud.isManager) — אשף ייחודי מצומצם
+  ל-orgEnabledModules + הרשמת-עובדים + קישור + אישורים + כרטיס-עובד + הסרה.
+- **5 · עובדת:** `?join=code` ⇒ writeOrgJoinRequest ב-membership block; מסך-המתנה קיים.
+- **6 · אכיפה:** applyCloudDoc מחיל effectiveConfigFor; cloud.isManager + כפתורי 👥.
+
+**נותר לבעלים (חלון-בעלים):** לפרסם Rules v3 בקונסולה (הדבקה→Publish). בדיקת-אמת
+חיה של הזרימה (שני-דפדפנים) = הבעלים, כמו ב-CLOUD2 (סביבת-הבנייה חוסמת Firebase TLS).
+
 ## אינווריאנטים
 - כל שדה חדש **additive** — ארגון קיים (מאור, cloudRoot) בלי השדות = התנהגות היום.
 - מאור = אתר-השורש (cloudRoot) — ההיררכיה החדשה חלה על **ארגוני-פלטפורמה**;
