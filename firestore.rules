@@ -2,6 +2,9 @@ rules_version = '2';
 // כללי האבטחה של פרויקט הענן maor-system — מקור האמת בריפו.
 // v2 (CLOUD2 ענן 3): פלטפורמה רב-ארגונית — הרשמה/אישור/חברות, לצד אוספי
 // השורש של הלקוח הקיים (allowlist כהיום).
+// v3 (ORGADMIN 3.8.2026): מנהל-ארגון מואצל — orgManager(slug) יכול לעדכן רק את
+// שדות ניהול-העובדות של הארגון שלו (members/memberConfigs/joinOpen/joinCode)
+// ולנהל את joinRequests שלו; מייל-העל מעל כולם. config/manager = מייל-על בלבד.
 // הפריסה ידנית: קונסולת Firebase ← Firestore ← Rules ← הדבקה ← Publish,
 // ואז הדלקת הרשמה: Authentication ← Sign-in method ← Email/Password (enable).
 //
@@ -61,7 +64,7 @@ service cloud.firestore {
     // מסמכי הארגונים: קריאה — חבר או מייל-על.
     // כתיבה מלאה (config/manager/provisioned) — מייל-על בלבד.
     // עדכון חלקי — מנהל-הארגון, אך **רק** לשדות ניהול-העובדות שלו
-    // (members/memberRoles/joinOpen/joinCode); לא נוגע ב-config/manager/provisioned.
+    // (members/memberConfigs/joinOpen/joinCode); לא נוגע ב-config/manager/provisioned.
     match /platformOrgs/{slug} {
       allow read: if superAdmin() || orgMember(slug);
       allow create, delete: if superAdmin();
@@ -71,7 +74,7 @@ service cloud.firestore {
                  .hasOnly(['members', 'memberConfigs', 'joinOpen', 'joinCode']));
 
       // בקשות-הצטרפות של עובדות — יצירה ע"י המבקש (uid תואם); קריאה/מחיקה —
-      // מנהל-הארגון או מייל-על. אישור/דחייה = המנהל מעדכן members/memberRoles למעלה
+      // מנהל-הארגון או מייל-על. אישור/דחייה = המנהל מעדכן members/memberConfigs למעלה
       // ואז מוחק את הבקשה.
       match /joinRequests/{uid} {
         allow create: if request.auth != null && request.auth.uid == uid;
