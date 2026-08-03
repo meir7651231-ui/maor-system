@@ -12,6 +12,7 @@ import {
   effectiveConfigFor,
   genJoinCode,
   isMember,
+  orgEnabledFeatures,
   orgEnabledModules,
   isOrgManager,
   isValidSlug,
@@ -140,6 +141,24 @@ describe('👥 ORGADMIN — היררכיית 3 שכבות + כרטיס-עובד 
     expect(scope).not.toContain('shop');
   });
 
+  it('orgEnabledFeatures: רק דגלים דלוקים-בארגון ותחת מודול-דלוק (תקרת תת-הדגלים)', () => {
+    const FEATS = [
+      { key: 'families.docs', module: 'families' },
+      { key: 'families.cred', module: 'families' },
+      { key: 'supporters.hist', module: 'supporters' },
+      { key: 'shell.lock', module: 'shell' }, // פסאודו-מודול — לא תלוי במודול-אמיתי
+    ];
+    const cfg = {
+      modules: { families: true, supporters: false }, // supporters כבוי בארגון
+      features: { 'families.cred': false }, // הבעלים כיבה דגל זה
+    };
+    const keys = orgEnabledFeatures(cfg, FEATS).map((f) => f.key);
+    expect(keys).toContain('families.docs'); // מודול דלוק + דגל דלוק
+    expect(keys).not.toContain('families.cred'); // דגל שהבעלים כיבה ⇒ לא ניתן לחלוקה
+    expect(keys).not.toContain('supporters.hist'); // תחת מודול כבוי ⇒ מוסתר
+    expect(keys).toContain('shell.lock'); // פסאודו-מודול נשאר
+  });
+
   it('overrideOf: מחזיר את הכרטיס, ריק לחבר-בלי-כרטיס', () => {
     expect(overrideOf('rina@maor.org', org).modules?.supporters).toBe(false);
     expect(overrideOf('boss@maor.org', org)).toEqual({});
@@ -171,8 +190,10 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     expect(panelSrc).toContain('members: [mgr]');
   });
 
-  it('פאנל-המנהל: אשף מצומצם ל-orgEnabledModules + 3 הפעולות', () => {
-    expect(managerSrc).toContain('orgEnabledModules'); // רק מה שהבעלים הדליק
+  it('פאנל-המנהל: אשף מצומצם ל-orgEnabledModules + תת-דגלים + 3 הפעולות', () => {
+    expect(managerSrc).toContain('orgEnabledModules'); // רק מודולים שהבעלים הדליק
+    expect(managerSrc).toContain('orgEnabledFeatures'); // תת-דגלים בתוך התקרה (100%)
+    expect(managerSrc).toContain('toggleFeatureFor'); // הדלקה/כיבוי דגל פר-עובד
     expect(managerSrc).toContain('joinOpen'); // מתג הרשמת-עובדים
     expect(managerSrc).toContain('fetchOrgJoinRequests'); // מושך בקשות
     expect(managerSrc).toContain('setEmployeeOverride'); // כרטיס-עובד

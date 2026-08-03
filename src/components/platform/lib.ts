@@ -116,6 +116,25 @@ export function orgEnabledModules(orgConfig: { modules?: Record<string, boolean>
   return ALL_MODULES.filter((m) => orgConfig.modules?.[m] !== false);
 }
 
+/**
+ * טווח **תת-הדגלים** שהמנהל יכול לחלק לעובדות = דגלים ש**דלוקים בארגון**
+ * (לא-false) ושהמודול-האב שלהם (אם הוא מודול-אמיתי) דלוק. דגל שהבעלים כיבה
+ * לארגון, או שנמצא תחת מודול כבוי — לא מופיע למנהל (עקרון התקרה, גם ברזולוציית-דגל).
+ * טהור; מקבל את מרשם ה-FEATURES מבחוץ (בלי תלות מעגלית).
+ */
+export function orgEnabledFeatures<F extends { key: string; module: string }>(
+  orgConfig: { modules?: Record<string, boolean>; features?: Record<string, boolean> },
+  features: readonly F[],
+): F[] {
+  const enabledMods = new Set<string>(orgEnabledModules(orgConfig));
+  return features.filter((f) => {
+    if (orgConfig.features?.[f.key] === false) return false; // דגל כבוי בארגון
+    const isRealModule = (ALL_MODULES as string[]).includes(f.module);
+    if (isRealModule && !enabledMods.has(f.module)) return false; // מודול-אב כבוי
+    return true;
+  });
+}
+
 /** האם המייל חבר בארגון (עובד/ת מאושרת או מנהל)? */
 export function isMember(email: string, org: OrgCloudDoc): boolean {
   const e = normEmail(email);
