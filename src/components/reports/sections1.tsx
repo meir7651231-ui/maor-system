@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { Db, Enrollment } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { Chip } from '../ui';
 import type { Cell } from './csv';
 import { ReportTable, Section, type Row } from './parts';
@@ -181,9 +181,11 @@ export function AttendanceSection(props: SectionProps) {
           <Chip on={isCourse} onClick={() => setMode('course')}>
             {'לפי ' + termOf(config, 'entity.course', 'חוג')}
           </Chip>
-          <Chip on={!isCourse} onClick={() => setMode('member')}>
-            {'לפי ' + termOf(config, 'entity.student', 'תלמיד/ה')}
-          </Chip>
+          {featureOn(config, 'reports.attendance.member') && (
+            <Chip on={!isCourse} onClick={() => setMode('member')}>
+              {'לפי ' + termOf(config, 'entity.student', 'תלמיד/ה')}
+            </Chip>
+          )}
         </>
       }
     >

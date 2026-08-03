@@ -66,6 +66,16 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.enroll.inlinecreate', label: 'תלמיד/ה חדש/ה מתוך השיבוץ', desc: 'יצירת משפחה חדשה והוספת בן משפחה ישירות ממודאל השיבוץ — בלי לצאת מהמסך', module: 'courses' },
   { key: 'courses.roomslive', label: 'רצועת חדרים LIVE', desc: 'צ׳יפ לכל חדר בראש מסך החוגים — 🟢 פנוי / 🔴 החוג שמתקיים עכשיו (לחיצה פותחת אותו)', module: 'courses' },
   { key: 'courses.gradeimg', label: 'טווח כיתות ותמונת חוג', desc: 'שדות מכיתה/עד-כיתה (גן–י"ב) שנכנסים לסינון השיבוץ החכם + תמונת חוג בטופס ובכרטיס', module: 'courses' },
+  { key: 'courses.absence', label: 'רישום חיסורים', desc: 'רישום חיסור/No-Show לתלמיד (מכרטיס החוג והיומן) + מדד אמינות', module: 'courses' },
+  { key: 'courses.absence.history', label: 'היסטוריית חיסורים', desc: 'כפתור 📜 לצפייה בהיסטוריית החיסורים של התלמיד/ה', module: 'courses' },
+  { key: 'courses.makeup.justified', label: 'חיסור מוצדק (השלמה)', desc: 'תיבת "חיסור מוצדק" — זכאות להשלמה גם מתחת ל-48ש׳ (מחלה/אירוע)', module: 'courses' },
+  { key: 'courses.reminder', label: 'תזכורת ללוח', desc: 'כפתור "🔔 תזכורת ללוח" — יצירת אירוע תזכורת לחוג בלוח השנה', module: 'courses' },
+  { key: 'courses.enroll.freeze', label: 'הקפאת שיבוץ', desc: 'הקפאה/הפשרה זמנית של שיבוץ (הניקוב נחסם עד הפשרה)', module: 'courses' },
+  { key: 'courses.enroll.end', label: 'סיום שיבוץ', desc: 'סימון שיבוץ כ"הסתיים" (נשמר בדוח ההיסטורי)', module: 'courses' },
+  { key: 'courses.enroll.note', label: 'הערה על שיבוץ', desc: 'שדה הערה חופשית פר-תלמיד בניהול השיבוץ', module: 'courses' },
+  { key: 'courses.notes', label: 'הערות פנימיות לחוג', desc: 'שדה הערות פנימיות בכרטיס החוג', module: 'courses' },
+  { key: 'courses.colfilter', label: 'סינון עמודות ברשימה', desc: 'כפתור "⏷ סינון עמודות" ושורת שדות סינון ברשימת החוגים', module: 'courses' },
+  { key: 'courses.viewtoggle', label: 'החלפת גריד/רשימה', desc: 'כפתור "▦ גריד / ☰ רשימה" במסך החוגים', module: 'courses' },
 
   // ——— לוח שנה ———
   { key: 'calendar.dayview', label: 'תצוגת יום', desc: 'מעבר לתצוגת יום מפורטת בלוח השנה', module: 'calendar' },
@@ -84,10 +94,15 @@ export const FEATURES: FeatureDef[] = [
   { key: 'calendar.layers.reminders', label: 'שכבת תזכורות', desc: 'אירועי תזכורת בלוח', module: 'calendar' },
   { key: 'calendar.layers.calls', label: 'שכבת טלפונים', desc: 'אירועי שיחה בלוח', module: 'calendar' },
   { key: 'calendar.layers.family', label: 'שכבת אירועים משפחתיים', desc: 'אירועים המשויכים למשפחה בלוח', module: 'calendar' },
+  { key: 'calendar.export', label: 'דו"ח מותאם מהלוח', desc: 'כפתור "📊 דו"ח מותאם" בכותרת הלוח — פתיחת ייצוא מותאם', module: 'calendar' },
+  { key: 'calendar.layers.urgent', label: 'סינון "דחוף בלבד"', desc: 'צ׳יפ סינון להצגת אירועים דחופים בלבד', module: 'calendar' },
+  { key: 'calendar.hebtoggle', label: 'מתג גריד עברי/לועזי', desc: 'כפתור החלפה בין גריד עברי ללועזי (כבוי = נעול לברירת-המחדל)', module: 'calendar' },
 
   // ——— יומן חדרים ———
   { key: 'diary.booking', label: 'הזמנת משבצת', desc: 'הזמנת משבצת זמן בחדר ישירות מהיומן', module: 'diary' },
   { key: 'diary.utilization', label: 'ניצולת חדרים', desc: 'סטטיסטיקת ניצולת ותפוסה של החדרים', module: 'diary' },
+  { key: 'diary.attendance', label: 'פאנל נוכחות ביומן', desc: 'טבלת נוכחות/חיסור למפגש ישירות ביומן החדרים', module: 'diary' },
+  { key: 'diary.inactivewarn', label: 'אזהרת חדר לא-פעיל', desc: 'באנר "חוגים המשויכים לחדר לא פעיל/לא קיים" ביומן', module: 'diary' },
 
   // ——— תורמים ———
   { key: 'supporters.rfm', label: 'דירוג תורמים', desc: 'דירוג RFM — תדירות, עדכניות וסכום תרומות', module: 'supporters' },
@@ -101,6 +116,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.hist', label: 'תרומות מהקובץ ההיסטורי', desc: 'מיזוג התרומות שהגיעו מהקובץ ההיסטורי (גיבוי לגאסי) לרשימת "כל התרומות" בכרטיס', module: 'supporters' },
   { key: 'supporters.ayin.sheet', label: 'גיליון מעקב להורדה/ייבוא', desc: 'ייצוא גיליון מעקב הטיפול ל-CSV, מילוי מחוץ למערכת וייבוא חזרה (תת-דגל של מעקב טיפול)', module: 'supporters' },
   { key: 'supporters.import.preview', label: 'סיכום לפני ייבוא', desc: 'ייבוא תומכות דו-שלבי — בדיקת הקובץ והצגת חדשות/עדכונים לפני ההחלה; כבוי = החלה מיידית', module: 'supporters' },
+  { key: 'supporters.thankyou', label: 'תזכורת "התקשר לתודה"', desc: 'כפתור "📞 תודה" — יצירת אירוע תזכורת קשר בלוח', module: 'supporters' },
+  { key: 'supporters.click2call', label: 'חיוג ישיר מהרשימה', desc: 'קישור tel: להתקשרות ישירה מטבלת התומכים', module: 'supporters' },
 
   // ——— מסך הבית ———
   { key: 'home.digest', label: 'תקציר הבוקר', desc: 'תקציר יומי בראש מסך הבית', module: 'home' },
@@ -134,6 +151,12 @@ export const FEATURES: FeatureDef[] = [
   { key: 'reports.periodic', label: 'דוחות תקופתיים', desc: 'מתגי יומי/שבועי/חודשי והפקה מיידית', module: 'reports' },
   { key: 'reports.custom.full', label: 'דו"ח מותאם מלא', desc: 'רשימות השדות המלאות מהקובץ החי (חוגים 14 · תומכות 17), טווח עברי חי, תצוגה מקדימה עם עריכת הערות ובחר-הכל/נקה', module: 'reports' },
   { key: 'reports.export.full', label: 'השלמות ייצוא CSV', desc: 'ייצוא אירועים ישיר (עברי+לועזי+עדיפות), עמודות כיתות/הכנסות בחוגים ופעולת "⬇ ייצוא CSV" בחיפוש המהיר', module: 'reports' },
+  { key: 'reports.csv', label: 'ייצוא/הדפסה פר-סעיף', desc: 'כפתורי "⬇ CSV" ו"🖨 הדפסה" בכל סעיף דוח', module: 'reports' },
+  { key: 'reports.management.recon', label: 'התחשבנות במבט-ההנהלה', desc: 'קבוצת "💰 התחשבנות" (יעד-תקציב/סבסוד/עלויות) במבט-ההנהלה', module: 'reports' },
+  { key: 'reports.management.sponsor', label: 'אימוצים במבט-ההנהלה', desc: 'קבוצת "🤝 אימוצים" (אמץ חתן/משפחה) במבט-ההנהלה', module: 'reports' },
+  { key: 'reports.donations.bycat', label: 'תרומות לפי קטגוריה', desc: 'תת-טבלת פילוח תרומות לפי קטגוריה בסיכום התרומות', module: 'reports' },
+  { key: 'reports.families.geo', label: 'פילוח עיר/קהילה', desc: 'טבלאות פילוח משפחות לפי עיר ולפי קהילה במבט-העל', module: 'reports' },
+  { key: 'reports.attendance.member', label: 'נוכחות לפי תלמיד/ה', desc: 'מצב "לפי תלמיד/ה" בדוח הנוכחות (כולל חיסור אחרון)', module: 'reports' },
 
   // ——— קופות צדקה ———
   { key: 'tzedaka.campaigns', label: 'מבצעי התרמה', desc: 'ניהול מבצעים עם יעד ושיוך ריקונים למבצע', module: 'tzedaka' },
@@ -143,6 +166,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'tzedaka.inlinecreate', label: 'הוספת לא-רשומים', desc: 'יצירת משפחה חדשה או ילד/הורה חדש ישירות מתוך העמודה', module: 'tzedaka' },
   { key: 'tzedaka.familypanel', label: 'פאנל בכרטיס המשפחה', desc: 'קופות שהמשפחה מחזיקה ורכזים בני הבית — תצוגה בלבד בכרטיס המשפחה', module: 'tzedaka' },
   { key: 'tzedaka.export', label: 'תדפיס וייצוא', desc: 'תדפיס רכז לסבב שטח + ייצוא CSV של כל הריקונים', module: 'tzedaka' },
+  { key: 'tzedaka.boxstatus', label: 'מעברי-סטטוס לקופה', desc: 'כפתורי "⤵ למשרד" / "⚠ אבדה" ישירות מכרטיס הרכז', module: 'tzedaka' },
 
   // ——— חנות מוצרי-שירות ———
   { key: 'shop.stores', label: 'חנויות שותפות', desc: 'ניהול חנויות שותפות וקופונים לרכישה מסובסדת', module: 'shop' },
@@ -166,6 +190,7 @@ export const FEATURES: FeatureDef[] = [
   // ——— חלוקה (shop7) ———
   { key: 'shop7.familypanel', label: 'פאנל חלוקה בכרטיס המשפחה', desc: 'מסירות המשפחה וסטטוסן (איסוף/בדרך/נמסר) — תצוגה בלבד בכרטיס המשפחה', module: 'shop7' },
   { key: 'shop7.export', label: 'תדפיס וייצוא מסירות', desc: 'תדפיס מסירות פר-מתנדב (ליום) + ייצוא CSV של כל המסירות — כולל סטטוס (שקיפות)', module: 'shop7' },
+  { key: 'shop7.capacity', label: 'קיבולת מתנדב', desc: 'שדה "קיבולת מסירות ליום" + התרעת עומס-יתר על מתנדב', module: 'shop7' },
 
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },

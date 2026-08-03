@@ -284,6 +284,7 @@ export function CourseDetail(props: { course: Course }) {
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {/* P3 פריט 3 — תזכורת ללוח על שם החוג (לגאסי: כפתור 🔔 בכרטיס) */}
+          {featureOn(cfg, 'courses.reminder') && (
           <Btn
             onClick={() => {
               upsertEvent({
@@ -307,6 +308,7 @@ export function CourseDetail(props: { course: Course }) {
           >
             🔔 תזכורת ללוח
           </Btn>
+          )}
           {featureOn(cfg, 'courses.printout.custom') && (
             <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
               📊 דו"ח מותאם
@@ -481,13 +483,15 @@ export function CourseDetail(props: { course: Course }) {
                               >
                                 ⚙
                               </Btn>
-                              <Btn
-                                sm
-                                title="רישום חיסור (נימוק חובה)"
-                                onClick={() => setModal({ kind: 'absence', enrollmentId: e.id })}
-                              >
-                                ✕
-                              </Btn>
+                              {featureOn(cfg, 'courses.absence') && (
+                                <Btn
+                                  sm
+                                  title="רישום חיסור (נימוק חובה)"
+                                  onClick={() => setModal({ kind: 'absence', enrollmentId: e.id })}
+                                >
+                                  ✕
+                                </Btn>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -624,29 +628,33 @@ export function CourseDetail(props: { course: Course }) {
             <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
               {c.description || 'אין תיאור.'}
             </div>
-            <div style={{ height: 1, background: 'var(--line)' }} />
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-soft)', marginBottom: 5 }}>
-                {'📝 הערות פנימיות על ה' + termOf(cfg, 'entity.course', 'חוג')}
-              </div>
-              <div style={{ display: 'flex', gap: 7 }}>
-                <input
-                  value={noteVal}
-                  onChange={(e) => setNoteVal(e.target.value)}
-                  placeholder="לדוגמה: להביא חומרים, גבייה, הסעות…"
-                />
-                <Btn
-                  sm
-                  kind="primary"
-                  onClick={() => {
-                    upsertCourse({ ...c, notes: noteVal.trim() });
-                    toast('ההערה על ה' + termOf(cfg, 'entity.course', 'חוג') + ' נשמרה');
-                  }}
-                >
-                  שמירה
-                </Btn>
-              </div>
-            </div>
+            {featureOn(cfg, 'courses.notes') && (
+              <>
+                <div style={{ height: 1, background: 'var(--line)' }} />
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-soft)', marginBottom: 5 }}>
+                    {'📝 הערות פנימיות על ה' + termOf(cfg, 'entity.course', 'חוג')}
+                  </div>
+                  <div style={{ display: 'flex', gap: 7 }}>
+                    <input
+                      value={noteVal}
+                      onChange={(e) => setNoteVal(e.target.value)}
+                      placeholder="לדוגמה: להביא חומרים, גבייה, הסעות…"
+                    />
+                    <Btn
+                      sm
+                      kind="primary"
+                      onClick={() => {
+                        upsertCourse({ ...c, notes: noteVal.trim() });
+                        toast('ההערה על ה' + termOf(cfg, 'entity.course', 'חוג') + ' נשמרה');
+                      }}
+                    >
+                      שמירה
+                    </Btn>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </section>
       </div>

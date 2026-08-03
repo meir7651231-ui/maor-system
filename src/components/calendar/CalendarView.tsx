@@ -307,13 +307,17 @@ export function CalendarView() {
             <Btn onClick={nextMonth} title="חודש הבא">
               ‹
             </Btn>
-            <Btn onClick={toggleHeb} title="החלפת הגריד: חודש עברי מלא (א׳–ל׳) או חודש לועזי">
-              {hebMode ? 'גריד עברי ✓' : 'גריד לועזי'}
-            </Btn>
+            {featureOn(config, 'calendar.hebtoggle') && (
+              <Btn onClick={toggleHeb} title="החלפת הגריד: חודש עברי מלא (א׳–ל׳) או חודש לועזי">
+                {hebMode ? 'גריד עברי ✓' : 'גריד לועזי'}
+              </Btn>
+            )}
             <Btn onClick={goToday}>היום</Btn>
-            <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
-              📊 דו"ח מותאם
-            </Btn>
+            {featureOn(config, 'calendar.export') && (
+              <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
+                📊 דו"ח מותאם
+              </Btn>
+            )}
             <Btn kind="primary" onClick={() => setModal({ ev: null, date: isoOf(new Date()) })}>
               + אירוע חדש
             </Btn>
@@ -343,9 +347,11 @@ export function CalendarView() {
             {fc.key === 'courses' ? termOf(config, 'nav.courses', 'חוגים') : fc.label}
           </Chip>
         ))}
-        <Chip on={filters.urgentOnly} onClick={() => setFilters((p) => ({ ...p, urgentOnly: !p.urgentOnly }))}>
-          דחוף בלבד
-        </Chip>
+        {featureOn(config, 'calendar.layers.urgent') && (
+          <Chip on={filters.urgentOnly} onClick={() => setFilters((p) => ({ ...p, urgentOnly: !p.urgentOnly }))}>
+            דחוף בלבד
+          </Chip>
+        )}
       </div>
 
       <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: 12 }}>

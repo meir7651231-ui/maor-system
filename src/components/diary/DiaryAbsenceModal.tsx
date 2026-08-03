@@ -7,6 +7,7 @@ import { useState } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
+import { featureOn } from '../../lib/config';
 import { DAY_NAMES, isoToday, makeupEligibility, nextSessionDate, pad2 } from './lib';
 
 export function DiaryAbsenceModal(props: {
@@ -16,6 +17,7 @@ export function DiaryAbsenceModal(props: {
   onClose: () => void;
 }) {
   const db = useApp((s) => s.db);
+  const config = useApp((s) => s.config);
   const addAbsence = useApp((s) => s.addAbsence);
   const punch = useApp((s) => s.punch);
   const addCred = useApp((s) => s.addCred);
@@ -98,7 +100,7 @@ export function DiaryAbsenceModal(props: {
           ]}
         />
       </Field>
-      {kind === 'cancel' && (
+      {kind === 'cancel' && featureOn(config, 'courses.makeup.justified') && (
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, margin: '2px 0 10px', cursor: 'pointer' }}>
           <input type="checkbox" checked={justified} onChange={(e) => setJustified(e.currentTarget.checked)} />
           <span>חיסור מוצדק (מחלה / אירוע משפחתי) — זכאי/ת להשלמה גם מתחת ל-48 שעות</span>

@@ -116,12 +116,16 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number; d
                       >
                         {punchArm?.id === row.e.id ? 'לאשר ניקוב?' : isPresent ? '✓ נוכח/ת · בטל' : '✓ נוכח/ת'}
                       </Btn>
-                      <Btn sm title="רישום חיסור (נימוק חובה)" onClick={() => setAbsFor({ id: row.e.id, who })}>
-                        ✕ חיסור
-                      </Btn>
-                      <Btn sm title="היסטוריית חיסורים" onClick={() => setHistFor({ id: row.e.id, who: nameOf(row) })}>
-                        📜
-                      </Btn>
+                      {featureOn(config, 'courses.absence') && (
+                        <Btn sm title="רישום חיסור (נימוק חובה)" onClick={() => setAbsFor({ id: row.e.id, who })}>
+                          ✕ חיסור
+                        </Btn>
+                      )}
+                      {featureOn(config, 'courses.absence.history') && (
+                        <Btn sm title="היסטוריית חיסורים" onClick={() => setHistFor({ id: row.e.id, who: nameOf(row) })}>
+                          📜
+                        </Btn>
+                      )}
                     </div>
                   </td>
                 </tr>

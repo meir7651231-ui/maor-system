@@ -210,9 +210,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <Btn kind="primary" onClick={() => setDonOpen(true)}>
             ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
           </Btn>
-          <Btn onClick={thankYouCall} title="תזכורת טלפון לתודה — נכנסת ללוח השנה">
-            📞 תודה
-          </Btn>
+          {featureOn(config, 'supporters.thankyou') && (
+            <Btn onClick={thankYouCall} title="תזכורת טלפון לתודה — נכנסת ללוח השנה">
+              📞 תודה
+            </Btn>
+          )}
           <Btn onClick={() => setEditOpen(true)}>✎ עריכה</Btn>
           <Btn kind="danger" onClick={onDelete}>
             {armDelete ? 'לאשר מחיקה סופית?' : '🗑 מחיקה'}

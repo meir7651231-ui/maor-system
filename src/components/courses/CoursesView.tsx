@@ -199,9 +199,11 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                 🎡 מצא חוג
               </Btn>
             )}
-            <Btn onClick={toggleView} title="החלפת תצוגה: גריד / רשימה">
-              {view === 'list' ? '▦ גריד' : '☰ רשימה'}
-            </Btn>
+            {featureOn(cfg, 'courses.viewtoggle') && (
+              <Btn onClick={toggleView} title="החלפת תצוגה: גריד / רשימה">
+                {view === 'list' ? '▦ גריד' : '☰ רשימה'}
+              </Btn>
+            )}
             {!myTeacherId && (
               <Btn kind="primary" onClick={() => setFormOpen(true)}>
                 ➕ הוספת {termOf(cfg, 'entity.course', 'חוג')}
@@ -259,7 +261,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             options={[{ value: 'all', label: 'כל הסמסטרים' }, ...sems.map((x) => ({ value: x, label: x }))]}
           />
         </div>
-        {view === 'list' && (
+        {view === 'list' && featureOn(cfg, 'courses.colfilter') && (
           <Btn
             onClick={() => setColFOn(!colFOn)}
             title="שורת סינון מתחת לכל עמודה: שם, קהל, מורה, מסלול, תלמידים (3 / 3+ / 2-4) ומחיר"
