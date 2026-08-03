@@ -141,6 +141,32 @@ function migrateCred(raw: unknown): FamilyCred {
  * v3: נוסף שדה supporter.ayin (מעקב טיפול) — אופציונלי; תומכות קיימות
  * עוברות כמות שהן (ayin נשאר undefined עד השימוש הראשון), אין צורך בטרנספורמציה.
  */
+/**
+ * תכנון דדופ מספרי-קבלה דטרמיניסטי (#5.5a). כשכמה רשומות חולקות אותו rid (מרוץ
+ * סנכרון בין-מכשירי), הרשומה **המוקדמת-בתאריך** שומרת על המספר המקורי (מספר נמוך
+ * = הונפק מוקדם, המשמעות הסטנדרטית של מספור-קבלות רציף), והאחרות ממוספרות מחדש
+ * מעל המונה הזרוע. שובר-שוויון: אינדקס נמוך. כך אותה קבלה שומרת על מספרה בכל
+ * טעינה — בלי תלות בסדר-המערך, שמיזוג-הענן עלול לשנות (החשיפה שסומנה ב-ANALYSIS).
+ *
+ * טהור: מקבל רשומות שטוחות {rid,date}, מחזיר newRid[] (null = שומר מקורי) והמונה
+ * הבא. no-op מוחלט כשאין כפילויות (הנתיב הרווח) ⇒ אפס שינוי לנתונים נקיים.
+ */
+export function planRidRenumber(
+  entries: { rid?: string; date?: string }[],
+  startSeq: number,
+  prefix: string,
+): { newRid: (string | null)[]; nextSeq: number } {
+  const keep = new Map<string, number>();
+  entries.forEach((e, i) => {
+    if (!e.rid) return;
+    const prev = keep.get(e.rid);
+    if (prev === undefined || (e.date ?? '') < (entries[prev].date ?? '')) keep.set(e.rid, i);
+  });
+  let seq = startSeq;
+  const newRid = entries.map((e, i) => (!e.rid || keep.get(e.rid) === i ? null : prefix + seq++));
+  return { newRid, nextSeq: seq };
+}
+
 export function migrate(raw: unknown): Db | null {
   if (!raw || typeof raw !== 'object') return null;
   const db = raw as Partial<Db> & { v?: number };
@@ -211,34 +237,27 @@ export function migrate(raw: unknown): Db | null {
   if (dNext > merged.donationSeq) merged.donationSeq = dNext;
   if (sNext > merged.shopReceiptSeq) merged.shopReceiptSeq = sNext;
   // הגנה על ייחודיות מספרי-קבלה בנתונים: מרוץ בין-מכשירי (אותו receiptSeq נקרא
-  // בשני מכשירים) עלול להנפיק rid זהה לשתי קבלות. פס זה רץ בכל טעינה ובכל
-  // משיכה מהענן (pullAll→migrate): שומר את ההופעה הראשונה של כל rid וממספר מחדש
-  // כפילויות מהמונה הזרוע. הקבלה עצמה נוצרת on-demand מ-p.rid, כך שהמספר מתוקן.
+  // בשני מכשירים) עלול להנפיק rid זהה לשתי קבלות. פס זה רץ בכל טעינה ובכל משיכה
+  // מהענן (pullAll→migrate). #5.5a: הדדופ דטרמיניסטי — הקבלה המוקדמת-בתאריך שומרת
+  // על מספרה (planRidRenumber), בלי תלות בסדר-המערך, כדי שמספר שכבר נמסר לתורם לא
+  // יזוז בכל טעינה. הקבלה עצמה נוצרת on-demand מ-p.rid, כך שהמספר מתוקן.
   // מנרמלים גם את שדות-הרשימה הפנימיים ל-[] כשהם חסרים (לא רק כשהם כבר מערך) —
   // מסמך שהגיע מהענן/גיבוי ללא payments/absences/donations היה משאיר undefined,
   // וקוד ש-.map/.filter עליהם (paidOf, sessionsOf, דוחות) היה קורס.
-  const seenR = new Set<string>();
   merged.enrollments = merged.enrollments.map((e) => ({
     ...e,
-    payments: Array.isArray(e.payments)
-      ? e.payments.map((p) => {
-          if (p.rid && seenR.has(p.rid)) return { ...p, rid: 'R-' + merged.receiptSeq++ };
-          if (p.rid) seenR.add(p.rid);
-          return p;
-        })
-      : [],
+    payments: Array.isArray(e.payments) ? e.payments : [],
     absences: Array.isArray(e.absences) ? e.absences : [],
   }));
-  const seenD = new Set<string>();
+  const payCoords = merged.enrollments.flatMap((e, ei) => e.payments.map((p, pi) => ({ ei, pi, rid: p.rid, date: p.date })));
+  const rPlan = planRidRenumber(payCoords, merged.receiptSeq, 'R-');
+  payCoords.forEach((c, k) => {
+    if (rPlan.newRid[k]) merged.enrollments[c.ei].payments[c.pi] = { ...merged.enrollments[c.ei].payments[c.pi], rid: rPlan.newRid[k]! };
+  });
+  merged.receiptSeq = rPlan.nextSeq;
   merged.supporters = merged.supporters.map((s) => ({
     ...s,
-    donations: Array.isArray(s.donations)
-      ? s.donations.map((d) => {
-          if (d.rid && seenD.has(d.rid)) return { ...d, rid: 'D-' + merged.donationSeq++ };
-          if (d.rid) seenD.add(d.rid);
-          return d;
-        })
-      : [],
+    donations: Array.isArray(s.donations) ? s.donations : [],
     // hist מהקובץ ההיסטורי (לגאסי {d,a,c}) — נרמול: לא-מערך → undefined;
     // איברים בלי תאריך d או סכום a מספרי — נזרקים. מטבע לא-מוכר → ברירת ₪ בתצוגה.
     hist: Array.isArray(s.hist)
@@ -249,6 +268,12 @@ export function migrate(raw: unknown): Db | null {
           .map((h) => ({ d: h.d, a: h.a, ...(h.c === '$' || h.c === '₪' ? { c: h.c } : {}) }))
       : undefined,
   }));
+  const donCoords = merged.supporters.flatMap((s, si) => s.donations.map((d, di) => ({ si, di, rid: d.rid, date: d.date })));
+  const dPlan = planRidRenumber(donCoords, merged.donationSeq, 'D-');
+  donCoords.forEach((c, k) => {
+    if (dPlan.newRid[k]) merged.supporters[c.si].donations[c.di] = { ...merged.supporters[c.si].donations[c.di], rid: dPlan.newRid[k]! };
+  });
+  merged.donationSeq = dPlan.nextSeq;
   // קופות צדקה — ריפוי פר-רשומה (מודול מבודד, אותה רוח כמו שאר הריפויים):
   // רכז: score לא-מספרי → 0, scoreLog לא-מערך → []; קופה: collections
   // לא-מערך → [], סטטוס זר → 'office'
