@@ -1,10 +1,11 @@
 /**
  * רצ'ט — applyVerticalPack (חבילות-ורטיקל). המנוע שמאפשר להרכיב מערכת לכל
- * עסק: החלה מחליפה terms+modules בערכי החבילה, ושומרת את כל שאר הקונפיג
- * (firebase/adminEmails/theme/features). חבילה לא-מוכרת = no-op בטוח.
+ * עסק: החלה מחליפה terms+modules+features בערכי החבילה, ושומרת את כל שאר
+ * הקונפיג (firebase/adminEmails/theme). חבילה לא-מוכרת = no-op בטוח.
+ * ורטיקל מסחרי מכבה פיצ'רים ייחודיים-לעמותה (COMMERCIAL_OFF) — מוסך לא מציג §46.
  */
 import { describe, expect, it } from 'vitest';
-import { VERTICAL_PACKS, applyVerticalPack } from '../verticalPacks';
+import { VERTICAL_PACKS, applyVerticalPack, COMMERCIAL_OFF } from '../verticalPacks';
 import { TERM_DEFS } from '../../types/features';
 import { DEFAULT_CONFIG, type ModuleKey, type OrgConfig } from '../../types/config';
 
@@ -35,20 +36,42 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
     expect(c.terms!['entity.cred']).toBe('נקודות נאמנות');
   });
 
-  it('שומר את שאר הקונפיג — ענן, אדמין, ערכה, יכולות', () => {
+  it('שומר ענן/אדמין/ערכה — אך features מוחלף בפריסֶט הענף (לא נשמר)', () => {
     const c = applyVerticalPack(base, 'clinic');
     expect(c.firebase?.projectId).toBe('p');
     expect(c.adminEmails).toEqual(['admin@x.com']);
     expect(c.theme).toBe('heichal');
     expect(c.accent).toBe('#123456');
-    expect(c.features!['courses.punch']).toBe(false);
     expect(c.orgName).toBe('עסק לדוגמה');
+    // features הישן (courses.punch:false) הוחלף — עכשיו זה פריסֶט-הקליניקה
+    expect(c.features!['courses.punch']).toBeUndefined();
   });
 
-  it('חסד = ברירות מחדל (מונחים ומודולים ריקים = הכל דלוק)', () => {
+  it('חסד = ברירות מחדל (מונחים/מודולים/יכולות ריקים = הכל דלוק)', () => {
     const c = applyVerticalPack(base, 'chesed');
     expect(c.terms).toEqual({});
     expect(c.modules).toEqual({});
+    expect(c.features).toEqual({}); // עמותה — כל הפיצ'רים דלוקים
+  });
+
+  it('ורטיקל מסחרי מכבה פיצרים ייחודיים-לעמותה — מוסך/חנות לא מציגים §46', () => {
+    for (const id of ['clinic', 'shop', 'services', 'rooms', 'fleet', 'garage', 'hospitality']) {
+      const c = applyVerticalPack(base, id);
+      expect(c.features!['core.taxreceipt'], `${id} — §46 חייב להיות כבוי`).toBe(false);
+      expect(c.features!['families.cred'], `${id} — מדד-אמינות כבוי`).toBe(false);
+      expect(c.features!['shell.privacy'], `${id} — מצב-צנעה כבוי`).toBe(false);
+    }
+  });
+
+  it('🕊️ ורטיקל עמותתי (חסד/גמ"ח/התרמה) — §46 נשאר דלוק (features ריק)', () => {
+    for (const id of ['chesed', 'gemach', 'tzedakot']) {
+      const c = applyVerticalPack(base, id);
+      expect(c.features!['core.taxreceipt'], `${id} — §46 דלוק`).toBeUndefined();
+    }
+  });
+
+  it('COMMERCIAL_OFF מכיל רק ערכי false (כיבוי בלבד, בלי הדלקה מפתיעה)', () => {
+    for (const v of Object.values(COMMERCIAL_OFF)) expect(v).toBe(false);
   });
 
   it('חבילה לא-מוכרת → no-op בטוח (מחזיר את הקונפיג כמות שהוא)', () => {
