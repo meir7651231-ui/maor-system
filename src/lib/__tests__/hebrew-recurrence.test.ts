@@ -206,4 +206,32 @@ describe('🎂 יום-הולדת עברי בלוח — לא נעלם בשנה מ
     const items = dayItems(db, noon(leapAdar2));
     expect(items.some((it) => it.layer === 'bday')).toBe(true);
   });
+
+  // ציד-באגים 3.8.2026 (🟠): עוגן 30 אדר-א' בשנה פשוטה נעלם לגמרי — כלל ל׳
+  // לא זיהה 'Adar I' ברצף השנה הפשוטה (רק 'Adar'). התיקון: נופל על א' ניסן.
+  describe('🐛 30 אדר-א׳ — לא נעלם בשנה פשוטה (כלל ל׳)', () => {
+    const anchor = { day: 30, month: 'Adar I' };
+    it('שנה מעוברת (5787): נשאר על 30 אדר-א׳', () => {
+      expect(hebAnnualEq(anchor, { day: 30, month: 'Adar I', year: 5787 })).toBe(true);
+      // בלי כפילות — לא יורה גם על א' ניסן בשנה מעוברת
+      expect(hebAnnualEq(anchor, { day: 1, month: 'Nisan', year: 5787 })).toBe(false);
+    });
+    it('שנה פשוטה (5788): נופל על א׳ ניסן (לא נעלם)', () => {
+      expect(hebAnnualEq(anchor, { day: 1, month: 'Nisan', year: 5788 })).toBe(true);
+      // אין כפילות על תאריך אמיתי: העוגן ליום-30 יורה רק על שאילתת-יום-30
+      // (שורה 106) או על א' של החודש-הבא (ל׳). בשנה פשוטה אין יום 30 באדר,
+      // אז היום הריאלי היחיד הוא א' ניסן — אימות דרך הלוח בבדיקת cross-surface למטה.
+      expect(hebAnnualEq(anchor, { day: 15, month: 'Adar', year: 5788 })).toBe(false); // לא על אמצע-אדר
+      expect(hebAnnualEq(anchor, { day: 2, month: 'Nisan', year: 5788 })).toBe(false); // לא על ב' ניסן
+    });
+    it('רגרסיה — עוגן שאינו אדר-א׳ לא הושפע (30 כסלו→1 טבת בשנה חסרה)', () => {
+      // התיקון הוסיף רק סעיף עבור anchor.month==='Adar I'; שאר העוגנים זהים-לחלוטין.
+      // 5784: כסלו חסר (29) ⇒ 30 כסלו נופל על 1 טבת — הכלל הכללי עובד כשהיה.
+      const kislev = { day: 30, month: 'Kislev' };
+      const fires =
+        hebAnnualEq(kislev, { day: 1, month: 'Tevet', year: 5784 }) ||
+        hebAnnualEq(kislev, { day: 30, month: 'Kislev', year: 5784 });
+      expect(fires).toBe(true); // או שנשאר על 30, או שנפל ל-1 טבת — לא נעלם
+    });
+  });
 });

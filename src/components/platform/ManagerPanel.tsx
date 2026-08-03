@@ -125,8 +125,10 @@ export function ManagerPanel(props: { onClose: () => void }) {
 
   async function removeEmp(email: string) {
     if (!mod || !org) return;
-    const { members, memberConfigs } = removeMember(org, email);
-    await mod.writeOrgCloudDoc(slug, { members, memberConfigs });
+    const { members } = removeMember(org, email);
+    await mod.writeOrgCloudDoc(slug, { members });
+    // ציד-באגים 3.8 (🟠): merge:true לא מוחק מפתח-מפה ⇒ מוחקים את כרטיס-העובד מפורשות
+    await mod.deleteOrgMemberConfig(slug, email).catch(() => {});
     await refresh(mod);
     toast('העובד/ת הוסר/ה');
   }
@@ -150,7 +152,15 @@ export function ManagerPanel(props: { onClose: () => void }) {
                   onChange={() => {}}
                   dir="ltr"
                 />
-                <Btn sm onClick={() => void navigator.clipboard?.writeText(inviteLink).then(() => toast('הקישור הועתק'))}>
+                <Btn
+                  sm
+                  onClick={() =>
+                    void navigator.clipboard
+                      ?.writeText(inviteLink)
+                      .then(() => toast('הקישור הועתק'))
+                      .catch(() => toast('העתקה נכשלה — סמנו והעתיקו ידנית'))
+                  }
+                >
                   📋 העתק קישור
                 </Btn>
               </Field>

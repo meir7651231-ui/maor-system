@@ -62,7 +62,7 @@ export function CourseDetail(props: { course: Course }) {
   const upsertEvent = useApp((s) => s.upsertEvent);
   const nextId = useApp((s) => s.nextId);
   const go = useApp((s) => s.go);
-  const punch = useApp((s) => s.punch);
+  const setPresent = useApp((s) => s.setPresent);
   const addCred = useApp((s) => s.addCred);
   const toast = useApp((s) => s.toast);
   const cfg = useApp((s) => s.config);
@@ -132,9 +132,16 @@ export function CourseDetail(props: { course: Course }) {
       return;
     }
     setPunchArm(null);
-    // כרטיסייה — דרך פעולת punch של ה-store; מנוי חודשי — רישום נוכחות ידני.
-    if (e.plan === 'punch') punch(e.id);
-    else upsertEnrollment({ ...e, used: e.used + 1 });
+    // ציד-באגים 3.8.2026 (🟠): הכרטיס עקף את setPresent (#6) — used++ בלי presents[]
+    // ובלי שער-תאריך ⇒ (א) ניקוב-כפול חוצה-מסכים (כרטיס↔יומן שורפים 2 ניקובים למפגש
+    // אחד) · (ב) לחיצה כפולה באותו יום ספרה פעמיים · (ג) המונה-החודשי הראה 0. עכשיו
+    // דרך setPresent האידמפוטני (כרטיסייה+חודשי אחיד; מסרב כשאין יתרת-כרטיסייה).
+    const today = isoToday();
+    if ((e.presents ?? []).includes(today)) return toast('כבר נרשמה נוכחות היום');
+    if (!setPresent(e.id, today, true)) {
+      setModal({ kind: 'manage', enrollmentId: e.id });
+      return;
+    }
     const fam = db.families.find((f) => f.members.some((m) => m.id === e.memberId));
     if (fam) addCred(fam.id, 5, 'נוכחות (Check-in)');
     toast('הניקוב נרשם בהצלחה');

@@ -35,7 +35,7 @@ service cloud.firestore {
     function orgMember(slug) {
       return request.auth != null
         && request.auth.token.email.lower()
-          in get(/databases/$(database)/documents/platformOrgs/$(slug)).data.members;
+          in get(/databases/$(database)/documents/platformOrgs/$(slug)).data.get('members', []);
     }
     // מנהל-ארגון מואצל (ORGADMIN v3) — המייל שווה לשדה manager של הארגון.
     // המנהל מנהל את העובדות של הארגון שלו בלבד; מייל-העל מעל כולם.
@@ -94,6 +94,11 @@ service cloud.firestore {
     // בכלל ייעודי; readCloudEnvelope באפליקציה הוא failure-safe בכל מקרה.
 
     // אוספי השורש (הלקוח הקיים, cloudRoot) — allowlist כהיום + מיילי-על.
+    // ⚠️ אזהרת-אבטחה (ציד-באגים 3.8.2026): הכלל הרקורסיבי הזה תופס **גם** את
+    // platformOrgs/orgs (Firestore = OR של כל הכללים התואמים) ⇒ כל מייל ב-allowedRoot
+    // מקבל כתיבה חוצת-ארגונים. **כרגע בטוח** כי allowedRoot == superAdmin (מייל יחיד).
+    // 🔴 לפני שמוסיפים מייל לא-על ל-allowedRoot **ולפני הכנסת ארגון-ענן שני** — יש לצמצם
+    // כלל זה לאוספי-השורש בלבד (או להעביר את נתוני-השורש תחת קידומת ייעודית).
     match /{document=**} {
       allow read, write: if allowedRoot() || superAdmin();
     }

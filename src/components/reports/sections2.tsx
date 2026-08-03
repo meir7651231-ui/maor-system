@@ -31,8 +31,9 @@ interface Sums {
 function addTo(map: Map<string, Sums>, key: string, d: Donation): void {
   const s = map.get(key) ?? { n: 0, ils: 0, usd: 0 };
   s.n++;
-  if (d.cur === '$') s.usd += d.amount;
-  else s.ils += d.amount;
+  const amt = Number.isFinite(d.amount) ? d.amount : 0; // הגנת-NaN (גיבוי מושחת)
+  if (d.cur === '$') s.usd += amt;
+  else s.ils += amt;
   map.set(key, s);
 }
 

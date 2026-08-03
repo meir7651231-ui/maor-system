@@ -47,7 +47,7 @@ export function managementMetrics(db: Db, config?: OrgConfig): MetricGroup[] {
       if (!d.designation) continue;
       const g = sponsor.get(d.designation) ?? { n: 0, ils: 0 };
       g.n++;
-      if (d.cur !== '$') g.ils += d.amount;
+      if (d.cur !== '$') g.ils += Number.isFinite(d.amount) ? d.amount : 0; // הגנת-NaN (גיבוי מושחת)
       sponsor.set(d.designation, g);
     }
   }

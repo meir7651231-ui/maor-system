@@ -101,7 +101,13 @@ export function hebAnnualEq(
     const { seq, has30 } = scanHebYear(query.year);
     const qi = seq.indexOf(query.month);
     const prev = qi > 0 ? seq[qi - 1] : null;
-    if (prev && prev === anchor.month && !has30.has(prev)) return true;
+    // עוגן 30 אדר-א' בשנה *פשוטה*: אין 'Adar I' ברצף (רק 'Adar'), לכן ההשוואה
+    // הישירה נכשלה והאירוע נעלם לגמרי (באג — אזכרה/יום-הולדת ב-30 אדר-א' חסר
+    // מ-12 מתוך 19 שנים). כלל ל׳ המתועד: נופל על א' בחודש-הבא (=א' ניסן). אדר-א'
+    // בשנה פשוטה = ה-'Adar' היחיד, שאין בו 30 ⇒ יורה. (בשנה מעוברת אין נפילה —
+    // ל-Adar I יש 30, ההתאמה המדויקת מטפלת; ראה בדיקת-שימור.)
+    const prevMatches = prev === anchor.month || (anchor.month === 'Adar I' && prev === 'Adar');
+    if (prev && prevMatches && !has30.has(prev)) return true;
   }
   if (anchor.day !== query.day) return false;
   if (isAdar(anchor.month) || isAdar(query.month)) {

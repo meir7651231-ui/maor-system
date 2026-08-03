@@ -2183,6 +2183,10 @@ export const useApp = create<AppState>()((set, get) => {
         seq: Math.max(prev.seq, db.seq),
         receiptSeq: Math.max(prev.receiptSeq, db.receiptSeq),
         donationSeq: Math.max(prev.donationSeq, db.donationSeq),
+        // ציד-באגים 3.8.2026 (🟠): shopReceiptSeq (אישורי S- של החנות) הוא מונה-ענן
+        // כמו האחרים (metaOf/bumpCounter) אך נשמט מה-clamp ⇒ שחזור גיבוי ישן דרס
+        // בענן לערך נמוך ⇒ אישור S- כפול חוצה-מכשירים. ?? 0 — גיבוי שקדם לשדה.
+        shopReceiptSeq: Math.max(prev.shopReceiptSeq ?? 0, db.shopReceiptSeq ?? 0),
       };
       set({ db });
       scheduleSave();

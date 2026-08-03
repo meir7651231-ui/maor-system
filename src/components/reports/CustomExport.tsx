@@ -6,7 +6,7 @@
  * תאריך עברי חי ליד הטווח, "בחר הכל"/"נקה", ותצוגה מקדימה שבה עמודת
  * ההערות נערכת inline — לייצוא בלבד, ה-DB לא משתנה.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { buildCustomExport, expFieldDefs, overrideColumn, type ExportTarget } from '../../lib/customExport';
@@ -51,6 +51,11 @@ export function CustomExport(props: { target: ExportTarget; onClose: () => void 
     () => (preview && keys.length ? buildCustomExport(cfg, db, props.target, { from, to }, keys) : null),
     [preview, keys, cfg, db, props.target, from, to],
   );
+  // ציד-באגים 3.8.2026 (🟡): notesEdit ממופתח לפי אינדקס-שורה; שינוי טווח/שדות
+  // מזיז את הישויות בשורות ⇒ הערה שנערכה שויכה לישות אחרת בייצוא. מאפסים על שינוי.
+  useEffect(() => {
+    setNotesEdit({});
+  }, [from, to, keys]);
   const notesIdx = rows ? (rows[0] as string[]).indexOf('הערות') : -1;
 
   /** קיצור טווח נוח — החודש / השנה / הכול. */
