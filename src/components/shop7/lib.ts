@@ -73,12 +73,14 @@ export function pendingDeliveriesToday(db: Db, todayIso: string): Delivery[] {
 
 /**
  * שורות תדפיס ליום-חלוקה — מקובצות פר-מתנדב: כותרת-מתנדב ואז
- * "משפחה · סטטוס · הערה" לכל מסירה. familyName/volunteerName מוזרקים ב-caller.
+ * "משפחה · סטטוס · 📍 כתובת · הערה" לכל מסירה. familyName/volunteerName/address
+ * מוזרקים ב-caller; בלי address השורה זהה-ביט לפורמט הקודם (גל ב׳ — דף-מסלול
+ * אמיתי למתנדב על נייר).
  */
 export function deliveryListLines(
-  rows: Array<Delivery & { familyName: string; volunteerName: string }>,
+  rows: Array<Delivery & { familyName: string; volunteerName: string; address?: string }>,
 ): string[] {
-  const byVol = new Map<string, Array<Delivery & { familyName: string; volunteerName: string }>>();
+  const byVol = new Map<string, Array<Delivery & { familyName: string; volunteerName: string; address?: string }>>();
   for (const r of rows) {
     const arr = byVol.get(r.volunteerName) ?? [];
     arr.push(r);
@@ -87,7 +89,13 @@ export function deliveryListLines(
   const out: string[] = [];
   for (const [volName, list] of byVol) {
     out.push(`🦺 ${volName} (${list.length} מסירות)`);
-    for (const r of list) out.push(`  • ${r.familyName} · ${statusLabel(r.status)}${r.note ? ' · ' + r.note : ''}`);
+    for (const r of list) {
+      out.push(
+        `  • ${r.familyName} · ${statusLabel(r.status)}` +
+          (r.address ? ' · 📍 ' + r.address : '') +
+          (r.note ? ' · ' + r.note : ''),
+      );
+    }
   }
   return out;
 }
@@ -101,10 +109,15 @@ export function deliveriesCsvRows(db: Db, config?: OrgConfig): (string | number)
   const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   const dayDate = (id: string) => db.distributionDays.find((d) => d.id === id)?.date ?? '';
   const famName = (id: string) => db.families.find((f) => f.id === id)?.name ?? '';
+  const famAddr = (id: string) => {
+    const f = db.families.find((x) => x.id === id);
+    return f ? [f.address, f.city].map((s) => (s || '').trim()).filter(Boolean).join(', ') : '';
+  };
   const volName = (id: string) => db.volunteers.find((v) => v.id === id)?.name ?? '';
-  const rows: (string | number)[][] = [['תאריך', T('entity.family', 'משפחה'), 'מתנדב', 'סטטוס', 'הערה']];
+  // גל ב׳: עמודת כתובת (שדרוג-פורמט מתועד — ה-ratchet עודכן במודע)
+  const rows: (string | number)[][] = [['תאריך', T('entity.family', 'משפחה'), 'כתובת', 'מתנדב', 'סטטוס', 'הערה']];
   for (const d of db.deliveries) {
-    rows.push([dayDate(d.dayId), famName(d.familyId), volName(d.volunteerId), statusLabel(d.status), d.note ?? '']);
+    rows.push([dayDate(d.dayId), famName(d.familyId), famAddr(d.familyId), volName(d.volunteerId), statusLabel(d.status), d.note ?? '']);
   }
   return rows;
 }
