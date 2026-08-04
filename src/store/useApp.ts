@@ -49,7 +49,7 @@ import { roomClashError } from '../components/calendar/calLib';
 import { effectiveConfigFor, isOrgManager } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, featureOn, isSuperAdmin, loadOrgConfig, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
+import { applyTheme, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
@@ -710,8 +710,25 @@ export const useApp = create<AppState>()((set, get) => {
             const rootOk =
               isSuperAdmin(user.email) ||
               !!cfg.adminEmails?.some((m) => m.trim().toLowerCase() === mail);
-            setCloud({ membership: rootOk ? 'member' : 'pending' });
-            if (rootOk) gatedStart();
+            if (rootOk) {
+              setCloud({ membership: 'member' });
+              gatedStart();
+            } else {
+              // ניתוב-עצמי (ORGADMIN): "כפתור הכניסה עושה הכול" — מייל שאושר כחבר
+              // בארגון-פלטפורמה נכנס אוטומטית לאתר שלו (?org=slug), בלי קישור נפרד.
+              // עד שהתשובה חוזרת — 'checking' (מתחבר…). אין ארגון ⇒ מסך המתנה.
+              // findMemberOrgSlugs נופל בטוח ל-[] (בלי כלל-list/הרשאה) ⇒ המתנה.
+              setCloud({ membership: 'checking' });
+              void mod.findMemberOrgSlugs(user.email).then((slugs) => {
+                if (slugs.length && !orgSlugFromUrl()) {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('org', slugs[0]);
+                  window.location.replace(url.toString()); // טעינה מחדש לתחום-הארגון
+                  return;
+                }
+                setCloud({ membership: 'pending' });
+              });
+            }
           }
         } else if (!user && hadUser) {
           cloudCfgUnsub?.();
