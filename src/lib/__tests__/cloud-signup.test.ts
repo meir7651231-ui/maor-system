@@ -56,6 +56,17 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect(loginSrc).toContain('נאשר בהקדם');
   });
 
+  it("🛡 הגנת-מקור: גם השורש/ברירת-מחדל שער-כניסה — נרשם-חדש בשורש = ממתין (לא רק פלטפורמה)", () => {
+    // באג (4.8.2026): הרשמה בשורש פתחה את האפליקציה מיד — השורש דילג על שער-החברות
+    // לגמרי. התיקון: else (שורש/default) גם הוא גוזר membership='member' רק למייל-על
+    // או למורשי-השורש (adminEmails); כל השאר = 'pending'. נגזר מהמייל+הקונפיג ⇒ עמיד
+    // ברענון (לא מצב-זיכרון חולף).
+    expect(useAppSrc).toContain('rootOk');
+    expect(useAppSrc).toContain("membership: rootOk ? 'member' : 'pending'");
+    expect(useAppSrc).toContain('cfg.adminEmails?.some');
+    expect(useAppSrc).toContain('if (rootOk) gatedStart();');
+  });
+
   it('הגנת-מקור: Rules v2 — בקשות uid-תואם, ארגונים לחברים, כתיבה למיילי-על, שורש כהיום', () => {
     expect(rulesSrc).toContain('platformRequests/{uid}');
     expect(rulesSrc).toContain('request.auth.uid == uid');
