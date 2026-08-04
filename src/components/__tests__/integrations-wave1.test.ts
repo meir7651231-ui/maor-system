@@ -16,6 +16,8 @@ import supporterDetailSrc from '../supporters/SupporterDetail.tsx?raw';
 import shop7Src from '../shop7/Shop7View.tsx?raw';
 import coordSrc from '../tzedaka/CoordinatorsTab.tsx?raw';
 import calendarSrc from '../calendar/CalendarView.tsx?raw';
+import widgetsSrc from '../home/widgets.tsx?raw';
+import manageSrc from '../courses/ManageModal.tsx?raw';
 import wizardSrc from '../builder/BuilderWizard.tsx?raw';
 import handoffSrc from '../builder/handoff.ts?raw';
 
@@ -55,6 +57,17 @@ describe('🔌 ratchet — INTEGRATIONS גל א׳: גידור + כנות', () =>
     expect(shop7Src).toContain("integrationOn(config, 'maps')");
     expect(coordSrc).toContain("integrationOn(config, 'whatsapp')");
     expect(calendarSrc).toContain("integrationOn(config, 'gcal')");
+  });
+
+  it('🛡 גל ב׳ — תבניות-הודעה מגודרות: מסירה (shop7) · יום-הולדת (בית) · תזכורת-תשלום (חוגים)', () => {
+    // כל תבנית נפתחת לעריכה לפני שליחה (wa.me לא שולח לבד) — וכולן מאחורי ההרחבה
+    expect(shop7Src).toContain('waDeliveryText(');
+    expect(widgetsSrc).toContain('waBirthdayText(');
+    expect(widgetsSrc).toContain("integrationOn(config, 'whatsapp')");
+    expect(manageSrc).toContain('waPaymentText(');
+    expect(manageSrc).toContain("integrationOn(cfg, 'whatsapp')");
+    // תזכורת-תשלום רק כשיש יתרה חיובית
+    expect(manageSrc).toContain('bal > 0 && waPhone');
   });
 
   it('🛡 כנות-מכירה: האשף מסנן ל-live (צ׳יפים+הצעה+מחירים); המסירה בלי "ממתין להפעלה"', () => {

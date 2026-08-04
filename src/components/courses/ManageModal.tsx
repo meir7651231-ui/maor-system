@@ -5,7 +5,9 @@
 import { useState } from 'react';
 import type { Course, Enrollment, OrgEvent } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, termOf } from '../../lib/config';
+import { waPaymentText } from '../../lib/wa';
+import { WaBtn } from '../WaBtn';
 import { downloadReceipt } from '../../lib/receipt';
 import { Btn, Field, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -242,6 +244,9 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     : paid
       ? 'שולם ₪' + paid + ' (ללא סה"כ עסקה)'
       : 'הגדירו סה"כ עסקה ותקבלו מעקב יתרה';
+  // גל ב׳ (whatsapp): תזכורת-תשלום ממולאת — רק כשיש יתרה; טלפון חבר→משפחה
+  const waPhone = m?.phone || db.families.find((f) => f.id === m?.famId)?.phone || '';
+  const waReminder = integrationOn(cfg, 'whatsapp') && bal > 0 && waPhone;
 
   return (
     <Modal title={'⚙ ניהול ' + termOf(cfg, 'entity.enrollment', 'שיבוץ')} onClose={props.onClose}>
@@ -311,7 +316,13 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
           <strong style={{ fontSize: 13 }}>💳 תשלומים וקבלות</strong>
-          <span style={{ fontSize: 12, fontWeight: 800, color: bal > 0 ? '#b45309' : '#12803c' }}>{balLine}</span>
+          <span style={{ fontSize: 12, fontWeight: 800, color: bal > 0 ? '#b45309' : '#12803c', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            {/* גל ב׳ (whatsapp): תזכורת-יתרה ממולאת — נפתחת לעריכה לפני שליחה */}
+            {waReminder ? (
+              <WaBtn phone={waPhone} text={waPaymentText(cfg.orgName, c.name, bal)} title="תזכורת-תשלום בוואטסאפ (נפתח לעריכה לפני שליחה)" />
+            ) : null}
+            {balLine}
+          </span>
         </div>
         <div className="form-grid">
           <Field label={'סה"כ עסקה (₪)'}>

@@ -4,7 +4,7 @@
  * ש-wa.me דורש, ולהיכשל-בשקט (null) על קלט לא-שמיש.
  */
 import { describe, expect, it } from 'vitest';
-import { waDigits, waLink } from '../wa';
+import { waBirthdayText, waDeliveryText, waDigits, waLink, waPaymentText } from '../wa';
 
 describe('💬 ratchet — waDigits/waLink (הרחבת whatsapp)', () => {
   it('נייד מעוצב 050-123-4567 → 972501234567', () => {
@@ -57,5 +57,23 @@ describe('💬 ratchet — waDigits/waLink (הרחבת whatsapp)', () => {
 
   it('אורך מופרז (>15, גבול E.164) ⇒ null', () => {
     expect(waDigits('9725012345678901234')).toBeNull();
+  });
+});
+
+describe('💬 ratchet — תבניות-הודעה (גל ב׳): טהורות, שם-ארגון ריק ⇒ "העמותה"', () => {
+  it('הודעת-מסירה', () => {
+    expect(waDeliveryText('מאור החסד', 'כהן')).toBe('שלום משפחת כהן, משלוח ממאור החסד בדרך אליכם היום 🚚');
+    expect(waDeliveryText('', 'לוי')).toContain('מהעמותה');
+  });
+
+  it('תזכורת-תשלום: שם-פריט + יתרה מעוגלת עם מפריד-אלפים', () => {
+    expect(waPaymentText('מאור החסד', 'חוג ציור', 250)).toBe(
+      'שלום, תזכורת ידידותית ממאור החסד: יתרה לתשלום עבור חוג ציור — ₪250. תודה רבה!',
+    );
+    expect(waPaymentText('א', 'ב', 1234.6)).toContain('₪' + (1235).toLocaleString('he-IL'));
+  });
+
+  it('ברכת יום-הולדת', () => {
+    expect(waBirthdayText('מאור החסד', 'שרה')).toBe('מזל טוב לשרה ליום ההולדת! 🎂 באהבה, מאור החסד');
   });
 });
