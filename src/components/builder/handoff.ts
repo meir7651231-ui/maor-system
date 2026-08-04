@@ -6,6 +6,7 @@
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import { FEATURES, type FeatureDef } from '../../types/features';
 import { featureModuleKey, WIZARD_SECTIONS } from './sections';
+import { SIZE_LABELS, shekel, type Quote } from '../../lib/pricing';
 
 export const MODULE_LABELS: Record<string, string> = {
   families: 'משפחות ובני משפחה',
@@ -66,7 +67,33 @@ export function removedFeatures(cfg: OrgConfig): FeatureDef[] {
   });
 }
 
-export function buildHandoffHtml(cfg: OrgConfig, appUrl: string, installerName: string): string {
+/** מקטע הצעת-המחיר בדף המסירה — נבנה רק כשנמסר quote (אחרת ריק, ביט-זהה לקודם). */
+function quoteSection(quote: Quote | undefined): string {
+  if (!quote) return '';
+  const rows = quote.lines
+    .map((l) => `<tr><td>${esc(l.label)}</td><td style="text-align:left">${esc(shekel(l.price))}</td></tr>`)
+    .join('');
+  const incl = quote.included.length
+    ? `<p style="font-size:13px;color:#777">כלול בבסיס ללא תוספת: ${quote.included.map((l) => esc(l.label)).join(' · ')}</p>`
+    : '';
+  const setupRow = quote.setup > 0
+    ? `<tr><td>הקמה חד-פעמית</td><td style="text-align:left">${esc(shekel(quote.setup))}</td></tr>`
+    : '';
+  return `<h2>💰 הצעת מחיר</h2>
+    <table>
+      <tr><th>רכיב</th><th style="text-align:left">מחיר / חודש</th></tr>
+      <tr><td>מנוי בסיס (בית · משפחות · לוח · הגדרות)</td><td style="text-align:left">${esc(shekel(quote.base))}</td></tr>
+      ${rows}
+      <tr><td>התאמת גודל ארגון (${esc(SIZE_LABELS[quote.size])})</td><td style="text-align:left">×${quote.sizeMult}</td></tr>
+      <tr style="font-weight:800;background:#f6f3ec"><td>סה״כ חודשי</td><td style="text-align:left">${esc(shekel(quote.monthly))}</td></tr>
+      ${setupRow}
+    </table>
+    ${incl}
+    <p style="font-size:13px">מנוי שנתי מראש: <b>${esc(shekel(quote.yearlyDiscounted))}</b> לשנה <small>(חודשיים חינם — במקום ${esc(shekel(quote.yearly))})</small></p>
+    <p style="font-size:12px;color:#777">המחירים לפי הרכב המערכת שנבחר; ניתן להוסיף/להסיר מודולים בכל עת. אינם כוללים מע״מ.</p>`;
+}
+
+export function buildHandoffHtml(cfg: OrgConfig, appUrl: string, installerName: string, quote?: Quote): string {
   const url = cfg.slug === 'default' ? appUrl : `${appUrl}${appUrl.includes('?') ? '&' : '?'}org=${cfg.slug}`;
   const modules = (Object.keys(MODULE_LABELS) as ModuleKey[])
     .filter((k) => cfg.modules[k] !== false)
@@ -115,6 +142,8 @@ export function buildHandoffHtml(cfg: OrgConfig, appUrl: string, installerName: 
 <h2>📦 מה כלול בחבילה</h2>
 <ul>${modules}</ul>
 <p>ערכת עיצוב: <b>${esc(THEME_LABELS[cfg.theme] ?? cfg.theme)}</b></p>
+
+${quoteSection(quote)}
 
 ${removedHtml}
 
