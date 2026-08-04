@@ -22,12 +22,15 @@ import wizardSrc from '../builder/BuilderWizard.tsx?raw';
 import handoffSrc from '../builder/handoff.ts?raw';
 
 describe('🔌 ratchet — INTEGRATIONS גל א׳: גידור + כנות', () => {
-  it('לכל 12 ההרחבות יש סטטוס; live = בדיוק whatsapp/maps/gcal', () => {
+  it('לכל 12 ההרחבות יש סטטוס; live = 7 (גל א׳ 3 + גל ג׳ "עד-המפתח" 4)', () => {
     for (const k of Object.keys(INTEGRATION_LABELS)) {
       expect(INTEGRATION_STATUS[k], 'סטטוס חסר ל-' + k).toBeTruthy();
     }
     const live = Object.keys(INTEGRATION_STATUS).filter((k) => INTEGRATION_STATUS[k] === 'live').sort();
-    expect(live).toEqual(['gcal', 'maps', 'whatsapp']);
+    expect(live).toEqual(['ai', 'campaign', 'esign', 'gcal', 'maps', 'payments', 'whatsapp']);
+    // roadmap = רק שלוש הדורשות-שרת (functions/ בריפו, ממתין ל-Blaze+deploy)
+    const roadmap = Object.keys(INTEGRATION_STATUS).filter((k) => INTEGRATION_STATUS[k] === 'roadmap').sort();
+    expect(roadmap).toEqual(['phone', 'sheets', 'sms']);
   });
 
   it('INTEGRATION_KEYS (ה-allowlist) ≡ מפתחות התוויות והסטטוסים — מקור-אמת אחד', () => {
@@ -40,12 +43,13 @@ describe('🔌 ratchet — INTEGRATIONS גל א׳: גידור + כנות', () =>
     const addons = liveAddons({
       integrations: {
         whatsapp: { enabled: true },
-        payments: { enabled: true }, // roadmap — נזרק
+        payments: { enabled: true }, // live מגל ג׳ — נמכר
+        sms: { enabled: true }, // roadmap (שרת) — נזרק
         receipts: { enabled: true }, // included — נזרק
         maps: { enabled: false }, // כבוי — נזרק
       },
     });
-    expect(addons.map((a) => a.key)).toEqual(['whatsapp']);
+    expect(addons.map((a) => a.key).sort()).toEqual(['payments', 'whatsapp']);
   });
 
   it("🛡 כל משטח-חיווט מגודר integrationOn — חסר=כבוי ⇒ ביט-זהה ללקוח קיים", () => {

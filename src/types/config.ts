@@ -38,8 +38,10 @@ export interface OrgConfig {
   features?: Record<string, boolean>;
   /** מילון מונחים מותאם (למשל "חוגים" ← "שיעורים"). */
   terms?: Record<string, string>;
-  /** הרחבות (INTEGRATIONS) לפי שם — מפתחות חוקיים: INTEGRATION_KEYS בלבד. */
-  integrations?: Record<string, { enabled: boolean }>;
+  /** הרחבות (INTEGRATIONS) לפי שם — מפתחות חוקיים: INTEGRATION_KEYS בלבד.
+   *  גל ג׳ ("עד-המפתח"): לצד enabled מותרות הגדרות-מחרוזת פר-הרחבה מתוך
+   *  ‏INTEGRATION_SETTING_KEYS (למשל payments.payUrl). סודות — לעולם לא כאן. */
+  integrations?: Record<string, { enabled: boolean; [setting: string]: unknown }>;
   /**
    * מיילים של מנהלי-על — רק הם רשאים לפתוח את אשף ההקמה ולשנות ערכת נושא.
    * ריק/חסר = אין הגבלה (כל מי שמחובר, כמו היום). כשמוגדר — משתמש שאינו ברשימה
@@ -85,6 +87,16 @@ export const INTEGRATION_KEYS = [
   'receipts', 'payments', 'whatsapp', 'sms', 'phone', 'gcal',
   'drive', 'sheets', 'maps', 'esign', 'ai', 'campaign',
 ] as const;
+
+/**
+ * הגדרות-מחרוזת מותרות פר-הרחבה (גל ג׳ — "עד-המפתח"): normalizeConfig שומר רק
+ * את אלה (מחרוזות בלבד). **סודות אסורים כאן** (הקונפיג מסתנכרן לענן/גיבוי) —
+ * מפתח-AI וכד' נשמרים מקומית-למכשיר בלבד.
+ */
+export const INTEGRATION_SETTING_KEYS: Record<string, readonly string[]> = {
+  payments: ['provider', 'payUrl'],
+  campaign: ['url'],
+};
 
 export const DEFAULT_CONFIG: OrgConfig = {
   slug: 'default',

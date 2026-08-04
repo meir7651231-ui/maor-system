@@ -5,7 +5,8 @@
 import { useEffect, useState } from 'react';
 import type { NotifPrefs } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, isAdminUser, isSuperAdmin, termOf } from '../../lib/config';
+import { featureOn, integrationOn, isAdminUser, isSuperAdmin, termOf } from '../../lib/config';
+import { readAiKey, writeAiKey } from '../../lib/ai';
 import { Btn, Chip, Field, FormError, PageHead, TextInput } from '../ui';
 import { Section, SectionNote, Toggle } from './lib';
 import { TeachersSection } from './TeachersSection';
@@ -82,6 +83,8 @@ export function SettingsView() {
       {featureOn(config, 'settings.encryption') && <EncryptionSection />}
       {/* הצפנת-ענן — הרכיב עצמו מגודר isSuperAdmin (מחזיר null ללא-בעלים) */}
       <CloudEncryptionSection />
+      {/* גל ג׳ (ai): מפתח-העוזר — מוצג רק כשההרחבה נמכרה; מקומי-למכשיר בלבד */}
+      <AiKeySection />
       {secOn('sec-reset') && <ResetSection />}
     </div>
   );
@@ -289,6 +292,37 @@ function ResetSection() {
       {!armed && confirmText.trim() !== '' && (
         <SectionNote>יש להקליד בדיוק את המילה "מחיקה" כדי לאפשר את הכפתור.</SectionNote>
       )}
+    </Section>
+  );
+}
+
+/** גל ג׳ (ai) — מפתח-העוזר: מוצג רק כשהרחבת-ה-AI נמכרה (integrationOn) ולמנהל
+ *  בלבד. המפתח **מקומי-למכשיר** (nsLsKey — לא בענן, לא בגיבוי, כמו נעילת-PIN). */
+function AiKeySection() {
+  const config = useApp((s) => s.config);
+  const cloudUser = useApp((s) => s.cloud.user);
+  const toast = useApp((s) => s.toast);
+  const [key, setKey] = useState(readAiKey());
+  if (!integrationOn(config, 'ai') || !isAdminUser(config, cloudUser?.email)) return null;
+  return (
+    <Section id="sec-ai" title="🤖 עוזר חכם (AI)" sub="מפתח ה-API נשמר במכשיר זה בלבד — לא בענן ולא בגיבוי">
+      <Field label="מפתח API (Anthropic)">
+        <TextInput value={key} onChange={setKey} dir="ltr" type="password" placeholder="sk-ant-…" />
+      </Field>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <Btn
+          kind="primary"
+          onClick={() => {
+            writeAiKey(key);
+            toast(key.trim() ? '🤖 המפתח נשמר במכשיר — העוזר פעיל' : 'המפתח נמחק מהמכשיר');
+          }}
+        >
+          שמירה
+        </Btn>
+      </div>
+      <SectionNote>
+        השימוש מחויב לחשבון-ה-API של הארגון. הטיוטות נפתחות לעריכה ואינן נשמרות במערכת.
+      </SectionNote>
     </Section>
   );
 }

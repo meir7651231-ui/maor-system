@@ -382,6 +382,8 @@ interface AppState {
   /** קידום סטטוס קדימה (pickup→enroute→delivered); delivered = סופי. */
   advanceDelivery: (id: string) => void;
   setDeliveryNote: (id: string, note: string) => void;
+  /** חתימת-מקבל/ת על מסירה (גל ג׳, esign). */
+  setDeliverySignature: (id: string, signature: string) => void;
   unassignDelivery: (id: string) => void;
 
   // מעקב טיפול רב-שלבי (feature supporters.ayin) — כל הפעולות עוברות דרך setDb
@@ -1927,6 +1929,10 @@ export const useApp = create<AppState>()((set, get) => {
     },
     setDeliveryNote(id, note) {
       setDb((db) => ({ deliveries: db.deliveries.map((d) => (d.id === id ? { ...d, note } : d)) }));
+    },
+    // גל ג׳ (esign): חתימת-מקבל/ת על-מסך — נשמרת על רשומת-המסירה (additive)
+    setDeliverySignature(id, signature) {
+      setDb((db) => ({ deliveries: db.deliveries.map((d) => (d.id === id ? { ...d, signature } : d)) }));
     },
     unassignDelivery(id) {
       setDb((db) => ({ deliveries: db.deliveries.filter((d) => d.id !== id) }));

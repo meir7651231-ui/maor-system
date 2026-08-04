@@ -5,7 +5,7 @@
 import { useEffect, useState, type KeyboardEvent } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, integrationOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, integrationSetting, safeHttpsUrl, termOf } from '../../lib/config';
 import { WaBtn } from '../WaBtn';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
@@ -103,6 +103,10 @@ export function SupportersView() {
   const nextOn = featureOn(config, 'supporters.nextdate');
   const ayinOn = featureOn(config, 'supporters.ayin');
   const customReportOn = featureOn(config, 'supporters.customreport');
+  // גל ג׳ (campaign): קישור-הקמפיין מהקונפיג — https בלבד (חיטוי-ענן)
+  const campaignHref = integrationOn(config, 'campaign')
+    ? safeHttpsUrl(integrationSetting(config, 'campaign', 'url'))
+    : null;
   const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');
   const importOn = featureOn(config, 'settings.import');
   const toast = useApp((s) => s.toast);
@@ -212,6 +216,18 @@ export function SupportersView() {
         sub={countLabel}
         actions={
           <>
+            {/* גל ג׳ (campaign): קישור-הקמפיין החי של הארגון — עד-המפתח (URL) */}
+            {campaignHref && (
+              <a
+                href={campaignHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="קמפיין-הגיוס החי של הארגון"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700, border: '1px solid var(--line)', borderRadius: 10, padding: '6px 12px', textDecoration: 'none', color: 'var(--ink-soft)' }}
+              >
+                📣 לקמפיין
+              </a>
+            )}
             {importOn && (
               <Btn onClick={() => setImportOpen(true)} title="ייבוא תומכות מקובץ CSV">
                 ⬆ ייבוא

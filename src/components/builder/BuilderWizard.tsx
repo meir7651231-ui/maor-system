@@ -8,7 +8,7 @@
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
-import { clearConfigOverride, featureOn, normalizeConfig, termOf } from '../../lib/config';
+import { clearConfigOverride, featureOn, integrationSetting, normalizeConfig, termOf } from '../../lib/config';
 import { VERTICAL_PACKS, applyVerticalPack } from '../../lib/verticalPacks';
 import { ALL_MODULES, MODULE_LABELS as MODULE_SHORT } from '../platform/lib';
 import { computeQuote, readPrices, shekel, writePrices, SIZE_LABELS, type DealMode, type OrgSize, type PriceTable } from '../../lib/pricing';
@@ -308,7 +308,11 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
 
   const toggleIntegration = (k: string) => {
     const cur = config.integrations?.[k]?.enabled ?? false;
-    patch({ integrations: { ...config.integrations, [k]: { enabled: !cur } } });
+    patch({ integrations: { ...config.integrations, [k]: { ...config.integrations?.[k], enabled: !cur } } });
+  };
+  /** גל ג׳: כתיבת הגדרת-הרחבה (payUrl וכו') — נשמרת בקונפיג ומסתנכרנת חי. */
+  const setIntegrationField = (k: string, field: string, v: string) => {
+    patch({ integrations: { ...config.integrations, [k]: { enabled: true, ...config.integrations?.[k], [field]: v } } });
   };
 
   const pickTheme = (theme: string) => {
@@ -824,6 +828,39 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                   </Chip>
                 ))}
             </div>
+            {/* גל ג׳ "עד-המפתח": הגדרות-ההרחבות שדורשות URL — מוצגות רק כשהצ'יפ דלוק */}
+            {config.integrations?.payments?.enabled && (
+              <div style={{ marginTop: 8 }}>
+                <Field label="💳 כתובת עמוד-התשלום של הארגון (נדרים-פלוס / Grow / קארדקום; https)">
+                  <TextInput
+                    value={integrationSetting(config, 'payments', 'payUrl')}
+                    onChange={(v) => setIntegrationField('payments', 'payUrl', v)}
+                    dir="ltr"
+                    placeholder="https://www.matara.pro/nedarimplus/online/?mosad=…"
+                  />
+                </Field>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                  אפשר תבנית עם {'{amount}'}/{'{name}'} — אחרת הסכום מתווסף כ-amount. בלי כתובת — הכפתורים לא מוצגים.
+                </div>
+              </div>
+            )}
+            {config.integrations?.campaign?.enabled && (
+              <div style={{ marginTop: 8 }}>
+                <Field label="📣 קישור הקמפיין החי (Charidy / JGive / אחר; https)">
+                  <TextInput
+                    value={integrationSetting(config, 'campaign', 'url')}
+                    onChange={(v) => setIntegrationField('campaign', 'url', v)}
+                    dir="ltr"
+                    placeholder="https://…"
+                  />
+                </Field>
+              </div>
+            )}
+            {config.integrations?.ai?.enabled && (
+              <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 8 }}>
+                🤖 מפתח-ה-API מוזן אצל הלקוח (הגדרות ← עוזר חכם) — מקומי-למכשיר, לא בקונפיג.
+              </div>
+            )}
             <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 8 }}>
               כלול במערכת (בלי תוספת):{' '}
               {Object.entries(INTEGRATION_LABELS)

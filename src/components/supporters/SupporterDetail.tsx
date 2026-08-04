@@ -5,10 +5,12 @@
 import { useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, integrationOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, integrationSetting, termOf } from '../../lib/config';
+import { payLink } from '../../lib/payLink';
+import { askClaude, readAiKey, thanksPrompt } from '../../lib/ai';
 import { WaBtn } from '../WaBtn';
 import { hebDateFull } from '../../lib/hebrew';
-import { Btn, Empty, Field } from '../ui';
+import { Btn, Empty, Field, Modal } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { chipStyle, fmtDate, isoToday, supDonEvents, supScore, supTier, totalLabel } from './lib';
 import { downloadReceipt } from '../../lib/receipt';
@@ -47,6 +49,40 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
+  // גל ג׳ — פעולות-הרחבה בכרטיס: 💳 עמוד-תרומה (payments) · 🤖 מכתב-תודה (ai)
+  const donateHref = integrationOn(config, 'payments')
+    ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, sp.name)
+    : null;
+  const aiReady = integrationOn(config, 'ai') && !!readAiKey();
+  const [aiDraft, setAiDraft] = useState('');
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  async function draftThanks() {
+    if (aiBusy) return;
+    setAiBusy(true);
+    setAiOpen(true);
+    setAiDraft('');
+    try {
+      const last = [...sp.donations].sort((a, b) => b.date.localeCompare(a.date))[0];
+      const draft = await askClaude(
+        readAiKey(),
+        thanksPrompt({
+          orgName: config.orgName || '',
+          supporterName: sp.name,
+          lastAmount: last ? (last.cur === '$' ? '$' : '₪') + last.amount.toLocaleString('he-IL') : totalLabel(sp),
+          designation: last?.designation || undefined,
+          totalSoFar: totalLabel(sp),
+        }),
+      );
+      setAiDraft(draft);
+    } catch (e) {
+      setAiDraft('');
+      toast('⚠ ' + (e instanceof Error ? e.message : 'הטיוטה נכשלה'));
+      setAiOpen(false);
+    } finally {
+      setAiBusy(false);
+    }
+  }
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
   const ayinOn = featureOn(config, 'supporters.ayin');
@@ -237,10 +273,20 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         {/* פרטי קשר */}
         <div className="card">
           <h3 style={{ fontSize: 15, marginBottom: 8 }}>{'פרטי ' + termOf(config, 'entity.supporter', 'התומך/ת')}</h3>
-          {/* INTEGRATIONS גל א׳ — 💬 וואטסאפ ליד הטלפון (הרחבה נמכרת, חסר=כבוי) */}
-          {integrationOn(config, 'whatsapp') && sp.phone && (
-            <div style={{ textAlign: 'left', marginBottom: 2 }}>
-              <WaBtn phone={sp.phone} title={'וואטסאפ ל' + sp.name} />
+          {/* INTEGRATIONS — פעולות-הרחבה: 💬 וואטסאפ · 💳 עמוד-תרומה · 🤖 מכתב-תודה */}
+          {(integrationOn(config, 'whatsapp') || integrationOn(config, 'payments') || aiReady) && (
+            <div style={{ textAlign: 'left', marginBottom: 2, display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
+              {aiReady && (
+                <Btn sm onClick={() => void draftThanks()} title="טיוטת מכתב-תודה אישי (עוזר-AI)">
+                  🤖 מכתב תודה
+                </Btn>
+              )}
+              {donateHref && (
+                <a href={donateHref} target="_blank" rel="noopener noreferrer" title="עמוד-התרומה של הארגון" style={{ textDecoration: 'none', fontSize: 15 }}>
+                  💳
+                </a>
+              )}
+              {integrationOn(config, 'whatsapp') && sp.phone && <WaBtn phone={sp.phone} title={'וואטסאפ ל' + sp.name} />}
             </div>
           )}
           <InfoRow k="טלפון" v={sp.phone || '—'} ltr />
@@ -355,6 +401,40 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
 
       {editOpen && <SupporterForm supporter={sp} onClose={() => setEditOpen(false)} />}
       {donOpen && <DonationModal supporter={sp} onClose={() => setDonOpen(false)} />}
+      {aiOpen && (
+        <Modal title={'🤖 מכתב תודה — ' + sp.name} onClose={() => setAiOpen(false)}>
+          {aiBusy ? (
+            <div className="empty">מנסח טיוטה…</div>
+          ) : (
+            <>
+              <textarea
+                value={aiDraft}
+                onChange={(e) => setAiDraft(e.target.value)}
+                rows={8}
+                style={{ width: '100%', fontSize: 13.5, padding: 10, borderRadius: 10, border: '1px solid var(--line)', resize: 'vertical' }}
+              />
+              <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 4 }}>
+                טיוטה בלבד — ערכו לפני שליחה. הטקסט לא נשמר במערכת.
+              </div>
+              <div className="modal-actions">
+                <Btn
+                  kind="primary"
+                  onClick={() =>
+                    void navigator.clipboard
+                      ?.writeText(aiDraft)
+                      .then(() => toast('המכתב הועתק — הדביקו בוואטסאפ/מייל'))
+                      .catch(() => toast('העתקה נכשלה — סמנו והעתיקו ידנית'))
+                  }
+                >
+                  📋 העתקה
+                </Btn>
+                <Btn onClick={() => void draftThanks()}>🔄 נסח מחדש</Btn>
+                <Btn onClick={() => setAiOpen(false)}>סגירה</Btn>
+              </div>
+            </>
+          )}
+        </Modal>
+      )}
     </div>
   );
 }

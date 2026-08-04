@@ -6,7 +6,7 @@
  * 2. fetch('./config.json') — קובץ סטטי יחסי ל-base (פר-פריסה של ארגון).
  * 3. DEFAULT_CONFIG — כשאין קובץ / הקובץ פגום (404, JSON שבור).
  */
-import { DEFAULT_CONFIG, INTEGRATION_KEYS, type FirebaseOrgConfig, type ModuleKey, type OrgConfig } from '../types/config';
+import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, type FirebaseOrgConfig, type ModuleKey, type OrgConfig } from '../types/config';
 
 const LS_CONFIG_KEY = 'maor_org_config';
 
@@ -57,6 +57,27 @@ export function featureOn(cfg: OrgConfig, key: string): boolean {
  */
 export function integrationOn(cfg: OrgConfig, key: string): boolean {
   return cfg.integrations?.[key]?.enabled === true;
+}
+
+/** הגדרת-הרחבה (גל ג׳): מחרוזת מה-allowlist אחרי trim, אחרת ''. */
+export function integrationSetting(cfg: OrgConfig, key: string, field: string): string {
+  const v = cfg.integrations?.[key]?.[field];
+  return typeof v === 'string' ? v.trim() : '';
+}
+
+/**
+ * ‏URL בטוח מהקונפיג — https בלבד (הקונפיג מגיע מהענן; בלי חיטוי, מסמך-ענן
+ * עוין היה מזריק javascript: לתוך href). לא-תקין/לא-https ⇒ null.
+ */
+export function safeHttpsUrl(raw: string): string | null {
+  const t = (raw || '').trim();
+  if (!t) return null;
+  try {
+    const u = new URL(t);
+    return u.protocol === 'https:' ? u.toString() : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -123,11 +144,17 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
   // לא נבלעת בשקט — ביקורת 4.8) ורק רשומות {enabled:boolean}. ריק ⇒ מוסר.
   const intsRaw = c.integrations;
   if (intsRaw && typeof intsRaw === 'object' && !Array.isArray(intsRaw)) {
-    const ints: Record<string, { enabled: boolean }> = {};
+    const ints: Record<string, { enabled: boolean; [s: string]: unknown }> = {};
     for (const [k, v] of Object.entries(intsRaw as Record<string, unknown>)) {
       if (!(INTEGRATION_KEYS as readonly string[]).includes(k)) continue;
       if (v && typeof v === 'object' && !Array.isArray(v) && typeof (v as { enabled?: unknown }).enabled === 'boolean') {
-        ints[k] = { enabled: (v as { enabled: boolean }).enabled };
+        const entry: { enabled: boolean; [s: string]: unknown } = { enabled: (v as { enabled: boolean }).enabled };
+        // גל ג׳: הגדרות-מחרוזת מה-allowlist בלבד (payUrl וכו') — השאר נזרק
+        for (const s of INTEGRATION_SETTING_KEYS[k] ?? []) {
+          const sv = (v as Record<string, unknown>)[s];
+          if (typeof sv === 'string' && sv.trim()) entry[s] = sv.trim();
+        }
+        ints[k] = entry;
       }
     }
     if (Object.keys(ints).length) cfg.integrations = ints;
