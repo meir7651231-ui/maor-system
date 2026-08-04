@@ -8,7 +8,7 @@
  * ייעודיים: ‏platformOrgs/{slug} ו-platformRequests/{uid}. אותם שמות, אותה
  * סמנטיקה, נתיבים חוקיים; אין התנגשות עם 18 אוספי הישויות.
  */
-import { addDoc, collection, deleteDoc, deleteField, doc, FieldPath, getDoc, getDocs, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, deleteField, doc, FieldPath, getDoc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { cloudDb } from './cloud';
 import type { OrgConfig } from '../types/config';
 
@@ -128,6 +128,25 @@ export async function writeOrgRequest(uid: string, req: OrgRequestDoc): Promise<
 export async function fetchOrgRequests(): Promise<Array<OrgRequestDoc & { uid: string }>> {
   const snap = await getDocs(collection(cloudDb(), PLATFORM_REQUESTS));
   return snap.docs.map((d) => ({ uid: d.id, ...(d.data() as OrgRequestDoc) }));
+}
+
+/**
+ * ניתוב-עצמי בכניסה (ORGADMIN): הסלאגים של ארגוני-הפלטפורמה שבהם המייל חבר.
+ * מאפשר ל"כפתור הכניסה" בשורש להכניס את המנהל/העובד ישירות לאתר שלו (?org=slug),
+ * בלי קישור נפרד. שאילתה מוגבלת-לעצמי (array-contains המייל) — כלל ה-list ב-Rules
+ * מתיר רק מסמכים שבהם המייל ב-members. בלי הכלל (או בלי הרשאה/רשת) ⇒ [] (נפילה
+ * בטוחה: המשתמש נשאר במסך-המתנה, כמו קודם — אין רגרסיה).
+ */
+export async function findMemberOrgSlugs(email: string): Promise<string[]> {
+  try {
+    const mail = email.trim().toLowerCase();
+    if (!mail) return [];
+    const q = query(collection(cloudDb(), PLATFORM_ORGS), where('members', 'array-contains', mail));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => d.id);
+  } catch {
+    return [];
+  }
 }
 
 /** כל ארגוני הפלטפורמה — לוח הבקרה (מיילי-על בלבד לפי Rules). */

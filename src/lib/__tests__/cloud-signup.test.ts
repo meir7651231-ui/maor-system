@@ -62,9 +62,24 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     // או למורשי-השורש (adminEmails); כל השאר = 'pending'. נגזר מהמייל+הקונפיג ⇒ עמיד
     // ברענון (לא מצב-זיכרון חולף).
     expect(useAppSrc).toContain('rootOk');
-    expect(useAppSrc).toContain("membership: rootOk ? 'member' : 'pending'");
+    expect(useAppSrc).toContain('isSuperAdmin(user.email)');
     expect(useAppSrc).toContain('cfg.adminEmails?.some');
-    expect(useAppSrc).toContain('if (rootOk) gatedStart();');
+    // מורשה-שורש ⇒ member+סנכרון; אחרת ניתוב-עצמי/המתנה (לא נכנס מיד)
+    expect(useAppSrc).toMatch(/if \(rootOk\) \{\s*setCloud\(\{ membership: 'member' \}\);\s*gatedStart\(\);/);
+    expect(useAppSrc).toContain("setCloud({ membership: 'pending' })");
+  });
+
+  it("🛡 הגנת-מקור: ניתוב-עצמי בכניסה — כפתור-הכניסה מכניס חבר-ארגון לאתר שלו (בלי קישור)", () => {
+    // הכרעת-בעלים (4.8.2026): "אני לא רוצה לשלוח קישור — כפתור הכניסה יעשה את זה".
+    // בשורש, מייל שאינו מורשה-שורש אך חבר בארגון-פלטפורמה ⇒ ניתוב אוטומטי ל-?org=slug.
+    expect(useAppSrc).toContain('findMemberOrgSlugs');
+    expect(useAppSrc).toContain("membership: 'checking'");
+    expect(useAppSrc).toContain("url.searchParams.set('org', slugs[0])");
+    expect(useAppSrc).toContain('window.location.replace');
+    // כלל ה-list ב-Rules — שאילתה מוגבלת-לעצמי (array-contains המייל), בלי חשיפת השאר
+    expect(rulesSrc).toContain('array-contains');
+    expect(rulesSrc).toMatch(/allow list: if superAdmin\(\)/);
+    expect(rulesSrc).toContain("in resource.data.get('members', [])");
   });
 
   it('הגנת-מקור: Rules v2 — בקשות uid-תואם, ארגונים לחברים, כתיבה למיילי-על, שורש כהיום', () => {
