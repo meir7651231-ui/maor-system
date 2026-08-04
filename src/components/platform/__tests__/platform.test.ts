@@ -17,7 +17,9 @@ import {
   isOrgManager,
   isValidSlug,
   normEmail,
+  orgJoinFullCode,
   orgJoinLink,
+  parseJoinFullCode,
   orgLink,
   overrideOf,
   removeMember,
@@ -181,6 +183,23 @@ describe('👥 ORGADMIN — היררכיית 3 שכבות + כרטיס-עובד 
 
   it('orgJoinLink: ?org=slug&join=code', () => {
     expect(orgJoinLink('https://x.io', '/m/', 'maor', 'abc123de')).toBe('https://x.io/m/?org=maor&join=abc123de');
+  });
+
+  it('orgJoinFullCode ↔ parseJoinFullCode: "קוד מהבוס" מקודד slug (round-trip)', () => {
+    // הרשמת-עובד/ת במסך-האחיד: הקוד מקודד את הסלאג ⇒ יודעים לאיזה ארגון לנתב.
+    expect(orgJoinFullCode('maor', 'abc123de')).toBe('maor.abc123de');
+    expect(parseJoinFullCode('maor.abc123de')).toEqual({ slug: 'maor', code: 'abc123de' });
+    // סלאג עם מקף (השדה [a-z0-9-]) — הפיצול על הנקודה הראשונה שומר עליו
+    expect(parseJoinFullCode('maor-hachesed.xy99')).toEqual({ slug: 'maor-hachesed', code: 'xy99' });
+    expect(parseJoinFullCode('  MAOR.abc  ')).toEqual({ slug: 'maor', code: 'abc' }); // trim + lowercase לסלאג
+  });
+
+  it('parseJoinFullCode: קלט פגום ⇒ null (בלי נקודה / סלאג לא-חוקי / קוד ריק)', () => {
+    expect(parseJoinFullCode('nodot')).toBeNull();
+    expect(parseJoinFullCode('.abc')).toBeNull(); // אין סלאג
+    expect(parseJoinFullCode('maor.')).toBeNull(); // אין קוד
+    expect(parseJoinFullCode('bad slug.abc')).toBeNull(); // רווח בסלאג
+    expect(parseJoinFullCode('')).toBeNull();
   });
 });
 
