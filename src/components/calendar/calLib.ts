@@ -569,10 +569,18 @@ export function nextOccurIso(ev: Pick<OrgEvent, 'type' | 'date'>, fromIso: strin
  * פריסת אירועי-הארגון לחלון-ימים קדימה כמופעים קונקרטיים ל-ICS. אין RRULE
  * ללוח העברי ⇒ כל מופע-חוזר (יארצייט/נישואין/יום-הולדת, eventOccursOn עם דין
  * אדר) נפרס לתאריכו הלועזי בכל שנה בחלון. אירוע שסומן 'בוצע' מופיע רק בתאריך
- * המקורי (כמו בלוח הבית). גל א׳ = OrgEvents בלבד (בלי שכבות-נגזרות).
+ * המקורי (כמו בלוח הבית).
+ *
+ * שכבות-נגזרות (גל ב׳ — פלטפורמה, לא רק חסד): עם config, מצורפים גם ימי-הולדת
+ * עבריים של חברים (`calendar.ics.bdays`) ומפגשי-חוגים שבועיים
+ * (`calendar.ics.sessions`) — דגלים פר-ארגון: סטודיו/עסק מדליק, חסד מכבה
+ * (צנעת-מוטבים). בלי config ⇒ אירועים בלבד (התנהגות גל א׳, ביט-זהה).
  */
-export function icsWindowEvents(db: Db, fromIso: string, days: number, slug: string): IcsOccurrence[] {
+export function icsWindowEvents(db: Db, fromIso: string, days: number, slug: string, config?: OrgConfig): IcsOccurrence[] {
   const rooms = new Map(db.rooms.map((r) => [r.id, r.name]));
+  const wantBdays = !!config && featureOn(config, 'calendar.ics.bdays');
+  const wantSessions = !!config && featureOn(config, 'calendar.ics.sessions') && moduleActive(config);
+  const famWord = config ? termOf(config, 'entity.familyOf', 'משפחת') : 'משפחת';
   const from = new Date(fromIso + 'T12:00:00');
   const out: IcsOccurrence[] = [];
   for (let i = 0; i < days; i++) {
@@ -591,8 +599,48 @@ export function icsWindowEvents(db: Db, fromIso: string, days: number, slug: str
         location: (ev.roomId && rooms.get(ev.roomId)) || undefined,
       });
     }
+    if (wantBdays) {
+      // אותה לוגיקה עברית כמו בלוח הבית (dayItems) — כולל דין אדר
+      for (const f of db.families) {
+        for (const m of f.members) {
+          if (!m.birth || iso <= m.birth) continue;
+          if (!hebAnnualEq(hpOf(m.birth), hp)) continue;
+          out.push({
+            uid: 'bday-' + m.id + '-' + iso + '@' + slug,
+            title: '🎂 יום הולדת — ' + m.first + ' · ' + famWord + ' ' + f.name,
+            date: iso,
+            time: '',
+          });
+        }
+      }
+    }
+    if (wantSessions) {
+      const dow = d.getDay();
+      const courseBlock = blockReason(d, 'course');
+      if (!courseBlock) {
+        for (const c of db.courses) {
+          if (c.start && iso < c.start) continue;
+          if (c.end && iso > c.end) continue;
+          for (const [si, ss] of sessionsOf(c).entries()) {
+            if (ss.day !== dow) continue;
+            out.push({
+              uid: 'crs-' + c.id + '-' + si + '-' + iso + '@' + slug,
+              title: c.name + (ss.label ? ' — ' + ss.label : ''),
+              date: iso,
+              time: ss.time || '',
+              location: rooms.get(c.roomId) || undefined,
+            });
+          }
+        }
+      }
+    }
   }
   return out;
+}
+
+/** מודול-החוגים דלוק בקונפיג (למניעת ייצוא-מפגשים בארגון בלי חוגים). */
+function moduleActive(config: OrgConfig): boolean {
+  return config.modules.courses !== false;
 }
 
 /* ---------- צ׳יפי תאריכים מהירים (P2 פער 26) ---------- */

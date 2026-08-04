@@ -95,6 +95,9 @@ export const FEATURES: FeatureDef[] = [
   { key: 'calendar.layers.calls', label: 'שכבת טלפונים', desc: 'אירועי שיחה בלוח', module: 'calendar' },
   { key: 'calendar.layers.family', label: 'שכבת אירועים משפחתיים', desc: 'אירועים המשויכים למשפחה בלוח', module: 'calendar' },
   { key: 'calendar.export', label: 'דו"ח מותאם מהלוח', desc: 'כפתור "📊 דו"ח מותאם" בכותרת הלוח — פתיחת ייצוא מותאם', module: 'calendar' },
+  // ייצוא-ICS (הרחבת gcal) — שכבות-נגזרות פר-ארגון: סטודיו/עסק מדליק, חסד מכבה (צנעה)
+  { key: 'calendar.ics.bdays', label: 'ימי-הולדת בייצוא ליומן', desc: 'ייצוא-ה-ICS כולל ימי-הולדת עבריים של חברים/תלמידים (כבו לצנעת-מוטבים)', module: 'calendar' },
+  { key: 'calendar.ics.sessions', label: 'מפגשים בייצוא ליומן', desc: 'ייצוא-ה-ICS כולל את מפגשי-החוגים השבועיים (שם, שעה, חדר)', module: 'calendar' },
   { key: 'calendar.layers.urgent', label: 'סינון "דחוף בלבד"', desc: 'צ׳יפ סינון להצגת אירועים דחופים בלבד', module: 'calendar' },
   { key: 'calendar.hebtoggle', label: 'מתג גריד עברי/לועזי', desc: 'כפתור החלפה בין גריד עברי ללועזי (כבוי = נעול לברירת-המחדל)', module: 'calendar' },
 

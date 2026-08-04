@@ -7,7 +7,8 @@
 import { describe, expect, it } from 'vitest';
 import { buildIcs, foldIcsLine, icsEscape, type IcsOccurrence } from '../ics';
 import { icsWindowEvents } from '../../components/calendar/calLib';
-import { emptyDb, type Db, type OrgEvent } from '../../types/domain';
+import { emptyDb, emptyFamily, type Db, type Member, type OrgEvent } from '../../types/domain';
+import { DEFAULT_CONFIG } from '../../types/config';
 
 const NOW = new Date('2026-08-04T10:00:00Z');
 
@@ -121,6 +122,37 @@ describe('📅 ratchet — icsWindowEvents (פריסת חזרות עבריות)'
     const wide = icsWindowEvents(db, '2026-08-04', 385, 't').filter((o) => o.uid.startsWith('y1-'));
     expect(wide.length).toBe(1);
     expect(wide[0].date).toBe('2027-08-19');
+  });
+
+  it('🎂 שכבת ימי-הולדת (calendar.ics.bdays) — פלטפורמה: עברי-חוזר; דגל false ⇒ נעדרת', () => {
+    // ורטיקל סטודיו/עסק מדליק; חסד מכבה (צנעת-מוטבים). בלי config — התנהגות גל א׳.
+    const member = { id: 'm1', first: 'שרה', birth: '2015-09-10' } as Member;
+    const db: Db = {
+      ...emptyDb(),
+      families: [{ ...emptyFamily(), id: 'f1', createdAt: '', name: 'כהן', members: [member] }],
+    };
+    const cfgOn = { ...DEFAULT_CONFIG };
+    const withB = icsWindowEvents(db, '2026-08-04', 385, 't', cfgOn).filter((o) => o.uid.startsWith('bday-m1'));
+    expect(withB.length).toBeGreaterThanOrEqual(1); // מופע עברי בחלון
+    expect(withB[0].title).toContain('שרה');
+    const cfgOff = { ...DEFAULT_CONFIG, features: { 'calendar.ics.bdays': false } };
+    expect(icsWindowEvents(db, '2026-08-04', 385, 't', cfgOff).some((o) => o.uid.startsWith('bday-'))).toBe(false);
+    // בלי config — אין שכבות-נגזרות (תאימות גל א׳)
+    expect(icsWindowEvents(db, '2026-08-04', 385, 't').some((o) => o.uid.startsWith('bday-'))).toBe(false);
+  });
+
+  it('🎨 שכבת מפגשים (calendar.ics.sessions) — שבועי עם שעה; מודול-חוגים כבוי ⇒ נעדרת', () => {
+    const course = {
+      id: 'c1', name: 'ציור', weekday: 2, time: '17:00', sessions: [], roomId: '', teacherId: '',
+      price: 0, audience: '', notes: '', start: '', end: '',
+    } as unknown as Db['courses'][number];
+    const db: Db = { ...emptyDb(), courses: [course] };
+    const occs = icsWindowEvents(db, '2026-08-04', 30, 't', { ...DEFAULT_CONFIG }).filter((o) => o.uid.startsWith('crs-c1'));
+    expect(occs.length).toBeGreaterThanOrEqual(4); // ~שבועי בחלון-30-יום
+    expect(occs[0].time).toBe('17:00');
+    expect(occs[0].title).toBe('ציור');
+    const offMod = { ...DEFAULT_CONFIG, modules: { courses: false } };
+    expect(icsWindowEvents(db, '2026-08-04', 30, 't', offMod).some((o) => o.uid.startsWith('crs-'))).toBe(false);
   });
 
   it('חדר מתורגם ל-location', () => {
