@@ -5,10 +5,11 @@
  * הכניסה יש לשונית הרשמה, ומיילי-העל מוגדרים במקום אחד.
  */
 import { describe, expect, it } from 'vitest';
-import { SUPER_ADMIN_EMAILS, isSuperAdmin, signUpError } from '../config';
+import { SUPER_ADMIN_EMAILS, employeeSignUpError, isSuperAdmin, signUpError } from '../config';
 import appSrc from '../../App.tsx?raw';
 import loginSrc from '../../components/cloud/LoginScreen.tsx?raw';
 import wizardSrc from '../../components/cloud/SignupWizard.tsx?raw';
+import empSrc from '../../components/cloud/EmployeeSignup.tsx?raw';
 import useAppSrc from '../../store/useApp.ts?raw';
 import rulesSrc from '../../../firestore.rules?raw';
 
@@ -67,6 +68,26 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     // מורשה-שורש ⇒ member+סנכרון; אחרת ניתוב-עצמי/המתנה (לא נכנס מיד)
     expect(useAppSrc).toMatch(/if \(rootOk\) \{\s*setCloud\(\{ membership: 'member' \}\);\s*gatedStart\(\);/);
     expect(useAppSrc).toContain("setCloud({ membership: 'pending' })");
+  });
+
+  it('employeeSignUpError: מייל+טלפון+סיסמה≥6+קוד חובה (הרשמת-עובד/ת)', () => {
+    expect(employeeSignUpError('לא-מייל', '0501234567', '123456', 'maor.abc')).toBe('כתובת האימייל אינה תקינה');
+    expect(employeeSignUpError('a@b.co', '', '123456', 'maor.abc')).toContain('טלפון');
+    expect(employeeSignUpError('a@b.co', '0501234567', '12345', 'maor.abc')).toBe('הסיסמה חייבת להיות לפחות 6 תווים');
+    expect(employeeSignUpError('a@b.co', '0501234567', '123456', '')).toContain('קוד');
+    expect(employeeSignUpError('a@b.co', '050-1234567', '123456', 'maor.abc')).toBe('');
+  });
+
+  it("🛡 הגנת-מקור: הרשמת-עובד/ת — לשונית שלישית, בקשה למנהל (joinRequest), לא בקשת-ארגון", () => {
+    // הכרעת-בעלים (4.8.2026): "כולם באותו מסך הרשמה, תוסיף 'הרשמת עובד' עם קוד מהבוס".
+    expect(loginSrc).toContain('הרשמת עובד');
+    expect(loginSrc).toContain('EmployeeSignup');
+    expect(empSrc).toContain('cloudEmployeeSignUp');
+    expect(empSrc).toContain('קוד-הזמנה מהמנהל');
+    // ב-store: הרשמת-עובד כותבת בקשת-הצטרפות (writeOrgJoinRequest), **לא** writeOrgRequest
+    expect(useAppSrc).toContain('async cloudEmployeeSignUp(');
+    expect(useAppSrc).toContain('parseJoinFullCode(fullCode)');
+    expect(useAppSrc).toMatch(/cloudEmployeeSignUp[\s\S]*?writeOrgJoinRequest\(parsed\.slug/);
   });
 
   it("🛡 הגנת-מקור: ניתוב-עצמי בכניסה — כפתור-הכניסה מכניס חבר-ארגון לאתר שלו (בלי קישור)", () => {

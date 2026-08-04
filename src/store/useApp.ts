@@ -46,10 +46,10 @@ import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { advanceStatus } from '../components/shop7/lib';
 import { roomClashError } from '../components/calendar/calLib';
-import { effectiveConfigFor, isOrgManager } from '../components/platform/lib';
+import { effectiveConfigFor, isOrgManager, parseJoinFullCode } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
+import { applyTheme, employeeSignUpError, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
@@ -158,6 +158,13 @@ interface AppState {
    * כל מה שנרשם-חדש רשאי לכתוב. הוא נשאר במסך ההמתנה עד אישור הבעלים.
    */
   cloudSignUp: (orgName: string, contactName: string, phone: string, email: string, password: string, profile?: { industry?: string; size?: string; needs?: string[] }) => Promise<void>;
+  /**
+   * הרשמת-עובד/ת (ORGADMIN — מסך-אחיד, "קוד מהבוס"): יצירת משתמש Auth + כתיבת
+   * בקשת-הצטרפות לארגון שהקוד מצביע עליו (platformOrgs/{slug}/joinRequests) —
+   * **לא** בקשת-ארגון-חדש. מופיעה למנהל לאישור; אחרי אישור, כניסה רגילה מנתבת
+   * את העובד/ת לארגון. הקוד מקודד את הסלאג (slug.code) ⇒ בלי קישור/שאילתה.
+   */
+  cloudEmployeeSignUp: (email: string, phone: string, password: string, fullCode: string) => Promise<void>;
   /**
    * ליד "נחזור אליכם" (SIGNUP מיתוג 3) — **בלי חשבון**: כותב platformLeads
    * (create-only ציבורי). מחזיר true בהצלחה. משמש את CallbackModal.
@@ -907,6 +914,31 @@ export const useApp = create<AppState>()((set, get) => {
         get().toast('⚠ הבקשה נרשמה חלקית — צרו קשר עם מנהל המערכת');
       }
       // watchAuth יקלוט את המשתמש ⇒ שער-החברות יציג את מסך ההמתנה
+    },
+    async cloudEmployeeSignUp(email, phone, password, fullCode) {
+      if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
+      // ולידציה טהורה (שער אחרון לפני ה-SDK)
+      const err = employeeSignUpError(email, phone, password, fullCode);
+      if (err) throw new Error(err);
+      // "קוד מהבוס" = slug.code — הסלאג מקודד בקוד ⇒ יודעים לאיזה ארגון לנתב
+      const parsed = parseJoinFullCode(fullCode);
+      if (!parsed) throw new Error('קוד-ההזמנה אינו תקין — בקשו מהמנהל קוד חדש');
+      const uid = await cloudMod.signUp(email.trim(), password);
+      // בקשת-הצטרפות לארגון של הקוד (לא בקשת-ארגון-חדש!) — create-only, uid תואם
+      // (Rules v3). המנהל יראה ויאשר. כשל-כתיבה מדווח אך לא מפיל את יצירת-המשתמש.
+      try {
+        await cloudMod.writeOrgJoinRequest(parsed.slug, uid, {
+          email: email.trim().toLowerCase(),
+          name: email.trim().split('@')[0],
+          phone: phone.trim(),
+          code: parsed.code,
+          at: new Date().toISOString(),
+        });
+      } catch {
+        get().toast('⚠ הבקשה נרשמה חלקית — בקשו מהמנהל לאשר, או נסו שוב');
+      }
+      // watchAuth: בשורש עדיין-לא-חבר ⇒ מסך המתנה. אחרי אישור-המנהל, כניסה
+      // רגילה מנתבת אוטומטית לארגון (findMemberOrgSlugs).
     },
     async cloudRequestCallback(lead) {
       if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');

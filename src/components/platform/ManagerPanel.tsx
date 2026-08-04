@@ -16,6 +16,7 @@ import {
   genJoinCode,
   orgEnabledFeatures,
   orgEnabledModules,
+  orgJoinFullCode,
   orgJoinLink,
   overrideOf,
   removeMember,
@@ -76,6 +77,8 @@ export function ManagerPanel(props: { onClose: () => void }) {
     org?.joinCode && typeof window !== 'undefined'
       ? orgJoinLink(window.location.origin, window.location.pathname, slug, org.joinCode)
       : '';
+  // "קוד מהבוס" — לעובד/ת שנרשם/ת במסך-האחיד (הרשמת-עובד/ת): slug.code
+  const fullCode = org?.joinCode ? orgJoinFullCode(slug, org.joinCode) : '';
 
   async function toggleJoinOpen() {
     if (!mod || !org) return;
@@ -165,6 +168,22 @@ export function ManagerPanel(props: { onClose: () => void }) {
                 </Btn>
               </Field>
             )}
+            {org?.joinOpen && fullCode && (
+              <Field label="קוד-הזמנה לעובד/ת (למי שנרשם/ת בלשונית 'הרשמת עובד/ת')">
+                <TextInput value={fullCode} onChange={() => {}} dir="ltr" />
+                <Btn
+                  sm
+                  onClick={() =>
+                    void navigator.clipboard
+                      ?.writeText(fullCode)
+                      .then(() => toast('הקוד הועתק'))
+                      .catch(() => toast('העתקה נכשלה — סמנו והעתיקו ידנית'))
+                  }
+                >
+                  📋 העתק קוד
+                </Btn>
+              </Field>
+            )}
           </div>
 
           {/* 2 · בקשות-הצטרפות ממתינות */}
@@ -172,7 +191,10 @@ export function ManagerPanel(props: { onClose: () => void }) {
           {reqs.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>אין בקשות חדשות.</div>}
           {reqs.map((r) => (
             <div key={r.uid} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0' }}>
-              <span style={{ flex: 1 }} dir="ltr">{r.email}</span>
+              <span style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <span dir="ltr">{r.email}</span>
+                {r.phone && <span dir="ltr" style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{r.phone}</span>}
+              </span>
               <Btn sm kind="primary" onClick={() => void approve(r)}>✓ אישור</Btn>
               <Btn sm onClick={() => void rejectReq(r)}>דחייה</Btn>
             </div>

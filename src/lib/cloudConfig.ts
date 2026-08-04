@@ -60,7 +60,9 @@ export interface OrgCloudDoc {
 export interface OrgJoinRequestDoc {
   email?: string;
   name?: string;
-  /** הקוד מהקישור — לבדיקה-רכה מול joinCode של הארגון (המנהל מאשר ממילא). */
+  /** טלפון העובד/ת (הרשמת-עובד במסך-האחיד) — למנהל לזיהוי לפני אישור. */
+  phone?: string;
+  /** הקוד מהקישור/מהבוס — לבדיקה-רכה מול joinCode של הארגון (המנהל מאשר ממילא). */
   code?: string;
   at?: string;
 }

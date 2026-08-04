@@ -12,6 +12,7 @@ import { useState, type FormEvent } from 'react';
 import { useApp } from '../../store/useApp';
 import { SignupHero } from './SignupHero';
 import { SignupWizard } from './SignupWizard';
+import { EmployeeSignup } from './EmployeeSignup';
 import { NewsReader } from './NewsReader';
 import { CallbackModal } from './CallbackModal';
 import { VideoModal } from './VideoModal';
@@ -23,7 +24,7 @@ export function LoginScreen() {
   const cloudResetPassword = useApp((s) => s.cloudResetPassword);
   const toast = useApp((s) => s.toast);
 
-  const [mode, setMode] = useState<'in' | 'up'>('up');
+  const [mode, setMode] = useState<'in' | 'up' | 'emp'>('up');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -126,6 +127,9 @@ export function LoginScreen() {
                 <button type="button" role="tab" className={'orbit-tab' + (mode === 'up' ? ' on' : '')} onClick={() => { setMode('up'); setError(''); }}>
                   הרשמה
                 </button>
+                <button type="button" role="tab" className={'orbit-tab' + (mode === 'emp' ? ' on' : '')} onClick={() => { setMode('emp'); setError(''); }}>
+                  הרשמת עובד/ת
+                </button>
                 <button type="button" role="tab" className={'orbit-tab' + (mode === 'in' ? ' on' : '')} onClick={() => { setMode('in'); setError(''); }}>
                   כניסה
                 </button>
@@ -139,6 +143,9 @@ export function LoginScreen() {
                     לאחר ההרשמה — צרו קשר לאישור פתיחת המערכת. אתם מאשרים את תנאי השימוש ומדיניות הפרטיות.
                   </p>
                 </>
+              ) : mode === 'emp' ? (
+                /* הרשמת-עובד/ת (ORGADMIN) — מייל+טלפון+סיסמה+קוד-מהמנהל ⇒ בקשה למנהל */
+                <EmployeeSignup onDone={(em) => { setEmail(em); setSubmitted(true); }} />
               ) : (
                 <>
                   <div className="orbit-divider">

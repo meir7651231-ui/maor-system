@@ -233,6 +233,19 @@ export function signUpError(
   return '';
 }
 
+/**
+ * ולידציית הרשמת-עובד/ת (ORGADMIN — מסך-אחיד, "קוד מהבוס") — טהורה עד גבול
+ * ה-SDK: מייל תקין, טלפון, סיסמה ≥6, וקוד-הזמנה לא-ריק. מחזירה הודעת שגיאה
+ * בעברית או '' כשהקלט תקין. פירוק הקוד עצמו (slug.code) נבדק ב-parseJoinFullCode.
+ */
+export function employeeSignUpError(email: string, phone: string, password: string, code: string): string {
+  if (!/^\S+@\S+\.\S+$/.test(email.trim())) return 'כתובת האימייל אינה תקינה';
+  if (!/^[\d+][\d\s-]{6,}$/.test(phone.trim())) return 'מספר טלפון תקין הוא שדה חובה';
+  if (password.length < 6) return 'הסיסמה חייבת להיות לפחות 6 תווים';
+  if (!code.trim()) return 'קוד-ההזמנה מהמנהל הוא שדה חובה';
+  return '';
+}
+
 /* ---------- קונפיג-ענן: מטמון ומיזוג עדיפויות (CLOUD2 ענן 2 — טהור, בלי firebase) ---------- */
 
 /** מפתח מטמון הקונפיג-מהענן — נפרד מדריסת-הריצה של האשף (LS_CONFIG_KEY). */

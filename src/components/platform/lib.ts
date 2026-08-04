@@ -100,6 +100,26 @@ export function orgJoinLink(origin: string, basePath: string, slug: string, code
   return origin + basePath + '?org=' + slug + '&join=' + code;
 }
 
+/**
+ * קוד-הזמנה מלא לעובד/ת (ORGADMIN — "קוד מהבוס"): ‏{slug}.{code}. מקודד את
+ * הסלאג בתוך הקוד כדי שההרשמה במסך-האחיד תדע לאיזה ארגון לנתב את הבקשה — בלי
+ * שאילתה ובלי קישור. הסלאג הוא [a-z0-9-] והקוד base36 ⇒ הנקודה מפרידה חד-משמעית.
+ */
+export function orgJoinFullCode(slug: string, code: string): string {
+  return slug + '.' + code;
+}
+
+/** פירוק "קוד מהבוס" ל-{slug, code}. null אם הצורה אינה תקינה (סלאג חוקי + קוד לא-ריק). */
+export function parseJoinFullCode(full: string): { slug: string; code: string } | null {
+  const t = full.trim();
+  const dot = t.indexOf('.');
+  if (dot <= 0) return null;
+  const slug = t.slice(0, dot).trim().toLowerCase();
+  const code = t.slice(dot + 1).trim();
+  if (!isValidSlug(slug) || !code) return null;
+  return { slug, code };
+}
+
 /** האם המייל הוא מנהל-הארגון (מואצל)? השוואה מנורמלת. */
 export function isOrgManager(email: string, org: Pick<OrgCloudDoc, 'manager'>): boolean {
   const m = (org.manager ?? '').trim().toLowerCase();
