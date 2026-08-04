@@ -80,6 +80,14 @@ describe('🚚 ratchet — SHOP7 מנוע', () => {
     expect(lines.some((l) => l.includes('משפחה f1') && l.includes('איסוף'))).toBe(true);
   });
 
+  it('deliveryListLines — כתובת (גל ב׳): 📍 כשמוזרקת; בלעדיה השורה זהה לפורמט הקודם', () => {
+    const base = { id: 'd1', dayId: 'y1', assignmentId: 'a1', volunteerId: 'v1', familyId: 'f1', status: 'pickup' as const, note: '' };
+    const withAddr = deliveryListLines([{ ...base, familyName: 'כהן', volunteerName: 'משה', address: 'הרצל 1, עיר' }]);
+    expect(withAddr[1]).toBe('  • כהן · איסוף · 📍 הרצל 1, עיר');
+    const noAddr = deliveryListLines([{ ...base, familyName: 'כהן', volunteerName: 'משה' }]);
+    expect(noAddr[1]).toBe('  • כהן · איסוף');
+  });
+
   it('🛡 בידוד כספי — המנוע והפעולות לא נוגעים בקבלות/כסף/S-', () => {
     // המנוע הטהור — אפס אזכור מוני-קבלות (האינווריאנט הכספי; 'S-' מופיע רק בהערת-התיעוד)
     for (const kw of ['receiptSeq', 'donationSeq', 'shopReceiptSeq']) {

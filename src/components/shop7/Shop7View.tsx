@@ -281,7 +281,14 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
             onClick={() =>
               downloadText(
                 'deliveries-' + props.day.date + '.txt',
-                deliveryListLines(rows.map((d) => ({ ...d, familyName: famName(d.familyId), volunteerName: volName(d.volunteerId) }))),
+                // גל ב׳: כתובת בתדפיס — דף-מסלול אמיתי למתנדב על נייר
+                deliveryListLines(
+                  rows.map((d) => {
+                    const f = db.families.find((x) => x.id === d.familyId);
+                    const address = f ? [f.address, f.city].map((s) => (s || '').trim()).filter(Boolean).join(', ') : '';
+                    return { ...d, familyName: famName(d.familyId), volunteerName: volName(d.volunteerId), ...(address ? { address } : {}) };
+                  }),
+                ),
               )
             }
           >
