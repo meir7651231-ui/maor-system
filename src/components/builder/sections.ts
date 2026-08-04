@@ -70,6 +70,7 @@ export const WIZARD_SECTIONS: WizardSectionDef[] = [
     module: 'shop',
     termKeys: ['nav.shop', 'entity.shopProduct', 'entity.shopStore', 'entity.shopCriterion'],
   },
+  { id: 'shop7', title: 'חלוקה', emoji: '🚚', module: 'shop7', termKeys: ['nav.shop7', 'entity.volunteer'] },
   { id: 'reports', title: 'דוחות', emoji: '📊', module: 'reports', termKeys: ['nav.reports'] },
   { id: 'home', title: 'מסך הבית', emoji: '🏠', termKeys: [] },
   { id: 'settings', title: 'הגדרות', emoji: '⚙️', termKeys: [] },
