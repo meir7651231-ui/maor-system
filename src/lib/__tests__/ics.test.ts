@@ -64,6 +64,13 @@ describe('📅 ratchet — מנוע ICS (buildIcs/foldIcsLine/icsEscape)', () =>
     expect(text).toContain('DTSTAMP:20260804T100000Z');
   });
 
+  it("שעה לא-תקינה ('9:00') ⇒ נפילה בטוחה ליום-שלם — לא VEVENT מושחת (ביקורת 4.8)", () => {
+    // '9:00' ⇒ Invalid Date ⇒ DTSTART:NaN… שמפיל את כל הקובץ ביבואן. הגנה: HH:MM בלבד.
+    const text = buildIcs([occ({ time: '9:00' })], 'לוח', NOW);
+    expect(text).not.toContain('NaN');
+    expect(text).toContain('DTSTART;VALUE=DATE:20260901');
+  });
+
   it('DESCRIPTION/LOCATION רק כשקיימים; SUMMARY עם escaping', () => {
     const text = buildIcs([occ({ title: 'ברית; אולם', notes: 'הערה', location: 'חדר A' })], 'לוח', NOW);
     expect(text).toContain('SUMMARY:ברית\\; אולם');
@@ -103,6 +110,17 @@ describe('📅 ratchet — icsWindowEvents (פריסת חזרות עבריות)'
     expect(occs.filter((o) => o.uid.startsWith('e2-')).length).toBe(1);
     expect(occs.filter((o) => o.uid.startsWith('e3-')).length).toBe(0);
     expect(occs.find((o) => o.uid.startsWith('e2-'))?.time).toBe('14:00');
+  });
+
+  it('🛡 שנה מעוברת: חלון-365 מפספס יארצייט (מרווח 383-385 יום) — חלון-385 תופס (ביקורת 4.8)', () => {
+    // העוגן: ט"ז אב תשפ"ד = 20.8.2024. מופעיו: 30.7.2026 (תשפ"ו) ואז 19.8.2027
+    // (תשפ"ז — מעוברת). ייצוא מ-4.8.2026: חלון-365 מכיל אפס מופעים (הבאג);
+    // חלון-385 (אורך שנה עברית מעוברת) מכיל את מופע-תשפ"ז. הכפתור מייצא 385.
+    const db: Db = { ...emptyDb(), events: [ev({ id: 'y1', date: '2024-08-20' })] };
+    expect(icsWindowEvents(db, '2026-08-04', 365, 't').filter((o) => o.uid.startsWith('y1-')).length).toBe(0);
+    const wide = icsWindowEvents(db, '2026-08-04', 385, 't').filter((o) => o.uid.startsWith('y1-'));
+    expect(wide.length).toBe(1);
+    expect(wide[0].date).toBe('2027-08-19');
   });
 
   it('חדר מתורגם ל-location', () => {

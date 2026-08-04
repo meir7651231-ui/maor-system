@@ -22,10 +22,18 @@ import { Shop7FamilyPanel } from '../shop7/Shop7FamilyPanel';
 import { useArmed } from '../useArmed';
 
 function InfoRow(props: { k: string; v: string; action?: ReactNode }) {
+  // סגנון-flex רק כשיש action — בלי action ה-DOM ביט-זהה לקודם (ביקורת 4.8)
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '4px 0', fontSize: 14 }}>
       <span style={{ color: 'var(--ink-faint)', whiteSpace: 'nowrap' }}>{props.k}</span>
-      <span style={{ fontWeight: 600, textAlign: 'left', overflowWrap: 'anywhere', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <span
+        style={{
+          fontWeight: 600,
+          textAlign: 'left',
+          overflowWrap: 'anywhere',
+          ...(props.action ? { display: 'inline-flex', alignItems: 'center', gap: 6 } : {}),
+        }}
+      >
         {props.action}
         {props.v}
       </span>

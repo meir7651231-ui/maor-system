@@ -143,8 +143,8 @@ export function CoordinatorsTab(props: { selId: string | null; onSelect: (id: st
                   <Chip on={c.active}>{c.active ? 'פעיל/ה' : 'לא פעיל/ה'}</Chip>
                 </div>
                 <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-                  {/* INTEGRATIONS גל א׳ — 💬 וואטסאפ לרכז/ת (הרחבה נמכרת, חסר=כבוי) */}
-                  {integrationOn(config, 'whatsapp') && c.phone ? <WaBtn phone={c.phone} title={'וואטסאפ ל' + c.name} /> : null}{' '}
+                  {/* INTEGRATIONS גל א׳ — 💬 וואטסאפ לרכז/ת; הרווח בתוך הגידור (ביט-זהה) */}
+                  {integrationOn(config, 'whatsapp') && c.phone ? <><WaBtn phone={c.phone} title={'וואטסאפ ל' + c.name} />{' '}</> : null}
                   {c.phone || 'ללא טלפון'}
                 </div>
                 <div style={{ fontSize: 12.5, fontWeight: 600 }}>

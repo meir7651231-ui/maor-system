@@ -6,7 +6,8 @@
  * (3) volunteerRouteStops — מסלול-מתנדב מכתובות המשפחות, מדלג חסרי-כתובת.
  */
 import { describe, expect, it } from 'vitest';
-import { INTEGRATION_LABELS, INTEGRATION_STATUS } from '../builder/handoff';
+import { INTEGRATION_LABELS, INTEGRATION_STATUS, liveAddons } from '../builder/handoff';
+import { INTEGRATION_KEYS } from '../../types/config';
 import { volunteerRouteStops } from '../shop7/lib';
 import { emptyDb, emptyFamily, type Db } from '../../types/domain';
 import familyDetailSrc from '../families/FamilyDetail.tsx?raw';
@@ -27,6 +28,24 @@ describe('🔌 ratchet — INTEGRATIONS גל א׳: גידור + כנות', () =>
     expect(live).toEqual(['gcal', 'maps', 'whatsapp']);
   });
 
+  it('INTEGRATION_KEYS (ה-allowlist) ≡ מפתחות התוויות והסטטוסים — מקור-אמת אחד', () => {
+    const keys = [...INTEGRATION_KEYS].sort();
+    expect(Object.keys(INTEGRATION_LABELS).sort()).toEqual(keys);
+    expect(Object.keys(INTEGRATION_STATUS).sort()).toEqual(keys);
+  });
+
+  it('liveAddons — מקור-אמת יחיד לסינון-הכנות: roadmap/included לעולם לא מתומחרים', () => {
+    const addons = liveAddons({
+      integrations: {
+        whatsapp: { enabled: true },
+        payments: { enabled: true }, // roadmap — נזרק
+        receipts: { enabled: true }, // included — נזרק
+        maps: { enabled: false }, // כבוי — נזרק
+      },
+    });
+    expect(addons.map((a) => a.key)).toEqual(['whatsapp']);
+  });
+
   it("🛡 כל משטח-חיווט מגודר integrationOn — חסר=כבוי ⇒ ביט-זהה ללקוח קיים", () => {
     expect(familyDetailSrc).toContain("integrationOn(config, 'whatsapp')");
     expect(familyDetailSrc).toContain("integrationOn(config, 'maps')");
@@ -39,8 +58,12 @@ describe('🔌 ratchet — INTEGRATIONS גל א׳: גידור + כנות', () =>
   });
 
   it('🛡 כנות-מכירה: האשף מסנן ל-live (צ׳יפים+הצעה+מחירים); המסירה בלי "ממתין להפעלה"', () => {
-    // ההצעה החיה: רק הרחבות ממומשות מתומחרות
+    // ההצעה החיה: רק דרך liveAddons (מקור-אמת יחיד); הצ'יפים/מחירים מסוננים ל-live
+    expect(wizardSrc).toContain('liveAddons(config)');
     expect(wizardSrc).toContain("INTEGRATION_STATUS[k] === 'live'");
+    // דגל-תקוע מקונפיג-מיובא: לא-ממומש-דלוק מוצג להסרה (לא רוכב בשקט; ביקורת 4.8)
+    expect(wizardSrc).toContain("INTEGRATION_STATUS[k] !== 'live'");
+    expect(wizardSrc).toContain('לא-ממומש (הסרה');
     // הקופי הישן שהבטיח-אוויר נעלם מדף-המסירה
     expect(handoffSrc).not.toContain('ממתין להפעלה');
     expect(handoffSrc).not.toContain('נרכשו ויופעלו בפגישת המשך');

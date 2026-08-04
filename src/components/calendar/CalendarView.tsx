@@ -320,20 +320,21 @@ export function CalendarView() {
                 📊 דו"ח מותאם
               </Btn>
             )}
-            {/* INTEGRATIONS גל א׳ (gcal): ייצוא ICS — שנה קדימה, כולל חזרות עבריות */}
+            {/* INTEGRATIONS גל א׳ (gcal): ייצוא ICS — שנה עברית קדימה (385 יום —
+                שנה מעוברת! 365 היה מפספס יארצייט שמרווח-מופעיו 383-385; ביקורת 4.8) */}
             {integrationOn(config, 'gcal') && (
               <Btn
                 onClick={() =>
                   downloadIcs(
                     'calendar-' + config.slug + '.ics',
                     buildIcs(
-                      icsWindowEvents(db, isoOf(new Date()), 365, config.slug),
+                      icsWindowEvents(db, isoOf(new Date()), 385, config.slug),
                       config.orgName || 'לוח הארגון',
                       new Date(),
                     ),
                   )
                 }
-                title="קובץ ICS לייבוא ליומן Google/Outlook — שנה קדימה כולל יארצייטים"
+                title="קובץ ICS לייבוא ליומן Google/Outlook — שנה עברית קדימה כולל יארצייטים"
               >
                 📅 ליומן (ICS)
               </Btn>

@@ -6,6 +6,7 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, termOf } from '../../lib/config';
+import { formatIsraeliPhone } from '../../lib/validate';
 import { isoToday } from '../../lib/date-util';
 import { hebDateFull } from '../../lib/hebrew';
 import { downloadCsv, downloadText } from '../reports/csv';
@@ -78,8 +79,8 @@ function VolunteersTab() {
               <tr key={v.id}>
                 <td style={{ fontWeight: 600 }}>{v.name}</td>
                 <td dir="ltr">
-                  {/* INTEGRATIONS גל א׳ — 💬 וואטסאפ למתנדב (הרחבה נמכרת, חסר=כבוי) */}
-                  {integrationOn(config, 'whatsapp') && v.phone ? <WaBtn phone={v.phone} title={'וואטסאפ ל' + v.name} /> : null}{' '}
+                  {/* INTEGRATIONS גל א׳ — 💬 וואטסאפ למתנדב; הרווח בתוך הגידור (ביט-זהה) */}
+                  {integrationOn(config, 'whatsapp') && v.phone ? <><WaBtn phone={v.phone} title={'וואטסאפ ל' + v.name} />{' '}</> : null}
                   {v.phone || '—'}
                 </td>
                 <td>{v.area || '—'}</td>
@@ -126,7 +127,9 @@ function VolunteerForm(props: { volunteer: Volunteer | null; onClose: () => void
     props.onSave({
       id: v?.id ?? '',
       name: name.trim(),
-      phone: phone.trim(),
+      // עיצוב-בשמירה כמו כל שאר הטפסים (משפחות/מורות/תומכות) — היה נשמר גולמי
+      // והזין קלט לא-מנורמל ל-waDigits (ביקורת 4.8)
+      phone: formatIsraeliPhone(phone),
       area: area.trim() || undefined,
       maxDeliveries: max,
       active,
@@ -310,11 +313,14 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
             {rows.map((d) => (
               <tr key={d.id}>
                 <td style={{ fontWeight: 600 }}>
-                  {famName(d.familyId)}{' '}
+                  {famName(d.familyId)}
                   {mapsOn && famStop(d.familyId) && (
-                    <a href={famStop(d.familyId)!} target="_blank" rel="noopener noreferrer" title="כתובת במפות" style={{ textDecoration: 'none' }}>
-                      🗺️
-                    </a>
+                    <>
+                      {' '}
+                      <a href={famStop(d.familyId)!} target="_blank" rel="noopener noreferrer" title="כתובת במפות" style={{ textDecoration: 'none' }}>
+                        🗺️
+                      </a>
+                    </>
                   )}
                 </td>
                 <td>{prodName(d.assignmentId)}</td>

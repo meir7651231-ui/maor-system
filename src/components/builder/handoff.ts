@@ -42,8 +42,9 @@ export const INTEGRATION_LABELS: Record<string, string> = {
 /**
  * טקסונומיית-כנות (INTEGRATIONS גל א׳, ליעוס 4.8.2026): מה באמת קיים.
  * ‏live = ממומש בקוד ונמכר (מגודר integrationOn — חסר=כבוי) · included = כבר
- * כלול נייטיב במערכת (לא נמכר פעמיים) · roadmap = דורש שרת/ספק — צ'יפ מושבת
- * באשף, לא מתומחר, לא מובטח בדף-המסירה. **אי-אפשר למכור בטעות מה שלא קיים.**
+ * כלול נייטיב במערכת (לא נמכר פעמיים) · roadmap = דורש שרת/ספק — לא-נמכר באשף
+ * (אין צ'יפ-מכירה; דגל-מיובא-תקוע מוצג להסרה), לא מתומחר, לא מובטח במסירה.
+ * **אי-אפשר למכור בטעות מה שלא קיים.**
  */
 export type IntegrationStatus = 'live' | 'included' | 'roadmap';
 export const INTEGRATION_STATUS: Record<string, IntegrationStatus> = {
@@ -62,7 +63,18 @@ export const INTEGRATION_STATUS: Record<string, IntegrationStatus> = {
 };
 
 function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // כולל גרשיים — הגנה גם אם עריכה עתידית תשים פלט esc בתוך attribute (ביקורת 4.8)
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/**
+ * ההרחבות הדלוקות **הממומשות** (live) — מקור-אמת יחיד לסינון-הכנות של ההצעה.
+ * ‏computeQuote עצמו עיוור-לסטטוס (מתמחר מה שמקבל) ⇒ כל caller חייב לעבור כאן.
+ */
+export function liveAddons(cfg: Pick<OrgConfig, 'integrations'>): Array<{ key: string; label: string }> {
+  return Object.entries(cfg.integrations ?? {})
+    .filter(([k, v]) => v.enabled && INTEGRATION_STATUS[k] === 'live')
+    .map(([k]) => ({ key: k, label: INTEGRATION_LABELS[k] ?? k }));
 }
 
 /** שם מודול לתצוגה — דריסת מונח (nav.*) של הלקוח גוברת על התווית הכללית. */

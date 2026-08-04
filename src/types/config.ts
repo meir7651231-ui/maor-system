@@ -38,7 +38,7 @@ export interface OrgConfig {
   features?: Record<string, boolean>;
   /** מילון מונחים מותאם (למשל "חוגים" ← "שיעורים"). */
   terms?: Record<string, string>;
-  /** אינטגרציות עתידיות לפי שם. */
+  /** הרחבות (INTEGRATIONS) לפי שם — מפתחות חוקיים: INTEGRATION_KEYS בלבד. */
   integrations?: Record<string, { enabled: boolean }>;
   /**
    * מיילים של מנהלי-על — רק הם רשאים לפתוח את אשף ההקמה ולשנות ערכת נושא.
@@ -75,6 +75,16 @@ export interface OrgConfig {
 
 /** קונפיגורציית Firebase של ארגון — קיצור נוחות. */
 export type FirebaseOrgConfig = NonNullable<OrgConfig['firebase']>;
+
+/**
+ * מפתחות-ההרחבות החוקיים (INTEGRATIONS) — מקור-אמת יחיד: normalizeConfig מחטא
+ * לפיו (מפתח זר/שגיאת-כתיב נזרק — לא נבלע בשקט), ו-INTEGRATION_LABELS/STATUS
+ * באשף מיושרים אליו (ratchet). הוספת הרחבה = להוסיף כאן + תווית + סטטוס.
+ */
+export const INTEGRATION_KEYS = [
+  'receipts', 'payments', 'whatsapp', 'sms', 'phone', 'gcal',
+  'drive', 'sheets', 'maps', 'esign', 'ai', 'campaign',
+] as const;
 
 export const DEFAULT_CONFIG: OrgConfig = {
   slug: 'default',

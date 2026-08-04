@@ -7,19 +7,25 @@
 
 /**
  * ספרות-בינלאומי מטלפון שמור: '050-123-4567' → '972501234567'.
- * ‏00972/‏+972/‏972 מנורמלים; 0 מוביל (9–10 ספרות) → 972; מספר בינלאומי אחר
- * נשאר כמות-שהוא; ריק/קצר-מדי (<8 ספרות) ⇒ null (אין קישור).
+ * הוקשח בביקורת האדוורסרית (4.8.2026): ‏wa.me דוחה 0-מוביל ⇒ עדיף null
+ * (אין כפתור) מקישור-שבור. מטפל גם ב-'+972 050…' (ה-0 המקומי נשמר בטעות),
+ * ‏'00…' (קידומת חיוג בינ"ל), וישראלי-בלי-0 (כמו formatIsraeliPhone).
  */
 export function waDigits(phone: string): string | null {
-  const d = (phone || '').replace(/\D/g, '');
+  let d = (phone || '').replace(/\D/g, '');
   if (!d) return null;
-  let out = d;
-  if (out.startsWith('00972')) out = '972' + out.slice(5);
-  if (out.startsWith('0') && (out.length === 9 || out.length === 10)) {
-    out = '972' + out.slice(1);
+  if (d.startsWith('00972')) d = '972' + d.slice(5);
+  else if (d.startsWith('00')) d = d.slice(2); // קידומת חיוג בינ"ל כללית
+  if (d.startsWith('9720')) d = '972' + d.slice(4); // ‎+972 שנשמר עם ה-0 המקומי
+  if (!d.startsWith('972') && !d.startsWith('0') && (d.length === 8 || d.length === 9)) {
+    d = '0' + d; // ישראלי בלי 0 מוביל — אותו דין כמו formatIsraeliPhone
   }
-  if (out.length < 8) return null;
-  return out;
+  if (d.startsWith('0')) {
+    if (d.length === 9 || d.length === 10) d = '972' + d.slice(1);
+    else return null; // 0-מוביל באורך אחר = לא-תקין ל-wa.me — עדיף בלי כפתור
+  }
+  if (d.length < 8 || d.length > 15) return null; // גבולות E.164
+  return d;
 }
 
 /** קישור פתיחת-שיחה: https://wa.me/<digits>[?text=…]. בלי מספר תקין ⇒ null. */

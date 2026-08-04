@@ -26,6 +26,13 @@ describe('🗺️ ratchet — mapsSearchUrl/mapsRouteUrl (הרחבת maps)', () 
     expect(mapsRouteUrl([])).toBeNull();
     expect(mapsRouteUrl(['', '  '])).toBeNull();
   });
+
+  it("‏'|' ליטרלי בכתובת מוחלף ברווח — אחרת Google מפצל לעצירה נוספת (ביקורת 4.8)", () => {
+    // %7C של '|' מקודד זהה למפריד-העצירות — אין escaping ב-api=1 ⇒ חובה לנקות
+    const url = mapsRouteUrl(['א|ב, עיר', 'ג 2, עיר', 'ד 3, עיר'])!;
+    expect(url).toContain('waypoints=' + encodeURIComponent('א ב, עיר') + '%7C' + encodeURIComponent('ג 2, עיר'));
+    expect(mapsSearchUrl('רחוב|מוזר', 'עיר')).toContain(encodeURIComponent('רחוב מוזר, עיר'));
+  });
 });
 
 describe('🔌 ratchet — integrationOn: הרחבה חסרה = כבויה (הפוך מדגלים!)', () => {
@@ -45,5 +52,13 @@ describe('🔌 ratchet — integrationOn: הרחבה חסרה = כבויה (הפ
     expect(cfg.integrations).toEqual({ whatsapp: { enabled: true } });
     const none = normalizeConfig({ slug: 't', orgName: 'א', theme: 'tsohar', integrations: 'oops' })!;
     expect(none.integrations).toBeUndefined();
+  });
+
+  it('allowlist מפתחות: שגיאת-כתיב (whatsap) נזרקת — לא נבלעת בשקט (ביקורת 4.8)', () => {
+    const cfg = normalizeConfig({
+      slug: 't', orgName: 'א', theme: 'tsohar',
+      integrations: { whatsap: { enabled: true }, maps: { enabled: true } },
+    })!;
+    expect(cfg.integrations).toEqual({ maps: { enabled: true } });
   });
 });
