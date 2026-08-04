@@ -51,15 +51,16 @@ export const INTEGRATION_STATUS: Record<string, IntegrationStatus> = {
   whatsapp: 'live', // wa.me — src/lib/wa.ts
   maps: 'live', // Google Maps links — src/lib/mapsLink.ts
   gcal: 'live', // ICS — src/lib/ics.ts + calLib.icsWindowEvents
+  // גל ג׳ "עד-המפתח" (4.8.2026): ארבע עלו ל-live — עובדות ברגע שהבעלים מזין מפתח/URL
+  payments: 'live', // קישורי-תשלום — lib/payLink.ts (המפתח: payUrl של הארגון)
+  ai: 'live', // עוזר-AI — lib/ai.ts (המפתח: API-key מקומי-למכשיר)
+  esign: 'live', // חתימה-על-מסך — SignaturePad (בלי ספק בכלל)
+  campaign: 'live', // קישור-קמפיין — safeHttpsUrl (המפתח: URL)
   receipts: 'included', // §46 במודול תורמים (receipt.ts)
   drive: 'included', // 3 שכבות גיבוי + סנכרון-ענן opt-in
-  payments: 'roadmap',
-  sms: 'roadmap',
-  phone: 'roadmap',
-  sheets: 'roadmap',
-  esign: 'roadmap',
-  ai: 'roadmap',
-  campaign: 'roadmap',
+  sheets: 'roadmap', // שרת-מוכן-בריפו (functions/) — ממתין ל-Blaze+deploy
+  sms: 'roadmap', // שרת-מוכן-בריפו (functions/)
+  phone: 'roadmap', // שרת-מוכן-בריפו (functions/)
 };
 
 function esc(s: string): string {

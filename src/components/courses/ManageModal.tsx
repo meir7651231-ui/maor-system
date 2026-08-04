@@ -5,7 +5,8 @@
 import { useState } from 'react';
 import type { Course, Enrollment, OrgEvent } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
-import { featureOn, integrationOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, integrationSetting, termOf } from '../../lib/config';
+import { payLink } from '../../lib/payLink';
 import { waPaymentText } from '../../lib/wa';
 import { WaBtn } from '../WaBtn';
 import { downloadReceipt } from '../../lib/receipt';
@@ -247,6 +248,11 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   // גל ב׳ (whatsapp): תזכורת-תשלום ממולאת — רק כשיש יתרה; טלפון חבר→משפחה
   const waPhone = m?.phone || db.families.find((f) => f.id === m?.famId)?.phone || '';
   const waReminder = integrationOn(cfg, 'whatsapp') && bal > 0 && waPhone;
+  // גל ג׳ (payments): קישור-תשלום לעמוד-הסליקה של הארגון — הסכום ממולא (עד-המפתח)
+  const payHref =
+    integrationOn(cfg, 'payments') && bal > 0
+      ? payLink(integrationSetting(cfg, 'payments', 'payUrl'), bal, (m?.first ?? '') + ' ' + (m?.famName ?? ''))
+      : null;
 
   return (
     <Modal title={'⚙ ניהול ' + termOf(cfg, 'entity.enrollment', 'שיבוץ')} onClose={props.onClose}>
@@ -320,6 +326,11 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
             {/* גל ב׳ (whatsapp): תזכורת-יתרה ממולאת — נפתחת לעריכה לפני שליחה */}
             {waReminder ? (
               <WaBtn phone={waPhone} text={waPaymentText(cfg.orgName, c.name, bal)} title="תזכורת-תשלום בוואטסאפ (נפתח לעריכה לפני שליחה)" />
+            ) : null}
+            {payHref ? (
+              <a href={payHref} target="_blank" rel="noopener noreferrer" title="עמוד-התשלום של הארגון — הסכום ממולא" style={{ textDecoration: 'none' }}>
+                💳
+              </a>
             ) : null}
             {balLine}
           </span>

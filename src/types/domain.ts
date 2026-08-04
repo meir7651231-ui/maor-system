@@ -672,6 +672,8 @@ export interface Delivery {
   /** חותמת מסירה (נקבע במעבר ל-delivered). */
   deliveredAt?: IsoDate;
   note: string;
+  /** חתימת-מקבל/ת על-מסך (גל ג׳, הרחבת esign) — dataURL JPEG קטן; אופציונלי. */
+  signature?: string;
 }
 
 export interface DistributionDay {

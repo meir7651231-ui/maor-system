@@ -13,6 +13,7 @@ import { downloadCsv, downloadText } from '../reports/csv';
 import { mapsRouteUrl, mapsSearchUrl } from '../../lib/mapsLink';
 import { waDeliveryText } from '../../lib/wa';
 import { WaBtn } from '../WaBtn';
+import { SignaturePad } from '../SignaturePad';
 import { Btn, Chip, Empty, Field, Modal, PageHead, Select, TextInput } from '../ui';
 import type { DistributionDay, Volunteer } from '../../types/domain';
 import {
@@ -243,7 +244,11 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
   const advance = useApp((s) => s.advanceDelivery);
   const unassign = useApp((s) => s.unassignDelivery);
   const setNote = useApp((s) => s.setDeliveryNote);
+  const setSignature = useApp((s) => s.setDeliverySignature);
   const [assignOpen, setAssignOpen] = useState(false);
+  /** גל ג׳ (esign): מזהה-המסירה שממתין לחתימת-מקבל (אחרי "נמסר") + צפייה. */
+  const [signFor, setSignFor] = useState('');
+  const [viewSig, setViewSig] = useState('');
 
   const rows = deliveriesOfDay(db, props.day.id);
   const famName = (id: string) => db.families.find((f) => f.id === id)?.name ?? '—';
@@ -353,9 +358,20 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
                 <td>
                   <div style={{ display: 'flex', gap: 4 }}>
                     {d.status !== 'delivered' && (
-                      <Btn sm kind="primary" onClick={() => advance(d.id)}>
+                      <Btn
+                        sm
+                        kind="primary"
+                        onClick={() => {
+                          advance(d.id);
+                          // גל ג׳ (esign): במעבר ל"נמסר" — לוח-חתימת-מקבל (אפשר לדלג)
+                          if (d.status === 'enroute' && integrationOn(config, 'esign')) setSignFor(d.id);
+                        }}
+                      >
                         {d.status === 'pickup' ? 'נאסף →' : 'נמסר ✓'}
                       </Btn>
+                    )}
+                    {d.signature && (
+                      <Btn sm onClick={() => setViewSig(d.signature!)} title="צפייה בחתימת-המקבל">✍️</Btn>
                     )}
                     <Btn sm kind="danger" onClick={() => unassign(d.id)}>🗑</Btn>
                   </div>
@@ -366,6 +382,18 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
         </table>
       )}
       {assignOpen && <AssignPanel dayId={props.day.id} onClose={() => setAssignOpen(false)} />}
+      {signFor && (
+        <SignaturePad
+          title="✍️ חתימת מקבל/ת המסירה"
+          onSave={(url) => { setSignature(signFor, url); setSignFor(''); }}
+          onClose={() => setSignFor('')}
+        />
+      )}
+      {viewSig && (
+        <Modal title="✍️ חתימת המקבל/ת" onClose={() => setViewSig('')}>
+          <img src={viewSig} alt="חתימה" style={{ width: '100%', maxWidth: 420, border: '1px solid var(--line)', borderRadius: 10, background: '#fff' }} />
+        </Modal>
+      )}
     </div>
   );
 }
