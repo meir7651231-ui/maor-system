@@ -210,6 +210,14 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     expect(panelSrc).toContain('members: [mgr]');
   });
 
+  it('🛡 צינור-30-הדקות: האישור זורע את חבילת-התחום מההרשמה (seedPack), עם ברירת-ביטול', () => {
+    // הלקוח בחר תחום באשף-ההרשמה ⇒ openApprove מציע אותו כחבילת-פתיחה; הבעלים
+    // יכול להחליף/לבטל ('' = לידה all-off כמו קודם). האישור מחיל applyVerticalPack.
+    expect(panelSrc).toContain('setSeedPack(VERTICAL_PACKS.some((p) => p.id === r.industry)');
+    expect(panelSrc).toContain('seedPack ? applyVerticalPack(born, seedPack) : born');
+    expect(panelSrc).toContain('בלי חבילה — הכול כבוי');
+  });
+
   it('פאנל-המנהל: אשף מצומצם ל-orgEnabledModules + תת-דגלים + 3 הפעולות', () => {
     expect(managerSrc).toContain('orgEnabledModules'); // רק מודולים שהבעלים הדליק
     expect(managerSrc).toContain('orgEnabledFeatures'); // תת-דגלים בתוך התקרה (100%)

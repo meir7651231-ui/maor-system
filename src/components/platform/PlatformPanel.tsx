@@ -57,6 +57,8 @@ export function PlatformPanel(props: { onClose: () => void }) {
   const [approveReq, setApproveReq] = useState<ReqRow | null>(null);
   const [slug, setSlug] = useState('');
   const [managerEmail, setManagerEmail] = useState('');
+  /** חבילת-הפתיחה באישור (צינור-30-הדקות) — נזרעת מתחום-ההרשמה; '' = לידה all-off. */
+  const [seedPack, setSeedPack] = useState('');
   const [slugErr, setSlugErr] = useState('');
   // עורך הלקוח
   const [sel, setSel] = useState('');
@@ -92,6 +94,9 @@ export function PlatformPanel(props: { onClose: () => void }) {
     setApproveReq(r);
     setSlug(slugify(r.orgName ?? '', orgs.map((o) => o.slug)));
     setManagerEmail((r.email ?? '').trim().toLowerCase());
+    // צינור-30-הדקות: התחום שהלקוח בחר באשף-ההרשמה = חבילת-הפתיחה המוצעת
+    // (הבעלים יכול להחליף/לבטל במודאל). לא תואם-חבילה ⇒ לידה all-off כרגיל.
+    setSeedPack(VERTICAL_PACKS.some((p) => p.id === r.industry) ? (r.industry as string) : '');
     setSlugErr('');
   }
 
@@ -108,9 +113,13 @@ export function PlatformPanel(props: { onClose: () => void }) {
     // manager/config) דרך merge:true. קריאה→כתיבה סוגרת את הפער כמעט לגמרי.
     const existing = await mod.fetchOrgCloudConfig(slug).catch(() => null);
     if (existing) return setSlugErr('הסלאג כבר קיים בענן — בחרו אחר');
-    // לידה all-off (הכרעת ארכיטקט) — הבעלים מדליק בלייב מה שסוכם בשיחה
+    // לידה: all-off (הכרעת ארכיטקט), או — צינור-30-הדקות — זריעת חבילת-הוורטיקל
+    // שהלקוח בחר בהרשמה (seedPack; הבעלים אישר/החליף במודאל). הזריעה = נקודת-פתיחה
+    // בלבד: העריכה-החיה נפתחת מיד אחרי, והבעלים מכוונן מול הלקוח.
+    const born = allOffConfig(slug, approveReq.orgName ?? '');
+    const cfg0 = seedPack ? applyVerticalPack(born, seedPack) : born;
     await mod.writeOrgCloudDoc(slug, {
-      config: allOffConfig(slug, approveReq.orgName ?? '') as unknown as Record<string, unknown>,
+      config: cfg0 as unknown as Record<string, unknown>,
       manager: mgr,
       members: [mgr],
       provisioned: false,
@@ -118,7 +127,8 @@ export function PlatformPanel(props: { onClose: () => void }) {
       createdAt: new Date().toISOString(),
     });
     await mod.deleteOrgRequest(approveReq.uid);
-    toast('הארגון "' + (approveReq.orgName ?? slug) + '" אושר — אמרו ללקוח להתחבר שוב');
+    const packLabel = seedPack ? VERTICAL_PACKS.find((p) => p.id === seedPack)?.label : '';
+    toast('הארגון "' + (approveReq.orgName ?? slug) + '" אושר' + (packLabel ? ' עם חבילת "' + packLabel + '"' : '') + ' — אמרו ללקוח להתחבר שוב');
     setApproveReq(null);
     await refresh(mod);
     openEditor(slug);
@@ -353,8 +363,20 @@ export function PlatformPanel(props: { onClose: () => void }) {
         <Modal title={'✓ אישור — ' + (approveReq.orgName ?? '')} onClose={() => setApproveReq(null)}>
           <FormError error={slugErr} />
           <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
-            הארגון ייוולד כשהכול כבוי — מדליקים יחד עם הלקוח בעריכה החיה. לאחר האישור אמרו לו: "תתחבר שוב".
+            {seedPack
+              ? 'הארגון ייוולד עם חבילת-התחום שהלקוח בחר בהרשמה — מכווננים יחד בעריכה החיה. לאחר האישור אמרו לו: "תתחבר שוב".'
+              : 'הארגון ייוולד כשהכול כבוי — מדליקים יחד עם הלקוח בעריכה החיה. לאחר האישור אמרו לו: "תתחבר שוב".'}
           </div>
+          <Field label="חבילת-פתיחה (מהתחום שנבחר בהרשמה)">
+            <Select
+              value={seedPack}
+              onChange={setSeedPack}
+              options={[
+                { value: '', label: 'בלי חבילה — הכול כבוי' },
+                ...VERTICAL_PACKS.map((p) => ({ value: p.id, label: p.label })),
+              ]}
+            />
+          </Field>
           <Field label="סלאג (כתובת הלקוח) *">
             <TextInput value={slug} onChange={setSlug} dir="ltr" placeholder="amutat-or" />
           </Field>
