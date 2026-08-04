@@ -94,13 +94,17 @@ service cloud.firestore {
     // בכלל ייעודי; readCloudEnvelope באפליקציה הוא failure-safe בכל מקרה.
 
     // אוספי השורש (הלקוח הקיים, cloudRoot) — allowlist כהיום + מיילי-על.
-    // ⚠️ אזהרת-אבטחה (ציד-באגים 3.8.2026): הכלל הרקורסיבי הזה תופס **גם** את
-    // platformOrgs/orgs (Firestore = OR של כל הכללים התואמים) ⇒ כל מייל ב-allowedRoot
-    // מקבל כתיבה חוצת-ארגונים. **כרגע בטוח** כי allowedRoot == superAdmin (מייל יחיד).
-    // 🔴 לפני שמוסיפים מייל לא-על ל-allowedRoot **ולפני הכנסת ארגון-ענן שני** — יש לצמצם
-    // כלל זה לאוספי-השורש בלבד (או להעביר את נתוני-השורש תחת קידומת ייעודית).
-    match /{document=**} {
-      allow read, write: if allowedRoot() || superAdmin();
+    // צמצום-אבטחה (ציד-באגים 3.8.2026): קודם היה כלל רקורסיבי /{document=**} שתפס
+    // **גם** את platformOrgs/orgs (Firestore = OR של הכללים) ⇒ מייל ב-allowedRoot
+    // קיבל כתיבה חוצת-ארגונים. עכשיו {rootCol} תופס את שם-האוסף-הראשון וה-allowlist
+    // מתיר כל אוסף-שורש **פרט** לארבעת אוספי-הפלטפורמה (שלהם כללים ייעודיים
+    // superAdmin/member/manager). הלקוח החי לא נשבר (23 אוספי-השורש — families…
+    // deliveries + meta + _enc — כולם מחוץ לרשימת-האיסור; אומת אדוורסרית). מייל
+    // ב-allowedRoot כבר לא נוגע בנתוני ארגון אחר. מייל-על שומר גישה מלאה דרך הכללים
+    // הייעודיים. אזהרה עתידית: אין לקרוא לאוסף-שורש חדש בשם platform*/orgs.
+    match /{rootCol}/{document=**} {
+      allow read, write: if (allowedRoot() || superAdmin())
+        && !(rootCol in ['platformOrgs', 'platformRequests', 'platformLeads', 'orgs']);
     }
   }
 }

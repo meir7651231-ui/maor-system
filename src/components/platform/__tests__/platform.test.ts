@@ -30,6 +30,7 @@ import panelSrc from '../PlatformPanel.tsx?raw';
 import managerSrc from '../ManagerPanel.tsx?raw';
 import useAppSrc from '../../../store/useApp.ts?raw';
 import settingsSrc from '../../settings/SettingsView.tsx?raw';
+import rulesSrc from '../../../../firestore.rules?raw';
 
 describe('☁️ ratchet — ענן 4: לוח הבקרה', () => {
   it('slugify: עברית→לטינית, ניקוי, ייחודיות עם סיומת מספרית', () => {
@@ -210,6 +211,19 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     expect(useAppSrc).toContain('effectiveConfigFor(user.email, orgDoc');
     expect(useAppSrc).toContain('isManager: isOrgManager(user.email');
     expect(useAppSrc).toContain('writeOrgJoinRequest(cfg.slug, user.uid');
+  });
+
+  it('🔒 Rules: כלל-השורש מצומצם (בלי catch-all חוצה-ארגונים) + מנהל מוגבל', () => {
+    // ציד-באגים 3.8.2026: כלל-השורש מתיר כל אוסף-שורש פרט לאוספי-הפלטפורמה
+    expect(rulesSrc).toContain('match /{rootCol}/{document=**}');
+    expect(rulesSrc).toContain(
+      "!(rootCol in ['platformOrgs', 'platformRequests', 'platformLeads', 'orgs'])",
+    );
+    // הכלל הרקורסיבי-העירום (שנתן ל-allowedRoot כתיבה חוצת-ארגונים) הוסר
+    expect(rulesSrc).not.toContain('match /{document=**}');
+    // עדכון-חלקי-מנהל מוגבל לשדות ניהול-העובדות בלבד
+    expect(rulesSrc).toContain("hasOnly(['members', 'memberConfigs', 'joinOpen', 'joinCode'])");
+    expect(rulesSrc).toContain('function orgManager(slug)');
   });
 
   it('הגדרות: צ׳יפ לוח-בקרה (מייל-על) + ניהול-עובדות (מנהל) — בלי הקלדת hash', () => {
