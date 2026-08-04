@@ -21,7 +21,9 @@ import type { Db, Family, OrgEvent } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { Btn, Chip } from '../ui';
 import { hebDateFull } from '../../lib/hebrew';
-import { featureOn, moduleOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, moduleOn, termOf } from '../../lib/config';
+import { waBirthdayText } from '../../lib/wa';
+import { WaBtn } from '../WaBtn';
 import { tierOf } from '../families/lib';
 import { liveSuggestions } from '../shop8/lib';
 import { buildPodium, buildWeek, fmtIls } from '../wall/wallData';
@@ -429,6 +431,14 @@ function BdaysWidget({ ctx }: { ctx: HomeCtx }) {
               >
                 🎉 לברך במפגש
               </button>
+            )}
+            {/* גל ב׳ (whatsapp): ברכת יום-הולדת ממולאת — טלפון-חבר, ובנפילה טלפון-המשפחה */}
+            {integrationOn(config, 'whatsapp') && (
+              <WaBtn
+                phone={b.member.phone || db.families.find((f) => f.id === b.member.famId)?.phone || ''}
+                text={waBirthdayText(config.orgName, b.member.first)}
+                title={'ברכת יום-הולדת ל' + b.member.first + ' (נפתח לעריכה לפני שליחה)'}
+              />
             )}
           </div>
         );

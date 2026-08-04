@@ -11,6 +11,7 @@ import { isoToday } from '../../lib/date-util';
 import { hebDateFull } from '../../lib/hebrew';
 import { downloadCsv, downloadText } from '../reports/csv';
 import { mapsRouteUrl, mapsSearchUrl } from '../../lib/mapsLink';
+import { waDeliveryText } from '../../lib/wa';
 import { WaBtn } from '../WaBtn';
 import { Btn, Chip, Empty, Field, Modal, PageHead, Select, TextInput } from '../ui';
 import type { DistributionDay, Volunteer } from '../../types/domain';
@@ -258,6 +259,9 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
     const f = db.families.find((x) => x.id === famId);
     return f ? mapsSearchUrl(f.address, f.city) : null;
   };
+  // גל ב׳ (whatsapp): 💬 למשפחה עם הודעת-מסירה ממולאת (עריכה לפני שליחה)
+  const waOn = integrationOn(config, 'whatsapp');
+  const famPhone = (famId: string) => db.families.find((x) => x.id === famId)?.phone ?? '';
   const routeVols = mapsOn
     ? [...new Set(rows.map((d) => d.volunteerId))]
         .map((vid) => ({ vid, name: volName(vid), url: mapsRouteUrl(volunteerRouteStops(db, props.day.id, vid)) }))
@@ -320,6 +324,16 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
                       <a href={famStop(d.familyId)!} target="_blank" rel="noopener noreferrer" title="כתובת במפות" style={{ textDecoration: 'none' }}>
                         🗺️
                       </a>
+                    </>
+                  )}
+                  {waOn && famPhone(d.familyId) && (
+                    <>
+                      {' '}
+                      <WaBtn
+                        phone={famPhone(d.familyId)}
+                        text={waDeliveryText(config.orgName, famName(d.familyId))}
+                        title="הודעת-מסירה למשפחה (נפתח לעריכה לפני שליחה)"
+                      />
                     </>
                   )}
                 </td>

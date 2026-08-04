@@ -35,3 +35,29 @@ export function waLink(phone: string, text = ''): string | null {
   const t = text.trim();
   return 'https://wa.me/' + digits + (t ? '?text=' + encodeURIComponent(t) : '');
 }
+
+/* ---------- תבניות-הודעה (גל ב׳) — טהורות; המשתמש עורך לפני שליחה ---------- */
+/* וואטסאפ פותח עם הטקסט ממולא אך **לא שולח** — המזכירה רואה, מתקנת, שולחת.
+ * לכן הנוסח פונקציונלי ופשוט; שם-ארגון ריק ⇒ 'העמותה'. */
+
+function orgOf(orgName: string): string {
+  return orgName.trim() || 'העמותה';
+}
+
+/** הודעת-מסירה (חלוקה): נשלחת למשפחה כשהמשלוח יוצא/בדרך. */
+export function waDeliveryText(orgName: string, famName: string): string {
+  return 'שלום ' + ('משפחת ' + famName).trim() + ', משלוח מ' + orgOf(orgName) + ' בדרך אליכם היום 🚚';
+}
+
+/** תזכורת-תשלום ידידותית (חוגים): שם-הפריט + היתרה. */
+export function waPaymentText(orgName: string, what: string, balance: number): string {
+  return (
+    'שלום, תזכורת ידידותית מ' + orgOf(orgName) + ': יתרה לתשלום עבור ' + what +
+    ' — ₪' + Math.round(balance).toLocaleString('he-IL') + '. תודה רבה!'
+  );
+}
+
+/** ברכת יום-הולדת לחוגג/ת. */
+export function waBirthdayText(orgName: string, firstName: string): string {
+  return 'מזל טוב ל' + firstName + ' ליום ההולדת! 🎂 באהבה, ' + orgOf(orgName);
+}
