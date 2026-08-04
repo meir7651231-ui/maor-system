@@ -680,14 +680,20 @@ export default function App() {
             title="חיפוש בכל המערכת (Ctrl+K)"
           >
             <span aria-hidden>🔍</span>
-            <span className="side-search-label">חיפוש או פקודה — משפחה, חוג, תורם, דוח…</span>
+            {/* מטריצת-ורטיקלים 4.8.2026: רמז-החיפוש בנוי ממונחי-הארגון — היה קשיח ודלף לכל מסך */}
+            <span className="side-search-label">
+              {'חיפוש או פקודה — ' +
+                termOf(config, 'entity.family', 'משפחה') + ', ' +
+                termOf(config, 'entity.course', 'חוג') + ', ' +
+                termOf(config, 'entity.supporter', 'תורם') + ', דוח…'}
+            </span>
             <kbd aria-hidden>Ctrl K</kbd>
           </button>
           <div className="side-actions">
             {backBtn}
             {moduleOn(config, 'families') && (
-              <Btn kind="primary" onClick={openFamilyForm} title="פתיחת טופס הוספת משפחה">
-                + משפחה חדשה
+              <Btn kind="primary" onClick={openFamilyForm} title={'פתיחת טופס הוספת ' + termOf(config, 'entity.family', 'משפחה')}>
+                {'+ הוספת ' + termOf(config, 'entity.family', 'משפחה')}
               </Btn>
             )}
             {moduleOn(config, 'courses') && (

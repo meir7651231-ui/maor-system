@@ -53,9 +53,10 @@ export function managementMetrics(db: Db, config?: OrgConfig): MetricGroup[] {
   }
 
   const groups: MetricGroup[] = [
-    { title: '🚚 חלוקה', rows: [['ימי חלוקה', db.distributionDays.length], ['מסירות סה"כ', deliveries.length], ['נמסרו', delivered], [T('nav.families', 'משפחות') + ' שקיבלו', famReached], ['מתנדבים פעילים', activeVols]] },
-    { title: '🛍 חנות', rows: [['שיוכים פעילים', activeAssign], ['מימושים', redemptions], ['אצוות פג/עומד-לפוג', expiringIntakes(db, isoToday()).length]] },
-    { title: '🪙 קופות צדקה', rows: [['קופות', db.tzBoxes.length], ['ריקונים', collections], ['סה"כ נאסף (₪)', tzTotal]] },
+    // מטריצת-ורטיקלים 4.8.2026: כותרות-הקבוצות דרך termOf — היו קשיחות ודלפו
+    { title: '🚚 ' + T('nav.shop7', 'חלוקה'), rows: [['ימי חלוקה', db.distributionDays.length], ['מסירות סה"כ', deliveries.length], ['נמסרו', delivered], [T('nav.families', 'משפחות') + ' שקיבלו', famReached], [T('entity.volunteer', 'מתנדב') + 'ים פעילים', activeVols]] },
+    { title: '🛍 ' + T('nav.shop', 'חנות'), rows: [['שיוכים פעילים', activeAssign], ['מימושים', redemptions], ['אצוות פג/עומד-לפוג', expiringIntakes(db, isoToday()).length]] },
+    { title: '🪙 ' + T('nav.tzedaka', 'קופות צדקה'), rows: [['קופות', db.tzBoxes.length], ['ריקונים', collections], ['סה"כ נאסף (₪)', tzTotal]] },
     { title: '👨‍👩‍👧 ' + T('nav.families', 'משפחות'), rows: [[T('nav.families', 'משפחות') + ' פעילות', activeFams], ['סה"כ ' + T('nav.families', 'משפחות'), db.families.length]] },
   ];
 

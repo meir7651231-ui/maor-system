@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "e2e": "node e2e/toggle-matrix.mjs",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
-    "verify:fast": "npm run typecheck && npm run lint && npm run test"
+    "verify:fast": "npm run typecheck && npm run lint && npm run test",
+    "e2e:verticals": "node e2e/vertical-matrix.mjs"
   },
   "dependencies": {
     "firebase": "^12.16.0",
