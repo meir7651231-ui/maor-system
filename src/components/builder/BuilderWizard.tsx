@@ -15,7 +15,7 @@ import { computeQuote, readPrices, shekel, writePrices, SIZE_LABELS, type DealMo
 import { DEFAULT_CONFIG, type ModuleKey, type OrgConfig } from '../../types/config';
 import { FEATURES, TERM_DEFS, type FeatureDef, type TermDef } from '../../types/features';
 import { Btn, Chip, Field, FormError, TextInput } from '../ui';
-import { buildHandoffHtml, downloadTextFile, INTEGRATION_LABELS, THEME_LABELS } from './handoff';
+import { buildHandoffHtml, downloadTextFile, INTEGRATION_LABELS, INTEGRATION_STATUS, liveAddons, THEME_LABELS } from './handoff';
 import { featureEffectiveOn, WIZARD_SECTIONS, type WizardSectionDef } from './sections';
 
 const DEFAULT_APP_URL = 'https://meir7651231-ui.github.io/maor-system/';
@@ -333,10 +333,8 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   /** הצעת-המחיר החיה — מתעדכנת עם כל מתג/מחיר/גודל. שמות-מודול מכבדים termOf. */
   const quote = useMemo(() => {
     const nameOf = (m: ModuleKey) => termOf(config, `nav.${m}`, MODULE_SHORT[m] ?? m);
-    const addons = Object.entries(config.integrations ?? {})
-      .filter(([, v]) => v.enabled)
-      .map(([k]) => ({ key: k, label: INTEGRATION_LABELS[k] ?? k }));
-    return computeQuote(config, size, prices, nameOf, addons, dealMode);
+    // כנות-תמחור: רק הרחבות **ממומשות** נכנסות להצעה — דרך liveAddons (מקור-אמת יחיד)
+    return computeQuote(config, size, prices, nameOf, liveAddons(config), dealMode);
   }, [config, size, prices, dealMode]);
 
   const createPackage = () => {
@@ -797,26 +795,53 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
         {/* מקטע לכל מסך — בסדר המסכים באפליקציה */}
         {WIZARD_SECTIONS.map(renderModuleSection)}
 
-        {/* הרחבות — נשארות כ-chips (מוסתר בזמן חיפוש יכולות) */}
+        {/* הרחבות (INTEGRATIONS גל א׳) — טקסונומיית-כנות: live נמכר · included כלול ·
+            roadmap מושבת (אי-אפשר למכור בטעות מה שלא קיים). מוסתר בזמן חיפוש. */}
         {!searching && (
           <SectionShell
             id="wz-integrations"
             emoji="🔌"
-            title="הרחבות שנמכרו"
-            meta="יופעלו בפגישת המשך"
+            title="הרחבות"
+            meta="ממומשות בלבד נמכרות"
             open={isOpen('integrations')}
             onToggleOpen={() => flipOpen('integrations')}
           >
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', paddingTop: 6 }}>
-              {Object.entries(INTEGRATION_LABELS).map(([k, label]) => (
-                <Chip
-                  key={k}
-                  on={config.integrations?.[k]?.enabled ?? false}
-                  onClick={() => toggleIntegration(k)}
-                >
-                  {label}
-                </Chip>
-              ))}
+              {Object.entries(INTEGRATION_LABELS)
+                .filter(([k]) => INTEGRATION_STATUS[k] === 'live')
+                .map(([k, label]) => (
+                  <Chip key={k} on={config.integrations?.[k]?.enabled ?? false} onClick={() => toggleIntegration(k)}>
+                    {label}
+                  </Chip>
+                ))}
+              {/* דגל-תקוע (ביקורת 4.8): קונפיג מיובא עם הרחבה לא-ממומשת דלוקה —
+                  מוצג גלוי להסרה, שלא ירכב שקוף לתוך ייצוא/מסירה עתידיים */}
+              {Object.entries(config.integrations ?? {})
+                .filter(([k, v]) => v.enabled && INTEGRATION_STATUS[k] !== 'live')
+                .map(([k]) => (
+                  <Chip key={'stale-' + k} on onClick={() => toggleIntegration(k)}>
+                    {(INTEGRATION_LABELS[k] ?? k) + ' — 🔜 לא-ממומש (הסרה ✕)'}
+                  </Chip>
+                ))}
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 8 }}>
+              כלול במערכת (בלי תוספת):{' '}
+              {Object.entries(INTEGRATION_LABELS)
+                .filter(
+                  ([k]) =>
+                    INTEGRATION_STATUS[k] === 'included' &&
+                    // כנות: קבלות-§46 חיות במודול התורמים — כבוי ⇒ לא "כלול" (ביקורת 4.8)
+                    (k !== 'receipts' || config.modules.supporters !== false),
+                )
+                .map(([, label]) => label)
+                .join(' · ')}
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 4 }}>
+              🔜 בפיתוח (לא נמכר עדיין):{' '}
+              {Object.entries(INTEGRATION_LABELS)
+                .filter(([k]) => INTEGRATION_STATUS[k] === 'roadmap')
+                .map(([, label]) => label)
+                .join(' · ')}
             </div>
           </SectionShell>
         )}
@@ -888,14 +913,16 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                   onChange={(n) => setPrice({ modules: { ...prices.modules, [m]: n } })}
                 />
               ))}
-              {Object.keys(INTEGRATION_LABELS).map((k) => (
-                <PriceRow
-                  key={k}
-                  label={INTEGRATION_LABELS[k]}
-                  value={prices.integrations[k] ?? 0}
-                  onChange={(n) => setPrice({ integrations: { ...prices.integrations, [k]: n } })}
-                />
-              ))}
+              {Object.keys(INTEGRATION_LABELS)
+                .filter((k) => INTEGRATION_STATUS[k] === 'live')
+                .map((k) => (
+                  <PriceRow
+                    key={k}
+                    label={INTEGRATION_LABELS[k]}
+                    value={prices.integrations[k] ?? 0}
+                    onChange={(n) => setPrice({ integrations: { ...prices.integrations, [k]: n } })}
+                  />
+                ))}
               <span>הקמה חד-פעמית</span>
               <PriceInput value={prices.setup} onChange={(n) => setPrice({ setup: n })} />
             </div>

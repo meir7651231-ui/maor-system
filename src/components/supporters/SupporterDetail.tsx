@@ -5,7 +5,8 @@
 import { useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, termOf } from '../../lib/config';
+import { WaBtn } from '../WaBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -236,6 +237,12 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         {/* פרטי קשר */}
         <div className="card">
           <h3 style={{ fontSize: 15, marginBottom: 8 }}>{'פרטי ' + termOf(config, 'entity.supporter', 'התומך/ת')}</h3>
+          {/* INTEGRATIONS גל א׳ — 💬 וואטסאפ ליד הטלפון (הרחבה נמכרת, חסר=כבוי) */}
+          {integrationOn(config, 'whatsapp') && sp.phone && (
+            <div style={{ textAlign: 'left', marginBottom: 2 }}>
+              <WaBtn phone={sp.phone} title={'וואטסאפ ל' + sp.name} />
+            </div>
+          )}
           <InfoRow k="טלפון" v={sp.phone || '—'} ltr />
           <InfoRow k="אימייל" v={sp.email || '—'} ltr />
           <InfoRow k="כתובת" v={sp.address || '—'} />

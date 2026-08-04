@@ -5,7 +5,8 @@
  */
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, moduleOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, moduleOn, termOf } from '../../lib/config';
+import { buildIcs, downloadIcs } from '../../lib/ics';
 import { Btn, Chip, Empty, PageHead } from '../ui';
 import type { OrgEvent } from '../../types/domain';
 import {
@@ -16,6 +17,7 @@ import {
   DEFAULT_FILTERS,
   EV_META,
   HOLIDAY_META,
+  icsWindowEvents,
   initialHebMode,
   isoOf,
   SESSION_META,
@@ -316,6 +318,25 @@ export function CalendarView() {
             {featureOn(config, 'calendar.export') && (
               <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
                 📊 דו"ח מותאם
+              </Btn>
+            )}
+            {/* INTEGRATIONS גל א׳ (gcal): ייצוא ICS — שנה עברית קדימה (385 יום —
+                שנה מעוברת! 365 היה מפספס יארצייט שמרווח-מופעיו 383-385; ביקורת 4.8) */}
+            {integrationOn(config, 'gcal') && (
+              <Btn
+                onClick={() =>
+                  downloadIcs(
+                    'calendar-' + config.slug + '.ics',
+                    buildIcs(
+                      icsWindowEvents(db, isoOf(new Date()), 385, config.slug),
+                      config.orgName || 'לוח הארגון',
+                      new Date(),
+                    ),
+                  )
+                }
+                title="קובץ ICS לייבוא ליומן Google/Outlook — שנה עברית קדימה כולל יארצייטים"
+              >
+                📅 ליומן (ICS)
               </Btn>
             )}
             <Btn kind="primary" onClick={() => setModal({ ev: null, date: isoOf(new Date()) })}>

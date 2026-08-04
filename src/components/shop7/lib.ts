@@ -109,6 +109,23 @@ export function deliveriesCsvRows(db: Db, config?: OrgConfig): (string | number)
   return rows;
 }
 
+/**
+ * עצירות-המסלול של מתנדב ביום-חלוקה (INTEGRATIONS גל א׳ · הרחבת maps):
+ * כתובות המשפחות של המסירות שלו באותו יום, בסדר-הלוח, '[address, city]'
+ * מסונן-ריקים; משפחה בלי כתובת מדולגת (אין מה לנווט אליו). תצוגה בלבד.
+ */
+export function volunteerRouteStops(db: Db, dayId: string, volunteerId: string): string[] {
+  const out: string[] = [];
+  for (const d of db.deliveries) {
+    if (d.dayId !== dayId || d.volunteerId !== volunteerId) continue;
+    const fam = db.families.find((f) => f.id === d.familyId);
+    if (!fam) continue;
+    const stop = [fam.address, fam.city].map((s) => (s || '').trim()).filter(Boolean).join(', ');
+    if (stop) out.push(stop);
+  }
+  return out;
+}
+
 /** סינון מתנדבים (שם/טלפון/אזור) דרך smartFilter. */
 export function filterVolunteers(vols: Volunteer[], q: string): Volunteer[] {
   if (!q.trim()) return vols;

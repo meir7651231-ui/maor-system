@@ -5,7 +5,8 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, moduleOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, moduleOn, termOf } from '../../lib/config';
+import { WaBtn } from '../WaBtn';
 import type { TzBoxStatus } from '../../types/domain';
 import { Btn, Chip, Empty, Select, TextInput } from '../ui';
 import { boxesOverview, coordinatorBoxes, coordinatorTotal, filterCoordinators } from './lib';
@@ -141,7 +142,11 @@ export function CoordinatorsTab(props: { selId: string | null; onSelect: (id: st
                   <span style={{ fontWeight: 800, fontSize: 15 }}>{c.name}</span>
                   <Chip on={c.active}>{c.active ? 'פעיל/ה' : 'לא פעיל/ה'}</Chip>
                 </div>
-                <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{c.phone || 'ללא טלפון'}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
+                  {/* INTEGRATIONS גל א׳ — 💬 וואטסאפ לרכז/ת; הרווח בתוך הגידור (ביט-זהה) */}
+                  {integrationOn(config, 'whatsapp') && c.phone ? <><WaBtn phone={c.phone} title={'וואטסאפ ל' + c.name} />{' '}</> : null}
+                  {c.phone || 'ללא טלפון'}
+                </div>
                 <div style={{ fontSize: 12.5, fontWeight: 600 }}>
                   {scoreOn && <span style={{ marginInlineEnd: 8 }}>{'🏆 ' + c.score + ' נק׳'}</span>}
                   {boxes.length + ' קופות · ' + coordinatorTotal(db.tzBoxes, c.id).toLocaleString('he-IL') + ' ₪'}

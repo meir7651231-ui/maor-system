@@ -18,6 +18,7 @@ import { sessionsOf } from '../courses/lib';
 export { sessionsOf };
 import { EV_META, evLabel } from '../../lib/eventMeta';
 export { EV_META, evLabel }; // מיוצא מחדש — wallData מייבא evLabel מכאן
+import type { IcsOccurrence } from '../../lib/ics';
 
 /* ---------- תאריכים ---------- */
 
@@ -560,6 +561,38 @@ export function nextOccurIso(ev: Pick<OrgEvent, 'type' | 'date'>, fromIso: strin
     if (iso >= ev.date && hebAnnualEq(oh, hpOf(iso, d))) return iso;
   }
   return '';
+}
+
+/* ---------- ייצוא ליומן (INTEGRATIONS גל א׳ · הרחבת gcal) ---------- */
+
+/**
+ * פריסת אירועי-הארגון לחלון-ימים קדימה כמופעים קונקרטיים ל-ICS. אין RRULE
+ * ללוח העברי ⇒ כל מופע-חוזר (יארצייט/נישואין/יום-הולדת, eventOccursOn עם דין
+ * אדר) נפרס לתאריכו הלועזי בכל שנה בחלון. אירוע שסומן 'בוצע' מופיע רק בתאריך
+ * המקורי (כמו בלוח הבית). גל א׳ = OrgEvents בלבד (בלי שכבות-נגזרות).
+ */
+export function icsWindowEvents(db: Db, fromIso: string, days: number, slug: string): IcsOccurrence[] {
+  const rooms = new Map(db.rooms.map((r) => [r.id, r.name]));
+  const from = new Date(fromIso + 'T12:00:00');
+  const out: IcsOccurrence[] = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + i);
+    const iso = isoOf(d);
+    const hp = hpOf(iso, d);
+    for (const ev of db.events) {
+      if (!eventOccursOn(ev, iso, hp)) continue;
+      if (ev.done && iso !== ev.date) continue; // 'בוצע' — רק במקור, כמו בלוח
+      out.push({
+        uid: ev.id + '-' + iso + '@' + slug,
+        title: ev.title,
+        date: iso,
+        time: ev.time || '',
+        notes: ev.notes || undefined,
+        location: (ev.roomId && rooms.get(ev.roomId)) || undefined,
+      });
+    }
+  }
+  return out;
 }
 
 /* ---------- צ׳יפי תאריכים מהירים (P2 פער 26) ---------- */

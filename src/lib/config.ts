@@ -6,7 +6,7 @@
  * 2. fetch('./config.json') — קובץ סטטי יחסי ל-base (פר-פריסה של ארגון).
  * 3. DEFAULT_CONFIG — כשאין קובץ / הקובץ פגום (404, JSON שבור).
  */
-import { DEFAULT_CONFIG, type FirebaseOrgConfig, type ModuleKey, type OrgConfig } from '../types/config';
+import { DEFAULT_CONFIG, INTEGRATION_KEYS, type FirebaseOrgConfig, type ModuleKey, type OrgConfig } from '../types/config';
 
 const LS_CONFIG_KEY = 'maor_org_config';
 
@@ -48,6 +48,15 @@ export function featureOn(cfg: OrgConfig, key: string): boolean {
     return false;
   }
   return true;
+}
+
+/**
+ * האם הרחבה (integration) פעילה — **הפוך מחוזה-הדגלים במכוון**: הרחבה היא
+ * מוצר-נמכר (opt-in), לכן מפתח חסר = כבוי; רק enabled:true מפורש מדליק.
+ * (דגל-פיצ'ר: חסר = דלוק; רק false מכבה. אל תבלבלו — ratchet אוכף.)
+ */
+export function integrationOn(cfg: OrgConfig, key: string): boolean {
+  return cfg.integrations?.[key]?.enabled === true;
 }
 
 /**
@@ -110,6 +119,20 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
   // נתיבי-שורש בענן (CLOUD2) — רק true מפורש נשמר; כל השאר = orgs/{slug}
   if (c.cloudRoot === true) cfg.cloudRoot = true;
   else delete cfg.cloudRoot;
+  // הרחבות (INTEGRATIONS גל א׳) — חיטוי: רק מפתחות מה-allowlist (שגיאת-כתיב
+  // לא נבלעת בשקט — ביקורת 4.8) ורק רשומות {enabled:boolean}. ריק ⇒ מוסר.
+  const intsRaw = c.integrations;
+  if (intsRaw && typeof intsRaw === 'object' && !Array.isArray(intsRaw)) {
+    const ints: Record<string, { enabled: boolean }> = {};
+    for (const [k, v] of Object.entries(intsRaw as Record<string, unknown>)) {
+      if (!(INTEGRATION_KEYS as readonly string[]).includes(k)) continue;
+      if (v && typeof v === 'object' && !Array.isArray(v) && typeof (v as { enabled?: unknown }).enabled === 'boolean') {
+        ints[k] = { enabled: (v as { enabled: boolean }).enabled };
+      }
+    }
+    if (Object.keys(ints).length) cfg.integrations = ints;
+    else delete cfg.integrations;
+  } else delete cfg.integrations;
   // מיילי-אדמין — רק מחרוזות לא-ריקות; ריק/לא-מערך → מוסר (אין הגבלה)
   const admins = Array.isArray(c.adminEmails)
     ? c.adminEmails.filter((e): e is string => typeof e === 'string' && e.trim() !== '')
