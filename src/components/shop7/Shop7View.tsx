@@ -5,10 +5,12 @@
  */
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, termOf } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import { hebDateFull } from '../../lib/hebrew';
 import { downloadCsv, downloadText } from '../reports/csv';
+import { mapsRouteUrl, mapsSearchUrl } from '../../lib/mapsLink';
+import { WaBtn } from '../WaBtn';
 import { Btn, Chip, Empty, Field, Modal, PageHead, Select, TextInput } from '../ui';
 import type { DistributionDay, Volunteer } from '../../types/domain';
 import {
@@ -20,6 +22,7 @@ import {
   filterVolunteers,
   statusLabel,
   volunteerLoadHint,
+  volunteerRouteStops,
 } from './lib';
 
 type Tab = 'volunteers' | 'days';
@@ -74,7 +77,11 @@ function VolunteersTab() {
             {shown.map((v) => (
               <tr key={v.id}>
                 <td style={{ fontWeight: 600 }}>{v.name}</td>
-                <td dir="ltr">{v.phone || '—'}</td>
+                <td dir="ltr">
+                  {/* INTEGRATIONS גל א׳ — 💬 וואטסאפ למתנדב (הרחבה נמכרת, חסר=כבוי) */}
+                  {integrationOn(config, 'whatsapp') && v.phone ? <WaBtn phone={v.phone} title={'וואטסאפ ל' + v.name} /> : null}{' '}
+                  {v.phone || '—'}
+                </td>
                 <td>{v.area || '—'}</td>
                 <td>{v.maxDeliveries != null ? v.maxDeliveries : '—'}</td>
                 <td>{v.active ? '✓ פעיל' : 'לא פעיל'}</td>
@@ -242,6 +249,17 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
     return db.shopProducts.find((p) => p.id === a?.productId)?.name ?? '—';
   };
   const statusColor = (s: string) => (s === 'delivered' ? '#16a34a' : s === 'enroute' ? '#d97706' : '#64748b');
+  // INTEGRATIONS גל א׳ (maps): 🗺️ מסלול פר-מתנדב — כתובות מסירותיו בסדר-הלוח
+  const mapsOn = integrationOn(config, 'maps');
+  const famStop = (famId: string) => {
+    const f = db.families.find((x) => x.id === famId);
+    return f ? mapsSearchUrl(f.address, f.city) : null;
+  };
+  const routeVols = mapsOn
+    ? [...new Set(rows.map((d) => d.volunteerId))]
+        .map((vid) => ({ vid, name: volName(vid), url: mapsRouteUrl(volunteerRouteStops(db, props.day.id, vid)) }))
+        .filter((r) => r.url)
+    : [];
 
   return (
     <div>
@@ -265,6 +283,22 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
         )}
         {!props.day.closed && <Btn kind="primary" onClick={() => setAssignOpen(true)}>➕ שיוך מסירה</Btn>}
       </div>
+      {/* מסלולי-מתנדבים (הרחבת maps): כפתור-מסלול לכל מתנדב עם כתובות ביום */}
+      {routeVols.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+          {routeVols.map((r) => (
+            <a
+              key={r.vid}
+              href={r.url!}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 12.5, fontWeight: 600, border: '1px solid var(--line)', borderRadius: 999, padding: '4px 10px', textDecoration: 'none', color: 'var(--ink-soft)' }}
+            >
+              🗺️ מסלול · {r.name}
+            </a>
+          ))}
+        </div>
+      )}
       {rows.length === 0 ? (
         <Empty>אין מסירות ביום זה — שייכו שיוך-חנות פעיל למתנדב.</Empty>
       ) : (
@@ -275,7 +309,14 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
           <tbody>
             {rows.map((d) => (
               <tr key={d.id}>
-                <td style={{ fontWeight: 600 }}>{famName(d.familyId)}</td>
+                <td style={{ fontWeight: 600 }}>
+                  {famName(d.familyId)}{' '}
+                  {mapsOn && famStop(d.familyId) && (
+                    <a href={famStop(d.familyId)!} target="_blank" rel="noopener noreferrer" title="כתובת במפות" style={{ textDecoration: 'none' }}>
+                      🗺️
+                    </a>
+                  )}
+                </td>
                 <td>{prodName(d.assignmentId)}</td>
                 <td>{volName(d.volunteerId)}</td>
                 <td style={{ fontWeight: 700, color: statusColor(d.status) }}>{statusLabel(d.status)}</td>

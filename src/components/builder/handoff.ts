@@ -30,13 +30,35 @@ export const INTEGRATION_LABELS: Record<string, string> = {
   whatsapp: '💬 הודעות וואטסאפ',
   sms: '📱 הודעות SMS',
   phone: '📞 מערכת טלפונית (ימות המשיח)',
-  gcal: '📅 סנכרון יומן Google/Outlook',
+  gcal: '📅 ייצוא ליומן Google/Outlook (ICS)',
   drive: '☁️ גיבוי ענן אוטומטי',
   sheets: '📊 גיליון חי להנהלה',
   maps: '🗺️ מפות ומסלולי חלוקה',
   esign: '✍️ חתימה דיגיטלית',
   ai: '🤖 עוזר חכם (AI)',
   campaign: '📣 חיבור קמפיין גיוס',
+};
+
+/**
+ * טקסונומיית-כנות (INTEGRATIONS גל א׳, ליעוס 4.8.2026): מה באמת קיים.
+ * ‏live = ממומש בקוד ונמכר (מגודר integrationOn — חסר=כבוי) · included = כבר
+ * כלול נייטיב במערכת (לא נמכר פעמיים) · roadmap = דורש שרת/ספק — צ'יפ מושבת
+ * באשף, לא מתומחר, לא מובטח בדף-המסירה. **אי-אפשר למכור בטעות מה שלא קיים.**
+ */
+export type IntegrationStatus = 'live' | 'included' | 'roadmap';
+export const INTEGRATION_STATUS: Record<string, IntegrationStatus> = {
+  whatsapp: 'live', // wa.me — src/lib/wa.ts
+  maps: 'live', // Google Maps links — src/lib/mapsLink.ts
+  gcal: 'live', // ICS — src/lib/ics.ts + calLib.icsWindowEvents
+  receipts: 'included', // §46 במודול תורמים (receipt.ts)
+  drive: 'included', // 3 שכבות גיבוי + סנכרון-ענן opt-in
+  payments: 'roadmap',
+  sms: 'roadmap',
+  phone: 'roadmap',
+  sheets: 'roadmap',
+  esign: 'roadmap',
+  ai: 'roadmap',
+  campaign: 'roadmap',
 };
 
 function esc(s: string): string {
@@ -117,15 +139,17 @@ export function buildHandoffHtml(cfg: OrgConfig, appUrl: string, installerName: 
          .map((f) => `<li>✖ ${esc(f.label)} <small>(${esc(featureGroupName(cfg, f.module))})</small></li>`)
          .join('')}</ul>`
     : '';
+  // כנות-מסירה (INTEGRATIONS גל א׳): live = "פעיל" (הופעל במסירה); roadmap —
+  // אם בכל-זאת סומן (האשף חוסם) — "בפיתוח, ללא חיוב". אין יותר הבטחות-אוויר.
   const sold = Object.entries(cfg.integrations ?? {}).filter(([, v]) => v.enabled);
-  const integrations = sold.length
-    ? `<h2>🔌 הרחבות שנרכשו</h2>
-       <p>ההרחבות הבאות נרכשו ויופעלו בפגישת המשך קצרה (נדרש לפתוח חשבונות על שם העמותה):</p>
-       <ul>${sold.map(([k]) => `<li>${esc(INTEGRATION_LABELS[k] ?? k)} — <b>ממתין להפעלה</b></li>`).join('')}</ul>
-       <table><tr><th>חשבון לפתיחה</th><th>על שם</th><th>מי פותח</th></tr>
-       ${sold.map(([k]) => `<tr><td>${esc(INTEGRATION_LABELS[k] ?? k)}</td><td>העמותה</td><td>יחד בפגישת ההפעלה</td></tr>`).join('')}
-       </table>`
-    : '';
+  const liveSold = sold.filter(([k]) => INTEGRATION_STATUS[k] === 'live');
+  const roadSold = sold.filter(([k]) => INTEGRATION_STATUS[k] === 'roadmap');
+  const integrations =
+    liveSold.length || roadSold.length
+      ? `<h2>🔌 הרחבות</h2>
+       ${liveSold.length ? `<ul>${liveSold.map(([k]) => `<li>${esc(INTEGRATION_LABELS[k] ?? k)} — <b>פעיל</b></li>`).join('')}</ul>` : ''}
+       ${roadSold.length ? `<p style="font-size:13px;color:#777">בפיתוח (יופעלו עם השקתם, ללא חיוב היום): ${roadSold.map(([k]) => esc(INTEGRATION_LABELS[k] ?? k)).join(' · ')}</p>` : ''}`
+      : '';
 
   return `<!doctype html>
 <html lang="he" dir="rtl"><head><meta charset="utf-8">

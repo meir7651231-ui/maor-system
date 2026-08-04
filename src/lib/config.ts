@@ -51,6 +51,15 @@ export function featureOn(cfg: OrgConfig, key: string): boolean {
 }
 
 /**
+ * האם הרחבה (integration) פעילה — **הפוך מחוזה-הדגלים במכוון**: הרחבה היא
+ * מוצר-נמכר (opt-in), לכן מפתח חסר = כבוי; רק enabled:true מפורש מדליק.
+ * (דגל-פיצ'ר: חסר = דלוק; רק false מכבה. אל תבלבלו — ratchet אוכף.)
+ */
+export function integrationOn(cfg: OrgConfig, key: string): boolean {
+  return cfg.integrations?.[key]?.enabled === true;
+}
+
+/**
  * מונח מותאם מהמילון — cfg.terms[key] אחרי trim אם אינו ריק, אחרת fallback.
  * דריסה ריקה / רווחים בלבד נחשבת "אין דריסה".
  */
@@ -110,6 +119,19 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
   // נתיבי-שורש בענן (CLOUD2) — רק true מפורש נשמר; כל השאר = orgs/{slug}
   if (c.cloudRoot === true) cfg.cloudRoot = true;
   else delete cfg.cloudRoot;
+  // הרחבות (INTEGRATIONS גל א׳) — חיטוי: נשמרות רק רשומות {enabled:boolean};
+  // קלט פגום (מחרוזת/מערך/enabled לא-בוליאני) נזרק. ריק ⇒ המפתח מוסר.
+  const intsRaw = c.integrations;
+  if (intsRaw && typeof intsRaw === 'object' && !Array.isArray(intsRaw)) {
+    const ints: Record<string, { enabled: boolean }> = {};
+    for (const [k, v] of Object.entries(intsRaw as Record<string, unknown>)) {
+      if (v && typeof v === 'object' && !Array.isArray(v) && typeof (v as { enabled?: unknown }).enabled === 'boolean') {
+        ints[k] = { enabled: (v as { enabled: boolean }).enabled };
+      }
+    }
+    if (Object.keys(ints).length) cfg.integrations = ints;
+    else delete cfg.integrations;
+  } else delete cfg.integrations;
   // מיילי-אדמין — רק מחרוזות לא-ריקות; ריק/לא-מערך → מוסר (אין הגבלה)
   const admins = Array.isArray(c.adminEmails)
     ? c.adminEmails.filter((e): e is string => typeof e === 'string' && e.trim() !== '')

@@ -5,7 +5,8 @@
 import { useEffect, useState, type KeyboardEvent } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, termOf } from '../../lib/config';
+import { WaBtn } from '../WaBtn';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
@@ -441,7 +442,8 @@ export function SupportersView() {
                       <TierChip sp={sp} rate={rate} />
                     </td>
                   )}
-                  {/* P3 פריט 12 — 📞 פר-שורה: חיוג ישיר בלי לפתוח את הכרטיס */}
+                  {/* P3 פריט 12 — 📞 פר-שורה: חיוג ישיר בלי לפתוח את הכרטיס.
+                      INTEGRATIONS גל א׳ — 💬 וואטסאפ לצדו (הרחבה נמכרת, חסר=כבוי) */}
                   <td onClick={(e) => e.stopPropagation()}>
                     {sp.phone && featureOn(config, 'supporters.click2call') ? (
                       <a href={'tel:' + sp.phone.replace(/\D/g, '')} title={'חיוג ל' + sp.name + ' — ' + sp.phone} aria-label={'חיוג ל' + sp.name}>
@@ -450,6 +452,7 @@ export function SupportersView() {
                     ) : (
                       ''
                     )}
+                    {sp.phone && integrationOn(config, 'whatsapp') ? <WaBtn phone={sp.phone} title={'וואטסאפ ל' + sp.name} /> : ''}
                   </td>
                 </tr>
               ))}

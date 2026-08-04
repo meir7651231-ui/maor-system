@@ -2,11 +2,13 @@
  * כרטיס משפחה — פרטי קשר והורים, בני משפחה (הוספה/עריכה/מחיקה),
  * מסמכים, מדד אמינות, שיבוצים ואירועים מקושרים.
  */
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Family, Member } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { nsLsKey } from '../../store/persist';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, termOf } from '../../lib/config';
+import { mapsSearchUrl } from '../../lib/mapsLink';
+import { WaBtn } from '../WaBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty } from '../ui';
 import { ageOf, chipStyle, fmtDate, STATUS_META } from './lib';
@@ -19,11 +21,14 @@ import { ShopFamilyPanel } from '../shop/ShopFamilyPanel';
 import { Shop7FamilyPanel } from '../shop7/Shop7FamilyPanel';
 import { useArmed } from '../useArmed';
 
-function InfoRow(props: { k: string; v: string }) {
+function InfoRow(props: { k: string; v: string; action?: ReactNode }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '4px 0', fontSize: 14 }}>
       <span style={{ color: 'var(--ink-faint)', whiteSpace: 'nowrap' }}>{props.k}</span>
-      <span style={{ fontWeight: 600, textAlign: 'left', overflowWrap: 'anywhere' }}>{props.v}</span>
+      <span style={{ fontWeight: 600, textAlign: 'left', overflowWrap: 'anywhere', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        {props.action}
+        {props.v}
+      </span>
     </div>
   );
 }
@@ -335,10 +340,27 @@ export function FamilyDetail(props: { family: Family }) {
           <InfoRow k={'ת"ז האב'} v={maskId(fam.fatherId, showIds)} />
           <InfoRow k="שם האם" v={fam.mother || '—'} />
           <InfoRow k={'ת"ז האם'} v={maskId(fam.motherId, showIds)} />
-          <InfoRow k="טלפון ראשי" v={fam.phone || '—'} />
-          <InfoRow k="טלפון נוסף" v={fam.phone2 || '—'} />
+          {/* הרחבות נמכרות (INTEGRATIONS גל א׳): 💬 wa.me · 🗺️ Maps — חסר=כבוי */}
+          <InfoRow k="טלפון ראשי" v={fam.phone || '—'} action={integrationOn(config, 'whatsapp') ? <WaBtn phone={fam.phone} /> : undefined} />
+          <InfoRow k="טלפון נוסף" v={fam.phone2 || '—'} action={integrationOn(config, 'whatsapp') ? <WaBtn phone={fam.phone2} /> : undefined} />
           <InfoRow k="אימייל" v={fam.email || '—'} />
-          <InfoRow k="כתובת" v={addressLine || '—'} />
+          <InfoRow
+            k="כתובת"
+            v={addressLine || '—'}
+            action={
+              integrationOn(config, 'maps') && mapsSearchUrl(fam.address, fam.city) ? (
+                <a
+                  href={mapsSearchUrl(fam.address, fam.city)!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="פתיחה במפות"
+                  style={{ textDecoration: 'none', fontSize: 15, lineHeight: 1 }}
+                >
+                  🗺️
+                </a>
+              ) : undefined
+            }
+          />
         </section>
         <section className="card">
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>פרטים נוספים</h2>
