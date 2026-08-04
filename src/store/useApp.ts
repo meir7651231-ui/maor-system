@@ -701,7 +701,17 @@ export const useApp = create<AppState>()((set, get) => {
               gatedStart();
             });
           } else {
-            gatedStart();
+            // שורש/ברירת-מחדל (הלקוח הקיים) — שער-כניסה: רק מייל-על ומורשי-השורש
+            // (adminEmails) נכנסים לאפליקציה. נרשם-חדש בשורש (SignupWizard) לא
+            // אמור להיכנס — הוא הופך לארגון-פלטפורמה ומקבל ?org=slug; עד אז מסך
+            // המתנה. הבדיקה נגזרת מהמייל+הקונפיג ⇒ עמידה גם ברענון (לא בזיכרון).
+            // מורשי-השורש = allowlist ב-Rules; הלקוח משקף אותה דרך adminEmails.
+            const mail = user.email.trim().toLowerCase();
+            const rootOk =
+              isSuperAdmin(user.email) ||
+              !!cfg.adminEmails?.some((m) => m.trim().toLowerCase() === mail);
+            setCloud({ membership: rootOk ? 'member' : 'pending' });
+            if (rootOk) gatedStart();
           }
         } else if (!user && hadUser) {
           cloudCfgUnsub?.();
