@@ -70,6 +70,16 @@ export function removedFeatures(cfg: OrgConfig): FeatureDef[] {
 /** מקטע הצעת-המחיר בדף המסירה — נבנה רק כשנמסר quote (אחרת ריק, ביט-זהה לקודם). */
 function quoteSection(quote: Quote | undefined): string {
   if (!quote) return '';
+  // עסקת Enterprise ("על הענן שלו") — חד-פעמי + תחזוקה שנתית, לא מנוי חודשי.
+  if (quote.mode === 'enterprise') {
+    return `<h2>💼 הצעת מחיר — Enterprise (על הענן שלכם)</h2>
+      <table>
+        <tr><th>רכיב</th><th style="text-align:left">מחיר</th></tr>
+        <tr><td>הקמה מלאה + פריסה על ה-Firebase שלכם + מיתוג + הדרכה + מסירה</td><td style="text-align:left">${esc(shekel(quote.enterpriseOneTime))} <small>חד-פעמי</small></td></tr>
+        <tr><td>תחזוקה שנתית (עדכונים · תמיכה · תיקונים · קבלות §46 מעודכנות)</td><td style="text-align:left">${esc(shekel(quote.enterpriseAnnual))} <small>לשנה</small></td></tr>
+      </table>
+      <p style="font-size:13px">המערכת רצה על תשתית הענן שבבעלותכם — הנתונים, החיוב והשליטה שלכם. אינו כולל מע״מ.</p>`;
+  }
   const rows = quote.lines
     .map((l) => `<tr><td>${esc(l.label)}</td><td style="text-align:left">${esc(shekel(l.price))}</td></tr>`)
     .join('');

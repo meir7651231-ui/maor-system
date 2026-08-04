@@ -11,7 +11,7 @@ import { useApp } from '../../store/useApp';
 import { clearConfigOverride, featureOn, normalizeConfig, termOf } from '../../lib/config';
 import { VERTICAL_PACKS, applyVerticalPack } from '../../lib/verticalPacks';
 import { ALL_MODULES, MODULE_LABELS as MODULE_SHORT } from '../platform/lib';
-import { computeQuote, readPrices, shekel, writePrices, SIZE_LABELS, type OrgSize, type PriceTable } from '../../lib/pricing';
+import { computeQuote, readPrices, shekel, writePrices, SIZE_LABELS, type DealMode, type OrgSize, type PriceTable } from '../../lib/pricing';
 import { DEFAULT_CONFIG, type ModuleKey, type OrgConfig } from '../../types/config';
 import { FEATURES, TERM_DEFS, type FeatureDef, type TermDef } from '../../types/features';
 import { Btn, Chip, Field, FormError, TextInput } from '../ui';
@@ -252,7 +252,8 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   /** חיבור ענן: הטקסט שהודבק מקונסולת Firebase + שגיאת פענוח. */
   const [fbText, setFbText] = useState('');
   const [fbErr, setFbErr] = useState('');
-  /** תמחור (מכשיר-המטמיע): גודל-ארגון + טבלת-מחירים עריכה. */
+  /** תמחור (מכשיר-המטמיע): סוג-עסקה + גודל-ארגון + טבלת-מחירים עריכה. */
+  const [dealMode, setDealMode] = useState<DealMode>('subscription');
   const [size, setSize] = useState<OrgSize>('small');
   const [prices, setPrices] = useState<PriceTable>(() => readPrices());
   const setPrice = (patch: Partial<PriceTable>) => {
@@ -335,8 +336,8 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
     const addons = Object.entries(config.integrations ?? {})
       .filter(([, v]) => v.enabled)
       .map(([k]) => ({ key: k, label: INTEGRATION_LABELS[k] ?? k }));
-    return computeQuote(config, size, prices, nameOf, addons);
-  }, [config, size, prices]);
+    return computeQuote(config, size, prices, nameOf, addons, dealMode);
+  }, [config, size, prices, dealMode]);
 
   const createPackage = () => {
     if (!config.orgName.trim()) {
@@ -825,30 +826,53 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
           aria-label="תמחור והצעה"
           style={{ marginTop: 16, border: '1px solid var(--line)', borderRadius: 12, padding: '12px 14px', background: 'var(--panel)' }}
         >
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, flex: 1, minWidth: 0 }}>💰 הצעת מחיר — חי</h3>
-            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent)' }}>{shekel(quote.monthly)}<span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-faint)' }}> / חודש</span></div>
-          </div>
-          <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 2 }}>
-            שנתי מראש {shekel(quote.yearlyDiscounted)} <small>(חודשיים חינם)</small>{quote.setup > 0 ? ` · הקמה ${shekel(quote.setup)}` : ''}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+            <Chip on={dealMode === 'subscription'} onClick={() => setDealMode('subscription')}>💳 מנוי חודשי</Chip>
+            <Chip on={dealMode === 'enterprise'} onClick={() => setDealMode('enterprise')}>💼 Enterprise (על הענן שלו)</Chip>
           </div>
 
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
-            <span style={{ fontSize: 12, color: 'var(--ink-faint)', alignSelf: 'center' }}>גודל הארגון:</span>
-            {(['small', 'medium', 'large'] as OrgSize[]).map((s) => (
-              <Chip key={s} on={size === s} onClick={() => setSize(s)}>
-                {SIZE_LABELS[s]} ×{prices.sizeMult[s]}
-              </Chip>
-            ))}
-          </div>
-
-          {quote.lines.length > 0 && (
-            <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-soft)' }}>
-              בסיס {shekel(quote.base)}
-              {quote.lines.map((l) => (
-                <span key={l.key}> · {l.label} {shekel(l.price)}</span>
-              ))}
-            </div>
+          {dealMode === 'subscription' ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+                <h3 style={{ fontSize: 14, fontWeight: 700, flex: 1, minWidth: 0 }}>💰 הצעת מחיר — חי</h3>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent)' }}>{shekel(quote.monthly)}<span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-faint)' }}> / חודש</span></div>
+              </div>
+              <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 2 }}>
+                שנתי מראש {shekel(quote.yearlyDiscounted)} <small>(חודשיים חינם)</small>{quote.setup > 0 ? ` · הקמה ${shekel(quote.setup)}` : ''}
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
+                <span style={{ fontSize: 12, color: 'var(--ink-faint)', alignSelf: 'center' }}>גודל הארגון:</span>
+                {(['small', 'medium', 'large'] as OrgSize[]).map((s) => (
+                  <Chip key={s} on={size === s} onClick={() => setSize(s)}>
+                    {SIZE_LABELS[s]} ×{prices.sizeMult[s]}
+                  </Chip>
+                ))}
+              </div>
+              {quote.lines.length > 0 && (
+                <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-soft)' }}>
+                  בסיס {shekel(quote.base)}
+                  {quote.lines.map((l) => (
+                    <span key={l.key}> · {l.label} {shekel(l.price)}</span>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+                <h3 style={{ fontSize: 14, fontWeight: 700, flex: 1, minWidth: 0 }}>💼 Enterprise — על הענן שלו</h3>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent)' }}>{shekel(quote.enterpriseOneTime)}<span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-faint)' }}> חד-פעמי</span></div>
+              </div>
+              <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 2 }}>
+                + תחזוקה שנתית {shekel(quote.enterpriseAnnual)} · הנתונים והתשתית בבעלות הלקוח
+              </div>
+              <div style={{ display: 'flex', gap: '6px 10px', flexWrap: 'wrap', marginTop: 10, fontSize: 12.5, alignItems: 'center' }}>
+                <span>חד-פעמי:</span>
+                <PriceInput value={prices.enterprise.oneTime} onChange={(n) => setPrice({ enterprise: { ...prices.enterprise, oneTime: n } })} />
+                <span>תחזוקה שנתית:</span>
+                <PriceInput value={prices.enterprise.annualMaintenance} onChange={(n) => setPrice({ enterprise: { ...prices.enterprise, annualMaintenance: n } })} />
+              </div>
+            </>
           )}
 
           <details style={{ marginTop: 8 }}>
