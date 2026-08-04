@@ -298,9 +298,14 @@ export function CalendarView() {
 
   return (
     <div>
+      {/* מטריצת-ורטיקלים 4.8: "לוח שנה" בכותרת-המשנה דרך termOf — היה קשיח ודלף (services='פגישות') */}
       <PageHead
         title={hebMode ? grid.hebLabel : grid.monthLabel}
-        sub={hebMode ? 'לוח שנה · חודש עברי · ' + grid.monthLabel : 'לוח שנה · ' + grid.hebLabel}
+        sub={
+          hebMode
+            ? termOf(config, 'nav.calendar', 'לוח שנה') + ' · חודש עברי · ' + grid.monthLabel
+            : termOf(config, 'nav.calendar', 'לוח שנה') + ' · ' + grid.hebLabel
+        }
         actions={
           <>
             <Btn onClick={prevMonth} title="חודש קודם">

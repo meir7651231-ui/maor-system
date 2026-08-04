@@ -1,0 +1,374 @@
+{
+ "packs": [
+  {
+   "id": "chesed",
+   "label": "עמותת חסד",
+   "terms": {},
+   "modules": {},
+   "features": {}
+  },
+  {
+   "id": "clinic",
+   "label": "קליניקה",
+   "terms": {
+    "nav.families": "מטופלים",
+    "entity.family": "מטופל",
+    "entity.familyOf": "מטופל",
+    "entity.member": "איש קשר",
+    "entity.members": "אנשי קשר",
+    "entity.enrollments": "טיפולים",
+    "entity.student": "מטופל/ת",
+    "entity.students": "מטופלים",
+    "nav.courses": "חבילות טיפול",
+    "entity.course": "חבילת טיפול",
+    "entity.enrollment": "טיפול",
+    "entity.room": "חדר טיפול",
+    "nav.diary": "חדרי טיפול",
+    "nav.supporters": "מטופלים במעקב",
+    "nav.ayin": "פרוטוקול טיפול",
+    "entity.ayinItem": "אזור טיפול",
+    "ayin.stage.new": "ייעוץ",
+    "ayin.stage.lead": "תוכנית",
+    "ayin.stage.eyes": "טיפול",
+    "ayin.stage.answer": "מעקב",
+    "ayin.stage.done": "שוחרר"
+   },
+   "modules": {
+    "tzedaka": false,
+    "shop": false
+   },
+   "features": {
+    "core.taxreceipt": false,
+    "families.cred": false,
+    "home.goldbook": false,
+    "home.impactwall": false,
+    "home.community": false,
+    "home.credmetrics": false,
+    "shell.privacy": false,
+    "supporters.hist": false
+   }
+  },
+  {
+   "id": "shop",
+   "label": "חנות / קמעונאות",
+   "terms": {
+    "nav.families": "לקוחות",
+    "entity.family": "לקוח",
+    "entity.member": "איש קשר",
+    "nav.supporters": "מועדון לקוחות",
+    "entity.supporter": "לקוח",
+    "entity.donation": "רכישה",
+    "entity.donations": "רכישות",
+    "entity.familyOf": "לקוח",
+    "entity.members": "אנשי קשר",
+    "entity.cred": "נקודות נאמנות",
+    "nav.shop": "מוצרים",
+    "entity.shopProduct": "מוצר",
+    "entity.shopAssignment": "הזמנה",
+    "entity.shopCriterion": "מועדון"
+   },
+   "modules": {
+    "courses": false,
+    "diary": false,
+    "tzedaka": false
+   },
+   "features": {
+    "core.taxreceipt": false,
+    "families.cred": false,
+    "home.goldbook": false,
+    "home.impactwall": false,
+    "home.community": false,
+    "home.credmetrics": false,
+    "shell.privacy": false,
+    "supporters.hist": false
+   }
+  },
+  {
+   "id": "services",
+   "label": "שירותים / פרילנסר",
+   "terms": {
+    "nav.families": "לקוחות",
+    "entity.family": "לקוח",
+    "nav.calendar": "פגישות",
+    "entity.familyOf": "לקוח",
+    "entity.member": "איש קשר",
+    "entity.members": "אנשי קשר",
+    "nav.supporters": "לידים",
+    "nav.ayin": "משפך מכירות",
+    "entity.ayinItem": "ליד",
+    "ayin.stage.new": "פנייה",
+    "ayin.stage.lead": "הצעה",
+    "ayin.stage.eyes": "מו״מ",
+    "ayin.stage.answer": "נסגר",
+    "ayin.stage.done": "סופק"
+   },
+   "modules": {
+    "courses": false,
+    "tzedaka": false,
+    "shop": false
+   },
+   "features": {
+    "core.taxreceipt": false,
+    "families.cred": false,
+    "home.goldbook": false,
+    "home.impactwall": false,
+    "home.community": false,
+    "home.credmetrics": false,
+    "shell.privacy": false,
+    "supporters.hist": false
+   }
+  },
+  {
+   "id": "rooms",
+   "label": "השכרת חללים",
+   "terms": {
+    "nav.diary": "לוח חללים",
+    "entity.room": "חלל",
+    "entity.rooms": "חללים",
+    "entity.familyOf": "שוכר",
+    "entity.donations": "תשלומים",
+    "nav.families": "שוכרים",
+    "entity.family": "שוכר",
+    "entity.member": "איש קשר",
+    "entity.members": "אנשי קשר",
+    "nav.supporters": "לקוחות חוזרים",
+    "entity.supporter": "לקוח",
+    "entity.donation": "תשלום",
+    "nav.ayin": "בקשות השכרה",
+    "entity.ayinItem": "בקשה",
+    "ayin.stage.new": "פנייה",
+    "ayin.stage.lead": "הצעת מחיר",
+    "ayin.stage.eyes": "אישור",
+    "ayin.stage.answer": "חוזה",
+    "ayin.stage.done": "הושכר"
+   },
+   "modules": {
+    "courses": false,
+    "tzedaka": false,
+    "shop": false
+   },
+   "features": {
+    "core.taxreceipt": false,
+    "families.cred": false,
+    "home.goldbook": false,
+    "home.impactwall": false,
+    "home.community": false,
+    "home.credmetrics": false,
+    "shell.privacy": false,
+    "supporters.hist": false
+   }
+  },
+  {
+   "id": "fleet",
+   "label": "צי רכב / השכרה",
+   "terms": {
+    "nav.diary": "לוח רכבים",
+    "entity.room": "רכב",
+    "entity.rooms": "רכבים",
+    "entity.familyOf": "לקוח",
+    "entity.donations": "תשלומי שכירות",
+    "nav.families": "לקוחות",
+    "entity.family": "לקוח",
+    "entity.member": "נהג",
+    "entity.members": "נהגים",
+    "nav.supporters": "מועדון לקוחות",
+    "entity.supporter": "לקוח",
+    "entity.donation": "תשלום שכירות",
+    "nav.ayin": "הזמנות רכב",
+    "entity.ayinItem": "הזמנה",
+    "ayin.stage.new": "בקשה",
+    "ayin.stage.lead": "שריון",
+    "ayin.stage.eyes": "מסירה",
+    "ayin.stage.answer": "בשימוש",
+    "ayin.stage.done": "הוחזר"
+   },
+   "modules": {
+    "courses": false,
+    "tzedaka": false,
+    "shop": false
+   },
+   "features": {
+    "core.taxreceipt": false,
+    "families.cred": false,
+    "home.goldbook": false,
+    "home.impactwall": false,
+    "home.community": false,
+    "home.credmetrics": false,
+    "shell.privacy": false,
+    "supporters.hist": false
+   }
+  },
+  {
+   "id": "garage",
+   "label": "מוסך / מעבדה",
+   "terms": {
+    "nav.families": "לקוחות",
+    "entity.family": "לקוח",
+    "entity.member": "רכב/פריט",
+    "entity.members": "רכבים/פריטים",
+    "nav.diary": "עמדות עבודה",
+    "entity.room": "עמדה",
+    "entity.rooms": "עמדות",
+    "entity.familyOf": "לקוח",
+    "entity.donations": "תשלומים",
+    "nav.supporters": "לקוחות קבועים",
+    "entity.supporter": "לקוח",
+    "entity.donation": "תשלום",
+    "nav.ayin": "תהליך תיקון",
+    "entity.ayinItem": "עבודה",
+    "ayin.stage.new": "קבלה",
+    "ayin.stage.lead": "אבחון",
+    "ayin.stage.eyes": "בתיקון",
+    "ayin.stage.answer": "מוכן לאיסוף",
+    "ayin.stage.done": "נמסר"
+   },
+   "modules": {
+    "courses": false,
+    "tzedaka": false,
+    "shop": false
+   },
+   "features": {
+    "core.taxreceipt": false,
+    "families.cred": false,
+    "home.goldbook": false,
+    "home.impactwall": false,
+    "home.community": false,
+    "home.credmetrics": false,
+    "shell.privacy": false,
+    "supporters.hist": false
+   }
+  },
+  {
+   "id": "hospitality",
+   "label": "אירוח / צימרים",
+   "terms": {
+    "nav.diary": "לוח יחידות",
+    "entity.room": "יחידת אירוח",
+    "entity.rooms": "יחידות אירוח",
+    "entity.familyOf": "אורח",
+    "entity.donations": "תשלומי שהייה",
+    "nav.families": "אורחים",
+    "entity.family": "אורח",
+    "entity.member": "מלווה",
+    "entity.members": "מלווים",
+    "nav.supporters": "מועדון אורחים",
+    "entity.supporter": "אורח",
+    "entity.donation": "תשלום שהייה",
+    "entity.cred": "נקודות נאמנות",
+    "nav.ayin": "הזמנות אירוח",
+    "entity.ayinItem": "הזמנה",
+    "ayin.stage.new": "בקשה",
+    "ayin.stage.lead": "שריון",
+    "ayin.stage.eyes": "צ'ק-אין",
+    "ayin.stage.answer": "שוהה",
+    "ayin.stage.done": "צ'ק-אאוט"
+   },
+   "modules": {
+    "courses": false,
+    "tzedaka": false,
+    "shop": false
+   },
+   "features": {
+    "core.taxreceipt": false,
+    "families.cred": false,
+    "home.goldbook": false,
+    "home.impactwall": false,
+    "home.community": false,
+    "home.credmetrics": false,
+    "shell.privacy": false,
+    "supporters.hist": false
+   }
+  },
+  {
+   "id": "gemach",
+   "label": "גמ\"ח (השאלת ציוד)",
+   "terms": {
+    "nav.shop": "גמ\"ח",
+    "entity.shopProduct": "חבילת השאלה",
+    "entity.shopItem": "פריט",
+    "entity.shopAssignment": "השאלה",
+    "nav.families": "משפחות",
+    "nav.supporters": "תורמים"
+   },
+   "modules": {
+    "families": true,
+    "courses": false,
+    "calendar": true,
+    "diary": false,
+    "supporters": true,
+    "reports": true,
+    "tzedaka": false,
+    "shop": true
+   },
+   "features": {}
+  },
+  {
+   "id": "tzedakot",
+   "label": "ארגון מבצעי התרמה",
+   "terms": {
+    "nav.tzedaka": "מבצעים",
+    "entity.tzCoordinator": "רכז",
+    "entity.tzBox": "קופה",
+    "entity.tzCampaign": "מבצע"
+   },
+   "modules": {
+    "families": true,
+    "courses": false,
+    "calendar": true,
+    "diary": false,
+    "supporters": true,
+    "reports": true,
+    "tzedaka": true,
+    "shop": false
+   },
+   "features": {}
+  }
+ ],
+ "termFallbacks": {
+  "nav.families": "משפחות",
+  "nav.courses": "חוגים",
+  "nav.calendar": "לוח שנה",
+  "nav.diary": "יומן חדרים",
+  "nav.supporters": "תורמים",
+  "nav.reports": "דוחות",
+  "nav.timer": "טיימר כסף",
+  "nav.cashbox": "קופה רושמת",
+  "nav.bodymap": "אזורי טיפול",
+  "nav.tzedaka": "קופות צדקה",
+  "entity.tzCoordinator": "רכז",
+  "entity.tzBox": "קופה",
+  "entity.tzCampaign": "מבצע",
+  "nav.shop": "חנות",
+  "nav.shop7": "חלוקה",
+  "entity.volunteer": "מתנדב",
+  "entity.shopProduct": "מוצר",
+  "entity.shopStore": "חנות",
+  "entity.shopCriterion": "קריטריון",
+  "entity.shopAssignment": "שיוך",
+  "entity.shopItem": "פריט",
+  "entity.family": "משפחה",
+  "entity.familyOf": "משפחת",
+  "entity.member": "בן/בת משפחה",
+  "entity.members": "בני משפחה",
+  "entity.course": "חוג",
+  "entity.teacher": "מורה",
+  "entity.room": "חדר",
+  "entity.rooms": "חדרים",
+  "entity.student": "תלמיד/ה",
+  "entity.students": "תלמידים",
+  "entity.supporter": "תורם",
+  "entity.donation": "תרומה",
+  "entity.donations": "תרומות",
+  "entity.enrollment": "שיבוץ",
+  "entity.enrollments": "שיבוצים",
+  "entity.cred": "מדד אמינות",
+  "nav.ayin": "מעקב טיפול",
+  "entity.ayinItem": "שם לטיפול",
+  "entity.ayinUnit": "כמות",
+  "ayin.stage.new": "חדש",
+  "ayin.stage.lead": "בהכנה",
+  "ayin.stage.eyes": "רישום",
+  "ayin.stage.answer": "מסירה",
+  "ayin.stage.done": "הושלם"
+ }
+}

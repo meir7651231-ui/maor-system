@@ -89,6 +89,7 @@ export function SettingsView() {
 
 /** (1) פרטי הארגון — שם, אתר, עמוד תרומות ויעד גיוס שנתי (קיר ההשפעה). */
 function OrgSection() {
+  const config = useApp((s) => s.config);
   const orgName = useApp((s) => s.db.orgName);
   const orgSite = useApp((s) => s.db.orgSite);
   const orgDonate = useApp((s) => s.db.orgDonate);
@@ -149,7 +150,7 @@ function OrgSection() {
             placeholder="https://"
           />
         </Field>
-        <Field label="עמוד תרומות (קישור)">
+        <Field label={'עמוד ' + termOf(config, 'entity.donations', 'תרומות') + ' (קישור)'}>
           <TextInput
             value={f.donate}
             onChange={(v) => setF((p) => ({ ...p, donate: v }))}

@@ -35,7 +35,7 @@ export function RoomsSection() {
     <Section
       id="sec-rooms"
       title={'🚪 ' + roomsT}
-      sub={roomsT + ' משמשים את היומן ואת השיבוצים · ' + room + ' שאינו בשימוש מסמנים כמושבת'}
+      sub={roomsT + ' משמשים את היומן ואת ה' + termOf(config, 'entity.enrollments', 'שיבוצים') + ' · ' + room + ' שאינו בשימוש מסמנים כמושבת'}
     >
       <div style={{ marginBottom: 10 }}>
         <Btn kind="primary" sm onClick={() => setCreating(true)}>
