@@ -328,7 +328,7 @@ export function CalendarView() {
                   downloadIcs(
                     'calendar-' + config.slug + '.ics',
                     buildIcs(
-                      icsWindowEvents(db, isoOf(new Date()), 385, config.slug),
+                      icsWindowEvents(db, isoOf(new Date()), 385, config.slug, config),
                       config.orgName || 'לוח הארגון',
                       new Date(),
                     ),
