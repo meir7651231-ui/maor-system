@@ -103,6 +103,11 @@ export function PlatformPanel(props: { onClose: () => void }) {
     // ראשון + org.manager; הוא ינהל את העובדות של הארגון שלו (Rules v3).
     const mgr = managerEmail.trim().toLowerCase();
     if (!mgr || !mgr.includes('@')) return setSlugErr('מייל המנהל חסר/לא תקין');
+    // ציד-באגים 3.8.2026 (🟡): בדיקת-התנגשות טרייה מהענן (לא רק הרשימה בזיכרון
+    // שעלולה להיות ישנה) — אחרת אישור עם slug קיים היה דורס ארגון חי (members/
+    // manager/config) דרך merge:true. קריאה→כתיבה סוגרת את הפער כמעט לגמרי.
+    const existing = await mod.fetchOrgCloudConfig(slug).catch(() => null);
+    if (existing) return setSlugErr('הסלאג כבר קיים בענן — בחרו אחר');
     // לידה all-off (הכרעת ארכיטקט) — הבעלים מדליק בלייב מה שסוכם בשיחה
     await mod.writeOrgCloudDoc(slug, {
       config: allOffConfig(slug, approveReq.orgName ?? '') as unknown as Record<string, unknown>,

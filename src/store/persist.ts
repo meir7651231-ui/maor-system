@@ -370,26 +370,36 @@ export function migrate(raw: unknown): Db | null {
     };
   });
   const SHOP_STATUSES = ['active', 'done', 'stopped'];
-  // ייחודיות אישורי S- — אותו דפוס כמו seenR/seenD (מרוץ בין-מכשירי)
-  const seenS = new Set<string>();
+  // נרמול-רשומה בלבד (חותמת-ביטול מושחתת → מוסרת; המימוש חוזר להיחשב חי).
   merged.shopAssignments = merged.shopAssignments.map((a) => ({
     ...a,
     redemptions: Array.isArray(a.redemptions)
       ? a.redemptions.map((r) => {
-          let out = r;
-          // חותמת ביטול מושחתת (לא-מחרוזת) → מוסרת — המימוש חוזר להיחשב חי
-          if (out.voidedAt !== undefined && typeof out.voidedAt !== 'string') {
-            const { voidedAt: _dropVoid, ...rest } = out;
-            out = rest;
+          if (r.voidedAt !== undefined && typeof r.voidedAt !== 'string') {
+            const { voidedAt: _dropVoid, ...rest } = r;
+            return rest;
           }
-          if (out.rid && seenS.has(out.rid)) return { ...out, rid: 'S-' + merged.shopReceiptSeq++ };
-          if (out.rid) seenS.add(out.rid);
-          return out;
+          return r;
         })
       : [],
     criterionIds: Array.isArray(a.criterionIds) ? a.criterionIds : [],
     status: SHOP_STATUSES.includes(a.status) ? a.status : 'active',
   }));
+  // ציד-באגים 3.8.2026 (🟡): ייחודיות S- דטרמיניסטית — אותו planRidRenumber כמו R-/D-
+  // (המימוש המוקדם-בתאריך שומר על מספרו, בלי תלות בסדר-המערך שהענן עלול לשנות),
+  // במקום seenS תלוי-הסדר. אישור S- שכבר נמסר למשפחה לא מחליף מספר בין טעינות.
+  const sCoords = merged.shopAssignments.flatMap((a, ai) =>
+    a.redemptions.map((r, ri) => ({ ai, ri, rid: r.rid, date: r.date })),
+  );
+  const sPlan = planRidRenumber(sCoords, merged.shopReceiptSeq, 'S-');
+  sCoords.forEach((c, k) => {
+    if (sPlan.newRid[k])
+      merged.shopAssignments[c.ai].redemptions[c.ri] = {
+        ...merged.shopAssignments[c.ai].redemptions[c.ri],
+        rid: sPlan.newRid[k]!,
+      };
+  });
+  merged.shopReceiptSeq = sPlan.nextSeq;
   merged.shopCriteria = merged.shopCriteria.map((c) => ({
     ...c,
     discountPct:

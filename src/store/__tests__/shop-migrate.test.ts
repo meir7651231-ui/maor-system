@@ -85,4 +85,27 @@ describe('🛍 ratchet — חנות 1: מיגרציה אדיטיבית (DB_VERSI
     expect(Array.isArray(p.components)).toBe(true);
     expect(p.components).toEqual([]);
   });
+
+  // ציד-באגים 3.8.2026 (🟡): דדופ S- דטרמיניסטי — כמו R-/D- (planRidRenumber),
+  // המימוש המוקדם-בתאריך שומר על מספר-האישור בלי תלות בסדר-המערך (מרוץ בין-מכשירי).
+  it('(S-דדופ) שתי רשומות עם אותו S- — המוקדם שומר, בשני סדרי-המערך', () => {
+    const red = (id: string, rid: string, date: string) =>
+      ({ id, rid, componentId: 'c1', date, holiday: '', paid: 10, value: 10, note: '' }) as const;
+    const build = (order: 'fwd' | 'rev') => {
+      const reds =
+        order === 'fwd'
+          ? [red('rA', 'S-5', '2026-03-10'), red('rB', 'S-5', '2026-01-05')] // מאוחר, מוקדם
+          : [red('rB', 'S-5', '2026-01-05'), red('rA', 'S-5', '2026-03-10')]; // מוקדם, מאוחר
+      const db = { ...emptyDb(), v: DB_VERSION, shopReceiptSeq: 9, shopAssignments: [assignment({ redemptions: reds })] } as Record<string, unknown>;
+      return migrate(db)!;
+    };
+    for (const order of ['fwd', 'rev'] as const) {
+      const out = build(order);
+      const reds = out.shopAssignments[0].redemptions;
+      const early = reds.find((r) => r.id === 'rB')!; // 2026-01-05 — המוקדם
+      const late = reds.find((r) => r.id === 'rA')!; // 2026-03-10 — המאוחר
+      expect(early.rid).toBe('S-5'); // המוקדם שומר על מספרו, ללא תלות בסדר
+      expect(late.rid).toBe('S-9'); // המאוחר ממוספר מחדש מעל המונה
+    }
+  });
 });
