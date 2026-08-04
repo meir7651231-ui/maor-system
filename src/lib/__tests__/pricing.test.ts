@@ -47,13 +47,25 @@ describe('💰 ratchet — מנוע התמחור', () => {
     expect(q.yearlyDiscounted).toBe(q.monthly * 10);
   });
 
+  it('מצב Enterprise (על הענן שלו) — חד-פעמי + תחזוקה שנתית מטבלת-המחירים', () => {
+    const q = computeQuote({ modules: {} }, 'small', DEFAULT_PRICES, nameOf, [], 'enterprise');
+    expect(q.mode).toBe('enterprise');
+    expect(q.enterpriseOneTime).toBe(DEFAULT_PRICES.enterprise.oneTime);
+    expect(q.enterpriseAnnual).toBe(DEFAULT_PRICES.enterprise.annualMaintenance);
+    // ברירת-מחדל: 40000 חד-פעמי + 6000 שנתי
+    expect(q.enterpriseOneTime).toBe(40000);
+    expect(q.enterpriseAnnual).toBe(6000);
+  });
+
   it('normalizePrices: מספרים שליליים/פגומים → ברירת-מחדל', () => {
-    const bad = { base: -5, modules: { courses: -1 }, integrations: { ai: 'x' }, sizeMult: { small: 0 }, setup: NaN } as unknown;
+    const bad = { base: -5, modules: { courses: -1 }, integrations: { ai: 'x' }, sizeMult: { small: 0 }, setup: NaN, enterprise: { oneTime: -1 } } as unknown;
     const p: PriceTable = normalizePrices(bad);
     expect(p.base).toBe(DEFAULT_PRICES.base);
     expect(p.modules.courses).toBe(DEFAULT_PRICES.modules.courses);
     expect(p.integrations.ai).toBe(DEFAULT_PRICES.integrations.ai);
     expect(p.setup).toBe(DEFAULT_PRICES.setup);
+    expect(p.enterprise.oneTime).toBe(DEFAULT_PRICES.enterprise.oneTime); // שלילי → ברירת-מחדל
+    expect(p.enterprise.annualMaintenance).toBe(DEFAULT_PRICES.enterprise.annualMaintenance); // חסר → ברירת-מחדל
     // sizeMult.small=0 נדחה (0 לא >= ... בעצם 0>=0 תקין) — נבדוק medium החסר → ברירת-מחדל
     expect(p.sizeMult.medium).toBe(DEFAULT_PRICES.sizeMult.medium);
   });

@@ -22,7 +22,12 @@ export interface PriceTable {
   sizeMult: Record<OrgSize, number>;
   /** הקמה חד-פעמית (0 = חינם כמנוף-מכירה). */
   setup: number;
+  /** עסקת Enterprise ("על הענן שלו") — חד-פעמי גדול + תחזוקה שנתית. */
+  enterprise: { oneTime: number; annualMaintenance: number };
 }
+
+/** סוג-העסקה: מנוי חודשי (הענן שלך) או Enterprise חד-פעמי (הענן שלו). */
+export type DealMode = 'subscription' | 'enterprise';
 
 /** מחירי-ברירת-מחדל להרחבות (placeholder — הבעלים משנה). מפתחות = INTEGRATION_LABELS. */
 const DEFAULT_INTEGRATION_PRICES: Record<string, number> = {
@@ -57,6 +62,7 @@ export const DEFAULT_PRICES: PriceTable = {
   integrations: DEFAULT_INTEGRATION_PRICES,
   sizeMult: { small: 1, medium: 1.6, large: 2.4 },
   setup: 0,
+  enterprise: { oneTime: 40000, annualMaintenance: 6000 },
 };
 
 export const SIZE_LABELS: Record<OrgSize, string> = {
@@ -97,6 +103,11 @@ export interface Quote {
   yearly: number;
   /** שנתי עם הטבת חודשיים-חינם (10 חודשים). */
   yearlyDiscounted: number;
+  /** סוג-העסקה שנבחר להצגה/מסירה. */
+  mode: DealMode;
+  /** עסקת Enterprise — חד-פעמי ("על הענן שלו") + תחזוקה שנתית. */
+  enterpriseOneTime: number;
+  enterpriseAnnual: number;
 }
 
 /** נירמול טבלת-מחירים לא-אמינה (localStorage) — כל מספר שלילי/לא-תקין → ברירת-מחדל. */
@@ -119,6 +130,10 @@ export function normalizePrices(raw: unknown): PriceTable {
       large: num(base.sizeMult?.large, DEFAULT_PRICES.sizeMult.large),
     },
     setup: num(base.setup, DEFAULT_PRICES.setup),
+    enterprise: {
+      oneTime: num(base.enterprise?.oneTime, DEFAULT_PRICES.enterprise.oneTime),
+      annualMaintenance: num(base.enterprise?.annualMaintenance, DEFAULT_PRICES.enterprise.annualMaintenance),
+    },
   };
 }
 
@@ -132,6 +147,7 @@ export function computeQuote(
   prices: PriceTable,
   nameOf: (m: ModuleKey) => string,
   addons: AddonInput[] = [],
+  mode: DealMode = 'subscription',
 ): Quote {
   const onModules = ALL_MODULES.filter((m) => cfg.modules?.[m] !== false);
   const all: QuoteLine[] = onModules.map((m) => ({ key: m, label: nameOf(m), price: prices.modules[m] ?? 0, kind: 'module' as const }));
@@ -154,6 +170,9 @@ export function computeQuote(
     firstPayment: monthly + setup,
     yearly: monthly * 12,
     yearlyDiscounted: monthly * 10,
+    mode,
+    enterpriseOneTime: prices.enterprise.oneTime,
+    enterpriseAnnual: prices.enterprise.annualMaintenance,
   };
 }
 
