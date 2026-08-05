@@ -15,7 +15,7 @@ import { VERTICAL_PACKS, applyVerticalPack } from '../../lib/verticalPacks';
 import { industryLabel, needLabel, sizeLabel } from '../../lib/signupWizard';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
-import { ALL_MODULES, MODULE_LABELS, allOffConfig, isValidSlug, orgLink, slugify } from './lib';
+import { ALL_MODULES, MODULE_LABELS, allOffConfig, approveMember, isValidSlug, orgLink, slugify } from './lib';
 
 type CloudMod = typeof import('../../store/cloudSync');
 interface ReqRow {
@@ -45,6 +45,17 @@ interface LeadRow {
   notes?: string;
   at?: string;
 }
+/** בקשת-הצטרפות של עובד/ת (ORGADMIN) — מוצגת גם לבעלים: בלי זה, ארגון בלי
+ *  מנהל-ממונה (או כשהבעלים הוא המנהל בפועל) לא היה רואה את הבקשה בשום מסך. */
+interface JoinReqRow {
+  slug: string;
+  orgName?: string;
+  uid: string;
+  email?: string;
+  name?: string;
+  phone?: string;
+  at?: string;
+}
 
 export function PlatformPanel(props: { onClose: () => void }) {
   const toast = useApp((s) => s.toast);
@@ -53,6 +64,7 @@ export function PlatformPanel(props: { onClose: () => void }) {
   const [requests, setRequests] = useState<ReqRow[]>([]);
   const [orgs, setOrgs] = useState<OrgRow[]>([]);
   const [leads, setLeads] = useState<LeadRow[]>([]);
+  const [joinReqs, setJoinReqs] = useState<JoinReqRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [approveReq, setApproveReq] = useState<ReqRow | null>(null);
   const [slug, setSlug] = useState('');
@@ -75,6 +87,16 @@ export function PlatformPanel(props: { onClose: () => void }) {
     setRequests(reqs);
     setOrgs(all);
     setLeads(lds);
+    // בקשות-הצטרפות של עובדים (ORGADMIN) — הבעלים רואה את כולן, מכל הארגונים.
+    // בלי זה בקשת "קוד מהבוס" נראתה רק בפאנל-המנהל (cloud.isManager) — ארגון
+    // בלי מנהל-ממונה ⇒ הבקשה נעלמת מכל עין. כשל-קריאה פר-ארגון ⇒ [] (רך).
+    const perOrg = await Promise.all(
+      all.map(async (o) => {
+        const rs = await m.fetchOrgJoinRequests(o.slug).catch(() => []);
+        return rs.map((r) => ({ slug: o.slug, orgName: o.orgName, ...r }));
+      }),
+    );
+    setJoinReqs(perOrg.flat());
     setLoading(false);
   }
 
@@ -139,6 +161,25 @@ export function PlatformPanel(props: { onClose: () => void }) {
     if (!confirmTwice('rej-' + r.uid, 'לדחות את הבקשה של "' + (r.orgName ?? r.email) + '"? הבקשה תימחק')) return;
     await mod.deleteOrgRequest(r.uid);
     toast('הבקשה נדחתה ונמחקה');
+    await refresh(mod);
+  }
+
+  /** אישור עובד/ת מהלוח (ORGADMIN) — אותה פעולה כמו פאנל-המנהל: members+מחיקת-הבקשה. */
+  async function approveJoin(r: JoinReqRow) {
+    if (!mod || !r.email) return;
+    const org = orgs.find((o) => o.slug === r.slug);
+    const { members } = approveMember({ members: org?.members ?? [] }, r.email);
+    await mod.writeOrgCloudDoc(r.slug, { members });
+    await mod.deleteOrgJoinRequest(r.slug, r.uid).catch(() => {});
+    toast('העובד/ת ' + r.email + ' אושר/ה לארגון ' + (r.orgName || r.slug) + ' — שיתחברו שוב');
+    await refresh(mod);
+  }
+
+  async function rejectJoin(r: JoinReqRow) {
+    if (!mod) return;
+    if (!confirmTwice('rejj-' + r.slug + r.uid, 'לדחות את בקשת-ההצטרפות של "' + (r.email ?? r.uid) + '"? הבקשה תימחק')) return;
+    await mod.deleteOrgJoinRequest(r.slug, r.uid).catch(() => {});
+    toast('בקשת-ההצטרפות נדחתה');
     await refresh(mod);
   }
 
@@ -208,6 +249,31 @@ export function PlatformPanel(props: { onClose: () => void }) {
             </div>
           ))}
         </section>
+
+        {/* בקשות-הצטרפות של עובדים (ORGADMIN) — הבעלים רואה את כולן, גם כשאין
+            מנהל-ממונה לארגון (אחרת הבקשה לא נראית בשום מסך) */}
+        {joinReqs.length > 0 && (
+          <section className="card" style={{ marginBottom: 14 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>👥 בקשות-הצטרפות של עובדים ({joinReqs.length})</h2>
+            {joinReqs.map((r) => (
+              <div key={r.slug + r.uid} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
+                <span style={{ fontWeight: 700 }}>{r.name || r.email || '—'}</span>
+                <span style={{ fontSize: 12.5, direction: 'ltr' }}>{r.email}</span>
+                {r.phone && (
+                  <a href={'tel:' + r.phone} style={{ fontSize: 12.5, direction: 'ltr', fontWeight: 700 }}>
+                    {'📞 ' + r.phone}
+                  </a>
+                )}
+                <span style={{ fontSize: 12 }}>{'⬅ ' + (r.orgName || r.slug)}</span>
+                <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{(r.at ?? '').slice(0, 16).replace('T', ' ')}</span>
+                <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
+                  <Btn sm kind="primary" onClick={() => void approveJoin(r)}>✓ אישור</Btn>
+                  <Btn sm kind="danger" onClick={() => void rejectJoin(r)}>{armed === 'rejj-' + r.slug + r.uid ? 'שוב לדחייה' : '🗑 דחייה'}</Btn>
+                </span>
+              </div>
+            ))}
+          </section>
+        )}
 
         {/* לידים "נחזור אליכם" (SIGNUP) — פניות בלי חשבון */}
         {leads.length > 0 && (

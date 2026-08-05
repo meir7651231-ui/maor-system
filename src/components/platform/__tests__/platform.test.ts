@@ -259,4 +259,14 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     expect(settingsSrc).toContain("window.location.hash = '#manage'");
     expect(settingsSrc).toContain('isManager &&'); // מגודר cloud.isManager
   });
+
+  it('🛡 הבעלים רואה בקשות-הצטרפות של עובדים בלוח-הבקרה (5.8.2026 — "מאור נרשם ולא ראיתי בקשה")', () => {
+    // הבאג: בקשת "קוד מהבוס" נכתבת ל-joinRequests ומוצגת רק בפאנל-המנהל
+    // (cloud.isManager). ארגון בלי מנהל-ממונה — או בעלים שאינו המנהל — לא ראה
+    // את הבקשה בשום מסך. הלוח שולף מכל הארגונים + מאשר/דוחה באותה פעולה כמו המנהל.
+    expect(panelSrc).toContain('fetchOrgJoinRequests');
+    expect(panelSrc).toMatch(/approveJoin[\s\S]{0,300}approveMember/);
+    expect(panelSrc).toMatch(/approveJoin[\s\S]{0,500}deleteOrgJoinRequest/);
+    expect(panelSrc).toContain('בקשות-הצטרפות של עובדים');
+  });
 });
