@@ -9,7 +9,7 @@ import { featureOn, integrationOn, isAdminUser, isSuperAdmin, termOf } from '../
 import { readAiKey, writeAiKey } from '../../lib/ai';
 import { receiptVerifyCode } from '../../lib/receipt';
 import { Btn, Chip, Field, FormError, PageHead, TextInput } from '../ui';
-import { Section, SectionNote, Toggle } from './lib';
+import { Section, SectionNote, Toggle, takeSettingsFocus } from './lib';
 import { TeachersSection } from './TeachersSection';
 import { RoomsSection } from './RoomsSection';
 import { BackupSection } from './BackupSection';
@@ -37,6 +37,23 @@ const SECTIONS: { id: string; label: string; feature?: string }[] = [
   { id: 'sec-reset', label: 'איפוס', feature: 'settings.reset' },
 ];
 
+/** UX סבב-ו׳ — 16 כרטיסי-ההגדרות מקובצים ל-4 לשוניות. הקיבוץ תצוגתי בלבד:
+ *  כל שערי-הגידור (featureOn / isAdminUser / isSuperAdmin / self-gates) נשארו
+ *  כלשונם, וכל סעיף נגיש בדיוק כמו קודם — רק דרך לשונית במקום גלילה אחת ארוכה. */
+const GROUPS = [
+  { id: 'org', label: '🏷 הארגון שלי' },
+  { id: 'data', label: '📚 נתונים' },
+  { id: 'security', label: '🔐 אבטחה' },
+  { id: 'adv', label: '🧪 מתקדם' },
+] as const;
+type GroupId = (typeof GROUPS)[number]['id'];
+const SECTION_GROUP: Record<string, GroupId> = {
+  'sec-org': 'org', 'sec-theme': 'org', 'sec-teachers': 'org', 'sec-rooms': 'org', 'sec-notif': 'org', 'sec-access': 'org',
+  'sec-backup': 'data', 'sec-export': 'data', 'sec-import': 'data', 'sec-audit': 'data',
+  'sec-security': 'security', 'sec-encryption': 'security', 'sec-cloud-encryption': 'security',
+  'sec-ai': 'adv', 'sec-audittrail': 'adv', 'sec-verifyreceipt': 'adv', 'sec-reset': 'adv',
+};
+
 export function SettingsView() {
   const config = useApp((s) => s.config);
   const cloudUser = useApp((s) => s.cloud.user);
@@ -46,14 +63,35 @@ export function SettingsView() {
   const isAdmin = isAdminUser(config, cloudUser?.email);
   const canPlatform = isSuperAdmin(cloudUser?.email);
 
+  // בקשת-מיקוד ממסך אחר (קיצורי המשפחות וכד') — נפתחים בקבוצה הנכונה וגוללים
+  const [focusId] = useState(() => takeSettingsFocus());
+  const [group, setGroup] = useState<GroupId>(() => (focusId && SECTION_GROUP[focusId]) || 'org');
+  useEffect(() => {
+    if (focusId) {
+      const t = setTimeout(() => document.getElementById(focusId)?.scrollIntoView({ behavior: 'smooth' }), 120);
+      return () => clearTimeout(t);
+    }
+  }, [focusId]);
+
+  // לשונית ריקה מוסתרת — אותם תנאי-גידור של הסעיפים עצמם (שכפול מודע לצורך
+  // הסתרת-לשונית בלבד; הסעיף עצמו ממשיך להיגדר בעצמו — מקור-האמת לא זז).
+  const groupHas: Record<GroupId, boolean> = {
+    org: true, // sec-org לעולם אינו מוסתר
+    data: featureOn(config, 'settings.backup') || secOn('sec-export') || secOn('sec-import') || secOn('sec-audit'),
+    security: featureOn(config, 'shell.lock') || featureOn(config, 'settings.encryption') || canPlatform,
+    adv: (integrationOn(config, 'ai') && isAdmin) || (featureOn(config, 'settings.audittrail') && isAdmin) ||
+      featureOn(config, 'core.receipt.verifycode') || secOn('sec-reset'),
+  };
+  const shownGroup: GroupId = groupHas[group] ? group : 'org';
+  const groupChips = sections.filter((s) => SECTION_GROUP[s.id] === shownGroup);
+
   return (
     <div>
       <PageHead title="הגדרות" sub="ניהול המערכת, התראות ומשתמשים" />
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }} className="no-print">
-        {sections.map((s) => (
-          <Chip key={s.id} onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth' })}>
-            {s.id === 'sec-teachers' ? termOf(config, 'entity.teacher', 'מורה') : s.id === 'sec-rooms' ? termOf(config, 'entity.rooms', 'חדרים') : s.label}
-          </Chip>
+      {/* 4 קבוצות-הלשונית — הניווט הראשי של המסך */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }} className="no-print">
+        {GROUPS.filter((g) => groupHas[g.id]).map((g) => (
+          <Chip key={g.id} on={shownGroup === g.id} onClick={() => setGroup(g.id)}>{g.label}</Chip>
         ))}
         {/* כניסה לאשף ההקמה — צ'יפ גלוי למנהל-על בלבד, מחליף את הצורך ב-#builder ידני */}
         {isAdmin && (
@@ -68,29 +106,55 @@ export function SettingsView() {
           <Chip onClick={() => { window.location.hash = '#manage'; }}>👥 ניהול העובדות</Chip>
         )}
       </div>
+      {/* צ'יפי-הקפיצה של הקבוצה הפעילה — אותה יכולת-ניווט לסעיף, בתוך הלשונית */}
+      {groupChips.length > 1 && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }} className="no-print">
+          {groupChips.map((s) => (
+            <Chip key={s.id} onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth' })}>
+              {s.id === 'sec-teachers' ? termOf(config, 'entity.teacher', 'מורה') : s.id === 'sec-rooms' ? termOf(config, 'entity.rooms', 'חדרים') : s.label}
+            </Chip>
+          ))}
+        </div>
+      )}
 
-      <OrgSection />
-      {featureOn(config, 'settings.theme') && <ThemeSection />}
-      {secOn('sec-teachers') && <TeachersSection />}
-      {secOn('sec-rooms') && <RoomsSection />}
-      {featureOn(config, 'settings.notif') && <NotifSection />}
-      {/* גיבוי ושחזור לעולם אינו מוסתר — בטיחות נתונים */}
-      {featureOn(config, 'settings.backup') && <BackupSection />}
-      {secOn('sec-export') && <ExportSection />}
-      {secOn('sec-import') && <ImportSection />}
-      {secOn('sec-audit') && <AuditSection />}
-      {featureOn(config, 'settings.access') && <AccessSection />}
-      {featureOn(config, 'shell.lock') && <SecuritySection />}
-      {featureOn(config, 'settings.encryption') && <EncryptionSection />}
-      {/* הצפנת-ענן — הרכיב עצמו מגודר isSuperAdmin (מחזיר null ללא-בעלים) */}
-      <CloudEncryptionSection />
-      {/* גל ג׳ (ai): מפתח-העוזר — מוצג רק כשההרחבה נמכרה; מקומי-למכשיר בלבד */}
-      <AiKeySection />
-      {/* לוג-פעולות (#10) — הרכיב מגודר דגל+מנהל בעצמו */}
-      <AuditTrailSection />
-      {/* 🔍 אימות-קבלה (#11) — מגודר דגל בעצמו */}
-      <VerifyReceiptSection />
-      {secOn('sec-reset') && <ResetSection />}
+      {shownGroup === 'org' && (
+        <>
+          <OrgSection />
+          {featureOn(config, 'settings.theme') && <ThemeSection />}
+          {secOn('sec-teachers') && <TeachersSection />}
+          {secOn('sec-rooms') && <RoomsSection />}
+          {featureOn(config, 'settings.notif') && <NotifSection />}
+          {featureOn(config, 'settings.access') && <AccessSection />}
+        </>
+      )}
+      {shownGroup === 'data' && (
+        <>
+          {/* גיבוי ושחזור לעולם אינו מוסתר — בטיחות נתונים */}
+          {featureOn(config, 'settings.backup') && <BackupSection />}
+          {secOn('sec-export') && <ExportSection />}
+          {secOn('sec-import') && <ImportSection />}
+          {secOn('sec-audit') && <AuditSection />}
+        </>
+      )}
+      {shownGroup === 'security' && (
+        <>
+          {featureOn(config, 'shell.lock') && <SecuritySection />}
+          {featureOn(config, 'settings.encryption') && <EncryptionSection />}
+          {/* הצפנת-ענן — הרכיב עצמו מגודר isSuperAdmin (מחזיר null ללא-בעלים) */}
+          <CloudEncryptionSection />
+        </>
+      )}
+      {shownGroup === 'adv' && (
+        <>
+          {/* גל ג׳ (ai): מפתח-העוזר — מוצג רק כשההרחבה נמכרה; מקומי-למכשיר בלבד */}
+          <AiKeySection />
+          {/* לוג-פעולות (#10) — הרכיב מגודר דגל+מנהל בעצמו */}
+          <AuditTrailSection />
+          {/* 🔍 אימות-קבלה (#11) — מגודר דגל בעצמו */}
+          <VerifyReceiptSection />
+          {secOn('sec-reset') && <ResetSection />}
+        </>
+      )}
     </div>
   );
 }

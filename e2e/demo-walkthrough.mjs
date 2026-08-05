@@ -238,13 +238,19 @@ await shot('דוחות');
 await nav('הגדרות');
 await wait(500);
 await shot('הגדרות');
+// UX סבב-ו׳: בדיקת-תקינות עברה ללשונית "📚 נתונים"
+await clickIf('button', '📚 נתונים');
+await wait(400);
 if (await clickIf('button', 'בדיקת תקינות')) { await wait(500); await shot('בדיקת-תקינות'); T('בדיקת תקינות רצה — בלי שגיאת JS', errors.length === 0); }
 
 // ── חיפוש כללי (Command Palette דרך Ctrl+K) ──
 await closeModals();
 await page.keyboard.press('Control+k');
 await wait(400);
-const si = page.locator('.modal input, input[type="search"], input').first();
+// UX סבב-ו׳: הלוקטור הישן (כל input בדף) בכלל מילא את השדה הראשון במסך שמאחורי
+// הפלטה (שם-הארגון!), ועם לשונית "📚 נתונים" נפל על input-הקובץ החבוי של השחזור.
+// מכוונים לשדה של פלטת-החיפוש עצמה (class="palette").
+const si = page.locator('.palette input').first();
 if (await si.count()) {
   await si.fill('כהן'); await wait(500);
   await shot('חיפוש');

@@ -137,6 +137,9 @@ try {
   const fixture = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'legacy-backup.json');
   await navTo('הגדרות');
   await pg.waitForTimeout(600);
+  // UX סבב-ו׳: ההגדרות מקובצות ללשוניות — גיבוי/שחזור/ייבוא בלשונית "📚 נתונים"
+  await clickText('📚 נתונים');
+  await pg.waitForTimeout(400);
   pg.once('dialog', (d) => void d.accept()); // confirm הדריסה של שחזור מקובץ
   await pg.locator('label:has-text("⬆ שחזור מקובץ גיבוי") input[type=file]').setInputFiles(fixture);
   await pg.waitForTimeout(1500); // debounce השמירה ל-localStorage הוא 500ms
