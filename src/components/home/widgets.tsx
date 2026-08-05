@@ -1267,7 +1267,6 @@ function QuickWidget({ ctx }: { ctx: HomeCtx }) {
       <div className="hm-quick">
         {timerOn && (
           <Btn
-            kind="primary"
             onClick={() => {
               window.location.hash = '#timer';
             }}
@@ -1559,9 +1558,10 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
  * פריסה שמורה של המשתמש תמיד גוברת; ווידג'ט שהמודול/פיצ'ר שלו כבוי פשוט מדולג.
  */
 export const THEME_LAYOUTS: Record<string, readonly WidgetId[]> = {
-  /* אור ראשון (mock-desktop) — hero, אריחים, קרוסלה, ואז שתי עמודות.
-     מדדי החוגים והאמינות (P2 פערים 19-20) בברירת המחדל — כמו בדשבורד הלגאסי */
-  'or-rishon': ['hero', 'stats', 'carousel', 'today', 'recent', 'attention', 'suggest', 'community', 'coursemetrics', 'credmetrics'],
+  /* אור ראשון — UX סבב-ג׳ (5.8): רזה כברירת-מחדל (6 במקום 10) — האנליטיקה
+     (carousel/coursemetrics/credmetrics/community) נשארת בספרייה, הוספה בקליק
+     דרך BoardEdit; פריסות-שמורות של לקוחות (db.ui.homeLayout) לא נגעות. */
+  'or-rishon': ['hero', 'stats', 'today', 'attention', 'suggest', 'recent'],
   /* היכל (mock-heichal) — "ערב גאלה": רצועת נתונים ושתי עמודות שקטות */
   heichal: ['hero', 'stats', 'today', 'attention', 'suggest', 'goldbook', 'hebcal'],
   /* צֹהַר (mock-tsohar) — דשבורד תפעולי נקי: נתונים, היום 2:1 מול דורש טיפול */
@@ -1585,8 +1585,8 @@ export interface ThemeBoardTemplate {
 }
 
 export const THEME_TEMPLATES: Record<string, ThemeBoardTemplate> = {
-  /* mock-desktop: ימין היום+משפחות אחרונות · שמאל דורש טיפול+אמינות (1.25fr/1fr) */
-  'or-rishon': { pre: ['stats', 'carousel'], colA: ['today', 'recent'], colB: ['attention', 'community'], post: ['coursemetrics', 'credmetrics'] },
+  /* mock-desktop רזה (UX סבב-ג׳): ימין היום+אחרונות · שמאל דורש-טיפול+הצעות */
+  'or-rishon': { pre: ['stats'], colA: ['today', 'recent'], colB: ['attention', 'suggest'], post: [] },
   /* mock-heichal: ימין סדר היום+נר תמיד · שמאל ספר הזהב+הלוח העברי (1.3fr/1fr) */
   heichal: { pre: ['stats'], colA: ['today', 'attention'], colB: ['goldbook', 'hebcal'], post: [] },
   /* mock-tsohar: היום כטבלה רחבה (2fr) מול דורש טיפול (1fr) */

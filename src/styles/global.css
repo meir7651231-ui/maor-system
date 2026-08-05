@@ -2604,3 +2604,14 @@ h1,
     min-height: 34px;
   }
 }
+
+/* UX סבב-ג׳ (5.8.2026): עריכת-הלוח נגישה במגע — ✏️ גלוי מלא ו-44px בטאבלט
+   (עד עכשיו opacity 0.4 שנחשף רק ב-hover — שלא קיים במגע) */
+@media (pointer: coarse) {
+  .hm-hero > .hm-edit-link {
+    opacity: 1;
+    width: 44px;
+    height: 44px;
+    background: color-mix(in srgb, currentColor 10%, transparent);
+  }
+}
