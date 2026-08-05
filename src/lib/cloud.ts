@@ -19,6 +19,7 @@ import {
   type Auth,
 } from 'firebase/auth';
 import {
+  addDoc,
   collection,
   doc,
   getDoc,
@@ -28,7 +29,10 @@ import {
   onSnapshot,
   persistentLocalCache,
   persistentMultipleTabManager,
+  query,
   setDoc,
+  updateDoc,
+  where,
   writeBatch,
   type DocumentData,
   type Firestore,
@@ -333,4 +337,49 @@ export function subscribeAll(
   return () => {
     for (const u of unsubs) u();
   };
+}
+
+/* ─────────── גל ד׳ "עד-השרת" — צד-הלקוח של functions/ (סליקה-מלאה · SMS) ───────────
+ * שני האוספים חיים בתחום-הארגון (scopedCol — שורש ללקוח-הקיים, orgs/{slug} לפלטפורמה):
+ *   incomingPayments — נכתב ע"י paymentsWebhook (Admin), נקרא/מסומן כאן.
+ *   smsOutbox — נכתב כאן ({to,text,status:'pending'}), נשלח ע"י smsOutbox בענן.
+ * בלי Functions פרוסות: הרשימה ריקה וההודעות יישארו pending — כשל-רך, אפס נזק. */
+
+/** תשלום-נכנס מחברת-הסליקה — ממתין לאישור-רישום של המזכירה. */
+export interface IncomingPayment {
+  id: string;
+  amount: number;
+  name: string;
+  phone: string;
+  reference: string;
+  at: string;
+  status: string;
+}
+
+/** התשלומים הממתינים ("💰 תשלומים נכנסים") — כשל-קריאה ⇒ [] (אין Functions/Rules). */
+export async function fetchIncomingPayments(): Promise<IncomingPayment[]> {
+  try {
+    const snap = await getDocs(query(collection(requireDb(), scopedCol('incomingPayments')), where('status', '==', 'pending')));
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<IncomingPayment, 'id'>) }));
+  } catch {
+    return [];
+  }
+}
+
+/** סימון תשלום-נכנס כ"נרשם" (אחרי שהמזכירה רשמה תרומה/תשלום במערכת). */
+export async function markIncomingPayment(id: string): Promise<void> {
+  await updateDoc(doc(requireDb(), scopedCol('incomingPayments'), id), {
+    status: 'handled',
+    handledAt: new Date().toISOString(),
+  });
+}
+
+/** הכנסת SMS לתור-השליחה (הרחבת sms — נשלח ע"י ה-Function כל דקה). */
+export async function writeSmsOutbox(to: string, text: string): Promise<void> {
+  await addDoc(collection(requireDb(), scopedCol('smsOutbox')), {
+    to,
+    text,
+    status: 'pending',
+    at: new Date().toISOString(),
+  });
 }

@@ -7,6 +7,7 @@ import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting, safeHttpsUrl, termOf } from '../../lib/config';
 import { WaBtn } from '../WaBtn';
+import { IncomingPaymentsModal } from './IncomingPayments';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
@@ -107,6 +108,9 @@ export function SupportersView() {
   const campaignHref = integrationOn(config, 'campaign')
     ? safeHttpsUrl(integrationSetting(config, 'campaign', 'url'))
     : null;
+  // גל ד׳ (payments): מסך תשלומים-נכנסים — רק לארגון-ענן מחובר
+  const cloudOn = useApp((s) => s.cloud.enabled && !!s.cloud.user);
+  const [incomingOpen, setIncomingOpen] = useState(false);
   const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');
   const importOn = featureOn(config, 'settings.import');
   const toast = useApp((s) => s.toast);
@@ -216,6 +220,12 @@ export function SupportersView() {
         sub={countLabel}
         actions={
           <>
+            {/* גל ד׳ (payments+ענן): תשלומים-נכנסים מה-webhook — לאישור-רישום */}
+            {integrationOn(config, 'payments') && cloudOn && (
+              <Btn onClick={() => setIncomingOpen(true)} title="תשלומים שדווחו מחברת-הסליקה — ממתינים לרישום">
+                💰 תשלומים נכנסים
+              </Btn>
+            )}
             {/* גל ג׳ (campaign): קישור-הקמפיין החי של הארגון — עד-המפתח (URL) */}
             {campaignHref && (
               <a
@@ -498,6 +508,7 @@ export function SupportersView() {
       )}
 
       {expOpen && <CustomExport target="supporters" onClose={() => setExpOpen(false)} />}
+      {incomingOpen && <IncomingPaymentsModal onClose={() => setIncomingOpen(false)} />}
     </div>
   );
 }

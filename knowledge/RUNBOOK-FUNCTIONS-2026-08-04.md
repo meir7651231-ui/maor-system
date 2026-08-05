@@ -12,8 +12,11 @@
 3. **secrets** (רק מה שרלוונטי):
    ```
    firebase functions:secrets:set PAY_SECRET     # סוד-משותף ל-webhook הסליקה
-   firebase functions:secrets:set SMS_API_KEY    # אחרי פתיחת חשבון 019/InforU
+   firebase functions:secrets:set SMS_API_KEY    # מפתח הספק (019/InforU)
+   firebase functions:secrets:set SMS_PROVIDER   # '019' (ברירת-מחדל) או 'inforu'
+   firebase functions:secrets:set SMS_SENDER     # שם/מספר-השולח שאושר אצל הספק
    firebase functions:secrets:set YEMOT_TOKEN    # טוקן ימות-המשיח
+   firebase functions:secrets:set GOOGLE_SA      # JSON של service-account (גיליון-חי)
    ```
 4. **פריסה:** מתיקיית הריפו —
    `cd functions && npm install && cd .. && firebase deploy --only functions`
