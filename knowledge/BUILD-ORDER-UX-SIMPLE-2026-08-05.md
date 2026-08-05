@@ -50,7 +50,7 @@
 - שחזור-מגיבוי: armDel/Modal במקום window.prompt/confirm (שבור בטאבלט). **← נותר (חופף לסבב ז׳; דורש עדכון dialog-handlers ב-e2e)**
 
 ### סבב ז׳ — רוחבי
-- חיפוש-גלובלי מנחית על הישות (משפחה⇒כרטיסה, תומך⇒כרטיסו).
+- חיפוש-גלובלי מנחית על הישות (משפחה⇒כרטיסה, תומך⇒כרטיסו). **✅ בוצע (6.8)** — משפחות כבר נחתו (selectFamily); תומכים: `openSupporterCard`/`supOpenReq`/`ackSupporterOpen` בדפוס supFormReq (הבחירה state מקומי במסך ⇒ בקשת-פתיחה דרך ה-store); ratchet ‏palette-land.
 - ריצה-ראשונה: מצב-ריק מציע סיור/מדריך/דמו; שפת-הוספה אחידה ("➕ הוספת X").
 - ‏HebDateInput בכל שדות-התאריך; armDel מחליף כל window.confirm.
 

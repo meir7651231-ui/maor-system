@@ -213,6 +213,10 @@ interface AppState {
   supFormReq: boolean;
   openSupporterForm: () => void;
   ackSupporterForm: () => void;
+  /** UX סבב-ז׳: חיפוש-גלובלי נוחת על כרטיס-התומך — בקשת-פתיחה (דפוס supFormReq). */
+  supOpenReq: string | null;
+  openSupporterCard: (id: string) => void;
+  ackSupporterOpen: () => void;
   /** ניווט למשפחות מסוננות לפי דרגת אמינות (אריחי הדרגות במדדי הבית, P2 פער 20). */
   famTierReq: '' | 'titan' | 'lion' | 'pale' | 'red';
   openFamiliesByTier: (tier: 'titan' | 'lion' | 'pale' | 'red') => void;
@@ -1160,6 +1164,9 @@ export const useApp = create<AppState>()((set, get) => {
     supFormReq: false,
     openSupporterForm: () => set({ view: 'supporters', supFormReq: true }),
     ackSupporterForm: () => set({ supFormReq: false }),
+    supOpenReq: null,
+    openSupporterCard: (id) => set({ view: 'supporters', supOpenReq: id }),
+    ackSupporterOpen: () => set({ supOpenReq: null }),
     famTierReq: '' as const,
     openFamiliesByTier: (tier) => set({ view: 'families', selFamilyId: null, famTierReq: tier }),
     ackFamiliesTier: () => set({ famTierReq: '' }),
