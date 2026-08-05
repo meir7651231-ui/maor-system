@@ -111,11 +111,11 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect(useAppSrc).toContain('PENDING_SIGNUP_KEY');
     // השמירה קודמת לניסיון-הכתיבה (סדר-מקור: setItem לפני writeOrgRequest בהרשמה)
     const signupIdx = useAppSrc.indexOf('localStorage.setItem(PENDING_SIGNUP_KEY');
-    const writeIdx = useAppSrc.indexOf('cloudMod.writeOrgRequest(uid, reqDoc)');
+    const writeIdx = useAppSrc.indexOf('writeOrgRequestResilient((u, r) => mod.writeOrgRequest(u, r), uid, reqDoc)');
     expect(signupIdx).toBeGreaterThan(-1);
     expect(writeIdx).toBeGreaterThan(signupIdx);
     // מסך-ההמתנה בשורש רושם מחדש — גם בלי פרטים שמורים (בקשה מינימלית מהמייל)
-    expect(useAppSrc).toMatch(/membership: 'pending' \}\);[\s\S]{0,1800}writeOrgRequest\(user\.uid/);
+    expect(useAppSrc).toMatch(/membership: 'pending' \}\);[\s\S]{0,1800}writeOrgRequestResilient\([\s\S]{0,120}user\.uid/);
     // אושר-ונותב ⇒ הפרטים המקומיים מתנקים
     expect(useAppSrc).toContain('localStorage.removeItem(PENDING_SIGNUP_KEY)');
   });
@@ -130,6 +130,15 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect(useAppSrc).toMatch(/getItem\(REQ_OK_KEY\) === user\.uid/);
     expect(loginSrc).toContain("reqStatus !== 'ok'");
     expect(loginSrc).toContain('הבקשה לא נקלטה');
+  });
+
+  it('🛡 כתיבת-בקשה עמידה (5.8) — נדחה הנוסח-המלא ⇒ ניסיון-נפילה עם 5 שדות-הבסיס', () => {
+    // הראיה: permission-denied רק לנרשמי-האשף — Rules מפורסמים ישנים עם hasOnly
+    // על 5 שדות-הבסיס דוחים את industry/size/needs. עדיף בקשה בלי-פרופיל מבקשה שאבדה.
+    expect(useAppSrc).toContain('async function writeOrgRequestResilient');
+    expect(useAppSrc).toMatch(/if \(!\('industry' in req\) && !\('size' in req\) && !\('needs' in req\)\) throw e/);
+    // שני מסלולי-הכתיבה (הרשמה + ריפוי-עצמי בהמתנה) עוברים דרך העמידה
+    expect((useAppSrc.match(/writeOrgRequestResilient\(/g) ?? []).length).toBeGreaterThanOrEqual(3); // הגדרה + 2 שימושים
   });
 
   it('הגנת-מקור: Rules v2 — בקשות uid-תואם, ארגונים לחברים, כתיבה למיילי-על, שורש כהיום', () => {

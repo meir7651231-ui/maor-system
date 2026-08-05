@@ -528,6 +528,31 @@ function fsErrCode(e: unknown): string {
   const code = (e as { code?: string })?.code;
   return code || String(e).slice(0, 120);
 }
+
+/**
+ * כתיבת-בקשה עמידה (האבחון של 5.8 — permission-denied רק לנרשמי-האשף): נוסח
+ * מלא עם פרופיל-האשף (industry/size/needs); אם נדחה — Rules מפורסמים ישנים עם
+ * hasOnly על 5 שדות-הבסיס מפילים את השדות החדשים — מנסים שוב עם הבסיס בלבד.
+ * עדיף בקשה בלי-פרופיל מבקשה שאבדה; כשגם הבסיס נדחה — השגיאה נזרקת הלאה.
+ */
+async function writeOrgRequestResilient(
+  writeFn: (uid: string, req: Record<string, unknown>) => Promise<void>,
+  uid: string,
+  req: Record<string, unknown>,
+): Promise<void> {
+  try {
+    await writeFn(uid, req);
+  } catch (e) {
+    if (!('industry' in req) && !('size' in req) && !('needs' in req)) throw e;
+    await writeFn(uid, {
+      orgName: req.orgName ?? '',
+      contactName: req.contactName ?? '',
+      phone: req.phone ?? '',
+      email: req.email ?? '',
+      at: req.at ?? new Date().toISOString(),
+    });
+  }
+}
 function decayKey(slug: string): string {
   return !slug || slug === 'default' ? DECAY_LS_KEY : `${DECAY_LS_KEY}:${slug}`;
 }
@@ -778,14 +803,17 @@ export const useApp = create<AppState>()((set, get) => {
                   stored = raw ? (JSON.parse(raw) as import('../lib/cloudConfig').OrgRequestDoc) : null;
                 } catch { /* JSON פגום ⇒ בקשה מינימלית */ }
                 const mine = stored && String(stored.email ?? '').toLowerCase() === mail;
-                void mod
-                  .writeOrgRequest(user.uid, mine && stored ? stored : {
+                void writeOrgRequestResilient(
+                  (u, r) => mod.writeOrgRequest(u, r),
+                  user.uid,
+                  (mine && stored ? stored : {
                     orgName: '',
                     contactName: mail.split('@')[0],
                     phone: '',
                     email: mail,
                     at: new Date().toISOString(),
-                  })
+                  }) as Record<string, unknown>,
+                )
                   .then(() => {
                     setCloud({ reqStatus: 'ok' });
                     try { localStorage.setItem(REQ_OK_KEY, user.uid); } catch { /* לא קריטי */ }
@@ -992,7 +1020,8 @@ export const useApp = create<AppState>()((set, get) => {
         /* localStorage מלא/חסום — הכתיבה הישירה עדיין מנוסה */
       }
       try {
-        await cloudMod.writeOrgRequest(uid, reqDoc);
+        const mod = cloudMod;
+        await writeOrgRequestResilient((u, r) => mod.writeOrgRequest(u, r), uid, reqDoc);
         setCloud({ reqStatus: 'ok' });
         try { localStorage.setItem(REQ_OK_KEY, uid); } catch { /* לא קריטי */ }
       } catch (e) {
