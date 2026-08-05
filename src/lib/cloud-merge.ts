@@ -87,6 +87,7 @@ export function applyMetaPartial(db: Db, meta: Record<string, unknown>): Db {
   assign('orgGoal', meta.orgGoal);
   assign('budget', meta.budget); // ORGADMIN/SHOP9 — סנכרון סקלר ארגוני (ציד-באגים 3.8)
   assign('usdRate', meta.usdRate);
+  assign('audit', meta.audit); // לוג-פעולות (#10) — הענן-מנצח כמו שאר ה-meta
   assign('notif', meta.notif);
   assign('reports', meta.reports);
   assign('ui', meta.ui);

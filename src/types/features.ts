@@ -202,6 +202,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'settings.import', label: 'ייבוא נתונים', desc: 'ייבוא נתונים מקובץ אל המערכת', module: 'settings' },
   { key: 'settings.import.families13', label: 'ייבוא משפחות 13 עמודות', desc: 'מסלול ייבוא המשפחות המלא מהקובץ החי — 13 עמודות, ניקויים אוטומטיים ותצוגה מקדימה (כבוי = מסלול 5 העמודות הישן)', module: 'settings' },
   { key: 'settings.audit', label: 'בדיקת תקינות נתונים', desc: 'סריקת כפילויות, ת"ז, טלפונים ולוגיקה — מסך ממצאים ותיקון אוטומטי', module: 'settings' },
+  { key: 'settings.audittrail', label: 'לוג פעולות 🧾', desc: 'מי-שינה-מה-ומתי (תרומות, תשלומים, מחיקות, שחזור) — 500 האחרונות; צפייה למנהל בלבד', module: 'settings' },
   { key: 'settings.dedup', label: 'איחוד כפילויות משפחות', desc: 'זיהוי משפחות כפולות (טלפון/שם+עיר) ומיזוגן לרשומה אחת — בלי אובדן נתונים', module: 'settings' },
   { key: 'settings.audit.extra', label: 'ביקורת מורחבת', desc: 'בדיקות נוספות: יעד-קשר שעבר, תרומות בסכום אפס/שלילי + שליחת ממצא למרכז הטיפול וקפיצה לאיחוד כפילויות', module: 'settings' },
   { key: 'settings.dedup.fields', label: 'מיזוג שדה-שדה', desc: 'בחירת הערך הנכון לכל שדה (18 שדות) בין הרשומות הכפולות + מחיקת רשומה מהקבוצה', module: 'settings' },
