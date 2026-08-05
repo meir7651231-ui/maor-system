@@ -404,6 +404,8 @@ export interface ReportPrefs {
 export interface UiPrefs {
   famView: 'list' | 'grid';
   crsView: 'list' | 'grid';
+  /** תצוגת התורמים (5.8) — אופציונלי, חסר = 'list' (אין צורך במיגרציה). */
+  supView?: 'list' | 'grid';
   /** פריסת לוח הבית: מזהי ווידג'טים בסדר תצוגה (ריק = ברירת המחדל). */
   homeLayout?: string[];
   /** ערכת נושא נבחרת (or-rishon/heichal/tsohar/kehila) — ריק = לפי קונפיגורציית הארגון. */

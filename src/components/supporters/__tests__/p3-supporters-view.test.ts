@@ -60,4 +60,13 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     expect(viewSrc).toMatch(/key: 'paid', label: 'שולם'/);
     expect(viewSrc).toMatch(/sp\.ayin\?\.paid \? '✓' : '—'/);
   });
+
+  it('🛡 תצוגת-גריד לתורמים (5.8, בקשת-בעלים) — כמו המשפחות, נשמרת ב-db.ui.supView', () => {
+    // מובייל: הטבלה הרחבה דורשת גלילה-צידית; הגריד = כרטיסים ידידותיים-למגע.
+    expect(viewSrc).toContain("db.ui.supView ?? 'list'");
+    expect(viewSrc).toContain("supView === 'grid' ?");
+    expect(viewSrc).toContain("repeat(auto-fill, minmax(220px, 1fr))");
+    // המונח דינמי (ורטיקלים!) והסכום דרך totalLabel (₪+$ — לא ils בלבד)
+    expect(viewSrc).toMatch(/termOf\(config, 'entity\.donations', 'תרומות'\)[\s\S]{0,60}totalLabel\(sp\)/);
+  });
 });

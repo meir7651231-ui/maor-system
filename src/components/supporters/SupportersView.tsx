@@ -115,6 +115,11 @@ export function SupportersView() {
   const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');
   const importOn = featureOn(config, 'settings.import');
   const toast = useApp((s) => s.toast);
+  // תצוגת גריד (5.8, בקשת-בעלים) — נשמרת ב-db.ui.supView, אותו דפוס כמו famView
+  const setDb = useApp((s) => s.setDb);
+  const supView = db.ui.supView ?? 'list';
+  const toggleSupView = () =>
+    setDb((d) => ({ ui: { ...d.ui, supView: (d.ui.supView ?? 'list') === 'grid' ? 'list' : 'grid' } }));
 
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
@@ -268,6 +273,10 @@ export function SupportersView() {
                 📋 דוח יומי
               </Btn>
             )}
+            {/* תצוגת גריד לתורמים (5.8, בקשת-בעלים) — אותו דפוס כמו המשפחות (db.ui) */}
+            <Btn onClick={toggleSupView} title="החלפת תצוגה: רשימה / גריד">
+              {supView === 'grid' ? '☰ רשימה' : '▦ גריד'}
+            </Btn>
             <Btn kind="primary" onClick={() => setFormOpen(true)}>
               ➕ הוספת {termOf(config, 'entity.supporter', 'תומך/ת')}
             </Btn>
@@ -369,6 +378,50 @@ export function SupportersView() {
         </Empty>
       ) : list.length === 0 ? (
         <Empty>לא נמצאו {termOf(config, 'nav.supporters', 'תומכים')} התואמים את החיפוש והסינון</Empty>
+      ) : supView === 'grid' ? (
+        /* תצוגת גריד (5.8) — כרטיסים ידידותיים-למובייל; אותו דפוס כמו המשפחות */
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+          {list.map((sp) => {
+            const score = supScore(sp, rate);
+            const tier = supTier(score);
+            return (
+              <div
+                key={sp.id}
+                className="card"
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelId(sp.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') setSelId(sp.id);
+                }}
+                style={{ cursor: 'pointer' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  {rfmOn && (
+                    <span
+                      title={tier.label + ' · ציון ' + score}
+                      style={{ width: 10, height: 10, borderRadius: 99, background: tier.dot, display: 'inline-block', flex: 'none' }}
+                    />
+                  )}
+                  <span style={{ fontWeight: 700, fontSize: 15, flex: 1 }}>{sp.name}</span>
+                  {sp.cat && <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{sp.cat}</span>}
+                </div>
+                {sp.phone && (
+                  <div style={{ fontSize: 13, color: 'var(--ink-soft)', direction: 'ltr', textAlign: 'end' }}>{sp.phone}</div>
+                )}
+                <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 4 }}>
+                  {sp.count + ' ' + termOf(config, 'entity.donations', 'תרומות') + ' · ' + totalLabel(sp)}
+                  {sp.last ? ' · אחרונה ' + fmtDate(sp.last) : ''}
+                </div>
+                {nextOn && sp.nextDate && (
+                  <div style={{ fontSize: 12, color: sp.nextDate <= isoToday() ? 'var(--warn, #b45309)' : 'var(--ink-faint)', marginTop: 2 }}>
+                    {'☎ קשר הבא: ' + fmtDate(sp.nextDate)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       ) : (
         <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
           <table className="table">
