@@ -44,7 +44,9 @@ describe('🛠 ratchet — ADMINHUB: כניסת-ניהול גלויה למנהל
   });
 
   it('ratchet: ה-hash הישן עדיין מטופל ב-onHash (תאימות אחורה)', () => {
-    expect(appSrc).toContain("setBuilderOpen(window.location.hash === '#builder')");
+    // ‏5.8: ‏#builder הפך ל-startsWith — תופס גם את הישן (#builder) וגם את
+    // הקשור-ענן (#builder=slug, RemoteWizard); התאימות-אחורה נשמרת מעצם ההכלה.
+    expect(appSrc).toContain("setBuilderOpen(window.location.hash.startsWith('#builder'))");
     expect(appSrc).toContain("setPlatformOpen(window.location.hash === '#platform')");
   });
 });

@@ -340,6 +340,8 @@ export function PlatformPanel(props: { onClose: () => void }) {
                   📋 העתק קישור
                 </Btn>
                 <Btn sm onClick={() => openEditor(o.slug)}>✏️ עריכה חיה</Btn>
+                {/* אשף-הרכבה קשור-ענן (5.8): האשף המלא על הלקוח — הבעלים רואה חי */}
+                <Btn sm onClick={() => { window.location.hash = '#builder=' + o.slug; }}>🧩 אשף הרכבה</Btn>
               </span>
             </div>
           ))}

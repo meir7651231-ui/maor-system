@@ -30,6 +30,7 @@ import type { OrgCloudDoc } from '../../../lib/cloudConfig';
 import appSrc from '../../../App.tsx?raw';
 import panelSrc from '../PlatformPanel.tsx?raw';
 import managerSrc from '../ManagerPanel.tsx?raw';
+import remoteSrc from '../../builder/RemoteWizard.tsx?raw';
 import useAppSrc from '../../../store/useApp.ts?raw';
 import settingsSrc from '../../settings/SettingsView.tsx?raw';
 import rulesSrc from '../../../../firestore.rules?raw';
@@ -279,5 +280,21 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     expect(panelSrc).toMatch(/if \(approveReq\.uid\) await mod\.deleteOrgRequest/);
     // שם-הארגון חובה בהקמה ידנית
     expect(panelSrc).toContain("if (!approveReq.orgName?.trim()) return setSlugErr('שם הארגון חסר')");
+  });
+
+  it('🛰 אשף-הרכבה קשור-ענן (5.8) — האשף המלא עורך לקוח חי, עם שחזור-מיתוג', () => {
+    // בקשת-בעלים: "שאני אראה בלייב מה אני מדליק" — #builder=slug מלביש את
+    // קונפיג-הלקוח על האפליקציה, כל שינוי נכתב לענן (onSnapshot אצל הלקוח),
+    // ובסגירה/קריסה מיתוג-הבעלים חוזר מהתצלום.
+    expect(remoteSrc).toContain('writeOrgCloudConfig(slug, s.config)');
+    expect(remoteSrc).toContain('BUILDER_PREV_KEY');
+    expect(remoteSrc).toMatch(/sessionStorage\.setItem\(BUILDER_PREV_KEY/);
+    expect(remoteSrc).toMatch(/close\(\)[\s\S]{0,400}getItem\(BUILDER_PREV_KEY\)/);
+    // ‏App: זיהוי ‏#builder=slug, שער מייל-על, ושחזור-קריסה
+    expect(appSrc).toContain("window.location.hash.startsWith('#builder=')");
+    expect(appSrc).toMatch(/remoteBuilderSlug[\s\S]{0,400}isSuperAdmin\(cloud\.user\?\.email\)/);
+    expect(appSrc).toContain('RemoteWizard');
+    // הכניסה מהלוח
+    expect(panelSrc).toContain("'#builder=' + o.slug");
   });
 });
