@@ -269,4 +269,15 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     expect(panelSrc).toMatch(/approveJoin[\s\S]{0,500}deleteOrgJoinRequest/);
     expect(panelSrc).toContain('בקשות-הצטרפות של עובדים');
   });
+
+  it('🛡 הקמה ידנית בלוח (5.8) — לקוח בלי מסמך-בקשה (טלפון-מסונן חוסם Firestore)', () => {
+    // האבחון: הכתיבה ל-platformRequests עובדת מהשרת אך נכשלת ממכשירים מסוננים —
+    // המשתמש נוצר ב-Auth ואין בקשה. ההקמה-הידנית = אותו מסלול-אישור בלי בקשה.
+    expect(panelSrc).toContain('openManualCreate');
+    expect(panelSrc).toContain('➕ הקמה ידנית');
+    // אין מסמך-בקשה ⇒ אין מחיקת-בקשה (deleteOrgRequest רק כשיש uid)
+    expect(panelSrc).toMatch(/if \(approveReq\.uid\) await mod\.deleteOrgRequest/);
+    // שם-הארגון חובה בהקמה ידנית
+    expect(panelSrc).toContain("if (!approveReq.orgName?.trim()) return setSlugErr('שם הארגון חסר')");
+  });
 });
