@@ -123,6 +123,8 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
   const toast = useApp((s) => s.toast);
   // UX סבב-ה׳: יצירת-חדר inline — סוגר את מבוי-הסתום 'חדר חובה שנוצר רק בהגדרות'
   const [newRoomName, setNewRoomName] = useState<string | null>(null);
+  // UX סבב-ה׳: חוג חדש — ליבה בלבד; עריכה — הכול פתוח
+  const [advOpen, setAdvOpen] = useState(!!props.course);
   const cfg = useApp((s) => s.config);
 
   const discountsOn = featureOn(cfg, 'courses.discounts');
@@ -292,22 +294,6 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
         <Field label="מחיר מלא (₪)">
           <TextInput value={f.price} onChange={(v) => set({ price: v })} placeholder="180" dir="ltr" />
         </Field>
-        {discountsOn && (
-          <>
-            <Field label="שם הנחה 1">
-              <TextInput value={f.price1Name} onChange={(v) => set({ price1Name: v })} placeholder="לדוגמה: אחיות / מלגה" />
-            </Field>
-            <Field label="מחיר הנחה 1 (₪)">
-              <TextInput value={f.price1} onChange={(v) => set({ price1: v })} placeholder="—" dir="ltr" />
-            </Field>
-            <Field label="שם הנחה 2">
-              <TextInput value={f.price2Name} onChange={(v) => set({ price2Name: v })} placeholder="לדוגמה: אלמנות" />
-            </Field>
-            <Field label="מחיר הנחה 2 (₪)">
-              <TextInput value={f.price2} onChange={(v) => set({ price2: v })} placeholder="—" dir="ltr" />
-            </Field>
-          </>
-        )}
         {f.model === 'punch' && (
           <Field label="ניקובים בכרטיסייה *">
             <TextInput value={f.size} onChange={(v) => set({ size: v })} placeholder="10" dir="ltr" />
@@ -366,6 +352,35 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
         <Field label="שעה">
           <TextInput value={f.time} onChange={(v) => set({ time: v })} type="time" />
         </Field>
+      </div>
+      {/* UX סבב-ה׳: ~24 שדות ⇒ ליבה (שם/מורה/מחיר/חדר/יום/שעה/תאריכים) +
+          "הגדרות מתקדמות ▾" — תמחור-מסלולים, הנחות, קטגוריה, קהל, גילאים, תמונה.
+          חוג חדש = מקופל; עריכה = פתוח. אפס אובדן-יכולת. */}
+      <button
+        type="button"
+        onClick={() => setAdvOpen((v) => !v)}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, color: 'var(--accent-deep, var(--accent))', padding: '2px 0 10px', textAlign: 'start' }}
+      >
+        {(advOpen ? '▲ פחות הגדרות' : '▼ הגדרות מתקדמות') + ' — מסלולי-תמחור, הנחות, קהל, גילאים, תמונה…'}
+      </button>
+      {advOpen && (
+        <div className="form-grid">
+        {discountsOn && (
+          <>
+            <Field label="שם הנחה 1">
+              <TextInput value={f.price1Name} onChange={(v) => set({ price1Name: v })} placeholder="לדוגמה: אחיות / מלגה" />
+            </Field>
+            <Field label="מחיר הנחה 1 (₪)">
+              <TextInput value={f.price1} onChange={(v) => set({ price1: v })} placeholder="—" dir="ltr" />
+            </Field>
+            <Field label="שם הנחה 2">
+              <TextInput value={f.price2Name} onChange={(v) => set({ price2Name: v })} placeholder="לדוגמה: אלמנות" />
+            </Field>
+            <Field label="מחיר הנחה 2 (₪)">
+              <TextInput value={f.price2} onChange={(v) => set({ price2: v })} placeholder="—" dir="ltr" />
+            </Field>
+          </>
+        )}
         <Field label={'מקסימום ' + termOf(cfg, 'entity.students', 'תלמידים')}>
           <TextInput value={f.maxStudents} onChange={(v) => set({ maxStudents: v })} placeholder="12" dir="ltr" />
         </Field>
@@ -468,7 +483,8 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
         <Field label="תאריך סיום">
           <HebDateInput value={f.end} onChange={(iso) => set({ end: iso })} />
         </Field>
-      </div>
+        </div>
+      )}
       <div
         style={{
           fontSize: 12,
