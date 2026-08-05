@@ -54,7 +54,7 @@ import { applyTheme, employeeSignUpError, featureOn, isSuperAdmin, loadOrgConfig
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
-import { mergeFamilies, mergeFamiliesByFields } from '../lib/dedup';
+import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
@@ -281,6 +281,8 @@ interface AppState {
   upsertRoom: (r: Room) => void;
   upsertSupporter: (s: Supporter) => void;
   deleteSupporter: (id: string) => void;
+  /** 🔗 מיזוג-כפולים (#13): כל הכסף עובר ל-keep (rid נשמר), drop נמחק. */
+  mergeSupporters: (keepId: string, dropId: string) => void;
   /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
   addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => { ok: boolean; rid?: string };
 
@@ -1539,6 +1541,21 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => ({ supporters: upsertIn(db.supporters, s) }));
       logAudit('שמירת תומכ/ת', s.name);
     },
+    mergeSupporters(keepId, dropId) {
+      const { supporters } = get().db;
+      const keep = supporters.find((s) => s.id === keepId);
+      const drop = supporters.find((s) => s.id === dropId);
+      if (!keep || !drop || keepId === dropId) return;
+      const merged = mergeSupporterInto(keep, drop);
+      logAudit('מיזוג תורמים', drop.name + ' ← ' + keep.name);
+      setDb((db) => ({
+        supporters: db.supporters.filter((s) => s.id !== dropId).map((s) => (s.id === keepId ? merged : s)),
+        // תזכורת יעד-קשר של הנמחק שלא הועברה + אירועי-עי"ן שלו — לא נשארים יתומים
+        events: db.events.filter((ev) => ev.id !== drop.nextEventId && ev.spId !== dropId),
+      }));
+      get().toast('🔗 ' + drop.name + ' מוזג/ה לתוך ' + keep.name + ' — כל התרומות והקבלות נשמרו');
+    },
+
     deleteSupporter(id) {
       logAudit('מחיקת תומכ/ת', get().db.supporters.find((x) => x.id === id)?.name ?? id);
       setDb((db) => {

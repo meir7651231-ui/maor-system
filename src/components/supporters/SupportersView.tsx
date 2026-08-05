@@ -21,6 +21,8 @@ import { SupporterDetail } from './SupporterDetail';
 import { AyinBoard } from './AyinBoard';
 import { OrgDonationCalendar } from './DonationCalendar';
 import { SupporterImport } from './SupporterImport';
+import { SupDedupModal } from './SupDedupModal';
+import { findSupporterDupGroups } from '../../lib/dedup';
 import { CustomExport } from '../reports/CustomExport';
 
 type SortKey =
@@ -131,6 +133,9 @@ export function SupportersView() {
   // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
+  // 🔗 איחוד-כפולים (#13) — הכפתור מוצג רק כשיש מה לאחד
+  const [dedupOpen, setDedupOpen] = useState(false);
+  const dedupCount = findSupporterDupGroups(db.supporters).length;
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -277,6 +282,12 @@ export function SupportersView() {
             {ayinOn && dailyReportOn && (
               <Btn onClick={dailyReport} title={'דוח יומי — ' + featLabel(config)}>
                 📋 דוח יומי
+              </Btn>
+            )}
+            {/* 🔗 איחוד-כפולים (#13) — מוצג רק כשיש קבוצות-חשודות */}
+            {dedupCount > 0 && (
+              <Btn onClick={() => setDedupOpen(true)} title="קבוצות תורמים עם טלפון/אימייל/שם+עיר זהים">
+                {'🔗 איחוד כפולים · ' + dedupCount}
               </Btn>
             )}
             {/* תצוגת גריד לתורמים (5.8, בקשת-בעלים) — אותו דפוס כמו המשפחות (db.ui) */}
@@ -593,6 +604,7 @@ export function SupportersView() {
         />
       )}
 
+      {dedupOpen && <SupDedupModal onClose={() => setDedupOpen(false)} />}
       {importOpen && (
         <Modal title="⬆ ייבוא תומכות מ-CSV" onClose={() => setImportOpen(false)}>
           <SupporterImport onDone={() => setImportOpen(false)} />
