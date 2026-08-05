@@ -60,6 +60,10 @@ export function groupLabelOf(ss: CourseSession, i: number): string {
  *   יכולת מהמודל הקיים).
  * dropsPunch = אי-זכאות בכרטיסייה מורידה ניקוב; מוצדק/מוקדם שומר על היתרה.
  */
+/** UX סבב-ו׳/ה׳ — צ'יפי-הנימוק המשותפים לשני מודאלי-החיסור (יומן + כרטיס):
+ *  קליק במקום הקלדה; הנימוקים השכיחים בשטח. הטקסט נכנס לשדה כרגיל — עריכה חופשית. */
+export const ABSENCE_REASON_CHIPS = ['מחלה', 'אירוע משפחתי', 'שמחה', 'נסיעה', 'מזג אוויר'] as const;
+
 export function makeupEligibility(
   kind: 'cancel' | 'noshow',
   justified: boolean,
