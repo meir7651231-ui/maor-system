@@ -1,0 +1,74 @@
+/**
+ * ratchet — UX סבב-ו׳ (5.8.2026): מסך ההגדרות מקובץ ל-4 לשוניות.
+ * האינווריאנטים:
+ * 1. כל 17 סעיפי-ההגדרות משויכים לקבוצה — אף סעיף לא נשמט מהמיפוי (אפס אובדן יכולת).
+ * 2. כל שערי-הגידור המקוריים נשארו כלשונם (featureOn פר-סעיף, self-gates).
+ * 3. בקשת-מיקוד ממסך אחר (goSettingsSection במשפחות) פותחת את הקבוצה הנכונה —
+ *    sessionStorage חד-פעמי, לא state שאובד ב-unmount.
+ * 4. לשונית ריקה מוסתרת; קבוצת ברירת-המחדל 'org' לעולם קיימת (sec-org תמיד מוצג).
+ */
+import { describe, expect, it } from 'vitest';
+import viewSrc from '../SettingsView.tsx?raw';
+import libSrc from '../lib.tsx?raw';
+import famSrc from '../../families/FamiliesView.tsx?raw';
+
+const ALL_SECTION_IDS = [
+  'sec-org', 'sec-theme', 'sec-teachers', 'sec-rooms', 'sec-notif', 'sec-access',
+  'sec-backup', 'sec-export', 'sec-import', 'sec-audit',
+  'sec-security', 'sec-encryption', 'sec-cloud-encryption',
+  'sec-ai', 'sec-audittrail', 'sec-verifyreceipt', 'sec-reset',
+];
+
+describe('⚙️ ratchet — UX סבב-ו׳: הגדרות ב-4 לשוניות (5.8.2026)', () => {
+  it('כל 17 הסעיפים משויכים לקבוצה ב-SECTION_GROUP — אף אחד לא נשמט', () => {
+    const mapMatch = viewSrc.match(/const SECTION_GROUP[\s\S]*?\n\};/);
+    expect(mapMatch).toBeTruthy();
+    for (const id of ALL_SECTION_IDS) expect(mapMatch![0]).toContain(`'${id}'`);
+  });
+
+  it('4 הקבוצות קיימות והלשוניות מסננות רינדור — קבוצה פעילה אחת בכל רגע', () => {
+    for (const g of ['🏷 הארגון שלי', '📚 נתונים', '🔐 אבטחה', '🧪 מתקדם']) expect(viewSrc).toContain(g);
+    for (const g of ['org', 'data', 'security', 'adv']) expect(viewSrc).toContain(`shownGroup === '${g}' && (`);
+  });
+
+  it('שערי-הגידור המקוריים נשארו כלשונם — הקיבוץ תצוגתי בלבד', () => {
+    for (const gate of [
+      "featureOn(config, 'settings.theme') && <ThemeSection />",
+      "secOn('sec-teachers') && <TeachersSection />",
+      "secOn('sec-rooms') && <RoomsSection />",
+      "featureOn(config, 'settings.notif') && <NotifSection />",
+      "featureOn(config, 'settings.backup') && <BackupSection />",
+      "secOn('sec-export') && <ExportSection />",
+      "secOn('sec-import') && <ImportSection />",
+      "secOn('sec-audit') && <AuditSection />",
+      "featureOn(config, 'settings.access') && <AccessSection />",
+      "featureOn(config, 'shell.lock') && <SecuritySection />",
+      "featureOn(config, 'settings.encryption') && <EncryptionSection />",
+      '<CloudEncryptionSection />',
+      '<AiKeySection />',
+      '<AuditTrailSection />',
+      '<VerifyReceiptSection />',
+      "secOn('sec-reset') && <ResetSection />",
+    ]) expect(viewSrc).toContain(gate);
+  });
+
+  it('בקשת-מיקוד: sessionStorage חד-פעמי (takeSettingsFocus) + fallback ל-org כשהקבוצה מוסתרת', () => {
+    expect(libSrc).toContain("sessionStorage.setItem(SETTINGS_FOCUS_KEY, sectionId)");
+    expect(libSrc).toMatch(/getItem\(SETTINGS_FOCUS_KEY\)[\s\S]{0,120}removeItem\(SETTINGS_FOCUS_KEY\)/);
+    expect(viewSrc).toContain('takeSettingsFocus()');
+    expect(viewSrc).toContain("(focusId && SECTION_GROUP[focusId]) || 'org'");
+    expect(viewSrc).toContain("groupHas[group] ? group : 'org'");
+  });
+
+  it('קיצורי-המשפחות (ייבוא/בדיקת-נתונים) מבקשים מיקוד לפני המעבר — נוחתים בלשונית הנכונה', () => {
+    expect(famSrc).toMatch(/requestSettingsSection\(sectionId\);\s*\n\s*go\('settings'\)/);
+    expect(famSrc).toContain("goSettingsSection('sec-import')");
+    expect(famSrc).toContain("goSettingsSection('sec-audit')");
+  });
+
+  it('צ׳יפי-הפעולה (אשף/לוח-בקרה/ניהול-עובדות) נשארו — עם אותם שערים', () => {
+    expect(viewSrc).toContain('🎛️ אשף ההקמה');
+    expect(viewSrc).toContain('🛠 לוח בקרה');
+    expect(viewSrc).toContain('👥 ניהול העובדות');
+  });
+});

@@ -12,6 +12,7 @@ import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { ActionsMenu, Btn, Empty, PageHead, Select, TextInput } from '../ui';
 import { chipStyle, finderAxisValue, numMatch, STATUS_META, tierOf } from './lib';
+import { requestSettingsSection } from '../settings/lib';
 import { FamilyFinder } from './FamilyFinder';
 import { FamilyForm } from './FamilyForm';
 import { FamilyDetail } from './FamilyDetail';
@@ -69,8 +70,11 @@ export function FamiliesView() {
   const credOn = featureOn(config, 'families.cred');
   const finderOn = featureOn(config, 'families.finder');
 
-  // P3 פריט 18 — קיצור למקטע בהגדרות (⬆ ייבוא / ✓ בדיקת נתונים מהלגאסי)
+  // P3 פריט 18 — קיצור למקטע בהגדרות (⬆ ייבוא / ✓ בדיקת נתונים מהלגאסי).
+  // UX סבב-ו׳: ההגדרות מקובצות ללשוניות — בקשת-המיקוד פותחת את הקבוצה הנכונה;
+  // הגלילה המושהית נשארת כרשת-ביטחון (אם האחסון חסום והסעיף כבר על המסך).
   function goSettingsSection(sectionId: string) {
+    requestSettingsSection(sectionId);
     go('settings');
     setTimeout(() => document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' }), 250);
   }

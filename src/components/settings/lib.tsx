@@ -15,6 +15,24 @@ export function Section(props: { id: string; title: string; sub?: string; childr
   );
 }
 
+/** UX סבב-ו׳ — בקשת-מיקוד למסך ההגדרות: מסך אחר (למשל קיצורי המשפחות) מבקש
+ *  לנחות על סעיף מסוים; ההגדרות פותחות את קבוצת-הלשונית הנכונה וגוללות אליו.
+ *  sessionStorage (לא state) — הבקשה שורדת את ה-unmount שבין המסכים. */
+const SETTINGS_FOCUS_KEY = 'maor_settings_focus';
+
+export function requestSettingsSection(sectionId: string) {
+  try { sessionStorage.setItem(SETTINGS_FOCUS_KEY, sectionId); } catch { /* אחסון חסום — הגלילה הישנה עדיין תנסה */ }
+}
+
+/** קורא ומוחק את בקשת-המיקוד (חד-פעמית). */
+export function takeSettingsFocus(): string | null {
+  try {
+    const v = sessionStorage.getItem(SETTINGS_FOCUS_KEY);
+    if (v) sessionStorage.removeItem(SETTINGS_FOCUS_KEY);
+    return v;
+  } catch { return null; }
+}
+
 /** הערת שוליים מוצנעת בתוך סקשן. */
 export function SectionNote(props: { children: ReactNode }) {
   return <p style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 10 }}>{props.children}</p>;
