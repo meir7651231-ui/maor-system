@@ -15,6 +15,7 @@ import {
   type AyinStage,
   type Course,
   type CredLogEntry,
+  pushAudit,
   type Db,
   type Donation,
   type Enrollment,
@@ -754,6 +755,19 @@ export const useApp = create<AppState>()((set, get) => {
     }
   }
 
+  /**
+   * לוג-פעולות (ROADMAP-100 ‏#10) — רישום מי/מה/מתי בפעולות-המפתח. טבעת
+   * חצובת-תקרה (AUDIT_CAP); who = מייל-הענן או 'מקומי'. כשל לעולם לא מפיל פעולה.
+   */
+  function logAudit(act: string, what: string): void {
+    try {
+      const who = get().cloud.user?.email ?? 'מקומי';
+      setDb((db) => ({ audit: pushAudit(db.audit, { at: new Date().toISOString(), who, act, what }) }));
+    } catch {
+      /* הלוג הוא עזר — לא חוסם עבודה */
+    }
+  }
+
   /** upsert גנרי לפי id — חדש נכנס לראש הרשימה (כמו במקור). */
   function upsertIn<T extends { id: string }>(list: T[], item: T): T[] {
     const i = list.findIndex((x) => x.id === item.id);
@@ -1041,8 +1055,10 @@ export const useApp = create<AppState>()((set, get) => {
 
     upsertFamily(fam) {
       setDb((db) => ({ families: upsertIn(db.families, fam) }));
+      logAudit('שמירת משפחה', fam.name);
     },
     deleteFamily(id) {
+      logAudit('מחיקת משפחה', get().db.families.find((f) => f.id === id)?.name ?? id);
       setDb((db) => {
         const memberIds = new Set(
           db.families.find((f) => f.id === id)?.members.map((m) => m.id) ?? [],
@@ -1324,6 +1340,7 @@ export const useApp = create<AppState>()((set, get) => {
           e.id === enrollmentId ? { ...e, payments: [{ ...payment, rid }, ...e.payments] } : e,
         ),
       }));
+      logAudit('תשלום', rid + ' · ₪' + payment.amount);
       return { ok: true, rid };
     },
 
@@ -1388,8 +1405,10 @@ export const useApp = create<AppState>()((set, get) => {
     },
     upsertSupporter(s) {
       setDb((db) => ({ supporters: upsertIn(db.supporters, s) }));
+      logAudit('שמירת תומכ/ת', s.name);
     },
     deleteSupporter(id) {
+      logAudit('מחיקת תומכ/ת', get().db.supporters.find((x) => x.id === id)?.name ?? id);
       setDb((db) => {
         // ניקוי מדורג של תזכורת "יעד קשר" המקושרת (nextEventId) — אחרת נשארת
         // תזכורת יתומה בלוח לתומכ/ת שנמחק/ה.
@@ -1420,6 +1439,7 @@ export const useApp = create<AppState>()((set, get) => {
           return { ...s, donations, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
         }),
       }));
+      logAudit('תרומה', rid + ' · ' + (donation.cur === '$' ? '$' : '₪') + donation.amount);
       return { ok: true, rid };
     },
 
@@ -2233,6 +2253,7 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     restoreDb(db) {
+      logAudit('שחזור מגיבוי', 'החלפת כל הנתונים');
       const prev = get().db;
       // ניקוי security כמו ב-init/decryptUnlock: גיבוי/צילום/עותק-ענן ישן עלול
       // עדיין לשאת קודי נעילה מגובבים ב-db.security. בלי הניקוי הם היו נשמרים,

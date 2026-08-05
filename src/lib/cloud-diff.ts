@@ -68,6 +68,7 @@ const META_KEYS = [
   // (ליד orgGoal) שנשמטו מסנכרון-הענן ⇒ התחשבנות/מבט-הנהלה ותיוג-תורמים סטו בין מכשירים.
   'budget',
   'usdRate',
+  'audit', // לוג-פעולות (#10) — רוכב על meta; חצוב-תקרה בצד-הלקוח (AUDIT_CAP)
   'notif',
   'reports',
   'ui',
@@ -96,6 +97,7 @@ export function metaOf(db: Db): Record<string, unknown> {
     orgGoal: db.orgGoal,
     budget: db.budget,
     usdRate: db.usdRate,
+    audit: db.audit, // לוג-פעולות (#10) — רוכב על meta כמו attnDone
     notif: db.notif,
     reports: db.reports,
     ui: db.ui,

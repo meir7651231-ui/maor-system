@@ -85,6 +85,8 @@ export function SettingsView() {
       <CloudEncryptionSection />
       {/* גל ג׳ (ai): מפתח-העוזר — מוצג רק כשההרחבה נמכרה; מקומי-למכשיר בלבד */}
       <AiKeySection />
+      {/* לוג-פעולות (#10) — הרכיב מגודר דגל+מנהל בעצמו */}
+      <AuditTrailSection />
       {secOn('sec-reset') && <ResetSection />}
     </div>
   );
@@ -323,6 +325,44 @@ function AiKeySection() {
       <SectionNote>
         השימוש מחויב לחשבון-ה-API של הארגון. הטיוטות נפתחות לעריכה ואינן נשמרות במערכת.
       </SectionNote>
+    </Section>
+  );
+}
+
+/** לוג-פעולות (ROADMAP-100 ‏#10) — מי-שינה-מה-ומתי; מנהל בלבד, דגל settings.audittrail.
+ *  הטבעת חצובת-תקרה (AUDIT_CAP) נשמרת ב-Db ומסתנכרנת בענן כמו שאר ה-meta. */
+function AuditTrailSection() {
+  const config = useApp((s) => s.config);
+  const cloudUser = useApp((s) => s.cloud.user);
+  // ⚠️ ברירת-המחדל מחוץ לסלקטור — `?? []` בתוך הסלקטור מייצר מערך חדש בכל
+  // getSnapshot כשאין לוג ⇒ לולאת-רינדור אינסופית (React #185, נתפס ב-launch-readiness).
+  const audit = useApp((s) => s.db.audit) ?? [];
+  if (!featureOn(config, 'settings.audittrail')) return null;
+  if (!isAdminUser(config, cloudUser?.email)) return null;
+  const rows = [...audit].reverse().slice(0, 100);
+  return (
+    <Section id="sec-audittrail" title="🧾 לוג פעולות" sub={'מי שינה מה ומתי — ' + audit.length + ' רשומות (נשמרות ' + 500 + ' האחרונות)'}>
+      {rows.length === 0 ? (
+        <SectionNote>עדיין אין רשומות — הלוג מתמלא עם כל פעולה מהותית (תרומה, תשלום, שמירה/מחיקה, שחזור).</SectionNote>
+      ) : (
+        <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+          <table className="table">
+            <thead>
+              <tr><th>מתי</th><th>מי</th><th>פעולה</th><th>מה</th></tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i}>
+                  <td dir="ltr" style={{ fontSize: 12 }}>{r.at.slice(0, 16).replace('T', ' ')}</td>
+                  <td style={{ fontSize: 12 }} dir="ltr">{r.who}</td>
+                  <td style={{ fontWeight: 600 }}>{r.act}</td>
+                  <td>{r.what}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </Section>
   );
 }

@@ -742,6 +742,31 @@ export interface Db {
   attnDone: Record<string, string>;
   /** נעילת גישה — קודים מגובבים (לא טקסט גלוי). ריק = אין נעילה. */
   security: SecurityCfg;
+  /**
+   * לוג-פעולות (ROADMAP-100 ‏#10, additive) — מי-שינה-מה-ומתי; טבעת חצובת-תקרה
+   * (AUDIT_CAP): הוותיק נדחק. אופציונלי — גיבוי ישן בלי השדה נטען עם [].
+   */
+  audit?: AuditEntry[];
+}
+
+/** רשומת-audit אחת — קצרה במכוון (הלוג רוכב על meta בסנכרון-הענן). */
+export interface AuditEntry {
+  /** חותמת ISO מלאה (תאריך+שעה). */
+  at: string;
+  /** מייל-המשתמש המחובר, או 'מקומי' בלי ענן. */
+  who: string;
+  /** הפעולה (עברית קצרה): 'תרומה', 'מחיקת משפחה'… */
+  act: string;
+  /** זיהוי-היעד: שם/מספר-קבלה/כותרת. */
+  what: string;
+}
+
+/** תקרת-הלוג — טבעת: מעבר לתקרה דוחק את הוותיקות. */
+export const AUDIT_CAP = 500;
+
+/** דחיפה לטבעת-הלוג (טהור) — הוותיקות נדחקות מעבר ל-AUDIT_CAP. */
+export function pushAudit(list: AuditEntry[] | undefined, entry: AuditEntry): AuditEntry[] {
+  return [...(list ?? []), entry].slice(-AUDIT_CAP);
 }
 
 /**
