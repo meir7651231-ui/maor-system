@@ -109,6 +109,8 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
 
   const [f, setF] = useState<FamFormState>(() => initState(props.family));
   const [error, setError] = useState('');
+  // UX סבב-ה׳: משפחה חדשה — הליבה בלבד; עריכה — הכול פתוח
+  const [moreOpen, setMoreOpen] = useState(!!props.family);
 
   const set = (patch: Partial<FamFormState>) => setF((p) => ({ ...p, ...patch }));
 
@@ -185,6 +187,38 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
         <Field label="שם האם">
           <TextInput value={f.mother} onChange={(v) => set({ mother: v })} />
         </Field>
+        <Field label="עיר">
+          <TextInput value={f.city} onChange={(v) => set({ city: v })} />
+        </Field>
+        <Field label="סטטוס">
+          <Select
+            value={f.status}
+            onChange={(v) => set({ status: v === 'pending' ? 'pending' : v === 'inactive' ? 'inactive' : 'active' })}
+            options={[
+              { value: 'active', label: 'פעילה' },
+              { value: 'pending', label: 'ממתינה' },
+              { value: 'inactive', label: 'לא פעילה' },
+            ]}
+          />
+        </Field>
+      </div>
+      {/* UX סבב-ה׳: 21 שדות ⇒ 6 ליבה + "פרטים נוספים ▾" — כל השדות נשמרים.
+          משפחה חדשה = מקופל (הוספה-מהירה); עריכה = פתוח (רואים הכול). */}
+      <button
+        type="button"
+        onClick={() => setMoreOpen((v) => !v)}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, color: 'var(--accent-deep, var(--accent))', padding: '2px 0 10px', textAlign: 'start' }}
+      >
+        {(moreOpen ? '▲ פחות פרטים' : '▼ פרטים נוספים') + ' — ת"ז, כתובת, קהילה, הנחה…'}
+      </button>
+      {moreOpen && (
+        <div className="form-grid">
+        <Field label={'ת"ז האב'}>
+          <TextInput value={f.fatherId} onChange={(v) => set({ fatherId: v })} placeholder="9 ספרות" dir="ltr" />
+        </Field>
+        <Field label="שם האם">
+          <TextInput value={f.mother} onChange={(v) => set({ mother: v })} />
+        </Field>
         <Field label={'ת"ז האם'}>
           <TextInput value={f.motherId} onChange={(v) => set({ motherId: v })} placeholder="9 ספרות" dir="ltr" />
         </Field>
@@ -196,9 +230,6 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
         </Field>
         <Field label="כתובת">
           <TextInput value={f.address} onChange={(v) => set({ address: v })} placeholder="רחוב ומספר" />
-        </Field>
-        <Field label="עיר">
-          <TextInput value={f.city} onChange={(v) => set({ city: v })} />
         </Field>
         <Field label="מצב משפחתי">
           <Select
@@ -264,18 +295,8 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
             ]}
           />
         </Field>
-        <Field label="סטטוס">
-          <Select
-            value={f.status}
-            onChange={(v) => set({ status: v === 'pending' ? 'pending' : v === 'inactive' ? 'inactive' : 'active' })}
-            options={[
-              { value: 'active', label: 'פעילה' },
-              { value: 'pending', label: 'ממתינה' },
-              { value: 'inactive', label: 'לא פעילה' },
-            ]}
-          />
-        </Field>
-      </div>
+        </div>
+      )}
       {communities.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12, alignItems: 'center' }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-faint)' }}>תת-קהילות קיימות:</span>
