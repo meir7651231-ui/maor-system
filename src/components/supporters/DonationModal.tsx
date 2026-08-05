@@ -6,8 +6,8 @@
 import { useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
-import { downloadReceipt } from '../../lib/receipt';
+import { featureOn, integrationOn, termOf } from '../../lib/config';
+import { downloadReceipt, receiptLines } from '../../lib/receipt';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { isoToday } from './lib';
@@ -52,7 +52,7 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
     if (receiptsOn) {
       const cfg = useApp.getState().config;
       const taxReceipt = featureOn(cfg, 'core.taxreceipt');
-      downloadReceipt({
+      const info = {
         rid,
         orgName: cfg.orgName || useApp.getState().db.orgName,
         payer: props.supporter.name,
@@ -66,7 +66,18 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         orgTaxId: cfg.orgTaxId,
         signatory: cfg.orgSignatory,
         payerId: props.supporter.idNum || undefined,
-      });
+      };
+      downloadReceipt(info);
+      // צרור-הלילה (ROADMAP-100 ‏#1): מייל-קבלות אוטומטי — ברגע הרישום הקבלה
+      // נכנסת לתור-המייל (mailOutbox); נשלחת ע"י ה-Function כשהשרת פרוס.
+      // כשל-רך: תקלה בתור לא נוגעת ברישום/בקבלה שכבר ירדה.
+      const st = useApp.getState();
+      if (integrationOn(cfg, 'mail') && st.cloud.enabled && !!st.cloud.user && props.supporter.email.trim()) {
+        void import('../../store/cloudSync')
+          .then((m) => m.writeMailOutbox(props.supporter.email.trim(), 'קבלה ' + rid + ' — ' + info.orgName, receiptLines(info).join('\n')))
+          .then(() => st.toast('📧 הקבלה נכנסה לתור-המייל של התורם/ת'))
+          .catch(() => st.toast('⚠ תור-המייל נכשל — הקבלה ירדה למחשב כרגיל'));
+      }
     }
     toast(
       'נרשם/ה ' +

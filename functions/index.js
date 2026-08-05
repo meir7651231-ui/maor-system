@@ -10,11 +10,14 @@
  *   SMS_API_KEY   — מפתח ספק-ה-SMS (019 / InforU)
  *   YEMOT_TOKEN   — טוקן ימות-המשיח
  *   PAY_SECRET    — הסוד המשותף לאימות webhook מחברת-הסליקה
+ *   SMTP_URL      — ‏smtps://user:pass@host — לשליחת-מיילים (צרור-הלילה)
+ *   MAIL_FROM     — כתובת-השולח המוצגת במיילים
  */
 const { onRequest } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
+const { getStorage } = require('firebase-admin/storage');
 
 initializeApp();
 
@@ -151,6 +154,125 @@ exports.sheetsNightly = onSchedule({ schedule: 'every day 03:00', secrets: ['GOO
       });
     } catch (e) {
       console.error('sheetsNightly ' + org.id + ': ' + String(e).slice(0, 300));
+    }
+  }
+});
+
+/* ═══════════ צרור-הלילה (ROADMAP-100 ‏#1/#3/#9, 5.8.2026) ═══════════ */
+
+/**
+ * 📧 mailOutbox — כל דקה: שולח מיילים שממתינים ב-mailOutbox (שורש +
+ * orgs/{slug}/mailOutbox — ‏collectionGroup). האפליקציה כותבת {to,subject,text}
+ * (קבלות-במייל, תקצירים); כאן נשלח ב-SMTP ומסומן sent/error. מוגבל 20/דקה.
+ * ‏secrets: ‏SMTP_URL (‏smtps://user:pass@host — כל ספק: Gmail-App-Password /
+ * SendGrid / ספק-הדומיין) + ‏MAIL_FROM (כתובת-השולח המוצגת).
+ */
+exports.mailOutbox = onSchedule({ schedule: 'every 1 minutes', secrets: ['SMTP_URL', 'MAIL_FROM'] }, async () => {
+  if (!process.env.SMTP_URL) return; // אין SMTP ⇒ דורמנטי
+  const nodemailer = require('nodemailer');
+  const transport = nodemailer.createTransport(process.env.SMTP_URL);
+  const db = getFirestore();
+  const pending = await db.collectionGroup('mailOutbox').where('status', '==', 'pending').limit(20).get();
+  for (const doc of pending.docs) {
+    const { to, subject, text } = doc.data();
+    try {
+      await transport.sendMail({ from: process.env.MAIL_FROM || undefined, to: String(to), subject: String(subject ?? ''), text: String(text ?? '') });
+      await doc.ref.update({ status: 'sent', sentAt: new Date().toISOString() });
+    } catch (e) {
+      await doc.ref.update({ status: 'error', error: String(e).slice(0, 500) });
+    }
+  }
+});
+
+/**
+ * ⏰ remindersNightly — תקציר-בוקר יומי (05:00) לכל ארגון-פלטפורמה שהדליק
+ * sms/mail: קשרי-תורם שהגיע יומם (supporters.nextDate ≤ היום) + מסירות-חלוקה
+ * שמתוכננות היום וטרם נמסרו. התקציר נכנס לתורים (smsOutbox/mailOutbox) —
+ * השליחה בפועל ע"י הפונקציות שלמעלה.
+ * גבולות במכוון: אין חישוב לוח-עברי בשרת (יארצייט נשאר בצד-הלקוח — מקור-אמת
+ * יחיד ב-hebdate.ts); ארגון מוצפן (מסמכי {enc,iv}) מדולג — השרת לא מפענח.
+ */
+exports.remindersNightly = onSchedule({ schedule: 'every day 05:00', timeZone: 'Asia/Jerusalem' }, async () => {
+  const db = getFirestore();
+  const today = new Date().toISOString().slice(0, 10);
+  const orgs = await db.collection('platformOrgs').get();
+  for (const org of orgs.docs) {
+    try {
+      const cfg = org.data().config ?? {};
+      const smsTo = cfg?.integrations?.sms?.enabled ? String(cfg?.integrations?.sms?.settings?.adminPhone ?? '').trim() : '';
+      const mailTo = cfg?.integrations?.mail?.enabled ? String(cfg?.integrations?.mail?.settings?.digestTo ?? '').trim() : '';
+      if (!smsTo && !mailTo) continue;
+      const base = db.collection('orgs').doc(org.id);
+      const [sups, days, dels] = await Promise.all([
+        base.collection('supporters').get(),
+        base.collection('distributionDays').get(),
+        base.collection('deliveries').get(),
+      ]);
+      // ארגון מוצפן — אין לשרת מה לקרוא (ולא צריך שיהיה)
+      if (sups.docs.some((d) => d.data().enc && d.data().iv)) continue;
+      const contacts = sups.docs
+        .map((d) => d.data())
+        .filter((s) => typeof s.nextDate === 'string' && s.nextDate && s.nextDate <= today)
+        .map((s) => String(s.name ?? ''));
+      const todayDayIds = new Set(days.docs.filter((d) => d.data().date === today).map((d) => d.id));
+      const dueDeliveries = dels.docs.filter((d) => todayDayIds.has(String(d.data().dayId ?? '')) && d.data().status !== 'delivered').length;
+      if (!contacts.length && !dueDeliveries) continue;
+      const lines = ['תקציר-בוקר ' + today];
+      if (contacts.length) lines.push('☎ קשרי-תורם שהגיע יומם (' + contacts.length + '): ' + contacts.slice(0, 10).join(', ') + (contacts.length > 10 ? '…' : ''));
+      if (dueDeliveries) lines.push('📦 מסירות מתוכננות היום שטרם נמסרו: ' + dueDeliveries);
+      const text = lines.join('\n');
+      const at = new Date().toISOString();
+      if (smsTo) await base.collection('smsOutbox').add({ to: smsTo, text, status: 'pending', at });
+      if (mailTo) await base.collection('mailOutbox').add({ to: mailTo, subject: 'תקציר-בוקר — ' + today, text, status: 'pending', at });
+    } catch (e) {
+      console.error('remindersNightly ' + org.id + ': ' + String(e).slice(0, 300));
+    }
+  }
+});
+
+/**
+ * 💾 backupNightly — צילום-לילי (02:30) של כל ארגון-פלטפורמה ל-Storage:
+ * ‏backups/{slug}/{date}.json — ‏meta + envelope + 21 אוספי-הישויות, ושומר 30
+ * צילומים אחרונים (טבעת כמו ה-IndexedDB המקומי). ארגון שהדליק הצפנת-ענן —
+ * המסמכים כבר {enc,iv} ⇒ הצילום מוצפן מלידה; ארגון לא-מוצפן — הצילום באותה
+ * רמת-הגנה כמו Firestore עצמו (אותו פרויקט, אותן הרשאות-Admin).
+ * ⚠️ הרשימה חייבת לשקף את ENTITY_COLLECTIONS (src/lib/cloud-diff.ts) —
+ * נאכף ב-ratchet ‏night-bundle.test.ts.
+ */
+const BACKUP_COLLECTIONS = [
+  'families', 'courses', 'enrollments', 'events', 'rooms', 'teachers', 'supporters',
+  'tzCoordinators', 'tzBoxes', 'tzCampaigns', 'tzEvents',
+  'shopItems', 'shopProducts', 'shopStores', 'shopCriteria', 'shopAssignments', 'shopEvents', 'shopIntakes',
+  'volunteers', 'distributionDays', 'deliveries',
+];
+const BACKUP_KEEP = 30;
+
+exports.backupNightly = onSchedule({ schedule: 'every day 02:30', timeZone: 'Asia/Jerusalem' }, async () => {
+  const db = getFirestore();
+  const bucket = getStorage().bucket();
+  const today = new Date().toISOString().slice(0, 10);
+  const orgs = await db.collection('platformOrgs').get();
+  for (const org of orgs.docs) {
+    try {
+      const base = db.collection('orgs').doc(org.id);
+      const snapshot = { slug: org.id, at: new Date().toISOString(), meta: null, envelope: null, collections: {} };
+      const metaDoc = await db.doc('orgs/' + org.id + '/meta/org').get();
+      if (metaDoc.exists) snapshot.meta = metaDoc.data();
+      const envDoc = await db.doc('orgs/' + org.id + '/_enc/envelope').get();
+      if (envDoc.exists) snapshot.envelope = envDoc.data();
+      for (const col of BACKUP_COLLECTIONS) {
+        const snap = await base.collection(col).get();
+        if (snap.size) snapshot.collections[col] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      }
+      await bucket.file('backups/' + org.id + '/' + today + '.json').save(JSON.stringify(snapshot), { contentType: 'application/json' });
+      // טבעת: מוחקים את העודף מעבר ל-30 הצילומים האחרונים (שמות = תאריכים ⇒ מיון לקסיקוגרפי)
+      const [files] = await bucket.getFiles({ prefix: 'backups/' + org.id + '/' });
+      const sorted = files.map((f) => f.name).sort();
+      for (const name of sorted.slice(0, Math.max(0, sorted.length - BACKUP_KEEP))) {
+        await bucket.file(name).delete().catch(() => {});
+      }
+    } catch (e) {
+      console.error('backupNightly ' + org.id + ': ' + String(e).slice(0, 300));
     }
   }
 });

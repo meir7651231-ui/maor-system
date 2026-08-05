@@ -22,15 +22,16 @@ import wizardSrc from '../builder/BuilderWizard.tsx?raw';
 import handoffSrc from '../builder/handoff.ts?raw';
 
 describe('🔌 ratchet — INTEGRATIONS גל א׳: גידור + כנות', () => {
-  it('לכל 12 ההרחבות יש סטטוס; live = 7 (גל א׳ 3 + גל ג׳ "עד-המפתח" 4)', () => {
+  it('לכל 13 ההרחבות יש סטטוס; live = 7 (גל א׳ 3 + גל ג׳ "עד-המפתח" 4)', () => {
     for (const k of Object.keys(INTEGRATION_LABELS)) {
       expect(INTEGRATION_STATUS[k], 'סטטוס חסר ל-' + k).toBeTruthy();
     }
     const live = Object.keys(INTEGRATION_STATUS).filter((k) => INTEGRATION_STATUS[k] === 'live').sort();
     expect(live).toEqual(['ai', 'campaign', 'esign', 'gcal', 'maps', 'payments', 'whatsapp']);
-    // roadmap = רק שלוש הדורשות-שרת (functions/ בריפו, ממתין ל-Blaze+deploy)
+    // roadmap = הדורשות-שרת (functions/ בריפו, ממתין ל-Blaze+deploy);
+    // ‏mail הצטרפה בצרור-הלילה 5.8.2026 (#1 מייל-קבלות + תקציר-בוקר)
     const roadmap = Object.keys(INTEGRATION_STATUS).filter((k) => INTEGRATION_STATUS[k] === 'roadmap').sort();
-    expect(roadmap).toEqual(['phone', 'sheets', 'sms']);
+    expect(roadmap).toEqual(['mail', 'phone', 'sheets', 'sms']);
   });
 
   it('INTEGRATION_KEYS (ה-allowlist) ≡ מפתחות התוויות והסטטוסים — מקור-אמת אחד', () => {
