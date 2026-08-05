@@ -155,6 +155,15 @@ export function SupportersView() {
       ackSupporterForm();
     }
   }, [supFormReq, ackSupporterForm]);
+  // UX סבב-ז׳: חיפוש-גלובלי נוחת על הכרטיס — בקשת-פתיחה מהפלטה (דפוס supFormReq)
+  const supOpenReq = useApp((s) => s.supOpenReq);
+  const ackSupporterOpen = useApp((s) => s.ackSupporterOpen);
+  useEffect(() => {
+    if (supOpenReq) {
+      setSelId(supOpenReq);
+      ackSupporterOpen();
+    }
+  }, [supOpenReq, ackSupporterOpen]);
 
   /** דוח יומי של מעקב הטיפול — כל מי שטופל היום. */
   function dailyReport() {

@@ -584,7 +584,8 @@ export function CommandPalette() {
         sub: [sp.cat, sp.phone].filter(Boolean).join(' · '),
         terms: toTerms([sp.name, sp.cat, sp.forWho, sp.email, digits(sp.phone), sp.idNum, 'תורם', 'תרומה', 'תומכת']),
         run: () => {
-          go('supporters');
+          // UX סבב-ז׳: נוחתים על כרטיס-התומך עצמו (כמו משפחות) — לא רק על המסך
+          useApp.getState().openSupporterCard(sp.id);
           setPalette(false);
         },
       });
