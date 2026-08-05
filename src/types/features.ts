@@ -115,6 +115,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.multicur', label: 'מטבע כפול (₪/$)', desc: 'אפשרות לבחור מטבע דולר ברישום תרומה — כבוי: הכול בשקלים', module: 'supporters' },
   { key: 'supporters.doncal', label: 'לוח תרומות בכרטיס', desc: 'לוח-חודש חזותי של תרומות התורם/ת + יעד הקשר הבא, בכרטיס התורם', module: 'supporters' },
   { key: 'supporters.customreport', label: 'דו"ח מותאם (תומכים)', desc: 'כפתור ייצוא דו"ח מותאם במסך התומכים', module: 'supporters' },
+  { key: 'supporters.annualreport', label: 'דוח שנתי לתורם 📄', desc: 'ריכוז תרומות שנת-המס לתורם/ת (ולכולם בקובץ אחד) — לרו"ח ולמס; אינו קבלה', module: 'supporters' },
   { key: 'supporters.ayin.dailyreport', label: 'דוח יומי — מעקב טיפול', desc: 'כפתור ייצוא הדוח היומי של מעקב הטיפול (תת-דגל של מעקב טיפול)', module: 'supporters' },
   { key: 'supporters.hist', label: 'תרומות מהקובץ ההיסטורי', desc: 'מיזוג התרומות שהגיעו מהקובץ ההיסטורי (גיבוי לגאסי) לרשימת "כל התרומות" בכרטיס', module: 'supporters' },
   { key: 'supporters.ayin.sheet', label: 'גיליון מעקב להורדה/ייבוא', desc: 'ייצוא גיליון מעקב הטיפול ל-CSV, מילוי מחוץ למערכת וייבוא חזרה (תת-דגל של מעקב טיפול)', module: 'supporters' },

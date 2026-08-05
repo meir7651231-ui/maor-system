@@ -8,6 +8,7 @@ import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting, termOf } from '../../lib/config';
 import { payLink } from '../../lib/payLink';
 import { askClaude, readAiKey, thanksPrompt } from '../../lib/ai';
+import { annualReportLines, donationYears, downloadAnnualReport } from '../../lib/annualReport';
 import { WaBtn } from '../WaBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field, Modal } from '../ui';
@@ -265,6 +266,29 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <Btn kind="primary" onClick={() => setDonOpen(true)}>
             ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
           </Btn>
+          {/* ROADMAP-100 ‏#4: דוח-שנתי-לתורם — ריכוז תרומות שנת-המס (לא קבלה!) */}
+          {featureOn(config, 'supporters.annualreport') && donationYears(sp.donations).length > 0 && (
+            <Btn
+              onClick={() => {
+                const year = donationYears(sp.donations)[0];
+                downloadAnnualReport(
+                  'annual-' + year + '-' + sp.name.replace(/\s+/g, '_') + '.txt',
+                  annualReportLines({
+                    orgName: config.orgName || useApp.getState().db.orgName,
+                    orgTaxId: config.orgTaxId,
+                    supporterName: sp.name,
+                    payerId: sp.idNum,
+                    year,
+                    donations: sp.donations,
+                  }),
+                );
+                toast('📄 דוח שנת ' + year + ' ירד');
+              }}
+              title="ריכוז כל תרומות השנה האחרונה — לתורם/רו״ח (הקבלות המקוריות מצוינות בכל שורה)"
+            >
+              📄 דוח שנתי
+            </Btn>
+          )}
           {featureOn(config, 'supporters.thankyou') && (
             <Btn onClick={thankYouCall} title="תזכורת טלפון לתודה — נכנסת ללוח השנה">
               📞 תודה
