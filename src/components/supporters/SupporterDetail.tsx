@@ -11,9 +11,9 @@ import { askClaude, readAiKey, thanksPrompt } from '../../lib/ai';
 import { annualReportLines, donationYears, downloadAnnualReport } from '../../lib/annualReport';
 import { WaBtn } from '../WaBtn';
 import { hebDateFull } from '../../lib/hebrew';
-import { Btn, Empty, Field, Modal } from '../ui';
+import { Btn, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { chipStyle, fmtDate, isoToday, supDonEvents, supScore, supTier, totalLabel } from './lib';
+import { chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, supDonEvents, supScore, supTier, totalLabel } from './lib';
 import { downloadReceipt, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
@@ -104,6 +104,38 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   }
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
+  // 🔁 הו"ק (ROADMAP-100 ‏#2): הגדרה+רישום — התרומה דרך addDonation (קבלה רציפה)
+  const hokOn = featureOn(config, 'supporters.hok');
+  const [hokOpen, setHokOpen] = useState(false);
+  const addDonation = useApp((s) => s.addDonation);
+  function recordHok() {
+    const hok = sp.hok;
+    if (!hok) return;
+    const res = addDonation(sp.id, { date: isoToday(), amount: hok.amount, cur: hok.cur, cat: HOK_CAT });
+    if (!res.ok || !res.rid) return; // ה-store כבר הציג טוסט-דחייה
+    if (featureOn(config, 'core.receipts')) {
+      // הקבלה טרייה — נבנית מהסטור המעודכן (sp שבידינו עלול להיות ישן לרנדר הזה)
+      const fresh = useApp.getState().db.supporters.find((x) => x.id === sp.id);
+      const d = fresh?.donations.find((x) => x.rid === res.rid);
+      if (d) {
+        downloadReceipt({
+          rid: res.rid,
+          orgName: config.orgName || useApp.getState().db.orgName,
+          payer: sp.name,
+          amount: d.amount,
+          currency: d.cur,
+          date: d.date,
+          forWhat: termOf(config, 'entity.donation', 'תרומה') + ' — ' + HOK_CAT,
+          taxReceipt: featureOn(config, 'core.taxreceipt'),
+          mark: featureOn(config, 'core.receipt.copymark'),
+          orgTaxId: config.orgTaxId,
+          signatory: config.orgSignatory,
+          payerId: sp.idNum || undefined,
+        });
+      }
+    }
+    toast('🔁 חיוב-החודש נרשם' + (featureOn(config, 'core.receipts') ? ' — קבלה ' + res.rid : ''));
+  }
   const ayinOn = featureOn(config, 'supporters.ayin');
   const histOn = featureOn(config, 'supporters.hist');
   const receiptsOn = featureOn(config, 'core.receipts');
@@ -366,6 +398,41 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           {sp.notes && <InfoRow k="הערות" v={sp.notes} />}
         </div>
 
+        {/* 🔁 הוראת קבע (ROADMAP-100 ‏#2 צד-מערכת) — הגדרה + רישום-החודש-בקליק */}
+        {hokOn && (
+          <div className="card">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <h3 style={{ fontSize: 15, flex: 1 }}>הוראת קבע 🔁</h3>
+              <Btn sm onClick={() => setHokOpen(true)}>{sp.hok ? '✏️ עריכה' : '➕ הגדרה'}</Btn>
+            </div>
+            {sp.hok ? (
+              <>
+                <div style={{ fontSize: 13.5 }}>
+                  {(sp.hok.cur === '$' ? '$' : '₪') + sp.hok.amount.toLocaleString('he-IL') +
+                    ' · יום ' + sp.hok.day + ' בחודש · ' + hokMethodLabel(sp.hok.method) +
+                    (sp.hok.active ? '' : ' · ⏸ מושהית')}
+                </div>
+                {sp.hok.note && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 2 }}>{sp.hok.note}</div>}
+                {sp.hok.active && (
+                  hokRecordedThisMonth(sp, isoToday()) ? (
+                    <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 6 }}>✓ חיוב-החודש נרשם</div>
+                  ) : (
+                    <div style={{ marginTop: 8 }}>
+                      <Btn sm kind="primary" onClick={recordHok} title="רישום תרומת-ההו״ק של החודש — קבלה בסדרה הרציפה">
+                        🔁 רישום חיוב-החודש
+                      </Btn>
+                    </div>
+                  )
+                )}
+              </>
+            ) : (
+              <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
+                אין הוראת-קבע. ההגדרה כאן = מעקב ותזכורת-חודשית; החיוב עצמו מוגדר אצל הסליקה/הבנק.
+              </div>
+            )}
+          </div>
+        )}
+
         {/* קשר הבא */}
         {nextOn && (
           <div className="card">
@@ -476,6 +543,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
 
       {editOpen && <SupporterForm supporter={sp} onClose={() => setEditOpen(false)} />}
       {donOpen && <DonationModal supporter={sp} onClose={() => setDonOpen(false)} />}
+      {hokOpen && <HokModal supporter={sp} onClose={() => setHokOpen(false)} />}
       {smsOpen && (
         <Modal title={'📱 SMS אל ' + sp.name} onClose={() => setSmsOpen(false)}>
           <textarea
@@ -530,5 +598,102 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         </Modal>
       )}
     </div>
+  );
+}
+
+/** 🔁 מודאל הגדרת/עריכת הוראת-קבע — ההגדרה בלבד; הרישום דרך recordHok (קבלה רציפה). */
+function HokModal(props: { supporter: Supporter; onClose: () => void }) {
+  const sp = props.supporter;
+  const upsertSupporter = useApp((s) => s.upsertSupporter);
+  const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
+  const multiCurOn = featureOn(config, 'supporters.multicur');
+  const [amount, setAmount] = useState(sp.hok ? String(sp.hok.amount) : '');
+  const [cur, setCur] = useState<'₪' | '$'>(sp.hok?.cur ?? '₪');
+  const [day, setDay] = useState(String(sp.hok?.day ?? 1));
+  const [method, setMethod] = useState(sp.hok?.method ?? 'bank');
+  const [note, setNote] = useState(sp.hok?.note ?? '');
+  const [active, setActive] = useState(sp.hok?.active ?? true);
+  const [error, setError] = useState('');
+
+  function save() {
+    const amt = Math.round(Number(amount) * 100) / 100;
+    const d = Math.round(Number(day));
+    if (!amount.trim() || !isFinite(amt) || amt <= 0) return setError('הקלידו סכום חודשי תקין');
+    if (!isFinite(d) || d < 1 || d > 28) return setError('יום-החיוב: 1 עד 28 (קיים בכל חודש)');
+    upsertSupporter({
+      ...sp,
+      hok: {
+        amount: amt,
+        cur,
+        day: d,
+        method,
+        note: note.trim(),
+        active,
+        startedAt: sp.hok?.startedAt || isoToday(),
+      },
+    });
+    toast(active ? '🔁 הוראת-הקבע נשמרה' : '⏸ הוראת-הקבע הושהתה');
+    props.onClose();
+  }
+
+  function remove() {
+    const { hok: _drop, ...rest } = sp;
+    upsertSupporter(rest as Supporter);
+    toast('הוראת-הקבע הוסרה');
+    props.onClose();
+  }
+
+  return (
+    <Modal title={'הוראת קבע 🔁 — ' + sp.name} onClose={props.onClose}>
+      <FormError error={error} />
+      <div className="form-grid">
+        <Field label="סכום חודשי">
+          <TextInput value={amount} onChange={setAmount} type="number" dir="ltr" placeholder="180" />
+        </Field>
+        {multiCurOn && (
+          <Field label="מטבע">
+            <Select
+              value={cur}
+              onChange={(v) => setCur(v === '$' ? '$' : '₪')}
+              options={[
+                { value: '₪', label: '₪ שקל' },
+                { value: '$', label: '$ דולר' },
+              ]}
+            />
+          </Field>
+        )}
+        <Field label="יום בחודש (1–28)">
+          <TextInput value={day} onChange={setDay} type="number" dir="ltr" placeholder="10" />
+        </Field>
+        <Field label="אמצעי">
+          <Select
+            value={method}
+            onChange={setMethod}
+            options={[
+              { value: 'bank', label: 'הו"ק בנקאית' },
+              { value: 'card', label: 'אשראי בסליקה' },
+              { value: 'cash', label: 'מזומן חודשי' },
+              { value: 'other', label: 'אחר' },
+            ]}
+          />
+        </Field>
+        <Field label="הערה (אופציונלי)">
+          <TextInput value={note} onChange={setNote} placeholder="למשל: לזכות פלוני" />
+        </Field>
+      </div>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, margin: '8px 0' }}>
+        <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
+        פעילה (תופיע בתזכורת-החודשית)
+      </label>
+      <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 8 }}>
+        ההגדרה כאן = מעקב ותזכורות; החיוב-בפועל מוגדר אצל חברת-הסליקה או בבנק.
+      </div>
+      <div className="modal-actions">
+        <Btn kind="primary" onClick={save}>שמירה</Btn>
+        {sp.hok && <Btn kind="danger" onClick={remove}>🗑 הסרה</Btn>}
+        <Btn onClick={props.onClose}>ביטול</Btn>
+      </div>
+    </Modal>
   );
 }

@@ -14,7 +14,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, fmtDate, isoToday, sup12m, supAvgDon, supScore, supScoreBins, supTier, supTotalIls, TIER_ORDER, totalLabel } from './lib';
+import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supScore, supScoreBins, supTier, supTotalIls, TIER_ORDER, totalLabel } from './lib';
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
@@ -128,6 +128,9 @@ export function SupportersView() {
   const [colF, setColF] = useState({ count: '', total: '', score: '' });
   // סינון מעקב הטיפול (P3 פריט 14, לגאסי): עם מונה / בלי מונה / עודכן היום
   const [ayinF, setAyinF] = useState<null | 'eyes' | 'noeyes' | 'today'>(null);
+  // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש
+  const hokOn = featureOn(config, 'supporters.hok');
+  const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -166,6 +169,9 @@ export function SupportersView() {
 
   let list = db.supporters.filter((sp) => {
     if (cat !== 'all' && (sp.cat || '') !== cat) return false;
+    // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): הוראות פעילות / רק שטרם-נרשמו-החודש
+    if (hokF === 'active' && !sp.hok?.active) return false;
+    if (hokF === 'due' && !(sp.hok?.active && !hokRecordedThisMonth(sp, today))) return false;
     if (tierF && supTier(supScore(sp, rate)).label !== tierF) return false;
     // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (לפי השער העריך) / ציון
     if (!numMatch(colF.count, sp.count || 0)) return false;
@@ -354,6 +360,19 @@ export function SupportersView() {
         </div>
       )}
 
+      {/* 🔁 הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש (לחיצה מסננת) */}
+      {hokOn && db.supporters.some((sp) => sp.hok) && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>הוראות קבע:</span>
+          <Chip on={hokF === 'active'} onClick={() => setHokF(hokF === 'active' ? null : 'active')}>
+            {'🔁 פעילות · ' + db.supporters.filter((sp) => sp.hok?.active).length}
+          </Chip>
+          <Chip on={hokF === 'due'} onClick={() => setHokF(hokF === 'due' ? null : 'due')}>
+            {'⏳ טרם נרשמו החודש · ' + hokDue(db.supporters, today).length}
+          </Chip>
+        </div>
+      )}
+
       {/* P3 פריט 14 — סינון מעקב הטיפול: עם מונה / בלי מונה / עודכן היום */}
       {ayinOn && db.supporters.length > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
@@ -404,6 +423,11 @@ export function SupportersView() {
                     />
                   )}
                   <span style={{ fontWeight: 700, fontSize: 15, flex: 1 }}>{sp.name}</span>
+                  {sp.hok?.active && (
+                    <span title={'הו"ק ' + (sp.hok.cur === '$' ? '$' : '₪') + sp.hok.amount + (hokRecordedThisMonth(sp, today) ? ' · נרשמה החודש ✓' : ' · טרם נרשמה החודש')} style={{ fontSize: 13 }}>
+                      🔁
+                    </span>
+                  )}
                   {sp.cat && <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{sp.cat}</span>}
                 </div>
                 {sp.phone && (

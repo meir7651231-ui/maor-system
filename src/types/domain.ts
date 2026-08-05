@@ -340,6 +340,19 @@ export interface AyinCase {
   boardEventIds?: Partial<Record<string, Id>>;
 }
 
+/** הוראת-קבע של תומך/ת — הגדרה בלבד; אין חיוב-כרטיסים במערכת (רגולציה). */
+export interface Hok {
+  amount: number;
+  cur: '₪' | '$';
+  /** יום-החיוב בחודש (1–28 — כך קיים בכל חודש). */
+  day: number;
+  /** אמצעי: bank / card / cash / other — טקסט חופשי-מוגבל לתצוגה. */
+  method: string;
+  note: string;
+  active: boolean;
+  startedAt: IsoDate;
+}
+
 export interface Supporter {
   id: Id;
   name: string;
@@ -367,6 +380,12 @@ export interface Supporter {
   donations: Donation[];
   /** תרומות מהקובץ ההיסטורי (לגאסי hist) — לא קבלות; מוצג בכרטיס התומכת. */
   hist?: { d: IsoDate; a: number; c?: '₪' | '$' }[];
+  /**
+   * הוראת-קבע (ROADMAP-100 ‏#2 צד-מערכת, 5.8.2026) — additive: המעקב והרישום
+   * במערכת; החיוב עצמו אצל חברת-הסליקה/הבנק. הרישום-בפועל = תרומה רגילה
+   * (addDonation, קבלה בסדרה הרציפה) עם קטגוריית HOK_CAT.
+   */
+  hok?: Hok;
   /** תיק מעקב טיפול רב-שלבי (feature supporters.ayin) — אופציונלי. */
   ayin?: AyinCase;
 }

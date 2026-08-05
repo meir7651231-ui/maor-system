@@ -314,3 +314,45 @@ export function newSupporterFromRow(id: string, row: SupporterImportRow): Suppor
     donations: [],
   };
 }
+
+/* ─────────── 🔁 הוראות-קבע (ROADMAP-100 ‏#2 צד-מערכת, 5.8.2026) ───────────
+ * ההגדרה על התומך (Supporter.hok); הרישום-בפועל = תרומה רגילה עם HOK_CAT
+ * (קבלה בסדרה הרציפה). "נרשמה החודש" = תרומה בחודש-האזרחי הנוכחי בקטגוריית
+ * הו"ק **או** בסכום-ומטבע של ההוראה (תרומה חד-פעמית נוספת לא מכסה). */
+
+export const HOK_CAT = 'הו"ק';
+
+/** האם חיוב-החודש של ההוראה כבר נרשם (חודש אזרחי נוכחי). */
+export function hokRecordedThisMonth(sp: Supporter, todayIso: string): boolean {
+  if (!sp.hok) return false;
+  const month = todayIso.slice(0, 7);
+  const hok = sp.hok;
+  return sp.donations.some(
+    (d) => d.date.startsWith(month) && (d.cat === HOK_CAT || (d.amount === hok.amount && (d.cur || '₪') === hok.cur)),
+  );
+}
+
+/** התומכים שהו"ק-החודש שלהם טרם נרשמה — ממוינים לפי יום-החיוב. */
+export function hokDue(supporters: Supporter[], todayIso: string): Supporter[] {
+  return supporters
+    .filter((sp) => sp.hok?.active && !hokRecordedThisMonth(sp, todayIso))
+    .sort((a, b) => (a.hok?.day ?? 0) - (b.hok?.day ?? 0));
+}
+
+/** סה"כ הו"ק חודשי פעיל בש"ח-שקול (ההכנסה-הקבועה) — לפי שער-הדולר העריך. */
+export function hokMonthlyTotal(supporters: Supporter[], usdRate: number): number {
+  return Math.round(
+    supporters.reduce((a, sp) => {
+      if (!sp.hok?.active) return a;
+      return a + (sp.hok.cur === '$' ? sp.hok.amount * usdRate : sp.hok.amount);
+    }, 0),
+  );
+}
+
+/** תווית אמצעי-ההו"ק לתצוגה. */
+export function hokMethodLabel(m: string): string {
+  if (m === 'bank') return 'הו"ק בנקאית';
+  if (m === 'card') return 'אשראי בסליקה';
+  if (m === 'cash') return 'מזומן חודשי';
+  return m || 'אחר';
+}

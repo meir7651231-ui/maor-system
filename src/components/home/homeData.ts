@@ -22,7 +22,8 @@ import { EV_META, evLabel } from '../../lib/eventMeta';
 export { EV_META, evLabel };
 import { DEFAULT_CONFIG } from '../../types/config';
 import type { ModuleKey, OrgConfig } from '../../types/config';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
+import { hokDue } from '../supporters/lib';
 
 /** מפת המודולים הפעילים (config.modules) — חסר = פעיל; false = כבוי. */
 export type ModulesMap = OrgConfig['modules'];
@@ -365,6 +366,23 @@ export function attentionItems(
       sev: 'warn',
       nav: { kind: 'supporters' },
     });
+  }
+
+  // 🔁 הו"ק שטרם נרשמו החודש (ROADMAP-100 ‏#2) — פריט מצטבר אחד, מודול תורמים +
+  // דגל supporters.hok; "נרשמה" = תרומת-החודש בקטגוריית הו"ק / בסכום-ההוראה.
+  if (on('supporters') && featureOn(config, 'supporters.hok')) {
+    const due = hokDue(db.supporters, todayIso);
+    if (due.length) {
+      out.push({
+        key: 'hokdue:' + todayIso.slice(0, 7),
+        tag: 'הו"ק',
+        tagBg: '#e8f0fb',
+        tagC: '#1d4ed8',
+        title: `הוראות-קבע של החודש שטרם נרשמו: ${due.length} (${due.slice(0, 3).map((s) => s.name).join(', ')}${due.length > 3 ? '…' : ''})`,
+        sev: 'warn',
+        nav: { kind: 'supporters' },
+      });
+    }
   }
 
   // ספח ת"ז חסר — משפחות פעילות ללא ספח מלא, פריט מצטבר
