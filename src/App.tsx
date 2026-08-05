@@ -345,6 +345,14 @@ export default function App() {
   // isAdminUser, שמחזיר true לכולם כשאין adminEmails). אצל לקוח/משתמש רגיל
   // הכפתור פשוט לא קיים ב-DOM.
   const canAdminHub = isSuperAdmin(cloud.user?.email);
+  // אשף-ההקמה (תיקון 5.8 — "למה כל לקוח יכול לראות אשף הקמה"): בארגון-ענן
+  // isAdminUser מחזיר true-לכולם (ארגון-פלטפורמה נולד בלי adminEmails) ⇒ כל
+  // לקוח שהקליד #builder קיבל את האשף המלא כולל המחירון. בארגון-ענן האשף =
+  // מייל-על בלבד; שורש/דמו/אופליין — התנהגות קיימת (adminEmails).
+  const canBuilder =
+    cloud.enabled && config.cloudRoot !== true && config.slug !== 'default'
+      ? isSuperAdmin(cloud.user?.email)
+      : isAdmin;
 
   const Current = VIEWS[view];
   const syncDot = SYNC_DOT[cloud.status] ?? SYNC_DOT.idle;
@@ -766,7 +774,7 @@ export default function App() {
       )}
 
       {builderOpen &&
-        (!isAdmin ? (
+        (!canBuilder ? (
           // אשף ההקמה — למנהל-על בלבד (לפי המייל). משתמש-לקוח שמנסה #builder
           // מקבל הודעת אין-הרשאה, לא את האשף.
           <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
