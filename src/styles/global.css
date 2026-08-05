@@ -2536,3 +2536,11 @@ h1,
 .side-wide .nav-user > button {
   border-color: var(--side-line);
 }
+
+/* UX סבב-א׳ (5.8.2026): יעדי-מגע — כפתורי-הכרום העגולים גדלים ל-44px במגע */
+@media (pointer: coarse) {
+  .nav-gear {
+    width: 44px;
+    height: 44px;
+  }
+}

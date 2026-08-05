@@ -57,3 +57,23 @@ describe('🛠 ratchet — ADMINHUB: כניסת-ניהול גלויה למנהל
     expect(appSrc).toContain("setPlatformOpen(window.location.hash === '#platform')");
   });
 });
+
+describe('🎛 ratchet — UX סבב-א׳: הכרום מ-9 עיגולים ל-4 (5.8.2026)', () => {
+  it('עזרה מאוחדת ❓ — כפתור אחד במקום 📖+▶, נוכח גם בשלדי-הצד', () => {
+    expect(appSrc).toContain('helpGearBtn');
+    expect(appSrc).toContain('helpSideBtn');
+    // ה-hash-ים ממשיכים לעבוד (guideOpen/tourOpen נשארים)
+    expect(appSrc).toContain("setGuideOpen(window.location.hash === '#guide')");
+  });
+
+  it('ניהול מאוחד — מנהל-על לא רואה 👥 נפרד (נכנס דרך AdminHub); מנהל-בלבד כן', () => {
+    expect(appSrc).toContain('cloud.isManager && !canAdminHub && (');
+    expect(appSrc).toMatch(/onOpenManage=\{cloud\.isManager \? /);
+  });
+
+  it('אווטאר-חשבון — יציאה בשני צעדים, סטטוס-סנכרון כטקסט במודאל', () => {
+    expect(appSrc).toContain('logoutArmed');
+    expect(appSrc).toContain('לחצו שוב ליציאה');
+    expect(appSrc).toContain('syncDot.title}');
+  });
+});
