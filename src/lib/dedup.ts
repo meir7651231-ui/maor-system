@@ -5,7 +5,7 @@
  * שהשיבוצים/התשלומים שלהם נשארים תקינים (ה-store רק ממזג ומפנה אירועים, בלי
  * מפל-המחיקה של deleteFamily).
  */
-import type { Family, Member, FamilyDoc } from '../types/domain';
+import type { Family, Member, FamilyDoc, Supporter } from '../types/domain';
 
 /** ספרות בלבד, נרמול קידומת ישראלית (972→0) — להשוואת טלפונים. */
 export function normPhone(s: string): string {
@@ -245,4 +245,101 @@ export function mergeFamiliesByFields(
     }
   }
   return out;
+}
+
+/* ─────────── 🔗 כפולי-תורמים (ROADMAP-100 ‏#13, 5.8.2026) ───────────
+ * אותם עקרונות-בטיחות כמו המשפחות: המיזוג משמר הכול, ולעולם לא מוחק רשומה
+ * כספית — התרומות (עם ה-rid!) וה-hist עוברים ל"שומר", והצבירה מחושבת מחדש. */
+
+/** מפתח שם+עיר לתומך — שניהם חובה (שם-אדם נפוץ לבדו = סיכון מיזוג-שווא). */
+function supNameCityKey(sp: Supporter): string {
+  const n = (sp.name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  const c = (sp.city || '').trim().toLowerCase();
+  return n && c ? n + '|' + c : '';
+}
+
+/** קבוצות כפולי-תורמים — טלפון מנורמל / אימייל / שם+עיר זהים (Union-Find). */
+export function findSupporterDupGroups(supporters: Supporter[]): string[][] {
+  const parent = new Map<string, string>();
+  const find = (x: string): string => {
+    let r = x;
+    while (parent.get(r) !== r) r = parent.get(r) as string;
+    let c = x;
+    while (parent.get(c) !== r) {
+      const nx = parent.get(c) as string;
+      parent.set(c, r);
+      c = nx;
+    }
+    return r;
+  };
+  const union = (a: string, b: string) => {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent.set(ra, rb);
+  };
+  for (const sp of supporters) parent.set(sp.id, sp.id);
+  const byPhone = new Map<string, string>();
+  const byEmail = new Map<string, string>();
+  const byNameCity = new Map<string, string>();
+  for (const sp of supporters) {
+    const p = normPhone(sp.phone);
+    if (p.length >= 7) {
+      const prev = byPhone.get(p);
+      if (prev) union(prev, sp.id);
+      else byPhone.set(p, sp.id);
+    }
+    const e = (sp.email || '').trim().toLowerCase();
+    if (e) {
+      const prev = byEmail.get(e);
+      if (prev) union(prev, sp.id);
+      else byEmail.set(e, sp.id);
+    }
+    const nk = supNameCityKey(sp);
+    if (nk) {
+      const prev = byNameCity.get(nk);
+      if (prev) union(prev, sp.id);
+      else byNameCity.set(nk, sp.id);
+    }
+  }
+  const groups = new Map<string, string[]>();
+  for (const sp of supporters) {
+    const r = find(sp.id);
+    (groups.get(r) ?? groups.set(r, []).get(r)!).push(sp.id);
+  }
+  return [...groups.values()].filter((g) => g.length >= 2);
+}
+
+/**
+ * מיזוג טהור: כל הכסף (donations+hist, ה-rid נשמר) עובר ל"שומר", הצבירה
+ * מחושבת מחדש מהתרומות הממוזגות; שדות-קשר — של השומר, ריק ⇒ של הנמחק;
+ * הערות מובחנות מאוחדות; hok/ayin — של השומר אם יש, אחרת של הנמחק.
+ */
+export function mergeSupporterInto(keep: Supporter, drop: Supporter): Supporter {
+  const donations = [...keep.donations, ...drop.donations].sort((a, b) => a.date.localeCompare(b.date));
+  const hist = [...(keep.hist ?? []), ...(drop.hist ?? [])];
+  const ils = donations.filter((d) => d.cur !== '$').reduce((a, d) => a + d.amount, 0);
+  const usd = donations.filter((d) => d.cur === '$').reduce((a, d) => a + d.amount, 0);
+  const notes = [keep.notes, drop.notes].map((n) => (n || '').trim()).filter(Boolean);
+  return {
+    ...keep,
+    phone: keep.phone || drop.phone,
+    email: keep.email || drop.email,
+    address: keep.address || drop.address,
+    city: keep.city || drop.city,
+    idNum: keep.idNum || drop.idNum,
+    cat: keep.cat || drop.cat,
+    forWho: keep.forWho || drop.forWho,
+    notes: [...new Set(notes)].join(' · '),
+    nextDate: keep.nextDate || drop.nextDate,
+    nextEventId: keep.nextEventId || undefined,
+    donations,
+    ...(hist.length ? { hist } : {}),
+    count: donations.length,
+    ils,
+    usd,
+    first: donations[0]?.date ?? keep.first ?? '',
+    last: donations[donations.length - 1]?.date ?? keep.last ?? '',
+    ...(keep.hok || drop.hok ? { hok: keep.hok ?? drop.hok } : {}),
+    ...(keep.ayin || drop.ayin ? { ayin: keep.ayin ?? drop.ayin } : {}),
+  };
 }

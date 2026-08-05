@@ -68,3 +68,36 @@ describe('🔍 ratchet — קוד-אימות על קבלה (#11)', () => {
     expect(settingsSrc).toMatch(/sp\.donations\.find[\s\S]{0,300}en\.payments\.find/);
   });
 });
+
+describe('🔗 ratchet — מיזוג כפולי-תורמים (#13)', () => {
+  const mk = (over: Partial<import('../../types/domain').Supporter>): import('../../types/domain').Supporter => ({
+    id: 'x', name: 'פלוני', phone: '', email: '', idNum: '', address: '', cat: '', forWho: '',
+    notes: '', count: 0, ils: 0, usd: 0, first: '', last: '', nextDate: '', donations: [], ...over,
+  });
+
+  it('קיבוץ: טלפון מנורמל / אימייל / שם+עיר; שם-בלי-עיר לא מקבץ (מיזוג-שווא)', async () => {
+    const { findSupporterDupGroups } = await import('../dedup');
+    const a = mk({ id: 'a', name: 'משה כהן', phone: '050-1234567' });
+    const b = mk({ id: 'b', name: 'מ. כהן', phone: '+972501234567' }); // אותו טלפון מנורמל
+    const c = mk({ id: 'c', name: 'משה כהן' }); // שם בלי עיר — לא מצטרף
+    const d = mk({ id: 'd', name: 'רות לוי', email: 'R@x.co' });
+    const e = mk({ id: 'e', name: 'רותי', email: 'r@x.co' }); // אותו אימייל lower
+    const groups = findSupporterDupGroups([a, b, c, d, e]);
+    expect(groups.map((g) => [...g].sort())).toEqual(expect.arrayContaining([['a', 'b'], ['d', 'e']]));
+    expect(groups.some((g) => g.includes('c'))).toBe(false);
+  });
+
+  it('מיזוג: כל התרומות (rid!) וה-hist עוברים, הצבירה מחושבת מחדש, ריק ⇒ מהנמחק', async () => {
+    const { mergeSupporterInto } = await import('../dedup');
+    const keep = mk({ id: 'k', phone: '', ils: 100, count: 1, donations: [{ rid: 'D-1', date: '2026-01-05', amount: 100, cur: '₪', cat: '' }] });
+    const drop = mk({ id: 'd', phone: '050-1111111', notes: 'ותיק', hist: [{ d: '2020-01-01', a: 50 }], donations: [{ rid: 'D-2', date: '2026-03-01', amount: 200, cur: '₪', cat: '' }, { rid: 'D-3', date: '2026-04-01', amount: 30, cur: '$', cat: '' }] });
+    const m = mergeSupporterInto(keep, drop);
+    expect(m.id).toBe('k');
+    expect(m.donations.map((x) => x.rid)).toEqual(['D-1', 'D-2', 'D-3']); // ממוין-תאריך, אף rid לא אבד
+    expect([m.count, m.ils, m.usd]).toEqual([3, 300, 30]);
+    expect([m.first, m.last]).toEqual(['2026-01-05', '2026-04-01']);
+    expect(m.phone).toBe('050-1111111'); // ריק אצל השומר ⇒ מהנמחק
+    expect(m.hist).toEqual([{ d: '2020-01-01', a: 50 }]);
+    expect(m.notes).toBe('ותיק');
+  });
+});
