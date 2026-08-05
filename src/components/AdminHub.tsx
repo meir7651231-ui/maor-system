@@ -7,7 +7,7 @@
  */
 import { Modal } from './ui';
 
-function HubButton(props: { emoji: string; title: string; sub: string; onClick: () => void }) {
+export function HubButton(props: { emoji: string; title: string; sub: string; onClick: () => void }) {
   return (
     <button
       type="button"
@@ -32,7 +32,13 @@ function HubButton(props: { emoji: string; title: string; sub: string; onClick: 
   );
 }
 
-export function AdminHub(props: { onClose: () => void; onOpenPlatform: () => void; onOpenBuilder: () => void }) {
+export function AdminHub(props: {
+  onClose: () => void;
+  onOpenPlatform: () => void;
+  onOpenBuilder: () => void;
+  /** UX סבב-א׳ (5.8): מנהל-על שהוא גם מנהל-ארגון — דלת אחת לכל הניהול. */
+  onOpenManage?: () => void;
+}) {
   return (
     <Modal title="🛠 ניהול פלטפורמה" onClose={props.onClose}>
       <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 12 }}>
@@ -51,6 +57,14 @@ export function AdminHub(props: { onClose: () => void; onOpenPlatform: () => voi
           sub="קובץ קונפיג ידני / הדגמה — הרכבה והורדה"
           onClick={props.onOpenBuilder}
         />
+        {props.onOpenManage && (
+          <HubButton
+            emoji="👥"
+            title="ניהול העובדות"
+            sub="הרשמת עובדים, אישורים וכרטיסי-עובד לארגון שלך"
+            onClick={props.onOpenManage}
+          />
+        )}
       </div>
     </Modal>
   );

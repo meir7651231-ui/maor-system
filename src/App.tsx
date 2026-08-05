@@ -15,7 +15,7 @@ import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
 import { freshenDemoDb } from './lib/demoFresh';
 import { todaySessions } from './components/home/homeData';
-import { Btn } from './components/ui';
+import { Btn, Modal } from './components/ui';
 import { BuilderWizard } from './components/builder/BuilderWizard';
 import { RemoteWizard, restoreBuilderPrev } from './components/builder/RemoteWizard';
 import { ImpactWall } from './components/wall/ImpactWall';
@@ -44,7 +44,7 @@ import { DayGate } from './components/wheel/DayGate';
 import { LoginScreen, PendingApprovalScreen } from './components/cloud/LoginScreen';
 import { PlatformPanel } from './components/platform/PlatformPanel';
 import { ManagerPanel } from './components/platform/ManagerPanel';
-import { AdminHub } from './components/AdminHub';
+import { AdminHub, HubButton } from './components/AdminHub';
 import { LockScreen } from './components/lock/LockScreen';
 import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
 import { CloudUnlockScreen } from './components/lock/CloudUnlockScreen';
@@ -188,6 +188,10 @@ export default function App() {
   const [managerOpen, setManagerOpen] = useState(() => window.location.hash === '#manage');
   // כניסת-הניהול (ADMINHUB) — בורר קטן; נפתח מכפתור 🛠 (מנהל-על בלבד), לא מ-hash
   const [adminHubOpen, setAdminHubOpen] = useState(false);
+  // UX סבב-א׳ (5.8): כפתור-עזרה מאוחד (📖+▶ ⇒ ❓) + תפריט-חשבון (אווטאר)
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [logoutArmed, setLogoutArmed] = useState(false);
   // 🔄 ריפוי-לשונית-תקועה (5.8 — "זה הרגע ראיתי אצל לקוח"): לשונית שנשארה
   // פתוחה ימים לא נטענת מחדש לעולם ומציגה גרסה עתיקה (נצפה בשטח: מסך-Passkey
   // מאיטרציה שנמחקה). ברגע שחוזרים ללשונית (visibilitychange) — משווים מול
@@ -456,15 +460,30 @@ export default function App() {
     window.location.hash = '#manage';
     setManagerOpen(true);
   };
-  const managerGearBtn: ReactNode = cloud.isManager && (
+  const managerGearBtn: ReactNode = cloud.isManager && !canAdminHub && (
     <button type="button" className="nav-gear" onClick={openManager} title="ניהול העובדות" aria-label="ניהול העובדות">
       <span aria-hidden>👥</span>
     </button>
   );
-  const managerSideBtn: ReactNode = cloud.isManager && (
+  const managerSideBtn: ReactNode = cloud.isManager && !canAdminHub && (
     <button type="button" className="side-link" onClick={openManager} title="ניהול העובדות" aria-label="ניהול העובדות">
       <span className="side-ico" aria-hidden>👥</span>
       <span className="nav-label">עובדות</span>
+    </button>
+  );
+
+  // ❓ עזרה מאוחדת (UX סבב-א׳): כפתור אחד לשלושת השלדים — מדריך + סיור.
+  const guideOn = featureOn(config, 'shell.guide');
+  const demoOn = featureOn(config, 'shell.demo');
+  const helpGearBtn: ReactNode = (guideOn || demoOn) && (
+    <button type="button" className="nav-gear" onClick={() => setHelpOpen(true)} title="עזרה — מדריך וסיור" aria-label="עזרה">
+      <span aria-hidden>❓</span>
+    </button>
+  );
+  const helpSideBtn: ReactNode = (guideOn || demoOn) && (
+    <button type="button" className="side-link" onClick={() => setHelpOpen(true)} title="עזרה — מדריך וסיור" aria-label="עזרה">
+      <span className="side-ico" aria-hidden>❓</span>
+      <span className="nav-label">עזרה</span>
     </button>
   );
 
@@ -496,27 +515,19 @@ export default function App() {
     </button>
   );
 
-  // צ'יפ משתמש הענן — קיים בשני השלדים
+  // תפריט-חשבון (UX סבב-א׳): אווטאר יחיד עם טבעת-סנכרון — מייל/סטטוס/יציאה
+  // עברו למודאל; 'יציאה' דורשת לחיצה-שנייה (בלי יציאה-בטעות בטאבלט).
   const userChip: ReactNode = cloud.enabled && cloud.user && (
-    <div className="nav-user">
-      <span
-        aria-hidden
-        title={syncDot.title}
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: 99,
-          background: syncDot.color,
-          flex: '0 0 auto',
-        }}
-      />
-      <span className="nav-user-mail" title={cloud.user.email}>
-        {cloud.user.email}
-      </span>
-      <button onClick={() => void cloudSignOut()} title="יציאה מהחשבון — הנתונים נשארים במכשיר">
-        יציאה
-      </button>
-    </div>
+    <button
+      type="button"
+      className="nav-gear"
+      onClick={() => { setLogoutArmed(false); setUserMenuOpen(true); }}
+      title={cloud.user.email + ' · ' + syncDot.title}
+      aria-label="החשבון שלי"
+      style={{ border: '2px solid ' + syncDot.color, fontWeight: 800, fontSize: 14 }}
+    >
+      {(cloud.user.email[0] || '?').toUpperCase()}
+    </button>
   );
 
   const mainEl = (
@@ -568,33 +579,8 @@ export default function App() {
               <kbd aria-hidden>Ctrl K</kbd>
             </button>
           )}
-          {/* המדריך המהיר + מצב הדגמה — כפתורי כותרת כמו בקובץ החי (P2 פער 29-30) */}
-          {featureOn(config, 'shell.guide') && (
-            <button
-              type="button"
-              className="nav-gear"
-              onClick={() => {
-                window.location.hash = '#guide';
-              }}
-              title="המדריך המהיר"
-              aria-label="המדריך המהיר"
-            >
-              <span aria-hidden>📖</span>
-            </button>
-          )}
-          {featureOn(config, 'shell.demo') && (
-            <button
-              type="button"
-              className="nav-gear"
-              onClick={() => {
-                window.location.hash = '#tour';
-              }}
-              title="מצב הדגמה — סיור מודרך"
-              aria-label="מצב הדגמה"
-            >
-              <span aria-hidden>▶</span>
-            </button>
-          )}
+          {/* ❓ עזרה מאוחדת (UX סבב-א׳) — מדריך+סיור בכפתור אחד */}
+          {helpGearBtn}
           {privacyGearBtn}
           {adminGearBtn}
           {managerGearBtn}
@@ -654,6 +640,7 @@ export default function App() {
               <span className="nav-label">הגדרות</span>
             </button>
           )}
+          {helpSideBtn}
           {privacySideBtn}
           {adminSideBtn}
           {managerSideBtn}
@@ -780,6 +767,36 @@ export default function App() {
 
       {/* כניסת-הניהול (ADMINHUB) — נפתחת רק ממנהל-על (הכפתור מגודר canAdminHub);
           הבורר מנתב לכלים דרך ה-hash כך שהקישורים הישנים ממשיכים לעבוד */}
+      {/* ❓ בורר-עזרה (UX סבב-א׳) — ה-hash-ים #guide/#tour ממשיכים לעבוד כרגיל */}
+      {helpOpen && (
+        <Modal title="❓ עזרה" onClose={() => setHelpOpen(false)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {guideOn && (
+              <HubButton emoji="📖" title="המדריך המהיר" sub="הסבר קצר על כל מסך ומה עושים בו" onClick={() => { setHelpOpen(false); window.location.hash = '#guide'; }} />
+            )}
+            {demoOn && (
+              <HubButton emoji="▶" title="סיור מודרך" sub="מצב הדגמה — המערכת מדגימה את עצמה" onClick={() => { setHelpOpen(false); window.location.hash = '#tour'; }} />
+            )}
+          </div>
+        </Modal>
+      )}
+      {/* תפריט-החשבון (UX סבב-א׳) — מייל, סטטוס-סנכרון כטקסט, יציאה בשני צעדים */}
+      {userMenuOpen && cloud.user && (
+        <Modal title="החשבון שלי" onClose={() => setUserMenuOpen(false)}>
+          <div style={{ direction: 'ltr', textAlign: 'end', fontWeight: 700, fontSize: 14, marginBottom: 6 }}>{cloud.user.email}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginBottom: 12 }}>
+            <span aria-hidden style={{ width: 10, height: 10, borderRadius: 99, background: syncDot.color, display: 'inline-block' }} />
+            {syncDot.title}
+          </div>
+          <div className="modal-actions">
+            <Btn kind={logoutArmed ? 'danger' : 'plain'} onClick={() => { if (!logoutArmed) return setLogoutArmed(true); setUserMenuOpen(false); void cloudSignOut(); }}>
+              {logoutArmed ? 'לחצו שוב ליציאה' : 'יציאה מהחשבון'}
+            </Btn>
+            <Btn onClick={() => setUserMenuOpen(false)}>סגירה</Btn>
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 8 }}>היציאה לא מוחקת כלום — הנתונים נשארים במכשיר.</div>
+        </Modal>
+      )}
       {adminHubOpen && canAdminHub && (
         <AdminHub
           onClose={() => setAdminHubOpen(false)}
@@ -793,6 +810,7 @@ export default function App() {
             window.location.hash = '#builder';
             setBuilderOpen(true);
           }}
+          onOpenManage={cloud.isManager ? () => { setAdminHubOpen(false); openManager(); } : undefined}
         />
       )}
 
