@@ -66,8 +66,11 @@ service cloud.firestore {
     // עדכון חלקי — מנהל-הארגון, אך **רק** לשדות ניהול-העובדות שלו
     // (members/memberConfigs/joinOpen/joinCode); לא נוגע ב-config/manager/provisioned.
     match /platformOrgs/{slug} {
-      // קריאת-מסמך-יחיד (get) — חבר או מייל-על (כהיום).
-      allow get: if superAdmin() || orgMember(slug);
+      // קריאת-מסמך-יחיד (get) — חבר או מייל-על; וכן **מצבת-מחיקה** (deleted:true,
+      // 5.8) — כל מחובר רשאי לקרוא אותה (היא מכילה רק את עובדת-המחיקה), כדי
+      // שהלקוח ידע שהארגון הוסר וינקה את המגירה המקומית שלו.
+      allow get: if superAdmin() || orgMember(slug)
+        || (request.auth != null && resource.data.get('deleted', false) == true);
       // שאילתה (list) — מייל-על (לוח-הבקרה: כל הארגונים) או **ניתוב-עצמי**:
       // המשתמש רשאי לשאול רק מסמכים שבהם המייל שלו ב-members (array-contains).
       // כך "כפתור הכניסה" מוצא את הארגון של המנהל/העובד בלי לחשוף את שאר הרשימה

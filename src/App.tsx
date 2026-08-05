@@ -286,6 +286,21 @@ export default function App() {
   // שער החברות (CLOUD2 ענן 3) — ארגון-פלטפורמה: נרשם-שטרם-אושר לא מגיע
   // לאפליקציה; מסך המתנה עד אישור הבעלים ("תתחבר שוב")
   if (cloud.enabled && cloud.membership === 'checking') return <div className="empty">מתחבר…</div>;
+  // 🗑 מצבת-מחיקה (5.8): הארגון הוסר ע"י מנהל-הפלטפורמה — המגירה המקומית נוקתה
+  if (cloud.enabled && cloud.membership === 'removed') {
+    return (
+      <>
+        <div className="empty" style={{ marginTop: 120 }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>🗑</div>
+          <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 6 }}>הארגון הזה הוסר מהמערכת</div>
+          <div style={{ fontSize: 13.5, color: 'var(--ink-faint)' }}>
+            הנתונים המקומיים במכשיר זה נוקו. לשאלות — פנו למנהל הפלטפורמה.
+          </div>
+        </div>
+        {toastsEl}
+      </>
+    );
+  }
   if (cloud.enabled && cloud.membership === 'pending') {
     return (
       <>

@@ -110,7 +110,7 @@ export interface CloudState {
    * הקיים/מקומי) · checking=בודקים אחרי התחברות · member=חבר, האפליקציה
    * נפתחת · pending=נרשם וממתין לאישור הבעלים — מסך המתנה, לא האפליקציה.
    */
-  membership: 'na' | 'checking' | 'member' | 'pending';
+  membership: 'na' | 'checking' | 'member' | 'pending' | 'removed';
   /**
    * שער הצפנת-ענן (opt-in) — true כשלארגון יש envelope ואין DEK בזיכרון: מסך
    * CloudUnlock מוצג לפני הכניסה, הסנכרון מושהה עד הזנת סיסמת-ההצפנה. undefined/
@@ -726,6 +726,14 @@ export const useApp = create<AppState>()((set, get) => {
             // האפליקציה ולא סנכרון; מייל-על עוקף (לוח הבקרה)
             setCloud({ membership: 'checking' });
             void mod.fetchOrgCloudConfig(cfg.slug).then((orgDoc) => {
+              // 🗑 מצבת-מחיקה (5.8): הבעלים מחק את הארגון — מנקים את המגירה
+              // המקומית (רק של ה-slug הזה; persist מגן על השורש) ומציגים "הוסר".
+              // חשוב: הניקוי רק על דגל-מצבת מפורש — לעולם לא על כשל-קריאה (null).
+              if (orgDoc?.deleted) {
+                void import('./persist').then((p) => p.wipeLocalOrgData(cfg.slug));
+                setCloud({ membership: 'removed' });
+                return;
+              }
               const mail = user.email.trim().toLowerCase();
               const member =
                 isSuperAdmin(user.email) ||

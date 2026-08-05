@@ -80,6 +80,38 @@ export function setPersistNamespace(slug: string): void {
 let nsSlug = '';
 
 /**
+ * 🗑 ניקוי-מגירה מקומי לארגון שנמחק (5.8 — מצבת platformOrgs.deleted): מוחק
+ * **רק** את מפתחות-ה-namespace של ה-slug (localStorage/sessionStorage המסתיימים
+ * ב-`:slug` + מסד-ה-IndexedDB `maor:slug`). לעולם לא רץ על 'default' (השורש —
+ * הלקוח הקיים) — הגנה קשיחה, גם אם ייקרא בטעות. סוגר חיבור-IDB פתוח קודם
+ * (deleteDatabase נחסם על חיבור חי).
+ */
+export async function wipeLocalOrgData(slug: string): Promise<void> {
+  if (!slug || slug === 'default') return;
+  const suffix = ':' + slug;
+  try {
+    for (const k of Object.keys(localStorage)) {
+      if (k.endsWith(suffix)) localStorage.removeItem(k);
+    }
+    for (const k of Object.keys(sessionStorage)) {
+      if (k.endsWith(suffix)) sessionStorage.removeItem(k);
+    }
+  } catch { /* אחסון חסום — ממשיכים ל-IDB */ }
+  try {
+    if (nsSlug === slug && idb) {
+      (await idb).close();
+      idb = null;
+    }
+    await new Promise<void>((resolve) => {
+      const req = indexedDB.deleteDatabase('maor:' + slug);
+      req.onsuccess = () => resolve();
+      req.onerror = () => resolve();
+      req.onblocked = () => resolve(); // טאב אחר מחזיק — יימחק כשישוחרר
+    });
+  } catch { /* אין IndexedDB */ }
+}
+
+/**
  * מפתח localStorage/sessionStorage ממורחב-שמות — אותו כלל בדיוק כמו LS_KEY:
  * default = המפתח הישן; אחרת `${base}:${slug}`. (CONNECT חיבור 7 — הקופה
  * הרושמת; שאר מפתחות באג-3 נשארים שם, חלקם מקומיים-במכוון.)

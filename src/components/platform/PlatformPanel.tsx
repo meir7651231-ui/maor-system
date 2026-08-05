@@ -83,11 +83,13 @@ export function PlatformPanel(props: { onClose: () => void }) {
 
   async function refresh(m: CloudMod) {
     setLoading(true);
-    const [reqs, all, lds] = await Promise.all([
+    const [reqs, allRaw, lds] = await Promise.all([
       m.fetchOrgRequests().catch(() => []),
       m.fetchAllOrgs().catch(() => []),
       m.fetchOrgLeads().catch(() => []),
     ]);
+    // מצבות-מחיקה (deleted:true) אינן לקוחות — מסוננות מהרשימה
+    const all = allRaw.filter((o) => !o.deleted);
     setRequests(reqs);
     setOrgs(all);
     setLeads(lds);
