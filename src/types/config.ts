@@ -38,6 +38,9 @@ export interface OrgConfig {
   features?: Record<string, boolean>;
   /** מילון מונחים מותאם (למשל "חוגים" ← "שיעורים"). */
   terms?: Record<string, string>;
+  /** תבניות-הודעה עריכות (ROADMAP-100 ‏#12) — מפתחות חוקיים: TEMPLATE_KEYS
+   *  (lib/templates); ריק/חסר = נוסח ברירת-המחדל. מחוטא ב-normalizeConfig. */
+  templates?: Record<string, string>;
   /** הרחבות (INTEGRATIONS) לפי שם — מפתחות חוקיים: INTEGRATION_KEYS בלבד.
    *  גל ג׳ ("עד-המפתח"): לצד enabled מותרות הגדרות-מחרוזת פר-הרחבה מתוך
    *  ‏INTEGRATION_SETTING_KEYS (למשל payments.payUrl). סודות — לעולם לא כאן. */

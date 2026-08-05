@@ -343,7 +343,7 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
                       {' '}
                       <WaBtn
                         phone={famPhone(d.familyId)}
-                        text={waDeliveryText(config.orgName, famName(d.familyId))}
+                        text={waDeliveryText(config.orgName, famName(d.familyId), config)}
                         title="הודעת-מסירה למשפחה (נפתח לעריכה לפני שליחה)"
                       />
                     </>

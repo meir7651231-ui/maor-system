@@ -36,28 +36,33 @@ export function waLink(phone: string, text = ''): string | null {
   return 'https://wa.me/' + digits + (t ? '?text=' + encodeURIComponent(t) : '');
 }
 
-/* ---------- תבניות-הודעה (גל ב׳) — טהורות; המשתמש עורך לפני שליחה ---------- */
+/* ---------- תבניות-הודעה (גל ב׳ + עריכות #12) — טהורות; המשתמש עורך לפני שליחה ---------- */
 /* וואטסאפ פותח עם הטקסט ממולא אך **לא שולח** — המזכירה רואה, מתקנת, שולחת.
- * לכן הנוסח פונקציונלי ופשוט; שם-ארגון ריק ⇒ 'העמותה'. */
+ * ‏#12 (5.8.2026): הנוסחים עריכים פר-ארגון (config.templates דרך האשף);
+ * בלי דריסה ⇒ בדיוק הנוסחים ההיסטוריים (ברירות-המחדל ב-TEMPLATE_DEFS). */
+
+import { renderTemplate } from './templates';
+import type { OrgConfig } from '../types/config';
 
 function orgOf(orgName: string): string {
   return orgName.trim() || 'העמותה';
 }
 
 /** הודעת-מסירה (חלוקה): נשלחת למשפחה כשהמשלוח יוצא/בדרך. */
-export function waDeliveryText(orgName: string, famName: string): string {
-  return 'שלום ' + ('משפחת ' + famName).trim() + ', משלוח מ' + orgOf(orgName) + ' בדרך אליכם היום 🚚';
+export function waDeliveryText(orgName: string, famName: string, cfg?: OrgConfig): string {
+  return renderTemplate(cfg, 'wa.delivery', { name: ('משפחת ' + famName).trim(), org: orgOf(orgName) });
 }
 
 /** תזכורת-תשלום ידידותית (חוגים): שם-הפריט + היתרה. */
-export function waPaymentText(orgName: string, what: string, balance: number): string {
-  return (
-    'שלום, תזכורת ידידותית מ' + orgOf(orgName) + ': יתרה לתשלום עבור ' + what +
-    ' — ₪' + Math.round(balance).toLocaleString('he-IL') + '. תודה רבה!'
-  );
+export function waPaymentText(orgName: string, what: string, balance: number, cfg?: OrgConfig): string {
+  return renderTemplate(cfg, 'wa.payment', {
+    org: orgOf(orgName),
+    what,
+    amount: Math.round(balance).toLocaleString('he-IL'),
+  });
 }
 
 /** ברכת יום-הולדת לחוגג/ת. */
-export function waBirthdayText(orgName: string, firstName: string): string {
-  return 'מזל טוב ל' + firstName + ' ליום ההולדת! 🎂 באהבה, ' + orgOf(orgName);
+export function waBirthdayText(orgName: string, firstName: string, cfg?: OrgConfig): string {
+  return renderTemplate(cfg, 'wa.birthday', { first: firstName, org: orgOf(orgName) });
 }
