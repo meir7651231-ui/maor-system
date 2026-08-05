@@ -85,7 +85,7 @@ export type FirebaseOrgConfig = NonNullable<OrgConfig['firebase']>;
  */
 export const INTEGRATION_KEYS = [
   'receipts', 'payments', 'whatsapp', 'sms', 'phone', 'gcal',
-  'drive', 'sheets', 'maps', 'esign', 'ai', 'campaign',
+  'drive', 'sheets', 'maps', 'esign', 'ai', 'campaign', 'mail',
 ] as const;
 
 /**
@@ -97,6 +97,9 @@ export const INTEGRATION_SETTING_KEYS: Record<string, readonly string[]> = {
   payments: ['provider', 'payUrl'],
   campaign: ['url'],
   sheets: ['spreadsheetId'], // גל ד׳ — sheetsNightly קורא מכאן (platformOrgs.config)
+  // צרור-הלילה (ROADMAP-100 ‏#3): remindersNightly קורא מכאן את יעדי-התקציר
+  sms: ['adminPhone'], // טלפון-המנהל לתקציר-הבוקר (לא סוד — יעד, לא מפתח)
+  mail: ['digestTo'], // מייל-היעד לתקציר; כתובת-השולח היא secret בשרת (MAIL_FROM)
 };
 
 export const DEFAULT_CONFIG: OrgConfig = {

@@ -876,6 +876,34 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
             )}
+            {/* צרור-הלילה (ROADMAP-100 ‏#3): יעדי תקציר-הבוקר של remindersNightly */}
+            {config.integrations?.sms?.enabled && (
+              <div style={{ marginTop: 8 }}>
+                <Field label="📱 טלפון-המנהל לתקציר-הבוקר היומי (תזכורות אוטומטיות)">
+                  <TextInput
+                    value={integrationSetting(config, 'sms', 'adminPhone')}
+                    onChange={(v) => setIntegrationField('sms', 'adminPhone', v)}
+                    dir="ltr"
+                    placeholder="050-0000000"
+                  />
+                </Field>
+              </div>
+            )}
+            {config.integrations?.mail?.enabled && (
+              <div style={{ marginTop: 8 }}>
+                <Field label="📧 מייל-היעד לתקציר-הבוקר היומי (תזכורות אוטומטיות)">
+                  <TextInput
+                    value={integrationSetting(config, 'mail', 'digestTo')}
+                    onChange={(v) => setIntegrationField('mail', 'digestTo', v)}
+                    dir="ltr"
+                    placeholder="manager@org.org"
+                  />
+                </Field>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                  מייל-הקבלות לתורם נשלח אוטומטית לכתובת-התורם; התקציר — לכתובת שכאן. דורש שרת-הרחבות פרוס.
+                </div>
+              </div>
+            )}
             <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 8 }}>
               כלול במערכת (בלי תוספת):{' '}
               {Object.entries(INTEGRATION_LABELS)

@@ -37,6 +37,7 @@ export const INTEGRATION_LABELS: Record<string, string> = {
   esign: '✍️ חתימה דיגיטלית',
   ai: '🤖 עוזר חכם (AI)',
   campaign: '📣 חיבור קמפיין גיוס',
+  mail: '📧 קבלות ותזכורות במייל',
 };
 
 /**
@@ -61,6 +62,7 @@ export const INTEGRATION_STATUS: Record<string, IntegrationStatus> = {
   sheets: 'roadmap', // שרת-מוכן-בריפו (functions/) — ממתין ל-Blaze+deploy
   sms: 'roadmap', // שרת-מוכן-בריפו (functions/)
   phone: 'roadmap', // שרת-מוכן-בריפו (functions/)
+  mail: 'roadmap', // צרור-הלילה — mailOutbox בשרת (functions/), ממתין ל-Blaze+deploy
 };
 
 function esc(s: string): string {

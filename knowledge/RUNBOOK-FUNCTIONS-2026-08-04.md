@@ -17,6 +17,8 @@
    firebase functions:secrets:set SMS_SENDER     # שם/מספר-השולח שאושר אצל הספק
    firebase functions:secrets:set YEMOT_TOKEN    # טוקן ימות-המשיח
    firebase functions:secrets:set GOOGLE_SA      # JSON של service-account (גיליון-חי)
+   firebase functions:secrets:set SMTP_URL       # smtps://user:pass@host — שליחת-מיילים (צרור-הלילה)
+   firebase functions:secrets:set MAIL_FROM      # כתובת-השולח המוצגת (למשל receipts@org.org)
    ```
 4. **פריסה:** מתיקיית הריפו —
    `cd functions && npm install && cd .. && firebase deploy --only functions`
@@ -28,6 +30,9 @@
 | `smsOutbox` | שולח הודעות מ-`orgs/{slug}/smsOutbox` כל דקה | קריאת-הספק (TODO מסומן בקוד — משתנה בין 019/InforU) |
 | `yemotProxy` | פרוקסי-CORS לימות-המשיח | טוקן בלבד |
 | `sheetsNightly` | ייצוא-לילי לגיליון פר-ארגון-ענן | service-account + spreadsheetId פר-ארגון (TODO מסומן) |
+| `mailOutbox` (צרור-הלילה #1) | שולח מיילים מ-`orgs/{slug}/mailOutbox` כל דקה (קבלות-לתורם, תקצירים) | ‏SMTP_URL + MAIL_FROM — כל ספק-SMTP (Gmail-App-Password / SendGrid / דומיין) |
+| `remindersNightly` (צרור-הלילה #3) | תקציר-בוקר 05:00 (שעון-ישראל) פר-ארגון: קשרי-תורם שהגיע-יומם + מסירות-היום ⇒ לתורי sms/mail. יעדים: ‏`sms.adminPhone` / ‏`mail.digestTo` באשף | אין — עובד ברגע שהתורים חיים; ארגון-מוצפן מדולג (השרת לא מפענח); בלי לוח-עברי בשרת |
+| `backupNightly` (צרור-הלילה #9) | צילום-לילי 02:30 של כל ארגון ל-Storage ‏`backups/{slug}/{date}.json` (meta+envelope+21 אוספים), טבעת 30 צילומים | להדליק Storage בקונסולה (ברירת-מחדל bucket); ארגון עם הצפנת-ענן ⇒ הצילום מוצפן מלידה |
 
 ## עקרונות שנלעסו
 - ‏webhook **לא** רושם תרומה/קבלה ישירות — רק "תשלום-נכנס" לאישור; רציפות

@@ -383,3 +383,14 @@ export async function writeSmsOutbox(to: string, text: string): Promise<void> {
     at: new Date().toISOString(),
   });
 }
+
+/** הכנסת מייל לתור-השליחה (הרחבת mail, ROADMAP-100 ‏#1 — נשלח ע"י mailOutbox בענן). */
+export async function writeMailOutbox(to: string, subject: string, text: string): Promise<void> {
+  await addDoc(collection(requireDb(), scopedCol('mailOutbox')), {
+    to,
+    subject,
+    text,
+    status: 'pending',
+    at: new Date().toISOString(),
+  });
+}

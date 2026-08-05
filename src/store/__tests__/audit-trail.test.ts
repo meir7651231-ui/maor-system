@@ -26,7 +26,8 @@ describe('🧾 ratchet — לוג-פעולות (#10)', () => {
   });
 
   it('🛡 הגנת-מקור: הפעולות-הקריטיות רושמות — תרומה, תשלום, מחיקות, שחזור', () => {
-    expect(useAppSrc).toContain("logAudit('תרומה'");
+    // תרומה = מונח-דינמי (termOf) — הרשומה מוצגת בטבלת-הלוג ובוורטיקל עסקי "תרומה" דולפת
+    expect(useAppSrc).toContain("logAudit(termOf(get().config, 'entity.donation', 'תרומה')");
     expect(useAppSrc).toContain("logAudit('תשלום'");
     expect(useAppSrc).toContain("logAudit('מחיקת משפחה'");
     expect(useAppSrc).toContain("logAudit('מחיקת תומכ/ת'");

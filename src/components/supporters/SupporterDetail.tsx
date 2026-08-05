@@ -14,7 +14,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field, Modal } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { chipStyle, fmtDate, isoToday, supDonEvents, supScore, supTier, totalLabel } from './lib';
-import { downloadReceipt } from '../../lib/receipt';
+import { downloadReceipt, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
@@ -108,11 +108,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const histOn = featureOn(config, 'supporters.hist');
   const receiptsOn = featureOn(config, 'core.receipts');
 
-  /** 🧾 הורדה חוזרת של קבלת תרומה (P3, לגאסי supReceipt) — אותם נתונים ו-rid. */
-  function redownloadReceipt(rid: string) {
+  /** נתוני-הקבלה המשותפים להורדה-חוזרת ולשליחה-במייל — אותם נתונים ו-rid. */
+  function receiptInfoFor(rid: string) {
     const d = sp.donations.find((x) => x.rid === rid);
-    if (!d) return;
-    downloadReceipt({
+    if (!d) return null;
+    return {
       rid,
       orgName: config.orgName || useApp.getState().db.orgName,
       payer: sp.name,
@@ -124,10 +124,31 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       orgTaxId: config.orgTaxId,
       signatory: config.orgSignatory,
       payerId: sp.idNum || undefined,
-      copy: true, // הורדה חוזרת ⇒ "העתק נאמן למקור" (5.5d)
+      copy: true, // הנפקה-חוזרת ⇒ "העתק נאמן למקור" (5.5d)
       mark: featureOn(config, 'core.receipt.copymark'),
-    });
+    };
+  }
+
+  /** 🧾 הורדה חוזרת של קבלת תרומה (P3, לגאסי supReceipt). */
+  function redownloadReceipt(rid: string) {
+    const info = receiptInfoFor(rid);
+    if (!info) return;
+    downloadReceipt(info);
     toast('קבלה ' + rid + ' ירדה שוב למחשב');
+  }
+
+  // צרור-הלילה (ROADMAP-100 ‏#1): קבלה במייל — תור mailOutbox, נשלח ע"י ה-Function
+  const mailReady = integrationOn(config, 'mail') && cloudReady && !!sp.email;
+  async function mailReceipt(rid: string) {
+    const info = receiptInfoFor(rid);
+    if (!info) return;
+    try {
+      const mod = await import('../../store/cloudSync');
+      await mod.writeMailOutbox(sp.email, 'קבלה ' + rid + ' — ' + info.orgName, receiptLines(info).join('\n'));
+      toast('📧 קבלה ' + rid + ' נכנסה לתור-המייל');
+    } catch {
+      toast('⚠ ההכנסה לתור נכשלה — נסו שוב');
+    }
   }
 
   const [editOpen, setEditOpen] = useState(false);
@@ -428,9 +449,16 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                     {/* 🧾 הורדה חוזרת פר-תרומה (P3, לגאסי supReceipt) — רק לתרומות עם קבלה */}
                     <td onClick={(e) => e.stopPropagation()}>
                       {r.rid && receiptsOn ? (
-                        <Btn sm onClick={() => redownloadReceipt(r.rid!)} title={'הורדה חוזרת של קבלה ' + r.rid}>
-                          🧾
-                        </Btn>
+                        <>
+                          <Btn sm onClick={() => redownloadReceipt(r.rid!)} title={'הורדה חוזרת של קבלה ' + r.rid}>
+                            🧾
+                          </Btn>
+                          {mailReady && (
+                            <Btn sm onClick={() => void mailReceipt(r.rid!)} title={'שליחת קבלה ' + r.rid + ' למייל התורם'}>
+                              📧
+                            </Btn>
+                          )}
+                        </>
                       ) : null}
                     </td>
                   </tr>

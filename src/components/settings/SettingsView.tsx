@@ -343,7 +343,7 @@ function AuditTrailSection() {
   return (
     <Section id="sec-audittrail" title="🧾 לוג פעולות" sub={'מי שינה מה ומתי — ' + audit.length + ' רשומות (נשמרות ' + 500 + ' האחרונות)'}>
       {rows.length === 0 ? (
-        <SectionNote>עדיין אין רשומות — הלוג מתמלא עם כל פעולה מהותית (תרומה, תשלום, שמירה/מחיקה, שחזור).</SectionNote>
+        <SectionNote>{'עדיין אין רשומות — הלוג מתמלא עם כל פעולה מהותית (' + termOf(config, 'entity.donation', 'תרומה') + ', תשלום, שמירה/מחיקה, שחזור).'}</SectionNote>
       ) : (
         <div style={{ maxHeight: 300, overflowY: 'auto' }}>
           <table className="table">

@@ -50,7 +50,7 @@ import { roomClashError } from '../components/calendar/calLib';
 import { effectiveConfigFor, isOrgManager, parseJoinFullCode } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, employeeSignUpError, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, writeCloudConfigCache } from '../lib/config';
+import { applyTheme, employeeSignUpError, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, termOf, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
@@ -1439,7 +1439,8 @@ export const useApp = create<AppState>()((set, get) => {
           return { ...s, donations, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
         }),
       }));
-      logAudit('תרומה', rid + ' · ' + (donation.cur === '$' ? '$' : '₪') + donation.amount);
+      // מונח-דינמי גם בלוג — הרשומה מוצגת בטבלת-הלוג ובוורטיקל עסקי "תרומה" היא דליפה
+      logAudit(termOf(get().config, 'entity.donation', 'תרומה'), rid + ' · ' + (donation.cur === '$' ? '$' : '₪') + donation.amount);
       return { ok: true, rid };
     },
 
