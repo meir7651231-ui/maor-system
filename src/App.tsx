@@ -17,6 +17,7 @@ import { freshenDemoDb } from './lib/demoFresh';
 import { todaySessions } from './components/home/homeData';
 import { Btn } from './components/ui';
 import { BuilderWizard } from './components/builder/BuilderWizard';
+import { BUILDER_PREV_KEY, RemoteWizard } from './components/builder/RemoteWizard';
 import { ImpactWall } from './components/wall/ImpactWall';
 import { MoneyTimer } from './components/timer/MoneyTimer';
 import { CashRegister } from './components/timer/CashRegister';
@@ -162,7 +163,11 @@ export default function App() {
   const markUnlocked = useApp((s) => s.markUnlocked);
 
   // אשף ההרכבה — למטמיע בלבד, נפתח עם #builder בכתובת
-  const [builderOpen, setBuilderOpen] = useState(() => window.location.hash === '#builder');
+  // ‏#builder = אשף מקומי · ‏#builder=slug = אשף קשור-ענן ללקוח (RemoteWizard, 5.8)
+  const [builderOpen, setBuilderOpen] = useState(() => window.location.hash.startsWith('#builder'));
+  const remoteBuilderSlug = window.location.hash.startsWith('#builder=')
+    ? decodeURIComponent(window.location.hash.slice('#builder='.length))
+    : null;
   // קיר ההשפעה — מצב ראווה במסך מלא, נפתח עם #wall (feature: home.impactwall)
   const [wallOpen, setWallOpen] = useState(() => window.location.hash === '#wall');
   // טיימר כסף — נפתח עם #timer (feature: core.timer)
@@ -183,9 +188,21 @@ export default function App() {
   const [managerOpen, setManagerOpen] = useState(() => window.location.hash === '#manage');
   // כניסת-הניהול (ADMINHUB) — בורר קטן; נפתח מכפתור 🛠 (מנהל-על בלבד), לא מ-hash
   const [adminHubOpen, setAdminHubOpen] = useState(false);
+  // שחזור-קריסה של האשף-קשור-הענן (5.8): אם נשאר תצלום-מיתוג מסשן שנקטע
+  // (הדפדפן נסגר באמצע עריכת-לקוח) והאשף לא פתוח — מחזירים את מיתוג-הבעלים.
+  useEffect(() => {
+    if (window.location.hash.startsWith('#builder=')) return;
+    try {
+      const raw = sessionStorage.getItem(BUILDER_PREV_KEY);
+      if (raw) {
+        useApp.getState().setConfig(JSON.parse(raw));
+        sessionStorage.removeItem(BUILDER_PREV_KEY);
+      }
+    } catch { /* אין תצלום */ }
+  }, []);
   useEffect(() => {
     const onHash = () => {
-      setBuilderOpen(window.location.hash === '#builder');
+      setBuilderOpen(window.location.hash.startsWith('#builder'));
       setWallOpen(window.location.hash === '#wall');
       setTimerOpen(window.location.hash === '#timer');
       setCashboxOpen(window.location.hash === '#cashbox');
@@ -764,6 +781,20 @@ export default function App() {
               🔒 אשף ההקמה זמין למנהל המערכת בלבד.
             </div>
           </div>
+        ) : remoteBuilderSlug ? (
+          // אשף-הרכבה קשור-ענן (5.8) — עריכת לקוח-פלטפורמה באשף המלא; מיילי-על בלבד
+          isSuperAdmin(cloud.user?.email) ? (
+            <RemoteWizard
+              slug={remoteBuilderSlug}
+              onClose={() => {
+                window.location.hash = '#platform'; // חזרה ללוח-הבקרה
+              }}
+            />
+          ) : (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
+              <div className="empty" style={{ marginTop: 120 }}>🔒 עריכת לקוח-ענן זמינה למנהל הפלטפורמה בלבד.</div>
+            </div>
+          )
         ) : (
           <BuilderWizard
             onClose={() => {
