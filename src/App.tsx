@@ -188,6 +188,34 @@ export default function App() {
   const [managerOpen, setManagerOpen] = useState(() => window.location.hash === '#manage');
   // כניסת-הניהול (ADMINHUB) — בורר קטן; נפתח מכפתור 🛠 (מנהל-על בלבד), לא מ-hash
   const [adminHubOpen, setAdminHubOpen] = useState(false);
+  // 🔄 ריפוי-לשונית-תקועה (5.8 — "זה הרגע ראיתי אצל לקוח"): לשונית שנשארה
+  // פתוחה ימים לא נטענת מחדש לעולם ומציגה גרסה עתיקה (נצפה בשטח: מסך-Passkey
+  // מאיטרציה שנמחקה). ברגע שחוזרים ללשונית (visibilitychange) — משווים מול
+  // version.json הטרי (no-store); גרסה אחרת ⇒ רענון עצמי, פעם-אחת פר-גרסה
+  // (שומר-ריצה ב-sessionStorage מונע לולאה אם ה-fetch מוגש מתווך ישן).
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState !== 'visible') return;
+      void fetch(import.meta.env.BASE_URL + 'version.json', { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((v: { id?: string } | null) => {
+          if (!v?.id || v.id === __BUILD_ID__) return;
+          const key = 'maor_ver_reload:' + v.id;
+          if (sessionStorage.getItem(key)) return;
+          sessionStorage.setItem(key, '1');
+          window.location.reload();
+        })
+        .catch(() => { /* אופליין — נבדוק בחזרה הבאה */ });
+    };
+    check();
+    document.addEventListener('visibilitychange', check);
+    const iv = window.setInterval(check, 15 * 60 * 1000);
+    return () => {
+      document.removeEventListener('visibilitychange', check);
+      window.clearInterval(iv);
+    };
+  }, []);
+
   // שחזור-קריסה של האשף-קשור-הענן (5.8): אם נשאר תצלום-מיתוג מסשן שנקטע
   // (הדפדפן נסגר באמצע עריכת-לקוח) והאשף לא פתוח — מחזירים את מיתוג-הבעלים.
   useEffect(() => {
