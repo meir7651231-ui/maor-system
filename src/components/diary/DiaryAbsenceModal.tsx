@@ -8,7 +8,7 @@ import type { Course } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { featureOn } from '../../lib/config';
-import { DAY_NAMES, isoToday, makeupEligibility, nextSessionDate, pad2 } from './lib';
+import { ABSENCE_REASON_CHIPS, DAY_NAMES, isoToday, makeupEligibility, nextSessionDate, pad2 } from './lib';
 
 export function DiaryAbsenceModal(props: {
   enrollmentId: string;
@@ -108,6 +108,14 @@ export function DiaryAbsenceModal(props: {
       )}
       <Field label="נימוק החיסור *">
         <TextInput value={reason} onChange={setReason} placeholder="לדוגמה: מחלה, אירוע משפחתי…" />
+        {/* צ'יפי-הנימוק המשותפים — קליק במקום הקלדה, עריכה חופשית נשארת */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+          {ABSENCE_REASON_CHIPS.map((c) => (
+            <button key={c} type="button" className={'chip' + (reason === c ? ' on' : '')} onClick={() => setReason(c)}>
+              {c}
+            </button>
+          ))}
+        </div>
       </Field>
       <FormError error={error} />
       <div className="modal-actions">

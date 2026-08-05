@@ -14,7 +14,7 @@ import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { isoToday, nextSessionDate } from './lib';
-import { makeupEligibility } from '../diary/lib';
+import { ABSENCE_REASON_CHIPS, makeupEligibility } from '../diary/lib';
 
 export function AbsenceModal(props: { enrollmentId: string; course: Course; onClose: () => void }) {
   const db = useApp((s) => s.db);
@@ -88,6 +88,14 @@ export function AbsenceModal(props: { enrollmentId: string; course: Course; onCl
       )}
       <Field label="נימוק *">
         <TextInput value={reason} onChange={setReason} placeholder="לדוגמה: מחלה, אירוע משפחתי…" />
+        {/* צ'יפי-הנימוק המשותפים — קליק במקום הקלדה, עריכה חופשית נשארת */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+          {ABSENCE_REASON_CHIPS.map((c) => (
+            <button key={c} type="button" className={'chip' + (reason === c ? ' on' : '')} onClick={() => setReason(c)}>
+              {c}
+            </button>
+          ))}
+        </div>
       </Field>
       <div
         style={{

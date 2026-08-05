@@ -15,6 +15,8 @@ export function SupDedupModal(props: { onClose: () => void }) {
   const groups = findSupporterDupGroups(supporters);
   // ה"שומר" הנבחר פר-קבוצה — ברירת-מחדל: בעל-התרומות-הרבות (נקבע ברינדור)
   const [keepSel, setKeepSel] = useState<Record<number, string>>({});
+  // UX סבב-ה׳ (השלמה): רשת-ביטחון כמו במשפחות — מיזוג חמוש בשני שלבים
+  const [armed, setArmed] = useState<number | null>(null);
 
   return (
     <Modal title="🔗 איחוד כפולי-תורמים" onClose={props.onClose}>
@@ -48,16 +50,22 @@ export function SupDedupModal(props: { onClose: () => void }) {
                     <span style={{ fontSize: 12 }}>{sp.count + ' · ' + totalLabel(sp)}</span>
                   </label>
                 ))}
-                <div style={{ marginTop: 6 }}>
+                <div style={{ marginTop: 6, display: 'flex', gap: 8 }}>
                   <Btn
                     sm
-                    kind="primary"
+                    kind={armed === gi ? 'danger' : 'primary'}
                     onClick={() => {
+                      if (armed !== gi) {
+                        setArmed(gi);
+                        return;
+                      }
                       for (const sp of rows) if (sp.id !== keepId) mergeSupporters(keepId, sp.id);
+                      setArmed(null);
                     }}
                   >
-                    🔗 מזג את הקבוצה לתוך הנבחר
+                    {armed === gi ? 'לאשר מיזוג סופי?' : '🔗 מזג את הקבוצה לתוך הנבחר'}
                   </Btn>
+                  {armed === gi && <Btn sm onClick={() => setArmed(null)}>ביטול</Btn>}
                 </div>
               </div>
             );
