@@ -103,6 +103,23 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect(rulesSrc).toContain("in resource.data.get('members', [])");
   });
 
+  it('🛡 ריפוי-עצמי של בקשת-הרשמה (5.8 — "מאור נרשם ואני לא רואה בקשה")', () => {
+    // הבאג: writeOrgRequest נוסה פעם-אחת בהרשמה; כשל (רשת/Rules) ⇒ הבקשה אבדה
+    // לתמיד — הנרשם במסך-המתנה והבעלים לא רואה כלום בלוח. הריפוי: הפרטים נשמרים
+    // מקומית לפני הניסיון, וכל התחברות שמסתיימת במסך-ההמתנה רושמת מחדש
+    // (create-only + uid תואם ⇒ אידמפוטנטי, אפס כפילויות).
+    expect(useAppSrc).toContain('PENDING_SIGNUP_KEY');
+    // השמירה קודמת לניסיון-הכתיבה (סדר-מקור: setItem לפני writeOrgRequest בהרשמה)
+    const signupIdx = useAppSrc.indexOf('localStorage.setItem(PENDING_SIGNUP_KEY');
+    const writeIdx = useAppSrc.indexOf('cloudMod.writeOrgRequest(uid, reqDoc)');
+    expect(signupIdx).toBeGreaterThan(-1);
+    expect(writeIdx).toBeGreaterThan(signupIdx);
+    // מסך-ההמתנה בשורש רושם מחדש — גם בלי פרטים שמורים (בקשה מינימלית מהמייל)
+    expect(useAppSrc).toMatch(/membership: 'pending' \}\);[\s\S]{0,1800}writeOrgRequest\(user\.uid/);
+    // אושר-ונותב ⇒ הפרטים המקומיים מתנקים
+    expect(useAppSrc).toContain('localStorage.removeItem(PENDING_SIGNUP_KEY)');
+  });
+
   it('הגנת-מקור: Rules v2 — בקשות uid-תואם, ארגונים לחברים, כתיבה למיילי-על, שורש כהיום', () => {
     expect(rulesSrc).toContain('platformRequests/{uid}');
     expect(rulesSrc).toContain('request.auth.uid == uid');
