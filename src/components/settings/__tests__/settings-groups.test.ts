@@ -71,4 +71,28 @@ describe('⚙️ ratchet — UX סבב-ו׳: הגדרות ב-4 לשוניות (5
     expect(viewSrc).toContain('🛠 לוח בקרה');
     expect(viewSrc).toContain('👥 ניהול העובדות');
   });
+
+  it('"צ׳יפ לכל מה שמרונדר" — גם הסעיפים המגודרים-עצמית קיבלו צ׳יפ-קפיצה באותם שערים', () => {
+    expect(viewSrc).toMatch(/featureOn\(config, 'shell\.lock'\) \? \[\{ id: 'sec-security'/);
+    expect(viewSrc).toMatch(/featureOn\(config, 'settings\.encryption'\) \? \[\{ id: 'sec-encryption'/);
+    expect(viewSrc).toMatch(/canPlatform \? \[\{ id: 'sec-cloud-encryption'/);
+    expect(viewSrc).toMatch(/integrationOn\(config, 'ai'\) && isAdmin \? \[\{ id: 'sec-ai'/);
+    expect(viewSrc).toMatch(/featureOn\(config, 'settings\.audittrail'\) && isAdmin \? \[\{ id: 'sec-audittrail'/);
+    expect(viewSrc).toMatch(/featureOn\(config, 'core\.receipt\.verifycode'\) \? \[\{ id: 'sec-verifyreceipt'/);
+  });
+});
+
+describe('⬆ ratchet — UX סבב-ו׳: בורר-מסלול בייבוא (5.8.2026)', () => {
+  it('חמשת מסלולי-הייבוא קיימים במלואם — הבורר ממקד רינדור, לא מוחק זרימות', async () => {
+    const importSrc = (await import('../ImportSection.tsx?raw')).default;
+    // כל תת-הזרימות נשארו בקובץ
+    for (const flow of ['onJsonFile', 'Families13Import', 'KidsImport', 'SupporterImport', 'AyinSheetImport']) {
+      expect(importSrc).toContain(flow);
+    }
+    // הבורר מכסה את כל החמישה, וגיליון-העיניים מגודר באותם דגלים של הרכיב עצמו
+    for (const r of ["route === 'json'", "route === 'fam'", "route === 'kids'", "route === 'sup'", "route === 'ayin'"]) {
+      expect(importSrc).toContain(r);
+    }
+    expect(importSrc).toMatch(/supporters\.ayin'\) && featureOn\(config, 'supporters\.ayin\.sheet'\)/);
+  });
 });
