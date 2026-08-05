@@ -98,12 +98,34 @@ export function Modal(props: { title: string; onClose: () => void; children: Rea
       <div
         ref={dialogRef}
         className="modal"
-        style={props.wide ? { maxWidth: 880 } : undefined}
+        style={{ position: 'relative', ...(props.wide ? { maxWidth: 880 } : {}) }}
         role="dialog"
         aria-modal="true"
         aria-label={props.title}
         tabIndex={-1}
       >
+        {/* UX סבב-ב׳ (5.8): ✕ סגירה גלוי — במגע אין Escape, ולחיצת-רקע לא מוכרת */}
+        <button
+          type="button"
+          onClick={props.onClose}
+          aria-label="סגירה"
+          title="סגירה"
+          style={{
+            position: 'absolute',
+            top: 10,
+            insetInlineStart: 10,
+            width: 32,
+            height: 32,
+            borderRadius: 99,
+            border: '1px solid var(--line)',
+            background: 'var(--panel)',
+            cursor: 'pointer',
+            fontSize: 14,
+            lineHeight: 1,
+          }}
+        >
+          ✕
+        </button>
         <h2>{props.title}</h2>
         {props.children}
       </div>

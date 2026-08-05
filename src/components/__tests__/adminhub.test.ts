@@ -7,6 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import { isSuperAdmin } from '../../lib/config';
 import appSrc from '../../App.tsx?raw';
+import uiSrc from '../ui.tsx?raw';
 import hubSrc from '../AdminHub.tsx?raw';
 
 describe('🛠 ratchet — ADMINHUB: כניסת-ניהול גלויה למנהל-על', () => {
@@ -75,5 +76,22 @@ describe('🎛 ratchet — UX סבב-א׳: הכרום מ-9 עיגולים ל-4 (
     expect(appSrc).toContain('logoutArmed');
     expect(appSrc).toContain('לחצו שוב ליציאה');
     expect(appSrc).toContain('syncDot.title}');
+  });
+});
+
+describe('📱 ratchet — UX סבב-ב׳: ניווט ראשי + מובייל (5.8.2026)', () => {
+  it("'עוד ▾' ברצועה: עד 6 ראשיים; מעבר לזה — השאר בבורר (הכול נשאר נגיש)", () => {
+    expect(appSrc).toContain('NAV_PRIMARY_MAX = 6');
+    expect(appSrc).toContain('navMore.length > 0 && (');
+    expect(appSrc).toContain('moreNavOpen');
+  });
+
+  it('ניווט-תחתון במובייל — 4 ראשיים + עוד; הרצועה הגולשת מוסתרת רק במובייל', () => {
+    expect(appSrc).toContain('className="bottom-nav"');
+    expect(appSrc).toMatch(/nav\.slice\(0, 4\)\.map/);
+  });
+
+  it('✕ סגירה בכל Modal — במגע אין Escape ולחיצת-רקע לא מוכרת', () => {
+    expect(uiSrc).toContain('aria-label="סגירה"');
   });
 });
