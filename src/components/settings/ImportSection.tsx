@@ -14,7 +14,7 @@ import { normalizePhone, normSearch, formatIsraeliPhone } from '../../lib/valida
 import { downloadCsv, parseAnyDate, parseCsv, readCsvFileText } from '../../lib/csvx';
 import { ayinSheetRows, featLabel, parseAyinSheet, type AyinSheetParse } from '../../lib/ayin';
 import { mergeFamilyImport, parseFamiliesCsv, type FamiliesImportPlan } from '../../lib/familiesImport';
-import { Btn, Field, FormError } from '../ui';
+import { Btn, Chip, Field, FormError } from '../ui';
 import { Section, SectionNote } from './lib';
 import { isoToday } from './helpers';
 import { SupporterImport } from '../supporters/SupporterImport';
@@ -36,6 +36,17 @@ export function ImportSection() {
   const [error, setError] = useState('');
   const [summary, setSummary] = useState('');
   const [csv, setCsv] = useState('');
+  // UX סבב-ו׳: בורר-מסלול — חמש תת-זרימות הייבוא הפכו מגלילה אחת ארוכה למסלול
+  // אחד פתוח בכל רגע. כל זרימה נשארה במלואה (אפס אובדן) — רק הרינדור מתמקד.
+  const ayinOn = featureOn(config, 'supporters.ayin') && featureOn(config, 'supporters.ayin.sheet');
+  const [route, setRoute] = useState<'json' | 'fam' | 'kids' | 'sup' | 'ayin'>('json');
+  const routes: { id: typeof route; label: string }[] = [
+    { id: 'json', label: 'מקובץ גיבוי (JSON)' },
+    { id: 'fam', label: termOf(config, 'nav.families', 'משפחות') + ' (CSV)' },
+    { id: 'kids', label: 'ילדים (CSV)' },
+    { id: 'sup', label: 'תומכות (CSV)' },
+    ...(ayinOn ? [{ id: 'ayin' as const, label: 'גיליון ' + featLabel(config) }] : []),
+  ];
 
   /** ייבוא מקובץ גיבוי JSON — מוסיף רק משפחות שאינן קיימות (לפי שם+טלפון). */
   async function onJsonFile(e: ChangeEvent<HTMLInputElement>) {
@@ -177,21 +188,32 @@ export function ImportSection() {
         </div>
       )}
 
-      <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>מקובץ גיבוי (JSON)</h3>
-      <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-        {'בחרו קובץ גיבוי של המערכת הישנה — ' + termOf(config, 'nav.families', 'משפחות') + ' ובני ה' + termOf(config, 'entity.family', 'משפחה') + ' שלהן יתווספו למערכת. ' + termOf(config, 'nav.families', 'משפחות') + ' שכבר קיימות (לפי שם וטלפון) לא ייובאו שוב. הנתונים הקיימים אינם נדרסים — לשחזור מלא השתמשו בסקשן "גיבוי ושחזור".'}
-      </p>
-      <label className="btn" style={{ cursor: 'pointer', marginBottom: 18, display: 'inline-flex' }}>
-        בחירת קובץ JSON…
-        <input
-          type="file"
-          accept=".json,application/json"
-          style={{ display: 'none' }}
-          onChange={(e) => void onJsonFile(e)}
-        />
-      </label>
+      {/* בורר-המסלול — מה מייבאים? */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+        {routes.map((r) => (
+          <Chip key={r.id} on={route === r.id} onClick={() => setRoute(r.id)}>{r.label}</Chip>
+        ))}
+      </div>
 
-      {families13On ? (
+      {route === 'json' && (
+        <>
+          <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>מקובץ גיבוי (JSON)</h3>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
+            {'בחרו קובץ גיבוי של המערכת הישנה — ' + termOf(config, 'nav.families', 'משפחות') + ' ובני ה' + termOf(config, 'entity.family', 'משפחה') + ' שלהן יתווספו למערכת. ' + termOf(config, 'nav.families', 'משפחות') + ' שכבר קיימות (לפי שם וטלפון) לא ייובאו שוב. הנתונים הקיימים אינם נדרסים — לשחזור מלא השתמשו בסקשן "גיבוי ושחזור".'}
+          </p>
+          <label className="btn" style={{ cursor: 'pointer', marginBottom: 18, display: 'inline-flex' }}>
+            בחירת קובץ JSON…
+            <input
+              type="file"
+              accept=".json,application/json"
+              style={{ display: 'none' }}
+              onChange={(e) => void onJsonFile(e)}
+            />
+          </label>
+        </>
+      )}
+
+      {route === 'fam' && (families13On ? (
         <Families13Import />
       ) : (
         <>
@@ -214,14 +236,18 @@ export function ImportSection() {
             {'ייבוא ה' + termOf(config, 'nav.families', 'משפחות') + ' מהרשימה'}
           </Btn>
         </>
+      ))}
+
+      {route === 'kids' && <KidsImport />}
+
+      {route === 'sup' && (
+        <>
+          <h3 style={{ fontSize: 15, fontWeight: 700, margin: '18px 0 6px' }}>תומכות (CSV)</h3>
+          <SupporterImport />
+        </>
       )}
 
-      <KidsImport />
-
-      <h3 style={{ fontSize: 15, fontWeight: 700, margin: '18px 0 6px' }}>תומכות (CSV)</h3>
-      <SupporterImport />
-
-      <AyinSheetImport />
+      {route === 'ayin' && <AyinSheetImport />}
 
       <SectionNote>{'אחרי הייבוא אפשר להשלים לכל ' + termOf(config, 'entity.family', 'משפחה') + ' את שאר הפרטים ובני ה' + termOf(config, 'entity.family', 'משפחה') + ' במסך ה' + termOf(config, 'nav.families', 'משפחות') + '.'}</SectionNote>
     </Section>

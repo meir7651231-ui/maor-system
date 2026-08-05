@@ -83,7 +83,17 @@ export function SettingsView() {
       featureOn(config, 'core.receipt.verifycode') || secOn('sec-reset'),
   };
   const shownGroup: GroupId = groupHas[group] ? group : 'org';
-  const groupChips = sections.filter((s) => SECTION_GROUP[s.id] === shownGroup);
+  // "צ'יפ לכל מה שמרונדר, כלום מת" — גם הסעיפים המגודרים-עצמית (אבטחה/מתקדם)
+  // מקבלים צ'יפ-קפיצה, באותם תנאי-גידור בדיוק של הרכיב עצמו.
+  const extraChips: { id: string; label: string }[] = [
+    ...(featureOn(config, 'shell.lock') ? [{ id: 'sec-security', label: 'נעילת PIN' }] : []),
+    ...(featureOn(config, 'settings.encryption') ? [{ id: 'sec-encryption', label: 'הצפנה' }] : []),
+    ...(canPlatform ? [{ id: 'sec-cloud-encryption', label: 'הצפנת ענן' }] : []),
+    ...(integrationOn(config, 'ai') && isAdmin ? [{ id: 'sec-ai', label: 'עוזר AI' }] : []),
+    ...(featureOn(config, 'settings.audittrail') && isAdmin ? [{ id: 'sec-audittrail', label: 'לוג פעולות' }] : []),
+    ...(featureOn(config, 'core.receipt.verifycode') ? [{ id: 'sec-verifyreceipt', label: 'אימות קבלה' }] : []),
+  ];
+  const groupChips = [...sections, ...extraChips].filter((s) => SECTION_GROUP[s.id] === shownGroup);
 
   return (
     <div>
