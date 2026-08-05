@@ -10,6 +10,7 @@ import { useApp } from '../../store/useApp';
 import type { Cell } from './csv';
 import { ReportTable, Section } from './parts';
 import { expiringIntakes, givenValue, collectedPaid, subsidyTotal } from '../shop/lib';
+import { hokDue, hokMonthlyTotal } from '../supporters/lib';
 import { isoToday } from '../../lib/date-util';
 
 export interface MetricGroup {
@@ -93,6 +94,22 @@ export function managementMetrics(db: Db, config?: OrgConfig): MetricGroup[] {
     reconRows.push(['ניצול התקציב', `${Math.round((subsidy / budget) * 100)}%`]);
   }
   if (show('reports.management.recon')) groups.push({ title: '💰 התחשבנות', rows: reconRows });
+
+  // 🔁 הוראות-קבע (ROADMAP-100 ‏#2) — ההכנסה-הקבועה החודשית + מצב-החודש
+  if (show('supporters.hok')) {
+    const activeHok = db.supporters.filter((sp) => sp.hok?.active);
+    if (activeHok.length) {
+      const due = hokDue(db.supporters, isoToday());
+      groups.push({
+        title: '🔁 הוראות קבע',
+        rows: [
+          ['הוראות פעילות', activeHok.length],
+          ['סה"כ חודשי (₪-שקול)', ils(hokMonthlyTotal(db.supporters, db.usdRate || 3.7))],
+          ['טרם נרשמו החודש', due.length ? due.length + ' (' + due.slice(0, 4).map((s) => s.name).join(', ') + (due.length > 4 ? '…' : '') + ')' : '✓ הכול נרשם'],
+        ],
+      });
+    }
+  }
 
   return groups;
 }
