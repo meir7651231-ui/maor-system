@@ -10,7 +10,7 @@ import { featureOn, termOf } from '../../lib/config';
 import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
-import { Btn, Empty, PageHead, Select, TextInput } from '../ui';
+import { ActionsMenu, Btn, Empty, PageHead, Select, TextInput } from '../ui';
 import { chipStyle, finderAxisValue, numMatch, STATUS_META, tierOf } from './lib';
 import { FamilyFinder } from './FamilyFinder';
 import { FamilyForm } from './FamilyForm';
@@ -298,23 +298,24 @@ export function FamiliesView() {
             <Btn onClick={toggleView} title="החלפת תצוגה: רשימה / גריד">
               {famView === 'grid' ? '☰ רשימה' : '▦ גריד'}
             </Btn>
-            {featureOn(config, 'settings.dedup') && (
-              <Btn onClick={() => { window.location.hash = '#dedup'; }} title={'זיהוי ומיזוג ' + termOf(config, 'nav.families', 'משפחות') + ' כפולות'}>
-                🔀 כפילויות
-              </Btn>
-            )}
-            {/* P3 פריט 18 — קיצורי הלגאסי חוזרים למסך (feature families.shortcuts):
-                מנווטים לסקשן הרלוונטי בהגדרות — היכולות עצמן שם */}
-            {featureOn(config, 'families.shortcuts') && featureOn(config, 'settings.import') && (
-              <Btn onClick={() => goSettingsSection('sec-import')} title="ייבוא נתונים — בהגדרות">
-                ⬆ ייבוא
-              </Btn>
-            )}
-            {featureOn(config, 'families.shortcuts') && featureOn(config, 'settings.audit') && (
-              <Btn onClick={() => goSettingsSection('sec-audit')} title="בדיקת תקינות נתונים — בהגדרות">
-                ✓ בדיקת נתונים
-              </Btn>
-            )}
+            {/* UX סבב-ד׳: הפעולות האדמיניסטרטיביות הנדירות בתפריט ⋯ — אפס אובדן-יכולת */}
+            <ActionsMenu
+              title={'עוד פעולות — ' + termOf(config, 'nav.families', 'משפחות')}
+              items={[
+                featureOn(config, 'settings.dedup') && {
+                  label: '🔀 זיהוי ומיזוג כפולות',
+                  onClick: () => { window.location.hash = '#dedup'; },
+                },
+                featureOn(config, 'families.shortcuts') && featureOn(config, 'settings.import') && {
+                  label: '⬆ ייבוא נתונים (בהגדרות)',
+                  onClick: () => goSettingsSection('sec-import'),
+                },
+                featureOn(config, 'families.shortcuts') && featureOn(config, 'settings.audit') && {
+                  label: '✓ בדיקת תקינות נתונים (בהגדרות)',
+                  onClick: () => goSettingsSection('sec-audit'),
+                },
+              ]}
+            />
             <Btn kind="primary" onClick={() => setFormOpen(true)}>
               ➕ הוספת {termOf(config, 'entity.family', 'משפחה')}
             </Btn>
