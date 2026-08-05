@@ -8,6 +8,7 @@ import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting, safeHttpsUrl, termOf } from '../../lib/config';
 import { WaBtn } from '../WaBtn';
 import { IncomingPaymentsModal } from './IncomingPayments';
+import { annualAllLines, downloadAnnualReport } from '../../lib/annualReport';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
@@ -246,6 +247,20 @@ export function SupportersView() {
             {customReportOn && (
               <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
                 📊 דו"ח מותאם
+              </Btn>
+            )}
+            {/* ROADMAP-100 ‏#4: דוחות-שנתיים לכל התורמים בקובץ אחד (מקטע לתורם) */}
+            {featureOn(config, 'supporters.annualreport') && (
+              <Btn
+                onClick={() => {
+                  const year = isoToday().slice(0, 4);
+                  const lines = annualAllLines(config.orgName || db.orgName, config.orgTaxId, year, db.supporters);
+                  downloadAnnualReport('annual-all-' + year + '.txt', lines);
+                  toast('📄 דוחות שנת ' + year + ' — הקובץ ירד (מקטע לכל תורם/ת)');
+                }}
+                title="ריכוז-תרומות שנתי לכל התורמים — קובץ אחד, מקטע לכל תורם/ת"
+              >
+                📄 דוחות שנתיים
               </Btn>
             )}
             {ayinOn && dailyReportOn && (
