@@ -27,6 +27,7 @@ import {
   slugify,
 } from '../lib';
 import type { OrgCloudDoc } from '../../../lib/cloudConfig';
+import cloudConfigSrc from '../../../lib/cloudConfig.ts?raw';
 import appSrc from '../../../App.tsx?raw';
 import panelSrc from '../PlatformPanel.tsx?raw';
 import managerSrc from '../ManagerPanel.tsx?raw';
@@ -296,5 +297,21 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     expect(appSrc).toContain('RemoteWizard');
     // הכניסה מהלוח
     expect(panelSrc).toContain("'#builder=' + o.slug");
+  });
+
+  it('🗑 מחיקת-לקוח מלאה (5.8) — תתי-אוספים לפני מסמך-הארגון, ואישור בהקלדת-סלאג', () => {
+    // ‏Firestore: מחיקת מסמך לא מוחקת תתי-אוספים — deleteOrgCompletely מוחקת
+    // את כל אוספי-הנתונים + התורים + meta/envelope + joinRequests ואז את המסמך.
+    expect(cloudConfigSrc).toContain('export async function deleteOrgCompletely');
+    expect(cloudConfigSrc).toMatch(/'incomingPayments', 'smsOutbox', 'mailOutbox'/);
+    expect(cloudConfigSrc).toMatch(/_enc\/envelope/);
+    // סדר: joinRequests ואז מסמך-הארגון (המסמך אחרון — כשל-באמצע משאיר אותו גלוי לניסיון-חוזר)
+    const wipeIdx = cloudConfigSrc.indexOf("PLATFORM_ORGS + '/' + slug + '/joinRequests'");
+    const docIdx = cloudConfigSrc.indexOf('await deleteDoc(doc(db, PLATFORM_ORGS, slug))');
+    expect(wipeIdx).toBeGreaterThan(-1);
+    expect(docIdx).toBeGreaterThan(wipeIdx);
+    // הלוח: מחיקה מותנית בהקלדת הסלאג המדויק — לא קליק-כפול
+    expect(panelSrc).toContain('delTyped.trim() !== delOrg.slug');
+    expect(panelSrc).toContain('deleteOrgCompletely');
   });
 });

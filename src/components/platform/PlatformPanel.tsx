@@ -65,6 +65,10 @@ export function PlatformPanel(props: { onClose: () => void }) {
   const [orgs, setOrgs] = useState<OrgRow[]>([]);
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [joinReqs, setJoinReqs] = useState<JoinReqRow[]>([]);
+  // 🗑 מחיקת-לקוח (5.8) — מודאל עם הקלדת-הסלאג לאישור (הרסני, בלי דרך חזרה)
+  const [delOrg, setDelOrg] = useState<OrgRow | null>(null);
+  const [delTyped, setDelTyped] = useState('');
+  const [delBusy, setDelBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [approveReq, setApproveReq] = useState<ReqRow | null>(null);
   const [slug, setSlug] = useState('');
@@ -192,6 +196,25 @@ export function PlatformPanel(props: { onClose: () => void }) {
     await mod.deleteOrgJoinRequest(r.slug, r.uid).catch(() => {});
     toast('בקשת-ההצטרפות נדחתה');
     await refresh(mod);
+  }
+
+  /** 🗑 מחיקת-לקוח מלאה — כל הנתונים + מסמך-הארגון; מותנית בהקלדת הסלאג. */
+  async function deleteOrgConfirmed() {
+    if (!mod || !delOrg || delBusy) return;
+    if (delTyped.trim() !== delOrg.slug) return;
+    setDelBusy(true);
+    try {
+      const { ENTITY_COLLECTIONS } = await import('../../lib/cloud-diff');
+      const n = await mod.deleteOrgCompletely(delOrg.slug, ENTITY_COLLECTIONS);
+      toast('הלקוח "' + (delOrg.orgName || delOrg.slug) + '" נמחק (' + n + ' מסמכים). את חשבונות-ההתחברות מוחקים בקונסולה ← Authentication');
+      if (sel === delOrg.slug) { setSel(''); setCfg(null); }
+      setDelOrg(null);
+      await refresh(mod);
+    } catch {
+      toast('⚠ המחיקה נכשלה באמצע — לחצו שוב להשלמה (מה שנמחק נשאר מחוק)');
+    } finally {
+      setDelBusy(false);
+    }
   }
 
   function openEditor(s: string) {
@@ -342,6 +365,7 @@ export function PlatformPanel(props: { onClose: () => void }) {
                 <Btn sm onClick={() => openEditor(o.slug)}>✏️ עריכה חיה</Btn>
                 {/* אשף-הרכבה קשור-ענן (5.8): האשף המלא על הלקוח — הבעלים רואה חי */}
                 <Btn sm onClick={() => { window.location.hash = '#builder=' + o.slug; }}>🧩 אשף הרכבה</Btn>
+                <Btn sm kind="danger" onClick={() => { setDelOrg(o); setDelTyped(''); }}>🗑</Btn>
               </span>
             </div>
           ))}
@@ -444,6 +468,25 @@ export function PlatformPanel(props: { onClose: () => void }) {
         )}
       </div>
 
+      {delOrg && (
+        <Modal title={'🗑 מחיקת לקוח — ' + (delOrg.orgName || delOrg.slug)} onClose={() => setDelOrg(null)}>
+          <div style={{ fontSize: 13, lineHeight: 1.7, marginBottom: 10 }}>
+            פעולה <b>בלתי-הפיכה</b>: כל נתוני-הענן של הארגון (משפחות, תרומות, קבלות, הכול) + מסמך-הארגון
+            נמחקים לתמיד. הנתונים המקומיים במכשיר-הלקוח לא נמחקים מכאן, אבל האתר שלו יפסיק לעבוד.
+            <br />
+            חשבונות-ההתחברות (Auth) נמחקים בנפרד בקונסולה ← Authentication.
+          </div>
+          <Field label={'לאישור — הקלידו את הסלאג: ' + delOrg.slug}>
+            <TextInput value={delTyped} onChange={setDelTyped} dir="ltr" placeholder={delOrg.slug} />
+          </Field>
+          <div className="modal-actions">
+            <Btn kind="danger" disabled={delTyped.trim() !== delOrg.slug || delBusy} onClick={() => void deleteOrgConfirmed()}>
+              {delBusy ? 'מוחק…' : '🗑 מחיקה סופית'}
+            </Btn>
+            <Btn onClick={() => setDelOrg(null)}>ביטול</Btn>
+          </div>
+        </Modal>
+      )}
       {approveReq && (
         <Modal title={approveReq.uid ? '✓ אישור — ' + (approveReq.orgName ?? '') : '➕ הקמה ידנית — לקוח בשיחה'} onClose={() => setApproveReq(null)}>
           <FormError error={slugErr} />

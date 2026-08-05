@@ -187,6 +187,43 @@ export async function deleteOrgMemberConfig(slug: string, email: string): Promis
 }
 
 /**
+ * 🗑 מחיקת-לקוח מלאה (5.8.2026 — "איך אני מוחק לקוחות"): ב-Firestore מחיקת
+ * מסמך **לא** מוחקת תתי-אוספים — לכן מוחקים מסודר: כל אוספי-הנתונים של הארגון
+ * (‏ENTITY_COLLECTIONS + התורים + meta + envelope), בקשות-ההצטרפות, ולבסוף
+ * מסמך-הארגון עצמו. מייל-על בלבד (Rules). חשבונות-Auth נמחקים בקונסולה —
+ * ל-SDK-הדפדפן אין הרשאת-מחיקת-משתמשים.
+ * מחזירה את מספר-המסמכים שנמחקו (לחיווי-בעלים).
+ */
+export async function deleteOrgCompletely(
+  slug: string,
+  entityCols: readonly string[],
+): Promise<number> {
+  const db = cloudDb();
+  let deleted = 0;
+  const wipeCol = async (path: string) => {
+    const snap = await getDocs(collection(db, path));
+    for (const d of snap.docs) {
+      await deleteDoc(d.ref);
+      deleted++;
+    }
+  };
+  // אוספי-הנתונים + התורים של השרת (webhook/sms/mail) תחת orgs/{slug}
+  for (const col of [...entityCols, 'incomingPayments', 'smsOutbox', 'mailOutbox']) {
+    await wipeCol('orgs/' + slug + '/' + col);
+  }
+  // מסמכי-היחיד: meta + envelope-ההצפנה (מדולגים בשקט אם אינם)
+  for (const p of ['orgs/' + slug + '/meta/org', 'orgs/' + slug + '/_enc/envelope']) {
+    await deleteDoc(doc(db, p)).catch(() => {});
+    deleted++;
+  }
+  // בקשות-ההצטרפות של העובדים, ואז מסמך-הארגון עצמו
+  await wipeCol(PLATFORM_ORGS + '/' + slug + '/joinRequests');
+  await deleteDoc(doc(db, PLATFORM_ORGS, slug));
+  deleted++;
+  return deleted;
+}
+
+/**
  * כתיבת ליד "נחזור אליכם" (SIGNUP מיתוג 3) — **בלי חשבון**. אוסף
  * create-only ציבורי (Rules: allow create בלבד; קריאה למיילי-על) — לכידת-ליד
  * בטוחה: אף אחד לא יכול לקרוא/למנות את הלידים חוץ מהבעלים.
