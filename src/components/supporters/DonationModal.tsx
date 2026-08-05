@@ -28,6 +28,16 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
   const sponsorOn = featureOn(config, 'supporters.sponsor');
   const [designation, setDesignation] = useState('');
   const [error, setError] = useState('');
+  // UX סבב-ה׳: הקטגוריות הנפוצות בארגון (עד 5) — ברירות-מחדל בקליק
+  const topCats = (() => {
+    const counts = new Map<string, number>();
+    for (const sp of useApp.getState().db.supporters)
+      for (const d of sp.donations) {
+        const c = (d.cat || '').trim();
+        if (c) counts.set(c, (counts.get(c) ?? 0) + 1);
+      }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([c]) => c);
+  })();
 
   function save() {
     const amt = Math.round(Number(amount) * 100) / 100;
@@ -120,6 +130,16 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         )}
         <Field label="קטגוריה">
           <TextInput value={cat} onChange={setCat} placeholder="מלגות, פעילות, כללי…" />
+          {/* UX סבב-ה׳: צ'יפי הקטגוריות-הנפוצות של הארגון — קליק במקום הקלדה */}
+          {topCats.length > 0 && (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+              {topCats.map((c) => (
+                <button key={c} type="button" className={'chip' + (cat === c ? ' on' : '')} onClick={() => setCat(c)}>
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
         </Field>
         {sponsorOn && (
           <Field label={'ייעוד — אמץ חתן/' + termOf(config, 'entity.family', 'משפחה') + ' (אופציונלי)'}>

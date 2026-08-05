@@ -117,9 +117,12 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
   const db = useApp((s) => s.db);
   const upsertCourse = useApp((s) => s.upsertCourse);
   const upsertTeacher = useApp((s) => s.upsertTeacher);
+  const upsertRoom = useApp((s) => s.upsertRoom);
   const selectCourse = useApp((s) => s.selectCourse);
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
+  // UX סבב-ה׳: יצירת-חדר inline — סוגר את מבוי-הסתום 'חדר חובה שנוצר רק בהגדרות'
+  const [newRoomName, setNewRoomName] = useState<string | null>(null);
   const cfg = useApp((s) => s.config);
 
   const discountsOn = featureOn(cfg, 'courses.discounts');
@@ -320,6 +323,38 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
                 : [{ value: '', label: 'אין ' + termOf(cfg, 'entity.rooms', 'חדרים') + ' במערכת' }]
             }
           />
+          {/* UX סבב-ה׳: '➕ חדר חדש' בלי לצאת מהטופס (המבוי-הסתום: חדר חובה,
+              נוצר רק בהגדרות ⇒ טופס-החוג נתקע לארגון טרי). ברירות-מחדל שפויות;
+              כוונון מלא — בהגדרות←חדרים כרגיל. */}
+          {newRoomName === null ? (
+            <button
+              type="button"
+              onClick={() => setNewRoomName('')}
+              style={{ fontSize: 12, color: 'var(--accent-deep, var(--accent))', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', textAlign: 'start', fontWeight: 700 }}
+            >
+              {'➕ ' + termOf(cfg, 'entity.room', 'חדר') + ' חדש'}
+            </button>
+          ) : (
+            <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+              <TextInput value={newRoomName} onChange={setNewRoomName} placeholder={'שם ה' + termOf(cfg, 'entity.room', 'חדר')} />
+              <Btn
+                sm
+                kind="primary"
+                onClick={() => {
+                  const name = (newRoomName || '').trim();
+                  if (!name) return;
+                  const id = nextId('rm');
+                  upsertRoom({ id, name, active: true, slot: 60, cap: 20, location: '', rate: 0, from: '08:00', to: '22:00', access: true, notes: '', eq: {} });
+                  set({ roomId: id });
+                  setNewRoomName(null);
+                  toast('✓ ' + name + ' נוצר ונבחר — כוונון מלא בהגדרות');
+                }}
+              >
+                יצירה
+              </Btn>
+              <Btn sm onClick={() => setNewRoomName(null)}>ביטול</Btn>
+            </div>
+          )}
         </Field>
         <Field label="יום קבוע">
           <Select
