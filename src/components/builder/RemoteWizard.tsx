@@ -16,8 +16,32 @@ import { BuilderWizard } from './BuilderWizard';
 
 type CloudMod = typeof import('../../store/cloudSync');
 
-/** מפתח תצלום-המיתוג — per-tab (sessionStorage); App משחזר ממנו אחרי קריסה. */
+/** מפתח תצלום-המיתוג — ‏localStorage (שורד סגירת-טאב); App משחזר ממנו אחרי קריסה. */
 export const BUILDER_PREV_KEY = 'maor_builder_prev';
+
+/**
+ * שחזור תצלום-המיתוג של הבעלים (config + ערכה-אישית) — משותף לסגירה-מסודרת
+ * (close) ולשחזור-קריסה ב-App. תומך גם בתצלום ישן (config בלבד, לפני 5.8).
+ */
+export function restoreBuilderPrev(): void {
+  try {
+    const raw = localStorage.getItem(BUILDER_PREV_KEY);
+    if (raw) {
+      const prev = JSON.parse(raw) as { config?: unknown; uiTheme?: string | null; uiAccent?: string | null; slug?: string };
+      const st = useApp.getState();
+      // פורמט ישן = הקונפיג עצמו (יש slug ברמה-העליונה); חדש = {config, uiTheme, uiAccent}
+      const cfg = prev.config ?? (prev.slug ? prev : null);
+      if (cfg) st.setConfig(cfg as never);
+      if ('uiTheme' in prev || 'uiAccent' in prev) {
+        // שחזור ההעדפה-האישית בדיוק כפי-שהייתה (null = לא-הוגדרה ⇒ נופלת לערכת-הקונפיג);
+        // ה-subscriber של db.ui מחיל את הערכה על ה-DOM אוטומטית.
+        st.setDb((db) => ({ ui: { ...db.ui, theme: prev.uiTheme ?? undefined, accent: prev.uiAccent ?? undefined } }));
+      }
+    }
+    localStorage.removeItem(BUILDER_PREV_KEY);
+    sessionStorage.removeItem(BUILDER_PREV_KEY); // ניקוי שאריות מהפורמט הישן
+  } catch { /* אין תצלום — נשארים כמו-שזה */ }
+}
 
 export function RemoteWizard({ slug, onClose }: { slug: string; onClose: () => void }) {
   const toast = useApp((s) => s.toast);
@@ -29,8 +53,17 @@ export function RemoteWizard({ slug, onClose }: { slug: string; onClose: () => v
   useEffect(() => {
     let alive = true;
     try {
-      sessionStorage.setItem(BUILDER_PREV_KEY, JSON.stringify(useApp.getState().config));
-    } catch { /* אין sessionStorage — עדיין עובדים, בלי שחזור-קריסה */ }
+      // ‏localStorage (לא session! ציד-באגים 5.8): סגירת-טאב באמצע עריכה הייתה
+      // מוחקת את התצלום ⇒ האתר של הבעלים נשאר לבוש-כלקוח לתמיד. התצלום כולל
+      // גם את ערכת-הנושא האישית (db.ui) — האשף משנה אותה חי (pickTheme/setTheme)
+      // והיא לא חלק מה-config המשוחזר.
+      const st = useApp.getState();
+      localStorage.setItem(BUILDER_PREV_KEY, JSON.stringify({
+        config: st.config,
+        uiTheme: st.db.ui.theme ?? null,
+        uiAccent: st.db.ui.accent ?? null,
+      }));
+    } catch { /* אין localStorage — עדיין עובדים, בלי שחזור-קריסה */ }
     void import('../../store/cloudSync').then(async (m) => {
       modRef.current = m;
       try {
@@ -68,13 +101,9 @@ export function RemoteWizard({ slug, onClose }: { slug: string; onClose: () => v
     };
   }, [ready, slug]);
 
-  /** סגירה: שחזור המיתוג המקורי של הבעלים. */
+  /** סגירה: שחזור המיתוג + הערכה-האישית של הבעלים (restoreBuilderPrev המשותף). */
   function close() {
-    try {
-      const raw = sessionStorage.getItem(BUILDER_PREV_KEY);
-      if (raw) useApp.getState().setConfig(JSON.parse(raw));
-      sessionStorage.removeItem(BUILDER_PREV_KEY);
-    } catch { /* אין תצלום — נשארים כמו-שזה */ }
+    restoreBuilderPrev();
     onClose();
   }
 
