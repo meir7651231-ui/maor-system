@@ -290,8 +290,11 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     // ובסגירה/קריסה מיתוג-הבעלים חוזר מהתצלום.
     expect(remoteSrc).toContain('writeOrgCloudConfig(slug, s.config)');
     expect(remoteSrc).toContain('BUILDER_PREV_KEY');
-    expect(remoteSrc).toMatch(/sessionStorage\.setItem\(BUILDER_PREV_KEY/);
-    expect(remoteSrc).toMatch(/close\(\)[\s\S]{0,400}getItem\(BUILDER_PREV_KEY\)/);
+    // ציד-באגים 5.8: התצלום ב-localStorage (sessionStorage נמחק עם סגירת-הטאב ⇒
+    // האתר של הבעלים נשאר לבוש-כלקוח לתמיד) + כולל את הערכה-האישית (db.ui)
+    expect(remoteSrc).toMatch(/localStorage\.setItem\(BUILDER_PREV_KEY/);
+    expect(remoteSrc).toContain('uiTheme: st.db.ui.theme ?? null');
+    expect(remoteSrc).toMatch(/restoreBuilderPrev[\s\S]{0,600}localStorage\.getItem\(BUILDER_PREV_KEY\)/);
     // ‏App: זיהוי ‏#builder=slug, שער מייל-על, ושחזור-קריסה
     expect(appSrc).toContain("window.location.hash.startsWith('#builder=')");
     expect(appSrc).toMatch(/remoteBuilderSlug[\s\S]{0,400}isSuperAdmin\(cloud\.user\?\.email\)/);
@@ -315,6 +318,15 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     expect(panelSrc).toContain('delTyped.trim() !== delOrg.slug');
     expect(panelSrc).toContain('deleteOrgCompletely');
     expect(panelSrc).toContain('allRaw.filter((o) => !o.deleted)');
+  });
+
+  it('🛡 ציד-באגים 5.8 — עובד-ממתין לא מייצר בקשת-ארגון-רפאים; בקשה-בלי-שם ניתנת-לאישור', () => {
+    // באג 3: הריפוי-העצמי במסך-ההמתנה רשם לעובד-עם-קוד בקשת-ארגון-חדש בלוח
+    // (אישורה היה מקים ארגון-רפאים). עכשיו: PENDING_JOIN_KEY ⇒ ריפוי לתור-הארגון.
+    expect(useAppSrc).toContain('PENDING_JOIN_KEY');
+    expect(useAppSrc).toMatch(/join\?\.slug[\s\S]{0,300}writeOrgJoinRequest\(join\.slug, user\.uid/);
+    // באג 4: בקשת-חילוץ מינימלית (בלי שם-ארגון) — האישור דרש שם ולא היה שדה
+    expect(panelSrc).toContain("(!approveReq.uid || !(approveReq.orgName ?? '').trim())");
   });
 
   it('🛡 ניקוי-מקומי בטוח (5.8) — רק על מצבת מפורשת, לעולם לא על כשל-קריאה או על השורש', () => {

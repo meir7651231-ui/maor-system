@@ -17,7 +17,7 @@ import { freshenDemoDb } from './lib/demoFresh';
 import { todaySessions } from './components/home/homeData';
 import { Btn } from './components/ui';
 import { BuilderWizard } from './components/builder/BuilderWizard';
-import { BUILDER_PREV_KEY, RemoteWizard } from './components/builder/RemoteWizard';
+import { RemoteWizard, restoreBuilderPrev } from './components/builder/RemoteWizard';
 import { ImpactWall } from './components/wall/ImpactWall';
 import { MoneyTimer } from './components/timer/MoneyTimer';
 import { CashRegister } from './components/timer/CashRegister';
@@ -217,16 +217,11 @@ export default function App() {
   }, []);
 
   // שחזור-קריסה של האשף-קשור-הענן (5.8): אם נשאר תצלום-מיתוג מסשן שנקטע
-  // (הדפדפן נסגר באמצע עריכת-לקוח) והאשף לא פתוח — מחזירים את מיתוג-הבעלים.
+  // (טאב נסגר / דפדפן קרס באמצע עריכת-לקוח) והאשף לא פתוח — מחזירים את
+  // מיתוג-הבעלים + הערכה-האישית (restoreBuilderPrev — localStorage, שורד סגירה).
   useEffect(() => {
     if (window.location.hash.startsWith('#builder=')) return;
-    try {
-      const raw = sessionStorage.getItem(BUILDER_PREV_KEY);
-      if (raw) {
-        useApp.getState().setConfig(JSON.parse(raw));
-        sessionStorage.removeItem(BUILDER_PREV_KEY);
-      }
-    } catch { /* אין תצלום */ }
+    restoreBuilderPrev();
   }, []);
   useEffect(() => {
     const onHash = () => {

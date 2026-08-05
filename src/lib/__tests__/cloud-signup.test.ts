@@ -115,7 +115,7 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect(signupIdx).toBeGreaterThan(-1);
     expect(writeIdx).toBeGreaterThan(signupIdx);
     // מסך-ההמתנה בשורש רושם מחדש — גם בלי פרטים שמורים (בקשה מינימלית מהמייל)
-    expect(useAppSrc).toMatch(/membership: 'pending' \}\);[\s\S]{0,1800}writeOrgRequestResilient\([\s\S]{0,120}user\.uid/);
+    expect(useAppSrc).toMatch(/membership: 'pending' \}\);[\s\S]{0,3500}writeOrgRequestResilient\([\s\S]{0,120}user\.uid/);
     // אושר-ונותב ⇒ הפרטים המקומיים מתנקים
     expect(useAppSrc).toContain('localStorage.removeItem(PENDING_SIGNUP_KEY)');
   });

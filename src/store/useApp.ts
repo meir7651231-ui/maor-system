@@ -522,6 +522,9 @@ const PENDING_SIGNUP_KEY = 'maor_pending_signup';
 /** ה-uid שבקשתו נכתבה בהצלחה — מונע רישום-מחדש מיותר (create-על-קיים נדחה
  *  ב-Rules והיה מציג שגיאת-שווא במסך-ההמתנה). */
 const REQ_OK_KEY = 'maor_req_ok';
+/** הרשמת-עובד ("קוד מהבוס") — {slug, email, ...}: הריפוי-העצמי מרפא לתור
+ *  ה-joinRequests של הארגון, לא לבקשות-הפלטפורמה (מניעת בקשת-ארגון-רפאים). */
+const PENDING_JOIN_KEY = 'maor_pending_join';
 
 /** קוד-שגיאה קריא מכשל-Firestore ('permission-denied' וכו') — לתצוגת-אבחון. */
 function fsErrCode(e: unknown): string {
@@ -786,6 +789,7 @@ export const useApp = create<AppState>()((set, get) => {
                 if (slugs.length && !orgSlugFromUrl()) {
                   try {
                     localStorage.removeItem(PENDING_SIGNUP_KEY); // אושר — הפרטים כבר לא נחוצים
+                    localStorage.removeItem(PENDING_JOIN_KEY);
                   } catch { /* לא קריטי */ }
                   const url = new URL(window.location.href);
                   url.searchParams.set('org', slugs[0]);
@@ -805,6 +809,19 @@ export const useApp = create<AppState>()((set, get) => {
                     return;
                   }
                 } catch { /* localStorage חסום ⇒ מנסים לכתוב */ }
+                // עובד-ממתין ("קוד מהבוס", ציד-באגים 5.8): הריפוי לתור-הארגון —
+                // לא לבקשות-הפלטפורמה (אחרת נולדת בקשת-ארגון-רפאים אצל הבעלים)
+                try {
+                  const joinRaw = localStorage.getItem(PENDING_JOIN_KEY);
+                  const join = joinRaw ? (JSON.parse(joinRaw) as { slug?: string; email?: string; name?: string; phone?: string; code?: string }) : null;
+                  if (join?.slug && String(join.email ?? '').toLowerCase() === mail) {
+                    void mod
+                      .writeOrgJoinRequest(join.slug, user.uid, { email: mail, name: join.name ?? mail.split('@')[0], phone: join.phone ?? '', code: join.code ?? '', at: isoToday() })
+                      .then(() => setCloud({ reqStatus: 'ok' }))
+                      .catch((e) => setCloud({ reqStatus: fsErrCode(e) }));
+                    return;
+                  }
+                } catch { /* JSON פגום ⇒ ממשיכים למסלול-הארגון-החדש */ }
                 let stored: import('../lib/cloudConfig').OrgRequestDoc | null = null;
                 try {
                   const raw = localStorage.getItem(PENDING_SIGNUP_KEY);
@@ -1050,16 +1067,23 @@ export const useApp = create<AppState>()((set, get) => {
       const uid = await cloudMod.signUp(email.trim(), password);
       // בקשת-הצטרפות לארגון של הקוד (לא בקשת-ארגון-חדש!) — create-only, uid תואם
       // (Rules v3). המנהל יראה ויאשר. כשל-כתיבה מדווח אך לא מפיל את יצירת-המשתמש.
+      const joinDoc = {
+        email: email.trim().toLowerCase(),
+        name: email.trim().split('@')[0],
+        phone: phone.trim(),
+        code: parsed.code,
+        at: new Date().toISOString(),
+      };
+      // ציד-באגים 5.8: הסימון נשמר **לפני** הכתיבה — בלעדיו הריפוי-העצמי במסך-
+      // ההמתנה חשב שעובד-ממתין הוא נרשם-ארגון-חדש ורשם בקשת-ארגון-רפאים בלוח;
+      // עכשיו הוא מרפא לתור-הנכון (joinRequests של הארגון מהקוד).
       try {
-        await cloudMod.writeOrgJoinRequest(parsed.slug, uid, {
-          email: email.trim().toLowerCase(),
-          name: email.trim().split('@')[0],
-          phone: phone.trim(),
-          code: parsed.code,
-          at: new Date().toISOString(),
-        });
+        localStorage.setItem(PENDING_JOIN_KEY, JSON.stringify({ slug: parsed.slug, ...joinDoc }));
+      } catch { /* localStorage חסום — הכתיבה הישירה עדיין מנוסה */ }
+      try {
+        await cloudMod.writeOrgJoinRequest(parsed.slug, uid, joinDoc);
       } catch {
-        get().toast('⚠ הבקשה נרשמה חלקית — בקשו מהמנהל לאשר, או נסו שוב');
+        get().toast('⚠ הבקשה נרשמה חלקית — ננסה שוב אוטומטית בהתחברות הבאה');
       }
       // watchAuth: בשורש עדיין-לא-חבר ⇒ מסך המתנה. אחרי אישור-המנהל, כניסה
       // רגילה מנתבת אוטומטית לארגון (findMemberOrgSlugs).
