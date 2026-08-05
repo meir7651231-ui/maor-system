@@ -122,8 +122,19 @@ export function PlatformPanel(props: { onClose: () => void }) {
     setSlugErr('');
   }
 
+  /** הקמה ידנית (5.8 — טלפון-מסונן חוסם Firestore אצל הלקוח ⇒ אין בקשה):
+   *  אותו מודאל-אישור בדיוק, בלי מסמך-בקשה — הבעלים מקליד שם+מייל בשיחה. */
+  function openManualCreate() {
+    setApproveReq({ uid: '', orgName: '', email: '' });
+    setSlug('');
+    setManagerEmail('');
+    setSeedPack('');
+    setSlugErr('');
+  }
+
   async function approve() {
     if (!mod || !approveReq) return;
+    if (!approveReq.orgName?.trim()) return setSlugErr('שם הארגון חסר');
     if (!isValidSlug(slug)) return setSlugErr('סלאג: אותיות לטיניות קטנות/ספרות/מקפים, 2-40 תווים');
     if (orgs.some((o) => o.slug === slug)) return setSlugErr('הסלאג כבר תפוס — בחרו אחר');
     // ORGADMIN — מייל-העל ממנה את המנהל ידנית (ברירת-מחדל = המבקש). המנהל = חבר
@@ -148,7 +159,7 @@ export function PlatformPanel(props: { onClose: () => void }) {
       orgName: approveReq.orgName ?? '',
       createdAt: new Date().toISOString(),
     });
-    await mod.deleteOrgRequest(approveReq.uid);
+    if (approveReq.uid) await mod.deleteOrgRequest(approveReq.uid); // הקמה-ידנית = אין מסמך-בקשה למחוק
     const packLabel = seedPack ? VERTICAL_PACKS.find((p) => p.id === seedPack)?.label : '';
     toast('הארגון "' + (approveReq.orgName ?? slug) + '" אושר' + (packLabel ? ' עם חבילת "' + packLabel + '"' : '') + ' — אמרו ללקוח להתחבר שוב');
     setApproveReq(null);
@@ -219,7 +230,13 @@ export function PlatformPanel(props: { onClose: () => void }) {
 
         {/* בקשות ממתינות */}
         <section className="card" style={{ marginBottom: 14 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>📥 בקשות ממתינות ({requests.length})</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 800 }}>📥 בקשות ממתינות ({requests.length})</h2>
+            {/* הקמה-ידנית (5.8): לקוח שהתקשר / שבקשתו לא נקלטה (טלפון-מסונן) — מקימים בלי בקשה */}
+            <span style={{ marginInlineStart: 'auto' }}>
+              <Btn sm onClick={openManualCreate}>➕ הקמה ידנית</Btn>
+            </span>
+          </div>
           {loading && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>טוען…</div>}
           {!loading && requests.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>אין בקשות ממתינות</div>}
           {requests.map((r) => (
@@ -426,13 +443,27 @@ export function PlatformPanel(props: { onClose: () => void }) {
       </div>
 
       {approveReq && (
-        <Modal title={'✓ אישור — ' + (approveReq.orgName ?? '')} onClose={() => setApproveReq(null)}>
+        <Modal title={approveReq.uid ? '✓ אישור — ' + (approveReq.orgName ?? '') : '➕ הקמה ידנית — לקוח בשיחה'} onClose={() => setApproveReq(null)}>
           <FormError error={slugErr} />
           <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
-            {seedPack
-              ? 'הארגון ייוולד עם חבילת-התחום שהלקוח בחר בהרשמה — מכווננים יחד בעריכה החיה. לאחר האישור אמרו לו: "תתחבר שוב".'
-              : 'הארגון ייוולד כשהכול כבוי — מדליקים יחד עם הלקוח בעריכה החיה. לאחר האישור אמרו לו: "תתחבר שוב".'}
+            {!approveReq.uid
+              ? 'ללא מסמך-בקשה: מקלידים שם ומייל בשיחה — הלקוח מתחבר עם המייל הזה אחרי שנרשם (או שכבר נרשם ובקשתו לא נקלטה).'
+              : seedPack
+                ? 'הארגון ייוולד עם חבילת-התחום שהלקוח בחר בהרשמה — מכווננים יחד בעריכה החיה. לאחר האישור אמרו לו: "תתחבר שוב".'
+                : 'הארגון ייוולד כשהכול כבוי — מדליקים יחד עם הלקוח בעריכה החיה. לאחר האישור אמרו לו: "תתחבר שוב".'}
           </div>
+          {!approveReq.uid && (
+            <Field label="שם הארגון *">
+              <TextInput
+                value={approveReq.orgName ?? ''}
+                onChange={(v) => {
+                  setApproveReq({ ...approveReq, orgName: v });
+                  setSlug(slugify(v, orgs.map((o) => o.slug)));
+                }}
+                placeholder="עמותת אור"
+              />
+            </Field>
+          )}
           <Field label="חבילת-פתיחה (מהתחום שנבחר בהרשמה)">
             <Select
               value={seedPack}
