@@ -43,6 +43,13 @@ describe('🛠 ratchet — ADMINHUB: כניסת-ניהול גלויה למנהל
     expect(hubSrc).toContain('אשף הקמה מקומי');
   });
 
+  it('🛡 האשף בארגון-ענן = מייל-על בלבד (5.8 — "למה כל לקוח יכול לראות אשף הקמה")', () => {
+    // הבאג: isAdminUser מחזיר true-לכולם כשאין adminEmails, וארגון-פלטפורמה
+    // נולד בלי ⇒ כל לקוח שהקליד #builder קיבל את האשף המלא (כולל המחירון!).
+    expect(appSrc).toMatch(/canBuilder =\s*\n?\s*cloud\.enabled && config\.cloudRoot !== true && config\.slug !== 'default'\s*\n?\s*\? isSuperAdmin\(cloud\.user\?\.email\)/);
+    expect(appSrc).toContain('(!canBuilder ? (');
+  });
+
   it('ratchet: ה-hash הישן עדיין מטופל ב-onHash (תאימות אחורה)', () => {
     // ‏5.8: ‏#builder הפך ל-startsWith — תופס גם את הישן (#builder) וגם את
     // הקשור-ענן (#builder=slug, RemoteWizard); התאימות-אחורה נשמרת מעצם ההכלה.
