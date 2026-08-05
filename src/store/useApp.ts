@@ -508,6 +508,11 @@ function isoDaysAgo(days: number): string {
  * חוסם את דעיכת אי-הפעילות של כל האחרים באותו יום. slug 'default' שומר על המפתח הישן.
  */
 const DECAY_LS_KEY = 'maor_decay';
+
+/** ריפוי-עצמי של בקשת-הרשמה (5.8.2026): פרטי-האשף נשמרים כאן בהרשמה, כדי
+ *  שכתיבת-בקשה שנכשלה (רשת/Rules) תירשם מחדש אוטומטית בהתחברות הבאה.
+ *  גלובלי במכוון — ההרשמה קורית באתר-השורש, לפני שיש ארגון (אין namespace). */
+const PENDING_SIGNUP_KEY = 'maor_pending_signup';
 function decayKey(slug: string): string {
   return !slug || slug === 'default' ? DECAY_LS_KEY : `${DECAY_LS_KEY}:${slug}`;
 }
@@ -731,12 +736,36 @@ export const useApp = create<AppState>()((set, get) => {
               setCloud({ membership: 'checking' });
               void mod.findMemberOrgSlugs(user.email).then((slugs) => {
                 if (slugs.length && !orgSlugFromUrl()) {
+                  try {
+                    localStorage.removeItem(PENDING_SIGNUP_KEY); // אושר — הפרטים כבר לא נחוצים
+                  } catch { /* לא קריטי */ }
                   const url = new URL(window.location.href);
                   url.searchParams.set('org', slugs[0]);
                   window.location.replace(url.toString()); // טעינה מחדש לתחום-הארגון
                   return;
                 }
                 setCloud({ membership: 'pending' });
+                // ריפוי-עצמי (דיווח-בעלים 5.8): נרשם שממתין בלי שבקשתו נקלטה —
+                // כתיבת-ההרשמה המקורית נכשלה (רשת/Rules) והבקשה אבדה, והבעלים
+                // לא רואה כלום בלוח. כל התחברות למסך-ההמתנה רושמת מחדש: הפרטים
+                // מה-localStorage (נשמרו בהרשמה), ואם אין (מכשיר אחר) — בקשה
+                // מינימלית מהמייל. platformRequests הוא create-only עם uid תואם
+                // ⇒ אם הבקשה כבר קיימת הכתיבה נדחית בשקט — אפס כפילויות.
+                let stored: import('../lib/cloudConfig').OrgRequestDoc | null = null;
+                try {
+                  const raw = localStorage.getItem(PENDING_SIGNUP_KEY);
+                  stored = raw ? (JSON.parse(raw) as import('../lib/cloudConfig').OrgRequestDoc) : null;
+                } catch { /* JSON פגום ⇒ בקשה מינימלית */ }
+                const mine = stored && String(stored.email ?? '').toLowerCase() === mail;
+                void mod
+                  .writeOrgRequest(user.uid, mine && stored ? stored : {
+                    orgName: '',
+                    contactName: mail.split('@')[0],
+                    phone: '',
+                    email: mail,
+                    at: new Date().toISOString(),
+                  })
+                  .catch(() => { /* קיימת כבר / אין רשת — מסך-ההמתנה נשאר */ });
               });
             }
           }
@@ -915,19 +944,28 @@ export const useApp = create<AppState>()((set, get) => {
       // מסמך הבקשה — כל מה שנרשם-חדש רשאי לכתוב (Rules v2); כשל בכתיבה לא
       // מפיל את ההרשמה (הבעלים יראה את המשתמש ב-Auth), אך מדווח.
       // פרופיל האשף (SIGNUP3) נשלח רק כשקיים — שדות ריקים לא נכתבים.
+      const reqDoc = {
+        orgName: orgName.trim(),
+        contactName: contactName.trim(),
+        phone: phone.trim(),
+        email: email.trim().toLowerCase(),
+        at: new Date().toISOString(),
+        ...(profile?.industry ? { industry: profile.industry } : {}),
+        ...(profile?.size ? { size: profile.size } : {}),
+        ...(profile?.needs && profile.needs.length ? { needs: profile.needs } : {}),
+      };
+      // ריפוי-עצמי (דיווח-בעלים 5.8 — "מאור נרשם ואני לא רואה בקשה"): הפרטים
+      // נשמרים מקומית **לפני** ניסיון-הכתיבה; אם הכתיבה נכשלת (רשת/Rules) —
+      // ההתחברות הבאה תרשום את הבקשה מחדש ממסך-ההמתנה (create-only ⇒ אידמפוטנטי).
       try {
-        await cloudMod.writeOrgRequest(uid, {
-          orgName: orgName.trim(),
-          contactName: contactName.trim(),
-          phone: phone.trim(),
-          email: email.trim().toLowerCase(),
-          at: new Date().toISOString(),
-          ...(profile?.industry ? { industry: profile.industry } : {}),
-          ...(profile?.size ? { size: profile.size } : {}),
-          ...(profile?.needs && profile.needs.length ? { needs: profile.needs } : {}),
-        });
+        localStorage.setItem(PENDING_SIGNUP_KEY, JSON.stringify(reqDoc));
       } catch {
-        get().toast('⚠ הבקשה נרשמה חלקית — צרו קשר עם מנהל המערכת');
+        /* localStorage מלא/חסום — הכתיבה הישירה עדיין מנוסה */
+      }
+      try {
+        await cloudMod.writeOrgRequest(uid, reqDoc);
+      } catch {
+        get().toast('⚠ רישום-הבקשה נכשל — ננסה שוב אוטומטית בהתחברות הבאה');
       }
       // watchAuth יקלוט את המשתמש ⇒ שער-החברות יציג את מסך ההמתנה
     },
