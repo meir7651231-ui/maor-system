@@ -120,6 +120,18 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect(useAppSrc).toContain('localStorage.removeItem(PENDING_SIGNUP_KEY)');
   });
 
+  it('🛡 כשל-הבקשה גלוי במסך-ההמתנה (5.8) — לא "הבקשה נקלטה" על כתיבה שנכשלה', () => {
+    // הבאג: המסך אמר "הבקשה נקלטה" ללא-תנאי; permission-denied נבלע בשקט
+    // והבעלים לא ידע שה-Rules חוסמים. עכשיו: reqStatus מוצג עם קוד-השגיאה.
+    expect(useAppSrc).toContain('reqStatus');
+    expect(useAppSrc).toContain('fsErrCode');
+    // כתיבה מוצלחת מסומנת (REQ_OK_KEY) ⇒ אין רישום-מחדש מיותר ואין שגיאת-שווא
+    expect(useAppSrc).toContain('localStorage.setItem(REQ_OK_KEY');
+    expect(useAppSrc).toMatch(/getItem\(REQ_OK_KEY\) === user\.uid/);
+    expect(loginSrc).toContain("reqStatus !== 'ok'");
+    expect(loginSrc).toContain('הבקשה לא נקלטה');
+  });
+
   it('הגנת-מקור: Rules v2 — בקשות uid-תואם, ארגונים לחברים, כתיבה למיילי-על, שורש כהיום', () => {
     expect(rulesSrc).toContain('platformRequests/{uid}');
     expect(rulesSrc).toContain('request.auth.uid == uid');

@@ -121,6 +121,12 @@ export interface CloudState {
   cloudEncrypted?: boolean;
   /** ORGADMIN — המשתמש המחובר הוא מנהל-הארגון (org.manager) ⇒ פאנל-המנהל 👥. */
   isManager?: boolean;
+  /**
+   * סטטוס רישום-הבקשה (5.8 — "מאור נרשם ולא רואים בקשה"): 'ok' = הבקשה נכתבה
+   * לענן; אחרת קוד-השגיאה של הכתיבה האחרונה (למשל permission-denied — ‏Rules).
+   * מוצג במסך-ההמתנה — כשל לא נבלע יותר בשקט. undefined = טרם נוסה.
+   */
+  reqStatus?: string;
 }
 
 interface AppState {
@@ -513,6 +519,15 @@ const DECAY_LS_KEY = 'maor_decay';
  *  שכתיבת-בקשה שנכשלה (רשת/Rules) תירשם מחדש אוטומטית בהתחברות הבאה.
  *  גלובלי במכוון — ההרשמה קורית באתר-השורש, לפני שיש ארגון (אין namespace). */
 const PENDING_SIGNUP_KEY = 'maor_pending_signup';
+/** ה-uid שבקשתו נכתבה בהצלחה — מונע רישום-מחדש מיותר (create-על-קיים נדחה
+ *  ב-Rules והיה מציג שגיאת-שווא במסך-ההמתנה). */
+const REQ_OK_KEY = 'maor_req_ok';
+
+/** קוד-שגיאה קריא מכשל-Firestore ('permission-denied' וכו') — לתצוגת-אבחון. */
+function fsErrCode(e: unknown): string {
+  const code = (e as { code?: string })?.code;
+  return code || String(e).slice(0, 120);
+}
 function decayKey(slug: string): string {
   return !slug || slug === 'default' ? DECAY_LS_KEY : `${DECAY_LS_KEY}:${slug}`;
 }
@@ -751,6 +766,12 @@ export const useApp = create<AppState>()((set, get) => {
                 // מה-localStorage (נשמרו בהרשמה), ואם אין (מכשיר אחר) — בקשה
                 // מינימלית מהמייל. platformRequests הוא create-only עם uid תואם
                 // ⇒ אם הבקשה כבר קיימת הכתיבה נדחית בשקט — אפס כפילויות.
+                try {
+                  if (localStorage.getItem(REQ_OK_KEY) === user.uid) {
+                    setCloud({ reqStatus: 'ok' }); // כבר נכתבה בהצלחה — אין מה לרשום שוב
+                    return;
+                  }
+                } catch { /* localStorage חסום ⇒ מנסים לכתוב */ }
                 let stored: import('../lib/cloudConfig').OrgRequestDoc | null = null;
                 try {
                   const raw = localStorage.getItem(PENDING_SIGNUP_KEY);
@@ -765,7 +786,15 @@ export const useApp = create<AppState>()((set, get) => {
                     email: mail,
                     at: new Date().toISOString(),
                   })
-                  .catch(() => { /* קיימת כבר / אין רשת — מסך-ההמתנה נשאר */ });
+                  .then(() => {
+                    setCloud({ reqStatus: 'ok' });
+                    try { localStorage.setItem(REQ_OK_KEY, user.uid); } catch { /* לא קריטי */ }
+                  })
+                  .catch((e) => {
+                    // הכשל גלוי במסך-ההמתנה (5.8) — permission-denied כאן פירושו
+                    // בדרך-כלל Rules חסומים (או בקשה שכבר קיימת ממכשיר אחר)
+                    setCloud({ reqStatus: fsErrCode(e) });
+                  });
               });
             }
           }
@@ -964,8 +993,12 @@ export const useApp = create<AppState>()((set, get) => {
       }
       try {
         await cloudMod.writeOrgRequest(uid, reqDoc);
-      } catch {
-        get().toast('⚠ רישום-הבקשה נכשל — ננסה שוב אוטומטית בהתחברות הבאה');
+        setCloud({ reqStatus: 'ok' });
+        try { localStorage.setItem(REQ_OK_KEY, uid); } catch { /* לא קריטי */ }
+      } catch (e) {
+        // הכשל גלוי (5.8): הקוד מוצג גם במסך-ההמתנה — לא נבלע בשקט
+        setCloud({ reqStatus: fsErrCode(e) });
+        get().toast('⚠ רישום-הבקשה נכשל (' + fsErrCode(e) + ') — ננסה שוב אוטומטית');
       }
       // watchAuth יקלוט את המשתמש ⇒ שער-החברות יציג את מסך ההמתנה
     },
