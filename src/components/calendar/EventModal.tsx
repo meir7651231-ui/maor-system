@@ -86,6 +86,14 @@ export function EventModal(props: {
   const [error, setError] = useState('');
   const [armDelete, setArmDelete] = useState(false);
   const armedAt = useRef(0);
+  // UX סבב-ה׳ (השלמה): רוב האירועים = תזכורת/שיחה — מחיר/חדר/שיוך/דחיפות/בוצע
+  // מתקפלים. נפתח אוטומטית כשעורכים אירוע שכבר יש בו ערך, או כש-prefill מביא
+  // חדר/שיוך (הזמנת-משבצת מהיומן חייבת להציג את החדר). כל השדות נשמרים.
+  const [moreOpen, setMoreOpen] = useState<boolean>(
+    () =>
+      (!!ev && !!(ev.price || ev.roomId || ev.famId || ev.done || (ev.priority && ev.priority !== 'green'))) ||
+      !!(prefill?.roomId || prefill?.famId),
+  );
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF((p) => ({ ...p, [k]: v }));
 
@@ -238,13 +246,6 @@ export function EventModal(props: {
             options={TYPE_OPTIONS}
           />
         </Field>
-        <Field label="רמת דחיפות">
-          <Select
-            value={f.priority}
-            onChange={(v) => set('priority', v as EventPriority)}
-            options={PRIORITY_OPTIONS}
-          />
-        </Field>
         {f.type === 'custom' && (
           <div style={{ gridColumn: '1 / -1' }}>
             <Field label="סוג אירוע — מותאם *">
@@ -256,23 +257,42 @@ export function EventModal(props: {
             </Field>
           </div>
         )}
-        <Field label="מחיר האירוע (₪)">
-          <TextInput type="number" value={f.price} onChange={(v) => set('price', v)} dir="ltr" placeholder="0" />
-        </Field>
-        <Field label={termOf(config, 'entity.room', 'חדר') + ' (רשות)'}>
-          <Select value={f.roomId} onChange={(v) => set('roomId', v)} options={roomOptions} />
-        </Field>
-        <div style={{ gridColumn: '1 / -1' }}>
-          <Field label={'שיוך ל' + termOf(config, 'entity.family', 'משפחה') + ' (רשות)'}>
-            <Select value={f.famId} onChange={(v) => set('famId', v)} options={famOptions} />
-          </Field>
-        </div>
         <div style={{ gridColumn: '1 / -1' }}>
           <Field label="הערות">
             <textarea rows={2} value={f.notes} onChange={(e) => set('notes', e.target.value)} />
           </Field>
         </div>
       </div>
+      {/* פשוט/מתקדם — אותו דפוס-קיפול כמו טופס-המשפחה; כל השדות נשמרים */}
+      <button
+        type="button"
+        onClick={() => setMoreOpen((v) => !v)}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, color: 'var(--accent-deep, var(--accent))', padding: '2px 0 10px', textAlign: 'start' }}
+      >
+        {(moreOpen ? '▲ פחות פרטים' : '▼ פרטים נוספים') + ' — מחיר, ' + termOf(config, 'entity.room', 'חדר') + ', שיוך, דחיפות…'}
+      </button>
+      {moreOpen && (
+        <div className="form-grid">
+          <Field label="רמת דחיפות">
+            <Select
+              value={f.priority}
+              onChange={(v) => set('priority', v as EventPriority)}
+              options={PRIORITY_OPTIONS}
+            />
+          </Field>
+          <Field label="מחיר האירוע (₪)">
+            <TextInput type="number" value={f.price} onChange={(v) => set('price', v)} dir="ltr" placeholder="0" />
+          </Field>
+          <Field label={termOf(config, 'entity.room', 'חדר') + ' (רשות)'}>
+            <Select value={f.roomId} onChange={(v) => set('roomId', v)} options={roomOptions} />
+          </Field>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <Field label={'שיוך ל' + termOf(config, 'entity.family', 'משפחה') + ' (רשות)'}>
+              <Select value={f.famId} onChange={(v) => set('famId', v)} options={famOptions} />
+            </Field>
+          </div>
+        </div>
+      )}
 
       {hebLine && (
         <div
