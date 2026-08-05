@@ -13,7 +13,7 @@ import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
-import { Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
+import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supScore, supScoreBins, supTier, supTotalIls, TIER_ORDER, totalLabel } from './lib';
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
@@ -119,7 +119,9 @@ export function SupportersView() {
   const toast = useApp((s) => s.toast);
   // תצוגת גריד (5.8, בקשת-בעלים) — נשמרת ב-db.ui.supView, אותו דפוס כמו famView
   const setDb = useApp((s) => s.setDb);
-  const supView = db.ui.supView ?? 'list';
+  // UX סבב-ד׳: ברירת-מחדל חכמה — מסך-צר בלי העדפה-שמורה ⇒ גריד (טבלת 14
+  // עמודות במגע = גלילה-צידית עיוורת); בחירה מפורשת של המשתמש תמיד גוברת.
+  const supView = db.ui.supView ?? (typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches ? 'grid' : 'list');
   const toggleSupView = () =>
     setDb((d) => ({ ui: { ...d.ui, supView: (d.ui.supView ?? 'list') === 'grid' ? 'list' : 'grid' } }));
 
@@ -243,53 +245,27 @@ export function SupportersView() {
                 💰 תשלומים נכנסים
               </Btn>
             )}
-            {/* גל ג׳ (campaign): קישור-הקמפיין החי של הארגון — עד-המפתח (URL) */}
-            {campaignHref && (
-              <a
-                href={campaignHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="קמפיין-הגיוס החי של הארגון"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700, border: '1px solid var(--line)', borderRadius: 10, padding: '6px 12px', textDecoration: 'none', color: 'var(--ink-soft)' }}
-              >
-                📣 לקמפיין
-              </a>
-            )}
-            {importOn && (
-              <Btn onClick={() => setImportOpen(true)} title="ייבוא תומכות מקובץ CSV">
-                ⬆ ייבוא
-              </Btn>
-            )}
-            {customReportOn && (
-              <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
-                📊 דו"ח מותאם
-              </Btn>
-            )}
-            {/* ROADMAP-100 ‏#4: דוחות-שנתיים לכל התורמים בקובץ אחד (מקטע לתורם) */}
-            {featureOn(config, 'supporters.annualreport') && (
-              <Btn
-                onClick={() => {
-                  const year = isoToday().slice(0, 4);
-                  const lines = annualAllLines(config.orgName || db.orgName, config.orgTaxId, year, db.supporters);
-                  downloadAnnualReport('annual-all-' + year + '.txt', lines);
-                  toast('📄 דוחות שנת ' + year + ' — הקובץ ירד (מקטע לכל תורם/ת)');
-                }}
-                title="ריכוז-תרומות שנתי לכל התורמים — קובץ אחד, מקטע לכל תורם/ת"
-              >
-                📄 דוחות שנתיים
-              </Btn>
-            )}
-            {ayinOn && dailyReportOn && (
-              <Btn onClick={dailyReport} title={'דוח יומי — ' + featLabel(config)}>
-                📋 דוח יומי
-              </Btn>
-            )}
-            {/* 🔗 איחוד-כפולים (#13) — מוצג רק כשיש קבוצות-חשודות */}
-            {dedupCount > 0 && (
-              <Btn onClick={() => setDedupOpen(true)} title="קבוצות תורמים עם טלפון/אימייל/שם+עיר זהים">
-                {'🔗 איחוד כפולים · ' + dedupCount}
-              </Btn>
-            )}
+            {/* UX סבב-ד׳: כל הפעולות המשניות בתפריט ⋯ אחד — אפס אובדן-יכולת,
+                אותם handlers בדיוק, קליק-אחד-נוסף */}
+            <ActionsMenu
+              title={'עוד פעולות — ' + termOf(config, 'nav.supporters', 'תורמים')}
+              items={[
+                importOn && { label: '⬆ ייבוא מקובץ CSV', onClick: () => setImportOpen(true) },
+                customReportOn && { label: '📊 דו"ח מותאם', onClick: () => setExpOpen(true), title: 'בחירת טווח ונתונים' },
+                featureOn(config, 'supporters.annualreport') && {
+                  label: '📄 דוחות שנתיים לכולם',
+                  onClick: () => {
+                    const year = isoToday().slice(0, 4);
+                    const lines = annualAllLines(config.orgName || db.orgName, config.orgTaxId, year, db.supporters);
+                    downloadAnnualReport('annual-all-' + year + '.txt', lines);
+                    toast('📄 דוחות שנת ' + year + ' — הקובץ ירד (מקטע לכל תורם/ת)');
+                  },
+                },
+                ayinOn && dailyReportOn && { label: '📋 דוח יומי', onClick: dailyReport },
+                dedupCount > 0 && { label: '🔗 איחוד כפולים · ' + dedupCount, onClick: () => setDedupOpen(true) },
+                !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
+              ]}
+            />
             {/* תצוגת גריד לתורמים (5.8, בקשת-בעלים) — אותו דפוס כמו המשפחות (db.ui) */}
             <Btn onClick={toggleSupView} title="החלפת תצוגה: רשימה / גריד">
               {supView === 'grid' ? '☰ רשימה' : '▦ גריד'}

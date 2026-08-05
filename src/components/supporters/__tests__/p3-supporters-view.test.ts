@@ -63,7 +63,8 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
 
   it('🛡 תצוגת-גריד לתורמים (5.8, בקשת-בעלים) — כמו המשפחות, נשמרת ב-db.ui.supView', () => {
     // מובייל: הטבלה הרחבה דורשת גלילה-צידית; הגריד = כרטיסים ידידותיים-למגע.
-    expect(viewSrc).toContain("db.ui.supView ?? 'list'");
+    // UX סבב-ד׳: ברירת-מחדל חכמה — מסך-צר בלי העדפה ⇒ גריד; בחירה מפורשת גוברת
+    expect(viewSrc).toContain("db.ui.supView ?? (typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches ? 'grid' : 'list')");
     expect(viewSrc).toContain("supView === 'grid' ?");
     expect(viewSrc).toContain("repeat(auto-fill, minmax(220px, 1fr))");
     // המונח דינמי (ורטיקלים!) והסכום דרך totalLabel (₪+$ — לא ils בלבד)

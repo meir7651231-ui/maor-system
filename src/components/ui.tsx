@@ -8,6 +8,7 @@ import {
   useEffect,
   useId,
   useRef,
+  useState,
   type ReactElement,
   type ReactNode,
 } from 'react';
@@ -209,5 +210,55 @@ export function PageHead(props: { title: string; sub?: string; actions?: ReactNo
       </div>
       {props.actions && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{props.actions}</div>}
     </div>
+  );
+}
+
+/**
+ * ⋯ תפריט-פעולות (UX סבב-ד׳, 5.8.2026): כפתור אחד שמקנן את הפעולות המשניות
+ * של כותרת-מסך — **אפס אובדן-יכולת**: כל פריט נשאר בקליק-אחד-נוסף, עם אותה
+ * תווית ואותו handler. פריט falsy מדולג (גידור-דגלים נשאר אצל הקורא).
+ */
+export function ActionsMenu(props: {
+  title?: string;
+  items: Array<{ label: string; onClick: () => void; title?: string } | null | false | undefined>;
+}) {
+  const [open, setOpen] = useState(false);
+  const items = props.items.filter((x): x is { label: string; onClick: () => void; title?: string } => !!x);
+  if (items.length === 0) return null;
+  return (
+    <>
+      <Btn onClick={() => setOpen(true)} title="עוד פעולות">
+        ⋯ עוד
+      </Btn>
+      {open && (
+        <Modal title={props.title ?? 'עוד פעולות'} onClose={() => setOpen(false)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {items.map((it, i) => (
+              <button
+                key={i}
+                type="button"
+                title={it.title}
+                onClick={() => {
+                  setOpen(false);
+                  it.onClick();
+                }}
+                style={{
+                  textAlign: 'start',
+                  padding: '12px 14px',
+                  borderRadius: 10,
+                  border: '1px solid var(--line)',
+                  background: 'var(--panel)',
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                {it.label}
+              </button>
+            ))}
+          </div>
+        </Modal>
+      )}
+    </>
   );
 }
