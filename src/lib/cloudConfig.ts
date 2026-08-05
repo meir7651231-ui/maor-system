@@ -54,6 +54,9 @@ export interface OrgCloudDoc {
   provisioned?: boolean;
   orgName?: string;
   createdAt?: string;
+  /** מצבת-מחיקה (5.8): הארגון נמחק — הלקוח מנקה מקומית ומקבל מסך "הוסר". */
+  deleted?: boolean;
+  deletedAt?: string;
 }
 
 /** בקשת-הצטרפות של עובד/ת — platformOrgs/{slug}/joinRequests/{uid}. create-only ע"י המבקש. */
@@ -216,9 +219,12 @@ export async function deleteOrgCompletely(
     await deleteDoc(doc(db, p)).catch(() => {});
     deleted++;
   }
-  // בקשות-ההצטרפות של העובדים, ואז מסמך-הארגון עצמו
+  // בקשות-ההצטרפות של העובדים, ואז מסמך-הארגון — שמוחלף ב**מצבת** (deleted:true):
+  // הלקוח שנכנס קורא אותה (Rules מתירים get למצבות בלבד), מנקה את המגירה
+  // המקומית שלו ורואה מסך "הארגון הוסר". מחיקה-מלאה של המסמך הייתה משאירה את
+  // הלקוח עם permission-denied עמום — בלתי-ניתן-להבחנה מ"עוד לא אושרת".
   await wipeCol(PLATFORM_ORGS + '/' + slug + '/joinRequests');
-  await deleteDoc(doc(db, PLATFORM_ORGS, slug));
+  await setDoc(doc(db, PLATFORM_ORGS, slug), { deleted: true, deletedAt: new Date().toISOString() });
   deleted++;
   return deleted;
 }

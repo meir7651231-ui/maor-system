@@ -33,6 +33,7 @@ import panelSrc from '../PlatformPanel.tsx?raw';
 import managerSrc from '../ManagerPanel.tsx?raw';
 import remoteSrc from '../../builder/RemoteWizard.tsx?raw';
 import useAppSrc from '../../../store/useApp.ts?raw';
+import persistSrc from '../../../store/persist.ts?raw';
 import settingsSrc from '../../settings/SettingsView.tsx?raw';
 import rulesSrc from '../../../../firestore.rules?raw';
 
@@ -305,13 +306,25 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     expect(cloudConfigSrc).toContain('export async function deleteOrgCompletely');
     expect(cloudConfigSrc).toMatch(/'incomingPayments', 'smsOutbox', 'mailOutbox'/);
     expect(cloudConfigSrc).toMatch(/_enc\/envelope/);
-    // סדר: joinRequests ואז מסמך-הארגון (המסמך אחרון — כשל-באמצע משאיר אותו גלוי לניסיון-חוזר)
+    // סדר: joinRequests ואז המצבת (אחרונה — כשל-באמצע משאיר את הלקוח גלוי לניסיון-חוזר)
     const wipeIdx = cloudConfigSrc.indexOf("PLATFORM_ORGS + '/' + slug + '/joinRequests'");
-    const docIdx = cloudConfigSrc.indexOf('await deleteDoc(doc(db, PLATFORM_ORGS, slug))');
+    const docIdx = cloudConfigSrc.indexOf('setDoc(doc(db, PLATFORM_ORGS, slug), { deleted: true');
     expect(wipeIdx).toBeGreaterThan(-1);
     expect(docIdx).toBeGreaterThan(wipeIdx);
-    // הלוח: מחיקה מותנית בהקלדת הסלאג המדויק — לא קליק-כפול
+    // הלוח: מחיקה מותנית בהקלדת הסלאג המדויק — לא קליק-כפול; מצבות מסוננות מהרשימה
     expect(panelSrc).toContain('delTyped.trim() !== delOrg.slug');
     expect(panelSrc).toContain('deleteOrgCompletely');
+    expect(panelSrc).toContain('allRaw.filter((o) => !o.deleted)');
+  });
+
+  it('🛡 ניקוי-מקומי בטוח (5.8) — רק על מצבת מפורשת, לעולם לא על כשל-קריאה או על השורש', () => {
+    // הסכנה שנחסמת: רשת רעועה ⇒ fetchOrgCloudConfig מחזיר null; ניקוי על null
+    // היה משמיד נתוני-לקוח על תקלת-רשת. הניקוי רץ רק על orgDoc?.deleted===true.
+    expect(useAppSrc).toMatch(/if \(orgDoc\?\.deleted\) \{[\s\S]{0,200}wipeLocalOrgData/);
+    expect(useAppSrc).toContain("membership: 'removed'");
+    // persist: הגנה קשיחה — 'default' (השורש, הלקוח הקיים) לעולם לא מנוקה
+    expect(persistSrc).toMatch(/wipeLocalOrgData[\s\S]{0,200}if \(!slug \|\| slug === 'default'\) return/);
+    // ‏Rules: מצבת קריאה לכל מחובר — רק כשהדגל deleted דלוק
+    expect(rulesSrc).toContain("resource.data.get('deleted', false) == true");
   });
 });
