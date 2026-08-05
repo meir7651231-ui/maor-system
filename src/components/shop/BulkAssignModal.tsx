@@ -11,6 +11,7 @@ import { featureOn, termOf } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import type { ShopProduct } from '../../types/domain';
 import { Btn, Chip, Field, FormError, Modal, Select } from '../ui';
+import { HebDateInput } from '../HebDateInput';
 import { useArmed } from '../useArmed';
 import { eligibleFamilies, holidayNames, itemOf } from './lib';
 
@@ -163,7 +164,8 @@ export function BulkRedeemModal(props: { product: ShopProduct; onClose: () => vo
         />
       </Field>
       <Field label="תאריך">
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} dir="ltr" />
+        {/* UX סבב-ז׳: קלט דו-לוחי — חלוקה-המונית נקבעת לרוב לקראת חג עברי */}
+        <HebDateInput value={date} onChange={setDate} />
       </Field>
       {isHoliday && (
         <Field label="חג *">

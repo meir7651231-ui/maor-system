@@ -9,6 +9,7 @@ import { featureOn, integrationOn, termOf } from '../../lib/config';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { isoToday } from '../../lib/date-util';
 import { hebDateFull } from '../../lib/hebrew';
+import { HebDateInput } from '../HebDateInput';
 import { downloadCsv, downloadText } from '../reports/csv';
 import { mapsRouteUrl, mapsSearchUrl } from '../../lib/mapsLink';
 import { waDeliveryText } from '../../lib/wa';
@@ -228,7 +229,8 @@ function DayForm(props: { onClose: () => void; onSave: (d: DistributionDay) => v
   return (
     <Modal title="יום חלוקה חדש" onClose={props.onClose}>
       <Field label="כותרת"><TextInput value={title} onChange={setTitle} placeholder="חלוקת חג / שבועי" /></Field>
-      <Field label="תאריך *"><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
+      {/* UX סבב-ז׳: קלט דו-לוחי — יום-חלוקה נקבע לרוב לפי התאריך העברי (ערבי-חג) */}
+      <Field label="תאריך *"><HebDateInput value={date} onChange={setDate} /></Field>
       <Field label="הערה"><TextInput value={note} onChange={setNote} /></Field>
       <div className="modal-actions">
         <Btn kind="primary" onClick={() => date && props.onSave({ id: '', date, title: title.trim(), note: note.trim(), closed: false, createdAt: isoToday() })}>שמירה</Btn>
