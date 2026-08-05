@@ -68,6 +68,7 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
     if (!r.rid) return;
     downloadReceipt({
       rid: r.rid,
+      verify: featureOn(config, 'core.receipt.verifycode'),
       orgName: config.orgName || db.orgName,
       payer: beneficiaryLabel(db, a, config),
       amount: r.paid,

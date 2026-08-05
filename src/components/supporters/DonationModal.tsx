@@ -54,6 +54,7 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
       const taxReceipt = featureOn(cfg, 'core.taxreceipt');
       const info = {
         rid,
+        verify: featureOn(cfg, 'core.receipt.verifycode'),
         orgName: cfg.orgName || useApp.getState().db.orgName,
         payer: props.supporter.name,
         amount: amt,

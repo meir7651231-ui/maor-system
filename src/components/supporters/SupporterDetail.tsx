@@ -120,6 +120,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       if (d) {
         downloadReceipt({
           rid: res.rid,
+          verify: featureOn(config, 'core.receipt.verifycode'),
           orgName: config.orgName || useApp.getState().db.orgName,
           payer: sp.name,
           amount: d.amount,
@@ -146,6 +147,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     if (!d) return null;
     return {
       rid,
+      verify: featureOn(config, 'core.receipt.verifycode'),
       orgName: config.orgName || useApp.getState().db.orgName,
       payer: sp.name,
       amount: d.amount,

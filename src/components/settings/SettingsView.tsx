@@ -7,6 +7,7 @@ import type { NotifPrefs } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, isAdminUser, isSuperAdmin, termOf } from '../../lib/config';
 import { readAiKey, writeAiKey } from '../../lib/ai';
+import { receiptVerifyCode } from '../../lib/receipt';
 import { Btn, Chip, Field, FormError, PageHead, TextInput } from '../ui';
 import { Section, SectionNote, Toggle } from './lib';
 import { TeachersSection } from './TeachersSection';
@@ -87,6 +88,8 @@ export function SettingsView() {
       <AiKeySection />
       {/* לוג-פעולות (#10) — הרכיב מגודר דגל+מנהל בעצמו */}
       <AuditTrailSection />
+      {/* 🔍 אימות-קבלה (#11) — מגודר דגל בעצמו */}
+      <VerifyReceiptSection />
       {secOn('sec-reset') && <ResetSection />}
     </div>
   );
@@ -331,6 +334,55 @@ function AiKeySection() {
 
 /** לוג-פעולות (ROADMAP-100 ‏#10) — מי-שינה-מה-ומתי; מנהל בלבד, דגל settings.audittrail.
  *  הטבעת חצובת-תקרה (AUDIT_CAP) נשמרת ב-Db ומסתנכרנת בענן כמו שאר ה-meta. */
+/** 🔍 אימות-קבלה (ROADMAP-100 ‏#11): הקלדת מס'-קבלה + קוד-אימות ⇒ השוואה מול
+ *  רישומי-המערכת (תרומות D- ותשלומי-חוגים R-). מגודר core.receipt.verifycode. */
+function VerifyReceiptSection() {
+  const config = useApp((s) => s.config);
+  const db = useApp((s) => s.db);
+  const [rid, setRid] = useState('');
+  const [code, setCode] = useState('');
+  const [result, setResult] = useState('');
+  if (!featureOn(config, 'core.receipt.verifycode')) return null;
+  function check() {
+    const r = rid.trim().toUpperCase();
+    const c = code.trim().toUpperCase();
+    if (!r || !c) return setResult('הקלידו מס׳-קבלה וקוד-אימות מהקבלה');
+    // חיפוש בתרומות (D-) ובתשלומי-חוגים (R-) — השדות היציבים בלבד
+    let found: { amount: number; cur: string; date: string } | null = null;
+    for (const sp of db.supporters) {
+      const d = sp.donations.find((x) => (x.rid || '').toUpperCase() === r);
+      if (d) { found = { amount: d.amount, cur: d.cur || '₪', date: d.date }; break; }
+    }
+    if (!found) {
+      for (const en of db.enrollments) {
+        const p = en.payments.find((x) => (x.rid || '').toUpperCase() === r);
+        if (p) { found = { amount: p.amount, cur: '₪', date: p.date }; break; }
+      }
+    }
+    if (!found) return setResult('✗ קבלה ' + r + ' לא נמצאה ברישומי המערכת');
+    const expect = receiptVerifyCode(r, found.amount, found.cur, found.date);
+    setResult(
+      expect === c
+        ? '✓ הקבלה תואמת את רישומי המערכת (סכום ' + (found.cur === '$' ? '$' : '₪') + found.amount.toLocaleString('he-IL') + ' · ' + found.date + ')'
+        : '✗ הקוד לא תואם — ייתכן שהקבלה שונתה (הקוד הצפוי לרישום הקיים: ' + expect + ')',
+    );
+  }
+  return (
+    <Section id="sec-verifyreceipt" title="🔍 אימות קבלה" sub="בדיקה שקבלה מודפסת תואמת את הרישום במערכת — לפי הקוד המוטבע עליה">
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <Field label="מס׳ קבלה (D-/R-)">
+          <TextInput value={rid} onChange={setRid} dir="ltr" placeholder="D-123" />
+        </Field>
+        <Field label="קוד-אימות מהקבלה">
+          <TextInput value={code} onChange={setCode} dir="ltr" placeholder="XXX-XXX" />
+        </Field>
+        <Btn onClick={check}>בדיקה</Btn>
+      </div>
+      {result && <div style={{ fontSize: 13.5, fontWeight: 600, marginTop: 8 }}>{result}</div>}
+    </Section>
+  );
+}
+
 function AuditTrailSection() {
   const config = useApp((s) => s.config);
   const cloudUser = useApp((s) => s.cloud.user);

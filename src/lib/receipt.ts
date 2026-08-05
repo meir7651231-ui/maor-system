@@ -36,6 +36,8 @@ export interface ReceiptInfo {
   copy?: boolean;
   /** הצגת שורת מקור/העתק (feature core.receipt.copymark). חסר/true = מוצג. */
   mark?: boolean;
+  /** קוד-אימות (#11, feature core.receipt.verifycode) — true = מוצג; חסר = לא. */
+  verify?: boolean;
   /**
    * סיכום העסקה (feature courses.receipt.summary) — שורות "סה"כ עסקה / שולם עד
    * כה / יתרה / תשלום הבא" כמו legacy receipt() (legacy-main-script.js:1258-1266).
@@ -61,6 +63,23 @@ function hebrewLocaleDate(iso: string): string {
  * הלועזי מפורש בצהריים מקומי (T12:00:00) כמו hebDateFull — אחרת באזור זמן ממערב
  * ל-UTC הלועזי היה נופל ליום הקודם וסותר את התאריך העברי על אותה קבלה.
  */
+/**
+ * 🔍 קוד-אימות דטרמיניסטי (ROADMAP-100 ‏#11, 5.8.2026): ‏FNV-1a על השדות
+ * היציבים של הקבלה (rid|סכום|מטבע|תאריך) → 6 תווי base36 בקיבוץ XXX-XXX.
+ * לא חתימה קריפטוגרפית — הוכחת-התאמה מול רישומי-המערכת (זיוף-סכום/תאריך
+ * מתגלה בכלי-האימות שבהגדרות). ‏payer מוחרג במכוון (שינוי-שם ⇒ אזעקת-שווא).
+ */
+export function receiptVerifyCode(rid: string, amount: number, currency: string, date: string): string {
+  const s = rid + '|' + amount + '|' + (currency || '₪') + '|' + date.slice(0, 10);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  const code = h.toString(36).toUpperCase().padStart(7, '0').slice(-6);
+  return code.slice(0, 3) + '-' + code.slice(3);
+}
+
 export function receiptLines(o: ReceiptInfo): string[] {
   const cur = o.currency || '₪';
   const d = new Date(o.date.slice(0, 10) + 'T12:00:00');
@@ -78,6 +97,7 @@ export function receiptLines(o: ReceiptInfo): string[] {
       '',
       'קבלה על תרומה — לפי סעיף 46 לפקודת מס הכנסה',
       'קבלה מס׳: ' + o.rid,
+      ...(o.verify ? ['קוד-אימות: ' + receiptVerifyCode(o.rid, o.amount, cur, o.date)] : []),
       'תאריך: ' + (heb ? heb + ' · ' : '') + gregorian,
       '',
       'התקבל בתודה מאת: ' + o.payer,
@@ -101,6 +121,7 @@ export function receiptLines(o: ReceiptInfo): string[] {
     ...(o.mark === false ? [] : [o.copy ? 'העתק נאמן למקור' : 'מקור']),
     'קבלה — ' + (o.orgName || 'מאור החסד'),
     'קבלה מס׳: ' + o.rid,
+    ...(o.verify ? ['קוד-אימות: ' + receiptVerifyCode(o.rid, o.amount, cur, o.date)] : []),
     // תאריך עברי + לועזי, כמו באב-טיפוס
     'תאריך: ' + (heb ? heb + ' · ' : '') + gregorian,
     'התקבל מאת: ' + o.payer,

@@ -126,6 +126,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     if (receiptsOn) {
       downloadReceipt({
         rid,
+        verify: featureOn(useApp.getState().config, 'core.receipt.verifycode'),
         orgName: useApp.getState().config.orgName || db.orgName,
         payer: ((m?.first ?? '') + ' ' + (m?.famName ?? '')).trim() || '—',
         amount: amt,
@@ -151,6 +152,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     if (!en) return;
     downloadReceipt({
       rid: p.rid,
+      verify: featureOn(useApp.getState().config, 'core.receipt.verifycode'),
       orgName: useApp.getState().config.orgName || db.orgName,
       payer: ((m?.first ?? '') + ' ' + (m?.famName ?? '')).trim() || '—',
       amount: p.amount,
