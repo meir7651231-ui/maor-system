@@ -221,18 +221,32 @@ export function LoginScreen() {
  */
 export function PendingApprovalScreen() {
   const cloudSignOut = useApp((s) => s.cloudSignOut);
+  // סטטוס אמיתי (5.8 — "מאור נרשם ולא רואים בקשה"): המסך אמר "הבקשה נקלטה"
+  // גם כשהכתיבה נכשלה בשקט והבעלים לא ראה כלום. עכשיו: כשל ⇒ קוד-השגיאה מוצג.
+  const reqStatus = useApp((s) => s.cloud.reqStatus);
+  const failed = !!reqStatus && reqStatus !== 'ok';
   return (
     <div className="orbit-screen">
       <SignupHero />
       <main className="orbit-main" style={{ alignItems: 'center', justifyContent: 'center' }}>
         <div className="orbit-card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 40, marginBottom: 10 }}>⏳</div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>הבקשה נקלטה</h1>
-          <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,.7)', lineHeight: 1.7 }}>
-            המערכת שלכם ממתינה לאישור מנהל הפלטפורמה.
-            <br />
-            לאחר האישור — התחברו שוב ותקבלו מערכת מוכנה.
-          </p>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>{failed ? '⚠️' : '⏳'}</div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>{failed ? 'הבקשה לא נקלטה' : 'הבקשה נקלטה'}</h1>
+          {failed ? (
+            <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,.7)', lineHeight: 1.7 }}>
+              רישום-הבקשה בענן נכשל
+              <span dir="ltr" style={{ fontWeight: 700 }}>{' (' + reqStatus + ') '}</span>
+              — מסרו את הקוד הזה למנהל הפלטפורמה.
+              <br />
+              ננסה שוב אוטומטית בהתחברות הבאה.
+            </p>
+          ) : (
+            <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,.7)', lineHeight: 1.7 }}>
+              המערכת שלכם ממתינה לאישור מנהל הפלטפורמה.
+              <br />
+              לאחר האישור — התחברו שוב ותקבלו מערכת מוכנה.
+            </p>
+          )}
           <div style={{ marginTop: 16 }}>
             <button type="button" className="orbit-sbtn" style={{ display: 'inline-flex', padding: '0 22px' }} onClick={() => void cloudSignOut()}>
               יציאה
