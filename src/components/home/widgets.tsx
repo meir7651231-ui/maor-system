@@ -436,7 +436,7 @@ function BdaysWidget({ ctx }: { ctx: HomeCtx }) {
             {integrationOn(config, 'whatsapp') && (
               <WaBtn
                 phone={b.member.phone || db.families.find((f) => f.id === b.member.famId)?.phone || ''}
-                text={waBirthdayText(config.orgName, b.member.first)}
+                text={waBirthdayText(config.orgName, b.member.first, config)}
                 title={'ברכת יום-הולדת ל' + b.member.first + ' (נפתח לעריכה לפני שליחה)'}
               />
             )}

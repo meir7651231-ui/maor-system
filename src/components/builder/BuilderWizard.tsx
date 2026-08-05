@@ -17,6 +17,7 @@ import { FEATURES, TERM_DEFS, type FeatureDef, type TermDef } from '../../types/
 import { Btn, Chip, Field, FormError, TextInput } from '../ui';
 import { buildHandoffHtml, downloadTextFile, INTEGRATION_LABELS, INTEGRATION_STATUS, liveAddons, THEME_LABELS } from './handoff';
 import { featureEffectiveOn, WIZARD_SECTIONS, type WizardSectionDef } from './sections';
+import { TEMPLATE_DEFS } from '../../lib/templates';
 
 const DEFAULT_APP_URL = 'https://meir7651231-ui.github.io/maor-system/';
 
@@ -887,6 +888,29 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                     placeholder="050-0000000"
                   />
                 </Field>
+              </div>
+            )}
+            {/* 📝 תבניות-הודעה עריכות (#12) — מוצג כשוואטסאפ דלוק; ריק = ברירת-המחדל */}
+            {config.integrations?.whatsapp?.enabled && (
+              <div style={{ marginTop: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>📝 נוסחי ההודעות של הארגון</div>
+                {TEMPLATE_DEFS.map((d) => (
+                  <Field key={d.key} label={d.label + ' — משתנים: ' + d.vars.map((v) => '{' + v + '}').join(' ')}>
+                    <TextInput
+                      value={config.templates?.[d.key] ?? ''}
+                      onChange={(v) => {
+                        const templates = { ...config.templates };
+                        if (v.trim()) templates[d.key] = v;
+                        else delete templates[d.key];
+                        patch({ templates });
+                      }}
+                      placeholder={d.def}
+                    />
+                  </Field>
+                ))}
+                <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                  ריק = הנוסח המובנה. ההודעה תמיד נפתחת לעריכה לפני שליחה — זו נקודת-הפתיחה.
+                </div>
               </div>
             )}
             {config.integrations?.mail?.enabled && (

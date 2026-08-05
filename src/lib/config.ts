@@ -7,6 +7,7 @@
  * 3. DEFAULT_CONFIG — כשאין קובץ / הקובץ פגום (404, JSON שבור).
  */
 import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, type FirebaseOrgConfig, type ModuleKey, type OrgConfig } from '../types/config';
+import { TEMPLATE_KEYS } from './templates';
 
 const LS_CONFIG_KEY = 'maor_org_config';
 
@@ -160,6 +161,17 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
     if (Object.keys(ints).length) cfg.integrations = ints;
     else delete cfg.integrations;
   } else delete cfg.integrations;
+  // תבניות-הודעה (#12) — allowlist ‏TEMPLATE_KEYS, מחרוזות בלבד, תקרת-אורך 500
+  const tplRaw = c.templates;
+  if (tplRaw && typeof tplRaw === 'object' && !Array.isArray(tplRaw)) {
+    const tpl: Record<string, string> = {};
+    for (const [k, v] of Object.entries(tplRaw as Record<string, unknown>)) {
+      if (!TEMPLATE_KEYS.includes(k)) continue;
+      if (typeof v === 'string' && v.trim()) tpl[k] = v.trim().slice(0, 500);
+    }
+    if (Object.keys(tpl).length) cfg.templates = tpl;
+    else delete cfg.templates;
+  } else delete cfg.templates;
   // מיילי-אדמין — רק מחרוזות לא-ריקות; ריק/לא-מערך → מוסר (אין הגבלה)
   const admins = Array.isArray(c.adminEmails)
     ? c.adminEmails.filter((e): e is string => typeof e === 'string' && e.trim() !== '')

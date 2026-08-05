@@ -325,7 +325,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
           <span style={{ fontSize: 12, fontWeight: 800, color: bal > 0 ? '#b45309' : '#12803c', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             {/* גל ב׳ (whatsapp): תזכורת-יתרה ממולאת — נפתחת לעריכה לפני שליחה */}
             {waReminder ? (
-              <WaBtn phone={waPhone} text={waPaymentText(cfg.orgName, c.name, bal)} title="תזכורת-תשלום בוואטסאפ (נפתח לעריכה לפני שליחה)" />
+              <WaBtn phone={waPhone} text={waPaymentText(cfg.orgName, c.name, bal, cfg)} title="תזכורת-תשלום בוואטסאפ (נפתח לעריכה לפני שליחה)" />
             ) : null}
             {payHref ? (
               <a href={payHref} target="_blank" rel="noopener noreferrer" title="עמוד-התשלום של הארגון — הסכום ממולא" style={{ textDecoration: 'none' }}>
