@@ -110,3 +110,38 @@ describe('🛡 ratchet — הגנות-מקור גל ג׳: הכול מגודר, �
     expect(supViewSrc).toContain('safeHttpsUrl(');
   });
 });
+
+describe('🖥 ratchet — גל ד׳ "עד-השרת": functions מושלמות + צד-לקוח מחווט', () => {
+  it('functions/index.js: 4 הפונקציות קיימות; ה-webhook לא נוגע במוני-קבלות', async () => {
+    const fnSrc = (await import('../../../functions/index.js?raw')).default as string;
+    for (const fn of ['paymentsWebhook', 'smsOutbox', 'yemotProxy', 'sheetsNightly']) {
+      expect(fnSrc).toContain('exports.' + fn);
+    }
+    // האינווריאנט הרגולטורי: השרת כותב "תשלום-נכנס" לאישור — לעולם לא קבלות
+    for (const kw of ['receiptSeq', 'donationSeq', 'shopReceiptSeq']) {
+      expect(fnSrc).not.toContain(kw);
+    }
+    expect(fnSrc).toContain("status: 'pending'");
+    // מתאמי-הספקים הושלמו (לא TODO ריק) + גיליון-חי עם googleapis
+    expect(fnSrc).toContain('sendSmsVia');
+    expect(fnSrc).toContain('uapi.inforu.co.il');
+    expect(fnSrc).toContain('019sms.co.il');
+    expect(fnSrc).toContain('googleapis');
+    expect(fnSrc).toContain('spreadsheetId');
+    // ‏org=root ⇒ אוסף-שורש (הלקוח-הקיים) — לא orgs/root
+    expect(fnSrc).toContain("slug === 'root'");
+  });
+
+  it('🛡 צד-לקוח: תשלומים-נכנסים ו-SMS מגודרים הרחבה+ענן; ההגדרות ב-allowlist', () => {
+    expect(supViewSrc).toContain('IncomingPaymentsModal');
+    expect(supViewSrc).toMatch(/integrationOn\(config, 'payments'\) && cloudOn/);
+    expect(supDetailSrc).toContain("integrationOn(config, 'sms') && cloudReady");
+    expect(supDetailSrc).toContain('writeSmsOutbox');
+    // sheets.spreadsheetId ב-allowlist — הפונקציה-הלילית קוראת מהקונפיג
+    const cfg = normalizeConfig({
+      slug: 't', orgName: 'א', theme: 'tsohar',
+      integrations: { sheets: { enabled: true, spreadsheetId: '1AbC' } },
+    })!;
+    expect(cfg.integrations?.sheets).toEqual({ enabled: true, spreadsheetId: '1AbC' });
+  });
+});

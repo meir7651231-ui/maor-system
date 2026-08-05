@@ -54,6 +54,24 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, sp.name)
     : null;
   const aiReady = integrationOn(config, 'ai') && !!readAiKey();
+  // גל ד׳ (sms): תור-שליחה בענן — הכפתור רק לארגון-ענן מחובר עם ההרחבה
+  const cloudReady = useApp((s) => s.cloud.enabled && !!s.cloud.user);
+  const smsReady = integrationOn(config, 'sms') && cloudReady && !!sp.phone;
+  const [smsOpen, setSmsOpen] = useState(false);
+  const [smsText, setSmsText] = useState('');
+  async function sendSms() {
+    const t = smsText.trim();
+    if (!t) return toast('כתבו הודעה קודם');
+    try {
+      const mod = await import('../../store/cloudSync');
+      await mod.writeSmsOutbox(sp.phone, t);
+      toast('📱 ההודעה נכנסה לתור-השליחה');
+      setSmsOpen(false);
+      setSmsText('');
+    } catch {
+      toast('⚠ ההכנסה לתור נכשלה — נסו שוב');
+    }
+  }
   const [aiDraft, setAiDraft] = useState('');
   const [aiBusy, setAiBusy] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
@@ -274,7 +292,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         <div className="card">
           <h3 style={{ fontSize: 15, marginBottom: 8 }}>{'פרטי ' + termOf(config, 'entity.supporter', 'התומך/ת')}</h3>
           {/* INTEGRATIONS — פעולות-הרחבה: 💬 וואטסאפ · 💳 עמוד-תרומה · 🤖 מכתב-תודה */}
-          {(integrationOn(config, 'whatsapp') || integrationOn(config, 'payments') || aiReady) && (
+          {(integrationOn(config, 'whatsapp') || integrationOn(config, 'payments') || aiReady || smsReady) && (
             <div style={{ textAlign: 'left', marginBottom: 2, display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
               {aiReady && (
                 <Btn sm onClick={() => void draftThanks()} title="טיוטת מכתב-תודה אישי (עוזר-AI)">
@@ -285,6 +303,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                 <a href={donateHref} target="_blank" rel="noopener noreferrer" title="עמוד-התרומה של הארגון" style={{ textDecoration: 'none', fontSize: 15 }}>
                   💳
                 </a>
+              )}
+              {smsReady && (
+                <Btn sm onClick={() => setSmsOpen(true)} title="שליחת SMS דרך תור-הענן (דורש שרת-הרחבות פרוס)">
+                  📱 SMS
+                </Btn>
               )}
               {integrationOn(config, 'whatsapp') && sp.phone && <WaBtn phone={sp.phone} title={'וואטסאפ ל' + sp.name} />}
             </div>
@@ -401,6 +424,25 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
 
       {editOpen && <SupporterForm supporter={sp} onClose={() => setEditOpen(false)} />}
       {donOpen && <DonationModal supporter={sp} onClose={() => setDonOpen(false)} />}
+      {smsOpen && (
+        <Modal title={'📱 SMS אל ' + sp.name} onClose={() => setSmsOpen(false)}>
+          <textarea
+            value={smsText}
+            onChange={(e) => setSmsText(e.target.value)}
+            rows={4}
+            maxLength={670}
+            placeholder="תוכן ההודעה…"
+            style={{ width: '100%', fontSize: 13.5, padding: 10, borderRadius: 10, border: '1px solid var(--line)', resize: 'vertical' }}
+          />
+          <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 4 }}>
+            נשלח אל {sp.phone} דרך תור-הענן (שרת-ההרחבות שולח תוך דקה).
+          </div>
+          <div className="modal-actions">
+            <Btn kind="primary" onClick={() => void sendSms()}>שליחה לתור</Btn>
+            <Btn onClick={() => setSmsOpen(false)}>ביטול</Btn>
+          </div>
+        </Modal>
+      )}
       {aiOpen && (
         <Modal title={'🤖 מכתב תודה — ' + sp.name} onClose={() => setAiOpen(false)}>
           {aiBusy ? (

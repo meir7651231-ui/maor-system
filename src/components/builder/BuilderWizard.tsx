@@ -861,6 +861,21 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                 🤖 מפתח-ה-API מוזן אצל הלקוח (הגדרות ← עוזר חכם) — מקומי-למכשיר, לא בקונפיג.
               </div>
             )}
+            {config.integrations?.sheets?.enabled && (
+              <div style={{ marginTop: 8 }}>
+                <Field label="📊 מזהה גיליון-Google (spreadsheetId) — לייצוא-הלילי">
+                  <TextInput
+                    value={integrationSetting(config, 'sheets', 'spreadsheetId')}
+                    onChange={(v) => setIntegrationField('sheets', 'spreadsheetId', v)}
+                    dir="ltr"
+                    placeholder="1AbC…"
+                  />
+                </Field>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                  דורש את שרת-ההרחבות פרוס (RUNBOOK-FUNCTIONS) + שיתוף הגיליון עם מייל-ה-service-account.
+                </div>
+              </div>
+            )}
             <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 8 }}>
               כלול במערכת (בלי תוספת):{' '}
               {Object.entries(INTEGRATION_LABELS)

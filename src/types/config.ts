@@ -96,6 +96,7 @@ export const INTEGRATION_KEYS = [
 export const INTEGRATION_SETTING_KEYS: Record<string, readonly string[]> = {
   payments: ['provider', 'payUrl'],
   campaign: ['url'],
+  sheets: ['spreadsheetId'], // גל ד׳ — sheetsNightly קורא מכאן (platformOrgs.config)
 };
 
 export const DEFAULT_CONFIG: OrgConfig = {
