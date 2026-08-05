@@ -192,6 +192,8 @@ export default function App() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [logoutArmed, setLogoutArmed] = useState(false);
+  // UX סבב-ב׳: 'עוד ▾' לרצועת-הניווט + ניווט-תחתון במובייל
+  const [moreNavOpen, setMoreNavOpen] = useState(false);
   // 🔄 ריפוי-לשונית-תקועה (5.8 — "זה הרגע ראיתי אצל לקוח"): לשונית שנשארה
   // פתוחה ימים לא נטענת מחדש לעולם ומציגה גרסה עתיקה (נצפה בשטח: מסך-Passkey
   // מאיטרציה שנמחקה). ברגע שחוזרים ללשונית (visibilitychange) — משווים מול
@@ -391,6 +393,11 @@ export default function App() {
   const nav = NAV.filter(
     (n) => n.view !== 'settings' && (n.view === 'home' || config.modules[n.view] !== false),
   );
+  // UX סבב-ב׳: ברצועה העליונה עד 6 ראשיים; השאר ב'עוד ▾' (הכול נשאר נגיש).
+  // בשלדי-הצד יש מקום אנכי — הרשימה המלאה נשארת שם.
+  const NAV_PRIMARY_MAX = 6;
+  const navPrimary = nav.length > NAV_PRIMARY_MAX + 1 ? nav.slice(0, NAV_PRIMARY_MAX) : nav;
+  const navMore = nav.length > NAV_PRIMARY_MAX + 1 ? nav.slice(NAV_PRIMARY_MAX) : [];
   // תווית קישור — מונח מותאם מהמילון לשבעת מסכי המודולים; בית נשאר קבוע
   const labelOf = (n: (typeof NAV)[number]) =>
     n.view === 'home' ? n.label : termOf(config, `nav.${n.view}`, n.label);
@@ -554,7 +561,7 @@ export default function App() {
           <span className="brand-name">{orgName}</span>
         </div>
         <nav className="app-nav" aria-label="ניווט ראשי">
-          {nav.map((n) => (
+          {navPrimary.map((n) => (
             <button
               key={n.view}
               className={view === n.view ? 'active' : ''}
@@ -563,6 +570,15 @@ export default function App() {
               {labelOf(n)}
             </button>
           ))}
+          {navMore.length > 0 && (
+            <button
+              className={navMore.some((n) => n.view === view) ? 'active' : ''}
+              onClick={() => setMoreNavOpen(true)}
+              aria-haspopup="dialog"
+            >
+              עוד ▾
+            </button>
+          )}
         </nav>
         <div className="top-tools">
           {backBtn}
@@ -599,6 +615,19 @@ export default function App() {
         </div>
       </header>
       {mainEl}
+      {/* UX סבב-ב׳: ניווט-תחתון קבוע במובייל — במקום גלילה-אופקית נסתרת שמעלימה מודולים */}
+      <nav className="bottom-nav" aria-label="ניווט תחתון">
+        {nav.slice(0, 4).map((n) => (
+          <button key={n.view} className={view === n.view ? 'active' : ''} onClick={() => go(n.view)}>
+            <span aria-hidden>{n.icon}</span>
+            <span>{labelOf(n)}</span>
+          </button>
+        ))}
+        <button className={nav.slice(4).some((n) => n.view === view) || view === 'settings' ? 'active' : ''} onClick={() => setMoreNavOpen(true)}>
+          <span aria-hidden>⋯</span>
+          <span>עוד</span>
+        </button>
+      </nav>
     </>
   );
 
@@ -767,6 +796,29 @@ export default function App() {
 
       {/* כניסת-הניהול (ADMINHUB) — נפתחת רק ממנהל-על (הכפתור מגודר canAdminHub);
           הבורר מנתב לכלים דרך ה-hash כך שהקישורים הישנים ממשיכים לעבוד */}
+      {/* 'עוד' (UX סבב-ב׳) — כל המודולים שלא ברצועה/בתחתון + הגדרות; הכול נגיש */}
+      {moreNavOpen && (
+        <Modal title="כל המסכים" onClose={() => setMoreNavOpen(false)}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8 }}>
+            {[...nav, NAV[NAV.length - 1]].map((n) => (
+              <button
+                key={n.view}
+                type="button"
+                onClick={() => { setMoreNavOpen(false); go(n.view); }}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                  padding: '14px 8px', borderRadius: 12, cursor: 'pointer',
+                  border: '1px solid ' + (view === n.view ? 'var(--accent)' : 'var(--line)'),
+                  background: 'var(--panel)', fontSize: 13, fontWeight: 700,
+                }}
+              >
+                <span aria-hidden style={{ fontSize: 22 }}>{n.icon}</span>
+                {n.view === 'settings' ? 'הגדרות' : labelOf(n)}
+              </button>
+            ))}
+          </div>
+        </Modal>
+      )}
       {/* ❓ בורר-עזרה (UX סבב-א׳) — ה-hash-ים #guide/#tour ממשיכים לעבוד כרגיל */}
       {helpOpen && (
         <Modal title="❓ עזרה" onClose={() => setHelpOpen(false)}>

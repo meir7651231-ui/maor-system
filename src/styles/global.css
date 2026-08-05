@@ -2544,3 +2544,63 @@ h1,
     height: 44px;
   }
 }
+
+/* UX סבב-ב׳ (5.8.2026): ניווט-תחתון במובייל + הסתרת הרצועה הגולשת */
+.bottom-nav {
+  display: none;
+}
+@media (max-width: 760px) {
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    inset-inline: 0;
+    z-index: 90;
+    display: flex;
+    justify-content: space-around;
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+    padding: 4px 2px calc(4px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    min-height: 48px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: none;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .bottom-nav button > span:first-child {
+    font-size: 19px;
+  }
+  .bottom-nav button.active {
+    color: var(--accent-deep, var(--accent));
+    background: var(--accent-soft, rgba(0, 0, 0, 0.05));
+  }
+  /* הרצועה העליונה הגולשת מוסתרת — הניווט עבר לתחתון (המודולים לא נעלמים יותר) */
+  .app-nav {
+    display: none;
+  }
+  /* מרווח-תחתון לתוכן — שלא ייחסם ע"י הסרגל */
+  .app-main {
+    padding-bottom: 72px;
+  }
+}
+
+/* UX סבב-ב׳: יעדי-מגע לכפתורים וצ'יפים קטנים */
+@media (pointer: coarse) {
+  .btn.sm {
+    min-height: 38px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+  .chip {
+    min-height: 34px;
+  }
+}
