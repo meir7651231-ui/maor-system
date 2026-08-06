@@ -86,7 +86,7 @@ await shot('כרטיס-משפחה');
 await nav('חוגים');
 // חדר פעילות הוא שדה חובה בטופס החוג — יוצרים חדר דרך ההגדרות קודם
 await nav('הגדרות');
-if (await clickIf('button', 'חדר חדש')) { await fillModal('חדר ראשי'); await clickIf('.modal button', 'שמירת הגדרות'); await wait(400); }
+if (await clickIf('button', 'הוספת חדר')) { await fillModal('חדר ראשי'); await clickIf('.modal button', 'שמירת הגדרות'); await wait(400); }
 await nav('חוגים');
 await clickIf('button', 'הוספת חוג'); await fillModal('חוג ציור'); await saveModal(); await wait(500);
 T('נוצר חוג', (await mainTxt()).includes('ציור'));
@@ -216,7 +216,7 @@ await shot('תורמים-ותרומה');
 // ── לוח שנה + יצירת אירוע ──
 await nav('לוח');
 await wait(400);
-await clickIf('button', 'אירוע חדש');
+await clickIf('button', 'הוספת אירוע');
 await wait(300);
 if (await page.locator('.modal').count()) { await fillModal('אסיפת הורים'); await saveModal(); await wait(400); T('נוצר אירוע — בלי שגיאת JS', errors.length === 0); }
 // P2 אשכול ד׳: פאנל "הקרובים" נראה (פער 25)

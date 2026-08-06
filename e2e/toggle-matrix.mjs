@@ -122,7 +122,7 @@ for (const profile of PROFILES) {
     // ── זרימה 3א: יצירת חדר (חדר פעילות הוא שדה חובה בטופס החוג) ──
     await page.locator('nav >> text=הגדרות').click();
     await page.waitForTimeout(400);
-    await page.locator('button', { hasText: 'חדר חדש' }).first().click();
+    await page.locator('button', { hasText: 'הוספת חדר' }).first().click();
     await page.waitForTimeout(300);
     await page.locator('.modal input').first().fill('חדר-מטריצה');
     await page.locator('.modal button', { hasText: 'שמירת הגדרות' }).click();
@@ -315,10 +315,13 @@ for (const profile of PROFILES) {
     await page.waitForTimeout(300);
     await page.locator('main button', { hasText: 'מוצר חתן' }).first().click();
     await page.waitForTimeout(400);
-    page.once('dialog', (d) => d.accept('בדיקת מטריצה'));
+    // UX סבב-ז׳: סיבת-הביטול עברה מ-window.prompt למודאל פנימי
     await page.locator('main button', { hasText: '🚫 ביטול' }).first().click(); // חימוש (useArmed)
     await page.waitForTimeout(200);
-    await page.locator('main button', { hasText: 'שוב מבטלת' }).first().click(); // ביצוע + prompt לסיבה
+    await page.locator('main button', { hasText: 'שוב מבטלת' }).first().click(); // ביצוע ⇒ מודאל-סיבה
+    await page.waitForTimeout(300);
+    await page.locator('.modal input').first().fill('בדיקת מטריצה');
+    await page.locator('.modal button', { hasText: 'ביטול המימוש' }).click();
     await page.waitForTimeout(400);
     t('המימוש סומן מבוטל (הרשומה נשארה)', ((await page.locator('main').textContent()) ?? '').includes('מבוטל'));
     await page.locator('main button', { hasText: '🏠 טיפול' }).click();

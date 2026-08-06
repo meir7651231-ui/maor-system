@@ -345,7 +345,7 @@ export function CalendarView() {
               </Btn>
             )}
             <Btn kind="primary" onClick={() => setModal({ ev: null, date: isoOf(new Date()) })}>
-              + אירוע חדש
+              ➕ הוספת אירוע
             </Btn>
           </>
         }

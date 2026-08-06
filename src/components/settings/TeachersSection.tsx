@@ -50,7 +50,7 @@ export function TeachersSection() {
     >
       <div style={{ marginBottom: 10 }}>
         <Btn kind="primary" sm onClick={() => setCreating(true)}>
-          {'+ ' + teacher}
+          {'➕ הוספת ' + teacher}
         </Btn>
       </div>
       {teachers.length === 0 ? (

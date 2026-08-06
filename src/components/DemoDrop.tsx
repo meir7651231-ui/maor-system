@@ -11,11 +11,13 @@ import { useApp } from '../store/useApp';
 import { parseBackupFile } from '../store/persist';
 import { freshenDemoDb } from '../lib/demoFresh';
 import { isoToday } from '../lib/date-util';
+import { featureOn } from '../lib/config';
 import { Btn } from './ui';
 
 export function DemoDrop() {
   const restoreDb = useApp((s) => s.restoreDb);
   const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
   const [over, setOver] = useState(false);
   const [loadingDemo, setLoadingDemo] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -88,6 +90,13 @@ export function DemoDrop() {
       <Btn sm onClick={() => fileRef.current?.click()}>
         בחירת קובץ גיבוי…
       </Btn>
+      {/* UX סבב-ז׳: ריצה-ראשונה מציעה גם לימוד — מדריך וסיור, באותם דגלים של ❓ */}
+      {featureOn(config, 'shell.guide') && (
+        <Btn sm onClick={() => { window.location.hash = '#guide'; }}>📖 מדריך מהיר</Btn>
+      )}
+      {featureOn(config, 'shell.demo') && (
+        <Btn sm onClick={() => { window.location.hash = '#tour'; }}>▶ סיור מודרך</Btn>
+      )}
       <input
         ref={fileRef}
         type="file"

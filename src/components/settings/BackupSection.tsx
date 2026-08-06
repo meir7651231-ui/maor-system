@@ -14,23 +14,18 @@ import {
   decryptBackupFile,
   isCryptoActive,
 } from '../../store/persist';
-import { Btn, FormError } from '../ui';
+import { Btn, Field, FormError, Modal, TextInput } from '../ui';
 import { termOf } from '../../lib/config';
 import { Section, SectionNote } from './lib';
 import { fmtDate, fmtDateTime } from './helpers';
 
-/** אישור דריסה עם סיכום מה נדרס ומה נכנס. */
-function confirmRestore(incoming: Db, sourceLabel: string): boolean {
-  const cur = useApp.getState().db;
-  const config = useApp.getState().config;
-  return window.confirm(
-    `שחזור ${sourceLabel} ידרוס את כל הנתונים הנוכחיים במחשב זה ` +
-      `(${cur.families.length} ${termOf(config, 'nav.families', 'משפחות')}, ${cur.courses.length} ${termOf(config, 'nav.courses', 'חוגים')}, ${cur.supporters.length} ${termOf(config, 'nav.supporters', 'תורמים')}).\n` +
-      `במקומם ייכנסו הנתונים מהגיבוי: ${incoming.families.length} ${termOf(config, 'nav.families', 'משפחות')}, ${incoming.courses.length} ${termOf(config, 'nav.courses', 'חוגים')}` +
-      (incoming.savedAt ? ` (נשמר ב-${fmtDateTime(incoming.savedAt)})` : '') +
-      `.\n\nלהמשיך בשחזור?`,
-  );
-}
+/** UX סבב-ז׳ — זרימת-השחזור עברה מ-window.confirm/prompt (שבורים בטאבלט,
+ *  ובלתי-נגישים) למודאל פנימי דו-שלבי: פענוח (לקובץ מוצפן) ← אישור-דריסה
+ *  עם אותו סיכום בדיוק. אותן יכולות: סיסמה או מפתח-שחזור, אזהרת-גלוי
+ *  כשההצפנה כבויה במכשיר. */
+type RestoreStage =
+  | { stage: 'password'; encText: string; fail: boolean }
+  | { stage: 'confirm'; parsed: Db; sourceLabel: string; plainWarn: boolean };
 
 export function BackupSection() {
   const saveOk = useApp((s) => s.saveOk);
@@ -41,6 +36,8 @@ export function BackupSection() {
 
   const [error, setError] = useState('');
   const [snaps, setSnaps] = useState<string[]>([]);
+  const [restore, setRestore] = useState<RestoreStage | null>(null);
+  const [pw, setPw] = useState('');
 
   useEffect(() => {
     void listSnapshots().then(setSnaps);
@@ -51,41 +48,35 @@ export function BackupSection() {
     e.target.value = ''; // מאפשר לבחור שוב את אותו קובץ
     if (!file) return;
     setError('');
+    setPw('');
     try {
       const text = await file.text();
-      // קובץ גיבוי מוצפן — מבקשים סיסמה, ובכשל מציעים מפתח שחזור
+      // קובץ גיבוי מוצפן — שלב פענוח במודאל (סיסמה או מפתח-שחזור)
       if (isEncryptedBackup(text)) {
-        const pw = window.prompt('קובץ גיבוי מוצפן — הזינו את סיסמת ההצפנה (בטלו כדי להשתמש במפתח שחזור):');
-        let parsed = pw ? await decryptBackupFile(text, pw, 'pass') : null;
-        if (!parsed) {
-          const rec = window.prompt('הזינו מפתח שחזור (או בטלו):');
-          parsed = rec ? await decryptBackupFile(text, rec.trim().toUpperCase(), 'rec') : null;
-        }
-        if (!parsed) {
-          setError('הפענוח נכשל — סיסמה או מפתח שחזור שגויים');
-          return;
-        }
-        if (!confirmRestore(parsed, 'מקובץ גיבוי מוצפן')) return;
-        // הקובץ מוצפן אך ההצפנה כבויה במכשיר — restoreDb יכתוב את הנתונים הרגישים
-        // בגלוי. מזהירים לפני, שכן ה-store לבדו אינו יודע שהמקור היה מוצפן.
-        if (
-          !isCryptoActive() &&
-          !window.confirm(
-            'קובץ הגיבוי מוצפן, אך ההצפנה כבויה במכשיר זה — הנתונים הרגישים (בריאות, ת"ז, טלפונים, תורמים) ייכתבו גלויים ללא הצפנה. להמשיך בשחזור?',
-          )
-        )
-          return;
-        restoreDb(parsed);
-        void listSnapshots().then(setSnaps);
+        setRestore({ stage: 'password', encText: text, fail: false });
         return;
       }
       const parsed = parseBackupFile(text);
-      if (!confirmRestore(parsed, 'מקובץ הגיבוי')) return;
-      restoreDb(parsed);
-      void listSnapshots().then(setSnaps);
+      setRestore({ stage: 'confirm', parsed, sourceLabel: 'מקובץ הגיבוי', plainWarn: false });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'שגיאה בקריאת הקובץ');
     }
+  }
+
+  /** שלב הפענוח: מנסים את הקלט כסיסמה, ואם נכשל — כמפתח-שחזור (שתי היכולות נשמרו). */
+  async function tryDecrypt() {
+    if (restore?.stage !== 'password' || !pw.trim()) return;
+    const parsed =
+      (await decryptBackupFile(restore.encText, pw, 'pass')) ??
+      (await decryptBackupFile(restore.encText, pw.trim().toUpperCase(), 'rec'));
+    if (!parsed) {
+      setRestore({ ...restore, fail: true });
+      return;
+    }
+    setPw('');
+    // הקובץ מוצפן אך ההצפנה כבויה במכשיר — restoreDb יכתוב את הנתונים הרגישים
+    // בגלוי. מזהירים במודאל-האישור, שכן ה-store לבדו אינו יודע שהמקור היה מוצפן.
+    setRestore({ stage: 'confirm', parsed, sourceLabel: 'מקובץ גיבוי מוצפן', plainWarn: !isCryptoActive() });
   }
 
   async function onRestoreSnapshot(key: string) {
@@ -95,8 +86,15 @@ export function BackupSection() {
       toast('⚠ הצילום היומי לא נטען — נסו גיבוי אחר');
       return;
     }
-    if (!confirmRestore(parsed, 'מצילום יומי ' + fmtDate(key))) return;
-    restoreDb(parsed);
+    setRestore({ stage: 'confirm', parsed, sourceLabel: 'מצילום יומי ' + fmtDate(key), plainWarn: false });
+  }
+
+  /** שלב האישור: הדריסה מתבצעת רק מהכפתור המפורש במודאל. */
+  function applyRestore() {
+    if (restore?.stage !== 'confirm') return;
+    restoreDb(restore.parsed);
+    setRestore(null);
+    void listSnapshots().then(setSnaps);
   }
 
   return (
@@ -188,6 +186,71 @@ export function BackupSection() {
         הצילומים היומיים נשמרים בתוך הדפדפן (IndexedDB) — הם לא מגנים מפני מחיקת נתוני הדפדפן. לגיבוי
         אמיתי השתמשו ב"הורדת גיבוי מלא".
       </SectionNote>
+
+      {/* שלב פענוח — קובץ גיבוי מוצפן */}
+      {restore?.stage === 'password' && (
+        <Modal title="🔐 קובץ גיבוי מוצפן" onClose={() => setRestore(null)}>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 10 }}>
+            הזינו את סיסמת ההצפנה, או את מפתח-השחזור שקיבלתם בהפעלת ההצפנה.
+          </p>
+          <Field label="סיסמה או מפתח-שחזור">
+            <TextInput value={pw} onChange={setPw} type="password" dir="ltr" />
+          </Field>
+          {restore.fail && (
+            <div style={{ color: 'var(--red)', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
+              הפענוח נכשל — סיסמה או מפתח שחזור שגויים
+            </div>
+          )}
+          <div className="modal-actions">
+            <Btn kind="primary" onClick={() => void tryDecrypt()} disabled={!pw.trim()}>
+              פענוח והמשך
+            </Btn>
+            <Btn onClick={() => setRestore(null)}>ביטול</Btn>
+          </div>
+        </Modal>
+      )}
+
+      {/* שלב אישור-הדריסה — אותו סיכום בדיוק כמו ה-confirm ההיסטורי */}
+      {restore?.stage === 'confirm' && (
+        <Modal title="⚠ אישור שחזור — דריסת הנתונים" onClose={() => setRestore(null)}>
+          {(() => {
+            const cur = useApp.getState().db;
+            const cfg = useApp.getState().config;
+            const inc = restore.parsed;
+            return (
+              <p style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 10 }}>
+                {`שחזור ${restore.sourceLabel} ידרוס את כל הנתונים הנוכחיים במחשב זה `}
+                <b>{`(${cur.families.length} ${termOf(cfg, 'nav.families', 'משפחות')}, ${cur.courses.length} ${termOf(cfg, 'nav.courses', 'חוגים')}, ${cur.supporters.length} ${termOf(cfg, 'nav.supporters', 'תורמים')})`}</b>
+                {`. במקומם ייכנסו הנתונים מהגיבוי: `}
+                <b>{`${inc.families.length} ${termOf(cfg, 'nav.families', 'משפחות')}, ${inc.courses.length} ${termOf(cfg, 'nav.courses', 'חוגים')}`}</b>
+                {inc.savedAt ? ` (נשמר ב-${fmtDateTime(inc.savedAt)})` : ''}.
+              </p>
+            );
+          })()}
+          {restore.plainWarn && (
+            <div
+              style={{
+                background: '#fdf1d4',
+                color: '#9a6414',
+                borderRadius: 10,
+                padding: '8px 12px',
+                fontSize: 13,
+                fontWeight: 600,
+                marginBottom: 10,
+              }}
+            >
+              ⚠ קובץ הגיבוי מוצפן, אך ההצפנה כבויה במכשיר זה — הנתונים הרגישים (בריאות, ת"ז, טלפונים,
+              תורמים) ייכתבו גלויים ללא הצפנה.
+            </div>
+          )}
+          <div className="modal-actions">
+            <Btn kind="danger" onClick={applyRestore}>
+              אישור השחזור — דריסת הנתונים
+            </Btn>
+            <Btn onClick={() => setRestore(null)}>ביטול</Btn>
+          </div>
+        </Modal>
+      )}
     </Section>
   );
 }

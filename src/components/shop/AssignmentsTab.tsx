@@ -11,7 +11,7 @@ import { featureOn, moduleOn, termOf } from '../../lib/config';
 // ובלי שדות סעיף 46 (נאכף בהגנת-מקור ב-shop-sreceipt.test.ts)
 import { downloadReceipt } from '../../lib/receipt';
 import type { ShopAssignment, ShopComponent, ShopRedemption } from '../../types/domain';
-import { Btn, Chip, Empty, Select, TextInput } from '../ui';
+import { Btn, Chip, Empty, Field, Modal, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
 import { isoToday } from '../../lib/date-util';
 import { assignmentRedeemed, beneficiaryLabel, componentRemaining, couponExpiry, filterAssignments, filterRedemptions, itemOf, itemRemaining, upcomingHolidays } from './lib';
@@ -56,11 +56,20 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
     props.onBack();
   }
 
-  /** ביטול עם סימון (הכרעה 14) — דו-קליק, סיבה רשות; הרשומה וה-S- נשארים. */
+  /** ביטול עם סימון (הכרעה 14) — דו-קליק, סיבה רשות; הרשומה וה-S- נשארים.
+   *  UX סבב-ז׳: הסיבה נאספת במודאל פנימי במקום window.prompt (שבור בטאבלט). */
+  const [voidReq, setVoidReq] = useState<ShopRedemption | null>(null);
+  const [voidReason, setVoidReason] = useState('');
   function voidRedemption(r: ShopRedemption) {
     if (!confirmTwice('shr-' + r.id, 'לבטל את המימוש' + (r.rid ? ' (' + r.rid + ')' : '') + '? הרשומה תסומן ולא תימחק')) return;
-    const reason = window.prompt('סיבת הביטול (רשות):') ?? '';
-    if (voidShopRedemption(a.id, r.id, reason)) toast('המימוש בוטל — הרשומה נשארה מתועדת' + (r.rid ? ' (' + r.rid + ')' : ''));
+    setVoidReason('');
+    setVoidReq(r);
+  }
+  function applyVoid() {
+    if (!voidReq) return;
+    if (voidShopRedemption(a.id, voidReq.id, voidReason.trim()))
+      toast('המימוש בוטל — הרשומה נשארה מתועדת' + (voidReq.rid ? ' (' + voidReq.rid + ')' : ''));
+    setVoidReq(null);
   }
 
   /** הורדת אישור תשלום סמלי S- — אינו קבלת מס ואינו נושא שדות סעיף 46. */
@@ -200,6 +209,21 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
         />
       )}
       {editOpen && <AssignmentForm assignment={a} onClose={() => setEditOpen(false)} />}
+      {/* UX סבב-ז׳: סיבת-הביטול במודאל פנימי — window.prompt שבור בטאבלט */}
+      {voidReq && (
+        <Modal title={'🚫 ביטול מימוש' + (voidReq.rid ? ' (' + voidReq.rid + ')' : '')} onClose={() => setVoidReq(null)}>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 10 }}>
+            הרשומה תסומן כמבוטלת ולא תימחק{voidReq.rid ? ' — האישור ' + voidReq.rid + ' נשאר מתועד' : ''}.
+          </p>
+          <Field label="סיבת הביטול (רשות)">
+            <TextInput value={voidReason} onChange={setVoidReason} placeholder="לדוגמה: נרשם בטעות, המשפחה ויתרה…" />
+          </Field>
+          <div className="modal-actions">
+            <Btn kind="danger" onClick={applyVoid}>ביטול המימוש</Btn>
+            <Btn onClick={() => setVoidReq(null)}>סגירה</Btn>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

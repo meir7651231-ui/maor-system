@@ -162,9 +162,17 @@ export function EncryptionSection() {
   const cloudOn = useApp((s) => s.cloud.enabled);
   const [enabling, setEnabling] = useState(false);
   const [changing, setChanging] = useState(false);
+  // UX סבב-ז׳: חימוש דו-שלבי במקום window.confirm (שבור בטאבלט)
+  const [disArmed, setDisArmed] = useState(false);
 
   const disable = () => {
-    if (window.confirm('לבטל את ההצפנה? הנתונים יישמרו שוב גלויים במכשיר.')) void disableEncryption();
+    if (!disArmed) {
+      setDisArmed(true);
+      setTimeout(() => setDisArmed(false), 4000);
+      return;
+    }
+    setDisArmed(false);
+    void disableEncryption();
   };
 
   return (
@@ -200,7 +208,9 @@ export function EncryptionSection() {
           <Btn sm kind="primary" onClick={() => setChanging(true)}>
             החלפת סיסמה
           </Btn>
-          <Btn sm onClick={disable}>ביטול הצפנה</Btn>
+          <Btn sm kind={disArmed ? 'danger' : undefined} onClick={disable}>
+            {disArmed ? 'לחצו שוב — הנתונים יישמרו גלויים' : 'ביטול הצפנה'}
+          </Btn>
         </div>
       )}
       {encrypted && changing && <ChangePwForm onDone={() => setChanging(false)} />}
