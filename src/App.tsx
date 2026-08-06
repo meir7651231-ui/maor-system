@@ -11,7 +11,7 @@ import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
 import { nsLsKey, parseBackupFile } from './store/persist';
 import { featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, termOf } from './lib/config';
-import { applyOrgManifest, registerPwa } from './lib/pwa';
+import { applyOrgManifest, isIos, isStandalone, promptInstall, registerPwa } from './lib/pwa';
 import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
 import { freshenDemoDb } from './lib/demoFresh';
@@ -838,6 +838,26 @@ export default function App() {
             )}
             {demoOn && (
               <HubButton emoji="▶" title="סיור מודרך" sub="מצב הדגמה — המערכת מדגימה את עצמה" onClick={() => { setHelpOpen(false); window.location.hash = '#tour'; }} />
+            )}
+            {/* PWA: כפתור-התקנה מפורש — לא סומכים על הבאנר הגחמתי של הדפדפן.
+                Chrome מוכן ⇒ דיאלוג-התקנה; אחרת הוראות פר-פלטפורמה. מוסתר כשכבר מותקן. */}
+            {featureOn(config, 'shell.pwa') && !isStandalone() && (
+              <HubButton
+                emoji="📲"
+                title="התקנת האפליקציה"
+                sub="אייקון במסך הבית, מסך מלא ועבודה גם בלי רשת"
+                onClick={() => {
+                  setHelpOpen(false);
+                  void promptInstall().then((ok) => {
+                    if (ok) return;
+                    useApp.getState().toast(
+                      isIos()
+                        ? '📲 ב-iPhone: כפתור השיתוף ← "הוסף למסך הבית"'
+                        : '📲 בתפריט ⋮ של הדפדפן: "הוספה למסך הבית" / "התקנת אפליקציה"',
+                    );
+                  });
+                }}
+              />
             )}
           </div>
         </Modal>
