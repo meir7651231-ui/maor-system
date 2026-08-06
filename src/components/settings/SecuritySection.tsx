@@ -39,9 +39,16 @@ function CodeManager({ kind, title, desc }: { kind: 'primary' | 'secondary'; tit
     reset();
   };
 
+  // UX סבב-ז׳: חימוש דו-שלבי במקום window.confirm (שבור בטאבלט)
+  const [removeArmed, setRemoveArmed] = useState(false);
   const remove = async () => {
     if (busy) return;
-    if (!window.confirm('להסיר את הקוד? הנעילה תבוטל.')) return;
+    if (!removeArmed) {
+      setRemoveArmed(true);
+      setTimeout(() => setRemoveArmed(false), 4000);
+      return;
+    }
+    setRemoveArmed(false);
     setBusy(true);
     await setLockCode(kind, null);
     setBusy(false);
@@ -74,8 +81,8 @@ function CodeManager({ kind, title, desc }: { kind: 'primary' | 'secondary'; tit
             {isSet ? 'שינוי קוד' : 'קביעת קוד'}
           </Btn>
           {isSet && (
-            <Btn sm onClick={() => void remove()}>
-              הסרת קוד
+            <Btn sm kind={removeArmed ? 'danger' : undefined} onClick={() => void remove()}>
+              {removeArmed ? 'לחצו שוב — הנעילה תבוטל' : 'הסרת קוד'}
             </Btn>
           )}
         </div>

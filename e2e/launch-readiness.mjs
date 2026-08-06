@@ -140,8 +140,10 @@ try {
   // UX סבב-ו׳: ההגדרות מקובצות ללשוניות — גיבוי/שחזור/ייבוא בלשונית "📚 נתונים"
   await clickText('📚 נתונים');
   await pg.waitForTimeout(400);
-  pg.once('dialog', (d) => void d.accept()); // confirm הדריסה של שחזור מקובץ
+  // UX סבב-ז׳: אישור-הדריסה עבר מ-window.confirm למודאל פנימי — מקליקים על הכפתור
   await pg.locator('label:has-text("⬆ שחזור מקובץ גיבוי") input[type=file]').setInputFiles(fixture);
+  await pg.waitForTimeout(600);
+  await clickText('אישור השחזור — דריסת הנתונים');
   await pg.waitForTimeout(1500); // debounce השמירה ל-localStorage הוא 500ms
   const db = await pg.evaluate(() => { try { return JSON.parse(localStorage.getItem('maor_db')); } catch { return null; } });
   const counts = db && db.families.length === 3 && db.supporters.length === 2 && db.courses.length === 1 &&

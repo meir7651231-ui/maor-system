@@ -38,8 +38,9 @@ export function RoomsSection() {
       sub={roomsT + ' משמשים את היומן ואת ה' + termOf(config, 'entity.enrollments', 'שיבוצים') + ' · ' + room + ' שאינו בשימוש מסמנים כמושבת'}
     >
       <div style={{ marginBottom: 10 }}>
+        {/* UX סבב-ז׳: שפת-הוספה אחידה '➕ הוספת X' — גם נייטרלית-מגדרית למונחי-נקבה */}
         <Btn kind="primary" sm onClick={() => setCreating(true)}>
-          {'+ ' + room + ' חדש'}
+          {'➕ הוספת ' + room}
         </Btn>
       </div>
       {rooms.length === 0 ? (

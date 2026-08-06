@@ -131,7 +131,7 @@ export function DayModal(props: {
         </span>
         <span style={{ flex: 1 }} />
         <Btn kind="primary" sm onClick={() => onAdd(iso)}>
-          + אירוע חדש
+          ➕ הוספת אירוע
         </Btn>
       </div>
 
