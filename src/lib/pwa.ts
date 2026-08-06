@@ -12,6 +12,48 @@
 import type { OrgConfig } from '../types/config';
 import { featureOn } from './config';
 
+/** לכידת beforeinstallprompt — Chrome יורה אותו כשקריטריוני-ההתקנה מולאו;
+ *  אנחנו עוצרים את הבאנר-האוטומטי (גחמתי) ושומרים להפעלה מכפתור מפורש.
+ *  המאזין נרשם בזמן-טעינת-המודול — מוקדם מספיק (האירוע יורה אחרי load). */
+interface InstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: string }>;
+}
+let deferredInstall: InstallPromptEvent | null = null;
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstall = e as InstallPromptEvent;
+    window.dispatchEvent(new Event('maor:pwa-installable'));
+  });
+}
+
+/** האם הדפדפן מוכן להציג דיאלוג-התקנה (Chrome/Edge אנדרואיד+דסקטופ). */
+export function installAvailable(): boolean {
+  return deferredInstall !== null;
+}
+
+/** הפעלת דיאלוג-ההתקנה; מחזיר האם המשתמש אישר. */
+export async function promptInstall(): Promise<boolean> {
+  const d = deferredInstall;
+  if (!d) return false;
+  deferredInstall = null;
+  await d.prompt();
+  return (await d.userChoice).outcome === 'accepted';
+}
+
+/** האם רצים כבר כאפליקציה מותקנת (standalone) — אז אין מה להציע. */
+export function isStandalone(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia?.('(display-mode: standalone)').matches === true ||
+    (navigator as { standalone?: boolean }).standalone === true;
+}
+
+/** ‏iOS — אין beforeinstallprompt; מציגים הוראות ידניות (שיתוף ← הוסף למסך הבית). */
+export function isIos(): boolean {
+  return typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
 export function registerPwa(config: OrgConfig): void {
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
   if (navigator.webdriver) return; // סוויטות-הדפדפן — אפס התערבות במטמון

@@ -51,4 +51,12 @@ describe('📱 ratchet — PWA שלב 1', () => {
     expect(pwaSrc).toMatch(/if \(slug === 'default' \|\| !name\) return/);
     expect(pwaSrc).toContain("base + 'icons/icon-192.png'");
   });
+
+  it('כפתור-התקנה מפורש: beforeinstallprompt נלכד, מוסתר כשמותקן, הוראות-iOS', () => {
+    // הבאנר האוטומטי של Chrome גחמתי (מדדי-שימוש) — הבעלים לא ראה הצעה.
+    // הכפתור ב-❓ נותן שליטה: דיאלוג כשמוכן, הוראות פר-פלטפורמה אחרת.
+    expect(pwaSrc).toContain("window.addEventListener('beforeinstallprompt'");
+    expect(pwaSrc).toContain('e.preventDefault()');
+    expect(pwaSrc).toContain("matchMedia?.('(display-mode: standalone)')");
+  });
 });
