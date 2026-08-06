@@ -63,20 +63,33 @@ export function BackupSection() {
     }
   }
 
-  /** שלב הפענוח: מנסים את הקלט כסיסמה, ואם נכשל — כמפתח-שחזור (שתי היכולות נשמרו). */
+  /** שלב הפענוח: מנסים את הקלט כסיסמה, ואם נכשל — כמפתח-שחזור (שתי היכולות נשמרו).
+   *  חוזה decryptBackupFile כפול: null = סוד שגוי; חריגה = הסוד נכון אך התוכן
+   *  פגום/גרסה-חדשה — חייבים לתפוס ולהציג, אחרת המודאל קופא בשקט (ביקורת 6.8).
+   *  busy: ‏PBKDF2 ×600K רץ עד פעמיים — בלי חיווי, טאבלט מקבל דאבל-טאפ וריצות כפולות. */
+  const [busy, setBusy] = useState(false);
+  const [decErr, setDecErr] = useState('');
   async function tryDecrypt() {
-    if (restore?.stage !== 'password' || !pw.trim()) return;
-    const parsed =
-      (await decryptBackupFile(restore.encText, pw, 'pass')) ??
-      (await decryptBackupFile(restore.encText, pw.trim().toUpperCase(), 'rec'));
-    if (!parsed) {
-      setRestore({ ...restore, fail: true });
-      return;
+    if (restore?.stage !== 'password' || !pw.trim() || busy) return;
+    setBusy(true);
+    setDecErr('');
+    try {
+      const parsed =
+        (await decryptBackupFile(restore.encText, pw, 'pass')) ??
+        (await decryptBackupFile(restore.encText, pw.trim().toUpperCase(), 'rec'));
+      if (!parsed) {
+        setRestore({ ...restore, fail: true });
+        return;
+      }
+      setPw('');
+      // הקובץ מוצפן אך ההצפנה כבויה במכשיר — restoreDb יכתוב את הנתונים הרגישים
+      // בגלוי. מזהירים במודאל-האישור, שכן ה-store לבדו אינו יודע שהמקור היה מוצפן.
+      setRestore({ stage: 'confirm', parsed, sourceLabel: 'מקובץ גיבוי מוצפן', plainWarn: !isCryptoActive() });
+    } catch (err) {
+      setDecErr(err instanceof Error ? err.message : 'הפענוח נכשל — הקובץ פגום');
+    } finally {
+      setBusy(false);
     }
-    setPw('');
-    // הקובץ מוצפן אך ההצפנה כבויה במכשיר — restoreDb יכתוב את הנתונים הרגישים
-    // בגלוי. מזהירים במודאל-האישור, שכן ה-store לבדו אינו יודע שהמקור היה מוצפן.
-    setRestore({ stage: 'confirm', parsed, sourceLabel: 'מקובץ גיבוי מוצפן', plainWarn: !isCryptoActive() });
   }
 
   async function onRestoreSnapshot(key: string) {
@@ -194,16 +207,20 @@ export function BackupSection() {
             הזינו את סיסמת ההצפנה, או את מפתח-השחזור שקיבלתם בהפעלת ההצפנה.
           </p>
           <Field label="סיסמה או מפתח-שחזור">
-            <TextInput value={pw} onChange={setPw} type="password" dir="ltr" />
+            {/* הקלדה מנקה את חיווי-הכישלון — אחרת כשל-שני לא נבדל מהראשון */}
+            <TextInput value={pw} onChange={(v) => { setPw(v); if (restore.fail) setRestore({ ...restore, fail: false }); }} type="password" dir="ltr" />
           </Field>
           {restore.fail && (
             <div style={{ color: 'var(--red)', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
               הפענוח נכשל — סיסמה או מפתח שחזור שגויים
             </div>
           )}
+          {decErr && (
+            <div style={{ color: 'var(--red)', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>{decErr}</div>
+          )}
           <div className="modal-actions">
-            <Btn kind="primary" onClick={() => void tryDecrypt()} disabled={!pw.trim()}>
-              פענוח והמשך
+            <Btn kind="primary" onClick={() => void tryDecrypt()} disabled={!pw.trim() || busy}>
+              {busy ? 'מפענח…' : 'פענוח והמשך'}
             </Btn>
             <Btn onClick={() => setRestore(null)}>ביטול</Btn>
           </div>
@@ -239,8 +256,9 @@ export function BackupSection() {
                 marginBottom: 10,
               }}
             >
-              ⚠ קובץ הגיבוי מוצפן, אך ההצפנה כבויה במכשיר זה — הנתונים הרגישים (בריאות, ת"ז, טלפונים,
-              תורמים) ייכתבו גלויים ללא הצפנה.
+              {'⚠ קובץ הגיבוי מוצפן, אך ההצפנה כבויה במכשיר זה — הנתונים הרגישים (בריאות, ת"ז, טלפונים, ' +
+                termOf(useApp.getState().config, 'nav.supporters', 'תורמים') +
+                ') ייכתבו גלויים ללא הצפנה.'}
             </div>
           )}
           <div className="modal-actions">

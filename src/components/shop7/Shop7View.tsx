@@ -185,7 +185,7 @@ function DaysTab() {
         {featureOn(config, 'shop7.export') && db.deliveries.length > 0 && (
           <Btn sm onClick={() => downloadCsv('deliveries.csv', deliveriesCsvRows(db, config))}>⬇ ייצוא מסירות (CSV)</Btn>
         )}
-        <Btn kind="primary" onClick={() => setFormOpen(true)}>➕ הוספת יום חלוקה</Btn>
+        <Btn kind="primary" onClick={() => setFormOpen(true)}>{'➕ הוספת יום ' + termOf(config, 'nav.shop7', 'חלוקה')}</Btn>
       </div>
       {sorted.length === 0 ? (
         <Empty>אין ימי-חלוקה עדיין — צרו את הראשון ושייכו אליו מסירות.</Empty>

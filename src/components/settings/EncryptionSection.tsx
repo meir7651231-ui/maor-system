@@ -3,7 +3,7 @@
  * בהפעלה מוצג "מפתח שחזור" חד-פעמי שיש לשמור: הוא הדרך היחידה לשחזר אם
  * הסיסמה נשכחת. זו הצפנה אמיתית — בלי סיסמה/מפתח שחזור אין גישה לנתונים.
  */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { Btn, Field, FormError, Modal, TextInput } from '../ui';
 import { Section, SectionNote } from './lib';
@@ -162,15 +162,19 @@ export function EncryptionSection() {
   const cloudOn = useApp((s) => s.cloud.enabled);
   const [enabling, setEnabling] = useState(false);
   const [changing, setChanging] = useState(false);
-  // UX סבב-ז׳: חימוש דו-שלבי במקום window.confirm (שבור בטאבלט)
+  // UX סבב-ז׳: חימוש דו-שלבי במקום window.confirm (שבור בטאבלט).
+  // ביקורת 6.8: מגן-דאבל-טאפ <400ms — בלעדיו ההצפנה כובתה בלי שאפשר לקרוא.
   const [disArmed, setDisArmed] = useState(false);
+  const disArmedAt = useRef(0);
 
   const disable = () => {
     if (!disArmed) {
       setDisArmed(true);
+      disArmedAt.current = Date.now();
       setTimeout(() => setDisArmed(false), 4000);
       return;
     }
+    if (Date.now() - disArmedAt.current < 400) return;
     setDisArmed(false);
     void disableEncryption();
   };

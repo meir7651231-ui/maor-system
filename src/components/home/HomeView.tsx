@@ -22,6 +22,7 @@ import {
 } from './homeData';
 import {
   defaultLayoutFor,
+  noBoardLayoutFor,
   HOME_WIDGETS,
   sanitizeLayout,
   THEME_TEMPLATES,
@@ -80,8 +81,10 @@ export function HomeView() {
 
   /* ── פריסת הלוח + מצב עריכה ── */
 
-  // ברירת המחדל תלוית-ערכה (THEME_LAYOUTS) — פריסה שמורה תמיד גוברת עליה
-  const defaultLayout = defaultLayoutFor(config.theme);
+  // ברירת המחדל תלוית-ערכה (THEME_LAYOUTS) — פריסה שמורה תמיד גוברת עליה.
+  // ביקורת 6.8: בלי עריכת-לוח (home.board:false) אין "הוסיפו בקליק" ⇒ הפריסה
+  // המלאה ההיסטורית, אחרת 4 ווידג'טים מגודרי-דגל היו אובדים לגמרי.
+  const defaultLayout = boardOn ? defaultLayoutFor(config.theme) : noBoardLayoutFor(config.theme);
   // הפריסה השמורה של הארגון — מנורמלת; כשהפיצ'ר כבוי מתעלמים ממנה לגמרי
   const savedLayout = useMemo(
     () => (boardOn ? sanitizeLayout(db.ui.homeLayout, defaultLayout) : [...defaultLayout]),

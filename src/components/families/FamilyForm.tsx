@@ -181,9 +181,6 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
         <Field label="שם האב">
           <TextInput value={f.father} onChange={(v) => set({ father: v })} />
         </Field>
-        <Field label={'ת"ז האב'}>
-          <TextInput value={f.fatherId} onChange={(v) => set({ fatherId: v })} placeholder="9 ספרות" dir="ltr" />
-        </Field>
         <Field label="שם האם">
           <TextInput value={f.mother} onChange={(v) => set({ mother: v })} />
         </Field>
@@ -213,11 +210,9 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
       </button>
       {moreOpen && (
         <div className="form-grid">
+        {/* ביקורת 6.8: ת"ז-האב פעם אחת בלבד (בקיפול, כמו בתווית); שם-האם בליבה בלבד */}
         <Field label={'ת"ז האב'}>
           <TextInput value={f.fatherId} onChange={(v) => set({ fatherId: v })} placeholder="9 ספרות" dir="ltr" />
-        </Field>
-        <Field label="שם האם">
-          <TextInput value={f.mother} onChange={(v) => set({ mother: v })} />
         </Field>
         <Field label={'ת"ז האם'}>
           <TextInput value={f.motherId} onChange={(v) => set({ motherId: v })} placeholder="9 ספרות" dir="ltr" />

@@ -82,7 +82,8 @@ describe('🛡 הגנות-מקור — חיווט למודאלים הקיימי�
 
   it('עמודת הפעולות, "➕ אירוע" וכרטיסי אב/אם מגודרים בדגל (כבוי = ההתנהגות הקודמת)', () => {
     expect(panelsSrc).toMatch(/\{cardOpsOn && <th><\/th>\}/);
-    expect(panelsSrc).toMatch(/cardOpsOn \?[\s\S]{0,200}➕ אירוע/);
+    // ‏6.8: הנוסח אוחד ל"➕ הוספת אירוע" (שפת-הוספה אחידה, סבב-ז׳) — הגידור נשמר
+    expect(panelsSrc).toMatch(/cardOpsOn \?[\s\S]{0,200}➕ הוספת אירוע/);
     expect(detailSrc).toMatch(/cardOpsOn && fam\.father && !fam\.members\.some\(\(x\) => x\.isParent && x\.gender === 'm'\)/);
     expect(detailSrc).toMatch(/cardOpsOn && fam\.mother && !fam\.members\.some\(\(x\) => x\.isParent && x\.gender === 'f'\)/);
   });

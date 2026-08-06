@@ -9,7 +9,7 @@
 import { describe, expect, it } from 'vitest';
 import { WIZARD_SECTIONS } from '../sections';
 import { ALL_MODULES } from '../../platform/lib';
-import { FEATURES } from '../../../types/features';
+import { FEATURES, TERM_DEFS } from '../../../types/features';
 
 describe('🧩 ratchet — אשף ההרכבה מכסה כל מודול', () => {
   it('לכל מודול-ניווט (ALL_MODULES) יש מקטע מתאים באשף', () => {
@@ -36,5 +36,17 @@ describe('🧩 ratchet — אשף ההרכבה מכסה כל מודול', () => 
       // כל מקטע חייב להתאים לקבוצת-פיצ'רים אמיתית (גם home/settings/core/shell/signup)
       expect(featureModules.has(s.id)).toBe(true);
     }
+  });
+
+  // ביקורת 6.8: 12 מונחים (סמיכות/רבים/גאדג'טים) לא נחשפו באף מקטע — עריכתם
+  // הייתה אפשרית רק ב-#platform. ה-ratchet: כל מונח ב-TERM_DEFS מופיע במקטע
+  // כלשהו, ואין מפתח-רפאים (termKey שאינו מונח אמיתי).
+  it('כיסוי-מונחים מלא: union(termKeys) ≡ TERM_DEFS', () => {
+    const exposed = new Set(WIZARD_SECTIONS.flatMap((s) => s.termKeys));
+    const real = new Set(TERM_DEFS.map((t) => t.key));
+    const missing = [...real].filter((k) => !exposed.has(k));
+    const ghosts = [...exposed].filter((k) => !real.has(k));
+    expect(missing).toEqual([]);
+    expect(ghosts).toEqual([]);
   });
 });

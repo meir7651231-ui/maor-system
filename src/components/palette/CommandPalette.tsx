@@ -164,9 +164,9 @@ export function CommandPalette() {
       actions.push({
         key: 'act-new-family',
         icon: '➕',
-        title: termOf(config, 'entity.family', 'משפחה') + ' חדשה',
+        title: '➕ הוספת ' + termOf(config, 'entity.family', 'משפחה'),
         sub: 'מעבר למסך ה' + termOf(config, 'nav.families', 'משפחות') + ' לרישום',
-        terms: toTerms(['משפחה חדשה', 'הוספה', 'רישום', 'קליטה']),
+        terms: toTerms(['משפחה חדשה', 'הוספת משפחה', 'הוספה', 'רישום', 'קליטה']),
         run: () => {
           selectFamily(null);
           setPalette(false);
@@ -346,9 +346,9 @@ export function CommandPalette() {
         actions.push({
           key: 'act-new-event',
           icon: '📅',
-          title: '+ אירוע חדש',
+          title: '➕ הוספת אירוע',
           sub: 'הוספה ללוח השנה',
-          terms: toTerms(['אירוע חדש', 'הוספה', 'לוח']),
+          terms: toTerms(['אירוע חדש', 'הוספת אירוע', 'הוספה', 'לוח']),
           run: () => {
             openEventForm('org');
             setPalette(false);
@@ -370,9 +370,9 @@ export function CommandPalette() {
         actions.push({
           key: 'act-new-course',
           icon: '🎨',
-          title: '+ ' + termOf(config, 'entity.course', 'חוג') + ' חדש',
+          title: '➕ הוספת ' + termOf(config, 'entity.course', 'חוג'),
           sub: 'הגדרת ' + termOf(config, 'entity.course', 'חוג') + ' ומסלול תמחור',
-          terms: toTerms([termOf(config, 'entity.course', 'חוג') + ' חדש', 'קורס חדש', 'הוספה']),
+          terms: toTerms([termOf(config, 'entity.course', 'חוג') + ' חדש', 'הוספת ' + termOf(config, 'entity.course', 'חוג'), 'קורס חדש', 'הוספה']),
           run: () => {
             openCourseForm();
             setPalette(false);
@@ -383,7 +383,7 @@ export function CommandPalette() {
         actions.push({
           key: 'act-new-supporter',
           icon: '💛',
-          title: '+ ' + termOf(config, 'entity.supporter', 'תומך/ת') + ' חדש/ה',
+          title: '➕ הוספת ' + termOf(config, 'entity.supporter', 'תומך/ת'),
           sub: 'כרטיס מלא — ' + termOf(config, 'entity.donations', 'תרומות') + ' ומעקב',
           terms: toTerms([termOf(config, 'entity.supporter', 'תומך/ת'), 'תומכת חדשה', 'תורמת', 'הוספה']),
           run: () => {

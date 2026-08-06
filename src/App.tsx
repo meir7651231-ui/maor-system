@@ -796,11 +796,13 @@ export default function App() {
 
       {/* כניסת-הניהול (ADMINHUB) — נפתחת רק ממנהל-על (הכפתור מגודר canAdminHub);
           הבורר מנתב לכלים דרך ה-hash כך שהקישורים הישנים ממשיכים לעבוד */}
-      {/* 'עוד' (UX סבב-ב׳) — כל המודולים שלא ברצועה/בתחתון + הגדרות; הכול נגיש */}
+      {/* 'עוד' (UX סבב-ב׳) — כל המודולים שלא ברצועה/בתחתון + הגדרות.
+          ביקורת 6.8: ההגדרות מגודרות !isTeacherUser — אותו שער של ⚙️ בשלושת
+          השלדים; בלעדיו תפקיד-מורה הגיע לייבוא/גיבוי/איפוס דרך המודאל הזה. */}
       {moreNavOpen && (
         <Modal title="כל המסכים" onClose={() => setMoreNavOpen(false)}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8 }}>
-            {[...nav, NAV[NAV.length - 1]].map((n) => (
+            {[...nav, ...(isTeacherUser ? [] : [NAV[NAV.length - 1]])].map((n) => (
               <button
                 key={n.view}
                 type="button"
