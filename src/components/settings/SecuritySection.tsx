@@ -4,7 +4,7 @@
  * הקוד נשמר מגובב במכשיר בלבד (localStorage, ראה lib/lock) — לא בגיבוי ולא
  * בענן. הגנת-גישה מפני עיון מזדמן, לא הצפנת נתונים.
  */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { Btn, Chip, Field, FormError, TextInput } from '../ui';
 import { Section, SectionNote } from './lib';
@@ -39,15 +39,20 @@ function CodeManager({ kind, title, desc }: { kind: 'primary' | 'secondary'; tit
     reset();
   };
 
-  // UX סבב-ז׳: חימוש דו-שלבי במקום window.confirm (שבור בטאבלט)
+  // UX סבב-ז׳: חימוש דו-שלבי במקום window.confirm (שבור בטאבלט).
+  // ביקורת 6.8: דאבל-טאפ טבעי צרך את החימוש לפני שאפשר לקרוא — מתעלמים
+  // מאישור שנוחת <400ms מהחימוש (אותו דפוס כמו מחיקת-אירוע ב-EventModal).
   const [removeArmed, setRemoveArmed] = useState(false);
+  const removeArmedAt = useRef(0);
   const remove = async () => {
     if (busy) return;
     if (!removeArmed) {
       setRemoveArmed(true);
+      removeArmedAt.current = Date.now();
       setTimeout(() => setRemoveArmed(false), 4000);
       return;
     }
+    if (Date.now() - removeArmedAt.current < 400) return;
     setRemoveArmed(false);
     setBusy(true);
     await setLockCode(kind, null);

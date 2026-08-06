@@ -92,6 +92,15 @@ for (const pack of DATA.packs) {
     // (דליפה חוצת-מודולים), אבל בלי בדיקת-חיוב.
     forbidden.push({ key, word: fb });
   }
+  // ביקורת 6.8: נרדפות היסטוריות — 'תומכות' דלפה אף שה-fallback המוצהר הוא
+  // 'תורמים'; הסורק היה עיוור למילים שאינן ב-termFallbacks.
+  const SYNONYMS = { 'nav.supporters': ['תומכות'] };
+  for (const [key, words] of Object.entries(SYNONYMS)) {
+    const packTerm = pack.terms[key];
+    const fb = DATA.termFallbacks[key];
+    if (!packTerm || packTerm === fb) continue;
+    for (const w of words) if (!packTerm.includes(w)) forbidden.push({ key: key + ':syn', word: w });
+  }
 
   // הניווט: אילו מודולים אמורים להופיע
   const expectedOn = NAV_KEYS.filter((k) => pack.modules[k] !== false);
@@ -119,7 +128,18 @@ for (const pack of DATA.packs) {
     }
     await link.click();
     await page.waitForTimeout(350);
+    // ביקורת 6.8: ההגדרות מקובצות ל-4 לשוניות — סורקים את כולן, לא רק את
+    // ברירת-המחדל (אחרת דליפות בקבוצות נתונים/אבטחה/מתקדם בלתי-נראות לסורק)
     let text = await page.evaluate(() => document.body.innerText);
+    if (v.k === 'settings') {
+      for (const tab of ['📚 נתונים', '🔐 אבטחה', '🧪 מתקדם']) {
+        const tabBtn = page.locator('button.chip', { hasText: tab }).first();
+        if ((await tabBtn.count()) === 0) continue; // לשונית ריקה מוסתרת — תקין
+        await tabBtn.click();
+        await page.waitForTimeout(250);
+        text += '\n' + (await page.evaluate(() => document.body.innerText));
+      }
+    }
     for (const ex of EXCEPTIONS) text = text.split(ex).join('');
     for (const f of forbidden) {
       const i = text.indexOf(f.word);

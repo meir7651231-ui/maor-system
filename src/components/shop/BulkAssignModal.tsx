@@ -141,6 +141,8 @@ export function BulkRedeemModal(props: { product: ShopProduct; onClose: () => vo
 
   function save() {
     if (!comp) return setError('בחרו רכיב');
+    // ביקורת 6.8: תאריך ריק (ניקוי בשדה הלועזי) נכתב verbatim לכל המימושים — חוסמים
+    if (!date) return setError('בחרו תאריך לחלוקה');
     if (isHoliday && !holiday) return setError('בחרו חג למתנת-החג');
     const res = bulkRedeem(props.product.id, componentId, { date, holiday: isHoliday ? holiday : '' });
     if (!res.ok) return; // ה-store הסביר בטוסט (כולל "חסרות K יחידות" — הכול-או-כלום)

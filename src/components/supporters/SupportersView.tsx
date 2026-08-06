@@ -576,7 +576,8 @@ export function SupportersView() {
       )}
 
       <p style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 14 }}>
-        💡 {termOf(config, 'nav.families', 'משפחות')} תומכות אינן מחוברות לקורסים — הן זמינות בחיפוש (⌘K), בלוח השנה (תזכורת 📞) ובגיבויים.
+        {/* ביקורת 6.8: 'תומכות'+'לקורסים' היו קשיחים — דלפו בכל 7 הוורטיקלים */}
+        💡 {termOf(config, 'nav.supporters', 'תורמים')} אינם מחוברים ל{termOf(config, 'nav.courses', 'חוגים')} — זמינים בחיפוש (⌘K), בלוח השנה (תזכורת 📞) ובגיבויים.
       </p>
 
       {formOpen && (

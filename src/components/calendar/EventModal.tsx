@@ -164,7 +164,10 @@ export function EventModal(props: {
         }
       }
     }
+    // ביקורת 6.8: פורסים את האירוע הקיים קודם — בלי זה עריכה מהלוח מחקה שדות-קישור
+    // שאינם בטופס (spId של מעקב-עי"ן, mainEventId של פגישות-חנות ⇒ שחרור-חדר נשבר)
     const next: OrgEvent = {
+      ...(ev ?? {}),
       id: ev?.id ?? nextId('ev'),
       title: f.title.trim(),
       date: f.date,

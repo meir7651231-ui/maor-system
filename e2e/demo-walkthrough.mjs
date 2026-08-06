@@ -161,7 +161,7 @@ await clickIf('main button', 'ניקוב'); await wait(300);
 T('לחיצה ראשונה מזיינת — "לאשר ניקוב?" ובלי ירידת יתרה', (await mainTxt()).includes('לאשר ניקוב?') && (await mainTxt()).includes('10 מתוך 10'));
 await clickIf('main button', 'לאשר ניקוב?'); await wait(500);
 T('ניקוב מכרטיס המשפחה — היתרה ירדה', (await mainTxt()).includes('9 מתוך 10'));
-T('פעולות ⚙/🤒 והוספת אירוע זמינות בכרטיס', (await page.locator('main button', { hasText: '⚙' }).count()) > 0 && (await page.locator('main button', { hasText: '➕ אירוע' }).count()) > 0);
+T('פעולות ⚙/🤒 והוספת אירוע זמינות בכרטיס', (await page.locator('main button', { hasText: '⚙' }).count()) > 0 && (await page.locator('main button', { hasText: '➕ הוספת אירוע' }).count()) > 0);
 await shot('כרטיס-משפחה-תפעולי');
 
 // ── P2 אשכול א׳: מדדי הדשבורד נראים במסך הבית ──

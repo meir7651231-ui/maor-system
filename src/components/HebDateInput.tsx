@@ -38,7 +38,10 @@ export function HebDateInput(props: { value: string; onChange: (iso: string) => 
   const months = hebMonthsOf(+y || nowY);
   const monthVal = months.includes(m) ? m : '';
 
-  /** עדכון בחירה: כשכל שלושת החלקים מלאים — ממירים; צירוף לא קיים ⇒ רמז בלבד. */
+  /** עדכון בחירה: כשכל שלושת החלקים מלאים — ממירים; צירוף לא קיים ⇒ רמז בלבד.
+   *  ביקורת 6.8: כשחלק חסר (למשל חודש שנוקה אוטומטית בהחלפת-שנה אדר↔אדר א׳/ב׳)
+   *  ההורה עדיין מחזיק את התאריך הקודם — בלי רמז המשתמש שומר תאריך מיושן בשקט. */
+  const [partial, setPartial] = useState(false);
   function apply(nd: string, nm: string, ny: string) {
     setD(nd);
     setM(nm);
@@ -47,12 +50,16 @@ export function HebDateInput(props: { value: string; onChange: (iso: string) => 
       const iso = hebToIso(+nd, nm, +ny);
       if (iso) {
         setInvalid(false);
+        setPartial(false);
         props.onChange(iso);
       } else {
         setInvalid(true);
+        setPartial(false);
       }
     } else {
       setInvalid(false);
+      // רמז רק כשכבר יש ערך קודם שעלול להישמר במקום הבחירה החלקית
+      setPartial(!!props.value);
     }
   }
 
@@ -111,6 +118,11 @@ export function HebDateInput(props: { value: string; onChange: (iso: string) => 
           </div>
           {invalid && (
             <div style={{ color: 'var(--red)', fontSize: 12.5, fontWeight: 600 }}>התאריך לא קיים בשנה זו</div>
+          )}
+          {partial && !invalid && (
+            <div style={{ color: '#9a6414', fontSize: 12.5, fontWeight: 600 }}>
+              השלימו יום/חודש/שנה — עד אז נשמר התאריך הקודם ({props.value ? fmtGreg(props.value) : ''})
+            </div>
           )}
         </>
       ) : (

@@ -44,7 +44,7 @@ export function ImportSection() {
     { id: 'json', label: 'מקובץ גיבוי (JSON)' },
     { id: 'fam', label: termOf(config, 'nav.families', 'משפחות') + ' (CSV)' },
     { id: 'kids', label: 'ילדים (CSV)' },
-    { id: 'sup', label: 'תומכות (CSV)' },
+    { id: 'sup', label: termOf(config, 'nav.supporters', 'תורמים') + ' (CSV)' },
     ...(ayinOn ? [{ id: 'ayin' as const, label: 'גיליון ' + featLabel(config) }] : []),
   ];
 
@@ -242,7 +242,7 @@ export function ImportSection() {
 
       {route === 'sup' && (
         <>
-          <h3 style={{ fontSize: 15, fontWeight: 700, margin: '18px 0 6px' }}>תומכות (CSV)</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 700, margin: '18px 0 6px' }}>{termOf(config, 'nav.supporters', 'תורמים') + ' (CSV)'}</h3>
           <SupporterImport />
         </>
       )}

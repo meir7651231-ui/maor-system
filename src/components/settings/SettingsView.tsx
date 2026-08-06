@@ -22,18 +22,20 @@ import { CloudEncryptionSection } from './CloudEncryptionSection';
 import { ThemeSection } from './ThemeSection';
 import { AuditSection } from './AuditSection';
 
-/** feature key פר-סעיף — סעיף בלי מפתח (ארגון/ערכה/התראות/גיבוי/נגישות) לעולם אינו מוסתר. */
+/** feature key פר-סעיף — הצ'יפ מוצג רק כשהסעיף עצמו מרונדר (אותו דגל בדיוק).
+ *  ביקורת 6.8: ערכה/התראות/גיבוי/נגישות היו בלי מפתח ⇒ צ'יפ-מת כשהדגל כבוי;
+ *  רק sec-org באמת בלתי-מוסתר. */
 const SECTIONS: { id: string; label: string; feature?: string }[] = [
   { id: 'sec-org', label: 'ארגון' },
-  { id: 'sec-theme', label: 'ערכת נושא' },
+  { id: 'sec-theme', label: 'ערכת נושא', feature: 'settings.theme' },
   { id: 'sec-teachers', label: 'מורים', feature: 'settings.teachers' },
   { id: 'sec-rooms', label: 'חדרים', feature: 'settings.rooms' },
-  { id: 'sec-notif', label: 'התראות' },
-  { id: 'sec-backup', label: 'גיבוי ושחזור' },
+  { id: 'sec-notif', label: 'התראות', feature: 'settings.notif' },
+  { id: 'sec-backup', label: 'גיבוי ושחזור', feature: 'settings.backup' },
   { id: 'sec-export', label: 'ייצוא נתונים', feature: 'settings.export' },
   { id: 'sec-import', label: 'ייבוא נתונים', feature: 'settings.import' },
   { id: 'sec-audit', label: 'בדיקת תקינות', feature: 'settings.audit' },
-  { id: 'sec-access', label: 'נגישות' },
+  { id: 'sec-access', label: 'נגישות', feature: 'settings.access' },
   { id: 'sec-reset', label: 'איפוס', feature: 'settings.reset' },
 ];
 

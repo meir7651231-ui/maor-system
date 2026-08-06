@@ -216,7 +216,7 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
             הרשומה תסומן כמבוטלת ולא תימחק{voidReq.rid ? ' — האישור ' + voidReq.rid + ' נשאר מתועד' : ''}.
           </p>
           <Field label="סיבת הביטול (רשות)">
-            <TextInput value={voidReason} onChange={setVoidReason} placeholder="לדוגמה: נרשם בטעות, המשפחה ויתרה…" />
+            <TextInput value={voidReason} onChange={setVoidReason} placeholder={'לדוגמה: נרשם בטעות, ה' + termOf(config, 'entity.family', 'משפחה') + ' ויתרה…'} />
           </Field>
           <div className="modal-actions">
             <Btn kind="danger" onClick={applyVoid}>ביטול המימוש</Btn>

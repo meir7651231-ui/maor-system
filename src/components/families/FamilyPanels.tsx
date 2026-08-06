@@ -409,7 +409,7 @@ export function EventsPanel(props: { fam: Family }) {
         actions={
           cardOpsOn ? (
             <Btn sm onClick={() => setEvOpen(true)} title={'אירוע חדש המקושר ל' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + props.fam.name}>
-              ➕ אירוע
+              ➕ הוספת אירוע
             </Btn>
           ) : undefined
         }

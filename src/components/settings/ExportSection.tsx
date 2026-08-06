@@ -176,7 +176,7 @@ export function ExportSection() {
   function expSupportersImportFmt() {
     const db = useApp.getState().db;
     downloadCsv('maor-import-supporters.csv', supportersImportFormatRows(db));
-    toast('הקובץ בפורמט הייבוא ירד — ערכו באקסל והחזירו דרך ייבוא התומכות');
+    toast('הקובץ בפורמט הייבוא ירד — ערכו באקסל והחזירו דרך "ייבוא ' + termOf(config, 'nav.supporters', 'תורמים') + '"');
   }
 
   const buttons: { label: string; count: number; run: () => void }[] = [
@@ -189,7 +189,7 @@ export function ExportSection() {
       ? [
           { label: '⬇ אירועים', count: counts.events, run: expEvents },
           { label: '⬇ ' + termOf(config, 'nav.families', 'משפחות') + ' (פורמט ייבוא)', count: counts.families, run: expFamiliesImportFmt },
-          { label: '⬇ תומכות (פורמט ייבוא)', count: counts.supporters, run: expSupportersImportFmt },
+          { label: '⬇ ' + termOf(config, 'nav.supporters', 'תורמים') + ' (פורמט ייבוא)', count: counts.supporters, run: expSupportersImportFmt },
         ]
       : []),
   ];

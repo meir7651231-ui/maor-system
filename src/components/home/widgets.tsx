@@ -1603,6 +1603,17 @@ export function defaultLayoutFor(theme: string): readonly WidgetId[] {
   return THEME_LAYOUTS[theme] ?? DEFAULT_LAYOUT;
 }
 
+/** ביקורת 6.8 — ההרזיה של אור-ראשון (UX סבב-ג׳: 10⇒6) נשענה על "מוסיפים בקליק
+ *  דרך עריכת-הלוח". כשעריכת-הלוח כבויה (home.board:false) אין דרך להוסיף — לכן
+ *  ארגון כזה מקבל את הפריסה המלאה ההיסטורית, וכל ווידג'ט ממשיך להיגדר בדגל
+ *  שלו (home.carousel/community/coursemetrics/credmetrics דרך visible(config)). */
+export const FULL_LAYOUTS: Record<string, readonly WidgetId[]> = {
+  'or-rishon': ['hero', 'stats', 'carousel', 'today', 'recent', 'attention', 'suggest', 'community', 'coursemetrics', 'credmetrics'],
+};
+export function noBoardLayoutFor(theme: string): readonly WidgetId[] {
+  return FULL_LAYOUTS[theme] ?? defaultLayoutFor(theme);
+}
+
 /** ספריית הווידג'טים המלאה — הסדר שבו מוצעים אבני הבניין במצב עריכה. */
 export const WIDGET_LIBRARY: readonly WidgetId[] = [
   'hero',
