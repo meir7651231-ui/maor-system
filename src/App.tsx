@@ -11,6 +11,7 @@ import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
 import { nsLsKey, parseBackupFile } from './store/persist';
 import { featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, termOf } from './lib/config';
+import { applyOrgManifest, registerPwa } from './lib/pwa';
 import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
 import { freshenDemoDb } from './lib/demoFresh';
@@ -221,6 +222,13 @@ export default function App() {
       window.clearInterval(iv);
     };
   }, []);
+
+  // PWA (6.8): רישום ה-service-worker (מגודר shell.pwa, מדולג ב-Playwright/דב)
+  // + מניפסט פר-ארגון — לקוח מתקין אפליקציה עם השם שלו שנפתחת בארגון שלו.
+  useEffect(() => {
+    registerPwa(config);
+    applyOrgManifest(config);
+  }, [config]);
 
   // שחזור-קריסה של האשף-קשור-הענן (5.8): אם נשאר תצלום-מיתוג מסשן שנקטע
   // (טאב נסגר / דפדפן קרס באמצע עריכת-לקוח) והאשף לא פתוח — מחזירים את

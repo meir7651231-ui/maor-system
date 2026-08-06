@@ -5,19 +5,24 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='38' fill='%23f3c76b'/><circle cx='50' cy='50' r='20' fill='%23b45309'/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#211d17" />
+    <!-- PWA: התקנה כאפליקציה — המניפסט מוחלף בזמן-ריצה לארגון-לקוח (lib/pwa) -->
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
     <!-- מגן מסך-לבן: אחרי פריסה חדשה, index.html ישן מהמטמון מצביע על קובצי assets
          עם hash שכבר נמחקו → 404 → מסך לבן. מאזין ללחיצת-כשל של סקריפט ה-assets
          ומרענן פעם אחת (שומר-ריצה מונע לולאה) כדי למשוך את ה-index.html הטרי. -->
     <script>
-      // רוצח service-worker תקוע: לאפליקציה הזו אין SW משלה. אם SW ישן מגרסה
-      // קודמת (או מפרויקט אחר באותו origin) שולט בעמוד — הוא מגיש assets ישנים
-      // מהמטמון ומשאיר מסך לבן (בדיוק מה שקורה בפרופיל רגיל אך לא ב"גלישה בסתר").
-      // מבטלים כל רישום ששולט בעמוד, מנקים caches ומרעננים פעם אחת.
+      // רוצח service-worker זר: אם SW ישן מפרויקט אחר באותו origin שולט בעמוד —
+      // הוא מגיש assets ישנים מהמטמון ומשאיר מסך לבן. מבטלים כל רישום זר.
+      // ‏PWA (6.8): ל-מאור יש עכשיו SW משלה (sw.js) — הוא פטור מהרוצח; ההגנה
+      // מפני עצמנו היא network-first ל-index בתוך sw.js עצמו.
       (function () {
         if (!('serviceWorker' in navigator)) return;
+        var ourSw = new URL('./sw.js', location.href).href;
         navigator.serviceWorker.getRegistrations().then(function (regs) {
           var controlsUs = regs.filter(function (r) {
-            return location.href.indexOf(r.scope) === 0;
+            var script = (r.active && r.active.scriptURL) || (r.installing && r.installing.scriptURL) || (r.waiting && r.waiting.scriptURL) || '';
+            return location.href.indexOf(r.scope) === 0 && script !== ourSw;
           });
           if (!controlsUs.length) return;
           // לא מוחקים caches: מאור לא רושמת SW ולא מחזיקה caches משלה, ואחרי
