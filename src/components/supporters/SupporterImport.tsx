@@ -6,7 +6,7 @@
 import { useState, type ChangeEvent } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
-import { parseCsv, readCsvFileText } from '../../lib/csvx';
+import { parseAnyDate, parseCsv, readCsvFileText } from '../../lib/csvx';
 import { downloadCsv } from '../../lib/csvx';
 import { Btn, Field, FormError } from '../ui';
 import {
@@ -31,6 +31,11 @@ function parseRows(text: string): SupporterImportRow[] {
   let iAddr = find(['כתובת']);
   let iCat = find(['קטגוריה']);
   let iFor = find(['עבור', 'ייעוד']);
+  // קובץ מסוף-הסליקה (ExportHistory, 9.8): עמודות סכום/תאריך-עסקה/מטבע ⇒
+  // כל שורה נושאת גם עסקה — נכנסת כהיסטוריה-ללא-קבלה (הכרעת-בעלים).
+  const iAmount = find(['סכום']);
+  const iTxDate = find(['תאריך']);
+  const iCur = find(['מטבע']);
   let start = 1;
   if (iName < 0) {
     // אין שורת כותרות מזוהה — סדר עמודות קבוע
@@ -48,7 +53,7 @@ function parseRows(text: string): SupporterImportRow[] {
   for (const r of rows.slice(start)) {
     const name = g(r, iName);
     if (!name) continue;
-    out.push({
+    const row: SupporterImportRow = {
       name,
       phone: g(r, iPhone),
       email: g(r, iEmail),
@@ -56,7 +61,16 @@ function parseRows(text: string): SupporterImportRow[] {
       address: g(r, iAddr),
       cat: g(r, iCat),
       forWho: g(r, iFor),
-    });
+    };
+    if (iAmount >= 0 && iTxDate >= 0) {
+      const amount = Math.round(Number(g(r, iAmount).replace(/[^\d.-]/g, '')) * 100) / 100;
+      // 'תאריך עסקה' מגיע עם שעה ("09/08/26 00:36") — התאריך בלבד
+      const d = parseAnyDate(g(r, iTxDate).split(' ')[0]);
+      if (isFinite(amount) && amount > 0 && d) {
+        row.hist = [{ d, a: amount, ...(/דולר|\$|usd/i.test(g(r, iCur)) ? { c: '$' as const } : {}) }];
+      }
+    }
+    out.push(row);
   }
   return out;
 }
@@ -196,6 +210,11 @@ export function SupporterImport(props: { onDone?: () => void }) {
           </div>
           <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
             {'+' + plan.inserts.length + ' חדשות · ' + plan.updates.length + ' עדכונים לקיימות (הצלבה לפי שם)'}
+            {(() => {
+              // הכרעת-בעלים 9.8: עסקאות מקובץ-הסליקה ⇒ היסטוריה-ללא-קבלה
+              const tx = [...plan.inserts, ...plan.updates.map((u) => u.row)].reduce((n, r) => n + (r.hist?.length ?? 0), 0);
+              return tx > 0 ? ' · ' + tx + ' עסקאות ייכנסו כהיסטוריה ללא קבלה ("מהקובץ ההיסטורי")' : '';
+            })()}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <Btn kind="primary" onClick={() => apply()} disabled={!plan.inserts.length && !plan.updates.length}>

@@ -226,6 +226,10 @@ export interface SupporterImportRow {
   address: string;
   cat: string;
   forWho: string;
+  /** הכרעת-בעלים 9.8 ("היסטוריה ללא קבלה"): עסקאות מקובץ מסוף-הסליקה —
+   *  נכנסות ל-Supporter.hist (מוצגות "מהקובץ ההיסטורי"), בלי קבלה ובלי
+   *  נגיעה במונים (ההצטברות — הכרעת-בעלים ‎#14 פתוחה). */
+  hist?: { d: string; a: number; c?: '₪' | '$' }[];
 }
 
 /** תוכנית ייבוא — אילו קיימות יעודכנו ואילו חדשות ייווצרו. */
@@ -236,13 +240,37 @@ export interface SupporterImportPlan {
   inserts: SupporterImportRow[];
 }
 
-/** מיזוג שדות שאינם ריקים מ-b לתוך a (a גובר כשקיים; b ממלא חוסרים). */
+/** מיזוג שדות שאינם ריקים מ-b לתוך a (a גובר כשקיים; b ממלא חוסרים).
+ *  היסטוריה מצטרפת — כל העסקאות של אותו תורם בקובץ נאספות יחד. */
 function fillEmpty(a: SupporterImportRow, b: SupporterImportRow): SupporterImportRow {
   const out = { ...a };
   (Object.keys(b) as (keyof SupporterImportRow)[]).forEach((k) => {
-    if (!out[k] && b[k]) out[k] = b[k];
+    if (k === 'hist') return;
+    if (!out[k] && b[k]) (out as Record<string, unknown>)[k] = b[k];
   });
+  if (a.hist?.length || b.hist?.length) out.hist = [...(a.hist ?? []), ...(b.hist ?? [])];
   return out;
+}
+
+/** מיזוג-היסטוריה אידמפוטנטי: לכל מפתח (תאריך|סכום|מטבע) הכמות הסופית =
+ *  max(קיים, נכנס) — ייבוא-חוזר של אותו קובץ לא מכפיל, עסקאות-אמת כפולות
+ *  באותו יום (אותו סכום פעמיים בקובץ אחד) נשמרות. */
+export function mergeHist(
+  existing: { d: string; a: number; c?: '₪' | '$' }[],
+  incoming: { d: string; a: number; c?: '₪' | '$' }[],
+): { d: string; a: number; c?: '₪' | '$' }[] {
+  const key = (h: { d: string; a: number; c?: '₪' | '$' }) => h.d + '|' + h.a + '|' + (h.c ?? '₪');
+  const have = new Map<string, number>();
+  for (const h of existing) have.set(key(h), (have.get(key(h)) ?? 0) + 1);
+  const out = [...existing];
+  const seen = new Map<string, number>();
+  for (const h of incoming) {
+    const k = key(h);
+    const n = (seen.get(k) ?? 0) + 1;
+    seen.set(k, n);
+    if (n > (have.get(k) ?? 0)) out.push({ d: h.d, a: h.a, ...(h.c === '$' ? { c: '$' as const } : {}) });
+  }
+  return out.sort((x, y) => x.d.localeCompare(y.d));
 }
 
 /**
@@ -257,6 +285,9 @@ export function planSupporterImport(
   const byName = new Map<string, string>();
   for (const sp of existing) byName.set(normName(sp.name), sp.id);
   const updates: SupporterImportPlan['updates'] = [];
+  // קיבוץ-עדכונים פר-id (9.8): קובץ-עסקאות מכיל שורות רבות לאותו תורם קיים —
+  // בלעדיו רק השורה האחרונה שרדה (ה-Map בצד-הרכיב) וכל ההיסטוריה אבדה.
+  const updateIdx = new Map<string, number>();
   const inserts: SupporterImportRow[] = [];
   const insertIdx = new Map<string, number>();
   for (const r of rows) {
@@ -265,7 +296,12 @@ export function planSupporterImport(
     const key = normName(nm);
     const existId = byName.get(key);
     if (existId) {
-      updates.push({ id: existId, row: r });
+      const ui = updateIdx.get(existId);
+      if (ui != null) updates[ui] = { id: existId, row: fillEmpty(updates[ui].row, r) };
+      else {
+        updateIdx.set(existId, updates.length);
+        updates.push({ id: existId, row: r });
+      }
       continue;
     }
     const idx = insertIdx.get(key);
@@ -279,10 +315,12 @@ export function planSupporterImport(
   return { updates, inserts };
 }
 
-/** החלת שורת ייבוא על תומכת קיימת — ערך לא-ריק בשורה דורס, אחרת נשמר הקיים. */
+/** החלת שורת ייבוא על תומכת קיימת — ערך לא-ריק בשורה דורס, אחרת נשמר הקיים.
+ *  היסטוריה (9.8): מיזוג אידמפוטנטי — בלי קבלות, בלי נגיעה במונים. */
 export function mergeSupporterRow(sp: Supporter, row: SupporterImportRow): Supporter {
   return {
     ...sp,
+    ...(row.hist?.length ? { hist: mergeHist(sp.hist ?? [], row.hist) } : {}),
     name: row.name.trim() || sp.name,
     phone: row.phone ? fixPhone(row.phone.trim()) : sp.phone,
     email: row.email.trim() || sp.email,
@@ -312,6 +350,7 @@ export function newSupporterFromRow(id: string, row: SupporterImportRow): Suppor
     last: '',
     nextDate: '',
     donations: [],
+    ...(row.hist?.length ? { hist: mergeHist([], row.hist) } : {}),
   };
 }
 
