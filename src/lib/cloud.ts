@@ -10,12 +10,15 @@
  */
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import {
+  EmailAuthProvider,
   createUserWithEmailAndPassword,
   getAuth,
   onAuthStateChanged,
+  reauthenticateWithCredential,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
+  updatePassword,
   type Auth,
 } from 'firebase/auth';
 import {
@@ -87,6 +90,8 @@ export function initCloud(fb: FirebaseOrgConfig): { auth: Auth; db: Firestore } 
   if (app && auth && fsDb) return { auth, db: fsDb };
   app = initializeApp(fb);
   auth = getAuth(app);
+  // מיילי-Auth (איפוס סיסמה, אימות) בשפת המכשיר — דפדפן עברי ⇒ מייל בעברית
+  auth.useDeviceLanguage();
   try {
     // התמדה לא-מקוונת + תיאום בין טאבים — Firestore מתזמר תור כתיבות בעצמו
     fsDb = initializeFirestore(app, {
@@ -185,6 +190,30 @@ export async function resetPassword(email: string): Promise<void> {
     const code = ((e as { code?: string } | null)?.code ?? '').toString();
     if (code === 'auth/user-not-found') throw new Error('לא נמצא משתמש עם האימייל הזה');
     if (code === 'auth/invalid-email') throw new Error('כתובת האימייל אינה תקינה');
+    throw hebrewAuthError(e);
+  }
+}
+
+/**
+ * שינוי סיסמה למשתמש מחובר — אימות-מחדש עם הסיסמה הנוכחית (דרישת Firebase
+ * ל-recent-login) ואז החלפה. שגיאות בעברית; הסשן נשאר מחובר.
+ */
+export async function changePassword(currentPass: string, nextPass: string): Promise<void> {
+  const u = requireAuth().currentUser;
+  if (!u || !u.email) throw new Error('אין משתמש מחובר — התחברו ונסו שוב');
+  try {
+    await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, currentPass));
+  } catch (e) {
+    const code = ((e as { code?: string } | null)?.code ?? '').toString();
+    if (code === 'auth/wrong-password' || code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials')
+      throw new Error('הסיסמה הנוכחית שגויה');
+    throw hebrewAuthError(e);
+  }
+  try {
+    await updatePassword(u, nextPass);
+  } catch (e) {
+    const code = ((e as { code?: string } | null)?.code ?? '').toString();
+    if (code === 'auth/weak-password') throw new Error('הסיסמה החדשה חלשה מדי — לפחות 6 תווים');
     throw hebrewAuthError(e);
   }
 }
