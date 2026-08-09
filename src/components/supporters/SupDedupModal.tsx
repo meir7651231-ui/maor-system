@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { findSupporterDupGroups } from '../../lib/dedup';
 import { Btn, Empty, Modal } from '../ui';
-import { totalLabel } from './lib';
+import { supCount, totalLabel } from './lib';
 
 export function SupDedupModal(props: { onClose: () => void }) {
   const supporters = useApp((s) => s.db.supporters);
@@ -31,7 +31,7 @@ export function SupDedupModal(props: { onClose: () => void }) {
             const rows = g
               .map((id) => supporters.find((s) => s.id === id))
               .filter((s): s is NonNullable<typeof s> => !!s)
-              .sort((a, b) => b.count - a.count);
+              .sort((a, b) => supCount(b) - supCount(a));
             if (rows.length < 2) return null;
             const keepId = keepSel[gi] ?? rows[0].id;
             return (
@@ -47,7 +47,7 @@ export function SupDedupModal(props: { onClose: () => void }) {
                     />
                     <span style={{ fontWeight: keepId === sp.id ? 800 : 600, flex: 1 }}>{sp.name}</span>
                     <span style={{ fontSize: 12, color: 'var(--ink-faint)', direction: 'ltr' }}>{sp.phone || sp.email || '—'}</span>
-                    <span style={{ fontSize: 12 }}>{sp.count + ' · ' + totalLabel(sp)}</span>
+                    <span style={{ fontSize: 12 }}>{supCount(sp) + ' · ' + totalLabel(sp)}</span>
                   </label>
                 ))}
                 <div style={{ marginTop: 6, display: 'flex', gap: 8 }}>

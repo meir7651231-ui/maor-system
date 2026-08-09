@@ -40,7 +40,8 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     expect(numMatch('1-5', 3)).toBe(true);
     expect(numMatch('7', 7)).toBe(true);
     expect(viewSrc).toContain('numMatch(colF.total, Math.round(supTotalIls(sp, rate)))');
-    expect(viewSrc).toContain('numMatch(colF.count, sp.count || 0)');
+    // הכרעת 9.8 "לכולל": המונה בסינון כולל את ההיסטוריה (supCount, לא sp.count)
+    expect(viewSrc).toContain('numMatch(colF.count, supCount(sp))');
     expect(viewSrc).toContain('numMatch(colF.score, supScore(sp, rate))');
     expect(viewSrc).toContain('const rate = db.usdRate');
   });

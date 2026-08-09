@@ -150,6 +150,46 @@ describe('🕰 ratchet — עסקאות-סליקה כהיסטוריה-ללא-ק�
     // המונים לא נגועים — mergeHist טהור על hist בלבד (הכרעת ‎#14 פתוחה)
   });
 
+  it('הכרעת-בעלים 9.8 "לכולל" (סוגרת ‎#14): הצבירה המוצגת כוללת את ההיסטוריה — נגזרת, המונים השמורים לא זזים', async () => {
+    const { supCount, supIls, supUsd, supLast, supTotalIls, totalLabel, supAvgDon } = await import('../../components/supporters/lib');
+    const sp = {
+      id: 's1', name: 'כהן', phone: '', email: '', address: '', idNum: '', cat: '', forWho: '', notes: '',
+      count: 2, ils: 300, usd: 100, first: '2026-01-01', last: '2026-02-01', nextDate: '', donations: [],
+      hist: [{ d: '2025-06-01', a: 500 }, { d: '2026-05-01', a: 50, c: '$' as const }],
+    };
+    expect(supCount(sp as never)).toBe(4); // 2 קבלות + 2 היסטוריה
+    expect(supIls(sp as never)).toBe(800); // 300 + 500
+    expect(supUsd(sp as never)).toBe(150); // 100 + 50$
+    expect(supLast(sp as never)).toBe('2026-05-01'); // ההיסטורית מאוחרת מהקבלה
+    expect(supTotalIls(sp as never, 4)).toBe(800 + 150 * 4);
+    expect(totalLabel(sp as never)).toBe('₪800 + $150');
+    // השדות השמורים לא זזו — ההכללה נגזרת בלבד (אינווריאנט-הענן "מונים רק עולים")
+    expect(sp.count).toBe(2);
+    expect(sp.ils).toBe(300);
+    // בלי hist — הכול ביט-זהה להתנהגות הקודמת
+    const bare = { ...sp, hist: undefined };
+    expect(supCount(bare as never)).toBe(2);
+    expect(supIls(bare as never)).toBe(300);
+    expect(supAvgDon([bare as never])).toBe(Math.round((300 + 100 * 3.7) / 2));
+  });
+
+  it('בקשת-בעלים 9.8: "עבור מי" ⇒ שם-לטיפול — applyAyinNames פותח תיק, מדדפ, והכמות ממתינה לרישום', async () => {
+    const { applyAyinNames, newSupporterFromRow } = await import('../../components/supporters/lib');
+    let n = 0;
+    const mkId = () => 'an' + n++;
+    const sp = newSupporterFromRow('sp1', { name: 'ישראל בן רבקה', phone: '', email: '', idNum: '', address: '', cat: 'הסרת עין הרע', forWho: '' });
+    const withName = applyAyinNames(sp, ['ישראל בן רבקה'], mkId);
+    expect(withName.ayin?.names).toHaveLength(1);
+    expect(withName.ayin?.names[0].name).toBe('ישראל בן רבקה');
+    expect(withName.ayin?.names[0].eyes).toBe(''); // הכמות ממתינה לרישום — לא ממציאים
+    // הוספה-חוזרת של אותו שם — דילוג שקט, בלי כפילות
+    const again = applyAyinNames(withName, ['ישראל בן רבקה'], mkId);
+    expect(again.ayin?.names).toHaveLength(1);
+    // שם שני מצטרף לאותו תיק
+    const two = applyAyinNames(again, ['שרה בת רבקה'], mkId);
+    expect(two.ayin?.names).toHaveLength(2);
+  });
+
   it('mergeSupporterRow/newSupporterFromRow נושאים hist; בלי hist — ביט-זהה', async () => {
     const { mergeSupporterRow, newSupporterFromRow } = await import('../../components/supporters/lib');
     const bare = { name: 'לוי', phone: '', email: '', idNum: '', address: '', cat: '', forWho: '' };
