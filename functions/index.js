@@ -147,6 +147,27 @@ exports.yemotProxy = onRequest({ secrets: ['YEMOT_TOKEN'] }, async (req, res) =>
 });
 
 /**
+ * 📅 icsFeed — מנוי-יומן חי (9.8): גוגל/אאוטלוק מושכים מכאן את לוח-הארגון
+ * ומתעדכנים לבד. האפליקציה מחשבת את ה-ICS בלקוח (הלוח העברי נשאר שם —
+ * מקור-אמת יחיד, כמו הכרעת צרור-הלילה) ומפרסמת ל-icsFeeds/{slug} עם token
+ * סודי; כאן רק הגשה. בלי token תקף — 404 אחיד (אין הבחנה קיים/לא-קיים ⇒
+ * אי-אפשר למנות ארגונים).
+ */
+exports.icsFeed = onRequest(async (req, res) => {
+  const org = String(req.query.org ?? '');
+  const key = String(req.query.key ?? '');
+  if (!/^[a-z0-9-]{1,40}$/.test(org) || !/^[a-f0-9]{32,64}$/.test(key)) return res.status(404).send('not found');
+  const snap = await getFirestore().collection('icsFeeds').doc(org).get();
+  const data = snap.exists ? snap.data() : null;
+  if (!data || typeof data.token !== 'string' || data.token !== key || typeof data.ics !== 'string') {
+    return res.status(404).send('not found');
+  }
+  res.set('Content-Type', 'text/calendar; charset=utf-8');
+  res.set('Cache-Control', 'private, max-age=600');
+  res.status(200).send(data.ics);
+});
+
+/**
  * 📊 sheetsNightly — ייצוא-לילי לגיליון-חי (03:00), הושלם בגל ד׳ "עד-השרת":
  * לכל ארגון-פלטפורמה עם spreadsheetId בקונפיג (integrations.sheets.spreadsheetId,
  * מוזן באשף) — שורת-סיכום יומית (משפחות/תרומות-החודש/מסירות) מתווספת לגיליון.

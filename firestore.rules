@@ -112,6 +112,14 @@ service cloud.firestore {
       allow write: if superAdmin() || orgManager(slug);
     }
 
+    // מנוי-יומן חי (gcal feed, 9.8): הלקוח מפרסם ICS + token סודי; חברי-הארגון
+    // כותבים/מרעננים, והעולם מקבל **רק** דרך פונקציית icsFeed (Admin SDK) עם
+    // ה-token. אוסף-שורש (כמו הכספת); הארגון-השורש (default) — דרך allowedRoot.
+    match /icsFeeds/{slug} {
+      allow read, write: if superAdmin() || orgMember(slug)
+        || (slug == 'default' && allowedRoot());
+    }
+
     // הצפנת-ענן (opt-in) — מסמך ה-envelope (ה-DEK העטוף):
     //   • שורש (הלקוח הקיים): `_enc/envelope` מכוסה ע"י catch-all השורש למטה.
     //   • ארגון-פלטפורמה: `orgs/{slug}/_enc/envelope` מכוסה ע"י כלל ה-orgs למעלה.
@@ -127,9 +135,12 @@ service cloud.firestore {
     // deliveries + meta + _enc — כולם מחוץ לרשימת-האיסור; אומת אדוורסרית). מייל
     // ב-allowedRoot כבר לא נוגע בנתוני ארגון אחר. מייל-על שומר גישה מלאה דרך הכללים
     // הייעודיים. אזהרה עתידית: אין לקרוא לאוסף-שורש חדש בשם platform*/orgs.
+    // ‏9.8: גם אוספי-הכספת והפיד מוחרגים — אחרת מייל ב-allowedRoot (למשל מייל-
+    // המשרד העתידי) היה קורא דרך ה-catch-all את הסודות/הפידים של **כל** הארגונים
+    // (Firestore = OR של כללים; read:false בכלל הייעודי לא גובר על התרה כאן).
     match /{rootCol}/{document=**} {
       allow read, write: if (allowedRoot() || superAdmin())
-        && !(rootCol in ['platformOrgs', 'platformRequests', 'platformLeads', 'orgs']);
+        && !(rootCol in ['platformOrgs', 'platformRequests', 'platformLeads', 'orgs', 'orgSecrets', 'orgSecretsMeta', 'icsFeeds']);
     }
   }
 }

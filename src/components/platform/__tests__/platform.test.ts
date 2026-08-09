@@ -244,10 +244,12 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
   });
 
   it('🔒 Rules: כלל-השורש מצומצם (בלי catch-all חוצה-ארגונים) + מנהל מוגבל', () => {
-    // ציד-באגים 3.8.2026: כלל-השורש מתיר כל אוסף-שורש פרט לאוספי-הפלטפורמה
+    // ציד-באגים 3.8.2026: כלל-השורש מתיר כל אוסף-שורש פרט לאוספי-הפלטפורמה;
+    // ‏9.8: הורחב — גם הכספת (orgSecrets/Meta) והפיד (icsFeeds) מוחרגים, אחרת
+    // מייל ב-allowedRoot היה קורא דרך ה-catch-all את סודות **כל** הארגונים.
     expect(rulesSrc).toContain('match /{rootCol}/{document=**}');
     expect(rulesSrc).toContain(
-      "!(rootCol in ['platformOrgs', 'platformRequests', 'platformLeads', 'orgs'])",
+      "!(rootCol in ['platformOrgs', 'platformRequests', 'platformLeads', 'orgs', 'orgSecrets', 'orgSecretsMeta', 'icsFeeds'])",
     );
     // הכלל הרקורסיבי-העירום (שנתן ל-allowedRoot כתיבה חוצת-ארגונים) הוסר
     expect(rulesSrc).not.toContain('match /{document=**}');
