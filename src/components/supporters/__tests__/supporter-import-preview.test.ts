@@ -31,4 +31,14 @@ describe('🛡 הגנות-מקור — SupporterImport דו-שלבי (P2 פער 
     // כשהדגל כבוי — run מחיל מיד את התוכנית, בלי לחכות לאישור
     expect(importSrc).toMatch(/if \(p && !previewOn\) apply\(p\);/);
   });
+
+  it('🛡 באג-שטח 6.8: כפתור-האישור קורא apply() בחץ — לא onClick={apply}', () => {
+    // onClick={apply} העביר את אירוע-הקליק כ-p ודרס את ברירת-המחדל p=plan ⇒
+    // p.updates.map קרס וכלום לא יובא (שבור מאז P2-33; נתפס ע"י הבעלים בשטח).
+    expect(importSrc).toContain('onClick={() => apply()}');
+    // השלילה על JSX בפועל (<Btn …) — ההערה בקוד מזכירה את הדפוס השבור בכוונה
+    expect(importSrc).not.toMatch(/<Btn[^>]*onClick=\{apply\}/);
+    // חגורת-בטיחות: apply דוחה כל p שאינו תוכנית אמיתית
+    expect(importSrc).toContain('if (!p || !Array.isArray(p.updates)) return');
+  });
 });

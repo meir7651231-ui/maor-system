@@ -113,9 +113,12 @@ export function SupporterImport(props: { onDone?: () => void }) {
     return p;
   }
 
-  /** שלב 2 — החלה בפועל, רק אחרי אישור הסיכום (או מיידית כשהדגל כבוי). */
-  function apply(p = plan) {
-    if (!p) return;
+  /** שלב 2 — החלה בפועל, רק אחרי אישור הסיכום (או מיידית כשהדגל כבוי).
+   *  ⚠️ באג-שטח (6.8): onClick={apply} העביר את אירוע-הקליק כ-p ודרס את
+   *  ברירת-המחדל p=plan ⇒ p.updates.map קרס וכלום לא יובא — מאז P2-33.
+   *  הפרמטר מקבל טיפוס מפורש והכפתור קורא בחץ בלי ארגומנטים. */
+  function apply(p: ReturnType<typeof planSupporterImport> | null = plan) {
+    if (!p || !Array.isArray(p.updates)) return;
     setDb((db) => {
       let seq = db.seq;
       const updates = new Map(p.updates.map((u) => [u.id, u.row]));
@@ -195,7 +198,7 @@ export function SupporterImport(props: { onDone?: () => void }) {
             {'+' + plan.inserts.length + ' חדשות · ' + plan.updates.length + ' עדכונים לקיימות (הצלבה לפי שם)'}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <Btn kind="primary" onClick={apply} disabled={!plan.inserts.length && !plan.updates.length}>
+            <Btn kind="primary" onClick={() => apply()} disabled={!plan.inserts.length && !plan.updates.length}>
               {'ייבוא ' + (plan.inserts.length + plan.updates.length) + ' ' + termOf(config, 'nav.supporters', 'תומכות')}
             </Btn>
             <Btn onClick={() => setPlan(null)}>ביטול</Btn>
