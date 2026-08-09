@@ -30,6 +30,7 @@ import {
 import { EventModal } from './EventModal';
 import { DayModal } from './DayModal';
 import { CustomExport } from '../reports/CustomExport';
+import { IcsFeedModal } from './IcsFeedModal';
 
 const MAX_PILLS = 3;
 
@@ -179,6 +180,31 @@ export function CalendarView() {
   }, [evFormReq, ackEventForm]);
   const [filters, setFilters] = useState<CalFilters>(DEFAULT_FILTERS);
   const [expOpen, setExpOpen] = useState(false);
+  // 🔗 מנוי-יומן חי (gcal, 9.8) — רק לארגון-ענן (הפיד יושב ב-Firestore)
+  const [feedOpen, setFeedOpen] = useState(false);
+  const cloudOn = useApp((s) => s.cloud.enabled);
+  useEffect(() => {
+    // רענון-רקע שקט פעם-בסשן: אם כבר פורסם פיד — מפרסמים גרסה טרייה, כך
+    // שהמנוי אצל גוגל לא מתיישן גם כשאיש לא פותח את המודאל. כשל = שקט.
+    if (!cloudOn || !integrationOn(config, 'gcal')) return;
+    const k = 'maor_icsfeed_fresh:' + (config.slug || 'default');
+    if (sessionStorage.getItem(k)) return;
+    sessionStorage.setItem(k, '1');
+    void (async () => {
+      try {
+        const { publishIcsFeed, readIcsFeedToken } = await import('../../lib/icsFeed');
+        const slug = config.slug || 'default';
+        if (!(await readIcsFeedToken(slug))) return; // המנוי לא הופעל — לא מפרסמים
+        const s = useApp.getState();
+        await publishIcsFeed(
+          slug,
+          buildIcs(icsWindowEvents(s.db, isoOf(new Date()), 385, slug, s.config), s.config.orgName || 'לוח הארגון', new Date()),
+        );
+      } catch {
+        /* רענון-רקע — לא מפריעים למשתמש */
+      }
+    })();
+  }, [cloudOn, config]);
 
   // גייטים ברמת פיצ'ר: תצוגת יום (calendar.dayview) ושכבות נגזרות (calendar.layers)
   const dayviewOn = featureOn(config, 'calendar.dayview');
@@ -342,6 +368,12 @@ export function CalendarView() {
                 title="קובץ ICS לייבוא ליומן Google/Outlook — שנה עברית קדימה כולל יארצייטים"
               >
                 📅 ליומן (ICS)
+              </Btn>
+            )}
+            {/* מנוי-יומן חי (9.8): כתובת שגוגל מושך ממנה עדכונים לבד — ארגון-ענן בלבד */}
+            {integrationOn(config, 'gcal') && cloudOn && (
+              <Btn onClick={() => setFeedOpen(true)} title="כתובת-מנוי שמתעדכנת לבד ביומן גוגל/אאוטלוק — בלי ייצוא חוזר">
+                🔗 מנוי-יומן
               </Btn>
             )}
             <Btn kind="primary" onClick={() => setModal({ ev: null, date: isoOf(new Date()) })}>
@@ -608,6 +640,7 @@ export function CalendarView() {
         />
       )}
       {expOpen && <CustomExport target="events" onClose={() => setExpOpen(false)} />}
+      {feedOpen && <IcsFeedModal onClose={() => setFeedOpen(false)} />}
     </div>
   );
 }
