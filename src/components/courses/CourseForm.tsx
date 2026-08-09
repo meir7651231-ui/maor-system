@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import type { Course, Gender, PricingModel, Teacher, Weekday } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, safeHttpsUrl, termOf } from '../../lib/config';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -212,7 +212,8 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
       semester,
       gradeMin: f.gradeMin,
       gradeMax: f.gradeMax,
-      img: f.img,
+      // תמונה: העלאה (dataURL מכווץ) נשמרת כמות-שהיא; כתובת חיצונית — https בלבד
+      img: f.img.startsWith('data:') ? f.img : (safeHttpsUrl(f.img) ?? ''),
     };
     const room = db.rooms.find((r) => r.id === f.roomId);
     const roomName = room ? room.name : 'ה' + termOf(cfg, 'entity.room', 'חדר');
@@ -472,6 +473,16 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
                       הסרה
                     </Btn>
                   )}
+                </div>
+                {/* בקשת-בעלים 9.8: תמונה חיצונית — הדבקת כתובת (https בלבד, מחוטא
+                    ב-safeHttpsUrl בשמירה) במקום/בנוסף להעלאה. תמונה שהועלתה נשמרת. */}
+                <div style={{ marginTop: 6 }}>
+                  <TextInput
+                    value={f.img.startsWith('data:') ? '' : f.img}
+                    onChange={(v) => set({ img: v })}
+                    dir="ltr"
+                    placeholder="או הדביקו כתובת-תמונה מהאינטרנט (https://…)"
+                  />
                 </div>
               </Field>
             </div>

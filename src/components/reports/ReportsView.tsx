@@ -12,11 +12,11 @@ import { Btn, Field, FormError, PageHead, TextInput } from '../ui';
 import { fmtDate, isoToday, rangeLabel, type DateRange } from './lib';
 import { isoDaysAgo } from '../../lib/date-util';
 import { AttendanceSection, EnrollmentSection } from './sections1';
-import { DonationsSection, FamiliesSection, PunchSection } from './sections2';
+import { AyinNamesSection, DonationsSection, FamiliesSection, PunchSection } from './sections2';
 import { ReportPrefsSection } from './prefs';
 import { ManagementSection } from './management';
 
-type SectionId = 'enroll' | 'attend' | 'donations' | 'families' | 'punch' | 'management';
+type SectionId = 'enroll' | 'attend' | 'donations' | 'ayin' | 'families' | 'punch' | 'management';
 
 /** קיצורי טווח נפוצים. */
 function presets(): { label: string; range: DateRange }[] {
@@ -133,6 +133,10 @@ export function ReportsView() {
           hidden={hide('donations')}
           onPrint={() => setPrinting('donations')}
         />
+      )}
+      {/* בקשת-בעלים 9.8: פילוח שם-לטיפול + כמות — מגודר גם במעקב-הטיפול עצמו */}
+      {supportersOn && featureOn(config, 'supporters.ayin') && featureOn(config, 'reports.ayin') && (
+        <AyinNamesSection db={db} hidden={hide('ayin')} onPrint={() => setPrinting('ayin')} />
       )}
       {familiesOn && featureOn(config, 'reports.families') && (
         <FamiliesSection db={db} hidden={hide('families')} onPrint={() => setPrinting('families')} />
