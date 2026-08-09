@@ -43,6 +43,7 @@ import { DemoDrop } from './components/DemoDrop';
 import { DemoRibbon } from './components/DemoRibbon';
 import { DayGate } from './components/wheel/DayGate';
 import { LoginScreen, PendingApprovalScreen } from './components/cloud/LoginScreen';
+import { ChangePasswordModal } from './components/cloud/ChangePasswordModal';
 import { PlatformPanel } from './components/platform/PlatformPanel';
 import { ManagerPanel } from './components/platform/ManagerPanel';
 import { AdminHub, HubButton } from './components/AdminHub';
@@ -193,6 +194,7 @@ export default function App() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [logoutArmed, setLogoutArmed] = useState(false);
+  const [changePassOpen, setChangePassOpen] = useState(false);
   // UX סבב-ב׳: 'עוד ▾' לרצועת-הניווט + ניווט-תחתון במובייל
   const [moreNavOpen, setMoreNavOpen] = useState(false);
   // 🔄 ריפוי-לשונית-תקועה (5.8 — "זה הרגע ראיתי אצל לקוח"): לשונית שנשארה
@@ -871,6 +873,8 @@ export default function App() {
             {syncDot.title}
           </div>
           <div className="modal-actions">
+            {/* איפוס-סיסמה 9.8: שינוי סיסמה מתוך האפליקציה — בלי לעבור דרך מייל */}
+            <Btn onClick={() => { setUserMenuOpen(false); setChangePassOpen(true); }}>🔑 שינוי סיסמה</Btn>
             <Btn kind={logoutArmed ? 'danger' : 'plain'} onClick={() => { if (!logoutArmed) return setLogoutArmed(true); setUserMenuOpen(false); void cloudSignOut(); }}>
               {logoutArmed ? 'לחצו שוב ליציאה' : 'יציאה מהחשבון'}
             </Btn>
@@ -879,6 +883,7 @@ export default function App() {
           <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 8 }}>היציאה לא מוחקת כלום — הנתונים נשארים במכשיר.</div>
         </Modal>
       )}
+      {changePassOpen && cloud.user && <ChangePasswordModal onClose={() => setChangePassOpen(false)} />}
       {adminHubOpen && canAdminHub && (
         <AdminHub
           onClose={() => setAdminHubOpen(false)}

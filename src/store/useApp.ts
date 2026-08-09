@@ -160,6 +160,8 @@ interface AppState {
   cloudSignIn: (email: string, password: string) => Promise<void>;
   cloudSignOut: () => Promise<void>;
   cloudResetPassword: (email: string) => Promise<void>;
+  /** שינוי סיסמה למשתמש מחובר — אימות-מחדש עם הנוכחית ואז החלפה (שגיאות בעברית). */
+  cloudChangePassword: (currentPass: string, nextPass: string) => Promise<void>;
   /**
    * הרשמה עצמית (CLOUD2 ענן 3): יצירת משתמש Auth + כתיבת בקשה ממתינה —
    * כל מה שנרשם-חדש רשאי לכתוב. הוא נשאר במסך ההמתנה עד אישור הבעלים.
@@ -1022,6 +1024,10 @@ export const useApp = create<AppState>()((set, get) => {
     async cloudResetPassword(email) {
       if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
       await cloudMod.resetPassword(email);
+    },
+    async cloudChangePassword(currentPass, nextPass) {
+      if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
+      await cloudMod.changePassword(currentPass, nextPass);
     },
     async cloudSignUp(orgName, contactName, phone, email, password, profile) {
       if (!cloudMod) throw new Error('חיבור הענן עדיין נטען — נסו שוב בעוד רגע');
