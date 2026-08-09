@@ -98,6 +98,20 @@ service cloud.firestore {
       allow read, write: if superAdmin() || orgMember(slug);
     }
 
+    // כספת-מפתחות פר-ארגון (9.8 — "כל מנהל יש את הסודות שלו"): טוקני ימות/
+    // נדרים/SMS/SMTP של הלקוח. אוסף-שורש **במכוון** — תחת orgs/ כל חבר-ארגון
+    // היה קורא (Firestore = OR של כללים). המנהל כותב; **איש לא קורא מהדפדפן**
+    // (גם לא הכותב) — רק ה-functions (Admin SDK, עוקף Rules) משתמשות בסוד.
+    match /orgSecrets/{slug} {
+      allow write: if superAdmin() || orgManager(slug);
+      allow read: if false;
+    }
+    // מדדי-"מוגדר ✓" — בוליאנים בלבד, בלי הסוד: קריאים לחברי-הארגון.
+    match /orgSecretsMeta/{slug} {
+      allow read: if superAdmin() || orgMember(slug);
+      allow write: if superAdmin() || orgManager(slug);
+    }
+
     // הצפנת-ענן (opt-in) — מסמך ה-envelope (ה-DEK העטוף):
     //   • שורש (הלקוח הקיים): `_enc/envelope` מכוסה ע"י catch-all השורש למטה.
     //   • ארגון-פלטפורמה: `orgs/{slug}/_enc/envelope` מכוסה ע"י כלל ה-orgs למעלה.

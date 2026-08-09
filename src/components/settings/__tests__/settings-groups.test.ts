@@ -15,7 +15,8 @@ import famSrc from '../../families/FamiliesView.tsx?raw';
 const ALL_SECTION_IDS = [
   'sec-org', 'sec-theme', 'sec-teachers', 'sec-rooms', 'sec-notif', 'sec-access',
   'sec-backup', 'sec-export', 'sec-import', 'sec-audit',
-  'sec-security', 'sec-encryption', 'sec-cloud-encryption',
+  // ‏9.8: sec-org-secrets — כספת-המפתחות פר-ארגון (קבוצת האבטחה)
+  'sec-security', 'sec-encryption', 'sec-cloud-encryption', 'sec-org-secrets',
   'sec-ai', 'sec-audittrail', 'sec-verifyreceipt', 'sec-reset',
 ];
 

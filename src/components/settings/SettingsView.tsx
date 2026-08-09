@@ -21,6 +21,7 @@ import { EncryptionSection } from './EncryptionSection';
 import { CloudEncryptionSection } from './CloudEncryptionSection';
 import { ThemeSection } from './ThemeSection';
 import { AuditSection } from './AuditSection';
+import { OrgSecretsSection } from './OrgSecretsSection';
 
 /** feature key פר-סעיף — הצ'יפ מוצג רק כשהסעיף עצמו מרונדר (אותו דגל בדיוק).
  *  ביקורת 6.8: ערכה/התראות/גיבוי/נגישות היו בלי מפתח ⇒ צ'יפ-מת כשהדגל כבוי;
@@ -52,7 +53,7 @@ type GroupId = (typeof GROUPS)[number]['id'];
 const SECTION_GROUP: Record<string, GroupId> = {
   'sec-org': 'org', 'sec-theme': 'org', 'sec-teachers': 'org', 'sec-rooms': 'org', 'sec-notif': 'org', 'sec-access': 'org',
   'sec-backup': 'data', 'sec-export': 'data', 'sec-import': 'data', 'sec-audit': 'data',
-  'sec-security': 'security', 'sec-encryption': 'security', 'sec-cloud-encryption': 'security',
+  'sec-security': 'security', 'sec-encryption': 'security', 'sec-cloud-encryption': 'security', 'sec-org-secrets': 'security',
   'sec-ai': 'adv', 'sec-audittrail': 'adv', 'sec-verifyreceipt': 'adv', 'sec-reset': 'adv',
 };
 
@@ -60,6 +61,7 @@ export function SettingsView() {
   const config = useApp((s) => s.config);
   const cloudUser = useApp((s) => s.cloud.user);
   const isManager = useApp((s) => s.cloud.isManager);
+  const cloudOn = useApp((s) => s.cloud.enabled);
   const sections = SECTIONS.filter((s) => !s.feature || featureOn(config, s.feature));
   const secOn = (id: string) => sections.some((s) => s.id === id);
   const isAdmin = isAdminUser(config, cloudUser?.email);
@@ -80,7 +82,9 @@ export function SettingsView() {
   const groupHas: Record<GroupId, boolean> = {
     org: true, // sec-org לעולם אינו מוסתר
     data: featureOn(config, 'settings.backup') || secOn('sec-export') || secOn('sec-import') || secOn('sec-audit'),
-    security: featureOn(config, 'shell.lock') || featureOn(config, 'settings.encryption') || canPlatform,
+    security: featureOn(config, 'shell.lock') || featureOn(config, 'settings.encryption') || canPlatform ||
+      // כספת-מפתחות (9.8) — אותו שער של OrgSecretsSection עצמו
+      (cloudOn && config.slug !== 'default' && (isManager || canPlatform)),
     adv: (integrationOn(config, 'ai') && isAdmin) || (featureOn(config, 'settings.audittrail') && isAdmin) ||
       featureOn(config, 'core.receipt.verifycode') || secOn('sec-reset'),
   };
@@ -154,6 +158,8 @@ export function SettingsView() {
           {featureOn(config, 'settings.encryption') && <EncryptionSection />}
           {/* הצפנת-ענן — הרכיב עצמו מגודר isSuperAdmin (מחזיר null ללא-בעלים) */}
           <CloudEncryptionSection />
+          {/* כספת-מפתחות פר-ארגון (9.8) — הרכיב מגודר בעצמו (ענן+מנהל+לא-שורש) */}
+          <OrgSecretsSection />
         </>
       )}
       {shownGroup === 'adv' && (

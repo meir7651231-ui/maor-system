@@ -119,6 +119,43 @@ export async function writeOrgCloudConfig(slug: string, config: OrgConfig): Prom
   await writeOrgCloudDoc(slug, { config: JSON.parse(JSON.stringify(config)) as unknown });
 }
 
+/* ── כספת-מפתחות פר-ארגון (בקשת-בעלים 9.8: "כל מנהל יש את הסודות שלו") ──
+   ‏orgSecrets/{slug} = הסודות עצמם — Rules: מנהל-הארגון כותב, **איש לא קורא
+   מהדפדפן** (read:false; רק ה-functions ב-Admin-SDK). ‏orgSecretsMeta/{slug} =
+   מדדי-"מוגדר ✓" בוליאניים בלבד — קריאים לחברי-הארגון, בלי הסוד עצמו. */
+const ORG_SECRETS = 'orgSecrets';
+const ORG_SECRETS_META = 'orgSecretsMeta';
+
+/** המפתחות המוכרים — allowlist; כל השאר נזרק (כמו INTEGRATION_SETTING_KEYS). */
+export const ORG_SECRET_KEYS = ['yemotToken', 'nedarimMosad', 'nedarimApiPass', 'smsApiKey', 'smtpUrl'] as const;
+export type OrgSecretKey = (typeof ORG_SECRET_KEYS)[number];
+
+/** כתיבת סודות (merge): ערך מלא = נשמר; '' = נמחק מהכספת; שדה שלא נשלח לא נגוע.
+ *  לעולם אין קריאה-חוזרת של הערכים — רק המטא ("מוגדר") מתעדכן. */
+export async function writeOrgSecrets(slug: string, patch: Partial<Record<OrgSecretKey, string>>): Promise<void> {
+  const secret: Record<string, unknown> = {};
+  const meta: Record<string, unknown> = {};
+  for (const k of ORG_SECRET_KEYS) {
+    if (!(k in patch)) continue;
+    const v = (patch[k] ?? '').trim();
+    secret[k] = v || deleteField();
+    meta[k] = !!v;
+  }
+  if (!Object.keys(secret).length) return;
+  await setDoc(doc(cloudDb(), ORG_SECRETS, slug), secret, { merge: true });
+  await setDoc(doc(cloudDb(), ORG_SECRETS_META, slug), { ...meta, updatedAt: new Date().toISOString() }, { merge: true });
+}
+
+/** קריאת מדדי-"מוגדר" בלבד — הסודות עצמם לא קריאים מהלקוח לעולם. */
+export async function readOrgSecretsMeta(slug: string): Promise<Partial<Record<OrgSecretKey, boolean>>> {
+  try {
+    const snap = await getDoc(doc(cloudDb(), ORG_SECRETS_META, slug));
+    return snap.exists() ? (snap.data() as Partial<Record<OrgSecretKey, boolean>>) : {};
+  } catch {
+    return {};
+  }
+}
+
 /** מחיקת בקשת הרשמה (אישור/דחייה בלוח הבקרה). */
 export async function deleteOrgRequest(uid: string): Promise<void> {
   await deleteDoc(doc(cloudDb(), PLATFORM_REQUESTS, uid));
