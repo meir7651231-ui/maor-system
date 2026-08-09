@@ -112,3 +112,55 @@ describe('📥 ratchet — קובץ מסוף-הסליקה (UTF-16 + TSV)', () =>
     expect(q[1][1]).toBe('x');
   });
 });
+
+/* ── הכרעת-בעלים 9.8: "היסטוריה ללא קבלה" — עסקאות-הסליקה ל-hist ── */
+describe('🕰 ratchet — עסקאות-סליקה כהיסטוריה-ללא-קבלה', () => {
+  it('planSupporterImport מקבץ שורות-עסקה מרובות של אותו תורם — כלום לא אובד', async () => {
+    const { planSupporterImport } = await import('../../components/supporters/lib');
+    const row = (name: string, d: string, a: number) => ({
+      name, phone: '', email: '', idNum: '', address: '', cat: '', forWho: '', hist: [{ d, a }],
+    });
+    // תורם חדש עם 3 עסקאות + תורם קיים עם 2
+    const existing = [{ id: 'sp1', name: 'כהן', phone: '', email: '', address: '', idNum: '', cat: '', forWho: '', notes: '', count: 0, ils: 0, usd: 0, first: '', last: '', nextDate: '', donations: [] }];
+    const p = planSupporterImport(
+      [row('לוי', '2026-01-01', 100), row('לוי', '2026-02-01', 200), row('לוי', '2026-03-01', 300),
+       row('כהן', '2026-01-15', 50), row('כהן', '2026-02-15', 60)],
+      existing as never,
+    );
+    expect(p.inserts).toHaveLength(1);
+    expect(p.inserts[0].hist).toHaveLength(3); // הבאג שנמנע: רק האחרונה שרדה
+    expect(p.updates).toHaveLength(1); // מקובץ לעדכון אחד פר-id
+    expect(p.updates[0].row.hist).toHaveLength(2);
+  });
+
+  it('mergeHist אידמפוטנטי: ייבוא-חוזר לא מכפיל; כפילות-אמת באותו קובץ נשמרת', async () => {
+    const { mergeHist } = await import('../../components/supporters/lib');
+    const incoming = [
+      { d: '2026-01-01', a: 60 }, { d: '2026-01-01', a: 60 }, // שתי עסקאות-אמת באותו יום
+      { d: '2026-02-01', a: 100 },
+    ];
+    const first = mergeHist([], incoming);
+    expect(first).toHaveLength(3);
+    // ייבוא-חוזר של אותו קובץ — שום תוספת
+    const second = mergeHist(first, incoming);
+    expect(second).toHaveLength(3);
+    // קובץ-המשך עם עסקה חדשה — רק היא מתווספת
+    const third = mergeHist(second, [...incoming, { d: '2026-03-01', a: 45 }]);
+    expect(third).toHaveLength(4);
+    // המונים לא נגועים — mergeHist טהור על hist בלבד (הכרעת ‎#14 פתוחה)
+  });
+
+  it('mergeSupporterRow/newSupporterFromRow נושאים hist; בלי hist — ביט-זהה', async () => {
+    const { mergeSupporterRow, newSupporterFromRow } = await import('../../components/supporters/lib');
+    const bare = { name: 'לוי', phone: '', email: '', idNum: '', address: '', cat: '', forWho: '' };
+    const fresh = newSupporterFromRow('sp9', bare);
+    expect('hist' in fresh).toBe(false); // אין שדה-רפאים לקבצים רגילים
+    const withTx = newSupporterFromRow('sp8', { ...bare, hist: [{ d: '2026-01-01', a: 100 }] });
+    expect(withTx.hist).toHaveLength(1);
+    expect(withTx.count).toBe(0); // המונים לא נגועים
+    const sp = { ...fresh, hist: [{ d: '2025-05-05', a: 10 }] };
+    const merged = mergeSupporterRow(sp as never, { ...bare, hist: [{ d: '2026-01-01', a: 100 }] });
+    expect(merged.hist).toHaveLength(2);
+    expect(merged.count).toBe(0);
+  });
+});
