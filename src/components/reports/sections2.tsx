@@ -45,6 +45,7 @@ export function DonationsSection(props: SectionProps & { range: DateRange; range
   const byMonth = new Map<string, Sums>();
   const byCat = new Map<string, Sums>();
   let total: Sums = { n: 0, ils: 0, usd: 0 };
+  let histN = 0;
   for (const sp of db.supporters) {
     for (const d of sp.donations) {
       if (!inRange(d.date, range)) continue;
@@ -55,6 +56,20 @@ export function DonationsSection(props: SectionProps & { range: DateRange; range
         ils: total.ils + (d.cur === '$' ? 0 : d.amount),
         usd: total.usd + (d.cur === '$' ? d.amount : 0),
       };
+    }
+    // הכרעת 9.8 "לכולל": גם עסקאות הקובץ ההיסטורי (ללא קבלה) נספרות בטווח.
+    // קטגוריה: של התורם (בקובץ-הסליקה זו הקטגוריה האמיתית), אחרת תווית-מקור.
+    for (const h of sp.hist ?? []) {
+      if (!inRange(h.d, range)) continue;
+      const hd = { date: h.d, amount: h.a, cur: h.c ?? ('₪' as const), cat: sp.cat || 'מהקובץ ההיסטורי' } as Donation;
+      addTo(byMonth, monthKey(h.d), hd);
+      addTo(byCat, hd.cat, hd);
+      total = {
+        n: total.n + 1,
+        ils: total.ils + (hd.cur === '$' ? 0 : hd.amount),
+        usd: total.usd + (hd.cur === '$' ? hd.amount : 0),
+      };
+      histN++;
     }
   }
 
@@ -72,7 +87,7 @@ export function DonationsSection(props: SectionProps & { range: DateRange; range
   return (
     <Section
       title={'💛 סיכום ' + termOf(config, 'entity.donations', 'תרומות')}
-      sub={'טווח: ' + props.rangeText + ' · ' + total.n + ' ' + termOf(config, 'entity.donations', 'תרומות')}
+      sub={'טווח: ' + props.rangeText + ' · ' + total.n + ' ' + termOf(config, 'entity.donations', 'תרומות') + (histN ? ' (מהן ' + histN + ' מהקובץ ההיסטורי, ללא קבלה)' : '')}
       hidden={props.hidden}
       onPrint={props.onPrint}
       csvName="maor-donations-summary.csv"

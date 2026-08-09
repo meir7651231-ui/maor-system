@@ -190,6 +190,13 @@ describe('🕰 ratchet — עסקאות-סליקה כהיסטוריה-ללא-ק�
     expect(two.ayin?.names).toHaveLength(2);
   });
 
+  it('"לכולל" גם בדוחות: סיכום-התרומות סופר את הקובץ ההיסטורי בטווח (הגנת-מקור)', async () => {
+    const src = (await import('../../components/reports/sections2.tsx?raw')).default;
+    expect(src).toMatch(/for \(const h of sp\.hist \?\? \[\]\) \{[\s\S]{0,120}inRange\(h\.d, range\)/);
+    expect(src).toContain("sp.cat || 'מהקובץ ההיסטורי'");
+    expect(src).toContain('מהן ');
+  });
+
   it('mergeSupporterRow/newSupporterFromRow נושאים hist; בלי hist — ביט-זהה', async () => {
     const { mergeSupporterRow, newSupporterFromRow } = await import('../../components/supporters/lib');
     const bare = { name: 'לוי', phone: '', email: '', idNum: '', address: '', cat: '', forWho: '' };
