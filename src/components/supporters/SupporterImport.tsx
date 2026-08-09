@@ -10,6 +10,7 @@ import { parseAnyDate, parseCsv, readCsvFileText } from '../../lib/csvx';
 import { downloadCsv } from '../../lib/csvx';
 import { Btn, Field, FormError } from '../ui';
 import {
+  applyAyinNames,
   mergeSupporterRow,
   newSupporterFromRow,
   planSupporterImport,
@@ -70,6 +71,9 @@ function parseRows(text: string): SupporterImportRow[] {
         row.hist = [{ d, a: amount, ...(/דולר|\$|usd/i.test(g(r, iCur)) ? { c: '$' as const } : {}) }];
       }
     }
+    // בקשת-בעלים 9.8: שורת-טיפול (קטגוריה עם 'עין') ⇒ "עבור מי" = שם-התורם
+    // המלא ('X בן/בת Y') נכנס כשם-לטיפול בתיק-המעקב; הכמות ממתינה לרישום.
+    if (/עין/.test(row.cat)) row.ayinNames = [name];
     out.push(row);
   }
   return out;
@@ -135,11 +139,19 @@ export function SupporterImport(props: { onDone?: () => void }) {
     if (!p || !Array.isArray(p.updates)) return;
     setDb((db) => {
       let seq = db.seq;
+      const mkId = () => 'an' + seq++;
       const updates = new Map(p.updates.map((u) => [u.id, u.row]));
-      let supporters = db.supporters.map((sp) =>
-        updates.has(sp.id) ? mergeSupporterRow(sp, updates.get(sp.id)!) : sp,
-      );
-      const inserts = p.inserts.map((r) => newSupporterFromRow('sp' + seq++, r));
+      let supporters = db.supporters.map((sp) => {
+        const row = updates.get(sp.id);
+        if (!row) return sp;
+        const merged = mergeSupporterRow(sp, row);
+        // חיווט "עבור מי" ⇒ שם-לטיפול (9.8) — כמות ממתינה לרישום בפאנל
+        return row.ayinNames?.length ? applyAyinNames(merged, row.ayinNames, mkId) : merged;
+      });
+      const inserts = p.inserts.map((r) => {
+        const fresh = newSupporterFromRow('sp' + seq++, r);
+        return r.ayinNames?.length ? applyAyinNames(fresh, r.ayinNames, mkId) : fresh;
+      });
       supporters = [...inserts, ...supporters];
       return { seq, supporters };
     });

@@ -13,7 +13,7 @@ import { WaBtn } from '../WaBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, supDonEvents, supScore, supTier, totalLabel } from './lib';
+import { chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
 import { downloadReceipt, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
@@ -271,14 +271,15 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     : [...sp.donations]
         .sort((a, b) => b.date.localeCompare(a.date))
         .map((d) => ({ date: d.date, amount: d.amount, cur: d.cur || ('₪' as const), src: 'קבלה ' + d.rid, rid: d.rid }));
+  // הכרעת 9.8 "לכולל": שורת-הסטטיסטיקה כוללת את הקובץ ההיסטורי
   const statsLine =
-    sp.count +
+    supCount(sp) +
     ' ' +
     termOf(config, 'entity.donations', 'תרומות') +
     ' · ' +
     totalLabel(sp) +
     (sp.first ? ' · מ-' + hebDateFull(sp.first) : '') +
-    (sp.last ? ' · אחרונה ' + hebDateFull(sp.last) : '');
+    (supLast(sp) ? ' · אחרונה ' + hebDateFull(supLast(sp)) : '');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

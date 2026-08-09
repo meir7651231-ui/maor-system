@@ -3,11 +3,12 @@
  * פורמט תאריכים וטלפון. עזרים מקומיים בלבד — אין גישה ל-store או ל-DOM.
  */
 import type { CSSProperties } from 'react';
-import type { Supporter } from '../../types/domain';
+import { emptyAyin, type Supporter } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
 import { normSearch, formatIsraeliPhone } from '../../lib/validate';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
+import { planAddName } from '../../lib/ayin';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
@@ -21,9 +22,36 @@ export function isoToday(): string {
   return isoTodayLocal();
 }
 
-/** שווי כולל בש"ח — דולר לפי השער העריך (ברירת-מחדל 3.7, כמו במקור). */
+/* ── הכרעת-בעלים 9.8 ("לכולל", סוגרת את ‎#14): הצבירה המוצגת של תורם כוללת
+   גם את הקובץ ההיסטורי (hist — עסקאות-סליקה/לגאסי ללא קבלה). המונים השמורים
+   (count/ils/usd) נשארים קבלות-בלבד — אינווריאנט הענן "מונים רק עולים" לא
+   נגוע; הכללה = נגזרת טהורה. הדוח-השנתי-לתורם נשאר קבלות-בלבד (מסמך-מס). ── */
+
+/** סה"כ ₪ כולל היסטוריה. */
+export function supIls(sp: Supporter): number {
+  return (sp.ils || 0) + (sp.hist ?? []).reduce((a, h) => a + (h.c === '$' ? 0 : h.a), 0);
+}
+
+/** סה"כ $ כולל היסטוריה. */
+export function supUsd(sp: Supporter): number {
+  return (sp.usd || 0) + (sp.hist ?? []).reduce((a, h) => a + (h.c === '$' ? h.a : 0), 0);
+}
+
+/** מספר תרומות כולל היסטוריה. */
+export function supCount(sp: Supporter): number {
+  return (sp.count || 0) + (sp.hist?.length ?? 0);
+}
+
+/** התרומה האחרונה — המאוחר מבין הקבלות וההיסטוריה ('' כשאין). */
+export function supLast(sp: Supporter): string {
+  let m = sp.last || '';
+  for (const h of sp.hist ?? []) if (h.d > m) m = h.d;
+  return m;
+}
+
+/** שווי כולל בש"ח — דולר לפי השער העריך (ברירת-מחדל 3.7, כמו במקור); כולל היסטוריה. */
 export function supTotalIls(sp: Supporter, rate = 3.7): number {
-  return (sp.ils || 0) + (sp.usd || 0) * rate;
+  return supIls(sp) + supUsd(sp) * rate;
 }
 
 /**
@@ -32,11 +60,13 @@ export function supTotalIls(sp: Supporter, rate = 3.7): number {
  */
 export function supScore(sp: Supporter, rate = 3.7): number {
   const tot = supTotalIls(sp, rate);
-  const days = sp.last
-    ? Math.floor((Date.now() - new Date(sp.last + 'T12:00:00').getTime()) / 86400000)
+  const last = supLast(sp);
+  const cnt = supCount(sp);
+  const days = last
+    ? Math.floor((Date.now() - new Date(last + 'T12:00:00').getTime()) / 86400000)
     : 9999;
   const R = days <= 30 ? 350 : days <= 90 ? 280 : days <= 180 ? 200 : days <= 365 ? 120 : 40;
-  const F = sp.count >= 10 ? 300 : sp.count >= 5 ? 230 : sp.count >= 3 ? 160 : sp.count >= 2 ? 100 : 50;
+  const F = cnt >= 10 ? 300 : cnt >= 5 ? 230 : cnt >= 3 ? 160 : cnt >= 2 ? 100 : 50;
   const M = tot >= 5000 ? 350 : tot >= 2000 ? 280 : tot >= 1000 ? 210 : tot >= 500 ? 140 : tot >= 100 ? 80 : 40;
   return R + F + M;
 }
@@ -70,18 +100,21 @@ export function supScoreBins(supporters: readonly Supporter[], rate = 3.7): numb
 /** ממוצע לתרומה — סה"כ ₪-שקול (‎$×3.7‎) חלקי מספר התרומות (legacy supAvgDon:3024); אין תרומות ⇒ null. */
 export function supAvgDon(supporters: readonly Supporter[], rate = 3.7): number | null {
   const totIls = supporters.reduce((a, x) => a + supTotalIls(x, rate), 0);
-  const totCnt = supporters.reduce((a, x) => a + (x.count || 0), 0);
+  const totCnt = supporters.reduce((a, x) => a + supCount(x), 0);
   return totCnt ? Math.round(totIls / totCnt) : null;
 }
 
-/** מונה "תרמו ב-12 החודשים" — last בתוך 365 יום מ-todayIso (legacy sup12m:3025). */
+/** מונה "תרמו ב-12 החודשים" — התרומה האחרונה (כולל היסטוריה) בתוך 365 יום. */
 export function sup12m(supporters: readonly Supporter[], todayIso: string): number {
   const d = new Date(todayIso + 'T12:00:00');
   d.setDate(d.getDate() - 365);
   const p2 = (n: number) => String(n).padStart(2, '0');
   const cut = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
   let n = 0;
-  for (const sp of supporters) if (sp.last && sp.last >= cut) n++;
+  for (const sp of supporters) {
+    const last = supLast(sp);
+    if (last && last >= cut) n++;
+  }
   return n;
 }
 
@@ -108,10 +141,12 @@ export function fixPhone(p: string): string {
   return formatIsraeliPhone(p);
 }
 
-/** "₪1,200 + $300" או "—" כשאין כלום. */
+/** "₪1,200 + $300" או "—" כשאין כלום — כולל היסטוריה (הכרעת 9.8). */
 export function totalLabel(sp: Supporter): string {
-  const ils = sp.ils ? '₪' + sp.ils.toLocaleString('he-IL') : '';
-  const usd = sp.usd ? '$' + sp.usd.toLocaleString('he-IL') : '';
+  const i = supIls(sp);
+  const u = supUsd(sp);
+  const ils = i ? '₪' + i.toLocaleString('he-IL') : '';
+  const usd = u ? '$' + u.toLocaleString('he-IL') : '';
   return ils && usd ? ils + ' + ' + usd : ils || usd || '—';
 }
 
@@ -230,6 +265,9 @@ export interface SupporterImportRow {
    *  נכנסות ל-Supporter.hist (מוצגות "מהקובץ ההיסטורי"), בלי קבלה ובלי
    *  נגיעה במונים (ההצטברות — הכרעת-בעלים ‎#14 פתוחה). */
   hist?: { d: string; a: number; c?: '₪' | '$' }[];
+  /** בקשת-בעלים 9.8 ("עבור מי ⇒ שם לטיפול"): שורת-טיפול בקובץ (קטגוריה עם
+   *  'עין') ⇒ השם-לטיפול נכנס לתיק-המעקב; הכמות ('' ) ממתינה לשלב-הרישום. */
+  ayinNames?: string[];
 }
 
 /** תוכנית ייבוא — אילו קיימות יעודכנו ואילו חדשות ייווצרו. */
@@ -249,7 +287,25 @@ function fillEmpty(a: SupporterImportRow, b: SupporterImportRow): SupporterImpor
     if (!out[k] && b[k]) (out as Record<string, unknown>)[k] = b[k];
   });
   if (a.hist?.length || b.hist?.length) out.hist = [...(a.hist ?? []), ...(b.hist ?? [])];
+  if (a.ayinNames?.length || b.ayinNames?.length) out.ayinNames = [...(a.ayinNames ?? []), ...(b.ayinNames ?? [])];
   return out;
+}
+
+/** חיווט "עבור מי" ⇒ שם-לטיפול (בקשת-בעלים 9.8): מוסיף לתיק-המעקב את השמות
+ *  שהגיעו מהייבוא. כפילויות מדולגות (planAddName); תיק חסר נפתח (emptyAyin);
+ *  הכמות נשארת '' — ממתינה לרישום בשלב-הטיפול (המונה יושב ליד השם בפאנל). */
+export function applyAyinNames(sp: Supporter, names: string[], mkId: () => string): Supporter {
+  let a = sp.ayin ?? emptyAyin();
+  let changed = false;
+  for (const nm of names) {
+    if (!planAddName(a, nm, '', '').ok) continue; // כפילות/ריק — דילוג שקט, בלי לשרוף מזהה
+    const plan = planAddName(a, nm, '', mkId());
+    if (plan.ok) {
+      a = { ...a, names: plan.names };
+      changed = true;
+    }
+  }
+  return changed ? { ...sp, ayin: a } : sp;
 }
 
 /** מיזוג-היסטוריה אידמפוטנטי: לכל מפתח (תאריך|סכום|מטבע) הכמות הסופית =

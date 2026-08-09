@@ -14,7 +14,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supScore, supScoreBins, supTier, supTotalIls, TIER_ORDER, totalLabel } from './lib';
+import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, TIER_ORDER, totalLabel } from './lib';
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
@@ -67,14 +67,15 @@ function sortVal(sp: Supporter, key: SortKey, rate = 3.7): string | number {
       return sp.phone || '';
     case 'email':
       return sp.email || '';
+    // הכרעת 9.8 "לכולל": מיון/סינון/תצוגה על הצבירה כולל-ההיסטוריה
     case 'count':
-      return sp.count;
+      return supCount(sp);
     case 'ils':
-      return sp.ils;
+      return supIls(sp);
     case 'usd':
-      return sp.usd;
+      return supUsd(sp);
     case 'last':
-      return sp.last || '';
+      return supLast(sp);
     case 'nextDate':
       return sp.nextDate || '';
     case 'score':
@@ -190,7 +191,7 @@ export function SupportersView() {
     if (hokF === 'due' && !(sp.hok?.active && !hokRecordedThisMonth(sp, today))) return false;
     if (tierF && supTier(supScore(sp, rate)).label !== tierF) return false;
     // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (לפי השער העריך) / ציון
-    if (!numMatch(colF.count, sp.count || 0)) return false;
+    if (!numMatch(colF.count, supCount(sp))) return false;
     if (!numMatch(colF.total, Math.round(supTotalIls(sp, rate)))) return false;
     if (!numMatch(colF.score, supScore(sp, rate))) return false;
     // סינון מעקב הטיפול (פריט 14)
@@ -430,8 +431,8 @@ export function SupportersView() {
                   <div style={{ fontSize: 13, color: 'var(--ink-soft)', direction: 'ltr', textAlign: 'end' }}>{sp.phone}</div>
                 )}
                 <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 4 }}>
-                  {sp.count + ' ' + termOf(config, 'entity.donations', 'תרומות') + ' · ' + totalLabel(sp)}
-                  {sp.last ? ' · אחרונה ' + fmtDate(sp.last) : ''}
+                  {supCount(sp) + ' ' + termOf(config, 'entity.donations', 'תרומות') + ' · ' + totalLabel(sp)}
+                  {supLast(sp) ? ' · אחרונה ' + fmtDate(supLast(sp)) : ''}
                 </div>
                 {nextOn && sp.nextDate && (
                   <div style={{ fontSize: 12, color: sp.nextDate <= isoToday() ? 'var(--warn, #b45309)' : 'var(--ink-faint)', marginTop: 2 }}>
@@ -522,11 +523,11 @@ export function SupportersView() {
                   <td>{sp.cat || '—'}</td>
                   <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.phone || '—'}</td>
                   <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.email || '—'}</td>
-                  <td title={'מתי וכמה בכל ' + termOf(config, 'entity.donation', 'תרומה') + ' — בכרטיס'}>{sp.count}</td>
-                  <td>{sp.ils ? '₪' + sp.ils.toLocaleString('he-IL') : '—'}</td>
-                  <td>{sp.usd ? '$' + sp.usd.toLocaleString('he-IL') : '—'}</td>
-                  <td title={totalLabel(sp) + (sp.last ? ' · ' + hebDateFull(sp.last) : '')}>
-                    {sp.last ? fmtDate(sp.last) : '—'}
+                  <td title={'מתי וכמה בכל ' + termOf(config, 'entity.donation', 'תרומה') + ' — בכרטיס'}>{supCount(sp)}</td>
+                  <td>{supIls(sp) ? '₪' + supIls(sp).toLocaleString('he-IL') : '—'}</td>
+                  <td>{supUsd(sp) ? '$' + supUsd(sp).toLocaleString('he-IL') : '—'}</td>
+                  <td title={totalLabel(sp) + (supLast(sp) ? ' · ' + hebDateFull(supLast(sp)) : '')}>
+                    {supLast(sp) ? fmtDate(supLast(sp)) : '—'}
                   </td>
                   {nextOn && (
                     <td style={{ whiteSpace: 'nowrap' }}>

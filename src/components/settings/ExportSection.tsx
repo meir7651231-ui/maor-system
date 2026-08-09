@@ -12,7 +12,7 @@ import { Btn } from '../ui';
 import { Section, SectionNote } from './lib';
 import { ageOf, fmtDate, STATUS_META } from '../families/lib';
 import { DAY_NAMES, paidOf, payBal, planWord, modelMeta, enrollCount } from '../courses/lib';
-import { supScore, supTier, supTotalIls } from '../supporters/lib';
+import { supCount, supIls, supLast, supScore, supTier, supTotalIls, supUsd } from '../supporters/lib';
 
 const ENROLL_STATUS: Record<string, string> = { active: 'פעיל', paused: 'מוקפא', ended: 'הסתיים' };
 
@@ -133,9 +133,10 @@ export function ExportSection() {
     ];
     for (const sp of db.supporters) {
       const score = supScore(sp, db.usdRate);
+      // הכרעת 9.8 "לכולל": העמודות המצטברות כוללות את הקובץ ההיסטורי
       rows.push([
-        sp.name, sp.phone, sp.email, sp.address, sp.cat, sp.forWho, sp.count, sp.ils, sp.usd,
-        Math.round(supTotalIls(sp, db.usdRate)), fmtDate(sp.first), fmtDate(sp.last), score, supTier(score).label,
+        sp.name, sp.phone, sp.email, sp.address, sp.cat, sp.forWho, supCount(sp), supIls(sp), supUsd(sp),
+        Math.round(supTotalIls(sp, db.usdRate)), fmtDate(sp.first), fmtDate(supLast(sp)), score, supTier(score).label,
         sp.notes,
       ]);
     }
