@@ -166,6 +166,27 @@ try {
   pass('כרטיס התומכת מציג תרומות "מהקובץ ההיסטורי"', t2.includes('מהקובץ ההיסטורי') && t2.includes('קבלה D-3'));
 } catch (e) { pass('ייבוא גיבוי לגאסי', false, e.message.slice(0, 60)); }
 
+// ── מסע 7: ייבוא תומכות מ-CSV (הדבקה → שלב 1 → החלה) — הבאג שנתפס בשטח 6.8:
+// onClick={apply} העביר את אירוע-הקליק כ-p ודרס את plan ⇒ קריסה וכלום לא יובא.
+// המסע מכסה את נתיב-האישור הדו-שלבי שאף בדיקה לא כיסתה מאז P2-33. ──
+try {
+  await navTo('הגדרות');
+  await pg.waitForTimeout(500);
+  await clickText('📚 נתונים');
+  await pg.waitForTimeout(400);
+  await clickText('תורמים (CSV)');
+  await pg.waitForTimeout(300);
+  await pg.locator('#sec-import textarea').first().fill('שם,טלפון\nתורם בדיקה,050-9998887\nתורמת שנייה,052-1112223');
+  await pg.locator('#sec-import button:has-text("בדיקת הקובץ")').first().click();
+  await pg.waitForTimeout(400);
+  await pg.locator('#sec-import button:has-text("ייבוא 2")').first().click();
+  await pg.waitForTimeout(1200);
+  const db7 = await pg.evaluate(() => { try { return JSON.parse(localStorage.getItem('maor_db')); } catch { return null; } });
+  const names7 = (db7?.supporters ?? []).map((s) => s.name);
+  pass('ייבוא תומכות CSV — שלב 1 + החלה נכנסים ל-db', names7.includes('תורם בדיקה') && names7.includes('תורמת שנייה'),
+    'sup=' + names7.length);
+} catch (e) { pass('ייבוא תומכות CSV', false, e.message.slice(0, 60)); }
+
 // ── סיכום ──
 console.log('\n── סיכום ──');
 const failed = results.filter((r) => !r.ok);
