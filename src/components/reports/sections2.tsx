@@ -15,6 +15,7 @@ import {
   STATUS_LABEL,
   type DateRange,
 } from './lib';
+import { stageLabel } from '../../lib/ayin';
 
 interface SectionProps {
   db: Db;
@@ -35,6 +36,43 @@ function addTo(map: Map<string, Sums>, key: string, d: Donation): void {
   if (d.cur === '$') s.usd += amt;
   else s.ils += amt;
   map.set(key, s);
+}
+
+/** בקשת-בעלים 9.8: פילוח שמות-לטיפול + כמות בדוחות (feature reports.ayin). */
+export function AyinNamesSection(props: SectionProps) {
+  const { db } = props;
+  const config = useApp((s) => s.config);
+  const itemT = termOf(config, 'entity.ayinItem', 'שם לטיפול');
+  const unitT = termOf(config, 'entity.ayinUnit', 'כמות');
+  const rowsData: { name: string; eyes: number | ''; done: boolean; sup: string; stage: string }[] = [];
+  for (const sp of db.supporters) {
+    for (const n of sp.ayin?.names ?? []) {
+      rowsData.push({ name: n.name, eyes: n.eyes, done: n.done, sup: sp.name, stage: stageLabel(config, sp.ayin!.stage) });
+    }
+  }
+  const totalEyes = rowsData.reduce((a, r) => a + (r.eyes === '' ? 0 : +r.eyes), 0);
+  const pending = rowsData.filter((r) => r.eyes === '').length;
+  const head = [itemT, unitT, 'בוצע', termOf(config, 'entity.supporter', 'תומכ/ת'), 'שלב'];
+  const rows: Row[] = rowsData.map((r) => ({
+    cells: [r.name, r.eyes === '' ? 'ממתין לרישום' : r.eyes, r.done ? '✓' : '—', r.sup, r.stage],
+  }));
+  const foot: Cell[] = ['סה"כ ' + rowsData.length, totalEyes + (pending ? ' (+' + pending + ' ממתינים)' : ''), '', '', ''];
+  return (
+    <Section
+      title={'👁 ' + itemT + ' + ' + unitT}
+      sub={rowsData.length + ' שמות · ' + unitT + ' רשומה: ' + totalEyes + (pending ? ' · ' + pending + ' ממתינים לרישום' : '')}
+      hidden={props.hidden}
+      onPrint={props.onPrint}
+      csvName="maor-ayin-names.csv"
+      csvRows={() => [head, ...rows.map((r) => r.cells), foot]}
+    >
+      {rowsData.length === 0 ? (
+        <p style={{ fontSize: 13.5, color: 'var(--ink-faint)' }}>{'עדיין אין ' + itemT + ' — נפתחים מכרטיסי-התומכים או מייבוא קובץ-הסליקה.'}</p>
+      ) : (
+        <ReportTable head={head} rows={rows} foot={foot} />
+      )}
+    </Section>
+  );
 }
 
 /** 3. סיכום תרומות — לפי חודש ולפי קטגוריה, בטווח התאריכים. */

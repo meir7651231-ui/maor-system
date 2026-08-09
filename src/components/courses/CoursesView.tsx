@@ -57,6 +57,8 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const selectCourse = useApp((s) => s.selectCourse);
   const cfg = useApp((s) => s.config);
   const wheelOn = featureOn(cfg, 'courses.wheel');
+  // תמונת-חוג בלוח (בקשת-בעלים 9.8) — אותו דגל של התמונה בכרטיס
+  const gradeimgOn = featureOn(cfg, 'courses.gradeimg');
   // רצועת חדרים LIVE (P2 פער 27) — "עכשיו" מתעדכן דקה-דקה בלי אינטראקציה
   const roomsLiveOn = featureOn(cfg, 'courses.roomslive');
   const [nowTick, setNowTick] = useState(() => Date.now());
@@ -298,20 +300,29 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                   }
                 }}
               >
-                <div
-                  style={{
-                    height: 90,
-                    background: TINTS[i % TINTS.length],
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 30,
-                    fontWeight: 800,
-                    color: 'rgba(33,29,23,.38)',
-                  }}
-                >
-                  {c.name[0]}
-                </div>
+                {/* בקשת-בעלים 9.8: תמונת-החוג מוצגת גם בלוח (כשקיימת) — אחרת האות-הצבעונית */}
+                {gradeimgOn && c.img ? (
+                  <img
+                    src={c.img}
+                    alt=""
+                    style={{ width: '100%', height: 90, objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      height: 90,
+                      background: TINTS[i % TINTS.length],
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 30,
+                      fontWeight: 800,
+                      color: 'rgba(33,29,23,.38)',
+                    }}
+                  >
+                    {c.name[0]}
+                  </div>
+                )}
                 <div style={{ padding: '13px 15px 14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                     <div style={{ fontWeight: 800, fontSize: 14.5 }}>{c.name}</div>

@@ -3,13 +3,14 @@
  * שעות פעילות וקבוצות (עורך המפגשים) ופרטי הקורס.
  */
 import { useMemo, useRef, useState } from 'react';
-import type { Course, Enrollment, Weekday } from '../../types/domain';
+import type { Course, Enrollment, Teacher, Weekday } from '../../types/domain';
+import { formatIsraeliPhone } from '../../lib/validate';
 import { allMembers, useApp } from '../../store/useApp';
 import { featureOn, roleOf, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { downloadCsv, type Cell } from '../../lib/csvx';
 import { buildCourseDailyRows } from '../../lib/courseDaily';
-import { Btn, Empty } from '../ui';
+import { Btn, Empty, Field, Modal, Select, TextInput } from '../ui';
 import { CourseForm } from './CourseForm';
 import { EnrollModal } from './EnrollModal';
 import { ManageModal } from './ManageModal';
@@ -84,6 +85,8 @@ export function CourseDetail(props: { course: Course }) {
   const c = props.course;
   const [prevCourseId, setPrevCourseId] = useState(c.id);
   const [modal, setModal] = useState<ModalState>(null);
+  // בקשת-בעלים 9.8: בורר-מורה מכרטיס-החוג (קיים או חדש) — בלי מסע לטופס-העריכה
+  const [teacherPick, setTeacherPick] = useState(false);
   const [expOpen, setExpOpen] = useState(false);
   const [noteVal, setNoteVal] = useState(c.notes);
   const [sessDay, setSessDay] = useState('0');
@@ -616,7 +619,13 @@ export function CourseDetail(props: { course: Course }) {
             {detailRow('קהל יעד', c.audience || 'כללי')}
             {gradeimgOn && (c.gradeMin || c.gradeMax) &&
               detailRow('כיתות', [c.gradeMin, c.gradeMax].filter(Boolean).join('–'))}
-            {detailRow(termOf(cfg, 'entity.teacher', 'מורה'), teacher?.name ?? '—')}
+            {/* בקשת-בעלים 9.8: החלפת/הוספת מורה ישירות מכרטיס-החוג — בלי מסע לטופס */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ flex: 1 }}>{detailRow(termOf(cfg, 'entity.teacher', 'מורה'), teacher?.name ?? '—')}</div>
+              <Btn sm onClick={() => setTeacherPick(true)} title={'החלפה או הוספת ' + termOf(cfg, 'entity.teacher', 'מורה')}>
+                {teacher ? '✏️' : '➕ הוספת ' + termOf(cfg, 'entity.teacher', 'מורה')}
+              </Btn>
+            </div>
             {detailRow('טלפון ' + termOf(cfg, 'entity.teacher', 'מורה'), teacher?.phone || '—')}
             {detailRow('מחיר מלא', c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—')}
             {discountsOn && detailRow(c.price1Name || 'הנחה 1', c.price1 ? '₪' + c.price1 : '—', '#12803c')}
@@ -675,6 +684,76 @@ export function CourseDetail(props: { course: Course }) {
         <AbsenceModal enrollmentId={modal.enrollmentId} course={c} onClose={() => setModal(null)} />
       )}
       {expOpen && <CustomExport target="courses" onClose={() => setExpOpen(false)} />}
+      {teacherPick && <TeacherPickModal course={c} onClose={() => setTeacherPick(false)} />}
     </div>
+  );
+}
+
+/** בקשת-בעלים 9.8 — בורר/יוצר מורה מכרטיס-החוג: בחירה מהקיימים או יצירה
+ *  מהירה (שם+טלפון, אותם ברירות-מחדל של היצירה-inline בטופס) ושיוך מיידי. */
+function TeacherPickModal(props: { course: Course; onClose: () => void }) {
+  const db = useApp((s) => s.db);
+  const cfg = useApp((s) => s.config);
+  const upsertTeacher = useApp((s) => s.upsertTeacher);
+  const upsertCourse = useApp((s) => s.upsertCourse);
+  const nextId = useApp((s) => s.nextId);
+  const toast = useApp((s) => s.toast);
+  const T = (k: string, fb: string) => termOf(cfg, k, fb);
+  const [sel, setSel] = useState(props.course.teacherId || '__new');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [error, setError] = useState('');
+
+  function save() {
+    let teacherId = sel;
+    if (sel === '__new') {
+      const tn = name.trim();
+      if (!tn) return setError('הקלידו את שם ה' + T('entity.teacher', 'מורה'));
+      const existing = db.teachers.find((t) => t.name === tn);
+      if (existing) teacherId = existing.id;
+      else {
+        const nt: Teacher = {
+          id: nextId('t'),
+          name: tn,
+          phone: formatIsraeliPhone(phone.trim()),
+          phone2: '', email: '', idNum: '', address: '', specialty: '', payRate: 0, startDate: '', notes: '',
+        };
+        upsertTeacher(nt);
+        teacherId = nt.id;
+      }
+    }
+    upsertCourse({ ...props.course, teacherId });
+    toast('ה' + T('entity.teacher', 'מורה') + ' שויכ/ה ל' + T('entity.course', 'חוג') + ' ✓');
+    props.onClose();
+  }
+
+  return (
+    <Modal title={'👩‍🏫 ' + T('entity.teacher', 'מורה') + ' ל' + T('entity.course', 'חוג') + ' — ' + props.course.name} onClose={props.onClose}>
+      <Field label={T('entity.teacher', 'מורה')}>
+        <Select
+          value={sel}
+          onChange={setSel}
+          options={[
+            ...db.teachers.map((t) => ({ value: t.id, label: t.name })),
+            { value: '__new', label: '➕ הוספת ' + T('entity.teacher', 'מורה') },
+          ]}
+        />
+      </Field>
+      {sel === '__new' && (
+        <>
+          <Field label={'שם ה' + T('entity.teacher', 'מורה') + ' *'}>
+            <TextInput value={name} onChange={setName} />
+          </Field>
+          <Field label="טלפון">
+            <TextInput value={phone} onChange={setPhone} dir="ltr" />
+          </Field>
+        </>
+      )}
+      {error && <div style={{ color: 'var(--red)', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>{error}</div>}
+      <div className="modal-actions">
+        <Btn kind="primary" onClick={save}>שמירה ושיוך</Btn>
+        <Btn onClick={props.onClose}>ביטול</Btn>
+      </div>
+    </Modal>
   );
 }
