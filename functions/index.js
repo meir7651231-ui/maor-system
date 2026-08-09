@@ -75,9 +75,35 @@ async function sendSmsVia(provider, apiKey, sender, to, text) {
 }
 
 /**
+ * 🗝 כספת פר-ארגון (9.8 — "כל מנהל יש את הסודות שלו"): orgSecrets/{slug}
+ * נכתב ע"י מנהל-הארגון מהאפליקציה (Rules: read:false — רק Admin-SDK קורא).
+ * סוד-הארגון גובר; ה-secret הגלובלי = נפילה-לאחור לארגונים בלי כספת.
+ */
+const _orgSecretsCache = new Map();
+async function orgSecretsOf(db, slug) {
+  if (!slug) return {};
+  if (_orgSecretsCache.has(slug)) return _orgSecretsCache.get(slug);
+  let out = {};
+  try {
+    const d = await db.doc('orgSecrets/' + slug).get();
+    out = d.exists ? (d.data() ?? {}) : {};
+  } catch { /* אין כספת ⇒ הגלובלי */ }
+  _orgSecretsCache.set(slug, out);
+  setTimeout(() => _orgSecretsCache.delete(slug), 60_000).unref?.();
+  return out;
+}
+
+/** ה-slug של מסמך-תור (orgs/{slug}/xxx/{id}) או '' לתור-השורש. */
+function slugOfQueueDoc(docSnap) {
+  const parts = docSnap.ref.path.split('/');
+  return parts[0] === 'orgs' && parts.length >= 4 ? parts[1] : '';
+}
+
+/**
  * 📱 smsOutbox — כל דקה: שולח הודעות שממתינות ב-smsOutbox (שורש) וב-
  * orgs/{slug}/smsOutbox (collectionGroup תופס את שניהם). האפליקציה כותבת
  * ‏{to, text}; כאן נשלח דרך הספק ומסומן sent/error. מוגבל 20/דקה.
+ * ‏9.8: מפתח-הארגון (orgSecrets.smsApiKey) גובר על הגלובלי.
  */
 exports.smsOutbox = onSchedule({ schedule: 'every 1 minutes', secrets: ['SMS_API_KEY', 'SMS_PROVIDER', 'SMS_SENDER'] }, async () => {
   const db = getFirestore();
@@ -85,7 +111,10 @@ exports.smsOutbox = onSchedule({ schedule: 'every 1 minutes', secrets: ['SMS_API
   for (const doc of pending.docs) {
     const { to, text } = doc.data();
     try {
-      await sendSmsVia(process.env.SMS_PROVIDER || '019', process.env.SMS_API_KEY || '', process.env.SMS_SENDER || '', String(to), String(text));
+      const sec = await orgSecretsOf(db, slugOfQueueDoc(doc));
+      const apiKey = sec.smsApiKey || process.env.SMS_API_KEY || '';
+      if (!apiKey) continue; // אין מפתח (ארגוני או גלובלי) — נשאר pending עד שיוגדר
+      await sendSmsVia(process.env.SMS_PROVIDER || '019', apiKey, process.env.SMS_SENDER || '', String(to), String(text));
       await doc.ref.update({ status: 'sent', sentAt: new Date().toISOString() });
     } catch (e) {
       await doc.ref.update({ status: 'error', error: String(e).slice(0, 500) });
@@ -102,10 +131,16 @@ exports.yemotProxy = onRequest({ secrets: ['YEMOT_TOKEN'] }, async (req, res) =>
   if (req.method === 'OPTIONS') return res.status(204).send('');
   const action = String(req.query.action ?? '');
   if (!/^[A-Za-z]{2,40}$/.test(action)) return res.status(400).send('bad action');
+  // ‏9.8: ‏?org=slug ⇒ הטוקן של הארגון מהכספת; בלעדיו — הגלובלי (השורש)
+  const org = String(req.query.org ?? '');
+  if (org && !/^[a-z0-9-]{1,40}$/.test(org)) return res.status(400).send('bad org');
+  const sec = org ? await orgSecretsOf(getFirestore(), org) : {};
+  const token = sec.yemotToken || process.env.YEMOT_TOKEN || '';
+  if (!token) return res.status(503).send('no token');
   const url = new URL('https://www.call2all.co.il/ym/api/' + action);
-  url.searchParams.set('token', process.env.YEMOT_TOKEN ?? '');
+  url.searchParams.set('token', token);
   for (const [k, v] of Object.entries(req.query)) {
-    if (k !== 'action') url.searchParams.set(k, String(v));
+    if (k !== 'action' && k !== 'org') url.searchParams.set(k, String(v));
   }
   const r = await fetch(url.toString());
   res.status(r.status).send(await r.text());
@@ -168,15 +203,21 @@ exports.sheetsNightly = onSchedule({ schedule: 'every day 03:00', secrets: ['GOO
  * SendGrid / ספק-הדומיין) + ‏MAIL_FROM (כתובת-השולח המוצגת).
  */
 exports.mailOutbox = onSchedule({ schedule: 'every 1 minutes', secrets: ['SMTP_URL', 'MAIL_FROM'] }, async () => {
-  if (!process.env.SMTP_URL) return; // אין SMTP ⇒ דורמנטי
   const nodemailer = require('nodemailer');
-  const transport = nodemailer.createTransport(process.env.SMTP_URL);
   const db = getFirestore();
   const pending = await db.collectionGroup('mailOutbox').where('status', '==', 'pending').limit(20).get();
+  if (pending.empty) return;
+  // ‏9.8: ‏SMTP פר-ארגון (orgSecrets.smtpUrl) גובר על הגלובלי; transport ממוטמן פר-URL
+  // (אובייקט ולא Map — ratchet-הבידוד של הצרור אוסר קריאות-כתיבה בקטע הזה)
+  const transports = Object.create(null);
+  const transportFor = (smtpUrl) => (transports[smtpUrl] ??= nodemailer.createTransport(smtpUrl));
   for (const doc of pending.docs) {
     const { to, subject, text } = doc.data();
     try {
-      await transport.sendMail({ from: process.env.MAIL_FROM || undefined, to: String(to), subject: String(subject ?? ''), text: String(text ?? '') });
+      const sec = await orgSecretsOf(db, slugOfQueueDoc(doc));
+      const smtpUrl = sec.smtpUrl || process.env.SMTP_URL || '';
+      if (!smtpUrl) continue; // אין SMTP (ארגוני או גלובלי) — נשאר pending עד שיוגדר
+      await transportFor(smtpUrl).sendMail({ from: process.env.MAIL_FROM || undefined, to: String(to), subject: String(subject ?? ''), text: String(text ?? '') });
       await doc.ref.update({ status: 'sent', sentAt: new Date().toISOString() });
     } catch (e) {
       await doc.ref.update({ status: 'error', error: String(e).slice(0, 500) });
