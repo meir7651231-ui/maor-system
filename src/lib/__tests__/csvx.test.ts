@@ -4,7 +4,7 @@
  * זה המנתח שמזין את ייבוא המשפחות.
  */
 import { describe, expect, it } from 'vitest';
-import { parseCsv, csvEscape, toCsv, parseAnyDate } from '../csvx';
+import { parseCsv, csvEscape, toCsv, parseAnyDate, decodeCsvBuffer } from '../csvx';
 
 describe('parseCsv', () => {
   it('שדה מצוטט עם פסיק פנימי נשאר שלם ("כהן, בן דוד")', () => {
@@ -73,5 +73,42 @@ describe('🗓️ ratchet — parseAnyDate לא מפרש שנה בת 4 ספרו�
     // עבר רחוק (מעל cut=nowYY+10) → 19xx
     expect(parseAnyDate('01/01/85')).toBe('1985-01-01');
     expect(parseAnyDate('01/01/99')).toBe('1999-01-01');
+  });
+});
+
+/* ── בקשת-בעלים 9.8: ייבוא ExportHistory ממסוף-הסליקה — UTF-16 + טאבים ── */
+describe('📥 ratchet — קובץ מסוף-הסליקה (UTF-16 + TSV)', () => {
+  const HDR = ['מספר זהות', 'שם', 'כתובת', 'טלפון', 'מייל', 'סכום', 'מטבע', 'תאריך עסקה', 'מספר אישור', '4 ספרות אחרונות', 'תוקף', 'תשלומים', 'קטגוריה', 'הערות', 'שם מסוף', 'מספר מסוף', 'מותג', 'חברה סולקת', 'מספר הו"ק', 'מספר עסקה', 'מספר שובר', 'מספר קבלה'].join('\t');
+  const ROW = ['', 'הדס הדסה ', 'מושב בר יוחאי ', '053-6231449', 'hadasa@example.org', '400', 'שקל', '09/08/26 00:36', '1975698', '7936', '="0330"', 'הו"ק', 'קבלה סעיף 46', '', 'POS - מאור החסד ', '14187', 'מסטרכרד', 'ישראכרט', '2188318', '76112547', '44001003', ''].join('\t');
+
+  it('decodeCsvBuffer: BOM של UTF-16LE מפוענח נכון (עברית שלמה)', () => {
+    const src = HDR + '\r\n' + ROW;
+    // בונים בייטים כמו הקובץ האמיתי: BOM FF FE ואז UTF-16LE
+    const buf = new ArrayBuffer(2 + src.length * 2);
+    const view = new DataView(buf);
+    view.setUint8(0, 0xff);
+    view.setUint8(1, 0xfe);
+    for (let i = 0; i < src.length; i++) view.setUint16(2 + i * 2, src.charCodeAt(i), true);
+    const out = decodeCsvBuffer(buf);
+    expect(out).toContain('מספר זהות');
+    expect(out).toContain('הדס הדסה');
+    expect(out).not.toContain('�');
+  });
+
+  it('parseCsv: זיהוי-טאבים אוטומטי — העמודות במקומן; קבצי-פסיקים לא נגעו', () => {
+    const rows = parseCsv(HDR + '\r\n' + ROW);
+    expect(rows[0][0]).toBe('מספר זהות');
+    expect(rows[0][1]).toBe('שם');
+    expect(rows[1][1].trim()).toBe('הדס הדסה');
+    expect(rows[1][3]).toBe('053-6231449');
+    expect(rows[1][4]).toBe('hadasa@example.org');
+    expect(rows[1][12]).toBe('קבלה סעיף 46');
+    // קובץ-פסיקים רגיל ממשיך לעבוד בדיוק כמו קודם
+    const commas = parseCsv('שם,טלפון\nכהן,050-1234567');
+    expect(commas[1]).toEqual(['כהן', '050-1234567']);
+    // שדה מצוטט עם פסיק — בתוך TSV הפסיק אינו מפריד ונשמר כתוכן
+    const q = parseCsv('א\tב\n"כהן, בן דוד"\tx');
+    expect(q[1][0]).toBe('כהן, בן דוד');
+    expect(q[1][1]).toBe('x');
   });
 });
