@@ -425,6 +425,8 @@ export interface UiPrefs {
   crsView: 'list' | 'grid';
   /** תצוגת התורמים (5.8) — אופציונלי, חסר = 'list' (אין צורך במיגרציה). */
   supView?: 'list' | 'grid';
+  /** פורמט הקבלה (5.5d, הכרעת-בעלים 9.8: הלקוח בוחר) — חסר = 'txt' (ביט-זהה). */
+  receiptFmt?: 'txt' | 'pdf';
   /** פריסת לוח הבית: מזהי ווידג'טים בסדר תצוגה (ריק = ברירת המחדל). */
   homeLayout?: string[];
   /** ערכת נושא נבחרת (or-rishon/heichal/tsohar/kehila) — ריק = לפי קונפיגורציית הארגון. */

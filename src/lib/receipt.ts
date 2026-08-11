@@ -4,6 +4,8 @@
  */
 import { hebDateFull } from './hebrew';
 import { amountInWords } from './hebrewNumber';
+import { featureOn } from './config';
+import type { OrgConfig } from '../types/config';
 
 export interface ReceiptInfo {
   /** מספר אסמכתה (D-{seq} / R-{seq}). */
@@ -150,4 +152,78 @@ export function downloadReceipt(o: ReceiptInfo): void {
   a.download = `receipt-${o.rid}.txt`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+/* ---------- קבלה כ-PDF (5.5d, הכרעת-בעלים 9.8: "הלקוח בוחר בכפתור") ---------- */
+
+/** escaping ל-HTML — שם-תורם/ייעוד הם קלט חופשי ואסור שיוזרקו למסמך. */
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/**
+ * הקבלה כ-HTML מוכן-להדפסה — טהור (מחרוזת בלבד). אותן שורות בדיוק כמו קובץ
+ * הטקסט (receiptLines = מקור-אמת יחיד לתוכן) בפריסה רשמית: שורת מקור/העתק,
+ * גוף, וקו-חתימה. המשתמש בוחר "שמירה כ-PDF" בחלון-ההדפסה של הדפדפן.
+ */
+export function receiptHtml(o: ReceiptInfo): string {
+  const lines = receiptLines(o).filter((x) => x !== '');
+  const [first, ...rest] = lines;
+  const body = rest.map((ln) => '<div class="ln">' + esc(ln) + '</div>').join('\n');
+  return (
+    '<!doctype html><html dir="rtl" lang="he"><head><meta charset="utf-8">' +
+    '<title>' + esc('קבלה ' + o.rid) + '</title>' +
+    '<style>' +
+    'body{font-family:"Segoe UI",Arial,"Noto Sans Hebrew",sans-serif;color:#111;margin:0;padding:32px;direction:rtl}' +
+    '.sheet{max-width:520px;margin:0 auto;border:1px solid #bbb;border-radius:10px;padding:28px 32px}' +
+    '.mark{font-size:12px;letter-spacing:.08em;color:#555;text-align:left}' +
+    '.ln{font-size:14.5px;line-height:1.9}' +
+    '.ln:first-of-type{font-size:19px;font-weight:700;margin-bottom:6px}' +
+    '@media print{body{padding:0}.sheet{border:none}}' +
+    '</style></head><body><div class="sheet">' +
+    '<div class="mark">' + esc(first) + '</div>' +
+    body +
+    '</div></body></html>'
+  );
+}
+
+/**
+ * הדפסה/PDF דרך iframe נסתר — לא window.open (חוסמי-חלונות בולעים אותו בלי
+ * שגיאה). ה-iframe מוסר מושהה — חלון-ההדפסה מחזיק את המסמך; הסרה מיידית
+ * מרוקנת אותו. ביטול בחלון-ההדפסה = פשוט לא מודפס.
+ */
+export function printReceipt(o: ReceiptInfo): void {
+  const frame = document.createElement('iframe');
+  frame.style.position = 'fixed';
+  frame.style.insetInlineEnd = '-9999px';
+  frame.style.width = '0';
+  frame.style.height = '0';
+  frame.setAttribute('aria-hidden', 'true');
+  frame.srcdoc = receiptHtml(o);
+  frame.onload = () => {
+    try {
+      frame.contentWindow?.focus();
+      frame.contentWindow?.print();
+    } finally {
+      setTimeout(() => frame.remove(), 60_000);
+    }
+  };
+  document.body.appendChild(frame);
+}
+
+/**
+ * מסירת-קבלה לפי בחירת-הלקוח (db.ui.receiptFmt): ‏'pdf' ⇒ חלון-הדפסה
+ * (שמירה כ-PDF); חסר/'txt' ⇒ קובץ הטקסט ההיסטורי — ביט-זהה להיום.
+ */
+export function deliverReceipt(o: ReceiptInfo, fmt?: 'txt' | 'pdf'): void {
+  if (fmt === 'pdf') printReceipt(o);
+  else downloadReceipt(o);
+}
+
+/**
+ * הפורמט האפקטיבי למסירה: הבחירה השמורה, אך רק כשדגל-הפיצ׳ר דלוק — כיבוי
+ * `core.receipt.pdf` מחזיר את הארגון לקובץ-טקסט גם אם נבחר PDF (מתג-חירום).
+ */
+export function receiptFmtOf(config: OrgConfig, ui: { receiptFmt?: 'txt' | 'pdf' }): 'txt' | 'pdf' | undefined {
+  return featureOn(config, 'core.receipt.pdf') ? ui.receiptFmt : undefined;
 }

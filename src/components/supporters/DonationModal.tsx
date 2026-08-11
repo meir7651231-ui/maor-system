@@ -7,7 +7,7 @@ import { useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, termOf } from '../../lib/config';
-import { downloadReceipt, receiptLines } from '../../lib/receipt';
+import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { isoToday } from './lib';
@@ -78,7 +78,8 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         signatory: cfg.orgSignatory,
         payerId: props.supporter.idNum || undefined,
       };
-      downloadReceipt(info);
+      // 5.5d (הכרעה 9.8): מסירה לפי בחירת-הלקוח — קובץ טקסט או PDF/הדפסה
+      deliverReceipt(info, receiptFmtOf(cfg, useApp.getState().db.ui));
       // צרור-הלילה (ROADMAP-100 ‏#1): מייל-קבלות אוטומטי — ברגע הרישום הקבלה
       // נכנסת לתור-המייל (mailOutbox); נשלחת ע"י ה-Function כשהשרת פרוס.
       // כשל-רך: תקלה בתור לא נוגעת ברישום/בקבלה שכבר ירדה.

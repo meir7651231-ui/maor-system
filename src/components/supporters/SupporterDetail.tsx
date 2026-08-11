@@ -14,7 +14,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
-import { downloadReceipt, receiptLines } from '../../lib/receipt';
+import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
@@ -118,7 +118,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       const fresh = useApp.getState().db.supporters.find((x) => x.id === sp.id);
       const d = fresh?.donations.find((x) => x.rid === res.rid);
       if (d) {
-        downloadReceipt({
+        // 5.5d (הכרעה 9.8): מסירה לפי בחירת-הלקוח — קובץ טקסט או PDF/הדפסה
+        deliverReceipt({
           rid: res.rid,
           verify: featureOn(config, 'core.receipt.verifycode'),
           orgName: config.orgName || useApp.getState().db.orgName,
@@ -132,7 +133,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           orgTaxId: config.orgTaxId,
           signatory: config.orgSignatory,
           payerId: sp.idNum || undefined,
-        });
+        }, receiptFmtOf(config, useApp.getState().db.ui));
       }
     }
     toast('🔁 חיוב-החודש נרשם' + (featureOn(config, 'core.receipts') ? ' — קבלה ' + res.rid : ''));
@@ -167,8 +168,9 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   function redownloadReceipt(rid: string) {
     const info = receiptInfoFor(rid);
     if (!info) return;
-    downloadReceipt(info);
-    toast('קבלה ' + rid + ' ירדה שוב למחשב');
+    const fmt = receiptFmtOf(config, useApp.getState().db.ui);
+    deliverReceipt(info, fmt);
+    toast(fmt === 'pdf' ? 'קבלה ' + rid + ' נפתחה להדפסה/PDF' : 'קבלה ' + rid + ' ירדה שוב למחשב');
   }
 
   // צרור-הלילה (ROADMAP-100 ‏#1): קבלה במייל — תור mailOutbox, נשלח ע"י ה-Function

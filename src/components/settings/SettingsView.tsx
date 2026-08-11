@@ -279,7 +279,40 @@ function OrgSection() {
       <Btn kind="primary" onClick={save}>
         שמירת פרטי הארגון
       </Btn>
+      {/* 5.5d (הכרעת-בעלים 9.8 "שיציג בתור כפתור מה הלקוח בוחר"): פורמט הקבלה —
+          נשמר ב-db.ui.receiptFmt (מסונכרן), חסר = קובץ-טקסט (ביט-זהה להיום) */}
+      {featureOn(config, 'core.receipts') && featureOn(config, 'core.receipt.pdf') && (
+        <ReceiptFmtRow />
+      )}
     </Section>
+  );
+}
+
+function ReceiptFmtRow() {
+  const ui = useApp((s) => s.db.ui);
+  const setDb = useApp((s) => s.setDb);
+  const toast = useApp((s) => s.toast);
+  const fmt = ui.receiptFmt === 'pdf' ? 'pdf' : 'txt';
+  function choose(next: 'txt' | 'pdf') {
+    if (next === fmt) return;
+    setDb({ ui: { ...useApp.getState().db.ui, receiptFmt: next } });
+    toast(next === 'pdf' ? '🖨 קבלות ייפתחו להדפסה/שמירה-כ-PDF' : '📄 קבלות יירדו כקובץ טקסט');
+  }
+  return (
+    <div style={{ marginTop: 16 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>🧾 פורמט הקבלה</div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <Btn sm kind={fmt === 'txt' ? 'primary' : 'plain'} onClick={() => choose('txt')} aria-pressed={fmt === 'txt'}>
+          📄 קובץ טקסט
+        </Btn>
+        <Btn sm kind={fmt === 'pdf' ? 'primary' : 'plain'} onClick={() => choose('pdf')} aria-pressed={fmt === 'pdf'}>
+          🖨 PDF / הדפסה
+        </Btn>
+      </div>
+      <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 6 }}>
+        הבחירה חלה על כל הקבלות והאישורים; ב-PDF נפתח חלון-הדפסה ובוחרים "שמירה כ-PDF".
+      </div>
+    </div>
   );
 }
 

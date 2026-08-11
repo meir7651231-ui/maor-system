@@ -9,7 +9,7 @@ import { useApp } from '../../store/useApp';
 import { featureOn, moduleOn, termOf } from '../../lib/config';
 // downloadReceipt משמש כאן אך ורק לאישור תשלום סמלי מסדרת S- — לא קבלת מס,
 // ובלי שדות סעיף 46 (נאכף בהגנת-מקור ב-shop-sreceipt.test.ts)
-import { downloadReceipt } from '../../lib/receipt';
+import { deliverReceipt, receiptFmtOf } from '../../lib/receipt';
 import type { ShopAssignment, ShopComponent, ShopRedemption } from '../../types/domain';
 import { Btn, Chip, Empty, Field, Modal, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
@@ -75,7 +75,8 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
   /** הורדת אישור תשלום סמלי S- — אינו קבלת מס ואינו נושא שדות סעיף 46. */
   function downloadConfirmation(r: ShopRedemption, comp: ShopComponent) {
     if (!r.rid) return;
-    downloadReceipt({
+    // 5.5d (הכרעה 9.8): גם אישורי S- מכבדים את בחירת-הפורמט של הלקוח
+    deliverReceipt({
       rid: r.rid,
       verify: featureOn(config, 'core.receipt.verifycode'),
       orgName: config.orgName || db.orgName,
@@ -84,7 +85,7 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
       date: r.date,
       forWhat: 'מימוש: ' + itemOf(db, comp).name + ' (' + (product?.name ?? '') + ') · אישור תשלום — אינו קבלה לצורכי מס',
       taxReceipt: false,
-    });
+    }, receiptFmtOf(config, db.ui));
   }
 
   return (
