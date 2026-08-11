@@ -51,7 +51,8 @@ describe('🛡 ביקורת 6.8 — עריכת-אירוע לא מוחקת שדו
   it('save פורס את האירוע הקיים לפני הדריסות (spId, mainEventId שורדים)', () => {
     // הבאג (קדם-קיים): next נבנה משדות-הטופס בלבד — עריכת אירוע מהלוח מחקה
     // spId (מעקב-עי"ן) ו-mainEventId (פגישת-חנות ⇒ שחרור-החדר נשבר).
-    expect(eventSrc).toMatch(/const next: OrgEvent = \{\s*\n\s*\.\.\.\(ev \?\? \{\}\),/);
+    // ‏11.8: ‏...(ev ?? {}) ⇒ ‏...ev — פריסה זהה (null נבלע), בלי אזהרת lint
+    expect(eventSrc).toMatch(/const next: OrgEvent = \{\s*\n\s*\/\/[^\n]*\n\s*\.\.\.ev,/);
   });
 });
 
