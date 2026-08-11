@@ -16,6 +16,7 @@ import { EmployeeSignup } from './EmployeeSignup';
 import { NewsReader } from './NewsReader';
 import { CallbackModal } from './CallbackModal';
 import { VideoModal } from './VideoModal';
+import { NetCheckModal } from './NetCheckModal';
 
 export function LoginScreen() {
   const config = useApp((s) => s.config);
@@ -35,6 +36,7 @@ export function LoginScreen() {
   const [readerOpen, setReaderOpen] = useState(false);
   const [callbackOpen, setCallbackOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
+  const [netCheckOpen, setNetCheckOpen] = useState(false);
 
   const title = config.orgName || dbOrgName || 'אורביט';
 
@@ -120,6 +122,10 @@ export function LoginScreen() {
                 </button>
                 <button type="button" className="orbit-sbtn" aria-label="נחזור אליכם" onClick={() => setCallbackOpen(true)}>
                   📞 חזרו אליי
+                </button>
+                {/* 🩺 מאבחן-חסימות (11.8): קו מסונן חוסם כניסה — הכלי חי במסך-הכניסה */}
+                <button type="button" className="orbit-sbtn" aria-label="בדיקת תקשורת — האם הקו חוסם את המערכת" onClick={() => setNetCheckOpen(true)}>
+                  🩺 בדיקת תקשורת
                 </button>
               </div>
 
@@ -211,6 +217,7 @@ export function LoginScreen() {
       {readerOpen && <NewsReader onClose={() => setReaderOpen(false)} />}
       {callbackOpen && <CallbackModal onClose={() => setCallbackOpen(false)} />}
       {videoOpen && <VideoModal onClose={() => setVideoOpen(false)} />}
+      {netCheckOpen && <NetCheckModal onClose={() => setNetCheckOpen(false)} />}
     </div>
   );
 }
