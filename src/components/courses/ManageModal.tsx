@@ -9,7 +9,7 @@ import { featureOn, integrationOn, integrationSetting, termOf } from '../../lib/
 import { payLink } from '../../lib/payLink';
 import { waPaymentText } from '../../lib/wa';
 import { WaBtn } from '../WaBtn';
-import { downloadReceipt } from '../../lib/receipt';
+import { deliverReceipt, receiptFmtOf } from '../../lib/receipt';
 import { Btn, Field, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import {
@@ -124,7 +124,8 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     const newBal = Math.max(0, (en.totalDue || 0) - (paid + amt));
     // קבלות כבויות בקונפיגורציה → התשלום נרשם, אך ללא הורדת קבלה וללא טוסט הקבלה
     if (receiptsOn) {
-      downloadReceipt({
+      // 5.5d (הכרעה 9.8): מסירה לפי בחירת-הלקוח — קובץ טקסט או PDF/הדפסה
+      deliverReceipt({
         rid,
         verify: featureOn(useApp.getState().config, 'core.receipt.verifycode'),
         orgName: useApp.getState().config.orgName || db.orgName,
@@ -138,7 +139,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         summary: receiptSummaryOn
           ? { totalDue: en.totalDue || 0, paidSoFar: paid + amt, balance: newBal, nextDate: en.dueDate || undefined }
           : undefined,
-      });
+      }, receiptFmtOf(cfg, useApp.getState().db.ui));
     }
     setPayAmt('');
     toast('התקבל ₪' + amt + (en.totalDue ? ' · יתרה: ₪' + newBal : '') + ' — קבלה ' + rid);
@@ -150,7 +151,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   /** 🧾 הורדה חוזרת של קבלה לתשלום קיים — כמו legacy receipt(en, p) (legacy:2272). */
   function redownloadReceipt(p: Enrollment['payments'][number]) {
     if (!en) return;
-    downloadReceipt({
+    deliverReceipt({
       rid: p.rid,
       verify: featureOn(useApp.getState().config, 'core.receipt.verifycode'),
       orgName: useApp.getState().config.orgName || db.orgName,
@@ -163,8 +164,8 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       mark: featureOn(cfg, 'core.receipt.copymark'),
       // בהורדה חוזרת הסיכום משקף את המצב הנוכחי של העסקה (כמו בלגאסי)
       summary: { totalDue: en.totalDue || 0, paidSoFar: paid, balance: bal, nextDate: en.dueDate || undefined },
-    });
-    toast('הקבלה ' + p.rid + ' ירדה שוב למחשב ✓');
+    }, receiptFmtOf(cfg, useApp.getState().db.ui));
+    toast('הקבלה ' + p.rid + (receiptFmtOf(cfg, useApp.getState().db.ui) === 'pdf' ? ' נפתחה להדפסה/PDF ✓' : ' ירדה שוב למחשב ✓'));
   }
 
   function buyPunches() {

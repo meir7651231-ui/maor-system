@@ -239,6 +239,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'core.bodymap', label: 'מפת אזורי טיפול', desc: 'מעקב טיפולים לפי אזורי גוף — בוצע מול יעד לכל אזור, פר-לקוח', module: 'core' },
   { key: 'core.daygate', label: 'מסך פתיחת יום', desc: 'מסך פתיחת יום בכניסה הראשונה של היום', module: 'core' },
   { key: 'core.receipt.copymark', label: 'סימון מקור/העתק', desc: 'שורת "מקור" / "העתק נאמן למקור" בראש הקבלה (הוראות ניהול ספרים)', module: 'core' },
+  { key: 'core.receipt.pdf', label: 'קבלה כ-PDF 🖨', desc: 'בחירת פורמט קבלה בהגדרות — קובץ טקסט או PDF/הדפסה (הכרעת-בעלים 9.8: הלקוח בוחר)', module: 'core' },
   { key: 'core.dayendbackup', label: 'גיבוי אוטומטי בסוף-יום', desc: 'הורדת קובץ גיבוי אוטומטית אחרי שעת-הסיום היומית', module: 'core' },
 ];
 
