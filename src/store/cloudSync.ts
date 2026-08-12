@@ -193,6 +193,37 @@ export function cloudOnDbChange(prev: Db, next: Db): void {
   }, PUSH_DEBOUNCE_MS);
 }
 
+/**
+ * החלפה סמכותית מיידית (איפוס/שחזור) — 12.8, תיקון "האיפוס לא מוחק תורמים
+ * מהענן". הזרימה הרגילה (cloudOnDbChange) עוברת debounce 800ms ו-flushPush
+ * שקורא-מחדש את ה-DB **החי** — וכך snapshot-ענן שנכנס בחלון-ההשהיה מחזיר את
+ * הישויות שנמחקו מקומית אל ה-live, והמחיקה אובדת (הישות "קמה לתחייה"). כאן:
+ * מבטלים דחיפה ממתינה, מחשבים diff מ-prev המקושר **הקפוא** (לא מ-live),
+ * חוסמים מיזוג-מרוחק תוך-כדי (applyingRemote), ודוחפים מיד וממתינים.
+ */
+export async function cloudReplaceNow(prev: Db, next: Db): Promise<void> {
+  if (!active) return;
+  // ביטול כל דחיפה מושהית — היא הייתה מבוססת live ומחיה את הנמחקים
+  clearTimeout(pushTimer);
+  pushBase = null;
+  pushLatest = null;
+  const diff = diffDb(prev, next);
+  if (emptyDiff(diff)) return;
+  const wasApplying = applyingRemote;
+  applyingRemote = true; // חוסם flushPush/מיזוג-מרוחק מלרוץ תוך-כדי הכתיבה הסמכותית
+  try {
+    await pushDiff(diff, cloudDek);
+    if (active) hooks?.setStatus('synced');
+  } catch {
+    if (active) {
+      hooks?.setStatus('error');
+      hooks?.toast('⚠ מחיקת הנתונים בענן נכשלה — נסו שוב כשהחיבור יציב');
+    }
+  } finally {
+    applyingRemote = wasApplying;
+  }
+}
+
 /** לחשיפה בבדיקות/דיבוג — האם כרגע מוחל שינוי מרוחק. */
 export function isApplyingRemote(): boolean {
   return applyingRemote;
