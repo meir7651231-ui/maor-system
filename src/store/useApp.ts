@@ -2439,7 +2439,9 @@ export const useApp = create<AppState>()((set, get) => {
       };
       set({ db });
       scheduleSave();
-      cloudMod?.cloudOnDbChange(prev, db);
+      // 12.8: שחזור = החלפה מלאה ⇒ אותה החלפה סמכותית-מיידית כמו איפוס (אחרת
+      // ישויות שנגרעו בגיבוי היו קמות-לתחייה מ-snapshot-ענן בחלון ה-debounce).
+      void cloudMod?.cloudReplaceNow(prev, db);
       void dailySnapshot(db);
       get().toast('הנתונים שוחזרו מהגיבוי ✓');
     },
@@ -2448,7 +2450,10 @@ export const useApp = create<AppState>()((set, get) => {
       const db = emptyDb();
       set({ db });
       scheduleSave();
-      cloudMod?.cloudOnDbChange(prev, db);
+      // 12.8: החלפה סמכותית מיידית — הזרימה המושהית הרגילה נתנה ל-snapshot-ענן
+      // להחזיר את הישויות שנמחקו (תורמים/משפחות) בחלון ה-debounce. cloudReplaceNow
+      // דוחף את המחיקות מיד מ-prev הקפוא וחוסם מיזוג-מרוחק תוך-כדי.
+      void cloudMod?.cloudReplaceNow(prev, db);
       get().toast('המערכת אופסה — כל הנתונים נמחקו');
     },
   };
