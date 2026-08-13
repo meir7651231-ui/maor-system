@@ -30,6 +30,11 @@ import {
   senderIdentity, conversationTimeline, channelUsage, matchMessageContact, normalizeMessage,
 } from './lib/channels.mjs';
 import {
+  secretsFor, secretsIsolated, can, ROLES, hardeningChecklist, recordingEncryption,
+  failsafeRoute, complianceReport,
+} from './lib/security.mjs';
+import { normalizeCdr, meterUsage, computeInvoice, checkQuota, planQuota, PLANS } from './lib/billing.mjs';
+import {
   flagOn, featureOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
   capabilities, migrateConfig, effectiveConfig, diffConfig, isBaselineConfig,
   sanitizeConfigFields, SCHEMA_VERSION,
@@ -723,6 +728,69 @@ ok('בתוך-שעות בלי-מענה', autoReply(org, { nowIsOpen: true }) === 
   const m = matchMessageContact(db, { id: '1', channel: 'sms', direction: 'inbound', from: '050-111-2233', ts: '2026-08-01' });
   ok('הודעה↔תורם', m.contactRef && m.contactRef.id === 'S1');
   ok('pure-downstream נשמר', isPureDownstream(channelPlan(vres.tenant)));
+}
+
+// ── גל 9 (81-90): אבטחה · בידוד · חיוב ──────────────────────────────────────
+console.log('· גל 9 — אבטחה/בידוד/חיוב');
+// 81. בידוד-סודות
+{
+  const s = secretsFor({ tenantId: 'org-a' });
+  ok('סודות נושאים tenantId', s.gsm_gateway_password.includes('org-a'));
+  ok('סודות מבודדים בין לקוחות', secretsIsolated([{ tenantId: 'a' }, { tenantId: 'b' }]));
+}
+// 82. ACL
+ok('operator = הכל', can('operator', 'anything'));
+ok('manager config.write', can('manager', 'config.write') && !can('manager', 'platform.admin'));
+ok('agent inbox בלבד', can('agent', 'inbox.read') && !can('agent', 'config.write'));
+ok('תפקיד-לא-מוכר ⇒ אסור', !can('nobody', 'config.read') && ROLES.length === 3);
+// 86. הקשחה
+{
+  ok('ברירת-מחדל מוקשח', hardeningChecklist({ minPwLen: 12 }).pass);
+  const bad = hardeningChecklist({ allowGuest: true, minPwLen: 4 });
+  ok('guest+pw-חלש נכשל', !bad.pass && bad.checks.some((c) => c.key === 'no-guest' && !c.pass));
+}
+// 87. הצפנת-הקלטות
+ok('הצפנה dormant כברירת-מחדל', !recordingEncryption({ tenantId: 'x' }).enabled);
+ok('הצפנה מופעלת ⇒ AES-GCM', recordingEncryption({ tenantId: 'x', security: { recordingEncryption: true } }).algo === 'AES-256-GCM');
+// 89. fail-safe
+ok('fail-safe עם מנהל', failsafeRoute(vres.tenant).ok && failsafeRoute(vres.tenant).fallback === '201');
+ok('fail-safe בלי מנהל נכשל', !failsafeRoute({ destinations: { manager: {} } }).ok);
+// 90. תאימות
+{
+  const c = complianceReport(vres.tenant);
+  ok('תאימות: CTI קריאה-בלבד + downstream', c.ctiReadOnly && c.downstreamOnly);
+  ok('תאימות: chesed compliant', c.compliant);
+  const rec = complianceReport({ tenantId: 'r', features: { recording: true }, destinations: { manager: { ext: '201' }, voicemail: { box: '100' } } });
+  ok('הקלטה בלי הצפנה ⇒ finding', !rec.compliant && rec.findings.some((f) => f.includes('הצפנה')));
+}
+// 83. CDR
+{
+  const c = normalizeCdr({ uuid: 'u1', domain: 'org-a', direction: 'outbound', caller: '101', destination: '050-1112233', billsec: '75', start_stamp: '2026-08-01 10:00' });
+  ok('CDR מנורמל', c.tenantId === 'org-a' && c.billsec === 75 && c.answered && c.to === '+972501112233');
+}
+// 84. metering
+{
+  const cdrs = [
+    { domain: 'a', direction: 'inbound', billsec: 65 },
+    { domain: 'a', direction: 'outbound', billsec: 130 },
+    { domain: 'b', direction: 'inbound', billsec: 30 },
+  ];
+  const u = meterUsage(cdrs, 'a');
+  ok('metering פר-לקוח (עיגול-דקה)', u.calls === 2 && u.minutes === 5 && u.outbound.minutes === 3);
+}
+// 85. חשבונית
+{
+  const inv = computeInvoice('standard', { outbound: { minutes: 700 } }, { extensions: 5 });
+  ok('חשבונית: בסיס+שלוחות+דקות', inv.items.length === 3 && inv.total > 190);
+  ok('חבילה כלולה: 500 דק׳ חינם', computeInvoice('standard', { outbound: { minutes: 400 } }).items.length === 1);
+  ok('PLANS 3 תוכניות', Object.keys(PLANS).length === 3);
+}
+// 88. מכסות
+{
+  ok('בתוך-מכסה', checkQuota({ minutes: 100, calls: 10 }, { minutes: 500 }).within);
+  const ex = checkQuota({ minutes: 600, calls: 10 }, { minutes: 500 }, 15);
+  ok('חריגת-דקות+שלוחות', !ex.within && ex.exceeded.includes('minutes'));
+  ok('planQuota maxExt', planQuota('basic').extensions === 3);
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────

@@ -45,5 +45,10 @@ export {
   sanitizeConfigFields, FLAG_DEFAULTS, TERM_DEFS, SCHEMA_VERSION,
 } from './config.mjs';
 export { hebParts, classifyDay, hebrewClosedDates } from './hebcal.mjs';
+export {
+  secretsFor, secretsIsolated, can, ROLES, hardeningChecklist, recordingEncryption,
+  failsafeRoute, complianceReport,
+} from './security.mjs';
+export { normalizeCdr, meterUsage, computeInvoice, checkQuota, planQuota, PLANS } from './billing.mjs';
 export { normalizeRouting, numbersAlternation } from './routing.mjs';
 export { promptDir, requiredPrompts, promptCapabilities } from './prompts.mjs';
