@@ -119,7 +119,10 @@ interface TeacherFormState {
   startDate: string;
   notes: string;
   payMethod: '' | 'cash' | 'salary' | 'check';
+  payToOther: boolean;
   payeeName: string;
+  payeePhone: string;
+  payeeIdNum: string;
   bankName: string;
   bankBranch: string;
   bankAccount: string;
@@ -138,7 +141,10 @@ function initState(t: Teacher | null): TeacherFormState {
     startDate: t?.startDate ?? '',
     notes: t?.notes ?? '',
     payMethod: t?.payMethod ?? '',
+    payToOther: t?.payToOther ?? false,
     payeeName: t?.payeeName ?? '',
+    payeePhone: t?.payeePhone ?? '',
+    payeeIdNum: t?.payeeIdNum ?? '',
     bankName: t?.bankName ?? '',
     bankBranch: t?.bankBranch ?? '',
     bankAccount: t?.bankAccount ?? '',
@@ -195,6 +201,8 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
       return setError('כתובת האימייל לא תקינה');
     if (f.payRate.trim() && (isNaN(+f.payRate) || +f.payRate < 0))
       return setError('תעריף לשעה חייב להיות מספר');
+    if (f.payToOther && f.payeeIdNum.trim() && !validIsraeliId(f.payeeIdNum.trim()))
+      return setError('ת"ז המוטב לתשלום לא תקינה (ספרת ביקורת שגויה)');
     const existing = useApp.getState().db.teachers;
     if (!props.teacher && existing.some((x) => x.name === name))
       return setError('כבר קיים/ת ' + teacher + ' בשם הזה');
@@ -211,7 +219,10 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
       startDate: f.startDate,
       notes: f.notes.trim(),
       payMethod: f.payMethod,
-      payeeName: f.payeeName.trim(),
+      payToOther: f.payToOther,
+      payeeName: f.payToOther ? f.payeeName.trim() : '',
+      payeePhone: f.payToOther ? formatIsraeliPhone(f.payeePhone.trim()) : '',
+      payeeIdNum: f.payToOther ? f.payeeIdNum.trim() : '',
       bankName: f.bankName.trim(),
       bankBranch: f.bankBranch.trim(),
       bankAccount: f.bankAccount.trim(),
@@ -259,8 +270,9 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
           <HebDateInput value={f.startDate} onChange={(v) => set({ startDate: v })} />
         </Field>
       </div>
-      {/* פרטי תשלום — סגנון (מזומן/משכורת/צ'ק) + פרטי בנק להעברה. השם/טלפון/ת"ז
-          לתשלום = שדות הכרטיס למעלה; שם-מוטב חלופי + בנק נוספים כאן. */}
+      {/* פרטי תשלום — סגנון (מזומן/משכורת/צ'ק) + פרטי בנק. כברירת-מחדל התשלום
+          לפרטי המורה למעלה; "מוטב אחר" חושף שם/טלפון/ת"ז נפרדים (העברה דרך
+          חשבון של בן-זוג/גמ"ח וכו'). */}
       <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 12 }}>
         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>💳 פרטי תשלום</div>
         <div className="form-grid">
@@ -276,9 +288,6 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
               ]}
             />
           </Field>
-          <Field label="שם המוטב (אם שונה מהמורה)">
-            <TextInput value={f.payeeName} onChange={(v) => set({ payeeName: v })} placeholder={f.name || 'שם בעל החשבון'} />
-          </Field>
         </div>
         {(f.payMethod === 'salary' || f.payMethod === 'check') && (
           <div className="form-grid">
@@ -293,8 +302,27 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
             </Field>
           </div>
         )}
-        <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>
-          {'שם/טלפון/ת"ז לתשלום = פרטי ה' + teacher + ' למעלה. פרטי הבנק לצורכי משכורת/העברה בלבד.'}
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginTop: 4, cursor: 'pointer' }}>
+          <input type="checkbox" checked={f.payToOther} onChange={(e) => set({ payToOther: e.target.checked })} />
+          {'התשלום מועבר למוטב/חשבון אחר (לא ה' + teacher + ')'}
+        </label>
+        {f.payToOther && (
+          <div className="form-grid" style={{ marginTop: 6 }}>
+            <Field label="שם המוטב">
+              <TextInput value={f.payeeName} onChange={(v) => set({ payeeName: v })} placeholder="שם בעל החשבון" />
+            </Field>
+            <Field label="טלפון המוטב">
+              <TextInput value={f.payeePhone} onChange={(v) => set({ payeePhone: v })} dir="ltr" placeholder="050-0000000" />
+            </Field>
+            <Field label='ת"ז המוטב'>
+              <TextInput value={f.payeeIdNum} onChange={(v) => set({ payeeIdNum: v })} dir="ltr" />
+            </Field>
+          </div>
+        )}
+        <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
+          {f.payToOther
+            ? 'התשלום יופנה למוטב לעיל + פרטי הבנק. הכרטיס עצמו נשאר על שם ה' + teacher + '.'
+            : 'ללא מוטב-אחר, התשלום = שם/טלפון/ת"ז ה' + teacher + ' למעלה + פרטי הבנק.'}
         </div>
       </div>
       <Field label="הערות">

@@ -34,7 +34,6 @@ describe('פרטי תשלום למורה — additive, שורד round-trip', () 
   it('payMethod + פרטי בנק נשמרים ונקראים חזרה מה-store', () => {
     const t = baseTeacher({
       payMethod: 'salary',
-      payeeName: 'מרים לוי',
       bankName: 'לאומי',
       bankBranch: '813',
       bankAccount: '45678',
@@ -45,7 +44,29 @@ describe('פרטי תשלום למורה — additive, שורד round-trip', () 
     expect(saved.bankName).toBe('לאומי');
     expect(saved.bankBranch).toBe('813');
     expect(saved.bankAccount).toBe('45678');
-    expect(saved.payeeName).toBe('מרים לוי');
+  });
+
+  // בקשת-בעלים 13.8ב: "אני צריך גם פרטי תשלום למשל אם אני עושה ההעברה דרך חשבון אחר".
+  it('מוטב-אחר: שם/טלפון/ת"ז נפרדים למוטב שאינו המורה שורדים round-trip', () => {
+    const t = baseTeacher({
+      payMethod: 'check',
+      payToOther: true,
+      payeeName: 'דוד לוי',
+      payeePhone: '052-9998887',
+      payeeIdNum: '000000018',
+      bankName: 'הפועלים',
+      bankBranch: '600',
+      bankAccount: '112233',
+    });
+    useApp.getState().upsertTeacher(t);
+    const saved = useApp.getState().db.teachers[0];
+    expect(saved.payToOther).toBe(true);
+    expect(saved.payeeName).toBe('דוד לוי');
+    expect(saved.payeePhone).toBe('052-9998887');
+    expect(saved.payeeIdNum).toBe('000000018');
+    // המוטב האחר שונה מזהות המורה עצמה:
+    expect(saved.name).toBe('מרים לוי');
+    expect(saved.idNum).toBe('039285016');
   });
 
   it('שלושת סגנונות התשלום נתמכים: מזומן / משכורת / צ׳ק', () => {

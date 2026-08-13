@@ -216,8 +216,17 @@ export interface Teacher {
    * הקיימים (name/phone/idNum); פרטי הבנק נוספים כאן להעברה/משכורת.
    */
   payMethod?: 'cash' | 'salary' | 'check' | '';
-  /** שם בעל החשבון לתשלום — אם שונה משם המורה (ברירת מחדל = שם המורה). */
+  /**
+   * התשלום מועבר לחשבון/מוטב אחר (לא המורה) — למשל העברה דרך חשבון של בן/בת-זוג
+   * או גמ"ח. כשדלוק, payee* מחזיקים את זהות המוטב האחר; אחרת התשלום = פרטי המורה.
+   */
+  payToOther?: boolean;
+  /** שם בעל החשבון/המוטב לתשלום (כשהתשלום מועבר לאחר). */
   payeeName?: string;
+  /** טלפון המוטב האחר. */
+  payeePhone?: string;
+  /** ת"ז המוטב האחר. */
+  payeeIdNum?: string;
   bankName?: string;
   bankBranch?: string;
   bankAccount?: string;
