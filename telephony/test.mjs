@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { buildTenant, validateTenant, toE164 } from './lib/index.mjs';
 import { buildDirectory, lookupCaller, lookupInDirectory } from './lib/cti.mjs';
 import { tenantFromIntake, INTAKE_STEPS } from './lib/onboard.mjs';
+import { planApply, rollbackPlan, planTenants, summarize } from './lib/apply.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const UPDATE = process.env.UPDATE === '1';
@@ -148,6 +149,42 @@ eq('4 SIM-יציאה (3 sim + 0)... בעצם 3', built.manifest.outboundSims.len
   ok('הטופס לא מבקש onramp (נגזר)', !allFieldKeys.includes('onramp'));
   ok('הטופס לא מבקש ספק/trunk/gateway', !allFieldKeys.some((k) => /provider|trunk|gateway|carrier|onramp/i.test(k)));
   ok('הטופס ≥4 שלבים', INTAKE_STEPS.length >= 4);
+}
+
+// ── 5d. apply: אידמפוטנטיות · isolation · rollback ──────────────────────────
+console.log('· apply — רב-דיירות');
+const t1 = buildTenant(chesed).files;
+const t2 = buildTenant(derived).files;
+// אידמפוטנטיות: החלה ראשונה = הכל-חדש; שנייה על אותו תצלום = אפס-שינוי.
+{
+  const first = planApply({}, t1);
+  ok('החלה ראשונה יוצרת הכל', first.creates.length === 4 && first.changed);
+  const second = planApply(t1, t1);
+  ok('החלה חוזרת = אפס-שינוי (אידמפוטנטי)', !second.changed && second.unchanged.length === 4);
+}
+// שינוי-נתון בודד → עדכון-אחד בלבד.
+{
+  const changed = JSON.parse(JSON.stringify(chesed));
+  changed.officeHours.end = '18:00';
+  const plan = planApply(t1, buildTenant(changed).files);
+  ok('שינוי-שעה → עדכון דיאלפלן+manifest בלבד', plan.updates.length === 2 && plan.creates.length === 0);
+}
+// isolation רב-דיירת: chesed-demo + demo-intake → אפס-חפיפה בנתיבי-המרכזייה.
+{
+  const { collisions, anyChanged } = planTenants(
+    [{ tenantId: 'chesed-demo', desired: t1 }, { tenantId: 'demo-intake', desired: t2 }],
+    {},
+  );
+  ok('שני-לקוחות ⇒ אפס-חפיפת-נתיבים', collisions.length === 0);
+  ok('שני-לקוחות ⇒ יש-שינוי', anyChanged);
+}
+// rollback: החלת v2 ואז שחזור ל-v1 מחזיר ביט-לביט.
+{
+  const v2files = buildTenant({ ...chesed, orgName: 'שם חדש' }).files;
+  const { restoreFiles, plan } = rollbackPlan(t1, v2files);
+  ok('שחזור מחזיר את v1 ביט-לביט', JSON.stringify(restoreFiles) === JSON.stringify(t1));
+  ok('תוכנית-שחזור מסמנת שינוי', plan.changed);
+  ok('summarize קריא', /^\+\d+ ~\d+ -\d+ =\d+$/.test(summarize(plan)));
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────

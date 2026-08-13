@@ -23,3 +23,4 @@ export { generateConfig } from './generate.mjs';
 export { toE164, sameNumber } from './normalize.mjs';
 export { buildDirectory, lookupCaller, lookupInDirectory } from './cti.mjs';
 export { tenantFromIntake, INTAKE_STEPS } from './onboard.mjs';
+export { planApply, rollbackPlan, planTenants, summarize } from './apply.mjs';
