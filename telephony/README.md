@@ -68,10 +68,17 @@ UPDATE=1 node telephony/test.mjs   # הקפאת golden מחדש (רק אחרי �
 | `lib/normalize.mjs` | נרמול E.164 (ישראל ברירת-מחדל), טהור |
 | `lib/validate.mjs` | שער-תקינות + נרמול + סייגי-downstream, טהור |
 | `lib/generate.mjs` | המנוע — tenant → FreeSWITCH XML, דטרמיניסטי, טהור |
-| `lib/index.mjs` | תזמור `buildTenant` (validate→generate) |
-| `cli.mjs` | הרצה משורת-הפקודה |
-| `test.mjs` | golden + יחידה |
+| `lib/cti.mjs` | גשר screen-pop — מתקשר→Family/Supporter במאור (קריאה-בלבד) |
+| `lib/onboard.mjs` | תצורה-עצמית — תשובות-אשף מינימליות → קונפיג מלא |
+| `lib/apply.mjs` | תכנון-החלה אידמפוטנטי + isolation + rollback (רב-דיירת) |
+| `lib/channels.mjs` | מודל רב-ערוצי downstream — ווצאפ קישור-מכשיר + SMS דרך SIM |
+| `lib/index.mjs` | תזמור `buildTenant` (validate→generate) + ריֶיֶקספורט |
+| `cli.mjs` | הרצה משורת-הפקודה (לקוח-יחיד) |
+| `apply-cli.mjs` | כלי-המפעיל — תיקיית-לקוחות → ספריית-מרכזייה, מרכזית |
+| `test.mjs` | golden + יחידה (69 בדיקות) |
 | `fixtures/tenant-chesed.json` | לקוח-דוגמה: 7 מספרים מעורבים (SIM/וירטואלי/ווצאפ/SMS/כשר) |
+| `fixtures/intake-minimal.json` | תשובות-אשף מינימליות (בדיקת תצורה-עצמית) |
+| `fixtures/maor-db.json` | תצלום-DB דוגמה ל-CTI |
 | `fixtures/golden/` | הפלט הקפוא להשוואה |
 
 ## חיבור למאור (CTI)
