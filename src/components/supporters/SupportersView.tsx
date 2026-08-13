@@ -141,6 +141,23 @@ export function SupportersView() {
   const dedupCount = findSupporterDupGroups(db.supporters).length;
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
+  // בחירה-מרובה למחיקה (בקשת-בעלים 13.8) — מצב-בחירה + קבוצת-ids + אישור-הרסני.
+  const [selMode, setSelMode] = useState(false);
+  const [selSet, setSelSet] = useState<ReadonlySet<string>>(new Set<string>());
+  const [confirmDel, setConfirmDel] = useState(false);
+  const deleteSupporters = useApp((s) => s.deleteSupporters);
+  const toggleSel = (id: string) =>
+    setSelSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const exitSelMode = () => {
+    setSelMode(false);
+    setSelSet(new Set<string>());
+    setConfirmDel(false);
+  };
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [expOpen, setExpOpen] = useState(false);
@@ -276,6 +293,10 @@ export function SupportersView() {
                 !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
               ]}
             />
+            {/* בחירה-מרובה למחיקה (13.8, בקשת-בעלים) — טוגל מצב-בחירה */}
+            <Btn onClick={() => (selMode ? exitSelMode() : setSelMode(true))} title="בחירה מרובה למחיקה">
+              {selMode ? '✕ סיום בחירה' : '☑ בחירה'}
+            </Btn>
             {/* תצוגת גריד לתורמים (5.8, בקשת-בעלים) — אותו דפוס כמו המשפחות (db.ui) */}
             <Btn onClick={toggleSupView} title="החלפת תצוגה: רשימה / גריד">
               {supView === 'grid' ? '☰ רשימה' : '▦ גריד'}
@@ -286,6 +307,37 @@ export function SupportersView() {
           </>
         }
       />
+
+      {selMode && (
+        <div
+          className="card"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flexWrap: 'wrap',
+            marginBottom: 12,
+            position: 'sticky',
+            top: 0,
+            zIndex: 5,
+          }}
+        >
+          <b>{selSet.size + ' נבחרו'}</b>
+          <Btn sm onClick={() => setSelSet(new Set(list.map((sp) => sp.id)))}>
+            {'בחר הכל (' + list.length + ')'}
+          </Btn>
+          <Btn sm onClick={() => setSelSet(new Set<string>())}>
+            נקה בחירה
+          </Btn>
+          <div style={{ flex: 1 }} />
+          <Btn kind="danger" disabled={!selSet.size} onClick={() => setConfirmDel(true)}>
+            {'🗑 מחיקת ' + selSet.size}
+          </Btn>
+          <Btn sm onClick={exitSelMode}>
+            ביטול
+          </Btn>
+        </div>
+      )}
 
       {ayinOn && <AyinBoard onOpen={setSelId} />}
 
@@ -406,13 +458,18 @@ export function SupportersView() {
                 className="card"
                 role="button"
                 tabIndex={0}
-                onClick={() => setSelId(sp.id)}
+                onClick={() => (selMode ? toggleSel(sp.id) : setSelId(sp.id))}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') setSelId(sp.id);
+                  if (e.key !== 'Enter' && e.key !== ' ') return;
+                  if (selMode) toggleSel(sp.id);
+                  else setSelId(sp.id);
                 }}
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: 'pointer', outline: selMode && selSet.has(sp.id) ? '2px solid var(--brand)' : undefined }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  {selMode && (
+                    <input type="checkbox" checked={selSet.has(sp.id)} readOnly aria-label={'בחירת ' + sp.name} style={{ flex: 'none' }} />
+                  )}
                   {rfmOn && (
                     <span
                       title={tier.label + ' · ציון ' + score}
@@ -448,6 +505,7 @@ export function SupportersView() {
           <table className="table">
             <thead>
               <tr>
+                {selMode && <th aria-hidden style={{ width: 34 }} />}
                 {HEAD.filter(
                   (h) =>
                     (nextOn || h.key !== 'nextDate') &&
@@ -473,6 +531,7 @@ export function SupportersView() {
               </tr>
               {/* P3 פריט 13 — פילטרים פר-עמודה בתחביר numMatch ('3' / '3+' / '1-5'), כמו scf בלגאסי */}
               <tr>
+                {selMode && <th />}
                 {HEAD.filter(
                   (h) =>
                     (nextOn || h.key !== 'nextDate') &&
@@ -507,11 +566,16 @@ export function SupportersView() {
               {list.map((sp) => (
                 <tr
                   key={sp.id}
-                  onClick={() => setSelId(sp.id)}
+                  onClick={() => (selMode ? toggleSel(sp.id) : setSelId(sp.id))}
                   onKeyDown={openRowKey(sp.id)}
                   tabIndex={0}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', background: selMode && selSet.has(sp.id) ? 'var(--sel, #eef3ff)' : undefined }}
                 >
+                  {selMode && (
+                    <td style={{ width: 34, textAlign: 'center' }}>
+                      <input type="checkbox" checked={selSet.has(sp.id)} readOnly aria-label={'בחירת ' + sp.name} />
+                    </td>
+                  )}
                   <td>
                     <div style={{ fontWeight: 700 }}>{sp.name}</div>
                     {(sp.cat || sp.forWho) && (
@@ -593,8 +657,35 @@ export function SupportersView() {
 
       {dedupOpen && <SupDedupModal onClose={() => setDedupOpen(false)} />}
       {importOpen && (
-        <Modal title="⬆ ייבוא תומכות מ-CSV" onClose={() => setImportOpen(false)}>
+        <Modal title="⬆ ייבוא תומכות מ-CSV / Excel" onClose={() => setImportOpen(false)}>
           <SupporterImport onDone={() => setImportOpen(false)} />
+        </Modal>
+      )}
+
+      {confirmDel && (
+        <Modal
+          title={'מחיקת ' + selSet.size + ' ' + termOf(config, 'nav.supporters', 'תומכים')}
+          onClose={() => setConfirmDel(false)}
+        >
+          <p style={{ fontSize: 14, lineHeight: 1.6 }}>
+            {'פעולה בלתי-הפיכה: יימחקו לצמיתות '}
+            <b>{selSet.size}</b>
+            {' ' + termOf(config, 'nav.supporters', 'תומכים') + ' — כולל היסטוריית התרומות והתזכורות שלהם. האם להמשיך?'}
+          </p>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <Btn
+              kind="danger"
+              onClick={() => {
+                const ids = [...selSet];
+                deleteSupporters(ids);
+                toast('נמחקו ' + ids.length + ' ' + termOf(config, 'nav.supporters', 'תומכים'));
+                exitSelMode();
+              }}
+            >
+              {'🗑 מחק ' + selSet.size}
+            </Btn>
+            <Btn onClick={() => setConfirmDel(false)}>ביטול</Btn>
+          </div>
         </Modal>
       )}
 
