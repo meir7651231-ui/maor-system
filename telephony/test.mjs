@@ -15,6 +15,11 @@ import { buildDirectory, lookupCaller, lookupInDirectory } from './lib/cti.mjs';
 import { tenantFromIntake, INTAKE_STEPS } from './lib/onboard.mjs';
 import { planApply, rollbackPlan, planTenants, summarize } from './lib/apply.mjs';
 import { channelPlan, isPureDownstream } from './lib/channels.mjs';
+import {
+  flagOn, featureOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
+  capabilities, migrateConfig, effectiveConfig, diffConfig, isBaselineConfig,
+  sanitizeConfigFields, SCHEMA_VERSION,
+} from './lib/config.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const UPDATE = process.env.UPDATE === '1';
@@ -208,6 +213,79 @@ console.log('· channels — רב-ערוצי downstream');
   ok('Business API נפסל', !isPureDownstream(bad));
   const bad2 = { whatsapp: [], sms: [{ provider: 'twilio', method: 'sms-provider' }] };
   ok('ספק-SMS נפסל', !isPureDownstream(bad2));
+}
+
+// ── גל 1 (1-10): יסוד-תצורה ─────────────────────────────────────────────────
+console.log('· גל 1 — תצורה: דגלים/מונחים/ורטיקלים');
+// 1. flagOn — ליבה חסר=דלוק, תוספת חסר=כבוי, שרשור-אבות, self-override.
+ok('ליבה voicemail דלוק כברירת-מחדל', flagOn({}, 'voicemail'));
+ok('תוספת ivr כבוי כברירת-מחדל', !flagOn({}, 'voice.ivr'));
+ok('self false מכבה ליבה', !flagOn({ features: { voicemail: false } }, 'voicemail'));
+ok('self true מדליק תוספת', flagOn({ features: { 'voice.ivr': true } }, 'voice.ivr'));
+ok('אב false מכבה צאצא', !flagOn({ features: { voice: false } }, 'voice.timecondition'));
+ok('מפתח-לא-מוכר חסר=דלוק (חוזה maor)', flagOn({}, 'something.new'));
+// 2. termOf + expand
+eq('termOf ברירת-מחדל', termOf({}, 'office'), 'משרד');
+eq('termOf דריסה', termOf({ terms: { office: 'המזכירות' } }, 'office'), 'המזכירות');
+eq('termOf ריק=ברירת-מחדל', termOf({ terms: { office: '  ' } }, 'office'), 'משרד');
+eq('expandTerms %org%', expandTerms({ orgName: 'עמותת א' }, 'שלום ל%org%'), 'שלום לעמותת א');
+// 3+4. ורטיקל + מיתוג
+{
+  const v = applyVertical({ vertical: 'kollel', tenantId: 'k' });
+  ok('ורטיקל-כולל זורע calendar.hebrew', v.features['calendar.hebrew'] === true);
+  eq('ורטיקל-כולל term org', v.terms.org, 'הכולל');
+  ok('ורטיקל זורע officeHours', v.officeHours.start === '10:00');
+  const override = applyVertical({ vertical: 'kollel', terms: { org: 'הכולל שלי' } });
+  eq('קונפיג מפורש גובר על ורטיקל', override.terms.org, 'הכולל שלי');
+}
+// 5. חיטוי
+{
+  const s = sanitizeConfigFields({ features: { voice: false, BAD$KEY: true, x: 'no' }, terms: { office: 'x', evil: 'y' } });
+  ok('חיטוי משאיר boolean+מפתח-נקי', s.features.voice === false && !('BAD$KEY' in s.features) && !('x' in s.features));
+  ok('חיטוי-terms allowlist', s.terms.office === 'x' && !('evil' in s.terms));
+}
+// 6. capabilities
+{
+  const caps = capabilities({ features: { 'voice.ivr': true }, cti: { mode: 'directory' } });
+  ok('caps.voice דלוק', caps.voice && caps.voicemail);
+  ok('caps.ivr נדלק', caps.ivr);
+  ok('caps.recording כבוי', !caps.recording);
+  ok('caps.cti לפי mode', caps.cti === true);
+}
+// 7. migrate
+{
+  const m = migrateConfig({ tenantId: 'x' });
+  eq('migrate מרים schemaVersion', m.schemaVersion, SCHEMA_VERSION);
+  ok('migrate מזריק features/terms', !!m.features && !!m.terms);
+  ok('migrate אידמפוטנטי', JSON.stringify(migrateConfig(m)) === JSON.stringify(m));
+}
+// 8. effectiveConfig — עובד רק מגביל
+{
+  const eff = effectiveConfig(
+    { features: { voice: true, reports: true } },
+    { features: { 'voice.ivr': true } },
+    { features: { reports: false, 'voice.ivr': true } }, // עובד: מכבה reports, מנסה להדליק ivr
+  );
+  ok('שכבת-לקוח דורסת', eff.features['voice.ivr'] === true);
+  ok('עובד מכבה', eff.features.reports === false);
+}
+// 9. אינווריאנט ביט-זהה
+ok('chesed baseline (בלי דריסות)', isBaselineConfig(vres.tenant) === (Object.keys(vres.tenant.features).length === 0 && Object.keys(vres.tenant.terms).length === 0));
+ok('קונפיג-ריק = baseline', isBaselineConfig({}));
+ok('קונפיג עם term ≠ baseline', !isBaselineConfig({ terms: { office: 'x' } }));
+// 10. diff
+{
+  const d = diffConfig({ features: { voice: true } }, { features: { voice: false, reports: true } });
+  ok('diff תופס שינוי', d.changed && d.features.voice.to === false && d.features.reports.to === true);
+  ok('diff אין-שינוי', !diffConfig({ features: { a: true } }, { features: { a: true } }).changed);
+}
+// wiring: recording opt-in משנה פלט; voicemail off מסיר פלט.
+{
+  const rec = buildTenant({ ...chesed, features: { recording: true } });
+  ok('recording=on מוסיף record_session', rec.files['dialplan/tenant_chesed-demo.xml'].includes('record_session'));
+  ok('recording=off (baseline) בלי record_session', !buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'].includes('record_session'));
+  const noVm = buildTenant({ ...chesed, features: { voicemail: false } });
+  ok('voicemail=off מסיר voicemail', !noVm.files['dialplan/tenant_chesed-demo.xml'].includes('application="voicemail"'));
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────

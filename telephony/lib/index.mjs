@@ -25,3 +25,8 @@ export { buildDirectory, lookupCaller, lookupInDirectory } from './cti.mjs';
 export { tenantFromIntake, INTAKE_STEPS } from './onboard.mjs';
 export { planApply, rollbackPlan, planTenants, summarize } from './apply.mjs';
 export { channelPlan, isPureDownstream } from './channels.mjs';
+export {
+  flagOn, featureOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
+  capabilities, migrateConfig, effectiveConfig, diffConfig, isBaselineConfig,
+  sanitizeConfigFields, FLAG_DEFAULTS, TERM_DEFS, SCHEMA_VERSION,
+} from './config.mjs';

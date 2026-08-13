@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { toE164 } from './normalize.mjs';
+import { applyVertical, migrateConfig, sanitizeConfigFields, VERTICAL_PACKS, SCHEMA_VERSION } from './config.mjs';
 
 const TIME_RE = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
@@ -39,6 +40,12 @@ export function validateTenant(raw) {
   if (!raw || typeof raw !== 'object') {
     return { ok: false, errors: ['קונפיג ריק או לא-אובייקט.'], warnings, tenant: null };
   }
+  // מיגרציה→ורטיקל→חיטוי: ורטיקל זורע ברירות מתחת לקונפיג המפורש (שגובר).
+  if (raw.vertical != null && !VERTICAL_PACKS[raw.vertical]) {
+    warnings.push(`vertical לא-מוכר: "${raw.vertical}" — התעלמות מחבילת-הברירות.`);
+  }
+  raw = applyVertical(migrateConfig(raw));
+  const { features, terms } = sanitizeConfigFields(raw);
 
   // ── שדות-שורש ──
   if (!SLUG_RE.test(raw.tenantId || '')) {
@@ -221,7 +228,20 @@ export function validateTenant(raw) {
 
   const ok = errors.length === 0;
   const tenant = ok
-    ? { tenantId: raw.tenantId, orgName: raw.orgName, timezone, officeHours, numbers, destinations, outbound, cti }
+    ? {
+        schemaVersion: SCHEMA_VERSION,
+        tenantId: raw.tenantId,
+        orgName: raw.orgName,
+        timezone,
+        ...(raw.vertical && VERTICAL_PACKS[raw.vertical] ? { vertical: raw.vertical } : {}),
+        officeHours,
+        numbers,
+        destinations,
+        outbound,
+        cti,
+        features,
+        terms,
+      }
     : null;
   return { ok, errors, warnings, tenant };
 }

@@ -7,6 +7,26 @@
   "required": ["tenantId", "orgName", "officeHours", "numbers", "destinations"],
   "additionalProperties": false,
   "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "description": "גרסת-סכמה למיגרציה מצטברת. חסר=1; המנוע מרפא ל-SCHEMA_VERSION.",
+      "minimum": 1
+    },
+    "vertical": {
+      "type": "string",
+      "description": "חבילת-ורטיקל (זורעת ברירות מתחת לקונפיג המפורש).",
+      "enum": ["chesed", "kollel", "gemach", "talmudtorah", "shul"]
+    },
+    "features": {
+      "type": "object",
+      "description": "דגלים. ליבה חסר=דלוק (רק false מכבה); תוספת חסר=כבוי (רק true מדליק). שרשור-אבות.",
+      "additionalProperties": { "type": "boolean" }
+    },
+    "terms": {
+      "type": "object",
+      "description": "מילון-מונחים (white-label). מפתחות מ-TERM_DEFS בלבד; ערכי-מחרוזת.",
+      "additionalProperties": { "type": "string" }
+    },
     "tenantId": {
       "type": "string",
       "description": "מזהה-לקוח (slug). = domain/context במרכזייה הרב-דיירת.",

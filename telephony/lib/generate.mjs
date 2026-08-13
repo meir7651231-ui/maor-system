@@ -10,6 +10,8 @@
 // הקולי לגמרי. virtual/customer-forward = הלקוח מפנה אצל הספק הקיים שלו אלינו.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { featureOn } from './config.mjs';
+
 const XML_ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' };
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => XML_ESC[c]);
@@ -117,6 +119,10 @@ function dialplanXml(tenant) {
   L.push(`    <extension name="incoming">`);
   L.push(`      <condition field="destination_number" expression="^incoming$"/>`);
   L.push(`      <condition field="\${office_open}" expression="^true$">`);
+  if (featureOn(tenant, 'recording')) {
+    L.push(`        <action application="set" data="RECORD_STEREO=true"/>`);
+    L.push(`        <action application="record_session" data="$\${recordings_dir}/${esc(tenant.tenantId)}/\${strftime(%Y-%m-%d-%H-%M-%S)}_\${uuid}.wav"/>`);
+  }
   L.push(`        <action application="bridge" data="{leg_timeout=${office.ringSeconds}}${esc(officeBridge)}"/>`);
   L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
   L.push(`        <anti-action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
@@ -127,9 +133,11 @@ function dialplanXml(tenant) {
   L.push(`    <extension name="afterhours">`);
   L.push(`      <condition field="destination_number" expression="^afterhours$">`);
   L.push(`        <action application="bridge" data="{leg_timeout=${manager.ringSeconds}}user/${esc(manager.ext)}@${esc(tenant.tenantId)}"/>`);
-  L.push(`        <action application="answer"/>`);
-  L.push(`        <action application="sleep" data="500"/>`);
-  L.push(`        <action application="voicemail" data="default ${esc(tenant.tenantId)} ${esc(vm.box)}"/>`);
+  if (featureOn(tenant, 'voicemail')) {
+    L.push(`        <action application="answer"/>`);
+    L.push(`        <action application="sleep" data="500"/>`);
+    L.push(`        <action application="voicemail" data="default ${esc(tenant.tenantId)} ${esc(vm.box)}"/>`);
+  }
   L.push(`      </condition>`);
   L.push(`    </extension>`);
 
