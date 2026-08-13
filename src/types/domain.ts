@@ -210,6 +210,26 @@ export interface Teacher {
   payRate: number;
   startDate: IsoDate | '';
   notes: string;
+  /**
+   * פרטי תשלום למורה (additive — חסר/'' = לא הוגדר, ביט-זהה לכרטיס ישן).
+   * סגנון התשלום: מזומן / משכורת (תלוש) / צ'ק. השם/טלפון/ת"ז לתשלום = שדות הכרטיס
+   * הקיימים (name/phone/idNum); פרטי הבנק נוספים כאן להעברה/משכורת.
+   */
+  payMethod?: 'cash' | 'salary' | 'check' | '';
+  /**
+   * התשלום מועבר לחשבון/מוטב אחר (לא המורה) — למשל העברה דרך חשבון של בן/בת-זוג
+   * או גמ"ח. כשדלוק, payee* מחזיקים את זהות המוטב האחר; אחרת התשלום = פרטי המורה.
+   */
+  payToOther?: boolean;
+  /** שם בעל החשבון/המוטב לתשלום (כשהתשלום מועבר לאחר). */
+  payeeName?: string;
+  /** טלפון המוטב האחר. */
+  payeePhone?: string;
+  /** ת"ז המוטב האחר. */
+  payeeIdNum?: string;
+  bankName?: string;
+  bankBranch?: string;
+  bankAccount?: string;
 }
 
 export interface Room {

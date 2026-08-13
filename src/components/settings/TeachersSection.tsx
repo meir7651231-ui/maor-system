@@ -7,7 +7,7 @@ import type { Teacher } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
 import { isoToday } from '../../lib/date-util';
-import { Btn, Empty, Field, FormError, Modal, TextInput } from '../ui';
+import { Btn, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { termOf } from '../../lib/config';
 import { HebDateInput } from '../HebDateInput';
 import { Section, SectionNote } from './lib';
@@ -41,6 +41,8 @@ export function TeachersSection() {
   }
 
   const coursesOf = (id: string) => courses.filter((c) => c.teacherId === id).length;
+  const payLabel = (t: Teacher) =>
+    t.payMethod === 'cash' ? '💵 מזומן' : t.payMethod === 'salary' ? '🧾 משכורת' : t.payMethod === 'check' ? '📝 צ׳ק' : '—';
 
   return (
     <Section
@@ -65,6 +67,7 @@ export function TeachersSection() {
                 <th>אימייל</th>
                 <th>התמחות</th>
                 <th>תעריף לשעה</th>
+                <th>תשלום</th>
                 <th>{termOf(config, 'nav.courses', 'חוגים')}</th>
                 <th></th>
               </tr>
@@ -77,6 +80,7 @@ export function TeachersSection() {
                   <td dir="ltr" style={{ textAlign: 'right' }}>{t.email || '—'}</td>
                   <td>{t.specialty || '—'}</td>
                   <td>{t.payRate ? '₪' + t.payRate : '—'}</td>
+                  <td>{payLabel(t)}</td>
                   <td>{coursesOf(t.id)}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     <span style={{ display: 'inline-flex', gap: 6 }}>
@@ -114,6 +118,14 @@ interface TeacherFormState {
   payRate: string;
   startDate: string;
   notes: string;
+  payMethod: '' | 'cash' | 'salary' | 'check';
+  payToOther: boolean;
+  payeeName: string;
+  payeePhone: string;
+  payeeIdNum: string;
+  bankName: string;
+  bankBranch: string;
+  bankAccount: string;
 }
 
 function initState(t: Teacher | null): TeacherFormState {
@@ -128,6 +140,14 @@ function initState(t: Teacher | null): TeacherFormState {
     payRate: t && t.payRate ? String(t.payRate) : '',
     startDate: t?.startDate ?? '',
     notes: t?.notes ?? '',
+    payMethod: t?.payMethod ?? '',
+    payToOther: t?.payToOther ?? false,
+    payeeName: t?.payeeName ?? '',
+    payeePhone: t?.payeePhone ?? '',
+    payeeIdNum: t?.payeeIdNum ?? '',
+    bankName: t?.bankName ?? '',
+    bankBranch: t?.bankBranch ?? '',
+    bankAccount: t?.bankAccount ?? '',
   };
 }
 
@@ -181,6 +201,8 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
       return setError('כתובת האימייל לא תקינה');
     if (f.payRate.trim() && (isNaN(+f.payRate) || +f.payRate < 0))
       return setError('תעריף לשעה חייב להיות מספר');
+    if (f.payToOther && f.payeeIdNum.trim() && !validIsraeliId(f.payeeIdNum.trim()))
+      return setError('ת"ז המוטב לתשלום לא תקינה (ספרת ביקורת שגויה)');
     const existing = useApp.getState().db.teachers;
     if (!props.teacher && existing.some((x) => x.name === name))
       return setError('כבר קיים/ת ' + teacher + ' בשם הזה');
@@ -196,6 +218,14 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
       payRate: f.payRate.trim() ? +f.payRate : 0,
       startDate: f.startDate,
       notes: f.notes.trim(),
+      payMethod: f.payMethod,
+      payToOther: f.payToOther,
+      payeeName: f.payToOther ? f.payeeName.trim() : '',
+      payeePhone: f.payToOther ? formatIsraeliPhone(f.payeePhone.trim()) : '',
+      payeeIdNum: f.payToOther ? f.payeeIdNum.trim() : '',
+      bankName: f.bankName.trim(),
+      bankBranch: f.bankBranch.trim(),
+      bankAccount: f.bankAccount.trim(),
     };
     if (props.teacher) {
       upsertTeacher({ ...fields, id: props.teacher.id });
@@ -239,6 +269,61 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
           {/* תאריך עברי (ראשי) + לועזי — תאריך עברי חובה בכל שדה */}
           <HebDateInput value={f.startDate} onChange={(v) => set({ startDate: v })} />
         </Field>
+      </div>
+      {/* פרטי תשלום — סגנון (מזומן/משכורת/צ'ק) + פרטי בנק. כברירת-מחדל התשלום
+          לפרטי המורה למעלה; "מוטב אחר" חושף שם/טלפון/ת"ז נפרדים (העברה דרך
+          חשבון של בן-זוג/גמ"ח וכו'). */}
+      <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>💳 פרטי תשלום</div>
+        <div className="form-grid">
+          <Field label="סגנון תשלום">
+            <Select
+              value={f.payMethod}
+              onChange={(v) => set({ payMethod: v as TeacherFormState['payMethod'] })}
+              options={[
+                { value: '', label: '— לא הוגדר —' },
+                { value: 'cash', label: '💵 מזומן' },
+                { value: 'salary', label: '🧾 משכורת (תלוש)' },
+                { value: 'check', label: '📝 צ׳ק' },
+              ]}
+            />
+          </Field>
+        </div>
+        {(f.payMethod === 'salary' || f.payMethod === 'check') && (
+          <div className="form-grid">
+            <Field label="שם הבנק">
+              <TextInput value={f.bankName} onChange={(v) => set({ bankName: v })} placeholder="לאומי, הפועלים…" />
+            </Field>
+            <Field label="מספר סניף">
+              <TextInput value={f.bankBranch} onChange={(v) => set({ bankBranch: v })} dir="ltr" />
+            </Field>
+            <Field label="מספר חשבון">
+              <TextInput value={f.bankAccount} onChange={(v) => set({ bankAccount: v })} dir="ltr" />
+            </Field>
+          </div>
+        )}
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginTop: 4, cursor: 'pointer' }}>
+          <input type="checkbox" checked={f.payToOther} onChange={(e) => set({ payToOther: e.target.checked })} />
+          {'התשלום מועבר למוטב/חשבון אחר (לא ה' + teacher + ')'}
+        </label>
+        {f.payToOther && (
+          <div className="form-grid" style={{ marginTop: 6 }}>
+            <Field label="שם המוטב">
+              <TextInput value={f.payeeName} onChange={(v) => set({ payeeName: v })} placeholder="שם בעל החשבון" />
+            </Field>
+            <Field label="טלפון המוטב">
+              <TextInput value={f.payeePhone} onChange={(v) => set({ payeePhone: v })} dir="ltr" placeholder="050-0000000" />
+            </Field>
+            <Field label='ת"ז המוטב'>
+              <TextInput value={f.payeeIdNum} onChange={(v) => set({ payeeIdNum: v })} dir="ltr" />
+            </Field>
+          </div>
+        )}
+        <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
+          {f.payToOther
+            ? 'התשלום יופנה למוטב לעיל + פרטי הבנק. הכרטיס עצמו נשאר על שם ה' + teacher + '.'
+            : 'ללא מוטב-אחר, התשלום = שם/טלפון/ת"ז ה' + teacher + ' למעלה + פרטי הבנק.'}
+        </div>
       </div>
       <Field label="הערות">
         <textarea rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} />
