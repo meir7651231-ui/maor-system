@@ -108,6 +108,15 @@ describe('ייבוא Excel — parseSupporterGrid (זיהוי-כותרות + "ת
     expect(src).toContain('אושר');
   });
 
+  it('13.8b — ייבוא-חוזר *משדרג* עסקה ותיקה (בלי מטא-דאטה) בלי לשכפל', () => {
+    const [binderRow] = parseSupporterGrid(CREDIT_GRID);
+    // תומך שיובא לפני #121 — רשומה מופשטת (רק d/a), בלי מטא-דאטה:
+    const stripped = { ...newSupporterFromRow('sp1', binderRow), hist: [{ d: '2026-08-13', a: 60 }] };
+    const merged = mergeSupporterRow(stripped as never, binderRow);
+    expect(merged.hist).toHaveLength(1); // לא שוכפל
+    expect(merged.hist?.[0]).toMatchObject({ txn: '76430635', ref: '063848', status: 'אושר' }); // שודרג
+  });
+
   it('ייבוא-חוזר אידמפוטנטי: אותה עסקה לא משוכפלת; שונה כן נוספת (dedup d|a|c)', () => {
     const [binderRow, rutRow] = parseSupporterGrid(CREDIT_GRID);
     const sp = newSupporterFromRow('sp1', binderRow);

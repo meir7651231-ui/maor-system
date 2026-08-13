@@ -449,16 +449,36 @@ export type HistEntry = NonNullable<Supporter['hist']>[number];
  *  (בלי txn) מזוהה כאותה עסקה ולא משוכפל. */
 export function mergeHist(existing: HistEntry[], incoming: HistEntry[]): HistEntry[] {
   const key = (h: HistEntry) => h.d + '|' + h.a + '|' + (h.c ?? '₪');
-  const have = new Map<string, number>();
-  for (const h of existing) have.set(key(h), (have.get(key(h)) ?? 0) + 1);
-  const out = [...existing];
+  // אינדקס-נכנס פר-מפתח (בסדר) — משמש גם ל**העשרת** רשומות קיימות וגם לספירה.
+  const incByKey = new Map<string, HistEntry[]>();
+  for (const h of incoming) {
+    const arr = incByKey.get(key(h));
+    if (arr) arr.push(h);
+    else incByKey.set(key(h), [h]);
+  }
+  // העשרה (13.8b): רשומה קיימת שיובאה **לפני** שדות-המטא-דאטה (בלי txn/מותג/…)
+  // מתמלאת מהשורה-הנכנסת התואמת — הערך הקיים גובר, הנכנס ממלא רק חוסרים. כך
+  // ייבוא-חוזר של אותו קובץ *משדרג* עסקאות ותיקות בלי לשכפל אותן.
+  const usedInc = new Map<string, number>();
+  const out: HistEntry[] = existing.map((h) => {
+    const k = key(h);
+    const arr = incByKey.get(k);
+    const idx = usedInc.get(k) ?? 0;
+    if (arr && idx < arr.length) {
+      usedInc.set(k, idx + 1);
+      return { ...arr[idx], ...h }; // נכנס ממלא חוסרים; קיים גובר על חפיפה
+    }
+    return { ...h };
+  });
+  // דחיפת מופעים-נכנסים מעבר לכמות-הקיימת (עסקאות חדשות באמת) — עם כל שדותיהן.
+  const haveCount = new Map<string, number>();
+  for (const h of existing) haveCount.set(key(h), (haveCount.get(key(h)) ?? 0) + 1);
   const seen = new Map<string, number>();
   for (const h of incoming) {
     const k = key(h);
     const n = (seen.get(k) ?? 0) + 1;
     seen.set(k, n);
-    // 13.8 — הבאג: כאן נדחפו רק d/a/c והמטא-דאטה אבדה. עכשיו הרשומה המלאה.
-    if (n > (have.get(k) ?? 0)) out.push({ ...h });
+    if (n > (haveCount.get(k) ?? 0)) out.push({ ...h });
   }
   return out.sort((x, y) => x.d.localeCompare(y.d));
 }
