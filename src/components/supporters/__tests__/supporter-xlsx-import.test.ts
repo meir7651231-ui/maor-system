@@ -77,16 +77,22 @@ describe('ייבוא Excel — parseSupporterGrid (זיהוי-כותרות + "ת
     expect(rows.map((r) => r.name)).toEqual(['בינדר', 'רות']);
   });
 
-  it('כל שדה משובץ למקומו + עסקה→היסטוריה + טיפול-עין', () => {
+  it('כל שדה משובץ למקומו + עסקה→היסטוריה + מטא-דאטת-סליקה (13.8)', () => {
     const [binder, rut] = parseSupporterGrid(CREDIT_GRID);
     expect(binder.idNum).toBe('055647572');
     expect(binder.cat).toBe('הסרת עין הרע');
     expect(binder.forWho).toBe('אסתי סגל');
-    expect(binder.hist).toEqual([{ d: '2026-08-13', a: 60 }]); // ₪ ⇒ בלי c
-    expect(binder.ayinNames).toEqual(['בינדר']); // קטגוריה עם 'עין' ⇒ שם-לטיפול
-    // תורם עם טלפון וקטגוריה רגילה — בלי ayin:
+    // עסקה + כל 8 עמודות-המטא-דאטה (מס'-קבלה ריק ⇒ מושמט; ₪ ⇒ בלי c):
+    expect(binder.hist).toEqual([
+      { d: '2026-08-13', a: 60, ref: '063848', txn: '76430635', brand: 'ויזה', last4: '6028', clearer: 'ישראכרט', pays: 1, status: 'אושר' },
+    ]);
     expect(rut.phone).toBe('052-7663653');
-    expect(rut.hist).toEqual([{ d: '2026-08-11', a: 300 }]);
+    expect(rut.hist?.[0]).toMatchObject({ a: 300, receipt: '121833', txn: '76340966', ref: '0968784', status: 'אושר' });
+  });
+
+  it('13.8 — הוסר אוטומט-העי"ן: קטגוריה "הסרת עין הרע" לא פותחת תיק-מעקב', () => {
+    const [binder, rut] = parseSupporterGrid(CREDIT_GRID);
+    expect(binder.ayinNames).toBeUndefined(); // אף שהקטגוריה מכילה "עין"
     expect(rut.ayinNames).toBeUndefined();
   });
 
