@@ -7,7 +7,7 @@ import type { Teacher } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
 import { isoToday } from '../../lib/date-util';
-import { Btn, Empty, Field, FormError, Modal, TextInput } from '../ui';
+import { Btn, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { termOf } from '../../lib/config';
 import { HebDateInput } from '../HebDateInput';
 import { Section, SectionNote } from './lib';
@@ -41,6 +41,8 @@ export function TeachersSection() {
   }
 
   const coursesOf = (id: string) => courses.filter((c) => c.teacherId === id).length;
+  const payLabel = (t: Teacher) =>
+    t.payMethod === 'cash' ? '💵 מזומן' : t.payMethod === 'salary' ? '🧾 משכורת' : t.payMethod === 'check' ? '📝 צ׳ק' : '—';
 
   return (
     <Section
@@ -65,6 +67,7 @@ export function TeachersSection() {
                 <th>אימייל</th>
                 <th>התמחות</th>
                 <th>תעריף לשעה</th>
+                <th>תשלום</th>
                 <th>{termOf(config, 'nav.courses', 'חוגים')}</th>
                 <th></th>
               </tr>
@@ -77,6 +80,7 @@ export function TeachersSection() {
                   <td dir="ltr" style={{ textAlign: 'right' }}>{t.email || '—'}</td>
                   <td>{t.specialty || '—'}</td>
                   <td>{t.payRate ? '₪' + t.payRate : '—'}</td>
+                  <td>{payLabel(t)}</td>
                   <td>{coursesOf(t.id)}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     <span style={{ display: 'inline-flex', gap: 6 }}>
@@ -114,6 +118,11 @@ interface TeacherFormState {
   payRate: string;
   startDate: string;
   notes: string;
+  payMethod: '' | 'cash' | 'salary' | 'check';
+  payeeName: string;
+  bankName: string;
+  bankBranch: string;
+  bankAccount: string;
 }
 
 function initState(t: Teacher | null): TeacherFormState {
@@ -128,6 +137,11 @@ function initState(t: Teacher | null): TeacherFormState {
     payRate: t && t.payRate ? String(t.payRate) : '',
     startDate: t?.startDate ?? '',
     notes: t?.notes ?? '',
+    payMethod: t?.payMethod ?? '',
+    payeeName: t?.payeeName ?? '',
+    bankName: t?.bankName ?? '',
+    bankBranch: t?.bankBranch ?? '',
+    bankAccount: t?.bankAccount ?? '',
   };
 }
 
@@ -196,6 +210,11 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
       payRate: f.payRate.trim() ? +f.payRate : 0,
       startDate: f.startDate,
       notes: f.notes.trim(),
+      payMethod: f.payMethod,
+      payeeName: f.payeeName.trim(),
+      bankName: f.bankName.trim(),
+      bankBranch: f.bankBranch.trim(),
+      bankAccount: f.bankAccount.trim(),
     };
     if (props.teacher) {
       upsertTeacher({ ...fields, id: props.teacher.id });
@@ -239,6 +258,44 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
           {/* תאריך עברי (ראשי) + לועזי — תאריך עברי חובה בכל שדה */}
           <HebDateInput value={f.startDate} onChange={(v) => set({ startDate: v })} />
         </Field>
+      </div>
+      {/* פרטי תשלום — סגנון (מזומן/משכורת/צ'ק) + פרטי בנק להעברה. השם/טלפון/ת"ז
+          לתשלום = שדות הכרטיס למעלה; שם-מוטב חלופי + בנק נוספים כאן. */}
+      <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>💳 פרטי תשלום</div>
+        <div className="form-grid">
+          <Field label="סגנון תשלום">
+            <Select
+              value={f.payMethod}
+              onChange={(v) => set({ payMethod: v as TeacherFormState['payMethod'] })}
+              options={[
+                { value: '', label: '— לא הוגדר —' },
+                { value: 'cash', label: '💵 מזומן' },
+                { value: 'salary', label: '🧾 משכורת (תלוש)' },
+                { value: 'check', label: '📝 צ׳ק' },
+              ]}
+            />
+          </Field>
+          <Field label="שם המוטב (אם שונה מהמורה)">
+            <TextInput value={f.payeeName} onChange={(v) => set({ payeeName: v })} placeholder={f.name || 'שם בעל החשבון'} />
+          </Field>
+        </div>
+        {(f.payMethod === 'salary' || f.payMethod === 'check') && (
+          <div className="form-grid">
+            <Field label="שם הבנק">
+              <TextInput value={f.bankName} onChange={(v) => set({ bankName: v })} placeholder="לאומי, הפועלים…" />
+            </Field>
+            <Field label="מספר סניף">
+              <TextInput value={f.bankBranch} onChange={(v) => set({ bankBranch: v })} dir="ltr" />
+            </Field>
+            <Field label="מספר חשבון">
+              <TextInput value={f.bankAccount} onChange={(v) => set({ bankAccount: v })} dir="ltr" />
+            </Field>
+          </div>
+        )}
+        <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>
+          {'שם/טלפון/ת"ז לתשלום = פרטי ה' + teacher + ' למעלה. פרטי הבנק לצורכי משכורת/העברה בלבד.'}
+        </div>
       </div>
       <Field label="הערות">
         <textarea rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} />

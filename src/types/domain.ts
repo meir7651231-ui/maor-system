@@ -210,6 +210,17 @@ export interface Teacher {
   payRate: number;
   startDate: IsoDate | '';
   notes: string;
+  /**
+   * פרטי תשלום למורה (additive — חסר/'' = לא הוגדר, ביט-זהה לכרטיס ישן).
+   * סגנון התשלום: מזומן / משכורת (תלוש) / צ'ק. השם/טלפון/ת"ז לתשלום = שדות הכרטיס
+   * הקיימים (name/phone/idNum); פרטי הבנק נוספים כאן להעברה/משכורת.
+   */
+  payMethod?: 'cash' | 'salary' | 'check' | '';
+  /** שם בעל החשבון לתשלום — אם שונה משם המורה (ברירת מחדל = שם המורה). */
+  payeeName?: string;
+  bankName?: string;
+  bankBranch?: string;
+  bankAccount?: string;
 }
 
 export interface Room {
