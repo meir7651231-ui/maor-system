@@ -6,78 +6,18 @@
 import { useState, type ChangeEvent } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
-import { parseAnyDate, parseCsv, readCsvFileText } from '../../lib/csvx';
-import { downloadCsv } from '../../lib/csvx';
+import { downloadCsv, readCsvFileText, toCsv } from '../../lib/csvx';
 import { Btn, Field, FormError } from '../ui';
 import {
   applyAyinNames,
   mergeSupporterRow,
   newSupporterFromRow,
+  parseSupporterCsv,
+  parseSupporterGrid,
   planSupporterImport,
-  type SupporterImportRow,
 } from './lib';
 
 const HEADERS = ['שם', 'טלפון', 'אימייל', 'ת"ז', 'כתובת', 'קטגוריה', 'עבור'];
-
-/** פענוח טקסט CSV לשורות ייבוא — זיהוי עמודות לפי כותרת, אחרת סדר קבוע. */
-function parseRows(text: string): SupporterImportRow[] {
-  const rows = parseCsv(text);
-  if (!rows.length) return [];
-  const header = rows[0].map((h) => h.trim());
-  const find = (keys: string[]) => header.findIndex((h) => keys.some((k) => h.includes(k)));
-  let iName = find(['שם']);
-  let iPhone = find(['טלפון', 'נייד']);
-  let iEmail = find(['אימייל', 'מייל', 'email']);
-  let iId = find(['ת"ז', 'תז', 'זהות']);
-  let iAddr = find(['כתובת']);
-  let iCat = find(['קטגוריה']);
-  let iFor = find(['עבור', 'ייעוד']);
-  // קובץ מסוף-הסליקה (ExportHistory, 9.8): עמודות סכום/תאריך-עסקה/מטבע ⇒
-  // כל שורה נושאת גם עסקה — נכנסת כהיסטוריה-ללא-קבלה (הכרעת-בעלים).
-  const iAmount = find(['סכום']);
-  const iTxDate = find(['תאריך']);
-  const iCur = find(['מטבע']);
-  let start = 1;
-  if (iName < 0) {
-    // אין שורת כותרות מזוהה — סדר עמודות קבוע
-    iName = 0;
-    iPhone = 1;
-    iEmail = 2;
-    iId = 3;
-    iAddr = 4;
-    iCat = 5;
-    iFor = 6;
-    start = 0;
-  }
-  const g = (r: string[], i: number) => (i >= 0 ? (r[i] ?? '').trim() : '');
-  const out: SupporterImportRow[] = [];
-  for (const r of rows.slice(start)) {
-    const name = g(r, iName);
-    if (!name) continue;
-    const row: SupporterImportRow = {
-      name,
-      phone: g(r, iPhone),
-      email: g(r, iEmail),
-      idNum: g(r, iId),
-      address: g(r, iAddr),
-      cat: g(r, iCat),
-      forWho: g(r, iFor),
-    };
-    if (iAmount >= 0 && iTxDate >= 0) {
-      const amount = Math.round(Number(g(r, iAmount).replace(/[^\d.-]/g, '')) * 100) / 100;
-      // 'תאריך עסקה' מגיע עם שעה ("09/08/26 00:36") — התאריך בלבד
-      const d = parseAnyDate(g(r, iTxDate).split(' ')[0]);
-      if (isFinite(amount) && amount > 0 && d) {
-        row.hist = [{ d, a: amount, ...(/דולר|\$|usd/i.test(g(r, iCur)) ? { c: '$' as const } : {}) }];
-      }
-    }
-    // בקשת-בעלים 9.8: שורת-טיפול (קטגוריה עם 'עין') ⇒ "עבור מי" = שם-התורם
-    // המלא ('X בן/בת Y') נכנס כשם-לטיפול בתיק-המעקב; הכמות ממתינה לרישום.
-    if (/עין/.test(row.cat)) row.ayinNames = [name];
-    out.push(row);
-  }
-  return out;
-}
 
 export function SupporterImport(props: { onDone?: () => void }) {
   const setDb = useApp((s) => s.setDb);
@@ -104,6 +44,21 @@ export function SupporterImport(props: { onDone?: () => void }) {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+    const isXlsx = /\.xlsx$/i.test(file.name) || file.type.includes('spreadsheetml');
+    if (isXlsx) {
+      try {
+        const buf = new Uint8Array(await file.arrayBuffer());
+        // טעינה עצלה — פרסר ה-xlsx (fflate) נטען רק כשמייבאים אקסל בפועל.
+        const { parseXlsxSheet } = await import('../../lib/xlsx');
+        const grid = parseXlsxSheet(buf);
+        setCsv(toCsv(grid.slice(0, 200))); // שקיפות: הצגת מה שנקרא מהגיליון
+        const p = analyzeParsed(parseSupporterGrid(grid));
+        if (p && !previewOn) apply(p);
+      } catch {
+        setError('שגיאה בקריאת קובץ ה-Excel — נסו לשמור כ-CSV ולייבא אותו');
+      }
+      return;
+    }
     // helper משותף (P0.5): UTF-8 עם fallback ל-windows-1255 לקבצים מאקסל ישן
     const txt = await readCsvFileText(file);
     setCsv(txt);
@@ -118,12 +73,16 @@ export function SupporterImport(props: { onDone?: () => void }) {
 
   /** שלב 1 — פענוח והצגת סיכום; לא משנה נתונים. */
   function analyze(text = csv) {
+    return analyzeParsed(parseSupporterCsv(text));
+  }
+
+  /** שלב 1 (משותף CSV/xlsx) — תכנון והצגת סיכום משורות-שפוענחו; לא משנה נתונים. */
+  function analyzeParsed(rows: ReturnType<typeof parseSupporterCsv>) {
     setError('');
     setSummary('');
     setPlan(null);
-    const rows = parseRows(text);
     if (!rows.length) {
-      setError('לא נמצאו שורות תקינות — ודאו שיש עמודת "שם" (חובה)');
+      setError('לא נמצאו שורות תקינות — ודאו שיש עמודת "שם"/"תורם" (חובה)');
       return null;
     }
     const p = planSupporterImport(rows, useApp.getState().db.supporters);
@@ -191,8 +150,13 @@ export function SupporterImport(props: { onDone?: () => void }) {
       )}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
         <label className="btn" style={{ cursor: 'pointer', display: 'inline-flex' }}>
-          בחירת קובץ CSV…
-          <input type="file" accept=".csv,text/csv,text/plain" style={{ display: 'none' }} onChange={(e) => void onFile(e)} />
+          בחירת קובץ CSV / Excel…
+          <input
+            type="file"
+            accept=".csv,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            style={{ display: 'none' }}
+            onChange={(e) => void onFile(e)}
+          />
         </label>
         <Btn sm onClick={downloadTemplate}>
           ⬇ תבנית לדוגמה
