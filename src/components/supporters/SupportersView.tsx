@@ -460,7 +460,9 @@ export function SupportersView() {
                 tabIndex={0}
                 onClick={() => (selMode ? toggleSel(sp.id) : setSelId(sp.id))}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') selMode ? toggleSel(sp.id) : setSelId(sp.id);
+                  if (e.key !== 'Enter' && e.key !== ' ') return;
+                  if (selMode) toggleSel(sp.id);
+                  else setSelId(sp.id);
                 }}
                 style={{ cursor: 'pointer', outline: selMode && selSet.has(sp.id) ? '2px solid var(--brand)' : undefined }}
               >
