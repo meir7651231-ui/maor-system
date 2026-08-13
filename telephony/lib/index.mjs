@@ -21,3 +21,4 @@ export function buildTenant(raw) {
 export { validateTenant } from './validate.mjs';
 export { generateConfig } from './generate.mjs';
 export { toE164, sameNumber } from './normalize.mjs';
+export { buildDirectory, lookupCaller, lookupInDirectory } from './cti.mjs';

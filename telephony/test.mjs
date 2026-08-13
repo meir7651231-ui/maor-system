@@ -11,6 +11,7 @@ import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildTenant, validateTenant, toE164 } from './lib/index.mjs';
+import { buildDirectory, lookupCaller, lookupInDirectory } from './lib/cti.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const UPDATE = process.env.UPDATE === '1';
@@ -93,6 +94,33 @@ ok('כל SIM-יציאה דרך שער-הלקוח', (dp.match(/sofia\/gateway\/ch
 ok('גם manifest אומר pure-downstream', a.manifest.model === 'pure-downstream');
 ok('ווצאפ ב-nonVoiceChannels', a.manifest.nonVoiceChannels.some((x) => x.onramp === 'device-link'));
 eq('inbound context בשער', (a.files['sip_profiles/gateways/chesed-demo.xml'].match(/tenant_chesed-demo/g) || []).length, 4);
+
+// ── 5b. CTI: גשר screen-pop מול מאור ────────────────────────────────────────
+console.log('· cti — screen-pop');
+const mdb = JSON.parse(readFileSync(join(HERE, 'fixtures/maor-db.json'), 'utf8'));
+const dir = buildDirectory(mdb);
+// 050-111-2233 משותף למשפחת-כהן (F1) ולתומך דוד (S1).
+eq('מספר-משותף → 2 אנשי-קשר', (dir['+972501112233'] || []).length, 2);
+{
+  const pop = lookupCaller(mdb, '050-111-2233');
+  eq('screen-pop primary = תומך (עדיפות)', pop.primary.kind, 'supporter');
+  eq('screen-pop number מנורמל', pop.number, '+972501112233');
+  eq('screen-pop 2 התאמות', pop.matches.length, 2);
+}
+{
+  const pop = lookupCaller(mdb, '02-6543210'); // phone2 של F1
+  eq('phone2 מזוהה', pop.primary && pop.primary.id, 'F1');
+}
+{
+  const pop = lookupCaller(mdb, '+972580001111'); // כבר E164
+  eq('E164 ישיר מזוהה', pop.primary && pop.primary.name, 'שרה נדבנית');
+}
+{
+  const pop = lookupCaller(mdb, '03-0000000'); // לא קיים
+  eq('לא-מזוהה → primary null', pop.primary, null);
+}
+eq('lookupInDirectory ≡ lookupCaller', lookupInDirectory(dir, '050-111-2233').primary.kind, 'supporter');
+ok('directory דטרמיניסטי', JSON.stringify(buildDirectory(mdb)) === JSON.stringify(dir));
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
