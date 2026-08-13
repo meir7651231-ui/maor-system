@@ -5,6 +5,7 @@
 
 import { validateTenant } from './validate.mjs';
 import { generateConfig } from './generate.mjs';
+import { effectiveConfig } from './config.mjs';
 
 /**
  * לוקח קונפיג-לקוח גולמי ומחזיר את התוצאה המלאה.
@@ -12,7 +13,13 @@ import { generateConfig } from './generate.mjs';
  * @returns {{ok:boolean, errors:string[], warnings:string[], files?:Record<string,string>, manifest?:object}}
  */
 export function buildTenant(raw, opts = {}) {
-  const { ok, errors, warnings, tenant } = validateTenant(raw);
+  // שכבות-הרשאה (מפעיל→לקוח→עובד) — נמזגות לפני הוולידציה. בלי layers = ביט-זהה.
+  let cfg = raw;
+  if (opts.layers && (opts.layers.base || opts.layers.member)) {
+    const eff = effectiveConfig(opts.layers.base || {}, raw, opts.layers.member || null);
+    cfg = { ...raw, features: eff.features, terms: eff.terms };
+  }
+  const { ok, errors, warnings, tenant } = validateTenant(cfg);
   if (!ok) return { ok: false, errors, warnings };
   const { files, manifest } = generateConfig(tenant, warnings, opts);
   return { ok: true, errors: [], warnings, files, manifest };

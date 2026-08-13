@@ -59,6 +59,7 @@ export const TERM_DEFS = {
   voicemailPrompt: 'לא זמינים כרגע. השאירו הודעה אחרי הצליל.',
   holdMusic: 'ברירת-מחדל',
   callerLine: 'קו',
+  shabbatFriEnd: '15:00', // שעת-סגירה בערב-שבת כש-calendar.shabbat דלוק
 };
 
 // חבילות-ורטיקל — ברירות-מחדל פר-סוג-עמותה (features/terms/officeHours).

@@ -21,36 +21,46 @@ const PHONE_FIELDS = {
   member: ['phone', 'phone2'],
   teacher: ['phone', 'phone2'],
   supporter: ['phone'],
+  volunteer: ['phone'],
+  coordinator: ['phone'],
 };
-// שם-המערך ב-DB → kind יחיד.
+// שם-המערך-השורשי ב-DB → kind. שים לב: אין `members` שורשי — בני-המשפחה
+// מקוננים ב-Family.members[] (מקור-אמת domain.ts) ומטופלים בנפרד ב-iterContacts.
 const COLLECTION_KIND = {
   families: 'family',
-  members: 'member',
   teachers: 'teacher',
   supporters: 'supporter',
+  volunteers: 'volunteer',
+  tzCoordinators: 'coordinator',
 };
+
+/** שם-תצוגה לרשומה. Member משתמש ב-first (+שם-משפחה); השאר ב-name. */
+function nameOf(rec, kind, familyName) {
+  if (kind === 'member') return [rec.first, familyName].filter(Boolean).join(' ') || String(rec.first || '');
+  return rec.name || '';
+}
 
 function* iterContacts(db) {
   for (const [coll, kind] of Object.entries(COLLECTION_KIND)) {
     const arr = Array.isArray(db?.[coll]) ? db[coll] : [];
     for (const rec of arr) {
-      if (rec && rec.id != null) yield { kind, rec };
+      if (rec && rec.id != null) yield { kind, rec, name: nameOf(rec, kind) };
+    }
+  }
+  // בני-משפחה מקוננים ב-Family.members[] — לולאה נפרדת עם שם-המשפחה לתצוגה.
+  for (const fam of Array.isArray(db?.families) ? db.families : []) {
+    for (const m of Array.isArray(fam?.members) ? fam.members : []) {
+      if (m && m.id != null) yield { kind: 'member', rec: m, name: nameOf(m, 'member', fam.name) };
     }
   }
 }
 
-/** כל הטלפונים של רשומה (phone/phone2 + extraPhones[]), מנורמלים. item 47. */
+/** כל הטלפונים של רשומה (phone/phone2 לפי הישות), מנורמלים. */
 function phonesOf(rec, kind) {
   const out = [];
   for (const field of PHONE_FIELDS[kind] || ['phone']) {
     const e = toE164(rec[field]);
     if (e) out.push({ field, e164: e });
-  }
-  if (Array.isArray(rec.extraPhones)) {
-    for (const p of rec.extraPhones) {
-      const e = toE164(p);
-      if (e) out.push({ field: 'extra', e164: e });
-    }
   }
   return out;
 }
@@ -83,9 +93,9 @@ export function enrichContact(rec, kind) {
  */
 export function buildDirectory(db) {
   const dir = {};
-  for (const { kind, rec } of iterContacts(db)) {
+  for (const { kind, rec, name } of iterContacts(db)) {
     for (const { field, e164 } of phonesOf(rec, kind)) {
-      (dir[e164] ||= []).push({ kind, id: String(rec.id), name: rec.name || '', field });
+      (dir[e164] ||= []).push({ kind, id: String(rec.id), name, field });
     }
   }
   // דטרמיניזם: מיין כל רשומה לפי kind ואז id.
@@ -97,7 +107,7 @@ export function buildDirectory(db) {
 
 // עדיפות-הצגה ל-screen-pop כשיש כמה התאמות. תומך > משפחה > מורה > חבר — לפי
 // הקונטקסט הנפוץ של שיחה נכנסת (תרומות/משפחות קודם). ניתן להתאמה פר-לקוח בעתיד.
-const POP_PRIORITY = { supporter: 0, family: 1, teacher: 2, member: 3 };
+const POP_PRIORITY = { supporter: 0, family: 1, teacher: 2, member: 3, volunteer: 4, coordinator: 5 };
 
 /**
  * screen-pop למספר בודד. מצליב מול תצלום-DB חי (מסלול local-first).

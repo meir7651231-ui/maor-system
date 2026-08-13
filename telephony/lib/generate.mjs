@@ -65,6 +65,7 @@ function hebrewBlock(tenant, opts) {
     tz: tenant.timezone || 'Asia/Jerusalem',
     includeErev: featureOn(tenant, 'calendar.erev'),
     includeCholHamoed: featureOn(tenant, 'calendar.cholhamoed'),
+    includeFasts: featureOn(tenant, 'calendar.fasts'),
   });
 }
 
@@ -104,48 +105,92 @@ function dialplanXml(tenant, opts = {}) {
   L.push(`<include>`);
   L.push(`  <context name="${esc(ctx)}">`);
 
-  // 0. חסימה/היתר (opt-in voice.blocklist): על caller_id_number בלבד ⇒ בטוח
-  // לפנימי/יוצא (השלוחה 101 לעולם לא מספר-חיצוני). חסימה=מתאים→ניתוק;
-  // היתר=חיצוני-שאינו-ברשימה→ניתוק (continue=true כדי לא לעצור מותר).
+  const pdir = promptDir(tenant);
+  const greet = featureOn(tenant, 'voice.greeting');
+  const holdMusic = termOf(tenant, 'holdMusic', 'ברירת-מחדל');
+
+  // 0א. setup: קונפיג עצמאי — hangup_after_bridge=true כדי ששיחה-שנענתה לא
+  // תמשיך לזרום בדיאלפלן (אחרת כל שיחה תקינה חוזרת ל-afterhours). + מוזיקת-המתנה.
+  L.push(``);
+  L.push(`    <!-- setup: התנהגות עצמאית (לא תלוי vars.xml של השרת) -->`);
+  L.push(`    <extension name="setup_defaults" continue="true">`);
+  L.push(`      <condition>`);
+  L.push(`        <action application="set" data="hangup_after_bridge=true"/>`);
+  L.push(`        <action application="set" data="continue_on_fail=true"/>`);
+  if (holdMusic !== 'ברירת-מחדל') L.push(`        <action application="set" data="hold_music=${esc(holdMusic)}"/>`);
+  L.push(`      </condition>`);
+  L.push(`    </extension>`);
+
+  // 0ב. נרמול caller-id ל-E.164 (cid_e164): שער-GSM מוסר לרוב פורמט-לאומי (0XX);
+  // כל השוואת-חסימה/היתר נעשית מול cid_e164 ולא מול הגולמי (אחרת חסימה fail-open
+  // והיתר נועל את כולם). פנימי (שלוחה) נשאר כמות-שהוא.
+  L.push(`    <extension name="cid_normalize" continue="true">`);
+  L.push(`      <condition field="caller_id_number" expression="^0(\\d+)$">`);
+  L.push(`        <action application="set" data="cid_e164=+972$1"/>`);
+  L.push(`        <anti-action application="set" data="cid_e164=\${caller_id_number}"/>`);
+  L.push(`      </condition>`);
+  L.push(`    </extension>`);
+
+  // 0ג. חסימה/היתר — מול cid_e164 המנורמל.
   if (featureOn(tenant, 'voice.blocklist') && R.blocklist && R.blocklist.length) {
-    L.push(``);
     L.push(`    <!-- רשימת-חסימה: ${R.blocklist.length} מספרים → ניתוק -->`);
     L.push(`    <extension name="blocklist">`);
-    L.push(`      <condition field="caller_id_number" expression="^(${numbersAlternation(R.blocklist)})$">`);
+    L.push(`      <condition field="\${cid_e164}" expression="^(${numbersAlternation(R.blocklist)})$">`);
     L.push(`        <action application="set" data="closed_reason=מספר-חסום"/>`);
     L.push(`        <action application="hangup" data="CALL_REJECTED"/>`);
     L.push(`      </condition>`);
     L.push(`    </extension>`);
   }
   if (featureOn(tenant, 'voice.blocklist') && R.allowlist && R.allowlist.length) {
-    L.push(`    <!-- רשימת-היתר: מתקשר-חיצוני שאינו ברשימה → ניתוק -->`);
+    // חסוי/אנונימי חיצוני → ניתוק (אנטי-הטרדה). פנימי (שלוחה) לא נתפס.
+    L.push(`    <!-- רשימת-היתר: חיצוני-שאינו-ברשימה או חסוי → ניתוק -->`);
+    L.push(`    <extension name="allowlist_anon" continue="true">`);
+    L.push(`      <condition field="caller_id_number" expression="^(anonymous|Anonymous|unknown|Unknown|restricted)$">`);
+    L.push(`        <action application="hangup" data="CALL_REJECTED"/>`);
+    L.push(`      </condition>`);
+    L.push(`    </extension>`);
     L.push(`    <extension name="allowlist" continue="true">`);
-    L.push(`      <condition field="caller_id_number" expression="^\\+?\\d{8,15}$"/>`);
-    L.push(`      <condition field="caller_id_number" expression="^(${numbersAlternation(R.allowlist)})$">`);
+    L.push(`      <condition field="\${cid_e164}" expression="^\\+"/>`);
+    L.push(`      <condition field="\${cid_e164}" expression="^(${numbersAlternation(R.allowlist)})$">`);
     L.push(`        <anti-action application="hangup" data="CALL_REJECTED"/>`);
     L.push(`      </condition>`);
     L.push(`    </extension>`);
   }
 
-  // 1. ברירת-מחדל: משרד סגור.
+  // 1. שער-הזמן: שני משתנים נפרדים ⇒ עמידים ל-transfer (החלטה נקבעת פעם-אחת).
+  //   global_open = בתוך חלון-שעות-המשרד · force_closed = חג/שבת/dnd/חירום (גובר).
   L.push(``);
-  L.push(`    <!-- שער-הזמן: ברירת-מחדל סגור, נפתח רק בחלון שעות-המשרד -->`);
-  L.push(`    <extension name="office_default" continue="true">`);
+  L.push(`    <!-- שער-הזמן: ברירת-מחדל סגור; global_open לפי שעות, force_closed לפי חג/dnd/חירום -->`);
+  L.push(`    <extension name="gate_default" continue="true">`);
   L.push(`      <condition>`);
-  L.push(`        <action application="set" data="office_open=false"/>`);
-  const holdMusic = termOf(tenant, 'holdMusic', 'ברירת-מחדל');
-  if (holdMusic !== 'ברירת-מחדל') {
-    L.push(`        <action application="set" data="hold_music=${esc(holdMusic)}"/>`);
-  }
+  L.push(`        <action application="set" data="global_open=false"/>`);
+  L.push(`        <action application="set" data="force_closed=false"/>`);
   L.push(`      </condition>`);
   L.push(`    </extension>`);
 
-  // 2. חלון שעות-משרד.
-  L.push(`    <extension name="office_open_window" continue="true">`);
-  L.push(`      <condition wday="${wday}" time-of-day="${tod}">`);
-  L.push(`        <action application="set" data="office_open=true"/>`);
-  L.push(`      </condition>`);
-  L.push(`    </extension>`);
+  // 2. חלון(ות) שעות-משרד. calendar.shabbat דלוק ⇒ אין שבת, ושישי נחתך בערב-שבת.
+  const hhmmMin = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
+  const shabbatOn = featureOn(tenant, 'calendar.shabbat');
+  const friEnd = termOf(tenant, 'shabbatFriEnd', '15:00');
+  let windows;
+  if (shabbatOn) {
+    windows = [];
+    const nonSh = oh.days.filter((d) => d !== 5 && d !== 6); // בלי שישי/שבת
+    if (nonSh.length) windows.push({ days: nonSh, start: oh.start, end: oh.end });
+    if (oh.days.includes(5)) {
+      const cap = hhmmMin(friEnd) < hhmmMin(oh.end) ? friEnd : oh.end;
+      if (hhmmMin(oh.start) < hhmmMin(cap)) windows.push({ days: [5], start: oh.start, end: cap }); // שישי חתוך
+    }
+  } else {
+    windows = [{ days: oh.days, start: oh.start, end: oh.end }];
+  }
+  windows.forEach((w, i) => {
+    L.push(`    <extension name="office_window${windows.length > 1 ? `_${i + 1}` : ''}" continue="true">`);
+    L.push(`      <condition wday="${daysToWday(w.days)}" time-of-day="${fsTime(w.start)}-${fsTime(w.end)}">`);
+    L.push(`        <action application="set" data="global_open=true"/>`);
+    L.push(`      </condition>`);
+    L.push(`    </extension>`);
+  });
 
   // 2ב. לוח-עברי (opt-in calendar.hebrew): ימי-חג מחושבים-מראש דורסים ל"סגור".
   // שבת כבר מכוסה ב-wday (לכן לא נכללת). דורש anchorDate (דטרמיניזם golden).
@@ -156,7 +201,7 @@ function dialplanXml(tenant, opts = {}) {
     for (const c of heb) {
       L.push(`    <extension name="heb_${c.iso.replace(/-/g, '')}" continue="true">`);
       L.push(`      <condition date-time="${c.iso} 00:00:00~${c.iso} 23:59:59">`);
-      L.push(`        <action application="set" data="office_open=false"/>`);
+      L.push(`        <action application="set" data="force_closed=true"/>`);
       L.push(`        <action application="set" data="closed_reason=${esc(c.reason)}"/>`);
       L.push(`      </condition>`);
       L.push(`    </extension>`);
@@ -169,7 +214,7 @@ function dialplanXml(tenant, opts = {}) {
     L.push(`    <!-- מצב נא-לא-להפריע: הכל מנותב לאחרי-שעות -->`);
     L.push(`    <extension name="dnd_override" continue="true">`);
     L.push(`      <condition>`);
-    L.push(`        <action application="set" data="office_open=false"/>`);
+    L.push(`        <action application="set" data="force_closed=true"/>`);
     L.push(`        <action application="set" data="closed_reason=נא לא להפריע"/>`);
     L.push(`      </condition>`);
     L.push(`    </extension>`);
@@ -181,7 +226,7 @@ function dialplanXml(tenant, opts = {}) {
     L.push(`    <!-- מצב-חירום: סגור היום -->`);
     L.push(`    <extension name="emergency_override" continue="true">`);
     L.push(`      <condition>`);
-    L.push(`        <action application="set" data="office_open=false"/>`);
+    L.push(`        <action application="set" data="force_closed=true"/>`);
     L.push(`        <action application="set" data="closed_reason=חירום"/>`);
     L.push(`      </condition>`);
     L.push(`    </extension>`);
@@ -190,9 +235,14 @@ function dialplanXml(tenant, opts = {}) {
   // 3. כניסה פר-DID → זיהוי-קו → transfer ל-incoming (או ל-line_<id> אם לו לו״ז משלו).
   L.push(``);
   L.push(`    <!-- כניסה: כל מספר נושא-קול מזוהה לפי ה-DID ומנותב פנימה -->`);
-  const pdir = promptDir(tenant);
   for (const n of vnums) {
+    // קו-מופנה (customer-forward): ה-DID מזוהה רק אם הספק משמר את המספר-המקורי
+    // (caller-id-in-from). אם הוגדר forwardTo — הקו הוא alias של ה-SIM ומטופל שם.
+    if (n.onramp === 'customer-forward' && n.forwardTo) continue;
     L.push(`    <extension name="in_${esc(n.id)}">`);
+    if (n.onramp === 'customer-forward') {
+      L.push(`      <!-- קו-מופנה: תלוי בכך שהספק מעביר את ה-DID המקורי -->`);
+    }
     L.push(`      <condition field="destination_number" expression="^${reEsc(n.e164)}$">`);
     L.push(`        <action application="set" data="inbound_line=${esc(n.label)}"/>`);
     L.push(`        <action application="set" data="inbound_number=${esc(n.e164)}"/>`);
@@ -210,29 +260,48 @@ function dialplanXml(tenant, opts = {}) {
     L.push(`    </extension>`);
   }
 
-  // 3ב. לו״ז פר-מספר (opt-in voice.timecondition + number.hours): כל DID חלון-משלו.
+  // 3ב. לו״ז פר-מספר (number.hours): כל DID חלון-משלו → do_open/do_closed.
+  // force_closed (חג/שבת/dnd/חירום) גובר גם על קו עם לו״ז-משלו.
   for (const n of vnums) {
     if (!(n.hours && Array.isArray(n.hours.days) && n.hours.start && n.hours.end)) continue;
     const lwday = daysToWday(n.hours.days);
     const ltod = `${fsTime(n.hours.start)}-${fsTime(n.hours.end)}`;
+    L.push(`    <extension name="line_${esc(n.id)}_closed">`);
+    L.push(`      <condition field="destination_number" expression="^line_${esc(n.id)}$"/>`);
+    L.push(`      <condition field="\${force_closed}" expression="^true$">`);
+    L.push(`        <action application="transfer" data="do_closed XML ${esc(ctx)}"/>`);
+    L.push(`      </condition>`);
+    L.push(`    </extension>`);
     L.push(`    <extension name="line_${esc(n.id)}">`);
     L.push(`      <condition field="destination_number" expression="^line_${esc(n.id)}$"/>`);
     L.push(`      <condition wday="${lwday}" time-of-day="${ltod}">`);
-    L.push(`        <action application="set" data="office_open=true"/>`);
-    L.push(`        <action application="transfer" data="incoming XML ${esc(ctx)}"/>`);
-    L.push(`        <anti-action application="set" data="office_open=false"/>`);
-    L.push(`        <anti-action application="transfer" data="incoming XML ${esc(ctx)}"/>`);
+    L.push(`        <action application="transfer" data="do_open XML ${esc(ctx)}"/>`);
+    L.push(`        <anti-action application="transfer" data="do_closed XML ${esc(ctx)}"/>`);
     L.push(`      </condition>`);
     L.push(`    </extension>`);
   }
 
-  // 4. ניתוב-פנימי: פתוח → משרד, אחרת → אחרי-שעות.
+  // 4. ניתוב: ההחלטה נקבעה פעם-אחת (force_closed/global_open) ומועברת ל-handler
+  //    שאינו בודק-זמן שוב ⇒ עמיד ל-transfer.
   L.push(``);
-  L.push(`    <!-- ניתוב: פתוח → משרד (אין-מענה נופל לאחרי-שעות); סגור → מנהל → תא-קולי -->`);
+  L.push(`    <!-- ניתוב: force_closed→do_closed · global_open→do_open · אחרת→do_closed -->`);
+  L.push(`    <extension name="incoming_closed">`);
+  L.push(`      <condition field="destination_number" expression="^incoming$"/>`);
+  L.push(`      <condition field="\${force_closed}" expression="^true$">`);
+  L.push(`        <action application="transfer" data="do_closed XML ${esc(ctx)}"/>`);
+  L.push(`      </condition>`);
+  L.push(`    </extension>`);
   L.push(`    <extension name="incoming">`);
   L.push(`      <condition field="destination_number" expression="^incoming$"/>`);
-  L.push(`      <condition field="\${office_open}" expression="^true$">`);
-  const greet = featureOn(tenant, 'voice.greeting');
+  L.push(`      <condition field="\${global_open}" expression="^true$">`);
+  L.push(`        <action application="transfer" data="do_open XML ${esc(ctx)}"/>`);
+  L.push(`        <anti-action application="transfer" data="do_closed XML ${esc(ctx)}"/>`);
+  L.push(`      </condition>`);
+  L.push(`    </extension>`);
+
+  // 4ב. do_open — ניתוב-פתוח (ברכה/שם-מתקשר/הקלטה → IVR/תור/משרד; אין-מענה→afterhours).
+  L.push(`    <extension name="do_open">`);
+  L.push(`      <condition field="destination_number" expression="^do_open$">`);
   if (greet) {
     L.push(`        <action application="answer"/>`);
     L.push(`        <action application="playback" data="${pdir}/greeting-open.wav"/>`);
@@ -249,20 +318,21 @@ function dialplanXml(tenant, opts = {}) {
   } else if (useQueue) {
     L.push(`        <action application="answer"/>`);
     const qAnnounce = R.queue.announcePosition ? `${pdir}/queue-position.wav` : 'undef';
+    // maxWaitSec נאכף: מתקשר שממתין מעבר-לזמן נשלח ל-afterhours (לא תקוע לנצח).
+    L.push(`        <action application="set" data="fifo_orbit_exten=afterhours:${R.queue.maxWaitSec}"/>`);
     L.push(`        <action application="fifo" data="tenant_${esc(tenant.tenantId)}_q in ${qAnnounce} ${esc(R.queue.music)}"/>`);
     L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
   } else {
     L.push(`        <action application="bridge" data="{leg_timeout=${office.ringSeconds}}${esc(officeBridge)}"/>`);
     L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
   }
-  L.push(`        <anti-action application="transfer" data="${greet ? 'closed_greeting' : 'afterhours'} XML ${esc(ctx)}"/>`);
   L.push(`      </condition>`);
   L.push(`    </extension>`);
 
-  // 4ב. ברכת-סגור (opt-in voice.greeting): חג-ספציפי אם closed_reason, אחרת רגיל.
+  // 4ג. do_closed — ניתוב-סגור. עם ברכה: חג-ספציפי אם closed_reason, אחרת רגילה.
+  L.push(`    <extension name="do_closed">`);
   if (greet) {
-    L.push(`    <extension name="closed_greeting">`);
-    L.push(`      <condition field="destination_number" expression="^closed_greeting$"/>`);
+    L.push(`      <condition field="destination_number" expression="^do_closed$"/>`);
     L.push(`      <condition field="\${closed_reason}" expression="^.+$">`);
     L.push(`        <action application="answer"/>`);
     L.push(`        <action application="playback" data="${pdir}/greeting-holiday.wav"/>`);
@@ -271,8 +341,12 @@ function dialplanXml(tenant, opts = {}) {
     L.push(`        <anti-action application="playback" data="${pdir}/greeting-closed.wav"/>`);
     L.push(`        <anti-action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
     L.push(`      </condition>`);
-    L.push(`    </extension>`);
+  } else {
+    L.push(`      <condition field="destination_number" expression="^do_closed$">`);
+    L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
+    L.push(`      </condition>`);
   }
+  L.push(`    </extension>`);
 
   // 5. אחרי-שעות: מנהל → תא-קולי.
   L.push(`    <extension name="afterhours">`);
@@ -437,8 +511,17 @@ function directoryXml(tenant) {
   const office = tenant.destinations.office;
   const manager = tenant.destinations.manager;
   const vm = tenant.destinations.voicemail;
-  // אקסטנשנים ייחודיים: כל ה-office + המנהל.
-  const exts = [...new Set([...office.ext, manager.ext])];
+  // אקסטנשנים ייחודיים: office + מנהל + גלישה + יעדי-IVR (ext/ringgroup) —
+  // אחרת bridge ל-user/<ext> שאין לו רשומה נכשל תמיד.
+  const R = tenant.routing || {};
+  const ivrExts = [];
+  if (R.ivr) {
+    for (const o of R.ivr.options) {
+      if (o.dest.type === 'ext') ivrExts.push(o.dest.value);
+      else if (o.dest.type === 'ringgroup') ivrExts.push(...o.dest.value);
+    }
+  }
+  const exts = [...new Set([...office.ext, manager.ext, ...(R.overflow || []), ...ivrExts])];
 
   const L = [];
   L.push(`<?xml version="1.0" encoding="utf-8"?>`);
@@ -452,9 +535,9 @@ function directoryXml(tenant) {
     L.push(`        <params>`);
     L.push(`          <param name="password" value="$\${default_provision_password}"/>`);
     L.push(`          <param name="vm-password" value="${esc(vm.box)}"/>`);
-    // תא-קולי-במייל: המנהל מקבל את vm.email; שלוחות-המשרד מקבלות office.email אם הוגדר.
+    // תא-קולי-במייל (מגודר voicemail.email): המנהל מקבל vm.email; שלוחות-משרד office.email.
     const vmMail = isManager ? vm.email : office.ext.includes(ext) ? office.email : undefined;
-    if (vmMail) {
+    if (vmMail && featureOn(tenant, 'voicemail.email')) {
       L.push(`          <param name="vm-mailto" value="${esc(vmMail)}"/>`);
       L.push(`          <param name="vm-attach-file" value="true"/>`);
     }

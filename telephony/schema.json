@@ -149,6 +149,10 @@
           "announcementText": {
             "type": "string",
             "description": "נוסח-ההכרזה המוצע (לקו-הכרזה) — להקלטה ע״י המפעיל."
+          },
+          "forwardTo": {
+            "type": "string",
+            "description": "עבור customer-forward: id של מספר sim-in-gateway שאליו הלקוח מפנה. אז הקו = alias של אותו SIM (בלי in_ נפרד)."
           }
         }
       }

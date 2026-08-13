@@ -94,7 +94,7 @@ export function classifyDay(iso, opt = {}) {
     (m === 'Tishri' && d === 10) || // יום כיפור
     (m === 'Tishri' && d === 3 && dow !== 6) || (m === 'Tishri' && d === 4 && dow === 0) || // צום גדליה
     (m === 'Tevet' && d === 10) || // עשרה בטבת
-    (isAdar(m) && d === 13 && dow !== 6) || (isAdar(m) && d === 11 && dow === 5) || // תענית אסתר
+    (isAdar(m) && d === 13 && dow !== 6) || (isAdar(m) && d === 11 && dow === 4) || // תענית אסתר (נדחית לחמישי כש-י״ג בשבת)
     (m === 'Tammuz' && d === 17 && dow !== 6) || (m === 'Tammuz' && d === 18 && dow === 0) || // י״ז בתמוז
     (m === 'Av' && d === 9 && dow !== 6) || (m === 'Av' && d === 10 && dow === 0); // ט׳ באב (נדחה)
   if (isFast) {
@@ -148,6 +148,7 @@ export function hebrewClosedDates(fromIso, windowDays = 400, opt = {}) {
     if (c.yomTov) out.push({ iso, reason: c.yomTov, kind: 'yomtov' });
     else if (opt.includeCholHamoed && c.cholHamoed) out.push({ iso, reason: c.cholHamoed, kind: 'cholhamoed' });
     else if (opt.includeErev && c.erevChag) out.push({ iso, reason: c.erevChag, kind: 'erev' });
+    else if (opt.includeFasts && c.fast && !c.shabbat) out.push({ iso, reason: c.fast, kind: 'fast' });
   }
   return out;
 }

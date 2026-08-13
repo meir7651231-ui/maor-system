@@ -105,10 +105,15 @@ export function normalizeRouting(raw = {}) {
 
   // חיוג-מהיר
   const sd = [];
+  const RESERVED = /^(\*20|700|[12]\d\d)$/; // *20=תור · 700=חניה · 1XX/2XX=פנימי
   for (const s of Array.isArray(raw.speedDial) ? raw.speedDial : []) {
     const code = typeof s?.code === 'string' && /^[0-9*#]{1,4}$/.test(s.code) ? s.code : null;
     const e164 = toE164(s?.e164);
     if (!code || !e164) { warnings.push(`speedDial: רשומה לא-תקינה — דילוג.`); continue; }
+    if (RESERVED.test(code) || /#/.test(code)) {
+      warnings.push(`speedDial: קוד "${code}" מתנגש עם קוד-שמור (*20/700/1XX/2XX/N#) — לא ינותב. בחר קוד אחר.`);
+      continue;
+    }
     sd.push({ code, e164, label: String(s?.label || '') });
   }
   if (sd.length) routing.speedDial = sd.sort((a, b) => a.code.localeCompare(b.code));

@@ -36,12 +36,13 @@ export function channelPlan(tenant) {
         cti: tenant.cti && tenant.cti.mode !== 'off',
       });
     }
-    if (ch.includes('sms')) {
+    // SMS אמיתי רק דרך SIM-בשער. הפניית-לקוח (customer-forward) אינה מעבירה SMS.
+    if (ch.includes('sms') && n.onramp === 'sim-in-gateway') {
       sms.push({
         id: n.id,
         e164: n.e164,
         label: n.label,
-        method: n.onramp === 'sim-in-gateway' ? 'sim-gateway' : 'customer-forward',
+        method: 'sim-gateway',
         provider: null, // אין שער-SMS מסחרי. ה-SIM עצמו.
         ...(Number.isInteger(n.gatewayChannel) ? { gatewayChannel: n.gatewayChannel } : {}),
         cti: tenant.cti && tenant.cti.mode !== 'off',
@@ -67,9 +68,24 @@ export function channelPlan(tenant) {
  * אינווריאנט-שמירה: מוודא שאין דליפת-ספק בתוכנית-הערוצים. כל provider חייב null.
  * @returns {boolean}
  */
-export function isPureDownstream(plan) {
-  const all = [...(plan.whatsapp || []), ...(plan.sms || [])];
-  return all.every((x) => x.provider === null && x.method !== 'business-api' && x.method !== 'sms-provider');
+// אסור: שם-שדה שמרמז על תלות-ספק. ערך לא-ריק בשדה כזה = דליפה.
+const FORBIDDEN_KEY = /provider|trunk|apikey|api_key|sip_?host|sip_?uri|carrier|waba|business_?account|access_?token/i;
+export function isPureDownstream(input) {
+  // מצב א׳: תוכנית-ערוצים (whatsapp/sms) — provider חייב null, method לא-ספק.
+  if (input && (Array.isArray(input.whatsapp) || Array.isArray(input.sms))) {
+    const all = [...(input.whatsapp || []), ...(input.sms || [])];
+    return all.every((x) => x.provider === null && x.method !== 'business-api' && x.method !== 'sms-provider');
+  }
+  // מצב ב׳: קונפיג/tenant גולמי — סריקה רקורסיבית לשדות-ספק אסורים (עם ערך).
+  const scan = (obj, depth = 0) => {
+    if (!obj || typeof obj !== 'object' || depth > 8) return true;
+    for (const [k, v] of Object.entries(obj)) {
+      if (FORBIDDEN_KEY.test(k) && v != null && v !== false && v !== '') return false;
+      if (typeof v === 'object' && !scan(v, depth + 1)) return false;
+    }
+    return true;
+  };
+  return scan(input);
 }
 
 // ── 72. תבניות-הודעה עריכות (allowlist, כמו maor lib/templates) ───────────────

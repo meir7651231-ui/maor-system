@@ -13,13 +13,16 @@ export function secretsFor(tenant) {
     gsm_gateway_ip: `GSM_IP__${id}`,
   };
 }
-/** אימות-בידוד: אין סוד משותף בין שני לקוחות (כל ערך נושא את ה-tenantId). */
+/** אימות-בידוד: tenantId-ים ייחודיים ואף ערך-סוד לא חוזר בין לקוחות. */
 export function secretsIsolated(tenants) {
-  const seen = new Map();
+  const ids = new Set();
+  const owner = new Map(); // secretValue → tenantId
   for (const t of tenants) {
+    if (ids.has(t.tenantId)) return false; // אותו tenantId פעמיים ⇒ סודות משותפים
+    ids.add(t.tenantId);
     for (const v of Object.values(secretsFor(t))) {
-      if (seen.has(v) && seen.get(v) !== t.tenantId) return false;
-      seen.set(v, t.tenantId);
+      if (owner.has(v) && owner.get(v) !== t.tenantId) return false; // התנגשות-ערך
+      owner.set(v, t.tenantId);
     }
   }
   return true;
@@ -43,12 +46,13 @@ export function can(role, action) {
 // ── 86. הקשחת-קונפיג — checklist נאכף ────────────────────────────────────────
 /** בודק הקשחות-חובה (בלי guest/anonymous, TLS, ACL, סיסמאות-חזקות). */
 export function hardeningChecklist(profile = {}) {
+  // fail-closed: בקרת-אבטחה נחשבת עוברת רק כשהוצהרה במפורש true (שדה-חסר=נכשל).
   const checks = [
     { key: 'no-guest', pass: profile.allowGuest !== true, detail: 'guest/anonymous חסום' },
-    { key: 'sip-tls', pass: profile.sipTls !== false, detail: 'SIP-over-TLS' },
-    { key: 'srtp', pass: profile.srtp !== false, detail: 'SRTP (מדיה מוצפנת)' },
-    { key: 'acl-register', pass: profile.registerAcl !== false, detail: 'ACL-רישום' },
-    { key: 'fail2ban', pass: profile.fail2ban !== false, detail: 'הגנת-brute-force' },
+    { key: 'sip-tls', pass: profile.sipTls === true, detail: 'SIP-over-TLS' },
+    { key: 'srtp', pass: profile.srtp === true, detail: 'SRTP (מדיה מוצפנת)' },
+    { key: 'acl-register', pass: profile.registerAcl === true, detail: 'ACL-רישום' },
+    { key: 'fail2ban', pass: profile.fail2ban === true, detail: 'הגנת-brute-force' },
     { key: 'strong-pw', pass: (profile.minPwLen || 0) >= 12, detail: 'סיסמאות ≥12 תווים' },
   ];
   return { pass: checks.every((c) => c.pass), checks };

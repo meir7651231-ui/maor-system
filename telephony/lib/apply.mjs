@@ -160,7 +160,7 @@ export function pushAudit(log, entry, cap = 500) {
  * (כותב בחזרה את מה שכבר נכתב) ומחזיר rolledBack. writeFn חייב להיות אידמפוטנטי.
  * @returns {{ok:boolean, written:string[], rolledBack:boolean, error?:string}}
  */
-export function applyWithRollback(current, desired, writeFn) {
+export function applyWithRollback(current, desired, writeFn, deleteFn) {
   const plan = planApply(current, desired);
   const toWrite = [...plan.creates, ...plan.updates];
   const written = [];
@@ -171,13 +171,16 @@ export function applyWithRollback(current, desired, writeFn) {
     }
     return { ok: true, written, rolledBack: false };
   } catch (e) {
-    // שחזור: כותב בחזרה את current לכל מה שכבר נכתב.
+    // שחזור מלא: קובץ-שהיה (update) חוזר לתוכנו; קובץ-שנוצר (create) נמחק.
+    const restored = [];
     for (const p of written) {
-      if (p in current) {
-        try { writeFn(p, current[p]); } catch { /* best-effort */ }
-      }
+      try {
+        if (p in current) writeFn(p, current[p]);
+        else if (deleteFn) deleteFn(p);
+        restored.push(p);
+      } catch { /* best-effort */ }
     }
-    return { ok: false, written: [], rolledBack: true, error: String(e && e.message ? e.message : e) };
+    return { ok: false, written: [], restored, rolledBack: true, error: String(e && e.message ? e.message : e) };
   }
 }
 

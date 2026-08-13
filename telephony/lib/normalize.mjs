@@ -42,9 +42,13 @@ export function toE164(raw, defaultCc = '972') {
     if (local.length < 7) return null;
     return `+${defaultCc}${local}`;
   }
-  // מספר מקומי בלי 0 (למשל הוקלד חלקית) — הצמד קידומת-מדינה אם באורך סביר.
-  if (d.length >= 7 && d.length <= 12) {
+  // מספר בלי + ובלי 0 מוביל: אורך-NSN ישראלי (7-9) ⇒ הצמד קידומת-מדינה;
+  // אורך 10+ ⇒ ככל-הנראה מספר בין-לאומי שכולל כבר קידומת-מדינה (לא להצמיד +972!).
+  if (d.length >= 7 && d.length <= 9) {
     return `+${defaultCc}${d}`;
+  }
+  if (d.length >= 10 && d.length <= 15) {
+    return `+${d}`;
   }
   return null;
 }

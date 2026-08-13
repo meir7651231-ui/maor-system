@@ -4,15 +4,30 @@
 <include>
   <context name="tenant_chesed-demo">
 
-    <!-- שער-הזמן: ברירת-מחדל סגור, נפתח רק בחלון שעות-המשרד -->
-    <extension name="office_default" continue="true">
+    <!-- setup: התנהגות עצמאית (לא תלוי vars.xml של השרת) -->
+    <extension name="setup_defaults" continue="true">
       <condition>
-        <action application="set" data="office_open=false"/>
+        <action application="set" data="hangup_after_bridge=true"/>
+        <action application="set" data="continue_on_fail=true"/>
       </condition>
     </extension>
-    <extension name="office_open_window" continue="true">
+    <extension name="cid_normalize" continue="true">
+      <condition field="caller_id_number" expression="^0(\d+)$">
+        <action application="set" data="cid_e164=+972$1"/>
+        <anti-action application="set" data="cid_e164=${caller_id_number}"/>
+      </condition>
+    </extension>
+
+    <!-- שער-הזמן: ברירת-מחדל סגור; global_open לפי שעות, force_closed לפי חג/dnd/חירום -->
+    <extension name="gate_default" continue="true">
+      <condition>
+        <action application="set" data="global_open=false"/>
+        <action application="set" data="force_closed=false"/>
+      </condition>
+    </extension>
+    <extension name="office_window" continue="true">
       <condition wday="1-5" time-of-day="9:00-17:00">
-        <action application="set" data="office_open=true"/>
+        <action application="set" data="global_open=true"/>
       </condition>
     </extension>
 
@@ -39,6 +54,7 @@
       </condition>
     </extension>
     <extension name="in_n4">
+      <!-- קו-מופנה: תלוי בכך שהספק מעביר את ה-DID המקורי -->
       <condition field="destination_number" expression="^\+972772000000$">
         <action application="set" data="inbound_line=קו וירטואלי משרד"/>
         <action application="set" data="inbound_number=+972772000000"/>
@@ -46,6 +62,7 @@
       </condition>
     </extension>
     <extension name="in_n5">
+      <!-- קו-מופנה: תלוי בכך שהספק מעביר את ה-DID המקורי -->
       <condition field="destination_number" expression="^\+972722334455$">
         <action application="set" data="inbound_line=קו וירטואלי גיוס"/>
         <action application="set" data="inbound_number=+972722334455"/>
@@ -53,13 +70,29 @@
       </condition>
     </extension>
 
-    <!-- ניתוב: פתוח → משרד (אין-מענה נופל לאחרי-שעות); סגור → מנהל → תא-קולי -->
+    <!-- ניתוב: force_closed→do_closed · global_open→do_open · אחרת→do_closed -->
+    <extension name="incoming_closed">
+      <condition field="destination_number" expression="^incoming$"/>
+      <condition field="${force_closed}" expression="^true$">
+        <action application="transfer" data="do_closed XML tenant_chesed-demo"/>
+      </condition>
+    </extension>
     <extension name="incoming">
       <condition field="destination_number" expression="^incoming$"/>
-      <condition field="${office_open}" expression="^true$">
+      <condition field="${global_open}" expression="^true$">
+        <action application="transfer" data="do_open XML tenant_chesed-demo"/>
+        <anti-action application="transfer" data="do_closed XML tenant_chesed-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_open">
+      <condition field="destination_number" expression="^do_open$">
         <action application="bridge" data="{leg_timeout=25}user/101@chesed-demo,user/102@chesed-demo"/>
         <action application="transfer" data="afterhours XML tenant_chesed-demo"/>
-        <anti-action application="transfer" data="afterhours XML tenant_chesed-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_closed">
+      <condition field="destination_number" expression="^do_closed$">
+        <action application="transfer" data="afterhours XML tenant_chesed-demo"/>
       </condition>
     </extension>
     <extension name="afterhours">

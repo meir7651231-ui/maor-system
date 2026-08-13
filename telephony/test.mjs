@@ -418,8 +418,8 @@ const vdp = vb.files['dialplan/tenant_voice-demo.xml'];
 ok('voice תקין', vb.ok);
 // 31+40. ברכות פתוח/סגור/חג
 ok('greeting-open בפתוח', vdp.includes('greeting-open.wav'));
-ok('closed_greeting hop', vdp.includes('closed_greeting'));
-ok('greeting-holiday מותנה closed_reason', /closed_greeting[\s\S]*?greeting-holiday\.wav[\s\S]*?anti-action[\s\S]*?greeting-closed\.wav/.test(vdp));
+ok('do_closed hop (ברכת-סגור)', vdp.includes('do_closed'));
+ok('greeting-holiday מותנה closed_reason', /do_closed[\s\S]*?greeting-holiday\.wav[\s\S]*?anti-action[\s\S]*?greeting-closed\.wav/.test(vdp));
 // 32. תא-קולי פר-שלוחה (מייל-משרד)
 ok('per-ext vm-mailto', (vb.files['directory/voice-demo.xml'].match(/office@voice\.example/g) || []).length === 2);
 // 33. תמלול-תא-קולי
@@ -461,9 +461,13 @@ ok('chesed בלי ברכות/הכרזות', !buildTenant(chesed).files['dialplan
 console.log('· גל 5 — עומק-CTI');
 // DB מועשר לבדיקה (additive על מבנה-מאור).
 const rdb = {
-  families: [{ id: 'F1', name: 'משפחת כהן', phone: '050-111-2233', phone2: '02-6543210', city: 'ירושלים', extraPhones: ['058-1010101'] }],
+  families: [{
+    id: 'F1', name: 'משפחת כהן', phone: '050-111-2233', phone2: '02-6543210', city: 'ירושלים',
+    members: [{ id: 'M1', first: 'יוסי', phone: '058-1010101' }], // בן-משפחה מקונן
+  }],
   supporters: [{ id: 'S1', name: 'דוד תורם', phone: '050-111-2233', cat: 'זהב', city: 'בני ברק', last: '2026-07-01', ils: 5000 }],
-  members: [], teachers: [],
+  volunteers: [{ id: 'V1', name: 'מתנדב חלוקה', phone: '054-2020202' }],
+  teachers: [],
 };
 // 41. העשרה
 {
@@ -478,10 +482,12 @@ const rdb = {
   ok('screenPop enrichment בכל התאמה', pop.matches.every((m) => m.enrichment));
   eq('screenPop line', pop.line, 'קו תרומות');
 }
-// 47. הצלבה מרובת-שדות (extraPhones)
+// 47. הצלבה: בן-משפחה מקונן (Family.members) + מתנדב מזוהים (תיקון #17/#18)
 {
   const pop = screenPop(rdb, '058-1010101');
-  ok('extraPhones מזוהה', pop.primary && pop.primary.id === 'F1' && pop.primary.field === 'extra');
+  ok('בן-משפחה מקונן מזוהה', pop.primary && pop.primary.kind === 'member' && pop.primary.id === 'M1');
+  ok('שם-בן-משפחה = first+משפחה', pop.primary.name.includes('יוסי'));
+  ok('מתנדב מזוהה', screenPop(rdb, '054-2020202').primary?.kind === 'volunteer');
 }
 // 48. עדיפות פר-ורטיקל
 {
@@ -747,9 +753,10 @@ ok('agent inbox בלבד', can('agent', 'inbox.read') && !can('agent', 'config.w
 ok('תפקיד-לא-מוכר ⇒ אסור', !can('nobody', 'config.read') && ROLES.length === 3);
 // 86. הקשחה
 {
-  ok('ברירת-מחדל מוקשח', hardeningChecklist({ minPwLen: 12 }).pass);
-  const bad = hardeningChecklist({ allowGuest: true, minPwLen: 4 });
-  ok('guest+pw-חלש נכשל', !bad.pass && bad.checks.some((c) => c.key === 'no-guest' && !c.pass));
+  const secure = { sipTls: true, srtp: true, registerAcl: true, fail2ban: true, minPwLen: 12 };
+  ok('פרופיל-מלא מוקשח', hardeningChecklist(secure).pass);
+  ok('שדות-חסרים נכשלים (fail-closed)', !hardeningChecklist({ minPwLen: 12 }).pass);
+  ok('guest נכשל', !hardeningChecklist({ ...secure, allowGuest: true }).pass);
 }
 // 87. הצפנת-הקלטות
 ok('הצפנה dormant כברירת-מחדל', !recordingEncryption({ tenantId: 'x' }).enabled);
@@ -884,6 +891,78 @@ console.log('· גל 10 — איכות/בדיקות');
     if (JSON.stringify(a1.files) !== JSON.stringify(a2.files)) det = false;
   }
   ok('דטרמיניזם: כל fixture פעמיים-זהה', det);
+}
+
+// ── ratchet סבב-תיקון 1 (נחיל 9×9): כל באג שנסגר מקבל שומר-נסיגה ──────────────
+console.log('· ratchet — תיקוני נחיל סבב-1');
+{
+  const cd = buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'];
+  // #4: hangup_after_bridge עצמאי (שיחה-שנענתה לא חוזרת ל-afterhours)
+  ok('R#4: hangup_after_bridge=true', cd.includes('hangup_after_bridge=true'));
+  // #29: חסימה/היתר מול cid_e164 המנורמל, לא caller_id הגולמי
+  ok('R#29: cid_e164 מנורמל', cd.includes('cid_e164=+972') && cd.includes('cid_normalize'));
+  const blk = buildTenant({ ...chesed, features: { 'voice.blocklist': true }, routing: { blocklist: ['050-9999999'] } })
+    .files['dialplan/tenant_chesed-demo.xml'];
+  ok('R#29: blocklist בודק ${cid_e164}', /blocklist[\s\S]*?\$\{cid_e164\}/.test(blk));
+  // #1/#30: מודל force_closed/global_open עמיד ל-transfer (לא office_open נדרס)
+  ok('R#1: force_closed/global_open (לא office_open)', cd.includes('global_open') && cd.includes('force_closed') && !cd.includes('office_open='));
+  ok('R#1: do_open/do_closed handlers', cd.includes('name="do_open"') && cd.includes('name="do_closed"'));
+  // #2: שלוחות overflow/IVR ב-directory
+  const fdir = fb.files['directory/full-demo.xml'];
+  ok('R#2: overflow 301/302 ב-directory', fdir.includes('id="301"') && fdir.includes('id="302"'));
+  // #12: calendar.shabbat — שישי חתוך, אין שבת (wday 6 = שישי ב-FreeSWITCH)
+  {
+    const shul = buildTenant({ tenantId: 'shul-t', orgName: 'ש', vertical: 'shul',
+      numbers: [{ id: 'n1', e164: '02-1000000', label: 'a', type: 'sim', onramp: 'sim-in-gateway', channels: ['voice'], gatewayChannel: 1 }],
+      destinations: { office: { ext: '101' }, manager: { ext: '201' }, voicemail: { box: '100' } },
+      outbound: { defaultNumberId: 'n1' }, cti: { mode: 'off' } }, { anchorDate: '2026-09-01' })
+      .files['dialplan/tenant_shul-t.xml'];
+    ok('R#12: שישי חתוך (wday 6 → 15:00)', /wday="6" time-of-day="7:00-15:00"/.test(shul));
+  }
+  // #14: voicemail.email מגודר — כיבוי מסיר vm-mailto
+  ok('R#14: voicemail.email=off מסיר vm-mailto',
+    !buildTenant({ ...voice, features: { ...voice.features, 'voicemail.email': false } }, { anchorDate: '2026-09-01' })
+      .files['directory/voice-demo.xml'].includes('vm-mailto'));
+}
+// #5: תענית-אסתר נדחית לחמישי כש-י״ג אדר בשבת (2024: י״ג אדר ב׳=23.3 שבת → 21.3 חמישי)
+ok('R#5: תענית-אסתר נדחית לחמישי', classifyDay('2024-03-21').fast === 'תענית אסתר' && classifyDay('2024-03-23').fast === null);
+// #20: מספר בין-לאומי לא מקבל +972 מזויף
+eq('R#20: US 11-ספרות → בין-לאומי', toE164('12025550143'), '+12025550143');
+eq('R#20: ישראלי 9-ספרות → +972', toE164('501234567'), '+972501234567');
+// #17/#18: בני-משפחה מקוננים + מתנדבים באינדקס
+{
+  const dir = buildDirectory(rdb);
+  ok('R#17: בן-משפחה מקונן באינדקס', (dir['+972581010101'] || []).some((x) => x.kind === 'member'));
+  ok('R#18: מתנדב באינדקס', (dir['+972542020202'] || []).some((x) => x.kind === 'volunteer'));
+  ok('R#17: אין db.members שורשי נדרש', screenPop({ families: [{ id: 'F', name: 'ג', members: [{ id: 'M', first: 'א', phone: '050-111-2233' }] }] }, '050-111-2233').primary.kind === 'member');
+}
+// #10: SMS דרך customer-forward נחסם
+ok('R#10: אין SMS-רפאים ל-customer-forward',
+  channelPlan({ numbers: [{ id: 'v', e164: '+972771', label: 'v', onramp: 'customer-forward', channels: ['voice', 'sms'] }], cti: { mode: 'off' } }).sms.length === 0);
+// #11: isPureDownstream סורק קונפיג אמיתי
+ok('R#11: פוסל שדה-ספק בקונפיג', !isPureDownstream({ numbers: [{ id: 'n', provider: 'bezeq' }] }));
+ok('R#11: מקבל קונפיג נקי', isPureDownstream(chesed));
+// #22: secretsIsolated תופס tenantId כפול
+ok('R#22: tenantId כפול ⇒ לא-מבודד', !secretsIsolated([{ tenantId: 'a' }, { tenantId: 'a' }]));
+ok('R#22: ייחודי ⇒ מבודד', secretsIsolated([{ tenantId: 'a' }, { tenantId: 'b' }]));
+// #26: חיוב — דקות-נכנסות לא מחויבות כיוצאות
+ok('R#26: אין outbound ⇒ 0 חריגה', computeInvoice('standard', { minutes: 700 }).items.length === 1);
+// #21: applyWithRollback מוחק קבצים-שנוצרו בשחזור
+{
+  const store = {}; const del = [];
+  let n = 0;
+  applyWithRollback({}, { 'a.xml': '1', 'b.xml': '2' }, (p, c) => { if (++n === 2) throw new Error('x'); store[p] = c; }, (p) => del.push(p));
+  ok('R#21: קובץ-שנוצר נמחק בשחזור', del.includes('a.xml'));
+}
+// #8: customer-forward בלי SIM-נחיתה ⇒ אזהרה
+ok('R#8: אזהרת קו-מופנה בלי SIM',
+  validateTenant({ tenantId: 'x', orgName: 'x', officeHours: { days: [0], start: '9:00', end: '17:00' },
+    numbers: [{ id: 'v', e164: '077-2000000', label: 'v', type: 'virtual', onramp: 'customer-forward', channels: ['voice'] }],
+    destinations: { office: { ext: '101' }, manager: { ext: '201' } } }).warnings.some((w) => w.includes('SIM-בשער')));
+// #33: קוד חיוג-מהיר שמור ⇒ אזהרה+דילוג
+{
+  const { routing, warnings: w } = normalizeRouting({ speedDial: [{ code: '700', e164: '021234567' }, { code: '*5', e164: '021234567' }] });
+  ok('R#33: קוד שמור נחסם', routing.speedDial.length === 1 && w.some((x) => x.includes('קוד-שמור')));
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────

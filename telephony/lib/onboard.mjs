@@ -260,6 +260,10 @@ export function preflight(tenant) {
   const sims = tenant.numbers.filter((n) => n.onramp === 'sim-in-gateway');
   const noChannel = sims.filter((n) => !Number.isInteger(n.gatewayChannel));
   if (noChannel.length) warnings.push(`${noChannel.length} SIM ללא ערוץ-שער — יציאה דרכם לא-תעבוד.`);
+  // קו-מופנה בלי SIM-נחיתה נושא-קול = לא יכול לקבל שיחה (חוסם מוכנות אמיתית).
+  const simVoice = sims.some((n) => (n.channels || []).includes('voice'));
+  const fwdVoice = tenant.numbers.some((n) => n.onramp === 'customer-forward' && (n.channels || []).includes('voice'));
+  if (fwdVoice && !simVoice) blockers.push('קווים-מופנים בלי SIM-בשער נושא-קול לנחיתה — לא יתקבלו שיחות.');
   if (!tenant.destinations.office.ext.length) blockers.push('אין שלוחת-משרד.');
   if (!tenant.destinations.manager.ext) blockers.push('אין שלוחת-מנהל.');
   if (!tenant.outbound.defaultNumberId) warnings.push('אין מספר יציאת-ברירת-מחדל.');

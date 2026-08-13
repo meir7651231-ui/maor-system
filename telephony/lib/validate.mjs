@@ -174,11 +174,28 @@ export function validateTenant(raw) {
         ...(n.role === 'announcement'
           ? { role: 'announcement', announcementText: typeof n.announcementText === 'string' ? n.announcementText : '' }
           : {}),
+        // קו-מופנה שהוגדר לו forwardTo (id של SIM) = alias של אותו SIM.
+        ...(n.onramp === 'customer-forward' && typeof n.forwardTo === 'string' ? { forwardTo: n.forwardTo } : {}),
       });
     }
   }
   if (voiceBearing === 0) {
     errors.push('אין אף מספר נושא-קול (voice + onramp שאינו device-link). המרכזייה הקולית ריקה.');
+  }
+  // קו-מופנה חייב לנחות על SIM-בשער (הפניה אינה מסלול-כניסה עצמאי downstream).
+  const hasSimVoice = numbers.some((n) => n.onramp === 'sim-in-gateway' && n.channels.includes('voice'));
+  const hasForwardVoice = numbers.some((n) => n.onramp === 'customer-forward' && n.channels.includes('voice'));
+  if (hasForwardVoice && !hasSimVoice) {
+    warnings.push('קווים-מופנים (customer-forward) קיימים אך אין אף SIM-בשער נושא-קול לנחיתה — הפניה חייבת לנחות על SIM; עד אז המרכזייה לא תקבל שיחות מהקווים המופנים.');
+  }
+  // forwardTo (אם הוגדר) חייב להצביע על SIM-בשער.
+  for (const n of numbers) {
+    if (n.forwardTo) {
+      const target = numbers.find((x) => x.id === n.forwardTo);
+      if (!target || target.onramp !== 'sim-in-gateway') {
+        warnings.push(`numbers[${n.id}]: forwardTo "${n.forwardTo}" אינו מצביע על SIM-בשער — יטופל כקו-רגיל.`);
+      }
+    }
   }
 
   // ── יעדים ──

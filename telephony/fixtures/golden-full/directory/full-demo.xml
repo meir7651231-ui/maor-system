@@ -38,6 +38,28 @@
           <variable name="toll_allow" value="domestic"/>
         </variables>
       </user>
+      <user id="301">
+        <params>
+          <param name="password" value="$${default_provision_password}"/>
+          <param name="vm-password" value="100"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_full-demo"/>
+          <variable name="effective_caller_id_name" value="משרד עמותה מלאה"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+      <user id="302">
+        <params>
+          <param name="password" value="$${default_provision_password}"/>
+          <param name="vm-password" value="100"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_full-demo"/>
+          <variable name="effective_caller_id_name" value="משרד עמותה מלאה"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
     </users>
   </domain>
 </include>

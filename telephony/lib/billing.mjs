@@ -7,7 +7,8 @@
 import { toE164 } from './normalize.mjs';
 /** מנרמל רשומת-CDR גולמית (מ-FreeSWITCH) לסכמה-אחידה. */
 export function normalizeCdr(raw = {}) {
-  const dur = Number(raw.billsec ?? raw.duration ?? 0) || 0;
+  // לחיוב: billsec (זמן-שיחה) בלבד — לא duration (שכולל צלצול). חסר ⇒ 0 שניות-חיוב.
+  const dur = Number(raw.billsec ?? 0) || 0;
   return {
     uuid: String(raw.uuid ?? raw.id ?? ''),
     tenantId: String(raw.tenantId ?? raw.domain ?? ''),
@@ -57,7 +58,8 @@ export function computeInvoice(planKey, usage = {}, opt = {}) {
   const items = [{ label: `מנוי ${plan.name}`, amount: plan.base }];
   const exts = Math.max(0, (opt.extensions || 0));
   if (plan.perExt && exts > 0) items.push({ label: `${exts} שלוחות × ₪${plan.perExt}`, amount: exts * plan.perExt });
-  const outMin = (usage.outbound && usage.outbound.minutes) || usage.minutes || 0;
+  // רק דקות-יוצאות מחויבות כחריגה. אין outbound ⇒ 0 (לא ליפול לסך-הכל הנכנס).
+  const outMin = usage.outbound ? (usage.outbound.minutes || 0) : 0;
   const billableMin = Math.max(0, outMin - plan.includedMinutes);
   if (plan.perMinute && billableMin > 0) {
     items.push({ label: `${billableMin} דק׳ מעבר-לחבילה × ₪${plan.perMinute}`, amount: Math.round(billableMin * plan.perMinute * 100) / 100 });

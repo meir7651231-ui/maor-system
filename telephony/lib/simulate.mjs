@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { toE164 } from './normalize.mjs';
-import { featureOn } from './config.mjs';
+import { featureOn, termOf } from './config.mjs';
 import { classifyDay } from './hebcal.mjs';
 
 function hhmmToMin(s) {
@@ -15,6 +15,18 @@ function hhmmToMin(s) {
 /** האם הרגע בתוך חלון (days,start,end). at = {dow, minutes}. */
 function inWindow(win, at) {
   return win.days.includes(at.dow) && at.minutes >= hhmmToMin(win.start) && at.minutes < hhmmToMin(win.end);
+}
+
+/** חלון מודע-שבת — מיישר לגנרטור: calendar.shabbat ⇒ אין שבת, שישי חתוך ב-shabbatFriEnd. */
+function inWindowShabbat(tenant, win, at) {
+  if (!featureOn(tenant, 'calendar.shabbat')) return inWindow(win, at);
+  if (at.dow === 6) return false; // שבת סגור
+  if (at.dow === 5) {
+    if (!win.days.includes(5)) return false;
+    const cap = Math.min(hhmmToMin(win.end), hhmmToMin(termOf(tenant, 'shabbatFriEnd', '15:00')));
+    return at.minutes >= hhmmToMin(win.start) && at.minutes < cap;
+  }
+  return inWindow(win, at);
 }
 
 /**
@@ -57,26 +69,26 @@ export function simulateCall(tenant, call = {}) {
   // קו-הכרזה.
   if (num.role === 'announcement') return { path: [...path, 'announcement'], outcome: 'announcement' };
 
-  // חישוב-פתיחה. at = dow+minutes (מ-date/dow/hhmm).
+  // חישוב-פתיחה — מיישר לגנרטור: force_closed (חירום/dnd/חג) גובר על global_open (שעות).
   const at = resolveMoment(call);
-  let open = null;
+  let forceClosed = false;
   let reason = '';
-  // מצב-חירום / dnd → סגור.
-  if (featureOn(tenant, 'emergency') && tenant.emergency && tenant.emergency.active) { open = false; reason = 'חירום'; }
-  else if (featureOn(tenant, 'voice.dnd') && R.dnd) { open = false; reason = 'נא לא להפריע'; }
-  else {
-    // חג-עברי (אם דלוק ויש תאריך).
-    if (featureOn(tenant, 'calendar.hebrew') && call.date) {
-      const c = classifyDay(call.date, { tz: tenant.timezone });
-      if (c.closedReason) { open = false; reason = c.closedReason; }
-    }
-    if (open === null) {
-      // לו״ז פר-מספר גובר, אחרת שעות-המשרד.
-      const win = num.hours || tenant.officeHours;
-      open = inWindow(win, at);
-      reason = open ? 'שעות-פעילות' : 'מחוץ-לשעות';
-    }
+  if (featureOn(tenant, 'emergency') && tenant.emergency && tenant.emergency.active) { forceClosed = true; reason = 'חירום'; }
+  else if (featureOn(tenant, 'voice.dnd') && R.dnd) { forceClosed = true; reason = 'נא לא להפריע'; }
+  else if (featureOn(tenant, 'calendar.hebrew') && call.date) {
+    // כמו hebrewClosedDates: יו״ט תמיד; ערב-חג/חוה״מ רק אם הדגל דלוק. שבת ב-wday.
+    const diaspora = tenant.timezone && !/Jerusalem|Tel_Aviv|Hebron/.test(tenant.timezone);
+    const c = classifyDay(call.date, { tz: tenant.timezone, diaspora });
+    const closes = c.yomTov
+      || (featureOn(tenant, 'calendar.erev') && c.erevChag)
+      || (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed)
+      || (featureOn(tenant, 'calendar.fasts') && c.fast && !c.shabbat);
+    if (closes) { forceClosed = true; reason = c.yomTov || c.erevChag || c.cholHamoed || c.fast; }
   }
+  // global_open: חלון-הקו (אם יש) אחרת שעות-המשרד, מודע-שבת.
+  const win = num.hours || tenant.officeHours;
+  const open = !forceClosed && inWindowShabbat(tenant, win, at);
+  if (!reason) reason = open ? 'שעות-פעילות' : 'מחוץ-לשעות';
 
   if (open) {
     path.push('open');
