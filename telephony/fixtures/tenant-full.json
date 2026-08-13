@@ -1,0 +1,41 @@
+{
+  "tenantId": "full-demo",
+  "orgName": "עמותה מלאה",
+  "officeHours": { "days": [0, 1, 2, 3, 4], "start": "09:00", "end": "17:00" },
+  "features": {
+    "voice.ivr": true,
+    "voice.blocklist": true,
+    "voice.park": true
+  },
+  "numbers": [
+    { "id": "n1", "e164": "02-5000000", "label": "קו ראשי", "type": "sim", "onramp": "sim-in-gateway", "channels": ["voice"], "gatewayChannel": 1 },
+    { "id": "n2", "e164": "03-5000000", "label": "קו תרומות", "type": "sim", "onramp": "sim-in-gateway", "channels": ["voice"], "gatewayChannel": 2 },
+    { "id": "n3", "e164": "077-5000000", "label": "קו לילה", "type": "virtual", "onramp": "customer-forward", "channels": ["voice"], "hours": { "days": [0, 1, 2, 3, 4], "start": "18:00", "end": "22:00" } }
+  ],
+  "destinations": {
+    "office": { "ext": ["101", "102"], "ringSeconds": 25 },
+    "manager": { "ext": "201", "ringSeconds": 30 },
+    "voicemail": { "box": "100", "email": "mgr@full.example" }
+  },
+  "outbound": { "defaultNumberId": "n1" },
+  "routing": {
+    "ringStrategy": "sequential",
+    "blocklist": ["050-9999999", "03-1111111"],
+    "overflow": ["301", "302"],
+    "internal": true,
+    "speedDial": [
+      { "code": "*1", "e164": "050-1234567", "label": "גבאי" },
+      { "code": "*2", "e164": "052-7654321", "label": "רב" }
+    ],
+    "ivr": {
+      "greeting": "לשירותכם: הקישו 1 למשרד, 2 לתרומות, 3 להשארת הודעה",
+      "timeout": 6,
+      "invalidMax": 3,
+      "options": [
+        { "digit": "1", "label": "משרד", "dest": { "type": "ringgroup", "value": ["101", "102"] } },
+        { "digit": "2", "label": "תרומות", "dest": { "type": "ext", "value": "102" } },
+        { "digit": "3", "label": "הודעה", "dest": { "type": "voicemail", "value": "100" } }
+      ]
+    }
+  }
+}

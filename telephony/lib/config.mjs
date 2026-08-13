@@ -30,6 +30,8 @@ export const FLAG_DEFAULTS = {
   'voice.queue': 'off',
   'voice.blocklist': 'off',
   'voice.dnd': 'off',
+  'voice.park': 'off',
+  'voice.transfer': 'off',
   recording: 'off',
   'calendar.hebrew': 'off',
   'calendar.shabbat': 'off',

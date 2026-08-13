@@ -21,6 +21,7 @@ import {
   sanitizeConfigFields, SCHEMA_VERSION,
 } from './lib/config.mjs';
 import { classifyDay, hebParts, hebrewClosedDates } from './lib/hebcal.mjs';
+import { normalizeRouting, numbersAlternation } from './lib/routing.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const UPDATE = process.env.UPDATE === '1';
@@ -331,6 +332,62 @@ ok('hebParts תקין', hebParts('2026-09-12').monthHe === 'תשרי' && hebPart
   ok('בלי anchor אין heb_', !/heb_\d{8}/.test(buildTenant(JSON.parse(readFileSync(join(HERE, 'fixtures/tenant-kollel.json'), 'utf8'))).files['dialplan/tenant_kollel-demo.xml']));
 }
 
+// ── גל 3 (21-30): ניתוב-קול עשיר ────────────────────────────────────────────
+console.log('· גל 3 — ניתוב עשיר: IVR/תור/חסימה/חיוג-מהיר');
+const full = JSON.parse(readFileSync(join(HERE, 'fixtures/tenant-full.json'), 'utf8'));
+const fb = buildTenant(full);
+const fdp = fb.files['dialplan/tenant_full-demo.xml'];
+ok('full תקין', fb.ok);
+// 21. IVR
+ok('IVR menu + play_and_get_digits', fdp.includes('ivr_menu') && fdp.includes('play_and_get_digits'));
+ok('IVR אפשרות ringgroup', fdp.includes('ivr_opt_1') && fdp.includes('user/101@full-demo,user/102@full-demo'));
+ok('IVR אפשרות voicemail', fdp.includes('ivr_opt_3') && /ivr_opt_3[\s\S]*?voicemail/.test(fdp));
+ok('IVR fallback ריק', fdp.includes('ivr_opt_empty'));
+// 23. אסטרטגיית-צלצול (בפרופיל בלי IVR)
+{
+  const seq = buildTenant({ ...full, features: {}, routing: { ...full.routing, ivr: undefined, ringStrategy: 'sequential' } });
+  ok('sequential ⇒ צינור בין שלוחות', seq.files['dialplan/tenant_full-demo.xml'].includes('user/101@full-demo|user/102@full-demo'));
+  const sim = buildTenant({ ...full, features: {}, routing: { ringStrategy: 'simultaneous', ivr: undefined } });
+  ok('simultaneous ⇒ פסיק', sim.files['dialplan/tenant_full-demo.xml'].includes('user/101@full-demo,user/102@full-demo'));
+}
+// 25. גלישה מדורגת
+ok('overflow ⇒ שרשרת-בריג׳', fdp.includes('user/301@full-demo') && fdp.includes('user/302@full-demo'));
+// 26. לו״ז פר-מספר
+ok('per-number hours ⇒ line_n3', fdp.includes('line_n3') && fdp.includes('18:00-22:00'));
+// 27. חסימה
+ok('blocklist ⇒ CALL_REJECTED', fdp.includes('blocklist') && fdp.includes('CALL_REJECTED'));
+// 28. DND (inline)
+{
+  const dnd = buildTenant({ ...full, features: { 'voice.dnd': true }, routing: { dnd: true } });
+  ok('dnd ⇒ override סגור', dnd.files['dialplan/tenant_full-demo.xml'].includes('dnd_override'));
+}
+// 29. חניית-שיחה
+ok('park ⇒ valet_park על 700', fdp.includes('valet_park') && fdp.includes('"^700$"'));
+// 30. חיוג-מהיר + פנימי
+ok('speedDial ⇒ sd_star1', fdp.includes('sd_star1') && fdp.includes('sd_star2'));
+ok('internal ⇒ internal_dial', fdp.includes('internal_dial'));
+// 22. תור (inline — mutual-exclusive עם IVR)
+{
+  const q = buildTenant({ ...full, features: { 'voice.queue': true }, routing: { queue: { maxWaitSec: 120 }, ivr: undefined } });
+  const qdp = q.files['dialplan/tenant_full-demo.xml'];
+  ok('queue ⇒ fifo in + queue_agent', qdp.includes('fifo') && qdp.includes('queue_agent'));
+}
+// normalizeRouting טהור: חיטוי
+{
+  const { routing, warnings: w } = normalizeRouting({
+    ivr: { options: [{ digit: '1', dest: { type: 'ext', value: '101' } }, { digit: 'X', dest: { type: 'ext', value: '1' } }] },
+    blocklist: ['050-1111111', 'zzz'],
+    speedDial: [{ code: '*9', e164: '021234567' }, { code: 'bad', e164: '1' }],
+  });
+  ok('routing מחטא ספרה-לא-תקינה', routing.ivr.options.length === 1);
+  ok('routing מחטא blocklist זבל', routing.blocklist.length === 1);
+  ok('routing מחטא speedDial זבל', routing.speedDial.length === 1);
+  ok('normalizeRouting מפיק warnings', w.length >= 3);
+}
+ok('numbersAlternation בורח נכון', numbersAlternation(['+97250', '+97251']) === '\\+97250|\\+97251');
+// אינווריאנט: כבוי=ביט-זהה (chesed בלי routing → אף מקטע לא נפלט)
+ok('chesed בלי מקטעי-ניתוב-עשיר', !buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'].match(/ivr_menu|blocklist|sd_|internal_dial|valet_park|dnd_override/));
+
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
 const goldenDir = join(HERE, 'fixtures/golden');
@@ -363,6 +420,22 @@ for (const [rel, content] of Object.entries(a.files)) {
       ok(`golden-kollel חסר: ${rel} (הרץ UPDATE=1)`, false);
     } else {
       ok(`golden-kollel תואם: ${rel}`, readFileSync(gp, 'utf8') === content);
+    }
+  }
+}
+// golden נפרד ל-full (כל מקטעי-הניתוב-העשיר).
+{
+  const fgDir = join(HERE, 'fixtures/golden-full');
+  for (const [rel, content] of Object.entries(fb.files)) {
+    const gp = join(fgDir, rel);
+    if (UPDATE) {
+      mkdirSync(dirname(gp), { recursive: true });
+      writeFileSync(gp, content, 'utf8');
+      console.log('  ❄️  הקפיא full/' + rel);
+    } else if (!existsSync(gp)) {
+      ok(`golden-full חסר: ${rel} (הרץ UPDATE=1)`, false);
+    } else {
+      ok(`golden-full תואם: ${rel}`, readFileSync(gp, 'utf8') === content);
     }
   }
 }

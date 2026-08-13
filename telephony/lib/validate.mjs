@@ -8,6 +8,7 @@
 
 import { toE164 } from './normalize.mjs';
 import { applyVertical, migrateConfig, sanitizeConfigFields, VERTICAL_PACKS, SCHEMA_VERSION } from './config.mjs';
+import { normalizeRouting } from './routing.mjs';
 
 const TIME_RE = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
@@ -149,6 +150,17 @@ export function validateTenant(raw) {
         warnings.push(`${tag}: מספר-כשר — יציאה לא-כשרה לא תנותב דרכו אוטומטית; אמת מול הספק הכשר.`);
       }
 
+      // לו״ז פר-מספר (אופציונלי): חלון-שעות משלו לקו הזה.
+      let lineHours;
+      if (n.hours && typeof n.hours === 'object') {
+        const hd = Array.isArray(n.hours.days) ? n.hours.days.filter((x) => Number.isInteger(x) && x >= 0 && x <= 6) : [];
+        if (hd.length && TIME_RE.test(n.hours.start || '') && TIME_RE.test(n.hours.end || '') && hhmmToMinutes(n.hours.start) < hhmmToMinutes(n.hours.end)) {
+          lineHours = { days: [...new Set(hd)].sort((a, b) => a - b), start: n.hours.start, end: n.hours.end };
+        } else {
+          warnings.push(`${tag}: hours לא-תקין — הקו ישתמש בשעות-המשרד הכלליות.`);
+        }
+      }
+
       numbers.push({
         id: n.id,
         e164: e164 || n.e164,
@@ -158,6 +170,7 @@ export function validateTenant(raw) {
         channels,
         kosher: !!n.kosher,
         ...(Number.isInteger(n.gatewayChannel) ? { gatewayChannel: n.gatewayChannel } : {}),
+        ...(lineHours ? { hours: lineHours } : {}),
       });
     }
   }
@@ -226,6 +239,10 @@ export function validateTenant(raw) {
     }
   }
 
+  // ── ניתוב מתקדם (opt-in, מנורמל בטהור) ──
+  const { routing, warnings: routeWarn } = normalizeRouting(raw.routing || {});
+  warnings.push(...routeWarn);
+
   const ok = errors.length === 0;
   const tenant = ok
     ? {
@@ -241,6 +258,7 @@ export function validateTenant(raw) {
         cti,
         features,
         terms,
+        routing,
       }
     : null;
   return { ok, errors, warnings, tenant };

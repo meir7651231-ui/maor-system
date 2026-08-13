@@ -31,3 +31,4 @@ export {
   sanitizeConfigFields, FLAG_DEFAULTS, TERM_DEFS, SCHEMA_VERSION,
 } from './config.mjs';
 export { hebParts, classifyDay, hebrewClosedDates } from './hebcal.mjs';
+export { normalizeRouting, numbersAlternation } from './routing.mjs';
