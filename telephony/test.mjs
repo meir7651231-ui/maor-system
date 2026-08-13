@@ -15,7 +15,10 @@ import {
   buildDirectory, lookupCaller, lookupInDirectory, enrichContact, screenPop,
   callEvent, dialString, callHistoryFor, maskNumber, popPriorityFor, SCREENPOP_VERSION,
 } from './lib/cti.mjs';
-import { tenantFromIntake, INTAKE_STEPS } from './lib/onboard.mjs';
+import {
+  tenantFromIntake, INTAKE_STEPS, numbersFromCsv, detectNumberType, stepsFor,
+  provisioningQr, seedVertical, routingPreview, preflight, exportConfig, cloneTenant,
+} from './lib/onboard.mjs';
 import { planApply, rollbackPlan, planTenants, summarize } from './lib/apply.mjs';
 import { channelPlan, isPureDownstream } from './lib/channels.mjs';
 import {
@@ -512,6 +515,69 @@ const rdb = {
   ];
   const h = callHistoryFor(logs, '050-111-2233');
   ok('היסטוריה מסוננת+ממוינת', h.length === 2 && h[0].startedAt > h[1].startedAt);
+}
+
+// ── גל 6 (51-60): עומק-Onboarding ───────────────────────────────────────────
+console.log('· גל 6 — עומק-onboarding');
+// 51. CSV
+{
+  const csv = 'number,label,type,kosher\n02-5551234,קו ראשי,sim,\n053-9998877,קו כשר,sim,כן\n"077-200,000",וירטואלי,virtual,';
+  const { numbers, errors } = numbersFromCsv(csv);
+  ok('CSV מפרסר 3 שורות', numbers.length === 3);
+  ok('CSV kosher=כן', numbers[1].kosher === true);
+  ok('CSV מרכאות (פסיק פנימי)', numbers[2].label === 'וירטואלי');
+  ok('CSV ריק ⇒ שגיאה', numbersFromCsv('').errors.length > 0);
+}
+// 54. autodetect
+ok('05x → sim', detectNumberType('0501234567').type === 'sim');
+ok('077 → virtual', detectNumberType('0772000000').onramp === 'customer-forward');
+ok('02 → sim medium', detectNumberType('02-5551234').confidence === 'medium');
+ok('1-800 → virtual', detectNumberType('1800123456').type === 'virtual');
+// 53. branching
+{
+  const full = stepsFor({ numbers: [{ type: 'sim' }] });
+  const waOnly = stepsFor({ numbers: [{ type: 'whatsapp' }] });
+  ok('ווצאפ-בלבד מדלג יעדים/שעות', waOnly.length < full.length && !waOnly.some((s) => s.id === 'destinations'));
+}
+// 52. provisioning
+{
+  const p = provisioningQr({ tenantId: 'demo' }, '101');
+  ok('provisioning sipUri', p.sipUri === 'sip:101@demo' && p.qrPayload.includes('transport=tls'));
+}
+// 56. seed vertical
+{
+  const s = seedVertical('chesed', 'עמותה', 'slug');
+  ok('seed ורטיקל', s.vertical === 'chesed' && s.numbers.length === 1 && s.office === '101');
+}
+// 57. preview
+{
+  const prev = routingPreview(vres.tenant);
+  ok('preview כולל שעות+יציאה', prev.some((l) => l.includes('שעות-משרד')) && prev.some((l) => l.includes('יציאה')));
+}
+// 58. preflight
+{
+  const pf = preflight(vres.tenant);
+  ok('chesed מוכן-לחיוג', pf.ready);
+  const pf2 = preflight({
+    numbers: [{ channels: ['voice'], onramp: 'sim-in-gateway' }],
+    destinations: { office: { ext: [] }, manager: { ext: '' } },
+    outbound: { defaultNumberId: null }, cti: { mode: 'off' },
+  });
+  ok('preflight חוסם חוסר-שלוחות', !pf2.ready && pf2.blockers.length >= 2);
+}
+// 59. export round-trip
+{
+  const exp = exportConfig(vres.tenant);
+  const re = buildTenant(exp);
+  ok('export→build round-trip תקין', re.ok && re.manifest.tenantId === 'chesed-demo');
+  ok('export לא כולל שדות-נגזרים', !('files' in exp));
+}
+// 60. clone
+{
+  const cl = cloneTenant(exportConfig(vres.tenant), 'new-org', 'ארגון חדש');
+  ok('clone מזהה/שם חדשים', cl.tenantId === 'new-org' && cl.orgName === 'ארגון חדש');
+  ok('clone מאפס מספרים', cl.numbers.every((n) => n.e164 === ''));
+  ok('clone שומר מבנה-מספרים', cl.numbers.length === vres.tenant.numbers.length);
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
