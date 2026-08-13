@@ -1,0 +1,119 @@
+#!/usr/bin/env node
+// ─────────────────────────────────────────────────────────────────────────────
+// telephony · test — שער-golden + בדיקות-יחידה למנוע.
+//   node telephony/test.mjs            → מאמת מול golden הקפוא (ביט-לביט)
+//   UPDATE=1 node telephony/test.mjs   → מקפיא golden מחדש (אחרי שינוי-מכוון)
+//
+// דטרמיניזם מלא ⇒ אותו קלט = אותו פלט. כל שינוי לא-מכוון בפלט נתפס כאן.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { buildTenant, validateTenant, toE164 } from './lib/index.mjs';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const UPDATE = process.env.UPDATE === '1';
+let pass = 0;
+let fail = 0;
+const fails = [];
+
+function ok(name, cond) {
+  if (cond) {
+    pass++;
+  } else {
+    fail++;
+    fails.push(name);
+    console.error('  ❌ ' + name);
+  }
+}
+function eq(name, a, b) {
+  ok(`${name} (צפוי ${JSON.stringify(b)}, קיבל ${JSON.stringify(a)})`, a === b);
+}
+
+// ── 1. normalize ────────────────────────────────────────────────────────────
+console.log('· normalize');
+eq('02-5551234 → E164', toE164('02-5551234'), '+97225551234');
+eq('050-111-2233 → E164', toE164('050-111-2233'), '+972501112233');
+eq('+972 נשמר', toE164('+972 50 111 2233'), '+972501112233');
+eq('972 → +972', toE164('972501112233'), '+972501112233');
+eq('00972 → +972', toE164('00972501112233'), '+972501112233');
+eq('בין-לאומי +1', toE164('+1 202 555 0143'), '+12025550143');
+eq('ריק → null', toE164(''), null);
+eq('זבל → null', toE164('abc'), null);
+
+// ── 2. validate: golden fixture תקין ────────────────────────────────────────
+console.log('· validate — chesed-demo');
+const chesed = JSON.parse(readFileSync(join(HERE, 'fixtures/tenant-chesed.json'), 'utf8'));
+const vres = validateTenant(chesed);
+ok('chesed תקין', vres.ok);
+eq('5 מספרים נושאי-קול', vres.tenant.numbers.filter((n) => n.channels.includes('voice') && n.onramp !== 'device-link').length, 5);
+ok('סייג-כשר קיים', vres.warnings.some((w) => w.includes('כשר')));
+
+// ── 3. validate: כשלים צפויים ───────────────────────────────────────────────
+console.log('· validate — כשלים');
+ok('קונפיג-ריק נדחה', !validateTenant({}).ok);
+ok('בלי מספרים נדחה', !validateTenant({ ...chesed, numbers: [] }).ok);
+{
+  const dup = JSON.parse(JSON.stringify(chesed));
+  dup.numbers[1].e164 = dup.numbers[0].e164; // e164 כפול
+  const r = validateTenant(dup);
+  ok('e164 כפול נדחה', !r.ok && r.errors.some((e) => e.includes('כפול')));
+}
+{
+  const badHours = JSON.parse(JSON.stringify(chesed));
+  badHours.officeHours.start = '18:00';
+  badHours.officeHours.end = '09:00';
+  ok('start אחרי end נדחה', !validateTenant(badHours).ok);
+}
+{
+  const onlyWa = JSON.parse(JSON.stringify(chesed));
+  onlyWa.numbers = [onlyWa.numbers[5]]; // רק ווצאפ device-link
+  const r = validateTenant(onlyWa);
+  ok('רק-ווצאפ ⇒ אין-קול נדחה', !r.ok && r.errors.some((e) => e.includes('נושא-קול')));
+}
+{
+  const badDefault = JSON.parse(JSON.stringify(chesed));
+  badDefault.outbound.defaultNumberId = 'nope';
+  ok('defaultNumberId שגוי נדחה', !validateTenant(badDefault).ok);
+}
+
+// ── 4. generate: דטרמיניזם — הרצה כפולה זהה ──────────────────────────────────
+console.log('· generate — דטרמיניזם');
+const a = buildTenant(chesed);
+const b = buildTenant(chesed);
+ok('שתי הרצות זהות', JSON.stringify(a.files) === JSON.stringify(b.files));
+
+// ── 5. generate: אינווריאנטים pure-downstream ────────────────────────────────
+console.log('· generate — אינווריאנטים');
+const dp = a.files['dialplan/tenant_chesed-demo.xml'];
+ok('device-link (ווצאפ) לא בדיאלפלן', !dp.includes('054') && !dp.includes('ווצאפ'));
+ok('אין gateway של ספק', !/gateway.*(bezeq|012|013|018|hot|cellcom|partner|pelephone|yemot)/i.test(dp));
+ok('כל SIM-יציאה דרך שער-הלקוח', (dp.match(/sofia\/gateway\/chesed-demo-gw/g) || []).length >= 4);
+ok('גם manifest אומר pure-downstream', a.manifest.model === 'pure-downstream');
+ok('ווצאפ ב-nonVoiceChannels', a.manifest.nonVoiceChannels.some((x) => x.onramp === 'device-link'));
+eq('inbound context בשער', (a.files['sip_profiles/gateways/chesed-demo.xml'].match(/tenant_chesed-demo/g) || []).length, 4);
+
+// ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
+console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
+const goldenDir = join(HERE, 'fixtures/golden');
+for (const [rel, content] of Object.entries(a.files)) {
+  const gp = join(goldenDir, rel);
+  if (UPDATE) {
+    mkdirSync(dirname(gp), { recursive: true });
+    writeFileSync(gp, content, 'utf8');
+    console.log('  ❄️  הקפיא ' + rel);
+  } else if (!existsSync(gp)) {
+    ok(`golden חסר: ${rel} (הרץ UPDATE=1)`, false);
+  } else {
+    const want = readFileSync(gp, 'utf8');
+    ok(`golden תואם: ${rel}`, want === content);
+  }
+}
+
+// ── סיכום ───────────────────────────────────────────────────────────────────
+console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} עברו · ${fail} נכשלו`);
+if (fail > 0) {
+  console.error('נכשלו:\n  ' + fails.join('\n  '));
+  process.exit(1);
+}
