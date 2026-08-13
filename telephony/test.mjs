@@ -34,6 +34,8 @@ import {
   failsafeRoute, complianceReport,
 } from './lib/security.mjs';
 import { normalizeCdr, meterUsage, computeInvoice, checkQuota, planQuota, PLANS } from './lib/billing.mjs';
+import { simulateCall } from './lib/simulate.mjs';
+import { xmlWellFormed, validateAgainstSchema } from './lib/validators.mjs';
 import {
   flagOn, featureOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
   capabilities, migrateConfig, effectiveConfig, diffConfig, isBaselineConfig,
@@ -793,6 +795,97 @@ ok('fail-safe בלי מנהל נכשל', !failsafeRoute({ destinations: { manage
   ok('planQuota maxExt', planQuota('basic').extensions === 3);
 }
 
+// ── גל 10 (91-100): איכות · בדיקות · תיעוד ──────────────────────────────────
+console.log('· גל 10 — איכות/בדיקות');
+// 95. סימולטור-שיחה
+{
+  // chesed: ראשון 12:00 → פתוח → משרד.
+  const day = simulateCall(vres.tenant, { did: '+97225551234', dow: 0, hhmm: '12:00' });
+  ok('סים: יום ⇒ office', day.outcome === 'office' && day.path.includes('open'));
+  // ראשון 20:00 → סגור → תא-קולי.
+  const night = simulateCall(vres.tenant, { did: '+97225551234', dow: 0, hhmm: '20:00' });
+  ok('סים: לילה ⇒ voicemail', night.outcome === 'voicemail' && night.path.includes('closed'));
+  // שבת → סגור.
+  const shabbat = simulateCall(vres.tenant, { did: '+97225551234', dow: 6, hhmm: '12:00' });
+  ok('סים: שבת ⇒ סגור', shabbat.path.includes('closed'));
+  // חג (kollel, calendar on): ר״ה 2026-09-12 → סגור-חג.
+  const kt = validateTenant(JSON.parse(readFileSync(join(HERE, 'fixtures/tenant-kollel.json'), 'utf8'))).tenant;
+  const chag = simulateCall(kt, { did: '+97226000000', date: '2026-09-12', hhmm: '12:00' });
+  ok('סים: חג ⇒ סגור (ראש השנה)', chag.path.includes('closed') && chag.reason === 'ראש השנה');
+  // full: IVR digit 1 → ringgroup.
+  const ft = validateTenant(JSON.parse(readFileSync(join(HERE, 'fixtures/tenant-full.json'), 'utf8'))).tenant;
+  const ivr = simulateCall(ft, { did: '+97225000000', dow: 0, hhmm: '12:00', digit: '1' });
+  ok('סים: IVR ספרה-1 ⇒ ringgroup', ivr.outcome === 'ivr:ringgroup');
+  // חסום.
+  const blk = simulateCall(ft, { did: '+97225000000', dow: 0, hhmm: '12:00', callerId: '050-9999999' });
+  ok('סים: חסום', blk.outcome === 'blocked');
+  // יוצאת: קידומת 2# → SIM-2.
+  const out = simulateCall(ft, { direction: 'outbound', did: '2#0501234567' });
+  ok('סים: יוצאת דרך SIM', out.outcome.startsWith('via:'));
+}
+// 96. XML well-formed (טהור) על כל הפלטים
+{
+  let allXml = true;
+  for (const [rel, content] of Object.entries({ ...fb.files, ...vb.files, ...buildTenant(chesed).files })) {
+    if (rel.endsWith('.xml')) {
+      const r = xmlWellFormed(content);
+      if (!r.valid) { allXml = false; console.error('  XML bad:', rel, r.errors); }
+    }
+  }
+  ok('כל פלטי-ה-XML well-formed', allXml);
+  ok('xmlWellFormed תופס תג-לא-סגור', !xmlWellFormed('<a><b></a>').valid);
+  ok('xmlWellFormed מקבל self-closing+comment', xmlWellFormed('<!-- x --><a><b/></a>').valid);
+}
+// 97. JSON-Schema על כל fixture
+{
+  const schema = JSON.parse(readFileSync(join(HERE, 'schema.json'), 'utf8'));
+  for (const f of ['tenant-chesed.json', 'tenant-kollel.json', 'tenant-full.json', 'tenant-voice.json']) {
+    const obj = JSON.parse(readFileSync(join(HERE, 'fixtures', f), 'utf8'));
+    const errs = validateAgainstSchema(obj, schema);
+    ok(`schema תקין: ${f}`, errs.length === 0);
+  }
+  ok('schema פוסל type שגוי', validateAgainstSchema({ tenantId: 5 }, schema).length > 0);
+}
+// 92. toggle-matrix: פרופילי-דגלים — baseline=ביט-זהה, כל דגל משנה כצפוי
+{
+  const base = buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'];
+  const profiles = [
+    { features: {}, expect: (d) => d === base }, // baseline
+    { features: { recording: true }, expect: (d) => d.includes('record_session') },
+    { features: { voicemail: false }, expect: (d) => !d.includes('application="voicemail"') },
+    { features: { 'voice.park': true }, expect: (d) => d.includes('valet_park') }, // park = דגל בלבד
+  ];
+  let allProfiles = true;
+  for (const p of profiles) {
+    const d = buildTenant({ ...chesed, features: p.features }).files['dialplan/tenant_chesed-demo.xml'];
+    if (!p.expect(d)) allProfiles = false;
+  }
+  ok('toggle-matrix פרופילים', allProfiles);
+  ok('baseline ביט-זהה ל-golden', base === buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml']);
+}
+// 93. הגנות-מקור: אפס-דליפת-ספק בכל הפלטים
+{
+  const forbidden = /bezeq|cellcom|partner|pelephone|hot-?mobile|golan|yemot|ימות|twilio|vonage|plivo|360dialog|business.?api|sms.?provider|\b012\b|\b013\b|\b018\b/i;
+  let clean = true;
+  for (const files of [buildTenant(chesed).files, fb.files, vb.files, buildTenant(derived).files]) {
+    for (const [, content] of Object.entries(files)) {
+      if (forbidden.test(content)) clean = false;
+    }
+  }
+  ok('הגנת-מקור: אפס-דליפת-ספק', clean);
+}
+// 94. דטרמיניזם מורחב — כל fixture פעמיים זהה
+{
+  let det = true;
+  for (const f of ['tenant-chesed.json', 'tenant-full.json', 'tenant-voice.json']) {
+    const cfg = JSON.parse(readFileSync(join(HERE, 'fixtures', f), 'utf8'));
+    const a1 = buildTenant(cfg, { anchorDate: '2026-09-01' });
+    const a2 = buildTenant(cfg, { anchorDate: '2026-09-01' });
+    if (JSON.stringify(a1.files) !== JSON.stringify(a2.files)) det = false;
+  }
+  ok('דטרמיניזם: כל fixture פעמיים-זהה', det);
+}
+
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
 const goldenDir = join(HERE, 'fixtures/golden');
@@ -859,6 +952,26 @@ for (const [rel, content] of Object.entries(a.files)) {
       ok(`golden-voice תואם: ${rel}`, readFileSync(gp, 'utf8') === content);
     }
   }
+}
+// 91. golden פר-ורטיקל: כל 5 החבילות בקובץ-אחד (anchor קבוע ללוח-העברי).
+{
+  const combined = {};
+  for (const vert of Object.keys(VERTICAL_PACKS)) {
+    const cfg = {
+      tenantId: `v-${vert}`, orgName: 'בדיקת ורטיקל', vertical: vert,
+      numbers: [{ id: 'n1', e164: '02-1000000', label: 'ראשי', type: 'sim', onramp: 'sim-in-gateway', channels: ['voice'], gatewayChannel: 1 }],
+      destinations: { office: { ext: '101' }, manager: { ext: '201' }, voicemail: { box: '100' } },
+      outbound: { defaultNumberId: 'n1' }, cti: { mode: 'off' },
+    };
+    const b = buildTenant(cfg, { anchorDate: '2026-09-01' });
+    ok(`ורטיקל ${vert} תקין`, b.ok);
+    combined[vert] = b.files[`dialplan/tenant_v-${vert}.xml`];
+  }
+  const gp = join(HERE, 'fixtures/golden/verticals.json');
+  const content = JSON.stringify(combined, null, 2) + '\n';
+  if (UPDATE) { mkdirSync(dirname(gp), { recursive: true }); writeFileSync(gp, content, 'utf8'); console.log('  ❄️  הקפיא verticals.json'); }
+  else if (!existsSync(gp)) ok('golden verticals חסר (הרץ UPDATE=1)', false);
+  else ok('golden-verticals תואם (5 חבילות)', readFileSync(gp, 'utf8') === content);
 }
 
 // ── סיכום ───────────────────────────────────────────────────────────────────

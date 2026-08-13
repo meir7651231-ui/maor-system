@@ -4,9 +4,22 @@
   "title": "Tenant telephony config-as-data",
   "description": "מודל-הנתונים היחיד ללקוח מרכזייה. עיקרון-ברזל: pure-downstream — אנחנו אחרי כל הספקים, מדברים רק עם הלקוח. אין שדה-ספק, אין API-ספק, אין חברה-שמינית. המספרים נכנסים דרך ציוד-הלקוח (שער-GSM עם ה-SIM שלו) או דרך הפניה שהלקוח מגדיר אצל הספק הקיים שלו. אנחנו לא נוגעים בספק.",
   "type": "object",
-  "required": ["tenantId", "orgName", "officeHours", "numbers", "destinations"],
+  "required": ["tenantId", "orgName", "numbers", "destinations"],
   "additionalProperties": false,
   "properties": {
+    "routing": {
+      "type": "object",
+      "description": "ניתוב-מתקדם (opt-in, מנורמל ב-routing.mjs): ivr/queue/ringStrategy/blocklist/allowlist/dnd/speedDial/overflow/internal."
+    },
+    "emergency": {
+      "type": "object",
+      "description": "מצב-חירום 'סגור היום' (opt-in): {active, message}.",
+      "additionalProperties": false,
+      "properties": {
+        "active": { "type": "boolean" },
+        "message": { "type": "string" }
+      }
+    },
     "schemaVersion": {
       "type": "integer",
       "description": "גרסת-סכמה למיגרציה מצטברת. חסר=1; המנוע מרפא ל-SCHEMA_VERSION.",
@@ -117,6 +130,25 @@
             "description": "עבור sim-in-gateway: מספר-הערוץ בשער (1..8). דרוש לניתוב יציאה דרך ה-SIM הזה.",
             "minimum": 1,
             "maximum": 32
+          },
+          "hours": {
+            "type": "object",
+            "description": "לו״ז פר-מספר (אופציונלי) — חלון-שעות משלו לקו הזה.",
+            "additionalProperties": false,
+            "properties": {
+              "days": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 6 } },
+              "start": { "type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$" },
+              "end": { "type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$" }
+            }
+          },
+          "role": {
+            "type": "string",
+            "description": "תפקיד-מיוחד. announcement = קו-הכרזה (משמיע הקלטה ומנתק).",
+            "enum": ["announcement"]
+          },
+          "announcementText": {
+            "type": "string",
+            "description": "נוסח-ההכרזה המוצע (לקו-הכרזה) — להקלטה ע״י המפעיל."
           }
         }
       }
@@ -140,7 +172,8 @@
               ],
               "description": "אקסטנשן-משרד או רשימה (קבוצת-צלצול)."
             },
-            "ringSeconds": { "type": "integer", "minimum": 5, "maximum": 120, "default": 25 }
+            "ringSeconds": { "type": "integer", "minimum": 5, "maximum": 120, "default": 25 },
+            "email": { "type": "string", "description": "מייל לתא-קולי של שלוחות-המשרד (אופציונלי)." }
           }
         },
         "manager": {

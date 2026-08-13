@@ -66,20 +66,54 @@ UPDATE=1 node telephony/test.mjs   # הקפאת golden מחדש (רק אחרי �
 |---|---|
 | `schema.json` | מודל-הנתונים של קונפיג-הלקוח (JSON Schema, טהור-נתונים) |
 | `lib/normalize.mjs` | נרמול E.164 (ישראל ברירת-מחדל), טהור |
+| `lib/config.mjs` | דגלים `featureOn` · מונחים `termOf` · ורטיקלים · שכבות · diff |
 | `lib/validate.mjs` | שער-תקינות + נרמול + סייגי-downstream, טהור |
+| `lib/hebcal.mjs` | לוח עברי טהור (Intl) — סיווג חג/שבת/צום + ימי-סגירה |
+| `lib/routing.mjs` | ניתוב-עשיר — IVR/תור/חסימה/חיוג-מהיר (normalizeRouting) |
+| `lib/prompts.mjs` | ברכות/הכרזות — requiredPrompts + יכולות |
 | `lib/generate.mjs` | המנוע — tenant → FreeSWITCH XML, דטרמיניסטי, טהור |
-| `lib/cti.mjs` | גשר screen-pop — מתקשר→Family/Supporter במאור (קריאה-בלבד) |
-| `lib/onboard.mjs` | תצורה-עצמית — תשובות-אשף מינימליות → קונפיג מלא |
-| `lib/apply.mjs` | תכנון-החלה אידמפוטנטי + isolation + rollback (רב-דיירת) |
-| `lib/channels.mjs` | מודל רב-ערוצי downstream — ווצאפ קישור-מכשיר + SMS דרך SIM |
-| `lib/index.mjs` | תזמור `buildTenant` (validate→generate) + ריֶיֶקספורט |
-| `cli.mjs` | הרצה משורת-הפקודה (לקוח-יחיד) |
-| `apply-cli.mjs` | כלי-המפעיל — תיקיית-לקוחות → ספריית-מרכזייה, מרכזית |
-| `test.mjs` | golden + יחידה (69 בדיקות) |
-| `fixtures/tenant-chesed.json` | לקוח-דוגמה: 7 מספרים מעורבים (SIM/וירטואלי/ווצאפ/SMS/כשר) |
-| `fixtures/intake-minimal.json` | תשובות-אשף מינימליות (בדיקת תצורה-עצמית) |
-| `fixtures/maor-db.json` | תצלום-DB דוגמה ל-CTI |
-| `fixtures/golden/` | הפלט הקפוא להשוואה |
+| `lib/cti.mjs` | גשר screen-pop — מתקשר→Family/Supporter + העשרה (קריאה-בלבד) |
+| `lib/onboard.mjs` | תצורה-עצמית — אשף/CSV/autodetect/preview/preflight/clone |
+| `lib/apply.mjs` | החלה אידמפוטנטית + isolation + rollback + drift + audit + health |
+| `lib/channels.mjs` | רב-ערוצי downstream — תבניות/הסכמה/תיבה-מאוחדת/שימוש |
+| `lib/security.mjs` | בידוד-סודות · ACL · הקשחה · הצפנה · fail-safe · תאימות |
+| `lib/billing.mjs` | CDR · מדידת-שימוש · תוכניות-חיוב · מכסות |
+| `lib/simulate.mjs` | סימולטור-שיחה — עוקב מסלול דרך הקונפיג (בלי PBX) |
+| `lib/validators.mjs` | XML well-formed + JSON-Schema (תת-קבוצה) |
+| `lib/index.mjs` | תזמור `buildTenant` (validate→generate) + ריֶיֶקספורט מלא |
+| `tel.mjs` | CLI מלוטש — validate/preview/report/build/apply |
+| `cli.mjs` · `apply-cli.mjs` | הרצת-לקוח-יחיד · כלי-מפעיל מרכזי |
+| `test.mjs` | golden (5 סטים) + יחידה (303 בדיקות) |
+| `UPGRADE-100.md` | מעקב 100 השדרוגים (10 גלים) |
+| `fixtures/*.json` | לקוחות-דוגמה (chesed/kollel/full/voice) + intake + maor-db |
+| `fixtures/golden*/` | הפלט הקפוא להשוואה ביט-לביט |
+
+## ארכיטקטורה
+
+```
+                       קונפיג-לקוח (config-as-data · JSON)
+                                    │
+   ┌────────────────────────────────┼────────────────────────────────┐
+   │ onboard  →  config (דגלים/מונחים/ורטיקל)  →  validate  →  routing │
+   │  (אשף/CSV)         (featureOn/termOf)         (+hebcal)  (IVR/תור) │
+   └────────────────────────────────┼────────────────────────────────┘
+                                    ▼
+                          generate  (טהור · דטרמיניסטי)
+                                    │
+        ┌──────────────┬────────────┼─────────────┬───────────────┐
+        ▼              ▼            ▼             ▼               ▼
+   dialplan/       directory/   gateways/     manifest      (golden-tested
+   <ctx>.xml       <id>.xml     <id>.xml      .json          ביט-לביט)
+        │                                         │
+        ▼ apply (אידמפוטנטי · isolation · rollback · drift · audit)
+   ספריית-המרכזייה של המפעיל  ──────────►  FusionPBX/FreeSWITCH רב-דיירת
+        ▲                                         │
+        │  cti (screen-pop, קריאה-בלבד) ◄─────────┘
+   maor (Family/Supporter)          channels (ווצאפ device-link · SMS דרך SIM)
+```
+
+**סטטוס:** 100/100 שדרוגים (10 גלים) — ראה `UPGRADE-100.md`. הכל pure-downstream,
+golden-tested, מגודר-דגל (כבוי=ביט-זהה).
 
 ## חיבור למאור (CTI)
 
