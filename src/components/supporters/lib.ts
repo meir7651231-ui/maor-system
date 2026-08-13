@@ -438,14 +438,17 @@ export function applyAyinNames(sp: Supporter, names: string[], mkId: () => strin
   return changed ? { ...sp, ayin: a } : sp;
 }
 
+/** רשומת-היסטוריה בודדת (Supporter.hist) — כולל מטא-דאטת-הסליקה האופציונלית. */
+export type HistEntry = NonNullable<Supporter['hist']>[number];
+
 /** מיזוג-היסטוריה אידמפוטנטי: לכל מפתח (תאריך|סכום|מטבע) הכמות הסופית =
  *  max(קיים, נכנס) — ייבוא-חוזר של אותו קובץ לא מכפיל, עסקאות-אמת כפולות
- *  באותו יום (אותו סכום פעמיים בקובץ אחד) נשמרות. */
-export function mergeHist(
-  existing: { d: string; a: number; c?: '₪' | '$' }[],
-  incoming: { d: string; a: number; c?: '₪' | '$' }[],
-): { d: string; a: number; c?: '₪' | '$' }[] {
-  const key = (h: { d: string; a: number; c?: '₪' | '$' }) => h.d + '|' + h.a + '|' + (h.c ?? '₪');
+ *  באותו יום (אותו סכום פעמיים בקובץ אחד) נשמרות. משמר את **כל** שדות-הרשומה
+ *  (מטא-דאטת-הסליקה: אסמכתא/מס'-עסקה/קבלה/מותג/…), לא רק d/a/c.
+ *  ⚠️ המפתח נשאר d|a|c במכוון: כך ייבוא-חוזר של קובץ שיובא לפני שדה מס'-העסקה
+ *  (בלי txn) מזוהה כאותה עסקה ולא משוכפל. */
+export function mergeHist(existing: HistEntry[], incoming: HistEntry[]): HistEntry[] {
+  const key = (h: HistEntry) => h.d + '|' + h.a + '|' + (h.c ?? '₪');
   const have = new Map<string, number>();
   for (const h of existing) have.set(key(h), (have.get(key(h)) ?? 0) + 1);
   const out = [...existing];
@@ -454,7 +457,8 @@ export function mergeHist(
     const k = key(h);
     const n = (seen.get(k) ?? 0) + 1;
     seen.set(k, n);
-    if (n > (have.get(k) ?? 0)) out.push({ d: h.d, a: h.a, ...(h.c === '$' ? { c: '$' as const } : {}) });
+    // 13.8 — הבאג: כאן נדחפו רק d/a/c והמטא-דאטה אבדה. עכשיו הרשומה המלאה.
+    if (n > (have.get(k) ?? 0)) out.push({ ...h });
   }
   return out.sort((x, y) => x.d.localeCompare(y.d));
 }

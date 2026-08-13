@@ -10,7 +10,7 @@
 import { strToU8, zipSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
 import { parseXlsxSheet } from '../../../lib/xlsx';
-import { parseSupporterGrid } from '../lib';
+import { mergeSupporterRow, newSupporterFromRow, parseSupporterGrid, supDonEvents } from '../lib';
 
 /** בונה xlsx מינימלי (רק sharedStrings + sheet1) מרשת-תאים — כמו יצוא אמיתי. */
 function buildXlsx(grid: string[][]): Uint8Array {
@@ -94,6 +94,30 @@ describe('ייבוא Excel — parseSupporterGrid (זיהוי-כותרות + "ת
     const [binder, rut] = parseSupporterGrid(CREDIT_GRID);
     expect(binder.ayinNames).toBeUndefined(); // אף שהקטגוריה מכילה "עין"
     expect(rut.ayinNames).toBeUndefined();
+  });
+
+  // 🔴 באג-שטח 13.8: mergeHist דרס את המטא-דאטה (רק d/a/c) ⇒ העמודות החדשות
+  // אבדו כשהרשומה הגיעה לתומך. הנעילה: התומך שנוצר/עודכן שומר את כל השדות.
+  it('המטא-דאטה שורדת את מנוע-הייבוא (newSupporterFromRow) ומוצגת', () => {
+    const [binderRow] = parseSupporterGrid(CREDIT_GRID);
+    const sp = newSupporterFromRow('sp1', binderRow);
+    expect(sp.hist?.[0]).toMatchObject({ a: 60, txn: '76430635', ref: '063848', brand: 'ויזה', status: 'אושר' });
+    // ומוצג בשורת "כל התרומות":
+    const src = supDonEvents(sp)[0].src;
+    expect(src).toContain('עסקה 76430635');
+    expect(src).toContain('אושר');
+  });
+
+  it('ייבוא-חוזר אידמפוטנטי: אותה עסקה לא משוכפלת; שונה כן נוספת (dedup d|a|c)', () => {
+    const [binderRow, rutRow] = parseSupporterGrid(CREDIT_GRID);
+    const sp = newSupporterFromRow('sp1', binderRow);
+    // אותו קובץ שוב (אותו תאריך|סכום|מטבע) ⇒ אין כפילות:
+    const same = mergeSupporterRow(sp, binderRow);
+    expect(same.hist).toHaveLength(1);
+    // עסקה אחרת (rut, תאריך+סכום שונים) ⇒ נוספת — והמטא-דאטה שלה נשמרת:
+    const plus = mergeSupporterRow(sp, rutRow);
+    expect(plus.hist).toHaveLength(2);
+    expect(plus.hist?.some((h) => h.txn === '76340966')).toBe(true);
   });
 
   it('שרשרת מלאה: xlsx bytes → grid → שורות-ייבוא', () => {
