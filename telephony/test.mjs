@@ -24,7 +24,11 @@ import {
   detectDrift, reloadPlan, healthReport, pushAudit, applyWithRollback, lineDiff,
   detailedDiff, changelogEntry, planApplyRespectingFreeze, batchSummary,
 } from './lib/apply.mjs';
-import { channelPlan, isPureDownstream } from './lib/channels.mjs';
+import {
+  channelPlan, isPureDownstream, templateOf, sanitizeTemplates, renderTemplate,
+  unifiedInboxOf, autoReply, applyConsent, canMessage, assignMessage, reminderMessage,
+  senderIdentity, conversationTimeline, channelUsage, matchMessageContact, normalizeMessage,
+} from './lib/channels.mjs';
 import {
   flagOn, featureOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
   capabilities, migrateConfig, effectiveConfig, diffConfig, isBaselineConfig,
@@ -657,6 +661,68 @@ const fB = buildTenant({ ...chesed, orgName: 'שם חדש' }).files;
   const { plans } = planTenants([{ tenantId: 'chesed-demo', desired: fB }, { tenantId: 'demo-intake', desired: buildTenant(derived).files }], { 'chesed-demo': fA });
   const bs = batchSummary(plans);
   ok('batch מסכם 2 לקוחות', bs.tenants === 2 && bs.changedTenants === 2 && bs.creates + bs.updates > 0);
+}
+
+// ── גל 8 (71-80): עומק רב-ערוצי ─────────────────────────────────────────────
+console.log('· גל 8 — עומק רב-ערוצי');
+const org = { orgName: 'עמותת א', numbers: [{ e164: '+972500000000', channels: ['sms'], onramp: 'sim-in-gateway' }] };
+// 72. תבניות
+ok('templateOf ברירת-מחדל', templateOf({}, 'awayMessage').includes('%org%'));
+ok('templateOf דריסה', templateOf({ templates: { thanks: 'מודים!' } }, 'thanks') === 'מודים!');
+ok('sanitizeTemplates allowlist', !('evil' in sanitizeTemplates({ thanks: 'x', evil: 'y' })));
+eq('renderTemplate', renderTemplate('שלום %org% על %detail%', { org: 'א', detail: 'ב' }), 'שלום א על ב');
+// 71. תיבה-מאוחדת
+{
+  const inbox = unifiedInboxOf([{ id: '1', channel: 'sms', ts: '2026-08-01' }, { id: '2', channel: 'whatsapp', ts: '2026-08-05' }]);
+  ok('תיבה ממוינת חדש→ישן', inbox[0].id === '2' && inbox.length === 2);
+  ok('normalizeMessage default channel', normalizeMessage({ id: 'x' }).channel === 'sms');
+}
+// 73. מענה-אוטומטי
+ok('away מחוץ-לשעות', autoReply(org, { nowIsOpen: false }).includes('עמותת א'));
+ok('בתוך-שעות בלי-מענה', autoReply(org, { nowIsOpen: true }) === null);
+// 74. הסכמה
+{
+  let led = applyConsent({}, { number: '050-1112233', action: 'stop' });
+  ok('STOP ⇒ לא-ניתן-לשלוח', !canMessage(led, '050-1112233'));
+  led = applyConsent(led, { number: '050-1112233', action: 'subscribe' });
+  ok('subscribe ⇒ שוב-מותר', canMessage(led, '050-1112233'));
+  ok('לא-רשום ⇒ מותר', canMessage({}, '050-9999999'));
+}
+// 75. ניתוב-נציג
+{
+  ok('roundrobin', assignMessage(['a', 'b', 'c'], { index: 4 }) === 'b');
+  ok('first', assignMessage(['a', 'b'], { strategy: 'first' }) === 'a');
+  ok('ריק ⇒ null', assignMessage([]) === null);
+}
+// 76. תזכורת-יוצאת (downstream)
+{
+  const r = reminderMessage(org, { number: '050-1112233', detail: 'פגישה מחר' });
+  ok('תזכורת SMS provider=null', r.provider === null && r.method === 'sim-gateway');
+  ok('תזכורת מרונדרת', r.text.includes('פגישה מחר') && r.direction === 'outbound');
+}
+// 77. זהות-שולח
+{
+  const wa = senderIdentity(org, 'whatsapp');
+  ok('ווצאפ זהות device-link', wa.method === 'device-link' && wa.provider === null);
+  const sms = senderIdentity(org, 'sms');
+  ok('SMS זהות מהמספר', sms.number === '+972500000000' && sms.provider === null);
+}
+// 78. ציר-זמן
+{
+  const tl = conversationTimeline([{ type: 'call', startedAt: '2026-08-01T10:00' }, { channel: 'sms', ts: '2026-08-05T10:00' }]);
+  ok('ציר-זמן ממוזג+ממוין', tl[0].kind === 'message' && tl[1].kind === 'call');
+}
+// 79. שימוש
+{
+  const u = channelUsage([{ channel: 'sms', direction: 'inbound' }, { channel: 'sms', direction: 'outbound' }, { channel: 'whatsapp', direction: 'inbound' }]);
+  ok('usage סופר פר-ערוץ', u.sms.in === 1 && u.sms.out === 1 && u.whatsapp.in === 1 && u.total === 3);
+}
+// 80. חיבור-מאור
+{
+  const db = { supporters: [{ id: 'S1', name: 'דוד', phone: '050-111-2233' }], families: [], members: [], teachers: [] };
+  const m = matchMessageContact(db, { id: '1', channel: 'sms', direction: 'inbound', from: '050-111-2233', ts: '2026-08-01' });
+  ok('הודעה↔תורם', m.contactRef && m.contactRef.id === 'S1');
+  ok('pure-downstream נשמר', isPureDownstream(channelPlan(vres.tenant)));
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────

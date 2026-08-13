@@ -34,7 +34,11 @@ export {
   detectDrift, reloadPlan, healthReport, pushAudit, applyWithRollback, lineDiff,
   detailedDiff, changelogEntry, planApplyRespectingFreeze, batchSummary,
 } from './apply.mjs';
-export { channelPlan, isPureDownstream } from './channels.mjs';
+export {
+  channelPlan, isPureDownstream, templateOf, sanitizeTemplates, renderTemplate, TEMPLATE_DEFS,
+  unifiedInboxOf, normalizeMessage, autoReply, applyConsent, canMessage, assignMessage,
+  reminderMessage, senderIdentity, conversationTimeline, channelUsage, matchMessageContact,
+} from './channels.mjs';
 export {
   flagOn, featureOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
   capabilities, migrateConfig, effectiveConfig, diffConfig, isBaselineConfig,
