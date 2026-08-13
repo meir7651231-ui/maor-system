@@ -104,6 +104,24 @@ export interface CourseSession {
 
 export type PricingModel = 'monthly' | 'half_year' | 'year' | 'punch';
 
+/**
+ * צירוף קובץ לחוג (בקשת-בעלים 13.8 א'): מסמך / תמונה / קישור לסרטון.
+ * additive — חסר = ביט-זהה לחוג ישן. אחסון local-first:
+ *  - 'image' / 'file' ⇒ data URL מוטמע ב-DB (עם תקרת-גודל, כמו img).
+ *  - 'link' ⇒ https URL חיצוני (Drive/YouTube וכו') — לסרטונים כבדים.
+ */
+export interface CourseFile {
+  id: Id;
+  name: string;
+  kind: 'image' | 'file' | 'link';
+  /** data URL (image/file) או https URL (link). */
+  data: string;
+  /** סוג MIME לקבצים מוטמעים (image/file); ריק לקישור. */
+  mime?: string;
+  /** גודל בבייטים לקובץ מוטמע (לתצוגה). */
+  size?: number;
+}
+
 export interface Course {
   id: Id;
   name: string;
@@ -137,6 +155,20 @@ export interface Course {
   gradeMax?: string;
   sessions: CourseSession[];
   notes: string;
+  /** צירופים לחוג — מסמכים/תמונות/קישורים (בקשת-בעלים 13.8 א'). */
+  files?: CourseFile[];
+  /**
+   * תמחור פר-שיעור (בקשת-בעלים 13.8 ב'): כשדלוק, המחיר מחושב לפי מחיר-לשיעור
+   * × תדירות × מספר-שיעורים-בתקופה (משוקלל). כבוי/חסר = מודל שטוח כמו היום
+   * (price + model) — ביט-זהה לחוג ישן.
+   */
+  perLesson?: boolean;
+  /** מחיר לשיעור בודד (מלא). */
+  lessonPrice?: number;
+  /** מחיר-לשיעור ברמת-הנחה 1 (price1Name); חסר/0 = בלי הנחה בתמחור פר-שיעור. */
+  lessonPrice1?: number;
+  /** מחיר-לשיעור ברמת-הנחה 2 (price2Name). */
+  lessonPrice2?: number;
 }
 
 export interface Absence {
@@ -195,7 +227,21 @@ export interface Enrollment {
    * במקום להעלים אותה רטרואקטיבית. חסר/undefined = שיבוץ ישן שהסתיים בלי תאריך.
    */
   endedAt?: IsoDate;
+  /**
+   * תמחור משוקלל פר-שיעור (בקשת-בעלים 13.8 ב', additive): התדירות והתקופה
+   * שהלקוח בחר בהרשמה. חסר = שיבוץ ישן/מודל-שטוח (totalDue נשאר כפי שהוקלד).
+   */
+  freq?: number;
+  freqUnit?: 'week' | 'month';
+  term?: PricingTerm;
+  /** מספר חודשים כאשר term==='months'. */
+  termMonths?: number;
+  /** רמת-ההנחה שנבחרה: '' = מלא · '1' · '2' (מיפוי ל-lessonPrice1/2). */
+  tier?: '' | '1' | '2';
 }
+
+/** תקופת-חיוב לתמחור המשוקלל (בקשת-בעלים 13.8 ב'). */
+export type PricingTerm = 'once' | 'weekly' | 'biweekly' | 'monthly' | 'months' | 'half_year' | 'year';
 
 export interface Teacher {
   id: Id;
@@ -303,6 +349,13 @@ export interface Donation {
    * רגילה בלי ייעוד לא מושפעת (תאימות-לאחור, אין מיגרציה).
    */
   designation?: string;
+  /**
+   * ייעוד/"עבודה" (בקשת-בעלים 13.8 ג'): תווית-שיוך של התרומה למיזם/עבודה,
+   * המשמשת כמסנן-הרשאה פר-עובד — עובד רואה רק תרומות של הייעודים שהוקצו לו
+   * בכרטיס-העובד. נפרד מ-cat (קטגוריה) ומ-designation (אמץ חתן). ריק = לא-משויך
+   * (גלוי לכולם). additive — תרומה ישנה בלי purpose לא מושפעת.
+   */
+  purpose?: string;
 }
 
 /**

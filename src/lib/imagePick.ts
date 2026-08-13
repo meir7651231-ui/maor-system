@@ -29,6 +29,19 @@ export async function pickAndCompressImage(file: File): Promise<string> {
   return canvas.toDataURL('image/jpeg', QUALITY);
 }
 
+/**
+ * קריאת קובץ-מסמך (לא-תמונה) ל-data URL מוטמע — בקשת-בעלים 13.8 א'.
+ * תקרה שמרנית (ברירת-מחדל 3MB) כי מסמך מוטמע נשמר ב-localStorage (תקרת ~5MB
+ * למסמך כולו) ונוסע עם הסנכרון; קובץ גדול ⇒ יש להשתמש בקישור חיצוני במקום.
+ */
+export const MAX_EMBED_BYTES = 3 * 1024 * 1024; // 3MB לקובץ מוטמע
+
+export async function readFileAsDataUrl(file: File, maxBytes: number = MAX_EMBED_BYTES): Promise<string> {
+  if (file.size > maxBytes)
+    throw new Error('הקובץ גדול מדי להטמעה (מקסימום ' + Math.round(maxBytes / 1024 / 1024) + 'MB) — הוסיפו קישור במקום');
+  return readAsDataUrl(file);
+}
+
 function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const r = new FileReader();

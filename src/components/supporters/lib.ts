@@ -23,6 +23,43 @@ export function isoToday(): string {
   return isoTodayLocal();
 }
 
+/* ── ייעוד-תרומה כמסנן-הרשאה פר-עובד (בקשת-בעלים 13.8 ג') ─────────────────
+   כל תרומה יכולה לשאת ייעוד ("עבודה"). עובד/ת רואה רק תורמים שיש להם תרומה
+   בייעוד המותר לו/ה; תורם בלי ייעוד כלל = משותף (גלוי לכולם). מנהל/בעלים = הכל
+   (allowed=null). טהור — הסינון ברמת-הממשק (כמו shell.privacy). ────────────── */
+
+/** קבוצת הייעודים שעל התורם (distinct, בלי ריקים). */
+export function supporterPurposes(sup: Pick<Supporter, 'donations'>): string[] {
+  const set = new Set<string>();
+  for (const d of sup.donations ?? []) {
+    const p = (d.purpose ?? '').trim();
+    if (p) set.add(p);
+  }
+  return [...set];
+}
+
+/**
+ * האם התורם גלוי לעובד/ת עם רשימת-ייעודים מותרת. allowed=null ⇒ הכל.
+ * תורם בלי ייעוד כלל ⇒ גלוי (משותף); אחרת נדרש חיתוך עם המותר.
+ */
+export function supporterVisibleForDesignations(
+  sup: Pick<Supporter, 'donations'>,
+  allowed: string[] | null,
+): boolean {
+  if (!allowed || !allowed.length) return true;
+  const purposes = supporterPurposes(sup);
+  if (!purposes.length) return true; // לא-משויך = משותף
+  const set = new Set(allowed.map((s) => s.trim()));
+  return purposes.some((p) => set.has(p));
+}
+
+/** כל ייעודי-התרומה הקיימים (distinct, ממויין) — להצעה באשף ולבורר-הסינון. */
+export function allDonationPurposes(supporters: Pick<Supporter, 'donations'>[]): string[] {
+  const set = new Set<string>();
+  for (const s of supporters) for (const p of supporterPurposes(s)) set.add(p);
+  return [...set].sort((a, b) => a.localeCompare(b));
+}
+
 /* ── הכרעת-בעלים 9.8 ("לכולל", סוגרת את ‎#14): הצבירה המוצגת של תורם כוללת
    גם את הקובץ ההיסטורי (hist — עסקאות-סליקה/לגאסי ללא קבלה). המונים השמורים
    (count/ils/usd) נשארים קבלות-בלבד — אינווריאנט הענן "מונים רק עולים" לא

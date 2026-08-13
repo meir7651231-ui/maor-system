@@ -3,7 +3,7 @@
  * עזרים מקומיים בלבד — אין כאן גישה ל-store או ל-DOM.
  */
 import type { CSSProperties } from 'react';
-import type { Course, CourseSession, Db, Enrollment, Family, PricingModel, Room } from '../../types/domain';
+import type { Course, CourseSession, Db, Enrollment, Family, PricingModel, PricingTerm, Room } from '../../types/domain';
 import { normSearch } from '../../lib/validate';
 import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
@@ -202,6 +202,100 @@ export function modelMeta(c: Course): { label: string; bg: string; c: string } {
   if (c.model === 'half_year') return { label: 'מנוי חצי-שנתי', bg: '#e7edf5', c: '#3a5a86' };
   if (c.model === 'year') return { label: 'מנוי שנתי', bg: '#efe7f3', c: '#7c3aed' };
   return { label: 'מנוי חודשי', bg: '#e4f5ea', c: '#12803c' };
+}
+
+/* ── תמחור משוקלל פר-שיעור (בקשת-בעלים 13.8 ב') ──────────────────────────
+   לחוג עם perLesson: מחיר-לשיעור (אחרי הנחת-הלקוח) × מספר-השיעורים-בתקופה.
+   הלקוח בוחר תדירות (פ/שבוע או פ/חודש) ותקופת-חיוב; המנוע מחשב אוטומטית.
+   טהור — בלי store/DOM. ─────────────────────────────────────────────────── */
+
+/** שבועות בחודש ממוצע (52/12) — לגישור בין תדירות-שבועית לתקופה-חודשית. */
+export const WEEKS_PER_MONTH = 52 / 12;
+
+/** תקופות-החיוב לבחירה + תוויות. */
+export const PRICING_TERMS: { v: PricingTerm; t: string }[] = [
+  { v: 'once', t: 'חד-פעמי' },
+  { v: 'weekly', t: 'שבועי' },
+  { v: 'biweekly', t: 'דו-שבועי' },
+  { v: 'monthly', t: 'חודשי' },
+  { v: 'months', t: 'מספר חודשים' },
+  { v: 'half_year', t: 'חצי-שנתי' },
+  { v: 'year', t: 'שנתי' },
+];
+
+/** תווית תקופה קריאה — 'מספר חודשים' מציג את המספר. */
+export function termLabel(term: PricingTerm, months?: number): string {
+  if (term === 'months') return (months && months > 0 ? months : 1) + ' חודשים';
+  return PRICING_TERMS.find((x) => x.v === term)?.t ?? '';
+}
+
+/**
+ * מספר-השיעורים בתקופה לפי התדירות שנבחרה — טהור.
+ * freq = כמות; unit = 'week' (פ/שבוע) או 'month' (פ/חודש). ממיר דרך WEEKS_PER_MONTH.
+ */
+export function lessonsInTerm(freq: number, unit: 'week' | 'month', term: PricingTerm, months = 1): number {
+  const f = Math.max(0, Number.isFinite(freq) ? freq : 0);
+  const perWeek = unit === 'week' ? f : f / WEEKS_PER_MONTH;
+  const perMonth = unit === 'month' ? f : f * WEEKS_PER_MONTH;
+  const n = Math.max(1, months || 1);
+  switch (term) {
+    case 'once':
+      return 1;
+    case 'weekly':
+      return perWeek;
+    case 'biweekly':
+      return perWeek * 2;
+    case 'monthly':
+      return perMonth;
+    case 'months':
+      return perMonth * n;
+    case 'half_year':
+      return perMonth * 6;
+    case 'year':
+      return perMonth * 12;
+    default:
+      return 0;
+  }
+}
+
+/** מחיר-לשיעור לפי רמת-ההנחה שנבחרה (fallback ל-lessonPrice המלא). */
+export function lessonPriceForTier(c: Course, tier: '' | '1' | '2'): number {
+  if (tier === '1' && c.lessonPrice1) return c.lessonPrice1;
+  if (tier === '2' && c.lessonPrice2) return c.lessonPrice2;
+  return c.lessonPrice || 0;
+}
+
+/** רמות-ההנחה הזמינות לחוג פר-שיעור — רק אלו עם מחיר+שם. */
+export function lessonTierOptions(c: Course): { v: '' | '1' | '2'; t: string }[] {
+  const out: { v: '' | '1' | '2'; t: string }[] = [{ v: '', t: 'מחיר מלא · ₪' + (c.lessonPrice || 0) }];
+  if (c.lessonPrice1) out.push({ v: '1', t: (c.price1Name || 'הנחה 1') + ' · ₪' + c.lessonPrice1 });
+  if (c.lessonPrice2) out.push({ v: '2', t: (c.price2Name || 'הנחה 2') + ' · ₪' + c.lessonPrice2 });
+  return out;
+}
+
+export interface WeightedQuote {
+  /** מספר-שיעורים (מעוגל לחצי-שיעור לתצוגה). */
+  lessons: number;
+  /** מחיר-לשיעור אחרי ההנחה. */
+  perLesson: number;
+  /** סכום כולל מעוגל לשקל. */
+  total: number;
+}
+
+/** תמחור משוקלל — טהור. total = round(שיעורים × מחיר-לשיעור-אחרי-הנחה). */
+export function weightedQuote(
+  c: Course,
+  opts: { freq: number; unit: 'week' | 'month'; term: PricingTerm; months?: number; tier: '' | '1' | '2' },
+): WeightedQuote {
+  const perLesson = lessonPriceForTier(c, opts.tier);
+  const raw = lessonsInTerm(opts.freq, opts.unit, opts.term, opts.months);
+  return { lessons: Math.round(raw * 2) / 2, perLesson, total: Math.round(raw * perLesson) };
+}
+
+/** תמחור משוקלל מתוך שדות-שיבוץ שמורים (או null אם החוג אינו פר-שיעור / חסר תדירות). */
+export function enrollmentQuote(c: Course, e: Pick<Enrollment, 'freq' | 'freqUnit' | 'term' | 'termMonths' | 'tier'>): WeightedQuote | null {
+  if (!c.perLesson || !e.freq || !e.freqUnit || !e.term) return null;
+  return weightedQuote(c, { freq: e.freq, unit: e.freqUnit, term: e.term, months: e.termMonths, tier: e.tier || '' });
 }
 
 /** סכום ששולם עד כה על השיבוץ — סכומים לא-מספריים (NaN מקלט פגום) נספרים כ-0. */

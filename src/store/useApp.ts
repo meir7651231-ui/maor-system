@@ -47,7 +47,7 @@ import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { advanceStatus } from '../components/shop7/lib';
 import { roomClashError } from '../components/calendar/calLib';
-import { effectiveConfigFor, isOrgManager, parseJoinFullCode } from '../components/platform/lib';
+import { allowedDesignationsFor, effectiveConfigFor, isOrgManager, parseJoinFullCode } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, employeeSignUpError, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, termOf, writeCloudConfigCache } from '../lib/config';
@@ -121,6 +121,11 @@ export interface CloudState {
   cloudEncrypted?: boolean;
   /** ORGADMIN — המשתמש המחובר הוא מנהל-הארגון (org.manager) ⇒ פאנל-המנהל 👥. */
   isManager?: boolean;
+  /**
+   * ייעודי-התרומה שהעובד/ת המחובר/ת רשאי/ת לראות (בקשת-בעלים 13.8 ג'). null =
+   * בלי הגבלה (מנהל/בעלים/לקוח-מקומי — רואה הכל). מערך = רק ייעודים אלו.
+   */
+  allowedDesignations?: string[] | null;
   /**
    * סטטוס רישום-הבקשה (5.8 — "מאור נרשם ולא רואים בקשה"): 'ok' = הבקשה נכתבה
    * לענן; אחרת קוד-השגיאה של הכתיבה האחרונה (למשל permission-denied — ‏Rules).
@@ -727,6 +732,8 @@ export const useApp = create<AppState>()((set, get) => {
             // (רק הגבלה); מנהל/מייל-על = מלא. מנהל משנה כרטיס ⇒ העובד רואה חי (watch).
             const eff = effectiveConfigFor(user.email, orgDoc, merged);
             set({ config: eff });
+            // ג' (13.8) — ייעודי-התרומה שהעובד/ת רשאי/ת לראות (מתעדכן חי עם הכרטיס)
+            setCloud({ allowedDesignations: allowedDesignationsFor(user.email, orgDoc) });
             const { db } = get();
             applyTheme(db.ui.theme ?? eff.theme, db.ui.accent ?? eff.accent);
             writeCloudConfigCache(eff.slug, eff);
@@ -752,7 +759,7 @@ export const useApp = create<AppState>()((set, get) => {
                 isSuperAdmin(user.email) ||
                 !!orgDoc?.members?.some((m) => m.trim().toLowerCase() === mail);
               // ORGADMIN — האם המשתמש הוא מנהל-הארגון (org.manager)? ⇒ פאנל-המנהל 👥
-              setCloud({ membership: member ? 'member' : 'pending', isManager: isOrgManager(user.email, orgDoc ?? {}) });
+              setCloud({ membership: member ? 'member' : 'pending', isManager: isOrgManager(user.email, orgDoc ?? {}), allowedDesignations: allowedDesignationsFor(user.email, orgDoc ?? {}) });
               if (!member) {
                 // ORGADMIN — עובד/ת שהגיעה דרך קישור-הזמנה (?join=code): רישום בקשה
                 // שהמנהל יראה ויאשר (create-only, uid תואם לפי Rules v3; idempotent).

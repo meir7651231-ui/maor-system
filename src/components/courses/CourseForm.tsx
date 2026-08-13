@@ -3,13 +3,14 @@
  * מורה נבחרת מרשימה או נוצרת inline ('__add'); קטגוריה ומסלול תקופה תומכים ב-'__other'.
  */
 import { useState } from 'react';
-import type { Course, Gender, PricingModel, Teacher, Weekday } from '../../types/domain';
+import type { Course, CourseFile, Gender, PricingModel, Teacher, Weekday } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn, safeHttpsUrl, termOf } from '../../lib/config';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { pickAndCompressImage } from '../../lib/imagePick';
+import { CourseFilesField } from './CourseFilesField';
 import { ADD_TEACHER, CAT_OPTIONS, courseDateError, DAY_NAMES, defaultCourseDates, GRADE_ORDER, gradeIndex, OTHER, OTHER_LABEL, SEMESTER_OPTIONS } from './lib';
 
 interface CourseFormState {
@@ -42,6 +43,13 @@ interface CourseFormState {
   gradeMin: string;
   gradeMax: string;
   img: string;
+  /** תמחור משוקלל פר-שיעור (בקשת-בעלים 13.8 ב'). */
+  perLesson: boolean;
+  lessonPrice: string;
+  lessonPrice1: string;
+  lessonPrice2: string;
+  /** צירופים לחוג (בקשת-בעלים 13.8 א'). */
+  files: CourseFile[];
 }
 
 function initState(course: Course | null, firstTeacherId: string, firstRoomId: string): CourseFormState {
@@ -77,6 +85,11 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
       gradeMin: '',
       gradeMax: '',
       img: '',
+      perLesson: false,
+      lessonPrice: '',
+      lessonPrice1: '',
+      lessonPrice2: '',
+      files: [],
     };
   }
   const catSel = CAT_OPTIONS.includes(course.cat) ? course.cat : course.cat ? OTHER : 'העשרה';
@@ -110,6 +123,11 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
     gradeMin: course.gradeMin || '',
     gradeMax: course.gradeMax || '',
     img: course.img || '',
+    perLesson: !!course.perLesson,
+    lessonPrice: course.lessonPrice ? String(course.lessonPrice) : '',
+    lessonPrice1: course.lessonPrice1 ? String(course.lessonPrice1) : '',
+    lessonPrice2: course.lessonPrice2 ? String(course.lessonPrice2) : '',
+    files: course.files ?? [],
   };
 }
 
@@ -130,6 +148,9 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
   const discountsOn = featureOn(cfg, 'courses.discounts');
   // טווח כיתות + תמונת חוג (P2 פער 28)
   const gradeimgOn = featureOn(cfg, 'courses.gradeimg');
+  // בקשת-בעלים 13.8: צירוף קבצים (א') + תמחור משוקלל פר-שיעור (ב')
+  const filesOn = featureOn(cfg, 'courses.files');
+  const perLessonOn = featureOn(cfg, 'courses.perlesson');
 
   const [f, setF] = useState<CourseFormState>(() =>
     initState(props.course, db.teachers[0]?.id ?? '', db.rooms[0]?.id ?? ''),
@@ -140,8 +161,10 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
   function save() {
     if (!f.name.trim()) return setError('שם ה' + termOf(cfg, 'entity.course', 'חוג') + ' הוא שדה חובה');
     if (!f.roomId) return setError('יש לבחור ' + termOf(cfg, 'entity.room', 'חדר') + ' פעילות');
-    if ([f.price, f.price1, f.price2].some((p) => p && (isNaN(+p) || +p < 0)))
+    if ([f.price, f.price1, f.price2, f.lessonPrice, f.lessonPrice1, f.lessonPrice2].some((p) => p && (isNaN(+p) || +p < 0)))
       return setError('המחיר חייב להיות מספר חיובי');
+    if (perLessonOn && f.perLesson && (!f.lessonPrice || +f.lessonPrice <= 0))
+      return setError('בתמחור פר-שיעור יש להזין מחיר-לשיעור גדול מ-0');
     if (f.model === 'punch' && (!f.size || +f.size <= 0))
       return setError('בכרטיסייה יש להגדיר מספר ניקובים גדול מ-0');
     let cat = f.catSel;
@@ -214,6 +237,12 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
       gradeMax: f.gradeMax,
       // תמונה: העלאה (dataURL מכווץ) נשמרת כמות-שהיא; כתובת חיצונית — https בלבד
       img: f.img.startsWith('data:') ? f.img : (safeHttpsUrl(f.img) ?? ''),
+      // בקשת-בעלים 13.8: תמחור פר-שיעור (ב') + צירופים (א') — additive
+      perLesson: f.perLesson,
+      lessonPrice: +f.lessonPrice || 0,
+      lessonPrice1: +f.lessonPrice1 || 0,
+      lessonPrice2: +f.lessonPrice2 || 0,
+      files: f.files,
     };
     const room = db.rooms.find((r) => r.id === f.roomId);
     const roomName = room ? room.name : 'ה' + termOf(cfg, 'entity.room', 'חדר');
@@ -364,6 +393,36 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
       >
         {(advOpen ? '▲ פחות הגדרות' : '▼ הגדרות מתקדמות') + ' — מסלולי-תמחור, הנחות, קהל, גילאים, תמונה…'}
       </button>
+      {advOpen && perLessonOn && (
+        <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 10 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            <input type="checkbox" checked={f.perLesson} onChange={(e) => set({ perLesson: e.target.checked })} />
+            💡 תמחור משוקלל פר-שיעור
+          </label>
+          {f.perLesson && (
+            <>
+              <div className="form-grid" style={{ marginTop: 8 }}>
+                <Field label="מחיר לשיעור בודד (₪) *">
+                  <TextInput value={f.lessonPrice} onChange={(v) => set({ lessonPrice: v })} placeholder="50" dir="ltr" type="number" />
+                </Field>
+                {discountsOn && (
+                  <>
+                    <Field label={'מחיר-לשיעור · ' + (f.price1Name.trim() || 'הנחה 1') + ' (₪)'}>
+                      <TextInput value={f.lessonPrice1} onChange={(v) => set({ lessonPrice1: v })} placeholder="—" dir="ltr" type="number" />
+                    </Field>
+                    <Field label={'מחיר-לשיעור · ' + (f.price2Name.trim() || 'הנחה 2') + ' (₪)'}>
+                      <TextInput value={f.lessonPrice2} onChange={(v) => set({ lessonPrice2: v })} placeholder="—" dir="ltr" type="number" />
+                    </Field>
+                  </>
+                )}
+              </div>
+              <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 4 }}>
+                בהרשמה בוחרים תדירות (פ/שבוע·חודש) ותקופה — הסכום מחושב אוטומטית, כולל הנחת הלקוח.
+              </div>
+            </>
+          )}
+        </div>
+      )}
       {advOpen && (
         <div className="form-grid">
         {discountsOn && (
@@ -494,6 +553,13 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
         <Field label="תאריך סיום">
           <HebDateInput value={f.end} onChange={(iso) => set({ end: iso })} />
         </Field>
+        </div>
+      )}
+      {advOpen && filesOn && (
+        <div style={{ marginBottom: 12 }}>
+          <Field label={'📎 קבצים מצורפים ל' + termOf(cfg, 'entity.course', 'חוג') + ' (מסמכים · תמונות · סרטונים)'}>
+            <CourseFilesField value={f.files} onChange={(files) => set({ files })} />
+          </Field>
         </div>
       )}
       <div

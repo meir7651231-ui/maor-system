@@ -76,6 +76,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.notes', label: 'הערות פנימיות לחוג', desc: 'שדה הערות פנימיות בכרטיס החוג', module: 'courses' },
   { key: 'courses.colfilter', label: 'סינון עמודות ברשימה', desc: 'כפתור "⏷ סינון עמודות" ושורת שדות סינון ברשימת החוגים', module: 'courses' },
   { key: 'courses.viewtoggle', label: 'החלפת גריד/רשימה', desc: 'כפתור "▦ גריד / ☰ רשימה" במסך החוגים', module: 'courses' },
+  { key: 'courses.files', label: 'צירוף קבצים לחוג', desc: 'מסמכים/תמונות מוטמעים + קישורים לסרטונים בכרטיס החוג', module: 'courses' },
+  { key: 'courses.perlesson', label: 'תמחור משוקלל פר-שיעור', desc: 'מחיר לשיעור בודד; בהרשמה בוחרים תדירות (פ/שבוע·חודש) ותקופה — הסכום מחושב אוטומטית, כולל הנחת הלקוח', module: 'courses' },
 
   // ——— לוח שנה ———
   { key: 'calendar.dayview', label: 'תצוגת יום', desc: 'מעבר לתצוגת יום מפורטת בלוח השנה', module: 'calendar' },
@@ -123,6 +125,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.import.preview', label: 'סיכום לפני ייבוא', desc: 'ייבוא תומכות דו-שלבי — בדיקת הקובץ והצגת חדשות/עדכונים לפני ההחלה; כבוי = החלה מיידית', module: 'supporters' },
   { key: 'supporters.thankyou', label: 'תזכורת "התקשר לתודה"', desc: 'כפתור "📞 תודה" — יצירת אירוע תזכורת קשר בלוח', module: 'supporters' },
   { key: 'supporters.click2call', label: 'חיוג ישיר מהרשימה', desc: 'קישור tel: להתקשרות ישירה מטבלת התומכים', module: 'supporters' },
+  { key: 'supporters.purpose', label: 'ייעוד תרומה + הרשאה פר-עובד 🔐', desc: 'שדה "ייעוד" (עבודה/מיזם) על התרומה; עובד רואה רק תרומות של הייעודים שהוקצו לו בכרטיס-העובד', module: 'supporters' },
 
   // ——— מסך הבית ———
   { key: 'home.digest', label: 'תקציר הבוקר', desc: 'תקציר יומי בראש מסך הבית', module: 'home' },

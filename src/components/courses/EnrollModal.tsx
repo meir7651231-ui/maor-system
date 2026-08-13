@@ -11,16 +11,20 @@ import { smartFilter } from '../../lib/search';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
+import type { PricingTerm } from '../../types/domain';
 import {
   ENROLL_NEW_FAMILY,
+  PRICING_TERMS,
   ageOf,
   courseFitsMember,
   enrollCount,
   groupOptionsOf,
   isoToday,
+  lessonTierOptions,
   offerNewFamily,
   resolveEnrollFamily,
   scheduleClashText,
+  weightedQuote,
 } from './lib';
 
 export function EnrollModal(props: { course: Course; onClose: () => void }) {
@@ -40,6 +44,8 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
   const inlineOn = featureOn(cfg, 'courses.enroll.inlinecreate');
 
   const c = props.course;
+  // תמחור משוקלל פר-שיעור (בקשת-בעלים 13.8 ב') — פעיל רק כשהחוג מוגדר perLesson
+  const perLessonOn = featureOn(cfg, 'courses.perlesson') && !!c.perLesson;
   const [q, setQ] = useState('');
   const [listOpen, setListOpen] = useState(false);
   const [memberId, setMemberId] = useState('');
@@ -47,6 +53,21 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
   const [group, setGroup] = useState('');
   const [error, setError] = useState('');
   const [showAll, setShowAll] = useState(false);
+  // בחירת התדירות/התקופה/ההנחה בתמחור המשוקלל
+  const [freq, setFreq] = useState('1');
+  const [freqUnit, setFreqUnit] = useState<'week' | 'month'>('week');
+  const [term, setTerm] = useState<PricingTerm>('monthly');
+  const [termMonths, setTermMonths] = useState('3');
+  const [tier, setTier] = useState<'' | '1' | '2'>('');
+
+  const quote = perLessonOn
+    ? weightedQuote(c, { freq: +freq || 0, unit: freqUnit, term, months: +termMonths || 1, tier })
+    : null;
+  /** שדות-התמחור-המשוקלל להטמעה בשיבוץ (totalDue + פרמטרי הבחירה). */
+  const pricingFields = perLessonOn
+    ? { totalDue: quote!.total, freq: +freq || 0, freqUnit, term, termMonths: term === 'months' ? +termMonths || 1 : undefined, tier }
+    : { totalDue: 0 };
+  const tierOptions = perLessonOn ? lessonTierOptions(c) : [];
 
   const groups = groupsOn ? groupOptionsOf(c) : [];
 
@@ -170,11 +191,11 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
       group,
       absences: [],
       payments: [],
-      totalDue: 0,
       dueDate: '',
       status: 'active',
       note: '',
       enrolledAt: isoToday(),
+      ...pricingFields,
     });
     toast(
       (famCreated ? termOf(cfg, 'entity.familyOf', 'משפחת') + ' ' + fam.name + ' נוצרה, ' : '') +
@@ -211,11 +232,11 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
       group,
       absences: [],
       payments: [],
-      totalDue: 0,
       dueDate: '',
       status: 'active',
       note: '',
       enrolledAt: isoToday(),
+      ...pricingFields,
     };
     upsertEnrollment(enrollment);
     toast('ה' + termOf(cfg, 'entity.student', 'תלמיד/ה') + ' שובצ/ה ל' + termOf(cfg, 'entity.course', 'חוג'));
@@ -298,6 +319,45 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
         <Field label="ניקובים בכרטיסייה">
           <TextInput value={purchased} onChange={setPurchased} placeholder="12" dir="ltr" />
         </Field>
+      )}
+      {perLessonOn && quote && (
+        <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '10px 12px', marginBottom: 10, background: 'var(--surface-2, #fafaf7)' }}>
+          <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 8 }}>💡 תמחור משוקלל פר-שיעור</div>
+          <div className="form-grid">
+            <Field label="תדירות">
+              <div style={{ display: 'flex', gap: 6 }}>
+                <TextInput value={freq} onChange={setFreq} dir="ltr" type="number" />
+                <Select
+                  value={freqUnit}
+                  onChange={(v) => setFreqUnit(v === 'month' ? 'month' : 'week')}
+                  options={[
+                    { value: 'week', label: 'פעמים בשבוע' },
+                    { value: 'month', label: 'פעמים בחודש' },
+                  ]}
+                />
+              </div>
+            </Field>
+            <Field label="תקופת חיוב">
+              <Select value={term} onChange={(v) => setTerm(v as PricingTerm)} options={PRICING_TERMS.map((t) => ({ value: t.v, label: t.t }))} />
+            </Field>
+            {term === 'months' && (
+              <Field label="מספר חודשים">
+                <TextInput value={termMonths} onChange={setTermMonths} dir="ltr" type="number" />
+              </Field>
+            )}
+            {tierOptions.length > 1 && (
+              <Field label="הנחת הלקוח">
+                <Select value={tier} onChange={(v) => setTier(v === '1' ? '1' : v === '2' ? '2' : '')} options={tierOptions.map((o) => ({ value: o.v, label: o.t }))} />
+              </Field>
+            )}
+          </div>
+          <div style={{ marginTop: 6, fontSize: 14, fontWeight: 800, color: '#12803c' }}>
+            {'סה"כ ל' + PRICING_TERMS.find((t) => t.v === term)?.t + ': ₪' + quote.total}
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-faint)' }}>
+              {' · ' + quote.lessons + ' שיעורים × ₪' + quote.perLesson}
+            </span>
+          </div>
+        </div>
       )}
       {clash && (
         <div style={{ fontSize: 12.5, fontWeight: 700, color: '#b91c1c', marginBottom: 8 }}>{clash}</div>

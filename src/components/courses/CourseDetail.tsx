@@ -616,6 +616,28 @@ export function CourseDetail(props: { course: Course }) {
                 style={{ width: '100%', maxHeight: 160, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--line)' }}
               />
             )}
+            {/* קבצים מצורפים (בקשת-בעלים 13.8 א') — מסמכים/תמונות/קישורים */}
+            {featureOn(cfg, 'courses.files') && c.files && c.files.length > 0 && (
+              <div>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-soft)', marginBottom: 5 }}>
+                  📎 קבצים מצורפים
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {c.files.map((file) => (
+                    <a
+                      key={file.id}
+                      href={file.data}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, padding: '4px 8px', border: '1px solid var(--line)', borderRadius: 8 }}
+                    >
+                      <span>{file.kind === 'link' ? '🔗' : file.kind === 'image' ? '🖼️' : '📄'}</span>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
             {detailRow('קהל יעד', c.audience || 'כללי')}
             {gradeimgOn && (c.gradeMin || c.gradeMax) &&
               detailRow('כיתות', [c.gradeMin, c.gradeMax].filter(Boolean).join('–'))}
@@ -628,6 +650,14 @@ export function CourseDetail(props: { course: Course }) {
             </div>
             {detailRow('טלפון ' + termOf(cfg, 'entity.teacher', 'מורה'), teacher?.phone || '—')}
             {detailRow('מחיר מלא', c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—')}
+            {/* תמחור משוקלל פר-שיעור (בקשת-בעלים 13.8 ב') */}
+            {featureOn(cfg, 'courses.perlesson') && c.perLesson && c.lessonPrice ? (
+              <>
+                {detailRow('מחיר לשיעור', '₪' + c.lessonPrice + ' לשיעור', '#12803c')}
+                {c.lessonPrice1 ? detailRow((c.price1Name || 'הנחה 1') + ' לשיעור', '₪' + c.lessonPrice1, '#12803c') : null}
+                {c.lessonPrice2 ? detailRow((c.price2Name || 'הנחה 2') + ' לשיעור', '₪' + c.lessonPrice2, '#7c3aed') : null}
+              </>
+            ) : null}
             {discountsOn && detailRow(c.price1Name || 'הנחה 1', c.price1 ? '₪' + c.price1 : '—', '#12803c')}
             {discountsOn && detailRow(c.price2Name || 'הנחה 2', c.price2 ? '₪' + c.price2 : '—', '#7c3aed')}
             {detailRow('מסלול', mm.label)}
