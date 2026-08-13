@@ -11,7 +11,10 @@ import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildTenant, validateTenant, toE164 } from './lib/index.mjs';
-import { buildDirectory, lookupCaller, lookupInDirectory } from './lib/cti.mjs';
+import {
+  buildDirectory, lookupCaller, lookupInDirectory, enrichContact, screenPop,
+  callEvent, dialString, callHistoryFor, maskNumber, popPriorityFor, SCREENPOP_VERSION,
+} from './lib/cti.mjs';
 import { tenantFromIntake, INTAKE_STEPS } from './lib/onboard.mjs';
 import { planApply, rollbackPlan, planTenants, summarize } from './lib/apply.mjs';
 import { channelPlan, isPureDownstream } from './lib/channels.mjs';
@@ -435,6 +438,81 @@ ok('cti_namegreeting hook', vdp.includes('cti_namegreeting=true'));
 }
 // אינווריאנט: chesed בלי מקטעי-גל-4
 ok('chesed בלי ברכות/הכרזות', !buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'].match(/greeting-open|closed_greeting|announce-|hold_music|vm_transcribe|emergency_override/));
+
+// ── גל 5 (41-50): עומק-CTI ──────────────────────────────────────────────────
+console.log('· גל 5 — עומק-CTI');
+// DB מועשר לבדיקה (additive על מבנה-מאור).
+const rdb = {
+  families: [{ id: 'F1', name: 'משפחת כהן', phone: '050-111-2233', phone2: '02-6543210', city: 'ירושלים', extraPhones: ['058-1010101'] }],
+  supporters: [{ id: 'S1', name: 'דוד תורם', phone: '050-111-2233', cat: 'זהב', city: 'בני ברק', last: '2026-07-01', ils: 5000 }],
+  members: [], teachers: [],
+};
+// 41. העשרה
+{
+  const e = enrichContact(rdb.supporters[0], 'supporter');
+  ok('enrich קטגוריה+עיר+תרומה', e.category === 'זהב' && e.city === 'בני ברק' && e.lastDonation === '2026-07-01' && e.totalIls === 5000);
+}
+// 46+41. screen-pop מגורס+מועשר
+{
+  const pop = screenPop(rdb, '050-111-2233', { direction: 'inbound', line: 'קו תרומות' });
+  eq('screenPop version', pop.version, SCREENPOP_VERSION);
+  eq('screenPop 2 התאמות', pop.matches.length, 2);
+  ok('screenPop enrichment בכל התאמה', pop.matches.every((m) => m.enrichment));
+  eq('screenPop line', pop.line, 'קו תרומות');
+}
+// 47. הצלבה מרובת-שדות (extraPhones)
+{
+  const pop = screenPop(rdb, '058-1010101');
+  ok('extraPhones מזוהה', pop.primary && pop.primary.id === 'F1' && pop.primary.field === 'extra');
+}
+// 48. עדיפות פר-ורטיקל
+{
+  const chesedPop = screenPop(rdb, '050-111-2233', { vertical: 'chesed' });
+  eq('chesed ⇒ משפחה primary', chesedPop.primary.kind, 'family');
+  const shulPop = screenPop(rdb, '050-111-2233', { vertical: 'shul' });
+  eq('shul ⇒ תומך primary', shulPop.primary.kind, 'supporter');
+  ok('popPriorityFor ידוע', popPriorityFor('chesed').family === 0);
+}
+// 45. מתקשר-לא-מוכר → הצעה
+{
+  const pop = screenPop(rdb, '03-0000000');
+  ok('לא-מוכר ⇒ suggestion add', pop.primary === null && pop.suggestion && pop.suggestion.action === 'add');
+  ok('הצעה כוללת family+supporter', pop.suggestion.kinds.includes('family') && pop.suggestion.kinds.includes('supporter'));
+}
+// 49. screen-pop יוצא
+{
+  const pop = screenPop(rdb, '050-111-2233', { direction: 'outbound' });
+  eq('יוצא direction', pop.direction, 'outbound');
+}
+// 50. הצללה (privacy)
+{
+  const pop = screenPop(rdb, '050-111-2233', { privacy: true });
+  ok('privacy ⇒ מספר-ממוסך', pop.number.includes('•') && pop.number.endsWith('2233'));
+  eq('maskNumber', maskNumber('+972501112233'), '•••••••••2233');
+}
+// 42. אירוע-שיחה למאור
+{
+  const ev = callEvent({ number: '050-111-2233', direction: 'inbound', startedAt: '2026-08-10T09:30:00', durationSec: 65, line: 'ראשי', primary: { kind: 'supporter', id: 'S1', name: 'דוד תורם' } });
+  eq('callEvent type', ev.type, 'call');
+  eq('callEvent date', ev.date, '2026-08-10');
+  ok('callEvent contact', ev.contactId === 'S1' && ev.title.includes('דוד תורם'));
+}
+// 43. click-to-call
+{
+  const t = buildTenant(chesed).ok ? validateTenant(chesed).tenant : null;
+  eq('dialString דרך SIM ⇒ קידומת', dialString(t, '050-9999999', { viaNumberId: 'n2' }), `2#+972509999999`);
+  eq('dialString ברירת-מחדל', dialString(t, '050-9999999'), '+972509999999');
+}
+// 44. היסטוריית-שיחות
+{
+  const logs = [
+    callEvent({ number: '050-111-2233', startedAt: '2026-08-01T10:00:00' }),
+    callEvent({ number: '050-111-2233', startedAt: '2026-08-05T10:00:00' }),
+    callEvent({ number: '03-9999999', startedAt: '2026-08-03T10:00:00' }),
+  ];
+  const h = callHistoryFor(logs, '050-111-2233');
+  ok('היסטוריה מסוננת+ממוינת', h.length === 2 && h[0].startedAt > h[1].startedAt);
+}
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);

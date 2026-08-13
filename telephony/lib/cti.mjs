@@ -39,6 +39,42 @@ function* iterContacts(db) {
   }
 }
 
+/** כל הטלפונים של רשומה (phone/phone2 + extraPhones[]), מנורמלים. item 47. */
+function phonesOf(rec, kind) {
+  const out = [];
+  for (const field of PHONE_FIELDS[kind] || ['phone']) {
+    const e = toE164(rec[field]);
+    if (e) out.push({ field, e164: e });
+  }
+  if (Array.isArray(rec.extraPhones)) {
+    for (const p of rec.extraPhones) {
+      const e = toE164(p);
+      if (e) out.push({ field: 'extra', e164: e });
+    }
+  }
+  return out;
+}
+
+/** גרסת מבנה-ה-screen-pop (לתאימות-קדימה בצד-מאור). */
+export const SCREENPOP_VERSION = 1;
+
+/**
+ * העשרת-כרטיס (item 41): שולף שדות-הקשר שימושיים מהרשומה — קטגוריה/עיר/תרומה-
+ * אחרונה/סכום-מצטבר/תגיות/הערה — אם קיימים. אף שדה לא חובה; אין=לא-נכלל.
+ */
+export function enrichContact(rec, kind) {
+  const e = {};
+  if (rec.cat) e.category = rec.cat;
+  if (rec.city) e.city = rec.city;
+  if (rec.last) e.lastDonation = rec.last;
+  if (typeof rec.ils === 'number' && rec.ils) e.totalIls = rec.ils;
+  if (typeof rec.usd === 'number' && rec.usd) e.totalUsd = rec.usd;
+  if (typeof rec.balance === 'number') e.balance = rec.balance;
+  if (Array.isArray(rec.tags) && rec.tags.length) e.tags = rec.tags.slice();
+  if (rec.status) e.status = rec.status;
+  return e;
+}
+
 /**
  * בונה אינדקס e164 → רשימת-אנשי-קשר. זה מה שנכתב (opt-in) ל-directory בענן.
  * מיפוי רב-לאחד: אותו מספר יכול להופיע אצל כמה אנשי-קשר (משפחה+תומך וכו').
@@ -48,9 +84,7 @@ function* iterContacts(db) {
 export function buildDirectory(db) {
   const dir = {};
   for (const { kind, rec } of iterContacts(db)) {
-    for (const field of PHONE_FIELDS[kind]) {
-      const e164 = toE164(rec[field]);
-      if (!e164) continue;
+    for (const { field, e164 } of phonesOf(rec, kind)) {
       (dir[e164] ||= []).push({ kind, id: String(rec.id), name: rec.name || '', field });
     }
   }
@@ -96,4 +130,111 @@ export function lookupInDirectory(directory, rawNumber) {
     (a, b) => (POP_PRIORITY[a.kind] ?? 9) - (POP_PRIORITY[b.kind] ?? 9) || (a.id + '').localeCompare(b.id + ''),
   );
   return { number: e164, matches: sorted, primary: sorted[0] || null };
+}
+
+// ── item 48: עדיפות-הצגה מותאמת פר-ורטיקל ────────────────────────────────────
+// חסד/חלוקה → משפחה קודם; תרומות/כולל → תומך קודם. ברירת-מחדל = POP_PRIORITY.
+const VERTICAL_PRIORITY = {
+  chesed: { family: 0, member: 1, supporter: 2, teacher: 3 },
+  gemach: { family: 0, member: 1, supporter: 2, teacher: 3 },
+  talmudtorah: { teacher: 0, member: 1, family: 2, supporter: 3 },
+  shul: { supporter: 0, family: 1, member: 2, teacher: 3 },
+  kollel: { supporter: 0, teacher: 1, member: 2, family: 3 },
+};
+export function popPriorityFor(vertical) {
+  return VERTICAL_PRIORITY[vertical] || POP_PRIORITY;
+}
+
+// ── item 50: הצללת-מספר (תואם shell.privacy של מאור) ─────────────────────────
+/** ממסך מספר לתצוגה: משאיר 4 ספרות אחרונות. "+972501112233" → "•••••••2233". */
+export function maskNumber(e164) {
+  if (typeof e164 !== 'string' || e164.length < 4) return e164;
+  const tail = e164.slice(-4);
+  return '•'.repeat(Math.max(0, e164.length - 4)) + tail;
+}
+
+// ── item 46+45+49: screen-pop payload מגורס (נכנס/יוצא), עם suggestion+privacy ─
+/**
+ * מבנה-ה-screen-pop המלא לצד-מאור. מגורס (SCREENPOP_VERSION), כולל העשרה,
+ * עדיפות-פר-ורטיקל, הצעת-הוספה למתקשר-לא-מוכר, והצללה אם privacy.
+ * @param {object} db  תצלום-DB של מאור
+ * @param {string} rawNumber
+ * @param {{direction?:'inbound'|'outbound', vertical?:string, privacy?:boolean, line?:string}} [opt]
+ */
+export function screenPop(db, rawNumber, opt = {}) {
+  const direction = opt.direction === 'outbound' ? 'outbound' : 'inbound';
+  const e164 = toE164(rawNumber);
+  const base = { version: SCREENPOP_VERSION, direction, line: opt.line || null };
+  if (!e164) return { ...base, number: null, matches: [], primary: null, suggestion: null };
+
+  const prio = popPriorityFor(opt.vertical);
+  const recIndex = {};
+  for (const { kind, rec } of iterContacts(db)) recIndex[`${kind}:${rec.id}`] = rec;
+
+  const dir = buildDirectory(db);
+  const raw = dir[e164] || [];
+  const matches = [...raw]
+    .sort((a, b) => (prio[a.kind] ?? 9) - (prio[b.kind] ?? 9) || (a.id + '').localeCompare(b.id + ''))
+    .map((m) => {
+      const rec = recIndex[`${m.kind}:${m.id}`];
+      return { ...m, enrichment: rec ? enrichContact(rec, m.kind) : {} };
+    });
+
+  const number = opt.privacy ? maskNumber(e164) : e164;
+  // item 45: מתקשר-לא-מוכר → הצעת-הוספה.
+  const suggestion = matches.length
+    ? null
+    : { action: 'add', number: e164, kinds: direction === 'inbound' ? ['family', 'supporter'] : ['supporter'] };
+
+  return { ...base, number, e164Masked: opt.privacy, matches, primary: matches[0] || null, suggestion };
+}
+
+// ── item 42: אירוע-שיחה ל-EventType 'call' של מאור (additive) ─────────────────
+/**
+ * בונה רשומת-אירוע-שיחה בצורת מאור (type:'call'). additive — לא נוגע ברצף-קבלות.
+ * @param {{number:string, direction?:string, startedAt:string, durationSec?:number,
+ *          line?:string, primary?:object|null, note?:string}} p
+ */
+export function callEvent(p) {
+  const e164 = toE164(p.number) || p.number || '';
+  const dir = p.direction === 'outbound' ? 'יוצאת' : 'נכנסת';
+  const who = p.primary ? p.primary.name : 'לא מזוהה';
+  return {
+    type: 'call',
+    date: (p.startedAt || '').slice(0, 10),
+    startedAt: p.startedAt || '',
+    direction: p.direction === 'outbound' ? 'outbound' : 'inbound',
+    number: e164,
+    line: p.line || '',
+    durationSec: Number.isFinite(p.durationSec) ? p.durationSec : 0,
+    ...(p.primary ? { contactKind: p.primary.kind, contactId: p.primary.id, contactName: p.primary.name } : {}),
+    title: `שיחה ${dir} · ${who}`,
+    note: p.note || '',
+  };
+}
+
+// ── item 43: click-to-call — קוד-החיוג להוצאת-שיחה מכרטיס-מאור ────────────────
+/**
+ * קוד-החיוג שהמנהל מקיש/הכפתור שולח כדי לחייג את e164 דרך מספר-הלקוח.
+ * viaNumberId מצביע על number.id (SIM עם ערוץ) ⇒ "<ערוץ>#<יעד>"; אחרת ברירת-מחדל.
+ * @param {object} tenant  tenant מנורמל (עם numbers[].gatewayChannel)
+ * @param {string} rawTarget  היעד לחיוג
+ * @param {{viaNumberId?:string}} [opt]
+ */
+export function dialString(tenant, rawTarget, opt = {}) {
+  const target = toE164(rawTarget) || String(rawTarget || '');
+  const sims = (tenant.numbers || []).filter((n) => n.onramp === 'sim-in-gateway' && Number.isInteger(n.gatewayChannel));
+  const via = opt.viaNumberId && sims.find((n) => n.id === opt.viaNumberId);
+  if (via) return `${via.gatewayChannel}#${target}`;
+  return target; // ברירת-מחדל: יוצא דרך out_default של הדיאלפלן
+}
+
+// ── item 44: היסטוריית-שיחות פר-איש-קשר ──────────────────────────────────────
+/** מסנן+ממיין לוג-שיחות (callEvent[]) למספר בודד, מהחדש לישן. */
+export function callHistoryFor(logs, rawNumber) {
+  const e164 = toE164(rawNumber);
+  if (!e164) return [];
+  return (Array.isArray(logs) ? logs : [])
+    .filter((l) => toE164(l.number) === e164)
+    .sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)));
 }
