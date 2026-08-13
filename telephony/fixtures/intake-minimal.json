@@ -1,0 +1,16 @@
+{
+  "orgName": "עמותת דוגמה",
+  "tenantId": "demo-intake",
+  "numbers": [
+    { "number": "02-5551234", "label": "קו ראשי", "type": "sim" },
+    { "number": "050-1112233", "label": "קו תרומות", "type": "sim" },
+    { "number": "053-9998877", "label": "קו כשר", "type": "sim", "kosher": true },
+    { "number": "077-2000000", "label": "וירטואלי", "type": "virtual" },
+    { "number": "054-7654321", "label": "ווצאפ", "type": "whatsapp" }
+  ],
+  "office": "101",
+  "manager": "201",
+  "managerEmail": "mgr@demo.example",
+  "ctiOrg": "demo-intake",
+  "ctiMode": "directory"
+}

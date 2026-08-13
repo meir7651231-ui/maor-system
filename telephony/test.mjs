@@ -12,6 +12,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildTenant, validateTenant, toE164 } from './lib/index.mjs';
 import { buildDirectory, lookupCaller, lookupInDirectory } from './lib/cti.mjs';
+import { tenantFromIntake, INTAKE_STEPS } from './lib/onboard.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const UPDATE = process.env.UPDATE === '1';
@@ -121,6 +122,33 @@ eq('מספר-משותף → 2 אנשי-קשר', (dir['+972501112233'] || []).len
 }
 eq('lookupInDirectory ≡ lookupCaller', lookupInDirectory(dir, '050-111-2233').primary.kind, 'supporter');
 ok('directory דטרמיניסטי', JSON.stringify(buildDirectory(mdb)) === JSON.stringify(dir));
+
+// ── 5c. onboard: תצורה-עצמית מקצה-לקצה ──────────────────────────────────────
+console.log('· onboard — תצורה-עצמית');
+const intake = JSON.parse(readFileSync(join(HERE, 'fixtures/intake-minimal.json'), 'utf8'));
+const derived = tenantFromIntake(intake);
+// גזירה אוטומטית: onramp לפי טיב.
+eq('sim → sim-in-gateway', derived.numbers[0].onramp, 'sim-in-gateway');
+eq('virtual → customer-forward', derived.numbers[3].onramp, 'customer-forward');
+eq('whatsapp → device-link', derived.numbers[4].onramp, 'device-link');
+eq('ווצאפ → channels whatsapp', derived.numbers[4].channels.join(','), 'whatsapp');
+// ערוצי-שער רצים אוטומטית ל-SIM בלבד.
+eq('SIM ראשון ערוץ 1', derived.numbers[0].gatewayChannel, 1);
+eq('SIM שלישי ערוץ 3', derived.numbers[2].gatewayChannel, 3);
+ok('וירטואלי בלי ערוץ-שער', derived.numbers[3].gatewayChannel === undefined);
+eq('יעד-יציאה = SIM ראשון', derived.outbound.defaultNumberId, 'n1');
+// end-to-end: מתשובות-מינימום → קונפיג תקין → קבצים.
+const built = buildTenant(derived);
+ok('תצורה-עצמית ⇒ buildTenant תקין', built.ok);
+ok('נוצר דיאלפלן', !!built.files['dialplan/tenant_demo-intake.xml']);
+eq('4 SIM-יציאה (3 sim + 0)... בעצם 3', built.manifest.outboundSims.length, 3);
+// אינווריאנט תצורה-עצמית: הטופס לא מבקש לבחור ספק/onramp/trunk — הכל נגזר.
+{
+  const allFieldKeys = INTAKE_STEPS.flatMap((s) => (s.fields || []).map((f) => f.key));
+  ok('הטופס לא מבקש onramp (נגזר)', !allFieldKeys.includes('onramp'));
+  ok('הטופס לא מבקש ספק/trunk/gateway', !allFieldKeys.some((k) => /provider|trunk|gateway|carrier|onramp/i.test(k)));
+  ok('הטופס ≥4 שלבים', INTAKE_STEPS.length >= 4);
+}
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
