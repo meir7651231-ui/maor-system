@@ -10,7 +10,7 @@
 import { strToU8, zipSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
 import { parseXlsxSheet } from '../../../lib/xlsx';
-import { mergeSupporterRow, newSupporterFromRow, parseSupporterGrid, supDonEvents } from '../lib';
+import { excelSerialToIso, mergeSupporterRow, newSupporterFromRow, parseSupporterGrid, supDonEvents } from '../lib';
 
 /** בונה xlsx מינימלי (רק sharedStrings + sheet1) מרשת-תאים — כמו יצוא אמיתי. */
 function buildXlsx(grid: string[][]): Uint8Array {
@@ -66,6 +66,19 @@ describe('ייבוא Excel — parseXlsxSheet (פענוח xlsx לרשת-תאים
 
   it('קובץ פגום/ריק ⇒ [] (נכשל-רך, לא זורק)', () => {
     expect(parseXlsxSheet(new Uint8Array([1, 2, 3]))).toEqual([]);
+  });
+
+  // 🔴 באג-שטח 13.8c: קובץ ששומר את עמודת-התאריך **כמספר-סריאל** (46247) —
+  // parseAnyDate נכשל, ובלי תאריך העסקה לא נרשמת ("לא קורא את התרומות בשום צורה").
+  it('תאריך כמספר-סריאל של Excel נקרא ונרשם כעסקה', () => {
+    expect(excelSerialToIso(46247)).toBe('2026-08-13');
+    const grid = [
+      ['תאריך', 'תורם', 'סכום', 'מטבע', 'מספר עסקה'],
+      ['46247', 'בינדר', '60', '₪', '76430635'], // תאריך = מספר-סריאל
+    ];
+    const rows = parseSupporterGrid(grid);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].hist).toEqual([{ d: '2026-08-13', a: 60, txn: '76430635' }]);
   });
 });
 

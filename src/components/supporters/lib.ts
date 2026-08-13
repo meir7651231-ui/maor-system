@@ -302,6 +302,18 @@ export interface SupporterImportRow {
 /** מילות-מפתח לעמודת-השם. 'תורם' נוסף בשביל יצוא-הסליקה (כותרת "תורם"). */
 export const SUP_NAME_KEYS = ['שם', 'תורם'];
 
+/** המרת מספר-סריאל של Excel (ימים מ-1899-12-30) ל-ISO 'YYYY-MM-DD'. חלק
+ *  מקובצי-היצוא שומרים את עמודת-התאריך **כמספר** ולא כטקסט — אז parseAnyDate
+ *  נכשל והעסקה לא נרשמת. '' על קלט לא-תקין. (25569 = ימים ל-1970-01-01.) */
+export function excelSerialToIso(serial: number): string {
+  if (!isFinite(serial) || serial < 1) return '';
+  const dt = new Date(Math.round((serial - 25569) * 86400000));
+  if (isNaN(dt.getTime())) return '';
+  const mo = String(dt.getUTCMonth() + 1).padStart(2, '0');
+  const da = String(dt.getUTCDate()).padStart(2, '0');
+  return `${dt.getUTCFullYear()}-${mo}-${da}`;
+}
+
 /**
  * פענוח רשת-תאים (‏string[][]) לשורות-ייבוא — משמש גם ל-CSV וגם ל-xlsx.
  * זיהוי עמודות לפי כותרת, **סורק את שורת-הכותרות** (לא מניח שורה-1) כדי לתמוך
@@ -365,8 +377,10 @@ export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
     };
     if (iAmount >= 0 && iTxDate >= 0) {
       const amount = Math.round(Number(g(r, iAmount).replace(/[^\d.-]/g, '')) * 100) / 100;
-      // 'תאריך עסקה' מגיע עם שעה ("09/08/26 00:36") — התאריך בלבד
-      const d = parseAnyDate(g(r, iTxDate).split(' ')[0]);
+      // 'תאריך עסקה' מגיע עם שעה ("09/08/26 00:36") — התאריך בלבד. אם התא מספר-
+      // סריאל של Excel (יצוא ששומר תאריך כמספר) — parseAnyDate נכשל ⇒ המרה מסריאל.
+      const rawDate = g(r, iTxDate).split(' ')[0];
+      const d = parseAnyDate(rawDate) || (/^\d+(\.\d+)?$/.test(rawDate) ? excelSerialToIso(Number(rawDate)) : '');
       if (isFinite(amount) && amount > 0 && d) {
         // 13.8 — מטא-דאטה: רק שדות שקיימים בפועל (נשארים undefined אחרת).
         const pays = Number(g(r, iPays));
