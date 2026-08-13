@@ -9,6 +9,7 @@ import { termOf } from '../../lib/config';
 import { normSearch, formatIsraeliPhone } from '../../lib/validate';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
 import { planAddName } from '../../lib/ayin';
+import { parseAnyDate, parseCsv } from '../../lib/csvx';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
@@ -268,6 +269,82 @@ export interface SupporterImportRow {
   /** בקשת-בעלים 9.8 ("עבור מי ⇒ שם לטיפול"): שורת-טיפול בקובץ (קטגוריה עם
    *  'עין') ⇒ השם-לטיפול נכנס לתיק-המעקב; הכמות ('' ) ממתינה לשלב-הרישום. */
   ayinNames?: string[];
+}
+
+/** מילות-מפתח לעמודת-השם. 'תורם' נוסף בשביל יצוא-הסליקה (כותרת "תורם"). */
+export const SUP_NAME_KEYS = ['שם', 'תורם'];
+
+/**
+ * פענוח רשת-תאים (‏string[][]) לשורות-ייבוא — משמש גם ל-CSV וגם ל-xlsx.
+ * זיהוי עמודות לפי כותרת, **סורק את שורת-הכותרות** (לא מניח שורה-1) כדי לתמוך
+ * ביצוא-סליקה שבו מעל הכותרות יש שורות-פתיח (כותרת/טווח-תאריכים/סה"כ). אם אין
+ * כותרת מזוהה — סדר עמודות קבוע (התנהגות ישנה). טהור ⇒ נבדק ביחידה.
+ */
+export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
+  if (!rows.length) return [];
+  // שורת-הכותרות = הראשונה (מבין 15 העליונות) שיש בה עמודת-שם ("שם"/"תורם").
+  const hdrIdx = rows
+    .slice(0, 15)
+    .findIndex((r) => r.some((h) => SUP_NAME_KEYS.some((k) => (h ?? '').includes(k))));
+  const header = (hdrIdx >= 0 ? rows[hdrIdx] : rows[0]).map((h) => (h ?? '').trim());
+  const find = (keys: string[]) => header.findIndex((h) => keys.some((k) => h.includes(k)));
+  let iName = find(SUP_NAME_KEYS);
+  let iPhone = find(['טלפון', 'נייד']);
+  let iEmail = find(['אימייל', 'מייל', 'email']);
+  let iId = find(['ת"ז', 'תז', 'זהות']);
+  let iAddr = find(['כתובת']);
+  let iCat = find(['קטגוריה']);
+  let iFor = find(['עבור', 'ייעוד']);
+  // קובץ מסוף-הסליקה (ExportHistory, 9.8): עמודות סכום/תאריך-עסקה/מטבע ⇒
+  // כל שורה נושאת גם עסקה — נכנסת כהיסטוריה-ללא-קבלה (הכרעת-בעלים).
+  const iAmount = find(['סכום']);
+  const iTxDate = find(['תאריך']);
+  const iCur = find(['מטבע']);
+  let start = hdrIdx >= 0 ? hdrIdx + 1 : 1;
+  if (iName < 0) {
+    // אין שורת כותרות מזוהה — סדר עמודות קבוע
+    iName = 0;
+    iPhone = 1;
+    iEmail = 2;
+    iId = 3;
+    iAddr = 4;
+    iCat = 5;
+    iFor = 6;
+    start = 0;
+  }
+  const g = (r: string[], i: number) => (i >= 0 ? (r[i] ?? '').trim() : '');
+  const out: SupporterImportRow[] = [];
+  for (const r of rows.slice(start)) {
+    const name = g(r, iName);
+    if (!name) continue;
+    const row: SupporterImportRow = {
+      name,
+      phone: g(r, iPhone),
+      email: g(r, iEmail),
+      idNum: g(r, iId),
+      address: g(r, iAddr),
+      cat: g(r, iCat),
+      forWho: g(r, iFor),
+    };
+    if (iAmount >= 0 && iTxDate >= 0) {
+      const amount = Math.round(Number(g(r, iAmount).replace(/[^\d.-]/g, '')) * 100) / 100;
+      // 'תאריך עסקה' מגיע עם שעה ("09/08/26 00:36") — התאריך בלבד
+      const d = parseAnyDate(g(r, iTxDate).split(' ')[0]);
+      if (isFinite(amount) && amount > 0 && d) {
+        row.hist = [{ d, a: amount, ...(/דולר|\$|usd/i.test(g(r, iCur)) ? { c: '$' as const } : {}) }];
+      }
+    }
+    // בקשת-בעלים 9.8: שורת-טיפול (קטגוריה עם 'עין') ⇒ "עבור מי" = שם-התורם
+    // המלא ('X בן/בת Y') נכנס כשם-לטיפול בתיק-המעקב; הכמות ממתינה לרישום.
+    if (/עין/.test(row.cat)) row.ayinNames = [name];
+    out.push(row);
+  }
+  return out;
+}
+
+/** פענוח טקסט CSV לשורות ייבוא (עוטף את [parseSupporterGrid] מעל [parseCsv]). */
+export function parseSupporterCsv(text: string): SupporterImportRow[] {
+  return parseSupporterGrid(parseCsv(text));
 }
 
 /** תוכנית ייבוא — אילו קיימות יעודכנו ואילו חדשות ייווצרו. */
