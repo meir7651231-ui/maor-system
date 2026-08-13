@@ -2,6 +2,28 @@
   "tenantId": "full-demo",
   "orgName": "עמותה מלאה",
   "model": "pure-downstream",
+  "requiredPrompts": [
+    {
+      "file": "ivr/menu.wav",
+      "state": "ivr-menu",
+      "text": "לשירותכם: הקישו 1 למשרד, 2 לתרומות, 3 להשארת הודעה"
+    },
+    {
+      "file": "ivr/invalid.wav",
+      "state": "ivr-invalid",
+      "text": "בחירה לא-תקינה, נסו שוב."
+    }
+  ],
+  "promptCapabilities": {
+    "greetings": false,
+    "holidayGreeting": false,
+    "emergency": false,
+    "callerNameGreeting": false,
+    "voicemailTranscription": false,
+    "queueCallback": false,
+    "holdMusic": false,
+    "announcementLines": []
+  },
   "context": "tenant_full-demo",
   "officeHours": {
     "days": [

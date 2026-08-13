@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- שער-ה-GSM של הלקוח (ציוד בבעלותו, עם ה-SIM שלו). זה לא ספק — זה הלקוח. -->
+<!-- כתובת-ה-IP והסיסמה מוזרקות בהתקנה לפי הרשת של הלקוח. -->
+<include>
+  <gateway name="voice-demo-gw1">
+    <!-- קו ראשי · +97227000000 · ערוץ 1 -->
+    <param name="username" value="voice-demo-gw1"/>
+    <param name="password" value="$${gsm_gateway_password}"/>
+    <param name="proxy" value="$${gsm_gateway_ip}"/>
+    <param name="register" value="false"/>
+    <param name="caller-id-in-from" value="true"/>
+    <!-- שיחה נכנסת מה-SIM הזה נופלת ישר ל-context של הלקוח -->
+    <param name="context" value="tenant_voice-demo"/>
+  </gateway>
+</include>

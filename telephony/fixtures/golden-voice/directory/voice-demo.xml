@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- מחולל אוטומטית — משתמשי עמותת קול. סיסמאות מוזרקות בהתקנה. -->
+<include>
+  <domain name="voice-demo">
+    <users>
+      <user id="101">
+        <params>
+          <param name="password" value="$${default_provision_password}"/>
+          <param name="vm-password" value="100"/>
+          <param name="vm-mailto" value="office@voice.example"/>
+          <param name="vm-attach-file" value="true"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_voice-demo"/>
+          <variable name="effective_caller_id_name" value="משרד עמותת קול"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+      <user id="102">
+        <params>
+          <param name="password" value="$${default_provision_password}"/>
+          <param name="vm-password" value="100"/>
+          <param name="vm-mailto" value="office@voice.example"/>
+          <param name="vm-attach-file" value="true"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_voice-demo"/>
+          <variable name="effective_caller_id_name" value="משרד עמותת קול"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+      <user id="201">
+        <params>
+          <param name="password" value="$${default_provision_password}"/>
+          <param name="vm-password" value="100"/>
+          <param name="vm-mailto" value="mgr@voice.example"/>
+          <param name="vm-attach-file" value="true"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_voice-demo"/>
+          <variable name="effective_caller_id_name" value="מנהל עמותת קול"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+    </users>
+  </domain>
+</include>

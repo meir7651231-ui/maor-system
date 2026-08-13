@@ -171,6 +171,9 @@ export function validateTenant(raw) {
         kosher: !!n.kosher,
         ...(Number.isInteger(n.gatewayChannel) ? { gatewayChannel: n.gatewayChannel } : {}),
         ...(lineHours ? { hours: lineHours } : {}),
+        ...(n.role === 'announcement'
+          ? { role: 'announcement', announcementText: typeof n.announcementText === 'string' ? n.announcementText : '' }
+          : {}),
       });
     }
   }
@@ -197,6 +200,7 @@ export function validateTenant(raw) {
       office: {
         ext: Array.isArray(officeExt) ? officeExt : [officeExt].filter(Boolean),
         ringSeconds: Number.isInteger(dst.office?.ringSeconds) ? dst.office.ringSeconds : 25,
+        ...(dst.office?.email ? { email: dst.office.email } : {}),
       },
       manager: {
         ext: managerExt,
@@ -243,6 +247,15 @@ export function validateTenant(raw) {
   const { routing, warnings: routeWarn } = normalizeRouting(raw.routing || {});
   warnings.push(...routeWarn);
 
+  // ── מצב-חירום (opt-in): "סגור היום" עם הודעה ──
+  let emergency = null;
+  if (raw.emergency && typeof raw.emergency === 'object') {
+    emergency = {
+      active: raw.emergency.active === true,
+      message: typeof raw.emergency.message === 'string' ? raw.emergency.message : '',
+    };
+  }
+
   const ok = errors.length === 0;
   const tenant = ok
     ? {
@@ -259,6 +272,7 @@ export function validateTenant(raw) {
         features,
         terms,
         routing,
+        ...(emergency ? { emergency } : {}),
       }
     : null;
   return { ok, errors, warnings, tenant };

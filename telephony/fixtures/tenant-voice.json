@@ -1,0 +1,23 @@
+{
+  "tenantId": "voice-demo",
+  "orgName": "עמותת קול",
+  "officeHours": { "days": [0, 1, 2, 3, 4], "start": "09:00", "end": "17:00" },
+  "features": {
+    "voice.greeting": true,
+    "calendar.hebrew": true,
+    "voicemail.transcription": true,
+    "cti.namegreeting": true
+  },
+  "terms": { "holdMusic": "custom/chesed-hold.wav" },
+  "numbers": [
+    { "id": "n1", "e164": "02-7000000", "label": "קו ראשי", "type": "sim", "onramp": "sim-in-gateway", "channels": ["voice"], "gatewayChannel": 1 },
+    { "id": "n2", "e164": "077-7000000", "label": "קו מידע", "type": "virtual", "onramp": "customer-forward", "channels": ["voice"], "role": "announcement", "announcementText": "שעות הקבלה: ראשון עד חמישי 9:00-17:00. תודה." }
+  ],
+  "destinations": {
+    "office": { "ext": ["101", "102"], "ringSeconds": 25, "email": "office@voice.example" },
+    "manager": { "ext": "201", "ringSeconds": 30 },
+    "voicemail": { "box": "100", "email": "mgr@voice.example" }
+  },
+  "outbound": { "defaultNumberId": "n1" },
+  "cti": { "org": "voice-demo", "mode": "directory" }
+}

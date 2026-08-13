@@ -22,6 +22,7 @@ import {
 } from './lib/config.mjs';
 import { classifyDay, hebParts, hebrewClosedDates } from './lib/hebcal.mjs';
 import { normalizeRouting, numbersAlternation } from './lib/routing.mjs';
+import { requiredPrompts, promptCapabilities } from './lib/prompts.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const UPDATE = process.env.UPDATE === '1';
@@ -388,6 +389,53 @@ ok('numbersAlternation בורח נכון', numbersAlternation(['+97250', '+97251
 // אינווריאנט: כבוי=ביט-זהה (chesed בלי routing → אף מקטע לא נפלט)
 ok('chesed בלי מקטעי-ניתוב-עשיר', !buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'].match(/ivr_menu|blocklist|sd_|internal_dial|valet_park|dnd_override/));
 
+// ── גל 4 (31-40): תא-קולי · ברכות · הכרזות ──────────────────────────────────
+console.log('· גל 4 — ברכות/הכרזות');
+const voice = JSON.parse(readFileSync(join(HERE, 'fixtures/tenant-voice.json'), 'utf8'));
+const vb = buildTenant(voice, { anchorDate: '2026-09-01' });
+const vdp = vb.files['dialplan/tenant_voice-demo.xml'];
+ok('voice תקין', vb.ok);
+// 31+40. ברכות פתוח/סגור/חג
+ok('greeting-open בפתוח', vdp.includes('greeting-open.wav'));
+ok('closed_greeting hop', vdp.includes('closed_greeting'));
+ok('greeting-holiday מותנה closed_reason', /closed_greeting[\s\S]*?greeting-holiday\.wav[\s\S]*?anti-action[\s\S]*?greeting-closed\.wav/.test(vdp));
+// 32. תא-קולי פר-שלוחה (מייל-משרד)
+ok('per-ext vm-mailto', (vb.files['directory/voice-demo.xml'].match(/office@voice\.example/g) || []).length === 2);
+// 33. תמלול-תא-קולי
+ok('vm_transcribe hook', vdp.includes('vm_transcribe=true'));
+// 36. מוזיקת-המתנה פר-לקוח
+ok('hold_music מותאם', vdp.includes('hold_music=custom/chesed-hold.wav'));
+// 37. קו-הכרזה
+ok('announcement DID (playback+hangup)', /announce-n2\.wav/.test(vdp) && /in_n2[\s\S]*?hangup/.test(vdp));
+// 39. ברכת-שם-מתקשר
+ok('cti_namegreeting hook', vdp.includes('cti_namegreeting=true'));
+// requiredPrompts + capabilities
+{
+  const caps = vb.manifest.promptCapabilities;
+  ok('manifest.requiredPrompts כולל greeting-open', vb.manifest.requiredPrompts.some((p) => p.file === 'greeting-open.wav'));
+  ok('manifest.requiredPrompts כולל greeting-holiday', vb.manifest.requiredPrompts.some((p) => p.file === 'greeting-holiday.wav'));
+  ok('manifest.requiredPrompts כולל announce-n2', vb.manifest.requiredPrompts.some((p) => p.file === 'announce-n2.wav'));
+  ok('capabilities.greetings', caps.greetings && caps.holidayGreeting);
+  ok('capabilities.holdMusic', caps.holdMusic === true);
+  // טהור: requiredPrompts/promptCapabilities ישירות
+  const rp = requiredPrompts({ tenantId: 'x', orgName: 'א', features: { 'voice.greeting': true }, numbers: [], routing: {}, cti: { mode: 'off' } });
+  ok('requiredPrompts טהור (open+closed)', rp.length === 2 && rp[0].file === 'greeting-open.wav');
+  ok('promptCapabilities טהור', promptCapabilities({ features: {}, numbers: [], cti: { mode: 'off' } }).greetings === false);
+}
+// 35. מצב-חירום (inline)
+{
+  const em = buildTenant({ ...voice, features: { ...voice.features, emergency: true }, emergency: { active: true, message: 'סגור היום' } });
+  ok('emergency ⇒ override', em.files['dialplan/tenant_voice-demo.xml'].includes('emergency_override'));
+  ok('emergency ⇒ requiredPrompts', em.manifest.requiredPrompts.some((p) => p.state === 'emergency'));
+}
+// 34. תור עם הכרזת-מיקום (inline)
+{
+  const q = buildTenant({ ...voice, features: { 'voice.queue': true }, routing: { queue: { announcePosition: true } } });
+  ok('queue announce position', q.files['dialplan/tenant_voice-demo.xml'].includes('queue-position.wav'));
+}
+// אינווריאנט: chesed בלי מקטעי-גל-4
+ok('chesed בלי ברכות/הכרזות', !buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'].match(/greeting-open|closed_greeting|announce-|hold_music|vm_transcribe|emergency_override/));
+
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
 const goldenDir = join(HERE, 'fixtures/golden');
@@ -436,6 +484,22 @@ for (const [rel, content] of Object.entries(a.files)) {
       ok(`golden-full חסר: ${rel} (הרץ UPDATE=1)`, false);
     } else {
       ok(`golden-full תואם: ${rel}`, readFileSync(gp, 'utf8') === content);
+    }
+  }
+}
+// golden נפרד ל-voice (ברכות/הכרזות/לוח, anchor קבוע).
+{
+  const vgDir = join(HERE, 'fixtures/golden-voice');
+  for (const [rel, content] of Object.entries(vb.files)) {
+    const gp = join(vgDir, rel);
+    if (UPDATE) {
+      mkdirSync(dirname(gp), { recursive: true });
+      writeFileSync(gp, content, 'utf8');
+      console.log('  ❄️  הקפיא voice/' + rel);
+    } else if (!existsSync(gp)) {
+      ok(`golden-voice חסר: ${rel} (הרץ UPDATE=1)`, false);
+    } else {
+      ok(`golden-voice תואם: ${rel}`, readFileSync(gp, 'utf8') === content);
     }
   }
 }

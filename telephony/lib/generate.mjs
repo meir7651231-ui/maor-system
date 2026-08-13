@@ -10,9 +10,10 @@
 // הקולי לגמרי. virtual/customer-forward = הלקוח מפנה אצל הספק הקיים שלו אלינו.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { featureOn } from './config.mjs';
+import { featureOn, termOf } from './config.mjs';
 import { hebrewClosedDates } from './hebcal.mjs';
 import { numbersAlternation } from './routing.mjs';
+import { promptDir, requiredPrompts, promptCapabilities } from './prompts.mjs';
 
 const XML_ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' };
 function esc(s) {
@@ -132,6 +133,10 @@ function dialplanXml(tenant, opts = {}) {
   L.push(`    <extension name="office_default" continue="true">`);
   L.push(`      <condition>`);
   L.push(`        <action application="set" data="office_open=false"/>`);
+  const holdMusic = termOf(tenant, 'holdMusic', 'ברירת-מחדל');
+  if (holdMusic !== 'ברירת-מחדל') {
+    L.push(`        <action application="set" data="hold_music=${esc(holdMusic)}"/>`);
+  }
   L.push(`      </condition>`);
   L.push(`    </extension>`);
 
@@ -170,17 +175,37 @@ function dialplanXml(tenant, opts = {}) {
     L.push(`    </extension>`);
   }
 
+  // 2ד. מצב-חירום (opt-in emergency): "סגור היום" — דורס לסגור + סיבה.
+  if (featureOn(tenant, 'emergency') && tenant.emergency && tenant.emergency.active) {
+    L.push(``);
+    L.push(`    <!-- מצב-חירום: סגור היום -->`);
+    L.push(`    <extension name="emergency_override" continue="true">`);
+    L.push(`      <condition>`);
+    L.push(`        <action application="set" data="office_open=false"/>`);
+    L.push(`        <action application="set" data="closed_reason=חירום"/>`);
+    L.push(`      </condition>`);
+    L.push(`    </extension>`);
+  }
+
   // 3. כניסה פר-DID → זיהוי-קו → transfer ל-incoming (או ל-line_<id> אם לו לו״ז משלו).
   L.push(``);
   L.push(`    <!-- כניסה: כל מספר נושא-קול מזוהה לפי ה-DID ומנותב פנימה -->`);
+  const pdir = promptDir(tenant);
   for (const n of vnums) {
-    const hasHours = n.hours && Array.isArray(n.hours.days) && n.hours.start && n.hours.end;
-    const target = hasHours ? `line_${esc(n.id)}` : 'incoming';
     L.push(`    <extension name="in_${esc(n.id)}">`);
     L.push(`      <condition field="destination_number" expression="^${reEsc(n.e164)}$">`);
     L.push(`        <action application="set" data="inbound_line=${esc(n.label)}"/>`);
     L.push(`        <action application="set" data="inbound_number=${esc(n.e164)}"/>`);
-    L.push(`        <action application="transfer" data="${target} XML ${esc(ctx)}"/>`);
+    if (n.role === 'announcement') {
+      // קו-הכרזה: משמיע הקלטה ומנתק (בלי ניתוב-משרד).
+      L.push(`        <action application="answer"/>`);
+      L.push(`        <action application="playback" data="${pdir}/announce-${esc(n.id)}.wav"/>`);
+      L.push(`        <action application="hangup"/>`);
+    } else {
+      const hasHours = n.hours && Array.isArray(n.hours.days) && n.hours.start && n.hours.end;
+      const target = hasHours ? `line_${esc(n.id)}` : 'incoming';
+      L.push(`        <action application="transfer" data="${target} XML ${esc(ctx)}"/>`);
+    }
     L.push(`      </condition>`);
     L.push(`    </extension>`);
   }
@@ -207,6 +232,14 @@ function dialplanXml(tenant, opts = {}) {
   L.push(`    <extension name="incoming">`);
   L.push(`      <condition field="destination_number" expression="^incoming$"/>`);
   L.push(`      <condition field="\${office_open}" expression="^true$">`);
+  const greet = featureOn(tenant, 'voice.greeting');
+  if (greet) {
+    L.push(`        <action application="answer"/>`);
+    L.push(`        <action application="playback" data="${pdir}/greeting-open.wav"/>`);
+  }
+  if (featureOn(tenant, 'cti.namegreeting') && tenant.cti && tenant.cti.mode !== 'off') {
+    L.push(`        <action application="set" data="cti_namegreeting=true"/>`);
+  }
   if (featureOn(tenant, 'recording')) {
     L.push(`        <action application="set" data="RECORD_STEREO=true"/>`);
     L.push(`        <action application="record_session" data="$\${recordings_dir}/${esc(tenant.tenantId)}/\${strftime(%Y-%m-%d-%H-%M-%S)}_\${uuid}.wav"/>`);
@@ -215,15 +248,31 @@ function dialplanXml(tenant, opts = {}) {
     L.push(`        <action application="transfer" data="ivr_menu XML ${esc(ctx)}"/>`);
   } else if (useQueue) {
     L.push(`        <action application="answer"/>`);
-    L.push(`        <action application="fifo" data="tenant_${esc(tenant.tenantId)}_q in undef ${esc(R.queue.music)}"/>`);
+    const qAnnounce = R.queue.announcePosition ? `${pdir}/queue-position.wav` : 'undef';
+    L.push(`        <action application="fifo" data="tenant_${esc(tenant.tenantId)}_q in ${qAnnounce} ${esc(R.queue.music)}"/>`);
     L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
   } else {
     L.push(`        <action application="bridge" data="{leg_timeout=${office.ringSeconds}}${esc(officeBridge)}"/>`);
     L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
   }
-  L.push(`        <anti-action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
+  L.push(`        <anti-action application="transfer" data="${greet ? 'closed_greeting' : 'afterhours'} XML ${esc(ctx)}"/>`);
   L.push(`      </condition>`);
   L.push(`    </extension>`);
+
+  // 4ב. ברכת-סגור (opt-in voice.greeting): חג-ספציפי אם closed_reason, אחרת רגיל.
+  if (greet) {
+    L.push(`    <extension name="closed_greeting">`);
+    L.push(`      <condition field="destination_number" expression="^closed_greeting$"/>`);
+    L.push(`      <condition field="\${closed_reason}" expression="^.+$">`);
+    L.push(`        <action application="answer"/>`);
+    L.push(`        <action application="playback" data="${pdir}/greeting-holiday.wav"/>`);
+    L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
+    L.push(`        <anti-action application="answer"/>`);
+    L.push(`        <anti-action application="playback" data="${pdir}/greeting-closed.wav"/>`);
+    L.push(`        <anti-action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
+    L.push(`      </condition>`);
+    L.push(`    </extension>`);
+  }
 
   // 5. אחרי-שעות: מנהל → תא-קולי.
   L.push(`    <extension name="afterhours">`);
@@ -238,6 +287,9 @@ function dialplanXml(tenant, opts = {}) {
   if (featureOn(tenant, 'voicemail')) {
     L.push(`        <action application="answer"/>`);
     L.push(`        <action application="sleep" data="500"/>`);
+    if (featureOn(tenant, 'voicemail.transcription')) {
+      L.push(`        <action application="set" data="vm_transcribe=true"/>`);
+    }
     L.push(`        <action application="voicemail" data="default ${esc(tenant.tenantId)} ${esc(vm.box)}"/>`);
   }
   L.push(`      </condition>`);
@@ -400,8 +452,10 @@ function directoryXml(tenant) {
     L.push(`        <params>`);
     L.push(`          <param name="password" value="$\${default_provision_password}"/>`);
     L.push(`          <param name="vm-password" value="${esc(vm.box)}"/>`);
-    if (isManager && vm.email) {
-      L.push(`          <param name="vm-mailto" value="${esc(vm.email)}"/>`);
+    // תא-קולי-במייל: המנהל מקבל את vm.email; שלוחות-המשרד מקבלות office.email אם הוגדר.
+    const vmMail = isManager ? vm.email : office.ext.includes(ext) ? office.email : undefined;
+    if (vmMail) {
+      L.push(`          <param name="vm-mailto" value="${esc(vmMail)}"/>`);
       L.push(`          <param name="vm-attach-file" value="true"/>`);
     }
     L.push(`        </params>`);
@@ -451,10 +505,12 @@ function manifest(tenant, warnings, opts = {}) {
   const sims = outboundSims(tenant);
   const skipped = tenant.numbers.filter((n) => n.onramp === 'device-link' || !n.channels.includes('voice'));
   const heb = hebrewBlock(tenant, opts);
+  const prompts = requiredPrompts(tenant);
   return {
     tenantId: tenant.tenantId,
     orgName: tenant.orgName,
     model: 'pure-downstream',
+    ...(prompts.length ? { requiredPrompts: prompts, promptCapabilities: promptCapabilities(tenant) } : {}),
     context: `tenant_${tenant.tenantId}`,
     officeHours: tenant.officeHours,
     ...(heb.length ? { hebrewCalendar: { anchor: opts.anchorDate, window: opts.calendarWindow || 400, closedDays: heb } } : {}),
