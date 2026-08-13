@@ -11,6 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { featureOn } from './config.mjs';
+import { hebrewClosedDates } from './hebcal.mjs';
 
 const XML_ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' };
 function esc(s) {
@@ -53,6 +54,18 @@ function reEsc(s) {
 function voiceNumbers(tenant) {
   return tenant.numbers.filter((n) => n.channels.includes('voice') && n.onramp !== 'device-link');
 }
+/** ימי-הסגירה העבריים (יו״ט) לחלון — ריק אם הדגל כבוי או אין anchorDate. */
+function hebrewBlock(tenant, opts) {
+  if (!featureOn(tenant, 'calendar.hebrew') || !opts.anchorDate) return [];
+  const diaspora = tenant.timezone && !/Jerusalem|Tel_Aviv|Asia\/Hebron/.test(tenant.timezone);
+  return hebrewClosedDates(opts.anchorDate, opts.calendarWindow || 400, {
+    diaspora,
+    tz: tenant.timezone || 'Asia/Jerusalem',
+    includeErev: featureOn(tenant, 'calendar.erev'),
+    includeCholHamoed: featureOn(tenant, 'calendar.cholhamoed'),
+  });
+}
+
 /** מספרי-יציאה: SIM בשער עם ערוץ. */
 function outboundSims(tenant) {
   return tenant.numbers
@@ -61,7 +74,7 @@ function outboundSims(tenant) {
 }
 
 // ── דיאלפלן: context הלקוח ──────────────────────────────────────────────────
-function dialplanXml(tenant) {
+function dialplanXml(tenant, opts = {}) {
   const ctx = `tenant_${tenant.tenantId}`;
   const gw = `${tenant.tenantId}-gw`;
   const oh = tenant.officeHours;
@@ -99,6 +112,22 @@ function dialplanXml(tenant) {
   L.push(`        <action application="set" data="office_open=true"/>`);
   L.push(`      </condition>`);
   L.push(`    </extension>`);
+
+  // 2ב. לוח-עברי (opt-in calendar.hebrew): ימי-חג מחושבים-מראש דורסים ל"סגור".
+  // שבת כבר מכוסה ב-wday (לכן לא נכללת). דורש anchorDate (דטרמיניזם golden).
+  const heb = hebrewBlock(tenant, opts);
+  if (heb.length) {
+    L.push(``);
+    L.push(`    <!-- לוח-עברי: ${heb.length} ימי-חג → סגור (מחושב מ-${esc(opts.anchorDate)}, חלון ${opts.calendarWindow || 400} יום) -->`);
+    for (const c of heb) {
+      L.push(`    <extension name="heb_${c.iso.replace(/-/g, '')}" continue="true">`);
+      L.push(`      <condition date-time="${c.iso} 00:00:00~${c.iso} 23:59:59">`);
+      L.push(`        <action application="set" data="office_open=false"/>`);
+      L.push(`        <action application="set" data="closed_reason=${esc(c.reason)}"/>`);
+      L.push(`      </condition>`);
+      L.push(`    </extension>`);
+    }
+  }
 
   // 3. כניסה פר-DID → זיהוי-קו → transfer ל-incoming.
   L.push(``);
@@ -239,16 +268,18 @@ function gatewaysXml(tenant) {
 }
 
 // ── manifest: תקציר-מה-שחולל + מפת-מסלולים + סייגים ──────────────────────────
-function manifest(tenant, warnings) {
+function manifest(tenant, warnings, opts = {}) {
   const vnums = voiceNumbers(tenant);
   const sims = outboundSims(tenant);
   const skipped = tenant.numbers.filter((n) => n.onramp === 'device-link' || !n.channels.includes('voice'));
+  const heb = hebrewBlock(tenant, opts);
   return {
     tenantId: tenant.tenantId,
     orgName: tenant.orgName,
     model: 'pure-downstream',
     context: `tenant_${tenant.tenantId}`,
     officeHours: tenant.officeHours,
+    ...(heb.length ? { hebrewCalendar: { anchor: opts.anchorDate, window: opts.calendarWindow || 400, closedDays: heb } } : {}),
     inboundVoiceNumbers: vnums.map((n) => ({ id: n.id, e164: n.e164, label: n.label, onramp: n.onramp, kosher: n.kosher })),
     outboundSims: sims.map((n) => ({ id: n.id, e164: n.e164, label: n.label, prefix: `${n.gatewayChannel}#`, channel: n.gatewayChannel })),
     outboundDefault: tenant.outbound.defaultNumberId,
@@ -269,10 +300,10 @@ function manifest(tenant, warnings) {
  * @param {string[]} [warnings=[]] סייגים מהוולידציה — נצרבים ל-manifest.
  * @returns {{files: Record<string,string>, manifest: object}}
  */
-export function generateConfig(tenant, warnings = []) {
-  const m = manifest(tenant, warnings);
+export function generateConfig(tenant, warnings = [], opts = {}) {
+  const m = manifest(tenant, warnings, opts);
   const files = {
-    [`dialplan/tenant_${tenant.tenantId}.xml`]: dialplanXml(tenant),
+    [`dialplan/tenant_${tenant.tenantId}.xml`]: dialplanXml(tenant, opts),
     [`directory/${tenant.tenantId}.xml`]: directoryXml(tenant),
     [`sip_profiles/gateways/${tenant.tenantId}.xml`]: gatewaysXml(tenant),
     'manifest.json': JSON.stringify(m, null, 2) + '\n',

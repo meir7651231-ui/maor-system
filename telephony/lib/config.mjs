@@ -34,6 +34,8 @@ export const FLAG_DEFAULTS = {
   'calendar.hebrew': 'off',
   'calendar.shabbat': 'off',
   'calendar.fasts': 'off',
+  'calendar.erev': 'off',
+  'calendar.cholhamoed': 'off',
   'channels.whatsapp': 'off',
   'channels.sms': 'off',
   reports: 'off',

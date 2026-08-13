@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- מחולל אוטומטית — משתמשי כולל אברכים. סיסמאות מוזרקות בהתקנה. -->
+<include>
+  <domain name="kollel-demo">
+    <users>
+      <user id="101">
+        <params>
+          <param name="password" value="$${default_provision_password}"/>
+          <param name="vm-password" value="100"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_kollel-demo"/>
+          <variable name="effective_caller_id_name" value="משרד כולל אברכים"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+      <user id="201">
+        <params>
+          <param name="password" value="$${default_provision_password}"/>
+          <param name="vm-password" value="100"/>
+          <param name="vm-mailto" value="rosh@kollel.example"/>
+          <param name="vm-attach-file" value="true"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_kollel-demo"/>
+          <variable name="effective_caller_id_name" value="מנהל כולל אברכים"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+    </users>
+  </domain>
+</include>

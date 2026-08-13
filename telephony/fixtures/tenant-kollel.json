@@ -1,0 +1,16 @@
+{
+  "tenantId": "kollel-demo",
+  "orgName": "כולל אברכים",
+  "vertical": "kollel",
+  "numbers": [
+    { "id": "n1", "e164": "02-6000000", "label": "מזכירות", "type": "sim", "onramp": "sim-in-gateway", "channels": ["voice"], "gatewayChannel": 1 },
+    { "id": "n2", "e164": "050-6000000", "label": "ראש הכולל", "type": "sim", "onramp": "sim-in-gateway", "channels": ["voice"], "gatewayChannel": 2 }
+  ],
+  "destinations": {
+    "office": { "ext": "101", "ringSeconds": 25 },
+    "manager": { "ext": "201", "ringSeconds": 30 },
+    "voicemail": { "box": "100", "email": "rosh@kollel.example" }
+  },
+  "outbound": { "defaultNumberId": "n1" },
+  "cti": { "org": "kollel-demo", "mode": "directory" }
+}

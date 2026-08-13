@@ -11,10 +11,10 @@ import { generateConfig } from './generate.mjs';
  * @param {object} raw
  * @returns {{ok:boolean, errors:string[], warnings:string[], files?:Record<string,string>, manifest?:object}}
  */
-export function buildTenant(raw) {
+export function buildTenant(raw, opts = {}) {
   const { ok, errors, warnings, tenant } = validateTenant(raw);
   if (!ok) return { ok: false, errors, warnings };
-  const { files, manifest } = generateConfig(tenant, warnings);
+  const { files, manifest } = generateConfig(tenant, warnings, opts);
   return { ok: true, errors: [], warnings, files, manifest };
 }
 
@@ -30,3 +30,4 @@ export {
   capabilities, migrateConfig, effectiveConfig, diffConfig, isBaselineConfig,
   sanitizeConfigFields, FLAG_DEFAULTS, TERM_DEFS, SCHEMA_VERSION,
 } from './config.mjs';
+export { hebParts, classifyDay, hebrewClosedDates } from './hebcal.mjs';

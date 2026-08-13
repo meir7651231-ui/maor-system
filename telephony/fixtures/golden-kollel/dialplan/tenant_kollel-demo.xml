@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- מחולל אוטומטית מקונפיג-הלקוח. אין לערוך ידנית — ערוך את הנתונים והרץ מחדש. -->
+<!-- כולל אברכים · pure-downstream · 2 מספרים נושאי-קול · 2 ערוצי-יציאה -->
+<include>
+  <context name="tenant_kollel-demo">
+
+    <!-- שער-הזמן: ברירת-מחדל סגור, נפתח רק בחלון שעות-המשרד -->
+    <extension name="office_default" continue="true">
+      <condition>
+        <action application="set" data="office_open=false"/>
+      </condition>
+    </extension>
+    <extension name="office_open_window" continue="true">
+      <condition wday="1-5" time-of-day="10:00-15:00">
+        <action application="set" data="office_open=true"/>
+      </condition>
+    </extension>
+
+    <!-- לוח-עברי: 10 ימי-חג → סגור (מחושב מ-2026-09-01, חלון 400 יום) -->
+    <extension name="heb_20260912" continue="true">
+      <condition date-time="2026-09-12 00:00:00~2026-09-12 23:59:59">
+        <action application="set" data="office_open=false"/>
+        <action application="set" data="closed_reason=ראש השנה"/>
+      </condition>
+    </extension>
+    <extension name="heb_20260913" continue="true">
+      <condition date-time="2026-09-13 00:00:00~2026-09-13 23:59:59">
+        <action application="set" data="office_open=false"/>
+        <action application="set" data="closed_reason=ראש השנה"/>
+      </condition>
+    </extension>
+    <extension name="heb_20260921" continue="true">
+      <condition date-time="2026-09-21 00:00:00~2026-09-21 23:59:59">
+        <action application="set" data="office_open=false"/>
+        <action application="set" data="closed_reason=יום כיפור"/>
+      </condition>
+    </extension>
+    <extension name="heb_20260926" continue="true">
+      <condition date-time="2026-09-26 00:00:00~2026-09-26 23:59:59">
+        <action application="set" data="office_open=false"/>
+        <action application="set" data="closed_reason=סוכות"/>
+      </condition>
+    </extension>
+    <extension name="heb_20261003" continue="true">
+      <condition date-time="2026-10-03 00:00:00~2026-10-03 23:59:59">
+        <action application="set" data="office_open=false"/>
+        <action application="set" data="closed_reason=שמיני עצרת · שמחת תורה"/>
+      </condition>
+    </extension>
+    <extension name="heb_20270422" continue="true">
+      <condition date-time="2027-04-22 00:00:00~2027-04-22 23:59:59">
+        <action application="set" data="office_open=false"/>
+        <action application="set" data="closed_reason=פסח"/>
+      </condition>
+    </extension>
+    <extension name="heb_20270428" continue="true">
+      <condition date-time="2027-04-28 00:00:00~2027-04-28 23:59:59">
+        <action application="set" data="office_open=false"/>
+        <action application="set" data="closed_reason=שביעי של פסח"/>
+      </condition>
+    </extension>
+    <extension name="heb_20270611" continue="true">
+      <condition date-time="2027-06-11 00:00:00~2027-06-11 23:59:59">
+        <action application="set" data="office_open=false"/>
+        <action application="set" data="closed_reason=שבועות"/>
+      </condition>
+    </extension>
+    <extension name="heb_20271002" continue="true">
+      <condition date-time="2027-10-02 00:00:00~2027-10-02 23:59:59">
+        <action application="set" data="office_open=false"/>
+        <action application="set" data="closed_reason=ראש השנה"/>
+      </condition>
+    </extension>
+    <extension name="heb_20271003" continue="true">
+      <condition date-time="2027-10-03 00:00:00~2027-10-03 23:59:59">
+        <action application="set" data="office_open=false"/>
+        <action application="set" data="closed_reason=ראש השנה"/>
+      </condition>
+    </extension>
+
+    <!-- כניסה: כל מספר נושא-קול מזוהה לפי ה-DID ומנותב פנימה -->
+    <extension name="in_n1">
+      <condition field="destination_number" expression="^\+97226000000$">
+        <action application="set" data="inbound_line=מזכירות"/>
+        <action application="set" data="inbound_number=+97226000000"/>
+        <action application="transfer" data="incoming XML tenant_kollel-demo"/>
+      </condition>
+    </extension>
+    <extension name="in_n2">
+      <condition field="destination_number" expression="^\+972506000000$">
+        <action application="set" data="inbound_line=ראש הכולל"/>
+        <action application="set" data="inbound_number=+972506000000"/>
+        <action application="transfer" data="incoming XML tenant_kollel-demo"/>
+      </condition>
+    </extension>
+
+    <!-- ניתוב: פתוח → משרד (אין-מענה נופל לאחרי-שעות); סגור → מנהל → תא-קולי -->
+    <extension name="incoming">
+      <condition field="destination_number" expression="^incoming$"/>
+      <condition field="${office_open}" expression="^true$">
+        <action application="bridge" data="{leg_timeout=25}user/101@kollel-demo"/>
+        <action application="transfer" data="afterhours XML tenant_kollel-demo"/>
+        <anti-action application="transfer" data="afterhours XML tenant_kollel-demo"/>
+      </condition>
+    </extension>
+    <extension name="afterhours">
+      <condition field="destination_number" expression="^afterhours$">
+        <action application="bridge" data="{leg_timeout=30}user/201@kollel-demo"/>
+        <action application="answer"/>
+        <action application="sleep" data="500"/>
+        <action application="voicemail" data="default kollel-demo 100"/>
+      </condition>
+    </extension>
+
+    <!-- יציאה: קידומת <ערוץ>#<מספר> בוחרת דרך איזה SIM לצאת -->
+    <extension name="out_pick_n1">
+      <condition field="destination_number" expression="^1#(\+?\d+)$">
+        <action application="set" data="effective_caller_id_number=+97226000000"/>
+        <action application="set" data="effective_caller_id_name=מזכירות"/>
+        <action application="bridge" data="sofia/gateway/kollel-demo-gw1/$1"/>
+      </condition>
+    </extension>
+    <extension name="out_pick_n2">
+      <condition field="destination_number" expression="^2#(\+?\d+)$">
+        <action application="set" data="effective_caller_id_number=+972506000000"/>
+        <action application="set" data="effective_caller_id_name=ראש הכולל"/>
+        <action application="bridge" data="sofia/gateway/kollel-demo-gw2/$1"/>
+      </condition>
+    </extension>
+    <!-- יציאת-ברירת-מחדל (חיוג רגיל בלי קידומת) → מזכירות -->
+    <extension name="out_default">
+      <condition field="destination_number" expression="^(0\d{7,9}|\+?\d{8,15})$">
+        <action application="set" data="effective_caller_id_number=+97226000000"/>
+        <action application="bridge" data="sofia/gateway/kollel-demo-gw1/$1"/>
+      </condition>
+    </extension>
+  </context>
+</include>

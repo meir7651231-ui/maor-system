@@ -1,0 +1,117 @@
+{
+  "tenantId": "kollel-demo",
+  "orgName": "כולל אברכים",
+  "model": "pure-downstream",
+  "context": "tenant_kollel-demo",
+  "officeHours": {
+    "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "start": "10:00",
+    "end": "15:00"
+  },
+  "hebrewCalendar": {
+    "anchor": "2026-09-01",
+    "window": 400,
+    "closedDays": [
+      {
+        "iso": "2026-09-12",
+        "reason": "ראש השנה",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2026-09-13",
+        "reason": "ראש השנה",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2026-09-21",
+        "reason": "יום כיפור",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2026-09-26",
+        "reason": "סוכות",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2026-10-03",
+        "reason": "שמיני עצרת · שמחת תורה",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2027-04-22",
+        "reason": "פסח",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2027-04-28",
+        "reason": "שביעי של פסח",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2027-06-11",
+        "reason": "שבועות",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2027-10-02",
+        "reason": "ראש השנה",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2027-10-03",
+        "reason": "ראש השנה",
+        "kind": "yomtov"
+      }
+    ]
+  },
+  "inboundVoiceNumbers": [
+    {
+      "id": "n1",
+      "e164": "+97226000000",
+      "label": "מזכירות",
+      "onramp": "sim-in-gateway",
+      "kosher": false
+    },
+    {
+      "id": "n2",
+      "e164": "+972506000000",
+      "label": "ראש הכולל",
+      "onramp": "sim-in-gateway",
+      "kosher": false
+    }
+  ],
+  "outboundSims": [
+    {
+      "id": "n1",
+      "e164": "+97226000000",
+      "label": "מזכירות",
+      "prefix": "1#",
+      "channel": 1
+    },
+    {
+      "id": "n2",
+      "e164": "+972506000000",
+      "label": "ראש הכולל",
+      "prefix": "2#",
+      "channel": 2
+    }
+  ],
+  "outboundDefault": "n1",
+  "nonVoiceChannels": [],
+  "cti": {
+    "org": "kollel-demo",
+    "mode": "directory"
+  },
+  "files": [
+    "dialplan/tenant_kollel-demo.xml",
+    "directory/kollel-demo.xml",
+    "sip_profiles/gateways/kollel-demo.xml"
+  ],
+  "warnings": []
+}

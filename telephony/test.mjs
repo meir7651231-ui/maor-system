@@ -20,6 +20,7 @@ import {
   capabilities, migrateConfig, effectiveConfig, diffConfig, isBaselineConfig,
   sanitizeConfigFields, SCHEMA_VERSION,
 } from './lib/config.mjs';
+import { classifyDay, hebParts, hebrewClosedDates } from './lib/hebcal.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const UPDATE = process.env.UPDATE === '1';
@@ -288,6 +289,48 @@ ok('קונפיג עם term ≠ baseline', !isBaselineConfig({ terms: { office: '
   ok('voicemail=off מסיר voicemail', !noVm.files['dialplan/tenant_chesed-demo.xml'].includes('application="voicemail"'));
 }
 
+// ── גל 2 (11-20): ניתוב לוח-עברי ────────────────────────────────────────────
+console.log('· גל 2 — לוח-עברי');
+// 11+19. סיווג-יום מדויק (מאומת מול תאריכי 2026/5787).
+eq('ראש השנה', classifyDay('2026-09-12').yomTov, 'ראש השנה');
+eq('יום כיפור', classifyDay('2026-09-21').yomTov, 'יום כיפור');
+eq('סוכות = 15 תשרי', classifyDay('2026-09-26').yomTov, 'סוכות');
+eq('שמיני עצרת', classifyDay('2026-10-03').yomTov, 'שמיני עצרת · שמחת תורה');
+eq('פסח', classifyDay('2026-04-02').yomTov, 'פסח');
+eq('שביעי של פסח', classifyDay('2026-04-08').yomTov, 'שביעי של פסח');
+eq('שבועות', classifyDay('2026-05-22').yomTov, 'שבועות');
+// 12. ערב-חג
+eq('ערב פסח', classifyDay('2026-04-01').erevChag, 'ערב פסח');
+// 13. חול-המועד
+eq('חול המועד פסח', classifyDay('2026-04-05').cholHamoed, 'חול המועד פסח');
+// 14. שבת
+ok('שבת מזוהה', classifyDay('2026-09-19').shabbat && classifyDay('2026-09-19').closedReason === 'שבת');
+// 15. צום (לא-סוגר אוטומטית) + דחייה
+eq('תשעה באב', classifyDay('2026-07-23').fast, 'תשעה באב');
+ok('צום לא סוגר אוטומטית (closedReason null)', classifyDay('2026-07-23').closedReason === null);
+// 16. ראש-חודש
+ok('ראש חודש (1 בחודש)', classifyDay('2026-04-18').roshChodesh);
+// 18. חותם עברי
+ok('hebParts תקין', hebParts('2026-09-12').monthHe === 'תשרי' && hebParts('2026-09-12').day === 1);
+// 19. מחולל חלון — יו״ט בלבד, בלי שבת
+{
+  const closed = hebrewClosedDates('2026-09-01', 60);
+  ok('חלון מכיל ראש השנה+כיפור', closed.some((c) => c.reason === 'ראש השנה') && closed.some((c) => c.reason === 'יום כיפור'));
+  ok('חלון בלי שבת (מכוסה ב-wday)', !closed.some((c) => c.reason === 'שבת'));
+  ok('חלון דטרמיניסטי', JSON.stringify(hebrewClosedDates('2026-09-01', 60)) === JSON.stringify(closed));
+}
+// wiring: kollel (vertical מדליק calendar.hebrew) + anchor → heb_ extensions.
+{
+  const k = buildTenant(JSON.parse(readFileSync(join(HERE, 'fixtures/tenant-kollel.json'), 'utf8')), { anchorDate: '2026-09-01', calendarWindow: 400 });
+  ok('kollel תקין', k.ok);
+  const dp = k.files['dialplan/tenant_kollel-demo.xml'];
+  ok('kollel דיאלפלן מכיל heb_ חג', /heb_\d{8}/.test(dp) && dp.includes('closed_reason'));
+  ok('kollel manifest.hebrewCalendar', !!k.manifest.hebrewCalendar && k.manifest.hebrewCalendar.closedDays.length > 0);
+  ok('kollel officeHours מהוורטיקל (10:00)', k.manifest.officeHours.start === '10:00');
+  // בלי anchor → אין לוח (דטרמיניזם golden נשמר).
+  ok('בלי anchor אין heb_', !/heb_\d{8}/.test(buildTenant(JSON.parse(readFileSync(join(HERE, 'fixtures/tenant-kollel.json'), 'utf8'))).files['dialplan/tenant_kollel-demo.xml']));
+}
+
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
 const goldenDir = join(HERE, 'fixtures/golden');
@@ -302,6 +345,25 @@ for (const [rel, content] of Object.entries(a.files)) {
   } else {
     const want = readFileSync(gp, 'utf8');
     ok(`golden תואם: ${rel}`, want === content);
+  }
+}
+// golden נפרד ל-kollel (ורטיקל + לוח-עברי, anchor קבוע לדטרמיניזם).
+{
+  const kollel = buildTenant(JSON.parse(readFileSync(join(HERE, 'fixtures/tenant-kollel.json'), 'utf8')), {
+    anchorDate: '2026-09-01', calendarWindow: 400,
+  });
+  const kgDir = join(HERE, 'fixtures/golden-kollel');
+  for (const [rel, content] of Object.entries(kollel.files)) {
+    const gp = join(kgDir, rel);
+    if (UPDATE) {
+      mkdirSync(dirname(gp), { recursive: true });
+      writeFileSync(gp, content, 'utf8');
+      console.log('  ❄️  הקפיא kollel/' + rel);
+    } else if (!existsSync(gp)) {
+      ok(`golden-kollel חסר: ${rel} (הרץ UPDATE=1)`, false);
+    } else {
+      ok(`golden-kollel תואם: ${rel}`, readFileSync(gp, 'utf8') === content);
+    }
   }
 }
 
