@@ -19,7 +19,11 @@ import {
   tenantFromIntake, INTAKE_STEPS, numbersFromCsv, detectNumberType, stepsFor,
   provisioningQr, seedVertical, routingPreview, preflight, exportConfig, cloneTenant,
 } from './lib/onboard.mjs';
-import { planApply, rollbackPlan, planTenants, summarize } from './lib/apply.mjs';
+import {
+  planApply, rollbackPlan, planTenants, summarize, snapshot, pushSnapshot, restoreFrom,
+  detectDrift, reloadPlan, healthReport, pushAudit, applyWithRollback, lineDiff,
+  detailedDiff, changelogEntry, planApplyRespectingFreeze, batchSummary,
+} from './lib/apply.mjs';
 import { channelPlan, isPureDownstream } from './lib/channels.mjs';
 import {
   flagOn, featureOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
@@ -578,6 +582,81 @@ ok('1-800 → virtual', detectNumberType('1800123456').type === 'virtual');
   ok('clone מזהה/שם חדשים', cl.tenantId === 'new-org' && cl.orgName === 'ארגון חדש');
   ok('clone מאפס מספרים', cl.numbers.every((n) => n.e164 === ''));
   ok('clone שומר מבנה-מספרים', cl.numbers.length === vres.tenant.numbers.length);
+}
+
+// ── גל 7 (61-70): עומק-תפעול ────────────────────────────────────────────────
+console.log('· גל 7 — עומק-תפעול');
+const fA = buildTenant(chesed).files;
+const fB = buildTenant({ ...chesed, orgName: 'שם חדש' }).files;
+// 61. תצלומים + שחזור
+{
+  let hist = [];
+  hist = pushSnapshot(hist, snapshot(fA, { version: 'v1' }));
+  hist = pushSnapshot(hist, snapshot(fB, { version: 'v2' }));
+  ok('restoreFrom v1', JSON.stringify(restoreFrom(hist, 'v1')) === JSON.stringify(fA));
+  ok('restoreFrom חסר=null', restoreFrom(hist, 'v9') === null);
+  // טבעת
+  let big = [];
+  for (let i = 0; i < 25; i++) big = pushSnapshot(big, snapshot({}, { version: `v${i}` }), 20);
+  ok('snapshot טבעת cap', big.length === 20 && big[0].version === 'v5');
+}
+// 62. drift
+{
+  const disk = { ...fA, 'dialplan/tenant_chesed-demo.xml': fA['dialplan/tenant_chesed-demo.xml'] + '\n<!-- edited -->' };
+  const d = detectDrift(fA, disk);
+  ok('drift מזהה עריכה-ידנית', !d.clean && d.drifted.length === 1);
+  ok('drift נקי כשזהה', detectDrift(fA, fA).clean);
+}
+// 63. reload plan
+{
+  const plan = planApply(fA, fB); // dialplan+manifest השתנו
+  const cmds = reloadPlan(plan);
+  ok('reload כולל reloadxml', cmds.includes('reloadxml'));
+}
+// 64. health
+{
+  const h = healthReport({ gateways: { gw1: { state: 'REGED', latencyMs: 120 }, gw2: { state: 'FAIL_WAIT' } }, extensions: { 101: { registered: true }, 201: { registered: false } } });
+  eq('health overall critical', h.overall, 'critical');
+  ok('health ext לא-רשום=warn', h.items.some((i) => i.name === '201' && i.level === 'warn'));
+}
+// 65. audit ring
+{
+  let log = [];
+  for (let i = 0; i < 510; i++) log = pushAudit(log, { action: 'apply', target: `t${i}` });
+  ok('audit טבעת-500', log.length === 500 && log[0].target === 't10');
+}
+// 66. atomic + rollback
+{
+  const store = { ...fA };
+  const good = applyWithRollback(fA, fB, (p, c) => { store[p] = c; });
+  ok('apply מוצלח', good.ok && !good.rolledBack);
+  let n = 0;
+  const bad = applyWithRollback(fA, fB, (p, c) => { if (++n === 2) throw new Error('disk full'); });
+  ok('apply נכשל ⇒ rolledBack', !bad.ok && bad.rolledBack && bad.error.includes('disk'));
+}
+// 67. line diff
+{
+  const d = lineDiff('a\nb\nc', 'a\nx\nc');
+  ok('lineDiff מזהה החלפה', d.some((x) => x.op === 'del' && x.line === 'b') && d.some((x) => x.op === 'add' && x.line === 'x'));
+  const dd = detailedDiff(fA, fB);
+  ok('detailedDiff על קבצים-שהשתנו', Object.keys(dd).length >= 1);
+}
+// 68. changelog
+{
+  const cl = changelogEntry(fA, fB, { version: 'v2', note: 'שינוי-שם' });
+  ok('changelog מסכם', cl.version === 'v2' && cl.updated.length >= 1);
+}
+// 69. freeze
+{
+  const frozen = planApplyRespectingFreeze(fA, fB, true);
+  ok('freeze ⇒ no-op', !frozen.changed && frozen.frozen);
+  ok('לא-נעול ⇒ רגיל', planApplyRespectingFreeze(fA, fB, false).changed);
+}
+// 70. batch summary
+{
+  const { plans } = planTenants([{ tenantId: 'chesed-demo', desired: fB }, { tenantId: 'demo-intake', desired: buildTenant(derived).files }], { 'chesed-demo': fA });
+  const bs = batchSummary(plans);
+  ok('batch מסכם 2 לקוחות', bs.tenants === 2 && bs.changedTenants === 2 && bs.creates + bs.updates > 0);
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────

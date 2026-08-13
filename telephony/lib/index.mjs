@@ -29,7 +29,11 @@ export {
   tenantFromIntake, INTAKE_STEPS, numbersFromCsv, detectNumberType, stepsFor,
   provisioningQr, seedVertical, routingPreview, preflight, exportConfig, cloneTenant,
 } from './onboard.mjs';
-export { planApply, rollbackPlan, planTenants, summarize } from './apply.mjs';
+export {
+  planApply, rollbackPlan, planTenants, summarize, snapshot, pushSnapshot, restoreFrom,
+  detectDrift, reloadPlan, healthReport, pushAudit, applyWithRollback, lineDiff,
+  detailedDiff, changelogEntry, planApplyRespectingFreeze, batchSummary,
+} from './apply.mjs';
 export { channelPlan, isPureDownstream } from './channels.mjs';
 export {
   flagOn, featureOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
