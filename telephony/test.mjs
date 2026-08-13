@@ -14,6 +14,7 @@ import { buildTenant, validateTenant, toE164 } from './lib/index.mjs';
 import { buildDirectory, lookupCaller, lookupInDirectory } from './lib/cti.mjs';
 import { tenantFromIntake, INTAKE_STEPS } from './lib/onboard.mjs';
 import { planApply, rollbackPlan, planTenants, summarize } from './lib/apply.mjs';
+import { channelPlan, isPureDownstream } from './lib/channels.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const UPDATE = process.env.UPDATE === '1';
@@ -185,6 +186,28 @@ const t2 = buildTenant(derived).files;
   ok('שחזור מחזיר את v1 ביט-לביט', JSON.stringify(restoreFiles) === JSON.stringify(t1));
   ok('תוכנית-שחזור מסמנת שינוי', plan.changed);
   ok('summarize קריא', /^\+\d+ ~\d+ -\d+ =\d+$/.test(summarize(plan)));
+}
+
+// ── 5e. channels: מודל רב-ערוצי downstream ──────────────────────────────────
+console.log('· channels — רב-ערוצי downstream');
+{
+  const plan = channelPlan(vres.tenant);
+  eq('ווצאפ אחד (device-link)', plan.whatsapp.length, 1);
+  eq('ווצאפ method=device-link', plan.whatsapp[0].method, 'device-link');
+  ok('ווצאפ provider=null (אין ספק)', plan.whatsapp[0].provider === null);
+  // n2 (voice+sms) + n7 (sms) → 2 ערוצי-SMS.
+  eq('שני ערוצי-SMS', plan.sms.length, 2);
+  ok('SMS דרך SIM-gateway', plan.sms.every((s) => s.method === 'sim-gateway'));
+  ok('SMS provider=null', plan.sms.every((s) => s.provider === null));
+  ok('unifiedInbox כולל 3 ערוצים', plan.unifiedInbox.channels.length === 3);
+  ok('pure-downstream נאכף', isPureDownstream(plan));
+}
+// אינווריאנט-הגנה: לא ניתן להחדיר Business API / ספק-SMS.
+{
+  const bad = { whatsapp: [{ provider: 'meta', method: 'business-api' }], sms: [] };
+  ok('Business API נפסל', !isPureDownstream(bad));
+  const bad2 = { whatsapp: [], sms: [{ provider: 'twilio', method: 'sms-provider' }] };
+  ok('ספק-SMS נפסל', !isPureDownstream(bad2));
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
