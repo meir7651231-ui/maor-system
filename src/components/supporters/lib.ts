@@ -178,7 +178,22 @@ export function supDonEvents(sp: Supporter, config?: OrgConfig): SupDonEvent[] {
     src: 'קבלה ' + d.rid,
     rid: d.rid,
   }));
-  for (const h of sp.hist || []) out.push({ date: h.d, amount: h.a, cur: h.c || '₪', src: 'מהקובץ ההיסטורי' });
+  for (const h of sp.hist || []) {
+    // 13.8 — פירוט מטא-דאטת-הסליקה בשורת-ההיסטוריה (רק שדות שקיימים).
+    const meta = [
+      h.receipt && 'קבלה ' + h.receipt,
+      h.txn && 'עסקה ' + h.txn,
+      h.ref && 'אסמכתא ' + h.ref,
+      h.brand,
+      h.last4 && '•' + h.last4,
+      h.clearer,
+      h.pays && h.pays > 1 && h.pays + ' תשלומים',
+      h.status,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+    out.push({ date: h.d, amount: h.a, cur: h.c || '₪', src: 'מהקובץ ההיסטורי' + (meta ? ' · ' + meta : '') });
+  }
   if (!(sp.hist || []).length) {
     const seen = new Set(out.map((x) => x.date));
     if (sp.first && !seen.has(sp.first)) out.push({ date: sp.first, amount: 0, cur: '', src: T('entity.donation', 'תרומה') + ' ראשונה (מהקובץ)' });
@@ -264,8 +279,21 @@ export interface SupporterImportRow {
   forWho: string;
   /** הכרעת-בעלים 9.8 ("היסטוריה ללא קבלה"): עסקאות מקובץ מסוף-הסליקה —
    *  נכנסות ל-Supporter.hist (מוצגות "מהקובץ ההיסטורי"), בלי קבלה ובלי
-   *  נגיעה במונים (ההצטברות — הכרעת-בעלים ‎#14 פתוחה). */
-  hist?: { d: string; a: number; c?: '₪' | '$' }[];
+   *  נגיעה במונים (ההצטברות — הכרעת-בעלים ‎#14 פתוחה).
+   *  ‏13.8: + מטא-דאטה של הסליקה (אופציונלי) — ראה Supporter.hist. */
+  hist?: {
+    d: string;
+    a: number;
+    c?: '₪' | '$';
+    ref?: string;
+    txn?: string;
+    receipt?: string;
+    brand?: string;
+    last4?: string;
+    clearer?: string;
+    pays?: number;
+    status?: string;
+  }[];
   /** בקשת-בעלים 9.8 ("עבור מי ⇒ שם לטיפול"): שורת-טיפול בקובץ (קטגוריה עם
    *  'עין') ⇒ השם-לטיפול נכנס לתיק-המעקב; הכמות ('' ) ממתינה לשלב-הרישום. */
   ayinNames?: string[];
@@ -300,6 +328,15 @@ export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
   const iAmount = find(['סכום']);
   const iTxDate = find(['תאריך']);
   const iCur = find(['מטבע']);
+  // 13.8 — כל שאר עמודות-הסליקה נקלטות למטא-דאטה של רשומת-ההיסטוריה.
+  const iRef = find(['אסמכתא']);
+  const iTxn = find(['מספר עסקה']);
+  const iReceipt = find(['מספר קבלה']);
+  const iBrand = find(['מותג']);
+  const iLast4 = find(['4 ספרות', 'ספרות']);
+  const iClearer = find(['חברה סולקת', 'סולק']);
+  const iPays = find(['תשלומים']);
+  const iStatus = find(['סטטוס']);
   let start = hdrIdx >= 0 ? hdrIdx + 1 : 1;
   if (iName < 0) {
     // אין שורת כותרות מזוהה — סדר עמודות קבוע
@@ -331,12 +368,28 @@ export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
       // 'תאריך עסקה' מגיע עם שעה ("09/08/26 00:36") — התאריך בלבד
       const d = parseAnyDate(g(r, iTxDate).split(' ')[0]);
       if (isFinite(amount) && amount > 0 && d) {
-        row.hist = [{ d, a: amount, ...(/דולר|\$|usd/i.test(g(r, iCur)) ? { c: '$' as const } : {}) }];
+        // 13.8 — מטא-דאטה: רק שדות שקיימים בפועל (נשארים undefined אחרת).
+        const pays = Number(g(r, iPays));
+        row.hist = [
+          {
+            d,
+            a: amount,
+            ...(/דולר|\$|usd/i.test(g(r, iCur)) ? { c: '$' as const } : {}),
+            ...(g(r, iRef) ? { ref: g(r, iRef) } : {}),
+            ...(g(r, iTxn) ? { txn: g(r, iTxn) } : {}),
+            ...(g(r, iReceipt) ? { receipt: g(r, iReceipt) } : {}),
+            ...(g(r, iBrand) ? { brand: g(r, iBrand) } : {}),
+            ...(g(r, iLast4) ? { last4: g(r, iLast4) } : {}),
+            ...(g(r, iClearer) ? { clearer: g(r, iClearer) } : {}),
+            ...(iPays >= 0 && isFinite(pays) && pays > 0 ? { pays } : {}),
+            ...(g(r, iStatus) ? { status: g(r, iStatus) } : {}),
+          },
+        ];
       }
     }
-    // בקשת-בעלים 9.8: שורת-טיפול (קטגוריה עם 'עין') ⇒ "עבור מי" = שם-התורם
-    // המלא ('X בן/בת Y') נכנס כשם-לטיפול בתיק-המעקב; הכמות ממתינה לרישום.
-    if (/עין/.test(row.cat)) row.ayinNames = [name];
+    // 13.8 (בקשת-בעלים) — הוסר אוטומט-העי"ן: קטגוריה "הסרת עין הרע" היא ייעוד-
+    // תרומה, לא הוראה לפתוח תיק-מעקב. תיק-עי"ן נפתח רק כשצוין במפורש (ידנית
+    // בכרטיס/בלוח-העי"ן), לא מזיהוי-מחרוזת בקטגוריה. (ביטול הכרעת-9.8.)
     out.push(row);
   }
   return out;
