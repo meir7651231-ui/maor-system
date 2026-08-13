@@ -287,6 +287,8 @@ interface AppState {
   upsertRoom: (r: Room) => void;
   upsertSupporter: (s: Supporter) => void;
   deleteSupporter: (id: string) => void;
+  /** מחיקה-מרובה — כל ה-ids בעדכון-מצב יחיד (אותו ניקוי-מדורג כמו הבודד). */
+  deleteSupporters: (ids: string[]) => void;
   /** 🔗 מיזוג-כפולים (#13): כל הכסף עובר ל-keep (rid נשמר), drop נמחק. */
   mergeSupporters: (keepId: string, dropId: string) => void;
   /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
@@ -1580,6 +1582,25 @@ export const useApp = create<AppState>()((set, get) => {
         return {
           supporters: db.supporters.filter((s) => s.id !== id),
           events: db.events.filter((ev) => ev.id !== evId && ev.spId !== id),
+        };
+      });
+    },
+    deleteSupporters(ids) {
+      const idSet = new Set(ids);
+      if (!idSet.size) return;
+      const names = get()
+        .db.supporters.filter((x) => idSet.has(x.id))
+        .map((x) => x.name);
+      logAudit('מחיקת ' + idSet.size + ' תומכ/ות', names.slice(0, 6).join(', ') + (names.length > 6 ? '…' : ''));
+      setDb((db) => {
+        // אותו ניקוי-מדורג כמו הבודד, לכל הנמחקים: תזכורות-יעד (nextEventId) +
+        // אירועי מעקב-עי"ן (spId) — כדי שלא יישארו יתומים בלוח.
+        const evIds = new Set(
+          db.supporters.filter((s) => idSet.has(s.id) && s.nextEventId).map((s) => s.nextEventId as string),
+        );
+        return {
+          supporters: db.supporters.filter((s) => !idSet.has(s.id)),
+          events: db.events.filter((ev) => !evIds.has(ev.id) && !(ev.spId && idSet.has(ev.spId))),
         };
       });
     },
