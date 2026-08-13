@@ -36,6 +36,11 @@ export interface EmployeeOverride {
   modules?: Record<string, boolean>;
   /** דגלי-פיצ'ר לכבות לעובד/ת (false = מוסתר). חסר = יורש מהארגון. */
   features?: Record<string, boolean>;
+  /**
+   * ייעודי-תרומה מותרים לעובד/ת (בקשת-בעלים 13.8 ג'): העובד/ת רואה **רק** תרומות
+   * של הייעודים ברשימה. חסר/ריק = בלי הגבלה (רואה הכל). מנהל/בעלים תמיד רואה הכל.
+   */
+  designations?: string[];
 }
 
 /** מסמך ארגון בפלטפורמה — platformOrgs/{slug}.

@@ -14,7 +14,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, TIER_ORDER, totalLabel } from './lib';
+import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, TIER_ORDER, totalLabel } from './lib';
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
@@ -114,6 +114,11 @@ export function SupportersView() {
     : null;
   // גל ד׳ (payments): מסך תשלומים-נכנסים — רק לארגון-ענן מחובר
   const cloudOn = useApp((s) => s.cloud.enabled && !!s.cloud.user);
+  // ג' (13.8) — ייעוד כהרשאת-תצוגה: העובד/ת רואה רק תורמים של הייעודים שהוקצו לו/ה.
+  // null = בלי הגבלה (מנהל/בעלים/לקוח-מקומי). מסתיר ברמת-הממשק (כמו shell.privacy).
+  const purposeOn = featureOn(config, 'supporters.purpose');
+  const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = purposeOn ? allowedDesignations : null;
   const [incomingOpen, setIncomingOpen] = useState(false);
   const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');
   const importOn = featureOn(config, 'settings.import');
@@ -201,7 +206,14 @@ export function SupportersView() {
   const nq = normSearch(q);
   const qd = q.replace(/\D/g, '');
 
-  let list = db.supporters.filter((sp) => {
+  // ג' (13.8) — בסיס-הראייה של המשתמש: תורמים המותרים לפי הייעודים שהוקצו.
+  // כל הנגזרות בתצוגה (רשימה, מונים, סה"כ, קטגוריות) יוצאות מ-visibleBase כדי
+  // שעובד מוגבל לא יראה — ולא יסיק — תורמים של ייעוד אחר.
+  const visibleBase = desigLimit
+    ? db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit))
+    : db.supporters;
+
+  let list = visibleBase.filter((sp) => {
     if (cat !== 'all' && (sp.cat || '') !== cat) return false;
     // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): הוראות פעילות / רק שטרם-נרשמו-החודש
     if (hokF === 'active' && !sp.hok?.active) return false;
@@ -235,18 +247,18 @@ export function SupportersView() {
   const clickSort = (key: SortKey) =>
     setSort(sort && sort.key === key ? (sort.dir > 0 ? { key, dir: -1 } : null) : { key, dir: 1 });
 
-  const catOptions = [...new Set(db.supporters.map((s) => s.cat).filter(Boolean))];
+  const catOptions = [...new Set(visibleBase.map((s) => s.cat).filter(Boolean))];
   const tierCounts: Record<string, number> = { זהב: 0, כסף: 0, ארד: 0, רדומה: 0 };
-  for (const sp of db.supporters) tierCounts[supTier(supScore(sp, rate)).label]++;
+  for (const sp of visibleBase) tierCounts[supTier(supScore(sp, rate)).label]++;
 
-  const tIls = db.supporters.reduce((a, x) => a + (x.ils || 0), 0);
-  const tUsd = db.supporters.reduce((a, x) => a + (x.usd || 0), 0);
+  const tIls = visibleBase.reduce((a, x) => a + (x.ils || 0), 0);
+  const tUsd = visibleBase.reduce((a, x) => a + (x.usd || 0), 0);
   const filtered =
     q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF ||
     colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';
   const countLabel =
     (filtered ? list.length + ' מתוך ' : '') +
-    db.supporters.length +
+    visibleBase.length +
     ' ' + termOf(config, 'nav.supporters', 'משפחות תומכות') + ' · סה"כ ₪' +
     tIls.toLocaleString('he-IL') +
     ' + $' +
