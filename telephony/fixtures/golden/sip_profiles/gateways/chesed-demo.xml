@@ -9,8 +9,8 @@
     <param name="proxy" value="$${gsm_gateway_ip}"/>
     <param name="register" value="false"/>
     <param name="caller-id-in-from" value="true"/>
-    <!-- שיחה נכנסת מה-SIM הזה נופלת ישר ל-context של הלקוח -->
-    <param name="context" value="tenant_chesed-demo"/>
+    <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->
+    <param name="context" value="tenant_chesed-demo_gw1"/>
   </gateway>
   <gateway name="chesed-demo-gw2">
     <!-- קו תרומות · +972501112233 · ערוץ 2 -->
@@ -19,8 +19,8 @@
     <param name="proxy" value="$${gsm_gateway_ip}"/>
     <param name="register" value="false"/>
     <param name="caller-id-in-from" value="true"/>
-    <!-- שיחה נכנסת מה-SIM הזה נופלת ישר ל-context של הלקוח -->
-    <param name="context" value="tenant_chesed-demo"/>
+    <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->
+    <param name="context" value="tenant_chesed-demo_gw2"/>
   </gateway>
   <gateway name="chesed-demo-gw3">
     <!-- קו כשר · +972539998877 · כשר · ערוץ 3 -->
@@ -29,8 +29,8 @@
     <param name="proxy" value="$${gsm_gateway_ip}"/>
     <param name="register" value="false"/>
     <param name="caller-id-in-from" value="true"/>
-    <!-- שיחה נכנסת מה-SIM הזה נופלת ישר ל-context של הלקוח -->
-    <param name="context" value="tenant_chesed-demo"/>
+    <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->
+    <param name="context" value="tenant_chesed-demo_gw3"/>
   </gateway>
   <gateway name="chesed-demo-gw4">
     <!-- קו SMS · +972551234567 · ערוץ 4 -->
@@ -39,7 +39,7 @@
     <param name="proxy" value="$${gsm_gateway_ip}"/>
     <param name="register" value="false"/>
     <param name="caller-id-in-from" value="true"/>
-    <!-- שיחה נכנסת מה-SIM הזה נופלת ישר ל-context של הלקוח -->
-    <param name="context" value="tenant_chesed-demo"/>
+    <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->
+    <param name="context" value="tenant_chesed-demo_gw4"/>
   </gateway>
 </include>

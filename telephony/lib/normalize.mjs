@@ -23,18 +23,21 @@ export function toE164(raw, defaultCc = '972') {
   let d = raw.replace(/[^\d]/g, '');
   if (!d) return null;
 
+  // קילוף אפס-גזע לאומי אחרי קידומת-המדינה: +<cc>0<rest> → +<cc><rest>.
+  const trunk = (e164) => (e164 && e164.startsWith(`+${defaultCc}0`) ? `+${defaultCc}${e164.slice(defaultCc.length + 2)}` : e164);
+
   if (hadPlus) {
     // כבר בין-לאומי: +<ספרות>. אורך סביר 8..15.
-    return d.length >= 8 && d.length <= 15 ? `+${d}` : null;
+    return d.length >= 8 && d.length <= 15 ? trunk(`+${d}`) : null;
   }
   // 00 מוביל = חיוג בין-לאומי → הפוך ל-+.
   if (d.startsWith('00')) {
     d = d.slice(2);
-    return d.length >= 8 && d.length <= 15 ? `+${d}` : null;
+    return d.length >= 8 && d.length <= 15 ? trunk(`+${d}`) : null;
   }
   // מתחיל בקידומת-המדינה (בלי +) — קבל אם האורך הכולל הגיוני.
   if (d.startsWith(defaultCc) && d.length >= defaultCc.length + 7) {
-    return `+${d}`;
+    return trunk(`+${d}`);
   }
   // מספר מקומי עם 0 מוביל → החלף ב-+<cc>.
   if (d.startsWith('0')) {

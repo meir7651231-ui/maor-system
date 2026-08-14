@@ -8,12 +8,22 @@
 //   node telephony/tel.mjs build    <cfg.json> <outDir> [--anchor YYYY-MM-DD]
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync, renameSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { buildTenant, validateTenant } from './lib/index.mjs';
 import { routingPreview, preflight } from './lib/onboard.mjs';
 import { complianceReport } from './lib/security.mjs';
-import { planApply, planTenants, summarize } from './lib/apply.mjs';
+import { planApply, planTenants, summarize, reloadPlan } from './lib/apply.mjs';
+
+// כתיבה-אטומית (temp+rename) — אין XML-חלקי שחוסם reloadxml גלובלית.
+function atomicWrite(full, content) {
+  mkdirSync(dirname(full), { recursive: true });
+  const tmp = `${full}.tmp-${process.pid}`;
+  writeFileSync(tmp, content, 'utf8');
+  renameSync(tmp, full);
+}
+const safeUnlink = (p) => { try { if (existsSync(p)) unlinkSync(p); } catch { /* best-effort */ } };
+const fullOf = (configRoot, rel, tid) => rel === 'manifest.json' ? join(configRoot, 'tenants', tid, 'manifest.json') : join(configRoot, rel);
 
 const [, , cmd, ...rest] = process.argv;
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
@@ -67,28 +77,34 @@ switch (cmd) {
     const STATE = join(configRoot, '.telephony-state.json');
     const prev = existsSync(STATE) ? readJson(STATE) : {};
     const tenants = [];
+    const seen = new Set();
     for (const f of readdirSync(tenantsDir).filter((x) => x.endsWith('.json'))) {
       const b = buildTenant(readJson(join(tenantsDir, f)));
       if (!b.ok) die(`❌ ${f}: ${b.errors.join(' · ')}`);
+      if (seen.has(b.manifest.tenantId)) die(`❌ tenantId כפול: "${b.manifest.tenantId}" — דריסה. תקן לפני החלה.`);
+      seen.add(b.manifest.tenantId);
       tenants.push({ tenantId: b.manifest.tenantId, desired: b.files });
     }
     const { collisions } = planTenants(tenants, prev);
     if (collisions.length) die('❌ חפיפת-נתיבים: ' + JSON.stringify(collisions));
     const next = { ...prev };
+    const touched = { creates: [], updates: [], deletes: [] };
     for (const t of tenants) {
       const plan = planApply(prev[t.tenantId] || {}, t.desired);
+      touched.creates.push(...plan.creates); touched.updates.push(...plan.updates); touched.deletes.push(...plan.deletes);
       console.log(`${plan.changed ? '±' : '='} ${t.tenantId} [${summarize(plan)}]`);
       if (flag('--write')) {
-        for (const [rel, content] of Object.entries(t.desired)) {
-          const full = rel === 'manifest.json' ? join(configRoot, 'tenants', t.tenantId, 'manifest.json') : join(configRoot, rel);
-          mkdirSync(dirname(full), { recursive: true });
-          writeFileSync(full, content, 'utf8');
-        }
+        for (const [rel, content] of Object.entries(t.desired)) atomicWrite(fullOf(configRoot, rel, t.tenantId), content);
+        for (const rel of plan.deletes) safeUnlink(fullOf(configRoot, rel, t.tenantId));
         next[t.tenantId] = t.desired;
       }
     }
-    if (flag('--write')) { writeFileSync(STATE, JSON.stringify(next, null, 2) + '\n', 'utf8'); console.log('✅ הוחל'); }
-    else console.log('— dry-run (הוסף --write) —');
+    if (flag('--write')) {
+      atomicWrite(STATE, JSON.stringify(next, null, 2) + '\n');
+      console.log('✅ הוחל');
+      const cmds = reloadPlan(touched);
+      if (cmds.length) { console.log('⚠️  טען מחדש:'); for (const c of cmds) console.log(`    fs_cli -x '${c}'`); }
+    } else console.log('— dry-run (הוסף --write) —');
     break;
   }
   default:

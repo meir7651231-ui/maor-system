@@ -12,10 +12,10 @@
       </condition>
     </extension>
     <extension name="cid_normalize" continue="true">
-      <condition field="caller_id_number" expression="^0(\d+)$">
-        <action application="set" data="cid_e164=+972$1"/>
-        <anti-action application="set" data="cid_e164=${caller_id_number}"/>
-      </condition>
+      <condition break="never"><action application="set" data="cid_e164=${caller_id_number}"/></condition>
+      <condition field="caller_id_number" expression="^00([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="caller_id_number" expression="^0([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+      <condition field="caller_id_number" expression="^(972\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
     </extension>
 
     <!-- שער-הזמן: ברירת-מחדל סגור; global_open לפי שעות, force_closed לפי חג/dnd/חירום -->
@@ -35,109 +35,110 @@
     <extension name="heb_20260912" continue="true">
       <condition date-time="2026-09-12 00:00:00~2026-09-12 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=ראש השנה"/>
       </condition>
     </extension>
     <extension name="heb_20260913" continue="true">
       <condition date-time="2026-09-13 00:00:00~2026-09-13 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=ראש השנה"/>
       </condition>
     </extension>
     <extension name="heb_20260914" continue="true">
       <condition date-time="2026-09-14 00:00:00~2026-09-14 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=צום גדליה"/>
       </condition>
     </extension>
     <extension name="heb_20260921" continue="true">
       <condition date-time="2026-09-21 00:00:00~2026-09-21 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=יום כיפור"/>
       </condition>
     </extension>
     <extension name="heb_20260926" continue="true">
       <condition date-time="2026-09-26 00:00:00~2026-09-26 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=סוכות"/>
       </condition>
     </extension>
     <extension name="heb_20261003" continue="true">
       <condition date-time="2026-10-03 00:00:00~2026-10-03 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=שמיני עצרת · שמחת תורה"/>
       </condition>
     </extension>
     <extension name="heb_20261220" continue="true">
       <condition date-time="2026-12-20 00:00:00~2026-12-20 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=עשרה בטבת"/>
       </condition>
     </extension>
     <extension name="heb_20270322" continue="true">
       <condition date-time="2027-03-22 00:00:00~2027-03-22 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=תענית אסתר"/>
       </condition>
     </extension>
     <extension name="heb_20270422" continue="true">
       <condition date-time="2027-04-22 00:00:00~2027-04-22 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=פסח"/>
       </condition>
     </extension>
     <extension name="heb_20270428" continue="true">
       <condition date-time="2027-04-28 00:00:00~2027-04-28 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=שביעי של פסח"/>
       </condition>
     </extension>
     <extension name="heb_20270611" continue="true">
       <condition date-time="2027-06-11 00:00:00~2027-06-11 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=שבועות"/>
       </condition>
     </extension>
     <extension name="heb_20270812" continue="true">
       <condition date-time="2027-08-12 00:00:00~2027-08-12 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=תשעה באב"/>
       </condition>
     </extension>
     <extension name="heb_20271002" continue="true">
       <condition date-time="2027-10-02 00:00:00~2027-10-02 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=ראש השנה"/>
       </condition>
     </extension>
     <extension name="heb_20271003" continue="true">
       <condition date-time="2027-10-03 00:00:00~2027-10-03 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=ראש השנה"/>
       </condition>
     </extension>
     <extension name="heb_20271004" continue="true">
       <condition date-time="2027-10-04 00:00:00~2027-10-04 23:59:59">
         <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
         <action application="set" data="closed_reason=צום גדליה"/>
       </condition>
     </extension>
 
-    <!-- כניסה: כל מספר נושא-קול מזוהה לפי ה-DID ומנותב פנימה -->
-    <extension name="in_n1">
-      <condition field="destination_number" expression="^\+97226000000$">
-        <action application="set" data="inbound_line=מזכירות"/>
-        <action application="set" data="inbound_number=+97226000000"/>
-        <action application="transfer" data="incoming XML tenant_kollel-demo"/>
-      </condition>
-    </extension>
-    <extension name="in_n2">
-      <condition field="destination_number" expression="^\+972506000000$">
-        <action application="set" data="inbound_line=ראש הכולל"/>
-        <action application="set" data="inbound_number=+972506000000"/>
-        <action application="transfer" data="incoming XML tenant_kollel-demo"/>
-      </condition>
-    </extension>
+    <!-- כניסה: קווים-מופנים מזוהים לפי DID (תלוי בכך שהספק משמרו) -->
 
     <!-- ניתוב: force_closed→do_closed · global_open→do_open · אחרת→do_closed -->
     <extension name="incoming_closed">
@@ -173,8 +174,9 @@
       </condition>
     </extension>
 
-    <!-- יציאה: קידומת <ערוץ>#<מספר> בוחרת דרך איזה SIM לצאת -->
+    <!-- יציאה: קידומת <ערוץ>#<מספר> בוחרת דרך איזה SIM לצאת (רק שלוחה-רשומה) -->
     <extension name="out_pick_n1">
+      <condition field="${sip_authorized}" expression="^true$"/>
       <condition field="destination_number" expression="^1#(\+?\d+)$">
         <action application="set" data="effective_caller_id_number=+97226000000"/>
         <action application="set" data="effective_caller_id_name=מזכירות"/>
@@ -182,6 +184,7 @@
       </condition>
     </extension>
     <extension name="out_pick_n2">
+      <condition field="${sip_authorized}" expression="^true$"/>
       <condition field="destination_number" expression="^2#(\+?\d+)$">
         <action application="set" data="effective_caller_id_number=+972506000000"/>
         <action application="set" data="effective_caller_id_name=ראש הכולל"/>
@@ -190,9 +193,40 @@
     </extension>
     <!-- יציאת-ברירת-מחדל (חיוג רגיל בלי קידומת) → מזכירות -->
     <extension name="out_default">
+      <condition field="${sip_authorized}" expression="^true$"/>
       <condition field="destination_number" expression="^(0\d{7,9}|\+?\d{8,15})$">
         <action application="set" data="effective_caller_id_number=+97226000000"/>
         <action application="bridge" data="sofia/gateway/kollel-demo-gw1/$1"/>
+      </condition>
+    </extension>
+
+    <!-- אחזור-תא-קולי -->
+    <extension name="vm_retrieve">
+      <condition field="destination_number" expression="^\*98$">
+        <action application="answer"/>
+        <action application="voicemail" data="check default kollel-demo 100"/>
+      </condition>
+    </extension>
+  </context>
+
+  <context name="tenant_kollel-demo_gw1">
+    <!-- מזכירות · +97226000000 · ערוץ 1 -->
+    <extension name="gw1_entry">
+      <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_line=מזכירות"/>
+        <action application="set" data="inbound_number=+97226000000"/>
+        <action application="transfer" data="incoming XML tenant_kollel-demo"/>
+      </condition>
+    </extension>
+  </context>
+
+  <context name="tenant_kollel-demo_gw2">
+    <!-- ראש הכולל · +972506000000 · ערוץ 2 -->
+    <extension name="gw2_entry">
+      <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_line=ראש הכולל"/>
+        <action application="set" data="inbound_number=+972506000000"/>
+        <action application="transfer" data="incoming XML tenant_kollel-demo"/>
       </condition>
     </extension>
   </context>

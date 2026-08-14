@@ -19,12 +19,14 @@ function fmtFor(tz) {
   let f = _fmt.get(tz);
   if (!f) {
     f = new Intl.DateTimeFormat('en-u-ca-hebrew-nu-latn', {
-      day: 'numeric', month: 'long', year: 'numeric', timeZone: tz,
+      day: 'numeric', month: 'long', year: 'numeric', weekday: 'short', timeZone: tz,
     });
     _fmt.set(tz, f);
   }
   return f;
 }
+
+const WEEKDAY = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
 /** תאריך-עברי {day,monthName,year} לתאריך-ISO לועזי (בצהריים מקומי). */
 export function hebParts(iso, tz = 'Asia/Jerusalem') {
@@ -32,12 +34,14 @@ export function hebParts(iso, tz = 'Asia/Jerusalem') {
   const parts = fmtFor(tz).formatToParts(d);
   const get = (t) => parts.find((p) => p.type === t)?.value;
   const monthName = get('month');
+  // dow מאותו tz של התאריך-העברי (עקבי גם לדיאספורה מזרחית), נפילה ל-UTC.
+  const wd = get('weekday');
   return {
     day: Number(get('day')),
     monthName,
     monthHe: MONTHS[monthName] || monthName,
     year: Number(get('year')),
-    dow: d.getUTCDay(), // 0=ראשון..6=שבת (הצהריים UTC שומר על היום)
+    dow: wd in WEEKDAY ? WEEKDAY[wd] : d.getUTCDay(), // 0=ראשון..6=שבת
   };
 }
 
@@ -103,7 +107,7 @@ export function classifyDay(iso, opt = {}) {
     else if (m === 'Tevet') fast = 'עשרה בטבת';
     else if (isAdar(m)) fast = 'תענית אסתר';
     else if (m === 'Tammuz') fast = 'שבעה עשר בתמוז';
-    else if (m === 'Av') fast = dow === 0 ? 'תשעה באב (נדחה)' : 'תשעה באב';
+    else if (m === 'Av') fast = d === 10 ? 'תשעה באב (נדחה)' : 'תשעה באב'; // רק י׳ באב = נדחה
   }
 
   const roshChodesh = (d === 1 && m !== 'Tishri') || d === 30;

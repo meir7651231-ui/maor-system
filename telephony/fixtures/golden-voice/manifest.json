@@ -30,7 +30,6 @@
     "emergency": false,
     "callerNameGreeting": true,
     "voicemailTranscription": true,
-    "queueCallback": false,
     "holdMusic": true,
     "announcementLines": [
       "n2"

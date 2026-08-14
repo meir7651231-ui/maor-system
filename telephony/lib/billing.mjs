@@ -12,7 +12,8 @@ export function normalizeCdr(raw = {}) {
   return {
     uuid: String(raw.uuid ?? raw.id ?? ''),
     tenantId: String(raw.tenantId ?? raw.domain ?? ''),
-    direction: raw.direction === 'outbound' ? 'outbound' : 'inbound',
+    // כיוון עם fallback לשמות-שדה של FreeSWITCH (אחרת שיחות-יוצאות בורחות מחיוב).
+    direction: (raw.direction ?? raw.call_direction ?? raw.variable_direction) === 'outbound' ? 'outbound' : 'inbound',
     from: toE164(raw.caller ?? raw.from) || String(raw.caller ?? raw.from ?? ''),
     to: toE164(raw.destination ?? raw.to) || String(raw.destination ?? raw.to ?? ''),
     line: String(raw.line ?? raw.inbound_number ?? ''),

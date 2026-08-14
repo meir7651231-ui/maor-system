@@ -12,10 +12,10 @@
       </condition>
     </extension>
     <extension name="cid_normalize" continue="true">
-      <condition field="caller_id_number" expression="^0(\d+)$">
-        <action application="set" data="cid_e164=+972$1"/>
-        <anti-action application="set" data="cid_e164=${caller_id_number}"/>
-      </condition>
+      <condition break="never"><action application="set" data="cid_e164=${caller_id_number}"/></condition>
+      <condition field="caller_id_number" expression="^00([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="caller_id_number" expression="^0([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+      <condition field="caller_id_number" expression="^(972\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
     </extension>
     <!-- רשימת-חסימה: 2 מספרים → ניתוק -->
     <extension name="blocklist">
@@ -38,21 +38,7 @@
       </condition>
     </extension>
 
-    <!-- כניסה: כל מספר נושא-קול מזוהה לפי ה-DID ומנותב פנימה -->
-    <extension name="in_n1">
-      <condition field="destination_number" expression="^\+97225000000$">
-        <action application="set" data="inbound_line=קו ראשי"/>
-        <action application="set" data="inbound_number=+97225000000"/>
-        <action application="transfer" data="incoming XML tenant_full-demo"/>
-      </condition>
-    </extension>
-    <extension name="in_n2">
-      <condition field="destination_number" expression="^\+97235000000$">
-        <action application="set" data="inbound_line=קו תרומות"/>
-        <action application="set" data="inbound_number=+97235000000"/>
-        <action application="transfer" data="incoming XML tenant_full-demo"/>
-      </condition>
-    </extension>
+    <!-- כניסה: קווים-מופנים מזוהים לפי DID (תלוי בכך שהספק משמרו) -->
     <extension name="in_n3">
       <!-- קו-מופנה: תלוי בכך שהספק מעביר את ה-DID המקורי -->
       <condition field="destination_number" expression="^\+972775000000$">
@@ -67,11 +53,15 @@
         <action application="transfer" data="do_closed XML tenant_full-demo"/>
       </condition>
     </extension>
-    <extension name="line_n3">
+    <extension name="line_n3_w1">
       <condition field="destination_number" expression="^line_n3$"/>
       <condition wday="1-5" time-of-day="18:00-22:00">
         <action application="transfer" data="do_open XML tenant_full-demo"/>
-        <anti-action application="transfer" data="do_closed XML tenant_full-demo"/>
+      </condition>
+    </extension>
+    <extension name="line_n3_default">
+      <condition field="destination_number" expression="^line_n3$">
+        <action application="transfer" data="do_closed XML tenant_full-demo"/>
       </condition>
     </extension>
 
@@ -110,8 +100,9 @@
       </condition>
     </extension>
 
-    <!-- יציאה: קידומת <ערוץ>#<מספר> בוחרת דרך איזה SIM לצאת -->
+    <!-- יציאה: קידומת <ערוץ>#<מספר> בוחרת דרך איזה SIM לצאת (רק שלוחה-רשומה) -->
     <extension name="out_pick_n1">
+      <condition field="${sip_authorized}" expression="^true$"/>
       <condition field="destination_number" expression="^1#(\+?\d+)$">
         <action application="set" data="effective_caller_id_number=+97225000000"/>
         <action application="set" data="effective_caller_id_name=קו ראשי"/>
@@ -119,6 +110,7 @@
       </condition>
     </extension>
     <extension name="out_pick_n2">
+      <condition field="${sip_authorized}" expression="^true$"/>
       <condition field="destination_number" expression="^2#(\+?\d+)$">
         <action application="set" data="effective_caller_id_number=+97235000000"/>
         <action application="set" data="effective_caller_id_name=קו תרומות"/>
@@ -127,6 +119,7 @@
     </extension>
     <!-- יציאת-ברירת-מחדל (חיוג רגיל בלי קידומת) → קו ראשי -->
     <extension name="out_default">
+      <condition field="${sip_authorized}" expression="^true$"/>
       <condition field="destination_number" expression="^(0\d{7,9}|\+?\d{8,15})$">
         <action application="set" data="effective_caller_id_number=+97225000000"/>
         <action application="bridge" data="sofia/gateway/full-demo-gw1/$1"/>
@@ -179,7 +172,7 @@
 
     <!-- חיוג-פנימי בין שלוחות -->
     <extension name="internal_dial">
-      <condition field="destination_number" expression="^([12]\d\d)$">
+      <condition field="destination_number" expression="^(101|102|201|301|302)$">
         <action application="bridge" data="user/$1@full-demo"/>
       </condition>
     </extension>
@@ -189,6 +182,36 @@
       <condition field="destination_number" expression="^700$">
         <action application="answer"/>
         <action application="valet_park" data="valet_lot_full-demo auto in 5 400"/>
+      </condition>
+    </extension>
+
+    <!-- אחזור-תא-קולי -->
+    <extension name="vm_retrieve">
+      <condition field="destination_number" expression="^\*98$">
+        <action application="answer"/>
+        <action application="voicemail" data="check default full-demo 100"/>
+      </condition>
+    </extension>
+  </context>
+
+  <context name="tenant_full-demo_gw1">
+    <!-- קו ראשי · +97225000000 · ערוץ 1 -->
+    <extension name="gw1_entry">
+      <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_line=קו ראשי"/>
+        <action application="set" data="inbound_number=+97225000000"/>
+        <action application="transfer" data="incoming XML tenant_full-demo"/>
+      </condition>
+    </extension>
+  </context>
+
+  <context name="tenant_full-demo_gw2">
+    <!-- קו תרומות · +97235000000 · ערוץ 2 -->
+    <extension name="gw2_entry">
+      <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_line=קו תרומות"/>
+        <action application="set" data="inbound_number=+97235000000"/>
+        <action application="transfer" data="incoming XML tenant_full-demo"/>
       </condition>
     </extension>
   </context>

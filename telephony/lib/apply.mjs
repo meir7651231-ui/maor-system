@@ -171,16 +171,18 @@ export function applyWithRollback(current, desired, writeFn, deleteFn) {
     }
     return { ok: true, written, rolledBack: false };
   } catch (e) {
-    // שחזור מלא: קובץ-שהיה (update) חוזר לתוכנו; קובץ-שנוצר (create) נמחק.
+    // שחזור: קובץ-שהיה (update) חוזר לתוכנו; קובץ-שנוצר (create) נמחק אם יש deleteFn,
+    // אחרת נשאר על-הדיסק (residual) והשחזור לא-מלא.
     const restored = [];
+    const residual = [];
     for (const p of written) {
       try {
-        if (p in current) writeFn(p, current[p]);
-        else if (deleteFn) deleteFn(p);
-        restored.push(p);
-      } catch { /* best-effort */ }
+        if (p in current) { writeFn(p, current[p]); restored.push(p); }
+        else if (deleteFn) { deleteFn(p); restored.push(p); }
+        else residual.push(p); // create בלי deleteFn — לא ניתן להסרה
+      } catch { residual.push(p); }
     }
-    return { ok: false, written: [], restored, rolledBack: true, error: String(e && e.message ? e.message : e) };
+    return { ok: false, written: [], restored, residual, rolledBack: residual.length === 0, error: String(e && e.message ? e.message : e) };
   }
 }
 

@@ -13,6 +13,14 @@ export function secretsFor(tenant) {
     gsm_gateway_ip: `GSM_IP__${id}`,
   };
 }
+/** סוד-סיסמה פר-שלוחה (אישור נפרד לכל שלוחה — עובדת לא תתחזה למנהל). */
+export function extSecret(tenantId, ext) {
+  return `PROVISION_PW__${tenantId}__${ext}`;
+}
+/** סוד-PIN לתא-קולי פר-שלוחה (לא נגזר ממספר-התיבה). */
+export function vmSecret(tenantId, ext) {
+  return `VM_PW__${tenantId}__${ext}`;
+}
 /** אימות-בידוד: tenantId-ים ייחודיים ואף ערך-סוד לא חוזר בין לקוחות. */
 export function secretsIsolated(tenants) {
   const ids = new Set();
@@ -54,6 +62,8 @@ export function hardeningChecklist(profile = {}) {
     { key: 'acl-register', pass: profile.registerAcl === true, detail: 'ACL-רישום' },
     { key: 'fail2ban', pass: profile.fail2ban === true, detail: 'הגנת-brute-force' },
     { key: 'strong-pw', pass: (profile.minPwLen || 0) >= 12, detail: 'סיסמאות ≥12 תווים' },
+    { key: 'outbound-limit', pass: profile.outboundRestriction === true, detail: 'הגבלת-חיוג-יוצא (toll-fraud)' },
+    { key: 'esl-acl', pass: profile.eslAcl === true, detail: 'Event-Socket מוגן (סיסמה+ACL)' },
   ];
   return { pass: checks.every((c) => c.pass), checks };
 }

@@ -57,13 +57,14 @@ export function simulateCall(tenant, call = {}) {
   if (!num) return { path: ['inbound'], outcome: 'unknown-did' };
   path.push(`in:${num.label}`);
 
-  // חסימה.
+  // חסימה — מיושר לגנרטור: חסום ברשימה, וגם חסוי/אנונימי כשיש allowlist.
   const cid = toE164(call.callerId);
+  const anon = !call.callerId || /^(anonymous|unknown|restricted|private|withheld|clir)$/i.test(String(call.callerId));
   if (featureOn(tenant, 'voice.blocklist') && cid && (R.blocklist || []).includes(cid)) {
     return { path: [...path, 'blocklist'], outcome: 'blocked' };
   }
-  if (featureOn(tenant, 'voice.blocklist') && R.allowlist && R.allowlist.length && cid && !R.allowlist.includes(cid)) {
-    return { path: [...path, 'allowlist'], outcome: 'blocked' };
+  if (featureOn(tenant, 'voice.blocklist') && R.allowlist && R.allowlist.length) {
+    if (anon || !cid || !R.allowlist.includes(cid)) return { path: [...path, 'allowlist'], outcome: 'blocked' };
   }
 
   // קו-הכרזה.

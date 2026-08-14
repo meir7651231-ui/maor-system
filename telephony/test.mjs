@@ -419,7 +419,9 @@ ok('voice תקין', vb.ok);
 // 31+40. ברכות פתוח/סגור/חג
 ok('greeting-open בפתוח', vdp.includes('greeting-open.wav'));
 ok('do_closed hop (ברכת-סגור)', vdp.includes('do_closed'));
-ok('greeting-holiday מותנה closed_reason', /do_closed[\s\S]*?greeting-holiday\.wav[\s\S]*?anti-action[\s\S]*?greeting-closed\.wav/.test(vdp));
+// ברכת-סגור מסתעפת: חג→greeting-holiday, חירום→greeting-emergency, רגיל→greeting-closed
+ok('do_closed_holiday → greeting-holiday', /do_closed_holiday[\s\S]*?greeting-holiday\.wav/.test(vdp));
+ok('do_closed → greeting-closed', /name="do_closed"[\s\S]*?greeting-closed\.wav/.test(vdp));
 // 32. תא-קולי פר-שלוחה (מייל-משרד)
 ok('per-ext vm-mailto', (vb.files['directory/voice-demo.xml'].match(/office@voice\.example/g) || []).length === 2);
 // 33. תמלול-תא-קולי
@@ -753,7 +755,7 @@ ok('agent inbox בלבד', can('agent', 'inbox.read') && !can('agent', 'config.w
 ok('תפקיד-לא-מוכר ⇒ אסור', !can('nobody', 'config.read') && ROLES.length === 3);
 // 86. הקשחה
 {
-  const secure = { sipTls: true, srtp: true, registerAcl: true, fail2ban: true, minPwLen: 12 };
+  const secure = { sipTls: true, srtp: true, registerAcl: true, fail2ban: true, minPwLen: 12, outboundRestriction: true, eslAcl: true };
   ok('פרופיל-מלא מוקשח', hardeningChecklist(secure).pass);
   ok('שדות-חסרים נכשלים (fail-closed)', !hardeningChecklist({ minPwLen: 12 }).pass);
   ok('guest נכשל', !hardeningChecklist({ ...secure, allowGuest: true }).pass);
@@ -964,6 +966,73 @@ ok('R#8: אזהרת קו-מופנה בלי SIM',
   const { routing, warnings: w } = normalizeRouting({ speedDial: [{ code: '700', e164: '021234567' }, { code: '*5', e164: '021234567' }] });
   ok('R#33: קוד שמור נחסם', routing.speedDial.length === 1 && w.some((x) => x.includes('קוד-שמור')));
 }
+
+// ── ratchet סבב-תיקון 2 (נחיל 9×9 #2): ─────────────────────────────────────
+console.log('· ratchet — תיקוני נחיל סבב-2');
+{
+  const cd2 = buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'];
+  const gw2 = buildTenant(chesed).files['sip_profiles/gateways/chesed-demo.xml'];
+  // R2#7: תשעה-באב אמיתי (ראשון) לא '(נדחה)'; י׳ באב (נדחה) כן. 2028: ט׳ באב=... נבדוק לוגית
+  ok('R2#7: ט׳ באב ד׳ (2026-07-23) לא נדחה', classifyDay('2026-07-23').fast === 'תשעה באב');
+  // R2#13/#29: cid_normalize מכסה 00/972/0
+  ok('R2#13: cid_normalize מכסה 00+972', cd2.includes('cid_e164=+$1') && cd2.includes('^00([1-9]') && cd2.includes('^(972'));
+  // R2#5: out_default+out_pick מגודרים sip_authorized
+  ok('R2#5: יציאה מגודרת sip_authorized', /out_default[\s\S]*?sip_authorized/.test(cd2) && /out_pick[\s\S]*?sip_authorized/.test(cd2));
+  // R2#2: הקשר-שער פר-SIM + gateway מפנה אליו
+  ok('R2#2: הקשר-שער פר-SIM', cd2.includes('name="tenant_chesed-demo_gw1"') && cd2.includes('gw1_entry'));
+  ok('R2#2: gateway → הקשר-השער', gw2.includes('context" value="tenant_chesed-demo_gw1"'));
+  // R2#33: תיבת-קול היא משתמש ב-directory
+  ok('R2#33: תיבת-100 משתמש-directory', buildTenant(chesed).files['directory/chesed-demo.xml'].includes('<user id="100">'));
+  // R2#6: אחזור *98
+  ok('R2#6: אחזור-תא-קולי *98', cd2.includes('vm_retrieve') && cd2.includes('^\\*98$'));
+  // R2#34/#35: סוד סיסמה פר-שלוחה (לא vm.box)
+  ok('R2#34: vm-password סוד פר-שלוחה', buildTenant(chesed).files['directory/chesed-demo.xml'].includes('VM_PW__chesed-demo__101') && !buildTenant(chesed).files['directory/chesed-demo.xml'].includes('vm-password" value="100"'));
+  ok('R2#35: password סוד פר-שלוחה', buildTenant(chesed).files['directory/chesed-demo.xml'].includes('PROVISION_PW__chesed-demo__101'));
+}
+// R2#15: outbound=false מכבה יציאה
+ok('R2#15: outbound=false מסיר out_pick/out_default', !buildTenant({ ...chesed, features: { outbound: false } }).files['dialplan/tenant_chesed-demo.xml'].match(/out_pick|out_default/));
+// R2#14: emergency ⇒ greeting-emergency
+{
+  const em = buildTenant({ ...voice, features: { ...voice.features, emergency: true }, emergency: { active: true, message: 'x' } }, { anchorDate: '2026-09-01' })
+    .files['dialplan/tenant_voice-demo.xml'];
+  ok('R2#14: do_closed_emergency → greeting-emergency', /do_closed_emergency[\s\S]*?greeting-emergency\.wav/.test(em));
+}
+// R2#16: shabbatFriEnd פגום ⇒ נפילה ל-15:00
+{
+  const bad = buildTenant({ tenantId: 'sf-test', orgName: 's', vertical: 'shul', terms: { shabbatFriEnd: 'garbage' },
+    numbers: [{ id: 'n1', e164: '02-1000000', label: 'a', type: 'sim', onramp: 'sim-in-gateway', channels: ['voice'], gatewayChannel: 1 }],
+    destinations: { office: { ext: '101' }, manager: { ext: '201' }, voicemail: { box: '100' } },
+    outbound: { defaultNumberId: 'n1' }, cti: { mode: 'off' } }, { anchorDate: '2026-09-01' })
+    .files['dialplan/tenant_sf-test.xml'];
+  ok('R2#16: shabbatFriEnd פגום → 15:00', bad.includes('7:00-15:00'));
+}
+// R2#18: calendar.hebrew בלי anchor ⇒ warning
+ok('R2#18: אזהרת anchorDate חסר', buildTenant({ ...chesed, features: { 'calendar.hebrew': true } }).warnings.some((w) => w.includes('anchorDate')));
+// R2#19: normalize trunk-0
+eq('R2#19: +9720501→+972501', toE164('+9720501234567'), '+972501234567');
+// R2#20: enrichContact בלי balance/tags
+ok('R2#20: אין balance/tags', !('balance' in enrichContact({ balance: 5, tags: ['x'], cat: 'a' }, 'supporter')));
+// R2#21: privacy ממסך כסף
+{
+  const pop = screenPop(rdb, '050-111-2233', { privacy: true });
+  ok('R2#21: privacy מסיר totalIls', pop.matches.every((m) => !('totalIls' in m.enrichment)));
+}
+// R2#26: CDR direction fallback
+eq('R2#26: call_direction fallback', normalizeCdr({ call_direction: 'outbound', billsec: 60 }).direction, 'outbound');
+// R2#30: internal_dial מהשלוחות בפועל (301/302 של full)
+ok('R2#30: internal_dial כולל 301', /internal_dial[\s\S]*?101\|102/.test(fb.files['dialplan/tenant_full-demo.xml']) || buildTenant({ ...full, routing: { ...full.routing, internal: true } }).files['dialplan/tenant_full-demo.xml'].includes('301'));
+// R2#32: routing clamp
+{
+  const { routing } = normalizeRouting({ ivr: { timeout: -5, invalidMax: 0, options: [{ digit: '1', dest: { type: 'ext', value: '101' } }] }, queue: { maxWaitSec: -1 } });
+  ok('R2#32: clamp חיובי', routing.ivr.timeout >= 1 && routing.ivr.invalidMax >= 1 && routing.queue.maxWaitSec >= 1);
+}
+// R2#28: IVR dest ivr מחוטא
+{
+  const { routing } = normalizeRouting({ ivr: { options: [{ digit: '1', dest: { type: 'ivr', value: 'evil XML other_tenant' } }] } });
+  ok('R2#28: IVR dest מחוטא ל-ivr_menu', routing.ivr.options[0].dest.value === 'ivr_menu');
+}
+// R2#17: capabilities channels לפי-נתונים
+ok('R2#17: caps.whatsapp מהנתונים', capabilities({ numbers: [{ channels: ['whatsapp'], onramp: 'device-link' }], cti: { mode: 'off' } }).whatsapp === true);
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);

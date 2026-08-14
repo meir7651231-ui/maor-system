@@ -13,7 +13,7 @@
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync, renameSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { buildTenant } from './lib/index.mjs';
-import { planApply, planTenants, summarize } from './lib/apply.mjs';
+import { planApply, planTenants, summarize, reloadPlan } from './lib/apply.mjs';
 
 const [, , tenantsDir, configRoot, ...flags] = process.argv;
 const WRITE = flags.includes('--write');
@@ -53,6 +53,16 @@ for (const f of files) {
 }
 if (hadError) process.exit(1);
 
+// שער-ייחודיות tenantId: שני קבצים עם אותו מזהה = דריסה-שקטה (הפרת בידוד).
+const seenIds = new Set();
+for (const t of tenants) {
+  if (seenIds.has(t.tenantId)) {
+    console.error(`❌ tenantId כפול: "${t.tenantId}" מופיע בשני קבצי-קונפיג — דריסה. תקן לפני החלה.`);
+    process.exit(1);
+  }
+  seenIds.add(t.tenantId);
+}
+
 // isolation גלובלי לפני החלה.
 const { collisions } = planTenants(tenants, prevState);
 if (collisions.length) {
@@ -63,10 +73,14 @@ if (collisions.length) {
 
 const nextState = { ...prevState };
 let anyChanged = false;
+const touched = { creates: [], updates: [], deletes: [] };
 for (const t of tenants) {
   const cur = prevState[t.tenantId] || {};
   const plan = planApply(cur, t.desired);
   if (plan.changed) anyChanged = true;
+  touched.creates.push(...plan.creates);
+  touched.updates.push(...plan.updates);
+  touched.deletes.push(...plan.deletes);
   console.log(`${plan.changed ? '±' : '='} ${t.tenantId}  [${summarize(plan)}]${t.warnings.length ? '  ⚠️ ' + t.warnings.length : ''}`);
   for (const p of [...plan.creates, ...plan.updates]) console.log(`    ${plan.creates.includes(p) ? '+' : '~'} ${p}`);
   for (const p of plan.deletes) console.log(`    - ${p}`);
@@ -89,10 +103,15 @@ for (const id of vanished) {
   }
 }
 
+const reloadCmds = reloadPlan(touched);
 if (WRITE) {
   mkdirSync(configRoot, { recursive: true });
   atomicWrite(STATE, JSON.stringify(nextState, null, 2) + '\n');
   console.log(`\n✅ הוחל ${tenants.length} לקוחות → ${configRoot}`);
+  if (reloadCmds.length) {
+    console.log('⚠️  צעד-חובה — טען מחדש ב-FreeSWITCH:');
+    for (const c of reloadCmds) console.log(`    fs_cli -x '${c}'`);
+  }
 } else {
   console.log(`\n— dry-run — ${anyChanged ? 'יש שינויים (הרץ עם --write)' : 'אין שינויים (אידמפוטנטי)'}`);
 }

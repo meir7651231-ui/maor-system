@@ -31,7 +31,8 @@ function normDest(raw) {
   } else if (raw.type === 'voicemail') {
     d.value = cleanExt(raw.value) || '100';
   } else if (raw.type === 'ivr') {
-    d.value = String(raw.value || 'ivr_menu');
+    // חיטוי: רק טוקן בטוח (מונע הזרקת-transfer/שבירת-בידוד רב-דיירים). כרגע רק ivr_menu.
+    d.value = /^[a-z0-9_]{1,32}$/.test(raw.value) ? raw.value : 'ivr_menu';
   } // hangup: no value
   return d;
 }
@@ -68,8 +69,8 @@ export function normalizeRouting(raw = {}) {
     if (opts.length) {
       routing.ivr = {
         greeting: typeof raw.ivr.greeting === 'string' ? raw.ivr.greeting : '',
-        timeout: Number.isInteger(raw.ivr.timeout) ? raw.ivr.timeout : 5,
-        invalidMax: Number.isInteger(raw.ivr.invalidMax) ? raw.ivr.invalidMax : 3,
+        timeout: Math.max(1, Number.isInteger(raw.ivr.timeout) ? raw.ivr.timeout : 5),
+        invalidMax: Math.max(1, Number.isInteger(raw.ivr.invalidMax) ? raw.ivr.invalidMax : 3),
         options: opts.sort((a, b) => a.digit.localeCompare(b.digit)),
       };
     } else {
@@ -81,7 +82,7 @@ export function normalizeRouting(raw = {}) {
   if (raw.queue && typeof raw.queue === 'object') {
     routing.queue = {
       music: typeof raw.queue.music === 'string' && raw.queue.music ? raw.queue.music : '$${hold_music}',
-      maxWaitSec: Number.isInteger(raw.queue.maxWaitSec) ? raw.queue.maxWaitSec : 300,
+      maxWaitSec: Math.max(1, Number.isInteger(raw.queue.maxWaitSec) ? raw.queue.maxWaitSec : 300),
       announcePosition: raw.queue.announcePosition !== false,
     };
   }

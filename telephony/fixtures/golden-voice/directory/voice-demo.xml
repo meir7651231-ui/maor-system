@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- מחולל אוטומטית — משתמשי עמותת קול. סיסמאות מוזרקות בהתקנה. -->
+<!-- מחולל אוטומטית — משתמשי עמותת קול. סיסמאות (סוד פר-שלוחה) מוזרקות בהתקנה. -->
 <include>
   <domain name="voice-demo">
     <users>
       <user id="101">
         <params>
-          <param name="password" value="$${default_provision_password}"/>
-          <param name="vm-password" value="100"/>
+          <param name="password" value="$${PROVISION_PW__voice-demo__101}"/>
+          <param name="vm-password" value="$${VM_PW__voice-demo__101}"/>
           <param name="vm-mailto" value="office@voice.example"/>
           <param name="vm-attach-file" value="true"/>
         </params>
@@ -18,8 +18,8 @@
       </user>
       <user id="102">
         <params>
-          <param name="password" value="$${default_provision_password}"/>
-          <param name="vm-password" value="100"/>
+          <param name="password" value="$${PROVISION_PW__voice-demo__102}"/>
+          <param name="vm-password" value="$${VM_PW__voice-demo__102}"/>
           <param name="vm-mailto" value="office@voice.example"/>
           <param name="vm-attach-file" value="true"/>
         </params>
@@ -31,14 +31,27 @@
       </user>
       <user id="201">
         <params>
-          <param name="password" value="$${default_provision_password}"/>
-          <param name="vm-password" value="100"/>
+          <param name="password" value="$${PROVISION_PW__voice-demo__201}"/>
+          <param name="vm-password" value="$${VM_PW__voice-demo__201}"/>
           <param name="vm-mailto" value="mgr@voice.example"/>
           <param name="vm-attach-file" value="true"/>
         </params>
         <variables>
           <variable name="user_context" value="tenant_voice-demo"/>
           <variable name="effective_caller_id_name" value="מנהל עמותת קול"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+      <user id="100">
+        <params>
+          <param name="password" value="$${PROVISION_PW__voice-demo__100}"/>
+          <param name="vm-password" value="$${VM_PW__voice-demo__100}"/>
+          <param name="vm-mailto" value="mgr@voice.example"/>
+          <param name="vm-attach-file" value="true"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_voice-demo"/>
+          <variable name="effective_caller_id_name" value="תא-קולי עמותת קול"/>
           <variable name="toll_allow" value="domestic"/>
         </variables>
       </user>

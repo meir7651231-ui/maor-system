@@ -50,7 +50,6 @@ export function promptCapabilities(tenant) {
     emergency: featureOn(tenant, 'emergency') && !!(tenant.emergency && tenant.emergency.active),
     callerNameGreeting: featureOn(tenant, 'cti.namegreeting') && tenant.cti && tenant.cti.mode !== 'off',
     voicemailTranscription: featureOn(tenant, 'voicemail.transcription'),
-    queueCallback: featureOn(tenant, 'voice.queue') && featureOn(tenant, 'voice.callback'),
     holdMusic: termOf(tenant, 'holdMusic', 'ברירת-מחדל') !== 'ברירת-מחדל',
     announcementLines: tenant.numbers.filter((n) => n.role === 'announcement').map((n) => n.id),
   };

@@ -9,7 +9,7 @@
     <param name="proxy" value="$${gsm_gateway_ip}"/>
     <param name="register" value="false"/>
     <param name="caller-id-in-from" value="true"/>
-    <!-- שיחה נכנסת מה-SIM הזה נופלת ישר ל-context של הלקוח -->
-    <param name="context" value="tenant_voice-demo"/>
+    <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->
+    <param name="context" value="tenant_voice-demo_gw1"/>
   </gateway>
 </include>

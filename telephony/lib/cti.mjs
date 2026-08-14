@@ -73,16 +73,20 @@ export const SCREENPOP_VERSION = 1;
  * אחרונה/סכום-מצטבר/תגיות/הערה — אם קיימים. אף שדה לא חובה; אין=לא-נכלל.
  */
 export function enrichContact(rec, kind) {
+  // רק שדות שקיימים באמת ב-domain.ts (Supporter: cat/city/last/ils/usd). אין balance/tags.
   const e = {};
   if (rec.cat) e.category = rec.cat;
   if (rec.city) e.city = rec.city;
   if (rec.last) e.lastDonation = rec.last;
   if (typeof rec.ils === 'number' && rec.ils) e.totalIls = rec.ils;
   if (typeof rec.usd === 'number' && rec.usd) e.totalUsd = rec.usd;
-  if (typeof rec.balance === 'number') e.balance = rec.balance;
-  if (Array.isArray(rec.tags) && rec.tags.length) e.tags = rec.tags.slice();
-  if (rec.status) e.status = rec.status;
   return e;
+}
+
+/** מסנן שדות-כסף מהעשרה (למצב-צנעה). */
+function stripMoney(enr) {
+  const { totalIls, totalUsd, lastDonation, ...rest } = enr || {};
+  return rest;
 }
 
 /**
@@ -191,12 +195,14 @@ export function screenPop(db, rawNumber, opt = {}) {
     });
 
   const number = opt.privacy ? maskNumber(e164) : e164;
-  // item 45: מתקשר-לא-מוכר → הצעת-הוספה.
+  // מצב-צנעה: ממסך גם שדות-כסף בהעשרה (לא רק המספר).
+  const shownMatches = opt.privacy ? matches.map((m) => ({ ...m, enrichment: stripMoney(m.enrichment) })) : matches;
+  // item 45: מתקשר-לא-מוכר → הצעת-הוספה (בצנעה גם המספר-בהצעה ממוסך).
   const suggestion = matches.length
     ? null
-    : { action: 'add', number: e164, kinds: direction === 'inbound' ? ['family', 'supporter'] : ['supporter'] };
+    : { action: 'add', number: opt.privacy ? maskNumber(e164) : e164, kinds: direction === 'inbound' ? ['family', 'supporter'] : ['supporter'] };
 
-  return { ...base, number, e164Masked: opt.privacy, matches, primary: matches[0] || null, suggestion };
+  return { ...base, number, e164Masked: opt.privacy, matches: shownMatches, primary: shownMatches[0] || null, suggestion };
 }
 
 // ── item 42: אירוע-שיחה ל-EventType 'call' של מאור (additive) ─────────────────

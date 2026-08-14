@@ -20,7 +20,6 @@
     "emergency": false,
     "callerNameGreeting": false,
     "voicemailTranscription": false,
-    "queueCallback": false,
     "holdMusic": false,
     "announcementLines": []
   },

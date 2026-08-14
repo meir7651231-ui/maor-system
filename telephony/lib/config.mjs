@@ -33,7 +33,6 @@ export const FLAG_DEFAULTS = {
   'voice.park': 'off',
   'voice.transfer': 'off',
   'voice.greeting': 'off',
-  'voice.callback': 'off',
   'voicemail.transcription': 'off',
   'cti.namegreeting': 'off',
   emergency: 'off',
@@ -169,8 +168,9 @@ export function capabilities(tenant) {
     recording: flagOn(tenant, 'recording'),
     hebrewCalendar: flagOn(tenant, 'calendar.hebrew'),
     shabbat: flagOn(tenant, 'calendar.shabbat'),
-    whatsapp: flagOn(tenant, 'channels.whatsapp'),
-    sms: flagOn(tenant, 'channels.sms'),
+    // ערוצי-הודעה נגזרים מהנתונים (number.channels), לא מדגל-תפאורה שלא נאכף.
+    whatsapp: (tenant?.numbers || []).some((n) => (n.channels || []).includes('whatsapp') || n.onramp === 'device-link'),
+    sms: (tenant?.numbers || []).some((n) => (n.channels || []).includes('sms') && n.onramp === 'sim-in-gateway'),
     reports: flagOn(tenant, 'reports'),
     billing: flagOn(tenant, 'billing'),
   };
