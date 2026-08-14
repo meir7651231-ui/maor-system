@@ -117,6 +117,9 @@ export function amountInWords(amount: number, currency: '₪' | '$' = '₪'): st
   let s: string;
   if (whole === 1) s = shekelWord.one;
   else if (whole === 0) s = 'אפס ' + shekelWord.many;
+  // 🐛 נחיל-עמוק (13.8): 2 בצורת-נפרד ("שניים") שגוי לפני שם-עצם — הצורה התקנית
+  // היא סמיכות "שני שקלים"/"שני דולרים" (הכרעת-בעלים "לתקן ל'שני שקלים'").
+  else if (whole === 2) s = 'שני ' + shekelWord.many;
   else s = wholeWords + ' ' + shekelWord.many;
   if (agorot > 0) {
     if (currency === '₪') {

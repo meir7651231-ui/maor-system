@@ -70,6 +70,7 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
       return;
     }
     const rid = res.rid;
+    let receiptFmt: 'txt' | 'pdf' | undefined; // הפורמט שנמסר בפועל — לטוסט הנכון בהמשך
     // core.receipts כבוי — התרומה נרשמת כרגיל, רק הורדת הקבלה והטוסט שלה מדולגים
     if (receiptsOn) {
       const cfg = useApp.getState().config;
@@ -91,7 +92,8 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         payerId: props.supporter.idNum || undefined,
       };
       // 5.5d (הכרעה 9.8): מסירה לפי בחירת-הלקוח — קובץ טקסט או PDF/הדפסה
-      deliverReceipt(info, receiptFmtOf(cfg, useApp.getState().db.ui));
+      receiptFmt = receiptFmtOf(cfg, useApp.getState().db.ui);
+      deliverReceipt(info, receiptFmt);
       // צרור-הלילה (ROADMAP-100 ‏#1): מייל-קבלות אוטומטי — ברגע הרישום הקבלה
       // נכנסת לתור-המייל (mailOutbox); נשלחת ע"י ה-Function כשהשרת פרוס.
       // כשל-רך: תקלה בתור לא נוגעת ברישום/בקבלה שכבר ירדה.
@@ -112,7 +114,8 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         (receiptsOn ? ' — קבלה ' + rid : '') +
         ' · הציון עודכן',
     );
-    if (receiptsOn) toast('הקבלה ירדה למחשב ✓');
+    // 🐛 נחיל-עמוק (13.8): הטוסט אמר "ירדה למחשב" גם בפורמט PDF (נפתח חלון-הדפסה, לא הורדה)
+    if (receiptsOn) toast(receiptFmt === 'pdf' ? 'חלון-ההדפסה נפתח — שמרו כ-PDF ✓' : 'הקבלה ירדה למחשב ✓');
     props.onClose();
   }
 
