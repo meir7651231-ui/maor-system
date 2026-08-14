@@ -36,6 +36,42 @@ export function secretsIsolated(tenants) {
   return true;
 }
 
+// ── 81ב. סריקת-דליפה חוצת-דיירים (הוכחת-בידוד סמנטית) ────────────────────────
+/** טביעת-הזהות הייחודית של דייר: ה-slug + כל מפני-הסוד שלו. */
+function tenantFingerprint(tenant) {
+  const id = tenant.tenantId;
+  const marks = new Set([`__${id}`]); // כל סוד/הקשר נושא __<id> — זה החתם הייחודי
+  for (const v of Object.values(secretsFor(tenant))) marks.add(v);
+  const rec = recordingEncryption(tenant);
+  if (rec.keyRef) marks.add(rec.keyRef);
+  return marks;
+}
+/**
+ * מוודא שסוד/זהות של דייר-אחד לא מופיע בקבצים של דייר-אחר. מעבר לבדיקת-הנתיבים
+ * (planTenants) — זו הוכחה סמנטית שהגנרטור לא זלג מזהה בין-לקוחות (copy-paste).
+ * @param {Array<{tenant:object, files:Record<string,string>}>} bundles
+ * @returns {{clean:boolean, violations:Array<{owner:string,leakedInto:string,mark:string,file:string}>}}
+ */
+export function crossTenantLeakScan(bundles) {
+  const fps = bundles.map((b) => ({ id: b.tenant.tenantId, marks: tenantFingerprint(b.tenant) }));
+  const violations = [];
+  for (const b of bundles) {
+    const me = b.tenant.tenantId;
+    for (const other of fps) {
+      if (other.id === me) continue;
+      for (const mark of other.marks) {
+        // חתם-הדייר-האחר שאינו חתם-שלי (מונע חיתוך-slug אקראי — משווים לפי בעלות).
+        for (const [file, content] of Object.entries(b.files || {})) {
+          if (String(content).includes(mark)) {
+            violations.push({ owner: other.id, leakedInto: me, mark, file });
+          }
+        }
+      }
+    }
+  }
+  return { clean: violations.length === 0, violations };
+}
+
 // ── 82. ACL — מי-רואה-מה פר-תפקיד ────────────────────────────────────────────
 export const ROLES = ['operator', 'manager', 'agent'];
 // מה כל תפקיד רשאי. operator=מפעיל-על · manager=מנהל-ארגון · agent=עובד.

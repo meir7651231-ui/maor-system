@@ -22,8 +22,9 @@ import {
 import {
   planApply, rollbackPlan, planTenants, summarize, snapshot, pushSnapshot, restoreFrom,
   detectDrift, reloadPlan, healthReport, pushAudit, applyWithRollback, lineDiff,
-  detailedDiff, changelogEntry, planApplyRespectingFreeze, batchSummary,
+  detailedDiff, changelogEntry, planApplyRespectingFreeze, batchSummary, secretPreflight,
 } from './lib/apply.mjs';
+import { auditRoutes } from './lib/audit-routes.mjs';
 import {
   channelPlan, isPureDownstream, templateOf, sanitizeTemplates, renderTemplate,
   unifiedInboxOf, autoReply, applyConsent, canMessage, assignMessage, reminderMessage,
@@ -31,7 +32,7 @@ import {
 } from './lib/channels.mjs';
 import {
   secretsFor, secretsIsolated, can, ROLES, hardeningChecklist, recordingEncryption,
-  failsafeRoute, complianceReport,
+  failsafeRoute, complianceReport, crossTenantLeakScan,
 } from './lib/security.mjs';
 import { normalizeCdr, meterUsage, computeInvoice, checkQuota, planQuota, PLANS } from './lib/billing.mjs';
 import { simulateCall } from './lib/simulate.mjs';
@@ -39,7 +40,7 @@ import { xmlWellFormed, validateAgainstSchema } from './lib/validators.mjs';
 import {
   flagOn, featureOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
   capabilities, migrateConfig, effectiveConfig, diffConfig, isBaselineConfig,
-  sanitizeConfigFields, SCHEMA_VERSION, FLAG_DEFAULTS,
+  sanitizeConfigFields, SCHEMA_VERSION, FLAG_DEFAULTS, reportDroppedKeys,
 } from './lib/config.mjs';
 import { classifyDay, hebParts, hebrewClosedDates } from './lib/hebcal.mjs';
 import { normalizeRouting, numbersAlternation } from './lib/routing.mjs';
@@ -1085,6 +1086,126 @@ ok('R3#26: שלוחה לא-ספרתית נדחית', !validateTenant({ ...chesed
 }
 // R3#14: דגלי voice.timecondition/afterhours/transfer הוסרו מהרג׳יסטרי
 ok('R3#14: דגלים-מתים הוסרו', !('voice.timecondition' in FLAG_DEFAULTS) && !('voice.transfer' in FLAG_DEFAULTS));
+
+// ── ratchet — שיפורי-נחיל (סבב-שיפור אחרון): אורקלים סמנטיים + חוסן ─────────────
+console.log('· ratchet — שיפורי נחיל (סבב-שיפור)');
+// ⭐1: אורקל סגירת-מסלולים — chesed/full/voice/kollel סגורים (אין גשר/transfer/שער יתום)
+{
+  const kollelT = buildTenant(JSON.parse(readFileSync(join(HERE, 'fixtures/tenant-kollel.json'), 'utf8')), { anchorDate: '2026-09-01' });
+  for (const [name, bundle] of [['chesed', buildTenant(chesed)], ['full', fb], ['voice', vb], ['kollel', kollelT]]) {
+    const r = auditRoutes(bundle);
+    ok(`⭐1: ${name} סגירת-מסלולים נקייה`, r.ok, r);
+  }
+  // הזרקת-רגרסיה: גשר לשלוחה שאין לה directory ⇒ dangling נתפס.
+  const inj = buildTenant(chesed);
+  const dpKey = 'dialplan/tenant_chesed-demo.xml';
+  inj.files[dpKey] = inj.files[dpKey].replace('</context>', '    <extension name="x"><condition><action application="bridge" data="user/9999@chesed-demo"/></condition></extension>\n  </context>');
+  ok('⭐1: dangling-bridge נתפס', auditRoutes(inj).dangling.includes('9999'));
+  // הזרקת transfer-יתום ⇒ orphanTransfers נתפס.
+  const inj2 = buildTenant(chesed);
+  inj2.files[dpKey] = inj2.files[dpKey].replace('</context>', '    <extension name="y"><condition><action application="transfer" data="nowhere XML tenant_chesed-demo"/></condition></extension>\n  </context>');
+  ok('⭐1: orphan-transfer נתפס', auditRoutes(inj2).orphanTransfers.includes('nowhere'));
+}
+// ⭐4: גלאי-מקשים-שהושמטו — טעות-הקלדה ⇒ הצעה; מפתח-תקין ⇒ שקט
+{
+  const dropped = reportDroppedKeys({ features: { 'voice.ivrr': true, 'voice.ivr': true }, terms: { holdMuzik: 'x', holdMusic: 'y' } });
+  ok('⭐4: voice.ivrr ⇒ הצעת voice.ivr', dropped.some((d) => d.key === 'voice.ivrr' && d.suggestion === 'voice.ivr'));
+  ok('⭐4: holdMuzik ⇒ הצעת holdMusic', dropped.some((d) => d.key === 'holdMuzik' && d.suggestion === 'holdMusic'));
+  ok('⭐4: מפתח-תקין לא מסומן', !dropped.some((d) => d.key === 'voice.ivr' || d.key === 'holdMusic'));
+  // מפתח רחוק-מאוד ⇒ בלי הצעה (לא מטריד את המפעיל).
+  ok('⭐4: מפתח-רחוק בלי הצעה', reportDroppedKeys({ features: { zzqwerty: true } }).length === 0);
+  // חיווט ל-validate: אזהרה אנושית מופקת.
+  ok('⭐4: validate מזהיר על typo', validateTenant({ ...chesed, features: { 'voice.ivrr': true } }).warnings.some((w) => w.includes('אולי התכוונת')));
+}
+// ⭐5: preflight-סודות — env-חסר ⇒ missing מסווג; env-מלא ⇒ ok
+{
+  const bundle = buildTenant(chesed);
+  const pf0 = secretPreflight([bundle], {});
+  ok('⭐5: env ריק ⇒ סודות חסרים', !pf0.ok && pf0.missing.length > 0);
+  ok('⭐5: GSM מסווג gateway', pf0.missing.some((m) => m.secret === 'GSM_PW__chesed-demo' && m.breaks === 'gateway'));
+  ok('⭐5: ext-secret מסווג ext-auth', pf0.missing.some((m) => m.breaks === 'ext-auth'));
+  ok('⭐5: vm-secret מסווג voicemail', pf0.missing.some((m) => m.breaks === 'voicemail'));
+  // env-מלא (כל הסודות שהקבצים דורשים) ⇒ ok.
+  const env = {};
+  for (const content of Object.values(bundle.files)) for (const m of content.matchAll(/\$\$\{([A-Z][A-Za-z0-9_-]*)\}/g)) env[m[1]] = 'set';
+  ok('⭐5: env מלא ⇒ ok', secretPreflight([bundle], env).ok);
+}
+// ⭐6: סריקת-דליפה חוצת-דיירים — שני דיירים נקיים; הזרקת-חתם-זר ⇒ violation
+{
+  const other = buildTenant({ ...chesed, tenantId: 'other-demo', orgName: 'אחר' });
+  const meBundle = { tenant: validateTenant(chesed).tenant, files: buildTenant(chesed).files };
+  const otBundle = { tenant: validateTenant({ ...chesed, tenantId: 'other-demo', orgName: 'אחר' }).tenant, files: other.files };
+  ok('⭐6: שני דיירים ⇒ נקי', crossTenantLeakScan([meBundle, otBundle]).clean);
+  // הזרקה: חתם של other-demo מופיע בקובץ-של-chesed ⇒ violation.
+  const leaked = { ...meBundle, files: { ...meBundle.files, 'dialplan/tenant_chesed-demo.xml': meBundle.files['dialplan/tenant_chesed-demo.xml'] + '\n<!-- GSM_PW__other-demo -->' } };
+  const scan = crossTenantLeakScan([leaked, otBundle]);
+  ok('⭐6: חתם-זר נתפס', !scan.clean && scan.violations.some((v) => v.owner === 'other-demo' && v.leakedInto === 'chesed-demo'));
+}
+// ⭐8: לוח-ידוע רב-שנתי (2024–2030) — עוגני-אמת + אינווריאנטים + טבלה-קפואה
+{
+  // עוגני-אמת מאומתים (תאריכים לועזיים מפורסמים) — אורקל בלתי-תלוי בקוד.
+  eq('⭐8: יום כיפור 2024-10-12', classifyDay('2024-10-12').yomTov, 'יום כיפור');
+  eq('⭐8: ראש השנה 2024-10-03', classifyDay('2024-10-03').yomTov, 'ראש השנה');
+  eq('⭐8: יום כיפור 2025-10-02', classifyDay('2025-10-02').yomTov, 'יום כיפור');
+  eq('⭐8: פסח 2025-04-13', classifyDay('2025-04-13').yomTov, 'פסח');
+  eq('⭐8: פסח 2026-04-02', classifyDay('2026-04-02').yomTov, 'פסח');
+  eq('⭐8: תשעה באב 2024-08-13 (במועדו, ג׳)', classifyDay('2024-08-13').fast, 'תשעה באב');
+  // סריקת-span: אינווריאנטים כלליים + איסוף הטבלה לצריבה.
+  const span = [];
+  let iso = '2024-01-01';
+  const end = new Date('2031-01-01T12:00:00Z');
+  let noFastOnShabbat = true, everyYtClosed = true, noFalseClosure = true;
+  while (new Date(`${iso}T12:00:00Z`) < end) {
+    const c = classifyDay(iso);
+    // צום-מינורי לעולם לא בשבת (דיני-דחייה). יו״כ הוא היוצא-מן-הכלל — צם גם בשבת.
+    if (c.fast && c.fast !== 'יום כיפור' && c.dow === 6) noFastOnShabbat = false;
+    if (c.yomTov && !c.closedReason) everyYtClosed = false; // יו״ט ⇒ תמיד סגור
+    if (!c.shabbat && !c.yomTov && c.closedReason) noFalseClosure = false; // אין סגירת-שווא
+    if (c.yomTov || c.fast || c.cholHamoed || c.erevChag) {
+      span.push({ iso, name: c.name, yomTov: c.yomTov, fast: c.fast, cholHamoed: c.cholHamoed, erevChag: c.erevChag });
+    }
+    const d = new Date(`${iso}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + 1); iso = d.toISOString().slice(0, 10);
+  }
+  ok('⭐8: אין צום בשבת (דיני-דחייה) 2024–2030', noFastOnShabbat);
+  ok('⭐8: כל יו״ט סגור', everyYtClosed);
+  ok('⭐8: אין סגירת-שווא (יום-רגיל ⇒ closedReason=null)', noFalseClosure);
+  // טבלה-קפואה (regression ratchet): כל סחף Intl/DST/שנה-מעוברת נתפס.
+  const lk = join(HERE, 'fixtures/luach-known.json');
+  const content = JSON.stringify(span, null, 2) + '\n';
+  if (UPDATE) { writeFileSync(lk, content, 'utf8'); console.log('  ❄️  הקפיא luach-known.json'); }
+  else if (!existsSync(lk)) ok('⭐8: luach-known חסר (הרץ UPDATE=1)', false);
+  else ok('⭐8: לוח-ידוע תואם (2024–2030)', readFileSync(lk, 'utf8') === content);
+}
+// ⭐2: max_forwards loop-guard בשער-הכניסה (setup_defaults)
+{
+  const cd = buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'];
+  ok('⭐2: max_forwards=20 ב-setup_defaults', /setup_defaults[\s\S]*?max_forwards=20/.test(cd));
+}
+// ⭐3: fail-safe — אין מבוי-סתום שקט + סיבות-ניתוק מפורשות
+{
+  // afterhours בלי-voicemail ⇒ טרמינל answer+tone+hangup (לא שקט).
+  const noVm = buildTenant({ ...chesed, features: { voicemail: false } }).files['dialplan/tenant_chesed-demo.xml'];
+  ok('⭐3: afterhours בלי-vm ⇒ טרמינל-צליל', /afterhours[\s\S]*?tone_stream:\/\/[\s\S]*?hangup" data="NORMAL_CLEARING"/.test(noVm));
+  ok('⭐3: afterhours בלי-vm בלי voicemail-app', !/afterhours[\s\S]*?application="voicemail"/.test(noVm.split('vm_retrieve')[0]));
+  // הכרזה ⇒ hangup עם סיבה מפורשת (voice fixture).
+  ok('⭐3: הכרזה hangup NORMAL_CLEARING', vb.files['dialplan/tenant_voice-demo.xml'].includes('application="hangup" data="NORMAL_CLEARING"'));
+  // אין hangup ערום (בלי data) בשום דיאלפלן.
+  for (const [rel, bundle] of [['chesed', buildTenant(chesed)], ['full', fb], ['voice', vb]]) {
+    const dp = bundle.files[`dialplan/tenant_${rel === 'chesed' ? 'chesed-demo' : rel === 'full' ? 'full-demo' : 'voice-demo'}.xml`];
+    ok(`⭐3: ${rel} אין hangup ערום`, !/application="hangup"\/>/.test(dp));
+  }
+}
+// ⭐7: תקרות-toll-fraud (opt-in voice.hardening) — כבוי=ביט-זהה · דלוק=תקרות
+{
+  const base = buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'];
+  ok('⭐7: כבוי ⇒ אין limit hash (ביט-זהה)', !base.includes('application="limit"') && !base.includes('sched_hangup'));
+  const hard = buildTenant({ ...chesed, features: { 'voice.hardening': true } }).files['dialplan/tenant_chesed-demo.xml'];
+  // כל גשר-שער-יוצא קודם-לו limit hash + sched_hangup.
+  ok('⭐7: דלוק ⇒ limit hash לפני-גשר', /limit" data="hash tenant_chesed-demo outbound \d+ !USER_BUSY"[\s\S]*?sched_hangup" data="\+3600 allotted_timeout"[\s\S]*?bridge" data="sofia\/gateway/.test(hard));
+  // אין גשר-שער-יוצא (out_default/out_pick) בלי limit קודם כשמוקשח.
+  const outSegs = hard.split(/<extension name="out_/).slice(1);
+  ok('⭐7: כל גשר-out מוגן', outSegs.every((s) => !s.includes('sofia/gateway') || (s.indexOf('application="limit"') >= 0 && s.indexOf('application="limit"') < s.indexOf('sofia/gateway'))));
+}
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);

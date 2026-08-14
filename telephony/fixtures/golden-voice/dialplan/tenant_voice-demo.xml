@@ -9,6 +9,7 @@
       <condition>
         <action application="set" data="hangup_after_bridge=true"/>
         <action application="set" data="continue_on_fail=true"/>
+        <action application="set" data="max_forwards=20"/>
         <action application="set" data="hold_music=custom/chesed-hold.wav"/>
       </condition>
     </extension>
@@ -116,7 +117,7 @@
         <action application="set" data="inbound_number=+972777000000"/>
         <action application="answer"/>
         <action application="playback" data="$${sounds_dir}/telephony/voice-demo/announce-n2.wav"/>
-        <action application="hangup"/>
+        <action application="hangup" data="NORMAL_CLEARING"/>
       </condition>
     </extension>
 

@@ -13,7 +13,9 @@ import { dirname, join } from 'node:path';
 import { buildTenant, validateTenant } from './lib/index.mjs';
 import { routingPreview, preflight } from './lib/onboard.mjs';
 import { complianceReport } from './lib/security.mjs';
-import { planApply, planTenants, summarize, reloadPlan } from './lib/apply.mjs';
+import { planApply, planTenants, summarize, reloadPlan, secretPreflight } from './lib/apply.mjs';
+import { crossTenantLeakScan } from './lib/security.mjs';
+import { auditRoutes } from './lib/audit-routes.mjs';
 
 // כתיבה-אטומית (temp+rename) — אין XML-חלקי שחוסם reloadxml גלובלית.
 function atomicWrite(full, content) {
@@ -77,6 +79,7 @@ switch (cmd) {
     const STATE = join(configRoot, '.telephony-state.json');
     const prev = existsSync(STATE) ? readJson(STATE) : {};
     const tenants = [];
+    const bundles = []; // {tenant, files} — לאורקלים הסמנטיים
     const seen = new Set();
     for (const f of readdirSync(tenantsDir).filter((x) => x.endsWith('.json'))) {
       const b = buildTenant(readJson(join(tenantsDir, f)));
@@ -84,9 +87,23 @@ switch (cmd) {
       if (seen.has(b.manifest.tenantId)) die(`❌ tenantId כפול: "${b.manifest.tenantId}" — דריסה. תקן לפני החלה.`);
       seen.add(b.manifest.tenantId);
       tenants.push({ tenantId: b.manifest.tenantId, desired: b.files });
+      bundles.push({ tenantId: b.manifest.tenantId, tenant: b.tenant, files: b.files });
+      // ⭐1 אורקל סגירת-מסלולים: גשר/transfer/שער יתום = כשל-שקט בפרודקשן.
+      const ar = auditRoutes(b);
+      if (!ar.ok) die(`❌ ${b.manifest.tenantId}: סגירת-מסלולים — גשרים-יתומים ${JSON.stringify(ar.dangling)} · transfer-יתום ${JSON.stringify(ar.orphanTransfers)} · שער-חסר ${JSON.stringify(ar.missingGateways)}`);
     }
     const { collisions } = planTenants(tenants, prev);
     if (collisions.length) die('❌ חפיפת-נתיבים: ' + JSON.stringify(collisions));
+    // ⭐6 בידוד חוצה-דיירים: סוד/זהות של דייר-אחד לא יופיע בקבצי-דייר-אחר (קריטי).
+    const leak = crossTenantLeakScan(bundles);
+    if (!leak.clean) die('❌ דליפת-בידוד חוצת-דיירים: ' + JSON.stringify(leak.violations.slice(0, 5)));
+    // ⭐5 preflight-סודות: env-var חסר = שער-דומם שקט. אזהרה כברירת-מחדל; --strict-secrets חוסם.
+    const pf = secretPreflight(bundles, process.env);
+    if (!pf.ok) {
+      const msg = `⚠️  סודות חסרים ב-env (${pf.missing.length}): ` + pf.missing.slice(0, 8).map((m) => `${m.secret}[${m.breaks}]`).join(' · ');
+      if (flag('--strict-secrets')) die('❌ ' + msg + '\n(הזרק את הסודות או הסר --strict-secrets)');
+      else console.log(msg);
+    }
     const next = { ...prev };
     const touched = { creates: [], updates: [], deletes: [] };
     for (const t of tenants) {

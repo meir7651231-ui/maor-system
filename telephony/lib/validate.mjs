@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { toE164 } from './normalize.mjs';
-import { applyVertical, migrateConfig, sanitizeConfigFields, VERTICAL_PACKS, SCHEMA_VERSION } from './config.mjs';
+import { applyVertical, migrateConfig, sanitizeConfigFields, reportDroppedKeys, VERTICAL_PACKS, SCHEMA_VERSION } from './config.mjs';
 import { normalizeRouting } from './routing.mjs';
 
 const TIME_RE = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
@@ -47,6 +47,11 @@ export function validateTenant(raw) {
   }
   raw = applyVertical(migrateConfig(raw));
   const { features, terms } = sanitizeConfigFields(raw);
+  // גלאי-טעות-הקלדה: מפתח-תצורה לא-מוכר הדומה-מאוד למוכר ⇒ אזהרה ("אולי התכוונת").
+  // מונע את כשל-ה"הדלקתי-בשקט" (voice.ivrr ⇒ IVR כבוי בלי אזהרה). לא-error.
+  for (const d of reportDroppedKeys(raw)) {
+    warnings.push(`${d.kind === 'feature' ? 'דגל' : 'מונח'} לא-מוכר "${d.key}" — לא-משפיע; אולי התכוונת ל-"${d.suggestion}"?`);
+  }
 
   // ── שדות-שורש ──
   if (!SLUG_RE.test(raw.tenantId || '')) {

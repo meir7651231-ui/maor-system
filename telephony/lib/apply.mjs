@@ -155,6 +155,46 @@ export function pushAudit(log, entry, cap = 500) {
   return l.length > cap ? l.slice(l.length - cap) : l;
 }
 
+// ── 65ב. preflight-סודות: זיהוי שער-מת/אימות-שבור לפני-החלה ────────────────────
+/** מסווג שם-סוד לקטגוריית-הכשל שהוא ישבור אם יחסר. */
+function secretBreaks(name) {
+  if (name.startsWith('GSM_')) return 'gateway';
+  if (name.startsWith('VM_PW__')) return 'voicemail';
+  if (name.startsWith('REC_KEY')) return 'recording';
+  if (/^PROVISION_PW__[^_]+(?:-[^_]+)*__/.test(name)) return 'ext-auth';
+  if (name.startsWith('PROVISION_PW__')) return 'provision';
+  return 'other';
+}
+/**
+ * מצליב את משתני-הסוד ($${NAME}) שהקבצים-שחוללו דורשים מול מפת-env נתונה, ומחזיר
+ * אילו חסרים. הסיבה #1 לשער-דומם היא env-var לא-מוגדר — שקט לחלוטין בזמן-ריצה
+ * (XML תקין, apply מצליח, reloadxml עובר, השער פשוט לא-נרשם). הופך אותו לאזהרה
+ * רועשת בזמן-החלה. טהור (env מוזרק) — downstream.
+ * @param {Array<{tenantId?:string, files:Record<string,string>}>} bundles תוצרי generateConfig
+ * @param {Record<string,string|undefined>} env מפת-סביבה (למשל process.env)
+ * @returns {{ok:boolean, missing:Array<{tenantId:string,secret:string,breaks:string}>}}
+ */
+export function secretPreflight(bundles, env = {}) {
+  const missing = [];
+  for (const b of bundles) {
+    const tid = b.tenantId || (b.manifest && b.manifest.tenantId) || '?';
+    const seen = new Set();
+    for (const content of Object.values(b.files || {})) {
+      // סוד = $${NAME} עם NAME שמתחיל אות-גדולה (GSM_/PROVISION_/VM_/REC_); משתני-
+      // FreeSWITCH מובנים (sounds_dir/recordings_dir) מתחילים אות-קטנה ⇒ מוחרגים.
+      for (const m of String(content).matchAll(/\$\$\{([A-Z][A-Za-z0-9_-]*)\}/g)) {
+        const name = m[1];
+        if (seen.has(name)) continue;
+        seen.add(name);
+        if (env[name] === undefined || env[name] === '') {
+          missing.push({ tenantId: tid, secret: name, breaks: secretBreaks(name) });
+        }
+      }
+    }
+  }
+  return { ok: missing.length === 0, missing };
+}
+
 // ── 66. apply אטומי + rollback-אוטומטי-בכשל ──────────────────────────────────
 /**
  * מחיל desired דרך writeFn(path, content). אם writeFn זורק — משחזר את current

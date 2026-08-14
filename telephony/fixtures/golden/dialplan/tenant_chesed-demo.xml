@@ -9,6 +9,7 @@
       <condition>
         <action application="set" data="hangup_after_bridge=true"/>
         <action application="set" data="continue_on_fail=true"/>
+        <action application="set" data="max_forwards=20"/>
       </condition>
     </extension>
     <extension name="cid_normalize" continue="true">

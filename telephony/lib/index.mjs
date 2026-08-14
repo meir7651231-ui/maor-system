@@ -22,7 +22,7 @@ export function buildTenant(raw, opts = {}) {
   const { ok, errors, warnings, tenant } = validateTenant(cfg);
   if (!ok) return { ok: false, errors, warnings };
   const { files, manifest, warnings: genWarns } = generateConfig(tenant, warnings, opts);
-  return { ok: true, errors: [], warnings: genWarns || warnings, files, manifest };
+  return { ok: true, errors: [], warnings: genWarns || warnings, files, manifest, tenant };
 }
 
 export { validateTenant } from './validate.mjs';

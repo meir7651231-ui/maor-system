@@ -25,6 +25,7 @@ export const FLAG_DEFAULTS = {
   cti: 'on',
   // ── תוספות (opt-in) ──
   'outbound.international': 'off', // בין-לאומי — כבוי כברירת-מחדל (הגנת-toll-fraud)
+  'voice.hardening': 'off', // תקרות-toll-fraud קשיחות ליציאה (בו-זמנית+משך) — opt-in
   'voice.ivr': 'off',
   'voice.queue': 'off',
   'voice.blocklist': 'off',
@@ -153,6 +154,61 @@ export function sanitizeConfigFields(raw) {
     }
   }
   return { features, terms };
+}
+
+// ── 5ב. גלאי-מקשים-שהושמטו ("אולי התכוונת ל-") ───────────────────────────────
+// מרחק-עריכה (Levenshtein) בשתי-שורות — טהור, ללא Date/random.
+function lev(a, b) {
+  a = String(a); b = String(b);
+  if (a === b) return 0;
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  let cur = new Array(n + 1).fill(0);
+  for (let i = 1; i <= m; i++) {
+    cur[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      cur[j] = Math.min(cur[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+    }
+    [prev, cur] = [cur, prev];
+  }
+  return prev[n];
+}
+/** נקודת-הקרוב-ביותר (מרחק≤max) מתוך רשימת-מפתחות-מוכרים. null אם אין. */
+function nearestKey(key, known, max = 2) {
+  let best = null, bestD = max + 1;
+  for (const k of known) {
+    const d = lev(key, k);
+    if (d < bestD) { bestD = d; best = k; }
+  }
+  return bestD <= max ? best : null;
+}
+/**
+ * מזהה מפתחות-תצורה שהוזנו אך אינם-מוכרים ודומים-מאוד למפתח-מוכר (טעות-הקלדה).
+ * מחזיר [{kind,key,suggestion}] — features לא-מוכר (inert בשקט) / terms מושלך.
+ * לא-error: מפתח-חסר=פעיל (חוזה-הדגלים) — רק אזהרה-אנושית שהמפעיל לא "הדליק בשקט".
+ * @param {object} raw קונפיג גולמי (לפני חיטוי)
+ */
+export function reportDroppedKeys(raw) {
+  const out = [];
+  const flagKeys = Object.keys(FLAG_DEFAULTS);
+  const termKeys = Object.keys(TERM_DEFS);
+  if (raw && typeof raw.features === 'object' && raw.features) {
+    for (const k of Object.keys(raw.features)) {
+      if (Object.prototype.hasOwnProperty.call(FLAG_DEFAULTS, k)) continue; // מוכר
+      const s = nearestKey(k, flagKeys);
+      if (s) out.push({ kind: 'feature', key: k, suggestion: s });
+    }
+  }
+  if (raw && typeof raw.terms === 'object' && raw.terms) {
+    for (const k of Object.keys(raw.terms)) {
+      if (TERM_KEYS.has(k)) continue; // מוכר
+      const s = nearestKey(k, termKeys);
+      if (s) out.push({ kind: 'term', key: k, suggestion: s });
+    }
+  }
+  return out;
 }
 
 // ── 6. capabilities (מטריצת-יכולות) ──────────────────────────────────────────

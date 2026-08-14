@@ -136,6 +136,9 @@ function dialplanXml(tenant, opts = {}) {
   L.push(`      <condition>`);
   L.push(`        <action application="set" data="hangup_after_bridge=true"/>`);
   L.push(`        <action application="set" data="continue_on_fail=true"/>`);
+  // רוצח-לולאת-transfer: המנוע לא תלוי vars.xml ⇒ ברירת-max_forwards לא-מובטחת;
+  // שרשרת transfer (incoming→do_open→ivr_menu→ivr_opt→…) לא תיסגר למעגל שמכלה ערוצים.
+  L.push(`        <action application="set" data="max_forwards=20"/>`);
   if (holdMusic !== 'ברירת-מחדל') L.push(`        <action application="set" data="hold_music=${esc(holdMusic)}"/>`);
   L.push(`      </condition>`);
   L.push(`    </extension>`);
@@ -255,7 +258,7 @@ function dialplanXml(tenant, opts = {}) {
     if (n.role === 'announcement') {
       L.push(`${ind}<action application="answer"/>`);
       L.push(`${ind}<action application="playback" data="${pdir}/announce-${esc(n.id)}.wav"/>`);
-      L.push(`${ind}<action application="hangup"/>`);
+      L.push(`${ind}<action application="hangup" data="NORMAL_CLEARING"/>`);
     } else {
       const hasHours = n.hours && Array.isArray(n.hours.days) && n.hours.start && n.hours.end;
       L.push(`${ind}<action application="transfer" data="${hasHours ? `line_${esc(n.id)}` : 'incoming'} XML ${esc(ctx)}"/>`);
@@ -396,6 +399,12 @@ function dialplanXml(tenant, opts = {}) {
       L.push(`        <action application="set" data="vm_transcribe=true"/>`);
     }
     L.push(`        <action application="voicemail" data="default ${esc(tenant.tenantId)} ${esc(vm.box)}"/>`);
+  } else {
+    // fail-safe: תא-קולי כבוי + מנהל לא-ענה = מבוי-סתום שקט (הגרוע-מכול, דווקא
+    // אחרי-שעות). טרמינל-מובטח: answer + צליל-תפוס מובנה (בלי-קובץ) + ניתוק-נקי.
+    L.push(`        <action application="answer"/>`);
+    L.push(`        <action application="playback" data="tone_stream://%(1000,500,480,620);loops=3"/>`);
+    L.push(`        <action application="hangup" data="NORMAL_CLEARING"/>`);
   }
   L.push(`      </condition>`);
   L.push(`    </extension>`);
@@ -404,6 +413,18 @@ function dialplanXml(tenant, opts = {}) {
   // כל יציאה מותנית ${sip_authorized}=true ⇒ רק שלוחה-רשומה מחייגת החוצה;
   // רגל-נכנסת מהשער לעולם לא תגשר החוצה (מונע לולאה/toll-fraud).
   const def = sims.find((n) => n.id === tenant.outbound.defaultNumberId) || sims[0];
+  // תקרות-toll-fraud (opt-in voice.hardening): גם cred-גנוב חסום בתקרת-בו-זמניות
+  // (רוחב-ה-SIM) ובתקרת-משך (שעה) ⇒ לא מרוקן את חשבון-הסלולר של העמותה. כבוי=ביט-זהה.
+  const hardenOut = featureOn(tenant, 'voice.hardening');
+  const sec = tenant.security || {};
+  const maxConc = Number.isInteger(sec.maxConcurrentOut) && sec.maxConcurrentOut > 0 ? sec.maxConcurrentOut : Math.max(1, sims.length);
+  const maxCallSec = Number.isInteger(sec.maxCallSec) && sec.maxCallSec > 0 ? sec.maxCallSec : 3600;
+  const tollGuard = (ind) => (hardenOut
+    ? [
+        `${ind}<action application="limit" data="hash tenant_${esc(tenant.tenantId)} outbound ${maxConc} !USER_BUSY"/>`,
+        `${ind}<action application="sched_hangup" data="+${maxCallSec} allotted_timeout"/>`,
+      ]
+    : []);
   if (featureOn(tenant, 'outbound')) {
     L.push(``);
     L.push(`    <!-- יציאה: קידומת <ערוץ>#<מספר> בוחרת דרך איזה SIM לצאת (רק שלוחה-רשומה) -->`);
@@ -414,6 +435,7 @@ function dialplanXml(tenant, opts = {}) {
         L.push(`      <condition field="destination_number" expression="^${n.gatewayChannel}#(\\+?\\d+)$">`);
         L.push(`        <action application="set" data="effective_caller_id_number=${esc(n.e164)}"/>`);
         L.push(`        <action application="set" data="effective_caller_id_name=${esc(n.label)}"/>`);
+        for (const g of tollGuard('        ')) L.push(g);
         L.push(`        <action application="bridge" data="sofia/gateway/${esc(gw)}${n.gatewayChannel}/$1"/>`);
         L.push(`      </condition>`);
         L.push(`    </extension>`);
@@ -427,6 +449,7 @@ function dialplanXml(tenant, opts = {}) {
       L.push(`      <condition field="\${sip_authorized}" expression="^true$"/>`);
       L.push(`      <condition field="destination_number" expression="^(0\\d{7,9}|\\+?972\\d{7,9})$">`);
       L.push(`        <action application="set" data="effective_caller_id_number=${esc(def.e164)}"/>`);
+      for (const g of tollGuard('        ')) L.push(g);
       L.push(`        <action application="bridge" data="sofia/gateway/${esc(gw)}${def.gatewayChannel}/$1"/>`);
       L.push(`      </condition>`);
       L.push(`    </extension>`);
@@ -436,6 +459,7 @@ function dialplanXml(tenant, opts = {}) {
         L.push(`      <condition field="\${sip_authorized}" expression="^true$"/>`);
         L.push(`      <condition field="destination_number" expression="^(00\\d{6,}|\\+\\d{8,15})$">`);
         L.push(`        <action application="set" data="effective_caller_id_number=${esc(def.e164)}"/>`);
+        for (const g of tollGuard('        ')) L.push(g);
         L.push(`        <action application="bridge" data="sofia/gateway/${esc(gw)}${def.gatewayChannel}/$1"/>`);
         L.push(`      </condition>`);
         L.push(`    </extension>`);
@@ -573,7 +597,7 @@ function destActions(dest, tenant, gw, def) {
             `<action application="set" data="effective_caller_id_number=${esc(def.e164)}"/>`,
             `<action application="bridge" data="sofia/gateway/${esc(gw)}${def.gatewayChannel}/${esc(dest.value)}"/>`,
           ]
-        : [`<action application="hangup"/>`];
+        : [`<action application="hangup" data="NO_ROUTE_DESTINATION"/>`];
     case 'voicemail':
       return [
         `<action application="answer"/>`,
@@ -583,7 +607,7 @@ function destActions(dest, tenant, gw, def) {
       return [`<action application="transfer" data="${esc(dest.value)} XML tenant_${dom}"/>`];
     case 'hangup':
     default:
-      return [`<action application="hangup"/>`];
+      return [`<action application="hangup" data="NORMAL_CLEARING"/>`];
   }
 }
 
