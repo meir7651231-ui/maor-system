@@ -591,6 +591,20 @@ function dialplanXml(tenant, opts = {}) {
       L.push(`      </condition>`);
       L.push(`    </extension>`);
     }
+    // קול-החסד (item 19): שירות-עצמי מותאם-מתקשר. מטפל-דורמנטי — סקריפט-ריצה
+    // (AGI/מאור) קורא cid_e164+self_service, מזהה את המתקשר ומנגן את הסטטוס-שלו
+    // ב-TTS ("החבילה מוכנה לאיסוף חמישי"). עד חיבורו — נפילה למטפל-אנושי (אחרי-שעות).
+    if (R.ivr.options.some((o) => o.dest.type === 'selfservice')) {
+      L.push(`    <extension name="self_service">`);
+      L.push(`      <condition field="destination_number" expression="^self_service$">`);
+      L.push(`        <action application="answer"/>`);
+      L.push(`        <action application="set" data="self_service=true"/>`);
+      L.push(`        <action application="set" data="self_service_cid=\${cid_e164}"/>`);
+      L.push(`        <!-- hook דורמנטי: זיהוי-מתקשר + השמעת-סטטוס ב-TTS (מאור/AGI). נרדם עד חיבור. -->`);
+      L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
+      L.push(`      </condition>`);
+      L.push(`    </extension>`);
+    }
   }
 
   // 9. תור (opt-in voice.queue): צוות-המשרד מושך שיחה מהתור ב-*20.
@@ -703,6 +717,8 @@ function destActions(dest, tenant, gw, def) {
       ];
     case 'ivr':
       return [`<action application="transfer" data="${esc(dest.value)} XML tenant_${dom}"/>`];
+    case 'selfservice':
+      return [`<action application="transfer" data="self_service XML tenant_${dom}"/>`];
     case 'hangup':
     default:
       return [`<action application="hangup" data="NORMAL_CLEARING"/>`];

@@ -1530,6 +1530,31 @@ console.log('· ratchet — רעיון #13: גיבוי-יציאה');
   ok('#13: כשר ⇒ גיבוי-לא-כשר מסונן', !kfdp.includes('chesed-demo-gw2') || !/out_default[\s\S]*?gw2/.test(kfdp));
 }
 
+// ── רעיון #19 — קול-החסד: שירות-עצמי מותאם-מתקשר (dest selfservice) ───────────
+console.log('· ratchet — רעיון #19: קול-החסד');
+{
+  const scfg = { ...chesed, features: { 'voice.ivr': true }, routing: { ivr: { options: [
+    { digit: '1', label: 'סטטוס', dest: { type: 'selfservice' } },
+    { digit: '9', label: 'נציג', dest: { type: 'ext', value: '101' } },
+  ] } } };
+  const sb = buildTenant(scfg);
+  ok('#19: selfservice תקין', sb.ok);
+  const sdp = sb.files['dialplan/tenant_chesed-demo.xml'];
+  // אפשרות-1 מעבירה ל-self_service.
+  ok('#19: ivr_opt_1 → self_service', /ivr_opt_1[\s\S]*?transfer" data="self_service XML/.test(sdp));
+  // מטפל self_service: מזהה + hook + נפילה-אנושית.
+  ok('#19: מטפל מזהה cid', /self_service"[\s\S]*?self_service_cid=\$\{cid_e164\}/.test(sdp));
+  ok('#19: hook דורמנטי מתועד', sdp.includes('hook דורמנטי'));
+  ok('#19: נפילה למטפל-אנושי', /self_service"[\s\S]*?transfer" data="afterhours/.test(sdp));
+  ok('#19: סגירת-מסלולים נקייה (selfservice)', auditRoutes(sb).ok);
+  // simulate + explainCall.
+  const t = validateTenant(scfg).tenant;
+  eq('#19: sim ⇒ ivr:selfservice', simulateCall(t, { did: '02-5551234', callerId: '050-1', dow: 3, hhmm: '10:00', digit: '1' }).outcome, 'ivr:selfservice');
+  // בלי-selfservice ⇒ אין מטפל (ביט-זהה למסלול-IVR רגיל).
+  const noSS = buildTenant({ ...chesed, features: { 'voice.ivr': true }, routing: { ivr: { options: [{ digit: '1', dest: { type: 'ext', value: '101' } }] } } });
+  ok('#19: בלי-selfservice ⇒ אין מטפל', !noSS.files['dialplan/tenant_chesed-demo.xml'].includes('self_service'));
+}
+
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
 const goldenDir = join(HERE, 'fixtures/golden');
