@@ -55,17 +55,23 @@ let pushLatest: Db | null = null;
 const PUSH_DEBOUNCE_MS = 800;
 
 function withRemoteFlag(fn: () => void): void {
+  // 🐛 נחיל-9×9 (13.8): שמירה/שחזור של הערך הקודם (במקום =false קשיח) — כדי
+  // שקינון תחת cloudReplaceNow (שמדליק applyingRemote) לא ינקה את הדגל באמצע.
+  const prev = applyingRemote;
   applyingRemote = true;
   try {
     fn();
   } finally {
-    applyingRemote = false;
+    applyingRemote = prev;
   }
 }
 
 function onRemote(partial: RemotePartial): void {
   const h = hooks;
   if (!h || !active) return;
+  // 🐛 נחיל-9×9 (13.8): במהלך כתיבה-סמכותית (cloudReplaceNow: reset/restore)
+  // applyingRemote=true — snapshot מרוחק שמגיע תוך-כדי הוא מרוץ ומחיה נמחקים; מדלגים.
+  if (applyingRemote) return;
   const db = h.getDb();
   const next =
     'meta' in partial

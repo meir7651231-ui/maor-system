@@ -248,7 +248,7 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
     const roomName = room ? room.name : 'ה' + termOf(cfg, 'entity.room', 'חדר');
 
     if (props.course) {
-      const sessions = props.course.sessions.length
+      const sessions = props.course.sessions?.length
         ? props.course.sessions.map((ss, i) => (i === 0 ? { ...ss, day: weekday, time } : ss))
         : [{ day: weekday, time, label: '' }];
       upsertCourse({ ...props.course, ...fields, sessions });

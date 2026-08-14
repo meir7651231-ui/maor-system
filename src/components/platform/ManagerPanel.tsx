@@ -242,6 +242,16 @@ export function ManagerPanel(props: { onClose: () => void }) {
                 </div>
                 {isOpen && (
                   <div style={{ marginTop: 8 }}>
+                    {/* 🔐 מאסטר-מתג הוצאת-מידע (13.8, בקשת-בעלים) — חוסם לעובד/ת כל
+                        ייצוא/גיבוי/דו"ח-מותאם בלחיצה אחת. ov.features['core.export']===false = חסום. */}
+                    <div style={{ marginBottom: 10, padding: '8px 10px', border: '1px solid var(--line)', borderRadius: 9, background: ov.features?.['core.export'] === false ? '#fdecec' : 'var(--surface-2, #fafaf7)' }}>
+                      <Chip on={ov.features?.['core.export'] !== false} onClick={() => void toggleFeatureFor(email, 'core.export')}>
+                        {ov.features?.['core.export'] === false ? '⛔ הוצאת מידע חסומה' : '🔓 הוצאת מידע מותרת'}
+                      </Chip>
+                      <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 5 }}>
+                        כיבוי חוסם לעובד/ת ייצוא CSV, הורדת גיבוי ודו"חות-מותאמים.
+                      </div>
+                    </div>
                     <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
                       מדליקים/מכבים לעובד/ת — רק הכפתורים שהודלקו לארגון:
                     </div>

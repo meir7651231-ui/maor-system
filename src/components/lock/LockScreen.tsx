@@ -140,7 +140,8 @@ export function LockScreen({
         </div>
 
         {(error || cooling) && (
-          <p style={{ color: 'var(--red)', fontSize: 13, fontWeight: 600, marginBottom: 10 }}>
+          // 🐛 נחיל-9×9 (13.8): role=alert — שגיאת-PIN/צינון תוכרז לקורא-מסך (עקבי עם מסך-ההצפנה)
+          <p role="alert" style={{ color: 'var(--red)', fontSize: 13, fontWeight: 600, marginBottom: 10 }}>
             {cooling ? `יותר מדי ניסיונות — המתינו ${Math.ceil(remainMs / 1000)} שניות` : error}
           </p>
         )}

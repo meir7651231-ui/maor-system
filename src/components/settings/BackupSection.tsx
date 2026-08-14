@@ -15,7 +15,7 @@ import {
   isCryptoActive,
 } from '../../store/persist';
 import { Btn, Field, FormError, Modal, TextInput } from '../ui';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { Section, SectionNote } from './lib';
 import { fmtDate, fmtDateTime } from './helpers';
 
@@ -152,9 +152,12 @@ export function BackupSection() {
       <FormError error={error} />
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-        <Btn kind="primary" onClick={exportBackup}>
-          ⬇ הורדת גיבוי מלא
-        </Btn>
+        {/* 🔐 הוצאת-מידע חסומה לעובד ⇒ אין כפתור-גיבוי (שחזור=ייבוא, נשאר) */}
+        {featureOn(useApp.getState().config, 'core.export') && (
+          <Btn kind="primary" onClick={exportBackup}>
+            ⬇ הורדת גיבוי מלא
+          </Btn>
+        )}
         <label className="btn" style={{ cursor: 'pointer' }}>
           ⬆ שחזור מקובץ גיבוי
           <input

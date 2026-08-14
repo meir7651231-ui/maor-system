@@ -71,6 +71,11 @@ export function CustomExport(props: { target: ExportTarget; onClose: () => void 
   }
 
   function run() {
+    // 🔐 מאסטר-מתג הוצאת-מידע (13.8): עובד חסום לא מייצא דו"ח מותאם.
+    if (!featureOn(cfg, 'core.export')) {
+      toast('⛔ הוצאת מידע חסומה עבורך על-ידי מנהל הארגון');
+      return;
+    }
     if (!keys.length) {
       toast('בחרו לפחות נתון אחד לייצוא');
       return;

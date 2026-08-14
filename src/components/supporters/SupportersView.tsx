@@ -2,7 +2,7 @@
  * משפחות תומכות (תורמים) — חיפוש מנורמל, סינון קטגוריה ודרגות RFM,
  * טבלה עם מיון תלת-מצבי (עולה/יורד/כבוי), טופס תומכ/ת וכרטיס מפורט.
  */
-import { useEffect, useState, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting, safeHttpsUrl, termOf } from '../../lib/config';
@@ -143,7 +143,11 @@ export function SupportersView() {
   const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
   // 🔗 איחוד-כפולים (#13) — הכפתור מוצג רק כשיש מה לאחד
   const [dedupOpen, setDedupOpen] = useState(false);
-  const dedupCount = findSupporterDupGroups(db.supporters).length;
+  // 🐛 נחיל-9×9 (13.8): Union-Find על כל התורמים רץ בכל render (כל הקשה/סינון) —
+  // ממומואיז על db.supporters בלבד.
+  const dedupCount = useMemo(() => findSupporterDupGroups(db.supporters).length, [db.supporters]);
+  const rfmBins = useMemo(() => supScoreBins(db.supporters, rate), [db.supporters, rate]);
+  const rfmMax = Math.max(1, ...rfmBins);
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
   // בחירה-מרובה למחיקה (בקשת-בעלים 13.8) — מצב-בחירה + קבוצת-ids + אישור-הרסני.
@@ -199,7 +203,10 @@ export function SupportersView() {
     toast('דוח יומי: ' + (rows.length - 1) + ' פריטים שטופלו היום — הקובץ ירד');
   }
 
-  const selected = db.supporters.find((s) => s.id === selId);
+  // 🐛 נחיל-9×9 (13.8): גם פתיחת-כרטיס-ישיר (מהפלטה/עומק) מכובדת להרשאת-הייעוד —
+  // id מחוץ-להיקף לא ייפתח (הגנה-בעומק מעל סינון visibleBase).
+  const selRaw = db.supporters.find((s) => s.id === selId);
+  const selected = selRaw && supporterVisibleForDesignations(selRaw, desigLimit) ? selRaw : undefined;
   if (selected) return <SupporterDetail supporter={selected} onBack={() => setSelId(null)} />;
 
   const today = isoToday();
@@ -400,9 +407,10 @@ export function SupportersView() {
               (supAvgDon(db.supporters, rate) != null ? '₪' + supAvgDon(db.supporters, rate)!.toLocaleString('he-IL') : '—')}
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 34 }} aria-label="היסטוגרמת פיזור הציון">
-            {supScoreBins(db.supporters, rate).map((n, i) => {
-              const bins = supScoreBins(db.supporters, rate);
-              const mx = Math.max(1, ...bins);
+            {/* 🐛 נחיל-9×9 (13.8): supScoreBins חושב 11× (פעם ל-map ופעם בכל איטרציה) —
+                מרומם ל-rfmBins/rfmMax המחושבים פעם אחת (useMemo על [db.supporters, rate]). */}
+            {rfmBins.map((n, i) => {
+              const mx = rfmMax;
               return (
                 <span
                   key={i}

@@ -9,6 +9,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { allMembers, useApp, type View } from '../../store/useApp';
 import { featureOn, moduleOn, termOf } from '../../lib/config';
+import { supporterVisibleForDesignations } from '../supporters/lib';
 import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { DEFAULT_LOCK_ZONES } from '../../lib/lock';
@@ -91,6 +92,10 @@ export function CommandPalette() {
   const punch = useApp((s) => s.punch);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
+  // 🐛 נחיל-9×9 (13.8): הפלטה עקפה את הרשאת-הייעוד (supporters.purpose) — עובד
+  // מוגבל הקליד שם-תורם של ייעוד אחר ופתח את כרטיסו המלא. גידור זהה ל-SupportersView.
+  const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = featureOn(config, 'supporters.purpose') ? allowedDesignations : null;
 
   // גייטים למודולים ופיצ'רים — פריט של מודול/פיצ'ר כבוי לא מאונדקס בפלטה.
   // featureOn מחזיר false גם כשמודול האב כבוי, לכן אין צורך בבדיקה כפולה.
@@ -576,7 +581,9 @@ export function CommandPalette() {
         },
       });
     }
-    for (const sp of supportersOn && !zoneLocked('supporters') ? db.supporters : []) {
+    for (const sp of supportersOn && !zoneLocked('supporters')
+      ? db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit))
+      : []) {
       out.push({
         key: 'sup-' + sp.id,
         icon: '💛',
