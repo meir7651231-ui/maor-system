@@ -90,6 +90,50 @@ function stripMoney(enr) {
 }
 
 /**
+ * item 6 · כרטיס-חסד: אותות-פעולה חיים ממאור למתקשר-מזוהה — מסירות-פתוחות,
+ * שיוכי-חנות-פעילים, סטטוס-משפחה, הוראת-קבע. קריאה-בלבד, טהור. אף אות לא חובה;
+ * חסר=לא-נכלל. מבנה-מאור מאומת מול domain.ts (Delivery/ShopAssignment/Hok/Family).
+ * @param {object} db תצלום-DB של מאור
+ * @param {{kind:string, id:string}} target איש-הקשר המזוהה
+ * @returns {object} { openDeliveries?, deliveryStatus?, activeAssignments?, familyStatus?, hok? }
+ */
+export function careSignals(db, target) {
+  if (!db || !target) return {};
+  const care = {};
+  // זיהוי המשפחה: family ⇒ ה-id עצמו; member ⇒ המשפחה שמכילה אותו.
+  let famId = null;
+  if (target.kind === 'family') famId = String(target.id);
+  else if (target.kind === 'member') {
+    for (const fam of Array.isArray(db.families) ? db.families : []) {
+      if ((fam.members || []).some((m) => String(m.id) === String(target.id))) { famId = String(fam.id); break; }
+    }
+  }
+  if (famId) {
+    // מסירות-פתוחות (SHOP7): status !== 'delivered' ⇒ עדיין בדרך/ממתינה.
+    const open = (Array.isArray(db.deliveries) ? db.deliveries : []).filter((d) => String(d.familyId) === famId && d.status !== 'delivered');
+    if (open.length) {
+      care.openDeliveries = open.length;
+      // האות ה"קדימה-ביותר" לתצוגה מהירה (enroute > pickup).
+      care.deliveryStatus = open.some((d) => d.status === 'enroute') ? 'enroute' : 'pickup';
+    }
+    // שיוכי-חנות פעילים (SHOP6): מזון/שירות שוטף.
+    const active = (Array.isArray(db.shopAssignments) ? db.shopAssignments : []).filter((a) => String(a.famId) === famId && a.status === 'active');
+    if (active.length) care.activeAssignments = active.length;
+    // סטטוס-משפחה — 'pending' חשוב (טרם-אושרה) / 'inactive'.
+    const fam = (Array.isArray(db.families) ? db.families : []).find((f) => String(f.id) === famId);
+    if (fam && fam.status && fam.status !== 'active') care.familyStatus = fam.status;
+  }
+  // תומך: הוראת-קבע פעילה (תזכורת-גבייה).
+  if (target.kind === 'supporter') {
+    const sup = (Array.isArray(db.supporters) ? db.supporters : []).find((s) => String(s.id) === String(target.id));
+    if (sup && sup.hok && sup.hok.active && typeof sup.hok.amount === 'number' && sup.hok.amount > 0) {
+      care.hok = { amount: sup.hok.amount, cur: sup.hok.cur || '₪', day: sup.hok.day };
+    }
+  }
+  return care;
+}
+
+/**
  * בונה אינדקס e164 → רשימת-אנשי-קשר. זה מה שנכתב (opt-in) ל-directory בענן.
  * מיפוי רב-לאחד: אותו מספר יכול להופיע אצל כמה אנשי-קשר (משפחה+תומך וכו').
  * @param {object} db  { families?, members?, teachers?, supporters? }
@@ -191,7 +235,13 @@ export function screenPop(db, rawNumber, opt = {}) {
     .sort((a, b) => (prio[a.kind] ?? 9) - (prio[b.kind] ?? 9) || (a.id + '').localeCompare(b.id + ''))
     .map((m) => {
       const rec = recIndex[`${m.kind}:${m.id}`];
-      return { ...m, enrichment: rec ? enrichContact(rec, m.kind) : {} };
+      const base = { ...m, enrichment: rec ? enrichContact(rec, m.kind) : {} };
+      // כרטיס-חסד (opt-in opt.care): אותות-פעולה חיים. בצנעה — לא נכלל (עלול לחשוף מקבל-צדקה).
+      if (opt.care && !opt.privacy) {
+        const care = careSignals(db, m);
+        if (Object.keys(care).length) base.care = care;
+      }
+      return base;
     });
 
   const number = opt.privacy ? maskNumber(e164) : e164;

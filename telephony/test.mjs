@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { buildTenant, validateTenant, toE164 } from './lib/index.mjs';
 import {
   buildDirectory, lookupCaller, lookupInDirectory, enrichContact, screenPop,
-  callEvent, dialString, callHistoryFor, maskNumber, popPriorityFor, SCREENPOP_VERSION,
+  callEvent, dialString, callHistoryFor, maskNumber, popPriorityFor, SCREENPOP_VERSION, careSignals,
 } from './lib/cti.mjs';
 import {
   tenantFromIntake, INTAKE_STEPS, numbersFromCsv, detectNumberType, stepsFor,
@@ -1346,6 +1346,48 @@ console.log('· ratchet — רעיון #4: קו-כשר end-to-end');
   ok('#4: אין-SIM-כשר ⇒ אזהרה', noK.warnings.some((w) => w.includes('כשר')));
   ok('#4: אין-SIM-כשר ⇒ אין out_default', !noK.files['dialplan/tenant_nok-test.xml'].includes('out_default'));
   ok('#4: voice.kosher ברישום-הדגלים', FLAG_DEFAULTS['voice.kosher'] === 'off');
+}
+
+// ── רעיון #6 — כרטיס-חסד: אותות-פעולה חיים ב-screen-pop (careSignals) ─────────
+console.log('· ratchet — רעיון #6: כרטיס-חסד');
+{
+  const cdb = {
+    families: [
+      { id: 'f1', name: 'משפחת כהן', phone: '050-1112233', status: 'active', members: [{ id: 'm1', first: 'יוסי', phone: '052-4445566' }] },
+      { id: 'f2', name: 'משפחת לוי', phone: '050-7778899', status: 'pending', members: [] },
+    ],
+    deliveries: [
+      { id: 'd1', familyId: 'f1', status: 'enroute' },
+      { id: 'd2', familyId: 'f1', status: 'delivered' },
+    ],
+    shopAssignments: [
+      { id: 'a1', famId: 'f1', status: 'active' },
+      { id: 'a2', famId: 'f1', status: 'done' },
+    ],
+    supporters: [
+      { id: 's1', name: 'תורם קבוע', phone: '03-1234567', hok: { amount: 100, cur: '₪', day: 5, active: true } },
+      { id: 's2', name: 'תורם רגיל', phone: '03-7654321' },
+    ],
+  };
+  // משפחה: מסירה-פתוחה (enroute) + שיוך-פעיל.
+  const c1 = careSignals(cdb, { kind: 'family', id: 'f1' });
+  eq('#6: משפחה מסירה-פתוחה', c1.openDeliveries, 1);
+  eq('#6: סטטוס-מסירה enroute', c1.deliveryStatus, 'enroute');
+  eq('#6: שיוך-פעיל אחד', c1.activeAssignments, 1);
+  ok('#6: משפחה-פעילה בלי familyStatus', !('familyStatus' in c1));
+  // בן-משפחה ⇒ נפתר לאותות-המשפחה.
+  eq('#6: member נפתר למשפחה', careSignals(cdb, { kind: 'member', id: 'm1' }).openDeliveries, 1);
+  // משפחה-ממתינה ⇒ familyStatus.
+  eq('#6: familyStatus pending', careSignals(cdb, { kind: 'family', id: 'f2' }).familyStatus, 'pending');
+  // תומך עם הוראת-קבע פעילה.
+  const cs = careSignals(cdb, { kind: 'supporter', id: 's1' });
+  ok('#6: הוראת-קבע חשופה', cs.hok && cs.hok.amount === 100 && cs.hok.day === 5);
+  ok('#6: תומך בלי הו״ק ⇒ ריק', Object.keys(careSignals(cdb, { kind: 'supporter', id: 's2' })).length === 0);
+  // screen-pop: care רק ב-opt.care, ולא בצנעה.
+  const popCare = screenPop(cdb, '050-1112233', { care: true });
+  ok('#6: screenPop עם care', popCare.primary && popCare.primary.care && popCare.primary.care.openDeliveries === 1);
+  ok('#6: screenPop בלי care כברירת-מחדל', !screenPop(cdb, '050-1112233').primary.care);
+  ok('#6: צנעה מסתירה care', !screenPop(cdb, '050-1112233', { care: true, privacy: true }).primary.care);
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
