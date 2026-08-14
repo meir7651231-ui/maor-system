@@ -565,7 +565,7 @@ function dialplanXml(tenant, opts = {}) {
     // 7. יציאת-ברירת-מחדל (בלי קידומת) → המספר שנבחר.
     if (def && featureOn(tenant, 'outbound.default')) {
       // מקומי בלבד (0X / +972 / 972) — הגנת-toll-fraud. בין-לאומי דורש דגל מפורש.
-      L.push(`    <!-- יציאת-ברירת-מחדל מקומית (חיוג רגיל בלי קידומת) → ${esc(def.label)} -->`);
+      L.push(`    <!-- יציאת-ברירת-מחדל מקומית (חיוג רגיל בלי קידומת) → ${escc(def.label)} -->`);
       L.push(`    <extension name="out_default">`);
       L.push(`      <condition field="\${sip_authorized}" expression="^true$"/>`);
       L.push(`      <condition field="destination_number" expression="^(0\\d{7,9}|\\+?972\\d{7,9})$">`);

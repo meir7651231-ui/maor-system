@@ -227,9 +227,12 @@ export function migrationRisk(prev, next) {
     // זיהוי-החלפת-זהות-SIM. **נחיל-5 F12:** צומצם ל-שווה-כמות (הוספה-טהורה לא תסומן false).
     // **נחיל-6 R6-6:** הושלם ל-add+swap — id ששרד (בשני-הצדדים) ששינה e164/ערוץ מסומן **בלי
     // תלות-בכמות**; ובנוסף שווה-כמות עם שינוי-זהות-כולל (id-rename) ש-survivor לא תופס.
-    const pById = new Map(outS(prev).map((n) => [n.id, `${n.e164}`]));
-    const survivorSwapped = outS(next).some((n) => pById.has(n.id) && pById.get(n.id) !== `${n.e164}`);
-    const sig = (m) => outS(m).map((n) => `${n.id}:${n.e164}`).sort().join('|');
+    // נחיל-7 R7-8: כולל gatewayChannel (השדה 'channel' במניפסט) — החלפת-ערוצים בין שני SIM
+    // (id/e164 קבועים) משנה קידומת-יציאה ושם-שער (ניתוב-פיזי) ⇒ חייבת להיתפס כ-swap.
+    const ident = (n) => `${n.e164}:${n.channel}`;
+    const pById = new Map(outS(prev).map((n) => [n.id, ident(n)]));
+    const survivorSwapped = outS(next).some((n) => pById.has(n.id) && pById.get(n.id) !== ident(n));
+    const sig = (m) => outS(m).map((n) => `${n.id}:${ident(n)}`).sort().join('|');
     const equalCountSwap = outS(next).length === outS(prev).length && sig(prev) && sig(prev) !== sig(next);
     if (survivorSwapped || equalCountSwap) {
       R('outbound-swapped', 'high', 'זהות SIM-יציאה הוחלפה (מספר/ערוץ) — חיוג-יוצא ינותב דרך מספר אחר');

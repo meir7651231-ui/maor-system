@@ -2062,6 +2062,66 @@ console.log('· ratchet — תיקוני נחיל-עומק (R6)');
   ok('R6-13: channelPlan על tenant חסר-numbers ⇒ לא-זורק', !threw);
 }
 
+// ═══ ratchet — תיקוני נחיל-עומק סבב-7 (R7) ═══════════════════════════════════
+console.log('· ratchet — תיקוני נחיל-עומק (R7)');
+// R7-1 [HIGH]: R6-9 פספס משטח-הערה 5 (out_default) — label עם -- הפיל את כל הדיאלפלן. עכשיו escc.
+{
+  const dd = buildTenant({ ...chesed, numbers: chesed.numbers.map((n) => n.id === 'n1' ? { ...n, label: 'קו ראשי -- גיבוי' } : n) });
+  ok('R7-1: label עם -- (הערת out_default) ⇒ דיאלפלן well-formed', xmlWellFormed(dd.files['dialplan/tenant_chesed-demo.xml']).valid);
+  ok('R7-1: אין רצף -- פסול בהערות', !/<!--[^>]*--[^>]*-->/.test(dd.files['dialplan/tenant_chesed-demo.xml']));
+}
+// R7-2: reason-צום (מסלול לא-zmanim) קרס ל-boolean true (האופרנד-האחרון !c.shabbat). עכשיו שם-הצום.
+{
+  const t = validateTenant({ tenantId: 'r7fast', orgName: 'z', city: 'jerusalem',
+    features: { 'calendar.hebrew': true, 'calendar.fasts': true },
+    officeHours: { days: [0, 1, 2, 3, 4, 5, 6], start: '00:00', end: '23:59' },
+    numbers: [{ id: 'n1', e164: '02-3000000', label: 'a', type: 'sim', onramp: 'sim-in-gateway', channels: ['voice'], gatewayChannel: 1 }],
+    destinations: { office: { ext: '101' }, manager: { ext: '201' }, voicemail: { box: '100' } },
+    outbound: { defaultNumberId: 'n1' }, cti: { mode: 'off' } }).tenant;
+  let fastDate = null;
+  for (let d = 1; d <= 31 && !fastDate; d++) { const iso = `2026-12-${String(d).padStart(2, '0')}`; const c = classifyDay(iso, { tz: 'Asia/Jerusalem', diaspora: false }); if (c.fast && !c.shabbat && !c.yomTov) fastDate = iso; }
+  const r = simulateCall(t, { did: '02-3000000', callerId: '050-1', date: fastDate, hhmm: '10:00' });
+  ok('R7-2: reason-צום = מחרוזת (שם-הצום), לא boolean true', typeof r.reason === 'string' && r.reason.length > 3 && r.reason !== 'true');
+  ok('R7-2: explainCall לא מרנדר "(true)"', !explainCall(t, { did: '02-3000000', callerId: '050-1', date: fastDate, hhmm: '10:00' }).summary.includes('(true)'));
+}
+// R7-4: complianceReport הצהיר recordingEncryption:true על-דגל בלבד (סתר R5-F4). עכשיו דורמנטי.
+{
+  const c = complianceReport({ tenantId: 'r', features: { recording: true }, security: { recordingEncryption: true }, destinations: { manager: { ext: '201' }, voicemail: { box: '100' } } });
+  ok('R7-4: recordingEncryption=false (דורמנטי) + configured=true + לא-compliant', c.recordingEncryption === false && c.recordingEncryptionConfigured === true && !c.compliant && c.findings.some((f) => f.includes('דורמנטי')));
+}
+// R7-5: ערוץ שלילי בנה <id>-gw-1 שעיוור את leak-scan (העוגן (?=\d)). עכשיו נדרש ערוץ>0.
+{
+  const neg = buildTenant({ ...chesed, numbers: chesed.numbers.map((n) => n.id === 'n1' ? { ...n, gatewayChannel: -1 } : n) });
+  ok('R7-5: ערוץ שלילי לא-נשמר (אין chesed-demo-gw-1)', !neg.files['sip_profiles/gateways/chesed-demo.xml'].includes('chesed-demo-gw-1'));
+  ok('R7-5: אזהרת ערוץ-לא-חיובי', neg.warnings.some((w) => w.includes('ערוץ')));
+}
+// R7-6: withinHorizon off-by-one — יום anchor+window (יום-מלא) דווח סגור בעוד הגנרטור (i<window) פתוח.
+{
+  const t = validateTenant({ tenantId: 'r7hz', orgName: 'z', city: 'jerusalem',
+    features: { 'calendar.hebrew': true }, // בלי shabbat/zmanim — מבודד את מסלול-היום-המלא
+    officeHours: { days: [0, 1, 2, 3, 4, 5, 6], start: '00:00', end: '23:59' },
+    numbers: [{ id: 'n1', e164: '02-3000000', label: 'a', type: 'sim', onramp: 'sim-in-gateway', channels: ['voice'], gatewayChannel: 1 }],
+    destinations: { office: { ext: '101' }, manager: { ext: '201' }, voicemail: { box: '100' } },
+    outbound: { defaultNumberId: 'n1' }, cti: { mode: 'off' } }).tenant;
+  // יו״כ 2026-09-21 = anchor 2026-09-01 + 20 יום. window=20 ⇒ הגנרטור פולט i<20 ⇒ עד 09-20 ⇒ 09-21 פתוח.
+  const edge = simulateCall(t, { did: '02-3000000', callerId: '050-1', date: '2026-09-21', hhmm: '12:00' }, { anchorDate: '2026-09-01', calendarWindow: 20 });
+  ok('R7-6: יום anchor+window (יום-מלא) ⇒ לא-סגור (מיושר ל-i<window)', edge.outcome === 'office');
+  const inside = simulateCall(t, { did: '02-3000000', callerId: '050-1', date: '2026-09-21', hhmm: '12:00' }, { anchorDate: '2026-09-01', calendarWindow: 21 });
+  ok('R7-6: window=21 ⇒ בתוך-אופק ⇒ סגור', inside.outcome !== 'office');
+}
+// R7-7: simulate ניתב forwardTo-alias שהגנרטור מדלג עליו. עכשיו unknown-did.
+{
+  const t = validateTenant({ ...chesed, numbers: [...chesed.numbers, { id: 'nf', e164: '03-9999999', label: 'alias', type: 'virtual', onramp: 'customer-forward', channels: ['voice'], forwardTo: 'n1' }] }).tenant;
+  eq('R7-7: DID של forwardTo-alias ⇒ unknown-did', simulateCall(t, { did: '03-9999999', callerId: '050-1' }).outcome, 'unknown-did');
+}
+// R7-8: migrationRisk לא זיהה החלפת-ערוץ טהורה (id/e164 קבועים). עכשיו sig כולל channel.
+{
+  const base = buildTenant(chesed).manifest;
+  const chanSwap = { ...base, outboundSims: base.outboundSims.map((s, i) => i === 0 ? { ...s, channel: 99, prefix: '99#' } : s) };
+  ok('R7-8: החלפת-ערוץ (אותו id/e164) ⇒ outbound-swapped', migrationRisk(base, chanSwap).risks.some((r) => r.key === 'outbound-swapped'));
+  ok('R7-8: זהה ⇒ אין swap (שימור)', !migrationRisk(base, buildTenant(chesed).manifest).risks.some((r) => r.key === 'outbound-swapped'));
+}
+
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
 const goldenDir = join(HERE, 'fixtures/golden');

@@ -169,9 +169,11 @@ export function validateTenant(raw) {
         }
       }
 
-      // ערוץ יציאה דרך SIM דורש gatewayChannel.
-      if (n.onramp === 'sim-in-gateway' && !Number.isInteger(n.gatewayChannel)) {
-        warnings.push(`${tag}: sim-in-gateway ללא gatewayChannel — יציאה דרך המספר הזה לא תנותב עד שיוגדר ערוץ.`);
+      // ערוץ יציאה דרך SIM דורש gatewayChannel **חיובי**. נחיל-7 R7-5: ערוץ שלילי/אפס בנה
+      // שם-שער <id>-gw-1 שה-'-' בו עיוור את crossTenantLeakScan (העוגן הימני (?=\d)); דורשים >0.
+      const chOk = Number.isInteger(n.gatewayChannel) && n.gatewayChannel > 0;
+      if (n.onramp === 'sim-in-gateway' && !chOk) {
+        warnings.push(`${tag}: sim-in-gateway ללא gatewayChannel חיובי — יציאה דרך המספר הזה לא תנותב עד שיוגדר ערוץ>0.`);
       }
       if (n.kosher && carriesVoice) {
         warnings.push(`${tag}: מספר-כשר — יציאה לא-כשרה לא תנותב דרכו אוטומטית; אמת מול הספק הכשר.`);
@@ -196,7 +198,7 @@ export function validateTenant(raw) {
         onramp: n.onramp,
         channels,
         kosher: !!n.kosher,
-        ...(Number.isInteger(n.gatewayChannel) ? { gatewayChannel: n.gatewayChannel } : {}),
+        ...(chOk ? { gatewayChannel: n.gatewayChannel } : {}), // R7-5: רק ערוץ חיובי נשמר
         ...(lineHours ? { hours: lineHours } : {}),
         ...(n.role === 'announcement'
           ? { role: 'announcement', announcementText: typeof n.announcementText === 'string' ? n.announcementText : '' }

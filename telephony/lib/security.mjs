@@ -155,10 +155,18 @@ export function complianceReport(tenant) {
   const privacy = !!(tenant.features && tenant.features['shell.privacy']);
   const findings = [];
   if (!fs.ok) findings.push('אין מסלול-חירום (מנהל חסר).');
-  if (!rec.enabled && tenantHasRecording(tenant)) findings.push('הקלטות פעילות בלי הצפנה.');
+  // **נחיל-7 R7-4:** הצפנת-הקלטות-במנוחה **דורמנטית** (REC_KEY לא-מחווט; record_session כותב
+  // .wav גולמי) — מיושר ל-trustReport (R5-F4). אסור להצהיר compliant על-סמך דגל-הקונפיג בלבד;
+  // הקלטות-פעילות = ממצא בכל מקרה (מוצפן-מוגדר-אך-דורמנטי, או לא-מוצפן).
+  if (tenantHasRecording(tenant)) {
+    findings.push(rec.enabled
+      ? 'הקלטות פעילות; הצפנת-מנוחה מוגדרת אך דורמנטית (REC_KEY טרם מחווט).'
+      : 'הקלטות פעילות בלי הצפנה.');
+  }
   return {
     tenantId: tenant.tenantId,
-    recordingEncryption: rec.enabled,
+    recordingEncryption: false, // דורמנטי — לעולם לא פעיל-בפועל (R7-4, מיושר ל-trustReport)
+    recordingEncryptionConfigured: rec.enabled, // מצב-הדגל (להבחנה מהמצב-בפועל)
     failsafe: fs.ok,
     privacyMode: privacy,
     ctiReadOnly: true, // אינווריאנט: CTI קריאה-בלבד

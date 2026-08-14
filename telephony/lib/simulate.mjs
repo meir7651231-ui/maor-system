@@ -47,12 +47,18 @@ function hhmmToMin(s) {
 // ריפוד HH:MM (R6-11) — '9:00'→'09:00' כדי שהשוואה-לקסיקוגרפית מול חלונות-הזמן (מרופדים) תעבוד.
 const padHHMM = (s) => { const [h, m] = String(s).split(':'); return `${String(Number(h) || 0).padStart(2, '0')}:${String(Number(m) || 0).padStart(2, '0')}`; };
 
-// אופק-הלוח (R6-8): הגנרטור פולט extensions רק בטווח [anchor, anchor+window]. מחוץ-לטווח אין
-// force_closed ⇒ הסימולטור חייב לא-לחשב סגירת-לוח (אחרת "סגור" בעוד המרכזייה החיה מצלצלת).
-function withinHorizon(date, opts) {
+// אופק-הלוח (R6-8): הגנרטור פולט extensions רק בטווח-החלון. מחוץ-לטווח אין force_closed ⇒
+// הסימולטור חייב לא-לחשב סגירת-לוח (אחרת "סגור" בעוד המרכזייה החיה מצלצלת).
+// **נחיל-7 R7-6 (off-by-one פר-מסלול):** לשני מסלולי-הגנרטור אופק שונה —
+//   · יום-מלא (hebrewClosedDates, i<windowDays) ⇒ עד anchor+window-1 (בלעדי).
+//   · zmanim (hebrewClosedWindows, ריצה מ-anchor+window עד +2) ⇒ עד anchor+window+2.
+// גבול-יחיד לא יכול לגדר את שניהם ⇒ הגבול-הימני תלוי-מסלול (zmActive).
+function withinHorizon(date, opts, zmActive) {
   if (!opts || !opts.anchorDate || !date) return true; // בלי אופק ⇒ תמיד מחשב (תאימות-אחורה)
-  const end = addDaysIso(opts.anchorDate, opts.calendarWindow || 400);
-  return date >= opts.anchorDate && date <= end;
+  if (date < opts.anchorDate) return false;
+  const w = opts.calendarWindow || 400;
+  const end = addDaysIso(opts.anchorDate, zmActive ? w + 2 : w - 1);
+  return date <= end;
 }
 
 /** האם הרגע בתוך חלון (days,start,end). at = {dow, minutes}. */
@@ -130,7 +136,10 @@ export function simulateCall(tenant, call = {}, opts = {}) {
   // (אחרת הסימולטור מדווח 'office'/'voicemail' לשיחה שהמרכזייה כלל לא מנתבת).
   const didE164 = toE164(call.did);
   const num = tenant.numbers.find((n) => (n.e164 === didE164 || n.e164 === call.did)
-    && (n.channels || []).includes('voice') && n.onramp !== 'device-link');
+    && (n.channels || []).includes('voice') && n.onramp !== 'device-link'
+    // נחיל-7 R7-7: הפניית-לקוח עם forwardTo היא alias שנוחת על הקשר-שער-היעד — הגנרטור
+    // מדלג עליה (בלי in_/line_ משלה); הסימולטור חייב לדלג גם, אחרת in:<alias> שגוי.
+    && !(n.onramp === 'customer-forward' && n.forwardTo));
   if (!num) return { path: ['inbound'], outcome: 'unknown-did' };
   path.push(`in:${num.label}`);
 
@@ -168,7 +177,7 @@ export function simulateCall(tenant, call = {}, opts = {}) {
     let closedReason = null;
     // **נחיל-6 R6-8:** סגירות-לוח נחשבות רק בתוך אופק-החלון (אם נמסר) — מחוצה-לו הגנרטור
     // לא פלט extension ⇒ הקו מתנהג רגיל. (חירום/dnd אינם ממוסגרי-תאריך ⇒ חלים תמיד.)
-    if (withinHorizon(call.date, opts)) {
+    if (withinHorizon(call.date, opts, zmActive)) {
       if (zmActive) {
         closedReason = zmanimClosedReason(tenant, call);
       } else if (featureOn(tenant, 'calendar.hebrew') && call.date) {
@@ -176,7 +185,9 @@ export function simulateCall(tenant, call = {}, opts = {}) {
         closedReason = c.yomTov
           || (featureOn(tenant, 'calendar.erev') && c.erevChag)
           || (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed)
-          || (featureOn(tenant, 'calendar.fasts') && c.fast && !c.shabbat) || null;
+          // נחיל-7 R7-2: !c.shabbat לפני c.fast — אחרת האופרנד-האחרון הוא boolean true (לא שם-הצום)
+          // ⇒ reason=true ⇒ explainCall מרנדר "מחוץ-לשעות (true)" במקום שם-הצום.
+          || (featureOn(tenant, 'calendar.fasts') && !c.shabbat && c.fast) || null;
       }
     }
     if (closedReason) { forceClosed = true; reason = closedReason; } // חג > dnd

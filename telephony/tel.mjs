@@ -85,8 +85,8 @@ switch (cmd) {
     // ⇒ apply אידמפוטנטי; עוגן-חדש רק ב-deploy-ראשון או ב---anchor מפורש (רענון-חלון יזום).
     const realToday = new Date().toISOString().slice(0, 10);
     const explicitAnchor = opt('--anchor');
-    const prevAnchorOf = (tid) => {
-      try { const m = JSON.parse((prev[tid] || {})['manifest.json'] || '{}'); return (m.hebrewCalendar && m.hebrewCalendar.anchor) || (m.zmanim && m.zmanim.anchor) || null; } catch { return null; }
+    const prevMetaOf = (tid) => {
+      try { const m = JSON.parse((prev[tid] || {})['manifest.json'] || '{}'); const c = m.hebrewCalendar || m.zmanim || {}; return { anchor: c.anchor || null, window: Number.isInteger(c.window) ? c.window : 400 }; } catch { return { anchor: null, window: 400 }; }
     };
     const daysApart = (a, b) => Math.round(Math.abs(Date.parse(a + 'T00:00:00Z') - Date.parse(b + 'T00:00:00Z')) / 86400000);
     const tenants = [];
@@ -94,10 +94,16 @@ switch (cmd) {
     const seen = new Set();
     for (const f of readdirSync(tenantsDir).filter((x) => x.endsWith('.json'))) {
       const raw = readJson(join(tenantsDir, f));
-      const reused = !explicitAnchor && prevAnchorOf(raw.tenantId);
+      const meta = prevMetaOf(raw.tenantId);
+      let reused = !explicitAnchor && meta.anchor;
+      // **נחיל-7 R7-9:** רענון-**אוטומטי** כשכיסוי-העתיד דל (<60 יום מ-anchor+window) — אחרת
+      // reuse-העוגן משמר עוגן-פריסה-ראשון לנצח, וכשהחלון פג כל סגירות-החג "מתאדות בשקט"
+      // (חזרה-בהילוך-איטי ל-R5-F5). הרענון עולה פעם ב-~שנה, לא יומי ⇒ אידמפוטנטיות נשמרת.
+      if (reused && daysApart(reused, realToday) > Math.max(1, meta.window - 60)) {
+        console.log(`   ♻️  ${f}: עוגן-הלוח (${reused}) מיצה כיסוי (חלון ${meta.window} יום) — רענון אוטומטי ל-${realToday}`);
+        reused = null;
+      }
       const anchor = explicitAnchor || reused || realToday;
-      // רענון-חלון: עוגן-שמור ישן-מאוד ⇒ החלון עלול לפוג; רמז למפעיל (בלי לכפות).
-      if (reused && daysApart(reused, realToday) > 300) console.log(`   ⚠️  ${f}: עוגן-הלוח (${reused}) בן ${daysApart(reused, realToday)} ימים — רענן עם --anchor ${realToday}`);
       const b = buildTenant(raw, { anchorDate: anchor });
       if (!b.ok) die(`❌ ${f}: ${b.errors.join(' · ')}`);
       // סייגי-הבנייה (למשל "לוח-עברי בלי anchor") **מוצגים** — לא נבלעים (F5).
@@ -122,25 +128,26 @@ switch (cmd) {
       if (flag('--strict-secrets')) die('❌ ' + msg + '\n(הזרק את הסודות או הסר --strict-secrets)');
       else console.log(msg);
     }
+    // ⭐17 migrationRisk — **pre-pass אטומי (נחיל-7 R7-3):** כל בדיקות-ההרסנות רצות *לפני* כל
+    // כתיבה-לדיסק, כמו יתר השערים (auditRoutes/collisions/leak/secrets). die() באמצע לולאת-
+    // הכתיבה השאיר דיסק מעודכן-חלקית + STATE ישן (drift-שווא) + בלי reloadxml. עכשיו die יחיד ואטומי.
+    for (const t of tenants) {
+      const prevMf = prev[t.tenantId] && prev[t.tenantId]['manifest.json'];
+      if (!prevMf) continue;
+      let pm = null; try { pm = JSON.parse(prevMf); } catch { /* ignore */ }
+      const mr = migrationRisk(pm, JSON.parse(t.desired['manifest.json']));
+      if (!mr.risks.length) continue;
+      for (const r of mr.risks) console.log(`   ${r.severity === 'critical' ? '🛑' : r.severity === 'high' ? '⚠️ ' : 'ℹ️ '} ${t.tenantId}: ${r.detail}`);
+      if (mr.destructive && flag('--write') && !flag('--allow-destructive')) {
+        die(`❌ ${t.tenantId}: שינוי-הרסני נחסם. אשר עם --allow-destructive (או תקן את הקונפיג).`);
+      }
+    }
     const next = { ...prev };
     const touched = { creates: [], updates: [], deletes: [] };
     for (const t of tenants) {
       const plan = planApply(prev[t.tenantId] || {}, t.desired);
       touched.creates.push(...plan.creates); touched.updates.push(...plan.updates); touched.deletes.push(...plan.deletes);
       console.log(`${plan.changed ? '±' : '='} ${t.tenantId} [${summarize(plan)}]`);
-      // ⭐17 migrationRisk: דלתא-הרסנית מול המצב-הקודם (רק על עדכון לקוח-קיים).
-      const prevMf = prev[t.tenantId] && prev[t.tenantId]['manifest.json'];
-      if (prevMf) {
-        let pm = null; try { pm = JSON.parse(prevMf); } catch { /* ignore */ }
-        const nm = JSON.parse(t.desired['manifest.json']);
-        const mr = migrationRisk(pm, nm);
-        if (mr.risks.length) {
-          for (const r of mr.risks) console.log(`   ${r.severity === 'critical' ? '🛑' : r.severity === 'high' ? '⚠️ ' : 'ℹ️ '} ${t.tenantId}: ${r.detail}`);
-          if (mr.destructive && flag('--write') && !flag('--allow-destructive')) {
-            die(`❌ ${t.tenantId}: שינוי-הרסני נחסם. אשר עם --allow-destructive (או תקן את הקונפיג).`);
-          }
-        }
-      }
       if (flag('--write')) {
         for (const [rel, content] of Object.entries(t.desired)) atomicWrite(fullOf(configRoot, rel, t.tenantId), content);
         for (const rel of plan.deletes) safeUnlink(fullOf(configRoot, rel, t.tenantId));
