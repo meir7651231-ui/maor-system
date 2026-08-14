@@ -121,9 +121,13 @@ export function reloadPlan(plan) {
   const cmds = [];
   const touched = [...plan.creates, ...plan.updates, ...plan.deletes];
   if (touched.some((p) => p.startsWith('dialplan/') || p.startsWith('directory/'))) cmds.push('reloadxml');
-  // שער שנמחק חייב restart-פרופיל (rescan לא מוריד gateway קיים); שאר-שינויי-שער = rescan.
-  if ((plan.deletes || []).some((p) => p.startsWith('sip_profiles/'))) cmds.push('sofia profile internal restart reloadxml');
-  else if (touched.some((p) => p.startsWith('sip_profiles/'))) cmds.push('sofia profile internal rescan reloadxml');
+  // C5 מנחיל-העומק: כל שערי-הדייר בקובץ-אחד ⇒ הסרת-SIM = *עדכון* קובץ, לא מחיקה.
+  // rescan לא מפרק gateway קיים ⇒ שער-רפאים חי. לכן מחיקה **או-עדכון** של sip_profiles
+  // דורשים restart; רק create-בלבד (קובץ-שער חדש-לגמרי) מספיק ב-rescan.
+  const sipDelUpd = [...(plan.deletes || []), ...(plan.updates || [])].some((p) => p.startsWith('sip_profiles/'));
+  const sipCreate = (plan.creates || []).some((p) => p.startsWith('sip_profiles/'));
+  if (sipDelUpd) cmds.push('sofia profile internal restart reloadxml');
+  else if (sipCreate) cmds.push('sofia profile internal rescan reloadxml');
   return [...new Set(cmds)];
 }
 
@@ -219,6 +223,12 @@ export function migrationRisk(prev, next) {
     R('outbound-emptied', 'high', 'כל ה-SIM ליציאה הוסרו — חיוג-יוצא יושבת');
   } else if (outS(next).length < outS(prev).length) {
     R('gateway-drop', 'high', `שערי-יציאה ירדו ${outS(prev).length}→${outS(next).length}`);
+  } else {
+    // החלפת-SIM בשווה-כמות: זהות-יציאה (id/e164) השתנתה אך הספירה זהה — נחיל-העומק.
+    const sig = (m) => outS(m).map((n) => `${n.id}:${n.e164}`).sort().join('|');
+    if (sig(prev) && sig(prev) !== sig(next)) {
+      R('outbound-swapped', 'high', 'זהות SIM-יציאה הוחלפה (מספר/ערוץ) — חיוג-יוצא ינותב דרך מספר אחר');
+    }
   }
   const removed = inV(prev).filter((p) => !inV(next).some((n) => n.id === p.id));
   if (removed.length && inV(next).length > 0) {

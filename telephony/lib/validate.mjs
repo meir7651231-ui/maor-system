@@ -31,6 +31,10 @@ function hhmmToMinutes(s) {
   return h * 60 + m;
 }
 
+// C1 מנחיל-העומק: מסיר '$' מטקסט-חופשי-לתצוגה (שם/תווית/סיבה) — מונע הזרקת
+// $${SECRET}/${var} של FreeSWITCH. שמות-עמותה/תוויות לעולם לא מכילים '$' לגיטימי.
+const noVars = (s) => (typeof s === 'string' ? s.replace(/\$/g, '') : s);
+
 /**
  * @param {object} raw קונפיג-לקוח גולמי
  * @returns {{ok:boolean, errors:string[], warnings:string[], tenant:object|null}}
@@ -180,7 +184,7 @@ export function validateTenant(raw) {
       numbers.push({
         id: n.id,
         e164: e164 || n.e164,
-        label: n.label,
+        label: noVars(n.label),
         type: n.type,
         onramp: n.onramp,
         channels,
@@ -200,7 +204,7 @@ export function validateTenant(raw) {
   }
   // מצב-כשר (voice.kosher) דורש לפחות SIM-כשר אחד ליציאה — אחרת אין דרך-יציאה כשרה.
   if (features['voice.kosher'] === true) {
-    const kosherOut = numbers.some((n) => n.kosher && n.onramp === 'sim-in-gateway' && Number.isInteger(n.gatewayChannel));
+    const kosherOut = numbers.some((n) => n.kosher && n.onramp === 'sim-in-gateway' && Number.isInteger(n.gatewayChannel) && n.channels.includes('voice'));
     if (!kosherOut) {
       warnings.push('voice.kosher פעיל אך אין אף SIM-כשר ליציאה (kosher + sim-in-gateway + ערוץ) — חיוג-יוצא של המערכת יושבת (לא ינותב דרך תשתית לא-כשרה).');
     }
@@ -338,7 +342,7 @@ export function validateTenant(raw) {
         fromIso: from,
         untilIso: until,
         ext: mExt,
-        reason: typeof raw.mourning.reason === 'string' && raw.mourning.reason ? raw.mourning.reason : 'בית האבל',
+        reason: typeof raw.mourning.reason === 'string' && raw.mourning.reason ? noVars(raw.mourning.reason) : 'בית האבל',
       };
     }
   }
@@ -348,7 +352,7 @@ export function validateTenant(raw) {
     ? {
         schemaVersion: SCHEMA_VERSION,
         tenantId: raw.tenantId,
-        orgName: raw.orgName,
+        orgName: noVars(raw.orgName),
         timezone,
         ...(city ? { city } : {}),
         ...(geo ? { geo } : {}),

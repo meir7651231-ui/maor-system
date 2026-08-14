@@ -39,7 +39,7 @@ export function trustReport(bundle, opt = {}) {
 
   // 4. שלמות-כשרות — מצב-כשר עם SIM-כשר ליציאה.
   if (featureOn(tenant, 'voice.kosher')) {
-    const hasK = (tenant.numbers || []).some((n) => n.kosher && n.onramp === 'sim-in-gateway' && Number.isInteger(n.gatewayChannel));
+    const hasK = (tenant.numbers || []).some((n) => n.kosher && n.onramp === 'sim-in-gateway' && Number.isInteger(n.gatewayChannel) && (n.channels || []).includes('voice'));
     add('kosher-integrity', 'שלמות-כשרות (יציאה כשרה)', hasK, 'high', hasK ? 'יש SIM-כשר ליציאה' : 'מצב-כשר בלי SIM-כשר — יציאה מושבתת');
   }
 

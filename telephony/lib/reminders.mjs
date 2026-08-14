@@ -37,11 +37,12 @@ export function reminderQueue(items, tenant, opt = {}) {
     if (it.kind === 'candle') {
       const st = shabbatTimes(it.date, tenant);
       if (!st) { skipped.push({ raw: e164, reason: 'זמן-שקיעה לא-חושב (קוטב)' }); continue; }
-      const lead = Number.isInteger(it.leadMinutes) ? it.leadMinutes : defaultLead;
-      dispatchAt = fromMin(toMin(st.candle) - lead);
+      const lead = Number.isInteger(it.leadMinutes) && it.leadMinutes >= 0 ? it.leadMinutes : defaultLead;
+      // חסימת-גלישה (נחיל-עומק): לא לפני 00:00 באותו יום — לא לגלוש ליום הקודם.
+      dispatchAt = fromMin(Math.max(0, toMin(st.candle) - lead));
     } else if (it.kind === 'custom') {
       if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(it.at || '')) { skipped.push({ raw: e164, reason: 'שעה לא-תקינה' }); continue; }
-      dispatchAt = it.at;
+      dispatchAt = fromMin(toMin(it.at)); // ריפוד ל-HH:MM (נחיל-עומק: '9:00' vs '17:50' במיון)
     } else {
       skipped.push({ raw: e164, reason: 'kind לא-מוכר (candle/custom)' }); continue;
     }

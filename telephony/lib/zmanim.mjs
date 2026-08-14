@@ -155,12 +155,14 @@ export function hebrewClosedWindows(fromIso, windowDays, tenant, opt = {}) {
   const incYt = opt.includeYomTov !== false;
   const incSh = opt.includeShabbat !== false;
   const cls = [];
-  for (let i = 0; i <= windowDays; i++) {
+  // סורקים 2 ימים נוספים (נחיל-עומק) כדי שרצף רב-יומי הנוגע בקצה-החלון יושלם
+  // ולא ייחתם בצאת-היום-הראשון; רק רצפים שמתחילים בתוך החלון נפלטים.
+  for (let i = 0; i <= windowDays + 2; i++) {
     const iso = addDaysIso(fromIso, i);
     const c = classifyDay(iso, { diaspora, tz });
     const yt = incYt ? (c.yomTov || null) : null;
     const sh = incSh && c.dow === 6;
-    cls.push({ iso, closed: !!yt || sh, yomTov: yt, shabbat: sh });
+    cls.push({ iso, closed: !!yt || sh, yomTov: yt, shabbat: sh, inWindow: i <= windowDays });
   }
   // מיזוג-רצפים → חלונות [ערב-הדלקה → יום-אחרון-צאת].
   const out = [];
@@ -170,6 +172,7 @@ export function hebrewClosedWindows(fromIso, windowDays, tenant, opt = {}) {
     let j = i;
     while (j + 1 < cls.length && cls[j + 1].closed) j++;
     const first = cls[i]; const last = cls[j];
+    if (!first.inWindow) { i = j + 1; continue; } // רצף שמתחיל אחרי-החלון — מדולג
     const erevIso = addDaysIso(first.iso, -1);
     const st = shabbatTimes(erevIso, tenant, opt);
     const en = shabbatTimes(last.iso, tenant, opt);

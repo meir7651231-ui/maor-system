@@ -12,7 +12,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { toE164 } from './normalize.mjs';
-import { buildDirectory } from './cti.mjs';
+import { buildDirectory, lookupInDirectory } from './cti.mjs';
 
 /**
  * בונה תוכנית-ערוצים לכל מספר שאינו-קול-בלבד. מחזיר את דרך-הטיפול downstream
@@ -242,9 +242,8 @@ export function channelUsage(messages) {
 export function matchMessageContact(db, message) {
   const m = normalizeMessage(message);
   const peer = m.direction === 'inbound' ? m.from : m.to;
-  const dir = buildDirectory(db);
-  const e164 = toE164(peer);
-  const matches = (e164 && dir[e164]) || [];
-  const primary = matches[0] || null;
+  // primary לפי POP_PRIORITY (כמו screen-pop) — נחיל-עומק: buildDirectory ממוין
+  // אלפביתית, ולכן [0] גולמי נתן primary שונה בהודעה מול screen-pop לאותו מספר.
+  const primary = lookupInDirectory(buildDirectory(db), peer).primary;
   return { ...m, ...(primary ? { contactRef: { kind: primary.kind, id: primary.id, name: primary.name } } : {}) };
 }

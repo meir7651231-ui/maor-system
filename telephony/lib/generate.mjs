@@ -71,18 +71,22 @@ function zmanimBlock(tenant, opts) {
     tzeis: (tenant.geo && Number.isFinite(tenant.geo.tzeis)) ? tenant.geo.tzeis : 40,
   });
 }
-/** ימי-הסגירה העבריים (יו״ט) לחלון — ריק אם הדגל כבוי, אין anchorDate, או zmanim פעיל (מוחלף בחלונות-מדויקים). */
+/** ימי-הסגירה העבריים (יום-מלא) לחלון. כש-zmanim פעיל: יו״ט מוחלף בחלונות-מדויקים,
+ * אך צומות/חול-המועד עדיין נצרבים כאן כיום-מלא (החלונות candle→tzeis לא מכסים אותם —
+ * C2 מנחיל-העומק: אין אובדן סגירת-צומות). ערב-חג מדולג כש-zmanim (חלון-הערב מכסה). */
 function hebrewBlock(tenant, opts) {
-  if (zmanimOn(tenant, opts)) return [];
   if (!featureOn(tenant, 'calendar.hebrew') || !opts.anchorDate) return [];
+  const zm = zmanimOn(tenant, opts);
   const diaspora = tenant.timezone && !/Jerusalem|Tel_Aviv|Asia\/Hebron/.test(tenant.timezone);
-  return hebrewClosedDates(opts.anchorDate, opts.calendarWindow || 400, {
+  const days = hebrewClosedDates(opts.anchorDate, opts.calendarWindow || 400, {
     diaspora,
     tz: tenant.timezone || 'Asia/Jerusalem',
-    includeErev: featureOn(tenant, 'calendar.erev'),
+    includeErev: !zm && featureOn(tenant, 'calendar.erev'), // zmanim: חלון-הערב מכסה
     includeCholHamoed: featureOn(tenant, 'calendar.cholhamoed'),
     includeFasts: featureOn(tenant, 'calendar.fasts'),
   });
+  // zmanim פעיל ⇒ יו״ט מכוסה בחלונות-המדויקים; משאירים רק צום/חול-המועד (יום-מלא).
+  return zm ? days.filter((c) => c.kind === 'fast' || c.kind === 'cholhamoed') : days;
 }
 
 const HHMM_RE = /^([01]?\d|2[0-3]):[0-5]\d$/;
@@ -337,6 +341,28 @@ function dialplanXml(tenant, opts = {}) {
     if (n.forwardTo) continue;
     if (!(n.hours && Array.isArray(n.hours.days) && n.hours.start && n.hours.end)) continue;
     const dst = `destination_number" expression="^line_${esc(n.id)}$`;
+    // C3 מנחיל-העומק: מוקד-מצוקה/שבעה חלים גם על קו-עם-לו״ז — לפני דיספאטץ׳-השעות
+    //   של הקו (אחרת מתקשר-בסיכון בקו-עם-hours נופל לתא-קולי במקום לאחראי).
+    if (R.priority && R.priority.numbers && R.priority.numbers.length) {
+      const pRing = R.priority.ringSeconds || manager.ringSeconds;
+      L.push(`    <extension name="line_${esc(n.id)}_priority">`);
+      L.push(`      <condition field="${dst}"/>`);
+      L.push(`      <condition field="\${cid_e164}" expression="^(${numbersAlternation(R.priority.numbers)})$">`);
+      L.push(`        <action application="set" data="priority_call=true"/>`);
+      L.push(`        <action application="bridge" data="{leg_timeout=${pRing}}user/${esc(R.priority.ext)}@${esc(tenant.tenantId)}"/>`);
+      L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
+      L.push(`      </condition>`);
+      L.push(`    </extension>`);
+    }
+    if (mrn) {
+      L.push(`    <extension name="line_${esc(n.id)}_mourning">`);
+      L.push(`      <condition field="${dst}"/>`);
+      L.push(`      <condition field="\${mourning_active}" expression="^true$">`);
+      L.push(`        <action application="bridge" data="{leg_timeout=${manager.ringSeconds}}user/${esc(mrn.ext)}@${esc(tenant.tenantId)}"/>`);
+      L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
+      L.push(`      </condition>`);
+      L.push(`    </extension>`);
+    }
     L.push(`    <extension name="line_${esc(n.id)}_closed">`);
     L.push(`      <condition field="${dst}"/>`);
     L.push(`      <condition field="\${force_closed}" expression="^true$">`);
@@ -545,8 +571,9 @@ function dialplanXml(tenant, opts = {}) {
         .map((id) => sims.find((n) => n.id === id))
         .filter((n) => n && (!kosherMode || n.kosher) && n.id !== def.id);
       for (const fb of fbSims) {
+        // בלי tollGuard נוסף: ה-limit hash של הגשר-הראשי כבר תופס את השיחה כולה;
+        // גשר-גיבוי הוא חלופה (continue_on_fail), לא מקום-נוסף. (נחיל-עומק: כפל-תקרה.)
         L.push(`        <action application="set" data="effective_caller_id_number=${esc(fb.e164)}"/>`);
-        for (const g of tollGuard('        ')) L.push(g);
         L.push(`        <action application="bridge" data="sofia/gateway/${esc(gw)}${fb.gatewayChannel}/$1"/>`);
       }
       L.push(`      </condition>`);

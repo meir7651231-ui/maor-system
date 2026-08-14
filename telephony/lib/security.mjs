@@ -37,18 +37,24 @@ export function secretsIsolated(tenants) {
 }
 
 // ── 81ב. סריקת-דליפה חוצת-דיירים (הוכחת-בידוד סמנטית) ────────────────────────
-/** טביעת-הזהות הייחודית של דייר: ה-slug + כל מפני-הסוד שלו. */
+const reEscape = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/**
+ * טביעת-הזהות הייחודית של דייר: הקשר-הניתוב + כל מפני-הסוד. כולם מסתיימים בסלאג
+ * ⇒ נבדקים עם גבול-מילה (לא substring גולמי — אחרת "chesed" false-hit על "chesed-north").
+ * C4 מנחיל-העומק. מחזיר regex פר-חתם: <mark> שאינו-ממשיך-בתו-סלאג.
+ */
 function tenantFingerprint(tenant) {
   const id = tenant.tenantId;
-  const marks = new Set([`__${id}`]); // כל סוד/הקשר נושא __<id> — זה החתם הייחודי
+  const marks = new Set([`__${id}`, `tenant_${id}`]); // סוד/הקשר-ניתוב — חתם ייחודי
   for (const v of Object.values(secretsFor(tenant))) marks.add(v);
   const rec = recordingEncryption(tenant);
   if (rec.keyRef) marks.add(rec.keyRef);
-  return marks;
+  return [...marks].map((m) => ({ mark: m, re: new RegExp(reEscape(m) + '(?![a-z0-9_-])') }));
 }
 /**
  * מוודא שסוד/זהות של דייר-אחד לא מופיע בקבצים של דייר-אחר. מעבר לבדיקת-הנתיבים
  * (planTenants) — זו הוכחה סמנטית שהגנרטור לא זלג מזהה בין-לקוחות (copy-paste).
+ * גבול-מילה (C4) ⇒ אין false-positive כשסלאג הוא תחילית של אחר.
  * @param {Array<{tenant:object, files:Record<string,string>}>} bundles
  * @returns {{clean:boolean, violations:Array<{owner:string,leakedInto:string,mark:string,file:string}>}}
  */
@@ -59,10 +65,9 @@ export function crossTenantLeakScan(bundles) {
     const me = b.tenant.tenantId;
     for (const other of fps) {
       if (other.id === me) continue;
-      for (const mark of other.marks) {
-        // חתם-הדייר-האחר שאינו חתם-שלי (מונע חיתוך-slug אקראי — משווים לפי בעלות).
+      for (const { mark, re } of other.marks) {
         for (const [file, content] of Object.entries(b.files || {})) {
-          if (String(content).includes(mark)) {
+          if (re.test(String(content))) {
             violations.push({ owner: other.id, leakedInto: me, mark, file });
           }
         }

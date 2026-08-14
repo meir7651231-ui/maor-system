@@ -80,8 +80,13 @@ export function normalizeRouting(raw = {}) {
 
   // Queue
   if (raw.queue && typeof raw.queue === 'object') {
+    // music: מותר קובץ/URL בטוח או ברירת-המחדל $${hold_music} בלבד; כל '$' אחר
+    // (הזרקת-משתנה) נדחה לברירת-המחדל. C1 מנחיל-העומק.
+    const rawMusic = typeof raw.queue.music === 'string' && raw.queue.music ? raw.queue.music : '';
+    const safeMusic = (rawMusic && (rawMusic === '$${hold_music}' || !rawMusic.includes('$'))) ? rawMusic : '$${hold_music}';
+    if (rawMusic && safeMusic !== rawMusic) warnings.push(`queue.music מכיל '$' לא-בטוח — נדחה ל-$${'{'}hold_music}.`);
     routing.queue = {
-      music: typeof raw.queue.music === 'string' && raw.queue.music ? raw.queue.music : '$${hold_music}',
+      music: safeMusic,
       maxWaitSec: Math.max(1, Number.isInteger(raw.queue.maxWaitSec) ? raw.queue.maxWaitSec : 300),
       announcePosition: raw.queue.announcePosition !== false,
     };

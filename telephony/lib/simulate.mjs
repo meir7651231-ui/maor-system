@@ -6,6 +6,30 @@
 import { toE164 } from './normalize.mjs';
 import { featureOn, termOf } from './config.mjs';
 import { classifyDay } from './hebcal.mjs';
+import { hebrewClosedWindows } from './zmanim.mjs';
+
+function addDaysIso(iso, n) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 12) + n * 86400000).toISOString().slice(0, 10);
+}
+/** סיבת-סגירה כש-zmanim פעיל — מיושר לגנרטור (C2): צום/חוה״מ יום-מלא · שבת/יו״ט חלון מדויק. */
+function zmanimClosedReason(tenant, call) {
+  const tz = tenant.timezone || 'Asia/Jerusalem';
+  const diaspora = tz && !/Jerusalem|Tel_Aviv|Hebron/.test(tz);
+  const c = classifyDay(call.date, { tz, diaspora });
+  if (featureOn(tenant, 'calendar.fasts') && c.fast && !c.shabbat) return c.fast;
+  if (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed) return c.cholHamoed;
+  // חלון מדויק [ערב-הדלקה→יום-אחרון-צאת] סביב התאריך.
+  const wins = hebrewClosedWindows(addDaysIso(call.date, -2), 5, tenant, {
+    includeShabbat: featureOn(tenant, 'calendar.shabbat'),
+    includeYomTov: featureOn(tenant, 'calendar.hebrew'),
+  });
+  const at = `${call.date}T${call.hhmm || '12:00'}`;
+  for (const w of wins) {
+    if (`${w.startIso}T${w.startTime}` <= at && at <= `${w.endIso}T${w.endTime}`) return w.reason;
+  }
+  return null;
+}
 
 function hhmmToMin(s) {
   const [h, m] = String(s).split(':').map(Number);
@@ -50,7 +74,9 @@ export function simulateCall(tenant, call = {}) {
       if (kosherMode && sim && !sim.kosher) return { path: ['outbound', `pick:${m[1]}`], outcome: 'non-kosher-blocked' };
       return { path: ['outbound', `pick:${m[1]}`], outcome: sim ? `via:${sim.label}` : 'no-such-sim' };
     }
-    const sims = tenant.numbers.filter((n) => n.onramp === 'sim-in-gateway' && Number.isInteger(n.gatewayChannel));
+    // מיון לפי gatewayChannel — מיושר ל-outboundSims בגנרטור (נחיל-עומק: בחירת-def).
+    const sims = tenant.numbers.filter((n) => n.onramp === 'sim-in-gateway' && Number.isInteger(n.gatewayChannel))
+      .sort((a, b) => a.gatewayChannel - b.gatewayChannel);
     const pick = kosherMode ? sims.filter((n) => n.kosher) : sims;
     const def = pick.find((n) => n.id === tenant.outbound.defaultNumberId) || pick[0];
     return { path: ['outbound', 'default'], outcome: def ? `via:${def.label}` : 'no-default' };
@@ -60,6 +86,9 @@ export function simulateCall(tenant, call = {}) {
   const num = tenant.numbers.find((n) => n.e164 === didE164 || n.e164 === call.did);
   if (!num) return { path: ['inbound'], outcome: 'unknown-did' };
   path.push(`in:${num.label}`);
+
+  // קו-הכרזה: טרמינלי ב-entryActions בגנרטור — לפני כל ניתוב (blocklist/priority/mourning).
+  if (num.role === 'announcement') return { path: [...path, 'announcement'], outcome: 'announcement' };
 
   // חסימה — מיושר לגנרטור: חסום ברשימה, וגם חסוי/אנונימי כשיש allowlist.
   const cid = toE164(call.callerId);
@@ -81,28 +110,32 @@ export function simulateCall(tenant, call = {}) {
     return { path: [...path, 'mourning', `sub:${tenant.mourning.ext}`], outcome: 'mourning' };
   }
 
-  // קו-הכרזה.
-  if (num.role === 'announcement') return { path: [...path, 'announcement'], outcome: 'announcement' };
-
-  // חישוב-פתיחה — מיישר לגנרטור: force_closed (חירום/dnd/חג) גובר על global_open (שעות).
+  // חישוב-פתיחה — מיישר לגנרטור (last-writer-wins): חירום > חג/זמנים > dnd, גובר על שעות.
   const at = resolveMoment(call);
+  const zmActive = featureOn(tenant, 'calendar.zmanim') && !!call.date;
   let forceClosed = false;
   let reason = '';
-  if (featureOn(tenant, 'emergency') && tenant.emergency && tenant.emergency.active) { forceClosed = true; reason = 'חירום'; }
-  else if (featureOn(tenant, 'voice.dnd') && R.dnd) { forceClosed = true; reason = 'נא לא להפריע'; }
-  else if (featureOn(tenant, 'calendar.hebrew') && call.date) {
-    // כמו hebrewClosedDates: יו״ט תמיד; ערב-חג/חוה״מ רק אם הדגל דלוק. שבת ב-wday.
-    const diaspora = tenant.timezone && !/Jerusalem|Tel_Aviv|Hebron/.test(tenant.timezone);
-    const c = classifyDay(call.date, { tz: tenant.timezone, diaspora });
-    const closes = c.yomTov
-      || (featureOn(tenant, 'calendar.erev') && c.erevChag)
-      || (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed)
-      || (featureOn(tenant, 'calendar.fasts') && c.fast && !c.shabbat);
-    if (closes) { forceClosed = true; reason = c.yomTov || c.erevChag || c.cholHamoed || c.fast; }
+  if (featureOn(tenant, 'emergency') && tenant.emergency && tenant.emergency.active) {
+    forceClosed = true; reason = 'חירום';
+  } else {
+    let closedReason = null;
+    if (zmActive) {
+      closedReason = zmanimClosedReason(tenant, call);
+    } else if (featureOn(tenant, 'calendar.hebrew') && call.date) {
+      const diaspora = tenant.timezone && !/Jerusalem|Tel_Aviv|Hebron/.test(tenant.timezone);
+      const c = classifyDay(call.date, { tz: tenant.timezone, diaspora });
+      closedReason = c.yomTov
+        || (featureOn(tenant, 'calendar.erev') && c.erevChag)
+        || (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed)
+        || (featureOn(tenant, 'calendar.fasts') && c.fast && !c.shabbat) || null;
+    }
+    if (closedReason) { forceClosed = true; reason = closedReason; } // חג > dnd
+    else if (featureOn(tenant, 'voice.dnd') && R.dnd) { forceClosed = true; reason = 'נא לא להפריע'; }
   }
-  // global_open: חלון-הקו (אם יש) אחרת שעות-המשרד, מודע-שבת.
+  // global_open: חלון-הקו (אם יש) אחרת שעות-המשרד. zmanim ⇒ חלון-רגיל (הסגירה מהחלון
+  // המדויק כבר ב-forceClosed); אחרת מודע-שבת (חיתוך-שישי סטטי).
   const win = num.hours || tenant.officeHours;
-  const open = !forceClosed && inWindowShabbat(tenant, win, at);
+  const open = !forceClosed && (zmActive ? inWindow(win, at) : inWindowShabbat(tenant, win, at));
   if (!reason) reason = open ? 'שעות-פעילות' : 'מחוץ-לשעות';
 
   if (open) {

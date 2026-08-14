@@ -152,7 +152,7 @@ export function sanitizeConfigFields(raw) {
       if (typeof v !== 'string' || !TERM_KEYS.has(k)) continue;
       // shabbatFriEnd חייב HH:MM (אחרת יופל ל-15:00 בכל צרכן) — מקור-אמת יחיד.
       if (k === 'shabbatFriEnd' && !/^([01]?\d|2[0-3]):[0-5]\d$/.test(v)) continue;
-      terms[k] = v;
+      terms[k] = v.replace(/\$/g, ''); // C1: מסיר '$' — מונע הזרקת-משתני-FreeSWITCH ממונח-לתצוגה
     }
   }
   return { features, terms };
