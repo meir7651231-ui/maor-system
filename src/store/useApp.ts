@@ -1624,7 +1624,7 @@ export const useApp = create<AppState>()((set, get) => {
         supporters: db.supporters.map((s) => {
           if (s.id !== supporterId) return s;
           const donations = [{ ...donation, rid }, ...s.donations];
-          // מצבור נגזר מ-donations+hist (#14) — מקור-אמת יחיד, עקבי עם migrate/audit.
+          // מצבור = קבלות-בלבד (#14, hist מתווסף בתצוגה) — מקור-אמת יחיד עם migrate/audit.
           const agg = supporterAggregates({ donations, hist: s.hist });
           return { ...s, donations, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
         }),
@@ -2303,6 +2303,12 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     exportBackup() {
+      // 🔐 מאסטר-מתג הוצאת-מידע (13.8): עובד שהמנהל חסם לו ייצוא (core.export=false
+      // בכרטיס-העובד) לא יכול להוריד גיבוי — חסימה גם ברמת-הפעולה, לא רק ה-UI.
+      if (!featureOn(get().config, 'core.export')) {
+        get().toast('⛔ הוצאת מידע חסומה עבורך על-ידי מנהל הארגון');
+        return;
+      }
       void exportBackupFile(get().db).then(() => {
         get().toast(
           get().encrypted ? 'גיבוי מוצפן ירד — שמרו את הסיסמה/מפתח השחזור ✓' : 'קובץ גיבוי מלא ירד למחשב ✓',
