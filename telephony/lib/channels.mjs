@@ -12,7 +12,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { toE164 } from './normalize.mjs';
-import { buildDirectory, lookupInDirectory } from './cti.mjs';
+import { buildDirectory, popPriorityFor } from './cti.mjs';
 
 /**
  * בונה תוכנית-ערוצים לכל מספר שאינו-קול-בלבד. מחזיר את דרך-הטיפול downstream
@@ -238,12 +238,20 @@ export function channelUsage(messages) {
 }
 
 // ── 80. חיבור-מאור: הודעה↔משפחה/תורם ─────────────────────────────────────────
-/** מצרף contactRef להודעה לפי directory של מאור (הצד-השני של ה-from/to). */
-export function matchMessageContact(db, message) {
+/**
+ * מצרף contactRef להודעה לפי directory של מאור (הצד-השני של ה-from/to).
+ * **נחיל-5 F10:** ה-primary נבחר בעדיפות-פר-ורטיקל (‏popPriorityFor) — זהה בדיוק ל-
+ * screenPop של השיחה. בלי vertical (ברירת-מחדל) ⇒ POP_PRIORITY (ביט-זהה להתנהגות-הקודמת).
+ * אחרת (למשל chesed) מספר-משותף family+supporter קופץ אותו כרטיס בהודעה כמו בשיחה.
+ * @param {object} db @param {object} message @param {{vertical?:string}} [opt]
+ */
+export function matchMessageContact(db, message, opt = {}) {
   const m = normalizeMessage(message);
   const peer = m.direction === 'inbound' ? m.from : m.to;
-  // primary לפי POP_PRIORITY (כמו screen-pop) — נחיל-עומק: buildDirectory ממוין
-  // אלפביתית, ולכן [0] גולמי נתן primary שונה בהודעה מול screen-pop לאותו מספר.
-  const primary = lookupInDirectory(buildDirectory(db), peer).primary;
+  const e164 = toE164(peer);
+  const prio = popPriorityFor(opt.vertical);
+  const matches = [...((e164 && buildDirectory(db)[e164]) || [])]
+    .sort((a, b) => (prio[a.kind] ?? 9) - (prio[b.kind] ?? 9) || (a.id + '').localeCompare(b.id + ''));
+  const primary = matches[0] || null;
   return { ...m, ...(primary ? { contactRef: { kind: primary.kind, id: primary.id, name: primary.name } } : {}) };
 }

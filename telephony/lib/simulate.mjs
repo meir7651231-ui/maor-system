@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { toE164 } from './normalize.mjs';
-import { featureOn, termOf } from './config.mjs';
+import { featureOn, termOf, isDiaspora } from './config.mjs';
 import { classifyDay } from './hebcal.mjs';
 import { hebrewClosedWindows } from './zmanim.mjs';
 
@@ -12,22 +12,29 @@ function addDaysIso(iso, n) {
   const [y, m, d] = iso.split('-').map(Number);
   return new Date(Date.UTC(y, m - 1, d, 12) + n * 86400000).toISOString().slice(0, 10);
 }
-/** סיבת-סגירה כש-zmanim פעיל — מיושר לגנרטור (C2): צום/חוה״מ יום-מלא · שבת/יו״ט חלון מדויק. */
+/**
+ * סיבת-סגירה כש-zmanim פעיל — מיושר-מלא לגנרטור (last-writer-wins). סדר-הדריסה בגנרטור:
+ * hebrewBlock (צום/חוה״מ יום-מלא) נכתב תחילה, זמנים-מדויקים (שבת/יו״ט חלון) נכתבים אחריו
+ * ⇒ **החלון גובר**. לכן כאן: קודם החלון-המדויק, ואם לא-בתוכו — נפילה ליום-מלא.
+ * נחיל-5: F7 (tzeis מועבר) · F8 (‏!c.yomTov — יו״כ נסגר בחלון, לא יום-מלא) · F16 (ערב-יו״ט).
+ */
 function zmanimClosedReason(tenant, call) {
   const tz = tenant.timezone || 'Asia/Jerusalem';
-  const diaspora = tz && !/Jerusalem|Tel_Aviv|Hebron/.test(tz);
-  const c = classifyDay(call.date, { tz, diaspora });
-  if (featureOn(tenant, 'calendar.fasts') && c.fast && !c.shabbat) return c.fast;
-  if (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed) return c.cholHamoed;
-  // חלון מדויק [ערב-הדלקה→יום-אחרון-צאת] סביב התאריך.
+  const c = classifyDay(call.date, { tz, diaspora: isDiaspora(tz) });
+  // חלון מדויק [ערב-הדלקה→יום-אחרון-צאת] — גובר על יום-מלא. tzeis זהה לגנרטור (F7).
   const wins = hebrewClosedWindows(addDaysIso(call.date, -2), 5, tenant, {
     includeShabbat: featureOn(tenant, 'calendar.shabbat'),
     includeYomTov: featureOn(tenant, 'calendar.hebrew'),
+    tzeis: (tenant.geo && Number.isFinite(tenant.geo.tzeis)) ? tenant.geo.tzeis : 40,
   });
   const at = `${call.date}T${call.hhmm || '12:00'}`;
   for (const w of wins) {
     if (`${w.startIso}T${w.startTime}` <= at && at <= `${w.endIso}T${w.endTime}`) return w.reason;
   }
+  // יום-מלא (צום/חוה״מ) — נצרב יום-מלא ב-hebrewBlock כשלא בתוך חלון-יו״ט. יו״כ (yomTov+fast)
+  // מכוסה ע״י החלון לעיל ⇒ !c.yomTov מונע סגירת-יום-מלא-שגויה אחרי-צאת (F8).
+  if (featureOn(tenant, 'calendar.fasts') && c.fast && !c.shabbat && !c.yomTov) return c.fast;
+  if (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed) return c.cholHamoed;
   return null;
 }
 
@@ -39,6 +46,14 @@ function hhmmToMin(s) {
 /** האם הרגע בתוך חלון (days,start,end). at = {dow, minutes}. */
 function inWindow(win, at) {
   return win.days.includes(at.dow) && at.minutes >= hhmmToMin(win.start) && at.minutes < hhmmToMin(win.end);
+}
+
+/**
+ * שרשרת אחרי-שעות מיושרת לגנרטור (extension afterhours): מנהל → גלישה → תא-קולי,
+ * או — כשה-voicemail כבוי — צליל-תפוס+ניתוק (בלי לכידת-הודעה). נחיל-5 F11.
+ */
+function afterhoursChain(tenant, R) {
+  return ['manager', ...((R.overflow || []).map((e) => `overflow:${e}`)), featureOn(tenant, 'voicemail') ? 'voicemail' : 'busy'];
 }
 
 /** חלון מודע-שבת — מיישר לגנרטור: calendar.shabbat ⇒ אין שבת, שישי חתוך ב-shabbatFriEnd. */
@@ -64,22 +79,38 @@ export function simulateCall(tenant, call = {}) {
   const path = [];
   const R = tenant.routing || {};
 
-  // יוצאת: בחירת-SIM. מצב-כשר ⇒ רק SIM-כשר ניתן-לבחירה/ברירת-מחדל.
+  // יוצאת: בחירת-SIM. מצב-כשר ⇒ רק SIM-כשר. **נחיל-5 F6: מגודר-דגלים מיושר לגנרטור** —
+  // בלי outbound/pick/default/international (או פורמט לא-תואם) הדיאלפלן ריק מ-extension
+  // תואם ⇒ הסימולטור חייב לומר 'no-route'/'outbound-disabled', לא via:label שקרי.
   if (call.direction === 'outbound') {
     const kosherMode = featureOn(tenant, 'voice.kosher');
+    if (!featureOn(tenant, 'outbound')) return { path: ['outbound'], outcome: 'outbound-disabled' };
     const target = call.did || '';
-    const m = /^(\d+)#/.exec(target);
-    if (m) {
-      const sim = tenant.numbers.find((n) => n.onramp === 'sim-in-gateway' && n.gatewayChannel === Number(m[1]));
-      if (kosherMode && sim && !sim.kosher) return { path: ['outbound', `pick:${m[1]}`], outcome: 'non-kosher-blocked' };
-      return { path: ['outbound', `pick:${m[1]}`], outcome: sim ? `via:${sim.label}` : 'no-such-sim' };
-    }
-    // מיון לפי gatewayChannel — מיושר ל-outboundSims בגנרטור (נחיל-עומק: בחירת-def).
+    // מיון לפי gatewayChannel — מיושר ל-outboundSims בגנרטור.
     const sims = tenant.numbers.filter((n) => n.onramp === 'sim-in-gateway' && Number.isInteger(n.gatewayChannel))
       .sort((a, b) => a.gatewayChannel - b.gatewayChannel);
     const pick = kosherMode ? sims.filter((n) => n.kosher) : sims;
+    // בחירת-ערוץ <ch>#<יעד> — כמו out_pick_ (generate: expression ^<ch>#(\+?\d+)$).
+    const m = /^(\d+)#(\+?\d+)$/.exec(target);
+    if (m) {
+      if (!featureOn(tenant, 'outbound.pick')) return { path: ['outbound', `pick:${m[1]}`], outcome: 'no-route' };
+      const sim = sims.find((n) => n.gatewayChannel === Number(m[1]));
+      if (!sim) return { path: ['outbound', `pick:${m[1]}`], outcome: 'no-such-sim' };
+      if (kosherMode && !sim.kosher) return { path: ['outbound', `pick:${m[1]}`], outcome: 'non-kosher-blocked' };
+      return { path: ['outbound', `pick:${m[1]}`], outcome: `via:${sim.label}` };
+    }
+    // ברירת-מחדל (בלי קידומת): דורש outbound.default + def + פורמט. מקומי↔בין-לאומי לפי הדגל
+    // (generate: out_default ^(0\d{7,9}|\+?972\d{7,9})$ · out_intl מגודר outbound.international).
     const def = pick.find((n) => n.id === tenant.outbound.defaultNumberId) || pick[0];
-    return { path: ['outbound', 'default'], outcome: def ? `via:${def.label}` : 'no-default' };
+    if (!def) return { path: ['outbound', 'default'], outcome: 'no-default' };
+    if (!featureOn(tenant, 'outbound.default')) return { path: ['outbound', 'default'], outcome: 'no-route' };
+    if (/^(0\d{7,9}|\+?972\d{7,9})$/.test(target)) return { path: ['outbound', 'default'], outcome: `via:${def.label}` };
+    if (/^(00\d{6,}|\+\d{8,15})$/.test(target)) {
+      return featureOn(tenant, 'outbound.international')
+        ? { path: ['outbound', 'intl'], outcome: `via:${def.label}` }
+        : { path: ['outbound', 'intl'], outcome: 'no-route' };
+    }
+    return { path: ['outbound', 'default'], outcome: 'no-route' };
   }
 
   const didE164 = toE164(call.did);
@@ -122,8 +153,7 @@ export function simulateCall(tenant, call = {}) {
     if (zmActive) {
       closedReason = zmanimClosedReason(tenant, call);
     } else if (featureOn(tenant, 'calendar.hebrew') && call.date) {
-      const diaspora = tenant.timezone && !/Jerusalem|Tel_Aviv|Hebron/.test(tenant.timezone);
-      const c = classifyDay(call.date, { tz: tenant.timezone, diaspora });
+      const c = classifyDay(call.date, { tz: tenant.timezone, diaspora: isDiaspora(tenant.timezone) }); // F17
       closedReason = c.yomTov
         || (featureOn(tenant, 'calendar.erev') && c.erevChag)
         || (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed)
@@ -145,13 +175,14 @@ export function simulateCall(tenant, call = {}) {
       if (call.digit != null) {
         const opt = R.ivr.options.find((o) => o.digit === String(call.digit));
         if (opt) return { path: [...path, `opt:${call.digit}`], outcome: `ivr:${opt.dest.type}`, reason };
-        return { path: [...path, 'ivr-invalid'], outcome: 'afterhours', reason };
+        return { path: [...path, 'ivr-invalid', ...afterhoursChain(tenant, R)], outcome: 'afterhours', reason };
       }
       return { path, outcome: 'ivr-menu', reason };
     }
     if (featureOn(tenant, 'voice.queue') && R.queue) return { path: [...path, 'queue'], outcome: 'queue', reason };
-    // משרד → אם אין-מענה נופל לאחרי-שעות (מדומה כ-'office' עם fallback).
-    return { path: [...path, 'office'], outcome: call.officeAnswered === false ? 'afterhours' : 'office', reason };
+    // משרד → אם אין-מענה נופל לאחרי-שעות (מנהל→גלישה→תא-קולי/צליל-תפוס — F11).
+    if (call.officeAnswered === false) return { path: [...path, 'office', ...afterhoursChain(tenant, R)], outcome: 'afterhours', reason };
+    return { path: [...path, 'office'], outcome: 'office', reason };
   }
 
   // סגור → אחרי-שעות: מנהל → גלישה → תא-קולי.
@@ -213,8 +244,14 @@ export function explainCall(tenant, call = {}) {
       lines.push(`🌙 מחוץ-לשעות${closedTag(sim.reason)} → מנהל (${manager}) → תא-קולי (${vm}).`); break;
     case 'manager':
       lines.push(`🌙 מחוץ-לשעות${closedTag(sim.reason)} → מנהל (${manager}) (בלי תא-קולי).`); break;
-    case 'afterhours':
-      lines.push(`🌙 ${sim.path.includes('ivr-invalid') ? 'בחירה לא-תקינה ב-IVR' : 'אין-מענה במשרד'} → מנהל (${manager}) → תא-קולי.`); break;
+    case 'afterhours': {
+      // F11: מודע-voicemail — כשהתא-הקולי כבוי, אחרי-שעות מנגן צליל-תפוס ומנתק (בלי לכידה).
+      const trg = sim.path.includes('ivr-invalid') ? 'בחירה לא-תקינה ב-IVR' : 'אין-מענה במשרד';
+      lines.push(featureOn(tenant, 'voicemail')
+        ? `🌙 ${trg} → מנהל (${manager}) → תא-קולי.`
+        : `🌙 ${trg} → מנהל (${manager}) → צליל-תפוס (אין תא-קולי).`);
+      break;
+    }
     default:
       if (String(sim.outcome).startsWith('ivr:')) lines.push(`✅ בחירת-IVR → ${sim.outcome.slice(4)}.`);
       else lines.push(`תוצאה: ${sim.outcome}`);

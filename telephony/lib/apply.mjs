@@ -223,8 +223,10 @@ export function migrationRisk(prev, next) {
     R('outbound-emptied', 'high', 'כל ה-SIM ליציאה הוסרו — חיוג-יוצא יושבת');
   } else if (outS(next).length < outS(prev).length) {
     R('gateway-drop', 'high', `שערי-יציאה ירדו ${outS(prev).length}→${outS(next).length}`);
-  } else {
+  } else if (outS(next).length === outS(prev).length) {
     // החלפת-SIM בשווה-כמות: זהות-יציאה (id/e164) השתנתה אך הספירה זהה — נחיל-העומק.
+    // **נחיל-5 F12: רק שווה-כמות** — הוספת-SIM טהורה (next>prev, ברירת-המחדל לא זזה)
+    // שינתה sig בעבר ⇒ 'outbound-swapped' high שקרי שמרגיל את המפעיל להתעלם מהאזהרה.
     const sig = (m) => outS(m).map((n) => `${n.id}:${n.e164}`).sort().join('|');
     if (sig(prev) && sig(prev) !== sig(next)) {
       R('outbound-swapped', 'high', 'זהות SIM-יציאה הוחלפה (מספר/ערוץ) — חיוג-יוצא ינותב דרך מספר אחר');

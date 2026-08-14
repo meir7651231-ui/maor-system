@@ -11,6 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { classifyDay } from './hebcal.mjs';
+import { isDiaspora } from './config.mjs';
 
 const DEG = Math.PI / 180;
 const rad = (d) => d * DEG;
@@ -150,7 +151,7 @@ function addDaysIso(iso, n) {
  */
 export function hebrewClosedWindows(fromIso, windowDays, tenant, opt = {}) {
   const tz = (tenant && tenant.timezone) || 'Asia/Jerusalem';
-  const diaspora = opt.diaspora != null ? opt.diaspora : (tz && !/Jerusalem|Tel_Aviv|Hebron/.test(tz));
+  const diaspora = opt.diaspora != null ? opt.diaspora : isDiaspora(tz); // F17: הכרעה-מרוכזת
   // סיווג פר-יום (יו״ט או שבת = סגור).
   const incYt = opt.includeYomTov !== false;
   const incSh = opt.includeShabbat !== false;
@@ -176,9 +177,16 @@ export function hebrewClosedWindows(fromIso, windowDays, tenant, opt = {}) {
     const erevIso = addDaysIso(first.iso, -1);
     const st = shabbatTimes(erevIso, tenant, opt);
     const en = shabbatTimes(last.iso, tenant, opt);
+    const reason = cls.slice(i, j + 1).map((x) => x.yomTov).find(Boolean) || 'שבת';
+    const kind = first.yomTov ? 'yomtov' : 'shabbat';
     if (st && en) {
-      const reason = cls.slice(i, j + 1).map((x) => x.yomTov).find(Boolean) || 'שבת';
-      out.push({ startIso: erevIso, startTime: st.candle, endIso: last.iso, endTime: en.tzeis, reason, kind: first.yomTov ? 'yomtov' : 'shabbat', days: j - i + 1 });
+      out.push({ startIso: erevIso, startTime: st.candle, endIso: last.iso, endTime: en.tzeis, reason, kind, days: j - i + 1 });
+    } else {
+      // נחיל-5 F14: שקיעה לא-מחושבת (קו-רוחב קוטבי, cosHA∉[-1,1]) ⇒ **נפילה-בטוחה
+      // לסגירת-יום-מלא** של הרצף (fail-CLOSED), במקום להשמיט את החלון ולהשאיר את הקו
+      // פתוח לתוך השבת/החג. כשל-פתיחה בפיצ׳ר-האמון-ההלכתי אסור. (geo ישראלי לעולם
+      // מחשב שקיעה ⇒ ביט-זהה; הענף נוגע רק לקהילה ארקטית עם zmanim דלוק.)
+      out.push({ startIso: first.iso, startTime: '00:00', endIso: last.iso, endTime: '23:59', reason, kind, days: j - i + 1 });
     }
     i = j + 1;
   }

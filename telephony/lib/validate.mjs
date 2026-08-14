@@ -35,6 +35,11 @@ function hhmmToMinutes(s) {
 // $${SECRET}/${var} של FreeSWITCH. שמות-עמותה/תוויות לעולם לא מכילים '$' לגיטימי.
 const noVars = (s) => (typeof s === 'string' ? s.replace(/\$/g, '') : s);
 
+// C1-שלם (נחיל-5 F1): כתובת-מייל לתא-קולי נצרבת ל-<param name="vm-mailto"> ב-directory,
+// שאותו FreeSWITCH מרחיב-$${} בזמן-טעינה. פורמט קפדני ללא '$'/מרכאות/סוגריים/רווח ⇒
+// אין הזרקת-סוד (‏$${GSM_PW__x}) ולא שבירת-XML. פסול = דילוג + אזהרה (לא חוסם).
+const EMAIL_RE = /^[^\s$<>"'`{}@]+@[^\s$<>"'`{}@]+\.[^\s$<>"'`{}@]{2,}$/;
+
 /**
  * @param {object} raw קונפיג-לקוח גולמי
  * @returns {{ok:boolean, errors:string[], warnings:string[], tenant:object|null}}
@@ -252,11 +257,21 @@ export function validateTenant(raw) {
       if (typeof e === 'string' && !EXT_RE.test(e)) errors.push(`שלוחה/תיבה לא-תקינה: "${e}" (ספרות בלבד, 2-6).`);
     }
 
+    // כתובות-מייל (נחיל-5 F1): אימות-פורמט קפדני לפני שהן נצרבות ל-vm-mailto בגנרטור;
+    // פסולה (או נושאת '$'/מרכאות) מושמטת עם אזהרה — לא מגיעה ל-XML.
+    const cleanEmail = (val, label) => {
+      if (typeof val !== 'string') return undefined;
+      const v = val.trim();
+      if (!EMAIL_RE.test(v)) { warnings.push(`${label} אינו כתובת-מייל תקינה ("${val}") — הושמט (הגנת-הזרקה).`); return undefined; }
+      return v;
+    };
+    const officeEmail = cleanEmail(dst.office?.email, 'destinations.office.email');
+    const vmEmail = cleanEmail(dst.voicemail?.email, 'destinations.voicemail.email');
     destinations = {
       office: {
         ext: Array.isArray(officeExt) ? officeExt : [officeExt].filter(Boolean),
         ringSeconds: Number.isInteger(dst.office?.ringSeconds) ? dst.office.ringSeconds : 25,
-        ...(dst.office?.email ? { email: dst.office.email } : {}),
+        ...(officeEmail ? { email: officeEmail } : {}),
       },
       manager: {
         ext: managerExt,
@@ -264,7 +279,7 @@ export function validateTenant(raw) {
       },
       voicemail: {
         box: (dst.voicemail && dst.voicemail.box) || '100',
-        ...(dst.voicemail && dst.voicemail.email ? { email: dst.voicemail.email } : {}),
+        ...(vmEmail ? { email: vmEmail } : {}),
       },
     };
   }

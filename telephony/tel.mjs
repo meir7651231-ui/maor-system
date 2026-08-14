@@ -78,12 +78,18 @@ switch (cmd) {
     if (!tenantsDir || !configRoot) die('שימוש: apply <tenantsDir> <configRoot> [--write]');
     const STATE = join(configRoot, '.telephony-state.json');
     const prev = existsSync(STATE) ? readJson(STATE) : {};
+    // נחיל-5 F5: עוגן-לוח (‏--anchor או היום) מוזרק ל-buildTenant — אחרת עמותה עם
+    // calendar.hebrew נבנית **בלי סגירות-חג בכלל, בשקט** (המרכזייה מצלצלת ביום-כיפור).
+    // ‏new Date() כאן = גבול-ה-CLI (הזרקת-הזמן); הליבה נשארת טהורה/דטרמיניסטית.
+    const anchor = opt('--anchor') || new Date().toISOString().slice(0, 10);
     const tenants = [];
     const bundles = []; // {tenant, files} — לאורקלים הסמנטיים
     const seen = new Set();
     for (const f of readdirSync(tenantsDir).filter((x) => x.endsWith('.json'))) {
-      const b = buildTenant(readJson(join(tenantsDir, f)));
+      const b = buildTenant(readJson(join(tenantsDir, f)), { anchorDate: anchor });
       if (!b.ok) die(`❌ ${f}: ${b.errors.join(' · ')}`);
+      // סייגי-הבנייה (למשל "לוח-עברי בלי anchor") **מוצגים** — לא נבלעים (F5).
+      if (b.warnings && b.warnings.length) for (const w of b.warnings) console.log(`   ⚠️  ${f}: ${w}`);
       if (seen.has(b.manifest.tenantId)) die(`❌ tenantId כפול: "${b.manifest.tenantId}" — דריסה. תקן לפני החלה.`);
       seen.add(b.manifest.tenantId);
       tenants.push({ tenantId: b.manifest.tenantId, desired: b.files });

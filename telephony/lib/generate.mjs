@@ -10,7 +10,7 @@
 // הקולי לגמרי. virtual/customer-forward = הלקוח מפנה אצל הספק הקיים שלו אלינו.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { featureOn, termOf } from './config.mjs';
+import { featureOn, termOf, isDiaspora } from './config.mjs';
 import { hebrewClosedDates } from './hebcal.mjs';
 import { hebrewClosedWindows, geoOf } from './zmanim.mjs';
 import { numbersAlternation } from './routing.mjs';
@@ -77,7 +77,7 @@ function zmanimBlock(tenant, opts) {
 function hebrewBlock(tenant, opts) {
   if (!featureOn(tenant, 'calendar.hebrew') || !opts.anchorDate) return [];
   const zm = zmanimOn(tenant, opts);
-  const diaspora = tenant.timezone && !/Jerusalem|Tel_Aviv|Asia\/Hebron/.test(tenant.timezone);
+  const diaspora = isDiaspora(tenant.timezone); // נחיל-5 F17: הכרעה-מרוכזת (היה Asia/Hebron)
   const days = hebrewClosedDates(opts.anchorDate, opts.calendarWindow || 400, {
     diaspora,
     tz: tenant.timezone || 'Asia/Jerusalem',
@@ -252,7 +252,9 @@ function dialplanXml(tenant, opts = {}) {
       L.push(`    <extension name="heb_${c.iso.replace(/-/g, '')}" continue="true">`);
       L.push(`      <condition date-time="${c.iso} 00:00:00~${c.iso} 23:59:59">`);
       L.push(`        <action application="set" data="force_closed=true"/>`);
-      L.push(`        <action application="set" data="closed_kind=holiday"/>`);
+      // נחיל-5 F15: צום אינו חג — בלי closed_kind=holiday (אחרת do_closed_holiday מנגן
+      // greeting-holiday.wav "חג שמח" ביום-צום). צום ⇒ do_closed הגנרי (greeting-closed).
+      if (c.kind !== 'fast') L.push(`        <action application="set" data="closed_kind=holiday"/>`);
       L.push(`        <action application="set" data="closed_reason=${esc(c.reason)}"/>`);
       L.push(`      </condition>`);
       L.push(`    </extension>`);
@@ -855,6 +857,13 @@ function gatewaysXml(tenant) {
 function manifest(tenant, warnings, opts = {}) {
   const vnums = voiceNumbers(tenant);
   const sims = outboundSims(tenant);
+  // נחיל-5 F9: ה-default שהדיאלפלן באמת מחייג דרכו — במצב-כשר מסונן לכשר-בלבד (זהה
+  // ל-def ב-dialplanXml). המניפסט חייב לשקף זאת, אחרת kosherOutbound:true מוצג לצד
+  // defaultNumberId שמצביע על SIM לא-כשר שהדיאלפלן כלל לא משתמש בו (סתירה מטעה).
+  const kMode = featureOn(tenant, 'voice.kosher');
+  const pickS = kMode ? sims.filter((n) => n.kosher) : sims;
+  const defId = tenant.outbound && tenant.outbound.defaultNumberId;
+  const defSim = kMode ? (pickS.find((n) => n.id === defId) || pickS[0]) : (sims.find((n) => n.id === defId) || sims[0]);
   const skipped = tenant.numbers.filter((n) => n.onramp === 'device-link' || !n.channels.includes('voice'));
   const heb = hebrewBlock(tenant, opts);
   const zwins = zmanimBlock(tenant, opts);
@@ -871,7 +880,7 @@ function manifest(tenant, warnings, opts = {}) {
     ...(tenant.mourning ? { mourning: tenant.mourning } : {}),
     inboundVoiceNumbers: vnums.map((n) => ({ id: n.id, e164: n.e164, label: n.label, onramp: n.onramp, kosher: n.kosher })),
     outboundSims: sims.map((n) => ({ id: n.id, e164: n.e164, label: n.label, prefix: `${n.gatewayChannel}#`, channel: n.gatewayChannel })),
-    outboundDefault: tenant.outbound.defaultNumberId,
+    outboundDefault: defSim ? defSim.id : defId,
     ...(tenant.outbound.failover && tenant.outbound.failover.length ? { outboundFailover: tenant.outbound.failover } : {}),
     ...(featureOn(tenant, 'voice.kosher') ? { kosherOutbound: true } : {}),
     nonVoiceChannels: skipped.map((n) => ({ id: n.id, e164: n.e164, label: n.label, type: n.type, onramp: n.onramp, channels: n.channels, note: n.onramp === 'device-link' ? 'ווצאפ ריבוי-מכשירים — מטופל בגשר-הודעות, לא בדיאלפלן הקולי' : 'לא נושא-קול' })),

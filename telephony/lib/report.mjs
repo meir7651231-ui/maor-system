@@ -43,10 +43,15 @@ export function trustReport(bundle, opt = {}) {
     add('kosher-integrity', 'שלמות-כשרות (יציאה כשרה)', hasK, 'high', hasK ? 'יש SIM-כשר ליציאה' : 'מצב-כשר בלי SIM-כשר — יציאה מושבתת');
   }
 
-  // 5. הצפנת-הקלטות — רק אם הקלטה פעילה.
+  // 5. הצפנת-הקלטות (במנוחה) — רק אם הקלטה פעילה. **נחיל-5 F4:** הדיאלפלן כותב .wav
+  // גולמי ל-recordings_dir (generate: record_session **בלי** REC_KEY) ⇒ הצפנת-המנוחה
+  // היא מודל-דורמנטי טרם-מחווט (כמו הצפנת-הענן של מאור). אסור להצהיר לוועד "AES-256-GCM
+  // פעיל" על-סמך דגל-הקונפיג בלבד — זו הצהרה בלתי-ניתנת-לאימות. pass:false בשני המצבים.
   if (featureOn(tenant, 'recording')) {
     const rec = recordingEncryption(tenant);
-    add('recording-encryption', 'הצפנת-הקלטות', rec.enabled, 'high', rec.enabled ? 'AES-256-GCM' : 'הקלטות פעילות בלי הצפנה');
+    add('recording-encryption', 'הצפנת-הקלטות', false, 'high', rec.enabled
+      ? 'מוגדר אך דורמנטי — record_session כותב .wav גולמי, REC_KEY טרם מחווט (חלון-בעלים)'
+      : 'הקלטות פעילות בלי הצפנה');
   }
 
   // 6. preflight-סודות — env מלא (אם נמסר).

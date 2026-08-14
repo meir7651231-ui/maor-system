@@ -395,7 +395,11 @@ export function campaignPlan(contacts, tenant, opt = {}) {
 export function callHeatmap(logs, opt = {}) {
   const frequentThreshold = Number.isInteger(opt.frequentThreshold) && opt.frequentThreshold > 0 ? opt.frequentThreshold : 3;
   const since = opt.since || null;
-  const events = (Array.isArray(logs) ? logs : []).filter((l) => l && l.number && (!since || String(l.startedAt) >= since));
+  // נחיל-5 F13: השוואת-since מנרמלת-גרנולריות — תאריך-בלבד ('2026-08-14') מרופד ל-
+  // '...T00:00:00' לפני ההשוואה הלקסיקוגרפית, אחרת אירוע-תאריך-בלבד באותו-יום נדחה
+  // מול since עם שעה ('2026-08-14' < '2026-08-14T00:00:00' — מחרוזת-קצרה קטנה-יותר).
+  const normTs = (s) => { const v = String(s || ''); return v.length === 10 ? v + 'T00:00:00' : v; };
+  const events = (Array.isArray(logs) ? logs : []).filter((l) => l && l.number && (!since || normTs(l.startedAt) >= normTs(since)));
   const byNum = new Map();
   for (const e of events) {
     const num = toE164(e.number) || e.number;

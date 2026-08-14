@@ -39,17 +39,29 @@ export function secretsIsolated(tenants) {
 // ── 81ב. סריקת-דליפה חוצת-דיירים (הוכחת-בידוד סמנטית) ────────────────────────
 const reEscape = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 /**
- * טביעת-הזהות הייחודית של דייר: הקשר-הניתוב + כל מפני-הסוד. כולם מסתיימים בסלאג
- * ⇒ נבדקים עם גבול-מילה (לא substring גולמי — אחרת "chesed" false-hit על "chesed-north").
- * C4 מנחיל-העומק. מחזיר regex פר-חתם: <mark> שאינו-ממשיך-בתו-סלאג.
+ * טביעת-הזהות הייחודית של דייר: הקשר-הניתוב + הדומיין + השער + כל מפני-הסוד.
+ *
+ * שני סוגי-חתם:
+ *  · **מסתיימי-סלאג** (`__<id>`, `tenant_<id>`, `@<id>`, secretsFor, keyRef) — נבדקים
+ *    עם גבול (‏`(?![a-z0-9-])`) שמונע false-hit כשסלאג הוא תחילית של אחר
+ *    (‏chesed⊂chesed-north). **נחיל-5 F2 (רגרסיית-C4):** הוסר `_` מהמחלקה — tenantId
+ *    לעולם לא מכיל `_` (SLUG_RE) ⇒ ה-`_` לא מנע אף false-positive, אבל *עיוור* חתמים
+ *    שהגנרטור ממשיך ב-`_`: ‏`PROVISION_PW__<id>__<ext>`, `VM_PW__<id>__<ext>`,
+ *    `tenant_<id>_gw/_q`. עכשיו דליפת-סוד פר-שלוחה נתפסת שוב.
+ *  · **חתם-שער** (`<id>-gw`) — הגנרטור ממשיך אותו בספרת-ערוץ (‏`<id>-gw1`), לכן בלי
+ *    גבול-סיום (substring); הוא ייחודי-דיו (‏`chesed-gw`∉`chesed-north-gw1`). **נחיל-5 F3.**
  */
 function tenantFingerprint(tenant) {
   const id = tenant.tenantId;
-  const marks = new Set([`__${id}`, `tenant_${id}`]); // סוד/הקשר-ניתוב — חתם ייחודי
-  for (const v of Object.values(secretsFor(tenant))) marks.add(v);
+  // מסתיימי-סלאג: הקשר-ניתוב, דומיין-משתמש (‏user/<ext>@<id>), וכל מפני-הסוד.
+  const slugMarks = new Set([`__${id}`, `tenant_${id}`, `@${id}`]);
+  for (const v of Object.values(secretsFor(tenant))) slugMarks.add(v);
   const rec = recordingEncryption(tenant);
-  if (rec.keyRef) marks.add(rec.keyRef);
-  return [...marks].map((m) => ({ mark: m, re: new RegExp(reEscape(m) + '(?![a-z0-9_-])') }));
+  if (rec.keyRef) slugMarks.add(rec.keyRef);
+  const out = [...slugMarks].map((m) => ({ mark: m, re: new RegExp(reEscape(m) + '(?![a-z0-9-])') }));
+  // חתם-השער (‏sofia/gateway/<id>-gw<n>) — ממשיך בספרה ⇒ substring בלי גבול-סיום.
+  out.push({ mark: `${id}-gw`, re: new RegExp(reEscape(`${id}-gw`)) });
+  return out;
 }
 /**
  * מוודא שסוד/זהות של דייר-אחד לא מופיע בקבצים של דייר-אחר. מעבר לבדיקת-הנתיבים

@@ -108,6 +108,14 @@ export function flagOn(tenant, key) {
 }
 export const featureOn = flagOn; // שם-נרדף לקריאוּת בליבה
 
+// הכרעת-דיאספורה יחידה (נחיל-5 F17): ארץ-ישראל = אזור-זמן ישראלי ⇒ יו״ט יום-אחד;
+// חו״ל ⇒ יו״ט-שני. עד-כה שוכפל ב-3 קבצים בשני נוסחים (‏Asia/Hebron מול Hebron) —
+// מקור-סחף. נוסח-רגקס אחד, קורא ממנו generate/simulate/zmanim.
+const ISRAEL_TZ_RE = /Jerusalem|Tel_Aviv|Hebron/;
+export function isDiaspora(tz) {
+  return !!(tz && !ISRAEL_TZ_RE.test(tz));
+}
+
 // ── 2. termOf ────────────────────────────────────────────────────────────────
 /** מונח מותאם — tenant.terms[key] אחרי trim אם לא-ריק, אחרת fallback/ברירת-המחדל. */
 export function termOf(tenant, key, fallback) {
