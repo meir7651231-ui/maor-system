@@ -56,10 +56,12 @@ describe('☁️ ratchet — מיזוג בחיבור ראשון (HIGH)', () => {
     cloudReturn = db([fam('f1', 'כהן-ענן'), fam('fCloud', 'ברקוביץ')]);
 
     let stored: Db | null = null;
+    let current = local; // ה-store החי — משקף את setDbFromRemote (כמו במציאות)
     await startCloudSync({
-      getDb: () => local,
+      getDb: () => current,
       setDbFromRemote: (d) => {
         stored = d;
+        current = d;
       },
       toast: () => {},
       setStatus: () => {},
@@ -76,6 +78,46 @@ describe('☁️ ratchet — מיזוג בחיבור ראשון (HIGH)', () => {
     expect(setIds).toContain('fLocal');
     expect(setIds).not.toContain('fCloud');
     expect(pushed[0].deletes).toEqual([]);
+  });
+
+  // 🐛 נחיל-עמוק (13.8): מוני-הקבלות חייבים לעלות בלבד גם בחיבור-ראשון. מכשיר
+  // שהנפיק קבלות local-first (receiptSeq גבוה) התחבר לענן עם מונה נמוך ⇒ merged
+  // ירש את המונה הנמוך ⇒ הקבלה הבאה קיבלה מספר-מס שכבר הונפק (כפילות §46).
+  it('חיבור-ראשון מרים את מוני-הקבלות לערך המקומי הגבוה (לא נסיגה)', async () => {
+    const local: Db = { ...emptyDb(), families: [fam('fLocal', 'אופליין')], receiptSeq: 21, donationSeq: 8, seq: 30, shopReceiptSeq: 5 };
+    cloudReturn = { ...emptyDb(), families: [fam('fCloud', 'ענן')], receiptSeq: 15, donationSeq: 3, seq: 12, shopReceiptSeq: 1 };
+    let stored: Db | null = null;
+    await startCloudSync({
+      getDb: () => local,
+      setDbFromRemote: (d) => { stored = d; },
+      toast: () => {},
+      setStatus: () => {},
+    });
+    // ה-DB המאוחד נושא את המונים הגבוהים (מקומי) — לא את הנמוכים של הענן
+    expect(stored!.receiptSeq).toBe(21);
+    expect(stored!.donationSeq).toBe(8);
+    expect(stored!.seq).toBe(30);
+    expect(stored!.shopReceiptSeq).toBe(5);
+    // והמונים המורמים נדחפים לענן (meta) כדי שגם הענן לא ייתקע נמוך
+    expect(pushed[0].meta?.receiptSeq).toBe(21);
+    expect(pushed[0].meta?.donationSeq).toBe(8);
+  });
+
+  // 🐛 נחיל-עמוק (13.8): עריכה בזמן לחיצת-היד (לפני active) נשמרה מקומית אך לא נדחפה.
+  it('עריכה בזמן לחיצת-היד נדחפת בדחיפת-השלמה אחרי active', async () => {
+    const base: Db = { ...emptyDb(), families: [fam('f1', 'כהן')] };
+    const edited: Db = { ...emptyDb(), families: [fam('f1', 'כהן'), fam('f2', 'עריכת-חלון')] };
+    cloudReturn = { ...emptyDb(), families: [fam('f1', 'כהן')] };
+    let calls = 0;
+    await startCloudSync({
+      getDb: () => (++calls === 1 ? base : edited), // הקריאה השנייה (דחיפת-ההשלמה) רואה את העריכה
+      setDbFromRemote: () => {},
+      toast: () => {},
+      setStatus: () => {},
+    });
+    // דחיפת-ההשלמה כללה את f2 שנוסף בזמן החלון
+    const allSetIds = pushed.flatMap((d) => d.sets.map((s) => s.id));
+    expect(allSetIds).toContain('f2');
   });
 
   it('logout באמצע ה-push לא מחיה מנוי חי ולא כותב synced (HIGH re-guard)', async () => {
