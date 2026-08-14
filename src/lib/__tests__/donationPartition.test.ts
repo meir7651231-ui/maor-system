@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Donation, Supporter } from '../../types/domain';
 import { supporterAggregates } from '../supporterAgg';
-import { SHARED_PURPOSE_KEY, purposeKeyOf, explodeSupporter, reassembleDonations } from '../donationPartition';
+import { SHARED_PURPOSE_KEY, purposeKeyOf, explodeSupporter, reassembleDonations, donationPartitionDiff } from '../donationPartition';
 
 const don = (rid: string, date: string, amount: number, extra: Partial<Donation> = {}): Donation =>
   ({ rid, date, amount, cur: '₪', cat: 'כללי', ...extra });
@@ -82,5 +82,46 @@ describe('explode/reassemble — זהות-פונקציונלית (הליבה)', 
     const empty = sup('sp2', []);
     expect(explodeSupporter(empty)).toEqual([]);
     expect(reassembleDonations(empty, []).donations).toEqual([]);
+  });
+});
+
+describe('donationPartitionDiff — הצד-הדוחף (טהור)', () => {
+  const A = sup('spA', [don('D-1', '2026-01-01', 100), don('D-2', '2026-02-01', 50, { purpose: 'חתונות' })]);
+
+  it('תרומה חדשה ⇒ set; אין מחיקות', () => {
+    const next = sup('spA', [...A.donations, don('D-3', '2026-03-01', 20)]);
+    const diff = donationPartitionDiff([A], [next]);
+    expect(diff.sets.map((s) => s.id)).toEqual(['D-3']);
+    expect(diff.deletes).toEqual([]);
+  });
+
+  it('תרומה שהוסרה ⇒ delete', () => {
+    const next = sup('spA', [A.donations[0]]);
+    const diff = donationPartitionDiff([A], [next]);
+    expect(diff.sets).toEqual([]);
+    expect(diff.deletes).toEqual(['D-2']);
+  });
+
+  it('שינוי-ייעוד ⇒ set (pkey/תוכן שונה)', () => {
+    const next = sup('spA', [A.donations[0], { ...A.donations[1], purpose: 'בית-כנסת' }]);
+    const diff = donationPartitionDiff([A], [next]);
+    expect(diff.sets.map((s) => s.id)).toEqual(['D-2']);
+    expect(diff.sets[0].pkey).toBe('בית-כנסת');
+  });
+
+  it('תרומה שעברה תומך ⇒ set עם supporterId חדש', () => {
+    const B = sup('spB', []);
+    const nextA = sup('spA', [A.donations[0]]);
+    const nextB = sup('spB', [A.donations[1]]);
+    const diff = donationPartitionDiff([A, B], [nextA, nextB]);
+    expect(diff.sets.map((s) => s.id)).toEqual(['D-2']);
+    expect(diff.sets[0].supporterId).toBe('spB');
+    expect(diff.deletes).toEqual([]); // D-2 עדיין קיים (עבר), לא נמחק
+  });
+
+  it('אין שינוי ⇒ diff ריק', () => {
+    const diff = donationPartitionDiff([A], [sup('spA', [...A.donations])]);
+    expect(diff.sets).toEqual([]);
+    expect(diff.deletes).toEqual([]);
   });
 });

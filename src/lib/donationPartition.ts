@@ -75,3 +75,35 @@ export function reassembleDonations(base: Supporter, docs: DonationDoc[]): Suppo
     .sort(byDateThenRid);
   return { ...base, donations };
 }
+
+/** אופרציות-הענן על אוסף-התרומות לפי שינוי בין שתי רשימות-תומכים (טהור). */
+export interface DonationCloudDiff {
+  /** מסמכי-תרומה חדשים/שהשתנו — לכתיבה (upsert לפי id=rid). */
+  sets: DonationDoc[];
+  /** rid-ים שהוסרו — למחיקה מהאוסף. */
+  deletes: string[];
+}
+
+/**
+ * diff ברמת-אוסף-התרומות (טהור) — הצד-הדוחף של מסלול-B. בהינתן רשימות-התומכים
+ * לפני/אחרי שינוי מקומי, מחשב אילו מסמכי-תרומה להעלות/למחוק. מקביל ל-diffDb אך
+ * לאוסף-התרומות-הנפרד. זהות ה-doc = rid (ייחודי-גלובלי, אינווריאנט-קדוש). תרומה
+ * שעברה תומך (supporterId שונה) או ששינתה ייעוד (pkey שונה) = set (התוכן שונה).
+ */
+export function donationPartitionDiff(prev: Supporter[], next: Supporter[]): DonationCloudDiff {
+  const index = (list: Supporter[]): Map<string, DonationDoc> => {
+    const m = new Map<string, DonationDoc>();
+    for (const sp of list) for (const doc of explodeSupporter(sp)) m.set(doc.id, doc);
+    return m;
+  };
+  const prevDocs = index(prev);
+  const nextDocs = index(next);
+  const sets: DonationDoc[] = [];
+  for (const [id, doc] of nextDocs) {
+    const before = prevDocs.get(id);
+    if (!before || JSON.stringify(before) !== JSON.stringify(doc)) sets.push(doc);
+  }
+  const deletes: string[] = [];
+  for (const id of prevDocs.keys()) if (!nextDocs.has(id)) deletes.push(id);
+  return { sets, deletes };
+}
