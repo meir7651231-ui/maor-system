@@ -305,6 +305,31 @@ export function callHistoryFor(logs, rawNumber) {
     .sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)));
 }
 
+// ── item 9 · קמפיין-התרמה טלפוני (שכבת-הלוגיקה; החיוג-בפועל=runtime/חייגן) ────
+/**
+ * בונה תוכנית-קמפיין מרשימת-אנשי-קשר: לכל אחד מחרוזת-חיוג דרך ה-SIM של הלקוח,
+ * עם דדופ (אותו מספר פעם-אחת) ודילוג-מנומק על לא-תקינים. downstream — יוצא
+ * מהמספר של העמותה. החיוג-בפועל (להרים את השיחה) הוא ה-runtime; זו רק התוכנית.
+ * @param {Array<{number:string, name?:string, id?:string}>} contacts
+ * @param {object} tenant tenant מנורמל (numbers[].gatewayChannel)
+ * @param {{viaNumberId?:string}} [opt] דרך איזה SIM לחייג (אחרת ברירת-מחדל)
+ * @returns {{calls:Array<{name,e164,id,dialString}>, skipped:Array<{raw,reason}>, total:number}}
+ */
+export function campaignPlan(contacts, tenant, opt = {}) {
+  const calls = [];
+  const skipped = [];
+  const seen = new Set();
+  for (const c of Array.isArray(contacts) ? contacts : []) {
+    const raw = c && (c.number ?? c.phone ?? '');
+    const e164 = toE164(raw);
+    if (!e164) { skipped.push({ raw: String(raw || ''), reason: 'מספר לא-תקין' }); continue; }
+    if (seen.has(e164)) { skipped.push({ raw: e164, reason: 'כפול' }); continue; }
+    seen.add(e164);
+    calls.push({ name: (c && c.name) || '', id: (c && c.id != null) ? c.id : null, e164, dialString: dialString(tenant, e164, { viaNumberId: opt.viaNumberId }) });
+  }
+  return { calls, skipped, total: calls.length };
+}
+
 // ── item 10 · מפת-חום שיחות↔צרכים (שכבת-הלוגיקה; ה-UI בצד-מאור) ──────────────
 /**
  * מאגד לוג-שיחות (callEvent[]) פר-איש-קשר, ומצליב מול צרכים חיים ממאור: מי

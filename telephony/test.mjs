@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { buildTenant, validateTenant, toE164 } from './lib/index.mjs';
 import {
   buildDirectory, lookupCaller, lookupInDirectory, enrichContact, screenPop,
-  callEvent, dialString, callHistoryFor, maskNumber, popPriorityFor, SCREENPOP_VERSION, careSignals, callHeatmap,
+  callEvent, dialString, callHistoryFor, maskNumber, popPriorityFor, SCREENPOP_VERSION, careSignals, callHeatmap, campaignPlan,
 } from './lib/cti.mjs';
 import {
   tenantFromIntake, INTAKE_STEPS, numbersFromCsv, detectNumberType, stepsFor,
@@ -1580,6 +1580,26 @@ console.log('· ratchet — רעיון #10: מפת-חום');
   ok('#10: since מסנן', callHeatmap(logs, { since: '2026-03-02' }).total === 2);
   // ריק/פסול בטוח.
   ok('#10: null-safe', callHeatmap(null).total === 0 && callHeatmap([]).contacts.length === 0);
+}
+
+// ── רעיון #9 — קמפיין-התרמה טלפוני (campaignPlan) ────────────────────────────
+console.log('· ratchet — רעיון #9: קמפיין-התרמה');
+{
+  const t = validateTenant(chesed).tenant; // n1=ch1 ברירת-מחדל, n2=ch2
+  const contacts = [
+    { name: 'תורם א', number: '050-1112233', id: 's1' },
+    { name: 'תורם ב', number: '03-7654321', id: 's2' },
+    { name: 'כפול', number: '0501112233', id: 's3' }, // אותו כמו א
+    { name: 'פסול', number: 'לא-מספר', id: 's4' },
+  ];
+  const plan = campaignPlan(contacts, t);
+  eq('#9: 2 שיחות (דדופ+פסול הוסרו)', plan.total, 2);
+  ok('#9: מחרוזת-חיוג לברירת-מחדל', plan.calls[0].e164 === '+972501112233' && plan.calls[0].dialString === '+972501112233');
+  ok('#9: כפול+פסול מדולגים-מנומקים', plan.skipped.some((s) => s.reason === 'כפול') && plan.skipped.some((s) => s.reason.includes('לא-תקין')));
+  // חיוג דרך SIM-נבחר ⇒ קידומת-ערוץ.
+  const via = campaignPlan([{ number: '050-1112233' }], t, { viaNumberId: 'n2' });
+  ok('#9: viaNumberId ⇒ קידומת-ערוץ', via.calls[0].dialString === '2#+972501112233');
+  ok('#9: null-safe', campaignPlan(null, t).total === 0);
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
