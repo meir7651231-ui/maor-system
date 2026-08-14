@@ -851,14 +851,21 @@ export function CommandPalette() {
       onMouseDown={(e) => e.target === e.currentTarget && setPalette(false)}
     >
       <div className="palette" role="dialog" aria-label="חיפוש מהיר">
+        {/* 🐛 נחיל-9×9 (13.8): combobox נגיש — aria-controls/activedescendant מקשרים
+            את שדה-החיפוש לרשימה, כך שקורא-מסך מכריז את האפשרות המודגשת בחיצי-מקלדת. */}
         <input
           autoFocus
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={'חיפוש: מסך, ' + termOf(config, 'entity.family', 'משפחה') + ', שם, ' + termOf(config, 'entity.course', 'חוג') + ', ' + termOf(config, 'entity.teacher', 'מורה') + ', ' + termOf(config, 'entity.supporter', 'תורם') + ', מסמך או פעולה…'}
           aria-label="חיפוש מהיר בכל המערכת"
+          role="combobox"
+          aria-expanded={results.length > 0}
+          aria-controls="palette-results"
+          aria-autocomplete="list"
+          aria-activedescendant={results[sel] ? 'palette-opt-' + sel : undefined}
         />
-        <div className="results" ref={listRef} role="listbox" aria-label="תוצאות חיפוש">
+        <div className="results" id="palette-results" ref={listRef} role="listbox" aria-label="תוצאות חיפוש">
           {results.map((c, i) => {
             const inline = c.inline;
             return (

@@ -275,6 +275,7 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'nav.shop', label: 'שם עמודת החנות', fallback: 'חנות' },
   { key: 'nav.shop7', label: 'שם עמודת החלוקה', fallback: 'חלוקה' },
   { key: 'entity.volunteer', label: 'מתנדב', fallback: 'מתנדב' },
+  { key: 'entity.volunteers', label: 'מתנדבים (רבים)', fallback: 'מתנדבים' },
   { key: 'entity.shopProduct', label: 'מוצר שירות', fallback: 'מוצר' },
   { key: 'entity.shopStore', label: 'חנות שותפה', fallback: 'חנות' },
   { key: 'entity.shopCriterion', label: 'קריטריון זכאות', fallback: 'קריטריון' },

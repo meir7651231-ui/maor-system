@@ -873,6 +873,7 @@ export const useApp = create<AppState>()((set, get) => {
           cloudCfgUnsub = null;
           setCloud({ membership: 'na' });
           mod.stopCloudSync();
+          mod.setCloudDek(null); // 🐛 נחיל-9×9 (13.8): ניקוי DEK גם ב-logout-אוטומטי
         }
       });
     } catch {
@@ -1027,6 +1028,9 @@ export const useApp = create<AppState>()((set, get) => {
     async cloudSignOut() {
       if (!cloudMod) return;
       cloudMod.stopCloudSync();
+      // 🐛 נחיל-9×9 (13.8): מנקים את מפתח-ההצפנה (DEK) מהזיכרון בהתנתקות — אחרת
+      // הוא נשאר תושב אחרי logout ומשתמש הבא במכשיר יכול לפענח את העותק המוצפן.
+      cloudMod.setCloudDek(null);
       await cloudMod.signOutCloud();
       get().toast('התנתקת מהענן — הנתונים נשארים שמורים במכשיר');
     },

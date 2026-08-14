@@ -224,6 +224,13 @@ export async function cloudReplaceNow(prev: Db, next: Db): Promise<void> {
     if (active) {
       hooks?.setStatus('error');
       hooks?.toast('⚠ מחיקת הנתונים בענן נכשלה — נסו שוב כשהחיבור יציב');
+      // 🐛 נחיל-9×9 (13.8): כשל-רשת באמצע reset/restore (pushDiff לא-אטומי, אצוות
+      // ≤400) השאיר מחיקות חלקיות בענן בלי retry. מציבים דחייה ממתינה ומתזמנים
+      // ניסיון-חוזר (כמו flushPush) כדי שהמצב הסמכותי יגיע במלואו.
+      pushBase = prev;
+      pushLatest = next;
+      clearTimeout(pushTimer);
+      pushTimer = setTimeout(() => void flushPush(), 5000);
     }
   } finally {
     applyingRemote = wasApplying;
