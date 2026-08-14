@@ -279,6 +279,33 @@ export function callEvent(p) {
   };
 }
 
+// ── item 8 · תרומה-בטלפון → כוונת-תרומה (מאור מנפיק את הקבלה; לא נוגע ב-R-/D-) ──
+/**
+ * בונה רשומת-**כוונת-תרומה** משיחה — additive, כמו callEvent. **אינה קבלה**:
+ * מנוע-הקבלות של מאור (donationSeq/receiptSeq) הוא היחיד שמנפיק R-/D' רציף. כאן
+ * רק "תרומה-נכנסה-בטלפון, אשר-והנפק" — שומר על אינווריאנט-הרציפות של מאור.
+ * @param {{number:string, amount:number, cur?:string, designation?:string,
+ *          startedAt:string, primary?:object|null, note?:string}} p
+ * @returns {object|null} רשומת-כוונה (null אם סכום לא-תקין)
+ */
+export function donationIntent(p) {
+  const amount = Number(p && p.amount);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  const e164 = toE164(p.number) || p.number || '';
+  return {
+    type: 'donationIntent', // מאור מזהה, מאשר, ומנפיק קבלה — לא נוצרת כאן קבלה
+    receiptIssued: false, // אינווריאנט: הטלפוניה לעולם לא מנפיקה קבלת-מס
+    date: (p.startedAt || '').slice(0, 10),
+    startedAt: p.startedAt || '',
+    number: e164,
+    amount,
+    cur: p.cur === '$' ? '$' : '₪',
+    ...(typeof p.designation === 'string' && p.designation ? { designation: p.designation } : {}),
+    ...(p.primary ? { contactKind: p.primary.kind, contactId: p.primary.id, contactName: p.primary.name } : {}),
+    note: p.note || '',
+  };
+}
+
 // ── item 43: click-to-call — קוד-החיוג להוצאת-שיחה מכרטיס-מאור ────────────────
 /**
  * קוד-החיוג שהמנהל מקיש/הכפתור שולח כדי לחייג את e164 דרך מספר-הלקוח.

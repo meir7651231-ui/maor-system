@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { buildTenant, validateTenant, toE164 } from './lib/index.mjs';
 import {
   buildDirectory, lookupCaller, lookupInDirectory, enrichContact, screenPop,
-  callEvent, dialString, callHistoryFor, maskNumber, popPriorityFor, SCREENPOP_VERSION, careSignals, callHeatmap, campaignPlan,
+  callEvent, dialString, callHistoryFor, maskNumber, popPriorityFor, SCREENPOP_VERSION, careSignals, callHeatmap, campaignPlan, donationIntent,
 } from './lib/cti.mjs';
 import {
   tenantFromIntake, INTAKE_STEPS, numbersFromCsv, detectNumberType, stepsFor,
@@ -1600,6 +1600,18 @@ console.log('· ratchet — רעיון #9: קמפיין-התרמה');
   const via = campaignPlan([{ number: '050-1112233' }], t, { viaNumberId: 'n2' });
   ok('#9: viaNumberId ⇒ קידומת-ערוץ', via.calls[0].dialString === '2#+972501112233');
   ok('#9: null-safe', campaignPlan(null, t).total === 0);
+}
+
+// ── רעיון #8 — תרומה-בטלפון → כוונת-תרומה (donationIntent) ────────────────────
+console.log('· ratchet — רעיון #8: תרומה→כוונה');
+{
+  const di = donationIntent({ number: '050-1112233', amount: 180, cur: '₪', startedAt: '2026-03-05T10:00:00', primary: { kind: 'supporter', id: 's1', name: 'תורם' }, designation: 'אמץ חתן' });
+  eq('#8: type=donationIntent', di.type, 'donationIntent');
+  ok('#8: לא-מנפיק קבלה (אינווריאנט מאור)', di.receiptIssued === false && !('rid' in di) && !('receiptSeq' in di));
+  eq('#8: סכום+מטבע', di.amount, 180);
+  ok('#8: ייעוד+איש-קשר', di.designation === 'אמץ חתן' && di.contactId === 's1');
+  ok('#8: סכום-פסול ⇒ null', donationIntent({ number: '050-1112233', amount: 0 }) === null && donationIntent({ number: 'x', amount: -5 }) === null);
+  ok('#8: מטבע ברירת-מחדל ₪', donationIntent({ number: '03-1234567', amount: 50, startedAt: '2026-01-01T09:00:00' }).cur === '₪');
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
