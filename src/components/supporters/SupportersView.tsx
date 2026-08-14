@@ -14,7 +14,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, TIER_ORDER, totalLabel } from './lib';
+import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
@@ -302,7 +302,9 @@ export function SupportersView() {
                   label: '📄 דוחות שנתיים לכולם',
                   onClick: () => {
                     const year = isoToday().slice(0, 4);
-                    const lines = annualAllLines(config.orgName || db.orgName, config.orgTaxId, year, db.supporters);
+                    // 🔒 ייעוד-הרשאה: הדוח-לכולם יוצא רק על תורמים גלויים לעובדת, ובכל תורם
+                    // רק התרומות בייעוד המותר (לא db.supporters הגולמי)
+                    const lines = annualAllLines(config.orgName || db.orgName, config.orgTaxId, year, visibleSupportersForDesignations(db.supporters, desigLimit));
                     downloadAnnualReport('annual-all-' + year + '.txt', lines);
                     toast('📄 דוחות שנת ' + year + ' — הקובץ ירד (מקטע לכל תורם/ת)');
                   },

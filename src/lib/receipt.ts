@@ -5,6 +5,7 @@
 import { hebDateFull } from './hebrew';
 import { amountInWords } from './hebrewNumber';
 import { featureOn } from './config';
+import { guardExport } from './exportGate';
 import type { OrgConfig } from '../types/config';
 
 export interface ReceiptInfo {
@@ -143,6 +144,7 @@ export function receiptLines(o: ReceiptInfo): string[] {
 }
 
 export function downloadReceipt(o: ReceiptInfo): void {
+  if (!guardExport()) return; // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד)
   const lines = receiptLines(o);
   // כמו באב-טיפוס: שורות ריקות מסוננות, BOM בתחילת הקובץ
   const text = '\uFEFF' + lines.filter((x) => x !== '').join('\n');
@@ -193,6 +195,7 @@ export function receiptHtml(o: ReceiptInfo): string {
  * מרוקנת אותו. ביטול בחלון-ההדפסה = פשוט לא מודפס.
  */
 export function printReceipt(o: ReceiptInfo): void {
+  if (!guardExport()) return; // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד)
   const frame = document.createElement('iframe');
   frame.style.position = 'fixed';
   frame.style.insetInlineEnd = '-9999px';

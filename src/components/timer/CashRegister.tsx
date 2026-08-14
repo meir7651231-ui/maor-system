@@ -15,6 +15,7 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
+import { guardExport } from '../../lib/exportGate';
 import { Btn, Modal, TextInput } from '../ui';
 // מפתחות הקופה ממורחבי-שמות פר-ארגון (CONNECT חיבור 7 — חלק מבאג ידוע 3)
 import { nsLsKey } from '../../store/persist';
@@ -185,7 +186,7 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-          <Btn kind="primary" onClick={() => window.print()}>🖨 הדפסה</Btn>
+          <Btn kind="primary" onClick={() => { if (guardExport()) window.print(); }}>🖨 הדפסה</Btn>
           <Btn onClick={onClose}>סגור</Btn>
         </div>
       </Modal>

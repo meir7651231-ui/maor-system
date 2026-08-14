@@ -9,6 +9,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { allMembers, useApp, type View } from '../../store/useApp';
 import { featureOn, moduleOn, termOf } from '../../lib/config';
+import { guardExport } from '../../lib/exportGate';
 import { supporterVisibleForDesignations } from '../supporters/lib';
 import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
@@ -312,7 +313,8 @@ export function CommandPalette() {
       });
     }
     // ⬇ ייצוא CSV מהפלטה — dlCSV מהקובץ החי (P2 פער 24, חוב P1)
-    if (exportFullOn && familiesOn) {
+    // 🔐 מגודר גם ב-core.export — עובד חסום לא רואה את פעולת-הייצוא בפלטה (עקיפת-UI 13.8)
+    if (exportFullOn && familiesOn && featureOn(config, 'core.export')) {
       actions.push({
         key: 'act-dlcsv',
         icon: '⬇',
@@ -336,6 +338,7 @@ export function CommandPalette() {
           sub: 'רשימת חיוג ללוח ההעתקה',
           terms: toTerms(['העתקת כל הטלפונים', 'טלפונים', 'חיוג', 'העתקה', 'רשימה']),
           run: () => {
+            if (!guardExport()) { setPalette(false); return; } // 🔐 העתקה=הוצאת-מידע
             // legacy copyPhones (2341-2344): 'משפחת X: טלפון' שורה-לשורה
             const withPhone = useApp.getState().db.families.filter((f) => f.phone);
             const list = withPhone

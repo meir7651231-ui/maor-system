@@ -9,9 +9,10 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { isoOf } from '../calendar/calLib';
+import { visibleSupportersForDesignations } from '../supporters/lib';
 import { buildWallData, fmtIls } from './wallData';
 
 const RING_R = 88;
@@ -31,6 +32,13 @@ export function ImpactWall(props: { onClose: () => void }) {
   const db = useApp((s) => s.db);
   const config = useApp((s) => s.config);
   const orgName = config.orgName || db.orgName;
+  // 🔒 ייעוד-הרשאה (13.8): קיר-ההשפעה (פודיום/ticker/גויס-השנה) מסונן לעובדת מוגבלת.
+  const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = featureOn(config, 'supporters.purpose') ? allowedDesignations : null;
+  const vdb = useMemo(
+    () => (desigLimit ? { ...db, supporters: visibleSupportersForDesignations(db.supporters, desigLimit) } : db),
+    [db, desigLimit],
+  );
 
   // שעון חי — עדכון כל 30 שניות
   const [now, setNow] = useState(() => new Date());
@@ -66,7 +74,7 @@ export function ImpactWall(props: { onClose: () => void }) {
     };
   }, []);
 
-  const data = useMemo(() => buildWallData(db, now, config), [db, now, config]);
+  const data = useMemo(() => buildWallData(vdb, now, config), [vdb, now, config]);
 
   // טבעת ההתקדמות — יעד מוגדר: קשת לפי האחוז; אין יעד: טבעת מלאה עם הסכום
   const ringP = data.pct ?? 1;

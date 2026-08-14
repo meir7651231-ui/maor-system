@@ -8,6 +8,7 @@
  * עברית = 2 בייט לתו!); escaping ל-\ ; , ושורות-חדשות; שעה = זמן-מקומי צף
  * (עמותה חד-אזורית); בלי-שעה = אירוע יום-שלם; DTSTAMP מוזרק (טהור, ללא Date.now).
  */
+import { guardExport } from './exportGate';
 
 /** מופע-יומן אחד לייצוא — קונקרטי (אחרי פריסת חזרות עבריות). */
 export interface IcsOccurrence {
@@ -128,6 +129,7 @@ export function buildIcs(occurrences: IcsOccurrence[], calName: string, now: Dat
 
 /** הורדת קובץ ICS — mime יומן, בלי BOM (בניגוד ל-CSV — יומנים לא אוהבים BOM). */
 export function downloadIcs(filename: string, text: string): void {
+  if (!guardExport()) return; // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד)
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], { type: 'text/calendar;charset=utf-8' }));
   a.download = filename;
