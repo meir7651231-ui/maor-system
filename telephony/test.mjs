@@ -1315,6 +1315,39 @@ console.log('· ratchet — רעיון #3: מצב-שבעה/אבלות');
   ok('#3: from>until מדולג', buildTenant({ ...chesed, mourning: { fromIso: '2026-03-08', untilIso: '2026-03-01', ext: '108' } }).warnings.some((w) => w.includes('mourning')));
 }
 
+// ── רעיון #4 — קו-כשר end-to-end (voice.kosher) ──────────────────────────────
+console.log('· ratchet — רעיון #4: קו-כשר end-to-end');
+{
+  // chesed: n3 = קו כשר (ערוץ 3). מצב-כשר ⇒ רק הוא ניתן-ליציאה.
+  const kb = buildTenant({ ...chesed, features: { 'voice.kosher': true } });
+  ok('#4: kosher תקין', kb.ok);
+  const kdp = kb.files['dialplan/tenant_chesed-demo.xml'];
+  // out_pick רק ל-SIM-כשר (n3), לא ל-n1/n2/n7.
+  ok('#4: out_pick כשר-בלבד (n3)', kdp.includes('out_pick_n3') && !kdp.includes('out_pick_n1') && !kdp.includes('out_pick_n2') && !kdp.includes('out_pick_n7'));
+  // out_default יוצא דרך ה-SIM-הכשר (gw3, +972539998877), לא n1.
+  ok('#4: out_default דרך גשר-כשר (gw3)', /out_default[\s\S]*?effective_caller_id_number=\+972539998877[\s\S]*?sofia\/gateway\/chesed-demo-gw3/.test(kdp));
+  ok('#4: manifest.kosherOutbound חשוף', kb.manifest.kosherOutbound === true);
+  ok('#4: סגירת-מסלולים נקייה (kosher)', auditRoutes(kb).ok);
+  // simulate: ברירת-מחדל ⇒ דרך הכשר; בחירת-ערוץ-לא-כשר ⇒ נחסם.
+  const kt = validateTenant({ ...chesed, features: { 'voice.kosher': true } }).tenant;
+  eq('#4: sim ברירת-מחדל דרך כשר', simulateCall(kt, { direction: 'outbound', did: '0501234567' }).outcome, 'via:קו כשר');
+  eq('#4: sim בחירת-ערוץ-לא-כשר נחסם', simulateCall(kt, { direction: 'outbound', did: '1#0501234567' }).outcome, 'non-kosher-blocked');
+  eq('#4: sim בחירת-ערוץ-כשר עוברת', simulateCall(kt, { direction: 'outbound', did: '3#0501234567' }).outcome, 'via:קו כשר');
+  // כבוי ⇒ ביט-זהה (chesed רגיל: כל ה-out_pick, def=n1).
+  const base = buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'];
+  ok('#4: כבוי ⇒ out_pick_n1 קיים (ביט-זהה)', base.includes('out_pick_n1') && base.includes('out_pick_n3'));
+  ok('#4: כבוי ⇒ אין kosherOutbound', !('kosherOutbound' in buildTenant(chesed).manifest));
+  // מצב-כשר בלי SIM-כשר ⇒ אזהרה + אין יציאת-ברירת-מחדל (לא מנתב לא-כשר).
+  const noK = buildTenant({ tenantId: 'nok-test', orgName: 'x', features: { 'voice.kosher': true },
+    officeHours: { days: [0, 1, 2], start: '09:00', end: '17:00' },
+    numbers: [{ id: 'n1', e164: '02-1000000', label: 'רגיל', type: 'sim', onramp: 'sim-in-gateway', channels: ['voice'], gatewayChannel: 1 }],
+    destinations: { office: { ext: '101' }, manager: { ext: '201' }, voicemail: { box: '100' } },
+    outbound: { defaultNumberId: 'n1' }, cti: { mode: 'off' } });
+  ok('#4: אין-SIM-כשר ⇒ אזהרה', noK.warnings.some((w) => w.includes('כשר')));
+  ok('#4: אין-SIM-כשר ⇒ אין out_default', !noK.files['dialplan/tenant_nok-test.xml'].includes('out_default'));
+  ok('#4: voice.kosher ברישום-הדגלים', FLAG_DEFAULTS['voice.kosher'] === 'off');
+}
+
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
 const goldenDir = join(HERE, 'fixtures/golden');

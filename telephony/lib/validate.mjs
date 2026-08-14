@@ -198,6 +198,13 @@ export function validateTenant(raw) {
   if (voiceBearing === 0) {
     errors.push('אין אף מספר נושא-קול (voice + onramp שאינו device-link). המרכזייה הקולית ריקה.');
   }
+  // מצב-כשר (voice.kosher) דורש לפחות SIM-כשר אחד ליציאה — אחרת אין דרך-יציאה כשרה.
+  if (features['voice.kosher'] === true) {
+    const kosherOut = numbers.some((n) => n.kosher && n.onramp === 'sim-in-gateway' && Number.isInteger(n.gatewayChannel));
+    if (!kosherOut) {
+      warnings.push('voice.kosher פעיל אך אין אף SIM-כשר ליציאה (kosher + sim-in-gateway + ערוץ) — חיוג-יוצא של המערכת יושבת (לא ינותב דרך תשתית לא-כשרה).');
+    }
+  }
   // קו-מופנה חייב לנחות על SIM-בשער (הפניה אינה מסלול-כניסה עצמאי downstream).
   const hasSimVoice = numbers.some((n) => n.onramp === 'sim-in-gateway' && n.channels.includes('voice'));
   const hasForwardVoice = numbers.some((n) => n.onramp === 'customer-forward' && n.channels.includes('voice'));

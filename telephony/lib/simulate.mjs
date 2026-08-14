@@ -40,15 +40,19 @@ export function simulateCall(tenant, call = {}) {
   const path = [];
   const R = tenant.routing || {};
 
-  // יוצאת: בחירת-SIM.
+  // יוצאת: בחירת-SIM. מצב-כשר ⇒ רק SIM-כשר ניתן-לבחירה/ברירת-מחדל.
   if (call.direction === 'outbound') {
+    const kosherMode = featureOn(tenant, 'voice.kosher');
     const target = call.did || '';
     const m = /^(\d+)#/.exec(target);
     if (m) {
       const sim = tenant.numbers.find((n) => n.onramp === 'sim-in-gateway' && n.gatewayChannel === Number(m[1]));
+      if (kosherMode && sim && !sim.kosher) return { path: ['outbound', `pick:${m[1]}`], outcome: 'non-kosher-blocked' };
       return { path: ['outbound', `pick:${m[1]}`], outcome: sim ? `via:${sim.label}` : 'no-such-sim' };
     }
-    const def = tenant.numbers.find((n) => n.id === tenant.outbound.defaultNumberId);
+    const sims = tenant.numbers.filter((n) => n.onramp === 'sim-in-gateway' && Number.isInteger(n.gatewayChannel));
+    const pick = kosherMode ? sims.filter((n) => n.kosher) : sims;
+    const def = pick.find((n) => n.id === tenant.outbound.defaultNumberId) || pick[0];
     return { path: ['outbound', 'default'], outcome: def ? `via:${def.label}` : 'no-default' };
   }
 

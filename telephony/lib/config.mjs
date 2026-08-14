@@ -26,6 +26,7 @@ export const FLAG_DEFAULTS = {
   // ── תוספות (opt-in) ──
   'outbound.international': 'off', // בין-לאומי — כבוי כברירת-מחדל (הגנת-toll-fraud)
   'voice.hardening': 'off', // תקרות-toll-fraud קשיחות ליציאה (בו-זמנית+משך) — opt-in
+  'voice.kosher': 'off', // מצב-כשר end-to-end: כל חיוג-יוצא רק דרך SIM כשר — opt-in
   'voice.ivr': 'off',
   'voice.queue': 'off',
   'voice.blocklist': 'off',

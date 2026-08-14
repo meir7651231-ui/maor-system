@@ -491,7 +491,16 @@ function dialplanXml(tenant, opts = {}) {
   // 6. יציאה (מגודר featureOn('outbound')): קידומת N# → SIM לפי ערוץ-שער.
   // כל יציאה מותנית ${sip_authorized}=true ⇒ רק שלוחה-רשומה מחייגת החוצה;
   // רגל-נכנסת מהשער לעולם לא תגשר החוצה (מונע לולאה/toll-fraud).
-  const def = sims.find((n) => n.id === tenant.outbound.defaultNumberId) || sims[0];
+  // מצב-כשר end-to-end (opt-in voice.kosher): כל חיוג-יוצא (בחירה/ברירת-מחדל/מהיר/
+  // IVR-number) יוצא רק דרך SIM-כשר ⇒ המערכת לעולם לא מנתבת דרך תשתית לא-כשרה.
+  // (השערים עצמם נשארים כולם לכניסה; רק הבחירה-ליציאה מסוננת.)
+  const kosherMode = featureOn(tenant, 'voice.kosher');
+  const pickSims = kosherMode ? sims.filter((n) => n.kosher) : sims;
+  // במצב-כשר: def כשר-בלבד (ואם אין כשר ⇒ undefined ⇒ המערכת לא מנתבת יציאה
+  // לא-כשרה כלל; validate מזהיר). רגיל: ברירת-המחדל המוגדרת/הראשון.
+  const def = kosherMode
+    ? (pickSims.find((n) => n.id === tenant.outbound.defaultNumberId) || pickSims[0])
+    : (sims.find((n) => n.id === tenant.outbound.defaultNumberId) || sims[0]);
   // תקרות-toll-fraud (opt-in voice.hardening): גם cred-גנוב חסום בתקרת-בו-זמניות
   // (רוחב-ה-SIM) ובתקרת-משך (שעה) ⇒ לא מרוקן את חשבון-הסלולר של העמותה. כבוי=ביט-זהה.
   const hardenOut = featureOn(tenant, 'voice.hardening');
@@ -508,7 +517,7 @@ function dialplanXml(tenant, opts = {}) {
     L.push(``);
     L.push(`    <!-- יציאה: קידומת <ערוץ>#<מספר> בוחרת דרך איזה SIM לצאת (רק שלוחה-רשומה) -->`);
     if (featureOn(tenant, 'outbound.pick')) {
-      for (const n of sims) {
+      for (const n of pickSims) {
         L.push(`    <extension name="out_pick_${esc(n.id)}">`);
         L.push(`      <condition field="\${sip_authorized}" expression="^true$"/>`);
         L.push(`      <condition field="destination_number" expression="^${n.gatewayChannel}#(\\+?\\d+)$">`);
@@ -795,6 +804,7 @@ function manifest(tenant, warnings, opts = {}) {
     inboundVoiceNumbers: vnums.map((n) => ({ id: n.id, e164: n.e164, label: n.label, onramp: n.onramp, kosher: n.kosher })),
     outboundSims: sims.map((n) => ({ id: n.id, e164: n.e164, label: n.label, prefix: `${n.gatewayChannel}#`, channel: n.gatewayChannel })),
     outboundDefault: tenant.outbound.defaultNumberId,
+    ...(featureOn(tenant, 'voice.kosher') ? { kosherOutbound: true } : {}),
     nonVoiceChannels: skipped.map((n) => ({ id: n.id, e164: n.e164, label: n.label, type: n.type, onramp: n.onramp, channels: n.channels, note: n.onramp === 'device-link' ? 'ווצאפ ריבוי-מכשירים — מטופל בגשר-הודעות, לא בדיאלפלן הקולי' : 'לא נושא-קול' })),
     cti: tenant.cti,
     ...(tenant.routing && Object.keys(tenant.routing).length
