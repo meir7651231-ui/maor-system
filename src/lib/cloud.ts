@@ -33,6 +33,7 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
   query,
+  runTransaction,
   setDoc,
   updateDoc,
   where,
@@ -228,6 +229,36 @@ function toPlain(data: unknown): DocumentData {
  * dek אופציונלי (הצפנת-ענן doc-level): קיים ⇒ כל מסמך מוצפן ל-{enc,iv} לפני
  * הכתיבה; **נעדר ⇒ נתיב plaintext ביט-זהה להיום** (ratchet). ה-id נשאר מפתח-המסמך.
  */
+/** מוני-הענן — מונוטוניים בלבד (רצף קבלות-מס). לעולם לא לרדת במסמך ה-meta. */
+const META_COUNTER_KEYS = ['seq', 'receiptSeq', 'donationSeq', 'shopReceiptSeq'] as const;
+
+/**
+ * כתיבת מסמך ה-meta בטוחה-למונים (🐛 נחיל-עמוק 13.8): כתיבת set() עיוורת דרסה את
+ * המונים בענן כשמכשיר עם מונה-מפגר דחף שינוי-meta שאינו-מונה (מרוץ תת-שנייה) ⇒
+ * קבלת-מס כפולה. עסקה קוראת את המונים החיים בענן ברגע-הכתיבה ומרימה למקסימום —
+ * כך הענן לעולם אינו נסוג. עובד גם לנתיב-המוצפן (פענוח/הצפנה בתוך העסקה).
+ */
+async function pushMetaCounterSafe(meta: Record<string, unknown>, dek?: CryptoKey | null): Promise<void> {
+  const db = requireDb();
+  const ref = doc(db, scopedMeta());
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    let existing: Record<string, unknown> | null = null;
+    if (snap.exists()) {
+      const raw = snap.data();
+      existing = dek ? await decryptDoc(raw, dek) : raw;
+    }
+    const safe: Record<string, unknown> = { ...meta };
+    for (const k of META_COUNTER_KEYS) {
+      const cur = existing?.[k];
+      const nxt = safe[k];
+      if (typeof cur === 'number' && (typeof nxt !== 'number' || cur > nxt)) safe[k] = cur;
+    }
+    const body = dek ? await encryptDoc(safe, dek) : safe;
+    tx.set(ref, body as DocumentData);
+  });
+}
+
 export async function pushDiff(diff: DbDiff, dek?: CryptoKey | null): Promise<void> {
   const db = requireDb();
   const ops: Array<(b: WriteBatch) => void> = [];
@@ -238,15 +269,13 @@ export async function pushDiff(diff: DbDiff, dek?: CryptoKey | null): Promise<vo
   for (const d of diff.deletes) {
     ops.push((b) => b.delete(doc(db, scopedCol(d.col), d.id)));
   }
-  if (diff.meta) {
-    const meta = dek ? await encryptDoc(toPlain(diff.meta), dek) : toPlain(diff.meta);
-    ops.push((b) => b.set(doc(db, scopedMeta()), meta));
-  }
   for (let i = 0; i < ops.length; i += 400) {
     const batch = writeBatch(db);
     for (const op of ops.slice(i, i + 400)) op(batch);
     await batch.commit();
   }
+  // מסמך ה-meta נכתב בעסקה נפרדת בטוחה-למונים (לא בכתיבת-האצווה העיוורת).
+  if (diff.meta) await pushMetaCounterSafe(toPlain(diff.meta), dek);
 }
 
 /* ============================ הצפנת-ענן — envelope + מיגרציה ============================ */

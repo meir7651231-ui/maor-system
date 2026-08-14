@@ -94,6 +94,8 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
     // אין להמשיך ולהפעיל מחדש סנכרון לחשבון שיצא.
     if (hooks !== h) return;
     const local = h.getDb();
+    // המצב שהענן מחזיק אחרי לחיצת-היד — בסיס לדחיפת-ההשלמה (#2 למטה).
+    let syncedBaseline: Db = local;
     if (cloudDb === null) {
       // פרויקט ענן ריק — הגירה ראשונה: מעלים את כל הנתונים המקומיים
       if (ENTITY_COLLECTIONS.some((c) => local[c].length)) {
@@ -112,7 +114,15 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
         const localOnly = (local[col] as Array<{ id: string }>).filter((x) => !cloudIds.has(x.id));
         if (localOnly.length) (merged[col] as Array<{ id: string }>) = [...cloudList, ...localOnly];
       }
+      // 🐛 נחיל-עמוק (13.8): מוני-הקבלות חייבים לעלות בלבד. merged ירש את מונה-הענן
+      // (אולי נמוך ממה שהמכשיר כבר הנפיק local-first לפני החיבור) ⇒ הקבלה הבאה קיבלה
+      // מספר-מס שכבר הונפק (כפילות §46). מרימים לערך החי — כמו restoreDb.
+      merged.seq = Math.max(local.seq, cloudDb.seq);
+      merged.receiptSeq = Math.max(local.receiptSeq, cloudDb.receiptSeq);
+      merged.donationSeq = Math.max(local.donationSeq, cloudDb.donationSeq);
+      merged.shopReceiptSeq = Math.max(local.shopReceiptSeq ?? 0, cloudDb.shopReceiptSeq ?? 0);
       withRemoteFlag(() => h.setDbFromRemote(merged));
+      syncedBaseline = merged;
       // diffDb(cloudDb, merged) = רק התוספות המקומיות (merged ⊇ ישויות הענן, אין
       // מחיקות), וללא שינוי meta (merged שומר את meta של הענן) → הענן נשאר סמכותי.
       const additions = diffDb(cloudDb, merged);
@@ -131,6 +141,11 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
       },
       cloudDek,
     );
+    // 🐛 נחיל-עמוק (13.8): עריכות שנעשו בזמן לחיצת-היד (לפני active) נשמרו מקומית אך
+    // cloudOnDbChange דילג עליהן (!active) ולא נדחפו לעולם. דחיפת-השלמה חד-פעמית:
+    // diff בין מה שהענן מחזיק (syncedBaseline) לבין המצב החי כעת.
+    const catchUp = diffDb(syncedBaseline, h.getDb());
+    if (!emptyDiff(catchUp)) await pushDiff(catchUp, cloudDek);
     h.setStatus('synced');
   } catch (e) {
     active = false;
@@ -219,6 +234,14 @@ export async function cloudReplaceNow(prev: Db, next: Db): Promise<void> {
   applyingRemote = true; // חוסם flushPush/מיזוג-מרוחק מלרוץ תוך-כדי הכתיבה הסמכותית
   try {
     await pushDiff(diff, cloudDek);
+    // 🐛 נחיל-עמוק (13.8): עריכת-משתמש בזמן חלון-הדחיפה (applyingRemote חסם את
+    // cloudOnDbChange) לא נדחפה ונבלעה עד העריכה הבאה. דחיפת-השלמה: diff מול המצב
+    // החי אם השתנה מ-next.
+    const live = hooks?.getDb();
+    if (live && live !== next) {
+      const gap = diffDb(next, live);
+      if (!emptyDiff(gap)) await pushDiff(gap, cloudDek);
+    }
     if (active) hooks?.setStatus('synced');
   } catch {
     if (active) {
