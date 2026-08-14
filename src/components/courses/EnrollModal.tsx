@@ -354,7 +354,9 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
           <div style={{ marginTop: 6, fontSize: 14, fontWeight: 800, color: '#12803c' }}>
             {'סה"כ ל' + PRICING_TERMS.find((t) => t.v === term)?.t + ': ₪' + quote.total}
             <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-faint)' }}>
-              {' · ' + quote.lessons + ' שיעורים × ₪' + quote.perLesson}
+              {/* 🐛 נחיל-עמוק (13.8): "×" רמז לשוויון-מכפלה שלא מסתדר עם הסכום (עיגול
+                  חצאי-שיעורים לתצוגה). תיאור שני הנתונים בלי לטעון שמכפלתם = הסה"כ. */}
+              {' · ' + quote.lessons + ' שיעורים · ₪' + quote.perLesson + ' לשיעור'}
             </span>
           </div>
         </div>

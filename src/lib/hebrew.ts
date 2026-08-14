@@ -209,5 +209,12 @@ export function holidayOf(d: Date): string | null {
   if (p.month === 'Tevet' && p.day === 3) {
     return scanHebYear(p.year).has30.has('Kislev') ? null : 'חנוכה';
   }
-  return HOLIDAYS[`${p.month} ${p.day}`] ?? null;
+  // 🐛 נחיל-עמוק (13.8): צום י״ז בתמוז / ט׳ באב שחלו בשבת — הצום נדחה ליום ראשון
+  // (כמו ביומן-החדרים, לקח #21). לא מציגים "צום" על השבת אלא על יום-הדחייה.
+  const dow = d.getDay();
+  const key = `${p.month} ${p.day}`;
+  if (dow === 6 && (key === 'Tamuz 17' || key === 'Av 9')) return null; // שבת — הצום נדחה
+  if (dow === 0 && p.month === 'Tamuz' && p.day === 18) return 'צום י״ז בתמוז (נדחה)';
+  if (dow === 0 && p.month === 'Av' && p.day === 10) return 'תשעה באב (נדחה)';
+  return HOLIDAYS[key] ?? null;
 }
