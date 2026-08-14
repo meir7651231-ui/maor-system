@@ -36,7 +36,7 @@ import {
   failsafeRoute, complianceReport, crossTenantLeakScan,
 } from './lib/security.mjs';
 import { normalizeCdr, meterUsage, computeInvoice, checkQuota, planQuota, PLANS } from './lib/billing.mjs';
-import { simulateCall } from './lib/simulate.mjs';
+import { simulateCall, explainCall } from './lib/simulate.mjs';
 import { xmlWellFormed, validateAgainstSchema } from './lib/validators.mjs';
 import {
   flagOn, featureOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
@@ -1388,6 +1388,37 @@ console.log('· ratchet — רעיון #6: כרטיס-חסד');
   ok('#6: screenPop עם care', popCare.primary && popCare.primary.care && popCare.primary.care.openDeliveries === 1);
   ok('#6: screenPop בלי care כברירת-מחדל', !screenPop(cdb, '050-1112233').primary.care);
   ok('#6: צנעה מסתירה care', !screenPop(cdb, '050-1112233', { care: true, privacy: true }).primary.care);
+}
+
+// ── רעיון #16 — סימולטור-שיחה חי (explainCall) ───────────────────────────────
+console.log('· ratchet — רעיון #16: סימולטור-שיחה חי');
+{
+  const t = validateTenant(chesed).tenant;
+  // בשעות ⇒ משרד.
+  const eOffice = explainCall(t, { did: '02-5551234', callerId: '050-0000000', dow: 3, hhmm: '10:00' });
+  eq('#16: בשעות ⇒ office', eOffice.outcome, 'office');
+  ok('#16: תיאור-משרד עברי', eOffice.summary.includes('מצלצל במשרד'));
+  // מחוץ-לשעות ⇒ תא-קולי.
+  const eNight = explainCall(t, { did: '02-5551234', callerId: '050-0000000', dow: 3, hhmm: '23:00' });
+  eq('#16: לילה ⇒ voicemail', eNight.outcome, 'voicemail');
+  ok('#16: תיאור-לילה עברי', eNight.summary.includes('מחוץ-לשעות') && eNight.summary.includes('תא-קולי'));
+  // מוקד-מצוקה.
+  const tp = validateTenant({ ...chesed, routing: { priority: { numbers: ['050-1112233'], ext: '201' } } }).tenant;
+  const eP = explainCall(tp, { did: '02-5551234', callerId: '050-1112233', dow: 3, hhmm: '23:00' });
+  ok('#16: מוקד-מצוקה מתואר', eP.outcome === 'priority' && eP.summary.includes('מוקד-מצוקה'));
+  // מצב-שבעה.
+  const tm = validateTenant({ ...chesed, mourning: { fromIso: '2026-03-01', untilIso: '2026-03-08', ext: '108' } }).tenant;
+  const eM = explainCall(tm, { did: '02-5551234', callerId: '050-0000000', date: '2026-03-05', hhmm: '10:00' });
+  ok('#16: שבעה מתוארת', eM.outcome === 'mourning' && eM.summary.includes('מצב-שבעה'));
+  // חיוג-יוצא כשר-חסום.
+  const tk = validateTenant({ ...chesed, features: { 'voice.kosher': true } }).tenant;
+  const eK = explainCall(tk, { direction: 'outbound', did: '1#0501234567' });
+  ok('#16: כשר-חסום מתואר', eK.outcome === 'non-kosher-blocked' && eK.summary.includes('נחסם'));
+  // חסום.
+  const tb = validateTenant({ ...chesed, features: { 'voice.blocklist': true }, routing: { blocklist: ['050-9999999'] } }).tenant;
+  ok('#16: חסום מתואר', explainCall(tb, { did: '02-5551234', callerId: '050-9999999', dow: 3, hhmm: '10:00' }).summary.includes('נותק'));
+  // מבנה: lines מערך + sim מוטמע.
+  ok('#16: מבנה תקין', Array.isArray(eOffice.lines) && eOffice.sim && eOffice.sim.outcome === 'office');
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────

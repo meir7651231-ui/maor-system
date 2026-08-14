@@ -127,6 +127,64 @@ export function simulateCall(tenant, call = {}) {
   return { path: [...path, ...chain], outcome: featureOn(tenant, 'voicemail') ? 'voicemail' : 'manager', reason };
 }
 
+const DOW_HE = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+
+/**
+ * item 16 · סימולטור-שיחה חי: תיאור-אנושי בעברית של מה שמתקשר יחווה — "נסה את
+ * עץ-הטלפון שלך" לפני go-live. מריץ simulateCall ומתרגם את המסלול לסיפור קריא.
+ * טהור, דטרמיניסטי. מכסה מוקד-מצוקה/שבעה/כשר/שעות/חג/IVR/חסימה.
+ * @param {object} tenant tenant מנורמל
+ * @param {object} call {did?,callerId?,date?,dow?,hhmm?,digit?,direction?,officeAnswered?}
+ * @returns {{outcome:string, reason:string, summary:string, lines:string[], sim:object}}
+ */
+export function explainCall(tenant, call = {}) {
+  const sim = simulateCall(tenant, call);
+  const lines = [];
+  const office = tenant.destinations?.office?.ext?.join(', ') || '—';
+  const manager = tenant.destinations?.manager?.ext || '—';
+  const vm = tenant.destinations?.voicemail?.box || '—';
+  const when = call.dow != null ? `יום ${DOW_HE[call.dow]} ${call.hhmm || ''}` : call.date ? `${call.date} ${call.hhmm || ''}` : '';
+
+  if (call.direction === 'outbound') {
+    lines.push(`📞 חיוג-יוצא: ${call.did || ''}`);
+    if (sim.outcome === 'non-kosher-blocked') lines.push('⛔ מצב-כשר: ניסיון-יציאה דרך SIM לא-כשר — נחסם.');
+    else if (sim.outcome === 'no-such-sim') lines.push('⚠️ הערוץ שנבחר לא-קיים.');
+    else if (sim.outcome === 'no-default') lines.push('⚠️ אין SIM ליציאת-ברירת-מחדל.');
+    else lines.push(`✅ יוצא דרך: ${sim.outcome.replace('via:', '')}`);
+    return { outcome: sim.outcome, reason: '', summary: lines.join(' '), lines, sim };
+  }
+
+  if (call.callerId) lines.push(`📲 מתקשר ${call.callerId}${when ? ` · ${when}` : ''}`);
+  switch (sim.outcome) {
+    case 'unknown-did':
+      lines.push('❓ המספר שחויג אינו מוכר למרכזייה — לא ינותב.'); break;
+    case 'blocked':
+      lines.push(sim.path.includes('allowlist') ? '⛔ המתקשר אינו ברשימת-ההיתר (או חסוי) — נותק.' : '⛔ המתקשר ברשימת-החסומים — נותק.'); break;
+    case 'priority':
+      lines.push(`🆘 מוקד-מצוקה: מתקשר-בסיכון — מנותב ישירות לאחראי (${sim.path.find((p) => p.startsWith('resp:'))?.slice(5) || manager}), עוקף שעות/חג.`); break;
+    case 'mourning':
+      lines.push(`🕯️ מצב-שבעה פעיל: מנותב למחליף (${sim.path.find((p) => p.startsWith('sub:'))?.slice(4) || manager}).`); break;
+    case 'announcement':
+      lines.push('📢 קו-הכרזה: משמיע הודעה מוקלטת ומנתק.'); break;
+    case 'office':
+      lines.push(`✅ בשעות-פעילות → מצלצל במשרד (${office}).`); break;
+    case 'ivr-menu':
+      lines.push('✅ בשעות → תפריט-קולי (IVR) ממתין לבחירה.'); break;
+    case 'queue':
+      lines.push('✅ בשעות → תור-המתנה עד שנציג מושך את השיחה.'); break;
+    case 'voicemail':
+      lines.push(`🌙 מחוץ-לשעות${sim.reason ? ` (${sim.reason})` : ''} → מנהל (${manager}) → תא-קולי (${vm}).`); break;
+    case 'manager':
+      lines.push(`🌙 מחוץ-לשעות${sim.reason ? ` (${sim.reason})` : ''} → מנהל (${manager}) (בלי תא-קולי).`); break;
+    case 'afterhours':
+      lines.push(`🌙 ${sim.path.includes('ivr-invalid') ? 'בחירה לא-תקינה ב-IVR' : 'אין-מענה במשרד'} → מנהל (${manager}) → תא-קולי.`); break;
+    default:
+      if (String(sim.outcome).startsWith('ivr:')) lines.push(`✅ בחירת-IVR → ${sim.outcome.slice(4)}.`);
+      else lines.push(`תוצאה: ${sim.outcome}`);
+  }
+  return { outcome: sim.outcome, reason: sim.reason || '', summary: lines.join(' '), lines, sim };
+}
+
 /** ממיר date/dow/hhmm ל-{dow, minutes}. date גובר (UTC-noon לשמירת-היום). */
 function resolveMoment(call) {
   if (call.dow != null && call.hhmm) return { dow: call.dow, minutes: hhmmToMin(call.hhmm) };
