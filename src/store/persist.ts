@@ -16,6 +16,7 @@ import {
   type Db,
   type FamilyCred,
   type FamilyDoc,
+  type Supporter,
 } from '../types/domain';
 import {
   isEncrypted,
@@ -300,12 +301,18 @@ export function migrate(raw: unknown): Db | null {
     donations: Array.isArray(s.donations) ? s.donations : [],
     // hist מהקובץ ההיסטורי (לגאסי {d,a,c}) — נרמול: לא-מערך → undefined;
     // איברים בלי תאריך d או סכום a מספרי — נזרקים. מטבע לא-מוכר → ברירת ₪ בתצוגה.
+    // 🐛 נחיל-עמוק (13.8): המיגרציה שכתבה {d,a,c} בלבד ומחקה את מטא-דאטת-הסליקה
+    // (ref/txn/receipt/brand/last4/clearer/pays/status — additive 13.8) בכל טעינה.
+    // כעת שומרים את כל השדות ורק מנרמלים מטבע לא-מוכר.
     hist: Array.isArray(s.hist)
       ? s.hist
-          .filter((h): h is { d: string; a: number; c?: '₪' | '$' } =>
+          .filter((h): h is NonNullable<Supporter['hist']>[number] =>
             !!h && typeof h === 'object' && !!(h as { d?: unknown }).d &&
             typeof (h as { a?: unknown }).a === 'number' && Number.isFinite((h as { a?: unknown }).a as number))
-          .map((h) => ({ d: h.d, a: h.a, ...(h.c === '$' || h.c === '₪' ? { c: h.c } : {}) }))
+          .map((h) => {
+            const { c, ...rest } = h;
+            return { ...rest, ...(c === '$' || c === '₪' ? { c } : {}) };
+          })
       : undefined,
   }));
   const donCoords = merged.supporters.flatMap((s, si) => s.donations.map((d, di) => ({ si, di, rid: d.rid, date: d.date })));

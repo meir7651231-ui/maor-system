@@ -234,7 +234,7 @@ export function SupportersView() {
     // סינון מעקב הטיפול (פריט 14)
     if (ayinF === 'eyes' && !(sp.ayin && eyesTotal(sp.ayin) > 0)) return false;
     if (ayinF === 'noeyes' && sp.ayin && eyesTotal(sp.ayin) > 0) return false;
-    if (ayinF === 'today' && !(sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log.some((l) => l.date === today)))) return false;
+    if (ayinF === 'today' && !(sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today)))) return false;
     if (!q.trim()) return true;
     const phoneHit = qd.length >= 3 && (sp.phone || '').replace(/\D/g, '').includes(qd);
     const textHit =
@@ -457,7 +457,7 @@ export function SupportersView() {
           </Chip>
           <Chip on={ayinF === 'today'} onClick={() => setAyinF(ayinF === 'today' ? null : 'today')}>
             {'עודכן היום · ' +
-              db.supporters.filter((sp) => sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log.some((l) => l.date === today))).length}
+              db.supporters.filter((sp) => sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today))).length}
           </Chip>
         </div>
       )}
