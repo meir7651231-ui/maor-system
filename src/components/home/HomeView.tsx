@@ -20,6 +20,7 @@ import {
   todaySessions,
   type AttentionNav,
 } from './homeData';
+import { visibleSupportersForDesignations } from '../supporters/lib';
 import {
   defaultLayoutFor,
   noBoardLayoutFor,
@@ -53,21 +54,30 @@ export function HomeView() {
   const now = new Date();
   const todayIso = isoOf(now);
 
+  // 🔒 ייעוד-הרשאה (13.8): עובדת מוגבלת רואה בבית רק תורמים/תרומות בייעוד המותר —
+  // db מסונן פעם-אחת ומוזרם לכל נגזרות-התורמים (סטטיסטיקה/תשומת-לב/דיג'סט/קרוסלה).
+  const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = featureOn(config, 'supporters.purpose') ? allowedDesignations : null;
+  const vdb = useMemo(
+    () => (desigLimit ? { ...db, supporters: visibleSupportersForDesignations(db.supporters, desigLimit) } : db),
+    [db, desigLimit],
+  );
+
   const data = useMemo(
     () => ({
-      stats: homeStats(db, new Date(todayIso + 'T12:00:00')),
+      stats: homeStats(vdb, new Date(todayIso + 'T12:00:00')),
       sessions: coursesOn ? todaySessions(db, now) : [],
       // מודול כבוי ⇒ הנגזרת ריקה — כך כל צרכני data במורד מוגנים אוטומטית
       events: calendarOn ? eventsOnDate(db, now) : [],
       bdays: familiesOn ? birthdaysOn(db, now) : [],
-      attention: attentionItems(db, now, config.modules, config),
-      digest: digestLines(db, now, config.modules, config),
-      carousel: carouselItems(db, now, config.modules, config),
+      attention: attentionItems(vdb, now, config.modules, config),
+      digest: digestLines(vdb, now, config.modules, config),
+      carousel: carouselItems(vdb, now, config.modules, config),
       recent: familiesOn ? recentFamilies(db, 5) : [],
       holiday: holidayOf(now),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [db, todayIso, config, config.modules, coursesOn, calendarOn, familiesOn],
+    [db, vdb, todayIso, config, config.modules, coursesOn, calendarOn, familiesOn],
   );
 
   // ניווט ממוגן-מודולים: לעולם לא מנווט למסך של מודול כבוי (no-op במקום קריסה/דליפה)

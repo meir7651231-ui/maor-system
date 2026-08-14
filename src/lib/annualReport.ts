@@ -6,6 +6,7 @@
  * ⚠️ גבול-תפקיד: זה **דוח-ריכוז** לנוחות התורם/הרו"ח — לא קבלה חדשה ולא
  * תחליף-קבלות; מספרי-הקבלות המקוריים (D-/R-) מוצגים בכל שורה.
  */
+import { guardExport } from './exportGate';
 
 export interface AnnualDonation {
   date: string;
@@ -106,6 +107,7 @@ export function annualAllLines(
 
 /** הורדת-קובץ עם BOM (עברית ב-Notepad) — כמו הקבלות. */
 export function downloadAnnualReport(filename: string, lines: string[]): void {
+  if (!guardExport()) return; // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד)
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\n')], { type: 'text/plain;charset=utf-8' }));
   a.download = filename;

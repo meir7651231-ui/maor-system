@@ -5,9 +5,11 @@
  * ולייצוא CSV עם BOM לעברית תקינה באקסל.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, moduleOn, termOf } from '../../lib/config';
+import { guardExport } from '../../lib/exportGate';
+import { visibleSupportersForDesignations } from '../supporters/lib';
 import { Btn, Field, FormError, PageHead, TextInput } from '../ui';
 import { fmtDate, isoToday, rangeLabel, type DateRange } from './lib';
 import { isoDaysAgo } from '../../lib/date-util';
@@ -36,6 +38,14 @@ export function ReportsView() {
   const coursesOn = moduleOn(config, 'courses');
   const supportersOn = moduleOn(config, 'supporters');
   const familiesOn = moduleOn(config, 'families');
+  // 🔒 ייעוד-הרשאה (13.8): עובדת מוגבלת רואה בדוחות רק תורמים/תרומות בייעוד המותר.
+  // db מסונן פעם-אחת ומוזרם לכל סעיפי-התורמים (תרומות/עיניים/מבט-הנהלה).
+  const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = featureOn(config, 'supporters.purpose') ? allowedDesignations : null;
+  const vdb = useMemo(
+    () => (desigLimit ? { ...db, supporters: visibleSupportersForDesignations(db.supporters, desigLimit) } : db),
+    [db, desigLimit],
+  );
   const [range, setRange] = useState<DateRange>({ from: '', to: '' });
   const [printing, setPrinting] = useState<SectionId | 'all' | null>(null);
 
@@ -43,7 +53,7 @@ export function ReportsView() {
   useEffect(() => {
     if (!printing) return;
     const t = setTimeout(() => {
-      window.print();
+      if (guardExport()) window.print(); // 🔐 שער יציאת-מידע
       setPrinting(null);
     }, 60);
     return () => clearTimeout(t);
@@ -127,7 +137,7 @@ export function ReportsView() {
       )}
       {supportersOn && featureOn(config, 'reports.donations') && (
         <DonationsSection
-          db={db}
+          db={vdb}
           range={range}
           rangeText={rangeText}
           hidden={hide('donations')}
@@ -136,7 +146,7 @@ export function ReportsView() {
       )}
       {/* בקשת-בעלים 9.8: פילוח שם-לטיפול + כמות — מגודר גם במעקב-הטיפול עצמו */}
       {supportersOn && featureOn(config, 'supporters.ayin') && featureOn(config, 'reports.ayin') && (
-        <AyinNamesSection db={db} hidden={hide('ayin')} onPrint={() => setPrinting('ayin')} />
+        <AyinNamesSection db={vdb} hidden={hide('ayin')} onPrint={() => setPrinting('ayin')} />
       )}
       {familiesOn && featureOn(config, 'reports.families') && (
         <FamiliesSection db={db} hidden={hide('families')} onPrint={() => setPrinting('families')} />
@@ -145,7 +155,7 @@ export function ReportsView() {
         <PunchSection db={db} hidden={hide('punch')} onPrint={() => setPrinting('punch')} />
       )}
       {featureOn(config, 'reports.management') && (
-        <ManagementSection db={db} hidden={hide('management')} onPrint={() => setPrinting('management')} />
+        <ManagementSection db={vdb} hidden={hide('management')} onPrint={() => setPrinting('management')} />
       )}
 
       {featureOn(config, 'reports.periodic') && <ReportPrefsSection />}

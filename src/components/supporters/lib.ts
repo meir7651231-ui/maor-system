@@ -53,6 +53,31 @@ export function supporterVisibleForDesignations(
   return purposes.some((p) => set.has(p));
 }
 
+/**
+ * רשימת-התורמים הגלויה לעובד/ת עם רשימת-ייעודים מותרת — נקודת-חנק אחת לכל
+ * המשטחים הנגזרים/המצטברים (מבט-הנהלה, מסך-הבית, קיר-השפעה, דוחות, ייצוא).
+ * ‏allowed=null ⇒ הרשימה כמו-שהיא. אחרת: רק תורמים גלויים, ובכל תורם-גלוי רק
+ * התרומות בייעוד המותר (תרומה בלי ייעוד = משותפת, נשמרת). כך גם צבירה
+ * (סה"כ/מונה/פודיום) לא חושפת סכומים או שמות מייעוד אסור. ה-hist (עסקאות
+ * היסטוריות ללא ייעוד) נשמר — הוא ממילא "משותף" בחוזה-הראוּת.
+ */
+export function visibleSupportersForDesignations(
+  supporters: Supporter[],
+  allowed: string[] | null,
+): Supporter[] {
+  if (!allowed || !allowed.length) return supporters;
+  const set = new Set(allowed.map((s) => s.trim()));
+  return supporters
+    .filter((sup) => supporterVisibleForDesignations(sup, allowed))
+    .map((sup) => ({
+      ...sup,
+      donations: (sup.donations ?? []).filter((d) => {
+        const p = (d.purpose ?? '').trim();
+        return !p || set.has(p);
+      }),
+    }));
+}
+
 /** כל ייעודי-התרומה הקיימים (distinct, ממויין) — להצעה באשף ולבורר-הסינון. */
 export function allDonationPurposes(supporters: Pick<Supporter, 'donations'>[]): string[] {
   const set = new Set<string>();
