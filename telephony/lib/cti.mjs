@@ -304,3 +304,39 @@ export function callHistoryFor(logs, rawNumber) {
     .filter((l) => toE164(l.number) === e164)
     .sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)));
 }
+
+// ── item 10 · מפת-חום שיחות↔צרכים (שכבת-הלוגיקה; ה-UI בצד-מאור) ──────────────
+/**
+ * מאגד לוג-שיחות (callEvent[]) פר-איש-קשר, ומצליב מול צרכים חיים ממאור: מי
+ * שהתקשר הרבה **וגם** יש לו אות-פעולה פתוח (מסירה/ממתין/הו״ק) עולה ל"רשימת-תשומת-
+ * הלב" — "המשפחה הזו התקשרה 5× והחבילה שלה פגה". טהור, קריאה-בלבד.
+ * @param {Array} logs מערך callEvent
+ * @param {{db?:object, frequentThreshold?:number, since?:string}} [opt]
+ * @returns {{total:number, contacts:Array, frequent:Array, attention:Array}}
+ */
+export function callHeatmap(logs, opt = {}) {
+  const frequentThreshold = Number.isInteger(opt.frequentThreshold) && opt.frequentThreshold > 0 ? opt.frequentThreshold : 3;
+  const since = opt.since || null;
+  const events = (Array.isArray(logs) ? logs : []).filter((l) => l && l.number && (!since || String(l.startedAt) >= since));
+  const byNum = new Map();
+  for (const e of events) {
+    const num = toE164(e.number) || e.number;
+    const b = byNum.get(num) || { number: num, count: 0, inbound: 0, outbound: 0, lastCall: '', contactKind: null, contactId: null, contactName: '' };
+    b.count++;
+    if (e.direction === 'outbound') b.outbound++; else b.inbound++;
+    if (String(e.startedAt || '') > String(b.lastCall)) b.lastCall = e.startedAt || '';
+    if (e.contactName && !b.contactName) { b.contactName = e.contactName; b.contactKind = e.contactKind || null; b.contactId = e.contactId != null ? e.contactId : null; }
+    byNum.set(num, b);
+  }
+  const contacts = [...byNum.values()].sort((a, b) => b.count - a.count || String(b.lastCall).localeCompare(String(a.lastCall)));
+  const frequent = contacts.filter((c) => c.count >= frequentThreshold);
+  const attention = [];
+  if (opt.db) {
+    for (const c of frequent) {
+      if (!c.contactKind || c.contactId == null) continue;
+      const care = careSignals(opt.db, { kind: c.contactKind, id: c.contactId });
+      if (Object.keys(care).length) attention.push({ ...c, care });
+    }
+  }
+  return { total: events.length, contacts, frequent, attention };
+}

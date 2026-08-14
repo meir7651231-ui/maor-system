@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { buildTenant, validateTenant, toE164 } from './lib/index.mjs';
 import {
   buildDirectory, lookupCaller, lookupInDirectory, enrichContact, screenPop,
-  callEvent, dialString, callHistoryFor, maskNumber, popPriorityFor, SCREENPOP_VERSION, careSignals,
+  callEvent, dialString, callHistoryFor, maskNumber, popPriorityFor, SCREENPOP_VERSION, careSignals, callHeatmap,
 } from './lib/cti.mjs';
 import {
   tenantFromIntake, INTAKE_STEPS, numbersFromCsv, detectNumberType, stepsFor,
@@ -1553,6 +1553,33 @@ console.log('· ratchet — רעיון #19: קול-החסד');
   // בלי-selfservice ⇒ אין מטפל (ביט-זהה למסלול-IVR רגיל).
   const noSS = buildTenant({ ...chesed, features: { 'voice.ivr': true }, routing: { ivr: { options: [{ digit: '1', dest: { type: 'ext', value: '101' } }] } } });
   ok('#19: בלי-selfservice ⇒ אין מטפל', !noSS.files['dialplan/tenant_chesed-demo.xml'].includes('self_service'));
+}
+
+// ── רעיון #10 — מפת-חום שיחות↔צרכים (callHeatmap) ────────────────────────────
+console.log('· ratchet — רעיון #10: מפת-חום');
+{
+  const logs = [
+    callEvent({ number: '050-1112233', direction: 'inbound', startedAt: '2026-03-01T10:00:00', primary: { kind: 'family', id: 'f1', name: 'משפחת כהן' } }),
+    callEvent({ number: '050-1112233', direction: 'inbound', startedAt: '2026-03-02T11:00:00', primary: { kind: 'family', id: 'f1', name: 'משפחת כהן' } }),
+    callEvent({ number: '050-1112233', direction: 'inbound', startedAt: '2026-03-03T09:00:00', primary: { kind: 'family', id: 'f1', name: 'משפחת כהן' } }),
+    callEvent({ number: '03-7654321', direction: 'outbound', startedAt: '2026-03-01T14:00:00' }),
+  ];
+  const hm = callHeatmap(logs, { frequentThreshold: 3 });
+  eq('#10: סה״כ שיחות', hm.total, 4);
+  eq('#10: מתקשר-מוביל 050-1112233', hm.contacts[0].number, '+972501112233');
+  eq('#10: 3 שיחות נכנסות', hm.contacts[0].inbound, 3);
+  ok('#10: תדיר (≥3) מזוהה', hm.frequent.length === 1 && hm.frequent[0].count === 3);
+  // הצלבה עם צרכים: משפחה שהתקשרה הרבה + מסירה-פתוחה ⇒ רשימת-תשומת-לב.
+  const db = {
+    families: [{ id: 'f1', name: 'משפחת כהן', status: 'active', members: [] }],
+    deliveries: [{ id: 'd1', familyId: 'f1', status: 'enroute' }],
+  };
+  const hm2 = callHeatmap(logs, { db, frequentThreshold: 3 });
+  ok('#10: תשומת-לב = תדיר+צורך-פתוח', hm2.attention.length === 1 && hm2.attention[0].care.openDeliveries === 1);
+  // סינון-תאריך.
+  ok('#10: since מסנן', callHeatmap(logs, { since: '2026-03-02' }).total === 2);
+  // ריק/פסול בטוח.
+  ok('#10: null-safe', callHeatmap(null).total === 0 && callHeatmap([]).contacts.length === 0);
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
