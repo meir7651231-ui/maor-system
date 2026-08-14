@@ -25,6 +25,7 @@ import {
   detailedDiff, changelogEntry, planApplyRespectingFreeze, batchSummary, secretPreflight,
 } from './lib/apply.mjs';
 import { auditRoutes } from './lib/audit-routes.mjs';
+import { trustReport } from './lib/report.mjs';
 import { shabbatTimes as zShabbatTimes, hebrewClosedWindows as zClosedWindows } from './lib/zmanim.mjs';
 import {
   channelPlan, isPureDownstream, templateOf, sanitizeTemplates, renderTemplate,
@@ -1419,6 +1420,35 @@ console.log('· ratchet — רעיון #16: סימולטור-שיחה חי');
   ok('#16: חסום מתואר', explainCall(tb, { did: '02-5551234', callerId: '050-9999999', dow: 3, hhmm: '10:00' }).summary.includes('נותק'));
   // מבנה: lines מערך + sim מוטמע.
   ok('#16: מבנה תקין', Array.isArray(eOffice.lines) && eOffice.sim && eOffice.sim.outcome === 'office');
+}
+
+// ── רעיון #18 — דוח-אמון פר-עמותה (trustReport) ──────────────────────────────
+console.log('· ratchet — רעיון #18: דוח-אמון');
+{
+  const tr = trustReport(buildTenant(chesed));
+  ok('#18: סגירת-מסלולים עוברת', tr.checks.find((c) => c.key === 'route-closure').pass);
+  ok('#18: failsafe עובר (יש מנהל)', tr.checks.find((c) => c.key === 'failsafe').pass);
+  ok('#18: downstream+cti אינווריאנטים', tr.checks.find((c) => c.key === 'downstream').pass && tr.checks.find((c) => c.key === 'cti-readonly').pass);
+  ok('#18: toll-caps כבוי ⇒ נכשל-high', !tr.checks.find((c) => c.key === 'toll-caps').pass);
+  ok('#18: ready=true (אין critical נכשל)', tr.ready === true);
+  ok('#18: ציון+ציון-אות', typeof tr.score === 'number' && /^[A-F]$/.test(tr.grade));
+  // הקשחה דלוקה ⇒ toll-caps עובר, ציון עולה.
+  const trH = trustReport(buildTenant({ ...chesed, features: { 'voice.hardening': true } }));
+  ok('#18: הקשחה ⇒ toll-caps עובר', trH.checks.find((c) => c.key === 'toll-caps').pass && trH.score > tr.score);
+  // env מלא ⇒ בדיקת-סודות עוברת.
+  const b = buildTenant(chesed);
+  const env = {};
+  for (const content of Object.values(b.files)) for (const m of content.matchAll(/\$\$\{([A-Z][A-Za-z0-9_-]*)\}/g)) env[m[1]] = 'x';
+  ok('#18: env מלא ⇒ סודות עוברים', trustReport(b, { env }).checks.find((c) => c.key === 'secrets').pass);
+  ok('#18: env ריק ⇒ סודות נכשלים critical ⇒ ready=false', trustReport(b, { env: {} }).ready === false);
+  // peer ⇒ בדיקת-בידוד.
+  const peer = { tenant: validateTenant({ ...chesed, tenantId: 'peer-demo', orgName: 'p' }).tenant, files: buildTenant({ ...chesed, tenantId: 'peer-demo', orgName: 'p' }).files };
+  ok('#18: peers ⇒ בידוד נקי', trustReport(b, { peers: [peer] }).checks.find((c) => c.key === 'isolation').pass);
+  // מסלול-שבור (dangling) ⇒ route-closure critical ⇒ grade F, ready=false.
+  const broken = buildTenant(chesed);
+  broken.files['dialplan/tenant_chesed-demo.xml'] = broken.files['dialplan/tenant_chesed-demo.xml'].replace('</context>', '<extension name="z"><condition><action application="bridge" data="user/8888@chesed-demo"/></condition></extension></context>');
+  const trB = trustReport(broken);
+  ok('#18: שבור ⇒ grade F + ready=false', trB.grade === 'F' && trB.ready === false);
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
