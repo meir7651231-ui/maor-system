@@ -349,6 +349,21 @@ function dialplanXml(tenant, opts = {}) {
   // 4. ניתוב: ההחלטה נקבעה פעם-אחת (force_closed/global_open) ומועברת ל-handler
   //    שאינו בודק-זמן שוב ⇒ עמיד ל-transfer.
   L.push(``);
+  // 3ג. מוקד-מצוקה (opt-in routing.priority): מתקשר-בסיכון עוקף את שער-הזמן ומגיע
+  //     ישירות לאחראי-התורן (24/7), ואם אין-מענה → אחרי-שעות (מנהל→תא-קולי). לפני
+  //     שער-הזמן כדי לעקוף שעות/חג. נכנס רק דרך 'incoming' ⇒ בלי לולאת-transfer.
+  if (R.priority && R.priority.numbers && R.priority.numbers.length) {
+    const pRing = R.priority.ringSeconds || manager.ringSeconds;
+    L.push(`    <!-- מוקד-מצוקה: ${R.priority.numbers.length} מתקשרים-בסיכון → אחראי ${esc(R.priority.ext)} ישירות (24/7) -->`);
+    L.push(`    <extension name="incoming_priority">`);
+    L.push(`      <condition field="destination_number" expression="^incoming$"/>`);
+    L.push(`      <condition field="\${cid_e164}" expression="^(${numbersAlternation(R.priority.numbers)})$">`);
+    L.push(`        <action application="set" data="priority_call=true"/>`);
+    L.push(`        <action application="bridge" data="{leg_timeout=${pRing}}user/${esc(R.priority.ext)}@${esc(tenant.tenantId)}"/>`);
+    L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
+    L.push(`      </condition>`);
+    L.push(`    </extension>`);
+  }
   L.push(`    <!-- ניתוב: force_closed→do_closed · global_open→do_open · אחרת→do_closed -->`);
   L.push(`    <extension name="incoming_closed">`);
   L.push(`      <condition field="destination_number" expression="^incoming$"/>`);
@@ -562,7 +577,7 @@ function dialplanXml(tenant, opts = {}) {
   //     בפועל (office∪manager∪overflow∪IVR), לא טווח קשיח.
   if (R.internal) {
     const ivrExts = R.ivr ? R.ivr.options.flatMap((o) => (o.dest.type === 'ext' ? [o.dest.value] : o.dest.type === 'ringgroup' ? o.dest.value : [])) : [];
-    const allExts = [...new Set([...office.ext, manager.ext, ...(R.overflow || []), ...ivrExts])].filter((e) => /^[0-9]+$/.test(e));
+    const allExts = [...new Set([...office.ext, manager.ext, ...(R.overflow || []), ...ivrExts, ...(R.priority && R.priority.ext ? [R.priority.ext] : [])])].filter((e) => /^[0-9]+$/.test(e));
     if (allExts.length) {
       L.push(``);
       L.push(`    <!-- חיוג-פנימי בין שלוחות -->`);
@@ -666,7 +681,8 @@ function directoryXml(tenant) {
     }
   }
   // תיבת תא-הקולי חייבת להיות משתמש-directory (אחרת ההודעה אובדת); מוסיפים אם חסרה.
-  const exts = [...new Set([...office.ext, manager.ext, ...(R.overflow || []), ...ivrExts])];
+  const priorityExt = R.priority && R.priority.ext ? [R.priority.ext] : [];
+  const exts = [...new Set([...office.ext, manager.ext, ...(R.overflow || []), ...ivrExts, ...priorityExt])];
   const users = [...exts, ...(exts.includes(vm.box) ? [] : [vm.box])];
   const tid = tenant.tenantId;
 
@@ -760,6 +776,7 @@ function manifest(tenant, warnings, opts = {}) {
             ringStrategy: tenant.routing.ringStrategy || 'simultaneous',
             blocklist: (tenant.routing.blocklist || []).length,
             allowlist: (tenant.routing.allowlist || []).length,
+            ...(tenant.routing.priority ? { priority: { count: tenant.routing.priority.numbers.length, ext: tenant.routing.priority.ext } } : {}),
             dnd: !!tenant.routing.dnd,
             speedDial: (tenant.routing.speedDial || []).length,
             overflow: tenant.routing.overflow || [],

@@ -67,6 +67,11 @@ export function simulateCall(tenant, call = {}) {
     if (anon || !cid || !R.allowlist.includes(cid)) return { path: [...path, 'allowlist'], outcome: 'blocked' };
   }
 
+  // מוקד-מצוקה: מתקשר-בסיכון עוקף שער-זמן → אחראי ישירות (24/7).
+  if (R.priority && R.priority.numbers && cid && R.priority.numbers.includes(cid)) {
+    return { path: [...path, 'priority', `resp:${R.priority.ext}`], outcome: 'priority' };
+  }
+
   // קו-הכרזה.
   if (num.role === 'announcement') return { path: [...path, 'announcement'], outcome: 'announcement' };
 

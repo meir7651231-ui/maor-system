@@ -122,6 +122,22 @@ export function normalizeRouting(raw = {}) {
   }
   if (sd.length) routing.speedDial = sd.sort((a, b) => a.code.localeCompare(b.code));
 
+  // מוקד-מצוקה (priority): מתקשרים-בסיכון עוקפים שעות/IVR → אחראי ישירות 24/7.
+  // הרשימה מוזרעת ממאור (משפחות-בסיכון) או ידנית. ext = האחראי-התורן.
+  if (raw.priority && typeof raw.priority === 'object') {
+    const nums = cleanList(raw.priority.numbers, 'priority');
+    const ext = cleanExt(raw.priority.ext);
+    if (nums.length && ext) {
+      routing.priority = {
+        numbers: [...new Set(nums)].sort(),
+        ext,
+        ...(Number.isInteger(raw.priority.ringSeconds) && raw.priority.ringSeconds > 0 ? { ringSeconds: raw.priority.ringSeconds } : {}),
+      };
+    } else if (raw.priority.numbers || raw.priority.ext) {
+      warnings.push('priority: דורש numbers (מספרים תקינים) + ext (אחראי) — מדולג.');
+    }
+  }
+
   // גלישה מדורגת
   const ov = (Array.isArray(raw.overflow) ? raw.overflow : []).map(cleanExt).filter(Boolean);
   if (ov.length) routing.overflow = ov;

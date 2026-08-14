@@ -25,7 +25,7 @@ import {
   detailedDiff, changelogEntry, planApplyRespectingFreeze, batchSummary, secretPreflight,
 } from './lib/apply.mjs';
 import { auditRoutes } from './lib/audit-routes.mjs';
-import { shabbatTimes as zShabbatTimes, hebrewClosedWindows as zClosedWindows, sunset as zSunset } from './lib/zmanim.mjs';
+import { shabbatTimes as zShabbatTimes, hebrewClosedWindows as zClosedWindows } from './lib/zmanim.mjs';
 import {
   channelPlan, isPureDownstream, templateOf, sanitizeTemplates, renderTemplate,
   unifiedInboxOf, autoReply, applyConsent, canMessage, assignMessage, reminderMessage,
@@ -1257,6 +1257,33 @@ console.log('· ratchet — רעיון #1: מנוע-זמנים הלכתי');
     else if (!existsSync(gp)) ok(`golden-zmanim חסר: ${rel} (הרץ UPDATE=1)`, false);
     else ok(`golden-zmanim תואם: ${rel}`, readFileSync(gp, 'utf8') === content);
   }
+}
+
+// ── רעיון #7 — מוקד-מצוקה (routing.priority) ─────────────────────────────────
+console.log('· ratchet — רעיון #7: מוקד-מצוקה');
+{
+  const pcfg = { ...chesed, routing: { priority: { numbers: ['050-1112233', '052-9998877'], ext: '201' } } };
+  const pb = buildTenant(pcfg);
+  ok('#7: priority תקין', pb.ok);
+  const pdp = pb.files['dialplan/tenant_chesed-demo.xml'];
+  // מגיע ישירות לאחראי, עוקף שער-זמן (incoming_priority לפני incoming_closed).
+  ok('#7: incoming_priority קיים', pdp.includes('incoming_priority'));
+  ok('#7: priority לפני שער-הזמן', pdp.indexOf('incoming_priority') < pdp.indexOf('incoming_closed'));
+  ok('#7: בריגׄ לאחראי 201', /incoming_priority[\s\S]*?bridge" data="\{leg_timeout=\d+\}user\/201@chesed-demo"/.test(pdp));
+  ok('#7: מתקשר-קדימות מזוהה ב-cid_e164', /incoming_priority[\s\S]*?cid_e164[\s\S]*?972501112233/.test(pdp));
+  ok('#7: fallback לאחרי-שעות', /incoming_priority[\s\S]*?transfer" data="afterhours/.test(pdp));
+  // האחראי חייב רשומת-directory (אחרת dangling) — 201 כבר מנהל, בדוק tenant עם ext ייחודי.
+  const pb2 = buildTenant({ ...chesed, routing: { priority: { numbers: ['050-1112233'], ext: '109' } } });
+  ok('#7: אחראי-ייחודי ב-directory', pb2.files['directory/chesed-demo.xml'].includes('<user id="109">'));
+  ok('#7: סגירת-מסלולים נקייה (priority)', auditRoutes(pb2).ok);
+  // simulate: מתקשר-קדימות ⇒ priority (עוקף שעות); אחר ⇒ רגיל.
+  const t = validateTenant(pcfg).tenant;
+  eq('#7: sim priority caller', simulateCall(t, { did: '02-5551234', callerId: '050-1112233', dow: 3, hhmm: '23:00' }).outcome, 'priority');
+  eq('#7: sim non-priority רגיל', simulateCall(t, { did: '02-5551234', callerId: '050-0000000', dow: 3, hhmm: '10:00' }).outcome, 'office');
+  // כבוי ⇒ ביט-זהה (chesed בלי priority).
+  ok('#7: כבוי ⇒ אין incoming_priority', !buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'].includes('incoming_priority'));
+  // רשומה חלקית ⇒ אזהרה + מדולג.
+  ok('#7: priority חלקי מדולג', buildTenant({ ...chesed, routing: { priority: { numbers: ['050-1112233'] } } }).warnings.some((w) => w.includes('priority')));
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
