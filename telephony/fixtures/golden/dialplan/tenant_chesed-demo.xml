@@ -16,6 +16,9 @@
       <condition field="caller_id_number" expression="^00([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
       <condition field="caller_id_number" expression="^0([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
       <condition field="caller_id_number" expression="^(972\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="caller_id_number" expression="^([1-9]\d{6,8})$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+      <condition field="caller_id_number" expression="^([1-9]\d{9,14})$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="${cid_e164}" expression="^\+9720([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
     </extension>
 
     <!-- שער-הזמן: ברירת-מחדל סגור; global_open לפי שעות, force_closed לפי חג/dnd/חירום -->
@@ -35,6 +38,7 @@
     <extension name="in_n4">
       <!-- קו-מופנה: תלוי בכך שהספק מעביר את ה-DID המקורי -->
       <condition field="destination_number" expression="^\+972772000000$">
+        <action application="set" data="inbound_call=true"/>
         <action application="set" data="inbound_line=קו וירטואלי משרד"/>
         <action application="set" data="inbound_number=+972772000000"/>
         <action application="transfer" data="incoming XML tenant_chesed-demo"/>
@@ -43,6 +47,7 @@
     <extension name="in_n5">
       <!-- קו-מופנה: תלוי בכך שהספק מעביר את ה-DID המקורי -->
       <condition field="destination_number" expression="^\+972722334455$">
+        <action application="set" data="inbound_call=true"/>
         <action application="set" data="inbound_line=קו וירטואלי גיוס"/>
         <action application="set" data="inbound_number=+972722334455"/>
         <action application="transfer" data="incoming XML tenant_chesed-demo"/>
@@ -116,10 +121,10 @@
         <action application="bridge" data="sofia/gateway/chesed-demo-gw4/$1"/>
       </condition>
     </extension>
-    <!-- יציאת-ברירת-מחדל (חיוג רגיל בלי קידומת) → קו ראשי -->
+    <!-- יציאת-ברירת-מחדל מקומית (חיוג רגיל בלי קידומת) → קו ראשי -->
     <extension name="out_default">
       <condition field="${sip_authorized}" expression="^true$"/>
-      <condition field="destination_number" expression="^(0\d{7,9}|\+?\d{8,15})$">
+      <condition field="destination_number" expression="^(0\d{7,9}|\+?972\d{7,9})$">
         <action application="set" data="effective_caller_id_number=+97225551234"/>
         <action application="bridge" data="sofia/gateway/chesed-demo-gw1/$1"/>
       </condition>
@@ -138,6 +143,7 @@
     <!-- קו ראשי · +97225551234 · ערוץ 1 -->
     <extension name="gw1_entry">
       <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_call=true"/>
         <action application="set" data="inbound_line=קו ראשי"/>
         <action application="set" data="inbound_number=+97225551234"/>
         <action application="transfer" data="incoming XML tenant_chesed-demo"/>
@@ -149,6 +155,7 @@
     <!-- קו תרומות · +972501112233 · ערוץ 2 -->
     <extension name="gw2_entry">
       <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_call=true"/>
         <action application="set" data="inbound_line=קו תרומות"/>
         <action application="set" data="inbound_number=+972501112233"/>
         <action application="transfer" data="incoming XML tenant_chesed-demo"/>
@@ -160,19 +167,9 @@
     <!-- קו כשר · +972539998877 · ערוץ 3 -->
     <extension name="gw3_entry">
       <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_call=true"/>
         <action application="set" data="inbound_line=קו כשר"/>
         <action application="set" data="inbound_number=+972539998877"/>
-        <action application="transfer" data="incoming XML tenant_chesed-demo"/>
-      </condition>
-    </extension>
-  </context>
-
-  <context name="tenant_chesed-demo_gw4">
-    <!-- קו SMS · +972551234567 · ערוץ 4 -->
-    <extension name="gw4_entry">
-      <condition field="destination_number" expression="^.*$">
-        <action application="set" data="inbound_line=קו SMS"/>
-        <action application="set" data="inbound_number=+972551234567"/>
         <action application="transfer" data="incoming XML tenant_chesed-demo"/>
       </condition>
     </extension>

@@ -64,12 +64,10 @@
         <params>
           <param name="password" value="$${PROVISION_PW__full-demo__100}"/>
           <param name="vm-password" value="$${VM_PW__full-demo__100}"/>
-          <param name="vm-mailto" value="mgr@full.example"/>
-          <param name="vm-attach-file" value="true"/>
         </params>
         <variables>
           <variable name="user_context" value="tenant_full-demo"/>
-          <variable name="effective_caller_id_name" value="תא-קולי עמותה מלאה"/>
+          <variable name="effective_caller_id_name" value="משרד עמותה מלאה"/>
           <variable name="toll_allow" value="domestic"/>
         </variables>
       </user>

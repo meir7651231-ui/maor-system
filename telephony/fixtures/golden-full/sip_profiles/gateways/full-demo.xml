@@ -5,8 +5,8 @@
   <gateway name="full-demo-gw1">
     <!-- קו ראשי · +97225000000 · ערוץ 1 -->
     <param name="username" value="full-demo-gw1"/>
-    <param name="password" value="$${gsm_gateway_password}"/>
-    <param name="proxy" value="$${gsm_gateway_ip}"/>
+    <param name="password" value="$${GSM_PW__full-demo}"/>
+    <param name="proxy" value="$${GSM_IP__full-demo}"/>
     <param name="register" value="false"/>
     <param name="caller-id-in-from" value="true"/>
     <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->
@@ -15,8 +15,8 @@
   <gateway name="full-demo-gw2">
     <!-- קו תרומות · +97235000000 · ערוץ 2 -->
     <param name="username" value="full-demo-gw2"/>
-    <param name="password" value="$${gsm_gateway_password}"/>
-    <param name="proxy" value="$${gsm_gateway_ip}"/>
+    <param name="password" value="$${GSM_PW__full-demo}"/>
+    <param name="proxy" value="$${GSM_IP__full-demo}"/>
     <param name="register" value="false"/>
     <param name="caller-id-in-from" value="true"/>
     <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->

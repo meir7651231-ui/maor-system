@@ -105,5 +105,7 @@
     "directory/full-demo.xml",
     "sip_profiles/gateways/full-demo.xml"
   ],
-  "warnings": []
+  "warnings": [
+    "numbers[n3]: קו-מופנה עם לו״ז-פר-קו — לא נתמך ב-GSM downstream (ה-DID אינו נשמר). השתמש ב-SIM נפרד."
+  ]
 }

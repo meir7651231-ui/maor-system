@@ -15,10 +15,8 @@ export const SCHEMA_VERSION = 2;
 
 // רישום-דגלים: key → 'on' (ליבה, חסר=דלוק) | 'off' (תוספת, חסר=כבוי).
 export const FLAG_DEFAULTS = {
-  // ── ליבה ──
+  // ── ליבה (נאכפות בגנרטור) ──
   voice: 'on',
-  'voice.timecondition': 'on',
-  'voice.afterhours': 'on',
   voicemail: 'on',
   'voicemail.email': 'on',
   outbound: 'on',
@@ -26,12 +24,12 @@ export const FLAG_DEFAULTS = {
   'outbound.pick': 'on',
   cti: 'on',
   // ── תוספות (opt-in) ──
+  'outbound.international': 'off', // בין-לאומי — כבוי כברירת-מחדל (הגנת-toll-fraud)
   'voice.ivr': 'off',
   'voice.queue': 'off',
   'voice.blocklist': 'off',
   'voice.dnd': 'off',
   'voice.park': 'off',
-  'voice.transfer': 'off',
   'voice.greeting': 'off',
   'voicemail.transcription': 'off',
   'cti.namegreeting': 'off',
@@ -148,7 +146,10 @@ export function sanitizeConfigFields(raw) {
   }
   if (raw && typeof raw.terms === 'object' && raw.terms) {
     for (const [k, v] of Object.entries(raw.terms)) {
-      if (typeof v === 'string' && TERM_KEYS.has(k)) terms[k] = v;
+      if (typeof v !== 'string' || !TERM_KEYS.has(k)) continue;
+      // shabbatFriEnd חייב HH:MM (אחרת יופל ל-15:00 בכל צרכן) — מקור-אמת יחיד.
+      if (k === 'shabbatFriEnd' && !/^([01]?\d|2[0-3]):[0-5]\d$/.test(v)) continue;
+      terms[k] = v;
     }
   }
   return { features, terms };
@@ -185,7 +186,7 @@ export function migrateConfig(raw) {
     c.features = c.features || {};
     c.terms = c.terms || {};
   }
-  c.schemaVersion = SCHEMA_VERSION;
+  c.schemaVersion = Math.max(v, SCHEMA_VERSION); // רק מעלה — לא מוריד גרסה עתידית
   return c;
 }
 

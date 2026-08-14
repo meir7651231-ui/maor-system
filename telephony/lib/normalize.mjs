@@ -18,6 +18,8 @@
  */
 export function toE164(raw, defaultCc = '972') {
   if (typeof raw !== 'string') return null;
+  // שדה עם שני-מספרים ("050.../052...") — קח את הראשון (אחרת מתמזג לזבל).
+  raw = raw.split(/[/;,]| ו | או /)[0];
   // שמור אם היה + מוביל, ואז השאר ספרות בלבד.
   const hadPlus = raw.trim().startsWith('+');
   let d = raw.replace(/[^\d]/g, '');

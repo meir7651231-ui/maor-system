@@ -188,6 +188,12 @@ export function validateTenant(raw) {
   if (hasForwardVoice && !hasSimVoice) {
     warnings.push('קווים-מופנים (customer-forward) קיימים אך אין אף SIM-בשער נושא-קול לנחיתה — הפניה חייבת לנחות על SIM; עד אז המרכזייה לא תקבל שיחות מהקווים המופנים.');
   }
+  // קו-מופנה עם הכרזה/לו״ז-פר-קו לא יעבוד downstream (ה-DID לא נשמר בשער-GSM).
+  for (const n of numbers) {
+    if (n.onramp === 'customer-forward' && (n.role === 'announcement' || n.hours)) {
+      warnings.push(`numbers[${n.id}]: קו-מופנה עם ${n.role === 'announcement' ? 'הכרזה' : 'לו״ז-פר-קו'} — לא נתמך ב-GSM downstream (ה-DID אינו נשמר). השתמש ב-SIM נפרד.`);
+    }
+  }
   // forwardTo (אם הוגדר) חייב להצביע על SIM-בשער.
   for (const n of numbers) {
     if (n.forwardTo) {
@@ -212,6 +218,12 @@ export function validateTenant(raw) {
         : Array.isArray(officeExt) && officeExt.length > 0 && officeExt.every((e) => typeof e === 'string' && e);
     if (!officeOk) errors.push('destinations.office.ext חסר (אקסטנשן-משרד או רשימה).');
     if (typeof managerExt !== 'string' || !managerExt) errors.push('destinations.manager.ext חסר.');
+    // שלוחות חייבות ספרות בלבד (2-6) — מונע הזרקת-XML/שבירה + התנגשות.
+    const EXT_RE = /^[0-9]{2,6}$/;
+    const allExtVals = [...(Array.isArray(officeExt) ? officeExt : [officeExt]), managerExt, dst.voicemail?.box].filter(Boolean);
+    for (const e of allExtVals) {
+      if (typeof e === 'string' && !EXT_RE.test(e)) errors.push(`שלוחה/תיבה לא-תקינה: "${e}" (ספרות בלבד, 2-6).`);
+    }
 
     destinations = {
       office: {

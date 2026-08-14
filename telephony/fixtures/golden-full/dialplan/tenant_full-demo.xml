@@ -16,9 +16,13 @@
       <condition field="caller_id_number" expression="^00([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
       <condition field="caller_id_number" expression="^0([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
       <condition field="caller_id_number" expression="^(972\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="caller_id_number" expression="^([1-9]\d{6,8})$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+      <condition field="caller_id_number" expression="^([1-9]\d{9,14})$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="${cid_e164}" expression="^\+9720([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
     </extension>
     <!-- רשימת-חסימה: 2 מספרים → ניתוק -->
     <extension name="blocklist">
+      <condition field="${inbound_call}" expression="^true$"/>
       <condition field="${cid_e164}" expression="^(\+97231111111|\+972509999999)$">
         <action application="set" data="closed_reason=מספר-חסום"/>
         <action application="hangup" data="CALL_REJECTED"/>
@@ -42,6 +46,7 @@
     <extension name="in_n3">
       <!-- קו-מופנה: תלוי בכך שהספק מעביר את ה-DID המקורי -->
       <condition field="destination_number" expression="^\+972775000000$">
+        <action application="set" data="inbound_call=true"/>
         <action application="set" data="inbound_line=קו לילה"/>
         <action application="set" data="inbound_number=+972775000000"/>
         <action application="transfer" data="line_n3 XML tenant_full-demo"/>
@@ -117,10 +122,10 @@
         <action application="bridge" data="sofia/gateway/full-demo-gw2/$1"/>
       </condition>
     </extension>
-    <!-- יציאת-ברירת-מחדל (חיוג רגיל בלי קידומת) → קו ראשי -->
+    <!-- יציאת-ברירת-מחדל מקומית (חיוג רגיל בלי קידומת) → קו ראשי -->
     <extension name="out_default">
       <condition field="${sip_authorized}" expression="^true$"/>
-      <condition field="destination_number" expression="^(0\d{7,9}|\+?\d{8,15})$">
+      <condition field="destination_number" expression="^(0\d{7,9}|\+?972\d{7,9})$">
         <action application="set" data="effective_caller_id_number=+97225000000"/>
         <action application="bridge" data="sofia/gateway/full-demo-gw1/$1"/>
       </condition>
@@ -198,6 +203,7 @@
     <!-- קו ראשי · +97225000000 · ערוץ 1 -->
     <extension name="gw1_entry">
       <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_call=true"/>
         <action application="set" data="inbound_line=קו ראשי"/>
         <action application="set" data="inbound_number=+97225000000"/>
         <action application="transfer" data="incoming XML tenant_full-demo"/>
@@ -209,6 +215,7 @@
     <!-- קו תרומות · +97235000000 · ערוץ 2 -->
     <extension name="gw2_entry">
       <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_call=true"/>
         <action application="set" data="inbound_line=קו תרומות"/>
         <action application="set" data="inbound_number=+97235000000"/>
         <action application="transfer" data="incoming XML tenant_full-demo"/>

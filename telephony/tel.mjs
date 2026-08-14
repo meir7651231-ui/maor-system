@@ -99,6 +99,16 @@ switch (cmd) {
         next[t.tenantId] = t.desired;
       }
     }
+    // פירוק-לקוח: לקוחות שהיו ב-STATE ונעלמו מ-tenantsDir.
+    const vanished = Object.keys(prev).filter((id) => !tenants.some((t) => t.tenantId === id));
+    for (const id of vanished) {
+      const filesOf = Object.keys(prev[id] || {});
+      console.log(`🗑  ${id} נעלם — ${filesOf.length} קבצים ${flag('--prune') ? 'למחיקה' : '(הרץ --prune)'}`);
+      if (flag('--write') && flag('--prune')) {
+        for (const rel of filesOf) { safeUnlink(fullOf(configRoot, rel, id)); touched.deletes.push(rel); }
+        delete next[id];
+      }
+    }
     if (flag('--write')) {
       atomicWrite(STATE, JSON.stringify(next, null, 2) + '\n');
       console.log('✅ הוחל');

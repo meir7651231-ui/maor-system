@@ -5,8 +5,8 @@
   <gateway name="chesed-demo-gw1">
     <!-- קו ראשי · +97225551234 · ערוץ 1 -->
     <param name="username" value="chesed-demo-gw1"/>
-    <param name="password" value="$${gsm_gateway_password}"/>
-    <param name="proxy" value="$${gsm_gateway_ip}"/>
+    <param name="password" value="$${GSM_PW__chesed-demo}"/>
+    <param name="proxy" value="$${GSM_IP__chesed-demo}"/>
     <param name="register" value="false"/>
     <param name="caller-id-in-from" value="true"/>
     <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->
@@ -15,8 +15,8 @@
   <gateway name="chesed-demo-gw2">
     <!-- קו תרומות · +972501112233 · ערוץ 2 -->
     <param name="username" value="chesed-demo-gw2"/>
-    <param name="password" value="$${gsm_gateway_password}"/>
-    <param name="proxy" value="$${gsm_gateway_ip}"/>
+    <param name="password" value="$${GSM_PW__chesed-demo}"/>
+    <param name="proxy" value="$${GSM_IP__chesed-demo}"/>
     <param name="register" value="false"/>
     <param name="caller-id-in-from" value="true"/>
     <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->
@@ -25,8 +25,8 @@
   <gateway name="chesed-demo-gw3">
     <!-- קו כשר · +972539998877 · כשר · ערוץ 3 -->
     <param name="username" value="chesed-demo-gw3"/>
-    <param name="password" value="$${gsm_gateway_password}"/>
-    <param name="proxy" value="$${gsm_gateway_ip}"/>
+    <param name="password" value="$${GSM_PW__chesed-demo}"/>
+    <param name="proxy" value="$${GSM_IP__chesed-demo}"/>
     <param name="register" value="false"/>
     <param name="caller-id-in-from" value="true"/>
     <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->
@@ -35,8 +35,8 @@
   <gateway name="chesed-demo-gw4">
     <!-- קו SMS · +972551234567 · ערוץ 4 -->
     <param name="username" value="chesed-demo-gw4"/>
-    <param name="password" value="$${gsm_gateway_password}"/>
-    <param name="proxy" value="$${gsm_gateway_ip}"/>
+    <param name="password" value="$${GSM_PW__chesed-demo}"/>
+    <param name="proxy" value="$${GSM_IP__chesed-demo}"/>
     <param name="register" value="false"/>
     <param name="caller-id-in-from" value="true"/>
     <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->

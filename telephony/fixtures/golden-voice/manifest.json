@@ -139,5 +139,7 @@
     "directory/voice-demo.xml",
     "sip_profiles/gateways/voice-demo.xml"
   ],
-  "warnings": []
+  "warnings": [
+    "numbers[n2]: קו-מופנה עם הכרזה — לא נתמך ב-GSM downstream (ה-DID אינו נשמר). השתמש ב-SIM נפרד."
+  ]
 }

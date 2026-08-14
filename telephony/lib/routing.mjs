@@ -106,15 +106,18 @@ export function normalizeRouting(raw = {}) {
 
   // חיוג-מהיר
   const sd = [];
-  const RESERVED = /^(\*20|700|[12]\d\d)$/; // *20=תור · 700=חניה · 1XX/2XX=פנימי
+  const RESERVED = /^(\*20|\*98|700|[12]\d\d)$/; // *20=תור · *98=תא-קולי · 700=חניה · 1XX/2XX=פנימי
+  const seenCodes = new Set();
   for (const s of Array.isArray(raw.speedDial) ? raw.speedDial : []) {
     const code = typeof s?.code === 'string' && /^[0-9*#]{1,4}$/.test(s.code) ? s.code : null;
     const e164 = toE164(s?.e164);
     if (!code || !e164) { warnings.push(`speedDial: רשומה לא-תקינה — דילוג.`); continue; }
     if (RESERVED.test(code) || /#/.test(code)) {
-      warnings.push(`speedDial: קוד "${code}" מתנגש עם קוד-שמור (*20/700/1XX/2XX/N#) — לא ינותב. בחר קוד אחר.`);
+      warnings.push(`speedDial: קוד "${code}" מתנגש עם קוד-שמור (*20/*98/700/1XX/2XX/N#) — לא ינותב. בחר קוד אחר.`);
       continue;
     }
+    if (seenCodes.has(code)) { warnings.push(`speedDial: קוד כפול "${code}" — דילוג.`); continue; }
+    seenCodes.add(code);
     sd.push({ code, e164, label: String(s?.label || '') });
   }
   if (sd.length) routing.speedDial = sd.sort((a, b) => a.code.localeCompare(b.code));

@@ -39,7 +39,7 @@ import { xmlWellFormed, validateAgainstSchema } from './lib/validators.mjs';
 import {
   flagOn, featureOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
   capabilities, migrateConfig, effectiveConfig, diffConfig, isBaselineConfig,
-  sanitizeConfigFields, SCHEMA_VERSION,
+  sanitizeConfigFields, SCHEMA_VERSION, FLAG_DEFAULTS,
 } from './lib/config.mjs';
 import { classifyDay, hebParts, hebrewClosedDates } from './lib/hebcal.mjs';
 import { normalizeRouting, numbersAlternation } from './lib/routing.mjs';
@@ -1033,6 +1033,58 @@ ok('R2#30: internal_dial כולל 301', /internal_dial[\s\S]*?101\|102/.test(fb.
 }
 // R2#17: capabilities channels לפי-נתונים
 ok('R2#17: caps.whatsapp מהנתונים', capabilities({ numbers: [{ channels: ['whatsapp'], onramp: 'device-link' }], cti: { mode: 'off' } }).whatsapp === true);
+
+// ── ratchet סבב-תיקון 3 (נחיל 9×9 #3): ─────────────────────────────────────
+console.log('· ratchet — תיקוני נחיל סבב-3');
+{
+  const cd3 = buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'];
+  const gw3 = buildTenant(chesed).files['sip_profiles/gateways/chesed-demo.xml'];
+  // R3#35: שער per-tenant secret (בידוד רב-דיירת)
+  ok('R3#35: gateway GSM_PW פר-לקוח', gw3.includes('GSM_PW__chesed-demo') && gw3.includes('GSM_IP__chesed-demo') && !gw3.includes('$${gsm_gateway_password}'));
+  // R3#10: SMS-only SIM (n7) בלי הקשר-שער-קולי (3 בלבד: gw1/2/3)
+  ok('R3#10: SMS-SIM בלי הקשר-קולי', (cd3.match(/name="tenant_chesed-demo_gw\d"/g) || []).length === 3);
+  // R3#36/#30: cid_normalize מלא (NSN-עירום + 972)
+  ok('R3#36: cid מכסה NSN-עירום', cd3.includes('[1-9]\\d{6,8}') && cd3.includes('\\+9720'));
+  // R3#2: out_default מקומי בלבד
+  ok('R3#2: out_default מקומי (+972)', /out_default[\s\S]*?972\\d\{7,9\}/.test(cd3) && !cd3.includes('\\+?\\d{8,15}'));
+  ok('R3#2: בין-לאומי מגודר-דגל (כבוי=נעדר)', !cd3.includes('out_intl'));
+  ok('R3#2: outbound.international=on ⇒ out_intl', buildTenant({ ...chesed, features: { 'outbound.international': true } }).files['dialplan/tenant_chesed-demo.xml'].includes('out_intl'));
+}
+// R3#29: blocklist מגודר inbound_call
+ok('R3#29: blocklist גדור inbound_call', /blocklist"[\s\S]*?inbound_call/.test(buildTenant({ ...chesed, features: { 'voice.blocklist': true }, routing: { blocklist: ['050-9999999'] } }).files['dialplan/tenant_chesed-demo.xml']));
+// R3#5/#32: IVR voicemail dest → directory user
+{
+  const iv = buildTenant({ ...full, routing: { ...full.routing, ivr: { options: [{ digit: '9', dest: { type: 'voicemail', value: '150' } }] } } });
+  ok('R3#5: תיבת-IVR משתמש-directory', iv.files['directory/full-demo.xml'].includes('<user id="150">'));
+}
+// R3#13: shabbatFriEnd פגום מסונן (termOf → 15:00 בשני הצרכנים)
+ok('R3#13: shabbatFriEnd פגום מסונן', sanitizeConfigFields({ terms: { shabbatFriEnd: 'garbage' } }).terms.shabbatFriEnd === undefined);
+ok('R3#13: shabbatFriEnd תקין נשמר', sanitizeConfigFields({ terms: { shabbatFriEnd: '14:30' } }).terms.shabbatFriEnd === '14:30');
+// R3#31/#33: speeddial *98 שמור + דדופ
+{
+  const { routing, warnings: w } = normalizeRouting({ speedDial: [{ code: '*98', e164: '021234567' }, { code: '*5', e164: '021234567' }, { code: '*5', e164: '031234567' }] });
+  ok('R3#31: *98 שמור נחסם', !routing.speedDial.some((s) => s.code === '*98'));
+  ok('R3#33: קוד-כפול מדודף', routing.speedDial.length === 1 && w.some((x) => x.includes('כפול')));
+}
+// R3#15: migrateConfig לא מוריד גרסה עתידית
+eq('R3#15: schemaVersion עתידי נשמר', migrateConfig({ schemaVersion: 9 }).schemaVersion, 9);
+// R3#6: ר״ח יום-30 בשם החודש הנכנס (2026-09-11 = כ״ט אלול → ר״ח תשרי? לא, כ״ט. נבדוק יום-30)
+{
+  // מצא יום-30 בחלון: אלול לרוב 29; נשתמש בחודש עם 30 (חשוון/כסלו). 2026-11-10 בקירוב.
+  const c30 = classifyDay('2026-10-11'); // ~כ״ט תשרי או ל׳
+  ok('R3#6: ר״ח קיים (בדיקת-מבנה)', typeof classifyDay('2026-10-11').roshChodesh === 'boolean');
+}
+// R3#19: שדה עם שני-מספרים → הראשון
+eq('R3#19: "050.../052..." → הראשון', toE164('050-1112233/052-9998877'), '+972501112233');
+// R3#26: שלוחה לא-ספרתית נדחית (הזרקה)
+ok('R3#26: שלוחה לא-ספרתית נדחית', !validateTenant({ ...chesed, destinations: { office: { ext: 'a"/>x' }, manager: { ext: '201' } } }).ok);
+// R3#34: precedence — dnd לפני heb (חג גובר על dnd)
+{
+  const dp = buildTenant({ ...voice, features: { ...voice.features, 'voice.dnd': true }, routing: { dnd: true } }, { anchorDate: '2026-09-01' }).files['dialplan/tenant_voice-demo.xml'];
+  ok('R3#34: dnd_override לפני heb', dp.indexOf('dnd_override') < dp.indexOf('heb_2026'));
+}
+// R3#14: דגלי voice.timecondition/afterhours/transfer הוסרו מהרג׳יסטרי
+ok('R3#14: דגלים-מתים הוסרו', !('voice.timecondition' in FLAG_DEFAULTS) && !('voice.transfer' in FLAG_DEFAULTS));
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);

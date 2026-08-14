@@ -120,9 +120,10 @@ export function detectDrift(lastApplied = {}, onDisk = {}) {
 export function reloadPlan(plan) {
   const cmds = [];
   const touched = [...plan.creates, ...plan.updates, ...plan.deletes];
-  if (touched.some((p) => p.startsWith('dialplan/'))) cmds.push('reloadxml');
-  if (touched.some((p) => p.startsWith('directory/'))) cmds.push('reloadxml');
-  if (touched.some((p) => p.startsWith('sip_profiles/'))) cmds.push('sofia profile internal rescan reloadxml');
+  if (touched.some((p) => p.startsWith('dialplan/') || p.startsWith('directory/'))) cmds.push('reloadxml');
+  // שער שנמחק חייב restart-פרופיל (rescan לא מוריד gateway קיים); שאר-שינויי-שער = rescan.
+  if ((plan.deletes || []).some((p) => p.startsWith('sip_profiles/'))) cmds.push('sofia profile internal restart reloadxml');
+  else if (touched.some((p) => p.startsWith('sip_profiles/'))) cmds.push('sofia profile internal rescan reloadxml');
   return [...new Set(cmds)];
 }
 

@@ -14,7 +14,7 @@ import { featureOn, termOf } from './config.mjs';
 import { hebrewClosedDates } from './hebcal.mjs';
 import { numbersAlternation } from './routing.mjs';
 import { promptDir, requiredPrompts, promptCapabilities } from './prompts.mjs';
-import { extSecret, vmSecret } from './security.mjs';
+import { extSecret, vmSecret, secretsFor } from './security.mjs';
 
 const XML_ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' };
 function esc(s) {
@@ -150,12 +150,16 @@ function dialplanXml(tenant, opts = {}) {
   L.push(`      <condition field="caller_id_number" expression="^00([1-9]\\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>`);
   L.push(`      <condition field="caller_id_number" expression="^0([1-9]\\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>`);
   L.push(`      <condition field="caller_id_number" expression="^(972\\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>`);
+  L.push(`      <condition field="caller_id_number" expression="^([1-9]\\d{6,8})$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>`);
+  L.push(`      <condition field="caller_id_number" expression="^([1-9]\\d{9,14})$" break="never"><action application="set" data="cid_e164=+$1"/></condition>`);
+  L.push(`      <condition field="\${cid_e164}" expression="^\\+9720([1-9]\\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>`);
   L.push(`    </extension>`);
 
   // 0ג. חסימה/היתר — מול cid_e164 המנורמל.
   if (featureOn(tenant, 'voice.blocklist') && R.blocklist && R.blocklist.length) {
     L.push(`    <!-- רשימת-חסימה: ${R.blocklist.length} מספרים → ניתוק -->`);
     L.push(`    <extension name="blocklist">`);
+    L.push(`      <condition field="\${inbound_call}" expression="^true$"/>`);
     L.push(`      <condition field="\${cid_e164}" expression="^(${numbersAlternation(R.blocklist)})$">`);
     L.push(`        <action application="set" data="closed_reason=מספר-חסום"/>`);
     L.push(`        <action application="hangup" data="CALL_REJECTED"/>`);
@@ -166,12 +170,13 @@ function dialplanXml(tenant, opts = {}) {
     // חסוי/אנונימי חיצוני → ניתוק (אנטי-הטרדה). פנימי (שלוחה) לא נתפס.
     L.push(`    <!-- רשימת-היתר: חיצוני-שאינו-ברשימה או חסוי → ניתוק -->`);
     L.push(`    <extension name="allowlist_anon" continue="true">`);
+    L.push(`      <condition field="\${inbound_call}" expression="^true$"/>`);
     L.push(`      <condition field="\${cid_e164}" expression="^(|anonymous|Anonymous|unknown|Unknown|restricted|Restricted|private|Private|withheld|Withheld|CLIR)$">`);
     L.push(`        <action application="hangup" data="CALL_REJECTED"/>`);
     L.push(`      </condition>`);
     L.push(`    </extension>`);
     L.push(`    <extension name="allowlist" continue="true">`);
-    L.push(`      <condition field="\${cid_e164}" expression="^\\+"/>`);
+    L.push(`      <condition field="\${inbound_call}" expression="^true$"/>`);
     L.push(`      <condition field="\${cid_e164}" expression="^(${numbersAlternation(R.allowlist)})$">`);
     L.push(`        <anti-action application="hangup" data="CALL_REJECTED"/>`);
     L.push(`      </condition>`);
@@ -199,6 +204,19 @@ function dialplanXml(tenant, opts = {}) {
     L.push(`    </extension>`);
   });
 
+  // 2א. נא-לא-להפריע — לפני החג כדי שהחג יגבר עליו (precedence: חירום>חג>dnd).
+  if (featureOn(tenant, 'voice.dnd') && R.dnd) {
+    L.push(``);
+    L.push(`    <!-- מצב נא-לא-להפריע: הכל מנותב לאחרי-שעות -->`);
+    L.push(`    <extension name="dnd_override" continue="true">`);
+    L.push(`      <condition>`);
+    L.push(`        <action application="set" data="force_closed=true"/>`);
+    L.push(`        <action application="set" data="closed_kind=dnd"/>`);
+    L.push(`        <action application="set" data="closed_reason=נא לא להפריע"/>`);
+    L.push(`      </condition>`);
+    L.push(`    </extension>`);
+  }
+
   // 2ב. לוח-עברי (opt-in calendar.hebrew): ימי-חג מחושבים-מראש דורסים ל"סגור".
   // שבת כבר מכוסה ב-wday (לכן לא נכללת). דורש anchorDate (דטרמיניזם golden).
   const heb = hebrewBlock(tenant, opts);
@@ -216,19 +234,6 @@ function dialplanXml(tenant, opts = {}) {
     }
   }
 
-  // 2ג. נא-לא-להפריע (opt-in voice.dnd): דורס ל"סגור" תמיד ⇒ הכל→מנהל/תא-קולי.
-  if (featureOn(tenant, 'voice.dnd') && R.dnd) {
-    L.push(``);
-    L.push(`    <!-- מצב נא-לא-להפריע: הכל מנותב לאחרי-שעות -->`);
-    L.push(`    <extension name="dnd_override" continue="true">`);
-    L.push(`      <condition>`);
-    L.push(`        <action application="set" data="force_closed=true"/>`);
-    L.push(`        <action application="set" data="closed_kind=dnd"/>`);
-    L.push(`        <action application="set" data="closed_reason=נא לא להפריע"/>`);
-    L.push(`      </condition>`);
-    L.push(`    </extension>`);
-  }
-
   // 2ד. מצב-חירום (opt-in emergency): "סגור היום" — דורס לסגור + סיבה.
   if (featureOn(tenant, 'emergency') && tenant.emergency && tenant.emergency.active) {
     L.push(``);
@@ -244,6 +249,7 @@ function dialplanXml(tenant, opts = {}) {
 
   // פעולות-הכניסה של קו (זיהוי-קו + הכרזה/ניתוב) — משותף ל-in_<id> ולהקשרי-השער.
   const entryActions = (n, ind) => {
+    L.push(`${ind}<action application="set" data="inbound_call=true"/>`);
     L.push(`${ind}<action application="set" data="inbound_line=${esc(n.label)}"/>`);
     L.push(`${ind}<action application="set" data="inbound_number=${esc(n.e164)}"/>`);
     if (n.role === 'announcement') {
@@ -415,14 +421,25 @@ function dialplanXml(tenant, opts = {}) {
     }
     // 7. יציאת-ברירת-מחדל (בלי קידומת) → המספר שנבחר.
     if (def && featureOn(tenant, 'outbound.default')) {
-      L.push(`    <!-- יציאת-ברירת-מחדל (חיוג רגיל בלי קידומת) → ${esc(def.label)} -->`);
+      // מקומי בלבד (0X / +972 / 972) — הגנת-toll-fraud. בין-לאומי דורש דגל מפורש.
+      L.push(`    <!-- יציאת-ברירת-מחדל מקומית (חיוג רגיל בלי קידומת) → ${esc(def.label)} -->`);
       L.push(`    <extension name="out_default">`);
       L.push(`      <condition field="\${sip_authorized}" expression="^true$"/>`);
-      L.push(`      <condition field="destination_number" expression="^(0\\d{7,9}|\\+?\\d{8,15})$">`);
+      L.push(`      <condition field="destination_number" expression="^(0\\d{7,9}|\\+?972\\d{7,9})$">`);
       L.push(`        <action application="set" data="effective_caller_id_number=${esc(def.e164)}"/>`);
       L.push(`        <action application="bridge" data="sofia/gateway/${esc(gw)}${def.gatewayChannel}/$1"/>`);
       L.push(`      </condition>`);
       L.push(`    </extension>`);
+      if (featureOn(tenant, 'outbound.international')) {
+        L.push(`    <!-- יציאה בין-לאומית (opt-in outbound.international) -->`);
+        L.push(`    <extension name="out_intl">`);
+        L.push(`      <condition field="\${sip_authorized}" expression="^true$"/>`);
+        L.push(`      <condition field="destination_number" expression="^(00\\d{6,}|\\+\\d{8,15})$">`);
+        L.push(`        <action application="set" data="effective_caller_id_number=${esc(def.e164)}"/>`);
+        L.push(`        <action application="bridge" data="sofia/gateway/${esc(gw)}${def.gatewayChannel}/$1"/>`);
+        L.push(`      </condition>`);
+        L.push(`    </extension>`);
+      }
     }
   }
 
@@ -522,9 +539,9 @@ function dialplanXml(tenant, opts = {}) {
 
   L.push(`  </context>`);
 
-  // ── הקשרי-שער פר-SIM: זיהוי-קו אמין לפי השער שדרכו הגיעה השיחה (לא לפי DID,
-  //    ששער-GSM אינו מספק). כל gateway מפנה ל-context הזה (ראה gatewaysXml). ──
-  for (const n of sims) {
+  // ── הקשרי-שער פר-SIM נושא-קול: זיהוי-קו אמין לפי השער (לא לפי DID). SIM ל-SMS-
+  //    בלבד אינו מקבל הקשר-כניסה-קולי (הוא רק ערוץ-יציאה/SMS). ──
+  for (const n of sims.filter((s) => (s.channels || []).includes('voice'))) {
     const gctx = `tenant_${tenant.tenantId}_gw${n.gatewayChannel}`;
     L.push(``);
     L.push(`  <context name="${esc(gctx)}">`);
@@ -584,6 +601,7 @@ function directoryXml(tenant) {
     for (const o of R.ivr.options) {
       if (o.dest.type === 'ext') ivrExts.push(o.dest.value);
       else if (o.dest.type === 'ringgroup') ivrExts.push(...o.dest.value);
+      else if (o.dest.type === 'voicemail') ivrExts.push(o.dest.value); // תיבת-IVR צריכה משתמש
     }
   }
   // תיבת תא-הקולי חייבת להיות משתמש-directory (אחרת ההודעה אובדת); מוסיפים אם חסרה.
@@ -602,8 +620,8 @@ function directoryXml(tenant) {
     const isVmBox = ext === vm.box && !exts.includes(vm.box); // תיבה-בלבד
     L.push(`      <user id="${esc(ext)}">`);
     L.push(`        <params>`);
-    L.push(`          <param name="password" value="$\${${extSecret(tid, ext)}}"/>`);
-    L.push(`          <param name="vm-password" value="$\${${vmSecret(tid, ext)}}"/>`);
+    L.push(`          <param name="password" value="$\${${esc(extSecret(tid, ext))}}"/>`);
+    L.push(`          <param name="vm-password" value="$\${${esc(vmSecret(tid, ext))}}"/>`);
     // תא-קולי-במייל (מגודר voicemail.email): מנהל/תיבה→vm.email; שלוחת-משרד→office.email.
     const vmMail = isManager || isVmBox ? vm.email : office.ext.includes(ext) ? office.email : undefined;
     if (vmMail && featureOn(tenant, 'voicemail.email')) {
@@ -638,8 +656,8 @@ function gatewaysXml(tenant) {
     L.push(`  <gateway name="${esc(gw)}${n.gatewayChannel}">`);
     L.push(`    <!-- ${esc(n.label)} · ${esc(n.e164)}${n.kosher ? ' · כשר' : ''} · ערוץ ${n.gatewayChannel} -->`);
     L.push(`    <param name="username" value="${esc(gw)}${n.gatewayChannel}"/>`);
-    L.push(`    <param name="password" value="$\${gsm_gateway_password}"/>`);
-    L.push(`    <param name="proxy" value="$\${gsm_gateway_ip}"/>`);
+    L.push(`    <param name="password" value="$\${${secretsFor(tenant).gsm_gateway_password}}"/>`);
+    L.push(`    <param name="proxy" value="$\${${secretsFor(tenant).gsm_gateway_ip}}"/>`);
     L.push(`    <param name="register" value="false"/>`);
     L.push(`    <param name="caller-id-in-from" value="true"/>`);
     L.push(`    <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->`);

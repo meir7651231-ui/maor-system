@@ -111,6 +111,8 @@ export function classifyDay(iso, opt = {}) {
   }
 
   const roshChodesh = (d === 1 && m !== 'Tishri') || d === 30;
+  // יום-30 = ראש-חודש של החודש *הנכנס* (מחר), לא של החודש היוצא.
+  const rcMonth = d === 30 ? hebParts(addDays(iso, 1), tz).monthHe : monthHe;
 
   // ── סיבת-סגירה חזקה-ביותר ──
   let closedReason = null;
@@ -125,7 +127,7 @@ export function classifyDay(iso, opt = {}) {
     cholHamoed: cholHamoed || null,
     fast: fast || null,
     roshChodesh: !!roshChodesh,
-    name: yomTov || cholHamoed || fast || erevChag || (shabbat ? 'שבת' : roshChodesh ? `ראש חודש ${monthHe}` : null),
+    name: yomTov || cholHamoed || fast || erevChag || (shabbat ? 'שבת' : roshChodesh ? `ראש חודש ${rcMonth}` : null),
     closedReason,
   };
 }

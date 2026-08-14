@@ -116,7 +116,7 @@ const POP_PRIORITY = { supporter: 0, family: 1, teacher: 2, member: 3, volunteer
 /**
  * screen-pop למספר בודד. מצליב מול תצלום-DB חי (מסלול local-first).
  * @param {object} db
- * @param {string} rawNumber  מספר גולמי (מתוך inbound_number של הדיאלפלן)
+ * @param {string} rawNumber  מספר-המתקשר הגולמי (cid_e164 מהדיאלפלן — לא ה-DID inbound_number)
  * @returns {{number:string|null, matches:Array, primary:object|null}}
  */
 export function lookupCaller(db, rawNumber) {
