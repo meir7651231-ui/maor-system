@@ -17,7 +17,7 @@ import {
 } from './lib/cti.mjs';
 import {
   tenantFromIntake, INTAKE_STEPS, numbersFromCsv, detectNumberType, stepsFor,
-  provisioningQr, seedVertical, routingPreview, preflight, exportConfig, cloneTenant,
+  provisioningQr, seedVertical, routingPreview, preflight, exportConfig, cloneTenant, provision,
 } from './lib/onboard.mjs';
 import {
   planApply, rollbackPlan, planTenants, summarize, snapshot, pushSnapshot, restoreFrom,
@@ -1476,6 +1476,34 @@ console.log('· ratchet — רעיון #17: migrationRisk');
   ok('#17: שעות ⇒ info', migrationRisk(base, hoursChg).risks.some((r) => r.key === 'hours-changed' && r.severity === 'info'));
   // חסר-קלט ⇒ בטוח.
   ok('#17: null-safe', migrationRisk(null, base).risks.length === 0 && migrationRisk(base, null).risks.length === 0);
+}
+
+// ── רעיון #15 — הקמה-ב-90-שניות (provision) ──────────────────────────────────
+console.log('· ratchet — רעיון #15: הקמה-ב-90-שניות');
+{
+  // env מלא ⇒ מוכן-לפריסה בקריאה-אחת.
+  const b = buildTenant(chesed);
+  const env = {}; for (const c of Object.values(b.files)) for (const m of c.matchAll(/\$\$\{([A-Z][A-Za-z0-9_-]*)\}/g)) env[m[1]] = 'x';
+  const p = provision(chesed, { env });
+  ok('#15: ready עם env', p.ready === true && p.stage === 'ready');
+  ok('#15: קבצים+manifest+trust', p.files && p.manifest && p.trust && /^[A-F]$/.test(p.trust.grade) && p.trust.ready);
+  // הקשחה דלוקה ⇒ דרגה A מלאה.
+  ok('#15: הקשחה ⇒ דרגה A', provision({ ...chesed, features: { 'voice.hardening': true } }, { env }).trust.grade === 'A');
+  ok('#15: preflight מוטמע', p.preflight && p.preflight.ready);
+  // QR פר-שלוחה (משרד 101,102 + מנהל 201).
+  ok('#15: QR לכל שלוחה', p.provisioning.length === 3 && p.provisioning.every((q) => q.qrPayload && q.sipUri));
+  ok('#15: צעדים-הבאים', Array.isArray(p.nextSteps) && p.nextSteps.length >= 3);
+  // בלי env ⇒ עדיין ready (בדיקת-סודות מדולגת), אבל חוסמי-סודות לא נספרים.
+  ok('#15: בלי env ⇒ ready (סודות ב-runtime)', provision(chesed).ready === true);
+  // קונפיג-פסול ⇒ ready=false בשלב validate + חוסמים.
+  const bad = provision({ tenantId: 'x' });
+  ok('#15: פסול ⇒ עצירה ב-validate', bad.ready === false && bad.stage === 'validate' && bad.blockers.length > 0);
+  // ורטיקל דרך seedVertical → provision (זרימת-אשף מלאה, עם anchor ללוח).
+  const seed = { ...seedVertical('chesed', 'עמותת דמו', 'seed-demo'),
+    numbers: [{ id: 'n1', e164: '02-6000000', label: 'ראשי', type: 'sim', onramp: 'sim-in-gateway', channels: ['voice'], gatewayChannel: 1 }],
+    destinations: { office: { ext: '101' }, manager: { ext: '201' }, voicemail: { box: '100' } },
+    outbound: { defaultNumberId: 'n1' }, cti: { mode: 'off' } };
+  ok('#15: seed→provision מוכן', provision(seed, { anchorDate: '2026-09-01' }).ready === true);
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
