@@ -690,7 +690,7 @@ export function SupportersView() {
           <p style={{ fontSize: 14, lineHeight: 1.6 }}>
             {'פעולה בלתי-הפיכה: יימחקו לצמיתות '}
             <b>{selSet.size}</b>
-            {' ' + termOf(config, 'nav.supporters', 'תומכים') + ' — כולל היסטוריית התרומות והתזכורות שלהם. האם להמשיך?'}
+            {' ' + termOf(config, 'nav.supporters', 'תומכים') + ' — כולל היסטוריית ה' + termOf(config, 'entity.donations', 'תרומות') + ' והתזכורות שלהם. האם להמשיך?'}
           </p>
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
             <Btn

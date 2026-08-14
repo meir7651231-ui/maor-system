@@ -202,8 +202,8 @@ export function ImpactWall(props: { onClose: () => void }) {
         {/* שורה תחתונה: פודיום · פעימת הקהילה · השבוע בלוח העברי */}
         <div className="iw-row">
           <div className="iw-panel iw-podium">
-            <h2>🏆 ספר הזהב · תורמי {data.podium.scopeLabel}</h2>
-            {data.podium.rows.length === 0 && <div className="iw-empty">עדיין לא נרשמו תרומות</div>}
+            <h2>🏆 ספר הזהב · {termOf(config, 'nav.supporters', 'תורמי')} {data.podium.scopeLabel}</h2>
+            {data.podium.rows.length === 0 && <div className="iw-empty">עדיין לא נרשמו {termOf(config, 'entity.donations', 'תרומות')}</div>}
             {data.podium.rows.map((r, i) => (
               <div className={'p p' + (i + 1)} key={r.name + i}>
                 <div className="m" aria-hidden>{MEDALS[i]}</div>
@@ -218,7 +218,7 @@ export function ImpactWall(props: { onClose: () => void }) {
               <div className="p">
                 <div className="m rest" aria-hidden>🤍</div>
                 <div>
-                  <b>עוד {data.podium.othersCount} תורמים</b>
+                  <b>עוד {data.podium.othersCount} {termOf(config, 'nav.supporters', 'תורמים')}</b>
                   <span>שותפים לעשייה</span>
                 </div>
                 <div className="amt iw-num">{fmtIls(data.podium.othersAmount)}</div>

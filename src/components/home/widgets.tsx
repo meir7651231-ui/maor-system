@@ -550,7 +550,7 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
           icon="💛"
           label={termOf(config, 'entity.donations', 'תרומות')}
           value={'₪' + s.donIls.toLocaleString('he-IL')}
-          sub={(s.donUsd ? `+ $${s.donUsd.toLocaleString('he-IL')} · ` : '') + `${s.supportersTotal} תורמים`}
+          sub={(s.donUsd ? `+ $${s.donUsd.toLocaleString('he-IL')} · ` : '') + `${s.supportersTotal} ${termOf(config, 'nav.supporters', 'תורמים')}`}
           chip={donMonth > 0 ? `+${fmtIls(donMonth)} החודש` : undefined}
           spark={donSpark}
           onClick={() => go('supporters')}
@@ -950,9 +950,9 @@ function GoldbookWidget({ ctx }: { ctx: HomeCtx }) {
   return (
     <Panel
       icon="🏆"
-      title={themeOf(ctx) === 'heichal' ? 'ספר הזהב · תורמים' : 'ספר הזהב'}
+      title={themeOf(ctx) === 'heichal' ? 'ספר הזהב · ' + termOf(config, 'nav.supporters', 'תורמים') : 'ספר הזהב'}
       badge={podium.rows.length ? podium.scopeLabel : undefined}
-      action={<Btn sm onClick={() => go('supporters')}>לתורמים ←</Btn>}
+      action={<Btn sm onClick={() => go('supporters')}>{'ל' + termOf(config, 'nav.supporters', 'תורמים') + ' ←'}</Btn>}
     >
       {podium.rows.length === 0 && <div style={softEmpty}>{'אין ' + termOf(config, 'entity.donations', 'תרומות') + ' עדיין'}</div>}
       {podium.rows.map((r, i) => (
@@ -970,7 +970,7 @@ function GoldbookWidget({ ctx }: { ctx: HomeCtx }) {
       ))}
       {podium.othersCount > 0 && (
         <div style={softEmpty}>
-          +{podium.othersCount} תורמים נוספים · {fmtIls(podium.othersAmount)}
+          +{podium.othersCount} {termOf(config, 'nav.supporters', 'תורמים')} נוספים · {fmtIls(podium.othersAmount)}
         </div>
       )}
     </Panel>
@@ -1183,15 +1183,15 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
 
 /** 💛 תורמים · יעדי קשר — יעדים שהגיעו/עברו (שם, תאריך, טלפון) + נתרם החודש. */
 function ContactsWidget({ ctx }: { ctx: HomeCtx }) {
-  const { db, now, go } = ctx;
+  const { db, now, go, config } = ctx;
   const due = dueContacts(db, now);
   const monthSum = monthDonationSum(db, now);
   return (
     <Panel
       icon="💛"
-      title="תורמים · יעדי קשר"
+      title={termOf(config, 'nav.supporters', 'תורמים') + ' · יעדי קשר'}
       badge={due.length ? String(due.length) : undefined}
-      action={<Btn sm onClick={() => go('supporters')}>לתורמים ←</Btn>}
+      action={<Btn sm onClick={() => go('supporters')}>{'ל' + termOf(config, 'nav.supporters', 'תורמים') + ' ←'}</Btn>}
     >
       {monthSum > 0 && (
         <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
@@ -1202,7 +1202,7 @@ function ContactsWidget({ ctx }: { ctx: HomeCtx }) {
         <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>אין יעדי קשר פתוחים ✓</div>
       )}
       {due.slice(0, 6).map((c) => (
-        <button key={c.id} type="button" className="hm-row" onClick={() => go('supporters')} title="למסך התורמים">
+        <button key={c.id} type="button" className="hm-row" onClick={() => go('supporters')} title={'למסך ה' + termOf(config, 'nav.supporters', 'תורמים')}>
           <span style={chipStyle(ctx, c.late > 7 ? '#fdeaea' : '#fdf1d4', c.late > 7 ? '#b91c1c' : '#9a6414', c.late > 7)}>
             {fmtD(c.date)}
           </span>
