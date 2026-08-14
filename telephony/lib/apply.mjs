@@ -195,6 +195,42 @@ export function secretPreflight(bundles, env = {}) {
   return { ok: missing.length === 0, missing };
 }
 
+// ── 65ג. migrationRisk: זיהוי דלתא-הרסנית לפני-החלה על לקוח-חי ─────────────────
+/**
+ * משווה שני manifests (מצב-קודם מול מצב-רצוי) ומחזיר סיכוני-החלה הרסניים — כדי
+ * שהמפעיל לא ישבור בטעות מרכזייה של עמותה-חיה. טהור. (שלוחת-מנהל חסרה כבר נחסמת
+ * ב-validate, לכן לא נבדקת כאן.) חומרה: critical=הרסני · high=סיכון · info=שינוי.
+ * @param {object} prev manifest קודם (מ-STATE) @param {object} next manifest רצוי
+ * @returns {{risks:Array<{key,severity,detail}>, destructive:boolean}}
+ */
+export function migrationRisk(prev, next) {
+  const risks = [];
+  const R = (key, severity, detail) => risks.push({ key, severity, detail });
+  if (!prev || !next) return { risks, destructive: false };
+  const inV = (m) => Array.isArray(m.inboundVoiceNumbers) ? m.inboundVoiceNumbers : [];
+  const outS = (m) => Array.isArray(m.outboundSims) ? m.outboundSims : [];
+  if (prev.context && next.context && prev.context !== next.context) {
+    R('tenant-rename', 'critical', `הקשר ${prev.context}→${next.context} — כל הנתיבים משתנים והישן מתייתם`);
+  }
+  if (inV(prev).length > 0 && inV(next).length === 0) {
+    R('voice-emptied', 'critical', 'כל המספרים נושאי-הקול הוסרו — המרכזייה תשתתק');
+  }
+  if (outS(prev).length > 0 && outS(next).length === 0) {
+    R('outbound-emptied', 'high', 'כל ה-SIM ליציאה הוסרו — חיוג-יוצא יושבת');
+  } else if (outS(next).length < outS(prev).length) {
+    R('gateway-drop', 'high', `שערי-יציאה ירדו ${outS(prev).length}→${outS(next).length}`);
+  }
+  const removed = inV(prev).filter((p) => !inV(next).some((n) => n.id === p.id));
+  if (removed.length && inV(next).length > 0) {
+    R('numbers-removed', 'high', `${removed.length} מספרים נכנסים הוסרו: ${removed.map((n) => n.label || n.id).join(', ')}`);
+  }
+  const oh = (m) => m.officeHours ? `${(m.officeHours.days || []).join('')}·${m.officeHours.start}-${m.officeHours.end}` : '';
+  if (oh(prev) && oh(next) && oh(prev) !== oh(next)) {
+    R('hours-changed', 'info', `שעות-משרד ${oh(prev)} → ${oh(next)}`);
+  }
+  return { risks, destructive: risks.some((r) => r.severity === 'critical') };
+}
+
 // ── 66. apply אטומי + rollback-אוטומטי-בכשל ──────────────────────────────────
 /**
  * מחיל desired דרך writeFn(path, content). אם writeFn זורק — משחזר את current

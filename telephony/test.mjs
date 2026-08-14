@@ -22,7 +22,7 @@ import {
 import {
   planApply, rollbackPlan, planTenants, summarize, snapshot, pushSnapshot, restoreFrom,
   detectDrift, reloadPlan, healthReport, pushAudit, applyWithRollback, lineDiff,
-  detailedDiff, changelogEntry, planApplyRespectingFreeze, batchSummary, secretPreflight,
+  detailedDiff, changelogEntry, planApplyRespectingFreeze, batchSummary, secretPreflight, migrationRisk,
 } from './lib/apply.mjs';
 import { auditRoutes } from './lib/audit-routes.mjs';
 import { trustReport } from './lib/report.mjs';
@@ -1449,6 +1449,33 @@ console.log('· ratchet — רעיון #18: דוח-אמון');
   broken.files['dialplan/tenant_chesed-demo.xml'] = broken.files['dialplan/tenant_chesed-demo.xml'].replace('</context>', '<extension name="z"><condition><action application="bridge" data="user/8888@chesed-demo"/></condition></extension></context>');
   const trB = trustReport(broken);
   ok('#18: שבור ⇒ grade F + ready=false', trB.grade === 'F' && trB.ready === false);
+}
+
+// ── רעיון #17 — מרשם-שינויים הפיך: זיהוי דלתא-הרסנית (migrationRisk) ───────────
+console.log('· ratchet — רעיון #17: migrationRisk');
+{
+  const base = buildTenant(chesed).manifest;
+  // אין-שינוי ⇒ אין-סיכון.
+  ok('#17: זהה ⇒ אין סיכון', migrationRisk(base, buildTenant(chesed).manifest).risks.length === 0);
+  // ריקון-קול ⇒ critical + destructive (validate דורש קול ⇒ manifest ידני).
+  const noVoiceMf = { ...base, inboundVoiceNumbers: [] };
+  const mr1 = migrationRisk(base, noVoiceMf);
+  ok('#17: ריקון-קול ⇒ critical', mr1.destructive && mr1.risks.some((r) => r.key === 'voice-emptied'));
+  // שינוי-שם-הקשר (rename) ⇒ critical.
+  const renamed = { ...base, context: 'tenant_other' };
+  ok('#17: rename ⇒ critical', migrationRisk(base, renamed).risks.some((r) => r.key === 'tenant-rename' && r.severity === 'critical'));
+  // הסרת-שער ⇒ high (לא-הרסני-חוסם).
+  const fewerGw = { ...base, outboundSims: base.outboundSims.slice(0, 1) };
+  const mr2 = migrationRisk(base, fewerGw);
+  ok('#17: פחות-שערים ⇒ high לא-חוסם', mr2.risks.some((r) => r.key === 'gateway-drop' && r.severity === 'high') && !mr2.destructive);
+  // הסרת-מספר-נכנס ⇒ high.
+  const fewerIn = { ...base, inboundVoiceNumbers: base.inboundVoiceNumbers.slice(0, 2) };
+  ok('#17: מספר-הוסר ⇒ high', migrationRisk(base, fewerIn).risks.some((r) => r.key === 'numbers-removed'));
+  // שינוי-שעות ⇒ info.
+  const hoursChg = { ...base, officeHours: { days: [0, 1], start: '08:00', end: '12:00' } };
+  ok('#17: שעות ⇒ info', migrationRisk(base, hoursChg).risks.some((r) => r.key === 'hours-changed' && r.severity === 'info'));
+  // חסר-קלט ⇒ בטוח.
+  ok('#17: null-safe', migrationRisk(null, base).risks.length === 0 && migrationRisk(base, null).risks.length === 0);
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────

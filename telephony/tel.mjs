@@ -13,7 +13,7 @@ import { dirname, join } from 'node:path';
 import { buildTenant, validateTenant } from './lib/index.mjs';
 import { routingPreview, preflight } from './lib/onboard.mjs';
 import { complianceReport } from './lib/security.mjs';
-import { planApply, planTenants, summarize, reloadPlan, secretPreflight } from './lib/apply.mjs';
+import { planApply, planTenants, summarize, reloadPlan, secretPreflight, migrationRisk } from './lib/apply.mjs';
 import { crossTenantLeakScan } from './lib/security.mjs';
 import { auditRoutes } from './lib/audit-routes.mjs';
 
@@ -110,6 +110,19 @@ switch (cmd) {
       const plan = planApply(prev[t.tenantId] || {}, t.desired);
       touched.creates.push(...plan.creates); touched.updates.push(...plan.updates); touched.deletes.push(...plan.deletes);
       console.log(`${plan.changed ? '±' : '='} ${t.tenantId} [${summarize(plan)}]`);
+      // ⭐17 migrationRisk: דלתא-הרסנית מול המצב-הקודם (רק על עדכון לקוח-קיים).
+      const prevMf = prev[t.tenantId] && prev[t.tenantId]['manifest.json'];
+      if (prevMf) {
+        let pm = null; try { pm = JSON.parse(prevMf); } catch { /* ignore */ }
+        const nm = JSON.parse(t.desired['manifest.json']);
+        const mr = migrationRisk(pm, nm);
+        if (mr.risks.length) {
+          for (const r of mr.risks) console.log(`   ${r.severity === 'critical' ? '🛑' : r.severity === 'high' ? '⚠️ ' : 'ℹ️ '} ${t.tenantId}: ${r.detail}`);
+          if (mr.destructive && flag('--write') && !flag('--allow-destructive')) {
+            die(`❌ ${t.tenantId}: שינוי-הרסני נחסם. אשר עם --allow-destructive (או תקן את הקונפיג).`);
+          }
+        }
+      }
       if (flag('--write')) {
         for (const [rel, content] of Object.entries(t.desired)) atomicWrite(fullOf(configRoot, rel, t.tenantId), content);
         for (const rel of plan.deletes) safeUnlink(fullOf(configRoot, rel, t.tenantId));
