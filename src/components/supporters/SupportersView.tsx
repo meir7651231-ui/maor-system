@@ -194,7 +194,8 @@ export function SupportersView() {
 
   /** דוח יומי של מעקב הטיפול — כל מי שטופל היום. */
   function dailyReport() {
-    const rows = ayinDailyRows(config, db.supporters, isoToday());
+    // 🔒 ייעוד-הרשאה (13.8): הדוח-היומי יוצא רק על תורמים בייעוד המותר לעובד/ת
+    const rows = ayinDailyRows(config, visibleSupportersForDesignations(db.supporters, desigLimit), isoToday());
     if (rows.length <= 1) {
       toast('עדיין לא עודכן אף פריט היום — עדכנו בכרטיס והדוח יתמלא');
       return;
