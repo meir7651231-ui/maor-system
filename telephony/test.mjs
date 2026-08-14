@@ -13,8 +13,10 @@ import { fileURLToPath } from 'node:url';
 import { buildTenant, validateTenant, toE164 } from './lib/index.mjs';
 import {
   buildDirectory, lookupCaller, lookupInDirectory, enrichContact, screenPop,
-  callEvent, dialString, callHistoryFor, maskNumber, popPriorityFor, SCREENPOP_VERSION, careSignals, callHeatmap, campaignPlan, donationIntent,
+  callEvent, dialString, callHistoryFor, maskNumber, popPriorityFor, SCREENPOP_VERSION, careSignals, callHeatmap, campaignPlan, donationIntent, messageIntake,
 } from './lib/cti.mjs';
+import { reminderQueue } from './lib/reminders.mjs';
+import { whatsappRouting } from './lib/channels.mjs';
 import {
   tenantFromIntake, INTAKE_STEPS, numbersFromCsv, detectNumberType, stepsFor,
   provisioningQr, seedVertical, routingPreview, preflight, exportConfig, cloneTenant, provision,
@@ -1612,6 +1614,58 @@ console.log('· ratchet — רעיון #8: תרומה→כוונה');
   ok('#8: ייעוד+איש-קשר', di.designation === 'אמץ חתן' && di.contactId === 's1');
   ok('#8: סכום-פסול ⇒ null', donationIntent({ number: '050-1112233', amount: 0 }) === null && donationIntent({ number: 'x', amount: -5 }) === null);
   ok('#8: מטבע ברירת-מחדל ₪', donationIntent({ number: '03-1234567', amount: 50, startedAt: '2026-01-01T09:00:00' }).cur === '₪');
+}
+
+// ── רעיון #5 — תזכורות-מצווה (reminderQueue · תזמון-הלכתי) ────────────────────
+console.log('· ratchet — רעיון #5: תזכורות-מצווה');
+{
+  const t = validateTenant({ ...chesed, city: 'jerusalem' }).tenant;
+  const items = [
+    { number: '050-1112233', name: 'משפחת כהן', kind: 'candle', date: '2026-09-04', leadMinutes: 30 },
+    { number: '03-7654321', name: 'תזכורת', kind: 'custom', date: '2026-09-01', at: '09:00' },
+    { number: 'פסול', kind: 'candle', date: '2026-09-04' },
+  ];
+  const { queue, skipped } = reminderQueue(items, t);
+  eq('#5: 2 תזכורות תקינות', queue.length, 2);
+  // הדלקת-נרות ירושלים 2026-09-04 ≈ 18:20 → פחות 30 דק׳ = 17:50.
+  const candle = queue.find((q) => q.kind === 'candle');
+  ok('#5: תזמון = הדלקה־30 (≈17:50)', ['17:49', '17:50', '17:51'].includes(candle.dispatchAt));
+  ok('#5: מחרוזת-חיוג downstream', candle.dialString === '+972501112233');
+  ok('#5: פסול מדולג-מנומק', skipped.length === 1);
+  ok('#5: ממוין לפי תאריך', queue[0].date <= queue[1].date);
+  ok('#5: null-safe', reminderQueue(null, t).queue.length === 0);
+}
+
+// ── רעיון #14 — ווצאפ ריבוי-מכשירים (whatsappRouting · טבלת-ניתוב) ────────────
+console.log('· ratchet — רעיון #14: ווצאפ ריבוי-מכשירים');
+{
+  // chesed כולל מספר-ווצאפ (device-link). fan-out לכל מכשירי-הצוות.
+  const t = validateTenant(chesed).tenant;
+  const wa = whatsappRouting(t);
+  ok('#14: יש קו-ווצאפ', wa.lines.length >= 1 && wa.enabled);
+  ok('#14: fan-out למכשירי-צוות (101/102/201)', wa.agents.includes('101') && wa.agents.includes('201'));
+  ok('#14: עונים מזהות מספר-העמותה', wa.lines[0].replyAs === wa.lines[0].e164);
+  // בלי מספר-ווצאפ ⇒ לא-פעיל (אין fan-out).
+  const noWa = validateTenant({ ...chesed, numbers: chesed.numbers.filter((n) => (n.channels || []).includes('voice') && n.type !== 'whatsapp') }).tenant;
+  ok('#14: בלי ווצאפ ⇒ enabled=false', whatsappRouting(noWa).enabled === false);
+}
+
+// ── רעיון #20 — AI-מזכירה (messageIntake + hook ai_secretary) ────────────────
+console.log('· ratchet — רעיון #20: AI-מזכירה');
+{
+  // (א) רשומת-הודעה-מובנית — additive, לא מנפיקה.
+  const mi = messageIntake({ number: '050-1112233', callerName: 'יוסי', reason: 'בקשת-סיוע', callbackNumber: '052-9998877', transcript: 'שלום...', startedAt: '2026-03-05T22:00:00' });
+  eq('#20: type=aiMessage', mi.type, 'aiMessage');
+  ok('#20: לא-מטופלת (ממתינה)', mi.handled === false);
+  ok('#20: לוכד שם/סיבה/חזרה', mi.callerName === 'יוסי' && mi.reason === 'בקשת-סיוע' && mi.callbackNumber === '+972529998877');
+  // (ב) hook-דיאלפלן דורמנטי — dest 'ai' → ai_secretary, נופל לתא-קולי.
+  const ab = buildTenant({ ...chesed, features: { 'voice.ivr': true }, routing: { ivr: { options: [{ digit: '1', label: 'מזכירה', dest: { type: 'ai' } }] } } });
+  const adp = ab.files['dialplan/tenant_chesed-demo.xml'];
+  ok('#20: ivr_opt_1 → ai_secretary', /ivr_opt_1[\s\S]*?transfer" data="ai_secretary XML/.test(adp));
+  ok('#20: מטפל-AI לוכד cid + hook', /ai_secretary"[\s\S]*?ai_intake_cid=\$\{cid_e164\}[\s\S]*?hook דורמנטי/.test(adp));
+  ok('#20: נפילה למטפל-אנושי', /ai_secretary"[\s\S]*?transfer" data="afterhours/.test(adp));
+  ok('#20: סגירת-מסלולים נקייה (ai)', auditRoutes(ab).ok);
+  ok('#20: בלי-ai ⇒ אין מטפל (ביט-זהה)', !buildTenant({ ...chesed, features: { 'voice.ivr': true }, routing: { ivr: { options: [{ digit: '1', dest: { type: 'ext', value: '101' } }] } } }).files['dialplan/tenant_chesed-demo.xml'].includes('ai_secretary'));
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────

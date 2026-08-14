@@ -306,6 +306,32 @@ export function donationIntent(p) {
   };
 }
 
+// ── item 20 · AI-מזכירה — רשומת-הודעה-מובנית (שכבת-הלוגיקה; ה-AI+קול=runtime) ──
+/**
+ * בונה רשומת-הודעה-מובנית שסוכן-הקול-הדורמנטי לוכד ← מאור. additive (כמו callEvent):
+ * שם-המתקשר, סיבת-הפנייה, מספר-לחזרה, ותמליל. **אינה מנפיקה כלום** — רק "הודעה
+ * ממתינה לטיפול". ה-AI והמדיה-שרת עצמם הם runtime; זו רק מבנה-הפלט הטהור.
+ * @param {{number:string, callerName?:string, reason?:string, callbackNumber?:string,
+ *          transcript?:string, startedAt:string, primary?:object|null}} p
+ * @returns {object}
+ */
+export function messageIntake(p) {
+  const e164 = toE164(p.number) || p.number || '';
+  const cb = toE164(p.callbackNumber) || e164;
+  return {
+    type: 'aiMessage', // מאור מציג ב"הודעות-ממתינות"; אין הנפקה/כתיבה אוטומטית
+    handled: false,
+    date: (p.startedAt || '').slice(0, 10),
+    startedAt: p.startedAt || '',
+    number: e164,
+    callerName: (p && p.callerName) || (p.primary ? p.primary.name : ''),
+    reason: (p && p.reason) || '',
+    callbackNumber: cb,
+    transcript: (p && p.transcript) || '',
+    ...(p.primary ? { contactKind: p.primary.kind, contactId: p.primary.id } : {}),
+  };
+}
+
 // ── item 43: click-to-call — קוד-החיוג להוצאת-שיחה מכרטיס-מאור ────────────────
 /**
  * קוד-החיוג שהמנהל מקיש/הכפתור שולח כדי לחייג את e164 דרך מספר-הלקוח.

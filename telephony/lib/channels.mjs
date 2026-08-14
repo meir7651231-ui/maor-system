@@ -138,6 +138,30 @@ export function unifiedInboxOf(messages) {
     .sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
 }
 
+// ── item 14 · ווצאפ ריבוי-מכשירים — טבלת-ניתוב (הגשר צורך; ה-bridge=runtime) ──
+/**
+ * טבלת-הניתוב שגשר-הווצאפ הדורמנטי צורך: לכל מספר-ווצאפ (device-link) — אילו
+ * מכשירי-צוות מקבלים את ההודעה הנכנסת (fan-out) ובאיזו זהות עונים. **בלי Business
+ * API, בלי עמלות** — קישור-מכשיר בלבד. זו שכבת-הלוגיקה הטהורה (נגזרת-קונפיג);
+ * הגשר-החי שמקבל/שולח הודעות הוא runtime. downstream — מספר-הלקוח נשאר שלו.
+ * @param {object} tenant tenant מנורמל
+ * @returns {{lines:Array<{id,e164,label,agents:string[],replyAs:string}>, agents:string[], enabled:boolean}}
+ */
+export function whatsappRouting(tenant) {
+  const office = (tenant.destinations && tenant.destinations.office && tenant.destinations.office.ext) || [];
+  const manager = (tenant.destinations && tenant.destinations.manager && tenant.destinations.manager.ext) || '';
+  const agents = [...new Set([...office, manager].filter(Boolean))]; // מכשירי-הצוות שמקבלים
+  const waNums = (tenant.numbers || []).filter((n) => (n.channels || []).includes('whatsapp') || n.onramp === 'device-link');
+  const lines = waNums.map((n) => ({
+    id: n.id,
+    e164: n.e164,
+    label: n.label || '',
+    agents, // fan-out לכל מכשירי-הצוות (ריבוי-מכשירים)
+    replyAs: n.e164, // עונים מזהות מספר-הווצאפ של העמותה
+  }));
+  return { lines, agents, enabled: lines.length > 0 && agents.length > 0 };
+}
+
 // ── 73. מענה-אוטומטי לפי-שעה ──────────────────────────────────────────────────
 /** ההודעה לשליחה-אוטומטית: מחוץ-לשעות=away, בתוך=open. null אם אין-צורך. */
 export function autoReply(tenant, { nowIsOpen, sendOpenReply = false } = {}) {

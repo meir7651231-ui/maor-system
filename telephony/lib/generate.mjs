@@ -605,6 +605,19 @@ function dialplanXml(tenant, opts = {}) {
       L.push(`      </condition>`);
       L.push(`    </extension>`);
     }
+    // AI-מזכירה (item 20): סוכן-קול דורמנטי. סקריפט-ריצה (AGI/מדיה-שרת+AI) עונה,
+    // מנהל שיחה, ולוכד הודעה מובנית (שם/סיבה/חזרה) ← מאור. עד חיבורו — נפילה לתא-קולי.
+    if (R.ivr.options.some((o) => o.dest.type === 'ai')) {
+      L.push(`    <extension name="ai_secretary">`);
+      L.push(`      <condition field="destination_number" expression="^ai_secretary$">`);
+      L.push(`        <action application="answer"/>`);
+      L.push(`        <action application="set" data="ai_secretary=true"/>`);
+      L.push(`        <action application="set" data="ai_intake_cid=\${cid_e164}"/>`);
+      L.push(`        <!-- hook דורמנטי: סוכן-קול AI לוכד הודעה מובנית ← מאור. נרדם עד חיבור. -->`);
+      L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
+      L.push(`      </condition>`);
+      L.push(`    </extension>`);
+    }
   }
 
   // 9. תור (opt-in voice.queue): צוות-המשרד מושך שיחה מהתור ב-*20.
@@ -719,6 +732,8 @@ function destActions(dest, tenant, gw, def) {
       return [`<action application="transfer" data="${esc(dest.value)} XML tenant_${dom}"/>`];
     case 'selfservice':
       return [`<action application="transfer" data="self_service XML tenant_${dom}"/>`];
+    case 'ai':
+      return [`<action application="transfer" data="ai_secretary XML tenant_${dom}"/>`];
     case 'hangup':
     default:
       return [`<action application="hangup" data="NORMAL_CLEARING"/>`];

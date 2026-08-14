@@ -7,7 +7,7 @@
 import { toE164 } from './normalize.mjs';
 
 const RING_STRATEGIES = ['simultaneous', 'sequential', 'enterprise'];
-const DEST_TYPES = ['ext', 'ringgroup', 'number', 'voicemail', 'ivr', 'hangup', 'selfservice'];
+const DEST_TYPES = ['ext', 'ringgroup', 'number', 'voicemail', 'ivr', 'hangup', 'selfservice', 'ai'];
 
 function cleanExt(v) {
   return typeof v === 'string' && /^[0-9]{2,6}$/.test(v) ? v : null;
