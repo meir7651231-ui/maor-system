@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- מחולל אוטומטית מקונפיג-הלקוח. אין לערוך ידנית — ערוך את הנתונים והרץ מחדש. -->
+<!-- עמותת החסד — זמנים הלכתיים · pure-downstream · 1 מספרים נושאי-קול · 1 ערוצי-יציאה -->
+<include>
+  <context name="tenant_zmanim-demo">
+
+    <!-- setup: התנהגות עצמאית (לא תלוי vars.xml של השרת) -->
+    <extension name="setup_defaults" continue="true">
+      <condition>
+        <action application="set" data="hangup_after_bridge=true"/>
+        <action application="set" data="continue_on_fail=true"/>
+        <action application="set" data="max_forwards=20"/>
+      </condition>
+    </extension>
+    <extension name="cid_normalize" continue="true">
+      <condition break="never"><action application="set" data="cid_e164=${caller_id_number}"/></condition>
+      <condition field="caller_id_number" expression="^00([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="caller_id_number" expression="^0([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+      <condition field="caller_id_number" expression="^(972\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="caller_id_number" expression="^([1-9]\d{6,8})$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+      <condition field="caller_id_number" expression="^([1-9]\d{9,14})$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="${cid_e164}" expression="^\+9720([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+    </extension>
+
+    <!-- שער-הזמן: ברירת-מחדל סגור; global_open לפי שעות, force_closed לפי חג/dnd/חירום -->
+    <extension name="gate_default" continue="true">
+      <condition>
+        <action application="set" data="global_open=false"/>
+        <action application="set" data="force_closed=false"/>
+      </condition>
+    </extension>
+    <extension name="office_window" continue="true">
+      <condition wday="1-6" time-of-day="8:00-20:00">
+        <action application="set" data="global_open=true"/>
+      </condition>
+    </extension>
+
+    <!-- זמנים הלכתיים: 14 חלונות מדויקים (הדלקה→צאת) מחושבים מ-2026-09-01 -->
+    <extension name="zwin_20260904" continue="true">
+      <condition date-time="2026-09-04 18:20:00~2026-09-05 19:39:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_reason=שבת"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20260911" continue="true">
+      <condition date-time="2026-09-11 18:11:00~2026-09-13 19:29:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=ראש השנה"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20260918" continue="true">
+      <condition date-time="2026-09-18 18:02:00~2026-09-19 19:21:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_reason=שבת"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20260920" continue="true">
+      <condition date-time="2026-09-20 18:00:00~2026-09-21 19:18:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=יום כיפור"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20260925" continue="true">
+      <condition date-time="2026-09-25 17:53:00~2026-09-26 19:12:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=סוכות"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20261002" continue="true">
+      <condition date-time="2026-10-02 17:44:00~2026-10-03 19:03:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=שמיני עצרת · שמחת תורה"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20261009" continue="true">
+      <condition date-time="2026-10-09 17:35:00~2026-10-10 18:54:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_reason=שבת"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20261016" continue="true">
+      <condition date-time="2026-10-16 17:27:00~2026-10-17 18:46:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_reason=שבת"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20261023" continue="true">
+      <condition date-time="2026-10-23 17:19:00~2026-10-24 18:38:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_reason=שבת"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20261030" continue="true">
+      <condition date-time="2026-10-30 16:12:00~2026-10-31 17:31:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_reason=שבת"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20261106" continue="true">
+      <condition date-time="2026-11-06 16:06:00~2026-11-07 17:25:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_reason=שבת"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20261113" continue="true">
+      <condition date-time="2026-11-13 16:01:00~2026-11-14 17:21:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_reason=שבת"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20261120" continue="true">
+      <condition date-time="2026-11-20 15:58:00~2026-11-21 17:17:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_reason=שבת"/>
+      </condition>
+    </extension>
+    <extension name="zwin_20261127" continue="true">
+      <condition date-time="2026-11-27 15:56:00~2026-11-28 17:15:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_reason=שבת"/>
+      </condition>
+    </extension>
+
+    <!-- כניסה: קווים-מופנים מזוהים לפי DID (תלוי בכך שהספק משמרו) -->
+
+    <!-- ניתוב: force_closed→do_closed · global_open→do_open · אחרת→do_closed -->
+    <extension name="incoming_closed">
+      <condition field="destination_number" expression="^incoming$"/>
+      <condition field="${force_closed}" expression="^true$">
+        <action application="transfer" data="do_closed XML tenant_zmanim-demo"/>
+      </condition>
+    </extension>
+    <extension name="incoming">
+      <condition field="destination_number" expression="^incoming$"/>
+      <condition field="${global_open}" expression="^true$">
+        <action application="transfer" data="do_open XML tenant_zmanim-demo"/>
+        <anti-action application="transfer" data="do_closed XML tenant_zmanim-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_open">
+      <condition field="destination_number" expression="^do_open$">
+        <action application="answer"/>
+        <action application="playback" data="$${sounds_dir}/telephony/zmanim-demo/greeting-open.wav"/>
+        <action application="bridge" data="{leg_timeout=25}user/101@zmanim-demo"/>
+        <action application="transfer" data="afterhours XML tenant_zmanim-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_closed_emergency">
+      <condition field="destination_number" expression="^do_closed$"/>
+      <condition field="${closed_kind}" expression="^emergency$">
+        <action application="answer"/>
+        <action application="playback" data="$${sounds_dir}/telephony/zmanim-demo/greeting-emergency.wav"/>
+        <action application="transfer" data="afterhours XML tenant_zmanim-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_closed_holiday">
+      <condition field="destination_number" expression="^do_closed$"/>
+      <condition field="${closed_kind}" expression="^holiday$">
+        <action application="answer"/>
+        <action application="playback" data="$${sounds_dir}/telephony/zmanim-demo/greeting-holiday.wav"/>
+        <action application="transfer" data="afterhours XML tenant_zmanim-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_closed">
+      <condition field="destination_number" expression="^do_closed$"/>
+      <condition>
+        <action application="answer"/>
+        <action application="playback" data="$${sounds_dir}/telephony/zmanim-demo/greeting-closed.wav"/>
+        <action application="transfer" data="afterhours XML tenant_zmanim-demo"/>
+      </condition>
+    </extension>
+    <extension name="afterhours">
+      <condition field="destination_number" expression="^afterhours$">
+        <action application="bridge" data="{leg_timeout=30}user/201@zmanim-demo"/>
+        <action application="answer"/>
+        <action application="sleep" data="500"/>
+        <action application="voicemail" data="default zmanim-demo 100"/>
+      </condition>
+    </extension>
+
+    <!-- יציאה: קידומת <ערוץ>#<מספר> בוחרת דרך איזה SIM לצאת (רק שלוחה-רשומה) -->
+    <extension name="out_pick_n1">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^1#(\+?\d+)$">
+        <action application="set" data="effective_caller_id_number=+97225000000"/>
+        <action application="set" data="effective_caller_id_name=קו ראשי"/>
+        <action application="bridge" data="sofia/gateway/zmanim-demo-gw1/$1"/>
+      </condition>
+    </extension>
+    <!-- יציאת-ברירת-מחדל מקומית (חיוג רגיל בלי קידומת) → קו ראשי -->
+    <extension name="out_default">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^(0\d{7,9}|\+?972\d{7,9})$">
+        <action application="set" data="effective_caller_id_number=+97225000000"/>
+        <action application="bridge" data="sofia/gateway/zmanim-demo-gw1/$1"/>
+      </condition>
+    </extension>
+
+    <!-- אחזור-תא-קולי -->
+    <extension name="vm_retrieve">
+      <condition field="destination_number" expression="^\*98$">
+        <action application="answer"/>
+        <action application="voicemail" data="check default zmanim-demo 100"/>
+      </condition>
+    </extension>
+  </context>
+
+  <context name="tenant_zmanim-demo_gw1">
+    <!-- קו ראשי · +97225000000 · ערוץ 1 -->
+    <extension name="gw1_entry">
+      <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_call=true"/>
+        <action application="set" data="inbound_line=קו ראשי"/>
+        <action application="set" data="inbound_number=+97225000000"/>
+        <action application="transfer" data="incoming XML tenant_zmanim-demo"/>
+      </condition>
+    </extension>
+  </context>
+</include>

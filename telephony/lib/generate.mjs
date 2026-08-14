@@ -12,6 +12,7 @@
 
 import { featureOn, termOf } from './config.mjs';
 import { hebrewClosedDates } from './hebcal.mjs';
+import { hebrewClosedWindows, geoOf } from './zmanim.mjs';
 import { numbersAlternation } from './routing.mjs';
 import { promptDir, requiredPrompts, promptCapabilities } from './prompts.mjs';
 import { extSecret, vmSecret, secretsFor } from './security.mjs';
@@ -57,8 +58,22 @@ function reEsc(s) {
 function voiceNumbers(tenant) {
   return tenant.numbers.filter((n) => n.channels.includes('voice') && n.onramp !== 'device-link');
 }
-/** ימי-הסגירה העבריים (יו״ט) לחלון — ריק אם הדגל כבוי או אין anchorDate. */
+/** האם מנוע-הזמנים ההלכתי פעיל (דורש anchorDate לדטרמיניזם golden). */
+function zmanimOn(tenant, opts) {
+  return featureOn(tenant, 'calendar.zmanim') && !!opts.anchorDate;
+}
+/** חלונות-סגירה מדויקים (הלכתי) — ריק אם zmanim כבוי. שבת/יו״ט לפי הדגלים. */
+function zmanimBlock(tenant, opts) {
+  if (!zmanimOn(tenant, opts)) return [];
+  return hebrewClosedWindows(opts.anchorDate, opts.calendarWindow || 400, tenant, {
+    includeShabbat: featureOn(tenant, 'calendar.shabbat'),
+    includeYomTov: featureOn(tenant, 'calendar.hebrew'),
+    tzeis: (tenant.geo && Number.isFinite(tenant.geo.tzeis)) ? tenant.geo.tzeis : 40,
+  });
+}
+/** ימי-הסגירה העבריים (יו״ט) לחלון — ריק אם הדגל כבוי, אין anchorDate, או zmanim פעיל (מוחלף בחלונות-מדויקים). */
 function hebrewBlock(tenant, opts) {
+  if (zmanimOn(tenant, opts)) return [];
   if (!featureOn(tenant, 'calendar.hebrew') || !opts.anchorDate) return [];
   const diaspora = tenant.timezone && !/Jerusalem|Tel_Aviv|Asia\/Hebron/.test(tenant.timezone);
   return hebrewClosedDates(opts.anchorDate, opts.calendarWindow || 400, {
@@ -76,7 +91,10 @@ const hhmmMin = (s) => { const [h, m] = String(s).split(':').map(Number); return
  * חלונות-פתיחה מודעי-שבת עבור מבנה-שעות (גלובלי או פר-מספר). calendar.shabbat דלוק ⇒
  * אין שבת, ושישי נחתך ב-shabbatFriEnd (מאומת HH:MM, נפילה 15:00). מחזיר [{days,start,end}].
  */
-function windowsFor(tenant, oh) {
+function windowsFor(tenant, oh, opts = {}) {
+  // zmanim פעיל ⇒ הסגירה המדויקת מגיעה מהחלונות-הצרובים (force_closed); שעות-המשרד
+  // נשארות פתוחות עד הדלקת-הנרות, והחלון הצרוב סוגר בדיוק בזמן ⇒ בלי חיתוך-סטטי.
+  if (zmanimOn(tenant, opts)) return [{ days: oh.days, start: oh.start, end: oh.end }];
   if (!featureOn(tenant, 'calendar.shabbat')) return [{ days: oh.days, start: oh.start, end: oh.end }];
   const friEndRaw = termOf(tenant, 'shabbatFriEnd', '15:00');
   const friEnd = HHMM_RE.test(friEndRaw) ? friEndRaw : '15:00';
@@ -198,7 +216,7 @@ function dialplanXml(tenant, opts = {}) {
   L.push(`    </extension>`);
 
   // 2. חלון(ות) שעות-משרד (מודע-שבת דרך windowsFor).
-  const windows = windowsFor(tenant, oh);
+  const windows = windowsFor(tenant, oh, opts);
   windows.forEach((w, i) => {
     L.push(`    <extension name="office_window${windows.length > 1 ? `_${i + 1}` : ''}" continue="true">`);
     L.push(`      <condition wday="${daysToWday(w.days)}" time-of-day="${fsTime(w.start)}-${fsTime(w.end)}">`);
@@ -232,6 +250,25 @@ function dialplanXml(tenant, opts = {}) {
       L.push(`        <action application="set" data="force_closed=true"/>`);
       L.push(`        <action application="set" data="closed_kind=holiday"/>`);
       L.push(`        <action application="set" data="closed_reason=${esc(c.reason)}"/>`);
+      L.push(`      </condition>`);
+      L.push(`    </extension>`);
+    }
+  }
+
+  // 2ג. זמנים הלכתיים מדויקים (opt-in calendar.zmanim): חלון [הדלקת-נרות בערב →
+  //     צאת-הכוכבים ביום-האחרון] פר-שבת/חג — במקום יום-אזרחי-מלא. הקו נפתח בשישי
+  //     עד ההדלקה המחושבת ונסגר בדיוק בשקיעה, לא ב-15:00 סטטי.
+  const zwins = zmanimBlock(tenant, opts);
+  if (zwins.length) {
+    L.push(``);
+    L.push(`    <!-- זמנים הלכתיים: ${zwins.length} חלונות מדויקים (הדלקה→צאת) מחושבים מ-${esc(opts.anchorDate)} -->`);
+    for (const w of zwins) {
+      const yt = w.kind === 'yomtov';
+      L.push(`    <extension name="zwin_${w.startIso.replace(/-/g, '')}" continue="true">`);
+      L.push(`      <condition date-time="${w.startIso} ${w.startTime}:00~${w.endIso} ${w.endTime}:59">`);
+      L.push(`        <action application="set" data="force_closed=true"/>`);
+      if (yt) L.push(`        <action application="set" data="closed_kind=holiday"/>`);
+      L.push(`        <action application="set" data="closed_reason=${esc(w.reason)}"/>`);
       L.push(`      </condition>`);
       L.push(`    </extension>`);
     }
@@ -292,7 +329,7 @@ function dialplanXml(tenant, opts = {}) {
     L.push(`        <action application="transfer" data="do_closed XML ${esc(ctx)}"/>`);
     L.push(`      </condition>`);
     L.push(`    </extension>`);
-    const lwins = windowsFor(tenant, n.hours);
+    const lwins = windowsFor(tenant, n.hours, opts);
     lwins.forEach((w, i) => {
       L.push(`    <extension name="line_${esc(n.id)}_w${i + 1}">`);
       L.push(`      <condition field="${dst}"/>`);
@@ -699,6 +736,7 @@ function manifest(tenant, warnings, opts = {}) {
   const sims = outboundSims(tenant);
   const skipped = tenant.numbers.filter((n) => n.onramp === 'device-link' || !n.channels.includes('voice'));
   const heb = hebrewBlock(tenant, opts);
+  const zwins = zmanimBlock(tenant, opts);
   const prompts = requiredPrompts(tenant);
   return {
     tenantId: tenant.tenantId,
@@ -708,6 +746,7 @@ function manifest(tenant, warnings, opts = {}) {
     context: `tenant_${tenant.tenantId}`,
     officeHours: tenant.officeHours,
     ...(heb.length ? { hebrewCalendar: { anchor: opts.anchorDate, window: opts.calendarWindow || 400, closedDays: heb } } : {}),
+    ...(zwins.length ? { zmanim: { anchor: opts.anchorDate, window: opts.calendarWindow || 400, city: geoOf(tenant).he, windows: zwins } } : {}),
     inboundVoiceNumbers: vnums.map((n) => ({ id: n.id, e164: n.e164, label: n.label, onramp: n.onramp, kosher: n.kosher })),
     outboundSims: sims.map((n) => ({ id: n.id, e164: n.e164, label: n.label, prefix: `${n.gatewayChannel}#`, channel: n.gatewayChannel })),
     outboundDefault: tenant.outbound.defaultNumberId,

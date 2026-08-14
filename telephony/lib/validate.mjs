@@ -61,6 +61,17 @@ export function validateTenant(raw) {
     errors.push('orgName חסר.');
   }
   const timezone = typeof raw.timezone === 'string' && raw.timezone ? raw.timezone : 'Asia/Jerusalem';
+  // מיקום לזמנים הלכתיים (opt): city (מפתח-עיר) או geo{lat,lon,candle?,tzeis?}.
+  let city;
+  if (typeof raw.city === 'string' && /^[a-z]{2,20}$/.test(raw.city)) city = raw.city;
+  let geo;
+  if (raw.geo && typeof raw.geo === 'object' && Number.isFinite(raw.geo.lat) && Number.isFinite(raw.geo.lon)
+    && raw.geo.lat >= -90 && raw.geo.lat <= 90 && raw.geo.lon >= -180 && raw.geo.lon <= 180) {
+    geo = { lat: raw.geo.lat, lon: raw.geo.lon };
+    if (Number.isFinite(raw.geo.candle) && raw.geo.candle >= 0 && raw.geo.candle <= 120) geo.candle = raw.geo.candle;
+    if (Number.isFinite(raw.geo.tzeis) && raw.geo.tzeis >= 0 && raw.geo.tzeis <= 120) geo.tzeis = raw.geo.tzeis;
+    if (typeof raw.geo.he === 'string' && raw.geo.he.length <= 40) geo.he = raw.geo.he;
+  }
 
   // ── שעות-משרד ──
   const oh = raw.officeHours;
@@ -297,6 +308,8 @@ export function validateTenant(raw) {
         tenantId: raw.tenantId,
         orgName: raw.orgName,
         timezone,
+        ...(city ? { city } : {}),
+        ...(geo ? { geo } : {}),
         ...(raw.vertical && VERTICAL_PACKS[raw.vertical] ? { vertical: raw.vertical } : {}),
         officeHours,
         numbers,

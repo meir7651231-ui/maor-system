@@ -25,6 +25,7 @@ import {
   detailedDiff, changelogEntry, planApplyRespectingFreeze, batchSummary, secretPreflight,
 } from './lib/apply.mjs';
 import { auditRoutes } from './lib/audit-routes.mjs';
+import { shabbatTimes as zShabbatTimes, hebrewClosedWindows as zClosedWindows, sunset as zSunset } from './lib/zmanim.mjs';
 import {
   channelPlan, isPureDownstream, templateOf, sanitizeTemplates, renderTemplate,
   unifiedInboxOf, autoReply, applyConsent, canMessage, assignMessage, reminderMessage,
@@ -1205,6 +1206,57 @@ console.log('· ratchet — שיפורי נחיל (סבב-שיפור)');
   // אין גשר-שער-יוצא (out_default/out_pick) בלי limit קודם כשמוקשח.
   const outSegs = hard.split(/<extension name="out_/).slice(1);
   ok('⭐7: כל גשר-out מוגן', outSegs.every((s) => !s.includes('sofia/gateway') || (s.indexOf('application="limit"') >= 0 && s.indexOf('application="limit"') < s.indexOf('sofia/gateway'))));
+}
+
+// ── רעיון #1 — מנוע-זמנים הלכתי (calendar.zmanim) ─────────────────────────────
+console.log('· ratchet — רעיון #1: מנוע-זמנים הלכתי');
+{
+  // עוגני-אמת: שקיעה/הדלקה/צאת מדויקים (מול לוחות פרסומיים, ±1 דקה).
+  const jlm = { city: 'jerusalem', timezone: 'Asia/Jerusalem' };
+  const stSummer = zShabbatTimes('2025-06-20', jlm);
+  ok('#1: ירושלים שקיעה-קיץ ~19:47', ['19:46', '19:47', '19:48'].includes(stSummer.sunset));
+  ok('#1: ירושלים הדלקה-קיץ ~19:07 (40 דק׳)', ['19:06', '19:07', '19:08'].includes(stSummer.candle));
+  const stWinter = zShabbatTimes('2025-12-19', jlm);
+  ok('#1: ירושלים שקיעה-חורף ~16:38', ['16:37', '16:38', '16:39'].includes(stWinter.sunset));
+  const tlv = zShabbatTimes('2025-06-20', { city: 'telaviv', timezone: 'Asia/Jerusalem' });
+  ok('#1: ת״א הדלקה 18 דק׳ שונה מירושלים', tlv.candle !== stSummer.candle && ['19:31', '19:32', '19:33'].includes(tlv.candle));
+  // מיזוג-רצפים: ר״ה = חלון-אחד 2-ימים [ערב→מוצאי].
+  const rh = zClosedWindows('2025-09-20', 8, jlm).find((w) => w.reason === 'ראש השנה');
+  ok('#1: ר״ה חלון-אחד 2-ימים', rh && rh.days === 2 && rh.kind === 'yomtov');
+  // שבת = חלון [שישי-הדלקה → שבת-צאת].
+  const sh = zClosedWindows('2025-06-15', 10, jlm).find((w) => w.reason === 'שבת');
+  ok('#1: שבת [שישי→שבת]', sh && sh.startIso < sh.endIso && sh.days === 1);
+}
+// חיווט-גנרטור: כבוי=ביט-זהה · דלוק=חלונות-מדויקים
+{
+  const zt = JSON.parse(readFileSync(join(HERE, 'fixtures/tenant-zmanim.json'), 'utf8'));
+  const zb = buildTenant(zt, { anchorDate: '2026-09-01', calendarWindow: 90 });
+  ok('#1: zmanim תקין', zb.ok);
+  const zdp = zb.files['dialplan/tenant_zmanim-demo.xml'];
+  ok('#1: חלונות zwin_ צרובים', /zwin_2026\d+"[\s\S]*?date-time="2026-\d\d-\d\d \d\d:\d\d:00~2026-\d\d-\d\d \d\d:\d\d:59"/.test(zdp));
+  ok('#1: force_closed בחלון-מדויק', /zwin_[\s\S]*?force_closed=true/.test(zdp));
+  // שישי פתוח עד ההדלקה — אין חיתוך סטטי 15:00 (הסגירה מהחלון הצרוב).
+  ok('#1: אין חיתוך-שישי סטטי', !zdp.includes('08:00-15:00') && !/office_window_2/.test(zdp));
+  ok('#1: אין heb_ יום-מלא כש-zmanim פעיל', !zdp.includes('heb_2026'));
+  // manifest חושף את הזמנים.
+  ok('#1: manifest.zmanim חשוף', zb.manifest.zmanim && zb.manifest.zmanim.windows.length > 0 && zb.manifest.zmanim.city === 'ירושלים');
+  // כבוי ⇒ ביט-זהה (chesed בלי zmanim לא נגע).
+  ok('#1: כבוי ⇒ אין zwin (ביט-זהה)', !buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'].includes('zwin_'));
+  ok('#1: calendar.zmanim ברישום-הדגלים', 'calendar.zmanim' in FLAG_DEFAULTS && FLAG_DEFAULTS['calendar.zmanim'] === 'off');
+  // אורקל סגירת-מסלולים עובר גם על tenant-zmanim.
+  ok('#1: zmanim סגירת-מסלולים נקייה', auditRoutes(zb).ok);
+}
+// golden נפרד ל-zmanim (חלונות מדויקים, anchor קבוע).
+{
+  const zt = JSON.parse(readFileSync(join(HERE, 'fixtures/tenant-zmanim.json'), 'utf8'));
+  const zb = buildTenant(zt, { anchorDate: '2026-09-01', calendarWindow: 90 });
+  const zgDir = join(HERE, 'fixtures/golden-zmanim');
+  for (const [rel, content] of Object.entries(zb.files)) {
+    const gp = join(zgDir, rel);
+    if (UPDATE) { mkdirSync(dirname(gp), { recursive: true }); writeFileSync(gp, content, 'utf8'); console.log('  ❄️  הקפיא zmanim/' + rel); }
+    else if (!existsSync(gp)) ok(`golden-zmanim חסר: ${rel} (הרץ UPDATE=1)`, false);
+    else ok(`golden-zmanim תואם: ${rel}`, readFileSync(gp, 'utf8') === content);
+  }
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────

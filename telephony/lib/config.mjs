@@ -38,6 +38,7 @@ export const FLAG_DEFAULTS = {
   recording: 'off',
   'calendar.hebrew': 'off',
   'calendar.shabbat': 'off',
+  'calendar.zmanim': 'off', // זמנים הלכתיים מדויקים (שקיעה→הדלקה/צאת) — מחליף סגירת-יום-מלא
   'calendar.fasts': 'off',
   'calendar.erev': 'off',
   'calendar.cholhamoed': 'off',
