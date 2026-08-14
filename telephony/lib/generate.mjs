@@ -287,6 +287,20 @@ function dialplanXml(tenant, opts = {}) {
     L.push(`    </extension>`);
   }
 
+  // 2ה. מצב-שבעה/אבלות (opt-in mourning): חלון-תאריכים ⇒ mourning_active=true.
+  //     הניתוב עצמו (incoming_mourning) מפנה למחליף; פג-תוקף לבד בסוף החלון.
+  const mrn = tenant.mourning;
+  if (mrn) {
+    L.push(``);
+    L.push(`    <!-- מצב-שבעה: ${esc(mrn.fromIso)}~${esc(mrn.untilIso)} → מחליף ${esc(mrn.ext)} (פג-תוקף לבד) -->`);
+    L.push(`    <extension name="mourning_gate" continue="true">`);
+    L.push(`      <condition date-time="${mrn.fromIso} 00:00:00~${mrn.untilIso} 23:59:59">`);
+    L.push(`        <action application="set" data="mourning_active=true"/>`);
+    L.push(`        <action application="set" data="closed_reason=${esc(mrn.reason)}"/>`);
+    L.push(`      </condition>`);
+    L.push(`    </extension>`);
+  }
+
   // פעולות-הכניסה של קו (זיהוי-קו + הכרזה/ניתוב) — משותף ל-in_<id> ולהקשרי-השער.
   const entryActions = (n, ind) => {
     L.push(`${ind}<action application="set" data="inbound_call=true"/>`);
@@ -360,6 +374,19 @@ function dialplanXml(tenant, opts = {}) {
     L.push(`      <condition field="\${cid_e164}" expression="^(${numbersAlternation(R.priority.numbers)})$">`);
     L.push(`        <action application="set" data="priority_call=true"/>`);
     L.push(`        <action application="bridge" data="{leg_timeout=${pRing}}user/${esc(R.priority.ext)}@${esc(tenant.tenantId)}"/>`);
+    L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
+    L.push(`      </condition>`);
+    L.push(`    </extension>`);
+  }
+  // 3ד. מצב-שבעה: כשהחלון פעיל, כל מתקשר (למעט מוקד-מצוקה שכבר נתפס) מנותב
+  //     למחליף ישירות (עוקף שער-זמן), ואם אין-מענה → אחרי-שעות (תא-קולי). פג-תוקף לבד.
+  if (mrn) {
+    const mRing = manager.ringSeconds;
+    L.push(`    <!-- מצב-שבעה: מתקשר → מחליף ${esc(mrn.ext)} ישירות, אין-מענה → תא-קולי -->`);
+    L.push(`    <extension name="incoming_mourning">`);
+    L.push(`      <condition field="destination_number" expression="^incoming$"/>`);
+    L.push(`      <condition field="\${mourning_active}" expression="^true$">`);
+    L.push(`        <action application="bridge" data="{leg_timeout=${mRing}}user/${esc(mrn.ext)}@${esc(tenant.tenantId)}"/>`);
     L.push(`        <action application="transfer" data="afterhours XML ${esc(ctx)}"/>`);
     L.push(`      </condition>`);
     L.push(`    </extension>`);
@@ -577,7 +604,7 @@ function dialplanXml(tenant, opts = {}) {
   //     בפועל (office∪manager∪overflow∪IVR), לא טווח קשיח.
   if (R.internal) {
     const ivrExts = R.ivr ? R.ivr.options.flatMap((o) => (o.dest.type === 'ext' ? [o.dest.value] : o.dest.type === 'ringgroup' ? o.dest.value : [])) : [];
-    const allExts = [...new Set([...office.ext, manager.ext, ...(R.overflow || []), ...ivrExts, ...(R.priority && R.priority.ext ? [R.priority.ext] : [])])].filter((e) => /^[0-9]+$/.test(e));
+    const allExts = [...new Set([...office.ext, manager.ext, ...(R.overflow || []), ...ivrExts, ...(R.priority && R.priority.ext ? [R.priority.ext] : []), ...(tenant.mourning && tenant.mourning.ext ? [tenant.mourning.ext] : [])])].filter((e) => /^[0-9]+$/.test(e));
     if (allExts.length) {
       L.push(``);
       L.push(`    <!-- חיוג-פנימי בין שלוחות -->`);
@@ -682,7 +709,8 @@ function directoryXml(tenant) {
   }
   // תיבת תא-הקולי חייבת להיות משתמש-directory (אחרת ההודעה אובדת); מוסיפים אם חסרה.
   const priorityExt = R.priority && R.priority.ext ? [R.priority.ext] : [];
-  const exts = [...new Set([...office.ext, manager.ext, ...(R.overflow || []), ...ivrExts, ...priorityExt])];
+  const mourningExt = tenant.mourning && tenant.mourning.ext ? [tenant.mourning.ext] : [];
+  const exts = [...new Set([...office.ext, manager.ext, ...(R.overflow || []), ...ivrExts, ...priorityExt, ...mourningExt])];
   const users = [...exts, ...(exts.includes(vm.box) ? [] : [vm.box])];
   const tid = tenant.tenantId;
 
@@ -763,6 +791,7 @@ function manifest(tenant, warnings, opts = {}) {
     officeHours: tenant.officeHours,
     ...(heb.length ? { hebrewCalendar: { anchor: opts.anchorDate, window: opts.calendarWindow || 400, closedDays: heb } } : {}),
     ...(zwins.length ? { zmanim: { anchor: opts.anchorDate, window: opts.calendarWindow || 400, city: geoOf(tenant).he, windows: zwins } } : {}),
+    ...(tenant.mourning ? { mourning: tenant.mourning } : {}),
     inboundVoiceNumbers: vnums.map((n) => ({ id: n.id, e164: n.e164, label: n.label, onramp: n.onramp, kosher: n.kosher })),
     outboundSims: sims.map((n) => ({ id: n.id, e164: n.e164, label: n.label, prefix: `${n.gatewayChannel}#`, channel: n.gatewayChannel })),
     outboundDefault: tenant.outbound.defaultNumberId,

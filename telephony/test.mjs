@@ -1286,6 +1286,35 @@ console.log('· ratchet — רעיון #7: מוקד-מצוקה');
   ok('#7: priority חלקי מדולג', buildTenant({ ...chesed, routing: { priority: { numbers: ['050-1112233'] } } }).warnings.some((w) => w.includes('priority')));
 }
 
+// ── רעיון #3 — מצב-שבעה/אבלות (mourning) ─────────────────────────────────────
+console.log('· ratchet — רעיון #3: מצב-שבעה/אבלות');
+{
+  const mcfg = { ...chesed, mourning: { fromIso: '2026-03-01', untilIso: '2026-03-08', ext: '108', reason: 'בית האבל' } };
+  const mb = buildTenant(mcfg);
+  ok('#3: mourning תקין', mb.ok);
+  const mdp = mb.files['dialplan/tenant_chesed-demo.xml'];
+  ok('#3: mourning_gate חלון-תאריכים', /mourning_gate[\s\S]*?date-time="2026-03-01 00:00:00~2026-03-08 23:59:59"/.test(mdp));
+  ok('#3: mourning_active מוגדר', /mourning_gate[\s\S]*?mourning_active=true/.test(mdp));
+  ok('#3: incoming_mourning → מחליף 108', /incoming_mourning[\s\S]*?mourning_active[\s\S]*?bridge" data="\{leg_timeout=\d+\}user\/108@chesed-demo"/.test(mdp));
+  ok('#3: incoming_mourning לפני incoming_closed', mdp.indexOf('incoming_mourning') < mdp.indexOf('incoming_closed'));
+  ok('#3: fallback אחרי-שעות', /incoming_mourning[\s\S]*?transfer" data="afterhours/.test(mdp));
+  ok('#3: מחליף ב-directory', mb.files['directory/chesed-demo.xml'].includes('<user id="108">'));
+  ok('#3: סגירת-מסלולים נקייה (mourning)', auditRoutes(mb).ok);
+  ok('#3: manifest.mourning חשוף', mb.manifest.mourning && mb.manifest.mourning.ext === '108');
+  // simulate: בחלון ⇒ mourning; מחוץ-לחלון ⇒ רגיל.
+  const t = validateTenant(mcfg).tenant;
+  eq('#3: sim בחלון ⇒ mourning', simulateCall(t, { did: '02-5551234', callerId: '050-0000000', date: '2026-03-05', hhmm: '10:00' }).outcome, 'mourning');
+  eq('#3: sim מחוץ-לחלון ⇒ רגיל', simulateCall(t, { did: '02-5551234', callerId: '050-0000000', date: '2026-05-05', dow: 3, hhmm: '10:00' }).outcome, 'office');
+  // מוקד-מצוקה גובר על שבעה (מתקשר-בסיכון עדיין מגיע לאחראי).
+  const mp = validateTenant({ ...mcfg, routing: { priority: { numbers: ['050-1112233'], ext: '201' } } }).tenant;
+  eq('#3: priority גובר בשבעה', simulateCall(mp, { did: '02-5551234', callerId: '050-1112233', date: '2026-03-05', hhmm: '10:00' }).outcome, 'priority');
+  // כבוי ⇒ ביט-זהה.
+  ok('#3: כבוי ⇒ אין mourning_gate', !buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'].includes('mourning_gate'));
+  // פסול ⇒ אזהרה + מדולג.
+  ok('#3: תאריך-פסול מדולג', buildTenant({ ...chesed, mourning: { fromIso: 'bad', untilIso: '2026-03-08', ext: '108' } }).warnings.some((w) => w.includes('mourning')));
+  ok('#3: from>until מדולג', buildTenant({ ...chesed, mourning: { fromIso: '2026-03-08', untilIso: '2026-03-01', ext: '108' } }).warnings.some((w) => w.includes('mourning')));
+}
+
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
 const goldenDir = join(HERE, 'fixtures/golden');

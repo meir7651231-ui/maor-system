@@ -301,6 +301,29 @@ export function validateTenant(raw) {
     };
   }
 
+  // ── מצב-שבעה/אבלות (opt-in): חלון-תאריכים שמנתב את הקו למחליף, פג-תוקף לבד ──
+  const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
+  let mourning = null;
+  if (raw.mourning && typeof raw.mourning === 'object') {
+    const from = raw.mourning.fromIso;
+    const until = raw.mourning.untilIso;
+    const mExt = raw.mourning.ext;
+    if (!ISO_RE.test(from || '') || !ISO_RE.test(until || '')) {
+      warnings.push('mourning: fromIso/untilIso חייבים תאריך ISO (YYYY-MM-DD) — מדולג.');
+    } else if (from > until) {
+      warnings.push('mourning: fromIso אחרי untilIso — מדולג.');
+    } else if (typeof mExt !== 'string' || !/^[0-9]{2,6}$/.test(mExt)) {
+      warnings.push('mourning: ext (מחליף) חייב ספרות 2-6 — מדולג.');
+    } else {
+      mourning = {
+        fromIso: from,
+        untilIso: until,
+        ext: mExt,
+        reason: typeof raw.mourning.reason === 'string' && raw.mourning.reason ? raw.mourning.reason : 'בית האבל',
+      };
+    }
+  }
+
   const ok = errors.length === 0;
   const tenant = ok
     ? {
@@ -320,6 +343,7 @@ export function validateTenant(raw) {
         terms,
         routing,
         ...(emergency ? { emergency } : {}),
+        ...(mourning ? { mourning } : {}),
       }
     : null;
   return { ok, errors, warnings, tenant };

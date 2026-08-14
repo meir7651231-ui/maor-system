@@ -72,6 +72,11 @@ export function simulateCall(tenant, call = {}) {
     return { path: [...path, 'priority', `resp:${R.priority.ext}`], outcome: 'priority' };
   }
 
+  // מצב-שבעה/אבלות: בחלון-התאריכים כל מתקשר (למעט מוקד-מצוקה) → מחליף.
+  if (tenant.mourning && call.date && call.date >= tenant.mourning.fromIso && call.date <= tenant.mourning.untilIso) {
+    return { path: [...path, 'mourning', `sub:${tenant.mourning.ext}`], outcome: 'mourning' };
+  }
+
   // קו-הכרזה.
   if (num.role === 'announcement') return { path: [...path, 'announcement'], outcome: 'announcement' };
 
