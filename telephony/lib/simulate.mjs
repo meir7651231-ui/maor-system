@@ -128,6 +128,10 @@ export function simulateCall(tenant, call = {}) {
 }
 
 const DOW_HE = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+// סיבת-סגירה להצגה — רק ספציפית (חג/שבת/dnd/חירום), לא הגנרית "מחוץ-לשעות".
+function closedTag(reason) {
+  return reason && reason !== 'מחוץ-לשעות' && reason !== 'שעות-פעילות' ? ` (${reason})` : '';
+}
 
 /**
  * item 16 · סימולטור-שיחה חי: תיאור-אנושי בעברית של מה שמתקשר יחווה — "נסה את
@@ -173,9 +177,9 @@ export function explainCall(tenant, call = {}) {
     case 'queue':
       lines.push('✅ בשעות → תור-המתנה עד שנציג מושך את השיחה.'); break;
     case 'voicemail':
-      lines.push(`🌙 מחוץ-לשעות${sim.reason ? ` (${sim.reason})` : ''} → מנהל (${manager}) → תא-קולי (${vm}).`); break;
+      lines.push(`🌙 מחוץ-לשעות${closedTag(sim.reason)} → מנהל (${manager}) → תא-קולי (${vm}).`); break;
     case 'manager':
-      lines.push(`🌙 מחוץ-לשעות${sim.reason ? ` (${sim.reason})` : ''} → מנהל (${manager}) (בלי תא-קולי).`); break;
+      lines.push(`🌙 מחוץ-לשעות${closedTag(sim.reason)} → מנהל (${manager}) (בלי תא-קולי).`); break;
     case 'afterhours':
       lines.push(`🌙 ${sim.path.includes('ivr-invalid') ? 'בחירה לא-תקינה ב-IVR' : 'אין-מענה במשרד'} → מנהל (${manager}) → תא-קולי.`); break;
     default:
