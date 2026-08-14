@@ -539,6 +539,16 @@ function dialplanXml(tenant, opts = {}) {
       L.push(`        <action application="set" data="effective_caller_id_number=${esc(def.e164)}"/>`);
       for (const g of tollGuard('        ')) L.push(g);
       L.push(`        <action application="bridge" data="sofia/gateway/${esc(gw)}${def.gatewayChannel}/$1"/>`);
+      // גיבוי-יציאה (opt): אם השער-הראשי לא-מגיב, continue_on_fail נופל ל-SIM הבא.
+      // בזהות-מתקשר של ה-SIM המשמש בפועל. במצב-כשר רק גיבויים-כשרים.
+      const fbSims = (tenant.outbound.failover || [])
+        .map((id) => sims.find((n) => n.id === id))
+        .filter((n) => n && (!kosherMode || n.kosher) && n.id !== def.id);
+      for (const fb of fbSims) {
+        L.push(`        <action application="set" data="effective_caller_id_number=${esc(fb.e164)}"/>`);
+        for (const g of tollGuard('        ')) L.push(g);
+        L.push(`        <action application="bridge" data="sofia/gateway/${esc(gw)}${fb.gatewayChannel}/$1"/>`);
+      }
       L.push(`      </condition>`);
       L.push(`    </extension>`);
       if (featureOn(tenant, 'outbound.international')) {
@@ -804,6 +814,7 @@ function manifest(tenant, warnings, opts = {}) {
     inboundVoiceNumbers: vnums.map((n) => ({ id: n.id, e164: n.e164, label: n.label, onramp: n.onramp, kosher: n.kosher })),
     outboundSims: sims.map((n) => ({ id: n.id, e164: n.e164, label: n.label, prefix: `${n.gatewayChannel}#`, channel: n.gatewayChannel })),
     outboundDefault: tenant.outbound.defaultNumberId,
+    ...(tenant.outbound.failover && tenant.outbound.failover.length ? { outboundFailover: tenant.outbound.failover } : {}),
     ...(featureOn(tenant, 'voice.kosher') ? { kosherOutbound: true } : {}),
     nonVoiceChannels: skipped.map((n) => ({ id: n.id, e164: n.e164, label: n.label, type: n.type, onramp: n.onramp, channels: n.channels, note: n.onramp === 'device-link' ? 'ווצאפ ריבוי-מכשירים — מטופל בגשר-הודעות, לא בדיאלפלן הקולי' : 'לא נושא-קול' })),
     cti: tenant.cti,

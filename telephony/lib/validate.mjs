@@ -278,6 +278,18 @@ export function validateTenant(raw) {
       }
       outbound = { defaultNumberId: defId };
     }
+    // גיבוי-יציאה (opt): SIM-גיבוי אם הראשי לא-מגיב (שרשרת continue_on_fail).
+    if (Array.isArray(raw.outbound.failover)) {
+      const fb = [];
+      for (const id of raw.outbound.failover) {
+        const t = numbers.find((n) => n.id === id);
+        if (!t) warnings.push(`outbound.failover: "${id}" לא מצביע על מספר קיים — דילוג.`);
+        else if (t.onramp !== 'sim-in-gateway' || !Number.isInteger(t.gatewayChannel)) warnings.push(`outbound.failover: "${id}" אינו SIM-בשער עם ערוץ — דילוג.`);
+        else if (id === (outbound && outbound.defaultNumberId)) warnings.push(`outbound.failover: "${id}" זהה לברירת-המחדל — דילוג.`);
+        else if (!fb.includes(id)) fb.push(id);
+      }
+      if (fb.length) outbound = { ...(outbound || { defaultNumberId: null }), failover: fb };
+    }
   }
   // ברירת-מחדל ליציאה: ה-SIM הראשון עם ערוץ-שער.
   if (!outbound) {

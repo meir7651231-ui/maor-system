@@ -1506,6 +1506,30 @@ console.log('· ratchet — רעיון #15: הקמה-ב-90-שניות');
   ok('#15: seed→provision מוכן', provision(seed, { anchorDate: '2026-09-01' }).ready === true);
 }
 
+// ── רעיון #13 — קו-צל / גיבוי-יציאה (outbound.failover) ──────────────────────
+console.log('· ratchet — רעיון #13: גיבוי-יציאה');
+{
+  // chesed: n1(ch1) ברירת-מחדל, n2(ch2) גיבוי.
+  const fcfg = { ...chesed, outbound: { defaultNumberId: 'n1', failover: ['n2'] } };
+  const fb = buildTenant(fcfg);
+  ok('#13: failover תקין', fb.ok);
+  const fdp = fb.files['dialplan/tenant_chesed-demo.xml'];
+  // out_default: גשר-ראשי (gw1) ואז גשר-גיבוי (gw2) עם CID של הגיבוי.
+  ok('#13: גשר-ראשי אז גיבוי', /out_default[\s\S]*?sofia\/gateway\/chesed-demo-gw1\/\$1"[\s\S]*?effective_caller_id_number=\+972501112233[\s\S]*?sofia\/gateway\/chesed-demo-gw2\/\$1"/.test(fdp));
+  ok('#13: manifest.outboundFailover חשוף', JSON.stringify(fb.manifest.outboundFailover) === JSON.stringify(['n2']));
+  ok('#13: סגירת-מסלולים נקייה (failover)', auditRoutes(fb).ok);
+  // כבוי ⇒ ביט-זהה (chesed בלי failover — גשר-יחיד ב-out_default).
+  const base = buildTenant(chesed).files['dialplan/tenant_chesed-demo.xml'];
+  ok('#13: כבוי ⇒ גשר-out_default יחיד', (base.match(/out_default[\s\S]*?<\/extension>/)[0].match(/sofia\/gateway/g) || []).length === 1);
+  // גיבוי-פסול ⇒ אזהרה + מדולג.
+  ok('#13: גיבוי-לא-קיים ⇒ אזהרה', buildTenant({ ...chesed, outbound: { defaultNumberId: 'n1', failover: ['nope'] } }).warnings.some((w) => w.includes('failover')));
+  ok('#13: גיבוי=ברירת-מחדל ⇒ מדולג', buildTenant({ ...chesed, outbound: { defaultNumberId: 'n1', failover: ['n1'] } }).warnings.some((w) => w.includes('failover')));
+  // מצב-כשר: גיבוי לא-כשר מסונן (n2 לא-כשר, n3 כשר).
+  const kf = buildTenant({ ...chesed, features: { 'voice.kosher': true }, outbound: { defaultNumberId: 'n3', failover: ['n2', 'n3'] } });
+  const kfdp = kf.files['dialplan/tenant_chesed-demo.xml'];
+  ok('#13: כשר ⇒ גיבוי-לא-כשר מסונן', !kfdp.includes('chesed-demo-gw2') || !/out_default[\s\S]*?gw2/.test(kfdp));
+}
+
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
 const goldenDir = join(HERE, 'fixtures/golden');
