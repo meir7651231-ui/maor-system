@@ -11,8 +11,9 @@ import type { Supporter } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { hebParts, gem, gemYear, hebDateFull } from '../../lib/hebrew';
 import { useApp } from '../../store/useApp';
+import { featureOn } from '../../lib/config';
 import { Btn } from '../ui';
-import { personalCalEntries, orgCalEntries, donCalMonthLine, type SupCalEntry } from './lib';
+import { personalCalEntries, orgCalEntries, donCalMonthLine, visibleSupportersForDesignations, type SupCalEntry } from './lib';
 
 const DOW = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
 const fmtMonthYear = new Intl.DateTimeFormat('he', { month: 'long', year: 'numeric' });
@@ -278,6 +279,12 @@ export function DonationCalendar({ supporter, focusIso }: { supporter: Supporter
 export function OrgDonationCalendar(props: { onOpen: (spId: string) => void }) {
   const supporters = useApp((s) => s.db.supporters);
   const config = useApp((s) => s.config);
-  const entries = useMemo(() => orgCalEntries(supporters), [supporters]);
+  // 🔒 ייעוד-הרשאה (13.8): הלוח הכלל-ארגוני לא יציג צבירת-תרומות מייעודים אסורים לעובד/ת מוגבל/ת.
+  const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = featureOn(config, 'supporters.purpose') ? allowedDesignations : null;
+  const entries = useMemo(
+    () => orgCalEntries(visibleSupportersForDesignations(supporters, desigLimit)),
+    [supporters, desigLimit],
+  );
   return <DonCalGrid entries={entries} anchorIso={localIso(new Date())} onGo={props.onOpen} config={config} />;
 }
