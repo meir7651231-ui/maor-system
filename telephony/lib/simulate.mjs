@@ -27,20 +27,32 @@ function zmanimClosedReason(tenant, call) {
     includeYomTov: featureOn(tenant, 'calendar.hebrew'),
     tzeis: (tenant.geo && Number.isFinite(tenant.geo.tzeis)) ? tenant.geo.tzeis : 40,
   });
-  const at = `${call.date}T${call.hhmm || '12:00'}`;
+  const at = `${call.date}T${padHHMM(call.hhmm || '12:00')}`; // R6-11: ריפוד '9:00'→'09:00' להשוואה-לקסיקוגרפית
   for (const w of wins) {
     if (`${w.startIso}T${w.startTime}` <= at && at <= `${w.endIso}T${w.endTime}`) return w.reason;
   }
-  // יום-מלא (צום/חוה״מ) — נצרב יום-מלא ב-hebrewBlock כשלא בתוך חלון-יו״ט. יו״כ (yomTov+fast)
-  // מכוסה ע״י החלון לעיל ⇒ !c.yomTov מונע סגירת-יום-מלא-שגויה אחרי-צאת (F8).
-  if (featureOn(tenant, 'calendar.fasts') && c.fast && !c.shabbat && !c.yomTov) return c.fast;
-  if (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed) return c.cholHamoed;
+  // יום-מלא (צום/חוה״מ) — נצרב ב-hebrewBlock, **המגודר calendar.hebrew** (generate.mjs:78).
+  // **נחיל-6 R6-3:** בלי calendar.hebrew הגנרטור לא סוגר צום/חוה״מ ⇒ הסימולטור חייב להתאים
+  // (אחרת דיווח-סגירת-שווא). יו״כ (yomTov+fast) מכוסה בחלון לעיל ⇒ !c.yomTov מונע יום-מלא-שגוי (F8).
+  const hebOn = featureOn(tenant, 'calendar.hebrew');
+  if (hebOn && featureOn(tenant, 'calendar.fasts') && c.fast && !c.shabbat && !c.yomTov) return c.fast;
+  if (hebOn && featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed) return c.cholHamoed;
   return null;
 }
 
 function hhmmToMin(s) {
   const [h, m] = String(s).split(':').map(Number);
   return h * 60 + m;
+}
+// ריפוד HH:MM (R6-11) — '9:00'→'09:00' כדי שהשוואה-לקסיקוגרפית מול חלונות-הזמן (מרופדים) תעבוד.
+const padHHMM = (s) => { const [h, m] = String(s).split(':'); return `${String(Number(h) || 0).padStart(2, '0')}:${String(Number(m) || 0).padStart(2, '0')}`; };
+
+// אופק-הלוח (R6-8): הגנרטור פולט extensions רק בטווח [anchor, anchor+window]. מחוץ-לטווח אין
+// force_closed ⇒ הסימולטור חייב לא-לחשב סגירת-לוח (אחרת "סגור" בעוד המרכזייה החיה מצלצלת).
+function withinHorizon(date, opts) {
+  if (!opts || !opts.anchorDate || !date) return true; // בלי אופק ⇒ תמיד מחשב (תאימות-אחורה)
+  const end = addDaysIso(opts.anchorDate, opts.calendarWindow || 400);
+  return date >= opts.anchorDate && date <= end;
 }
 
 /** האם הרגע בתוך חלון (days,start,end). at = {dow, minutes}. */
@@ -75,7 +87,7 @@ function inWindowShabbat(tenant, win, at) {
  *          digit?:string, direction?:string}} call
  * @returns {{path:string[], outcome:string, reason?:string}}
  */
-export function simulateCall(tenant, call = {}) {
+export function simulateCall(tenant, call = {}, opts = {}) {
   const path = [];
   const R = tenant.routing || {};
 
@@ -113,8 +125,12 @@ export function simulateCall(tenant, call = {}) {
     return { path: ['outbound', 'default'], outcome: 'no-route' };
   }
 
+  // **נחיל-6 R6-4:** רק מספר נושא-קול (voice, לא device-link) מנותב בדיאלפלן (generate
+  // voiceNumbers). מספר SMS-בלבד/ווצאפ-device-link אינו מקבל extension קולי ⇒ unknown-did
+  // (אחרת הסימולטור מדווח 'office'/'voicemail' לשיחה שהמרכזייה כלל לא מנתבת).
   const didE164 = toE164(call.did);
-  const num = tenant.numbers.find((n) => n.e164 === didE164 || n.e164 === call.did);
+  const num = tenant.numbers.find((n) => (n.e164 === didE164 || n.e164 === call.did)
+    && (n.channels || []).includes('voice') && n.onramp !== 'device-link');
   if (!num) return { path: ['inbound'], outcome: 'unknown-did' };
   path.push(`in:${num.label}`);
 
@@ -150,14 +166,18 @@ export function simulateCall(tenant, call = {}) {
     forceClosed = true; reason = 'חירום';
   } else {
     let closedReason = null;
-    if (zmActive) {
-      closedReason = zmanimClosedReason(tenant, call);
-    } else if (featureOn(tenant, 'calendar.hebrew') && call.date) {
-      const c = classifyDay(call.date, { tz: tenant.timezone, diaspora: isDiaspora(tenant.timezone) }); // F17
-      closedReason = c.yomTov
-        || (featureOn(tenant, 'calendar.erev') && c.erevChag)
-        || (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed)
-        || (featureOn(tenant, 'calendar.fasts') && c.fast && !c.shabbat) || null;
+    // **נחיל-6 R6-8:** סגירות-לוח נחשבות רק בתוך אופק-החלון (אם נמסר) — מחוצה-לו הגנרטור
+    // לא פלט extension ⇒ הקו מתנהג רגיל. (חירום/dnd אינם ממוסגרי-תאריך ⇒ חלים תמיד.)
+    if (withinHorizon(call.date, opts)) {
+      if (zmActive) {
+        closedReason = zmanimClosedReason(tenant, call);
+      } else if (featureOn(tenant, 'calendar.hebrew') && call.date) {
+        const c = classifyDay(call.date, { tz: tenant.timezone, diaspora: isDiaspora(tenant.timezone) }); // F17
+        closedReason = c.yomTov
+          || (featureOn(tenant, 'calendar.erev') && c.erevChag)
+          || (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed)
+          || (featureOn(tenant, 'calendar.fasts') && c.fast && !c.shabbat) || null;
+      }
     }
     if (closedReason) { forceClosed = true; reason = closedReason; } // חג > dnd
     else if (featureOn(tenant, 'voice.dnd') && R.dnd) { forceClosed = true; reason = 'נא לא להפריע'; }
@@ -205,8 +225,8 @@ function closedTag(reason) {
  * @param {object} call {did?,callerId?,date?,dow?,hhmm?,digit?,direction?,officeAnswered?}
  * @returns {{outcome:string, reason:string, summary:string, lines:string[], sim:object}}
  */
-export function explainCall(tenant, call = {}) {
-  const sim = simulateCall(tenant, call);
+export function explainCall(tenant, call = {}, opts = {}) {
+  const sim = simulateCall(tenant, call, opts); // R6-8: אופק-חלון מושחל
   const lines = [];
   const office = tenant.destinations?.office?.ext?.join(', ') || '—';
   const manager = tenant.destinations?.manager?.ext || '—';

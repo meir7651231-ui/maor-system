@@ -53,14 +53,21 @@ const reEscape = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
  */
 function tenantFingerprint(tenant) {
   const id = tenant.tenantId;
-  // מסתיימי-סלאג: הקשר-ניתוב, דומיין-משתמש (‏user/<ext>@<id>), וכל מפני-הסוד.
-  const slugMarks = new Set([`__${id}`, `tenant_${id}`, `@${id}`]);
+  // מסתיימי-סלאג: הקשר-ניתוב + כל מפני-הסוד. גבול-ימני (?![a-z0-9-]).
+  const slugMarks = new Set([`__${id}`, `tenant_${id}`]);
   for (const v of Object.values(secretsFor(tenant))) slugMarks.add(v);
   const rec = recordingEncryption(tenant);
   if (rec.keyRef) slugMarks.add(rec.keyRef);
   const out = [...slugMarks].map((m) => ({ mark: m, re: new RegExp(reEscape(m) + '(?![a-z0-9-])') }));
-  // חתם-השער (‏sofia/gateway/<id>-gw<n>) — ממשיך בספרה ⇒ substring בלי גבול-סיום.
-  out.push({ mark: `${id}-gw`, re: new RegExp(reEscape(`${id}-gw`)) });
+  // חתם-דומיין @id (הפניית-ניתוב user/ext@id). **נחיל-6 R6-1:** גבול כולל '.' — אחרת מתאים
+  // לכתובת-מייל לגיטימית `x@<id>.tld` (דומיין-מייל של דייר-אחר שסלאגו זהה לשלנו) ⇒ false-positive
+  // שחוסם deploy. דומיין-FreeSWITCH אמיתי נגמר ב-"/,/}/רווח — לעולם לא ב-'.'.
+  out.push({ mark: `@${id}`, re: new RegExp(reEscape(`@${id}`) + '(?![a-z0-9.-])') });
+  // חתם-השער (‏sofia/gateway/<id>-gw<n>). **נחיל-6 R6-1 (רגרסיית-F3):** substring-חשוף גרם
+  // false-positive — סלאג שהוא סיומת-של-אחר לפני '-gw' (‏hesed⊂chesed-gw1) או תחילית-של-אחר
+  // (‏kupa⊂kupa-gwia-gw1) התאים-שווא ⇒ crossTenantLeakScan (שער-קשיח ב-apply) הפיל את כל
+  // האצווה. עיגון דו-צדדי: גבול-שמאל (‏lookbehind) + ספרת-ערוץ מימין (הגנרטור תמיד '<id>-gw\d').
+  out.push({ mark: `${id}-gw`, re: new RegExp('(?<![a-z0-9-])' + reEscape(`${id}-gw`) + '(?=\\d)') });
   return out;
 }
 /**

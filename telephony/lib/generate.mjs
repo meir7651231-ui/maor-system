@@ -21,6 +21,11 @@ const XML_ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => XML_ESC[c]);
 }
+// esc להֶקְשר-הערה (נחיל-6 R6-9): '--' בתוך <!-- ... --> פוסל את ה-XML ⇒ context-הדייר לא
+// נטען (expat דוחה). שם-עמותה/תווית עם מקף-כפול לא ישברו את הטעינה. (בערכי-data מותר '--'.)
+function escc(s) {
+  return esc(s).replace(/--+/g, '—');
+}
 
 // 0=ראשון..6=שבת (המודל שלנו) → wday של FreeSWITCH (1=ראשון..7=שבת).
 function daysToWday(days) {
@@ -142,7 +147,7 @@ function dialplanXml(tenant, opts = {}) {
   const L = [];
   L.push(`<?xml version="1.0" encoding="utf-8"?>`);
   L.push(`<!-- מחולל אוטומטית מקונפיג-הלקוח. אין לערוך ידנית — ערוך את הנתונים והרץ מחדש. -->`);
-  L.push(`<!-- ${esc(tenant.orgName)} · pure-downstream · ${vnums.length} מספרים נושאי-קול · ${sims.length} ערוצי-יציאה -->`);
+  L.push(`<!-- ${escc(tenant.orgName)} · pure-downstream · ${vnums.length} מספרים נושאי-קול · ${sims.length} ערוצי-יציאה -->`);
   L.push(`<include>`);
   L.push(`  <context name="${esc(ctx)}">`);
 
@@ -662,13 +667,18 @@ function dialplanXml(tenant, opts = {}) {
   }
 
   // 10. חיוג-מהיר (opt-in לפי-נתונים): קוד → מספר, דרך ה-SIM ברירת-המחדל.
+  // **נחיל-6 R6-5:** חיוג-מהיר הוא יציאה-דרך-השער כמו out_pick/out_default ⇒ חייב את אותה
+  // הקשחה: תנאי ${sip_authorized} (רק שלוחה-רשומה מחייגת החוצה — רגל-נכנסת לא) + tollGuard
+  // (תקרת-toll-fraud תחת voice.hardening). בלעדיהם cred-גנוב שמחייג *5 עוקף את התקרה.
   if (R.speedDial && R.speedDial.length && def) {
     L.push(``);
     L.push(`    <!-- חיוג-מהיר -->`);
     for (const s of R.speedDial) {
       L.push(`    <extension name="sd_${esc(s.code.replace(/[*#]/g, (c) => (c === '*' ? 'star' : 'hash')))}">`);
+      L.push(`      <condition field="\${sip_authorized}" expression="^true$"/>`);
       L.push(`      <condition field="destination_number" expression="^${reEsc(s.code)}$">`);
       L.push(`        <action application="set" data="effective_caller_id_number=${esc(def.e164)}"/>`);
+      for (const g of tollGuard('        ')) L.push(g);
       L.push(`        <action application="bridge" data="sofia/gateway/${esc(gw)}${def.gatewayChannel}/${esc(s.e164)}"/>`);
       L.push(`      </condition>`);
       L.push(`    </extension>`);
@@ -723,7 +733,7 @@ function dialplanXml(tenant, opts = {}) {
     const gctx = `tenant_${tenant.tenantId}_gw${n.gatewayChannel}`;
     L.push(``);
     L.push(`  <context name="${esc(gctx)}">`);
-    L.push(`    <!-- ${esc(n.label)} · ${esc(n.e164)} · ערוץ ${n.gatewayChannel} -->`);
+    L.push(`    <!-- ${escc(n.label)} · ${escc(n.e164)} · ערוץ ${n.gatewayChannel} -->`);
     L.push(`    <extension name="gw${n.gatewayChannel}_entry">`);
     L.push(`      <condition field="destination_number" expression="^.*$">`);
     entryActions(n, '        ');
@@ -795,7 +805,7 @@ function directoryXml(tenant) {
 
   const L = [];
   L.push(`<?xml version="1.0" encoding="utf-8"?>`);
-  L.push(`<!-- מחולל אוטומטית — משתמשי ${esc(tenant.orgName)}. סיסמאות (סוד פר-שלוחה) מוזרקות בהתקנה. -->`);
+  L.push(`<!-- מחולל אוטומטית — משתמשי ${escc(tenant.orgName)}. סיסמאות (סוד פר-שלוחה) מוזרקות בהתקנה. -->`);
   L.push(`<include>`);
   L.push(`  <domain name="${esc(domain)}">`);
   L.push(`    <users>`);
@@ -838,7 +848,7 @@ function gatewaysXml(tenant) {
   L.push(`<include>`);
   for (const n of sims) {
     L.push(`  <gateway name="${esc(gw)}${n.gatewayChannel}">`);
-    L.push(`    <!-- ${esc(n.label)} · ${esc(n.e164)}${n.kosher ? ' · כשר' : ''} · ערוץ ${n.gatewayChannel} -->`);
+    L.push(`    <!-- ${escc(n.label)} · ${escc(n.e164)}${n.kosher ? ' · כשר' : ''} · ערוץ ${n.gatewayChannel} -->`);
     L.push(`    <param name="username" value="${esc(gw)}${n.gatewayChannel}"/>`);
     L.push(`    <param name="password" value="$\${${secretsFor(tenant).gsm_gateway_password}}"/>`);
     L.push(`    <param name="proxy" value="$\${${secretsFor(tenant).gsm_gateway_ip}}"/>`);

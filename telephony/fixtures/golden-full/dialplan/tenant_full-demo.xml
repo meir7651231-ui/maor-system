@@ -164,12 +164,14 @@
 
     <!-- חיוג-מהיר -->
     <extension name="sd_star1">
+      <condition field="${sip_authorized}" expression="^true$"/>
       <condition field="destination_number" expression="^\*1$">
         <action application="set" data="effective_caller_id_number=+97225000000"/>
         <action application="bridge" data="sofia/gateway/full-demo-gw1/+972501234567"/>
       </condition>
     </extension>
     <extension name="sd_star2">
+      <condition field="${sip_authorized}" expression="^true$"/>
       <condition field="destination_number" expression="^\*2$">
         <action application="set" data="effective_caller_id_number=+97225000000"/>
         <action application="bridge" data="sofia/gateway/full-demo-gw1/+972527654321"/>

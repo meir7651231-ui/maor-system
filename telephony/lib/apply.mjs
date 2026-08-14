@@ -223,14 +223,22 @@ export function migrationRisk(prev, next) {
     R('outbound-emptied', 'high', 'כל ה-SIM ליציאה הוסרו — חיוג-יוצא יושבת');
   } else if (outS(next).length < outS(prev).length) {
     R('gateway-drop', 'high', `שערי-יציאה ירדו ${outS(prev).length}→${outS(next).length}`);
-  } else if (outS(next).length === outS(prev).length) {
-    // החלפת-SIM בשווה-כמות: זהות-יציאה (id/e164) השתנתה אך הספירה זהה — נחיל-העומק.
-    // **נחיל-5 F12: רק שווה-כמות** — הוספת-SIM טהורה (next>prev, ברירת-המחדל לא זזה)
-    // שינתה sig בעבר ⇒ 'outbound-swapped' high שקרי שמרגיל את המפעיל להתעלם מהאזהרה.
+  } else {
+    // זיהוי-החלפת-זהות-SIM. **נחיל-5 F12:** צומצם ל-שווה-כמות (הוספה-טהורה לא תסומן false).
+    // **נחיל-6 R6-6:** הושלם ל-add+swap — id ששרד (בשני-הצדדים) ששינה e164/ערוץ מסומן **בלי
+    // תלות-בכמות**; ובנוסף שווה-כמות עם שינוי-זהות-כולל (id-rename) ש-survivor לא תופס.
+    const pById = new Map(outS(prev).map((n) => [n.id, `${n.e164}`]));
+    const survivorSwapped = outS(next).some((n) => pById.has(n.id) && pById.get(n.id) !== `${n.e164}`);
     const sig = (m) => outS(m).map((n) => `${n.id}:${n.e164}`).sort().join('|');
-    if (sig(prev) && sig(prev) !== sig(next)) {
+    const equalCountSwap = outS(next).length === outS(prev).length && sig(prev) && sig(prev) !== sig(next);
+    if (survivorSwapped || equalCountSwap) {
       R('outbound-swapped', 'high', 'זהות SIM-יציאה הוחלפה (מספר/ערוץ) — חיוג-יוצא ינותב דרך מספר אחר');
     }
+  }
+  // **נחיל-6 R6-7:** שינוי ברירת-המחדל-ליציאה (אותה קבוצת-SIM) — זהות-המתקשר המוצגת לציבור
+  // משתנה לכל השיחות היוצאות; migrationRisk לא קרא זאת כלל ⇒ החלפה-שקטה.
+  if (prev.outboundDefault && next.outboundDefault && prev.outboundDefault !== next.outboundDefault) {
+    R('outbound-default-changed', 'high', `ברירת-מחדל ליציאה ${prev.outboundDefault}→${next.outboundDefault} — זהות-המתקשר המוצגת לציבור משתנה`);
   }
   const removed = inV(prev).filter((p) => !inV(next).some((n) => n.id === p.id));
   if (removed.length && inV(next).length > 0) {

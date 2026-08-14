@@ -55,12 +55,14 @@ function* iterContacts(db) {
   }
 }
 
-/** כל הטלפונים של רשומה (phone/phone2 לפי הישות), מנורמלים. */
+/** כל הטלפונים של רשומה (phone/phone2 לפי הישות), מנורמלים, **מדודדפים** (נחיל-6 R6-12:
+ * phone===phone2 דחף כרטיס כפול תחת אותו e164 ב-screen-pop/ענן; campaignPlan כבר דדדף). */
 function phonesOf(rec, kind) {
   const out = [];
+  const seen = new Set();
   for (const field of PHONE_FIELDS[kind] || ['phone']) {
     const e = toE164(rec[field]);
-    if (e) out.push({ field, e164: e });
+    if (e && !seen.has(e)) { seen.add(e); out.push({ field, e164: e }); }
   }
   return out;
 }

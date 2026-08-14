@@ -78,15 +78,27 @@ switch (cmd) {
     if (!tenantsDir || !configRoot) die('שימוש: apply <tenantsDir> <configRoot> [--write]');
     const STATE = join(configRoot, '.telephony-state.json');
     const prev = existsSync(STATE) ? readJson(STATE) : {};
-    // נחיל-5 F5: עוגן-לוח (‏--anchor או היום) מוזרק ל-buildTenant — אחרת עמותה עם
-    // calendar.hebrew נבנית **בלי סגירות-חג בכלל, בשקט** (המרכזייה מצלצלת ביום-כיפור).
-    // ‏new Date() כאן = גבול-ה-CLI (הזרקת-הזמן); הליבה נשארת טהורה/דטרמיניסטית.
-    const anchor = opt('--anchor') || new Date().toISOString().slice(0, 10);
+    // נחיל-5 F5: עוגן-לוח מוזרק ל-buildTenant — אחרת עמותה עם calendar.hebrew נבנית
+    // **בלי סגירות-חג בכלל, בשקט** (המרכזייה מצלצלת ביום-כיפור). ‏new Date() כאן = גבול-ה-CLI.
+    // **נחיל-6 R6-2 (רגרסיית-F5):** עוגן=היום צרוב למניפסט ⇒ apply דיווח עדכון-שווא **כל יום**
+    // + reloadxml חי בלי-שינוי-אמת (עייפות-התראה). לכן **שומרים את העוגן מהתצלום-הקודם פר-דייר**
+    // ⇒ apply אידמפוטנטי; עוגן-חדש רק ב-deploy-ראשון או ב---anchor מפורש (רענון-חלון יזום).
+    const realToday = new Date().toISOString().slice(0, 10);
+    const explicitAnchor = opt('--anchor');
+    const prevAnchorOf = (tid) => {
+      try { const m = JSON.parse((prev[tid] || {})['manifest.json'] || '{}'); return (m.hebrewCalendar && m.hebrewCalendar.anchor) || (m.zmanim && m.zmanim.anchor) || null; } catch { return null; }
+    };
+    const daysApart = (a, b) => Math.round(Math.abs(Date.parse(a + 'T00:00:00Z') - Date.parse(b + 'T00:00:00Z')) / 86400000);
     const tenants = [];
     const bundles = []; // {tenant, files} — לאורקלים הסמנטיים
     const seen = new Set();
     for (const f of readdirSync(tenantsDir).filter((x) => x.endsWith('.json'))) {
-      const b = buildTenant(readJson(join(tenantsDir, f)), { anchorDate: anchor });
+      const raw = readJson(join(tenantsDir, f));
+      const reused = !explicitAnchor && prevAnchorOf(raw.tenantId);
+      const anchor = explicitAnchor || reused || realToday;
+      // רענון-חלון: עוגן-שמור ישן-מאוד ⇒ החלון עלול לפוג; רמז למפעיל (בלי לכפות).
+      if (reused && daysApart(reused, realToday) > 300) console.log(`   ⚠️  ${f}: עוגן-הלוח (${reused}) בן ${daysApart(reused, realToday)} ימים — רענן עם --anchor ${realToday}`);
+      const b = buildTenant(raw, { anchorDate: anchor });
       if (!b.ok) die(`❌ ${f}: ${b.errors.join(' · ')}`);
       // סייגי-הבנייה (למשל "לוח-עברי בלי anchor") **מוצגים** — לא נבלעים (F5).
       if (b.warnings && b.warnings.length) for (const w of b.warnings) console.log(`   ⚠️  ${f}: ${w}`);

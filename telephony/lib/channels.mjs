@@ -23,7 +23,7 @@ import { buildDirectory, popPriorityFor } from './cti.mjs';
 export function channelPlan(tenant) {
   const whatsapp = [];
   const sms = [];
-  for (const n of tenant.numbers) {
+  for (const n of tenant.numbers || []) { // נחיל-6 R6-13: מגן על קלט-חלקי (כמו שאר הפונקציות)
     const ch = n.channels || [];
     if (ch.includes('whatsapp') || n.onramp === 'device-link') {
       whatsapp.push({
