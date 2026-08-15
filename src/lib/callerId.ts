@@ -20,6 +20,8 @@ export interface Caller {
   kindLabel: string;
   name: string;
   phone: string;
+  /** מזהה-הישות שהותאמה (משפחה/תומך/מתנדב/רכז; לבן-משפחה = מזהה-החבר). */
+  id: string;
   /** המסך שאליו לנווט. */
   view: 'families' | 'supporters' | 'tzedaka' | 'shop7';
   /** מזהה-המשפחה לפתיחת כרטיס-משפחה (למשפחה/בן-משפחה). */
@@ -51,24 +53,24 @@ export function findCaller(db: Db, raw: string): Caller | null {
 
   for (const f of db.families) {
     if (hit(f.phone) || hit(f.phone2)) {
-      return { kind: 'family', kindLabel: 'משפחה', name: f.name, phone: f.phone || f.phone2, view: 'families', famId: f.id };
+      return { kind: 'family', kindLabel: 'משפחה', name: f.name, phone: f.phone || f.phone2, id: f.id, view: 'families', famId: f.id };
     }
   }
   for (const f of db.families) {
     for (const m of f.members || []) {
       if (hit(m.phone) || hit(m.phone2)) {
-        return { kind: 'member', kindLabel: 'בן/בת משפחה', name: m.first + ' · ' + f.name, phone: m.phone || m.phone2, view: 'families', famId: f.id };
+        return { kind: 'member', kindLabel: 'בן/בת משפחה', name: m.first + ' · ' + f.name, phone: m.phone || m.phone2, id: m.id, view: 'families', famId: f.id };
       }
     }
   }
   for (const s of db.supporters) {
-    if (hit(s.phone)) return { kind: 'supporter', kindLabel: 'תורם/ת', name: s.name, phone: s.phone, view: 'supporters' };
+    if (hit(s.phone)) return { kind: 'supporter', kindLabel: 'תורם/ת', name: s.name, phone: s.phone, id: s.id, view: 'supporters' };
   }
   for (const v of db.volunteers || []) {
-    if (hit(v.phone)) return { kind: 'volunteer', kindLabel: 'מתנדב/ת', name: v.name, phone: v.phone, view: 'shop7' };
+    if (hit(v.phone)) return { kind: 'volunteer', kindLabel: 'מתנדב/ת', name: v.name, phone: v.phone, id: v.id, view: 'shop7' };
   }
   for (const c of db.tzCoordinators || []) {
-    if (hit(c.phone)) return { kind: 'coordinator', kindLabel: 'רכז/ת', name: c.name, phone: c.phone, view: 'tzedaka' };
+    if (hit(c.phone)) return { kind: 'coordinator', kindLabel: 'רכז/ת', name: c.name, phone: c.phone, id: c.id, view: 'tzedaka' };
   }
   return null;
 }

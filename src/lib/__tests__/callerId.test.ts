@@ -67,10 +67,10 @@ describe('callerId — זיהוי-שיחה-נכנסת', () => {
     expect(findCaller(d, '0501234567')?.kind).toBe('family');
   });
 
-  it('App מחווט #call= דרך findCaller, מגודר telephonyOn', () => {
+  it('App מחווט #call= — מקפיץ את כרטיס-השיחה עם המספר, מגודר telephonyOn', () => {
     expect(appSrc).toContain("startsWith('#call=')");
-    expect(appSrc).toContain('findCaller(');
-    expect(appSrc).toContain('telephonyOn(st.config)');
+    expect(appSrc).toContain('setIncomingNumber(number)'); // פותח את הכרטיס המזוהה-מראש
+    expect(appSrc).toContain('telephonyOn(useApp.getState().config)');
   });
 
   it('תיבת "מי מתקשר?" — #caller פותח CallerLookup (מגודר telephonyOn), על אותו findCaller', () => {
