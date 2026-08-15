@@ -17,11 +17,13 @@ const ALL_SECTION_IDS = [
   'sec-backup', 'sec-export', 'sec-import', 'sec-audit',
   // ‏9.8: sec-org-secrets — כספת-המפתחות פר-ארגון (קבוצת האבטחה)
   'sec-security', 'sec-encryption', 'sec-cloud-encryption', 'sec-org-secrets',
+  // מסלול-B (14.8): מיגרציית-פיצול-תרומות — מגודר מייל-על, קבוצת האבטחה
+  'sec-donation-split',
   'sec-ai', 'sec-audittrail', 'sec-verifyreceipt', 'sec-reset',
 ];
 
 describe('⚙️ ratchet — UX סבב-ו׳: הגדרות ב-4 לשוניות (5.8.2026)', () => {
-  it('כל 17 הסעיפים משויכים לקבוצה ב-SECTION_GROUP — אף אחד לא נשמט', () => {
+  it('כל הסעיפים משויכים לקבוצה ב-SECTION_GROUP — אף אחד לא נשמט', () => {
     const mapMatch = viewSrc.match(/const SECTION_GROUP[\s\S]*?\n\};/);
     expect(mapMatch).toBeTruthy();
     for (const id of ALL_SECTION_IDS) expect(mapMatch![0]).toContain(`'${id}'`);
