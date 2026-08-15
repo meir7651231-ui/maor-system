@@ -446,6 +446,26 @@ export function PlatformPanel(props: { onClose: () => void }) {
               )}
             </Field>
 
+            {/* מתגים ברמת-הקונפיג (לא-FEATURES) — לא הופיעו ברשת-הדגלים ⇒ חסרו
+                לארגון-חדש שמוקם מהלוח. donationSplit = פיצול-תרומות פר-ייעוד. */}
+            <Field label="מתגים מתקדמים (ברמת-הקונפיג)">
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={cfg.donationSplit === true}
+                  onChange={(e) => updateCfg({ ...cfg, donationSplit: e.target.checked ? true : undefined })}
+                  style={{ width: 'auto', marginTop: 2, accentColor: 'var(--accent-deep)' }}
+                />
+                <span style={{ lineHeight: 1.35 }}>
+                  <span style={{ color: 'var(--ink)', fontWeight: 700 }}>🔀 פיצול-תרומות פר-ייעוד</span>
+                  <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                    אכיפת-הרשאת-ייעוד לעובדות בשכבת-הנתונים. לארגון עם תרומות קיימות — יש להריץ
+                    מיגרציה (הגדרות←אבטחה). ארגון-חדש: הדלקה כאן מספיקה.
+                  </span>
+                </span>
+              </label>
+            </Field>
+
             <Field label="מונחים (ריק = ברירת המחדל)">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 6, maxHeight: 220, overflowY: 'auto' }}>
                 {TERM_DEFS.map((t) => (
