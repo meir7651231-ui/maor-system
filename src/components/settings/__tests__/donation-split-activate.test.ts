@@ -14,6 +14,7 @@
 import { describe, expect, it } from 'vitest';
 import storeSrc from '../../../store/useApp.ts?raw';
 import secSrc from '../DonationSplitSection.tsx?raw';
+import wizSrc from '../../builder/BuilderWizard.tsx?raw';
 
 describe('🔀 ratchet — הדלקת-פיצול בקליק (מסלול-B פאזה-5)', () => {
   it('enableDonationSplit — כתיבת-merge של donationSplit:true בלבד (לא דריסת-קונפיג)', () => {
@@ -41,5 +42,13 @@ describe('🔀 ratchet — הדלקת-פיצול בקליק (מסלול-B פאז
     expect(secSrc).toContain('void turnOn()');
     expect(secSrc).toContain('await enableSplit()');
     expect(secSrc).toContain("if (!isSuperAdmin(cloudUser?.email)) return null;");
+  });
+
+  it('אשף-ההרכבה מציג טוגל donationSplit במקטע התורמים (דגל-קונפיג, לא features)', () => {
+    // מוצג רק במקטע התורמים
+    expect(wizSrc).toContain("sec.id === 'supporters'");
+    // כותב לדגל-הקונפיג ברמת-השורש (patch({ donationSplit })), לא ל-config.features
+    expect(wizSrc).toContain('checked={config.donationSplit === true}');
+    expect(wizSrc).toContain('patch({ donationSplit: e.target.checked ? true : undefined })');
   });
 });
