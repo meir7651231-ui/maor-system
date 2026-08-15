@@ -341,4 +341,12 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     // ‏Rules: מצבת קריאה לכל מחובר — רק כשהדגל deleted דלוק
     expect(rulesSrc).toContain("resource.data.get('deleted', false) == true");
   });
+
+  it('🔀 מתג-על donationSplit בלוח-הבקרה (בקשת-בעלים) — לא נשמט לארגון-חדש', () => {
+    // הבאג שנתפס: donationSplit הוא דגל-קונפיג (לא FEATURES) ⇒ נעדר מרשת-הדגלים,
+    // ולכן לא היה כפתור להדליקו לארגון-חדש שמוקם מהלוח. עכשיו מתג ייעודי שכותב חי.
+    expect(panelSrc).toContain('מתגים מתקדמים (ברמת-הקונפיג)');
+    expect(panelSrc).toContain('checked={cfg.donationSplit === true}');
+    expect(panelSrc).toContain('updateCfg({ ...cfg, donationSplit: e.target.checked ? true : undefined })');
+  });
 });
