@@ -462,6 +462,8 @@ interface AppState {
   enableCloudEncryption: (password: string) => Promise<string>;
   /** מסלול-B פאזה-4 (חלון-בעלים) — מיגרציית-פיצול חד-פעמית; מחזירה מספר-התרומות שהוגרו. */
   runDonationSplitMigration: () => Promise<number>;
+  /** מסלול-B פאזה-5 (חלון-בעלים) — הדלקת `donationSplit` בקונפיג-הענן בקליק (אחרי המיגרציה). זורק על כשל. */
+  enableDonationSplit: () => Promise<void>;
   /** סימון נעילה כפתוחה (לאחר קוד תקין) — נשמר לסשן. */
   markUnlocked: (kind: 'primary' | 'secondary') => void;
   /** נעילה מיידית — סוגר את שתי הרמות וחוזר לבית. */
@@ -740,6 +742,9 @@ export const useApp = create<AppState>()((set, get) => {
             // (רק הגבלה); מנהל/מייל-על = מלא. מנהל משנה כרטיס ⇒ העובד רואה חי (watch).
             const eff = effectiveConfigFor(user.email, orgDoc, merged);
             set({ config: eff });
+            // מסלול-B: מתג-הפיצול חי — הדלקה/כיבוי אצל הבעלים ⇒ שכבת-הסנכרון מיד,
+            // בלי רענון (הצד-הדוחף/המושך שואל את donationSplitActive). שורש נשאר כבוי.
+            mod.setDonationSplit(donationSplitOn(eff));
             // ג' (13.8) — ייעודי-התרומה שהעובד/ת רשאי/ת לראות (מתעדכן חי עם הכרטיס)
             setCloud({ allowedDesignations: allowedDesignationsFor(user.email, orgDoc) });
             const { db } = get();
@@ -2464,6 +2469,22 @@ export const useApp = create<AppState>()((set, get) => {
       const n = await mod.migrateDonationsToCollection(get().db.supporters, mod.getCloudDek());
       get().toast('✓ ' + n + ' תרומות הוגרו לאוסף — כעת אפשר להדליק את הפיצול בקונפיג');
       return n;
+    },
+
+    async enableDonationSplit() {
+      // מסלול-B פאזה-5 (חלון-בעלים): מדליק את `donationSplit` בקונפיג-הענן בקליק —
+      // הבעלים לא נוגע ב-Firestore ידנית. merge:true על מפת-הקונפיג מדליק את המפתח
+      // היחיד בלי לדרוס שדות-אחים. אתר-השורש (cloudRoot) פטור מהפיצול — לא נכתב.
+      const mod = cloudMod;
+      if (!mod) throw new Error('הענן אינו מחובר — התחברו לענן ונסו שוב');
+      const cfg = get().config;
+      if (cfg.cloudRoot === true) throw new Error('אתר-השורש פטור מהפיצול (ביט-זהה) — אין צורך להדליק');
+      const slug = cfg.slug;
+      if (!slug || slug === 'default') throw new Error('ההפעלה זמינה רק לארגון-פלטפורמה (?org=slug)');
+      await mod.writeOrgCloudDoc(slug, { config: { donationSplit: true } });
+      // תוקף מיידי בשכבת-הסנכרון (ה-onSnapshot יבצע אותו דבר כשהכתיבה תחזור).
+      mod.setDonationSplit(true);
+      get().toast('✓ פיצול-התרומות הודלק בקונפיג-הענן — פעיל מעכשיו');
     },
 
     markUnlocked(kind) {
