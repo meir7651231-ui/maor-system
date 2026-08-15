@@ -28,9 +28,15 @@ export function isoToday(): string {
    בייעוד המותר לו/ה; תורם בלי ייעוד כלל = משותף (גלוי לכולם). מנהל/בעלים = הכל
    (allowed=null). טהור — הסינון ברמת-הממשק (כמו shell.privacy). ────────────── */
 
-/** קבוצת הייעודים שעל התורם (distinct, בלי ריקים). */
-export function supporterPurposes(sup: Pick<Supporter, 'donations'>): string[] {
+/** קבוצת הייעודים שעל התורם (distinct, בלי ריקים).
+ *  בקשת-בעלים 15.8 ("פר תורם"): הייעוד הוא **פר-תורם** — שדה `forWho` שעל
+ *  הכרטיס ("ייעוד התרומה (עבור)"). זה מקור-האמת לסינון-ההרשאה. שומרים גם את
+ *  הייעוד-פר-תרומה (`donations[].purpose`) כדי לא לאבד יכולת (מי שכבר סימן
+ *  ברישום-התרומה — נשמר). האיחוד של שניהם = קבוצת-הייעודים של התורם. */
+export function supporterPurposes(sup: { donations?: Supporter['donations']; forWho?: string }): string[] {
   const set = new Set<string>();
+  const fw = (sup.forWho ?? '').trim();
+  if (fw) set.add(fw);
   for (const d of sup.donations ?? []) {
     const p = (d.purpose ?? '').trim();
     if (p) set.add(p);
@@ -43,7 +49,7 @@ export function supporterPurposes(sup: Pick<Supporter, 'donations'>): string[] {
  * תורם בלי ייעוד כלל ⇒ גלוי (משותף); אחרת נדרש חיתוך עם המותר.
  */
 export function supporterVisibleForDesignations(
-  sup: Pick<Supporter, 'donations'>,
+  sup: { donations?: Supporter['donations']; forWho?: string },
   allowed: string[] | null,
 ): boolean {
   if (!allowed || !allowed.length) return true;
@@ -78,8 +84,9 @@ export function visibleSupportersForDesignations(
     }));
 }
 
-/** כל ייעודי-התרומה הקיימים (distinct, ממויין) — להצעה באשף ולבורר-הסינון. */
-export function allDonationPurposes(supporters: Pick<Supporter, 'donations'>[]): string[] {
+/** כל ייעודי-התרומה הקיימים (distinct, ממויין) — להצעה באשף ולבורר-הסינון.
+ *  כולל את הייעוד-פר-תורם (`forWho`) — כך המנהל בוחר מהערכים הקיימים בפועל. */
+export function allDonationPurposes(supporters: { donations?: Supporter['donations']; forWho?: string }[]): string[] {
   const set = new Set<string>();
   for (const s of supporters) for (const p of supporterPurposes(s)) set.add(p);
   return [...set].sort((a, b) => a.localeCompare(b));

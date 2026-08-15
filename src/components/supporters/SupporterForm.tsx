@@ -5,10 +5,10 @@
 import { useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { normSearch, validIsraeliId } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, TextInput } from '../ui';
-import { fixPhone } from './lib';
+import { allDonationPurposes, fixPhone } from './lib';
 
 export interface SupporterFormProps {
   /** null — תומכת חדשה. */
@@ -133,6 +133,27 @@ export function SupporterForm(props: SupporterFormProps) {
         </Field>
         <Field label={'ייעוד ' + termOf(config, 'entity.donation', 'התרומה') + ' (עבור)'}>
           <TextInput value={f.forWho} onChange={set('forWho')} placeholder="מלגות, פעילות, כללי…" />
+          {/* בקשת-בעלים 15.8 ("פר תורם"): הייעוד-שעל-הכרטיס הוא מסנן-ההרשאה
+              פר-עובד/ת. צ'יפים של הייעודים הקיימים + רמז, רק כשהיכולת דלוקה. */}
+          {featureOn(config, 'supporters.purpose') && (
+            <>
+              {(() => {
+                const known = allDonationPurposes(useApp.getState().db.supporters).filter((p) => p !== f.forWho);
+                return known.length > 0 ? (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                    {known.slice(0, 8).map((p) => (
+                      <button key={p} type="button" className="chip" onClick={() => set('forWho')(p)}>
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
+              <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 4 }}>
+                🔐 הייעוד קובע אילו עובדות רואות את התורם/ת — עובדת מוגבלת רואה רק את הייעוד שהוקצה לה (ריק = משותף, גלוי לכולן).
+              </div>
+            </>
+          )}
         </Field>
         <Field label="הערות">
           <TextInput value={f.notes} onChange={set('notes')} />
