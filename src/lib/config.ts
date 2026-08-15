@@ -169,6 +169,8 @@ export function normalizeTelephony(raw: unknown): TelephonyConfig | undefined {
   // לא נגזם — קלט חורג הוא זבל, עדיף נפילה לברירת-מחדל מאשר שם-עיר שגוי-שקט).
   const cityRaw = typeof t.city === 'string' ? t.city.toLowerCase().replace(/[^a-z]/g, '') : '';
   return {
+    // מתג-המקטע — opt-in: הכותרת נשמרת רק כשהיא true (חסר/false ⇒ כבוי, מושמט).
+    ...(t.enabled === true ? { enabled: true } : {}),
     numbers,
     officeDays,
     officeStart: hhmm(t.officeStart, '09:00'),

@@ -31,6 +31,9 @@ export interface TelNumber {
  * נשמרת ב-config.json ומחוטאת ב-normalizeConfig (allowlist מלא — כל שדה זר נזרק).
  */
 export interface TelephonyConfig {
+  /** מתג-המקטע — **opt-in, ברירת-מחדל כבוי** (הפוך ממודול: חסר/false=כבוי, רק
+   *  true מדליק). כבוי ⇒ המקטע מעומעם והטלפוניה לא נכללת בדף-המסירה. */
+  enabled?: boolean;
   numbers: TelNumber[];
   officeDays: number[]; // 0=ראשון..6=שבת
   officeStart: string; // HH:MM

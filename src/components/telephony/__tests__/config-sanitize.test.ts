@@ -100,6 +100,17 @@ describe('telephony · התמדה + חיטוי', () => {
     expect(t.numbers[0].label).toBe('ab${x}'); // פעמון (Cc) הוסר; $ ו-{} נשמרו
   });
 
+  it('מתג-מקטע opt-in: ברירת-מחדל כבוי; רק enabled:true מדליק; נשמר רק כשדלוק', () => {
+    // הכרעת-בעלים ("כמו שאר הכפתורים אבל בהתחלה מכובה"): הפוך ממודול — חסר=כבוי.
+    expect(normalizeTelephony({})!.enabled).toBeUndefined(); // חסר ⇒ כבוי
+    expect(normalizeTelephony({ enabled: false })!.enabled).toBeUndefined(); // false ⇒ מושמט
+    expect(normalizeTelephony({ enabled: 'yes' })!.enabled).toBeUndefined(); // לא-boolean ⇒ כבוי
+    expect(normalizeTelephony({ enabled: true })!.enabled).toBe(true); // רק true מדליק
+    // ועובר round-trip דרך normalizeConfig
+    const cfg = normalizeConfig({ ...base, telephony: { ...validTel(), enabled: true } });
+    expect(cfg!.telephony!.enabled).toBe(true);
+  });
+
   it('תקרה: יותר מ-64 מספרים ⇒ נגזם ל-64', () => {
     const numbers = Array.from({ length: 100 }, (_, i) => ({ id: `n${i}`, e164: `05${i}`, label: 'x', kind: 'sim' }));
     const t = normalizeTelephony({ numbers })!;

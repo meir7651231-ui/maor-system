@@ -146,12 +146,12 @@ const HANDOFF_DOW = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'שבת'];
 const TEL_KIND_LABEL: Record<string, string> = { sim: 'SIM בשער', virtual: 'הפניה', whatsapp: 'ווצאפ' };
 
 /**
- * מקטע-הטלפוניה בדף-המסירה — נבנה רק כשהוגדרה טלפוניה עם קו-אחד לפחות (אחרת ריק,
- * ביט-זהה לקודם). downstream: מבהיר שהמערכת יושבת אחרי קווי-הלקוח, לא ספק חדש.
+ * מקטע-הטלפוניה בדף-המסירה — נבנה רק כשהמתג **דלוק** (enabled) ויש קו-אחד לפחות
+ * (אחרת ריק, ביט-זהה לקודם). downstream: מבהיר שהמערכת יושבת אחרי קווי-הלקוח, לא ספק.
  */
 function telephonySection(cfg: OrgConfig): string {
   const t = cfg.telephony;
-  if (!t) return '';
+  if (!t || t.enabled !== true) return ''; // כבוי (ברירת-מחדל) ⇒ לא נמסר
   const lines = t.numbers.filter((n) => n.e164.trim());
   if (!lines.length) return '';
   const numRows = lines
