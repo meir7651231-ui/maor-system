@@ -19,6 +19,7 @@ import { AccessSection } from './AccessSection';
 import { SecuritySection } from './SecuritySection';
 import { EncryptionSection } from './EncryptionSection';
 import { CloudEncryptionSection } from './CloudEncryptionSection';
+import { DonationSplitSection } from './DonationSplitSection';
 import { ThemeSection } from './ThemeSection';
 import { AuditSection } from './AuditSection';
 import { OrgSecretsSection } from './OrgSecretsSection';
@@ -53,7 +54,7 @@ type GroupId = (typeof GROUPS)[number]['id'];
 const SECTION_GROUP: Record<string, GroupId> = {
   'sec-org': 'org', 'sec-theme': 'org', 'sec-teachers': 'org', 'sec-rooms': 'org', 'sec-notif': 'org', 'sec-access': 'org',
   'sec-backup': 'data', 'sec-export': 'data', 'sec-import': 'data', 'sec-audit': 'data',
-  'sec-security': 'security', 'sec-encryption': 'security', 'sec-cloud-encryption': 'security', 'sec-org-secrets': 'security',
+  'sec-security': 'security', 'sec-encryption': 'security', 'sec-cloud-encryption': 'security', 'sec-org-secrets': 'security', 'sec-donation-split': 'security',
   'sec-ai': 'adv', 'sec-audittrail': 'adv', 'sec-verifyreceipt': 'adv', 'sec-reset': 'adv',
 };
 
@@ -158,6 +159,8 @@ export function SettingsView() {
           {featureOn(config, 'settings.encryption') && <EncryptionSection />}
           {/* הצפנת-ענן — הרכיב עצמו מגודר isSuperAdmin (מחזיר null ללא-בעלים) */}
           <CloudEncryptionSection />
+          {/* מסלול-B: מיגרציית-פיצול-תרומות — הרכיב מגודר isSuperAdmin (מחזיר null ללא-בעלים) */}
+          <DonationSplitSection />
           {/* כספת-מפתחות פר-ארגון (9.8) — הרכיב מגודר בעצמו (ענן+מנהל+לא-שורש) */}
           <OrgSecretsSection />
         </>
