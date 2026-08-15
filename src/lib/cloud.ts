@@ -46,7 +46,7 @@ import type { FirebaseOrgConfig } from '../types/config';
 import { DB_VERSION, type Db, type Donation } from '../types/domain';
 import { migrate } from '../store/persist';
 import { ENTITY_COLLECTIONS, colPath, donationsPath, envPath, fullDbDiff, metaPath, type DbDiff } from './cloud-diff';
-import type { DonationCloudDiff } from './donationPartition';
+import { SHARED_PURPOSE_KEY, type DonationCloudDiff } from './donationPartition';
 import { decryptDoc, encryptDoc } from './cloudCrypto';
 import type { EncEnvelope } from './crypto';
 
@@ -101,6 +101,14 @@ export function donationSplitActive(): boolean {
   return splitOn;
 }
 
+// מסלול-B P3 — ייעודים מותרים לעובד/ת המחובר/ת: null=בלי-הגבלה (מנהל/בעלים ⇒ קריאה
+// לא-מסוננת). מערך ⇒ שאילתת-donations מוגבלת ל-`where pkey in [...allowed, _shared_]`
+// כדי ש-Firestore Rules יתירו את ה-list (רשימה לא-מסוננת של עובד-מוגבל נדחית).
+let allowedPurposes: string[] | null = null;
+export function setAllowedPurposes(p: string[] | null): void {
+  allowedPurposes = p && p.length ? p : null;
+}
+
 /**
  * מסלול-B — דחיפת אופרציות אוסף-התרומות (set/delete batched, ‏≤400). גוף-המסמך =
  * ‏{supporterId, pkey, ...donation}; ‏id=rid. מוצפן אם dek (כמו שאר האוספים).
@@ -109,9 +117,10 @@ export async function pushDonations(diff: DonationCloudDiff, dek?: CryptoKey | n
   const db = requireDb();
   const ops: Array<(b: WriteBatch) => void> = [];
   for (const d of diff.sets) {
-    const body: Record<string, unknown> = { supporterId: d.supporterId, pkey: d.pkey, ...d.donation };
-    const enc = dek ? await encryptDoc(body, dek) : body;
-    ops.push((b) => b.set(doc(db, scopedDonations(), d.id), enc as DocumentData));
+    // pkey נשמר plaintext (מחוץ למעטפה) כדי ש-where-pkey-in + Rules יעבדו גם בארגון-מוצפן.
+    const payload: Record<string, unknown> = { supporterId: d.supporterId, ...d.donation };
+    const body: Record<string, unknown> = dek ? { pkey: d.pkey, ...(await encryptDoc(payload, dek)) } : { pkey: d.pkey, ...payload };
+    ops.push((b) => b.set(doc(db, scopedDonations(), d.id), body as DocumentData));
   }
   for (const id of diff.deletes) {
     ops.push((b) => b.delete(doc(db, scopedDonations(), id)));
@@ -372,7 +381,14 @@ export async function pullAll(dek?: CryptoKey | null): Promise<Db | null> {
   // מסלול-B: התרומות באוסף-נפרד — קוראים ומרכיבים חזרה לתומכים **לפני migrate**,
   // כדי ש-supporterAggregates (ריפוי-המונים ב-migrate) יראה תרומות מלאות (סיכון-#1).
   if (splitOn) {
-    const dsnap = await getDocs(collection(db, scopedDonations()));
+    // עובד/ת מוגבל/ת (allowedPurposes) ⇒ שאילתה מסוננת (Rules דוחים list לא-מסוננת);
+    // מנהל/בעלים (null) ⇒ קריאה מלאה. 'in' תומך ≤30 ערכים — 29 ייעודים + המשותף.
+    const donRef = collection(db, scopedDonations());
+    const dsnap = await getDocs(
+      allowedPurposes
+        ? query(donRef, where('pkey', 'in', [...allowedPurposes.slice(0, 29), SHARED_PURPOSE_KEY]))
+        : donRef,
+    );
     const bySup = new Map<string, Donation[]>();
     for (const d of dsnap.docs) {
       const data = (dek ? await decryptDoc(d.data(), dek) : d.data()) as Record<string, unknown>;

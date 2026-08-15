@@ -104,9 +104,34 @@ service cloud.firestore {
       }
     }
 
-    // נתוני ארגון-פלטפורמה: קריאה/כתיבה — חבר או מייל-על.
+    // ייעודי-התרומה שהעובד/ת המחובר/ת רשאי/ת (מסלול-B P3): מ-memberConfigs; ריק/חסר
+    // ⇒ בלי הגבלה (מנהל/עובד-לא-מוגבל), עקבי עם allowedDesignationsFor בקליינט.
+    function memberDesignations(slug) {
+      return get(/databases/$(database)/documents/platformOrgs/$(slug)).data
+        .get('memberConfigs', {})
+        .get(request.auth.token.email.lower(), {})
+        .get('designations', []);
+    }
+    function memberSeesPurpose(slug, pkey) {
+      return orgMember(slug)
+        && (memberDesignations(slug).size() == 0    // בלי-הגבלה
+            || pkey == '_shared_'                    // תרומה משותפת = גלויה לכל
+            || pkey in memberDesignations(slug));
+    }
+
+    // נתוני ארגון-פלטפורמה: כתיבה — חבר או מייל-על (הסנכרון דוחף). קריאה — חבר,
+    // **פרט לאוסף-התרומות** (מסלול-B): קריאתו נאכפת פר-ייעוד במאץ' הייעודי למטה.
     match /orgs/{slug}/{col}/{docId} {
-      allow read, write: if superAdmin() || orgMember(slug);
+      allow write: if superAdmin() || orgMember(slug);
+      allow read: if (superAdmin() || orgMember(slug)) && col != 'donations';
+    }
+
+    // מסלול-B — אוסף-התרומות הנפרד: כתיבה=חבר (מכוסה גם למעלה); **קריאה פר-ייעוד**:
+    // מנהל/מייל-על=הכל; עובד/ת=רק ייעוד מותר או משותף. שדה pkey חייב להיות plaintext
+    // (בארגון-מוצפן — pkey מחוץ למעטפה) כדי ש-where-pkey-in של הקליינט יעבור.
+    match /orgs/{slug}/donations/{id} {
+      allow write: if superAdmin() || orgMember(slug);
+      allow read: if superAdmin() || orgManager(slug) || memberSeesPurpose(slug, resource.data.pkey);
     }
 
     // כספת-מפתחות פר-ארגון (9.8 — "כל מנהל יש את הסודות שלו"): טוקני ימות/

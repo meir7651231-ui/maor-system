@@ -765,7 +765,10 @@ export const useApp = create<AppState>()((set, get) => {
                 isSuperAdmin(user.email) ||
                 !!orgDoc?.members?.some((m) => m.trim().toLowerCase() === mail);
               // ORGADMIN — האם המשתמש הוא מנהל-הארגון (org.manager)? ⇒ פאנל-המנהל 👥
-              setCloud({ membership: member ? 'member' : 'pending', isManager: isOrgManager(user.email, orgDoc ?? {}), allowedDesignations: allowedDesignationsFor(user.email, orgDoc ?? {}) });
+              const allowed = allowedDesignationsFor(user.email, orgDoc ?? {});
+              setCloud({ membership: member ? 'member' : 'pending', isManager: isOrgManager(user.email, orgDoc ?? {}), allowedDesignations: allowed });
+              // מסלול-B P3: שאילתת-donations מסוננת לעובד/ת מוגבל/ת (Rules דוחים list לא-מסוננת)
+              mod.setAllowedPurposes(allowed);
               if (!member) {
                 // ORGADMIN — עובד/ת שהגיעה דרך קישור-הזמנה (?join=code): רישום בקשה
                 // שהמנהל יראה ויאשר (create-only, uid תואם לפי Rules v3; idempotent).
