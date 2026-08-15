@@ -460,6 +460,8 @@ interface AppState {
   cloudUnlock: (secret: string, via: 'pass' | 'rec') => Promise<boolean>;
   /** הפעלת הצפנת-ענן (בעלים) — מחזיר מפתח-שחזור להצגה חד-פעמית. זורק על כשל. */
   enableCloudEncryption: (password: string) => Promise<string>;
+  /** מסלול-B פאזה-4 (חלון-בעלים) — מיגרציית-פיצול חד-פעמית; מחזירה מספר-התרומות שהוגרו. */
+  runDonationSplitMigration: () => Promise<number>;
   /** סימון נעילה כפתוחה (לאחר קוד תקין) — נשמר לסשן. */
   markUnlocked: (kind: 'primary' | 'secondary') => void;
   /** נעילה מיידית — סוגר את שתי הרמות וחוזר לבית. */
@@ -2451,6 +2453,17 @@ export const useApp = create<AppState>()((set, get) => {
       // מיגרציה: כותב מחדש את כל הנתונים מוצפנים דרך נתיב ה-push הבדוק.
       await mod.encryptExistingCloud(get().db, dek);
       return recoveryKey;
+    },
+
+    async runDonationSplitMigration() {
+      // מסלול-B פאזה-4 (חלון-בעלים): מפרק את כל התרומות לאוסף-הנפרד. הפיך + אידמפוטנטי;
+      // אינו נוגע ב-donationSeq. לאחר-מכן הבעלים מדליק donationSplit בקונפיג להפעלה.
+      const mod = cloudMod;
+      if (!mod) throw new Error('הענן אינו מחובר — התחברו לענן ונסו שוב');
+      await exportBackupFile(get().db); // רשת-ביטחון לפני כתיבה לענן
+      const n = await mod.migrateDonationsToCollection(get().db.supporters, mod.getCloudDek());
+      get().toast('✓ ' + n + ' תרומות הוגרו לאוסף — כעת אפשר להדליק את הפיצול בקונפיג');
+      return n;
     },
 
     markUnlocked(kind) {

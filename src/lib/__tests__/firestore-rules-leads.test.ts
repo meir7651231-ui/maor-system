@@ -39,3 +39,13 @@ describe('firestore.rules — מסלול-B: אכיפת-ייעוד על אוסף-
     expect(cloudSrc).toContain("query(donRef, where('pkey', 'in', [...allowedPurposes.slice(0, 29), SHARED_PURPOSE_KEY]))");
   });
 });
+
+describe('מסלול-B P4 — מיגרציה (הגנת-מקור)', () => {
+  it('migrateDonationsToCollection מפרק הכל (prev ריק) ואינו נוגע ב-donationSeq', () => {
+    expect(cloudSrc).toContain('export async function migrateDonationsToCollection');
+    expect(cloudSrc).toContain('donationPartitionDiff([], supporters)');
+    // הפונקציה לא מזכירה donationSeq בכלל (רצף §46 לא נגע)
+    const fn = cloudSrc.slice(cloudSrc.indexOf('export async function migrateDonationsToCollection'));
+    expect(fn.slice(0, fn.indexOf('}')).includes('donationSeq')).toBe(false);
+  });
+});
