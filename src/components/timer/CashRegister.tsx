@@ -19,13 +19,16 @@ import { guardExport } from '../../lib/exportGate';
 import { Btn, Modal, TextInput } from '../ui';
 // מפתחות הקופה ממורחבי-שמות פר-ארגון (CONNECT חיבור 7 — חלק מבאג ידוע 3)
 import { nsLsKey } from '../../store/persist';
-// גל-1: מנוע פירוט-עודף + צבעי-מטבע (טהור, נבדק ביחידה)
-import { BILL_VALS, COIN_VALS, changeBreakdown, denomTint } from './cashLib';
+// גל-1/2: מנוע פירוט-עודף + צבעי-מטבע + מתמטיקת-משמרת (טהור, נבדק ביחידה)
+import { BILL_VALS, COIN_VALS, changeBreakdown, countsTotal, denomTint, drawerDiff, expectedDrawer } from './cashLib';
 
 const LS_RECEIPTS = 'maor_cashbox_receipts';
 const LS_SEQ = 'maor_cashbox_seq';
 const SS_AMOUNT = 'maor_cashbox_amount';
 const SS_CLIENT = 'maor_cashbox_client';
+// גל-2: משמרת פעילה + יומן-סגירות (Z), פר-ארגון (nsLsKey)
+const LS_SHIFT = 'maor_cashbox_shift';
+const LS_SHIFT_LOG = 'maor_cashbox_shifts';
 
 /** מטבעות ושטרות בש"ח (ILS) — מקור-אמת יחיד ב-cashLib. */
 const COINS = [...COIN_VALS].sort((a, b) => a - b);
@@ -51,6 +54,52 @@ function readReceipts(): Receipt[] {
 
 function isToday(iso: string): boolean {
   return iso.slice(0, 10) === new Date().toISOString().slice(0, 10);
+}
+
+/* ───────── משמרת / סגירת-קופה (גל-2) ───────── */
+interface Shift {
+  openedAt: string;
+  float: number;
+}
+interface ShiftClose {
+  closedAt: string;
+  openedAt: string;
+  float: number;
+  sales: number;
+  count: number;
+  counted: number;
+  diff: number;
+}
+
+function readShift(): Shift | null {
+  try {
+    const raw = localStorage.getItem(nsLsKey(LS_SHIFT));
+    return raw ? (JSON.parse(raw) as Shift) : null;
+  } catch {
+    return null;
+  }
+}
+function writeShift(s: Shift | null): void {
+  try {
+    if (s) localStorage.setItem(nsLsKey(LS_SHIFT), JSON.stringify(s));
+    else localStorage.removeItem(nsLsKey(LS_SHIFT));
+  } catch {
+    /* חסום */
+  }
+}
+function appendShiftClose(z: ShiftClose): void {
+  try {
+    const raw = localStorage.getItem(nsLsKey(LS_SHIFT_LOG));
+    const arr = raw ? (JSON.parse(raw) as ShiftClose[]) : [];
+    localStorage.setItem(nsLsKey(LS_SHIFT_LOG), JSON.stringify([z, ...arr].slice(0, 100)));
+  } catch {
+    /* חסום */
+  }
+}
+/** גבייה מאז פתיחת-המשמרת: כל חשבונית שהופקה מאז openedAt (net = due). */
+function salesSince(openedAt: string): { sales: number; count: number } {
+  const rows = readReceipts().filter((r) => r.at >= openedAt);
+  return { sales: Math.round(rows.reduce((a, r) => a + r.due, 0) * 100) / 100, count: rows.length };
 }
 
 function nextReceiptNum(): number {
@@ -110,6 +159,55 @@ function ChangeChips({ amount }: { amount: number }) {
 /** סכומים-מהירים למילוי הסכום-לתשלום. */
 const QUICK_DUE = [10, 20, 50, 100, 200];
 
+/** לוח-הקשה של מטבעות/שטרות — משותף לקבלת-תשלום ולספירת-מגירה (גל-2). */
+function DenomPad({ counts, onBump }: { counts: Record<string, number>; onBump: (d: number, by: number) => void }) {
+  return (
+    <>
+      {[
+        { title: 'מטבעות', vals: COINS },
+        { title: 'שטרות', vals: BILLS },
+      ].map((grp) => (
+        <div key={grp.title} style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-faint)', marginBottom: 4 }}>{grp.title}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {grp.vals.map((d) => {
+              const n = counts[String(d)] || 0;
+              const t = denomTint(d);
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => onBump(d, 1)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    onBump(d, -1);
+                  }}
+                  title="לחיצה = +1 · לחיצה ימנית = −1"
+                  style={{
+                    minWidth: 58,
+                    padding: '8px 10px',
+                    borderRadius: 10,
+                    border: '2px solid ' + (n > 0 ? 'var(--accent-deep, var(--accent))' : t.bg),
+                    background: t.bg,
+                    color: t.ink,
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    direction: 'ltr',
+                    boxShadow: n > 0 ? '0 0 0 2px var(--accent)' : undefined,
+                  }}
+                >
+                  ₪{d}
+                  {n > 0 && <span style={{ fontSize: 11 }}> ×{n}</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function CashRegister({ onClose }: { onClose: () => void }) {
   const config = useApp((s) => s.config);
   const toast = useApp((s) => s.toast);
@@ -148,6 +246,55 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  // גל-2: משמרת / סגירת-קופה
+  const [shift, setShift] = useState<Shift | null>(() => readShift());
+  const [shiftPanel, setShiftPanel] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [floatInput, setFloatInput] = useState('');
+  const [drawerCounts, setDrawerCounts] = useState<Record<string, number>>({});
+  const [zReport, setZReport] = useState<ShiftClose | null>(null);
+
+  const bumpDrawer = (d: number, by: number) =>
+    setDrawerCounts((c) => {
+      const n = Math.max(0, (c[String(d)] || 0) + by);
+      const next = { ...c };
+      if (n === 0) delete next[String(d)];
+      else next[String(d)] = n;
+      return next;
+    });
+
+  function openShift() {
+    const f = Math.max(0, Number(floatInput) || 0);
+    const s: Shift = { openedAt: new Date().toISOString(), float: f };
+    writeShift(s);
+    setShift(s);
+    setFloatInput('');
+    toast('משמרת נפתחה · קופת-פתיחה ' + money(f));
+  }
+
+  function doClose() {
+    if (!shift) return;
+    const counted = countsTotal(drawerCounts);
+    const { sales, count } = salesSince(shift.openedAt);
+    const expected = expectedDrawer(shift.float, sales);
+    const z: ShiftClose = {
+      closedAt: new Date().toISOString(),
+      openedAt: shift.openedAt,
+      float: shift.float,
+      sales,
+      count,
+      counted,
+      diff: drawerDiff(counted, expected),
+    };
+    appendShiftClose(z);
+    writeShift(null);
+    setShift(null);
+    setDrawerCounts({});
+    setClosing(false);
+    setShiftPanel(false);
+    setZReport(z);
+    toast('הקופה נסגרה · דוח-Z הופק');
+  }
 
   const dueNum = Math.max(0, Number(due) || 0);
   const received = useMemo(
@@ -200,6 +347,107 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
     saveReceipt(r);
     setReceipt(r);
     toast('חשבונית ' + r.num + ' הופקה · שולם ✓');
+  }
+
+  // גל-2: דוח סגירת-קופה (Z) — לאחר ספירת-המגירה.
+  if (zReport) {
+    const z = zReport;
+    const diffLabel = z.diff === 0 ? 'מאוזן ✓' : z.diff > 0 ? 'עודף' : 'חוסר';
+    const diffColor = z.diff === 0 ? '#12803c' : z.diff > 0 ? '#9a6414' : '#b91c1c';
+    const row = (l: string, v: string, bold?: boolean) => (
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: bold ? 800 : 400 }}>
+        <span>{l}</span>
+        <span style={{ direction: 'ltr' }}>{v}</span>
+      </div>
+    );
+    return (
+      <Modal title={'🧾 דוח סגירת-קופה (Z)'} onClose={onClose}>
+        <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: 16, background: 'var(--bg)', fontSize: 14, lineHeight: 1.9 }}>
+          <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 8 }}>{config.orgName || label}</div>
+          {row('נפתחה', new Date(z.openedAt).toLocaleString('he-IL'))}
+          {row('נסגרה', new Date(z.closedAt).toLocaleString('he-IL'))}
+          <div style={{ borderTop: '1px dashed var(--line)', margin: '6px 0', paddingTop: 6 }}>
+            {row('קופת-פתיחה', money(z.float))}
+            {row(z.count + ' חשבוניות · גבייה', money(z.sales))}
+            {row('צפוי במגירה', money(z.float + z.sales), true)}
+            {row('נספר בפועל', money(z.counted), true)}
+          </div>
+          <div style={{ borderTop: '1px dashed var(--line)', marginTop: 6, paddingTop: 6, color: diffColor, fontWeight: 800, display: 'flex', justifyContent: 'space-between' }}>
+            <span>{diffLabel}</span>
+            <span style={{ direction: 'ltr' }}>{money(Math.abs(z.diff))}</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+          <Btn kind="primary" onClick={() => { if (guardExport()) window.print(); }}>🖨 הדפסה</Btn>
+          <Btn onClick={onClose}>סגור</Btn>
+        </div>
+      </Modal>
+    );
+  }
+
+  // גל-2: פאנל-המשמרת — פתיחה / מצב / סגירה-בספירה.
+  if (shiftPanel) {
+    // מצב סגירה: ספירת-המגירה בפועל מול הצפוי.
+    if (shift && closing) {
+      const counted = countsTotal(drawerCounts);
+      const { sales } = salesSince(shift.openedAt);
+      const expected = expectedDrawer(shift.float, sales);
+      const d = drawerDiff(counted, expected);
+      return (
+        <Modal title={'🔢 ספירת מגירה — סגירת ' + label} onClose={onClose}>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 6 }}>
+            ספרו את המזומן במגירה — לחיצה על ערך = +1
+          </div>
+          <DenomPad counts={drawerCounts} onBump={bumpDrawer} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '10px 12px', borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--line)', margin: '4px 0 12px', fontSize: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>נספר במגירה</span><b style={{ direction: 'ltr' }}>{money(counted)}</b></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--ink-soft)' }}><span>צפוי (פתיחה + גבייה)</span><span style={{ direction: 'ltr' }}>{money(expected)}</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: d === 0 ? '#12803c' : d > 0 ? '#9a6414' : '#b91c1c' }}>
+              <span>{d === 0 ? 'מאוזן ✓' : d > 0 ? 'עודף' : 'חוסר'}</span>
+              <span style={{ direction: 'ltr' }}>{money(Math.abs(d))}</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Btn kind="primary" onClick={doClose}>סיום וסגירת קופה</Btn>
+            <Btn onClick={() => setClosing(false)}>ביטול</Btn>
+          </div>
+        </Modal>
+      );
+    }
+    // מצב פתוח/סגור: מידע + פתיחה או מעבר-לסגירה.
+    const info = shift ? salesSince(shift.openedAt) : { sales: 0, count: 0 };
+    return (
+      <Modal title={'🗂 משמרת ה' + label} onClose={onClose}>
+        {shift ? (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '10px 12px', borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--line)', marginBottom: 12, fontSize: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--ink-soft)' }}><span>נפתחה</span><span style={{ direction: 'ltr' }}>{new Date(shift.openedAt).toLocaleString('he-IL')}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>קופת-פתיחה</span><span style={{ direction: 'ltr' }}>{money(shift.float)}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>{info.count} חשבוניות · גבייה</span><span style={{ direction: 'ltr' }}>{money(info.sales)}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, borderTop: '1px dashed var(--line)', marginTop: 4, paddingTop: 4 }}><span>צפוי במגירה</span><b style={{ direction: 'ltr' }}>{money(shift.float + info.sales)}</b></div>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Btn kind="primary" onClick={() => { setDrawerCounts({}); setClosing(true); }}>סגירת קופה (ספירה)</Btn>
+              <Btn onClick={() => setShiftPanel(false)}>← חזרה</Btn>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginBottom: 10 }}>
+              פתיחת-משמרת מתחילה מעקב: קופת-פתיחה + גבייה ⇐ צפי-מגירה לסגירה עם דוח-Z.
+            </div>
+            <label style={{ fontSize: 12.5, color: 'var(--ink-soft)', display: 'block', marginBottom: 12 }}>
+              קופת-פתיחה (₪) — מזומן במגירה בתחילת המשמרת
+              <TextInput type="number" dir="ltr" value={floatInput} onChange={setFloatInput} placeholder="0" />
+            </label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Btn kind="primary" onClick={openShift}>פתיחת משמרת</Btn>
+              <Btn onClick={() => setShiftPanel(false)}>← חזרה</Btn>
+            </div>
+          </>
+        )}
+      </Modal>
+    );
   }
 
   // גל-1: היסטוריית-חשבוניות — הרשומות נשמרו תמיד, עכשיו יש איפה לראותן.
@@ -362,48 +610,7 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
         בחרו מטבעות ושטרות לפי מה שהתקבל
       </div>
 
-      {[
-        { title: 'מטבעות', vals: COINS },
-        { title: 'שטרות', vals: BILLS },
-      ].map((grp) => (
-        <div key={grp.title} style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-faint)', marginBottom: 4 }}>{grp.title}</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {grp.vals.map((d) => {
-              const n = counts[String(d)] || 0;
-              const t = denomTint(d);
-              return (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => bump(d, 1)}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    bump(d, -1);
-                  }}
-                  title="לחיצה = +1 · לחיצה ימנית = −1"
-                  style={{
-                    minWidth: 58,
-                    padding: '8px 10px',
-                    borderRadius: 10,
-                    // נבחר = מסגרת-אקסנט מודגשת; במנוחה = צבע-המטבע האמיתי (זיהוי-מהיר)
-                    border: '2px solid ' + (n > 0 ? 'var(--accent-deep, var(--accent))' : t.bg),
-                    background: t.bg,
-                    color: t.ink,
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    direction: 'ltr',
-                    boxShadow: n > 0 ? '0 0 0 2px var(--accent)' : undefined,
-                  }}
-                >
-                  ₪{d}
-                  {n > 0 && <span style={{ fontSize: 11 }}> ×{n}</span>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+      <DenomPad counts={counts} onBump={bump} />
 
       <div style={{ display: 'flex', gap: 6, margin: '8px 0 12px' }}>
         <Btn sm onClick={exact}>סכום מדויק</Btn>
@@ -449,6 +656,9 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
           סיום והפקת חשבונית
         </Btn>
         <Btn onClick={() => setShowHistory(true)}>🧾 חשבוניות</Btn>
+        <Btn onClick={() => setShiftPanel(true)} title="פתיחה/סגירה של משמרת + דוח-Z">
+          {shift ? '🗂 משמרת פעילה' : '🗂 משמרת'}
+        </Btn>
         <Btn onClick={onClose}>ביטול</Btn>
       </div>
     </Modal>
