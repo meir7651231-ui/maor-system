@@ -43,9 +43,10 @@ import {
   type WriteBatch,
 } from 'firebase/firestore';
 import type { FirebaseOrgConfig } from '../types/config';
-import { DB_VERSION, type Db } from '../types/domain';
+import { DB_VERSION, type Db, type Donation } from '../types/domain';
 import { migrate } from '../store/persist';
-import { ENTITY_COLLECTIONS, colPath, envPath, fullDbDiff, metaPath, type DbDiff } from './cloud-diff';
+import { ENTITY_COLLECTIONS, colPath, donationsPath, envPath, fullDbDiff, metaPath, type DbDiff } from './cloud-diff';
+import type { DonationCloudDiff } from './donationPartition';
 import { decryptDoc, encryptDoc } from './cloudCrypto';
 import type { EncEnvelope } from './crypto';
 
@@ -84,6 +85,42 @@ function scopedMeta(): string {
 }
 function scopedEnv(): string {
   return envPath(scope.slug, scope.cloudRoot);
+}
+function scopedDonations(): string {
+  return donationsPath(scope.slug, scope.cloudRoot);
+}
+
+/* ── מסלול-B: פיצול-תרומות (דגל-אב, off-by-default, מגודר גם מ-cloudRoot) ── */
+let splitOn = false;
+/** נקבע מ-connectCloud לפי donationSplitOn(config). */
+export function setDonationSplit(on: boolean): void {
+  splitOn = on;
+}
+/** האם הסנכרון פועל במצב-פיצול (הצד-הדוחף שואל לפני push). */
+export function donationSplitActive(): boolean {
+  return splitOn;
+}
+
+/**
+ * מסלול-B — דחיפת אופרציות אוסף-התרומות (set/delete batched, ‏≤400). גוף-המסמך =
+ * ‏{supporterId, pkey, ...donation}; ‏id=rid. מוצפן אם dek (כמו שאר האוספים).
+ */
+export async function pushDonations(diff: DonationCloudDiff, dek?: CryptoKey | null): Promise<void> {
+  const db = requireDb();
+  const ops: Array<(b: WriteBatch) => void> = [];
+  for (const d of diff.sets) {
+    const body: Record<string, unknown> = { supporterId: d.supporterId, pkey: d.pkey, ...d.donation };
+    const enc = dek ? await encryptDoc(body, dek) : body;
+    ops.push((b) => b.set(doc(db, scopedDonations(), d.id), enc as DocumentData));
+  }
+  for (const id of diff.deletes) {
+    ops.push((b) => b.delete(doc(db, scopedDonations(), id)));
+  }
+  for (let i = 0; i < ops.length; i += 400) {
+    const batch = writeBatch(db);
+    for (const op of ops.slice(i, i + 400)) op(batch);
+    await batch.commit();
+  }
 }
 
 /** אתחול חד-פעמי (idempotent) — קריאה חוזרת מחזירה את אותם singletons. */
@@ -331,6 +368,24 @@ export async function pullAll(dek?: CryptoKey | null): Promise<Db | null> {
     raw[ENTITY_COLLECTIONS[i]] = await Promise.all(
       snaps[i].docs.map(async (d) => ({ ...(dek ? await decryptDoc(d.data(), dek) : d.data()), id: d.id })),
     );
+  }
+  // מסלול-B: התרומות באוסף-נפרד — קוראים ומרכיבים חזרה לתומכים **לפני migrate**,
+  // כדי ש-supporterAggregates (ריפוי-המונים ב-migrate) יראה תרומות מלאות (סיכון-#1).
+  if (splitOn) {
+    const dsnap = await getDocs(collection(db, scopedDonations()));
+    const bySup = new Map<string, Donation[]>();
+    for (const d of dsnap.docs) {
+      const data = (dek ? await decryptDoc(d.data(), dek) : d.data()) as Record<string, unknown>;
+      const supporterId = data.supporterId;
+      if (typeof supporterId !== 'string') continue;
+      const { supporterId: _s, pkey: _p, ...donation } = data; // rid נשמר בתוך ...donation
+      void _s; void _p;
+      const arr = bySup.get(supporterId) ?? [];
+      arr.push(donation as unknown as Donation);
+      bySup.set(supporterId, arr);
+    }
+    const sups = raw.supporters as Array<{ id: string; donations?: Donation[] }> | undefined;
+    if (Array.isArray(sups)) for (const sp of sups) sp.donations = bySup.get(sp.id) ?? [];
   }
   const migrated = migrate(raw);
   if (!migrated) throw new Error('נתוני הענן אינם בפורמט מוכר — לא בוצע סנכרון');
