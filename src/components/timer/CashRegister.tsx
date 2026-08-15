@@ -12,7 +12,7 @@
  *
  * גייט: core.cashbox. השם ניתן לתיוג דרך nav.cashbox.
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import { guardExport } from '../../lib/exportGate';
@@ -59,7 +59,12 @@ function isToday(iso: string): boolean {
 /* ───────── משמרת / סגירת-קופה (גל-2) ───────── */
 interface Shift {
   openedAt: string;
+  /** סך-המזומן בפתיחה (סכום ספירת-הפתיחה לפי סוג). */
   float: number;
+  /** סך-הצ'קים בפתיחה (₪). */
+  checks?: number;
+  /** אמצעי-תשלום אחר בפתיחה (כרטיס/אשראי וכו', ₪). */
+  other?: number;
 }
 interface ShiftClose {
   closedAt: string;
@@ -69,6 +74,11 @@ interface ShiftClose {
   count: number;
   counted: number;
   diff: number;
+  /** צ'קים בפתיחה ובסגירה (₪) — לתיעוד (לא-מזומן). */
+  openChecks?: number;
+  closeChecks?: number;
+  openOther?: number;
+  closeOther?: number;
 }
 
 function readShift(): Shift | null {
@@ -158,6 +168,27 @@ function ChangeChips({ amount }: { amount: number }) {
 
 /** סכומים-מהירים למילוי הסכום-לתשלום. */
 const QUICK_DUE = [10, 20, 50, 100, 200];
+
+/** שדות אמצעי-תשלום לא-מזומן (צ'קים / אחר) — פתיחה וסגירה. */
+function TenderFields(props: {
+  checks: string;
+  other: string;
+  onChecks: (v: string) => void;
+  onOther: (v: string) => void;
+}) {
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '4px 0 8px' }}>
+      <label style={{ flex: 1, minWidth: 120, fontSize: 12.5, color: 'var(--ink-soft)' }}>
+        🧾 צ'קים (₪)
+        <TextInput type="number" dir="ltr" value={props.checks} onChange={props.onChecks} placeholder="0" />
+      </label>
+      <label style={{ flex: 1, minWidth: 120, fontSize: 12.5, color: 'var(--ink-soft)' }}>
+        💳 אחר (₪)
+        <TextInput type="number" dir="ltr" value={props.other} onChange={props.onOther} placeholder="0" />
+      </label>
+    </div>
+  );
+}
 
 /** לוח-הקשה של מטבעות/שטרות — משותף לקבלת-תשלום ולספירת-מגירה (גל-2). */
 function DenomPad({ counts, onBump }: { counts: Record<string, number>; onBump: (d: number, by: number) => void }) {
@@ -250,25 +281,39 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
   const [shift, setShift] = useState<Shift | null>(() => readShift());
   const [shiftPanel, setShiftPanel] = useState(false);
   const [closing, setClosing] = useState(false);
-  const [floatInput, setFloatInput] = useState('');
+  // פתיחת-משמרת לפי-סוג: ספירת-מזומן (openCounts) + צ'קים + אחר
+  const [openCounts, setOpenCounts] = useState<Record<string, number>>({});
+  const [openChecks, setOpenChecks] = useState('');
+  const [openOther, setOpenOther] = useState('');
   const [drawerCounts, setDrawerCounts] = useState<Record<string, number>>({});
+  const [closeChecks, setCloseChecks] = useState('');
+  const [closeOther, setCloseOther] = useState('');
   const [zReport, setZReport] = useState<ShiftClose | null>(null);
 
-  const bumpDrawer = (d: number, by: number) =>
-    setDrawerCounts((c) => {
+  const mkBump = (setter: Dispatch<SetStateAction<Record<string, number>>>) => (d: number, by: number) =>
+    setter((c) => {
       const n = Math.max(0, (c[String(d)] || 0) + by);
       const next = { ...c };
       if (n === 0) delete next[String(d)];
       else next[String(d)] = n;
       return next;
     });
+  const bumpDrawer = mkBump(setDrawerCounts);
+  const bumpOpen = mkBump(setOpenCounts);
 
   function openShift() {
-    const f = Math.max(0, Number(floatInput) || 0);
-    const s: Shift = { openedAt: new Date().toISOString(), float: f };
+    const f = countsTotal(openCounts);
+    const s: Shift = {
+      openedAt: new Date().toISOString(),
+      float: f,
+      ...(Number(openChecks) > 0 ? { checks: Math.round(Number(openChecks) * 100) / 100 } : {}),
+      ...(Number(openOther) > 0 ? { other: Math.round(Number(openOther) * 100) / 100 } : {}),
+    };
     writeShift(s);
     setShift(s);
-    setFloatInput('');
+    setOpenCounts({});
+    setOpenChecks('');
+    setOpenOther('');
     toast('משמרת נפתחה · קופת-פתיחה ' + money(f));
   }
 
@@ -285,6 +330,10 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
       count,
       counted,
       diff: drawerDiff(counted, expected),
+      ...(shift.checks ? { openChecks: shift.checks } : {}),
+      ...(shift.other ? { openOther: shift.other } : {}),
+      ...(Number(closeChecks) > 0 ? { closeChecks: Math.round(Number(closeChecks) * 100) / 100 } : {}),
+      ...(Number(closeOther) > 0 ? { closeOther: Math.round(Number(closeOther) * 100) / 100 } : {}),
     };
     appendShiftClose(z);
     writeShift(null);
@@ -367,15 +416,21 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
           {row('נפתחה', new Date(z.openedAt).toLocaleString('he-IL'))}
           {row('נסגרה', new Date(z.closedAt).toLocaleString('he-IL'))}
           <div style={{ borderTop: '1px dashed var(--line)', margin: '6px 0', paddingTop: 6 }}>
-            {row('קופת-פתיחה', money(z.float))}
+            {row('קופת-פתיחה (מזומן)', money(z.float))}
             {row(z.count + ' חשבוניות · גבייה', money(z.sales))}
             {row('צפוי במגירה', money(z.float + z.sales), true)}
-            {row('נספר בפועל', money(z.counted), true)}
+            {row('נספר בפועל (מזומן)', money(z.counted), true)}
           </div>
           <div style={{ borderTop: '1px dashed var(--line)', marginTop: 6, paddingTop: 6, color: diffColor, fontWeight: 800, display: 'flex', justifyContent: 'space-between' }}>
-            <span>{diffLabel}</span>
+            <span>{diffLabel} (מזומן)</span>
             <span style={{ direction: 'ltr' }}>{money(Math.abs(z.diff))}</span>
           </div>
+          {(z.openChecks || z.closeChecks || z.openOther || z.closeOther) && (
+            <div style={{ borderTop: '1px dashed var(--line)', marginTop: 6, paddingTop: 6 }}>
+              {(z.openChecks || z.closeChecks) && row("🧾 צ'קים (פתיחה → סגירה)", money(z.openChecks ?? 0) + ' → ' + money(z.closeChecks ?? 0))}
+              {(z.openOther || z.closeOther) && row('💳 אחר (פתיחה → סגירה)', money(z.openOther ?? 0) + ' → ' + money(z.closeOther ?? 0))}
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
           <Btn kind="primary" onClick={() => { if (guardExport()) window.print(); }}>🖨 הדפסה</Btn>
@@ -399,8 +454,9 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
             ספרו את המזומן במגירה — לחיצה על ערך = +1
           </div>
           <DenomPad counts={drawerCounts} onBump={bumpDrawer} />
+          <TenderFields checks={closeChecks} other={closeOther} onChecks={setCloseChecks} onOther={setCloseOther} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '10px 12px', borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--line)', margin: '4px 0 12px', fontSize: 14 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>נספר במגירה</span><b style={{ direction: 'ltr' }}>{money(counted)}</b></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>נספר במגירה (מזומן)</span><b style={{ direction: 'ltr' }}>{money(counted)}</b></div>
             <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--ink-soft)' }}><span>צפוי (פתיחה + גבייה)</span><span style={{ direction: 'ltr' }}>{money(expected)}</span></div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: d === 0 ? '#12803c' : d > 0 ? '#9a6414' : '#b91c1c' }}>
               <span>{d === 0 ? 'מאוזן ✓' : d > 0 ? 'עודף' : 'חוסר'}</span>
@@ -422,7 +478,9 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
           <>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '10px 12px', borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--line)', marginBottom: 12, fontSize: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--ink-soft)' }}><span>נפתחה</span><span style={{ direction: 'ltr' }}>{new Date(shift.openedAt).toLocaleString('he-IL')}</span></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>קופת-פתיחה</span><span style={{ direction: 'ltr' }}>{money(shift.float)}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>קופת-פתיחה (מזומן)</span><span style={{ direction: 'ltr' }}>{money(shift.float)}</span></div>
+              {!!shift.checks && <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--ink-soft)' }}><span>🧾 צ'קים בפתיחה</span><span style={{ direction: 'ltr' }}>{money(shift.checks)}</span></div>}
+              {!!shift.other && <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--ink-soft)' }}><span>💳 אחר בפתיחה</span><span style={{ direction: 'ltr' }}>{money(shift.other)}</span></div>}
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>{info.count} חשבוניות · גבייה</span><span style={{ direction: 'ltr' }}>{money(info.sales)}</span></div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, borderTop: '1px dashed var(--line)', marginTop: 4, paddingTop: 4 }}><span>צפוי במגירה</span><b style={{ direction: 'ltr' }}>{money(shift.float + info.sales)}</b></div>
             </div>
@@ -433,13 +491,20 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
           </>
         ) : (
           <>
-            <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginBottom: 10 }}>
-              פתיחת-משמרת מתחילה מעקב: קופת-פתיחה + גבייה ⇐ צפי-מגירה לסגירה עם דוח-Z.
+            <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginBottom: 8 }}>
+              ספרו את המגירה בפתיחה — כמה יש מכל סוג (לחיצה = +1):
             </div>
-            <label style={{ fontSize: 12.5, color: 'var(--ink-soft)', display: 'block', marginBottom: 12 }}>
-              קופת-פתיחה (₪) — מזומן במגירה בתחילת המשמרת
-              <TextInput type="number" dir="ltr" value={floatInput} onChange={setFloatInput} placeholder="0" />
-            </label>
+            <DenomPad counts={openCounts} onBump={bumpOpen} />
+            <TenderFields
+              checks={openChecks}
+              other={openOther}
+              onChecks={setOpenChecks}
+              onOther={setOpenOther}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--line)', margin: '4px 0 12px', fontSize: 14, fontWeight: 800 }}>
+              <span>סה״כ מזומן בפתיחה</span>
+              <b style={{ direction: 'ltr' }}>{money(countsTotal(openCounts))}</b>
+            </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <Btn kind="primary" onClick={openShift}>פתיחת משמרת</Btn>
               <Btn onClick={() => setShiftPanel(false)}>← חזרה</Btn>
