@@ -27,14 +27,18 @@ const KIND_OPTIONS: { value: TelNumber['kind']; label: string }[] = [
   { value: 'virtual', label: 'הפניית-לקוח' },
   { value: 'whatsapp', label: 'קישור-ווצאפ' },
 ];
-/** ערי-עוגן לזמנים (מפתחות שהמנוע מכיר); '' = ברירת-מחדל (יום-שלם). */
+/** ערי-עוגן לזמנים — מפתחות שהמנוע מכיר (zmanim.mjs CITIES); '' = ברירת-מחדל (ירושלים). */
 const CITY_OPTIONS: { value: string; label: string }[] = [
-  { value: '', label: 'ללא (יום-שלם)' },
+  { value: '', label: 'ברירת-מחדל (ירושלים)' },
   { value: 'jerusalem', label: 'ירושלים' },
+  { value: 'bneibrak', label: 'בני ברק' },
   { value: 'telaviv', label: 'תל אביב' },
   { value: 'haifa', label: 'חיפה' },
+  { value: 'beitshemesh', label: 'בית שמש' },
+  { value: 'ashdod', label: 'אשדוד' },
   { value: 'beersheva', label: 'באר שבע' },
-  { value: 'bneibrak', label: 'בני ברק' },
+  { value: 'netanya', label: 'נתניה' },
+  { value: 'tzfat', label: 'צפת' },
 ];
 
 const OUTCOME_LABEL: Record<string, string> = {
@@ -115,16 +119,24 @@ function Toggle(props: { on: boolean; onClick: () => void; children: React.React
   );
 }
 
-export function TelephonyPanel(props: { orgName: string; slug: string }) {
-  const [tc, setTc] = useState<TelephonyConfig>(() => emptyTelephonyConfig());
+export function TelephonyPanel(props: {
+  /** התצורה השמורה בקונפיג (undefined = טרם הוגדרה — מתחילים מברירת-מחדל). */
+  value?: TelephonyConfig;
+  /** כתיבה חיה לקונפיג (patch דרך setConfig — כמו שאר האשף). */
+  onChange: (tc: TelephonyConfig) => void;
+  orgName: string;
+  slug: string;
+}) {
   const [preview, setPreview] = useState<TelephonyPreview | null>(null);
   const [busy, setBusy] = useState(false);
 
   const tenantId = useMemo(() => toTenantId(props.slug, props.orgName), [props.slug, props.orgName]);
   const orgName = props.orgName || 'ארגון';
+  // רכיב מבוקר: התצורה מגיעה מהקונפיג. חסרה ⇒ ברירת-מחדל (עריכה ראשונה מתמידה).
+  const tc = props.value ?? emptyTelephonyConfig();
 
   const set = (patch: Partial<TelephonyConfig>) => {
-    setTc((cur) => ({ ...cur, ...patch }));
+    props.onChange({ ...tc, ...patch }); // חי לקונפיג
     setPreview(null); // שינוי-תצורה מבטל תצוגה-קודמת (שלא תטעה)
   };
   const patchNumber = (id: string, patch: Partial<TelNumber>) =>

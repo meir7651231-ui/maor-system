@@ -964,7 +964,12 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             open={isOpen('telephony')}
             onToggleOpen={() => flipOpen('telephony')}
           >
-            <TelephonyPanel orgName={config.orgName} slug={config.slug || 'default'} />
+            <TelephonyPanel
+              value={config.telephony}
+              onChange={(telephony) => patch({ telephony })}
+              orgName={config.orgName}
+              slug={config.slug || 'default'}
+            />
           </SectionShell>
         )}
 

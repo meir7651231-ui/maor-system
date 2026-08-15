@@ -12,34 +12,11 @@
 import { buildTenant, validateTenant } from '../../lib/telephony/engine';
 import { explainCall } from '../../lib/telephony/engine';
 import { trustReport } from '../../lib/telephony/engine';
+import type { TelNumber, TelephonyConfig } from '../../types/config';
 
-/** מספר-טלפון בתצורת-האשף (מיפוי אחד-לאחד לטיב/onramp של המנוע). */
-export interface TelNumber {
-  id: string;
-  e164: string;
-  label: string;
-  /** sim=SIM בשער-GSM · virtual=הפניית-לקוח · whatsapp=קישור-מכשיר. */
-  kind: 'sim' | 'virtual' | 'whatsapp';
-  kosher?: boolean;
-}
-
-/** תצורת-הטלפוניה כפי שהאשף אוסף אותה (ידידותי-למשתמש). */
-export interface TelephonyConfig {
-  numbers: TelNumber[];
-  officeDays: number[]; // 0=ראשון..6=שבת
-  officeStart: string; // HH:MM
-  officeEnd: string; // HH:MM
-  officeExt: string;
-  managerExt: string;
-  vmBox: string;
-  city: string; // מפתח-עיר לזמנים (jerusalem/telaviv/…) או '' לברירת-מחדל
-  kosherMode: boolean; // מצב-כשר end-to-end (יציאה רק דרך SIM-כשר)
-  hebrewCalendar: boolean; // סגירות-חג אוטומטיות
-  zmanim: boolean; // חלונות-הדלקה/צאת מדויקים (במקום יום-שלם)
-  shabbat: boolean; // סגירת-שבת
-  fasts: boolean; // סגירת-צומות
-  voicemail: boolean;
-}
+// הטיפוסים חיים בשכבת-הטיפוסים (types/config) כדי ש-normalizeConfig יחטא אותם
+// בלי לייבא מרכיבים. מיוצאים-מחדש כאן לנוחות הצרכנים ההיסטוריים (הפאנל + הבדיקות).
+export type { TelNumber, TelephonyConfig };
 
 const ONRAMP: Record<TelNumber['kind'], string> = {
   sim: 'sim-in-gateway',
