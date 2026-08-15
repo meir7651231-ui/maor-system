@@ -62,3 +62,26 @@ export function denomTint(d: number): { bg: string; ink: string } {
 export function denomLabel(d: number): string {
   return '₪' + (Number.isInteger(d) ? String(d) : String(d));
 }
+
+/* ───────────── משמרת / סגירת-קופה (גל-2) ───────────── */
+
+export type CashCounts = Record<string, number>;
+
+/** סך-כספי של ספירת-מטבעות (denom×count), מעוגל-אגורה. */
+export function countsTotal(counts: CashCounts): number {
+  return (
+    Math.round(
+      Object.entries(counts).reduce((a, [d, n]) => a + Number(d) * (Number(n) || 0), 0) * 100,
+    ) / 100
+  );
+}
+
+/** צפי-המגירה בסגירה = קופת-פתיחה + סך-הגבייה במשמרת (מעוגל-אגורה). */
+export function expectedDrawer(float: number, sales: number): number {
+  return Math.round(((Number(float) || 0) + (Number(sales) || 0)) * 100) / 100;
+}
+
+/** הפרש-סגירה = נספר בפועל − צפוי. חיובי=עודף, שלילי=חוסר (מעוגל-אגורה). */
+export function drawerDiff(counted: number, expected: number): number {
+  return Math.round(((Number(counted) || 0) - (Number(expected) || 0)) * 100) / 100;
+}
