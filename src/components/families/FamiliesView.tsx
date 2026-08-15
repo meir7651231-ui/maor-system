@@ -6,7 +6,8 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import type { Family } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, telephonyOn, termOf } from '../../lib/config';
+import { CallBtn } from '../CallBtn';
 import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
@@ -588,7 +589,10 @@ export function FamiliesView() {
                       <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{kidsLine}</div>
                     </td>
                     <td>{[f.father, f.mother].filter(Boolean).join(' ו') || '—'}</td>
-                    <td style={{ direction: 'ltr', textAlign: 'right' }}>{f.phone || '—'}</td>
+                    <td style={{ direction: 'ltr', textAlign: 'right' }}>
+                      {telephonyOn(config) && f.phone ? <><CallBtn phone={f.phone} title={'חיוג ל' + f.name} />{' '}</> : null}
+                      {f.phone || '—'}
+                    </td>
                     <td>{kids.length}</td>
                     <td>{enrolls || '—'}</td>
                     <td>
