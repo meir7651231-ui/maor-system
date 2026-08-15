@@ -97,7 +97,9 @@ for (const id of vanished) {
   const filesOf = Object.keys(prevState[id] || {});
   console.log(`🗑  ${id} נעלם — ${filesOf.length} קבצים ${PRUNE ? 'למחיקה' : '(הרץ --prune למחיקה)'}`);
   if (WRITE && PRUNE) {
-    for (const rel of filesOf) safeUnlink(fullPath(rel, id));
+    // נחיל-8 R8-2: לדחוף ל-touched.deletes (כמו tel.mjs:163) — אחרת כשפירוק הוא השינוי-היחיד,
+    // reloadPlan([]) ריק ⇒ המפעיל לא רואה הוראת-reload ⇒ FreeSWITCH ממשיך לענות בדיאלפלן-הרפאים.
+    for (const rel of filesOf) { safeUnlink(fullPath(rel, id)); touched.deletes.push(rel); }
     delete nextState[id];
     anyChanged = true;
   }

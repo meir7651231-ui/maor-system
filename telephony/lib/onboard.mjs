@@ -104,9 +104,16 @@ export function tenantFromIntake(a) {
       kosher: !!n.kosher,
     };
     // ערוץ-שער רץ מוקצה אוטומטית לכל SIM — ככה יציאה עובדת בלי שהמפעיל יחשוב על זה.
+    // **נחיל-8 R8-5:** אם המפעיל סיפק ערוץ מפורש (CSV/intake, חיובי) — לכבד אותו (אחרת
+    // ערך-ה-CSV נזרק בשקט ושני-מסלולי-הכניסה מתפצלים); ההקצאה-האוטומטית מדלגת מעליו.
     if (out.onramp === 'sim-in-gateway') {
-      gwChannel += 1;
-      out.gatewayChannel = gwChannel;
+      if (Number.isInteger(n.gatewayChannel) && n.gatewayChannel > 0) {
+        out.gatewayChannel = n.gatewayChannel;
+        gwChannel = Math.max(gwChannel, n.gatewayChannel);
+      } else {
+        gwChannel += 1;
+        out.gatewayChannel = gwChannel;
+      }
     }
     return out;
   });

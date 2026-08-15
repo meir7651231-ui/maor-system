@@ -18,22 +18,34 @@ function addDaysIso(iso, n) {
  * ⇒ **החלון גובר**. לכן כאן: קודם החלון-המדויק, ואם לא-בתוכו — נפילה ליום-מלא.
  * נחיל-5: F7 (tzeis מועבר) · F8 (‏!c.yomTov — יו״כ נסגר בחלון, לא יום-מלא) · F16 (ערב-יו״ט).
  */
-function zmanimClosedReason(tenant, call) {
+function zmanimClosedReason(tenant, call, opts) {
   const tz = tenant.timezone || 'Asia/Jerusalem';
   const c = classifyDay(call.date, { tz, diaspora: isDiaspora(tz) });
-  // חלון מדויק [ערב-הדלקה→יום-אחרון-צאת] — גובר על יום-מלא. tzeis זהה לגנרטור (F7).
-  const wins = hebrewClosedWindows(addDaysIso(call.date, -2), 5, tenant, {
+  const wopt = {
     includeShabbat: featureOn(tenant, 'calendar.shabbat'),
     includeYomTov: featureOn(tenant, 'calendar.hebrew'),
     tzeis: (tenant.geo && Number.isFinite(tenant.geo.tzeis)) ? tenant.geo.tzeis : 40,
-  });
-  const at = `${call.date}T${padHHMM(call.hhmm || '12:00')}`; // R6-11: ריפוד '9:00'→'09:00' להשוואה-לקסיקוגרפית
+  };
+  // **נחיל-8 R8-3 (תיקון-שורש ל-off-by-one של withinHorizon):** כשנמסר אופק (opts.anchorDate),
+  // מחשבים את **קבוצת-החלונות בדיוק כמו הגנרטור** — מהאנקור על-פני-החלון — ובודקים חברות-בפועל.
+  // כך נסגרים בבת-אחת שלושת מקרי-הקצה: (א) ריצה-שמעבר-לאופק שהגנרטור מדלג (‏!first.inWindow)
+  // אינה בקבוצה ⇒ לא-נחשבת; (ב) חלון-ערב שמתחיל ב-anchor-1 **כן** בקבוצה ⇒ נסגר (הגבול-השמאלי
+  // המסוכן); (ג) גבול-ימני מדויק. בלי אופק (preview) — חלון-מקומי ±2 (תאימות-אחורה).
+  const useGen = !!(opts && opts.anchorDate);
+  const wins = useGen
+    ? hebrewClosedWindows(opts.anchorDate, opts.calendarWindow || 400, tenant, wopt)
+    : hebrewClosedWindows(addDaysIso(call.date, -2), 5, tenant, wopt);
+  const at = `${call.date}T${padHHMM(call.hhmm || '12:00')}`; // R6-11: ריפוד '9:00'→'09:00'
   for (const w of wins) {
     if (`${w.startIso}T${w.startTime}` <= at && at <= `${w.endIso}T${w.endTime}`) return w.reason;
   }
-  // יום-מלא (צום/חוה״מ) — נצרב ב-hebrewBlock, **המגודר calendar.hebrew** (generate.mjs:78).
-  // **נחיל-6 R6-3:** בלי calendar.hebrew הגנרטור לא סוגר צום/חוה״מ ⇒ הסימולטור חייב להתאים
-  // (אחרת דיווח-סגירת-שווא). יו״כ (yomTov+fast) מכוסה בחלון לעיל ⇒ !c.yomTov מונע יום-מלא-שגוי (F8).
+  // יום-מלא (צום/חוה״מ) — נצרב ב-hebrewBlock (hebrewClosedDates, i<windowDays) ⇒ אופק
+  // [anchor, anchor+window-1]. מחוץ-לאופק-היום-המלא ⇒ null (הגנרטור לא פלט extension). זה
+  // מונע את הזנב w..w+2 שבו החלון (עד +2) קיים אך היום-המלא כבר לא (R8-3).
+  if (useGen) {
+    const fullEnd = addDaysIso(opts.anchorDate, (opts.calendarWindow || 400) - 1);
+    if (call.date < opts.anchorDate || call.date > fullEnd) return null;
+  }
   const hebOn = featureOn(tenant, 'calendar.hebrew');
   if (hebOn && featureOn(tenant, 'calendar.fasts') && c.fast && !c.shabbat && !c.yomTov) return c.fast;
   if (hebOn && featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed) return c.cholHamoed;
@@ -47,17 +59,13 @@ function hhmmToMin(s) {
 // ריפוד HH:MM (R6-11) — '9:00'→'09:00' כדי שהשוואה-לקסיקוגרפית מול חלונות-הזמן (מרופדים) תעבוד.
 const padHHMM = (s) => { const [h, m] = String(s).split(':'); return `${String(Number(h) || 0).padStart(2, '0')}:${String(Number(m) || 0).padStart(2, '0')}`; };
 
-// אופק-הלוח (R6-8): הגנרטור פולט extensions רק בטווח-החלון. מחוץ-לטווח אין force_closed ⇒
-// הסימולטור חייב לא-לחשב סגירת-לוח (אחרת "סגור" בעוד המרכזייה החיה מצלצלת).
-// **נחיל-7 R7-6 (off-by-one פר-מסלול):** לשני מסלולי-הגנרטור אופק שונה —
-//   · יום-מלא (hebrewClosedDates, i<windowDays) ⇒ עד anchor+window-1 (בלעדי).
-//   · zmanim (hebrewClosedWindows, ריצה מ-anchor+window עד +2) ⇒ עד anchor+window+2.
-// גבול-יחיד לא יכול לגדר את שניהם ⇒ הגבול-הימני תלוי-מסלול (zmActive).
-function withinHorizon(date, opts, zmActive) {
+// אופק-הלוח **למסלול-היום-המלא בלבד** (calendar.hebrew ללא-zmanim): hebrewClosedDates פולט
+// extensions ל-i<windowDays ⇒ [anchor, anchor+window-1]. מסלול-ה-zmanim מטופל בנפרד ומדויק דרך
+// membership בקבוצת-החלונות בתוך zmanimClosedReason (R8-3), ולכן withinHorizon לא-מגודר-zmActive עוד.
+function withinHorizon(date, opts) {
   if (!opts || !opts.anchorDate || !date) return true; // בלי אופק ⇒ תמיד מחשב (תאימות-אחורה)
   if (date < opts.anchorDate) return false;
-  const w = opts.calendarWindow || 400;
-  const end = addDaysIso(opts.anchorDate, zmActive ? w + 2 : w - 1);
+  const end = addDaysIso(opts.anchorDate, (opts.calendarWindow || 400) - 1);
   return date <= end;
 }
 
@@ -175,20 +183,18 @@ export function simulateCall(tenant, call = {}, opts = {}) {
     forceClosed = true; reason = 'חירום';
   } else {
     let closedReason = null;
-    // **נחיל-6 R6-8:** סגירות-לוח נחשבות רק בתוך אופק-החלון (אם נמסר) — מחוצה-לו הגנרטור
-    // לא פלט extension ⇒ הקו מתנהג רגיל. (חירום/dnd אינם ממוסגרי-תאריך ⇒ חלים תמיד.)
-    if (withinHorizon(call.date, opts, zmActive)) {
-      if (zmActive) {
-        closedReason = zmanimClosedReason(tenant, call);
-      } else if (featureOn(tenant, 'calendar.hebrew') && call.date) {
-        const c = classifyDay(call.date, { tz: tenant.timezone, diaspora: isDiaspora(tenant.timezone) }); // F17
-        closedReason = c.yomTov
-          || (featureOn(tenant, 'calendar.erev') && c.erevChag)
-          || (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed)
-          // נחיל-7 R7-2: !c.shabbat לפני c.fast — אחרת האופרנד-האחרון הוא boolean true (לא שם-הצום)
-          // ⇒ reason=true ⇒ explainCall מרנדר "מחוץ-לשעות (true)" במקום שם-הצום.
-          || (featureOn(tenant, 'calendar.fasts') && !c.shabbat && c.fast) || null;
-      }
+    // סגירות-לוח נחשבות רק בתוך אופק-מה-שהגנרטור-פלט (חירום/dnd אינם ממוסגרי-תאריך ⇒ תמיד).
+    if (zmActive) {
+      // מסלול-zmanim: horizon-aware פנימית — membership בקבוצת-חלונות-הגנרטור + אופק-יום-מלא (R8-3).
+      closedReason = zmanimClosedReason(tenant, call, opts);
+    } else if (featureOn(tenant, 'calendar.hebrew') && call.date && withinHorizon(call.date, opts)) {
+      // מסלול לא-zmanim (hebrewClosedDates, i<windowDays) ⇒ אופק [anchor, anchor+window-1] (R6-8/R7-6).
+      const c = classifyDay(call.date, { tz: tenant.timezone, diaspora: isDiaspora(tenant.timezone) }); // F17
+      closedReason = c.yomTov
+        || (featureOn(tenant, 'calendar.erev') && c.erevChag)
+        || (featureOn(tenant, 'calendar.cholhamoed') && c.cholHamoed)
+        // נחיל-7 R7-2: !c.shabbat לפני c.fast — אחרת האופרנד-האחרון הוא boolean true (לא שם-הצום).
+        || (featureOn(tenant, 'calendar.fasts') && !c.shabbat && c.fast) || null;
     }
     if (closedReason) { forceClosed = true; reason = closedReason; } // חג > dnd
     else if (featureOn(tenant, 'voice.dnd') && R.dnd) { forceClosed = true; reason = 'נא לא להפריע'; }

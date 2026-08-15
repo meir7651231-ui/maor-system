@@ -88,6 +88,14 @@
     "erevChag": null
   },
   {
+    "iso": "2024-07-23",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
     "iso": "2024-08-13",
     "name": "תשעה באב",
     "yomTov": null,
@@ -308,6 +316,14 @@
     "name": "שבועות",
     "yomTov": "שבועות",
     "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-07-13",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
     "cholHamoed": null,
     "erevChag": null
   },
@@ -536,6 +552,14 @@
     "erevChag": null
   },
   {
+    "iso": "2026-07-02",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
     "iso": "2026-07-23",
     "name": "תשעה באב",
     "yomTov": null,
@@ -756,6 +780,14 @@
     "name": "שבועות",
     "yomTov": "שבועות",
     "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-07-22",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
     "cholHamoed": null,
     "erevChag": null
   },
@@ -984,6 +1016,14 @@
     "erevChag": null
   },
   {
+    "iso": "2028-07-11",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
     "iso": "2028-08-01",
     "name": "תשעה באב",
     "yomTov": null,
@@ -1208,6 +1248,14 @@
     "erevChag": null
   },
   {
+    "iso": "2029-07-01",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
     "iso": "2029-07-22",
     "name": "תשעה באב (נדחה)",
     "yomTov": null,
@@ -1428,6 +1476,14 @@
     "name": "שבועות",
     "yomTov": "שבועות",
     "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-07-18",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
     "cholHamoed": null,
     "erevChag": null
   },

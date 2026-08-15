@@ -28,12 +28,19 @@ function fmtFor(tz) {
 
 const WEEKDAY = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
+// **נחיל-8 R8-1:** גרסאות-ICU שונות פולטות איות-שונה לחודש תמוז — Node22/ICU78 פולט
+// 'Tamuz' (מ׳ יחיד), אחרות 'Tammuz'. מנרמלים לצורה-קנונית אחת ('Tammuz') **מיד** אחרי ICU,
+// כדי שכל הקוד (MONTHS/classifyDay) יעבוד בכל גרסה. באג-אמת שאומת: 'Tamuz' ⇒ י״ז בתמוז
+// לא-מזוהה (fast:null ⇒ הדיאלפלן לא סוגר את הצום) + "ראש חודש Tamuz" דלף לתווית-עברית.
+const MONTH_ALIAS = { Tamuz: 'Tammuz' };
+const normMonth = (m) => MONTH_ALIAS[m] || m;
+
 /** תאריך-עברי {day,monthName,year} לתאריך-ISO לועזי (בצהריים מקומי). */
 export function hebParts(iso, tz = 'Asia/Jerusalem') {
   const d = new Date(`${iso}T12:00:00Z`);
   const parts = fmtFor(tz).formatToParts(d);
   const get = (t) => parts.find((p) => p.type === t)?.value;
-  const monthName = get('month');
+  const monthName = normMonth(get('month'));
   // dow מאותו tz של התאריך-העברי (עקבי גם לדיאספורה מזרחית), נפילה ל-UTC.
   const wd = get('weekday');
   return {

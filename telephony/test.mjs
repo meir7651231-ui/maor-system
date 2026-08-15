@@ -2122,6 +2122,50 @@ console.log('· ratchet — תיקוני נחיל-עומק (R7)');
   ok('R7-8: זהה ⇒ אין swap (שימור)', !migrationRisk(base, buildTenant(chesed).manifest).risks.some((r) => r.key === 'outbound-swapped'));
 }
 
+// ═══ ratchet — תיקוני נחיל-עומק סבב-8 (R8) ═══════════════════════════════════
+console.log('· ratchet — תיקוני נחיל-עומק (R8)');
+// R8-1 [HIGH · באג-אמת]: ICU פולט 'Tamuz' (מ׳ יחיד) ≠ 'Tammuz' בקוד ⇒ י״ז בתמוז לא-מזוהה
+// (fast:null ⇒ הדיאלפלן לא סוגר) + "ראש חודש Tamuz" דלף לתווית-עברית. עכשיו מנורמל ב-hebParts.
+{
+  eq('R8-1: י״ז בתמוז מזוהה (fast)', classifyDay('2026-07-02', { tz: 'Asia/Jerusalem', diaspora: false }).fast, 'שבעה עשר בתמוז');
+  const rc = classifyDay('2026-06-16', { tz: 'Asia/Jerusalem', diaspora: false });
+  ok('R8-1: תווית-חודש עברית (בלי דליפת "Tamuz")', /תמוז/.test(String(rc.name)) && !/Tamuz/.test(String(rc.name)));
+  const b = buildTenant({ ...chesed, features: { 'calendar.hebrew': true, 'calendar.fasts': true } }, { anchorDate: '2026-06-15', calendarWindow: 40 });
+  ok('R8-1: הדיאלפלן סוגר את צום-תמוז', b.files['dialplan/tenant_chesed-demo.xml'].includes('closed_reason=שבעה עשר בתמוז'));
+}
+// R8-3: withinHorizon תיקון-שורש (membership בקבוצת-חלונות-הגנרטור) — 3 מקרי-קצה.
+{
+  const t = validateTenant({ tenantId: 'r8hz', orgName: 'z', city: 'jerusalem',
+    features: { 'calendar.hebrew': true, 'calendar.shabbat': true, 'calendar.zmanim': true, 'calendar.fasts': true },
+    officeHours: { days: [0, 1, 2, 3, 4, 5, 6], start: '00:00', end: '23:59' },
+    numbers: [{ id: 'n1', e164: '02-3000000', label: 'a', type: 'sim', onramp: 'sim-in-gateway', channels: ['voice'], gatewayChannel: 1 }],
+    destinations: { office: { ext: '101' }, manager: { ext: '201' }, voicemail: { box: '100' } },
+    outbound: { defaultNumberId: 'n1' }, cti: { mode: 'off' } }).tenant;
+  // (א) צום י״ז בתמוז 2026-07-02 = anchor+window (זנב w+2 של zmanim, מעבר ליום-מלא w-1) ⇒ לא-סגור.
+  const tail = simulateCall(t, { did: '02-3000000', callerId: '050-1', date: '2026-07-02', hhmm: '10:00' }, { anchorDate: '2026-06-27', calendarWindow: 5 });
+  ok('R8-3א: צום בזנב-החלון (w+2) עם zmanim ⇒ לא-סגור (מיושר ליום-מלא w-1)', tail.outcome === 'office');
+  const inFull = simulateCall(t, { did: '02-3000000', callerId: '050-1', date: '2026-07-02', hhmm: '10:00' }, { anchorDate: '2026-06-27', calendarWindow: 10 });
+  ok('R8-3א: צום בתוך-אופק-יום-מלא ⇒ סגור', inFull.outcome !== 'office' && String(inFull.reason).includes('תמוז'));
+  // (ג) הגבול-השמאלי המסוכן: anchor=שבת (2026-09-05) ⇒ חלון-הערב מתחיל ב-anchor-1 (2026-09-04);
+  //     שיחה בערב-שבת אחרי-הדלקה — הגנרטור סוגר, הסימולטור-הישן פתח (date<anchor). עכשיו סגור.
+  const erev = simulateCall(t, { did: '02-3000000', callerId: '050-1', date: '2026-09-04', hhmm: '19:00' }, { anchorDate: '2026-09-05', calendarWindow: 400 });
+  ok('R8-3ג: ערב-שבת ב-anchor-1 אחרי-הדלקה ⇒ סגור (הגבול-השמאלי המסוכן)', erev.outcome !== 'office' && String(erev.reason).includes('שבת'));
+}
+// R8-4: generateConfig מזהיר על calendar.zmanim בלי anchor (נפילה-שקטה לחיתוך-שישי סטטי). כמו hebrew.
+{
+  const w = buildTenant({ ...chesed, features: { 'calendar.zmanim': true } }); // בלי anchor
+  ok('R8-4: אזהרת zmanim-בלי-anchor', w.warnings.some((x) => x.includes('calendar.zmanim') && x.includes('anchorDate')));
+}
+// R8-5: tenantFromIntake מכבד gatewayChannel שסופק (CSV/intake) במקום הקצאה-אוטומטית שזורקת אותו.
+{
+  const t = tenantFromIntake({ tenantId: 'intk-org', orgName: 'i',
+    numbers: [{ number: '02-1234567', type: 'sim', gatewayChannel: 7 }, { number: '03-7654321', type: 'sim' }] });
+  const n1 = t.numbers.find((n) => n.e164 === '02-1234567');
+  eq('R8-5: gatewayChannel שסופק נשמר (7)', n1.gatewayChannel, 7);
+  const n2 = t.numbers.find((n) => n.e164 === '03-7654321');
+  ok('R8-5: הקצאה-אוטומטית מדלגת מעל הערוץ-שסופק', Number.isInteger(n2.gatewayChannel) && n2.gatewayChannel > 7);
+}
+
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────
 console.log(`· golden — ${UPDATE ? 'הקפאה מחדש (UPDATE=1)' : 'אימות'}`);
 const goldenDir = join(HERE, 'fixtures/golden');

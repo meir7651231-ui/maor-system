@@ -933,6 +933,11 @@ export function generateConfig(tenant, warnings = [], opts = {}) {
   if (featureOn(tenant, 'calendar.hebrew') && !opts.anchorDate) {
     warns.push('calendar.hebrew דלוק אך לא נמסר anchorDate — סגירות-החג לא ייווצרו (העבר opts.anchorDate).');
   }
+  // נחיל-8 R8-4: זמנים-דלוק בלי anchor ⇒ הגנרטור נופל לחיתוך-שישי סטטי (15:00) בשקט,
+  // בעוד הסימולטור מחשב חלון-מדויק ⇒ דיברגנס. אזהרה מפורשת (במקום נפילה-שקטה).
+  if (featureOn(tenant, 'calendar.zmanim') && !opts.anchorDate) {
+    warns.push('calendar.zmanim דלוק אך לא נמסר anchorDate — חלונות-הזמנים המדויקים לא ייווצרו (נפילה לחיתוך-שישי סטטי; העבר opts.anchorDate).');
+  }
   const m = manifest(tenant, warns, opts);
   const files = {
     [`dialplan/tenant_${tenant.tenantId}.xml`]: dialplanXml(tenant, opts),
