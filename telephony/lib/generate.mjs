@@ -621,7 +621,7 @@ function dialplanXml(tenant, opts = {}) {
     for (const o of R.ivr.options) {
       L.push(`    <extension name="ivr_opt_${esc(o.digit)}">`);
       L.push(`      <condition field="destination_number" expression="^ivr_opt_${esc(o.digit)}$">`);
-      for (const a of destActions(o.dest, tenant, gw, def)) L.push(`        ${a}`);
+      for (const a of destActions(o.dest, tenant, gw, def, tollGuard(''))) L.push(`        ${a}`);
       L.push(`      </condition>`);
       L.push(`    </extension>`);
     }
@@ -748,7 +748,7 @@ function dialplanXml(tenant, opts = {}) {
 }
 
 /** שורות-actions ליעד-IVR. dest = {type,value}. */
-function destActions(dest, tenant, gw, def) {
+function destActions(dest, tenant, gw, def, tollActions = []) {
   const dom = esc(tenant.tenantId);
   switch (dest.type) {
     case 'ext':
@@ -756,9 +756,13 @@ function destActions(dest, tenant, gw, def) {
     case 'ringgroup':
       return [`<action application="bridge" data="${dest.value.map((e) => `user/${esc(e)}@${dom}`).join(',')}"/>`];
     case 'number':
+      // **נחיל-9 R9-4:** יעד-IVR מסוג 'number' מגשר החוצה דרך השער בדיוק כמו out_default/out_pick/
+      // sd_ ⇒ חייב את אותה הקשחה (tollGuard: limit hash + sched_hangup תחת voice.hardening). בלעדיה
+      // רגל-נכנסת יוצאת מחוץ למאגר-הבו-זמניות ובלי תקרת-משך — מחלקת-ה-toll-fraud ש-R6-5 סגר ל-sd_.
       return def
         ? [
             `<action application="set" data="effective_caller_id_number=${esc(def.e164)}"/>`,
+            ...tollActions,
             `<action application="bridge" data="sofia/gateway/${esc(gw)}${def.gatewayChannel}/${esc(dest.value)}"/>`,
           ]
         : [`<action application="hangup" data="NO_ROUTE_DESTINATION"/>`];

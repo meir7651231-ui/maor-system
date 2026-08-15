@@ -82,7 +82,8 @@ UPDATE=1 node telephony/test.mjs   # הקפאת golden מחדש (רק אחרי �
 | `lib/validators.mjs` | XML well-formed + JSON-Schema (תת-קבוצה) |
 | `lib/index.mjs` | תזמור `buildTenant` (validate→generate) + ריֶיֶקספורט מלא |
 | `tel.mjs` | CLI מלוטש — validate/preview/report/build/apply |
-| `cli.mjs` · `apply-cli.mjs` | הרצת-לקוח-יחיד · כלי-מפעיל מרכזי |
+| `tel.mjs apply` | **כלי-המפעיל המרכזי** — החלה רב-דיירת עם anchor + 4 שערי-בטיחות |
+| `cli.mjs` · `apply-cli.mjs` | הרצת-לקוח-יחיד · **הוצא-משימוש → מנתב ל-`tel.mjs apply`** |
 | `test.mjs` | golden (5 סטים) + יחידה (303 בדיקות) |
 | `UPGRADE-100.md` | מעקב 100 השדרוגים (10 גלים) |
 | `fixtures/*.json` | לקוחות-דוגמה (chesed/kollel/full/voice) + intake + maor-db |

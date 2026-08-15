@@ -90,6 +90,15 @@ function pick(obj, path, dflt) {
  */
 export function tenantFromIntake(a) {
   const inNums = Array.isArray(a.numbers) ? a.numbers : [];
+  // **נחיל-9 R9-2 (רגרסיית-R8-5):** הקצאת-ערוץ **דו-מעברית**. מעבר-א׳ אוסף את כל הערוצים-
+  // המפורשים (חיוביים) ל-Set שמור; מעבר-ב׳ (ב-map) מכבד מפורש ומדלג-על-שמור באוטומטי. המימוש
+  // החד-מעברי הקודם (Math.max) שמר רק ערוץ-מפורש-שקדם ל-auto ⇒ auto-לפני-מפורש נתן ערוץ-כפול
+  // בשקט (‏[{sim,auto},{sim,ch:1}] → שניהם 1). הכפילות שברה נגישות-SIM (FreeSWITCH בוחר ראשון).
+  const reservedCh = new Set();
+  for (const n of inNums) {
+    const type = TYPE_DEFAULTS[n.type] ? n.type : 'sim';
+    if (TYPE_DEFAULTS[type].onramp === 'sim-in-gateway' && Number.isInteger(n.gatewayChannel) && n.gatewayChannel > 0) reservedCh.add(n.gatewayChannel);
+  }
   let gwChannel = 0;
   const numbers = inNums.map((n, i) => {
     const type = TYPE_DEFAULTS[n.type] ? n.type : 'sim';
@@ -103,15 +112,12 @@ export function tenantFromIntake(a) {
       channels: Array.isArray(n.channels) && n.channels.length ? n.channels : [...def.channels],
       kosher: !!n.kosher,
     };
-    // ערוץ-שער רץ מוקצה אוטומטית לכל SIM — ככה יציאה עובדת בלי שהמפעיל יחשוב על זה.
-    // **נחיל-8 R8-5:** אם המפעיל סיפק ערוץ מפורש (CSV/intake, חיובי) — לכבד אותו (אחרת
-    // ערך-ה-CSV נזרק בשקט ושני-מסלולי-הכניסה מתפצלים); ההקצאה-האוטומטית מדלגת מעליו.
+    // ערוץ-שער: מפורש (חיובי) נשמר כמות-שהוא; אוטומטי מדלג על כל ערוץ-שמור (R9-2).
     if (out.onramp === 'sim-in-gateway') {
       if (Number.isInteger(n.gatewayChannel) && n.gatewayChannel > 0) {
         out.gatewayChannel = n.gatewayChannel;
-        gwChannel = Math.max(gwChannel, n.gatewayChannel);
       } else {
-        gwChannel += 1;
+        do { gwChannel += 1; } while (reservedCh.has(gwChannel));
         out.gatewayChannel = gwChannel;
       }
     }

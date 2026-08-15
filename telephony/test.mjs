@@ -2163,7 +2163,53 @@ console.log('· ratchet — תיקוני נחיל-עומק (R8)');
   const n1 = t.numbers.find((n) => n.e164 === '02-1234567');
   eq('R8-5: gatewayChannel שסופק נשמר (7)', n1.gatewayChannel, 7);
   const n2 = t.numbers.find((n) => n.e164 === '03-7654321');
-  ok('R8-5: הקצאה-אוטומטית מדלגת מעל הערוץ-שסופק', Number.isInteger(n2.gatewayChannel) && n2.gatewayChannel > 7);
+  // R9-2: הדו-מעברי נותן ל-auto את הערוץ-הפנוי-הראשון (1) ומדלג על השמור (7) — בלי התנגשות.
+  ok('R8-5/R9-2: auto מקבל ערוץ-פנוי בלי להתנגש בשמור', Number.isInteger(n2.gatewayChannel) && n2.gatewayChannel > 0 && n2.gatewayChannel !== 7);
+}
+
+// ═══ ratchet — תיקוני נחיל-עומק סבב-9 (R9) ═══════════════════════════════════
+console.log('· ratchet — תיקוני נחיל-עומק (R9)');
+// R9-2 [רגרסיית-R8-5]: auto-לפני-explicit נתן ערוץ-כפול בשקט. עכשיו דו-מעברי, בלי התנגשות.
+{
+  const t = tenantFromIntake({ tenantId: 'coll-org', orgName: 'c',
+    numbers: [{ number: '02-1111111', type: 'sim' }, { number: '03-2222222', type: 'sim', gatewayChannel: 1 }] });
+  const chans = t.numbers.filter((n) => n.onramp === 'sim-in-gateway').map((n) => n.gatewayChannel);
+  ok('R9-2: אין ערוץ-כפול (auto-לפני-explicit)', new Set(chans).size === chans.length);
+  const explicit = t.numbers.find((n) => n.e164 === '03-2222222'); // tenantFromIntake שומר גולמי
+  eq('R9-2: הערוץ-המפורש נשמר (1)', explicit.gatewayChannel, 1);
+  // שער-מדדף ב-validate: קונפיג יד-כתוב עם 2 ערוצים-כפולים ⇒ error (לא ok:true שקט).
+  const dup = validateTenant({ ...chesed, numbers: chesed.numbers.map((n) => n.id === 'n2' ? { ...n, gatewayChannel: 1 } : n) });
+  ok('R9-2: ערוץ-כפול ⇒ error בוולידציה', !dup.ok && dup.errors.some((e) => e.includes('gatewayChannel') && e.includes('כפול')));
+}
+// R9-3: validate מחק את security ⇒ תקרות-toll-fraud no-op. עכשיו מועבר (allowlist).
+{
+  const t = validateTenant({ ...chesed, features: { 'voice.hardening': true }, security: { maxConcurrentOut: 1, maxCallSec: 600 } }).tenant;
+  ok('R9-3: security מועבר ל-tenant', t.security && t.security.maxConcurrentOut === 1 && t.security.maxCallSec === 600);
+  // הדיאלפלן משתמש בערכים (לא בברירת-המחדל sims.length/3600)
+  const dp = buildTenant({ ...chesed, features: { 'voice.hardening': true }, security: { maxConcurrentOut: 1, maxCallSec: 600 } }).files['dialplan/tenant_chesed-demo.xml'];
+  ok('R9-3: תקרת-בו-זמניות=1 (לא sims.length)', dp.includes('outbound 1 !USER_BUSY'));
+  ok('R9-3: תקרת-משך=600 (לא 3600)', dp.includes('sched_hangup" data="+600'));
+  // allowlist: שדה-זר מושמט
+  const t2 = validateTenant({ ...chesed, security: { maxConcurrentOut: 2, evil: 'x' } }).tenant;
+  ok('R9-3: security מחוטא (allowlist)', t2.security && t2.security.maxConcurrentOut === 2 && !('evil' in t2.security));
+}
+// R9-4: יעד-IVR 'number' גישר החוצה בלי tollGuard. עכשיו מוקשח כמו out_default/sd_.
+{
+  const cfg = { ...chesed, features: { 'voice.ivr': true, 'voice.hardening': true },
+    routing: { ivr: { greeting: 'g', timeout: 5, invalidMax: 3, options: [{ digit: '3', dest: { type: 'number', value: '0501234567' } }] } } };
+  const dp = buildTenant(cfg).files['dialplan/tenant_chesed-demo.xml'];
+  const i = dp.indexOf('name="ivr_opt_3"');
+  const block = dp.slice(i, dp.indexOf('</extension>', i));
+  ok('R9-4: ivr_opt number עם hardening נושא limit hash (tollGuard)', i > 0 && block.includes('limit') && block.includes('sofia/gateway/'));
+  // בלי hardening — אין tollGuard (ביט-זהה)
+  const dpOff = buildTenant({ ...cfg, features: { 'voice.ivr': true } }).files['dialplan/tenant_chesed-demo.xml'];
+  const i2 = dpOff.indexOf('name="ivr_opt_3"');
+  ok('R9-4: בלי hardening ⇒ אין limit (דגל-כבוי ביט-זהה)', i2 > 0 && !dpOff.slice(i2, dpOff.indexOf('</extension>', i2)).includes('limit'));
+}
+// R9-1+5: apply-cli הוצא-משימוש → מנתב ל-tel.mjs (נבדק ב-smoke end-to-end; כאן אימות-מקור).
+{
+  const src = readFileSync(join(HERE, 'apply-cli.mjs'), 'utf8');
+  ok('R9-1+5: apply-cli מנתב ל-tel.mjs apply (בלי buildTenant עצמאי)', src.includes("'tel.mjs'") && src.includes('apply') && !src.includes('buildTenant'));
 }
 
 // ── 6. golden: השוואה ביט-לביט (או הקפאה עם UPDATE=1) ────────────────────────

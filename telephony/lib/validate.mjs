@@ -113,6 +113,7 @@ export function validateTenant(raw) {
   const numbers = [];
   const seenIds = new Set();
   const seenE164 = new Map(); // e164 → id ראשון
+  const seenChannel = new Map(); // gatewayChannel → id ראשון (נחיל-9 R9-2: מדדף-ערוצים)
   let voiceBearing = 0;
   if (!Array.isArray(raw.numbers) || raw.numbers.length === 0) {
     errors.push('numbers חייב להיות מערך לא-ריק.');
@@ -174,6 +175,12 @@ export function validateTenant(raw) {
       const chOk = Number.isInteger(n.gatewayChannel) && n.gatewayChannel > 0;
       if (n.onramp === 'sim-in-gateway' && !chOk) {
         warnings.push(`${tag}: sim-in-gateway ללא gatewayChannel חיובי — יציאה דרך המספר הזה לא תנותב עד שיוגדר ערוץ>0.`);
+      }
+      // **נחיל-9 R9-2:** ערוץ-שער כפול ⇒ שני-SIM על אותו הקשר/שם-שער; FreeSWITCH בוחר ראשון
+      // ⇒ ה-SIM-השני בלתי-נגיש (ובמצב-כשר עלול לצאת דרך SIM לא-מכוון). error (כמו id/e164).
+      if (n.onramp === 'sim-in-gateway' && chOk) {
+        if (seenChannel.has(n.gatewayChannel)) errors.push(`${tag}: gatewayChannel ${n.gatewayChannel} כפול (כבר ב-${seenChannel.get(n.gatewayChannel)}).`);
+        else seenChannel.set(n.gatewayChannel, n.id);
       }
       if (n.kosher && carriesVoice) {
         warnings.push(`${tag}: מספר-כשר — יציאה לא-כשרה לא תנותב דרכו אוטומטית; אמת מול הספק הכשר.`);
@@ -367,6 +374,17 @@ export function validateTenant(raw) {
   }
 
   const ok = errors.length === 0;
+  // **נחיל-9 R9-3:** security (allowlist מחוטא) — הגנרטור קורא maxConcurrentOut/maxCallSec
+  // (תקרות-toll-fraud של voice.hardening, generate.mjs:534-535) ו-recordingEncryption; ה-tenant
+  // המנורמל השמיט את הבלוק ⇒ חצי-תקרת-הבו-זמניות נשארה no-op (ברירת=sims.length=המגבלה-הפיזית).
+  let security;
+  if (raw.security && typeof raw.security === 'object') {
+    const s = {};
+    if (Number.isInteger(raw.security.maxConcurrentOut) && raw.security.maxConcurrentOut > 0) s.maxConcurrentOut = raw.security.maxConcurrentOut;
+    if (Number.isInteger(raw.security.maxCallSec) && raw.security.maxCallSec > 0) s.maxCallSec = raw.security.maxCallSec;
+    if (raw.security.recordingEncryption === true) s.recordingEncryption = true;
+    if (Object.keys(s).length) security = s;
+  }
   const tenant = ok
     ? {
         schemaVersion: SCHEMA_VERSION,
@@ -386,6 +404,7 @@ export function validateTenant(raw) {
         routing,
         ...(emergency ? { emergency } : {}),
         ...(mourning ? { mourning } : {}),
+        ...(security ? { security } : {}),
       }
     : null;
   return { ok, errors, warnings, tenant };
