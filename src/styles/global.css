@@ -1378,7 +1378,9 @@ h1,
 .hm-stats {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  /* ‏min(185px,100%) — הרצועה לעולם לא רחבה מהמכולה (מונע גלישה כשהרוחב הפנוי
+     קטן מ-185px: זום-נגישות / גופן-מערכת גדול / מכולה צרה). */
+  grid-template-columns: repeat(auto-fill, minmax(min(185px, 100%), 1fr));
   gap: 12px;
 }
 
@@ -2114,6 +2116,18 @@ h1,
   margin: -24px calc(50% - 50vw) 0;
   border-radius: 0 0 34px 34px;
   padding: 20px max(30px, calc(50vw - 572px)) 64px;
+}
+
+/* זום-נגישות (‏maor_ui_scale) מוחל כ-body{zoom} — ו-zoom שובר את חישוב ה-50vw
+   של מילוי-הרוחב: הבאנר גולש משני הצדדים והתוכן (כותרת/עיפרון) נחתך (מדווח
+   בזום 1.4 ברוחב >‎760). ‏[data-ui-zoom] מחליף את המילוי בשוליים-שליליים
+   בפיקסלים שמבטלים בדיוק את ריפוד ‎.app-main‎ (28px) — עקבי-לזום, אפס גלישה.
+   ‏≤760 שומר על כלל-המובייל (‎-14px‎ ביט-זהה); scale=1 ⇒ אין דגל ⇒ 50vw חוזר. */
+@media (min-width: 761px) {
+  :root[data-ui-zoom="1"][data-theme="kehila"] .app-main > div > .hm-hero {
+    margin: -24px -28px 0;
+    padding: 20px 28px 64px;
+  }
 }
 
 @media (max-width: 760px) {

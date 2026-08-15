@@ -14,6 +14,7 @@ import { Btn, Field, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import {
   PAY_METHODS,
+  ageOf,
   chipStyle,
   enrollCount,
   enrollStatusMeta,
@@ -282,6 +283,51 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
           ? 'יתרה: ' + rem + ' מתוך ' + en.purchased
           : presentsInMonth(en.presents, isoToday()) + ' נוכחויות החודש · ' + en.used + ' סה"כ'}
       </div>
+
+      {/* בקשת-בעלים: שורת פרטי ה"לקוח" בכרטיס — טלפון (חבר→משפחה), משפחה, גיל,
+          כיתה/מוסד, עיר וקהילה — הכול מהחבר/המשפחה, קריאה-בלבד. */}
+      {(() => {
+        const fam = famOf();
+        const phone = m?.phone || fam?.phone || '';
+        const phone2 = m?.phone2 || fam?.phone2 || '';
+        const age = m?.birth ? ageOf(m.birth) : null;
+        const bits: { ico: string; txt: string; ltr?: boolean }[] = [];
+        if (phone) bits.push({ ico: '📞', txt: phone + (phone2 ? ' · ' + phone2 : ''), ltr: true });
+        if (m?.famName) bits.push({ ico: '👪', txt: termOf(cfg, 'entity.familyOf', 'משפחת') + ' ' + m.famName });
+        if (age != null) bits.push({ ico: '🎂', txt: (m?.gender === 'f' ? 'בת ' : 'בן ') + age });
+        if (m?.grade) bits.push({ ico: '🎓', txt: m.grade + (m.school ? ' · ' + m.school : '') });
+        else if (m?.school) bits.push({ ico: '🏫', txt: m.school });
+        if (fam?.city) bits.push({ ico: '🏙', txt: fam.city + (fam.community ? ' · ' + fam.community : '') });
+        if (!bits.length) return null;
+        return (
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '6px 14px',
+              alignItems: 'center',
+              padding: '9px 12px',
+              marginBottom: 12,
+              borderRadius: 10,
+              border: '1px solid var(--line)',
+              background: 'var(--bg)',
+              fontSize: 12.5,
+            }}
+          >
+            {bits.map((b, i) => (
+              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--ink-soft)' }}>
+                <span aria-hidden>{b.ico}</span>
+                <span dir={b.ltr ? 'ltr' : undefined} style={{ fontWeight: 600 }}>
+                  {b.txt}
+                </span>
+              </span>
+            ))}
+            {integrationOn(cfg, 'whatsapp') && waPhone && (
+              <WaBtn phone={waPhone} title={'וואטסאפ אל ' + (m?.first ?? '')} />
+            )}
+          </div>
+        );
+      })()}
 
       {groups.length > 0 && (
         <Field label={'קבוצה — מסונכרן לקבוצות הקיימות ב' + termOf(cfg, 'entity.course', 'חוג')}>
