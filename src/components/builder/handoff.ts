@@ -141,6 +141,34 @@ function quoteSection(quote: Quote | undefined): string {
     <p style="font-size:12px;color:#777">המחירים לפי הרכב המערכת שנבחר; ניתן להוסיף/להסיר מודולים בכל עת. אינם כוללים מע״מ.</p>`;
 }
 
+/** ימות-השבוע בעברית לתצוגה בדף-המסירה (0=ראשון). */
+const HANDOFF_DOW = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'שבת'];
+const TEL_KIND_LABEL: Record<string, string> = { sim: 'SIM בשער', virtual: 'הפניה', whatsapp: 'ווצאפ' };
+
+/**
+ * מקטע-הטלפוניה בדף-המסירה — נבנה רק כשהמתג **דלוק** (enabled) ויש קו-אחד לפחות
+ * (אחרת ריק, ביט-זהה לקודם). downstream: מבהיר שהמערכת יושבת אחרי קווי-הלקוח, לא ספק.
+ */
+function telephonySection(cfg: OrgConfig): string {
+  const t = cfg.telephony;
+  if (!t || t.enabled !== true) return ''; // כבוי (ברירת-מחדל) ⇒ לא נמסר
+  const lines = t.numbers.filter((n) => n.e164.trim());
+  if (!lines.length) return '';
+  const numRows = lines
+    .map(
+      (n) =>
+        `<li>${esc(n.label)} — <span dir="ltr">${esc(n.e164)}</span> <small>(${esc(TEL_KIND_LABEL[n.kind] ?? n.kind)}${n.kosher ? ' · כשר' : ''})</small></li>`,
+    )
+    .join('');
+  const days = t.officeDays.length ? t.officeDays.map((d) => HANDOFF_DOW[d] ?? d).join(', ') : '—';
+  const closures = [t.hebrewCalendar && 'חגים', t.shabbat && 'שבת', t.fasts && 'צומות'].filter(Boolean).join(' · ');
+  const extras = [closures && `סגירה אוטומטית: ${closures}`, t.kosherMode && 'מצב כשר (יציאה)'].filter(Boolean).join(' · ');
+  return `<h2>☎️ טלפוניה</h2>
+    <ul>${numRows}</ul>
+    <p style="font-size:13px">שעות משרד: ${esc(days)} · ${esc(t.officeStart)}–${esc(t.officeEnd)}${extras ? ` · ${esc(extras)}` : ''}</p>
+    <p style="font-size:12px;color:#777">קונפיג-המרכזייה מותקן אצל המפעיל (FreeSWITCH). המערכת אינה ספק טלפוניה — היא יושבת אחרי הקווים שלכם.</p>`;
+}
+
 export function buildHandoffHtml(cfg: OrgConfig, appUrl: string, installerName: string, quote?: Quote): string {
   const url = cfg.slug === 'default' ? appUrl : `${appUrl}${appUrl.includes('?') ? '&' : '?'}org=${cfg.slug}`;
   const modules = (Object.keys(MODULE_LABELS) as ModuleKey[])
@@ -198,6 +226,8 @@ ${quoteSection(quote)}
 ${removedHtml}
 
 ${integrations}
+
+${telephonySection(cfg)}
 
 <h2>💾 ארבעת כללי הזהב לשמירת הנתונים</h2>
 <div class="warn"><ol>

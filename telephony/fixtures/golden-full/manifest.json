@@ -1,0 +1,111 @@
+{
+  "tenantId": "full-demo",
+  "orgName": "עמותה מלאה",
+  "model": "pure-downstream",
+  "requiredPrompts": [
+    {
+      "file": "ivr/menu.wav",
+      "state": "ivr-menu",
+      "text": "לשירותכם: הקישו 1 למשרד, 2 לתרומות, 3 להשארת הודעה"
+    },
+    {
+      "file": "ivr/invalid.wav",
+      "state": "ivr-invalid",
+      "text": "בחירה לא-תקינה, נסו שוב."
+    }
+  ],
+  "promptCapabilities": {
+    "greetings": false,
+    "holidayGreeting": false,
+    "emergency": false,
+    "callerNameGreeting": false,
+    "voicemailTranscription": false,
+    "holdMusic": false,
+    "announcementLines": []
+  },
+  "context": "tenant_full-demo",
+  "officeHours": {
+    "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "start": "09:00",
+    "end": "17:00"
+  },
+  "inboundVoiceNumbers": [
+    {
+      "id": "n1",
+      "e164": "+97225000000",
+      "label": "קו ראשי",
+      "onramp": "sim-in-gateway",
+      "kosher": false
+    },
+    {
+      "id": "n2",
+      "e164": "+97235000000",
+      "label": "קו תרומות",
+      "onramp": "sim-in-gateway",
+      "kosher": false
+    },
+    {
+      "id": "n3",
+      "e164": "+972775000000",
+      "label": "קו לילה",
+      "onramp": "customer-forward",
+      "kosher": false
+    }
+  ],
+  "outboundSims": [
+    {
+      "id": "n1",
+      "e164": "+97225000000",
+      "label": "קו ראשי",
+      "prefix": "1#",
+      "channel": 1
+    },
+    {
+      "id": "n2",
+      "e164": "+97235000000",
+      "label": "קו תרומות",
+      "prefix": "2#",
+      "channel": 2
+    }
+  ],
+  "outboundDefault": "n1",
+  "nonVoiceChannels": [],
+  "cti": {
+    "org": null,
+    "mode": "off"
+  },
+  "routing": {
+    "ivr": {
+      "options": 3,
+      "greeting": "לשירותכם: הקישו 1 למשרד, 2 לתרומות, 3 להשארת הודעה"
+    },
+    "queue": null,
+    "ringStrategy": "sequential",
+    "blocklist": 2,
+    "allowlist": 0,
+    "dnd": false,
+    "speedDial": 2,
+    "overflow": [
+      "301",
+      "302"
+    ],
+    "internal": true,
+    "perNumberHours": [
+      "n3"
+    ]
+  },
+  "files": [
+    "dialplan/tenant_full-demo.xml",
+    "directory/full-demo.xml",
+    "sip_profiles/gateways/full-demo.xml"
+  ],
+  "warnings": [
+    "numbers[n3]: קו-מופנה עם לו״ז-פר-קו — לא נתמך ב-GSM downstream (ה-DID אינו נשמר). השתמש ב-SIM נפרד."
+  ]
+}

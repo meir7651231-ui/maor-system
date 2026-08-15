@@ -1,0 +1,94 @@
+{
+  "tenantId": "chesed-demo",
+  "orgName": "מאור החסד",
+  "timezone": "Asia/Jerusalem",
+  "officeHours": {
+    "days": [0, 1, 2, 3, 4],
+    "start": "09:00",
+    "end": "17:00"
+  },
+  "numbers": [
+    {
+      "id": "n1",
+      "e164": "02-5551234",
+      "label": "קו ראשי",
+      "type": "sim",
+      "onramp": "sim-in-gateway",
+      "channels": ["voice"],
+      "gatewayChannel": 1
+    },
+    {
+      "id": "n2",
+      "e164": "050-1112233",
+      "label": "קו תרומות",
+      "type": "sim",
+      "onramp": "sim-in-gateway",
+      "channels": ["voice", "sms"],
+      "gatewayChannel": 2
+    },
+    {
+      "id": "n3",
+      "e164": "053-9998877",
+      "label": "קו כשר",
+      "type": "sim",
+      "onramp": "sim-in-gateway",
+      "channels": ["voice"],
+      "kosher": true,
+      "gatewayChannel": 3
+    },
+    {
+      "id": "n4",
+      "e164": "077-2000000",
+      "label": "קו וירטואלי משרד",
+      "type": "virtual",
+      "onramp": "customer-forward",
+      "channels": ["voice"]
+    },
+    {
+      "id": "n5",
+      "e164": "0722-334455",
+      "label": "קו וירטואלי גיוס",
+      "type": "virtual",
+      "onramp": "customer-forward",
+      "channels": ["voice"]
+    },
+    {
+      "id": "n6",
+      "e164": "054-7654321",
+      "label": "ווצאפ עמותה",
+      "type": "whatsapp",
+      "onramp": "device-link",
+      "channels": ["whatsapp"]
+    },
+    {
+      "id": "n7",
+      "e164": "055-1234567",
+      "label": "קו SMS",
+      "type": "sim",
+      "onramp": "sim-in-gateway",
+      "channels": ["sms"],
+      "gatewayChannel": 4
+    }
+  ],
+  "destinations": {
+    "office": {
+      "ext": ["101", "102"],
+      "ringSeconds": 25
+    },
+    "manager": {
+      "ext": "201",
+      "ringSeconds": 30
+    },
+    "voicemail": {
+      "box": "100",
+      "email": "manager@chesed.example"
+    }
+  },
+  "outbound": {
+    "defaultNumberId": "n1"
+  },
+  "cti": {
+    "org": "chesed-demo",
+    "mode": "directory"
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "telephony/tenant.schema.json",
+  "title": "Tenant telephony config-as-data",
+  "description": "מודל-הנתונים היחיד ללקוח מרכזייה. עיקרון-ברזל: pure-downstream — אנחנו אחרי כל הספקים, מדברים רק עם הלקוח. אין שדה-ספק, אין API-ספק, אין חברה-שמינית. המספרים נכנסים דרך ציוד-הלקוח (שער-GSM עם ה-SIM שלו) או דרך הפניה שהלקוח מגדיר אצל הספק הקיים שלו. אנחנו לא נוגעים בספק.",
+  "type": "object",
+  "required": ["tenantId", "orgName", "numbers", "destinations"],
+  "additionalProperties": false,
+  "properties": {
+    "routing": {
+      "type": "object",
+      "description": "ניתוב-מתקדם (opt-in, מנורמל ב-routing.mjs): ivr/queue/ringStrategy/blocklist/allowlist/dnd/speedDial/overflow/internal."
+    },
+    "emergency": {
+      "type": "object",
+      "description": "מצב-חירום 'סגור היום' (opt-in): {active, message}.",
+      "additionalProperties": false,
+      "properties": {
+        "active": { "type": "boolean" },
+        "message": { "type": "string" }
+      }
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "description": "גרסת-סכמה למיגרציה מצטברת. חסר=1; המנוע מרפא ל-SCHEMA_VERSION.",
+      "minimum": 1
+    },
+    "vertical": {
+      "type": "string",
+      "description": "חבילת-ורטיקל (זורעת ברירות מתחת לקונפיג המפורש).",
+      "enum": ["chesed", "kollel", "gemach", "talmudtorah", "shul"]
+    },
+    "features": {
+      "type": "object",
+      "description": "דגלים. ליבה חסר=דלוק (רק false מכבה); תוספת חסר=כבוי (רק true מדליק). שרשור-אבות.",
+      "additionalProperties": { "type": "boolean" }
+    },
+    "terms": {
+      "type": "object",
+      "description": "מילון-מונחים (white-label). מפתחות מ-TERM_DEFS בלבד; ערכי-מחרוזת.",
+      "additionalProperties": { "type": "string" }
+    },
+    "tenantId": {
+      "type": "string",
+      "description": "מזהה-לקוח (slug). = domain/context במרכזייה הרב-דיירת.",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$"
+    },
+    "orgName": {
+      "type": "string",
+      "description": "שם-התצוגה של העמותה/הארגון.",
+      "minLength": 1
+    },
+    "timezone": {
+      "type": "string",
+      "description": "אזור-זמן IANA לחישוב שעות-המשרד. ברירת-מחדל Asia/Jerusalem.",
+      "default": "Asia/Jerusalem"
+    },
+    "officeHours": {
+      "type": "object",
+      "description": "חלון שעות-המשרד. בתוכו → הכל מצלצל במשרד. מחוצה לו → חוזר למנהל.",
+      "required": ["days", "start", "end"],
+      "additionalProperties": false,
+      "properties": {
+        "days": {
+          "type": "array",
+          "description": "ימי-הפעילות. 0=ראשון .. 6=שבת (מיפוי מקומי; המנוע ממיר ל-wday של FreeSWITCH).",
+          "items": { "type": "integer", "minimum": 0, "maximum": 6 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "start": {
+          "type": "string",
+          "description": "שעת-פתיחה HH:MM (24ש').",
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "end": {
+          "type": "string",
+          "description": "שעת-סגירה HH:MM (24ש'). חייבת להיות אחרי start.",
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+        }
+      }
+    },
+    "numbers": {
+      "type": "array",
+      "description": "7 המספרים (או כמה שיש). כל מספר = ישות עם דרך-כניסה משלו. אין תלות-ספק.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "e164", "label", "type", "onramp"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "מזהה-מספר ייחודי בתוך הלקוח (למשל n1..n7).",
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,30}$"
+          },
+          "e164": {
+            "type": "string",
+            "description": "המספר כפי שהוא מפורסם. יעבור נרמול ל-E.164 (+972...) במנוע."
+          },
+          "label": {
+            "type": "string",
+            "description": "כינוי-לאדם (קו ראשי / קו תרומות / ווצאפ). מוצג ב-CTI ובלוג.",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "description": "טיב-המספר. sim=כרטיס פיזי · virtual=מספר-וירטואלי אצל הספק · whatsapp=ערוץ-ווצאפ.",
+            "enum": ["sim", "virtual", "whatsapp"]
+          },
+          "onramp": {
+            "type": "string",
+            "description": "איך המספר מגיע אלינו — הכל אחרי-הספק. sim-in-gateway=ה-SIM יושב בשער-GSM של הלקוח · customer-forward=הלקוח מגדיר הפניה אצל הספק הקיים שלו אל יעד-שלנו · device-link=קישור-מכשיר (ווצאפ ריבוי-מכשירים), לא מסלול-קול.",
+            "enum": ["sim-in-gateway", "customer-forward", "device-link"]
+          },
+          "channels": {
+            "type": "array",
+            "description": "אילו ערוצים המספר נושא. ברירת-מחדל ['voice'].",
+            "items": { "type": "string", "enum": ["voice", "sms", "whatsapp"] },
+            "uniqueItems": true,
+            "default": ["voice"]
+          },
+          "kosher": {
+            "type": "boolean",
+            "description": "מספר-כשר. מסומן — המנוע מוסיף הערת-סייג ולא מנתב יציאה לא-כשרה דרכו אוטומטית.",
+            "default": false
+          },
+          "gatewayChannel": {
+            "type": "integer",
+            "description": "עבור sim-in-gateway: מספר-הערוץ בשער (1..8). דרוש לניתוב יציאה דרך ה-SIM הזה.",
+            "minimum": 1,
+            "maximum": 32
+          },
+          "hours": {
+            "type": "object",
+            "description": "לו״ז פר-מספר (אופציונלי) — חלון-שעות משלו לקו הזה.",
+            "additionalProperties": false,
+            "properties": {
+              "days": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 6 } },
+              "start": { "type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$" },
+              "end": { "type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$" }
+            }
+          },
+          "role": {
+            "type": "string",
+            "description": "תפקיד-מיוחד. announcement = קו-הכרזה (משמיע הקלטה ומנתק).",
+            "enum": ["announcement"]
+          },
+          "announcementText": {
+            "type": "string",
+            "description": "נוסח-ההכרזה המוצע (לקו-הכרזה) — להקלטה ע״י המפעיל."
+          },
+          "forwardTo": {
+            "type": "string",
+            "description": "עבור customer-forward: id של מספר sim-in-gateway שאליו הלקוח מפנה. אז הקו = alias של אותו SIM (בלי in_ נפרד)."
+          }
+        }
+      }
+    },
+    "destinations": {
+      "type": "object",
+      "description": "יעדי-הניתוב. אקסטנשנים פנימיים (softphone במשרד / באפליקציית-המנהל).",
+      "required": ["office", "manager"],
+      "additionalProperties": false,
+      "properties": {
+        "office": {
+          "type": "object",
+          "description": "יעד שעות-משרד. אקסטנשן יחיד או קבוצת-צלצול.",
+          "required": ["ext"],
+          "additionalProperties": false,
+          "properties": {
+            "ext": {
+              "oneOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+              ],
+              "description": "אקסטנשן-משרד או רשימה (קבוצת-צלצול)."
+            },
+            "ringSeconds": { "type": "integer", "minimum": 5, "maximum": 120, "default": 25 },
+            "email": { "type": "string", "description": "מייל לתא-קולי של שלוחות-המשרד (אופציונלי)." }
+          }
+        },
+        "manager": {
+          "type": "object",
+          "description": "יעד אחרי-שעות / אין-מענה. האפליקציה בנייד של המנהל.",
+          "required": ["ext"],
+          "additionalProperties": false,
+          "properties": {
+            "ext": { "type": "string" },
+            "ringSeconds": { "type": "integer", "minimum": 5, "maximum": 120, "default": 30 }
+          }
+        },
+        "voicemail": {
+          "type": "object",
+          "description": "תא-קולי סוף-השרשרת → נשלח למייל.",
+          "additionalProperties": false,
+          "properties": {
+            "box": { "type": "string", "description": "מזהה-תא (ברירת-מחדל 100).", "default": "100" },
+            "email": { "type": "string", "description": "יעד-מייל להודעה הקולית." }
+          }
+        }
+      }
+    },
+    "outbound": {
+      "type": "object",
+      "description": "חיוג-החוצה. המנהל בוחר מאיזה מספר יוצא — קידומת N# → SIM-N.",
+      "additionalProperties": false,
+      "properties": {
+        "defaultNumberId": {
+          "type": "string",
+          "description": "המספר שיוצא כשלא נבחרה קידומת. חייב להצביע על number.id קיים מסוג sim-in-gateway."
+        }
+      }
+    },
+    "cti": {
+      "type": "object",
+      "description": "חיבור למאור — screen-pop של מתקשר מול Family/Supporter. downstream: קריאה בלבד.",
+      "additionalProperties": false,
+      "properties": {
+        "org": { "type": "string", "description": "slug של הארגון במאור (?org=)." },
+        "mode": {
+          "type": "string",
+          "description": "מקור-הבדיקה. off=כבוי · directory=קריאת directory/<e164> בענן opt-in · api=קריאת-API.",
+          "enum": ["off", "directory", "api"],
+          "default": "off"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- מחולל אוטומטית מקונפיג-הלקוח. אין לערוך ידנית — ערוך את הנתונים והרץ מחדש. -->
+<!-- עמותת קול · pure-downstream · 2 מספרים נושאי-קול · 1 ערוצי-יציאה -->
+<include>
+  <context name="tenant_voice-demo">
+
+    <!-- setup: התנהגות עצמאית (לא תלוי vars.xml של השרת) -->
+    <extension name="setup_defaults" continue="true">
+      <condition>
+        <action application="set" data="hangup_after_bridge=true"/>
+        <action application="set" data="continue_on_fail=true"/>
+        <action application="set" data="max_forwards=20"/>
+        <action application="set" data="hold_music=custom/chesed-hold.wav"/>
+      </condition>
+    </extension>
+    <extension name="cid_normalize" continue="true">
+      <condition break="never"><action application="set" data="cid_e164=${caller_id_number}"/></condition>
+      <condition field="caller_id_number" expression="^00([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="caller_id_number" expression="^0([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+      <condition field="caller_id_number" expression="^(972\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="caller_id_number" expression="^([1-9]\d{6,8})$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+      <condition field="caller_id_number" expression="^([1-9]\d{9,14})$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="${cid_e164}" expression="^\+9720([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+    </extension>
+
+    <!-- שער-הזמן: ברירת-מחדל סגור; global_open לפי שעות, force_closed לפי חג/dnd/חירום -->
+    <extension name="gate_default" continue="true">
+      <condition>
+        <action application="set" data="global_open=false"/>
+        <action application="set" data="force_closed=false"/>
+      </condition>
+    </extension>
+    <extension name="office_window" continue="true">
+      <condition wday="1-5" time-of-day="9:00-17:00">
+        <action application="set" data="global_open=true"/>
+      </condition>
+    </extension>
+
+    <!-- לוח-עברי: 10 ימי-חג → סגור (מחושב מ-2026-09-01, חלון 400 יום) -->
+    <extension name="heb_20260912" continue="true">
+      <condition date-time="2026-09-12 00:00:00~2026-09-12 23:59:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=ראש השנה"/>
+      </condition>
+    </extension>
+    <extension name="heb_20260913" continue="true">
+      <condition date-time="2026-09-13 00:00:00~2026-09-13 23:59:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=ראש השנה"/>
+      </condition>
+    </extension>
+    <extension name="heb_20260921" continue="true">
+      <condition date-time="2026-09-21 00:00:00~2026-09-21 23:59:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=יום כיפור"/>
+      </condition>
+    </extension>
+    <extension name="heb_20260926" continue="true">
+      <condition date-time="2026-09-26 00:00:00~2026-09-26 23:59:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=סוכות"/>
+      </condition>
+    </extension>
+    <extension name="heb_20261003" continue="true">
+      <condition date-time="2026-10-03 00:00:00~2026-10-03 23:59:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=שמיני עצרת · שמחת תורה"/>
+      </condition>
+    </extension>
+    <extension name="heb_20270422" continue="true">
+      <condition date-time="2027-04-22 00:00:00~2027-04-22 23:59:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=פסח"/>
+      </condition>
+    </extension>
+    <extension name="heb_20270428" continue="true">
+      <condition date-time="2027-04-28 00:00:00~2027-04-28 23:59:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=שביעי של פסח"/>
+      </condition>
+    </extension>
+    <extension name="heb_20270611" continue="true">
+      <condition date-time="2027-06-11 00:00:00~2027-06-11 23:59:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=שבועות"/>
+      </condition>
+    </extension>
+    <extension name="heb_20271002" continue="true">
+      <condition date-time="2027-10-02 00:00:00~2027-10-02 23:59:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=ראש השנה"/>
+      </condition>
+    </extension>
+    <extension name="heb_20271003" continue="true">
+      <condition date-time="2027-10-03 00:00:00~2027-10-03 23:59:59">
+        <action application="set" data="force_closed=true"/>
+        <action application="set" data="closed_kind=holiday"/>
+        <action application="set" data="closed_reason=ראש השנה"/>
+      </condition>
+    </extension>
+
+    <!-- כניסה: קווים-מופנים מזוהים לפי DID (תלוי בכך שהספק משמרו) -->
+    <extension name="in_n2">
+      <!-- קו-מופנה: תלוי בכך שהספק מעביר את ה-DID המקורי -->
+      <condition field="destination_number" expression="^\+972777000000$">
+        <action application="set" data="inbound_call=true"/>
+        <action application="set" data="inbound_line=קו מידע"/>
+        <action application="set" data="inbound_number=+972777000000"/>
+        <action application="answer"/>
+        <action application="playback" data="$${sounds_dir}/telephony/voice-demo/announce-n2.wav"/>
+        <action application="hangup" data="NORMAL_CLEARING"/>
+      </condition>
+    </extension>
+
+    <!-- ניתוב: force_closed→do_closed · global_open→do_open · אחרת→do_closed -->
+    <extension name="incoming_closed">
+      <condition field="destination_number" expression="^incoming$"/>
+      <condition field="${force_closed}" expression="^true$">
+        <action application="transfer" data="do_closed XML tenant_voice-demo"/>
+      </condition>
+    </extension>
+    <extension name="incoming">
+      <condition field="destination_number" expression="^incoming$"/>
+      <condition field="${global_open}" expression="^true$">
+        <action application="transfer" data="do_open XML tenant_voice-demo"/>
+        <anti-action application="transfer" data="do_closed XML tenant_voice-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_open">
+      <condition field="destination_number" expression="^do_open$">
+        <action application="answer"/>
+        <action application="playback" data="$${sounds_dir}/telephony/voice-demo/greeting-open.wav"/>
+        <action application="set" data="cti_namegreeting=true"/>
+        <action application="bridge" data="{leg_timeout=25}user/101@voice-demo,user/102@voice-demo"/>
+        <action application="transfer" data="afterhours XML tenant_voice-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_closed_emergency">
+      <condition field="destination_number" expression="^do_closed$"/>
+      <condition field="${closed_kind}" expression="^emergency$">
+        <action application="answer"/>
+        <action application="playback" data="$${sounds_dir}/telephony/voice-demo/greeting-emergency.wav"/>
+        <action application="transfer" data="afterhours XML tenant_voice-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_closed_holiday">
+      <condition field="destination_number" expression="^do_closed$"/>
+      <condition field="${closed_kind}" expression="^holiday$">
+        <action application="answer"/>
+        <action application="playback" data="$${sounds_dir}/telephony/voice-demo/greeting-holiday.wav"/>
+        <action application="transfer" data="afterhours XML tenant_voice-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_closed">
+      <condition field="destination_number" expression="^do_closed$"/>
+      <condition>
+        <action application="answer"/>
+        <action application="playback" data="$${sounds_dir}/telephony/voice-demo/greeting-closed.wav"/>
+        <action application="transfer" data="afterhours XML tenant_voice-demo"/>
+      </condition>
+    </extension>
+    <extension name="afterhours">
+      <condition field="destination_number" expression="^afterhours$">
+        <action application="bridge" data="{leg_timeout=30}user/201@voice-demo"/>
+        <action application="answer"/>
+        <action application="sleep" data="500"/>
+        <action application="set" data="vm_transcribe=true"/>
+        <action application="voicemail" data="default voice-demo 100"/>
+      </condition>
+    </extension>
+
+    <!-- יציאה: קידומת <ערוץ>#<מספר> בוחרת דרך איזה SIM לצאת (רק שלוחה-רשומה) -->
+    <extension name="out_pick_n1">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^1#(\+?\d+)$">
+        <action application="set" data="effective_caller_id_number=+97227000000"/>
+        <action application="set" data="effective_caller_id_name=קו ראשי"/>
+        <action application="bridge" data="sofia/gateway/voice-demo-gw1/$1"/>
+      </condition>
+    </extension>
+    <!-- יציאת-ברירת-מחדל מקומית (חיוג רגיל בלי קידומת) → קו ראשי -->
+    <extension name="out_default">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^(0\d{7,9}|\+?972\d{7,9})$">
+        <action application="set" data="effective_caller_id_number=+97227000000"/>
+        <action application="bridge" data="sofia/gateway/voice-demo-gw1/$1"/>
+      </condition>
+    </extension>
+
+    <!-- אחזור-תא-קולי -->
+    <extension name="vm_retrieve">
+      <condition field="destination_number" expression="^\*98$">
+        <action application="answer"/>
+        <action application="voicemail" data="check default voice-demo 100"/>
+      </condition>
+    </extension>
+  </context>
+
+  <context name="tenant_voice-demo_gw1">
+    <!-- קו ראשי · +97227000000 · ערוץ 1 -->
+    <extension name="gw1_entry">
+      <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_call=true"/>
+        <action application="set" data="inbound_line=קו ראשי"/>
+        <action application="set" data="inbound_number=+97227000000"/>
+        <action application="transfer" data="incoming XML tenant_voice-demo"/>
+      </condition>
+    </extension>
+  </context>
+</include>

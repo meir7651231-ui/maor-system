@@ -18,6 +18,8 @@ import { Btn, Chip, Field, FormError, TextInput } from '../ui';
 import { buildHandoffHtml, downloadTextFile, INTEGRATION_LABELS, INTEGRATION_STATUS, liveAddons, THEME_LABELS } from './handoff';
 import { featureEffectiveOn, WIZARD_SECTIONS, type WizardSectionDef } from './sections';
 import { TEMPLATE_DEFS } from '../../lib/templates';
+import { TelephonyPanel } from '../telephony/TelephonyPanel';
+import { emptyTelephonyConfig } from '../telephony/lib';
 
 const DEFAULT_APP_URL = 'https://meir7651231-ui.github.io/maor-system/';
 
@@ -431,6 +433,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
     { domId: 'wz-branding', key: 'branding', label: '🏷️ מיתוג' },
     ...WIZARD_SECTIONS.map((s) => ({ domId: `wz-${s.id}`, key: s.id, label: `${s.emoji} ${s.title}` })),
     { domId: 'wz-integrations', key: 'integrations', label: '🔌 הרחבות' },
+    { domId: 'wz-telephony', key: 'telephony', label: '☎️ טלפוניה' },
   ];
 
   /** מקטע מודול אחד — יכולות + מונחים, מסונן לפי החיפוש. */
@@ -981,6 +984,57 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             </div>
           </SectionShell>
         )}
+
+        {/* ☎️ טלפוניה (downstream בלבד) — מקטע-חי המחווט את מנוע-הטלפוניה הטהור:
+            הזנת ציוד-הלקוח → סימולציית עץ-הטלפון + דוח-אמון → הפקת קונפיג-מרכזייה.
+            מבודד לחלוטין: אין ספק/API/trunk, אפס נגיעה בכסף/קבלות. מוסתר בזמן חיפוש. */}
+        {!searching && (() => {
+          // מתג-מקטע opt-in — **ברירת-מחדל כבוי** (הפוך ממודול): רק enabled:true מדליק.
+          const telOn = config.telephony?.enabled === true;
+          const setTelOn = (on: boolean) =>
+            patch({ telephony: { ...(config.telephony ?? emptyTelephonyConfig()), enabled: on } });
+          return (
+          <SectionShell
+            id="wz-telephony"
+            emoji="☎️"
+            title="טלפוניה"
+            meta="איחוד-קווים · downstream בלבד"
+            open={isOpen('telephony')}
+            onToggleOpen={() => flipOpen('telephony')}
+            headerEnd={
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  color: telOn ? 'var(--ink-soft)' : 'var(--ink-faint)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={telOn}
+                  onChange={() => setTelOn(!telOn)}
+                  aria-label="מודול טלפוניה פעיל"
+                  style={{ width: 'auto', accentColor: 'var(--accent-deep)' }}
+                />
+                {telOn ? 'פעיל' : 'כבוי'}
+              </label>
+            }
+          >
+            <div style={{ opacity: telOn ? 1 : 0.55 }}>
+              <TelephonyPanel
+                value={config.telephony}
+                onChange={(telephony) => patch({ telephony: { ...telephony, enabled: telOn } })}
+                orgName={config.orgName}
+                slug={config.slug || 'default'}
+              />
+            </div>
+          </SectionShell>
+          );
+        })()}
 
         {/* 💰 תמחור חי — מתעדכן עם כל מתג. המחירים נשמרים מקומית (מכשיר-המטמיע). */}
         <section

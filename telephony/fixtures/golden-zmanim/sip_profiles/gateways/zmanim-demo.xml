@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- שער-ה-GSM של הלקוח (ציוד בבעלותו, עם ה-SIM שלו). זה לא ספק — זה הלקוח. -->
+<!-- כתובת-ה-IP והסיסמה מוזרקות בהתקנה לפי הרשת של הלקוח. -->
+<include>
+  <gateway name="zmanim-demo-gw1">
+    <!-- קו ראשי · +97225000000 · ערוץ 1 -->
+    <param name="username" value="zmanim-demo-gw1"/>
+    <param name="password" value="$${GSM_PW__zmanim-demo}"/>
+    <param name="proxy" value="$${GSM_IP__zmanim-demo}"/>
+    <param name="register" value="false"/>
+    <param name="caller-id-in-from" value="true"/>
+    <!-- שיחה נכנסת מה-SIM הזה נופלת להקשר-השער הייחודי (זיהוי-קו אמין) -->
+    <param name="context" value="tenant_zmanim-demo_gw1"/>
+  </gateway>
+</include>

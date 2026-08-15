@@ -1,0 +1,207 @@
+{
+  "tenantId": "zmanim-demo",
+  "orgName": "עמותת החסד — זמנים הלכתיים",
+  "model": "pure-downstream",
+  "requiredPrompts": [
+    {
+      "file": "greeting-open.wav",
+      "state": "open",
+      "text": "שלום, הגעתם לעמותת החסד. נציג יענה מיד."
+    },
+    {
+      "file": "greeting-closed.wav",
+      "state": "closed",
+      "text": "שלום, הגעתם לעמותת החסד. המשרד סגור כעת, נשמח לחזור אליכם."
+    },
+    {
+      "file": "greeting-holiday.wav",
+      "state": "holiday",
+      "text": "שלום, הגעתם לעמותת החסד. אנו סגורים לרגל החג. חג שמח!"
+    }
+  ],
+  "promptCapabilities": {
+    "greetings": true,
+    "holidayGreeting": true,
+    "emergency": false,
+    "callerNameGreeting": false,
+    "voicemailTranscription": false,
+    "holdMusic": false,
+    "announcementLines": []
+  },
+  "context": "tenant_zmanim-demo",
+  "officeHours": {
+    "days": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "start": "08:00",
+    "end": "20:00"
+  },
+  "zmanim": {
+    "anchor": "2026-09-01",
+    "window": 90,
+    "city": "ירושלים",
+    "windows": [
+      {
+        "startIso": "2026-09-04",
+        "startTime": "18:20",
+        "endIso": "2026-09-05",
+        "endTime": "19:39",
+        "reason": "שבת",
+        "kind": "shabbat",
+        "days": 1
+      },
+      {
+        "startIso": "2026-09-11",
+        "startTime": "18:11",
+        "endIso": "2026-09-13",
+        "endTime": "19:29",
+        "reason": "ראש השנה",
+        "kind": "yomtov",
+        "days": 2
+      },
+      {
+        "startIso": "2026-09-18",
+        "startTime": "18:02",
+        "endIso": "2026-09-19",
+        "endTime": "19:21",
+        "reason": "שבת",
+        "kind": "shabbat",
+        "days": 1
+      },
+      {
+        "startIso": "2026-09-20",
+        "startTime": "18:00",
+        "endIso": "2026-09-21",
+        "endTime": "19:18",
+        "reason": "יום כיפור",
+        "kind": "yomtov",
+        "days": 1
+      },
+      {
+        "startIso": "2026-09-25",
+        "startTime": "17:53",
+        "endIso": "2026-09-26",
+        "endTime": "19:12",
+        "reason": "סוכות",
+        "kind": "yomtov",
+        "days": 1
+      },
+      {
+        "startIso": "2026-10-02",
+        "startTime": "17:44",
+        "endIso": "2026-10-03",
+        "endTime": "19:03",
+        "reason": "שמיני עצרת · שמחת תורה",
+        "kind": "yomtov",
+        "days": 1
+      },
+      {
+        "startIso": "2026-10-09",
+        "startTime": "17:35",
+        "endIso": "2026-10-10",
+        "endTime": "18:54",
+        "reason": "שבת",
+        "kind": "shabbat",
+        "days": 1
+      },
+      {
+        "startIso": "2026-10-16",
+        "startTime": "17:27",
+        "endIso": "2026-10-17",
+        "endTime": "18:46",
+        "reason": "שבת",
+        "kind": "shabbat",
+        "days": 1
+      },
+      {
+        "startIso": "2026-10-23",
+        "startTime": "17:19",
+        "endIso": "2026-10-24",
+        "endTime": "18:38",
+        "reason": "שבת",
+        "kind": "shabbat",
+        "days": 1
+      },
+      {
+        "startIso": "2026-10-30",
+        "startTime": "16:12",
+        "endIso": "2026-10-31",
+        "endTime": "17:31",
+        "reason": "שבת",
+        "kind": "shabbat",
+        "days": 1
+      },
+      {
+        "startIso": "2026-11-06",
+        "startTime": "16:06",
+        "endIso": "2026-11-07",
+        "endTime": "17:25",
+        "reason": "שבת",
+        "kind": "shabbat",
+        "days": 1
+      },
+      {
+        "startIso": "2026-11-13",
+        "startTime": "16:01",
+        "endIso": "2026-11-14",
+        "endTime": "17:21",
+        "reason": "שבת",
+        "kind": "shabbat",
+        "days": 1
+      },
+      {
+        "startIso": "2026-11-20",
+        "startTime": "15:58",
+        "endIso": "2026-11-21",
+        "endTime": "17:17",
+        "reason": "שבת",
+        "kind": "shabbat",
+        "days": 1
+      },
+      {
+        "startIso": "2026-11-27",
+        "startTime": "15:56",
+        "endIso": "2026-11-28",
+        "endTime": "17:15",
+        "reason": "שבת",
+        "kind": "shabbat",
+        "days": 1
+      }
+    ]
+  },
+  "inboundVoiceNumbers": [
+    {
+      "id": "n1",
+      "e164": "+97225000000",
+      "label": "קו ראשי",
+      "onramp": "sim-in-gateway",
+      "kosher": false
+    }
+  ],
+  "outboundSims": [
+    {
+      "id": "n1",
+      "e164": "+97225000000",
+      "label": "קו ראשי",
+      "prefix": "1#",
+      "channel": 1
+    }
+  ],
+  "outboundDefault": "n1",
+  "nonVoiceChannels": [],
+  "cti": {
+    "org": null,
+    "mode": "off"
+  },
+  "files": [
+    "dialplan/tenant_zmanim-demo.xml",
+    "directory/zmanim-demo.xml",
+    "sip_profiles/gateways/zmanim-demo.xml"
+  ],
+  "warnings": []
+}

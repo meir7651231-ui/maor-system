@@ -1,0 +1,24 @@
+{
+  "tenantId": "zmanim-demo",
+  "orgName": "עמותת החסד — זמנים הלכתיים",
+  "city": "jerusalem",
+  "timezone": "Asia/Jerusalem",
+  "vertical": "chesed",
+  "features": {
+    "calendar.hebrew": true,
+    "calendar.shabbat": true,
+    "calendar.zmanim": true,
+    "voice.greeting": true
+  },
+  "officeHours": { "days": [0, 1, 2, 3, 4, 5], "start": "08:00", "end": "20:00" },
+  "numbers": [
+    { "id": "n1", "e164": "02-5000000", "label": "קו ראשי", "type": "sim", "onramp": "sim-in-gateway", "channels": ["voice"], "gatewayChannel": 1 }
+  ],
+  "destinations": {
+    "office": { "ext": "101" },
+    "manager": { "ext": "201" },
+    "voicemail": { "box": "100" }
+  },
+  "outbound": { "defaultNumberId": "n1" },
+  "cti": { "mode": "off" }
+}

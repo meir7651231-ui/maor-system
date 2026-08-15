@@ -1,0 +1,121 @@
+{
+  "tenantId": "chesed-demo",
+  "orgName": "מאור החסד",
+  "model": "pure-downstream",
+  "context": "tenant_chesed-demo",
+  "officeHours": {
+    "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "start": "09:00",
+    "end": "17:00"
+  },
+  "inboundVoiceNumbers": [
+    {
+      "id": "n1",
+      "e164": "+97225551234",
+      "label": "קו ראשי",
+      "onramp": "sim-in-gateway",
+      "kosher": false
+    },
+    {
+      "id": "n2",
+      "e164": "+972501112233",
+      "label": "קו תרומות",
+      "onramp": "sim-in-gateway",
+      "kosher": false
+    },
+    {
+      "id": "n3",
+      "e164": "+972539998877",
+      "label": "קו כשר",
+      "onramp": "sim-in-gateway",
+      "kosher": true
+    },
+    {
+      "id": "n4",
+      "e164": "+972772000000",
+      "label": "קו וירטואלי משרד",
+      "onramp": "customer-forward",
+      "kosher": false
+    },
+    {
+      "id": "n5",
+      "e164": "+972722334455",
+      "label": "קו וירטואלי גיוס",
+      "onramp": "customer-forward",
+      "kosher": false
+    }
+  ],
+  "outboundSims": [
+    {
+      "id": "n1",
+      "e164": "+97225551234",
+      "label": "קו ראשי",
+      "prefix": "1#",
+      "channel": 1
+    },
+    {
+      "id": "n2",
+      "e164": "+972501112233",
+      "label": "קו תרומות",
+      "prefix": "2#",
+      "channel": 2
+    },
+    {
+      "id": "n3",
+      "e164": "+972539998877",
+      "label": "קו כשר",
+      "prefix": "3#",
+      "channel": 3
+    },
+    {
+      "id": "n7",
+      "e164": "+972551234567",
+      "label": "קו SMS",
+      "prefix": "4#",
+      "channel": 4
+    }
+  ],
+  "outboundDefault": "n1",
+  "nonVoiceChannels": [
+    {
+      "id": "n6",
+      "e164": "+972547654321",
+      "label": "ווצאפ עמותה",
+      "type": "whatsapp",
+      "onramp": "device-link",
+      "channels": [
+        "whatsapp"
+      ],
+      "note": "ווצאפ ריבוי-מכשירים — מטופל בגשר-הודעות, לא בדיאלפלן הקולי"
+    },
+    {
+      "id": "n7",
+      "e164": "+972551234567",
+      "label": "קו SMS",
+      "type": "sim",
+      "onramp": "sim-in-gateway",
+      "channels": [
+        "sms"
+      ],
+      "note": "לא נושא-קול"
+    }
+  ],
+  "cti": {
+    "org": "chesed-demo",
+    "mode": "directory"
+  },
+  "files": [
+    "dialplan/tenant_chesed-demo.xml",
+    "directory/chesed-demo.xml",
+    "sip_profiles/gateways/chesed-demo.xml"
+  ],
+  "warnings": [
+    "numbers[n3]: מספר-כשר — יציאה לא-כשרה לא תנותב דרכו אוטומטית; אמת מול הספק הכשר."
+  ]
+}

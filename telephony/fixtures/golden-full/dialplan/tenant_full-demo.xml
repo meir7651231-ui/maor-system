@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- מחולל אוטומטית מקונפיג-הלקוח. אין לערוך ידנית — ערוך את הנתונים והרץ מחדש. -->
+<!-- עמותה מלאה · pure-downstream · 3 מספרים נושאי-קול · 2 ערוצי-יציאה -->
+<include>
+  <context name="tenant_full-demo">
+
+    <!-- setup: התנהגות עצמאית (לא תלוי vars.xml של השרת) -->
+    <extension name="setup_defaults" continue="true">
+      <condition>
+        <action application="set" data="hangup_after_bridge=true"/>
+        <action application="set" data="continue_on_fail=true"/>
+        <action application="set" data="max_forwards=20"/>
+      </condition>
+    </extension>
+    <extension name="cid_normalize" continue="true">
+      <condition break="never"><action application="set" data="cid_e164=${caller_id_number}"/></condition>
+      <condition field="caller_id_number" expression="^00([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="caller_id_number" expression="^0([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+      <condition field="caller_id_number" expression="^(972\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="caller_id_number" expression="^([1-9]\d{6,8})$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+      <condition field="caller_id_number" expression="^([1-9]\d{9,14})$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="${cid_e164}" expression="^\+9720([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+    </extension>
+    <!-- רשימת-חסימה: 2 מספרים → ניתוק -->
+    <extension name="blocklist">
+      <condition field="${inbound_call}" expression="^true$"/>
+      <condition field="${cid_e164}" expression="^(\+97231111111|\+972509999999)$">
+        <action application="set" data="closed_reason=מספר-חסום"/>
+        <action application="hangup" data="CALL_REJECTED"/>
+      </condition>
+    </extension>
+
+    <!-- שער-הזמן: ברירת-מחדל סגור; global_open לפי שעות, force_closed לפי חג/dnd/חירום -->
+    <extension name="gate_default" continue="true">
+      <condition>
+        <action application="set" data="global_open=false"/>
+        <action application="set" data="force_closed=false"/>
+      </condition>
+    </extension>
+    <extension name="office_window" continue="true">
+      <condition wday="1-5" time-of-day="9:00-17:00">
+        <action application="set" data="global_open=true"/>
+      </condition>
+    </extension>
+
+    <!-- כניסה: קווים-מופנים מזוהים לפי DID (תלוי בכך שהספק משמרו) -->
+    <extension name="in_n3">
+      <!-- קו-מופנה: תלוי בכך שהספק מעביר את ה-DID המקורי -->
+      <condition field="destination_number" expression="^\+972775000000$">
+        <action application="set" data="inbound_call=true"/>
+        <action application="set" data="inbound_line=קו לילה"/>
+        <action application="set" data="inbound_number=+972775000000"/>
+        <action application="transfer" data="line_n3 XML tenant_full-demo"/>
+      </condition>
+    </extension>
+    <extension name="line_n3_closed">
+      <condition field="destination_number" expression="^line_n3$"/>
+      <condition field="${force_closed}" expression="^true$">
+        <action application="transfer" data="do_closed XML tenant_full-demo"/>
+      </condition>
+    </extension>
+    <extension name="line_n3_w1">
+      <condition field="destination_number" expression="^line_n3$"/>
+      <condition wday="1-5" time-of-day="18:00-22:00">
+        <action application="transfer" data="do_open XML tenant_full-demo"/>
+      </condition>
+    </extension>
+    <extension name="line_n3_default">
+      <condition field="destination_number" expression="^line_n3$">
+        <action application="transfer" data="do_closed XML tenant_full-demo"/>
+      </condition>
+    </extension>
+
+    <!-- ניתוב: force_closed→do_closed · global_open→do_open · אחרת→do_closed -->
+    <extension name="incoming_closed">
+      <condition field="destination_number" expression="^incoming$"/>
+      <condition field="${force_closed}" expression="^true$">
+        <action application="transfer" data="do_closed XML tenant_full-demo"/>
+      </condition>
+    </extension>
+    <extension name="incoming">
+      <condition field="destination_number" expression="^incoming$"/>
+      <condition field="${global_open}" expression="^true$">
+        <action application="transfer" data="do_open XML tenant_full-demo"/>
+        <anti-action application="transfer" data="do_closed XML tenant_full-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_open">
+      <condition field="destination_number" expression="^do_open$">
+        <action application="transfer" data="ivr_menu XML tenant_full-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_closed">
+      <condition field="destination_number" expression="^do_closed$">
+        <action application="transfer" data="afterhours XML tenant_full-demo"/>
+      </condition>
+    </extension>
+    <extension name="afterhours">
+      <condition field="destination_number" expression="^afterhours$">
+        <action application="bridge" data="{leg_timeout=30}user/201@full-demo"/>
+        <action application="bridge" data="{leg_timeout=30}user/301@full-demo"/>
+        <action application="bridge" data="{leg_timeout=30}user/302@full-demo"/>
+        <action application="answer"/>
+        <action application="sleep" data="500"/>
+        <action application="voicemail" data="default full-demo 100"/>
+      </condition>
+    </extension>
+
+    <!-- יציאה: קידומת <ערוץ>#<מספר> בוחרת דרך איזה SIM לצאת (רק שלוחה-רשומה) -->
+    <extension name="out_pick_n1">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^1#(\+?\d+)$">
+        <action application="set" data="effective_caller_id_number=+97225000000"/>
+        <action application="set" data="effective_caller_id_name=קו ראשי"/>
+        <action application="bridge" data="sofia/gateway/full-demo-gw1/$1"/>
+      </condition>
+    </extension>
+    <extension name="out_pick_n2">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^2#(\+?\d+)$">
+        <action application="set" data="effective_caller_id_number=+97235000000"/>
+        <action application="set" data="effective_caller_id_name=קו תרומות"/>
+        <action application="bridge" data="sofia/gateway/full-demo-gw2/$1"/>
+      </condition>
+    </extension>
+    <!-- יציאת-ברירת-מחדל מקומית (חיוג רגיל בלי קידומת) → קו ראשי -->
+    <extension name="out_default">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^(0\d{7,9}|\+?972\d{7,9})$">
+        <action application="set" data="effective_caller_id_number=+97225000000"/>
+        <action application="bridge" data="sofia/gateway/full-demo-gw1/$1"/>
+      </condition>
+    </extension>
+
+    <!-- IVR: תפריט-בחירה (3 אפשרויות) -->
+    <extension name="ivr_menu">
+      <condition field="destination_number" expression="^ivr_menu$">
+        <action application="answer"/>
+        <action application="play_and_get_digits" data="1 1 3 6000 # $${sounds_dir}/ivr/full-demo/menu.wav $${sounds_dir}/ivr/full-demo/invalid.wav ivr_choice [123] 2000"/>
+        <action application="transfer" data="ivr_opt_${ivr_choice} XML tenant_full-demo"/>
+      </condition>
+    </extension>
+    <extension name="ivr_opt_empty">
+      <condition field="destination_number" expression="^ivr_opt_$">
+        <action application="transfer" data="afterhours XML tenant_full-demo"/>
+      </condition>
+    </extension>
+    <extension name="ivr_opt_1">
+      <condition field="destination_number" expression="^ivr_opt_1$">
+        <action application="bridge" data="user/101@full-demo,user/102@full-demo"/>
+      </condition>
+    </extension>
+    <extension name="ivr_opt_2">
+      <condition field="destination_number" expression="^ivr_opt_2$">
+        <action application="bridge" data="user/102@full-demo"/>
+      </condition>
+    </extension>
+    <extension name="ivr_opt_3">
+      <condition field="destination_number" expression="^ivr_opt_3$">
+        <action application="answer"/>
+        <action application="voicemail" data="default full-demo 100"/>
+      </condition>
+    </extension>
+
+    <!-- חיוג-מהיר -->
+    <extension name="sd_star1">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^\*1$">
+        <action application="set" data="effective_caller_id_number=+97225000000"/>
+        <action application="bridge" data="sofia/gateway/full-demo-gw1/+972501234567"/>
+      </condition>
+    </extension>
+    <extension name="sd_star2">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^\*2$">
+        <action application="set" data="effective_caller_id_number=+97225000000"/>
+        <action application="bridge" data="sofia/gateway/full-demo-gw1/+972527654321"/>
+      </condition>
+    </extension>
+
+    <!-- חיוג-פנימי בין שלוחות -->
+    <extension name="internal_dial">
+      <condition field="destination_number" expression="^(101|102|201|301|302)$">
+        <action application="bridge" data="user/$1@full-demo"/>
+      </condition>
+    </extension>
+
+    <!-- חניית-שיחה (700) -->
+    <extension name="park">
+      <condition field="destination_number" expression="^700$">
+        <action application="answer"/>
+        <action application="valet_park" data="valet_lot_full-demo auto in 5 400"/>
+      </condition>
+    </extension>
+
+    <!-- אחזור-תא-קולי -->
+    <extension name="vm_retrieve">
+      <condition field="destination_number" expression="^\*98$">
+        <action application="answer"/>
+        <action application="voicemail" data="check default full-demo 100"/>
+      </condition>
+    </extension>
+  </context>
+
+  <context name="tenant_full-demo_gw1">
+    <!-- קו ראשי · +97225000000 · ערוץ 1 -->
+    <extension name="gw1_entry">
+      <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_call=true"/>
+        <action application="set" data="inbound_line=קו ראשי"/>
+        <action application="set" data="inbound_number=+97225000000"/>
+        <action application="transfer" data="incoming XML tenant_full-demo"/>
+      </condition>
+    </extension>
+  </context>
+
+  <context name="tenant_full-demo_gw2">
+    <!-- קו תרומות · +97235000000 · ערוץ 2 -->
+    <extension name="gw2_entry">
+      <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_call=true"/>
+        <action application="set" data="inbound_line=קו תרומות"/>
+        <action application="set" data="inbound_number=+97235000000"/>
+        <action application="transfer" data="incoming XML tenant_full-demo"/>
+      </condition>
+    </extension>
+  </context>
+</include>

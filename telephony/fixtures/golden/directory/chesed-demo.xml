@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- מחולל אוטומטית — משתמשי מאור החסד. סיסמאות (סוד פר-שלוחה) מוזרקות בהתקנה. -->
+<include>
+  <domain name="chesed-demo">
+    <users>
+      <user id="101">
+        <params>
+          <param name="password" value="$${PROVISION_PW__chesed-demo__101}"/>
+          <param name="vm-password" value="$${VM_PW__chesed-demo__101}"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_chesed-demo"/>
+          <variable name="effective_caller_id_name" value="משרד מאור החסד"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+      <user id="102">
+        <params>
+          <param name="password" value="$${PROVISION_PW__chesed-demo__102}"/>
+          <param name="vm-password" value="$${VM_PW__chesed-demo__102}"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_chesed-demo"/>
+          <variable name="effective_caller_id_name" value="משרד מאור החסד"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+      <user id="201">
+        <params>
+          <param name="password" value="$${PROVISION_PW__chesed-demo__201}"/>
+          <param name="vm-password" value="$${VM_PW__chesed-demo__201}"/>
+          <param name="vm-mailto" value="manager@chesed.example"/>
+          <param name="vm-attach-file" value="true"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_chesed-demo"/>
+          <variable name="effective_caller_id_name" value="מנהל מאור החסד"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+      <user id="100">
+        <params>
+          <param name="password" value="$${PROVISION_PW__chesed-demo__100}"/>
+          <param name="vm-password" value="$${VM_PW__chesed-demo__100}"/>
+          <param name="vm-mailto" value="manager@chesed.example"/>
+          <param name="vm-attach-file" value="true"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_chesed-demo"/>
+          <variable name="effective_caller_id_name" value="תא-קולי מאור החסד"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+    </users>
+  </domain>
+</include>

@@ -1,0 +1,145 @@
+{
+  "tenantId": "voice-demo",
+  "orgName": "עמותת קול",
+  "model": "pure-downstream",
+  "requiredPrompts": [
+    {
+      "file": "greeting-open.wav",
+      "state": "open",
+      "text": "שלום, הגעתם לעמותת קול. נציג יענה מיד."
+    },
+    {
+      "file": "greeting-closed.wav",
+      "state": "closed",
+      "text": "שלום, הגעתם לעמותת קול. המשרד סגור כעת, נשמח לחזור אליכם."
+    },
+    {
+      "file": "greeting-holiday.wav",
+      "state": "holiday",
+      "text": "שלום, הגעתם לעמותת קול. אנו סגורים לרגל החג. חג שמח!"
+    },
+    {
+      "file": "announce-n2.wav",
+      "state": "announcement",
+      "text": "שעות הקבלה: ראשון עד חמישי 9:00-17:00. תודה."
+    }
+  ],
+  "promptCapabilities": {
+    "greetings": true,
+    "holidayGreeting": true,
+    "emergency": false,
+    "callerNameGreeting": true,
+    "voicemailTranscription": true,
+    "holdMusic": true,
+    "announcementLines": [
+      "n2"
+    ]
+  },
+  "context": "tenant_voice-demo",
+  "officeHours": {
+    "days": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "start": "09:00",
+    "end": "17:00"
+  },
+  "hebrewCalendar": {
+    "anchor": "2026-09-01",
+    "window": 400,
+    "closedDays": [
+      {
+        "iso": "2026-09-12",
+        "reason": "ראש השנה",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2026-09-13",
+        "reason": "ראש השנה",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2026-09-21",
+        "reason": "יום כיפור",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2026-09-26",
+        "reason": "סוכות",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2026-10-03",
+        "reason": "שמיני עצרת · שמחת תורה",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2027-04-22",
+        "reason": "פסח",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2027-04-28",
+        "reason": "שביעי של פסח",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2027-06-11",
+        "reason": "שבועות",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2027-10-02",
+        "reason": "ראש השנה",
+        "kind": "yomtov"
+      },
+      {
+        "iso": "2027-10-03",
+        "reason": "ראש השנה",
+        "kind": "yomtov"
+      }
+    ]
+  },
+  "inboundVoiceNumbers": [
+    {
+      "id": "n1",
+      "e164": "+97227000000",
+      "label": "קו ראשי",
+      "onramp": "sim-in-gateway",
+      "kosher": false
+    },
+    {
+      "id": "n2",
+      "e164": "+972777000000",
+      "label": "קו מידע",
+      "onramp": "customer-forward",
+      "kosher": false
+    }
+  ],
+  "outboundSims": [
+    {
+      "id": "n1",
+      "e164": "+97227000000",
+      "label": "קו ראשי",
+      "prefix": "1#",
+      "channel": 1
+    }
+  ],
+  "outboundDefault": "n1",
+  "nonVoiceChannels": [],
+  "cti": {
+    "org": "voice-demo",
+    "mode": "directory"
+  },
+  "files": [
+    "dialplan/tenant_voice-demo.xml",
+    "directory/voice-demo.xml",
+    "sip_profiles/gateways/voice-demo.xml"
+  ],
+  "warnings": [
+    "numbers[n2]: קו-מופנה עם הכרזה — לא נתמך ב-GSM downstream (ה-DID אינו נשמר). השתמש ב-SIM נפרד."
+  ]
+}

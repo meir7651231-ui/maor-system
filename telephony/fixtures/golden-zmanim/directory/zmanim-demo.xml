@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- מחולל אוטומטית — משתמשי עמותת החסד — זמנים הלכתיים. סיסמאות (סוד פר-שלוחה) מוזרקות בהתקנה. -->
+<include>
+  <domain name="zmanim-demo">
+    <users>
+      <user id="101">
+        <params>
+          <param name="password" value="$${PROVISION_PW__zmanim-demo__101}"/>
+          <param name="vm-password" value="$${VM_PW__zmanim-demo__101}"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_zmanim-demo"/>
+          <variable name="effective_caller_id_name" value="משרד עמותת החסד — זמנים הלכתיים"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+      <user id="201">
+        <params>
+          <param name="password" value="$${PROVISION_PW__zmanim-demo__201}"/>
+          <param name="vm-password" value="$${VM_PW__zmanim-demo__201}"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_zmanim-demo"/>
+          <variable name="effective_caller_id_name" value="מנהל עמותת החסד — זמנים הלכתיים"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+      <user id="100">
+        <params>
+          <param name="password" value="$${PROVISION_PW__zmanim-demo__100}"/>
+          <param name="vm-password" value="$${VM_PW__zmanim-demo__100}"/>
+        </params>
+        <variables>
+          <variable name="user_context" value="tenant_zmanim-demo"/>
+          <variable name="effective_caller_id_name" value="תא-קולי עמותת החסד — זמנים הלכתיים"/>
+          <variable name="toll_allow" value="domestic"/>
+        </variables>
+      </user>
+    </users>
+  </domain>
+</include>

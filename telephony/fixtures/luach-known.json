@@ -1,0 +1,1618 @@
+[
+  {
+    "iso": "2024-03-21",
+    "name": "תענית אסתר",
+    "yomTov": null,
+    "fast": "תענית אסתר",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2024-04-22",
+    "name": "ערב פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב פסח"
+  },
+  {
+    "iso": "2024-04-23",
+    "name": "פסח",
+    "yomTov": "פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2024-04-24",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2024-04-25",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2024-04-26",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2024-04-27",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2024-04-28",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2024-04-29",
+    "name": "שביעי של פסח",
+    "yomTov": "שביעי של פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2024-06-11",
+    "name": "ערב שבועות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב שבועות"
+  },
+  {
+    "iso": "2024-06-12",
+    "name": "שבועות",
+    "yomTov": "שבועות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2024-07-23",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2024-08-13",
+    "name": "תשעה באב",
+    "yomTov": null,
+    "fast": "תשעה באב",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2024-10-02",
+    "name": "ערב ראש השנה",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב ראש השנה"
+  },
+  {
+    "iso": "2024-10-03",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2024-10-04",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2024-10-06",
+    "name": "צום גדליה",
+    "yomTov": null,
+    "fast": "צום גדליה",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2024-10-11",
+    "name": "ערב יום כיפור",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב יום כיפור"
+  },
+  {
+    "iso": "2024-10-12",
+    "name": "יום כיפור",
+    "yomTov": "יום כיפור",
+    "fast": "יום כיפור",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2024-10-16",
+    "name": "ערב סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב סוכות"
+  },
+  {
+    "iso": "2024-10-17",
+    "name": "סוכות",
+    "yomTov": "סוכות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2024-10-18",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2024-10-19",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2024-10-20",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2024-10-21",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2024-10-22",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2024-10-23",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2024-10-24",
+    "name": "שמיני עצרת · שמחת תורה",
+    "yomTov": "שמיני עצרת · שמחת תורה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-01-10",
+    "name": "עשרה בטבת",
+    "yomTov": null,
+    "fast": "עשרה בטבת",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-03-13",
+    "name": "תענית אסתר",
+    "yomTov": null,
+    "fast": "תענית אסתר",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-04-12",
+    "name": "ערב פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב פסח"
+  },
+  {
+    "iso": "2025-04-13",
+    "name": "פסח",
+    "yomTov": "פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-04-14",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2025-04-15",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2025-04-16",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2025-04-17",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2025-04-18",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2025-04-19",
+    "name": "שביעי של פסח",
+    "yomTov": "שביעי של פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-06-01",
+    "name": "ערב שבועות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב שבועות"
+  },
+  {
+    "iso": "2025-06-02",
+    "name": "שבועות",
+    "yomTov": "שבועות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-07-13",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-08-03",
+    "name": "תשעה באב",
+    "yomTov": null,
+    "fast": "תשעה באב",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-09-22",
+    "name": "ערב ראש השנה",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב ראש השנה"
+  },
+  {
+    "iso": "2025-09-23",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-09-24",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-09-25",
+    "name": "צום גדליה",
+    "yomTov": null,
+    "fast": "צום גדליה",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-10-01",
+    "name": "ערב יום כיפור",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב יום כיפור"
+  },
+  {
+    "iso": "2025-10-02",
+    "name": "יום כיפור",
+    "yomTov": "יום כיפור",
+    "fast": "יום כיפור",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-10-06",
+    "name": "ערב סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב סוכות"
+  },
+  {
+    "iso": "2025-10-07",
+    "name": "סוכות",
+    "yomTov": "סוכות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-10-08",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2025-10-09",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2025-10-10",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2025-10-11",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2025-10-12",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2025-10-13",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2025-10-14",
+    "name": "שמיני עצרת · שמחת תורה",
+    "yomTov": "שמיני עצרת · שמחת תורה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2025-12-30",
+    "name": "עשרה בטבת",
+    "yomTov": null,
+    "fast": "עשרה בטבת",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-03-02",
+    "name": "תענית אסתר",
+    "yomTov": null,
+    "fast": "תענית אסתר",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-04-01",
+    "name": "ערב פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב פסח"
+  },
+  {
+    "iso": "2026-04-02",
+    "name": "פסח",
+    "yomTov": "פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-04-03",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2026-04-04",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2026-04-05",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2026-04-06",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2026-04-07",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2026-04-08",
+    "name": "שביעי של פסח",
+    "yomTov": "שביעי של פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-05-21",
+    "name": "ערב שבועות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב שבועות"
+  },
+  {
+    "iso": "2026-05-22",
+    "name": "שבועות",
+    "yomTov": "שבועות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-07-02",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-07-23",
+    "name": "תשעה באב",
+    "yomTov": null,
+    "fast": "תשעה באב",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-09-11",
+    "name": "ערב ראש השנה",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב ראש השנה"
+  },
+  {
+    "iso": "2026-09-12",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-09-13",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-09-14",
+    "name": "צום גדליה",
+    "yomTov": null,
+    "fast": "צום גדליה",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-09-20",
+    "name": "ערב יום כיפור",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב יום כיפור"
+  },
+  {
+    "iso": "2026-09-21",
+    "name": "יום כיפור",
+    "yomTov": "יום כיפור",
+    "fast": "יום כיפור",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-09-25",
+    "name": "ערב סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב סוכות"
+  },
+  {
+    "iso": "2026-09-26",
+    "name": "סוכות",
+    "yomTov": "סוכות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-09-27",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2026-09-28",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2026-09-29",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2026-09-30",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2026-10-01",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2026-10-02",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2026-10-03",
+    "name": "שמיני עצרת · שמחת תורה",
+    "yomTov": "שמיני עצרת · שמחת תורה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2026-12-20",
+    "name": "עשרה בטבת",
+    "yomTov": null,
+    "fast": "עשרה בטבת",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-03-22",
+    "name": "תענית אסתר",
+    "yomTov": null,
+    "fast": "תענית אסתר",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-04-21",
+    "name": "ערב פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב פסח"
+  },
+  {
+    "iso": "2027-04-22",
+    "name": "פסח",
+    "yomTov": "פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-04-23",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2027-04-24",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2027-04-25",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2027-04-26",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2027-04-27",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2027-04-28",
+    "name": "שביעי של פסח",
+    "yomTov": "שביעי של פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-06-10",
+    "name": "ערב שבועות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב שבועות"
+  },
+  {
+    "iso": "2027-06-11",
+    "name": "שבועות",
+    "yomTov": "שבועות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-07-22",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-08-12",
+    "name": "תשעה באב",
+    "yomTov": null,
+    "fast": "תשעה באב",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-10-01",
+    "name": "ערב ראש השנה",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב ראש השנה"
+  },
+  {
+    "iso": "2027-10-02",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-10-03",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-10-04",
+    "name": "צום גדליה",
+    "yomTov": null,
+    "fast": "צום גדליה",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-10-10",
+    "name": "ערב יום כיפור",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב יום כיפור"
+  },
+  {
+    "iso": "2027-10-11",
+    "name": "יום כיפור",
+    "yomTov": "יום כיפור",
+    "fast": "יום כיפור",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-10-15",
+    "name": "ערב סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב סוכות"
+  },
+  {
+    "iso": "2027-10-16",
+    "name": "סוכות",
+    "yomTov": "סוכות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2027-10-17",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2027-10-18",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2027-10-19",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2027-10-20",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2027-10-21",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2027-10-22",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2027-10-23",
+    "name": "שמיני עצרת · שמחת תורה",
+    "yomTov": "שמיני עצרת · שמחת תורה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-01-09",
+    "name": "עשרה בטבת",
+    "yomTov": null,
+    "fast": "עשרה בטבת",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-03-09",
+    "name": "תענית אסתר",
+    "yomTov": null,
+    "fast": "תענית אסתר",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-04-10",
+    "name": "ערב פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב פסח"
+  },
+  {
+    "iso": "2028-04-11",
+    "name": "פסח",
+    "yomTov": "פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-04-12",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2028-04-13",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2028-04-14",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2028-04-15",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2028-04-16",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2028-04-17",
+    "name": "שביעי של פסח",
+    "yomTov": "שביעי של פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-05-30",
+    "name": "ערב שבועות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב שבועות"
+  },
+  {
+    "iso": "2028-05-31",
+    "name": "שבועות",
+    "yomTov": "שבועות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-07-11",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-08-01",
+    "name": "תשעה באב",
+    "yomTov": null,
+    "fast": "תשעה באב",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-09-20",
+    "name": "ערב ראש השנה",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב ראש השנה"
+  },
+  {
+    "iso": "2028-09-21",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-09-22",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-09-24",
+    "name": "צום גדליה",
+    "yomTov": null,
+    "fast": "צום גדליה",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-09-29",
+    "name": "ערב יום כיפור",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב יום כיפור"
+  },
+  {
+    "iso": "2028-09-30",
+    "name": "יום כיפור",
+    "yomTov": "יום כיפור",
+    "fast": "יום כיפור",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-10-04",
+    "name": "ערב סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב סוכות"
+  },
+  {
+    "iso": "2028-10-05",
+    "name": "סוכות",
+    "yomTov": "סוכות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-10-06",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2028-10-07",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2028-10-08",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2028-10-09",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2028-10-10",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2028-10-11",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2028-10-12",
+    "name": "שמיני עצרת · שמחת תורה",
+    "yomTov": "שמיני עצרת · שמחת תורה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2028-12-28",
+    "name": "עשרה בטבת",
+    "yomTov": null,
+    "fast": "עשרה בטבת",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-02-28",
+    "name": "תענית אסתר",
+    "yomTov": null,
+    "fast": "תענית אסתר",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-03-30",
+    "name": "ערב פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב פסח"
+  },
+  {
+    "iso": "2029-03-31",
+    "name": "פסח",
+    "yomTov": "פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-04-01",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2029-04-02",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2029-04-03",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2029-04-04",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2029-04-05",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2029-04-06",
+    "name": "שביעי של פסח",
+    "yomTov": "שביעי של פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-05-19",
+    "name": "ערב שבועות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב שבועות"
+  },
+  {
+    "iso": "2029-05-20",
+    "name": "שבועות",
+    "yomTov": "שבועות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-07-01",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-07-22",
+    "name": "תשעה באב (נדחה)",
+    "yomTov": null,
+    "fast": "תשעה באב (נדחה)",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-09-09",
+    "name": "ערב ראש השנה",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב ראש השנה"
+  },
+  {
+    "iso": "2029-09-10",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-09-11",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-09-12",
+    "name": "צום גדליה",
+    "yomTov": null,
+    "fast": "צום גדליה",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-09-18",
+    "name": "ערב יום כיפור",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב יום כיפור"
+  },
+  {
+    "iso": "2029-09-19",
+    "name": "יום כיפור",
+    "yomTov": "יום כיפור",
+    "fast": "יום כיפור",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-09-23",
+    "name": "ערב סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב סוכות"
+  },
+  {
+    "iso": "2029-09-24",
+    "name": "סוכות",
+    "yomTov": "סוכות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-09-25",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2029-09-26",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2029-09-27",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2029-09-28",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2029-09-29",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2029-09-30",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2029-10-01",
+    "name": "שמיני עצרת · שמחת תורה",
+    "yomTov": "שמיני עצרת · שמחת תורה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2029-12-16",
+    "name": "עשרה בטבת",
+    "yomTov": null,
+    "fast": "עשרה בטבת",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-03-18",
+    "name": "תענית אסתר",
+    "yomTov": null,
+    "fast": "תענית אסתר",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-04-17",
+    "name": "ערב פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב פסח"
+  },
+  {
+    "iso": "2030-04-18",
+    "name": "פסח",
+    "yomTov": "פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-04-19",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2030-04-20",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2030-04-21",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2030-04-22",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2030-04-23",
+    "name": "חול המועד פסח",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד פסח",
+    "erevChag": null
+  },
+  {
+    "iso": "2030-04-24",
+    "name": "שביעי של פסח",
+    "yomTov": "שביעי של פסח",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-06-06",
+    "name": "ערב שבועות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב שבועות"
+  },
+  {
+    "iso": "2030-06-07",
+    "name": "שבועות",
+    "yomTov": "שבועות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-07-18",
+    "name": "שבעה עשר בתמוז",
+    "yomTov": null,
+    "fast": "שבעה עשר בתמוז",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-08-08",
+    "name": "תשעה באב",
+    "yomTov": null,
+    "fast": "תשעה באב",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-09-27",
+    "name": "ערב ראש השנה",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב ראש השנה"
+  },
+  {
+    "iso": "2030-09-28",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-09-29",
+    "name": "ראש השנה",
+    "yomTov": "ראש השנה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-09-30",
+    "name": "צום גדליה",
+    "yomTov": null,
+    "fast": "צום גדליה",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-10-06",
+    "name": "ערב יום כיפור",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב יום כיפור"
+  },
+  {
+    "iso": "2030-10-07",
+    "name": "יום כיפור",
+    "yomTov": "יום כיפור",
+    "fast": "יום כיפור",
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-10-11",
+    "name": "ערב סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": "ערב סוכות"
+  },
+  {
+    "iso": "2030-10-12",
+    "name": "סוכות",
+    "yomTov": "סוכות",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  },
+  {
+    "iso": "2030-10-13",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2030-10-14",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2030-10-15",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2030-10-16",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2030-10-17",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2030-10-18",
+    "name": "חול המועד סוכות",
+    "yomTov": null,
+    "fast": null,
+    "cholHamoed": "חול המועד סוכות",
+    "erevChag": null
+  },
+  {
+    "iso": "2030-10-19",
+    "name": "שמיני עצרת · שמחת תורה",
+    "yomTov": "שמיני עצרת · שמחת תורה",
+    "fast": null,
+    "cholHamoed": null,
+    "erevChag": null
+  }
+]

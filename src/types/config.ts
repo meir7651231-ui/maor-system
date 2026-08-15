@@ -13,6 +13,43 @@
  */
 export type ModuleKey = 'families' | 'courses' | 'calendar' | 'diary' | 'supporters' | 'reports' | 'tzedaka' | 'shop' | 'shop7';
 
+/**
+ * מספר-טלפון בתצורת-הטלפוניה (מוגדר כאן — שכבת-הטיפוסים — כדי ש-normalizeConfig
+ * יחטא אותו בלי לייבא מרכיבים; ‏components/telephony/lib.ts מייבא מכאן).
+ * ‏sim=SIM בשער-GSM · virtual=הפניית-לקוח · whatsapp=קישור-מכשיר.
+ */
+export interface TelNumber {
+  id: string;
+  e164: string;
+  label: string;
+  kind: 'sim' | 'virtual' | 'whatsapp';
+  kosher?: boolean;
+}
+
+/**
+ * תצורת-הטלפוניה שהאשף אוסף ומתמיד (downstream בלבד — מתאר ציוד-לקוח, בלי סודות).
+ * נשמרת ב-config.json ומחוטאת ב-normalizeConfig (allowlist מלא — כל שדה זר נזרק).
+ */
+export interface TelephonyConfig {
+  /** מתג-המקטע — **opt-in, ברירת-מחדל כבוי** (הפוך ממודול: חסר/false=כבוי, רק
+   *  true מדליק). כבוי ⇒ המקטע מעומעם והטלפוניה לא נכללת בדף-המסירה. */
+  enabled?: boolean;
+  numbers: TelNumber[];
+  officeDays: number[]; // 0=ראשון..6=שבת
+  officeStart: string; // HH:MM
+  officeEnd: string; // HH:MM
+  officeExt: string;
+  managerExt: string;
+  vmBox: string;
+  city: string; // מפתח-עיר לזמנים או '' לברירת-מחדל
+  kosherMode: boolean;
+  hebrewCalendar: boolean;
+  zmanim: boolean;
+  shabbat: boolean;
+  fasts: boolean;
+  voicemail: boolean;
+}
+
 export interface OrgConfig {
   /** מזהה קצר של הארגון (לשם קובץ/כתובת). */
   slug: string;
@@ -76,6 +113,12 @@ export interface OrgConfig {
    * ל-orgs/ — בחלון שקט, בפקודה נפרדת.
    */
   cloudRoot?: boolean;
+  /**
+   * תצורת-טלפוניה (downstream) — נאספת באשף-ההקמה ומיוצאת עם החבילה. מחוטאת
+   * ב-normalizeConfig (allowlist מלא). חסר = לא-הוגדרה טלפוניה (ביט-זהה להיום).
+   * מכילה אך-ורק ציוד-לקוח (מספרים/שעות/שלוחות/דגלים) — לעולם לא סודות.
+   */
+  telephony?: TelephonyConfig;
   /**
    * מסלול-B (רי-ארכיטקצורה 14.8): פיצול-תרומות לאוסף-ענן נפרד פר-ייעוד לאכיפת-
    * הרשאה בשכבת-הנתונים. **דגל-אב off-by-default** — נדלק ידנית ע"י הבעלים רק

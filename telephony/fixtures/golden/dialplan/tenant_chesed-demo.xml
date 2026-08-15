@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- מחולל אוטומטית מקונפיג-הלקוח. אין לערוך ידנית — ערוך את הנתונים והרץ מחדש. -->
+<!-- מאור החסד · pure-downstream · 5 מספרים נושאי-קול · 4 ערוצי-יציאה -->
+<include>
+  <context name="tenant_chesed-demo">
+
+    <!-- setup: התנהגות עצמאית (לא תלוי vars.xml של השרת) -->
+    <extension name="setup_defaults" continue="true">
+      <condition>
+        <action application="set" data="hangup_after_bridge=true"/>
+        <action application="set" data="continue_on_fail=true"/>
+        <action application="set" data="max_forwards=20"/>
+      </condition>
+    </extension>
+    <extension name="cid_normalize" continue="true">
+      <condition break="never"><action application="set" data="cid_e164=${caller_id_number}"/></condition>
+      <condition field="caller_id_number" expression="^00([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="caller_id_number" expression="^0([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+      <condition field="caller_id_number" expression="^(972\d+)$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="caller_id_number" expression="^([1-9]\d{6,8})$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+      <condition field="caller_id_number" expression="^([1-9]\d{9,14})$" break="never"><action application="set" data="cid_e164=+$1"/></condition>
+      <condition field="${cid_e164}" expression="^\+9720([1-9]\d+)$" break="never"><action application="set" data="cid_e164=+972$1"/></condition>
+    </extension>
+
+    <!-- שער-הזמן: ברירת-מחדל סגור; global_open לפי שעות, force_closed לפי חג/dnd/חירום -->
+    <extension name="gate_default" continue="true">
+      <condition>
+        <action application="set" data="global_open=false"/>
+        <action application="set" data="force_closed=false"/>
+      </condition>
+    </extension>
+    <extension name="office_window" continue="true">
+      <condition wday="1-5" time-of-day="9:00-17:00">
+        <action application="set" data="global_open=true"/>
+      </condition>
+    </extension>
+
+    <!-- כניסה: קווים-מופנים מזוהים לפי DID (תלוי בכך שהספק משמרו) -->
+    <extension name="in_n4">
+      <!-- קו-מופנה: תלוי בכך שהספק מעביר את ה-DID המקורי -->
+      <condition field="destination_number" expression="^\+972772000000$">
+        <action application="set" data="inbound_call=true"/>
+        <action application="set" data="inbound_line=קו וירטואלי משרד"/>
+        <action application="set" data="inbound_number=+972772000000"/>
+        <action application="transfer" data="incoming XML tenant_chesed-demo"/>
+      </condition>
+    </extension>
+    <extension name="in_n5">
+      <!-- קו-מופנה: תלוי בכך שהספק מעביר את ה-DID המקורי -->
+      <condition field="destination_number" expression="^\+972722334455$">
+        <action application="set" data="inbound_call=true"/>
+        <action application="set" data="inbound_line=קו וירטואלי גיוס"/>
+        <action application="set" data="inbound_number=+972722334455"/>
+        <action application="transfer" data="incoming XML tenant_chesed-demo"/>
+      </condition>
+    </extension>
+
+    <!-- ניתוב: force_closed→do_closed · global_open→do_open · אחרת→do_closed -->
+    <extension name="incoming_closed">
+      <condition field="destination_number" expression="^incoming$"/>
+      <condition field="${force_closed}" expression="^true$">
+        <action application="transfer" data="do_closed XML tenant_chesed-demo"/>
+      </condition>
+    </extension>
+    <extension name="incoming">
+      <condition field="destination_number" expression="^incoming$"/>
+      <condition field="${global_open}" expression="^true$">
+        <action application="transfer" data="do_open XML tenant_chesed-demo"/>
+        <anti-action application="transfer" data="do_closed XML tenant_chesed-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_open">
+      <condition field="destination_number" expression="^do_open$">
+        <action application="bridge" data="{leg_timeout=25}user/101@chesed-demo,user/102@chesed-demo"/>
+        <action application="transfer" data="afterhours XML tenant_chesed-demo"/>
+      </condition>
+    </extension>
+    <extension name="do_closed">
+      <condition field="destination_number" expression="^do_closed$">
+        <action application="transfer" data="afterhours XML tenant_chesed-demo"/>
+      </condition>
+    </extension>
+    <extension name="afterhours">
+      <condition field="destination_number" expression="^afterhours$">
+        <action application="bridge" data="{leg_timeout=30}user/201@chesed-demo"/>
+        <action application="answer"/>
+        <action application="sleep" data="500"/>
+        <action application="voicemail" data="default chesed-demo 100"/>
+      </condition>
+    </extension>
+
+    <!-- יציאה: קידומת <ערוץ>#<מספר> בוחרת דרך איזה SIM לצאת (רק שלוחה-רשומה) -->
+    <extension name="out_pick_n1">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^1#(\+?\d+)$">
+        <action application="set" data="effective_caller_id_number=+97225551234"/>
+        <action application="set" data="effective_caller_id_name=קו ראשי"/>
+        <action application="bridge" data="sofia/gateway/chesed-demo-gw1/$1"/>
+      </condition>
+    </extension>
+    <extension name="out_pick_n2">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^2#(\+?\d+)$">
+        <action application="set" data="effective_caller_id_number=+972501112233"/>
+        <action application="set" data="effective_caller_id_name=קו תרומות"/>
+        <action application="bridge" data="sofia/gateway/chesed-demo-gw2/$1"/>
+      </condition>
+    </extension>
+    <extension name="out_pick_n3">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^3#(\+?\d+)$">
+        <action application="set" data="effective_caller_id_number=+972539998877"/>
+        <action application="set" data="effective_caller_id_name=קו כשר"/>
+        <action application="bridge" data="sofia/gateway/chesed-demo-gw3/$1"/>
+      </condition>
+    </extension>
+    <extension name="out_pick_n7">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^4#(\+?\d+)$">
+        <action application="set" data="effective_caller_id_number=+972551234567"/>
+        <action application="set" data="effective_caller_id_name=קו SMS"/>
+        <action application="bridge" data="sofia/gateway/chesed-demo-gw4/$1"/>
+      </condition>
+    </extension>
+    <!-- יציאת-ברירת-מחדל מקומית (חיוג רגיל בלי קידומת) → קו ראשי -->
+    <extension name="out_default">
+      <condition field="${sip_authorized}" expression="^true$"/>
+      <condition field="destination_number" expression="^(0\d{7,9}|\+?972\d{7,9})$">
+        <action application="set" data="effective_caller_id_number=+97225551234"/>
+        <action application="bridge" data="sofia/gateway/chesed-demo-gw1/$1"/>
+      </condition>
+    </extension>
+
+    <!-- אחזור-תא-קולי -->
+    <extension name="vm_retrieve">
+      <condition field="destination_number" expression="^\*98$">
+        <action application="answer"/>
+        <action application="voicemail" data="check default chesed-demo 100"/>
+      </condition>
+    </extension>
+  </context>
+
+  <context name="tenant_chesed-demo_gw1">
+    <!-- קו ראשי · +97225551234 · ערוץ 1 -->
+    <extension name="gw1_entry">
+      <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_call=true"/>
+        <action application="set" data="inbound_line=קו ראשי"/>
+        <action application="set" data="inbound_number=+97225551234"/>
+        <action application="transfer" data="incoming XML tenant_chesed-demo"/>
+      </condition>
+    </extension>
+  </context>
+
+  <context name="tenant_chesed-demo_gw2">
+    <!-- קו תרומות · +972501112233 · ערוץ 2 -->
+    <extension name="gw2_entry">
+      <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_call=true"/>
+        <action application="set" data="inbound_line=קו תרומות"/>
+        <action application="set" data="inbound_number=+972501112233"/>
+        <action application="transfer" data="incoming XML tenant_chesed-demo"/>
+      </condition>
+    </extension>
+  </context>
+
+  <context name="tenant_chesed-demo_gw3">
+    <!-- קו כשר · +972539998877 · ערוץ 3 -->
+    <extension name="gw3_entry">
+      <condition field="destination_number" expression="^.*$">
+        <action application="set" data="inbound_call=true"/>
+        <action application="set" data="inbound_line=קו כשר"/>
+        <action application="set" data="inbound_number=+972539998877"/>
+        <action application="transfer" data="incoming XML tenant_chesed-demo"/>
+      </condition>
+    </extension>
+  </context>
+</include>
