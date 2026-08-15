@@ -3,8 +3,9 @@
  * מפרק את כל התרומות לאוסף-ענן נפרד פר-ייעוד (אכיפת-הרשאה בשכבת-הנתונים). הפיך +
  * אידמפוטנטי + מגבה-מקומית-לפני; **אינו נוגע ב-donationSeq** (רצף §46).
  *
- * ⚠️ הבעלים מריץ. אחרי המיגרציה — מדליקים `donationSplit` בקונפיג-הארגון להפעלה.
- * מלא ב-knowledge/RUNBOOK-DONATION-SPLIT-2026-08-14.md.
+ * ⚠️ הבעלים מריץ. זרימת-שני-שלבים: (1) מיגרציה חד-פעמית ⇒ (2) כפתור "הדלקת
+ * פיצול-התרומות" שכותב `donationSplit:true` לקונפיג-הענן בקליק (בלי עריכת-Firestore
+ * ידנית) דרך `enableDonationSplit` שב-store. מלא ב-knowledge/RUNBOOK-DONATION-SPLIT-2026-08-14.md.
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
@@ -17,10 +18,13 @@ export function DonationSplitSection() {
   const cloudOn = useApp((s) => s.cloud.enabled);
   const config = useApp((s) => s.config);
   const runMigration = useApp((s) => s.runDonationSplitMigration);
+  const enableSplit = useApp((s) => s.enableDonationSplit);
   const toast = useApp((s) => s.toast);
   const [armed, setArmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<number | null>(null);
+  const [armedOn, setArmedOn] = useState(false);
+  const [busyOn, setBusyOn] = useState(false);
 
   // מגודר למייל-על בלבד (isSuperAdmin) — לא נחשף לאף לקוח.
   if (!isSuperAdmin(cloudUser?.email)) return null;
@@ -38,6 +42,20 @@ export function DonationSplitSection() {
       toast(e instanceof Error ? '⚠ ' + e.message : '⚠ המיגרציה נכשלה — נסו שוב');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const turnOn = async () => {
+    if (busyOn) return;
+    setBusyOn(true);
+    try {
+      await enableSplit(); // כותב donationSplit:true לקונפיג-הענן (merge) + תוקף-מיידי
+      setArmedOn(false);
+      // הבאדג' יתעדכן חי דרך onSnapshot (applyCloudDoc) — active יהפוך ל-✓
+    } catch (e) {
+      toast(e instanceof Error ? '⚠ ' + e.message : '⚠ ההפעלה נכשלה — נסו שוב');
+    } finally {
+      setBusyOn(false);
     }
   };
 
@@ -69,25 +87,53 @@ export function DonationSplitSection() {
           <SectionNote>
             <b>לפני שמריצים:</b> ודאו שפרסמתם את כללי-ה-Firestore. בלחיצה יורד גיבוי מקומי מלא
             אוטומטית, ואז כל התרומות נכתבות לאוסף-הענן הנפרד (upsert לפי מספר-קבלה). הפעולה
-            <b> הפיכה ואינה נוגעת ברצף-הקבלות</b>. אחרי-כן — הדליקו <code>donationSplit</code> בקונפיג-הארגון.
+            <b> הפיכה ואינה נוגעת ברצף-הקבלות</b>. אחרי-כן — הדליקו את הפיצול בכפתור שלב 2 (בלי עריכת-Firestore).
           </SectionNote>
-          {done !== null ? (
-            <SectionNote>
-              ✓ הוגרו <b>{done}</b> תרומות לאוסף. כעת הדליקו <code>donationSplit: true</code> בקונפיג-הארגון להפעלה.
-            </SectionNote>
-          ) : !armed ? (
-            <Btn kind="primary" sm onClick={() => setArmed(true)}>
-              הרצת מיגרציית-הפיצול
-            </Btn>
-          ) : (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: 13 }}>לגבות ולהגר את כל התרומות?</span>
-              <Btn kind="primary" sm onClick={() => void go()} disabled={busy}>
-                {busy ? 'מגבה ומגר…' : 'כן, הרץ'}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>שלב 1 — מיגרציה (חד-פעמי)</div>
+            {done !== null ? (
+              <SectionNote>
+                ✓ הוגרו <b>{done}</b> תרומות לאוסף. כעת עברו לשלב 2 והדליקו את הפיצול.
+              </SectionNote>
+            ) : !armed ? (
+              <Btn kind="primary" sm onClick={() => setArmed(true)}>
+                הרצת מיגרציית-הפיצול
               </Btn>
-              <Btn sm onClick={() => setArmed(false)} disabled={busy}>
-                ביטול
-              </Btn>
+            ) : (
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: 13 }}>לגבות ולהגר את כל התרומות?</span>
+                <Btn kind="primary" sm onClick={() => void go()} disabled={busy}>
+                  {busy ? 'מגבה ומגר…' : 'כן, הרץ'}
+                </Btn>
+                <Btn sm onClick={() => setArmed(false)} disabled={busy}>
+                  ביטול
+                </Btn>
+              </div>
+            )}
+          </div>
+
+          {!active && (
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>שלב 2 — הדלקת הפיצול</div>
+              <SectionNote>
+                בקליק אחד מדליק את <code>donationSplit</code> בקונפיג-הענן בשבילכם (בלי עריכת-Firestore ידנית).
+                הריצו קודם את שלב 1. הפיצול נכנס לתוקף מיד; לנסיגה — כבו את הדגל בלוח-הבקרה.
+              </SectionNote>
+              {!armedOn ? (
+                <Btn kind="primary" sm onClick={() => setArmedOn(true)}>
+                  הדלקת פיצול-התרומות
+                </Btn>
+              ) : (
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={{ fontSize: 13 }}>להדליק את הפיצול בארגון?</span>
+                  <Btn kind="primary" sm onClick={() => void turnOn()} disabled={busyOn}>
+                    {busyOn ? 'מדליק…' : 'כן, הדלק'}
+                  </Btn>
+                  <Btn sm onClick={() => setArmedOn(false)} disabled={busyOn}>
+                    ביטול
+                  </Btn>
+                </div>
+              )}
             </div>
           )}
         </>
