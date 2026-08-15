@@ -26,6 +26,7 @@ import { MoneyTimer } from './components/timer/MoneyTimer';
 import { CashRegister } from './components/timer/CashRegister';
 import { BodyMap } from './components/timer/BodyMap';
 import { DedupModal } from './components/families/DedupModal';
+import { CallerLookup } from './components/CallerLookup';
 import { GuideModal } from './components/GuideModal';
 import { TourOverlay } from './components/TourOverlay';
 import { A11yFab } from './components/A11yFab';
@@ -183,6 +184,8 @@ export default function App() {
   const [bodymapOpen, setBodymapOpen] = useState(() => window.location.hash === '#bodymap');
   // איחוד כפילויות — נפתח עם #dedup (feature: settings.dedup)
   const [dedupOpen, setDedupOpen] = useState(() => window.location.hash === '#dedup');
+  // "מי מתקשר?" — חיפוש-מספר ידני (מודול טלפוניה), נפתח עם #caller
+  const [callerOpen, setCallerOpen] = useState(() => window.location.hash === '#caller');
   // המדריך המהיר — נפתח עם #guide (P2 פער 29, feature: shell.guide)
   const [guideOpen, setGuideOpen] = useState(() => window.location.hash === '#guide');
   // מצב הדגמה — סיור מודרך, נפתח עם #tour (P2 פער 30, feature: shell.demo)
@@ -260,6 +263,7 @@ export default function App() {
       setCashboxOpen(window.location.hash === '#cashbox');
       setBodymapOpen(window.location.hash === '#bodymap');
       setDedupOpen(window.location.hash === '#dedup');
+      setCallerOpen(window.location.hash === '#caller');
       setGuideOpen(window.location.hash === '#guide');
       setTourOpen(window.location.hash === '#tour');
       setPlatformOpen(window.location.hash === '#platform');
@@ -1072,6 +1076,15 @@ export default function App() {
           onClose={() => {
             window.location.hash = '';
             setDedupOpen(false);
+          }}
+        />
+      )}
+
+      {callerOpen && telephonyOn(config) && (
+        <CallerLookup
+          onClose={() => {
+            window.location.hash = '';
+            setCallerOpen(false);
           }}
         />
       )}
