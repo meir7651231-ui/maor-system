@@ -2,7 +2,7 @@
  * ratchet — קופה רושמת גל-1: מנוע פירוט-העודף (החזרת שטרות/מטבעות).
  */
 import { describe, expect, it } from 'vitest';
-import { CASH_DENOMS, changeBreakdown, denomTint } from '../cashLib';
+import { CASH_DENOMS, changeBreakdown, countsTotal, denomTint, drawerDiff, expectedDrawer } from '../cashLib';
 
 describe('💵 changeBreakdown — פירוט-עודף חמדני', () => {
   it('סכום 0 / שלילי ⇒ ריק', () => {
@@ -51,5 +51,21 @@ describe('💵 changeBreakdown — פירוט-עודף חמדני', () => {
       expect(t.bg).toMatch(/^#/);
       expect(t.ink).toMatch(/^#/);
     }
+  });
+});
+
+describe('🗂 משמרת/סגירת-קופה — מנוע (גל-2)', () => {
+  it('countsTotal — denom×count מעוגל-אגורה', () => {
+    expect(countsTotal({ '200': 2, '50': 1, '0.1': 3 })).toBe(450.3);
+    expect(countsTotal({})).toBe(0);
+  });
+  it('expectedDrawer = פתיחה + גבייה', () => {
+    expect(expectedDrawer(300, 1250.5)).toBe(1550.5);
+    expect(expectedDrawer(0, 0)).toBe(0);
+  });
+  it('drawerDiff — עודף חיובי / חוסר שלילי', () => {
+    expect(drawerDiff(1560, 1550.5)).toBe(9.5); // עודף
+    expect(drawerDiff(1540, 1550.5)).toBe(-10.5); // חוסר
+    expect(drawerDiff(1550.5, 1550.5)).toBe(0); // מאוזן
   });
 });
