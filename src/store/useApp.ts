@@ -2474,11 +2474,10 @@ export const useApp = create<AppState>()((set, get) => {
     async enableDonationSplit() {
       // מסלול-B פאזה-5 (חלון-בעלים): מדליק את `donationSplit` בקונפיג-הענן בקליק —
       // הבעלים לא נוגע ב-Firestore ידנית. merge:true על מפת-הקונפיג מדליק את המפתח
-      // היחיד בלי לדרוס שדות-אחים. אתר-השורש (cloudRoot) פטור מהפיצול — לא נכתב.
+      // היחיד בלי לדרוס שדות-אחים. (הכרעת-בעלים 15.8: גם לקוח-שורש רשאי להדליק.)
       const mod = cloudMod;
       if (!mod) throw new Error('הענן אינו מחובר — התחברו לענן ונסו שוב');
       const cfg = get().config;
-      if (cfg.cloudRoot === true) throw new Error('אתר-השורש פטור מהפיצול (ביט-זהה) — אין צורך להדליק');
       const slug = cfg.slug;
       if (!slug || slug === 'default') throw new Error('ההפעלה זמינה רק לארגון-פלטפורמה (?org=slug)');
       await mod.writeOrgCloudDoc(slug, { config: { donationSplit: true } });

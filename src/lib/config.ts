@@ -53,11 +53,15 @@ export function featureOn(cfg: OrgConfig, key: string): boolean {
 
 /**
  * מסלול-B — האם פיצול-התרומות פעיל לארגון זה. **off-by-default** (opt-in מפורש,
- * לא חוזה-הדגלים): נדלק רק ב-donationSplit:true. הלקוח-השורש (cloudRoot) **לעולם**
- * לא מפוצל — ביט-זהה, ratchet. נקרא בגבול-הסנכרון בלבד.
+ * לא חוזה-הדגלים): נדלק רק ב-donationSplit:true. נקרא בגבול-הסנכרון בלבד.
+ *
+ * הכרעת-בעלים (15.8: "מה זה משנה מאור או יעקב"): גם לקוח-שורש (cloudRoot) רשאי
+ * להדליק פיצול — אין סיבה שהמקורי יהיה שונה מארגון-חדש. תואם-לאחור: הדגל כבוי
+ * כברירת-מחדל ⇒ ארגון-שורש שלא הדליק נשאר ביט-זהה; רק donationSplit:true מפורש
+ * מפעיל. אצל שורש, אוסף-התרומות יושב בנתיב-השורש (donationsPath מטפל).
  */
 export function donationSplitOn(cfg: OrgConfig): boolean {
-  return cfg.donationSplit === true && cfg.cloudRoot !== true;
+  return cfg.donationSplit === true;
 }
 
 /**
