@@ -357,6 +357,11 @@ function HeroWidget({ ctx }: { ctx: HomeCtx }) {
       {/* פעולות מהירות — רק בערכות שהמוקאפ שלהן מציג אותן; מודול כבוי מוסתר */}
       {actionsOn && (
         <div className="hm-hero-actions">
+          {telephonyOn(config) && (
+            <Btn onClick={() => { window.location.hash = '#caller'; }} title="זיהוי מספר-מתקשר ופתיחת הכרטיס">
+              📞 מי מתקשר?
+            </Btn>
+          )}
           {familiesOn && (
             <Btn kind="primary" onClick={() => go('families')}>
               ➕ הוספת {termOf(config, 'entity.family', 'משפחה')}
@@ -380,6 +385,14 @@ function HeroWidget({ ctx }: { ctx: HomeCtx }) {
             <Btn onClick={() => go('supporters')}>{termOf(config, 'nav.supporters', 'תורמים')}</Btn>
           )}
           {reportsOn && <Btn onClick={() => go('reports')}>{isOrRishon ? '📊 דוחות' : 'דוחות'}</Btn>}
+        </div>
+      )}
+      {/* מודול טלפוניה — "מי מתקשר?" זמין גם בערכות שאין בהן שורת-פעולות (תמיד בהיר) */}
+      {!actionsOn && telephonyOn(config) && (
+        <div className="hm-hero-actions">
+          <Btn onClick={() => { window.location.hash = '#caller'; }} title="זיהוי מספר-מתקשר ופתיחת הכרטיס">
+            📞 מי מתקשר?
+          </Btn>
         </div>
       )}
     </section>

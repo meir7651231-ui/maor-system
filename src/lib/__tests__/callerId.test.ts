@@ -11,6 +11,8 @@ import { emptyDb } from '../../types/domain';
 import { phoneKey, findCaller } from '../callerId';
 import type { Db, Family, Supporter, Volunteer, TzCoordinator } from '../../types/domain';
 import appSrc from '../../App.tsx?raw';
+import lookupSrc from '../../components/CallerLookup.tsx?raw';
+import widgetsSrc from '../../components/home/widgets.tsx?raw';
 
 function db(): Db {
   const d = emptyDb();
@@ -69,5 +71,14 @@ describe('callerId — זיהוי-שיחה-נכנסת', () => {
     expect(appSrc).toContain("startsWith('#call=')");
     expect(appSrc).toContain('findCaller(');
     expect(appSrc).toContain('telephonyOn(st.config)');
+  });
+
+  it('תיבת "מי מתקשר?" — #caller פותח CallerLookup (מגודר telephonyOn), על אותו findCaller', () => {
+    expect(appSrc).toContain("=== '#caller'");
+    expect(appSrc).toContain('<CallerLookup');
+    expect(appSrc).toContain('callerOpen && telephonyOn(config)');
+    expect(lookupSrc).toContain('findCaller('); // אותו מנוע כמו השיחה-האוטומטית
+    expect(widgetsSrc).toContain("'#caller'"); // כפתור-הבית פותח את התיבה
+    expect(widgetsSrc).toContain('מי מתקשר?');
   });
 });
