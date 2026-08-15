@@ -34,6 +34,10 @@ const LS_SHIFT_LOG = 'maor_cashbox_shifts';
 const COINS = [...COIN_VALS].sort((a, b) => a - b);
 const BILLS = [...BILL_VALS].sort((a, b) => a - b);
 
+interface CartItem {
+  name: string;
+  amount: number;
+}
 interface Receipt {
   num: number;
   at: string;
@@ -41,6 +45,8 @@ interface Receipt {
   due: number;
   received: number;
   change: number;
+  /** עגלת-פריטים (על מה שילמו) — אופציונלי; חסר = תשלום-סכום בלבד. */
+  items?: CartItem[];
 }
 
 function readReceipts(): Receipt[] {
@@ -277,6 +283,10 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  // עגלת-פריטים (בקשת-בעלים "עגלה על מה הוא משלם"): הסכום נבנה משורות מוצר+מחיר
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [itemName, setItemName] = useState('');
+  const [itemAmt, setItemAmt] = useState('');
   // גל-2: משמרת / סגירת-קופה
   const [shift, setShift] = useState<Shift | null>(() => readShift());
   const [shiftPanel, setShiftPanel] = useState(false);
@@ -345,12 +355,26 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
     toast('הקופה נסגרה · דוח-Z הופק');
   }
 
-  const dueNum = Math.max(0, Number(due) || 0);
+  // עגלה פעילה ⇒ הסכום-לתשלום נבנה מהפריטים; אחרת השדה הידני.
+  const cartTotal = useMemo(() => Math.round(cart.reduce((a, it) => a + it.amount, 0) * 100) / 100, [cart]);
+  const dueNum = cart.length ? cartTotal : Math.max(0, Number(due) || 0);
   const received = useMemo(
     () => Object.entries(counts).reduce((a, [d, n]) => a + Number(d) * n, 0),
     [counts],
   );
   const diff = Math.round((received - dueNum) * 100) / 100;
+
+  const addItem = () => {
+    const amt = Math.round((Number(itemAmt) || 0) * 100) / 100;
+    if (amt <= 0) {
+      toast('הזינו מחיר לפריט');
+      return;
+    }
+    setCart((c) => [...c, { name: itemName.trim() || 'פריט', amount: amt }]);
+    setItemName('');
+    setItemAmt('');
+  };
+  const removeItem = (i: number) => setCart((c) => c.filter((_, idx) => idx !== i));
 
   const bump = (d: number, by: number) =>
     setCounts((c) => {
@@ -392,9 +416,11 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
       due: dueNum,
       received,
       change: diff,
+      ...(cart.length ? { items: cart } : {}),
     };
     saveReceipt(r);
     setReceipt(r);
+    setCart([]);
     toast('חשבונית ' + r.num + ' הופקה · שולם ✓');
   }
 
@@ -596,6 +622,16 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
         >
           <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 8 }}>{config.orgName || 'חשבונית'}</div>
           {receipt.client && <div>לקוח: {receipt.client}</div>}
+          {receipt.items && receipt.items.length > 0 && (
+            <div style={{ borderTop: '1px dashed var(--line)', borderBottom: '1px dashed var(--line)', margin: '6px 0', padding: '6px 0' }}>
+              {receipt.items.map((it, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span>{it.name}</span>
+                  <span style={{ direction: 'ltr' }}>{money(it.amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>סה״כ לתשלום</span>
             <b style={{ direction: 'ltr' }}>{money(receipt.due)}</b>
@@ -630,8 +666,14 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
     <Modal title={'💵 ' + label} onClose={onClose}>
       <div className="form-grid" style={{ marginBottom: 12 }}>
         <label style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
-          סכום לתשלום (₪)
-          <TextInput type="number" dir="ltr" value={due} onChange={setDue} placeholder="0" />
+          סכום לתשלום (₪){cart.length ? ' — מהעגלה' : ''}
+          {cart.length ? (
+            <div style={{ direction: 'ltr', textAlign: 'left', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--bg)', fontWeight: 800 }}>
+              {money(cartTotal)}
+            </div>
+          ) : (
+            <TextInput type="number" dir="ltr" value={due} onChange={setDue} placeholder="0" />
+          )}
         </label>
         <label style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
           {termOf(config, 'entity.family', 'לקוח')} (לא חובה)
@@ -639,37 +681,68 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
         </label>
       </div>
 
-      {/* גל-1: סכומים-מהירים למילוי הסכום-לתשלום */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
-        {QUICK_DUE.map((q) => (
-          <button
-            key={q}
-            type="button"
-            onClick={() => setDue(String((Number(due) || 0) + q))}
-            style={{
-              direction: 'ltr',
-              fontSize: 12.5,
-              fontWeight: 700,
-              padding: '4px 11px',
-              borderRadius: 999,
-              border: '1px solid var(--line)',
-              background: 'var(--panel)',
-              color: 'var(--ink-soft)',
-              cursor: 'pointer',
-            }}
-          >
-            +₪{q}
-          </button>
-        ))}
-        <button
-          type="button"
-          onClick={() => setDue('')}
-          title="איפוס הסכום"
-          style={{ fontSize: 12.5, fontWeight: 700, padding: '4px 11px', borderRadius: 999, border: '1px solid var(--line)', background: 'var(--panel)', color: 'var(--ink-faint)', cursor: 'pointer' }}
-        >
-          ⌫ איפוס
-        </button>
+      {/* בקשת-בעלים: עגלה — על מה משלמים (שם + מחיר). ריק ⇒ תשלום-סכום כרגיל. */}
+      <div style={{ marginBottom: 12, border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', background: 'var(--panel)' }}>
+        <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ink-soft)', marginBottom: 6 }}>🛒 עגלה — על מה משלמים (רשות)</div>
+        {cart.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
+            {cart.map((it, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</span>
+                <span style={{ direction: 'ltr', fontWeight: 700 }}>{money(it.amount)}</span>
+                <button type="button" onClick={() => removeItem(i)} title="הסרה" style={{ border: 'none', background: 'transparent', color: '#b91c1c', cursor: 'pointer', fontSize: 15, lineHeight: 1 }}>✕</button>
+              </div>
+            ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed var(--line)', marginTop: 2, paddingTop: 4, fontWeight: 800 }}>
+              <span>סה״כ עגלה</span>
+              <span style={{ direction: 'ltr' }}>{money(cartTotal)}</span>
+            </div>
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div style={{ flex: 2, minWidth: 120 }}>
+            <TextInput value={itemName} onChange={setItemName} placeholder="שם הפריט" />
+          </div>
+          <div style={{ flex: 1, minWidth: 80 }}>
+            <TextInput type="number" dir="ltr" value={itemAmt} onChange={setItemAmt} placeholder="₪ מחיר" />
+          </div>
+          <Btn sm kind="primary" onClick={addItem}>➕ הוסף</Btn>
+        </div>
       </div>
+
+      {/* גל-1: סכומים-מהירים למילוי הסכום-לתשלום (מוסתר כשעגלה פעילה) */}
+      {!cart.length && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+          {QUICK_DUE.map((q) => (
+            <button
+              key={q}
+              type="button"
+              onClick={() => setDue(String((Number(due) || 0) + q))}
+              style={{
+                direction: 'ltr',
+                fontSize: 12.5,
+                fontWeight: 700,
+                padding: '4px 11px',
+                borderRadius: 999,
+                border: '1px solid var(--line)',
+                background: 'var(--panel)',
+                color: 'var(--ink-soft)',
+                cursor: 'pointer',
+              }}
+            >
+              +₪{q}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setDue('')}
+            title="איפוס הסכום"
+            style={{ fontSize: 12.5, fontWeight: 700, padding: '4px 11px', borderRadius: 999, border: '1px solid var(--line)', background: 'var(--panel)', color: 'var(--ink-faint)', cursor: 'pointer' }}
+          >
+            ⌫ איפוס
+          </button>
+        </div>
+      )}
 
       <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 6 }}>
         בחרו מטבעות ושטרות לפי מה שהתקבל
