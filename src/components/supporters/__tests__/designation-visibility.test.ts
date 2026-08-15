@@ -107,6 +107,17 @@ describe('ייעוד פר-תורם (forWho) — בקשת-בעלים 15.8 "פר �
     expect(viewSrc).toContain("(sp.forWho || '').trim() !== purposeF");
     expect(viewSrc).toContain('purposeOn && purposeOptions.length > 0');
   });
+
+  it('הגנת-מקור: לקוח-שורש (מאור) קורא ייעודים-פר-עובד (בקשת-בעלים "חבר את מאור")', () => {
+    // הבאג: הענף rootOk (cloudRoot/default) דילג על קריאת memberConfigs ⇒
+    // allowedDesignations לא נקבע ⇒ עובדת-מוגבלת ראתה הכל. כעת גם השורש קורא.
+    const rootBlock = useAppSrc.slice(useAppSrc.indexOf('if (rootOk) {'), useAppSrc.indexOf('if (rootOk) {') + 1400);
+    expect(rootBlock).toContain('mod.fetchOrgCloudConfig(cfg.slug)');
+    expect(rootBlock).toContain('allowedDesignationsFor(user.email, orgDoc)');
+    expect(rootBlock).toContain('mod.setAllowedPurposes(allowed)');
+    // אינווריאנט-שורש: נכנס תמיד כ-member (בלי שער-חברות)
+    expect(rootBlock).toContain("setCloud({ membership: 'member' })");
+  });
 });
 
 describe('allowedDesignationsFor — מנהל vs עובד', () => {

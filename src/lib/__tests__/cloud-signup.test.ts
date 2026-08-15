@@ -65,8 +65,10 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect(useAppSrc).toContain('rootOk');
     expect(useAppSrc).toContain('isSuperAdmin(user.email)');
     expect(useAppSrc).toContain('cfg.adminEmails?.some');
-    // מורשה-שורש ⇒ member+סנכרון; אחרת ניתוב-עצמי/המתנה (לא נכנס מיד)
-    expect(useAppSrc).toMatch(/if \(rootOk\) \{\s*setCloud\(\{ membership: 'member' \}\);\s*gatedStart\(\);/);
+    // מורשה-שורש ⇒ member+סנכרון; אחרת ניתוב-עצמי/המתנה (לא נכנס מיד).
+    // 15.8 ("חבר את מאור"): בין member ל-gatedStart נוספה קריאת-ייעודים-פר-עובד
+    // ללקוח-שורש (failure-safe, בלי שער-חברות ובלי דריסת-קונפיג) — לכן הרווח גמיש.
+    expect(useAppSrc).toMatch(/if \(rootOk\) \{\s*setCloud\(\{ membership: 'member' \}\);[\s\S]{0,1400}gatedStart\(\);/);
     expect(useAppSrc).toContain("setCloud({ membership: 'pending' })");
   });
 
