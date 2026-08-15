@@ -16,7 +16,13 @@ function fmtGreg(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
-export function HebDateInput(props: { value: string; onChange: (iso: string) => void }): JSX.Element {
+export function HebDateInput(props: {
+  value: string;
+  onChange: (iso: string) => void;
+  /** אופציונלי: כשמסופק, בורר-הלוח (📅) כולל בחירת-שעה ומחזיר אותה ב-onTime. */
+  time?: string;
+  onTime?: (t: string) => void;
+}): JSX.Element {
   const [mode, setMode] = useState<'heb' | 'greg'>('heb');
   const [init] = useState(() => (props.value ? isoToHebParts(props.value) : null));
   const [d, setD] = useState(init ? String(init.day) : '');
@@ -114,6 +120,7 @@ export function HebDateInput(props: { value: string; onChange: (iso: string) => 
           value={props.value}
           onPick={(iso) => props.onChange(iso)}
           onClose={() => setPickerOpen(false)}
+          {...(props.onTime ? { time: props.time ?? '', onTime: props.onTime } : {})}
         />
       )}
       {mode === 'heb' ? (

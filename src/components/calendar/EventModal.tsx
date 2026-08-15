@@ -237,7 +237,12 @@ export function EventModal(props: {
                 </button>
               ))}
             </div>
-            <HebDateInput value={f.date} onChange={(iso) => set('date', iso)} />
+            <HebDateInput
+              value={f.date}
+              onChange={(iso) => set('date', iso)}
+              time={f.time}
+              onTime={(t) => set('time', t)}
+            />
           </div>
         </Field>
         <Field label="שעה">
