@@ -6,9 +6,10 @@ import { useState, type ReactNode } from 'react';
 import type { Family, Member } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { nsLsKey } from '../../store/persist';
-import { featureOn, integrationOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, telephonyOn, termOf } from '../../lib/config';
 import { mapsSearchUrl } from '../../lib/mapsLink';
 import { WaBtn } from '../WaBtn';
+import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty } from '../ui';
 import { ageOf, chipStyle, fmtDate, STATUS_META } from './lib';
@@ -250,6 +251,20 @@ export function FamilyDetail(props: { family: Family }) {
     toast(m.first + ' הוסר/ה מה' + termOf(config, 'entity.family', 'משפחה'));
   }
 
+  /** פעולת-קשר לשורת-טלפון: 📞 חיוג (טלפוניה) + 💬 wa.me — כל אחד מגודר בנפרד. */
+  const commsAction = (phone: string) => {
+    const call = telephonyOn(config);
+    const wa = integrationOn(config, 'whatsapp');
+    if (!call && !wa) return undefined;
+    return (
+      <>
+        {call && <CallBtn phone={phone} />}
+        {call && wa ? ' ' : null}
+        {wa && <WaBtn phone={phone} />}
+      </>
+    );
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div>
@@ -348,9 +363,9 @@ export function FamilyDetail(props: { family: Family }) {
           <InfoRow k={'ת"ז האב'} v={maskId(fam.fatherId, showIds)} />
           <InfoRow k="שם האם" v={fam.mother || '—'} />
           <InfoRow k={'ת"ז האם'} v={maskId(fam.motherId, showIds)} />
-          {/* הרחבות נמכרות (INTEGRATIONS גל א׳): 💬 wa.me · 🗺️ Maps — חסר=כבוי */}
-          <InfoRow k="טלפון ראשי" v={fam.phone || '—'} action={integrationOn(config, 'whatsapp') ? <WaBtn phone={fam.phone} /> : undefined} />
-          <InfoRow k="טלפון נוסף" v={fam.phone2 || '—'} action={integrationOn(config, 'whatsapp') ? <WaBtn phone={fam.phone2} /> : undefined} />
+          {/* הרחבות נמכרות: 📞 חיוג (מודול טלפוניה, opt-in) · 💬 wa.me · 🗺️ Maps — חסר=כבוי */}
+          <InfoRow k="טלפון ראשי" v={fam.phone || '—'} action={commsAction(fam.phone)} />
+          <InfoRow k="טלפון נוסף" v={fam.phone2 || '—'} action={commsAction(fam.phone2)} />
           <InfoRow k="אימייל" v={fam.email || '—'} />
           <InfoRow
             k="כתובת"

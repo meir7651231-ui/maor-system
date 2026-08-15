@@ -10,7 +10,8 @@
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
 import { nsLsKey, parseBackupFile } from './store/persist';
-import { featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, termOf } from './lib/config';
+import { featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, telephonyOn, termOf } from './lib/config';
+import { findCaller } from './lib/callerId';
 import { applyOrgManifest, isIos, isStandalone, promptInstall, registerPwa } from './lib/pwa';
 import { setExportBlocked } from './lib/exportGate';
 import { hebDateFull } from './lib/hebrew';
@@ -267,6 +268,32 @@ export default function App() {
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  // זיהוי-שיחה-נכנסת (screen-pop) — "מה קובע שלקוח מתקשר": הסופטפון/המרכזייה של
+  // הארגון פותח את האפליקציה בכתובת `#call=<מספר>` (יכולת on-ring open-URL סטנדרטית),
+  // או שמנווטים לשם ידנית. downstream: המספר מגיע בכתובת, לא מ-API של ספק. מגודר
+  // telephonyOn — מודול כבוי ⇒ אין screen-pop (ביט-זהה להיום).
+  useEffect(() => {
+    const handleCall = () => {
+      if (!window.location.hash.startsWith('#call=')) return;
+      const number = decodeURIComponent(window.location.hash.slice('#call='.length));
+      // ניקוי ה-hash מיד — שלא יישאר בכתובת ולא יופעל שוב ברענון
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      const st = useApp.getState();
+      if (!telephonyOn(st.config) || !number.trim()) return;
+      const caller = findCaller(st.db, number);
+      if (caller) {
+        if (caller.famId) st.selectFamily(caller.famId);
+        else st.go(caller.view);
+        st.toast('📞 שיחה נכנסת: ' + caller.name + ' · ' + caller.kindLabel);
+      } else {
+        st.toast('📞 מספר לא מזוהה: ' + number);
+      }
+    };
+    if (ready) handleCall(); // בטעינה (אחרי ש-DB מוכן) — לתפוס #call= שהגיע בכתובת
+    window.addEventListener('hashchange', handleCall);
+    return () => window.removeEventListener('hashchange', handleCall);
+  }, [ready]);
 
   // קיצורי מקלדת גלובליים
   useEffect(() => {
