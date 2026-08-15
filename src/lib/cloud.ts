@@ -132,6 +132,20 @@ export async function pushDonations(diff: DonationCloudDiff, dek?: CryptoKey | n
   }
 }
 
+/**
+ * מסלול-B פאזה-4 — מיגרציית-פיצול חד-פעמית (חלון-בעלים): מפרקת את **כל** תרומות
+ * התומכים לאוסף-התרומות-הנפרד (upsert לפי rid). **אינה נוגעת ב-donationSeq** ולא
+ * מוחקת את התרומות המקוננות (הפיך: כיבוי-הדגל ⇒ הנתונים המקוננים עדיין שם).
+ * אידמפוטנטית — הרצה חוזרת כותבת את אותם מסמכים. מריצים לפני הדלקת donationSplit.
+ * מחזירה את מספר התרומות שהוגרו.
+ */
+export async function migrateDonationsToCollection(supporters: Db['supporters'], dek?: CryptoKey | null): Promise<number> {
+  const { donationPartitionDiff } = await import('./donationPartition');
+  const diff = donationPartitionDiff([], supporters); // prev ריק ⇒ כל התרומות = sets
+  await pushDonations(diff, dek);
+  return diff.sets.length;
+}
+
 /** אתחול חד-פעמי (idempotent) — קריאה חוזרת מחזירה את אותם singletons. */
 export function initCloud(fb: FirebaseOrgConfig): { auth: Auth; db: Firestore } {
   if (app && auth && fsDb) return { auth, db: fsDb };

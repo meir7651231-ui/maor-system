@@ -43,7 +43,7 @@ export function getCloudDek(): CryptoKey | null {
 }
 
 // יצוא-מחדש של שכבת ה-auth — ל-useApp יש import דינמי אחד בלבד (המודול הזה)
-export { changePassword, encryptExistingCloud, fetchIncomingPayments, initCloud, markIncomingPayment, readCloudEnvelope, resetPassword, setAllowedPurposes, setCloudScope, setDonationSplit, signIn, signOutCloud, signUp, watchAuth, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
+export { changePassword, encryptExistingCloud, fetchIncomingPayments, initCloud, markIncomingPayment, migrateDonationsToCollection, readCloudEnvelope, resetPassword, setAllowedPurposes, setCloudScope, setDonationSplit, signIn, signOutCloud, signUp, watchAuth, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
 export type { CloudUser, IncomingPayment } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
 export { deleteOrgCompletely, deleteOrgRequest, deleteOrgJoinRequest, deleteOrgMemberConfig, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgJoinRequests, fetchOrgLeads, fetchOrgRequests, findMemberOrgSlugs, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgJoinRequest, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
