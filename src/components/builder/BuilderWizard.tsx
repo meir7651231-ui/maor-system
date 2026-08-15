@@ -18,6 +18,7 @@ import { Btn, Chip, Field, FormError, TextInput } from '../ui';
 import { buildHandoffHtml, downloadTextFile, INTEGRATION_LABELS, INTEGRATION_STATUS, liveAddons, THEME_LABELS } from './handoff';
 import { featureEffectiveOn, WIZARD_SECTIONS, type WizardSectionDef } from './sections';
 import { TEMPLATE_DEFS } from '../../lib/templates';
+import { TelephonyPanel } from '../telephony/TelephonyPanel';
 
 const DEFAULT_APP_URL = 'https://meir7651231-ui.github.io/maor-system/';
 
@@ -431,6 +432,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
     { domId: 'wz-branding', key: 'branding', label: '🏷️ מיתוג' },
     ...WIZARD_SECTIONS.map((s) => ({ domId: `wz-${s.id}`, key: s.id, label: `${s.emoji} ${s.title}` })),
     { domId: 'wz-integrations', key: 'integrations', label: '🔌 הרחבות' },
+    { domId: 'wz-telephony', key: 'telephony', label: '☎️ טלפוניה' },
   ];
 
   /** מקטע מודול אחד — יכולות + מונחים, מסונן לפי החיפוש. */
@@ -947,6 +949,22 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                 .map(([, label]) => label)
                 .join(' · ')}
             </div>
+          </SectionShell>
+        )}
+
+        {/* ☎️ טלפוניה (downstream בלבד) — מקטע-חי המחווט את מנוע-הטלפוניה הטהור:
+            הזנת ציוד-הלקוח → סימולציית עץ-הטלפון + דוח-אמון → הפקת קונפיג-מרכזייה.
+            מבודד לחלוטין: אין ספק/API/trunk, אפס נגיעה בכסף/קבלות. מוסתר בזמן חיפוש. */}
+        {!searching && (
+          <SectionShell
+            id="wz-telephony"
+            emoji="☎️"
+            title="טלפוניה"
+            meta="איחוד-קווים · downstream בלבד"
+            open={isOpen('telephony')}
+            onToggleOpen={() => flipOpen('telephony')}
+          >
+            <TelephonyPanel orgName={config.orgName} slug={config.slug || 'default'} />
           </SectionShell>
         )}
 
