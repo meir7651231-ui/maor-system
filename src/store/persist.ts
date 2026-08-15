@@ -16,6 +16,7 @@ import {
   type Db,
   type FamilyCred,
   type FamilyDoc,
+  type Supporter,
 } from '../types/domain';
 import {
   isEncrypted,
@@ -286,6 +287,9 @@ export function migrate(raw: unknown): Db | null {
     payments: Array.isArray(e.payments) ? e.payments : [],
     absences: Array.isArray(e.absences) ? e.absences : [],
   }));
+  // 🐛 נחיל-9×9 (13.8): חוג מגיבוי-ישן/ענן-חלקי יכול להגיע עם sessions===undefined —
+  // כל קוד ש-.length/.map עליו (יצוא-CSV, עריכת-חוג) קרס. ריפוי: מערך תמיד.
+  merged.courses = merged.courses.map((c) => ({ ...c, sessions: Array.isArray(c.sessions) ? c.sessions : [] }));
   const payCoords = merged.enrollments.flatMap((e, ei) => e.payments.map((p, pi) => ({ ei, pi, rid: p.rid, date: p.date })));
   const rPlan = planRidRenumber(payCoords, merged.receiptSeq, 'R-');
   payCoords.forEach((c, k) => {
@@ -297,12 +301,18 @@ export function migrate(raw: unknown): Db | null {
     donations: Array.isArray(s.donations) ? s.donations : [],
     // hist מהקובץ ההיסטורי (לגאסי {d,a,c}) — נרמול: לא-מערך → undefined;
     // איברים בלי תאריך d או סכום a מספרי — נזרקים. מטבע לא-מוכר → ברירת ₪ בתצוגה.
+    // 🐛 נחיל-עמוק (13.8): המיגרציה שכתבה {d,a,c} בלבד ומחקה את מטא-דאטת-הסליקה
+    // (ref/txn/receipt/brand/last4/clearer/pays/status — additive 13.8) בכל טעינה.
+    // כעת שומרים את כל השדות ורק מנרמלים מטבע לא-מוכר.
     hist: Array.isArray(s.hist)
       ? s.hist
-          .filter((h): h is { d: string; a: number; c?: '₪' | '$' } =>
+          .filter((h): h is NonNullable<Supporter['hist']>[number] =>
             !!h && typeof h === 'object' && !!(h as { d?: unknown }).d &&
             typeof (h as { a?: unknown }).a === 'number' && Number.isFinite((h as { a?: unknown }).a as number))
-          .map((h) => ({ d: h.d, a: h.a, ...(h.c === '$' || h.c === '₪' ? { c: h.c } : {}) }))
+          .map((h) => {
+            const { c, ...rest } = h;
+            return { ...rest, ...(c === '$' || c === '₪' ? { c } : {}) };
+          })
       : undefined,
   }));
   const donCoords = merged.supporters.flatMap((s, si) => s.donations.map((d, di) => ({ si, di, rid: d.rid, date: d.date })));
@@ -312,7 +322,7 @@ export function migrate(raw: unknown): Db | null {
   });
   merged.donationSeq = dPlan.nextSeq;
   // ריפוי-עצמי של מצבורי-התומכת (#14, הכרעת בעלים "כל מה שיעלה בקובץ"): count/ils/
-  // usd נגזרים מ-donations+hist, כך שהכרטיס/הבית/הדוחות תואמים תמיד. first/last —
+  // usd = קבלות-בלבד (hist מתווסף בתצוגה, supporters/lib) — נמנע כפל-ספירה. first/last —
   // המחושב, ובהיעדר תאריכים נשמר הסימון הישן (fallback ל-supDonEvents לא נשבר).
   merged.supporters = merged.supporters.map((s) => {
     const agg = supporterAggregates(s);

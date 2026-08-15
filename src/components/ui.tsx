@@ -127,7 +127,8 @@ export function Modal(props: { title: string; onClose: () => void; children: Rea
         >
           ✕
         </button>
-        <h2>{props.title}</h2>
+        {/* 🐛 נחיל-עמוק (13.8): רווח-פנימי בצד-ההתחלה כדי שהכותרת לא תחפוף לכפתור ה-✕ ב-RTL */}
+        <h2 style={{ paddingInlineStart: 40 }}>{props.title}</h2>
         {props.children}
       </div>
     </div>
@@ -138,12 +139,15 @@ export function Field(props: { label: string; children: ReactNode }) {
   // קושרים label לפקד דרך id ייחודי (htmlFor) — כך שדות בלי placeholder (טלפון 2,
   // מין, הערות) מקבלים שם נגיש לקורא-מסך. מזריקים את ה-id לפקד הבודד ב-cloneElement.
   const id = useId();
-  const child = isValidElement(props.children)
+  // 🐛 נחיל-עמוק (13.8): כשיש יותר מילד אחד (או ילד לא-אלמנט) לא מזריקים id — ולכן
+  // אסור ש-htmlFor יצביע ל-id שלא קיים (תווית מנותקת). מקשרים htmlFor רק כשהוזרק.
+  const single = isValidElement(props.children);
+  const child = single
     ? cloneElement(props.children as ReactElement<{ id?: string }>, { id })
     : props.children;
   return (
     <div className="field">
-      <label htmlFor={id}>{props.label}</label>
+      <label {...(single ? { htmlFor: id } : {})}>{props.label}</label>
       {child}
     </div>
   );

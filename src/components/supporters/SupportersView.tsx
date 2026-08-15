@@ -2,7 +2,7 @@
  * משפחות תומכות (תורמים) — חיפוש מנורמל, סינון קטגוריה ודרגות RFM,
  * טבלה עם מיון תלת-מצבי (עולה/יורד/כבוי), טופס תומכ/ת וכרטיס מפורט.
  */
-import { useEffect, useState, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting, safeHttpsUrl, termOf } from '../../lib/config';
@@ -14,7 +14,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, TIER_ORDER, totalLabel } from './lib';
+import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
@@ -114,6 +114,11 @@ export function SupportersView() {
     : null;
   // גל ד׳ (payments): מסך תשלומים-נכנסים — רק לארגון-ענן מחובר
   const cloudOn = useApp((s) => s.cloud.enabled && !!s.cloud.user);
+  // ג' (13.8) — ייעוד כהרשאת-תצוגה: העובד/ת רואה רק תורמים של הייעודים שהוקצו לו/ה.
+  // null = בלי הגבלה (מנהל/בעלים/לקוח-מקומי). מסתיר ברמת-הממשק (כמו shell.privacy).
+  const purposeOn = featureOn(config, 'supporters.purpose');
+  const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = purposeOn ? allowedDesignations : null;
   const [incomingOpen, setIncomingOpen] = useState(false);
   const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');
   const importOn = featureOn(config, 'settings.import');
@@ -138,9 +143,30 @@ export function SupportersView() {
   const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
   // 🔗 איחוד-כפולים (#13) — הכפתור מוצג רק כשיש מה לאחד
   const [dedupOpen, setDedupOpen] = useState(false);
-  const dedupCount = findSupporterDupGroups(db.supporters).length;
+  // 🐛 נחיל-9×9 (13.8): Union-Find על כל התורמים רץ בכל render (כל הקשה/סינון) —
+  // ממומואיז על db.supporters בלבד.
+  const dedupCount = useMemo(() => findSupporterDupGroups(db.supporters).length, [db.supporters]);
+  const rfmBins = useMemo(() => supScoreBins(db.supporters, rate), [db.supporters, rate]);
+  const rfmMax = Math.max(1, ...rfmBins);
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
+  // בחירה-מרובה למחיקה (בקשת-בעלים 13.8) — מצב-בחירה + קבוצת-ids + אישור-הרסני.
+  const [selMode, setSelMode] = useState(false);
+  const [selSet, setSelSet] = useState<ReadonlySet<string>>(new Set<string>());
+  const [confirmDel, setConfirmDel] = useState(false);
+  const deleteSupporters = useApp((s) => s.deleteSupporters);
+  const toggleSel = (id: string) =>
+    setSelSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const exitSelMode = () => {
+    setSelMode(false);
+    setSelSet(new Set<string>());
+    setConfirmDel(false);
+  };
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [expOpen, setExpOpen] = useState(false);
@@ -168,7 +194,8 @@ export function SupportersView() {
 
   /** דוח יומי של מעקב הטיפול — כל מי שטופל היום. */
   function dailyReport() {
-    const rows = ayinDailyRows(config, db.supporters, isoToday());
+    // 🔒 ייעוד-הרשאה (13.8): הדוח-היומי יוצא רק על תורמים בייעוד המותר לעובד/ת
+    const rows = ayinDailyRows(config, visibleSupportersForDesignations(db.supporters, desigLimit), isoToday());
     if (rows.length <= 1) {
       toast('עדיין לא עודכן אף פריט היום — עדכנו בכרטיס והדוח יתמלא');
       return;
@@ -177,14 +204,24 @@ export function SupportersView() {
     toast('דוח יומי: ' + (rows.length - 1) + ' פריטים שטופלו היום — הקובץ ירד');
   }
 
-  const selected = db.supporters.find((s) => s.id === selId);
+  // 🐛 נחיל-9×9 (13.8): גם פתיחת-כרטיס-ישיר (מהפלטה/עומק) מכובדת להרשאת-הייעוד —
+  // id מחוץ-להיקף לא ייפתח (הגנה-בעומק מעל סינון visibleBase).
+  const selRaw = db.supporters.find((s) => s.id === selId);
+  const selected = selRaw && supporterVisibleForDesignations(selRaw, desigLimit) ? selRaw : undefined;
   if (selected) return <SupporterDetail supporter={selected} onBack={() => setSelId(null)} />;
 
   const today = isoToday();
   const nq = normSearch(q);
   const qd = q.replace(/\D/g, '');
 
-  let list = db.supporters.filter((sp) => {
+  // ג' (13.8) — בסיס-הראייה של המשתמש: תורמים המותרים לפי הייעודים שהוקצו.
+  // כל הנגזרות בתצוגה (רשימה, מונים, סה"כ, קטגוריות) יוצאות מ-visibleBase כדי
+  // שעובד מוגבל לא יראה — ולא יסיק — תורמים של ייעוד אחר.
+  const visibleBase = desigLimit
+    ? db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit))
+    : db.supporters;
+
+  let list = visibleBase.filter((sp) => {
     if (cat !== 'all' && (sp.cat || '') !== cat) return false;
     // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): הוראות פעילות / רק שטרם-נרשמו-החודש
     if (hokF === 'active' && !sp.hok?.active) return false;
@@ -197,7 +234,7 @@ export function SupportersView() {
     // סינון מעקב הטיפול (פריט 14)
     if (ayinF === 'eyes' && !(sp.ayin && eyesTotal(sp.ayin) > 0)) return false;
     if (ayinF === 'noeyes' && sp.ayin && eyesTotal(sp.ayin) > 0) return false;
-    if (ayinF === 'today' && !(sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log.some((l) => l.date === today)))) return false;
+    if (ayinF === 'today' && !(sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today)))) return false;
     if (!q.trim()) return true;
     const phoneHit = qd.length >= 3 && (sp.phone || '').replace(/\D/g, '').includes(qd);
     const textHit =
@@ -218,18 +255,18 @@ export function SupportersView() {
   const clickSort = (key: SortKey) =>
     setSort(sort && sort.key === key ? (sort.dir > 0 ? { key, dir: -1 } : null) : { key, dir: 1 });
 
-  const catOptions = [...new Set(db.supporters.map((s) => s.cat).filter(Boolean))];
+  const catOptions = [...new Set(visibleBase.map((s) => s.cat).filter(Boolean))];
   const tierCounts: Record<string, number> = { זהב: 0, כסף: 0, ארד: 0, רדומה: 0 };
-  for (const sp of db.supporters) tierCounts[supTier(supScore(sp, rate)).label]++;
+  for (const sp of visibleBase) tierCounts[supTier(supScore(sp, rate)).label]++;
 
-  const tIls = db.supporters.reduce((a, x) => a + (x.ils || 0), 0);
-  const tUsd = db.supporters.reduce((a, x) => a + (x.usd || 0), 0);
+  const tIls = visibleBase.reduce((a, x) => a + (x.ils || 0), 0);
+  const tUsd = visibleBase.reduce((a, x) => a + (x.usd || 0), 0);
   const filtered =
     q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF ||
     colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';
   const countLabel =
     (filtered ? list.length + ' מתוך ' : '') +
-    db.supporters.length +
+    visibleBase.length +
     ' ' + termOf(config, 'nav.supporters', 'משפחות תומכות') + ' · סה"כ ₪' +
     tIls.toLocaleString('he-IL') +
     ' + $' +
@@ -266,7 +303,9 @@ export function SupportersView() {
                   label: '📄 דוחות שנתיים לכולם',
                   onClick: () => {
                     const year = isoToday().slice(0, 4);
-                    const lines = annualAllLines(config.orgName || db.orgName, config.orgTaxId, year, db.supporters);
+                    // 🔒 ייעוד-הרשאה: הדוח-לכולם יוצא רק על תורמים גלויים לעובדת, ובכל תורם
+                    // רק התרומות בייעוד המותר (לא db.supporters הגולמי)
+                    const lines = annualAllLines(config.orgName || db.orgName, config.orgTaxId, year, visibleSupportersForDesignations(db.supporters, desigLimit));
                     downloadAnnualReport('annual-all-' + year + '.txt', lines);
                     toast('📄 דוחות שנת ' + year + ' — הקובץ ירד (מקטע לכל תורם/ת)');
                   },
@@ -276,6 +315,10 @@ export function SupportersView() {
                 !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
               ]}
             />
+            {/* בחירה-מרובה למחיקה (13.8, בקשת-בעלים) — טוגל מצב-בחירה */}
+            <Btn onClick={() => (selMode ? exitSelMode() : setSelMode(true))} title="בחירה מרובה למחיקה">
+              {selMode ? '✕ סיום בחירה' : '☑ בחירה'}
+            </Btn>
             {/* תצוגת גריד לתורמים (5.8, בקשת-בעלים) — אותו דפוס כמו המשפחות (db.ui) */}
             <Btn onClick={toggleSupView} title="החלפת תצוגה: רשימה / גריד">
               {supView === 'grid' ? '☰ רשימה' : '▦ גריד'}
@@ -286,6 +329,37 @@ export function SupportersView() {
           </>
         }
       />
+
+      {selMode && (
+        <div
+          className="card"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flexWrap: 'wrap',
+            marginBottom: 12,
+            position: 'sticky',
+            top: 0,
+            zIndex: 5,
+          }}
+        >
+          <b>{selSet.size + ' נבחרו'}</b>
+          <Btn sm onClick={() => setSelSet(new Set(list.map((sp) => sp.id)))}>
+            {'בחר הכל (' + list.length + ')'}
+          </Btn>
+          <Btn sm onClick={() => setSelSet(new Set<string>())}>
+            נקה בחירה
+          </Btn>
+          <div style={{ flex: 1 }} />
+          <Btn kind="danger" disabled={!selSet.size} onClick={() => setConfirmDel(true)}>
+            {'🗑 מחיקת ' + selSet.size}
+          </Btn>
+          <Btn sm onClick={exitSelMode}>
+            ביטול
+          </Btn>
+        </div>
+      )}
 
       {ayinOn && <AyinBoard onOpen={setSelId} />}
 
@@ -336,9 +410,10 @@ export function SupportersView() {
               (supAvgDon(db.supporters, rate) != null ? '₪' + supAvgDon(db.supporters, rate)!.toLocaleString('he-IL') : '—')}
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 34 }} aria-label="היסטוגרמת פיזור הציון">
-            {supScoreBins(db.supporters, rate).map((n, i) => {
-              const bins = supScoreBins(db.supporters, rate);
-              const mx = Math.max(1, ...bins);
+            {/* 🐛 נחיל-9×9 (13.8): supScoreBins חושב 11× (פעם ל-map ופעם בכל איטרציה) —
+                מרומם ל-rfmBins/rfmMax המחושבים פעם אחת (useMemo על [db.supporters, rate]). */}
+            {rfmBins.map((n, i) => {
+              const mx = rfmMax;
               return (
                 <span
                   key={i}
@@ -382,7 +457,7 @@ export function SupportersView() {
           </Chip>
           <Chip on={ayinF === 'today'} onClick={() => setAyinF(ayinF === 'today' ? null : 'today')}>
             {'עודכן היום · ' +
-              db.supporters.filter((sp) => sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log.some((l) => l.date === today))).length}
+              db.supporters.filter((sp) => sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today))).length}
           </Chip>
         </div>
       )}
@@ -406,13 +481,18 @@ export function SupportersView() {
                 className="card"
                 role="button"
                 tabIndex={0}
-                onClick={() => setSelId(sp.id)}
+                onClick={() => (selMode ? toggleSel(sp.id) : setSelId(sp.id))}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') setSelId(sp.id);
+                  if (e.key !== 'Enter' && e.key !== ' ') return;
+                  if (selMode) toggleSel(sp.id);
+                  else setSelId(sp.id);
                 }}
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: 'pointer', outline: selMode && selSet.has(sp.id) ? '2px solid var(--brand)' : undefined }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  {selMode && (
+                    <input type="checkbox" checked={selSet.has(sp.id)} readOnly aria-label={'בחירת ' + sp.name} style={{ flex: 'none' }} />
+                  )}
                   {rfmOn && (
                     <span
                       title={tier.label + ' · ציון ' + score}
@@ -448,6 +528,7 @@ export function SupportersView() {
           <table className="table">
             <thead>
               <tr>
+                {selMode && <th aria-hidden style={{ width: 34 }} />}
                 {HEAD.filter(
                   (h) =>
                     (nextOn || h.key !== 'nextDate') &&
@@ -473,6 +554,7 @@ export function SupportersView() {
               </tr>
               {/* P3 פריט 13 — פילטרים פר-עמודה בתחביר numMatch ('3' / '3+' / '1-5'), כמו scf בלגאסי */}
               <tr>
+                {selMode && <th />}
                 {HEAD.filter(
                   (h) =>
                     (nextOn || h.key !== 'nextDate') &&
@@ -507,11 +589,16 @@ export function SupportersView() {
               {list.map((sp) => (
                 <tr
                   key={sp.id}
-                  onClick={() => setSelId(sp.id)}
+                  onClick={() => (selMode ? toggleSel(sp.id) : setSelId(sp.id))}
                   onKeyDown={openRowKey(sp.id)}
                   tabIndex={0}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', background: selMode && selSet.has(sp.id) ? 'var(--sel, #eef3ff)' : undefined }}
                 >
+                  {selMode && (
+                    <td style={{ width: 34, textAlign: 'center' }}>
+                      <input type="checkbox" checked={selSet.has(sp.id)} readOnly aria-label={'בחירת ' + sp.name} />
+                    </td>
+                  )}
                   <td>
                     <div style={{ fontWeight: 700 }}>{sp.name}</div>
                     {(sp.cat || sp.forWho) && (
@@ -593,8 +680,35 @@ export function SupportersView() {
 
       {dedupOpen && <SupDedupModal onClose={() => setDedupOpen(false)} />}
       {importOpen && (
-        <Modal title="⬆ ייבוא תומכות מ-CSV" onClose={() => setImportOpen(false)}>
+        <Modal title="⬆ ייבוא תומכות מ-CSV / Excel" onClose={() => setImportOpen(false)}>
           <SupporterImport onDone={() => setImportOpen(false)} />
+        </Modal>
+      )}
+
+      {confirmDel && (
+        <Modal
+          title={'מחיקת ' + selSet.size + ' ' + termOf(config, 'nav.supporters', 'תומכים')}
+          onClose={() => setConfirmDel(false)}
+        >
+          <p style={{ fontSize: 14, lineHeight: 1.6 }}>
+            {'פעולה בלתי-הפיכה: יימחקו לצמיתות '}
+            <b>{selSet.size}</b>
+            {' ' + termOf(config, 'nav.supporters', 'תומכים') + ' — כולל היסטוריית ה' + termOf(config, 'entity.donations', 'תרומות') + ' והתזכורות שלהם. האם להמשיך?'}
+          </p>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <Btn
+              kind="danger"
+              onClick={() => {
+                const ids = [...selSet];
+                deleteSupporters(ids);
+                toast('נמחקו ' + ids.length + ' ' + termOf(config, 'nav.supporters', 'תומכים'));
+                exitSelMode();
+              }}
+            >
+              {'🗑 מחק ' + selSet.size}
+            </Btn>
+            <Btn onClick={() => setConfirmDel(false)}>ביטול</Btn>
+          </div>
         </Modal>
       )}
 

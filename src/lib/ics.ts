@@ -8,6 +8,7 @@
  * עברית = 2 בייט לתו!); escaping ל-\ ; , ושורות-חדשות; שעה = זמן-מקומי צף
  * (עמותה חד-אזורית); בלי-שעה = אירוע יום-שלם; DTSTAMP מוזרק (טהור, ללא Date.now).
  */
+import { guardExport } from './exportGate';
 
 /** מופע-יומן אחד לייצוא — קונקרטי (אחרי פריסת חזרות עבריות). */
 export interface IcsOccurrence {
@@ -108,10 +109,12 @@ export function buildIcs(occurrences: IcsOccurrence[], calName: string, now: Dat
     lines.push('DTSTAMP:' + stamp);
     // שעה שאינה HH:MM (ייבוא-JSON ידני, '9:00') ⇒ Invalid Date ⇒ VEVENT מושחת
     // שמפיל את **כל** הקובץ ביבואן. נפילה בטוחה: אירוע יום-שלם. (ביקורת 4.8.)
-    if (oc.time && /^\d{2}:\d{2}$/.test(oc.time)) {
-      const start = new Date(oc.date + 'T' + oc.time + ':00');
-      const end = new Date(start.getTime() + 3600e3); // שעה — כולל גלגול-חצות
-      lines.push('DTSTART:' + basicLocal(start));
+    // 🐛 נחיל-עמוק (13.8): '25:00'/'12:60' עברו את הרגקס אך יצרו Invalid Date —
+    // כעת מאמתים גם את הערך בפועל (isNaN), לא רק את הפורמט.
+    const parsedStart = oc.time && /^\d{2}:\d{2}$/.test(oc.time) ? new Date(oc.date + 'T' + oc.time + ':00') : null;
+    if (parsedStart && !Number.isNaN(parsedStart.getTime())) {
+      const end = new Date(parsedStart.getTime() + 3600e3); // שעה — כולל גלגול-חצות
+      lines.push('DTSTART:' + basicLocal(parsedStart));
       lines.push('DTEND:' + basicLocal(end));
     } else {
       lines.push('DTSTART;VALUE=DATE:' + basicDate(oc.date));
@@ -128,6 +131,7 @@ export function buildIcs(occurrences: IcsOccurrence[], calName: string, now: Dat
 
 /** הורדת קובץ ICS — mime יומן, בלי BOM (בניגוד ל-CSV — יומנים לא אוהבים BOM). */
 export function downloadIcs(filename: string, text: string): void {
+  if (!guardExport()) return; // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד)
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], { type: 'text/calendar;charset=utf-8' }));
   a.download = filename;

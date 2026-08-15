@@ -155,6 +155,19 @@ describe('📅 ratchet — icsWindowEvents (פריסת חזרות עבריות)'
     expect(icsWindowEvents(db, '2026-08-04', 30, 't', offMod).some((o) => o.uid.startsWith('crs-'))).toBe(false);
   });
 
+  it('🐛 שעה מחוץ-לתחום (25:00 / 12:60) ⇒ נפילה בטוחה לאירוע יום-שלם, לא Invalid Date', () => {
+    const now = new Date('2026-08-04T12:00:00');
+    const mk = (time: string) => ({ uid: 'x1', title: 'בדיקה', date: '2026-08-04', time });
+    for (const bad of ['25:00', '12:60', '9:00', 'ab:cd']) {
+      const ics = buildIcs([mk(bad)], 'לוח', now);
+      expect(ics).toContain('DTSTART;VALUE=DATE:20260804'); // נפילה לאירוע יום-שלם
+      expect(ics).not.toContain('Invalid');
+      expect(ics).not.toContain('NaN');
+    }
+    const good = buildIcs([mk('17:00')], 'לוח', now);
+    expect(good).toMatch(/DTSTART:20260804T\d{6}/); // שעה תקינה → DTSTART עם זמן
+  });
+
   it('חדר מתורגם ל-location', () => {
     const db: Db = {
       ...emptyDb(),

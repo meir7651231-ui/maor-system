@@ -8,7 +8,7 @@ import { allMembers, useApp } from '../../store/useApp';
 import { downloadCsv, type Cell } from '../../lib/csvx';
 import { featureOn, termOf } from '../../lib/config';
 import { eventsCsvRows, familiesImportFormatRows, supportersImportFormatRows } from '../../lib/exportRows';
-import { Btn } from '../ui';
+import { Btn, Empty } from '../ui';
 import { Section, SectionNote } from './lib';
 import { ageOf, fmtDate, STATUS_META } from '../families/lib';
 import { DAY_NAMES, paidOf, payBal, planWord, modelMeta, enrollCount } from '../courses/lib';
@@ -46,6 +46,9 @@ export function exportFamiliesCsv(): void {
 export function ExportSection() {
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
+  // 🔐 מאסטר-מתג הוצאת-מידע (13.8): עובד חסום (core.export=false בכרטיס-העובד) —
+  // כל סעיף הייצוא מוסתר ממנו.
+  const exportOn = featureOn(config, 'core.export');
   const exportFullOn = featureOn(config, 'reports.export.full');
   // בוררים סקלריים נפרדים — אובייקט חדש בכל בורר היה גורם לרינדור אינסופי
   const counts = {
@@ -108,7 +111,7 @@ export function ExportSection() {
         modelMeta(c).label, c.price,
         ...(exportFullOn ? [c.price1 || '', c.price2 || '', c.ageMin || '', c.ageMax || ''] : []),
         DAY_NAMES[c.weekday] ?? '', c.time,
-        ...(exportFullOn ? [c.sessions.length || 1] : []),
+        ...(exportFullOn ? [c.sessions?.length || 1] : []),
         enrollCount(db, c.id), ...(exportFullOn ? ['₪' + revenue] : []), c.maxStudents || '',
         c.semester, fmtDate(c.start), fmtDate(c.end), c.notes,
       ]);
@@ -195,6 +198,12 @@ export function ExportSection() {
       : []),
   ];
 
+  if (!exportOn)
+    return (
+      <Section id="sec-export" title="⬇ ייצוא נתונים" sub="הוצאת מידע חסומה עבורך">
+        <Empty>⛔ הוצאת מידע (ייצוא/גיבוי) חסומה עבורך על-ידי מנהל הארגון.</Empty>
+      </Section>
+    );
   return (
     <Section
       id="sec-export"

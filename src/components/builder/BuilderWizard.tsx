@@ -442,7 +442,11 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
     const terms = TERM_DEFS.filter((t) => sec.termKeys.includes(t.key));
     const visFeats = searching ? feats.filter((f) => f.label.includes(q) || f.desc.includes(q)) : feats;
     const visTerms = searching ? terms.filter((t) => t.label.includes(q) || t.fallback.includes(q)) : terms;
-    if (searching && !visFeats.length && !visTerms.length) return null;
+    // מסלול-B: פיצול-תרומות פר-ייעוד — דגל ברמת-הקונפיג (לא features), מוצג כטוגל
+    // במקטע התורמים ליד שאר היכולות. ברירת-מחדל כבוי (חסר=כבוי, רק true מדליק).
+    const showSplit =
+      sec.id === 'supporters' && (!searching || 'פיצול תרומות פר-ייעוד אכיפת הרשאה לעובדות ייעוד'.includes(q));
+    if (searching && !visFeats.length && !visTerms.length && !showSplit) return null;
 
     const modOn = mk ? config.modules[mk] !== false : true;
     const onCount = feats.filter((f) => config.features?.[f.key] !== false).length;
@@ -513,6 +517,34 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                   onChange={(v) => setTerm(t.key, v)}
                 />
               ))}
+            </div>
+          )}
+          {showSplit && (
+            <div style={{ borderTop: '1px solid var(--line-soft)', marginTop: 6, paddingTop: 6 }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 8,
+                  padding: '5px 2px',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={config.donationSplit === true}
+                  onChange={(e) => patch({ donationSplit: e.target.checked ? true : undefined })}
+                  style={{ width: 'auto', marginTop: 2, accentColor: 'var(--accent-deep)' }}
+                />
+                <span style={{ lineHeight: 1.35 }}>
+                  <span style={{ color: 'var(--ink)' }}>🔀 פיצול-תרומות פר-ייעוד (אכיפת-הרשאה לעובדות)</span>
+                  <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                    כל עובדת רואה רק תרומות של הייעודים שהוקצו לה — האכיפה בשכבת-הנתונים (הענן). דורש
+                    ענן מחובר; לארגון עם תרומות קיימות הריצו קודם את המיגרציה ב-הגדרות←אבטחה.
+                  </span>
+                </span>
+              </label>
             </div>
           )}
         </div>

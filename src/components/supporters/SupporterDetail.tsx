@@ -5,7 +5,8 @@
 import { useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, integrationOn, integrationSetting, termOf } from '../../lib/config';
+import { featureOn, integrationOn, integrationSetting, isSuperAdmin, termOf } from '../../lib/config';
+import { canIssueReceipt } from '../platform/lib';
 import { payLink } from '../../lib/payLink';
 import { askClaude, readAiKey, thanksPrompt } from '../../lib/ai';
 import { annualReportLines, donationYears, downloadAnnualReport } from '../../lib/annualReport';
@@ -50,6 +51,18 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
+  // 🔐 רק המנהל מנפיק קבלות (הכרעת-בעלים 14.8) — כפתורי-הרישום מוסתרים מעובד/ת;
+  // האכיפה-הקשיחה בליבה (addDonation). לקוח-שורש/מקומי/מנהל = מנפיק.
+  const cloud = useApp((s) => s.cloud);
+  const canIssue = canIssueReceipt({ superAdmin: isSuperAdmin(cloud.user?.email), isManager: !!cloud.isManager, cloudRoot: config.cloudRoot === true, cloudConnected: !!cloud.user });
+  // 🔒 ייעוד-הרשאה (13.8): גם בכרטיס של תורם-גלוי, התצוגה (ציון/סטטיסטיקה/רשימה/
+  // לוח/דוח-שנתי-לתורם) מסתירה תרומות בייעוד אסור. `sp` הגולמי נשמר לכל הכתיבות
+  // (upsertSupporter/addDonation) — `dsp` הוא עותק-תצוגה בלבד.
+  const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = featureOn(config, 'supporters.purpose') ? allowedDesignations : null;
+  const dsp = desigLimit
+    ? { ...sp, donations: sp.donations.filter((d) => { const p = (d.purpose ?? '').trim(); return !p || desigLimit.includes(p); }) }
+    : sp;
   // גל ג׳ — פעולות-הרחבה בכרטיס: 💳 עמוד-תרומה (payments) · 🤖 מכתב-תודה (ai)
   const donateHref = integrationOn(config, 'payments')
     ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, sp.name)
@@ -193,7 +206,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   // P3 פריט 11 — לחיצה על תרומה מסמנת את יומה בלוח האישי
   const [calFocus, setCalFocus] = useState<string | null>(null);
 
-  const score = supScore(sp, usdRate);
+  const score = supScore(dsp, usdRate);
   const tier = supTier(score);
   const callNotes = termOf(config, 'entity.family', 'משפחה') + ' תומכת · ' + (sp.phone || '') + (sp.email ? ' · ' + sp.email : '');
 
@@ -269,19 +282,19 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   // רשימת "כל התרומות" — עם הדגל: מיזוג קבלות + הקובץ ההיסטורי כמו בלגאסי
   // (supDonEvents); בלעדיו: הקבלות בלבד (ההתנהגות הקודמת).
   const donRows = histOn
-    ? supDonEvents(sp, config)
-    : [...sp.donations]
+    ? supDonEvents(dsp, config)
+    : [...dsp.donations]
         .sort((a, b) => b.date.localeCompare(a.date))
         .map((d) => ({ date: d.date, amount: d.amount, cur: d.cur || ('₪' as const), src: 'קבלה ' + d.rid, rid: d.rid }));
   // הכרעת 9.8 "לכולל": שורת-הסטטיסטיקה כוללת את הקובץ ההיסטורי
   const statsLine =
-    supCount(sp) +
+    supCount(dsp) +
     ' ' +
     termOf(config, 'entity.donations', 'תרומות') +
     ' · ' +
-    totalLabel(sp) +
-    (sp.first ? ' · מ-' + hebDateFull(sp.first) : '') +
-    (supLast(sp) ? ' · אחרונה ' + hebDateFull(supLast(sp)) : '');
+    totalLabel(dsp) +
+    (dsp.first ? ' · מ-' + hebDateFull(dsp.first) : '') +
+    (supLast(dsp) ? ' · אחרונה ' + hebDateFull(supLast(dsp)) : '');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -321,14 +334,16 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 2 }}>{statsLine}</div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Btn kind="primary" onClick={() => setDonOpen(true)}>
-            ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
-          </Btn>
+          {canIssue && (
+            <Btn kind="primary" onClick={() => setDonOpen(true)}>
+              ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
+            </Btn>
+          )}
           {/* ROADMAP-100 ‏#4: דוח-שנתי-לתורם — ריכוז תרומות שנת-המס (לא קבלה!) */}
-          {featureOn(config, 'supporters.annualreport') && donationYears(sp.donations).length > 0 && (
+          {featureOn(config, 'supporters.annualreport') && donationYears(dsp.donations).length > 0 && (
             <Btn
               onClick={() => {
-                const year = donationYears(sp.donations)[0];
+                const year = donationYears(dsp.donations)[0];
                 downloadAnnualReport(
                   'annual-' + year + '-' + sp.name.replace(/\s+/g, '_') + '.txt',
                   annualReportLines({
@@ -337,7 +352,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                     supporterName: sp.name,
                     payerId: sp.idNum,
                     year,
-                    donations: sp.donations,
+                    donations: dsp.donations,
                   }),
                 );
                 toast('📄 דוח שנת ' + year + ' ירד');
@@ -418,7 +433,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                     (sp.hok.active ? '' : ' · ⏸ מושהית')}
                 </div>
                 {sp.hok.note && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 2 }}>{sp.hok.note}</div>}
-                {sp.hok.active && (
+                {sp.hok.active && canIssue && (
                   hokRecordedThisMonth(sp, isoToday()) ? (
                     <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 6 }}>✓ חיוב-החודש נרשם</div>
                   ) : (
@@ -465,12 +480,12 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       {ayinOn && <AyinCard supporter={sp} />}
 
       {/* לוח-חודש של תרומות (feature: supporters.doncal) */}
-      {featureOn(config, 'supporters.doncal') && sp.donations.length > 0 && (
+      {featureOn(config, 'supporters.doncal') && dsp.donations.length > 0 && (
         <div className="card">
           <h3 style={{ fontSize: 15, marginBottom: 10 }}>
             🗓 {termOf(config, 'entity.donations', 'תרומות')} לפי חודש
           </h3>
-          <DonationCalendar supporter={sp} focusIso={calFocus ?? undefined} />
+          <DonationCalendar supporter={dsp} focusIso={calFocus ?? undefined} />
         </div>
       )}
 
@@ -514,7 +529,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                     <td style={{ fontWeight: 700 }}>
                       {r.cur === '' ? '—' : (r.cur === '$' ? '$' : '₪') + r.amount.toLocaleString('he-IL')}
                     </td>
-                    <td>{(r.rid && sp.donations.find((d) => d.rid === r.rid)?.cat) || '—'}</td>
+                    <td>{(r.rid && dsp.donations.find((d) => d.rid === r.rid)?.cat) || '—'}</td>
                     <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--ink-faint)' }}>
                       {histOn ? r.src : r.rid}
                     </td>

@@ -185,6 +185,33 @@ export function effectiveConfigFor<
   return { ...orgConfig, modules, features };
 }
 
+/**
+ * ייעודי-התרומה שהעובד/ת רשאי/ת לראות (בקשת-בעלים 13.8 ג') — טהור.
+ * מנהל/בעלים ⇒ null (רואה הכל). אחרת: הרשימה בכרטיס-העובד אם אינה ריקה, אחרת
+ * null (בלי הגבלה). null = "בלי מסנן"; מערך = הגבלה לרשימה בלבד.
+ */
+export function allowedDesignationsFor(email: string, org: OrgCloudDoc): string[] | null {
+  if (isOrgManager(email, org)) return null;
+  const d = overrideOf(email, org).designations;
+  return d && d.length ? d : null;
+}
+
+/**
+ * מי מנפיק קבלות-§46 (הכרעת-בעלים 14.8: "רק המנהל מפיק קבלות") — טהור.
+ * מקצה-יחיד למספרי-הקבלה: מונע מרוץ דו-מכשירי על donationSeq (רצף קבלות-המס),
+ * וגם כלל-עסקי — קבלת-מס רשמית = סמכות-מנהל. מותר: מייל-על · מנהל-ארגון ·
+ * לקוח-שורש (הבעלים הקיים) · עבודה-מקומית-בלי-ענן. חסום: עובד/ת בארגון-פלטפורמה
+ * שאינו/ה מנהל/ת. חוזה-הבטיחות: ברירת-מחדל מתירה (לקוח לא-מחובר/שורש) — לא שוברת אף לקוח קיים.
+ */
+export function canIssueReceipt(p: {
+  superAdmin: boolean;
+  isManager: boolean;
+  cloudRoot: boolean;
+  cloudConnected: boolean;
+}): boolean {
+  return p.superAdmin || p.isManager || p.cloudRoot || !p.cloudConnected;
+}
+
 /** אישור בקשת-הצטרפות (טהור) — מוסיף ל-members (בלי כפילויות, מנורמל). ללא דריסות = מלא. */
 export function approveMember(org: OrgCloudDoc, email: string): { members: string[] } {
   const e = normEmail(email);

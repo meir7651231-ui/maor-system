@@ -104,6 +104,24 @@ export interface CourseSession {
 
 export type PricingModel = 'monthly' | 'half_year' | 'year' | 'punch';
 
+/**
+ * צירוף קובץ לחוג (בקשת-בעלים 13.8 א'): מסמך / תמונה / קישור לסרטון.
+ * additive — חסר = ביט-זהה לחוג ישן. אחסון local-first:
+ *  - 'image' / 'file' ⇒ data URL מוטמע ב-DB (עם תקרת-גודל, כמו img).
+ *  - 'link' ⇒ https URL חיצוני (Drive/YouTube וכו') — לסרטונים כבדים.
+ */
+export interface CourseFile {
+  id: Id;
+  name: string;
+  kind: 'image' | 'file' | 'link';
+  /** data URL (image/file) או https URL (link). */
+  data: string;
+  /** סוג MIME לקבצים מוטמעים (image/file); ריק לקישור. */
+  mime?: string;
+  /** גודל בבייטים לקובץ מוטמע (לתצוגה). */
+  size?: number;
+}
+
 export interface Course {
   id: Id;
   name: string;
@@ -137,6 +155,20 @@ export interface Course {
   gradeMax?: string;
   sessions: CourseSession[];
   notes: string;
+  /** צירופים לחוג — מסמכים/תמונות/קישורים (בקשת-בעלים 13.8 א'). */
+  files?: CourseFile[];
+  /**
+   * תמחור פר-שיעור (בקשת-בעלים 13.8 ב'): כשדלוק, המחיר מחושב לפי מחיר-לשיעור
+   * × תדירות × מספר-שיעורים-בתקופה (משוקלל). כבוי/חסר = מודל שטוח כמו היום
+   * (price + model) — ביט-זהה לחוג ישן.
+   */
+  perLesson?: boolean;
+  /** מחיר לשיעור בודד (מלא). */
+  lessonPrice?: number;
+  /** מחיר-לשיעור ברמת-הנחה 1 (price1Name); חסר/0 = בלי הנחה בתמחור פר-שיעור. */
+  lessonPrice1?: number;
+  /** מחיר-לשיעור ברמת-הנחה 2 (price2Name). */
+  lessonPrice2?: number;
 }
 
 export interface Absence {
@@ -195,7 +227,21 @@ export interface Enrollment {
    * במקום להעלים אותה רטרואקטיבית. חסר/undefined = שיבוץ ישן שהסתיים בלי תאריך.
    */
   endedAt?: IsoDate;
+  /**
+   * תמחור משוקלל פר-שיעור (בקשת-בעלים 13.8 ב', additive): התדירות והתקופה
+   * שהלקוח בחר בהרשמה. חסר = שיבוץ ישן/מודל-שטוח (totalDue נשאר כפי שהוקלד).
+   */
+  freq?: number;
+  freqUnit?: 'week' | 'month';
+  term?: PricingTerm;
+  /** מספר חודשים כאשר term==='months'. */
+  termMonths?: number;
+  /** רמת-ההנחה שנבחרה: '' = מלא · '1' · '2' (מיפוי ל-lessonPrice1/2). */
+  tier?: '' | '1' | '2';
 }
+
+/** תקופת-חיוב לתמחור המשוקלל (בקשת-בעלים 13.8 ב'). */
+export type PricingTerm = 'once' | 'weekly' | 'biweekly' | 'monthly' | 'months' | 'half_year' | 'year';
 
 export interface Teacher {
   id: Id;
@@ -210,6 +256,26 @@ export interface Teacher {
   payRate: number;
   startDate: IsoDate | '';
   notes: string;
+  /**
+   * פרטי תשלום למורה (additive — חסר/'' = לא הוגדר, ביט-זהה לכרטיס ישן).
+   * סגנון התשלום: מזומן / משכורת (תלוש) / צ'ק. השם/טלפון/ת"ז לתשלום = שדות הכרטיס
+   * הקיימים (name/phone/idNum); פרטי הבנק נוספים כאן להעברה/משכורת.
+   */
+  payMethod?: 'cash' | 'salary' | 'check' | '';
+  /**
+   * התשלום מועבר לחשבון/מוטב אחר (לא המורה) — למשל העברה דרך חשבון של בן/בת-זוג
+   * או גמ"ח. כשדלוק, payee* מחזיקים את זהות המוטב האחר; אחרת התשלום = פרטי המורה.
+   */
+  payToOther?: boolean;
+  /** שם בעל החשבון/המוטב לתשלום (כשהתשלום מועבר לאחר). */
+  payeeName?: string;
+  /** טלפון המוטב האחר. */
+  payeePhone?: string;
+  /** ת"ז המוטב האחר. */
+  payeeIdNum?: string;
+  bankName?: string;
+  bankBranch?: string;
+  bankAccount?: string;
 }
 
 export interface Room {
@@ -283,6 +349,13 @@ export interface Donation {
    * רגילה בלי ייעוד לא מושפעת (תאימות-לאחור, אין מיגרציה).
    */
   designation?: string;
+  /**
+   * ייעוד/"עבודה" (בקשת-בעלים 13.8 ג'): תווית-שיוך של התרומה למיזם/עבודה,
+   * המשמשת כמסנן-הרשאה פר-עובד — עובד רואה רק תרומות של הייעודים שהוקצו לו
+   * בכרטיס-העובד. נפרד מ-cat (קטגוריה) ומ-designation (אמץ חתן). ריק = לא-משויך
+   * (גלוי לכולם). additive — תרומה ישנה בלי purpose לא מושפעת.
+   */
+  purpose?: string;
 }
 
 /**
@@ -378,8 +451,23 @@ export interface Supporter {
   /** אירוע 'שיחה' שנוצר אוטומטית ביומן. */
   nextEventId?: Id;
   donations: Donation[];
-  /** תרומות מהקובץ ההיסטורי (לגאסי hist) — לא קבלות; מוצג בכרטיס התומכת. */
-  hist?: { d: IsoDate; a: number; c?: '₪' | '$' }[];
+  /** תרומות מהקובץ ההיסטורי (לגאסי hist) — לא קבלות; מוצג בכרטיס התומכת.
+   *  ‏13.8: מטא-דאטה של עסקת-הסליקה (כל השדות אופציונליים, additive) — נקלטים
+   *  מיצוא "היסטוריית חיובים": אסמכתא/מס'-עסקה/מס'-קבלה/מותג/4-ספרות/סולק/
+   *  תשלומים/סטטוס. משמשים לתצוגה + זיהוי-כפילות (מס'-עסקה ייחודי). */
+  hist?: {
+    d: IsoDate;
+    a: number;
+    c?: '₪' | '$';
+    ref?: string; // אסמכתא
+    txn?: string; // מספר עסקה (ייחודי)
+    receipt?: string; // מספר קבלה (מהסליקה)
+    brand?: string; // מותג הכרטיס (ויזה/מסטרכרד)
+    last4?: string; // 4 ספרות אחרונות
+    clearer?: string; // חברה סולקת
+    pays?: number; // מספר תשלומים
+    status?: string; // סטטוס (אושר/נדחה)
+  }[];
   /**
    * הוראת-קבע (ROADMAP-100 ‏#2 צד-מערכת, 5.8.2026) — additive: המעקב והרישום
    * במערכת; החיוב עצמו אצל חברת-הסליקה/הבנק. הרישום-בפועל = תרומה רגילה

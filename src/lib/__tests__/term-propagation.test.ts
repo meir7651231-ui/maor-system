@@ -38,7 +38,8 @@ describe('✓ ratchet — מונחים עוברים דרך termOf (לכל אור
   });
 
   it('ImpactWall מעביר config ל-buildWallData ומתייג דרך termOf (הקיר הציבורי)', () => {
-    expect(wallSrc).toContain('buildWallData(db, now, config)');
+    // 🔒 13.8: db הוחלף ב-vdb (db מסונן-ייעוד לעובדת מוגבלת) — config עדיין מועבר
+    expect(wallSrc).toContain('buildWallData(vdb, now, config)');
     expect(wallSrc).toContain("termOf(config, 'nav.families'");
     // הקיר כבר לא נועל את "המשפחות" ואת שורת-הפעימה כמחרוזת קשיחה
     expect(wallSrc).not.toContain('שיבוצים, תשלומים ותרומות — מדד משוקלל');

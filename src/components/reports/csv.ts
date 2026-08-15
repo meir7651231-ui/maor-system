@@ -3,6 +3,8 @@
  * בריחת פסיקים/גרשיים והגנה מפני הזרקת נוסחאות (=+-@).
  */
 
+import { guardExport } from '../../lib/exportGate';
+
 export type Cell = string | number;
 
 function esc(x: Cell): string {
@@ -16,6 +18,7 @@ function esc(x: Cell): string {
 }
 
 function download(name: string, mime: string, text: string): void {
+  if (!guardExport()) return; // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד)
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['\uFEFF' + text], { type: mime }));
   a.download = name;

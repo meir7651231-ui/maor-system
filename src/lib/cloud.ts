@@ -33,6 +33,7 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
   query,
+  runTransaction,
   setDoc,
   updateDoc,
   where,
@@ -42,9 +43,10 @@ import {
   type WriteBatch,
 } from 'firebase/firestore';
 import type { FirebaseOrgConfig } from '../types/config';
-import { DB_VERSION, type Db } from '../types/domain';
+import { DB_VERSION, type Db, type Donation } from '../types/domain';
 import { migrate } from '../store/persist';
-import { ENTITY_COLLECTIONS, colPath, envPath, fullDbDiff, metaPath, type DbDiff } from './cloud-diff';
+import { ENTITY_COLLECTIONS, colPath, donationsPath, envPath, fullDbDiff, metaPath, type DbDiff } from './cloud-diff';
+import { SHARED_PURPOSE_KEY, type DonationCloudDiff } from './donationPartition';
 import { decryptDoc, encryptDoc } from './cloudCrypto';
 import type { EncEnvelope } from './crypto';
 
@@ -83,6 +85,65 @@ function scopedMeta(): string {
 }
 function scopedEnv(): string {
   return envPath(scope.slug, scope.cloudRoot);
+}
+function scopedDonations(): string {
+  return donationsPath(scope.slug, scope.cloudRoot);
+}
+
+/* ── מסלול-B: פיצול-תרומות (דגל-אב, off-by-default, מגודר גם מ-cloudRoot) ── */
+let splitOn = false;
+/** נקבע מ-connectCloud לפי donationSplitOn(config). */
+export function setDonationSplit(on: boolean): void {
+  splitOn = on;
+}
+/** האם הסנכרון פועל במצב-פיצול (הצד-הדוחף שואל לפני push). */
+export function donationSplitActive(): boolean {
+  return splitOn;
+}
+
+// מסלול-B P3 — ייעודים מותרים לעובד/ת המחובר/ת: null=בלי-הגבלה (מנהל/בעלים ⇒ קריאה
+// לא-מסוננת). מערך ⇒ שאילתת-donations מוגבלת ל-`where pkey in [...allowed, _shared_]`
+// כדי ש-Firestore Rules יתירו את ה-list (רשימה לא-מסוננת של עובד-מוגבל נדחית).
+let allowedPurposes: string[] | null = null;
+export function setAllowedPurposes(p: string[] | null): void {
+  allowedPurposes = p && p.length ? p : null;
+}
+
+/**
+ * מסלול-B — דחיפת אופרציות אוסף-התרומות (set/delete batched, ‏≤400). גוף-המסמך =
+ * ‏{supporterId, pkey, ...donation}; ‏id=rid. מוצפן אם dek (כמו שאר האוספים).
+ */
+export async function pushDonations(diff: DonationCloudDiff, dek?: CryptoKey | null): Promise<void> {
+  const db = requireDb();
+  const ops: Array<(b: WriteBatch) => void> = [];
+  for (const d of diff.sets) {
+    // pkey נשמר plaintext (מחוץ למעטפה) כדי ש-where-pkey-in + Rules יעבדו גם בארגון-מוצפן.
+    const payload: Record<string, unknown> = { supporterId: d.supporterId, ...d.donation };
+    const body: Record<string, unknown> = dek ? { pkey: d.pkey, ...(await encryptDoc(payload, dek)) } : { pkey: d.pkey, ...payload };
+    ops.push((b) => b.set(doc(db, scopedDonations(), d.id), body as DocumentData));
+  }
+  for (const id of diff.deletes) {
+    ops.push((b) => b.delete(doc(db, scopedDonations(), id)));
+  }
+  for (let i = 0; i < ops.length; i += 400) {
+    const batch = writeBatch(db);
+    for (const op of ops.slice(i, i + 400)) op(batch);
+    await batch.commit();
+  }
+}
+
+/**
+ * מסלול-B פאזה-4 — מיגרציית-פיצול חד-פעמית (חלון-בעלים): מפרקת את **כל** תרומות
+ * התומכים לאוסף-התרומות-הנפרד (upsert לפי rid). **אינה נוגעת ב-donationSeq** ולא
+ * מוחקת את התרומות המקוננות (הפיך: כיבוי-הדגל ⇒ הנתונים המקוננים עדיין שם).
+ * אידמפוטנטית — הרצה חוזרת כותבת את אותם מסמכים. מריצים לפני הדלקת donationSplit.
+ * מחזירה את מספר התרומות שהוגרו.
+ */
+export async function migrateDonationsToCollection(supporters: Db['supporters'], dek?: CryptoKey | null): Promise<number> {
+  const { donationPartitionDiff } = await import('./donationPartition');
+  const diff = donationPartitionDiff([], supporters); // prev ריק ⇒ כל התרומות = sets
+  await pushDonations(diff, dek);
+  return diff.sets.length;
 }
 
 /** אתחול חד-פעמי (idempotent) — קריאה חוזרת מחזירה את אותם singletons. */
@@ -228,6 +289,36 @@ function toPlain(data: unknown): DocumentData {
  * dek אופציונלי (הצפנת-ענן doc-level): קיים ⇒ כל מסמך מוצפן ל-{enc,iv} לפני
  * הכתיבה; **נעדר ⇒ נתיב plaintext ביט-זהה להיום** (ratchet). ה-id נשאר מפתח-המסמך.
  */
+/** מוני-הענן — מונוטוניים בלבד (רצף קבלות-מס). לעולם לא לרדת במסמך ה-meta. */
+const META_COUNTER_KEYS = ['seq', 'receiptSeq', 'donationSeq', 'shopReceiptSeq'] as const;
+
+/**
+ * כתיבת מסמך ה-meta בטוחה-למונים (🐛 נחיל-עמוק 13.8): כתיבת set() עיוורת דרסה את
+ * המונים בענן כשמכשיר עם מונה-מפגר דחף שינוי-meta שאינו-מונה (מרוץ תת-שנייה) ⇒
+ * קבלת-מס כפולה. עסקה קוראת את המונים החיים בענן ברגע-הכתיבה ומרימה למקסימום —
+ * כך הענן לעולם אינו נסוג. עובד גם לנתיב-המוצפן (פענוח/הצפנה בתוך העסקה).
+ */
+async function pushMetaCounterSafe(meta: Record<string, unknown>, dek?: CryptoKey | null): Promise<void> {
+  const db = requireDb();
+  const ref = doc(db, scopedMeta());
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    let existing: Record<string, unknown> | null = null;
+    if (snap.exists()) {
+      const raw = snap.data();
+      existing = dek ? await decryptDoc(raw, dek) : raw;
+    }
+    const safe: Record<string, unknown> = { ...meta };
+    for (const k of META_COUNTER_KEYS) {
+      const cur = existing?.[k];
+      const nxt = safe[k];
+      if (typeof cur === 'number' && (typeof nxt !== 'number' || cur > nxt)) safe[k] = cur;
+    }
+    const body = dek ? await encryptDoc(safe, dek) : safe;
+    tx.set(ref, body as DocumentData);
+  });
+}
+
 export async function pushDiff(diff: DbDiff, dek?: CryptoKey | null): Promise<void> {
   const db = requireDb();
   const ops: Array<(b: WriteBatch) => void> = [];
@@ -238,15 +329,13 @@ export async function pushDiff(diff: DbDiff, dek?: CryptoKey | null): Promise<vo
   for (const d of diff.deletes) {
     ops.push((b) => b.delete(doc(db, scopedCol(d.col), d.id)));
   }
-  if (diff.meta) {
-    const meta = dek ? await encryptDoc(toPlain(diff.meta), dek) : toPlain(diff.meta);
-    ops.push((b) => b.set(doc(db, scopedMeta()), meta));
-  }
   for (let i = 0; i < ops.length; i += 400) {
     const batch = writeBatch(db);
     for (const op of ops.slice(i, i + 400)) op(batch);
     await batch.commit();
   }
+  // מסמך ה-meta נכתב בעסקה נפרדת בטוחה-למונים (לא בכתיבת-האצווה העיוורת).
+  if (diff.meta) await pushMetaCounterSafe(toPlain(diff.meta), dek);
 }
 
 /* ============================ הצפנת-ענן — envelope + מיגרציה ============================ */
@@ -302,6 +391,31 @@ export async function pullAll(dek?: CryptoKey | null): Promise<Db | null> {
     raw[ENTITY_COLLECTIONS[i]] = await Promise.all(
       snaps[i].docs.map(async (d) => ({ ...(dek ? await decryptDoc(d.data(), dek) : d.data()), id: d.id })),
     );
+  }
+  // מסלול-B: התרומות באוסף-נפרד — קוראים ומרכיבים חזרה לתומכים **לפני migrate**,
+  // כדי ש-supporterAggregates (ריפוי-המונים ב-migrate) יראה תרומות מלאות (סיכון-#1).
+  if (splitOn) {
+    // עובד/ת מוגבל/ת (allowedPurposes) ⇒ שאילתה מסוננת (Rules דוחים list לא-מסוננת);
+    // מנהל/בעלים (null) ⇒ קריאה מלאה. 'in' תומך ≤30 ערכים — 29 ייעודים + המשותף.
+    const donRef = collection(db, scopedDonations());
+    const dsnap = await getDocs(
+      allowedPurposes
+        ? query(donRef, where('pkey', 'in', [...allowedPurposes.slice(0, 29), SHARED_PURPOSE_KEY]))
+        : donRef,
+    );
+    const bySup = new Map<string, Donation[]>();
+    for (const d of dsnap.docs) {
+      const data = (dek ? await decryptDoc(d.data(), dek) : d.data()) as Record<string, unknown>;
+      const supporterId = data.supporterId;
+      if (typeof supporterId !== 'string') continue;
+      const { supporterId: _s, pkey: _p, ...donation } = data; // rid נשמר בתוך ...donation
+      void _s; void _p;
+      const arr = bySup.get(supporterId) ?? [];
+      arr.push(donation as unknown as Donation);
+      bySup.set(supporterId, arr);
+    }
+    const sups = raw.supporters as Array<{ id: string; donations?: Donation[] }> | undefined;
+    if (Array.isArray(sups)) for (const sp of sups) sp.donations = bySup.get(sp.id) ?? [];
   }
   const migrated = migrate(raw);
   if (!migrated) throw new Error('נתוני הענן אינם בפורמט מוכר — לא בוצע סנכרון');

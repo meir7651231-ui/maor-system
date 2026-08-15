@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { buildCustomExport, expFieldDefs, overrideColumn, type ExportTarget } from '../../lib/customExport';
+import { visibleSupportersForDesignations } from '../supporters/lib';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Field, Modal } from '../ui';
 import { downloadCsv } from './csv';
@@ -28,6 +29,13 @@ export function CustomExport(props: { target: ExportTarget; onClose: () => void 
   const cfg = useApp((s) => s.config);
   const toast = useApp((s) => s.toast);
   const fullOn = featureOn(cfg, 'reports.custom.full');
+  // 🔒 ייעוד-הרשאה (13.8): ייצוא-התורמים המותאם יוצא רק על תורמים/תרומות בייעוד המותר.
+  const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = featureOn(cfg, 'supporters.purpose') ? allowedDesignations : null;
+  const vdb = useMemo(
+    () => (desigLimit ? { ...db, supporters: visibleSupportersForDesignations(db.supporters, desigLimit) } : db),
+    [db, desigLimit],
+  );
 
   const defs = useMemo(() => expFieldDefs(cfg, props.target), [cfg, props.target]);
   const [from, setFrom] = useState('');
@@ -48,8 +56,8 @@ export function CustomExport(props: { target: ExportTarget; onClose: () => void 
 
   const keys = useMemo(() => defs.filter((f) => sel[f.key]).map((f) => f.key), [defs, sel]);
   const rows = useMemo(
-    () => (preview && keys.length ? buildCustomExport(cfg, db, props.target, { from, to }, keys) : null),
-    [preview, keys, cfg, db, props.target, from, to],
+    () => (preview && keys.length ? buildCustomExport(cfg, vdb, props.target, { from, to }, keys) : null),
+    [preview, keys, cfg, vdb, props.target, from, to],
   );
   // ציד-באגים 3.8.2026 (🟡): notesEdit ממופתח לפי אינדקס-שורה; שינוי טווח/שדות
   // מזיז את הישויות בשורות ⇒ הערה שנערכה שויכה לישות אחרת בייצוא. מאפסים על שינוי.
@@ -71,11 +79,16 @@ export function CustomExport(props: { target: ExportTarget; onClose: () => void 
   }
 
   function run() {
+    // 🔐 מאסטר-מתג הוצאת-מידע (13.8): עובד חסום לא מייצא דו"ח מותאם.
+    if (!featureOn(cfg, 'core.export')) {
+      toast('⛔ הוצאת מידע חסומה עבורך על-ידי מנהל הארגון');
+      return;
+    }
     if (!keys.length) {
       toast('בחרו לפחות נתון אחד לייצוא');
       return;
     }
-    const built = rows ?? buildCustomExport(cfg, db, props.target, { from, to }, keys);
+    const built = rows ?? buildCustomExport(cfg, vdb, props.target, { from, to }, keys);
     if (built.length <= 1) {
       toast('אין נתונים בטווח שנבחר');
       return;

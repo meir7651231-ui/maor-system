@@ -5,6 +5,9 @@ rules_version = '2';
 // v3 (ORGADMIN 3.8.2026): מנהל-ארגון מואצל — orgManager(slug) יכול לעדכן רק את
 // שדות ניהול-העובדות של הארגון שלו (members/memberConfigs/joinOpen/joinCode)
 // ולנהל את joinRequests שלו; מייל-העל מעל כולם. config/manager = מייל-על בלבד.
+// v4 (נחיל-עמוק 14.8, פאזה-0): הקשחת platformLeads — מחרוזות תחומות-גודל מול
+// spam/עלות (create ציבורי). אכיפת-ייעוד/ייצוא פר-חבר בשכבת-הנתונים = פרויקט
+// נפרד (local-first לא ניתן-לסינון ב-Rules) — build-order ב-knowledge/.
 // הפריסה ידנית: קונסולת Firebase ← Firestore ← Rules ← הדבקה ← Publish,
 // ואז הדלקת הרשמה: Authentication ← Sign-in method ← Email/Password (enable).
 //
@@ -55,9 +58,17 @@ service cloud.firestore {
     // create בלבד (בלי אימות), שדות מוגבלים; קריאה/מחיקה — מיילי-על. אין
     // read ⇒ אי-אפשר למנות/לדלות לידים; בטוח מספיק לטופס-יצירת-קשר.
     match /platformLeads/{leadId} {
+      // create ציבורי (בלי חשבון) — מוקשח מפני spam/עלות (נחיל-עמוק 14.8, פאזה-0):
+      // רק 5 שדות, מחרוזות תחומות-גודל ⇒ payload חסום (מסמך-ענק לא ייכתב). שם+טלפון
+      // חובה ולא-ריקים; היתר אופציונליים. rate-limit אמיתי = App Check/function (בעלים).
       allow create: if request.resource.data.keys().hasOnly(['contactName', 'phone', 'preferredTime', 'notes', 'at'])
+        && request.resource.data.contactName is string
+        && request.resource.data.contactName.size() > 0 && request.resource.data.contactName.size() <= 100
         && request.resource.data.phone is string
-        && request.resource.data.contactName is string;
+        && request.resource.data.phone.size() > 0 && request.resource.data.phone.size() <= 30
+        && (!('preferredTime' in request.resource.data) || (request.resource.data.preferredTime is string && request.resource.data.preferredTime.size() <= 60))
+        && (!('notes' in request.resource.data) || (request.resource.data.notes is string && request.resource.data.notes.size() <= 500))
+        && (!('at' in request.resource.data) || (request.resource.data.at is string && request.resource.data.at.size() <= 40));
       allow read, update, delete: if superAdmin();
     }
 
@@ -93,9 +104,34 @@ service cloud.firestore {
       }
     }
 
-    // נתוני ארגון-פלטפורמה: קריאה/כתיבה — חבר או מייל-על.
+    // ייעודי-התרומה שהעובד/ת המחובר/ת רשאי/ת (מסלול-B P3): מ-memberConfigs; ריק/חסר
+    // ⇒ בלי הגבלה (מנהל/עובד-לא-מוגבל), עקבי עם allowedDesignationsFor בקליינט.
+    function memberDesignations(slug) {
+      return get(/databases/$(database)/documents/platformOrgs/$(slug)).data
+        .get('memberConfigs', {})
+        .get(request.auth.token.email.lower(), {})
+        .get('designations', []);
+    }
+    function memberSeesPurpose(slug, pkey) {
+      return orgMember(slug)
+        && (memberDesignations(slug).size() == 0    // בלי-הגבלה
+            || pkey == '_shared_'                    // תרומה משותפת = גלויה לכל
+            || pkey in memberDesignations(slug));
+    }
+
+    // נתוני ארגון-פלטפורמה: כתיבה — חבר או מייל-על (הסנכרון דוחף). קריאה — חבר,
+    // **פרט לאוסף-התרומות** (מסלול-B): קריאתו נאכפת פר-ייעוד במאץ' הייעודי למטה.
     match /orgs/{slug}/{col}/{docId} {
-      allow read, write: if superAdmin() || orgMember(slug);
+      allow write: if superAdmin() || orgMember(slug);
+      allow read: if (superAdmin() || orgMember(slug)) && col != 'donations';
+    }
+
+    // מסלול-B — אוסף-התרומות הנפרד: כתיבה=חבר (מכוסה גם למעלה); **קריאה פר-ייעוד**:
+    // מנהל/מייל-על=הכל; עובד/ת=רק ייעוד מותר או משותף. שדה pkey חייב להיות plaintext
+    // (בארגון-מוצפן — pkey מחוץ למעטפה) כדי ש-where-pkey-in של הקליינט יעבור.
+    match /orgs/{slug}/donations/{id} {
+      allow write: if superAdmin() || orgMember(slug);
+      allow read: if superAdmin() || orgManager(slug) || memberSeesPurpose(slug, resource.data.pkey);
     }
 
     // כספת-מפתחות פר-ארגון (9.8 — "כל מנהל יש את הסודות שלו"): טוקני ימות/

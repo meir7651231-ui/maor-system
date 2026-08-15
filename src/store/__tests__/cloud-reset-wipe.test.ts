@@ -21,6 +21,8 @@ vi.mock('../../lib/cloud', () => ({
   pullAll: () => Promise.resolve(null),
   pushDiff: (d: DbDiff) => { pushed.push(d); return Promise.resolve(); },
   subscribeAll: () => () => {},
+  donationSplitActive: () => false,
+  pushDonations: () => Promise.resolve(),
   initCloud: () => {},
   resetPassword: () => Promise.resolve(),
   signIn: () => Promise.resolve(),
@@ -69,9 +71,9 @@ describe('🗑 ratchet — איפוס/שחזור מוחקים תורמים מה�
   it('הגנת-מקור: resetAll + restoreDb קוראים cloudReplaceNow (לא הזרימה המושהית)', () => {
     // שני מסלולי-ההחלפה עברו לדחיפה הסמכותית-המיידית (2 קריאות)
     expect((viewSrc.match(/cloudReplaceNow\(prev, db\)/g) ?? []).length).toBe(2);
-    // resetAll ממש קורא לה
-    expect(viewSrc).toMatch(/resetAll\(\)[\s\S]{0,400}cloudReplaceNow\(prev, db\)/);
+    // resetAll ממש קורא לה (החלון הורחב ל-600 — נחיל-עמוק 13.8 הוסיף סימון-dirty+הערה)
+    expect(viewSrc).toMatch(/resetAll\(\)[\s\S]{0,600}cloudReplaceNow\(prev, db\)/);
     // ואף אחד מהשניים כבר לא משתמש בזרימה המושהית cloudOnDbChange
-    expect(viewSrc).not.toMatch(/resetAll\(\)[\s\S]{0,400}cloudOnDbChange/);
+    expect(viewSrc).not.toMatch(/resetAll\(\)[\s\S]{0,600}cloudOnDbChange/);
   });
 });

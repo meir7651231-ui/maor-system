@@ -7,7 +7,7 @@
  * (nav.ayin / entity.ayinItem / entity.ayinUnit + תוויות השלבים ayin.stage.*).
  * מפתחות השלבים הפנימיים (new/lead/eyes/answer/done) קבועים — רק התצוגה משתנה.
  */
-import type { AyinCase, AyinStage, Supporter } from '../types/domain';
+import { emptyAyin, type AyinCase, type AyinStage, type Supporter } from '../types/domain';
 import type { OrgConfig } from '../types/config';
 import type { Cell } from './csvx';
 import { termOf } from './config';
@@ -202,10 +202,12 @@ export function ayinDailyRows(cfg: OrgConfig, supporters: Supporter[], todayIso:
     ['שם', 'טלפון', `${unit} היום`, 'שלב', item, 'מתי לדבר שוב', 'הערה'],
   ];
   const touched = supporters.filter(
-    (sp) => sp.ayin && (sp.ayin.lastTouch === todayIso || sp.ayin.log.some((l) => l.date === todayIso)),
+    (sp) => sp.ayin && (sp.ayin.lastTouch === todayIso || sp.ayin.log?.some((l) => l.date === todayIso)),
   );
   for (const sp of touched) {
-    const a = sp.ayin!;
+    // 🐛 נחיל-עמוק (13.8): ayin חלקי (מלגאסי/ענן, חסר log/names/answers) הפיל את
+    // הדוח ואת מסך-התורמים. מיזוג עם emptyAyin מבטיח את כל המערכים.
+    const a = { ...emptyAyin(), ...sp.ayin! };
     const logToday = a.log.filter((l) => l.date === todayIso);
     const eyesToday = logToday.length
       ? logToday.reduce((t, l) => t + (+l.eyes || 0), 0)

@@ -7,7 +7,7 @@ import type { Course } from '../../types/domain';
 import { useApp, useCourse } from '../../store/useApp';
 import { featureOn, roleOf, teacherIdOf, termOf } from '../../lib/config';
 import { normSearch } from '../../lib/validate';
-import { Btn, Empty, PageHead, Select, TextInput } from '../ui';
+import { Btn, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { numMatch } from '../families/lib';
 import { CourseForm } from './CourseForm';
 import { CourseDetail } from './CourseDetail';
@@ -81,6 +81,8 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const [colFOn, setColFOn] = useState(false);
   const [colF, setColF] = useState(EMPTY_CRS_COLF);
   const [formOpen, setFormOpen] = useState(false);
+  // בקשת-בעלים: תפריט-⋯ בכרטיס-החוג במסך-החיצוני — מציג את ההערות (התיאור)
+  const [notesCourse, setNotesCourse] = useState<Course | null>(null);
 
   // בקשת "+ חוג" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
   const courseFormReq = useApp((s) => s.courseFormReq);
@@ -326,7 +328,17 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                 <div style={{ padding: '13px 15px 14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                     <div style={{ fontWeight: 800, fontSize: 14.5 }}>{c.name}</div>
-                    <span style={chipStyle(mm.bg, mm.c)}>{mm.label}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={chipStyle(mm.bg, mm.c)}>{mm.label}</span>
+                      <button
+                        type="button"
+                        title="הערות ופרטים"
+                        onClick={(e) => { e.stopPropagation(); setNotesCourse(c); }}
+                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, color: 'var(--ink-faint)', padding: '0 2px' }}
+                      >
+                        ⋯
+                      </button>
+                    </div>
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 2 }}>
                     {(c.audience || 'כללי') + ' · ' + termOf(cfg, 'entity.teacher', 'מורה') + ': ' + teacherName(c.teacherId)}
@@ -365,6 +377,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                 {thSort('price', 'מחיר')}
                 {thSort('price1', 'הנחה 1')}
                 {thSort('price2', 'הנחה 2')}
+                <th />
               </tr>
               {colFOn && (
                 <tr>
@@ -390,6 +403,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                   {colInput('price', '150 / 100-200')}
                   <th />
                   <th />
+                  <th />
                 </tr>
               )}
             </thead>
@@ -412,6 +426,16 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                     <td style={{ color: '#7c3aed', fontWeight: 700 }}>
                       {c.price2 ? '₪' + c.price2 + (c.price2Name ? ' · ' + c.price2Name : '') : '—'}
                     </td>
+                    <td style={{ width: 34 }}>
+                      <button
+                        type="button"
+                        title="הערות ופרטים"
+                        onClick={(e) => { e.stopPropagation(); setNotesCourse(c); }}
+                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, color: 'var(--ink-faint)' }}
+                      >
+                        ⋯
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
@@ -421,6 +445,35 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       )}
 
       {formOpen && <CourseForm course={null} onClose={() => setFormOpen(false)} />}
+
+      {/* בקשת-בעלים: תפריט-⋯ במסך-החיצוני — הערות (התיאור) + מעבר לכרטיס */}
+      {notesCourse && (
+        <Modal title={'📝 הערות — ' + notesCourse.name} onClose={() => setNotesCourse(null)}>
+          <div
+            style={{
+              fontSize: 14,
+              lineHeight: 1.6,
+              whiteSpace: 'pre-wrap',
+              color: notesCourse.description.trim() ? 'var(--ink)' : 'var(--ink-faint)',
+              minHeight: 40,
+            }}
+          >
+            {notesCourse.description.trim() || 'אין הערות לחוג זה. אפשר להוסיף בכרטיס החוג ← עריכה.'}
+          </div>
+          <div className="modal-actions">
+            <Btn
+              kind="primary"
+              onClick={() => {
+                const id = notesCourse.id;
+                setNotesCourse(null);
+                selectCourse(id);
+              }}
+            >
+              פתיחת כרטיס ה{termOf(cfg, 'entity.course', 'חוג')} ←
+            </Btn>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

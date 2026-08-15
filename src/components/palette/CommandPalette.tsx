@@ -9,6 +9,8 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { allMembers, useApp, type View } from '../../store/useApp';
 import { featureOn, moduleOn, termOf } from '../../lib/config';
+import { guardExport } from '../../lib/exportGate';
+import { supporterVisibleForDesignations } from '../supporters/lib';
 import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { DEFAULT_LOCK_ZONES } from '../../lib/lock';
@@ -91,6 +93,10 @@ export function CommandPalette() {
   const punch = useApp((s) => s.punch);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
+  // 🐛 נחיל-9×9 (13.8): הפלטה עקפה את הרשאת-הייעוד (supporters.purpose) — עובד
+  // מוגבל הקליד שם-תורם של ייעוד אחר ופתח את כרטיסו המלא. גידור זהה ל-SupportersView.
+  const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = featureOn(config, 'supporters.purpose') ? allowedDesignations : null;
 
   // גייטים למודולים ופיצ'רים — פריט של מודול/פיצ'ר כבוי לא מאונדקס בפלטה.
   // featureOn מחזיר false גם כשמודול האב כבוי, לכן אין צורך בבדיקה כפולה.
@@ -307,7 +313,8 @@ export function CommandPalette() {
       });
     }
     // ⬇ ייצוא CSV מהפלטה — dlCSV מהקובץ החי (P2 פער 24, חוב P1)
-    if (exportFullOn && familiesOn) {
+    // 🔐 מגודר גם ב-core.export — עובד חסום לא רואה את פעולת-הייצוא בפלטה (עקיפת-UI 13.8)
+    if (exportFullOn && familiesOn && featureOn(config, 'core.export')) {
       actions.push({
         key: 'act-dlcsv',
         icon: '⬇',
@@ -331,6 +338,7 @@ export function CommandPalette() {
           sub: 'רשימת חיוג ללוח ההעתקה',
           terms: toTerms(['העתקת כל הטלפונים', 'טלפונים', 'חיוג', 'העתקה', 'רשימה']),
           run: () => {
+            if (!guardExport()) { setPalette(false); return; } // 🔐 העתקה=הוצאת-מידע
             // legacy copyPhones (2341-2344): 'משפחת X: טלפון' שורה-לשורה
             const withPhone = useApp.getState().db.families.filter((f) => f.phone);
             const list = withPhone
@@ -576,7 +584,9 @@ export function CommandPalette() {
         },
       });
     }
-    for (const sp of supportersOn && !zoneLocked('supporters') ? db.supporters : []) {
+    for (const sp of supportersOn && !zoneLocked('supporters')
+      ? db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit))
+      : []) {
       out.push({
         key: 'sup-' + sp.id,
         icon: '💛',
@@ -844,14 +854,21 @@ export function CommandPalette() {
       onMouseDown={(e) => e.target === e.currentTarget && setPalette(false)}
     >
       <div className="palette" role="dialog" aria-label="חיפוש מהיר">
+        {/* 🐛 נחיל-9×9 (13.8): combobox נגיש — aria-controls/activedescendant מקשרים
+            את שדה-החיפוש לרשימה, כך שקורא-מסך מכריז את האפשרות המודגשת בחיצי-מקלדת. */}
         <input
           autoFocus
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={'חיפוש: מסך, ' + termOf(config, 'entity.family', 'משפחה') + ', שם, ' + termOf(config, 'entity.course', 'חוג') + ', ' + termOf(config, 'entity.teacher', 'מורה') + ', ' + termOf(config, 'entity.supporter', 'תורם') + ', מסמך או פעולה…'}
           aria-label="חיפוש מהיר בכל המערכת"
+          role="combobox"
+          aria-expanded={results.length > 0}
+          aria-controls="palette-results"
+          aria-autocomplete="list"
+          aria-activedescendant={results[sel] ? 'palette-opt-' + sel : undefined}
         />
-        <div className="results" ref={listRef} role="listbox" aria-label="תוצאות חיפוש">
+        <div className="results" id="palette-results" ref={listRef} role="listbox" aria-label="תוצאות חיפוש">
           {results.map((c, i) => {
             const inline = c.inline;
             return (

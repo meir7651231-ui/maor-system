@@ -47,10 +47,10 @@ import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { advanceStatus } from '../components/shop7/lib';
 import { roomClashError } from '../components/calendar/calLib';
-import { effectiveConfigFor, isOrgManager, parseJoinFullCode } from '../components/platform/lib';
+import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManager, parseJoinFullCode } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, employeeSignUpError, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, termOf, writeCloudConfigCache } from '../lib/config';
+import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, termOf, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
@@ -121,6 +121,11 @@ export interface CloudState {
   cloudEncrypted?: boolean;
   /** ORGADMIN — המשתמש המחובר הוא מנהל-הארגון (org.manager) ⇒ פאנל-המנהל 👥. */
   isManager?: boolean;
+  /**
+   * ייעודי-התרומה שהעובד/ת המחובר/ת רשאי/ת לראות (בקשת-בעלים 13.8 ג'). null =
+   * בלי הגבלה (מנהל/בעלים/לקוח-מקומי — רואה הכל). מערך = רק ייעודים אלו.
+   */
+  allowedDesignations?: string[] | null;
   /**
    * סטטוס רישום-הבקשה (5.8 — "מאור נרשם ולא רואים בקשה"): 'ok' = הבקשה נכתבה
    * לענן; אחרת קוד-השגיאה של הכתיבה האחרונה (למשל permission-denied — ‏Rules).
@@ -287,6 +292,8 @@ interface AppState {
   upsertRoom: (r: Room) => void;
   upsertSupporter: (s: Supporter) => void;
   deleteSupporter: (id: string) => void;
+  /** מחיקה-מרובה — כל ה-ids בעדכון-מצב יחיד (אותו ניקוי-מדורג כמו הבודד). */
+  deleteSupporters: (ids: string[]) => void;
   /** 🔗 מיזוג-כפולים (#13): כל הכסף עובר ל-keep (rid נשמר), drop נמחק. */
   mergeSupporters: (keepId: string, dropId: string) => void;
   /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
@@ -453,6 +460,10 @@ interface AppState {
   cloudUnlock: (secret: string, via: 'pass' | 'rec') => Promise<boolean>;
   /** הפעלת הצפנת-ענן (בעלים) — מחזיר מפתח-שחזור להצגה חד-פעמית. זורק על כשל. */
   enableCloudEncryption: (password: string) => Promise<string>;
+  /** מסלול-B פאזה-4 (חלון-בעלים) — מיגרציית-פיצול חד-פעמית; מחזירה מספר-התרומות שהוגרו. */
+  runDonationSplitMigration: () => Promise<number>;
+  /** מסלול-B פאזה-5 (חלון-בעלים) — הדלקת `donationSplit` בקונפיג-הענן בקליק (אחרי המיגרציה). זורק על כשל. */
+  enableDonationSplit: () => Promise<void>;
   /** סימון נעילה כפתוחה (לאחר קוד תקין) — נשמר לסשן. */
   markUnlocked: (kind: 'primary' | 'secondary') => void;
   /** נעילה מיידית — סוגר את שתי הרמות וחוזר לבית. */
@@ -585,8 +596,12 @@ export const useApp = create<AppState>()((set, get) => {
   function scheduleSave() {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(async () => {
-      const ok = await saveDb(get().db);
-      if (ok) dirty = false; // נשמר — שער ריבוי-הטאבים רשאי שוב לאמץ כתיבה חיצונית
+      const saving = get().db;
+      const ok = await saveDb(saving);
+      // 🐛 נחיל-עמוק (13.8): רק אם לא נכנסה עריכה חדשה תוך-כדי ה-await מנקים dirty.
+      // אחרת החלון בין סיום-השמירה לשמירה-הבאה השאיר dirty=false בעוד עריכה ממתינה —
+      // ושער ריבוי-הטאבים היה רשאי לדרוס אותה. השוואת-הפניה: כל setDb יוצר db חדש.
+      if (ok && get().db === saving) dirty = false;
       if (ok !== get().saveOk) set({ saveOk: ok });
       if (!ok) {
         get().toast('⚠ השמירה נכשלה — הורידו גיבוי מלא ובדקו מקום פנוי בדפדפן');
@@ -687,6 +702,8 @@ export const useApp = create<AppState>()((set, get) => {
       // תחום הנתיבים (CLOUD2 ענן 1): הלקוח הקיים (cloudRoot:true) = שורש —
       // ביט-זהה להיום; ארגון-פלטפורמה = orgs/{slug}/
       mod.setCloudScope(cfg.slug, cfg.cloudRoot === true);
+      // מסלול-B: מצב-פיצול-התרומות (off-by-default, שורש-פטור) — הצד-הדוחף/המושך שואל אותו.
+      mod.setDonationSplit(donationSplitOn(cfg));
       mod.watchAuth((user) => {
         const hadUser = get().cloud.user !== null;
         setCloud({ authReady: true, user, ...(user ? {} : { status: 'idle' as const }) });
@@ -725,6 +742,11 @@ export const useApp = create<AppState>()((set, get) => {
             // (רק הגבלה); מנהל/מייל-על = מלא. מנהל משנה כרטיס ⇒ העובד רואה חי (watch).
             const eff = effectiveConfigFor(user.email, orgDoc, merged);
             set({ config: eff });
+            // מסלול-B: מתג-הפיצול חי — הדלקה/כיבוי אצל הבעלים ⇒ שכבת-הסנכרון מיד,
+            // בלי רענון (הצד-הדוחף/המושך שואל את donationSplitActive). שורש נשאר כבוי.
+            mod.setDonationSplit(donationSplitOn(eff));
+            // ג' (13.8) — ייעודי-התרומה שהעובד/ת רשאי/ת לראות (מתעדכן חי עם הכרטיס)
+            setCloud({ allowedDesignations: allowedDesignationsFor(user.email, orgDoc) });
             const { db } = get();
             applyTheme(db.ui.theme ?? eff.theme, db.ui.accent ?? eff.accent);
             writeCloudConfigCache(eff.slug, eff);
@@ -750,7 +772,10 @@ export const useApp = create<AppState>()((set, get) => {
                 isSuperAdmin(user.email) ||
                 !!orgDoc?.members?.some((m) => m.trim().toLowerCase() === mail);
               // ORGADMIN — האם המשתמש הוא מנהל-הארגון (org.manager)? ⇒ פאנל-המנהל 👥
-              setCloud({ membership: member ? 'member' : 'pending', isManager: isOrgManager(user.email, orgDoc ?? {}) });
+              const allowed = allowedDesignationsFor(user.email, orgDoc ?? {});
+              setCloud({ membership: member ? 'member' : 'pending', isManager: isOrgManager(user.email, orgDoc ?? {}), allowedDesignations: allowed });
+              // מסלול-B P3: שאילתת-donations מסוננת לעובד/ת מוגבל/ת (Rules דוחים list לא-מסוננת)
+              mod.setAllowedPurposes(allowed);
               if (!member) {
                 // ORGADMIN — עובד/ת שהגיעה דרך קישור-הזמנה (?join=code): רישום בקשה
                 // שהמנהל יראה ויאשר (create-only, uid תואם לפי Rules v3; idempotent).
@@ -864,6 +889,7 @@ export const useApp = create<AppState>()((set, get) => {
           cloudCfgUnsub = null;
           setCloud({ membership: 'na' });
           mod.stopCloudSync();
+          mod.setCloudDek(null); // 🐛 נחיל-9×9 (13.8): ניקוי DEK גם ב-logout-אוטומטי
         }
       });
     } catch {
@@ -1018,6 +1044,9 @@ export const useApp = create<AppState>()((set, get) => {
     async cloudSignOut() {
       if (!cloudMod) return;
       cloudMod.stopCloudSync();
+      // 🐛 נחיל-9×9 (13.8): מנקים את מפתח-ההצפנה (DEK) מהזיכרון בהתנתקות — אחרת
+      // הוא נשאר תושב אחרי logout ומשתמש הבא במכשיר יכול לפענח את העותק המוצפן.
+      cloudMod.setCloudDek(null);
       await cloudMod.signOutCloud();
       get().toast('התנתקת מהענן — הנתונים נשארים שמורים במכשיר');
     },
@@ -1583,7 +1612,33 @@ export const useApp = create<AppState>()((set, get) => {
         };
       });
     },
+    deleteSupporters(ids) {
+      const idSet = new Set(ids);
+      if (!idSet.size) return;
+      const names = get()
+        .db.supporters.filter((x) => idSet.has(x.id))
+        .map((x) => x.name);
+      logAudit('מחיקת ' + idSet.size + ' תומכ/ות', names.slice(0, 6).join(', ') + (names.length > 6 ? '…' : ''));
+      setDb((db) => {
+        // אותו ניקוי-מדורג כמו הבודד, לכל הנמחקים: תזכורות-יעד (nextEventId) +
+        // אירועי מעקב-עי"ן (spId) — כדי שלא יישארו יתומים בלוח.
+        const evIds = new Set(
+          db.supporters.filter((s) => idSet.has(s.id) && s.nextEventId).map((s) => s.nextEventId as string),
+        );
+        return {
+          supporters: db.supporters.filter((s) => !idSet.has(s.id)),
+          events: db.events.filter((ev) => !evIds.has(ev.id) && !(ev.spId && idSet.has(ev.spId))),
+        };
+      });
+    },
     addDonation(supporterId, donation) {
+      // 🔐 רק המנהל מנפיק קבלות (הכרעת-בעלים 14.8) — מקצה-יחיד ל-donationSeq
+      // (מונע מרוץ דו-מכשירי על מספרי קבלות-§46) + כלל-עסקי. שער-קשיח בליבה.
+      const cl = get().cloud;
+      if (!canIssueReceipt({ superAdmin: isSuperAdmin(cl.user?.email), isManager: !!cl.isManager, cloudRoot: get().config.cloudRoot === true, cloudConnected: !!cl.user })) {
+        get().toast('⛔ רק המנהל מנפיק קבלות — פנו למנהל/ת הארגון');
+        return { ok: false };
+      }
       // שער לפני צריכת המונה: תומכ/ת שנעלם/ה (נמחק/ה בסנכרון בעוד הטופס פתוח) לא
       // יצרוך את donationSeq — אחרת D-{n} מדולג לצמיתות והתרומה אובדת בשקט.
       if (!get().db.supporters.some((s) => s.id === supporterId)) {
@@ -1596,7 +1651,7 @@ export const useApp = create<AppState>()((set, get) => {
         supporters: db.supporters.map((s) => {
           if (s.id !== supporterId) return s;
           const donations = [{ ...donation, rid }, ...s.donations];
-          // מצבור נגזר מ-donations+hist (#14) — מקור-אמת יחיד, עקבי עם migrate/audit.
+          // מצבור = קבלות-בלבד (#14, hist מתווסף בתצוגה) — מקור-אמת יחיד עם migrate/audit.
           const agg = supporterAggregates({ donations, hist: s.hist });
           return { ...s, donations, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
         }),
@@ -2275,6 +2330,12 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     exportBackup() {
+      // 🔐 מאסטר-מתג הוצאת-מידע (13.8): עובד שהמנהל חסם לו ייצוא (core.export=false
+      // בכרטיס-העובד) לא יכול להוריד גיבוי — חסימה גם ברמת-הפעולה, לא רק ה-UI.
+      if (!featureOn(get().config, 'core.export')) {
+        get().toast('⛔ הוצאת מידע חסומה עבורך על-ידי מנהל הארגון');
+        return;
+      }
       void exportBackupFile(get().db).then(() => {
         get().toast(
           get().encrypted ? 'גיבוי מוצפן ירד — שמרו את הסיסמה/מפתח השחזור ✓' : 'קובץ גיבוי מלא ירד למחשב ✓',
@@ -2399,6 +2460,33 @@ export const useApp = create<AppState>()((set, get) => {
       return recoveryKey;
     },
 
+    async runDonationSplitMigration() {
+      // מסלול-B פאזה-4 (חלון-בעלים): מפרק את כל התרומות לאוסף-הנפרד. הפיך + אידמפוטנטי;
+      // אינו נוגע ב-donationSeq. לאחר-מכן הבעלים מדליק donationSplit בקונפיג להפעלה.
+      const mod = cloudMod;
+      if (!mod) throw new Error('הענן אינו מחובר — התחברו לענן ונסו שוב');
+      await exportBackupFile(get().db); // רשת-ביטחון לפני כתיבה לענן
+      const n = await mod.migrateDonationsToCollection(get().db.supporters, mod.getCloudDek());
+      get().toast('✓ ' + n + ' תרומות הוגרו לאוסף — כעת אפשר להדליק את הפיצול בקונפיג');
+      return n;
+    },
+
+    async enableDonationSplit() {
+      // מסלול-B פאזה-5 (חלון-בעלים): מדליק את `donationSplit` בקונפיג-הענן בקליק —
+      // הבעלים לא נוגע ב-Firestore ידנית. merge:true על מפת-הקונפיג מדליק את המפתח
+      // היחיד בלי לדרוס שדות-אחים. אתר-השורש (cloudRoot) פטור מהפיצול — לא נכתב.
+      const mod = cloudMod;
+      if (!mod) throw new Error('הענן אינו מחובר — התחברו לענן ונסו שוב');
+      const cfg = get().config;
+      if (cfg.cloudRoot === true) throw new Error('אתר-השורש פטור מהפיצול (ביט-זהה) — אין צורך להדליק');
+      const slug = cfg.slug;
+      if (!slug || slug === 'default') throw new Error('ההפעלה זמינה רק לארגון-פלטפורמה (?org=slug)');
+      await mod.writeOrgCloudDoc(slug, { config: { donationSplit: true } });
+      // תוקף מיידי בשכבת-הסנכרון (ה-onSnapshot יבצע אותו דבר כשהכתיבה תחזור).
+      mod.setDonationSplit(true);
+      get().toast('✓ פיצול-התרומות הודלק בקונפיג-הענן — פעיל מעכשיו');
+    },
+
     markUnlocked(kind) {
       if (kind === 'primary') {
         writeSess(SESS.p, '1');
@@ -2438,6 +2526,7 @@ export const useApp = create<AppState>()((set, get) => {
         shopReceiptSeq: Math.max(prev.shopReceiptSeq ?? 0, db.shopReceiptSeq ?? 0),
       };
       set({ db });
+      dirty = true; // 🐛 נחיל-עמוק (13.8): שחזור עוקף setDb ⇒ בלי סימון-dirty שער ריבוי-הטאבים דרס שחזור טרי
       scheduleSave();
       // 12.8: שחזור = החלפה מלאה ⇒ אותה החלפה סמכותית-מיידית כמו איפוס (אחרת
       // ישויות שנגרעו בגיבוי היו קמות-לתחייה מ-snapshot-ענן בחלון ה-debounce).
@@ -2449,6 +2538,7 @@ export const useApp = create<AppState>()((set, get) => {
       const prev = get().db;
       const db = emptyDb();
       set({ db });
+      dirty = true; // 🐛 נחיל-עמוק (13.8): איפוס עוקף setDb ⇒ בלי סימון-dirty שער ריבוי-הטאבים דרס איפוס טרי
       scheduleSave();
       // 12.8: החלפה סמכותית מיידית — הזרימה המושהית הרגילה נתנה ל-snapshot-ענן
       // להחזיר את הישויות שנמחקו (תורמים/משפחות) בחלון ה-debounce. cloudReplaceNow

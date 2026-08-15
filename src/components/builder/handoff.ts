@@ -7,6 +7,7 @@ import type { ModuleKey, OrgConfig } from '../../types/config';
 import { FEATURES, type FeatureDef } from '../../types/features';
 import { featureModuleKey, WIZARD_SECTIONS } from './sections';
 import { SIZE_LABELS, shekel, type Quote } from '../../lib/pricing';
+import { guardExport } from '../../lib/exportGate';
 
 export const MODULE_LABELS: Record<string, string> = {
   families: 'משפחות ובני משפחה',
@@ -251,6 +252,7 @@ ${telephonySection(cfg)}
 }
 
 export function downloadTextFile(filename: string, content: string, mime = 'text/html'): void {
+  if (!guardExport()) return; // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד)
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([content], { type: `${mime};charset=utf-8` }));
   a.download = filename;

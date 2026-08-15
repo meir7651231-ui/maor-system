@@ -52,6 +52,15 @@ export function featureOn(cfg: OrgConfig, key: string): boolean {
 }
 
 /**
+ * מסלול-B — האם פיצול-התרומות פעיל לארגון זה. **off-by-default** (opt-in מפורש,
+ * לא חוזה-הדגלים): נדלק רק ב-donationSplit:true. הלקוח-השורש (cloudRoot) **לעולם**
+ * לא מפוצל — ביט-זהה, ratchet. נקרא בגבול-הסנכרון בלבד.
+ */
+export function donationSplitOn(cfg: OrgConfig): boolean {
+  return cfg.donationSplit === true && cfg.cloudRoot !== true;
+}
+
+/**
  * האם הרחבה (integration) פעילה — **הפוך מחוזה-הדגלים במכוון**: הרחבה היא
  * מוצר-נמכר (opt-in), לכן מפתח חסר = כבוי; רק enabled:true מפורש מדליק.
  * (דגל-פיצ'ר: חסר = דלוק; רק false מכבה. אל תבלבלו — ratchet אוכף.)
@@ -205,6 +214,9 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
   // נתיבי-שורש בענן (CLOUD2) — רק true מפורש נשמר; כל השאר = orgs/{slug}
   if (c.cloudRoot === true) cfg.cloudRoot = true;
   else delete cfg.cloudRoot;
+  // מסלול-B — פיצול-תרומות: רק true מפורש נשמר (off-by-default; השורש פטור ב-donationSplitOn).
+  if (c.donationSplit === true) cfg.donationSplit = true;
+  else delete cfg.donationSplit;
   // הרחבות (INTEGRATIONS גל א׳) — חיטוי: רק מפתחות מה-allowlist (שגיאת-כתיב
   // לא נבלעת בשקט — ביקורת 4.8) ורק רשומות {enabled:boolean}. ריק ⇒ מוסר.
   const intsRaw = c.integrations;

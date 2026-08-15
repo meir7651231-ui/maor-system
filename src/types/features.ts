@@ -76,6 +76,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.notes', label: 'הערות פנימיות לחוג', desc: 'שדה הערות פנימיות בכרטיס החוג', module: 'courses' },
   { key: 'courses.colfilter', label: 'סינון עמודות ברשימה', desc: 'כפתור "⏷ סינון עמודות" ושורת שדות סינון ברשימת החוגים', module: 'courses' },
   { key: 'courses.viewtoggle', label: 'החלפת גריד/רשימה', desc: 'כפתור "▦ גריד / ☰ רשימה" במסך החוגים', module: 'courses' },
+  { key: 'courses.files', label: 'צירוף קבצים לחוג', desc: 'מסמכים/תמונות מוטמעים + קישורים לסרטונים בכרטיס החוג', module: 'courses' },
+  { key: 'courses.perlesson', label: 'תמחור משוקלל פר-שיעור', desc: 'מחיר לשיעור בודד; בהרשמה בוחרים תדירות (פ/שבוע·חודש) ותקופה — הסכום מחושב אוטומטית, כולל הנחת הלקוח', module: 'courses' },
 
   // ——— לוח שנה ———
   { key: 'calendar.dayview', label: 'תצוגת יום', desc: 'מעבר לתצוגת יום מפורטת בלוח השנה', module: 'calendar' },
@@ -123,6 +125,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.import.preview', label: 'סיכום לפני ייבוא', desc: 'ייבוא תומכות דו-שלבי — בדיקת הקובץ והצגת חדשות/עדכונים לפני ההחלה; כבוי = החלה מיידית', module: 'supporters' },
   { key: 'supporters.thankyou', label: 'תזכורת "התקשר לתודה"', desc: 'כפתור "📞 תודה" — יצירת אירוע תזכורת קשר בלוח', module: 'supporters' },
   { key: 'supporters.click2call', label: 'חיוג ישיר מהרשימה', desc: 'קישור tel: להתקשרות ישירה מטבלת התומכים', module: 'supporters' },
+  { key: 'supporters.purpose', label: 'ייעוד תרומה + הרשאה פר-עובד 🔐', desc: 'שדה "ייעוד" (עבודה/מיזם) על התרומה; עובד רואה רק תרומות של הייעודים שהוקצו לו בכרטיס-העובד', module: 'supporters' },
 
   // ——— מסך הבית ———
   { key: 'home.digest', label: 'תקציר הבוקר', desc: 'תקציר יומי בראש מסך הבית', module: 'home' },
@@ -241,6 +244,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'core.receipt.copymark', label: 'סימון מקור/העתק', desc: 'שורת "מקור" / "העתק נאמן למקור" בראש הקבלה (הוראות ניהול ספרים)', module: 'core' },
   { key: 'core.receipt.pdf', label: 'קבלה כ-PDF 🖨', desc: 'בחירת פורמט קבלה בהגדרות — קובץ טקסט או PDF/הדפסה (הכרעת-בעלים 9.8: הלקוח בוחר)', module: 'core' },
   { key: 'core.dayendbackup', label: 'גיבוי אוטומטי בסוף-יום', desc: 'הורדת קובץ גיבוי אוטומטית אחרי שעת-הסיום היומית', module: 'core' },
+  { key: 'core.export', label: 'הוצאת מידע (ייצוא/גיבוי) 🔐', desc: 'מאסטר-מתג להוצאת מידע מהמערכת: ייצוא CSV, גיבוי JSON ודוחות מותאמים. כיבוי פר-עובד בכרטיס-העובד חוסם ממנו כל אפשרות להוציא מידע', module: 'core' },
 ];
 
 /** הגדרת מונח במילון המונחים — label לתצוגה במסך ההגדרות, fallback = ברירת המחדל. */
@@ -271,6 +275,7 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'nav.shop', label: 'שם עמודת החנות', fallback: 'חנות' },
   { key: 'nav.shop7', label: 'שם עמודת החלוקה', fallback: 'חלוקה' },
   { key: 'entity.volunteer', label: 'מתנדב', fallback: 'מתנדב' },
+  { key: 'entity.volunteers', label: 'מתנדבים (רבים)', fallback: 'מתנדבים' },
   { key: 'entity.shopProduct', label: 'מוצר שירות', fallback: 'מוצר' },
   { key: 'entity.shopStore', label: 'חנות שותפה', fallback: 'חנות' },
   { key: 'entity.shopCriterion', label: 'קריטריון זכאות', fallback: 'קריטריון' },

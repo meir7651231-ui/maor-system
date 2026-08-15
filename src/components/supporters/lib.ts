@@ -9,6 +9,7 @@ import { termOf } from '../../lib/config';
 import { normSearch, formatIsraeliPhone } from '../../lib/validate';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
 import { planAddName } from '../../lib/ayin';
+import { parseAnyDate, parseCsv } from '../../lib/csvx';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
@@ -20,6 +21,68 @@ export function fmtDate(iso: string): string {
 
 export function isoToday(): string {
   return isoTodayLocal();
+}
+
+/* ── ייעוד-תרומה כמסנן-הרשאה פר-עובד (בקשת-בעלים 13.8 ג') ─────────────────
+   כל תרומה יכולה לשאת ייעוד ("עבודה"). עובד/ת רואה רק תורמים שיש להם תרומה
+   בייעוד המותר לו/ה; תורם בלי ייעוד כלל = משותף (גלוי לכולם). מנהל/בעלים = הכל
+   (allowed=null). טהור — הסינון ברמת-הממשק (כמו shell.privacy). ────────────── */
+
+/** קבוצת הייעודים שעל התורם (distinct, בלי ריקים). */
+export function supporterPurposes(sup: Pick<Supporter, 'donations'>): string[] {
+  const set = new Set<string>();
+  for (const d of sup.donations ?? []) {
+    const p = (d.purpose ?? '').trim();
+    if (p) set.add(p);
+  }
+  return [...set];
+}
+
+/**
+ * האם התורם גלוי לעובד/ת עם רשימת-ייעודים מותרת. allowed=null ⇒ הכל.
+ * תורם בלי ייעוד כלל ⇒ גלוי (משותף); אחרת נדרש חיתוך עם המותר.
+ */
+export function supporterVisibleForDesignations(
+  sup: Pick<Supporter, 'donations'>,
+  allowed: string[] | null,
+): boolean {
+  if (!allowed || !allowed.length) return true;
+  const purposes = supporterPurposes(sup);
+  if (!purposes.length) return true; // לא-משויך = משותף
+  const set = new Set(allowed.map((s) => s.trim()));
+  return purposes.some((p) => set.has(p));
+}
+
+/**
+ * רשימת-התורמים הגלויה לעובד/ת עם רשימת-ייעודים מותרת — נקודת-חנק אחת לכל
+ * המשטחים הנגזרים/המצטברים (מבט-הנהלה, מסך-הבית, קיר-השפעה, דוחות, ייצוא).
+ * ‏allowed=null ⇒ הרשימה כמו-שהיא. אחרת: רק תורמים גלויים, ובכל תורם-גלוי רק
+ * התרומות בייעוד המותר (תרומה בלי ייעוד = משותפת, נשמרת). כך גם צבירה
+ * (סה"כ/מונה/פודיום) לא חושפת סכומים או שמות מייעוד אסור. ה-hist (עסקאות
+ * היסטוריות ללא ייעוד) נשמר — הוא ממילא "משותף" בחוזה-הראוּת.
+ */
+export function visibleSupportersForDesignations(
+  supporters: Supporter[],
+  allowed: string[] | null,
+): Supporter[] {
+  if (!allowed || !allowed.length) return supporters;
+  const set = new Set(allowed.map((s) => s.trim()));
+  return supporters
+    .filter((sup) => supporterVisibleForDesignations(sup, allowed))
+    .map((sup) => ({
+      ...sup,
+      donations: (sup.donations ?? []).filter((d) => {
+        const p = (d.purpose ?? '').trim();
+        return !p || set.has(p);
+      }),
+    }));
+}
+
+/** כל ייעודי-התרומה הקיימים (distinct, ממויין) — להצעה באשף ולבורר-הסינון. */
+export function allDonationPurposes(supporters: Pick<Supporter, 'donations'>[]): string[] {
+  const set = new Set<string>();
+  for (const s of supporters) for (const p of supporterPurposes(s)) set.add(p);
+  return [...set].sort((a, b) => a.localeCompare(b));
 }
 
 /* ── הכרעת-בעלים 9.8 ("לכולל", סוגרת את ‎#14): הצבירה המוצגת של תורם כוללת
@@ -177,7 +240,22 @@ export function supDonEvents(sp: Supporter, config?: OrgConfig): SupDonEvent[] {
     src: 'קבלה ' + d.rid,
     rid: d.rid,
   }));
-  for (const h of sp.hist || []) out.push({ date: h.d, amount: h.a, cur: h.c || '₪', src: 'מהקובץ ההיסטורי' });
+  for (const h of sp.hist || []) {
+    // 13.8 — פירוט מטא-דאטת-הסליקה בשורת-ההיסטוריה (רק שדות שקיימים).
+    const meta = [
+      h.receipt && 'קבלה ' + h.receipt,
+      h.txn && 'עסקה ' + h.txn,
+      h.ref && 'אסמכתא ' + h.ref,
+      h.brand,
+      h.last4 && '•' + h.last4,
+      h.clearer,
+      h.pays && h.pays > 1 && h.pays + ' תשלומים',
+      h.status,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+    out.push({ date: h.d, amount: h.a, cur: h.c || '₪', src: 'מהקובץ ההיסטורי' + (meta ? ' · ' + meta : '') });
+  }
   if (!(sp.hist || []).length) {
     const seen = new Set(out.map((x) => x.date));
     if (sp.first && !seen.has(sp.first)) out.push({ date: sp.first, amount: 0, cur: '', src: T('entity.donation', 'תרומה') + ' ראשונה (מהקובץ)' });
@@ -263,11 +341,139 @@ export interface SupporterImportRow {
   forWho: string;
   /** הכרעת-בעלים 9.8 ("היסטוריה ללא קבלה"): עסקאות מקובץ מסוף-הסליקה —
    *  נכנסות ל-Supporter.hist (מוצגות "מהקובץ ההיסטורי"), בלי קבלה ובלי
-   *  נגיעה במונים (ההצטברות — הכרעת-בעלים ‎#14 פתוחה). */
-  hist?: { d: string; a: number; c?: '₪' | '$' }[];
+   *  נגיעה במונים (ההצטברות — הכרעת-בעלים ‎#14 פתוחה).
+   *  ‏13.8: + מטא-דאטה של הסליקה (אופציונלי) — ראה Supporter.hist. */
+  hist?: {
+    d: string;
+    a: number;
+    c?: '₪' | '$';
+    ref?: string;
+    txn?: string;
+    receipt?: string;
+    brand?: string;
+    last4?: string;
+    clearer?: string;
+    pays?: number;
+    status?: string;
+  }[];
   /** בקשת-בעלים 9.8 ("עבור מי ⇒ שם לטיפול"): שורת-טיפול בקובץ (קטגוריה עם
    *  'עין') ⇒ השם-לטיפול נכנס לתיק-המעקב; הכמות ('' ) ממתינה לשלב-הרישום. */
   ayinNames?: string[];
+}
+
+/** מילות-מפתח לעמודת-השם. 'תורם' נוסף בשביל יצוא-הסליקה (כותרת "תורם"). */
+export const SUP_NAME_KEYS = ['שם', 'תורם'];
+
+/** המרת מספר-סריאל של Excel (ימים מ-1899-12-30) ל-ISO 'YYYY-MM-DD'. חלק
+ *  מקובצי-היצוא שומרים את עמודת-התאריך **כמספר** ולא כטקסט — אז parseAnyDate
+ *  נכשל והעסקה לא נרשמת. '' על קלט לא-תקין. (25569 = ימים ל-1970-01-01.) */
+export function excelSerialToIso(serial: number): string {
+  if (!isFinite(serial) || serial < 1) return '';
+  const dt = new Date(Math.round((serial - 25569) * 86400000));
+  if (isNaN(dt.getTime())) return '';
+  const mo = String(dt.getUTCMonth() + 1).padStart(2, '0');
+  const da = String(dt.getUTCDate()).padStart(2, '0');
+  return `${dt.getUTCFullYear()}-${mo}-${da}`;
+}
+
+/**
+ * פענוח רשת-תאים (‏string[][]) לשורות-ייבוא — משמש גם ל-CSV וגם ל-xlsx.
+ * זיהוי עמודות לפי כותרת, **סורק את שורת-הכותרות** (לא מניח שורה-1) כדי לתמוך
+ * ביצוא-סליקה שבו מעל הכותרות יש שורות-פתיח (כותרת/טווח-תאריכים/סה"כ). אם אין
+ * כותרת מזוהה — סדר עמודות קבוע (התנהגות ישנה). טהור ⇒ נבדק ביחידה.
+ */
+export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
+  if (!rows.length) return [];
+  // שורת-הכותרות = הראשונה (מבין 15 העליונות) שיש בה עמודת-שם ("שם"/"תורם").
+  const hdrIdx = rows
+    .slice(0, 15)
+    .findIndex((r) => r.some((h) => SUP_NAME_KEYS.some((k) => (h ?? '').includes(k))));
+  const header = (hdrIdx >= 0 ? rows[hdrIdx] : rows[0]).map((h) => (h ?? '').trim());
+  const find = (keys: string[]) => header.findIndex((h) => keys.some((k) => h.includes(k)));
+  let iName = find(SUP_NAME_KEYS);
+  let iPhone = find(['טלפון', 'נייד']);
+  let iEmail = find(['אימייל', 'מייל', 'email']);
+  let iId = find(['ת"ז', 'תז', 'זהות']);
+  let iAddr = find(['כתובת']);
+  let iCat = find(['קטגוריה']);
+  let iFor = find(['עבור', 'ייעוד']);
+  // קובץ מסוף-הסליקה (ExportHistory, 9.8): עמודות סכום/תאריך-עסקה/מטבע ⇒
+  // כל שורה נושאת גם עסקה — נכנסת כהיסטוריה-ללא-קבלה (הכרעת-בעלים).
+  const iAmount = find(['סכום']);
+  const iTxDate = find(['תאריך']);
+  const iCur = find(['מטבע']);
+  // 13.8 — כל שאר עמודות-הסליקה נקלטות למטא-דאטה של רשומת-ההיסטוריה.
+  const iRef = find(['אסמכתא']);
+  const iTxn = find(['מספר עסקה']);
+  const iReceipt = find(['מספר קבלה']);
+  const iBrand = find(['מותג']);
+  const iLast4 = find(['4 ספרות', 'ספרות']);
+  const iClearer = find(['חברה סולקת', 'סולק']);
+  const iPays = find(['תשלומים']);
+  const iStatus = find(['סטטוס']);
+  let start = hdrIdx >= 0 ? hdrIdx + 1 : 1;
+  if (iName < 0) {
+    // אין שורת כותרות מזוהה — סדר עמודות קבוע
+    iName = 0;
+    iPhone = 1;
+    iEmail = 2;
+    iId = 3;
+    iAddr = 4;
+    iCat = 5;
+    iFor = 6;
+    start = 0;
+  }
+  const g = (r: string[], i: number) => (i >= 0 ? (r[i] ?? '').trim() : '');
+  const out: SupporterImportRow[] = [];
+  for (const r of rows.slice(start)) {
+    const name = g(r, iName);
+    if (!name) continue;
+    const row: SupporterImportRow = {
+      name,
+      phone: g(r, iPhone),
+      email: g(r, iEmail),
+      idNum: g(r, iId),
+      address: g(r, iAddr),
+      cat: g(r, iCat),
+      forWho: g(r, iFor),
+    };
+    if (iAmount >= 0 && iTxDate >= 0) {
+      const amount = Math.round(Number(g(r, iAmount).replace(/[^\d.-]/g, '')) * 100) / 100;
+      // 'תאריך עסקה' מגיע עם שעה ("09/08/26 00:36") — התאריך בלבד. אם התא מספר-
+      // סריאל של Excel (יצוא ששומר תאריך כמספר) — parseAnyDate נכשל ⇒ המרה מסריאל.
+      const rawDate = g(r, iTxDate).split(' ')[0];
+      const d = parseAnyDate(rawDate) || (/^\d+(\.\d+)?$/.test(rawDate) ? excelSerialToIso(Number(rawDate)) : '');
+      if (isFinite(amount) && amount > 0 && d) {
+        // 13.8 — מטא-דאטה: רק שדות שקיימים בפועל (נשארים undefined אחרת).
+        const pays = Number(g(r, iPays));
+        row.hist = [
+          {
+            d,
+            a: amount,
+            ...(/דולר|\$|usd/i.test(g(r, iCur)) ? { c: '$' as const } : {}),
+            ...(g(r, iRef) ? { ref: g(r, iRef) } : {}),
+            ...(g(r, iTxn) ? { txn: g(r, iTxn) } : {}),
+            ...(g(r, iReceipt) ? { receipt: g(r, iReceipt) } : {}),
+            ...(g(r, iBrand) ? { brand: g(r, iBrand) } : {}),
+            ...(g(r, iLast4) ? { last4: g(r, iLast4) } : {}),
+            ...(g(r, iClearer) ? { clearer: g(r, iClearer) } : {}),
+            ...(iPays >= 0 && isFinite(pays) && pays > 0 ? { pays } : {}),
+            ...(g(r, iStatus) ? { status: g(r, iStatus) } : {}),
+          },
+        ];
+      }
+    }
+    // 13.8 (בקשת-בעלים) — הוסר אוטומט-העי"ן: קטגוריה "הסרת עין הרע" היא ייעוד-
+    // תרומה, לא הוראה לפתוח תיק-מעקב. תיק-עי"ן נפתח רק כשצוין במפורש (ידנית
+    // בכרטיס/בלוח-העי"ן), לא מזיהוי-מחרוזת בקטגוריה. (ביטול הכרעת-9.8.)
+    out.push(row);
+  }
+  return out;
+}
+
+/** פענוח טקסט CSV לשורות ייבוא (עוטף את [parseSupporterGrid] מעל [parseCsv]). */
+export function parseSupporterCsv(text: string): SupporterImportRow[] {
+  return parseSupporterGrid(parseCsv(text));
 }
 
 /** תוכנית ייבוא — אילו קיימות יעודכנו ואילו חדשות ייווצרו. */
@@ -308,23 +514,47 @@ export function applyAyinNames(sp: Supporter, names: string[], mkId: () => strin
   return changed ? { ...sp, ayin: a } : sp;
 }
 
+/** רשומת-היסטוריה בודדת (Supporter.hist) — כולל מטא-דאטת-הסליקה האופציונלית. */
+export type HistEntry = NonNullable<Supporter['hist']>[number];
+
 /** מיזוג-היסטוריה אידמפוטנטי: לכל מפתח (תאריך|סכום|מטבע) הכמות הסופית =
  *  max(קיים, נכנס) — ייבוא-חוזר של אותו קובץ לא מכפיל, עסקאות-אמת כפולות
- *  באותו יום (אותו סכום פעמיים בקובץ אחד) נשמרות. */
-export function mergeHist(
-  existing: { d: string; a: number; c?: '₪' | '$' }[],
-  incoming: { d: string; a: number; c?: '₪' | '$' }[],
-): { d: string; a: number; c?: '₪' | '$' }[] {
-  const key = (h: { d: string; a: number; c?: '₪' | '$' }) => h.d + '|' + h.a + '|' + (h.c ?? '₪');
-  const have = new Map<string, number>();
-  for (const h of existing) have.set(key(h), (have.get(key(h)) ?? 0) + 1);
-  const out = [...existing];
+ *  באותו יום (אותו סכום פעמיים בקובץ אחד) נשמרות. משמר את **כל** שדות-הרשומה
+ *  (מטא-דאטת-הסליקה: אסמכתא/מס'-עסקה/קבלה/מותג/…), לא רק d/a/c.
+ *  ⚠️ המפתח נשאר d|a|c במכוון: כך ייבוא-חוזר של קובץ שיובא לפני שדה מס'-העסקה
+ *  (בלי txn) מזוהה כאותה עסקה ולא משוכפל. */
+export function mergeHist(existing: HistEntry[], incoming: HistEntry[]): HistEntry[] {
+  const key = (h: HistEntry) => h.d + '|' + h.a + '|' + (h.c ?? '₪');
+  // אינדקס-נכנס פר-מפתח (בסדר) — משמש גם ל**העשרת** רשומות קיימות וגם לספירה.
+  const incByKey = new Map<string, HistEntry[]>();
+  for (const h of incoming) {
+    const arr = incByKey.get(key(h));
+    if (arr) arr.push(h);
+    else incByKey.set(key(h), [h]);
+  }
+  // העשרה (13.8b): רשומה קיימת שיובאה **לפני** שדות-המטא-דאטה (בלי txn/מותג/…)
+  // מתמלאת מהשורה-הנכנסת התואמת — הערך הקיים גובר, הנכנס ממלא רק חוסרים. כך
+  // ייבוא-חוזר של אותו קובץ *משדרג* עסקאות ותיקות בלי לשכפל אותן.
+  const usedInc = new Map<string, number>();
+  const out: HistEntry[] = existing.map((h) => {
+    const k = key(h);
+    const arr = incByKey.get(k);
+    const idx = usedInc.get(k) ?? 0;
+    if (arr && idx < arr.length) {
+      usedInc.set(k, idx + 1);
+      return { ...arr[idx], ...h }; // נכנס ממלא חוסרים; קיים גובר על חפיפה
+    }
+    return { ...h };
+  });
+  // דחיפת מופעים-נכנסים מעבר לכמות-הקיימת (עסקאות חדשות באמת) — עם כל שדותיהן.
+  const haveCount = new Map<string, number>();
+  for (const h of existing) haveCount.set(key(h), (haveCount.get(key(h)) ?? 0) + 1);
   const seen = new Map<string, number>();
   for (const h of incoming) {
     const k = key(h);
     const n = (seen.get(k) ?? 0) + 1;
     seen.set(k, n);
-    if (n > (have.get(k) ?? 0)) out.push({ d: h.d, a: h.a, ...(h.c === '$' ? { c: '$' as const } : {}) });
+    if (n > (haveCount.get(k) ?? 0)) out.push({ ...h });
   }
   return out.sort((x, y) => x.d.localeCompare(y.d));
 }

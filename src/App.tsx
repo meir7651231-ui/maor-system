@@ -12,6 +12,7 @@ import { useApp, type View } from './store/useApp';
 import { nsLsKey, parseBackupFile } from './store/persist';
 import { featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, termOf } from './lib/config';
 import { applyOrgManifest, isIos, isStandalone, promptInstall, registerPwa } from './lib/pwa';
+import { setExportBlocked } from './lib/exportGate';
 import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
 import { freshenDemoDb } from './lib/demoFresh';
@@ -232,6 +233,15 @@ export default function App() {
   useEffect(() => {
     registerPwa(config);
     applyOrgManifest(config);
+  }, [config]);
+
+  // 🔐 שער יציאת-מידע (13.8, בקשת-בעלים): המנהל מכבה `core.export` בכרטיס-העובד ⇒
+  // כל נתיב הורדה/הדפסה/העתקה מסרב בנקודת-חנק אחת (lib/exportGate). חסר-דגל=מותר,
+  // רק false חוסם — לכן ברירת-המחדל ואף לקוח רגיל אינם מושפעים.
+  useEffect(() => {
+    setExportBlocked(!featureOn(config, 'core.export'), () =>
+      useApp.getState().toast('⛔ הוצאת מידע חסומה עבורך על-ידי מנהל הארגון'),
+    );
   }, [config]);
 
   // שחזור-קריסה של האשף-קשור-הענן (5.8): אם נשאר תצלום-מיתוג מסשן שנקטע

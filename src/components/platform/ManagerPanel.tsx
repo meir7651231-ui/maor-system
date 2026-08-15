@@ -23,6 +23,7 @@ import {
   setEmployeeOverride,
 } from './lib';
 import { FEATURES } from '../../types/features';
+import { allDonationPurposes } from '../supporters/lib';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import type { OrgCloudDoc, OrgJoinRequestDoc } from '../../lib/cloudConfig';
 
@@ -42,6 +43,9 @@ export function ManagerPanel(props: { onClose: () => void }) {
   const [loading, setLoading] = useState(true);
   const [openCard, setOpenCard] = useState('');
   const [featModule, setFeatModule] = useState('');
+  // ג' (13.8) — הקצאת ייעודי-תרומה פר-עובד/ת: הייעודים הקיימים + הוספה חופשית
+  const knownPurposes = allDonationPurposes(useApp.getState().db.supporters);
+  const [desigInput, setDesigInput] = useState('');
 
   async function refresh(m: CloudMod) {
     setLoading(true);
@@ -124,6 +128,20 @@ export function ManagerPanel(props: { onClose: () => void }) {
     const { memberConfigs } = setEmployeeOverride(org, email, { ...ov, features: nextFeatures });
     await mod.writeOrgCloudDoc(slug, { memberConfigs });
     await refresh(mod);
+  }
+
+  // ג' (13.8) — קביעת ייעודי-התרומה שהעובד/ת רשאי/ת לראות (ריק = הכל)
+  async function setDesignationsFor(email: string, designations: string[]) {
+    if (!mod || !org) return;
+    const ov = overrideOf(email, org);
+    const clean = [...new Set(designations.map((s) => s.trim()).filter(Boolean))];
+    const { memberConfigs } = setEmployeeOverride(org, email, { ...ov, designations: clean });
+    await mod.writeOrgCloudDoc(slug, { memberConfigs });
+    await refresh(mod);
+  }
+  function toggleDesignationFor(email: string, p: string) {
+    const cur = (org ? overrideOf(email, org) : {}).designations ?? [];
+    void setDesignationsFor(email, cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p]);
   }
 
   async function removeEmp(email: string) {
@@ -224,6 +242,16 @@ export function ManagerPanel(props: { onClose: () => void }) {
                 </div>
                 {isOpen && (
                   <div style={{ marginTop: 8 }}>
+                    {/* 🔐 מאסטר-מתג הוצאת-מידע (13.8, בקשת-בעלים) — חוסם לעובד/ת כל
+                        ייצוא/גיבוי/דו"ח-מותאם בלחיצה אחת. ov.features['core.export']===false = חסום. */}
+                    <div style={{ marginBottom: 10, padding: '8px 10px', border: '1px solid var(--line)', borderRadius: 9, background: ov.features?.['core.export'] === false ? '#fdecec' : 'var(--surface-2, #fafaf7)' }}>
+                      <Chip on={ov.features?.['core.export'] !== false} onClick={() => void toggleFeatureFor(email, 'core.export')}>
+                        {ov.features?.['core.export'] === false ? '⛔ הוצאת מידע חסומה' : '🔓 הוצאת מידע מותרת'}
+                      </Chip>
+                      <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 5 }}>
+                        כיבוי חוסם לעובד/ת ייצוא CSV, הורדת גיבוי ודו"חות-מותאמים.
+                      </div>
+                    </div>
                     <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
                       מדליקים/מכבים לעובד/ת — רק הכפתורים שהודלקו לארגון:
                     </div>
@@ -264,6 +292,47 @@ export function ManagerPanel(props: { onClose: () => void }) {
                               ))}
                           </div>
                         )}
+                      </div>
+                    )}
+
+                    {/* ג' (13.8) — ייעודי-תרומה מותרים לעובד/ת (הרשאת-תצוגה) */}
+                    {featScope.some((f) => f.key === 'supporters.purpose') && (
+                      <div style={{ marginTop: 10, borderTop: '1px dashed var(--line)', paddingTop: 8 }}>
+                        <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
+                          🔐 ייעודי-תרומה שהעובד/ת רואה — ריק = רואה הכל; בחירת ייעודים מגבילה לאותם ייעודים בלבד:
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+                          {knownPurposes.length === 0 && (
+                            <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>אין עדיין ייעודים — הוסיפו ידנית או ברישום תרומה.</span>
+                          )}
+                          {knownPurposes.map((p) => (
+                            <Chip key={p} on={(ov.designations ?? []).includes(p)} onClick={() => toggleDesignationFor(email, p)}>
+                              {p}
+                            </Chip>
+                          ))}
+                          {(ov.designations ?? [])
+                            .filter((p) => !knownPurposes.includes(p))
+                            .map((p) => (
+                              <Chip key={p} on onClick={() => toggleDesignationFor(email, p)}>
+                                {p}
+                              </Chip>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <TextInput value={openCard === email ? desigInput : ''} onChange={setDesigInput} placeholder="הוספת ייעוד ידנית…" />
+                          <Btn
+                            sm
+                            onClick={() => {
+                              const p = desigInput.trim();
+                              if (!p) return;
+                              const cur = ov.designations ?? [];
+                              if (!cur.includes(p)) void setDesignationsFor(email, [...cur, p]);
+                              setDesigInput('');
+                            }}
+                          >
+                            הוספה
+                          </Btn>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -10,7 +10,7 @@ import { featureOn, integrationOn, termOf } from '../../lib/config';
 import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { isoToday } from './lib';
+import { allDonationPurposes, isoToday } from './lib';
 
 export function DonationModal(props: { supporter: Supporter; onClose: () => void }) {
   const addDonation = useApp((s) => s.addDonation);
@@ -27,6 +27,10 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
   // ייעוד "אמץ חתן/משפחה" (SHOP9) — מגודר supporters.sponsor
   const sponsorOn = featureOn(config, 'supporters.sponsor');
   const [designation, setDesignation] = useState('');
+  // ייעוד/"עבודה" כמסנן-הרשאה פר-עובד (בקשת-בעלים 13.8 ג') — מגודר supporters.purpose
+  const purposeOn = featureOn(config, 'supporters.purpose');
+  const [purpose, setPurpose] = useState('');
+  const knownPurposes = purposeOn ? allDonationPurposes(useApp.getState().db.supporters) : [];
   const [error, setError] = useState('');
   // UX סבב-ה׳: הקטגוריות הנפוצות בארגון (עד 5) — ברירות-מחדל בקליק
   const topCats = (() => {
@@ -52,12 +56,21 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
     // הקבלה יורדת רק כשה-store קיבל את התרומה, ועם ה-rid שהונפק בפועל —
     // קודם ניחשנו rid מ-donationSeq והורדנו קבלה גם על דחייה (rid שמעולם לא הונפק).
     const desig = sponsorOn ? designation.trim() : '';
-    const res = addDonation(props.supporter.id, { date, amount: amt, cur, cat: cat.trim(), ...(desig ? { designation: desig } : {}) });
+    const purp = purposeOn ? purpose.trim() : '';
+    const res = addDonation(props.supporter.id, {
+      date,
+      amount: amt,
+      cur,
+      cat: cat.trim(),
+      ...(desig ? { designation: desig } : {}),
+      ...(purp ? { purpose: purp } : {}),
+    });
     if (!res.ok || !res.rid) {
       props.onClose(); // ה-store כבר הציג טוסט דחייה (התומכת נעלמה)
       return;
     }
     const rid = res.rid;
+    let receiptFmt: 'txt' | 'pdf' | undefined; // הפורמט שנמסר בפועל — לטוסט הנכון בהמשך
     // core.receipts כבוי — התרומה נרשמת כרגיל, רק הורדת הקבלה והטוסט שלה מדולגים
     if (receiptsOn) {
       const cfg = useApp.getState().config;
@@ -79,7 +92,8 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         payerId: props.supporter.idNum || undefined,
       };
       // 5.5d (הכרעה 9.8): מסירה לפי בחירת-הלקוח — קובץ טקסט או PDF/הדפסה
-      deliverReceipt(info, receiptFmtOf(cfg, useApp.getState().db.ui));
+      receiptFmt = receiptFmtOf(cfg, useApp.getState().db.ui);
+      deliverReceipt(info, receiptFmt);
       // צרור-הלילה (ROADMAP-100 ‏#1): מייל-קבלות אוטומטי — ברגע הרישום הקבלה
       // נכנסת לתור-המייל (mailOutbox); נשלחת ע"י ה-Function כשהשרת פרוס.
       // כשל-רך: תקלה בתור לא נוגעת ברישום/בקבלה שכבר ירדה.
@@ -100,7 +114,8 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         (receiptsOn ? ' — קבלה ' + rid : '') +
         ' · הציון עודכן',
     );
-    if (receiptsOn) toast('הקבלה ירדה למחשב ✓');
+    // 🐛 נחיל-עמוק (13.8): הטוסט אמר "ירדה למחשב" גם בפורמט PDF (נפתח חלון-הדפסה, לא הורדה)
+    if (receiptsOn) toast(receiptFmt === 'pdf' ? 'חלון-ההדפסה נפתח — שמרו כ-PDF ✓' : 'הקבלה ירדה למחשב ✓');
     props.onClose();
   }
 
@@ -145,6 +160,20 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         {sponsorOn && (
           <Field label={'ייעוד — אמץ חתן/' + termOf(config, 'entity.family', 'משפחה') + ' (אופציונלי)'}>
             <TextInput value={designation} onChange={setDesignation} placeholder="למשל: אמץ משפחת כהן / חתונת דוד" />
+          </Field>
+        )}
+        {purposeOn && (
+          <Field label="ייעוד/עבודה (הרשאת-תצוגה פר-עובד)">
+            <TextInput value={purpose} onChange={setPurpose} placeholder="למשל: חתונות / קמחא דפסחא / כללי" />
+            {knownPurposes.length > 0 && (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                {knownPurposes.slice(0, 8).map((p) => (
+                  <button key={p} type="button" className={'chip' + (purpose === p ? ' on' : '')} onClick={() => setPurpose(p)}>
+                    {p}
+                  </button>
+                ))}
+              </div>
+            )}
           </Field>
         )}
       </div>

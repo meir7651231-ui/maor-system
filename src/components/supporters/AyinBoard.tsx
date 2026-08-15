@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import {
   AYIN_STAGES,
   ayinActionVisible,
@@ -16,7 +16,7 @@ import {
   stageLabel,
 } from '../../lib/ayin';
 import type { AyinCase, AyinStage } from '../../types/domain';
-import { fmtDate } from './lib';
+import { fmtDate, supporterVisibleForDesignations } from './lib';
 
 /** גלולות השלבים לשורה — הושלמו (ירוק) · נוכחי (כהה) · עתידיים (עמום). */
 function StageChips(props: { cfg: ReturnType<typeof useApp.getState>['config']; stage: AyinStage }) {
@@ -60,12 +60,17 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   const db = useApp((s) => s.db);
   const cfg = useApp((s) => s.config);
   const advance = useApp((s) => s.ayinAdvance);
+  // 🔒 ייעוד-הרשאה (13.8): לוח-הטיפול לא יחשוף שמות תורמים לעובד/ת שאינו מורשה לייעודם.
+  const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = featureOn(cfg, 'supporters.purpose') ? allowedDesignations : null;
 
   const [filter, setFilter] = useState<'all' | AyinStage>('all');
   const [sort, setSort] = useState<'target' | 'last' | 'name' | 'stage'>('target');
   const [open, setOpen] = useState(true);
 
-  const active = db.supporters.filter((sp) => ayinActive(sp.ayin));
+  const active = db.supporters.filter(
+    (sp) => ayinActive(sp.ayin) && supporterVisibleForDesignations(sp, desigLimit),
+  );
   let rows = filter === 'all' ? active : active.filter((sp) => (sp.ayin!.stage || 'new') === filter);
   rows = [...rows].sort((sa, sb) => {
     const aa = sa.ayin!;

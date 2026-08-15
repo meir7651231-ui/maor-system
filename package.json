@@ -16,8 +16,9 @@
     "e2e:verticals": "node e2e/vertical-matrix.mjs"
   },
   "dependencies": {
-    "firebase": "^12.16.0",
+    "fflate": "^0.6.11",
     "idb": "^8.0.3",
+    "firebase": "^12.16.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "three": "^0.160.0",

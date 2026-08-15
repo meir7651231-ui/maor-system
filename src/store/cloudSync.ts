@@ -11,9 +11,26 @@
  *    800ms, מחשב diffDb ודוחף. תור לא-מקוון מנוהל ע"י Firestore עצמו.
  */
 import type { Db } from '../types/domain';
-import { diffDb, emptyDiff, ENTITY_COLLECTIONS, fullDbDiff } from '../lib/cloud-diff';
+import { diffDb, emptyDiff, ENTITY_COLLECTIONS, fullDbDiff, stripSupporterDonations, type DbDiff } from '../lib/cloud-diff';
 import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
-import { pullAll, pushDiff, subscribeAll, type RemotePartial } from '../lib/cloud';
+import { donationSplitActive, pullAll, pushDiff, pushDonations, subscribeAll, type RemotePartial } from '../lib/cloud';
+import { donationPartitionDiff } from '../lib/donationPartition';
+
+/**
+ * מסלול-B — דחיפה מפוצלת-מודעת. במצב-כבוי: pushDiff רגיל (ביט-זהה). במצב-פיצול:
+ * מסמכי-התומך בלי donations (עוברים לאוסף-הנפרד) + דחיפת diff-אוסף-התרומות.
+ * מטפל בעצמו ב-diff ריק (כולל מקרה שרק ייעוד-תרומה השתנה ⇒ diff-ישויות ריק).
+ */
+async function pushSplitAware(prevSups: Db['supporters'], nextSups: Db['supporters'], diff: DbDiff): Promise<void> {
+  if (!donationSplitActive()) {
+    if (!emptyDiff(diff)) await pushDiff(diff, cloudDek);
+    return;
+  }
+  const stripped = stripSupporterDonations(diff);
+  if (!emptyDiff(stripped)) await pushDiff(stripped, cloudDek);
+  const dd = donationPartitionDiff(prevSups, nextSups);
+  if (dd.sets.length || dd.deletes.length) await pushDonations(dd, cloudDek);
+}
 
 // מפתח-הצפנת-הענן (opt-in) — null עד שהמשתמש מפעיל הצפנה ומזין סיסמה. כל עוד
 // null, כל קריאות הענן זהות-בייט להיום (ratchet ב-cloud.ts). האחסון בזיכרון בלבד.
@@ -26,7 +43,7 @@ export function getCloudDek(): CryptoKey | null {
 }
 
 // יצוא-מחדש של שכבת ה-auth — ל-useApp יש import דינמי אחד בלבד (המודול הזה)
-export { changePassword, encryptExistingCloud, fetchIncomingPayments, initCloud, markIncomingPayment, readCloudEnvelope, resetPassword, setCloudScope, signIn, signOutCloud, signUp, watchAuth, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
+export { changePassword, encryptExistingCloud, fetchIncomingPayments, initCloud, markIncomingPayment, migrateDonationsToCollection, readCloudEnvelope, resetPassword, setAllowedPurposes, setCloudScope, setDonationSplit, signIn, signOutCloud, signUp, watchAuth, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
 export type { CloudUser, IncomingPayment } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
 export { deleteOrgCompletely, deleteOrgRequest, deleteOrgJoinRequest, deleteOrgMemberConfig, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgJoinRequests, fetchOrgLeads, fetchOrgRequests, findMemberOrgSlugs, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgJoinRequest, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
@@ -55,17 +72,23 @@ let pushLatest: Db | null = null;
 const PUSH_DEBOUNCE_MS = 800;
 
 function withRemoteFlag(fn: () => void): void {
+  // 🐛 נחיל-9×9 (13.8): שמירה/שחזור של הערך הקודם (במקום =false קשיח) — כדי
+  // שקינון תחת cloudReplaceNow (שמדליק applyingRemote) לא ינקה את הדגל באמצע.
+  const prev = applyingRemote;
   applyingRemote = true;
   try {
     fn();
   } finally {
-    applyingRemote = false;
+    applyingRemote = prev;
   }
 }
 
 function onRemote(partial: RemotePartial): void {
   const h = hooks;
   if (!h || !active) return;
+  // 🐛 נחיל-9×9 (13.8): במהלך כתיבה-סמכותית (cloudReplaceNow: reset/restore)
+  // applyingRemote=true — snapshot מרוחק שמגיע תוך-כדי הוא מרוץ ומחיה נמחקים; מדלגים.
+  if (applyingRemote) return;
   const db = h.getDb();
   const next =
     'meta' in partial
@@ -88,10 +111,12 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
     // אין להמשיך ולהפעיל מחדש סנכרון לחשבון שיצא.
     if (hooks !== h) return;
     const local = h.getDb();
+    // המצב שהענן מחזיק אחרי לחיצת-היד — בסיס לדחיפת-ההשלמה (#2 למטה).
+    let syncedBaseline: Db = local;
     if (cloudDb === null) {
       // פרויקט ענן ריק — הגירה ראשונה: מעלים את כל הנתונים המקומיים
       if (ENTITY_COLLECTIONS.some((c) => local[c].length)) {
-        await pushDiff(fullDbDiff(local), cloudDek);
+        await pushSplitAware([], local.supporters, fullDbDiff(local));
         h.toast('הנתונים הועלו לענן ✓');
       }
     } else {
@@ -106,11 +131,19 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
         const localOnly = (local[col] as Array<{ id: string }>).filter((x) => !cloudIds.has(x.id));
         if (localOnly.length) (merged[col] as Array<{ id: string }>) = [...cloudList, ...localOnly];
       }
+      // 🐛 נחיל-עמוק (13.8): מוני-הקבלות חייבים לעלות בלבד. merged ירש את מונה-הענן
+      // (אולי נמוך ממה שהמכשיר כבר הנפיק local-first לפני החיבור) ⇒ הקבלה הבאה קיבלה
+      // מספר-מס שכבר הונפק (כפילות §46). מרימים לערך החי — כמו restoreDb.
+      merged.seq = Math.max(local.seq, cloudDb.seq);
+      merged.receiptSeq = Math.max(local.receiptSeq, cloudDb.receiptSeq);
+      merged.donationSeq = Math.max(local.donationSeq, cloudDb.donationSeq);
+      merged.shopReceiptSeq = Math.max(local.shopReceiptSeq ?? 0, cloudDb.shopReceiptSeq ?? 0);
       withRemoteFlag(() => h.setDbFromRemote(merged));
+      syncedBaseline = merged;
       // diffDb(cloudDb, merged) = רק התוספות המקומיות (merged ⊇ ישויות הענן, אין
       // מחיקות), וללא שינוי meta (merged שומר את meta של הענן) → הענן נשאר סמכותי.
       const additions = diffDb(cloudDb, merged);
-      if (!emptyDiff(additions)) await pushDiff(additions, cloudDek);
+      await pushSplitAware(cloudDb.supporters, merged.supporters, additions);
     }
     // התנתקות (logout) יכולה לרוץ סינכרונית במהלך ה-push-ים למעלה; אז hooks אופס
     // ו-stopCloudSync כבר סיים. בלי שער נוסף כאן היינו מחיים active=true, מתקינים
@@ -125,6 +158,11 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
       },
       cloudDek,
     );
+    // 🐛 נחיל-עמוק (13.8): עריכות שנעשו בזמן לחיצת-היד (לפני active) נשמרו מקומית אך
+    // cloudOnDbChange דילג עליהן (!active) ולא נדחפו לעולם. דחיפת-השלמה חד-פעמית:
+    // diff בין מה שהענן מחזיק (syncedBaseline) לבין המצב החי כעת.
+    const liveDb = h.getDb();
+    await pushSplitAware(syncedBaseline.supporters, liveDb.supporters, diffDb(syncedBaseline, liveDb));
     h.setStatus('synced');
   } catch (e) {
     active = false;
@@ -156,9 +194,9 @@ async function flushPush(): Promise<void> {
   pushBase = null;
   pushLatest = null;
   const diff = diffDb(base, latest);
-  if (emptyDiff(diff)) return;
+  if (emptyDiff(diff)) return; // כל שינוי-תרומה משנה גם את מסמך-התומך ⇒ diff לא-ריק (גם בפיצול)
   try {
-    await pushDiff(diff, cloudDek);
+    await pushSplitAware(base.supporters, latest.supporters, diff);
     if (active) hooks?.setStatus('synced');
   } catch {
     // כשל שאינו-offline: משחזרים את הדלתא הממתינה כדי שתידחף בעריכה הבאה.
@@ -212,12 +250,27 @@ export async function cloudReplaceNow(prev: Db, next: Db): Promise<void> {
   const wasApplying = applyingRemote;
   applyingRemote = true; // חוסם flushPush/מיזוג-מרוחק מלרוץ תוך-כדי הכתיבה הסמכותית
   try {
-    await pushDiff(diff, cloudDek);
+    // מסלול-B: reset/restore בפיצול מוחק/כותב גם את מסמכי-אוסף-התרומות (מונע קבלות-יתומות).
+    await pushSplitAware(prev.supporters, next.supporters, diff);
+    // 🐛 נחיל-עמוק (13.8): עריכת-משתמש בזמן חלון-הדחיפה (applyingRemote חסם את
+    // cloudOnDbChange) לא נדחפה ונבלעה עד העריכה הבאה. דחיפת-השלמה: diff מול המצב
+    // החי אם השתנה מ-next.
+    const live = hooks?.getDb();
+    if (live && live !== next) {
+      await pushSplitAware(next.supporters, live.supporters, diffDb(next, live));
+    }
     if (active) hooks?.setStatus('synced');
   } catch {
     if (active) {
       hooks?.setStatus('error');
       hooks?.toast('⚠ מחיקת הנתונים בענן נכשלה — נסו שוב כשהחיבור יציב');
+      // 🐛 נחיל-9×9 (13.8): כשל-רשת באמצע reset/restore (pushDiff לא-אטומי, אצוות
+      // ≤400) השאיר מחיקות חלקיות בענן בלי retry. מציבים דחייה ממתינה ומתזמנים
+      // ניסיון-חוזר (כמו flushPush) כדי שהמצב הסמכותי יגיע במלואו.
+      pushBase = prev;
+      pushLatest = next;
+      clearTimeout(pushTimer);
+      pushTimer = setTimeout(() => void flushPush(), 5000);
     }
   } finally {
     applyingRemote = wasApplying;
