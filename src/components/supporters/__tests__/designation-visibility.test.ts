@@ -7,7 +7,8 @@
 import { describe, expect, it } from 'vitest';
 import type { Supporter } from '../../../types/domain';
 import { allDonationPurposes, supporterPurposes, supporterVisibleForDesignations, visibleSupportersForDesignations } from '../lib';
-import { allowedDesignationsFor } from '../../platform/lib';
+import { allowedDesignationsFor, canIssueReceipt } from '../../platform/lib';
+import useAppSrc from '../../../store/useApp.ts?raw';
 import type { OrgCloudDoc } from '../../../lib/cloudConfig';
 
 const sup = (purposes: string[]): Pick<Supporter, 'donations'> =>
@@ -86,5 +87,26 @@ describe('allowedDesignationsFor — מנהל vs עובד', () => {
     expect(allowedDesignationsFor('worker@x.com', org)).toEqual(['חתונות']);
     expect(allowedDesignationsFor('nolimit@x.com', org)).toBeNull();
     expect(allowedDesignationsFor('unknown@x.com', org)).toBeNull();
+  });
+});
+
+describe('canIssueReceipt — רק המנהל מנפיק קבלות (הכרעת-בעלים 14.8)', () => {
+  // מקצה-יחיד ל-donationSeq (מונע מרוץ) + כלל-עסקי. ברירת-מחדל מתירה (לא שוברת קיים).
+  it('מייל-על / מנהל / לקוח-שורש / עבודה-מקומית ⇒ מותר', () => {
+    expect(canIssueReceipt({ superAdmin: true, isManager: false, cloudRoot: false, cloudConnected: true })).toBe(true);
+    expect(canIssueReceipt({ superAdmin: false, isManager: true, cloudRoot: false, cloudConnected: true })).toBe(true);
+    expect(canIssueReceipt({ superAdmin: false, isManager: false, cloudRoot: true, cloudConnected: true })).toBe(true); // לקוח-השורש = הבעלים
+    expect(canIssueReceipt({ superAdmin: false, isManager: false, cloudRoot: false, cloudConnected: false })).toBe(true); // מקומי/לא-מחובר
+  });
+  it('עובד/ת בארגון-פלטפורמה (מחובר, לא-מנהל, לא-שורש) ⇒ חסום', () => {
+    expect(canIssueReceipt({ superAdmin: false, isManager: false, cloudRoot: false, cloudConnected: true })).toBe(false);
+  });
+  it('הגנת-מקור: addDonation אוכף canIssueReceipt לפני צריכת המונה', () => {
+    expect(useAppSrc).toContain('if (!canIssueReceipt(');
+    // הגידור לפני הקצאת ה-rid (donationSeq)
+    const gateIdx = useAppSrc.indexOf('canIssueReceipt({ superAdmin:');
+    const ridIdx = useAppSrc.indexOf("const rid = 'D-' + get().db.donationSeq");
+    expect(gateIdx).toBeGreaterThan(0);
+    expect(gateIdx).toBeLessThan(ridIdx);
   });
 });

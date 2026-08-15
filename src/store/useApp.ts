@@ -47,7 +47,7 @@ import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { advanceStatus } from '../components/shop7/lib';
 import { roomClashError } from '../components/calendar/calLib';
-import { allowedDesignationsFor, effectiveConfigFor, isOrgManager, parseJoinFullCode } from '../components/platform/lib';
+import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManager, parseJoinFullCode } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, employeeSignUpError, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, termOf, writeCloudConfigCache } from '../lib/config';
@@ -1620,6 +1620,13 @@ export const useApp = create<AppState>()((set, get) => {
       });
     },
     addDonation(supporterId, donation) {
+      // 🔐 רק המנהל מנפיק קבלות (הכרעת-בעלים 14.8) — מקצה-יחיד ל-donationSeq
+      // (מונע מרוץ דו-מכשירי על מספרי קבלות-§46) + כלל-עסקי. שער-קשיח בליבה.
+      const cl = get().cloud;
+      if (!canIssueReceipt({ superAdmin: isSuperAdmin(cl.user?.email), isManager: !!cl.isManager, cloudRoot: get().config.cloudRoot === true, cloudConnected: !!cl.user })) {
+        get().toast('⛔ רק המנהל מנפיק קבלות — פנו למנהל/ת הארגון');
+        return { ok: false };
+      }
       // שער לפני צריכת המונה: תומכ/ת שנעלם/ה (נמחק/ה בסנכרון בעוד הטופס פתוח) לא
       // יצרוך את donationSeq — אחרת D-{n} מדולג לצמיתות והתרומה אובדת בשקט.
       if (!get().db.supporters.some((s) => s.id === supporterId)) {

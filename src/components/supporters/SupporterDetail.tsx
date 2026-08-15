@@ -5,7 +5,8 @@
 import { useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, integrationOn, integrationSetting, termOf } from '../../lib/config';
+import { featureOn, integrationOn, integrationSetting, isSuperAdmin, termOf } from '../../lib/config';
+import { canIssueReceipt } from '../platform/lib';
 import { payLink } from '../../lib/payLink';
 import { askClaude, readAiKey, thanksPrompt } from '../../lib/ai';
 import { annualReportLines, donationYears, downloadAnnualReport } from '../../lib/annualReport';
@@ -50,6 +51,10 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
+  // 🔐 רק המנהל מנפיק קבלות (הכרעת-בעלים 14.8) — כפתורי-הרישום מוסתרים מעובד/ת;
+  // האכיפה-הקשיחה בליבה (addDonation). לקוח-שורש/מקומי/מנהל = מנפיק.
+  const cloud = useApp((s) => s.cloud);
+  const canIssue = canIssueReceipt({ superAdmin: isSuperAdmin(cloud.user?.email), isManager: !!cloud.isManager, cloudRoot: config.cloudRoot === true, cloudConnected: !!cloud.user });
   // 🔒 ייעוד-הרשאה (13.8): גם בכרטיס של תורם-גלוי, התצוגה (ציון/סטטיסטיקה/רשימה/
   // לוח/דוח-שנתי-לתורם) מסתירה תרומות בייעוד אסור. `sp` הגולמי נשמר לכל הכתיבות
   // (upsertSupporter/addDonation) — `dsp` הוא עותק-תצוגה בלבד.
@@ -329,9 +334,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 2 }}>{statsLine}</div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Btn kind="primary" onClick={() => setDonOpen(true)}>
-            ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
-          </Btn>
+          {canIssue && (
+            <Btn kind="primary" onClick={() => setDonOpen(true)}>
+              ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
+            </Btn>
+          )}
           {/* ROADMAP-100 ‏#4: דוח-שנתי-לתורם — ריכוז תרומות שנת-המס (לא קבלה!) */}
           {featureOn(config, 'supporters.annualreport') && donationYears(dsp.donations).length > 0 && (
             <Btn
@@ -426,7 +433,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                     (sp.hok.active ? '' : ' · ⏸ מושהית')}
                 </div>
                 {sp.hok.note && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 2 }}>{sp.hok.note}</div>}
-                {sp.hok.active && (
+                {sp.hok.active && canIssue && (
                   hokRecordedThisMonth(sp, isoToday()) ? (
                     <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 6 }}>✓ חיוב-החודש נרשם</div>
                   ) : (
