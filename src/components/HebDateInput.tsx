@@ -9,6 +9,7 @@ import { useEffect, useState, type JSX } from 'react';
 import { gem, gemYear, hebDateFull } from '../lib/hebrew';
 import { hebMonthsOf, hebToIso, hebYearNow, isoToHebParts } from '../lib/hebdate';
 import { Chip, Select } from './ui';
+import { CalendarPicker } from './CalendarPicker';
 
 function fmtGreg(iso: string): string {
   const [y, m, d] = iso.split('-');
@@ -22,6 +23,7 @@ export function HebDateInput(props: { value: string; onChange: (iso: string) => 
   const [m, setM] = useState(init ? init.monthHe : '');
   const [y, setY] = useState(init ? String(init.year) : '');
   const [invalid, setInvalid] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   // סנכרון מהערך החיצוני — אתחול, בחירה במצב לועזי, או שינוי מבחוץ.
   useEffect(() => {
@@ -80,14 +82,40 @@ export function HebDateInput(props: { value: string; onChange: (iso: string) => 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
         <Chip on={mode === 'heb'} onClick={() => setMode('heb')}>
           עברי
         </Chip>
         <Chip on={mode === 'greg'} onClick={() => setMode('greg')}>
           לועזי
         </Chip>
+        {/* בקשת-בעלים: בורר-לוח גדול בסגנון הלוח המרכזי (לועזי/עברי) */}
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          title="בחירה מלוח-שנה מלא"
+          style={{
+            marginInlineStart: 'auto',
+            border: '1px solid var(--line)',
+            background: 'var(--panel)',
+            borderRadius: 8,
+            padding: '3px 10px',
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: 'pointer',
+            color: 'var(--ink-soft)',
+          }}
+        >
+          📅 לוח
+        </button>
       </div>
+      {pickerOpen && (
+        <CalendarPicker
+          value={props.value}
+          onPick={(iso) => props.onChange(iso)}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
       {mode === 'heb' ? (
         <>
           <div style={{ display: 'flex', gap: 6 }}>
