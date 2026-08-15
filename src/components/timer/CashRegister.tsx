@@ -19,15 +19,17 @@ import { guardExport } from '../../lib/exportGate';
 import { Btn, Modal, TextInput } from '../ui';
 // מפתחות הקופה ממורחבי-שמות פר-ארגון (CONNECT חיבור 7 — חלק מבאג ידוע 3)
 import { nsLsKey } from '../../store/persist';
+// גל-1: מנוע פירוט-עודף + צבעי-מטבע (טהור, נבדק ביחידה)
+import { BILL_VALS, COIN_VALS, changeBreakdown, denomTint } from './cashLib';
 
 const LS_RECEIPTS = 'maor_cashbox_receipts';
 const LS_SEQ = 'maor_cashbox_seq';
 const SS_AMOUNT = 'maor_cashbox_amount';
 const SS_CLIENT = 'maor_cashbox_client';
 
-/** מטבעות ושטרות בש"ח (ILS). */
-const COINS = [0.1, 0.5, 1, 2, 5, 10];
-const BILLS = [20, 50, 100, 200];
+/** מטבעות ושטרות בש"ח (ILS) — מקור-אמת יחיד ב-cashLib. */
+const COINS = [...COIN_VALS].sort((a, b) => a - b);
+const BILLS = [...BILL_VALS].sort((a, b) => a - b);
 
 interface Receipt {
   num: number;
@@ -36,6 +38,19 @@ interface Receipt {
   due: number;
   received: number;
   change: number;
+}
+
+function readReceipts(): Receipt[] {
+  try {
+    const raw = localStorage.getItem(nsLsKey(LS_RECEIPTS));
+    return raw ? (JSON.parse(raw) as Receipt[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function isToday(iso: string): boolean {
+  return iso.slice(0, 10) === new Date().toISOString().slice(0, 10);
 }
 
 function nextReceiptNum(): number {
@@ -61,6 +76,39 @@ function saveReceipt(r: Receipt): void {
 function money(n: number): string {
   return '₪' + (Math.round(n * 100) / 100).toLocaleString('he-IL');
 }
+
+/** רצועת "אילו שטרות/מטבעות להחזיר" — פירוט-העודף (גל-1, בקשת-בעלים). */
+function ChangeChips({ amount }: { amount: number }) {
+  const parts = changeBreakdown(amount);
+  if (!parts.length) return null;
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 4 }}>
+      {parts.map((p) => {
+        const t = denomTint(p.denom);
+        return (
+          <span
+            key={p.denom}
+            style={{
+              direction: 'ltr',
+              fontSize: 12.5,
+              fontWeight: 800,
+              padding: '3px 9px',
+              borderRadius: 999,
+              background: t.bg,
+              color: t.ink,
+              border: '1px solid var(--line)',
+            }}
+          >
+            ₪{p.denom} ×{p.count}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+/** סכומים-מהירים למילוי הסכום-לתשלום. */
+const QUICK_DUE = [10, 20, 50, 100, 200];
 
 export function CashRegister({ onClose }: { onClose: () => void }) {
   const config = useApp((s) => s.config);
@@ -99,6 +147,7 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
   const [client, setClient] = useState(prefillClient);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [receipt, setReceipt] = useState<Receipt | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
 
   const dueNum = Math.max(0, Number(due) || 0);
   const received = useMemo(
@@ -153,6 +202,71 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
     toast('חשבונית ' + r.num + ' הופקה · שולם ✓');
   }
 
+  // גל-1: היסטוריית-חשבוניות — הרשומות נשמרו תמיד, עכשיו יש איפה לראותן.
+  if (showHistory) {
+    const all = readReceipts();
+    const today = all.filter((r) => isToday(r.at));
+    const todayTotal = today.reduce((a, r) => a + r.due, 0);
+    return (
+      <Modal title={'🧾 חשבוניות ה' + label} onClose={onClose}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '10px 12px',
+            borderRadius: 10,
+            background: 'var(--bg)',
+            border: '1px solid var(--line)',
+            marginBottom: 10,
+            fontWeight: 700,
+          }}
+        >
+          <span>היום: {today.length} חשבוניות</span>
+          <b style={{ direction: 'ltr' }}>{money(todayTotal)}</b>
+        </div>
+        {all.length === 0 ? (
+          <div style={{ color: 'var(--ink-faint)', padding: '18px 4px', textAlign: 'center' }}>
+            עדיין לא הופקו חשבוניות בקופה.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: '52vh', overflowY: 'auto' }}>
+            {all.map((r) => (
+              <button
+                key={r.num + '_' + r.at}
+                type="button"
+                onClick={() => { setReceipt(r); setShowHistory(false); }}
+                title="פתיחה והדפסה חוזרת"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  textAlign: 'start',
+                  padding: '9px 12px',
+                  borderRadius: 10,
+                  border: '1px solid var(--line)',
+                  background: 'var(--panel)',
+                  cursor: 'pointer',
+                }}
+              >
+                <span style={{ fontWeight: 800, minWidth: 38 }}>#{r.num}</span>
+                <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {r.client || '—'}
+                  <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                    {new Date(r.at).toLocaleString('he-IL')}
+                  </span>
+                </span>
+                <b style={{ direction: 'ltr' }}>{money(r.due)}</b>
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="modal-actions">
+          <Btn onClick={() => setShowHistory(false)}>← חזרה לקופה</Btn>
+        </div>
+      </Modal>
+    );
+  }
+
   // תצוגת חשבונית לאחר סיום
   if (receipt) {
     return (
@@ -181,6 +295,12 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
             <span>עודף</span>
             <span style={{ direction: 'ltr' }}>{money(receipt.change)}</span>
           </div>
+          {receipt.change > 0 && (
+            <div style={{ marginTop: 2 }}>
+              <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>להחזיר:</span>
+              <ChangeChips amount={receipt.change} />
+            </div>
+          )}
           <div style={{ borderTop: '1px dashed var(--line)', marginTop: 8, paddingTop: 8, color: '#12803c', fontWeight: 800 }}>
             שולם ✓ · {new Date(receipt.at).toLocaleString('he-IL')}
           </div>
@@ -206,6 +326,38 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
         </label>
       </div>
 
+      {/* גל-1: סכומים-מהירים למילוי הסכום-לתשלום */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+        {QUICK_DUE.map((q) => (
+          <button
+            key={q}
+            type="button"
+            onClick={() => setDue(String((Number(due) || 0) + q))}
+            style={{
+              direction: 'ltr',
+              fontSize: 12.5,
+              fontWeight: 700,
+              padding: '4px 11px',
+              borderRadius: 999,
+              border: '1px solid var(--line)',
+              background: 'var(--panel)',
+              color: 'var(--ink-soft)',
+              cursor: 'pointer',
+            }}
+          >
+            +₪{q}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => setDue('')}
+          title="איפוס הסכום"
+          style={{ fontSize: 12.5, fontWeight: 700, padding: '4px 11px', borderRadius: 999, border: '1px solid var(--line)', background: 'var(--panel)', color: 'var(--ink-faint)', cursor: 'pointer' }}
+        >
+          ⌫ איפוס
+        </button>
+      </div>
+
       <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 6 }}>
         בחרו מטבעות ושטרות לפי מה שהתקבל
       </div>
@@ -219,6 +371,7 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {grp.vals.map((d) => {
               const n = counts[String(d)] || 0;
+              const t = denomTint(d);
               return (
                 <button
                   key={d}
@@ -233,12 +386,14 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
                     minWidth: 58,
                     padding: '8px 10px',
                     borderRadius: 10,
-                    border: '1px solid ' + (n > 0 ? 'var(--accent)' : 'var(--line)'),
-                    background: n > 0 ? 'var(--accent)' : 'var(--panel)',
-                    color: n > 0 ? 'var(--dark)' : 'var(--ink)',
-                    fontWeight: 700,
+                    // נבחר = מסגרת-אקסנט מודגשת; במנוחה = צבע-המטבע האמיתי (זיהוי-מהיר)
+                    border: '2px solid ' + (n > 0 ? 'var(--accent-deep, var(--accent))' : t.bg),
+                    background: t.bg,
+                    color: t.ink,
+                    fontWeight: 800,
                     cursor: 'pointer',
                     direction: 'ltr',
+                    boxShadow: n > 0 ? '0 0 0 2px var(--accent)' : undefined,
                   }}
                 >
                   ₪{d}
@@ -274,10 +429,13 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
           <b style={{ direction: 'ltr' }}>{money(received)}</b>
         </div>
         {diff >= 0 ? (
-          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#12803c', fontWeight: 700 }}>
-            <span>עודף להחזיר</span>
-            <span style={{ direction: 'ltr' }}>{money(diff)}</span>
-          </div>
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#12803c', fontWeight: 700 }}>
+              <span>עודף להחזיר</span>
+              <span style={{ direction: 'ltr' }}>{money(diff)}</span>
+            </div>
+            {diff > 0 && <ChangeChips amount={diff} />}
+          </>
         ) : (
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#b91c1c', fontWeight: 700 }}>
             <span>חסר לתשלום</span>
@@ -286,10 +444,11 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <Btn kind="primary" onClick={finish} disabled={dueNum <= 0 || received < dueNum}>
           סיום והפקת חשבונית
         </Btn>
+        <Btn onClick={() => setShowHistory(true)}>🧾 חשבוניות</Btn>
         <Btn onClick={onClose}>ביטול</Btn>
       </div>
     </Modal>
