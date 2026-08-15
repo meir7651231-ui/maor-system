@@ -28,4 +28,15 @@ describe('🗂 ratchet — קופה רושמת גל-2: משמרת/סגירה (ה
     expect(src).toContain('<DenomPad counts={drawerCounts}');
     expect(src).toContain('<DenomPad counts={counts}');
   });
+
+  it('פתיחת-משמרת לפי-סוג (ספירה) + צ\'קים/אחר (בקשת-בעלים)', () => {
+    // הפתיחה סופרת מזומן לפי-סוג (openCounts) — float = countsTotal(openCounts)
+    expect(src).toContain('<DenomPad counts={openCounts}');
+    expect(src).toContain('const f = countsTotal(openCounts)');
+    // אמצעי לא-מזומן: צ'קים + אחר, בפתיחה ובסגירה
+    expect(src).toContain('function TenderFields');
+    expect(src).toMatch(/checks=\{openChecks\}[\s\S]{0,60}onChecks=\{setOpenChecks\}/);
+    expect(src).toMatch(/checks=\{closeChecks\}/);
+    expect(src).toContain("צ'קים");
+  });
 });
