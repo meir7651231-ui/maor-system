@@ -58,6 +58,29 @@ export function envPath(slug: string, cloudRoot: boolean): string {
   return cloudRoot ? '_enc/envelope' : 'orgs/' + slug + '/_enc/envelope';
 }
 
+/** מסלול-B: שם-אוסף התרומות-הנפרד (doc-per-donation, מפתח=rid). לא ב-ENTITY_COLLECTIONS. */
+export const DONATIONS_COL = 'donations';
+
+/** נתיב אוסף-התרומות הנפרד (מסלול-B) — אותה חוקיות-נתיב כשאר האוספים. */
+export function donationsPath(slug: string, cloudRoot: boolean): string {
+  return colPath(slug, cloudRoot, DONATIONS_COL);
+}
+
+/**
+ * מסלול-B (טהור) — מסיר את `donations` ממסמכי-התומך שב-diff (הם עוברים לאוסף-הנפרד).
+ * לא מוט ציה: מחזיר diff חדש. שאר האוספים/meta/deletes ללא-שינוי. במצב-כבוי לא נקרא כלל.
+ */
+export function stripSupporterDonations(diff: DbDiff): DbDiff {
+  return {
+    ...diff,
+    sets: diff.sets.map((s) =>
+      s.col === 'supporters' && s.data && typeof s.data === 'object'
+        ? { ...s, data: { ...(s.data as Record<string, unknown>), donations: [] } }
+        : s,
+    ),
+  };
+}
+
 /** שדות ה-meta שנבדקים לשינוי (savedAt מוחרג — משתנה בכל שמירה, רעש). */
 const META_KEYS = [
   'orgName',

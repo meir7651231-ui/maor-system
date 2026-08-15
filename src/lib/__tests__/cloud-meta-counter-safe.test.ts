@@ -25,6 +25,8 @@ describe('#3 — כתיבת meta בטוחה-למונים (עסקה)', () => {
 
 describe('#16 — cloudReplaceNow דוחף עריכה שנעשתה בחלון-הדחיפה', () => {
   it('דחיפת-השלמה: diff מול המצב החי אם השתנה מ-next', () => {
-    expect(cloudSyncSrc).toContain('const gap = diffDb(next, live)');
+    // מסלול-B (2b): דחיפת-ההשלמה עברה דרך pushSplitAware(next.supporters, live.supporters, diffDb(next, live))
+    expect(cloudSyncSrc).toContain('diffDb(next, live)');
+    expect(cloudSyncSrc).toContain('pushSplitAware(next.supporters, live.supporters');
   });
 });

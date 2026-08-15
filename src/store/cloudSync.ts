@@ -11,9 +11,26 @@
  *    800ms, מחשב diffDb ודוחף. תור לא-מקוון מנוהל ע"י Firestore עצמו.
  */
 import type { Db } from '../types/domain';
-import { diffDb, emptyDiff, ENTITY_COLLECTIONS, fullDbDiff } from '../lib/cloud-diff';
+import { diffDb, emptyDiff, ENTITY_COLLECTIONS, fullDbDiff, stripSupporterDonations, type DbDiff } from '../lib/cloud-diff';
 import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
-import { pullAll, pushDiff, subscribeAll, type RemotePartial } from '../lib/cloud';
+import { donationSplitActive, pullAll, pushDiff, pushDonations, subscribeAll, type RemotePartial } from '../lib/cloud';
+import { donationPartitionDiff } from '../lib/donationPartition';
+
+/**
+ * מסלול-B — דחיפה מפוצלת-מודעת. במצב-כבוי: pushDiff רגיל (ביט-זהה). במצב-פיצול:
+ * מסמכי-התומך בלי donations (עוברים לאוסף-הנפרד) + דחיפת diff-אוסף-התרומות.
+ * מטפל בעצמו ב-diff ריק (כולל מקרה שרק ייעוד-תרומה השתנה ⇒ diff-ישויות ריק).
+ */
+async function pushSplitAware(prevSups: Db['supporters'], nextSups: Db['supporters'], diff: DbDiff): Promise<void> {
+  if (!donationSplitActive()) {
+    if (!emptyDiff(diff)) await pushDiff(diff, cloudDek);
+    return;
+  }
+  const stripped = stripSupporterDonations(diff);
+  if (!emptyDiff(stripped)) await pushDiff(stripped, cloudDek);
+  const dd = donationPartitionDiff(prevSups, nextSups);
+  if (dd.sets.length || dd.deletes.length) await pushDonations(dd, cloudDek);
+}
 
 // מפתח-הצפנת-הענן (opt-in) — null עד שהמשתמש מפעיל הצפנה ומזין סיסמה. כל עוד
 // null, כל קריאות הענן זהות-בייט להיום (ratchet ב-cloud.ts). האחסון בזיכרון בלבד.
@@ -26,7 +43,7 @@ export function getCloudDek(): CryptoKey | null {
 }
 
 // יצוא-מחדש של שכבת ה-auth — ל-useApp יש import דינמי אחד בלבד (המודול הזה)
-export { changePassword, encryptExistingCloud, fetchIncomingPayments, initCloud, markIncomingPayment, readCloudEnvelope, resetPassword, setCloudScope, signIn, signOutCloud, signUp, watchAuth, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
+export { changePassword, encryptExistingCloud, fetchIncomingPayments, initCloud, markIncomingPayment, readCloudEnvelope, resetPassword, setCloudScope, setDonationSplit, signIn, signOutCloud, signUp, watchAuth, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
 export type { CloudUser, IncomingPayment } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
 export { deleteOrgCompletely, deleteOrgRequest, deleteOrgJoinRequest, deleteOrgMemberConfig, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgJoinRequests, fetchOrgLeads, fetchOrgRequests, findMemberOrgSlugs, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgJoinRequest, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
@@ -99,7 +116,7 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
     if (cloudDb === null) {
       // פרויקט ענן ריק — הגירה ראשונה: מעלים את כל הנתונים המקומיים
       if (ENTITY_COLLECTIONS.some((c) => local[c].length)) {
-        await pushDiff(fullDbDiff(local), cloudDek);
+        await pushSplitAware([], local.supporters, fullDbDiff(local));
         h.toast('הנתונים הועלו לענן ✓');
       }
     } else {
@@ -126,7 +143,7 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
       // diffDb(cloudDb, merged) = רק התוספות המקומיות (merged ⊇ ישויות הענן, אין
       // מחיקות), וללא שינוי meta (merged שומר את meta של הענן) → הענן נשאר סמכותי.
       const additions = diffDb(cloudDb, merged);
-      if (!emptyDiff(additions)) await pushDiff(additions, cloudDek);
+      await pushSplitAware(cloudDb.supporters, merged.supporters, additions);
     }
     // התנתקות (logout) יכולה לרוץ סינכרונית במהלך ה-push-ים למעלה; אז hooks אופס
     // ו-stopCloudSync כבר סיים. בלי שער נוסף כאן היינו מחיים active=true, מתקינים
@@ -144,8 +161,8 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
     // 🐛 נחיל-עמוק (13.8): עריכות שנעשו בזמן לחיצת-היד (לפני active) נשמרו מקומית אך
     // cloudOnDbChange דילג עליהן (!active) ולא נדחפו לעולם. דחיפת-השלמה חד-פעמית:
     // diff בין מה שהענן מחזיק (syncedBaseline) לבין המצב החי כעת.
-    const catchUp = diffDb(syncedBaseline, h.getDb());
-    if (!emptyDiff(catchUp)) await pushDiff(catchUp, cloudDek);
+    const liveDb = h.getDb();
+    await pushSplitAware(syncedBaseline.supporters, liveDb.supporters, diffDb(syncedBaseline, liveDb));
     h.setStatus('synced');
   } catch (e) {
     active = false;
@@ -177,9 +194,9 @@ async function flushPush(): Promise<void> {
   pushBase = null;
   pushLatest = null;
   const diff = diffDb(base, latest);
-  if (emptyDiff(diff)) return;
+  if (emptyDiff(diff)) return; // כל שינוי-תרומה משנה גם את מסמך-התומך ⇒ diff לא-ריק (גם בפיצול)
   try {
-    await pushDiff(diff, cloudDek);
+    await pushSplitAware(base.supporters, latest.supporters, diff);
     if (active) hooks?.setStatus('synced');
   } catch {
     // כשל שאינו-offline: משחזרים את הדלתא הממתינה כדי שתידחף בעריכה הבאה.
@@ -233,14 +250,14 @@ export async function cloudReplaceNow(prev: Db, next: Db): Promise<void> {
   const wasApplying = applyingRemote;
   applyingRemote = true; // חוסם flushPush/מיזוג-מרוחק מלרוץ תוך-כדי הכתיבה הסמכותית
   try {
-    await pushDiff(diff, cloudDek);
+    // מסלול-B: reset/restore בפיצול מוחק/כותב גם את מסמכי-אוסף-התרומות (מונע קבלות-יתומות).
+    await pushSplitAware(prev.supporters, next.supporters, diff);
     // 🐛 נחיל-עמוק (13.8): עריכת-משתמש בזמן חלון-הדחיפה (applyingRemote חסם את
     // cloudOnDbChange) לא נדחפה ונבלעה עד העריכה הבאה. דחיפת-השלמה: diff מול המצב
     // החי אם השתנה מ-next.
     const live = hooks?.getDb();
     if (live && live !== next) {
-      const gap = diffDb(next, live);
-      if (!emptyDiff(gap)) await pushDiff(gap, cloudDek);
+      await pushSplitAware(next.supporters, live.supporters, diffDb(next, live));
     }
     if (active) hooks?.setStatus('synced');
   } catch {

@@ -27,6 +27,9 @@ vi.mock('../../lib/cloud', () => ({
     subscribeCalls++;
     return () => {};
   },
+  // מסלול-B (פיצול כבוי בבדיקות אלה) — ביט-זהה להתנהגות הקודמת
+  donationSplitActive: () => false,
+  pushDonations: () => Promise.resolve(),
   // re-exports ש-cloudSync מייצא מחדש — לא בשימוש בבדיקה
   initCloud: () => {},
   resetPassword: () => Promise.resolve(),
