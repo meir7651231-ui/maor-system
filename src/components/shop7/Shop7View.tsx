@@ -5,7 +5,7 @@
  */
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, integrationOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, telephonyOn, termOf } from '../../lib/config';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { isoToday } from '../../lib/date-util';
 import { hebDateFull } from '../../lib/hebrew';
@@ -14,6 +14,7 @@ import { downloadCsv, downloadText } from '../reports/csv';
 import { mapsRouteUrl, mapsSearchUrl } from '../../lib/mapsLink';
 import { waDeliveryText } from '../../lib/wa';
 import { WaBtn } from '../WaBtn';
+import { CallBtn } from '../CallBtn';
 import { SignaturePad } from '../SignaturePad';
 import { Btn, Chip, Empty, Field, Modal, PageHead, Select, TextInput } from '../ui';
 import type { DistributionDay, Volunteer } from '../../types/domain';
@@ -82,7 +83,8 @@ function VolunteersTab() {
               <tr key={v.id}>
                 <td style={{ fontWeight: 600 }}>{v.name}</td>
                 <td dir="ltr">
-                  {/* INTEGRATIONS גל א׳ — 💬 וואטסאפ למתנדב; הרווח בתוך הגידור (ביט-זהה) */}
+                  {/* 📞 חיוג (טלפוניה) · 💬 וואטסאפ למתנדב; הרווח בתוך הגידור (ביט-זהה) */}
+                  {telephonyOn(config) && v.phone ? <><CallBtn phone={v.phone} title={'חיוג ל' + v.name} />{' '}</> : null}
                   {integrationOn(config, 'whatsapp') && v.phone ? <><WaBtn phone={v.phone} title={'וואטסאפ ל' + v.name} />{' '}</> : null}
                   {v.phone || '—'}
                 </td>

@@ -5,12 +5,13 @@
 import { useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, integrationOn, integrationSetting, isSuperAdmin, termOf } from '../../lib/config';
+import { featureOn, integrationOn, integrationSetting, isSuperAdmin, telephonyOn, termOf } from '../../lib/config';
 import { canIssueReceipt } from '../platform/lib';
 import { payLink } from '../../lib/payLink';
 import { askClaude, readAiKey, thanksPrompt } from '../../lib/ai';
 import { annualReportLines, donationYears, downloadAnnualReport } from '../../lib/annualReport';
 import { WaBtn } from '../WaBtn';
+import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -389,7 +390,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         <div className="card">
           <h3 style={{ fontSize: 15, marginBottom: 8 }}>{'פרטי ' + termOf(config, 'entity.supporter', 'התומך/ת')}</h3>
           {/* INTEGRATIONS — פעולות-הרחבה: 💬 וואטסאפ · 💳 עמוד-תרומה · 🤖 מכתב-תודה */}
-          {(integrationOn(config, 'whatsapp') || integrationOn(config, 'payments') || aiReady || smsReady) && (
+          {(telephonyOn(config) || integrationOn(config, 'whatsapp') || integrationOn(config, 'payments') || aiReady || smsReady) && (
             <div style={{ textAlign: 'left', marginBottom: 2, display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
               {aiReady && (
                 <Btn sm onClick={() => void draftThanks()} title="טיוטת מכתב-תודה אישי (עוזר-AI)">
@@ -406,6 +407,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                   📱 SMS
                 </Btn>
               )}
+              {telephonyOn(config) && sp.phone && <CallBtn phone={sp.phone} title={'חיוג ל' + sp.name} />}
               {integrationOn(config, 'whatsapp') && sp.phone && <WaBtn phone={sp.phone} title={'וואטסאפ ל' + sp.name} />}
             </div>
           )}

@@ -69,6 +69,14 @@ export function integrationOn(cfg: OrgConfig, key: string): boolean {
   return cfg.integrations?.[key]?.enabled === true;
 }
 
+/**
+ * האם מודול-הטלפוניה פעיל — opt-in (חסר/false=כבוי, רק enabled:true מדליק), כמו
+ * הרחבה. מגדיר את הופעת כפתורי-החיוג (📞) במסכי-הקשר (משפחה/תומך/מתנדב/רכז).
+ */
+export function telephonyOn(cfg: OrgConfig): boolean {
+  return cfg.telephony?.enabled === true;
+}
+
 /** הגדרת-הרחבה (גל ג׳): מחרוזת מה-allowlist אחרי trim, אחרת ''. */
 export function integrationSetting(cfg: OrgConfig, key: string, field: string): string {
   const v = cfg.integrations?.[key]?.[field];

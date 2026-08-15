@@ -5,8 +5,9 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, integrationOn, moduleOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, moduleOn, telephonyOn, termOf } from '../../lib/config';
 import { WaBtn } from '../WaBtn';
+import { CallBtn } from '../CallBtn';
 import type { TzBoxStatus } from '../../types/domain';
 import { Btn, Chip, Empty, Select, TextInput } from '../ui';
 import { boxesOverview, coordinatorBoxes, coordinatorTotal, filterCoordinators } from './lib';
@@ -143,7 +144,8 @@ export function CoordinatorsTab(props: { selId: string | null; onSelect: (id: st
                   <Chip on={c.active}>{c.active ? 'פעיל/ה' : 'לא פעיל/ה'}</Chip>
                 </div>
                 <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-                  {/* INTEGRATIONS גל א׳ — 💬 וואטסאפ לרכז/ת; הרווח בתוך הגידור (ביט-זהה) */}
+                  {/* 📞 חיוג (טלפוניה) · 💬 וואטסאפ לרכז/ת; הרווח בתוך הגידור (ביט-זהה) */}
+                  {telephonyOn(config) && c.phone ? <><CallBtn phone={c.phone} title={'חיוג ל' + c.name} />{' '}</> : null}
                   {integrationOn(config, 'whatsapp') && c.phone ? <><WaBtn phone={c.phone} title={'וואטסאפ ל' + c.name} />{' '}</> : null}
                   {c.phone || 'ללא טלפון'}
                 </div>
