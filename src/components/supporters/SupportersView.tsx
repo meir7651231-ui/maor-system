@@ -133,6 +133,8 @@ export function SupportersView() {
 
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
+  // בקשת-בעלים 15.8 ("פר תורם") — סינון לפי ייעוד-שעל-הכרטיס (forWho), מגודר supporters.purpose
+  const [purposeF, setPurposeF] = useState('all');
   const [tierF, setTierF] = useState<string | null>(null);
   // פילטרים פר-עמודה בתחביר numMatch — 'N' / 'N+' / 'N-M' (P3 פריט 13, לגאסי scf:2809-2811)
   const [colF, setColF] = useState({ count: '', total: '', score: '' });
@@ -223,6 +225,7 @@ export function SupportersView() {
 
   let list = visibleBase.filter((sp) => {
     if (cat !== 'all' && (sp.cat || '') !== cat) return false;
+    if (purposeF !== 'all' && (sp.forWho || '').trim() !== purposeF) return false;
     // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): הוראות פעילות / רק שטרם-נרשמו-החודש
     if (hokF === 'active' && !sp.hok?.active) return false;
     if (hokF === 'due' && !(sp.hok?.active && !hokRecordedThisMonth(sp, today))) return false;
@@ -256,6 +259,7 @@ export function SupportersView() {
     setSort(sort && sort.key === key ? (sort.dir > 0 ? { key, dir: -1 } : null) : { key, dir: 1 });
 
   const catOptions = [...new Set(visibleBase.map((s) => s.cat).filter(Boolean))];
+  const purposeOptions = [...new Set(visibleBase.map((s) => (s.forWho || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const tierCounts: Record<string, number> = { זהב: 0, כסף: 0, ארד: 0, רדומה: 0 };
   for (const sp of visibleBase) tierCounts[supTier(supScore(sp, rate)).label]++;
 
@@ -389,6 +393,14 @@ export function SupportersView() {
           onChange={setCat}
           options={[{ value: 'all', label: 'כל הקטגוריות' }, ...catOptions.map((c) => ({ value: c, label: c }))]}
         />
+        {/* בקשת-בעלים 15.8 ("פר תורם") — סינון לפי ייעוד-שעל-הכרטיס */}
+        {purposeOn && purposeOptions.length > 0 && (
+          <Select
+            value={purposeF}
+            onChange={setPurposeF}
+            options={[{ value: 'all', label: 'כל הייעודים' }, ...purposeOptions.map((p) => ({ value: p, label: '🔐 ' + p }))]}
+          />
+        )}
       </div>
 
       {rfmOn && (

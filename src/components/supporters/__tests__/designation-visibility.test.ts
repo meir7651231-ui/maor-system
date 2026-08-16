@@ -9,6 +9,8 @@ import type { Supporter } from '../../../types/domain';
 import { allDonationPurposes, supporterPurposes, supporterVisibleForDesignations, visibleSupportersForDesignations } from '../lib';
 import { allowedDesignationsFor, canIssueReceipt } from '../../platform/lib';
 import useAppSrc from '../../../store/useApp.ts?raw';
+import formSrc from '../SupporterForm.tsx?raw';
+import viewSrc from '../SupportersView.tsx?raw';
 import type { OrgCloudDoc } from '../../../lib/cloudConfig';
 
 const sup = (purposes: string[]): Pick<Supporter, 'donations'> =>
@@ -69,6 +71,52 @@ describe('allDonationPurposes / supporterPurposes', () => {
   it('distinct + ממויין; ריקים מושמטים', () => {
     expect(supporterPurposes(sup(['א', 'א', '', 'ב']))).toEqual(['א', 'ב']);
     expect(allDonationPurposes([sup(['ב']), sup(['א']), sup([''])])).toEqual(['א', 'ב']);
+  });
+});
+
+describe('ייעוד פר-תורם (forWho) — בקשת-בעלים 15.8 "פר תורם"', () => {
+  // 🐛 באג: הסינון קרא רק את הייעוד-פר-תרומה (donations[].purpose); הייעוד שעל
+  // כרטיס-התורם (forWho, "ייעוד התרומה (עבור)") — שם הבעלים בעצם רושם — לא חובר
+  // כלל למסנן ⇒ "לא קורא נכון את הייעוד". כעת forWho הוא מקור-האמת פר-תורם.
+  it('supporterPurposes כולל את forWho (הייעוד-שעל-הכרטיס)', () => {
+    expect(supporterPurposes({ forWho: 'חתונות', donations: [] })).toEqual(['חתונות']);
+    // איחוד forWho + ייעוד-פר-תרומה, distinct
+    expect(supporterPurposes({ forWho: 'חתונות', donations: [{ rid: 'D-1', date: '2026-08-15', amount: 50, cur: '₪', cat: '', purpose: 'כללי' }] as Supporter['donations'] }).sort()).toEqual(['חתונות', 'כללי']);
+    // forWho ריק ⇒ מתעלמים
+    expect(supporterPurposes({ forWho: '  ', donations: [] })).toEqual([]);
+  });
+
+  it('תורם שהוקצה לו ייעוד בכרטיס נראה רק לעובד המורשה לאותו ייעוד', () => {
+    const kohen = { forWho: 'חתונות', donations: [] };
+    expect(supporterVisibleForDesignations(kohen, ['חתונות'])).toBe(true);
+    expect(supporterVisibleForDesignations(kohen, ['קמחא'])).toBe(false);
+    // בלי ייעוד בכרטיס ובלי בתרומות = משותף (גלוי לכל עובד)
+    expect(supporterVisibleForDesignations({ forWho: '', donations: [] }, ['חתונות'])).toBe(true);
+  });
+
+  it('allDonationPurposes מציג ערכי-forWho (כדי שהמנהל יבחר מהם בכרטיס-העובד)', () => {
+    expect(allDonationPurposes([{ forWho: 'קמחא דפסחא', donations: [] }, { forWho: 'חתונות', donations: [] }])).toEqual(['קמחא דפסחא', 'חתונות'].sort((a, b) => a.localeCompare(b)));
+  });
+
+  it('הגנת-מקור: טופס-התורם מציג רמז-הרשאה + צ׳יפים כשהיכולת דלוקה', () => {
+    expect(formSrc).toContain("featureOn(config, 'supporters.purpose')");
+    expect(formSrc).toContain('הייעוד קובע אילו עובדות רואות את התורם/ת');
+  });
+
+  it('הגנת-מקור: רשימת-התורמים מסננת לפי ייעוד-הכרטיס (forWho)', () => {
+    expect(viewSrc).toContain("(sp.forWho || '').trim() !== purposeF");
+    expect(viewSrc).toContain('purposeOn && purposeOptions.length > 0');
+  });
+
+  it('הגנת-מקור: לקוח-שורש (מאור) קורא ייעודים-פר-עובד (בקשת-בעלים "חבר את מאור")', () => {
+    // הבאג: הענף rootOk (cloudRoot/default) דילג על קריאת memberConfigs ⇒
+    // allowedDesignations לא נקבע ⇒ עובדת-מוגבלת ראתה הכל. כעת גם השורש קורא.
+    const rootBlock = useAppSrc.slice(useAppSrc.indexOf('if (rootOk) {'), useAppSrc.indexOf('if (rootOk) {') + 1400);
+    expect(rootBlock).toContain('mod.fetchOrgCloudConfig(cfg.slug)');
+    expect(rootBlock).toContain('allowedDesignationsFor(user.email, orgDoc)');
+    expect(rootBlock).toContain('mod.setAllowedPurposes(allowed)');
+    // אינווריאנט-שורש: נכנס תמיד כ-member (בלי שער-חברות)
+    expect(rootBlock).toContain("setCloud({ membership: 'member' })");
   });
 });
 

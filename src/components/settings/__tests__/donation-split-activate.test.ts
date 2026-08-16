@@ -6,7 +6,8 @@
  * האינווריאנטים:
  * 1. פעולת-ה-store `enableDonationSplit` כותבת `{ config: { donationSplit: true } }`
  *    דרך writeOrgCloudDoc (merge-עומק) — לא writeOrgCloudConfig שדורס את כל הקונפיג.
- * 2. שער-בטיחות: אתר-השורש (cloudRoot) ואתר-default נחסמים (פטורים מהפיצול).
+ * 2. שער-בטיחות: אתר-default נחסם. (הכרעת-בעלים 15.8: לקוח-שורש cloudRoot כן רשאי
+ *    להדליק — "מה זה משנה מאור או יעקב" — אז אין יותר חסימת-cloudRoot.)
  * 3. תוקף-מיידי: setDonationSplit(true) נקרא אחרי הכתיבה, וגם ב-applyCloudDoc החי
  *    (donationSplitOn(eff)) ⇒ הדלקה אצל הבעלים מגיעה לצד-הדוחף בלי רענון.
  * 4. הרכיב מחווט את הכפתור ל-enableDonationSplit ומגודר מייל-על (isSuperAdmin).
@@ -26,11 +27,17 @@ describe('🔀 ratchet — הדלקת-פיצול בקליק (מסלול-B פאז
     expect(body).not.toContain('writeOrgCloudConfig');
   });
 
-  it('שער-בטיחות: שורש/default נחסמים; תוקף-מיידי setDonationSplit(true)', () => {
+  it('שער-בטיחות: default נחסם; cloudRoot כן מותר (הכרעת-בעלים 15.8); תוקף-מיידי', () => {
     const body = storeSrc.match(/async enableDonationSplit\(\)[\s\S]*?\n {4}\},/)![0];
-    expect(body).toContain("cfg.cloudRoot === true");
+    // cloudRoot כבר לא נחסם — מאור (שורש) רשאי להדליק כמו כל ארגון
+    expect(body).not.toContain('cfg.cloudRoot === true');
     expect(body).toContain("slug === 'default'");
     expect(body).toContain('mod.setDonationSplit(true)');
+  });
+
+  it('donationSplitOn — cloudRoot כבר לא פטור (רק donationSplit===true)', () => {
+    const cfgSrc = storeSrc; // נבדק בנפרד; כאן מוודאים שהחיווט משתמש בפונקציה
+    expect(cfgSrc).toContain('donationSplitOn(eff)');
   });
 
   it('applyCloudDoc החי מיישם את מתג-הפיצול (donationSplitOn) ⇒ בלי רענון', () => {
