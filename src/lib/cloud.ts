@@ -43,7 +43,7 @@ import {
   type WriteBatch,
 } from 'firebase/firestore';
 import type { FirebaseOrgConfig } from '../types/config';
-import { DB_VERSION, type Db, type Donation } from '../types/domain';
+import { AUDIT_CAP, DB_VERSION, type AuditEntry, type Db, type Donation } from '../types/domain';
 import { migrate } from '../store/persist';
 import { ENTITY_COLLECTIONS, colPath, donationsPath, envPath, fullDbDiff, metaPath, type DbDiff } from './cloud-diff';
 import { SHARED_PURPOSE_KEY, type DonationCloudDiff } from './donationPartition';
@@ -123,6 +123,47 @@ export function setSupEnforce(on: boolean): void {
 /** האם אכיפת-התומכים פעילה (הצד-הדוחף/המושך שואל). */
 export function supEnforceActive(): boolean {
   return supEnforceOn;
+}
+
+/* ── לוג-מנהל מסונכרן (משטח #3, "מנהל מסונכרן"): הלוג לא רוכב על meta המשותף
+   אלא על `auditlog/{uid}` — כל משתמש כותב **רק** את מסמכו (טבעת-פעולותיו); מנהל/
+   מייל-על קורא את **כל** המסמכים וממזג ⇒ רואה הכל. עובד/ת לא רשאי/ת לקרוא (Rules)
+   ⇒ לא לומד/ת על פעולות של אחרת. dormant: פעיל רק כשאכיפה דלוקה. ─────────── */
+let auditUid = '';
+let auditEmail = '';
+let auditReadable = false;
+/** נקבע מהחיבור: uid+email של המחובר, ו-canRead=מנהל/מייל-על (קורא את כל הלוגים). */
+export function setAuditContext(uid: string, email: string, canRead: boolean): void {
+  auditUid = uid;
+  auditEmail = email.trim().toLowerCase();
+  auditReadable = canRead;
+}
+/** המייל שכותב את הלוג (לסינון הטבעת-הנדחפת לפעולות-שלו-בלבד). */
+export function auditWriterEmail(): string {
+  return auditEmail;
+}
+
+/** דחיפת טבעת-הלוג של המחובר למסמכו (auditlog/{uid}) — כתיבת-מסמך-עצמו בלבד. */
+export async function pushAuditRing(entries: AuditEntry[], dek?: CryptoKey | null): Promise<void> {
+  if (!auditUid) return;
+  const db = requireDb();
+  const ring = entries.slice(-AUDIT_CAP);
+  const body = dek ? await encryptDoc({ entries: ring }, dek) : { entries: ring };
+  await setDoc(doc(db, scopedCol('auditlog'), auditUid), body as DocumentData);
+}
+
+/** משיכת כל טבעות-הלוג וממוזגות (מנהל/מייל-על בלבד) — עובד/ת ⇒ null (בלי גישה). */
+export async function pullAuditRing(dek?: CryptoKey | null): Promise<AuditEntry[] | null> {
+  if (!auditReadable) return null;
+  const db = requireDb();
+  const snap = await getDocs(collection(db, scopedCol('auditlog')));
+  const all: AuditEntry[] = [];
+  for (const d of snap.docs) {
+    const data = (dek ? await decryptDoc(d.data(), dek) : d.data()) as { entries?: AuditEntry[] };
+    if (Array.isArray(data.entries)) all.push(...data.entries);
+  }
+  all.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+  return all.slice(-AUDIT_CAP);
 }
 
 /**

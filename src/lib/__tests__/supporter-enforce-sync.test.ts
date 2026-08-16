@@ -5,6 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import cloudSrc from '../cloud.ts?raw';
+import rulesSrc from '../../../firestore.rules?raw';
 
 describe('🔒 ratchet — אכיפת-תומכים dormant (פאזה-2)', () => {
   it('off-by-default: הדגל מאותחל false; אין הדלקה בקוד (רק setter מפאזת-ההפעלה)', () => {
@@ -34,5 +35,15 @@ describe('🔒 ratchet — אכיפת-תומכים dormant (פאזה-2)', () => 
 
   it('משטח #3: לוג-הפעולות (audit) מקולף מ-meta בענן כשהאכיפה דלוקה', () => {
     expect(cloudSrc).toContain('supEnforceOn && diff.meta ? stripAuditMeta(diff.meta) : diff.meta');
+  });
+
+  it('משטח #3 (מנהל מסונכרן): auditlog/{uid} — כתיבת-עצמו, קריאת-מנהל, מיזוג', () => {
+    // כותב רק את מסמכו; מנהל/מייל-על קורא את כולם (auditReadable)
+    expect(cloudSrc).toContain("scopedCol('auditlog'), auditUid");
+    expect(cloudSrc).toContain('if (!auditReadable) return null;');
+    // Rules: כתיבת-uid-עצמו בלבד + קריאת-מנהל
+    expect(rulesSrc).toContain('match /orgs/{slug}/auditlog/{uid}');
+    expect(rulesSrc).toContain('request.auth.uid == uid');
+    expect(rulesSrc).toContain("col != 'auditlog'");
   });
 });

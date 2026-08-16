@@ -239,7 +239,9 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
 
   it('useApp: עובד/ת מקבל/ת קונפיג-אפקטיבי + isManager + בקשת-הצטרפות ב-join', () => {
     expect(useAppSrc).toContain('effectiveConfigFor(user.email, orgDoc');
-    expect(useAppSrc).toContain('isManager: isOrgManager(user.email');
+    // 15.8 — isManager נגזר למשתנה orgIsManager (לשימוש-חוזר בהקשר-הלוג), עדיין מ-isOrgManager
+    expect(useAppSrc).toContain('isOrgManager(user.email');
+    expect(useAppSrc).toContain('isManager: orgIsManager');
     expect(useAppSrc).toContain('writeOrgJoinRequest(cfg.slug, user.uid');
   });
 

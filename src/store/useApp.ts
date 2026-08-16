@@ -782,9 +782,12 @@ export const useApp = create<AppState>()((set, get) => {
                 !!orgDoc?.members?.some((m) => m.trim().toLowerCase() === mail);
               // ORGADMIN — האם המשתמש הוא מנהל-הארגון (org.manager)? ⇒ פאנל-המנהל 👥
               const allowed = allowedDesignationsFor(user.email, orgDoc ?? {});
-              setCloud({ membership: member ? 'member' : 'pending', isManager: isOrgManager(user.email, orgDoc ?? {}), allowedDesignations: allowed });
+              const orgIsManager = isOrgManager(user.email, orgDoc ?? {});
+              setCloud({ membership: member ? 'member' : 'pending', isManager: orgIsManager, allowedDesignations: allowed });
               // מסלול-B P3: שאילתת-donations מסוננת לעובד/ת מוגבל/ת (Rules דוחים list לא-מסוננת)
               mod.setAllowedPurposes(allowed);
+              // לוג-מנהל מסונכרן: מנהל/מייל-על קורא את כל טבעות-הלוג; עובד/ת כותב/ת רק שלו/ה
+              mod.setAuditContext(user.uid ?? '', user.email, orgIsManager || isSuperAdmin(user.email));
               if (!member) {
                 // ORGADMIN — עובד/ת שהגיעה דרך קישור-הזמנה (?join=code): רישום בקשה
                 // שהמנהל יראה ויאשר (create-only, uid תואם לפי Rules v3; idempotent).
@@ -829,8 +832,10 @@ export const useApp = create<AppState>()((set, get) => {
               void mod.fetchOrgCloudConfig(cfg.slug).then((orgDoc) => {
                 if (orgDoc && !orgDoc.deleted) {
                   const allowed = allowedDesignationsFor(user.email, orgDoc);
-                  setCloud({ isManager: isOrgManager(user.email, orgDoc), allowedDesignations: allowed });
+                  const rootIsManager = isOrgManager(user.email, orgDoc);
+                  setCloud({ isManager: rootIsManager, allowedDesignations: allowed });
                   mod.setAllowedPurposes(allowed);
+                  mod.setAuditContext(user.uid ?? '', user.email, rootIsManager || isSuperAdmin(user.email));
                 }
               });
               gatedStart();

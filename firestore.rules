@@ -130,8 +130,9 @@ service cloud.firestore {
     // נתוני ארגון-פלטפורמה: כתיבה — חבר או מייל-על (הסנכרון דוחף). קריאה — חבר,
     // **פרט לאוסף-התרומות** (מסלול-B): קריאתו נאכפת פר-ייעוד במאץ' הייעודי למטה.
     match /orgs/{slug}/{col}/{docId} {
-      allow write: if superAdmin() || orgMember(slug);
-      allow read: if (superAdmin() || orgMember(slug)) && col != 'donations' && col != 'supporters' && col != 'events';
+      // auditlog נחצב מהכתיבה-הכללית: כל חבר כותב רק את מסמכו (uid), לא של אחר.
+      allow write: if (superAdmin() || orgMember(slug)) && col != 'auditlog';
+      allow read: if (superAdmin() || orgMember(slug)) && col != 'donations' && col != 'supporters' && col != 'events' && col != 'auditlog';
     }
 
     // מסלול-B — אוסף-התרומות הנפרד: כתיבה=חבר (מכוסה גם למעלה); **קריאה פר-ייעוד**:
@@ -161,6 +162,14 @@ service cloud.firestore {
       allow write: if superAdmin() || orgMember(slug);
       allow read: if superAdmin() || orgManager(slug)
         || memberSeesSupporter(slug, resource.data.get('skey', '_shared_'));
+    }
+
+    // לוג-מנהל מסונכרן (15.8, "מנהל מסונכרן") — auditlog/{uid}: כל חבר כותב **רק**
+    // את מסמכו (טבעת-פעולותיו, uid=חשבונו); **קריאה = מנהל/מייל-על בלבד** ⇒ מנהל
+    // רואה את פעולות כולן, ועובדת לא לומדת על פעולה של אחרת. הלוג לא רוכב על meta.
+    match /orgs/{slug}/auditlog/{uid} {
+      allow write: if request.auth != null && request.auth.uid == uid && orgMember(slug);
+      allow read: if superAdmin() || orgManager(slug);
     }
 
     // כספת-מפתחות פר-ארגון (9.8 — "כל מנהל יש את הסודות שלו"): טוקני ימות/
