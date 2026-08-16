@@ -337,11 +337,121 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
     if (email && email.includes('@')) contact.email = email;
     const addr = normLocalized(c.address, 200);
     if (addr) contact.address = addr;
+    const hours = normLocalized(c.hours, 120);
+    if (hours) contact.hours = hours;
+    if (typeof c.mapUrl === 'string') {
+      const mu = safeHttpsUrl(c.mapUrl);
+      if (mu) contact.mapUrl = mu;
+    }
     if (Object.keys(contact).length) out.contact = contact;
   }
   if (typeof s.donateUrl === 'string') {
     const u = safeHttpsUrl(s.donateUrl);
     if (u) out.donateUrl = u;
+  }
+  /* ── עיצוב-דף-התרומות: שדות חדשים (allowlist + תקרות) ── */
+  const imgUrl = (v: unknown): string | undefined => (typeof v === 'string' ? safeHttpsUrl(v) || undefined : undefined);
+  const setLT = (k: keyof PublicSiteContent, v: unknown, max: number) => {
+    const t = normLocalized(v, max);
+    if (t) (out as Record<string, unknown>)[k] = t;
+  };
+  const hi = imgUrl(s.heroImage); if (hi) out.heroImage = hi;
+  setLT('heroTitle', s.heroTitle, 80);
+  setLT('heroBadge', s.heroBadge, 80);
+  setLT('titleAccent', s.titleAccent, 60);
+  setLT('servicesHeading', s.servicesHeading, 80);
+  setLT('microCopy', s.microCopy, 120);
+  setLT('ticker', s.ticker, 160);
+  if (Array.isArray(s.marquee)) {
+    const mq = s.marquee.map((m) => normLocalized(m, 80)).filter((m): m is LocalizedText => !!m).slice(0, 16);
+    if (mq.length) out.marquee = mq;
+  }
+  if (s.calc && typeof s.calc === 'object' && !Array.isArray(s.calc)) {
+    const c = s.calc as Record<string, unknown>;
+    const calc: PublicSiteContent['calc'] = {};
+    const amt = sitePosNum(c.unitAmount); if (amt !== undefined) calc.unitAmount = amt;
+    const unit = normLocalized(c.unit, 60); if (unit) calc.unit = unit;
+    const note = normLocalized(c.note, 120); if (note) calc.note = note;
+    if (Object.keys(calc).length) out.calc = calc;
+  }
+  if (Array.isArray(s.tiers)) {
+    const tiers = s.tiers.map((tr) => {
+      if (!tr || typeof tr !== 'object') return null;
+      const o = tr as Record<string, unknown>;
+      const name = normLocalized(o.name, 60); if (!name) return null;
+      const t: NonNullable<PublicSiteContent['tiers']>[number] = { name };
+      const amt = sitePosNum(o.amount); if (amt !== undefined) t.amount = amt;
+      const period = normLocalized(o.period, 40); if (period) t.period = period;
+      if (Array.isArray(o.perks)) {
+        const perks = o.perks.map((p) => normLocalized(p, 100)).filter((p): p is LocalizedText => !!p).slice(0, 8);
+        if (perks.length) t.perks = perks;
+      }
+      if (o.featured === true) t.featured = true;
+      const url = imgUrl(o.url); if (url) t.url = url;
+      return t;
+    }).filter((x): x is NonNullable<PublicSiteContent['tiers']>[number] => !!x).slice(0, 6);
+    if (tiers.length) out.tiers = tiers;
+  }
+  if (Array.isArray(s.testimonials)) {
+    const items = s.testimonials.map((tt) => {
+      if (!tt || typeof tt !== 'object') return null;
+      const o = tt as Record<string, unknown>;
+      const quote = normLocalized(o.quote, 400); if (!quote) return null;
+      const t: NonNullable<PublicSiteContent['testimonials']>[number] = { quote };
+      const author = siteStr(o.author, 80); if (author) t.author = author;
+      const role = normLocalized(o.role, 80); if (role) t.role = role;
+      return t;
+    }).filter((x): x is NonNullable<PublicSiteContent['testimonials']>[number] => !!x).slice(0, 12);
+    if (items.length) out.testimonials = items;
+  }
+  if (Array.isArray(s.faq)) {
+    const items = s.faq.map((f) => {
+      if (!f || typeof f !== 'object') return null;
+      const o = f as Record<string, unknown>;
+      const q = normLocalized(o.q, 200); const a = normLocalized(o.a, 800);
+      return q && a ? { q, a } : null;
+    }).filter((x): x is { q: LocalizedText; a: LocalizedText } => !!x).slice(0, 20);
+    if (items.length) out.faq = items;
+  }
+  if (Array.isArray(s.events)) {
+    const items = s.events.map((e) => {
+      if (!e || typeof e !== 'object') return null;
+      const o = e as Record<string, unknown>;
+      const title = normLocalized(o.title, 120); if (!title) return null;
+      const ev: NonNullable<PublicSiteContent['events']>[number] = { title };
+      const date = siteStr(o.date, 30); if (date) ev.date = date;
+      const meta = normLocalized(o.meta, 120); if (meta) ev.meta = meta;
+      const url = imgUrl(o.url); if (url) ev.url = url;
+      return ev;
+    }).filter((x): x is NonNullable<PublicSiteContent['events']>[number] => !!x).slice(0, 12);
+    if (items.length) out.events = items;
+  }
+  if (Array.isArray(s.partners)) {
+    const items = s.partners.map((p) => {
+      if (!p || typeof p !== 'object') return null;
+      const o = p as Record<string, unknown>;
+      const name = siteStr(o.name, 80); if (!name) return null;
+      const pt: NonNullable<PublicSiteContent['partners']>[number] = { name };
+      const logo = imgUrl(o.logo); if (logo) pt.logo = logo;
+      const url = imgUrl(o.url); if (url) pt.url = url;
+      return pt;
+    }).filter((x): x is NonNullable<PublicSiteContent['partners']>[number] => !!x).slice(0, 24);
+    if (items.length) out.partners = items;
+  }
+  if (s.transparency && typeof s.transparency === 'object' && !Array.isArray(s.transparency)) {
+    const o = s.transparency as Record<string, unknown>;
+    const tr: NonNullable<PublicSiteContent['transparency']> = {};
+    const heading = normLocalized(o.heading, 120); if (heading) tr.heading = heading;
+    const text = normLocalized(o.text, 600); if (text) tr.text = text;
+    const url = imgUrl(o.reportsUrl); if (url) tr.reportsUrl = url;
+    if (Object.keys(tr).length) out.transparency = tr;
+  }
+  if (s.contactForm && typeof s.contactForm === 'object' && !Array.isArray(s.contactForm)) {
+    const o = s.contactForm as Record<string, unknown>;
+    const cf: NonNullable<PublicSiteContent['contactForm']> = {};
+    if (o.enabled === true) cf.enabled = true; else if (o.enabled === false) cf.enabled = false;
+    const note = normLocalized(o.note, 200); if (note) cf.note = note;
+    if (Object.keys(cf).length) out.contactForm = cf;
   }
   return Object.keys(out).length ? out : undefined;
 }

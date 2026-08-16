@@ -97,6 +97,49 @@ export interface PublicSiteContact {
   whatsapp?: string;
   email?: string;
   address?: LocalizedText;
+  hours?: LocalizedText;
+  mapUrl?: string;
+}
+
+/** מסלול-שותפות (הוראת-קבע חודשית) — עמודת-תמחור בעיצוב. */
+export interface PublicSiteTier {
+  name: LocalizedText;
+  amount?: number;
+  period?: LocalizedText;
+  perks?: LocalizedText[];
+  featured?: boolean;
+  url?: string;
+}
+/** מחשבון-תרומה — "כל ₪X = Y". */
+export interface PublicSiteCalc {
+  unitAmount?: number;
+  unit?: LocalizedText;
+  note?: LocalizedText;
+}
+export interface PublicSiteTestimonial {
+  quote: LocalizedText;
+  author?: string;
+  role?: LocalizedText;
+}
+export interface PublicSiteFaq {
+  q: LocalizedText;
+  a: LocalizedText;
+}
+export interface PublicSiteEvent {
+  date?: string;
+  title: LocalizedText;
+  meta?: LocalizedText;
+  url?: string;
+}
+export interface PublicSitePartner {
+  name: string;
+  logo?: string;
+  url?: string;
+}
+export interface PublicSiteNewsItem {
+  date?: string;
+  title: LocalizedText;
+  body?: LocalizedText;
 }
 
 /**
@@ -130,6 +173,35 @@ export interface PublicSiteContent {
   contact?: PublicSiteContact;
   /** קישור-תרומה (https) — נפילה ל-integrations.payments.payUrl. */
   donateUrl?: string;
+  /* ── עיצוב-דף-התרומות (design 16.8) ── */
+  /** תמונת/וידאו ה-hero (https). */
+  heroImage?: string;
+  /** כותרת ה-hero ("הבית של"). חסר ⇒ שם-הארגון. */
+  heroTitle?: LocalizedText;
+  /** תג מעל הכותרת ("2,800 משפחות איתנו היום"). */
+  heroBadge?: LocalizedText;
+  /** מילת-ההדגשה בכותרת (מודגשת בקורל, בשורה שנייה). */
+  titleAccent?: LocalizedText;
+  /** כותרת סעיף-השירותים ("שישה דרכים לחבק משפחה"). */
+  servicesHeading?: LocalizedText;
+  /** מיקרו-שורה מתחת ל-CTA ("כל ₪9 = ארוחה חמה"). */
+  microCopy?: LocalizedText;
+  /** רצועת-קמפיין עליונה ("קמפיין החגים · ₪X נאספו"). */
+  ticker?: LocalizedText;
+  /** מרקיזת-נתונים נגללת (פריטי-טקסט). */
+  marquee?: LocalizedText[];
+  /** מחשבון-תרומה. */
+  calc?: PublicSiteCalc;
+  /** מסלולי-שותפות (הו"ק חודשית). */
+  tiers?: PublicSiteTier[];
+  testimonials?: PublicSiteTestimonial[];
+  faq?: PublicSiteFaq[];
+  events?: PublicSiteEvent[];
+  partners?: PublicSitePartner[];
+  /** בלוק-שקיפות ("כל שקל מתועד"). */
+  transparency?: { heading?: LocalizedText; text?: LocalizedText; reportsUrl?: string };
+  /** טופס-קשר (לידים). */
+  contactForm?: { enabled?: boolean; note?: LocalizedText };
 }
 
 export interface OrgConfig {

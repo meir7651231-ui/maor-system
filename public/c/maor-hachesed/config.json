@@ -19,31 +19,70 @@
     "enabled": true,
     "langs": ["he", "en"],
     "icon": "🕯️",
-    "tagline": { "he": "הבית של האלמנות והיתומים", "en": "A home for widows and orphans" },
-    "heroWords": [
-      { "he": "תומכים באלמנות", "en": "Supporting widows" },
-      { "he": "מלווים יתומים", "en": "Standing with orphans" },
-      { "he": "בונים מחדש חיים", "en": "Rebuilding lives" }
+    "ticker": { "he": "קמפיין החגים · ₪342,180 נאספו · מתעדכן חי", "en": "Holiday drive · ₪342,180 raised · live" },
+    "heroBadge": { "he": "2,800 משפחות איתנו היום", "en": "2,800 families with us today" },
+    "heroTitle": { "he": "הבית של", "en": "A home for" },
+    "titleAccent": { "he": "האלמנות.", "en": "widows & orphans." },
+    "tagline": { "he": "כבר 24 שנה אנחנו הבית של האלמנות והיתומים: סלי מזון, מלגות, שמחות בכבוד וליווי אישי ל־2,800 משפחות — בלי בירוקרטיה ובלי לוותר על הכבוד של אף אחד.", "en": "For 24 years, a home for widows and orphans: food, scholarships, dignified celebrations and personal care for 2,800 families." },
+    "microCopy": { "he": "כל ₪9 = ארוחה חמה לילד ♡", "en": "Every ₪9 = a warm meal ♡" },
+    "marquee": [
+      { "he": "1,204 סלים יצאו השבוע" },
+      { "he": "סל למשפחה = ₪90" },
+      { "he": "92% מכל שקל — ישירות למשפחות" },
+      { "he": "2,800 משפחות · 24 שנות נתינה" },
+      { "he": "קבלה מוכרת · סעיף 46" },
+      { "he": "340 מתנדבות ומתנדבים" }
     ],
-    "liveFamilies": false,
-    "stats": [
-      { "value": "600", "label": { "he": "אלמנות בליווי", "en": "widows supported" } }
-    ],
+    "servicesHeading": { "he": "שישה דרכים לחבק משפחה", "en": "Six ways to hold a family" },
     "services": [
-      { "icon": "🏠", "title": { "he": "עזרה יומיומית", "en": "Daily help" }, "text": { "he": "סיוע במטלות הבית ובצורכי היום-יום", "en": "Help with chores and daily needs" } },
-      { "icon": "📚", "title": { "he": "תוכניות אחר-הצהריים", "en": "After-school" }, "text": { "he": "מסגרת חמה לילדים אחרי הלימודים", "en": "A warm after-school framework for children" } },
-      { "icon": "🕯️", "title": { "he": "שבתונים", "en": "Shabbatons" }, "text": { "he": "שבתות התרוממות וחיזוק", "en": "Uplifting, strengthening Shabbatons" } },
-      { "icon": "💊", "title": { "he": "מימון טיפולים", "en": "Treatments" }, "text": { "he": "סיוע כלכלי לטיפולים רפואיים ורגשיים", "en": "Funding for medical and emotional care" } },
-      { "icon": "🎓", "title": { "he": "הכשרה מקצועית", "en": "Professional training" }, "text": { "he": "ליווי להשתלבות ולעצמאות כלכלית", "en": "Support toward work and independence" } },
-      { "icon": "👰", "title": { "he": "הכנסת כלה ליתומים", "en": "Weddings for orphans" }, "text": { "he": "כיסוי מלא של הוצאות החתונה — עד הפרט האחרון", "en": "Covering full wedding costs, down to every detail" } }
+      { "icon": "🍞", "title": { "he": "סל מזון שבועי" }, "text": { "he": "סל מלא לכל משפחה, כל שבוע, עד הבית" } },
+      { "icon": "🤝", "title": { "he": "ליווי אישי קבוע" }, "text": { "he": "רכזת אישית שמכירה כל משפחה בשמה" } },
+      { "icon": "🚨", "title": { "he": "חירום ופריסה ארצית" }, "text": { "he": "מענה מהיר בכל שעה, בכל מקום בארץ" } },
+      { "icon": "🎓", "title": { "he": "מלגות וחוגים ליתומים" }, "text": { "he": "חינוך, העשרה ועתיד לילדי המשפחות" } },
+      { "icon": "💍", "title": { "he": "שמחות בכבוד" }, "text": { "he": "הכנסת כלה וחתונות — עד הפרט האחרון" } },
+      { "icon": "🕯️", "title": { "he": "חגים עם אור" }, "text": { "he": "סלי חג ושמחת חג לכל בית" } }
     ],
-    "story": { "he": "מאור החסד לוצקין נוסד על-ידי הרבנית הינדא שפרינצא לוצקין, בברכת הגאון רבי משה הלברשטאם זצ״ל, כדי להביא שמחה לילדיו של הקב״ה ולעזור להם לבנות מחדש את חייהם. אנו מלווים כ-600 אלמנות ואת יתומיהן בכל תחומי החיים — בכבוד, באהבה ובדיסקרטיות.", "en": "Meor Hachessed Lutzkin was founded by Rebbetzin Hinda Shprintza Lutzkin, with the blessing of Rabbi Moshe Halberstam zt”l, to bring joy to Hashem's children and help them rebuild their lives — accompanying some 600 widows and their orphans through every aspect of life, with dignity and love." },
-    "news": "",
+    "stats": [
+      { "value": "2,800", "label": { "he": "משפחות בליווי" } },
+      { "value": "340", "label": { "he": "מתנדבות ומתנדבים" } },
+      { "value": "24", "label": { "he": "שנות נתינה" } },
+      { "value": "92%", "label": { "he": "מכל שקל — ישירות למשפחות" } }
+    ],
+    "transparency": {
+      "heading": { "he": "כל שקל מתועד. כל הדו״חות פתוחים." },
+      "text": { "he": "אנחנו מאמינים ששקיפות היא כבוד. כל תרומה מתועדת, וכל שקל מגיע למי שצריך — 92% ישירות למשפחות." }
+    },
+    "story": { "he": "24 שנה של בית חם. וזה רק מתחיל.\n\nמאור החסד לוצקין נוסד על-ידי הרבנית הינדא שפרינצא לוצקין, בברכת הגאון רבי משה הלברשטאם זצ״ל — כדי להביא אור לילדיו של הקב״ה ולעזור להם לבנות מחדש את חייהם. מבית אחד, למאות משפחות, בכבוד ובאהבה." },
+    "calc": { "unitAmount": 9, "unit": { "he": "ארוחות חמות" }, "note": { "he": "כל ₪9 = ארוחה חמה לילד ♡" } },
+    "campaign": { "title": { "he": "בחרו את התרומה שלכם" }, "goal": 500000, "raised": 342311, "end": "2026-09-14", "currency": "₪" },
+    "testimonials": [
+      { "quote": { "he": "בפעם הראשונה מזה שנים, מישהי דפקה בדלת בשביל לתת — לא בשביל לקחת." }, "author": "ר׳", "role": { "he": "אם לשלושה · ירושלים" } },
+      { "quote": { "he": "אני תורם להרבה מקומות. כאן זה היחיד שבו אני רואה בדיוק לאן הכסף הלך." }, "author": "אבי כ׳", "role": { "he": "תורם חודשי משנת 2019" } },
+      { "quote": { "he": "להתנדב פה זה הדבר הכי קרוב לראות נס קורה בזמן אמת. כל שבוע מחדש." }, "author": "נועה ל׳", "role": { "he": "מתנדבת · מוקד מרכז" } }
+    ],
+    "tiers": [
+      { "name": { "he": "ידיד ♡" }, "amount": 50, "period": { "he": "/ חודש" }, "perks": [{ "he": "5 ארוחות חמות בכל חודש" }, { "he": "עדכון רבעוני מהשטח" }, { "he": "קבלה שנתית מרוכזת" }] },
+      { "name": { "he": "שותפה ♡" }, "amount": 180, "period": { "he": "/ חודש" }, "featured": true, "perks": [{ "he": "2 סלים שבועיים למשפחה" }, { "he": "שם על לוח השותפים השנתי" }, { "he": "סיור שנתי במרכז שלנו" }] },
+      { "name": { "he": "מחוללת שינוי ♡" }, "amount": 500, "period": { "he": "/ חודש" }, "perks": [{ "he": "אימוץ מלא של משפחה" }, { "he": "דו״ח השפעה אישי" }, { "he": "קשר ישיר עם צוות הליווי" }] }
+    ],
+    "events": [
+      { "date": "14\nספט'", "title": { "he": "מגבית ערב ראש השנה" }, "meta": { "he": "שידור חי + מוקד טלפוני · כל הארץ" } },
+      { "date": "20\nספט'", "title": { "he": "חלוקת סלי חג למשפחות" }, "meta": { "he": "כל מוקדי החלוקה · בואו להתנדב" } }
+    ],
+    "news": { "he": "נפתחה ההרשמה למלגות תשפ״ז ליתומים ויתומות — מהרו להירשם!" },
+    "faq": [
+      { "q": { "he": "לאן בדיוק הולך הכסף שלי?" }, "a": { "he": "92% מכל שקל מגיע ישירות למשפחות — מזון, מלגות וליווי. השאר מכסה תפעול מינימלי. כל הדו״חות פתוחים." } },
+      { "q": { "he": "האם התרומה מוכרת לצורכי מס?" }, "a": { "he": "כן — קבלה מוכרת לפי סעיף 46. הקבלה נשלחת אוטומטית לאחר התרומה." } },
+      { "q": { "he": "איך מצטרפים כמשפחה שזקוקה לעזרה?" }, "a": { "he": "פנו אלינו דרך טופס יצירת הקשר או בטלפון — בדיסקרטיות מלאה, ורכזת אישית תחזור אליכם." } },
+      { "q": { "he": "אפשר להתנדב במקום לתרום?" }, "a": { "he": "בשמחה! יש לנו 340 מתנדבים ותמיד מקום לעוד לב טוב. כתבו לנו והצטרפו." } },
+      { "q": { "he": "איך מבטלים הוראת קבע?" }, "a": { "he": "בכל רגע, בלי שאלות — פנייה אחת אלינו וזה בוטל." } }
+    ],
+    "contactForm": { "enabled": true, "note": { "he": "מענה תוך יום עסקים · דיסקרטיות מלאה" } },
     "contact": {
       "phones": [],
       "whatsapp": "",
       "email": "",
-      "address": { "he": "אדוניהו הכהן 23, ירושלים · 14 Olympia Lane, Monsey NY", "en": "Adoniyahu HaCohen 23, Jerusalem · 14 Olympia Lane, Monsey NY 10952" }
+      "address": { "he": "אדוניהו הכהן 23, ירושלים · 14 Olympia Lane, Monsey NY", "en": "Adoniyahu HaCohen 23, Jerusalem · 14 Olympia Lane, Monsey NY" }
     }
   }
 }
