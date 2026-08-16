@@ -386,6 +386,29 @@ export interface AyinAnswer {
   note: string;
 }
 
+/**
+ * רשומת-שעתון על תיק (פרויקט) — תיוג-שעות לחישוב עלות-עבודה ב-P&L. additive,
+ * אופציונלי, אין מיגרציה; ורטיקל מסחרי בלבד (מגודר supporters.ayin.time).
+ */
+export interface TimeEntry {
+  date: IsoDate;
+  hours: number;
+  note: string;
+  /** תעריף-שעה (אופציונלי) — עלות-השורה = hours × rate. */
+  rate?: number;
+}
+
+/**
+ * רשומת-חומרים/רכש על תיק (פרויקט) — עלות-חומרים ל-P&L (job-costing). additive,
+ * אופציונלי, אין מיגרציה; ורטיקל מסחרי בלבד (מגודר supporters.ayin.mat).
+ * עלות-השורה = qty × cost (מחיר-יחידה).
+ */
+export interface MatEntry {
+  name: string;
+  qty: number;
+  cost: number;
+}
+
 /** רשומת היסטוריה של מונה (eyes) לפי תאריך. */
 export interface AyinLog {
   date: IsoDate;
@@ -410,6 +433,10 @@ export interface AyinCase {
   names: AyinName[];
   answers: AyinAnswer[];
   log: AyinLog[];
+  /** שעתון-הפרויקט (תיוג-שעות) — additive, ורטיקל מסחרי; undefined בתיקים ישנים. */
+  time?: TimeEntry[];
+  /** חומרים/רכש של הפרויקט — additive, ורטיקל מסחרי; undefined בתיקים ישנים. */
+  mat?: MatEntry[];
   /**
    * מזהי אירועי-הלוח שנוצרו במעברי-השלב, לפי שלב-המקור של המעבר
    * ('new'/'lead'/'eyes'/'answer') + 'answerPush' (מעבר הדחיפה). מאפשר ל-revert
@@ -497,6 +524,8 @@ export function emptyAyin(): AyinCase {
     names: [],
     answers: [],
     log: [],
+    time: [],
+    mat: [],
   };
 }
 
@@ -514,9 +543,21 @@ export interface ReportPrefs {
   quarterly: boolean;
 }
 
+/**
+ * תבנית-הצעה (למידה מ-BuildSmart: DraftQuote + projectTemplates) — סט שורות-הצעה
+ * (שם·כמות·מחיר) נשמר לשימוש-חוזר, מוחל על פרויקט בקליק. additive, ורטיקל מסחרי.
+ */
+export interface QuoteTemplate {
+  id: Id;
+  name: string;
+  lines: { name: string; qty: number; rate: number }[];
+}
+
 export interface UiPrefs {
   famView: 'list' | 'grid';
   crsView: 'list' | 'grid';
+  /** תבניות-הצעה שמורות (BuildSmart-learned) — additive, חסר = אין. */
+  quoteTemplates?: QuoteTemplate[];
   /** תצוגת התורמים (5.8) — אופציונלי, חסר = 'list' (אין צורך במיגרציה). */
   supView?: 'list' | 'grid';
   /** פורמט הקבלה (5.5d, הכרעת-בעלים 9.8: הלקוח בוחר) — חסר = 'txt' (ביט-זהה). */

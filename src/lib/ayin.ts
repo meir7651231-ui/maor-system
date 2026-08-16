@@ -100,6 +100,44 @@ export function boqTotal(a: AyinCase): number {
   return a.names.reduce((t, n) => t + boqLineAmount(n), 0);
 }
 
+/** סה"כ שעות בשעתון-הפרויקט. טהור. */
+export function timeHoursTotal(a: AyinCase): number {
+  return (a.time || []).reduce((t, e) => t + (+e.hours || 0), 0);
+}
+
+/** עלות-העבודה — סכום (שעות × תעריף) של רשומות-השעתון. טהור. */
+export function timeCostTotal(a: AyinCase): number {
+  return (a.time || []).reduce((t, e) => t + (+e.hours || 0) * (e.rate || 0), 0);
+}
+
+/** עלות-החומרים/רכש — סכום (כמות × מחיר-יחידה) של רשומות-החומרים. טהור. */
+export function matCostTotal(a: AyinCase): number {
+  return (a.mat || []).reduce((t, m) => t + (+m.qty || 0) * (+m.cost || 0), 0);
+}
+
+/** שורות-פריטים (BOQ) → שורות-תבנית (שם·כמות·מחיר). ריקי-שם מדולגים. טהור. */
+export function namesToTemplateLines(names: AyinName[]): { name: string; qty: number; rate: number }[] {
+  return names
+    .filter((n) => n.name.trim())
+    .map((n) => ({ name: n.name.trim(), qty: +n.eyes || 0, rate: n.rate || 0 }));
+}
+
+/** שורות-תבנית → פריטים חדשים (AyinName), עם מזהים מסופק-המזהים. טהור. */
+export function templateLinesToNames(
+  lines: { name: string; qty: number; rate: number }[],
+  nextId: (i: number) => string,
+): AyinName[] {
+  return lines
+    .filter((l) => (l.name || '').trim())
+    .map((l, i) => ({
+      id: nextId(i),
+      name: l.name.trim(),
+      eyes: +l.qty || 0,
+      done: false,
+      ...(l.rate > 0 ? { rate: l.rate } : {}),
+    }));
+}
+
 /**
  * האם הכפתור-החכם מוצג בשלב הנוכחי — שלב 'new' דורש לפחות פריט אחד,
  * שלב 'eyes' דורש שנרשם מונה לפחות לאחד הפריטים, 'done' מסתיים.

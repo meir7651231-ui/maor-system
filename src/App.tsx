@@ -10,7 +10,7 @@
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
 import { nsLsKey, parseBackupFile } from './store/persist';
-import { featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, telephonyOn, termOf } from './lib/config';
+import { applyFavicon, featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, telephonyOn, termOf } from './lib/config';
 import { applyOrgManifest, isIos, isStandalone, promptInstall, registerPwa } from './lib/pwa';
 import { setExportBlocked } from './lib/exportGate';
 import { hebDateFull } from './lib/hebrew';
@@ -120,6 +120,12 @@ export default function App() {
   useEffect(() => {
     void init();
   }, [init]);
+
+  // אייקון-הארגון (זהות-ורטיקל) — favicon מאימוג'י כשמוגדר; חסר ⇒ הדיפולט (זהב).
+  // ה-store כבר קורא applyTheme (ערכה+צבע+תנועה); ה-favicon אינו על ה-root, לכן כאן.
+  useEffect(() => {
+    applyFavicon(config.emoji);
+  }, [config.emoji]);
 
   // דמו ציבורי (?org=demo): זריעה אוטומטית של נתוני-ההדגמה פעם בכל סשן — פרוספקט
   // נוחת במערכת מלאה בלי הרשמה (הקונפיג בלי firebase ⇒ אין שער-ענן). sessionStorage:
@@ -609,7 +615,7 @@ export default function App() {
     <>
       <header className="app-top">
         <div className="brand">
-          {config.logoDataUri && <img src={config.logoDataUri} alt="" />}
+          {config.logoDataUri ? <img src={config.logoDataUri} alt="" /> : config.emoji ? <span className="brand-emoji" aria-hidden>{config.emoji}</span> : null}
           <span className="brand-name">{orgName}</span>
         </div>
         <nav className="app-nav" aria-label="ניווט ראשי">
@@ -690,7 +696,7 @@ export default function App() {
     <>
       <aside className="app-side side-wide">
         <div className="side-brand">
-          {config.logoDataUri && <img src={config.logoDataUri} alt="" />}
+          {config.logoDataUri ? <img src={config.logoDataUri} alt="" /> : config.emoji ? <span className="brand-emoji" aria-hidden>{config.emoji}</span> : null}
           {orgName}
           <small>מ ע ר כ ת &nbsp; נ י ה ו ל</small>
         </div>
@@ -750,10 +756,13 @@ export default function App() {
   const sideShell = (
     <>
       <aside className="app-side">
-        {/* לוגו הארגון; באין לוגו — ריבוע accent עם האות הראשונה (כמו במוקאפ) */}
+        {/* לוגו הארגון; באין לוגו — אימוג'י-הוורטיקל, ובאין גם הוא — ריבוע accent
+            עם האות-הראשונה (כמו במוקאפ). ללקוח-החי אין emoji ⇒ אות-ראשונה, ביט-זהה. */}
         <div className="side-logo">
           {config.logoDataUri ? (
             <img src={config.logoDataUri} alt="" />
+          ) : config.emoji ? (
+            <span className="side-logo-fallback side-logo-emoji" aria-hidden>{config.emoji}</span>
           ) : (
             <span className="side-logo-fallback" aria-hidden>
               {(orgName || 'מ').trim().charAt(0)}
@@ -797,7 +806,7 @@ export default function App() {
       <div className="side-body">
         <header className="side-head">
           <div className="brand">
-            {config.logoDataUri && <img src={config.logoDataUri} alt="" />}
+            {config.logoDataUri ? <img src={config.logoDataUri} alt="" /> : config.emoji ? <span className="brand-emoji" aria-hidden>{config.emoji}</span> : null}
             <span className="brand-name">
               {orgName}
               <span className="side-brand-sub">{hebDateFull(isoToday())}</span>

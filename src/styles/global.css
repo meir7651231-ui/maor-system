@@ -389,6 +389,20 @@ button:focus-visible {
   font-weight: 800;
 }
 
+/* אימוג'י-הוורטיקל כאייקון — בלי רקע-accent (האמוג'י עצמו נושא צבע) */
+.side-logo-emoji {
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+}
+
+/* אימוג'י-הוורטיקל בשלד העליון/הרחב (ליד שם-הארגון) */
+.brand-emoji {
+  font-size: 22px;
+  line-height: 1;
+  margin-inline-end: 2px;
+}
+
 .side-nav {
   display: flex;
   flex-direction: column;
@@ -2627,5 +2641,67 @@ h1,
     width: 44px;
     height: 44px;
     background: color-mix(in srgb, currentColor 10%, transparent);
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   סגנון-תנועה פר-ורטיקל (data-motion על ה-root; זהות-חזותית 16.8).
+   מכוונן מהירות/עקומת המעברים של המשטחים האינטראקטיביים — בלי אנימציות חדשות
+   (שמרני, ידידותי-CPU). חסר data-motion = ברירת-המחדל של היום, ביט-זהה.
+   כובד prefers-reduced-motion בסוף — אפס-תנועה גובר על הכל.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-motion] button,
+[data-motion] a,
+[data-motion] .card,
+[data-motion] .side-link,
+[data-motion] .chip,
+[data-motion] input,
+[data-motion] select,
+[data-motion] textarea {
+  transition-property: background-color, border-color, color, box-shadow, transform, opacity;
+}
+[data-motion='snappy'] button,
+[data-motion='snappy'] a,
+[data-motion='snappy'] .card,
+[data-motion='snappy'] .side-link,
+[data-motion='snappy'] .chip {
+  transition-duration: 90ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+[data-motion='calm'] button,
+[data-motion='calm'] a,
+[data-motion='calm'] .card,
+[data-motion='calm'] .side-link,
+[data-motion='calm'] .chip {
+  transition-duration: 300ms;
+  transition-timing-function: ease-in-out;
+}
+[data-motion='bold'] button,
+[data-motion='bold'] a,
+[data-motion='bold'] .card,
+[data-motion='bold'] .side-link,
+[data-motion='bold'] .chip {
+  transition-duration: 170ms;
+  transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); /* קפיצי (overshoot) */
+}
+[data-motion='bold'] button:active,
+[data-motion='bold'] .side-link:active {
+  transform: scale(0.96);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-motion] button,
+  [data-motion] a,
+  [data-motion] .card,
+  [data-motion] .side-link,
+  [data-motion] .chip,
+  [data-motion] input,
+  [data-motion] select,
+  [data-motion] textarea {
+    transition-duration: 0s !important;
+    transition-timing-function: linear !important;
+  }
+  [data-motion='bold'] button:active,
+  [data-motion='bold'] .side-link:active {
+    transform: none !important;
   }
 }

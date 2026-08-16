@@ -59,7 +59,7 @@ import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
-import { applyAyinSheet, featLabel, planAddName, planAyinAdvance, revertPatch, stageIndex, type AyinSheetUpd } from '../lib/ayin';
+import { applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
 import {
   dailySnapshot,
   exportBackupFile,
@@ -422,6 +422,13 @@ interface AppState {
   ayinAddAnswer: (id: string, note: string) => void;
   ayinEditAnswer: (id: string, index: number, note: string) => void;
   ayinDeleteAnswer: (id: string, index: number) => void;
+  ayinAddTime: (id: string, entry: { date: string; hours: number; note: string; rate?: number }) => void;
+  ayinRemoveTime: (id: string, index: number) => void;
+  ayinAddMat: (id: string, entry: { name: string; qty: number; cost: number }) => void;
+  ayinRemoveMat: (id: string, index: number) => void;
+  saveQuoteTemplate: (id: string, name: string) => void;
+  applyQuoteTemplate: (id: string, templateId: string) => void;
+  deleteQuoteTemplate: (templateId: string) => void;
   /** קביעת מועד "לדבר שוב" — שדות בלבד (התזכורת נכתבת ב-ayinCallAgain). */
   ayinSetNextTalk: (id: string, date: string, time: string) => void;
   /** 🔁 שוב — כותב תזכורת ללוח לפי מועד "לדבר שוב". */
@@ -669,7 +676,7 @@ export const useApp = create<AppState>()((set, get) => {
    */
   function postLoad(db: Db, corrupt: boolean) {
     const config = get().config;
-    applyTheme(db.ui.theme ?? config.theme, db.ui.accent ?? config.accent);
+    applyTheme(db.ui.theme ?? config.theme, db.ui.accent ?? config.accent, config.motion);
     // אין לצלם DB פגום/ריק — אחרת emptyDb ידרוס את הצילום היומי התקין של היום
     // (dailySnapshot כותב לפי מפתח-היום ללא תנאי) ויאבד את גיבוי-הבטיחות.
     if (!corrupt) void dailySnapshot(db);
@@ -764,7 +771,7 @@ export const useApp = create<AppState>()((set, get) => {
             // ג' (13.8) — ייעודי-התרומה שהעובד/ת רשאי/ת לראות (מתעדכן חי עם הכרטיס)
             setCloud({ allowedDesignations: allowedDesignationsFor(user.email, orgDoc) });
             const { db } = get();
-            applyTheme(db.ui.theme ?? eff.theme, db.ui.accent ?? eff.accent);
+            applyTheme(db.ui.theme ?? eff.theme, db.ui.accent ?? eff.accent, eff.motion);
             writeCloudConfigCache(eff.slug, eff);
           };
           // ארגון-פלטפורמה = לא הלקוח הקיים (cloudRoot) ולא אתר-השורש (default)
@@ -1031,7 +1038,7 @@ export const useApp = create<AppState>()((set, get) => {
           needDecrypt: true,
           cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle', membership: 'na' },
         });
-        applyTheme(config.theme, config.accent); // ערכה בסיסית עד הפענוח
+        applyTheme(config.theme, config.accent, config.motion); // ערכה בסיסית עד הפענוח
         return;
       }
       const { db, corrupt } = res;
@@ -1247,7 +1254,7 @@ export const useApp = create<AppState>()((set, get) => {
       set({ config: cfg });
       saveConfigOverride(cfg);
       const { db } = get();
-      applyTheme(db.ui.theme ?? cfg.theme, db.ui.accent ?? cfg.accent);
+      applyTheme(db.ui.theme ?? cfg.theme, db.ui.accent ?? cfg.accent, cfg.motion);
     },
     setTheme(theme) {
       setDb((db) => ({ ui: { ...db.ui, theme } }));
@@ -2327,6 +2334,78 @@ export const useApp = create<AppState>()((set, get) => {
       setAyin(id, { answers: c.a.answers.filter((_, i) => i !== index) });
       get().toast('ההערה נמחקה');
     },
+    ayinAddTime(id, entry) {
+      const c = curAyin(id);
+      if (!c) return;
+      const hours = +entry.hours || 0;
+      if (hours <= 0) {
+        get().toast('הזינו מספר שעות לפני השמירה');
+        return;
+      }
+      const e = {
+        date: entry.date || isoToday(),
+        hours,
+        note: (entry.note || '').trim(),
+        ...(entry.rate && entry.rate > 0 ? { rate: entry.rate } : {}),
+      };
+      setAyin(id, { time: [e, ...(c.a.time || [])] });
+      get().toast('שעות נרשמו לשעתון-הפרויקט');
+    },
+    ayinRemoveTime(id, index) {
+      const c = curAyin(id);
+      if (!c) return;
+      setAyin(id, { time: (c.a.time || []).filter((_, i) => i !== index) });
+    },
+    ayinAddMat(id, entry) {
+      const c = curAyin(id);
+      if (!c) return;
+      const name = (entry.name || '').trim();
+      const qty = +entry.qty || 0;
+      const cost = +entry.cost || 0;
+      if (!name || qty <= 0) {
+        get().toast('הזינו שם-חומר וכמות לפני השמירה');
+        return;
+      }
+      setAyin(id, { mat: [{ name, qty, cost }, ...(c.a.mat || [])] });
+      get().toast('חומר נרשם לפרויקט');
+    },
+    ayinRemoveMat(id, index) {
+      const c = curAyin(id);
+      if (!c) return;
+      setAyin(id, { mat: (c.a.mat || []).filter((_, i) => i !== index) });
+    },
+    saveQuoteTemplate(id, name) {
+      const c = curAyin(id);
+      if (!c) return;
+      const nm = (name || '').trim();
+      const lines = namesToTemplateLines(c.a.names);
+      if (!nm || !lines.length) {
+        get().toast('הזינו שם-תבנית, ולפחות שורת-פריט אחת בפרויקט');
+        return;
+      }
+      setDb((db) => {
+        const prev = (db.ui.quoteTemplates || []).filter((t) => t.name !== nm);
+        const tpl = { id: 'qt' + db.seq, name: nm, lines };
+        return { seq: db.seq + 1, ui: { ...db.ui, quoteTemplates: [tpl, ...prev].slice(0, 30) } };
+      });
+      get().toast('התבנית "' + nm + '" נשמרה');
+    },
+    applyQuoteTemplate(id, templateId) {
+      const c = curAyin(id);
+      if (!c) return;
+      const tpl = (get().db.ui.quoteTemplates || []).find((t) => t.id === templateId);
+      if (!tpl) return;
+      const base = get().db.seq;
+      let k = 0;
+      const add = templateLinesToNames(tpl.lines, () => 'an' + (base + k++));
+      if (!add.length) return;
+      setDb((db) => ({ seq: db.seq + add.length }));
+      setAyin(id, { names: [...c.a.names, ...add] });
+      get().toast('התבנית "' + tpl.name + '" הוחלה — ' + add.length + ' שורות');
+    },
+    deleteQuoteTemplate(templateId) {
+      setDb((db) => ({ ui: { ...db.ui, quoteTemplates: (db.ui.quoteTemplates || []).filter((t) => t.id !== templateId) } }));
+    },
     ayinSetNextTalk(id, date, time) {
       setAyin(id, { nextTalk: date, nextTalkTime: time });
     },
@@ -2689,7 +2768,7 @@ export const useApp = create<AppState>()((set, get) => {
 // מכסה גם setTheme/setAccent וגם שחזור מגיבוי (restoreDb) ואיפוס (resetAll).
 useApp.subscribe((s, prev) => {
   if (s.db.ui.theme !== prev.db.ui.theme || s.db.ui.accent !== prev.db.ui.accent) {
-    applyTheme(s.db.ui.theme ?? s.config.theme, s.db.ui.accent ?? s.config.accent);
+    applyTheme(s.db.ui.theme ?? s.config.theme, s.db.ui.accent ?? s.config.accent, s.config.motion);
   }
 });
 

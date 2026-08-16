@@ -658,7 +658,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             onToggleOpen={() => flipOpen('vertical', true)}
           >
             <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', padding: '2px 0 10px' }}>
-              בחירה מחילה מונחים ומודולים מותאמים לענף. שאר ההגדרות (מיתוג, ענן, יכולות) נשמרות — ואפשר לכוונן הכול ידני למטה.
+              בחירה מלבישה זהות מלאה לענף — מונחים, מודולים, <b>ערכת-נושא, צבע, אימוג'י ותנועה</b>. הענן והמיילים נשמרים; צבע שבחרת ידנית נשמר. אפשר לכוונן הכול למטה.
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {VERTICAL_PACKS.map((p) => (
@@ -666,8 +666,13 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                   key={p.id}
                   type="button"
                   onClick={() => {
-                    setConfig(applyVerticalPack(config, p.id));
-                    toast(`חבילת "${p.label}" הוחלה — המונחים והמודולים עודכנו`);
+                    const next = applyVerticalPack(config, p.id);
+                    setConfig(next);
+                    // תצוגה חיה: מיישרים גם את דריסת-המשתמש (db.ui) לערכי-החבילה,
+                    // כדי שהערכה/הצבע יתחלפו מיד בתצוגה (setConfig לבד נחסם ע"י db.ui).
+                    setTheme(next.theme);
+                    setAccent(next.accent);
+                    toast(`חבילת "${p.label}" הוחלה — מונחים, מודולים ועיצוב עודכנו`);
                   }}
                   style={{
                     flex: '1 1 140px',
@@ -738,6 +743,20 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                 </div>
               )}
             </Field>
+            <Field label="אימוג'י הארגון (אייקון האתר וה-favicon — לא חובה)">
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <TextInput
+                  value={config.emoji ?? ''}
+                  onChange={(v) => patch({ emoji: v.trim().slice(0, 12) || undefined })}
+                  placeholder="למשל: 🏗️"
+                />
+                {config.emoji ? (
+                  <span style={{ fontSize: 26, lineHeight: 1 }} aria-hidden>{config.emoji}</span>
+                ) : (
+                  <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>באין — האות הראשונה של השם</span>
+                )}
+              </div>
+            </Field>
             <Field label="ערכת נושא">
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {Object.entries(THEME_LABELS).map(([k, label]) => (
@@ -753,12 +772,13 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                   type="color"
                   value={config.accent ?? '#f3c76b'}
                   onChange={(e) => {
-                    patch({ accent: e.target.value });
+                    // accentCustom=true ⇒ החלפת-ורטיקל תשמר את הצבע הידני (הכרעת-בעלים)
+                    patch({ accent: e.target.value, accentCustom: true });
                     setAccent(e.target.value);
                   }}
                   style={{ width: 46, height: 32, padding: 2 }}
                 />
-                <Btn sm onClick={() => { patch({ accent: undefined }); setAccent(undefined); }}>
+                <Btn sm onClick={() => { patch({ accent: undefined, accentCustom: undefined }); setAccent(undefined); }}>
                   צבע הערכה
                 </Btn>
               </div>

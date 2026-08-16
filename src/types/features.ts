@@ -123,6 +123,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.hist', label: 'תרומות מהקובץ ההיסטורי', desc: 'מיזוג התרומות שהגיעו מהקובץ ההיסטורי (גיבוי לגאסי) לרשימת "כל התרומות" בכרטיס', module: 'supporters' },
   { key: 'supporters.ayin.sheet', label: 'גיליון מעקב להורדה/ייבוא', desc: 'ייצוא גיליון מעקב הטיפול ל-CSV, מילוי מחוץ למערכת וייבוא חזרה (תת-דגל של מעקב טיפול)', module: 'supporters' },
   { key: 'supporters.ayin.boq', label: 'כתב-כמויות / הצעת-מחיר', desc: 'שורות הפריטים במעקב מקבלות מחיר-יחידה → סכום-שורה, סה"כ-הצעה ו-P&L מול הנגבה (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
+  { key: 'supporters.ayin.time', label: 'שעתון פר-פרויקט', desc: 'תיוג-שעות על הפרויקט (תאריך · שעות · תעריף) → עלות-עבודה ורווח ב-P&L (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
+  { key: 'supporters.ayin.mat', label: 'חומרים ורכש פר-פרויקט', desc: 'רישום חומרים/רכש (שם · כמות · מחיר) → עלות-חומרים ב-P&L; רווח = הצעה − עבודה − חומרים (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
   { key: 'supporters.import.preview', label: 'סיכום לפני ייבוא', desc: 'ייבוא תומכות דו-שלבי — בדיקת הקובץ והצגת חדשות/עדכונים לפני ההחלה; כבוי = החלה מיידית', module: 'supporters' },
   { key: 'supporters.thankyou', label: 'תזכורת "התקשר לתודה"', desc: 'כפתור "📞 תודה" — יצירת אירוע תזכורת קשר בלוח', module: 'supporters' },
   { key: 'supporters.click2call', label: 'חיוג ישיר מהרשימה', desc: 'קישור tel: להתקשרות ישירה מטבלת התומכים', module: 'supporters' },

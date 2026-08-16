@@ -6,6 +6,11 @@ import {
   ayinDailyRows,
   boqLineAmount,
   boqTotal,
+  matCostTotal,
+  namesToTemplateLines,
+  templateLinesToNames,
+  timeCostTotal,
+  timeHoursTotal,
   featLabel,
   itemLabel,
   planAddName,
@@ -226,5 +231,86 @@ describe('BOQ — כתב-כמויות / הצעת-מחיר (ורטיקל מסחר
     expect(cardSrc).toContain('boqTotal(a)');
     expect(cardSrc).toContain('supIls(sp)'); // נגבה בפועל ל-P&L
     expect(cardSrc).toContain('סה"כ הצעה');
+  });
+});
+
+describe('שעתון פר-פרויקט (timesheet → עלות-עבודה)', () => {
+  it('סה"כ שעות = סכום השעות; ריק ⇒ 0', () => {
+    expect(timeHoursTotal(caseOf())).toBe(0); // אין time
+    const c = caseOf({ time: [{ date: '2026-08-01', hours: 8, note: 'פיתוח' }, { date: '2026-08-02', hours: 3.5, note: 'QA' }] });
+    expect(timeHoursTotal(c)).toBe(11.5);
+  });
+
+  it('עלות-עבודה = סכום שעות×תעריף; שורה בלי תעריף ⇒ 0', () => {
+    const c = caseOf({ time: [
+      { date: '2026-08-01', hours: 8, note: 'פיתוח', rate: 200 },
+      { date: '2026-08-02', hours: 4, note: 'עיצוב', rate: 150 },
+      { date: '2026-08-03', hours: 5, note: 'ללא תעריף' },
+    ] });
+    expect(timeCostTotal(c)).toBe(8 * 200 + 4 * 150); // 2200 — השורה בלי תעריף לא מוסיפה
+  });
+
+  it('הכרטיס מגדר שעתון למסחרי (§46 כבוי) ומחשב רווח מול ההצעה', () => {
+    expect(cardSrc).toContain("featureOn(cfg, 'supporters.ayin.time') && !featureOn(cfg, 'core.taxreceipt')");
+    expect(cardSrc).toContain('timeCostTotal(a)');
+    expect(cardSrc).toContain('עלות-עבודה');
+    expect(cardSrc).toContain('רווח גולמי');
+  });
+});
+
+describe('חומרים ורכש פר-פרויקט (materials → P&L מלא)', () => {
+  it('עלות-חומרים = סכום כמות×מחיר; ריק ⇒ 0', () => {
+    expect(matCostTotal(caseOf())).toBe(0); // אין mat
+    const c = caseOf({ mat: [{ name: 'בטון', qty: 3, cost: 400 }, { name: 'ברזל', qty: 10, cost: 55 }] });
+    expect(matCostTotal(c)).toBe(3 * 400 + 10 * 55); // 1750
+  });
+
+  it('רווח מלא = הצעה − עבודה − חומרים (בכרטיס)', () => {
+    // מגן-מקור: הכרטיס מגדר חומרים למסחרי ומחשב totalCost + רווח מרוכז.
+    expect(cardSrc).toContain("featureOn(cfg, 'supporters.ayin.mat') && !featureOn(cfg, 'core.taxreceipt')");
+    expect(cardSrc).toContain('matCostTotal(a)');
+    expect(cardSrc).toContain('const totalCost = cost + matCost');
+    expect(cardSrc).toContain('quote - totalCost');
+    expect(cardSrc).toContain('רווחיות הפרויקט');
+    expect(cardSrc).toContain('חומרים ורכש');
+  });
+});
+
+describe('תבניות-הצעה (למידה מ-BuildSmart: DraftQuote + projectTemplates)', () => {
+  it('פריטים → שורות-תבנית (שם·כמות·מחיר); ריקי-שם מדולגים', () => {
+    const names = [
+      { id: 'n1', name: 'אפיון', eyes: 1, rate: 4000, done: true },
+      { id: 'n2', name: 'פיתוח', eyes: 40, rate: 250, done: false },
+      { id: 'n3', name: '  ', eyes: 5, done: false }, // ריק — מדולג
+    ];
+    expect(namesToTemplateLines(names)).toEqual([
+      { name: 'אפיון', qty: 1, rate: 4000 },
+      { name: 'פיתוח', qty: 40, rate: 250 },
+    ]);
+  });
+
+  it('שורות-תבנית → פריטים חדשים עם מזהים ותעריף', () => {
+    const out = templateLinesToNames(
+      [{ name: 'עיצוב', qty: 2, rate: 1500 }, { name: 'בלי מחיר', qty: 3, rate: 0 }, { name: ' ', qty: 1, rate: 9 }],
+      (i) => 'x' + i,
+    );
+    expect(out).toEqual([
+      { id: 'x0', name: 'עיצוב', eyes: 2, done: false, rate: 1500 },
+      { id: 'x1', name: 'בלי מחיר', eyes: 3, done: false }, // rate=0 ⇒ לא נכתב
+    ]);
+  });
+
+  it('סבב מלא: פריטים → תבנית → פריטים (שימור שם/כמות/מחיר)', () => {
+    const names = [{ id: 'a', name: 'פיתוח', eyes: 40, rate: 250, done: true }];
+    const lines = namesToTemplateLines(names);
+    const back = templateLinesToNames(lines, (i) => 'q' + i);
+    expect(back[0]).toMatchObject({ name: 'פיתוח', eyes: 40, rate: 250, done: false });
+  });
+
+  it('הכרטיס מחווט שמירה/החלה/מחיקה של תבניות (מגן-מקור)', () => {
+    expect(cardSrc).toContain('saveQuoteTemplate');
+    expect(cardSrc).toContain('applyTpl(sp.id, t.id)');
+    expect(cardSrc).toContain('תבניות-הצעה');
+    expect(cardSrc).toContain('templatesRaw || []'); // בלי ?? בסלקטור zustand (React #185)
   });
 });
