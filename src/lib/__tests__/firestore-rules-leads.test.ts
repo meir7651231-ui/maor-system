@@ -24,11 +24,13 @@ describe('firestore.rules — platformLeads מוקשח', () => {
 
 describe('firestore.rules — מסלול-B: אכיפת-ייעוד על אוסף-התרומות (P3)', () => {
   it('אוסף-התרומות מוחרג מקריאת-הגנרי (אחרת ה-OR של Firestore עוקף)', () => {
-    expect(rules).toContain("allow read: if (superAdmin() || orgMember(slug)) && col != 'donations'");
+    expect(rules).toContain("!(col in ['donations', 'supporters', 'events', 'auditlog', 'incomingPayments', 'smsOutbox', 'mailOutbox'])");
   });
   it('מאץ׳ ייעודי לאוסף-התרומות — קריאה פר-pkey', () => {
     expect(rules).toContain('match /orgs/{slug}/donations/{id}');
-    expect(rules).toContain('memberSeesPurpose(slug, resource.data.pkey)');
+    expect(rules).toContain("memberSeesPurpose(slug, resource.data.get('pkey', '_shared_'))");
+    // נחיל 16.8 (CRITICAL): כתיבה נאכפת פר-pkey — חוסמת הפיכת-מפתח-ל-_shared_ ומחיקת-קבלה
+    expect(rules).toContain('canWriteKeyed(slug, resource.data.get');
   });
   it('memberSeesPurpose — בלי-הגבלה / משותף / ייעוד-מותר', () => {
     expect(rules).toContain("pkey == '_shared_'");

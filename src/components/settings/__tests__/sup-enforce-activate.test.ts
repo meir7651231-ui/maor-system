@@ -52,8 +52,10 @@ describe('🔒 ratchet — הפעלת אכיפת-תומכים', () => {
 
   it('Rules: helper פר-skey + carve-out + match ייעודי לאוסף-התומכים', () => {
     expect(rulesSrc).toContain('function memberSeesSupporter(slug, skey)');
-    expect(rulesSrc).toContain("col != 'donations' && col != 'supporters'");
+    expect(rulesSrc).toContain("!(col in ['donations', 'supporters', 'events', 'auditlog', 'incomingPayments', 'smsOutbox', 'mailOutbox'])");
     expect(rulesSrc).toContain('match /orgs/{slug}/supporters/{id}');
+    // נחיל 16.8 (CRITICAL): כתיבה נאכפת פר-skey — canWriteKeyedSup (existing+new key)
+    expect(rulesSrc).toContain('canWriteKeyedSup(slug, resource.data.get');
     // תאימות-לאחור: skey חסר ⇒ '_shared_' (פרסום-Rules לא שובר ארגון בלי מיגרציה)
     expect(rulesSrc).toContain("memberSeesSupporter(slug, resource.data.get('skey', '_shared_'))");
   });

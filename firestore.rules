@@ -132,36 +132,68 @@ service cloud.firestore {
     match /orgs/{slug}/{col}/{docId} {
       // auditlog נחצב מהכתיבה-הכללית: כל חבר כותב רק את מסמכו (uid), לא של אחר.
       allow write: if (superAdmin() || orgMember(slug)) && col != 'auditlog';
-      allow read: if (superAdmin() || orgMember(slug)) && col != 'donations' && col != 'supporters' && col != 'events' && col != 'auditlog';
+      // אכיפת-ייעוד (נחיל 16.8): donations/supporters/events נאכפים פר-skey/pkey למטה;
+      // תורי-ה-PII (incomingPayments/smsOutbox/mailOutbox) נושאים שמות/סכומי-תורמים ⇒
+      // קריאה=מנהל בלבד; auditlog=מנהל. כולם מוחרגים מהקריאה-הכללית-לחבר.
+      allow read: if (superAdmin() || orgMember(slug))
+        && !(col in ['donations', 'supporters', 'events', 'auditlog', 'incomingPayments', 'smsOutbox', 'mailOutbox']);
     }
 
-    // מסלול-B — אוסף-התרומות הנפרד: כתיבה=חבר (מכוסה גם למעלה); **קריאה פר-ייעוד**:
-    // מנהל/מייל-על=הכל; עובד/ת=רק ייעוד מותר או משותף. שדה pkey חייב להיות plaintext
-    // (בארגון-מוצפן — pkey מחוץ למעטפה) כדי ש-where-pkey-in של הקליינט יעבור.
+    // ── פונקציית-עזר לכתיבה-פר-ייעוד: הכותב רשאי את מפתח-החלוקה (skey/pkey) הן של
+    // המסמך-הקיים והן של המבוקש. חוסמת את "הפיכת-המפתח-ל-_shared_" ואת מחיקת/דריסת
+    // מסמך של ייעוד-אסור (נחיל 16.8 · CRITICAL). מנהל/מייל-על עוקפים. ─────────────
+    function canWriteKeyed(slug, existingKey, newKey) {
+      return superAdmin() || orgManager(slug)
+        || (memberSeesPurpose(slug, existingKey) && memberSeesPurpose(slug, newKey));
+    }
+    function canWriteKeyedSup(slug, existingKey, newKey) {
+      return superAdmin() || orgManager(slug)
+        || (memberSeesSupporter(slug, existingKey) && memberSeesSupporter(slug, newKey));
+    }
+
+    // מסלול-B — אוסף-התרומות הנפרד: **קריאה וגם כתיבה פר-ייעוד**. הכתיבה נאכפת כדי
+    // שחבר-מוגבל לא יוכל להפוך pkey ל-_shared_ ולקרוא הכל, ולא ימחק/יזייף קבלת-§46
+    // של ייעוד-אסור. skey/pkey plaintext (מחוץ למעטפה) כדי ש-where-in של הקליינט יעבור.
     match /orgs/{slug}/donations/{id} {
-      allow write: if superAdmin() || orgMember(slug);
-      allow read: if superAdmin() || orgManager(slug) || memberSeesPurpose(slug, resource.data.pkey);
+      allow read: if superAdmin() || orgManager(slug) || memberSeesPurpose(slug, resource.data.get('pkey', '_shared_'));
+      allow create: if superAdmin() || orgManager(slug) || memberSeesPurpose(slug, request.resource.data.get('pkey', '_shared_'));
+      allow update: if canWriteKeyed(slug, resource.data.get('pkey', '_shared_'), request.resource.data.get('pkey', '_shared_'));
+      allow delete: if superAdmin() || orgManager(slug) || memberSeesPurpose(slug, resource.data.get('pkey', '_shared_'));
     }
 
-    // אכיפת-תומכים (15.8) — אוסף-התומכים בארגון-פלטפורמה: כתיבה=חבר (הסנכרון דוחף
-    // עם skey); **קריאה פר-ייעוד**: מנהל/מייל-על=הכל; עובד/ת=רק ייעוד-מותר או משותף.
-    // skey (=forWho) plaintext מחוץ למעטפה כדי ש-where-skey-in של הקליינט יעבור.
+    // אכיפת-תומכים (15.8) — קריאה **וכתיבה** פר-ייעוד (skey=forWho). תאימות-לאחור
+    // קריטית: skey חסר (טרם-מיגרציה) ⇒ '_shared_' ⇒ גלוי/כתיב לכל חבר ⇒ פרסום-ה-Rules
+    // אינו שובר ארגון שלא הריץ מיגרציה. רק מסמך עם skey-אמת נאכף פר-ייעוד.
     match /orgs/{slug}/supporters/{id} {
-      allow write: if superAdmin() || orgMember(slug);
-      // תאימות-לאחור קריטית: מסמך-תומך שטרם עבר מיגרציה (בלי skey) ⇒ ברירת-מחדל
-      // '_shared_' ⇒ גלוי לכל חבר. כך פרסום-ה-Rules **אינו שובר** ארגון שלא הדליק
-      // אכיפה/לא הריץ מיגרציה (הנפוץ). רק מסמך עם skey-אמת נאכף פר-ייעוד.
-      allow read: if superAdmin() || orgManager(slug)
-        || memberSeesSupporter(slug, resource.data.get('skey', '_shared_'));
+      allow read: if superAdmin() || orgManager(slug) || memberSeesSupporter(slug, resource.data.get('skey', '_shared_'));
+      allow create: if superAdmin() || orgManager(slug) || memberSeesSupporter(slug, request.resource.data.get('skey', '_shared_'));
+      allow update: if canWriteKeyedSup(slug, resource.data.get('skey', '_shared_'), request.resource.data.get('skey', '_shared_'));
+      allow delete: if superAdmin() || orgManager(slug) || memberSeesSupporter(slug, resource.data.get('skey', '_shared_'));
     }
 
-    // אכיפת-לוח (15.8) — אירוע-מעקב מקושר-תומך נושא את מפתח-התומך (skey), כדי
-    // ששם-התורם בלוח לא ידלוף לעובדת אחרת. אותה סמנטיקה כמו התומכים: skey חסר
-    // (אירוע כללי/טרם-מיגרציה) ⇒ '_shared_' ⇒ גלוי לכל חבר (הלוח הכללי לא נשבר).
+    // אכיפת-לוח (15.8) — אירוע-מעקב מקושר-תומך נושא את מפתח-התומך (skey). קריאה+כתיבה
+    // פר-ייעוד כמו התומכים; אירוע כללי/טרם-מיגרציה ⇒ '_shared_' ⇒ גלוי/כתיב לכל חבר.
     match /orgs/{slug}/events/{id} {
+      allow read: if superAdmin() || orgManager(slug) || memberSeesSupporter(slug, resource.data.get('skey', '_shared_'));
+      allow create: if superAdmin() || orgManager(slug) || memberSeesSupporter(slug, request.resource.data.get('skey', '_shared_'));
+      allow update: if canWriteKeyedSup(slug, resource.data.get('skey', '_shared_'), request.resource.data.get('skey', '_shared_'));
+      allow delete: if superAdmin() || orgManager(slug) || memberSeesSupporter(slug, resource.data.get('skey', '_shared_'));
+    }
+
+    // תורי-PII (נחיל 16.8 · HIGH) — incomingPayments/smsOutbox/mailOutbox נושאים
+    // שם/טלפון/סכום/נוסח-קבלה של תורמים ⇒ **קריאה=מנהל/מייל-על בלבד** (עובדת-מוגבלת
+    // לא תעקוף את פירוק-ה-skey דרך תורי-ההודעות). כתיבה=חבר (הלקוח מזין לתור).
+    match /orgs/{slug}/incomingPayments/{id} {
       allow write: if superAdmin() || orgMember(slug);
-      allow read: if superAdmin() || orgManager(slug)
-        || memberSeesSupporter(slug, resource.data.get('skey', '_shared_'));
+      allow read: if superAdmin() || orgManager(slug);
+    }
+    match /orgs/{slug}/smsOutbox/{id} {
+      allow write: if superAdmin() || orgMember(slug);
+      allow read: if superAdmin() || orgManager(slug);
+    }
+    match /orgs/{slug}/mailOutbox/{id} {
+      allow write: if superAdmin() || orgMember(slug);
+      allow read: if superAdmin() || orgManager(slug);
     }
 
     // לוג-מנהל מסונכרן (15.8, "מנהל מסונכרן") — auditlog/{uid}: כל חבר כותב **רק**
