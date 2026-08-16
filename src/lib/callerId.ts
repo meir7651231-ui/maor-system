@@ -11,13 +11,34 @@
 // את המספר שהיא רואה על הצג. כאן רק ההתאמה — טהורה, בלי store/DOM/רשת.
 // ─────────────────────────────────────────────────────────────────────────────
 import type { Db } from '../types/domain';
+import type { OrgConfig } from '../types/config';
+import { termOf } from './config';
 
 export type CallerKind = 'family' | 'member' | 'supporter' | 'volunteer' | 'coordinator';
+
+/**
+ * תווית-סוג-המתקשר דרך מילון-המונחים (termOf) — כך שבורטיקל מסחרי "תורם" הופך
+ * ל"ליד/ספק", "משפחה" ל"לקוח" וכו'. ה-fallback = התווית ההיסטורית בדיוק ⇒ ללקוח-החי
+ * (בלי דריסות-מונחים) ביט-זהה. משמש את כרטיס-השיחה במקום ה-kindLabel הקשיח.
+ */
+export function callerKindLabel(cfg: OrgConfig, kind: CallerKind): string {
+  switch (kind) {
+    case 'family':
+      return termOf(cfg, 'entity.family', 'משפחה');
+    case 'member':
+      return termOf(cfg, 'entity.member', 'בן/בת משפחה');
+    case 'supporter':
+      return termOf(cfg, 'entity.supporter', 'תורם/ת');
+    case 'volunteer':
+      return termOf(cfg, 'entity.volunteer', 'מתנדב/ת');
+    case 'coordinator':
+      return termOf(cfg, 'entity.tzCoordinator', 'רכז/ת');
+  }
+}
 
 /** מתקשר-מזוהה: הישות שהמספר שלה תואם + לאן לנווט (screen-pop). */
 export interface Caller {
   kind: CallerKind;
-  kindLabel: string;
   name: string;
   phone: string;
   /** מזהה-הישות שהותאמה (משפחה/תומך/מתנדב/רכז; לבן-משפחה = מזהה-החבר). */
@@ -53,24 +74,24 @@ export function findCaller(db: Db, raw: string): Caller | null {
 
   for (const f of db.families) {
     if (hit(f.phone) || hit(f.phone2)) {
-      return { kind: 'family', kindLabel: 'משפחה', name: f.name, phone: f.phone || f.phone2, id: f.id, view: 'families', famId: f.id };
+      return { kind: 'family', name: f.name, phone: f.phone || f.phone2, id: f.id, view: 'families', famId: f.id };
     }
   }
   for (const f of db.families) {
     for (const m of f.members || []) {
       if (hit(m.phone) || hit(m.phone2)) {
-        return { kind: 'member', kindLabel: 'בן/בת משפחה', name: m.first + ' · ' + f.name, phone: m.phone || m.phone2, id: m.id, view: 'families', famId: f.id };
+        return { kind: 'member', name: m.first + ' · ' + f.name, phone: m.phone || m.phone2, id: m.id, view: 'families', famId: f.id };
       }
     }
   }
   for (const s of db.supporters) {
-    if (hit(s.phone)) return { kind: 'supporter', kindLabel: 'תורם/ת', name: s.name, phone: s.phone, id: s.id, view: 'supporters' };
+    if (hit(s.phone)) return { kind: 'supporter', name: s.name, phone: s.phone, id: s.id, view: 'supporters' };
   }
   for (const v of db.volunteers || []) {
-    if (hit(v.phone)) return { kind: 'volunteer', kindLabel: 'מתנדב/ת', name: v.name, phone: v.phone, id: v.id, view: 'shop7' };
+    if (hit(v.phone)) return { kind: 'volunteer', name: v.name, phone: v.phone, id: v.id, view: 'shop7' };
   }
   for (const c of db.tzCoordinators || []) {
-    if (hit(c.phone)) return { kind: 'coordinator', kindLabel: 'רכז/ת', name: c.name, phone: c.phone, id: c.id, view: 'tzedaka' };
+    if (hit(c.phone)) return { kind: 'coordinator', name: c.name, phone: c.phone, id: c.id, view: 'tzedaka' };
   }
   return null;
 }
