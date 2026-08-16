@@ -46,6 +46,6 @@ describe('🔒 ratchet — אכיפת-תומכים dormant (פאזה-2)', () => 
     expect(rulesSrc).toContain('request.auth.uid == uid');
     // נחיל-אבטחה 16.8: auditlog מוחרג מהכתיבה-הכללית ביחד עם שאר האוספים-הנאכפים
     // (לא עוד `col != 'auditlog'` לבדו — זה היה עוקף את אכיפת-הייעוד).
-    expect(rulesSrc).toContain("!(col in ['donations', 'supporters', 'events', 'auditlog', 'incomingPayments', 'smsOutbox', 'mailOutbox', '_enc'])");
+    expect(rulesSrc).toContain("!(col in ['donations', 'supporters', 'events', 'auditlog', 'incomingPayments', 'smsOutbox', 'mailOutbox', '_enc', 'meta'])");
   });
 });

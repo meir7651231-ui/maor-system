@@ -14,7 +14,7 @@ import { normalizeConfig, isSafeAccent } from '../config';
 describe('🔒 Rules — אכיפת-כתיבה פר-ייעוד לא נעקפת (CRITICAL)', () => {
   it('הכתיבה-הכללית מחריגה את האוספים-הנאכפים (לא רק auditlog)', () => {
     expect(rules).toContain(
-      "allow write: if (superAdmin() || orgMember(slug))\n        && !(col in ['donations', 'supporters', 'events', 'auditlog', 'incomingPayments', 'smsOutbox', 'mailOutbox', '_enc']);",
+      "allow write: if (superAdmin() || orgMember(slug))\n        && !(col in ['donations', 'supporters', 'events', 'auditlog', 'incomingPayments', 'smsOutbox', 'mailOutbox', '_enc', 'meta']);",
     );
     // הבאג שנסגר: אסור שתישאר החרגת auditlog-בלבד בכתיבה-הכללית
     expect(rules).not.toContain("allow write: if (superAdmin() || orgMember(slug)) && col != 'auditlog';");
@@ -24,6 +24,19 @@ describe('🔒 Rules — אכיפת-כתיבה פר-ייעוד לא נעקפת (
     const m = rules.slice(rules.indexOf('match /orgs/{slug}/_enc/{d}'), rules.indexOf('match /orgs/{slug}/_enc/{d}') + 160);
     expect(m).toContain('allow read: if superAdmin() || orgMember(slug);');
     expect(m).toContain('allow write: if superAdmin() || orgManager(slug);');
+  });
+
+  it('#6 — יצירת-תרומה (קבלת-§46) = מנהל/מייל-על בלבד', () => {
+    const don = rules.slice(rules.indexOf('match /orgs/{slug}/donations/{id}'), rules.indexOf('match /orgs/{slug}/donations/{id}') + 500);
+    expect(don).toContain('allow create: if superAdmin() || orgManager(slug);');
+  });
+
+  it('#7 — meta/org: מוני-הקבלות מונוטוניים בשרת (metaCounterOk)', () => {
+    expect(rules).toContain('function metaCounterOk(f)');
+    expect(rules).toContain("request.resource.data[f] >= resource.data[f]");
+    const meta = rules.slice(rules.indexOf('match /orgs/{slug}/meta/{id}'), rules.indexOf('match /orgs/{slug}/meta/{id}') + 300);
+    expect(meta).toContain("metaCounterOk('donationSeq')");
+    expect(meta).toContain("metaCounterOk('receiptSeq')");
   });
 });
 
