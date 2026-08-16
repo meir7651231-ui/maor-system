@@ -811,6 +811,19 @@ export const useApp = create<AppState>()((set, get) => {
               !!cfg.adminEmails?.some((m) => m.trim().toLowerCase() === mail);
             if (rootOk) {
               setCloud({ membership: 'member' });
+              // בקשת-בעלים 15.8 ("חבר את מאור"): גם לקוח-שורש (cloudRoot) קורא
+              // ייעודים-פר-עובד מ-memberConfigs — כמו כל ארגון, כדי שעובדת-מוגבלת
+              // תראה רק את הייעוד שהוקצה לה. **בלי** שער-חברות (שורש נכנס תמיד
+              // כ-member) ו**בלי** דריסת-קונפיג (הקונפיג של השורש נשאר הסטטי — לא
+              // מאזינים ל-config). failure-safe: אין מסמך platformOrgs/{slug}
+              // (המצב הרגיל) ⇒ null ⇒ allowedDesignations=null ⇒ ביט-זהה להיום.
+              void mod.fetchOrgCloudConfig(cfg.slug).then((orgDoc) => {
+                if (orgDoc && !orgDoc.deleted) {
+                  const allowed = allowedDesignationsFor(user.email, orgDoc);
+                  setCloud({ isManager: isOrgManager(user.email, orgDoc), allowedDesignations: allowed });
+                  mod.setAllowedPurposes(allowed);
+                }
+              });
               gatedStart();
             } else {
               // ניתוב-עצמי (ORGADMIN): "כפתור הכניסה עושה הכול" — מייל שאושר כחבר
