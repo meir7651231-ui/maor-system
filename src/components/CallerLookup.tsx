@@ -7,8 +7,8 @@
  */
 import { useState } from 'react';
 import { useApp } from '../store/useApp';
-import { findCaller } from '../lib/callerId';
-import { integrationOn } from '../lib/config';
+import { findCaller, familyContext } from '../lib/callerId';
+import { integrationOn, moduleOn } from '../lib/config';
 import { Modal, Btn } from './ui';
 import { WaBtn } from './WaBtn';
 import { CallBtn } from './CallBtn';
@@ -26,6 +26,19 @@ export function CallerLookup({ initialNumber, onClose }: { initialNumber?: strin
   const memberNames = fam ? (fam.members || []).map((m) => m.first).filter(Boolean).join(' · ') : '';
   const searched = trimmed.replace(/\D/g, '').length >= 3;
   const waOn = integrationOn(config, 'whatsapp');
+
+  // כרטיס-חסד: מונים פתוחים למשפחה המתקשרת — מסירות (shop7) וחבילות (shop),
+  // כל צ'יפ מגודר במודול שלו. downstream, תצוגה-בלבד.
+  const ctx = fam ? familyContext(db, fam.id) : null;
+  const careChips: string[] = [];
+  if (ctx && moduleOn(config, 'shop7') && ctx.openDeliveries > 0) {
+    const n = ctx.openDeliveries;
+    careChips.push('🚚 ' + n + (n === 1 ? ' מסירה פתוחה' : ' מסירות פתוחות'));
+  }
+  if (ctx && moduleOn(config, 'shop') && ctx.activeAssignments > 0) {
+    const n = ctx.activeAssignments;
+    careChips.push('🛍 ' + n + (n === 1 ? ' חבילה פעילה' : ' חבילות פעילות'));
+  }
 
   const openCard = () => {
     if (!caller) return;
@@ -111,6 +124,27 @@ export function CallerLookup({ initialNumber, onClose }: { initialNumber?: strin
                     <b>טלפון נוסף:</b> <span dir="ltr">{fam.phone2}</span>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* כרטיס-חסד — מה פתוח למשפחה עכשיו (מסירות/חבילות), צ'יפ פר-מודול */}
+            {careChips.length > 0 && (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {careChips.map((c) => (
+                  <span
+                    key={c}
+                    style={{
+                      background: 'var(--panel)',
+                      border: '1px solid var(--line)',
+                      borderRadius: 999,
+                      padding: '3px 10px',
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {c}
+                  </span>
+                ))}
               </div>
             )}
 

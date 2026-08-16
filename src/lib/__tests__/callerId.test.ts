@@ -8,8 +8,8 @@
  */
 import { describe, expect, it } from 'vitest';
 import { emptyDb } from '../../types/domain';
-import { phoneKey, findCaller } from '../callerId';
-import type { Db, Family, Supporter, Volunteer, TzCoordinator } from '../../types/domain';
+import { phoneKey, findCaller, familyContext } from '../callerId';
+import type { Db, Family, Supporter, Volunteer, TzCoordinator, Delivery, ShopAssignment } from '../../types/domain';
 import appSrc from '../../App.tsx?raw';
 import lookupSrc from '../../components/CallerLookup.tsx?raw';
 import widgetsSrc from '../../components/home/widgets.tsx?raw';
@@ -80,5 +80,50 @@ describe('callerId — זיהוי-שיחה-נכנסת', () => {
     expect(lookupSrc).toContain('findCaller('); // אותו מנוע כמו השיחה-האוטומטית
     expect(widgetsSrc).toContain("'#caller'"); // כפתור-הבית פותח את התיבה
     expect(widgetsSrc).toContain('מי מתקשר?');
+  });
+});
+
+describe('familyContext — כרטיס-חסד בכרטיס-השיחה', () => {
+  function ctxDb(): Db {
+    const d = emptyDb();
+    d.families = [
+      { id: 'f1', name: 'כהן', phone: '050-1234567', phone2: '', members: [] } as unknown as Family,
+      { id: 'f2', name: 'לוי', phone: '02-5551234', phone2: '', members: [] } as unknown as Family,
+    ];
+    d.deliveries = [
+      { id: 'd1', familyId: 'f1', status: 'pickup' } as unknown as Delivery,
+      { id: 'd2', familyId: 'f1', status: 'enroute' } as unknown as Delivery,
+      { id: 'd3', familyId: 'f1', status: 'delivered' } as unknown as Delivery, // נמסר — לא נספר
+      { id: 'd4', familyId: 'f2', status: 'pickup' } as unknown as Delivery,
+    ];
+    d.shopAssignments = [
+      { id: 'a1', famId: 'f1', status: 'active' } as unknown as ShopAssignment,
+      { id: 'a2', famId: 'f1', status: 'ended' } as unknown as ShopAssignment, // לא-פעיל — לא נספר
+    ];
+    return d;
+  }
+
+  it('סופר מסירות פתוחות (status≠delivered) ושיוכים פעילים בלבד', () => {
+    const c = familyContext(ctxDb(), 'f1');
+    expect(c.openDeliveries).toBe(2); // pickup + enroute, בלי delivered
+    expect(c.activeAssignments).toBe(1); // active בלבד
+  });
+
+  it('משפחה בלי חסד-פתוח ⇒ אפסים (בלי צ׳יפ)', () => {
+    const c = familyContext(ctxDb(), 'f2');
+    expect(c.openDeliveries).toBe(1);
+    expect(c.activeAssignments).toBe(0);
+  });
+
+  it('db ריק ⇒ אפסים בלי קריסה', () => {
+    const c = familyContext(emptyDb(), 'nope');
+    expect(c).toEqual({ openDeliveries: 0, activeAssignments: 0 });
+  });
+
+  it('הכרטיס מגדר כל צ׳יפ במודול שלו (moduleOn) ומשתמש ב-familyContext', () => {
+    expect(lookupSrc).toContain('familyContext(db,');
+    expect(lookupSrc).toContain("moduleOn(config, 'shop7')");
+    expect(lookupSrc).toContain("moduleOn(config, 'shop')");
+    expect(lookupSrc).toContain('careChips'); // הצ׳יפים מרונדרים
   });
 });

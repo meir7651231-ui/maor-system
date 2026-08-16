@@ -12,7 +12,8 @@
 import { buildTenant, validateTenant } from '../../lib/telephony/engine';
 import { explainCall } from '../../lib/telephony/engine';
 import { trustReport } from '../../lib/telephony/engine';
-import type { TelNumber, TelephonyConfig } from '../../types/config';
+import { hebrewClosedWindows, CITIES } from '../../lib/telephony/engine';
+import type { OrgConfig, TelNumber, TelephonyConfig } from '../../types/config';
 
 // הטיפוסים חיים בשכבת-הטיפוסים (types/config) כדי ש-normalizeConfig יחטא אותם
 // בלי לייבא מרכיבים. מיוצאים-מחדש כאן לנוחות הצרכנים ההיסטוריים (הפאנל + הבדיקות).
@@ -163,6 +164,35 @@ export function previewTelephony(tc: TelephonyConfig, orgName: string, tenantId:
     };
   }
   return { ok: true, errors: [], warnings: (built.warnings as string[]) || v.warnings || [], rows, trust, files: (built.files as Record<string, string>) || null };
+}
+
+/** סגירה-קרובה (שבת/חג) לתצוגת-בית: הדלקת-נרות, צאת, סיבה ועיר-העוגן. */
+export interface NextClosure {
+  reason: string;
+  kind: string;
+  startIso: string;
+  candle: string;
+  endIso: string;
+  tzeis: string;
+  cityHe: string;
+}
+
+/**
+ * הסגירה ההלכתית הבאה (שבת/יו״ט) בחלון 10 הימים הקרובים — לווידג'ט-הבית
+ * "זמני שבת/חג". רץ על מנוע-הזמנים הטהור (NOAA, חישוב-מקומי בלבד — downstream,
+ * אין ספק/שירות). דורש עיר-עוגן; בלי telephony ⇒ null (אין נ״צ). דטרמיניסטי.
+ * @param config קונפיג-הארגון (config.telephony.city) @param todayIso עוגן היום
+ */
+export function nextClosure(config: OrgConfig, todayIso: string): NextClosure | null {
+  const tel = config.telephony;
+  if (!tel) return null;
+  const city = tel.city || 'default';
+  const tenant = { city, timezone: 'Asia/Jerusalem' };
+  const wins = hebrewClosedWindows(todayIso, 10, tenant, {});
+  const w = wins[0];
+  if (!w) return null;
+  const cityHe = (tel.city && CITIES[tel.city]) ? CITIES[tel.city].he : CITIES.jerusalem.he;
+  return { reason: w.reason, kind: w.kind, startIso: w.startIso, candle: w.startTime, endIso: w.endIso, tzeis: w.endTime, cityHe };
 }
 
 /** מריץ תיאור-שיחה יחיד (למשתמש שמנסה מספר/שעה ספציפיים). */

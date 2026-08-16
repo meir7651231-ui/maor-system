@@ -74,3 +74,23 @@ export function findCaller(db: Db, raw: string): Caller | null {
   }
   return null;
 }
+
+/**
+ * הקשר-חסד של משפחה מתקשרת — מונים "פתוחים" לכרטיס-השיחה (screen-pop): כמה
+ * מסירות טרם-נמסרו (shop7) וכמה שיוכי-חבילות פעילים (shop) יש לה. כך שברגע
+ * שהמשפחה מתקשרת המתנדב/ת רואה מיד מה פתוח עבורה — בלי לפתוח את הכרטיס המלא.
+ *
+ * טהור, תצוגה-בלבד — בדיוק הנתונים של פאנלי-הכרטיס (Shop7FamilyPanel/ShopFamilyPanel):
+ *   • openDeliveries = deliveries של המשפחה בסטטוס≠delivered.
+ *   • activeAssignments = shopAssignments של המשפחה בסטטוס active.
+ * הגידור פר-מודול (moduleOn) נעשה אצל הצרכן (הכרטיס), לא כאן.
+ */
+export interface FamilyContext {
+  openDeliveries: number;
+  activeAssignments: number;
+}
+export function familyContext(db: Db, famId: string): FamilyContext {
+  const openDeliveries = (db.deliveries || []).filter((d) => d.familyId === famId && d.status !== 'delivered').length;
+  const activeAssignments = (db.shopAssignments || []).filter((a) => a.famId === famId && a.status === 'active').length;
+  return { openDeliveries, activeAssignments };
+}
