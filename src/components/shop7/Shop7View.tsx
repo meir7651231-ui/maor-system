@@ -145,7 +145,7 @@ function VolunteerForm(props: { volunteer: Volunteer | null; onClose: () => void
 
   return (
     <Modal title={(v ? 'עריכת ' : 'הוספת ') + volWord} onClose={props.onClose}>
-      <Field label="שם *"><TextInput value={name} onChange={setName} placeholder="שם המתנדב" /></Field>
+      <Field label="שם *"><TextInput value={name} onChange={setName} placeholder={'שם ה' + volWord} /></Field>
       <Field label="טלפון"><TextInput value={phone} onChange={setPhone} dir="ltr" placeholder="050-1234567" /></Field>
       <Field label="אזור חלוקה (רמז, לא-חוסם)"><TextInput value={area} onChange={setArea} placeholder="שכונה / עיר" /></Field>
       {featureOn(config, 'shop7.capacity') && <Field label="קיבולת מסירות ליום (רמז)"><TextInput value={maxD} onChange={setMaxD} dir="ltr" placeholder="למשל 10" /></Field>}
@@ -323,11 +323,11 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
         </div>
       )}
       {rows.length === 0 ? (
-        <Empty>אין מסירות ביום זה — שייכו שיוך-חנות פעיל למתנדב.</Empty>
+        <Empty>{'אין מסירות ביום זה — שייכו שיוך-חנות פעיל ל' + termOf(config, 'entity.volunteer', 'מתנדב') + '.'}</Empty>
       ) : (
         <table className="table">
           <thead>
-            <tr><th>{termOf(config, 'entity.family', 'משפחה')}</th><th>מוצר</th><th>מתנדב</th><th>סטטוס</th><th>הערה</th><th></th></tr>
+            <tr><th>{termOf(config, 'entity.family', 'משפחה')}</th><th>מוצר</th><th>{termOf(config, 'entity.volunteer', 'מתנדב')}</th><th>סטטוס</th><th>הערה</th><th></th></tr>
           </thead>
           <tbody>
             {rows.map((d) => (
@@ -404,6 +404,8 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
 
 function AssignPanel(props: { dayId: string; onClose: () => void }) {
   const db = useApp((s) => s.db);
+  const config = useApp((s) => s.config);
+  const volWord = termOf(config, 'entity.volunteer', 'מתנדב');
   const assign = useApp((s) => s.assignDelivery);
   const [volId, setVolId] = useState('');
   const [error, setError] = useState('');
@@ -414,18 +416,18 @@ function AssignPanel(props: { dayId: string; onClose: () => void }) {
   const activeVols = db.volunteers.filter((v) => v.active);
 
   function doAssign(asgId: string) {
-    if (!volId) return setError('בחרו מתנדב');
+    if (!volId) return setError('בחרו ' + volWord);
     const r = assign(props.dayId, asgId, volId);
     if (!r.ok) setError('השיוך נכשל');
   }
 
   return (
-    <Modal title="שיוך מסירה — בחרו מתנדב ושיוך-חנות" onClose={props.onClose} wide>
-      <Field label="מתנדב *">
+    <Modal title={'שיוך מסירה — בחרו ' + volWord + ' ושיוך-חנות'} onClose={props.onClose} wide>
+      <Field label={volWord + ' *'}>
         <Select
           value={volId}
           onChange={setVolId}
-          options={[{ value: '', label: '— בחרו מתנדב —' }, ...activeVols.map((v) => {
+          options={[{ value: '', label: '— בחרו ' + volWord + ' —' }, ...activeVols.map((v) => {
             const hint = volunteerLoadHint(db, v, props.dayId);
             return { value: v.id, label: v.name + (hint && hint.count > 0 ? ` (${hint.count} מסירות${hint.over ? ' · מעל הקיבולת' : ''})` : '') };
           })]}
@@ -441,7 +443,7 @@ function AssignPanel(props: { dayId: string; onClose: () => void }) {
             <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: '1px solid var(--line)', borderRadius: 10 }}>
               <span style={{ flex: 1, fontWeight: 600 }}>{famName(a.famId)}</span>
               <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{prodName(a.productId)}</span>
-              <Btn sm kind="primary" onClick={() => doAssign(a.id)}>שייך למתנדב ←</Btn>
+              <Btn sm kind="primary" onClick={() => doAssign(a.id)}>{'שייך ל' + volWord + ' ←'}</Btn>
             </div>
           ))}
         </div>

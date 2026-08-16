@@ -104,6 +104,19 @@ export function SupportersView() {
   const db = useApp((s) => s.db);
   const rate = db.usdRate; // שער-דולר עריך — משוקלל בכל חישובי ה-₪-שקול והציון
   const config = useApp((s) => s.config);
+  // תוויות-עמודה מונחיות — בורטיקל מסחרי "תורם/תרומות" הופכים למונח-הענף (termOf).
+  const headLabel = (h: { key: SortKey; label: string }): string => {
+    switch (h.key) {
+      case 'name':
+        return termOf(config, 'entity.supporter', 'תומכ/ת');
+      case 'count':
+        return termOf(config, 'entity.donations', 'תרומות');
+      case 'last':
+        return termOf(config, 'entity.donation', 'תרומה') + ' אחרונה';
+      default:
+        return h.label;
+    }
+  };
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
   const ayinOn = featureOn(config, 'supporters.ayin');
@@ -553,10 +566,10 @@ export function SupportersView() {
                       key={h.key}
                       onClick={() => clickSort(h.key)}
                       style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
-                      title={'מיון לפי ' + h.label}
+                      title={'מיון לפי ' + headLabel(h)}
                       aria-sort={dir ? (dir > 0 ? 'ascending' : 'descending') : 'none'}
                     >
-                      {h.label}
+                      {headLabel(h)}
                       {dir ? (dir > 0 ? ' ▲' : ' ▼') : ''}
                     </th>
                   );

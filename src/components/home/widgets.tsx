@@ -1374,6 +1374,9 @@ export interface HomeWidget {
   id: WidgetId;
   /** שם תצוגה — למסגרת העריכה ולספריית "הוספת ווידג'ט". */
   label: string;
+  /** תיוג-מונח לשם-התצוגה (זהות-ורטיקל) — [termKey, fallback]. קיים ⇒ הכותרת
+   *  בעורך-הלוח עוברת termOf (משפחות→לקוחות וכו'); חסר ⇒ label קבוע. */
+  labelTerm?: readonly [string, string];
   icon: string;
   /**
    * רוחב במצב תצוגה: 'half' — חצאים סמוכים בפריסה יושבים זה לצד זה
@@ -1487,6 +1490,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
   recent: {
     id: 'recent',
     label: 'משפחות אחרונות',
+    labelTerm: ['nav.families', 'משפחות'],
     icon: '👨‍👩‍👧‍👦',
     slot: 'full',
     removable: true,
@@ -1523,6 +1527,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
   contacts: {
     id: 'contacts',
     label: 'תורמים · יעדי קשר',
+    labelTerm: ['nav.supporters', 'תורמים'],
     icon: '💛',
     slot: 'half',
     removable: true,
@@ -1550,6 +1555,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
   coursemetrics: {
     id: 'coursemetrics',
     label: 'תפוסת החוגים',
+    labelTerm: ['nav.courses', 'חוגים'],
     icon: '📊',
     slot: 'half',
     removable: true,

@@ -8,7 +8,8 @@
  */
 import { Fragment, useState, type CSSProperties, type DragEvent } from 'react';
 import { Btn } from '../ui';
-import { HOME_WIDGETS, WIDGET_LIBRARY, type HomeCtx, type WidgetId } from './widgets';
+import { termOf } from '../../lib/config';
+import { HOME_WIDGETS, WIDGET_LIBRARY, type HomeCtx, type HomeWidget, type WidgetId } from './widgets';
 
 /* ── סגנונות — לפי המוקאפ (סרגל לילה + זהב, מסגרות מקווקוות) ── */
 
@@ -85,6 +86,8 @@ export function BoardEditor(props: {
   onReset: () => void;
 }) {
   const { ctx, draft, setDraft, onSave, onCancel, onReset } = props;
+  // שם-תצוגה מונחי (זהות-ורטיקל) — ווידג'ט עם labelTerm עובר termOf (משפחות→לקוחות)
+  const wLabel = (w: HomeWidget): string => (w.labelTerm ? termOf(ctx.config, w.labelTerm[0], w.labelTerm[1]) : w.label);
   const [dragId, setDragId] = useState<WidgetId | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
 
@@ -206,13 +209,13 @@ export function BoardEditor(props: {
                     onDragStart={onHandleDragStart(id)}
                     onDragEnd={onHandleDragEnd}
                     title="גרירה להזזת הווידג'ט"
-                    aria-label={`גרירת "${w.label}" למיקום אחר`}
+                    aria-label={`גרירת "${wLabel(w)}" למיקום אחר`}
                     style={{ cursor: 'grab', color: 'var(--ink-faint)', fontWeight: 700, letterSpacing: 1, userSelect: 'none' }}
                   >
                     ⋮⋮
                   </span>
                   <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-soft)' }}>
-                    <span aria-hidden>{w.icon}</span> {w.label}
+                    <span aria-hidden>{w.icon}</span> {wLabel(w)}
                   </span>
                   <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 4 }}>
                     <button
@@ -221,7 +224,7 @@ export function BoardEditor(props: {
                       disabled={idx <= 1}
                       onClick={() => shift(id, -1)}
                       title="הזזה למעלה"
-                      aria-label={`הזזת "${w.label}" למעלה`}
+                      aria-label={`הזזת "${wLabel(w)}" למעלה`}
                     >
                       ▲
                     </button>
@@ -231,7 +234,7 @@ export function BoardEditor(props: {
                       disabled={idx >= draft.length - 1}
                       onClick={() => shift(id, 1)}
                       title="הזזה למטה"
-                      aria-label={`הזזת "${w.label}" למטה`}
+                      aria-label={`הזזת "${wLabel(w)}" למטה`}
                     >
                       ▼
                     </button>
@@ -240,7 +243,7 @@ export function BoardEditor(props: {
                       style={{ ...ctlBtn(false), background: '#f4e3dd', color: '#a8321e', border: 'none' }}
                       onClick={() => remove(id)}
                       title="הסרה מהלוח (אפשר להחזיר מהמגש למטה)"
-                      aria-label={`הסרת "${w.label}" מהלוח`}
+                      aria-label={`הסרת "${wLabel(w)}" מהלוח`}
                     >
                       ✕
                     </button>
@@ -276,9 +279,9 @@ export function BoardEditor(props: {
               {removed.map((id) => (
                 <div key={id} className="hm-lib-card">
                   <b>
-                    <span aria-hidden>{HOME_WIDGETS[id].icon}</span> {HOME_WIDGETS[id].label}
+                    <span aria-hidden>{HOME_WIDGETS[id].icon}</span> {wLabel(HOME_WIDGETS[id])}
                   </b>
-                  <Btn sm onClick={() => add(id)} title={`הוספת "${HOME_WIDGETS[id].label}" לסוף הלוח`}>
+                  <Btn sm onClick={() => add(id)} title={`הוספת "${wLabel(HOME_WIDGETS[id])}" לסוף הלוח`}>
                     + הוספה
                   </Btn>
                 </div>
