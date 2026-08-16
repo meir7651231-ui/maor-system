@@ -672,7 +672,7 @@ export const useApp = create<AppState>()((set, get) => {
    */
   function postLoad(db: Db, corrupt: boolean) {
     const config = get().config;
-    applyTheme(db.ui.theme ?? config.theme, db.ui.accent ?? config.accent);
+    applyTheme(db.ui.theme ?? config.theme, db.ui.accent ?? config.accent, config.motion);
     // אין לצלם DB פגום/ריק — אחרת emptyDb ידרוס את הצילום היומי התקין של היום
     // (dailySnapshot כותב לפי מפתח-היום ללא תנאי) ויאבד את גיבוי-הבטיחות.
     if (!corrupt) void dailySnapshot(db);
@@ -767,7 +767,7 @@ export const useApp = create<AppState>()((set, get) => {
             // ג' (13.8) — ייעודי-התרומה שהעובד/ת רשאי/ת לראות (מתעדכן חי עם הכרטיס)
             setCloud({ allowedDesignations: allowedDesignationsFor(user.email, orgDoc) });
             const { db } = get();
-            applyTheme(db.ui.theme ?? eff.theme, db.ui.accent ?? eff.accent);
+            applyTheme(db.ui.theme ?? eff.theme, db.ui.accent ?? eff.accent, eff.motion);
             writeCloudConfigCache(eff.slug, eff);
           };
           // ארגון-פלטפורמה = לא הלקוח הקיים (cloudRoot) ולא אתר-השורש (default)
@@ -1034,7 +1034,7 @@ export const useApp = create<AppState>()((set, get) => {
           needDecrypt: true,
           cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle', membership: 'na' },
         });
-        applyTheme(config.theme, config.accent); // ערכה בסיסית עד הפענוח
+        applyTheme(config.theme, config.accent, config.motion); // ערכה בסיסית עד הפענוח
         return;
       }
       const { db, corrupt } = res;
@@ -1250,7 +1250,7 @@ export const useApp = create<AppState>()((set, get) => {
       set({ config: cfg });
       saveConfigOverride(cfg);
       const { db } = get();
-      applyTheme(db.ui.theme ?? cfg.theme, db.ui.accent ?? cfg.accent);
+      applyTheme(db.ui.theme ?? cfg.theme, db.ui.accent ?? cfg.accent, cfg.motion);
     },
     setTheme(theme) {
       setDb((db) => ({ ui: { ...db.ui, theme } }));
@@ -2739,7 +2739,7 @@ export const useApp = create<AppState>()((set, get) => {
 // מכסה גם setTheme/setAccent וגם שחזור מגיבוי (restoreDb) ואיפוס (resetAll).
 useApp.subscribe((s, prev) => {
   if (s.db.ui.theme !== prev.db.ui.theme || s.db.ui.accent !== prev.db.ui.accent) {
-    applyTheme(s.db.ui.theme ?? s.config.theme, s.db.ui.accent ?? s.config.accent);
+    applyTheme(s.db.ui.theme ?? s.config.theme, s.db.ui.accent ?? s.config.accent, s.config.motion);
   }
 });
 

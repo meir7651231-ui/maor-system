@@ -14,6 +14,14 @@
 export type ModuleKey = 'families' | 'courses' | 'calendar' | 'diary' | 'supporters' | 'reports' | 'tzedaka' | 'shop' | 'shop7';
 
 /**
+ * סגנונות-תנועה (זהות-ורטיקל) — נכתבים כ-data-motion על ה-root ומכווננים
+ * מהירות-המעברים של הממשק: calm (רגוע/איטי), snappy (מהיר/חד), bold (קפיצי).
+ * חסר מ-config.motion = ברירת-המחדל של היום (בלי data-motion). allowlist ל-normalizeConfig.
+ */
+export const MOTION_KEYS = ['calm', 'snappy', 'bold'] as const;
+export type MotionKey = (typeof MOTION_KEYS)[number];
+
+/**
  * מספר-טלפון בתצורת-הטלפוניה (מוגדר כאן — שכבת-הטיפוסים — כדי ש-normalizeConfig
  * יחטא אותו בלי לייבא מרכיבים; ‏components/telephony/lib.ts מייבא מכאן).
  * ‏sim=SIM בשער-GSM · virtual=הפניית-לקוח · whatsapp=קישור-מכשיר.
@@ -61,6 +69,24 @@ export interface OrgConfig {
   theme: string;
   /** דריסת צבע הדגשה ארגוני (hex) — נכתב כ---accent על ה-DOM. */
   accent?: string;
+  /**
+   * צבע-הדגשה נבחר ידנית (provenance) — true = המשתמש בחר צבע באשף. החלת
+   * חבילת-ורטיקל שומרת accent כשהדגל דלוק (הכרעת-בעלים: "הכל מוחלף חוץ מצבע
+   * ידני"); חסר/false = הצבע נגזר מהחבילה/הערכה ומוחלף חופשי. מחוטא ב-normalizeConfig.
+   */
+  accentCustom?: boolean;
+  /**
+   * אימוג'י-הארגון (זהות-ורטיקל) — מוצג כאייקון האתר בכותרת (במקום האות-הראשונה)
+   * וב-favicon. חסר = אין אימוג'י ⇒ נפילה לאות-הראשונה/לוגו (ביט-זהה ללקוח-החי).
+   * מוזרק ע"י applyVerticalPack; מחוטא ב-normalizeConfig (מחרוזת קצרה בלבד).
+   */
+  emoji?: string;
+  /**
+   * סגנון-תנועה (זהות-ורטיקל) — נכתב כ-data-motion על ה-root ומכוונן מהירות-מעברים
+   * (calm/snappy/bold). מכבד prefers-reduced-motion. חסר = ברירת-המחדל (ביט-זהה
+   * להיום). ערכים חוקיים: MOTION_KEYS; מחוטא ב-normalizeConfig.
+   */
+  motion?: string;
   /** מספר עמותה/מלכ"ר — מופיע בקבלת סעיף 46. */
   orgTaxId?: string;
   /** שם החותם על קבלות סעיף 46. */

@@ -84,4 +84,18 @@ const matOn  = featureOn(cfg,'supporters.ayin.mat')  && !featureOn(cfg,'core.tax
 מהשרטוט (`studio-blueprint`): **גאנט-תלויות** ו**מלאי-מחסן חוצה-פרויקטים** — שדרוגים אמיתיים "בגבול", ממתינים להגדרת-היקף. וכן מנוע-ה-install-kit מבנייה-חכמה. אין אף פריט בנוי שנשאר חצי-מחווט.
 
 ---
-**סטטוס:** ✅ הכל נבנה · אומת ב-`verify:fast` (typecheck+lint+test ירוק) · פרוס ל-main (‏#158/#160/#161/#162/#164). הורטיקל מוכן-לשימוש end-to-end.
+
+## 8 · זהות-חזותית פר-ורטיקל (16.8 ערב — הכרעת-בעלים "שיחליף אימוני וסגנון האתר בשינוי וורטיקל")
+עד כה בחירת-ורטיקל באשף החליפה **רק** מונחים+מודולים+דגלים. עכשיו היא מלבישה **זהות מלאה** — הכרעת-בעלים: "הכל מוחלף חוץ מצבע שנבחר ידנית".
+
+- **`VerticalPack` הורחב** (`theme`/`accent`/`icon`/`motion`) — כל 13 החבילות. מסחריות: ערכה+צבע+אימוג'י+תנועה ייחודיים (למשל build=🏗️/tsohar/כתום/bold · studio=🏢/kehila/טורקיז/calm · digital=💻/heichal/אינדיגו/snappy). עמותתיות (חסד/גמ"ח/התרמה): `theme:'or-rishon'` בלבד ⇒ מראה קלאסי, אות-ראשונה — **ביט-זהה ללקוח-החי**.
+- **`applyVerticalPack`** מחיל theme/accent/emoji/motion; שומר `accent` כשהמשתמש בחר ידני (`config.accentCustom`).
+- **`config.emoji`** (חדש) — אייקון-הארגון: בכותרת (בשלושת השלדים — top/side/side-wide) במקום האות-הראשונה, וב-**favicon** דינמי (`faviconDataUri`/`applyFavicon` ב-lib/config; SVG-אימוג'י). חסר ⇒ נפילה לאות-ראשונה/לוגו (הלקוח-החי בלי emoji ⇒ ללא-שינוי).
+- **`config.motion`** (חדש, `MOTION_KEYS`=calm/snappy/bold) — `data-motion` על ה-root דרך `applyTheme` (הורחב לפרמטר שלישי; 5 קריאות-store עודכנו); CSS מכוונן מהירות/עקומת-מעברים למשטחים אינטראקטיביים, **מכבד `prefers-reduced-motion`**.
+- **ערכה = גם שלד:** `theme` קובע את שלד-הניווט (tsohar=רצועת-אייקונים · or-rishon=פס-רחב · heichal/kehila=עליון) — כך ההחלפה חזותית-דרמטית, לא רק צבע.
+- **אשף:** צבע-ידני ⇒ `accentCustom:true` (נשמר בהחלפה); שדה **"אימוג'י הארגון"** בסעיף המיתוג; בחירת-חבילה מיישרת גם `db.ui` לתצוגה-חיה.
+- **חיטוי:** `normalizeConfig` — emoji (מחרוזת≤12), motion (allowlist), accentCustom (true בלבד).
+- **ratchets:** `vertical-packs.test.ts` (זהות פר-חבילה · שמירת-צבע-ידני · חסד-קלאסי · הגנת-מקור packSrc/appSrc) · `config-identity.test.ts` (חיטוי + faviconDataUri). אומת חזותית: build↔studio — שני מראות מובחנים (theme/accent/motion/emoji/favicon).
+
+---
+**סטטוס:** ✅ הכל נבנה · אומת ב-`verify:fast` (typecheck+lint+test, ‏1516 בדיקות ירוק) · פרוס ל-main (‏#158/#160/#161/#162/#164 + זהות-חזותית). הורטיקל מוכן-לשימוש end-to-end.
