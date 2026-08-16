@@ -25,6 +25,7 @@ vi.mock('../../lib/cloud', () => ({
     return Promise.resolve();
   },
   donationSplitActive: () => splitFlag,
+  supEnforceActive: () => false,
   setDonationSplit: (v: boolean) => {
     splitFlag = v;
   },

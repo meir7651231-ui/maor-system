@@ -43,10 +43,12 @@ import {
   type WriteBatch,
 } from 'firebase/firestore';
 import type { FirebaseOrgConfig } from '../types/config';
-import { DB_VERSION, type Db, type Donation } from '../types/domain';
+import { AUDIT_CAP, DB_VERSION, type AuditEntry, type Db, type Donation } from '../types/domain';
 import { migrate } from '../store/persist';
 import { ENTITY_COLLECTIONS, colPath, donationsPath, envPath, fullDbDiff, metaPath, type DbDiff } from './cloud-diff';
 import { SHARED_PURPOSE_KEY, type DonationCloudDiff } from './donationPartition';
+import { SUP_KEYED_COLS, docSkey, stripAuditMeta, supAllowedKeys, supKeyMapOf, supKeyOf, stripSupKey } from './supporterPartition';
+import type { Supporter } from '../types/domain';
 import { decryptDoc, encryptDoc } from './cloudCrypto';
 import type { EncEnvelope } from './crypto';
 
@@ -109,6 +111,61 @@ export function setAllowedPurposes(p: string[] | null): void {
   allowedPurposes = p && p.length ? p : null;
 }
 
+/* ── אכיפת-תומכים בשכבת-הנתונים (פאזה-2, dormant): כשדלוק — כל מסמך-תומך נדחף עם
+   `skey` plaintext (=forWho), ועובד/ת מוגבל/ת מושך/ת בשאילתת `where skey in […]`
+   (Rules דוחים list לא-מסונן). off-by-default ⇒ אף קוד לא מדליק עד פאזת-ההפעלה
+   ⇒ ביט-זהה להיום (בלי skey, בלי סינון). ─────────────────────────────────── */
+let supEnforceOn = false;
+/** נקבע מ-connectCloud/applyCloudDoc לפי supEnforceOn(config) — עדיין לא מחווט (פאזה-5). */
+export function setSupEnforce(on: boolean): void {
+  supEnforceOn = on;
+}
+/** האם אכיפת-התומכים פעילה (הצד-הדוחף/המושך שואל). */
+export function supEnforceActive(): boolean {
+  return supEnforceOn;
+}
+
+/* ── לוג-מנהל מסונכרן (משטח #3, "מנהל מסונכרן"): הלוג לא רוכב על meta המשותף
+   אלא על `auditlog/{uid}` — כל משתמש כותב **רק** את מסמכו (טבעת-פעולותיו); מנהל/
+   מייל-על קורא את **כל** המסמכים וממזג ⇒ רואה הכל. עובד/ת לא רשאי/ת לקרוא (Rules)
+   ⇒ לא לומד/ת על פעולות של אחרת. dormant: פעיל רק כשאכיפה דלוקה. ─────────── */
+let auditUid = '';
+let auditEmail = '';
+let auditReadable = false;
+/** נקבע מהחיבור: uid+email של המחובר, ו-canRead=מנהל/מייל-על (קורא את כל הלוגים). */
+export function setAuditContext(uid: string, email: string, canRead: boolean): void {
+  auditUid = uid;
+  auditEmail = email.trim().toLowerCase();
+  auditReadable = canRead;
+}
+/** המייל שכותב את הלוג (לסינון הטבעת-הנדחפת לפעולות-שלו-בלבד). */
+export function auditWriterEmail(): string {
+  return auditEmail;
+}
+
+/** דחיפת טבעת-הלוג של המחובר למסמכו (auditlog/{uid}) — כתיבת-מסמך-עצמו בלבד. */
+export async function pushAuditRing(entries: AuditEntry[], dek?: CryptoKey | null): Promise<void> {
+  if (!auditUid) return;
+  const db = requireDb();
+  const ring = entries.slice(-AUDIT_CAP);
+  const body = dek ? await encryptDoc({ entries: ring }, dek) : { entries: ring };
+  await setDoc(doc(db, scopedCol('auditlog'), auditUid), body as DocumentData);
+}
+
+/** משיכת כל טבעות-הלוג וממוזגות (מנהל/מייל-על בלבד) — עובד/ת ⇒ null (בלי גישה). */
+export async function pullAuditRing(dek?: CryptoKey | null): Promise<AuditEntry[] | null> {
+  if (!auditReadable) return null;
+  const db = requireDb();
+  const snap = await getDocs(collection(db, scopedCol('auditlog')));
+  const all: AuditEntry[] = [];
+  for (const d of snap.docs) {
+    const data = (dek ? await decryptDoc(d.data(), dek) : d.data()) as { entries?: AuditEntry[] };
+    if (Array.isArray(data.entries)) all.push(...data.entries);
+  }
+  all.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+  return all.slice(-AUDIT_CAP);
+}
+
 /**
  * מסלול-B — דחיפת אופרציות אוסף-התרומות (set/delete batched, ‏≤400). גוף-המסמך =
  * ‏{supporterId, pkey, ...donation}; ‏id=rid. מוצפן אם dek (כמו שאר האוספים).
@@ -144,6 +201,38 @@ export async function migrateDonationsToCollection(supporters: Db['supporters'],
   const diff = donationPartitionDiff([], supporters); // prev ריק ⇒ כל התרומות = sets
   await pushDonations(diff, dek);
   return diff.sets.length;
+}
+
+/**
+ * אכיפת-תומכים · מיגרציה חד-פעמית (חלון-בעלים): כותבת-מחדש כל מסמך-תומך **עם**
+ * `skey`=forWho (upsert לפי id) — התוכן ביט-זהה, רק נוסף מפתח-plaintext. אידמפוטנטית
+ * ולא-הרסת (בלי skey הסינון פשוט לא מסנן). מריצים לפני הדלקת supEnforce. מחזירה
+ * את מספר התומכים ש-seed להם skey. (לא נוגעת בתרומות/מונים/rid.)
+ */
+export async function migrateSupportersToKeyed(
+  supporters: Supporter[],
+  events: Db['events'],
+  dek?: CryptoKey | null,
+): Promise<number> {
+  const db = requireDb();
+  const map = supKeyMapOf(supporters);
+  const ops: Array<(b: WriteBatch) => void> = [];
+  for (const sp of supporters) {
+    const inner = dek ? await encryptDoc(toPlain(sp), dek) : toPlain(sp);
+    ops.push((b) => b.set(doc(db, scopedCol('supporters'), sp.id), { skey: supKeyOf(sp), ...(inner as Record<string, unknown>) } as DocumentData));
+  }
+  // אירועי-הלוח: skey=מפתח-התומך-המקושר (אירוע כללי ⇒ משותף) — כדי ששם-תורם בלוח
+  // לא ידלוף לעובדת אחרת. אירוע ללא-קישור נשאר גלוי לכולן (משותף).
+  for (const ev of events) {
+    const inner = dek ? await encryptDoc(toPlain(ev), dek) : toPlain(ev);
+    ops.push((b) => b.set(doc(db, scopedCol('events'), ev.id), { skey: docSkey('events', ev as unknown as Record<string, unknown>, map), ...(inner as Record<string, unknown>) } as DocumentData));
+  }
+  for (let i = 0; i < ops.length; i += 400) {
+    const batch = writeBatch(db);
+    for (const op of ops.slice(i, i + 400)) op(batch);
+    await batch.commit();
+  }
+  return supporters.length + events.length;
 }
 
 /** אתחול חד-פעמי (idempotent) — קריאה חוזרת מחזירה את אותם singletons. */
@@ -319,11 +408,17 @@ async function pushMetaCounterSafe(meta: Record<string, unknown>, dek?: CryptoKe
   });
 }
 
-export async function pushDiff(diff: DbDiff, dek?: CryptoKey | null): Promise<void> {
+export async function pushDiff(diff: DbDiff, dek?: CryptoKey | null, supKeyBySpId: Map<string, string> = new Map()): Promise<void> {
   const db = requireDb();
   const ops: Array<(b: WriteBatch) => void> = [];
   for (const s of diff.sets) {
-    const body = dek ? await encryptDoc(toPlain(s.data), dek) : toPlain(s.data);
+    const inner = dek ? await encryptDoc(toPlain(s.data), dek) : toPlain(s.data);
+    // אכיפת-נתונים (dormant): מסמך באוסף-נאכף (supporters/events) נושא `skey` plaintext
+    // מחוץ למעטפה, כדי ש-Rules ושאילתת-where יבחנו אותו גם בארגון-מוצפן. כבוי ⇒ ביט-זהה.
+    const keyed = supEnforceOn && (SUP_KEYED_COLS as readonly string[]).includes(s.col);
+    const body = keyed
+      ? ({ skey: docSkey(s.col, s.data as Record<string, unknown>, supKeyBySpId), ...(inner as Record<string, unknown>) } as DocumentData)
+      : (inner as DocumentData);
     ops.push((b) => b.set(doc(db, scopedCol(s.col), s.id), body));
   }
   for (const d of diff.deletes) {
@@ -335,7 +430,10 @@ export async function pushDiff(diff: DbDiff, dek?: CryptoKey | null): Promise<vo
     await batch.commit();
   }
   // מסמך ה-meta נכתב בעסקה נפרדת בטוחה-למונים (לא בכתיבת-האצווה העיוורת).
-  if (diff.meta) await pushMetaCounterSafe(toPlain(diff.meta), dek);
+  // אכיפת-נתונים (משטח #3): לוג-הפעולות נושא שמות-תורמים ורוכב על meta המשותף —
+  // כשהאכיפה דלוקה מקלפים אותו (הלוג נשאר מקומי). כבוי ⇒ ביט-זהה (רוכב כרגיל).
+  const meta = supEnforceOn && diff.meta ? stripAuditMeta(diff.meta) : diff.meta;
+  if (meta) await pushMetaCounterSafe(toPlain(meta), dek);
 }
 
 /* ============================ הצפנת-ענן — envelope + מיגרציה ============================ */
@@ -370,7 +468,8 @@ export async function writeCloudEnvelope(env: EncEnvelope): Promise<void> {
  * הבעלים מריץ (כפתור, אחרי גיבוי כפוי) — לא רץ אוטומטית.
  */
 export async function encryptExistingCloud(db: Db, dek: CryptoKey): Promise<void> {
-  await pushDiff(fullDbDiff(db), dek);
+  // אכיפת-נתונים: אם דלוקה, גם מיגרציית-ההצפנה שומרת skey על אוספים-נאכפים.
+  await pushDiff(fullDbDiff(db), dek, supKeyMapOf(db.supporters));
 }
 
 /**
@@ -385,11 +484,24 @@ export async function pullAll(dek?: CryptoKey | null): Promise<Db | null> {
   const metaData = dek ? await decryptDoc(metaSnap.data(), dek) : metaSnap.data();
   const raw: Record<string, unknown> = { ...metaData, v: DB_VERSION };
   const snaps = await Promise.all(
-    ENTITY_COLLECTIONS.map((col) => getDocs(collection(db, scopedCol(col)))),
+    ENTITY_COLLECTIONS.map((col) => {
+      // אכיפת-נתונים (dormant): עובד/ת מוגבל/ת ⇒ שאילתת אוסף-נאכף (supporters/events)
+      // מסוננת ב-skey (Rules דוחים list לא-מסונן). מנהל/בעלים (null) / כבוי ⇒ קריאה מלאה.
+      if (supEnforceOn && (SUP_KEYED_COLS as readonly string[]).includes(col) && allowedPurposes) {
+        return getDocs(query(collection(db, scopedCol(col)), where('skey', 'in', supAllowedKeys(allowedPurposes))));
+      }
+      return getDocs(collection(db, scopedCol(col)));
+    }),
   );
   for (let i = 0; i < ENTITY_COLLECTIONS.length; i++) {
-    raw[ENTITY_COLLECTIONS[i]] = await Promise.all(
-      snaps[i].docs.map(async (d) => ({ ...(dek ? await decryptDoc(d.data(), dek) : d.data()), id: d.id })),
+    const col = ENTITY_COLLECTIONS[i];
+    const keyed = (SUP_KEYED_COLS as readonly string[]).includes(col);
+    raw[col] = await Promise.all(
+      snaps[i].docs.map(async (d) => {
+        const data = dek ? await decryptDoc(d.data(), dek) : d.data();
+        // קילוף skey (plaintext, לא-מוצפן) רק מאוספים-נאכפים — no-op בשאר.
+        return { ...(keyed ? stripSupKey(data as Record<string, unknown>) : data), id: d.id };
+      }),
     );
   }
   // מסלול-B: התרומות באוסף-נפרד — קוראים ומרכיבים חזרה לתומכים **לפני migrate**,
@@ -436,22 +548,28 @@ export function subscribeAll(
   dek?: CryptoKey | null,
 ): () => void {
   const db = requireDb();
+  // אכיפת-נתונים (dormant): קילוף skey מאוספים-נאכפים; no-op בשאר האוספים.
+  const clean = (col: string, data: Record<string, unknown>) =>
+    (SUP_KEYED_COLS as readonly string[]).includes(col) ? stripSupKey(data) : data;
   const unsubs = ENTITY_COLLECTIONS.map((col) =>
     onSnapshot(
-      collection(db, scopedCol(col)),
+      // עובד/ת מוגבל/ת ⇒ מנוי אוסף-נאכף מסונן ב-skey (Rules דוחים list לא-מסונן).
+      supEnforceOn && (SUP_KEYED_COLS as readonly string[]).includes(col) && allowedPurposes
+        ? query(collection(db, scopedCol(col)), where('skey', 'in', supAllowedKeys(allowedPurposes)))
+        : collection(db, scopedCol(col)),
       (snap) => {
         if (snap.metadata.hasPendingWrites) return;
         const changes = snap.docChanges();
         if (!changes.length) return;
         // dek נעדר ⇒ נתיב ביט-זהה להיום. קיים ⇒ פענוח לפני onRemote (מחוקים אין מה לפענח).
         if (!dek) {
-          onRemote({ col, docs: changes.map((ch) => ({ id: ch.doc.id, data: ch.doc.data(), deleted: ch.type === 'removed' })) });
+          onRemote({ col, docs: changes.map((ch) => ({ id: ch.doc.id, data: clean(col, ch.doc.data()), deleted: ch.type === 'removed' })) });
           return;
         }
         void Promise.all(
           changes.map(async (ch) => ({
             id: ch.doc.id,
-            data: ch.type === 'removed' ? ch.doc.data() : await decryptDoc(ch.doc.data(), dek),
+            data: ch.type === 'removed' ? clean(col, ch.doc.data()) : clean(col, await decryptDoc(ch.doc.data(), dek)),
             deleted: ch.type === 'removed',
           })),
         )

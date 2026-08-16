@@ -22,6 +22,7 @@ vi.mock('../../lib/cloud', () => ({
   pushDiff: (d: DbDiff) => { pushed.push(d); return Promise.resolve(); },
   subscribeAll: () => () => {},
   donationSplitActive: () => false,
+  supEnforceActive: () => false,
   pushDonations: () => Promise.resolve(),
   initCloud: () => {},
   resetPassword: () => Promise.resolve(),

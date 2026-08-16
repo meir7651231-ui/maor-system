@@ -65,6 +65,16 @@ export function donationSplitOn(cfg: OrgConfig): boolean {
 }
 
 /**
+ * אכיפת-תומכים בשכבת-הנתונים (15.8, ארגוני-פלטפורמה בלבד) — off-by-default, רק
+ * `supporterEnforce:true` מפורש מפעיל. כשדלוק: מסמכי-תומכים נושאים skey ועובד/ת
+ * מוגבל/ת קורא/ת מסונן (Rules פר-skey). ⚠️ אכיפת-השרת עובדת רק בארגון-פלטפורמה;
+ * בלקוח-שורש (cloudRoot) אין „עובד מוגבל" בשרת — enableSupEnforce חוסם שורש.
+ */
+export function supEnforceOn(cfg: OrgConfig): boolean {
+  return cfg.supporterEnforce === true;
+}
+
+/**
  * האם הרחבה (integration) פעילה — **הפוך מחוזה-הדגלים במכוון**: הרחבה היא
  * מוצר-נמכר (opt-in), לכן מפתח חסר = כבוי; רק enabled:true מפורש מדליק.
  * (דגל-פיצ'ר: חסר = דלוק; רק false מכבה. אל תבלבלו — ratchet אוכף.)
@@ -231,6 +241,9 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
   // מסלול-B — פיצול-תרומות: רק true מפורש נשמר (off-by-default; השורש פטור ב-donationSplitOn).
   if (c.donationSplit === true) cfg.donationSplit = true;
   else delete cfg.donationSplit;
+  // אכיפת-תומכים — רק true מפורש נשמר (off-by-default; ארגוני-פלטפורמה בלבד).
+  if (c.supporterEnforce === true) cfg.supporterEnforce = true;
+  else delete cfg.supporterEnforce;
   // הרחבות (INTEGRATIONS גל א׳) — חיטוי: רק מפתחות מה-allowlist (שגיאת-כתיב
   // לא נבלעת בשקט — ביקורת 4.8) ורק רשומות {enabled:boolean}. ריק ⇒ מוסר.
   const intsRaw = c.integrations;

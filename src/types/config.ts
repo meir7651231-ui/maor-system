@@ -126,6 +126,14 @@ export interface OrgConfig {
    * (ביט-זהה, ratchet). חסר/false ⇒ תרומות מקוננות בתומך כהיום.
    */
   donationSplit?: boolean;
+  /**
+   * אכיפת-תומכים בשכבת-הנתונים (15.8: "אכיפה מלאה · פירוק", ארגוני-פלטפורמה בלבד) —
+   * מסמך-תומך נושא `skey`=forWho plaintext, ועובד/ת מוגבל/ת קורא/ת בשאילתה מסוננת
+   * ש-Rules אוכפים. **off-by-default** — נדלק ידנית אחרי מיגרציה (seed skey). חסר/
+   * false ⇒ ביט-זהה להיום. ⚠️ לא-נתמך בלקוח-שורש (cloudRoot) — מודל-השורש הוא
+   * allowlist מלא בלי „עובד מוגבל" בשרת (enableSupEnforce חוסם שורש/default).
+   */
+  supporterEnforce?: boolean;
 }
 
 /** קונפיגורציית Firebase של ארגון — קיצור נוחות. */

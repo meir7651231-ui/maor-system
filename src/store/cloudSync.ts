@@ -10,11 +10,12 @@
  * 3. cloudOnDbChange(prev, next) — נקרא מנתיב setDb של ה-store, debounce
  *    800ms, מחשב diffDb ודוחף. תור לא-מקוון מנוהל ע"י Firestore עצמו.
  */
-import type { Db } from '../types/domain';
+import type { AuditEntry, Db } from '../types/domain';
 import { diffDb, emptyDiff, ENTITY_COLLECTIONS, fullDbDiff, stripSupporterDonations, type DbDiff } from '../lib/cloud-diff';
 import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
-import { donationSplitActive, pullAll, pushDiff, pushDonations, subscribeAll, type RemotePartial } from '../lib/cloud';
+import { auditWriterEmail, donationSplitActive, pullAll, pullAuditRing, pushAuditRing, pushDiff, pushDonations, subscribeAll, supEnforceActive, type RemotePartial } from '../lib/cloud';
 import { donationPartitionDiff } from '../lib/donationPartition';
+import { supKeyMapOf } from '../lib/supporterPartition';
 
 /**
  * מסלול-B — דחיפה מפוצלת-מודעת. במצב-כבוי: pushDiff רגיל (ביט-זהה). במצב-פיצול:
@@ -22,14 +23,24 @@ import { donationPartitionDiff } from '../lib/donationPartition';
  * מטפל בעצמו ב-diff ריק (כולל מקרה שרק ייעוד-תרומה השתנה ⇒ diff-ישויות ריק).
  */
 async function pushSplitAware(prevSups: Db['supporters'], nextSups: Db['supporters'], diff: DbDiff): Promise<void> {
+  // אכיפת-נתונים (dormant): מפת spId→skey לגזירת מפתח-אירוע בדחיפה. כבוי ⇒ מפה
+  // ריקה, ו-pushDiff לא מזריק skey (ביט-זהה). נבנית מהתומכים-שאחרי-השינוי.
+  const supKeyMap = supEnforceActive() ? supKeyMapOf(nextSups) : new Map<string, string>();
   if (!donationSplitActive()) {
-    if (!emptyDiff(diff)) await pushDiff(diff, cloudDek);
-    return;
+    if (!emptyDiff(diff)) await pushDiff(diff, cloudDek, supKeyMap);
+  } else {
+    const stripped = stripSupporterDonations(diff);
+    if (!emptyDiff(stripped)) await pushDiff(stripped, cloudDek, supKeyMap);
+    const dd = donationPartitionDiff(prevSups, nextSups);
+    if (dd.sets.length || dd.deletes.length) await pushDonations(dd, cloudDek);
   }
-  const stripped = stripSupporterDonations(diff);
-  if (!emptyDiff(stripped)) await pushDiff(stripped, cloudDek);
-  const dd = donationPartitionDiff(prevSups, nextSups);
-  if (dd.sets.length || dd.deletes.length) await pushDonations(dd, cloudDek);
+  // לוג-מנהל מסונכרן: כשאכיפה דלוקה והלוג השתנה (רוכב על diff.meta), דוחפים את
+  // טבעת-הפעולות **של המחובר-בלבד** (who===email שלו) למסמכו auditlog/{uid}.
+  const audit = (diff.meta as { audit?: AuditEntry[] } | null | undefined)?.audit;
+  if (supEnforceActive() && Array.isArray(audit)) {
+    const mine = audit.filter((e) => (e.who ?? '').trim().toLowerCase() === auditWriterEmail());
+    await pushAuditRing(mine, cloudDek);
+  }
 }
 
 // מפתח-הצפנת-הענן (opt-in) — null עד שהמשתמש מפעיל הצפנה ומזין סיסמה. כל עוד
@@ -43,7 +54,7 @@ export function getCloudDek(): CryptoKey | null {
 }
 
 // יצוא-מחדש של שכבת ה-auth — ל-useApp יש import דינמי אחד בלבד (המודול הזה)
-export { changePassword, encryptExistingCloud, fetchIncomingPayments, initCloud, markIncomingPayment, migrateDonationsToCollection, readCloudEnvelope, resetPassword, setAllowedPurposes, setCloudScope, setDonationSplit, signIn, signOutCloud, signUp, watchAuth, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
+export { changePassword, encryptExistingCloud, fetchIncomingPayments, initCloud, markIncomingPayment, migrateDonationsToCollection, migrateSupportersToKeyed, readCloudEnvelope, resetPassword, setAllowedPurposes, setAuditContext, setCloudScope, setDonationSplit, setSupEnforce, signIn, signOutCloud, signUp, supEnforceActive, watchAuth, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
 export type { CloudUser, IncomingPayment } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
 export { deleteOrgCompletely, deleteOrgRequest, deleteOrgJoinRequest, deleteOrgMemberConfig, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgJoinRequests, fetchOrgLeads, fetchOrgRequests, findMemberOrgSlugs, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgJoinRequest, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
@@ -107,6 +118,12 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
   h.setStatus('connecting');
   try {
     const cloudDb = await pullAll(cloudDek);
+    // לוג-מנהל מסונכרן: כשאכיפה דלוקה, הלוג לא רוכב על meta — מנהל/מייל-על ממזג
+    // את כל טבעות-auditlog; עובד/ת ⇒ null (בלי גישה, נשאר עם הלוג המקומי).
+    if (cloudDb && supEnforceActive()) {
+      const ring = await pullAuditRing(cloudDek);
+      if (ring) cloudDb.audit = ring;
+    }
     // אם stopCloudSync רץ במקביל (יציאה/פקיעת טוקן במהלך ה-pull) hooks כבר אופס —
     // אין להמשיך ולהפעיל מחדש סנכרון לחשבון שיצא.
     if (hooks !== h) return;
