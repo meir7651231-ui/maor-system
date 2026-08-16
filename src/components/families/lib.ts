@@ -207,3 +207,15 @@ export function chipStyle(bg: string, c: string): CSSProperties {
     whiteSpace: 'nowrap',
   };
 }
+
+/** צבע-שבב למצב-המשפחתי (הצגה בכרטיס/רשימה). ערך לא-מוכר ⇒ שבב ניטרלי. */
+const MARITAL_CHIP: Record<string, [string, string]> = {
+  נשואים: ['#e6f4ea', '#1e7a3a'],
+  'אלמן/ה': ['#eef1f5', '#4a5568'],
+  גרושים: ['#fdecec', '#b4433a'],
+  פרודים: ['#fff4e5', '#a15c00'],
+};
+export function maritalChipStyle(status: string): CSSProperties {
+  const [bg, c] = MARITAL_CHIP[status] ?? ['#eef1f5', '#4a5568'];
+  return chipStyle(bg, c);
+}

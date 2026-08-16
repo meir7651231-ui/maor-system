@@ -12,7 +12,7 @@ import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { ActionsMenu, Btn, Empty, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, finderAxisValue, numMatch, STATUS_META, tierOf } from './lib';
+import { chipStyle, finderAxisValue, maritalChipStyle, numMatch, STATUS_META, tierOf } from './lib';
 import { requestSettingsSection } from '../settings/lib';
 import { FamilyFinder } from './FamilyFinder';
 import { FamilyForm } from './FamilyForm';
@@ -42,7 +42,7 @@ function TierDot(props: { f: Family }) {
 
 type SortKey = 'name' | 'phone' | 'kids' | 'courses' | 'status';
 
-const EMPTY_COLF = { name: '', phone: '', kids: '', courses: '', status: 'all' };
+const EMPTY_COLF = { name: '', phone: '', kids: '', courses: '', status: 'all', marital: 'all' };
 
 /** מסנני הפאנל המורחב — 'all' = לא מסנן. */
 const EMPTY_ADV = { mar: 'all', lang: 'all', sefach: 'all', kids: 'all', enrolled: 'all', tier: 'all' };
@@ -153,6 +153,7 @@ export function FamiliesView() {
     if (!numMatch(colF.kids, kidsOf(f).length)) return false;
     if (!numMatch(colF.courses, enrollCount.get(f.id) || 0)) return false;
     if (colF.status !== 'all' && f.status !== colF.status) return false;
+    if (colF.marital !== 'all' && (f.maritalStatus || '') !== colF.marital) return false;
     // הפאנל המורחב
     if (adv.mar !== 'all' && (f.maritalStatus || '') !== adv.mar) return false;
     if (adv.lang !== 'all' && (f.language || '') !== adv.lang) return false;
@@ -226,7 +227,7 @@ export function FamiliesView() {
   const langOptions = [...new Set(db.families.map((f) => f.language).filter(Boolean))];
   const totalKids = filtered.reduce((a, f) => a + kidsOf(f).length, 0);
 
-  const colFActive = colF.name.trim() !== '' || colF.phone.trim() !== '' || colF.kids.trim() !== '' || colF.courses.trim() !== '' || colF.status !== 'all';
+  const colFActive = colF.name.trim() !== '' || colF.phone.trim() !== '' || colF.kids.trim() !== '' || colF.courses.trim() !== '' || colF.status !== 'all' || colF.marital !== 'all';
   const advCount =
     Object.values(adv).filter((v) => v !== 'all').length + (commMulti.length ? 1 : 0);
 
@@ -515,8 +516,9 @@ export function FamiliesView() {
                   </span>
                   <span style={chipStyle(st.bg, st.c)}>{st.label}</span>
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-                  {[parents, f.city].filter(Boolean).join(' · ') || '—'}
+                <div style={{ fontSize: 13, color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <span>{[parents, f.city].filter(Boolean).join(' · ') || '—'}</span>
+                  {f.maritalStatus && <span style={maritalChipStyle(f.maritalStatus)}>{f.maritalStatus}</span>}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
                   {kids.length} ילדים · {enrollCount.get(f.id) || 0} {termOf(config, 'nav.courses', 'חוגים')}
@@ -532,6 +534,7 @@ export function FamiliesView() {
             <thead>
               <tr>
                 {thSort('name', termOf(config, 'entity.family', 'משפחה'))}
+                <th>מצב משפחתי</th>
                 <th>הורים</th>
                 {thSort('phone', 'טלפון')}
                 {thSort('kids', 'ילדים')}
@@ -541,6 +544,18 @@ export function FamiliesView() {
               {colFOn && (
                 <tr>
                   {colInput('name', 'שם/הורה…')}
+                  <th style={{ padding: '4px 8px' }}>
+                    <select
+                      value={colF.marital ?? 'all'}
+                      onChange={(e) => setColF({ ...colF, marital: e.target.value })}
+                      style={{ width: '100%', padding: '5px 6px', fontSize: 12 }}
+                    >
+                      <option value="all">הכל</option>
+                      {marOptions.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </th>
                   <th />
                   {colInput('phone', 'טלפון…')}
                   {colInput('kids', '3 / 3+ / 2-4')}
@@ -588,6 +603,7 @@ export function FamiliesView() {
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{kidsLine}</div>
                     </td>
+                    <td>{f.maritalStatus ? <span style={maritalChipStyle(f.maritalStatus)}>{f.maritalStatus}</span> : '—'}</td>
                     <td>{[f.father, f.mother].filter(Boolean).join(' ו') || '—'}</td>
                     <td style={{ direction: 'ltr', textAlign: 'right' }}>
                       {telephonyOn(config) && f.phone ? <><CallBtn phone={f.phone} title={'חיוג ל' + f.name} />{' '}</> : null}
