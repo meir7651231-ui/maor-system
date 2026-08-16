@@ -58,7 +58,7 @@ export function TeachersSection() {
       {teachers.length === 0 ? (
         <Empty>{'אין ' + teachersT + ' עדיין — הוסיפו ' + teacher + ' ראשון/ה'}</Empty>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
           <table className="table">
             <thead>
               <tr>

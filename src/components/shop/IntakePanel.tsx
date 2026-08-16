@@ -34,7 +34,7 @@ export function IntakePanel() {
         {(open ? '▼' : '◀') + ' 📥 יומן קליטות (' + rows.length + ') · סה"כ עלויות ' + totalCost.toLocaleString('he-IL') + ' ₪'}
       </button>
       {open && (
-        <div style={{ marginTop: 10, overflowX: 'auto' }}>
+        <div style={{ marginTop: 10, overflowX: 'auto', overflowY: 'hidden' }}>
           <table style={{ width: '100%', fontSize: 12.5, borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ textAlign: 'right', color: 'var(--ink-faint)' }}>

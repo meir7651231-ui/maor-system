@@ -298,7 +298,7 @@ export function EnrollPanel(props: { fam: Family }) {
             : 'אין ' + termOf(config, 'entity.enrollments', 'שיבוצים') + ' פעילים'}
         </Empty>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
           <table className="table">
             <thead>
               <tr>

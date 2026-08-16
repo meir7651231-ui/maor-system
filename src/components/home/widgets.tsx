@@ -636,7 +636,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
       )}
       {isTsohar && data.sessions.length > 0 && (
         /* הטבלה גוללת בתוך עצמה במסך צר — הגוף לעולם לא גולל אופקית */
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
           <table className="table">
             <thead>
               <tr>
@@ -928,7 +928,7 @@ function RecentWidget({ ctx }: { ctx: HomeCtx }) {
         </div>
       ) : (
         /* הטבלה רחבה מ-390px — גוללת בתוך עצמה כדי שהגוף לא יגלול אופקית במובייל */
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
           <table className="table">
             <thead>
               <tr>

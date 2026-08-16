@@ -190,6 +190,10 @@ button:focus-visible {
   min-width: 0;
   flex: 0 1 auto;
   overflow-x: auto;
+  /* גלגלת-עכבר: overflow-x:auto לבדו הופך (חוק-CSS) את overflow-y ל-auto ⇒ המיכל
+     נעשה scroll-container אנכי בלי גלילה-אנכית בפועל, והגלגלת "נבלעת" בו במקום
+     לגלול את הדף (touch עדיין עובד). קיבוע overflow-y:hidden מחזיר את שרשור-הגלגלת. */
+  overflow-y: hidden;
   scrollbar-width: none;
 }
 

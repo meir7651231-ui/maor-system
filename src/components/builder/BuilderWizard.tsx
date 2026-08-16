@@ -1306,6 +1306,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
               borderRadius: 8,
               padding: 10,
               overflowX: 'auto',
+              overflowY: 'hidden',
               fontSize: 11,
             }}
           >
