@@ -1307,7 +1307,7 @@ export const useApp = create<AppState>()((set, get) => {
           events: db.events.map((ev) => (ev.famId && losers.has(ev.famId) ? { ...ev, famId: keeperId } : ev)),
         };
       });
-      get().toast('מוזגו ' + losers.size + ' רשומות אל המשפחה שנבחרה ✓');
+      get().toast('מוזגו ' + losers.size + ' רשומות אל ה' + termOf(get().config, 'entity.family', 'משפחה') + ' שנבחרה ✓');
     },
     mergeFamilyGroupFields(ids, pick, edit) {
       // פער 21 (לגאסי dupFieldMerge:1654-1671): ערכי השדות לפי הבחירה; המבנה
@@ -1386,7 +1386,7 @@ export const useApp = create<AppState>()((set, get) => {
       }));
       // חציית סף למדד אדום — התראה למנהל (סף משותף, יישור ללגאסי: red <500)
       if (prevScore >= CRED_RED_THRESHOLD && newScore < CRED_RED_THRESHOLD) {
-        get().toast(`⚠ משפחת ${fam.name} ירדה למדד אדום — מומלץ ליצור קשר`);
+        get().toast('⚠ ' + termOf(get().config, 'entity.familyOf', 'משפחת') + ' ' + fam.name + ' ירדה למדד אדום — מומלץ ליצור קשר');
       }
     },
     runDecay() {
@@ -1419,7 +1419,7 @@ export const useApp = create<AppState>()((set, get) => {
         }),
       }));
       if (n > 0) {
-        get().toast(`Batch יומי: הפחתת אי-פעילות (‎-2) ל-${n} משפחות`);
+        get().toast('Batch יומי: הפחתת אי-פעילות (‎-2) ל-' + n + ' ' + termOf(get().config, 'nav.families', 'משפחות'));
       }
     },
 
@@ -1547,7 +1547,7 @@ export const useApp = create<AppState>()((set, get) => {
       // הטופס פתוח), אין לקדם את receiptSeq — אחרת מספר קבלה R-{n} מדולג לצמיתות
       // (פוגם ברציפות הקבלות) והתשלום אובד בשקט. עקבי עם addCred/deleteTeacher.
       if (!get().db.enrollments.some((e) => e.id === enrollmentId)) {
-        get().toast('השיבוץ לא נמצא — התשלום לא נרשם');
+        get().toast('ה' + termOf(get().config, 'entity.enrollment', 'שיבוץ') + ' לא נמצא — התשלום לא נרשם');
         return { ok: false };
       }
       const rid = 'R-' + get().db.receiptSeq;
@@ -1613,7 +1613,7 @@ export const useApp = create<AppState>()((set, get) => {
     },
     deleteTeacher(id) {
       const used = get().db.courses.some((c) => c.teacherId === id);
-      if (used) return { ok: false, error: 'למורה יש חוגים משויכים — העבירו אותם קודם למורה אחרת' };
+      if (used) return { ok: false, error: 'ל' + termOf(get().config, 'entity.teacher', 'מורה') + ' יש ' + termOf(get().config, 'nav.courses', 'חוגים') + ' משויכים — העבירו אותם קודם ל' + termOf(get().config, 'entity.teacher', 'מורה') + ' אחרת' };
       setDb((db) => ({ teachers: db.teachers.filter((t) => t.id !== id) }));
       return { ok: true };
     },
@@ -1636,7 +1636,7 @@ export const useApp = create<AppState>()((set, get) => {
         // תזכורת יעד-קשר של הנמחק שלא הועברה + אירועי-עי"ן שלו — לא נשארים יתומים
         events: db.events.filter((ev) => ev.id !== drop.nextEventId && ev.spId !== dropId),
       }));
-      get().toast('🔗 ' + drop.name + ' מוזג/ה לתוך ' + keep.name + ' — כל התרומות והקבלות נשמרו');
+      get().toast('🔗 ' + drop.name + ' מוזג/ה לתוך ' + keep.name + ' — כל ה' + termOf(get().config, 'entity.donations', 'תרומות') + ' והקבלות נשמרו');
     },
 
     deleteSupporter(id) {
@@ -1683,7 +1683,7 @@ export const useApp = create<AppState>()((set, get) => {
       // שער לפני צריכת המונה: תומכ/ת שנעלם/ה (נמחק/ה בסנכרון בעוד הטופס פתוח) לא
       // יצרוך את donationSeq — אחרת D-{n} מדולג לצמיתות והתרומה אובדת בשקט.
       if (!get().db.supporters.some((s) => s.id === supporterId)) {
-        get().toast('התומך/ת לא נמצא/ה — התרומה לא נשמרה');
+        get().toast(termOf(get().config, 'entity.supporter', 'התומך/ת') + ' לא נמצא/ה — ' + termOf(get().config, 'entity.donation', 'התרומה') + ' לא נשמרה');
         return { ok: false };
       }
       const rid = 'D-' + get().db.donationSeq;
@@ -2047,7 +2047,7 @@ export const useApp = create<AppState>()((set, get) => {
     bulkAssignShop(productId, rows) {
       // שער לפני מונה (לקח באג-5): רשימה ריקה / חבילה לא-קיימת — db זהה
       if (rows.length === 0) {
-        get().toast('לא נבחרו משפחות לשיוך');
+        get().toast('לא נבחרו ' + termOf(get().config, 'nav.families', 'משפחות') + ' לשיוך');
         return { ok: false, created: 0 };
       }
       if (!get().db.shopProducts.some((p) => p.id === productId)) {
@@ -2125,7 +2125,7 @@ export const useApp = create<AppState>()((set, get) => {
         return false;
       }
       if ((it.waits ?? []).some((w) => w.famId === famId)) {
-        get().toast('המשפחה כבר ברשימת ההמתנה של הפריט');
+        get().toast('ה' + termOf(get().config, 'entity.family', 'משפחה') + ' כבר ברשימת ההמתנה של הפריט');
         return false;
       }
       setDb((db) => ({
@@ -2151,7 +2151,7 @@ export const useApp = create<AppState>()((set, get) => {
     deleteVolunteer(id) {
       // חסום כשיש מסירות פתוחות למתנדב (לא מוחקים היסטוריית-מסירה בשוגג)
       if (get().db.deliveries.some((d) => d.volunteerId === id)) {
-        get().toast('למתנדב יש מסירות משויכות — הסירו/העבירו אותן קודם');
+        get().toast('ל' + termOf(get().config, 'entity.volunteer', 'מתנדב') + ' יש מסירות משויכות — הסירו/העבירו אותן קודם');
         return false;
       }
       setDb((db) => ({ volunteers: db.volunteers.filter((x) => x.id !== id) }));
@@ -2445,7 +2445,7 @@ export const useApp = create<AppState>()((set, get) => {
         logged = res.logged;
         return { supporters: res.supporters };
       });
-      get().toast('עודכנו ' + upds.length + ' שמות · ' + logged + ' רישומי עיניים נכנסו להיסטוריה, ללוח התרומות ולדוח');
+      get().toast('עודכנו ' + upds.length + ' שמות · ' + logged + ' רישומי עיניים נכנסו להיסטוריה, ללוח ה' + termOf(get().config, 'entity.donations', 'תרומות') + ' ולדוח');
     },
 
     exportBackup() {
@@ -2586,7 +2586,7 @@ export const useApp = create<AppState>()((set, get) => {
       if (!mod) throw new Error('הענן אינו מחובר — התחברו לענן ונסו שוב');
       await exportBackupFile(get().db); // רשת-ביטחון לפני כתיבה לענן
       const n = await mod.migrateDonationsToCollection(get().db.supporters, mod.getCloudDek());
-      get().toast('✓ ' + n + ' תרומות הוגרו לאוסף — כעת אפשר להדליק את הפיצול בקונפיג');
+      get().toast('✓ ' + n + ' ' + termOf(get().config, 'entity.donations', 'תרומות') + ' הוגרו לאוסף — כעת אפשר להדליק את הפיצול בקונפיג');
       return n;
     },
 

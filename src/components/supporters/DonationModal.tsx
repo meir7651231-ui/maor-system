@@ -101,7 +101,7 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
       if (integrationOn(cfg, 'mail') && st.cloud.enabled && !!st.cloud.user && props.supporter.email.trim()) {
         void import('../../store/cloudSync')
           .then((m) => m.writeMailOutbox(props.supporter.email.trim(), 'קבלה ' + rid + ' — ' + info.orgName, receiptLines(info).join('\n')))
-          .then(() => st.toast('📧 הקבלה נכנסה לתור-המייל של התורם/ת'))
+          .then(() => st.toast('📧 הקבלה נכנסה לתור-המייל של ' + termOf(config, 'entity.supporter', 'התורם/ת')))
           .catch(() => st.toast('⚠ תור-המייל נכשל — הקבלה ירדה למחשב כרגיל'));
       }
     }
