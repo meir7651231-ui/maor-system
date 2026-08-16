@@ -47,7 +47,7 @@ import { DB_VERSION, type Db, type Donation } from '../types/domain';
 import { migrate } from '../store/persist';
 import { ENTITY_COLLECTIONS, colPath, donationsPath, envPath, fullDbDiff, metaPath, type DbDiff } from './cloud-diff';
 import { SHARED_PURPOSE_KEY, type DonationCloudDiff } from './donationPartition';
-import { supAllowedKeys, supKeyOf, stripSupKey } from './supporterPartition';
+import { SUP_KEYED_COLS, docSkey, supAllowedKeys, supKeyMapOf, supKeyOf, stripSupKey } from './supporterPartition';
 import type { Supporter } from '../types/domain';
 import { decryptDoc, encryptDoc } from './cloudCrypto';
 import type { EncEnvelope } from './crypto';
@@ -168,20 +168,30 @@ export async function migrateDonationsToCollection(supporters: Db['supporters'],
  * ולא-הרסת (בלי skey הסינון פשוט לא מסנן). מריצים לפני הדלקת supEnforce. מחזירה
  * את מספר התומכים ש-seed להם skey. (לא נוגעת בתרומות/מונים/rid.)
  */
-export async function migrateSupportersToKeyed(supporters: Supporter[], dek?: CryptoKey | null): Promise<number> {
+export async function migrateSupportersToKeyed(
+  supporters: Supporter[],
+  events: Db['events'],
+  dek?: CryptoKey | null,
+): Promise<number> {
   const db = requireDb();
+  const map = supKeyMapOf(supporters);
   const ops: Array<(b: WriteBatch) => void> = [];
   for (const sp of supporters) {
     const inner = dek ? await encryptDoc(toPlain(sp), dek) : toPlain(sp);
-    const body = { skey: supKeyOf(sp), ...(inner as Record<string, unknown>) } as DocumentData;
-    ops.push((b) => b.set(doc(db, scopedCol('supporters'), sp.id), body));
+    ops.push((b) => b.set(doc(db, scopedCol('supporters'), sp.id), { skey: supKeyOf(sp), ...(inner as Record<string, unknown>) } as DocumentData));
+  }
+  // אירועי-הלוח: skey=מפתח-התומך-המקושר (אירוע כללי ⇒ משותף) — כדי ששם-תורם בלוח
+  // לא ידלוף לעובדת אחרת. אירוע ללא-קישור נשאר גלוי לכולן (משותף).
+  for (const ev of events) {
+    const inner = dek ? await encryptDoc(toPlain(ev), dek) : toPlain(ev);
+    ops.push((b) => b.set(doc(db, scopedCol('events'), ev.id), { skey: docSkey('events', ev as unknown as Record<string, unknown>, map), ...(inner as Record<string, unknown>) } as DocumentData));
   }
   for (let i = 0; i < ops.length; i += 400) {
     const batch = writeBatch(db);
     for (const op of ops.slice(i, i + 400)) op(batch);
     await batch.commit();
   }
-  return supporters.length;
+  return supporters.length + events.length;
 }
 
 /** אתחול חד-פעמי (idempotent) — קריאה חוזרת מחזירה את אותם singletons. */
@@ -357,17 +367,17 @@ async function pushMetaCounterSafe(meta: Record<string, unknown>, dek?: CryptoKe
   });
 }
 
-export async function pushDiff(diff: DbDiff, dek?: CryptoKey | null): Promise<void> {
+export async function pushDiff(diff: DbDiff, dek?: CryptoKey | null, supKeyBySpId: Map<string, string> = new Map()): Promise<void> {
   const db = requireDb();
   const ops: Array<(b: WriteBatch) => void> = [];
   for (const s of diff.sets) {
     const inner = dek ? await encryptDoc(toPlain(s.data), dek) : toPlain(s.data);
-    // אכיפת-תומכים (dormant): מסמך-תומך נושא `skey` plaintext (=forWho) מחוץ למעטפה,
-    // כדי ש-Rules ושאילתת-where יבחנו אותו גם בארגון-מוצפן. כבוי ⇒ ביט-זהה (בלי skey).
-    const body =
-      supEnforceOn && s.col === 'supporters'
-        ? ({ skey: supKeyOf(s.data as Pick<Supporter, 'forWho'>), ...(inner as Record<string, unknown>) } as DocumentData)
-        : (inner as DocumentData);
+    // אכיפת-נתונים (dormant): מסמך באוסף-נאכף (supporters/events) נושא `skey` plaintext
+    // מחוץ למעטפה, כדי ש-Rules ושאילתת-where יבחנו אותו גם בארגון-מוצפן. כבוי ⇒ ביט-זהה.
+    const keyed = supEnforceOn && (SUP_KEYED_COLS as readonly string[]).includes(s.col);
+    const body = keyed
+      ? ({ skey: docSkey(s.col, s.data as Record<string, unknown>, supKeyBySpId), ...(inner as Record<string, unknown>) } as DocumentData)
+      : (inner as DocumentData);
     ops.push((b) => b.set(doc(db, scopedCol(s.col), s.id), body));
   }
   for (const d of diff.deletes) {
@@ -414,7 +424,8 @@ export async function writeCloudEnvelope(env: EncEnvelope): Promise<void> {
  * הבעלים מריץ (כפתור, אחרי גיבוי כפוי) — לא רץ אוטומטית.
  */
 export async function encryptExistingCloud(db: Db, dek: CryptoKey): Promise<void> {
-  await pushDiff(fullDbDiff(db), dek);
+  // אכיפת-נתונים: אם דלוקה, גם מיגרציית-ההצפנה שומרת skey על אוספים-נאכפים.
+  await pushDiff(fullDbDiff(db), dek, supKeyMapOf(db.supporters));
 }
 
 /**
@@ -430,9 +441,9 @@ export async function pullAll(dek?: CryptoKey | null): Promise<Db | null> {
   const raw: Record<string, unknown> = { ...metaData, v: DB_VERSION };
   const snaps = await Promise.all(
     ENTITY_COLLECTIONS.map((col) => {
-      // אכיפת-תומכים (dormant): עובד/ת מוגבל/ת ⇒ שאילתת supporters מסוננת ב-skey
-      // (Rules דוחים list לא-מסונן). מנהל/בעלים (allowedPurposes=null) / כבוי ⇒ קריאה מלאה.
-      if (supEnforceOn && col === 'supporters' && allowedPurposes) {
+      // אכיפת-נתונים (dormant): עובד/ת מוגבל/ת ⇒ שאילתת אוסף-נאכף (supporters/events)
+      // מסוננת ב-skey (Rules דוחים list לא-מסונן). מנהל/בעלים (null) / כבוי ⇒ קריאה מלאה.
+      if (supEnforceOn && (SUP_KEYED_COLS as readonly string[]).includes(col) && allowedPurposes) {
         return getDocs(query(collection(db, scopedCol(col)), where('skey', 'in', supAllowedKeys(allowedPurposes))));
       }
       return getDocs(collection(db, scopedCol(col)));
@@ -440,11 +451,12 @@ export async function pullAll(dek?: CryptoKey | null): Promise<Db | null> {
   );
   for (let i = 0; i < ENTITY_COLLECTIONS.length; i++) {
     const col = ENTITY_COLLECTIONS[i];
+    const keyed = (SUP_KEYED_COLS as readonly string[]).includes(col);
     raw[col] = await Promise.all(
       snaps[i].docs.map(async (d) => {
         const data = dek ? await decryptDoc(d.data(), dek) : d.data();
-        // קילוף skey (plaintext, לא-מוצפן) רק ממסמכי-תומכים — no-op בשאר האוספים.
-        return { ...(col === 'supporters' ? stripSupKey(data as Record<string, unknown>) : data), id: d.id };
+        // קילוף skey (plaintext, לא-מוצפן) רק מאוספים-נאכפים — no-op בשאר.
+        return { ...(keyed ? stripSupKey(data as Record<string, unknown>) : data), id: d.id };
       }),
     );
   }
@@ -492,13 +504,13 @@ export function subscribeAll(
   dek?: CryptoKey | null,
 ): () => void {
   const db = requireDb();
-  // אכיפת-תומכים (dormant): קילוף skey ממסמכי-תומכים; no-op בשאר האוספים.
+  // אכיפת-נתונים (dormant): קילוף skey מאוספים-נאכפים; no-op בשאר האוספים.
   const clean = (col: string, data: Record<string, unknown>) =>
-    col === 'supporters' ? stripSupKey(data) : data;
+    (SUP_KEYED_COLS as readonly string[]).includes(col) ? stripSupKey(data) : data;
   const unsubs = ENTITY_COLLECTIONS.map((col) =>
     onSnapshot(
-      // עובד/ת מוגבל/ת ⇒ מנוי supporters מסונן ב-skey (Rules דוחים list לא-מסונן).
-      supEnforceOn && col === 'supporters' && allowedPurposes
+      // עובד/ת מוגבל/ת ⇒ מנוי אוסף-נאכף מסונן ב-skey (Rules דוחים list לא-מסונן).
+      supEnforceOn && (SUP_KEYED_COLS as readonly string[]).includes(col) && allowedPurposes
         ? query(collection(db, scopedCol(col)), where('skey', 'in', supAllowedKeys(allowedPurposes)))
         : collection(db, scopedCol(col)),
       (snap) => {

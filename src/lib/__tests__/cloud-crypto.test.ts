@@ -58,7 +58,7 @@ describe('🔐 ratchet — הצפנת-ענן doc-level', () => {
 
   it('🛡 הגנת-מקור: נתיב ה-dek-נעדר בסנכרון ביט-זהה להיום', () => {
     // pushDiff/pullAll/subscribeAll מקבלים dek אופציונלי
-    expect(cloudSrc).toMatch(/pushDiff\(diff: DbDiff, dek\?: CryptoKey \| null\)/);
+    expect(cloudSrc).toMatch(/pushDiff\(diff: DbDiff, dek\?: CryptoKey \| null/);
     expect(cloudSrc).toMatch(/pullAll\(dek\?: CryptoKey \| null\)/);
     expect(cloudSrc).toMatch(/dek\?: CryptoKey \| null,/); // subscribeAll
     // כשאין dek — הנתיב הישן: toPlain בכתיבה, data() גולמי בקריאה, early-return בהאזנה
@@ -80,6 +80,6 @@ describe('🔐 ratchet — הצפנת-ענן doc-level', () => {
   it('🛡 הגנת-מקור: מיגרציית-ההצפנה חוזרת על נתיב ה-push הבדוק (pushDiff+fullDbDiff+dek)', () => {
     // encryptExistingCloud לא ממציא הצפנה — משתמש ב-pushDiff(fullDbDiff(db), dek)
     // שכבר מוגן ratchet, כך שכל מסמך מוצפן דרך אותו קוד בדוק.
-    expect(cloudSrc).toContain('await pushDiff(fullDbDiff(db), dek);');
+    expect(cloudSrc).toContain('await pushDiff(fullDbDiff(db), dek, supKeyMapOf(db.supporters));');
   });
 });

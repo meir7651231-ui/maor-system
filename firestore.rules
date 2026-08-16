@@ -131,7 +131,7 @@ service cloud.firestore {
     // **פרט לאוסף-התרומות** (מסלול-B): קריאתו נאכפת פר-ייעוד במאץ' הייעודי למטה.
     match /orgs/{slug}/{col}/{docId} {
       allow write: if superAdmin() || orgMember(slug);
-      allow read: if (superAdmin() || orgMember(slug)) && col != 'donations' && col != 'supporters';
+      allow read: if (superAdmin() || orgMember(slug)) && col != 'donations' && col != 'supporters' && col != 'events';
     }
 
     // מסלול-B — אוסף-התרומות הנפרד: כתיבה=חבר (מכוסה גם למעלה); **קריאה פר-ייעוד**:
@@ -150,6 +150,15 @@ service cloud.firestore {
       // תאימות-לאחור קריטית: מסמך-תומך שטרם עבר מיגרציה (בלי skey) ⇒ ברירת-מחדל
       // '_shared_' ⇒ גלוי לכל חבר. כך פרסום-ה-Rules **אינו שובר** ארגון שלא הדליק
       // אכיפה/לא הריץ מיגרציה (הנפוץ). רק מסמך עם skey-אמת נאכף פר-ייעוד.
+      allow read: if superAdmin() || orgManager(slug)
+        || memberSeesSupporter(slug, resource.data.get('skey', '_shared_'));
+    }
+
+    // אכיפת-לוח (15.8) — אירוע-מעקב מקושר-תומך נושא את מפתח-התומך (skey), כדי
+    // ששם-התורם בלוח לא ידלוף לעובדת אחרת. אותה סמנטיקה כמו התומכים: skey חסר
+    // (אירוע כללי/טרם-מיגרציה) ⇒ '_shared_' ⇒ גלוי לכל חבר (הלוח הכללי לא נשבר).
+    match /orgs/{slug}/events/{id} {
+      allow write: if superAdmin() || orgMember(slug);
       allow read: if superAdmin() || orgManager(slug)
         || memberSeesSupporter(slug, resource.data.get('skey', '_shared_'));
     }

@@ -13,8 +13,9 @@
 import type { Db } from '../types/domain';
 import { diffDb, emptyDiff, ENTITY_COLLECTIONS, fullDbDiff, stripSupporterDonations, type DbDiff } from '../lib/cloud-diff';
 import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
-import { donationSplitActive, pullAll, pushDiff, pushDonations, subscribeAll, type RemotePartial } from '../lib/cloud';
+import { donationSplitActive, pullAll, pushDiff, pushDonations, subscribeAll, supEnforceActive, type RemotePartial } from '../lib/cloud';
 import { donationPartitionDiff } from '../lib/donationPartition';
+import { supKeyMapOf } from '../lib/supporterPartition';
 
 /**
  * מסלול-B — דחיפה מפוצלת-מודעת. במצב-כבוי: pushDiff רגיל (ביט-זהה). במצב-פיצול:
@@ -22,12 +23,15 @@ import { donationPartitionDiff } from '../lib/donationPartition';
  * מטפל בעצמו ב-diff ריק (כולל מקרה שרק ייעוד-תרומה השתנה ⇒ diff-ישויות ריק).
  */
 async function pushSplitAware(prevSups: Db['supporters'], nextSups: Db['supporters'], diff: DbDiff): Promise<void> {
+  // אכיפת-נתונים (dormant): מפת spId→skey לגזירת מפתח-אירוע בדחיפה. כבוי ⇒ מפה
+  // ריקה, ו-pushDiff לא מזריק skey (ביט-זהה). נבנית מהתומכים-שאחרי-השינוי.
+  const supKeyMap = supEnforceActive() ? supKeyMapOf(nextSups) : new Map<string, string>();
   if (!donationSplitActive()) {
-    if (!emptyDiff(diff)) await pushDiff(diff, cloudDek);
+    if (!emptyDiff(diff)) await pushDiff(diff, cloudDek, supKeyMap);
     return;
   }
   const stripped = stripSupporterDonations(diff);
-  if (!emptyDiff(stripped)) await pushDiff(stripped, cloudDek);
+  if (!emptyDiff(stripped)) await pushDiff(stripped, cloudDek, supKeyMap);
   const dd = donationPartitionDiff(prevSups, nextSups);
   if (dd.sets.length || dd.deletes.length) await pushDonations(dd, cloudDek);
 }

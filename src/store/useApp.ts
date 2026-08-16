@@ -2514,8 +2514,9 @@ export const useApp = create<AppState>()((set, get) => {
       const mod = cloudMod;
       if (!mod) throw new Error('הענן אינו מחובר — התחברו לענן ונסו שוב');
       await exportBackupFile(get().db); // רשת-ביטחון לפני כתיבה לענן
-      const n = await mod.migrateSupportersToKeyed(get().db.supporters, mod.getCloudDek());
-      get().toast('✓ ' + n + ' תומכים סומנו בייעוד — כעת אפשר להדליק את האכיפה בקונפיג');
+      // seed skey לתומכים **ולאירועי-הלוח** (שם-תורם באירוע לא ידלוף לעובדת אחרת).
+      const n = await mod.migrateSupportersToKeyed(get().db.supporters, get().db.events, mod.getCloudDek());
+      get().toast('✓ ' + n + ' רשומות סומנו בייעוד — כעת אפשר להדליק את האכיפה בקונפיג');
       return n;
     },
 

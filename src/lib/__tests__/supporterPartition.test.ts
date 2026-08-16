@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { Supporter } from '../../types/domain';
-import { SHARED_SUP_KEY, supAllowedKeys, supKeyOf, stripSupKey } from '../supporterPartition';
+import { SHARED_SUP_KEY, docSkey, supAllowedKeys, supKeyMapOf, supKeyOf, stripSupKey } from '../supporterPartition';
 
 describe('supKeyOf — מפתח-הפירוק פר-תורם (forWho)', () => {
   it('forWho קיים ⇒ הערך המנוקה', () => {
@@ -30,6 +30,26 @@ describe('supAllowedKeys — ערכי-שאילתה לעובד/ת מוגבל/ת',
     expect(keys.length).toBe(30);
     expect(keys[29]).toBe(SHARED_SUP_KEY);
     expect(keys.slice(0, 29)).toEqual(many.slice(0, 29));
+  });
+});
+
+describe('docSkey — מפתח פר-אוסף (תומכים/אירועים)', () => {
+  const map = supKeyMapOf([
+    { id: 'sp1', forWho: 'חתונות' },
+    { id: 'sp2', forWho: '' },
+  ]);
+  it('supporters ⇒ forWho של המסמך עצמו', () => {
+    expect(docSkey('supporters', { forWho: 'קמחא' }, map)).toBe('קמחא');
+    expect(docSkey('supporters', { forWho: '' }, map)).toBe(SHARED_SUP_KEY);
+  });
+  it('events מקושר-תומך ⇒ מפתח-התומך; ללא-קישור/תומך-משותף ⇒ משותף', () => {
+    expect(docSkey('events', { spId: 'sp1' }, map)).toBe('חתונות'); // תומך-חתונות
+    expect(docSkey('events', { spId: 'sp2' }, map)).toBe(SHARED_SUP_KEY); // תומך בלי ייעוד
+    expect(docSkey('events', { spId: 'ghost' }, map)).toBe(SHARED_SUP_KEY); // תומך לא-קיים
+    expect(docSkey('events', {}, map)).toBe(SHARED_SUP_KEY); // אירוע כללי (בלי spId)
+  });
+  it('אוסף לא-נאכף ⇒ מחרוזת-ריקה (בלי הזרקת skey)', () => {
+    expect(docSkey('families', { forWho: 'x' }, map)).toBe('');
   });
 });
 

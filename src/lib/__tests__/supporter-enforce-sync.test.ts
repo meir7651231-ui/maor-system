@@ -15,19 +15,20 @@ describe('🔒 ratchet — אכיפת-תומכים dormant (פאזה-2)', () => 
     expect(cloudSrc.match(/supEnforceOn = /g)?.length).toBe(2); // ההשמה-ההתחלתית + בתוך ה-setter
   });
 
-  it('דחיפה: skey מוזרק רק לתומכים ורק כשהאכיפה דלוקה (אחרת ביט-זהה)', () => {
-    expect(cloudSrc).toContain("supEnforceOn && s.col === 'supporters'");
-    expect(cloudSrc).toContain("skey: supKeyOf(s.data as Pick<Supporter, 'forWho'>)");
+  it('דחיפה: skey מוזרק לאוספים-נאכפים (supporters+events) רק כשהאכיפה דלוקה', () => {
+    expect(cloudSrc).toContain('supEnforceOn && (SUP_KEYED_COLS as readonly string[]).includes(s.col)');
+    expect(cloudSrc).toContain('skey: docSkey(s.col, s.data as Record<string, unknown>, supKeyBySpId)');
   });
 
-  it('משיכה/מנוי: שאילתת-supporters מסוננת ב-skey לעובד/ת מוגבל/ת; skey מקולף', () => {
-    expect(cloudSrc).toContain("supEnforceOn && col === 'supporters' && allowedPurposes");
+  it('משיכה/מנוי: שאילתת אוסף-נאכף מסוננת ב-skey לעובד/ת מוגבל/ת; skey מקולף', () => {
+    expect(cloudSrc).toContain("(SUP_KEYED_COLS as readonly string[]).includes(col) && allowedPurposes");
     expect(cloudSrc).toContain("where('skey', 'in', supAllowedKeys(allowedPurposes))");
-    expect(cloudSrc).toContain("col === 'supporters' ? stripSupKey(");
+    expect(cloudSrc).toContain('(SUP_KEYED_COLS as readonly string[]).includes(col) ? stripSupKey(');
   });
 
-  it('מיגרציה: seed של skey לכל התומכים (אידמפוטנטי, לא-הרסי)', () => {
+  it('מיגרציה: seed של skey לתומכים **ולאירועים** (אידמפוטנטי, לא-הרסי)', () => {
     expect(cloudSrc).toContain('export async function migrateSupportersToKeyed(');
     expect(cloudSrc).toContain('skey: supKeyOf(sp)');
+    expect(cloudSrc).toContain("skey: docSkey('events'");
   });
 });

@@ -29,6 +29,31 @@ export function supKeyOf(sp: Pick<Supporter, 'forWho'>): string {
 }
 
 /**
+ * האוספים הנאכפים פר-skey: `supporters` (הייעוד עליו) + `events` (אירוע-מעקב
+ * מקושר-תומך נושא את מפתח-התומך, כדי ששם-התורם בלוח לא ידלוף לעובדת אחרת).
+ */
+export const SUP_KEYED_COLS = ['supporters', 'events'] as const;
+
+/**
+ * מפתח-ה-skey של מסמך באוסף נאכף (טהור). `supporters` ⇒ forWho שלו. `events` ⇒
+ * מפתח-התומך-המקושר (spId→forWho דרך המפה); אירוע ללא-תומך (כללי/משפחה) = משותף.
+ * אוסף לא-נאכף ⇒ '' (הקורא לא יזריק skey). המפה = spId→skey (נבנית מהתומכים).
+ */
+export function docSkey(col: string, data: Record<string, unknown>, supKeyBySpId: Map<string, string>): string {
+  if (col === 'supporters') return supKeyOf(data as Pick<Supporter, 'forWho'>);
+  if (col === 'events') {
+    const spId = typeof data.spId === 'string' ? data.spId : '';
+    return spId ? (supKeyBySpId.get(spId) ?? SHARED_SUP_KEY) : SHARED_SUP_KEY;
+  }
+  return '';
+}
+
+/** מפת spId→skey מרשימת-התומכים — לגזירת מפתח-אירוע בדחיפה/מיגרציה. */
+export function supKeyMapOf(supporters: Pick<Supporter, 'id' | 'forWho'>[]): Map<string, string> {
+  return new Map(supporters.map((sp) => [sp.id, supKeyOf(sp)]));
+}
+
+/**
  * ערכי שאילתת-ה-`where('skey','in',…)` לעובד/ת מוגבל/ת: הייעודים המותרים (מנוקים)
  * + המפתח-המשותף. Firestore מגביל `in` ל-30 ערכים ⇒ 29 ייעודים + המשותף. ריקים
  * מסוננים (לא ערך-מפתח חוקי). דטרמיניסטי (סדר-הקלט נשמר) — נוח לבדיקה.

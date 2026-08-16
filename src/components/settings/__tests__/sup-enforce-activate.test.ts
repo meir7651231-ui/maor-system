@@ -30,7 +30,7 @@ describe('🔒 ratchet — הפעלת אכיפת-תומכים', () => {
   it('מיגרציה: runSupEnforceMigration קורא migrateSupportersToKeyed אחרי גיבוי', () => {
     const body = storeSrc.match(/async runSupEnforceMigration\(\)[\s\S]*?\n {4}\},/)![0];
     expect(body).toContain('exportBackupFile(get().db)');
-    expect(body).toContain('migrateSupportersToKeyed(get().db.supporters, mod.getCloudDek())');
+    expect(body).toContain('migrateSupportersToKeyed(get().db.supporters, get().db.events, mod.getCloudDek())');
   });
 
   it('חיווט-סנכרון: setSupEnforce נקרא ליד setDonationSplit (connectCloud + applyCloudDoc)', () => {
