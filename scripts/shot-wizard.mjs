@@ -40,7 +40,7 @@ const CONFIG = {
 };
 
 const browser = await chromium.launch({ executablePath: CHROME });
-const page = await browser.newPage({ viewport: { width: 1280, height: 3000 }, deviceScaleFactor: 2 });
+const page = await browser.newPage({ viewport: { width: 1280, height: 5600 }, deviceScaleFactor: 2 });
 const errs = [];
 page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
 page.on('pageerror', (e) => errs.push(String(e)));
@@ -57,11 +57,15 @@ const box = await page.$('#wz-site');
 if (box) await box.scrollIntoViewIfNeeded();
 await page.waitForTimeout(400);
 await page.screenshot({ path: '/tmp/wizard-site.png', fullPage: false });
-if (box) { const b = await box.boundingBox(); if (b) await page.screenshot({ path: '/tmp/wizard-site-crop.png', clip: { x: b.x, y: Math.max(0, b.y), width: b.width, height: Math.min(b.height, 2600) } }); }
+if (box) { const b = await box.boundingBox(); if (b) await page.screenshot({ path: '/tmp/wizard-site-crop.png', clip: { x: b.x, y: Math.max(0, b.y), width: b.width, height: Math.min(b.height, 5400) } }); }
 // אימות round-trip: הקלדת יעד חדש בשדה-הקמפיין ⇒ נשמר ב-config.site.campaign.goal
 const goalInput = await page.$('#wz-site input[type="number"]');
 if (goalInput) { await goalInput.fill('600000'); await page.waitForTimeout(400); }
 const saved = await page.evaluate(() => { try { return JSON.parse(localStorage.getItem('maor_org_config')).site?.campaign?.goal; } catch { return null; } });
-console.log('found #wz-site:', !!box, '· round-trip goal =', saved, '· console errors:', errs.length ? errs.slice(0, 3) : 'none');
+// אימות עורך-הרשימות: לחיצה על "➕ שירות" ⇒ config.site.services גדל
+const addBtn = await page.$('#wz-site button:has-text("➕ שירות")');
+if (addBtn) { await addBtn.click(); await page.waitForTimeout(300); }
+const svcLen = await page.evaluate(() => { try { return (JSON.parse(localStorage.getItem('maor_org_config')).site?.services ?? []).length; } catch { return -1; } });
+console.log('found #wz-site:', !!box, '· round-trip unitAmount(first-num) =', saved, '· services after ➕ =', svcLen, '· console errors:', errs.length ? errs.slice(0, 3) : 'none');
 await browser.close();
 server.close();

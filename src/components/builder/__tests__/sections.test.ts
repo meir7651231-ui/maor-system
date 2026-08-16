@@ -65,7 +65,7 @@ describe('🌐 ratchet — מקטע האתר-הציבורי באשף (עריכת
     expect(wizSrc).toContain("searchParams.set('site'");
   });
   it('חושף את השדות המרכזיים: כותרות · קמפיין (יעד/נאסף/תאריך) · קשר · חדשות/סיפור', () => {
-    for (const key of ['heroTitle', 'titleAccent', 'tagline', 'ticker', 'microCopy', 'news', 'storyTitle', 'story']) {
+    for (const key of ['heroTitle', 'titleAccent', 'tagline', 'ticker', 'microCopy', 'news', 'storyTitle', 'story', 'brandLine', 'heroBadge', 'servicesHeading', 'storyTitleAccent', 'storyBadge', 'donateNote']) {
       expect(wizSrc).toContain(`setSiteText('${key}'`);
     }
     // קמפיין
@@ -77,5 +77,22 @@ describe('🌐 ratchet — מקטע האתר-הציבורי באשף (עריכת
     expect(wizSrc).toContain('setSiteContact({ whatsapp:');
     expect(wizSrc).toContain('setSiteContact({ email:');
     expect(wizSrc).toContain('setSite({ donateUrl:');
+  });
+  it('עריכת-מקסימום: עורך-רשימות גנרי (הוספה/מחיקה/סדר) לכל הרשימות של האתר', () => {
+    // מנוע עורך-הרשימות
+    expect(wizSrc).toContain('function ListEditor');
+    // כל רשימה מחווטת ל-setSite עם המפתח שלה
+    for (const key of ['services', 'stats', 'timeline', 'paymentMethods', 'testimonials', 'tiers', 'events', 'faq']) {
+      expect(wizSrc).toContain(`setSite({ ${key}: v })`);
+    }
+    // אובייקטים מקוננים
+    expect(wizSrc).toContain('setFounder(');
+    expect(wizSrc).toContain('setCalcF(');
+    expect(wizSrc).toContain('setGrowth(');
+    expect(wizSrc).toContain('setTransp(');
+    // רשימות-מחרוזת (שורה-לכל-פריט): גלריה + מרקיזה + מדליונים
+    expect(wizSrc).toContain('setSite({ gallery:');
+    expect(wizSrc).toContain('setSite({ marquee:');
+    expect(wizSrc).toContain('setTransp({ badges:');
   });
 });

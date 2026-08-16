@@ -6,13 +6,27 @@
  * שהלקוח רואה את המערכת שלו נולדת מולו. בסיום: "📦 צור חבילה" מוריד
  * config.json (כולל features + terms) + דף מסירה בעברית.
  */
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
 import { clearConfigOverride, featureOn, integrationSetting, normalizeConfig, termOf } from '../../lib/config';
 import { VERTICAL_PACKS, applyVerticalPack } from '../../lib/verticalPacks';
 import { ALL_MODULES, MODULE_LABELS as MODULE_SHORT } from '../platform/lib';
 import { computeQuote, readPrices, shekel, writePrices, SIZE_LABELS, type DealMode, type OrgSize, type PriceTable } from '../../lib/pricing';
-import { DEFAULT_CONFIG, type LocalizedText, type ModuleKey, type OrgConfig, type PublicSiteContent } from '../../types/config';
+import {
+  DEFAULT_CONFIG,
+  type LocalizedText,
+  type ModuleKey,
+  type OrgConfig,
+  type PublicSiteContent,
+  type PublicSiteEvent,
+  type PublicSiteFaq,
+  type PublicSiteMilestone,
+  type PublicSitePayMethod,
+  type PublicSiteService,
+  type PublicSiteStat,
+  type PublicSiteTestimonial,
+  type PublicSiteTier,
+} from '../../types/config';
 import { FEATURES, TERM_DEFS, type FeatureDef, type TermDef } from '../../types/features';
 import { Btn, Chip, Field, FormError, TextInput } from '../ui';
 import { buildHandoffHtml, downloadTextFile, INTEGRATION_LABELS, INTEGRATION_STATUS, liveAddons, THEME_LABELS } from './handoff';
@@ -240,6 +254,51 @@ function PriceRow(props: { label: string; value: number; onChange: (n: number) =
   );
 }
 
+/* עורך-רשימות גנרי לאתר-הציבורי: שורה לכל פריט + ↑↓ + 🗑 + "➕ הוספה".
+   כל פעולה בונה מערך חדש ומעבירה ל-onChange (⇒ setSite ⇒ patch — אותו live-apply). */
+const MINI_BTN: CSSProperties = { fontSize: 12, lineHeight: 1, padding: '3px 7px', borderRadius: 6, border: '1px solid var(--line)', background: 'var(--panel)', color: 'var(--ink-soft)', cursor: 'pointer' };
+const NUM_STYLE: CSSProperties = { width: '100%', boxSizing: 'border-box', fontSize: 13, padding: '6px 8px' };
+const TA_STYLE: CSSProperties = { width: '100%', boxSizing: 'border-box', fontSize: 13, padding: '6px 8px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--panel)', color: 'var(--ink)', fontFamily: 'inherit', resize: 'vertical', minHeight: 46 };
+
+/** כותרת-תת-קבוצה בעורך האתר-הציבורי. */
+function SubHead({ children }: { children: ReactNode }) {
+  return <div style={{ fontSize: 13, fontWeight: 700, margin: '12px 0 2px', borderTop: '1px solid var(--line-soft)', paddingTop: 10 }}>{children}</div>;
+}
+
+function ListEditor<T extends object>({ items, onChange, empty, addLabel, row }: {
+  items: T[];
+  onChange: (next: T[]) => void;
+  empty: () => T;
+  addLabel: string;
+  row: (item: T, set: (patch: Partial<T>) => void) => ReactNode;
+}) {
+  const setAt = (i: number, patch: Partial<T>) => onChange(items.map((it, j) => (j === i ? { ...it, ...patch } : it)));
+  const removeAt = (i: number) => onChange(items.filter((_, j) => j !== i));
+  const move = (i: number, dir: number) => {
+    const j = i + dir;
+    if (j < 0 || j >= items.length) return;
+    const next = items.slice();
+    const tmp = next[i]; next[i] = next[j]; next[j] = tmp;
+    onChange(next);
+  };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+      {items.map((it, i) => (
+        <div key={i} style={{ border: '1px solid var(--line-soft)', borderRadius: 8, padding: '6px 8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+            <span style={{ flex: 1, fontSize: 11, color: 'var(--ink-faint)' }}>#{i + 1}</span>
+            <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="הזז למעלה" style={MINI_BTN}>↑</button>
+            <button type="button" onClick={() => move(i, 1)} disabled={i === items.length - 1} aria-label="הזז למטה" style={MINI_BTN}>↓</button>
+            <button type="button" onClick={() => removeAt(i)} aria-label="מחיקה" style={{ ...MINI_BTN, color: '#b3362a' }}>🗑</button>
+          </div>
+          {row(it, (patch) => setAt(i, patch))}
+        </div>
+      ))}
+      <div><Btn onClick={() => onChange([...items, empty()])}>➕ {addLabel}</Btn></div>
+    </div>
+  );
+}
+
 export function BuilderWizard({ onClose }: { onClose: () => void }) {
   const config = useApp((s) => s.config);
   const setConfig = useApp((s) => s.setConfig);
@@ -332,6 +391,19 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
     setSite({ campaign: { ...wsite.campaign, ...p } });
   const setSiteContact = (p: Partial<NonNullable<PublicSiteContent['contact']>>) =>
     setSite({ contact: { ...wsite.contact, ...p } });
+  const setFounder = (p: Partial<NonNullable<PublicSiteContent['founder']>>) =>
+    setSite({ founder: { ...wsite.founder, ...p } });
+  const setCalcF = (p: Partial<NonNullable<PublicSiteContent['calc']>>) =>
+    setSite({ calc: { ...wsite.calc, ...p } });
+  const setGrowth = (p: Partial<NonNullable<PublicSiteContent['growth']>>) =>
+    setSite({ growth: { ...wsite.growth, ...p } });
+  const setTransp = (p: Partial<NonNullable<PublicSiteContent['transparency']>>) =>
+    setSite({ transparency: { ...wsite.transparency, ...p } });
+  const setSiteForm = (p: Partial<NonNullable<PublicSiteContent['contactForm']>>) =>
+    setSite({ contactForm: { ...wsite.contactForm, ...p } });
+  /** רשימות-מחרוזת (מרקיזה/מדליונים/הטבות/גלריה): "שורה לכל פריט". */
+  const heLines = (arr?: LocalizedText[]): string => (arr ?? []).map((v) => siteHe(v)).join('\n');
+  const toLines = (text: string): string[] => text.split('\n').map((s) => s.trim()).filter(Boolean);
   const previewSite = () => {
     try {
       const u = new URL(window.location.href);
@@ -1091,8 +1163,22 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
               </span>
             </div>
 
-            {/* טקסטים ראשיים (עברית; en/yi קיימים נשמרים) */}
-            <div style={{ fontSize: 13, fontWeight: 700, margin: '10px 0 2px' }}>✍️ טקסטים ראשיים</div>
+            {/* 🎨 מיתוג */}
+            <SubHead>🎨 מיתוג</SubHead>
+            <Field label="שורת-מותג (מתחת לשם, בניווט)">
+              <TextInput value={siteHe(wsite.brandLine)} onChange={(v) => setSiteText('brandLine', v)} placeholder="אור לאלמנה וליתום" />
+            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: 8 }}>
+              <Field label="אייקון">
+                <TextInput value={wsite.icon ?? ''} onChange={(v) => setSite({ icon: v || undefined })} placeholder="🕯️" />
+              </Field>
+              <Field label="תג מעל הכותרת (Hero)">
+                <TextInput value={siteHe(wsite.heroBadge)} onChange={(v) => setSiteText('heroBadge', v)} placeholder="2,800 משפחות איתנו היום" />
+              </Field>
+            </div>
+
+            {/* ✍️ טקסטים ראשיים (עברית; en/yi קיימים נשמרים) */}
+            <SubHead>✍️ טקסטים ראשיים</SubHead>
             <Field label="כותרת ראשית (Hero)">
               <TextInput value={siteHe(wsite.heroTitle)} onChange={(v) => setSiteText('heroTitle', v)} placeholder="הבית של" />
             </Field>
@@ -1109,82 +1195,263 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
               <TextInput value={siteHe(wsite.microCopy)} onChange={(v) => setSiteText('microCopy', v)} placeholder="כל ₪9 = ארוחה חמה לילד ♡" />
             </Field>
 
+            {/* 🧩 שירותים */}
+            <SubHead>🧩 שירותים (מה אנחנו עושות)</SubHead>
+            <Field label="כותרת הסעיף">
+              <TextInput value={siteHe(wsite.servicesHeading)} onChange={(v) => setSiteText('servicesHeading', v)} placeholder="שישה דרכים לחבק משפחה" />
+            </Field>
+            <ListEditor<PublicSiteService>
+              items={wsite.services ?? []}
+              onChange={(v) => setSite({ services: v })}
+              empty={() => ({ title: '' })}
+              addLabel="שירות"
+              row={(it, set) => (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '72px 1fr', gap: 6 }}>
+                    <Field label="אייקון"><TextInput value={it.icon ?? ''} onChange={(v) => set({ icon: v })} placeholder="🍞" /></Field>
+                    <Field label="כותרת"><TextInput value={siteHe(it.title)} onChange={(v) => set({ title: putHe(it.title, v) ?? '' })} /></Field>
+                  </div>
+                  <Field label="תיאור"><TextInput value={siteHe(it.text)} onChange={(v) => set({ text: putHe(it.text, v) })} /></Field>
+                </>
+              )}
+            />
+
+            {/* 📈 מספרים + גרף */}
+            <SubHead>📈 מספרים</SubHead>
+            <ListEditor<PublicSiteStat>
+              items={wsite.stats ?? []}
+              onChange={(v) => setSite({ stats: v })}
+              empty={() => ({ value: '', label: '' })}
+              addLabel="מספר"
+              row={(it, set) => (
+                <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr', gap: 6 }}>
+                  <Field label="ערך"><TextInput dir="ltr" value={it.value} onChange={(v) => set({ value: v })} placeholder="2,800" /></Field>
+                  <Field label="תווית"><TextInput value={siteHe(it.label)} onChange={(v) => set({ label: putHe(it.label, v) })} placeholder="משפחות בליווי" /></Field>
+                </div>
+              )}
+            />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <Field label="תווית גרף-הצמיחה">
+                <TextInput value={siteHe(wsite.growth?.label)} onChange={(v) => setGrowth({ label: putHe(wsite.growth?.label, v) })} placeholder="סלים · 12 חודשים" />
+              </Field>
+              <Field label="שינוי (טקסט)">
+                <TextInput value={wsite.growth?.delta ?? ''} onChange={(v) => setGrowth({ delta: v || undefined })} placeholder="+38% מהשנה שעברה" />
+              </Field>
+            </div>
+
+            {/* 🛡️ שקיפות ואמון */}
+            <SubHead>🛡️ שקיפות ואמון</SubHead>
+            <Field label="כותרת">
+              <TextInput value={siteHe(wsite.transparency?.heading)} onChange={(v) => setTransp({ heading: putHe(wsite.transparency?.heading, v) })} placeholder="כל שקל מתועד…" />
+            </Field>
+            <Field label="טקסט">
+              <TextInput value={siteHe(wsite.transparency?.text)} onChange={(v) => setTransp({ text: putHe(wsite.transparency?.text, v) })} />
+            </Field>
+            <Field label="מדליוני-אמון (שורה לכל אחד)">
+              <textarea style={TA_STYLE} value={heLines(wsite.transparency?.badges)} onChange={(e) => setTransp({ badges: toLines(e.target.value) })} placeholder={'ניהול תקין 2026\nאישור סעיף 46\nדו״ח שנתי פתוח'} />
+            </Field>
+
+            {/* 📖 סיפור + מייסד + ציר-זמן */}
+            <SubHead>📖 סיפור</SubHead>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <Field label="כותרת הסיפור"><TextInput value={siteHe(wsite.storyTitle)} onChange={(v) => setSiteText('storyTitle', v)} placeholder="24 שנה של בית חם." /></Field>
+              <Field label="מילה מודגשת"><TextInput value={siteHe(wsite.storyTitleAccent)} onChange={(v) => setSiteText('storyTitleAccent', v)} placeholder="וזה רק מתחיל." /></Field>
+            </div>
+            <Field label="הסיפור (פסקה)">
+              <textarea style={TA_STYLE} value={siteHe(wsite.story)} onChange={(e) => setSiteText('story', e.target.value)} placeholder="לפני 24 שנה…" />
+            </Field>
+            <Field label="צ׳יפ-ברכה">
+              <TextInput value={siteHe(wsite.storyBadge)} onChange={(v) => setSiteText('storyBadge', v)} placeholder="בברכת גדולי ישראל ♡" />
+            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <Field label="שם המייסד/ת"><TextInput value={siteHe(wsite.founder?.name)} onChange={(v) => setFounder({ name: putHe(wsite.founder?.name, v) })} placeholder="מרים לוצקין · מייסדת" /></Field>
+              <Field label="תמונת מייסד/ת (https)"><TextInput dir="ltr" value={wsite.founder?.photo ?? ''} onChange={(v) => setFounder({ photo: v || undefined })} placeholder="https://…jpg" /></Field>
+            </div>
+            <Field label="ציטוט המייסד/ת">
+              <TextInput value={siteHe(wsite.founder?.quote)} onChange={(v) => setFounder({ quote: putHe(wsite.founder?.quote, v) })} placeholder="חסד אמיתי זה לא לתת — זה להיות שם." />
+            </Field>
+            <div style={{ fontSize: 12, fontWeight: 600, margin: '6px 0 0', color: 'var(--ink-soft)' }}>ציר-זמן (אבני-דרך)</div>
+            <ListEditor<PublicSiteMilestone>
+              items={wsite.timeline ?? []}
+              onChange={(v) => setSite({ timeline: v })}
+              empty={() => ({ year: '', title: '' })}
+              addLabel="אבן-דרך"
+              row={(it, set) => (
+                <div style={{ display: 'grid', gridTemplateColumns: '72px 1fr', gap: 6 }}>
+                  <Field label="שנה"><TextInput dir="ltr" value={it.year} onChange={(v) => set({ year: v })} placeholder="2002" /></Field>
+                  <Field label="כותרת"><TextInput value={siteHe(it.title)} onChange={(v) => set({ title: putHe(it.title, v) ?? '' })} placeholder="ההתחלה" /></Field>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <Field label="הערה"><TextInput value={siteHe(it.note)} onChange={(v) => set({ note: putHe(it.note, v) })} placeholder="סל ראשון לשכנה" /></Field>
+                  </div>
+                </div>
+              )}
+            />
+
+            {/* 🧮 מחשבון */}
+            <SubHead>🧮 מחשבון-השפעה</SubHead>
+            <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr', gap: 8 }}>
+              <Field label="₪ ליחידה">
+                <input type="number" min={1} dir="ltr" value={wsite.calc?.unitAmount ?? ''} onChange={(e) => setCalcF({ unitAmount: e.target.value ? Math.max(1, Math.round(+e.target.value)) : undefined })} style={NUM_STYLE} />
+              </Field>
+              <Field label="שם היחידה">
+                <TextInput value={siteHe(wsite.calc?.unit)} onChange={(v) => setCalcF({ unit: putHe(wsite.calc?.unit, v) })} placeholder="ארוחות חמות" />
+              </Field>
+            </div>
+            <Field label="הערת המחשבון">
+              <TextInput value={siteHe(wsite.calc?.note)} onChange={(v) => setCalcF({ note: putHe(wsite.calc?.note, v) })} placeholder="כל ₪9 = ארוחה חמה לילד ♡" />
+            </Field>
+
             {/* 📊 קמפיין */}
-            <div style={{ fontSize: 13, fontWeight: 700, margin: '12px 0 2px' }}>📊 קמפיין</div>
+            <SubHead>📊 קמפיין</SubHead>
             <Field label="כותרת הקמפיין (מעל בוחר-התרומה)">
               <TextInput value={siteHe(camp.title)} onChange={(v) => setCamp({ title: putHe(camp.title, v) })} placeholder="בחרו את התרומה שלכם" />
             </Field>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <Field label="🎯 יעד הגיוס (₪)">
-                <input
-                  type="number" min={0} dir="ltr"
-                  value={camp.goal ?? ''}
-                  onChange={(e) => setCamp({ goal: e.target.value ? Math.max(0, Math.round(+e.target.value)) : undefined })}
-                  style={{ width: '100%', fontSize: 13, padding: '6px 8px' }}
-                />
+                <input type="number" min={0} dir="ltr" value={camp.goal ?? ''} onChange={(e) => setCamp({ goal: e.target.value ? Math.max(0, Math.round(+e.target.value)) : undefined })} style={NUM_STYLE} />
               </Field>
               <Field label="💰 נאסף עד כה (₪)">
-                <input
-                  type="number" min={0} dir="ltr"
-                  value={camp.raised ?? ''}
-                  onChange={(e) => setCamp({ raised: e.target.value ? Math.max(0, Math.round(+e.target.value)) : undefined })}
-                  style={{ width: '100%', fontSize: 13, padding: '6px 8px' }}
-                />
+                <input type="number" min={0} dir="ltr" value={camp.raised ?? ''} onChange={(e) => setCamp({ raised: e.target.value ? Math.max(0, Math.round(+e.target.value)) : undefined })} style={NUM_STYLE} />
               </Field>
             </div>
             <Field label="📅 תאריך יעד (סוף הקמפיין · לספירה לאחור)">
-              <input
-                type="date" dir="ltr"
-                value={camp.end ?? ''}
-                onChange={(e) => setCamp({ end: e.target.value || undefined })}
-                style={{ width: '100%', fontSize: 13, padding: '6px 8px' }}
-              />
+              <input type="date" dir="ltr" value={camp.end ?? ''} onChange={(e) => setCamp({ end: e.target.value || undefined })} style={NUM_STYLE} />
             </Field>
 
-            {/* 📞 פרטי קשר */}
-            <div style={{ fontSize: 13, fontWeight: 700, margin: '12px 0 2px' }}>📞 פרטי קשר</div>
-            <Field label="טלפונים (מופרדים בפסיק)">
-              <TextInput
-                dir="ltr"
-                value={phonesText}
-                onChange={(v) => setSiteContact({ phones: v.split(/[,\n]/).map((s) => s.trim()).filter(Boolean) })}
-                placeholder="02-000-0000, 058-000-0000"
-              />
-            </Field>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <Field label="וואטסאפ">
-                <TextInput dir="ltr" value={wsite.contact?.whatsapp ?? ''} onChange={(v) => setSiteContact({ whatsapp: v })} placeholder="058-000-0000" />
-              </Field>
-              <Field label="אימייל">
-                <TextInput dir="ltr" value={wsite.contact?.email ?? ''} onChange={(v) => setSiteContact({ email: v })} placeholder="info@org.org.il" />
-              </Field>
-            </div>
-            <Field label="כתובת">
-              <TextInput value={siteHe(wsite.contact?.address)} onChange={(v) => setSiteContact({ address: putHe(wsite.contact?.address, v) })} placeholder="רחוב… , עיר" />
-            </Field>
+            {/* 💳 בוחר-תרומה */}
+            <SubHead>💳 בוחר-תרומה</SubHead>
             <Field label="🔗 כפתור התרומה (https) — קישור לעמוד-הסליקה">
               <TextInput dir="ltr" value={wsite.donateUrl ?? ''} onChange={(v) => setSite({ donateUrl: v })} placeholder="https://pay.example/give" />
             </Field>
             <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
               ריק — הכפתור נופל אוטומטית לקישור-התשלום מ«הרחבות ← 💳 תשלומים» אם הוגדר.
             </div>
+            <Field label="הערת-תחתית">
+              <TextInput value={siteHe(wsite.donateNote)} onChange={(v) => setSiteText('donateNote', v)} placeholder="תרומות מוכרות למס לפי סעיף 46 · ביטול בכל רגע" />
+            </Field>
+            <div style={{ fontSize: 12, fontWeight: 600, margin: '6px 0 0', color: 'var(--ink-soft)' }}>אמצעי-תשלום</div>
+            <ListEditor<PublicSitePayMethod>
+              items={wsite.paymentMethods ?? []}
+              onChange={(v) => setSite({ paymentMethods: v })}
+              empty={() => ({ label: '', detail: '' })}
+              addLabel="אמצעי-תשלום"
+              row={(it, set) => (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 6 }}>
+                    <Field label="שם"><TextInput value={siteHe(it.label)} onChange={(v) => set({ label: putHe(it.label, v) ?? '' })} placeholder="אונליין" /></Field>
+                    <Field label="פרטים"><TextInput value={siteHe(it.detail)} onChange={(v) => set({ detail: putHe(it.detail, v) ?? '' })} placeholder="אשראי / ביט / PayPal" /></Field>
+                  </div>
+                  <Chip on={!!it.ltr} onClick={() => set({ ltr: !it.ltr })}>{it.ltr ? '↤ שמאל (LTR)' : 'יישור אוטומטי'}</Chip>
+                </>
+              )}
+            />
 
-            {/* 📰 חדשות + סיפור */}
-            <div style={{ fontSize: 13, fontWeight: 700, margin: '12px 0 2px' }}>📰 חדשות + סיפור</div>
+            {/* 💬 עדויות */}
+            <SubHead>💬 עדויות</SubHead>
+            <ListEditor<PublicSiteTestimonial>
+              items={wsite.testimonials ?? []}
+              onChange={(v) => setSite({ testimonials: v })}
+              empty={() => ({ quote: '' })}
+              addLabel="עדות"
+              row={(it, set) => (
+                <>
+                  <Field label="ציטוט"><TextInput value={siteHe(it.quote)} onChange={(v) => set({ quote: putHe(it.quote, v) ?? '' })} /></Field>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                    <Field label="שם"><TextInput value={it.author ?? ''} onChange={(v) => set({ author: v })} placeholder="ר׳" /></Field>
+                    <Field label="תפקיד/מיקום"><TextInput value={siteHe(it.role)} onChange={(v) => set({ role: putHe(it.role, v) })} placeholder="אם לשלושה · ירושלים" /></Field>
+                  </div>
+                </>
+              )}
+            />
+
+            {/* 🎯 מסלולי-שותפות */}
+            <SubHead>🎯 מסלולי-שותפות</SubHead>
+            <ListEditor<PublicSiteTier>
+              items={wsite.tiers ?? []}
+              onChange={(v) => setSite({ tiers: v })}
+              empty={() => ({ name: '' })}
+              addLabel="מסלול"
+              row={(it, set) => (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 90px', gap: 6 }}>
+                    <Field label="שם"><TextInput value={siteHe(it.name)} onChange={(v) => set({ name: putHe(it.name, v) ?? '' })} placeholder="שותפה ♡" /></Field>
+                    <Field label="סכום (₪)"><input type="number" min={0} dir="ltr" value={it.amount ?? ''} onChange={(e) => set({ amount: e.target.value ? Math.max(0, Math.round(+e.target.value)) : undefined })} style={NUM_STYLE} /></Field>
+                    <Field label="לתקופה"><TextInput value={siteHe(it.period)} onChange={(v) => set({ period: putHe(it.period, v) })} placeholder="/ חודש" /></Field>
+                  </div>
+                  <Field label="הטבות (שורה לכל אחת)">
+                    <textarea style={TA_STYLE} value={heLines(it.perks)} onChange={(e) => set({ perks: toLines(e.target.value) })} placeholder={'2 סלים שבועיים\nשם על לוח השותפים'} />
+                  </Field>
+                  <Chip on={!!it.featured} onClick={() => set({ featured: !it.featured })}>{it.featured ? '★ מודגש (הכי אהוב)' : 'רגיל'}</Chip>
+                </>
+              )}
+            />
+
+            {/* 📅 אירועים */}
+            <SubHead>📅 אירועים</SubHead>
+            <ListEditor<PublicSiteEvent>
+              items={wsite.events ?? []}
+              onChange={(v) => setSite({ events: v })}
+              empty={() => ({ title: '' })}
+              addLabel="אירוע"
+              row={(it, set) => (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr', gap: 6 }}>
+                    <Field label="תאריך (תצוגה)"><TextInput value={it.date ?? ''} onChange={(v) => set({ date: v })} placeholder="14 ספט׳" /></Field>
+                    <Field label="כותרת"><TextInput value={siteHe(it.title)} onChange={(v) => set({ title: putHe(it.title, v) ?? '' })} placeholder="מגבית ערב ראש השנה" /></Field>
+                  </div>
+                  <Field label="פרטים"><TextInput value={siteHe(it.meta)} onChange={(v) => set({ meta: putHe(it.meta, v) })} placeholder="שידור חי · כל הארץ" /></Field>
+                </>
+              )}
+            />
+
+            {/* ❓ שאלות ותשובות */}
+            <SubHead>❓ שאלות נפוצות</SubHead>
+            <ListEditor<PublicSiteFaq>
+              items={wsite.faq ?? []}
+              onChange={(v) => setSite({ faq: v })}
+              empty={() => ({ q: '', a: '' })}
+              addLabel="שאלה"
+              row={(it, set) => (
+                <>
+                  <Field label="שאלה"><TextInput value={siteHe(it.q)} onChange={(v) => set({ q: putHe(it.q, v) ?? '' })} placeholder="לאן הולך הכסף שלי?" /></Field>
+                  <Field label="תשובה"><textarea style={TA_STYLE} value={siteHe(it.a)} onChange={(e) => set({ a: putHe(it.a, e.target.value) ?? '' })} /></Field>
+                </>
+              )}
+            />
+
+            {/* 🖼️ גלריה + מרקיזה */}
+            <SubHead>🖼️ גלריה ומרקיזה</SubHead>
+            <Field label="תמונות גלריה (כתובת https · שורה לכל תמונה)">
+              <textarea style={TA_STYLE} dir="ltr" value={(wsite.gallery ?? []).join('\n')} onChange={(e) => setSite({ gallery: toLines(e.target.value) })} placeholder={'https://…/1.jpg\nhttps://…/2.jpg'} />
+            </Field>
+            <Field label="מרקיזה נגללת (שורה לכל פריט)">
+              <textarea style={TA_STYLE} value={heLines(wsite.marquee)} onChange={(e) => setSite({ marquee: toLines(e.target.value) })} placeholder={'סל למשפחה = ₪90\n92% מכל שקל — ישירות למשפחות'} />
+            </Field>
+
+            {/* 📰 חדשות */}
+            <SubHead>📰 חדשות</SubHead>
             <Field label="עדכון «מה חדש»">
               <TextInput value={siteHe(wsite.news)} onChange={(v) => setSiteText('news', v)} placeholder="נפתחה ההרשמה למלגות…" />
             </Field>
-            <Field label="כותרת הסיפור">
-              <TextInput value={siteHe(wsite.storyTitle)} onChange={(v) => setSiteText('storyTitle', v)} placeholder="24 שנה של בית חם." />
-            </Field>
-            <Field label="הסיפור (פסקה)">
-              <TextInput value={siteHe(wsite.story)} onChange={(v) => setSiteText('story', v)} placeholder="לפני 24 שנה…" />
-            </Field>
 
-            <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 10 }}>
-              רשימות מרובות (שירותים · שאלות-ותשובות · ציר-זמן · עדויות · מסלולים · אמצעי-תשלום) +
-              גלריית-תמונות נערכות ישירות בקובץ הקונפיג (בלוק <code>site</code>). כאן — התוכן שמתחלף הכי הרבה.
+            {/* 📞 פרטי קשר */}
+            <SubHead>📞 פרטי קשר</SubHead>
+            <Field label="טלפונים (מופרדים בפסיק)">
+              <TextInput dir="ltr" value={phonesText} onChange={(v) => setSiteContact({ phones: v.split(/[,\n]/).map((s) => s.trim()).filter(Boolean) })} placeholder="02-000-0000, 058-000-0000" />
+            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <Field label="וואטסאפ"><TextInput dir="ltr" value={wsite.contact?.whatsapp ?? ''} onChange={(v) => setSiteContact({ whatsapp: v })} placeholder="058-000-0000" /></Field>
+              <Field label="אימייל"><TextInput dir="ltr" value={wsite.contact?.email ?? ''} onChange={(v) => setSiteContact({ email: v })} placeholder="info@org.org.il" /></Field>
             </div>
+            <Field label="שעות פעילות"><TextInput value={siteHe(wsite.contact?.hours)} onChange={(v) => setSiteContact({ hours: putHe(wsite.contact?.hours, v) })} placeholder="א׳–ה׳ 9:00–17:00 · ו׳ עד 12:00" /></Field>
+            <Field label="כתובת"><TextInput value={siteHe(wsite.contact?.address)} onChange={(v) => setSiteContact({ address: putHe(wsite.contact?.address, v) })} placeholder="רחוב… , עיר" /></Field>
+            <Field label="הערת-תחתית משפטית"><TextInput value={siteHe(wsite.contact?.taxNote)} onChange={(v) => setSiteContact({ taxNote: putHe(wsite.contact?.taxNote, v) })} placeholder="ע.ר. 580… · אישור ניהול תקין" /></Field>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+              <Chip on={wsite.contactForm?.enabled !== false} onClick={() => setSiteForm({ enabled: wsite.contactForm?.enabled === false })}>
+                {wsite.contactForm?.enabled !== false ? '✅ טופס-קשר מוצג' : 'טופס-קשר מוסתר'}
+              </Chip>
+            </div>
+            <Field label="הערת טופס-הקשר"><TextInput value={siteHe(wsite.contactForm?.note)} onChange={(v) => setSiteForm({ note: putHe(wsite.contactForm?.note, v) })} placeholder="מענה תוך יום עסקים · דיסקרטיות מלאה" /></Field>
           </SectionShell>
           );
         })()}
