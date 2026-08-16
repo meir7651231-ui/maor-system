@@ -50,7 +50,7 @@ import { roomClashError } from '../components/calendar/calLib';
 import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManager, parseJoinFullCode } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, termOf, writeCloudConfigCache } from '../lib/config';
+import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, supEnforceOn, termOf, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
@@ -464,6 +464,10 @@ interface AppState {
   runDonationSplitMigration: () => Promise<number>;
   /** מסלול-B פאזה-5 (חלון-בעלים) — הדלקת `donationSplit` בקונפיג-הענן בקליק (אחרי המיגרציה). זורק על כשל. */
   enableDonationSplit: () => Promise<void>;
+  /** אכיפת-תומכים (חלון-בעלים) — מיגרציית seed של skey לכל התומכים; מחזירה כמות. */
+  runSupEnforceMigration: () => Promise<number>;
+  /** אכיפת-תומכים (חלון-בעלים) — הדלקת `supporterEnforce` בקונפיג-הענן (ארגון-פלטפורמה בלבד). זורק על כשל/שורש. */
+  enableSupEnforce: () => Promise<void>;
   /** "חבר את מאור" — הפעלת ניהול-עובדות ללקוח-שורש (manager=בעלים), מייל-על בלבד. */
   enableEmployeeManagement: () => Promise<void>;
   /** סימון נעילה כפתוחה (לאחר קוד תקין) — נשמר לסשן. */
@@ -706,6 +710,8 @@ export const useApp = create<AppState>()((set, get) => {
       mod.setCloudScope(cfg.slug, cfg.cloudRoot === true);
       // מסלול-B: מצב-פיצול-התרומות (off-by-default, שורש-פטור) — הצד-הדוחף/המושך שואל אותו.
       mod.setDonationSplit(donationSplitOn(cfg));
+      // אכיפת-תומכים (ארגוני-פלטפורמה בלבד) — off-by-default; חסר ⇒ ביט-זהה.
+      mod.setSupEnforce(supEnforceOn(cfg));
       mod.watchAuth((user) => {
         const hadUser = get().cloud.user !== null;
         setCloud({ authReady: true, user, ...(user ? {} : { status: 'idle' as const }) });
@@ -747,6 +753,7 @@ export const useApp = create<AppState>()((set, get) => {
             // מסלול-B: מתג-הפיצול חי — הדלקה/כיבוי אצל הבעלים ⇒ שכבת-הסנכרון מיד,
             // בלי רענון (הצד-הדוחף/המושך שואל את donationSplitActive). שורש נשאר כבוי.
             mod.setDonationSplit(donationSplitOn(eff));
+            mod.setSupEnforce(supEnforceOn(eff));
             // ג' (13.8) — ייעודי-התרומה שהעובד/ת רשאי/ת לראות (מתעדכן חי עם הכרטיס)
             setCloud({ allowedDesignations: allowedDesignationsFor(user.email, orgDoc) });
             const { db } = get();
@@ -2499,6 +2506,31 @@ export const useApp = create<AppState>()((set, get) => {
       // תוקף מיידי בשכבת-הסנכרון (ה-onSnapshot יבצע אותו דבר כשהכתיבה תחזור).
       mod.setDonationSplit(true);
       get().toast('✓ פיצול-התרומות הודלק בקונפיג-הענן — פעיל מעכשיו');
+    },
+
+    async runSupEnforceMigration() {
+      // אכיפת-תומכים (חלון-בעלים): seed של skey=forWho לכל מסמכי-התומכים בענן.
+      // אידמפוטנטי, לא-הרסי (בלי skey הסינון פשוט לא מסנן). מריצים לפני ההדלקה.
+      const mod = cloudMod;
+      if (!mod) throw new Error('הענן אינו מחובר — התחברו לענן ונסו שוב');
+      await exportBackupFile(get().db); // רשת-ביטחון לפני כתיבה לענן
+      const n = await mod.migrateSupportersToKeyed(get().db.supporters, mod.getCloudDek());
+      get().toast('✓ ' + n + ' תומכים סומנו בייעוד — כעת אפשר להדליק את האכיפה בקונפיג');
+      return n;
+    },
+
+    async enableSupEnforce() {
+      // אכיפת-תומכים (חלון-בעלים): מדליק `supporterEnforce` בקונפיג-הענן בקליק.
+      // ארגון-פלטפורמה בלבד — שורש/default נחסמים (מודל-השורש בלי „עובד מוגבל").
+      const mod = cloudMod;
+      if (!mod) throw new Error('הענן אינו מחובר — התחברו לענן ונסו שוב');
+      const cfg = get().config;
+      const slug = cfg.slug;
+      if (!slug || slug === 'default') throw new Error('ההפעלה זמינה רק לארגון-פלטפורמה (?org=slug)');
+      if (cfg.cloudRoot === true) throw new Error('אכיפת-שרת אינה נתמכת בלקוח-שורש (cloudRoot) — ראו האכיפה ברמת-הממשק');
+      await mod.writeOrgCloudDoc(slug, { config: { supporterEnforce: true } });
+      mod.setSupEnforce(true);
+      get().toast('✓ אכיפת-התומכים הודלקה בקונפיג-הענן — פעילה מעכשיו');
     },
 
     /**

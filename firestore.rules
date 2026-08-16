@@ -118,12 +118,20 @@ service cloud.firestore {
             || pkey == '_shared_'                    // תרומה משותפת = גלויה לכל
             || pkey in memberDesignations(slug));
     }
+    // אכיפת-תומכים (15.8) — זהה ל-memberSeesPurpose אך על מפתח-התומך (skey=forWho).
+    // עובד/ת ללא-הגבלה רואה הכל; תומך משותף ('_shared_') גלוי לכל; אחרת רק ייעוד-מותר.
+    function memberSeesSupporter(slug, skey) {
+      return orgMember(slug)
+        && (memberDesignations(slug).size() == 0
+            || skey == '_shared_'
+            || skey in memberDesignations(slug));
+    }
 
     // נתוני ארגון-פלטפורמה: כתיבה — חבר או מייל-על (הסנכרון דוחף). קריאה — חבר,
     // **פרט לאוסף-התרומות** (מסלול-B): קריאתו נאכפת פר-ייעוד במאץ' הייעודי למטה.
     match /orgs/{slug}/{col}/{docId} {
       allow write: if superAdmin() || orgMember(slug);
-      allow read: if (superAdmin() || orgMember(slug)) && col != 'donations';
+      allow read: if (superAdmin() || orgMember(slug)) && col != 'donations' && col != 'supporters';
     }
 
     // מסלול-B — אוסף-התרומות הנפרד: כתיבה=חבר (מכוסה גם למעלה); **קריאה פר-ייעוד**:
@@ -132,6 +140,14 @@ service cloud.firestore {
     match /orgs/{slug}/donations/{id} {
       allow write: if superAdmin() || orgMember(slug);
       allow read: if superAdmin() || orgManager(slug) || memberSeesPurpose(slug, resource.data.pkey);
+    }
+
+    // אכיפת-תומכים (15.8) — אוסף-התומכים בארגון-פלטפורמה: כתיבה=חבר (הסנכרון דוחף
+    // עם skey); **קריאה פר-ייעוד**: מנהל/מייל-על=הכל; עובד/ת=רק ייעוד-מותר או משותף.
+    // skey (=forWho) plaintext מחוץ למעטפה כדי ש-where-skey-in של הקליינט יעבור.
+    match /orgs/{slug}/supporters/{id} {
+      allow write: if superAdmin() || orgMember(slug);
+      allow read: if superAdmin() || orgManager(slug) || memberSeesSupporter(slug, resource.data.skey);
     }
 
     // כספת-מפתחות פר-ארגון (9.8 — "כל מנהל יש את הסודות שלו"): טוקני ימות/
