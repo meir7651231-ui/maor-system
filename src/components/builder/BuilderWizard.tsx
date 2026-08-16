@@ -21,7 +21,10 @@ import { TEMPLATE_DEFS } from '../../lib/templates';
 import { TelephonyPanel } from '../telephony/TelephonyPanel';
 import { emptyTelephonyConfig } from '../telephony/lib';
 
-const DEFAULT_APP_URL = 'https://orbit-il.com/';
+// כתובת-האפליקציה לברירת-מחדל בקישורי-ההקמה — **בזמן-ריצה** מהדומיין הנוכחי,
+// כך שהיא מסתגלת לכל מארח (github.io למאור · orbit-il.com לחדשים) בלי כתובת קשיחה.
+const DEFAULT_APP_URL =
+  typeof window !== 'undefined' ? window.location.origin + window.location.pathname : '/';
 
 /**
  * "פלטפורמה אחת — אלפי עמותות" (רצועת ה-white-label ממוקאפ צֹהַר):
