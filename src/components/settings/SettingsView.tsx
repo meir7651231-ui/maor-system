@@ -20,6 +20,7 @@ import { SecuritySection } from './SecuritySection';
 import { EncryptionSection } from './EncryptionSection';
 import { CloudEncryptionSection } from './CloudEncryptionSection';
 import { DonationSplitSection } from './DonationSplitSection';
+import { EmployeeMgmtSection } from './EmployeeMgmtSection';
 import { ThemeSection } from './ThemeSection';
 import { AuditSection } from './AuditSection';
 import { OrgSecretsSection } from './OrgSecretsSection';
@@ -161,6 +162,8 @@ export function SettingsView() {
           <CloudEncryptionSection />
           {/* מסלול-B: מיגרציית-פיצול-תרומות — הרכיב מגודר isSuperAdmin (מחזיר null ללא-בעלים) */}
           <DonationSplitSection />
+          {/* "חבר את מאור" — הפעלת ניהול-עובדות ללקוח-שורש (מגודר isSuperAdmin בעצמו) */}
+          <EmployeeMgmtSection />
           {/* כספת-מפתחות פר-ארגון (9.8) — הרכיב מגודר בעצמו (ענן+מנהל+לא-שורש) */}
           <OrgSecretsSection />
         </>
