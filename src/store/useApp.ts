@@ -422,6 +422,8 @@ interface AppState {
   ayinAddAnswer: (id: string, note: string) => void;
   ayinEditAnswer: (id: string, index: number, note: string) => void;
   ayinDeleteAnswer: (id: string, index: number) => void;
+  ayinAddTime: (id: string, entry: { date: string; hours: number; note: string; rate?: number }) => void;
+  ayinRemoveTime: (id: string, index: number) => void;
   /** קביעת מועד "לדבר שוב" — שדות בלבד (התזכורת נכתבת ב-ayinCallAgain). */
   ayinSetNextTalk: (id: string, date: string, time: string) => void;
   /** 🔁 שוב — כותב תזכורת ללוח לפי מועד "לדבר שוב". */
@@ -2320,6 +2322,28 @@ export const useApp = create<AppState>()((set, get) => {
       if (!c) return;
       setAyin(id, { answers: c.a.answers.filter((_, i) => i !== index) });
       get().toast('ההערה נמחקה');
+    },
+    ayinAddTime(id, entry) {
+      const c = curAyin(id);
+      if (!c) return;
+      const hours = +entry.hours || 0;
+      if (hours <= 0) {
+        get().toast('הזינו מספר שעות לפני השמירה');
+        return;
+      }
+      const e = {
+        date: entry.date || isoToday(),
+        hours,
+        note: (entry.note || '').trim(),
+        ...(entry.rate && entry.rate > 0 ? { rate: entry.rate } : {}),
+      };
+      setAyin(id, { time: [e, ...(c.a.time || [])] });
+      get().toast('שעות נרשמו לשעתון-הפרויקט');
+    },
+    ayinRemoveTime(id, index) {
+      const c = curAyin(id);
+      if (!c) return;
+      setAyin(id, { time: (c.a.time || []).filter((_, i) => i !== index) });
     },
     ayinSetNextTalk(id, date, time) {
       setAyin(id, { nextTalk: date, nextTalkTime: time });

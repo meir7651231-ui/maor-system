@@ -15,6 +15,8 @@ import {
   boqLineAmount,
   boqTotal,
   eyesTotal,
+  timeCostTotal,
+  timeHoursTotal,
   featLabel,
   itemLabel,
   stageIndex,
@@ -44,11 +46,16 @@ export function AyinCard(props: { supporter: Supporter }) {
   const setNextTalk = useApp((s) => s.ayinSetNextTalk);
   const callAgain = useApp((s) => s.ayinCallAgain);
   const restart = useApp((s) => s.ayinRestart);
+  const addTime = useApp((s) => s.ayinAddTime);
+  const removeTime = useApp((s) => s.ayinRemoveTime);
 
   const [nameIn, setNameIn] = useState('');
   const [eyesIn, setEyesIn] = useState('');
   const [note, setNote] = useState('');
   const [editIdx, setEditIdx] = useState<number | null>(null);
+  const [tHours, setTHours] = useState('');
+  const [tRate, setTRate] = useState('');
+  const [tNote, setTNote] = useState('');
 
   const feat = featLabel(cfg);
   const item = itemLabel(cfg);
@@ -57,15 +64,27 @@ export function AyinCard(props: { supporter: Supporter }) {
   const showNames = a.stage === 'new' || a.stage === 'lead' || a.stage === 'eyes';
   // כתב-כמויות/הצעת-מחיר — רק בהקשר מסחרי (§46 כבוי) + דגל. בעמותה מוסתר לגמרי.
   const boqOn = featureOn(cfg, 'supporters.ayin.boq') && !featureOn(cfg, 'core.taxreceipt');
+  const timeOn = featureOn(cfg, 'supporters.ayin.time') && !featureOn(cfg, 'core.taxreceipt');
   const ils = (n: number) => '₪' + Math.round(n).toLocaleString('en-US');
   const quote = boqOn ? boqTotal(a) : 0;
   const collected = boqOn ? supIls(sp) : 0;
+  const cost = timeOn ? timeCostTotal(a) : 0;
+  const timeRows = a.time || [];
 
   function submitName() {
     const eyes = eyesIn === '' ? '' : Math.max(0, +eyesIn.replace(/\D/g, '') || 0);
     addName(sp.id, nameIn, eyes);
     setNameIn('');
     setEyesIn('');
+  }
+
+  function submitTime() {
+    const hours = +tHours.replace(/[^\d.]/g, '') || 0;
+    if (hours <= 0) return;
+    addTime(sp.id, { date: '', hours, note: tNote, rate: +tRate.replace(/[^\d.]/g, '') || 0 });
+    setTHours('');
+    setTRate('');
+    setTNote('');
   }
 
   function saveNote() {
@@ -243,6 +262,51 @@ export function AyinCard(props: { supporter: Supporter }) {
                   </span>
                 </div>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* שעתון הפרויקט (ורטיקל מסחרי) */}
+      {timeOn && (
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>⏱️ שעתון הפרויקט ({timeRows.length})</div>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+            <input value={tHours} onChange={(e) => setTHours(e.target.value)} placeholder="שעות" dir="ltr" style={{ width: 60, padding: '4px 6px', fontSize: 12 }} />
+            <span style={{ color: 'var(--ink-faint)', alignSelf: 'center' }}>×</span>
+            <input value={tRate} onChange={(e) => setTRate(e.target.value)} placeholder="₪/שעה" dir="ltr" style={{ width: 72, padding: '4px 6px', fontSize: 12 }} />
+            <input
+              value={tNote}
+              onChange={(e) => setTNote(e.target.value)}
+              placeholder="תיאור (אופציונלי)"
+              style={{ flex: 1, minWidth: 110, padding: '4px 6px', fontSize: 12 }}
+              onKeyDown={(e) => { if (e.key === 'Enter') submitTime(); }}
+            />
+            <Btn sm onClick={submitTime}>+ הוספה</Btn>
+          </div>
+          {timeRows.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {timeRows.map((e, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, padding: '3px 8px', border: '1px solid var(--line)', borderRadius: 6 }}>
+                  <span style={{ color: 'var(--ink-faint)', direction: 'ltr' }}>{fmtDate(e.date)}</span>
+                  <span style={{ fontWeight: 700 }}>{e.hours} ש׳</span>
+                  {e.rate ? <span style={{ color: 'var(--ink-faint)' }}>× {ils(e.rate)}</span> : null}
+                  <span style={{ flex: 1 }}>{e.note}</span>
+                  <span style={{ fontWeight: 700, direction: 'ltr' }}>{ils((+e.hours || 0) * (e.rate || 0))}</span>
+                  <button onClick={() => removeTime(sp.id, i)} title="הסרה" style={{ color: 'var(--ink-faint)', fontWeight: 800, background: 'none', border: 'none', cursor: 'pointer' }}>🗑</button>
+                </div>
+              ))}
+              <div style={{ fontSize: 12.5, marginTop: 4, fontWeight: 700 }}>
+                סה"כ שעות: {timeHoursTotal(a)} · עלות-עבודה: <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(cost)}</span>
+                {boqOn && quote > 0 && (
+                  <>
+                    {' · '}
+                    <span style={{ color: quote - cost >= 0 ? '#12803c' : '#b91c1c' }}>
+                      רווח גולמי: <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(quote - cost)}</span>
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>

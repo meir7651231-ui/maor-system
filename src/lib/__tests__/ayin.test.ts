@@ -6,6 +6,8 @@ import {
   ayinDailyRows,
   boqLineAmount,
   boqTotal,
+  timeCostTotal,
+  timeHoursTotal,
   featLabel,
   itemLabel,
   planAddName,
@@ -226,5 +228,29 @@ describe('BOQ — כתב-כמויות / הצעת-מחיר (ורטיקל מסחר
     expect(cardSrc).toContain('boqTotal(a)');
     expect(cardSrc).toContain('supIls(sp)'); // נגבה בפועל ל-P&L
     expect(cardSrc).toContain('סה"כ הצעה');
+  });
+});
+
+describe('שעתון פר-פרויקט (timesheet → עלות-עבודה)', () => {
+  it('סה"כ שעות = סכום השעות; ריק ⇒ 0', () => {
+    expect(timeHoursTotal(caseOf())).toBe(0); // אין time
+    const c = caseOf({ time: [{ date: '2026-08-01', hours: 8, note: 'פיתוח' }, { date: '2026-08-02', hours: 3.5, note: 'QA' }] });
+    expect(timeHoursTotal(c)).toBe(11.5);
+  });
+
+  it('עלות-עבודה = סכום שעות×תעריף; שורה בלי תעריף ⇒ 0', () => {
+    const c = caseOf({ time: [
+      { date: '2026-08-01', hours: 8, note: 'פיתוח', rate: 200 },
+      { date: '2026-08-02', hours: 4, note: 'עיצוב', rate: 150 },
+      { date: '2026-08-03', hours: 5, note: 'ללא תעריף' },
+    ] });
+    expect(timeCostTotal(c)).toBe(8 * 200 + 4 * 150); // 2200 — השורה בלי תעריף לא מוסיפה
+  });
+
+  it('הכרטיס מגדר שעתון למסחרי (§46 כבוי) ומחשב רווח מול ההצעה', () => {
+    expect(cardSrc).toContain("featureOn(cfg, 'supporters.ayin.time') && !featureOn(cfg, 'core.taxreceipt')");
+    expect(cardSrc).toContain('timeCostTotal(a)');
+    expect(cardSrc).toContain('עלות-עבודה');
+    expect(cardSrc).toContain('רווח גולמי');
   });
 });

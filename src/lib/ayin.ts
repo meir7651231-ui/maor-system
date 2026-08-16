@@ -100,6 +100,16 @@ export function boqTotal(a: AyinCase): number {
   return a.names.reduce((t, n) => t + boqLineAmount(n), 0);
 }
 
+/** סה"כ שעות בשעתון-הפרויקט. טהור. */
+export function timeHoursTotal(a: AyinCase): number {
+  return (a.time || []).reduce((t, e) => t + (+e.hours || 0), 0);
+}
+
+/** עלות-העבודה — סכום (שעות × תעריף) של רשומות-השעתון. טהור. */
+export function timeCostTotal(a: AyinCase): number {
+  return (a.time || []).reduce((t, e) => t + (+e.hours || 0) * (e.rate || 0), 0);
+}
+
 /**
  * האם הכפתור-החכם מוצג בשלב הנוכחי — שלב 'new' דורש לפחות פריט אחד,
  * שלב 'eyes' דורש שנרשם מונה לפחות לאחד הפריטים, 'done' מסתיים.
