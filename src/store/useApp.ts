@@ -42,6 +42,7 @@ import {
   type Volunteer,
   type DistributionDay,
   type Delivery,
+  type DialOutcome,
 } from '../types/domain';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
@@ -60,6 +61,7 @@ import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
 import { applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
+import { applyOutcome, startCampaign } from '../lib/dialer';
 import {
   dailySnapshot,
   exportBackupFile,
@@ -429,6 +431,12 @@ interface AppState {
   saveQuoteTemplate: (id: string, name: string) => void;
   applyQuoteTemplate: (id: string, templateId: string) => void;
   deleteQuoteTemplate: (templateId: string) => void;
+  /** חייגן-מונחה — פתיחת קמפיין מרשימת מזהי-תומכים. */
+  dialerStart: (ids: string[], name: string) => void;
+  /** סיווג-תוצאה למתקשר-הנוכחי ומעבר לבא; callback עם תאריך ⇒ "לדבר שוב". */
+  dialerOutcome: (outcome: DialOutcome, note: string, callbackIso?: string) => void;
+  /** סגירת/ביטול הקמפיין הפעיל. */
+  dialerStop: () => void;
   /** קביעת מועד "לדבר שוב" — שדות בלבד (התזכורת נכתבת ב-ayinCallAgain). */
   ayinSetNextTalk: (id: string, date: string, time: string) => void;
   /** 🔁 שוב — כותב תזכורת ללוח לפי מועד "לדבר שוב". */
@@ -2405,6 +2413,24 @@ export const useApp = create<AppState>()((set, get) => {
     },
     deleteQuoteTemplate(templateId) {
       setDb((db) => ({ ui: { ...db.ui, quoteTemplates: (db.ui.quoteTemplates || []).filter((t) => t.id !== templateId) } }));
+    },
+    dialerStart(ids, name) {
+      setDb((db) => ({ ui: { ...db.ui, dialer: startCampaign(name, ids, new Date().toISOString()) } }));
+    },
+    dialerOutcome(outcome, note, callbackIso) {
+      const cur = get().db.ui.dialer;
+      if (!cur) return;
+      const id = cur.queue[0];
+      // callback עם תאריך ⇒ "לדבר שוב" על מעקב-התומך (משתלב בלוח/בית/מבט-ההנהלה)
+      if (outcome === 'callback' && id && callbackIso) get().ayinSetNextTalk(id, callbackIso, '');
+      setDb((db) => (db.ui.dialer ? { ui: { ...db.ui, dialer: applyOutcome(db.ui.dialer, outcome, note, new Date().toISOString()) } } : {}));
+    },
+    dialerStop() {
+      setDb((db) => {
+        const ui = { ...db.ui };
+        delete ui.dialer;
+        return { ui };
+      });
     },
     ayinSetNextTalk(id, date, time) {
       setAyin(id, { nextTalk: date, nextTalkTime: time });

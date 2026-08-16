@@ -553,6 +553,32 @@ export interface QuoteTemplate {
   lines: { name: string; qty: number; rate: number }[];
 }
 
+/**
+ * חייגן-מונחה (assisted dialer) — קמפיין-שיחות downstream על הטלפונים הקיימים:
+ * המערכת מנהלת רשימה/תור/סיווג, בן-אדם לוחץ 📞 (tel:), מסמן תוצאה, המערכת
+ * מתקדמת ומחזירה-לתור מי-שלא-ענה. additive ב-db.ui (בלי DB_VERSION bump).
+ * ריצה-אמיתית של חיוג-אוטומטי/הקלטה = נהג-קופסה עתידי (telephony/driver).
+ */
+export type DialOutcome = 'donated' | 'noanswer' | 'refused' | 'callback' | 'done' | 'skip';
+
+export interface DialLogEntry {
+  id: Id;
+  outcome: DialOutcome;
+  note?: string;
+  at: string;
+}
+
+export interface DialerCampaign {
+  name: string;
+  startedAt: string;
+  /** תור-הפנייה: מזהי-תומכים ממתינים, לפי סדר; החזית = הנוכחי. */
+  queue: Id[];
+  /** מספר-המזהים הייחודיים בקמפיין המקורי (למד-התקדמות). */
+  total: number;
+  /** יומן-תוצאות מלא (כולל חוזרים על מי-שלא-ענה). */
+  log: DialLogEntry[];
+}
+
 export interface UiPrefs {
   famView: 'list' | 'grid';
   crsView: 'list' | 'grid';
@@ -568,6 +594,8 @@ export interface UiPrefs {
   theme?: string;
   /** דריסת צבע הדגשה (hex) — ריק = צבע הערכה. */
   accent?: string;
+  /** קמפיין חייגן-מונחה פעיל — חסר = אין קמפיין (ביט-זהה להיום). */
+  dialer?: DialerCampaign;
 }
 
 /* ---------- קופות צדקה (מודול tzedaka — מבודד; BUILD-ORDER-TZEDAKA-2026-07-30) ---------- */
