@@ -464,6 +464,8 @@ interface AppState {
   runDonationSplitMigration: () => Promise<number>;
   /** מסלול-B פאזה-5 (חלון-בעלים) — הדלקת `donationSplit` בקונפיג-הענן בקליק (אחרי המיגרציה). זורק על כשל. */
   enableDonationSplit: () => Promise<void>;
+  /** "חבר את מאור" — הפעלת ניהול-עובדות ללקוח-שורש (manager=בעלים), מייל-על בלבד. */
+  enableEmployeeManagement: () => Promise<void>;
   /** סימון נעילה כפתוחה (לאחר קוד תקין) — נשמר לסשן. */
   markUnlocked: (kind: 'primary' | 'secondary') => void;
   /** נעילה מיידית — סוגר את שתי הרמות וחוזר לבית. */
@@ -2497,6 +2499,31 @@ export const useApp = create<AppState>()((set, get) => {
       // תוקף מיידי בשכבת-הסנכרון (ה-onSnapshot יבצע אותו דבר כשהכתיבה תחזור).
       mod.setDonationSplit(true);
       get().toast('✓ פיצול-התרומות הודלק בקונפיג-הענן — פעיל מעכשיו');
+    },
+
+    /**
+     * "חבר את מאור" (בקשת-בעלים 15.8) — הפעלת ניהול-עובדות ללקוח-שורש בקליק.
+     * מוודא מסמך platformOrgs/{slug} עם manager=הבעלים (+members כולל הבעלים),
+     * merge — לא הרסני. אחרי-כן `👥 ניהול העובדות` (#manage) נפתח, ושם מקצים
+     * ייעודים-פר-עובד (memberConfigs.designations). מייל-על בלבד; אידמפוטנטי.
+     */
+    async enableEmployeeManagement() {
+      const mod = cloudMod;
+      if (!mod) throw new Error('הענן אינו מחובר — התחברו לענן ונסו שוב');
+      const cl = get().cloud;
+      if (!isSuperAdmin(cl.user?.email)) throw new Error('פעולה למייל-על בלבד');
+      const email = (cl.user?.email ?? '').trim().toLowerCase();
+      if (!email) throw new Error('אין משתמש מחובר');
+      const slug = get().config.slug;
+      if (!slug) throw new Error('אין ארגון פעיל');
+      // merge לא-הרסני: שומר members/memberConfigs קיימים; מוסיף את הבעלים כמנהל+חבר.
+      const existing = await mod.fetchOrgCloudConfig(slug).catch(() => null);
+      const members = existing?.members ?? [];
+      const nextMembers = members.some((m) => m.trim().toLowerCase() === email) ? members : [...members, email];
+      await mod.writeOrgCloudDoc(slug, { manager: email, members: nextMembers });
+      // תוקף-מיידי: הצ׳יפ „👥 ניהול העובדות" מופיע בלי רענון (isManager נקרא בכניסה).
+      setCloud({ isManager: true });
+      get().toast('✓ ניהול-העובדות הופעל — פתחו „👥 ניהול העובדות" בהגדרות');
     },
 
     markUnlocked(kind) {
