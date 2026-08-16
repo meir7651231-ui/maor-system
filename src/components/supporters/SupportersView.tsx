@@ -5,7 +5,8 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, integrationOn, integrationSetting, safeHttpsUrl, termOf } from '../../lib/config';
+import { featureOn, integrationOn, integrationSetting, safeHttpsUrl, telephonyOn, termOf } from '../../lib/config';
+import { DialerModal } from '../dialer/DialerModal';
 import { WaBtn } from '../WaBtn';
 import { IncomingPaymentsModal } from './IncomingPayments';
 import { annualAllLines, downloadAnnualReport } from '../../lib/annualReport';
@@ -185,6 +186,9 @@ export function SupportersView() {
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [expOpen, setExpOpen] = useState(false);
+  const [dialerOpen, setDialerOpen] = useState(false);
+  const dialer = useApp((s) => s.db.ui.dialer);
+  const dialerStart = useApp((s) => s.dialerStart);
   // לוח התרומות הכלל-ארגוני (P1.4, legacy supCalOn/supCalAll) — מוצג בלחיצה
   const [orgCalOpen, setOrgCalOpen] = useState(false);
   const donCalOn = featureOn(config, 'supporters.doncal');
@@ -340,6 +344,17 @@ export function SupportersView() {
             <Btn onClick={toggleSupView} title="החלפת תצוגה: רשימה / גריד">
               {supView === 'grid' ? '☰ רשימה' : '▦ גריד'}
             </Btn>
+            {telephonyOn(config) && (
+              <Btn
+                onClick={() => {
+                  if (!dialer) dialerStart(list.map((s) => s.id), termOf(config, 'nav.supporters', 'תורמים'));
+                  setDialerOpen(true);
+                }}
+                title="חייגן-מונחה: עוברים על הרשימה, מחייגים בלחיצה, מסמנים תוצאה"
+              >
+                📞 {dialer ? 'המשך חייגן (' + dialer.queue.length + ')' : 'חייגן'}
+              </Btn>
+            )}
             <Btn kind="primary" onClick={() => setFormOpen(true)}>
               ➕ הוספת {termOf(config, 'entity.supporter', 'תומך/ת')}
             </Btn>
@@ -739,6 +754,7 @@ export function SupportersView() {
 
       {expOpen && <CustomExport target="supporters" onClose={() => setExpOpen(false)} />}
       {incomingOpen && <IncomingPaymentsModal onClose={() => setIncomingOpen(false)} />}
+      {dialerOpen && <DialerModal onClose={() => setDialerOpen(false)} />}
     </div>
   );
 }
