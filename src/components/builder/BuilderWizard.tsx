@@ -12,7 +12,7 @@ import { clearConfigOverride, featureOn, integrationSetting, normalizeConfig, te
 import { VERTICAL_PACKS, applyVerticalPack } from '../../lib/verticalPacks';
 import { ALL_MODULES, MODULE_LABELS as MODULE_SHORT } from '../platform/lib';
 import { computeQuote, readPrices, shekel, writePrices, SIZE_LABELS, type DealMode, type OrgSize, type PriceTable } from '../../lib/pricing';
-import { DEFAULT_CONFIG, type ModuleKey, type OrgConfig } from '../../types/config';
+import { DEFAULT_CONFIG, type LocalizedText, type ModuleKey, type OrgConfig, type PublicSiteContent } from '../../types/config';
 import { FEATURES, TERM_DEFS, type FeatureDef, type TermDef } from '../../types/features';
 import { Btn, Chip, Field, FormError, TextInput } from '../ui';
 import { buildHandoffHtml, downloadTextFile, INTEGRATION_LABELS, INTEGRATION_STATUS, liveAddons, THEME_LABELS } from './handoff';
@@ -316,6 +316,31 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   /** גל ג׳: כתיבת הגדרת-הרחבה (payUrl וכו') — נשמרת בקונפיג ומסתנכרנת חי. */
   const setIntegrationField = (k: string, field: string, v: string) => {
     patch({ integrations: { ...config.integrations, [k]: { enabled: true, ...config.integrations?.[k], [field]: v } } });
+  };
+
+  /* 🌐 האתר-הציבורי — עריכה חיה של config.site דרך אותו צינור patch כמו כל האשף.
+     טקסט רב-לשוני נערך בעברית (putHe שומר en/yi קיימים). מספרים/תאריך = ערכים גולמיים;
+     החיטוי (allowlist, https, תקרות) קורה ב-normalizeSite בטעינה/ייצוא. */
+  const wsite = config.site ?? {};
+  const setSite = (p: Partial<PublicSiteContent>) => patch({ site: { ...config.site, ...p } });
+  const siteHe = (v?: LocalizedText): string => (typeof v === 'string' ? v : v?.he ?? '');
+  const putHe = (old: LocalizedText | undefined, v: string): LocalizedText | undefined =>
+    !v.trim() ? undefined : old && typeof old === 'object' ? { ...old, he: v } : v;
+  const setSiteText = (key: keyof PublicSiteContent, v: string) =>
+    setSite({ [key]: putHe(wsite[key] as LocalizedText | undefined, v) } as Partial<PublicSiteContent>);
+  const setCamp = (p: Partial<NonNullable<PublicSiteContent['campaign']>>) =>
+    setSite({ campaign: { ...wsite.campaign, ...p } });
+  const setSiteContact = (p: Partial<NonNullable<PublicSiteContent['contact']>>) =>
+    setSite({ contact: { ...wsite.contact, ...p } });
+  const previewSite = () => {
+    try {
+      const u = new URL(window.location.href);
+      u.searchParams.set('site', '1');
+      u.hash = '';
+      window.open(u.toString(), '_blank', 'noopener');
+    } catch {
+      /* דפדפן ללא URL — מדלגים */
+    }
   };
 
   const pickTheme = (theme: string) => {
@@ -1020,6 +1045,149 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             </div>
           </SectionShell>
         )}
+
+        {/* 🌐 האתר הציבורי (דף-התרומות) — עריכת config.site בסגנון-האשף.
+            אותו צינור live-apply (patch): כל שינוי מוחל מיד ומסתנכרן; "🔎 תצוגה מקדימה"
+            פותח את האתר בכרטיסייה חדשה. מוסתר בזמן חיפוש. */}
+        {!searching && (() => {
+          const siteShown = !!config.site && config.site.enabled !== false;
+          const camp = wsite.campaign ?? {};
+          const phonesText = (wsite.contact?.phones ?? []).join(', ');
+          return (
+          <SectionShell
+            id="wz-site"
+            emoji="🌐"
+            title="האתר הציבורי"
+            meta="דף-תרומות · מוזן מהקונפיג"
+            open={isOpen('publicsite')}
+            onToggleOpen={() => flipOpen('publicsite')}
+            headerEnd={
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  color: siteShown ? 'var(--ink-soft)' : 'var(--ink-faint)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={siteShown}
+                  onChange={() => setSite({ enabled: !siteShown })}
+                  aria-label="האתר הציבורי מוצג"
+                  style={{ width: 'auto', accentColor: 'var(--accent-deep)' }}
+                />
+                {siteShown ? 'מוצג' : 'מוסתר'}
+              </label>
+            }
+          >
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', paddingTop: 6, marginBottom: 4 }}>
+              <Btn onClick={previewSite}>🔎 תצוגה מקדימה</Btn>
+              <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                נפתח בכרטיסייה חדשה (‎?site‎). כל שינוי כאן מוחל מיד.
+              </span>
+            </div>
+
+            {/* טקסטים ראשיים (עברית; en/yi קיימים נשמרים) */}
+            <div style={{ fontSize: 13, fontWeight: 700, margin: '10px 0 2px' }}>✍️ טקסטים ראשיים</div>
+            <Field label="כותרת ראשית (Hero)">
+              <TextInput value={siteHe(wsite.heroTitle)} onChange={(v) => setSiteText('heroTitle', v)} placeholder="הבית של" />
+            </Field>
+            <Field label="מילה מודגשת (בקורל, שורה שנייה)">
+              <TextInput value={siteHe(wsite.titleAccent)} onChange={(v) => setSiteText('titleAccent', v)} placeholder="האלמנות." />
+            </Field>
+            <Field label="תת-כותרת (פסקת פתיחה)">
+              <TextInput value={siteHe(wsite.tagline)} onChange={(v) => setSiteText('tagline', v)} placeholder="כבר 24 שנה…" />
+            </Field>
+            <Field label="רצועת קמפיין עליונה (טיקר)">
+              <TextInput value={siteHe(wsite.ticker)} onChange={(v) => setSiteText('ticker', v)} placeholder="קמפיין החגים · ₪X נאספו · מתעדכן חי" />
+            </Field>
+            <Field label="שורת מיקרו (מתחת לכפתור)">
+              <TextInput value={siteHe(wsite.microCopy)} onChange={(v) => setSiteText('microCopy', v)} placeholder="כל ₪9 = ארוחה חמה לילד ♡" />
+            </Field>
+
+            {/* 📊 קמפיין */}
+            <div style={{ fontSize: 13, fontWeight: 700, margin: '12px 0 2px' }}>📊 קמפיין</div>
+            <Field label="כותרת הקמפיין (מעל בוחר-התרומה)">
+              <TextInput value={siteHe(camp.title)} onChange={(v) => setCamp({ title: putHe(camp.title, v) })} placeholder="בחרו את התרומה שלכם" />
+            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <Field label="🎯 יעד הגיוס (₪)">
+                <input
+                  type="number" min={0} dir="ltr"
+                  value={camp.goal ?? ''}
+                  onChange={(e) => setCamp({ goal: e.target.value ? Math.max(0, Math.round(+e.target.value)) : undefined })}
+                  style={{ width: '100%', fontSize: 13, padding: '6px 8px' }}
+                />
+              </Field>
+              <Field label="💰 נאסף עד כה (₪)">
+                <input
+                  type="number" min={0} dir="ltr"
+                  value={camp.raised ?? ''}
+                  onChange={(e) => setCamp({ raised: e.target.value ? Math.max(0, Math.round(+e.target.value)) : undefined })}
+                  style={{ width: '100%', fontSize: 13, padding: '6px 8px' }}
+                />
+              </Field>
+            </div>
+            <Field label="📅 תאריך יעד (סוף הקמפיין · לספירה לאחור)">
+              <input
+                type="date" dir="ltr"
+                value={camp.end ?? ''}
+                onChange={(e) => setCamp({ end: e.target.value || undefined })}
+                style={{ width: '100%', fontSize: 13, padding: '6px 8px' }}
+              />
+            </Field>
+
+            {/* 📞 פרטי קשר */}
+            <div style={{ fontSize: 13, fontWeight: 700, margin: '12px 0 2px' }}>📞 פרטי קשר</div>
+            <Field label="טלפונים (מופרדים בפסיק)">
+              <TextInput
+                dir="ltr"
+                value={phonesText}
+                onChange={(v) => setSiteContact({ phones: v.split(/[,\n]/).map((s) => s.trim()).filter(Boolean) })}
+                placeholder="02-000-0000, 058-000-0000"
+              />
+            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <Field label="וואטסאפ">
+                <TextInput dir="ltr" value={wsite.contact?.whatsapp ?? ''} onChange={(v) => setSiteContact({ whatsapp: v })} placeholder="058-000-0000" />
+              </Field>
+              <Field label="אימייל">
+                <TextInput dir="ltr" value={wsite.contact?.email ?? ''} onChange={(v) => setSiteContact({ email: v })} placeholder="info@org.org.il" />
+              </Field>
+            </div>
+            <Field label="כתובת">
+              <TextInput value={siteHe(wsite.contact?.address)} onChange={(v) => setSiteContact({ address: putHe(wsite.contact?.address, v) })} placeholder="רחוב… , עיר" />
+            </Field>
+            <Field label="🔗 כפתור התרומה (https) — קישור לעמוד-הסליקה">
+              <TextInput dir="ltr" value={wsite.donateUrl ?? ''} onChange={(v) => setSite({ donateUrl: v })} placeholder="https://pay.example/give" />
+            </Field>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
+              ריק — הכפתור נופל אוטומטית לקישור-התשלום מ«הרחבות ← 💳 תשלומים» אם הוגדר.
+            </div>
+
+            {/* 📰 חדשות + סיפור */}
+            <div style={{ fontSize: 13, fontWeight: 700, margin: '12px 0 2px' }}>📰 חדשות + סיפור</div>
+            <Field label="עדכון «מה חדש»">
+              <TextInput value={siteHe(wsite.news)} onChange={(v) => setSiteText('news', v)} placeholder="נפתחה ההרשמה למלגות…" />
+            </Field>
+            <Field label="כותרת הסיפור">
+              <TextInput value={siteHe(wsite.storyTitle)} onChange={(v) => setSiteText('storyTitle', v)} placeholder="24 שנה של בית חם." />
+            </Field>
+            <Field label="הסיפור (פסקה)">
+              <TextInput value={siteHe(wsite.story)} onChange={(v) => setSiteText('story', v)} placeholder="לפני 24 שנה…" />
+            </Field>
+
+            <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 10 }}>
+              רשימות מרובות (שירותים · שאלות-ותשובות · ציר-זמן · עדויות · מסלולים · אמצעי-תשלום) +
+              גלריית-תמונות נערכות ישירות בקובץ הקונפיג (בלוק <code>site</code>). כאן — התוכן שמתחלף הכי הרבה.
+            </div>
+          </SectionShell>
+          );
+        })()}
 
         {/* ☎️ טלפוניה (downstream בלבד) — מקטע-חי המחווט את מנוע-הטלפוניה הטהור:
             הזנת ציוד-הלקוח → סימולציית עץ-הטלפון + דוח-אמון → הפקת קונפיג-מרכזייה.

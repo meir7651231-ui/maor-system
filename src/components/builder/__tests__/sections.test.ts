@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { WIZARD_SECTIONS } from '../sections';
 import { ALL_MODULES } from '../../platform/lib';
 import { FEATURES, TERM_DEFS } from '../../../types/features';
+import wizSrc from '../BuilderWizard.tsx?raw';
 
 describe('🧩 ratchet — אשף ההרכבה מכסה כל מודול', () => {
   it('לכל מודול-ניווט (ALL_MODULES) יש מקטע מתאים באשף', () => {
@@ -48,5 +49,33 @@ describe('🧩 ratchet — אשף ההרכבה מכסה כל מודול', () => 
     const ghosts = [...exposed].filter((k) => !real.has(k));
     expect(missing).toEqual([]);
     expect(ghosts).toEqual([]);
+  });
+});
+
+// 16.8.2026 — עורך האתר-הציבורי באשף: הבעלים עורך את config.site (כותרות, קמפיין,
+// פרטי-קשר, חדשות/סיפור) מתוך אותו אשף-הרכבה, בלי לגעת ב-JSON. הגנת-מקור.
+describe('🌐 ratchet — מקטע האתר-הציבורי באשף (עריכת config.site)', () => {
+  it('קיים מקטע wz-site עם צינור-העריכה החי (setSite/patch על config.site)', () => {
+    expect(wizSrc).toContain('id="wz-site"');
+    expect(wizSrc).toContain('האתר הציבורי');
+    // עריכה חיה דרך אותו patch של כל האשף
+    expect(wizSrc).toContain('const setSite = (p: Partial<PublicSiteContent>) => patch({ site:');
+    // תצוגה-מקדימה פותחת את ‎?site‎
+    expect(wizSrc).toContain('previewSite');
+    expect(wizSrc).toContain("searchParams.set('site'");
+  });
+  it('חושף את השדות המרכזיים: כותרות · קמפיין (יעד/נאסף/תאריך) · קשר · חדשות/סיפור', () => {
+    for (const key of ['heroTitle', 'titleAccent', 'tagline', 'ticker', 'microCopy', 'news', 'storyTitle', 'story']) {
+      expect(wizSrc).toContain(`setSiteText('${key}'`);
+    }
+    // קמפיין
+    expect(wizSrc).toContain('setCamp({ goal:');
+    expect(wizSrc).toContain('setCamp({ raised:');
+    expect(wizSrc).toContain('setCamp({ end:');
+    // פרטי-קשר + כפתור-תרומה
+    expect(wizSrc).toContain('setSiteContact({ phones:');
+    expect(wizSrc).toContain('setSiteContact({ whatsapp:');
+    expect(wizSrc).toContain('setSiteContact({ email:');
+    expect(wizSrc).toContain('setSite({ donateUrl:');
   });
 });
