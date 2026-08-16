@@ -19,7 +19,9 @@ export function DonationSplitSection() {
   const config = useApp((s) => s.config);
   const runMigration = useApp((s) => s.runDonationSplitMigration);
   const enableSplit = useApp((s) => s.enableDonationSplit);
+  const disableSplit = useApp((s) => s.disableDonationSplit);
   const toast = useApp((s) => s.toast);
+  const [busyOff, setBusyOff] = useState(false);
   const [armed, setArmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<number | null>(null);
@@ -78,6 +80,20 @@ export function DonationSplitSection() {
         >
           {active ? '✓ פיצול פעיל בארגון' : 'פיצול כבוי (תרומות מקוננות)'}
         </span>
+        {/* כיבוי-בקליק (בקשת-בעלים — "לא מתכבה" בטלפון): מנקה גם מטמון-קונפיג תקוע */}
+        {active && (
+          <Btn
+            sm
+            onClick={() => {
+              if (busyOff) return;
+              setBusyOff(true);
+              void disableSplit().finally(() => setTimeout(() => window.location.reload(), 400));
+            }}
+            disabled={busyOff}
+          >
+            {busyOff ? 'מכבה…' : '🧹 כיבוי הפיצול'}
+          </Btn>
+        )}
       </div>
 
       {!cloudOn && <SectionNote>זמין רק כשהענן מחובר (התחברו לענן תחילה).</SectionNote>}

@@ -472,6 +472,8 @@ interface AppState {
   runDonationSplitMigration: () => Promise<number>;
   /** מסלול-B פאזה-5 (חלון-בעלים) — הדלקת `donationSplit` בקונפיג-הענן בקליק (אחרי המיגרציה). זורק על כשל. */
   enableDonationSplit: () => Promise<void>;
+  /** כיבוי פיצול-התרומות + ניקוי מטמון-הקונפיג התקוע (בקשת-בעלים). */
+  disableDonationSplit: () => Promise<void>;
   /** אכיפת-תומכים (חלון-בעלים) — מיגרציית seed של skey לכל התומכים; מחזירה כמות. */
   runSupEnforceMigration: () => Promise<number>;
   /** אכיפת-תומכים (חלון-בעלים) — הדלקת `supporterEnforce` בקונפיג-הענן (ארגון-פלטפורמה בלבד). זורק על כשל/שורש. */
@@ -2597,6 +2599,27 @@ export const useApp = create<AppState>()((set, get) => {
       // תוקף מיידי בשכבת-הסנכרון (ה-onSnapshot יבצע אותו דבר כשהכתיבה תחזור).
       mod.setDonationSplit(true);
       get().toast('✓ פיצול-התרומות הודלק בקונפיג-הענן — פעיל מעכשיו');
+    },
+
+    /** כיבוי פיצול-התרומות בקליק (בקשת-בעלים — הדגל "נתקע דלוק" במטמון): כותב
+     *  donationSplit:false לענן (אם ארגון-פלטפורמה), מכבה את שכבת-הסנכרון, **ומנקה
+     *  את מטמון-הקונפיג המקומי** ששימר את הדגל דלוק. לא נוגע בנתונים. */
+    async disableDonationSplit() {
+      const mod = cloudMod;
+      const slug = get().config.slug;
+      try {
+        if (mod && slug && slug !== 'default') await mod.writeOrgCloudDoc(slug, { config: { donationSplit: false } });
+        mod?.setDonationSplit(false);
+      } catch {
+        /* כשל-ענן/רשת — ממשיכים לניקוי-המטמון בכל-מקרה (זה מה שתוקע ברוב המקרים) */
+      }
+      try {
+        for (const k of Object.keys(localStorage))
+          if (k.startsWith('maor_cloudcfg') || k === 'maor_org_config') localStorage.removeItem(k);
+      } catch {
+        /* localStorage חסום */
+      }
+      get().toast('🧹 פיצול-התרומות כובה — טוען מחדש…');
     },
 
     async runSupEnforceMigration() {
