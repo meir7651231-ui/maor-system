@@ -464,6 +464,21 @@ export function PlatformPanel(props: { onClose: () => void }) {
                   </span>
                 </span>
               </label>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, cursor: 'pointer', marginTop: 6 }}>
+                <input
+                  type="checkbox"
+                  checked={cfg.supporterEnforce === true}
+                  onChange={(e) => updateCfg({ ...cfg, supporterEnforce: e.target.checked ? true : undefined })}
+                  style={{ width: 'auto', marginTop: 2, accentColor: 'var(--accent-deep)' }}
+                />
+                <span style={{ lineHeight: 1.35 }}>
+                  <span style={{ color: 'var(--ink)', fontWeight: 700 }}>🔒 אכיפת-נתונים מלאה פר-ייעוד</span>
+                  <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                    תומכים · לוח · לוג — עובדת רואה רק את הייעוד שלה. לארגון עם נתונים קיימים — יש
+                    להריץ מיגרציה (הגדרות←אבטחה). ארגון-חדש: הדלקה כאן מספיקה.
+                  </span>
+                </span>
+              </label>
             </Field>
 
             <Field label="מונחים (ריק = ברירת המחדל)">
