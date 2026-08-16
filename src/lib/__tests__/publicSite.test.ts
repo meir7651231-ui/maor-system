@@ -71,6 +71,71 @@ describe('🌐 אתר ציבורי — חיטוי normalizeSite', () => {
   });
 });
 
+describe('🌐 שדות-העיצוב (design 16.8) — חיטוי + מבנה', () => {
+  it('brandLine + storyTitle/Accent/Badge + donateNote: רב-לשוני מחוטא', () => {
+    const c = base({
+      brandLine: { he: 'אור לאלמנה', en: 'Light', fr: 'x' },
+      storyTitle: 'כותרת', storyTitleAccent: 'הדגשה', storyBadge: 'ברכה ♡',
+      donateNote: { he: 'מוכר למס' },
+    });
+    expect(c.site?.brandLine).toEqual({ he: 'אור לאלמנה', en: 'Light' });
+    expect(c.site?.storyTitle).toBe('כותרת');
+    expect(c.site?.storyTitleAccent).toBe('הדגשה');
+    expect(c.site?.storyBadge).toBe('ברכה ♡');
+    expect(c.site?.donateNote).toEqual({ he: 'מוכר למס' });
+  });
+
+  it('founder: name/quote רב-לשוני; photo רק https', () => {
+    const c = base({ founder: { name: 'מרים', quote: { he: 'ציטוט' }, photo: 'http://x/p.jpg', evil: 1 } });
+    expect(c.site?.founder?.name).toBe('מרים');
+    expect(c.site?.founder?.quote).toEqual({ he: 'ציטוט' });
+    expect(c.site?.founder?.photo).toBeUndefined(); // http נזרק
+    expect((c.site?.founder as Record<string, unknown>).evil).toBeUndefined();
+    expect(base({ founder: { photo: 'https://x/p.jpg' } }).site?.founder?.photo).toBe('https://x/p.jpg');
+  });
+
+  it('timeline: דורש year+title; פריט חסר-title נזרק; תקרת 10', () => {
+    const c = base({
+      timeline: [
+        { year: '2002', title: 'התחלה', note: 'הערה' },
+        { year: '2009' }, // בלי title ⇒ נזרק
+        { title: 'בלי שנה' }, // בלי year ⇒ נזרק
+      ],
+    });
+    expect(c.site?.timeline).toHaveLength(1);
+    expect(c.site?.timeline?.[0]).toEqual({ year: '2002', title: 'התחלה', note: 'הערה' });
+  });
+
+  it('growth: label/delta + points 0..1 (חיתוך; דורש ≥2)', () => {
+    const c = base({ growth: { label: 'סלים', delta: '+38%', points: [0.1, 2, -1, 0.9] } });
+    expect(c.site?.growth?.label).toBe('סלים');
+    expect(c.site?.growth?.delta).toBe('+38%');
+    expect(c.site?.growth?.points).toEqual([0.1, 1, 0, 0.9]); // 2→1, -1→0
+    expect(base({ growth: { points: [0.5] } }).site?.growth?.points).toBeUndefined(); // <2 נזרק
+  });
+
+  it('paymentMethods: דורש label+detail; ltr נשמר; פריט חסר נזרק', () => {
+    const c = base({
+      paymentMethods: [
+        { label: 'אונליין', detail: 'אשראי' },
+        { label: 'Checks', detail: 'Monsey', ltr: true },
+        { label: 'רק-תווית' }, // בלי detail ⇒ נזרק
+      ],
+    });
+    expect(c.site?.paymentMethods).toHaveLength(2);
+    expect(c.site?.paymentMethods?.[1]).toEqual({ label: 'Checks', detail: 'Monsey', ltr: true });
+  });
+
+  it('transparency.badges: רב-לשוני, תקרת 6; contact.taxNote מחוטא', () => {
+    const c = base({
+      transparency: { heading: 'שקיפות', badges: ['סעיף 46', { he: '92%' }] },
+      contact: { taxNote: 'ע.ר. 580' },
+    });
+    expect(c.site?.transparency?.badges).toEqual(['סעיף 46', { he: '92%' }]);
+    expect(c.site?.contact?.taxNote).toBe('ע.ר. 580');
+  });
+});
+
 describe('🌐 resolveLocalized + siteLangs', () => {
   it('מחרוזת ⇒ כמות-שהיא; מפה ⇒ שפה מבוקשת', () => {
     expect(resolveLocalized('שלום', 'en')).toBe('שלום');
@@ -136,5 +201,14 @@ describe('🌐 publicSiteOn + הגנת-מקור', () => {
     // הרכיב מוזן מהקונפיג בלבד (config.site) ומכבד reduced-motion
     expect(siteSrc).toContain('config.site');
     expect(siteSrc).toContain('prefers-reduced-motion');
+    // הסקשנים המשודרגים מוזנים-קונפיג (לא תוכן קשיח): מייסד/ציר-זמן/אמצעי-תשלום/גרף/מדליונים
+    expect(siteSrc).toContain('site.founder');
+    expect(siteSrc).toContain('site.timeline');
+    expect(siteSrc).toContain('site.paymentMethods');
+    expect(siteSrc).toContain('site.growth');
+    expect(siteSrc).toContain('transparency?.badges');
+    // תנועות-העיצוב המדויקות נשמרות (Chesed Landing p-*)
+    expect(siteSrc).toContain('ps-beat');
+    expect(siteSrc).toContain('ps-draw');
   });
 });

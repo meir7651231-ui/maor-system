@@ -339,6 +339,8 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
     if (addr) contact.address = addr;
     const hours = normLocalized(c.hours, 120);
     if (hours) contact.hours = hours;
+    const taxNote = normLocalized(c.taxNote, 200);
+    if (taxNote) contact.taxNote = taxNote;
     if (typeof c.mapUrl === 'string') {
       const mu = safeHttpsUrl(c.mapUrl);
       if (mu) contact.mapUrl = mu;
@@ -357,11 +359,16 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
   };
   const hi = imgUrl(s.heroImage); if (hi) out.heroImage = hi;
   setLT('heroTitle', s.heroTitle, 80);
+  setLT('brandLine', s.brandLine, 60);
   setLT('heroBadge', s.heroBadge, 80);
   setLT('titleAccent', s.titleAccent, 60);
   setLT('servicesHeading', s.servicesHeading, 80);
   setLT('microCopy', s.microCopy, 120);
   setLT('ticker', s.ticker, 160);
+  setLT('storyTitle', s.storyTitle, 120);
+  setLT('storyTitleAccent', s.storyTitleAccent, 80);
+  setLT('storyBadge', s.storyBadge, 80);
+  setLT('donateNote', s.donateNote, 240);
   if (Array.isArray(s.marquee)) {
     const mq = s.marquee.map((m) => normLocalized(m, 80)).filter((m): m is LocalizedText => !!m).slice(0, 16);
     if (mq.length) out.marquee = mq;
@@ -444,7 +451,55 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
     const heading = normLocalized(o.heading, 120); if (heading) tr.heading = heading;
     const text = normLocalized(o.text, 600); if (text) tr.text = text;
     const url = imgUrl(o.reportsUrl); if (url) tr.reportsUrl = url;
+    if (Array.isArray(o.badges)) {
+      const badges = o.badges.map((b) => normLocalized(b, 60)).filter((b): b is LocalizedText => !!b).slice(0, 6);
+      if (badges.length) tr.badges = badges;
+    }
     if (Object.keys(tr).length) out.transparency = tr;
+  }
+  /* ── סיפור: מייסד/ת + ציר-זמן ── */
+  if (s.founder && typeof s.founder === 'object' && !Array.isArray(s.founder)) {
+    const o = s.founder as Record<string, unknown>;
+    const f: NonNullable<PublicSiteContent['founder']> = {};
+    const name = normLocalized(o.name, 80); if (name) f.name = name;
+    const quote = normLocalized(o.quote, 200); if (quote) f.quote = quote;
+    const photo = imgUrl(o.photo); if (photo) f.photo = photo;
+    if (Object.keys(f).length) out.founder = f;
+  }
+  if (Array.isArray(s.timeline)) {
+    const items = s.timeline.map((m) => {
+      if (!m || typeof m !== 'object') return null;
+      const o = m as Record<string, unknown>;
+      const year = siteStr(o.year, 12); const title = normLocalized(o.title, 120);
+      if (!year || !title) return null;
+      const it: NonNullable<PublicSiteContent['timeline']>[number] = { year, title };
+      const note = normLocalized(o.note, 160); if (note) it.note = note;
+      return it;
+    }).filter((x): x is NonNullable<PublicSiteContent['timeline']>[number] => !!x).slice(0, 10);
+    if (items.length) out.timeline = items;
+  }
+  if (s.growth && typeof s.growth === 'object' && !Array.isArray(s.growth)) {
+    const o = s.growth as Record<string, unknown>;
+    const g: NonNullable<PublicSiteContent['growth']> = {};
+    const label = normLocalized(o.label, 120); if (label) g.label = label;
+    const delta = siteStr(o.delta, 40); if (delta) g.delta = delta;
+    if (Array.isArray(o.points)) {
+      const pts = o.points.map((p) => (typeof p === 'number' && Number.isFinite(p) ? Math.max(0, Math.min(1, p)) : null)).filter((p): p is number => p !== null).slice(0, 40);
+      if (pts.length >= 2) g.points = pts;
+    }
+    if (Object.keys(g).length) out.growth = g;
+  }
+  if (Array.isArray(s.paymentMethods)) {
+    const items = s.paymentMethods.map((p) => {
+      if (!p || typeof p !== 'object') return null;
+      const o = p as Record<string, unknown>;
+      const label = normLocalized(o.label, 60); const detail = normLocalized(o.detail, 200);
+      if (!label || !detail) return null;
+      const pm: NonNullable<PublicSiteContent['paymentMethods']>[number] = { label, detail };
+      if (o.ltr === true) pm.ltr = true;
+      return pm;
+    }).filter((x): x is NonNullable<PublicSiteContent['paymentMethods']>[number] => !!x).slice(0, 6);
+    if (items.length) out.paymentMethods = items;
   }
   if (s.contactForm && typeof s.contactForm === 'object' && !Array.isArray(s.contactForm)) {
     const o = s.contactForm as Record<string, unknown>;

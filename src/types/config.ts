@@ -99,6 +99,8 @@ export interface PublicSiteContact {
   address?: LocalizedText;
   hours?: LocalizedText;
   mapUrl?: string;
+  /** הערת-תחתית משפטית ("ע.ר. ... · אישור ניהול תקין"). */
+  taxNote?: LocalizedText;
 }
 
 /** מסלול-שותפות (הוראת-קבע חודשית) — עמודת-תמחור בעיצוב. */
@@ -141,6 +143,34 @@ export interface PublicSiteNewsItem {
   title: LocalizedText;
   body?: LocalizedText;
 }
+/** מייסד/ת — כרטיס-סיפור (תמונה + ציטוט). */
+export interface PublicSiteFounder {
+  name?: LocalizedText;
+  quote?: LocalizedText;
+  /** תמונת-המייסד/ת (https). */
+  photo?: string;
+}
+/** אבן-דרך בציר-הזמן של הסיפור. */
+export interface PublicSiteMilestone {
+  year: string;
+  title: LocalizedText;
+  note?: LocalizedText;
+}
+/** גרף-צמיחה בסעיף-המספרים (דקורטיבי, מוזן-קונפיג). */
+export interface PublicSiteGrowth {
+  label?: LocalizedText;
+  /** תווית-שינוי ("+38% מהשנה שעברה"). */
+  delta?: string;
+  /** נקודות-הגרף (ערכים 0..1, מנורמלים לגובה). */
+  points?: number[];
+}
+/** אמצעי-תרומה (אונליין/העברה/צ׳קים) — כרטיס בבוחר-התרומה. */
+export interface PublicSitePayMethod {
+  label: LocalizedText;
+  detail: LocalizedText;
+  /** true ⇒ הפרטים מיושרים-שמאל (LTR, לצ׳קים בחו״ל). */
+  ltr?: boolean;
+}
 
 /**
  * תוכן האתר-הציבורי (dashboard-נחיתה) — **מוזן ישירות מהקונפיג של הארגון**
@@ -156,6 +186,8 @@ export interface PublicSiteContent {
   icon?: string;
   /** תת-כותרת ה-hero ("הבית של האלמנות והיתומים"). */
   tagline?: LocalizedText;
+  /** שורת-מותג קטנה מתחת לשם-הארגון בניווט ("אור לאלמנה וליתום"). חסר ⇒ אינה מוצגת. */
+  brandLine?: LocalizedText;
   /** מילות-זהב מתחלפות ב-hero. */
   heroWords?: LocalizedText[];
   stats?: PublicSiteStat[];
@@ -168,6 +200,22 @@ export interface PublicSiteContent {
   news?: LocalizedText;
   /** "הסיפור שמאחורי". */
   story?: LocalizedText;
+  /** כותרת-הסיפור ("24 שנה של בית חם."). */
+  storyTitle?: LocalizedText;
+  /** מילת-ההדגשה בכותרת-הסיפור ("וזה רק מתחיל."). */
+  storyTitleAccent?: LocalizedText;
+  /** צ׳יפ-ברכה מתחת לסיפור ("בברכת גדולי ישראל ♡"). */
+  storyBadge?: LocalizedText;
+  /** מייסד/ת — כרטיס-תמונה + ציטוט. */
+  founder?: PublicSiteFounder;
+  /** ציר-זמן — אבני-דרך. */
+  timeline?: PublicSiteMilestone[];
+  /** גרף-צמיחה בסעיף-המספרים. */
+  growth?: PublicSiteGrowth;
+  /** אמצעי-תרומה (בבוחר-התרומה). */
+  paymentMethods?: PublicSitePayMethod[];
+  /** הערת-תחתית בבוחר-התרומה ("תרומות מוכרות למס..."). */
+  donateNote?: LocalizedText;
   /** תמונות-גלריה (https בלבד). */
   gallery?: string[];
   contact?: PublicSiteContact;
@@ -198,8 +246,8 @@ export interface PublicSiteContent {
   faq?: PublicSiteFaq[];
   events?: PublicSiteEvent[];
   partners?: PublicSitePartner[];
-  /** בלוק-שקיפות ("כל שקל מתועד"). */
-  transparency?: { heading?: LocalizedText; text?: LocalizedText; reportsUrl?: string };
+  /** בלוק-שקיפות ("כל שקל מתועד") + מדליוני-אמון. */
+  transparency?: { heading?: LocalizedText; text?: LocalizedText; reportsUrl?: string; badges?: LocalizedText[] };
   /** טופס-קשר (לידים). */
   contactForm?: { enabled?: boolean; note?: LocalizedText };
 }

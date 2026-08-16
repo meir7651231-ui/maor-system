@@ -244,3 +244,48 @@ a.ps-chip:hover { border-color: var(--c-coral); color: var(--c-coral); }
 .ps-marquee { background: #f9e4e1; }
 .ps-tier.feat .ps-tier-tag, .ps-lang.on { background: #d97f7f; }
 .ps-event-d { background: linear-gradient(135deg, #ec9c9c, #d97f7f); color: #fff; }
+
+/* ── תנועות-העיצוב המדויקות (Chesed Landing p-*) — משמשות את ה-inline-styles של ה-HERO/הניווט/המרקיזה ── */
+@keyframes ps-pop { from { opacity: 0.001; transform: scale(0.92) translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes ps-marq { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes ps-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+@keyframes ps-beat { 0%, 100% { transform: scale(1); } 12% { transform: scale(1.14); } 24% { transform: scale(1); } }
+@keyframes ps-draw { to { stroke-dashoffset: 0; } }
+.ps-marq { animation: ps-marq 30s linear infinite; will-change: transform; }
+.ps-navlink { transition: color 0.18s; }
+.ps-navlink:hover { color: #d97f7f; }
+.ps-event-b { min-width: 0; }
+
+/* כרטיס-הרמה (עמודי-תווך) */
+.ps-lift { transition: transform 0.2s, box-shadow 0.2s; }
+.ps-lift:hover { transform: translateY(-8px); box-shadow: 0 26px 56px rgba(217, 127, 127, 0.26); }
+
+/* שדות-טופס (יצירת-קשר · ניוזלטר · סכום-אחר) */
+.ps-in2 { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 13px 16px; border-radius: 16px; border: 1.5px solid rgba(236, 156, 156, 0.4); background: #fffcfa; color: #33272a; font-family: 'Assistant', system-ui, sans-serif; font-size: 15px; outline: none; transition: border-color 0.16s, box-shadow 0.16s; }
+.ps-in2:focus { border-color: #d97f7f; box-shadow: 0 0 0 4px rgba(236, 156, 156, 0.18); }
+
+/* אקורדיון-שאלות (native details) */
+.ps-faqd summary::-webkit-details-marker { display: none; }
+.ps-faqd summary { list-style: none; }
+.ps-faqd .ps-faqmark { transition: transform 0.2s, background 0.2s, color 0.2s; }
+.ps-faqd[open] .ps-faqmark { transform: rotate(45deg); background: #d97f7f; color: #fff; }
+.ps-faqd[open] { border-color: #d97f7f !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-marq { animation: none; }
+  .ps-lift, .ps-in2, .ps-faqd .ps-faqmark { transition: none; }
+  /* עצירת התנועות ה-inline של ה-HERO/הלוגו/הכרטיסים */
+  .ps [style*="ps-float"], .ps [style*="ps-beat"], .ps [style*="ps-pop"], .ps [style*="ps-draw"] { animation: none !important; }
+}
+
+/* ── רספונסיביות — קריסת גרידים למובייל ── */
+@media (max-width: 860px) {
+  .ps-hero-grid, .ps-story-grid, .ps-calc-grid, .ps-donate-grid, .ps-news-grid, .ps-contact-grid { grid-template-columns: 1fr !important; }
+  .ps-hero-grid { text-align: center; }
+  .ps-tst3 { grid-template-columns: 1fr 1fr !important; }
+  .ps-gal6 { grid-auto-rows: clamp(120px, 26vw, 200px) !important; }
+}
+@media (max-width: 560px) {
+  .ps-tst3 { grid-template-columns: 1fr !important; }
+  .ps-gal6 > figure { grid-column: span 3 !important; grid-row: span 1 !important; }
+}

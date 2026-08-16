@@ -23,6 +23,7 @@
     "heroBadge": { "he": "2,800 משפחות איתנו היום", "en": "2,800 families with us today" },
     "heroTitle": { "he": "הבית של", "en": "A home for" },
     "titleAccent": { "he": "האלמנות.", "en": "widows & orphans." },
+    "brandLine": { "he": "אור לאלמנה וליתום", "en": "Light for widow & orphan" },
     "tagline": { "he": "כבר 24 שנה אנחנו הבית של האלמנות והיתומים: סלי מזון, מלגות, שמחות בכבוד וליווי אישי ל־2,800 משפחות — בלי בירוקרטיה ובלי לוותר על הכבוד של אף אחד.", "en": "For 24 years, a home for widows and orphans: food, scholarships, dignified celebrations and personal care for 2,800 families." },
     "microCopy": { "he": "כל ₪9 = ארוחה חמה לילד ♡", "en": "Every ₪9 = a warm meal ♡" },
     "marquee": [
@@ -49,10 +50,41 @@
       { "value": "92%", "label": { "he": "מכל שקל — ישירות למשפחות" } }
     ],
     "transparency": {
-      "heading": { "he": "כל שקל מתועד. כל הדו״חות פתוחים." },
-      "text": { "he": "אנחנו מאמינים ששקיפות היא כבוד. כל תרומה מתועדת, וכל שקל מגיע למי שצריך — 92% ישירות למשפחות." }
+      "heading": { "he": "כל שקל מתועד. כל הדו״חות פתוחים.", "en": "Every shekel tracked. All reports open." },
+      "text": { "he": "אנחנו מאמינים ששקיפות היא כבוד. כל תרומה מתועדת, וכל שקל מגיע למי שצריך — 92% ישירות למשפחות.", "en": "Transparency is dignity. Every donation is documented — 92% goes directly to families." },
+      "badges": [
+        { "he": "ניהול תקין 2026" },
+        { "he": "אישור סעיף 46 למס" },
+        { "he": "דו״ח שנתי פתוח" },
+        { "he": "92% ישירות למשפחות" }
+      ]
     },
-    "story": { "he": "24 שנה של בית חם. וזה רק מתחיל.\n\nמאור החסד לוצקין נוסד על-ידי הרבנית הינדא שפרינצא לוצקין, בברכת הגאון רבי משה הלברשטאם זצ״ל — כדי להביא אור לילדיו של הקב״ה ולעזור להם לבנות מחדש את חייהם. מבית אחד, למאות משפחות, בכבוד ובאהבה." },
+    "story": { "he": "לפני 24 שנה, אחרי אובדן שקרע את הלב, קמה מרים לוצקין והחליטה שאף אלמנה לא תישאר לבד עם הכאב — ושכל יתום ירגיש שיש לו בית. מה שהתחיל בסל אחד לשכנה, הפך לבית חם ל־2,800 משפחות: סלי מזון, מלגות, שמחות בכבוד וכתף אמיתית.", "en": "24 years ago, after a heartbreaking loss, Miriam Lutzkin resolved that no widow would carry the pain alone — and that every orphan would feel they have a home. One basket for a neighbor grew into a warm home for 2,800 families." },
+    "storyTitle": { "he": "24 שנה של בית חם.", "en": "24 years of a warm home." },
+    "storyTitleAccent": { "he": "וזה רק מתחיל.", "en": "And it's only beginning." },
+    "storyBadge": { "he": "בברכת גדולי ישראל ♡", "en": "Blessed by Torah leaders ♡" },
+    "founder": {
+      "name": { "he": "מרים לוצקין · מייסדת", "en": "Miriam Lutzkin · Founder" },
+      "quote": { "he": "\"חסד אמיתי זה לא לתת — זה להיות שם.\"", "en": "\"True kindness isn't giving — it's being there.\"" }
+    },
+    "timeline": [
+      { "year": "2002", "title": { "he": "ההתחלה" }, "note": { "he": "סל ראשון לשכנה שהתאלמנה" } },
+      { "year": "2009", "title": { "he": "מרכז החלוקה הראשון" }, "note": { "he": "ירושלים" } },
+      { "year": "2015", "title": { "he": "1,000 משפחות מלוות" }, "note": { "he": "ופריסה ארצית" } },
+      { "year": "2021", "title": { "he": "קו חם ארצי 24/6" }, "note": { "he": "מענה תמיד" } },
+      { "year": "2026", "title": { "he": "2,800 משפחות" }, "note": { "he": "ושלוש שפות" } }
+    ],
+    "growth": {
+      "label": { "he": "סלים שבועיים · 12 חודשים אחרונים", "en": "Weekly baskets · last 12 months" },
+      "delta": "+38% מהשנה שעברה",
+      "points": [0.15, 0.23, 0.2, 0.36, 0.44, 0.4, 0.58, 0.68, 0.64, 0.83, 0.9, 1]
+    },
+    "paymentMethods": [
+      { "label": { "he": "אונליין" }, "detail": { "he": "אשראי / ביט / PayPal — קבלה מיידית למייל" } },
+      { "label": { "he": "העברה בנקאית" }, "detail": { "he": "מזרחי־טפחות · סניף 000 · ח־ן 000000 · ע״ש מאור החסד לוצקין (ע״ר)" } },
+      { "label": { "he": "Checks" }, "detail": { "he": "\"Maor Hachesed\" · P.O.B 000, Monsey NY" }, "ltr": true }
+    ],
+    "donateNote": { "he": "תרומות מוכרות למס לפי סעיף 46 · ביטול הוראת קבע בכל רגע, בלי שאלות", "en": "Tax-deductible under §46 · cancel a standing order anytime, no questions." },
     "calc": { "unitAmount": 9, "unit": { "he": "ארוחות חמות" }, "note": { "he": "כל ₪9 = ארוחה חמה לילד ♡" } },
     "campaign": { "title": { "he": "בחרו את התרומה שלכם" }, "goal": 500000, "raised": 342311, "end": "2026-09-14", "currency": "₪" },
     "testimonials": [
@@ -82,7 +114,9 @@
       "phones": [],
       "whatsapp": "",
       "email": "",
-      "address": { "he": "אדוניהו הכהן 23, ירושלים · 14 Olympia Lane, Monsey NY", "en": "Adoniyahu HaCohen 23, Jerusalem · 14 Olympia Lane, Monsey NY" }
+      "hours": { "he": "א׳–ה׳ 9:00–17:00 · ו׳ עד 12:00", "en": "Sun–Thu 9:00–17:00 · Fri until 12:00" },
+      "address": { "he": "אדוניהו הכהן 23, ירושלים · 14 Olympia Lane, Monsey NY", "en": "Adoniyahu HaCohen 23, Jerusalem · 14 Olympia Lane, Monsey NY" },
+      "taxNote": { "he": "ע.ר. 580XXXXXX · אישור ניהול תקין 2026 · הפרטים יוחלפו בנתונים האמיתיים שלכם", "en": "NPO 580XXXXXX · Proper Management 2026 · details to be replaced with your real data" }
     }
   }
 }
