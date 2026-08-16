@@ -315,6 +315,12 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
   // hex · rgb/rgba/hsl/hsla (ספרות/פסיקים/רווח/%/. בלבד) · מילת-צבע. אחרת מוסר.
   if (typeof cfg.accent === 'string' && isSafeAccent(cfg.accent.trim())) cfg.accent = cfg.accent.trim();
   else delete cfg.accent;
+  // הגנת-מקור (16.8) — allowlist מארחים: מערך-מחרוזות מנוקה (עד 12, כ"א ≤120).
+  if (Array.isArray(c.allowedHosts)) {
+    const hosts = c.allowedHosts.filter((h): h is string => typeof h === 'string' && !!h.trim()).map((h) => h.trim().slice(0, 120)).slice(0, 12);
+    if (hosts.length) cfg.allowedHosts = hosts;
+    else delete cfg.allowedHosts;
+  } else delete cfg.allowedHosts;
   return cfg;
 }
 
