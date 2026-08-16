@@ -7,8 +7,8 @@
  */
 import { useState } from 'react';
 import { useApp } from '../store/useApp';
-import { findCaller, familyContext } from '../lib/callerId';
-import { integrationOn, moduleOn } from '../lib/config';
+import { callerKindLabel, findCaller, familyContext } from '../lib/callerId';
+import { integrationOn, moduleOn, termOf } from '../lib/config';
 import { Modal, Btn } from './ui';
 import { WaBtn } from './WaBtn';
 import { CallBtn } from './CallBtn';
@@ -104,7 +104,7 @@ export function CallerLookup({ initialNumber, onClose }: { initialNumber?: strin
                       fontSize: 11.5,
                     }}
                   >
-                    {caller.kindLabel}
+                    {callerKindLabel(config, caller.kind)}
                   </span>{' '}
                   <span dir="ltr">{caller.phone}</span>
                 </div>
@@ -116,7 +116,7 @@ export function CallerLookup({ initialNumber, onClose }: { initialNumber?: strin
               <div style={{ fontSize: 13, color: 'var(--ink-soft)', borderTop: '1px solid var(--line-soft)', paddingTop: 8 }}>
                 {memberNames && (
                   <div>
-                    <b>במשפחה:</b> {memberNames}
+                    <b>{'ב' + termOf(config, 'entity.family', 'משפחה') + ':'}</b> {memberNames}
                   </div>
                 )}
                 {fam.phone2 && (
@@ -175,7 +175,7 @@ export function CallerLookup({ initialNumber, onClose }: { initialNumber?: strin
               מספר <span dir="ltr" style={{ fontWeight: 700 }}>{trimmed}</span> אינו מזוהה במערכת.
             </div>
             <div>
-              <Btn onClick={newFamily}>➕ פתיחת משפחה חדשה</Btn>
+              <Btn onClick={newFamily}>{'➕ פתיחת ' + termOf(config, 'entity.family', 'משפחה') + ' חדשה'}</Btn>
             </div>
           </div>
         )}
