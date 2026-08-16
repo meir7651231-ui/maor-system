@@ -130,8 +130,14 @@ service cloud.firestore {
     // נתוני ארגון-פלטפורמה: כתיבה — חבר או מייל-על (הסנכרון דוחף). קריאה — חבר,
     // **פרט לאוסף-התרומות** (מסלול-B): קריאתו נאכפת פר-ייעוד במאץ' הייעודי למטה.
     match /orgs/{slug}/{col}/{docId} {
-      // auditlog נחצב מהכתיבה-הכללית: כל חבר כותב רק את מסמכו (uid), לא של אחר.
-      allow write: if (superAdmin() || orgMember(slug)) && col != 'auditlog';
+      // 🔴 נחיל-אבטחה 16.8 (CRITICAL) — הכתיבה-הכללית חייבת להחריג בדיוק כמו הקריאה.
+      // Firestore = OR של כללים: `allow write` רחב על אוסף שיש-לו-מאץ'-ייעודי **גובר**
+      // עליו ⇒ עובד-מוגבל היה יכול להפוך pkey/skey ל-'_shared_' ולקרוא/למחוק/לזייף
+      // קבלת-§46 ו-PII של ייעוד-אסור (canWriteKeyed הפך לקוד-מת). כל אוסף כאן נאכף
+      // בבלוק-ייעודי משלו (donations/supporters/events פר-מפתח · תורי-PII · auditlog),
+      // לכן ההחרגה בטוחה — הכתיבה נופלת לבלוק-הייעודי. `_enc` = כספת-ה-DEK (בלוק למטה).
+      allow write: if (superAdmin() || orgMember(slug))
+        && !(col in ['donations', 'supporters', 'events', 'auditlog', 'incomingPayments', 'smsOutbox', 'mailOutbox', '_enc']);
       // אכיפת-ייעוד (נחיל 16.8): donations/supporters/events נאכפים פר-skey/pkey למטה;
       // תורי-ה-PII (incomingPayments/smsOutbox/mailOutbox) נושאים שמות/סכומי-תורמים ⇒
       // קריאה=מנהל בלבד; auditlog=מנהל. כולם מוחרגים מהקריאה-הכללית-לחבר.
@@ -228,9 +234,15 @@ service cloud.firestore {
 
     // הצפנת-ענן (opt-in) — מסמך ה-envelope (ה-DEK העטוף):
     //   • שורש (הלקוח הקיים): `_enc/envelope` מכוסה ע"י catch-all השורש למטה.
-    //   • ארגון-פלטפורמה: `orgs/{slug}/_enc/envelope` מכוסה ע"י כלל ה-orgs למעלה.
-    // ה-envelope הוא ciphertext בלבד (חסר-ערך בלי הסיסמה) ⇒ אין חשיפה. אין צורך
-    // בכלל ייעודי; readCloudEnvelope באפליקציה הוא failure-safe בכל מקרה.
+    //   • ארגון-פלטפורמה: `orgs/{slug}/_enc/{d}` — בלוק ייעודי כאן.
+    // ה-envelope הוא ciphertext בלבד (חסר-ערך בלי הסיסמה) ⇒ **קריאה=חבר** (הלקוח
+    // מושך אותו כדי לפתוח את ה-DEK). 🔴 נחיל-אבטחה 16.8: **כתיבה=מנהל/מייל-על בלבד**
+    // — אחרת עובד-מוגבל היה מוחק את ה-envelope (DoS על ההצפנה: הארגון לא מפענח יותר).
+    // רק enableCloudEncryption/cloudUnlock (פעולת-בעלים) כותבים אותו.
+    match /orgs/{slug}/_enc/{d} {
+      allow read: if superAdmin() || orgMember(slug);
+      allow write: if superAdmin() || orgManager(slug);
+    }
 
     // אוספי השורש (הלקוח הקיים, cloudRoot) — allowlist כהיום + מיילי-על.
     // צמצום-אבטחה (ציד-באגים 3.8.2026): קודם היה כלל רקורסיבי /{document=**} שתפס

@@ -309,6 +309,12 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
   // צבע-מותאם-ידני (provenance) — רק true מפורש נשמר.
   if (c.accentCustom === true) cfg.accentCustom = true;
   else delete cfg.accentCustom;
+  // 🔴 נחיל-אבטחה 16.8 — חיטוי accent: הערך מוזרק ל-CSS `--accent` (applyTheme,
+  // setProperty) ונצרך כ-background ⇒ ערך זדוני מהענן כמו `url('https://attacker/b.gif')`
+  // היה מבצע GET-מאולץ מכל דפדפן-עובד (ביקון-מעקב). מתירים רק צבע-CSS אמיתי:
+  // hex · rgb/rgba/hsl/hsla (ספרות/פסיקים/רווח/%/. בלבד) · מילת-צבע. אחרת מוסר.
+  if (typeof cfg.accent === 'string' && isSafeAccent(cfg.accent.trim())) cfg.accent = cfg.accent.trim();
+  else delete cfg.accent;
   return cfg;
 }
 
@@ -514,11 +520,21 @@ export async function loadOrgConfig(): Promise<OrgConfig> {
   return slug ? { ...DEFAULT_CONFIG, slug } : DEFAULT_CONFIG;
 }
 
+/** צבע-CSS בטוח בלבד (hex/rgb/hsl/keyword) — חוסם הזרקת `url()` וכו' ל-`--accent`.
+ *  הגנת-עומק: גם הנתיב מ-db.ui.accent (שלא עובר normalizeConfig) מסונן כאן. */
+export function isSafeAccent(a: string): boolean {
+  return (
+    /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(a) ||
+    /^(?:rgb|rgba|hsl|hsla)\([0-9.,%\s/]+\)$/i.test(a) ||
+    /^[a-zA-Z]{3,20}$/.test(a)
+  );
+}
+
 /** החלת ערכת נושא + דריסת צבע הדגשה (+ סגנון-תנועה) על ה-DOM. */
 export function applyTheme(theme: string, accent?: string, motion?: string): void {
   const el = document.documentElement;
   el.dataset.theme = theme || DEFAULT_CONFIG.theme;
-  if (accent) el.style.setProperty('--accent', accent);
+  if (accent && isSafeAccent(accent.trim())) el.style.setProperty('--accent', accent.trim());
   else el.style.removeProperty('--accent');
   // סגנון-תנועה פר-ורטיקל — data-motion על ה-root; חסר ⇒ ברירת-המחדל (ביט-זהה להיום).
   if (motion && (MOTION_KEYS as readonly string[]).includes(motion)) el.dataset.motion = motion;
