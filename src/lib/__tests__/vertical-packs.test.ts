@@ -7,7 +7,9 @@
 import { describe, expect, it } from 'vitest';
 import { VERTICAL_PACKS, applyVerticalPack, COMMERCIAL_OFF } from '../verticalPacks';
 import { TERM_DEFS } from '../../types/features';
-import { DEFAULT_CONFIG, type ModuleKey, type OrgConfig } from '../../types/config';
+import { DEFAULT_CONFIG, MOTION_KEYS, type ModuleKey, type OrgConfig } from '../../types/config';
+import packSrc from '../verticalPacks.ts?raw';
+import appSrc from '../../App.tsx?raw';
 
 const base: OrgConfig = {
   ...DEFAULT_CONFIG,
@@ -36,13 +38,15 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
     expect(c.terms!['entity.cred']).toBe('נקודות נאמנות');
   });
 
-  it('שומר ענן/אדמין/ערכה — אך features מוחלף בפריסֶט הענף (לא נשמר)', () => {
+  it('שומר ענן/אדמין/שם — features+עיצוב מוחלפים בפריסֶט הענף (16.8: כולל ערכה/צבע)', () => {
     const c = applyVerticalPack(base, 'clinic');
-    expect(c.firebase?.projectId).toBe('p');
-    expect(c.adminEmails).toEqual(['admin@x.com']);
-    expect(c.theme).toBe('heichal');
-    expect(c.accent).toBe('#123456');
-    expect(c.orgName).toBe('עסק לדוגמה');
+    expect(c.firebase?.projectId).toBe('p'); // ענן נשמר
+    expect(c.adminEmails).toEqual(['admin@x.com']); // אדמין נשמר
+    expect(c.orgName).toBe('עסק לדוגמה'); // שם נשמר
+    // עיצוב מוחלף (הכרעת-בעלים 16.8 "שיחליף סגנון בשינוי וורטיקל"): base בלי
+    // accentCustom ⇒ הערכה והצבע מתחלפים לערכי-הקליניקה (heichal/#123456 הישנים נעלמו).
+    expect(c.theme).toBe('kehila');
+    expect(c.accent).toBe('#e05a8f');
     // features הישן (courses.punch:false) הוחלף — עכשיו זה פריסֶט-הקליניקה
     expect(c.features!['courses.punch']).toBeUndefined();
   });
@@ -167,5 +171,77 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
       expect(c.firebase?.projectId).toBe('p');
       expect(c.adminEmails).toEqual(['admin@x.com']);
     }
+  });
+});
+
+/**
+ * רצ'ט — זהות-חזותית פר-ורטיקל (16.8, הכרעת-בעלים "שיחליף אימוני וסגנון האתר
+ * בשינוי וורטיקל" + "הכל מוחלף חוץ מצבע-מותאם-ידני"). החלת חבילה מלבישה גם
+ * ערכת-נושא + צבע + אימוג'י-אייקון + תנועה — פרט לצבע שנבחר ידנית (accentCustom).
+ */
+describe('🎨 ratchet — זהות-חזותית פר-ורטיקל', () => {
+  const COMMERCIAL = ['clinic', 'shop', 'services', 'rooms', 'fleet', 'garage', 'hospitality', 'digital', 'build', 'studio'];
+  const NONPROFIT = ['chesed', 'gemach', 'tzedakot'];
+
+  it('כל חבילה מגדירה ערכת-נושא; מסחרית מגדירה גם icon+accent+motion; עמותתית — לא', () => {
+    for (const p of VERTICAL_PACKS) {
+      expect(typeof p.theme, `חבילה ${p.id} — theme חייב`).toBe('string');
+      if (p.motion) expect((MOTION_KEYS as readonly string[]).includes(p.motion), `${p.id} — motion חוקי`).toBe(true);
+      if (COMMERCIAL.includes(p.id)) {
+        expect(p.icon, `${p.id} מסחרי — icon חייב`).toBeTruthy();
+        expect(p.accent, `${p.id} מסחרי — accent חייב`).toBeTruthy();
+        expect(p.motion, `${p.id} מסחרי — motion חייב`).toBeTruthy();
+      }
+      if (NONPROFIT.includes(p.id)) {
+        // עמותתי = מראה קלאסי (or-rishon, אות-ראשונה) — בלי icon/accent/motion (ביט-זהה ללקוח-החי)
+        expect(p.theme, `${p.id} עמותתי — or-rishon`).toBe('or-rishon');
+        expect(p.icon, `${p.id} עמותתי — בלי icon`).toBeUndefined();
+        expect(p.accent, `${p.id} עמותתי — בלי accent`).toBeUndefined();
+        expect(p.motion, `${p.id} עמותתי — בלי motion`).toBeUndefined();
+      }
+    }
+  });
+
+  it("בנייה: מלביש ערכה+צבע+אימוג׳י+תנועה על הקונפיג", () => {
+    const c = applyVerticalPack(base, 'build');
+    expect(c.theme).toBe('tsohar');
+    expect(c.accent).toBe('#e8912a');
+    expect(c.emoji).toBe('🏗️'); // אימוג׳י-האייקון (config.emoji) — לכותרת ו-favicon
+    expect(c.motion).toBe('bold');
+    expect(c.accentCustom).toBeUndefined(); // צבע נגזר-מחבילה, לא ידני
+  });
+
+  it("סטודיו-משולב: אימוג׳י 🏢 + ערכת kehila", () => {
+    const c = applyVerticalPack(base, 'studio');
+    expect(c.emoji).toBe('🏢');
+    expect(c.theme).toBe('kehila');
+  });
+
+  it("🕊️ חסד: מראה קלאסי — or-rishon, בלי אימוג׳י/תנועה; הצבע-הלא-ידני מוסר", () => {
+    const c = applyVerticalPack(base, 'chesed'); // base: theme heichal, accent #123456 (בלי accentCustom)
+    expect(c.theme).toBe('or-rishon');
+    expect(c.emoji).toBeUndefined(); // אין icon בחבילה ⇒ נפילה לאות-ראשונה (כמו הלקוח-החי)
+    expect(c.motion).toBeUndefined();
+    expect(c.accent).toBeUndefined(); // צבע-לא-ידני מוחלף → מוסר → צבע-הערכה
+    expect(c.accentCustom).toBeUndefined();
+  });
+
+  it("🔒 צבע-מותאם-ידני שורד החלפת-ורטיקל — הערכה/האימוג׳י מתחלפים, הצבע נשאר", () => {
+    const manual = { ...base, accent: '#abcdef', accentCustom: true as const };
+    const c = applyVerticalPack(manual, 'build');
+    expect(c.accent).toBe('#abcdef'); // הצבע הידני שרד
+    expect(c.accentCustom).toBe(true); // הדגל נשמר
+    expect(c.theme).toBe('tsohar'); // אבל הערכה כן התחלפה
+    expect(c.emoji).toBe('🏗️'); // וגם האימוג׳י
+  });
+
+  it("🔒 הגנת-מקור: applyVerticalPack מזריק emoji/motion/theme; הכותרת קוראת config.emoji", () => {
+    expect(packSrc).toMatch(/next\.emoji = pack\.icon/);
+    expect(packSrc).toMatch(/next\.motion = pack\.motion/);
+    expect(packSrc).toMatch(/if \(pack\.theme\) next\.theme = pack\.theme/);
+    expect(packSrc).toMatch(/config\.accentCustom/); // שמירת צבע-ידני
+    // הכותרת (side-logo) מציגה את אימוג׳י-הארגון כשקיים
+    expect(appSrc).toMatch(/config\.emoji \? \(/);
+    expect(appSrc).toMatch(/applyFavicon\(config\.emoji\)/);
   });
 });

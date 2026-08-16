@@ -6,7 +6,7 @@
  * 2. fetch('./config.json') — קובץ סטטי יחסי ל-base (פר-פריסה של ארגון).
  * 3. DEFAULT_CONFIG — כשאין קובץ / הקובץ פגום (404, JSON שבור).
  */
-import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, type FirebaseOrgConfig, type ModuleKey, type OrgConfig, type TelNumber, type TelephonyConfig } from '../types/config';
+import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, MOTION_KEYS, type FirebaseOrgConfig, type ModuleKey, type OrgConfig, type TelNumber, type TelephonyConfig } from '../types/config';
 import { TEMPLATE_KEYS } from './templates';
 
 const LS_CONFIG_KEY = 'maor_org_config';
@@ -299,6 +299,16 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
   const tel = normalizeTelephony(c.telephony);
   if (tel) cfg.telephony = tel;
   else delete cfg.telephony;
+  // זהות-ורטיקל חזותית (16.8) — אימוג'י-ארגון: מחרוזת קצרה בלבד (glyph),
+  // תקרת-אורך 12 (אימוג'י מרובה-נקודות-קוד). ריק/לא-מחרוזת ⇒ מוסר (ביט-זהה להיום).
+  if (typeof c.emoji === 'string' && c.emoji.trim()) cfg.emoji = c.emoji.trim().slice(0, 12);
+  else delete cfg.emoji;
+  // סגנון-תנועה — allowlist בלבד (calm/snappy/bold); כל ערך אחר ⇒ מוסר.
+  if (typeof c.motion === 'string' && (MOTION_KEYS as readonly string[]).includes(c.motion)) cfg.motion = c.motion;
+  else delete cfg.motion;
+  // צבע-מותאם-ידני (provenance) — רק true מפורש נשמר.
+  if (c.accentCustom === true) cfg.accentCustom = true;
+  else delete cfg.accentCustom;
   return cfg;
 }
 
@@ -504,15 +514,44 @@ export async function loadOrgConfig(): Promise<OrgConfig> {
   return slug ? { ...DEFAULT_CONFIG, slug } : DEFAULT_CONFIG;
 }
 
-/** החלת ערכת נושא + דריסת צבע הדגשה על ה-DOM. */
-export function applyTheme(theme: string, accent?: string): void {
+/** החלת ערכת נושא + דריסת צבע הדגשה (+ סגנון-תנועה) על ה-DOM. */
+export function applyTheme(theme: string, accent?: string, motion?: string): void {
   const el = document.documentElement;
   el.dataset.theme = theme || DEFAULT_CONFIG.theme;
   if (accent) el.style.setProperty('--accent', accent);
   else el.style.removeProperty('--accent');
+  // סגנון-תנועה פר-ורטיקל — data-motion על ה-root; חסר ⇒ ברירת-המחדל (ביט-זהה להיום).
+  if (motion && (MOTION_KEYS as readonly string[]).includes(motion)) el.dataset.motion = motion;
+  else delete el.dataset.motion;
 }
 
-/** החלת קונפיגורציה שלמה (ערכה + צבע) — נוחות לאשף/בדיקות. */
+/** ה-favicon הדיפולטי (עיגול זהב) — זהה ל-index.html; משמש לשחזור כשאין אימוג'י. */
+export const DEFAULT_FAVICON =
+  "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='38' fill='%23f3c76b'/><circle cx='50' cy='50' r='20' fill='%23b45309'/></svg>";
+
+/** בניית data-URI ל-favicon מאימוג'י (טהור — נבדק ביחידה). encodeURIComponent מנטרל הזרקה. */
+export function faviconDataUri(emoji: string): string {
+  const svg =
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='52' font-size='72' text-anchor='middle' dominant-baseline='central'>" +
+    emoji +
+    '</text></svg>';
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+
+/** החלת אייקון-הארגון על ה-favicon של הדפדפן — אימוג'י ⇒ SVG; חסר ⇒ הדיפולט. */
+export function applyFavicon(emoji?: string): void {
+  if (typeof document === 'undefined') return;
+  let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+  link.href = emoji ? faviconDataUri(emoji) : DEFAULT_FAVICON;
+}
+
+/** החלת קונפיגורציה שלמה (ערכה + צבע + תנועה + אייקון) — נוחות לאשף/בדיקות. */
 export function applyConfig(cfg: OrgConfig): void {
-  applyTheme(cfg.theme, cfg.accent);
+  applyTheme(cfg.theme, cfg.accent, cfg.motion);
+  applyFavicon(cfg.emoji);
 }

@@ -10,6 +10,7 @@ import type { ModuleKey, OrgConfig } from '../types/config';
 
 export interface VerticalPack {
   id: string;
+  /** אימוג'י-הכפתור באשף (תמיד קיים). */
   emoji: string;
   label: string;
   sub: string;
@@ -22,6 +23,15 @@ export interface VerticalPack {
    * (ברירת-המחדל של מאור). כמו terms/modules — נקודת-פתיחה שמכוונים אחריה ידנית.
    */
   features?: Record<string, boolean>;
+  /**
+   * זהות-חזותית פר-ורטיקל (16.8, הכרעת-בעלים "שיחליף סגנון האתר בשינוי וורטיקל").
+   * החלת החבילה מלבישה גם עיצוב — כשהשדה מוגדר. חסר ⇒ נשמר מה שהיה (חבילות
+   * עמותתיות בלי icon/accent/motion = מראה קלאסי, ביט-זהה ללקוח-החי).
+   */
+  theme?: string; // ערכת-נושא (or-rishon/heichal/tsohar/kehila) — משנה גם שלד-הניווט
+  accent?: string; // צבע-הדגשה (hex) — נדרס רק כשאין accentCustom
+  icon?: string; // אימוג'י-הארגון (config.emoji) — כותרת + favicon; חסר ⇒ אות-ראשונה
+  motion?: string; // סגנון-תנועה (MOTION_KEYS) — data-motion
 }
 
 /**
@@ -51,12 +61,17 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     // הכל דלוק — כולל tzedaka+shop **במכוון** (חסר=דלוק; אשף 1, מטריצה מפורשת):
     // עמותת חסד היא הלקוח החי — שתי העמודות החדשות שלה.
     modules: {},
+    theme: 'or-rishon', // מראה קלאסי (זהב); בלי icon/accent/motion — ביט-זהה ללקוח-החי
   },
   {
     id: 'clinic',
     emoji: '💇',
     label: 'קליניקה',
     sub: 'לייזר · קוסמטיקה · רפואה',
+    theme: 'kehila',
+    accent: '#e05a8f',
+    icon: '💇',
+    motion: 'calm',
     terms: {
       'nav.families': 'מטופלים',
       'entity.family': 'מטופל',
@@ -92,6 +107,10 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     emoji: '🛍️',
     label: 'חנות / קמעונאות',
     sub: 'מכירה · שירות',
+    theme: 'heichal',
+    accent: '#0e9f6e',
+    icon: '🛍️',
+    motion: 'snappy',
     terms: {
       'nav.families': 'לקוחות',
       'entity.family': 'לקוח',
@@ -117,6 +136,10 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     emoji: '💼',
     label: 'שירותים / פרילנסר',
     sub: 'ייעוץ · צלם · טיפול-בית',
+    theme: 'tsohar',
+    accent: '#7c5cff',
+    icon: '💼',
+    motion: 'snappy',
     terms: {
       'nav.families': 'לקוחות',
       'entity.family': 'לקוח',
@@ -141,6 +164,10 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     emoji: '🏠',
     label: 'השכרת חללים',
     sub: 'חדרי ישיבות · סטודיו · אולמות',
+    theme: 'kehila',
+    accent: '#0d9488',
+    icon: '🏠',
+    motion: 'calm',
     terms: {
       'nav.diary': 'לוח חללים',
       'entity.room': 'חלל',
@@ -170,6 +197,10 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     emoji: '🚗',
     label: 'צי רכב / השכרה',
     sub: 'רכבים · ציוד · כלים',
+    theme: 'tsohar',
+    accent: '#e23b3b',
+    icon: '🚗',
+    motion: 'snappy',
     terms: {
       'nav.diary': 'לוח רכבים',
       'entity.room': 'רכב',
@@ -199,6 +230,10 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     emoji: '🔧',
     label: 'מוסך / מעבדה',
     sub: 'תיקונים · שירות · טיפולים',
+    theme: 'tsohar',
+    accent: '#5b6b7c',
+    icon: '🔧',
+    motion: 'bold',
     terms: {
       'nav.families': 'לקוחות',
       'entity.family': 'לקוח',
@@ -228,6 +263,10 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     emoji: '🏨',
     label: 'אירוח / צימרים',
     sub: 'מלונית · צימר · אכסניה',
+    theme: 'heichal',
+    accent: '#c2761a',
+    icon: '🏨',
+    motion: 'calm',
     terms: {
       'nav.diary': 'לוח יחידות',
       'entity.room': 'יחידת אירוח',
@@ -260,6 +299,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     emoji: '🧰',
     label: 'גמ"ח (השאלת ציוד)',
     sub: 'קטלוג · השאלות · תורמים',
+    theme: 'or-rishon', // עמותתי — מראה קלאסי, בלי icon/accent/motion
     terms: {
       'nav.shop': 'גמ"ח',
       'entity.shopProduct': 'חבילת השאלה',
@@ -286,6 +326,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     emoji: '🪙',
     label: 'ארגון מבצעי התרמה',
     sub: 'רכזים · קופות · מבצעים',
+    theme: 'or-rishon', // עמותתי — מראה קלאסי, בלי icon/accent/motion
     terms: {
       'nav.tzedaka': 'מבצעים',
       'entity.tzCoordinator': 'רכז',
@@ -310,6 +351,10 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     emoji: '💻',
     label: 'סטודיו דיגיטל',
     sub: 'אפליקציות · אתרים · פיתוח',
+    theme: 'heichal',
+    accent: '#5b6cff',
+    icon: '💻',
+    motion: 'snappy',
     terms: {
       'nav.families': 'לקוחות',
       'entity.family': 'לקוח',
@@ -339,6 +384,10 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     emoji: '🏗️',
     label: 'בנייה / קבלנות',
     sub: 'אתרים · קבלני-משנה · שלבי-ביצוע',
+    theme: 'tsohar',
+    accent: '#e8912a',
+    icon: '🏗️',
+    motion: 'bold',
     terms: {
       'nav.families': 'לקוחות',
       'entity.family': 'לקוח',
@@ -371,6 +420,10 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     emoji: '🏢',
     label: 'סטודיו דיגיטל + בנייה',
     sub: 'פרויקטים · לקוחות · ספקים — משולב',
+    theme: 'kehila',
+    accent: '#0ea5e9',
+    icon: '🏢',
+    motion: 'calm',
     terms: {
       'nav.families': 'לקוחות',
       'entity.family': 'לקוח',
@@ -399,14 +452,41 @@ export const VERTICAL_PACKS: VerticalPack[] = [
 ];
 
 /**
- * החלת חבילת-ורטיקל על קונפיג קיים. מחליף terms+modules+features בערכי החבילה;
- * שומר את כל שאר השדות (firebase/adminEmails/theme/accent/slug/orgName).
- * packId לא-מוכר → מחזיר את הקונפיג כמות שהוא (no-op בטוח).
+ * החלת חבילת-ורטיקל על קונפיג קיים. מחליף terms+modules+features בערכי החבילה,
+ * ומלביש **זהות-חזותית** פר-ורטיקל (ערכת-נושא + צבע + אימוג'י-אייקון + תנועה) —
+ * הכרעת-בעלים 16.8 "שיחליף סגנון האתר בשינוי וורטיקל". שומר את שאר השדות
+ * (firebase/adminEmails/slug/orgName/logo/telephony/roles…).
+ *
+ * צבע-ההדגשה: נשמר כשהמשתמש בחר ידני (accentCustom) — "הכל מוחלף חוץ מצבע ידני";
+ * אחרת נדרס בצבע-החבילה (או מוסר לצבע-הערכה אם החבילה לא מגדירה accent).
+ * חבילות עמותתיות (חסד/גמ"ח/התרמה) בלי icon/accent/motion ⇒ מראה קלאסי (or-rishon,
+ * אות-ראשונה) — ביט-זהה ללקוח-החי.  packId לא-מוכר → no-op בטוח (הקונפיג כמות-שהוא).
  */
 export function applyVerticalPack(config: OrgConfig, packId: string): OrgConfig {
   const pack = VERTICAL_PACKS.find((p) => p.id === packId);
   if (!pack) return config;
   // terms/modules/features מוחלפים בערכי-החבילה (נקודת-פתיחה); שאר הקונפיג נשמר.
   // features חסר בחבילה = {} = הכול דלוק (ברירת-המחדל של מאור, לוורטיקלים העמותתיים).
-  return { ...config, terms: { ...pack.terms }, modules: { ...pack.modules }, features: { ...pack.features } };
+  const next: OrgConfig = { ...config, terms: { ...pack.terms }, modules: { ...pack.modules }, features: { ...pack.features } };
+  // ערכת-נושא: מוחלפת רק כשהחבילה מגדירה (עמותתיות בלי theme ⇒ שמירת הערכה).
+  if (pack.theme) next.theme = pack.theme;
+  // אימוג'י-אייקון: מוגדר בחבילה ⇒ נכתב; חסר ⇒ מוסר (נפילה לאות-ראשונה, כמו הלקוח-החי).
+  if (pack.icon) next.emoji = pack.icon;
+  else delete next.emoji;
+  // תנועה: כנ"ל — מוגדר ⇒ נכתב; חסר ⇒ מוסר (ברירת-המחדל).
+  if (pack.motion) next.motion = pack.motion;
+  else delete next.motion;
+  // צבע-הדגשה: צבע-ידני (accentCustom) שורד בכל מקרה; אחרת ⇐ צבע-החבילה, ואם אין —
+  // מוסר (צבע-הערכה). את הדגל accentCustom משמרים רק כשהצבע-הידני שרד.
+  if (config.accentCustom) {
+    next.accent = config.accent;
+    next.accentCustom = true;
+  } else if (pack.accent) {
+    next.accent = pack.accent;
+    delete next.accentCustom;
+  } else {
+    delete next.accent;
+    delete next.accentCustom;
+  }
+  return next;
 }
