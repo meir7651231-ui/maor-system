@@ -417,6 +417,7 @@ interface AppState {
   ayinAddName: (id: string, name: string, eyes: number | '') => void;
   ayinToggleName: (id: string, nameId: string) => void;
   ayinSetNameEyes: (id: string, nameId: string, eyes: number | '') => void;
+  ayinSetNameRate: (id: string, nameId: string, rate: number) => void;
   ayinRemoveName: (id: string, nameId: string) => void;
   ayinAddAnswer: (id: string, note: string) => void;
   ayinEditAnswer: (id: string, index: number, note: string) => void;
@@ -2264,6 +2265,12 @@ export const useApp = create<AppState>()((set, get) => {
       const c = curAyin(id);
       if (!c) return;
       const names = c.a.names.map((n) => (n.id === nameId ? { ...n, eyes } : n));
+      setAyin(id, { names });
+    },
+    ayinSetNameRate(id, nameId, rate) {
+      const c = curAyin(id);
+      if (!c) return;
+      const names = c.a.names.map((n) => (n.id === nameId ? { ...n, rate: rate > 0 ? rate : undefined } : n));
       setAyin(id, { names });
     },
     ayinRemoveName(id, nameId) {
