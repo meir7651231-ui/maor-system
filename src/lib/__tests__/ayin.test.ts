@@ -7,6 +7,8 @@ import {
   boqLineAmount,
   boqTotal,
   matCostTotal,
+  namesToTemplateLines,
+  templateLinesToNames,
   timeCostTotal,
   timeHoursTotal,
   featLabel,
@@ -271,5 +273,44 @@ describe('חומרים ורכש פר-פרויקט (materials → P&L מלא)', (
     expect(cardSrc).toContain('quote - totalCost');
     expect(cardSrc).toContain('רווחיות הפרויקט');
     expect(cardSrc).toContain('חומרים ורכש');
+  });
+});
+
+describe('תבניות-הצעה (למידה מ-BuildSmart: DraftQuote + projectTemplates)', () => {
+  it('פריטים → שורות-תבנית (שם·כמות·מחיר); ריקי-שם מדולגים', () => {
+    const names = [
+      { id: 'n1', name: 'אפיון', eyes: 1, rate: 4000, done: true },
+      { id: 'n2', name: 'פיתוח', eyes: 40, rate: 250, done: false },
+      { id: 'n3', name: '  ', eyes: 5, done: false }, // ריק — מדולג
+    ];
+    expect(namesToTemplateLines(names)).toEqual([
+      { name: 'אפיון', qty: 1, rate: 4000 },
+      { name: 'פיתוח', qty: 40, rate: 250 },
+    ]);
+  });
+
+  it('שורות-תבנית → פריטים חדשים עם מזהים ותעריף', () => {
+    const out = templateLinesToNames(
+      [{ name: 'עיצוב', qty: 2, rate: 1500 }, { name: 'בלי מחיר', qty: 3, rate: 0 }, { name: ' ', qty: 1, rate: 9 }],
+      (i) => 'x' + i,
+    );
+    expect(out).toEqual([
+      { id: 'x0', name: 'עיצוב', eyes: 2, done: false, rate: 1500 },
+      { id: 'x1', name: 'בלי מחיר', eyes: 3, done: false }, // rate=0 ⇒ לא נכתב
+    ]);
+  });
+
+  it('סבב מלא: פריטים → תבנית → פריטים (שימור שם/כמות/מחיר)', () => {
+    const names = [{ id: 'a', name: 'פיתוח', eyes: 40, rate: 250, done: true }];
+    const lines = namesToTemplateLines(names);
+    const back = templateLinesToNames(lines, (i) => 'q' + i);
+    expect(back[0]).toMatchObject({ name: 'פיתוח', eyes: 40, rate: 250, done: false });
+  });
+
+  it('הכרטיס מחווט שמירה/החלה/מחיקה של תבניות (מגן-מקור)', () => {
+    expect(cardSrc).toContain('saveQuoteTemplate');
+    expect(cardSrc).toContain('applyTpl(sp.id, t.id)');
+    expect(cardSrc).toContain('תבניות-הצעה');
+    expect(cardSrc).toContain('templatesRaw || []'); // בלי ?? בסלקטור zustand (React #185)
   });
 });

@@ -59,7 +59,7 @@ import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
-import { applyAyinSheet, featLabel, planAddName, planAyinAdvance, revertPatch, stageIndex, type AyinSheetUpd } from '../lib/ayin';
+import { applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
 import {
   dailySnapshot,
   exportBackupFile,
@@ -426,6 +426,9 @@ interface AppState {
   ayinRemoveTime: (id: string, index: number) => void;
   ayinAddMat: (id: string, entry: { name: string; qty: number; cost: number }) => void;
   ayinRemoveMat: (id: string, index: number) => void;
+  saveQuoteTemplate: (id: string, name: string) => void;
+  applyQuoteTemplate: (id: string, templateId: string) => void;
+  deleteQuoteTemplate: (templateId: string) => void;
   /** קביעת מועד "לדבר שוב" — שדות בלבד (התזכורת נכתבת ב-ayinCallAgain). */
   ayinSetNextTalk: (id: string, date: string, time: string) => void;
   /** 🔁 שוב — כותב תזכורת ללוח לפי מועד "לדבר שוב". */
@@ -2364,6 +2367,38 @@ export const useApp = create<AppState>()((set, get) => {
       const c = curAyin(id);
       if (!c) return;
       setAyin(id, { mat: (c.a.mat || []).filter((_, i) => i !== index) });
+    },
+    saveQuoteTemplate(id, name) {
+      const c = curAyin(id);
+      if (!c) return;
+      const nm = (name || '').trim();
+      const lines = namesToTemplateLines(c.a.names);
+      if (!nm || !lines.length) {
+        get().toast('הזינו שם-תבנית, ולפחות שורת-פריט אחת בפרויקט');
+        return;
+      }
+      setDb((db) => {
+        const prev = (db.ui.quoteTemplates || []).filter((t) => t.name !== nm);
+        const tpl = { id: 'qt' + db.seq, name: nm, lines };
+        return { seq: db.seq + 1, ui: { ...db.ui, quoteTemplates: [tpl, ...prev].slice(0, 30) } };
+      });
+      get().toast('התבנית "' + nm + '" נשמרה');
+    },
+    applyQuoteTemplate(id, templateId) {
+      const c = curAyin(id);
+      if (!c) return;
+      const tpl = (get().db.ui.quoteTemplates || []).find((t) => t.id === templateId);
+      if (!tpl) return;
+      const base = get().db.seq;
+      let k = 0;
+      const add = templateLinesToNames(tpl.lines, () => 'an' + (base + k++));
+      if (!add.length) return;
+      setDb((db) => ({ seq: db.seq + add.length }));
+      setAyin(id, { names: [...c.a.names, ...add] });
+      get().toast('התבנית "' + tpl.name + '" הוחלה — ' + add.length + ' שורות');
+    },
+    deleteQuoteTemplate(templateId) {
+      setDb((db) => ({ ui: { ...db.ui, quoteTemplates: (db.ui.quoteTemplates || []).filter((t) => t.id !== templateId) } }));
     },
     ayinSetNextTalk(id, date, time) {
       setAyin(id, { nextTalk: date, nextTalkTime: time });

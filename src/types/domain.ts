@@ -543,9 +543,21 @@ export interface ReportPrefs {
   quarterly: boolean;
 }
 
+/**
+ * תבנית-הצעה (למידה מ-BuildSmart: DraftQuote + projectTemplates) — סט שורות-הצעה
+ * (שם·כמות·מחיר) נשמר לשימוש-חוזר, מוחל על פרויקט בקליק. additive, ורטיקל מסחרי.
+ */
+export interface QuoteTemplate {
+  id: Id;
+  name: string;
+  lines: { name: string; qty: number; rate: number }[];
+}
+
 export interface UiPrefs {
   famView: 'list' | 'grid';
   crsView: 'list' | 'grid';
+  /** תבניות-הצעה שמורות (BuildSmart-learned) — additive, חסר = אין. */
+  quoteTemplates?: QuoteTemplate[];
   /** תצוגת התורמים (5.8) — אופציונלי, חסר = 'list' (אין צורך במיגרציה). */
   supView?: 'list' | 'grid';
   /** פורמט הקבלה (5.5d, הכרעת-בעלים 9.8: הלקוח בוחר) — חסר = 'txt' (ביט-זהה). */

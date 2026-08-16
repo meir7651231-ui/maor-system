@@ -51,6 +51,10 @@ export function AyinCard(props: { supporter: Supporter }) {
   const removeTime = useApp((s) => s.ayinRemoveTime);
   const addMat = useApp((s) => s.ayinAddMat);
   const removeMat = useApp((s) => s.ayinRemoveMat);
+  const saveTpl = useApp((s) => s.saveQuoteTemplate);
+  const applyTpl = useApp((s) => s.applyQuoteTemplate);
+  const deleteTpl = useApp((s) => s.deleteQuoteTemplate);
+  const templatesRaw = useApp((s) => s.db.ui.quoteTemplates);
 
   const [nameIn, setNameIn] = useState('');
   const [eyesIn, setEyesIn] = useState('');
@@ -62,6 +66,8 @@ export function AyinCard(props: { supporter: Supporter }) {
   const [mName, setMName] = useState('');
   const [mQty, setMQty] = useState('');
   const [mCost, setMCost] = useState('');
+  const [tplName, setTplName] = useState('');
+  const [tplSaving, setTplSaving] = useState(false);
 
   const feat = featLabel(cfg);
   const item = itemLabel(cfg);
@@ -81,6 +87,13 @@ export function AyinCard(props: { supporter: Supporter }) {
   const matRows = a.mat || [];
   const totalCost = cost + matCost;
   const pnlOn = boqOn || timeOn || matOn;
+  const tpls = templatesRaw || []; // אין ?? בסלקטור zustand (React #185) — ברירת-מחדל כאן
+  function doSaveTpl() {
+    if (!tplName.trim()) return;
+    saveTpl(sp.id, tplName);
+    setTplName('');
+    setTplSaving(false);
+  }
 
   function submitName() {
     const eyes = eyesIn === '' ? '' : Math.max(0, +eyesIn.replace(/\D/g, '') || 0);
@@ -262,6 +275,27 @@ export function AyinCard(props: { supporter: Supporter }) {
                   <span style={{ fontWeight: 800, color: 'var(--ink)' }}> · סה"כ הצעה: <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(quote)}</span></span>
                 )}
               </div>
+            </div>
+          )}
+          {/* תבניות-הצעה (למידה מ-BuildSmart) — שמור/החל BOQ בקליק */}
+          {boqOn && (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '1px dashed var(--line)' }}>
+              <span style={{ fontSize: 11.5, color: 'var(--ink-faint)', fontWeight: 700 }}>תבניות-הצעה:</span>
+              {tpls.map((t) => (
+                <span key={t.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 2, background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 999, padding: '2px 4px 2px 9px', fontSize: 12 }}>
+                  <button onClick={() => applyTpl(sp.id, t.id)} title={'החל ' + t.lines.length + ' שורות'} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, color: 'var(--ink)' }}>📋 {t.name}</button>
+                  <button onClick={() => deleteTpl(t.id)} title="מחק תבנית" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-faint)', fontWeight: 800 }}>✕</button>
+                </span>
+              ))}
+              {tplSaving ? (
+                <>
+                  <input autoFocus value={tplName} onChange={(e) => setTplName(e.target.value)} placeholder="שם התבנית" onKeyDown={(e) => { if (e.key === 'Enter') doSaveTpl(); }} style={{ width: 120, padding: '3px 6px', fontSize: 12 }} />
+                  <Btn sm onClick={doSaveTpl}>✓ שמור</Btn>
+                  <Btn sm onClick={() => { setTplSaving(false); setTplName(''); }}>ביטול</Btn>
+                </>
+              ) : (
+                <Btn sm onClick={() => setTplSaving(true)} disabled={a.names.length === 0}>💾 שמור כתבנית</Btn>
+              )}
             </div>
           )}
         </div>
