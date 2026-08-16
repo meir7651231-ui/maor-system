@@ -8,7 +8,9 @@
  */
 import { describe, expect, it } from 'vitest';
 import { emptyDb } from '../../types/domain';
-import { phoneKey, findCaller, familyContext } from '../callerId';
+import { phoneKey, findCaller, familyContext, callerKindLabel } from '../callerId';
+import { applyVerticalPack } from '../verticalPacks';
+import { DEFAULT_CONFIG } from '../../types/config';
 import type { Db, Family, Supporter, Volunteer, TzCoordinator, Delivery, ShopAssignment } from '../../types/domain';
 import appSrc from '../../App.tsx?raw';
 import lookupSrc from '../../components/CallerLookup.tsx?raw';
@@ -125,5 +127,40 @@ describe('familyContext — כרטיס-חסד בכרטיס-השיחה', () => {
     expect(lookupSrc).toContain("moduleOn(config, 'shop7')");
     expect(lookupSrc).toContain("moduleOn(config, 'shop')");
     expect(lookupSrc).toContain('careChips'); // הצ׳יפים מרונדרים
+  });
+});
+
+/**
+ * רצ'ט — תווית-סוג-המתקשר עוברת מילון-מונחים (16.8): הבאג שדווח — בסטודיו/בנייה
+ * "מי מתקשר?" הציג "תורם" קשיח במקום מונח-הענף. callerKindLabel(cfg,kind) חייב
+ * לכבד termOf; ללקוח-החי (בלי דריסות) התוויות ההיסטוריות נשמרות ביט-זהה.
+ */
+describe('☎️ ratchet — תווית-מתקשר לפי מילון-המונחים (לא קשיח)', () => {
+  it('לקוח-חי (default) — תוויות היסטוריות ביט-זהה', () => {
+    expect(callerKindLabel(DEFAULT_CONFIG, 'family')).toBe('משפחה');
+    expect(callerKindLabel(DEFAULT_CONFIG, 'member')).toBe('בן/בת משפחה');
+    expect(callerKindLabel(DEFAULT_CONFIG, 'supporter')).toBe('תורם/ת');
+    expect(callerKindLabel(DEFAULT_CONFIG, 'volunteer')).toBe('מתנדב/ת');
+    expect(callerKindLabel(DEFAULT_CONFIG, 'coordinator')).toBe('רכז/ת');
+  });
+
+  it('ורטיקל מסחרי — "תורם" הופך למונח-הענף (בנייה=ספק/קבלן · סטודיו=ספק/ליד)', () => {
+    const build = applyVerticalPack(DEFAULT_CONFIG, 'build');
+    expect(callerKindLabel(build, 'supporter')).toBe('ספק/קבלן'); // לא "תורם"!
+    expect(callerKindLabel(build, 'family')).toBe('לקוח');
+    expect(callerKindLabel(build, 'supporter')).not.toContain('תורם');
+
+    const studio = applyVerticalPack(DEFAULT_CONFIG, 'studio');
+    expect(callerKindLabel(studio, 'supporter')).toBe('ספק/ליד');
+    expect(callerKindLabel(studio, 'family')).toBe('לקוח');
+  });
+
+  it('🔒 הגנת-מקור: CallerLookup קורא callerKindLabel/termOf, בלי "תורם"/"משפחה" קשיחים', () => {
+    expect(lookupSrc).toContain('callerKindLabel(config, caller.kind)');
+    expect(lookupSrc).toContain("termOf(config, 'entity.family'");
+    // אין עוד תוויות-משפחה/תורם קשיחות בכרטיס-השיחה (עברו ל-termOf)
+    expect(lookupSrc).not.toContain('caller.kindLabel');
+    expect(lookupSrc).not.toContain('במשפחה:');
+    expect(lookupSrc).not.toContain('פתיחת משפחה חדשה');
   });
 });

@@ -96,6 +96,7 @@ const matOn  = featureOn(cfg,'supporters.ayin.mat')  && !featureOn(cfg,'core.tax
 - **אשף:** צבע-ידני ⇒ `accentCustom:true` (נשמר בהחלפה); שדה **"אימוג'י הארגון"** בסעיף המיתוג; בחירת-חבילה מיישרת גם `db.ui` לתצוגה-חיה.
 - **חיטוי:** `normalizeConfig` — emoji (מחרוזת≤12), motion (allowlist), accentCustom (true בלבד).
 - **ratchets:** `vertical-packs.test.ts` (זהות פר-חבילה · שמירת-צבע-ידני · חסד-קלאסי · הגנת-מקור packSrc/appSrc) · `config-identity.test.ts` (חיטוי + faviconDataUri). אומת חזותית: build↔studio — שני מראות מובחנים (theme/accent/motion/emoji/favicon).
+- **תיקון-המשך (דליפת-מונח בכרטיס-השיחה):** תיבת "מי מתקשר?" הציגה **"תורם" קשיח** גם בורטיקל מסחרי (המטריצה סורקת מסכי-ניווט, לא מודאלים/‏hash). תוקן: `callerKindLabel(cfg,kind)` ב-`callerId.ts` (termOf פר-סוג) · `CallerLookup` עבר ל-termOf ב-3 המקומות (תווית-הסוג · "ב<לקוח>:" · "פתיחת <לקוח> חדשה") · שדה `kindLabel` הקשיח **הוסר לגמרי** (מונע רגרסיה). ratchet: `callerId.test.ts` (מסחרי⇒'ספק/ליד' · חסד ביט-זהה · הגנת-מקור).
 
 ---
 **סטטוס:** ✅ הכל נבנה · אומת ב-`verify:fast` (typecheck+lint+test, ‏1516 בדיקות ירוק) · פרוס ל-main (‏#158/#160/#161/#162/#164 + זהות-חזותית). הורטיקל מוכן-לשימוש end-to-end.
