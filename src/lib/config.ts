@@ -621,6 +621,12 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
   const site = normalizeSite(c.site);
   if (site) cfg.site = site;
   else delete cfg.site;
+  // הגנת-מקור (16.8) — allowlist מארחים: מערך-מחרוזות מנוקה (עד 12, כ"א ≤120).
+  if (Array.isArray(c.allowedHosts)) {
+    const hosts = c.allowedHosts.filter((h): h is string => typeof h === 'string' && !!h.trim()).map((h) => h.trim().slice(0, 120)).slice(0, 12);
+    if (hosts.length) cfg.allowedHosts = hosts;
+    else delete cfg.allowedHosts;
+  } else delete cfg.allowedHosts;
   return cfg;
 }
 

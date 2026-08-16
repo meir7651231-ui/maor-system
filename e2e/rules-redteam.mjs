@@ -31,6 +31,7 @@ await env.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, 'orgs/acme/donations/D-2'), { pkey: 'fundA', supporterId: 's2', donation: { rid: 'D-2', amount: 50 } });
   await setDoc(doc(db, 'orgs/acme/supporters/s3'), { name: 'תורם fundB', skey: 'fundB' });
   await setDoc(doc(db, 'orgs/acme/_enc/envelope'), { ct: 'ciphertext' });
+  await setDoc(doc(db, 'orgs/acme/meta/org'), { orgName: 'Acme', seq: 100, receiptSeq: 50, donationSeq: 50, shopReceiptSeq: 10 });
   await setDoc(doc(db, 'orgSecrets/acme'), { yemotToken: 'SECRET' });
   await setDoc(doc(db, 'orgs/other/families/f9'), { name: 'סוד של לקוח אחר' });
   await setDoc(doc(db, 'orgs/other/donations/D-9'), { pkey: '_shared_', donation: { rid: 'D-9', amount: 999 } });
@@ -83,6 +84,19 @@ await T('עובדת-מוגבלת (fundA) כן קוראת תרומת-fundA', asse
 await T('מנהל-acme קורא הכל בארגונו', assertSucceeds(getDoc(doc(boss, 'orgs/acme/donations/D-1'))));
 await T('מנהל-acme כותב את כספת-ה-DEK (הפעלת-הצפנה)', assertSucceeds(setDoc(doc(boss, 'orgs/acme/_enc/envelope'), { ct: 'y' })));
 await T('מייל-על קורא כל ארגון', assertSucceeds(getDoc(doc(su, 'orgs/other/families/f9'))));
+
+console.log('\n═══ ו׳ · #6 · "רק מנהל מנפיק קבלה" (יצירת-תרומה בשרת) ═══');
+await T('עובד לא-מנהל לא יוצר תרומה (קבלת-§46)', assertFails(setDoc(doc(emp, 'orgs/acme/donations/D-forged'), { pkey: '_shared_', supporterId: 's1', donation: { rid: 'D-forged', amount: 99999 } })));
+await T('עובדת-מוגבלת לא יוצרת תרומה', assertFails(setDoc(doc(ltd, 'orgs/acme/donations/D-forged2'), { pkey: 'fundA', supporterId: 's2', donation: { rid: 'D-forged2', amount: 100 } })));
+await T('מנהל כן מנפיק קבלה (יצירת-תרומה)', assertSucceeds(setDoc(doc(boss, 'orgs/acme/donations/D-100'), { pkey: '_shared_', supporterId: 's1', donation: { rid: 'D-100', amount: 100 } })));
+await T('מייל-על כן מנפיק קבלה', assertSucceeds(setDoc(doc(su, 'orgs/acme/donations/D-101'), { pkey: '_shared_', supporterId: 's1', donation: { rid: 'D-101', amount: 100 } })));
+
+console.log('\n═══ ז׳ · #7 · מונוטוניות-מוני-קבלות ב-meta/org ═══');
+await T('🔴 עובד לא מגלגל-אחורה donationSeq (מונע שכפול-rid)', assertFails(updateDoc(doc(emp, 'orgs/acme/meta/org'), { donationSeq: 1 })));
+await T('🔴 עובד לא מנמיך receiptSeq', assertFails(updateDoc(doc(emp, 'orgs/acme/meta/org'), { receiptSeq: 0 })));
+await T('כתיבה-לגיטימית: הרמת-מונה מותרת (סנכרון תקין)', assertSucceeds(updateDoc(doc(emp, 'orgs/acme/meta/org'), { donationSeq: 60 })));
+await T('כתיבה-לגיטימית: מונה שווה + שדה-אחר מותר', assertSucceeds(updateDoc(doc(emp, 'orgs/acme/meta/org'), { orgName: 'Acme חדש' })));
+await T('הקפצה-מעלה מותרת (רצף עם פער — לא שכפול)', assertSucceeds(updateDoc(doc(emp, 'orgs/acme/meta/org'), { donationSeq: 999 })));
 
 await env.cleanup();
 console.log(`\n── סיכום red-team ── ${pass} עברו · ${fail} נכשלו`);

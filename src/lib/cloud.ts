@@ -9,6 +9,7 @@
  * כל השגיאות למשתמש — בעברית. כשל ענן לעולם אינו עוצר את העבודה המקומית.
  */
 import { initializeApp, type FirebaseApp } from 'firebase/app';
+import { initAppCheck } from './appCheck';
 import {
   EmailAuthProvider,
   createUserWithEmailAndPassword,
@@ -239,6 +240,9 @@ export async function migrateSupportersToKeyed(
 export function initCloud(fb: FirebaseOrgConfig): { auth: Auth; db: Firestore } {
   if (app && auth && fsDb) return { auth, db: fsDb };
   app = initializeApp(fb);
+  // הגנת-מקור (16.8) — App Check: כשהוגדר firebase.appCheckKey, רק האפליקציה-
+  // הרשמית (attestation) מדברת עם ה-Firestore הזה; עותק-מגורר נחסם. דורמנטי בלי מפתח.
+  initAppCheck(app, (fb as FirebaseOrgConfig & { appCheckKey?: string }).appCheckKey);
   auth = getAuth(app);
   // מיילי-Auth (איפוס סיסמה, אימות) בשפת המכשיר — דפדפן עברי ⇒ מייל בעברית
   auth.useDeviceLanguage();

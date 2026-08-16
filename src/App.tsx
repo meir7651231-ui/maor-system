@@ -12,6 +12,7 @@ import { useApp, type View } from './store/useApp';
 import { nsLsKey, parseBackupFile } from './store/persist';
 import { applyFavicon, featureOn, isAdminUser, isSuperAdmin, moduleOn, publicSiteOn, roleOf, telephonyOn, termOf } from './lib/config';
 import { applyOrgManifest, isIos, isStandalone, promptInstall, registerPwa } from './lib/pwa';
+import { runOriginGuard } from './lib/originGuard';
 import { setExportBlocked } from './lib/exportGate';
 import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
@@ -254,6 +255,9 @@ export default function App() {
   useEffect(() => {
     registerPwa(config);
     applyOrgManifest(config);
+    // הגנת-מקור (16.8) — שומר-מארח: אזהרת-זכויות אם האתר רץ ממארח לא-מוכר
+    // (עותק-מגורר). דורמנטי בלי config.allowedHosts. הרתעה+זיהוי, לא חוסם.
+    runOriginGuard(config.allowedHosts, config.orgName);
   }, [config]);
 
   // 🔐 שער יציאת-מידע (13.8, בקשת-בעלים): המנהל מכבה `core.export` בכרטיס-העובד ⇒

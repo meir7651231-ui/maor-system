@@ -325,7 +325,20 @@ export interface OrgConfig {
     storageBucket?: string;
     messagingSenderId?: string;
     appId: string;
+    /**
+     * הגנת-מקור (16.8) — מפתח-אתר reCAPTCHA v3 ל-**App Check**: כשמוגדר, רק
+     * האפליקציה-הרשמית (מאומתת-attestation) יכולה לדבר עם ה-Firestore הזה ⇒
+     * עותק-מגורר על דומיין אחר נחסם מהשרת. חסר ⇒ App Check מדולג (ביט-זהה להיום);
+     * ההפעלה עצמה = פעולת-בעלים בקונסולה (רישום-אתר + Enforce). ראה RUNBOOK-ANTICLONE.
+     */
+    appCheckKey?: string;
   };
+  /**
+   * הגנת-מקור (16.8) — allowlist מארחים (hostnames) שבהם האתר רשאי לרוץ. כשמוגדר,
+   * טעינה ממארח לא-מוכר (עותק-מגורר) מזוהה ⇒ אזהרת-זכויות בקונסולה (הרתעה+זיהוי).
+   * חסר ⇒ אין בדיקה (ביט-זהה להיום). לא-חוסם (frontend ניתן-לעריכה) — שכבת-הרתעה.
+   */
+  allowedHosts?: string[];
   /**
    * נתיבי-שורש בענן (CLOUD2 ענן 1): true = האוספים יושבים בשורש הפרויקט —
    * הלקוח הקיים (maor-hachesed), ביט-זהה להתנהגות של היום. חסר/false =
