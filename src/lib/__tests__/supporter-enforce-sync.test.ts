@@ -31,4 +31,8 @@ describe('🔒 ratchet — אכיפת-תומכים dormant (פאזה-2)', () => 
     expect(cloudSrc).toContain('skey: supKeyOf(sp)');
     expect(cloudSrc).toContain("skey: docSkey('events'");
   });
+
+  it('משטח #3: לוג-הפעולות (audit) מקולף מ-meta בענן כשהאכיפה דלוקה', () => {
+    expect(cloudSrc).toContain('supEnforceOn && diff.meta ? stripAuditMeta(diff.meta) : diff.meta');
+  });
 });

@@ -47,7 +47,7 @@ import { DB_VERSION, type Db, type Donation } from '../types/domain';
 import { migrate } from '../store/persist';
 import { ENTITY_COLLECTIONS, colPath, donationsPath, envPath, fullDbDiff, metaPath, type DbDiff } from './cloud-diff';
 import { SHARED_PURPOSE_KEY, type DonationCloudDiff } from './donationPartition';
-import { SUP_KEYED_COLS, docSkey, supAllowedKeys, supKeyMapOf, supKeyOf, stripSupKey } from './supporterPartition';
+import { SUP_KEYED_COLS, docSkey, stripAuditMeta, supAllowedKeys, supKeyMapOf, supKeyOf, stripSupKey } from './supporterPartition';
 import type { Supporter } from '../types/domain';
 import { decryptDoc, encryptDoc } from './cloudCrypto';
 import type { EncEnvelope } from './crypto';
@@ -389,7 +389,10 @@ export async function pushDiff(diff: DbDiff, dek?: CryptoKey | null, supKeyBySpI
     await batch.commit();
   }
   // מסמך ה-meta נכתב בעסקה נפרדת בטוחה-למונים (לא בכתיבת-האצווה העיוורת).
-  if (diff.meta) await pushMetaCounterSafe(toPlain(diff.meta), dek);
+  // אכיפת-נתונים (משטח #3): לוג-הפעולות נושא שמות-תורמים ורוכב על meta המשותף —
+  // כשהאכיפה דלוקה מקלפים אותו (הלוג נשאר מקומי). כבוי ⇒ ביט-זהה (רוכב כרגיל).
+  const meta = supEnforceOn && diff.meta ? stripAuditMeta(diff.meta) : diff.meta;
+  if (meta) await pushMetaCounterSafe(toPlain(meta), dek);
 }
 
 /* ============================ הצפנת-ענן — envelope + מיגרציה ============================ */

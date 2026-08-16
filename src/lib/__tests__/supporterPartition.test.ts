@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { Supporter } from '../../types/domain';
-import { SHARED_SUP_KEY, docSkey, supAllowedKeys, supKeyMapOf, supKeyOf, stripSupKey } from '../supporterPartition';
+import { SHARED_SUP_KEY, docSkey, stripAuditMeta, supAllowedKeys, supKeyMapOf, supKeyOf, stripSupKey } from '../supporterPartition';
 
 describe('supKeyOf — מפתח-הפירוק פר-תורם (forWho)', () => {
   it('forWho קיים ⇒ הערך המנוקה', () => {
@@ -60,5 +60,15 @@ describe('stripSupKey — קילוף skey מגוף-מסמך שנמשך', () => {
   it('בלי skey ⇒ אותו אובייקט (אין נגיעה)', () => {
     const d = { id: 'sp1', name: 'כהן' };
     expect(stripSupKey(d)).toBe(d);
+  });
+});
+
+describe('stripAuditMeta — קילוף לוג-הפעולות מ-meta (משטח #3)', () => {
+  it('מסיר audit ומשאיר מונים/שאר-meta ביט-זהים', () => {
+    expect(stripAuditMeta({ receiptSeq: 5, audit: [{ what: 'כהן' }], attnDone: {} })).toEqual({ receiptSeq: 5, attnDone: {} });
+  });
+  it('בלי audit ⇒ אותו אובייקט', () => {
+    const m = { receiptSeq: 5 };
+    expect(stripAuditMeta(m)).toBe(m);
   });
 });

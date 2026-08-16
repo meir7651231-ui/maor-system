@@ -17,7 +17,8 @@ describe('#3 — כתיבת meta בטוחה-למונים (עסקה)', () => {
   });
 
   it('pushDiff מנתב את ה-meta דרך העסקה, לא דרך כתיבת-האצווה העיוורת', () => {
-    expect(cloudSrc).toContain('if (diff.meta) await pushMetaCounterSafe(toPlain(diff.meta), dek)');
+    // 15.8 — ה-meta עובר קילוף-audit מותנה-אכיפה לפני הכתיבה-הבטוחה-למונים
+    expect(cloudSrc).toContain('if (meta) await pushMetaCounterSafe(toPlain(meta), dek)');
     // הכתיבה העיוורת הישנה של ה-meta ב-batch הוסרה
     expect(cloudSrc).not.toContain('b.set(doc(db, scopedMeta()), meta)');
   });

@@ -73,3 +73,15 @@ export function stripSupKey<T extends Record<string, unknown>>(data: T): Omit<T,
   void _s;
   return rest as Omit<T, 'skey'>;
 }
+
+/**
+ * קילוף לוג-הפעולות (`audit`) ממסמך-ה-meta (משטח #3): הלוג נושא שמות-תורמים ורוכב
+ * על ה-meta המשותף שכל חבר מושך. כשהאכיפה דלוקה מקלפים אותו לפני הכתיבה לענן —
+ * הלוג נשאר מקומי פר-מכשיר, ועובדת לא תלמד על תורם של אחרת דרכו. כבוי ⇒ לא נקרא.
+ */
+export function stripAuditMeta<T extends Record<string, unknown>>(meta: T): Omit<T, 'audit'> {
+  if (!('audit' in meta)) return meta;
+  const { audit: _a, ...rest } = meta as T & { audit?: unknown };
+  void _a;
+  return rest as Omit<T, 'audit'>;
+}
