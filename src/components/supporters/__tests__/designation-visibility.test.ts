@@ -19,24 +19,28 @@ const sup = (purposes: string[]): Pick<Supporter, 'donations'> =>
     'donations'
   >;
 
-describe('supporterVisibleForDesignations — מסנן פר-עובד', () => {
+// הכרעת-בעלים 16.8 (#8 "דרך א׳"): ראוּת נקבעת לפי forWho בלבד = skey בשרת.
+describe('supporterVisibleForDesignations — מסנן פר-עובד (forWho בלבד)', () => {
   it('allowed=null (מנהל) → הכל גלוי', () => {
-    expect(supporterVisibleForDesignations(sup(['חתונות']), null)).toBe(true);
+    expect(supporterVisibleForDesignations({ forWho: 'חתונות' }, null)).toBe(true);
   });
 
-  it('עובד עם ייעוד "חתונות" רואה רק תורמי-חתונות', () => {
-    expect(supporterVisibleForDesignations(sup(['חתונות']), ['חתונות'])).toBe(true);
-    expect(supporterVisibleForDesignations(sup(['כללי']), ['חתונות'])).toBe(false);
+  it('עובד עם ייעוד "חתונות" רואה רק תורמי-חתונות (לפי forWho)', () => {
+    expect(supporterVisibleForDesignations({ forWho: 'חתונות' }, ['חתונות'])).toBe(true);
+    expect(supporterVisibleForDesignations({ forWho: 'כללי' }, ['חתונות'])).toBe(false);
   });
 
-  it('תורם בלי ייעוד כלל = משותף (גלוי לכל עובד)', () => {
-    expect(supporterVisibleForDesignations(sup([]), ['חתונות'])).toBe(true);
-    expect(supporterVisibleForDesignations(sup(['']), ['חתונות'])).toBe(true);
+  it('תורם בלי forWho = משותף (גלוי לכל עובד) — גם אם יש לו תרומה מיועדת', () => {
+    expect(supporterVisibleForDesignations({ forWho: '' }, ['חתונות'])).toBe(true);
+    expect(supporterVisibleForDesignations({ forWho: '  ' }, ['חתונות'])).toBe(true);
+    expect(supporterVisibleForDesignations({}, ['חתונות'])).toBe(true);
   });
 
-  it('תורם עם כמה ייעודים — גלוי אם יש חיתוך אחד', () => {
-    expect(supporterVisibleForDesignations(sup(['חתונות', 'כללי']), ['כללי'])).toBe(true);
-    expect(supporterVisibleForDesignations(sup(['חתונות', 'בית']), ['כללי'])).toBe(false);
+  it('הייעוד-פר-תרומה (purpose) אינו קובע ראוּת-תורם — רק forWho', () => {
+    // תורם בלי forWho אך עם תרומת-"חתונות" ⇒ משותף (השרת: skey=_shared_) ⇒ גלוי לעובד-כללי
+    expect(supporterVisibleForDesignations({ ...sup(['חתונות']), forWho: '' }, ['כללי'])).toBe(true);
+    // forWho="חתונות" ⇒ מוסתר מעובד-כללי גם אם יש תרומת-"כללי"
+    expect(supporterVisibleForDesignations({ ...sup(['כללי']), forWho: 'חתונות' }, ['כללי'])).toBe(false);
   });
 });
 
@@ -44,19 +48,20 @@ describe('visibleSupportersForDesignations — נקודת-חנק למשטחים 
   // 🐛 נחיל-9×9 (13.8): הסינון היה רק ב-SupportersView+פלטה; מבט-הנהלה, מסך-הבית,
   // קיר-ההשפעה, הדוחות, הדוח-השנתי-לכולם והייצוא-המותאם צרכו db.supporters הגולמי
   // ⇒ עובדת מוגבלת ראתה שמות/סכומים/ייעודים אסורים. כעת מסננים כאן פעם-אחת.
-  const named = (id: string, purposes: string[]): Supporter =>
-    ({ id, name: id, donations: purposes.map((p, i) => ({ rid: 'D-' + id + i, date: '2026-08-13', amount: 100, cur: '₪', cat: '', purpose: p })) }) as unknown as Supporter;
+  // forWho = ראוּת-התורם (skey); purposes = תרומות (מסוננות בנפרד, כמו pkey).
+  const named = (id: string, forWho: string, purposes: string[]): Supporter =>
+    ({ id, name: id, forWho, donations: purposes.map((p, i) => ({ rid: 'D-' + id + i, date: '2026-08-13', amount: 100, cur: '₪', cat: '', purpose: p })) }) as unknown as Supporter;
 
   it('allowed=null (מנהל) → אותה רשימה בדיוק (בלי הקצאת-עותק)', () => {
-    const sups = [named('a', ['חתונות'])];
+    const sups = [named('a', 'חתונות', ['חתונות'])];
     expect(visibleSupportersForDesignations(sups, null)).toBe(sups);
   });
 
-  it('מסתיר תורמים אסורים, ומקלף מהגלויים תרומות בייעוד אסור', () => {
+  it('מסתיר תורמים לפי forWho, ומקלף מהגלויים תרומות בייעוד אסור', () => {
     const sups = [
-      named('a', ['חתונות', 'כללי']), // גלוי (חיתוך) — אך "כללי" ייקלף
-      named('b', ['כללי']), // מוסתר
-      named('c', ['']), // תרומה חסרת-ייעוד = משותפת, גלוי
+      named('a', 'חתונות', ['חתונות', 'כללי']), // גלוי (forWho=חתונות) — אך תרומת "כללי" תיקלף
+      named('b', 'כללי', ['כללי']), // מוסתר (forWho=כללי)
+      named('c', '', ['']), // בלי forWho = משותף, גלוי
     ];
     const out = visibleSupportersForDesignations(sups, ['חתונות']);
     expect(out.map((s) => s.id)).toEqual(['a', 'c']);
@@ -64,6 +69,14 @@ describe('visibleSupportersForDesignations — נקודת-חנק למשטחים 
     expect(out[0].donations.map((d) => d.purpose)).toEqual(['חתונות']);
     // תורם משותף — תרומתו חסרת-הייעוד נשמרת (משותפת לכל עובד)
     expect(out[1].donations.length).toBe(1);
+  });
+
+  it('תורם-משותף (בלי forWho) עם תרומה-מיועדת ⇒ גלוי אך התרומה האסורה נקלפת (זהה לשרת)', () => {
+    // השרת: skey=_shared_ ⇒ נמשך לכל עובד; אך pkey=חתונות ⇒ התרומה לא נמשכת לעובד-כללי.
+    const sups = [named('x', '', ['חתונות'])];
+    const out = visibleSupportersForDesignations(sups, ['כללי']);
+    expect(out.map((s) => s.id)).toEqual(['x']); // גלוי (משותף)
+    expect(out[0].donations.length).toBe(0); // תרומת-החתונות נקלפה
   });
 });
 
@@ -87,11 +100,11 @@ describe('ייעוד פר-תורם (forWho) — בקשת-בעלים 15.8 "פר �
   });
 
   it('תורם שהוקצה לו ייעוד בכרטיס נראה רק לעובד המורשה לאותו ייעוד', () => {
-    const kohen = { forWho: 'חתונות', donations: [] };
+    const kohen = { forWho: 'חתונות' };
     expect(supporterVisibleForDesignations(kohen, ['חתונות'])).toBe(true);
     expect(supporterVisibleForDesignations(kohen, ['קמחא'])).toBe(false);
-    // בלי ייעוד בכרטיס ובלי בתרומות = משותף (גלוי לכל עובד)
-    expect(supporterVisibleForDesignations({ forWho: '', donations: [] }, ['חתונות'])).toBe(true);
+    // בלי ייעוד בכרטיס = משותף (גלוי לכל עובד)
+    expect(supporterVisibleForDesignations({ forWho: '' }, ['חתונות'])).toBe(true);
   });
 
   it('allDonationPurposes מציג ערכי-forWho (כדי שהמנהל יבחר מהם בכרטיס-העובד)', () => {
