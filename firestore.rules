@@ -137,7 +137,7 @@ service cloud.firestore {
       // בבלוק-ייעודי משלו (donations/supporters/events פר-מפתח · תורי-PII · auditlog),
       // לכן ההחרגה בטוחה — הכתיבה נופלת לבלוק-הייעודי. `_enc` = כספת-ה-DEK (בלוק למטה).
       allow write: if (superAdmin() || orgMember(slug))
-        && !(col in ['donations', 'supporters', 'events', 'auditlog', 'incomingPayments', 'smsOutbox', 'mailOutbox', '_enc']);
+        && !(col in ['donations', 'supporters', 'events', 'auditlog', 'incomingPayments', 'smsOutbox', 'mailOutbox', '_enc', 'meta']);
       // אכיפת-ייעוד (נחיל 16.8): donations/supporters/events נאכפים פר-skey/pkey למטה;
       // תורי-ה-PII (incomingPayments/smsOutbox/mailOutbox) נושאים שמות/סכומי-תורמים ⇒
       // קריאה=מנהל בלבד; auditlog=מנהל. כולם מוחרגים מהקריאה-הכללית-לחבר.
@@ -160,9 +160,12 @@ service cloud.firestore {
     // מסלול-B — אוסף-התרומות הנפרד: **קריאה וגם כתיבה פר-ייעוד**. הכתיבה נאכפת כדי
     // שחבר-מוגבל לא יוכל להפוך pkey ל-_shared_ ולקרוא הכל, ולא ימחק/יזייף קבלת-§46
     // של ייעוד-אסור. skey/pkey plaintext (מחוץ למעטפה) כדי ש-where-in של הקליינט יעבור.
+    // #6 (16.8 · הכרעת-בעלים 14.8 "רק מנהל מנפיק קבלה") — **יצירה=מנהל/מייל-על בלבד**
+    // (מקבילה ל-canIssueReceipt בקליינט; עובד לא-מנהל חסום מהנפקת-קבלה גם בכתיבה-
+    // ישירה, במצב-מפוצל). עדכון/מחיקה נשארים פר-ייעוד (עריכת-קיים בתחום-המותר).
     match /orgs/{slug}/donations/{id} {
       allow read: if superAdmin() || orgManager(slug) || memberSeesPurpose(slug, resource.data.get('pkey', '_shared_'));
-      allow create: if superAdmin() || orgManager(slug) || memberSeesPurpose(slug, request.resource.data.get('pkey', '_shared_'));
+      allow create: if superAdmin() || orgManager(slug);
       allow update: if canWriteKeyed(slug, resource.data.get('pkey', '_shared_'), request.resource.data.get('pkey', '_shared_'));
       allow delete: if superAdmin() || orgManager(slug) || memberSeesPurpose(slug, resource.data.get('pkey', '_shared_'));
     }
@@ -242,6 +245,25 @@ service cloud.firestore {
     match /orgs/{slug}/_enc/{d} {
       allow read: if superAdmin() || orgMember(slug);
       allow write: if superAdmin() || orgManager(slug);
+    }
+
+    // #7 (16.8) — מסמך meta/org: מוני-רצף-הקבלות (seq/receiptSeq/donationSeq/
+    // shopReceiptSeq) **מונוטוניים בשרת** — כתיבה שמורידה מונה נדחית (מונעת גלגול-
+    // אחורה = שכפול-rid). הלקוח כבר מבטיח זאת (pushMetaCounterSafe מרים-למקסימום
+    // בעסקה) ⇒ כתיבה-לגיטימית לעולם לא נדחית; רק כתיבה-ישירה-זדונית שמנמיכה נחסמת.
+    // הקפצה-מעלה מותרת (רצף עם פער = פגם-חשבונאי קל, לא שכפול). ארגון-מוצפן: המונים
+    // בתוך ה-ciphertext ⇒ אין שדה-מונה לקרוא ⇒ הכלל no-op (בטוח). meta מוחרג
+    // מהכתיבה-הכללית (col 'meta') ⇒ הבלוק הזה הוא השער היחיד.
+    function metaCounterOk(f) {
+      return !(f in request.resource.data) || resource == null || !(f in resource.data)
+        || !(resource.data[f] is number) || !(request.resource.data[f] is number)
+        || request.resource.data[f] >= resource.data[f];
+    }
+    match /orgs/{slug}/meta/{id} {
+      allow read: if superAdmin() || orgMember(slug);
+      allow write: if (superAdmin() || orgMember(slug))
+        && metaCounterOk('seq') && metaCounterOk('receiptSeq')
+        && metaCounterOk('donationSeq') && metaCounterOk('shopReceiptSeq');
     }
 
     // אוספי השורש (הלקוח הקיים, cloudRoot) — allowlist כהיום + מיילי-על.
