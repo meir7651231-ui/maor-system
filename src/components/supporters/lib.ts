@@ -28,11 +28,11 @@ export function isoToday(): string {
    בייעוד המותר לו/ה; תורם בלי ייעוד כלל = משותף (גלוי לכולם). מנהל/בעלים = הכל
    (allowed=null). טהור — הסינון ברמת-הממשק (כמו shell.privacy). ────────────── */
 
-/** קבוצת הייעודים שעל התורם (distinct, בלי ריקים).
- *  בקשת-בעלים 15.8 ("פר תורם"): הייעוד הוא **פר-תורם** — שדה `forWho` שעל
- *  הכרטיס ("ייעוד התרומה (עבור)"). זה מקור-האמת לסינון-ההרשאה. שומרים גם את
- *  הייעוד-פר-תרומה (`donations[].purpose`) כדי לא לאבד יכולת (מי שכבר סימן
- *  ברישום-התרומה — נשמר). האיחוד של שניהם = קבוצת-הייעודים של התורם. */
+/** קבוצת הייעודים שעל התורם (distinct, בלי ריקים) — איחוד `forWho` (פר-תורם)
+ *  + `donations[].purpose` (פר-תרומה). משמש את **בורר-הייעודים** בלבד
+ *  (`allDonationPurposes`) — כדי שהמנהל יבחר מכל הערכים הקיימים בפועל.
+ *  ⚠️ אינו קובע ראוּת (הכרעת-בעלים 16.8 "דרך א׳"): ראוּת-התורם = `forWho`
+ *  בלבד (ראה `supporterVisibleForDesignations`) — כדי להתיישר עם ה-skey בשרת. */
 export function supporterPurposes(sup: { donations?: Supporter['donations']; forWho?: string }): string[] {
   const set = new Set<string>();
   const fw = (sup.forWho ?? '').trim();
@@ -46,17 +46,20 @@ export function supporterPurposes(sup: { donations?: Supporter['donations']; for
 
 /**
  * האם התורם גלוי לעובד/ת עם רשימת-ייעודים מותרת. allowed=null ⇒ הכל.
- * תורם בלי ייעוד כלל ⇒ גלוי (משותף); אחרת נדרש חיתוך עם המותר.
+ * הכרעת-בעלים 16.8 (#8, "דרך א׳" — יישור-מסך-לשרת): ראוּת-התורם נקבעת אך-ורק
+ * לפי הייעוד-פר-תורם (`forWho`) — **זהה בדיוק ל-skey שהשרת אוכף**. תורם בלי
+ * forWho = משותף (גלוי לכל, כמו `skey='_shared_'`). הייעוד-פר-תרומה (`purpose`)
+ * אינו קובע ראוּת-תורם — הוא מסנן תרומות בנפרד (כמו `pkey` בשרת, ב-
+ * `visibleSupportersForDesignations`) — כך המסך והשרת לעולם לא חלוקים.
  */
 export function supporterVisibleForDesignations(
-  sup: { donations?: Supporter['donations']; forWho?: string },
+  sup: { forWho?: string },
   allowed: string[] | null,
 ): boolean {
   if (!allowed || !allowed.length) return true;
-  const purposes = supporterPurposes(sup);
-  if (!purposes.length) return true; // לא-משויך = משותף
-  const set = new Set(allowed.map((s) => s.trim()));
-  return purposes.some((p) => set.has(p));
+  const fw = (sup.forWho ?? '').trim();
+  if (!fw) return true; // בלי ייעוד-פר-תורם = משותף (skey='_shared_' בשרת)
+  return new Set(allowed.map((s) => s.trim())).has(fw);
 }
 
 /**
