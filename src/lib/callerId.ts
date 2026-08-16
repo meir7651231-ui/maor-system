@@ -20,6 +20,8 @@ export interface Caller {
   kindLabel: string;
   name: string;
   phone: string;
+  /** מזהה-הישות שהותאמה (משפחה/תומך/מתנדב/רכז; לבן-משפחה = מזהה-החבר). */
+  id: string;
   /** המסך שאליו לנווט. */
   view: 'families' | 'supporters' | 'tzedaka' | 'shop7';
   /** מזהה-המשפחה לפתיחת כרטיס-משפחה (למשפחה/בן-משפחה). */
@@ -51,24 +53,44 @@ export function findCaller(db: Db, raw: string): Caller | null {
 
   for (const f of db.families) {
     if (hit(f.phone) || hit(f.phone2)) {
-      return { kind: 'family', kindLabel: 'משפחה', name: f.name, phone: f.phone || f.phone2, view: 'families', famId: f.id };
+      return { kind: 'family', kindLabel: 'משפחה', name: f.name, phone: f.phone || f.phone2, id: f.id, view: 'families', famId: f.id };
     }
   }
   for (const f of db.families) {
     for (const m of f.members || []) {
       if (hit(m.phone) || hit(m.phone2)) {
-        return { kind: 'member', kindLabel: 'בן/בת משפחה', name: m.first + ' · ' + f.name, phone: m.phone || m.phone2, view: 'families', famId: f.id };
+        return { kind: 'member', kindLabel: 'בן/בת משפחה', name: m.first + ' · ' + f.name, phone: m.phone || m.phone2, id: m.id, view: 'families', famId: f.id };
       }
     }
   }
   for (const s of db.supporters) {
-    if (hit(s.phone)) return { kind: 'supporter', kindLabel: 'תורם/ת', name: s.name, phone: s.phone, view: 'supporters' };
+    if (hit(s.phone)) return { kind: 'supporter', kindLabel: 'תורם/ת', name: s.name, phone: s.phone, id: s.id, view: 'supporters' };
   }
   for (const v of db.volunteers || []) {
-    if (hit(v.phone)) return { kind: 'volunteer', kindLabel: 'מתנדב/ת', name: v.name, phone: v.phone, view: 'shop7' };
+    if (hit(v.phone)) return { kind: 'volunteer', kindLabel: 'מתנדב/ת', name: v.name, phone: v.phone, id: v.id, view: 'shop7' };
   }
   for (const c of db.tzCoordinators || []) {
-    if (hit(c.phone)) return { kind: 'coordinator', kindLabel: 'רכז/ת', name: c.name, phone: c.phone, view: 'tzedaka' };
+    if (hit(c.phone)) return { kind: 'coordinator', kindLabel: 'רכז/ת', name: c.name, phone: c.phone, id: c.id, view: 'tzedaka' };
   }
   return null;
+}
+
+/**
+ * הקשר-חסד של משפחה מתקשרת — מונים "פתוחים" לכרטיס-השיחה (screen-pop): כמה
+ * מסירות טרם-נמסרו (shop7) וכמה שיוכי-חבילות פעילים (shop) יש לה. כך שברגע
+ * שהמשפחה מתקשרת המתנדב/ת רואה מיד מה פתוח עבורה — בלי לפתוח את הכרטיס המלא.
+ *
+ * טהור, תצוגה-בלבד — בדיוק הנתונים של פאנלי-הכרטיס (Shop7FamilyPanel/ShopFamilyPanel):
+ *   • openDeliveries = deliveries של המשפחה בסטטוס≠delivered.
+ *   • activeAssignments = shopAssignments של המשפחה בסטטוס active.
+ * הגידור פר-מודול (moduleOn) נעשה אצל הצרכן (הכרטיס), לא כאן.
+ */
+export interface FamilyContext {
+  openDeliveries: number;
+  activeAssignments: number;
+}
+export function familyContext(db: Db, famId: string): FamilyContext {
+  const openDeliveries = (db.deliveries || []).filter((d) => d.familyId === famId && d.status !== 'delivered').length;
+  const activeAssignments = (db.shopAssignments || []).filter((a) => a.famId === famId && a.status === 'active').length;
+  return { openDeliveries, activeAssignments };
 }

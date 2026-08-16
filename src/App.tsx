@@ -11,7 +11,6 @@ import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
 import { nsLsKey, parseBackupFile } from './store/persist';
 import { featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, telephonyOn, termOf } from './lib/config';
-import { findCaller } from './lib/callerId';
 import { applyOrgManifest, isIos, isStandalone, promptInstall, registerPwa } from './lib/pwa';
 import { setExportBlocked } from './lib/exportGate';
 import { hebDateFull } from './lib/hebrew';
@@ -184,8 +183,9 @@ export default function App() {
   const [bodymapOpen, setBodymapOpen] = useState(() => window.location.hash === '#bodymap');
   // איחוד כפילויות — נפתח עם #dedup (feature: settings.dedup)
   const [dedupOpen, setDedupOpen] = useState(() => window.location.hash === '#dedup');
-  // "מי מתקשר?" — חיפוש-מספר ידני (מודול טלפוניה), נפתח עם #caller
+  // כרטיס שיחה-נכנסת (מודול טלפוניה): #caller = ידני · #call=<מספר> = מזוהה-מראש
   const [callerOpen, setCallerOpen] = useState(() => window.location.hash === '#caller');
+  const [incomingNumber, setIncomingNumber] = useState<string | null>(null);
   // המדריך המהיר — נפתח עם #guide (P2 פער 29, feature: shell.guide)
   const [guideOpen, setGuideOpen] = useState(() => window.location.hash === '#guide');
   // מצב הדגמה — סיור מודרך, נפתח עם #tour (P2 פער 30, feature: shell.demo)
@@ -263,7 +263,12 @@ export default function App() {
       setCashboxOpen(window.location.hash === '#cashbox');
       setBodymapOpen(window.location.hash === '#bodymap');
       setDedupOpen(window.location.hash === '#dedup');
-      setCallerOpen(window.location.hash === '#caller');
+      // ‏#caller = פתיחה ידנית (בלי מספר). ‏#call= מטופל בנפרד — לא נוגעים כאן.
+      if (!window.location.hash.startsWith('#call=')) {
+        const manual = window.location.hash === '#caller';
+        setCallerOpen(manual);
+        if (manual) setIncomingNumber(null);
+      }
       setGuideOpen(window.location.hash === '#guide');
       setTourOpen(window.location.hash === '#tour');
       setPlatformOpen(window.location.hash === '#platform');
@@ -283,16 +288,10 @@ export default function App() {
       const number = decodeURIComponent(window.location.hash.slice('#call='.length));
       // ניקוי ה-hash מיד — שלא יישאר בכתובת ולא יופעל שוב ברענון
       history.replaceState(null, '', window.location.pathname + window.location.search);
-      const st = useApp.getState();
-      if (!telephonyOn(st.config) || !number.trim()) return;
-      const caller = findCaller(st.db, number);
-      if (caller) {
-        if (caller.famId) st.selectFamily(caller.famId);
-        else st.go(caller.view);
-        st.toast('📞 שיחה נכנסת: ' + caller.name + ' · ' + caller.kindLabel);
-      } else {
-        st.toast('📞 מספר לא מזוהה: ' + number);
-      }
+      if (!telephonyOn(useApp.getState().config) || !number.trim()) return;
+      // מקפיץ את כרטיס-השיחה-הנכנסת עם המספר המזוהה-מראש (אותו מנוע כמו הידני)
+      setIncomingNumber(number);
+      setCallerOpen(true);
     };
     if (ready) handleCall(); // בטעינה (אחרי ש-DB מוכן) — לתפוס #call= שהגיע בכתובת
     window.addEventListener('hashchange', handleCall);
@@ -1082,9 +1081,11 @@ export default function App() {
 
       {callerOpen && telephonyOn(config) && (
         <CallerLookup
+          initialNumber={incomingNumber ?? undefined}
           onClose={() => {
-            window.location.hash = '';
+            if (window.location.hash) window.location.hash = '';
             setCallerOpen(false);
+            setIncomingNumber(null);
           }}
         />
       )}

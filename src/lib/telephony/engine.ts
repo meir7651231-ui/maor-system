@@ -18,6 +18,8 @@ import { validateTenant as rawValidateTenant, buildTenant as rawBuildTenant } fr
 import { simulateCall as rawSimulateCall, explainCall as rawExplainCall } from '../../../telephony/lib/simulate.mjs';
 // @ts-expect-error — untyped .mjs resolved on disk (TS7016); typed via the casts below.
 import { trustReport as rawTrustReport } from '../../../telephony/lib/report.mjs';
+// @ts-expect-error — untyped .mjs resolved on disk (TS7016); typed via the casts below.
+import { hebrewClosedWindows as rawHebrewClosedWindows, CITIES as rawCITIES } from '../../../telephony/lib/zmanim.mjs';
 
 /** תוצאת אימות-דייר — ok + שגיאות/אזהרות + הדייר המנורמל (עובר לסימולטור). */
 export interface ValidateResult {
@@ -88,3 +90,29 @@ export const explainCall = rawExplainCall as (
   opts?: Record<string, unknown>,
 ) => ExplainResult;
 export const trustReport = rawTrustReport as (bundle: unknown, opt?: Record<string, unknown>) => TrustResult;
+
+/** חלון-סגירה הלכתי מדויק — הדלקת-נרות (startTime) → צאת (endTime), עם הסיבה. */
+export interface ClosedWindow {
+  startIso: string;
+  startTime: string;
+  endIso: string;
+  endTime: string;
+  reason: string;
+  kind: string;
+  days: number;
+}
+export const hebrewClosedWindows = rawHebrewClosedWindows as (
+  fromIso: string,
+  windowDays: number,
+  tenant: unknown,
+  opt?: Record<string, unknown>,
+) => ClosedWindow[];
+
+/** נ״צ עיר-עוגן לזמנים (שם-עברי + מנהג הדלקה בדקות לפני-שקיעה). */
+export interface CityGeo {
+  he: string;
+  lat: number;
+  lon: number;
+  candle: number;
+}
+export const CITIES = rawCITIES as Record<string, CityGeo>;

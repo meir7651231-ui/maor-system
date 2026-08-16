@@ -27,6 +27,7 @@ import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
 import { tierOf } from '../families/lib';
 import { liveSuggestions } from '../shop8/lib';
+import { nextClosure } from '../telephony/lib';
 import { buildPodium, buildWeek, fmtIls } from '../wall/wallData';
 import {
   courseMetrics,
@@ -311,6 +312,10 @@ function HeroWidget({ ctx }: { ctx: HomeCtx }) {
     `יום ${DAY_NAMES[now.getDay()]}, ${hebDateFull(todayIso)} · ${fmtD(todayIso)}`,
   ];
   if (data.holiday) subParts.push(data.holiday);
+  // זמני שבת/חג — הדלקת-נרות מהסגירה-ההלכתית הקרובה (מנוע-הזמנים, downstream,
+  // חישוב-מקומי בלבד). מגודר telephonyOn (דורש עיר-עוגן); כבוי ⇒ ביט-זהה למקור.
+  const nc = telephonyOn(config) ? nextClosure(config, todayIso) : null;
+  if (nc) subParts.push(`🕯️ ${nc.reason === 'שבת' ? 'הדלקת נרות' : nc.reason} ${nc.candle}`);
   if (coursesOn) {
     subParts.push(
       data.sessions.length === 0

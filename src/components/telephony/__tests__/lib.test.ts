@@ -12,8 +12,11 @@ import {
   toTenantId,
   previewTelephony,
   explainOne,
+  nextClosure,
   type TelephonyConfig,
 } from '../lib';
+import type { OrgConfig } from '../../../types/config';
+import widgetsSrc from '../../home/widgets.tsx?raw';
 
 function sampleCfg(): TelephonyConfig {
   return {
@@ -71,5 +74,45 @@ describe('telephony wizard bridge', () => {
     const p = previewTelephony(cfg, 'מאור', 'chesed-demo');
     expect(p.ok).toBe(false);
     expect(p.errors.length).toBeGreaterThan(0);
+  });
+});
+
+describe('nextClosure — זמני שבת/חג לווידג׳ט-הבית (מנוע-הזמנים, downstream)', () => {
+  const cfgFor = (city: string): OrgConfig =>
+    ({ telephony: { ...emptyTelephonyConfig(), city } }) as unknown as OrgConfig;
+
+  it('שבת הקרובה — הדלקת-נרות/צאת מדויקים לירושלים', () => {
+    const nc = nextClosure(cfgFor('jerusalem'), '2026-08-19');
+    expect(nc).not.toBeNull();
+    expect(nc!.reason).toBe('שבת');
+    expect(nc!.kind).toBe('shabbat');
+    expect(nc!.startIso).toBe('2026-08-21'); // ערב שבת
+    expect(nc!.endIso).toBe('2026-08-22'); // מוצ״ש
+    expect(nc!.candle).toBe('18:37');
+    expect(nc!.tzeis).toBe('19:56');
+    expect(nc!.cityHe).toBe('ירושלים');
+  });
+
+  it('חג קרוב מזוהה בסיבה ובסוג (יום כיפור תשפ״ז)', () => {
+    const nc = nextClosure(cfgFor('jerusalem'), '2026-09-20');
+    expect(nc!.reason).toBe('יום כיפור');
+    expect(nc!.kind).toBe('yomtov');
+    expect(nc!.candle).toBe('18:00');
+    expect(nc!.tzeis).toBe('19:18');
+  });
+
+  it('עיר-עוגן אחרת ⇒ זמן וכיתוב שונים (תל אביב)', () => {
+    const nc = nextClosure(cfgFor('telaviv'), '2026-08-19');
+    expect(nc!.cityHe).toBe('תל אביב');
+    expect(nc!.candle).not.toBe('18:37'); // מנהג/נ״צ שונה מירושלים
+  });
+
+  it('בלי telephony בקונפיג ⇒ null (אין נ״צ, אין שורות בבית)', () => {
+    expect(nextClosure({} as unknown as OrgConfig, '2026-08-19')).toBeNull();
+  });
+
+  it('הווידג׳ט מגדר את השורות ב-telephonyOn ורץ על nextClosure', () => {
+    expect(widgetsSrc).toContain('telephonyOn(config) ? nextClosure(config, todayIso)');
+    expect(widgetsSrc).toContain('הדלקת נרות');
   });
 });
