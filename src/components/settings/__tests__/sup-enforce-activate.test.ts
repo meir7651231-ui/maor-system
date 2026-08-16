@@ -40,8 +40,13 @@ describe('🔒 ratchet — הפעלת אכיפת-תומכים', () => {
 
   it('הרכיב מגודר מייל-על, מחווט לפעולות, ומוצג ב-SettingsView', () => {
     expect(secSrc).toContain('if (!isSuperAdmin(cloudUser?.email)) return null;');
-    expect(secSrc).toContain('s.runSupEnforceMigration');
-    expect(secSrc).toContain('s.enableSupEnforce');
+    // מתג-אחד (15.8): הדלקה=turnOnSupEnforce (מיגרציה+דגל); כיבוי=disableSupEnforce
+    expect(secSrc).toContain('s.turnOnSupEnforce');
+    expect(secSrc).toContain('s.disableSupEnforce');
+    // turnOnSupEnforce עצמו קורא את שתי הפעולות ברצף
+    const t = storeSrc.match(/async turnOnSupEnforce\(\)[\s\S]*?\n {4}\},/)![0];
+    expect(t).toContain('runSupEnforceMigration()');
+    expect(t).toContain('enableSupEnforce()');
     expect(viewSrc).toContain('<SupEnforceSection />');
   });
 

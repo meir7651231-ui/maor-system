@@ -471,6 +471,10 @@ interface AppState {
   runSupEnforceMigration: () => Promise<number>;
   /** אכיפת-תומכים (חלון-בעלים) — הדלקת `supporterEnforce` בקונפיג-הענן (ארגון-פלטפורמה בלבד). זורק על כשל/שורש. */
   enableSupEnforce: () => Promise<void>;
+  /** מתג-אחד: מיגרציה + הדלקת אכיפת-שרת ברצף. */
+  turnOnSupEnforce: () => Promise<void>;
+  /** כיבוי אכיפת-שרת + ניקוי מטמון-תקוע. */
+  disableSupEnforce: () => Promise<void>;
   /** "חבר את מאור" — הפעלת ניהול-עובדות ללקוח-שורש (manager=בעלים), מייל-על בלבד. */
   enableEmployeeManagement: () => Promise<void>;
   /** סימון נעילה כפתוחה (לאחר קוד תקין) — נשמר לסשן. */
@@ -2567,6 +2571,31 @@ export const useApp = create<AppState>()((set, get) => {
       await mod.writeOrgCloudDoc(slug, { config: { supporterEnforce: true } });
       mod.setSupEnforce(true);
       get().toast('✓ אכיפת-התומכים הודלקה בקונפיג-הענן — פעילה מעכשיו');
+    },
+
+    /** מתג-אחד: הדלקת אכיפת-שרת = מיגרציה (סימון ייעוד) + הדלקת-דגל, ברצף. */
+    async turnOnSupEnforce() {
+      await get().runSupEnforceMigration(); // seed skey לתומכים+אירועים (מגבה קודם)
+      await get().enableSupEnforce(); // מדליק supporterEnforce בקונפיג-הענן
+    },
+
+    /** כיבוי אכיפת-שרת + ניקוי מטמון-קונפיג תקוע (מקביל ל-disableDonationSplit). */
+    async disableSupEnforce() {
+      const mod = cloudMod;
+      const slug = get().config.slug;
+      try {
+        if (mod && slug && slug !== 'default') await mod.writeOrgCloudDoc(slug, { config: { supporterEnforce: false } });
+        mod?.setSupEnforce(false);
+      } catch {
+        /* כשל-ענן — ממשיכים לניקוי-המטמון */
+      }
+      try {
+        for (const k of Object.keys(localStorage))
+          if (k.startsWith('maor_cloudcfg') || k === 'maor_org_config') localStorage.removeItem(k);
+      } catch {
+        /* localStorage חסום */
+      }
+      get().toast('🧹 אכיפת-התומכים כובתה — טוען מחדש…');
     },
 
     /**
