@@ -12,6 +12,8 @@ import {
   AYIN_STAGES,
   ayinActionVisible,
   ayinAdvanceLabel,
+  boqLineAmount,
+  boqTotal,
   eyesTotal,
   featLabel,
   itemLabel,
@@ -19,10 +21,11 @@ import {
   stageLabel,
   unitLabel,
 } from '../../lib/ayin';
+import { featureOn } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { fmtDate } from './lib';
+import { fmtDate, supIls } from './lib';
 
 export function AyinCard(props: { supporter: Supporter }) {
   const sp = props.supporter;
@@ -33,6 +36,7 @@ export function AyinCard(props: { supporter: Supporter }) {
   const addName = useApp((s) => s.ayinAddName);
   const toggleName = useApp((s) => s.ayinToggleName);
   const setNameEyes = useApp((s) => s.ayinSetNameEyes);
+  const setNameRate = useApp((s) => s.ayinSetNameRate);
   const removeName = useApp((s) => s.ayinRemoveName);
   const addAnswer = useApp((s) => s.ayinAddAnswer);
   const editAnswer = useApp((s) => s.ayinEditAnswer);
@@ -51,6 +55,11 @@ export function AyinCard(props: { supporter: Supporter }) {
   const unit = unitLabel(cfg);
   const cur = stageIndex(a.stage);
   const showNames = a.stage === 'new' || a.stage === 'lead' || a.stage === 'eyes';
+  // כתב-כמויות/הצעת-מחיר — רק בהקשר מסחרי (§46 כבוי) + דגל. בעמותה מוסתר לגמרי.
+  const boqOn = featureOn(cfg, 'supporters.ayin.boq') && !featureOn(cfg, 'core.taxreceipt');
+  const ils = (n: number) => '₪' + Math.round(n).toLocaleString('en-US');
+  const quote = boqOn ? boqTotal(a) : 0;
+  const collected = boqOn ? supIls(sp) : 0;
 
   function submitName() {
     const eyes = eyesIn === '' ? '' : Math.max(0, +eyesIn.replace(/\D/g, '') || 0);
@@ -162,11 +171,27 @@ export function AyinCard(props: { supporter: Supporter }) {
                       const v = e.target.value.replace(/\D/g, '');
                       setNameEyes(sp.id, n.id, v === '' ? '' : +v);
                     }}
-                    placeholder={unit}
+                    placeholder={boqOn ? 'כמות' : unit}
                     dir="ltr"
-                    style={{ width: 60, padding: '3px 6px', fontSize: 12 }}
-                    title={unit}
+                    style={{ width: 56, padding: '3px 6px', fontSize: 12 }}
+                    title={boqOn ? 'כמות' : unit}
                   />
+                  {boqOn && (
+                    <>
+                      <span style={{ color: 'var(--ink-faint)', fontSize: 12 }}>×</span>
+                      <input
+                        value={n.rate ? String(n.rate) : ''}
+                        onChange={(e) => setNameRate(sp.id, n.id, +e.target.value.replace(/[^\d.]/g, '') || 0)}
+                        placeholder="₪ ליח׳"
+                        dir="ltr"
+                        style={{ width: 66, padding: '3px 6px', fontSize: 12 }}
+                        title="מחיר ליחידה"
+                      />
+                      <span style={{ minWidth: 66, textAlign: 'left', fontWeight: 700, fontSize: 12.5, direction: 'ltr' }}>
+                        {ils(boqLineAmount(n))}
+                      </span>
+                    </>
+                  )}
                   <button
                     onClick={() => toggleName(sp.id, n.id)}
                     title={n.done ? 'סימון שהטיפול בפריט ממתין' : 'סימון שהטיפול בפריט בוצע'}
@@ -195,6 +220,29 @@ export function AyinCard(props: { supporter: Supporter }) {
               <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 2 }}>
                 {a.names.length} · {a.names.filter((x) => x.done).length} בוצעו · סה"כ {unit}: {eyesTotal(a)}
               </div>
+              {boqOn && quote > 0 && (
+                <div
+                  style={{
+                    marginTop: 6,
+                    borderTop: '1px solid var(--line)',
+                    paddingTop: 7,
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 10,
+                    alignItems: 'baseline',
+                    fontSize: 13,
+                  }}
+                >
+                  <span style={{ fontWeight: 800 }}>סה"כ הצעה: <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(quote)}</span></span>
+                  <span style={{ color: 'var(--ink-faint)' }}>·</span>
+                  <span>נגבה: <b style={{ direction: 'ltr', display: 'inline-block' }}>{ils(collected)}</b></span>
+                  <span style={{ color: 'var(--ink-faint)' }}>·</span>
+                  <span style={{ color: quote - collected > 0 ? '#b45309' : '#12803c', fontWeight: 700 }}>
+                    {quote - collected > 0 ? 'יתרה: ' : 'שולם במלואו '}
+                    {quote - collected > 0 && <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(quote - collected)}</span>}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>

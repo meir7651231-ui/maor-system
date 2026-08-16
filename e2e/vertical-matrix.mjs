@@ -167,7 +167,7 @@ server.close();
 
 console.log('\n──────────');
 if (failures === 0) {
-  console.log('🏆 כל 10 הוורטיקלים מתחלפים עד הקצה — אפס דליפות');
+  console.log(`🏆 כל ${DATA.packs.length} הוורטיקלים מתחלפים עד הקצה — אפס דליפות`);
 } else {
   console.log(`❌ ${failures} כשלים · ${allLeaks.length} דליפות-מונח — פירוט למעלה`);
   process.exitCode = 1;

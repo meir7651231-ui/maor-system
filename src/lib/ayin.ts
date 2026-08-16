@@ -7,7 +7,7 @@
  * (nav.ayin / entity.ayinItem / entity.ayinUnit + תוויות השלבים ayin.stage.*).
  * מפתחות השלבים הפנימיים (new/lead/eyes/answer/done) קבועים — רק התצוגה משתנה.
  */
-import { emptyAyin, type AyinCase, type AyinStage, type Supporter } from '../types/domain';
+import { emptyAyin, type AyinCase, type AyinName, type AyinStage, type Supporter } from '../types/domain';
 import type { OrgConfig } from '../types/config';
 import type { Cell } from './csvx';
 import { termOf } from './config';
@@ -85,6 +85,19 @@ export function ayinActive(a: AyinCase | null | undefined): boolean {
 /** סכום המונים על פני כל הפריטים. */
 export function eyesTotal(a: AyinCase): number {
   return a.names.reduce((t, x) => t + (+x.eyes || 0), 0);
+}
+
+/**
+ * כתב-כמויות (BOQ) — סכום שורה בודדת: כמות(eyes) × מחיר-יחידה(rate).
+ * ריק/חסר ⇒ 0. טהור. (ורטיקל מסחרי: הצעת-מחיר מפורטת.)
+ */
+export function boqLineAmount(n: AyinName): number {
+  return (+n.eyes || 0) * (n.rate || 0);
+}
+
+/** סה"כ ההצעה — סכום שורות כתב-הכמויות של התיק (פרויקט). טהור. */
+export function boqTotal(a: AyinCase): number {
+  return a.names.reduce((t, n) => t + boqLineAmount(n), 0);
 }
 
 /**

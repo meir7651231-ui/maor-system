@@ -4,6 +4,8 @@ import {
   ayinActive,
   ayinAdvanceLabel,
   ayinDailyRows,
+  boqLineAmount,
+  boqTotal,
   featLabel,
   itemLabel,
   planAddName,
@@ -12,6 +14,7 @@ import {
   stageLabel,
   unitLabel,
 } from '../ayin';
+import cardSrc from '../../components/supporters/AyinCard.tsx?raw';
 import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 import { emptyAyin, type AyinCase, type Supporter } from '../../types/domain';
 
@@ -192,5 +195,36 @@ describe('ayinDailyRows', () => {
     expect(ayinActive(undefined)).toBe(false);
     const rows = ayinDailyRows(cfg(), [supOf()], today);
     expect(rows).toHaveLength(1);
+  });
+});
+
+describe('BOQ — כתב-כמויות / הצעת-מחיר (ורטיקל מסחרי)', () => {
+  it('סכום-שורה = כמות × מחיר-יחידה; חסר/ריק ⇒ 0', () => {
+    expect(boqLineAmount({ id: 'n1', name: 'פיתוח', eyes: 40, rate: 250, done: false })).toBe(10000);
+    expect(boqLineAmount({ id: 'n2', name: 'ללא מחיר', eyes: 5, done: false })).toBe(0); // אין rate
+    expect(boqLineAmount({ id: 'n3', name: 'ללא כמות', eyes: '', rate: 300, done: false })).toBe(0); // אין eyes
+  });
+
+  it('סה"כ-הצעה = סכום כל השורות', () => {
+    const c = caseOf({
+      names: [
+        { id: 'n1', name: 'אפיון', eyes: 1, rate: 4000, done: true },
+        { id: 'n2', name: 'פיתוח', eyes: 40, rate: 250, done: false },
+        { id: 'n3', name: 'עיצוב', eyes: 2, rate: 1500, done: false },
+      ],
+    });
+    expect(boqTotal(c)).toBe(4000 + 10000 + 3000); // 17000
+  });
+
+  it('תיק ריק ⇒ 0', () => {
+    expect(boqTotal(caseOf())).toBe(0);
+  });
+
+  it('הכרטיס מגדר BOQ למסחרי בלבד (§46 כבוי) ומחשב הצעה/נגבה/יתרה', () => {
+    // מגן-מקור: בעמותה (core.taxreceipt דלוק) ה-BOQ מוסתר; מסחרי ⇒ מוצג.
+    expect(cardSrc).toContain("featureOn(cfg, 'supporters.ayin.boq') && !featureOn(cfg, 'core.taxreceipt')");
+    expect(cardSrc).toContain('boqTotal(a)');
+    expect(cardSrc).toContain('supIls(sp)'); // נגבה בפועל ל-P&L
+    expect(cardSrc).toContain('סה"כ הצעה');
   });
 });

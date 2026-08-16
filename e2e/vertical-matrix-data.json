@@ -322,6 +322,127 @@
     "shop": false
    },
    "features": {}
+  },
+  {
+   "id": "digital",
+   "label": "סטודיו דיגיטל",
+   "terms": {
+    "nav.families": "לקוחות",
+    "entity.family": "לקוח",
+    "entity.familyOf": "לקוח",
+    "entity.member": "איש קשר",
+    "entity.members": "אנשי קשר",
+    "nav.calendar": "פגישות",
+    "nav.supporters": "לידים",
+    "entity.supporter": "ליד",
+    "entity.donation": "תשלום",
+    "entity.donations": "תשלומים",
+    "nav.ayin": "פרויקטים",
+    "entity.ayinItem": "פרויקט",
+    "ayin.stage.new": "בריף",
+    "ayin.stage.lead": "הצעת מחיר",
+    "ayin.stage.eyes": "בפיתוח",
+    "ayin.stage.answer": "בבדיקה",
+    "ayin.stage.done": "הושק"
+   },
+   "modules": {
+    "courses": false,
+    "diary": false,
+    "tzedaka": false,
+    "shop": false
+   },
+   "features": {
+    "core.taxreceipt": false,
+    "families.cred": false,
+    "home.goldbook": false,
+    "home.impactwall": false,
+    "home.community": false,
+    "home.credmetrics": false,
+    "shell.privacy": false,
+    "supporters.hist": false
+   }
+  },
+  {
+   "id": "build",
+   "label": "בנייה / קבלנות",
+   "terms": {
+    "nav.families": "לקוחות",
+    "entity.family": "לקוח",
+    "entity.familyOf": "לקוח",
+    "entity.member": "איש קשר",
+    "entity.members": "אנשי קשר",
+    "nav.calendar": "לוח עבודות",
+    "nav.diary": "אתרי בנייה",
+    "entity.room": "אתר",
+    "entity.rooms": "אתרים",
+    "nav.supporters": "ספקים וקבלנים",
+    "entity.supporter": "ספק/קבלן",
+    "entity.donation": "תשלום",
+    "entity.donations": "תשלומים",
+    "nav.ayin": "פרויקטים",
+    "entity.ayinItem": "פרויקט",
+    "ayin.stage.new": "פנייה",
+    "ayin.stage.lead": "הצעת מחיר",
+    "ayin.stage.eyes": "בביצוע",
+    "ayin.stage.answer": "מסירה",
+    "ayin.stage.done": "הושלם"
+   },
+   "modules": {
+    "courses": false,
+    "tzedaka": false,
+    "shop": false
+   },
+   "features": {
+    "core.taxreceipt": false,
+    "families.cred": false,
+    "home.goldbook": false,
+    "home.impactwall": false,
+    "home.community": false,
+    "home.credmetrics": false,
+    "shell.privacy": false,
+    "supporters.hist": false
+   }
+  },
+  {
+   "id": "studio",
+   "label": "סטודיו דיגיטל + בנייה",
+   "terms": {
+    "nav.families": "לקוחות",
+    "entity.family": "לקוח",
+    "entity.familyOf": "לקוח",
+    "entity.member": "איש קשר",
+    "entity.members": "אנשי קשר",
+    "nav.calendar": "פגישות",
+    "nav.diary": "אתרים וצוותים",
+    "entity.room": "אתר/צוות",
+    "entity.rooms": "אתרים וצוותים",
+    "nav.supporters": "ספקים ולידים",
+    "entity.supporter": "ספק/ליד",
+    "entity.donation": "תשלום",
+    "entity.donations": "תשלומים",
+    "nav.ayin": "פרויקטים",
+    "entity.ayinItem": "פרויקט",
+    "ayin.stage.new": "בריף",
+    "ayin.stage.lead": "הצעת מחיר",
+    "ayin.stage.eyes": "בביצוע",
+    "ayin.stage.answer": "מסירה",
+    "ayin.stage.done": "הושלם"
+   },
+   "modules": {
+    "courses": false,
+    "tzedaka": false,
+    "shop": false
+   },
+   "features": {
+    "core.taxreceipt": false,
+    "families.cred": false,
+    "home.goldbook": false,
+    "home.impactwall": false,
+    "home.community": false,
+    "home.credmetrics": false,
+    "shell.privacy": false,
+    "supporters.hist": false
+   }
   }
  ],
  "termFallbacks": {

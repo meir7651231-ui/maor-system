@@ -55,7 +55,7 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
   });
 
   it('ורטיקל מסחרי מכבה פיצרים ייחודיים-לעמותה — מוסך/חנות לא מציגים §46', () => {
-    for (const id of ['clinic', 'shop', 'services', 'rooms', 'fleet', 'garage', 'hospitality']) {
+    for (const id of ['clinic', 'shop', 'services', 'rooms', 'fleet', 'garage', 'hospitality', 'digital', 'build', 'studio']) {
       const c = applyVerticalPack(base, id);
       expect(c.features!['core.taxreceipt'], `${id} — §46 חייב להיות כבוי`).toBe(false);
       expect(c.features!['families.cred'], `${id} — מדד-אמינות כבוי`).toBe(false);
@@ -117,6 +117,9 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
       hospitality: ['families', 'calendar', 'diary', 'supporters', 'reports'],
       gemach: [], // המטריצה המלאה מפורשת ב-modules
       tzedakot: [], // כנ"ל
+      digital: ['families', 'calendar', 'supporters', 'reports'], // דיגיטל — בלי חוגים/יומן/צדקה/חנות
+      build: ['families', 'calendar', 'diary', 'supporters', 'reports'], // בנייה — יומן=אתרים דלוק
+      studio: ['families', 'calendar', 'diary', 'supporters', 'reports'], // משולב — כמו בנייה
     };
     for (const p of VERTICAL_PACKS) {
       const on = INTENTIONAL_ON[p.id];

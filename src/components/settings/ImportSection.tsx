@@ -6,7 +6,7 @@
  *    (ת"ז הורה → טלפון → שם משפחה+שם האם → שם משפחה+עיר) בשני שלבים: תצוגה ← אישור.
  */
 import { useState, type ChangeEvent } from 'react';
-import { emptyFamily, emptyMember, type Family, type Member } from '../../types/domain';
+import { emptyFamily, emptyMember, type Family, type Member, type Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { parseBackupFile } from '../../store/persist';
 import { featureOn, termOf } from '../../lib/config';
@@ -14,6 +14,7 @@ import { normalizePhone, normSearch, formatIsraeliPhone } from '../../lib/valida
 import { downloadCsv, parseAnyDate, parseCsv, readCsvFileText } from '../../lib/csvx';
 import { ayinSheetRows, featLabel, parseAyinSheet, type AyinSheetParse } from '../../lib/ayin';
 import { mergeFamilyImport, parseFamiliesCsv, type FamiliesImportPlan } from '../../lib/familiesImport';
+import { importableContacts, contactToRow, type ContactRow } from '../../lib/vcardImport';
 import { Btn, Chip, Field, FormError } from '../ui';
 import { Section, SectionNote } from './lib';
 import { isoToday } from './helpers';
@@ -39,9 +40,10 @@ export function ImportSection() {
   // UX סבב-ו׳: בורר-מסלול — חמש תת-זרימות הייבוא הפכו מגלילה אחת ארוכה למסלול
   // אחד פתוח בכל רגע. כל זרימה נשארה במלואה (אפס אובדן) — רק הרינדור מתמקד.
   const ayinOn = featureOn(config, 'supporters.ayin') && featureOn(config, 'supporters.ayin.sheet');
-  const [route, setRoute] = useState<'json' | 'fam' | 'kids' | 'sup' | 'ayin'>('json');
+  const [route, setRoute] = useState<'json' | 'fam' | 'kids' | 'sup' | 'ayin' | 'contacts'>('json');
   const routes: { id: typeof route; label: string }[] = [
     { id: 'json', label: 'מקובץ גיבוי (JSON)' },
+    { id: 'contacts', label: '📇 אנשי-קשר (VCF)' },
     { id: 'fam', label: termOf(config, 'nav.families', 'משפחות') + ' (CSV)' },
     { id: 'kids', label: 'ילדים (CSV)' },
     { id: 'sup', label: termOf(config, 'nav.supporters', 'תורמים') + ' (CSV)' },
@@ -238,6 +240,8 @@ export function ImportSection() {
         </>
       ))}
 
+      {route === 'contacts' && <ContactsImport />}
+
       {route === 'kids' && <KidsImport />}
 
       {route === 'sup' && (
@@ -251,6 +255,202 @@ export function ImportSection() {
 
       <SectionNote>{'אחרי הייבוא אפשר להשלים לכל ' + termOf(config, 'entity.family', 'משפחה') + ' את שאר הפרטים ובני ה' + termOf(config, 'entity.family', 'משפחה') + ' במסך ה' + termOf(config, 'nav.families', 'משפחות') + '.'}</SectionNote>
     </Section>
+  );
+}
+
+/* ── ייבוא אנשי-קשר (VCF) — קובץ יצוא-טלפון (vCard) → לקוחות או לידים.
+     הפענוח טהור (lib/vcardImport: QUOTED-PRINTABLE, ריבוי-טלפונים, זבל-מערכת);
+     כאן בורר-יעד + מיפוי-שדות למקומו הנכון + דדופ + preview דו-שלבי. ── */
+
+interface ContactsPlan {
+  news: ContactRow[];
+  dupes: number;
+  total: number;
+  target: 'fam' | 'sup';
+}
+
+/** מפתח-דדופ אחיד — שם מנורמל + טלפון מנורמל (כמו famKey, גם לתומכים). */
+function contactKey(name: string, phone: string): string {
+  return normSearch(name) + '|' + normalizePhone(phone);
+}
+
+function ContactsImport() {
+  const setDb = useApp((s) => s.setDb);
+  const toast = useApp((s) => s.toast);
+  const config = useApp((s) => s.config);
+
+  const [error, setError] = useState('');
+  const [summary, setSummary] = useState('');
+  const [target, setTarget] = useState<'fam' | 'sup'>('fam');
+  const [plan, setPlan] = useState<ContactsPlan | null>(null);
+
+  const targetLabel = (t: 'fam' | 'sup') =>
+    t === 'fam' ? termOf(config, 'nav.families', 'משפחות') : termOf(config, 'nav.supporters', 'תורמים');
+
+  /** שלב 1 — פענוח הקובץ, מיפוי לשורות ודדופ מול הקיים. לא משנה נתונים. */
+  function analyze(text: string, t: 'fam' | 'sup') {
+    setError('');
+    setSummary('');
+    setPlan(null);
+    const contacts = importableContacts(text);
+    if (!contacts.length) {
+      setError('לא נמצאו אנשי-קשר תקינים בקובץ (פורמט vCard / .vcf)');
+      return;
+    }
+    const rows = contacts.map(contactToRow).filter((r) => r.name);
+    const db = useApp.getState().db;
+    const existing = new Set(
+      (t === 'fam' ? db.families : db.supporters).map((e) => contactKey(e.name, e.phone)),
+    );
+    const news: ContactRow[] = [];
+    let dupes = 0;
+    for (const r of rows) {
+      const hasPhone = !!normalizePhone(r.phone);
+      const key = contactKey(r.name, r.phone);
+      // דדופ רק כשיש טלפון אמיתי (בלי טלפון אי-אפשר לאמת כפילות — מוסיפים).
+      if (hasPhone && existing.has(key)) {
+        dupes++;
+        continue;
+      }
+      if (hasPhone) existing.add(key);
+      news.push(r);
+    }
+    setPlan({ news, dupes, total: rows.length, target: t });
+  }
+
+  async function onFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const txt = await file.text(); // vCard = UTF-8; ה-QP ממילא ASCII
+      analyze(txt, target);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'שגיאה בקריאת הקובץ');
+    }
+  }
+
+  /** שלב 2 — החלה: הוספת הלקוחות/הלידים החדשים (עדכון אטומי אחד). */
+  function apply() {
+    if (!plan || !plan.news.length) return;
+    const t = plan.target;
+    let added = 0;
+    setDb((db) => {
+      let seq = db.seq;
+      if (t === 'fam') {
+        const fresh: Family[] = plan.news.map((r) => ({
+          ...emptyFamily(),
+          id: 'f' + seq++,
+          createdAt: isoToday(),
+          name: r.name,
+          phone: formatIsraeliPhone(r.phone),
+          phone2: formatIsraeliPhone(r.phone2),
+          email: r.email,
+          address: r.address,
+          notes: r.notes,
+        }));
+        added = fresh.length;
+        return { seq, families: [...db.families, ...fresh] };
+      }
+      const fresh: Supporter[] = plan.news.map((r) => ({
+        id: 's' + seq++,
+        name: r.name,
+        phone: formatIsraeliPhone(r.phone),
+        email: r.email,
+        address: r.address,
+        city: '',
+        idNum: '',
+        cat: '',
+        forWho: '',
+        notes: r.notes,
+        count: 0,
+        ils: 0,
+        usd: 0,
+        first: '',
+        last: '',
+        nextDate: '',
+        donations: [],
+      }));
+      added = fresh.length;
+      return { seq, supporters: [...db.supporters, ...fresh] };
+    });
+    setPlan(null);
+    setSummary('נוספו ' + added + ' ' + targetLabel(t) + (plan.dupes ? ' · ' + plan.dupes + ' דולגו (כבר קיימים)' : ''));
+    toast('נוספו ' + added + ' ' + targetLabel(t));
+  }
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <h3 style={{ fontSize: 15, fontWeight: 700, margin: '10px 0 6px' }}>ייבוא אנשי-קשר מקובץ הטלפון (VCF)</h3>
+      <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
+        ייצאו את אנשי-הקשר מהטלפון לקובץ <b>.vcf</b> (אנשי-קשר ← ייצוא / שיתוף) והעלו כאן. כל
+        איש-קשר ממופה למקומו: שם, טלפון ראשי + נוסף, אימייל, כתובת, וארגון/תפקיד/הערה מאוחדים
+        להערות. מספרי-מערכת קצרים (חירום) וכפילויות (שם + טלפון קיים) מדולגים. שמות בעברית
+        (QUOTED-PRINTABLE) וריבוי-טלפונים נתמכים.
+      </p>
+
+      {/* בורר-יעד — לאיזה כרטיס */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10, alignItems: 'center' }}>
+        <span style={{ fontSize: 13, color: 'var(--ink-faint)' }}>ייבוא ל:</span>
+        <Chip on={target === 'fam'} onClick={() => { setTarget('fam'); setPlan(null); }}>
+          {termOf(config, 'nav.families', 'משפחות') + ' (כרטיס מלא)'}
+        </Chip>
+        <Chip on={target === 'sup'} onClick={() => { setTarget('sup'); setPlan(null); }}>
+          {termOf(config, 'nav.supporters', 'תורמים') + ' / לידים'}
+        </Chip>
+      </div>
+
+      <FormError error={error} />
+      {summary && (
+        <div style={{ background: '#e4f5ea', color: 'var(--green)', borderRadius: 8, padding: '8px 12px', fontSize: 14, marginBottom: 12 }}>
+          {summary}
+        </div>
+      )}
+
+      <label className="btn" style={{ cursor: 'pointer', display: 'inline-flex', marginBottom: 8 }}>
+        בחירת קובץ VCF…
+        <input type="file" accept=".vcf,text/vcard,text/x-vcard,text/plain" style={{ display: 'none' }} onChange={(e) => void onFile(e)} />
+      </label>
+
+      {plan && (
+        <div style={{ marginTop: 12, border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px' }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>
+            {'זוהו ' + plan.total + ' אנשי-קשר בקובץ'}
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
+            {'+' + plan.news.length + ' חדשים ל' + targetLabel(plan.target) +
+              (plan.dupes ? ' · ' + plan.dupes + ' כבר קיימים (ידולגו)' : '')}
+          </div>
+          {plan.news.length > 0 && (
+            <div style={{ maxHeight: 200, overflowY: 'auto', marginBottom: 10 }}>
+              <table className="table">
+                <thead>
+                  <tr><th>שם</th><th>טלפון</th><th>אימייל</th></tr>
+                </thead>
+                <tbody>
+                  {plan.news.slice(0, 12).map((r, i) => (
+                    <tr key={i}>
+                      <td style={{ fontWeight: 600 }}>{r.name}</td>
+                      <td dir="ltr">{formatIsraeliPhone(r.phone) || '—'}</td>
+                      <td dir="ltr">{r.email || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {plan.news.length > 12 && (
+                <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{'+' + (plan.news.length - 12) + ' נוספים'}</div>
+              )}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Btn kind="primary" onClick={apply} disabled={!plan.news.length}>
+              {'ייבוא ' + plan.news.length + ' ' + targetLabel(plan.target)}
+            </Btn>
+            <Btn onClick={() => setPlan(null)}>ביטול</Btn>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
