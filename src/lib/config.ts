@@ -6,7 +6,7 @@
  * 2. fetch('./config.json') — קובץ סטטי יחסי ל-base (פר-פריסה של ארגון).
  * 3. DEFAULT_CONFIG — כשאין קובץ / הקובץ פגום (404, JSON שבור).
  */
-import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, MOTION_KEYS, type FirebaseOrgConfig, type ModuleKey, type OrgConfig, type TelNumber, type TelephonyConfig } from '../types/config';
+import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, MOTION_KEYS, SITE_LANGS, type FirebaseOrgConfig, type LocalizedText, type ModuleKey, type OrgConfig, type PublicSiteContent, type SiteLang, type TelNumber, type TelephonyConfig } from '../types/config';
 import { TEMPLATE_KEYS } from './templates';
 
 const LS_CONFIG_KEY = 'maor_org_config';
@@ -210,6 +210,140 @@ export function normalizeTelephony(raw: unknown): TelephonyConfig | undefined {
   };
 }
 
+/* ---------- אתר ציבורי — חיטוי לפני התמדה/סנכרון-ענן ---------- */
+
+/** מחרוזת נקייה מתווי-בקרה, מגוזמת (לא-מחרוזת ⇒ ''). */
+function siteStr(v: unknown, max: number): string {
+  return typeof v === 'string' ? v.replace(/\p{Cc}/gu, '').trim().slice(0, max) : '';
+}
+/** טקסט רב-לשוני: מחרוזת ⇒ מגוזמת; מפה ⇒ רק שפות-allowlist עם ערך לא-ריק; אחרת undefined. */
+function normLocalized(v: unknown, max: number): LocalizedText | undefined {
+  if (typeof v === 'string') {
+    const s = siteStr(v, max);
+    return s || undefined;
+  }
+  if (v && typeof v === 'object' && !Array.isArray(v)) {
+    const out: Partial<Record<SiteLang, string>> = {};
+    for (const l of SITE_LANGS) {
+      const s = siteStr((v as Record<string, unknown>)[l], max);
+      if (s) out[l] = s;
+    }
+    return Object.keys(out).length ? out : undefined;
+  }
+  return undefined;
+}
+/** מספר חיובי-סופי או undefined. */
+function sitePosNum(v: unknown): number | undefined {
+  return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : undefined;
+}
+/** טלפון לתצוגה/חיוג — ספרות ‎+()- ‎ ורווח בלבד, עד 24. */
+function sitePhone(v: unknown): string {
+  return typeof v === 'string' ? v.replace(/[^\d+()\-\s]/g, '').trim().slice(0, 24) : '';
+}
+
+/**
+ * חיטוי תוכן-האתר-הציבורי — allowlist מלא + תקרות. הקונפיג מסתנכרן לענן/גיבוי,
+ * לכן כל שדה זר נזרק; קישורים https בלבד (safeHttpsUrl); טקסטים מגוזמים. חסר/
+ * לא-אובייקט ⇒ undefined (⇒ אין אתר ציבורי, ביט-זהה להיום).
+ */
+export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const s = raw as Record<string, unknown>;
+  const out: PublicSiteContent = {};
+  if (s.enabled === false) out.enabled = false;
+  else if (s.enabled === true) out.enabled = true;
+  const langs = Array.isArray(s.langs)
+    ? [...new Set(s.langs.filter((l): l is SiteLang => (SITE_LANGS as readonly string[]).includes(l as string)))]
+    : [];
+  if (langs.length) out.langs = langs;
+  const tagline = normLocalized(s.tagline, 200);
+  if (tagline) out.tagline = tagline;
+  if (Array.isArray(s.heroWords)) {
+    const words = s.heroWords.map((w) => normLocalized(w, 60)).filter((w): w is LocalizedText => !!w).slice(0, 8);
+    if (words.length) out.heroWords = words;
+  }
+  if (Array.isArray(s.stats)) {
+    const stats = s.stats
+      .map((st) => {
+        if (!st || typeof st !== 'object') return null;
+        const o = st as Record<string, unknown>;
+        const value = siteStr(o.value, 24);
+        const label = normLocalized(o.label, 60);
+        return value && label ? { value, label } : null;
+      })
+      .filter((x): x is { value: string; label: LocalizedText } => !!x)
+      .slice(0, 8);
+    if (stats.length) out.stats = stats;
+  }
+  if (s.liveFamilies === true) out.liveFamilies = true;
+  const lfl = normLocalized(s.liveFamiliesLabel, 60);
+  if (lfl) out.liveFamiliesLabel = lfl;
+  if (s.campaign && typeof s.campaign === 'object' && !Array.isArray(s.campaign)) {
+    const c = s.campaign as Record<string, unknown>;
+    const camp: PublicSiteContent['campaign'] = {};
+    const ct = normLocalized(c.title, 120);
+    if (ct) camp.title = ct;
+    const goal = sitePosNum(c.goal);
+    if (goal !== undefined) camp.goal = goal;
+    const raised = sitePosNum(c.raised);
+    if (raised !== undefined) camp.raised = raised;
+    const end = siteStr(c.end, 30);
+    if (end) camp.end = end;
+    const cur = siteStr(c.currency, 4);
+    if (cur) camp.currency = cur;
+    if (Object.keys(camp).length) out.campaign = camp;
+  }
+  if (Array.isArray(s.services)) {
+    const svcs = s.services
+      .map((sv) => {
+        if (!sv || typeof sv !== 'object') return null;
+        const o = sv as Record<string, unknown>;
+        const title = normLocalized(o.title, 80);
+        if (!title) return null;
+        const svc: NonNullable<PublicSiteContent['services']>[number] = { title };
+        const icon = siteStr(o.icon, 12);
+        if (icon) svc.icon = icon;
+        const text = normLocalized(o.text, 240);
+        if (text) svc.text = text;
+        return svc;
+      })
+      .filter((x): x is NonNullable<PublicSiteContent['services']>[number] => !!x)
+      .slice(0, 12);
+    if (svcs.length) out.services = svcs;
+  }
+  const news = normLocalized(s.news, 800);
+  if (news) out.news = news;
+  const story = normLocalized(s.story, 2000);
+  if (story) out.story = story;
+  if (Array.isArray(s.gallery)) {
+    const imgs = s.gallery
+      .map((g) => (typeof g === 'string' ? safeHttpsUrl(g) : null))
+      .filter((g): g is string => !!g)
+      .slice(0, 24);
+    if (imgs.length) out.gallery = imgs;
+  }
+  if (s.contact && typeof s.contact === 'object' && !Array.isArray(s.contact)) {
+    const c = s.contact as Record<string, unknown>;
+    const contact: PublicSiteContent['contact'] = {};
+    if (Array.isArray(c.phones)) {
+      const phones = c.phones.map(sitePhone).filter((p) => p).slice(0, 8);
+      if (phones.length) contact.phones = phones;
+    }
+    const wa = sitePhone(c.whatsapp);
+    if (wa) contact.whatsapp = wa;
+    const email = siteStr(c.email, 120);
+    if (email && email.includes('@')) contact.email = email;
+    const addr = normLocalized(c.address, 200);
+    if (addr) contact.address = addr;
+    if (Object.keys(contact).length) out.contact = contact;
+  }
+  if (typeof s.donateUrl === 'string') {
+    const u = safeHttpsUrl(s.donateUrl);
+    if (u) out.donateUrl = u;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 /** נרמול קלט לא-אמין (localStorage / רשת / קובץ מיובא) לצורת OrgConfig מלאה, או null אם לא שמיש. */
 export function normalizeConfig(raw: unknown): OrgConfig | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
@@ -315,7 +449,20 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
   // hex · rgb/rgba/hsl/hsla (ספרות/פסיקים/רווח/%/. בלבד) · מילת-צבע. אחרת מוסר.
   if (typeof cfg.accent === 'string' && isSafeAccent(cfg.accent.trim())) cfg.accent = cfg.accent.trim();
   else delete cfg.accent;
+  // אתר-ציבורי — חיטוי allowlist מלא (ה-spread של ...c היה מעביר site לא-מחוטא,
+  // לכן חובה set/delete מפורש). חסר/לא-אובייקט ⇒ מוסר (⇒ אין אתר, ביט-זהה להיום).
+  const site = normalizeSite(c.site);
+  if (site) cfg.site = site;
+  else delete cfg.site;
   return cfg;
+}
+
+/**
+ * האם האתר-הציבורי פעיל לארגון — הדגל shell.publicsite דלוק ויש תוכן-site
+ * לא-מכובה. הגידור על בקשת-הכתובת (‎?site‎) נעשה ב-App (זהו רק המצב הלוגי).
+ */
+export function publicSiteOn(cfg: OrgConfig): boolean {
+  return featureOn(cfg, 'shell.publicsite') && !!cfg.site && cfg.site.enabled !== false;
 }
 
 /* ---------- תפקידים (P3 פריט 15, הכרעה 2) ---------- */

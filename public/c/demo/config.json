@@ -4,5 +4,45 @@
   "theme": "kehila",
   "modules": {},
   "features": {},
-  "terms": {}
+  "terms": {},
+  "site": {
+    "enabled": true,
+    "langs": ["he", "en"],
+    "tagline": { "he": "הבית של האלמנות והיתומים", "en": "A home for widows and orphans" },
+    "heroWords": [
+      { "he": "נותנים בכבוד", "en": "Giving with dignity" },
+      { "he": "יד ביד", "en": "Hand in hand" },
+      { "he": "קהילה שלמה", "en": "A whole community" }
+    ],
+    "liveFamilies": true,
+    "liveFamiliesLabel": { "he": "משפחות בטיפול", "en": "families supported" },
+    "stats": [
+      { "value": "2,800", "label": { "he": "סלי מזון בשנה", "en": "food baskets / year" } },
+      { "value": "24", "label": { "he": "שנות פעילות", "en": "years active" } },
+      { "value": "180", "label": { "he": "מתנדבים", "en": "volunteers" } }
+    ],
+    "campaign": {
+      "title": { "he": "קמפיין חג — סלי מזון למשפחות", "en": "Holiday food-basket drive" },
+      "goal": 250000,
+      "raised": 163400,
+      "end": "2026-09-20",
+      "currency": "₪"
+    },
+    "services": [
+      { "icon": "🎉", "title": { "he": "שמחות", "en": "Celebrations" }, "text": { "he": "סיוע בהוצאות שמחה למשפחות נזקקות", "en": "Support for family celebrations" } },
+      { "icon": "👰", "title": { "he": "הכנסת כלה", "en": "Wedding fund" }, "text": { "he": "ליווי כלכלי לחתן ולכלה", "en": "Financial help for brides and grooms" } },
+      { "icon": "🏠", "title": { "he": "בית פתוח", "en": "Open house" }, "text": { "he": "מרחב חם לילדים אחרי הלימודים", "en": "A warm after-school space" } },
+      { "icon": "📚", "title": { "he": "אולפן וחוגים", "en": "Classes" }, "text": { "he": "העשרה, אמנות ולימוד לכל גיל", "en": "Enrichment and learning for all ages" } },
+      { "icon": "💆", "title": { "he": "טיפולי גוף ונפש", "en": "Body & soul" }, "text": { "he": "טיפולים רגשיים ופיזיים בהנחה", "en": "Subsidized emotional and physical care" } },
+      { "icon": "🚌", "title": { "he": "טיולים", "en": "Trips" }, "text": { "he": "ימי כיף ונופש למשפחות", "en": "Family day-trips and getaways" } }
+    ],
+    "news": { "he": "החודש חילקנו 240 סלי מזון לקראת החג, ופתחנו חוג אפייה חדש לאמהות. תודה לכל התורמים!", "en": "This month we distributed 240 baskets and opened a new baking class for mothers." },
+    "story": { "he": "מאור החסד קם לפני 24 שנה ממטבח ביתי אחד — היום אנחנו רשת שלמה של חסד: מזון, חינוך, שמחות וטיפול. כל שקל שנתרם הופך לחיוך של ילד ולנשימה של אמא.", "en": "Maor HaChesed began 24 years ago from a single home kitchen — today a full network of kindness." },
+    "contact": {
+      "phones": ["03-000-0000", "050-000-0000"],
+      "whatsapp": "050-000-0000",
+      "email": "info@example.org",
+      "address": { "he": "רחוב החסד 1, לוצק", "en": "1 Chesed St." }
+    }
+  }
 }

@@ -10,7 +10,7 @@
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
 import { nsLsKey, parseBackupFile } from './store/persist';
-import { applyFavicon, featureOn, isAdminUser, isSuperAdmin, moduleOn, roleOf, telephonyOn, termOf } from './lib/config';
+import { applyFavicon, featureOn, isAdminUser, isSuperAdmin, moduleOn, publicSiteOn, roleOf, telephonyOn, termOf } from './lib/config';
 import { applyOrgManifest, isIos, isStandalone, promptInstall, registerPwa } from './lib/pwa';
 import { setExportBlocked } from './lib/exportGate';
 import { hebDateFull } from './lib/hebrew';
@@ -51,6 +51,7 @@ import { PlatformPanel } from './components/platform/PlatformPanel';
 import { ManagerPanel } from './components/platform/ManagerPanel';
 import { AdminHub, HubButton } from './components/AdminHub';
 import { LockScreen } from './components/lock/LockScreen';
+import { PublicSite } from './components/public/PublicSite';
 import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
 import { CloudUnlockScreen } from './components/lock/CloudUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
@@ -172,6 +173,16 @@ export default function App() {
   const unlockedPrimary = useApp((s) => s.unlockedPrimary);
   const unlockedAdmin = useApp((s) => s.unlockedAdmin);
   const markUnlocked = useApp((s) => s.markUnlocked);
+
+  // 🌐 אתר ציבורי (shell.publicsite) — נפתח בכתובת ‎?site‎ או ‎#site‎, לפני שער-
+  // הענן (המבקר לא צריך חשבון). "כניסה למערכת" מנקה את הבקשה וממשיך לאפליקציה.
+  const [siteRequested, setSiteRequested] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).has('site') || window.location.hash === '#site';
+    } catch {
+      return false;
+    }
+  });
 
   // אשף ההרכבה — למטמיע בלבד, נפתח עם #builder בכתובת
   // ‏#builder = אשף מקומי · ‏#builder=slug = אשף קשור-ענן ללקוח (RemoteWizard, 5.8)
@@ -339,6 +350,27 @@ export default function App() {
   }, [exportBackup]);
 
   if (!ready) return <div className="empty">טוען…</div>;
+
+  // 🌐 שער האתר-הציבורי — לפני שער-ההצפנה/הענן/הנעילה: המבקר רואה דף-נחיתה
+  // ציבורי בלי שום התחברות. מגודר shell.publicsite + תוכן-site קיים (publicSiteOn).
+  // "כניסה למערכת" מנקה את הבקשה (‎?site/#site‎) וממשיך לשרשרת-השערים הרגילה.
+  if (siteRequested && publicSiteOn(config)) {
+    return (
+      <PublicSite
+        onEnter={() => {
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('site');
+            if (url.hash === '#site') url.hash = '';
+            history.replaceState(null, '', url.pathname + url.search + url.hash);
+          } catch {
+            /* כתובת חריגה — נתעלם, הדגל בזיכרון יספיק */
+          }
+          setSiteRequested(false);
+        }}
+      />
+    );
+  }
 
   const toastsEl = (
     <div className="toasts" role="status" aria-live="polite">

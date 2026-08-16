@@ -58,6 +58,77 @@ export interface TelephonyConfig {
   voicemail: boolean;
 }
 
+/**
+ * שפות האתר-הציבורי — עברית / אנגלית / אידיש (מהאפיון). ברירת-מחדל ['he'].
+ * he+yi = RTL, en = LTR (הרכיב קובע dir לפי השפה הפעילה).
+ */
+export const SITE_LANGS = ['he', 'en', 'yi'] as const;
+export type SiteLang = (typeof SITE_LANGS)[number];
+
+/**
+ * טקסט רב-לשוני לאתר-הציבורי — או מחרוזת יחידה (עברית), או מפה פר-שפה.
+ * הרכיב פותר לפי השפה הפעילה עם נפילה-לעברית (resolveLocalized ב-lib/publicSite).
+ */
+export type LocalizedText = string | Partial<Record<SiteLang, string>>;
+
+export interface PublicSiteStat {
+  /** מספר/ערך להצגה (מחרוזת — "2,800", "24 שנה"). */
+  value: string;
+  label: LocalizedText;
+}
+export interface PublicSiteService {
+  icon?: string;
+  title: LocalizedText;
+  text?: LocalizedText;
+}
+export interface PublicSiteCampaign {
+  title?: LocalizedText;
+  /** יעד הגיוס (מספר חיובי). */
+  goal?: number;
+  /** נגבה עד כה (מספר חיובי) — עדכני-לקוח; מוזן מהקונפיג. */
+  raised?: number;
+  /** תאריך-יעד ISO לספירה-לאחור. */
+  end?: string;
+  /** סמל-מטבע להצגה ('₪' ברירת-מחדל). */
+  currency?: string;
+}
+export interface PublicSiteContact {
+  phones?: string[];
+  whatsapp?: string;
+  email?: string;
+  address?: LocalizedText;
+}
+
+/**
+ * תוכן האתר-הציבורי (dashboard-נחיתה) — **מוזן ישירות מהקונפיג של הארגון**
+ * (אותו OrgConfig שהמערכת משתמשת בו; מיתוג/ערכה/צבע נלקחים משדות-הליבה).
+ * חסר ⇒ אין אתר ציבורי (ביט-זהה להיום). מחוטא ב-normalizeConfig (allowlist + תקרות).
+ * ‏enabled=false ⇒ מכובה במפורש גם אם הדגל shell.publicsite דלוק.
+ */
+export interface PublicSiteContent {
+  enabled?: boolean;
+  langs?: SiteLang[];
+  /** תת-כותרת ה-hero ("הבית של האלמנות והיתומים"). */
+  tagline?: LocalizedText;
+  /** מילות-זהב מתחלפות ב-hero. */
+  heroWords?: LocalizedText[];
+  stats?: PublicSiteStat[];
+  /** true ⇒ מונה-משפחות חי מהנתונים המקומיים (מספר בלבד, בלי PII). */
+  liveFamilies?: boolean;
+  liveFamiliesLabel?: LocalizedText;
+  campaign?: PublicSiteCampaign;
+  services?: PublicSiteService[];
+  /** "כל חודש מה חדש". */
+  news?: LocalizedText;
+  /** "הסיפור שמאחורי". */
+  story?: LocalizedText;
+  /** תמונות-גלריה (https בלבד). */
+  gallery?: string[];
+  contact?: PublicSiteContact;
+  /** קישור-תרומה (https) — נפילה ל-integrations.payments.payUrl. */
+  donateUrl?: string;
+}
+
 export interface OrgConfig {
   /** מזהה קצר של הארגון (לשם קובץ/כתובת). */
   slug: string;
@@ -160,6 +231,11 @@ export interface OrgConfig {
    * allowlist מלא בלי „עובד מוגבל" בשרת (enableSupEnforce חוסם שורש/default).
    */
   supporterEnforce?: boolean;
+  /**
+   * תוכן האתר-הציבורי (dashboard-נחיתה, מגודר shell.publicsite + ‎?site‎ בכתובת).
+   * מוזן ישירות מהקונפיג; חסר ⇒ אין אתר ציבורי. מחוטא ב-normalizeConfig.
+   */
+  site?: PublicSiteContent;
 }
 
 /** קונפיגורציית Firebase של ארגון — קיצור נוחות. */
