@@ -40,9 +40,10 @@ describe('🌐 אתר ציבורי — חיטוי normalizeSite', () => {
     expect(base({ donateUrl: 'javascript:alert(1)' }).site?.donateUrl).toBeUndefined();
   });
 
-  it('שדה-זר בתוך site נזרק (allowlist מלא)', () => {
-    const c = base({ tagline: 'שלום', evil: '<script>', __proto__: { x: 1 } });
+  it('שדה-זר בתוך site נזרק (allowlist מלא); icon = מחרוזת קצרה', () => {
+    const c = base({ tagline: 'שלום', icon: '🕯️', evil: '<script>', __proto__: { x: 1 } });
     expect(c.site?.tagline).toBe('שלום');
+    expect(c.site?.icon).toBe('🕯️');
     expect((c.site as Record<string, unknown>).evil).toBeUndefined();
   });
 
@@ -55,7 +56,7 @@ describe('🌐 אתר ציבורי — חיטוי normalizeSite', () => {
     const c = base({ campaign: { goal: 1000, raised: -5, end: '2026-09-01', extra: 'x' } });
     expect(c.site?.campaign?.goal).toBe(1000);
     expect(c.site?.campaign?.raised).toBeUndefined();
-    expect((c.site?.campaign as Record<string, unknown>).extra).toBeUndefined();
+    expect((c.site?.campaign as Record<string, unknown> | undefined)?.extra).toBeUndefined();
   });
 
   it('טקסט רב-לשוני: רק שפות-allowlist עם ערך לא-ריק', () => {

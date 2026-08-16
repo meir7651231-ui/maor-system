@@ -252,6 +252,8 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
   const out: PublicSiteContent = {};
   if (s.enabled === false) out.enabled = false;
   else if (s.enabled === true) out.enabled = true;
+  const icon = siteStr(s.icon, 12);
+  if (icon) out.icon = icon;
   const langs = Array.isArray(s.langs)
     ? [...new Set(s.langs.filter((l): l is SiteLang => (SITE_LANGS as readonly string[]).includes(l as string)))]
     : [];

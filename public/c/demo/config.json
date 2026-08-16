@@ -8,6 +8,7 @@
   "site": {
     "enabled": true,
     "langs": ["he", "en"],
+    "icon": "🕯️",
     "tagline": { "he": "הבית של האלמנות והיתומים", "en": "A home for widows and orphans" },
     "heroWords": [
       { "he": "נותנים בכבוד", "en": "Giving with dignity" },

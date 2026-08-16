@@ -108,6 +108,9 @@ export interface PublicSiteContact {
 export interface PublicSiteContent {
   enabled?: boolean;
   langs?: SiteLang[];
+  /** אייקון ה-hero (אימוג'י) — לאתר-הציבורי בלבד, נפרד מ-config.emoji (favicon/כותרת).
+   *  חסר ⇒ נפילה ל-config.emoji/logoDataUri. */
+  icon?: string;
   /** תת-כותרת ה-hero ("הבית של האלמנות והיתומים"). */
   tagline?: LocalizedText;
   /** מילות-זהב מתחלפות ב-hero. */
