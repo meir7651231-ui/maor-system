@@ -69,7 +69,7 @@ export function ReportTable(props: { head: string[]; rows: Row[]; foot?: Cell[] 
   const clickable = sorted.some((r) => r.open);
 
   return (
-    <div style={{ overflowX: 'auto' }}>
+    <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
       {props.rows.length > 3 && (
         <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
           <button

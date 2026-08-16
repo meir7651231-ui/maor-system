@@ -175,7 +175,7 @@ export function BackupSection() {
           עדיין אין צילומים יומיים — המערכת שומרת צילום אוטומטי אחד בכל יום עבודה (עד 30 ימים אחורה).
         </p>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
           <table className="table" style={{ maxWidth: 480 }}>
             <thead>
               <tr>

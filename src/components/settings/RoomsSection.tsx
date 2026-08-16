@@ -46,7 +46,7 @@ export function RoomsSection() {
       {rooms.length === 0 ? (
         <Empty>{'אין ' + roomsT + ' עדיין — הוסיפו ' + room + ' ראשון'}</Empty>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
           <table className="table">
             <thead>
               <tr>

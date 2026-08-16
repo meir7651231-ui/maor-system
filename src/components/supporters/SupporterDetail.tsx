@@ -504,7 +504,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         {donRows.length === 0 ? (
           <Empty>{'עדיין אין ' + termOf(config, 'entity.donations', 'תרומות') + ' מתועדות — רשמו עם "➕ רישום ' + termOf(config, 'entity.donation', 'תרומה') + '"'}</Empty>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
             <table className="table">
               <thead>
                 <tr>
