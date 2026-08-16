@@ -386,6 +386,18 @@ export interface AyinAnswer {
   note: string;
 }
 
+/**
+ * רשומת-שעתון על תיק (פרויקט) — תיוג-שעות לחישוב עלות-עבודה ב-P&L. additive,
+ * אופציונלי, אין מיגרציה; ורטיקל מסחרי בלבד (מגודר supporters.ayin.time).
+ */
+export interface TimeEntry {
+  date: IsoDate;
+  hours: number;
+  note: string;
+  /** תעריף-שעה (אופציונלי) — עלות-השורה = hours × rate. */
+  rate?: number;
+}
+
 /** רשומת היסטוריה של מונה (eyes) לפי תאריך. */
 export interface AyinLog {
   date: IsoDate;
@@ -410,6 +422,8 @@ export interface AyinCase {
   names: AyinName[];
   answers: AyinAnswer[];
   log: AyinLog[];
+  /** שעתון-הפרויקט (תיוג-שעות) — additive, ורטיקל מסחרי; undefined בתיקים ישנים. */
+  time?: TimeEntry[];
   /**
    * מזהי אירועי-הלוח שנוצרו במעברי-השלב, לפי שלב-המקור של המעבר
    * ('new'/'lead'/'eyes'/'answer') + 'answerPush' (מעבר הדחיפה). מאפשר ל-revert
@@ -497,6 +511,7 @@ export function emptyAyin(): AyinCase {
     names: [],
     answers: [],
     log: [],
+    time: [],
   };
 }
 
