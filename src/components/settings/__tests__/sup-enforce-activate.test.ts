@@ -49,6 +49,7 @@ describe('🔒 ratchet — הפעלת אכיפת-תומכים', () => {
     expect(rulesSrc).toContain('function memberSeesSupporter(slug, skey)');
     expect(rulesSrc).toContain("col != 'donations' && col != 'supporters'");
     expect(rulesSrc).toContain('match /orgs/{slug}/supporters/{id}');
-    expect(rulesSrc).toContain('memberSeesSupporter(slug, resource.data.skey)');
+    // תאימות-לאחור: skey חסר ⇒ '_shared_' (פרסום-Rules לא שובר ארגון בלי מיגרציה)
+    expect(rulesSrc).toContain("memberSeesSupporter(slug, resource.data.get('skey', '_shared_'))");
   });
 });
