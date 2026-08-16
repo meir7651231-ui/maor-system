@@ -238,12 +238,13 @@ a.ps-chip:hover { border-color: var(--c-coral); color: var(--c-coral); }
 .ps h1, .ps h2, .ps h3, .ps-btn, .ps-org, .ps-tier-n, .ps-card-t, .ps-event-t { font-family: 'Varela Round', 'Assistant', 'Heebo', system-ui, sans-serif; }
 .ps-statnum, .ps-calc-qty, .ps-calc-eq, .ps-tier-p, .ps-camp-row b, .ps-calc-b, .ps-event-d { font-family: 'Rubik', 'Assistant', system-ui, sans-serif; font-feature-settings: 'tnum' 1; }
 .ps-ey, .ps-micro, .ps-tst-q, .ps-quote, .ps-calc-note { font-family: 'Playpen Sans Hebrew', 'Assistant', cursive; }
-.ps-ticker { background: linear-gradient(90deg, #ec9c9c, #d97f7f); }
-.ps-band { background: linear-gradient(135deg, #ec9c9c, #d97f7f); }
-.ps-fill { background: linear-gradient(90deg, #ec9c9c, #d97f7f); }
-.ps-marquee { background: #f9e4e1; }
-.ps-tier.feat .ps-tier-tag, .ps-lang.on { background: #d97f7f; }
-.ps-event-d { background: linear-gradient(135deg, #ec9c9c, #d97f7f); color: #fff; }
+/* גרדיאנט-המותג דרך משתני-הפלטה (--c-coral3/2 מוזנים מ-pal על השורש) — מתאים לכל ורטיקל */
+.ps-ticker { background: linear-gradient(90deg, var(--c-coral3), var(--c-coral2)); }
+.ps-band { background: linear-gradient(135deg, var(--c-coral3), var(--c-coral2)); }
+.ps-fill { background: linear-gradient(90deg, var(--c-coral3), var(--c-coral2)); }
+.ps-marquee { background: color-mix(in srgb, var(--c-coral3) 22%, #fff); }
+.ps-tier.feat .ps-tier-tag, .ps-lang.on { background: var(--c-coral2); }
+.ps-event-d { background: linear-gradient(135deg, var(--c-coral3), var(--c-coral2)); color: #fff; }
 
 /* ── תנועות-העיצוב המדויקות (Chesed Landing p-*) — משמשות את ה-inline-styles של ה-HERO/הניווט/המרקיזה ── */
 @keyframes ps-pop { from { opacity: 0.001; transform: scale(0.92) translateY(16px); } to { opacity: 1; transform: none; } }

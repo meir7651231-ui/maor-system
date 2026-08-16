@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { normalizeConfig, normalizeSite, publicSiteOn } from '../config';
-import { campaignProgress, resolveLocalized, siteLangs, isRtlLang, siteUi, hasPublicSite, siteDonateUrl } from '../publicSite';
+import { campaignProgress, resolveLocalized, siteLangs, isRtlLang, siteUi, hasPublicSite, siteDonateUrl, sitePalette, siteVocab, CORAL_PALETTE } from '../publicSite';
 import appSrc from '../../App.tsx?raw';
 import siteSrc from '../../components/public/PublicSite.tsx?raw';
 import type { OrgConfig } from '../../types/config';
@@ -136,6 +136,47 @@ describe('🌐 שדות-העיצוב (design 16.8) — חיטוי + מבנה', (
   });
 });
 
+describe('🎨 sitePalette — התאמה לכל ורטיקל', () => {
+  it('אין accent (ורטיקל עמותתי) ⇒ קורל מקורי ביט-זהה (chesed לא זז)', () => {
+    expect(sitePalette(undefined)).toEqual(CORAL_PALETTE);
+    expect(sitePalette('')).toEqual(CORAL_PALETTE);
+    expect(sitePalette('not-a-hex')).toEqual(CORAL_PALETTE);
+    expect(CORAL_PALETTE.c1).toBe('#EC9C9C'); // מקובע לעיצוב המקורי
+  });
+  it('accent ⇒ משפחה נגזרת: הגוון נשמר, בהיר>עמוק, שונה מקורל', () => {
+    const p = sitePalette('#5b6cff'); // אינדיגו (digital)
+    expect(p).not.toEqual(CORAL_PALETTE);
+    // גוון כחלחל: הרכיב הכחול גובר על האדום ב-c2
+    const [r, , b] = [parseInt(p.c2.slice(1, 3), 16), 0, parseInt(p.c2.slice(5, 7), 16)];
+    expect(b).toBeGreaterThan(r);
+    // בהיר בהיר יותר מעמוק
+    const lum = (hex: string) => parseInt(hex.slice(1, 3), 16) + parseInt(hex.slice(3, 5), 16) + parseInt(hex.slice(5, 7), 16);
+    expect(lum(p.c1)).toBeGreaterThan(lum(p.c3));
+    // rgb1/rgb2 בפורמט "r,g,b"
+    expect(p.rgb1.split(',')).toHaveLength(3);
+  });
+  it('גוון-מותג שונה ⇒ פלטה שונה (build כתום ≠ studio תכלת)', () => {
+    expect(sitePalette('#e8912a')).not.toEqual(sitePalette('#0ea5e9'));
+  });
+});
+
+describe('🗣️ siteVocab — סוג-ארגון', () => {
+  it('עמותתי ⇒ "לתרומה"; מסחרי ⇒ "צרו קשר" (בלי "תרומה")', () => {
+    const np = siteVocab(false, 'he');
+    expect(np.heroCta).toContain('לתרומה');
+    expect(np.commercial).toBe(false);
+    const com = siteVocab(true, 'he');
+    expect(com.heroCta).toBe('צרו קשר');
+    expect(com.navCta).not.toContain('תרומה');
+    expect(com.giveLabel).not.toContain('תרומה');
+    expect(com.commercial).toBe(true);
+  });
+  it('אנגלית: Donate ↔ Get in touch', () => {
+    expect(siteVocab(false, 'en').heroCta).toBe('Donate now');
+    expect(siteVocab(true, 'en').heroCta).toBe('Get in touch');
+  });
+});
+
 describe('🌐 resolveLocalized + siteLangs', () => {
   it('מחרוזת ⇒ כמות-שהיא; מפה ⇒ שפה מבוקשת', () => {
     expect(resolveLocalized('שלום', 'en')).toBe('שלום');
@@ -210,5 +251,12 @@ describe('🌐 publicSiteOn + הגנת-מקור', () => {
     // תנועות-העיצוב המדויקות נשמרות (Chesed Landing p-*)
     expect(siteSrc).toContain('ps-beat');
     expect(siteSrc).toContain('ps-draw');
+    // התאמה-לכל-ורטיקל: הפלטה נגזרת מ-config.accent + שפה תלוית-סוג-ארגון (§46)
+    expect(siteSrc).toContain('sitePalette(config.accent)');
+    expect(siteSrc).toContain("featureOn(config, 'core.taxreceipt')");
+    expect(siteSrc).toContain('siteVocab(commercial');
+    // הצבעים דרך משתני-CSS מהשורש (var(--c…)) ⇒ מתחלפים פר-ורטיקל
+    expect(siteSrc).toContain('var(--c1)');
+    expect(siteSrc).toContain('paletteVars');
   });
 });
