@@ -20,6 +20,7 @@ import {
 } from '../../lib/publicSite';
 import type { LocalizedText, SiteLang } from '../../types/config';
 import './public-site.css';
+import heroVideo from './assets/hero.mp4';
 
 const LANG_LABEL: Record<SiteLang, string> = { he: 'עב', en: 'EN', yi: 'ייִדיש' };
 const prefersReducedMotion = () =>
@@ -135,8 +136,13 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
   const titleAccent = t(site.titleAccent);
   const donateLabel = `💗 ${ui('donate')}`;
 
-  const DonateBtn = ({ big, cls }: { big?: boolean; cls?: string }) =>
-    donate ? <a className={`ps-btn ${big ? 'lg' : ''} ${cls || ''}`} href={donate} target="_blank" rel="noopener noreferrer">{donateLabel}</a> : null;
+  const DonateBtn = ({ big, cls }: { big?: boolean; cls?: string }) => (
+    <a
+      className={`ps-btn ${big ? 'lg' : ''} ${cls || ''}`}
+      href={donate || (tiers.length ? '#ps-tiers' : '#ps-contact')}
+      {...(donate ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+    >{donateLabel}</a>
+  );
 
   return (
     <div className="ps" dir={rtl ? 'rtl' : 'ltr'} lang={lang} ref={rootRef}>
@@ -181,8 +187,10 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
         </div>
         <div className="ps-hero-media ps-rev">
           {site.heroImage
-            ? <img src={site.heroImage} alt="" loading="eager" />
-            : <div className="ps-hero-ph" aria-hidden><span>{heroIcon || '💗'}</span></div>}
+            ? (/\.(mp4|webm)(\?|$)/i.test(site.heroImage)
+                ? <video src={site.heroImage} autoPlay muted loop playsInline aria-hidden />
+                : <img src={site.heroImage} alt="" loading="eager" />)
+            : <video src={heroVideo} autoPlay muted loop playsInline aria-hidden />}
         </div>
       </section>
 

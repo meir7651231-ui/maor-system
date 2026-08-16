@@ -1,5 +1,8 @@
+@import './public-site-fonts.css';
 /* האתר-הציבורי — עיצוב "חסד חם" (דף-תרומות, לפי העיצוב 16.8).
-   פלטת-קורל · כפתור-פיל כהה · מוטיב ♡ · כרטיסים מעוגלים. self-contained תחת .ps. */
+   פלטת-קורל · כפתור-פיל כהה · מוטיב ♡ · כרטיסים מעוגלים. self-contained תחת .ps.
+   גופנים מדויקים מהעיצוב: Varela Round (כותרות) · Assistant (גוף) · Rubik (מספרים) ·
+   Playpen Sans Hebrew (קיקרים/ציטוטים/הערות "כתב-יד"). */
 .ps {
   --c-ink: #33272a;
   --c-soft: rgba(51, 39, 42, 0.72);
@@ -92,7 +95,7 @@
 .ps-hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
 @media (max-width: 860px) { .ps-hero-cta { justify-content: center; } }
 .ps-micro { margin-top: 16px; font-size: 13.5px; font-weight: 700; color: var(--c-coral); }
-.ps-hero-media img { width: 100%; height: auto; border-radius: 28px; box-shadow: var(--c-shadow); display: block; aspect-ratio: 4/3.4; object-fit: cover; }
+.ps-hero-media img, .ps-hero-media video { width: 100%; height: auto; border-radius: 36px 120px 36px 36px; box-shadow: var(--c-shadow); display: block; aspect-ratio: 4/3.4; object-fit: cover; border: 6px solid #fff; }
 .ps-hero-ph { width: 100%; aspect-ratio: 4/3.4; border-radius: 28px; background: linear-gradient(160deg, var(--c-blush), var(--c-cream)); border: 1px solid var(--c-line); display: flex; align-items: center; justify-content: center; box-shadow: var(--c-shadow); }
 .ps-hero-ph span { font-size: clamp(70px, 14vw, 130px); filter: drop-shadow(0 10px 22px rgba(185, 95, 95, 0.3)); }
 
@@ -230,3 +233,14 @@ a.ps-chip:hover { border-color: var(--c-coral); color: var(--c-coral); }
 .ps-quote { font-size: 60px; line-height: 0.6; color: var(--c-coral3); font-family: Georgia, serif; }
 .ps-story .ps-h2 { margin-top: 8px; }
 .center { text-align: center; }
+
+/* ── גופני-העיצוב המדויקים + גרדיאנט-המותג (README tokens) ── */
+.ps h1, .ps h2, .ps h3, .ps-btn, .ps-org, .ps-tier-n, .ps-card-t, .ps-event-t { font-family: 'Varela Round', 'Assistant', 'Heebo', system-ui, sans-serif; }
+.ps-statnum, .ps-calc-qty, .ps-calc-eq, .ps-tier-p, .ps-camp-row b, .ps-calc-b, .ps-event-d { font-family: 'Rubik', 'Assistant', system-ui, sans-serif; font-feature-settings: 'tnum' 1; }
+.ps-ey, .ps-micro, .ps-tst-q, .ps-quote, .ps-calc-note { font-family: 'Playpen Sans Hebrew', 'Assistant', cursive; }
+.ps-ticker { background: linear-gradient(90deg, #ec9c9c, #d97f7f); }
+.ps-band { background: linear-gradient(135deg, #ec9c9c, #d97f7f); }
+.ps-fill { background: linear-gradient(90deg, #ec9c9c, #d97f7f); }
+.ps-marquee { background: #f9e4e1; }
+.ps-tier.feat .ps-tier-tag, .ps-lang.on { background: #d97f7f; }
+.ps-event-d { background: linear-gradient(135deg, #ec9c9c, #d97f7f); color: #fff; }
