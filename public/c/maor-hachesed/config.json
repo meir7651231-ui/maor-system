@@ -17,26 +17,32 @@
   "cloudRoot": true,
   "site": {
     "enabled": true,
-    "langs": ["he"],
-    "tagline": "הבית של האלמנות והיתומים",
-    "heroWords": ["נותנים בכבוד", "יד ביד", "קהילה שלמה"],
-    "liveFamilies": true,
-    "liveFamiliesLabel": "משפחות בטיפול",
-    "services": [
-      { "icon": "🎉", "title": "שמחות", "text": "סיוע בהוצאות שמחה למשפחות נזקקות" },
-      { "icon": "👰", "title": "הכנסת כלה", "text": "ליווי כלכלי לחתן ולכלה" },
-      { "icon": "🏠", "title": "בית פתוח", "text": "מרחב חם לילדים אחרי הלימודים" },
-      { "icon": "📚", "title": "אולפן וחוגים", "text": "העשרה, אמנות ולימוד לכל גיל" },
-      { "icon": "💆", "title": "טיפולי גוף ונפש", "text": "טיפולים רגשיים ופיזיים בהנחה" },
-      { "icon": "🚌", "title": "טיולים", "text": "ימי כיף ונופש למשפחות" }
+    "langs": ["he", "en"],
+    "tagline": { "he": "הבית של האלמנות והיתומים", "en": "A home for widows and orphans" },
+    "heroWords": [
+      { "he": "תומכים באלמנות", "en": "Supporting widows" },
+      { "he": "מלווים יתומים", "en": "Standing with orphans" },
+      { "he": "בונים מחדש חיים", "en": "Rebuilding lives" }
     ],
-    "story": "מאור החסד — רשת של חסד לאלמנות, ליתומים ולמשפחות שזקוקות ליד תומכת. מזון, חינוך, שמחות וטיפול, בכבוד ובאהבה. כל תרומה הופכת לחיוך של ילד ולנשימה של אמא.",
+    "liveFamilies": false,
+    "stats": [
+      { "value": "600", "label": { "he": "אלמנות בליווי", "en": "widows supported" } }
+    ],
+    "services": [
+      { "icon": "🏠", "title": { "he": "עזרה יומיומית", "en": "Daily help" }, "text": { "he": "סיוע במטלות הבית ובצורכי היום-יום", "en": "Help with chores and daily needs" } },
+      { "icon": "📚", "title": { "he": "תוכניות אחר-הצהריים", "en": "After-school" }, "text": { "he": "מסגרת חמה לילדים אחרי הלימודים", "en": "A warm after-school framework for children" } },
+      { "icon": "🕯️", "title": { "he": "שבתונים", "en": "Shabbatons" }, "text": { "he": "שבתות התרוממות וחיזוק", "en": "Uplifting, strengthening Shabbatons" } },
+      { "icon": "💊", "title": { "he": "מימון טיפולים", "en": "Treatments" }, "text": { "he": "סיוע כלכלי לטיפולים רפואיים ורגשיים", "en": "Funding for medical and emotional care" } },
+      { "icon": "🎓", "title": { "he": "הכשרה מקצועית", "en": "Professional training" }, "text": { "he": "ליווי להשתלבות ולעצמאות כלכלית", "en": "Support toward work and independence" } },
+      { "icon": "👰", "title": { "he": "הכנסת כלה ליתומים", "en": "Weddings for orphans" }, "text": { "he": "כיסוי מלא של הוצאות החתונה — עד הפרט האחרון", "en": "Covering full wedding costs, down to every detail" } }
+    ],
+    "story": { "he": "מאור החסד לוצקין נוסד על-ידי הרבנית הינדא שפרינצא לוצקין, בברכת הגאון רבי משה הלברשטאם זצ״ל, כדי להביא שמחה לילדיו של הקב״ה ולעזור להם לבנות מחדש את חייהם. אנו מלווים כ-600 אלמנות ואת יתומיהן בכל תחומי החיים — בכבוד, באהבה ובדיסקרטיות.", "en": "Meor Hachessed Lutzkin was founded by Rebbetzin Hinda Shprintza Lutzkin, with the blessing of Rabbi Moshe Halberstam zt”l, to bring joy to Hashem's children and help them rebuild their lives — accompanying some 600 widows and their orphans through every aspect of life, with dignity and love." },
     "news": "",
     "contact": {
       "phones": [],
       "whatsapp": "",
       "email": "",
-      "address": ""
+      "address": { "he": "אדוניהו הכהן 23, ירושלים · 14 Olympia Lane, Monsey NY", "en": "Adoniyahu HaCohen 23, Jerusalem · 14 Olympia Lane, Monsey NY 10952" }
     }
   }
 }
