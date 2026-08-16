@@ -21,7 +21,7 @@ import { TEMPLATE_DEFS } from '../../lib/templates';
 import { TelephonyPanel } from '../telephony/TelephonyPanel';
 import { emptyTelephonyConfig } from '../telephony/lib';
 
-const DEFAULT_APP_URL = 'https://meir7651231-ui.github.io/maor-system/';
+const DEFAULT_APP_URL = 'https://orbit-il.com/';
 
 /**
  * "פלטפורמה אחת — אלפי עמותות" (רצועת ה-white-label ממוקאפ צֹהַר):
