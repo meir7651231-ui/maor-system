@@ -398,6 +398,17 @@ export interface TimeEntry {
   rate?: number;
 }
 
+/**
+ * רשומת-חומרים/רכש על תיק (פרויקט) — עלות-חומרים ל-P&L (job-costing). additive,
+ * אופציונלי, אין מיגרציה; ורטיקל מסחרי בלבד (מגודר supporters.ayin.mat).
+ * עלות-השורה = qty × cost (מחיר-יחידה).
+ */
+export interface MatEntry {
+  name: string;
+  qty: number;
+  cost: number;
+}
+
 /** רשומת היסטוריה של מונה (eyes) לפי תאריך. */
 export interface AyinLog {
   date: IsoDate;
@@ -424,6 +435,8 @@ export interface AyinCase {
   log: AyinLog[];
   /** שעתון-הפרויקט (תיוג-שעות) — additive, ורטיקל מסחרי; undefined בתיקים ישנים. */
   time?: TimeEntry[];
+  /** חומרים/רכש של הפרויקט — additive, ורטיקל מסחרי; undefined בתיקים ישנים. */
+  mat?: MatEntry[];
   /**
    * מזהי אירועי-הלוח שנוצרו במעברי-השלב, לפי שלב-המקור של המעבר
    * ('new'/'lead'/'eyes'/'answer') + 'answerPush' (מעבר הדחיפה). מאפשר ל-revert
@@ -512,6 +525,7 @@ export function emptyAyin(): AyinCase {
     answers: [],
     log: [],
     time: [],
+    mat: [],
   };
 }
 

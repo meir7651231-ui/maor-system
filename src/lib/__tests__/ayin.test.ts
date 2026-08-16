@@ -6,6 +6,7 @@ import {
   ayinDailyRows,
   boqLineAmount,
   boqTotal,
+  matCostTotal,
   timeCostTotal,
   timeHoursTotal,
   featLabel,
@@ -252,5 +253,23 @@ describe('שעתון פר-פרויקט (timesheet → עלות-עבודה)', () 
     expect(cardSrc).toContain('timeCostTotal(a)');
     expect(cardSrc).toContain('עלות-עבודה');
     expect(cardSrc).toContain('רווח גולמי');
+  });
+});
+
+describe('חומרים ורכש פר-פרויקט (materials → P&L מלא)', () => {
+  it('עלות-חומרים = סכום כמות×מחיר; ריק ⇒ 0', () => {
+    expect(matCostTotal(caseOf())).toBe(0); // אין mat
+    const c = caseOf({ mat: [{ name: 'בטון', qty: 3, cost: 400 }, { name: 'ברזל', qty: 10, cost: 55 }] });
+    expect(matCostTotal(c)).toBe(3 * 400 + 10 * 55); // 1750
+  });
+
+  it('רווח מלא = הצעה − עבודה − חומרים (בכרטיס)', () => {
+    // מגן-מקור: הכרטיס מגדר חומרים למסחרי ומחשב totalCost + רווח מרוכז.
+    expect(cardSrc).toContain("featureOn(cfg, 'supporters.ayin.mat') && !featureOn(cfg, 'core.taxreceipt')");
+    expect(cardSrc).toContain('matCostTotal(a)');
+    expect(cardSrc).toContain('const totalCost = cost + matCost');
+    expect(cardSrc).toContain('quote - totalCost');
+    expect(cardSrc).toContain('רווחיות הפרויקט');
+    expect(cardSrc).toContain('חומרים ורכש');
   });
 });
