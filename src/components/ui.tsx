@@ -160,6 +160,8 @@ export function TextInput(props: {
   type?: string;
   dir?: 'rtl' | 'ltr';
   id?: string;
+  readOnly?: boolean;
+  ariaLabel?: string;
 }) {
   return (
     <input
@@ -168,6 +170,8 @@ export function TextInput(props: {
       value={props.value}
       dir={props.dir}
       placeholder={props.placeholder}
+      readOnly={props.readOnly}
+      aria-label={props.ariaLabel}
       onChange={(e) => props.onChange(e.target.value)}
     />
   );

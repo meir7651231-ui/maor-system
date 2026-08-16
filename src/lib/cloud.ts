@@ -46,7 +46,7 @@ import type { FirebaseOrgConfig } from '../types/config';
 import { AUDIT_CAP, DB_VERSION, type AuditEntry, type Db, type Donation } from '../types/domain';
 import { migrate } from '../store/persist';
 import { ENTITY_COLLECTIONS, colPath, donationsPath, envPath, fullDbDiff, metaPath, type DbDiff } from './cloud-diff';
-import { SHARED_PURPOSE_KEY, type DonationCloudDiff } from './donationPartition';
+import { donAllowedKeys, type DonationCloudDiff } from './donationPartition';
 import { SUP_KEYED_COLS, docSkey, stripAuditMeta, supAllowedKeys, supKeyMapOf, supKeyOf, stripSupKey } from './supporterPartition';
 import type { Supporter } from '../types/domain';
 import { decryptDoc, encryptDoc } from './cloudCrypto';
@@ -512,7 +512,7 @@ export async function pullAll(dek?: CryptoKey | null): Promise<Db | null> {
     const donRef = collection(db, scopedDonations());
     const dsnap = await getDocs(
       allowedPurposes
-        ? query(donRef, where('pkey', 'in', [...allowedPurposes.slice(0, 29), SHARED_PURPOSE_KEY]))
+        ? query(donRef, where('pkey', 'in', donAllowedKeys(allowedPurposes)))
         : donRef,
     );
     const bySup = new Map<string, Donation[]>();

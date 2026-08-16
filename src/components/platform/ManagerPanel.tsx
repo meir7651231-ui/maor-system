@@ -172,6 +172,8 @@ export function ManagerPanel(props: { onClose: () => void }) {
                   value={inviteLink}
                   onChange={() => {}}
                   dir="ltr"
+                  readOnly
+                  ariaLabel="קישור-הזמנה לעובדות"
                 />
                 <Btn
                   sm
@@ -188,7 +190,7 @@ export function ManagerPanel(props: { onClose: () => void }) {
             )}
             {org?.joinOpen && fullCode && (
               <Field label="קוד-הזמנה לעובד/ת (למי שנרשם/ת בלשונית 'הרשמת עובד/ת')">
-                <TextInput value={fullCode} onChange={() => {}} dir="ltr" />
+                <TextInput value={fullCode} onChange={() => {}} dir="ltr" readOnly ariaLabel="קוד-הזמנה לעובד/ת" />
                 <Btn
                   sm
                   onClick={() =>

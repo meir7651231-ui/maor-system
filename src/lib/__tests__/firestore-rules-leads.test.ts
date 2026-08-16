@@ -38,7 +38,9 @@ describe('firestore.rules — מסלול-B: אכיפת-ייעוד על אוסף-
     expect(rules).toContain('memberDesignations(slug).size() == 0');
   });
   it('הקליינט מסנן את שאילתת-התרומות לעובד/ת מוגבל/ת (Rules דוחים list לא-מסוננת)', () => {
-    expect(cloudSrc).toContain("query(donRef, where('pkey', 'in', [...allowedPurposes.slice(0, 29), SHARED_PURPOSE_KEY]))");
+    // נחיל 16.8 (#17): אותו חיטוי כמו התומכים — donAllowedKeys (dedup/trim/cap29+shared),
+    // סימטרי ל-supAllowedKeys; לא slice-inline (שלא ניקה כפולים/רווחים).
+    expect(cloudSrc).toContain("query(donRef, where('pkey', 'in', donAllowedKeys(allowedPurposes)))");
   });
 });
 
