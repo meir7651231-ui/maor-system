@@ -6,11 +6,13 @@
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { findSupporterDupGroups } from '../../lib/dedup';
+import { termOf } from '../../lib/config';
 import { Btn, Empty, Modal } from '../ui';
 import { supCount, totalLabel } from './lib';
 
 export function SupDedupModal(props: { onClose: () => void }) {
   const supporters = useApp((s) => s.db.supporters);
+  const config = useApp((s) => s.config);
   const mergeSupporters = useApp((s) => s.mergeSupporters);
   const groups = findSupporterDupGroups(supporters);
   // ה"שומר" הנבחר פר-קבוצה — ברירת-מחדל: בעל-התרומות-הרבות (נקבע ברינדור)
@@ -19,13 +21,13 @@ export function SupDedupModal(props: { onClose: () => void }) {
   const [armed, setArmed] = useState<number | null>(null);
 
   return (
-    <Modal title="🔗 איחוד כפולי-תורמים" onClose={props.onClose}>
+    <Modal title={'🔗 איחוד כפולי-' + termOf(config, 'nav.supporters', 'תורמים')} onClose={props.onClose}>
       {groups.length === 0 ? (
         <Empty>לא נמצאו כפולים 🎉 (החיפוש: טלפון / אימייל / שם+עיר זהים)</Empty>
       ) : (
         <>
           <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 10 }}>
-            בכל קבוצה בוחרים את הכרטיס שנשאר; כל התרומות והקבלות של האחרים עוברות אליו — שום רשומה כספית לא נמחקת.
+            בכל קבוצה בוחרים את הכרטיס שנשאר; כל ה{termOf(config, 'entity.donations', 'תרומות')} והקבלות של האחרים עוברות אליו — שום רשומה כספית לא נמחקת.
           </div>
           {groups.map((g, gi) => {
             const rows = g

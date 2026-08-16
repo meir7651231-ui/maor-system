@@ -543,7 +543,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                             🧾
                           </Btn>
                           {mailReady && (
-                            <Btn sm onClick={() => void mailReceipt(r.rid!)} title={'שליחת קבלה ' + r.rid + ' למייל התורם'}>
+                            <Btn sm onClick={() => void mailReceipt(r.rid!)} title={'שליחת קבלה ' + r.rid + ' למייל ' + termOf(config, 'entity.supporter', 'התורם')}>
                               📧
                             </Btn>
                           )}
