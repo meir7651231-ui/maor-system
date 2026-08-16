@@ -110,6 +110,11 @@ export function timeCostTotal(a: AyinCase): number {
   return (a.time || []).reduce((t, e) => t + (+e.hours || 0) * (e.rate || 0), 0);
 }
 
+/** עלות-החומרים/רכש — סכום (כמות × מחיר-יחידה) של רשומות-החומרים. טהור. */
+export function matCostTotal(a: AyinCase): number {
+  return (a.mat || []).reduce((t, m) => t + (+m.qty || 0) * (+m.cost || 0), 0);
+}
+
 /**
  * האם הכפתור-החכם מוצג בשלב הנוכחי — שלב 'new' דורש לפחות פריט אחד,
  * שלב 'eyes' דורש שנרשם מונה לפחות לאחד הפריטים, 'done' מסתיים.

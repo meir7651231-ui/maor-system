@@ -424,6 +424,8 @@ interface AppState {
   ayinDeleteAnswer: (id: string, index: number) => void;
   ayinAddTime: (id: string, entry: { date: string; hours: number; note: string; rate?: number }) => void;
   ayinRemoveTime: (id: string, index: number) => void;
+  ayinAddMat: (id: string, entry: { name: string; qty: number; cost: number }) => void;
+  ayinRemoveMat: (id: string, index: number) => void;
   /** קביעת מועד "לדבר שוב" — שדות בלבד (התזכורת נכתבת ב-ayinCallAgain). */
   ayinSetNextTalk: (id: string, date: string, time: string) => void;
   /** 🔁 שוב — כותב תזכורת ללוח לפי מועד "לדבר שוב". */
@@ -2344,6 +2346,24 @@ export const useApp = create<AppState>()((set, get) => {
       const c = curAyin(id);
       if (!c) return;
       setAyin(id, { time: (c.a.time || []).filter((_, i) => i !== index) });
+    },
+    ayinAddMat(id, entry) {
+      const c = curAyin(id);
+      if (!c) return;
+      const name = (entry.name || '').trim();
+      const qty = +entry.qty || 0;
+      const cost = +entry.cost || 0;
+      if (!name || qty <= 0) {
+        get().toast('הזינו שם-חומר וכמות לפני השמירה');
+        return;
+      }
+      setAyin(id, { mat: [{ name, qty, cost }, ...(c.a.mat || [])] });
+      get().toast('חומר נרשם לפרויקט');
+    },
+    ayinRemoveMat(id, index) {
+      const c = curAyin(id);
+      if (!c) return;
+      setAyin(id, { mat: (c.a.mat || []).filter((_, i) => i !== index) });
     },
     ayinSetNextTalk(id, date, time) {
       setAyin(id, { nextTalk: date, nextTalkTime: time });

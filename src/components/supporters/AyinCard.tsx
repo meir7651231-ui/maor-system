@@ -15,6 +15,7 @@ import {
   boqLineAmount,
   boqTotal,
   eyesTotal,
+  matCostTotal,
   timeCostTotal,
   timeHoursTotal,
   featLabel,
@@ -48,6 +49,8 @@ export function AyinCard(props: { supporter: Supporter }) {
   const restart = useApp((s) => s.ayinRestart);
   const addTime = useApp((s) => s.ayinAddTime);
   const removeTime = useApp((s) => s.ayinRemoveTime);
+  const addMat = useApp((s) => s.ayinAddMat);
+  const removeMat = useApp((s) => s.ayinRemoveMat);
 
   const [nameIn, setNameIn] = useState('');
   const [eyesIn, setEyesIn] = useState('');
@@ -56,6 +59,9 @@ export function AyinCard(props: { supporter: Supporter }) {
   const [tHours, setTHours] = useState('');
   const [tRate, setTRate] = useState('');
   const [tNote, setTNote] = useState('');
+  const [mName, setMName] = useState('');
+  const [mQty, setMQty] = useState('');
+  const [mCost, setMCost] = useState('');
 
   const feat = featLabel(cfg);
   const item = itemLabel(cfg);
@@ -70,6 +76,11 @@ export function AyinCard(props: { supporter: Supporter }) {
   const collected = boqOn ? supIls(sp) : 0;
   const cost = timeOn ? timeCostTotal(a) : 0;
   const timeRows = a.time || [];
+  const matOn = featureOn(cfg, 'supporters.ayin.mat') && !featureOn(cfg, 'core.taxreceipt');
+  const matCost = matOn ? matCostTotal(a) : 0;
+  const matRows = a.mat || [];
+  const totalCost = cost + matCost;
+  const pnlOn = boqOn || timeOn || matOn;
 
   function submitName() {
     const eyes = eyesIn === '' ? '' : Math.max(0, +eyesIn.replace(/\D/g, '') || 0);
@@ -85,6 +96,15 @@ export function AyinCard(props: { supporter: Supporter }) {
     setTHours('');
     setTRate('');
     setTNote('');
+  }
+
+  function submitMat() {
+    const qty = +mQty.replace(/[^\d.]/g, '') || 0;
+    if (!mName.trim() || qty <= 0) return;
+    addMat(sp.id, { name: mName, qty, cost: +mCost.replace(/[^\d.]/g, '') || 0 });
+    setMName('');
+    setMQty('');
+    setMCost('');
   }
 
   function saveNote() {
@@ -238,30 +258,10 @@ export function AyinCard(props: { supporter: Supporter }) {
               ))}
               <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 2 }}>
                 {a.names.length} · {a.names.filter((x) => x.done).length} בוצעו · סה"כ {unit}: {eyesTotal(a)}
+                {boqOn && quote > 0 && (
+                  <span style={{ fontWeight: 800, color: 'var(--ink)' }}> · סה"כ הצעה: <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(quote)}</span></span>
+                )}
               </div>
-              {boqOn && quote > 0 && (
-                <div
-                  style={{
-                    marginTop: 6,
-                    borderTop: '1px solid var(--line)',
-                    paddingTop: 7,
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 10,
-                    alignItems: 'baseline',
-                    fontSize: 13,
-                  }}
-                >
-                  <span style={{ fontWeight: 800 }}>סה"כ הצעה: <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(quote)}</span></span>
-                  <span style={{ color: 'var(--ink-faint)' }}>·</span>
-                  <span>נגבה: <b style={{ direction: 'ltr', display: 'inline-block' }}>{ils(collected)}</b></span>
-                  <span style={{ color: 'var(--ink-faint)' }}>·</span>
-                  <span style={{ color: quote - collected > 0 ? '#b45309' : '#12803c', fontWeight: 700 }}>
-                    {quote - collected > 0 ? 'יתרה: ' : 'שולם במלואו '}
-                    {quote - collected > 0 && <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(quote - collected)}</span>}
-                  </span>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -298,15 +298,66 @@ export function AyinCard(props: { supporter: Supporter }) {
               ))}
               <div style={{ fontSize: 12.5, marginTop: 4, fontWeight: 700 }}>
                 סה"כ שעות: {timeHoursTotal(a)} · עלות-עבודה: <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(cost)}</span>
-                {boqOn && quote > 0 && (
-                  <>
-                    {' · '}
-                    <span style={{ color: quote - cost >= 0 ? '#12803c' : '#b91c1c' }}>
-                      רווח גולמי: <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(quote - cost)}</span>
-                    </span>
-                  </>
-                )}
               </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* חומרים ורכש (ורטיקל מסחרי) */}
+      {matOn && (
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>🧱 חומרים ורכש ({matRows.length})</div>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+            <input value={mName} onChange={(e) => setMName(e.target.value)} placeholder="חומר / פריט" style={{ flex: 1, minWidth: 110, padding: '4px 6px', fontSize: 12 }} onKeyDown={(e) => { if (e.key === 'Enter') submitMat(); }} />
+            <input value={mQty} onChange={(e) => setMQty(e.target.value)} placeholder="כמות" dir="ltr" style={{ width: 56, padding: '4px 6px', fontSize: 12 }} />
+            <span style={{ color: 'var(--ink-faint)', alignSelf: 'center' }}>×</span>
+            <input value={mCost} onChange={(e) => setMCost(e.target.value)} placeholder="₪ ליח׳" dir="ltr" style={{ width: 66, padding: '4px 6px', fontSize: 12 }} />
+            <Btn sm onClick={submitMat}>+ הוספה</Btn>
+          </div>
+          {matRows.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {matRows.map((m, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, padding: '3px 8px', border: '1px solid var(--line)', borderRadius: 6 }}>
+                  <span style={{ flex: 1, fontWeight: 600 }}>{m.name}</span>
+                  <span style={{ color: 'var(--ink-faint)', direction: 'ltr' }}>{m.qty} × {ils(m.cost)}</span>
+                  <span style={{ fontWeight: 700, direction: 'ltr' }}>{ils((+m.qty || 0) * (+m.cost || 0))}</span>
+                  <button onClick={() => removeMat(sp.id, i)} title="הסרה" style={{ color: 'var(--ink-faint)', fontWeight: 800, background: 'none', border: 'none', cursor: 'pointer' }}>🗑</button>
+                </div>
+              ))}
+              <div style={{ fontSize: 12.5, marginTop: 4, fontWeight: 700 }}>
+                סה"כ חומרים: <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(matCost)}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* רווחיות הפרויקט — P&L מרוכז (הצעה − עבודה − חומרים = רווח; נגבה/יתרה) */}
+      {pnlOn && (quote > 0 || totalCost > 0) && (
+        <div style={{ border: '1px solid var(--accent, var(--line))', borderRadius: 10, padding: '10px 12px', background: 'var(--accent-soft, var(--panel))' }}>
+          <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 6 }}>💰 רווחיות הפרויקט</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'baseline', fontSize: 13 }}>
+            {boqOn && quote > 0 && <span style={{ fontWeight: 800 }}>הצעה: <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(quote)}</span></span>}
+            {totalCost > 0 && (
+              <span>
+                עלות: <b style={{ direction: 'ltr', display: 'inline-block' }}>{ils(totalCost)}</b>
+                <span style={{ color: 'var(--ink-faint)', fontSize: 11.5 }}> (עבודה {ils(cost)} · חומרים {ils(matCost)})</span>
+              </span>
+            )}
+            {boqOn && quote > 0 && (
+              <span style={{ fontWeight: 800, color: quote - totalCost >= 0 ? '#12803c' : '#b91c1c' }}>
+                רווח גולמי: <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(quote - totalCost)}</span>
+              </span>
+            )}
+          </div>
+          {boqOn && quote > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'baseline', fontSize: 13, marginTop: 5, borderTop: '1px solid var(--line-soft, var(--line))', paddingTop: 5 }}>
+              <span>נגבה: <b style={{ direction: 'ltr', display: 'inline-block' }}>{ils(collected)}</b></span>
+              <span style={{ color: quote - collected > 0 ? '#b45309' : '#12803c', fontWeight: 700 }}>
+                {quote - collected > 0 ? 'יתרה לגבייה: ' : 'שולם במלואו '}
+                {quote - collected > 0 && <span style={{ direction: 'ltr', display: 'inline-block' }}>{ils(quote - collected)}</span>}
+              </span>
             </div>
           )}
         </div>
