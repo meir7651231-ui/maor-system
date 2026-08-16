@@ -13,23 +13,26 @@
     "e2e": "node e2e/toggle-matrix.mjs",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
     "verify:fast": "npm run typecheck && npm run lint && npm run test",
-    "e2e:verticals": "node e2e/vertical-matrix.mjs"
+    "e2e:verticals": "node e2e/vertical-matrix.mjs",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-maor 'node e2e/rules-redteam.mjs'"
   },
   "dependencies": {
     "fflate": "^0.6.11",
-    "idb": "^8.0.3",
     "firebase": "^12.16.0",
+    "idb": "^8.0.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "three": "^0.160.0",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.1",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.160.0",
     "@vitejs/plugin-react": "^6.0.3",
+    "firebase-tools": "^15.27.0",
     "oxlint": "^1.71.0",
     "playwright-core": "^1.61.1",
     "typescript": "~6.0.2",
