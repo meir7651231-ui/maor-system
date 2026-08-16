@@ -8,3 +8,7 @@ e2e/shots/
 # אישור push ל-main — local-only, per-הוראה מפורשת בלבד (לעולם לא ב-git)
 .allow_push_main
 e2e/.tmp-*
+
+# Firestore emulator
+firestore-debug.log
+firebase-debug.log
