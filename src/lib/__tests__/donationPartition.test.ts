@@ -7,13 +7,26 @@
 import { describe, expect, it } from 'vitest';
 import type { Donation, Supporter } from '../../types/domain';
 import { supporterAggregates } from '../supporterAgg';
-import { SHARED_PURPOSE_KEY, purposeKeyOf, explodeSupporter, reassembleDonations, donationPartitionDiff } from '../donationPartition';
+import { SHARED_PURPOSE_KEY, purposeKeyOf, explodeSupporter, reassembleDonations, donationPartitionDiff, donAllowedKeys } from '../donationPartition';
 
 const don = (rid: string, date: string, amount: number, extra: Partial<Donation> = {}): Donation =>
   ({ rid, date, amount, cur: '₪', cat: 'כללי', ...extra });
 
 const sup = (id: string, donations: Donation[], hist?: Supporter['hist']): Supporter =>
   ({ id, name: id, donations, ...(hist ? { hist } : {}) }) as unknown as Supporter;
+
+describe('donAllowedKeys — ערכי-שאילתה לעובד/ת מוגבל/ת (סימטרי ל-supAllowedKeys)', () => {
+  it('מנקה רווחים+כפולים+ריקים ומוסיף את המשותף', () => {
+    expect(donAllowedKeys(['חתונות', 'כללי'])).toEqual(['חתונות', 'כללי', SHARED_PURPOSE_KEY]);
+    expect(donAllowedKeys([' א ', 'א', ''])).toEqual(['א', SHARED_PURPOSE_KEY]);
+  });
+  it('חוסם ב-30 ערכי-in של Firestore (29 ייעודים + המשותף)', () => {
+    const many = Array.from({ length: 40 }, (_, i) => 'p' + i);
+    const keys = donAllowedKeys(many);
+    expect(keys.length).toBe(30);
+    expect(keys[29]).toBe(SHARED_PURPOSE_KEY);
+  });
+});
 
 describe('purposeKeyOf — מפתח-הפיצול לפי purpose (לא designation)', () => {
   it('ריק/רווחים ⇒ משותף', () => {

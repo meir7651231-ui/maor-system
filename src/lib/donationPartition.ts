@@ -27,6 +27,16 @@ export function purposeKeyOf(d: Pick<Donation, 'purpose'>): string {
 }
 
 /**
+ * ערכי שאילתת-ה-`where('pkey','in',…)` לעובד/ת מוגבל/ת: הייעודים המותרים (מנוקים)
+ * + המפתח-המשותף. Firestore מגביל `in` ל-30 ערכים ⇒ 29 ייעודים + המשותף. ריקים
+ * וכפולים מסוננים. סימטרי ל-`supAllowedKeys` (אותו חיטוי לשני האוספים — נחיל 16.8).
+ */
+export function donAllowedKeys(allowed: string[]): string[] {
+  const clean = [...new Set(allowed.map((s) => s.trim()).filter(Boolean))].slice(0, 29);
+  return [...clean, SHARED_PURPOSE_KEY];
+}
+
+/**
  * מסמך-תרומה בענן (מסלול-B): התרומה כפי-שהיא + backref לתומך + מפתח-פיצול.
  * `id = rid` (מזהה-הקבלה הייחודי — מקור-האמת של רציפות D-). התרומה נשמרת שלמה
  * (ביט-זהה) תחת `donation`, כך שהרכבה-חזרה משחזרת אותה בדיוק.
