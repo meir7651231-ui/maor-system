@@ -546,6 +546,22 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                   </span>
                 </span>
               </label>
+              {/* אכיפת-נתונים מלאה (15.8): תומכים+לוח+לוג פר-ייעוד — מתג-קונפיג לצד הפיצול */}
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '5px 2px', fontSize: 13, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={config.supporterEnforce === true}
+                  onChange={(e) => patch({ supporterEnforce: e.target.checked ? true : undefined })}
+                  style={{ width: 'auto', marginTop: 2, accentColor: 'var(--accent-deep)' }}
+                />
+                <span style={{ lineHeight: 1.35 }}>
+                  <span style={{ color: 'var(--ink)' }}>🔒 אכיפת-נתונים מלאה פר-ייעוד (תומכים · לוח · לוג)</span>
+                  <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                    עובדת רואה **רק** תורמים/אירועים בייעוד שלה, ולא לוג-פעולות של אחרות. דורש ענן;
+                    לארגון עם נתונים קיימים הריצו קודם מיגרציה (הגדרות←אבטחה). ארגון-חדש: הדלקה כאן מספיקה.
+                  </span>
+                </span>
+              </label>
             </div>
           )}
         </div>

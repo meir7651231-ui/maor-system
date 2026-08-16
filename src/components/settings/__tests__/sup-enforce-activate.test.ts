@@ -52,4 +52,13 @@ describe('🔒 ratchet — הפעלת אכיפת-תומכים', () => {
     // תאימות-לאחור: skey חסר ⇒ '_shared_' (פרסום-Rules לא שובר ארגון בלי מיגרציה)
     expect(rulesSrc).toContain("memberSeesSupporter(slug, resource.data.get('skey', '_shared_'))");
   });
+
+  it('מתג supporterEnforce קיים באשף-ההקמה ובלוח-הבקרה (הקמה + עריכה-חיה)', async () => {
+    const wiz = (await import('../../builder/BuilderWizard.tsx?raw')).default;
+    const panel = (await import('../../platform/PlatformPanel.tsx?raw')).default;
+    // אשף-ההקמה (BuilderWizard) — נעטף גם ב-RemoteWizard (הקמה קשורת-ענן)
+    expect(wiz).toContain('patch({ supporterEnforce: e.target.checked ? true : undefined })');
+    // לוח-הבקרה (עריכה-חיה)
+    expect(panel).toContain('supporterEnforce: e.target.checked ? true : undefined');
+  });
 });
