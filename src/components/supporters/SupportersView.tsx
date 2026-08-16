@@ -311,7 +311,7 @@ export function SupportersView() {
                     // רק התרומות בייעוד המותר (לא db.supporters הגולמי)
                     const lines = annualAllLines(config.orgName || db.orgName, config.orgTaxId, year, visibleSupportersForDesignations(db.supporters, desigLimit));
                     downloadAnnualReport('annual-all-' + year + '.txt', lines);
-                    toast('📄 דוחות שנת ' + year + ' — הקובץ ירד (מקטע לכל תורם/ת)');
+                    toast('📄 דוחות שנת ' + year + ' — הקובץ ירד (מקטע לכל ' + termOf(config, 'entity.supporter', 'תורם/ת') + ')');
                   },
                 },
                 ayinOn && dailyReportOn && { label: '📋 דוח יומי', onClick: dailyReport },
