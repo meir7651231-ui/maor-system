@@ -99,7 +99,17 @@ service cloud.firestore {
       // מנהל-הארגון או מייל-על. אישור/דחייה = המנהל מעדכן members/memberConfigs למעלה
       // ואז מוחק את הבקשה.
       match /joinRequests/{uid} {
-        allow create: if request.auth != null && request.auth.uid == uid;
+        // נחיל-אבטחה 17.8 (ממצא #2 · MEDIUM): הקשחת-DoS — בלי allowlist/תקרות
+        // מסמך-הצטרפות יכול היה להגיע ל-1MB בכל slug (זבל בלוח-המנהל). עכשיו:
+        // 5 שדות מוכרים בלבד (email/name/phone/code/at) + תקרות-גודל, מקביל
+        // ל-platformLeads. כל הכותבים בפועל משתמשים בדיוק בשדות האלה ⇒ לא-שובר.
+        allow create: if request.auth != null && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['email', 'name', 'phone', 'code', 'at'])
+          && (!('email' in request.resource.data) || (request.resource.data.email is string && request.resource.data.email.size() <= 120))
+          && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() <= 100))
+          && (!('phone' in request.resource.data) || (request.resource.data.phone is string && request.resource.data.phone.size() <= 30))
+          && (!('code' in request.resource.data) || (request.resource.data.code is string && request.resource.data.code.size() <= 60))
+          && (!('at' in request.resource.data) || (request.resource.data.at is string && request.resource.data.at.size() <= 40));
         allow read, delete: if superAdmin() || orgManager(slug);
       }
     }

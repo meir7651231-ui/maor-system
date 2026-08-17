@@ -143,6 +143,27 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect((useAppSrc.match(/writeOrgRequestResilient\(/g) ?? []).length).toBeGreaterThanOrEqual(3); // הגדרה + 2 שימושים
   });
 
+  it('🛡 נחיל-אבטחה 17.8 (#4+#5): ריפוי-עצמי רק למכשיר-עם-רשומה — בלי בקשת-רפאים ובלי אזעקת-שווא', () => {
+    // שני באגים, אותו שורש (ענף ה-!mine בריפוי-העצמי במסך-ההמתנה):
+    // #5 — עובד/מכשיר-אחר בלי PENDING_SIGNUP_KEY היה כותב בקשת-ארגון ריקה (orgName:'')
+    //      אצל הבעלים = זבל בלוח-הבקרה.
+    // #4 — במכשיר-שני הבקשה כבר קיימת ⇒ create-only מחזיר permission-denied ⇒
+    //      המסך אמר בשקר "הבקשה לא נקלטה".
+    // התיקון: הכתיבה-מחדש מגודרת ב-(mine && stored); אחרת reqStatus:'ok' בלי כתיבה.
+    expect(useAppSrc).toContain('if (mine && stored)');
+    // הענף האחר (מכשיר-אחר) מציג "נקלטה" בלי לכתוב — אין יותר orgName:'' בענף-הנפילה
+    expect(useAppSrc).not.toMatch(/mine && stored \? stored : \{\s*orgName: '',/);
+    // כשל-אמיתי (mine) עדיין גלוי — fsErrCode נשאר בענף ה-mine
+    expect(useAppSrc).toMatch(/if \(mine && stored\)[\s\S]{0,1200}fsErrCode\(e\)/);
+  });
+
+  it('🛡 נחיל-אבטחה 17.8 (#2): joinRequests מוקשח-DoS — allowlist 5 שדות + תקרות-גודל', () => {
+    // בלי ההקשחה מסמך-הצטרפות יכול היה להגיע ל-1MB בכל slug (זבל בלוח-המנהל).
+    expect(rulesSrc).toMatch(/joinRequests\/\{uid\}[\s\S]{0,900}hasOnly\(\['email', 'name', 'phone', 'code', 'at'\]\)/);
+    // הכותבים בפועל משתמשים בדיוק בשדות האלה ⇒ לא-שובר (email/name/phone/code/at)
+    expect(rulesSrc).toMatch(/joinRequests\/\{uid\}[\s\S]{0,1400}request\.resource\.data\.email\.size\(\) <= 120/);
+  });
+
   it('הגנת-מקור: Rules v2 — בקשות uid-תואם, ארגונים לחברים, כתיבה למיילי-על, שורש כהיום', () => {
     expect(rulesSrc).toContain('platformRequests/{uid}');
     expect(rulesSrc).toContain('request.auth.uid == uid');
