@@ -25,22 +25,7 @@ const STEP_SUBS = [
   'האימייל והסיסמה שישמשו לכניסה עתידית',
 ];
 
-const cardStyle = (on: boolean) =>
-  ({
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    width: '100%',
-    padding: '12px 14px',
-    marginBottom: 8,
-    borderRadius: 12,
-    border: '1.5px solid ' + (on ? 'var(--accent, #6ea8fe)' : 'rgba(255,255,255,.16)'),
-    background: on ? 'rgba(110,168,254,.14)' : 'rgba(255,255,255,.04)',
-    color: '#fff',
-    cursor: 'pointer',
-    textAlign: 'right',
-    transition: 'border-color .12s, background .12s',
-  }) as const;
+const choiceCls = (on: boolean) => 'orbit-choice' + (on ? ' on' : '');
 
 export function SignupWizard({ onDone }: { onDone: (email: string) => void }) {
   const cloudSignUp = useApp((s) => s.cloudSignUp);
@@ -112,13 +97,13 @@ export function SignupWizard({ onDone }: { onDone: (email: string) => void }) {
       {step === 0 && (
         <div style={{ maxHeight: '46vh', overflowY: 'auto' }}>
           {WIZARD_INDUSTRIES.map((ind) => (
-            <button key={ind.id} type="button" style={cardStyle(s.industry === ind.id)} onClick={() => { set({ industry: ind.id }); setError(''); }}>
-              <span style={{ fontSize: 22 }} aria-hidden>{ind.emoji}</span>
+            <button key={ind.id} type="button" className={choiceCls(s.industry === ind.id)} onClick={() => { set({ industry: ind.id }); setError(''); }}>
+              <span className="orbit-choice-ico" aria-hidden>{ind.emoji}</span>
               <span style={{ flex: 1 }}>
                 <span style={{ display: 'block', fontWeight: 700, fontSize: 14.5 }}>{ind.label}</span>
                 <span style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,.55)' }}>{ind.sub}</span>
               </span>
-              {s.industry === ind.id && <span aria-hidden>✓</span>}
+              {s.industry === ind.id && <span className="orbit-choice-check" aria-hidden>✓</span>}
             </button>
           ))}
         </div>
@@ -128,12 +113,12 @@ export function SignupWizard({ onDone }: { onDone: (email: string) => void }) {
       {step === 1 && (
         <div>
           {ORG_SIZES.map((sz) => (
-            <button key={sz.id} type="button" style={cardStyle(s.size === sz.id)} onClick={() => { set({ size: sz.id }); setError(''); }}>
+            <button key={sz.id} type="button" className={choiceCls(s.size === sz.id)} onClick={() => { set({ size: sz.id }); setError(''); }}>
               <span style={{ flex: 1 }}>
                 <span style={{ display: 'block', fontWeight: 700, fontSize: 15 }}>{sz.label}</span>
                 <span style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,.55)' }}>{sz.sub}</span>
               </span>
-              {s.size === sz.id && <span aria-hidden>✓</span>}
+              {s.size === sz.id && <span className="orbit-choice-check" aria-hidden>✓</span>}
             </button>
           ))}
         </div>
@@ -143,10 +128,10 @@ export function SignupWizard({ onDone }: { onDone: (email: string) => void }) {
       {step === 2 && (
         <div style={{ maxHeight: '46vh', overflowY: 'auto' }}>
           {ORG_NEEDS.map((n) => (
-            <button key={n.id} type="button" style={cardStyle(s.needs.includes(n.id))} onClick={() => toggleNeed(n.id)}>
-              <span style={{ fontSize: 20 }} aria-hidden>{n.emoji}</span>
+            <button key={n.id} type="button" className={choiceCls(s.needs.includes(n.id))} onClick={() => toggleNeed(n.id)}>
+              <span className="orbit-choice-ico" aria-hidden>{n.emoji}</span>
               <span style={{ flex: 1, fontWeight: 600, fontSize: 14 }}>{n.label}</span>
-              <span aria-hidden style={{ opacity: s.needs.includes(n.id) ? 1 : 0.25 }}>{s.needs.includes(n.id) ? '☑' : '☐'}</span>
+              <span aria-hidden style={{ fontSize: 17, opacity: s.needs.includes(n.id) ? 1 : 0.3 }}>{s.needs.includes(n.id) ? '☑' : '☐'}</span>
             </button>
           ))}
         </div>

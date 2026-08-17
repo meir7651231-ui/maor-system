@@ -79,32 +79,11 @@ export function LoginScreen() {
       <SignupHero />
 
       <main className="orbit-main">
-        <div className="orbit-card">
-          {submitted ? (
-            <div className="orbit-success">
-              <div className="orbit-success-icon">✓</div>
-              <h2 style={{ margin: '0 0 8px', fontSize: 25, fontWeight: 700 }}>הבקשה נקלטה!</h2>
-              <p style={{ margin: '0 0 4px', fontSize: 14, color: 'rgba(255,255,255,.6)', lineHeight: 1.55 }}>
-                נאשר בהקדם — נחזור אליכם בטלפון שהשארתם. לאחר האישור התחברו שוב עם
-              </p>
-              <p dir="ltr" style={{ margin: '0 0 22px', fontSize: 15, fontWeight: 600, color: '#fff', wordBreak: 'break-all' }}>
-                {email}
-              </p>
-              <button
-                type="button"
-                className="orbit-sbtn"
-                style={{ display: 'inline-flex', padding: '0 22px' }}
-                onClick={() => {
-                  setSubmitted(false);
-                  setMode('in');
-                }}
-              >
-                למסך הכניסה
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* הקופי הנעול (אורביט) */}
+        <div className="orbit-stage">
+          {/* הצד-השיווקי — הקופי הנעול, כפתורי "ללמוד עוד" ונקודות-אמון. בדסקטופ
+              משמאל לכרטיס (ממלא את החלל הקוסמי); במובייל מעל הכרטיס. מוסתר במצב-הצלחה. */}
+          {!submitted && (
+            <aside className="orbit-lede">
               <h1 className="orbit-h1">
                 העסק שלכם לא צריך עוד תוכנה. הוא צריך <em>מוח</em>.
               </h1>
@@ -123,13 +102,52 @@ export function LoginScreen() {
                 <button type="button" className="orbit-sbtn" aria-label="נחזור אליכם" onClick={() => setCallbackOpen(true)}>
                   📞 חזרו אליי
                 </button>
-                {/* 🩺 מאבחן-חסימות (11.8): קו מסונן חוסם כניסה — הכלי חי במסך-הכניסה */}
-                <button type="button" className="orbit-sbtn" aria-label="בדיקת תקשורת — האם הקו חוסם את המערכת" onClick={() => setNetCheckOpen(true)}>
-                  🩺 בדיקת תקשורת
+              </div>
+              {/* 🩺 מאבחן-חסימות (11.8): קו מסונן חוסם כניסה — הכלי חי במסך-הכניסה */}
+              <button type="button" className="orbit-util" aria-label="בדיקת תקשורת — האם הקו חוסם את המערכת" onClick={() => setNetCheckOpen(true)}>
+                🩺 בדיקת תקשורת
+              </button>
+
+              <ul className="orbit-lede-points">
+                <li>
+                  <span aria-hidden>🔒</span> מוצפן מקצה-לקצה · שלוש שכבות גיבוי
+                </li>
+                <li>
+                  <span aria-hidden>⚡</span> מוקמים בשיחת טלפון אחת — בלי התקנה
+                </li>
+                <li>
+                  <span aria-hidden>🎯</span> מותאם בול לתחום שלכם
+                </li>
+              </ul>
+            </aside>
+          )}
+
+          <div className="orbit-card">
+            {submitted ? (
+              <div className="orbit-success">
+                <div className="orbit-success-icon">✓</div>
+                <h2 style={{ margin: '0 0 8px', fontSize: 25, fontWeight: 700 }}>הבקשה נקלטה!</h2>
+                <p style={{ margin: '0 0 4px', fontSize: 14, color: 'rgba(255,255,255,.6)', lineHeight: 1.55 }}>
+                  נאשר בהקדם — נחזור אליכם בטלפון שהשארתם. לאחר האישור התחברו שוב עם
+                </p>
+                <p dir="ltr" style={{ margin: '0 0 22px', fontSize: 15, fontWeight: 600, color: '#fff', wordBreak: 'break-all' }}>
+                  {email}
+                </p>
+                <button
+                  type="button"
+                  className="orbit-sbtn"
+                  style={{ display: 'inline-flex', padding: '0 22px' }}
+                  onClick={() => {
+                    setSubmitted(false);
+                    setMode('in');
+                  }}
+                >
+                  למסך הכניסה
                 </button>
               </div>
-
-              <div className="orbit-tabs" role="tablist">
+            ) : (
+              <>
+                <div className="orbit-tabs" role="tablist">
                 <button type="button" role="tab" className={'orbit-tab' + (mode === 'up' ? ' on' : '')} onClick={() => { setMode('up'); setError(''); }}>
                   הרשמה
                 </button>
@@ -197,8 +215,9 @@ export function LoginScreen() {
                   </form>
                 </>
               )}
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
 
         <div style={{ position: 'relative', zIndex: 2, fontSize: 12.5, color: 'rgba(255,255,255,.5)' }}>

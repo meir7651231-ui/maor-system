@@ -61,21 +61,74 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 40px clamp(20px, 6vw, 92px);
-  gap: 18px;
+  padding: 84px clamp(20px, 6vw, 56px) 40px;
+  gap: 16px;
+}
+/* במה — עוטפת את הצד-השיווקי (lede) ואת כרטיס-הפעולה. מובייל = טור; דסקטופ = שני
+ * טורים (row-reverse ב-RTL ⇒ lede שמאל, כרטיס ימין), עם הכדור הקוסמי ביניהם. */
+.orbit-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  width: 100%;
+  max-width: 1160px;
 }
 .orbit-card {
   width: min(440px, 94vw);
-  background: rgba(16, 19, 32, 0.62);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(22, 26, 45, 0.88), rgba(12, 14, 24, 0.93));
+  backdrop-filter: blur(26px) saturate(1.12);
+  -webkit-backdrop-filter: blur(26px) saturate(1.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 22px;
   padding: 26px 26px 22px;
-  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.8);
+  box-shadow:
+    0 40px 90px -34px rgba(0, 0, 0, 0.85),
+    0 0 70px -24px rgba(122, 150, 255, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
   position: relative;
+}
+/* ---------- הצד השיווקי (lede) ---------- */
+.orbit-lede {
+  width: 100%;
+  max-width: 440px;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.55);
+}
+.orbit-lede .orbit-h1 {
+  margin-bottom: 14px;
+}
+.orbit-lede .orbit-sub {
+  margin-bottom: 18px;
+}
+.orbit-lede-points {
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.orbit-lede-points li {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.74);
+}
+.orbit-lede-points li span {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(122, 142, 255, 0.14);
+  border: 1px solid rgba(122, 142, 255, 0.26);
+  font-size: 15px;
+  text-shadow: none;
 }
 .orbit-h1 {
   margin: 0 0 12px;
@@ -154,6 +207,70 @@
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.26);
   transform: translateY(-2px);
+}
+/* כלי-שירות (בדיקת-תקשורת) — משני לכפתורי-השיווק, מסומן בקו-מקווקו */
+.orbit-util {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  height: 40px;
+  margin-top: 2px;
+  border-radius: 12px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  font-size: 12px;
+  transition: 0.2s;
+}
+.orbit-util:hover {
+  color: #fff;
+  border-color: rgba(150, 175, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+}
+/* כרטיס-בחירה באשף (תחום / גודל / צורך) — מחלקה משותפת עם מצב-ריחוף + נבחר */
+.orbit-choice {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: 13px;
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.035);
+  color: #fff;
+  cursor: pointer;
+  text-align: right;
+  font: inherit;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.orbit-choice:hover {
+  border-color: rgba(150, 175, 255, 0.5);
+  background: rgba(255, 255, 255, 0.06);
+}
+.orbit-choice.on {
+  border-color: var(--accent, #7a8eff);
+  background: rgba(122, 142, 255, 0.15);
+  box-shadow: 0 0 0 1px rgba(122, 142, 255, 0.3);
+}
+.orbit-choice-ico {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 21px;
+}
+.orbit-choice-check {
+  flex: none;
+  color: var(--accent, #7a8eff);
+  font-size: 15px;
 }
 
 /* ---------- טפסים ---------- */
@@ -387,12 +504,41 @@
   background: #0b0c11;
 }
 
+/* מובייל — הכדור-מוח קטן, נקודות-האמון מוסתרות (המובייל רזה), התוכן מתחיל מלמעלה */
+@media (max-width: 1023px) {
+  .orbit-lede-points {
+    display: none;
+  }
+}
 @media (max-width: 640px) {
   .orbit-hero-side {
     display: none;
   }
   .orbit-main {
-    padding-top: 92px;
+    padding-top: 88px;
     justify-content: flex-start;
+  }
+}
+
+/* דסקטופ — פריסת שני-טורים: הצד-השיווקי משמאל, כרטיס-הפעולה מימין (row-reverse
+ * ב-RTL), הכדור הקוסמי מבצבץ ביניהם. ממלא את החלל שהיה ריק מצד-שמאל. */
+@media (min-width: 1024px) {
+  .orbit-stage {
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(36px, 6vw, 96px);
+  }
+  .orbit-lede {
+    max-width: 470px;
+  }
+  .orbit-lede .orbit-h1 {
+    font-size: clamp(30px, 3vw, 41px);
+    line-height: 1.22;
+    margin-bottom: 16px;
+  }
+  .orbit-lede .orbit-sub {
+    font-size: 15px;
+    margin-bottom: 22px;
   }
 }
