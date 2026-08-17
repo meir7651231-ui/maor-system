@@ -15,7 +15,7 @@ export function NetCheckModal({ onClose }: { onClose: () => void }) {
 
   async function run() {
     setResults(null);
-    const r = await runNetCheck(netCheckTargets(window.location.origin, !!config.firebase));
+    const r = await runNetCheck(netCheckTargets(window.location.origin, config.firebase));
     setResults(r);
   }
 
