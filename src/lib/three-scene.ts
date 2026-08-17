@@ -24,9 +24,9 @@ export interface BrainSceneHandle {
 }
 
 const PAL = {
-  Aurora: { n1: 0x7fd4ff, n2: 0xb98bff, e: 0x4a7ad0 },
-  Ember: { n1: 0xffcf8a, n2: 0xff6a72, e: 0xc8663c },
-  Ice: { n1: 0xdff0ff, n2: 0x8fbfff, e: 0x5a86c0 },
+  Aurora: { n1: 0x7fd4ff, n2: 0xb98bff, e: 0x4a7ad0, ring: 0x5aa2ff, comet: 0xdcefff, trail: 0x7ab6ff, dust: 0x9ec6ff, star: 0xbfd0ff },
+  Ember: { n1: 0xffcf8a, n2: 0xff6a72, e: 0xc8663c, ring: 0xf5b45f, comet: 0xfff1da, trail: 0xffb877, dust: 0xffcfa0, star: 0xffd9b0 },
+  Ice: { n1: 0xdff0ff, n2: 0x8fbfff, e: 0x5a86c0, ring: 0x8fbfff, comet: 0xeaf4ff, trail: 0xa9ccff, dust: 0xcfe0ff, star: 0xdfeaff },
 };
 
 /**
@@ -144,7 +144,7 @@ export function mountBrainScene(canvas: HTMLCanvasElement, opts: BrainSceneOptio
   // ---------- orbital ring + comet ----------
   const RING = 2.12;
   const ringGeo = new THREE.TorusGeometry(RING, 0.02, 20, 200);
-  const ringMat = new THREE.MeshBasicMaterial({ color: 0x5aa2ff, transparent: true, opacity: 0.5 });
+  const ringMat = new THREE.MeshBasicMaterial({ color: pal.ring, transparent: true, opacity: 0.5 });
   const ring = new THREE.Mesh(ringGeo, ringMat);
   ring.rotation.set(1.15, 0.15, 0);
   group.add(ring);
@@ -152,7 +152,7 @@ export function mountBrainScene(canvas: HTMLCanvasElement, opts: BrainSceneOptio
   pivot.rotation.set(1.15, 0.15, 0);
   group.add(pivot);
   const cnodeGeo = new THREE.SphereGeometry(0.1, 24, 24);
-  const cnode = new THREE.Mesh(cnodeGeo, new THREE.MeshBasicMaterial({ color: 0xdcefff }));
+  const cnode = new THREE.Mesh(cnodeGeo, new THREE.MeshBasicMaterial({ color: pal.comet }));
   cnode.position.set(RING, 0, 0);
   pivot.add(cnode);
   for (let i = 1; i <= 10; i++) {
@@ -160,7 +160,7 @@ export function mountBrainScene(canvas: HTMLCanvasElement, opts: BrainSceneOptio
     const s = Math.max(0.02, 0.088 - i * 0.007);
     const tt = new THREE.Mesh(
       new THREE.SphereGeometry(s, 12, 12),
-      new THREE.MeshBasicMaterial({ color: 0x7ab6ff, transparent: true, opacity: Math.max(0.05, 0.5 - i * 0.045) }),
+      new THREE.MeshBasicMaterial({ color: pal.trail, transparent: true, opacity: Math.max(0.05, 0.5 - i * 0.045) }),
     );
     tt.position.set(RING * Math.cos(a), RING * Math.sin(a), 0);
     pivot.add(tt);
@@ -181,7 +181,7 @@ export function mountBrainScene(canvas: HTMLCanvasElement, opts: BrainSceneOptio
   pg.setAttribute('position', new THREE.BufferAttribute(pa, 3));
   const parts = new THREE.Points(
     pg,
-    new THREE.PointsMaterial({ color: 0x9ec6ff, size: 0.035, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }),
+    new THREE.PointsMaterial({ color: pal.dust, size: 0.035, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }),
   );
   group.add(parts);
   const SN = 300;
@@ -198,7 +198,7 @@ export function mountBrainScene(canvas: HTMLCanvasElement, opts: BrainSceneOptio
   sg.setAttribute('position', new THREE.BufferAttribute(sa, 3));
   const stars = new THREE.Points(
     sg,
-    new THREE.PointsMaterial({ color: 0xbfd0ff, size: 0.03, transparent: true, opacity: 0.45, depthWrite: false }),
+    new THREE.PointsMaterial({ color: pal.star, size: 0.03, transparent: true, opacity: 0.45, depthWrite: false }),
   );
   scene.add(stars);
 

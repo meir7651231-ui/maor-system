@@ -17,10 +17,10 @@ export function NewsReader(props: { onClose: () => void }) {
   }, [props]);
 
   return (
-    <div className="orbit-overlay" onClick={props.onClose} role="dialog" aria-label="העיתון של אורביט">
+    <div className="orbit-overlay" onClick={props.onClose} role="dialog" aria-label="העיתון">
       <div className="orbit-reader" onClick={(e) => e.stopPropagation()}>
         <div className="orbit-reader-bar">
-          <span>📰 העיתון של אורביט</span>
+          <span>📰 העיתון</span>
           <button
             type="button"
             onClick={props.onClose}
@@ -30,7 +30,7 @@ export function NewsReader(props: { onClose: () => void }) {
             ✕
           </button>
         </div>
-        <iframe src={`${base}orbit/orbit-news.html`} title="העיתון של אורביט" loading="eager" />
+        <iframe src={`${base}orbit/orbit-news.html`} title="העיתון" loading="eager" />
       </div>
     </div>
   );

@@ -78,7 +78,7 @@ export function CallbackModal(props: { onClose: () => void }) {
         ) : (
           <form onSubmit={(e) => void submit(e)}>
             <p style={{ margin: '0 0 16px', fontSize: 13.5, color: 'rgba(255,255,255,.6)', lineHeight: 1.55 }}>
-              השאירו פרטים — נתקשר בזמן שנוח לכם ונראה יחד איך אורביט מתאים לעסק שלכם.
+              השאירו פרטים — נתקשר בזמן שנוח לכם ונראה יחד איך המערכת מתאימה לכם.
             </p>
             <label className="orbit-label">שם מלא *</label>
             <input className="orbit-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="ישראל ישראלי" />

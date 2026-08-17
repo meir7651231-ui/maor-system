@@ -38,7 +38,8 @@ export function LoginScreen() {
   const [videoOpen, setVideoOpen] = useState(false);
   const [netCheckOpen, setNetCheckOpen] = useState(false);
 
-  const title = config.orgName || dbOrgName || 'אורביט';
+  const title = config.orgName || dbOrgName || 'מאור החסד';
+  const brandEmoji = config.emoji || '🕯️';
 
   // כניסה בלבד — ההרשמה עברה לאשף 5-השלבים (SignupWizard).
   const submit = async (e: FormEvent) => {
@@ -84,19 +85,26 @@ export function LoginScreen() {
               משמאל לכרטיס (ממלא את החלל הקוסמי); במובייל מעל הכרטיס. מוסתר במצב-הצלחה. */}
           {!submitted && (
             <aside className="orbit-lede">
+              <div className="orbit-brand">
+                <span className="orbit-brand-mark" aria-hidden>{brandEmoji}</span>
+                <span className="orbit-brand-name">
+                  {title}
+                  <span className="orbit-brand-sub">מערכת הניהול שלכם</span>
+                </span>
+              </div>
               <h1 className="orbit-h1">
-                העסק שלכם לא צריך עוד תוכנה. הוא צריך <em>מוח</em>.
+                כל הפעילות שלכם,<br />זורחת <em>במקום אחד.</em>
               </h1>
               <p className="orbit-sub">
-                אורביט היא מערכת ההפעלה שמחברת את כל העסק למקום אחד — ונבנית במיוחד בשבילכם, בשיחת טלפון אחת.
+                המערכת שמחברת את כל הפעילות שלכם למקום אחד — בעברית, בפשטות, ושלכם לגמרי. מוקמת במיוחד בשבילכם, בשיחת טלפון אחת.
               </p>
 
               {/* שלושת הכפתורים המשניים מהמוקאפ */}
               <div className="orbit-secondary">
-                <button type="button" className="orbit-sbtn" aria-label="צפו בסרטון: מה זה אורביט" onClick={() => setVideoOpen(true)}>
+                <button type="button" className="orbit-sbtn" aria-label="צפו בסרטון היכרות" onClick={() => setVideoOpen(true)}>
                   ▶ סרטון
                 </button>
-                <button type="button" className="orbit-sbtn" aria-label="קראו את העיתון של אורביט" onClick={() => setReaderOpen(true)}>
+                <button type="button" className="orbit-sbtn" aria-label="קראו את העיתון" onClick={() => setReaderOpen(true)}>
                   📰 עיתון
                 </button>
                 <button type="button" className="orbit-sbtn" aria-label="נחזור אליכם" onClick={() => setCallbackOpen(true)}>
@@ -220,13 +228,14 @@ export function LoginScreen() {
           </div>
         </div>
 
-        <div style={{ position: 'relative', zIndex: 2, fontSize: 12.5, color: 'rgba(255,255,255,.5)' }}>
-          {title !== 'אורביט' && `מערכת עבור ${title}`}
+        {/* בהצלחה/המתנה ה-lede (עם המותג) מוסתר — כאן נותנים הקשר-ארגון; בהרשמה המותג כבר בראש ה-lede */}
+        <div style={{ position: 'relative', zIndex: 2, fontSize: 12.5, color: 'rgba(255,240,228,.5)' }}>
+          {submitted && `מערכת עבור ${title}`}
         </div>
       </main>
 
       <footer className="orbit-footer">
-        <span>© 2026 ORBIT</span>
+        <span>© 2026 {title}</span>
         <span style={{ display: 'flex', alignItems: 'center' }}>
           <span className="dot" aria-hidden />
           מוצפן מקצה לקצה · הצפנה במנוחה · שלוש שכבות גיבוי

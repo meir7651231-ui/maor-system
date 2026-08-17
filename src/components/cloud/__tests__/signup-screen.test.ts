@@ -18,10 +18,18 @@ import rulesSrc from '../../../../firestore.rules?raw';
 const ALL = [loginSrc, wizardSrc, heroSrc, newsSrc, cbSrc, videoSrc];
 
 describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () => {
-  it('הקופי הנעול מדויק (מילה-במילה)', () => {
-    expect(loginSrc).toContain('העסק שלכם לא צריך עוד תוכנה. הוא צריך');
-    expect(loginSrc).toContain('אורביט היא מערכת ההפעלה שמחברת את כל העסק למקום אחד');
-    expect(loginSrc).toContain('<em>מוח</em>');
+  it('הקופי הנעול מדויק — מיתוג "מאור" (ולא "אורביט")', () => {
+    // המיתוג נגזר משם-הארגון (title/emoji), לא מהמותג-הגנרי "אורביט"
+    expect(loginSrc).toContain('כל הפעילות שלכם');
+    expect(loginSrc).toContain('המערכת שמחברת את כל הפעילות שלכם למקום אחד');
+    expect(loginSrc).toContain('<em>במקום אחד.</em>');
+    expect(loginSrc).toContain('orbit-brand-name');
+    expect(loginSrc).toContain('{title}');
+    expect(loginSrc).toContain("config.emoji || '🕯️'");
+    // אין יותר קופי-אורביט קשיח + אין לוגו-ORBIT קשיח בכותרת
+    expect(loginSrc).not.toContain('אורביט היא מערכת');
+    expect(loginSrc).not.toContain('© 2026 ORBIT');
+    expect(heroSrc).not.toContain('orbit-logo.png');
   });
 
   it('ההרשמה = אשף (SignupWizard→cloudSignUp); כניסה נפרדת; פרטי הקשר באשף', () => {

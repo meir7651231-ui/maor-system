@@ -64,8 +64,9 @@ await page.reload({ waitUntil: 'networkidle' });
 await page.waitForTimeout(2500); // המתנה ל-watchAuth (null) ⇒ מסך ההרשמה
 
 const body = (await page.locator('body').textContent().catch(() => '')) ?? '';
-t('מסך ההרשמה עלה עם הקופי הנעול', body.includes('הוא צריך') && body.includes('מוח'));
-t('תת-הכותרת הנעולה מופיעה', body.includes('מערכת ההפעלה שמחברת את כל העסק למקום אחד'));
+t('מסך ההרשמה עלה עם הקופי הנעול (מיתוג מאור)', body.includes('כל הפעילות שלכם') && body.includes('במקום אחד'));
+t('תת-הכותרת הנעולה מופיעה', body.includes('שמחברת את כל הפעילות שלכם למקום אחד'));
+t('מיתוג נגזר-ארגון (שם-הארגון בכותרת) — בלי "אורביט"/ORBIT קשיח', body.includes('עמותת מבחן') && !body.includes('© 2026 ORBIT') && !body.includes('אורביט היא מערכת'));
 t('ההרשמה = אשף 5-שלבים, שלב 1 (תחום)', body.includes('שלב 1 מתוך 5') && body.includes('תחום העסק'));
 t('הבאדג׳ האמיתי (בלי WebAuthn) — "הצפנה במנוחה"', body.includes('הצפנה במנוחה') && !body.includes('WebAuthn'));
 

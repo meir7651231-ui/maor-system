@@ -32,7 +32,8 @@ export function SignupHero() {
       // טעינה דינמית של three-scene (+three) — chunk נפרד, יורד רק כאן
       void import('../../lib/three-scene').then(({ mountBrainScene }) => {
         if (cancelled || !canvasRef.current) return;
-        handle = mountBrainScene(canvasRef.current, { palette: 'Aurora', pulse: 1, bloom: 0.5 });
+        // 🕯️ מאור = אוֹר: ערכת Ember (זהוב-ורוד חם) עם זוהר מוגבר — כדור-אור, לא כדור-מוח קר
+        handle = mountBrainScene(canvasRef.current, { palette: 'Ember', pulse: 1.1, bloom: 0.72 });
         setLive(!!handle);
       });
     }, 30);
@@ -43,13 +44,13 @@ export function SignupHero() {
     };
   }, [hero3d]);
 
+  const orgName = config.orgName || 'מאור החסד';
   return (
     <div className="orbit-hero" aria-hidden>
-      {/* רקע סטטי — תמיד מתחת; הכדור החי מכסה אותו כשעלה */}
+      {/* רקע סטטי — תמיד מתחת; הכדור-האור החי מכסה אותו כשעלה */}
       <div className="orbit-hero-static" style={{ backgroundImage: `url(${base}orbit/orbit-hero.png)`, opacity: live ? 0 : 1 }} />
       {hero3d && <canvas ref={canvasRef} className="orbit-hero-canvas" />}
-      <img className="orbit-hero-logo" src={`${base}orbit/orbit-logo.png`} alt="ORBIT" />
-      <div className="orbit-hero-side">ORBIT · מערכת ההפעלה לעסק</div>
+      <div className="orbit-hero-side">{orgName} · מערכת הניהול</div>
     </div>
   );
 }

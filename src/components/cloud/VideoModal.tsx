@@ -17,10 +17,10 @@ export function VideoModal(props: { onClose: () => void }) {
   }, [props]);
 
   return (
-    <div className="orbit-overlay" onClick={props.onClose} role="dialog" aria-label="הסרטון של אורביט">
+    <div className="orbit-overlay" onClick={props.onClose} role="dialog" aria-label="סרטון היכרות">
       <div className="orbit-reader" onClick={(e) => e.stopPropagation()}>
         <div className="orbit-reader-bar">
-          <span>🎬 מה זה אורביט</span>
+          <span>🎬 סרטון היכרות</span>
           <button
             type="button"
             onClick={props.onClose}
