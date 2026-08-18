@@ -964,11 +964,14 @@ export default function App() {
             {/* 💬 צ׳אט-תמיכה חי (17.8) — רק בענן+מחובר. מייל-על ⇒ תיבת-השיחות;
                 לקוח רגיל ⇒ מודאל-שיחה עם התמיכה. */}
             {cloud.enabled && cloud.user && (
-              canAdminHub ? (
-                <HubButton emoji="💬" title="שיחות תמיכה" sub="הודעות מהלקוחות — מענה בזמן-אמת" onClick={() => { setHelpOpen(false); setSupportInboxOpen(true); }} />
-              ) : (
+              <>
+                {/* מייל-על: תיבת-השיחות (הודעות-הלקוחות). התיבה מתמלאת כשלקוח כותב. */}
+                {canAdminHub && (
+                  <HubButton emoji="💬" title="שיחות תמיכה" sub="הודעות מהלקוחות — מענה בזמן-אמת" onClick={() => { setHelpOpen(false); setSupportInboxOpen(true); }} />
+                )}
+                {/* צ׳אט-הלקוח — לכולם (גם למייל-על, לבדיקה/כדי להיות נגיש כלקוח). */}
                 <HubButton emoji="💬" title="צ׳אט עם התמיכה" sub="שאלה? כתבו לנו — נענה בזמן-אמת" onClick={() => { setHelpOpen(false); setSupportOpen(true); }} />
-              )
+              </>
             )}
           </div>
         </Modal>
