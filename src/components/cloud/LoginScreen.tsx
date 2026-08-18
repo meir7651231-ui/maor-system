@@ -17,6 +17,7 @@ import { EmployeeSignup } from './EmployeeSignup';
 import { NewsReader } from './NewsReader';
 import { CallbackModal } from './CallbackModal';
 import { VideoModal } from './VideoModal';
+import { PricingModal } from './PricingModal';
 
 export function LoginScreen() {
   const config = useApp((s) => s.config);
@@ -36,6 +37,7 @@ export function LoginScreen() {
   const [readerOpen, setReaderOpen] = useState(false);
   const [callbackOpen, setCallbackOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
+  const [pricingOpen, setPricingOpen] = useState(false);
 
   // ברירת-מחדל = אורביט (הפלטפורמה שאליה נרשמים); לקוח עם orgName/emoji/accent
   // מקבל את הזהות שלו — "בהמשך זה יגיע מהאתר שלהם".
@@ -113,6 +115,10 @@ export function LoginScreen() {
                   📞 חזרו אליי
                 </button>
               </div>
+              {/* 💰 מחשבון-מחיר — הלקוח בוחר שירותים ורואה חי כמה זה יעלה לו בחודש */}
+              <button type="button" className="orbit-calc-btn" onClick={() => setPricingOpen(true)}>
+                💰 כמה יעלה לי בחודש?
+              </button>
 
               <ul className="orbit-lede-points">
                 <li>
@@ -243,6 +249,7 @@ export function LoginScreen() {
       {readerOpen && <NewsReader onClose={() => setReaderOpen(false)} />}
       {callbackOpen && <CallbackModal onClose={() => setCallbackOpen(false)} />}
       {videoOpen && <VideoModal onClose={() => setVideoOpen(false)} />}
+      {pricingOpen && <PricingModal onClose={() => setPricingOpen(false)} />}
     </div>
   );
 }

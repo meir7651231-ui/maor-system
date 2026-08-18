@@ -8,6 +8,7 @@
  */
 import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, MOTION_KEYS, SITE_LANGS, type FirebaseOrgConfig, type LocalizedText, type ModuleKey, type OrgConfig, type PublicSiteContent, type SiteLang, type TelNumber, type TelephonyConfig } from '../types/config';
 import { TEMPLATE_KEYS } from './templates';
+import { normalizePrices } from './pricing';
 
 const LS_CONFIG_KEY = 'maor_org_config';
 
@@ -576,6 +577,10 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
     if (Object.keys(tpl).length) cfg.templates = tpl;
     else delete cfg.templates;
   } else delete cfg.templates;
+  // מחירון-הפלטפורמה (מחשבון-הלקוח) — נירמול דרך normalizePrices (כל מספר לא-תקין
+  // → ברירת-מחדל). חסר ⇒ מוסר (ביט-זהה להיום: המחשבון נופל ל-DEFAULT_PRICES).
+  if (c.prices && typeof c.prices === 'object' && !Array.isArray(c.prices)) cfg.prices = normalizePrices(c.prices);
+  else delete cfg.prices;
   // מיילי-אדמין — רק מחרוזות לא-ריקות; ריק/לא-מערך → מוסר (אין הגבלה)
   const admins = Array.isArray(c.adminEmails)
     ? c.adminEmails.filter((e): e is string => typeof e === 'string' && e.trim() !== '')

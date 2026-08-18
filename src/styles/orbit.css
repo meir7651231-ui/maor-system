@@ -319,6 +319,30 @@
   border-color: rgba(var(--o-accent-rgb), 0.46);
   background: rgba(var(--o-accent-rgb), 0.07);
 }
+/* מחשבון-מחיר — כפתור-מזמין באקסנט (בולט יותר מכפתורי-השיווק המשניים) */
+.orbit-calc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 46px;
+  margin-top: 2px;
+  border-radius: 13px;
+  cursor: pointer;
+  background: linear-gradient(180deg, rgba(var(--o-accent-rgb), 0.2), rgba(var(--o-accent-rgb), 0.08));
+  border: 1px solid rgba(var(--o-accent-rgb), 0.4);
+  color: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  transition: 0.22s;
+}
+.orbit-calc-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, rgba(var(--o-accent-rgb), 0.3), rgba(var(--o-accent-rgb), 0.12));
+  box-shadow: 0 12px 30px -12px rgba(var(--o-accent-rgb), 0.6);
+}
 /* כרטיס-בחירה באשף (תחום / גודל / צורך) — מחלקה משותפת עם מצב-ריחוף + נבחר */
 .orbit-choice {
   display: flex;

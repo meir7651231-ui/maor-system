@@ -303,6 +303,12 @@ export interface OrgConfig {
    *  ‏INTEGRATION_SETTING_KEYS (למשל payments.payUrl). סודות — לעולם לא כאן. */
   integrations?: Record<string, { enabled: boolean; [setting: string]: unknown }>;
   /**
+   * מחירון-הפלטפורמה (₪/חודש) למחשבון-הלקוח הציבורי — בסיס + תוספת פר-מודול/הרחבה
+   * + מכפיל-גודל. חסר = ברירת-המחדל (DEFAULT_PRICES, ביט-זהה להיום). מחוטא
+   * ב-normalizeConfig דרך normalizePrices (כל מספר לא-תקין → ברירת-מחדל). זה מחיר-
+   * *מכירה* מוצג — לא סוד, לא נתוני-לקוח. (import type ⇒ נמחק בזמן קומפילציה.) */
+  prices?: import('../lib/pricing').PriceTable;
+  /**
    * מיילים של מנהלי-על — רק הם רשאים לפתוח את אשף ההקמה ולשנות ערכת נושא.
    * ריק/חסר = אין הגבלה (כל מי שמחובר, כמו היום). כשמוגדר — משתמש שאינו ברשימה
    * לא רואה/פותח את האשף ואינו יכול לשנות נושא. ההשוואה case-insensitive.
