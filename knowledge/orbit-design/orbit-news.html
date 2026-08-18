@@ -452,13 +452,27 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .strap .take b{color:var(--accent)}
 .strap .pgno{font-family:'Heebo',sans-serif;font-weight:900;font-size:10.5px;letter-spacing:.14em;color:var(--ink-50);white-space:nowrap}
 
+/* ── "what's new" grid: each item on its own lines ── */
+.newsgrid .brief{padding-bottom:13px;margin-bottom:13px}
+.newsgrid .brief .headline{display:block;font-size:16.5px;line-height:1.2;margin:0 0 3px}
+.newsgrid .brief p{display:block;font-size:13.5px;line-height:1.5;color:var(--ink-70)}
+
+/* ── capability map (all-features spread) ── */
+.capmap{columns:2;column-gap:28px;column-rule:1px solid var(--hair);margin-top:10px}
+.capblock{break-inside:avoid;margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid var(--hair)}
+.capblock h4{font-family:'Frank Ruhl Libre',serif;font-weight:900;font-size:16px;line-height:1.15;margin:0 0 3px}
+.capblock ul{margin:0;padding:0;list-style:none;font-family:'Heebo',sans-serif;font-size:12px;line-height:1.5;color:var(--ink-70)}
+.capblock li{padding-inline-start:12px;position:relative;margin-bottom:1px}
+.capblock li::before{content:"";position:absolute;inset-inline-start:0;top:.52em;width:5px;height:5px;background:var(--accent)}
+@media(max-width:560px){.capmap{columns:1}}
+
 /* first section stays on page 1 with the nameplate */
 .sheet>section:first-of-type{break-before:avoid}
 </style>
 
 <!-- ══════ NAMEPLATE ══════ -->
 <div class="nameplate">
-  <div class="np-top"><span>גיליון ההיכרות · 2026</span><span class="go">להרשמה — עמ׳ 09</span><span>מהדורת בעל-העסק · לא למכירה</span></div>
+  <div class="np-top"><span>גיליון ההיכרות · 2026</span><span class="go">להרשמה — עמ׳ 11</span><span>מהדורת בעל-העסק · לא למכירה</span></div>
   <div class="logo" role="img" aria-label="ORBIT אורביט">
     <svg class="mark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -513,7 +527,7 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
         <div class="kicker">מה זה אורביט</div>
         <h3 class="headline">מערכת אחת. מוח אחד.</h3>
         <p>במקום עשרה כלים שלא מדברים — מערכת אחת שמרכזת את כל העסק, מדברת בשפה שלך, ומראה לך רק את מה שחשוב.</p>
-        <div class="statbox"><div class="snum">10</div><div class="slabel">עולמות תוכן מוכנים — מעמותה ועד מוסך</div></div>
+        <div class="statbox"><div class="snum">13</div><div class="slabel">עולמות תוכן מוכנים — מעמותה ועד סטודיו ובנייה</div></div>
         <div class="index-box">
           <div class="lbl">בגיליון</div>
           <ol>
@@ -521,13 +535,15 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
             <li>איך זה נולד <span class="pg">03</span></li>
             <li>מה אתה מרוויח <span class="pg">04</span></li>
             <li>ההקמה בשיחה אחת <span class="pg">05</span></li>
-            <li>עשרה עולמות תוכן <span class="pg">06</span></li>
+            <li>שלושה-עשר עולמות <span class="pg">06</span></li>
             <li>המערכת שגדלה איתך <span class="pg">07</span></li>
-            <li>טור המערכת <span class="pg">08</span></li>
-            <li>להרשמה <span class="pg">09</span></li>
+            <li>מפת היכולות המלאה <span class="pg">08</span></li>
+            <li>חדש באורביט <span class="pg">09</span></li>
+            <li>טור המערכת <span class="pg">10</span></li>
+            <li>להרשמה <span class="pg">11</span></li>
           </ol>
         </div>
-        <div class="cta-teaser"><div class="t">מוכנים להתחיל?</div><a href="#signup">ההרשמה בעמוד 09 — שתי דקות ←</a></div>
+        <div class="cta-teaser"><div class="t">מוכנים להתחיל?</div><a href="#signup">ההרשמה בעמוד 11 — שתי דקות ←</a></div>
       </aside>
     </div>
   </section>
@@ -686,10 +702,10 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   <!-- ══ 06 · עשרה עולמות ══ -->
   <section class="fill">
-    <div class="runhead"><span class="sec-no">06</span><span class="sec-name">עשרה עולמות תוכן</span><span class="sec-tail">מנוע אחד, השפה שלך</span></div>
+    <div class="runhead"><span class="sec-no">06</span><span class="sec-name">שלושה-עשר עולמות</span><span class="sec-tail">מנוע אחד, השפה שלך</span></div>
     <article class="story article">
       <div class="kicker">מדריך <span class="sep">·</span> בחר את העולם שלך</div>
-      <h2 class="headline" style="font-size:clamp(26px,3.6vw,40px)">עשרה עולמות תוכן, מנוע אחד</h2>
+      <h2 class="headline" style="font-size:clamp(26px,3.6vw,40px)">שלושה-עשר עולמות תוכן, מנוע אחד</h2>
       <p class="deck">אורביט בנויה כך שמעל אותו בסיס טכנולוגי אפשר להפעיל עולמות תוכן שונים, בהתאם לאופי העסק. במקום לבנות מערכת אחרת לכל תחום — מנוע אחד שמדבר בשפה של כל ענף.</p>
       <div class="rule"></div>
       <p style="max-width:70ch;margin:0 0 4px">כך, לדוגמה, קליניקה מקבלת מסך שמדבר על מטופלים ותורים, בעוד שמוסך רואה רכבים, חלקים והיסטוריית טיפולים. זו לא רק התאמה טכנית; זו דרך להפוך את המערכת לכלי עבודה שנראה ומרגיש נכון — בלי ללמוד מחדש שיטה זרה.</p>
@@ -704,13 +720,16 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
         <div class="brief"><span class="dl">08 · אירוח וצימרים</span><h4 class="headline">חדר פנוי, אורח מרוצה</h4><p>יומן חדרים, לקוחות ותשלומים על לוח עברי-לועזי.</p></div>
         <div class="brief"><span class="dl">09 · גמ״ח</span><h4 class="headline">מי לקח, מי מחכה</h4><p>חברים, מלאי וחלוקות וקבלות — בכל רגע לדעת מה בחוץ.</p></div>
         <div class="brief"><span class="dl">10 · מבצעי התרמה</span><h4 class="headline">מהיעד ועד הקבלה</h4><p>תורמים, קבלות מס ממוספרות ודוחות תרומה.</p></div>
+        <div class="brief"><span class="dl">11 · סטודיו דיגיטל</span><h4 class="headline">מהצעה ועד מסירה</h4><p>אפליקציות, אתרים ופיתוח — לקוחות, פרויקטים, הצעות ותשלומים.</p></div>
+        <div class="brief"><span class="dl">12 · בנייה וקבלנות</span><h4 class="headline">כל אתר, כל שלב</h4><p>קבלני משנה ושלבי ביצוע — כתב כמויות, שעתון, חומרים ורווחיות פר-פרויקט.</p></div>
+        <div class="brief"><span class="dl">13 · סוכנות</span><h4 class="headline">דיגיטל ובנייה יחד</h4><p>פרויקטים משני העולמות תחת ניהול אחד — מהצעה עד רווח.</p></div>
       </div>
       <p style="max-width:74ch;margin:16px 0 0;color:var(--ink-70)">הרשימה אינה מגבלה אלא נקודת התחלה. אותו מנוע יכול ללבוש עוד עולמות בהתאם לצורך — וכולם נשענים על אותם יסודות: כרטיס אחד לכל לקוח, קבלות מסודרות, לוח עברי-לועזי ודוחות שמוציאים בלחיצה. מה שמשתנה הוא רק השפה שבה המערכת מדברת אליכם.</p>
     </article>
     <div class="strap">
       <svg class="mk" viewBox="0 0 40 40"><circle cx="20" cy="20" r="8.5" fill="none" stroke="#c17d22" stroke-width="3"/><ellipse cx="20" cy="20" rx="18" ry="6.5" fill="none" stroke="#201e1d" stroke-width="2.4" transform="rotate(-24 20 20)"/><circle cx="34" cy="12.5" r="3" fill="#c17d22"/></svg>
-      <div class="take">מנוע אחד, עשרה עולמות. <b>אתם בוחרים את השפה — המערכת כבר יודעת את השאר.</b></div>
-      <div class="pgno">אורביט · עשרה עולמות תוכן · עמ׳ 06</div>
+      <div class="take">מנוע אחד, שלושה-עשר עולמות. <b>אתם בוחרים את השפה — המערכת כבר יודעת את השאר.</b></div>
+      <div class="pgno">אורביט · עולמות תוכן · עמ׳ 06</div>
     </div>
   </section>
 
@@ -742,7 +761,7 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
         <div class="dept"><span class="nm">תדפיסים וייצוא</span><span class="ds">המידע שלך, גם מחוץ למערכת.</span></div>
         <div class="dept"><span class="nm">אשף חי</span><span class="ds">עולם, מחלקות, שפה ומראה — במתג.</span></div>
         <div class="dept"><span class="nm">מוכן להתחבר</span><span class="ds">חיבורים חיצוניים מצטרפים לאותו מרכז מידע.</span></div>
-        <div class="statbox" style="border-top-color:var(--accent)"><div class="snum">+</div><div class="slabel">קופות · חנות · מתנדבים · ומה שעוד בדרך — הכול במתג</div></div>
+        <div class="statbox" style="border-top-color:var(--accent)"><div class="snum">+</div><div class="slabel">קופה · אתר לעסק · חיבור טלפון · ייבוא נתונים — כבר כאן. ומה שעוד בדרך, במתג. (עמ׳ 08–09)</div></div>
       </aside>
     </div>
     <div class="strap">
@@ -752,9 +771,64 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     </div>
   </section>
 
-  <!-- ══ 08 · טור המערכת ══ -->
+  <!-- ══ 08 · מפת היכולות ══ -->
   <section class="fill">
-    <div class="runhead"><span class="sec-no">08</span><span class="sec-name">טור המערכת</span><span class="sec-tail">דעה</span></div>
+    <div class="runhead"><span class="sec-no">08</span><span class="sec-name">מפת היכולות המלאה</span><span class="sec-tail">כל מה שיש במערכת</span></div>
+    <div class="kicker">מדריך <span class="sep">·</span> מה יושב מתחת למכסה המנוע</div>
+    <h2 class="headline" style="font-size:clamp(26px,3.8vw,42px);max-width:26ch">כל מה שהעסק צריך — במקום אחד, מסודר לפי תחומים</h2>
+    <p class="datalede">אורביט אינה עוד כלי לניהול נקודתי, אלא מערכת שלמה. הנה המפה המלאה — מה שכבר עובד היום, מחולק לפי תחומי העבודה של העסק. הכול על אותו מנוע, והכול מדבר בשפה שלכם.</p>
+    <div class="capmap">
+      <div class="capblock"><h4>👥 לקוחות ואנשים</h4><ul><li>כרטיס לקוח מאוחד עם היסטוריה מלאה</li><li>ייבוא מאקסל ומאנשי הקשר בטלפון</li><li>מיזוג כפילויות</li><li>לידים וטופס „נחזור אליכם“</li><li>מצב משפחתי בכרטיס</li></ul></div>
+      <div class="capblock"><h4>📅 יומן, תורים ונוכחות</h4><ul><li>תורים ופגישות</li><li>יומן משאבים לחדרים ולציוד</li><li>רישום נוכחות</li><li>בורר תאריך עברי-לועזי בכל טופס</li></ul></div>
+      <div class="capblock"><h4>💰 תשלומים וקבלות</h4><ul><li>מעקב תשלומים וחוב</li><li>קבלות ממוספרות · סעיף 46 לתרומות</li><li>קבלה כ-PDF עם קוד אימות</li><li>מייל קבלה אוטומטי</li><li>הוראות קבע</li></ul></div>
+      <div class="capblock"><h4>🧾 קופה רושמת</h4><ul><li>מכירה בדלפק עם עגלת פריטים</li><li>ספירת עודף וצבעי מטבע</li><li>פתיחת וסגירת משמרת</li><li>דוח סגירה מסודר</li></ul></div>
+      <div class="capblock"><h4>📞 טלפון מחובר</h4><ul><li>זיהוי מתקשר וקפיצת כרטיס</li><li>חייגן מכל מסך</li><li>קמפיין שיחות מונחה</li></ul></div>
+      <div class="capblock"><h4>📦 מלאי, קטלוג וחלוקות</h4><ul><li>ניהול מלאי וקטלוג מוצרים</li><li>חלוקות חסד וגמ״ח</li><li>מעקב „מה בחוץ ומה חזר“</li></ul></div>
+      <div class="capblock"><h4>🎓 חוגים וקורסים</h4><ul><li>מחיר לפי שיעור</li><li>הנחות שמחושבות לבד</li><li>צירוף קבצים ותמונות לכל חוג</li><li>רישום משתתפים</li></ul></div>
+      <div class="capblock"><h4>💳 תרומות ותורמים</h4><ul><li>פיצול תרומה בין ייעודים</li><li>דוח שנתי לתורם</li><li>מבצעי התרמה ויעדים</li><li>קבלות מס ממוספרות</li></ul></div>
+      <div class="capblock"><h4>🏗️ פרויקטים (מסחרי)</h4><ul><li>כתב כמויות</li><li>שעתון עבודה</li><li>רכש חומרים</li><li>רווח/הפסד פר-פרויקט</li><li>תבניות הצעה</li></ul></div>
+      <div class="capblock"><h4>📊 כספים, דוחות ומבט-על</h4><ul><li>דוחות מכירה וכספים</li><li>מבט הנהלה — הכול במסך אחד</li><li>תדפיסים וייצוא נתונים</li></ul></div>
+      <div class="capblock"><h4>🌐 אתר, אשף וזהות</h4><ul><li>אתר ציבורי שנבנה מהאשף</li><li>אשף חי — שינוי מופיע מיד</li><li>זהות חזותית פר-עסק (צבע ואייקון)</li><li>לוח שנה עברי-לועזי</li></ul></div>
+      <div class="capblock"><h4>🔒 שליטה, הרשאות ופרטיות</h4><ul><li>הפקת קבלות למנהל בלבד</li><li>לוג „מי שינה מה ומתי“</li><li>הרשאת-תצוגה פר-עובד</li><li>מצב צנעה</li><li>הנתונים שלך — לייצוא תמיד</li></ul></div>
+    </div>
+    <div class="strap">
+      <svg class="mk" viewBox="0 0 40 40"><circle cx="20" cy="20" r="8.5" fill="none" stroke="#c17d22" stroke-width="3"/><ellipse cx="20" cy="20" rx="18" ry="6.5" fill="none" stroke="#201e1d" stroke-width="2.4" transform="rotate(-24 20 20)"/><circle cx="34" cy="12.5" r="3" fill="#c17d22"/></svg>
+      <div class="take">תחום אחר תחום — הכול על מנוע אחד. <b>לא אוסף כלים, אלא מערכת אחת שלמה.</b></div>
+      <div class="pgno">אורביט · מפת היכולות · עמ׳ 08</div>
+    </div>
+  </section>
+
+  <!-- ══ 09 · חדש באורביט ══ -->
+  <section class="fill">
+    <div class="runhead"><span class="sec-no">09</span><span class="sec-name">חדש באורביט</span><span class="sec-tail">מה שנדלק לאחרונה</span></div>
+    <div class="kicker">עדכוני מערכת <span class="sep">·</span> כבר עובד אצלכם</div>
+    <h2 class="headline" style="font-size:clamp(26px,3.8vw,42px);max-width:24ch">מה שנוסף מאז — ואיך זה עובד בשבילכם</h2>
+    <p class="datalede">אורביט מתעדכנת כל הזמן, ומה שנוסף פשוט נדלק — בלי התקנות ובלי גרסאות. אלה העדכונים האחרונים, כולם מאותה זווית: פחות עבודה ידנית, יותר דברים שקורים מעצמם.</p>
+    <div class="worlds newsgrid" style="margin-top:12px">
+      <div class="brief"><h4 class="headline">🧾 קופה רושמת</h4><p>מוכרים בדלפק, סופרים עודף בקלות, ופותחים וסוגרים משמרת עם דוח מסודר בסוף היום.</p></div>
+      <div class="brief"><h4 class="headline">📞 הטלפון מדבר עם הכרטיס</h4><p>מתקשר לקוח? הכרטיס שלו קופץ מיד עם כל ההיסטוריה — ומחייגים אליו בחזרה בלחיצה, מכל מסך.</p></div>
+      <div class="brief"><h4 class="headline">🌐 אתר ציבורי לעסק</h4><p>דף בית משלכם שנבנה כולו מהאשף — מיתוג, שירותים, גלריה וטופס יצירת קשר — בלי לגעת בקוד.</p></div>
+      <div class="brief"><h4 class="headline">📥 מביאים את מה שכבר יש</h4><p>ייבוא רשימות מאקסל ואנשי קשר מהטלפון, ישר פנימה — בלי להקליד הכול מחדש.</p></div>
+      <div class="brief"><h4 class="headline">🎓 חוגים חכמים יותר</h4><p>מחיר לפי שיעור, הנחות שמחושבות לבד, וצירוף קבצים ותמונות לכל חוג.</p></div>
+      <div class="brief"><h4 class="headline">🔒 שליטה על הקבלות</h4><p>הפקת קבלות למנהל בלבד, ולוג ברור של „מי שינה מה ומתי“ — שקט בראש.</p></div>
+      <div class="brief"><h4 class="headline">🎨 מראה משלכם</h4><p>כל סוג עסק מקבל צבעים, אייקון וסגנון משלו — המערכת נראית שלכם, לא כללית.</p></div>
+      <div class="brief"><h4 class="headline">📊 מבט הנהלה</h4><p>כל המספרים החשובים של העסק במסך אחד — מה נכנס, מה פתוח, ולאן זה הולך.</p></div>
+      <div class="brief"><h4 class="headline">🔁 פחות עבודה ידנית</h4><p>הוראות קבע, דוח שנתי לתורם ומיילים שיוצאים לבד — מה שהיה לוקח ערב, קורה מעצמו.</p></div>
+      <div class="brief"><h4 class="headline">💳 פיצול תרומה פר-ייעוד</h4><p>תרומה אחת מתחלקת בין כמה מטרות, והדוחות מסתדרים לבד — בלי חישובים ידניים.</p></div>
+      <div class="brief"><h4 class="headline">👁️ כל עובד רואה את שלו</h4><p>מקצים לכל עובד רק את הלקוחות והייעודים שלו — פחות בלגן, יותר פרטיות.</p></div>
+      <div class="brief"><h4 class="headline">📅 תאריך בלוח שלכם</h4><p>בחירת תאריך בכל טופס דרך אותו לוח עברי-לועזי מוכר — כמו שהעסק חי.</p></div>
+    </div>
+    <p style="max-width:74ch;margin:16px 0 0;color:var(--ink-70)">וזה לא נעצר כאן. אורביט ממשיכה להתעדכן, ובהמשך יתחברו עוד קווים — כמו איחוד כל קווי הטלפון של העסק למקום אחד. מה שיתווסף, כרגיל, פשוט יידלק אצלכם — בלי התקנה ובלי גרסה חדשה.</p>
+    <div class="strap">
+      <svg class="mk" viewBox="0 0 40 40"><circle cx="20" cy="20" r="8.5" fill="none" stroke="#c17d22" stroke-width="3"/><ellipse cx="20" cy="20" rx="18" ry="6.5" fill="none" stroke="#201e1d" stroke-width="2.4" transform="rotate(-24 20 20)"/><circle cx="34" cy="12.5" r="3" fill="#c17d22"/></svg>
+      <div class="take">מה שנוסף — נדלק אצלכם מעצמו. <b>בלי התקנות, בלי גרסאות, בלי לחכות.</b></div>
+      <div class="pgno">אורביט · חדש באורביט · עמ׳ 09</div>
+    </div>
+  </section>
+
+  <!-- ══ 10 · טור המערכת ══ -->
+  <section class="fill">
+    <div class="runhead"><span class="sec-no">10</span><span class="sec-name">טור המערכת</span><span class="sec-tail">דעה</span></div>
     <div class="op-grid">
       <div class="op-main story article">
         <div class="kicker">טור <span class="sep">·</span> מניפסט</div>
@@ -792,13 +866,13 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     <div class="strap">
       <svg class="mk" viewBox="0 0 40 40"><circle cx="20" cy="20" r="8.5" fill="none" stroke="#c17d22" stroke-width="3"/><ellipse cx="20" cy="20" rx="18" ry="6.5" fill="none" stroke="#201e1d" stroke-width="2.4" transform="rotate(-24 20 20)"/><circle cx="34" cy="12.5" r="3" fill="#c17d22"/></svg>
       <div class="take">בעל עסק לא צריך עוד כלי — הוא צריך שקט. <b>פחות רדיפה אחרי המערכת, יותר ניהול של העסק.</b></div>
-      <div class="pgno">אורביט · טור המערכת · עמ׳ 08</div>
+      <div class="pgno">אורביט · טור המערכת · עמ׳ 10</div>
     </div>
   </section>
 
-  <!-- ══ 09 · להרשמה ══ -->
+  <!-- ══ 11 · להרשמה ══ -->
   <section>
-    <div class="runhead"><span class="sec-no">09</span><span class="sec-name">להרשמה</span><span class="sec-tail">זה מתחיל בשיחה אחת</span></div>
+    <div class="runhead"><span class="sec-no">11</span><span class="sec-name">להרשמה</span><span class="sec-tail">זה מתחיל בשיחה אחת</span></div>
     <div class="cta-wrap">
       <div class="k">מוכנים?</div>
       <h2>זה מתחיל בשיחה אחת.</h2>
