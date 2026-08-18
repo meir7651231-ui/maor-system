@@ -85,3 +85,31 @@ export function expectedDrawer(float: number, sales: number): number {
 export function drawerDiff(counted: number, expected: number): number {
   return Math.round(((Number(counted) || 0) - (Number(expected) || 0)) * 100) / 100;
 }
+
+/* ───────── 🛒 הקלדה-חכמה בעגלת-הקופה (17.8, בקשת-בעלים "על משהו קיים שיצג אותו")
+ * מציע דברים-קיימים לתשלום (כרגע: חוגים — שם + מחיר). בחירה ממלאת שם+סכום. ───────── */
+export interface CashSuggest {
+  name: string;
+  amount: number;
+  hint: string;
+}
+
+/** מקורות-ההצעה לעגלת-הקופה — חוגים (שם+מחיר). דדופ לפי שם; שומר סדר-הופעה. */
+export function cashSuggestions(courses: { name?: string; price?: number }[]): CashSuggest[] {
+  const seen = new Set<string>();
+  const out: CashSuggest[] = [];
+  for (const c of courses || []) {
+    const name = (c.name || '').trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    out.push({ name, amount: Number.isFinite(c.price) ? (c.price as number) : 0, hint: 'חוג' });
+  }
+  return out;
+}
+
+/** סינון-חכם רב-מילתי (כל מילה נכללת בשם, בלי תלות-סדר). q ריק ⇒ ריק (בלי הצעות). */
+export function filterCashSuggest(list: CashSuggest[], q: string, max = 8): CashSuggest[] {
+  const words = (q || '').trim().toLowerCase().split(/\s+/u).filter(Boolean);
+  if (!words.length) return [];
+  return list.filter((s) => { const n = s.name.toLowerCase(); return words.every((w) => n.includes(w)); }).slice(0, max);
+}

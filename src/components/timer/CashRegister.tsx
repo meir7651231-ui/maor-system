@@ -20,7 +20,7 @@ import { Btn, Modal, TextInput } from '../ui';
 // מפתחות הקופה ממורחבי-שמות פר-ארגון (CONNECT חיבור 7 — חלק מבאג ידוע 3)
 import { nsLsKey } from '../../store/persist';
 // גל-1/2: מנוע פירוט-עודף + צבעי-מטבע + מתמטיקת-משמרת (טהור, נבדק ביחידה)
-import { BILL_VALS, COIN_VALS, changeBreakdown, countsTotal, denomTint, drawerDiff, expectedDrawer } from './cashLib';
+import { BILL_VALS, COIN_VALS, cashSuggestions, changeBreakdown, countsTotal, denomTint, drawerDiff, expectedDrawer, filterCashSuggest } from './cashLib';
 
 const LS_RECEIPTS = 'maor_cashbox_receipts';
 const LS_SEQ = 'maor_cashbox_seq';
@@ -248,6 +248,7 @@ function DenomPad({ counts, onBump }: { counts: Record<string, number>; onBump: 
 export function CashRegister({ onClose }: { onClose: () => void }) {
   const config = useApp((s) => s.config);
   const toast = useApp((s) => s.toast);
+  const db = useApp((s) => s.db);
   const label = termOf(config, 'nav.cashbox', 'קופה רושמת');
 
   // סכום התחלתי מהטיימר (אם הגיע דרך "גבה תשלום").
@@ -287,6 +288,10 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [itemName, setItemName] = useState('');
   const [itemAmt, setItemAmt] = useState('');
+  // 🛒 הקלדה-חכמה (17.8): הצעות דברים-קיימים (חוגים). suppress=הוסתר אחרי בחירה.
+  const [suppressSug, setSuppressSug] = useState(false);
+  const suggestions = useMemo(() => cashSuggestions(db.courses), [db.courses]);
+  const sugMatches = useMemo(() => (suppressSug ? [] : filterCashSuggest(suggestions, itemName)), [suggestions, itemName, suppressSug]);
   // גל-2: משמרת / סגירת-קופה
   const [shift, setShift] = useState<Shift | null>(() => readShift());
   const [shiftPanel, setShiftPanel] = useState(false);
@@ -700,8 +705,32 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
           </div>
         )}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <div style={{ flex: 2, minWidth: 120 }}>
-            <TextInput value={itemName} onChange={setItemName} placeholder="שם הפריט" />
+          <div style={{ flex: 2, minWidth: 120, position: 'relative' }}>
+            <TextInput
+              value={itemName}
+              onChange={(v) => { setItemName(v); setSuppressSug(false); }}
+              placeholder="שם הפריט — הקלידו לחיפוש חוג קיים"
+            />
+            {sugMatches.length > 0 && (
+              <div
+                style={{ position: 'absolute', top: '100%', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 20, background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 8, marginTop: 2, boxShadow: '0 6px 18px rgba(0,0,0,.14)', maxHeight: 210, overflowY: 'auto' }}
+              >
+                {sugMatches.map((s, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => { setItemName(s.name); if (s.amount > 0) setItemAmt(String(s.amount)); setSuppressSug(true); }}
+                    style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '7px 10px', border: 'none', borderBottom: i < sugMatches.length - 1 ? '1px solid var(--line)' : 'none', background: 'transparent', cursor: 'pointer', textAlign: 'start', fontSize: 13 }}
+                  >
+                    <span style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}>
+                      <span style={{ fontSize: 10.5, color: 'var(--ink-faint)', border: '1px solid var(--line)', borderRadius: 6, padding: '1px 5px', flexShrink: 0 }}>{s.hint}</span>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
+                    </span>
+                    {s.amount > 0 && <span style={{ direction: 'ltr', fontWeight: 700, flexShrink: 0 }}>{money(s.amount)}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div style={{ flex: 1, minWidth: 80 }}>
             <TextInput type="number" dir="ltr" value={itemAmt} onChange={setItemAmt} placeholder="₪ מחיר" />
