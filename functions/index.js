@@ -18,6 +18,7 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
+const { mapPaymentCallback } = require('./paymentMap');
 
 initializeApp();
 
@@ -29,23 +30,28 @@ initializeApp();
  * ‏org=root ⇒ הלקוח-הקיים (אוסף-שורש incomingPayments); אחרת orgs/{slug}/…
  */
 exports.paymentsWebhook = onRequest({ secrets: ['PAY_SECRET'] }, async (req, res) => {
-  if (req.method !== 'POST') return res.status(405).send('POST only');
-  if ((req.query.secret ?? '') !== process.env.PAY_SECRET) return res.status(403).send('bad secret');
-  const slug = String(req.query.org ?? '');
-  if (!/^[a-z0-9-]{2,40}$|^root$/.test(slug)) return res.status(400).send('bad org');
-  const { amount, name, phone, reference } = req.body ?? {};
-  if (!(Number(amount) > 0)) return res.status(400).send('bad amount');
+  // נדרים-פלוס (וספקים אחרים) קוראים כ-CallBack — לעיתים GET, לעיתים POST,
+  // לעיתים query ולעיתים body. מאחדים את שלושתם ובוררים סובלני-שמות (paymentMap).
+  if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).send('POST/GET only');
+  const p = { ...(req.query ?? {}), ...(req.body ?? {}) };
+  if ((p.secret ?? '') !== process.env.PAY_SECRET) return res.status(403).send('bad secret');
+  const m = mapPaymentCallback(p);
+  if (!/^[a-z0-9-]{2,40}$|^root$/.test(m.org)) return res.status(400).send('bad org');
+  if (!(m.amount > 0)) return res.status(400).send('bad amount');
+  // eslint-disable-next-line no-unused-vars
+  const { secret, ...rawSafe } = p; // המטען-הגולמי בלי הסוד-המשותף — לתיעוד/דיוק-מיפוי
   const db = getFirestore();
-  const col = slug === 'root'
+  const col = m.org === 'root'
     ? db.collection('incomingPayments')
-    : db.collection('orgs').doc(slug).collection('incomingPayments');
+    : db.collection('orgs').doc(m.org).collection('incomingPayments');
   await col.add({
-    amount: Number(amount),
-    name: String(name ?? ''),
-    phone: String(phone ?? ''),
-    reference: String(reference ?? ''),
+    amount: m.amount,
+    name: m.name,
+    phone: m.phone,
+    reference: m.reference,
     at: new Date().toISOString(),
-    status: 'pending', // המזכירה מאשרת-רושמת במערכת
+    status: 'pending', // המזכירה מאשרת-רושמת במערכת (רציפות R-/D-)
+    raw: JSON.parse(JSON.stringify(rawSafe)),
   });
   res.status(200).send('ok');
 });
