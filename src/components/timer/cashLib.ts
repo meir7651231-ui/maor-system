@@ -125,24 +125,41 @@ export interface PayerSuggest {
   sub?: string;
 }
 
-/** מקורות-ההצעה למשלם — משפחות (hint 'משפחה') ואז תורמים (hint 'תורם'); דדופ
- *  לפי שם; שומר סדר-הופעה. פרט-משני: עיר, ואם אין — טלפון. */
+interface PayerFamily {
+  name?: string;
+  city?: string;
+  phone?: string;
+  /** בני-המשפחה (ילדים/הורים) — כל אחד מוצע בנפרד בשם-פרטי + שם-משפחה. */
+  members?: { first?: string; isParent?: boolean }[];
+}
+
+/** מקורות-ההצעה למשלם — לכל משפחה: שם-המשפחה (hint 'משפחה') ואז כל בן-משפחה
+ *  (ילד/הורה, בשם-פרטי + שם-משפחה); בסוף התורמים (hint 'תורם'). דדופ גלובלי
+ *  לפי שם; שומר סדר-הופעה. פרט-משני: עיר, ואם אין — טלפון (לבן-משפחה: שם-המשפחה). */
 export function payerSuggestions(
-  families: { name?: string; city?: string; phone?: string }[],
+  families: PayerFamily[],
   supporters: { name?: string; city?: string; phone?: string }[] = [],
 ): PayerSuggest[] {
   const seen = new Set<string>();
   const out: PayerSuggest[] = [];
-  const add = (rows: { name?: string; city?: string; phone?: string }[], hint: string) => {
-    for (const r of rows || []) {
-      const name = (r.name || '').trim();
-      if (!name || seen.has(name)) continue;
-      seen.add(name);
-      const sub = (r.city || '').trim() || (r.phone || '').trim();
-      out.push({ name, hint, ...(sub ? { sub } : {}) });
-    }
+  const push = (name: string, hint: string, sub?: string) => {
+    const nm = (name || '').trim();
+    if (!nm || seen.has(nm)) return;
+    seen.add(nm);
+    out.push({ name: nm, hint, ...(sub ? { sub } : {}) });
   };
-  add(families, 'משפחה');
-  add(supporters, 'תורם');
+  for (const f of families || []) {
+    const fname = (f.name || '').trim();
+    const fsub = (f.city || '').trim() || (f.phone || '').trim();
+    push(fname, 'משפחה', fsub);
+    for (const m of f.members || []) {
+      const first = (m.first || '').trim();
+      if (!first) continue;
+      push(fname ? first + ' ' + fname : first, m.isParent ? 'הורה' : 'ילד', fname || fsub);
+    }
+  }
+  for (const s of supporters || []) {
+    push((s.name || '').trim(), 'תורם', (s.city || '').trim() || (s.phone || '').trim());
+  }
   return out;
 }

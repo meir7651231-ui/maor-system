@@ -53,6 +53,23 @@ describe('🛒 ratchet — הקלדה-חכמה בקופה', () => {
     expect(p[2].hint).toBe('תורם');
   });
 
+  it('בני-משפחה: כל ילד/הורה מוצע בשם-פרטי + שם-משפחה, מקובץ תחת המשפחה', () => {
+    const p = payerSuggestions([
+      {
+        name: 'משפחת כהן',
+        city: 'ירושלים',
+        members: [
+          { first: 'יוסי' },
+          { first: 'שרה', isParent: true },
+          { first: '' }, // ריק — מסונן
+        ],
+      },
+    ]);
+    expect(p.map((x) => x.name)).toEqual(['משפחת כהן', 'יוסי משפחת כהן', 'שרה משפחת כהן']);
+    expect(p[1]).toEqual({ name: 'יוסי משפחת כהן', hint: 'ילד', sub: 'משפחת כהן' });
+    expect(p[2].hint).toBe('הורה'); // isParent
+  });
+
   it('סינון-המשלם רב-מילתי ומשתמש באותו מנוע-סינון גנרי', () => {
     const p = payerSuggestions([{ name: 'משפחת אברהם כהן', city: 'צפת' }]);
     expect(filterCashSuggest(p, '').length).toBe(0);
