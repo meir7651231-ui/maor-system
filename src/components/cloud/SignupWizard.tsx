@@ -185,19 +185,20 @@ export function SignupWizard({ onDone }: { onDone: (email: string) => void }) {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+      {/* שורת-ניווט — "הקודם" בגובה זהה לכפתור-הראשי ומיושר איתו (בלי margin-top כפול) */}
+      <div style={{ display: 'flex', gap: 8, marginTop: 16, alignItems: 'center' }}>
         {step > 0 && (
-          <button type="button" className="orbit-sbtn" style={{ flex: 'none', padding: '0 18px' }} onClick={back} disabled={busy}>
+          <button type="button" className="orbit-sbtn" style={{ flex: 'none', height: 52, padding: '0 20px', marginTop: 0 }} onClick={back} disabled={busy}>
             → הקודם
           </button>
         )}
         {/* שלב הצרכים אופציונלי — כפתור "דלגו" */}
         {step === 2 && s.needs.length === 0 && (
-          <button type="button" className="orbit-linkbtn" style={{ flex: 'none' }} onClick={() => void next()} disabled={busy}>
+          <button type="button" className="orbit-linkbtn" style={{ flex: 'none', marginTop: 0 }} onClick={() => void next()} disabled={busy}>
             דלגו
           </button>
         )}
-        <button type="button" className="orbit-primary" style={{ flex: 1 }} onClick={() => void next()} disabled={busy}>
+        <button type="button" className="orbit-primary" style={{ flex: 1, marginTop: 0 }} onClick={() => void next()} disabled={busy}>
           {busy ? 'רגע…' : step === WIZARD_STEPS - 1 ? 'בוא נתחיל' : 'הבא'}
           {!busy && <span aria-hidden>←</span>}
         </button>

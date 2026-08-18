@@ -17,7 +17,6 @@ import { EmployeeSignup } from './EmployeeSignup';
 import { NewsReader } from './NewsReader';
 import { CallbackModal } from './CallbackModal';
 import { VideoModal } from './VideoModal';
-import { NetCheckModal } from './NetCheckModal';
 
 export function LoginScreen() {
   const config = useApp((s) => s.config);
@@ -37,7 +36,6 @@ export function LoginScreen() {
   const [readerOpen, setReaderOpen] = useState(false);
   const [callbackOpen, setCallbackOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
-  const [netCheckOpen, setNetCheckOpen] = useState(false);
 
   // ברירת-מחדל = אורביט (הפלטפורמה שאליה נרשמים); לקוח עם orgName/emoji/accent
   // מקבל את הזהות שלו — "בהמשך זה יגיע מהאתר שלהם".
@@ -115,10 +113,6 @@ export function LoginScreen() {
                   📞 חזרו אליי
                 </button>
               </div>
-              {/* 🩺 מאבחן-חסימות (11.8): קו מסונן חוסם כניסה — הכלי חי במסך-הכניסה */}
-              <button type="button" className="orbit-util" aria-label="בדיקת תקשורת — האם הקו חוסם את המערכת" onClick={() => setNetCheckOpen(true)}>
-                🩺 בדיקת תקשורת
-              </button>
 
               <ul className="orbit-lede-points">
                 <li>
@@ -232,9 +226,9 @@ export function LoginScreen() {
           </div>
         </div>
 
-        {/* בהצלחה/המתנה ה-lede (עם המותג) מוסתר — כאן נותנים הקשר-ארגון; בהרשמה המותג כבר בראש ה-lede */}
+        {/* חתימת-הפלטפורמה במצב-הצלחה — שם-הפלטפורמה (אורביט), או שם-הלקוח white-label */}
         <div style={{ position: 'relative', zIndex: 2, fontSize: 12.5, color: 'rgba(255,240,228,.5)' }}>
-          {submitted && `מערכת עבור ${title}`}
+          {submitted && `מערכת ${config.orgName || 'אורביט'}`}
         </div>
       </main>
 
@@ -249,7 +243,6 @@ export function LoginScreen() {
       {readerOpen && <NewsReader onClose={() => setReaderOpen(false)} />}
       {callbackOpen && <CallbackModal onClose={() => setCallbackOpen(false)} />}
       {videoOpen && <VideoModal onClose={() => setVideoOpen(false)} />}
-      {netCheckOpen && <NetCheckModal orbit onClose={() => setNetCheckOpen(false)} />}
     </div>
   );
 }

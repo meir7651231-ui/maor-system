@@ -52,11 +52,12 @@ describe('🩺 ratchet — מאבחן-חסימות (11.8)', () => {
     expect(script).toContain('לפתוח את הכתובות');
   });
 
-  it('נגישות: כפתור במסך-הכניסה + כפתור ב-❓ העזרה', () => {
-    expect(loginSrc).toContain('🩺 בדיקת תקשורת');
-    expect(loginSrc).toContain('<NetCheckModal');
+  it('נגישות: הכלי חי ב-❓ העזרה שבתוך האפליקציה (הוסר ממסך-ההרשמה לפי הכרעת-בעלים)', () => {
+    // הכרעת-בעלים: מסך-ההרשמה נקי מכפתור-האבחון; הוא נשאר נגיש מתוך האפליקציה.
     expect(appSrc).toMatch(/emoji="🩺"/);
     expect(appSrc).toContain('<NetCheckModal');
+    expect(loginSrc).not.toContain('🩺 בדיקת תקשורת');
+    expect(loginSrc).not.toContain('NetCheckModal');
   });
 
   it('המודאל: העתקת-בקשה, בדיקה-חוזרת, ומסר "המערכת ממשיכה לעבוד מקומית"', () => {
