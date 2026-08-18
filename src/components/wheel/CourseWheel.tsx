@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { Course } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
-import { DAY_LETTERS, DAY_NAMES, enrollCount, sessionsOf } from '../courses/lib';
+import { DAY_LETTERS, DAY_NAMES, enrollCount, sessionsOf, wheelIndexUnderPointer } from '../courses/lib';
 
 const CX = 200;
 const CY = 200;
@@ -98,10 +98,14 @@ export function CourseWheel(props: { onClose: () => void }) {
   const [spinning, setSpinning] = useState(false);
   const [winner, setWinner] = useState<Course | null>(null);
   const [confetti, setConfetti] = useState<Piece[]>([]);
+  // 🎡 מצב-ידני (17.8) — לסובב את הגלגל ביד ולבחור קורס (בלי הגרלה)
+  const [manual, setManual] = useState(false);
 
   const rotRef = useRef(0);
   const rafRef = useRef(0);
   const confettiTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const dragRef = useRef<{ startAngle: number; startRot: number; moved: boolean } | null>(null);
 
   // Escape סוגר
   useEffect(() => {
@@ -223,6 +227,41 @@ export function CourseWheel(props: { onClose: () => void }) {
     rafRef.current = requestAnimationFrame(frame);
   }
 
+  /** זווית-המצביע (מעלות) ביחס למרכז ה-SVG. */
+  function pointerAngle(e: { clientX: number; clientY: number }): number {
+    const el = svgRef.current;
+    if (!el) return 0;
+    const r = el.getBoundingClientRect();
+    return (Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180) / Math.PI;
+  }
+
+  // 🎡 גרירה-ידנית — סיבוב הגלגל ביד (מצב-ידני בלבד; לא בזמן הגרלה)
+  function onDragStart(e: React.PointerEvent) {
+    if (!manual || spinning || courses.length < 1) return;
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    dragRef.current = { startAngle: pointerAngle(e), startRot: rotRef.current, moved: false };
+  }
+  function onDragMove(e: React.PointerEvent) {
+    const d = dragRef.current;
+    if (!d) return;
+    const r = d.startRot + (pointerAngle(e) - d.startAngle);
+    d.moved = true;
+    rotRef.current = r;
+    setRot(r);
+    if (winner) setWinner(null);
+  }
+  function onDragEnd() {
+    dragRef.current = null;
+  }
+
+  /** בחירת הקורס שנמצא כרגע מתחת למחוג העליון (אחרי סיבוב-ידני). */
+  function pickUnderPointer() {
+    const list = courses;
+    if (!list.length) return;
+    setConfetti([]);
+    setWinner(list[wheelIndexUnderPointer(rotRef.current, list.length)] ?? null);
+  }
+
   const teacherName = (id: string) => db.teachers.find((t) => t.id === id)?.name ?? '—';
 
   function spotsLabel(c: Course): string {
@@ -269,11 +308,19 @@ export function CourseWheel(props: { onClose: () => void }) {
       <div className="wheel-shell">
         <header className="wheel-head">
           <h2 className="wheel-title">{'🎡 גלגל ה' + coursesT}</h2>
-          <p className="wheel-sub">נעלו מה שחשוב לכם — והגלגל יבחר את השאר</p>
+          <p className="wheel-sub">
+            {manual ? 'סובבו את הגלגל ביד (או הקליקו על קטע) — ובחרו קורס' : 'נעלו מה שחשוב לכם — והגלגל יבחר את השאר'}
+          </p>
           <button type="button" className="wheel-close" onClick={onClose} aria-label="סגירת הגלגל">
             ✕
           </button>
         </header>
+
+        {/* 🎡 מצב-ידני (17.8) — הגרלה אקראית / סיבוב-ידני ובחירה */}
+        <div className="wheel-lock-chips" style={{ display: 'flex', gap: 8, justifyContent: 'center', margin: '2px 0 8px' }}>
+          {chip(!manual, '🎲 הגרלה', () => { if (!spinning) setManual(false); }, 'mode-auto')}
+          {chip(manual, '✋ ידני', () => { if (!spinning) { setManual(true); setWinner(null); setConfetti([]); } }, 'mode-manual')}
+        </div>
 
         <div className="wheel-locks" aria-label="נעילות סינון">
           <div className="wheel-lock-row">
@@ -310,7 +357,18 @@ export function CourseWheel(props: { onClose: () => void }) {
         </div>
 
         <div className="wheel-stage">
-          <svg className="wheel-svg" viewBox="0 0 400 400" role="img" aria-label={n + ' ' + coursesT + ' בגלגל'}>
+          <svg
+            ref={svgRef}
+            className="wheel-svg"
+            viewBox="0 0 400 400"
+            role="img"
+            aria-label={n + ' ' + coursesT + ' בגלגל'}
+            style={manual && !spinning ? { cursor: dragRef.current ? 'grabbing' : 'grab', touchAction: 'none' } : undefined}
+            onPointerDown={onDragStart}
+            onPointerMove={onDragMove}
+            onPointerUp={onDragEnd}
+            onPointerCancel={onDragEnd}
+          >
             <g transform={`rotate(${rot} ${CX} ${CY})`}>
               <circle className="wheel-base" cx={CX} cy={CY} r={R} />
               {n === 1 && courses[0] && (
@@ -328,7 +386,12 @@ export function CourseWheel(props: { onClose: () => void }) {
                   const isWin = winner?.id === c.id && !spinning;
                   return (
                     <g key={c.id}>
-                      <path className={`wheel-seg shade-${shadeOf(i, n)}${isWin ? ' win' : ''}`} d={arcPath(a0, a0 + step)} />
+                      <path
+                        className={`wheel-seg shade-${shadeOf(i, n)}${isWin ? ' win' : ''}`}
+                        d={arcPath(a0, a0 + step)}
+                        style={manual && !spinning ? { cursor: 'pointer' } : undefined}
+                        onClick={() => { if (manual && !spinning && !dragRef.current) { setConfetti([]); setWinner(c); } }}
+                      />
                       <text
                         className="wheel-seg-text"
                         transform={`rotate(${mid} ${CX} ${CY})`}
@@ -395,15 +458,23 @@ export function CourseWheel(props: { onClose: () => void }) {
 
         {n === 0 && <div className="wheel-empty">{'אין ' + coursesT + ' בסינון הזה — שחררו נעילה 🔓'}</div>}
 
-        {n >= 2 && (
-          <button type="button" className="wheel-spin-btn" onClick={spin} disabled={spinning}>
-            {spinning ? 'מסתובב… 🎡' : 'סובב! 🎲'}
-          </button>
+        {manual ? (
+          n >= 1 && (
+            <button type="button" className="wheel-spin-btn" onClick={pickUnderPointer} disabled={spinning}>
+              👆 בחר את שמתחת למחוג
+            </button>
+          )
+        ) : (
+          n >= 2 && (
+            <button type="button" className="wheel-spin-btn" onClick={spin} disabled={spinning}>
+              {spinning ? 'מסתובב… 🎡' : 'סובב! 🎲'}
+            </button>
+          )
         )}
 
         {shown && !spinning && (
           <div className="wheel-result" role="status">
-            <div className="wheel-result-tag">{winner ? '🎉 הגלגל בחר:' : 'זה הגורל! 😄'}</div>
+            <div className="wheel-result-tag">{manual ? '👆 בחרת:' : winner ? '🎉 הגלגל בחר:' : 'זה הגורל! 😄'}</div>
             <div className="wheel-result-name">{shown.name}</div>
             <div className="wheel-result-meta">
               {'🧑‍🏫 ' + teacherName(shown.teacherId) + ' · 📅 יום ' + DAY_NAMES[shown.weekday] + (shown.time ? ' ' + shown.time : '') + ' · ' + priceLabel(shown)}
@@ -420,7 +491,7 @@ export function CourseWheel(props: { onClose: () => void }) {
               >
                 {'לכרטיס ה' + courseT + ' ←'}
               </button>
-              {n >= 2 && (
+              {n >= 2 && !manual && (
                 <button type="button" className="btn" onClick={spin}>
                   סובב שוב 🎲
                 </button>
