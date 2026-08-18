@@ -8,8 +8,9 @@
  * גבולות: אימות = אימייל+סיסמה בלבד (בלי ספקי-זהות חיצוניים או מפתחות-גישה —
  * לא מבטיחים מה שאין); הקופי הנעול מדויק; אפס CDN (Hero + גופנים מקומיים).
  */
-import { useState, type FormEvent } from 'react';
+import { useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import { useApp } from '../../store/useApp';
+import { orbitTheme } from '../../lib/orbitTheme';
 import { SignupHero } from './SignupHero';
 import { SignupWizard } from './SignupWizard';
 import { EmployeeSignup } from './EmployeeSignup';
@@ -38,8 +39,11 @@ export function LoginScreen() {
   const [videoOpen, setVideoOpen] = useState(false);
   const [netCheckOpen, setNetCheckOpen] = useState(false);
 
-  const title = config.orgName || dbOrgName || 'מאור החסד';
-  const brandEmoji = config.emoji || '🕯️';
+  // ברירת-מחדל = אורביט (הפלטפורמה שאליה נרשמים); לקוח עם orgName/emoji/accent
+  // מקבל את הזהות שלו — "בהמשך זה יגיע מהאתר שלהם".
+  const title = config.orgName || dbOrgName || 'אורביט';
+  const brandEmoji = config.emoji || '🪐';
+  const theme = useMemo(() => orbitTheme(config.accent), [config.accent]);
 
   // כניסה בלבד — ההרשמה עברה לאשף 5-השלבים (SignupWizard).
   const submit = async (e: FormEvent) => {
@@ -76,7 +80,7 @@ export function LoginScreen() {
   const eyeIcon = showPass ? '🙈' : '👁';
 
   return (
-    <div className="orbit-screen">
+    <div className="orbit-screen" style={theme.vars as CSSProperties}>
       <SignupHero />
 
       <main className="orbit-main">
@@ -259,9 +263,11 @@ export function PendingApprovalScreen() {
   // סטטוס אמיתי (5.8 — "מאור נרשם ולא רואים בקשה"): המסך אמר "הבקשה נקלטה"
   // גם כשהכתיבה נכשלה בשקט והבעלים לא ראה כלום. עכשיו: כשל ⇒ קוד-השגיאה מוצג.
   const reqStatus = useApp((s) => s.cloud.reqStatus);
+  const config = useApp((s) => s.config);
+  const theme = useMemo(() => orbitTheme(config.accent), [config.accent]);
   const failed = !!reqStatus && reqStatus !== 'ok';
   return (
-    <div className="orbit-screen">
+    <div className="orbit-screen" style={theme.vars as CSSProperties}>
       <SignupHero />
       <main className="orbit-main" style={{ alignItems: 'center', justifyContent: 'center' }}>
         <div className="orbit-card" style={{ textAlign: 'center' }}>

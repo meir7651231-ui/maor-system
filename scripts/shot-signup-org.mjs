@@ -20,9 +20,9 @@ await new Promise((r) => server.listen(0, r));
 const port = server.address().port;
 const base = `http://localhost:${port}`;
 
-// org מדומה בשם "אורביט" + אימוג'י 🪐 + firebase (ענן דלוק ⇒ מסך ההרשמה)
+// org מדומה עם זהות משלו (שם+אייקון+accent חם) — מדגים "בהמשך מהאתר שלהם"
 const CFG = {
-  slug: 'orbit-demo', orgName: 'אורביט', emoji: '🪐', theme: 'or-rishon', modules: {}, terms: {},
+  slug: 'maor-demo', orgName: 'מאור החסד', emoji: '🕯️', accent: '#f0a057', theme: 'or-rishon', modules: {}, terms: {},
   firebase: { apiKey: 'demo-key', authDomain: 'demo.firebaseapp.com', projectId: 'demo', appId: '1:1:web:1' },
 };
 

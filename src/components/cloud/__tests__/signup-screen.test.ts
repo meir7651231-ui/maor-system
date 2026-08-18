@@ -18,15 +18,19 @@ import rulesSrc from '../../../../firestore.rules?raw';
 const ALL = [loginSrc, wizardSrc, heroSrc, newsSrc, cbSrc, videoSrc];
 
 describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () => {
-  it('הקופי הנעול מדויק — מיתוג "מאור" (ולא "אורביט")', () => {
-    // המיתוג נגזר משם-הארגון (title/emoji), לא מהמותג-הגנרי "אורביט"
+  it('הקופי הנעול מדויק + מיתוג נגזר-ארגון (ברירת-מחדל אורביט, בהמשך מהאתר שלהם)', () => {
     expect(loginSrc).toContain('כל הפעילות שלכם');
     expect(loginSrc).toContain('המערכת שמחברת את כל הפעילות שלכם למקום אחד');
     expect(loginSrc).toContain('<em>במקום אחד.</em>');
+    // המותג (שם+אייקון) נגזר מ-config; ברירת-מחדל = אורביט (הפלטפורמה)
     expect(loginSrc).toContain('orbit-brand-name');
     expect(loginSrc).toContain('{title}');
-    expect(loginSrc).toContain("config.emoji || '🕯️'");
-    // אין יותר קופי-אורביט קשיח + אין לוגו-ORBIT קשיח בכותרת
+    expect(loginSrc).toContain("|| 'אורביט'");
+    expect(loginSrc).toContain("config.emoji || '🪐'");
+    // הצבע נגזר-ארגון דרך orbitTheme(accent); ברירת-מחדל = כחול קוסמי
+    expect(loginSrc).toContain('orbitTheme(config.accent)');
+    expect(heroSrc).toContain('orbitTheme(config.accent).scene');
+    // אין קופי-אורביט קשיח ישן, אין ORBIT קשיח בפוטר, אין לוגו-ORBIT קשיח
     expect(loginSrc).not.toContain('אורביט היא מערכת');
     expect(loginSrc).not.toContain('© 2026 ORBIT');
     expect(heroSrc).not.toContain('orbit-logo.png');

@@ -11,6 +11,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
+import { orbitTheme } from '../../lib/orbitTheme';
 import type { BrainSceneHandle } from '../../lib/three-scene';
 
 // נתיב יחסי לפריסה תחת תת-נתיב (GitHub Pages /maor-system/) — כמו DemoDrop
@@ -32,8 +33,8 @@ export function SignupHero() {
       // טעינה דינמית של three-scene (+three) — chunk נפרד, יורד רק כאן
       void import('../../lib/three-scene').then(({ mountBrainScene }) => {
         if (cancelled || !canvasRef.current) return;
-        // 🕯️ מאור = אוֹר: ערכת Ember (זהוב-ורוד חם) עם זוהר מוגבר — כדור-אור, לא כדור-מוח קר
-        handle = mountBrainScene(canvasRef.current, { palette: 'Ember', pulse: 1.1, bloom: 0.72 });
+        // פלטת-הכדור נגזרת-ארגון: אורביט=Aurora (כחול), accent חם⇒Ember, וכו'
+        handle = mountBrainScene(canvasRef.current, { palette: orbitTheme(config.accent).scene, pulse: 1.1, bloom: 0.68 });
         setLive(!!handle);
       });
     }, 30);
@@ -42,9 +43,9 @@ export function SignupHero() {
       window.clearTimeout(id);
       handle?.dispose();
     };
-  }, [hero3d]);
+  }, [hero3d, config.accent]);
 
-  const orgName = config.orgName || 'מאור החסד';
+  const orgName = config.orgName || 'אורביט';
   return (
     <div className="orbit-hero" aria-hidden>
       {/* רקע סטטי — תמיד מתחת; הכדור-האור החי מכסה אותו כשעלה */}
