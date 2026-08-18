@@ -109,9 +109,9 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
     // חוזה הדגלים "חסר=דלוק" הפך מודול חדש לדלוק-בשקט בכל ורטיקל. מעתה: כל
     // מודול חייב עמדה — או מפתח מפורש ב-modules, או רישום כאן כ-ON-מכוון.
     // ⇒ המודול הבא שיתווסף ל-ModuleKey ישבור את הבדיקה עד שכל ורטיקל יכריע.
-    const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop'];
+    const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7'];
     const INTENTIONAL_ON: Record<string, ModuleKey[]> = {
-      chesed: ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop'], // הלקוח החי — הכול דלוק במכוון
+      chesed: ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7'], // הלקוח החי — הכול דלוק במכוון
       clinic: ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports'],
       shop: ['families', 'calendar', 'supporters', 'reports', 'shop'], // מודול החנות דלוק — מונחים קמעונאיים
       services: ['families', 'calendar', 'diary', 'supporters', 'reports'],
@@ -132,6 +132,17 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
         const stated = m in p.modules || on.includes(m);
         expect(stated, `חבילה ${p.id} — למודול ${m} אין עמדה (לא ב-modules ולא ב-INTENTIONAL_ON)`).toBe(true);
       }
+    }
+  });
+
+  it('🚚 חלוקה (shop7) — דלוקה רק בחסד/גמ"ח/צדקות, כבויה במסחריות (באג 18.8: דלפה לכולן)', () => {
+    // shop7 נוסף בגל SHOP7 אחרי שהחבילות הוגדרו; חוזה "מפתח-חסר=דלוק" ⇒ מודול
+    // 'חלוקה' דלף לכל ורטיקל — כולל סטודיו-דיגיטל/בנייה/קליניקה, שם הוא חסר-פשר.
+    // הכרעת-בעלים ("תעשה את מה שנכון"): ON רק בעמותתיות-החלוקה.
+    const ON = new Set(['chesed', 'gemach', 'tzedakot']);
+    for (const p of VERTICAL_PACKS) {
+      const on = p.modules.shop7 !== false; // חסר-מפתח (חסד) = דלוק
+      expect(on, `חבילה ${p.id} — חלוקה צריכה להיות ${ON.has(p.id) ? 'דלוקה' : 'כבויה'}`).toBe(ON.has(p.id));
     }
   });
 
