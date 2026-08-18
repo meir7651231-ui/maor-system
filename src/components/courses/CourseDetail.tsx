@@ -64,6 +64,7 @@ export function CourseDetail(props: { course: Course }) {
   const nextId = useApp((s) => s.nextId);
   const go = useApp((s) => s.go);
   const setPresent = useApp((s) => s.setPresent);
+  const setEnrollmentPaid = useApp((s) => s.setEnrollmentPaid);
   const addCred = useApp((s) => s.addCred);
   const toast = useApp((s) => s.toast);
   const cfg = useApp((s) => s.config);
@@ -481,6 +482,26 @@ export function CourseDetail(props: { course: Course }) {
                           </td>
                           <td>
                             <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                              {/* 💰 סטטוס-תשלום (17.8) — בורר לתשלום/שולם, סטטוס בלבד (לא נוגע בקבלות) */}
+                              <button
+                                type="button"
+                                onClick={() => setEnrollmentPaid(e.id, !e.paidFull)}
+                                title={e.paidFull ? 'מסומן כשולם — לחיצה מחזירה ל״לתשלום״' : 'סימון כ״שולם״ (סטטוס בלבד — לא נוגע בקבלות)'}
+                                style={{
+                                  fontSize: 11.5,
+                                  fontWeight: 700,
+                                  padding: '3px 9px',
+                                  borderRadius: 99,
+                                  whiteSpace: 'nowrap',
+                                  cursor: 'pointer',
+                                  border: '1px solid',
+                                  borderColor: e.paidFull ? '#16a34a' : '#d97706',
+                                  color: e.paidFull ? '#16a34a' : '#b45309',
+                                  background: e.paidFull ? 'rgba(22,163,74,.1)' : 'rgba(217,119,6,.1)',
+                                }}
+                              >
+                                {e.paidFull ? '✓ שולם' : '💰 לתשלום'}
+                              </button>
                               {punchOn && (
                                 <Btn sm kind={noBalance ? 'plain' : 'primary'} onClick={() => doPunch(e)}>
                                   {noBalance ? 'חידוש ←' : punchArm?.id === e.id ? 'לאשר ניקוב?' : 'ניקוב'}
