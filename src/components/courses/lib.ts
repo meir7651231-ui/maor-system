@@ -308,6 +308,21 @@ export function payBal(e: Enrollment): number {
   return Math.max(0, (e.totalDue || 0) - paidOf(e));
 }
 
+/** סטטוס-תשלום נגזר-אוטומטית (17.8, "למה השולם לא מתעדכן לבד"): */
+export type PaidStatus = 'paid' | 'partial' | 'unpaid';
+/**
+ * גוזר את סטטוס-התשלום מהנתונים בפועל:
+ *  • paidFull ידני ⇒ 'paid' (דריסה — לחוגים בלי סכום-עסקה, או תשלום חיצוני).
+ *  • יש totalDue: יתרה 0 ⇒ 'paid'; שולם-חלקית ⇒ 'partial'; כלום ⇒ 'unpaid'.
+ *  • אין totalDue: 'unpaid' עד סימון-ידני. כך רישום-תשלום מעדכן את הסטטוס לבד.
+ */
+export function enrollmentPaidStatus(e: Enrollment): PaidStatus {
+  if (e.paidFull) return 'paid';
+  const due = e.totalDue || 0;
+  if (due > 0) return payBal(e) === 0 ? 'paid' : paidOf(e) > 0 ? 'partial' : 'unpaid';
+  return 'unpaid';
+}
+
 /**
  * מספר המשובצים התופסים מקום בקורס — פעילים + מוקפאים. שיבוץ שהסתיים ('ended')
  * פינה את מקומו ולכן אינו נספר לתפוסה; אחרת קורס עם בוגרים רבים היה נראה "מלא"

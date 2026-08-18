@@ -23,6 +23,8 @@ import {
   ageOf,
   chipStyle,
   enrollCount,
+  enrollmentPaidStatus,
+  payBal,
   fmtDate,
   groupLabelOf,
   groupRemapOnRemoval,
@@ -407,6 +409,10 @@ export function CourseDetail(props: { course: Course }) {
                   <tbody>
                     {enrolled.map((e) => {
                       const m = memberById.get(e.memberId);
+                      // 💰 סטטוס-תשלום נגזר-אוטומטית (17.8) — מתעדכן לבד לפי היתרה
+                      const paidStatus = enrollmentPaidStatus(e);
+                      const hasDue = (e.totalDue || 0) > 0;
+                      const paidColor = paidStatus === 'paid' ? '#16a34a' : paidStatus === 'partial' ? '#d97706' : '#dc2626';
                       const isPunch = e.plan === 'punch';
                       const rem = e.purchased - e.used;
                       const barColor = rem <= 0 ? '#dc2626' : rem <= 2 ? '#d97706' : '#16a34a';
@@ -482,11 +488,12 @@ export function CourseDetail(props: { course: Course }) {
                           </td>
                           <td>
                             <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                              {/* 💰 סטטוס-תשלום (17.8) — בורר לתשלום/שולם, סטטוס בלבד (לא נוגע בקבלות) */}
+                              {/* 💰 סטטוס-תשלום (17.8) — נגזר-אוטומטית מהיתרה. יש סכום-עסקה ⇒
+                                  קליק פותח רישום-תשלום (הסטטוס מתעדכן לבד); אין ⇒ סימון-ידני. */}
                               <button
                                 type="button"
-                                onClick={() => setEnrollmentPaid(e.id, !e.paidFull)}
-                                title={e.paidFull ? 'מסומן כשולם — לחיצה מחזירה ל״לתשלום״' : 'סימון כ״שולם״ (סטטוס בלבד — לא נוגע בקבלות)'}
+                                onClick={() => (hasDue ? setModal({ kind: 'manage', enrollmentId: e.id }) : setEnrollmentPaid(e.id, !e.paidFull))}
+                                title={hasDue ? 'רישום/עדכון תשלום — הסטטוס מתעדכן לבד לפי היתרה' : 'סימון ידני שולם/לתשלום (אין סכום-עסקה לגזור ממנו)'}
                                 style={{
                                   fontSize: 11.5,
                                   fontWeight: 700,
@@ -495,12 +502,12 @@ export function CourseDetail(props: { course: Course }) {
                                   whiteSpace: 'nowrap',
                                   cursor: 'pointer',
                                   border: '1px solid',
-                                  borderColor: e.paidFull ? '#16a34a' : '#d97706',
-                                  color: e.paidFull ? '#16a34a' : '#b45309',
-                                  background: e.paidFull ? 'rgba(22,163,74,.1)' : 'rgba(217,119,6,.1)',
+                                  borderColor: paidColor,
+                                  color: paidColor,
+                                  background: paidStatus === 'paid' ? 'rgba(22,163,74,.1)' : paidStatus === 'partial' ? 'rgba(217,119,6,.1)' : 'rgba(220,38,38,.08)',
                                 }}
                               >
-                                {e.paidFull ? '✓ שולם' : '💰 לתשלום'}
+                                {paidStatus === 'paid' ? '✓ שולם' : paidStatus === 'partial' ? '◐ נותר ₪' + payBal(e) : '💰 לתשלום'}
                               </button>
                               {punchOn && (
                                 <Btn sm kind={noBalance ? 'plain' : 'primary'} onClick={() => doPunch(e)}>
