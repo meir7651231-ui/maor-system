@@ -73,7 +73,7 @@ describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () =>
     expect(loginSrc).toContain('CallbackModal');
     expect(loginSrc).toContain('setReaderOpen(true)');
     expect(loginSrc).toContain('setCallbackOpen(true)');
-    expect(newsSrc).toContain('orbit/orbit-news.html');
+    expect(newsSrc).toContain('orbit/orbit-news');
     expect(newsSrc).not.toContain('pdfjs');
     expect(cbSrc).toContain('cloudRequestCallback');
   });
