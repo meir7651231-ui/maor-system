@@ -273,6 +273,8 @@ interface AppState {
   addAbsence: (enrollmentId: string, absence: Absence) => void;
   /** רישום תשלום — {ok:false} כשה-store דחה (השיבוץ נעלם); rid רק כשהונפק בפועל. */
   addPayment: (enrollmentId: string, payment: Omit<Payment, 'rid'>) => { ok: boolean; rid?: string };
+  /** 💰 סימון-סטטוס תשלום מהיר פר-שיבוץ (17.8) — לתשלום/שולם, בלי לגעת בקבלות. */
+  setEnrollmentPaid: (enrollmentId: string, paid: boolean) => void;
 
   // יומן ואירועים
   /**
@@ -1556,6 +1558,14 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => ({
         enrollments: db.enrollments.map((e) =>
           e.id === enrollmentId ? { ...e, absences: [absence, ...e.absences] } : e,
+        ),
+      }));
+    },
+    setEnrollmentPaid(enrollmentId, paid) {
+      // 💰 סימון-סטטוס בלבד (17.8) — אינו נוגע ב-payments/totalDue/receiptSeq/קבלות.
+      setDb((db) => ({
+        enrollments: db.enrollments.map((e) =>
+          e.id === enrollmentId ? { ...e, paidFull: paid } : e,
         ),
       }));
     },
