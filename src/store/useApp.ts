@@ -910,26 +910,35 @@ export const useApp = create<AppState>()((set, get) => {
                   stored = raw ? (JSON.parse(raw) as import('../lib/cloudConfig').OrgRequestDoc) : null;
                 } catch { /* JSON פגום ⇒ בקשה מינימלית */ }
                 const mine = stored && String(stored.email ?? '').toLowerCase() === mail;
-                void writeOrgRequestResilient(
-                  (u, r) => mod.writeOrgRequest(u, r),
-                  user.uid,
-                  (mine && stored ? stored : {
-                    orgName: '',
-                    contactName: mail.split('@')[0],
-                    phone: '',
-                    email: mail,
-                    at: new Date().toISOString(),
-                  }) as Record<string, unknown>,
-                )
-                  .then(() => {
-                    setCloud({ reqStatus: 'ok' });
-                    try { localStorage.setItem(REQ_OK_KEY, user.uid); } catch { /* לא קריטי */ }
-                  })
-                  .catch((e) => {
-                    // הכשל גלוי במסך-ההמתנה (5.8) — permission-denied כאן פירושו
-                    // בדרך-כלל Rules חסומים (או בקשה שכבר קיימת ממכשיר אחר)
-                    setCloud({ reqStatus: fsErrCode(e) });
-                  });
+                // 🛡️ נחיל-אבטחה 17.8 (ממצאים #4+#5, אותו שורש): רושמים-מחדש **רק**
+                // כשלמכשיר הזה יש רשומת-הרשמה מקומית (PENDING_SIGNUP_KEY שתואם למייל).
+                //  • #5 (בקשת-רפאים): מכשיר-אחר/עובד בלי הרשומה היה רושם בקשת-ארגון
+                //    ריקה (orgName:'') אצל הבעלים — זבל בלוח-הבקרה. עכשיו לא נכתב.
+                //  • #4 (אזעקת-שווא): על מכשיר-שני הבקשה כבר קיימת בענן ⇒ create-only
+                //    מחזיר permission-denied ⇒ המסך אמר בשקר "הבקשה לא נקלטה". עכשיו
+                //    אין כתיבה כזו ⇒ מוצג "⏳ נקלטה" (הבקשה באמת נקלטה — מהמכשיר הראשון).
+                // כשל-אמיתי של הרשמה טרייה עדיין גלוי — הוא נתפס ב-cloudSignUp עצמו
+                // (ובענף mine כאן), לא בענף המכשיר-האחר.
+                if (mine && stored) {
+                  void writeOrgRequestResilient(
+                    (u, r) => mod.writeOrgRequest(u, r),
+                    user.uid,
+                    stored as Record<string, unknown>,
+                  )
+                    .then(() => {
+                      setCloud({ reqStatus: 'ok' });
+                      try { localStorage.setItem(REQ_OK_KEY, user.uid); } catch { /* לא קריטי */ }
+                    })
+                    .catch((e) => {
+                      // הכשל גלוי במסך-ההמתנה (5.8) — permission-denied כאן פירושו
+                      // בדרך-כלל Rules חסומים (הרשמה שנכשלה מהמכשיר שביצע אותה)
+                      setCloud({ reqStatus: fsErrCode(e) });
+                    });
+                } else {
+                  // מכשיר-אחר/עובד ללא-רשומה מקומית — הבקשה כבר קיימת במקום אחר;
+                  // מסך-המתנה ניטרלי, בלי כתיבת-רפאים ובלי אזעקת-permission-denied.
+                  setCloud({ reqStatus: 'ok' });
+                }
               });
             }
           }
