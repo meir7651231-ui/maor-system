@@ -20,7 +20,7 @@ import { Btn, Modal, TextInput } from '../ui';
 // מפתחות הקופה ממורחבי-שמות פר-ארגון (CONNECT חיבור 7 — חלק מבאג ידוע 3)
 import { nsLsKey } from '../../store/persist';
 // גל-1/2: מנוע פירוט-עודף + צבעי-מטבע + מתמטיקת-משמרת (טהור, נבדק ביחידה)
-import { BILL_VALS, COIN_VALS, cashSuggestions, changeBreakdown, countsTotal, denomTint, drawerDiff, expectedDrawer, filterCashSuggest } from './cashLib';
+import { BILL_VALS, COIN_VALS, cashSuggestions, changeBreakdown, countsTotal, denomTint, drawerDiff, expectedDrawer, filterCashSuggest, payerSuggestions } from './cashLib';
 
 const LS_RECEIPTS = 'maor_cashbox_receipts';
 const LS_SEQ = 'maor_cashbox_seq';
@@ -292,6 +292,10 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
   const [suppressSug, setSuppressSug] = useState(false);
   const suggestions = useMemo(() => cashSuggestions(db.courses), [db.courses]);
   const sugMatches = useMemo(() => (suppressSug ? [] : filterCashSuggest(suggestions, itemName)), [suggestions, itemName, suppressSug]);
+  // 🧑 הקלדה-חכמה ל"על מי" (18.8): הצעות משפחות/תורמים קיימים. בחירה ממלאת שם-לקוח.
+  const [suppressPayer, setSuppressPayer] = useState(!!prefillClient);
+  const payerSug = useMemo(() => payerSuggestions(db.families, db.supporters), [db.families, db.supporters]);
+  const payerMatches = useMemo(() => (suppressPayer ? [] : filterCashSuggest(payerSug, client)), [payerSug, client, suppressPayer]);
   // גל-2: משמרת / סגירת-קופה
   const [shift, setShift] = useState<Shift | null>(() => readShift());
   const [shiftPanel, setShiftPanel] = useState(false);
@@ -680,9 +684,33 @@ export function CashRegister({ onClose }: { onClose: () => void }) {
             <TextInput type="number" dir="ltr" value={due} onChange={setDue} placeholder="0" />
           )}
         </label>
-        <label style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+        <label style={{ fontSize: 12.5, color: 'var(--ink-soft)', position: 'relative' }}>
           {termOf(config, 'entity.family', 'לקוח')} (לא חובה)
-          <TextInput value={client} onChange={setClient} placeholder="שם" />
+          <TextInput
+            value={client}
+            onChange={(v) => { setClient(v); setSuppressPayer(false); }}
+            placeholder="שם — הקלידו לחיפוש משפחה/תורם קיים"
+          />
+          {payerMatches.length > 0 && (
+            <div
+              style={{ position: 'absolute', top: '100%', insetInlineStart: 0, insetInlineEnd: 0, zIndex: 20, background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 8, marginTop: 2, boxShadow: '0 6px 18px rgba(0,0,0,.14)', maxHeight: 210, overflowY: 'auto' }}
+            >
+              {payerMatches.map((p, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => { setClient(p.name); setSuppressPayer(true); }}
+                  style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '7px 10px', border: 'none', borderBottom: i < payerMatches.length - 1 ? '1px solid var(--line)' : 'none', background: 'transparent', cursor: 'pointer', textAlign: 'start', fontSize: 13 }}
+                >
+                  <span style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}>
+                    <span style={{ fontSize: 10.5, color: 'var(--ink-faint)', border: '1px solid var(--line)', borderRadius: 6, padding: '1px 5px', flexShrink: 0 }}>{p.hint}</span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                  </span>
+                  {p.sub && <span style={{ direction: 'ltr', fontSize: 11.5, color: 'var(--ink-faint)', flexShrink: 0 }}>{p.sub}</span>}
+                </button>
+              ))}
+            </div>
+          )}
         </label>
       </div>
 
