@@ -11,6 +11,7 @@ import loginSrc from '../../components/cloud/LoginScreen.tsx?raw';
 import wizardSrc from '../../components/cloud/SignupWizard.tsx?raw';
 import empSrc from '../../components/cloud/EmployeeSignup.tsx?raw';
 import useAppSrc from '../../store/useApp.ts?raw';
+import cloudSrc from '../cloud.ts?raw';
 import rulesSrc from '../../../firestore.rules?raw';
 
 describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => {
@@ -162,6 +163,21 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect(rulesSrc).toMatch(/joinRequests\/\{uid\}[\s\S]{0,900}hasOnly\(\['email', 'name', 'phone', 'code', 'at'\]\)/);
     // הכותבים בפועל משתמשים בדיוק בשדות האלה ⇒ לא-שובר (email/name/phone/code/at)
     expect(rulesSrc).toMatch(/joinRequests\/\{uid\}[\s\S]{0,1400}request\.resource\.data\.email\.size\(\) <= 120/);
+  });
+
+  it('🛡 נחיל-אבטחה 17.8 (#1 שלב-1): מייל-אימות נשלח בהרשמה (תוספתי, לא-אוכף)', () => {
+    // נקודת-הפתיחה למיגרציית email_verified — סוגר עתידית חטיפת-זהות-מוקדמת.
+    // תוספתי בלבד: אף בדיקת-הרשאה עדיין לא דורשת אימות ⇒ הקיימים לא נשברים.
+    expect(cloudSrc).toContain('sendEmailVerification');
+    expect(cloudSrc).toMatch(/createUserWithEmailAndPassword[\s\S]{0,600}sendEmailVerification\(cred\.user\)/);
+  });
+
+  it('🛡 נחיל-אבטחה 17.8 (#3): platformRequests מוקשח-DoS — allowlist 8 שדות מלא', () => {
+    // ⚠️ hasOnly **חלקי** (5 שדות) שבר הרשמות-אשף בעבר (CLOSED-ONBOARD 5.8);
+    // כאן כל 8 שדות reqDoc (5 בסיס + industry/size/needs) ⇒ לא-שובר.
+    expect(rulesSrc).toMatch(/platformRequests\/\{uid\}[\s\S]{0,900}hasOnly\(\['orgName', 'contactName', 'phone', 'email', 'at', 'industry', 'size', 'needs'\]\)/);
+    // needs = list; שאר השדות מחרוזות עם תקרות
+    expect(rulesSrc).toMatch(/platformRequests\/\{uid\}[\s\S]{0,1600}request\.resource\.data\.needs is list/);
   });
 
   it('הגנת-מקור: Rules v2 — בקשות uid-תואם, ארגונים לחברים, כתיבה למיילי-על, שורש כהיום', () => {

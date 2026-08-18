@@ -50,7 +50,20 @@ service cloud.firestore {
 
     // בקשות הרשמה: המשתמש יוצר רק את שלו (uid תואם); קריאה/מחיקה — מיילי-על.
     match /platformRequests/{uid} {
-      allow create: if request.auth != null && request.auth.uid == uid;
+      // נחיל-אבטחה 17.8 (ממצא #3): הקשחת-DoS — allowlist 8 השדות ש-cloudSignUp
+      // כותב (5 בסיס + industry/size/needs מהאשף) + תקרות-גודל. ⚠️ קריטי: הרשימה
+      // חייבת לכלול את **כל** שדות reqDoc — hasOnly חלקי (5 בלבד) שבר הרשמות-אשף
+      // בעבר (CLOSED-ONBOARD 5.8). needs = list (≤20). create ע"י הנרשם (uid תואם).
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['orgName', 'contactName', 'phone', 'email', 'at', 'industry', 'size', 'needs'])
+        && (!('orgName' in request.resource.data) || (request.resource.data.orgName is string && request.resource.data.orgName.size() <= 120))
+        && (!('contactName' in request.resource.data) || (request.resource.data.contactName is string && request.resource.data.contactName.size() <= 100))
+        && (!('phone' in request.resource.data) || (request.resource.data.phone is string && request.resource.data.phone.size() <= 30))
+        && (!('email' in request.resource.data) || (request.resource.data.email is string && request.resource.data.email.size() <= 120))
+        && (!('at' in request.resource.data) || (request.resource.data.at is string && request.resource.data.at.size() <= 40))
+        && (!('industry' in request.resource.data) || (request.resource.data.industry is string && request.resource.data.industry.size() <= 40))
+        && (!('size' in request.resource.data) || (request.resource.data.size is string && request.resource.data.size.size() <= 20))
+        && (!('needs' in request.resource.data) || (request.resource.data.needs is list && request.resource.data.needs.size() <= 20));
       allow read, delete: if superAdmin();
     }
 

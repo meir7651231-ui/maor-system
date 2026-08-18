@@ -16,6 +16,7 @@ import {
   getAuth,
   onAuthStateChanged,
   reauthenticateWithCredential,
+  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
@@ -317,6 +318,12 @@ export async function signIn(email: string, password: string): Promise<void> {
 export async function signUp(email: string, password: string): Promise<string> {
   try {
     const cred = await createUserWithEmailAndPassword(requireAuth(), email, password);
+    // 🛡️ נחיל-אבטחה 17.8 (ממצא #1 · שלב-1, תוספתי/לא-שובר): שולחים מייל-אימות
+    // מיד בהרשמה. כרגע לא-אוכף (אף בדיקת-הרשאה עדיין לא דורשת email_verified) ⇒
+    // ביט-זהה למשתמשים הקיימים. זו נקודת-הפתיחה למיגרציה: כשכל החברים אימתו,
+    // אפשר לדרוש email_verified ב-Rules (orgManager/superAdmin/allowedRoot) —
+    // וזה יסגור את "חטיפת-זהות-מוקדמת של מנהל". שליחה best-effort (כשל-רך).
+    void sendEmailVerification(cred.user).catch(() => { /* כשל-שליחה לא מפיל הרשמה */ });
     return cred.user.uid;
   } catch (e) {
     const code = ((e as { code?: string } | null)?.code ?? '').toString();
