@@ -98,6 +98,38 @@ await T('כתיבה-לגיטימית: הרמת-מונה מותרת (סנכרון
 await T('כתיבה-לגיטימית: מונה שווה + שדה-אחר מותר', assertSucceeds(updateDoc(doc(emp, 'orgs/acme/meta/org'), { orgName: 'Acme חדש' })));
 await T('הקפצה-מעלה מותרת (רצף עם פער — לא שכפול)', assertSucceeds(updateDoc(doc(emp, 'orgs/acme/meta/org'), { donationSeq: 999 })));
 
+console.log('\n═══ ח׳ · נחיל-הרשמה 17.8 · הקשחת platformRequests/joinRequests (#2/#3) ═══');
+// כל תרחיש-create = uid ייחודי תואם-מסמך (הכלל create-only if auth.uid == uid);
+// מסמך-לשימוש-חוזר היה נהפך ל-update ⇒ נדחה מטעם אחר (לא ה-hasOnly שנבדק).
+const ctxOf = (uid) => env.authenticatedContext(uid, { email: uid + '@org.com' }).firestore();
+// ✅ הרשמת-אשף מלאה (8 שדות: 5 בסיס + industry/size/needs) — חייבת לעבור (לא לשבור!)
+await T('הרשמה-מלאה (8 שדות אשף) מותרת', assertSucceeds(setDoc(doc(ctxOf('nu1'), 'platformRequests/nu1'), {
+  orgName: 'עמותה חדשה', contactName: 'ישראל', phone: '050-1234567', email: 'nu1@org.com',
+  at: '2026-08-18T00:00:00.000Z', industry: 'or-rishon', size: 'small', needs: ['crm', 'donations'],
+})));
+// ✅ הרשמה-מינימלית (5 שדות-בסיס, נפילת writeOrgRequestResilient) — חייבת לעבור
+await T('הרשמה-מינימלית (5 שדות-בסיס) מותרת', assertSucceeds(setDoc(doc(ctxOf('nu2'), 'platformRequests/nu2'), {
+  orgName: 'עמותה', contactName: 'ישראל', phone: '050-1234567', email: 'nu2@org.com', at: '2026-08-18T00:00:00.000Z',
+})));
+// ❌ שדה-זר (מחוץ ל-allowlist) — נחסם (מונע מסמך-ענק/הזרקת-שדות)
+await T('🔴 שדה-זר ב-platformRequests נחסם (hasOnly)', assertFails(setDoc(doc(ctxOf('nu3'), 'platformRequests/nu3'), {
+  orgName: 'x', email: 'nu3@org.com', evil: 'x'.repeat(500000),
+})));
+// ❌ מחרוזת חורגת-גודל — נחסמת
+await T('🔴 orgName ענק ב-platformRequests נחסם (תקרת-גודל)', assertFails(setDoc(doc(ctxOf('nu4'), 'platformRequests/nu4'), {
+  orgName: 'x'.repeat(5000), email: 'nu4@org.com',
+})));
+// ❌ uid לא-תואם — נחסם (זהות)
+await T('🔴 כתיבת-בקשה תחת uid של אחר נחסמת', assertFails(setDoc(doc(ctxOf('nu5'), 'platformRequests/someoneelse'), { email: 'nu5@org.com' })));
+// ✅ בקשת-הצטרפות לגיטימית (5 שדות מוכרים) — מותרת
+await T('joinRequest לגיטימי (5 שדות) מותר', assertSucceeds(setDoc(doc(ctxOf('nj1'), 'platformOrgs/acme/joinRequests/nj1'), {
+  email: 'nj1@org.com', name: 'ישראל', phone: '050-1234567', code: 'abc', at: '2026-08-18T00:00:00.000Z',
+})));
+// ❌ joinRequest עם שדה-זר — נחסם (DoS חוצה-ארגון)
+await T('🔴 שדה-זר/ענק ב-joinRequest נחסם (hasOnly)', assertFails(setDoc(doc(ctxOf('nj2'), 'platformOrgs/acme/joinRequests/nj2'), {
+  email: 'nj2@org.com', junk: 'x'.repeat(500000),
+})));
+
 await env.cleanup();
 console.log(`\n── סיכום red-team ── ${pass} עברו · ${fail} נכשלו`);
 if (fail > 0) { console.log('❌ יש חור-אבטחה — Rules לא חוסמים תרחיש-תקיפה!'); process.exit(1); }

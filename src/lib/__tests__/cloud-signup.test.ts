@@ -11,6 +11,7 @@ import loginSrc from '../../components/cloud/LoginScreen.tsx?raw';
 import wizardSrc from '../../components/cloud/SignupWizard.tsx?raw';
 import empSrc from '../../components/cloud/EmployeeSignup.tsx?raw';
 import useAppSrc from '../../store/useApp.ts?raw';
+import cloudSrc from '../cloud.ts?raw';
 import rulesSrc from '../../../firestore.rules?raw';
 
 describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => {
@@ -141,6 +142,42 @@ describe('☁️ ratchet — ענן 3: הרשמה ושער-החברות', () => 
     expect(useAppSrc).toMatch(/if \(!\('industry' in req\) && !\('size' in req\) && !\('needs' in req\)\) throw e/);
     // שני מסלולי-הכתיבה (הרשמה + ריפוי-עצמי בהמתנה) עוברים דרך העמידה
     expect((useAppSrc.match(/writeOrgRequestResilient\(/g) ?? []).length).toBeGreaterThanOrEqual(3); // הגדרה + 2 שימושים
+  });
+
+  it('🛡 נחיל-אבטחה 17.8 (#4+#5): ריפוי-עצמי רק למכשיר-עם-רשומה — בלי בקשת-רפאים ובלי אזעקת-שווא', () => {
+    // שני באגים, אותו שורש (ענף ה-!mine בריפוי-העצמי במסך-ההמתנה):
+    // #5 — עובד/מכשיר-אחר בלי PENDING_SIGNUP_KEY היה כותב בקשת-ארגון ריקה (orgName:'')
+    //      אצל הבעלים = זבל בלוח-הבקרה.
+    // #4 — במכשיר-שני הבקשה כבר קיימת ⇒ create-only מחזיר permission-denied ⇒
+    //      המסך אמר בשקר "הבקשה לא נקלטה".
+    // התיקון: הכתיבה-מחדש מגודרת ב-(mine && stored); אחרת reqStatus:'ok' בלי כתיבה.
+    expect(useAppSrc).toContain('if (mine && stored)');
+    // הענף האחר (מכשיר-אחר) מציג "נקלטה" בלי לכתוב — אין יותר orgName:'' בענף-הנפילה
+    expect(useAppSrc).not.toMatch(/mine && stored \? stored : \{\s*orgName: '',/);
+    // כשל-אמיתי (mine) עדיין גלוי — fsErrCode נשאר בענף ה-mine
+    expect(useAppSrc).toMatch(/if \(mine && stored\)[\s\S]{0,1200}fsErrCode\(e\)/);
+  });
+
+  it('🛡 נחיל-אבטחה 17.8 (#2): joinRequests מוקשח-DoS — allowlist 5 שדות + תקרות-גודל', () => {
+    // בלי ההקשחה מסמך-הצטרפות יכול היה להגיע ל-1MB בכל slug (זבל בלוח-המנהל).
+    expect(rulesSrc).toMatch(/joinRequests\/\{uid\}[\s\S]{0,900}hasOnly\(\['email', 'name', 'phone', 'code', 'at'\]\)/);
+    // הכותבים בפועל משתמשים בדיוק בשדות האלה ⇒ לא-שובר (email/name/phone/code/at)
+    expect(rulesSrc).toMatch(/joinRequests\/\{uid\}[\s\S]{0,1400}request\.resource\.data\.email\.size\(\) <= 120/);
+  });
+
+  it('🛡 נחיל-אבטחה 17.8 (#1 שלב-1): מייל-אימות נשלח בהרשמה (תוספתי, לא-אוכף)', () => {
+    // נקודת-הפתיחה למיגרציית email_verified — סוגר עתידית חטיפת-זהות-מוקדמת.
+    // תוספתי בלבד: אף בדיקת-הרשאה עדיין לא דורשת אימות ⇒ הקיימים לא נשברים.
+    expect(cloudSrc).toContain('sendEmailVerification');
+    expect(cloudSrc).toMatch(/createUserWithEmailAndPassword[\s\S]{0,600}sendEmailVerification\(cred\.user\)/);
+  });
+
+  it('🛡 נחיל-אבטחה 17.8 (#3): platformRequests מוקשח-DoS — allowlist 8 שדות מלא', () => {
+    // ⚠️ hasOnly **חלקי** (5 שדות) שבר הרשמות-אשף בעבר (CLOSED-ONBOARD 5.8);
+    // כאן כל 8 שדות reqDoc (5 בסיס + industry/size/needs) ⇒ לא-שובר.
+    expect(rulesSrc).toMatch(/platformRequests\/\{uid\}[\s\S]{0,900}hasOnly\(\['orgName', 'contactName', 'phone', 'email', 'at', 'industry', 'size', 'needs'\]\)/);
+    // needs = list; שאר השדות מחרוזות עם תקרות
+    expect(rulesSrc).toMatch(/platformRequests\/\{uid\}[\s\S]{0,1600}request\.resource\.data\.needs is list/);
   });
 
   it('הגנת-מקור: Rules v2 — בקשות uid-תואם, ארגונים לחברים, כתיבה למיילי-על, שורש כהיום', () => {
