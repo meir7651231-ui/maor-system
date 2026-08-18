@@ -6,6 +6,8 @@
 import { useEffect } from 'react';
 
 const base = import.meta.env.BASE_URL;
+// גרסת-עיתון — מכריח fetch טרי בכל פרסום (עוקף cache של iframe/CDN). לבמפ בכל עדכון של public/orbit/orbit-news.html.
+const NEWS_VERSION = '20260818';
 
 export function NewsReader(props: { onClose: () => void }) {
   useEffect(() => {
@@ -30,7 +32,7 @@ export function NewsReader(props: { onClose: () => void }) {
             ✕
           </button>
         </div>
-        <iframe src={`${base}orbit/orbit-news.html`} title="העיתון" loading="eager" />
+        <iframe src={`${base}orbit/orbit-news.html?v=${NEWS_VERSION}`} title="העיתון" loading="eager" />
       </div>
     </div>
   );
