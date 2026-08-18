@@ -95,7 +95,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'מעקב',
       'ayin.stage.done': 'שוחרר',
     },
-    modules: { tzedaka: false, shop: false },
+    modules: { tzedaka: false, shop: false, shop7: false },
     features: COMMERCIAL_OFF,
   },
   {
@@ -128,7 +128,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'entity.shopAssignment': 'הזמנה',
       'entity.shopCriterion': 'מועדון',
     },
-    modules: { courses: false, diary: false, tzedaka: false },
+    modules: { courses: false, diary: false, tzedaka: false, shop7: false },
     features: COMMERCIAL_OFF,
   },
   {
@@ -156,7 +156,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'נסגר',
       'ayin.stage.done': 'סופק',
     },
-    modules: { courses: false, tzedaka: false, shop: false },
+    modules: { courses: false, tzedaka: false, shop: false, shop7: false },
     features: COMMERCIAL_OFF,
   },
   {
@@ -189,7 +189,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'חוזה',
       'ayin.stage.done': 'הושכר',
     },
-    modules: { courses: false, tzedaka: false, shop: false },
+    modules: { courses: false, tzedaka: false, shop: false, shop7: false },
     features: COMMERCIAL_OFF,
   },
   {
@@ -222,7 +222,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'בשימוש',
       'ayin.stage.done': 'הוחזר',
     },
-    modules: { courses: false, tzedaka: false, shop: false },
+    modules: { courses: false, tzedaka: false, shop: false, shop7: false },
     features: COMMERCIAL_OFF,
   },
   {
@@ -255,7 +255,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'מוכן לאיסוף',
       'ayin.stage.done': 'נמסר',
     },
-    modules: { courses: false, tzedaka: false, shop: false },
+    modules: { courses: false, tzedaka: false, shop: false, shop7: false },
     features: COMMERCIAL_OFF,
   },
   {
@@ -289,7 +289,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'שוהה',
       'ayin.stage.done': "צ'ק-אאוט",
     },
-    modules: { courses: false, tzedaka: false, shop: false },
+    modules: { courses: false, tzedaka: false, shop: false, shop7: false },
     features: COMMERCIAL_OFF,
   },
   {
@@ -317,6 +317,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       reports: true,
       tzedaka: false,
       shop: true,
+      shop7: true,
     },
   },
   {
@@ -342,6 +343,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       reports: true,
       tzedaka: true,
       shop: false,
+      shop7: true,
     },
   },
   {
@@ -374,7 +376,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'בבדיקה',
       'ayin.stage.done': 'הושק',
     },
-    modules: { courses: false, diary: false, tzedaka: false, shop: false },
+    modules: { courses: false, diary: false, tzedaka: false, shop: false, shop7: false },
     features: COMMERCIAL_OFF,
   },
   {
@@ -410,7 +412,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'מסירה',
       'ayin.stage.done': 'הושלם',
     },
-    modules: { courses: false, tzedaka: false, shop: false },
+    modules: { courses: false, tzedaka: false, shop: false, shop7: false },
     features: COMMERCIAL_OFF,
   },
   {
@@ -446,7 +448,7 @@ export const VERTICAL_PACKS: VerticalPack[] = [
       'ayin.stage.answer': 'מסירה',
       'ayin.stage.done': 'הושלם',
     },
-    modules: { courses: false, tzedaka: false, shop: false },
+    modules: { courses: false, tzedaka: false, shop: false, shop7: false },
     features: COMMERCIAL_OFF,
   },
 ];

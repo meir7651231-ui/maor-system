@@ -35,7 +35,8 @@
    },
    "modules": {
     "tzedaka": false,
-    "shop": false
+    "shop": false,
+    "shop7": false
    },
    "features": {
     "core.taxreceipt": false,
@@ -70,7 +71,8 @@
    "modules": {
     "courses": false,
     "diary": false,
-    "tzedaka": false
+    "tzedaka": false,
+    "shop7": false
    },
    "features": {
     "core.taxreceipt": false,
@@ -105,7 +107,8 @@
    "modules": {
     "courses": false,
     "tzedaka": false,
-    "shop": false
+    "shop": false,
+    "shop7": false
    },
    "features": {
     "core.taxreceipt": false,
@@ -145,7 +148,8 @@
    "modules": {
     "courses": false,
     "tzedaka": false,
-    "shop": false
+    "shop": false,
+    "shop7": false
    },
    "features": {
     "core.taxreceipt": false,
@@ -185,7 +189,8 @@
    "modules": {
     "courses": false,
     "tzedaka": false,
-    "shop": false
+    "shop": false,
+    "shop7": false
    },
    "features": {
     "core.taxreceipt": false,
@@ -225,7 +230,8 @@
    "modules": {
     "courses": false,
     "tzedaka": false,
-    "shop": false
+    "shop": false,
+    "shop7": false
    },
    "features": {
     "core.taxreceipt": false,
@@ -266,7 +272,8 @@
    "modules": {
     "courses": false,
     "tzedaka": false,
-    "shop": false
+    "shop": false,
+    "shop7": false
    },
    "features": {
     "core.taxreceipt": false,
@@ -298,7 +305,8 @@
     "supporters": true,
     "reports": true,
     "tzedaka": false,
-    "shop": true
+    "shop": true,
+    "shop7": true
    },
    "features": {}
   },
@@ -319,7 +327,8 @@
     "supporters": true,
     "reports": true,
     "tzedaka": true,
-    "shop": false
+    "shop": false,
+    "shop7": true
    },
    "features": {}
   },
@@ -349,7 +358,8 @@
     "courses": false,
     "diary": false,
     "tzedaka": false,
-    "shop": false
+    "shop": false,
+    "shop7": false
    },
    "features": {
     "core.taxreceipt": false,
@@ -390,7 +400,8 @@
    "modules": {
     "courses": false,
     "tzedaka": false,
-    "shop": false
+    "shop": false,
+    "shop7": false
    },
    "features": {
     "core.taxreceipt": false,
@@ -431,7 +442,8 @@
    "modules": {
     "courses": false,
     "tzedaka": false,
-    "shop": false
+    "shop": false,
+    "shop7": false
    },
    "features": {
     "core.taxreceipt": false,
