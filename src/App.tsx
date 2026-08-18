@@ -835,9 +835,10 @@ export default function App() {
             <span className="nav-label">הגדרות</span>
           </button>
         )}
+        {helpSideBtn}
         {privacySideBtn}
-          {adminSideBtn}
-          {managerSideBtn}
+        {adminSideBtn}
+        {managerSideBtn}
       </aside>
       <div className="side-body">
         <header className="side-head">
