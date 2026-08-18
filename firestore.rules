@@ -85,6 +85,36 @@ service cloud.firestore {
       allow read, update, delete: if superAdmin();
     }
 
+    // 💬 צ׳אט-תמיכה חי (17.8) — שיחה דו-כיוונית לקוח↔תמיכת-אורביט. מסמך פר-uid:
+    // רק הלקוח (auth.uid==uid) ומייל-העל רואים/כותבים. הודעות = create בלבד
+    // (בלתי-משתנות); `from` נאכף: הלקוח='user', מייל-על='admin'. טקסט תחום-גודל
+    // (DoS). מטא-השיחה מוגבל ל-7 שדות מוכרים + תקרות (increment של unread מותר).
+    match /supportChats/{uid} {
+      allow read: if superAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow write: if (superAdmin() || (request.auth != null && request.auth.uid == uid))
+        && request.resource.data.keys().hasOnly(['email', 'orgName', 'lastText', 'lastAt', 'lastFrom', 'unreadAdmin', 'unreadUser'])
+        && (!('email' in request.resource.data) || (request.resource.data.email is string && request.resource.data.email.size() <= 120))
+        && (!('orgName' in request.resource.data) || (request.resource.data.orgName is string && request.resource.data.orgName.size() <= 120))
+        && (!('lastText' in request.resource.data) || (request.resource.data.lastText is string && request.resource.data.lastText.size() <= 200))
+        && (!('lastAt' in request.resource.data) || (request.resource.data.lastAt is string && request.resource.data.lastAt.size() <= 40))
+        && (!('lastFrom' in request.resource.data) || (request.resource.data.lastFrom is string && request.resource.data.lastFrom.size() <= 10))
+        && (!('unreadAdmin' in request.resource.data) || request.resource.data.unreadAdmin is int)
+        && (!('unreadUser' in request.resource.data) || request.resource.data.unreadUser is int);
+
+      match /messages/{msgId} {
+        allow read: if superAdmin() || (request.auth != null && request.auth.uid == uid);
+        // create בלבד — הודעה בלתי-משתנה. from נאכף לפי הכותב (מונע התחזות).
+        allow create: if request.resource.data.keys().hasOnly(['from', 'text', 'at'])
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
+          && request.resource.data.at is string && request.resource.data.at.size() <= 40
+          && (
+            (request.auth != null && request.auth.uid == uid && request.resource.data.from == 'user')
+            || (superAdmin() && request.resource.data.from == 'admin')
+          );
+      }
+    }
+
     // מסמכי הארגונים: קריאה — חבר או מייל-על.
     // כתיבה מלאה (config/manager/provisioned) — מייל-על בלבד.
     // עדכון חלקי — מנהל-הארגון, אך **רק** לשדות ניהול-העובדות שלו
