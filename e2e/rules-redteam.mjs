@@ -150,6 +150,21 @@ await T('🔴 שדה-זר בהודעה נחסם (hasOnly)', assertFails(setDoc(d
 // ✅ מייל-על קורא כל שיחה (תיבת-התמיכה)
 await T('מייל-על קורא כל שיחה', assertSucceeds(getDoc(doc(su, 'supportChats/emp/messages/m1'))));
 
+console.log('\n═══ י׳ · 👥 צ׳אט-צוות תוך-ארגוני — בידוד חוצה-ארגון (17.8) ═══');
+// ✅ חבר-acme כותב לצ׳אט-הצוות של הארגון שלו
+await T('חבר-acme כותב לצ׳אט-הצוות שלו', assertSucceeds(setDoc(doc(emp, 'teamChats/acme/messages/t1'), { sender: 'emp@acme.com', name: 'עמפ', text: 'בוקר טוב צוות', at: '2026-08-18T10:00:00.000Z' })));
+// ✅ חבר-acme קורא את צ׳אט-הצוות שלו
+await T('חבר-acme קורא צ׳אט-צוות שלו', assertSucceeds(getDoc(doc(emp, 'teamChats/acme/messages/t1'))));
+// ❌ חבר-acme כותב לצ׳אט-הצוות של ארגון אחר
+await T('🔴 חבר-acme לא כותב לצ׳אט-צוות של ארגון אחר', assertFails(setDoc(doc(emp, 'teamChats/other/messages/x'), { sender: 'emp@acme.com', name: 'x', text: 'ריגול', at: '2026-08-18T10:00:00.000Z' })));
+// ❌ חבר-acme קורא צ׳אט-צוות של ארגון אחר
+await T('🔴 חבר-acme לא קורא צ׳אט-צוות של ארגון אחר', assertFails(getDoc(doc(emp, 'teamChats/other/messages/y'))));
+// ❌ זר (לא-חבר) לא כותב לצ׳אט-הצוות של acme
+await T('🔴 זר לא כותב לצ׳אט-צוות של acme', assertFails(setDoc(doc(stranger, 'teamChats/acme/messages/z'), { sender: 'evil@nowhere.com', name: 'z', text: 'חדירה', at: '2026-08-18T10:00:00.000Z' })));
+// ❌ הודעת-ענק / שדה-זר
+await T('🔴 הודעת-ענק בצ׳אט-צוות נחסמת', assertFails(setDoc(doc(emp, 'teamChats/acme/messages/big'), { sender: 'emp@acme.com', name: 'x', text: 'x'.repeat(5000), at: '2026-08-18T10:00:00.000Z' })));
+await T('🔴 שדה-זר בצ׳אט-צוות נחסם (hasOnly)', assertFails(setDoc(doc(emp, 'teamChats/acme/messages/j'), { sender: 'emp@acme.com', name: 'x', text: 'x', at: '2026-08-18T10:00:00.000Z', evil: 'y' })));
+
 await env.cleanup();
 console.log(`\n── סיכום red-team ── ${pass} עברו · ${fail} נכשלו`);
 if (fail > 0) { console.log('❌ יש חור-אבטחה — Rules לא חוסמים תרחיש-תקיפה!'); process.exit(1); }

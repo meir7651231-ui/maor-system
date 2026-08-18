@@ -61,6 +61,8 @@ export { deleteOrgCompletely, deleteOrgRequest, deleteOrgJoinRequest, deleteOrgM
 export type { EmployeeOverride, OrgCloudDoc, OrgJoinRequestDoc, OrgLeadDoc, OrgRequestDoc } from '../lib/cloudConfig';
 // 💬 צ׳אט-תמיכה חי (17.8) — onSnapshot אמיתי, נטען עם מודול-הענן
 export { sendSupportMessage, sendSupportReply, watchSupportMessages, watchSupportThreadMeta, watchAllSupportThreads, markSupportRead } from '../lib/cloudConfig';
+// 💬 צ׳אט-צוות תוך-ארגוני (17.8)
+export { sendTeamMessage, watchTeamMessages } from '../lib/cloudConfig';
 
 export type CloudStatus = 'idle' | 'connecting' | 'synced' | 'error';
 

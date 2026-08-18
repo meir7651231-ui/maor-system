@@ -13,6 +13,7 @@ import {
   isSendableSupportText,
   sortSupportMsgs,
   sortSupportThreads,
+  sortTeamMsgs,
   supportDayLabel,
   supportMsgTime,
   supportPreview,
@@ -20,6 +21,7 @@ import {
   type SupportMsg,
   type SupportSide,
   type SupportThread,
+  type TeamMsg,
 } from '../../lib/supportChat';
 import { Modal } from '../ui';
 
@@ -246,6 +248,131 @@ export function SupportInbox({ onClose }: { onClose: () => void }) {
               </button>
             );
           })}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+/**
+ * 💬 צ׳אט-צוות תוך-ארגוני (17.8) — ערוץ-קבוצה אחד לכל אנשי-הצוות של הארגון.
+ * חי דרך Firestore (teamChats/{slug}/messages). "שלי" = sender==המייל-שלי;
+ * בבועות-אחרים מוצג שם-השולח. מגודר `shell.teamchat` (הכניסה ב-App).
+ */
+export function TeamChatModal({ onClose }: { onClose: () => void }) {
+  const user = useApp((s) => s.cloud.user);
+  const slug = useApp((s) => s.config.slug) || 'default';
+  const toast = useApp((s) => s.toast);
+  const [mod, setMod] = useState<CloudMod | null>(null);
+  const [msgs, setMsgs] = useState<TeamMsg[]>([]);
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let unsub: (() => void) | undefined;
+    void import('../../store/cloudSync').then((m) => {
+      setMod(m);
+      unsub = m.watchTeamMessages(slug, setMsgs);
+    });
+    return () => unsub?.();
+  }, [slug]);
+
+  const sorted = useMemo(() => sortTeamMsgs(msgs), [msgs]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [sorted.length]);
+
+  const myEmail = (user?.email ?? '').toLowerCase();
+  const myName = myEmail.split('@')[0] || 'אני';
+
+  async function send() {
+    const t = text;
+    if (!isSendableSupportText(t) || busy || !mod || !user) return;
+    setBusy(true);
+    setText('');
+    try {
+      await mod.sendTeamMessage(slug, myEmail, myName, t);
+    } catch {
+      setText(t);
+      toast('⚠ ההודעה לא נשלחה — בדקו חיבור ונסו שוב');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const today = isoToday();
+  let lastDay = '';
+
+  return (
+    <Modal title="💬 צ׳אט הצוות" onClose={onClose}>
+      {!user ? (
+        <div className="empty">צ׳אט הצוות זמין אחרי התחברות לחשבון.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', height: 'min(60vh, 460px)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '4px 2px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {sorted.length === 0 && (
+              <div className="empty" style={{ margin: 'auto', textAlign: 'center', fontSize: 13.5 }}>
+                אין הודעות עדיין — כתבו לצוות 💬
+              </div>
+            )}
+            {sorted.map((m, i) => {
+              const mine = (m.sender ?? '').toLowerCase() === myEmail;
+              const day = supportDayLabel(m.at, today);
+              const showDay = day !== lastDay;
+              lastDay = day;
+              return (
+                <div key={i}>
+                  {showDay && (
+                    <div style={{ textAlign: 'center', margin: '10px 0 6px' }}>
+                      <span style={{ fontSize: 11, color: 'var(--ink-faint)', background: 'var(--bg-soft, rgba(127,127,127,.1))', borderRadius: 10, padding: '2px 10px' }}>{day}</span>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: mine ? 'flex-start' : 'flex-end' }}>
+                    <div
+                      style={{
+                        maxWidth: '78%',
+                        background: mine ? 'var(--accent)' : 'var(--bg-soft, rgba(127,127,127,.12))',
+                        color: mine ? '#fff' : 'var(--ink)',
+                        borderRadius: 16,
+                        borderBottomRightRadius: mine ? 16 : 4,
+                        borderBottomLeftRadius: mine ? 4 : 16,
+                        padding: '7px 12px',
+                        fontSize: 14.5,
+                        lineHeight: 1.45,
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {!mine && (
+                        <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, opacity: 0.85, marginBottom: 1 }}>{m.name || (m.sender ?? '').split('@')[0]}</span>
+                      )}
+                      {m.text}
+                      <span style={{ display: 'block', fontSize: 10.5, opacity: 0.7, textAlign: 'start', marginTop: 2 }}>{supportMsgTime(m.at)}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <div ref={endRef} />
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', paddingTop: 8, borderTop: '1px solid var(--line, rgba(127,127,127,.15))' }}>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); } }}
+              placeholder="כתבו לצוות…"
+              rows={1}
+              style={{ flex: 1, resize: 'none', borderRadius: 22, border: '1px solid var(--line, rgba(127,127,127,.25))', padding: '10px 14px', fontSize: 14.5, fontFamily: 'inherit', maxHeight: 120 }}
+            />
+            <button
+              type="button"
+              onClick={() => void send()}
+              disabled={busy || !isSendableSupportText(text)}
+              aria-label="שליחה"
+              style={{ flexShrink: 0, width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 18, cursor: 'pointer', opacity: busy || !isSendableSupportText(text) ? 0.5 : 1 }}
+            >
+              ➤
+            </button>
+          </div>
         </div>
       )}
     </Modal>

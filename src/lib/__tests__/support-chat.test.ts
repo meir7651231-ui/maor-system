@@ -9,13 +9,16 @@ import {
   sanitizeSupportText,
   sortSupportMsgs,
   sortSupportThreads,
+  sortTeamMsgs,
   supportDayLabel,
   supportMsgTime,
   supportPreview,
   supportUnread,
   SUPPORT_MSG_MAX,
   type SupportMsg,
+  type TeamMsg,
 } from '../supportChat';
+import { FEATURES } from '../../types/features';
 import chatSrc from '../../components/support/SupportChat.tsx?raw';
 import appSrc from '../../App.tsx?raw';
 import cloudCfgSrc from '../cloudConfig.ts?raw';
@@ -86,5 +89,36 @@ describe('💬 ratchet — צ׳אט-תמיכה: הגנות-מקור (חי, לא 
     expect(rulesSrc).toMatch(/request\.auth\.uid == uid && request\.resource\.data\.from == 'user'/);
     expect(rulesSrc).toMatch(/superAdmin\(\) && request\.resource\.data\.from == 'admin'/);
     expect(rulesSrc).toContain('request.resource.data.text.size() <= 2000');
+  });
+});
+
+describe('👥 ratchet — צ׳אט-צוות תוך-ארגוני (17.8)', () => {
+  it('מיון הודעות-צוות: ישן→חדש, לא-משנה-מקור', () => {
+    const msgs: TeamMsg[] = [
+      { sender: 'b@x.com', name: 'ב', text: '2', at: '2026-08-18T10:00:00Z' },
+      { sender: 'a@x.com', name: 'א', text: '1', at: '2026-08-18T09:00:00Z' },
+    ];
+    expect(sortTeamMsgs(msgs).map((m) => m.text)).toEqual(['1', '2']);
+    expect(msgs[0].text).toBe('2');
+  });
+
+  it('כפתור-באשף: דגל shell.teamchat קיים ב-FEATURES (מודול shell)', () => {
+    const f = FEATURES.find((x) => x.key === 'shell.teamchat');
+    expect(f).toBeTruthy();
+    expect(f?.module).toBe('shell');
+  });
+
+  it('החיווט חי + מגודר-דגל; ערוץ-קבוצה teamChats/{slug}', () => {
+    expect(cloudCfgSrc).toContain('export const TEAM_CHATS');
+    expect(cloudCfgSrc).toMatch(/onSnapshot\(\s*collection\(cloudDb\(\), TEAM_CHATS, slug, 'messages'\)/);
+    expect(appSrc).toContain("featureOn(config, 'shell.teamchat')");
+    expect(appSrc).toContain('<TeamChatModal');
+  });
+
+  it('🛡 Rules: teamChats — צוות-הארגון (orgMember/allowedRoot-לשורש), create-בלבד, טקסט תחום', () => {
+    expect(rulesSrc).toContain('match /teamChats/{slug}/messages/{id}');
+    expect(rulesSrc).toMatch(/teamChats\/\{slug\}[\s\S]{0,400}orgMember\(slug\) \|\| \(slug == 'default' && allowedRoot\(\)\)/);
+    // מוחרג מ-catch-all השורש (אחרת allowedRoot היה קורא כל ארגון)
+    expect(rulesSrc).toMatch(/rootCol in \[[^\]]*'teamChats'/);
   });
 });

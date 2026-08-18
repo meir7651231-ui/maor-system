@@ -288,6 +288,21 @@ service cloud.firestore {
         || (slug == 'default' && allowedRoot());
     }
 
+    // 💬 צ׳אט-צוות תוך-ארגוני (17.8) — ערוץ-קבוצה אחד לכל הארגון: כל אנשי-הצוות
+    // (orgMember; שורש-default דרך allowedRoot) קוראים/כותבים חי. הודעות = create
+    // בלבד (בלתי-משתנות); טקסט תחום-גודל + hasOnly (DoS). מגודר `shell.teamchat`
+    // בקליינט (Rules לא יודעות דגלים). teamChats מוחרג מ-catch-all השורש למטה.
+    match /teamChats/{slug}/messages/{id} {
+      allow read: if superAdmin() || orgMember(slug) || (slug == 'default' && allowedRoot());
+      allow create: if (superAdmin() || orgMember(slug) || (slug == 'default' && allowedRoot()))
+        && request.resource.data.keys().hasOnly(['sender', 'name', 'text', 'at'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
+        && (!('sender' in request.resource.data) || (request.resource.data.sender is string && request.resource.data.sender.size() <= 120))
+        && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() <= 60))
+        && (!('at' in request.resource.data) || (request.resource.data.at is string && request.resource.data.at.size() <= 40));
+    }
+
     // הצפנת-ענן (opt-in) — מסמך ה-envelope (ה-DEK העטוף):
     //   • שורש (הלקוח הקיים): `_enc/envelope` מכוסה ע"י catch-all השורש למטה.
     //   • ארגון-פלטפורמה: `orgs/{slug}/_enc/{d}` — בלוק ייעודי כאן.
@@ -333,7 +348,7 @@ service cloud.firestore {
     // (Firestore = OR של כללים; read:false בכלל הייעודי לא גובר על התרה כאן).
     match /{rootCol}/{document=**} {
       allow read, write: if (allowedRoot() || superAdmin())
-        && !(rootCol in ['platformOrgs', 'platformRequests', 'platformLeads', 'orgs', 'orgSecrets', 'orgSecretsMeta', 'icsFeeds']);
+        && !(rootCol in ['platformOrgs', 'platformRequests', 'platformLeads', 'orgs', 'orgSecrets', 'orgSecretsMeta', 'icsFeeds', 'supportChats', 'teamChats']);
     }
   }
 }

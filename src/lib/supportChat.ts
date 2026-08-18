@@ -85,6 +85,21 @@ export function supportUnread(thread: SupportThread | null | undefined, side: Su
   return typeof n === 'number' && n > 0 ? n : 0;
 }
 
+/* ───────────── 💬 צ׳אט-צוות תוך-ארגוני (17.8) — קבוצתי, כל הצוות בערוץ אחד ─────────────
+ * שונה מצ׳אט-התמיכה: אין 'from' דו-ערכי אלא `sender` (מייל, זהות) + `name` (תצוגה);
+ * "שלי" = sender==המייל-שלי. אותם עזרי-זמן/ניקוי. Path: teamChats/{slug}/messages. */
+export interface TeamMsg {
+  sender: string; // מייל-השולח (זהות יציבה)
+  name: string; // שם-תצוגה (למשל קידומת-המייל)
+  text: string;
+  at: string; // ISO
+}
+
+/** מיון הודעות-צוות לפי זמן עולה — יציב, לא-משנה-מקור. */
+export function sortTeamMsgs(msgs: TeamMsg[]): TeamMsg[] {
+  return [...msgs].sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+}
+
 /** מיון רשימת-שיחות (לוח-הבקרה): לא-נקראות-לתמיכה קודם, ואז לפי lastAt יורד. */
 export function sortSupportThreads(
   threads: Array<SupportThread & { uid: string }>,

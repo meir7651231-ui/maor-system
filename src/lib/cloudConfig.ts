@@ -11,7 +11,7 @@
 import { addDoc, collection, deleteDoc, deleteField, doc, FieldPath, getDoc, getDocs, increment, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { cloudDb } from './cloud';
 import type { OrgConfig } from '../types/config';
-import { sanitizeSupportText, type SupportMsg, type SupportSide, type SupportThread } from './supportChat';
+import { sanitizeSupportText, type SupportMsg, type SupportSide, type SupportThread, type TeamMsg } from './supportChat';
 
 /** אוסף מסמכי הארגונים של הפלטפורמה. */
 export const PLATFORM_ORGS = 'platformOrgs';
@@ -360,4 +360,30 @@ export function watchAllSupportThreads(cb: (threads: Array<SupportThread & { uid
 export async function markSupportRead(uid: string, side: SupportSide): Promise<void> {
   const field = side === 'admin' ? 'unreadAdmin' : 'unreadUser';
   await setDoc(doc(cloudDb(), SUPPORT_CHATS, uid), { [field]: 0 }, { merge: true }).catch(() => {});
+}
+
+/* ───────── 💬 צ׳אט-צוות תוך-ארגוני (17.8) — teamChats/{slug}/messages ─────────
+ * ערוץ-קבוצה אחד לכל הארגון: כל אנשי-הצוות (orgMember/allowedRoot-לשורש) כותבים
+ * וקוראים חי. הודעות = create בלבד. מגודר בדגל `shell.teamchat`. */
+export const TEAM_CHATS = 'teamChats';
+
+/** איש-צוות שולח הודעה לערוץ-הארגון. */
+export async function sendTeamMessage(slug: string, sender: string, name: string, text: string): Promise<void> {
+  const clean = sanitizeSupportText(text);
+  if (!clean) return;
+  await addDoc(collection(cloudDb(), TEAM_CHATS, slug, 'messages'), {
+    sender: (sender || '').slice(0, 120),
+    name: (name || '').slice(0, 60),
+    text: clean,
+    at: new Date().toISOString(),
+  });
+}
+
+/** האזנה-חיה להודעות-הצוות (onSnapshot) — ממוינות בצד-הלקוח. */
+export function watchTeamMessages(slug: string, cb: (msgs: TeamMsg[]) => void): () => void {
+  return onSnapshot(
+    collection(cloudDb(), TEAM_CHATS, slug, 'messages'),
+    (snap) => cb(snap.docs.map((d) => d.data() as TeamMsg)),
+    () => { /* אין הרשאה/רשת — נבלע */ },
+  );
 }
