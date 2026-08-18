@@ -129,7 +129,10 @@ describe('🖥 ratchet — גל ד׳ "עד-השרת": functions מושלמות +
     expect(fnSrc).toContain('googleapis');
     expect(fnSrc).toContain('spreadsheetId');
     // ‏org=root ⇒ אוסף-שורש (הלקוח-הקיים) — לא orgs/root
-    expect(fnSrc).toContain("slug === 'root'");
+    expect(fnSrc).toContain("m.org === 'root'");
+    // מתאם-נדרים: מיפוי סובלני של שדות ה-CallBack + שמירת המטען-הגולמי
+    expect(fnSrc).toContain('mapPaymentCallback');
+    expect(fnSrc).toContain('raw:');
   });
 
   it('🛡 צד-לקוח: תשלומים-נכנסים ו-SMS מגודרים הרחבה+ענן; ההגדרות ב-allowlist', () => {
