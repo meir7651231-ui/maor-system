@@ -626,6 +626,12 @@ export interface IncomingPayment {
   reference: string;
   at: string;
   status: string;
+  // שדות-נדרים מועשרים (אופציונליים — רשומות-ותיקות/ספקים-אחרים בלעדיהם):
+  currency?: string; // '₪' | '$'
+  email?: string;
+  zeout?: string; // ת"ז/ח.פ — לשיוך לתומך קיים
+  category?: string; // Groupe — ייעוד/קטגוריה
+  kevaId?: string; // מזהה הו"ק — חיוב הוראת-קבע
 }
 
 /** התשלומים הממתינים ("💰 תשלומים נכנסים") — כשל-קריאה ⇒ [] (אין Functions/Rules). */

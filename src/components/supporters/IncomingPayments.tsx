@@ -54,10 +54,13 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
         <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700 }}>
-              ₪{p.amount.toLocaleString('he-IL')} · {p.name || 'ללא שם'}
+              {p.currency || '₪'}{p.amount.toLocaleString('he-IL')} · {p.name || 'ללא שם'}
+              {p.kevaId ? <span style={{ fontSize: 11, color: 'var(--accent)', marginInlineStart: 6 }}>🔁 הו״ק</span> : null}
+              {p.category ? <span style={{ fontSize: 11, color: 'var(--ink-faint)', marginInlineStart: 6 }}>· {p.category}</span> : null}
             </div>
             <div style={{ fontSize: 12, color: 'var(--ink-faint)' }} dir="ltr">
-              {p.phone}{p.reference ? ' · ' + p.reference : ''} · {p.at.slice(0, 10)}
+              {[p.phone, p.email, p.zeout && ('ת"ז ' + p.zeout)].filter(Boolean).join(' · ')}
+              {p.reference ? ' · ' + p.reference : ''} · {p.at.slice(0, 10)}
             </div>
           </div>
           <Btn sm kind="primary" onClick={() => void markDone(p.id)} title="אחרי שרשמתם את התרומה/התשלום במערכת">

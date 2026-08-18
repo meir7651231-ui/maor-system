@@ -46,8 +46,13 @@ exports.paymentsWebhook = onRequest({ secrets: ['PAY_SECRET'] }, async (req, res
     : db.collection('orgs').doc(m.org).collection('incomingPayments');
   await col.add({
     amount: m.amount,
-    name: m.name,
+    currency: m.currency, // '₪' | '$' — נדרים Currency 1/2 (בלי זה תרומת-$ מוצגת כ-₪)
+    name: m.name, // נדרים שולח ClientName — בלי המיפוי השם היה נכנס ריק
     phone: m.phone,
+    email: m.email,
+    zeout: m.zeout, // ת"ז — עוזר למזכירה לשייך לתומך קיים
+    category: m.category, // Groupe — קטגוריית התרומה (ייעוד)
+    kevaId: m.kevaId, // מזהה הו"ק — מסמן שזה חיוב הוראת-קבע (לא חד-פעמי)
     reference: m.reference,
     at: new Date().toISOString(),
     status: 'pending', // המזכירה מאשרת-רושמת במערכת (רציפות R-/D-)

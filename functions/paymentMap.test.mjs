@@ -1,24 +1,50 @@
 /**
  * ratchet — מיפוי CallBack של ספק-סליקה (נדרים-פלוס) → רשומת "תשלום-נכנס".
  * הבאג-שמונע: ה-webhook ציפה ל-amount/name/phone/reference, אך נדרים שולח
- * PascalCase (Amount/FirstName/…) ⇒ בלי המתאם הסנכרון נכשל בשקט. גם: param1/
- * param2 המהודהדים משמשים ל-org ולמזהה, ושם-מלא גובר על FirstName/LastName.
+ * PascalCase (Amount/ClientName/…) ⇒ בלי המתאם הסנכרון נכשל בשקט. בפרט —
+ * נדרים שולח את השם ב-**ClientName** (לא Name/FirstName) ⇒ בלי המיפוי כל
+ * תרומה נכנסה בלי שם. גם: Currency (1=₪|2=$) — בלי זה תרומת-דולר הוצגה כ-₪.
+ * param1/param2 המהודהדים משמשים ל-org ולמזהה, ושם-מלא גובר על FirstName/LastName.
  */
 import { describe, expect, it } from 'vitest';
-import { mapPaymentCallback } from './paymentMap.js';
+import { mapPaymentCallback, pickCurrency } from './paymentMap.js';
 
 describe('💳 ratchet — מיפוי CallBack נדרים-פלוס', () => {
-  it('שדות PascalCase של נדרים ממופים לרשומה גנרית', () => {
+  it('מטען-נדרים אמיתי (Webhook/GetHistoryJson) ממופה במלואו', () => {
+    // שמות-השדות המדויקים ממסמך ה-API של נדרים-פלוס
     const m = mapPaymentCallback({
       org: 'root',
-      Amount: '250.5',
-      FirstName: 'משה',
-      LastName: 'כהן',
+      ClientName: 'ישראל ישראלי',
+      Amount: '180',
+      Currency: '1',
       Phone: '0501234567',
+      Mail: 'israel@example.com',
+      Zeout: '123456789',
+      Groupe: 'בניין',
       TransactionId: 'TX-99',
-      extra: 'x',
+      Confirmation: '0012345',
+      Comments: 'לרפואת…',
+      Adresse: 'הרצל 1, תל אביב',
     });
-    expect(m).toEqual({ org: 'root', amount: 250.5, name: 'משה כהן', phone: '0501234567', reference: 'TX-99' });
+    expect(m).toEqual({
+      org: 'root',
+      amount: 180,
+      currency: '₪',
+      name: 'ישראל ישראלי',
+      phone: '0501234567',
+      email: 'israel@example.com',
+      zeout: '123456789',
+      category: 'בניין',
+      kevaId: '',
+      reference: 'TX-99',
+    });
+  });
+
+  it('הוראת-קבע: Currency=2 ⇒ $, KevaId נשמר (מבחין חיוב-הו"ק מחד-פעמי)', () => {
+    const m = mapPaymentCallback({ org: 'demo', ClientName: 'משה', Amount: '25', Currency: '2', KevaId: 'HK-7' });
+    expect(m.currency).toBe('$');
+    expect(m.kevaId).toBe('HK-7');
+    expect(m.name).toBe('משה');
   });
 
   it('param1/param2 המהודהדים משמשים ל-org ולמזהה כשאין שדה מפורש', () => {
@@ -28,16 +54,25 @@ describe('💳 ratchet — מיפוי CallBack נדרים-פלוס', () => {
     expect(m.amount).toBe(18);
   });
 
-  it('שם-מלא מפורש גובר על FirstName/LastName; חסר-סכום ⇒ 0', () => {
+  it('שם-מלא מפורש גובר על FirstName/LastName; חסר-סכום ⇒ 0; מטבע ברירת-מחדל ₪', () => {
     const m = mapPaymentCallback({ Name: 'שם מלא', FirstName: 'לא', LastName: 'זה', amount: '' });
     expect(m.name).toBe('שם מלא');
     expect(m.amount).toBe(0);
+    expect(m.currency).toBe('₪');
   });
 
-  it('lowercase נתמך גם הוא (סבילות-ספקים)', () => {
-    const m = mapPaymentCallback({ org: 'root', sum: '5', phone: '03', reference: 'r1' });
+  it('lowercase נתמך גם הוא (סבילות-ספקים); reference נופל ל-Confirmation', () => {
+    const m = mapPaymentCallback({ org: 'root', sum: '5', phone: '03', Confirmation: 'c-1' });
     expect(m.amount).toBe(5);
     expect(m.phone).toBe('03');
-    expect(m.reference).toBe('r1');
+    expect(m.reference).toBe('c-1');
+  });
+
+  it('pickCurrency: 2/USD/$/דולר ⇒ $; 1/ILS/ריק ⇒ ₪', () => {
+    expect(pickCurrency({ Currency: '2' })).toBe('$');
+    expect(pickCurrency({ Currency: 'USD' })).toBe('$');
+    expect(pickCurrency({ Currency: '1' })).toBe('₪');
+    expect(pickCurrency({ Currency: 'ILS' })).toBe('₪');
+    expect(pickCurrency({})).toBe('₪');
   });
 });
