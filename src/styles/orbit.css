@@ -603,6 +603,49 @@
   display: block;
   background: #0c0e16;
 }
+/* פאנל-אורביט קומפקטי (מאבחן-החסימות במסך-ההרשמה) — זכוכית כהה תואמת-תמה */
+.orbit-panel {
+  width: min(540px, 96vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(22, 24, 38, 0.96), rgba(11, 12, 20, 0.98));
+  backdrop-filter: blur(24px) saturate(1.14);
+  -webkit-backdrop-filter: blur(24px) saturate(1.14);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.9), 0 0 80px -30px rgba(var(--o-accent-rgb), 0.3);
+  overflow: hidden;
+  color: var(--o-text);
+}
+.orbit-panel-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 700;
+  font-size: 15px;
+  color: #fff;
+}
+.orbit-panel-x {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 17px;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.orbit-panel-x:hover {
+  color: #fff;
+}
+.orbit-panel-body {
+  padding: 16px 18px 18px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.5;
+}
 
 /* ---------- תנועה ---------- */
 @keyframes orbAurora {

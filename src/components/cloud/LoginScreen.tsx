@@ -249,7 +249,7 @@ export function LoginScreen() {
       {readerOpen && <NewsReader onClose={() => setReaderOpen(false)} />}
       {callbackOpen && <CallbackModal onClose={() => setCallbackOpen(false)} />}
       {videoOpen && <VideoModal onClose={() => setVideoOpen(false)} />}
-      {netCheckOpen && <NetCheckModal onClose={() => setNetCheckOpen(false)} />}
+      {netCheckOpen && <NetCheckModal orbit onClose={() => setNetCheckOpen(false)} />}
     </div>
   );
 }
