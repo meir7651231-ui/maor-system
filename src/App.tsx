@@ -48,6 +48,7 @@ import { DayGate } from './components/wheel/DayGate';
 import { LoginScreen, PendingApprovalScreen } from './components/cloud/LoginScreen';
 import { ChangePasswordModal } from './components/cloud/ChangePasswordModal';
 import { NetCheckModal } from './components/cloud/NetCheckModal';
+import { SupportChatModal, SupportInbox } from './components/support/SupportChat';
 import { PlatformPanel } from './components/platform/PlatformPanel';
 import { ManagerPanel } from './components/platform/ManagerPanel';
 import { AdminHub, HubButton } from './components/AdminHub';
@@ -220,6 +221,10 @@ export default function App() {
   const [logoutArmed, setLogoutArmed] = useState(false);
   const [changePassOpen, setChangePassOpen] = useState(false);
   const [netCheckOpen, setNetCheckOpen] = useState(false);
+  // 💬 צ׳אט-תמיכה חי (17.8) — לקוח↔תמיכת-אורביט דרך Firestore. supportOpen=מודאל-הלקוח;
+  // supportInboxOpen=תיבת-השיחות של מייל-העל. שניהם מ-❓, מגודרי ענן+התחברות.
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [supportInboxOpen, setSupportInboxOpen] = useState(false);
   // UX סבב-ב׳: 'עוד ▾' לרצועת-הניווט + ניווט-תחתון במובייל
   const [moreNavOpen, setMoreNavOpen] = useState(false);
   // 🔄 ריפוי-לשונית-תקועה (5.8 — "זה הרגע ראיתי אצל לקוח"): לשונית שנשארה
@@ -956,10 +961,21 @@ export default function App() {
               sub="הקו מסונן וחוסם? בדיקה מה נחסם + בקשת-פתיחה מוכנה לחברת-הסינון"
               onClick={() => { setHelpOpen(false); setNetCheckOpen(true); }}
             />
+            {/* 💬 צ׳אט-תמיכה חי (17.8) — רק בענן+מחובר. מייל-על ⇒ תיבת-השיחות;
+                לקוח רגיל ⇒ מודאל-שיחה עם התמיכה. */}
+            {cloud.enabled && cloud.user && (
+              canAdminHub ? (
+                <HubButton emoji="💬" title="שיחות תמיכה" sub="הודעות מהלקוחות — מענה בזמן-אמת" onClick={() => { setHelpOpen(false); setSupportInboxOpen(true); }} />
+              ) : (
+                <HubButton emoji="💬" title="צ׳אט עם התמיכה" sub="שאלה? כתבו לנו — נענה בזמן-אמת" onClick={() => { setHelpOpen(false); setSupportOpen(true); }} />
+              )
+            )}
           </div>
         </Modal>
       )}
       {netCheckOpen && <NetCheckModal onClose={() => setNetCheckOpen(false)} />}
+      {supportOpen && <SupportChatModal onClose={() => setSupportOpen(false)} />}
+      {supportInboxOpen && <SupportInbox onClose={() => setSupportInboxOpen(false)} />}
       {/* תפריט-החשבון (UX סבב-א׳) — מייל, סטטוס-סנכרון כטקסט, יציאה בשני צעדים */}
       {userMenuOpen && cloud.user && (
         <Modal title="החשבון שלי" onClose={() => setUserMenuOpen(false)}>

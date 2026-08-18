@@ -59,6 +59,8 @@ export type { CloudUser, IncomingPayment } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
 export { deleteOrgCompletely, deleteOrgRequest, deleteOrgJoinRequest, deleteOrgMemberConfig, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgJoinRequests, fetchOrgLeads, fetchOrgRequests, findMemberOrgSlugs, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgJoinRequest, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
 export type { EmployeeOverride, OrgCloudDoc, OrgJoinRequestDoc, OrgLeadDoc, OrgRequestDoc } from '../lib/cloudConfig';
+// 💬 צ׳אט-תמיכה חי (17.8) — onSnapshot אמיתי, נטען עם מודול-הענן
+export { sendSupportMessage, sendSupportReply, watchSupportMessages, watchSupportThreadMeta, watchAllSupportThreads, markSupportRead } from '../lib/cloudConfig';
 
 export type CloudStatus = 'idle' | 'connecting' | 'synced' | 'error';
 

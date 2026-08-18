@@ -130,6 +130,26 @@ await T('🔴 שדה-זר/ענק ב-joinRequest נחסם (hasOnly)', assertFails
   email: 'nj2@org.com', junk: 'x'.repeat(500000),
 })));
 
+console.log('\n═══ ט׳ · 💬 צ׳אט-תמיכה חי — בידוד + אכיפת-from (17.8) ═══');
+// ✅ הלקוח כותב הודעה בשיחה שלו (uid תואם, from:'user')
+await T('לקוח כותב הודעה בשיחה-שלו (from:user)', assertSucceeds(setDoc(doc(emp, 'supportChats/emp/messages/m1'), { from: 'user', text: 'שלום, יש לי שאלה', at: '2026-08-18T10:00:00.000Z' })));
+// ✅ מייל-על משיב (from:'admin')
+await T('מייל-על משיב (from:admin)', assertSucceeds(setDoc(doc(su, 'supportChats/emp/messages/m2'), { from: 'admin', text: 'בשמחה, איך אפשר לעזור?', at: '2026-08-18T10:01:00.000Z' })));
+// ✅ הלקוח קורא את השיחה שלו
+await T('לקוח קורא את השיחה שלו', assertSucceeds(getDoc(doc(emp, 'supportChats/emp/messages/m2'))));
+// ❌ לקוח כותב בשיחה של מישהו אחר
+await T('🔴 לקוח לא כותב בשיחת-אחר (בידוד)', assertFails(setDoc(doc(emp, 'supportChats/stranger/messages/x'), { from: 'user', text: 'פריצה', at: '2026-08-18T10:00:00.000Z' })));
+// ❌ לקוח קורא שיחה של אחר
+await T('🔴 לקוח לא קורא שיחת-אחר', assertFails(getDoc(doc(emp, 'supportChats/stranger/messages/m1'))));
+// ❌ לקוח מתחזה ל-admin (from:'admin' בשיחה שלו)
+await T('🔴 לקוח לא מתחזה לתמיכה (from:admin)', assertFails(setDoc(doc(emp, 'supportChats/emp/messages/fake'), { from: 'admin', text: 'תשובה מזויפת', at: '2026-08-18T10:00:00.000Z' })));
+// ❌ הודעה ענקית (DoS)
+await T('🔴 הודעת-ענק נחסמת (תקרת 2000)', assertFails(setDoc(doc(emp, 'supportChats/emp/messages/big'), { from: 'user', text: 'x'.repeat(5000), at: '2026-08-18T10:00:00.000Z' })));
+// ❌ שדה-זר בהודעה
+await T('🔴 שדה-זר בהודעה נחסם (hasOnly)', assertFails(setDoc(doc(emp, 'supportChats/emp/messages/j'), { from: 'user', text: 'x', at: '2026-08-18T10:00:00.000Z', evil: 'y' })));
+// ✅ מייל-על קורא כל שיחה (תיבת-התמיכה)
+await T('מייל-על קורא כל שיחה', assertSucceeds(getDoc(doc(su, 'supportChats/emp/messages/m1'))));
+
 await env.cleanup();
 console.log(`\n── סיכום red-team ── ${pass} עברו · ${fail} נכשלו`);
 if (fail > 0) { console.log('❌ יש חור-אבטחה — Rules לא חוסמים תרחיש-תקיפה!'); process.exit(1); }

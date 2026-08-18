@@ -8,9 +8,10 @@
  * ייעודיים: ‏platformOrgs/{slug} ו-platformRequests/{uid}. אותם שמות, אותה
  * סמנטיקה, נתיבים חוקיים; אין התנגשות עם 18 אוספי הישויות.
  */
-import { addDoc, collection, deleteDoc, deleteField, doc, FieldPath, getDoc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, deleteField, doc, FieldPath, getDoc, getDocs, increment, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { cloudDb } from './cloud';
 import type { OrgConfig } from '../types/config';
+import { sanitizeSupportText, type SupportMsg, type SupportSide, type SupportThread } from './supportChat';
 
 /** אוסף מסמכי הארגונים של הפלטפורמה. */
 export const PLATFORM_ORGS = 'platformOrgs';
@@ -284,4 +285,79 @@ export async function writeOrgLead(lead: OrgLeadDoc): Promise<void> {
 export async function fetchOrgLeads(): Promise<Array<OrgLeadDoc & { id: string }>> {
   const snap = await getDocs(collection(cloudDb(), PLATFORM_LEADS));
   return snap.docs.map((d) => ({ id: d.id, ...(d.data() as OrgLeadDoc) }));
+}
+
+/* ───────────── 💬 צ׳אט-תמיכה חי (17.8) — supportChats/{uid} + messages ─────────────
+ * חי-באמת דרך onSnapshot: הלקוח (auth.uid==uid) והתמיכה (מייל-על) בלבד. הודעות
+ * בלתי-משתנות (create בלבד); from נאכף ב-Rules (user↔admin). טקסט בלבד, תחום-גודל. */
+export const SUPPORT_CHATS = 'supportChats';
+
+/** הלקוח שולח הודעה: כותב message(from:'user') + מעדכן מטא-שיחה (unreadAdmin++). */
+export async function sendSupportMessage(
+  uid: string,
+  meta: { email?: string; orgName?: string },
+  text: string,
+): Promise<void> {
+  const clean = sanitizeSupportText(text);
+  if (!clean) return;
+  const now = new Date().toISOString();
+  await addDoc(collection(cloudDb(), SUPPORT_CHATS, uid, 'messages'), { from: 'user', text: clean, at: now });
+  await setDoc(
+    doc(cloudDb(), SUPPORT_CHATS, uid),
+    {
+      email: (meta.email ?? '').slice(0, 120),
+      orgName: (meta.orgName ?? '').slice(0, 120),
+      lastText: clean.slice(0, 120),
+      lastAt: now,
+      lastFrom: 'user',
+      unreadAdmin: increment(1),
+    },
+    { merge: true },
+  );
+}
+
+/** התמיכה (מייל-על) משיבה: message(from:'admin') + מטא (unreadUser++). */
+export async function sendSupportReply(uid: string, text: string): Promise<void> {
+  const clean = sanitizeSupportText(text);
+  if (!clean) return;
+  const now = new Date().toISOString();
+  await addDoc(collection(cloudDb(), SUPPORT_CHATS, uid, 'messages'), { from: 'admin', text: clean, at: now });
+  await setDoc(
+    doc(cloudDb(), SUPPORT_CHATS, uid),
+    { lastText: clean.slice(0, 120), lastAt: now, lastFrom: 'admin', unreadUser: increment(1) },
+    { merge: true },
+  );
+}
+
+/** האזנה-חיה להודעות השיחה (onSnapshot) — ממוינות בצד-הלקוח (בלי אינדקס). */
+export function watchSupportMessages(uid: string, cb: (msgs: SupportMsg[]) => void): () => void {
+  return onSnapshot(
+    collection(cloudDb(), SUPPORT_CHATS, uid, 'messages'),
+    (snap) => cb(snap.docs.map((d) => d.data() as SupportMsg)),
+    () => { /* אין הרשאה/רשת — נשארים על מה שיש */ },
+  );
+}
+
+/** האזנה-חיה למטא-השיחה (תגי לא-נקרא). null כשאין שיחה עדיין. */
+export function watchSupportThreadMeta(uid: string, cb: (t: SupportThread | null) => void): () => void {
+  return onSnapshot(
+    doc(cloudDb(), SUPPORT_CHATS, uid),
+    (snap) => cb(snap.exists() ? (snap.data() as SupportThread) : null),
+    () => { /* נבלע */ },
+  );
+}
+
+/** תיבת-השיחות של התמיכה (מייל-על) — כל השיחות, חי. */
+export function watchAllSupportThreads(cb: (threads: Array<SupportThread & { uid: string }>) => void): () => void {
+  return onSnapshot(
+    collection(cloudDb(), SUPPORT_CHATS),
+    (snap) => cb(snap.docs.map((d) => ({ uid: d.id, ...(d.data() as SupportThread) }))),
+    () => { /* נבלע */ },
+  );
+}
+
+/** איפוס מונה-לא-נקרא לצד שקרא (אחרי פתיחת השיחה). */
+export async function markSupportRead(uid: string, side: SupportSide): Promise<void> {
+  const field = side === 'admin' ? 'unreadAdmin' : 'unreadUser';
+  await setDoc(doc(cloudDb(), SUPPORT_CHATS, uid), { [field]: 0 }, { merge: true }).catch(() => {});
 }
