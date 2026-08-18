@@ -416,6 +416,11 @@
 .orbit-input::placeholder {
   color: rgba(255, 255, 255, 0.32);
 }
+/* טבעת-פוקוס נגישה בגוון-המסך — דורסת את ה-outline הגלובלי (‏global.css משתמש
+ * ב-var(--accent-deep) של ערכת-האפליקציה, שדלף כתום למסך טרום-הכניסה). */
+.orbit-screen :focus-visible {
+  outline-color: var(--o-accent);
+}
 .orbit-pass-wrap {
   position: relative;
 }
