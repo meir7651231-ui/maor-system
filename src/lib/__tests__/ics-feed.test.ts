@@ -38,7 +38,7 @@ describe('🔗 ratchet — מנוי-יומן חי (9.8)', () => {
 
   it('Rules: icsFeeds לחברי-הארגון + השורש; ה-catch-all מחריג כספת+פיד', () => {
     expect(rulesSrc).toMatch(/match \/icsFeeds\/\{slug\} \{[\s\S]{0,220}orgMember\(slug\)[\s\S]{0,120}allowedRoot\(\)/);
-    expect(rulesSrc).toMatch(/!\(rootCol in \['platformOrgs', 'platformRequests', 'platformLeads', 'orgs', 'orgSecrets', 'orgSecretsMeta', 'icsFeeds'\]\)/);
+    expect(rulesSrc).toMatch(/!\(rootCol in \['platformOrgs', 'platformRequests', 'platformLeads', 'orgs', 'orgSecrets', 'orgSecretsMeta', 'icsFeeds', 'supportChats', 'teamChats'\]\)/);
   });
 
   it('הלוח: כפתור-המנוי מגודר gcal+ענן; הייצוא הישן (קובץ) נשאר', () => {

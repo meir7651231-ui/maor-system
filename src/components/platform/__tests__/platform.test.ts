@@ -251,7 +251,7 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     // מייל ב-allowedRoot היה קורא דרך ה-catch-all את סודות **כל** הארגונים.
     expect(rulesSrc).toContain('match /{rootCol}/{document=**}');
     expect(rulesSrc).toContain(
-      "!(rootCol in ['platformOrgs', 'platformRequests', 'platformLeads', 'orgs', 'orgSecrets', 'orgSecretsMeta', 'icsFeeds'])",
+      "!(rootCol in ['platformOrgs', 'platformRequests', 'platformLeads', 'orgs', 'orgSecrets', 'orgSecretsMeta', 'icsFeeds', 'supportChats', 'teamChats'])",
     );
     // הכלל הרקורסיבי-העירום (שנתן ל-allowedRoot כתיבה חוצת-ארגונים) הוסר
     expect(rulesSrc).not.toContain('match /{document=**}');

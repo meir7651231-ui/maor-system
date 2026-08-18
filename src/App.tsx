@@ -48,7 +48,7 @@ import { DayGate } from './components/wheel/DayGate';
 import { LoginScreen, PendingApprovalScreen } from './components/cloud/LoginScreen';
 import { ChangePasswordModal } from './components/cloud/ChangePasswordModal';
 import { NetCheckModal } from './components/cloud/NetCheckModal';
-import { SupportChatModal, SupportInbox } from './components/support/SupportChat';
+import { SupportChatModal, SupportInbox, TeamChatModal } from './components/support/SupportChat';
 import { PlatformPanel } from './components/platform/PlatformPanel';
 import { ManagerPanel } from './components/platform/ManagerPanel';
 import { AdminHub, HubButton } from './components/AdminHub';
@@ -225,6 +225,8 @@ export default function App() {
   // supportInboxOpen=תיבת-השיחות של מייל-העל. שניהם מ-❓, מגודרי ענן+התחברות.
   const [supportOpen, setSupportOpen] = useState(false);
   const [supportInboxOpen, setSupportInboxOpen] = useState(false);
+  // 💬 צ׳אט-צוות תוך-ארגוני (17.8) — מגודר shell.teamchat + ענן+התחברות
+  const [teamChatOpen, setTeamChatOpen] = useState(false);
   // UX סבב-ב׳: 'עוד ▾' לרצועת-הניווט + ניווט-תחתון במובייל
   const [moreNavOpen, setMoreNavOpen] = useState(false);
   // 🔄 ריפוי-לשונית-תקועה (5.8 — "זה הרגע ראיתי אצל לקוח"): לשונית שנשארה
@@ -971,6 +973,10 @@ export default function App() {
                 )}
                 {/* צ׳אט-הלקוח — לכולם (גם למייל-על, לבדיקה/כדי להיות נגיש כלקוח). */}
                 <HubButton emoji="💬" title="צ׳אט עם התמיכה" sub="שאלה? כתבו לנו — נענה בזמן-אמת" onClick={() => { setHelpOpen(false); setSupportOpen(true); }} />
+                {/* 💬 צ׳אט-צוות תוך-ארגוני — מגודר shell.teamchat (מתג באשף). */}
+                {featureOn(config, 'shell.teamchat') && (
+                  <HubButton emoji="👥" title="צ׳אט הצוות" sub="שיחה פנימית חיה בין אנשי-הצוות של הארגון" onClick={() => { setHelpOpen(false); setTeamChatOpen(true); }} />
+                )}
               </>
             )}
           </div>
@@ -979,6 +985,7 @@ export default function App() {
       {netCheckOpen && <NetCheckModal onClose={() => setNetCheckOpen(false)} />}
       {supportOpen && <SupportChatModal onClose={() => setSupportOpen(false)} />}
       {supportInboxOpen && <SupportInbox onClose={() => setSupportInboxOpen(false)} />}
+      {teamChatOpen && <TeamChatModal onClose={() => setTeamChatOpen(false)} />}
       {/* תפריט-החשבון (UX סבב-א׳) — מייל, סטטוס-סנכרון כטקסט, יציאה בשני צעדים */}
       {userMenuOpen && cloud.user && (
         <Modal title="החשבון שלי" onClose={() => setUserMenuOpen(false)}>
