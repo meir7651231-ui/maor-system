@@ -20,7 +20,6 @@ import { VideoModal } from './VideoModal';
 
 export function LoginScreen() {
   const config = useApp((s) => s.config);
-  const dbOrgName = useApp((s) => s.db.orgName);
   const cloudSignIn = useApp((s) => s.cloudSignIn);
   const cloudResetPassword = useApp((s) => s.cloudResetPassword);
   const toast = useApp((s) => s.toast);
@@ -38,8 +37,9 @@ export function LoginScreen() {
   const [videoOpen, setVideoOpen] = useState(false);
 
   // ברירת-מחדל = אורביט (הפלטפורמה שאליה נרשמים); לקוח עם orgName/emoji/accent
-  // מקבל את הזהות שלו — "בהמשך זה יגיע מהאתר שלהם".
-  const title = config.orgName || dbOrgName || 'אורביט';
+  // מקבל את הזהות שלו — "בהמשך זה יגיע מהאתר שלהם". שים לב: לא נופלים ל-db.orgName —
+  // בשורש-הפלטפורמה הוא "מאור החסד" מנתוני-הזריעה ולא צריך למתג את אורביט.
+  const title = config.orgName || 'אורביט';
   const brandEmoji = config.emoji || '🪐';
   const theme = useMemo(() => orbitTheme(config.accent), [config.accent]);
 
