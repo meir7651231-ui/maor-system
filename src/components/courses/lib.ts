@@ -515,3 +515,16 @@ export function punchConfirmStep(
   // אין זריון / שיבוץ אחר / החלון פג — מזיינים (מחדש) את השיבוץ הנוכחי
   return { fire: false, next: { id: enrollmentId, armedAt: now } };
 }
+
+/**
+ * 🎡 גלגל-החוגים · מצב-ידני (17.8) — איזה קטע נמצא מתחת למחוג-העליון בזווית-סיבוב
+ * נתונה. טהור וניתן-לבדיקה. הקטעים מתחילים ב-−90° (למעלה) בכיוון-השעון; הקבוצה
+ * מסובבת ב-`rot` מעלות. הקטע-מתחת-למחוג = ‏floor(((−rot) mod 360) / step) mod n.
+ * (עקבי עם חישוב-המנצח של הסיבוב-האקראי: ‏rot=targetMod ⇒ מחזיר את idx המקורי.)
+ */
+export function wheelIndexUnderPointer(rot: number, n: number): number {
+  if (n <= 1) return 0;
+  const step = 360 / n;
+  const off = (((-rot) % 360) + 360) % 360;
+  return Math.floor(off / step) % n;
+}
