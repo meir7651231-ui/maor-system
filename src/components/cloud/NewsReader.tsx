@@ -6,8 +6,9 @@
 import { useEffect } from 'react';
 
 const base = import.meta.env.BASE_URL;
-// גרסת-עיתון — מכריח fetch טרי בכל פרסום (עוקף cache של iframe/CDN). לבמפ בכל עדכון של public/orbit/orbit-news.html.
-const NEWS_VERSION = '20260818';
+// שם-קובץ העיתון נושא גרסה בנתיב עצמו — Cloudflare ממפתח cache לפי path (query לבדו לא מספיק).
+// נתיב חדש = טעינה טרייה ודאית מהמקור. לבמפ בכל עדכון של העיתון (וליצור קובץ תואם ב-public/orbit/).
+const NEWS_FILE = 'orbit-news.20260818.html';
 
 export function NewsReader(props: { onClose: () => void }) {
   useEffect(() => {
@@ -32,7 +33,7 @@ export function NewsReader(props: { onClose: () => void }) {
             ✕
           </button>
         </div>
-        <iframe src={`${base}orbit/orbit-news.html?v=${NEWS_VERSION}`} title="העיתון" loading="eager" />
+        <iframe src={`${base}orbit/${NEWS_FILE}`} title="העיתון" loading="eager" />
       </div>
     </div>
   );
