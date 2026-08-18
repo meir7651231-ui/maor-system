@@ -107,9 +107,42 @@ export function cashSuggestions(courses: { name?: string; price?: number }[]): C
   return out;
 }
 
-/** סינון-חכם רב-מילתי (כל מילה נכללת בשם, בלי תלות-סדר). q ריק ⇒ ריק (בלי הצעות). */
-export function filterCashSuggest(list: CashSuggest[], q: string, max = 8): CashSuggest[] {
+/** סינון-חכם רב-מילתי (כל מילה נכללת בשם, בלי תלות-סדר). q ריק ⇒ ריק (בלי הצעות).
+ *  גנרי — משרת גם את הצעות-הפריט (על מה) וגם את הצעות-המשלם (על מי). */
+export function filterCashSuggest<T extends { name: string }>(list: T[], q: string, max = 8): T[] {
   const words = (q || '').trim().toLowerCase().split(/\s+/u).filter(Boolean);
   if (!words.length) return [];
   return list.filter((s) => { const n = s.name.toLowerCase(); return words.every((w) => n.includes(w)); }).slice(0, max);
+}
+
+/* ───────── 🧑 הקלדה-חכמה ל"על מי משלמים" (18.8, בקשת-בעלים "וגם ימצא את מי
+ * שמשלמים עליו"). מציע משפחות/תורמים קיימים (שם + פרט-זיהוי). בחירה ממלאת
+ * את שם-הלקוח בלבד — הקופה נשארת כלי-ספירה, אפס נגיעה ברשומות. ───────── */
+export interface PayerSuggest {
+  name: string;
+  hint: string;
+  /** פרט-זיהוי משני (עיר/טלפון) להבחנה בין כפולי-שם. */
+  sub?: string;
+}
+
+/** מקורות-ההצעה למשלם — משפחות (hint 'משפחה') ואז תורמים (hint 'תורם'); דדופ
+ *  לפי שם; שומר סדר-הופעה. פרט-משני: עיר, ואם אין — טלפון. */
+export function payerSuggestions(
+  families: { name?: string; city?: string; phone?: string }[],
+  supporters: { name?: string; city?: string; phone?: string }[] = [],
+): PayerSuggest[] {
+  const seen = new Set<string>();
+  const out: PayerSuggest[] = [];
+  const add = (rows: { name?: string; city?: string; phone?: string }[], hint: string) => {
+    for (const r of rows || []) {
+      const name = (r.name || '').trim();
+      if (!name || seen.has(name)) continue;
+      seen.add(name);
+      const sub = (r.city || '').trim() || (r.phone || '').trim();
+      out.push({ name, hint, ...(sub ? { sub } : {}) });
+    }
+  };
+  add(families, 'משפחה');
+  add(supporters, 'תורם');
+  return out;
 }
