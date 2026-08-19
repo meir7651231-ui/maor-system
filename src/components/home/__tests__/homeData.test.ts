@@ -2,10 +2,12 @@ import { describe, it, expect } from 'vitest';
 import {
   credSummary,
   dueContacts,
+  homeStats,
   monthDonationSum,
   monthlySeries,
   punchLow,
 } from '../homeData';
+import widgetsSrc from '../widgets.tsx?raw';
 import { defaultLayoutFor, sanitizeLayout, THEME_LAYOUTS, WIDGET_LIBRARY, HOME_WIDGETS } from '../widgets';
 import { tierOf } from '../../families/lib';
 import { emptyDb, emptyFamily, emptyMember, type Db, type Enrollment, type Supporter } from '../../../types/domain';
@@ -203,5 +205,28 @@ describe('פריסות פר-ערכה (THEME_LAYOUTS)', () => {
       expect(HOME_WIDGETS[id].label.length).toBeGreaterThan(0);
       expect(typeof HOME_WIDGETS[id].render).toBe('function');
     }
+  });
+});
+
+// בקשת-בעלים 19.8: כרטיס-הבית מציג סה"כ חוגים (כל הוספה נראית מיד), פעילים בשורת-המשנה
+describe('homeStats — סה"כ חוגים בבית', () => {
+  const crs = (id: string, start: string, end: string) =>
+    ({ id, name: id, start, end, sessions: [], weekday: 0, time: '', price: 0, model: 'monthly' }) as never;
+  it('coursesTotal = כל החוגים; activeCourses = רק בטווח-התאריכים של היום', () => {
+    const db: Db = {
+      ...emptyDb(),
+      courses: [
+        crs('active', '2026-07-01', '2026-12-31'), // כולל את NOW
+        crs('future', '2027-01-01', '2027-06-30'), // עתידי — לא פעיל היום
+      ],
+    };
+    const s = homeStats(db, NOW);
+    expect(s.coursesTotal).toBe(2); // כל הוספה נספרת
+    expect(s.activeCourses).toBe(1); // רק הפעיל היום
+  });
+
+  it('הגנת-מקור: הכרטיס מציג coursesTotal, פעילים בשורת-המשנה', () => {
+    expect(widgetsSrc).toContain('value={String(s.coursesTotal)}');
+    expect(widgetsSrc).toContain('${s.activeCourses} פעילים');
   });
 });
