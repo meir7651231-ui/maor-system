@@ -299,6 +299,8 @@ interface AppState {
   deleteSupporter: (id: string) => void;
   /** מחיקה-מרובה — כל ה-ids בעדכון-מצב יחיד (אותו ניקוי-מדורג כמו הבודד). */
   deleteSupporters: (ids: string[]) => void;
+  /** שיוך-ייעוד (forWho) לכמה תומכ/ות בבת-אחת (בקשת-בעלים 19.8 — בחירה-מרובה). */
+  setSupportersPurpose: (ids: string[], purpose: string) => void;
   /** 🔗 מיזוג-כפולים (#13): כל הכסף עובר ל-keep (rid נשמר), drop נמחק. */
   mergeSupporters: (keepId: string, dropId: string) => void;
   /** מיזוג-קבוצה אטומי (פאריטי משפחות): כל ה-losers נספגים ל-keep בקריאה אחת. */
@@ -433,6 +435,7 @@ interface AppState {
   ayinToggleName: (id: string, nameId: string) => void;
   ayinSetNameEyes: (id: string, nameId: string, eyes: number | '') => void;
   ayinSetNameRate: (id: string, nameId: string, rate: number) => void;
+  ayinSetNameNote: (id: string, nameId: string, note: string) => void;
   ayinRemoveName: (id: string, nameId: string) => void;
   ayinAddAnswer: (id: string, note: string) => void;
   ayinEditAnswer: (id: string, index: number, note: string) => void;
@@ -1659,8 +1662,17 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => ({ rooms: upsertIn(db.rooms, r) }));
     },
     upsertSupporter(s) {
-      setDb((db) => ({ supporters: upsertIn(db.supporters, s) }));
-      logAudit('שמירת תומכ/ת', s.name);
+      // בקשת-בעלים 19.8: עובד-סגור-לייעוד — תורם **חדש** בלי ייעוד מקבל אוטומטית
+      // את ייעודו (forWho), כדי שלא "ייעלם" ממנו (פריט ד') ולא ייחסם בשרת. רק
+      // בהוספה, רק כשריק; מנהל (allowedDesignations=null) לא מושפע.
+      const allowed = get().cloud.allowedDesignations;
+      const isNew = !get().db.supporters.some((x) => x.id === s.id);
+      const sup =
+        isNew && allowed && allowed.length && !(s.forWho || '').trim()
+          ? { ...s, forWho: allowed[0] }
+          : s;
+      setDb((db) => ({ supporters: upsertIn(db.supporters, sup) }));
+      logAudit('שמירת תומכ/ת', sup.name);
     },
     mergeSupporters(keepId, dropId) {
       const { supporters } = get().db;
@@ -1768,6 +1780,15 @@ export const useApp = create<AppState>()((set, get) => {
           events: db.events.filter((ev) => !evIds.has(ev.id) && !(ev.spId && idSet.has(ev.spId))),
         };
       });
+    },
+    setSupportersPurpose(ids, purpose) {
+      const idSet = new Set(ids);
+      if (!idSet.size) return;
+      const p = purpose.trim();
+      logAudit('שיוך ייעוד "' + (p || '—') + '" ל-' + idSet.size + ' תומכ/ות', '');
+      setDb((db) => ({
+        supporters: db.supporters.map((s) => (idSet.has(s.id) ? { ...s, forWho: p } : s)),
+      }));
     },
     addDonation(supporterId, donation) {
       // 🔐 רק המנהל מנפיק קבלות (הכרעת-בעלים 14.8) — מקצה-יחיד ל-donationSeq
@@ -2393,6 +2414,13 @@ export const useApp = create<AppState>()((set, get) => {
       const c = curAyin(id);
       if (!c) return;
       const names = c.a.names.map((n) => (n.id === nameId ? { ...n, rate: rate > 0 ? rate : undefined } : n));
+      setAyin(id, { names });
+    },
+    ayinSetNameNote(id, nameId, note) {
+      const c = curAyin(id);
+      if (!c) return;
+      const t = note.trim();
+      const names = c.a.names.map((n) => (n.id === nameId ? { ...n, note: t || undefined } : n));
       setAyin(id, { names });
     },
     ayinRemoveName(id, nameId) {

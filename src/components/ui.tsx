@@ -47,6 +47,28 @@ export function Chip(props: { children: ReactNode; on?: boolean; onClick?: () =>
   );
 }
 
+/**
+ * פס-חזרה מרחף וקבוע בתחתית-המסך (בקשת-בעלים 19.8): נצמד לתחתית אזור-הגלילה
+ * (sticky) כך שכפתור-החזרה תמיד גלוי — המשתמש לא צריך לגלול חזרה למעלה כדי
+ * לחזור. משותף לכל מסכי-הכרטיס (משפחה/חוג/תורם). מכבד את הניווט התחתון במובייל.
+ */
+export function StickyBackBar(props: { onBack: () => void; label: string }) {
+  return (
+    <div
+      style={{
+        position: 'sticky',
+        bottom: 0,
+        zIndex: 5,
+        background: 'linear-gradient(to top, var(--bg) 72%, transparent)',
+        padding: '10px 0 4px',
+        marginTop: 4,
+      }}
+    >
+      <Btn onClick={props.onBack}>{props.label}</Btn>
+    </div>
+  );
+}
+
 export function Modal(props: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const focusables = () =>

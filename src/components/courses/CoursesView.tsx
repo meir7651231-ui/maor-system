@@ -14,7 +14,7 @@ import { CourseDetail } from './CourseDetail';
 import { CourseWheel } from '../wheel/CourseWheel';
 import { coursesOfTeacher, DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
 
-type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2';
+type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2' | 'price3';
 
 const EMPTY_CRS_COLF = { name: '', audience: '', teacher: '', model: 'all', count: '', price: '' };
 
@@ -140,6 +140,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       : sort.key === 'count' ? (enrollCounts.get(c.id) || 0)
       : sort.key === 'price1' ? c.price1 || 0
       : sort.key === 'price2' ? c.price2 || 0
+      : sort.key === 'price3' ? c.price3 || 0
       : c.price || 0;
     return [...list].sort((a, b) => {
       const va = val(a);
@@ -377,6 +378,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                 {thSort('price', 'מחיר')}
                 {thSort('price1', 'הנחה 1')}
                 {thSort('price2', 'הנחה 2')}
+                {thSort('price3', 'הנחה 3')}
                 <th />
               </tr>
               {colFOn && (
@@ -404,6 +406,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                   <th />
                   <th />
                   <th />
+                  <th />
                 </tr>
               )}
             </thead>
@@ -425,6 +428,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                     </td>
                     <td style={{ color: '#7c3aed', fontWeight: 700 }}>
                       {c.price2 ? '₪' + c.price2 + (c.price2Name ? ' · ' + c.price2Name : '') : '—'}
+                    </td>
+                    <td style={{ color: '#b45309', fontWeight: 700 }}>
+                      {c.price3 ? '₪' + c.price3 + (c.price3Name ? ' · ' + c.price3Name : '') : '—'}
                     </td>
                     <td style={{ width: 34 }}>
                       <button

@@ -39,6 +39,36 @@ export function sanitizeIncoming(col: string, item: Record<string, unknown>): Re
   return out;
 }
 
+/**
+ * מיזוג-תרומות חסין-אובדן (בקשת-בעלים 19.8 פריט ח' — "תרומות לא מסונכרנות"):
+ * המיזוג הרגיל מחליף מסמך-תומך שלם ("הענן מנצח"). התרומות יושבות בתוך המסמך —
+ * ולכן תרומה שנרשמה במכשיר אחד נדרסה כשמכשיר אחר מסתנכרן עם גרסה ישנה של אותו
+ * תומך. הפתרון: **איחוד תרומות לפי rid** (מזהה-הקבלה הרציף) — הענן מנצח על rid
+ * שקיים בשני הצדדים (עריכה), אך תרומה שקיימת רק-מקומית לעולם לא אובדת. המונים
+ * הסקלריים לא-יורדים (max) — עקבי עם "מונים רק עולים". שאר השדות = הענן מנצח.
+ * חל רק על supporters; לכל אוסף אחר מחזיר את המסמך המרוחק כמות-שהוא.
+ */
+export function mergeDonationsPreserving(
+  col: string,
+  local: Record<string, unknown>,
+  incoming: Record<string, unknown>,
+): Record<string, unknown> {
+  if (col !== 'supporters') return incoming;
+  const localDon = Array.isArray(local.donations) ? (local.donations as Array<{ rid?: string }>) : [];
+  const incDon = Array.isArray(incoming.donations) ? (incoming.donations as Array<{ rid?: string }>) : [];
+  const incRids = new Set(incDon.map((d) => d && d.rid).filter(Boolean));
+  const localOnly = localDon.filter((d) => d && d.rid && !incRids.has(d.rid));
+  const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+  const count = Math.max(num(incoming.count), num(local.count));
+  const ils = Math.max(num(incoming.ils), num(local.ils));
+  const usd = Math.max(num(incoming.usd), num(local.usd));
+  // אם אין תרומה מקומית-בלבד והמונים לא גדלו — אין מה לשמר, הענן כמות-שהוא.
+  if (localOnly.length === 0 && count === num(incoming.count) && ils === num(incoming.ils) && usd === num(incoming.usd)) {
+    return incoming;
+  }
+  return { ...incoming, donations: [...incDon, ...localOnly], count, ils, usd };
+}
+
 /** מיזוג שינויי אוסף מרוחקים לרשימה מקומית — upsert לפי id, מחוקים יוצאים. */
 export function applyEntityPartial(
   db: Db,
@@ -61,7 +91,9 @@ export function applyEntityPartial(
       const inc = incoming.get(x.id);
       if (inc) {
         incoming.delete(x.id);
-        return inc as unknown as { id: string };
+        // איחוד-תרומות חסין-אובדן (פריט ח') — לתומכים בלבד; שאר האוספים כרגיל.
+        const merged = mergeDonationsPreserving(col, x as unknown as Record<string, unknown>, inc);
+        return merged as unknown as { id: string };
       }
       return x;
     });

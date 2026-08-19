@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, integrationOn, integrationSetting, safeHttpsUrl, telephonyOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, integrationSetting, isAdminUser, safeHttpsUrl, telephonyOn, termOf } from '../../lib/config';
 import { DialerModal } from '../dialer/DialerModal';
 import { WaBtn } from '../WaBtn';
 import { IncomingPaymentsModal } from './IncomingPayments';
@@ -13,7 +13,7 @@ import { NedarimSyncModal } from './NedarimSyncModal';
 import { annualAllLines, downloadAnnualReport } from '../../lib/annualReport';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
-import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
+import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
@@ -133,6 +133,7 @@ export function SupportersView() {
   // null = בלי הגבלה (מנהל/בעלים/לקוח-מקומי). מסתיר ברמת-הממשק (כמו shell.privacy).
   const purposeOn = featureOn(config, 'supporters.purpose');
   const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
   const desigLimit = purposeOn ? allowedDesignations : null;
   const [incomingOpen, setIncomingOpen] = useState(false);
   const [nedSyncOpen, setNedSyncOpen] = useState(false);
@@ -172,7 +173,10 @@ export function SupportersView() {
   const [selMode, setSelMode] = useState(false);
   const [selSet, setSelSet] = useState<ReadonlySet<string>>(new Set<string>());
   const [confirmDel, setConfirmDel] = useState(false);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assignVal, setAssignVal] = useState('');
   const deleteSupporters = useApp((s) => s.deleteSupporters);
+  const setSupportersPurpose = useApp((s) => s.setSupportersPurpose);
   const toggleSel = (id: string) =>
     setSelSet((prev) => {
       const next = new Set(prev);
@@ -193,6 +197,8 @@ export function SupportersView() {
   const dialerStart = useApp((s) => s.dialerStart);
   // לוח התרומות הכלל-ארגוני (P1.4, legacy supCalOn/supCalAll) — מוצג בלחיצה
   const [orgCalOpen, setOrgCalOpen] = useState(false);
+  // בקשת-בעלים 19.8 (פריט ז'): לוח מעקב-הטיפול מוסתר כברירת-מחדל — בחירה מפורשת להצגה.
+  const [ayinBoardOpen, setAyinBoardOpen] = useState(false);
   const donCalOn = featureOn(config, 'supporters.doncal');
   // בקשת "+ תומכת" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
   const supFormReq = useApp((s) => s.supFormReq);
@@ -212,6 +218,11 @@ export function SupportersView() {
       ackSupporterOpen();
     }
   }, [supOpenReq, ackSupporterOpen]);
+  // הכרעת-בעלים 19.8 (פריט ד'): עובד-סגור-לייעוד ננעל לייעודו — בורר-הייעוד מוסר
+  // "כל הייעודים", ולכן ברירת-המסנן עוברת לייעוד הראשון שלו (לא 'all' שאינו קיים).
+  useEffect(() => {
+    if (desigLimit && desigLimit.length && purposeF === 'all') setPurposeF(desigLimit[0]);
+  }, [desigLimit, purposeF]);
 
   /** דוח יומי של מעקב הטיפול — כל מי שטופל היום. */
   function dailyReport() {
@@ -223,6 +234,17 @@ export function SupportersView() {
     }
     downloadCsv('ayin-daily-' + isoToday() + '.csv', rows);
     toast('דוח יומי: ' + (rows.length - 1) + ' פריטים שטופלו היום — הקובץ ירד');
+  }
+
+  /** דוח מלא של כל השמות (למשל שמות-לתפילה) — להורדת-מנהל, בסגנון דוחות התרומות. */
+  function namesReport() {
+    const rows = ayinAllRows(config, visibleSupportersForDesignations(db.supporters, desigLimit));
+    if (rows.length <= 1) {
+      toast('עדיין לא נוספו שמות בכרטיסי מעקב-הטיפול');
+      return;
+    }
+    downloadCsv('ayin-names-' + isoToday() + '.csv', rows);
+    toast('דוח שמות: ' + (rows.length - 1) + ' שמות — הקובץ ירד');
   }
 
   // 🐛 נחיל-9×9 (13.8): גם פתיחת-כרטיס-ישיר (מהפלטה/עומק) מכובדת להרשאת-הייעוד —
@@ -339,6 +361,7 @@ export function SupportersView() {
                   },
                 },
                 ayinOn && dailyReportOn && { label: '📋 דוח יומי', onClick: dailyReport },
+                ayinOn && isAdminUser(config, cloudEmail) && { label: '📥 דוח שמות (למנהל)', onClick: namesReport, title: 'כל השמות בכרטיסי מעקב-הטיפול — CSV' },
                 dedupCount > 0 && { label: '🔗 איחוד כפולים · ' + dedupCount, onClick: () => setDedupOpen(true) },
                 !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
               ]}
@@ -391,6 +414,12 @@ export function SupportersView() {
             נקה בחירה
           </Btn>
           <div style={{ flex: 1 }} />
+          {/* בקשת-בעלים 19.8 (פריט ד'): המנהל משייך ייעוד לכמה תומכ/ות בבת-אחת */}
+          {purposeOn && isAdminUser(config, cloudEmail) && (
+            <Btn disabled={!selSet.size} onClick={() => { setAssignVal(''); setAssignOpen(true); }}>
+              {'🏷 שיוך ייעוד · ' + selSet.size}
+            </Btn>
+          )}
           <Btn kind="danger" disabled={!selSet.size} onClick={() => setConfirmDel(true)}>
             {'🗑 מחיקת ' + selSet.size}
           </Btn>
@@ -400,7 +429,21 @@ export function SupportersView() {
         </div>
       )}
 
-      {ayinOn && <AyinBoard onOpen={setSelId} />}
+      {ayinOn && (
+        <div className="card" style={{ marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <h3 style={{ fontSize: 15 }}>🩺 לוח מעקב הטיפול</h3>
+            <Btn sm onClick={() => setAyinBoardOpen((v) => !v)}>
+              {ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה'}
+            </Btn>
+          </div>
+          {ayinBoardOpen && (
+            <div style={{ marginTop: 10 }}>
+              <AyinBoard onOpen={setSelId} />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* לוח תרומות כלל-ארגוני — כל התומכות + אירועי המעקב (legacy supCalAll) */}
       {donCalOn && (
@@ -433,7 +476,11 @@ export function SupportersView() {
           <Select
             value={purposeF}
             onChange={setPurposeF}
-            options={[{ value: 'all', label: 'כל הייעודים' }, ...purposeOptions.map((p) => ({ value: p, label: '🔐 ' + p }))]}
+            // הכרעת-בעלים 19.8 (פריט ד'): עובד-סגור רואה בבורר רק את ייעודיו — בלי "כל הייעודים".
+            options={[
+              ...(desigLimit ? [] : [{ value: 'all', label: 'כל הייעודים' }]),
+              ...purposeOptions.map((p) => ({ value: p, label: '🔐 ' + p })),
+            ]}
           />
         )}
       </div>
@@ -755,6 +802,40 @@ export function SupportersView() {
               {'🗑 מחק ' + selSet.size}
             </Btn>
             <Btn onClick={() => setConfirmDel(false)}>ביטול</Btn>
+          </div>
+        </Modal>
+      )}
+
+      {/* פריט ד' (19.8): שיוך-ייעוד לכמה תומכ/ות בבת-אחת */}
+      {assignOpen && (
+        <Modal title={'שיוך ייעוד ל-' + selSet.size + ' ' + termOf(config, 'nav.supporters', 'תומכים')} onClose={() => setAssignOpen(false)}>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+            הייעוד קובע אילו עובדות רואות את התומכ/ת. הזינו ייעוד (או בחרו מהקיימים); ריק = ללא ייעוד.
+          </p>
+          <input
+            list="assign-purposes"
+            value={assignVal}
+            onChange={(e) => setAssignVal(e.target.value)}
+            placeholder="למשל: חתונות / קמחא דפסחא"
+            style={{ width: '100%', padding: '8px 10px', fontSize: 14, borderRadius: 8, border: '1px solid var(--line)' }}
+          />
+          <datalist id="assign-purposes">
+            {purposeOptions.map((p) => <option key={p} value={p} />)}
+          </datalist>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <Btn
+              kind="primary"
+              onClick={() => {
+                const ids = [...selSet];
+                setSupportersPurpose(ids, assignVal);
+                toast('שויך ייעוד ל-' + ids.length + ' ' + termOf(config, 'nav.supporters', 'תומכים'));
+                setAssignOpen(false);
+                exitSelMode();
+              }}
+            >
+              🏷 שייך
+            </Btn>
+            <Btn onClick={() => setAssignOpen(false)}>ביטול</Btn>
           </div>
         </Modal>
       )}

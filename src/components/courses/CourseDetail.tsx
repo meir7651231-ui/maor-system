@@ -10,7 +10,7 @@ import { featureOn, roleOf, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { downloadCsv, type Cell } from '../../lib/csvx';
 import { buildCourseDailyRows } from '../../lib/courseDaily';
-import { Btn, Empty, Field, Modal, Select, TextInput } from '../ui';
+import { Btn, Empty, Field, Modal, Select, StickyBackBar, TextInput } from '../ui';
 import { CourseForm } from './CourseForm';
 import { EnrollModal } from './EnrollModal';
 import { ManageModal } from './ManageModal';
@@ -257,14 +257,7 @@ export function CourseDetail(props: { course: Course }) {
   );
 
   return (
-    <div>
-      <button
-        onClick={() => selectCourse(null)}
-        style={{ color: 'var(--ink-faint)', fontSize: 13, fontWeight: 700, marginBottom: 10 }}
-      >
-        {'→ כל ' + termOf(cfg, 'nav.courses', 'חוגים')}
-      </button>
-
+    <div style={{ paddingBottom: 60 }}>
       <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 15, marginBottom: 14 }}>
         <div
           style={{
@@ -684,10 +677,12 @@ export function CourseDetail(props: { course: Course }) {
                 {detailRow('מחיר לשיעור', '₪' + c.lessonPrice + ' לשיעור', '#12803c')}
                 {c.lessonPrice1 ? detailRow((c.price1Name || 'הנחה 1') + ' לשיעור', '₪' + c.lessonPrice1, '#12803c') : null}
                 {c.lessonPrice2 ? detailRow((c.price2Name || 'הנחה 2') + ' לשיעור', '₪' + c.lessonPrice2, '#7c3aed') : null}
+                {c.lessonPrice3 ? detailRow((c.price3Name || 'הנחה 3') + ' לשיעור', '₪' + c.lessonPrice3, '#b45309') : null}
               </>
             ) : null}
             {discountsOn && detailRow(c.price1Name || 'הנחה 1', c.price1 ? '₪' + c.price1 : '—', '#12803c')}
             {discountsOn && detailRow(c.price2Name || 'הנחה 2', c.price2 ? '₪' + c.price2 : '—', '#7c3aed')}
+            {discountsOn && (c.price3 || c.price3Name) ? detailRow(c.price3Name || 'הנחה 3', c.price3 ? '₪' + c.price3 : '—', '#b45309') : null}
             {detailRow('מסלול', mm.label)}
             {detailRow('סמסטר', c.semester || 'שנתי')}
             {detailRow(termOf(cfg, 'entity.room', 'חדר') + ' פעילות', room?.name ?? '—')}
@@ -743,6 +738,9 @@ export function CourseDetail(props: { course: Course }) {
       )}
       {expOpen && <CustomExport target="courses" onClose={() => setExpOpen(false)} />}
       {teacherPick && <TeacherPickModal course={c} onClose={() => setTeacherPick(false)} />}
+
+      {/* כפתור-חזרה מרחף קבוע בתחתית (בקשת-בעלים 19.8) */}
+      <StickyBackBar onBack={() => selectCourse(null)} label={'→ כל ' + termOf(cfg, 'nav.courses', 'חוגים')} />
     </div>
   );
 }

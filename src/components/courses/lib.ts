@@ -259,17 +259,19 @@ export function lessonsInTerm(freq: number, unit: 'week' | 'month', term: Pricin
 }
 
 /** מחיר-לשיעור לפי רמת-ההנחה שנבחרה (fallback ל-lessonPrice המלא). */
-export function lessonPriceForTier(c: Course, tier: '' | '1' | '2'): number {
+export function lessonPriceForTier(c: Course, tier: '' | '1' | '2' | '3'): number {
   if (tier === '1' && c.lessonPrice1) return c.lessonPrice1;
   if (tier === '2' && c.lessonPrice2) return c.lessonPrice2;
+  if (tier === '3' && c.lessonPrice3) return c.lessonPrice3;
   return c.lessonPrice || 0;
 }
 
 /** רמות-ההנחה הזמינות לחוג פר-שיעור — רק אלו עם מחיר+שם. */
-export function lessonTierOptions(c: Course): { v: '' | '1' | '2'; t: string }[] {
-  const out: { v: '' | '1' | '2'; t: string }[] = [{ v: '', t: 'מחיר מלא · ₪' + (c.lessonPrice || 0) }];
+export function lessonTierOptions(c: Course): { v: '' | '1' | '2' | '3'; t: string }[] {
+  const out: { v: '' | '1' | '2' | '3'; t: string }[] = [{ v: '', t: 'מחיר מלא · ₪' + (c.lessonPrice || 0) }];
   if (c.lessonPrice1) out.push({ v: '1', t: (c.price1Name || 'הנחה 1') + ' · ₪' + c.lessonPrice1 });
   if (c.lessonPrice2) out.push({ v: '2', t: (c.price2Name || 'הנחה 2') + ' · ₪' + c.lessonPrice2 });
+  if (c.lessonPrice3) out.push({ v: '3', t: (c.price3Name || 'הנחה 3') + ' · ₪' + c.lessonPrice3 });
   return out;
 }
 
@@ -285,7 +287,7 @@ export interface WeightedQuote {
 /** תמחור משוקלל — טהור. total = round(שיעורים × מחיר-לשיעור-אחרי-הנחה). */
 export function weightedQuote(
   c: Course,
-  opts: { freq: number; unit: 'week' | 'month'; term: PricingTerm; months?: number; tier: '' | '1' | '2' },
+  opts: { freq: number; unit: 'week' | 'month'; term: PricingTerm; months?: number; tier: '' | '1' | '2' | '3' },
 ): WeightedQuote {
   const perLesson = lessonPriceForTier(c, opts.tier);
   const raw = lessonsInTerm(opts.freq, opts.unit, opts.term, opts.months);

@@ -58,7 +58,9 @@ export function supporterVisibleForDesignations(
 ): boolean {
   if (!allowed || !allowed.length) return true;
   const fw = (sup.forWho ?? '').trim();
-  if (!fw) return true; // בלי ייעוד-פר-תורם = משותף (skey='_shared_' בשרת)
+  // הכרעת-בעלים 19.8 (היפוך #8): עובד-סגור-לייעוד רואה **רק** את הייעוד שלו —
+  // תורם בלי ייעוד אינו נראה לו (קודם: משותף). אכיפה-מלאה בשרת = עדכון Rules.
+  if (!fw) return false;
   return new Set(allowed.map((s) => s.trim())).has(fw);
 }
 

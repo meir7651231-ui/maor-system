@@ -58,7 +58,7 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
   const [freqUnit, setFreqUnit] = useState<'week' | 'month'>('week');
   const [term, setTerm] = useState<PricingTerm>('monthly');
   const [termMonths, setTermMonths] = useState('3');
-  const [tier, setTier] = useState<'' | '1' | '2'>('');
+  const [tier, setTier] = useState<'' | '1' | '2' | '3'>('');
 
   const quote = perLessonOn
     ? weightedQuote(c, { freq: +freq || 0, unit: freqUnit, term, months: +termMonths || 1, tier })
@@ -347,7 +347,7 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
             )}
             {tierOptions.length > 1 && (
               <Field label="הנחת הלקוח">
-                <Select value={tier} onChange={(v) => setTier(v === '1' ? '1' : v === '2' ? '2' : '')} options={tierOptions.map((o) => ({ value: o.v, label: o.t }))} />
+                <Select value={tier} onChange={(v) => setTier(v === '1' ? '1' : v === '2' ? '2' : v === '3' ? '3' : '')} options={tierOptions.map((o) => ({ value: o.v, label: o.t }))} />
               </Field>
             )}
           </div>

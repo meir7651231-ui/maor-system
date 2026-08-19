@@ -29,4 +29,11 @@ describe('💛 ratchet — P3 כרטיס תומכת', () => {
     expect(formSrc).toContain('city: f.city.trim()');
     expect(formSrc).toContain('<Field label="עיר">');
   });
+
+  // פריט ג' (19.8): כפתור-החזרה עבר לתחתית-המסך כפס-מרחף משותף (StickyBackBar)
+  it('כפתור-חזרה קבוע בתחתית — StickyBackBar משותף, לא בראש-המסך', () => {
+    expect(detailSrc).toContain('<StickyBackBar onBack={props.onBack}');
+    // אין כפתור-חזרה ידני בראש (רק דרך הרכיב המשותף)
+    expect(detailSrc).not.toMatch(/onClick=\{props\.onBack\}/);
+  });
 });

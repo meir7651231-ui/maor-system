@@ -13,7 +13,7 @@ import { annualReportLines, donationYears, downloadAnnualReport } from '../../li
 import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
-import { Btn, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
+import { Btn, Empty, Field, FormError, Modal, Select, StickyBackBar, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
 import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
@@ -298,11 +298,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     (supLast(dsp) ? ' · אחרונה ' + hebDateFull(supLast(dsp)) : '');
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div>
-        <Btn onClick={props.onBack}>{'→ כל ' + termOf(config, 'nav.supporters', 'התומכים')}</Btn>
-      </div>
-
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 60 }}>
       {/* כותרת הכרטיס */}
       <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
         <div
@@ -619,6 +615,9 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           )}
         </Modal>
       )}
+
+      {/* פריט ג' (19.8): כפתור-חזרה מרחף קבוע בתחתית — רכיב משותף */}
+      <StickyBackBar onBack={props.onBack} label={'→ כל ' + termOf(config, 'nav.supporters', 'התומכים')} />
     </div>
   );
 }

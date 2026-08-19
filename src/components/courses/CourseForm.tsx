@@ -23,13 +23,17 @@ interface CourseFormState {
   price: string;
   price1: string;
   price2: string;
+  price3: string;
   price1Name: string;
   price2Name: string;
+  price3Name: string;
   model: PricingModel;
   size: string;
   start: string;
   end: string;
   weekday: string;
+  /** ימי-המפגש (בקשת-בעלים 19.8 פריט ה' — מורה שבאה בכמה ימים). weekday = הראשון. */
+  days: number[];
   time: string;
   maxStudents: string;
   gender: Gender | 'all';
@@ -48,6 +52,7 @@ interface CourseFormState {
   lessonPrice: string;
   lessonPrice1: string;
   lessonPrice2: string;
+  lessonPrice3: string;
   /** צירופים לחוג (בקשת-בעלים 13.8 א'). */
   files: CourseFile[];
 }
@@ -66,13 +71,16 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
       price: '',
       price1: '',
       price2: '',
+      price3: '',
       price1Name: '',
       price2Name: '',
+      price3Name: '',
       model: 'monthly',
       size: '',
       start: sy.start,
       end: sy.end,
       weekday: '0',
+      days: [0],
       time: '17:00',
       maxStudents: '12',
       gender: 'f',
@@ -89,6 +97,7 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
       lessonPrice: '',
       lessonPrice1: '',
       lessonPrice2: '',
+      lessonPrice3: '',
       files: [],
     };
   }
@@ -104,13 +113,18 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
     price: course.price ? String(course.price) : '',
     price1: course.price1 ? String(course.price1) : '',
     price2: course.price2 ? String(course.price2) : '',
+    price3: course.price3 ? String(course.price3) : '',
     price1Name: course.price1Name,
     price2Name: course.price2Name,
+    price3Name: course.price3Name || '',
     model: course.model,
     size: course.size ? String(course.size) : '',
     start: course.start,
     end: course.end,
     weekday: String(course.weekday),
+    days: course.sessions?.length
+      ? [...new Set(course.sessions.map((s) => s.day))].sort((a, b) => a - b)
+      : [course.weekday],
     time: course.time,
     maxStudents: String(course.maxStudents || 12),
     gender: course.gender,
@@ -127,6 +141,7 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
     lessonPrice: course.lessonPrice ? String(course.lessonPrice) : '',
     lessonPrice1: course.lessonPrice1 ? String(course.lessonPrice1) : '',
     lessonPrice2: course.lessonPrice2 ? String(course.lessonPrice2) : '',
+    lessonPrice3: course.lessonPrice3 ? String(course.lessonPrice3) : '',
     files: course.files ?? [],
   };
 }
@@ -161,7 +176,7 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
   function save() {
     if (!f.name.trim()) return setError('שם ה' + termOf(cfg, 'entity.course', 'חוג') + ' הוא שדה חובה');
     if (!f.roomId) return setError('יש לבחור ' + termOf(cfg, 'entity.room', 'חדר') + ' פעילות');
-    if ([f.price, f.price1, f.price2, f.lessonPrice, f.lessonPrice1, f.lessonPrice2].some((p) => p && (isNaN(+p) || +p < 0)))
+    if ([f.price, f.price1, f.price2, f.price3, f.lessonPrice, f.lessonPrice1, f.lessonPrice2, f.lessonPrice3].some((p) => p && (isNaN(+p) || +p < 0)))
       return setError('המחיר חייב להיות מספר חיובי');
     if (perLessonOn && f.perLesson && (!f.lessonPrice || +f.lessonPrice <= 0))
       return setError('בתמחור פר-שיעור יש להזין מחיר-לשיעור גדול מ-0');
@@ -177,7 +192,10 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
       if (!f.semOther.trim()) return setError('בחרתם מסלול "אחר" — הקלידו את שם המסלול');
       semester = f.semOther.trim();
     }
-    const weekday = Math.min(5, Math.max(0, +f.weekday || 0)) as Weekday;
+    // ימי-המפגש (פריט ה'): לפחות יום אחד; weekday = הראשון (fallback + תאימות-לאחור).
+    const selDays = [...new Set(f.days.map((d) => Math.min(5, Math.max(0, d))))].sort((a, b) => a - b) as Weekday[];
+    if (selDays.length === 0) return setError('בחרו לפחות יום מפגש אחד');
+    const weekday = selDays[0];
     const time = f.time || '17:00';
     const ageMin = f.ageMin === '' ? 3 : Math.max(0, +f.ageMin || 0);
     const ageMax = f.ageMax === '' ? 99 : Math.max(1, +f.ageMax || 99);
@@ -219,8 +237,10 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
       price: +f.price || 0,
       price1: +f.price1 || 0,
       price2: +f.price2 || 0,
+      price3: +f.price3 || 0,
       price1Name: f.price1Name.trim(),
       price2Name: f.price2Name.trim(),
+      price3Name: f.price3Name.trim(),
       model: f.model,
       size: +f.size || 0,
       start: f.start,
@@ -242,15 +262,20 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
       lessonPrice: +f.lessonPrice || 0,
       lessonPrice1: +f.lessonPrice1 || 0,
       lessonPrice2: +f.lessonPrice2 || 0,
+      lessonPrice3: +f.lessonPrice3 || 0,
       files: f.files,
     };
     const room = db.rooms.find((r) => r.id === f.roomId);
     const roomName = room ? room.name : 'ה' + termOf(cfg, 'entity.room', 'חדר');
 
+    // מפגש ליום נבחר; שומר label של מפגש-קיים באותו יום (קבוצות), שעה אחידה מהטופס.
+    const buildSessions = (existing?: Course['sessions']) =>
+      selDays.map((day) => {
+        const prev = existing?.find((ss) => ss.day === day);
+        return prev ? { ...prev, day, time } : { day, time, label: '' };
+      });
     if (props.course) {
-      const sessions = props.course.sessions?.length
-        ? props.course.sessions.map((ss, i) => (i === 0 ? { ...ss, day: weekday, time } : ss))
-        : [{ day: weekday, time, label: '' }];
+      const sessions = buildSessions(props.course.sessions);
       upsertCourse({ ...props.course, ...fields, sessions });
       toast('ה' + termOf(cfg, 'entity.course', 'חוג') + ' עודכן — משתקף ביומן ' + roomName + ' ובלוח');
     } else {
@@ -259,7 +284,7 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
         ...fields,
         id,
         sector: 'הכל',
-        sessions: [{ day: weekday, time, label: '' }],
+        sessions: buildSessions(),
         notes: '',
       });
       selectCourse(id);
@@ -372,12 +397,33 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
             </div>
           )}
         </Field>
-        <Field label="יום קבוע">
-          <Select
-            value={f.weekday}
-            onChange={(v) => set({ weekday: v })}
-            options={DAY_NAMES.map((d, i) => ({ value: String(i), label: d }))}
-          />
+        <Field label="ימי מפגש">
+          {/* פריט ה' (19.8): בחירת ימים מרובים — מורה שבאה בכמה ימים. */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {DAY_NAMES.map((d, i) => {
+              const on = f.days.includes(i);
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => set({ days: on ? f.days.filter((x) => x !== i) : [...f.days, i] })}
+                  aria-pressed={on}
+                  style={{
+                    padding: '5px 11px',
+                    borderRadius: 999,
+                    border: '1px solid ' + (on ? 'var(--accent-deep, var(--accent))' : 'var(--line)'),
+                    background: on ? 'var(--accent)' : 'var(--panel)',
+                    color: on ? '#fff' : 'var(--ink-soft)',
+                    fontWeight: 700,
+                    fontSize: 12.5,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {d}
+                </button>
+              );
+            })}
+          </div>
         </Field>
         <Field label="שעה">
           <TextInput value={f.time} onChange={(v) => set({ time: v })} type="time" />
@@ -413,6 +459,9 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
                     <Field label={'מחיר-לשיעור · ' + (f.price2Name.trim() || 'הנחה 2') + ' (₪)'}>
                       <TextInput value={f.lessonPrice2} onChange={(v) => set({ lessonPrice2: v })} placeholder="—" dir="ltr" type="number" />
                     </Field>
+                    <Field label={'מחיר-לשיעור · ' + (f.price3Name.trim() || 'הנחה 3') + ' (₪)'}>
+                      <TextInput value={f.lessonPrice3} onChange={(v) => set({ lessonPrice3: v })} placeholder="—" dir="ltr" type="number" />
+                    </Field>
                   </>
                 )}
               </div>
@@ -438,6 +487,12 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
             </Field>
             <Field label="מחיר הנחה 2 (₪)">
               <TextInput value={f.price2} onChange={(v) => set({ price2: v })} placeholder="—" dir="ltr" />
+            </Field>
+            <Field label="שם הנחה 3">
+              <TextInput value={f.price3Name} onChange={(v) => set({ price3Name: v })} placeholder="לדוגמה: משפחות ברוכות" />
+            </Field>
+            <Field label="מחיר הנחה 3 (₪)">
+              <TextInput value={f.price3} onChange={(v) => set({ price3: v })} placeholder="—" dir="ltr" />
             </Field>
           </>
         )}

@@ -92,7 +92,7 @@ export function ExportSection() {
       [
         'שם ה' + termOf(config, 'entity.course', 'חוג'), 'קטגוריה', 'קהל יעד', ...(exportFullOn ? ['כיתות'] : []), termOf(config, 'entity.teacher', 'מורה'),
         ...(exportFullOn ? ['טלפון ' + termOf(config, 'entity.teacher', 'מורה')] : []), termOf(config, 'entity.room', 'חדר'), 'מסלול',
-        'מחיר', ...(exportFullOn ? ['הנחה 1', 'הנחה 2', 'מגיל', 'עד גיל'] : []), 'יום', 'שעה',
+        'מחיר', ...(exportFullOn ? ['הנחה 1', 'הנחה 2', 'הנחה 3', 'מגיל', 'עד גיל'] : []), 'יום', 'שעה',
         ...(exportFullOn ? ['קבוצות'] : []), 'רשומים', ...(exportFullOn ? ['סה"כ הכנסות'] : []),
         'מקס׳ ' + termOf(config, 'entity.students', 'תלמידים'), 'סמסטר', 'תחילה', 'סיום', 'הערות',
       ],
@@ -109,7 +109,7 @@ export function ExportSection() {
         ...(exportFullOn ? [t?.phone ?? ''] : []),
         db.rooms.find((r) => r.id === c.roomId)?.name ?? '',
         modelMeta(c).label, c.price,
-        ...(exportFullOn ? [c.price1 || '', c.price2 || '', c.ageMin || '', c.ageMax || ''] : []),
+        ...(exportFullOn ? [c.price1 || '', c.price2 || '', c.price3 || '', c.ageMin || '', c.ageMax || ''] : []),
         DAY_NAMES[c.weekday] ?? '', c.time,
         ...(exportFullOn ? [c.sessions?.length || 1] : []),
         enrollCount(db, c.id), ...(exportFullOn ? ['₪' + revenue] : []), c.maxStudents || '',
