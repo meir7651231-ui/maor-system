@@ -56,7 +56,7 @@ import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
-import { planNedarimSync, type SyncCharge } from '../lib/nedarimSync';
+import { attachChargeTo, planNedarimSync, type SyncCharge } from '../lib/nedarimSync';
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
@@ -314,6 +314,9 @@ interface AppState {
    *  לא יוצר כרטיסים; מה שלא-תואם נשאר pending ל-🔄 הידני). מחזיר את מזהי-העסקאות
    *  שחוברו (לסימון handled רק להן). */
   applyNedarimAuto: (charges: SyncCharge[]) => string[];
+  /** 🔗 שיוך-ידני של תשלום-נכנס לכרטיס נבחר (מסך תשלומים-נכנסים, בסגנון בדיקת-
+   *  הכפילויות) — מוסיף את העסקה ל-hist של הכרטיס (דדופ-txn). מחזיר האם נוסף. */
+  attachIncomingToSupporter: (supId: string, charge: SyncCharge) => boolean;
   /** 🧹 ניקוי כרטיסים שנוצרו-אוטומטית מעסקאות (id מתחיל sup-ned-txn-) — מחזיר
    *  את מצב-התורמים לנקי אחרי ריבוי-כרטיסים-בטעות. מחזיר כמה נמחקו. */
   wipeNedarimJunk: () => number;
@@ -1754,6 +1757,16 @@ export const useApp = create<AppState>()((set, get) => {
         setDb(() => ({ supporters: plan.supporters }));
       }
       return plan.handledChargeIds; // רק העסקאות שחוברו — לסימון handled
+    },
+
+    attachIncomingToSupporter(supId, charge) {
+      // שיוך-ידני (מסך תשלומים-נכנסים): מוסיף עסקה ל-hist של כרטיס נבחר, דדופ-txn.
+      const { supporters, added } = attachChargeTo(get().db.supporters, supId, charge);
+      if (added) {
+        logAudit('🔗 שיוך-ידני תשלום-נכנס', 'עסקה חוברה לכרטיס ' + supId);
+        setDb(() => ({ supporters }));
+      }
+      return added;
     },
 
     wipeNedarimJunk() {

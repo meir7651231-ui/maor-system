@@ -106,7 +106,7 @@ function curOf(charge: SyncCharge): '₪' | '$' {
 }
 
 /** בניית רשומת-hist מעסקה (רק שדות לא-ריקים; d/a/c תמיד). */
-function chargeToHist(charge: SyncCharge): HistEntry {
+export function chargeToHist(charge: SyncCharge): HistEntry {
   const h: HistEntry = {
     d: (charge.d || (charge.at || '').slice(0, 10) || '').trim(),
     a: charge.amount,
@@ -122,6 +122,47 @@ function chargeToHist(charge: SyncCharge): HistEntry {
   if (rec) h.receipt = rec;
   if (l4) h.last4 = l4;
   return h;
+}
+
+/* ── שיוך-ידני של תשלום-נכנס לכרטיס (בסגנון בדיקת-הכפילויות, 19.8.2026) ──
+   כשהסנכרון-האוטומטי לא הצליח להתאים עסקה (שם שונה/חסר), המזכירה בוחרת ידנית
+   את הכרטיס. אותם מפתחות-שיוך של המנוע — כדי להציע מועמדים חכמים. טהור. */
+
+/** מועמדים לשיוך עסקה לכרטיס — לפי מפתח-חזק (ToremId/ת"ז/טלפון/אימייל) או שם
+ *  חסין-סדר (≥2 מילים). ממוין: מפתח-חזק קודם, שם אחרון. עד `limit`. */
+export function candidateSupportersForCharge(charge: SyncCharge, supporters: Supporter[], limit = 8): Supporter[] {
+  const ck = new Set(keysOf({ extId: charge.toremId, zeout: charge.zeout, phone: charge.phone, email: charge.email }));
+  const cName = nameSortKey(charge.name || '');
+  const scored: { sp: Supporter; score: number }[] = [];
+  for (const sp of supporters) {
+    const sk = keysOf({ extId: sp.extId, idNum: sp.idNum, phone: sp.phone, email: sp.email });
+    let score = 0;
+    for (const k of sk) {
+      if (!ck.has(k)) continue;
+      if (k.startsWith('ext:')) score = Math.max(score, 5);
+      else if (k.startsWith('id:')) score = Math.max(score, 4);
+      else if (k.startsWith('ph:')) score = Math.max(score, 3);
+      else if (k.startsWith('em:')) score = Math.max(score, 2);
+    }
+    if (!score && cName && cName.includes(' ') && nameSortKey(sp.name) === cName) score = 1;
+    if (score) scored.push({ sp, score });
+  }
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, limit).map((x) => x.sp);
+}
+
+/** חיבור-ידני של עסקה לכרטיס נבחר — מוסיף chargeToHist ל-hist (דדופ לפי txn).
+ *  מחזיר { supporters, added }; added=false אם הכרטיס לא-נמצא או העסקה כבר קיימת. */
+export function attachChargeTo(supporters: Supporter[], supId: string, charge: SyncCharge): { supporters: Supporter[]; added: boolean } {
+  const idx = supporters.findIndex((s) => s.id === supId);
+  if (idx < 0) return { supporters, added: false };
+  const sp = supporters[idx];
+  const txn = (charge.txnId || '').trim();
+  const hist = sp.hist || [];
+  if (txn && hist.some((h) => (h.txn || '').trim() === txn)) return { supporters, added: false };
+  const next = supporters.slice();
+  next[idx] = { ...sp, hist: [...hist, chargeToHist(charge)] };
+  return { supporters: next, added: true };
 }
 
 /** כרטיס-תומך חדש מרשומת-תורם נדרים (מזהה דטרמיניסטי לאידמפוטנטיות). */
