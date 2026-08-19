@@ -30,6 +30,8 @@ interface CourseFormState {
   start: string;
   end: string;
   weekday: string;
+  /** ימי-המפגש (בקשת-בעלים 19.8 פריט ה' — מורה שבאה בכמה ימים). weekday = הראשון. */
+  days: number[];
   time: string;
   maxStudents: string;
   gender: Gender | 'all';
@@ -73,6 +75,7 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
       start: sy.start,
       end: sy.end,
       weekday: '0',
+      days: [0],
       time: '17:00',
       maxStudents: '12',
       gender: 'f',
@@ -111,6 +114,9 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
     start: course.start,
     end: course.end,
     weekday: String(course.weekday),
+    days: course.sessions?.length
+      ? [...new Set(course.sessions.map((s) => s.day))].sort((a, b) => a - b)
+      : [course.weekday],
     time: course.time,
     maxStudents: String(course.maxStudents || 12),
     gender: course.gender,
@@ -177,7 +183,10 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
       if (!f.semOther.trim()) return setError('בחרתם מסלול "אחר" — הקלידו את שם המסלול');
       semester = f.semOther.trim();
     }
-    const weekday = Math.min(5, Math.max(0, +f.weekday || 0)) as Weekday;
+    // ימי-המפגש (פריט ה'): לפחות יום אחד; weekday = הראשון (fallback + תאימות-לאחור).
+    const selDays = [...new Set(f.days.map((d) => Math.min(5, Math.max(0, d))))].sort((a, b) => a - b) as Weekday[];
+    if (selDays.length === 0) return setError('בחרו לפחות יום מפגש אחד');
+    const weekday = selDays[0];
     const time = f.time || '17:00';
     const ageMin = f.ageMin === '' ? 3 : Math.max(0, +f.ageMin || 0);
     const ageMax = f.ageMax === '' ? 99 : Math.max(1, +f.ageMax || 99);
@@ -247,10 +256,14 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
     const room = db.rooms.find((r) => r.id === f.roomId);
     const roomName = room ? room.name : 'ה' + termOf(cfg, 'entity.room', 'חדר');
 
+    // מפגש ליום נבחר; שומר label של מפגש-קיים באותו יום (קבוצות), שעה אחידה מהטופס.
+    const buildSessions = (existing?: Course['sessions']) =>
+      selDays.map((day) => {
+        const prev = existing?.find((ss) => ss.day === day);
+        return prev ? { ...prev, day, time } : { day, time, label: '' };
+      });
     if (props.course) {
-      const sessions = props.course.sessions?.length
-        ? props.course.sessions.map((ss, i) => (i === 0 ? { ...ss, day: weekday, time } : ss))
-        : [{ day: weekday, time, label: '' }];
+      const sessions = buildSessions(props.course.sessions);
       upsertCourse({ ...props.course, ...fields, sessions });
       toast('ה' + termOf(cfg, 'entity.course', 'חוג') + ' עודכן — משתקף ביומן ' + roomName + ' ובלוח');
     } else {
@@ -259,7 +272,7 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
         ...fields,
         id,
         sector: 'הכל',
-        sessions: [{ day: weekday, time, label: '' }],
+        sessions: buildSessions(),
         notes: '',
       });
       selectCourse(id);
@@ -372,12 +385,33 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
             </div>
           )}
         </Field>
-        <Field label="יום קבוע">
-          <Select
-            value={f.weekday}
-            onChange={(v) => set({ weekday: v })}
-            options={DAY_NAMES.map((d, i) => ({ value: String(i), label: d }))}
-          />
+        <Field label="ימי מפגש">
+          {/* פריט ה' (19.8): בחירת ימים מרובים — מורה שבאה בכמה ימים. */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {DAY_NAMES.map((d, i) => {
+              const on = f.days.includes(i);
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => set({ days: on ? f.days.filter((x) => x !== i) : [...f.days, i] })}
+                  aria-pressed={on}
+                  style={{
+                    padding: '5px 11px',
+                    borderRadius: 999,
+                    border: '1px solid ' + (on ? 'var(--accent-deep, var(--accent))' : 'var(--line)'),
+                    background: on ? 'var(--accent)' : 'var(--panel)',
+                    color: on ? '#fff' : 'var(--ink-soft)',
+                    fontWeight: 700,
+                    fontSize: 12.5,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {d}
+                </button>
+              );
+            })}
+          </div>
         </Field>
         <Field label="שעה">
           <TextInput value={f.time} onChange={(v) => set({ time: v })} type="time" />
