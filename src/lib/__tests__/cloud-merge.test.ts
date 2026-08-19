@@ -4,7 +4,7 @@
  * מסמך מרוחק פגום, ו-seq לעולם לא קטן.
  */
 import { describe, expect, it } from 'vitest';
-import { applyEntityPartial, applyMetaPartial } from '../cloud-merge';
+import { applyEntityPartial, applyMetaPartial, mergeDonationsPreserving } from '../cloud-merge';
 import { allMembers } from '../../store/useApp';
 import { emptyDb } from '../../types/domain';
 import type { Db } from '../../types/domain';
@@ -52,6 +52,59 @@ describe('applyEntityPartial', () => {
     expect(Array.isArray(next.families[0].members)).toBe(true);
     expect(() => allMembers(next)).not.toThrow();
     expect(allMembers(next)).toEqual([]);
+  });
+});
+
+// ── פריט ח' (19.8): מיזוג-תרומות חסין-אובדן — תרומה מקומית לא נדרסת בסנכרון ──
+const don = (rid: string, amount: number) => ({ rid, date: '2026-08-18', amount, cur: '₪', cat: '' });
+const sup = (id: string, donations: unknown[], extra: Record<string, unknown> = {}) =>
+  ({ id, name: 'תורם ' + id, donations, ...extra }) as never;
+
+describe('mergeDonationsPreserving — פריט ח (חסין-אובדן תרומות)', () => {
+  it('תרומה מקומית-בלבד נשמרת כשהענן מביא גרסה ישנה', () => {
+    const local = { id: 's1', donations: [don('D-1', 100), don('D-2', 50)] };
+    const incoming = { id: 's1', donations: [don('D-1', 100)] }; // ישן — חסר D-2
+    const m = mergeDonationsPreserving('supporters', local, incoming);
+    expect((m.donations as Array<{ rid: string }>).map((d) => d.rid).sort()).toEqual(['D-1', 'D-2']);
+  });
+
+  it('אותו rid שנערך בענן → הענן מנצח (סכום מהמרוחק)', () => {
+    const local = { id: 's1', donations: [don('D-1', 100)] };
+    const incoming = { id: 's1', donations: [don('D-1', 180)] }; // עריכה בענן
+    const m = mergeDonationsPreserving('supporters', local, incoming);
+    const d1 = (m.donations as Array<{ rid: string; amount: number }>).find((d) => d.rid === 'D-1');
+    expect(d1?.amount).toBe(180);
+    expect((m.donations as unknown[]).length).toBe(1);
+  });
+
+  it('מונים לא-יורדים (max) גם כשהמרוחק נמוך', () => {
+    const local = { id: 's1', donations: [], count: 5, ils: 900, usd: 3 };
+    const incoming = { id: 's1', donations: [], count: 3, ils: 400, usd: 0 };
+    const m = mergeDonationsPreserving('supporters', local, incoming);
+    expect(m.count).toBe(5);
+    expect(m.ils).toBe(900);
+    expect(m.usd).toBe(3);
+  });
+
+  it('אוסף שאינו supporters → המסמך המרוחק כמות-שהוא', () => {
+    const local = { id: 'f1', members: [{ id: 'm1' }] };
+    const incoming = { id: 'f1', members: [] };
+    expect(mergeDonationsPreserving('families', local, incoming)).toBe(incoming);
+  });
+
+  it('זהה לחלוטין → אין שינוי (מחזיר את המרוחק, no-op)', () => {
+    const local = { id: 's1', donations: [don('D-1', 100)], count: 1, ils: 100, usd: 0 };
+    const incoming = { id: 's1', donations: [don('D-1', 100)], count: 1, ils: 100, usd: 0 };
+    expect(mergeDonationsPreserving('supporters', local, incoming)).toBe(incoming);
+  });
+
+  it('applyEntityPartial משמר תרומה מקומית בעדכון-תומך מרוחק', () => {
+    const db: Db = { ...emptyDb(), supporters: [sup('s1', [don('D-1', 100), don('D-2', 50)])] };
+    const next = applyEntityPartial(db, 'supporters', [
+      { id: 's1', data: { id: 's1', name: 'תורם s1', donations: [don('D-1', 100)] }, deleted: false },
+    ]);
+    const rids = (next.supporters[0].donations as Array<{ rid: string }>).map((d) => d.rid).sort();
+    expect(rids).toEqual(['D-1', 'D-2']); // D-2 המקומית לא אבדה
   });
 });
 
