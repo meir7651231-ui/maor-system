@@ -75,16 +75,18 @@ describe('🔗 ratchet — מיזוג כפולי-תורמים (#13)', () => {
     notes: '', count: 0, ils: 0, usd: 0, first: '', last: '', nextDate: '', donations: [], ...over,
   });
 
-  it('קיבוץ: טלפון מנורמל / אימייל / שם+עיר; שם-בלי-עיר לא מקבץ (מיזוג-שווא)', async () => {
+  // 19.8: אחרי תיקון סדר-שם נדרים — שם-מלא זהה (חסין-סדר) **כן** מקבץ להצעת-איחוד
+  // (מסך-האיחוד ידני ⇒ בטוח). זה מה שמאפשר לתפוס כפילות "בן צבי רחל"↔"רחל בן צבי".
+  it('קיבוץ: טלפון / אימייל / שם-חסין-סדר; שם-בודד לא מקבץ (מיזוג-שווא)', async () => {
     const { findSupporterDupGroups } = await import('../dedup');
     const a = mk({ id: 'a', name: 'משה כהן', phone: '050-1234567' });
     const b = mk({ id: 'b', name: 'מ. כהן', phone: '+972501234567' }); // אותו טלפון מנורמל
-    const c = mk({ id: 'c', name: 'משה כהן' }); // שם בלי עיר — לא מצטרף
+    const c = mk({ id: 'c', name: 'כהן משה' }); // אותו שם בסדר הפוך ⇒ מצטרף (חסין-סדר)
     const d = mk({ id: 'd', name: 'רות לוי', email: 'R@x.co' });
-    const e = mk({ id: 'e', name: 'רותי', email: 'r@x.co' }); // אותו אימייל lower
+    const e = mk({ id: 'e', name: 'רותי', email: 'r@x.co' }); // אותו אימייל lower; שם-בודד ⇒ לא-מקבץ-בשם
     const groups = findSupporterDupGroups([a, b, c, d, e]);
-    expect(groups.map((g) => [...g].sort())).toEqual(expect.arrayContaining([['a', 'b'], ['d', 'e']]));
-    expect(groups.some((g) => g.includes('c'))).toBe(false);
+    // a+b (טלפון) + c (שם חסין-סדר "כהן משה"≡"משה כהן") = קבוצה אחת; d+e (אימייל)
+    expect(groups.map((g) => [...g].sort())).toEqual(expect.arrayContaining([['a', 'b', 'c'], ['d', 'e']]));
   });
 
   it('מיזוג: כל התרומות (rid!) וה-hist עוברים, הצבירה מחושבת מחדש, ריק ⇒ מהנמחק', async () => {

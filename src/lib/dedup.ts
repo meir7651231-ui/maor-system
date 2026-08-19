@@ -6,11 +6,16 @@
  * מפל-המחיקה של deleteFamily).
  */
 import type { Family, Member, FamilyDoc, Supporter } from '../types/domain';
+import { nameSortKey } from './validate';
 
-/** ספרות בלבד, נרמול קידומת ישראלית (972→0) — להשוואת טלפונים. */
+/** ספרות בלבד, נרמול קידומת ישראלית (972→0) — להשוואת טלפונים.
+ *  מסנן מספרי-דמה (כל-הספרות זהות, כמו "0000000000") ⇒ '' (לא מפתח-התאמה). */
 export function normPhone(s: string): string {
-  const d = (s || '').replace(/\D/g, '');
-  return d.replace(/^972/, '0');
+  let d = (s || '').replace(/\D/g, '');
+  if (/^(\d)\1+$/.test(d)) return ''; // מציין-מקום (אפסים/ספרה-חוזרת) — לא טלפון אמיתי
+  d = d.replace(/^00/, ''); // צורה בינ"ל 00972…
+  if (d.startsWith('972')) d = '0' + d.slice(3);
+  return d.replace(/^0{2,}/, '0'); // כיווץ אפסים-מובילים-כפולים (מספר ישראלי לא מתחיל 00)
 }
 
 /**
@@ -265,6 +270,9 @@ function supNameCityKey(sp: Supporter): string {
 export function normId(s?: string): string {
   const d = (s || '').replace(/\D/g, '');
   if (!d || /^0+$/.test(d)) return '';
+  // מציין-מקום נדרים מרופד: "000000020"/"000000065" — עוברים את /^0+$/ אך אינם ת"ז.
+  // אם אחרי הסרת אפסים-מובילים נשארות <4 ספרות-משמעותיות ⇒ לא מפתח.
+  if (d.replace(/^0+/, '').length < 4) return '';
   return d.length >= 5 ? d : '';
 }
 
@@ -297,6 +305,7 @@ export function findSupporterDupGroups(supporters: Supporter[]): string[][] {
   const byId = new Map<string, string>(); // ת"ז
   const byExt = new Map<string, string>(); // מזהה-חיצוני (ToremId)
   const byNameCity = new Map<string, string>();
+  const byNameSorted = new Map<string, string>(); // שם חסין-סדר (בלי חובת-עיר)
   const link = (map: Map<string, string>, key: string, id: string) => {
     if (!key) return;
     const prev = map.get(key);
@@ -310,6 +319,10 @@ export function findSupporterDupGroups(supporters: Supporter[]): string[][] {
     link(byId, normId(sp.idNum), sp.id);
     link(byExt, (sp.extId || '').trim(), sp.id);
     link(byNameCity, supNameCityKey(sp), sp.id);
+    // מפתח-שם חסין-סדר: תופס כפילות נדרים ("בן צבי רחל"↔"רחל בן צבי") שאין לה עיר/ת"ז.
+    // דורש ≥2 מילים (שם-מלא) כדי לא לקבץ שמות-בודדים נפוצים. תוצאה = הצעה לסקירה-ידנית.
+    const ns = nameSortKey(sp.name);
+    link(byNameSorted, ns.includes(' ') ? ns : '', sp.id);
   }
   const groups = new Map<string, string[]>();
   for (const sp of supporters) {

@@ -17,6 +17,7 @@
  */
 import type { Supporter } from '../types/domain';
 import { normId, normPhone } from './dedup';
+import { nameSortKey, normSearch } from './validate';
 
 /** רשומת-תורם מנדרים (staged) — קלט-סנכרון (תת-קבוצה מבנית של NedarimDonor). */
 export interface SyncDonor {
@@ -92,8 +93,8 @@ function keysOf(o: { extId?: string; idNum?: string; zeout?: string; phone?: str
   }
   const em = (o.email || '').trim().toLowerCase();
   if (em) ks.push('em:' + em);
-  const n = (o.name || '').trim().replace(/\s+/g, ' ').toLowerCase();
-  const c = (o.city || '').trim().toLowerCase();
+  const n = normSearch(o.name || '');
+  const c = normSearch(o.city || '');
   if (n && c) ks.push('nc:' + n + '|' + c);
   return ks;
 }
@@ -198,7 +199,8 @@ export function planNedarimSync(
   // ToremId/ת"ז/טלפון (רק ClientName), לכן זו הדרך היחידה לחבר עסקה לכרטיס-תורם.
   // ערך -1 = שם עמום (יותר מכרטיס אחד) ⇒ לא מתאימים לפיו (בטיחות מפני מיזוג-שווא).
   const nameIndex = new Map<string, number>();
-  const nkey = (s?: string) => (s || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  // מפתח-שם חסין-סדר (משפחה-קודם≡פרטי-קודם) + מנוקה-תארים — הליבה של זיהוי-הכפילות.
+  const nkey = (s?: string) => nameSortKey(s || '');
   const registerName = (idx: number) => {
     const nk = nkey(out[idx].name);
     if (!nk) return;
