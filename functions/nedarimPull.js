@@ -18,6 +18,7 @@ const { onRequest } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { getFirestore } = require('firebase-admin/firestore');
 const { planHistoryWrites } = require('./nedarimHistory');
+const { parseDonorsTsv } = require('./nedarimDonors');
 
 function incomingCol(db, org) {
   return org === 'root'
@@ -77,6 +78,31 @@ async function fetchNedarimDonorsBytes() {
 /** פענוח בטוח לפי שם-קידוד; מחזיר '' אם הקידוד לא נתמך בסביבה. */
 function tryDecode(buf, enc) {
   try { return new TextDecoder(enc).decode(buf); } catch { return ''; }
+}
+
+function donorsCol(db, org) {
+  return org === 'root' ? db.collection('nedarimDonors')
+    : db.collection('orgs').doc(org).collection('nedarimDonors');
+}
+
+/** משיכת רשימת-התורמים ואחסונם (doc-id=מזהה-תורם) — צד-הלקוח יוצר מהם כרטיסי-תורם. */
+async function runNedarimDonorsPull(org) {
+  const db = getFirestore();
+  const buf = await fetchNedarimDonorsBytes();
+  const text = tryDecode(buf, 'utf-16le') || tryDecode(buf, 'windows-1255') || tryDecode(buf, 'utf-8');
+  const donors = parseDonorsTsv(text);
+  const col = donorsCol(db, org);
+  let n = 0;
+  for (let i = 0; i < donors.length; i += 400) {
+    const batch = db.batch();
+    for (const d of donors.slice(i, i + 400)) {
+      if (!d.toremId) continue;
+      batch.set(col.doc(d.toremId), { ...d, at: new Date().toISOString() });
+      n++;
+    }
+    await batch.commit();
+  }
+  return { donors: n };
 }
 
 /** רשימת-התורמים כטקסט נקי — Windows-1255 (נפילה ל-UTF-8). */
@@ -159,15 +185,20 @@ exports.nedarimPull = onRequest(
         return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
       }
     }
-    // ?peekdonors=1 ⇒ הצצה לרשימת-התורמים הגולמית (CSV) — לתכנון הפרסור.
+    // ?peekdonors=1 ⇒ הצצה: 5 התורמים הראשונים אחרי פרסור (מוודא מיפוי נכון).
     if (p.peekdonors === '1') {
       try {
         const buf = await fetchNedarimDonorsBytes();
-        return res.status(200).json({
-          ok: true,
-          cp1255: tryDecode(buf, 'windows-1255').slice(0, 1200),
-          utf16le: tryDecode(buf, 'utf-16le').slice(0, 1200),
-        });
+        const text = tryDecode(buf, 'utf-16le') || tryDecode(buf, 'windows-1255');
+        return res.status(200).json({ ok: true, parsed: parseDonorsTsv(text).slice(0, 5) });
+      } catch (e) {
+        return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
+      }
+    }
+    // ?donors=1 ⇒ משיכת רשימת-התורמים ואחסונם (doc-id=מזהה-תורם); הלקוח יוצר כרטיסי-תורם.
+    if (p.donors === '1') {
+      try {
+        return res.status(200).json({ ok: true, ...(await runNedarimDonorsPull(org)) });
       } catch (e) {
         return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
       }
