@@ -11,7 +11,7 @@ import { mapsSearchUrl } from '../../lib/mapsLink';
 import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
-import { Btn, Empty } from '../ui';
+import { Btn, Empty, StickyBackBar } from '../ui';
 import { ageOf, chipStyle, fmtDate, STATUS_META } from './lib';
 import { FamilyForm } from './FamilyForm';
 import { MemberForm, type MemberPrefill } from './MemberForm';
@@ -266,11 +266,7 @@ export function FamilyDetail(props: { family: Family }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div>
-        <Btn onClick={() => selectFamily(null)}>{'→ כל ' + termOf(config, 'nav.families', 'משפחות')}</Btn>
-      </div>
-
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 60 }}>
       {/* כותרת הכרטיס */}
       <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
         <div
@@ -479,6 +475,9 @@ export function FamilyDetail(props: { family: Family }) {
           }}
         />
       )}
+
+      {/* כפתור-חזרה מרחף קבוע בתחתית (בקשת-בעלים 19.8) */}
+      <StickyBackBar onBack={() => selectFamily(null)} label={'→ כל ' + termOf(config, 'nav.families', 'משפחות')} />
     </div>
   );
 }
