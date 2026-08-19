@@ -48,6 +48,33 @@ describe('🔄 ratchet — planNedarimSync (סנכרון-נכנס דרך המפ�
     expect(a.email).toBe('s@k.com');
   });
 
+  it('🎯 סדר-שם הפוך: נדרים "בן צבי רחל" מזוהה כמאור "רחל בן צבי" (לא כפול)', () => {
+    // הבאג-המרכזי (אבחון-הנחיל): נדרים משפחה-קודם, מאור פרטי-קודם ⇒ נוצרו ~895 כפילויות.
+    const existing = [sp('a', { name: 'רחל בן צבי', phone: '', idNum: '' })];
+    const donors = [donor({ toremId: '492787', name: 'בן צבי רחל', zeout: '000000000' })];
+    const { supporters, summary } = planNedarimSync(existing, donors, []);
+    expect(summary.newSupporters).toBe(0); // לא כפול!
+    expect(summary.updatedSupporters).toBe(1);
+    expect(supporters.find((s) => s.id === 'a')!.extId).toBe('492787');
+  });
+
+  it('🎯 סדר-שם + תואר: נדרים "גאביזון דוד ישראל" ↔ מאור "הרב דוד ישראל גאביזון"', () => {
+    const existing = [sp('a', { name: 'הרב דוד ישראל גאביזון' })];
+    const donors = [donor({ toremId: '1652298', name: 'גאביזון דוד ישראל' })];
+    const { summary } = planNedarimSync(existing, donors, []);
+    expect(summary.newSupporters).toBe(0);
+    expect(summary.updatedSupporters).toBe(1);
+  });
+
+  it('🎯 עסקה בסדר-שם הפוך מתחברת לכרטיס-קיים (findByName חסין-סדר)', () => {
+    const existing = [sp('a', { name: 'ישראל צבי כהן' })];
+    const charges = [charge({ amount: 360, name: 'כהן ישראל צבי', txnId: '3224775' })];
+    const { supporters, summary } = planNedarimSync(existing, [], charges);
+    expect(summary.newSupporters).toBe(0);
+    expect(summary.chargesAdded).toBe(1);
+    expect(supporters.find((s) => s.id === 'a')!.hist).toHaveLength(1);
+  });
+
   it('תורם ללא-התאמה ⇒ כרטיס-חדש עם מזהה דטרמיניסטי', () => {
     const { supporters, summary } = planNedarimSync([], [donor({ toremId: '492787', name: 'רחל בן צבי', phone: '053-3142342' })], []);
     expect(summary.newSupporters).toBe(1);
