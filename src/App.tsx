@@ -10,7 +10,7 @@
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
 import { nsLsKey, parseBackupFile } from './store/persist';
-import { applyFavicon, featureOn, isAdminUser, isSuperAdmin, moduleOn, publicSiteOn, roleOf, telephonyOn, termOf } from './lib/config';
+import { applyFavicon, featureOn, integrationOn, isAdminUser, isSuperAdmin, moduleOn, publicSiteOn, roleOf, telephonyOn, termOf } from './lib/config';
 import { applyOrgManifest, isIos, isStandalone, promptInstall, registerPwa } from './lib/pwa';
 import { runOriginGuard } from './lib/originGuard';
 import { setExportBlocked } from './lib/exportGate';
@@ -119,10 +119,35 @@ export default function App() {
   const goBack = useApp((s) => s.goBack);
   const privacyMode = useApp((s) => s.privacyMode);
   const togglePrivacy = useApp((s) => s.togglePrivacy);
+  const applyNedarimAuto = useApp((s) => s.applyNedarimAuto);
 
   useEffect(() => {
     void init();
   }, [init]);
+
+  // 🔴 חיבור-אוטומטי-לייב מנדרים: כשהענן מחובר וההרחבה 'payments' דלוקה, מאזינים
+  // לתשלומים-הנכנסים הממתינים (onSnapshot) — כל חיוב חדש שה-webhook כותב נכנס
+  // לכרטיס-התומך התואם מיד (לפי מפתחות), ואז מסומן handled. שקט, אידמפוטנטי
+  // (דדופ-txn). הייבוא-ההמוני של רשימת-התורמים נשאר במסך 🔄 עם תצוגה-מקדימה.
+  const nedAutoOn = cloud.enabled && !!cloud.user && !cloud.needUnlock && cloud.membership !== 'pending' && cloud.membership !== 'removed' && integrationOn(config, 'payments');
+  useEffect(() => {
+    if (!nedAutoOn) return;
+    let alive = true;
+    let unsub: (() => void) | null = null;
+    void import('./store/cloudSync').then((m) => {
+      if (!alive) return;
+      unsub = m.watchIncomingPayments((rows) => {
+        if (!rows.length) return;
+        applyNedarimAuto(rows); // עסקאות → hist של הכרטיס התואם
+        // סימון handled לכל מה שנקלט (גם כפולים-מדולגים — כבר רשומים) ⇒ לא נעבד שוב
+        for (const r of rows) void m.markIncomingPayment(r.id).catch(() => {});
+      });
+    });
+    return () => {
+      alive = false;
+      if (unsub) unsub();
+    };
+  }, [nedAutoOn, applyNedarimAuto]);
 
   // אייקון-הארגון (זהות-ורטיקל) — favicon מאימוג'י כשמוגדר; חסר ⇒ הדיפולט (זהב).
   // ה-store כבר קורא applyTheme (ערכה+צבע+תנועה); ה-favicon אינו על ה-root, לכן כאן.

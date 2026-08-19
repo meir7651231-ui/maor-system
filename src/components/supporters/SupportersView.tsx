@@ -9,6 +9,7 @@ import { featureOn, integrationOn, integrationSetting, isAdminUser, safeHttpsUrl
 import { DialerModal } from '../dialer/DialerModal';
 import { WaBtn } from '../WaBtn';
 import { IncomingPaymentsModal } from './IncomingPayments';
+import { NedarimSyncModal } from './NedarimSyncModal';
 import { annualAllLines, downloadAnnualReport } from '../../lib/annualReport';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
@@ -135,6 +136,7 @@ export function SupportersView() {
   const cloudEmail = useApp((s) => s.cloud.user?.email);
   const desigLimit = purposeOn ? allowedDesignations : null;
   const [incomingOpen, setIncomingOpen] = useState(false);
+  const [nedSyncOpen, setNedSyncOpen] = useState(false);
   const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');
   const importOn = featureOn(config, 'settings.import');
   const toast = useApp((s) => s.toast);
@@ -333,6 +335,11 @@ export function SupportersView() {
             {integrationOn(config, 'payments') && cloudOn && (
               <Btn onClick={() => setIncomingOpen(true)} title="תשלומים שדווחו מחברת-הסליקה — ממתינים לרישום">
                 💰 תשלומים נכנסים
+              </Btn>
+            )}
+            {integrationOn(config, 'payments') && cloudOn && (
+              <Btn onClick={() => setNedSyncOpen(true)} title="ייבוא תורמים ועסקאות מנדרים לכרטיסים — התאמה לפי מפתחות, עם תצוגה-מקדימה">
+                🔄 סנכרון מנדרים
               </Btn>
             )}
             {/* UX סבב-ד׳: כל הפעולות המשניות בתפריט ⋯ אחד — אפס אובדן-יכולת,
@@ -835,6 +842,7 @@ export function SupportersView() {
 
       {expOpen && <CustomExport target="supporters" onClose={() => setExpOpen(false)} />}
       {incomingOpen && <IncomingPaymentsModal onClose={() => setIncomingOpen(false)} />}
+      {nedSyncOpen && <NedarimSyncModal onClose={() => setNedSyncOpen(false)} />}
       {dialerOpen && <DialerModal onClose={() => setDialerOpen(false)} />}
     </div>
   );

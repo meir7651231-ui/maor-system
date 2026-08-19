@@ -23,6 +23,13 @@ export function payLink(payUrl: string, amount: number, name = ''): string | nul
       .replace(/%7Bname%7D|\{name\}/g, encodeURIComponent(name));
   }
   const u = new URL(base);
+  // כיוון-יוצא נדרים-פלוס: עמוד-הסליקה שלהם קורא **Amount/ClientName** (PascalCase),
+  // לא amount/name. זיהוי-מארח ⇒ מילוי-מראש שבאמת נתפס ("המערכת לוחצת על הקישור").
+  if (/(^|\.)matara\.pro$/i.test(u.hostname) && /nedarimplus/i.test(u.pathname + u.search)) {
+    if (amt !== '0') u.searchParams.set('Amount', amt);
+    if (name.trim()) u.searchParams.set('ClientName', name.trim());
+    return u.toString();
+  }
   if (amt !== '0') u.searchParams.set('amount', amt);
   if (name.trim()) u.searchParams.set('name', name.trim());
   return u.toString();

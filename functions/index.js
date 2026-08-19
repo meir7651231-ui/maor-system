@@ -12,6 +12,9 @@
  *   PAY_SECRET    — הסוד המשותף לאימות webhook מחברת-הסליקה
  *   SMTP_URL      — ‏smtps://user:pass@host — לשליחת-מיילים (צרור-הלילה)
  *   MAIL_FROM     — כתובת-השולח המוצגת במיילים
+ *   NEDARIM_MOSAD_ID     — מספר-המוסד בנדרים-פלוס (7 ספרות) — למשיכת-עסקאות
+ *   NEDARIM_API_PASSWORD — מפתח-API של המוסד (npk_ — סוד; רק השרת נוגע בו)
+ *   NEDARIM_ORG          — slug הארגון לרשת-הביטחון האוטומטית (nedarimSyncHourly)
  */
 const { onRequest } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
@@ -21,6 +24,15 @@ const { getStorage } = require('firebase-admin/storage');
 const { mapPaymentCallback } = require('./paymentMap');
 
 initializeApp();
+
+// כיוון-יוצא (משיכת-נדרים) — מודול נפרד; נטען בסוף הקובץ (Object.assign(exports,…)).
+
+/** אוסף התשלומים-הנכנסים בתחום הארגון (root=הלקוח-הקיים; אחרת orgs/{slug}/…). */
+function incomingCol(db, org) {
+  return org === 'root'
+    ? db.collection('incomingPayments')
+    : db.collection('orgs').doc(org).collection('incomingPayments');
+}
 
 /**
  * 💳 paymentsWebhook — חברת-הסליקה קוראת לכאן אחרי חיוב מוצלח.
@@ -41,18 +53,38 @@ exports.paymentsWebhook = onRequest({ secrets: ['PAY_SECRET'] }, async (req, res
   // eslint-disable-next-line no-unused-vars
   const { secret, ...rawSafe } = p; // המטען-הגולמי בלי הסוד-המשותף — לתיעוד/דיוק-מיפוי
   const db = getFirestore();
-  const col = m.org === 'root'
-    ? db.collection('incomingPayments')
-    : db.collection('orgs').doc(m.org).collection('incomingPayments');
-  await col.add({
+  const col = incomingCol(db, m.org);
+  const payload = {
     amount: m.amount,
-    name: m.name,
+    currency: m.currency, // '₪' | '$' — נדרים Currency 1/2 (בלי זה תרומת-$ מוצגת כ-₪)
+    name: m.name, // נדרים שולח ClientName — בלי המיפוי השם היה נכנס ריק
     phone: m.phone,
+    email: m.email,
+    zeout: m.zeout, // ת"ז — עוזר למזכירה לשייך לתומך קיים
+    category: m.category, // Groupe — קטגוריית התרומה (ייעוד)
+    kevaId: m.kevaId, // מזהה הו"ק — מסמן שזה חיוב הוראת-קבע (לא חד-פעמי)
     reference: m.reference,
+    toremId: m.toremId, // מזהה-תורם נדרים — חיבור-אוטומטי-לכרטיס לפי מפתח
+    receipt: m.receipt, // KabalaId — מספר-קבלת-§46 של נדרים → hist[].receipt
+    last4: m.last4, // 4 ספרות אחרונות → hist[].last4
     at: new Date().toISOString(),
-    status: 'pending', // המזכירה מאשרת-רושמת במערכת (רציפות R-/D-)
+    status: 'pending', // ממתין לחיבור (אוטומטי-לכרטיס / אישור-ידני)
     raw: JSON.parse(JSON.stringify(rawSafe)),
-  });
+  };
+  // dedup + אי-דריסה: TransactionId ⇒ doc-id דטרמיניסטי משותף עם המשיכה (nedarimSync).
+  // create() נכשל אם כבר קיים ⇒ עסקה שכבר תועדה (וייתכן שכבר נרשמה) לא מתאפסת ל-pending.
+  const tid = String(p.TransactionId ?? p.Transaction ?? '').trim();
+  try {
+    if (tid) {
+      payload.txnId = tid;
+      await col.doc('nedarim-' + tid).create(payload);
+    } else {
+      await col.add(payload); // בלי מזהה-עסקה — id אקראי (ספק אחר / CallBack חלקי)
+    }
+  } catch (e) {
+    // ALREADY_EXISTS (code 6) ⇒ כבר תועד ⇒ אידמפוטנטי (מחזירים ok). שגיאה אחרת ⇒ מפילים.
+    if (e && e.code !== 6 && e.code !== 'already-exists') throw e;
+  }
   res.status(200).send('ok');
 });
 
@@ -344,3 +376,7 @@ exports.backupNightly = onSchedule({ schedule: 'every day 02:30', timeZone: 'Asi
     }
   }
 });
+
+// כיוון-יוצא · נדרים (משיכת-עסקאות + רשת-ביטחון) — מודול עצמאי, נטען כאן כדי
+// ש-firebase יגלה את exports.nedarimPull / exports.nedarimSyncHourly.
+Object.assign(exports, require('./nedarimPull'));

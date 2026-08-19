@@ -39,6 +39,15 @@ describe('💳 ratchet — payLink (קישורי-תשלום, עד-המפתח)', 
   it('סכום 0 (בקשת-תרומה כללית) — בלי פרמטר amount', () => {
     expect(payLink('https://pay.example/', 0)!).not.toContain('amount=');
   });
+
+  it('נדרים-פלוס (matara.pro/nedarimplus): מילוי-מראש ב-Amount/ClientName (PascalCase)', () => {
+    const u = payLink('https://www.matara.pro/nedarimplus/online/?mosad=7001532', 180, 'ר׳ לוי')!;
+    expect(u).toContain('mosad=7001532');
+    expect(u).toContain('Amount=180');
+    expect(u).toContain('ClientName=' + encodeURIComponent('ר׳ לוי').replace(/%20/g, '+'));
+    // לא הצורה הכללית הקטנה (שנדרים לא קורא)
+    expect(u).not.toContain('amount=180');
+  });
 });
 
 describe('🤖 ratchet — עוזר-AI (מפתח מקומי-למכשיר)', () => {
@@ -128,11 +137,28 @@ describe('🖥 ratchet — גל ד׳ "עד-השרת": functions מושלמות +
     expect(fnSrc).toContain('019sms.co.il');
     expect(fnSrc).toContain('googleapis');
     expect(fnSrc).toContain('spreadsheetId');
-    // ‏org=root ⇒ אוסף-שורש (הלקוח-הקיים) — לא orgs/root
-    expect(fnSrc).toContain("m.org === 'root'");
+    // ‏org=root ⇒ אוסף-שורש (הלקוח-הקיים) — לא orgs/root (עכשיו דרך incomingCol)
+    expect(fnSrc).toContain("org === 'root'");
+    expect(fnSrc).toContain('incomingCol');
     // מתאם-נדרים: מיפוי סובלני של שדות ה-CallBack + שמירת המטען-הגולמי
     expect(fnSrc).toContain('mapPaymentCallback');
     expect(fnSrc).toContain('raw:');
+    // כיוון-יוצא (משיכה) — מודול נפרד nedarimPull, נטען דרך re-export ב-index.
+    expect(fnSrc).toContain("require('./nedarimPull')");
+    const pullSrc = (await import('../../../functions/nedarimPull.js?raw')).default as string;
+    const histSrc = (await import('../../../functions/nedarimHistory.js?raw')).default as string;
+    // משיכת GetHistoryJson קריאה-בלבד; dedup לפי reference ⇒ לא משכפל webhook.
+    expect(pullSrc).toContain('GetHistoryJson');
+    expect(pullSrc).toContain('exports.nedarimPull');
+    expect(pullSrc).toContain('exports.nedarimSyncHourly');
+    expect(pullSrc).toContain("where('reference', '=='");
+    // אינווריאנט רגולטורי: המשיכה כותבת status:'pending' בלבד (הלוגיקה ב-nedarimHistory)
+    // ולעולם לא נוגעת במוני-הקבלות — לא ב-pull ולא במיפוי הטהור.
+    expect(histSrc).toContain("status: 'pending'");
+    for (const kw of ['receiptSeq', 'donationSeq', 'shopReceiptSeq']) {
+      expect(pullSrc).not.toContain(kw);
+      expect(histSrc).not.toContain(kw);
+    }
   });
 
   it('🛡 צד-לקוח: תשלומים-נכנסים ו-SMS מגודרים הרחבה+ענן; ההגדרות ב-allowlist', () => {

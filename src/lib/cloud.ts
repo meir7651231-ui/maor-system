@@ -626,6 +626,43 @@ export interface IncomingPayment {
   reference: string;
   at: string;
   status: string;
+  // שדות-נדרים מועשרים (אופציונליים — רשומות-ותיקות/ספקים-אחרים בלעדיהם):
+  currency?: string; // '₪' | '$'
+  email?: string;
+  zeout?: string; // ת"ז/ח.פ — לשיוך לתומך קיים
+  category?: string; // Groupe — ייעוד/קטגוריה
+  kevaId?: string; // מזהה הו"ק — חיוב הוראת-קבע
+  // שדות-סנכרון (nedarimHistory · additive) — לשיוך-100% ולרישום ב-hist[]:
+  toremId?: string; // מזהה-תורם נדרים — מפתח-שיוך חזק
+  txnId?: string; // מספר-עסקה ייחודי — דדופ-חיובים
+  d?: string; // תאריך-העסקה (ISO) — hist[].d
+  receipt?: string; // KabalaId — מספר-קבלת-נדרים (§46) → hist[].receipt
+  last4?: string; // 4 ספרות אחרונות → hist[].last4
+}
+
+/** רשומת-תורם מנדרים (staged ב-nedarimDonors) — נקראת לסנכרון-כרטיסים. */
+export interface NedarimDonor {
+  toremId: string;
+  zeout?: string;
+  name: string;
+  firstName?: string;
+  familyName?: string;
+  address?: string;
+  phone?: string;
+  phone2?: string;
+  phone3?: string;
+  email?: string;
+  notes?: string;
+}
+
+/** רשימת-התורמים ששוגרה מנדרים (nedarimDonors) — כשל-קריאה ⇒ [] (כשל-רך). */
+export async function fetchNedarimDonors(): Promise<NedarimDonor[]> {
+  try {
+    const snap = await getDocs(collection(requireDb(), scopedCol('nedarimDonors')));
+    return snap.docs.map((d) => ({ toremId: d.id, ...(d.data() as Omit<NedarimDonor, 'toremId'>) }));
+  } catch {
+    return [];
+  }
 }
 
 /** התשלומים הממתינים ("💰 תשלומים נכנסים") — כשל-קריאה ⇒ [] (אין Functions/Rules). */
@@ -644,6 +681,24 @@ export async function markIncomingPayment(id: string): Promise<void> {
     status: 'handled',
     handledAt: new Date().toISOString(),
   });
+}
+
+/**
+ * 🔴 האזנה-חיה לתשלומים-הנכנסים הממתינים — לחיבור-אוטומטי-לייב לכרטיס. כל חיוב
+ * חדש שה-webhook כותב מפעיל את ה-callback מיד (event-driven, בלי polling). כשל-רך
+ * ⇒ מחזיר no-op-unsub (בלי Firestore/הרשאות). ה-caller מסמן handled אחרי חיבור.
+ */
+export function watchIncomingPayments(cb: (rows: IncomingPayment[]) => void): () => void {
+  try {
+    const q = query(collection(requireDb(), scopedCol('incomingPayments')), where('status', '==', 'pending'));
+    return onSnapshot(
+      q,
+      (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<IncomingPayment, 'id'>) }))),
+      () => {}, // שגיאת-האזנה (אין Rules/הרשאה) ⇒ שקט
+    );
+  } catch {
+    return () => {};
+  }
 }
 
 /** הכנסת SMS לתור-השליחה (הרחבת sms — נשלח ע"י ה-Function כל דקה). */
