@@ -317,6 +317,10 @@ interface AppState {
   /** 🧹 ניקוי כרטיסים שנוצרו-אוטומטית מעסקאות (id מתחיל sup-ned-txn-) — מחזיר
    *  את מצב-התורמים לנקי אחרי ריבוי-כרטיסים-בטעות. מחזיר כמה נמחקו. */
   wipeNedarimJunk: () => number;
+  /** 🔄 איפוס-מלא של ייבוא-נדרים: מוחק **כל** הכרטיסים שנוצרו מנדרים (id 'sup-ned-'),
+   *  ומנקה מהכרטיסים המקוריים את היסטוריות-החיוב מנדרים (clearer='נדרים') + extId.
+   *  מחזיר למצב שלפני-הייבוא (הקבלות/תרומות המקוריות לא נגעות). מחזיר כמה כרטיסים הוסרו. */
+  resetNedarimImport: () => number;
   /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
   addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => { ok: boolean; rid?: string };
 
@@ -1767,6 +1771,35 @@ export const useApp = create<AppState>()((set, get) => {
       }));
       get().toast('🧹 נוקו ' + junk.length + ' כרטיסים שנוצרו-אוטומטית מעסקאות');
       return junk.length;
+    },
+
+    resetNedarimImport() {
+      // איפוס-מלא: (1) מחיקת כל הכרטיסים שנוצרו מנדרים (id 'sup-ned-'); (2) ניקוי
+      // מהמקוריים של hist מנדרים (clearer='נדרים') ו-extId — חזרה למצב שלפני-הייבוא.
+      // הקבלות/תרומות (donations/rid) לא נגעות; hist מיצוא-לגאסי (clearer≠נדרים) נשמר.
+      const sups = get().db.supporters;
+      const created = sups.filter((s) => s.id.startsWith('sup-ned-'));
+      const createdIds = new Set(created.map((s) => s.id));
+      const evIds = new Set(created.map((s) => s.nextEventId).filter(Boolean) as string[]);
+      const remaining = sups
+        .filter((s) => !createdIds.has(s.id))
+        .map((s) => {
+          const nedHist = (s.hist ?? []).some((h) => h.clearer === 'נדרים');
+          if (!nedHist && !s.extId) return s; // לא נגע בו נדרים
+          const hist = (s.hist ?? []).filter((h) => h.clearer !== 'נדרים');
+          const rest = { ...s };
+          delete (rest as { extId?: string }).extId;
+          if (hist.length) rest.hist = hist;
+          else delete (rest as { hist?: unknown }).hist;
+          return rest;
+        });
+      logAudit('🔄 איפוס ייבוא נדרים', created.length + ' כרטיסים הוסרו');
+      setDb((db) => ({
+        supporters: remaining,
+        events: db.events.filter((ev) => !evIds.has(ev.id) && !(ev.spId && createdIds.has(ev.spId))),
+      }));
+      get().toast('🔄 ייבוא-נדרים אופס — ' + created.length + ' כרטיסים הוסרו, ההיסטוריות נוקו');
+      return created.length;
     },
 
     deleteSupporter(id) {
