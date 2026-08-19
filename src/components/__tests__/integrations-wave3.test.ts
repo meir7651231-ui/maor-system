@@ -134,11 +134,22 @@ describe('🖥 ratchet — גל ד׳ "עד-השרת": functions מושלמות +
     // מתאם-נדרים: מיפוי סובלני של שדות ה-CallBack + שמירת המטען-הגולמי
     expect(fnSrc).toContain('mapPaymentCallback');
     expect(fnSrc).toContain('raw:');
-    // כיוון-יוצא (משיכה): dedup דטרמיניסטי `nedarim-<TransactionId>` משותף webhook+pull
-    // ⇒ אפס כפילות; ה-pull הוא קריאה-בלבד (GetHistoryJson) ⇒ לא נוגע במוני-קבלות.
-    expect(fnSrc).toContain('nedarim-');
-    expect(fnSrc).toContain('exports.nedarimPull');
-    expect(fnSrc).toContain('GetHistoryJson');
+    // כיוון-יוצא (משיכה) — מודול נפרד nedarimPull, נטען דרך re-export ב-index.
+    expect(fnSrc).toContain("require('./nedarimPull')");
+    const pullSrc = (await import('../../../functions/nedarimPull.js?raw')).default as string;
+    const histSrc = (await import('../../../functions/nedarimHistory.js?raw')).default as string;
+    // משיכת GetHistoryJson קריאה-בלבד; dedup לפי reference ⇒ לא משכפל webhook.
+    expect(pullSrc).toContain('GetHistoryJson');
+    expect(pullSrc).toContain('exports.nedarimPull');
+    expect(pullSrc).toContain('exports.nedarimSyncHourly');
+    expect(pullSrc).toContain("where('reference', '=='");
+    // אינווריאנט רגולטורי: המשיכה כותבת status:'pending' בלבד (הלוגיקה ב-nedarimHistory)
+    // ולעולם לא נוגעת במוני-הקבלות — לא ב-pull ולא במיפוי הטהור.
+    expect(histSrc).toContain("status: 'pending'");
+    for (const kw of ['receiptSeq', 'donationSeq', 'shopReceiptSeq']) {
+      expect(pullSrc).not.toContain(kw);
+      expect(histSrc).not.toContain(kw);
+    }
   });
 
   it('🛡 צד-לקוח: תשלומים-נכנסים ו-SMS מגודרים הרחבה+ענן; ההגדרות ב-allowlist', () => {
