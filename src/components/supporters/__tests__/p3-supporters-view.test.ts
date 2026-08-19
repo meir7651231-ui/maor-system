@@ -60,6 +60,8 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     expect(viewSrc).toContain('עודכן היום');
     expect(viewSrc).toMatch(/key: 'paid', label: 'שולם'/);
     expect(viewSrc).toMatch(/sp\.ayin\?\.paid \? '✓' : '—'/);
+    // 🐛 כותרת "כמות" (eyes) עברה דרך unitLabel — לא קשיחה (עוקבת אחרי מונח-הורטיקל)
+    expect(viewSrc).toContain("case 'eyes':\n        return unitLabel(config);");
   });
 
   // באג "הסך תרומות לא מתעדכן" (19.8.2026, אחרי ייבוא/סנכרון נדרים): סה"כ-הכותרת
@@ -81,5 +83,28 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     expect(viewSrc).toContain("repeat(auto-fill, minmax(220px, 1fr))");
     // המונח דינמי (ורטיקלים!) והסכום דרך totalLabel (₪+$ — לא ils בלבד)
     expect(viewSrc).toMatch(/termOf\(config, 'entity\.donations', 'תרומות'\)[\s\S]{0,60}totalLabel\(sp\)/);
+  });
+
+  // 🐛 ratchet — טבלת-14-עמודות גולשת אופקית בלי רמז: המשתמש לא ידע שיש עוד
+  // עמודות. הפתרון: מחלקת scroll-shadow משותפת (.hscroll) על מיכל-הגלילה —
+  // צל בקצה רק כשיש תוכן מוסתר. אומת בצילום (עודף 452px, הצל מתהפך בין הקצוות).
+  it('🛡 טבלת-התורמים נושאת רמז-גלילה (hscroll) על מיכל ה-overflowX', () => {
+    // המיכל הרחב חייב את מחלקת-הצל, לצד overflowX:auto (מלכודת-הגלגלת נשמרת)
+    expect(viewSrc).toContain('className="card hscroll"');
+    expect(viewSrc).toMatch(/className="card hscroll"[\s\S]{0,80}overflowX: 'auto', overflowY: 'hidden'/);
+  });
+
+  // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל מתקפל; החיפוש
+  // והקטגוריה גלויים תמיד. אפס אובדן: כל הצ׳יפים והסינון נשמרים, רק מתקפלים.
+  it('🛡 פאנל-סינון מתקדם עוטף את הצ׳יפים (הסינון נשמר, רק מתקפל)', () => {
+    expect(viewSrc).toContain('🔎 סינון מתקדם');
+    // העטיפה: מוצג רק כשיש תוכן-מתקדם ורק כשפתוח; באדג׳ של מספר-הפעילים
+    expect(viewSrc).toContain('{hasAdvFilters && advOpen && (');
+    expect(viewSrc).toContain('const advActive = (tierF ? 1 : 0) + (hokF ? 1 : 0) + (ayinF ? 1 : 0)');
+    // הצ׳יפים עצמם עדיין קיימים בתוך הפאנל (אפס אובדן-יכולת)
+    expect(viewSrc).toContain('דרגות (לחיצה מסננת):');
+    expect(viewSrc).toContain('עם מונה');
+    // מחלקת-ה-CSS (.hscroll) מוגדרת ב-global.css עם background-attachment
+    // local+scroll (אומת ידנית בצילום; global.css מיובא-גלובלי ולא ניתן-raw בבדיקה).
   });
 });

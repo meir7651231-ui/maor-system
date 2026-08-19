@@ -772,6 +772,25 @@ h1,
   background: var(--hover-bg);
 }
 
+/* רמז-גלילה אופקי (scroll-shadow) — טהור-CSS, בלי JS: צל מופיע בקצה רק כשיש
+   עוד תוכן מוסתר (עמודות נוספות בטבלה), ונעלם כשמגיעים לקצה. פותר "לא יודע
+   שיש עוד עמודות". טכניקת background-attachment: local (כיסוי, נע-עם-התוכן) +
+   scroll (הצל, קבוע-לקצה). מוחל על מיכל ה-overflowX:auto. */
+.hscroll {
+  /* --panel (ולא --card-bg) — תמיד צבע-מלא; ‏--card-bg עשוי להיות גרדיאנט (היכל)
+     ואז background-color/עצירת-צבע היו נשברים. */
+  background-color: var(--panel);
+  background-image:
+    linear-gradient(to right, var(--panel) 32%, rgba(255, 255, 255, 0)),
+    linear-gradient(to left, var(--panel) 32%, rgba(255, 255, 255, 0)),
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.19), rgba(0, 0, 0, 0)),
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.19), rgba(0, 0, 0, 0));
+  background-position: left center, right center, left center, right center;
+  background-size: 46px 100%, 46px 100%, 22px 100%, 22px 100%;
+  background-repeat: no-repeat;
+  background-attachment: local, local, scroll, scroll;
+}
+
 .empty {
   text-align: center;
   color: var(--ink-faint);

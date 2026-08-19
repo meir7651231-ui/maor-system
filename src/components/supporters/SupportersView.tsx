@@ -13,7 +13,7 @@ import { NedarimSyncModal } from './NedarimSyncModal';
 import { annualAllLines, downloadAnnualReport } from '../../lib/annualReport';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
-import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
+import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel, unitLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
@@ -115,6 +115,10 @@ export function SupportersView() {
         return termOf(config, 'entity.donations', 'תרומות');
       case 'last':
         return termOf(config, 'entity.donation', 'תרומה') + ' אחרונה';
+      // עמודת "כמות" (eyes) = יחידת-המעקב; היה קשיח 'כמות' ⇒ עקף termOf ולא עקב
+      // אחרי שינוי-שם בורטיקל. עכשיו דרך unitLabel (ברירת-מחדל 'כמות' — ביט-זהה).
+      case 'eyes':
+        return unitLabel(config);
       default:
         return h.label;
     }
@@ -160,6 +164,9 @@ export function SupportersView() {
   // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
+  // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל אחד מתקפל.
+  // הצ׳יפים והסינון נשמרים בדיוק — רק מתקפלים; החיפוש+קטגוריה גלויים תמיד.
+  const [advOpen, setAdvOpen] = useState(false);
   // 🔗 איחוד-כפולים (#13) — הכפתור מוצג רק כשיש מה לאחד
   const [dedupOpen, setDedupOpen] = useState(false);
   // 🐛 נחיל-9×9 (13.8): Union-Find על כל התורמים רץ בכל render (כל הקשה/סינון) —
@@ -328,6 +335,12 @@ export function SupportersView() {
     }
   };
 
+  // פאנל-סינון מתקדם: כמה מסננים-מתקדמים פעילים כרגע (לבאדג׳), והאם יש בכלל
+  // תוכן-מתקדם להציג (אחרת אין פאנל — מסך ברירת-מחדל נשאר רזה).
+  const advActive = (tierF ? 1 : 0) + (hokF ? 1 : 0) + (ayinF ? 1 : 0);
+  const hasAdvFilters =
+    rfmOn || (hokOn && db.supporters.some((sp) => sp.hok)) || (ayinOn && db.supporters.length > 0);
+
   return (
     <div>
       <PageHead
@@ -489,6 +502,39 @@ export function SupportersView() {
         )}
       </div>
 
+      {hasAdvFilters && (
+        <div style={{ marginBottom: advOpen ? 8 : 10 }}>
+          <button
+            type="button"
+            onClick={() => setAdvOpen((v) => !v)}
+            aria-expanded={advOpen}
+            title="דרגות · הוראות-קבע · מעקב טיפול"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              cursor: 'pointer',
+              background: 'var(--panel)',
+              border: '1px solid var(--line)',
+              borderRadius: 10,
+              padding: '6px 12px',
+              fontSize: 13,
+              fontWeight: 700,
+              color: 'var(--ink)',
+            }}
+          >
+            <span aria-hidden style={{ fontSize: 11 }}>{advOpen ? '▾' : '▸'}</span>
+            🔎 סינון מתקדם
+            {advActive > 0 && (
+              <span className="chip on" style={{ padding: '0 8px', fontSize: 12 }} aria-label={advActive + ' מסננים פעילים'}>
+                {advActive}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
+      {hasAdvFilters && advOpen && (
+        <>
       {rfmOn && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>דרגות (לחיצה מסננת):</span>
@@ -559,6 +605,8 @@ export function SupportersView() {
           </Chip>
         </div>
       )}
+        </>
+      )}
 
       {db.supporters.length === 0 ? (
         <Empty>
@@ -622,7 +670,7 @@ export function SupportersView() {
           })}
         </div>
       ) : (
-        <div className="card" style={{ padding: 0, overflowX: 'auto', overflowY: 'hidden' }}>
+        <div className="card hscroll" style={{ padding: 0, overflowX: 'auto', overflowY: 'hidden' }}>
           <table className="table">
             <thead>
               <tr>
