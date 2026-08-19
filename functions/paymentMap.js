@@ -51,6 +51,11 @@ function mapPaymentCallback(params) {
     // מזהה הוראת-קבע — קיים כשהתשלום הוא חיוב הו"ק (מבחין תרומה חד-פעמית מהו"ק)
     kevaId: pick(p, 'KevaId', 'kevaId', 'KevaID'),
     reference: pick(p, 'TransactionId', 'Transaction', 'Confirmation', 'Asmachta', 'AsmachtaNumber', 'reference', 'Reference', 'param2', 'Param2'),
+    // מזהה-תורם נדרים (ToremId) — מפתח-שיוך חזק לחיבור-אוטומטי לכרטיס; param3 מהודהד
+    toremId: pick(p, 'ToremId', 'ToremID', 'ClientId', 'DonorId', 'param3', 'Param3'),
+    // מספר-קבלת-נדרים (§46) ו-4 ספרות אחרונות — לתיעוד ב-hist[] של הכרטיס
+    receipt: pick(p, 'KabalaId', 'KabalaNum', 'ReceiptNum'),
+    last4: pick(p, 'LastNum', 'Last4', 'CardSuffix').slice(-4),
   };
 }
 

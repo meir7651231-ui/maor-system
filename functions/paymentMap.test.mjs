@@ -25,6 +25,9 @@ describe('💳 ratchet — מיפוי CallBack נדרים-פלוס', () => {
       Confirmation: '0012345',
       Comments: 'לרפואת…',
       Adresse: 'הרצל 1, תל אביב',
+      ToremId: '492787',
+      KabalaId: 'K-778',
+      LastNum: '401234',
     });
     expect(m).toEqual({
       org: 'root',
@@ -37,6 +40,9 @@ describe('💳 ratchet — מיפוי CallBack נדרים-פלוס', () => {
       category: 'בניין',
       kevaId: '',
       reference: 'TX-99',
+      toremId: '492787', // מפתח-שיוך חזק — חיבור-אוטומטי-לכרטיס
+      receipt: 'K-778', // מספר-קבלת-§46 של נדרים
+      last4: '1234', // 4 ספרות אחרונות (מ-LastNum, slice(-4))
     });
   });
 

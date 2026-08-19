@@ -683,6 +683,24 @@ export async function markIncomingPayment(id: string): Promise<void> {
   });
 }
 
+/**
+ * 🔴 האזנה-חיה לתשלומים-הנכנסים הממתינים — לחיבור-אוטומטי-לייב לכרטיס. כל חיוב
+ * חדש שה-webhook כותב מפעיל את ה-callback מיד (event-driven, בלי polling). כשל-רך
+ * ⇒ מחזיר no-op-unsub (בלי Firestore/הרשאות). ה-caller מסמן handled אחרי חיבור.
+ */
+export function watchIncomingPayments(cb: (rows: IncomingPayment[]) => void): () => void {
+  try {
+    const q = query(collection(requireDb(), scopedCol('incomingPayments')), where('status', '==', 'pending'));
+    return onSnapshot(
+      q,
+      (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<IncomingPayment, 'id'>) }))),
+      () => {}, // שגיאת-האזנה (אין Rules/הרשאה) ⇒ שקט
+    );
+  } catch {
+    return () => {};
+  }
+}
+
 /** הכנסת SMS לתור-השליחה (הרחבת sms — נשלח ע"י ה-Function כל דקה). */
 export async function writeSmsOutbox(to: string, text: string): Promise<void> {
   await addDoc(collection(requireDb(), scopedCol('smsOutbox')), {

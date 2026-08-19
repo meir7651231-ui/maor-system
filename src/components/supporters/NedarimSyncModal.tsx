@@ -24,6 +24,7 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState<SyncPlan | null>(null);
+  const [chargeIds, setChargeIds] = useState<string[]>([]);
   const [armed, setArmed] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -34,6 +35,7 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
         const m: CloudMod = await import('../../store/cloudSync');
         const [donors, charges] = await Promise.all([m.fetchNedarimDonors(), m.fetchIncomingPayments()]);
         if (!alive) return;
+        setChargeIds(charges.map((c) => c.id));
         setPlan(planNedarimSync(supporters, donors, charges));
       } catch (e) {
         if (alive) setError(String((e as Error)?.message || e));
@@ -56,6 +58,12 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
       plan.summary.updatedSupporters + ' עודכנו · ' +
       plan.summary.chargesAdded + ' חיובים';
     applyNedarimSync(plan.supporters, note);
+    // סימון החיובים כ-handled ⇒ יוצאים מרשימת-הממתינים ולא ייקלטו שוב בחיבור-החי
+    if (chargeIds.length) {
+      void import('../../store/cloudSync').then((m) => {
+        for (const id of chargeIds) void m.markIncomingPayment(id).catch(() => {});
+      });
+    }
     setDone(true);
     setArmed(false);
   }

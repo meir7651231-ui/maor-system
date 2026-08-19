@@ -56,6 +56,7 @@ import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
+import { planNedarimSync, type SyncCharge } from '../lib/nedarimSync';
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
@@ -307,6 +308,9 @@ interface AppState {
   /** 🔄 יישום תוכנית-סנכרון נדרים (planNedarimSync): החלפת מערך-התומכים המלא +
    *  לוג. אחרי תצוגה-מקדימה+אישור בלבד (מסך הסנכרון). */
   applyNedarimSync: (supporters: Supporter[], note: string) => void;
+  /** 🔴 חיבור-אוטומטי-לייב: עסקאות-נכנסות בלבד → hist של הכרטיס התואם (בלי בלוק-
+   *  התורמים ובלי אישור — הוספה בטוחה, דדופ-txn). מחזיר כמה חיובים חוברו. */
+  applyNedarimAuto: (charges: SyncCharge[]) => number;
   /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
   addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => { ok: boolean; rid?: string };
 
@@ -1718,6 +1722,18 @@ export const useApp = create<AppState>()((set, get) => {
       logAudit('🔄 סנכרון נדרים', note);
       setDb(() => ({ supporters }));
       get().toast('🔄 סנכרון נדרים הושלם ✓ — ' + note);
+    },
+
+    applyNedarimAuto(charges) {
+      // חיבור-חי: רק עסקאות (בלי בלוק-התורמים) → hist של הכרטיס התואם/חדש. שקט
+      // (בלי toast — רץ ברקע); אידמפוטנטי (דדופ-txn) ⇒ בטוח להריץ שוב-ושוב.
+      const plan = planNedarimSync(get().db.supporters, [], charges);
+      const { chargesAdded, newSupporters } = plan.summary;
+      if (chargesAdded > 0 || newSupporters > 0) {
+        logAudit('🔴 חיבור-חי מנדרים', chargesAdded + ' חיובים · ' + newSupporters + ' כרטיסים');
+        setDb(() => ({ supporters: plan.supporters }));
+      }
+      return chargesAdded;
     },
 
     deleteSupporter(id) {

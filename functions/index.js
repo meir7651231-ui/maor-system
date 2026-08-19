@@ -64,8 +64,11 @@ exports.paymentsWebhook = onRequest({ secrets: ['PAY_SECRET'] }, async (req, res
     category: m.category, // Groupe — קטגוריית התרומה (ייעוד)
     kevaId: m.kevaId, // מזהה הו"ק — מסמן שזה חיוב הוראת-קבע (לא חד-פעמי)
     reference: m.reference,
+    toremId: m.toremId, // מזהה-תורם נדרים — חיבור-אוטומטי-לכרטיס לפי מפתח
+    receipt: m.receipt, // KabalaId — מספר-קבלת-§46 של נדרים → hist[].receipt
+    last4: m.last4, // 4 ספרות אחרונות → hist[].last4
     at: new Date().toISOString(),
-    status: 'pending', // המזכירה מאשרת-רושמת במערכת (רציפות R-/D-)
+    status: 'pending', // ממתין לחיבור (אוטומטי-לכרטיס / אישור-ידני)
     raw: JSON.parse(JSON.stringify(rawSafe)),
   };
   // dedup + אי-דריסה: TransactionId ⇒ doc-id דטרמיניסטי משותף עם המשיכה (nedarimSync).
