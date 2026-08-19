@@ -56,7 +56,7 @@ import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
-import { attachChargeTo, planNedarimSync, type SyncCharge } from '../lib/nedarimSync';
+import { attachChargeTo, attachChargesBulk, planNedarimSync, type SyncCharge } from '../lib/nedarimSync';
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
@@ -317,6 +317,8 @@ interface AppState {
   /** 🔗 שיוך-ידני של תשלום-נכנס לכרטיס נבחר (מסך תשלומים-נכנסים, בסגנון בדיקת-
    *  הכפילויות) — מוסיף את העסקה ל-hist של הכרטיס (דדופ-txn). מחזיר האם נוסף. */
   attachIncomingToSupporter: (supId: string, charge: SyncCharge) => boolean;
+  /** 🔗 שיוך-אצווה: מחבר רשימת {supId, charge} בבת-אחת (setDb יחיד). מחזיר כמה נוספו. */
+  attachIncomingBulk: (items: { supId: string; charge: SyncCharge }[]) => number;
   /** 🧹 ניקוי כרטיסים שנוצרו-אוטומטית מעסקאות (id מתחיל sup-ned-txn-) — מחזיר
    *  את מצב-התורמים לנקי אחרי ריבוי-כרטיסים-בטעות. מחזיר כמה נמחקו. */
   wipeNedarimJunk: () => number;
@@ -1764,6 +1766,16 @@ export const useApp = create<AppState>()((set, get) => {
       const { supporters, added } = attachChargeTo(get().db.supporters, supId, charge);
       if (added) {
         logAudit('🔗 שיוך-ידני תשלום-נכנס', 'עסקה חוברה לכרטיס ' + supId);
+        setDb(() => ({ supporters }));
+      }
+      return added;
+    },
+
+    attachIncomingBulk(items) {
+      // שיוך-אצווה (בחירה-מרובה): כל השיוכים בעדכון-סטייט יחיד (בלי סופת-רינדור).
+      const { supporters, added } = attachChargesBulk(get().db.supporters, items);
+      if (added) {
+        logAudit('🔗 שיוך-אצווה תשלומים-נכנסים', added + ' חיובים חוברו לכרטיסים');
         setDb(() => ({ supporters }));
       }
       return added;

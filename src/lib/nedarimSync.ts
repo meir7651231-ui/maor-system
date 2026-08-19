@@ -165,6 +165,48 @@ export function attachChargeTo(supporters: Supporter[], supId: string, charge: S
   return { supporters: next, added: true };
 }
 
+/** ההתאמה-החזקה-ביותר לעסקה — לפי מפתח-**ודאי** בלבד (ToremId/ת"ז/טלפון/אימייל,
+ *  לא שם-בלבד) או null. משמש לשיוך-אוטומטי-בטוח באצווה: שם-בלבד דורש אישור-ידני
+ *  (סיכון להתאמת-שווא), לכן אינו נכלל כאן. */
+export function strongMatchForCharge(charge: SyncCharge, supporters: Supporter[]): Supporter | null {
+  const ck = new Set(keysOf({ extId: charge.toremId, zeout: charge.zeout, phone: charge.phone, email: charge.email }));
+  if (!ck.size) return null;
+  let best: { sp: Supporter; score: number } | null = null;
+  for (const sp of supporters) {
+    let score = 0;
+    for (const k of keysOf({ extId: sp.extId, idNum: sp.idNum, phone: sp.phone, email: sp.email })) {
+      if (!ck.has(k)) continue;
+      if (k.startsWith('ext:')) score = Math.max(score, 5);
+      else if (k.startsWith('id:')) score = Math.max(score, 4);
+      else if (k.startsWith('ph:')) score = Math.max(score, 3);
+      else if (k.startsWith('em:')) score = Math.max(score, 2);
+    }
+    if (score && (!best || score > best.score)) best = { sp, score };
+  }
+  return best?.sp ?? null;
+}
+
+/** שיוך-אצווה: מחבר רשימת {supId, charge} בבת-אחת (setDb יחיד). דדופ-txn פר-כרטיס
+ *  (כולל בתוך האצווה עצמה). מחזיר { supporters, added } — added=מספר החיובים שנוספו. */
+export function attachChargesBulk(supporters: Supporter[], items: { supId: string; charge: SyncCharge }[]): { supporters: Supporter[]; added: number } {
+  const byId = new Map(supporters.map((s, i) => [s.id, i]));
+  const next = supporters.slice();
+  const seenTxn = new Map<number, Set<string>>();
+  let added = 0;
+  for (const { supId, charge } of items) {
+    const idx = byId.get(supId);
+    if (idx == null) continue;
+    let seen = seenTxn.get(idx);
+    if (!seen) { seen = new Set((next[idx].hist || []).map((h) => (h.txn || '').trim()).filter(Boolean)); seenTxn.set(idx, seen); }
+    const txn = (charge.txnId || '').trim();
+    if (txn && seen.has(txn)) continue;
+    if (txn) seen.add(txn);
+    next[idx] = { ...next[idx], hist: [...(next[idx].hist || []), chargeToHist(charge)] };
+    added++;
+  }
+  return { supporters: next, added };
+}
+
 /** כרטיס-תומך חדש מרשומת-תורם נדרים (מזהה דטרמיניסטי לאידמפוטנטיות). */
 function supFromDonor(d: SyncDonor): Supporter {
   const phone = (d.phone || d.phone2 || d.phone3 || '').trim();

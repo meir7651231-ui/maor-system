@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { Btn, Empty, Modal } from '../ui';
 import type { IncomingPayment } from '../../store/cloudSync';
-import { candidateSupportersForCharge } from '../../lib/nedarimSync';
+import { candidateSupportersForCharge, strongMatchForCharge } from '../../lib/nedarimSync';
 import { normId, normPhone } from '../../lib/dedup';
 import { normSearch } from '../../lib/validate';
 import { termOf } from '../../lib/config';
@@ -22,10 +22,14 @@ type CloudMod = typeof import('../../store/cloudSync');
 
 export function IncomingPaymentsModal(props: { onClose: () => void }) {
   const toast = useApp((s) => s.toast);
+  const supporters = useApp((s) => s.db.supporters);
+  const attachBulk = useApp((s) => s.attachIncomingBulk);
   const [mod, setMod] = useState<CloudMod | null>(null);
   const [rows, setRows] = useState<IncomingPayment[]>([]);
   const [loading, setLoading] = useState(true);
   const [mergeFor, setMergeFor] = useState<IncomingPayment | null>(null);
+  const [sel, setSel] = useState<Set<string>>(new Set());
+  const [busy, setBusy] = useState(false);
 
   async function refresh(m: CloudMod) {
     setLoading(true);
@@ -62,6 +66,57 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
   const SHOWN = 300;
   const shown = rows.slice(0, SHOWN);
 
+  const allSelected = shown.length > 0 && shown.every((p) => sel.has(p.id));
+  function toggleAll() {
+    setSel(allSelected ? new Set() : new Set(shown.map((p) => p.id)));
+  }
+  function toggle(id: string) {
+    setSel((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  }
+  async function markMany(ids: string[]) {
+    if (!mod) return;
+    for (let i = 0; i < ids.length; i += 300) {
+      await Promise.all(ids.slice(i, i + 300).map((id) => mod.markIncomingPayment(id).catch(() => {})));
+    }
+  }
+  // בחירה-מרובה → סימון-שנרשמו לכל המסומנים (בלי שיוך).
+  async function bulkMark() {
+    if (!mod) return;
+    const ids = shown.filter((p) => sel.has(p.id)).map((p) => p.id);
+    if (!ids.length) return;
+    setBusy(true);
+    await markMany(ids);
+    setSel(new Set());
+    await refresh(mod);
+    setBusy(false);
+    toast('✓ ' + ids.length + ' תשלומים סומנו כנרשמו');
+  }
+  // בחירה-מרובה → שיוך-אוטומטי-בטוח: כל מסומן שיש לו התאמה-ודאית (מזהה/ת"ז/טלפון/
+  // אימייל) מחובר לכרטיס; שם-בלבד נשאר לשיוך-ידני (מונע התאמת-שווא).
+  async function bulkAutoMerge() {
+    if (!mod) return;
+    const chosen = shown.filter((p) => sel.has(p.id));
+    if (!chosen.length) return;
+    setBusy(true);
+    const items: { supId: string; charge: IncomingPayment }[] = [];
+    for (const p of chosen) {
+      const m = strongMatchForCharge(p, supporters);
+      if (m) items.push({ supId: m.id, charge: p });
+    }
+    const added = items.length ? attachBulk(items) : 0;
+    await markMany(items.map((it) => it.charge.id)); // רק המחוברים מסומנים handled
+    setSel(new Set());
+    await refresh(mod);
+    setBusy(false);
+    const skipped = chosen.length - items.length;
+    toast('🔗 ' + added + ' חוברו אוטומטית' + (skipped ? ' · ' + skipped + ' ללא-התאמה-ודאית (לשיוך ידני)' : ''));
+  }
+
   if (mergeFor) {
     return <MergeView pay={mergeFor} onBack={() => setMergeFor(null)} onMerged={() => void afterMerge(mergeFor)} onClose={props.onClose} />;
   }
@@ -82,8 +137,27 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
           (מחבר לכרטיסים עם תצוגה-מקדימה) — לא ברשימה הידנית הזו.
         </div>
       )}
+      {/* בחירה-מרובה: בחר-הכל + פעולות-אצווה */}
+      {!loading && shown.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '6px 0', marginBottom: 4, borderBottom: '2px solid var(--line)' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, cursor: 'pointer', fontWeight: 700 }}>
+            <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ width: 'auto' }} />
+            בחר הכל ({shown.length})
+          </label>
+          {sel.size > 0 && (
+            <>
+              <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>· נבחרו {sel.size}</span>
+              <Btn sm kind="primary" disabled={busy} onClick={() => void bulkAutoMerge()} title="שיוך-אוטומטי לכרטיסים לפי התאמה-ודאית (מזהה/ת״ז/טלפון/אימייל)">🔗 מזג אוטומטית ({sel.size})</Btn>
+              <Btn sm disabled={busy} onClick={() => void bulkMark()} title="סימון-שנרשמו לכל המסומנים (בלי שיוך)">✓ סמן שנרשמו ({sel.size})</Btn>
+              <Btn sm disabled={busy} onClick={() => setSel(new Set())}>נקה</Btn>
+            </>
+          )}
+          {busy && <span style={{ fontSize: 12, color: 'var(--accent)' }}>מעבד…</span>}
+        </div>
+      )}
       {shown.map((p) => (
-        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
+        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--line)', background: sel.has(p.id) ? 'var(--ok-bg, #eaf6ec)' : 'transparent' }}>
+          <input type="checkbox" checked={sel.has(p.id)} onChange={() => toggle(p.id)} style={{ width: 'auto', flexShrink: 0 }} aria-label="בחירת תשלום" />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700 }}>
               {p.currency || '₪'}{p.amount.toLocaleString('he-IL')} · {p.name || 'ללא שם'}
