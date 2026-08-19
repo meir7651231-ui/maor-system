@@ -304,6 +304,9 @@ interface AppState {
   mergeSupportersGroup: (keepId: string, loserIds: string[]) => void;
   /** מיזוג-לפי-שדות (פאריטי משפחות): ids[0]=בסיס-השומר; ערכי-שדות לפי pick/edit. */
   mergeSupportersFields: (ids: string[], pick: Record<string, number>, edit: Record<string, string>) => void;
+  /** 🔄 יישום תוכנית-סנכרון נדרים (planNedarimSync): החלפת מערך-התומכים המלא +
+   *  לוג. אחרי תצוגה-מקדימה+אישור בלבד (מסך הסנכרון). */
+  applyNedarimSync: (supporters: Supporter[], note: string) => void;
   /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
   addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => { ok: boolean; rid?: string };
 
@@ -1706,6 +1709,15 @@ export const useApp = create<AppState>()((set, get) => {
         events: db.events.filter((ev) => !dropEvIds.has(ev.id) && !(ev.spId && losers.has(ev.spId))),
       }));
       get().toast('הרשומות מוזגו לפי הבחירה ✓ — נשמרה רשומה אחת');
+    },
+
+    applyNedarimSync(supporters, note) {
+      // התוכנית כבר מיזגה: מערך-סופי = קיימים-מועשרים + חדשים (superset — אף תומך
+      // לא אבד). כתיבה אחת אטומית; count/ils/usd השמורים נותרו קבלות-בלבד (המנוע
+      // הוסיף רק ל-hist). לוג-פעולות מתעד את היקף-הסנכרון.
+      logAudit('🔄 סנכרון נדרים', note);
+      setDb(() => ({ supporters }));
+      get().toast('🔄 סנכרון נדרים הושלם ✓ — ' + note);
     },
 
     deleteSupporter(id) {

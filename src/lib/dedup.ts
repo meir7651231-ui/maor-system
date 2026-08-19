@@ -262,7 +262,7 @@ function supNameCityKey(sp: Supporter): string {
  * ת"ז מנורמלת להשוואה — ספרות בלבד; אפסים-בלבד (מציין-מקום נדרים "000000000")
  * וקצרים-מדי (<5 ספרות = מספר-סידורי, לא ת"ז) ⇒ ריק (לא מפתח-שיוך).
  */
-function normId(s?: string): string {
+export function normId(s?: string): string {
   const d = (s || '').replace(/\D/g, '');
   if (!d || /^0+$/.test(d)) return '';
   return d.length >= 5 ? d : '';

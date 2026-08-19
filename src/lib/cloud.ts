@@ -632,6 +632,37 @@ export interface IncomingPayment {
   zeout?: string; // ת"ז/ח.פ — לשיוך לתומך קיים
   category?: string; // Groupe — ייעוד/קטגוריה
   kevaId?: string; // מזהה הו"ק — חיוב הוראת-קבע
+  // שדות-סנכרון (nedarimHistory · additive) — לשיוך-100% ולרישום ב-hist[]:
+  toremId?: string; // מזהה-תורם נדרים — מפתח-שיוך חזק
+  txnId?: string; // מספר-עסקה ייחודי — דדופ-חיובים
+  d?: string; // תאריך-העסקה (ISO) — hist[].d
+  receipt?: string; // KabalaId — מספר-קבלת-נדרים (§46) → hist[].receipt
+  last4?: string; // 4 ספרות אחרונות → hist[].last4
+}
+
+/** רשומת-תורם מנדרים (staged ב-nedarimDonors) — נקראת לסנכרון-כרטיסים. */
+export interface NedarimDonor {
+  toremId: string;
+  zeout?: string;
+  name: string;
+  firstName?: string;
+  familyName?: string;
+  address?: string;
+  phone?: string;
+  phone2?: string;
+  phone3?: string;
+  email?: string;
+  notes?: string;
+}
+
+/** רשימת-התורמים ששוגרה מנדרים (nedarimDonors) — כשל-קריאה ⇒ [] (כשל-רך). */
+export async function fetchNedarimDonors(): Promise<NedarimDonor[]> {
+  try {
+    const snap = await getDocs(collection(requireDb(), scopedCol('nedarimDonors')));
+    return snap.docs.map((d) => ({ toremId: d.id, ...(d.data() as Omit<NedarimDonor, 'toremId'>) }));
+  } catch {
+    return [];
+  }
 }
 
 /** התשלומים הממתינים ("💰 תשלומים נכנסים") — כשל-קריאה ⇒ [] (אין Functions/Rules). */
