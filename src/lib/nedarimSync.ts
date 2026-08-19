@@ -297,6 +297,30 @@ export function strongMatchForCharge(charge: SyncCharge, supporters: Supporter[]
   return best?.sp ?? null;
 }
 
+/** שיוך-אוטומטי **מרובה ויעיל** על כל הממתינים: בונה אינדקס-מפתחות פעם-אחת
+ *  (O(S)), ואז לכל עסקה מחזיר את הכרטיס עם המפתח-החזק-ביותר התואם (O(M)). כך
+ *  אפשר לרוקן ערימה של אלפי-ממתינים בבת-אחת (לא רק 300 המוצגים). שם-בלבד לא
+ *  נכלל (דורש שיוך-ידני, מונע התאמת-שווא). מחזיר {supId, charge} למחוברים. */
+export function autoMatchCharges(charges: SyncCharge[], supporters: Supporter[]): { supId: string; charge: SyncCharge }[] {
+  const idx = new Map<string, string>(); // מפתח → supId (ראשון גובר)
+  for (const sp of supporters) {
+    for (const k of keysOf({ extId: sp.extId, idNum: sp.idNum, phone: sp.phone, email: sp.email })) {
+      if (!idx.has(k)) idx.set(k, sp.id);
+    }
+  }
+  const out: { supId: string; charge: SyncCharge }[] = [];
+  for (const c of charges) {
+    let supId: string | undefined;
+    // סדר keysOf: ext → id → ph → em ⇒ הראשון-שנמצא = המפתח-החזק-ביותר.
+    for (const k of keysOf({ extId: c.toremId, zeout: c.zeout, phone: c.phone, email: c.email })) {
+      const hit = idx.get(k);
+      if (hit) { supId = hit; break; }
+    }
+    if (supId) out.push({ supId, charge: c });
+  }
+  return out;
+}
+
 /** שיוך-אצווה: מחבר רשימת {supId, charge} בבת-אחת (setDb יחיד). דדופ-txn פר-כרטיס
  *  (כולל בתוך האצווה עצמה). מחזיר { supporters, added } — added=מספר החיובים שנוספו. */
 export function attachChargesBulk(supporters: Supporter[], items: { supId: string; charge: SyncCharge }[]): { supporters: Supporter[]; added: number } {

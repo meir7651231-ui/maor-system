@@ -5,7 +5,7 @@
  * את העסקה ל-hist של הכרטיס הנבחר, דדופ לפי txn.
  */
 import { describe, expect, it } from 'vitest';
-import { attachChargeTo, attachChargesBulk, candidateSupportersForCharge, strongMatchForCharge, type SyncCharge } from '../nedarimSync';
+import { attachChargeTo, attachChargesBulk, autoMatchCharges, candidateSupportersForCharge, strongMatchForCharge, type SyncCharge } from '../nedarimSync';
 import type { Supporter } from '../../types/domain';
 
 const sp = (over: Partial<Supporter>): Supporter => ({
@@ -96,6 +96,52 @@ describe('🔗 ratchet — attachChargesBulk (שיוך-אצווה, setDb יחי�
   });
 });
 
+// 🐛 מיזוג-אוטומטי עבד רק על 300 המוצגים + בחירה ⇒ לא-מתאימים בראש-הרשימה חסמו
+// את השאר, ואלפי-הממתינים מעבר ל-300 לא נגעו בהם ("לא מצליח למזג את השאר", 19.8).
+// autoMatchCharges עובד על **כל** הערימה בבת-אחת (אינדקס O(S+M)).
+describe('🔗 ratchet — autoMatchCharges (מיזוג כל-הממתינים, לא רק 300)', () => {
+  const pool = [
+    sp({ id: 'a', name: 'משה כהן', phone: '050-1234567' }),
+    sp({ id: 'b', name: 'רבקה לוי', idNum: '312345678' }),
+    sp({ id: 'c', name: 'שרה', extId: 'TOREM-77' }),
+  ];
+
+  it('מחזיר רק בעלי-התאמה-ודאית; שם-בלבד ולא-מתאים מדולגים', () => {
+    const charges: SyncCharge[] = [
+      { id: 'p1', amount: 10, phone: '+972501234567' }, // → a (טלפון)
+      { id: 'p2', amount: 20, zeout: '312345678' }, // → b (ת"ז)
+      { id: 'p3', amount: 30, toremId: 'TOREM-77' }, // → c (מזהה-תורם)
+      { id: 'p4', amount: 40, name: 'רבקה לוי' }, // שם-בלבד ⇒ מדולג
+      { id: 'p5', amount: 50, name: 'פלוני', phone: '0500000000' }, // אין-התאמה ⇒ מדולג
+    ];
+    const out = autoMatchCharges(charges, pool);
+    expect(out.map((o) => o.supId)).toEqual(['a', 'b', 'c']);
+    expect(out.map((o) => o.charge.id)).toEqual(['p1', 'p2', 'p3']); // זהות-העסקה נשמרת (לסימון handled)
+  });
+
+  it('מפתח-חזק גובר: ext > id > ph > em (הראשון-שנמצא)', () => {
+    const p = [sp({ id: 'x', extId: 'E1' }), sp({ id: 'y', phone: '0501112222' })];
+    // עסקה עם גם ext (→x) וגם טלפון (→y) ⇒ ext גובר
+    const out = autoMatchCharges([{ id: 'c', amount: 1, toremId: 'E1', phone: '0501112222' }], p);
+    expect(out[0].supId).toBe('x');
+  });
+
+  it('לא-חוסם: כל בעלי-ההתאמה מחוברים גם כשלא-מתאים בראש-הרשימה', () => {
+    const charges: SyncCharge[] = [
+      { id: 'bad', amount: 5, name: 'ללא-מפתח' }, // בראש, בלי התאמה
+      { id: 'good', amount: 5, phone: '0501234567' }, // אחריו, מתאים ל-a
+    ];
+    const out = autoMatchCharges(charges, pool);
+    expect(out).toHaveLength(1);
+    expect(out[0].charge.id).toBe('good');
+  });
+
+  it('רשימה ריקה / בלי-מפתחות ⇒ פלט ריק', () => {
+    expect(autoMatchCharges([], pool)).toHaveLength(0);
+    expect(autoMatchCharges([{ id: 'c', amount: 1, name: '' }], pool)).toHaveLength(0);
+  });
+});
+
 describe('🛡 ratchet — חיווט מסך תשלומים-נכנסים', () => {
   it('כפתור 🔗 מזג לכרטיס + השוואת-שדות + קריאה ל-attachIncomingToSupporter', async () => {
     const src = (await import('../../components/supporters/IncomingPayments.tsx?raw')).default as string;
@@ -113,5 +159,13 @@ describe('🛡 ratchet — חיווט מסך תשלומים-נכנסים', () =>
     expect(src).toContain('attachIncomingBulk');
     // סימון-אצווה במנות (בלי אלפי כתיבות בו-זמנית)
     expect(src).toContain('i += 300');
+  });
+  it('מיזוג-כל-הממתינים: כפתור על כל rows (לא רק 300 המוצגים) דרך autoMatchCharges', async () => {
+    const src = (await import('../../components/supporters/IncomingPayments.tsx?raw')).default as string;
+    expect(src).toContain('autoMatchCharges');
+    expect(src).toContain('autoMergeAllPending');
+    expect(src).toContain('🔗 מזג אוטומטית את כל הממתינים');
+    // ⚠️ חייב לעבוד על rows המלא, לא על shown (אחרת שוב "לא מצליח למזג את השאר")
+    expect(src).toContain('autoMatchCharges(rows, supporters)');
   });
 });
