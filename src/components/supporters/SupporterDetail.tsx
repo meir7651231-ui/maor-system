@@ -298,11 +298,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     (supLast(dsp) ? ' · אחרונה ' + hebDateFull(supLast(dsp)) : '');
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div>
-        <Btn onClick={props.onBack}>{'→ כל ' + termOf(config, 'nav.supporters', 'התומכים')}</Btn>
-      </div>
-
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 60 }}>
       {/* כותרת הכרטיס */}
       <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
         <div
@@ -619,6 +615,20 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           )}
         </Modal>
       )}
+
+      {/* פריט ג' (19.8, בקשת-בעלים): כפתור-חזרה קבוע בתחתית-המסך (sticky) */}
+      <div
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 5,
+          background: 'linear-gradient(to top, var(--bg) 70%, transparent)',
+          padding: '10px 0 4px',
+          marginTop: 4,
+        }}
+      >
+        <Btn onClick={props.onBack}>{'→ כל ' + termOf(config, 'nav.supporters', 'התומכים')}</Btn>
+      </div>
     </div>
   );
 }
