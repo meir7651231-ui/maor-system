@@ -118,6 +118,33 @@ describe('🔄 ratchet — planNedarimSync (סנכרון-נכנס דרך המפ�
     expect(summary.chargesAdded).toBe(1);
   });
 
+  it('attachOnly (חיבור-חי): עסקה בלי כרטיס-תואם — לא נוצר כרטיס, נשארת pending', () => {
+    // הבאג-שתוקן: החיבור-החי יצר כרטיס פר-עסקה ⇒ ריבוי-כרטיסים. attachOnly חוסם.
+    const { supporters, summary, handledChargeIds } = planNedarimSync(
+      [],
+      [],
+      [charge({ id: 'inc-1', amount: 60, name: 'לא-מוכר', txnId: 'T-1' })],
+      { attachOnly: true },
+    );
+    expect(summary.newSupporters).toBe(0); // לא נוצר כרטיס!
+    expect(summary.chargesAdded).toBe(0);
+    expect(summary.chargesSkipped).toBe(1);
+    expect(supporters).toHaveLength(0);
+    expect(handledChargeIds).toEqual([]); // לא מסמנים handled ⇒ נשאר ל-🔄 הידני
+  });
+
+  it('attachOnly: עסקה עם כרטיס-תואם (שם) — מחוברת, ומזהה-העסקה חוזר לסימון handled', () => {
+    const existing = [sp('a', { name: 'ראובן לוי' })];
+    const { summary, handledChargeIds } = planNedarimSync(
+      existing,
+      [],
+      [charge({ id: 'inc-9', amount: 100, name: 'ראובן לוי', txnId: 'T-9' })],
+      { attachOnly: true },
+    );
+    expect(summary.chargesAdded).toBe(1);
+    expect(handledChargeIds).toEqual(['inc-9']); // חובר ⇒ מסומן handled
+  });
+
   it('עסקה עם ToremId חדש שאין-לו-תורם — לא נוצרים שני כרטיסים לאותו ToremId', () => {
     const charges = [
       charge({ amount: 10, toremId: '950', txnId: 'A' }),

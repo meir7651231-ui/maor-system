@@ -33,6 +33,7 @@ export interface SyncDonor {
 
 /** עסקה מנדרים (staged incomingPayments) — קלט-סנכרון (תת-קבוצה מבנית). */
 export interface SyncCharge {
+  id?: string; // מזהה-מסמך incomingPayments — לסימון handled רק למה שחובר
   amount: number;
   currency?: string;
   name?: string;
@@ -61,6 +62,7 @@ export interface SyncSummary {
   chargesAdded: number;
   chargesDup: number; // כבר קיים ב-hist לפי txn — דילוג
   chargesNoTxn: number; // חיוב בלי מספר-עסקה (לא ניתן-דדופ) — עדיין נוסף
+  chargesSkipped: number; // attachOnly: אין כרטיס-תואם ⇒ נשאר pending (לא נוצר כרטיס)
   recurring: number; // חיובי הו"ק שזוהו (kevaId)
   ilsAdded: number;
   usdAdded: number;
@@ -72,6 +74,9 @@ export interface SyncPlan {
   summary: SyncSummary;
   newNames: string[]; // עד 40 לתצוגה-מקדימה
   updatedNames: string[]; // עד 40
+  /** מזהי-העסקאות שחוברו (attached/dup) — לסימון handled. במצב attachOnly,
+   *  עסקה בלי-התאמה **אינה** כאן ⇒ נשארת pending לסנכרון-הידני. */
+  handledChargeIds: string[];
 }
 
 /** מפתחות-שיוך של רשומה (ext/id/ph/em/namecity) — עקבי עם מנוע-הדדופ. */
@@ -178,8 +183,15 @@ function supFromCharge(c: SyncCharge, seq: number): Supporter {
  * @param existing תומכים קיימים במאור
  * @param donors רשימת-התורמים מנדרים
  * @param charges העסקאות מנדרים (incomingPayments)
+ * @param opts attachOnly=true (החיבור-החי): עסקה שאין-לה כרטיס-תואם **לא** יוצרת
+ *   כרטיס (נשארת ל-🔄 הידני עם תצוגה-מקדימה) — מונע ריבוי כרטיסים-אוטומטיים.
  */
-export function planNedarimSync(existing: Supporter[], donors: SyncDonor[], charges: SyncCharge[]): SyncPlan {
+export function planNedarimSync(
+  existing: Supporter[],
+  donors: SyncDonor[],
+  charges: SyncCharge[],
+  opts: { attachOnly?: boolean } = {},
+): SyncPlan {
   const out: Supporter[] = existing.map((s) => ({ ...s, hist: s.hist ? [...s.hist] : undefined }));
   const keyIndex = new Map<string, number>(); // key → index ב-out
   // אינדקס-שם (שם מנורמל → idx) — לקישור-עסקה-לפי-שם: היסטוריית-נדרים מגיעה בלי
@@ -221,6 +233,7 @@ export function planNedarimSync(existing: Supporter[], donors: SyncDonor[], char
     chargesAdded: 0,
     chargesDup: 0,
     chargesNoTxn: 0,
+    chargesSkipped: 0,
     recurring: 0,
     ilsAdded: 0,
     usdAdded: 0,
@@ -268,6 +281,7 @@ export function planNedarimSync(existing: Supporter[], donors: SyncDonor[], char
     }
     return s;
   };
+  const handledChargeIds: string[] = [];
   let chargeSeq = 0;
   for (const c of charges) {
     chargeSeq++;
@@ -276,6 +290,9 @@ export function planNedarimSync(existing: Supporter[], donors: SyncDonor[], char
     let idx = findIdx(keysOf({ extId: c.toremId, zeout: c.zeout, phone: c.phone, email: c.email, name: c.name }));
     if (idx < 0) idx = findByName(c.name); // קישור-לפי-שם (ClientName) — היסטוריית-נדרים בלי מפתח-חזק
     if (idx < 0) {
+      // אין כרטיס-תואם. במצב attachOnly (חיבור-חי) — **לא** יוצרים כרטיס אוטומטי
+      // (מונע ריבוי-כרטיסים); העסקה נשארת pending לסנכרון-הידני עם תצוגה-מקדימה.
+      if (opts.attachOnly) { summary.chargesSkipped++; continue; }
       const sp = supFromCharge(c, chargeSeq);
       // אם כבר קיים כרטיס באותו מזהה-דטרמיניסטי (עסקה קודמת יצרה) — אתרו אותו
       const same = out.findIndex((s) => s.id === sp.id);
@@ -290,15 +307,16 @@ export function planNedarimSync(existing: Supporter[], donors: SyncDonor[], char
     }
     const txn = (c.txnId || '').trim();
     const seen = txnSetFor(idx);
-    if (txn && seen.has(txn)) { summary.chargesDup++; continue; }
+    if (txn && seen.has(txn)) { summary.chargesDup++; if (c.id) handledChargeIds.push(c.id); continue; }
     if (txn) seen.add(txn);
     else summary.chargesNoTxn++;
     const sp = out[idx];
     sp.hist = [...(sp.hist || []), chargeToHist(c)];
     summary.chargesAdded++;
+    if (c.id) handledChargeIds.push(c.id); // חובר ⇒ אפשר לסמן handled
     if (curOf(c) === '$') summary.usdAdded += c.amount;
     else summary.ilsAdded += c.amount;
   }
 
-  return { supporters: out, summary, newNames, updatedNames };
+  return { supporters: out, summary, newNames, updatedNames, handledChargeIds };
 }

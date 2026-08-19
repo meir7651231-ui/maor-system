@@ -138,9 +138,10 @@ export default function App() {
       if (!alive) return;
       unsub = m.watchIncomingPayments((rows) => {
         if (!rows.length) return;
-        applyNedarimAuto(rows); // עסקאות → hist של הכרטיס התואם
-        // סימון handled לכל מה שנקלט (גם כפולים-מדולגים — כבר רשומים) ⇒ לא נעבד שוב
-        for (const r of rows) void m.markIncomingPayment(r.id).catch(() => {});
+        // attachOnly ⇒ מחזיר רק את מזהי-העסקאות שחוברו לכרטיס-קיים; מה שלא-תואם
+        // נשאר pending (ל-🔄 הידני) ⇒ לא מסמנים handled ולא יוצרים כרטיסים.
+        const handled = applyNedarimAuto(rows);
+        for (const id of handled) void m.markIncomingPayment(id).catch(() => {});
       });
     });
     return () => {
