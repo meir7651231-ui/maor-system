@@ -167,6 +167,12 @@ export function SupportersView() {
   // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל אחד מתקפל.
   // הצ׳יפים והסינון נשמרים בדיוק — רק מתקפלים; החיפוש+קטגוריה גלויים תמיד.
   const [advOpen, setAdvOpen] = useState(false);
+  // 🔁 זיהוי-הו"ק-מהיסטוריה — הפעולה מקומית-טהורה (detectRecurringHok על hist);
+  // עד היום הכפתור היחיד היה קבור ב-NedarimSyncModal שנעול payments+ענן. חושפים אותו
+  // כאן (מגודר hokOn) — מוצג רק כשיש חיובי-נדרים ב-hist, לא-דורס-הו"ק-ידני, no-op כשריק.
+  const detectNedarimHok = useApp((s) => s.detectNedarimHok);
+  const [hokDetectArmed, setHokDetectArmed] = useState(false);
+  const hasNedarimHist = db.supporters.some((sp) => (sp.hist ?? []).some((h) => h.clearer === 'נדרים'));
   // 🔗 איחוד-כפולים (#13) — הכפתור מוצג רק כשיש מה לאחד
   const [dedupOpen, setDedupOpen] = useState(false);
   // 🐛 נחיל-9×9 (13.8): Union-Find על כל התורמים רץ בכל render (כל הקשה/סינון) —
@@ -577,15 +583,35 @@ export function SupportersView() {
       )}
 
       {/* 🔁 הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש (לחיצה מסננת) */}
-      {hokOn && db.supporters.some((sp) => sp.hok) && (
+      {hokOn && (db.supporters.some((sp) => sp.hok) || hasNedarimHist) && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>הוראות קבע:</span>
-          <Chip on={hokF === 'active'} onClick={() => setHokF(hokF === 'active' ? null : 'active')}>
-            {'🔁 פעילות · ' + db.supporters.filter((sp) => sp.hok?.active).length}
-          </Chip>
-          <Chip on={hokF === 'due'} onClick={() => setHokF(hokF === 'due' ? null : 'due')}>
-            {'⏳ טרם נרשמו החודש · ' + hokDue(db.supporters, today).length}
-          </Chip>
+          {db.supporters.some((sp) => sp.hok) && (
+            <>
+              <Chip on={hokF === 'active'} onClick={() => setHokF(hokF === 'active' ? null : 'active')}>
+                {'🔁 פעילות · ' + db.supporters.filter((sp) => sp.hok?.active).length}
+              </Chip>
+              <Chip on={hokF === 'due'} onClick={() => setHokF(hokF === 'due' ? null : 'due')}>
+                {'⏳ טרם נרשמו החודש · ' + hokDue(db.supporters, today).length}
+              </Chip>
+            </>
+          )}
+          {/* זיהוי-רטרואקטיבי מהיסטוריית-נדרים — פעולה מקומית, בלי שער-ענן */}
+          {hasNedarimHist && (
+            <Btn
+              sm
+              kind={hokDetectArmed ? 'danger' : undefined}
+              title="סורק חיובי-נדרים ב-hist ומזהה הוראות-קבע לפי תבנית (3+ חודשים) — הו״ק ידני לא נדרס"
+              onClick={() => {
+                if (!hokDetectArmed) { setHokDetectArmed(true); return; }
+                const n = detectNedarimHok();
+                toast(n ? '🔁 ' + n + ' הוראות-קבע זוהו ומולאו מהיסטוריה' : 'לא זוהו הוראות-קבע חדשות מהתבנית');
+                setHokDetectArmed(false);
+              }}
+            >
+              {hokDetectArmed ? 'לאשר זיהוי הו״ק?' : '🔁 זהה הו״ק מהיסטוריה'}
+            </Btn>
+          )}
         </div>
       )}
 

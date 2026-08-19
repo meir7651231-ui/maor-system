@@ -22,7 +22,7 @@ export { EV_META, evLabel };
 import { DEFAULT_CONFIG } from '../../types/config';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import { featureOn, termOf } from '../../lib/config';
-import { hokDue, supIls, supUsd } from '../supporters/lib';
+import { hokDue, hokMonthlyTotal, supIls, supUsd } from '../supporters/lib';
 
 /** מפת המודולים הפעילים (config.modules) — חסר = פעיל; false = כבוי. */
 export type ModulesMap = OrgConfig['modules'];
@@ -395,18 +395,21 @@ export function attentionItems(
   if (on('supporters') && featureOn(config, 'supporters.hok')) {
     const due = hokDue(db.supporters, todayIso);
     if (due.length) {
+      // "צפוי החודש" — סה"כ ההו"ק הפעילות (₪-שקול), נגזרת טהורה שכבר מוצגת במבט-ההנהלה.
+      const monthly = Math.round(hokMonthlyTotal(db.supporters, db.usdRate || 3.7));
       out.push({
         key: 'hokdue:' + todayIso.slice(0, 7),
         tag: 'הו"ק',
         tagBg: '#e8f0fb',
         tagC: '#1d4ed8',
-        // דיוק (19.8): גם מונה "עבר יום-החיוב" — הו"ק ל-25 בחודש אינה "מאחרת" ב-3 בו
+        // מיזוג 19.8: גם מונה "עבר יום-החיוב" (סבב-הבית) וגם "צפוי מהו״ק החודש" (הו״ק-מיצוי).
         title: (() => {
           const dayOfMonth = Number(todayIso.slice(8, 10));
           const past = due.filter((s) => (s.hok?.day ?? 1) <= dayOfMonth).length;
           return (
             `הוראות-קבע של החודש שטרם נרשמו: ${due.length}` +
             (past > 0 && past < due.length ? ` (מתוכן ${past} שעבר יום-החיוב)` : '') +
+            (monthly ? ` · צפוי מהו"ק החודש: ₪${monthly.toLocaleString('he-IL')}` : '') +
             ` (${due.slice(0, 3).map((s) => s.name).join(', ')}${due.length > 3 ? '…' : ''})`
           );
         })(),

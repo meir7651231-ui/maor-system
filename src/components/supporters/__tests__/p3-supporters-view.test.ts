@@ -107,4 +107,13 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     // מחלקת-ה-CSS (.hscroll) מוגדרת ב-global.css עם background-attachment
     // local+scroll (אומת ידנית בצילום; global.css מיובא-גלובלי ולא ניתן-raw בבדיקה).
   });
+
+  // 🔁 חשיפת זיהוי-הו"ק-מהיסטוריה מחוץ לשער-הענן — המנוע (detectRecurringHok)
+  // מקומי-טהור, נבדק ב-nedarim-hok.test; הכפתור היה קבור ב-NedarimSyncModal שנעול
+  // payments+ענן. נוסף לבלוק-הו"ק, מוצג רק כשיש חיובי-נדרים ב-hist.
+  it('🛡 כפתור "זהה הו״ק מהיסטוריה" חשוף (detectNedarimHok, מגודר hasNedarimHist)', () => {
+    expect(viewSrc).toContain('🔁 זהה הו״ק מהיסטוריה');
+    expect(viewSrc).toContain('detectNedarimHok()');
+    expect(viewSrc).toContain("(sp.hist ?? []).some((h) => h.clearer === 'נדרים')");
+  });
 });
