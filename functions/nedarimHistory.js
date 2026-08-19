@@ -32,18 +32,21 @@ function planHistoryWrites(rows, org) {
     if (!tid) continue; // בלי TransactionId אי-אפשר לדדופ — מדלגים (ה-webhook יתפוס)
     const m = mapPaymentCallback({ ...r, org });
     if (!(m.amount > 0)) continue; // חיוב חיובי בלבד (מבוטל=0 · זיכוי=שלילי → פאזה מאוחרת)
+    // נפילות-ברירת-מחדל: Firestore דוחה undefined (שדה חסר מהמפה ⇒ create נכשל).
+    // כל שדה שהמפה לא החזירה נכתב כמחרוזת-ריקה (מטבע ⇒ '₪'), כך שהמשיכה עמידה
+    // גם מול גרסת-מפה חלקית/ותיקה.
     writes.push({
       id: 'nedarim-' + tid,
       data: {
         amount: m.amount,
-        currency: m.currency,
-        name: m.name,
-        phone: m.phone,
-        email: m.email,
-        zeout: m.zeout,
-        category: m.category,
-        kevaId: m.kevaId,
-        reference: m.reference,
+        currency: m.currency || '₪',
+        name: m.name || '',
+        phone: m.phone || '',
+        email: m.email || '',
+        zeout: m.zeout || '',
+        category: m.category || '',
+        kevaId: m.kevaId || '',
+        reference: m.reference || tid,
         txnId: tid,
         source: 'pull', // מבחין ממקור-ה-webhook (אבחון); ה-doc-id זהה ⇒ אין כפילות
         status: 'pending',
