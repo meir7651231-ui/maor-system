@@ -663,13 +663,20 @@ export function newSupporterFromRow(id: string, row: SupporterImportRow): Suppor
 
 export const HOK_CAT = 'הו"ק';
 
-/** האם חיוב-החודש של ההוראה כבר נרשם (חודש אזרחי נוכחי). */
+/** האם חיוב-החודש של ההוראה כבר נרשם (חודש אזרחי נוכחי).
+ *  כולל **חיוב-נדרים חוזר ב-hist** (19.8): נדרים גובה בעצמו, החיוב יושב ב-hist
+ *  (לא ב-donations) ⇒ תורם שנדרים כבר חייב החודש לא יופיע כ"ממתין" בטעות. */
 export function hokRecordedThisMonth(sp: Supporter, todayIso: string): boolean {
   if (!sp.hok) return false;
   const month = todayIso.slice(0, 7);
   const hok = sp.hok;
-  return sp.donations.some(
+  const inDonations = sp.donations.some(
     (d) => d.date.startsWith(month) && (d.cat === HOK_CAT || (d.amount === hok.amount && (d.cur || '₪') === hok.cur)),
+  );
+  if (inDonations) return true;
+  // חיוב-סליקה (נדרים) החודש התואם את סכום/מטבע ההוראה ⇒ נחשב "נרשם".
+  return (sp.hist ?? []).some(
+    (h) => (h.d || '').startsWith(month) && h.a === hok.amount && (h.c || '₪') === hok.cur,
   );
 }
 

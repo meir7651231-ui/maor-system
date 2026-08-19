@@ -470,6 +470,9 @@ export interface Hok {
   note: string;
   active: boolean;
   startedAt: IsoDate;
+  /** מזהה-הו"ק של הסליקה (נדרים kevaId) — מסמן הו"ק **מנוהל-סליקה** (מולא
+   *  אוטומטית מחיוב-נדרים חוזר). חסר = הו"ק ידני של המשרד (לא נדרס אוטומטית). */
+  kevaId?: string;
 }
 
 export interface Supporter {
