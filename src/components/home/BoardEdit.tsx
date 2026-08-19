@@ -86,8 +86,11 @@ export function BoardEditor(props: {
   onReset: () => void;
 }) {
   const { ctx, draft, setDraft, onSave, onCancel, onReset } = props;
-  // שם-תצוגה מונחי (זהות-ורטיקל) — ווידג'ט עם labelTerm עובר termOf (משפחות→לקוחות)
-  const wLabel = (w: HomeWidget): string => (w.labelTerm ? termOf(ctx.config, w.labelTerm[0], w.labelTerm[1]) : w.label);
+  // שם-תצוגה מונחי (זהות-ורטיקל) — המונח מוחלף *בתוך* ה-label המלא (משפחות
+  // אחרונות→לקוחות אחרונות). תיקון 19.8: קודם הוחזר המונח לבדו — "תפוסת החוגים"
+  // הוצג בעורך כ"חוגים" ו"תורמים · יעדי קשר" כ"תורמים" (השם נקטע).
+  const wLabel = (w: HomeWidget): string =>
+    w.labelTerm ? w.label.replace(w.labelTerm[1], termOf(ctx.config, w.labelTerm[0], w.labelTerm[1])) : w.label;
   const [dragId, setDragId] = useState<WidgetId | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
 
@@ -203,13 +206,14 @@ export function BoardEditor(props: {
             <Fragment key={id}>
               <div data-widget-frame style={frameStyle(dragId === id)}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 6px 8px' }}>
+                  {/* הידית עכבר-בלבד (a11y 19.8): role=button ללא מקלדת הטעה קוראי-מסך —
+                      החצים ▲▼ הם המסלול הנגיש; הידית מוסתרת מ-AT */}
                   <span
-                    role="button"
+                    aria-hidden
                     draggable
                     onDragStart={onHandleDragStart(id)}
                     onDragEnd={onHandleDragEnd}
                     title="גרירה להזזת הווידג'ט"
-                    aria-label={`גרירת "${wLabel(w)}" למיקום אחר`}
                     style={{ cursor: 'grab', color: 'var(--ink-faint)', fontWeight: 700, letterSpacing: 1, userSelect: 'none' }}
                   >
                     ⋮⋮
@@ -217,6 +221,15 @@ export function BoardEditor(props: {
                   <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-soft)' }}>
                     <span aria-hidden>{w.icon}</span> {wLabel(w)}
                   </span>
+                  {/* חיווי-פריסה (19.8): ווידג'טים חצי-רוחב סמוכים ישבו זה-לצד-זה בתצוגה */}
+                  {w.slot === 'half' && (
+                    <span
+                      title="ווידג'ט חצי-רוחב — שני חצאים סמוכים יושבים זה לצד זה בלוח"
+                      style={{ fontSize: 10.5, color: 'var(--ink-faint)', border: '1px solid var(--line, #e7dfd0)', borderRadius: 999, padding: '1px 7px', whiteSpace: 'nowrap' }}
+                    >
+                      ◧ חצי רוחב
+                    </span>
+                  )}
                   <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 4 }}>
                     <button
                       type="button"

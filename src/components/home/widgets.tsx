@@ -237,7 +237,7 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
         </button>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span aria-hidden style={{ fontSize: 30 }}>🎂</span>
+          <span aria-hidden style={{ fontSize: 30 }}>📆</span>
           <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <span style={{ fontWeight: 700, fontSize: 15.5 }}>אין אירועים קרובים</span>
             <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>14 הימים הקרובים שקטים</span>
@@ -1484,7 +1484,8 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
   carousel: {
     id: 'carousel',
     label: 'אירועים קרובים',
-    icon: '🎂',
+    // 📆 ולא 🎂 — הקרוסלה מציגה את כל סוגי האירועים, לא רק ימי-הולדת
+    icon: '📆',
     slot: 'full',
     removable: true,
     // מוסתרת כשהפיצ'ר home.carousel כבוי (כמו במקור)
@@ -1605,7 +1606,8 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
   },
   suggest: {
     id: 'suggest',
-    label: 'הצעות מקדימות 💡',
+    // בלי אמוג'י בתוך ה-label — ה-icon (💡) כבר מוצג לצידו בעורך/בספרייה
+    label: 'הצעות מקדימות',
     icon: '💡',
     slot: 'full',
     removable: true,
