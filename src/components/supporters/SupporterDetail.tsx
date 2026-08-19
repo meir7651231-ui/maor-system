@@ -394,8 +394,19 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                 </Btn>
               )}
               {donateHref && (
-                <a href={donateHref} target="_blank" rel="noopener noreferrer" title="עמוד-התרומה של הארגון" style={{ textDecoration: 'none', fontSize: 15 }}>
-                  💳
+                // היה אמוג׳י-💳 בודד (בלי תווית ובלי aria-label) — נעלם-הפשר במגע
+                // וחריג לאחיו (🤖 מכתב תודה / 📱 SMS) שנושאים טקסט. עכשיו תווית גלויה
+                // + aria-label, בסגנון-צ׳יפ אחיד. אותו href/target — אפס שינוי-התנהגות.
+                <a
+                  href={donateHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="chip"
+                  title="עמוד-התרומה של הארגון — קישור לתשלום מקוון"
+                  aria-label="פתיחת עמוד-התרומה של הארגון"
+                  style={{ textDecoration: 'none' }}
+                >
+                  💳 עמוד תרומה
                 </a>
               )}
               {smsReady && (
@@ -531,16 +542,18 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                     <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--ink-faint)' }}>
                       {histOn ? r.src : r.rid}
                     </td>
-                    {/* 🧾 הורדה חוזרת פר-תרומה (P3, לגאסי supReceipt) — רק לתרומות עם קבלה */}
-                    <td onClick={(e) => e.stopPropagation()}>
+                    {/* 🧾 הורדה חוזרת פר-תרומה (P3, לגאסי supReceipt) — רק לתרומות עם קבלה.
+                        היו אמוג׳י-בלבד (🧾/📧) עם title בלבד — נעלם-הפשר במגע. עכשיו תווית
+                        גלויה בכל כפתור (הטקסט = השם-הנגיש). אותם handlers — אפס שינוי-התנהגות. */}
+                    <td onClick={(e) => e.stopPropagation()} style={{ whiteSpace: 'nowrap' }}>
                       {r.rid && receiptsOn ? (
                         <>
                           <Btn sm onClick={() => redownloadReceipt(r.rid!)} title={'הורדה חוזרת של קבלה ' + r.rid}>
-                            🧾
+                            🧾 הורדה
                           </Btn>
                           {mailReady && (
                             <Btn sm onClick={() => void mailReceipt(r.rid!)} title={'שליחת קבלה ' + r.rid + ' למייל ' + termOf(config, 'entity.supporter', 'התורם')}>
-                              📧
+                              📧 מייל
                             </Btn>
                           )}
                         </>
