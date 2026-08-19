@@ -188,6 +188,8 @@ export function recentFamilies(db: Db, n = 5): Family[] {
 export type AttentionNav =
   | { kind: 'course'; id: string }
   | { kind: 'family'; id: string }
+  /** חיווט-עומק (19.8): פתיחת כרטיס-תומך ספציפי (openSupporterCard) — לא רק הרשימה. */
+  | { kind: 'supporter'; id: string }
   | { kind: 'supporters' }
   | { kind: 'calendar' };
 
@@ -259,7 +261,8 @@ export function attentionItems(
       tagC: '#b91c1c',
       title: ev.title + ' — ' + when + (ev.time ? ' ' + ev.time : ''),
       sev: 'crit',
-      nav: { kind: 'calendar' },
+      // חיווט-עומק (19.8): אירוע מקושר-משפחה קופץ ישר לכרטיס; אחרת ללוח
+      nav: ev.famId ? { kind: 'family', id: ev.famId } : { kind: 'calendar' },
     });
   }
 
@@ -356,7 +359,8 @@ export function attentionItems(
       tagC: crit ? '#b91c1c' : '#9a6414',
       title: `יעד קשר — ${sp.name} · באיחור ${late} ימים`,
       sev: crit ? 'crit' : 'warn',
-      nav: { kind: 'supporters' },
+      // חיווט-עומק (19.8): ישר לכרטיס-התומך — בלי לחפש אותו ברשימה
+      nav: { kind: 'supporter', id: sp.id },
     });
   }
   if (lateSup.length > 3) {

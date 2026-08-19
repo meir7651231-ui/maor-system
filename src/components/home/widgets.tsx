@@ -199,7 +199,8 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
 
   useEffect(() => {
     if (reduced || paused || items.length < 2) return;
-    const t = setInterval(() => setIdx((i) => i + 1), 5000);
+    // תיקון (19.8): מודולו כבר בקידום — idx לעולם לא צומח בלי-גבול (ריצה של שעות)
+    const t = setInterval(() => setIdx((i) => (i + 1) % items.length), 5000);
     return () => clearInterval(t);
   }, [reduced, paused, items.length]);
 
@@ -249,8 +250,9 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
             ‹
           </button>
           <div style={{ display: 'flex', gap: 6 }} role="tablist" aria-label="פריטי הקרוסלה">
-            {items.slice(0, 8).map((it, i2) => {
-              const active = i2 === (idx % items.length) % 8;
+            {/* תיקון (19.8): נקודה לכל פריט (היו רק 8 מתוך 10) והנקודה הפעילה בלי ‎% 8‎ שגוי */}
+            {items.map((it, i2) => {
+              const active = i2 === idx % items.length;
               return (
                 <button
                   key={it.key}
@@ -1206,9 +1208,10 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
   );
 }
 
-/** 💛 תורמים · יעדי קשר — יעדים שהגיעו/עברו (שם, תאריך, טלפון) + נתרם החודש. */
+/** 💛 תורמים · יעדי קשר — יעדים שהגיעו/עברו (שם, תאריך, טלפון) + נתרם החודש.
+ *  חיווט-עומק (19.8): שורה פותחת את כרטיס-התומך עצמו; 📞/💬 ליצירת-קשר בקליק. */
 function ContactsWidget({ ctx }: { ctx: HomeCtx }) {
-  const { db, now, go, config } = ctx;
+  const { db, now, go, config, navTo } = ctx;
   const due = dueContacts(db, now);
   const monthSum = monthDonationSum(db, now);
   return (
@@ -1227,16 +1230,28 @@ function ContactsWidget({ ctx }: { ctx: HomeCtx }) {
         <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>אין יעדי קשר פתוחים ✓</div>
       )}
       {due.slice(0, 6).map((c) => (
-        <button key={c.id} type="button" className="hm-row" onClick={() => go('supporters')} title={'למסך ה' + termOf(config, 'nav.supporters', 'תורמים')}>
-          <span style={chipStyle(ctx, c.late > 7 ? '#fdeaea' : '#fdf1d4', c.late > 7 ? '#b91c1c' : '#9a6414', c.late > 7)}>
-            {fmtD(c.date)}
-          </span>
-          <span style={{ fontWeight: 600 }}>{c.name}</span>
-          {c.phone && (
-            <span dir="ltr" style={{ color: 'var(--ink-faint)', fontSize: 12.5 }}>{c.phone}</span>
+        <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            type="button"
+            className="hm-row"
+            style={{ flex: 1, minWidth: 0 }}
+            onClick={() => navTo({ kind: 'supporter', id: c.id })}
+            title={'לכרטיס ' + c.name}
+          >
+            <span style={chipStyle(ctx, c.late > 7 ? '#fdeaea' : '#fdf1d4', c.late > 7 ? '#b91c1c' : '#9a6414', c.late > 7)}>
+              {fmtD(c.date)}
+            </span>
+            <span style={{ fontWeight: 600 }}>{c.name}</span>
+            {c.phone && (
+              <span dir="ltr" style={{ color: 'var(--ink-faint)', fontSize: 12.5 }}>{c.phone}</span>
+            )}
+            <span className="hm-arrow" aria-hidden>לטפל ←</span>
+          </button>
+          {telephonyOn(config) && c.phone && <CallBtn phone={c.phone} title={'חיוג ל' + c.name} />}
+          {integrationOn(config, 'whatsapp') && c.phone && (
+            <WaBtn phone={c.phone} title={'וואטסאפ ל' + c.name} />
           )}
-          <span className="hm-arrow" aria-hidden>לטפל ←</span>
-        </button>
+        </div>
       ))}
       {due.length > 6 && <div style={softEmpty}>+{due.length - 6} יעדי קשר נוספים</div>}
     </Panel>

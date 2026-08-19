@@ -46,6 +46,7 @@ export function HomeView() {
   const go = useApp((s) => s.go);
   const selectFamily = useApp((s) => s.selectFamily);
   const selectCourse = useApp((s) => s.selectCourse);
+  const openSupporterCard = useApp((s) => s.openSupporterCard);
   const markAttnDone = useApp((s) => s.markAttnDone);
   const unmarkAttnDone = useApp((s) => s.unmarkAttnDone);
   const toast = useApp((s) => s.toast);
@@ -84,7 +85,10 @@ export function HomeView() {
   const navTo = (nav: AttentionNav) => {
     if (nav.kind === 'course') selectCourse(nav.id);
     else if (nav.kind === 'family') selectFamily(nav.id);
-    else if (nav.kind === 'supporters') {
+    else if (nav.kind === 'supporter') {
+      // חיווט-עומק (19.8): ישר לכרטיס-התומך (openSupporterCard) — מגודר-מודול
+      if (supportersOn) openSupporterCard(nav.id);
+    } else if (nav.kind === 'supporters') {
       if (supportersOn) go('supporters');
     } else if (calendarOn) go('calendar');
   };
