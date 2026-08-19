@@ -244,7 +244,10 @@ export function planNedarimSync(
   // ── שלב 1: תורמים → כרטיסים (התאמה/העשרה/יצירה) ──
   for (const d of donors) {
     if (!d.toremId && !d.name) continue;
-    const idx = findIdx(keysOf({ extId: d.toremId, zeout: d.zeout, phone: d.phone, phone2: d.phone2, phone3: d.phone3, email: d.email, name: d.name }));
+    let idx = findIdx(keysOf({ extId: d.toremId, zeout: d.zeout, phone: d.phone, phone2: d.phone2, phone3: d.phone3, email: d.email, name: d.name }));
+    // קישור-לפי-שם: בנדרים הת"ז לרוב "000000000" (ריקה) ולחלק אין טלפון-תואם ⇒
+    // בלי זה תורם-קיים "לא-נמצא" ונוצר ככפול. שם עמום (2 כרטיסים) ⇒ -1 (יצירה).
+    if (idx < 0) idx = findByName(d.name);
     if (idx >= 0) {
       // העשרה — מילוי-שדות-ריקים בלבד + קביעת extId (מפתח-שיוך עתידי)
       const sp = out[idx];
