@@ -53,17 +53,10 @@ export function Chip(props: { children: ReactNode; on?: boolean; onClick?: () =>
  * לחזור. משותף לכל מסכי-הכרטיס (משפחה/חוג/תורם). מכבד את הניווט התחתון במובייל.
  */
 export function StickyBackBar(props: { onBack: () => void; label: string }) {
+  // מיקום/גובה נשלטים ב-global.css (.sticky-back) — במובייל הכפתור עולה מעל
+  // סרגל-הניווט-התחתון הקבוע (אחרת היה מוסתר מאחוריו).
   return (
-    <div
-      style={{
-        position: 'sticky',
-        bottom: 0,
-        zIndex: 5,
-        background: 'linear-gradient(to top, var(--bg) 72%, transparent)',
-        padding: '10px 0 4px',
-        marginTop: 4,
-      }}
-    >
+    <div className="sticky-back">
       <Btn onClick={props.onBack}>{props.label}</Btn>
     </div>
   );

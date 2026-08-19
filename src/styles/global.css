@@ -2577,6 +2577,23 @@ h1,
   }
 }
 
+/* כפתור-חזרה מרחף קבוע בתחתית מסכי-הכרטיס (בקשת-בעלים 19.8) — נצמד לתחתית
+   אזור-הגלילה; במובייל עולה מעל סרגל-הניווט-התחתון הקבוע (אחרת מוסתר מאחוריו). */
+.sticky-back {
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
+  padding: 10px 0 4px;
+  margin-top: 4px;
+  background: linear-gradient(to top, var(--bg) 72%, transparent);
+}
+@media (max-width: 760px) {
+  .sticky-back {
+    bottom: calc(60px + env(safe-area-inset-bottom));
+    z-index: 95; /* מעל הניווט-התחתון (z-index:90) */
+  }
+}
+
 /* UX סבב-ב׳ (5.8.2026): ניווט-תחתון במובייל + הסתרת הרצועה הגולשת */
 .bottom-nav {
   display: none;
