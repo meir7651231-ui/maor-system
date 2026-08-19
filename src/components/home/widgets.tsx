@@ -199,7 +199,8 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
 
   useEffect(() => {
     if (reduced || paused || items.length < 2) return;
-    const t = setInterval(() => setIdx((i) => i + 1), 5000);
+    // תיקון (19.8): מודולו כבר בקידום — idx לעולם לא צומח בלי-גבול (ריצה של שעות)
+    const t = setInterval(() => setIdx((i) => (i + 1) % items.length), 5000);
     return () => clearInterval(t);
   }, [reduced, paused, items.length]);
 
@@ -236,7 +237,7 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
         </button>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span aria-hidden style={{ fontSize: 30 }}>🎂</span>
+          <span aria-hidden style={{ fontSize: 30 }}>📆</span>
           <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <span style={{ fontWeight: 700, fontSize: 15.5 }}>אין אירועים קרובים</span>
             <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>14 הימים הקרובים שקטים</span>
@@ -249,8 +250,9 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
             ‹
           </button>
           <div style={{ display: 'flex', gap: 6 }} role="tablist" aria-label="פריטי הקרוסלה">
-            {items.slice(0, 8).map((it, i2) => {
-              const active = i2 === (idx % items.length) % 8;
+            {/* תיקון (19.8): נקודה לכל פריט (היו רק 8 מתוך 10) והנקודה הפעילה בלי ‎% 8‎ שגוי */}
+            {items.map((it, i2) => {
+              const active = i2 === idx % items.length;
               return (
                 <button
                   key={it.key}
@@ -293,6 +295,9 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
  */
 function HeroWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, now, todayIso, data, go, selectCourse } = ctx;
+  // חיווט-עומק (19.8): "➕ הוספת משפחה" פותח את הטופס עצמו (openFamilyForm —
+  // אותו דפוס famFormReq של הפלטה/צֹהַר), לא רק מנווט לרשימה.
+  const openFamilyForm = useApp((s) => s.openFamilyForm);
   const familiesOn = moduleOn(config, 'families');
   const coursesOn = moduleOn(config, 'courses');
   const calendarOn = moduleOn(config, 'calendar');
@@ -315,7 +320,14 @@ function HeroWidget({ ctx }: { ctx: HomeCtx }) {
   // זמני שבת/חג — הדלקת-נרות מהסגירה-ההלכתית הקרובה (מנוע-הזמנים, downstream,
   // חישוב-מקומי בלבד). מגודר telephonyOn (דורש עיר-עוגן); כבוי ⇒ ביט-זהה למקור.
   const nc = telephonyOn(config) ? nextClosure(config, todayIso) : null;
-  if (nc) subParts.push(`🕯️ ${nc.reason === 'שבת' ? 'הדלקת נרות' : nc.reason} ${nc.candle}`);
+  if (nc) {
+    // דיוק (19.8): כשהסגירה אינה היום — מציינים את היום ("שעה בלי יום" הטעתה)
+    const ncDay =
+      nc.startIso && nc.startIso !== todayIso
+        ? ` (יום ${DAY_NAMES[new Date(nc.startIso + 'T12:00:00').getDay()]})`
+        : '';
+    subParts.push(`🕯️ ${nc.reason === 'שבת' ? 'הדלקת נרות' : nc.reason} ${nc.candle}${ncDay}`);
+  }
   if (coursesOn) {
     subParts.push(
       data.sessions.length === 0
@@ -368,18 +380,25 @@ function HeroWidget({ ctx }: { ctx: HomeCtx }) {
             </Btn>
           )}
           {familiesOn && (
-            <Btn kind="primary" onClick={() => go('families')}>
+            <Btn kind="primary" onClick={openFamilyForm} title={'פתיחת טופס ' + termOf(config, 'entity.family', 'משפחה') + ' חדשה'}>
               ➕ הוספת {termOf(config, 'entity.family', 'משפחה')}
             </Btn>
           )}
-          {coursesOn && (
-            <Btn
-              onClick={() => (data.sessions.length ? selectCourse(data.sessions[0].course.id) : go('courses'))}
-              title={data.sessions.length ? 'ניקוב מהיר — ' + data.sessions[0].course.name : 'אין מפגשים היום'}
-            >
-              {isOrRishon ? '✓ ניקוב מהיר' : 'ניקוב מהיר'}
-            </Btn>
-          )}
+          {coursesOn && (() => {
+            // דיוק (19.8): קופצים למפגש הרלוונטי עכשיו (מתקיים/בהמשך) — לא לראשון
+            // שכבר הסתיים; כשהכל הסתיים נופלים לראשון (עדיין ניתן לנקב רטרואקטיבית).
+            const best =
+              data.sessions.find((ts) => sessionStatus(ts.session.time, now)?.label !== 'הסתיים') ??
+              data.sessions[0];
+            return (
+              <Btn
+                onClick={() => (best ? selectCourse(best.course.id) : go('courses'))}
+                title={best ? 'ניקוב מהיר — ' + best.course.name : 'אין מפגשים היום'}
+              >
+                {isOrRishon ? '✓ ניקוב מהיר' : 'ניקוב מהיר'}
+              </Btn>
+            );
+          })()}
           {calendarOn && <Btn onClick={() => go('calendar')}>{isOrRishon ? '🎂 מי חוגג השבוע?' : 'מי חוגג השבוע?'}</Btn>}
           {diaryOn && (
             <Btn onClick={() => go('diary')}>
@@ -441,10 +460,11 @@ function BdaysWidget({ ctx }: { ctx: HomeCtx }) {
                 </span>
               </span>
             </button>
-            {isKehila && ts && (
+            {/* "לברך במפגש" בכל הערכות (19.8) — היה קהילה-בלבד; העיצוב פר-ערכה ב-CSS */}
+            {ts && (
               <button
                 type="button"
-                className="hm-bday-cta"
+                className={isKehila ? 'hm-bday-cta' : 'hm-bday-cta hm-bday-cta-quiet'}
                 onClick={() => selectCourse(ts.course.id)}
                 title={'ל' + termOf(config, 'entity.course', 'חוג') + ' ' + ts.course.name + ' — לברך במפגש של היום'}
               >
@@ -512,23 +532,32 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
   const coursesOn = moduleOn(config, 'courses');
   const calendarOn = moduleOn(config, 'calendar');
   const supportersOn = moduleOn(config, 'supporters');
+
+  // ⚡ קלילות (19.8): הספארקליינים נגזרים פעם-אחת פר-נתונים (useMemo) —
+  // לא בכל רנדר של הבית (דופק-הדקה/ריחופים היו מריצים סריקה מלאה מחדש).
+  const { famSpark, famNew, donSpark, donMonth } = useMemo(() => {
+    // משפחות חדשות פר-חודש (6 חודשים) — אמיתי מ-createdAt
+    const fs = monthlySeries(
+      db.families.map((f) => ({ date: f.createdAt || '', value: 1 })),
+      now,
+    );
+    // תרומות ₪ פר-חודש — קבלות + היסטוריה (הכרעת-בעלים 9.8 "לכולל", כמו donIls)
+    const donPoints: { date: string; value: number }[] = [];
+    for (const sp of db.supporters) {
+      for (const dn of sp.donations) if (dn.cur !== '$') donPoints.push({ date: dn.date, value: dn.amount });
+      for (const h of sp.hist ?? []) if (h.c !== '$') donPoints.push({ date: h.d || '', value: h.a });
+    }
+    return {
+      famSpark: fs,
+      famNew: fs[fs.length - 1],
+      donSpark: monthlySeries(donPoints, now),
+      donMonth: monthDonationSum(db, now),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [db.families, db.supporters, ctx.todayIso]);
+
   // כל המודולים של הכרטיסים כבויים ⇒ אין מה להציג — הגריד כולו נעלם
   if (!familiesOn && !coursesOn && !calendarOn && !supportersOn) return null;
-
-  // משפחות חדשות פר-חודש (6 חודשים) — אמיתי מ-createdAt
-  const famSpark = monthlySeries(
-    db.families.map((f) => ({ date: f.createdAt || '', value: 1 })),
-    now,
-  );
-  const famNew = famSpark[famSpark.length - 1];
-
-  // תרומות ₪ פר-חודש — אמיתי מתאריכי התרומות
-  const donPoints: { date: string; value: number }[] = [];
-  for (const sp of db.supporters) {
-    for (const dn of sp.donations) if (dn.cur !== '$') donPoints.push({ date: dn.date, value: dn.amount });
-  }
-  const donSpark = monthlySeries(donPoints, now);
-  const donMonth = monthDonationSum(db, now);
 
   return (
     <div className="hm-stats">
@@ -536,8 +565,12 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
         <StatCard
           icon="👨‍👩‍👧‍👦"
           label={termOf(config, 'nav.families', 'משפחות')}
-          value={String(s.famTotal)}
-          sub={`${s.famActive} פעילות · ${s.famPending} ממתינות · ${s.famInactive} לא פעילות`}
+          value={s.famTotal.toLocaleString('he-IL')}
+          sub={
+            `${s.famActive} פעילות · ${s.famPending} ממתינות · ${s.famInactive} לא פעילות` +
+            // מונה אלמנות (פער-לגאסי 20) — עמותתי בלבד (core.taxreceipt); מסחרי לא מושפע
+            (s.widows > 0 && featureOn(config, 'core.taxreceipt') ? ` · ${s.widows} אלמנות` : '')
+          }
           chip={famNew > 0 ? `+${famNew} החודש` : undefined}
           spark={famSpark}
           onClick={() => go('families')}
@@ -547,7 +580,7 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
         <StatCard
           icon="🧒"
           label={termOf(config, 'entity.members', 'בני משפחה')}
-          value={String(s.membersTotal)}
+          value={s.membersTotal.toLocaleString('he-IL')}
           sub={`מהם ${s.childrenTotal} ילדים`}
           onClick={() => go('families')}
         />
@@ -564,9 +597,10 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
       {calendarOn && (
         <StatCard
           icon="📅"
-          label="אירועים פתוחים"
+          // תיקון (19.8): הערך הוא ספירת-היום — התווית אמרה "פתוחים" (מטעה)
+          label="אירועים היום"
           value={String(s.eventsToday)}
-          sub={`היום · ${s.eventsWeek} השבוע`}
+          sub={`${s.eventsWeek} השבוע`}
           onClick={() => go('calendar')}
         />
       )}
@@ -659,6 +693,14 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
                   <tr
                     key={ts.course.id + '-' + i}
                     onClick={() => selectCourse(ts.course.id)}
+                    /* נגישות-מקלדת (19.8): השורה לחיצה — Tab מגיע אליה, Enter/רווח פותחים */
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        selectCourse(ts.course.id);
+                      }
+                    }}
                     style={{ cursor: 'pointer' }}
                     title={'לכרטיס ה' + termOf(config, 'entity.course', 'חוג')}
                   >
@@ -698,6 +740,8 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
           const teacher = db.teachers.find((t) => t.id === ts.course.teacherId)?.name ?? '';
           const enrolled = db.enrollments.filter((e) => e.courseId === ts.course.id && e.status === 'active').length;
           const sub = [room, teacher, `${enrolled} רשומים`].filter(Boolean).join(' · ');
+          // גלולת-סטטוס גם בכרטיסי-השורה (19.8) — הייתה רק בטבלת-צֹהַר; אותם נתונים
+          const st = sessionStatus(ts.session.time, now);
           return (
             <div key={ts.course.id + '-' + i} className="hm-meet">
               <span className="hm-time">{ts.session.time || '—'}</span>
@@ -708,6 +752,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
                 </span>
                 <span className="hm-meet-sub">{sub}</span>
               </button>
+              {st && <span style={{ ...tagStyle(st.bg, st.c), flexShrink: 0 }}>{st.label}</span>}
               <button
                 type="button"
                 className="hm-pill-btn"
@@ -727,7 +772,8 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
           key={ev.id}
           type="button"
           className="hm-row"
-          onClick={() => (ev.famId ? selectFamily(ev.famId) : go('calendar'))}
+          /* ניווט דרך navTo (19.8) — ממוגן-מודולים כמו שאר משטחי-הבית */
+          onClick={() => ctx.navTo(ev.famId ? { kind: 'family', id: ev.famId } : { kind: 'calendar' })}
           title={ev.famId ? 'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה') : 'ללוח השנה'}
         >
           <span style={chipStyle(ctx, EV_META[ev.type].bg, EV_META[ev.type].c)}>{evLabel(ev)}</span>
@@ -773,8 +819,14 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, data, navTo, markAttnDone, unmarkAttnDone, config, todayIso, go } = ctx;
   // מונה העמודות המבודדות (CONNECT חיבור 3) — מונה-עם-קפיצה בלבד, בלי פירוט
   const privacyMode = useApp((s) => s.privacyMode);
-  const crossCare = privacyMode ? { tzedaka: 0, shop: 0, shop7: 0 } : careCounts(db, todayIso, config);
+  // ⚡ קלילות (19.8): המונה סורק 3 מודולים — פעם-אחת פר-נתונים, לא בכל רנדר
+  const crossCare = useMemo(
+    () => (privacyMode ? { tzedaka: 0, shop: 0, shop7: 0 } : careCounts(db, todayIso, config)),
+    [privacyMode, db, todayIso, config],
+  );
   const [showDone, setShowDone] = useState(false);
+  // "+N פריטים נוספים" נפתח בקליק (19.8) — לא שורה מתה
+  const [showAll, setShowAll] = useState(false);
   // איפוס גורף של סימוני "טופל" (P3 פריט 7, לגאסי careReset) — שתי לחיצות
   const setDb = useApp((s) => s.setDb);
   const toast = useApp((s) => s.toast);
@@ -802,7 +854,8 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
       title={isHeichal ? 'נר תמיד — דורש טיפול' : theme === 'kehila' ? 'שווה לטפל' : 'דורש טיפול'}
       badge={openAttn.length ? String(openAttn.length) : undefined}
     >
-      {openAttn.length === 0 && (
+      {/* "הכל מטופל" רק כשגם העמודות המבודדות נקיות — אחרת הצ'יפים למטה סותרים */}
+      {openAttn.length === 0 && crossCare.tzedaka + crossCare.shop + crossCare.shop7 === 0 && (
         <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>הכל מטופל ✓</div>
       )}
       {(crossCare.tzedaka > 0 || crossCare.shop > 0 || crossCare.shop7 > 0) && (
@@ -837,7 +890,7 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
           ))}
         </div>
       )}
-      {shownAttn.slice(0, 8).map((a) => (
+      {(showAll ? shownAttn : shownAttn.slice(0, 8)).map((a) => (
         <div key={a.key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <button
             type="button"
@@ -856,7 +909,13 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
         </div>
       ))}
       {shownAttn.length > 8 && (
-        <div style={softEmpty}>+{shownAttn.length - 8} פריטים נוספים</div>
+        <button
+          type="button"
+          style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', textDecoration: 'underline' }}
+          onClick={() => setShowAll((v) => !v)}
+        >
+          {showAll ? 'הצגת 8 ראשונים בלבד' : `+${shownAttn.length - 8} פריטים נוספים — הצגת הכל`}
+        </button>
       )}
       {doneAttn.length > 0 && (
         <button
@@ -910,6 +969,8 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
 /** משפחות אחרונות — טבלה + מצב ריק. */
 function RecentWidget({ ctx }: { ctx: HomeCtx }) {
   const { config, data, go, selectFamily } = ctx;
+  // חיווט-עומק (19.8): מצב-ריק פותח את טופס-ההוספה עצמו (כמו ב-hero)
+  const openFamilyForm = useApp((s) => s.openFamilyForm);
   const famPlural = termOf(config, 'nav.families', 'משפחות');
   return (
     <Panel
@@ -921,7 +982,7 @@ function RecentWidget({ ctx }: { ctx: HomeCtx }) {
         <div className="empty">
           אין {famPlural} עדיין — הוסיפו את הראשונ/ה
           <div style={{ marginTop: 12 }}>
-            <Btn kind="primary" onClick={() => go('families')}>
+            <Btn kind="primary" onClick={openFamilyForm}>
               ➕ הוספת {termOf(config, 'entity.family', 'משפחה')}
             </Btn>
           </div>
@@ -942,7 +1003,20 @@ function RecentWidget({ ctx }: { ctx: HomeCtx }) {
             </thead>
             <tbody>
               {data.recent.map((f) => (
-                <tr key={f.id} onClick={() => selectFamily(f.id)} style={{ cursor: 'pointer' }} title={'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה')}>
+                <tr
+                  key={f.id}
+                  onClick={() => selectFamily(f.id)}
+                  /* נגישות-מקלדת (19.8): Tab מגיע לשורה, Enter/רווח פותחים את הכרטיס */
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      selectFamily(f.id);
+                    }
+                  }}
+                  style={{ cursor: 'pointer' }}
+                  title={'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה')}
+                >
                   <td style={{ fontWeight: 600 }}>{termOf(config, 'entity.familyOf', 'משפחת')} {f.name}</td>
                   <td dir="ltr" style={{ textAlign: 'right' }}>{f.phone || '—'}</td>
                   <td>{f.city || '—'}</td>
@@ -1036,7 +1110,10 @@ function HebcalWidget({ ctx }: { ctx: HomeCtx }) {
  */
 function CommunityWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, go } = ctx;
-  const s = credSummary(db, (score) => tierOf(score).key);
+  // חיווט-עומק (19.8): אריח-דרגה לחיץ — משפחות מסוננות לפי הדרגה (כמו במדד המורחב)
+  const openFamiliesByTier = useApp((s2) => s2.openFamiliesByTier);
+  // ⚡ קלילות (19.8): הסיכום נגזר פעם-אחת פר-נתונים
+  const s = useMemo(() => credSummary(db, (score) => tierOf(score).key), [db]);
   // מטא של ארבע הדרגות — ציון מייצג לכל טווח מחזיר את התווית/צבע המקוריים
   const meta = [tierOf(960), tierOf(850), tierOf(600), tierOf(100)];
   const isKehila = themeOf(ctx) === 'kehila';
@@ -1053,13 +1130,20 @@ function CommunityWidget({ ctx }: { ctx: HomeCtx }) {
       ) : (
         <div className="hm-tier-grid">
           {meta.map((t) => (
-            <div key={t.key} className="hm-tier">
+            <button
+              key={t.key}
+              type="button"
+              className="hm-tier"
+              onClick={() => openFamiliesByTier(t.key)}
+              title={'ל' + famPlural + ' בדרגת ' + t.label}
+              style={{ cursor: 'pointer', textAlign: 'right', background: 'transparent' }}
+            >
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span aria-hidden style={{ width: 8, height: 8, borderRadius: 99, background: t.dot, flexShrink: 0 }} />
                 <span style={{ fontSize: 12.5, color: 'var(--ink-faint)', fontWeight: 600 }}>{t.label}</span>
               </span>
               <b style={{ fontSize: 20 }}>{s.counts[t.key]}</b>
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -1073,7 +1157,8 @@ function CommunityWidget({ ctx }: { ctx: HomeCtx }) {
  */
 function CourseMetricsWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, go, selectCourse } = ctx;
-  const m = courseMetrics(db);
+  // ⚡ קלילות (19.8): נגזר פעם-אחת פר-נתונים
+  const m = useMemo(() => courseMetrics(db), [db]);
   const crsPlural = termOf(config, 'nav.courses', 'חוגים');
   const openCourse = (id: string) => { selectCourse(id); go('courses'); };
   const barColor = (pct: number) => (pct >= 100 ? '#dc2626' : pct >= 85 ? '#f3c76b' : pct >= 40 ? '#16a34a' : '#d97706');
@@ -1131,10 +1216,16 @@ function CourseMetricsWidget({ ctx }: { ctx: HomeCtx }) {
 function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, todayIso, go, selectFamily } = ctx;
   const openFamiliesByTier = useApp((s2) => s2.openFamiliesByTier);
-  const s = credSummary(db, (score) => tierOf(score).key);
-  const bins = credHistogram(db);
-  const trend = credTodayTrend(db, todayIso);
-  const boost = credNeedsBoost(db);
+  // ⚡ קלילות (19.8): ארבע הנגזרות סורקות את כל המשפחות — פעם-אחת פר-נתונים
+  const { s, bins, trend, boost } = useMemo(
+    () => ({
+      s: credSummary(db, (score) => tierOf(score).key),
+      bins: credHistogram(db),
+      trend: credTodayTrend(db, todayIso),
+      boost: credNeedsBoost(db),
+    }),
+    [db, todayIso],
+  );
   const maxBin = Math.max(1, ...bins);
   const famPlural = termOf(config, 'nav.families', 'משפחות');
   const openFam = (id: string) => { selectFamily(id); go('families'); };
@@ -1149,25 +1240,34 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
         <div style={softEmpty}>{'אין ' + famPlural + ' עדיין'}</div>
       ) : (
         <>
-          {/* מד ממוצע — פס עם מחט (הפשטת מד-המחוג של הלגאסי, אותם עוגנים 0/500/800/1000) */}
-          <div style={{ position: 'relative', height: 10, borderRadius: 99, marginBottom: 4, background: 'linear-gradient(90deg,#dc2626 0%,#d97706 50%,#16a34a 80%,#f3c76b 100%)' }} aria-hidden>
+          {/* מד ממוצע — פס עם מחט (הפשטת מד-המחוג של הלגאסי, אותם עוגנים 0/500/800/1000).
+              תיקון RTL (19.8): המחט נמדדת מימין (insetInlineStart) — הגרדיאנט שוקף
+              (‎-90deg‎) כך שאדום=ימין (0) וזהב=שמאל (1000); ציון גבוה יושב על הזהב. */}
+          <div style={{ position: 'relative', height: 10, borderRadius: 99, marginBottom: 4, background: 'linear-gradient(-90deg,#dc2626 0%,#d97706 50%,#16a34a 80%,#f3c76b 100%)' }} aria-hidden>
             <span style={{ position: 'absolute', insetInlineStart: `${Math.min(99, s.avg / 10)}%`, top: -3, width: 3, height: 16, background: 'var(--ink, #211d17)', borderRadius: 2 }} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink-faint)', marginBottom: 8 }} aria-hidden>
-            <span>0</span><span>500</span><span>800</span><span>1000</span>
+          {/* תוויות-ציר ממוקמות לפי ערך (0/50/80/100%) — לא במרווחים שווים */}
+          <div style={{ position: 'relative', height: 15, fontSize: 11, color: 'var(--ink-faint)', marginBottom: 8 }} aria-hidden>
+            <span style={{ position: 'absolute', insetInlineStart: '0%' }}>0</span>
+            <span style={{ position: 'absolute', insetInlineStart: '50%', transform: 'translateX(50%)' }}>500</span>
+            <span style={{ position: 'absolute', insetInlineStart: '80%', transform: 'translateX(50%)' }}>800</span>
+            <span style={{ position: 'absolute', insetInlineStart: '100%', transform: 'translateX(100%)' }}>1000</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 44, marginBottom: 8 }} role="img" aria-label="התפלגות ציוני האמינות">
             {bins.map((b, i) => (
               <span
                 key={i}
-                title={`${i * 50}-${i * 50 + 49}: ${b}`}
+                title={`${i * 50}-${i === 19 ? 1000 : i * 50 + 49}: ${b}`}
                 style={{ flex: 1, borderRadius: '2px 2px 0 0', height: Math.max(4, Math.round((b / maxBin) * 100)) + '%', background: tierOf(i * 50 + 25).dot, opacity: b === 0 ? 0.25 : 1 }}
               />
             ))}
           </div>
           <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
             מגמת היום: <b style={{ color: trend > 0 ? '#12803c' : trend < 0 ? '#b91c1c' : 'inherit' }}>{trend > 0 ? '+' + trend : trend}</b> נק׳
-            {' · 👵 ' + db.families.filter((f) => (f.maritalStatus || '').includes('אלמן')).length + ' אלמנות'}
+            {/* מונה-אלמנות מ-homeStats (מקור-אמת אחד) — עמותתי בלבד, כמו בכרטיס-המשפחות */}
+            {ctx.data.stats.widows > 0 && featureOn(config, 'core.taxreceipt')
+              ? ' · 👵 ' + ctx.data.stats.widows + ' אלמנות'
+              : ''}
           </div>
           {/* אריחי דרגות לחיצים (P2 פער 20) — מנווטים למשפחות מסוננות לפי הדרגה */}
           <div className="hm-tier-grid" style={{ marginBottom: boost.length ? 8 : 0 }}>
@@ -1206,11 +1306,16 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
   );
 }
 
-/** 💛 תורמים · יעדי קשר — יעדים שהגיעו/עברו (שם, תאריך, טלפון) + נתרם החודש. */
+/** 💛 תורמים · יעדי קשר — יעדים שהגיעו/עברו (שם, תאריך, טלפון) + נתרם החודש.
+ *  חיווט-עומק (19.8): שורה פותחת את כרטיס-התומך עצמו; 📞/💬 ליצירת-קשר בקליק. */
 function ContactsWidget({ ctx }: { ctx: HomeCtx }) {
-  const { db, now, go, config } = ctx;
-  const due = dueContacts(db, now);
-  const monthSum = monthDonationSum(db, now);
+  const { db, now, go, config, navTo } = ctx;
+  // ⚡ קלילות (19.8): נגזר פעם-אחת פר-נתונים (todayIso מייצג את היום — לא את הרגע)
+  const { due, monthSum } = useMemo(
+    () => ({ due: dueContacts(db, now), monthSum: monthDonationSum(db, now) }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [db, ctx.todayIso],
+  );
   return (
     <Panel
       icon="💛"
@@ -1227,16 +1332,28 @@ function ContactsWidget({ ctx }: { ctx: HomeCtx }) {
         <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>אין יעדי קשר פתוחים ✓</div>
       )}
       {due.slice(0, 6).map((c) => (
-        <button key={c.id} type="button" className="hm-row" onClick={() => go('supporters')} title={'למסך ה' + termOf(config, 'nav.supporters', 'תורמים')}>
-          <span style={chipStyle(ctx, c.late > 7 ? '#fdeaea' : '#fdf1d4', c.late > 7 ? '#b91c1c' : '#9a6414', c.late > 7)}>
-            {fmtD(c.date)}
-          </span>
-          <span style={{ fontWeight: 600 }}>{c.name}</span>
-          {c.phone && (
-            <span dir="ltr" style={{ color: 'var(--ink-faint)', fontSize: 12.5 }}>{c.phone}</span>
+        <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            type="button"
+            className="hm-row"
+            style={{ flex: 1, minWidth: 0 }}
+            onClick={() => navTo({ kind: 'supporter', id: c.id })}
+            title={'לכרטיס ' + c.name}
+          >
+            <span style={chipStyle(ctx, c.late > 7 ? '#fdeaea' : '#fdf1d4', c.late > 7 ? '#b91c1c' : '#9a6414', c.late > 7)}>
+              {fmtD(c.date)}
+            </span>
+            <span style={{ fontWeight: 600 }}>{c.name}</span>
+            {c.phone && (
+              <span dir="ltr" style={{ color: 'var(--ink-faint)', fontSize: 12.5 }}>{c.phone}</span>
+            )}
+            <span className="hm-arrow" aria-hidden>לטפל ←</span>
+          </button>
+          {telephonyOn(config) && c.phone && <CallBtn phone={c.phone} title={'חיוג ל' + c.name} />}
+          {integrationOn(config, 'whatsapp') && c.phone && (
+            <WaBtn phone={c.phone} title={'וואטסאפ ל' + c.name} />
           )}
-          <span className="hm-arrow" aria-hidden>לטפל ←</span>
-        </button>
+        </div>
       ))}
       {due.length > 6 && <div style={softEmpty}>+{due.length - 6} יעדי קשר נוספים</div>}
     </Panel>
@@ -1246,7 +1363,8 @@ function ContactsWidget({ ctx }: { ctx: HomeCtx }) {
 /** 🎫 מלאי כרטיסיות — כרטיסיות פעילות עם ≤2 ניקובים שנותרו (בן משפחה, חוג, יתרה). */
 function PunchlowWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, navTo, config } = ctx;
-  const items = punchLow(db);
+  // ⚡ קלילות (19.8): נגזר פעם-אחת פר-נתונים
+  const items = useMemo(() => punchLow(db), [db]);
   return (
     <Panel icon="🎫" title="מלאי כרטיסיות" badge={items.length ? String(items.length) : undefined}>
       {items.length === 0 && (
@@ -1396,8 +1514,24 @@ export interface HomeWidget {
  * המנוע טהור (shop8/lib); הווידג'ט רק מציג ומחווט. אפס נגיעה בכסף.
  */
 function SuggestWidget({ ctx }: { ctx: HomeCtx }) {
-  const { db, todayIso, go, selectFamily, markAttnDone, config } = ctx;
-  const items = liveSuggestions(db, todayIso, config);
+  const { db, todayIso, go, selectFamily, selectCourse, markAttnDone, config } = ctx;
+  // 🕶️ מצב-צנעה (shell.privacy): ההצעות חושפות מקבלי-סיוע בשמם — מוסתרות כמו בכרטיסים
+  const privacyMode = useApp((s) => s.privacyMode);
+  // ⚡ קלילות (19.8): המנוע סורק משפחות+שיבוצים — פעם-אחת פר-נתונים
+  const items = useMemo(() => liveSuggestions(db, todayIso, config), [db, todayIso, config]);
+  if (privacyMode) {
+    return (
+      <Panel icon="💡" title="הצעות מקדימות">
+        <div style={softEmpty}>🕶️ מצב צנעה פעיל — הצעות הסיוע מוסתרות</div>
+      </Panel>
+    );
+  }
+  // חיווט-עומק (19.8): ניווט אחד מדויק — חוג ← משפחה ← מסך-המודול; ממוגן-מודולים
+  const open = (s: (typeof items)[number]) => {
+    if (s.courseId && moduleOn(config, 'courses')) return selectCourse(s.courseId);
+    if (s.famId && moduleOn(config, 'families')) return selectFamily(s.famId);
+    if (moduleOn(config, s.act)) go(s.act);
+  };
   return (
     <Panel icon="💡" title="הצעות מקדימות" badge={items.length ? String(items.length) : undefined}>
       {items.length === 0 && (
@@ -1410,8 +1544,8 @@ function SuggestWidget({ ctx }: { ctx: HomeCtx }) {
             <b>{s.title}</b>
             <span style={{ display: 'block', fontSize: 12, color: 'var(--ink-faint)' }}>{s.detail}</span>
           </span>
-          <Btn sm kind="primary" onClick={() => { if (s.famId) selectFamily(s.famId); go(s.act); }}>טפל ←</Btn>
-          <Btn sm onClick={() => markAttnDone(s.key)} title="התעלם מההצעה">✕</Btn>
+          <Btn sm kind="primary" onClick={() => open(s)}>טפל ←</Btn>
+          <Btn sm onClick={() => markAttnDone(s.key)} title={'התעלמות מההצעה: ' + s.title}>✕</Btn>
         </div>
       ))}
       {items.length > 8 && <div style={softEmpty}>+{items.length - 8} הצעות נוספות</div>}
@@ -1452,7 +1586,8 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
   carousel: {
     id: 'carousel',
     label: 'אירועים קרובים',
-    icon: '🎂',
+    // 📆 ולא 🎂 — הקרוסלה מציגה את כל סוגי האירועים, לא רק ימי-הולדת
+    icon: '📆',
     slot: 'full',
     removable: true,
     // מוסתרת כשהפיצ'ר home.carousel כבוי (כמו במקור)
@@ -1573,7 +1708,8 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
   },
   suggest: {
     id: 'suggest',
-    label: 'הצעות מקדימות 💡',
+    // בלי אמוג'י בתוך ה-label — ה-icon (💡) כבר מוצג לצידו בעורך/בספרייה
+    label: 'הצעות מקדימות',
     icon: '💡',
     slot: 'full',
     removable: true,
@@ -1618,12 +1754,14 @@ export interface ThemeBoardTemplate {
 export const THEME_TEMPLATES: Record<string, ThemeBoardTemplate> = {
   /* mock-desktop רזה (UX סבב-ג׳): ימין היום+אחרונות · שמאל דורש-טיפול+הצעות */
   'or-rishon': { pre: ['stats'], colA: ['today', 'recent'], colB: ['attention', 'suggest'], post: [] },
-  /* mock-heichal: ימין סדר היום+נר תמיד · שמאל ספר הזהב+הלוח העברי (1.3fr/1fr) */
-  heichal: { pre: ['stats'], colA: ['today', 'attention'], colB: ['goldbook', 'hebcal'], post: [] },
+  /* mock-heichal: ימין סדר היום+נר תמיד · שמאל ספר הזהב+הלוח העברי (1.3fr/1fr)
+     תיקון-סחף (19.8): 'suggest' היה ב-THEME_LAYOUTS אך נשמט מהתבנית — הווידג'ט
+     נעלם בתצוגת-התבנית של שלוש הערכות; הסדר השטוח הוחזר לזהות עם ה-preset. */
+  heichal: { pre: ['stats'], colA: ['today', 'attention', 'suggest'], colB: ['goldbook', 'hebcal'], post: [] },
   /* mock-tsohar: היום כטבלה רחבה (2fr) מול דורש טיפול (1fr) */
-  tsohar: { pre: ['stats'], colA: ['today'], colB: ['attention'], post: ['recent'] },
+  tsohar: { pre: ['stats'], colA: ['today'], colB: ['attention', 'suggest'], post: ['recent'] },
   /* mock-kehila: ימין המפגשים של היום · שמאל שווה לטפל+הקהילה שלנו (1.3fr/1fr) */
-  kehila: { pre: ['stats', 'bdays'], colA: ['today'], colB: ['attention', 'community'], post: [] },
+  kehila: { pre: ['stats', 'bdays'], colA: ['today'], colB: ['attention', 'suggest', 'community'], post: [] },
 };
 
 /** סדר ברירת המחדל הקלאסי (אור ראשון) — fallback לערכה לא מוכרת. */
@@ -1640,6 +1778,12 @@ export function defaultLayoutFor(theme: string): readonly WidgetId[] {
  *  שלו (home.carousel/community/coursemetrics/credmetrics דרך visible(config)). */
 export const FULL_LAYOUTS: Record<string, readonly WidgetId[]> = {
   'or-rishon': ['hero', 'stats', 'carousel', 'today', 'recent', 'attention', 'suggest', 'community', 'coursemetrics', 'credmetrics'],
+  /* תיקון (19.8): גם שלוש הערכות האחרות מקבלות פריסה-מלאה כש-home.board כבוי —
+     קודם רק or-rishon כוסתה והשאר נפלו לפריסה הרזה (האנליטיקה אבדה בלי דרך להוסיף).
+     כל ווידג'ט עדיין מגודר visible(config) — דגל כבוי פשוט מדולג. */
+  heichal: ['hero', 'stats', 'carousel', 'today', 'attention', 'suggest', 'goldbook', 'hebcal', 'community', 'coursemetrics', 'credmetrics'],
+  tsohar: ['hero', 'stats', 'carousel', 'today', 'attention', 'suggest', 'recent', 'community', 'coursemetrics', 'credmetrics'],
+  kehila: ['hero', 'stats', 'bdays', 'carousel', 'today', 'attention', 'suggest', 'community', 'coursemetrics', 'credmetrics'],
 };
 export function noBoardLayoutFor(theme: string): readonly WidgetId[] {
   return FULL_LAYOUTS[theme] ?? defaultLayoutFor(theme);

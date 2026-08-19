@@ -23,7 +23,7 @@ export { EV_META, evLabel };
 import { DEFAULT_CONFIG } from '../../types/config';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import { featureOn, termOf } from '../../lib/config';
-import { hokDue } from '../supporters/lib';
+import { hokDue, supIls, supUsd } from '../supporters/lib';
 
 /** מפת המודולים הפעילים (config.modules) — חסר = פעיל; false = כבוי. */
 export type ModulesMap = OrgConfig['modules'];
@@ -71,7 +71,8 @@ export function todaySessions(db: Db, now: Date): TodaySession[] {
     if (!courseActiveOn(c, iso)) continue;
     for (const ss of sessionsOf(c)) if (ss.day === dow) out.push({ course: c, session: ss });
   }
-  return out.sort((a, b) => (a.session.time || '').localeCompare(b.session.time || ''));
+  // מפגש בלי שעה יורד לסוף היום ('99:99') — לא צף מעל המפגשים המתוזמנים
+  return out.sort((a, b) => (a.session.time || '99:99').localeCompare(b.session.time || '99:99'));
 }
 
 
@@ -91,7 +92,8 @@ export function eventsOnDate(db: Db, d: Date): OrgEvent[] {
     }
     if (hit) out.push(ev);
   }
-  return out.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+  // אירוע בלי שעה יורד לסוף היום ('99:99') — כמו במפגשים
+  return out.sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
 }
 
 export interface BirthdayHit {
@@ -149,13 +151,13 @@ export function homeStats(db: Db, now: Date): HomeStats {
     if (i === 0) eventsToday = evs.length;
     for (const ev of evs) weekIds.add(ev.id);
   }
+  // הכרעת-בעלים 9.8 (#14 "לכולל"): הצבירה המוצגת = קבלות+היסטוריה דרך supIls/supUsd —
+  // אותו מקור-אמת כמו מסך התורמים (הבית הראה עד כה קבלות-בלבד ⇒ מספר שונה מהרשימה).
   let donIls = 0;
   let donUsd = 0;
   for (const sp of db.supporters) {
-    for (const dn of sp.donations) {
-      if (dn.cur === '$') donUsd += dn.amount;
-      else donIls += dn.amount;
-    }
+    donIls += supIls(sp);
+    donUsd += supUsd(sp);
   }
   return {
     famTotal: db.families.length,
@@ -188,6 +190,8 @@ export function recentFamilies(db: Db, n = 5): Family[] {
 export type AttentionNav =
   | { kind: 'course'; id: string }
   | { kind: 'family'; id: string }
+  /** חיווט-עומק (19.8): פתיחת כרטיס-תומך ספציפי (openSupporterCard) — לא רק הרשימה. */
+  | { kind: 'supporter'; id: string }
   | { kind: 'supporters' }
   | { kind: 'calendar' };
 
@@ -236,8 +240,8 @@ export function attentionItems(
   const members = allMembers(db);
   const out: AttentionItem[] = [];
 
-  // אירועים דחופים (עדיפות אדומה, לא טופלו)
-  const reds = db.events.filter((e) => e.priority === 'red' && !e.done && e.date);
+  // אירועים דחופים (עדיפות אדומה, לא טופלו) — מודול לוח-שנה בלבד (גידור 19.8)
+  const reds = (on('calendar') ? db.events : []).filter((e) => e.priority === 'red' && !e.done && e.date);
   reds.sort((a, b) => a.date.localeCompare(b.date));
   for (const ev of reds) {
     const [y, m, d] = ev.date.split('-').map(Number);
@@ -249,9 +253,12 @@ export function attentionItems(
     const when =
       diff === 0
         ? 'היום'
-        : diff > 0 && diff <= 6
-          ? 'יום ' + DAY_NAMES[new Date(y, m - 1, d).getDay()]
-          : fmtD(ev.date);
+        : diff < 0
+          ? // אירוע דחוף שחלף — "באיחור" מפורש (19.8), באותה שפה כמו יעדי-הקשר
+            (diff === -1 ? 'אתמול' : fmtD(ev.date) + ` · באיחור ${-diff} ימים`)
+          : diff <= 6
+            ? 'יום ' + DAY_NAMES[new Date(y, m - 1, d).getDay()]
+            : fmtD(ev.date);
     out.push({
       key: 'urgent:' + ev.id,
       tag: 'דחוף',
@@ -259,7 +266,8 @@ export function attentionItems(
       tagC: '#b91c1c',
       title: ev.title + ' — ' + when + (ev.time ? ' ' + ev.time : ''),
       sev: 'crit',
-      nav: { kind: 'calendar' },
+      // חיווט-עומק (19.8): אירוע מקושר-משפחה קופץ ישר לכרטיס; אחרת ללוח
+      nav: ev.famId ? { kind: 'family', id: ev.famId } : { kind: 'calendar' },
     });
   }
 
@@ -323,8 +331,8 @@ export function attentionItems(
     });
   }
 
-  // משפחות הממתינות לאישור — פריט מצטבר אחד עם ותק ההמתנה הארוך ביותר
-  const pending = db.families.filter((f) => f.status === 'pending' && f.createdAt);
+  // משפחות הממתינות לאישור — פריט מצטבר אחד עם ותק ההמתנה הארוך ביותר — מודול משפחות
+  const pending = (on('families') ? db.families : []).filter((f) => f.status === 'pending' && f.createdAt);
   if (pending.length) {
     const oldest = pending.reduce((a, b) => (a.createdAt <= b.createdAt ? a : b));
     const wait = Math.max(0, daysBetween(oldest.createdAt, todayIso));
@@ -356,7 +364,8 @@ export function attentionItems(
       tagC: crit ? '#b91c1c' : '#9a6414',
       title: `יעד קשר — ${sp.name} · באיחור ${late} ימים`,
       sev: crit ? 'crit' : 'warn',
-      nav: { kind: 'supporters' },
+      // חיווט-עומק (19.8): ישר לכרטיס-התומך — בלי לחפש אותו ברשימה
+      nav: { kind: 'supporter', id: sp.id },
     });
   }
   if (lateSup.length > 3) {
@@ -365,7 +374,7 @@ export function attentionItems(
       tag: termOf(config, 'entity.supporter', 'תורם'),
       tagBg: '#fdf1d4',
       tagC: '#9a6414',
-      title: `+${lateSup.length - 3} תורמים נוספים עברו יעד קשר`,
+      title: `+${lateSup.length - 3} ${termOf(config, 'nav.supporters', 'תורמים')} נוספים עברו יעד קשר`,
       sev: 'warn',
       nav: { kind: 'supporters' },
     });
@@ -388,8 +397,8 @@ export function attentionItems(
     }
   }
 
-  // ספח ת"ז חסר — משפחות פעילות ללא ספח מלא, פריט מצטבר
-  const noSefach = db.families.filter((f) => f.status === 'active' && f.fullSefach === false);
+  // ספח ת"ז חסר — משפחות פעילות ללא ספח מלא, פריט מצטבר — מודול משפחות
+  const noSefach = (on('families') ? db.families : []).filter((f) => f.status === 'active' && f.fullSefach === false);
   if (noSefach.length) {
     out.push({
       key: 'sefach:families',
@@ -405,8 +414,8 @@ export function attentionItems(
     });
   }
 
-  // מדד אמינות אדום — מתחת לסף הסיכון המשותף (יישור ללגאסי: red <500), פריט מצטבר
-  const redCred = db.families.filter((f) => (f.cred?.score ?? 700) < CRED_RED_THRESHOLD);
+  // מדד אמינות אדום — מתחת לסף הסיכון המשותף (יישור ללגאסי: red <500), פריט מצטבר — מודול משפחות
+  const redCred = (on('families') ? db.families : []).filter((f) => (f.cred?.score ?? 700) < CRED_RED_THRESHOLD);
   if (redCred.length) {
     out.push({
       key: 'redcred:families',
@@ -533,8 +542,8 @@ export function digestLines(
     });
   }
 
-  // משפחות ממתינות לאישור
-  const pend = db.families.filter((f) => f.status === 'pending');
+  // משפחות ממתינות לאישור — מודול משפחות (גידור 19.8)
+  const pend = (on('families') ? db.families : []).filter((f) => f.status === 'pending');
   if (pend.length) {
     out.push({
       key: 'pending',
@@ -560,8 +569,8 @@ export function digestLines(
     });
   }
 
-  // תזכורות טלפון פתוחות (עד מחר)
-  const calls = db.events.filter(
+  // תזכורות טלפון פתוחות (עד מחר) — מודול לוח-שנה (גידור 19.8)
+  const calls = (on('calendar') ? db.events : []).filter(
     (e) => e.type === 'call' && !e.done && !!e.date && e.date <= isoAddDays(now, 1),
   );
   if (calls.length) {
@@ -583,7 +592,8 @@ export function digestLines(
     'bday',
   ] as EventType[]);
   const specials: string[] = [];
-  for (let i = 0; i < 7 && specials.length < 2; i++) {
+  // מיוחדים-השבוע נשענים על אירועי-הלוח — מודול לוח-שנה (גידור 19.8)
+  for (let i = 0; on('calendar') && i < 7 && specials.length < 2; i++) {
     const dd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
     for (const ev of eventsOnDate(db, dd)) {
       if (SPECIAL.has(ev.type) && specials.length < 2) {
@@ -595,8 +605,8 @@ export function digestLines(
     out.push({ key: 'specials', text: 'מיוחדים השבוע — ' + specials.join(' · '), nav: { kind: 'calendar' } });
   }
 
-  // ימי הולדת היום
-  const bd = birthdaysOn(db, now);
+  // ימי הולדת היום — נגזרת בני-משפחה, מודול משפחות (גידור 19.8)
+  const bd = on('families') ? birthdaysOn(db, now) : [];
   if (bd.length) {
     out.push({
       key: 'bday',
@@ -640,12 +650,17 @@ export function monthlySeries(
   return out;
 }
 
-/** סכום תרומות השקל בחודש הנוכחי — לצ'יפ המגמה בכרטיס התרומות. */
+/**
+ * סכום תרומות השקל בחודש הנוכחי — לצ'יפ המגמה בכרטיס התרומות.
+ * הכרעת-בעלים 9.8 (#14 "לכולל"): גם רשומות היסטוריה (hist) של החודש נספרות —
+ * עקבי עם supIls; הדוח-השנתי-לתורם (מסמך-מס) נשאר קבלות-בלבד.
+ */
 export function monthDonationSum(db: Db, now: Date): number {
   const key = monthKeyOf(now, 0);
   let sum = 0;
   for (const sp of db.supporters) {
     for (const dn of sp.donations) if (dn.cur !== '$' && dn.date.startsWith(key)) sum += dn.amount;
+    for (const h of sp.hist ?? []) if (h.c !== '$' && (h.d || '').startsWith(key)) sum += h.a;
   }
   return sum;
 }
@@ -871,7 +886,7 @@ export function carouselItems(
         icon: '🎂',
         title: `יום הולדת — ${b.member.first} (${b.age})`,
         sub: `${termOf(config, 'entity.familyOf', 'משפחת')} ${b.member.famName} · ${when}`,
-        cta: 'לכרטיס המשפחה ←',
+        cta: `לכרטיס ה${termOf(config, 'entity.family', 'משפחה')} ←`,
         nav: { kind: 'family', id: b.member.famId },
       });
     }
@@ -882,7 +897,7 @@ export function carouselItems(
         icon: CAR_ICONS[ev.type] ?? '🎉',
         title: ev.title,
         sub: `${evLabel(ev)} · ${when}` + (ev.time ? ' · ' + ev.time : ''),
-        cta: 'ללוח השנה ←',
+        cta: `ל${termOf(config, 'nav.calendar', 'לוח שנה')} ←`,
         nav: { kind: 'calendar' },
       });
     }

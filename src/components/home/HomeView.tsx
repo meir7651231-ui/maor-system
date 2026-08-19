@@ -4,7 +4,7 @@
  * הוא ווידג'ט רשום (widgets.tsx); הסדר וההצגה נשמרים ב-db.ui.homeLayout
  * (undefined = ברירת המחדל). מצב עריכה (BoardEdit.tsx) כפוף לפיצ'ר home.board.
  */
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { holidayOf } from '../../lib/hebrew';
 import { featureOn, moduleOn } from '../../lib/config';
@@ -46,10 +46,19 @@ export function HomeView() {
   const go = useApp((s) => s.go);
   const selectFamily = useApp((s) => s.selectFamily);
   const selectCourse = useApp((s) => s.selectCourse);
+  const openSupporterCard = useApp((s) => s.openSupporterCard);
   const markAttnDone = useApp((s) => s.markAttnDone);
   const unmarkAttnDone = useApp((s) => s.unmarkAttnDone);
   const toast = useApp((s) => s.toast);
   const exportBackup = useApp((s) => s.exportBackup);
+
+  // ⏰ דופק-דקה (19.8): ברכת-השעה מתעדכנת והלוח מתגלגל בחצות בלי רענון —
+  // now/todayIso נגזרים מחדש בכל רנדר, וה-useMemo של data מוקפץ כש-todayIso מתחלף.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 60_000);
+    return () => clearInterval(t);
+  }, []);
 
   const now = new Date();
   const todayIso = isoOf(now);
@@ -82,9 +91,14 @@ export function HomeView() {
 
   // ניווט ממוגן-מודולים: לעולם לא מנווט למסך של מודול כבוי (no-op במקום קריסה/דליפה)
   const navTo = (nav: AttentionNav) => {
-    if (nav.kind === 'course') selectCourse(nav.id);
-    else if (nav.kind === 'family') selectFamily(nav.id);
-    else if (nav.kind === 'supporters') {
+    if (nav.kind === 'course') {
+      if (coursesOn) selectCourse(nav.id);
+    } else if (nav.kind === 'family') {
+      if (familiesOn) selectFamily(nav.id);
+    } else if (nav.kind === 'supporter') {
+      // חיווט-עומק (19.8): ישר לכרטיס-התומך (openSupporterCard) — מגודר-מודול
+      if (supportersOn) openSupporterCard(nav.id);
+    } else if (nav.kind === 'supporters') {
       if (supportersOn) go('supporters');
     } else if (calendarOn) go('calendar');
   };
@@ -94,7 +108,10 @@ export function HomeView() {
   // ברירת המחדל תלוית-ערכה (THEME_LAYOUTS) — פריסה שמורה תמיד גוברת עליה.
   // ביקורת 6.8: בלי עריכת-לוח (home.board:false) אין "הוסיפו בקליק" ⇒ הפריסה
   // המלאה ההיסטורית, אחרת 4 ווידג'טים מגודרי-דגל היו אובדים לגמרי.
-  const defaultLayout = boardOn ? defaultLayoutFor(config.theme) : noBoardLayoutFor(config.theme);
+  // תיקון (19.8): הערכה האפקטיבית = העדפת-המשתמש (db.ui.theme) לפני ערכת-הארגון —
+  // אותו מקור כמו התבנית למטה; קודם הפריסה נגזרה מ-config.theme והתבנית מ-db.ui.theme.
+  const activeTheme = db.ui.theme ?? config.theme;
+  const defaultLayout = boardOn ? defaultLayoutFor(activeTheme) : noBoardLayoutFor(activeTheme);
   // הפריסה השמורה של הארגון — מנורמלת; כשהפיצ'ר כבוי מתעלמים ממנה לגמרי
   const savedLayout = useMemo(
     () => (boardOn ? sanitizeLayout(db.ui.homeLayout, defaultLayout) : [...defaultLayout]),
@@ -114,7 +131,10 @@ export function HomeView() {
   const saveBoard = () => {
     const isDefault =
       draft.length === defaultVisible.length && draft.every((id, i) => id === defaultVisible[i]);
-    const homeLayout = isDefault ? undefined : [...draft];
+    // תיקון (19.8): ווידג'טים שמוסתרים כרגע (מודול/דגל כבוי זמנית) שורדים שמירה —
+    // אחרת עריכה בזמן שמודול כבוי הייתה משמיטה אותם מהפריסה לתמיד.
+    const hidden = savedLayout.filter((id) => !HOME_WIDGETS[id].visible(config));
+    const homeLayout = isDefault && hidden.length === 0 ? undefined : [...draft, ...hidden];
     setDb((cur) => ({ ui: { ...cur.ui, homeLayout } }));
     setEditing(false);
     toast('פריסת לוח הבית נשמרה ✓');
@@ -125,7 +145,9 @@ export function HomeView() {
   const resetDraft = () => setDraft([...defaultVisible]);
 
   const ctx: HomeCtx = {
-    db,
+    // 🔒 ייעוד-הרשאה (19.8): הווידג'טים מקבלים את ה-db המסונן (vdb) — ווידג'ט שקורא
+    // תורמים ישירות (סטטיסטיקה/תרומות/יעדי-קשר) לא ידלוף מעבר לייעוד; בלי הגבלה vdb===db.
+    db: vdb,
     config,
     now,
     todayIso,
@@ -173,7 +195,7 @@ export function HomeView() {
   // תבנית שתי-העמודות של המוקאפ — רק לפריסת ברירת המחדל של הערכה
   // (פריסה מותאמת שמורה גוברת ומתרנדרת בגריד הגנרי למטה)
   // הערכה המוחלת בפועל — העדפת המשתמש גוברת על ערכת הארגון (כמו applyTheme)
-  const tpl = !boardOn || !db.ui.homeLayout ? THEME_TEMPLATES[db.ui.theme ?? config.theme] : undefined;
+  const tpl = !boardOn || !db.ui.homeLayout ? THEME_TEMPLATES[activeTheme] : undefined;
   if (tpl) {
     const colA = tpl.colA.filter(visible);
     const colB = tpl.colB.filter(visible);
