@@ -54,10 +54,29 @@ async function fetchNedarimHistory(lastId, maxId) {
   return Array.isArray(json) ? json : json.Transactions || json.data || [];
 }
 
-async function runNedarimPull(org) {
+/** איפוס-משיכה (opt-in): מחיקת שורות-המשיכה הקודמות (source==pull) + ה-cursor,
+ * לפני משיכה-מחדש — כדי למשוך הכל שוב עם המפה המעודכנת (שמות). שורות-webhook נשמרות. */
+async function clearPullRows(db, col, cursorRef) {
+  let removed = 0;
+  for (;;) {
+    const snap = await col.where('source', '==', 'pull').limit(400).get();
+    if (snap.empty) break;
+    const batch = db.batch();
+    for (const d of snap.docs) batch.delete(d.ref);
+    await batch.commit();
+    removed += snap.size;
+    if (snap.size < 400) break;
+  }
+  await cursorRef.delete().catch(() => {});
+  return removed;
+}
+
+async function runNedarimPull(org, opts = {}) {
   const db = getFirestore();
   const col = incomingCol(db, org);
   const cursorRef = syncCol(db, org).doc('cursor');
+  let removed = 0;
+  if (opts.reset) removed = await clearPullRows(db, col, cursorRef); // מוחק שורות-משיכה + cursor
   const cursorSnap = await cursorRef.get();
   const startCursor = Number((cursorSnap.exists && cursorSnap.data().lastTxnId) || 0);
   let lastId = startCursor;
@@ -104,7 +123,8 @@ exports.nedarimPull = onRequest(
     const org = String(p.org ?? '').trim();
     if (!/^[a-z0-9-]{2,40}$|^root$/.test(org)) return res.status(400).send('bad org');
     try {
-      const out = await runNedarimPull(org);
+      // ?reset=1 ⇒ מחיקת שורות-משיכה קודמות + cursor, ואז משיכה-מחדש (עם המפה המעודכנת).
+      const out = await runNedarimPull(org, { reset: p.reset === '1' });
       res.status(200).json({ ok: true, ...out });
     } catch (e) {
       res.status(502).json({ ok: false, error: String((e && e.message) || e) });
