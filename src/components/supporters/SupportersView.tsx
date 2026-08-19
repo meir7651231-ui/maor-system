@@ -171,7 +171,10 @@ export function SupportersView() {
   const [selMode, setSelMode] = useState(false);
   const [selSet, setSelSet] = useState<ReadonlySet<string>>(new Set<string>());
   const [confirmDel, setConfirmDel] = useState(false);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assignVal, setAssignVal] = useState('');
   const deleteSupporters = useApp((s) => s.deleteSupporters);
+  const setSupportersPurpose = useApp((s) => s.setSupportersPurpose);
   const toggleSel = (id: string) =>
     setSelSet((prev) => {
       const next = new Set(prev);
@@ -213,6 +216,11 @@ export function SupportersView() {
       ackSupporterOpen();
     }
   }, [supOpenReq, ackSupporterOpen]);
+  // הכרעת-בעלים 19.8 (פריט ד'): עובד-סגור-לייעוד ננעל לייעודו — בורר-הייעוד מוסר
+  // "כל הייעודים", ולכן ברירת-המסנן עוברת לייעוד הראשון שלו (לא 'all' שאינו קיים).
+  useEffect(() => {
+    if (desigLimit && desigLimit.length && purposeF === 'all') setPurposeF(desigLimit[0]);
+  }, [desigLimit, purposeF]);
 
   /** דוח יומי של מעקב הטיפול — כל מי שטופל היום. */
   function dailyReport() {
@@ -399,6 +407,12 @@ export function SupportersView() {
             נקה בחירה
           </Btn>
           <div style={{ flex: 1 }} />
+          {/* בקשת-בעלים 19.8 (פריט ד'): המנהל משייך ייעוד לכמה תומכ/ות בבת-אחת */}
+          {purposeOn && isAdminUser(config, cloudEmail) && (
+            <Btn disabled={!selSet.size} onClick={() => { setAssignVal(''); setAssignOpen(true); }}>
+              {'🏷 שיוך ייעוד · ' + selSet.size}
+            </Btn>
+          )}
           <Btn kind="danger" disabled={!selSet.size} onClick={() => setConfirmDel(true)}>
             {'🗑 מחיקת ' + selSet.size}
           </Btn>
@@ -455,7 +469,11 @@ export function SupportersView() {
           <Select
             value={purposeF}
             onChange={setPurposeF}
-            options={[{ value: 'all', label: 'כל הייעודים' }, ...purposeOptions.map((p) => ({ value: p, label: '🔐 ' + p }))]}
+            // הכרעת-בעלים 19.8 (פריט ד'): עובד-סגור רואה בבורר רק את ייעודיו — בלי "כל הייעודים".
+            options={[
+              ...(desigLimit ? [] : [{ value: 'all', label: 'כל הייעודים' }]),
+              ...purposeOptions.map((p) => ({ value: p, label: '🔐 ' + p })),
+            ]}
           />
         )}
       </div>
@@ -777,6 +795,40 @@ export function SupportersView() {
               {'🗑 מחק ' + selSet.size}
             </Btn>
             <Btn onClick={() => setConfirmDel(false)}>ביטול</Btn>
+          </div>
+        </Modal>
+      )}
+
+      {/* פריט ד' (19.8): שיוך-ייעוד לכמה תומכ/ות בבת-אחת */}
+      {assignOpen && (
+        <Modal title={'שיוך ייעוד ל-' + selSet.size + ' ' + termOf(config, 'nav.supporters', 'תומכים')} onClose={() => setAssignOpen(false)}>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+            הייעוד קובע אילו עובדות רואות את התומכ/ת. הזינו ייעוד (או בחרו מהקיימים); ריק = ללא ייעוד.
+          </p>
+          <input
+            list="assign-purposes"
+            value={assignVal}
+            onChange={(e) => setAssignVal(e.target.value)}
+            placeholder="למשל: חתונות / קמחא דפסחא"
+            style={{ width: '100%', padding: '8px 10px', fontSize: 14, borderRadius: 8, border: '1px solid var(--line)' }}
+          />
+          <datalist id="assign-purposes">
+            {purposeOptions.map((p) => <option key={p} value={p} />)}
+          </datalist>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <Btn
+              kind="primary"
+              onClick={() => {
+                const ids = [...selSet];
+                setSupportersPurpose(ids, assignVal);
+                toast('שויך ייעוד ל-' + ids.length + ' ' + termOf(config, 'nav.supporters', 'תומכים'));
+                setAssignOpen(false);
+                exitSelMode();
+              }}
+            >
+              🏷 שייך
+            </Btn>
+            <Btn onClick={() => setAssignOpen(false)}>ביטול</Btn>
           </div>
         </Modal>
       )}
