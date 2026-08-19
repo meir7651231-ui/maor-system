@@ -35,6 +35,19 @@ describe('🔄 ratchet — planNedarimSync (סנכרון-נכנס דרך המפ�
     expect(a.email).toBe('i@k.com'); // שדה-ריק מולא
   });
 
+  it('תורם ללא-טלפון/ת"ז-תואמים אך שם-תואם ⇒ מעשיר קיים (לא כפול)', () => {
+    // תרחיש-אמת: 1141 תורמים קיימים · נדרים עם ת"ז "000000000" ובלי טלפון-תואם.
+    // בלי קישור-לפי-שם התורם היה נוצר ככפול; עם — מזוהה כקיים.
+    const existing = [sp('a', { name: 'שמואל קסלר', phone: '' })];
+    const donors = [donor({ toremId: '5001', name: 'שמואל קסלר', zeout: '000000000', email: 's@k.com' })];
+    const { supporters, summary } = planNedarimSync(existing, donors, []);
+    expect(summary.newSupporters).toBe(0); // לא כפול!
+    expect(summary.updatedSupporters).toBe(1);
+    const a = supporters.find((s) => s.id === 'a')!;
+    expect(a.extId).toBe('5001'); // הועשר
+    expect(a.email).toBe('s@k.com');
+  });
+
   it('תורם ללא-התאמה ⇒ כרטיס-חדש עם מזהה דטרמיניסטי', () => {
     const { supporters, summary } = planNedarimSync([], [donor({ toremId: '492787', name: 'רחל בן צבי', phone: '053-3142342' })], []);
     expect(summary.newSupporters).toBe(1);
