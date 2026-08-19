@@ -182,8 +182,21 @@ function supFromCharge(c: SyncCharge, seq: number): Supporter {
 export function planNedarimSync(existing: Supporter[], donors: SyncDonor[], charges: SyncCharge[]): SyncPlan {
   const out: Supporter[] = existing.map((s) => ({ ...s, hist: s.hist ? [...s.hist] : undefined }));
   const keyIndex = new Map<string, number>(); // key → index ב-out
+  // אינדקס-שם (שם מנורמל → idx) — לקישור-עסקה-לפי-שם: היסטוריית-נדרים מגיעה בלי
+  // ToremId/ת"ז/טלפון (רק ClientName), לכן זו הדרך היחידה לחבר עסקה לכרטיס-תורם.
+  // ערך -1 = שם עמום (יותר מכרטיס אחד) ⇒ לא מתאימים לפיו (בטיחות מפני מיזוג-שווא).
+  const nameIndex = new Map<string, number>();
+  const nkey = (s?: string) => (s || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  const registerName = (idx: number) => {
+    const nk = nkey(out[idx].name);
+    if (!nk) return;
+    const prev = nameIndex.get(nk);
+    if (prev == null) nameIndex.set(nk, idx);
+    else if (prev !== idx) nameIndex.set(nk, -1); // שם משותף ל-2 כרטיסים ⇒ עמום
+  };
   const register = (idx: number) => {
     for (const k of keysOf(out[idx])) if (!keyIndex.has(k)) keyIndex.set(k, idx);
+    registerName(idx);
   };
   out.forEach((_, i) => register(i));
   const findIdx = (keys: string[]): number => {
@@ -192,6 +205,11 @@ export function planNedarimSync(existing: Supporter[], donors: SyncDonor[], char
       if (i != null) return i;
     }
     return -1;
+  };
+  /** קישור-לפי-שם (fallback לעסקאות בלי מפתח-חזק) — עמום/ריק ⇒ -1. */
+  const findByName = (name?: string): number => {
+    const i = nameIndex.get(nkey(name));
+    return i != null && i >= 0 ? i : -1;
   };
 
   const summary: SyncSummary = {
@@ -256,6 +274,7 @@ export function planNedarimSync(existing: Supporter[], donors: SyncDonor[], char
     if (!(c.amount > 0)) continue; // חיוב-חיובי בלבד (מבוטל/זיכוי = פאזה מודעת-כסף)
     if (c.kevaId) summary.recurring++;
     let idx = findIdx(keysOf({ extId: c.toremId, zeout: c.zeout, phone: c.phone, email: c.email, name: c.name }));
+    if (idx < 0) idx = findByName(c.name); // קישור-לפי-שם (ClientName) — היסטוריית-נדרים בלי מפתח-חזק
     if (idx < 0) {
       const sp = supFromCharge(c, chargeSeq);
       // אם כבר קיים כרטיס באותו מזהה-דטרמיניסטי (עסקה קודמת יצרה) — אתרו אותו
