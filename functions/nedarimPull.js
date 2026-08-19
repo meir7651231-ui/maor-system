@@ -122,6 +122,14 @@ exports.nedarimPull = onRequest(
     if ((p.secret ?? '') !== process.env.PAY_SECRET) return res.status(403).send('bad secret');
     const org = String(p.org ?? '').trim();
     if (!/^[a-z0-9-]{2,40}$|^root$/.test(org)) return res.status(400).send('bad org');
+    // ?peek=1 ⇒ הצצה: מחזיר את 3 העסקאות הראשונות גולמיות (כל השדות) בלי לכתוב — לתכנון מיפוי.
+    if (p.peek === '1') {
+      try {
+        return res.status(200).json({ ok: true, sample: await fetchNedarimHistory(0, 3) });
+      } catch (e) {
+        return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
+      }
+    }
     try {
       // ?reset=1 ⇒ מחיקת שורות-משיכה קודמות + cursor, ואז משיכה-מחדש (עם המפה המעודכנת).
       const out = await runNedarimPull(org, { reset: p.reset === '1' });
