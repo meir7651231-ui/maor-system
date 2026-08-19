@@ -147,11 +147,17 @@ describe('🖥 ratchet — גל ד׳ "עד-השרת": functions מושלמות +
     expect(fnSrc).toContain("require('./nedarimPull')");
     const pullSrc = (await import('../../../functions/nedarimPull.js?raw')).default as string;
     const histSrc = (await import('../../../functions/nedarimHistory.js?raw')).default as string;
-    // משיכת GetHistoryJson קריאה-בלבד; dedup לפי reference ⇒ לא משכפל webhook.
+    // משיכת GetHistoryJson קריאה-בלבד.
     expect(pullSrc).toContain('GetHistoryJson');
     expect(pullSrc).toContain('exports.nedarimPull');
     expect(pullSrc).toContain('exports.nedarimSyncHourly');
-    expect(pullSrc).toContain("where('reference', '=='");
+    // גיבוי-מלא מ-2019: כתיבה **באצוות** עם doc-id דטרמיניסטי (nedarim-<tid>), בלי
+    // שאילתת-reference פר-שורה (שגרמה ל-timeout על אלפי עסקאות). הדדופ מול ה-webhook
+    // עבר לשלב-הסנכרון (planNedarimSync לפי txnId). timeout מוגדל למשיכה כבדה.
+    expect(pullSrc).toContain('batch.set(col.doc(w.id)');
+    expect(histSrc).toContain("id: 'nedarim-' + tid"); // doc-id דטרמיניסטי ⇒ אידמפוטנטי
+    expect(pullSrc).toContain('timeoutSeconds: 540');
+    expect(pullSrc).not.toContain("where('reference', '=='");
     // אינווריאנט רגולטורי: המשיכה כותבת status:'pending' בלבד (הלוגיקה ב-nedarimHistory)
     // ולעולם לא נוגעת במוני-הקבלות — לא ב-pull ולא במיפוי הטהור.
     expect(histSrc).toContain("status: 'pending'");
