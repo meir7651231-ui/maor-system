@@ -185,6 +185,19 @@ function modeOf(nums: number[]): number {
   return best;
 }
 
+/** המחרוזת-השכיחה (mode) — לסכום|מטבע הטיפוסי של ההו"ק (עמיד לסכום משתנה). */
+function modeStr(strs: string[]): string {
+  const c = new Map<string, number>();
+  let best = strs[0] ?? '';
+  let bestN = 0;
+  for (const s of strs) {
+    const k = (c.get(s) ?? 0) + 1;
+    c.set(s, k);
+    if (k > bestN) { bestN = k; best = s; }
+  }
+  return best;
+}
+
 /** מזהה הוראות-קבע מתבנית-ה-hist וממלא את משבצת-ההו"ק. תורם עם אותו סכום-נדרים
  *  ב-≥`minMonths` חודשים שונים = הו"ק (day=היום-השכיח, active=חויב ב-≤2 חודשים).
  *  הו"ק **ידני** (בלי kevaId) לא נדרס. מחזיר { supporters, detected }. */
@@ -193,39 +206,29 @@ export function detectRecurringHok(supporters: Supporter[], todayIso: string, mi
   const out = supporters.map((sp) => {
     if (sp.hok && !sp.hok.kevaId) return sp; // הו"ק ידני — לא נוגעים
     const nd = (sp.hist ?? []).filter((h) => h.clearer === 'נדרים' && h.a > 0 && !!h.d);
-    if (nd.length < minMonths) return sp;
-    // קיבוץ לפי סכום|מטבע; בוחרים את הקבוצה עם הכי-הרבה חודשים-שונים.
-    const groups = new Map<string, typeof nd>();
-    for (const h of nd) {
-      const k = h.a + '|' + (h.c || '₪');
-      const arr = groups.get(k);
-      if (arr) arr.push(h); else groups.set(k, [h]);
-    }
-    let best: { amount: number; cur: '₪' | '$'; monthCount: number; days: number[]; dates: string[]; keva: string } | null = null;
-    for (const [k, arr] of groups) {
-      const months = new Set(arr.map((h) => h.d.slice(0, 7)));
-      if (months.size < minMonths) continue;
-      const [amtStr, cur] = k.split('|');
-      const keva = (arr.find((h) => h.kevaId)?.kevaId || 'auto').trim();
-      if (!best || months.size > best.monthCount) {
-        best = { amount: Number(amtStr), cur: (cur === '$' ? '$' : '₪'), monthCount: months.size, days: arr.map((h) => Number(h.d.slice(8, 10)) || 1), dates: arr.map((h) => h.d).sort(), keva };
-      }
-    }
-    if (!best) return sp;
+    if (!nd.length) return sp;
+    // חיוב עם kevaId ⇒ הו"ק **ודאי** (גם חיוב-בודד). אחרת ⇒ תבנית: חיובי-נדרים
+    // ב-≥minMonths חודשים **שונים** (סכום עשוי להשתנות בין שנים ⇒ לא דורשים
+    // סכום-זהה; זה מה שהחמיץ ~400 תורמים ותיקים).
+    const kevaCharge = nd.find((h) => h.kevaId);
+    const distinctMonths = new Set(nd.map((h) => h.d.slice(0, 7)));
+    if (!kevaCharge && distinctMonths.size < minMonths) return sp;
     detected++;
-    const startedAt = best.dates[0];
-    const lastDate = best.dates[best.dates.length - 1];
+    // סכום/מטבע ההו"ק = השכיח (הו"ק חוזר); day = היום השכיח.
+    const parts = modeStr(nd.map((h) => h.a + '|' + (h.c || '₪'))).split('|');
+    const cur: '₪' | '$' = parts[1] === '$' ? '$' : '₪';
+    const dates = nd.map((h) => h.d).sort();
     return {
       ...sp,
       hok: {
-        amount: best.amount,
-        cur: best.cur,
-        day: Math.min(28, Math.max(1, modeOf(best.days))),
+        amount: Number(parts[0]),
+        cur,
+        day: Math.min(28, Math.max(1, modeOf(nd.map((h) => Number(h.d.slice(8, 10)) || 1)))),
         method: 'card',
-        note: 'הו״ק נדרים (זוהה מהיסטוריה · ' + best.monthCount + ' חודשים)',
-        active: monthsAgo(lastDate, todayIso) <= 2,
-        startedAt,
-        kevaId: best.keva,
+        note: kevaCharge ? 'הו״ק נדרים · ' + kevaCharge.kevaId : 'הו״ק נדרים (זוהה מהיסטוריה · ' + distinctMonths.size + ' חודשים)',
+        active: monthsAgo(dates[dates.length - 1], todayIso) <= 2,
+        startedAt: dates[0],
+        kevaId: kevaCharge?.kevaId || 'auto',
       },
     };
   });
