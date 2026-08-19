@@ -5,7 +5,7 @@
  * את העסקה ל-hist של הכרטיס הנבחר, דדופ לפי txn.
  */
 import { describe, expect, it } from 'vitest';
-import { attachChargeTo, candidateSupportersForCharge, type SyncCharge } from '../nedarimSync';
+import { attachChargeTo, attachChargesBulk, candidateSupportersForCharge, strongMatchForCharge, type SyncCharge } from '../nedarimSync';
 import type { Supporter } from '../../types/domain';
 
 const sp = (over: Partial<Supporter>): Supporter => ({
@@ -64,6 +64,38 @@ describe('🔗 ratchet — attachChargeTo (חיבור-ידני ל-hist, דדופ
   });
 });
 
+describe('🔗 ratchet — strongMatchForCharge (התאמה-ודאית לשיוך-אצווה)', () => {
+  const pool = [
+    sp({ id: 'a', name: 'משה כהן', phone: '050-1234567' }),
+    sp({ id: 'b', name: 'רבקה לוי', idNum: '312345678' }),
+    sp({ id: 'c', name: 'בן צבי רחל' }),
+  ];
+  it('מפתח-חזק (טלפון/ת"ז) ⇒ התאמה', () => {
+    expect(strongMatchForCharge({ amount: 1, name: 'x', phone: '0501234567' }, pool)?.id).toBe('a');
+    expect(strongMatchForCharge({ amount: 1, name: 'x', zeout: '312345678' }, pool)?.id).toBe('b');
+  });
+  it('שם-בלבד ⇒ null (לא בטוח לאצווה — דורש שיוך-ידני)', () => {
+    expect(strongMatchForCharge({ amount: 1, name: 'רחל בן צבי' }, pool)).toBeNull();
+  });
+  it('אין מפתח ⇒ null', () => {
+    expect(strongMatchForCharge({ amount: 1, name: '' }, pool)).toBeNull();
+  });
+});
+
+describe('🔗 ratchet — attachChargesBulk (שיוך-אצווה, setDb יחיד)', () => {
+  it('מחבר כמה עסקאות לכרטיסים שונים; דדופ-txn (כולל בתוך האצווה)', () => {
+    const pool = [sp({ id: 'a' }), sp({ id: 'b' })];
+    const { supporters, added } = attachChargesBulk(pool, [
+      { supId: 'a', charge: { amount: 100, name: 'a', txnId: 'T1' } },
+      { supId: 'b', charge: { amount: 200, name: 'b', txnId: 'T2' } },
+      { supId: 'a', charge: { amount: 100, name: 'a', txnId: 'T1' } }, // כפיל-txn ⇒ מדולג
+    ]);
+    expect(added).toBe(2);
+    expect(supporters.find((s) => s.id === 'a')!.hist).toHaveLength(1);
+    expect(supporters.find((s) => s.id === 'b')!.hist).toHaveLength(1);
+  });
+});
+
 describe('🛡 ratchet — חיווט מסך תשלומים-נכנסים', () => {
   it('כפתור 🔗 מזג לכרטיס + השוואת-שדות + קריאה ל-attachIncomingToSupporter', async () => {
     const src = (await import('../../components/supporters/IncomingPayments.tsx?raw')).default as string;
@@ -71,5 +103,15 @@ describe('🛡 ratchet — חיווט מסך תשלומים-נכנסים', () =>
     expect(src).toContain('candidateSupportersForCharge');
     expect(src).toContain('attachIncomingToSupporter');
     expect(src).toContain('CmpRow'); // השוואת-שדות תשלום↔כרטיס
+  });
+  it('בחירה-מרובה: בחר-הכל + מזג-אוטומטית + סמן-שנרשמו', async () => {
+    const src = (await import('../../components/supporters/IncomingPayments.tsx?raw')).default as string;
+    expect(src).toContain('בחר הכל');
+    expect(src).toContain('🔗 מזג אוטומטית');
+    expect(src).toContain('✓ סמן שנרשמו');
+    expect(src).toContain('strongMatchForCharge'); // שיוך-אצווה בטוח בלבד
+    expect(src).toContain('attachIncomingBulk');
+    // סימון-אצווה במנות (בלי אלפי כתיבות בו-זמנית)
+    expect(src).toContain('i += 300');
   });
 });
