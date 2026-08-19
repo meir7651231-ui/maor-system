@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { Btn, Empty, Modal } from '../ui';
 import type { IncomingPayment } from '../../store/cloudSync';
-import { candidateSupportersForCharge, strongMatchForCharge } from '../../lib/nedarimSync';
+import { autoMatchCharges, candidateSupportersForCharge, strongMatchForCharge } from '../../lib/nedarimSync';
 import { normId, normPhone } from '../../lib/dedup';
 import { normSearch } from '../../lib/validate';
 import { termOf } from '../../lib/config';
@@ -117,6 +117,22 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
     toast('🔗 ' + added + ' חוברו אוטומטית' + (skipped ? ' · ' + skipped + ' ללא-התאמה-ודאית (לשיוך ידני)' : ''));
   }
 
+  // 🔗 מיזוג-כל-הממתינים: עובד על **כל** ה-rows (הערימה המלאה, לא רק 300 המוצגים).
+  // כך לא-מתאימים בראש-הרשימה כבר לא חוסמים את השאר — כל בעל-התאמה-ודאית מחובר
+  // בבת-אחת (autoMatchCharges O(S+M)), ורק נטולי-ההתאמה נשארים לשיוך-ידני.
+  async function autoMergeAllPending() {
+    if (!mod) return;
+    setBusy(true);
+    const items = autoMatchCharges(rows, supporters);
+    const added = items.length ? attachBulk(items) : 0;
+    await markMany(items.map((it) => it.charge.id).filter((x): x is string => !!x));
+    setSel(new Set());
+    await refresh(mod);
+    setBusy(false);
+    const remaining = rows.length - items.length;
+    toast('🔗 ' + added + ' חוברו · ' + (remaining ? remaining.toLocaleString('he-IL') + ' נותרו לשיוך ידני' : 'הרשימה רוקנה'));
+  }
+
   if (mergeFor) {
     return <MergeView pay={mergeFor} onBack={() => setMergeFor(null)} onMerged={() => void afterMerge(mergeFor)} onClose={props.onClose} />;
   }
@@ -130,11 +146,24 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
           דורש את שרת-ההרחבות; ראו RUNBOOK-FUNCTIONS.)
         </Empty>
       )}
+      {/* 🔗 מיזוג-אוטומטי של כל הערימה — בקליק אחד, לא רק 300 המוצגים */}
+      {!loading && rows.length > 0 && (
+        <div style={{ border: '1px solid var(--accent)', borderRadius: 10, padding: 10, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: 'var(--accent-bg, #f0f6ff)' }}>
+          <div style={{ flex: 1, minWidth: 180, fontSize: 12.5 }}>
+            <b>{rows.length.toLocaleString('he-IL')}</b> תשלומים ממתינים.
+            כפתור זה מחבר <b>את כל</b> בעלי-ההתאמה-הוודאית (מזהה/ת״ז/טלפון/אימייל) לכרטיסים בבת-אחת;
+            רק נטולי-התאמה יישארו לשיוך ידני.
+          </div>
+          <Btn kind="primary" disabled={busy} onClick={() => void autoMergeAllPending()} title="שיוך-אוטומטי של כל הממתינים לכרטיסים לפי התאמה-ודאית">
+            🔗 מזג אוטומטית את כל הממתינים ({rows.length.toLocaleString('he-IL')})
+          </Btn>
+          {busy && <span style={{ fontSize: 12, color: 'var(--accent)' }}>מעבד…</span>}
+        </div>
+      )}
       {rows.length > SHOWN && (
-        <div style={{ border: '1px solid var(--accent)', borderRadius: 10, padding: 10, marginBottom: 10, fontSize: 12.5 }}>
-          יש <b>{rows.length.toLocaleString('he-IL')}</b> תשלומים ממתינים — כמות גדולה (גיבוי היסטורי).
-          מוצגים {SHOWN} הראשונים בלבד. לעיבוד <b>כל</b> החיובים בבת-אחת השתמשו במסך <b>🔄 סנכרון מנדרים</b>
-          (מחבר לכרטיסים עם תצוגה-מקדימה) — לא ברשימה הידנית הזו.
+        <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: 10, marginBottom: 10, fontSize: 12.5, color: 'var(--ink-faint)' }}>
+          מוצגים {SHOWN} הראשונים בלבד (מתוך {rows.length.toLocaleString('he-IL')}). לשיוך-ידני פרטני —
+          גללו ומזגו; לחיבור-המוני השתמשו בכפתור <b>🔗 מזג אוטומטית את כל הממתינים</b> למעלה.
         </div>
       )}
       {/* בחירה-מרובה: בחר-הכל + פעולות-אצווה */}
