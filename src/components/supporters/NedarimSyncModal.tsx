@@ -20,6 +20,9 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
   const supporters = useApp((s) => s.db.supporters);
   const config = useApp((s) => s.config);
   const applyNedarimSync = useApp((s) => s.applyNedarimSync);
+  const wipeNedarimJunk = useApp((s) => s.wipeNedarimJunk);
+  const junkCount = useApp((s) => s.db.supporters.filter((sp) => sp.id.startsWith('sup-ned-txn-')).length);
+  const [wipeArmed, setWipeArmed] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +75,27 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
 
   return (
     <Modal title={'🔄 סנכרון מנדרים — ' + nav} onClose={props.onClose} wide>
+      {junkCount > 0 && (
+        <div style={{ border: '1px solid var(--danger, #e05252)', background: 'var(--bg)', borderRadius: 10, padding: 10, marginBottom: 12 }}>
+          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>🧹 ניקוי כרטיסים שנוצרו-אוטומטית מעסקאות</div>
+          <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
+            זוהו <b>{junkCount.toLocaleString('he-IL')}</b> כרטיסים שנוצרו אוטומטית מעסקאות (לפני התיקון). מומלץ לנקות אותם,
+            למשוך מחדש את העסקאות (קישור <code>reset=1</code>), ואז לבצע סנכרון — כדי שההיסטוריה תתחבר לכרטיסי-התורם הנכונים.
+          </div>
+          <Btn
+            kind={wipeArmed ? 'danger' : undefined}
+            sm
+            onClick={() => {
+              if (!wipeArmed) { setWipeArmed(true); return; }
+              wipeNedarimJunk();
+              setWipeArmed(false);
+            }}
+          >
+            {wipeArmed ? `לאשר מחיקת ${junkCount.toLocaleString('he-IL')} כרטיסים?` : `🧹 נקה ${junkCount.toLocaleString('he-IL')} כרטיסים`}
+          </Btn>
+          {wipeArmed && <Btn sm onClick={() => setWipeArmed(false)}>ביטול</Btn>}
+        </div>
+      )}
       {loading && <div className="empty">טוען נתונים מנדרים…</div>}
 
       {!loading && error && (

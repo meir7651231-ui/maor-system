@@ -310,9 +310,13 @@ interface AppState {
   /** 🔄 יישום תוכנית-סנכרון נדרים (planNedarimSync): החלפת מערך-התומכים המלא +
    *  לוג. אחרי תצוגה-מקדימה+אישור בלבד (מסך הסנכרון). */
   applyNedarimSync: (supporters: Supporter[], note: string) => void;
-  /** 🔴 חיבור-אוטומטי-לייב: עסקאות-נכנסות בלבד → hist של הכרטיס התואם (בלי בלוק-
-   *  התורמים ובלי אישור — הוספה בטוחה, דדופ-txn). מחזיר כמה חיובים חוברו. */
-  applyNedarimAuto: (charges: SyncCharge[]) => number;
+  /** 🔴 חיבור-אוטומטי-לייב: עסקאות → hist של **כרטיס-קיים תואם בלבד** (attachOnly —
+   *  לא יוצר כרטיסים; מה שלא-תואם נשאר pending ל-🔄 הידני). מחזיר את מזהי-העסקאות
+   *  שחוברו (לסימון handled רק להן). */
+  applyNedarimAuto: (charges: SyncCharge[]) => string[];
+  /** 🧹 ניקוי כרטיסים שנוצרו-אוטומטית מעסקאות (id מתחיל sup-ned-txn-) — מחזיר
+   *  את מצב-התורמים לנקי אחרי ריבוי-כרטיסים-בטעות. מחזיר כמה נמחקו. */
+  wipeNedarimJunk: () => number;
   /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
   addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => { ok: boolean; rid?: string };
 
@@ -1737,15 +1741,32 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     applyNedarimAuto(charges) {
-      // חיבור-חי: רק עסקאות (בלי בלוק-התורמים) → hist של הכרטיס התואם/חדש. שקט
-      // (בלי toast — רץ ברקע); אידמפוטנטי (דדופ-txn) ⇒ בטוח להריץ שוב-ושוב.
-      const plan = planNedarimSync(get().db.supporters, [], charges);
-      const { chargesAdded, newSupporters } = plan.summary;
-      if (chargesAdded > 0 || newSupporters > 0) {
-        logAudit('🔴 חיבור-חי מנדרים', chargesAdded + ' חיובים · ' + newSupporters + ' כרטיסים');
+      // חיבור-חי (attachOnly): רק עסקאות → hist של **כרטיס-קיים תואם**. לעולם לא
+      // יוצר כרטיסים (מונע ריבוי-כרטיסים); מה שלא-תואם נשאר pending ל-🔄 הידני.
+      // שקט (בלי toast — רץ ברקע); אידמפוטנטי (דדופ-txn).
+      const plan = planNedarimSync(get().db.supporters, [], charges, { attachOnly: true });
+      if (plan.summary.chargesAdded > 0) {
+        logAudit('🔴 חיבור-חי מנדרים', plan.summary.chargesAdded + ' חיובים חוברו לכרטיסים');
         setDb(() => ({ supporters: plan.supporters }));
       }
-      return chargesAdded;
+      return plan.handledChargeIds; // רק העסקאות שחוברו — לסימון handled
+    },
+
+    wipeNedarimJunk() {
+      // ניקוי כרטיסים שנוצרו-אוטומטית מעסקאות (id 'sup-ned-txn-') — נוצרו בטעות
+      // כשהחיבור-החי רץ עם קוד-ישן. כרטיסי-התורם ('sup-ned-<toremId>') והמקוריים
+      // נשמרים. גם ניקוי אירועי-עי"ן/תזכורות של הנמחקים.
+      const junk = get().db.supporters.filter((s) => s.id.startsWith('sup-ned-txn-'));
+      if (!junk.length) return 0;
+      const ids = new Set(junk.map((s) => s.id));
+      const evIds = new Set(junk.map((s) => s.nextEventId).filter(Boolean) as string[]);
+      logAudit('🧹 ניקוי כרטיסי-עסקה אוטומטיים', junk.length + ' כרטיסים');
+      setDb((db) => ({
+        supporters: db.supporters.filter((s) => !ids.has(s.id)),
+        events: db.events.filter((ev) => !evIds.has(ev.id) && !(ev.spId && ids.has(ev.spId))),
+      }));
+      get().toast('🧹 נוקו ' + junk.length + ' כרטיסים שנוצרו-אוטומטית מעסקאות');
+      return junk.length;
     },
 
     deleteSupporter(id) {
