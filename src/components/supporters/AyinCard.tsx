@@ -40,6 +40,7 @@ export function AyinCard(props: { supporter: Supporter }) {
   const toggleName = useApp((s) => s.ayinToggleName);
   const setNameEyes = useApp((s) => s.ayinSetNameEyes);
   const setNameRate = useApp((s) => s.ayinSetNameRate);
+  const setNameNote = useApp((s) => s.ayinSetNameNote);
   const removeName = useApp((s) => s.ayinRemoveName);
   const addAnswer = useApp((s) => s.ayinAddAnswer);
   const editAnswer = useApp((s) => s.ayinEditAnswer);
@@ -227,6 +228,14 @@ export function AyinCard(props: { supporter: Supporter }) {
                     dir="ltr"
                     style={{ width: 56, padding: '3px 6px', fontSize: 12 }}
                     title={boqOn ? 'כמות' : unit}
+                  />
+                  {/* בקשת-בעלים 19.8: הערת-טקסט חופשית ליד המונה */}
+                  <input
+                    value={n.note || ''}
+                    onChange={(e) => setNameNote(sp.id, n.id, e.target.value)}
+                    placeholder="הערה"
+                    style={{ flex: 1, minWidth: 60, padding: '3px 6px', fontSize: 12 }}
+                    title="הערת-טקסט חופשית"
                   />
                   {boqOn && (
                     <>

@@ -384,6 +384,8 @@ export interface AyinName {
    * מגודר supporters.ayin.boq + הקשר-מסחרי. בעמותה (חסד) נשאר undefined ולא מוצג.
    */
   rate?: number;
+  /** הערת-טקסט חופשית ליד המונה (בקשת-בעלים 19.8) — אופציונלי, additive, אין מיגרציה. */
+  note?: string;
 }
 
 /** תשובה/הערה מתוארכת בתהליך הטיפול. */
