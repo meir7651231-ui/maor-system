@@ -138,31 +138,31 @@ async function runNedarimPull(org, opts = {}) {
   let maxCursor = startCursor;
   let added = 0;
   let pages = 0;
-  const MAX_PAGES = 5; // 5×2000=10K עסקאות/ריצה — הרבה מתחת ל-20/שעה
+  const MAX_PAGES = 10; // 10×2000=20K עסקאות/ריצה — עדיין מתחת ל-20 פניות/שעה
   const MAX_ID = 2000; // תקרת נדרים
   while (pages < MAX_PAGES) {
     pages++;
     const rows = await fetchNedarimHistory(lastId, MAX_ID);
     if (!rows.length) break;
     const { writes, cursor } = planHistoryWrites(rows, org);
-    for (const w of writes) {
-      // דדופ מול ה-webhook (id אקראי) — לפי reference; ומול ריצה-קודמת — doc-id דטרמיניסטי.
-      const dup = await col.where('reference', '==', w.data.reference).limit(1).get();
-      if (!dup.empty) continue;
-      try {
-        await col.doc(w.id).create({ ...w.data, at: new Date().toISOString() });
-        added++;
-      } catch (e) {
-        // ALREADY_EXISTS (code 6) ⇒ כבר תועד — לא נוגעים.
-        if (e && e.code !== 6 && e.code !== 'already-exists') throw e;
-      }
+    // כתיבה **באצוות** (400/batch) עם doc-id דטרמיניסטי `nedarim-<tid>` ⇒ אידמפוטנטי
+    // בין ריצות-משיכה. **בלי שאילתת-reference פר-שורה** — זו הייתה O(n) קריאות
+    // סדרתיות שגרמו ל-timeout על גיבוי-מלא (אלפי עסקאות). דדופ מול ה-webhook (id
+    // אקראי, אותו reference/txnId) נעשה **בשלב-הסנכרון** (planNedarimSync דדופ לפי
+    // txnId) ⇒ עסקה כפולה ב-incomingPayments לא מייצרת כפל-חיוב בכרטיס.
+    for (let i = 0; i < writes.length; i += 400) {
+      const batch = db.batch();
+      const slice = writes.slice(i, i + 400);
+      for (const w of slice) batch.set(col.doc(w.id), { ...w.data, at: new Date().toISOString() });
+      await batch.commit();
+      added += slice.length;
     }
     if (cursor > maxCursor) maxCursor = cursor;
     lastId = cursor;
     if (rows.length < MAX_ID) break; // עמוד אחרון (פחות מהמקסימום)
   }
   if (maxCursor > startCursor) await cursorRef.set({ lastTxnId: maxCursor, at: new Date().toISOString() }, { merge: true });
-  return { added, pages, cursor: maxCursor };
+  return { added, pages, cursor: maxCursor, removed };
 }
 
 /**
@@ -170,7 +170,11 @@ async function runNedarimPull(org, opts = {}) {
  * ה-webhook). פתיחת כתובת ?org=<slug>&secret=<PAY_SECRET>. מחזיר {added,pages,cursor}.
  */
 exports.nedarimPull = onRequest(
-  { secrets: ['PAY_SECRET', 'NEDARIM_MOSAD_ID', 'NEDARIM_API_PASSWORD'] },
+  {
+    secrets: ['PAY_SECRET', 'NEDARIM_MOSAD_ID', 'NEDARIM_API_PASSWORD'],
+    timeoutSeconds: 540, // גיבוי-מלא מ-2019 (אלפי עסקאות) — עד 9 דק' (מקס' gen2)
+    memory: '512MiB',
+  },
   async (req, res) => {
     if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).send('POST/GET only');
     const p = { ...(req.query ?? {}), ...(req.body ?? {}) };
