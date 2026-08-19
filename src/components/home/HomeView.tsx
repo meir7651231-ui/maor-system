@@ -72,22 +72,23 @@ export function HomeView() {
     [db, desigLimit],
   );
 
-  const data = useMemo(
-    () => ({
+  const data = useMemo(() => {
+    // ⚡ attention מחושב פעם-אחת ומוזרם ל-digest (חוסך חישוב-כפול של כל המנוע)
+    const attention = attentionItems(vdb, now, config.modules, config);
+    return {
       stats: homeStats(vdb, new Date(todayIso + 'T12:00:00')),
       sessions: coursesOn ? todaySessions(db, now) : [],
       // מודול כבוי ⇒ הנגזרת ריקה — כך כל צרכני data במורד מוגנים אוטומטית
       events: calendarOn ? eventsOnDate(db, now) : [],
       bdays: familiesOn ? birthdaysOn(db, now) : [],
-      attention: attentionItems(vdb, now, config.modules, config),
-      digest: digestLines(vdb, now, config.modules, config),
+      attention,
+      digest: digestLines(vdb, now, config.modules, config, attention),
       carousel: carouselItems(vdb, now, config.modules, config),
       recent: familiesOn ? recentFamilies(db, 5) : [],
       holiday: holidayOf(now),
-    }),
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [db, vdb, todayIso, config, config.modules, coursesOn, calendarOn, familiesOn],
-  );
+  }, [db, vdb, todayIso, config, config.modules, coursesOn, calendarOn, familiesOn]);
 
   // ניווט ממוגן-מודולים: לעולם לא מנווט למסך של מודול כבוי (no-op במקום קריסה/דליפה)
   const navTo = (nav: AttentionNav) => {

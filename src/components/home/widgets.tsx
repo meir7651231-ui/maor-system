@@ -246,11 +246,12 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
       )}
       {items.length > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button type="button" aria-label="הפריט הקודם" onClick={() => step(-1)} style={{ padding: '0 6px', color: 'var(--ink-faint)' }}>
+          <button type="button" aria-label="הפריט הקודם" onClick={() => step(-1)} style={{ padding: '8px 10px', color: 'var(--ink-faint)' }}>
             ‹
           </button>
-          <div style={{ display: 'flex', gap: 6 }} role="tablist" aria-label="פריטי הקרוסלה">
-            {/* תיקון (19.8): נקודה לכל פריט (היו רק 8 מתוך 10) והנקודה הפעילה בלי ‎% 8‎ שגוי */}
+          <div style={{ display: 'flex' }} aria-label="פריטי הקרוסלה">
+            {/* תיקון (19.8): נקודה לכל פריט (היו רק 8 מתוך 10) והנקודה הפעילה בלי ‎% 8‎ שגוי.
+                יעד-מגע ≥24px (הנקודה 8px נשארת ויזואלית); צבע-כבוי ערכתי (color-mix). */}
             {items.map((it, i2) => {
               const active = i2 === idx % items.length;
               return (
@@ -260,18 +261,22 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
                   aria-label={`פריט ${i2 + 1}`}
                   aria-current={active}
                   onClick={() => setIdx(i2)}
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 99,
-                    padding: 0,
-                    background: active ? 'var(--accent-deep)' : 'rgba(127, 119, 103, .3)',
-                  }}
-                />
+                  style={{ padding: 8, background: 'transparent', display: 'inline-flex' }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 99,
+                      background: active ? 'var(--accent-deep)' : 'color-mix(in srgb, var(--ink-faint) 45%, transparent)',
+                    }}
+                  />
+                </button>
               );
             })}
           </div>
-          <button type="button" aria-label="הפריט הבא" onClick={() => step(1)} style={{ padding: '0 6px', color: 'var(--ink-faint)' }}>
+          <button type="button" aria-label="הפריט הבא" onClick={() => step(1)} style={{ padding: '8px 10px', color: 'var(--ink-faint)' }}>
             ›
           </button>
         </div>
@@ -790,7 +795,8 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
                 borderRadius: 99,
                 flexShrink: 0,
                 marginInlineStart: 'auto',
-                background: ev.priority === 'red' ? '#dc2626' : '#d97706',
+                // אסימוני-ערכה (19.8) — הנקודה מתכווננת גם בערכה הכהה (היכל)
+                background: ev.priority === 'red' ? 'var(--red)' : 'var(--orange)',
               }}
             />
           )}
@@ -947,7 +953,7 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
       {showDone && doneAttn.length > 0 && (
         <button
           type="button"
-          style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', color: resetArmed ? '#b91c1c' : undefined }}
+          style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', color: resetArmed ? 'var(--red)' : undefined }}
           onClick={() => {
             if (!resetArmed) {
               setResetArmed(true);
@@ -1091,7 +1097,7 @@ function HebcalWidget({ ctx }: { ctx: HomeCtx }) {
     <Panel icon="📜" title="הלוח העברי" action={<Btn sm onClick={() => go('calendar')}>ללוח השנה ←</Btn>}>
       {rows.length === 0 && <div style={softEmpty}>שבוע שקט — אין אירועים קרובים</div>}
       {rows.map((r) => (
-        <div key={r.key} className="hm-row" style={{ cursor: 'default' }}>
+        <div key={r.key} className="hm-row static">
           <span className="hm-time" style={{ direction: 'rtl' }}>{r.hd}</span>
           <span aria-hidden>{r.emoji}</span>
           <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -1136,7 +1142,6 @@ function CommunityWidget({ ctx }: { ctx: HomeCtx }) {
               className="hm-tier"
               onClick={() => openFamiliesByTier(t.key)}
               title={'ל' + famPlural + ' בדרגת ' + t.label}
-              style={{ cursor: 'pointer', textAlign: 'right', background: 'transparent' }}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span aria-hidden style={{ width: 8, height: 8, borderRadius: 99, background: t.dot, flexShrink: 0 }} />
@@ -1161,7 +1166,8 @@ function CourseMetricsWidget({ ctx }: { ctx: HomeCtx }) {
   const m = useMemo(() => courseMetrics(db), [db]);
   const crsPlural = termOf(config, 'nav.courses', 'חוגים');
   const openCourse = (id: string) => { selectCourse(id); go('courses'); };
-  const barColor = (pct: number) => (pct >= 100 ? '#dc2626' : pct >= 85 ? '#f3c76b' : pct >= 40 ? '#16a34a' : '#d97706');
+  // אסימוני-ערכה (19.8) — העמודות מתכווננות לערכה (היכל הכהה קיבל צבעים צורמים)
+  const barColor = (pct: number) => (pct >= 100 ? 'var(--red)' : pct >= 85 ? 'var(--accent)' : pct >= 40 ? 'var(--green)' : 'var(--orange)');
   return (
     <Panel
       icon="📊"
@@ -1263,7 +1269,7 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
             ))}
           </div>
           <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
-            מגמת היום: <b style={{ color: trend > 0 ? '#12803c' : trend < 0 ? '#b91c1c' : 'inherit' }}>{trend > 0 ? '+' + trend : trend}</b> נק׳
+            מגמת היום: <b style={{ color: trend > 0 ? 'var(--green)' : trend < 0 ? 'var(--red)' : 'inherit' }}>{trend > 0 ? '+' + trend : trend}</b> נק׳
             {/* מונה-אלמנות מ-homeStats (מקור-אמת אחד) — עמותתי בלבד, כמו בכרטיס-המשפחות */}
             {ctx.data.stats.widows > 0 && featureOn(config, 'core.taxreceipt')
               ? ' · 👵 ' + ctx.data.stats.widows + ' אלמנות'
@@ -1283,7 +1289,6 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
                 className="hm-tier"
                 onClick={() => openFamiliesByTier(key)}
                 title={'ל' + famPlural + ' בדרגת ' + t.label}
-                style={{ cursor: 'pointer', textAlign: 'right', background: 'transparent' }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span aria-hidden style={{ width: 8, height: 8, borderRadius: 99, background: t.dot, flexShrink: 0 }} />
