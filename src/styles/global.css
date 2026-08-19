@@ -2577,20 +2577,26 @@ h1,
   }
 }
 
-/* כפתור-חזרה מרחף קבוע בתחתית מסכי-הכרטיס (בקשת-בעלים 19.8) — נצמד לתחתית
-   אזור-הגלילה; במובייל עולה מעל סרגל-הניווט-התחתון הקבוע (אחרת מוסתר מאחוריו). */
+/* כפתור-חזרה מרחף קבוע בתחתית מסכי-הכרטיס (בקשת-בעלים 19.8) — `position: fixed`
+   כדי שירחף **תמיד** מול חלון-התצוגה (גם בדסקטופ, ללא תלות במבנה-הגלילה),
+   כך שהמשתמש לא צריך לגלול חזרה למעלה. פינה תחתונה-מתחילה (RTL = ימין). */
 .sticky-back {
-  position: sticky;
-  bottom: 0;
-  z-index: 40;
-  padding: 10px 0 4px;
-  margin-top: 4px;
-  background: linear-gradient(to top, var(--bg) 72%, transparent);
+  position: fixed;
+  bottom: 18px;
+  inset-inline-start: 18px;
+  z-index: 60;
+  margin: 0;
+  padding: 0;
+  background: none;
 }
+.sticky-back > button {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+}
+/* במובייל — מעל סרגל-הניווט-התחתון הקבוע (z-index:90) ולא מוסתר מאחוריו. */
 @media (max-width: 760px) {
   .sticky-back {
-    bottom: calc(60px + env(safe-area-inset-bottom));
-    z-index: 95; /* מעל הניווט-התחתון (z-index:90) */
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    z-index: 95;
   }
 }
 
