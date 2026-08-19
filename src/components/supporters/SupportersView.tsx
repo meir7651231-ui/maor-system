@@ -304,8 +304,12 @@ export function SupportersView() {
   const tierCounts: Record<string, number> = { זהב: 0, כסף: 0, ארד: 0, רדומה: 0 };
   for (const sp of visibleBase) tierCounts[supTier(supScore(sp, rate)).label]++;
 
-  const tIls = visibleBase.reduce((a, x) => a + (x.ils || 0), 0);
-  const tUsd = visibleBase.reduce((a, x) => a + (x.usd || 0), 0);
+  // הכרעת-בעלים 9.8 ("לכולל"): סה"כ-הכותרת = הצבירה המוצגת (קבלות + היסטוריה),
+  // דרך supIls/supUsd — לא sp.ils/sp.usd השמורים (קבלות-בלבד). בלי זה עסקאות
+  // הסליקה/נדרים ב-hist[] לא נספרות בכותרת אף שהן מופיעות בכל שורה. (באג: "הסך
+  // תרומות לא מתעדכן" אחרי ייבוא/סנכרון נדרים — 19.8.2026.)
+  const tIls = visibleBase.reduce((a, x) => a + supIls(x), 0);
+  const tUsd = visibleBase.reduce((a, x) => a + supUsd(x), 0);
   const filtered =
     q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF ||
     colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';

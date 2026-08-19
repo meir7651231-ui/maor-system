@@ -12,7 +12,7 @@ import { featLabel, itemLabel, stageLabel, unitLabel } from './ayin';
 import { hebDateFull, hebParts, hebAnnualEq } from './hebrew';
 import { EV_META } from './eventMeta';
 import { DAY_NAMES, enrollCount, sessionsOf } from '../components/courses/lib';
-import { supScore, supTier } from '../components/supporters/lib';
+import { supCount, supIls, supScore, supTier, supUsd } from '../components/supporters/lib';
 
 export type ExportTarget = 'courses' | 'events' | 'supporters';
 
@@ -300,7 +300,9 @@ export function buildCustomExport(
       cat: sp.cat || '',
       forWho: sp.forWho || '',
       dons: dons.length + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + ils + (usd ? ' + $' + usd : ''),
-      donsAll: (sp.count || 0) + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + (sp.ils || 0) + (sp.usd ? ' + $' + sp.usd : ''),
+      // "כל-הזמן" = הצבירה המוצגת (קבלות + היסטוריה) — הכרעת-בעלים 9.8 "לכולל":
+      // CSV הוא משטח-תצוגה, לכן supCount/supIls/supUsd (כולל hist), לא המונים השמורים.
+      donsAll: supCount(sp) + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + supIls(sp) + (supUsd(sp) ? ' + $' + supUsd(sp) : ''),
       tier: supTier(supScore(sp, db.usdRate)).label,
       notes: sp.notes || '',
     };

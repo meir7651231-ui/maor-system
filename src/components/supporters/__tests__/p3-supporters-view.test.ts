@@ -62,6 +62,17 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     expect(viewSrc).toMatch(/sp\.ayin\?\.paid \? '✓' : '—'/);
   });
 
+  // באג "הסך תרומות לא מתעדכן" (19.8.2026, אחרי ייבוא/סנכרון נדרים): סה"כ-הכותרת
+  // סכם את sp.ils/sp.usd השמורים (קבלות-בלבד) בעוד כל שורה מציגה supIls/supUsd
+  // (כולל hist) ⇒ עסקאות-הסליקה נעלמו מהכותרת. הנעילה: הכותרת דרך supIls/supUsd.
+  it('🛡 סה"כ-הכותרת כולל hist — supIls/supUsd, לא sp.ils/sp.usd השמורים (הגנת-מקור)', () => {
+    expect(viewSrc).toContain('const tIls = visibleBase.reduce((a, x) => a + supIls(x), 0)');
+    expect(viewSrc).toContain('const tUsd = visibleBase.reduce((a, x) => a + supUsd(x), 0)');
+    // אסור שיחזור לצורה השמורה (קבלות-בלבד) שהקפיאה את הכותרת
+    expect(viewSrc).not.toContain('(a, x) => a + (x.ils || 0)');
+    expect(viewSrc).not.toContain('(a, x) => a + (x.usd || 0)');
+  });
+
   it('🛡 תצוגת-גריד לתורמים (5.8, בקשת-בעלים) — כמו המשפחות, נשמרת ב-db.ui.supView', () => {
     // מובייל: הטבלה הרחבה דורשת גלילה-צידית; הגריד = כרטיסים ידידותיים-למגע.
     // UX סבב-ד׳: ברירת-מחדל חכמה — מסך-צר בלי העדפה ⇒ גריד; בחירה מפורשת גוברת
