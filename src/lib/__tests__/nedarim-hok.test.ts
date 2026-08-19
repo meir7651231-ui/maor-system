@@ -81,9 +81,21 @@ describe('🔁 ratchet — detectRecurringHok (זיהוי-רטרואקטיבי �
     const pool = [sp({ id: 'a', hok: { amount: 555, cur: '₪', day: 3, method: 'bank', note: 'ידני', active: true, startedAt: '2020-01-01' }, hist: ndHist(['2026-06-10', '2026-07-10', '2026-08-10']) })];
     expect(detectRecurringHok(pool, today).supporters[0].hok?.amount).toBe(555);
   });
-  it('בוחר את הסכום עם הכי-הרבה חודשים (מפריד חד-פעמיים)', () => {
+  it('בוחר את הסכום השכיח (מפריד חד-פעמיים)', () => {
     const pool = [sp({ id: 'a', hist: [...ndHist(['2026-05-10', '2026-06-10', '2026-07-10'], 100), ...ndHist(['2026-08-10'], 500)] })];
     expect(detectRecurringHok(pool, today).supporters[0].hok?.amount).toBe(100);
+  });
+  // 🐛 סכום משתנה בין שנים (₪100 ואז ₪120) — הגרסה הקודמת דרשה סכום-זהה ב-3
+  // חודשים ⇒ פספסה ~400 תורמים ("300 במקום 700"). עכשיו: חודשים-שונים מכל סכום.
+  it('סכום משתנה בין חודשים (4 חודשים שונים) ⇒ עדיין מזוהה', () => {
+    const pool = [sp({ id: 'a', hist: [...ndHist(['2026-05-10', '2026-06-10'], 100), ...ndHist(['2026-07-10', '2026-08-10'], 120)] })];
+    const out = detectRecurringHok(pool, today);
+    expect(out.detected).toBe(1);
+    expect(out.supporters[0].hok?.active).toBe(true);
+  });
+  it('חיוב-בודד עם kevaId ⇒ מזוהה גם בחודש אחד', () => {
+    const pool = [sp({ id: 'a', hist: [{ d: '2026-08-10', a: 77, c: '₪', clearer: 'נדרים', kevaId: 'K1' }] })];
+    expect(detectRecurringHok(pool, today).detected).toBe(1);
   });
   it('kevaId ב-hist (חיוב חדש) נשמר בהו"ק', () => {
     const h = chargeToHist({ amount: 100, d: '2026-08-10', kevaId: 'K42' });
