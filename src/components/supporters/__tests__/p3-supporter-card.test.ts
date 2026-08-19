@@ -45,4 +45,14 @@ describe('💛 ratchet — P3 כרטיס תומכת', () => {
     // המקור: הקישור עדיין נפתח ב-target חדש עם href של payLink (אפס שינוי-התנהגות)
     expect(detailSrc).toMatch(/href=\{donateHref\}[\s\S]{0,120}target="_blank"/);
   });
+
+  // 🐛 ratchet — כפתורי-הקבלה פר-שורה (🧾/📧) היו אמוג׳י-בלבד עם title: נעלם-הפשר
+  // במגע. עכשיו תווית גלויה בכל כפתור (הטקסט = השם-הנגיש); אותם handlers.
+  it('🛡 כפתורי-הקבלה בהיסטוריה נושאים תווית גלויה (🧾 הורדה · 📧 מייל)', () => {
+    expect(detailSrc).toContain('🧾 הורדה');
+    expect(detailSrc).toContain('📧 מייל');
+    // אותם handlers — אפס שינוי-התנהגות
+    expect(detailSrc).toContain('onClick={() => redownloadReceipt(r.rid!)}');
+    expect(detailSrc).toContain('onClick={() => void mailReceipt(r.rid!)}');
+  });
 });

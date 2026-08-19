@@ -542,16 +542,18 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                     <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--ink-faint)' }}>
                       {histOn ? r.src : r.rid}
                     </td>
-                    {/* 🧾 הורדה חוזרת פר-תרומה (P3, לגאסי supReceipt) — רק לתרומות עם קבלה */}
-                    <td onClick={(e) => e.stopPropagation()}>
+                    {/* 🧾 הורדה חוזרת פר-תרומה (P3, לגאסי supReceipt) — רק לתרומות עם קבלה.
+                        היו אמוג׳י-בלבד (🧾/📧) עם title בלבד — נעלם-הפשר במגע. עכשיו תווית
+                        גלויה בכל כפתור (הטקסט = השם-הנגיש). אותם handlers — אפס שינוי-התנהגות. */}
+                    <td onClick={(e) => e.stopPropagation()} style={{ whiteSpace: 'nowrap' }}>
                       {r.rid && receiptsOn ? (
                         <>
                           <Btn sm onClick={() => redownloadReceipt(r.rid!)} title={'הורדה חוזרת של קבלה ' + r.rid}>
-                            🧾
+                            🧾 הורדה
                           </Btn>
                           {mailReady && (
                             <Btn sm onClick={() => void mailReceipt(r.rid!)} title={'שליחת קבלה ' + r.rid + ' למייל ' + termOf(config, 'entity.supporter', 'התורם')}>
-                              📧
+                              📧 מייל
                             </Btn>
                           )}
                         </>
