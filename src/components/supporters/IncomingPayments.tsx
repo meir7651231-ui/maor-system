@@ -41,6 +41,11 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
     await refresh(mod);
   }
 
+  // ⚠️ תקרת-תצוגה: גיבוי-היסטורי גדול (אלפי ממתינים) ⇒ רינדור כולם מקפיא את
+  // הדפדפן (תקרית 19.8). מציגים רק את ה-SHOWN הראשונים; לבּאלק — מסך 🔄 הסנכרון.
+  const SHOWN = 300;
+  const shown = rows.slice(0, SHOWN);
+
   return (
     <Modal title="💰 תשלומים נכנסים — ממתינים לרישום" onClose={props.onClose}>
       {loading && <div className="empty">טוען…</div>}
@@ -50,7 +55,14 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
           דורש את שרת-ההרחבות; ראו RUNBOOK-FUNCTIONS.)
         </Empty>
       )}
-      {rows.map((p) => (
+      {rows.length > SHOWN && (
+        <div style={{ border: '1px solid var(--accent)', borderRadius: 10, padding: 10, marginBottom: 10, fontSize: 12.5 }}>
+          יש <b>{rows.length.toLocaleString('he-IL')}</b> תשלומים ממתינים — כמות גדולה (גיבוי היסטורי).
+          מוצגים {SHOWN} הראשונים בלבד. לעיבוד <b>כל</b> החיובים בבת-אחת השתמשו במסך <b>🔄 סנכרון מנדרים</b>
+          (מחבר לכרטיסים עם תצוגה-מקדימה) — לא ברשימה הידנית הזו.
+        </div>
+      )}
+      {shown.map((p) => (
         <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700 }}>
