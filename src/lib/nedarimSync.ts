@@ -117,10 +117,12 @@ export function chargeToHist(charge: SyncCharge): HistEntry {
   const txn = (charge.txnId || '').trim();
   const rec = (charge.receipt || '').trim();
   const l4 = (charge.last4 || '').trim();
+  const keva = (charge.kevaId || '').trim();
   if (ref) h.ref = ref;
   if (txn) h.txn = txn;
   if (rec) h.receipt = rec;
   if (l4) h.last4 = l4;
+  if (keva) h.kevaId = keva; // חיוב חוזר — נשמר ל-hist לזיהוי-הו"ק מדויק בעתיד
   return h;
 }
 
@@ -155,6 +157,79 @@ export function withNedarimHok(sp: Supporter, charge: SyncCharge): Supporter {
       kevaId: keva,
     },
   };
+}
+
+/* ── זיהוי-רטרואקטיבי של הו"ק מהיסטוריה (הכרעת-בעלים 19.8) ──
+   חיובים שכבר סונכרו לפני מנגנון-ההו"ק יושבים ב-hist בלי סימון. מזהים הו"ק
+   מ**תבנית-החיובים**: תורם עם אותו סכום-נדרים בכמה חודשים שונים = הוראת-קבע.
+   כשיש kevaId ב-hist (חיובים חדשים) — מדויק; אחרת — לפי סכום+מטבע חוזר. טהור. */
+
+/** מספר-החודשים מ-dateIso עד todayIso (0=אותו חודש). */
+function monthsAgo(dateIso: string, todayIso: string): number {
+  const [y1, m1] = dateIso.slice(0, 7).split('-').map(Number);
+  const [y2, m2] = todayIso.slice(0, 7).split('-').map(Number);
+  if (!y1 || !m1 || !y2 || !m2) return 999;
+  return (y2 - y1) * 12 + (m2 - m1);
+}
+
+/** הערך-השכיח במערך (mode) — ליום-החיוב הטיפוסי. */
+function modeOf(nums: number[]): number {
+  const c = new Map<number, number>();
+  let best = nums[0] ?? 1;
+  let bestN = 0;
+  for (const n of nums) {
+    const k = (c.get(n) ?? 0) + 1;
+    c.set(n, k);
+    if (k > bestN) { bestN = k; best = n; }
+  }
+  return best;
+}
+
+/** מזהה הוראות-קבע מתבנית-ה-hist וממלא את משבצת-ההו"ק. תורם עם אותו סכום-נדרים
+ *  ב-≥`minMonths` חודשים שונים = הו"ק (day=היום-השכיח, active=חויב ב-≤2 חודשים).
+ *  הו"ק **ידני** (בלי kevaId) לא נדרס. מחזיר { supporters, detected }. */
+export function detectRecurringHok(supporters: Supporter[], todayIso: string, minMonths = 3): { supporters: Supporter[]; detected: number } {
+  let detected = 0;
+  const out = supporters.map((sp) => {
+    if (sp.hok && !sp.hok.kevaId) return sp; // הו"ק ידני — לא נוגעים
+    const nd = (sp.hist ?? []).filter((h) => h.clearer === 'נדרים' && h.a > 0 && !!h.d);
+    if (nd.length < minMonths) return sp;
+    // קיבוץ לפי סכום|מטבע; בוחרים את הקבוצה עם הכי-הרבה חודשים-שונים.
+    const groups = new Map<string, typeof nd>();
+    for (const h of nd) {
+      const k = h.a + '|' + (h.c || '₪');
+      const arr = groups.get(k);
+      if (arr) arr.push(h); else groups.set(k, [h]);
+    }
+    let best: { amount: number; cur: '₪' | '$'; monthCount: number; days: number[]; dates: string[]; keva: string } | null = null;
+    for (const [k, arr] of groups) {
+      const months = new Set(arr.map((h) => h.d.slice(0, 7)));
+      if (months.size < minMonths) continue;
+      const [amtStr, cur] = k.split('|');
+      const keva = (arr.find((h) => h.kevaId)?.kevaId || 'auto').trim();
+      if (!best || months.size > best.monthCount) {
+        best = { amount: Number(amtStr), cur: (cur === '$' ? '$' : '₪'), monthCount: months.size, days: arr.map((h) => Number(h.d.slice(8, 10)) || 1), dates: arr.map((h) => h.d).sort(), keva };
+      }
+    }
+    if (!best) return sp;
+    detected++;
+    const startedAt = best.dates[0];
+    const lastDate = best.dates[best.dates.length - 1];
+    return {
+      ...sp,
+      hok: {
+        amount: best.amount,
+        cur: best.cur,
+        day: Math.min(28, Math.max(1, modeOf(best.days))),
+        method: 'card',
+        note: 'הו״ק נדרים (זוהה מהיסטוריה · ' + best.monthCount + ' חודשים)',
+        active: monthsAgo(lastDate, todayIso) <= 2,
+        startedAt,
+        kevaId: best.keva,
+      },
+    };
+  });
+  return { supporters: out, detected };
 }
 
 /* ── שיוך-ידני של תשלום-נכנס לכרטיס (בסגנון בדיקת-הכפילויות, 19.8.2026) ──

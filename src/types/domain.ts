@@ -519,6 +519,7 @@ export interface Supporter {
     clearer?: string; // חברה סולקת
     pays?: number; // מספר תשלומים
     status?: string; // סטטוס (אושר/נדחה)
+    kevaId?: string; // מזהה-הו"ק של הסליקה (נדרים) — חיוב חוזר (additive)
   }[];
   /**
    * הוראת-קבע (ROADMAP-100 ‏#2 צד-מערכת, 5.8.2026) — additive: המעקב והרישום
