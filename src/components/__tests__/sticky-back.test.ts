@@ -10,9 +10,9 @@ import crsSrc from '../courses/CourseDetail.tsx?raw';
 import supSrc from '../supporters/SupporterDetail.tsx?raw';
 
 describe('🔙 ratchet — StickyBackBar מרחף בתחתית', () => {
-  it('הרכיב המשותף קיים עם sticky bottom', () => {
+  it('הרכיב המשותף משתמש ב-className sticky-back (מיקום/גובה ב-global.css)', () => {
     expect(uiSrc).toContain('export function StickyBackBar');
-    expect(uiSrc).toMatch(/position: 'sticky',\s*bottom: 0/);
+    expect(uiSrc).toContain('className="sticky-back"');
   });
 
   it('שלושת מסכי-הכרטיס משתמשים בו', () => {
