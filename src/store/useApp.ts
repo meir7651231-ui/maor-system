@@ -298,6 +298,8 @@ interface AppState {
   deleteSupporter: (id: string) => void;
   /** מחיקה-מרובה — כל ה-ids בעדכון-מצב יחיד (אותו ניקוי-מדורג כמו הבודד). */
   deleteSupporters: (ids: string[]) => void;
+  /** שיוך-ייעוד (forWho) לכמה תומכ/ות בבת-אחת (בקשת-בעלים 19.8 — בחירה-מרובה). */
+  setSupportersPurpose: (ids: string[], purpose: string) => void;
   /** 🔗 מיזוג-כפולים (#13): כל הכסף עובר ל-keep (rid נשמר), drop נמחק. */
   mergeSupporters: (keepId: string, dropId: string) => void;
   /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
@@ -1699,6 +1701,15 @@ export const useApp = create<AppState>()((set, get) => {
           events: db.events.filter((ev) => !evIds.has(ev.id) && !(ev.spId && idSet.has(ev.spId))),
         };
       });
+    },
+    setSupportersPurpose(ids, purpose) {
+      const idSet = new Set(ids);
+      if (!idSet.size) return;
+      const p = purpose.trim();
+      logAudit('שיוך ייעוד "' + (p || '—') + '" ל-' + idSet.size + ' תומכ/ות', '');
+      setDb((db) => ({
+        supporters: db.supporters.map((s) => (idSet.has(s.id) ? { ...s, forWho: p } : s)),
+      }));
     },
     addDonation(supporterId, donation) {
       // 🔐 רק המנהל מנפיק קבלות (הכרעת-בעלים 14.8) — מקצה-יחיד ל-donationSeq
