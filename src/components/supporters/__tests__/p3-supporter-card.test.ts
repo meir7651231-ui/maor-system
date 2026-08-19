@@ -29,4 +29,11 @@ describe('💛 ratchet — P3 כרטיס תומכת', () => {
     expect(formSrc).toContain('city: f.city.trim()');
     expect(formSrc).toContain('<Field label="עיר">');
   });
+
+  // פריט ג' (19.8): כפתור-החזרה עבר לתחתית-המסך כפס-קבוע (sticky bottom)
+  it('כפתור-חזרה קבוע בתחתית — sticky bottom, לא בראש-המסך', () => {
+    expect(detailSrc).toMatch(/position: 'sticky',\s*bottom: 0/);
+    // כפתור-החזרה מופיע פעם-אחת (ירד מהראש)
+    expect(detailSrc.match(/onClick=\{props\.onBack\}/g)?.length).toBe(1);
+  });
 });
