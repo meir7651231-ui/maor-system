@@ -191,6 +191,8 @@ export function SupportersView() {
   const dialerStart = useApp((s) => s.dialerStart);
   // לוח התרומות הכלל-ארגוני (P1.4, legacy supCalOn/supCalAll) — מוצג בלחיצה
   const [orgCalOpen, setOrgCalOpen] = useState(false);
+  // בקשת-בעלים 19.8 (פריט ז'): לוח מעקב-הטיפול מוסתר כברירת-מחדל — בחירה מפורשת להצגה.
+  const [ayinBoardOpen, setAyinBoardOpen] = useState(false);
   const donCalOn = featureOn(config, 'supporters.doncal');
   // בקשת "+ תומכת" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
   const supFormReq = useApp((s) => s.supFormReq);
@@ -393,7 +395,21 @@ export function SupportersView() {
         </div>
       )}
 
-      {ayinOn && <AyinBoard onOpen={setSelId} />}
+      {ayinOn && (
+        <div className="card" style={{ marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <h3 style={{ fontSize: 15 }}>🩺 לוח מעקב הטיפול</h3>
+            <Btn sm onClick={() => setAyinBoardOpen((v) => !v)}>
+              {ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה'}
+            </Btn>
+          </div>
+          {ayinBoardOpen && (
+            <div style={{ marginTop: 10 }}>
+              <AyinBoard onOpen={setSelId} />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* לוח תרומות כלל-ארגוני — כל התומכות + אירועי המעקב (legacy supCalAll) */}
       {donCalOn && (
