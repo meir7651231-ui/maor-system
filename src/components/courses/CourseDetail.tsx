@@ -10,7 +10,7 @@ import { featureOn, roleOf, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { downloadCsv, type Cell } from '../../lib/csvx';
 import { buildCourseDailyRows } from '../../lib/courseDaily';
-import { Btn, Empty, Field, Modal, Select, TextInput } from '../ui';
+import { Btn, Empty, Field, Modal, Select, StickyBackBar, TextInput } from '../ui';
 import { CourseForm } from './CourseForm';
 import { EnrollModal } from './EnrollModal';
 import { ManageModal } from './ManageModal';
@@ -257,14 +257,7 @@ export function CourseDetail(props: { course: Course }) {
   );
 
   return (
-    <div>
-      <button
-        onClick={() => selectCourse(null)}
-        style={{ color: 'var(--ink-faint)', fontSize: 13, fontWeight: 700, marginBottom: 10 }}
-      >
-        {'→ כל ' + termOf(cfg, 'nav.courses', 'חוגים')}
-      </button>
-
+    <div style={{ paddingBottom: 60 }}>
       <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 15, marginBottom: 14 }}>
         <div
           style={{
@@ -745,6 +738,9 @@ export function CourseDetail(props: { course: Course }) {
       )}
       {expOpen && <CustomExport target="courses" onClose={() => setExpOpen(false)} />}
       {teacherPick && <TeacherPickModal course={c} onClose={() => setTeacherPick(false)} />}
+
+      {/* כפתור-חזרה מרחף קבוע בתחתית (בקשת-בעלים 19.8) */}
+      <StickyBackBar onBack={() => selectCourse(null)} label={'→ כל ' + termOf(cfg, 'nav.courses', 'חוגים')} />
     </div>
   );
 }

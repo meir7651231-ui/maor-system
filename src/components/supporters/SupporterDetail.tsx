@@ -13,7 +13,7 @@ import { annualReportLines, donationYears, downloadAnnualReport } from '../../li
 import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
-import { Btn, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
+import { Btn, Empty, Field, FormError, Modal, Select, StickyBackBar, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
 import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
@@ -616,19 +616,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         </Modal>
       )}
 
-      {/* פריט ג' (19.8, בקשת-בעלים): כפתור-חזרה קבוע בתחתית-המסך (sticky) */}
-      <div
-        style={{
-          position: 'sticky',
-          bottom: 0,
-          zIndex: 5,
-          background: 'linear-gradient(to top, var(--bg) 70%, transparent)',
-          padding: '10px 0 4px',
-          marginTop: 4,
-        }}
-      >
-        <Btn onClick={props.onBack}>{'→ כל ' + termOf(config, 'nav.supporters', 'התומכים')}</Btn>
-      </div>
+      {/* פריט ג' (19.8): כפתור-חזרה מרחף קבוע בתחתית — רכיב משותף */}
+      <StickyBackBar onBack={props.onBack} label={'→ כל ' + termOf(config, 'nav.supporters', 'התומכים')} />
     </div>
   );
 }
