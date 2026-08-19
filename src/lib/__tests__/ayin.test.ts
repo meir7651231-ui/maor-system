@@ -3,6 +3,7 @@ import {
   ayinActionVisible,
   ayinActive,
   ayinAdvanceLabel,
+  ayinAllRows,
   ayinDailyRows,
   boqLineAmount,
   boqTotal,
@@ -200,6 +201,29 @@ describe('ayinDailyRows', () => {
     expect(ayinActive(undefined)).toBe(false);
     const rows = ayinDailyRows(cfg(), [supOf()], today);
     expect(rows).toHaveLength(1);
+  });
+});
+
+// פריט א' (19.8): דוח מלא של כל השמות (שמות-לתפילה) — שורה פר-שם, להורדת-מנהל
+describe('ayinAllRows — דוח שמות מלא', () => {
+  it('שורה פר-שם על-פני כל התומכים; כותרת + תוכן', () => {
+    const a = supOf({ id: 's1', name: 'משה', phone: '050', ayin: caseOf({ stage: 'eyes', names: [
+      { id: 'n1', name: 'רפואה שלמה', eyes: 3, note: 'דחוף', done: false },
+      { id: 'n2', name: 'הצלחה', eyes: '', done: true },
+    ] }) });
+    const b = supOf({ id: 's2', name: 'ללא תיק' }); // בלי ayin — מדולג
+    const rows = ayinAllRows(cfg(), [a, b]);
+    expect(rows).toHaveLength(3); // כותרת + 2 שמות
+    expect(rows[0]).toEqual(['תורם/ת', 'טלפון', 'שם', 'כמות', 'הערה', 'סטטוס', 'שלב']);
+    expect(rows[1]).toEqual(['משה', '050', 'רפואה שלמה', 3, 'דחוף', 'ממתין', 'רישום']);
+    expect(rows[2][2]).toBe('הצלחה');
+    expect(rows[2][3]).toBe(''); // כמות ריקה
+    expect(rows[2][5]).toBe('טופל ✓');
+  });
+
+  it('שם ריק מדולג; אין שמות ⇒ כותרת בלבד', () => {
+    const empty = supOf({ ayin: caseOf({ names: [{ id: 'x', name: '  ', eyes: '', done: false }] }) });
+    expect(ayinAllRows(cfg(), [empty])).toHaveLength(1);
   });
 });
 

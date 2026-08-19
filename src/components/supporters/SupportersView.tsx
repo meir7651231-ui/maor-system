@@ -5,14 +5,14 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, integrationOn, integrationSetting, safeHttpsUrl, telephonyOn, termOf } from '../../lib/config';
+import { featureOn, integrationOn, integrationSetting, isAdminUser, safeHttpsUrl, telephonyOn, termOf } from '../../lib/config';
 import { DialerModal } from '../dialer/DialerModal';
 import { WaBtn } from '../WaBtn';
 import { IncomingPaymentsModal } from './IncomingPayments';
 import { annualAllLines, downloadAnnualReport } from '../../lib/annualReport';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
-import { ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
+import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
@@ -132,6 +132,7 @@ export function SupportersView() {
   // null = בלי הגבלה (מנהל/בעלים/לקוח-מקומי). מסתיר ברמת-הממשק (כמו shell.privacy).
   const purposeOn = featureOn(config, 'supporters.purpose');
   const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
   const desigLimit = purposeOn ? allowedDesignations : null;
   const [incomingOpen, setIncomingOpen] = useState(false);
   const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');
@@ -223,6 +224,17 @@ export function SupportersView() {
     }
     downloadCsv('ayin-daily-' + isoToday() + '.csv', rows);
     toast('דוח יומי: ' + (rows.length - 1) + ' פריטים שטופלו היום — הקובץ ירד');
+  }
+
+  /** דוח מלא של כל השמות (למשל שמות-לתפילה) — להורדת-מנהל, בסגנון דוחות התרומות. */
+  function namesReport() {
+    const rows = ayinAllRows(config, visibleSupportersForDesignations(db.supporters, desigLimit));
+    if (rows.length <= 1) {
+      toast('עדיין לא נוספו שמות בכרטיסי מעקב-הטיפול');
+      return;
+    }
+    downloadCsv('ayin-names-' + isoToday() + '.csv', rows);
+    toast('דוח שמות: ' + (rows.length - 1) + ' שמות — הקובץ ירד');
   }
 
   // 🐛 נחיל-9×9 (13.8): גם פתיחת-כרטיס-ישיר (מהפלטה/עומק) מכובדת להרשאת-הייעוד —
@@ -334,6 +346,7 @@ export function SupportersView() {
                   },
                 },
                 ayinOn && dailyReportOn && { label: '📋 דוח יומי', onClick: dailyReport },
+                ayinOn && isAdminUser(config, cloudEmail) && { label: '📥 דוח שמות (למנהל)', onClick: namesReport, title: 'כל השמות בכרטיסי מעקב-הטיפול — CSV' },
                 dedupCount > 0 && { label: '🔗 איחוד כפולים · ' + dedupCount, onClick: () => setDedupOpen(true) },
                 !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
               ]}

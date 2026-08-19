@@ -287,6 +287,34 @@ function fmtD(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
+/**
+ * דוח מלא של כל השמות (למשל שמות-לתפילה) בכרטיסי מעקב-הטיפול — שורה פר-שם,
+ * להורדת-מנהל בסגנון דוחות-התרומות (בקשת-בעלים 19.8 פריט א'). כולל תורם/ת,
+ * טלפון, שם, כמות (עיניים), הערה, סטטוס-טיפול ושלב. מכבד את הרשאת-הייעוד
+ * (המסננים בקריאה). ayin חלקי (לגאסי/ענן) ממוזג עם emptyAyin (הגנת-קריסה).
+ */
+export function ayinAllRows(cfg: OrgConfig, supporters: Supporter[]): Cell[][] {
+  const unit = unitLabel(cfg);
+  const rows: Cell[][] = [['תורם/ת', 'טלפון', 'שם', unit, 'הערה', 'סטטוס', 'שלב']];
+  for (const sp of supporters) {
+    if (!sp.ayin) continue;
+    const a = { ...emptyAyin(), ...sp.ayin };
+    for (const n of a.names) {
+      if (!n.name.trim()) continue;
+      rows.push([
+        sp.name,
+        sp.phone || '',
+        n.name,
+        n.eyes !== '' && n.eyes != null ? n.eyes : '',
+        n.note || '',
+        n.done ? 'טופל ✓' : 'ממתין',
+        stageLabel(cfg, a.stage),
+      ]);
+    }
+  }
+  return rows;
+}
+
 /* ── גיליון העיניים — ייצוא/ייבוא round-trip (feature supporters.ayin.sheet) ──
    ratchet: ייצוא verbatim מ-legacy-main-script.js:196-198 (exportImportFormat,
    kind==='ayin'), ייבוא מ-legacy:852-869 (processImport) והחלה מ-legacy:983-993
