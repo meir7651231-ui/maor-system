@@ -8,14 +8,17 @@
 import { describe, expect, it } from 'vitest';
 import type { Course } from '../../../types/domain';
 import { WEEKS_PER_MONTH, enrollmentQuote, lessonPriceForTier, lessonsInTerm, weightedQuote } from '../lib';
+import formSrc from '../CourseForm.tsx?raw';
+import detailSrc from '../CourseDetail.tsx?raw';
+import domainSrc from '../../../types/domain.ts?raw';
 
 const course = (over: Partial<Course> = {}): Course =>
   ({
     id: 'c1', name: 'ציור', teacherId: '', roomId: '', description: '',
-    price: 0, price1: 0, price2: 0, price1Name: 'אחים', price2Name: 'מלגה',
+    price: 0, price1: 0, price2: 0, price3: 0, price1Name: 'אחים', price2Name: 'מלגה', price3Name: 'ברוכות',
     model: 'monthly', size: 0, start: '', end: '', weekday: 0, time: '', maxStudents: 0,
     gender: 'all', ageMin: 0, ageMax: 0, cat: '', semester: '', sector: '', sessions: [], notes: '',
-    perLesson: true, lessonPrice: 50, lessonPrice1: 40, lessonPrice2: 30,
+    perLesson: true, lessonPrice: 50, lessonPrice1: 40, lessonPrice2: 30, lessonPrice3: 25,
     ...over,
   }) as Course;
 
@@ -54,6 +57,14 @@ describe('lessonPriceForTier — הנחת הלקוח', () => {
     const c = course({ lessonPrice2: 0 });
     expect(lessonPriceForTier(c, '2')).toBe(50);
   });
+  // פריט ו' (19.8): רמת-הנחה שלישית משוקללת
+  it('הנחה-3 (₪25) נכנסת לתמחור המשוקלל', () => {
+    const c = course();
+    expect(lessonPriceForTier(c, '3')).toBe(25);
+    const q = weightedQuote(c, { freq: 1, unit: 'week', term: 'year', tier: '3' });
+    expect(q.total).toBe(52 * 25); // 1300
+    expect(lessonPriceForTier(course({ lessonPrice3: 0 }), '3')).toBe(50); // ללא מחיר → מלא
+  });
 });
 
 describe('weightedQuote — הסכום המשוקלל הסופי', () => {
@@ -78,6 +89,23 @@ describe('weightedQuote — הסכום המשוקלל הסופי', () => {
     const q = weightedQuote(course(), { freq: 3, unit: 'week', term: 'once', tier: '2' });
     expect(q.total).toBe(30);
     expect(q.lessons).toBe(1);
+  });
+});
+
+describe('🛡 ratchet — הנחה 3 מחווטת (פריט ו)', () => {
+  it('שדות price3/price3Name/lessonPrice3 על Course; tier מקבל 3', () => {
+    expect(domainSrc).toMatch(/price3\?\s*:\s*number/);
+    expect(domainSrc).toMatch(/lessonPrice3\?\s*:\s*number/);
+    expect(domainSrc).toContain("tier?: '' | '1' | '2' | '3'");
+  });
+  it('הטופס שומר price3/price3Name/lessonPrice3', () => {
+    expect(formSrc).toContain('price3: +f.price3 || 0');
+    expect(formSrc).toContain('price3Name: f.price3Name.trim()');
+    expect(formSrc).toContain('lessonPrice3: +f.lessonPrice3 || 0');
+    expect(formSrc).toContain('שם הנחה 3');
+  });
+  it('הכרטיס מציג הנחה 3', () => {
+    expect(detailSrc).toContain("c.price3Name || 'הנחה 3'");
   });
 });
 

@@ -134,6 +134,9 @@ export interface Course {
   price2: number;
   price1Name: string;
   price2Name: string;
+  /** רמת-הנחה שלישית (בקשת-בעלים 19.8 פריט ו') — אופציונלי, additive, אין מיגרציה. */
+  price3?: number;
+  price3Name?: string;
   model: PricingModel;
   /** מספר ניקובים בכרטיסייה (model==='punch'). */
   size: number;
@@ -169,6 +172,8 @@ export interface Course {
   lessonPrice1?: number;
   /** מחיר-לשיעור ברמת-הנחה 2 (price2Name). */
   lessonPrice2?: number;
+  /** מחיר-לשיעור ברמת-הנחה 3 (price3Name). */
+  lessonPrice3?: number;
 }
 
 export interface Absence {
@@ -243,7 +248,7 @@ export interface Enrollment {
   /** מספר חודשים כאשר term==='months'. */
   termMonths?: number;
   /** רמת-ההנחה שנבחרה: '' = מלא · '1' · '2' (מיפוי ל-lessonPrice1/2). */
-  tier?: '' | '1' | '2';
+  tier?: '' | '1' | '2' | '3';
 }
 
 /** תקופת-חיוב לתמחור המשוקלל (בקשת-בעלים 13.8 ב'). */

@@ -23,8 +23,10 @@ interface CourseFormState {
   price: string;
   price1: string;
   price2: string;
+  price3: string;
   price1Name: string;
   price2Name: string;
+  price3Name: string;
   model: PricingModel;
   size: string;
   start: string;
@@ -50,6 +52,7 @@ interface CourseFormState {
   lessonPrice: string;
   lessonPrice1: string;
   lessonPrice2: string;
+  lessonPrice3: string;
   /** צירופים לחוג (בקשת-בעלים 13.8 א'). */
   files: CourseFile[];
 }
@@ -68,8 +71,10 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
       price: '',
       price1: '',
       price2: '',
+      price3: '',
       price1Name: '',
       price2Name: '',
+      price3Name: '',
       model: 'monthly',
       size: '',
       start: sy.start,
@@ -92,6 +97,7 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
       lessonPrice: '',
       lessonPrice1: '',
       lessonPrice2: '',
+      lessonPrice3: '',
       files: [],
     };
   }
@@ -107,8 +113,10 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
     price: course.price ? String(course.price) : '',
     price1: course.price1 ? String(course.price1) : '',
     price2: course.price2 ? String(course.price2) : '',
+    price3: course.price3 ? String(course.price3) : '',
     price1Name: course.price1Name,
     price2Name: course.price2Name,
+    price3Name: course.price3Name || '',
     model: course.model,
     size: course.size ? String(course.size) : '',
     start: course.start,
@@ -133,6 +141,7 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
     lessonPrice: course.lessonPrice ? String(course.lessonPrice) : '',
     lessonPrice1: course.lessonPrice1 ? String(course.lessonPrice1) : '',
     lessonPrice2: course.lessonPrice2 ? String(course.lessonPrice2) : '',
+    lessonPrice3: course.lessonPrice3 ? String(course.lessonPrice3) : '',
     files: course.files ?? [],
   };
 }
@@ -167,7 +176,7 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
   function save() {
     if (!f.name.trim()) return setError('שם ה' + termOf(cfg, 'entity.course', 'חוג') + ' הוא שדה חובה');
     if (!f.roomId) return setError('יש לבחור ' + termOf(cfg, 'entity.room', 'חדר') + ' פעילות');
-    if ([f.price, f.price1, f.price2, f.lessonPrice, f.lessonPrice1, f.lessonPrice2].some((p) => p && (isNaN(+p) || +p < 0)))
+    if ([f.price, f.price1, f.price2, f.price3, f.lessonPrice, f.lessonPrice1, f.lessonPrice2, f.lessonPrice3].some((p) => p && (isNaN(+p) || +p < 0)))
       return setError('המחיר חייב להיות מספר חיובי');
     if (perLessonOn && f.perLesson && (!f.lessonPrice || +f.lessonPrice <= 0))
       return setError('בתמחור פר-שיעור יש להזין מחיר-לשיעור גדול מ-0');
@@ -228,8 +237,10 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
       price: +f.price || 0,
       price1: +f.price1 || 0,
       price2: +f.price2 || 0,
+      price3: +f.price3 || 0,
       price1Name: f.price1Name.trim(),
       price2Name: f.price2Name.trim(),
+      price3Name: f.price3Name.trim(),
       model: f.model,
       size: +f.size || 0,
       start: f.start,
@@ -251,6 +262,7 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
       lessonPrice: +f.lessonPrice || 0,
       lessonPrice1: +f.lessonPrice1 || 0,
       lessonPrice2: +f.lessonPrice2 || 0,
+      lessonPrice3: +f.lessonPrice3 || 0,
       files: f.files,
     };
     const room = db.rooms.find((r) => r.id === f.roomId);
@@ -447,6 +459,9 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
                     <Field label={'מחיר-לשיעור · ' + (f.price2Name.trim() || 'הנחה 2') + ' (₪)'}>
                       <TextInput value={f.lessonPrice2} onChange={(v) => set({ lessonPrice2: v })} placeholder="—" dir="ltr" type="number" />
                     </Field>
+                    <Field label={'מחיר-לשיעור · ' + (f.price3Name.trim() || 'הנחה 3') + ' (₪)'}>
+                      <TextInput value={f.lessonPrice3} onChange={(v) => set({ lessonPrice3: v })} placeholder="—" dir="ltr" type="number" />
+                    </Field>
                   </>
                 )}
               </div>
@@ -472,6 +487,12 @@ export function CourseForm(props: { course: Course | null; onClose: () => void }
             </Field>
             <Field label="מחיר הנחה 2 (₪)">
               <TextInput value={f.price2} onChange={(v) => set({ price2: v })} placeholder="—" dir="ltr" />
+            </Field>
+            <Field label="שם הנחה 3">
+              <TextInput value={f.price3Name} onChange={(v) => set({ price3Name: v })} placeholder="לדוגמה: משפחות ברוכות" />
+            </Field>
+            <Field label="מחיר הנחה 3 (₪)">
+              <TextInput value={f.price3} onChange={(v) => set({ price3: v })} placeholder="—" dir="ltr" />
             </Field>
           </>
         )}

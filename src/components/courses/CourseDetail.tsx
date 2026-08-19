@@ -684,10 +684,12 @@ export function CourseDetail(props: { course: Course }) {
                 {detailRow('מחיר לשיעור', '₪' + c.lessonPrice + ' לשיעור', '#12803c')}
                 {c.lessonPrice1 ? detailRow((c.price1Name || 'הנחה 1') + ' לשיעור', '₪' + c.lessonPrice1, '#12803c') : null}
                 {c.lessonPrice2 ? detailRow((c.price2Name || 'הנחה 2') + ' לשיעור', '₪' + c.lessonPrice2, '#7c3aed') : null}
+                {c.lessonPrice3 ? detailRow((c.price3Name || 'הנחה 3') + ' לשיעור', '₪' + c.lessonPrice3, '#b45309') : null}
               </>
             ) : null}
             {discountsOn && detailRow(c.price1Name || 'הנחה 1', c.price1 ? '₪' + c.price1 : '—', '#12803c')}
             {discountsOn && detailRow(c.price2Name || 'הנחה 2', c.price2 ? '₪' + c.price2 : '—', '#7c3aed')}
+            {discountsOn && (c.price3 || c.price3Name) ? detailRow(c.price3Name || 'הנחה 3', c.price3 ? '₪' + c.price3 : '—', '#b45309') : null}
             {detailRow('מסלול', mm.label)}
             {detailRow('סמסטר', c.semester || 'שנתי')}
             {detailRow(termOf(cfg, 'entity.room', 'חדר') + ' פעילות', room?.name ?? '—')}
