@@ -20,6 +20,7 @@ import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, sup
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
+import { SupportersCockpit } from './SupportersCockpit';
 import { AyinBoard } from './AyinBoard';
 import { OrgDonationCalendar } from './DonationCalendar';
 import { SupporterImport } from './SupporterImport';
@@ -167,6 +168,10 @@ export function SupportersView() {
   // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל אחד מתקפל.
   // הצ׳יפים והסינון נשמרים בדיוק — רק מתקפלים; החיפוש+קטגוריה גלויים תמיד.
   const [advOpen, setAdvOpen] = useState(false);
+  // חלון-העבודה (הקוקפיט) — opt-in מפורש בלבד (‏featureOn ברירת-מחדל=on, לכן === true).
+  // חסר במפורש בכל הלקוחות-החיים ⇒ אפס-השפעה על הפרודקשן.
+  const cockpitOn = config.features?.['supporters.cockpit'] === true;
+  const [workMode, setWorkMode] = useState(false);
   // 🔁 זיהוי-הו"ק-מהיסטוריה — הפעולה מקומית-טהורה (detectRecurringHok על hist);
   // עד היום הכפתור היחיד היה קבור ב-NedarimSyncModal שנעול payments+ענן. חושפים אותו
   // כאן (מגודר hokOn) — מוצג רק כשיש חיובי-נדרים ב-hist, לא-דורס-הו"ק-ידני, no-op כשריק.
@@ -265,6 +270,34 @@ export function SupportersView() {
   const selRaw = db.supporters.find((s) => s.id === selId);
   const selected = selRaw && supporterVisibleForDesignations(selRaw, desigLimit) ? selRaw : undefined;
   if (selected) return <SupporterDetail supporter={selected} onBack={() => setSelId(null)} />;
+
+  // חלון-העבודה — נפרס רק כשהוא opt-in ובמצב-עבודה. פתיחת-כרטיס מנתבת ל-SupporterDetail
+  // (ה-early-return למעלה), וחזרה ממנו חוזרת לקוקפיט (workMode נשמר).
+  if (cockpitOn && workMode) {
+    const cockpitList = visibleSupportersForDesignations(db.supporters, desigLimit);
+    return (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>חלון העבודה</h1>
+          <span style={{ fontSize: 13, color: 'var(--ink-faint)' }}>
+            המערכת סידרה את היום — לחיצה-אחת לכל פעולה
+          </span>
+          <Btn
+            onClick={() => setWorkMode(false)}
+            title="מעבר לטבלה המלאה — כל התורמים, סינון, מיון וייצוא"
+          >
+            ☰ מסך הנתונים
+          </Btn>
+        </div>
+        <SupportersCockpit
+          supporters={cockpitList}
+          config={config}
+          usdRate={db.usdRate}
+          onOpen={(id) => setSelId(id)}
+        />
+      </div>
+    );
+  }
 
   const today = isoToday();
   const nq = normSearch(q);
@@ -397,6 +430,15 @@ export function SupportersView() {
             <Btn onClick={toggleSupView} title="החלפת תצוגה: רשימה / גריד">
               {supView === 'grid' ? '☰ רשימה' : '▦ גריד'}
             </Btn>
+            {cockpitOn && (
+              <Btn
+                kind="primary"
+                onClick={() => setWorkMode(true)}
+                title="חלון-העבודה: המערכת מסדרת את משימות היום — שיחות, תודות והו״ק"
+              >
+                🎯 חלון העבודה
+              </Btn>
+            )}
             {telephonyOn(config) && (
               <Btn
                 onClick={() => {
