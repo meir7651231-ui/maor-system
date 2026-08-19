@@ -124,6 +124,39 @@ export function chargeToHist(charge: SyncCharge): HistEntry {
   return h;
 }
 
+/* ── מילוי-אוטומטי של משבצת-ההו"ק מחיוב-נדרים חוזר (הכרעת-בעלים 19.8:
+   "שיתמלא אוטומטית מנדרים ישר למשבצת של הו"ק") — חיוב עם kevaId ⇒ הכרטיס מסומן
+   כהו"ק פעיל (סכום/מטבע/יום מהחיוב). הו"ק **ידני** של המשרד (בלי kevaId) לא נדרס. */
+
+/** יום-החיוב מתאריך-העסקה (1–28 — כך קיים בכל חודש). ברירת-מחדל 1. */
+function hokDayFromDate(iso: string): number {
+  const d = Number((iso || '').slice(8, 10));
+  return isFinite(d) && d >= 1 ? Math.min(28, Math.floor(d)) : 1;
+}
+
+/** אם העסקה חוזרת (kevaId) — ממלא/מעדכן את משבצת-ההו"ק של הכרטיס. משמר startedAt
+ *  מוקדם-ביותר; מעדכן סכום/מטבע/יום מהעסקה. הו"ק-ידני (בלי kevaId) לא נגוע. */
+export function withNedarimHok(sp: Supporter, charge: SyncCharge): Supporter {
+  const keva = (charge.kevaId || '').trim();
+  if (!keva) return sp;
+  if (sp.hok && !sp.hok.kevaId) return sp; // הו"ק ידני — לא דורסים
+  const cd = (charge.d || charge.at || '').slice(0, 10);
+  const prevStart = sp.hok?.startedAt || '';
+  return {
+    ...sp,
+    hok: {
+      amount: charge.amount,
+      cur: curOf(charge),
+      day: hokDayFromDate(cd),
+      method: 'card',
+      note: 'הו״ק נדרים · ' + keva,
+      active: true,
+      startedAt: prevStart && prevStart < cd ? prevStart : cd || prevStart || '',
+      kevaId: keva,
+    },
+  };
+}
+
 /* ── שיוך-ידני של תשלום-נכנס לכרטיס (בסגנון בדיקת-הכפילויות, 19.8.2026) ──
    כשהסנכרון-האוטומטי לא הצליח להתאים עסקה (שם שונה/חסר), המזכירה בוחרת ידנית
    את הכרטיס. אותם מפתחות-שיוך של המנוע — כדי להציע מועמדים חכמים. טהור. */
@@ -161,7 +194,7 @@ export function attachChargeTo(supporters: Supporter[], supId: string, charge: S
   const hist = sp.hist || [];
   if (txn && hist.some((h) => (h.txn || '').trim() === txn)) return { supporters, added: false };
   const next = supporters.slice();
-  next[idx] = { ...sp, hist: [...hist, chargeToHist(charge)] };
+  next[idx] = withNedarimHok({ ...sp, hist: [...hist, chargeToHist(charge)] }, charge);
   return { supporters: next, added: true };
 }
 
@@ -201,7 +234,7 @@ export function attachChargesBulk(supporters: Supporter[], items: { supId: strin
     const txn = (charge.txnId || '').trim();
     if (txn && seen.has(txn)) continue;
     if (txn) seen.add(txn);
-    next[idx] = { ...next[idx], hist: [...(next[idx].hist || []), chargeToHist(charge)] };
+    next[idx] = withNedarimHok({ ...next[idx], hist: [...(next[idx].hist || []), chargeToHist(charge)] }, charge);
     added++;
   }
   return { supporters: next, added };
@@ -398,8 +431,8 @@ export function planNedarimSync(
     if (txn && seen.has(txn)) { summary.chargesDup++; if (c.id) handledChargeIds.push(c.id); continue; }
     if (txn) seen.add(txn);
     else summary.chargesNoTxn++;
-    const sp = out[idx];
-    sp.hist = [...(sp.hist || []), chargeToHist(c)];
+    // חיוב חוזר (kevaId) ⇒ withNedarimHok ממלא אוטומטית את משבצת-ההו"ק של הכרטיס.
+    out[idx] = withNedarimHok({ ...out[idx], hist: [...(out[idx].hist || []), chargeToHist(c)] }, c);
     summary.chargesAdded++;
     if (c.id) handledChargeIds.push(c.id); // חובר ⇒ אפשר לסמן handled
     if (curOf(c) === '$') summary.usdAdded += c.amount;
