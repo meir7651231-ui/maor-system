@@ -36,4 +36,13 @@ describe('💛 ratchet — P3 כרטיס תומכת', () => {
     // אין כפתור-חזרה ידני בראש (רק דרך הרכיב המשותף)
     expect(detailSrc).not.toMatch(/onClick=\{props\.onBack\}/);
   });
+
+  // 🐛 ratchet — קישור-עמוד-התרומה (💳) היה אמוג׳י-בודד בלי תווית ובלי aria-label:
+  // נעלם-הפשר במגע וחריג לאחיו (🤖/📱) שנושאים טקסט. עכשיו תווית גלויה + aria-label.
+  it('🛡 💳 עמוד-התרומה נושא תווית גלויה + aria-label (לא אמוג׳י-בודד)', () => {
+    expect(detailSrc).toContain('💳 עמוד תרומה');
+    expect(detailSrc).toContain('aria-label="פתיחת עמוד-התרומה של הארגון"');
+    // המקור: הקישור עדיין נפתח ב-target חדש עם href של payLink (אפס שינוי-התנהגות)
+    expect(detailSrc).toMatch(/href=\{donateHref\}[\s\S]{0,120}target="_blank"/);
+  });
 });
