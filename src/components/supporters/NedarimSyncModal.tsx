@@ -20,8 +20,11 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
   const supporters = useApp((s) => s.db.supporters);
   const config = useApp((s) => s.config);
   const applyNedarimSync = useApp((s) => s.applyNedarimSync);
-  const wipeNedarimJunk = useApp((s) => s.wipeNedarimJunk);
-  const junkCount = useApp((s) => s.db.supporters.filter((sp) => sp.id.startsWith('sup-ned-txn-')).length);
+  const resetNedarimImport = useApp((s) => s.resetNedarimImport);
+  // כל מה שנכנס מנדרים: כרטיסים שנוצרו (id 'sup-ned-') + מקוריים עם extId/hist-נדרים
+  const nedCount = useApp((s) =>
+    s.db.supporters.filter((sp) => sp.id.startsWith('sup-ned-') || sp.extId || (sp.hist ?? []).some((h) => h.clearer === 'נדרים')).length,
+  );
   const [wipeArmed, setWipeArmed] = useState(false);
 
   const [loading, setLoading] = useState(true);
@@ -75,23 +78,23 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
 
   return (
     <Modal title={'🔄 סנכרון מנדרים — ' + nav} onClose={props.onClose} wide>
-      {junkCount > 0 && (
+      {nedCount > 0 && (
         <div style={{ border: '1px solid var(--danger, #e05252)', background: 'var(--bg)', borderRadius: 10, padding: 10, marginBottom: 12 }}>
-          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>🧹 ניקוי כרטיסים שנוצרו-אוטומטית מעסקאות</div>
+          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>🔄 איפוס מלא של ייבוא-נדרים</div>
           <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
-            זוהו <b>{junkCount.toLocaleString('he-IL')}</b> כרטיסים שנוצרו אוטומטית מעסקאות (לפני התיקון). מומלץ לנקות אותם,
-            למשוך מחדש את העסקאות (קישור <code>reset=1</code>), ואז לבצע סנכרון — כדי שההיסטוריה תתחבר לכרטיסי-התורם הנכונים.
+            מוחק את <b>כל</b> הכרטיסים שנכנסו מנדרים (~{nedCount.toLocaleString('he-IL')}) ומנקה את היסטוריות-החיוב מנדרים —
+            חזרה למצב שלפני-הייבוא. <b>הקבלות והתרומות המקוריות לא נגעות.</b> אחר-כך: משוך מחדש (<code>reset=1</code>) ובצע סנכרון נקי.
           </div>
           <Btn
             kind={wipeArmed ? 'danger' : undefined}
             sm
             onClick={() => {
               if (!wipeArmed) { setWipeArmed(true); return; }
-              wipeNedarimJunk();
+              resetNedarimImport();
               setWipeArmed(false);
             }}
           >
-            {wipeArmed ? `לאשר מחיקת ${junkCount.toLocaleString('he-IL')} כרטיסים?` : `🧹 נקה ${junkCount.toLocaleString('he-IL')} כרטיסים`}
+            {wipeArmed ? `לאשר איפוס ~${nedCount.toLocaleString('he-IL')} כרטיסים?` : `🔄 אפס הכל מנדרים (~${nedCount.toLocaleString('he-IL')})`}
           </Btn>
           {wipeArmed && <Btn sm onClick={() => setWipeArmed(false)}>ביטול</Btn>}
         </div>
