@@ -59,6 +59,11 @@ import { CloudUnlockScreen } from './components/lock/CloudUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
 
 /** צבע נקודת הסטטוס של סנכרון הענן — ירוק = synced. */
+/** תקרת החיבור-החי מנדרים: מעל זה = גיבוי-בּאלק (לא טפטוף בזמן-אמת) ⇒ מדולג
+ *  בחיבור-החי כדי לא להקפיא את הדפדפן; עובר למסך 🔄 הידני. (תקרית 19.8: משיכת
+ *  reset מ-2019 העמידה ~12K ממתינים ⇒ החיבור-החי הקפיא/הפיל את האתר על כל טעינה.) */
+const NED_LIVE_MAX = 400;
+
 const SYNC_DOT: Record<string, { color: string; title: string }> = {
   synced: { color: '#3fae5a', title: 'מסונכרן עם הענן' },
   connecting: { color: '#e2b93b', title: 'מתחבר לענן…' },
@@ -138,6 +143,12 @@ export default function App() {
       if (!alive) return;
       unsub = m.watchIncomingPayments((rows) => {
         if (!rows.length) return;
+        // ⚠️ חיבור-חי מיועד ל**טפטוף בזמן-אמת** (חיוב-חדש בודד מה-webhook). גיבוי-
+        // היסטורי גדול (מאות/אלפי ממתינים, למשל משיכת reset מ-2019) **לא** מעובד
+        // כאן — זה היה מריץ אלפי חישובים + אלפי כתיבות-ענן סינכרונית על כל טעינה
+        // ומקפיא/מפיל את הדפדפן (תקרית 19.8). מעל הסף ⇒ מדלגים; הבּאלק עובר למסך
+        // 🔄 הידני עם תצוגה-מקדימה (מנה אחת, לא לולאה). ratchet: nedarim-backfill-guard.
+        if (rows.length > NED_LIVE_MAX) return;
         // attachOnly ⇒ מחזיר רק את מזהי-העסקאות שחוברו לכרטיס-קיים; מה שלא-תואם
         // נשאר pending (ל-🔄 הידני) ⇒ לא מסמנים handled ולא יוצרים כרטיסים.
         const handled = applyNedarimAuto(rows);

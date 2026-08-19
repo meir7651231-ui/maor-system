@@ -64,10 +64,14 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
       plan.summary.updatedSupporters + ' עודכנו · ' +
       plan.summary.chargesAdded + ' חיובים';
     applyNedarimSync(plan.supporters, note);
-    // סימון החיובים כ-handled ⇒ יוצאים מרשימת-הממתינים ולא ייקלטו שוב בחיבור-החי
+    // סימון החיובים כ-handled ⇒ יוצאים מרשימת-הממתינים ולא ייקלטו שוב בחיבור-החי.
+    // ⚠️ בגיבוי-מלא יש אלפי חיובים — סימון **במנות** (300 במקביל, ממתין בין מנה
+    // למנה) במקום אלפי כתיבות-ענן בו-זמנית שמציפות את הדפדפן (תקרית 19.8).
     if (chargeIds.length) {
-      void import('../../store/cloudSync').then((m) => {
-        for (const id of chargeIds) void m.markIncomingPayment(id).catch(() => {});
+      void import('../../store/cloudSync').then(async (m) => {
+        for (let i = 0; i < chargeIds.length; i += 300) {
+          await Promise.all(chargeIds.slice(i, i + 300).map((id) => m.markIncomingPayment(id).catch(() => {})));
+        }
       });
     }
     setDone(true);
