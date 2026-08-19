@@ -125,6 +125,8 @@ export interface HomeStats {
   membersTotal: number;
   childrenTotal: number;
   activeCourses: number;
+  /** סה"כ חוגים (בקשת-בעלים 19.8 — כל הוספה נראית מיד בבית, לא רק "פעילים"). */
+  coursesTotal: number;
   activeEnrollments: number;
   enrollTotal: number;
   eventsToday: number;
@@ -163,6 +165,7 @@ export function homeStats(db: Db, now: Date): HomeStats {
     membersTotal: members.length,
     childrenTotal: members.filter((m) => !m.isParent).length,
     activeCourses: db.courses.filter((c) => courseActiveOn(c, todayIso)).length,
+    coursesTotal: db.courses.length,
     activeEnrollments: db.enrollments.filter((e) => e.status === 'active').length,
     enrollTotal: db.enrollments.length,
     eventsToday,

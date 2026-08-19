@@ -555,9 +555,9 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
       {coursesOn && (
         <StatCard
           icon="🎨"
-          label={termOf(config, 'nav.courses', 'חוגים') + ' פעילים'}
-          value={String(s.activeCourses)}
-          sub={`${s.activeEnrollments} ${termOf(config, 'entity.enrollments', 'שיבוצים')} פעילים מתוך ${s.enrollTotal}`}
+          label={termOf(config, 'nav.courses', 'חוגים')}
+          value={String(s.coursesTotal)}
+          sub={`${s.activeCourses} פעילים · ${s.activeEnrollments} ${termOf(config, 'entity.enrollments', 'שיבוצים')} מתוך ${s.enrollTotal}`}
           onClick={() => go('courses')}
         />
       )}
