@@ -266,7 +266,11 @@ export function supDonEvents(sp: Supporter, config?: OrgConfig): SupDonEvent[] {
     ]
       .filter(Boolean)
       .join(' · ');
-    out.push({ date: h.d, amount: h.a, cur: h.c || '₪', src: 'מהקובץ ההיסטורי' + (meta ? ' · ' + meta : '') });
+    // הכרעת-בעלים 19.8 ("אין יותר קובץ היסטורי — נדרים זה חי"): רשומה שהגיעה מחברת-
+    // סליקה (clearer, למשל נדרים) היא תרומה חיה — מוצגת כ"תרומה", לא "מהקובץ ההיסטורי".
+    // רק ייבוא-קובץ-ישן (בלי חברה-סולקת) נשאר "מהקובץ ההיסטורי" (תאימות-לאחור).
+    const label = h.clearer ? T('entity.donation', 'תרומה') : 'מהקובץ ההיסטורי';
+    out.push({ date: h.d, amount: h.a, cur: h.c || '₪', src: label + (meta ? ' · ' + meta : '') });
   }
   if (!(sp.hist || []).length) {
     const seen = new Set(out.map((x) => x.date));
