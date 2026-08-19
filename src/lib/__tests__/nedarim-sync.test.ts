@@ -87,6 +87,37 @@ describe('🔄 ratchet — planNedarimSync (סנכרון-נכנס דרך המפ�
     expect(summary.chargesAdded).toBe(2); // המבוטל (0) לא נספר
   });
 
+  it('קישור-לפי-שם: עסקה עם ClientName בלבד (בלי ToremId/ת"ז/טלפון) מתחברת לכרטיס-התורם התואם', () => {
+    // תרחיש-אמת: היסטוריית-נדרים ‏2019 — Zeout/Phone/Mail ריקים, אין ToremId, רק ClientName.
+    const existing = [sp('a', { name: 'ישראל צבי כהן', extId: '900' })];
+    const charges = [charge({ amount: 360, name: 'ישראל צבי כהן', txnId: '3224775', d: '2019-06-05', receipt: '110008' })];
+    const { supporters, summary } = planNedarimSync(existing, [], charges);
+    expect(summary.newSupporters).toBe(0); // לא נוצר כרטיס-כפול
+    expect(summary.chargesAdded).toBe(1);
+    const a = supporters.find((s) => s.id === 'a')!;
+    expect(a.hist).toHaveLength(1);
+    expect(a.hist![0]).toMatchObject({ a: 360, receipt: '110008' });
+  });
+
+  it('קישור-לפי-שם דרך תורם-שיובא: העסקה נדבקת לכרטיס שנוצר מרשימת-התורמים', () => {
+    const donors = [donor({ toremId: '492787', name: 'רחל בן צבי' })];
+    const charges = [charge({ amount: 60, name: 'רחל בן צבי', txnId: 'T-77' })];
+    const { supporters, summary } = planNedarimSync([], donors, charges);
+    expect(summary.newSupporters).toBe(1); // רק כרטיס-התורם; העסקה נדבקה אליו
+    const r = supporters.find((s) => s.extId === '492787')!;
+    expect(r.hist).toHaveLength(1);
+    expect(r.hist![0].a).toBe(60);
+  });
+
+  it('שם עמום (2 כרטיסים אותו שם) — לא מנחשים; העסקה יוצרת כרטיס נפרד', () => {
+    const existing = [sp('a', { name: 'משה כהן', city: 'ירושלים' }), sp('b', { name: 'משה כהן', city: 'בני ברק' })];
+    const charges = [charge({ amount: 100, name: 'משה כהן', txnId: 'X-1' })];
+    const { summary } = planNedarimSync(existing, [], charges);
+    // עמום ⇒ לא נדבק ל-a או ל-b בטעות; נוצר כרטיס-חדש (בטיחות מפני מיזוג-שווא)
+    expect(summary.newSupporters).toBe(1);
+    expect(summary.chargesAdded).toBe(1);
+  });
+
   it('עסקה עם ToremId חדש שאין-לו-תורם — לא נוצרים שני כרטיסים לאותו ToremId', () => {
     const charges = [
       charge({ amount: 10, toremId: '950', txnId: 'A' }),
