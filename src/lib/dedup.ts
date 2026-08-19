@@ -258,7 +258,21 @@ function supNameCityKey(sp: Supporter): string {
   return n && c ? n + '|' + c : '';
 }
 
-/** קבוצות כפולי-תורמים — טלפון מנורמל / אימייל / שם+עיר זהים (Union-Find). */
+/**
+ * ת"ז מנורמלת להשוואה — ספרות בלבד; אפסים-בלבד (מציין-מקום נדרים "000000000")
+ * וקצרים-מדי (<5 ספרות = מספר-סידורי, לא ת"ז) ⇒ ריק (לא מפתח-שיוך).
+ */
+function normId(s?: string): string {
+  const d = (s || '').replace(/\D/g, '');
+  if (!d || /^0+$/.test(d)) return '';
+  return d.length >= 5 ? d : '';
+}
+
+/**
+ * קבוצות כפולי-תורמים — טלפון / אימייל / **ת"ז** / **מזהה-חיצוני (ToremId)** /
+ * שם+עיר זהים (Union-Find). ת"ז ומזהה-חיצוני הם מפתחות-שיוך חזקים ⇒ מאפשרים
+ * זיהוי-100% גם כששם/טלפון שונים (שדרוג "ללמוד ממשפחות + להתאים לתורמים").
+ */
 export function findSupporterDupGroups(supporters: Supporter[]): string[][] {
   const parent = new Map<string, string>();
   const find = (x: string): string => {
@@ -280,26 +294,22 @@ export function findSupporterDupGroups(supporters: Supporter[]): string[][] {
   for (const sp of supporters) parent.set(sp.id, sp.id);
   const byPhone = new Map<string, string>();
   const byEmail = new Map<string, string>();
+  const byId = new Map<string, string>(); // ת"ז
+  const byExt = new Map<string, string>(); // מזהה-חיצוני (ToremId)
   const byNameCity = new Map<string, string>();
+  const link = (map: Map<string, string>, key: string, id: string) => {
+    if (!key) return;
+    const prev = map.get(key);
+    if (prev) union(prev, id);
+    else map.set(key, id);
+  };
   for (const sp of supporters) {
     const p = normPhone(sp.phone);
-    if (p.length >= 7) {
-      const prev = byPhone.get(p);
-      if (prev) union(prev, sp.id);
-      else byPhone.set(p, sp.id);
-    }
-    const e = (sp.email || '').trim().toLowerCase();
-    if (e) {
-      const prev = byEmail.get(e);
-      if (prev) union(prev, sp.id);
-      else byEmail.set(e, sp.id);
-    }
-    const nk = supNameCityKey(sp);
-    if (nk) {
-      const prev = byNameCity.get(nk);
-      if (prev) union(prev, sp.id);
-      else byNameCity.set(nk, sp.id);
-    }
+    link(byPhone, p.length >= 7 ? p : '', sp.id);
+    link(byEmail, (sp.email || '').trim().toLowerCase(), sp.id);
+    link(byId, normId(sp.idNum), sp.id);
+    link(byExt, (sp.extId || '').trim(), sp.id);
+    link(byNameCity, supNameCityKey(sp), sp.id);
   }
   const groups = new Map<string, string[]>();
   for (const sp of supporters) {
@@ -339,7 +349,79 @@ export function mergeSupporterInto(keep: Supporter, drop: Supporter): Supporter 
     usd,
     first: donations[0]?.date ?? keep.first ?? '',
     last: donations[donations.length - 1]?.date ?? keep.last ?? '',
+    ...(keep.extId || drop.extId ? { extId: keep.extId || drop.extId } : {}),
     ...(keep.hok || drop.hok ? { hok: keep.hok ?? drop.hok } : {}),
     ...(keep.ayin || drop.ayin ? { ayin: keep.ayin ?? drop.ayin } : {}),
   };
+}
+
+/**
+ * מיזוג-קבוצה אטומי (פאריטי עם `mergeFamilies`): מקפל את `mergeSupporterInto`
+ * מעל כל ה-losers, כך שקבוצה של 3+ ממוזגת בקריאה אחת ללא איבוד-כסף (הצבירה
+ * מחושבת-מחדש בכל שכבה). טהור — לא משנה קלט.
+ */
+export function mergeSupportersGroup(keeper: Supporter, losers: Supporter[]): Supporter {
+  return losers.reduce((acc, l) => mergeSupporterInto(acc, l), keeper);
+}
+
+/* ── מיזוג שדה-שדה לתורמים (למידה מ-`mergeFamiliesByFields` של המשפחות) ─────────
+ * המשתמש בוחר פר-שדה מאיזו רשומה לקחת (pick) או עורך ידנית (edit). **הכסף
+ * לעולם לא נבחר-ידנית** — התרומות/hist/הצבירה ממוזגים בסמנטיקה הבטוחה של
+ * mergeSupportersGroup; רק שדות-הקשר הסקלריים נבחרים. */
+
+export interface SupDupFieldDef {
+  key: string;
+  label: string;
+  get: (sp: Supporter) => string;
+}
+
+/** שדות-המיזוג הנבחרים של תומך (סקלריים בלבד — בלי כסף). */
+export const SUP_DUP_FIELDS: SupDupFieldDef[] = [
+  { key: 'name', label: 'שם', get: (s) => s.name || '' },
+  { key: 'phone', label: 'טלפון', get: (s) => s.phone || '' },
+  { key: 'email', label: 'אימייל', get: (s) => s.email || '' },
+  { key: 'idNum', label: 'ת"ז', get: (s) => s.idNum || '' },
+  { key: 'city', label: 'עיר', get: (s) => s.city || '' },
+  { key: 'address', label: 'כתובת', get: (s) => s.address || '' },
+  { key: 'cat', label: 'קטגוריה', get: (s) => s.cat || '' },
+  { key: 'forWho', label: 'ייעוד', get: (s) => s.forWho || '' },
+  { key: 'notes', label: 'הערות', get: (s) => s.notes || '' },
+];
+
+/** ערך-שדה נבחר: edit גובר; אחרת pick; אחרת הרשומה הראשונה עם ערך. */
+export function supDupFieldValue(
+  sups: Supporter[],
+  def: SupDupFieldDef,
+  pick: Record<string, number>,
+  edit: Record<string, string>,
+): string {
+  const edited = edit[def.key];
+  if (edited != null) return edited;
+  const idx = pick[def.key] ?? sups.findIndex((s) => def.get(s));
+  return def.get(sups[idx >= 0 ? idx : 0]);
+}
+
+/** מיזוג קבוצת-תורמים לפי בחירת-שדות — טהור; sups[0] בסיס-השומר (כל הכסף נשמר). */
+export function mergeSupportersByFields(
+  sups: Supporter[],
+  pick: Record<string, number>,
+  edit: Record<string, string>,
+): Supporter {
+  const base = mergeSupportersGroup(sups[0], sups.slice(1));
+  const out: Supporter = { ...base };
+  for (const def of SUP_DUP_FIELDS) {
+    const val = supDupFieldValue(sups, def, pick, edit);
+    switch (def.key) {
+      case 'name': out.name = val; break;
+      case 'phone': out.phone = val; break;
+      case 'email': out.email = val; break;
+      case 'idNum': out.idNum = val; break;
+      case 'city': out.city = val; break;
+      case 'address': out.address = val; break;
+      case 'cat': out.cat = val; break;
+      case 'forWho': out.forWho = val; break;
+      case 'notes': out.notes = val; break;
+    }
+  }
+  return out;
 }

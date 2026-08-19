@@ -15,6 +15,18 @@
 const { mapPaymentCallback } = require('./paymentMap');
 
 /**
+ * תאריך-עסקה של נדרים ("dd/MM/yyyy HH:mm:ss") → ISO "yyyy-MM-dd". נדרים ישראלי
+ * ⇒ יום/חודש/שנה. מחזיר '' אם אין תאריך תקין (הלקוח ייפול ל-isoToday במיפוי).
+ */
+function nedarimDateToIso(raw) {
+  const m = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(String(raw || ''));
+  if (!m) return '';
+  const [, d, mo, y] = m;
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${y}-${pad(mo)}-${pad(d)}`;
+}
+
+/**
  * @param {Array<Record<string, unknown>>} rows - מערך ה-JSON מ-GetHistoryJson
  * @param {string} org - slug הארגון (מהודהד ל-mapPaymentCallback לצורך שדה org)
  * @returns {{ writes: Array<{id: string, data: Record<string, unknown>}>, cursor: number }}
@@ -35,6 +47,12 @@ function planHistoryWrites(rows, org) {
     // נפילות-ברירת-מחדל: Firestore דוחה undefined (שדה חסר מהמפה ⇒ create נכשל).
     // כל שדה שהמפה לא החזירה נכתב כמחרוזת-ריקה (מטבע ⇒ '₪'), כך שהמשיכה עמידה
     // גם מול גרסת-מפה חלקית/ותיקה.
+    // שדות ל-hist[] של כרטיס-התומך (תאריך-אמת, מספר-קבלת-נדרים, 4 ספרות אחרונות)
+    // + מזהה-תורם (ToremId) כשנדרים מחזיר אותו בעסקה — מפתח-השיוך ל-100% התאמה.
+    const dIso = nedarimDateToIso(r.TransactionTime ?? r.Date ?? r.PaymentDate);
+    const receipt = String(r.KabalaId ?? r.KabalaNum ?? r.ReceiptNum ?? '').trim();
+    const last4 = String(r.LastNum ?? r.Last4 ?? r.CardSuffix ?? '').trim().slice(-4);
+    const toremId = String(r.ToremId ?? r.ToremId ?? r.ClientId ?? r.DonorId ?? '').trim();
     writes.push({
       id: 'nedarim-' + tid,
       data: {
@@ -48,6 +66,10 @@ function planHistoryWrites(rows, org) {
         kevaId: m.kevaId || '',
         reference: m.reference || tid,
         txnId: tid,
+        d: dIso, // תאריך-העסקה האמיתי (ISO) — ל-hist[].d; ריק ⇒ הלקוח ייפול ל-isoToday
+        receipt, // KabalaId — מספר-הקבלה של נדרים (מנפיק §46) ⇒ hist[].receipt
+        last4, // 4 ספרות אחרונות של הכרטיס ⇒ hist[].last4
+        toremId, // מזהה-תורם נדרים (אם מסופק) ⇒ שיוך-ישיר לרשימת-התורמים
         source: 'pull', // מבחין ממקור-ה-webhook (אבחון); ה-doc-id זהה ⇒ אין כפילות
         status: 'pending',
       },
@@ -56,4 +78,4 @@ function planHistoryWrites(rows, org) {
   return { writes, cursor };
 }
 
-module.exports = { planHistoryWrites };
+module.exports = { planHistoryWrites, nedarimDateToIso };

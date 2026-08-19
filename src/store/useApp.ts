@@ -55,7 +55,7 @@ import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isSuperAdm
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
-import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto } from '../lib/dedup';
+import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
@@ -300,6 +300,10 @@ interface AppState {
   deleteSupporters: (ids: string[]) => void;
   /** 🔗 מיזוג-כפולים (#13): כל הכסף עובר ל-keep (rid נשמר), drop נמחק. */
   mergeSupporters: (keepId: string, dropId: string) => void;
+  /** מיזוג-קבוצה אטומי (פאריטי משפחות): כל ה-losers נספגים ל-keep בקריאה אחת. */
+  mergeSupportersGroup: (keepId: string, loserIds: string[]) => void;
+  /** מיזוג-לפי-שדות (פאריטי משפחות): ids[0]=בסיס-השומר; ערכי-שדות לפי pick/edit. */
+  mergeSupportersFields: (ids: string[], pick: Record<string, number>, edit: Record<string, string>) => void;
   /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
   addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => { ok: boolean; rid?: string };
 
@@ -1664,6 +1668,44 @@ export const useApp = create<AppState>()((set, get) => {
         events: db.events.filter((ev) => ev.id !== drop.nextEventId && ev.spId !== dropId),
       }));
       get().toast('🔗 ' + drop.name + ' מוזג/ה לתוך ' + keep.name + ' — כל ה' + termOf(get().config, 'entity.donations', 'תרומות') + ' והקבלות נשמרו');
+    },
+
+    mergeSupportersGroup(keepId, loserIds) {
+      // פאריטי עם mergeFamilyGroup: כל ה-losers נספגים ל-keep בקריאה-אטומית אחת
+      // (הצבירה מחושבת-מחדש, ה-rid לעולם לא אובד). ניקוי יתומים לכל הנמחקים.
+      const losers = new Set(loserIds.filter((id) => id !== keepId));
+      if (!losers.size) return;
+      const { supporters } = get().db;
+      const keep = supporters.find((s) => s.id === keepId);
+      const dropList = supporters.filter((s) => losers.has(s.id));
+      if (!keep || !dropList.length) return;
+      const merged = mergeSupportersGroup(keep, dropList);
+      logAudit('מיזוג ' + dropList.length + ' תורמים', dropList.map((d) => d.name).slice(0, 6).join(', ') + ' ← ' + keep.name);
+      const dropEvIds = new Set(dropList.map((d) => d.nextEventId).filter(Boolean) as string[]);
+      setDb((db) => ({
+        supporters: db.supporters.filter((s) => !losers.has(s.id)).map((s) => (s.id === keepId ? merged : s)),
+        events: db.events.filter((ev) => !dropEvIds.has(ev.id) && !(ev.spId && losers.has(ev.spId))),
+      }));
+      get().toast('🔗 מוזגו ' + dropList.length + ' ל' + termOf(get().config, 'nav.supporters', 'תורמים') + ' שנבחר — כל ה' + termOf(get().config, 'entity.donations', 'תרומות') + ' והקבלות נשמרו');
+    },
+
+    mergeSupportersFields(ids, pick, edit) {
+      // פאריטי עם mergeFamilyGroupFields: ערכי-השדות הסקלריים לפי הבחירה; הכסף
+      // (donations/hist/הצבירה) בסמנטיקה הבטוחה של mergeSupportersGroup.
+      const keepId = ids[0];
+      const losers = new Set(ids.slice(1));
+      if (!keepId || !losers.size) return;
+      const { supporters } = get().db;
+      const sups = ids.map((id) => supporters.find((s) => s.id === id)).filter((s): s is Supporter => !!s);
+      if (sups.length < 2) return;
+      const merged = mergeSupportersByFields(sups, pick, edit);
+      logAudit('מיזוג-שדות ' + (sups.length - 1) + ' תורמים', merged.name);
+      const dropEvIds = new Set(sups.slice(1).map((d) => d.nextEventId).filter(Boolean) as string[]);
+      setDb((db) => ({
+        supporters: db.supporters.filter((s) => !losers.has(s.id)).map((s) => (s.id === keepId ? merged : s)),
+        events: db.events.filter((ev) => !dropEvIds.has(ev.id) && !(ev.spId && losers.has(ev.spId))),
+      }));
+      get().toast('הרשומות מוזגו לפי הבחירה ✓ — נשמרה רשומה אחת');
     },
 
     deleteSupporter(id) {

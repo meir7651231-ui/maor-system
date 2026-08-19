@@ -212,7 +212,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'settings.audittrail', label: 'לוג פעולות 🧾', desc: 'מי-שינה-מה-ומתי (תרומות, תשלומים, מחיקות, שחזור) — 500 האחרונות; צפייה למנהל בלבד', module: 'settings' },
   { key: 'settings.dedup', label: 'איחוד כפילויות משפחות', desc: 'זיהוי משפחות כפולות (טלפון/שם+עיר) ומיזוגן לרשומה אחת — בלי אובדן נתונים', module: 'settings' },
   { key: 'settings.audit.extra', label: 'ביקורת מורחבת', desc: 'בדיקות נוספות: יעד-קשר שעבר, תרומות בסכום אפס/שלילי + שליחת ממצא למרכז הטיפול וקפיצה לאיחוד כפילויות', module: 'settings' },
-  { key: 'settings.dedup.fields', label: 'מיזוג שדה-שדה', desc: 'בחירת הערך הנכון לכל שדה (18 שדות) בין הרשומות הכפולות + מחיקת רשומה מהקבוצה', module: 'settings' },
+  { key: 'settings.dedup.fields', label: 'מיזוג שדה-שדה', desc: 'בחירת הערך הנכון לכל שדה בין הרשומות הכפולות (משפחות ותורמים) + מחיקת רשומה מהקבוצה', module: 'settings' },
   { key: 'settings.export', label: 'ייצוא נתונים', desc: 'ייצוא גיבוי ונתונים לקובץ', module: 'settings' },
   { key: 'settings.reset', label: 'איפוס מערכת', desc: 'מחיקת כל הנתונים ואיפוס המערכת', module: 'settings' },
   { key: 'settings.backup', label: 'גיבוי ושחזור', desc: 'סעיף "גיבוי ושחזור" בהגדרות — הורדת גיבוי מלא, שחזור מקובץ וצילומים יומיים', module: 'settings' },
