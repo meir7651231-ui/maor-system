@@ -39,6 +39,15 @@ describe('💳 ratchet — payLink (קישורי-תשלום, עד-המפתח)', 
   it('סכום 0 (בקשת-תרומה כללית) — בלי פרמטר amount', () => {
     expect(payLink('https://pay.example/', 0)!).not.toContain('amount=');
   });
+
+  it('נדרים-פלוס (matara.pro/nedarimplus): מילוי-מראש ב-Amount/ClientName (PascalCase)', () => {
+    const u = payLink('https://www.matara.pro/nedarimplus/online/?mosad=7001532', 180, 'ר׳ לוי')!;
+    expect(u).toContain('mosad=7001532');
+    expect(u).toContain('Amount=180');
+    expect(u).toContain('ClientName=' + encodeURIComponent('ר׳ לוי').replace(/%20/g, '+'));
+    // לא הצורה הכללית הקטנה (שנדרים לא קורא)
+    expect(u).not.toContain('amount=180');
+  });
 });
 
 describe('🤖 ratchet — עוזר-AI (מפתח מקומי-למכשיר)', () => {
