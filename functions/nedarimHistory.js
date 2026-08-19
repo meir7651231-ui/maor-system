@@ -1,0 +1,56 @@
+/**
+ * כיוון-יוצא · משיכת היסטוריית-עסקאות מנדרים-פלוס (GetHistoryJson) → רשומות
+ * "תשלום-נכנס". **טהור** (בלי firebase/רשת) כדי שיהיה ניתן-לבדיקה ביחידה.
+ *
+ * רשת-הביטחון: ה-webhook הוא "ניסיון-אחד-בלבד" (מסמך נדרים) — אם מאור לא היה
+ * זמין ברגע החיוב, העסקה אבדה. משיכה-תקופתית מנדרים סוגרת את הפער: כל עסקה
+ * שנוצרה מאז ה-cursor האחרון נמשכת ונכתבת (dedup לפי TransactionId ⇒ מה שה-
+ * webhook כבר תפס לא משוכפל).
+ *
+ * נדרים מחזיר את אותם שדות כמו ה-CallBack (ClientName/Amount/Currency/…), לכן
+ * אותו `mapPaymentCallback` ממפה. הערות-מסמך: עסקה מבוטלת ⇒ Amount=0; זיכוי ⇒
+ * Amount שלילי + "זיכוי עסקה:" בהערות. פאזה-1 (משיכה בטוחה) מתעדת **חיובים
+ * חיוביים בלבד** (כמו ה-webhook) — מבוטלות/זיכויים = פאזה מאוחרת מודעת-כסף.
+ */
+const { mapPaymentCallback } = require('./paymentMap');
+
+/**
+ * @param {Array<Record<string, unknown>>} rows - מערך ה-JSON מ-GetHistoryJson
+ * @param {string} org - slug הארגון (מהודהד ל-mapPaymentCallback לצורך שדה org)
+ * @returns {{ writes: Array<{id: string, data: Record<string, unknown>}>, cursor: number }}
+ *   writes — רשומות-לכתיבה (id דטרמיניסטי לדדופ); cursor — ה-TransactionId הגבוה
+ *   ביותר שנראה (לשמירה ולשליחה כ-LastId בפנייה הבאה). cursor מתקדם על **כל**
+ *   השורות (גם מבוטלות) כדי לא למשוך אותן שוב, גם אם לא נכתבו.
+ */
+function planHistoryWrites(rows, org) {
+  const writes = [];
+  let cursor = 0;
+  for (const r of Array.isArray(rows) ? rows : []) {
+    const tid = String(r.TransactionId ?? r.Transaction ?? '').trim();
+    const idNum = Number(tid);
+    if (Number.isFinite(idNum) && idNum > cursor) cursor = idNum;
+    if (!tid) continue; // בלי TransactionId אי-אפשר לדדופ — מדלגים (ה-webhook יתפוס)
+    const m = mapPaymentCallback({ ...r, org });
+    if (!(m.amount > 0)) continue; // חיוב חיובי בלבד (מבוטל=0 · זיכוי=שלילי → פאזה מאוחרת)
+    writes.push({
+      id: 'nedarim-' + tid,
+      data: {
+        amount: m.amount,
+        currency: m.currency,
+        name: m.name,
+        phone: m.phone,
+        email: m.email,
+        zeout: m.zeout,
+        category: m.category,
+        kevaId: m.kevaId,
+        reference: m.reference,
+        txnId: tid,
+        source: 'pull', // מבחין ממקור-ה-webhook (אבחון); ה-doc-id זהה ⇒ אין כפילות
+        status: 'pending',
+      },
+    });
+  }
+  return { writes, cursor };
+}
+
+module.exports = { planHistoryWrites };

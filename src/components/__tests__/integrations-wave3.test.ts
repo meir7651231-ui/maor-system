@@ -128,11 +128,17 @@ describe('🖥 ratchet — גל ד׳ "עד-השרת": functions מושלמות +
     expect(fnSrc).toContain('019sms.co.il');
     expect(fnSrc).toContain('googleapis');
     expect(fnSrc).toContain('spreadsheetId');
-    // ‏org=root ⇒ אוסף-שורש (הלקוח-הקיים) — לא orgs/root
-    expect(fnSrc).toContain("m.org === 'root'");
+    // ‏org=root ⇒ אוסף-שורש (הלקוח-הקיים) — לא orgs/root (עכשיו דרך incomingCol)
+    expect(fnSrc).toContain("org === 'root'");
+    expect(fnSrc).toContain('incomingCol');
     // מתאם-נדרים: מיפוי סובלני של שדות ה-CallBack + שמירת המטען-הגולמי
     expect(fnSrc).toContain('mapPaymentCallback');
     expect(fnSrc).toContain('raw:');
+    // כיוון-יוצא (משיכה): dedup דטרמיניסטי `nedarim-<TransactionId>` משותף webhook+pull
+    // ⇒ אפס כפילות; ה-pull הוא קריאה-בלבד (GetHistoryJson) ⇒ לא נוגע במוני-קבלות.
+    expect(fnSrc).toContain('nedarim-');
+    expect(fnSrc).toContain('exports.nedarimPull');
+    expect(fnSrc).toContain('GetHistoryJson');
   });
 
   it('🛡 צד-לקוח: תשלומים-נכנסים ו-SMS מגודרים הרחבה+ענן; ההגדרות ב-allowlist', () => {

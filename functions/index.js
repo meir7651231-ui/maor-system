@@ -12,6 +12,9 @@
  *   PAY_SECRET    — הסוד המשותף לאימות webhook מחברת-הסליקה
  *   SMTP_URL      — ‏smtps://user:pass@host — לשליחת-מיילים (צרור-הלילה)
  *   MAIL_FROM     — כתובת-השולח המוצגת במיילים
+ *   NEDARIM_MOSAD_ID     — מספר-המוסד בנדרים-פלוס (7 ספרות) — למשיכת-עסקאות
+ *   NEDARIM_API_PASSWORD — מפתח-API של המוסד (npk_ — סוד; רק השרת נוגע בו)
+ *   NEDARIM_ORG          — slug הארגון לרשת-הביטחון האוטומטית (nedarimSyncHourly)
  */
 const { onRequest } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
@@ -19,8 +22,82 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const { mapPaymentCallback } = require('./paymentMap');
+const { planHistoryWrites } = require('./nedarimHistory');
 
 initializeApp();
+
+/** אוסף התשלומים-הנכנסים בתחום הארגון (root=הלקוח-הקיים; אחרת orgs/{slug}/…). */
+function incomingCol(db, org) {
+  return org === 'root'
+    ? db.collection('incomingPayments')
+    : db.collection('orgs').doc(org).collection('incomingPayments');
+}
+
+/**
+ * כיוון-יוצא · משיכת עסקאות מנדרים (GetHistoryJson) → תשלומים-נכנסים.
+ * רשת-ביטחון ל-webnhook (ניסיון-אחד-בלבד): כל עסקה מאז ה-cursor נמשכת ונכתבת.
+ * dedup: doc-id דטרמיניסטי `nedarim-<TransactionId>` — `create()` נכשל-בשקט אם
+ * כבר קיים ⇒ מה שה-webhook תפס (וייתכן שכבר נרשם ע"י המזכירה) **לא נדרס**.
+ * מגבלת-נדרים: 20 פניות/שעה ⇒ תקרת-עמודים נוקשה. secrets: NEDARIM_MOSAD_ID,
+ * NEDARIM_API_PASSWORD (npk_ — סוד; רק השרת נוגע בו).
+ */
+async function fetchNedarimHistory(lastId, maxId) {
+  const body = new URLSearchParams({
+    Action: 'GetHistoryJson',
+    MosadId: process.env.NEDARIM_MOSAD_ID || '',
+    ApiPassword: process.env.NEDARIM_API_PASSWORD || '',
+    MaxId: String(maxId),
+  });
+  if (lastId) body.set('LastId', String(lastId));
+  const resp = await fetch('https://matara.pro/nedarimplus/Reports/Manage3.aspx', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  });
+  const text = await resp.text();
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error('nedarim: תשובה לא-JSON — ' + text.slice(0, 200));
+  }
+  // נדרים מחזיר מערך; חלק מהתשובות עוטפות ב-{Transactions:[…]} — סובלנות.
+  return Array.isArray(json) ? json : json.Transactions || json.data || [];
+}
+
+async function runNedarimPull(org) {
+  const db = getFirestore();
+  const col = incomingCol(db, org);
+  const cursorRef = (org === 'root' ? db.collection('nedarimSync') : db.collection('orgs').doc(org).collection('nedarimSync')).doc('cursor');
+  const cursorSnap = await cursorRef.get();
+  const startCursor = Number((cursorSnap.exists && cursorSnap.data().lastTxnId) || 0);
+  let lastId = startCursor;
+  let maxCursor = startCursor;
+  let added = 0;
+  let pages = 0;
+  const MAX_PAGES = 5; // 5×2000=10K עסקאות/ריצה — הרבה מתחת ל-20/שעה
+  const MAX_ID = 2000; // תקרת נדרים
+  while (pages < MAX_PAGES) {
+    pages++;
+    const rows = await fetchNedarimHistory(lastId, MAX_ID);
+    if (!rows.length) break;
+    const { writes, cursor } = planHistoryWrites(rows, org);
+    for (const w of writes) {
+      try {
+        await col.doc(w.id).create({ ...w.data, at: new Date().toISOString() });
+        added++;
+      } catch (e) {
+        // ALREADY_EXISTS (code 6) ⇒ כבר תועד (webhook/ריצה קודמת) — לא נוגעים.
+        if (e && e.code !== 6 && e.code !== 'already-exists') throw e;
+      }
+    }
+    if (cursor > maxCursor) maxCursor = cursor;
+    lastId = cursor;
+    if (rows.length < MAX_ID) break; // עמוד אחרון (פחות מהמקסימום)
+  }
+  if (maxCursor > startCursor) await cursorRef.set({ lastTxnId: maxCursor, at: new Date().toISOString() }, { merge: true });
+  return { added, pages, cursor: maxCursor };
+}
 
 /**
  * 💳 paymentsWebhook — חברת-הסליקה קוראת לכאן אחרי חיוב מוצלח.
@@ -41,10 +118,8 @@ exports.paymentsWebhook = onRequest({ secrets: ['PAY_SECRET'] }, async (req, res
   // eslint-disable-next-line no-unused-vars
   const { secret, ...rawSafe } = p; // המטען-הגולמי בלי הסוד-המשותף — לתיעוד/דיוק-מיפוי
   const db = getFirestore();
-  const col = m.org === 'root'
-    ? db.collection('incomingPayments')
-    : db.collection('orgs').doc(m.org).collection('incomingPayments');
-  await col.add({
+  const col = incomingCol(db, m.org);
+  const payload = {
     amount: m.amount,
     currency: m.currency, // '₪' | '$' — נדרים Currency 1/2 (בלי זה תרומת-$ מוצגת כ-₪)
     name: m.name, // נדרים שולח ClientName — בלי המיפוי השם היה נכנס ריק
@@ -57,9 +132,63 @@ exports.paymentsWebhook = onRequest({ secrets: ['PAY_SECRET'] }, async (req, res
     at: new Date().toISOString(),
     status: 'pending', // המזכירה מאשרת-רושמת במערכת (רציפות R-/D-)
     raw: JSON.parse(JSON.stringify(rawSafe)),
-  });
+  };
+  // dedup + אי-דריסה: TransactionId ⇒ doc-id דטרמיניסטי משותף עם המשיכה (nedarimSync).
+  // create() נכשל אם כבר קיים ⇒ עסקה שכבר תועדה (וייתכן שכבר נרשמה) לא מתאפסת ל-pending.
+  const tid = String(p.TransactionId ?? p.Transaction ?? '').trim();
+  try {
+    if (tid) {
+      payload.txnId = tid;
+      await col.doc('nedarim-' + tid).create(payload);
+    } else {
+      await col.add(payload); // בלי מזהה-עסקה — id אקראי (ספק אחר / CallBack חלקי)
+    }
+  } catch (e) {
+    // ALREADY_EXISTS (code 6) ⇒ כבר תועד ⇒ אידמפוטנטי (מחזירים ok). שגיאה אחרת ⇒ מפילים.
+    if (e && e.code !== 6 && e.code !== 'already-exists') throw e;
+  }
   res.status(200).send('ok');
 });
+
+/**
+ * 🔄 nedarimPull (HTTP · כיוון-יוצא) — משיכה יזומה של היסטוריית-עסקאות מנדרים
+ * לתשלומים-הנכנסים. מאובטח בסוד PAY_SECRET (כמו ה-webhook). בדיקה/על-דרישה:
+ * פתיחת כתובת ?org=<slug>&secret=<PAY_SECRET>. מחזיר JSON {added,pages,cursor}.
+ * קריאה-בלבד מול נדרים (GetHistoryJson) ⇒ בטוח, לא מזיז כסף.
+ */
+exports.nedarimPull = onRequest(
+  { secrets: ['PAY_SECRET', 'NEDARIM_MOSAD_ID', 'NEDARIM_API_PASSWORD'] },
+  async (req, res) => {
+    if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).send('POST/GET only');
+    const p = { ...(req.query ?? {}), ...(req.body ?? {}) };
+    if ((p.secret ?? '') !== process.env.PAY_SECRET) return res.status(403).send('bad secret');
+    const org = String(p.org ?? '').trim();
+    if (!/^[a-z0-9-]{2,40}$|^root$/.test(org)) return res.status(400).send('bad org');
+    try {
+      const out = await runNedarimPull(org);
+      res.status(200).json({ ok: true, ...out });
+    } catch (e) {
+      res.status(502).json({ ok: false, error: String((e && e.message) || e) });
+    }
+  },
+);
+
+/**
+ * 🕒 nedarimSyncHourly — רשת-הביטחון האוטומטית: כל שעה מושכת עסקאות-חדשות
+ * מנדרים לארגון שב-NEDARIM_ORG (ברירת-מחדל root). כשל-רך (לא מפיל את התזמון).
+ */
+exports.nedarimSyncHourly = onSchedule(
+  { schedule: 'every 60 minutes', secrets: ['NEDARIM_MOSAD_ID', 'NEDARIM_API_PASSWORD', 'NEDARIM_ORG'] },
+  async () => {
+    const org = (process.env.NEDARIM_ORG || 'root').trim();
+    try {
+      const out = await runNedarimPull(org);
+      console.log('nedarimSyncHourly', org, JSON.stringify(out));
+    } catch (e) {
+      console.error('nedarimSyncHourly failed', org, String((e && e.message) || e));
+    }
+  },
+);
 
 /**
  * 📱 sendSmsVia — מתאמי-הספקים (הושלם בגל ד׳ "עד-השרת"): 019sms ו-InforU.
