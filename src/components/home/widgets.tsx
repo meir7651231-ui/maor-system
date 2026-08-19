@@ -295,6 +295,9 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
  */
 function HeroWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, now, todayIso, data, go, selectCourse } = ctx;
+  // חיווט-עומק (19.8): "➕ הוספת משפחה" פותח את הטופס עצמו (openFamilyForm —
+  // אותו דפוס famFormReq של הפלטה/צֹהַר), לא רק מנווט לרשימה.
+  const openFamilyForm = useApp((s) => s.openFamilyForm);
   const familiesOn = moduleOn(config, 'families');
   const coursesOn = moduleOn(config, 'courses');
   const calendarOn = moduleOn(config, 'calendar');
@@ -370,7 +373,7 @@ function HeroWidget({ ctx }: { ctx: HomeCtx }) {
             </Btn>
           )}
           {familiesOn && (
-            <Btn kind="primary" onClick={() => go('families')}>
+            <Btn kind="primary" onClick={openFamilyForm} title={'פתיחת טופס ' + termOf(config, 'entity.family', 'משפחה') + ' חדשה'}>
               ➕ הוספת {termOf(config, 'entity.family', 'משפחה')}
             </Btn>
           )}
@@ -514,23 +517,32 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
   const coursesOn = moduleOn(config, 'courses');
   const calendarOn = moduleOn(config, 'calendar');
   const supportersOn = moduleOn(config, 'supporters');
+
+  // ⚡ קלילות (19.8): הספארקליינים נגזרים פעם-אחת פר-נתונים (useMemo) —
+  // לא בכל רנדר של הבית (דופק-הדקה/ריחופים היו מריצים סריקה מלאה מחדש).
+  const { famSpark, famNew, donSpark, donMonth } = useMemo(() => {
+    // משפחות חדשות פר-חודש (6 חודשים) — אמיתי מ-createdAt
+    const fs = monthlySeries(
+      db.families.map((f) => ({ date: f.createdAt || '', value: 1 })),
+      now,
+    );
+    // תרומות ₪ פר-חודש — קבלות + היסטוריה (הכרעת-בעלים 9.8 "לכולל", כמו donIls)
+    const donPoints: { date: string; value: number }[] = [];
+    for (const sp of db.supporters) {
+      for (const dn of sp.donations) if (dn.cur !== '$') donPoints.push({ date: dn.date, value: dn.amount });
+      for (const h of sp.hist ?? []) if (h.c !== '$') donPoints.push({ date: h.d || '', value: h.a });
+    }
+    return {
+      famSpark: fs,
+      famNew: fs[fs.length - 1],
+      donSpark: monthlySeries(donPoints, now),
+      donMonth: monthDonationSum(db, now),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [db.families, db.supporters, ctx.todayIso]);
+
   // כל המודולים של הכרטיסים כבויים ⇒ אין מה להציג — הגריד כולו נעלם
   if (!familiesOn && !coursesOn && !calendarOn && !supportersOn) return null;
-
-  // משפחות חדשות פר-חודש (6 חודשים) — אמיתי מ-createdAt
-  const famSpark = monthlySeries(
-    db.families.map((f) => ({ date: f.createdAt || '', value: 1 })),
-    now,
-  );
-  const famNew = famSpark[famSpark.length - 1];
-
-  // תרומות ₪ פר-חודש — אמיתי מתאריכי התרומות
-  const donPoints: { date: string; value: number }[] = [];
-  for (const sp of db.supporters) {
-    for (const dn of sp.donations) if (dn.cur !== '$') donPoints.push({ date: dn.date, value: dn.amount });
-  }
-  const donSpark = monthlySeries(donPoints, now);
-  const donMonth = monthDonationSum(db, now);
 
   return (
     <div className="hm-stats">
@@ -538,8 +550,12 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
         <StatCard
           icon="👨‍👩‍👧‍👦"
           label={termOf(config, 'nav.families', 'משפחות')}
-          value={String(s.famTotal)}
-          sub={`${s.famActive} פעילות · ${s.famPending} ממתינות · ${s.famInactive} לא פעילות`}
+          value={s.famTotal.toLocaleString('he-IL')}
+          sub={
+            `${s.famActive} פעילות · ${s.famPending} ממתינות · ${s.famInactive} לא פעילות` +
+            // מונה אלמנות (פער-לגאסי 20) — עמותתי בלבד (core.taxreceipt); מסחרי לא מושפע
+            (s.widows > 0 && featureOn(config, 'core.taxreceipt') ? ` · ${s.widows} אלמנות` : '')
+          }
           chip={famNew > 0 ? `+${famNew} החודש` : undefined}
           spark={famSpark}
           onClick={() => go('families')}
@@ -549,7 +565,7 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
         <StatCard
           icon="🧒"
           label={termOf(config, 'entity.members', 'בני משפחה')}
-          value={String(s.membersTotal)}
+          value={s.membersTotal.toLocaleString('he-IL')}
           sub={`מהם ${s.childrenTotal} ילדים`}
           onClick={() => go('families')}
         />
@@ -566,9 +582,10 @@ function StatsWidget({ ctx }: { ctx: HomeCtx }) {
       {calendarOn && (
         <StatCard
           icon="📅"
-          label="אירועים פתוחים"
+          // תיקון (19.8): הערך הוא ספירת-היום — התווית אמרה "פתוחים" (מטעה)
+          label="אירועים היום"
           value={String(s.eventsToday)}
-          sub={`היום · ${s.eventsWeek} השבוע`}
+          sub={`${s.eventsWeek} השבוע`}
           onClick={() => go('calendar')}
         />
       )}
@@ -1633,12 +1650,14 @@ export interface ThemeBoardTemplate {
 export const THEME_TEMPLATES: Record<string, ThemeBoardTemplate> = {
   /* mock-desktop רזה (UX סבב-ג׳): ימין היום+אחרונות · שמאל דורש-טיפול+הצעות */
   'or-rishon': { pre: ['stats'], colA: ['today', 'recent'], colB: ['attention', 'suggest'], post: [] },
-  /* mock-heichal: ימין סדר היום+נר תמיד · שמאל ספר הזהב+הלוח העברי (1.3fr/1fr) */
-  heichal: { pre: ['stats'], colA: ['today', 'attention'], colB: ['goldbook', 'hebcal'], post: [] },
+  /* mock-heichal: ימין סדר היום+נר תמיד · שמאל ספר הזהב+הלוח העברי (1.3fr/1fr)
+     תיקון-סחף (19.8): 'suggest' היה ב-THEME_LAYOUTS אך נשמט מהתבנית — הווידג'ט
+     נעלם בתצוגת-התבנית של שלוש הערכות; הסדר השטוח הוחזר לזהות עם ה-preset. */
+  heichal: { pre: ['stats'], colA: ['today', 'attention', 'suggest'], colB: ['goldbook', 'hebcal'], post: [] },
   /* mock-tsohar: היום כטבלה רחבה (2fr) מול דורש טיפול (1fr) */
-  tsohar: { pre: ['stats'], colA: ['today'], colB: ['attention'], post: ['recent'] },
+  tsohar: { pre: ['stats'], colA: ['today'], colB: ['attention', 'suggest'], post: ['recent'] },
   /* mock-kehila: ימין המפגשים של היום · שמאל שווה לטפל+הקהילה שלנו (1.3fr/1fr) */
-  kehila: { pre: ['stats', 'bdays'], colA: ['today'], colB: ['attention', 'community'], post: [] },
+  kehila: { pre: ['stats', 'bdays'], colA: ['today'], colB: ['attention', 'suggest', 'community'], post: [] },
 };
 
 /** סדר ברירת המחדל הקלאסי (אור ראשון) — fallback לערכה לא מוכרת. */
@@ -1655,6 +1674,12 @@ export function defaultLayoutFor(theme: string): readonly WidgetId[] {
  *  שלו (home.carousel/community/coursemetrics/credmetrics דרך visible(config)). */
 export const FULL_LAYOUTS: Record<string, readonly WidgetId[]> = {
   'or-rishon': ['hero', 'stats', 'carousel', 'today', 'recent', 'attention', 'suggest', 'community', 'coursemetrics', 'credmetrics'],
+  /* תיקון (19.8): גם שלוש הערכות האחרות מקבלות פריסה-מלאה כש-home.board כבוי —
+     קודם רק or-rishon כוסתה והשאר נפלו לפריסה הרזה (האנליטיקה אבדה בלי דרך להוסיף).
+     כל ווידג'ט עדיין מגודר visible(config) — דגל כבוי פשוט מדולג. */
+  heichal: ['hero', 'stats', 'carousel', 'today', 'attention', 'suggest', 'goldbook', 'hebcal', 'community', 'coursemetrics', 'credmetrics'],
+  tsohar: ['hero', 'stats', 'carousel', 'today', 'attention', 'suggest', 'recent', 'community', 'coursemetrics', 'credmetrics'],
+  kehila: ['hero', 'stats', 'bdays', 'carousel', 'today', 'attention', 'suggest', 'community', 'coursemetrics', 'credmetrics'],
 };
 export function noBoardLayoutFor(theme: string): readonly WidgetId[] {
   return FULL_LAYOUTS[theme] ?? defaultLayoutFor(theme);

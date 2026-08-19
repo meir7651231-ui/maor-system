@@ -23,7 +23,7 @@ export { EV_META, evLabel };
 import { DEFAULT_CONFIG } from '../../types/config';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import { featureOn, termOf } from '../../lib/config';
-import { hokDue } from '../supporters/lib';
+import { hokDue, supIls, supUsd } from '../supporters/lib';
 
 /** מפת המודולים הפעילים (config.modules) — חסר = פעיל; false = כבוי. */
 export type ModulesMap = OrgConfig['modules'];
@@ -149,13 +149,13 @@ export function homeStats(db: Db, now: Date): HomeStats {
     if (i === 0) eventsToday = evs.length;
     for (const ev of evs) weekIds.add(ev.id);
   }
+  // הכרעת-בעלים 9.8 (#14 "לכולל"): הצבירה המוצגת = קבלות+היסטוריה דרך supIls/supUsd —
+  // אותו מקור-אמת כמו מסך התורמים (הבית הראה עד כה קבלות-בלבד ⇒ מספר שונה מהרשימה).
   let donIls = 0;
   let donUsd = 0;
   for (const sp of db.supporters) {
-    for (const dn of sp.donations) {
-      if (dn.cur === '$') donUsd += dn.amount;
-      else donIls += dn.amount;
-    }
+    donIls += supIls(sp);
+    donUsd += supUsd(sp);
   }
   return {
     famTotal: db.families.length,
@@ -644,12 +644,17 @@ export function monthlySeries(
   return out;
 }
 
-/** סכום תרומות השקל בחודש הנוכחי — לצ'יפ המגמה בכרטיס התרומות. */
+/**
+ * סכום תרומות השקל בחודש הנוכחי — לצ'יפ המגמה בכרטיס התרומות.
+ * הכרעת-בעלים 9.8 (#14 "לכולל"): גם רשומות היסטוריה (hist) של החודש נספרות —
+ * עקבי עם supIls; הדוח-השנתי-לתורם (מסמך-מס) נשאר קבלות-בלבד.
+ */
 export function monthDonationSum(db: Db, now: Date): number {
   const key = monthKeyOf(now, 0);
   let sum = 0;
   for (const sp of db.supporters) {
     for (const dn of sp.donations) if (dn.cur !== '$' && dn.date.startsWith(key)) sum += dn.amount;
+    for (const h of sp.hist ?? []) if (h.c !== '$' && (h.d || '').startsWith(key)) sum += h.a;
   }
   return sum;
 }

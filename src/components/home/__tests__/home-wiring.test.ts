@@ -10,9 +10,10 @@
  *    שגוי — מעל 8 פריטים הנקודות "קפאו"; וגם רונדרו רק 8 נקודות ל-10 פריטים.
  */
 import { describe, it, expect } from 'vitest';
-import { attentionItems } from '../homeData';
+import { attentionItems, homeStats, monthDonationSum } from '../homeData';
 import widgetsSrc from '../widgets.tsx?raw';
 import homeViewSrc from '../HomeView.tsx?raw';
+import { FULL_LAYOUTS, THEME_LAYOUTS, THEME_TEMPLATES } from '../widgets';
 import { DEFAULT_CONFIG } from '../../../types/config';
 import { emptyDb, type Db, type OrgEvent, type Supporter } from '../../../types/domain';
 
@@ -93,7 +94,96 @@ describe('חיווט-עומק · דורש-טיפול (attentionItems)', () => {
   });
 });
 
+describe('אשכול 2 · הכרעת-בעלים 9.8 "לכולל" — צבירת-הבית = קבלות+היסטוריה', () => {
+  it('donIls/donUsd בבית כוללים hist (כמו supIls במסך התורמים — מספר אחד בשני המסכים)', () => {
+    const db: Db = {
+      ...emptyDb(),
+      supporters: [
+        supporter({
+          id: 'h1',
+          ils: 100,
+          usd: 10,
+          donations: [],
+          hist: [
+            { d: '2020-01-01', a: 50, c: '₪' },
+            { d: '2020-01-02', a: 5, c: '$' },
+          ],
+        } as Partial<Supporter>),
+      ],
+    };
+    const s = homeStats(db, NOW);
+    // הבאג ההיסטורי: הבית סכם donations[] בלבד ⇒ 0, בעוד מסך התורמים הראה 150
+    expect(s.donIls).toBe(150);
+    expect(s.donUsd).toBe(15);
+  });
+
+  it('צ׳יפ "החודש" (monthDonationSum) סופר גם רשומת-hist של החודש', () => {
+    const db: Db = {
+      ...emptyDb(),
+      supporters: [
+        supporter({
+          id: 'h2',
+          donations: [{ rid: 'D-1', date: '2026-07-03', amount: 40, cur: '₪', cat: '' }],
+          hist: [{ d: '2026-07-15', a: 60, c: '₪' }, { d: '2026-06-15', a: 999, c: '₪' }],
+        } as Partial<Supporter>),
+      ],
+    };
+    expect(monthDonationSum(db, NOW)).toBe(100);
+  });
+});
+
+describe('אשכול 2 · מבנה הפריסות — אפס-סחף בין preset לתבנית', () => {
+  it('כל תבנית-ערכה (THEME_TEMPLATES) מכסה בדיוק את ה-preset שלה (THEME_LAYOUTS)', () => {
+    // הבאג: suggest היה ב-THEME_LAYOUTS אך נשמט מ-3 תבניות ⇒ הווידג'ט נעלם בתצוגה
+    for (const theme of Object.keys(THEME_TEMPLATES)) {
+      const t = THEME_TEMPLATES[theme];
+      const flat = new Set(['hero', ...t.pre, ...t.colA, ...t.colB, ...t.post]);
+      expect(flat, 'ערכה ' + theme).toEqual(new Set(THEME_LAYOUTS[theme]));
+    }
+  });
+
+  it('לכל ערכה יש פריסה-מלאה (FULL_LAYOUTS) המכילה את ה-preset + 4 ווידג\'טי האנליטיקה', () => {
+    // הבאג: רק or-rishon כוסתה — בשאר הערכות home.board:false איבד את האנליטיקה לתמיד
+    for (const theme of Object.keys(THEME_LAYOUTS)) {
+      const full = FULL_LAYOUTS[theme];
+      expect(full, 'ערכה ' + theme).toBeTruthy();
+      for (const id of THEME_LAYOUTS[theme]) expect(full, `ערכה ${theme} · ${id}`).toContain(id);
+      for (const id of ['carousel', 'community', 'coursemetrics', 'credmetrics'])
+        expect(full, `ערכה ${theme} · ${id}`).toContain(id);
+    }
+  });
+});
+
 describe('הגנת-מקור · HomeView + ווידג\'טים', () => {
+  it('הווידג\'טים מקבלים db מסונן-ייעוד (vdb) — עובדת מוגבלת לא רואה תורמים זרים', () => {
+    expect(homeViewSrc).toMatch(/db: vdb,/);
+  });
+
+  it('הערכה האפקטיבית אחידה (activeTheme) — פריסה ותבנית מאותו מקור', () => {
+    expect(homeViewSrc).toContain('const activeTheme = db.ui.theme ?? config.theme;');
+    expect(homeViewSrc).toContain('THEME_TEMPLATES[activeTheme]');
+    expect(homeViewSrc).not.toContain('defaultLayoutFor(config.theme)');
+  });
+
+  it('שמירת-לוח לא משמיטה ווידג\'טים שמוסתרים זמנית (מודול כבוי בזמן העריכה)', () => {
+    expect(homeViewSrc).toMatch(/hidden = savedLayout\.filter\(\(id\) => !HOME_WIDGETS\[id\]\.visible\(config\)\)/);
+    expect(homeViewSrc).toContain('[...draft, ...hidden]');
+  });
+
+  it('navTo ממוגן-מודול גם למשפחה/חוג (לא רק תומך)', () => {
+    expect(homeViewSrc).toMatch(/if \(coursesOn\) selectCourse\(nav\.id\)/);
+    expect(homeViewSrc).toMatch(/if \(familiesOn\) selectFamily\(nav\.id\)/);
+  });
+
+  it('דופק-דקה — הברכה מתעדכנת והלוח מתגלגל בחצות בלי רענון', () => {
+    expect(homeViewSrc).toMatch(/setInterval\(\(\) => setTick\(\(n\) => n \+ 1\), 60_000\)/);
+  });
+
+  it('"➕ הוספת משפחה" ב-hero פותח את הטופס עצמו (openFamilyForm), לא רק ניווט', () => {
+    expect(widgetsSrc).toMatch(/openFamilyForm = useApp\(\(s\) => s\.openFamilyForm\)/);
+    expect(widgetsSrc).toMatch(/onClick=\{openFamilyForm\}/);
+  });
+
   it('navTo מטפל ב-kind:supporter דרך openSupporterCard, מגודר-מודול', () => {
     expect(homeViewSrc).toMatch(/nav\.kind === 'supporter'/);
     expect(homeViewSrc).toMatch(/if \(supportersOn\) openSupporterCard\(nav\.id\)/);

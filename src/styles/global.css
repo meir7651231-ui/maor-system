@@ -1428,6 +1428,22 @@ h1,
   flex-direction: column;
   gap: 8px;
   padding: 14px 14px 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+/* חיווי-קליקביליות (19.8): הכרטיס "עונה" לריחוף/פוקוס — היה שטוח לגמרי */
+.hm-stat:hover,
+.hm-stat:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hm-stat:hover,
+  .hm-stat:focus-visible {
+    transform: none;
+  }
 }
 
 .hm-stat-head {
@@ -1881,6 +1897,15 @@ h1,
 
 :root[data-theme="heichal"] .hm-stat:first-child {
   border-inline-start: 0;
+}
+
+/* בהיכל הרצועה חלקה — ריחוף = הבהוב-זהב שקט בלבד, בלי הרמה/צל שישברו את הפס */
+:root[data-theme="heichal"] .hm-stat:hover,
+:root[data-theme="heichal"] .hm-stat:focus-visible {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--line);
+  background: rgba(233, 189, 99, 0.07);
 }
 
 /* תווית קטנה מעל, מספר זהב-בהיר גדול בסריף 900, דלתא ירוקה מתחת — בלי עיגול אייקון */
