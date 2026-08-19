@@ -57,7 +57,8 @@ async function fetchNedarimHistory(lastId, maxId) {
 /** איפוס-משיכה (opt-in): מחיקת שורות-המשיכה הקודמות (source==pull) + ה-cursor,
  * לפני משיכה-מחדש — כדי למשוך הכל שוב עם המפה המעודכנת (שמות). שורות-webhook נשמרות. */
 /** משיכת רשימת-התורמים כ-CSV (GetTormimCsv). שים לב: השדה הוא MosadNumber (לא MosadId). */
-async function fetchNedarimDonorsCsv() {
+/** משיכת רשימת-התורמים — בייטים גולמיים (הקידוד הוא Windows-1255, לא UTF-8!). */
+async function fetchNedarimDonorsBytes() {
   const body = new URLSearchParams({
     Action: 'GetTormimCsv',
     MosadNumber: process.env.NEDARIM_MOSAD_ID || '',
@@ -70,7 +71,18 @@ async function fetchNedarimDonorsCsv() {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
   });
-  return await resp.text();
+  return Buffer.from(await resp.arrayBuffer());
+}
+
+/** פענוח בטוח לפי שם-קידוד; מחזיר '' אם הקידוד לא נתמך בסביבה. */
+function tryDecode(buf, enc) {
+  try { return new TextDecoder(enc).decode(buf); } catch { return ''; }
+}
+
+/** רשימת-התורמים כטקסט נקי — Windows-1255 (נפילה ל-UTF-8). */
+async function fetchNedarimDonorsCsv() {
+  const buf = await fetchNedarimDonorsBytes();
+  return tryDecode(buf, 'windows-1255') || tryDecode(buf, 'utf-8');
 }
 
 async function clearPullRows(db, col, cursorRef) {
@@ -150,8 +162,12 @@ exports.nedarimPull = onRequest(
     // ?peekdonors=1 ⇒ הצצה לרשימת-התורמים הגולמית (CSV) — לתכנון הפרסור.
     if (p.peekdonors === '1') {
       try {
-        const csv = await fetchNedarimDonorsCsv();
-        return res.status(200).type('text/plain; charset=utf-8').send(String(csv).slice(0, 3000));
+        const buf = await fetchNedarimDonorsBytes();
+        return res.status(200).json({
+          ok: true,
+          cp1255: tryDecode(buf, 'windows-1255').slice(0, 1200),
+          utf16le: tryDecode(buf, 'utf-16le').slice(0, 1200),
+        });
       } catch (e) {
         return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
       }
