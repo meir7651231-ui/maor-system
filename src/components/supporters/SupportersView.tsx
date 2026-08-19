@@ -13,7 +13,7 @@ import { NedarimSyncModal } from './NedarimSyncModal';
 import { annualAllLines, downloadAnnualReport } from '../../lib/annualReport';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
-import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel } from '../../lib/ayin';
+import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel, unitLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
@@ -115,6 +115,10 @@ export function SupportersView() {
         return termOf(config, 'entity.donations', 'תרומות');
       case 'last':
         return termOf(config, 'entity.donation', 'תרומה') + ' אחרונה';
+      // עמודת "כמות" (eyes) = יחידת-המעקב; היה קשיח 'כמות' ⇒ עקף termOf ולא עקב
+      // אחרי שינוי-שם בורטיקל. עכשיו דרך unitLabel (ברירת-מחדל 'כמות' — ביט-זהה).
+      case 'eyes':
+        return unitLabel(config);
       default:
         return h.label;
     }

@@ -60,6 +60,8 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     expect(viewSrc).toContain('עודכן היום');
     expect(viewSrc).toMatch(/key: 'paid', label: 'שולם'/);
     expect(viewSrc).toMatch(/sp\.ayin\?\.paid \? '✓' : '—'/);
+    // 🐛 כותרת "כמות" (eyes) עברה דרך unitLabel — לא קשיחה (עוקבת אחרי מונח-הורטיקל)
+    expect(viewSrc).toContain("case 'eyes':\n        return unitLabel(config);");
   });
 
   // באג "הסך תרומות לא מתעדכן" (19.8.2026, אחרי ייבוא/סנכרון נדרים): סה"כ-הכותרת
