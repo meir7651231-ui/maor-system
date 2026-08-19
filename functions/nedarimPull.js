@@ -56,6 +56,23 @@ async function fetchNedarimHistory(lastId, maxId) {
 
 /** איפוס-משיכה (opt-in): מחיקת שורות-המשיכה הקודמות (source==pull) + ה-cursor,
  * לפני משיכה-מחדש — כדי למשוך הכל שוב עם המפה המעודכנת (שמות). שורות-webhook נשמרות. */
+/** משיכת רשימת-התורמים כ-CSV (GetTormimCsv). שים לב: השדה הוא MosadNumber (לא MosadId). */
+async function fetchNedarimDonorsCsv() {
+  const body = new URLSearchParams({
+    Action: 'GetTormimCsv',
+    MosadNumber: process.env.NEDARIM_MOSAD_ID || '',
+    MosadId: process.env.NEDARIM_MOSAD_ID || '',
+    ApiPassword: process.env.NEDARIM_API_PASSWORD || '',
+    ToMail: '0',
+  });
+  const resp = await fetch('https://matara.pro/nedarimplus/Reports/Manage3.aspx', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  });
+  return await resp.text();
+}
+
 async function clearPullRows(db, col, cursorRef) {
   let removed = 0;
   for (;;) {
@@ -126,6 +143,15 @@ exports.nedarimPull = onRequest(
     if (p.peek === '1') {
       try {
         return res.status(200).json({ ok: true, sample: await fetchNedarimHistory(0, 3) });
+      } catch (e) {
+        return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
+      }
+    }
+    // ?peekdonors=1 ⇒ הצצה לרשימת-התורמים הגולמית (CSV) — לתכנון הפרסור.
+    if (p.peekdonors === '1') {
+      try {
+        const csv = await fetchNedarimDonorsCsv();
+        return res.status(200).type('text/plain; charset=utf-8').send(String(csv).slice(0, 3000));
       } catch (e) {
         return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
       }
