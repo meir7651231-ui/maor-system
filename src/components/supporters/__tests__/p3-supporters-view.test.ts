@@ -82,4 +82,15 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     // המונח דינמי (ורטיקלים!) והסכום דרך totalLabel (₪+$ — לא ils בלבד)
     expect(viewSrc).toMatch(/termOf\(config, 'entity\.donations', 'תרומות'\)[\s\S]{0,60}totalLabel\(sp\)/);
   });
+
+  // 🐛 ratchet — טבלת-14-עמודות גולשת אופקית בלי רמז: המשתמש לא ידע שיש עוד
+  // עמודות. הפתרון: מחלקת scroll-shadow משותפת (.hscroll) על מיכל-הגלילה —
+  // צל בקצה רק כשיש תוכן מוסתר. אומת בצילום (עודף 452px, הצל מתהפך בין הקצוות).
+  it('🛡 טבלת-התורמים נושאת רמז-גלילה (hscroll) על מיכל ה-overflowX', () => {
+    // המיכל הרחב חייב את מחלקת-הצל, לצד overflowX:auto (מלכודת-הגלגלת נשמרת)
+    expect(viewSrc).toContain('className="card hscroll"');
+    expect(viewSrc).toMatch(/className="card hscroll"[\s\S]{0,80}overflowX: 'auto', overflowY: 'hidden'/);
+    // מחלקת-ה-CSS (.hscroll) מוגדרת ב-global.css עם background-attachment
+    // local+scroll (אומת ידנית בצילום; global.css מיובא-גלובלי ולא ניתן-raw בבדיקה).
+  });
 });

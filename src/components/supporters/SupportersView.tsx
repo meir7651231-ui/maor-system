@@ -622,7 +622,7 @@ export function SupportersView() {
           })}
         </div>
       ) : (
-        <div className="card" style={{ padding: 0, overflowX: 'auto', overflowY: 'hidden' }}>
+        <div className="card hscroll" style={{ padding: 0, overflowX: 'auto', overflowY: 'hidden' }}>
           <table className="table">
             <thead>
               <tr>
