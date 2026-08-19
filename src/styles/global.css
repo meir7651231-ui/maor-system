@@ -772,6 +772,16 @@ h1,
   background: var(--hover-bg);
 }
 
+/* שורה לחיצה שקיבלה פוקוס-מקלדת (19.8) — אותו חיווי כמו ריחוף + מתאר */
+.table tr:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.table tr:focus-visible td {
+  background: var(--hover-bg);
+}
+
 /* רמז-גלילה אופקי (scroll-shadow) — טהור-CSS, בלי JS: צל מופיע בקצה רק כשיש
    עוד תוכן מוסתר (עמודות נוספות בטבלה), ונעלם כשמגיעים לקצה. פותר "לא יודע
    שיש עוד עמודות". טכניקת background-attachment: local (כיסוי, נע-עם-התוכן) +
@@ -1391,6 +1401,19 @@ h1,
    נכשל ב-WCAG AA. דיו כהה (‎--bday-ink=#2b2620‎) על אותו ענבר ≈7.4 — עובר. */
 :root[data-theme="kehila"] .hm-bday-cta {
   color: var(--bday-ink);
+}
+
+/* "לברך במפגש" מחוץ לקהילה (19.8) — גרסה שקטה בקווי-המתאר של הבאנר,
+   כדי לא לשבור את נאמנות-המוקאפ של שאר הערכות */
+.hm-bday-cta-quiet {
+  background: transparent;
+  color: var(--bday-ink);
+  border: 1px solid var(--bday-ink-soft, var(--bday-ink));
+}
+
+.hm-bday-cta-quiet:hover {
+  filter: none;
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .hm-bday-ico {

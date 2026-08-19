@@ -10,12 +10,13 @@
  *    שגוי — מעל 8 פריטים הנקודות "קפאו"; וגם רונדרו רק 8 נקודות ל-10 פריטים.
  */
 import { describe, it, expect } from 'vitest';
-import { attentionItems, homeStats, monthDonationSum } from '../homeData';
+import { attentionItems, digestLines, eventsOnDate, todaySessions } from '../homeData';
+import { homeStats, monthDonationSum } from '../homeData';
 import widgetsSrc from '../widgets.tsx?raw';
 import homeViewSrc from '../HomeView.tsx?raw';
 import { FULL_LAYOUTS, THEME_LAYOUTS, THEME_TEMPLATES } from '../widgets';
 import { DEFAULT_CONFIG } from '../../../types/config';
-import { emptyDb, type Db, type OrgEvent, type Supporter } from '../../../types/domain';
+import { emptyDb, emptyFamily, type Db, type OrgEvent, type Supporter } from '../../../types/domain';
 
 const NOW = new Date('2026-07-21T10:00:00');
 
@@ -151,6 +152,54 @@ describe('אשכול 2 · מבנה הפריסות — אפס-סחף בין prese
       for (const id of ['carousel', 'community', 'coursemetrics', 'credmetrics'])
         expect(full, `ערכה ${theme} · ${id}`).toContain(id);
     }
+  });
+});
+
+describe('אשכול 3 · גידור-מודולים במקור-הנתונים (לא רק בניווט)', () => {
+  it('מודול לוח-שנה כבוי ⇒ אין פריטי "דחוף" ואין שורות-לוח בתקציר', () => {
+    const db: Db = { ...emptyDb(), events: [redEvent({ id: 'e1' })] };
+    const items = attentionItems(db, NOW, { calendar: false }, DEFAULT_CONFIG);
+    expect(items.find((x) => x.key.startsWith('urgent:'))).toBeUndefined();
+    const lines = digestLines(db, NOW, { calendar: false }, DEFAULT_CONFIG);
+    expect(lines.find((l) => l.key === 'calls' || l.key === 'specials')).toBeUndefined();
+  });
+
+  it('מודול משפחות כבוי ⇒ אין ממתינות/ספח/מדד-אדום ב"דורש טיפול"', () => {
+    const db: Db = {
+      ...emptyDb(),
+      families: [
+        { ...emptyFamily(), id: 'f1', status: 'pending', createdAt: '2026-07-01' },
+        { ...emptyFamily(), id: 'f2', status: 'active', createdAt: '2026-06-01', fullSefach: false },
+      ] as Db['families'],
+    };
+    const off = attentionItems(db, NOW, { families: false }, DEFAULT_CONFIG);
+    expect(off.find((x) => ['pending:families', 'sefach:families', 'redcred:families'].includes(x.key))).toBeUndefined();
+    // עם המודול דלוק — הפריטים כן נוצרים (ההיפוך מוכיח שהגידור הוא הסיבה)
+    const on = attentionItems(db, NOW, {}, DEFAULT_CONFIG);
+    expect(on.find((x) => x.key === 'pending:families')).toBeTruthy();
+  });
+
+  it('אירוע דחוף שעבר מקבל "באיחור N ימים"; אתמול = "אתמול"', () => {
+    const db: Db = {
+      ...emptyDb(),
+      events: [redEvent({ id: 'e1', date: '2026-07-20' }), redEvent({ id: 'e2', date: '2026-07-11' })],
+    };
+    const items = attentionItems(db, NOW, {}, DEFAULT_CONFIG);
+    expect(items.find((x) => x.key === 'urgent:e1')!.title).toContain('אתמול');
+    expect(items.find((x) => x.key === 'urgent:e2')!.title).toContain('באיחור 10 ימים');
+  });
+
+  it('אירוע/מפגש בלי שעה יורד לסוף היום — לא צף מעל המתוזמנים', () => {
+    const db: Db = {
+      ...emptyDb(),
+      events: [
+        redEvent({ id: 'no-time', date: '2026-07-21', time: '' }),
+        redEvent({ id: 'timed', date: '2026-07-21', time: '09:00' }),
+      ],
+    };
+    const evs = eventsOnDate(db, NOW);
+    expect(evs.map((e) => e.id)).toEqual(['timed', 'no-time']);
+    expect(todaySessions(emptyDb(), NOW)).toEqual([]);
   });
 });
 

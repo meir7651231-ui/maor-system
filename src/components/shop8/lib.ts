@@ -19,6 +19,8 @@ export interface Suggestion {
   title: string;
   detail: string;
   famId?: string;
+  /** חיווט-עומק (19.8): חידוש-כרטיסייה קופץ ישר לחוג עצמו — לא רק למסך החוגים. */
+  courseId?: string;
   act: SuggestAct;
 }
 
@@ -115,6 +117,7 @@ export function suggestions(db: Db, todayIso: string, config?: OrgConfig): Sugge
       title: `חידוש כרטיסייה · ${member?.first ?? '—'} · ${course?.name ?? '—'}`,
       detail: rem <= 0 ? 'הכרטיסייה נגמרה' : `נותרו ${rem} ניקובים`,
       famId: fam?.id,
+      courseId: e.courseId,
       act: 'courses',
     });
   }
