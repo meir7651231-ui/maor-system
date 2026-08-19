@@ -92,6 +92,18 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     // המיכל הרחב חייב את מחלקת-הצל, לצד overflowX:auto (מלכודת-הגלגלת נשמרת)
     expect(viewSrc).toContain('className="card hscroll"');
     expect(viewSrc).toMatch(/className="card hscroll"[\s\S]{0,80}overflowX: 'auto', overflowY: 'hidden'/);
+  });
+
+  // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל מתקפל; החיפוש
+  // והקטגוריה גלויים תמיד. אפס אובדן: כל הצ׳יפים והסינון נשמרים, רק מתקפלים.
+  it('🛡 פאנל-סינון מתקדם עוטף את הצ׳יפים (הסינון נשמר, רק מתקפל)', () => {
+    expect(viewSrc).toContain('🔎 סינון מתקדם');
+    // העטיפה: מוצג רק כשיש תוכן-מתקדם ורק כשפתוח; באדג׳ של מספר-הפעילים
+    expect(viewSrc).toContain('{hasAdvFilters && advOpen && (');
+    expect(viewSrc).toContain('const advActive = (tierF ? 1 : 0) + (hokF ? 1 : 0) + (ayinF ? 1 : 0)');
+    // הצ׳יפים עצמם עדיין קיימים בתוך הפאנל (אפס אובדן-יכולת)
+    expect(viewSrc).toContain('דרגות (לחיצה מסננת):');
+    expect(viewSrc).toContain('עם מונה');
     // מחלקת-ה-CSS (.hscroll) מוגדרת ב-global.css עם background-attachment
     // local+scroll (אומת ידנית בצילום; global.css מיובא-גלובלי ולא ניתן-raw בבדיקה).
   });
