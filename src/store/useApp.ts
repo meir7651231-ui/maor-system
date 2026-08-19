@@ -1651,8 +1651,17 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => ({ rooms: upsertIn(db.rooms, r) }));
     },
     upsertSupporter(s) {
-      setDb((db) => ({ supporters: upsertIn(db.supporters, s) }));
-      logAudit('שמירת תומכ/ת', s.name);
+      // בקשת-בעלים 19.8: עובד-סגור-לייעוד — תורם **חדש** בלי ייעוד מקבל אוטומטית
+      // את ייעודו (forWho), כדי שלא "ייעלם" ממנו (פריט ד') ולא ייחסם בשרת. רק
+      // בהוספה, רק כשריק; מנהל (allowedDesignations=null) לא מושפע.
+      const allowed = get().cloud.allowedDesignations;
+      const isNew = !get().db.supporters.some((x) => x.id === s.id);
+      const sup =
+        isNew && allowed && allowed.length && !(s.forWho || '').trim()
+          ? { ...s, forWho: allowed[0] }
+          : s;
+      setDb((db) => ({ supporters: upsertIn(db.supporters, sup) }));
+      logAudit('שמירת תומכ/ת', sup.name);
     },
     mergeSupporters(keepId, dropId) {
       const { supporters } = get().db;

@@ -135,6 +135,11 @@ describe('ייעוד פר-תורם (forWho) — בקשת-בעלים 15.8 "פר �
     expect(viewSrc).toContain('setSupportersPurpose(ids, assignVal)');
   });
 
+  // פריט ד' (19.8): תיוג-אוטומטי בהוספה — עובד-סגור מוסיף תורם ⇒ ייעודו מוצמד
+  it('הגנת-מקור: upsertSupporter מתייג תורם-חדש בייעוד-העובד אוטומטית', () => {
+    expect(useAppSrc).toMatch(/isNew && allowed && allowed\.length && !\(s\.forWho \|\| ''\)\.trim\(\)[\s\S]{0,60}forWho: allowed\[0\]/);
+  });
+
   it('הגנת-מקור: לקוח-שורש (מאור) קורא ייעודים-פר-עובד (בקשת-בעלים "חבר את מאור")', () => {
     // הבאג: הענף rootOk (cloudRoot/default) דילג על קריאת memberConfigs ⇒
     // allowedDesignations לא נקבע ⇒ עובדת-מוגבלת ראתה הכל. כעת גם השורש קורא.
