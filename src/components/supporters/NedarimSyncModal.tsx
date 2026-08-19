@@ -21,6 +21,9 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
   const config = useApp((s) => s.config);
   const applyNedarimSync = useApp((s) => s.applyNedarimSync);
   const resetNedarimImport = useApp((s) => s.resetNedarimImport);
+  const detectNedarimHok = useApp((s) => s.detectNedarimHok);
+  const toast = useApp((s) => s.toast);
+  const [hokArmed, setHokArmed] = useState(false);
   // כל מה שנכנס מנדרים: כרטיסים שנוצרו (id 'sup-ned-') + מקוריים עם extId/hist-נדרים
   const nedCount = useApp((s) =>
     s.db.supporters.filter((sp) => sp.id.startsWith('sup-ned-') || sp.extId || (sp.hist ?? []).some((h) => h.clearer === 'נדרים')).length,
@@ -82,6 +85,27 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
 
   return (
     <Modal title={'🔄 סנכרון מנדרים — ' + nav} onClose={props.onClose} wide>
+      {/* 🔁 זיהוי-רטרואקטיבי של הו"ק — לחיובים שסונכרו לפני מנגנון-ההו"ק */}
+      <div style={{ border: '1px solid var(--accent)', borderRadius: 10, padding: 10, marginBottom: 12 }}>
+        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>🔁 זיהוי הוראות-קבע מהיסטוריה</div>
+        <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
+          סורק את חיובי-הנדרים שכבר בכרטיסים, ומזהה הוראות-קבע לפי תבנית (אותו סכום ב-3+ חודשים) —
+          וממלא אוטומטית את משבצת-ההו"ק. לחיובים ותיקים שסונכרו לפני הפיצ'ר. <b>הו"ק ידני לא נדרס.</b>
+        </div>
+        <Btn
+          kind={hokArmed ? 'danger' : undefined}
+          sm
+          onClick={() => {
+            if (!hokArmed) { setHokArmed(true); return; }
+            const n = detectNedarimHok();
+            toast(n ? '🔁 ' + n + ' הוראות-קבע זוהו ומולאו' : 'לא זוהו הוראות-קבע חדשות מהתבנית');
+            setHokArmed(false);
+          }}
+        >
+          {hokArmed ? 'לאשר זיהוי הו"ק?' : '🔁 זהה הוראות-קבע מנדרים'}
+        </Btn>
+        {hokArmed && <Btn sm onClick={() => setHokArmed(false)}>ביטול</Btn>}
+      </div>
       {nedCount > 0 && (
         <div style={{ border: '1px solid var(--danger, #e05252)', background: 'var(--bg)', borderRadius: 10, padding: 10, marginBottom: 12 }}>
           <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>🔄 איפוס מלא של ייבוא-נדרים</div>
