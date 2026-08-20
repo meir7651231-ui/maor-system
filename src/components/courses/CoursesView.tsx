@@ -15,6 +15,7 @@ import { CourseWheel } from '../wheel/CourseWheel';
 import { CoursesCockpit } from './CoursesCockpit';
 import { CollectionCenter } from './CollectionCenter';
 import { CoursesDashboard } from './CoursesDashboard';
+import { TeacherPanel } from './TeacherPanel';
 import { coursesOfTeacher, DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
 
 type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2' | 'price3';
@@ -96,6 +97,10 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   // 📊 דשבורד-חוגים (פאזה 8) — מבט-על פר-חוג, מגודר courses.dashboard (ולא-מורה).
   const dashboardOn = featureOn(cfg, 'courses.dashboard') && !myTeacherId;
   const [dashboardOpen, setDashboardOpen] = useState(false);
+  // 🎓 אפליקציית-המורה (גל ה׳ · פאזה 9) — opt-in מפורש (=== true) + תפקיד-מורה בלבד.
+  // המסך המצומצם של המורה (מפגשי-היום שלה + נוכחות + השלמות + דוח). ברירת-מחדל דלוקה למורה.
+  const teacherAppOn = cfg.features?.['courses.teacherapp'] === true && !!myTeacherId;
+  const [teacherMode, setTeacherMode] = useState(() => teacherAppOn);
 
   // בקשת "+ חוג" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
   const courseFormReq = useApp((s) => s.courseFormReq);
@@ -201,6 +206,20 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const countColor = (c: Course, n: number) =>
     n >= (c.maxStudents || 999) ? '#dc2626' : n >= (c.maxStudents || 999) * 0.8 ? '#9a6414' : '#8b8474';
 
+  // 🎓 מסך-המורה — מחליף את הרשימה במסך המצומצם של המורה (כל ההוקים למעלה).
+  if (teacherAppOn && teacherMode && myTeacherId) {
+    return (
+      <div>
+        <PageHead
+          title={termOf(cfg, 'nav.courses', 'חוגים')}
+          sub="המסך שלי — המפגשים, הנוכחות וההשלמות שלי"
+          actions={<Btn onClick={() => setTeacherMode(false)}>☰ כל ה{termOf(cfg, 'nav.courses', 'חוגים')}</Btn>}
+        />
+        <TeacherPanel teacherId={myTeacherId} />
+      </div>
+    );
+  }
+
   // 🎯 חלון-העבודה — מחליף את הרשימה במסך-אחד שמסדר את היום (כל ההוקים למעלה).
   if (cockpitOn && workMode) {
     return (
@@ -234,6 +253,11 @@ function CoursesList(props: { onOpenWheel: () => void }) {
         }
         actions={
           <>
+            {teacherAppOn && (
+              <Btn onClick={() => setTeacherMode(true)} title="המסך שלי — המפגשים, הנוכחות וההשלמות שלי">
+                🎓 המסך שלי
+              </Btn>
+            )}
             {wheelOn && (
               <Btn onClick={props.onOpenWheel} title={'גלגל מזל שבוחר ' + termOf(cfg, 'entity.course', 'חוג') + ' לפי הסינון שלכם'}>
                 🎡 מצא {termOf(cfg, 'entity.course', 'חוג')}
