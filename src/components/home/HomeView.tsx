@@ -200,8 +200,20 @@ export function HomeView() {
   if (tpl) {
     const colA = tpl.colA.filter(visible);
     const colB = tpl.colB.filter(visible);
+    // 🛡 תיקון (20.8, ממצא-ביקורת HIGH): מסלול-התבנית עקף את ערובת-הפריסה-המלאה —
+    // ב-home.board:false ה-savedLayout הוא FULL_LAYOUTS, אבל התבנית רינדרה רק את
+    // הווידג'טים שלה ⇒ 4 ווידג'טי-האנליטיקה לא עלו כלל. ה"עודפים" מרונדרים אחרי
+    // התבנית (קיבוץ-חצאים כמו בגריד); כשאין עודפים — ביט-זהה להיום.
+    const tplIds = new Set<WidgetId>(['hero', ...tpl.pre, ...tpl.colA, ...tpl.colB, ...tpl.post]);
+    const extras = savedLayout.filter((id) => visible(id) && !tplIds.has(id));
     // עמודה שהתרוקנה כולה (מודולים כבויים) — נופלים לגריד הגנרי במקום חצי לוח ריק
     if (colA.length && colB.length) {
+      const extraGroups: WidgetId[][] = [];
+      for (const id of extras) {
+        const last = extraGroups[extraGroups.length - 1];
+        if (HOME_WIDGETS[id].slot === 'half' && last && HOME_WIDGETS[last[0]].slot === 'half') last.push(id);
+        else extraGroups.push([id]);
+      }
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           {HOME_WIDGETS.hero.render(ctx)}
@@ -223,6 +235,20 @@ export function HomeView() {
           {tpl.post.filter(visible).map((id) => (
             <Fragment key={id}>{HOME_WIDGETS[id].render(ctx)}</Fragment>
           ))}
+          {extraGroups.map((g) =>
+            HOME_WIDGETS[g[0]].slot === 'half' ? (
+              <div
+                key={g[0]}
+                style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}
+              >
+                {g.map((id) => (
+                  <Fragment key={id}>{HOME_WIDGETS[id].render(ctx)}</Fragment>
+                ))}
+              </div>
+            ) : (
+              <Fragment key={g[0]}>{HOME_WIDGETS[g[0]].render(ctx)}</Fragment>
+            ),
+          )}
         </div>
       );
     }
