@@ -87,6 +87,9 @@ await shot('01-rebrand-list'); // הטבלה + רצועת-KPI
 await page.getByRole('button', { name: /מודיעין/ }).first().click().catch(() => {});
 await wait(900);
 await shot('02-intel');
+// מכונת-הזמן נמצאת מתחת-לקפל — צילום-עמוד-מלא לאימות
+await page.screenshot({ path: join(OUT, '02b-intel-full.png'), fullPage: true });
+console.log('📸 02b-intel-full');
 
 await page.getByRole('button', { name: /מסך הנתונים/ }).first().click().catch(() => {});
 await wait(500);
