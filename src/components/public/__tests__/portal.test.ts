@@ -10,6 +10,8 @@ import { EMPTY_PORTAL_FORM, parsePortalChat, portalChannels, portalChatLine, por
 import entrySrc from '../PortalEntry.tsx?raw';
 import siteSrc from '../PublicSite.tsx?raw';
 import chatSrc from '../../support/SupportChat.tsx?raw';
+import famFormSrc from '../../families/FamilyForm.tsx?raw';
+import famViewSrc from '../../families/FamiliesView.tsx?raw';
 
 function cfg(contact: Partial<NonNullable<NonNullable<OrgConfig['site']>['contact']>>): OrgConfig {
   return { ...DEFAULT_CONFIG, orgName: 'מאור', site: { contact } } as OrgConfig;
@@ -92,5 +94,21 @@ describe('🚪 פאזה 2 — פנייה בצ׳אט-הצוות', () => {
     expect(chatSrc).toContain('parsePortalChat(m.text) ? <PortalReqCard');
     expect(chatSrc).toContain('📥 בקשת הרשמה לחוג');
     expect(chatSrc).toContain('💬 וואטסאפ');
+  });
+});
+
+describe('🚪 פאזה 3 — פנייה⇒שיבוץ (➕ שבץ)', () => {
+  it('הגנת-מקור — כרטיס-הפנייה פותח טופס-שיבוץ ומאתחל את הצ׳אט', () => {
+    expect(chatSrc).toContain('openEnrollDraft(req); onClose();');
+    expect(chatSrc).toContain('➕ שבץ');
+  });
+  it('הגנת-מקור — FamilyForm ממלא טלפון+הערה מהטיוטה (draft)', () => {
+    expect(famFormSrc).toContain('function initState(family: Family | null, draft?: FamilyDraft | null)');
+    expect(famFormSrc).toContain("phone: draft?.phone?.trim() || ''");
+    expect(famFormSrc).toContain('notes: draft ? draftNote(draft) : ');
+  });
+  it('הגנת-מקור — FamiliesView משחיל את הטיוטה לטופס ומנקה אחרי סגירה', () => {
+    expect(famViewSrc).toContain('draft={enrollDraft}');
+    expect(famViewSrc).toContain('ackEnrollDraft()');
   });
 });

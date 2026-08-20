@@ -35,15 +35,35 @@ interface FamFormState {
   kidsMarried: string;
 }
 
-function initState(family: Family | null): FamFormState {
+export interface FamilyDraft {
+  childName?: string;
+  parentName?: string;
+  phone?: string;
+  course?: string;
+  note?: string;
+}
+
+/** הערת-פנייה משער-ההרשמה — הרכז רואה מה התבקש ומוסיף את הילד/ה + השיבוץ. */
+function draftNote(d: FamilyDraft): string {
+  return [
+    '📥 פנייה משער-ההרשמה:',
+    d.childName && '• ילד/ה: ' + d.childName,
+    d.course && '• חוג מבוקש: ' + d.course,
+    d.note && '• הערה: ' + d.note,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+function initState(family: Family | null, draft?: FamilyDraft | null): FamFormState {
   if (!family) {
     return {
-      name: '',
+      name: draft?.parentName?.trim() || '',
       father: '',
       fatherId: '',
       mother: '',
       motherId: '',
-      phone: '',
+      phone: draft?.phone?.trim() || '',
       phone2: '',
       email: '',
       city: '',
@@ -57,7 +77,7 @@ function initState(family: Family | null): FamFormState {
       fullSefach: 'no',
       discount: '',
       status: 'active',
-      notes: '',
+      notes: draft ? draftNote(draft) : '',
       kidsHome: '',
       kidsMarried: '',
     };
@@ -98,7 +118,7 @@ function initState(family: Family | null): FamFormState {
   };
 }
 
-export function FamilyForm(props: { family: Family | null; onClose: () => void }) {
+export function FamilyForm(props: { family: Family | null; onClose: () => void; draft?: FamilyDraft | null }) {
   const upsertFamily = useApp((s) => s.upsertFamily);
   const selectFamily = useApp((s) => s.selectFamily);
   const nextId = useApp((s) => s.nextId);
@@ -107,7 +127,7 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void }
   const config = useApp((s) => s.config);
   const communities = [...new Set(families.map((fam) => fam.community).filter(Boolean))];
 
-  const [f, setF] = useState<FamFormState>(() => initState(props.family));
+  const [f, setF] = useState<FamFormState>(() => initState(props.family, props.draft));
   const [error, setError] = useState('');
   // UX סבב-ה׳: משפחה חדשה — הליבה בלבד; עריכה — הכול פתוח
   const [moreOpen, setMoreOpen] = useState(!!props.family);

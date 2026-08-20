@@ -216,6 +216,10 @@ interface AppState {
   openFamilyForm: () => void;
   /** איפוס הדגל אחרי שהטופס נפתח. */
   ackFamilyForm: () => void;
+  /** טיוטת-שיבוץ מפנייה (שער-הצטרפות · פאזה 3) — פותח טופס-משפחה עם טלפון+הערה ממולאים. */
+  enrollDraft: { childName: string; parentName: string; phone: string; course: string; note: string } | null;
+  openEnrollDraft: (d: { childName: string; parentName: string; phone: string; course: string; note: string }) => void;
+  ackEnrollDraft: () => void;
   /** בקשות פתיחת-טופס מהפלטה (P1.6) — אותו דפוס כמו famFormReq. */
   evFormReq: '' | 'org' | 'call';
   openEventForm: (kind?: 'org' | 'call') => void;
@@ -1335,6 +1339,10 @@ export const useApp = create<AppState>()((set, get) => {
     // מנקה בחירה קודמת כדי שרשימת המשפחות (והטופס) יוצגו — לא כרטיס משפחה
     openFamilyForm: () => set({ view: 'families', selFamilyId: null, famFormReq: true }),
     ackFamilyForm: () => set({ famFormReq: false }),
+    // שער-הצטרפות · פאזה 3: פנייה⇒שיבוץ — פותח טופס-משפחה עם טלפון+הערה ממולאים
+    enrollDraft: null,
+    openEnrollDraft: (d) => set({ view: 'families', selFamilyId: null, famFormReq: true, enrollDraft: d }),
+    ackEnrollDraft: () => set({ enrollDraft: null }),
 
     setConfig(cfg) {
       set({ config: cfg });

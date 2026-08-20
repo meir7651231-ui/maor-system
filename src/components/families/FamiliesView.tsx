@@ -108,6 +108,9 @@ export function FamiliesView() {
   // בקשת "משפחה חדשה" מהכרום (כותרת צֹהַר / פעולות מהירות) — אותו טופס בדיוק
   const famFormReq = useApp((s) => s.famFormReq);
   const ackFamilyForm = useApp((s) => s.ackFamilyForm);
+  // שער-הצטרפות · פאזה 3: טיוטת-שיבוץ מפנייה — נצרכת ע"י FamilyForm (טלפון+הערה ממולאים)
+  const enrollDraft = useApp((s) => s.enrollDraft);
+  const ackEnrollDraft = useApp((s) => s.ackEnrollDraft);
   useEffect(() => {
     if (famFormReq) {
       setFormOpen(true);
@@ -638,7 +641,7 @@ export function FamiliesView() {
         </div>
       )}
 
-      {formOpen && <FamilyForm family={null} onClose={() => setFormOpen(false)} />}
+      {formOpen && <FamilyForm family={null} draft={enrollDraft} onClose={() => { setFormOpen(false); ackEnrollDraft(); }} />}
     </div>
   );
 }
