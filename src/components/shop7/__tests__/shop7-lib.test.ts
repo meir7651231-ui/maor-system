@@ -71,8 +71,17 @@ describe('🚚 ratchet — SHOP7 מנוע', () => {
     };
     // מסירות-משפחה — כל המסירות של f1 (משני ימים)
     expect(deliveriesOfFamily(db, 'f1').map((d) => d.id).sort()).toEqual(['d1', 'd3']);
-    // מונה-היום — רק יום מתוארך היום ולא-נמסר (d1); d2 נמסר, d3 יום ישן
-    expect(pendingDeliveriesToday(db, '2026-08-01').map((d) => d.id)).toEqual(['d1']);
+    // מונה-הבית (19.8): גם יום-חלוקה שחלף ולא-נסגר נספר — מסירה שלא בוצעה
+    // אתמול לא נעלמת בחצות (d1 היום + d3 מיום פתוח ישן; d2 נמסר ⇒ לא נספר)
+    expect(pendingDeliveriesToday(db, '2026-08-01').map((d) => d.id).sort()).toEqual(['d1', 'd3']);
+    // יום שנסגר (ארכיון) אינו צף מחדש — d3 נעלם כשהיום-הישן מסומן closed
+    const dbClosed: Db = {
+      ...db,
+      distributionDays: db.distributionDays.map((d) => (d.id === 'day2' ? { ...d, closed: true } : d)),
+    };
+    expect(pendingDeliveriesToday(dbClosed, '2026-08-01').map((d) => d.id)).toEqual(['d1']);
+    // יום עתידי אינו נספר עדיין
+    expect(pendingDeliveriesToday(db, '2026-06-01').map((d) => d.id)).toEqual([]);
     // שורות-תדפיס — כותרת פר-מתנדב + שורת-מסירה
     const rows = db.deliveries.filter((d) => d.dayId === 'day1').map((d) => ({ ...d, familyName: 'משפחה ' + d.familyId, volunteerName: 'מתנדב ' + d.volunteerId }));
     const lines = deliveryListLines(rows);
