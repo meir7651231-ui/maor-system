@@ -50,6 +50,7 @@ export interface SyncCharge {
   last4?: string;
   category?: string;
   kevaId?: string;
+  kind?: string; // 'refund' (Amount<0) / 'cancel' (Amount 0) / חסר=חיוב רגיל — פאזה-מודעת-כסף
 }
 
 type HistEntry = NonNullable<Supporter['hist']>[number];
@@ -64,7 +65,8 @@ export interface SyncSummary {
   chargesDup: number; // כבר קיים ב-hist לפי txn — דילוג
   chargesNoTxn: number; // חיוב בלי מספר-עסקה (לא ניתן-דדופ) — עדיין נוסף
   chargesSkipped: number; // attachOnly: אין כרטיס-תואם ⇒ נשאר pending (לא נוצר כרטיס)
-  chargesNonPositive: number; // מבוטל(0)/זיכוי(שלילי) — מדולג (פאזה מודעת-כסף)
+  chargesNonPositive: number; // ביטולים (Amount 0) — סומנו טופל, לא ל-hist (אין-כסף)
+  refundsApplied: number; // זיכויים (Amount<0) שנרשמו כשורת-hist שלילית (מקזזת צבירה)
   recurring: number; // חיובי הו"ק שזוהו (kevaId)
   ilsAdded: number;
   usdAdded: number;
@@ -156,6 +158,7 @@ function hokDayFromDate(iso: string): number {
 /** אם העסקה חוזרת (kevaId) — ממלא/מעדכן את משבצת-ההו"ק של הכרטיס. משמר startedAt
  *  מוקדם-ביותר; מעדכן סכום/מטבע/יום מהעסקה. הו"ק-ידני (בלי kevaId) לא נגוע. */
 export function withNedarimHok(sp: Supporter, charge: SyncCharge): Supporter {
+  if (!(charge.amount > 0)) return sp; // זיכוי/ביטול (Amount≤0) לא ממלא/מעדכן הו"ק
   const keva = (charge.kevaId || '').trim();
   if (!keva) return sp;
   if (sp.hok && !sp.hok.kevaId) return sp; // הו"ק ידני — לא דורסים
@@ -480,6 +483,7 @@ export function planNedarimSync(
     chargesNoTxn: 0,
     chargesSkipped: 0,
     chargesNonPositive: 0,
+    refundsApplied: 0,
     recurring: 0,
     ilsAdded: 0,
     usdAdded: 0,
@@ -534,7 +538,9 @@ export function planNedarimSync(
   let chargeSeq = 0;
   for (const c of charges) {
     chargeSeq++;
-    if (!(c.amount > 0)) { summary.chargesNonPositive++; continue; } // מבוטל/זיכוי = פאזה מודעת-כסף
+    // פאזה-מודעת-כסף: ביטול (Amount 0) — אין-כסף, מסמנים טופל בלבד (לא ל-hist).
+    if (c.amount === 0) { summary.chargesNonPositive++; if (c.id) handledChargeIds.push(c.id); continue; }
+    const refund = c.amount < 0; // זיכוי — יירשם כשורת-hist שלילית (מקזזת את הצבירה)
     let idx = findIdx(keysOf({ extId: c.toremId, zeout: c.zeout, phone: c.phone, email: c.email, name: c.name }));
     // קישור-לפי-שם (ClientName) — היסטוריית-נדרים בלי מפתח-חזק. **רק בסנכרון-המלא:**
     // בחיבור-החי (attachOnly) שם-בלבד עלול לזקוף לכרטיס-שגוי (שם-יחיד ≠ עמום) בלי
@@ -544,6 +550,8 @@ export function planNedarimSync(
       // אין כרטיס-תואם. במצב attachOnly (חיבור-חי) — **לא** יוצרים כרטיס אוטומטי
       // (מונע ריבוי-כרטיסים); העסקה נשארת pending לסנכרון-הידני עם תצוגה-מקדימה.
       if (opts.attachOnly) { summary.chargesSkipped++; continue; }
+      // זיכוי בלי כרטיס-תואם — **לא** יוצרים כרטיס-שלילי; נשאר pending לשיוך-ידני.
+      if (refund) { summary.chargesSkipped++; continue; }
       const sp = supFromCharge(c, chargeSeq);
       // אם כבר קיים כרטיס באותו מזהה-דטרמיניסטי (עסקה קודמת יצרה) — אתרו אותו
       const same = out.findIndex((s) => s.id === sp.id);
@@ -561,11 +569,17 @@ export function planNedarimSync(
     if (key && seen.has(key)) { summary.chargesDup++; if (c.id) handledChargeIds.push(c.id); continue; }
     if (key) seen.add(key);
     else summary.chargesNoTxn++;
-    if (c.kevaId) summary.recurring++; // נספר **רק** על חיוב-הו"ק שנוסף בפועל (לא על dup)
-    // חיוב חוזר (kevaId) ⇒ withNedarimHok ממלא אוטומטית את משבצת-ההו"ק של הכרטיס.
-    out[idx] = withNedarimHok({ ...out[idx], hist: [...(out[idx].hist || []), chargeToHist(c)] }, c);
-    summary.chargesAdded++;
+    // זיכוי (refund) = שורת-hist שלילית שמקזזת את הצבירה — **בלי** withNedarimHok
+    // (לא ממלא הו"ק מזיכוי) ובלי מונה-recurring. חיוב-רגיל = כרגיל (+ מילוי-הו"ק).
+    const nextHist = [...(out[idx].hist || []), chargeToHist(c)];
+    out[idx] = refund ? { ...out[idx], hist: nextHist } : withNedarimHok({ ...out[idx], hist: nextHist }, c);
+    if (refund) summary.refundsApplied++;
+    else {
+      if (c.kevaId) summary.recurring++; // נספר **רק** על חיוב-הו"ק שנוסף בפועל (לא על dup/זיכוי)
+      summary.chargesAdded++;
+    }
     if (c.id) handledChargeIds.push(c.id); // חובר ⇒ אפשר לסמן handled
+    // c.amount שלילי בזיכוי ⇒ מקזז את הצבירה מעצם הסכימה (הכרעת "לכולל": נטו).
     if (curOf(c) === '$') summary.usdAdded += c.amount;
     else summary.ilsAdded += c.amount;
   }

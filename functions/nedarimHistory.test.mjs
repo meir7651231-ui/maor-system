@@ -1,8 +1,8 @@
 /**
  * ratchet — משיכת היסטוריית-נדרים (GetHistoryJson) → תוכנית-כתיבה.
  * שומר: דדופ דטרמיניסטי לפי TransactionId (id זהה ל-webhook ⇒ אפס כפילות),
- * cursor מתקדם על כל השורות (גם מבוטלות ⇒ לא נמשכות שוב), חיוב-חיובי בלבד
- * (Amount=0 מבוטל / שלילי זיכוי מדולגים), ומיפוי ClientName כמו ב-CallBack.
+ * cursor מתקדם על כל השורות, פאזה-מודעת-כסף — חיוב(charge)/זיכוי(refund,שלילי)/
+ * ביטול(cancel,0) כולם נקלטים עם kind, ומיפוי ClientName כמו ב-CallBack.
  */
 import { describe, expect, it } from 'vitest';
 import { planHistoryWrites, nedarimDateToIso } from './nedarimHistory.js';
@@ -26,18 +26,24 @@ describe('🔄 ratchet — planHistoryWrites (רשת-ביטחון נדרים)', 
     expect(writes[1].data.status).toBe('pending');
   });
 
-  it('עסקה מבוטלת (Amount=0) וזיכוי (שלילי) מדולגים — אך ה-cursor מתקדם מעליהם', () => {
+  // 🐛 היה: מבוטל/זיכוי מדולגים ⇒ ניפוח-נטו (זיכוי שלא קוזז). עכשיו (פאזה-מודעת-כסף):
+  // נקלטים עם kind — חיוב='charge' (בלי שדה) · זיכוי='refund' (שלילי) · ביטול='cancel' (0).
+  it('מבוטל (0)=cancel · זיכוי (שלילי)=refund · חיוב=charge — כולם נקלטים עם kind', () => {
     const { writes, cursor } = planHistoryWrites(
       [
-        { TransactionId: '200', ClientName: 'א', Amount: '0' }, // מבוטלת
+        { TransactionId: '200', ClientName: 'א', Amount: '0' }, // ביטול
         { TransactionId: '201', ClientName: 'ב', Amount: '-30' }, // זיכוי
         { TransactionId: '202', ClientName: 'ג', Amount: '90' }, // חיוב תקין
       ],
       'root',
     );
-    expect(writes).toHaveLength(1);
-    expect(writes[0].id).toBe('nedarim-202');
-    expect(cursor).toBe(202); // התקדם מעל כל השלוש ⇒ לא נמשוך שוב את המבוטלות
+    expect(writes).toHaveLength(3);
+    expect(writes[0].data.kind).toBe('cancel');
+    expect(writes[0].data.amount).toBe(0);
+    expect(writes[1].data.kind).toBe('refund');
+    expect(writes[1].data.amount).toBe(-30);
+    expect(writes[2].data.kind).toBeUndefined(); // חיוב רגיל — בלי שדה kind (ביט-זהה)
+    expect(cursor).toBe(202);
   });
 
   it('שורה בלי TransactionId מדולגת (אין דדופ) — cursor לא מושפע', () => {

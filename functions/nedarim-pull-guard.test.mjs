@@ -42,9 +42,12 @@ describe('🛡 ratchet — תיקוני-שרת נדרים (הגנות-מקור)'
     expect(pull).not.toContain('fetchNedarimDonorsCsv');
   });
 
-  it('F9: ה-webhook מחזיר 200 (לא 400) על חיוב לא-חיובי (מבוטל/זיכוי)', () => {
-    expect(index).toContain("ok (skipped: non-positive)");
+  it('F9: ה-webhook קולט זיכוי/ביטול עם kind (לא 400, לא דילוג-שקט)', () => {
     expect(index).not.toContain("send('bad amount')");
+    expect(index).toContain("m.amount < 0 ? 'refund'");
+    expect(index).toContain("m.amount === 0 ? 'cancel'");
+    // פאזה-מודעת-כסף בשני המסלולים: המשיכה והמפַּה
+    expect(read('nedarimHistory.js')).toContain("m.amount < 0 ? 'refund'");
   });
 
   it('F6: ה-webhook נופל לאסמכתא (reference) כ-doc-id כשאין TransactionId', () => {

@@ -43,7 +43,10 @@ function planHistoryWrites(rows, org) {
     if (Number.isFinite(idNum) && idNum > cursor) cursor = idNum;
     if (!tid) continue; // בלי TransactionId אי-אפשר לדדופ — מדלגים (ה-webhook יתפוס)
     const m = mapPaymentCallback({ ...r, org });
-    if (!(m.amount > 0)) continue; // חיוב חיובי בלבד (מבוטל=0 · זיכוי=שלילי → פאזה מאוחרת)
+    // פאזה-מודעת-כסף (20.8, לפי תיעוד-נדרים): **חיוב** = Amount חיובי · **זיכוי** =
+    // Amount שלילי (מקזז את הצבירה) · **ביטול** = Amount 0. קולטים את שלושתם (dedup
+    // לפי tid), עם kind — הלקוח מקזז/מסמן בהתאם. (היה: רק חיובי, ⇒ ניפוח-נטו.)
+    const kind = m.amount < 0 ? 'refund' : m.amount === 0 ? 'cancel' : 'charge';
     // נפילות-ברירת-מחדל: Firestore דוחה undefined (שדה חסר מהמפה ⇒ create נכשל).
     // כל שדה שהמפה לא החזירה נכתב כמחרוזת-ריקה (מטבע ⇒ '₪'), כך שהמשיכה עמידה
     // גם מול גרסת-מפה חלקית/ותיקה.
@@ -74,6 +77,7 @@ function planHistoryWrites(rows, org) {
         toremId, // מזהה-תורם נדרים (אם מסופק) ⇒ שיוך-ישיר לרשימת-התורמים
         source: 'pull', // מבחין ממקור-ה-webhook (אבחון); ה-doc-id זהה ⇒ אין כפילות
         status: 'pending',
+        ...(kind !== 'charge' ? { kind } : {}), // 'refund'/'cancel' — חיוב רגיל נשאר ביט-זהה
       },
     });
   }

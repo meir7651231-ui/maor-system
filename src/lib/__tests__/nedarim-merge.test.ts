@@ -181,6 +181,7 @@ describe('🛡 ratchet — חיווט מסך תשלומים-נכנסים', () =>
     const sync = (await import('../../components/supporters/NedarimSyncModal.tsx?raw')).default as string;
     expect(sync).toContain('plan.handledChargeIds');
     expect(sync).not.toContain('charges.map((c) => c.id)'); // הבאג הישן — סימון-הכל
-    expect(sync).toContain('מבוטלים/זיכויים'); // מונה-מדולגים בתצוגה-המקדימה
+    expect(sync).toContain('זיכויים (קוזזו)'); // מונה-זיכויים בתצוגה-המקדימה (פאזה-מודעת-כסף)
+    expect(sync).toContain('ביטולים (סומנו)');
   });
 });
