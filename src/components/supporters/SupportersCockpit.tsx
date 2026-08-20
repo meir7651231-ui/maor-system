@@ -14,12 +14,15 @@ import { featureOn, integrationOn } from '../../lib/config';
 import { WaBtn } from '../WaBtn';
 import { Btn } from '../ui';
 import {
+  cockpitFeed,
   cockpitKpis,
   cockpitProgress,
   cockpitQueue,
   type CockpitSeverity,
   type CockpitTask,
 } from './cockpit';
+import { segmentCounts } from './segments';
+import { fmtDate } from './lib';
 
 const SEV_STYLE: Record<CockpitSeverity, { bg: string; c: string; label: string }> = {
   due: { bg: 'var(--warn-bg, #f9ecd7)', c: 'var(--warn, #b45309)', label: 'לטיפול היום' },
@@ -191,6 +194,8 @@ export function SupportersCockpit(props: {
   config: OrgConfig;
   usdRate: number;
   onOpen: (id: string) => void;
+  /** מעבר למסך-הנתונים (לחיצה על סגמנט = חפירה בטבלה המלאה). */
+  onExit?: () => void;
 }) {
   const [doneIds, setDoneIds] = useState<ReadonlySet<string>>(new Set<string>());
   const today = new Date().toISOString().slice(0, 10);
@@ -199,6 +204,8 @@ export function SupportersCockpit(props: {
   const kpis = cockpitKpis(props.supporters, today, rate);
   const queue = cockpitQueue(props.supporters, today, rate);
   const prog = cockpitProgress(queue, doneIds);
+  const segs = segmentCounts(props.supporters, today, rate).filter((s) => s.count > 0);
+  const feed = cockpitFeed(props.supporters, 8);
 
   const toggleDone = (id: string) =>
     setDoneIds((prev) => {
@@ -293,6 +300,108 @@ export function SupportersCockpit(props: {
           />
         </>
       )}
+
+      {/* ── רצועה: סגמנטים שמורים + פעילות חיה ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: 16,
+          marginTop: 4,
+        }}
+      >
+        {segs.length > 0 ? (
+          <div className="card" style={{ padding: '15px 17px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 11 }}>
+              <span style={{ fontSize: 15, fontWeight: 800 }}>סגמנטים שמורים</span>
+              <span style={{ marginInlineStart: 'auto', fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                שליטה מלאה
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {segs.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={props.onExit}
+                  title={props.onExit ? 'פתיחת מסך-הנתונים לחפירה' : undefined}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 7,
+                    border: '1px solid var(--line, #eee3cf)',
+                    background: 'var(--panel-2, #faf6ec)',
+                    borderRadius: 999,
+                    padding: '6px 12px',
+                    cursor: props.onExit ? 'pointer' : 'default',
+                    font: 'inherit',
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{ width: 8, height: 8, borderRadius: 99, background: s.dot, flex: 'none' }}
+                  />
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{s.label}</span>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 800,
+                      color: 'var(--accent-deep, #a05008)',
+                      background: 'var(--panel, #fff)',
+                      border: '1px solid var(--line, #e6d9bd)',
+                      borderRadius: 999,
+                      padding: '0 7px',
+                    }}
+                  >
+                    {s.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {feed.length > 0 ? (
+          <div className="card" style={{ padding: '15px 17px' }}>
+            <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 9 }}>פעילות חיה</div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {feed.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => f.spId && props.onOpen(f.spId)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 9,
+                    padding: '8px 2px',
+                    borderBottom: '1px solid var(--line-soft, #f2ecdf)',
+                    background: 'none',
+                    border: 'none',
+                    borderBottomStyle: 'solid',
+                    textAlign: 'start',
+                    cursor: f.spId ? 'pointer' : 'default',
+                    font: 'inherit',
+                    color: 'inherit',
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--accent-deep, #a05008)', marginTop: 7, flex: 'none' }}
+                  />
+                  <span style={{ flex: 1, fontSize: 13 }}>
+                    <b>{f.who || 'תורם'}</b>{' '}
+                    <span style={{ color: 'var(--ink-faint)' }}>{f.what}</span>
+                  </span>
+                  <span style={{ fontSize: 11.5, color: 'var(--ink-faint)', whiteSpace: 'nowrap' }}>
+                    {fmtDate(f.date)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
