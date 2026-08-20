@@ -25,4 +25,12 @@ describe('💛 ratchet — חיווט גלקסיית-התורמים (opt-in)', (
     expect(galaxySrc).toContain("matchMedia('(prefers-reduced-motion: reduce)')");
     expect(galaxySrc).toContain('cancelAnimationFrame'); // ניקוי הלולאה
   });
+
+  it('🛡 מכונת-הזמן החיה — סרגל-אופק מזין את המנוע דרך offsetDays', () => {
+    expect(galaxySrc).toContain('offsetDays');
+    expect(galaxySrc).toContain('type="range"');
+    expect(galaxySrc).toContain('{ rate, offsetDays }');
+    // מונה "יגלשו-לסכנה" מול הבסיס
+    expect(galaxySrc).toContain('newlyAtRisk');
+  });
 });
