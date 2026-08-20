@@ -214,7 +214,7 @@ export function CredPanel(props: { fam: Family }) {
 export function EnrollPanel(props: { fam: Family }) {
   const courses = useApp((s) => s.db.courses);
   const enrollments = useApp((s) => s.db.enrollments);
-  const punch = useApp((s) => s.punch);
+  const setPresent = useApp((s) => s.setPresent);
   const addCred = useApp((s) => s.addCred);
   const deleteEnrollment = useApp((s) => s.deleteEnrollment);
   const toast = useApp((s) => s.toast);
@@ -239,11 +239,13 @@ export function EnrollPanel(props: { fam: Family }) {
 
   const STATUS: Record<string, string> = { active: 'פעיל', paused: 'מוקפא ⏸', ended: 'הסתיים' };
 
-  /** ניקוב מהכרטיס — אותן חסימות ואותו store.punch כמו doPunch במסך החוגים. */
+  /** ניקוב מהכרטיס — דרך setPresent האידמפוטני (#6/#10), זהה ל-doPunch במסך החוגים
+   *  (CourseDetail): מזין presents[]+מונה-חודשי, שער-תאריך חוצה-מסכים (כרטיס↔יומן לא
+   *  שורפים 2 ניקובים למפגש אחד), מסרב כשאין יתרת-כרטיסייה. קודם קרא raw punch(). */
   function doPunch(e: Enrollment) {
     if (e.status === 'paused') return toast('ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' מוקפא — הפשירו אותו בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
     if (e.status === 'ended') return toast('ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' הסתיים — ניתן לחדש בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
-    if (e.used >= e.purchased) {
+    if (e.plan === 'punch' && e.used >= e.purchased) {
       setOpModal({ kind: 'manage', enrollmentId: e.id });
       return;
     }
@@ -256,7 +258,12 @@ export function EnrollPanel(props: { fam: Family }) {
       return;
     }
     setPunchArm(null);
-    punch(e.id);
+    const today = isoToday();
+    if ((e.presents ?? []).includes(today)) return toast('כבר נרשמה נוכחות היום');
+    if (!setPresent(e.id, today, true)) {
+      setOpModal({ kind: 'manage', enrollmentId: e.id });
+      return;
+    }
     addCred(props.fam.id, 5, 'נוכחות (Check-in)');
     toast('הניקוב נרשם בהצלחה');
   }

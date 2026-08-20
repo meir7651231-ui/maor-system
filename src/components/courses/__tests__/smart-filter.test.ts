@@ -87,3 +87,14 @@ describe('🛡 שיבוץ הורה לחוג — הורה עוקף את סינו�
     expect(enrollSrc).toContain('nIsParent ? { isParent: true }');
   });
 });
+
+describe('🛡 S1 · שני מסלולי-השיבוץ נותנים תמחיר זהה (JoinModal קיבל פר-שיעור)', () => {
+  // תיקון S1 (20.8): JoinModal (כרטיס-משפחה) קבע totalDue:0 תמיד ובלי שדות פר-שיעור —
+  // שיבוץ אותו חוג-פר-שיעור מכרטיס-המשפחה מול כרטיס-החוג נתן חוב שונה. עכשיו זהה.
+  it('JoinModal: מחשב weightedQuote ומטמיע pricingFields — לא totalDue:0 קשיח', () => {
+    expect(joinSrc).toContain('weightedQuote(course');
+    expect(joinSrc).toContain('...pricingFields');
+    expect(joinSrc).toContain("featureOn(config, 'courses.perlesson')");
+    expect(joinSrc).not.toMatch(/totalDue: 0,/); // הבאג הישן — חוב-אפס קשיח בשיבוץ
+  });
+});
