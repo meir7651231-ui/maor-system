@@ -12,6 +12,7 @@ import { numMatch } from '../families/lib';
 import { CourseForm } from './CourseForm';
 import { CourseDetail } from './CourseDetail';
 import { CourseWheel } from '../wheel/CourseWheel';
+import { CoursesCockpit } from './CoursesCockpit';
 import { coursesOfTeacher, DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
 
 type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2' | 'price3';
@@ -83,6 +84,10 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const [formOpen, setFormOpen] = useState(false);
   // בקשת-בעלים: תפריט-⋯ בכרטיס-החוג במסך-החיצוני — מציג את ההערות (התיאור)
   const [notesCourse, setNotesCourse] = useState<Course | null>(null);
+  // 🎯 קוקפיט-חוגים (פאזה 2) — opt-in מפורש (=== true), במכוון לא featureOn (ברירת-מחדל
+  // 'on' הייתה מדליקה לכל לקוח-חי). חסר-הדגל ⇒ אין מתג, אפס-השפעה.
+  const cockpitOn = cfg.features?.['courses.cockpit'] === true;
+  const [workMode, setWorkMode] = useState(false);
 
   // בקשת "+ חוג" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
   const courseFormReq = useApp((s) => s.courseFormReq);
@@ -188,6 +193,20 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const countColor = (c: Course, n: number) =>
     n >= (c.maxStudents || 999) ? '#dc2626' : n >= (c.maxStudents || 999) * 0.8 ? '#9a6414' : '#8b8474';
 
+  // 🎯 חלון-העבודה — מחליף את הרשימה במסך-אחד שמסדר את היום (כל ההוקים למעלה).
+  if (cockpitOn && workMode) {
+    return (
+      <div>
+        <PageHead
+          title={termOf(cfg, 'nav.courses', 'חוגים')}
+          sub="חלון-העבודה — המערכת מסדרת את היום"
+          actions={<Btn onClick={() => setWorkMode(false)}>☰ הרשימה</Btn>}
+        />
+        <CoursesCockpit />
+      </div>
+    );
+  }
+
   return (
     <div>
       <PageHead
@@ -207,6 +226,11 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             {featureOn(cfg, 'courses.viewtoggle') && (
               <Btn onClick={toggleView} title="החלפת תצוגה: גריד / רשימה">
                 {view === 'list' ? '▦ גריד' : '☰ רשימה'}
+              </Btn>
+            )}
+            {cockpitOn && (
+              <Btn onClick={() => setWorkMode(true)} title="חלון-העבודה — המערכת מסדרת את היום">
+                🎯 חלון-העבודה
               </Btn>
             )}
             {!myTeacherId && (

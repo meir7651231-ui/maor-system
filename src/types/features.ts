@@ -68,6 +68,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.gradeimg', label: 'טווח כיתות ותמונת חוג', desc: 'שדות מכיתה/עד-כיתה (גן–י"ב) שנכנסים לסינון השיבוץ החכם + תמונת חוג בטופס ובכרטיס', module: 'courses' },
   { key: 'courses.absence', label: 'רישום חיסורים', desc: 'רישום חיסור/No-Show לתלמיד (מכרטיס החוג והיומן) + מדד אמינות', module: 'courses' },
   { key: 'courses.attendance.sheet', label: 'גיליון-נוכחות מהיר', desc: 'מסך roll-call — כל הקבוצה בבת-אחת: "כולם נוכחים" בקליק + נוכחות/חיסור פר-תלמיד', module: 'courses' },
+  { key: 'courses.cockpit', label: 'חלון-העבודה (קוקפיט)', desc: 'מסך שמסדר את היום: נוכחות-להיום · חייבים · כרטיסיות-שנגמרות · בסיכון-נשירה (opt-in)', module: 'courses' },
   { key: 'courses.absence.history', label: 'היסטוריית חיסורים', desc: 'כפתור 📜 לצפייה בהיסטוריית החיסורים של התלמיד/ה', module: 'courses' },
   { key: 'courses.makeup.justified', label: 'חיסור מוצדק (השלמה)', desc: 'תיבת "חיסור מוצדק" — זכאות להשלמה גם מתחת ל-48ש׳ (מחלה/אירוע)', module: 'courses' },
   { key: 'courses.reminder', label: 'תזכורת ללוח', desc: 'כפתור "🔔 תזכורת ללוח" — יצירת אירוע תזכורת לחוג בלוח השנה', module: 'courses' },
