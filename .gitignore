@@ -12,3 +12,4 @@ e2e/.tmp-*
 # Firestore emulator
 firestore-debug.log
 firebase-debug.log
+e2e/nextgen-shots/
