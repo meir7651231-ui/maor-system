@@ -33,4 +33,13 @@ describe('💛 ratchet — אינטראקטיביות המסכים החדשים'
     expect(intelSrc).toContain('onOpen={props.onOpen}');
     expect(intelSrc).toContain('פתח כרטיס');
   });
+
+  it('🛡 אריחי-הסיכון (מודיעין/רצועת-KPI/קוקפיט) מובילים לרשימת-הבסיכון', () => {
+    // ₪ בסכנה במודיעין
+    expect(intelSrc).toContain("props.onSegment!('atrisk')");
+    // רצועת-KPI — אריח-הסיכון
+    expect(viewSrc).toContain("onRisk={() => setSegF(segF === 'atrisk' ? null : 'atrisk')}");
+    // קוקפיט KPI — אריח-הסיכון
+    expect(cockpitSrc).toContain("props.onSegment!('atrisk')");
+  });
 });
