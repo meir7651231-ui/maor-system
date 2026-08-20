@@ -72,6 +72,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.waitlist', label: 'רשימת-המתנה', desc: 'חוג מלא ⇒ "הוסף לרשימת-המתנה" במקום חסימה; שיבוץ מהתור כשמתפנה מקום (לא תופס מקום)', module: 'courses' },
   { key: 'courses.bulkadmin', label: 'הקמה מהירה (סמסטר)', desc: '📑 שכפול-חוג לסמסטר-חדש (בלי תלמידים) + 🎓 סיום-סמסטר (כל השיבוצים ⇒ הסתיים, ניתן לחדש)', module: 'courses' },
   { key: 'courses.collect', label: 'מרכז-גבייה', desc: '💰 "כל החייבים" חוצה-חוגים + תזכורת-WhatsApp + קישור-תשלום + ייצוא (רק תזכורת, לא קבלה)', module: 'courses' },
+  { key: 'courses.broadcast', label: 'הודעה לכיתה', desc: '📢 הודעת-WhatsApp מרוכזת לרוסטר-החוג (wa.me פר-נמען, דדופ-משפחה) + העתקת-טלפונים', module: 'courses' },
   { key: 'courses.absence.history', label: 'היסטוריית חיסורים', desc: 'כפתור 📜 לצפייה בהיסטוריית החיסורים של התלמיד/ה', module: 'courses' },
   { key: 'courses.makeup.justified', label: 'חיסור מוצדק (השלמה)', desc: 'תיבת "חיסור מוצדק" — זכאות להשלמה גם מתחת ל-48ש׳ (מחלה/אירוע)', module: 'courses' },
   { key: 'courses.reminder', label: 'תזכורת ללוח', desc: 'כפתור "🔔 תזכורת ללוח" — יצירת אירוע תזכורת לחוג בלוח השנה', module: 'courses' },
