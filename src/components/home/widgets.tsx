@@ -19,7 +19,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type ReactElement, ty
 import { useApp, type View } from '../../store/useApp';
 import type { Db, Family, OrgEvent } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
-import { Btn, Chip } from '../ui';
+import { Btn, Chip, Modal } from '../ui';
 import { hebDateFull } from '../../lib/hebrew';
 import { featureOn, integrationOn, moduleOn, telephonyOn, termOf } from '../../lib/config';
 import { waBirthdayText } from '../../lib/wa';
@@ -852,6 +852,10 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
   const [showDone, setShowDone] = useState(false);
   // "+N פריטים נוספים" נפתח בקליק (19.8) — לא שורה מתה
   const [showAll, setShowAll] = useState(false);
+  // מרכז-הטיפול המלא (20.8, בקשת-בעלים "הוויג'דט שווה לטפל") — כל הפריטים,
+  // הפתוחים והשטופלו, במסך אחד עם חיפוש; אותם נתונים ואותן פעולות בדיוק.
+  const [fullOpen, setFullOpen] = useState(false);
+  const [fq, setFq] = useState('');
   // איפוס גורף של סימוני "טופל" (P3 פריט 7, לגאסי careReset) — שתי לחיצות
   const setDb = useApp((s) => s.setDb);
   const toast = useApp((s) => s.toast);
@@ -872,11 +876,14 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
   // שפת המוקאפ: היכל "נר תמיד" (עם 🕯️ בכל שורה) · קהילה "שווה לטפל"
   const theme = themeOf(ctx);
   const isHeichal = theme === 'heichal';
+  const wTitle = isHeichal ? 'נר תמיד — דורש טיפול' : theme === 'kehila' ? 'שווה לטפל' : 'דורש טיפול';
+  // רשימת-המסך-המלא: הפתוחים אחרי תגית+חיפוש (הרחבה בלי קיצוץ-8 של הווידג'ט)
+  const fullList = shownAttn.filter((a) => !fq.trim() || (a.title + ' ' + a.tag).includes(fq.trim()));
 
   // home.care כבוי + home.crosscare דלוק (20.8): הפאנל מארח את הצ'יפים בלבד
   if (!featureOn(config, 'home.care')) {
     return (
-      <Panel icon="🔔" title={isHeichal ? 'נר תמיד — דורש טיפול' : theme === 'kehila' ? 'שווה לטפל' : 'דורש טיפול'}>
+      <Panel icon="🔔" title={wTitle}>
         {crossCare.tzedaka + crossCare.shop + crossCare.shop7 + crossCare.shopMeetings === 0 ? (
           <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>הכל מטופל ✓</div>
         ) : (
@@ -910,8 +917,13 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
   return (
     <Panel
       icon="🔔"
-      title={isHeichal ? 'נר תמיד — דורש טיפול' : theme === 'kehila' ? 'שווה לטפל' : 'דורש טיפול'}
+      title={wTitle}
       badge={openAttn.length ? String(openAttn.length) : undefined}
+      action={
+        <Btn sm onClick={() => setFullOpen(true)} title="כל הפריטים — הפתוחים והשטופלו — במסך אחד עם חיפוש">
+          המסך המלא ←
+        </Btn>
+      }
     >
       {/* "הכל מטופל" רק כשגם העמודות המבודדות נקיות — אחרת הצ'יפים למטה סותרים */}
       {openAttn.length === 0 &&
@@ -1027,6 +1039,95 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
         >
           {resetArmed ? 'בטוח? לחיצה נוספת מאפסת את כל הסימונים' : 'איפוס סימוני טופל'}
         </button>
+      )}
+      {/* 🔔 מרכז-הטיפול המלא (20.8) — כל הפריטים במסך אחד: חיפוש, תגיות, טופלו */}
+      {fullOpen && (
+        <Modal title={'🔔 ' + wTitle + ' — המסך המלא'} onClose={() => setFullOpen(false)} wide>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <input
+                type="search"
+                value={fq}
+                onChange={(e) => setFq(e.currentTarget.value)}
+                placeholder="חיפוש בפריטים…"
+                aria-label="חיפוש בפריטי הטיפול"
+                style={{ flex: 1, minWidth: 160 }}
+              />
+              {tags.length > 1 && (
+                <>
+                  <Chip on={!activeTag} onClick={() => setCareFilter(null)}>
+                    {'הכל · ' + openAttn.length}
+                  </Chip>
+                  {tags.map((t) => (
+                    <Chip key={t} on={activeTag === t} onClick={() => setCareFilter(t)}>
+                      {t + ' · ' + tagCounts[t]}
+                    </Chip>
+                  ))}
+                </>
+              )}
+            </div>
+            <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+              {(fullList.length === shownAttn.length
+                ? shownAttn.length + ' פריטים פתוחים'
+                : fullList.length + ' מתוך ' + shownAttn.length + ' פריטים פתוחים') +
+                (doneAttn.length > 0 ? ' · ' + doneAttn.length + ' טופלו' : '')}
+            </div>
+            {fullList.length === 0 ? (
+              <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>
+                {fq.trim() ? 'אין תוצאות לחיפוש' : 'הכל מטופל ✓'}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: '55vh', overflowY: 'auto' }}>
+                {fullList.map((a) => (
+                  <div key={a.key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <button
+                      type="button"
+                      className="hm-row"
+                      style={{ flex: 1, minWidth: 0 }}
+                      onClick={() => {
+                        setFullOpen(false);
+                        navTo(a.nav);
+                      }}
+                    >
+                      {isHeichal && <span aria-hidden>🕯️</span>}
+                      <span style={chipStyle(ctx, a.tagBg, a.tagC, a.sev === 'crit')}>{a.tag}</span>
+                      <span style={{ minWidth: 0 }}>{a.title}</span>
+                      <span className="hm-arrow" aria-hidden>לטפל ←</span>
+                    </button>
+                    <Btn sm onClick={() => markAttnDone(a.key)} title="סימון הפריט כטופל">
+                      ✓ טופל
+                    </Btn>
+                  </div>
+                ))}
+              </div>
+            )}
+            {doneAttn.length > 0 && (
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>טופלו ({doneAttn.length})</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: '22vh', overflowY: 'auto' }}>
+                  {doneAttn.map((a) => (
+                    <div
+                      key={a.key}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: 0.55, fontSize: 13.5, padding: '2px 6px' }}
+                    >
+                      <span style={chipStyle(ctx, a.tagBg, a.tagC, a.sev === 'crit')}>{a.tag}</span>
+                      <span style={{ textDecoration: 'line-through', minWidth: 0 }}>{a.title}</span>
+                      <span style={{ marginInlineStart: 'auto', fontSize: 12, color: 'var(--ink-faint)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                        טופל {fmtD(attnDone[a.key])}
+                      </span>
+                      <Btn sm onClick={() => unmarkAttnDone(a.key)} title="החזרת הפריט לרשימה הפתוחה">
+                        ביטול
+                      </Btn>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Btn onClick={() => setFullOpen(false)}>סגירה</Btn>
+            </div>
+          </div>
+        </Modal>
       )}
     </Panel>
   );
