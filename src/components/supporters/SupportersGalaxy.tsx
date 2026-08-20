@@ -226,6 +226,29 @@ export function SupportersGalaxy(props: {
           </div>
         ) : null}
       </div>
+
+      {/* רשימת-הכוכבים — הנתונים לצד התמונה (לא רק תצוגה חזותית) */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr .7fr .8fr .7fr auto', gap: 8, padding: '9px 14px', fontSize: 11, fontWeight: 800, color: 'var(--ink-faint)', borderBottom: '1px solid var(--line, #e4dbc9)' }}>
+          <span>תורם/ת</span><span>דרגה</span><span>ערך</span><span>סיכון</span><span></span>
+        </div>
+        <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+          {shown.map((n) => (
+            <div key={n.id} onClick={() => props.onOpen(n.id)}
+              style={{ display: 'grid', gridTemplateColumns: '1.6fr .7fr .8fr .7fr auto', gap: 8, padding: '8px 14px', alignItems: 'center', borderBottom: '1px solid var(--line-soft, #efe8d9)', cursor: 'pointer', fontSize: 13 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <span style={{ width: 9, height: 9, borderRadius: 99, flex: 'none', background: n.atRisk ? '#ff6f5e' : TIER_COLOR[n.tier] }} />
+                <span style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.name || 'ללא שם'}</span>
+              </span>
+              <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>{TIER_LABEL[n.tier]}</span>
+              <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>₪{n.val.toLocaleString('he-IL')}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: n.atRisk ? 'var(--red, #b3261e)' : 'var(--good, #2e7d32)' }}>{n.atRisk ? '⚠ ' + n.churn + '%' : '●'}</span>
+              <Btn sm onClick={() => props.onOpen(n.id)} title="פתיחת כרטיס">פתח</Btn>
+            </div>
+          ))}
+          {shown.length === 0 ? <div style={{ padding: 20, textAlign: 'center', color: 'var(--ink-faint)' }}>אין תורמים להצגה.</div> : null}
+        </div>
+      </div>
     </div>
   );
 }

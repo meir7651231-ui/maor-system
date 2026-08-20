@@ -100,6 +100,8 @@ await wait(500);
 await clickBtn('גלקסיה');
 await wait(1800); // אנימציה
 await shot('03-galaxy');
+await page.screenshot({ path: join(OUT, '03c-galaxy-full.png'), fullPage: true });
+console.log('📸 03c-galaxy-full');
 // מכונת-הזמן החיה — גוררים את הסרגל קדימה ומצלמים את העתיד
 await page.locator('input[type=range]').first().fill('365').catch(() => {});
 await wait(1400);
