@@ -66,6 +66,14 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const gradeimgOn = featureOn(cfg, 'courses.gradeimg');
   // רצועת חדרים LIVE (P2 פער 27) — "עכשיו" מתעדכן דקה-דקה בלי אינטראקציה
   const roomsLiveOn = featureOn(cfg, 'courses.roomslive');
+  // מדרגות-מחיר (הנחות) — כבוי ⇒ עמודות הנחה 1–3 מוסתרות מהרשימה
+  const discountsOn = featureOn(cfg, 'courses.discounts');
+  // תפריט ⋯ הערות-ופרטים בשורה/בכרטיס — כבוי ⇒ מוסתר
+  const rownotesOn = featureOn(cfg, 'courses.rownotes');
+  // תג-תפוסה N/max — כבוי ⇒ העמודה/התג מוסתרים
+  const occupancyOn = featureOn(cfg, 'courses.occupancy');
+  // מיון בלחיצה על כותרת — כבוי ⇒ כותרות סטטיות
+  const sortOn = featureOn(cfg, 'courses.sort');
   const [nowTick, setNowTick] = useState(() => Date.now());
   useEffect(() => {
     if (!roomsLiveOn) return;
@@ -182,18 +190,22 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const clickSort = (key: CrsSortKey) =>
     setSort((s) => (s?.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
 
-  const thSort = (key: CrsSortKey, label: string) => (
-    <th
-      onClick={() => clickSort(key)}
-      title="מיון לפי העמודה — לחיצה נוספת הופכת כיוון"
-      style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
-    >
-      {label}{' '}
-      <span style={{ fontSize: 10, opacity: sort?.key === key ? 1 : 0.35 }}>
-        {sort?.key === key ? (sort.dir === 1 ? '▲' : '▼') : '↕'}
-      </span>
-    </th>
-  );
+  // courses.sort כבוי ⇒ כותרת סטטית (בלי קליק-מיון ובלי חצים)
+  const thSort = (key: CrsSortKey, label: string) =>
+    sortOn ? (
+      <th
+        onClick={() => clickSort(key)}
+        title="מיון לפי העמודה — לחיצה נוספת הופכת כיוון"
+        style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+      >
+        {label}{' '}
+        <span style={{ fontSize: 10, opacity: sort?.key === key ? 1 : 0.35 }}>
+          {sort?.key === key ? (sort.dir === 1 ? '▲' : '▼') : '↕'}
+        </span>
+      </th>
+    ) : (
+      <th style={{ whiteSpace: 'nowrap' }}>{label}</th>
+    );
 
   const colInput = (field: 'name' | 'audience' | 'teacher' | 'count' | 'price', placeholder: string) => (
     <th style={{ padding: '4px 8px' }}>
@@ -446,14 +458,16 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                     <div style={{ fontWeight: 800, fontSize: 14.5 }}>{c.name}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={chipStyle(mm.bg, mm.c)}>{mm.label}</span>
-                      <button
-                        type="button"
-                        title="הערות ופרטים"
-                        onClick={(e) => { e.stopPropagation(); setNotesCourse(c); }}
-                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, color: 'var(--ink-faint)', padding: '0 2px' }}
-                      >
-                        ⋯
-                      </button>
+                      {rownotesOn && (
+                        <button
+                          type="button"
+                          title="הערות ופרטים"
+                          onClick={(e) => { e.stopPropagation(); setNotesCourse(c); }}
+                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, color: 'var(--ink-faint)', padding: '0 2px' }}
+                        >
+                          ⋯
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 2 }}>
@@ -470,9 +484,11 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                     }}
                   >
                     <span style={{ fontWeight: 700 }}>{c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—'}</span>
-                    <span style={{ fontWeight: 700, color: countColor(c, n) }}>
-                      {n + '/' + (c.maxStudents || '∞') + ' ' + termOf(cfg, 'entity.students', 'תלמידים')}
-                    </span>
+                    {occupancyOn && (
+                      <span style={{ fontWeight: 700, color: countColor(c, n) }}>
+                        {n + '/' + (c.maxStudents || '∞') + ' ' + termOf(cfg, 'entity.students', 'תלמידים')}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -489,12 +505,13 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                 {thSort('teacher', termOf(cfg, 'entity.teacher', 'מורה'))}
                 {thSort('model', 'מסלול')}
                 <th>יום</th>
-                {thSort('count', termOf(cfg, 'entity.students', 'תלמידים'))}
+                {occupancyOn && thSort('count', termOf(cfg, 'entity.students', 'תלמידים'))}
                 {thSort('price', 'מחיר')}
-                {thSort('price1', 'הנחה 1')}
-                {thSort('price2', 'הנחה 2')}
-                {thSort('price3', 'הנחה 3')}
-                <th />
+                {/* מדרגות-מחיר כבויות ⇒ עמודות ההנחה מוסתרות (כותרת+סינון+תא) */}
+                {discountsOn && thSort('price1', 'הנחה 1')}
+                {discountsOn && thSort('price2', 'הנחה 2')}
+                {discountsOn && thSort('price3', 'הנחה 3')}
+                {rownotesOn && <th />}
               </tr>
               {colFOn && (
                 <tr>
@@ -516,12 +533,12 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                     </select>
                   </th>
                   <th />
-                  {colInput('count', '3 / 3+')}
+                  {occupancyOn && colInput('count', '3 / 3+')}
                   {colInput('price', '150 / 100-200')}
-                  <th />
-                  <th />
-                  <th />
-                  <th />
+                  {discountsOn && <th />}
+                  {discountsOn && <th />}
+                  {discountsOn && <th />}
+                  {rownotesOn && <th />}
                 </tr>
               )}
             </thead>
@@ -536,27 +553,35 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                     <td>{teacherName(c.teacherId)}</td>
                     <td style={{ fontSize: 12 }}>{mm.label}</td>
                     <td style={{ fontSize: 12 }}>{DAY_LETTERS[c.weekday] + ' ' + (c.time || '')}</td>
-                    <td style={{ fontWeight: 700, color: countColor(c, n) }}>{n + '/' + (c.maxStudents || '∞')}</td>
+                    {occupancyOn && <td style={{ fontWeight: 700, color: countColor(c, n) }}>{n + '/' + (c.maxStudents || '∞')}</td>}
                     <td style={{ fontWeight: 800 }}>{c.price ? '₪' + c.price : '—'}</td>
-                    <td style={{ color: '#12803c', fontWeight: 700 }}>
-                      {c.price1 ? '₪' + c.price1 + (c.price1Name ? ' · ' + c.price1Name : '') : '—'}
-                    </td>
-                    <td style={{ color: '#7c3aed', fontWeight: 700 }}>
-                      {c.price2 ? '₪' + c.price2 + (c.price2Name ? ' · ' + c.price2Name : '') : '—'}
-                    </td>
-                    <td style={{ color: '#b45309', fontWeight: 700 }}>
-                      {c.price3 ? '₪' + c.price3 + (c.price3Name ? ' · ' + c.price3Name : '') : '—'}
-                    </td>
-                    <td style={{ width: 34 }}>
-                      <button
-                        type="button"
-                        title="הערות ופרטים"
-                        onClick={(e) => { e.stopPropagation(); setNotesCourse(c); }}
-                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, color: 'var(--ink-faint)' }}
-                      >
-                        ⋯
-                      </button>
-                    </td>
+                    {discountsOn && (
+                      <td style={{ color: '#12803c', fontWeight: 700 }}>
+                        {c.price1 ? '₪' + c.price1 + (c.price1Name ? ' · ' + c.price1Name : '') : '—'}
+                      </td>
+                    )}
+                    {discountsOn && (
+                      <td style={{ color: '#7c3aed', fontWeight: 700 }}>
+                        {c.price2 ? '₪' + c.price2 + (c.price2Name ? ' · ' + c.price2Name : '') : '—'}
+                      </td>
+                    )}
+                    {discountsOn && (
+                      <td style={{ color: '#b45309', fontWeight: 700 }}>
+                        {c.price3 ? '₪' + c.price3 + (c.price3Name ? ' · ' + c.price3Name : '') : '—'}
+                      </td>
+                    )}
+                    {rownotesOn && (
+                      <td style={{ width: 34 }}>
+                        <button
+                          type="button"
+                          title="הערות ופרטים"
+                          onClick={(e) => { e.stopPropagation(); setNotesCourse(c); }}
+                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, color: 'var(--ink-faint)' }}
+                        >
+                          ⋯
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 );
               })}

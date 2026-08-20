@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import type { Course, Enrollment, OrgEvent } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
-import { featureOn, integrationOn, integrationSetting, termOf } from '../../lib/config';
+import { featureOn, integrationOn, integrationSetting, telephonyOn, termOf } from '../../lib/config';
 import { payLink } from '../../lib/payLink';
 import { waPaymentText } from '../../lib/wa';
 import { WaBtn } from '../WaBtn';
@@ -49,6 +49,10 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   const receiptsOn = featureOn(cfg, 'core.receipts');
   // קבלה מלאה (P1.2) — שורות סיכום העסקה + הורדה חוזרת פר-תשלום (legacy receipt())
   const receiptSummaryOn = featureOn(cfg, 'courses.receipt.summary');
+  // רצועת פרטי-הקשר + "👤 הצג כרטיס מלא" + הקישור לכרטיס-החוג — כבוי ⇒ מוסתרים
+  const contactOn = featureOn(cfg, 'courses.enroll.contact');
+  // טלפוניה כבויה ⇒ המספרים מוצגים כטקסט בלבד (בלי קישורי tel:) — כמו FamiliesView
+  const telOn = telephonyOn(cfg);
 
   const en = db.enrollments.find((e) => e.id === props.enrollmentId);
   const c = props.course;
@@ -269,17 +273,19 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         </strong>
         <span style={chipStyle('#f6ead1', '#9a6414')}>{en.plan === 'punch' ? 'כרטיסייה' : planWord(en.plan)}</span>
         <span style={chipStyle(st.bg, st.c)}>{st.label}</span>
-        {/* לגאסי mg: קישור לכרטיס החוג (מעבר 199/199) */}
-        <button
-          type="button"
-          onClick={() => {
-            selectCourse(c.id);
-            props.onClose();
-          }}
-          style={{ border: 'none', background: 'transparent', color: 'var(--accent)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
-        >
-          {'לכרטיס ה' + termOf(cfg, 'entity.course', 'חוג') + ' ←'}
-        </button>
+        {/* לגאסי mg: קישור לכרטיס החוג (מעבר 199/199) — מגודר courses.enroll.contact */}
+        {contactOn && (
+          <button
+            type="button"
+            onClick={() => {
+              selectCourse(c.id);
+              props.onClose();
+            }}
+            style={{ border: 'none', background: 'transparent', color: 'var(--accent)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+          >
+            {'לכרטיס ה' + termOf(cfg, 'entity.course', 'חוג') + ' ←'}
+          </button>
+        )}
       </div>
       <div style={{ fontSize: 13, color: 'var(--ink-soft)', fontWeight: 600, marginBottom: 12 }}>
         {en.plan === 'punch'
@@ -288,13 +294,14 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       </div>
 
       {/* בקשת-בעלים: שורת פרטי ה"לקוח" בכרטיס — טלפון (חבר→משפחה), משפחה, גיל,
-          כיתה/מוסד, עיר וקהילה — הכול מהחבר/המשפחה, קריאה-בלבד. */}
-      {(() => {
+          כיתה/מוסד, עיר וקהילה — הכול מהחבר/המשפחה, קריאה-בלבד.
+          מגודר courses.enroll.contact; קישורי tel: רק כשהטלפוניה דלוקה (אחרת טקסט). */}
+      {contactOn && (() => {
         const fam = famOf();
         const phone = m?.phone || fam?.phone || '';
         const phone2 = m?.phone2 || fam?.phone2 || '';
         const age = m?.birth ? ageOf(m.birth) : null;
-        const telHref = (p: string) => 'tel:' + p.replace(/[^\d+]/g, '');
+        const telHref = (p: string) => (telOn ? 'tel:' + p.replace(/[^\d+]/g, '') : undefined);
         const bits: { ico: string; txt: string; ltr?: boolean; href?: string }[] = [];
         if (phone) bits.push({ ico: '📞', txt: phone, ltr: true, href: telHref(phone) });
         if (phone2) bits.push({ ico: '📞', txt: phone2, ltr: true, href: telHref(phone2) });

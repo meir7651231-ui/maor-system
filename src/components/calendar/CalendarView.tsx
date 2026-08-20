@@ -376,9 +376,11 @@ export function CalendarView() {
                 🔗 מנוי-יומן
               </Btn>
             )}
-            <Btn kind="primary" onClick={() => setModal({ ev: null, date: isoOf(new Date()) })}>
-              ➕ הוספת אירוע
-            </Btn>
+            {featureOn(config, 'calendar.addevent') && (
+              <Btn kind="primary" onClick={() => setModal({ ev: null, date: isoOf(new Date()) })}>
+                ➕ הוספת אירוע
+              </Btn>
+            )}
           </>
         }
       />
@@ -539,7 +541,7 @@ export function CalendarView() {
                         ✎
                       </Btn>
                     )}
-                    {it.ev && it.ev.type === 'call' && (
+                    {featureOn(config, 'calendar.calldone') && it.ev && it.ev.type === 'call' && (
                       <Btn sm onClick={() => markCallDone(it.ev!)} title="סמן שיחה כבוצעה">
                         ✓ בוצע
                       </Btn>
@@ -609,7 +611,7 @@ export function CalendarView() {
                 <Btn sm onClick={() => setModal({ ev: u.ev, date: u.ev.date })} title="עריכת האירוע">
                   ✎
                 </Btn>
-                {u.ev.type === 'call' && (
+                {featureOn(config, 'calendar.calldone') && u.ev.type === 'call' && (
                   <Btn sm onClick={() => markCallDone(u.ev)} title="סמן שיחה כבוצעה">
                     ✓ בוצע
                   </Btn>

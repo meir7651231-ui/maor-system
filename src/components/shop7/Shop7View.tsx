@@ -36,6 +36,7 @@ export function Shop7View() {
   const config = useApp((s) => s.config);
   const [tab, setTab] = useState<Tab>('days');
   const volWord = termOf(config, 'entity.volunteer', 'מתנדב');
+  const volunteersOn = featureOn(config, 'shop7.volunteers');
 
   return (
     <div>
@@ -45,9 +46,10 @@ export function Shop7View() {
       />
       <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
         <Chip on={tab === 'days'} onClick={() => setTab('days')}>📦 ימי חלוקה</Chip>
-        <Chip on={tab === 'volunteers'} onClick={() => setTab('volunteers')}>🦺 {volWord}ים</Chip>
+        {volunteersOn && <Chip on={tab === 'volunteers'} onClick={() => setTab('volunteers')}>🦺 {volWord}ים</Chip>}
       </div>
-      {tab === 'volunteers' ? <VolunteersTab /> : <DaysTab />}
+      {/* דגל כבוי ⇒ נפילה בחן לימי-החלוקה גם אם הלשונית נבחרה קודם */}
+      {volunteersOn && tab === 'volunteers' ? <VolunteersTab /> : <DaysTab />}
     </div>
   );
 }
@@ -206,7 +208,9 @@ function DaysTab() {
                 </div>
                 <div style={{ display: 'flex', gap: 4 }}>
                   <Btn sm kind="primary" onClick={() => setOpenDay(d.id)}>לוח מסירות ←</Btn>
-                  <Btn sm onClick={() => closeDay(d.id, !d.closed)}>{d.closed ? 'פתח' : 'סגור'}</Btn>
+                  {featureOn(config, 'shop7.dayclose') && (
+                    <Btn sm onClick={() => closeDay(d.id, !d.closed)}>{d.closed ? 'פתח' : 'סגור'}</Btn>
+                  )}
                   <Btn sm kind="danger" onClick={() => deleteDay(d.id)}>🗑</Btn>
                 </div>
               </div>
@@ -357,7 +361,12 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
                 <td>{volName(d.volunteerId)}</td>
                 <td style={{ fontWeight: 700, color: statusColor(d.status) }}>{statusLabel(d.status)}</td>
                 <td>
-                  <TextInput value={d.note} onChange={(val) => setNote(d.id, val)} placeholder="—" />
+                  {featureOn(config, 'shop7.note') ? (
+                    <TextInput value={d.note} onChange={(val) => setNote(d.id, val)} placeholder="—" />
+                  ) : (
+                    /* דגל כבוי — הערה קיימת נשארת גלויה לקריאה (אפס אובדן מידע) */
+                    <span style={{ fontSize: 12.5 }}>{d.note || '—'}</span>
+                  )}
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: 4 }}>
@@ -377,7 +386,9 @@ function DayBoard(props: { day: DistributionDay; onBack: () => void }) {
                     {d.signature && (
                       <Btn sm onClick={() => setViewSig(d.signature!)} title="צפייה בחתימת-המקבל">✍️</Btn>
                     )}
-                    <Btn sm kind="danger" onClick={() => unassign(d.id)}>🗑</Btn>
+                    {featureOn(config, 'shop7.unassign') && (
+                      <Btn sm kind="danger" onClick={() => unassign(d.id)}>🗑</Btn>
+                    )}
                   </div>
                 </td>
               </tr>

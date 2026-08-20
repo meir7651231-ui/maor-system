@@ -51,8 +51,8 @@ export function DiaryView() {
 
   const d = new Date(date + 'T12:00:00');
   const validDate = !isNaN(d.getTime());
-  const blocked = validDate ? blockReason(d) : null;
-  const slots = room && validDate ? buildSlots(db, room, date, blocked, cfg) : [];
+  const blocked = validDate ? blockReason(d, featureOn(cfg, 'diary.blocking')) : null;
+  const slots = room && validDate ? buildSlots(db, room, date, blocked, cfg, featureOn(cfg, 'diary.cleaning')) : [];
   const warn = inactiveRoomCourses(db, validDate ? date : isoToday(), cfg);
   const maxWeekly = Math.max(1, ...db.rooms.map((r) => weeklyRoomSessions(db, r.id, date)));
 
@@ -141,15 +141,6 @@ export function DiaryView() {
           </Btn>
           <Btn sm onClick={() => shiftDay(1)} title="יום הבא">
             יום הבא ‹
-          </Btn>
-          <Btn
-            sm
-            onClick={() => {
-              setDate(isoToday());
-              setOpenKey(null);
-            }}
-          >
-            היום
           </Btn>
           <span style={{ fontSize: 13, color: 'var(--ink-faint)', fontWeight: 600 }}>{dateLabel}</span>
         </div>

@@ -75,6 +75,8 @@ export function MemberForm(props: { famId: string; member: Member | null; prefil
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const mediaOn = featureOn(config, 'families.media');
+  // ⚕ מידע רפואי/רגישויות (PII) — כבוי ⇒ השדה מוסתר (ערך קיים נשמר כפי-שהוא)
+  const healthOn = featureOn(config, 'families.health');
 
   const [f, setF] = useState<MemberFormState>(() => initState(props.member, props.prefill));
   const [error, setError] = useState('');
@@ -171,9 +173,11 @@ export function MemberForm(props: { famId: string; member: Member | null; prefil
           <TextInput value={f.grade} onChange={(v) => set({ grade: v })} placeholder="ה׳" />
         </Field>
       </div>
-      <Field label="רגישויות / מידע רפואי">
-        <TextInput value={f.health} onChange={(v) => set({ health: v })} placeholder="אלרגיות, תרופות, מגבלות…" />
-      </Field>
+      {healthOn && (
+        <Field label="רגישויות / מידע רפואי">
+          <TextInput value={f.health} onChange={(v) => set({ health: v })} placeholder="אלרגיות, תרופות, מגבלות…" />
+        </Field>
+      )}
       {mediaOn && (
         <Field label="תיעוד ומדיה — מה קיים בתיק?">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>

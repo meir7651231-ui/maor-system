@@ -99,7 +99,7 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
   it('🛡 פאנל-סינון מתקדם עוטף את הצ׳יפים (הסינון נשמר, רק מתקפל)', () => {
     expect(viewSrc).toContain('🔎 סינון מתקדם');
     // העטיפה: מוצג רק כשיש תוכן-מתקדם ורק כשפתוח; באדג׳ של מספר-הפעילים
-    expect(viewSrc).toContain('{hasAdvFilters && advOpen && (');
+    expect(viewSrc).toContain('{advFilterOn && hasAdvFilters && advOpen && (');
     expect(viewSrc).toContain('const advActive = (tierF ? 1 : 0) + (hokF ? 1 : 0) + (ayinF ? 1 : 0)');
     // הצ׳יפים עצמם עדיין קיימים בתוך הפאנל (אפס אובדן-יכולת)
     expect(viewSrc).toContain('דרגות (לחיצה מסננת):');

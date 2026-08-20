@@ -55,9 +55,11 @@ export function AuditSection() {
         <Btn kind="primary" onClick={() => setRan(true)}>
           {ran ? '↻ רענון הבדיקה' : '▶ הרצת בדיקה'}
         </Btn>
-        <Btn onClick={fixAllPhones} title="השלמת ספרת 0 מובילה בכל הטלפונים">
-          📞 תיקון טלפונים אוטומטי
-        </Btn>
+        {featureOn(config, 'settings.audit.fixphones') && (
+          <Btn onClick={fixAllPhones} title="השלמת ספרת 0 מובילה בכל הטלפונים">
+            📞 תיקון טלפונים אוטומטי
+          </Btn>
+        )}
         {ran && issues.length > 0 && (
           <Btn onClick={exportReport} title="הורדת דוח מלא כקובץ טקסט">
             ⬇ ייצוא דוח מלא

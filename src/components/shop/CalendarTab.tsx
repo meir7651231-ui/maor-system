@@ -6,6 +6,7 @@
  */
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { featureOn } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import type { ShopEvent } from '../../types/domain';
 import { Btn, Chip } from '../ui';
@@ -38,6 +39,7 @@ const KIND_FILTERS: { key: ShopEvent['kind']; label: string }[] = [
 
 export function CalendarTab() {
   const db = useApp((s) => s.db);
+  const config = useApp((s) => s.config);
   const shopEvents = useApp((s) => s.db.shopEvents);
   // נפתח בעברי — כמו הלוח הראשי בקובץ החי
   const [heb, setHeb] = useState(true);
@@ -92,9 +94,12 @@ export function CalendarTab() {
         <Btn sm onClick={() => setAnchor(grid.nextIso)}>הבא ›</Btn>
         <div style={{ fontWeight: 800, fontSize: 16 }}>{grid.label}</div>
         <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{grid.subLabel}</div>
-        <span style={{ marginInlineStart: 'auto' }}>
-          <Btn sm onClick={() => setHeb((v) => !v)}>{heb ? 'ללועזי' : 'לעברי'}</Btn>
-        </span>
+        {/* דגל כבוי ⇒ הלוח נשאר בגריד העברי (ברירת הלגאסי) */}
+        {featureOn(config, 'shop.calendar.hebtoggle') && (
+          <span style={{ marginInlineStart: 'auto' }}>
+            <Btn sm onClick={() => setHeb((v) => !v)}>{heb ? 'ללועזי' : 'לעברי'}</Btn>
+          </span>
+        )}
       </div>
 
       <div className="card" style={{ padding: 8 }}>

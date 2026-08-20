@@ -17,11 +17,12 @@ describe('מצב-משפחתי בכרטיס-החיצוני', () => {
   });
 
   it('התא מציג שבב-מצב מ-maritalStatus (או — כשריק)', () => {
-    expect(viewSrc).toContain('f.maritalStatus ? <span style={maritalChipStyle(f.maritalStatus)}>{f.maritalStatus}</span> : ');
+    // flag-max 2 (20.8): התג מגודר families.marital — הגידור עצמו ננעל כאן
+    expect(viewSrc).toContain('maritalOn && f.maritalStatus ? <span style={maritalChipStyle(f.maritalStatus)}>{f.maritalStatus}</span> : ');
   });
 
   it('כרטיס-הרשת מציג את המצב כשבב', () => {
-    expect(viewSrc).toContain('{f.maritalStatus && <span style={maritalChipStyle(f.maritalStatus)}>{f.maritalStatus}</span>}');
+    expect(viewSrc).toContain('{maritalOn && f.maritalStatus && <span style={maritalChipStyle(f.maritalStatus)}>{f.maritalStatus}</span>}');
   });
 
   it('סינון-עמודה: colF.marital מחריג מצב לא-תואם', () => {

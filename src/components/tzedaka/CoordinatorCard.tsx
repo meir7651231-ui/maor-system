@@ -30,6 +30,7 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
   const addTzScore = useApp((s) => s.addTzScore);
   const toast = useApp((s) => s.toast);
   const scoreOn = featureOn(config, 'tzedaka.score');
+  const histOn = featureOn(config, 'tzedaka.history');
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
 
   const c = props.coordinator;
@@ -179,16 +180,18 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
                   >
                     {armed === 'tzb-' + b.id ? 'בטוח?' : '🗑'}
                   </Btn>
-                  <Btn sm onClick={() => setOpenHist(openHist === b.id ? null : b.id)}>
-                    {openHist === b.id ? '▲' : '▼ היסטוריה'}
-                  </Btn>
+                  {histOn && (
+                    <Btn sm onClick={() => setOpenHist(openHist === b.id ? null : b.id)}>
+                      {openHist === b.id ? '▲' : '▼ היסטוריה'}
+                    </Btn>
+                  )}
                 </span>
               </div>
-              {openHist === b.id && (
+              {histOn && openHist === b.id && (
                 <div style={{ marginTop: 8, borderTop: '1px solid var(--line)', paddingTop: 6 }}>
                   {b.collections.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>עדיין אין ריקונים</div>}
                   {/* סינון ההיסטוריה (UX סינון 1) — טווח + מבצע, רק כשיש >5 ריקונים */}
-                  {b.collections.length > 5 && (
+                  {featureOn(config, 'tzedaka.histfilter') && b.collections.length > 5 && (
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6, alignItems: 'center', fontSize: 12.5 }}>
                       <span>מ-</span>
                       <input type="date" dir="ltr" value={histFrom} onChange={(e) => setHistFrom(e.target.value)} />

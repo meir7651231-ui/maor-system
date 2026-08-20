@@ -147,7 +147,7 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
         <Field label="קטגוריה">
           <TextInput value={cat} onChange={setCat} placeholder="מלגות, פעילות, כללי…" />
           {/* UX סבב-ה׳: צ'יפי הקטגוריות-הנפוצות של הארגון — קליק במקום הקלדה */}
-          {topCats.length > 0 && (
+          {featureOn(config, 'supporters.doncats') && topCats.length > 0 && (
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
               {topCats.map((c) => (
                 <button key={c} type="button" className={'chip' + (cat === c ? ' on' : '')} onClick={() => setCat(c)}>

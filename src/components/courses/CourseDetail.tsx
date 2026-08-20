@@ -86,6 +86,14 @@ export function CourseDetail(props: { course: Course }) {
   const groupsOn = featureOn(cfg, 'courses.groups');
   const printoutOn = featureOn(cfg, 'courses.printout');
   const discountsOn = featureOn(cfg, 'courses.discounts');
+  // 💰 תשלומים וחובות — כבוי ⇒ גלולת-התשלום ברשימת-הרשומים מוסתרת
+  const paymentsOn = featureOn(cfg, 'courses.payments');
+  // ⚕ מידע רפואי/רגישויות (PII) — כבוי ⇒ עמודת-הרגישויות לא נכללת בתדפיס-המורה
+  const healthOn = featureOn(cfg, 'families.health');
+  // 🔐 מאסטר-מתג הוצאת-מידע — כבוי ⇒ כפתורי התדפיס/הדוח-היומי מוסתרים
+  const exportOn = featureOn(cfg, 'core.export');
+  // תג-תפוסה N/max — כבוי ⇒ מוסתר בכותרת ובפרטי-החוג
+  const occupancyOn = featureOn(cfg, 'courses.occupancy');
   // טווח כיתות + תמונת חוג (P2 פער 28)
   const gradeimgOn = featureOn(cfg, 'courses.gradeimg');
   // תפקיד מורה (P3 פריט 15) — עריכה/מחיקה מוסתרות למורה מחוברת
@@ -191,8 +199,9 @@ export function CourseDetail(props: { course: Course }) {
 
   /** תדפיס למורה — CSV של התלמידים הרשומים, כולל רגישויות (port של exportCourseStudents). */
   function exportStudents() {
+    // עמודת-הרגישויות (PII רפואי) נכללת רק כשדגל families.health דלוק
     const rows: Cell[][] = [
-      [termOf(cfg, 'entity.student', 'תלמיד/ה'), 'גיל', termOf(cfg, 'entity.family', 'משפחה'), 'טלפון', 'קבוצה', 'מסלול', 'יתרה', 'רגישויות/רפואי', 'הערה'],
+      [termOf(cfg, 'entity.student', 'תלמיד/ה'), 'גיל', termOf(cfg, 'entity.family', 'משפחה'), 'טלפון', 'קבוצה', 'מסלול', 'יתרה', ...(healthOn ? ['רגישויות/רפואי'] : []), 'הערה'],
     ];
     for (const e of enrolled) {
       const m = memberById.get(e.memberId);
@@ -205,12 +214,12 @@ export function CourseDetail(props: { course: Course }) {
         e.group,
         e.plan === 'punch' ? 'כרטיסייה ' + (e.purchased - e.used) + '/' + e.purchased : 'מנוי',
         e.plan === 'punch' ? e.purchased - e.used : '',
-        m?.health ?? '',
+        ...(healthOn ? [m?.health ?? ''] : []),
         e.note,
       ]);
     }
     downloadCsv('course-' + c.name + '.csv', rows);
-    toast('רשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') + ' של "' + c.name + '" ירדה — כולל רגישויות ל' + termOf(cfg, 'entity.teacher', 'מורה'));
+    toast('רשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') + ' של "' + c.name + '" ירדה' + (healthOn ? ' — כולל רגישויות ל' + termOf(cfg, 'entity.teacher', 'מורה') : ''));
   }
 
   /** דו"ח יומי מפורט — מפגש-מפגש מ-start עד end, מי פעיל כולל חיסורים. */
@@ -395,7 +404,7 @@ export function CourseDetail(props: { course: Course }) {
               {armed === 'endsem-' + c.id ? '🎓 בטוח? עוד לחיצה' : '🎓 סיום סמסטר'}
             </Btn>
           )}
-          {!isTeacherUser && (
+          {!isTeacherUser && featureOn(cfg, 'courses.delete') && (
           <Btn
             kind="danger"
             onClick={() => {
@@ -428,15 +437,18 @@ export function CourseDetail(props: { course: Course }) {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <h2 style={{ fontSize: 15, fontWeight: 800 }}>{termOf(cfg, 'entity.students', 'תלמידים') + ' רשומים'}</h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 600 }}>
-                  {enrollCount(db, c.id) + '/' + (c.maxStudents || '∞') + ' רשומים'}
-                </span>
-                {printoutOn && (
-                  <Btn sm disabled={!enrolled.length} onClick={exportStudents} title={'הורדת רשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') + ' כ-CSV ל' + termOf(cfg, 'entity.teacher', 'מורה') + ' — כולל רגישויות'}>
+                {occupancyOn && (
+                  <span style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 600 }}>
+                    {enrollCount(db, c.id) + '/' + (c.maxStudents || '∞') + ' רשומים'}
+                  </span>
+                )}
+                {/* ⬇ תדפיסים = הוצאת-מידע — מכבדים גם את מאסטר-המתג core.export */}
+                {printoutOn && exportOn && (
+                  <Btn sm disabled={!enrolled.length} onClick={exportStudents} title={'הורדת רשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') + ' כ-CSV ל' + termOf(cfg, 'entity.teacher', 'מורה') + (healthOn ? ' — כולל רגישויות' : '')}>
                     {'⬇ תדפיס ל' + termOf(cfg, 'entity.teacher', 'מורה')}
                   </Btn>
                 )}
-                {featureOn(cfg, 'courses.printout.daily') && (
+                {featureOn(cfg, 'courses.printout.daily') && exportOn && (
                   <Btn sm onClick={exportDaily} title='דו"ח יומי מפורט — מפגש-מפגש כולל חיסורים'>
                     ⬇ דו"ח יומי מפורט
                   </Btn>
@@ -558,7 +570,9 @@ export function CourseDetail(props: { course: Course }) {
                           <td>
                             <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
                               {/* 💰 סטטוס-תשלום (17.8) — נגזר-אוטומטית מהיתרה. יש סכום-עסקה ⇒
-                                  קליק פותח רישום-תשלום (הסטטוס מתעדכן לבד); אין ⇒ סימון-ידני. */}
+                                  קליק פותח רישום-תשלום (הסטטוס מתעדכן לבד); אין ⇒ סימון-ידני.
+                                  courses.payments כבוי ⇒ הגלולה מוסתרת כליל. */}
+                              {paymentsOn && (
                               <button
                                 type="button"
                                 onClick={() => (hasDue ? setModal({ kind: 'manage', enrollmentId: e.id }) : setEnrollmentPaid(e.id, !e.paidFull))}
@@ -578,6 +592,7 @@ export function CourseDetail(props: { course: Course }) {
                               >
                                 {paidStatus === 'paid' ? '✓ שולם' : paidStatus === 'partial' ? '◐ נותר ₪' + payBal(e) : '💰 לתשלום'}
                               </button>
+                              )}
                               {punchOn && (
                                 <Btn sm kind={noBalance ? 'plain' : 'primary'} onClick={() => doPunch(e)}>
                                   {noBalance ? 'חידוש ←' : punchArm?.id === e.id ? 'לאשר ניקוב?' : 'ניקוב'}
@@ -808,13 +823,18 @@ export function CourseDetail(props: { course: Course }) {
             {detailRow('קהל יעד', c.audience || 'כללי')}
             {gradeimgOn && (c.gradeMin || c.gradeMax) &&
               detailRow('כיתות', [c.gradeMin, c.gradeMax].filter(Boolean).join('–'))}
-            {/* בקשת-בעלים 9.8: החלפת/הוספת מורה ישירות מכרטיס-החוג — בלי מסע לטופס */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ flex: 1 }}>{detailRow(termOf(cfg, 'entity.teacher', 'מורה'), teacher?.name ?? '—')}</div>
-              <Btn sm onClick={() => setTeacherPick(true)} title={'החלפה או הוספת ' + termOf(cfg, 'entity.teacher', 'מורה')}>
-                {teacher ? '✏️' : '➕ הוספת ' + termOf(cfg, 'entity.teacher', 'מורה')}
-              </Btn>
-            </div>
+            {/* בקשת-בעלים 9.8: החלפת/הוספת מורה ישירות מכרטיס-החוג — בלי מסע לטופס.
+                courses.teacherpick כבוי ⇒ שם-המורה כטקסט רגיל בלבד. */}
+            {featureOn(cfg, 'courses.teacherpick') ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ flex: 1 }}>{detailRow(termOf(cfg, 'entity.teacher', 'מורה'), teacher?.name ?? '—')}</div>
+                <Btn sm onClick={() => setTeacherPick(true)} title={'החלפה או הוספת ' + termOf(cfg, 'entity.teacher', 'מורה')}>
+                  {teacher ? '✏️' : '➕ הוספת ' + termOf(cfg, 'entity.teacher', 'מורה')}
+                </Btn>
+              </div>
+            ) : (
+              detailRow(termOf(cfg, 'entity.teacher', 'מורה'), teacher?.name ?? '—')
+            )}
             {detailRow('טלפון ' + termOf(cfg, 'entity.teacher', 'מורה'), teacher?.phone || '—')}
             {detailRow('מחיר מלא', c.price ? '₪' + c.price + ' ' + priceSuffix(c.model) : '—')}
             {/* תמחור משוקלל פר-שיעור (בקשת-בעלים 13.8 ב') */}
@@ -832,7 +852,7 @@ export function CourseDetail(props: { course: Course }) {
             {detailRow('מסלול', mm.label)}
             {detailRow('סמסטר', c.semester || 'שנתי')}
             {detailRow(termOf(cfg, 'entity.room', 'חדר') + ' פעילות', room?.name ?? '—')}
-            {detailRow('תפוסה', enrollCount(db, c.id) + ' מתוך ' + (c.maxStudents || '∞'))}
+            {occupancyOn && detailRow('תפוסה', enrollCount(db, c.id) + ' מתוך ' + (c.maxStudents || '∞'))}
             {detailRow(
               'תקופת פעילות (עברי)',
               (c.start ? hebDateFull(c.start) : '—') + ' – ' + (c.end ? hebDateFull(c.end) : '—'),
