@@ -58,4 +58,12 @@ describe('דגלי-opt-in חשופים באשף עם הסמנטיקה הנכונ
     expect(wizardSrc).toContain('optIn.has(k)');
     expect(wizardSrc).toContain('features[k] = true');
   });
+
+  it('הגנת-מקור: תצוגת-המתג (on=) ומונה-היכולות נהוגים מ-featureEffectiveOn (לא !== false)', () => {
+    // אחרת דגל-opt-in חסר מוצג ✅ דלוק בעוד הקוד קורא אותו ככבוי — הבעלים מבולבל
+    // ולחיצה-אחת לא מדליקה (צריך לכבות-ואז-להדליק). המתג חייב להתחיל כבוי.
+    expect(wizardSrc).toContain('on={featureEffectiveOn(config, f)}');
+    expect(wizardSrc).toContain('feats.filter((f) => featureEffectiveOn(config, f)).length');
+    expect(wizardSrc).not.toContain('on={config.features?.[f.key] !== false}');
+  });
 });

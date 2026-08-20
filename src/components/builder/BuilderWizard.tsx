@@ -552,7 +552,8 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
     if (searching && !visFeats.length && !visTerms.length && !showSplit) return null;
 
     const modOn = mk ? config.modules[mk] !== false : true;
-    const onCount = feats.filter((f) => config.features?.[f.key] !== false).length;
+    // opt-in-aware: דגל-optIn חסר = כבוי; דגל-רגיל חסר = דלוק (featureEffectiveOn).
+    const onCount = feats.filter((f) => featureEffectiveOn(config, f)).length;
     const sectionOpen = searching || isOpen(sec.id);
 
     return (
@@ -604,7 +605,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                 <FeatureRow
                   key={f.key}
                   f={f}
-                  on={config.features?.[f.key] !== false}
+                  on={featureEffectiveOn(config, f)}
                   onToggle={(on) => setFeatures([f.key], on)}
                 />
               ))}
