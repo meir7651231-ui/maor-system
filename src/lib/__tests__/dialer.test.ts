@@ -150,7 +150,11 @@ describe('☎️ שדרוג 20.8 — ביטול-אחרון, ספירה-פר-אד
 
   it('🔒 הגנת-מקור סבב-ב׳: שמות-לטיפול, קידום-שלב, עריכה וקישור-תשלום תוך-שיחה', () => {
     // 🕯 רישום-שם + קידום-שלב — אותן פעולות-store כמו בכרטיס (ayinAddName/ayinAdvance)
-    expect(dialerSrc).toContain('ayinAddName(sp.id, nameVal.trim()');
+    expect(dialerSrc).toContain('ayinAddName(sp.id, nm');
+    // סבב ג׳ (בקשת-בעלים 20.8): מונה עריך + הערת-טקסט חופשית פר-שם — כמו AyinCard
+    expect(dialerSrc).toContain('ayinSetNameEyes(sp.id, n.id');
+    expect(dialerSrc).toContain('ayinSetNameNote(sp.id, n.id, e.target.value)');
+    expect(dialerSrc).toContain('ayinSetNameNote(sp.id, added.id, noteTxt)');
     expect(dialerSrc).toMatch(/ayinAdvance\(sp\.id\)/);
     expect(dialerSrc).toContain('ayinAdvanceLabel(config, sp.ayin)');
     // ✎ עריכת-פרטים — SupporterForm בהחלפה (לא בקינון — מאבקי-Escape)
