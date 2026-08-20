@@ -21,6 +21,8 @@ import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
 import { SupportersCockpit } from './SupportersCockpit';
+import { SupportersIntel } from './SupportersIntel';
+import { SupportersGalaxy } from './SupportersGalaxy';
 import { CommandPalette } from './CommandPalette';
 import type { Command } from './commands';
 import { AyinBoard } from './AyinBoard';
@@ -175,6 +177,12 @@ export function SupportersView() {
   // חסר במפורש בכל הלקוחות-החיים ⇒ אפס-השפעה על הפרודקשן.
   const cockpitOn = config.features?.['supporters.cockpit'] === true;
   const [workMode, setWorkMode] = useState(false);
+  // מרכז-המודיעין — opt-in מפורש נפרד (אותו טעם: === true, לא featureOn).
+  const intelOn = config.features?.['supporters.intel'] === true;
+  const [intelMode, setIntelMode] = useState(false);
+  // גלקסיית-התורמים — opt-in מפורש נפרד.
+  const galaxyOn = config.features?.['supporters.galaxy'] === true;
+  const [galaxyMode, setGalaxyMode] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   // 🔁 זיהוי-הו"ק-מהיסטוריה — הפעולה מקומית-טהורה (detectRecurringHok על hist);
   // עד היום הכפתור היחיד היה קבור ב-NedarimSyncModal שנעול payments+ענן. חושפים אותו
@@ -363,6 +371,38 @@ export function SupportersView() {
     );
   }
 
+  if (intelOn && intelMode) {
+    const intelList = visibleSupportersForDesignations(db.supporters, desigLimit);
+    return (
+      <div>
+        <SupportersIntel
+          supporters={intelList}
+          config={config}
+          usdRate={db.usdRate}
+          onOpen={(id) => setSelId(id)}
+          onExit={() => setIntelMode(false)}
+        />
+        {paletteEl}
+      </div>
+    );
+  }
+
+  if (galaxyOn && galaxyMode) {
+    const galaxyList = visibleSupportersForDesignations(db.supporters, desigLimit);
+    return (
+      <div>
+        <SupportersGalaxy
+          supporters={galaxyList}
+          config={config}
+          usdRate={db.usdRate}
+          onOpen={(id) => setSelId(id)}
+          onExit={() => setGalaxyMode(false)}
+        />
+        {paletteEl}
+      </div>
+    );
+  }
+
   const today = isoToday();
   const nq = normSearch(q);
   const qd = q.replace(/\D/g, '');
@@ -510,6 +550,22 @@ export function SupportersView() {
                 title="חלון-העבודה: המערכת מסדרת את משימות היום — שיחות, תודות והו״ק"
               >
                 🎯 חלון העבודה
+              </Btn>
+            )}
+            {intelOn && (
+              <Btn
+                onClick={() => setIntelMode(true)}
+                title="מרכז-המודיעין: RFM · ערך-חיים · תחזית-מתנה · סיכון-נטישה"
+              >
+                📊 מודיעין
+              </Btn>
+            )}
+            {galaxyOn && (
+              <Btn
+                onClick={() => setGalaxyMode(true)}
+                title="גלקסיית-התורמים: כל תורם ככוכב — גודל=ערך · צבע=דרגה · מרחק=טריות"
+              >
+                🌌 גלקסיה
               </Btn>
             )}
             {telephonyOn(config) && (
