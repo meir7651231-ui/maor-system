@@ -164,15 +164,18 @@ function DonCalGrid(props: {
             חזרה
           </button>
         )}
-        <button
-          type="button"
-          className="chip"
-          onClick={() => { setHeb((v) => !v); setOffset(0); setDayIso(null); }}
-          title="מעבר בין חודש עברי מלא לחודש לועזי"
-          style={heb ? { background: 'var(--dark)', color: 'var(--amber)' } : undefined}
-        >
-          {heb ? 'לוח עברי ✓' : 'לוח עברי'}
-        </button>
+        {/* מתג עברי/לועזי — מגודר supporters.doncal.hebgrid (חסר-קונפיג/חסר-דגל = פעיל) */}
+        {(!props.config || featureOn(props.config, 'supporters.doncal.hebgrid')) && (
+          <button
+            type="button"
+            className="chip"
+            onClick={() => { setHeb((v) => !v); setOffset(0); setDayIso(null); }}
+            title="מעבר בין חודש עברי מלא לחודש לועזי"
+            style={heb ? { background: 'var(--dark)', color: 'var(--amber)' } : undefined}
+          >
+            {heb ? 'לוח עברי ✓' : 'לוח עברי'}
+          </button>
+        )}
         <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>{monthLine}</span>
       </div>
 

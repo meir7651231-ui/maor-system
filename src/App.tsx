@@ -683,11 +683,11 @@ export default function App() {
       ) : (
         <>
           {config.slug === 'demo' && <DemoRibbon />}
-          {famCount === 0 && <DemoDrop />}
+          {featureOn(config, 'shell.demodrop') && famCount === 0 && <DemoDrop />}
           <DayGate />
           <Current />
           {/* 📞 צ'יפ-קמפיין-צף (20.8) — קמפיין-חייגן פעיל נשאר נגיש מכל מסך */}
-          <DialerChip />
+          {featureOn(config, 'shell.dialerchip') && telephonyOn(config) && <DialerChip />}
         </>
       )}
     </main>
@@ -998,12 +998,14 @@ export default function App() {
             )}
             {/* 🩺 מאבחן-חסימות (11.8) — קו מסונן חוסם סנכרון/כניסה; הכלי מציג
                 מה חסום ומה להקריא למוקד חברת-הסינון */}
-            <HubButton
-              emoji="🩺"
-              title="בדיקת תקשורת"
-              sub="הקו מסונן וחוסם? בדיקה מה נחסם + בקשת-פתיחה מוכנה לחברת-הסינון"
-              onClick={() => { setHelpOpen(false); setNetCheckOpen(true); }}
-            />
+            {featureOn(config, 'shell.netcheck') && (
+              <HubButton
+                emoji="🩺"
+                title="בדיקת תקשורת"
+                sub="הקו מסונן וחוסם? בדיקה מה נחסם + בקשת-פתיחה מוכנה לחברת-הסינון"
+                onClick={() => { setHelpOpen(false); setNetCheckOpen(true); }}
+              />
+            )}
             {/* 💬 צ׳אט-תמיכה חי (17.8) — רק בענן+מחובר. מייל-על ⇒ תיבת-השיחות;
                 לקוח רגיל ⇒ מודאל-שיחה עם התמיכה. */}
             {cloud.enabled && cloud.user && (
@@ -1013,7 +1015,9 @@ export default function App() {
                   <HubButton emoji="💬" title="שיחות תמיכה" sub="הודעות מהלקוחות — מענה בזמן-אמת" onClick={() => { setHelpOpen(false); setSupportInboxOpen(true); }} />
                 )}
                 {/* צ׳אט-הלקוח — לכולם (גם למייל-על, לבדיקה/כדי להיות נגיש כלקוח). */}
-                <HubButton emoji="💬" title="צ׳אט עם התמיכה" sub="שאלה? כתבו לנו — נענה בזמן-אמת" onClick={() => { setHelpOpen(false); setSupportOpen(true); }} />
+                {featureOn(config, 'shell.support') && (
+                  <HubButton emoji="💬" title="צ׳אט עם התמיכה" sub="שאלה? כתבו לנו — נענה בזמן-אמת" onClick={() => { setHelpOpen(false); setSupportOpen(true); }} />
+                )}
                 {/* 💬 צ׳אט-צוות תוך-ארגוני — מגודר shell.teamchat (מתג באשף). */}
                 {featureOn(config, 'shell.teamchat') && (
                   <HubButton emoji="👥" title="צ׳אט הצוות" sub="שיחה פנימית חיה בין אנשי-הצוות של הארגון" onClick={() => { setHelpOpen(false); setTeamChatOpen(true); }} />
@@ -1023,8 +1027,8 @@ export default function App() {
           </div>
         </Modal>
       )}
-      {netCheckOpen && <NetCheckModal onClose={() => setNetCheckOpen(false)} />}
-      {supportOpen && <SupportChatModal onClose={() => setSupportOpen(false)} />}
+      {featureOn(config, 'shell.netcheck') && netCheckOpen && <NetCheckModal onClose={() => setNetCheckOpen(false)} />}
+      {featureOn(config, 'shell.support') && cloud.enabled && cloud.user && supportOpen && <SupportChatModal onClose={() => setSupportOpen(false)} />}
       {supportInboxOpen && <SupportInbox onClose={() => setSupportInboxOpen(false)} />}
       {teamChatOpen && <TeamChatModal onClose={() => setTeamChatOpen(false)} />}
       {/* תפריט-החשבון (UX סבב-א׳) — מייל, סטטוס-סנכרון כטקסט, יציאה בשני צעדים */}

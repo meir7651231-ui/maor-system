@@ -8,7 +8,7 @@ import { useApp } from '../../store/useApp';
 import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
 import { isoToday } from '../../lib/date-util';
 import { Btn, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { HebDateInput } from '../HebDateInput';
 import { Section, SectionNote } from './lib';
 
@@ -41,6 +41,7 @@ export function TeachersSection() {
   }
 
   const coursesOf = (id: string) => courses.filter((c) => c.teacherId === id).length;
+  const payOn = featureOn(config, 'settings.teachers.pay');
   const payLabel = (t: Teacher) =>
     t.payMethod === 'cash' ? '💵 מזומן' : t.payMethod === 'salary' ? '🧾 משכורת' : t.payMethod === 'check' ? '📝 צ׳ק' : '—';
 
@@ -67,7 +68,7 @@ export function TeachersSection() {
                 <th>אימייל</th>
                 <th>התמחות</th>
                 <th>תעריף לשעה</th>
-                <th>תשלום</th>
+                {payOn && <th>תשלום</th>}
                 <th>{termOf(config, 'nav.courses', 'חוגים')}</th>
                 <th></th>
               </tr>
@@ -80,7 +81,7 @@ export function TeachersSection() {
                   <td dir="ltr" style={{ textAlign: 'right' }}>{t.email || '—'}</td>
                   <td>{t.specialty || '—'}</td>
                   <td>{t.payRate ? '₪' + t.payRate : '—'}</td>
-                  <td>{payLabel(t)}</td>
+                  {payOn && <td>{payLabel(t)}</td>}
                   <td>{coursesOf(t.id)}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     <span style={{ display: 'inline-flex', gap: 6 }}>
@@ -273,6 +274,7 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
       {/* פרטי תשלום — סגנון (מזומן/משכורת/צ'ק) + פרטי בנק. כברירת-מחדל התשלום
           לפרטי המורה למעלה; "מוטב אחר" חושף שם/טלפון/ת"ז נפרדים (העברה דרך
           חשבון של בן-זוג/גמ"ח וכו'). */}
+      {featureOn(config, 'settings.teachers.pay') && (
       <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 12 }}>
         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>💳 פרטי תשלום</div>
         <div className="form-grid">
@@ -325,6 +327,7 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
             : 'ללא מוטב-אחר, התשלום = שם/טלפון/ת"ז ה' + teacher + ' למעלה + פרטי הבנק.'}
         </div>
       </div>
+      )}
       <Field label="הערות">
         <textarea rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} />
       </Field>
@@ -355,11 +358,13 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
               </button>
             ))}
           </div>
-          <div style={{ marginTop: 8 }}>
-            <Btn sm onClick={callReminder} title="יצירת אירוע שיחה בלוח להיום">
-              📞 תזכורת קשר
-            </Btn>
-          </div>
+          {featureOn(config, 'settings.teachers.callreminder') && (
+            <div style={{ marginTop: 8 }}>
+              <Btn sm onClick={callReminder} title="יצירת אירוע שיחה בלוח להיום">
+                📞 תזכורת קשר
+              </Btn>
+            </div>
+          )}
         </div>
       )}
       <div className="modal-actions">

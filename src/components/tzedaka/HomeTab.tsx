@@ -142,7 +142,7 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
         {db.tzCoordinators.length > 0 && (
           <Btn onClick={() => setBoxFormFor(db.tzCoordinators[0].id)}>➕ {termOf(config, 'entity.tzBox', 'קופה')}</Btn>
         )}
-        {db.tzBoxes.length > 0 && (
+        {featureOn(config, 'tzedaka.quickcollect') && db.tzBoxes.length > 0 && (
           <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
             <Select
               value={quickBoxId}
@@ -169,23 +169,25 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
       </div>
 
       {/* דורש טיפול */}
-      <section className="card">
-        <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>🔔 דורש טיפול</h2>
-        {care.length === 0 && <div style={{ fontSize: 13, color: 'var(--green)', fontWeight: 600 }}>הכל מטופל ✓</div>}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {care.map((item) => (
-            <div key={item.kind + item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid var(--line)', borderRadius: 10, padding: '7px 11px' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>{item.label}</div>
-                <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{item.hint}</div>
+      {featureOn(config, 'tzedaka.care') && (
+        <section className="card">
+          <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>🔔 דורש טיפול</h2>
+          {care.length === 0 && <div style={{ fontSize: 13, color: 'var(--green)', fontWeight: 600 }}>הכל מטופל ✓</div>}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {care.map((item) => (
+              <div key={item.kind + item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid var(--line)', borderRadius: 10, padding: '7px 11px' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>{item.label}</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{item.hint}</div>
+                </div>
+                <Btn sm onClick={() => careAction(item.kind, item.id)}>
+                  {item.kind === 'stale' || item.kind === 'lost' ? '💰 ריקון' : item.kind === 'inactiveCoord' ? 'לכרטיס ←' : '✎ מבצע'}
+                </Btn>
               </div>
-              <Btn sm onClick={() => careAction(item.kind, item.id)}>
-                {item.kind === 'stale' || item.kind === 'lost' ? '💰 ריקון' : item.kind === 'inactiveCoord' ? 'לכרטיס ←' : '✎ מבצע'}
-              </Btn>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* מבצעים */}
       {campaignsOn && (

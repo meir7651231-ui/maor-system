@@ -140,6 +140,12 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
 
   // סבב ב׳: מעקב-טיפול + קישור-תשלום — מגודרים בדיוק כמו במסכי-התורמים
   const ayinOn = featureOn(config, 'supporters.ayin');
+  // גידור-דגלים (FLAGMAX) — חסר-דגל = פעיל; false מסתיר.
+  // 🐛 כפתורי-ה-CSV הוצגו גם כש-core.export כבוי (downloadCsv no-op שקט) — עכשיו מוסתרים.
+  const exportOn = featureOn(config, 'supporters.dialer.export') && featureOn(config, 'core.export');
+  const namesExportOn = featureOn(config, 'supporters.dialer.namesexport');
+  const editOn = featureOn(config, 'supporters.dialer.edit');
+  const resetOn = featureOn(config, 'supporters.dialer.reset');
 
   // ⬇ ייצוא-שמות ממוקד-קמפיין (בקשת-בעלים 20.8): רק השמות-לטיפול של משתתפי
   // הקמפיין הזה (תור+יומן) — אותו פורמט בדיוק כדוח-המנהל המלא (ayinAllRows).
@@ -204,12 +210,12 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
               {prog.total} {supWord} · 💰 {prog.counts.donated} תרמו · 🔁 {prog.counts.callback} לחזרה
             </div>
             <div style={{ marginTop: 14, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-              {dialer.log.length > 0 && (
+              {exportOn && dialer.log.length > 0 && (
                 <Btn onClick={exportCsv} title="הורדת יומן-השיחות המלא כ-CSV — לפני שהקמפיין נמחק">
                   ⬇ סיכום CSV
                 </Btn>
               )}
-              {campaignNamesCount > 0 && (
+              {namesExportOn && campaignNamesCount > 0 && (
                 <Btn onClick={exportNamesCsv} title={'רק ה' + itemLabel(config) + ' של משתתפי הקמפיין הזה — אותו פורמט כדוח-המנהל'}>
                   ⬇ 🕯 {itemLabel(config)} ({campaignNamesCount})
                 </Btn>
@@ -283,9 +289,11 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                     🕯 {itemLabel(config)} ({sp.ayin?.names.length ?? 0}) {namesOpen ? '▴' : '▾'}
                   </Btn>
                 )}
-                <Btn sm onClick={() => setEditOpen(true)} title={'עריכת פרטי ' + sp.name + ' — טלפון/כתובת/יעד-קשר בלי לעזוב את הקמפיין'}>
-                  ✎ עריכת פרטים
-                </Btn>
+                {editOn && (
+                  <Btn sm onClick={() => setEditOpen(true)} title={'עריכת פרטי ' + sp.name + ' — טלפון/כתובת/יעד-קשר בלי לעזוב את הקמפיין'}>
+                    ✎ עריכת פרטים
+                  </Btn>
+                )}
                 {/* 💳 מסלול-הסליקה: התורם משלם בעצמו אונליין — התשלום נקלט אוטומטית
                     מהסליקה (תשלומים-נכנסים, דדופ-txn). מגן-כפילות (20.8): שימוש בקישור
                     ממלא הערת-שיחה ומזהיר לא לרשום גם "תרם/ה" ידנית — אחרת ירשם פעמיים. */}
@@ -442,25 +450,30 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
             <Btn sm onClick={onClose}>מזעור</Btn>
             {dialer.log.length > 0 && (
               <>
-                <Btn sm onClick={undo} title="ביטול הסיווג האחרון — המתקשר חוזר לחזית-התור">↩ ביטול אחרון</Btn>
-                <Btn sm onClick={exportCsv} title="הורדת יומן-השיחות עד-כה כ-CSV">⬇ CSV</Btn>
+                {resetOn && (
+                  <Btn sm onClick={undo} title="ביטול הסיווג האחרון — המתקשר חוזר לחזית-התור">↩ ביטול אחרון</Btn>
+                )}
+                {exportOn && (
+                  <Btn sm onClick={exportCsv} title="הורדת יומן-השיחות עד-כה כ-CSV">⬇ CSV</Btn>
+                )}
               </>
             )}
-            {campaignNamesCount > 0 && (
+            {namesExportOn && campaignNamesCount > 0 && (
               <Btn sm onClick={exportNamesCsv} title={'ייצוא רק ה' + itemLabel(config) + ' של משתתפי הקמפיין (' + campaignNamesCount + ')'}>
                 ⬇ 🕯
               </Btn>
             )}
           </span>
-          {armEnd ? (
-            <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>למחוק?</span>
-              <Btn sm onClick={() => { stop(); onClose(); }}>כן, סיום</Btn>
-              <Btn sm onClick={() => setArmEnd(false)}>ביטול</Btn>
-            </span>
-          ) : (
-            <Btn sm onClick={() => setArmEnd(true)}>🗑 סיום קמפיין</Btn>
-          )}
+          {resetOn &&
+            (armEnd ? (
+              <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>למחוק?</span>
+                <Btn sm onClick={() => { stop(); onClose(); }}>כן, סיום</Btn>
+                <Btn sm onClick={() => setArmEnd(false)}>ביטול</Btn>
+              </span>
+            ) : (
+              <Btn sm onClick={() => setArmEnd(true)}>🗑 סיום קמפיין</Btn>
+            ))}
         </div>
       </div>
 

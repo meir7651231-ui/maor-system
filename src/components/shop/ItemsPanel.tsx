@@ -113,20 +113,22 @@ export function ItemsPanel() {
       </button>
       {open && (
         <div style={{ marginTop: 10 }}>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
-            <TextInput value={itemQ} onChange={setItemQ} placeholder={'🔍 חיפוש ' + term} />
-            {(
-              [
-                ['out', '🔴 אזל'],
-                ['low', '🟠 נמוך'],
-                ['untracked', '⚪ ללא מעקב'],
-              ] as const
-            ).map(([key, label]) => (
-              <Chip key={key} on={stockState === key} onClick={() => setStockState(stockState === key ? '' : key)}>
-                {label}
-              </Chip>
-            ))}
-          </div>
+          {featureOn(config, 'shop.stockfilter') && (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
+              <TextInput value={itemQ} onChange={setItemQ} placeholder={'🔍 חיפוש ' + term} />
+              {(
+                [
+                  ['out', '🔴 אזל'],
+                  ['low', '🟠 נמוך'],
+                  ['untracked', '⚪ ללא מעקב'],
+                ] as const
+              ).map(([key, label]) => (
+                <Chip key={key} on={stockState === key} onClick={() => setStockState(stockState === key ? '' : key)}>
+                  {label}
+                </Chip>
+              ))}
+            </div>
+          )}
           {filterItems(db, itemQ, stockState).map((i) => {
             const rem = itemRemaining(db, i.id);
             const kindLabel = KIND_OPTIONS.find((k) => k.value === i.kind)?.label ?? i.kind;

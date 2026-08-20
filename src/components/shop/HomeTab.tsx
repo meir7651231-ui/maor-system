@@ -92,7 +92,7 @@ export function HomeTab() {
           <Btn onClick={() => downloadCsv('shop-redemptions.csv', redemptionsCsvRows(db))}>⬇ ייצוא מימושים (CSV)</Btn>
         )}
         <Btn onClick={() => setAssignFormOpen(true)}>➕ {termOf(config, 'entity.shopAssignment', 'שיוך')}</Btn>
-        {db.shopAssignments.length > 0 && (
+        {featureOn(config, 'shop.quickredeem') && db.shopAssignments.length > 0 && (
           <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
             <Select
               value={quickAssignId}
@@ -132,7 +132,7 @@ export function HomeTab() {
       </div>
 
       {/* פגישות קרובות (הכרעה 22) — משטח התזכורות; ריק ⇒ לא מוצג */}
-      {meetings.length > 0 && (
+      {featureOn(config, 'shop.meeting') && meetings.length > 0 && (
         <section className="card">
           <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>🤝 פגישות קרובות</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -157,44 +157,48 @@ export function HomeTab() {
       )}
 
       {/* החגים הקרובים */}
-      <section className="card">
-        <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>🕎 החגים הקרובים ומי מקבל מה</h2>
-        {holidays.length === 0 ? (
-          <div style={{ fontSize: 13, color: 'var(--ink-faint)' }}>אין חגים ב-45 הימים הקרובים</div>
-        ) : (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {holidays.map((h) => {
-              const pending = pendingForHoliday(h);
-              return (
-                <Chip key={h.name} on={pending > 0}>
-                  {h.name + ' · ' + h.iso + (pending ? ' · ' + pending + ' מתנות ממתינות' : '')}
-                </Chip>
-              );
-            })}
-          </div>
-        )}
-      </section>
+      {featureOn(config, 'shop.holidays') && (
+        <section className="card">
+          <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>🕎 החגים הקרובים ומי מקבל מה</h2>
+          {holidays.length === 0 ? (
+            <div style={{ fontSize: 13, color: 'var(--ink-faint)' }}>אין חגים ב-45 הימים הקרובים</div>
+          ) : (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {holidays.map((h) => {
+                const pending = pendingForHoliday(h);
+                return (
+                  <Chip key={h.name} on={pending > 0}>
+                    {h.name + ' · ' + h.iso + (pending ? ' · ' + pending + ' מתנות ממתינות' : '')}
+                  </Chip>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* מה מגיע וטרם נמסר */}
-      <section className="card">
-        <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>🔔 מה מגיע וטרם נמסר</h2>
-        {care.length === 0 && <div style={{ fontSize: 13, color: 'var(--green)', fontWeight: 600 }}>הכל נמסר ✓</div>}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {care.map((item) => (
-            <div
-              key={item.kind + item.assignmentId + item.componentId + item.hint}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid var(--line)', borderRadius: 10, padding: '7px 11px' }}
-            >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>{item.label}</div>
-                <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{item.hint}</div>
+      {featureOn(config, 'shop.care') && (
+        <section className="card">
+          <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>🔔 מה מגיע וטרם נמסר</h2>
+          {care.length === 0 && <div style={{ fontSize: 13, color: 'var(--green)', fontWeight: 600 }}>הכל נמסר ✓</div>}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {care.map((item) => (
+              <div
+                key={item.kind + item.assignmentId + item.componentId + item.hint}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid var(--line)', borderRadius: 10, padding: '7px 11px' }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>{item.label}</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{item.hint}</div>
+                </div>
+                {/* stockOut הוא התרעת רכש — אין שיוך לממש */}
+                {item.assignmentId && <Btn sm onClick={() => openRedeem(item.assignmentId, item.componentId)}>🎁 מימוש</Btn>}
               </div>
-              {/* stockOut הוא התרעת רכש — אין שיוך לממש */}
-              {item.assignmentId && <Btn sm onClick={() => openRedeem(item.assignmentId, item.componentId)}>🎁 מימוש</Btn>}
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
 
       {redeem && <RedeemModal assignment={redeem.assignment} component={redeem.component} onClose={() => setRedeem(null)} />}
       {meetingEv && <ShopEventModal ev={meetingEv} date={meetingEv.date} onClose={() => setMeetingEv(null)} />}

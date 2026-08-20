@@ -28,6 +28,8 @@ export function CoordinatorsTab(props: { selId: string | null; onSelect: (id: st
   const selectFamily = useApp((s) => s.selectFamily);
   const scoreOn = featureOn(config, 'tzedaka.score');
   const familiesOn = moduleOn(config, 'families');
+  const boxesViewOn = featureOn(config, 'tzedaka.boxesview');
+  const filterOn = featureOn(config, 'tzedaka.filter');
   const [formOpen, setFormOpen] = useState(false);
   // שורת הכלים (UX סינון 1) — דפוס SupportersView
   const [q, setQ] = useState('');
@@ -47,44 +49,45 @@ export function CoordinatorsTab(props: { selId: string | null; onSelect: (id: st
   return (
     <div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <Chip on={boxesView} onClick={() => setBoxesView((v) => !v)}>📦 כל הקופות</Chip>
-        {!boxesView ? (
-          <>
-            <TextInput value={q} onChange={setQ} placeholder={'🔍 חיפוש ' + termOf(config, 'entity.tzCoordinator', 'רכז')} />
-            <Chip on={onlyActive} onClick={() => setOnlyActive((v) => !v)}>פעילים בלבד</Chip>
-            <Select
-              value={sort}
-              onChange={(v) => setSort(v as typeof sort)}
-              options={[
-                { value: 'name', label: 'מיון: שם' },
-                ...(scoreOn ? [{ value: 'score', label: 'מיון: ניקוד' }] : []),
-                { value: 'total', label: 'מיון: סה"כ שנאסף' },
-                { value: 'stale', label: 'מיון: ריקון ישן קודם' },
-              ]}
-            />
-          </>
-        ) : (
-          <>
-            <TextInput value={boxQ} onChange={setBoxQ} placeholder={'🔍 מספר / רכז / ' + termOf(config, 'entity.family', 'משפחה')} />
-            <Select
-              value={boxStatus}
-              onChange={(v) => setBoxStatus(v as TzBoxStatus | '')}
-              options={[
-                { value: '', label: 'כל הסטטוסים' },
-                ...(Object.keys(STATUS_LABEL) as TzBoxStatus[]).map((s) => ({ value: s, label: STATUS_LABEL[s] })),
-              ]}
-            />
-            <Select
-              value={boxSort}
-              onChange={(v) => setBoxSort(v as typeof boxSort)}
-              options={[
-                { value: 'num', label: 'מיון: מספר' },
-                { value: 'lastCollection', label: 'מיון: ריקון ישן קודם' },
-                { value: 'total', label: 'מיון: סה"כ' },
-              ]}
-            />
-          </>
-        )}
+        {boxesViewOn && <Chip on={boxesView} onClick={() => setBoxesView((v) => !v)}>📦 כל הקופות</Chip>}
+        {filterOn &&
+          (!(boxesViewOn && boxesView) ? (
+            <>
+              <TextInput value={q} onChange={setQ} placeholder={'🔍 חיפוש ' + termOf(config, 'entity.tzCoordinator', 'רכז')} />
+              <Chip on={onlyActive} onClick={() => setOnlyActive((v) => !v)}>פעילים בלבד</Chip>
+              <Select
+                value={sort}
+                onChange={(v) => setSort(v as typeof sort)}
+                options={[
+                  { value: 'name', label: 'מיון: שם' },
+                  ...(scoreOn ? [{ value: 'score', label: 'מיון: ניקוד' }] : []),
+                  { value: 'total', label: 'מיון: סה"כ שנאסף' },
+                  { value: 'stale', label: 'מיון: ריקון ישן קודם' },
+                ]}
+              />
+            </>
+          ) : (
+            <>
+              <TextInput value={boxQ} onChange={setBoxQ} placeholder={'🔍 מספר / רכז / ' + termOf(config, 'entity.family', 'משפחה')} />
+              <Select
+                value={boxStatus}
+                onChange={(v) => setBoxStatus(v as TzBoxStatus | '')}
+                options={[
+                  { value: '', label: 'כל הסטטוסים' },
+                  ...(Object.keys(STATUS_LABEL) as TzBoxStatus[]).map((s) => ({ value: s, label: STATUS_LABEL[s] })),
+                ]}
+              />
+              <Select
+                value={boxSort}
+                onChange={(v) => setBoxSort(v as typeof boxSort)}
+                options={[
+                  { value: 'num', label: 'מיון: מספר' },
+                  { value: 'lastCollection', label: 'מיון: ריקון ישן קודם' },
+                  { value: 'total', label: 'מיון: סה"כ' },
+                ]}
+              />
+            </>
+          ))}
         <span style={{ marginInlineStart: 'auto' }}>
           <Btn kind="primary" onClick={() => setFormOpen(true)}>
             ➕ הוספת {termOf(config, 'entity.tzCoordinator', 'רכז')}
@@ -92,7 +95,8 @@ export function CoordinatorsTab(props: { selId: string | null; onSelect: (id: st
         </span>
       </div>
 
-      {boxesView ? (
+      {/* דגל כבוי ⇒ המבט נופל בחן לגריד-הרכזים גם אם boxesView נשאר דלוק */}
+      {boxesViewOn && boxesView ? (
         <div className="card" style={{ padding: 8 }}>
           {db.tzBoxes.length === 0 && <Empty>עדיין אין {termOf(config, 'entity.tzBox', 'קופה')}ות</Empty>}
           {boxesOverview(db, boxQ, boxStatus, boxSort).map((r) => (

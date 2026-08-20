@@ -41,9 +41,10 @@ export function ImportSection() {
   // אחד פתוח בכל רגע. כל זרימה נשארה במלואה (אפס אובדן) — רק הרינדור מתמקד.
   const ayinOn = featureOn(config, 'supporters.ayin') && featureOn(config, 'supporters.ayin.sheet');
   const [route, setRoute] = useState<'json' | 'fam' | 'kids' | 'sup' | 'ayin' | 'contacts'>('json');
+  const contactsOn = featureOn(config, 'settings.import.contacts');
   const routes: { id: typeof route; label: string }[] = [
     { id: 'json', label: 'מקובץ גיבוי (JSON)' },
-    { id: 'contacts', label: '📇 אנשי-קשר (VCF)' },
+    ...(contactsOn ? [{ id: 'contacts' as const, label: '📇 אנשי-קשר (VCF)' }] : []),
     { id: 'fam', label: termOf(config, 'nav.families', 'משפחות') + ' (CSV)' },
     { id: 'kids', label: 'ילדים (CSV)' },
     { id: 'sup', label: termOf(config, 'nav.supporters', 'תורמים') + ' (CSV)' },
@@ -240,7 +241,7 @@ export function ImportSection() {
         </>
       ))}
 
-      {route === 'contacts' && <ContactsImport />}
+      {contactsOn && route === 'contacts' && <ContactsImport />}
 
       {route === 'kids' && <KidsImport />}
 

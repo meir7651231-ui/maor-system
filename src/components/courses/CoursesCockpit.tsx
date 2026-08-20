@@ -5,7 +5,7 @@
  */
 import type { ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { isoToday, planLabelOf } from './lib';
 import { coursesToday, debtors, dropoutRisk, opsKpis, punchLowList } from './ops';
 
@@ -38,6 +38,10 @@ export function CoursesCockpit() {
   const db = useApp((s) => s.db);
   const config = useApp((s) => s.config);
   const selectCourse = useApp((s) => s.selectCourse);
+
+  // קבוצות-הקוקפיט מכבדות את דגלי-המקור: חייבים ⇐ courses.payments · כרטיסיות ⇐ courses.punch
+  const paymentsOn = featureOn(config, 'courses.payments');
+  const punchOn = featureOn(config, 'courses.punch');
 
   const today = isoToday();
   const dow = new Date(today + 'T12:00:00').getDay();
@@ -90,19 +94,23 @@ export function CoursesCockpit() {
         {more(todayC.length)}
       </Group>
 
-      <Group title={'💰 חייבים'} count={debt.length} empty="אין יתרות-חוב פתוחות">
-        {debt.slice(0, CAP).map(({ e, bal }) => (
-          <Row key={e.id} onClick={() => selectCourse(e.courseId)} main={memberName(e.memberId)} sub={courseName(e.courseId)} tag={'₪' + bal.toLocaleString('he-IL')} tagColor="#b91c1c" />
-        ))}
-        {more(debt.length)}
-      </Group>
+      {paymentsOn && (
+        <Group title={'💰 חייבים'} count={debt.length} empty="אין יתרות-חוב פתוחות">
+          {debt.slice(0, CAP).map(({ e, bal }) => (
+            <Row key={e.id} onClick={() => selectCourse(e.courseId)} main={memberName(e.memberId)} sub={courseName(e.courseId)} tag={'₪' + bal.toLocaleString('he-IL')} tagColor="#b91c1c" />
+          ))}
+          {more(debt.length)}
+        </Group>
+      )}
 
-      <Group title={'🎫 כרטיסיות שנגמרות'} count={low.length} empty="אין כרטיסיות שעומדות להסתיים">
-        {low.slice(0, CAP).map(({ e, left }) => (
-          <Row key={e.id} onClick={() => selectCourse(e.courseId)} main={memberName(e.memberId)} sub={courseName(e.courseId) + ' · ' + planLabelOf(e)} tag={'נותרו ' + left} tagColor={left === 0 ? '#b91c1c' : '#9a6414'} />
-        ))}
-        {more(low.length)}
-      </Group>
+      {punchOn && (
+        <Group title={'🎫 כרטיסיות שנגמרות'} count={low.length} empty="אין כרטיסיות שעומדות להסתיים">
+          {low.slice(0, CAP).map(({ e, left }) => (
+            <Row key={e.id} onClick={() => selectCourse(e.courseId)} main={memberName(e.memberId)} sub={courseName(e.courseId) + ' · ' + planLabelOf(e)} tag={'נותרו ' + left} tagColor={left === 0 ? '#b91c1c' : '#9a6414'} />
+          ))}
+          {more(low.length)}
+        </Group>
+      )}
 
       <Group title={'⚠️ בסיכון-נשירה'} count={risk.length} empty="אין תלמידים בסיכון (3+ חיסורים)">
         {risk.slice(0, CAP).map(({ e, absences }) => (

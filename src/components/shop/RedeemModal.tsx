@@ -79,8 +79,8 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
       {!isMeeting && remaining === 0 && (
         <div style={{ background: '#fdf1d4', color: '#9a6414', borderRadius: 8, padding: '7px 11px', fontSize: 12.5, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <span>⚠ המלאי אזל — המימוש אינו נחסם, אך כדאי לחדש מלאי</span>
-          {/* רשימת המתנה (SHOP6 חנות 27) — הצעה אוטומטית במלאי 0 */}
-          {c.itemId && (
+          {/* רשימת המתנה (SHOP6 חנות 27) — הצעה אוטומטית במלאי 0; מגודר כמו התצוגה ב-ItemsPanel */}
+          {c.itemId && featureOn(config, 'shop.waitlist') && (
             <Btn
               sm
               onClick={() => {

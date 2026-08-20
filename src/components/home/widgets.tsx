@@ -400,7 +400,7 @@ function HeroWidget({ ctx }: { ctx: HomeCtx }) {
       </div>
 
       {/* פעולות מהירות — רק בערכות שהמוקאפ שלהן מציג אותן; מודול כבוי מוסתר */}
-      {actionsOn && (
+      {actionsOn && featureOn(config, 'home.hero.actions') && (
         <div className="hm-hero-actions">
           {telephonyOn(config) && (
             <Btn onClick={() => { window.location.hash = '#caller'; }} title="זיהוי מספר-מתקשר ופתיחת הכרטיס">
@@ -942,9 +942,11 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
       title={wTitle}
       badge={openAttn.length ? String(openAttn.length) : undefined}
       action={
-        <Btn sm onClick={() => setFullOpen(true)} title="כל הפריטים — הפתוחים והשטופלו — במסך אחד עם חיפוש">
-          המסך המלא ←
-        </Btn>
+        featureOn(config, 'home.care.full') ? (
+          <Btn sm onClick={() => setFullOpen(true)} title="כל הפריטים — הפתוחים והשטופלו — במסך אחד עם חיפוש">
+            המסך המלא ←
+          </Btn>
+        ) : undefined
       }
     >
       {/* "הכל מטופל" רק כשגם העמודות המבודדות נקיות — אחרת הצ'יפים למטה סותרים */}
@@ -978,7 +980,7 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
         </div>
       )}
       {/* שורת סינון לפי תגית — רק כשיש יותר מתגית אחת (אחרת אין מה לסנן) */}
-      {tags.length > 1 && (
+      {featureOn(config, 'home.care.filters') && tags.length > 1 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 2 }}>
           <Chip on={!activeTag} onClick={() => setCareFilter(null)}>
             {'הכל · ' + openAttn.length}
@@ -1017,7 +1019,7 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
           {showAll ? 'הצגת 8 ראשונים בלבד' : `+${shownAttn.length - 8} פריטים נוספים — הצגת הכל`}
         </button>
       )}
-      {doneAttn.length > 0 && (
+      {featureOn(config, 'home.care.filters') && doneAttn.length > 0 && (
         <button
           type="button"
           style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', textDecoration: 'underline' }}
@@ -1044,7 +1046,7 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
             </Btn>
           </div>
         ))}
-      {showDone && doneAttn.length > 0 && (
+      {featureOn(config, 'home.care.reset') && showDone && doneAttn.length > 0 && (
         <button
           type="button"
           style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', color: resetArmed ? 'var(--red)' : undefined }}
@@ -1705,12 +1707,14 @@ function QuickWidget({ ctx }: { ctx: HomeCtx }) {
             🧾 קבלה
           </Btn>
         )}
-        <Btn
-          onClick={() => exportBackup()}
-          title="הורדת קובץ גיבוי מלא — כמו בהגדרות ← גיבוי"
-        >
-          ⬇ גיבוי
-        </Btn>
+        {featureOn(config, 'home.quick.backup') && (
+          <Btn
+            onClick={() => exportBackup()}
+            title="הורדת קובץ גיבוי מלא — כמו בהגדרות ← גיבוי"
+          >
+            ⬇ גיבוי
+          </Btn>
+        )}
       </div>
     </section>
   );

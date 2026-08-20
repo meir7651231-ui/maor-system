@@ -42,6 +42,8 @@ export function TeacherPanel(props: { teacherId: string }) {
 
   const broadcastOn = featureOn(config, 'courses.broadcast');
   const exportOn = featureOn(config, 'core.export');
+  // גיליון-הנוכחות המהיר — כבוי ⇒ כפתור "📋 נוכחות" מוסתר (כמו בכרטיס-החוג)
+  const sheetOn = featureOn(config, 'courses.attendance.sheet');
   const courseWord = termOf(config, 'entity.course', 'חוג');
 
   const memberName = (memberId: string) => {
@@ -104,9 +106,11 @@ export function TeacherPanel(props: { teacherId: string }) {
                   📢
                 </Btn>
               )}
-              <Btn sm kind="primary" onClick={() => setSheetFor(course)}>
-                📋 נוכחות
-              </Btn>
+              {sheetOn && (
+                <Btn sm kind="primary" onClick={() => setSheetFor(course)}>
+                  📋 נוכחות
+                </Btn>
+              )}
             </div>
           ))
         )}

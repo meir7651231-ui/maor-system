@@ -107,7 +107,8 @@ function MemberCard(props: { m: Member; onEdit: () => void; onDelete: () => void
             {[m.school, m.grade ? 'כיתה ' + m.grade : ''].filter(Boolean).join(' · ')}
           </div>
         )}
-        {m.health && <div style={{ fontSize: 12, color: '#b91c1c' }}>⚕ {m.health}</div>}
+        {/* ⚕ מידע רפואי (PII) — מוצג רק כשדגל families.health דלוק */}
+        {featureOn(config, 'families.health') && m.health && <div style={{ fontSize: 12, color: '#b91c1c' }}>⚕ {m.health}</div>}
         {media.length > 0 && (
           <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>🗂 {media.join(' · ')}</div>
         )}
@@ -338,9 +339,11 @@ export function FamilyDetail(props: { family: Family }) {
             </Btn>
           )}
           <Btn onClick={() => setEditOpen(true)}>✎ עריכת {termOf(config, 'entity.family', 'משפחה')}</Btn>
-          <Btn kind="danger" onClick={onDeleteFamily}>
-            🗑 מחיקת {termOf(config, 'entity.family', 'משפחה')}
-          </Btn>
+          {featureOn(config, 'families.delete') && (
+            <Btn kind="danger" onClick={onDeleteFamily}>
+              🗑 מחיקת {termOf(config, 'entity.family', 'משפחה')}
+            </Btn>
+          )}
         </div>
       </div>
 
@@ -381,24 +384,26 @@ export function FamilyDetail(props: { family: Family }) {
             }
           />
         </section>
-        <section className="card">
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>פרטים נוספים</h2>
-          <InfoRow k="מצב משפחתי" v={fam.maritalStatus || '—'} />
-          <InfoRow k="שפה מדוברת" v={fam.language || '—'} />
-          <InfoRow k="תת-קהילה" v={fam.community || '—'} />
-          <InfoRow k="קופת צדקה" v={fam.tzedaka || '—'} />
-          <InfoRow k="הנחה" v={fam.discount || '—'} />
-          <div style={{ margin: '6px 0' }}>
-            <span
-              style={chipStyle(fam.fullSefach ? '#e4f5ea' : '#fdf1d4', fam.fullSefach ? '#12803c' : '#9a6414')}
-            >
-              {fam.fullSefach ? 'ספח מלא ✓' : 'חסר ספח מלא'}
-            </span>
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6 }}>
-            {fam.notes || 'אין הערות ל' + termOf(config, 'entity.family', 'משפחה') + ' זו.'}
-          </div>
-        </section>
+        {featureOn(config, 'families.extradetails') && (
+          <section className="card">
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>פרטים נוספים</h2>
+            <InfoRow k="מצב משפחתי" v={fam.maritalStatus || '—'} />
+            <InfoRow k="שפה מדוברת" v={fam.language || '—'} />
+            <InfoRow k="תת-קהילה" v={fam.community || '—'} />
+            <InfoRow k="קופת צדקה" v={fam.tzedaka || '—'} />
+            <InfoRow k="הנחה" v={fam.discount || '—'} />
+            <div style={{ margin: '6px 0' }}>
+              <span
+                style={chipStyle(fam.fullSefach ? '#e4f5ea' : '#fdf1d4', fam.fullSefach ? '#12803c' : '#9a6414')}
+              >
+                {fam.fullSefach ? 'ספח מלא ✓' : 'חסר ספח מלא'}
+              </span>
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6 }}>
+              {fam.notes || 'אין הערות ל' + termOf(config, 'entity.family', 'משפחה') + ' זו.'}
+            </div>
+          </section>
+        )}
       </div>
 
       {/* בני המשפחה */}

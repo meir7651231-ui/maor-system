@@ -20,12 +20,13 @@ describe('🧩 ratchet — אשף ההרכבה מכסה כל מודול', () => 
     }
   });
 
-  it('מודול החלוקה (shop7) קיים באשף עם הטוגל + 3 הפיצ׳רים שלו', () => {
+  it('מודול החלוקה (shop7) קיים באשף עם הטוגל + הפיצ׳רים שלו', () => {
     const sec = WIZARD_SECTIONS.find((s) => s.id === 'shop7');
     expect(sec).toBeTruthy();
     expect(sec?.module).toBe('shop7');
     // 3 הפיצ׳רים של shop7 נשאבים לפי section.id (FEATURES.filter module===id)
-    expect(FEATURES.filter((f) => f.module === 'shop7').length).toBe(3);
+    // flag-max 2 (20.8): נוספו volunteers/unassign/dayclose/note ⇒ 3+4=7
+    expect(FEATURES.filter((f) => f.module === 'shop7').length).toBe(7);
     // שמות ניתנים-לשינוי: "חלוקה" + "מתנדב"
     expect(sec?.termKeys).toContain('nav.shop7');
     expect(sec?.termKeys).toContain('entity.volunteer');

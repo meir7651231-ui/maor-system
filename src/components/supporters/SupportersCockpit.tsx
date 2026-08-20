@@ -26,6 +26,7 @@ import {
 import { segmentCounts, type SegmentKey } from './segments';
 import { fmtDate } from './lib';
 import { downloadCsv } from '../../lib/csvx';
+import { guardExport } from '../../lib/exportGate';
 
 const SEV_STYLE: Record<CockpitSeverity, { bg: string; c: string; label: string }> = {
   due: { bg: 'var(--warn-bg, #f9ecd7)', c: 'var(--warn, #b45309)', label: 'לטיפול היום' },
@@ -246,7 +247,9 @@ export function SupportersCockpit(props: {
             <Btn sm onClick={() => downloadCsv('cockpit-' + today + '.csv', cockpitCsvRows(queue))} title="ייצוא רשימת-המשימות ל-CSV">
               ⬇ CSV
             </Btn>
-            <Btn sm onClick={() => void navigator.clipboard?.writeText(cockpitWorkListText(queue))} title="העתקת רשימת-המשימות ללוח">
+            {/* 🐛 FLAGMAX: ההעתקה-ללוח עקפה את שער-יציאת-המידע (core.export) —
+                עכשיו דרך guardExport, בדיוק כמו כפתור-ה-CSV (downloadCsv) שלצדה. */}
+            <Btn sm onClick={() => { if (!guardExport()) return; void navigator.clipboard?.writeText(cockpitWorkListText(queue)); }} title="העתקת רשימת-המשימות ללוח">
               📋 העתקה
             </Btn>
           </div>

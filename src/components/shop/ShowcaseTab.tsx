@@ -6,7 +6,7 @@
  */
 import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { Btn } from '../ui';
 import { fmtIls } from '../wall/wallData';
 import { componentCounts, givenValue, subsidyTotal } from './lib';
@@ -49,6 +49,8 @@ function ShowcaseContent(props: { wall?: boolean }) {
 }
 
 export function ShowcaseTab() {
+  const config = useApp((s) => s.config);
+  const wallOn = featureOn(config, 'shop.showcase.wall');
   const [wallOpen, setWallOpen] = useState(false);
   const [clock, setClock] = useState(() => new Date());
 
@@ -69,7 +71,8 @@ export function ShowcaseTab() {
     return () => window.removeEventListener('keydown', onKey);
   }, [wallOpen]);
 
-  if (wallOpen) {
+  // דגל כבוי ⇒ גם ה-overlay לא נפתח (נפילה בחן אם הדגל כובה בזמן מסך-מלא)
+  if (wallOn && wallOpen) {
     return (
       <div className="shop-wall" style={{ position: 'fixed', inset: 0, zIndex: 95, overflow: 'auto', padding: '32px 16px' }}>
         <style>{`
@@ -96,9 +99,11 @@ export function ShowcaseTab() {
 
   return (
     <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-        <Btn onClick={() => setWallOpen(true)} title="מצב ראווה למסך גדול">🖥 מסך מלא</Btn>
-      </div>
+      {wallOn && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <Btn onClick={() => setWallOpen(true)} title="מצב ראווה למסך גדול">🖥 מסך מלא</Btn>
+        </div>
+      )}
       <ShowcaseContent />
     </div>
   );

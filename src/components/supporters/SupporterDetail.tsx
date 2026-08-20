@@ -378,9 +378,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             </Btn>
           )}
           <Btn onClick={() => setEditOpen(true)}>✎ עריכה</Btn>
-          <Btn kind="danger" onClick={onDelete}>
-            {armDelete ? 'לאשר מחיקה סופית?' : '🗑 מחיקה'}
-          </Btn>
+          {featureOn(config, 'supporters.delete') && (
+            <Btn kind="danger" onClick={onDelete}>
+              {armDelete ? 'לאשר מחיקה סופית?' : '🗑 מחיקה'}
+            </Btn>
+          )}
         </div>
       </div>
 
@@ -540,9 +542,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <h3 style={{ fontSize: 15 }}>
             {'כל ה' + termOf(config, 'entity.donations', 'תרומות') + ' — מתי וכמה'} ({donRows.length})
           </h3>
-          <Btn sm onClick={() => setDonOpen(true)}>
-            ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
-          </Btn>
+          {/* 🐛 FLAGMAX: הכפתור-התאום בכותרת מגודר canIssue (רק מנפיק-קבלות) —
+              זה נשכח ונחשף גם לעובד/ת; אותו תנאי בדיוק. */}
+          {canIssue && (
+            <Btn sm onClick={() => setDonOpen(true)}>
+              ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
+            </Btn>
+          )}
         </div>
         {donRows.length === 0 ? (
           <Empty>{'עדיין אין ' + termOf(config, 'entity.donations', 'תרומות') + ' מתועדות — רשמו עם "➕ רישום ' + termOf(config, 'entity.donation', 'תרומה') + '"'}</Empty>
