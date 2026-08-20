@@ -16,6 +16,7 @@ import { timeMachine, type TimeMachine } from './timemachine';
 import { donorRhythm, seasonality, type Seasonality } from './seasonality';
 import { donorSignals, portfolioSignals, type PortfolioSignals, type SignalKind } from './signals';
 import { intelCsvRows } from './intelExport';
+import { donorRanks, type DonorRank } from './ranks';
 import { downloadCsv } from '../../lib/csvx';
 import { featureOn } from '../../lib/config';
 
@@ -49,8 +50,8 @@ function Tile(props: { label: string; value: string; note?: string; tone?: strin
   );
 }
 
-function DeepDive(props: { sp: Supporter; intel: DonorIntel; rate: number; today: string }) {
-  const { intel, sp } = props;
+function DeepDive(props: { sp: Supporter; intel: DonorIntel; rate: number; today: string; rank?: DonorRank }) {
+  const { intel, sp, rank } = props;
   const tier = supTier(intel.rfm.score);
   const mo = intel.scan.monthly;
   const max = Math.max(1, ...mo);
@@ -66,7 +67,10 @@ function DeepDive(props: { sp: Supporter; intel: DonorIntel; rate: number; today
           <h3 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>{sp.name || 'ללא שם'}</h3>
           <div style={{ fontSize: 11, color: 'var(--ink-faint)' }}>{sp.cat || '—'} · {intel.scan.count} מתנות</div>
         </div>
-        <span style={{ fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999, background: tier.bg, color: tier.c }}>{tier.label} {intel.rfm.score}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+          <span style={{ fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999, background: tier.bg, color: tier.c }}>{tier.label} {intel.rfm.score}</span>
+          {rank ? <span style={{ fontSize: 10.5, color: 'var(--ink-faint)', fontWeight: 700 }} title={'דירוג לפי ערך-חיים · אחוזון ' + rank.percentile}>#{rank.ltvRank}/{rank.total} · אחוזון {rank.percentile}</span> : null}
+        </div>
       </div>
 
       {/* rhythm + signals badges */}
@@ -402,6 +406,7 @@ export function SupportersIntel(props: {
   const machine = useMemo(() => timeMachine(props.supporters, today, rate), [props.supporters, today, rate]);
   const season = useMemo(() => seasonality(props.supporters, rate), [props.supporters, rate]);
   const signals = useMemo(() => portfolioSignals(props.supporters, today, rate), [props.supporters, today, rate]);
+  const ranks = useMemo(() => donorRanks(props.supporters, today, rate), [props.supporters, today, rate]);
 
   const sorted = useMemo(() => {
     const arr = [...rows];
@@ -494,7 +499,7 @@ export function SupportersIntel(props: {
           </div>
         </div>
 
-        {selected ? <DeepDive sp={selected.sp} intel={selected.intel} rate={rate} today={today} /> : null}
+        {selected ? <DeepDive sp={selected.sp} intel={selected.intel} rate={rate} today={today} rank={ranks.get(selected.sp.id)} /> : null}
       </div>
 
       {/* מפת-העונתיות — מתי נכנס הכסף */}

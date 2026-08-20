@@ -63,4 +63,10 @@ describe('💛 ratchet — חיווט מרכז-המודיעין (opt-in)', () =>
     expect(intelSrc).toContain('donorRhythm(sp');
     expect(intelSrc).toContain('donorSignals(sp');
   });
+
+  it('🛡 דירוג/אחוזון מחווט מהמנוע הטהור (donorRanks) לכרטיס-הצלילה', () => {
+    expect(intelSrc).toContain('donorRanks(props.supporters');
+    expect(intelSrc).toContain('rank={ranks.get(');
+    expect(intelSrc).toContain('ranks = useMemo(');
+  });
 });
