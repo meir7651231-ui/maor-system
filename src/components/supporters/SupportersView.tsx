@@ -202,6 +202,15 @@ export function SupportersView() {
   const [dialerOpen, setDialerOpen] = useState(false);
   const dialer = useApp((s) => s.db.ui.dialer);
   const dialerStart = useApp((s) => s.dialerStart);
+  // צ'יפ-הקמפיין-הצף (20.8) — בקשת-פתיחה מכל מסך (דפוס famFormReq)
+  const dialerOpenReq = useApp((s) => s.dialerOpenReq);
+  const ackDialerOpen = useApp((s) => s.ackDialerOpen);
+  useEffect(() => {
+    if (dialerOpenReq) {
+      setDialerOpen(true);
+      ackDialerOpen();
+    }
+  }, [dialerOpenReq, ackDialerOpen]);
   // לוח התרומות הכלל-ארגוני (P1.4, legacy supCalOn/supCalAll) — מוצג בלחיצה
   const [orgCalOpen, setOrgCalOpen] = useState(false);
   // בקשת-בעלים 19.8 (פריט ז'): לוח מעקב-הטיפול מוסתר כברירת-מחדל — בחירה מפורשת להצגה.
