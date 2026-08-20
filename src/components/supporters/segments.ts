@@ -11,6 +11,21 @@ import { cockpitAtRisk, daysSince } from './cockpit';
 
 export type SegmentKey = 'atrisk' | 'goldsilent' | 'hok' | 'gave12m' | 'noemail';
 
+/* בקשת-מיקוד חוצת-מסכים: מסך-הבית (התראת-סיכון) מבקש לנחות על מסך-התורמים
+ * כשהוא מסונן לסגמנט. sessionStorage שורד את ה-unmount שבין המסכים (כמו ההגדרות). */
+const SUP_SEG_KEY = 'maor_sup_segment';
+export function requestSupportersSegment(key: SegmentKey) {
+  try { sessionStorage.setItem(SUP_SEG_KEY, key); } catch { /* אחסון חסום */ }
+}
+/** קורא ומוחק את בקשת-הסגמנט (חד-פעמית). */
+export function takeSupportersSegment(): SegmentKey | null {
+  try {
+    const v = sessionStorage.getItem(SUP_SEG_KEY);
+    if (v) sessionStorage.removeItem(SUP_SEG_KEY);
+    return (v as SegmentKey) || null;
+  } catch { return null; }
+}
+
 export interface SegmentDef {
   key: SegmentKey;
   label: string;
