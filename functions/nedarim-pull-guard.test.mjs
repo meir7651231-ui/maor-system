@@ -71,4 +71,13 @@ describe('🛡 ratchet — תיקוני-שרת נדרים (הגנות-מקור)'
     expect(hist).toContain('const toremId = m.toremId;');
     expect(hist).not.toContain('r.ToremId ?? r.ToremId');
   });
+
+  it('ייעול: כפתור-אפליקציה מאומת-טוקן (isOrgAdmin) + CORS + ?full=1 — בלי סוד בדפדפן', () => {
+    expect(pull).toContain('async function isOrgAdmin');
+    expect(pull).toContain('verifyIdToken');
+    expect(pull).toContain("platformOrgs/'"); // אימות מנהל-הארגון
+    expect(pull).toContain('secretOk(p.secret, process.env.PAY_SECRET) || (await isOrgAdmin'); // סוד או-טוקן
+    expect(pull).toContain('Access-Control-Allow-Origin'); // CORS ל-cross-origin fetch
+    expect(pull).toContain("p.full === '1'"); // משיכה-מלאה בקליק (תורמים+עסקאות)
+  });
 });

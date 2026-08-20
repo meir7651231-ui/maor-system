@@ -1011,6 +1011,17 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                 <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
                   אפשר תבנית עם {'{amount}'}/{'{name}'} — אחרת הסכום מתווסף כ-amount. בלי כתובת — הכפתורים לא מוצגים.
                 </div>
+                <Field label="🔄 כתובת פונקציית משיכת-נדרים (nedarimPull; https) — לכפתור 'משוך וסנכרן'">
+                  <TextInput
+                    value={integrationSetting(config, 'payments', 'pullUrl')}
+                    onChange={(v) => setIntegrationField('payments', 'pullUrl', v)}
+                    dir="ltr"
+                    placeholder="https://nedarimpull-xxxx-uc.a.run.app"
+                  />
+                </Field>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                  כתובת ה-Cloud Function שנפרסה. עם כתובת זו, מייל-על מקבל כפתור 🔄 "משוך וסנכרן עכשיו" במסך-הסנכרון (בלי כתובות ידניות; אימות בטוקן-כניסה).
+                </div>
               </div>
             )}
             {config.integrations?.campaign?.enabled && (
