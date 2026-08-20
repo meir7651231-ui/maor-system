@@ -382,6 +382,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'shell.demodrop', label: 'באנר מערכת-ריקה', desc: 'הצעת נתוני-הדמו/שחזור-קובץ כשאין נתונים', module: 'shell' },
   { key: 'shell.dialerchip', label: 'צ׳יפ-חייגן צף', desc: 'הצ׳יפ הצף "המשך חייגן" מחוץ למסך-התורמים', module: 'shell' },
 
+  { key: 'settings.teamintel', label: 'מודיעין-עובדים (מנהל) 🕵️', desc: 'מבט-מנהל פר-עובד/ת מלוג-הפעולות: פעילות, פילוח-פעולות, שעת-שיא ופעולות-אחרונות — באשף ניהול-העובדות', module: 'settings' },
 ];
 
 /** הגדרת מונח במילון המונחים — label לתצוגה במסך ההגדרות, fallback = ברירת המחדל. */

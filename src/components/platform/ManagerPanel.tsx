@@ -24,6 +24,9 @@ import {
 } from './lib';
 import { FEATURES } from '../../types/features';
 import { WIZARD_SECTIONS } from '../builder/sections';
+import { featureOn } from '../../lib/config';
+import { isoToday } from '../../lib/date-util';
+import { agoLabel, teamIntel, teamSummary } from './teamIntel';
 import { allDonationPurposes } from '../supporters/lib';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import type { OrgCloudDoc, OrgJoinRequestDoc } from '../../lib/cloudConfig';
@@ -35,6 +38,8 @@ export function ManagerPanel(props: { onClose: () => void }) {
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const managerMail = useApp((s) => s.cloud.user?.email ?? '');
+  // 🕵️ מודיעין-עובדים: הלוג נקרא כמו-שהוא (בלי ?? [] בסלקטור — לקח React #185)
+  const auditRaw = useApp((s) => s.db.audit);
   const slug = config.slug;
   const { armed, confirmTwice } = useArmed(true);
 
@@ -355,6 +360,73 @@ export function ManagerPanel(props: { onClose: () => void }) {
               </div>
             );
           })}
+
+          {/* 🕵️ מודיעין-עובדים (20.8) — נגזרת-טהורה של לוג-הפעולות פר-עובד/ת:
+              מי פעיל, מה עושים, מתי — בלי שום נתון-חדש. מגודר settings.teamintel. */}
+          {featureOn((config as OrgConfig) ?? {}, 'settings.teamintel') && (() => {
+            const audit = auditRaw ?? [];
+            const today = isoToday();
+            const team = teamIntel(audit, [managerMail, ...employees], today);
+            const sum = teamSummary(team);
+            if (audit.length === 0) {
+              return (
+                <div style={{ marginTop: 14, fontSize: 12.5, color: 'var(--ink-faint)' }}>
+                  🕵️ מודיעין-עובדים יופיע כאן ברגע שיהיו פעולות בלוג (הלוג מתמלא מעצמו תוך-כדי עבודה).
+                </div>
+              );
+            }
+            return (
+              <div style={{ marginTop: 14, borderTop: '1px solid var(--line)', paddingTop: 10 }}>
+                <h3 style={{ fontSize: 14, margin: '0 0 4px' }}>🕵️ מודיעין-עובדים</h3>
+                <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 8 }}>
+                  {sum.week.toLocaleString('he-IL')} פעולות בשבוע האחרון · {sum.activeToday} פעילים היום
+                  {sum.top ? ' · 🏆 ' + sum.top : ''}
+                </div>
+                {team.map((w) => {
+                  const max = w.byAct[0]?.n ?? 1;
+                  return (
+                    <div
+                      key={w.email}
+                      style={{ border: '1px solid var(--line-soft)', borderRadius: 10, padding: '8px 10px', marginBottom: 6 }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <b style={{ fontSize: 13, direction: 'ltr' }}>{w.email}</b>
+                        {w.email === managerMail && <span style={{ fontSize: 10.5, color: 'var(--ink-faint)' }}>(מנהל/ת)</span>}
+                        <span style={{ marginInlineStart: 'auto', fontSize: 12, color: w.today > 0 ? 'var(--green)' : 'var(--ink-faint)' }}>
+                          {agoLabel(w.lastAt, today)}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '3px 0' }}>
+                        {w.actions.toLocaleString('he-IL')} פעולות · {w.last7} בשבוע · {w.daysActive} ימי-פעילות
+                        {w.peakHour != null ? ` · שעת-שיא ${String(w.peakHour).padStart(2, '0')}:00` : ''}
+                      </div>
+                      {w.byAct.slice(0, 3).map((a) => (
+                        <div key={a.act} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5 }}>
+                          <span style={{ flex: '0 0 110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.act}</span>
+                          <span style={{ flex: 1, height: 6, background: 'var(--line-soft)', borderRadius: 99, overflow: 'hidden' }} aria-hidden>
+                            <span style={{ display: 'block', height: '100%', width: `${Math.round((a.n / max) * 100)}%`, background: 'var(--accent)' }} />
+                          </span>
+                          <span style={{ flex: '0 0 auto', color: 'var(--ink-faint)' }}>{a.n}</span>
+                        </div>
+                      ))}
+                      {w.recent.length > 0 && (
+                        <details style={{ marginTop: 4 }}>
+                          <summary style={{ cursor: 'pointer', fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                            הפעולות האחרונות ({w.recent.length})
+                          </summary>
+                          {w.recent.map((a, i) => (
+                            <div key={i} style={{ fontSize: 11.5, color: 'var(--ink-soft)', padding: '2px 0' }}>
+                              {a.at.slice(0, 10)} {a.at.slice(11, 16)} · {a.act} — {a.what}
+                            </div>
+                          ))}
+                        </details>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </>
       )}
     </Modal>
