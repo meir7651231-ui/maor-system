@@ -362,7 +362,7 @@ export function dayItems(db: Db, d: Date, config: OrgConfig = DEFAULT_CONFIG): D
       // שורת משנה (P3 פריט 6, לגאסי dayV): מורה · חדר · N רשומים
       const tName = db.teachers.find((t) => t.id === c.teacherId)?.name;
       const rName = db.rooms.find((r) => r.id === c.roomId)?.name;
-      const nEnrolled = db.enrollments.filter((e) => e.courseId === c.id && e.status !== 'ended').length;
+      const nEnrolled = db.enrollments.filter((e) => e.courseId === c.id && e.status !== 'ended' && e.status !== 'wait').length;
       out.push({
         key: `crs-${c.id}-${i}-${ss.label || ss.time}`,
         label: (ss.time ? ss.time + ' · ' : '') + c.name + (ss.label ? ' · ' + ss.label : ''),

@@ -198,7 +198,7 @@ export interface Payment {
   method: string;
 }
 
-export type EnrollmentStatus = 'active' | 'paused' | 'ended';
+export type EnrollmentStatus = 'active' | 'paused' | 'ended' | 'wait';
 
 export interface Enrollment {
   id: Id;

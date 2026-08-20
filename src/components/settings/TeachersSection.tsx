@@ -165,7 +165,7 @@ function TeacherForm(props: { teacher: Teacher | null; onClose: () => void }) {
   const go = useApp((s) => s.go);
   const myCourses = props.teacher ? courses.filter((c) => c.teacherId === props.teacher!.id) : [];
   const myStudents = myCourses.reduce(
-    (n, c) => n + enrollments.filter((e) => e.courseId === c.id && e.status !== 'ended').length,
+    (n, c) => n + enrollments.filter((e) => e.courseId === c.id && e.status !== 'ended' && e.status !== 'wait').length,
     0,
   );
 

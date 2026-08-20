@@ -458,7 +458,7 @@ export function attentionItems(
   // סריקה מלאה לכל חוג, שהפכה את הלולאה ל-O(C×E) בכל כתיבה ל-DB.
   const enrollByCourse = new Map<string, number>();
   for (const e of on('courses') ? db.enrollments : []) {
-    if (e.status !== 'ended') enrollByCourse.set(e.courseId, (enrollByCourse.get(e.courseId) ?? 0) + 1);
+    if (e.status !== 'ended' && e.status !== 'wait') enrollByCourse.set(e.courseId, (enrollByCourse.get(e.courseId) ?? 0) + 1);
   }
   const filling = (on('courses') ? db.courses : [])
     .filter((c) => c.maxStudents > 0)

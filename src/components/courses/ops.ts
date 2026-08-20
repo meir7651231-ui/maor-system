@@ -42,11 +42,11 @@ export function dropoutRisk(enrollments: Enrollment[], minAbs = 3): { e: Enrollm
 /** מדדי-על לקוקפיט: חוגים-פעילים · שיבוצים-פעילים · תפוסה-ממוצעת%. */
 export function opsKpis(courses: Course[], enrollments: Enrollment[]): { activeCourses: number; enrollments: number; avgOccupancy: number } {
   const activeCourses = courses.length;
-  const live = enrollments.filter((e) => e.status !== 'ended');
+  const live = enrollments.filter((e) => e.status !== 'ended' && e.status !== 'wait');
   // תפוסה-ממוצעת: ממוצע של (רשומים/מקסימום) על חוגים עם מקסימום מוגדר
   const withMax = courses.filter((c) => (c.maxStudents || 0) > 0);
   const occ = withMax.map((c) => {
-    const n = enrollments.filter((e) => e.courseId === c.id && e.status !== 'ended').length;
+    const n = enrollments.filter((e) => e.courseId === c.id && e.status !== 'ended' && e.status !== 'wait').length;
     return Math.min(1, n / c.maxStudents);
   });
   const avgOccupancy = occ.length ? Math.round((occ.reduce((a, b) => a + b, 0) / occ.length) * 100) : 0;

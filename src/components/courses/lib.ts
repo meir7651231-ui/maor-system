@@ -331,7 +331,15 @@ export function enrollmentPaidStatus(e: Enrollment): PaidStatus {
  * וחוסם רישום חדש בשקר (JoinModal/EnrollModal), וגם התפוסה המוצגת הייתה מנופחת.
  */
 export function enrollCount(db: Db, courseId: string): number {
-  return db.enrollments.filter((e) => e.courseId === courseId && e.status !== 'ended').length;
+  // 'wait' (רשימת-המתנה) אינו תופס מקום — אחרת רשימת-המתנה הייתה חוסמת שיבוץ אמיתי.
+  return db.enrollments.filter((e) => e.courseId === courseId && e.status !== 'ended' && e.status !== 'wait').length;
+}
+
+/** רשימת-ההמתנה של חוג — status 'wait', לפי סדר-ההצטרפות (FIFO). */
+export function waitlistFor(enrollments: Enrollment[], courseId: string): Enrollment[] {
+  return enrollments
+    .filter((e) => e.courseId === courseId && e.status === 'wait')
+    .sort((a, b) => (a.enrolledAt || '').localeCompare(b.enrolledAt || ''));
 }
 
 /** המפגש הקרוב הבא של הקורס (לזכאות השלמה בחיסור — 48 שעות).
@@ -350,9 +358,9 @@ export function nextSessionDate(c: Course, now: Date = new Date()): Date | null 
   return best;
 }
 
-/** גיליון-נוכחות (roll-call) — שיבוצים פעילים/מוקפאים של החוג (לא שהסתיימו). */
+/** גיליון-נוכחות (roll-call) — שיבוצים פעילים/מוקפאים (לא שהסתיימו, לא רשימת-המתנה). */
 export function sheetRoster(enrollments: Enrollment[], courseId: string): Enrollment[] {
-  return enrollments.filter((e) => e.courseId === courseId && e.status !== 'ended');
+  return enrollments.filter((e) => e.courseId === courseId && e.status !== 'ended' && e.status !== 'wait');
 }
 
 /** סיכום-נוכחות ליום: כמה מהרשימה מסומנים-נוכחים (presents כולל את התאריך). */

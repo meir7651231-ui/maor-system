@@ -237,7 +237,7 @@ export function EnrollPanel(props: { fam: Family }) {
   // מודול החוגים כבוי ⇒ אין פאנל שיבוצים בכרטיס המשפחה (החוזה: כבוי = מוסתר בכל המשטחים)
   if (!moduleOn(config, 'courses')) return null;
 
-  const STATUS: Record<string, string> = { active: 'פעיל', paused: 'מוקפא ⏸', ended: 'הסתיים' };
+  const STATUS: Record<string, string> = { active: 'פעיל', paused: 'מוקפא ⏸', ended: 'הסתיים', wait: 'רשימת-המתנה ⏳' };
 
   /** ניקוב מהכרטיס — דרך setPresent האידמפוטני (#6/#10), זהה ל-doPunch במסך החוגים
    *  (CourseDetail): מזין presents[]+מונה-חודשי, שער-תאריך חוצה-מסכים (כרטיס↔יומן לא

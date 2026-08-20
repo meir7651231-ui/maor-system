@@ -49,7 +49,7 @@ export function EnrollmentSection(props: SectionProps & { range: DateRange; rang
     const ens = ensByCourse.get(c.id) ?? [];
     // תפוסה = משובצים נוכחיים (פעיל+מוקפא) כמו בכל האפליקציה; הכספים על כל השיבוצים
     // (גם בוגרים שעזבו עם חוב/תשלום בטווח). enrollCount = ens ללא 'ended'.
-    const current = ens.filter((e) => e.status !== 'ended').length;
+    const current = ens.filter((e) => e.status !== 'ended' && e.status !== 'wait').length;
     const income = ens.reduce((a, e) => a + paidInRange(e, range), 0);
     const out = ens.reduce((a, e) => a + balanceOf(e), 0);
     const teacher = db.teachers.find((t) => t.id === c.teacherId);
