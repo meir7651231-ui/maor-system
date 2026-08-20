@@ -23,6 +23,8 @@ import {
   TINTS,
   ageOf,
   chipStyle,
+  defaultCourseDates,
+  duplicateCourse,
   enrollCount,
   enrollmentPaidStatus,
   payBal,
@@ -130,6 +132,7 @@ export function CourseDetail(props: { course: Course }) {
   const waitlistOn = featureOn(cfg, 'courses.waitlist');
   const waiters = waitlistOn ? waitlistFor(db.enrollments, c.id) : [];
   const deleteEnrollment = useApp((s) => s.deleteEnrollment);
+  const bulkEndCourse = useApp((s) => s.bulkEndCourse);
   const memberName = (memberId: string) => {
     for (const f of db.families) {
       const m = f.members.find((x) => x.id === memberId);
@@ -349,6 +352,36 @@ export function CourseDetail(props: { course: Course }) {
           {/* מורה מחוברת (P3 פריט 15): עריכה ומחיקה הן פעולות ניהול — מוסתרות */}
           {!isTeacherUser && (
             <Btn onClick={() => setModal({ kind: 'edit' })}>{'✎ עריכת ' + termOf(cfg, 'entity.course', 'חוג')}</Btn>
+          )}
+          {!isTeacherUser && featureOn(cfg, 'courses.bulkadmin') && (
+            <Btn
+              onClick={() => {
+                const id = nextId('c');
+                upsertCourse(duplicateCourse(c, id, defaultCourseDates()));
+                selectCourse(id);
+                toast('ה' + termOf(cfg, 'entity.course', 'חוג') + ' שוכפל לסמסטר-חדש — ערכו והתאימו');
+              }}
+              title="שכפול לסמסטר-חדש — כל השדות עם תאריכים-חדשים, בלי תלמידים"
+            >
+              📑 שכפל
+            </Btn>
+          )}
+          {!isTeacherUser && featureOn(cfg, 'courses.bulkadmin') && enrolled.some((e) => e.status === 'active' || e.status === 'paused') && (
+            <Btn
+              kind={armed === 'endsem-' + c.id ? 'danger' : undefined}
+              onClick={() => {
+                const n = enrolled.filter((e) => e.status === 'active' || e.status === 'paused').length;
+                if (!confirmTwice('endsem-' + c.id, 'לסיים את הסמסטר? ' + n + ' שיבוצים יסומנו "הסתיים" (נשמרים בדוח ההיסטורי; אפשר לחדש).')) {
+                  toast('בטוחים? לחיצה נוספת תסיים את הסמסטר');
+                  return;
+                }
+                const done = bulkEndCourse(c.id, isoToday());
+                toast('🎓 הסמסטר הסתיים — ' + done + ' שיבוצים עודכנו');
+              }}
+              title="סיום-סמסטר — כל השיבוצים הפעילים ⇒ הסתיים (נשמר בדוח, ניתן לחדש)"
+            >
+              {armed === 'endsem-' + c.id ? '🎓 בטוח? עוד לחיצה' : '🎓 סיום סמסטר'}
+            </Btn>
           )}
           {!isTeacherUser && (
           <Btn

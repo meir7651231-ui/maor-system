@@ -335,6 +335,12 @@ export function enrollCount(db: Db, courseId: string): number {
   return db.enrollments.filter((e) => e.courseId === courseId && e.status !== 'ended' && e.status !== 'wait').length;
 }
 
+/** שכפול-חוג לסמסטר-חדש — כל השדות עם id-חדש ותאריכים-חדשים, שם מסומן "(עותק)".
+ *  שיבוצים נפרדים מהחוג ⇒ החוג המשוכפל נולד ריק (בלי תלמידים). */
+export function duplicateCourse(c: Course, newId: string, dates: { start: string; end: string }): Course {
+  return { ...c, id: newId, name: c.name + ' (עותק)', start: dates.start, end: dates.end };
+}
+
 /** רשימת-ההמתנה של חוג — status 'wait', לפי סדר-ההצטרפות (FIFO). */
 export function waitlistFor(enrollments: Enrollment[], courseId: string): Enrollment[] {
   return enrollments
