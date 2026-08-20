@@ -64,17 +64,19 @@ export function IntakePanel() {
                   <td style={{ padding: '4px 6px' }}>{intake.source || '—'}</td>
                   <td style={{ padding: '4px 6px' }}>{intake.cost ? intake.cost.toLocaleString('he-IL') + ' ₪' : '—'}</td>
                   <td style={{ padding: '4px 6px' }}>
-                    <Btn
-                      sm
-                      kind="danger"
-                      onClick={() => {
-                        if (!confirmTwice('shn-' + intake.id, 'למחוק את הקליטה? המלאי יוחזר בהתאם (קטום ב-0)')) return;
-                        deleteShopIntake(intake.id);
-                        toast('הקליטה נמחקה והמלאי הוחזר');
-                      }}
-                    >
-                      {armed === 'shn-' + intake.id ? 'שוב למחיקה' : '🗑'}
-                    </Btn>
+                    {featureOn(config, 'shop.intake.delete') && (
+                      <Btn
+                        sm
+                        kind="danger"
+                        onClick={() => {
+                          if (!confirmTwice('shn-' + intake.id, 'למחוק את הקליטה? המלאי יוחזר בהתאם (קטום ב-0)')) return;
+                          deleteShopIntake(intake.id);
+                          toast('הקליטה נמחקה והמלאי הוחזר');
+                        }}
+                      >
+                        {armed === 'shn-' + intake.id ? 'שוב למחיקה' : '🗑'}
+                      </Btn>
+                    )}
                   </td>
                 </tr>
               ))}

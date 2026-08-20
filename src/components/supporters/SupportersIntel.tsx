@@ -559,7 +559,7 @@ export function SupportersIntel(props: {
       </div>
 
       {/* לוח-האותות — מה השתנה בדפוס */}
-      <SignalsBand signals={signals} onOpen={props.onOpen} />
+      {featureOn(props.config, 'supporters.intel.signals') && <SignalsBand signals={signals} onOpen={props.onOpen} />}
 
       {/* table + deep-dive */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 340px', gap: 16, alignItems: 'start' }}>
@@ -609,19 +609,19 @@ export function SupportersIntel(props: {
       </div>
 
       {/* מפת-העונתיות — מתי נכנס הכסף */}
-      <SeasonBand season={season} />
+      {featureOn(props.config, 'supporters.intel.season') && <SeasonBand season={season} />}
 
       {/* קוהורטת-גיוס — שימור לפי שנת-הצטרפות */}
-      <RetentionBand report={retention} />
+      {featureOn(props.config, 'supporters.intel.retention') && <RetentionBand report={retention} />}
 
       {/* ריכוזיות התיק — פארטו/ג׳יני */}
-      <ParetoBand report={pareto} />
+      {featureOn(props.config, 'supporters.intel.pareto') && <ParetoBand report={pareto} />}
 
       {/* מכונת-הזמן — הקרנת-התיק קדימה */}
-      <TimeBand machine={machine} />
+      {featureOn(props.config, 'supporters.intel.time') && <TimeBand machine={machine} />}
 
       {/* רצועת-קוהורטה — מיגרציה · פעילות · פיזור-ציון */}
-      <CohortBand cohort={cohort} active={active} scoreBins={portfolio.scoreBins} migration={migration} />
+      {featureOn(props.config, 'supporters.intel.cohort') && <CohortBand cohort={cohort} active={active} scoreBins={portfolio.scoreBins} migration={migration} />}
     </div>
   );
 }

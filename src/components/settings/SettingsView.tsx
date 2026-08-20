@@ -257,33 +257,39 @@ function OrgSection() {
             placeholder="https://"
           />
         </Field>
-        <Field label="יעד גיוס שנתי (₪)">
-          <TextInput
-            type="number"
-            value={f.goal}
-            onChange={(v) => setF((p) => ({ ...p, goal: v }))}
-            dir="ltr"
-            placeholder="0 = ללא יעד — קיר ההשפעה יציג את הסכום בלבד"
-          />
-        </Field>
-        <Field label="יעד תקציב סיוע (₪)">
-          <TextInput
-            type="number"
-            value={f.budget}
-            onChange={(v) => setF((p) => ({ ...p, budget: v }))}
-            dir="ltr"
-            placeholder="0 = ללא יעד — מבט-ההנהלה יציג את הסבסוד בלבד"
-          />
-        </Field>
-        <Field label="שער דולר→שקל">
-          <TextInput
-            type="number"
-            value={f.usd}
-            onChange={(v) => setF((p) => ({ ...p, usd: v }))}
-            dir="ltr"
-            placeholder="3.7 — מומר אוטומטית בכל חישובי התורמים"
-          />
-        </Field>
+        {featureOn(config, 'settings.org.goals') && (
+          <>
+            <Field label="יעד גיוס שנתי (₪)">
+              <TextInput
+                type="number"
+                value={f.goal}
+                onChange={(v) => setF((p) => ({ ...p, goal: v }))}
+                dir="ltr"
+                placeholder="0 = ללא יעד — קיר ההשפעה יציג את הסכום בלבד"
+              />
+            </Field>
+            <Field label="יעד תקציב סיוע (₪)">
+              <TextInput
+                type="number"
+                value={f.budget}
+                onChange={(v) => setF((p) => ({ ...p, budget: v }))}
+                dir="ltr"
+                placeholder="0 = ללא יעד — מבט-ההנהלה יציג את הסבסוד בלבד"
+              />
+            </Field>
+          </>
+        )}
+        {featureOn(config, 'supporters.multicur') && (
+          <Field label="שער דולר→שקל">
+            <TextInput
+              type="number"
+              value={f.usd}
+              onChange={(v) => setF((p) => ({ ...p, usd: v }))}
+              dir="ltr"
+              placeholder="3.7 — מומר אוטומטית בכל חישובי התורמים"
+            />
+          </Field>
+        )}
       </div>
       <Btn kind="primary" onClick={save}>
         שמירת פרטי הארגון

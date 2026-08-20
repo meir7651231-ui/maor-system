@@ -47,7 +47,7 @@ describe('🤝 ratchet — חנות 23: פגישות קרובות', () => {
 
   it('הגנת-מקור: הסקשן בראש HomeTab, מוסתר כשריק, עם ✓בוצע ופתיחת הפגישה', () => {
     expect(homeSrc).toContain('🤝 פגישות קרובות');
-    expect(homeSrc).toMatch(/\{meetings\.length > 0 && \(/);
+    expect(homeSrc).toMatch(/\{featureOn\(config, 'shop\.meeting'\) && meetings\.length > 0 && \(/);
     expect(homeSrc).toContain('✓ בוצע');
     expect(homeSrc).toContain('setMeetingEv(ev)');
   });

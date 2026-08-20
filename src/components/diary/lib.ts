@@ -89,8 +89,13 @@ const FULL_HOLIDAYS = [
   'תשעה באב',
 ];
 
-/** סיבת חסימת היום לתזמון חוגים — שבת, שישי, חג מלא או חול המועד (כמו במקור). */
-export function blockReason(d: Date): string | null {
+/**
+ * סיבת חסימת היום לתזמון חוגים — שבת, שישי, חג מלא או חול המועד (כמו במקור).
+ * `blockingOn=false` (דגל diary.blocking כבוי) ⇒ אין חסימת שבת/חג כלל —
+ * התנגשויות חדרים ממשיכות לחול (הן מחושבות ב-buildSlots, לא כאן).
+ */
+export function blockReason(d: Date, blockingOn = true): string | null {
+  if (!blockingOn) return null;
   const dow = d.getDay();
   if (dow === 6) return 'שבת';
   if (dow === 5) return 'יום שישי (שעתיים לפני שבת)';
@@ -137,6 +142,8 @@ export function buildSlots(
   iso: string,
   blocked: string | null,
   config: OrgConfig,
+  /** דגל diary.cleaning — false ⇒ אין משבצת ניקיון יומי (המשבצות נשארות רגילות). */
+  cleaningOn = true,
 ): DiarySlot[] {
   const from = Number.isNaN(timeToMin(room.from)) ? 8 * 60 : timeToMin(room.from);
   const to = Number.isNaN(timeToMin(room.to)) ? 20 * 60 : timeToMin(room.to);
@@ -149,8 +156,8 @@ export function buildSlots(
 
   for (let t = from, guard = 0; t < to && guard < 96; t += step, guard++) {
     const hh = minToHM(t);
-    // ניקיון יומי 15:00–16:00 — קבוע בכל החדרים (כמו במקור)
-    if (t >= 900 && t < 960) {
+    // ניקיון יומי 15:00–16:00 — קבוע בכל החדרים (כמו במקור); מגודר diary.cleaning
+    if (cleaningOn && t >= 900 && t < 960) {
       slots.push({ key: 'clean' + hh, time: hh, kind: 'cleaning', label: 'ניקיון יומי (15:00–16:00)', bg: '#eceae2', c: '#4d463c' });
       continue;
     }

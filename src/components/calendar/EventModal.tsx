@@ -273,14 +273,16 @@ export function EventModal(props: {
         </div>
       </div>
       {/* פשוט/מתקדם — אותו דפוס-קיפול כמו טופס-המשפחה; כל השדות נשמרים */}
-      <button
-        type="button"
-        onClick={() => setMoreOpen((v) => !v)}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, color: 'var(--accent-deep, var(--accent))', padding: '2px 0 10px', textAlign: 'start' }}
-      >
-        {(moreOpen ? '▲ פחות פרטים' : '▼ פרטים נוספים') + ' — מחיר, ' + termOf(config, 'entity.room', 'חדר') + ', שיוך, דחיפות…'}
-      </button>
-      {moreOpen && (
+      {featureOn(config, 'calendar.eventextra') && (
+        <button
+          type="button"
+          onClick={() => setMoreOpen((v) => !v)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, color: 'var(--accent-deep, var(--accent))', padding: '2px 0 10px', textAlign: 'start' }}
+        >
+          {(moreOpen ? '▲ פחות פרטים' : '▼ פרטים נוספים') + ' — מחיר, ' + termOf(config, 'entity.room', 'חדר') + ', שיוך, דחיפות…'}
+        </button>
+      )}
+      {featureOn(config, 'calendar.eventextra') && moreOpen && (
         <div className="form-grid">
           <Field label="רמת דחיפות">
             <Select

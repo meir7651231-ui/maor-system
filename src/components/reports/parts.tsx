@@ -45,6 +45,9 @@ export function ReportTable(props: { head: string[]; rows: Row[]; foot?: Cell[] 
   const [sort, setSort] = useState<{ i: number; dir: 1 | -1 } | null>(null);
   const [filterOn, setFilterOn] = useState(false);
   const [filters, setFilters] = useState<Record<number, string>>({});
+  const colfilterOn = featureOn(useApp.getState().config, 'reports.colfilter');
+  const sortOn = featureOn(useApp.getState().config, 'reports.sort');
+  const drilldownOn = featureOn(useApp.getState().config, 'reports.drilldown');
 
   if (!props.rows.length) return <div className="empty">אין נתונים להצגה</div>;
 
@@ -66,11 +69,11 @@ export function ReportTable(props: { head: string[]; rows: Row[]; foot?: Cell[] 
   const clickSort = (i: number) =>
     setSort((s) => (s?.i === i ? { i, dir: s.dir === 1 ? -1 : 1 } : { i, dir: 1 }));
 
-  const clickable = sorted.some((r) => r.open);
+  const clickable = drilldownOn && sorted.some((r) => r.open);
 
   return (
     <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
-      {props.rows.length > 3 && (
+      {colfilterOn && props.rows.length > 3 && (
         <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
           <button
             type="button"
@@ -85,30 +88,36 @@ export function ReportTable(props: { head: string[]; rows: Row[]; foot?: Cell[] 
       <table className="table">
         <thead>
           <tr>
-            {props.head.map((h, i) => (
-              <th
-                key={i}
-                onClick={() => clickSort(i)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    clickSort(i);
-                  }
-                }}
-                tabIndex={0}
-                role="button"
-                aria-label={`מיון לפי ${h}`}
-                title="מיון לפי העמודה — לחיצה נוספת הופכת כיוון"
-                style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
-              >
-                {h}{' '}
-                <span className="no-print" style={{ fontSize: 10, opacity: sort?.i === i ? 1 : 0.35 }}>
-                  {sort?.i === i ? (sort.dir === 1 ? '▲' : '▼') : '↕'}
-                </span>
-              </th>
-            ))}
+            {props.head.map((h, i) =>
+              sortOn ? (
+                <th
+                  key={i}
+                  onClick={() => clickSort(i)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      clickSort(i);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`מיון לפי ${h}`}
+                  title="מיון לפי העמודה — לחיצה נוספת הופכת כיוון"
+                  style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+                >
+                  {h}{' '}
+                  <span className="no-print" style={{ fontSize: 10, opacity: sort?.i === i ? 1 : 0.35 }}>
+                    {sort?.i === i ? (sort.dir === 1 ? '▲' : '▼') : '↕'}
+                  </span>
+                </th>
+              ) : (
+                <th key={i} style={{ whiteSpace: 'nowrap' }}>
+                  {h}
+                </th>
+              ),
+            )}
           </tr>
-          {filterOn && (
+          {colfilterOn && filterOn && (
             <tr className="no-print">
               {props.head.map((_, i) => (
                 <th key={i} style={{ padding: '4px 6px' }}>
@@ -124,31 +133,34 @@ export function ReportTable(props: { head: string[]; rows: Row[]; foot?: Cell[] 
           )}
         </thead>
         <tbody>
-          {sorted.map((r, i) => (
+          {sorted.map((r, i) => {
+            const open = drilldownOn ? r.open : undefined;
+            return (
             <tr
               key={i}
-              onClick={r.open}
+              onClick={open}
               onKeyDown={
-                r.open &&
+                open &&
                 ((e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    r.open!();
+                    open();
                   }
                 })
               }
-              tabIndex={r.open ? 0 : undefined}
-              title={r.open ? 'פתיחת הכרטיס' : undefined}
+              tabIndex={open ? 0 : undefined}
+              title={open ? 'פתיחת הכרטיס' : undefined}
               style={{
                 ...(r.warn ? { color: 'var(--red)', fontWeight: 600 } : undefined),
-                ...(r.open ? { cursor: 'pointer' } : undefined),
+                ...(open ? { cursor: 'pointer' } : undefined),
               }}
             >
               {r.cells.map((c, j) => (
                 <td key={j}>{c}</td>
               ))}
             </tr>
-          ))}
+            );
+          })}
         </tbody>
         {props.foot && (
           <tfoot>

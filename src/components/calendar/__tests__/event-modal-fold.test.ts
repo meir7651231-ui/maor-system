@@ -21,11 +21,11 @@ describe('📅 ratchet — מודאל-אירוע פשוט/מתקדם', () => {
     expect(src).toMatch(/ev\.price \|\| ev\.roomId \|\| ev\.famId \|\| ev\.done/);
     expect(src).toContain('!!(prefill?.roomId || prefill?.famId)');
     expect(src).toContain("'▲ פחות פרטים' : '▼ פרטים נוספים'");
-    expect(src).toMatch(/\{moreOpen && \(/);
+    expect(src).toContain("{featureOn(config, 'calendar.eventextra') && moreOpen && (");
   });
 
   it('הליבה גלויה תמיד — כותרת/תאריך/שעה/סוג/הערות אינם בתוך הקיפול', () => {
-    const foldStart = src.indexOf('{moreOpen && (');
+    const foldStart = src.indexOf("{featureOn(config, 'calendar.eventextra') && moreOpen && (");
     for (const core of ['label="כותרת *"', 'label="תאריך *"', 'label="שעה"', 'label="סוג"', 'label="הערות"']) {
       const idx = src.indexOf(core);
       expect(idx).toBeGreaterThan(-1);

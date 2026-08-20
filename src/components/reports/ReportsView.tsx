@@ -90,13 +90,16 @@ export function ReportsView() {
                 🖥️ מצב ראווה
               </Btn>
             )}
-            <Btn kind="primary" onClick={() => setPrinting('all')}>
-              🖨 הדפסת כל הדוחות
-            </Btn>
+            {featureOn(config, 'reports.printall') && (
+              <Btn kind="primary" onClick={() => setPrinting('all')}>
+                🖨 הדפסת כל הדוחות
+              </Btn>
+            )}
           </span>
         }
       />
 
+      {featureOn(config, 'reports.range') && (
       <div className="card no-print" style={{ marginTop: 4 }}>
         <h2 style={{ fontSize: 15, marginBottom: 8 }}>
           🗓 טווח תאריכים — לדוחות תשלומים ו{termOf(config, 'entity.donations', 'תרומות')} ({rangeText})
@@ -122,6 +125,7 @@ export function ReportsView() {
           </div>
         </div>
       </div>
+      )}
 
       {coursesOn && featureOn(config, 'reports.enroll') && (
         <EnrollmentSection

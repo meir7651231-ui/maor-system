@@ -107,6 +107,8 @@ export function CredPanel(props: { fam: Family }) {
   const [overrideVal, setOverrideVal] = useState('');
   // "איך משפרים?" (P3 פריט 8) — קופסת כללי הניקוד מהלגאסי
   const [helpOpen, setHelpOpen] = useState(false);
+  // עדכון-אמינות ידני — כבוי ⇒ הציון לקריאה-בלבד (+15/+5/−5/Override מוסתרים)
+  const credManualOn = featureOn(config, 'families.cred.manual');
 
   const cred = props.fam.cred;
   const tier = tierOf(cred.score);
@@ -140,15 +142,19 @@ export function CredPanel(props: { fam: Family }) {
         />
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        <Btn sm onClick={() => addCred(props.fam.id, 15, 'פעולה קהילתית (תרומה/עזרה)')}>
-          + פעולה קהילתית (15)
-        </Btn>
-        <Btn sm onClick={() => addCred(props.fam.id, 5, 'התאמה ידנית של מנהל')}>
-          +5
-        </Btn>
-        <Btn sm onClick={() => addCred(props.fam.id, -5, 'התאמה ידנית של מנהל')}>
-          −5
-        </Btn>
+        {credManualOn && (
+          <>
+            <Btn sm onClick={() => addCred(props.fam.id, 15, 'פעולה קהילתית (תרומה/עזרה)')}>
+              + פעולה קהילתית (15)
+            </Btn>
+            <Btn sm onClick={() => addCred(props.fam.id, 5, 'התאמה ידנית של מנהל')}>
+              +5
+            </Btn>
+            <Btn sm onClick={() => addCred(props.fam.id, -5, 'התאמה ידנית של מנהל')}>
+              −5
+            </Btn>
+          </>
+        )}
         <Btn sm onClick={() => setHelpOpen((v) => !v)}>
           איך משפרים?
         </Btn>
@@ -168,14 +174,16 @@ export function CredPanel(props: { fam: Family }) {
           {CRED_HELP_TEXT}
         </div>
       )}
-      <div style={{ display: 'flex', gap: 8 }}>
-        <div style={{ flex: 1 }}>
-          <TextInput value={overrideVal} onChange={setOverrideVal} placeholder="Override 0–1000" dir="ltr" />
+      {credManualOn && (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ flex: 1 }}>
+            <TextInput value={overrideVal} onChange={setOverrideVal} placeholder="Override 0–1000" dir="ltr" />
+          </div>
+          <Btn sm onClick={applyOverride}>
+            עדכון ידני
+          </Btn>
         </div>
-        <Btn sm onClick={applyOverride}>
-          עדכון ידני
-        </Btn>
-      </div>
+      )}
       {cred.log.length === 0 ? (
         <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>אין עדיין רישומי ניקוד ל{termOf(config, 'entity.family', 'משפחה')} זו</div>
       ) : (
@@ -419,12 +427,15 @@ export function EventsPanel(props: { fam: Family }) {
   const config = useApp((s) => s.config);
   const historyOn = featureOn(config, 'families.history');
   const cardOpsOn = featureOn(config, 'families.cardops');
+  // מקטע אירועים-מיוחדים — כבוי ⇒ הפאנל כולו מוסתר (ההיסטוריה נשארת)
+  const eventsOn = featureOn(config, 'families.events');
   const [evOpen, setEvOpen] = useState(false);
   const list = events.filter((e) => e.famId === props.fam.id && !e.done);
 
   // פאנל ההיסטוריה מרונדר כאן כדי להופיע בכרטיס המשפחה בלי לגעת ב-FamilyDetail
   return (
     <>
+      {eventsOn && (
       <SectionCard
         title="אירועים מיוחדים"
         actions={
@@ -469,7 +480,8 @@ export function EventsPanel(props: { fam: Family }) {
           })
         )}
       </SectionCard>
-      {cardOpsOn && evOpen && (
+      )}
+      {eventsOn && cardOpsOn && evOpen && (
         <EventModal
           ev={null}
           date={isoToday()}

@@ -7,7 +7,7 @@
 import { useState } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Modal } from '../ui';
 import { ageOf, isoToday, planLabelOf, sheetRoster, sheetSummary } from './lib';
@@ -54,15 +54,18 @@ export function AttendanceSheet(props: { course: Course; onClose: () => void }) 
         >
           ✓ כולם נוכחים
         </Btn>
-        <Btn
-          sm
-          onClick={() => {
-            const n = bulkSetPresent(ids, today, false);
-            toast(n ? n + ' נוכחויות נוקו' : 'אין מה לנקות');
-          }}
-        >
-          ○ נקה הכל
-        </Btn>
+        {/* ניקוי-גורף הרסני — מגודר courses.attendance.clearall */}
+        {featureOn(config, 'courses.attendance.clearall') && (
+          <Btn
+            sm
+            onClick={() => {
+              const n = bulkSetPresent(ids, today, false);
+              toast(n ? n + ' נוכחויות נוקו' : 'אין מה לנקות');
+            }}
+          >
+            ○ נקה הכל
+          </Btn>
+        )}
       </div>
 
       {roster.length === 0 ? (

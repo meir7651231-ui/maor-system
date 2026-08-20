@@ -93,7 +93,7 @@ export function CatalogTab() {
                       return (
                         <span key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color, border: '1px solid var(--line)', borderRadius: 99, padding: '1px 4px 1px 7px' }}>
                           {ri.name + (rem === null ? ' · ללא מעקב' : ' · נותרו ' + rem)}
-                          {item && (
+                          {item && featureOn(config, 'shop.stock') && (
                             <button
                               type="button"
                               title="חידוש מלאי"
@@ -130,7 +130,7 @@ export function CatalogTab() {
           })}
         </div>
       )}
-      <ItemsPanel />
+      {featureOn(config, 'shop.items') && <ItemsPanel />}
       {featureOn(config, 'shop.stock') && <IntakePanel />}
       {storesOn && <StoresPanel />}
       {criteriaOn && <CriteriaPanel />}

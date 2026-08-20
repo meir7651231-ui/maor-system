@@ -70,6 +70,16 @@ export function FamiliesView() {
   const go = useApp((s) => s.go);
   const credOn = featureOn(config, 'families.cred');
   const finderOn = featureOn(config, 'families.finder');
+  // מתג גריד/רשימה — כבוי ⇒ הכפתור מוסתר (התצוגה נשארת כפי שנשמרה)
+  const viewtoggleOn = featureOn(config, 'families.viewtoggle');
+  // סינון-עמודות ברשימה — כבוי ⇒ הכפתור ושורת-הסינון מוסתרים
+  const colfilterOn = featureOn(config, 'families.colfilter');
+  // צ׳יפי חיזוי-חיפוש — כבוי ⇒ שורת "חיזוי:" מוסתרת
+  const suggestOn = featureOn(config, 'families.suggest');
+  // תג מצב-משפחתי ברשימות — רגיש בחלק מהענפים; כבוי ⇒ מוסתר
+  const maritalOn = featureOn(config, 'families.marital');
+  // מיון בלחיצה על כותרת — כבוי ⇒ כותרות סטטיות
+  const sortOn = featureOn(config, 'families.sort');
 
   // P3 פריט 18 — קיצור למקטע בהגדרות (⬆ ייבוא / ✓ בדיקת נתונים מהלגאסי).
   // UX סבב-ו׳: ההגדרות מקובצות ללשוניות — בקשת-המיקוד פותחת את הקבוצה הנכונה;
@@ -270,18 +280,22 @@ export function FamiliesView() {
     }
   };
 
-  const thSort = (key: SortKey, label: string) => (
-    <th
-      onClick={() => clickSort(key)}
-      title="מיון לפי העמודה — לחיצה נוספת הופכת כיוון"
-      style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
-    >
-      {label}{' '}
-      <span style={{ fontSize: 10, opacity: sort?.key === key ? 1 : 0.35 }}>
-        {sort?.key === key ? (sort.dir === 1 ? '▲' : '▼') : '↕'}
-      </span>
-    </th>
-  );
+  // families.sort כבוי ⇒ כותרת סטטית (בלי קליק-מיון ובלי חצים)
+  const thSort = (key: SortKey, label: string) =>
+    sortOn ? (
+      <th
+        onClick={() => clickSort(key)}
+        title="מיון לפי העמודה — לחיצה נוספת הופכת כיוון"
+        style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+      >
+        {label}{' '}
+        <span style={{ fontSize: 10, opacity: sort?.key === key ? 1 : 0.35 }}>
+          {sort?.key === key ? (sort.dir === 1 ? '▲' : '▼') : '↕'}
+        </span>
+      </th>
+    ) : (
+      <th style={{ whiteSpace: 'nowrap' }}>{label}</th>
+    );
 
   const colInput = (field: 'name' | 'phone' | 'kids' | 'courses', placeholder: string) => (
     <th style={{ padding: '4px 8px' }}>
@@ -301,9 +315,11 @@ export function FamiliesView() {
         sub={filtered.length + ' ' + termOf(config, 'nav.families', 'משפחות') + ' · ' + totalKids + ' ילדים'}
         actions={
           <>
-            <Btn onClick={toggleView} title="החלפת תצוגה: רשימה / גריד">
-              {famView === 'grid' ? '☰ רשימה' : '▦ גריד'}
-            </Btn>
+            {viewtoggleOn && (
+              <Btn onClick={toggleView} title="החלפת תצוגה: רשימה / גריד">
+                {famView === 'grid' ? '☰ רשימה' : '▦ גריד'}
+              </Btn>
+            )}
             {/* UX סבב-ד׳: הפעולות האדמיניסטרטיביות הנדירות בתפריט ⋯ — אפס אובדן-יכולת */}
             <ActionsMenu
               title={'עוד פעולות — ' + termOf(config, 'nav.families', 'משפחות')}
@@ -357,7 +373,7 @@ export function FamiliesView() {
           onChange={setComm}
           options={[{ value: 'all', label: 'כל הקהילות' }, ...commOptions.map((c) => ({ value: c, label: c }))]}
         />
-        {famView === 'list' && (
+        {famView === 'list' && colfilterOn && (
           <Btn
             onClick={() => setColFOn(!colFOn)}
             title={'שורת סינון מתחת לכל עמודה: שם, טלפון, ילדים (3 / 3+ / 2-4), ' + termOf(config, 'nav.courses', 'חוגים') + ' וסטטוס'}
@@ -389,7 +405,7 @@ export function FamiliesView() {
         )}
       </div>
 
-      {suggests.length > 0 && (
+      {suggestOn && suggests.length > 0 && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '-6px 0 12px', alignItems: 'center' }}>
           <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--ink-faint)' }}>חיזוי:</span>
           {suggests.map((t) => (
@@ -518,7 +534,7 @@ export function FamiliesView() {
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <span>{[parents, f.city].filter(Boolean).join(' · ') || '—'}</span>
-                  {f.maritalStatus && <span style={maritalChipStyle(f.maritalStatus)}>{f.maritalStatus}</span>}
+                  {maritalOn && f.maritalStatus && <span style={maritalChipStyle(f.maritalStatus)}>{f.maritalStatus}</span>}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
                   {kids.length} ילדים · {enrollCount.get(f.id) || 0} {termOf(config, 'nav.courses', 'חוגים')}
@@ -541,7 +557,7 @@ export function FamiliesView() {
                 {thSort('courses', termOf(config, 'nav.courses', 'חוגים'))}
                 {thSort('status', 'סטטוס')}
               </tr>
-              {colFOn && (
+              {colfilterOn && colFOn && (
                 <tr>
                   {colInput('name', 'שם/הורה…')}
                   <th style={{ padding: '4px 8px' }}>
@@ -603,7 +619,7 @@ export function FamiliesView() {
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{kidsLine}</div>
                     </td>
-                    <td>{f.maritalStatus ? <span style={maritalChipStyle(f.maritalStatus)}>{f.maritalStatus}</span> : '—'}</td>
+                    <td>{maritalOn && f.maritalStatus ? <span style={maritalChipStyle(f.maritalStatus)}>{f.maritalStatus}</span> : '—'}</td>
                     <td>{[f.father, f.mother].filter(Boolean).join(' ו') || '—'}</td>
                     <td style={{ direction: 'ltr', textAlign: 'right' }}>
                       {telephonyOn(config) && f.phone ? <><CallBtn phone={f.phone} title={'חיוג ל' + f.name} />{' '}</> : null}

@@ -75,6 +75,9 @@ export function AyinCard(props: { supporter: Supporter }) {
   const unit = unitLabel(cfg);
   const cur = stageIndex(a.stage);
   const showNames = a.stage === 'new' || a.stage === 'lead' || a.stage === 'eyes';
+  // גידור-דגלים (FLAGMAX): חזרה-לשלב / יומן-תשובות / "מתי לדבר שוב" / מחזור-חדש —
+  // חסר-דגל = פעיל (עטיפה = אפס-שינוי-ברירת-מחדל); false מסתיר.
+  const revertOn = featureOn(cfg, 'supporters.ayin.revert');
   // כתב-כמויות/הצעת-מחיר — רק בהקשר מסחרי (§46 כבוי) + דגל. בעמותה מוסתר לגמרי.
   const boqOn = featureOn(cfg, 'supporters.ayin.boq') && !featureOn(cfg, 'core.taxreceipt');
   const timeOn = featureOn(cfg, 'supporters.ayin.time') && !featureOn(cfg, 'core.taxreceipt');
@@ -142,24 +145,33 @@ export function AyinCard(props: { supporter: Supporter }) {
         {AYIN_STAGES.map((st, i) => {
           const done = i < cur;
           const on = i === cur;
-          const clickable = i <= cur;
+          const clickable = revertOn && i <= cur;
+          const pillStyle = {
+            border: '1px solid ' + (on ? '#211d17' : done ? '#cde9d6' : '#ded7c8'),
+            background: on ? '#211d17' : done ? '#e4f5ea' : '#fff',
+            color: on ? '#f3c76b' : done ? '#12803c' : '#b3ab9a',
+            borderRadius: 99,
+            padding: '4px 12px',
+            fontSize: 11.5,
+            fontWeight: 800,
+            cursor: clickable && !on ? 'pointer' : 'default',
+            whiteSpace: 'nowrap',
+          } as const;
+          // supporters.ayin.revert כבוי ⇒ הגלולות תצוגה-בלבד (span, בלי חזרה-אחורה)
+          if (!revertOn) {
+            return (
+              <span key={st} style={pillStyle}>
+                {(done ? '✓ ' : '') + stageLabel(cfg, st)}
+              </span>
+            );
+          }
           return (
             <button
               key={st}
               disabled={!clickable || on}
               onClick={() => revert(sp.id, st)}
               title={on ? 'השלב הנוכחי' : done ? 'שלב שהושלם — לחיצה חוזרת אליו' : ''}
-              style={{
-                border: '1px solid ' + (on ? '#211d17' : done ? '#cde9d6' : '#ded7c8'),
-                background: on ? '#211d17' : done ? '#e4f5ea' : '#fff',
-                color: on ? '#f3c76b' : done ? '#12803c' : '#b3ab9a',
-                borderRadius: 99,
-                padding: '4px 12px',
-                fontSize: 11.5,
-                fontWeight: 800,
-                cursor: clickable && !on ? 'pointer' : 'default',
-                whiteSpace: 'nowrap',
-              }}
+              style={pillStyle}
             >
               {(done ? '✓ ' : '') + stageLabel(cfg, st)}
             </button>
@@ -407,6 +419,7 @@ export function AyinCard(props: { supporter: Supporter }) {
       )}
 
       {/* תשובות / הערות */}
+      {featureOn(cfg, 'supporters.ayin.answers') && (
       <div>
         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>תשובות / הערות ({a.answers.length})</div>
         <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
@@ -444,8 +457,10 @@ export function AyinCard(props: { supporter: Supporter }) {
           </div>
         ))}
       </div>
+      )}
 
       {/* מתי לדבר שוב */}
+      {featureOn(cfg, 'supporters.ayin.nexttalk') && (
       <div>
         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>מתי לדבר שוב</div>
         <HebDateInput value={a.nextTalk || ''} onChange={(iso) => setNextTalk(sp.id, iso, a.nextTalkTime || '')} />
@@ -462,6 +477,7 @@ export function AyinCard(props: { supporter: Supporter }) {
           </Btn>
         </div>
       </div>
+      )}
 
       {/* היסטוריית מונה */}
       {a.log.length > 0 && (
@@ -481,11 +497,13 @@ export function AyinCard(props: { supporter: Supporter }) {
         </div>
       )}
 
-      <div style={{ borderTop: '1px solid var(--line)', paddingTop: 10 }}>
-        <Btn sm onClick={() => restart(sp.id)} title="פתיחת מחזור טיפול חדש מההתחלה — ההיסטוריה נשמרה">
-          ↻ מחזור חדש
-        </Btn>
-      </div>
+      {featureOn(cfg, 'supporters.ayin.restart') && (
+        <div style={{ borderTop: '1px solid var(--line)', paddingTop: 10 }}>
+          <Btn sm onClick={() => restart(sp.id)} title="פתיחת מחזור טיפול חדש מההתחלה — ההיסטוריה נשמרה">
+            ↻ מחזור חדש
+          </Btn>
+        </div>
+      )}
     </div>
   );
 }

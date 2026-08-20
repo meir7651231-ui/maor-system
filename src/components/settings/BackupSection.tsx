@@ -169,6 +169,8 @@ export function BackupSection() {
         </label>
       </div>
 
+      {featureOn(useApp.getState().config, 'settings.backup.snapshots') && (
+        <>
       <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>צילומים יומיים בדפדפן זה</h3>
       {snaps.length === 0 ? (
         <p style={{ fontSize: 13.5, color: 'var(--ink-faint)' }}>
@@ -202,6 +204,8 @@ export function BackupSection() {
         הצילומים היומיים נשמרים בתוך הדפדפן (IndexedDB) — הם לא מגנים מפני מחיקת נתוני הדפדפן. לגיבוי
         אמיתי השתמשו ב"הורדת גיבוי מלא".
       </SectionNote>
+        </>
+      )}
 
       {/* שלב פענוח — קובץ גיבוי מוצפן */}
       {restore?.stage === 'password' && (

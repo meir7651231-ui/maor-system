@@ -154,6 +154,12 @@ export function SupportersView() {
   const [nedSyncOpen, setNedSyncOpen] = useState(false);
   const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');
   const importOn = featureOn(config, 'settings.import');
+  // גידור-דגלים (FLAGMAX): מיון-כותרות / סינון-עמודות / פאנל-מתקדם / מסך-השמות —
+  // חסר-דגל = פעיל (עטיפה = אפס-שינוי-ברירת-מחדל); false מסתיר, לא מנטרל.
+  const sortOn = featureOn(config, 'supporters.sort');
+  const colFilterOn = featureOn(config, 'supporters.colfilter');
+  const advFilterOn = featureOn(config, 'supporters.advfilter');
+  const ayinNamesOn = featureOn(config, 'supporters.ayin.names');
   const toast = useApp((s) => s.toast);
   // תצוגת גריד (5.8, בקשת-בעלים) — נשמרת ב-db.ui.supView, אותו דפוס כמו famView
   const setDb = useApp((s) => s.setDb);
@@ -569,20 +575,24 @@ export function SupportersView() {
                 },
                 ayinOn && dailyReportOn && { label: '📋 דוח יומי', onClick: dailyReport },
                 // מסך-השמות המלא (20.8, בקשת-בעלים) — הרשימה פר-שם על-המסך, לא רק CSV
-                ayinOn && { label: '📋 ' + featLabel(config) + ' — כל השמות', onClick: () => setAyinNamesOpen(true), title: 'כל השמות מכל הכרטיסים — טבלה חיה עם חיפוש וסינון' },
+                ayinOn && ayinNamesOn && { label: '📋 ' + featLabel(config) + ' — כל השמות', onClick: () => setAyinNamesOpen(true), title: 'כל השמות מכל הכרטיסים — טבלה חיה עם חיפוש וסינון' },
                 ayinOn && isAdminUser(config, cloudEmail) && { label: '📥 דוח שמות (למנהל)', onClick: namesReport, title: 'כל השמות בכרטיסי מעקב-הטיפול — CSV' },
-                dedupCount > 0 && { label: '🔗 איחוד כפולים · ' + dedupCount, onClick: () => setDedupOpen(true) },
+                dedupCount > 0 && featureOn(config, 'supporters.dedup') && { label: '🔗 איחוד כפולים · ' + dedupCount, onClick: () => setDedupOpen(true) },
                 !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
               ]}
             />
             {/* בחירה-מרובה למחיקה (13.8, בקשת-בעלים) — טוגל מצב-בחירה */}
-            <Btn onClick={() => (selMode ? exitSelMode() : setSelMode(true))} title="בחירה מרובה למחיקה">
-              {selMode ? '✕ סיום בחירה' : '☑ בחירה'}
-            </Btn>
+            {featureOn(config, 'supporters.bulkselect') && (
+              <Btn onClick={() => (selMode ? exitSelMode() : setSelMode(true))} title="בחירה מרובה למחיקה">
+                {selMode ? '✕ סיום בחירה' : '☑ בחירה'}
+              </Btn>
+            )}
             {/* תצוגת גריד לתורמים (5.8, בקשת-בעלים) — אותו דפוס כמו המשפחות (db.ui) */}
-            <Btn onClick={toggleSupView} title="החלפת תצוגה: רשימה / גריד">
-              {supView === 'grid' ? '☰ רשימה' : '▦ גריד'}
-            </Btn>
+            {featureOn(config, 'supporters.grid') && (
+              <Btn onClick={toggleSupView} title="החלפת תצוגה: רשימה / גריד">
+                {supView === 'grid' ? '☰ רשימה' : '▦ גריד'}
+              </Btn>
+            )}
             <SupportersViewSwitcher
               active="data"
               options={[
@@ -639,9 +649,11 @@ export function SupportersView() {
               {'🏷 שיוך ייעוד · ' + selSet.size}
             </Btn>
           )}
-          <Btn kind="danger" disabled={!selSet.size} onClick={() => setConfirmDel(true)}>
-            {'🗑 מחיקת ' + selSet.size}
-          </Btn>
+          {featureOn(config, 'supporters.bulkdelete') && (
+            <Btn kind="danger" disabled={!selSet.size} onClick={() => setConfirmDel(true)}>
+              {'🗑 מחיקת ' + selSet.size}
+            </Btn>
+          )}
           <Btn sm onClick={exitSelMode}>
             ביטול
           </Btn>
@@ -654,9 +666,11 @@ export function SupportersView() {
             <h3 style={{ fontSize: 15 }}>🩺 לוח מעקב הטיפול</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {/* 📋 מסך-השמות המלא — הלוח הוא תור פר-תומכ/ת; כאן כל השמות פר-שם */}
-              <Btn sm onClick={() => setAyinNamesOpen(true)} title={'כל ה' + itemLabel(config) + ' מכל הכרטיסים — טבלה חיה עם חיפוש וסינון'}>
-                📋 כל השמות
-              </Btn>
+              {ayinNamesOn && (
+                <Btn sm onClick={() => setAyinNamesOpen(true)} title={'כל ה' + itemLabel(config) + ' מכל הכרטיסים — טבלה חיה עם חיפוש וסינון'}>
+                  📋 כל השמות
+                </Btn>
+              )}
               <Btn sm onClick={() => setAyinBoardOpen((v) => !v)}>
                 {ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה'}
               </Btn>
@@ -731,7 +745,7 @@ export function SupportersView() {
         )}
       </div>
 
-      {hasAdvFilters && (
+      {advFilterOn && hasAdvFilters && (
         <div style={{ marginBottom: advOpen ? 8 : 10 }}>
           <button
             type="button"
@@ -762,7 +776,7 @@ export function SupportersView() {
           </button>
         </div>
       )}
-      {hasAdvFilters && advOpen && (
+      {advFilterOn && hasAdvFilters && advOpen && (
         <>
       {rfmOn && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
@@ -838,8 +852,9 @@ export function SupportersView() {
         </div>
       )}
 
-      {/* 📞 יעדי-קשר שהגיעו (20.8) — הרשימה המלאה של ווידג'ט "יעדי קשר" בבית */}
-      {(dueCount > 0 || nextF) && (
+      {/* 📞 יעדי-קשר שהגיעו (20.8) — הרשימה המלאה של ווידג'ט "יעדי קשר" בבית.
+          🐛 FLAGMAX: הצ'יפ הוצג גם כש-supporters.nextdate כבוי — נוסף תנאי nextOn. */}
+      {nextOn && (dueCount > 0 || nextF) && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>יעדי קשר:</span>
           <Chip on={nextF} onClick={() => setNextF(!nextF)}>
@@ -940,6 +955,14 @@ export function SupportersView() {
                     (rfmOn || h.key !== 'score') &&
                     (ayinOn || (h.key !== 'stage' && h.key !== 'eyes' && h.key !== 'paid')),
                 ).map((h) => {
+                  // supporters.sort כבוי ⇒ כותרות רגילות — בלי לחיצה/חץ/aria-sort
+                  if (!sortOn) {
+                    return (
+                      <th key={h.key} style={{ whiteSpace: 'nowrap' }}>
+                        {headLabel(h)}
+                      </th>
+                    );
+                  }
                   const dir = sort && sort.key === h.key ? sort.dir : 0;
                   return (
                     <th
@@ -958,6 +981,7 @@ export function SupportersView() {
                 <th aria-hidden />
               </tr>
               {/* P3 פריט 13 — פילטרים פר-עמודה בתחביר numMatch ('3' / '3+' / '1-5'), כמו scf בלגאסי */}
+              {colFilterOn && (
               <tr>
                 {selMode && <th />}
                 {HEAD.filter(
@@ -989,6 +1013,7 @@ export function SupportersView() {
                 {rfmOn && <th />}
                 <th aria-hidden />
               </tr>
+              )}
             </thead>
             <tbody>
               {list.map((sp) => (
@@ -1068,10 +1093,12 @@ export function SupportersView() {
         </div>
       )}
 
-      <p style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 14 }}>
-        {/* ביקורת 6.8: 'תומכות'+'לקורסים' היו קשיחים — דלפו בכל 7 הוורטיקלים */}
-        💡 {termOf(config, 'nav.supporters', 'תורמים')} אינם מחוברים ל{termOf(config, 'nav.courses', 'חוגים')} — זמינים בחיפוש (⌘K), בלוח השנה (תזכורת 📞) ובגיבויים.
-      </p>
+      {featureOn(config, 'supporters.hint') && (
+        <p style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 14 }}>
+          {/* ביקורת 6.8: 'תומכות'+'לקורסים' היו קשיחים — דלפו בכל 7 הוורטיקלים */}
+          💡 {termOf(config, 'nav.supporters', 'תורמים')} אינם מחוברים ל{termOf(config, 'nav.courses', 'חוגים')} — זמינים בחיפוש (⌘K), בלוח השנה (תזכורת 📞) ובגיבויים.
+        </p>
+      )}
 
       {formOpen && (
         <SupporterForm

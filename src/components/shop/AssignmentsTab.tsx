@@ -103,21 +103,26 @@ function AssignmentCard(props: { assignment: ShopAssignment; onBack: () => void 
         <span>{'· ' + (product?.name ?? 'מוצר שנמחק')}</span>
         {/* מובייל (SHOP4 סעיף 3): שורת הפעולות נשברת מסודר — wrap + gap אחיד */}
         <span style={{ marginInlineStart: 'auto', display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', justifyContent: 'flex-end' }}>
-          <select
-            value={a.status}
-            onChange={(e) => upsertShopAssignment({ ...a, status: e.target.value as ShopAssignment['status'] })}
-            title="סטטוס השיוך"
-          >
-            {(Object.keys(STATUS_LABEL) as ShopAssignment['status'][]).map((s) => (
-              <option key={s} value={s}>{STATUS_LABEL[s]}</option>
-            ))}
-          </select>
+          {featureOn(config, 'shop.assignstatus') ? (
+            <select
+              value={a.status}
+              onChange={(e) => upsertShopAssignment({ ...a, status: e.target.value as ShopAssignment['status'] })}
+              title="סטטוס השיוך"
+            >
+              {(Object.keys(STATUS_LABEL) as ShopAssignment['status'][]).map((s) => (
+                <option key={s} value={s}>{STATUS_LABEL[s]}</option>
+              ))}
+            </select>
+          ) : (
+            /* דגל כבוי — הסטטוס מוצג כטקסט בלבד, בלי אפשרות שינוי */
+            <span style={{ fontSize: 12.5, fontWeight: 700 }} title="סטטוס השיוך">{STATUS_LABEL[a.status]}</span>
+          )}
           <Btn sm onClick={() => setEditOpen(true)}>✏️ עריכה</Btn>
           <Btn sm kind="danger" onClick={remove}>{armed === 'sha-' + a.id ? 'בטוח/ה? שוב מוחקת' : '🗑 מחיקה'}</Btn>
         </span>
       </div>
       {/* סינון היסטוריית המימושים — רק כשיש >5; "כולל מבוטלים" דלוק (שקיפות) */}
-      {a.redemptions.length > 5 && (
+      {featureOn(config, 'shop.histfilter') && a.redemptions.length > 5 && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8, alignItems: 'center', fontSize: 12.5 }}>
           <span>מימושים מ-</span>
           <input type="date" dir="ltr" value={histFrom} onChange={(e) => setHistFrom(e.target.value)} />
@@ -261,37 +266,41 @@ export function AssignmentsTab() {
   return (
     <div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <TextInput value={q} onChange={setQ} placeholder={'🔍 ' + termOf(config, 'entity.family', 'משפחה') + ' / חבילה'} />
-        <Select
-          value={status}
-          onChange={(v) => setStatus(v as ShopAssignment['status'] | '')}
-          options={[
-            { value: '', label: 'כל הסטטוסים' },
-            { value: 'active', label: STATUS_LABEL.active },
-            { value: 'done', label: STATUS_LABEL.done },
-            { value: 'stopped', label: STATUS_LABEL.stopped },
-          ]}
-        />
-        <Chip on={pendingOnly} onClick={() => setPendingOnly((v) => !v)}>ממתינים בלבד</Chip>
-        {db.shopProducts.length > 0 && (
-          <Select
-            value={productFilter}
-            onChange={setProductFilter}
-            options={[
-              { value: '', label: 'כל ה' + termOf(config, 'entity.shopProduct', 'מוצר') + 'ים' },
-              ...db.shopProducts.map((p) => ({ value: p.id, label: p.name })),
-            ]}
-          />
+        {featureOn(config, 'shop.filter') && (
+          <>
+            <TextInput value={q} onChange={setQ} placeholder={'🔍 ' + termOf(config, 'entity.family', 'משפחה') + ' / חבילה'} />
+            <Select
+              value={status}
+              onChange={(v) => setStatus(v as ShopAssignment['status'] | '')}
+              options={[
+                { value: '', label: 'כל הסטטוסים' },
+                { value: 'active', label: STATUS_LABEL.active },
+                { value: 'done', label: STATUS_LABEL.done },
+                { value: 'stopped', label: STATUS_LABEL.stopped },
+              ]}
+            />
+            <Chip on={pendingOnly} onClick={() => setPendingOnly((v) => !v)}>ממתינים בלבד</Chip>
+            {db.shopProducts.length > 0 && (
+              <Select
+                value={productFilter}
+                onChange={setProductFilter}
+                options={[
+                  { value: '', label: 'כל ה' + termOf(config, 'entity.shopProduct', 'מוצר') + 'ים' },
+                  ...db.shopProducts.map((p) => ({ value: p.id, label: p.name })),
+                ]}
+              />
+            )}
+            <Select
+              value={sort}
+              onChange={(v) => setSort(v as typeof sort)}
+              options={[
+                { value: 'pending', label: 'מיון: ותיק-ממתין ראשון' },
+                { value: 'name', label: 'מיון: שם ' + termOf(config, 'entity.family', 'משפחה') },
+                { value: 'progress', label: 'מיון: התקדמות' },
+              ]}
+            />
+          </>
         )}
-        <Select
-          value={sort}
-          onChange={(v) => setSort(v as typeof sort)}
-          options={[
-            { value: 'pending', label: 'מיון: ותיק-ממתין ראשון' },
-            { value: 'name', label: 'מיון: שם ' + termOf(config, 'entity.family', 'משפחה') },
-            { value: 'progress', label: 'מיון: התקדמות' },
-          ]}
-        />
         <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
           {/* שיוך המוני (SHOP6 חנות 26) — נדרשת חבילה קיימת */}
           {featureOn(config, 'shop.bulkassign') && db.shopProducts.length > 0 && <Btn onClick={() => setBulkOpen(true)}>👥 שיוך המוני</Btn>}
