@@ -14,15 +14,18 @@ import { featureOn, integrationOn } from '../../lib/config';
 import { WaBtn } from '../WaBtn';
 import { Btn } from '../ui';
 import {
+  cockpitCsvRows,
   cockpitFeed,
   cockpitKpis,
   cockpitProgress,
   cockpitQueue,
+  cockpitWorkListText,
   type CockpitSeverity,
   type CockpitTask,
 } from './cockpit';
 import { segmentCounts } from './segments';
 import { fmtDate } from './lib';
+import { downloadCsv } from '../../lib/csvx';
 
 const SEV_STYLE: Record<CockpitSeverity, { bg: string; c: string; label: string }> = {
   due: { bg: 'var(--warn-bg, #f9ecd7)', c: 'var(--warn, #b45309)', label: 'לטיפול היום' },
@@ -236,6 +239,16 @@ export function SupportersCockpit(props: {
       {/* ── כותרת + התקדמות ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>המשימות של היום</h2>
+        {queue.total > 0 ? (
+          <div style={{ display: 'flex', gap: 6 }}>
+            <Btn sm onClick={() => downloadCsv('cockpit-' + today + '.csv', cockpitCsvRows(queue))} title="ייצוא רשימת-המשימות ל-CSV">
+              ⬇ CSV
+            </Btn>
+            <Btn sm onClick={() => void navigator.clipboard?.writeText(cockpitWorkListText(queue))} title="העתקת רשימת-המשימות ללוח">
+              📋 העתקה
+            </Btn>
+          </div>
+        ) : null}
         {queue.total > 0 ? (
           <div style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
             <div
