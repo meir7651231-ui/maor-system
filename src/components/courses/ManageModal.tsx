@@ -253,9 +253,11 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   // גל ב׳ (whatsapp): תזכורת-תשלום ממולאת — רק כשיש יתרה; טלפון חבר→משפחה
   const waPhone = m?.phone || db.families.find((f) => f.id === m?.famId)?.phone || '';
   const waReminder = integrationOn(cfg, 'whatsapp') && bal > 0 && waPhone;
-  // גל ג׳ (payments): קישור-תשלום לעמוד-הסליקה של הארגון — הסכום ממולא (עד-המפתח)
+  // גל ג׳ (payments): קישור-תשלום לעמוד-הסליקה של הארגון — הסכום ממולא (עד-המפתח).
+  // גל ה׳ (פאזה 12): מגודר גם `courses.paylink` (חסר=דלוק ⇒ אפס-רגרסיה; מתג-כיבוי
+  // לחוגים בלבד). אפס-קבלה — הקישור מפנה לסליקה, הקבלה נרשמת ידנית ב-＋קבלת תשלום.
   const payHref =
-    integrationOn(cfg, 'payments') && bal > 0
+    integrationOn(cfg, 'payments') && featureOn(cfg, 'courses.paylink') && bal > 0
       ? payLink(integrationSetting(cfg, 'payments', 'payUrl'), bal, (m?.first ?? '') + ' ' + (m?.famName ?? ''))
       : null;
 
@@ -416,8 +418,16 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
               <WaBtn phone={waPhone} text={waPaymentText(cfg.orgName, c.name, bal, cfg)} title="תזכורת-תשלום בוואטסאפ (נפתח לעריכה לפני שליחה)" />
             ) : null}
             {payHref ? (
-              <a href={payHref} target="_blank" rel="noopener noreferrer" title="עמוד-התשלום של הארגון — הסכום ממולא" style={{ textDecoration: 'none' }}>
-                💳
+              // תווית גלויה + aria-label (לא אמוג׳י-בודד — נעלם-הפשר במגע, כמו תיקון SupporterDetail)
+              <a
+                href={payHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="תשלום מקוון — עמוד-הסליקה של הארגון, הסכום ממולא"
+                title="עמוד-התשלום של הארגון — הסכום ממולא (אינו מנפיק קבלה)"
+                style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, color: 'var(--accent-deep, var(--accent))', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 8px' }}
+              >
+                💳 תשלום מקוון
               </a>
             ) : null}
             {balLine}
