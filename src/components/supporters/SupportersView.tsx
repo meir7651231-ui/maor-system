@@ -23,6 +23,7 @@ import { SupporterDetail } from './SupporterDetail';
 import { SupportersCockpit } from './SupportersCockpit';
 import { SupportersIntel } from './SupportersIntel';
 import { SupportersGalaxy } from './SupportersGalaxy';
+import { SupportersKpiStrip } from './SupportersKpiStrip';
 import { CommandPalette } from './CommandPalette';
 import type { Command } from './commands';
 import { AyinBoard } from './AyinBoard';
@@ -183,6 +184,8 @@ export function SupportersView() {
   // גלקסיית-התורמים — opt-in מפורש נפרד.
   const galaxyOn = config.features?.['supporters.galaxy'] === true;
   const [galaxyMode, setGalaxyMode] = useState(false);
+  // ריברנד — רצועת-KPI חיה מעל הטבלה הקיימת (opt-in מפורש).
+  const rebrandOn = config.features?.['supporters.rebrand'] === true;
   const [paletteOpen, setPaletteOpen] = useState(false);
   // 🔁 זיהוי-הו"ק-מהיסטוריה — הפעולה מקומית-טהורה (detectRecurringHok על hist);
   // עד היום הכפתור היחיד היה קבור ב-NedarimSyncModal שנעול payments+ענן. חושפים אותו
@@ -654,6 +657,17 @@ export function SupportersView() {
             </div>
           )}
         </div>
+      )}
+
+      {rebrandOn && (
+        <SupportersKpiStrip
+          supporters={visibleBase}
+          config={config}
+          usdRate={db.usdRate}
+          activeTier={tierF}
+          onTier={(t) => setTierF(tierF === t ? null : t)}
+          onHokDue={() => setHokF(hokF === 'due' ? null : 'due')}
+        />
       )}
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
