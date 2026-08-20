@@ -1,0 +1,36 @@
+/**
+ * ratchet — אינטראקטיביות המסכים החדשים (ביקורת-בעלים "בנוי חצי / איפה ללחוץ").
+ * מקבע שהמשטחים שהיו קריאה-בלבד הפכו לשערי-פעולה, כדי שלא יחזרו להיות "תמונה".
+ */
+import { describe, expect, it } from 'vitest';
+import viewSrc from '../SupportersView.tsx?raw';
+import cockpitSrc from '../SupportersCockpit.tsx?raw';
+import galaxySrc from '../SupportersGalaxy.tsx?raw';
+import cardSrc from '../SupporterCard.tsx?raw';
+import intelSrc from '../SupportersIntel.tsx?raw';
+
+describe('💛 ratchet — אינטראקטיביות המסכים החדשים', () => {
+  it('🛡 סגמנטי-הקוקפיט מסננים באמת (onSegment→segF), לא רק onExit זהה', () => {
+    // הבאג: כל צ׳יפ קרא props.onExit בלי מפתח ⇒ כפתורים זהים מחופשים לסינון.
+    expect(cockpitSrc).toContain('props.onSegment ? props.onSegment(s.key)');
+    expect(viewSrc).toContain('onSegment={(k) => { setSegF(k); setWorkMode(false); }}');
+    expect(viewSrc).toContain('matchSegment(sp, segF, visibleBase, today, rate)');
+  });
+
+  it('🛡 הגלקסיה כוללת רשימת-נתונים לחיצה (לא רק canvas)', () => {
+    expect(galaxySrc).toContain('רשימת-הכוכבים');
+    expect(galaxySrc).toContain('onClick={() => props.onOpen(n.id)}');
+  });
+
+  it('🛡 לשונית-המודיעין בכרטיס מובילה לפעולה (עריכה/חיוג/וואטסאפ)', () => {
+    expect(cardSrc).toContain('עריכה ופעולות בכרטיס');
+    expect(cardSrc).toContain('onGoCard');
+    expect(cardSrc).toContain('CallBtn');
+    expect(cardSrc).toContain('WaBtn');
+  });
+
+  it('🛡 כרטיס-הצלילה במרכז-המודיעין פותח את הכרטיס המלא', () => {
+    expect(intelSrc).toContain('onOpen={props.onOpen}');
+    expect(intelSrc).toContain('פתח כרטיס');
+  });
+});

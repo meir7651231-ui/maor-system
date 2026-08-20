@@ -53,7 +53,7 @@ function Tile(props: { label: string; value: string; note?: string; tone?: strin
   );
 }
 
-function DeepDive(props: { sp: Supporter; intel: DonorIntel; rate: number; today: string; rank?: DonorRank }) {
+function DeepDive(props: { sp: Supporter; intel: DonorIntel; rate: number; today: string; rank?: DonorRank; onOpen: (id: string) => void }) {
   const { intel, sp, rank } = props;
   const tier = supTier(intel.rfm.score);
   const mo = intel.scan.monthly;
@@ -73,6 +73,7 @@ function DeepDive(props: { sp: Supporter; intel: DonorIntel; rate: number; today
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
           <span style={{ fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999, background: tier.bg, color: tier.c }}>{tier.label} {intel.rfm.score}</span>
           {rank ? <span style={{ fontSize: 10.5, color: 'var(--ink-faint)', fontWeight: 700 }} title={'דירוג לפי ערך-חיים · אחוזון ' + rank.percentile}>#{rank.ltvRank}/{rank.total} · אחוזון {rank.percentile}</span> : null}
+          <Btn sm onClick={() => props.onOpen(sp.id)} title="פתיחת הכרטיס המלא — תרומה · תודה · הו״ק · עריכה">פתח כרטיס ↗</Btn>
         </div>
       </div>
 
@@ -599,7 +600,7 @@ export function SupportersIntel(props: {
           </div>
         </div>
 
-        {selected ? <DeepDive sp={selected.sp} intel={selected.intel} rate={rate} today={today} rank={ranks.get(selected.sp.id)} /> : null}
+        {selected ? <DeepDive sp={selected.sp} intel={selected.intel} rate={rate} today={today} rank={ranks.get(selected.sp.id)} onOpen={props.onOpen} /> : null}
       </div>
 
       {/* מפת-העונתיות — מתי נכנס הכסף */}
