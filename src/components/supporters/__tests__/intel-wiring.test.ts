@@ -26,4 +26,11 @@ describe('💛 ratchet — חיווט מרכז-המודיעין (opt-in)', () =>
     // memoized ⇒ ביצועים על עשרות-אלפים
     expect(intelSrc).toContain('useMemo(');
   });
+
+  it('🛡 רצועת-הקוהורטה נהוגה מהמנועים (מיגרציה · פעילות · פיזור-ציון)', () => {
+    expect(intelSrc).toContain('tierTrendCounts(');
+    expect(intelSrc).toContain('activeByMonth(');
+    expect(intelSrc).toContain('<CohortBand');
+    expect(intelSrc).toContain('scoreBins={portfolio.scoreBins}');
+  });
 });

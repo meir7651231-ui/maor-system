@@ -11,7 +11,7 @@ import type { Supporter } from '../../types/domain';
 import { Btn } from '../ui';
 import { supTier } from './lib';
 import { donorIntel, type DonorIntel } from './intel';
-import { portfolioIntel } from './portfolio';
+import { activeByMonth, portfolioIntel, tierTrendCounts } from './portfolio';
 
 const ILS = (n: number) => '₪' + Math.round(n).toLocaleString('he-IL');
 const KILO = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K' : ILS(n));
@@ -101,6 +101,78 @@ function DeepDive(props: { sp: Supporter; intel: DonorIntel }) {
   );
 }
 
+const TIER_DOT: Record<string, string> = { 'זהב': '#c98a12', 'כסף': '#5f6b82', 'ארד': '#b5591a', 'רדומה': '#7c7565' };
+
+function CohortBand(props: {
+  cohort: ReturnType<typeof tierTrendCounts>;
+  active: number[];
+  scoreBins: number[];
+}) {
+  const { cohort, active, scoreBins } = props;
+  const maxA = Math.max(1, ...active);
+  const maxB = Math.max(1, ...scoreBins);
+  const n = active.length;
+  const areaPts = active.map((v, i) => `${(i / (n - 1)) * 300},${104 - (v / maxA) * 84}`).join(' ');
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+      {/* מיגרציית-דרגות */}
+      <div className="card" style={{ padding: 16 }}>
+        <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 2 }}>מיגרציית-דרגות</div>
+        <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginBottom: 12 }}>מגמה פר-דרגה (עולה / יציב / יורד)</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+          {cohort.map((row) => {
+            const t = Math.max(1, row.total);
+            return (
+              <div key={row.tier} style={{ display: 'grid', gridTemplateColumns: '54px 1fr 34px', gap: 9, alignItems: 'center', fontSize: 12 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: 99, background: TIER_DOT[row.tier] }} />{row.tier}</span>
+                <span style={{ height: 9, borderRadius: 99, background: 'var(--line, #e4dbc9)', overflow: 'hidden', display: 'flex' }}>
+                  <i style={{ width: (row.rising / t) * 100 + '%', background: 'var(--good, #2e7d32)' }} />
+                  <i style={{ width: (row.stable / t) * 100 + '%', background: TIER_DOT[row.tier] }} />
+                  <i style={{ width: (row.falling / t) * 100 + '%', background: 'var(--red, #b3261e)' }} />
+                </span>
+                <span style={{ textAlign: 'end', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{row.total}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: 'flex', gap: 12, marginTop: 10, fontSize: 11, color: 'var(--ink-soft)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><i style={{ width: 9, height: 9, borderRadius: 3, background: 'var(--good, #2e7d32)', display: 'inline-block' }} />עולה</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><i style={{ width: 9, height: 9, borderRadius: 3, background: 'var(--red, #b3261e)', display: 'inline-block' }} />יורד</span>
+        </div>
+      </div>
+
+      {/* עקומת-פעילות */}
+      <div className="card" style={{ padding: 16 }}>
+        <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 2 }}>עקומת-פעילות</div>
+        <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginBottom: 12 }}>תורמים פעילים פר-חודש · 12ח׳</div>
+        <svg width="100%" height="120" viewBox="0 0 300 120" preserveAspectRatio="none" style={{ overflow: 'visible' }} role="img" aria-label="עקומת-פעילות חודשית">
+          <line x1="0" y1="104" x2="300" y2="104" stroke="var(--line, #e4dbc9)" />
+          <polyline points={areaPts} fill="none" stroke="var(--gold-deep, #a05008)" strokeWidth="2.5" />
+          <polyline points={`0,104 ${areaPts} 300,104`} fill="var(--gold-soft, #fbeecb)" opacity="0.5" stroke="none" />
+          <text x="4" y="14" style={{ fontSize: 9.5, fill: 'var(--ink-faint)' }}>{maxA}</text>
+          <text x="250" y="118" style={{ fontSize: 9.5, fill: 'var(--ink-faint)' }}>החודש</text>
+        </svg>
+      </div>
+
+      {/* פיזור-ציון */}
+      <div className="card" style={{ padding: 16 }}>
+        <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 2 }}>פיזור-ציון (RFM)</div>
+        <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginBottom: 12 }}>10 סלים · 0–1000</div>
+        <svg width="100%" height="120" viewBox="0 0 300 120" preserveAspectRatio="none" style={{ overflow: 'visible' }} role="img" aria-label="פיזור-ציון">
+          <line x1="0" y1="104" x2="300" y2="104" stroke="var(--line, #e4dbc9)" />
+          {scoreBins.map((v, i) => {
+            const h = (v / maxB) * 88;
+            return <rect key={i} x={4 + i * 30} y={104 - h} width={24} height={Math.max(2, h)} rx="3" fill="var(--gold, #e7a72e)" />;
+          })}
+          <text x="4" y="118" style={{ fontSize: 9.5, fill: 'var(--ink-faint)' }}>0</text>
+          <text x="272" y="118" style={{ fontSize: 9.5, fill: 'var(--ink-faint)' }}>1000</text>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export function SupportersIntel(props: {
   supporters: Supporter[];
   config: OrgConfig;
@@ -119,6 +191,8 @@ export function SupportersIntel(props: {
     [props.supporters, today, rate],
   );
   const portfolio = useMemo(() => portfolioIntel(props.supporters, today, rate), [props.supporters, today, rate]);
+  const cohort = useMemo(() => tierTrendCounts(props.supporters, today, rate), [props.supporters, today, rate]);
+  const active = useMemo(() => activeByMonth(props.supporters, today, 12, rate), [props.supporters, today, rate]);
 
   const sorted = useMemo(() => {
     const arr = [...rows];
@@ -207,6 +281,9 @@ export function SupportersIntel(props: {
 
         {selected ? <DeepDive sp={selected.sp} intel={selected.intel} /> : null}
       </div>
+
+      {/* רצועת-קוהורטה — מיגרציה · פעילות · פיזור-ציון */}
+      <CohortBand cohort={cohort} active={active} scoreBins={portfolio.scoreBins} />
     </div>
   );
 }
