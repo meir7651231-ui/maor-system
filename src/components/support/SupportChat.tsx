@@ -24,8 +24,47 @@ import {
   type TeamMsg,
 } from '../../lib/supportChat';
 import { Modal } from '../ui';
+import { parsePortalChat } from '../public/portal';
+import { waLink } from '../../lib/wa';
 
 type CloudMod = typeof import('../../store/cloudSync');
+
+/**
+ * 📥 כרטיס-פנייה (פאזה 2) — הודעת-צ׳אט שמקורה בשער-ההרשמה בעמוד-השיווק מרונדרת
+ * ככרטיס-פעולה: פרטי-הילד/הורה/חוג + חיוג/וואטסאפ ישיר להורה. מחזיר null אם ההודעה
+ * אינה בקשת-שער (⇒ הבועה מציגה טקסט רגיל). אפס-שרת — הכול קישורי-URI.
+ */
+function PortalReqCard({ text }: { text: string }) {
+  const req = parsePortalChat(text);
+  if (!req) return null;
+  const tel = req.phone.replace(/[^\d+]/g, '');
+  const wa = req.phone ? waLink(req.phone, 'שלום, בנוגע לבקשת-ההרשמה לחוג — ') : null;
+  const row = (label: string, val: string) =>
+    val ? (
+      <div style={{ fontSize: 13 }}>
+        <span style={{ color: 'var(--ink-faint)' }}>{label}: </span>
+        <span style={{ fontWeight: 700 }}>{val}</span>
+      </div>
+    ) : null;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <div style={{ fontWeight: 800, fontSize: 13, color: '#8a5a1a' }}>📥 בקשת הרשמה לחוג</div>
+      {row('ילד/ה', req.childName)}
+      {row('הורה', req.parentName)}
+      {row('חוג', req.course)}
+      {req.phone && <div style={{ fontSize: 13 }} dir="ltr">📞 {req.phone}</div>}
+      {row('הערה', req.note)}
+      <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+        {wa && (
+          <a href={wa} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12.5, fontWeight: 700, textDecoration: 'none', color: '#12803c', background: '#e4f5ea', borderRadius: 999, padding: '3px 10px' }}>💬 וואטסאפ</a>
+        )}
+        {tel && (
+          <a href={'tel:' + tel} style={{ fontSize: 12.5, fontWeight: 700, textDecoration: 'none', color: '#33477e', background: '#e8ecfa', borderRadius: 999, padding: '3px 10px' }}>📞 חיוג</a>
+        )}
+      </div>
+    </div>
+  );
+}
 
 /** תצוגת-שיחה חיה — בועות + מחבר-רוד. `side` = מי אני (user/admin). */
 export function SupportChat({
@@ -345,7 +384,8 @@ export function TeamChatModal({ onClose }: { onClose: () => void }) {
                       {!mine && (
                         <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, opacity: 0.85, marginBottom: 1 }}>{m.name || (m.sender ?? '').split('@')[0]}</span>
                       )}
-                      {m.text}
+                      {/* פאזה 2: בקשת-שער מרונדרת ככרטיס-פעולה; אחרת טקסט רגיל */}
+                      {parsePortalChat(m.text) ? <PortalReqCard text={m.text} /> : m.text}
                       <span style={{ display: 'block', fontSize: 10.5, opacity: 0.7, textAlign: 'start', marginTop: 2 }}>{supportMsgTime(m.at)}</span>
                     </div>
                   </div>
