@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
 import { useApp } from '../../store/useApp';
 import { campaignProgress, isRtlLang, resolveLocalized, siteDonateUrl, siteLangs, sitePalette, siteUi, siteVocab } from '../../lib/publicSite';
 import { featureOn } from '../../lib/config';
+import { PortalEntry } from './PortalEntry';
 import type { LocalizedText, SiteLang } from '../../types/config';
 import './public-site.css';
 import heroVideo from './assets/hero.mp4';
@@ -61,6 +62,8 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
      שפה תלוית-סוג-ארגון: מסחרי (בלי §46) ⇒ "צרו קשר" במקום "לתרומה". ── */
   const pal = useMemo(() => sitePalette(config.accent), [config.accent]);
   const commercial = !featureOn(config, 'core.taxreceipt');
+  // 🚪 שער-הצטרפות (פאזה 1) — opt-in מפורש; מרכז-כניסה צף נוסף לצד ה"כניסה" הקיימת
+  const portalOn = config.features?.['shell.portal'] === true;
   const voc = siteVocab(commercial, lang);
   const palRef = useRef(pal); palRef.current = pal; // לקנבס-החלקיקים (אפקט חד-פעמי)
   // CTA ראשי: עמותתי ⇒ קישור-התרומה; מסחרי ⇒ טופס-הקשר (אין "תרומה").
@@ -753,6 +756,8 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
           <span style={{ marginInlineStart: 'auto', color: 'rgba(var(--ri),.5)', fontSize: 12.5 }}>{he('נבנה באהבה', 'Built with love')} · {ui('poweredBy')} ♡</span>
         </div>
       </footer>
+
+      {portalOn && <PortalEntry onEnter={onEnter} />}
     </div>
   );
 }

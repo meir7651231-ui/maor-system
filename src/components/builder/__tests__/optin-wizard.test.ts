@@ -26,6 +26,8 @@ const OPT_IN_KEYS = [
   'courses.teacherapp',
   'courses.parentcard',
   'courses.ai',
+  // שער-הצטרפות בעמוד-השיווק — opt-in מפורש
+  'shell.portal',
 ];
 
 function cfg(features: Record<string, boolean>): OrgConfig {
