@@ -239,6 +239,32 @@ if (await cPanel.count()) {
   await goHome();
 } else skip('רשימה-מסוננת · אין ווידג\'ט יעדי-קשר');
 
+/* ── 13 · מעבר-כל-הווידג'טים: לכל ווידג'ט-מסכם יש כפתור/קישור למסך-המלא ── */
+const fullPathChecks = [
+  ['היום', 'ללוח המלא'],            // today — כל הערכות (היה צֹהר-בלבד)
+  ['דורש טיפול', 'המסך המלא'],      // attention — מרכז-הטיפול
+  ['מלאי כרטיסיות', '←'],           // punchlow — כפתור-מסך לחוגים
+  ['יעדי קשר', 'ל'],                // contacts — לתורמים (+דיפ-לינק מסונן)
+  ['ספר הזהב', 'ל'],                // goldbook — לתורמים
+  ['אחרונות', 'כל '],               // recent — כל המשפחות
+  ['תפוסת החוגים', '←'],            // coursemetrics
+  ['אמינות קהילתי', '←'],           // community
+  ['הלוח העברי', 'ללוח השנה'],      // hebcal
+];
+for (const [pTitle, btnText] of fullPathChecks) {
+  const p = panel(pTitle);
+  if (!(await p.count())) { skip(`מסך-מלא · "${pTitle}" לא על הלוח`); continue; }
+  (await p.locator('.hm-head button', { hasText: btnText }).count()) > 0
+    ? ok(`מסך-מלא · "${pTitle}" — כפתור בכותרת`)
+    : fail(`מסך-מלא · "${pTitle}" — אין כפתור בכותרת`);
+}
+const carSec = pg.locator('section[aria-label="אירועים קרובים"]').first();
+if (await carSec.count()) {
+  (await carSec.locator('button', { hasText: 'ללוח השנה' }).count()) > 0
+    ? ok('מסך-מלא · קרוסלה — קישור "ללוח השנה ←"')
+    : fail('מסך-מלא · קרוסלה — אין קישור ללוח');
+} else skip('מסך-מלא · קרוסלה לא על הלוח');
+
 if (errors.length) fail('שגיאות-JS: ' + errors.slice(0, 3).join(' | '));
 else ok('אפס שגיאות JS בכל הבדיקה');
 

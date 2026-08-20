@@ -347,6 +347,17 @@ describe('אשכול 4 (ביקורת-60) · מנוע הבית — כיסוי ש�
     expect(widgetsSrc).toMatch(/openCourseAttendance\(ts\.course\.id\)/);
   });
 
+  it('הגנת-מקור — מעבר-כל-הווידג\'טים (20.8): לכל ווידג\'ט-מסכם יש דרך למסך-המלא', () => {
+    // today: כפתור-הלוח-המלא בכל הערכות (היה צֹהר-בלבד)
+    expect(widgetsSrc).toMatch(/מעבר-כל-הווידג'טים \(20\.8\): כפתור-הלוח-המלא בכל הערכות/);
+    expect(widgetsSrc).not.toMatch(/isTsohar && moduleOn\(config, 'calendar'\) \? \(/);
+    // carousel: קישור "ללוח השנה ←" — פריט-אחד-בתצוגה ⇒ הרשימה המלאה בלוח
+    expect(widgetsSrc).toContain('showCalLink?: boolean');
+    expect(widgetsSrc).toContain("showCalLink={moduleOn(ctx.config, 'calendar')}");
+    // punchlow: כפתור-מסך לחוגים (ניהול הכרטיסיות) לצד ההרחבה-במקום
+    expect(widgetsSrc).toMatch(/title="מלאי כרטיסיות"[\s\S]{0,400}ctx\.go\('courses'\)/);
+  });
+
   it('הגנת-מקור — מרכז-הטיפול המלא (20.8, "הוויג\'דט שווה לטפל"): כפתור, חיפוש, ופעולות זהות', () => {
     // כפתור "המסך המלא ←" על פאנל דורש-טיפול/שווה-לטפל
     expect(widgetsSrc).toContain('המסך המלא ←');
