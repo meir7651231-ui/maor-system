@@ -460,9 +460,9 @@ export function CourseDetail(props: { course: Course }) {
                             )}
                           </td>
                           <td>
-                            {!punchOn ? (
-                              <span style={{ fontSize: 12 }}>{planLabelOf(e)}</span>
-                            ) : isPunch ? (
+                            {/* S4 (20.8): כשהניקוב כבוי הוצג planLabelOf — כפילות של עמודת
+                                "מסלול". עכשיו עמודת-היתרה מציגה נוכחות-חודשית (מידע, לא כפל). */}
+                            {punchOn && isPunch ? (
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <div
                                   style={{
