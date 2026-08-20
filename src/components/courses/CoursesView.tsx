@@ -14,6 +14,7 @@ import { CourseDetail } from './CourseDetail';
 import { CourseWheel } from '../wheel/CourseWheel';
 import { CoursesCockpit } from './CoursesCockpit';
 import { CollectionCenter } from './CollectionCenter';
+import { CoursesDashboard } from './CoursesDashboard';
 import { coursesOfTeacher, DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
 
 type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2' | 'price3';
@@ -92,6 +93,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   // 💰 מרכז-גבייה (פאזה 5) — כל החייבים חוצה-חוגים, מגודר courses.collect.
   const collectOn = featureOn(cfg, 'courses.collect') && !myTeacherId;
   const [collectOpen, setCollectOpen] = useState(false);
+  // 📊 דשבורד-חוגים (פאזה 8) — מבט-על פר-חוג, מגודר courses.dashboard (ולא-מורה).
+  const dashboardOn = featureOn(cfg, 'courses.dashboard') && !myTeacherId;
+  const [dashboardOpen, setDashboardOpen] = useState(false);
 
   // בקשת "+ חוג" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
   const courseFormReq = useApp((s) => s.courseFormReq);
@@ -207,12 +211,14 @@ function CoursesList(props: { onOpenWheel: () => void }) {
           actions={
             <>
               {collectOn && <Btn onClick={() => setCollectOpen(true)}>💰 גבייה</Btn>}
+              {dashboardOn && <Btn onClick={() => setDashboardOpen(true)}>📊 דשבורד</Btn>}
               <Btn onClick={() => setWorkMode(false)}>☰ הרשימה</Btn>
             </>
           }
         />
         <CoursesCockpit />
         {collectOpen && <CollectionCenter onClose={() => setCollectOpen(false)} />}
+        {dashboardOpen && <CoursesDashboard onClose={() => setDashboardOpen(false)} />}
       </div>
     );
   }
@@ -246,6 +252,11 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             {collectOn && (
               <Btn onClick={() => setCollectOpen(true)} title="מרכז-גבייה — כל החייבים חוצה-חוגים">
                 💰 גבייה
+              </Btn>
+            )}
+            {dashboardOn && (
+              <Btn onClick={() => setDashboardOpen(true)} title="דשבורד-חוגים — תפוסה, חוב, נשירה והחוגים-המבוקשים במבט-אחד">
+                📊 דשבורד
               </Btn>
             )}
             {!myTeacherId && (
@@ -491,6 +502,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
 
       {formOpen && <CourseForm course={null} onClose={() => setFormOpen(false)} />}
       {collectOpen && <CollectionCenter onClose={() => setCollectOpen(false)} />}
+      {dashboardOpen && <CoursesDashboard onClose={() => setDashboardOpen(false)} />}
 
       {/* בקשת-בעלים: תפריט-⋯ במסך-החיצוני — הערות (התיאור) + מעבר לכרטיס */}
       {notesCourse && (
