@@ -187,7 +187,7 @@ function Panel(props: { title: string; icon?: string; badge?: string; action?: R
  * קרוסלת אירועים קרובים — מתחלפת כל 5 שניות, נעצרת בריחוף/פוקוס,
  * ומכבדת prefers-reduced-motion (ללא רוטציה אוטומטית). נקודות + חצים לניווט ידני.
  */
-function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => void }) {
+function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => void; showCalLink?: boolean }) {
   const { items } = props;
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -281,7 +281,28 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
           <button type="button" aria-label="הפריט הבא" onClick={() => step(1)} style={{ padding: '8px 10px', color: 'var(--ink-faint)' }}>
             ›
           </button>
+          {/* מעבר-כל-הווידג'טים (20.8): הקרוסלה מציגה פריט-אחד — הרשימה המלאה בלוח */}
+          {props.showCalLink && (
+            <button
+              type="button"
+              onClick={() => props.navTo({ kind: 'calendar' })}
+              style={{ marginInlineStart: 'auto', fontSize: 12.5, color: 'var(--ink-faint)', textDecoration: 'underline', cursor: 'pointer' }}
+              title="כל האירועים הקרובים — בלוח השנה המלא"
+            >
+              ללוח השנה ←
+            </button>
+          )}
         </div>
+      )}
+      {items.length <= 1 && props.showCalLink && (
+        <button
+          type="button"
+          onClick={() => props.navTo({ kind: 'calendar' })}
+          style={{ alignSelf: 'flex-start', fontSize: 12.5, color: 'var(--ink-faint)', textDecoration: 'underline', cursor: 'pointer' }}
+          title="כל האירועים הקרובים — בלוח השנה המלא"
+        >
+          ללוח השנה ←
+        </button>
       )}
     </section>
   );
@@ -675,7 +696,8 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
       }
       badge={data.holiday ?? undefined}
       action={
-        isTsohar && moduleOn(config, 'calendar') ? (
+        /* מעבר-כל-הווידג'טים (20.8): כפתור-הלוח-המלא בכל הערכות — היה צֹהר-בלבד */
+        moduleOn(config, 'calendar') ? (
           <Btn sm onClick={() => go('calendar')} title="ללוח השנה המלא">
             ללוח המלא ←
           </Btn>
@@ -1573,7 +1595,19 @@ function PunchlowWidget({ ctx }: { ctx: HomeCtx }) {
   // קוהרנטיות (20.8): אין מסך-כרטיסיות ייעודי ⇒ "+N נוספות" מרחיב את הרשימה במקום (דפוס תשומת-הלב)
   const [showAll, setShowAll] = useState(false);
   return (
-    <Panel icon="🎫" title="מלאי כרטיסיות" badge={items.length ? String(items.length) : undefined}>
+    <Panel
+      icon="🎫"
+      title="מלאי כרטיסיות"
+      badge={items.length ? String(items.length) : undefined}
+      /* מעבר-כל-הווידג'טים (20.8): כפתור-מסך גם כאן — הכרטיסיות מנוהלות במסך-החוגים */
+      action={
+        moduleOn(config, 'courses') ? (
+          <Btn sm onClick={() => ctx.go('courses')} title={'ניהול הכרטיסיות בכרטיסי ה' + termOf(config, 'nav.courses', 'חוגים')}>
+            {'ל' + termOf(config, 'nav.courses', 'חוגים') + ' ←'}
+          </Btn>
+        ) : undefined
+      }
+    >
       {items.length === 0 && (
         <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>כל הכרטיסיות במלאי תקין ✓</div>
       )}
@@ -1819,7 +1853,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     // אחרת נשארת קופסה ריקה-לנצח (19.8)
     visible: (cfg) =>
       featureOn(cfg, 'home.carousel') && (moduleOn(cfg, 'families') || moduleOn(cfg, 'calendar')),
-    render: (ctx) => <Carousel items={ctx.data.carousel} navTo={ctx.navTo} />,
+    render: (ctx) => <Carousel items={ctx.data.carousel} navTo={ctx.navTo} showCalLink={moduleOn(ctx.config, 'calendar')} />,
   },
   stats: {
     id: 'stats',
