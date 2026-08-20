@@ -4,7 +4,9 @@ import {
   ayinActive,
   ayinAdvanceLabel,
   ayinAllRows,
+  ayinBoardItems,
   ayinDailyRows,
+  filterAyinBoard,
   boqLineAmount,
   boqTotal,
   matCostTotal,
@@ -21,6 +23,8 @@ import {
   unitLabel,
 } from '../ayin';
 import cardSrc from '../../components/supporters/AyinCard.tsx?raw';
+import namesBoardSrc from '../../components/supporters/AyinNamesBoard.tsx?raw';
+import viewSrc from '../../components/supporters/SupportersView.tsx?raw';
 import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 import { emptyAyin, type AyinCase, type Supporter } from '../../types/domain';
 
@@ -224,6 +228,47 @@ describe('ayinAllRows — דוח שמות מלא', () => {
   it('שם ריק מדולג; אין שמות ⇒ כותרת בלבד', () => {
     const empty = supOf({ ayin: caseOf({ names: [{ id: 'x', name: '  ', eyes: '', done: false }] }) });
     expect(ayinAllRows(cfg(), [empty])).toHaveLength(1);
+  });
+});
+
+// מסך-הטיפול (20.8, בקשת-בעלים "מה עם המסך טיפול") — הרשימה המלאה על-המסך
+describe('ayinBoardItems + filterAyinBoard — מסך הטיפול', () => {
+  const two = () => [
+    supOf({ id: 's1', name: 'משה', phone: '050', ayin: caseOf({ stage: 'eyes', names: [
+      { id: 'n1', name: 'רפואה שלמה', eyes: 3, note: 'דחוף', done: false },
+      { id: 'n2', name: 'הצלחה', eyes: '', done: true },
+    ] }) }),
+    supOf({ id: 's2', name: 'ללא תיק' }),
+  ];
+
+  it('פריט פר-שם עם supporterId לקפיצה-לכרטיס — אותה סמנטיקה כמו ayinAllRows', () => {
+    const items = ayinBoardItems(two());
+    expect(items).toHaveLength(2); // בלי-ayin מדולג, שם ריק מדולג
+    expect(items[0]).toEqual({
+      supporterId: 's1', supporter: 'משה', phone: '050',
+      name: 'רפואה שלמה', eyes: 3, note: 'דחוף', done: false, stage: 'eyes',
+    });
+    expect(items[1].done).toBe(true);
+    expect(items[1].eyes).toBe(''); // כמות ריקה נשארת ריקה
+  });
+
+  it('סינון סטטוס/שלב/טקסט (כולל חיפוש בהערה); ריק ⇒ הכול', () => {
+    const items = ayinBoardItems(two());
+    expect(filterAyinBoard(items, '', null, null)).toHaveLength(2);
+    expect(filterAyinBoard(items, '', 'wait', null).map((x) => x.name)).toEqual(['רפואה שלמה']);
+    expect(filterAyinBoard(items, '', 'done', null).map((x) => x.name)).toEqual(['הצלחה']);
+    expect(filterAyinBoard(items, '', null, 'eyes')).toHaveLength(2);
+    expect(filterAyinBoard(items, '', null, 'done')).toHaveLength(0);
+    expect(filterAyinBoard(items, 'דחוף', null, null)).toHaveLength(1); // חיפוש בהערה
+    expect(filterAyinBoard(items, 'משה', null, null)).toHaveLength(2); // חיפוש בשם-התומך
+  });
+
+  it('הגנת-מקור: מסך-השמות מחווט — שורה פותחת כרטיס, והכפתור קיים במסך-התורמים', () => {
+    expect(namesBoardSrc).toContain('onOpenSupporter(it.supporterId)');
+    expect(viewSrc).toContain('setAyinNamesOpen(true)');
+    expect(viewSrc).toMatch(/onOpenSupporter=\{\(id\) => \{[\s\S]{0,80}setSelId\(id\)/);
+    // הלוח-הקיים (תור פר-תומכ/ת) לא נגרע — שני המסכים חיים זה-לצד-זה
+    expect(viewSrc).toContain('<AyinBoard onOpen={setSelId} />');
   });
 });
 
