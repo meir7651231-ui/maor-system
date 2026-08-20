@@ -21,6 +21,9 @@ const OPT_IN_KEYS = [
   'supporters.galaxy',
   'supporters.rebrand',
   'courses.cockpit',
+  // גל ה׳ — מסכי-החוגים החדשים מגודרים `=== true` בקוד ⇒ חייבים optIn:true באשף
+  'courses.teacherapp',
+  'courses.parentcard',
 ];
 
 function cfg(features: Record<string, boolean>): OrgConfig {
