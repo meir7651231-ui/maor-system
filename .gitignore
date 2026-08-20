@@ -13,3 +13,4 @@ e2e/.tmp-*
 firestore-debug.log
 firebase-debug.log
 e2e/nextgen-shots/
+e2e/shots-wave5/
