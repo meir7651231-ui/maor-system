@@ -17,6 +17,7 @@ import { donorRhythm, seasonality, type Seasonality } from './seasonality';
 import { donorSignals, portfolioSignals, type PortfolioSignals, type SignalKind } from './signals';
 import { intelCsvRows } from './intelExport';
 import { donorRanks, type DonorRank } from './ranks';
+import { acquisitionCohorts, type RetentionReport } from './retention';
 import { downloadCsv } from '../../lib/csvx';
 import { featureOn } from '../../lib/config';
 
@@ -277,6 +278,43 @@ function TimeBand(props: { machine: TimeMachine }) {
   );
 }
 
+function retColor(pct: number): string {
+  return pct >= 66 ? 'var(--good, #2e7d32)' : pct >= 40 ? 'var(--warn, #b45309)' : 'var(--red, #b3261e)';
+}
+
+/**
+ * קוהורטת-הגיוס — שימור לפי **שנת-הגיוס**: לכל מחזור, כמה גויסו וכמה עדיין-פעילים.
+ * חושף אם הגיוס-האחרון "דולף" מול מחזורים-ותיקים.
+ */
+function RetentionBand(props: { report: RetentionReport }) {
+  const { report } = props;
+  if (report.cohorts.length === 0) return null;
+  const maxSize = Math.max(1, ...report.cohorts.map((c) => c.size));
+  return (
+    <div className="card" style={{ padding: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+        <div style={{ fontSize: 14, fontWeight: 900 }}>קוהורטת-גיוס</div>
+        <div style={{ fontSize: 11, color: 'var(--ink-faint)' }}>שימור לפי שנת-הצטרפות</div>
+        <div style={{ marginInlineStart: 'auto', fontSize: 11.5, color: 'var(--ink-soft)' }}>שימור-כולל <b style={{ color: retColor(report.overallRetention) }}>{report.overallRetention}%</b></div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+        {report.cohorts.map((c) => (
+          <div key={c.year} style={{ display: 'grid', gridTemplateColumns: '44px 1fr 92px', gap: 10, alignItems: 'center', fontSize: 12 }}>
+            <span style={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{c.year}</span>
+            <span style={{ position: 'relative', height: 20, borderRadius: 6, background: 'var(--line, #e4dbc9)', overflow: 'hidden' }} title={c.size + ' גויסו · ' + c.activeNow + ' פעילים'}>
+              {/* רוחב = גודל-המחזור יחסית; מילוי = הפעילים */}
+              <span style={{ position: 'absolute', inset: 0, width: (c.size / maxSize) * 100 + '%', background: 'var(--panel-2, #f7f2e8)' }} />
+              <span style={{ position: 'absolute', insetBlock: 0, insetInlineStart: 0, width: ((c.activeNow / maxSize)) * 100 + '%', background: retColor(c.retentionPct) }} />
+              <span style={{ position: 'absolute', insetInlineStart: 6, top: 2, fontSize: 11, fontWeight: 700, color: 'var(--ink)' }}>{c.activeNow}/{c.size}</span>
+            </span>
+            <span style={{ textAlign: 'end', fontWeight: 800, color: retColor(c.retentionPct), fontVariantNumeric: 'tabular-nums' }}>{c.retentionPct}% · {KILO(c.ltv)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /**
  * מפת-העונתיות — **מתי** נכנס הכסף. 12 עמודות-חודש (חוצה-שנים), שיא/שפל מודגשים,
  * וריכוזיות-עונתית ("X% מהכסף השנתי מגיע בחודש-Y"). תזמון-קמפיין במבט-אחד.
@@ -407,6 +445,7 @@ export function SupportersIntel(props: {
   const season = useMemo(() => seasonality(props.supporters, rate), [props.supporters, rate]);
   const signals = useMemo(() => portfolioSignals(props.supporters, today, rate), [props.supporters, today, rate]);
   const ranks = useMemo(() => donorRanks(props.supporters, today, rate), [props.supporters, today, rate]);
+  const retention = useMemo(() => acquisitionCohorts(props.supporters, today, rate), [props.supporters, today, rate]);
 
   const sorted = useMemo(() => {
     const arr = [...rows];
@@ -504,6 +543,9 @@ export function SupportersIntel(props: {
 
       {/* מפת-העונתיות — מתי נכנס הכסף */}
       <SeasonBand season={season} />
+
+      {/* קוהורטת-גיוס — שימור לפי שנת-הצטרפות */}
+      <RetentionBand report={retention} />
 
       {/* מכונת-הזמן — הקרנת-התיק קדימה */}
       <TimeBand machine={machine} />

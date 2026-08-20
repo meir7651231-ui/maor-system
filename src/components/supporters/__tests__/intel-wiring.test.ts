@@ -69,4 +69,10 @@ describe('💛 ratchet — חיווט מרכז-המודיעין (opt-in)', () =>
     expect(intelSrc).toContain('rank={ranks.get(');
     expect(intelSrc).toContain('ranks = useMemo(');
   });
+
+  it('🛡 קוהורטת-הגיוס מחווטת מהמנוע הטהור (acquisitionCohorts)', () => {
+    expect(intelSrc).toContain('acquisitionCohorts(props.supporters');
+    expect(intelSrc).toContain('<RetentionBand');
+    expect(intelSrc).toContain('retention = useMemo(');
+  });
 });

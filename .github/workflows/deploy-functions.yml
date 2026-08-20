@@ -1,0 +1,77 @@
+# פריסת Cloud Functions בלחיצה — עוקף את מגבלת-Termux (אי-אפשר לפרוס מהטלפון).
+# הפעלה: Actions ← "Deploy Functions" ← Run workflow ← בחירת יעד.
+# דורש secret בשם FIREBASE_TOKEN (מ-`firebase login:ci`; רץ גם ב-Termux —
+# רק ההתחברות, בלי ניתוח-קוד). ⚠️ לא רץ אוטומטית על push — ידני בלבד.
+name: Deploy Functions
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'מה לפרוס'
+        required: true
+        default: stage1
+        type: choice
+        options:
+          - stage1        # בלי סודות: icsFeed + remindersNightly + backupNightly
+          - mail          # mailOutbox (דורש סודות SMTP_URL + MAIL_FROM)
+          - nedarim       # nedarimPull + nedarimSyncHourly (NEDARIM_* + PAY_SECRET)
+          - payments      # paymentsWebhook (PAY_SECRET)
+          - sms           # smsOutbox (SMS_*)
+          - yemot         # yemotProxy (YEMOT_TOKEN)
+          - sheets        # sheetsNightly (GOOGLE_SA)
+          - everything    # הכול — רק אחרי שכל הסודות קיימים!
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: בדיקת טוקן
+        run: |
+          if [ -z "${{ secrets.FIREBASE_TOKEN }}" ]; then
+            echo "::error::חסר ה-secret ‏FIREBASE_TOKEN — מריצים 'firebase login:ci' ומדביקים את הטוקן ב-Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: התקנת תלויות הפונקציות
+        working-directory: functions
+        run: npm ci
+
+      - name: תרגום היעד לרשימת פונקציות
+        id: t
+        run: |
+          case "${{ github.event.inputs.target }}" in
+            stage1)     F="functions:icsFeed,functions:remindersNightly,functions:backupNightly" ;;
+            mail)       F="functions:mailOutbox" ;;
+            nedarim)    F="functions:nedarimPull,functions:nedarimSyncHourly" ;;
+            payments)   F="functions:paymentsWebhook" ;;
+            sms)        F="functions:smsOutbox" ;;
+            yemot)      F="functions:yemotProxy" ;;
+            sheets)     F="functions:sheetsNightly" ;;
+            everything) F="functions" ;;
+            *) echo "::error::יעד לא מוכר"; exit 1 ;;
+          esac
+          echo "flist=$F" >> "$GITHUB_OUTPUT"
+
+      - name: פריסה
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: npx firebase-tools@13 deploy --project maor-system --only "${{ steps.t.outputs.flist }}" --non-interactive
+
+      - name: אימות (stage1)
+        if: ${{ github.event.inputs.target == 'stage1' }}
+        run: |
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' "https://us-central1-maor-system.cloudfunctions.net/icsFeed" || true)
+          echo "icsFeed → HTTP $CODE"
+          if [ "$CODE" = "404" ]; then
+            echo "::error::icsFeed עדיין 404 — הפריסה לא נקלטה"
+            exit 1
+          fi
