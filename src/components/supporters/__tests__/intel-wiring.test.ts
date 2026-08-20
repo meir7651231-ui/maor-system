@@ -40,4 +40,10 @@ describe('💛 ratchet — חיווט מרכז-המודיעין (opt-in)', () =>
     // memoized ⇒ הקרנה על עשרות-אלפים בלי סריקה-חוזרת
     expect(intelSrc).toContain('machine = useMemo(');
   });
+
+  it('🛡 מפת-העונתיות מחווטת מהמנוע הטהור (seasonality)', () => {
+    expect(intelSrc).toContain('seasonality(props.supporters');
+    expect(intelSrc).toContain('<SeasonBand');
+    expect(intelSrc).toContain('season = useMemo(');
+  });
 });
