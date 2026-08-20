@@ -282,6 +282,8 @@ interface AppState {
   setPresent: (enrollmentId: string, dateIso: string, present: boolean) => boolean;
   /** נוכחות-אצווה (גיליון roll-call) — מחיל setPresent על רשימת-שיבוצים ב-setDb אחד; מחזיר כמה שונו. */
   bulkSetPresent: (enrollmentIds: string[], dateIso: string, present: boolean) => number;
+  /** סיום-סמסטר לחוג — כל השיבוצים הפעילים/מוקפאים ⇒ 'ended'+endedAt (setDb אחד); מחזיר כמה. */
+  bulkEndCourse: (courseId: string, dateIso: string) => number;
   /** ביטול הניקוב האחרון — מחזיר את הדלתא המדויקת מרשומת ה-Check-in (legacy mgUndo). */
   undoPunch: (enrollmentId: string) => void;
   addAbsence: (enrollmentId: string, absence: Absence) => void;
@@ -1602,6 +1604,18 @@ export const useApp = create<AppState>()((set, get) => {
         }),
       }));
       return willChange.size;
+    },
+    bulkEndCourse(courseId, dateIso) {
+      const ids = new Set(
+        get()
+          .db.enrollments.filter((e) => e.courseId === courseId && (e.status === 'active' || e.status === 'paused'))
+          .map((e) => e.id),
+      );
+      if (ids.size === 0) return 0;
+      setDb((db) => ({
+        enrollments: db.enrollments.map((e) => (ids.has(e.id) ? { ...e, status: 'ended' as const, endedAt: dateIso } : e)),
+      }));
+      return ids.size;
     },
     undoPunch(enrollmentId) {
       // ratchet legacy-main-script.js:3372 (mgUndo): הביטול מחזיר את הדלתא
