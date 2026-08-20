@@ -8,6 +8,7 @@
     "supporters.rebrand": true,
     "supporters.intel": true,
     "supporters.galaxy": true,
+    "supporters.card": true,
     "courses.cockpit": true
   },
   "integrations": {
