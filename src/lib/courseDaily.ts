@@ -59,6 +59,7 @@ export function buildCourseDailyRows(c: Course, db: Db, config?: OrgConfig): { r
       // מהדוח ההיסטורי; שיבוץ-ישן שהסתיים בלי endedAt נשאר מוחרג (אין תאריך אמין).
       const active = enrolls.filter(
         (e) =>
+          e.status !== 'wait' && // רשימת-המתנה לא בדוח-הנוכחות (עדיין לא לומד/ת)
           (!e.enrolledAt || e.enrolledAt <= iso) &&
           (!ss.label || !e.group || e.group === ss.label) &&
           (e.status !== 'ended' || (!!e.endedAt && iso < e.endedAt)),

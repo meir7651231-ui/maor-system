@@ -27,7 +27,7 @@ import {
   weightedQuote,
 } from './lib';
 
-export function EnrollModal(props: { course: Course; onClose: () => void }) {
+export function EnrollModal(props: { course: Course; waitlist?: boolean; onClose: () => void }) {
   const db = useApp((s) => s.db);
   const upsertEnrollment = useApp((s) => s.upsertEnrollment);
   const upsertFamily = useApp((s) => s.upsertFamily);
@@ -153,7 +153,8 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
     if (!resolved.fam && !resolved.create)
       return setError('יש לבחור ' + termOf(cfg, 'entity.family', 'משפחה') + ' מהרשימה — או להקליד שם חדש ולבחור "＋ ' + termOf(cfg, 'entity.family', 'משפחה') + ' חדשה"');
     if (!nFirst.trim()) return setError('שם פרטי הוא שדה חובה');
-    if (enrollCount(db, c.id) >= (c.maxStudents || 999))
+    // ברשימת-המתנה מותר לחרוג מהמקסימום (הם לא תופסים מקום); אחרת חוסמים על מלא.
+    if (!props.waitlist && enrollCount(db, c.id) >= (c.maxStudents || 999))
       return setError('ה' + termOf(cfg, 'entity.course', 'חוג') + ' מלא — הגעתם למקסימום ה' + termOf(cfg, 'entity.students', 'תלמידים') + ' שהוגדר');
     const isPunch = c.model === 'punch';
     const bought = isPunch ? +(purchased || c.size || 12) : 0;
@@ -197,14 +198,15 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
       absences: [],
       payments: [],
       dueDate: '',
-      status: 'active',
+      status: props.waitlist ? 'wait' : 'active',
       note: '',
       enrolledAt: isoToday(),
       ...pricingFields,
     });
     toast(
       (famCreated ? termOf(cfg, 'entity.familyOf', 'משפחת') + ' ' + fam.name + ' נוצרה, ' : '') +
-        m.first + ' נוסף/ה ל' + termOf(cfg, 'entity.familyOf', 'משפחת') + ' ' + fam.name + ' ושובצ/ה ל"' + c.name + '"',
+        m.first +
+        (props.waitlist ? ' נוסף/ה לרשימת-ההמתנה של "' + c.name + '"' : ' נוסף/ה ל' + termOf(cfg, 'entity.familyOf', 'משפחת') + ' ' + fam.name + ' ושובצ/ה ל"' + c.name + '"'),
     );
     props.onClose();
   }
@@ -220,7 +222,7 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
     if (!memberId) return setError('יש לבחור ' + termOf(cfg, 'entity.student', 'תלמיד/ה'));
     if (db.enrollments.some((e) => e.memberId === memberId && e.courseId === c.id))
       return setError('כבר משובץ/ת ל' + termOf(cfg, 'entity.course', 'חוג') + ' הזה');
-    if (enrollCount(db, c.id) >= (c.maxStudents || 999))
+    if (!props.waitlist && enrollCount(db, c.id) >= (c.maxStudents || 999))
       return setError('ה' + termOf(cfg, 'entity.course', 'חוג') + ' מלא — הגעתם למקסימום ה' + termOf(cfg, 'entity.students', 'תלמידים') + ' שהוגדר');
     const isPunch = c.model === 'punch';
     const bought = isPunch ? +(purchased || c.size || 12) : 0;
@@ -238,13 +240,13 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
       absences: [],
       payments: [],
       dueDate: '',
-      status: 'active',
+      status: props.waitlist ? 'wait' : 'active',
       note: '',
       enrolledAt: isoToday(),
       ...pricingFields,
     };
     upsertEnrollment(enrollment);
-    toast('ה' + termOf(cfg, 'entity.student', 'תלמיד/ה') + ' שובצ/ה ל' + termOf(cfg, 'entity.course', 'חוג'));
+    toast(props.waitlist ? 'נוסף/ה לרשימת-ההמתנה של "' + c.name + '"' : 'ה' + termOf(cfg, 'entity.student', 'תלמיד/ה') + ' שובצ/ה ל' + termOf(cfg, 'entity.course', 'חוג'));
     props.onClose();
   }
 

@@ -39,6 +39,7 @@ import {
   punchConfirmStep,
   PUNCH_CONFIRM_MS,
   sessionsOf,
+  waitlistFor,
   type PunchArm,
 } from './lib';
 
@@ -52,7 +53,7 @@ const GROUP_PALETTE: [string, string][] = [
 
 type ModalState =
   | { kind: 'edit' }
-  | { kind: 'enroll' }
+  | { kind: 'enroll'; waitlist?: boolean }
   | { kind: 'sheet' }
   | { kind: 'manage'; enrollmentId: string }
   | { kind: 'absence'; enrollmentId: string }
@@ -124,7 +125,18 @@ export function CourseDetail(props: { course: Course }) {
 
   const teacher = db.teachers.find((t) => t.id === c.teacherId);
   const room = db.rooms.find((r) => r.id === c.roomId);
-  const enrolled = db.enrollments.filter((e) => e.courseId === c.id);
+  // רשימת-ההמתנה ('wait') לא בין הרשומים — לא בטבלה, לא בתדפיס, לא בספירת-קבוצות.
+  const enrolled = db.enrollments.filter((e) => e.courseId === c.id && e.status !== 'wait');
+  const waitlistOn = featureOn(cfg, 'courses.waitlist');
+  const waiters = waitlistOn ? waitlistFor(db.enrollments, c.id) : [];
+  const deleteEnrollment = useApp((s) => s.deleteEnrollment);
+  const memberName = (memberId: string) => {
+    for (const f of db.families) {
+      const m = f.members.find((x) => x.id === memberId);
+      if (m) return m.first + ' · ' + f.name;
+    }
+    return '—';
+  };
   // ממואיזים לפי db: allMembers רץ מחדש בכל render (גם בהקלדה), וה-.find לכל שורה
   // נתן O(מספר-שיבוצים × סה"כ-חברים). Map ממזהה→חבר הופך את זה ל-O(1) לשורה.
   const members = useMemo(() => allMembers(db), [db]);
@@ -389,8 +401,8 @@ export function CourseDetail(props: { course: Course }) {
                     📋 נוכחות
                   </Btn>
                 )}
-                <Btn sm disabled={full} onClick={() => setModal({ kind: 'enroll' })}>
-                  {full ? 'ה' + termOf(cfg, 'entity.course', 'חוג') + ' מלא' : '➕ ' + termOf(cfg, 'entity.enrollment', 'שיבוץ')}
+                <Btn sm disabled={full && !waitlistOn} onClick={() => setModal({ kind: 'enroll', waitlist: full && waitlistOn })}>
+                  {full ? (waitlistOn ? '⏳ רשימת-המתנה' : 'ה' + termOf(cfg, 'entity.course', 'חוג') + ' מלא') : '➕ ' + termOf(cfg, 'entity.enrollment', 'שיבוץ')}
                 </Btn>
               </div>
             </div>
@@ -552,6 +564,41 @@ export function CourseDetail(props: { course: Course }) {
               </div>
             )}
           </section>
+
+          {waitlistOn && waiters.length > 0 && (
+            <section className="card">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 800 }}>
+                  ⏳ רשימת-המתנה <span style={{ color: 'var(--accent)' }}>· {waiters.length}</span>
+                </h2>
+                {full && <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>מתפנה מקום? שבצו מהתור ▲</span>}
+              </div>
+              {waiters.map((e, i) => (
+                <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-faint)', width: 22 }}>{i + 1}.</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700 }}>{memberName(e.memberId)}</div>
+                    <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>הצטרף/ה {fmtDate(e.enrolledAt)}</div>
+                  </div>
+                  <Btn
+                    sm
+                    kind="primary"
+                    disabled={full}
+                    title={full ? 'ה' + termOf(cfg, 'entity.course', 'חוג') + ' מלא — פנו מקום קודם' : 'שיבוץ מרשימת-ההמתנה'}
+                    onClick={() => {
+                      upsertEnrollment({ ...e, status: 'active', enrolledAt: isoToday() });
+                      toast(memberName(e.memberId) + ' שובצ/ה מרשימת-ההמתנה');
+                    }}
+                  >
+                    ▲ שבץ
+                  </Btn>
+                  <Btn sm onClick={() => { deleteEnrollment(e.id); toast('הוסר/ה מרשימת-ההמתנה'); }}>
+                    ✕
+                  </Btn>
+                </div>
+              ))}
+            </section>
+          )}
 
           {groupsOn && (
           <section className="card">
@@ -748,7 +795,7 @@ export function CourseDetail(props: { course: Course }) {
       </div>
 
       {modal?.kind === 'edit' && <CourseForm course={c} onClose={() => setModal(null)} />}
-      {modal?.kind === 'enroll' && <EnrollModal course={c} onClose={() => setModal(null)} />}
+      {modal?.kind === 'enroll' && <EnrollModal course={c} waitlist={modal.waitlist} onClose={() => setModal(null)} />}
       {modal?.kind === 'sheet' && <AttendanceSheet course={c} onClose={() => setModal(null)} />}
       {modal?.kind === 'manage' && (
         <ManageModal enrollmentId={modal.enrollmentId} course={c} onClose={() => setModal(null)} />

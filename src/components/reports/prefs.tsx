@@ -32,7 +32,7 @@ export function ReportPrefsSection() {
   /** דוח טקסט מסכם — נאמן ל-genReport מהמקור (ללא שורת הנמענים הפיקטיבית). */
   function gen(label: string) {
     const allM = allMembers(db);
-    const low = db.enrollments.filter((e) => e.plan === 'punch' && e.status !== 'ended' && e.purchased - e.used <= 2);
+    const low = db.enrollments.filter((e) => e.plan === 'punch' && e.status !== 'ended' && e.status !== 'wait' && e.purchased - e.used <= 2);
     const abs = db.enrollments.reduce((a, e) => a + e.absences.length, 0);
     const L = [
       'דו"ח ' + label + ' — ' + (useApp.getState().config.orgName || db.orgName || 'העמותה'),
