@@ -16,6 +16,9 @@
     "maps": { "enabled": true },
     "gcal": { "enabled": true }
   },
+  "telephony": {
+    "enabled": true
+  },
   "firebase": {
     "apiKey": "AIzaSyCVvJvJAnTEWSzdtmONXcZyRijHdrvPeIo",
     "authDomain": "maor-system.firebaseapp.com",
