@@ -62,8 +62,9 @@ const tagStyle = (bg: string, c: string): CSSProperties => ({
   color: c,
   borderRadius: 999,
   padding: '2px 10px',
-  fontSize: 12,
-  fontWeight: 600,
+  // יישור-סולם (19.8): מדרגה אחת מתחת ל-.chip (13px/600) — אחיד עם .hm-stat-chip
+  fontSize: 12.5,
+  fontWeight: 700,
   whiteSpace: 'nowrap',
   flexShrink: 0,
 });
@@ -647,18 +648,20 @@ function sessionStatus(time: string | undefined, now: Date): { label: string; bg
  */
 function TodayWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, now, data, go, selectFamily, selectCourse } = ctx;
+  // "נוכחות ✓" (20.8) — פתיחת הכרטיס עם גלילה לטבלת-השיבוצים (עומק אמיתי מעבר לקליק-השורה)
+  const openCourseAttendance = useApp((s) => s.openCourseAttendance);
   const famName = (id: string) => db.families.find((f) => f.id === id)?.name ?? '';
   // תווית-קבוצה (19.8): חוג רב-מפגשי מציג "קבוצה N" גם בלי label מפורש —
   // שני מפגשים של אותו חוג באותו יום היו בלתי-ניתנים-להבחנה.
   const gLabel = (ts: TodaySession) =>
     ts.session.label || (ts.groups > 1 ? groupLabelOf(ts.session, ts.gi) : '');
-  // רשומות פר-קבוצה בחוג רב-מפגשי (שיבוץ נושא e.group) — חוג יחיד: כל הפעילים
+  // רשומות פר-קבוצה בחוג רב-מפגשי — אותה סמנטיקה כמו יומן-החדרים
+  // (enrollmentsForSession): שיוך-תואם או ללא-שיוך; חוג יחיד ⇒ כל הפעילים.
   const enrolledOf = (ts: TodaySession) => {
     const act = db.enrollments.filter((e) => e.courseId === ts.course.id && e.status === 'active');
     if (ts.groups <= 1) return act.length;
     const lbl = groupLabelOf(ts.session, ts.gi);
-    const inGroup = act.filter((e) => (e.group || '') === lbl).length;
-    return inGroup > 0 ? inGroup : act.length; // אין שיוכי-קבוצה ⇒ המונה הכללי (אפס-הפתעות)
+    return act.filter((e) => !e.group || e.group === lbl).length;
   };
   const theme = themeOf(ctx);
   const isTsohar = theme === 'tsohar';
@@ -679,11 +682,12 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
         ) : undefined
       }
     >
-      {/* בקהילה הכותרת עצמה היא "המפגשים של היום" — בלי תת-כותרת כפולה */}
-      {!isKehila && (
+      {/* בקהילה הכותרת עצמה היא "המפגשים של היום" — בלי תת-כותרת כפולה.
+          גידור-מודול (20.8): מודול חוגים כבוי ⇒ אין מקטע-מפגשים כלל (לא ריק-לנצח) */}
+      {moduleOn(config, 'courses') && !isKehila && (
         <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-faint)' }}>המפגשים של היום</div>
       )}
-      {data.sessions.length === 0 && (
+      {moduleOn(config, 'courses') && data.sessions.length === 0 && (
         <div style={softEmpty}>אין מפגשי {termOf(config, 'nav.courses', 'חוגים')} היום</div>
       )}
       {isTsohar && data.sessions.length > 0 && (
@@ -736,7 +740,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
                         className="hm-pill-btn"
                         onClick={(e) => {
                           e.stopPropagation();
-                          selectCourse(ts.course.id);
+                          openCourseAttendance(ts.course.id);
                         }}
                         title={'פתיחת כרטיס ה' + termOf(config, 'entity.course', 'חוג') + ' לניהול נוכחות'}
                       >
@@ -772,7 +776,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
               <button
                 type="button"
                 className="hm-pill-btn"
-                onClick={() => selectCourse(ts.course.id)}
+                onClick={() => openCourseAttendance(ts.course.id)}
                 title={'פתיחת כרטיס ה' + termOf(config, 'entity.course', 'חוג') + ' לניהול נוכחות'}
               >
                 נוכחות ✓
@@ -781,8 +785,12 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
           );
         })}
 
-      <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-faint)', marginTop: 6 }}>אירועים</div>
-      {data.events.length === 0 && data.bdays.length === 0 && <div style={softEmpty}>אין אירועים היום</div>}
+      {/* גידור-מודול (20.8): מקטע-האירועים רק כשלוח-שנה/משפחות (מקורות התוכן) פעילים */}
+      {(moduleOn(config, 'calendar') || moduleOn(config, 'families')) && (
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-faint)', marginTop: 6 }}>אירועים</div>
+      )}
+      {(moduleOn(config, 'calendar') || moduleOn(config, 'families')) &&
+        data.events.length === 0 && data.bdays.length === 0 && <div style={softEmpty}>אין אירועים היום</div>}
       {data.events.map((ev) => (
         <button
           key={ev.id}
@@ -864,6 +872,40 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
   // שפת המוקאפ: היכל "נר תמיד" (עם 🕯️ בכל שורה) · קהילה "שווה לטפל"
   const theme = themeOf(ctx);
   const isHeichal = theme === 'heichal';
+
+  // home.care כבוי + home.crosscare דלוק (20.8): הפאנל מארח את הצ'יפים בלבד
+  if (!featureOn(config, 'home.care')) {
+    return (
+      <Panel icon="🔔" title={isHeichal ? 'נר תמיד — דורש טיפול' : theme === 'kehila' ? 'שווה לטפל' : 'דורש טיפול'}>
+        {crossCare.tzedaka + crossCare.shop + crossCare.shop7 + crossCare.shopMeetings === 0 ? (
+          <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>הכל מטופל ✓</div>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {crossCare.tzedaka > 0 && (
+              <Chip on onClick={() => go('tzedaka')}>
+                {'🪙 ' + termOf(config, 'nav.tzedaka', 'קופות צדקה') + ': ' + crossCare.tzedaka}
+              </Chip>
+            )}
+            {crossCare.shop > 0 && (
+              <Chip on onClick={() => go('shop')}>
+                {'🛍 ' + termOf(config, 'nav.shop', 'חנות') + ': ' + crossCare.shop}
+              </Chip>
+            )}
+            {crossCare.shop7 > 0 && (
+              <Chip on onClick={() => go('shop7')}>
+                {'🚚 ' + termOf(config, 'nav.shop7', 'חלוקה') + ': ' + crossCare.shop7}
+              </Chip>
+            )}
+            {crossCare.shopMeetings > 0 && (
+              <Chip on onClick={() => go('shop')}>
+                {'🤝 פגישות היום: ' + crossCare.shopMeetings}
+              </Chip>
+            )}
+          </div>
+        )}
+      </Panel>
+    );
+  }
 
   return (
     <Panel
@@ -1145,7 +1187,8 @@ function CommunityWidget({ ctx }: { ctx: HomeCtx }) {
   return (
     <Panel
       icon={isKehila ? '🏅' : '🤝'}
-      title={isKehila ? 'הקהילה שלנו' : 'אמינות קהילתית'}
+      /* termOf (20.8): "אמינות" עובר את מילון-הוורטיקל — קהילה שומרת את נוסח-המוקאפ */
+      title={isKehila ? 'הקהילה שלנו' : termOf(config, 'entity.cred', 'מדד אמינות') + ' קהילתי'}
       badge={s.total > 0 ? `ממוצע ${s.avg}` : undefined}
       action={<Btn sm onClick={() => go('families')}>{'ל' + famPlural + ' ←'}</Btn>}
     >
@@ -1256,7 +1299,7 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
   return (
     <Panel
       icon="🎯"
-      title="מדד אמינות — תמונה מלאה"
+      title={termOf(config, 'entity.cred', 'מדד אמינות') + ' — תמונה מלאה'}
       badge={s.total > 0 ? `ממוצע ${s.avg}/1000` : undefined}
       action={<Btn sm onClick={() => go('families')}>{'ל' + famPlural + ' ←'}</Btn>}
     >
@@ -1277,7 +1320,7 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
             <span style={{ position: 'absolute', insetInlineStart: '80%', transform: 'translateX(50%)' }}>800</span>
             <span style={{ position: 'absolute', insetInlineStart: '100%', transform: 'translateX(100%)' }}>1000</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 44, marginBottom: 8 }} role="img" aria-label="התפלגות ציוני האמינות">
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 44, marginBottom: 8 }} role="img" aria-label={'התפלגות ציוני ' + termOf(config, 'entity.cred', 'מדד אמינות')}>
             {bins.map((b, i) => (
               <span
                 key={i}
@@ -1613,8 +1656,10 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     icon: '📆',
     slot: 'full',
     removable: true,
-    // מוסתרת כשהפיצ'ר home.carousel כבוי (כמו במקור)
-    visible: (cfg) => featureOn(cfg, 'home.carousel'),
+    // מוסתרת כשהפיצ'ר כבוי; וגם כששני מקורות-התוכן (משפחות+לוח) כבויים —
+    // אחרת נשארת קופסה ריקה-לנצח (19.8)
+    visible: (cfg) =>
+      featureOn(cfg, 'home.carousel') && (moduleOn(cfg, 'families') || moduleOn(cfg, 'calendar')),
     render: (ctx) => <Carousel items={ctx.data.carousel} navTo={ctx.navTo} />,
   },
   stats: {
@@ -1632,7 +1677,10 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     icon: '📅',
     slot: 'half',
     removable: true,
-    visible: (cfg) => featureOn(cfg, 'home.today'),
+    // שלושת מקורות-התוכן (חוגים/לוח/משפחות) כבויים ⇒ הפאנל היה נשאר ריק-לנצח (19.8)
+    visible: (cfg) =>
+      featureOn(cfg, 'home.today') &&
+      (moduleOn(cfg, 'courses') || moduleOn(cfg, 'calendar') || moduleOn(cfg, 'families')),
     render: (ctx) => <TodayWidget ctx={ctx} />,
   },
   attention: {
@@ -1641,8 +1689,13 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
     icon: '🔔',
     slot: 'half',
     removable: true,
-    // מוסתר כולו כשהפיצ'ר home.care כבוי (כמו במקור)
-    visible: (cfg) => featureOn(cfg, 'home.care'),
+    // מוסתר כשהפיצ'ר home.care כבוי — אלא אם home.crosscare דלוק ויש עמודות
+    // מבודדות פעילות: אז הפאנל עולה כמארח-הצ'יפים בלבד (20.8, ממצא-ביקורת —
+    // home.care:false + home.crosscare:true היה משאיר את המונים בלי שום משטח).
+    visible: (cfg) =>
+      featureOn(cfg, 'home.care') ||
+      (featureOn(cfg, 'home.crosscare') &&
+        (moduleOn(cfg, 'tzedaka') || moduleOn(cfg, 'shop') || moduleOn(cfg, 'shop7'))),
     render: (ctx) => <AttentionWidget ctx={ctx} />,
   },
   recent: {
@@ -1675,7 +1728,8 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
   },
   community: {
     id: 'community',
-    label: 'אמינות קהילתית',
+    label: 'מדד אמינות קהילתי',
+    labelTerm: ['entity.cred', 'מדד אמינות'],
     icon: '🤝',
     slot: 'half',
     removable: true,
@@ -1723,6 +1777,7 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
   credmetrics: {
     id: 'credmetrics',
     label: 'מדד אמינות מורחב',
+    labelTerm: ['entity.cred', 'מדד אמינות'],
     icon: '🎯',
     slot: 'half',
     removable: true,

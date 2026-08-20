@@ -1520,7 +1520,8 @@ h1,
   color: var(--green);
   border-radius: 999px;
   padding: 2px 8px;
-  font-size: 11.5px;
+  /* יישור-סולם (19.8) — אותה מדרגה כמו צ'יפי-הפאנלים (tagStyle) */
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
   flex-shrink: 0;
@@ -1666,7 +1667,8 @@ h1,
 }
 
 .hm-pill-btn:hover {
-  background: var(--hero-btn-line);
+  /* אסימון-ערכה (19.8): העמקת הגוון הקיים — לא משתנה-hero זר */
+  background: color-mix(in srgb, var(--accent) 22%, var(--panel));
 }
 
 /* ── 🏆 ספר הזהב — פס התקדמות יחסי לתורם המוביל ── */

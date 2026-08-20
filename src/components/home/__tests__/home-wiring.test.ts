@@ -10,8 +10,9 @@
  *    שגוי — מעל 8 פריטים הנקודות "קפאו"; וגם רונדרו רק 8 נקודות ל-10 פריטים.
  */
 import { describe, it, expect } from 'vitest';
-import { attentionItems, digestLines, eventsOnDate, todaySessions } from '../homeData';
+import { attentionItems, carouselItems, digestLines, eventsOnDate, recentFamilies, todaySessions } from '../homeData';
 import { homeStats, monthDonationSum } from '../homeData';
+import { suggestions } from '../../shop8/lib';
 import widgetsSrc from '../widgets.tsx?raw';
 import homeViewSrc from '../HomeView.tsx?raw';
 import { FULL_LAYOUTS, THEME_LAYOUTS, THEME_TEMPLATES } from '../widgets';
@@ -67,7 +68,8 @@ describe('חיווט-עומק · דורש-טיפול (attentionItems)', () => {
       supporters: [supporter({ id: 'sp9', name: 'לוי', nextDate: '2026-07-10' })],
     };
     const items = attentionItems(db, NOW, {}, DEFAULT_CONFIG);
-    const it9 = items.find((x) => x.key === 'supnext:sp9');
+    // המפתח מגורסן ביעד (19.8) — "טופל" פג כשנקבע יעד-קשר חדש
+    const it9 = items.find((x) => x.key === 'supnext:sp9:2026-07-10');
     expect(it9).toBeTruthy();
     // הבאג ההיסטורי: nav היה {kind:'supporters'} — המשתמש נזרק לרשימה וחיפש ידנית
     expect(it9!.nav).toEqual({ kind: 'supporter', id: 'sp9' });
@@ -256,5 +258,92 @@ describe('הגנת-מקור · HomeView + ווידג\'טים', () => {
     // כל הפריטים מקבלים נקודה — אין עוד slice(0, 8) בנקודות הקרוסלה
     expect(body).not.toContain('slice(0, 8)');
     expect(body).toContain('items.map((it, i2)');
+  });
+});
+
+describe('אשכול 4 (ביקורת-60) · מנוע הבית — כיסוי שהיה חסר', () => {
+  it('todaySessions — חוג רב-מפגשי נושא gi/groups; מיון-שעה; יום-לא-תואם מדולג', () => {
+    const db: Db = {
+      ...emptyDb(),
+      courses: [
+        {
+          id: 'c1', name: 'בלט',
+          sessions: [
+            { day: 2, time: '17:00', label: '' },
+            { day: 2, time: '16:00', label: '' },
+            { day: 3, time: '10:00', label: '' },
+          ],
+        } as Db['courses'][number],
+      ],
+    };
+    const NOW_TUE = new Date('2026-07-21T10:00:00'); // יום שלישי (day=2)
+    const out = todaySessions(db, NOW_TUE);
+    expect(out).toHaveLength(2);
+    expect(out.map((t) => t.session.time)).toEqual(['16:00', '17:00']); // ממוין
+    expect(out.every((t) => t.groups === 3)).toBe(true);
+    expect(out.map((t) => t.gi).sort()).toEqual([0, 1]);
+  });
+
+  it('carouselItems — תקרת 10, סדר כרונולוגי, גידור-מודול לוח-שנה', () => {
+    const events = Array.from({ length: 14 }, (_, i) =>
+      redEvent({ id: 'ev' + i, date: '2026-07-' + String(22 + (i % 7)).padStart(2, '0'), type: 'org' } as Partial<OrgEvent>),
+    );
+    const db: Db = { ...emptyDb(), events };
+    const items = carouselItems(db, NOW, {}, DEFAULT_CONFIG);
+    expect(items.length).toBeLessThanOrEqual(10);
+    expect(items.length).toBeGreaterThan(0);
+    // מודול לוח-שנה כבוי ⇒ אין פריטי-אירועים כלל
+    expect(carouselItems(db, NOW, { calendar: false }, DEFAULT_CONFIG)).toHaveLength(0);
+  });
+
+  it('digestLines — שורת-שקט כשריק; דחוף מוחרג לפי attnDone (מפתח-מגורסן)', () => {
+    const quiet = digestLines(emptyDb(), NOW, {}, DEFAULT_CONFIG);
+    expect(quiet).toHaveLength(1);
+    expect(quiet[0].key).toBe('quiet');
+    // אירוע דחוף ⇒ שורת "שבוע דחוף"; סימון-טופל במפתח המגורסן מעלים אותה
+    const db: Db = { ...emptyDb(), events: [redEvent({ id: 'e1' })] };
+    expect(digestLines(db, NOW, {}, DEFAULT_CONFIG).some((l) => l.urgent)).toBe(true);
+    const done: Db = { ...db, attnDone: { 'urgent:e1': '2026-07-20' } };
+    expect(digestLines(done, NOW, {}, DEFAULT_CONFIG).some((l) => l.urgent)).toBe(false);
+  });
+
+  it('recentFamilies — createdAt יורד + תקרה', () => {
+    const fams = ['2026-01-01', '2026-03-01', '2026-02-01'].map((d, i) => ({
+      ...emptyFamily(), id: 'f' + i, createdAt: d,
+    })) as Db['families'];
+    const db: Db = { ...emptyDb(), families: fams };
+    expect(recentFamilies(db, 2).map((f) => f.createdAt)).toEqual(['2026-03-01', '2026-02-01']);
+  });
+
+  it('shop8 — הצעת-חג לא נוצרת כשמודול החנות כבוי; חידוש-כרטיסייה לא כשחוגים כבויים', () => {
+    const cfgShopOff = { ...DEFAULT_CONFIG, modules: { ...DEFAULT_CONFIG.modules, shop: false } };
+    const cfgCoursesOff = { ...DEFAULT_CONFIG, modules: { ...DEFAULT_CONFIG.modules, courses: false } };
+    const db: Db = {
+      ...emptyDb(),
+      families: [{ ...emptyFamily(), id: 'f1', status: 'active', createdAt: '2026-01-01' }] as Db['families'],
+      enrollments: [
+        { id: 'e1', memberId: 'm1', courseId: 'c1', plan: 'punch', purchased: 10, used: 9, group: '', absences: [], payments: [], totalDue: 0, dueDate: '', status: 'active', note: '', enrolledAt: '2026-01-01' } as Db['enrollments'][number],
+      ],
+    };
+    const all = suggestions(db, NOW.toISOString().slice(0, 10), DEFAULT_CONFIG);
+    const shopOff = suggestions(db, NOW.toISOString().slice(0, 10), cfgShopOff);
+    const coursesOff = suggestions(db, NOW.toISOString().slice(0, 10), cfgCoursesOff);
+    expect(shopOff.some((x) => x.act === 'shop')).toBe(false);
+    expect(coursesOff.some((x) => x.act === 'courses')).toBe(false);
+    // עם הכל דלוק — חידוש-הכרטיסייה קיים ונושא courseId לעומק
+    const renew = all.find((x) => x.key === 'sug:renew:e1');
+    expect(renew?.courseId).toBe('c1');
+  });
+
+  it('הגנת-מקור — מסלול-התבנית מרנדר גם "עודפים" מהפריסה (ערובת הפריסה-המלאה)', () => {
+    // הבאג (HIGH, ביקורת-60): התבנית עקפה את FULL_LAYOUTS — 4 ווידג'טי-האנליטיקה
+    // לא עלו כלל ב-home.board:false. העודפים מרונדרים אחרי post.
+    expect(homeViewSrc).toContain("const tplIds = new Set<WidgetId>(['hero', ...tpl.pre, ...tpl.colA, ...tpl.colB, ...tpl.post]);");
+    expect(homeViewSrc).toContain('const extras = savedLayout.filter((id) => visible(id) && !tplIds.has(id));');
+    expect(homeViewSrc).toMatch(/extraGroups\.map\(\(g\) =>/);
+  });
+
+  it('הגנת-מקור — "נוכחות ✓" פותח דרך openCourseAttendance (גלילה לשיבוצים)', () => {
+    expect(widgetsSrc).toMatch(/openCourseAttendance\(ts\.course\.id\)/);
   });
 });

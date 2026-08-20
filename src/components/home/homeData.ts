@@ -9,7 +9,6 @@ import {
   type Db,
   type EventType,
   type Family,
-  type FamilyStatus,
   type OrgEvent,
 } from '../../types/domain';
 import { allMembers, type MemberWithFamily } from '../../store/useApp';
@@ -43,12 +42,8 @@ export function fmtD(iso: string): string {
 
 export const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'] as const;
 
-/** תווית + צבעי סטטוס משפחה (verbatim מהמקור). */
-export const ST_META: Record<FamilyStatus, { label: string; bg: string; c: string }> = {
-  active: { label: 'פעילה', bg: '#e4f5ea', c: '#12803c' },
-  pending: { label: 'ממתינה', bg: '#fdf1d4', c: '#9a6414' },
-  inactive: { label: 'לא פעילה', bg: '#eceae2', c: '#8b8474' },
-};
+/** תווית + צבעי סטטוס משפחה — מקור-אמת יחיד ב-families/lib (מיוצא-מחדש לתאימות, 19.8). */
+export { STATUS_META as ST_META } from '../families/lib';
 
 
 
@@ -304,7 +299,8 @@ export function attentionItems(
       const m = memberById.get(e.memberId);
       const c = courseById.get(e.courseId);
       out.push({
-        key: 'debt:' + e.id,
+        // מפתח-מגורסן (19.8): "טופל" חל על המצב הנוכחי — מועד-תשלום חדש שעבר ⇒ הפריט חוזר
+        key: 'debt:' + e.id + ':' + e.dueDate,
         tag: 'תשלום',
         tagBg: '#fdeee0',
         tagC: '#b45309',
@@ -329,7 +325,8 @@ export function attentionItems(
     const m = memberById.get(e.memberId);
     const c = courseById.get(e.courseId);
     out.push({
-      key: 'punch:' + e.id,
+      // מפתח-מגורסן (19.8): ניקוב נוסף מאז הסימון ⇒ הפריט חוזר לתשומת-לב
+      key: 'punch:' + e.id + ':' + e.used,
       tag: 'יתרה',
       tagBg: '#efe7f3',
       tagC: '#7c3aed',
@@ -370,7 +367,8 @@ export function attentionItems(
   for (const { sp, late } of lateSup.slice(0, 3)) {
     const crit = late > 7;
     out.push({
-      key: 'supnext:' + sp.id,
+      // מפתח-מגורסן (19.8): יעד-קשר חדש שעבר ⇒ הפריט חוזר גם אחרי "טופל" ישן
+      key: 'supnext:' + sp.id + ':' + sp.nextDate,
       tag: termOf(config, 'entity.supporter', 'תורם'),
       tagBg: crit ? '#fdeaea' : '#fdf1d4',
       tagC: crit ? '#b91c1c' : '#9a6414',
@@ -563,7 +561,8 @@ export function digestLines(
       text:
         `ל${m?.first ?? ''} ${m?.famName ?? ''} ${what} ב${c?.name ?? ''} — כדאי להציע חידוש` +
         (low.length > 1 ? ` (+${low.length - 1} נוספים)` : ''),
-      nav: m ? { kind: 'family', id: m.famId } : { kind: 'calendar' },
+      // נפילה הגיונית (20.8): בלי בן-משפחה — לחוג של הכרטיסייה
+      nav: m ? { kind: 'family', id: m.famId } : { kind: 'course', id: e.courseId },
     });
   }
 
@@ -864,7 +863,8 @@ export function punchLow(db: Db, maxLeft = 2): PunchLowItem[] {
         course: db.courses.find((c) => c.id === e.courseId)?.name ?? '',
         left: Math.max(0, e.purchased - e.used),
         total: e.purchased,
-        nav: (m ? { kind: 'family', id: m.famId } : { kind: 'calendar' }) as AttentionNav,
+        // נפילה הגיונית (20.8): שיבוץ-יתום בלי בן-משפחה — לחוג, לא ללוח-השנה
+        nav: (m ? { kind: 'family', id: m.famId } : { kind: 'course', id: e.courseId }) as AttentionNav,
       };
     })
     .sort((a, b) => a.left - b.left);

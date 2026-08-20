@@ -2,7 +2,7 @@
  * כרטיס קורס — תלמידים רשומים (ניקוב, ⚙ ניהול, ✕ חיסור, שיוך קבוצה),
  * שעות פעילות וקבוצות (עורך המפגשים) ופרטי הקורס.
  */
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Course, Enrollment, Teacher, Weekday } from '../../types/domain';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { allMembers, useApp } from '../../store/useApp';
@@ -98,6 +98,18 @@ export function CourseDetail(props: { course: Course }) {
   // זריון האישור הכפול לניקוב — מתפרק אוטומטית אחרי PUNCH_CONFIRM_MS (כמו בלגאסי)
   const [punchArm, setPunchArm] = useState<PunchArm | null>(null);
   const punchArmTimer = useRef(0);
+
+  // "נוכחות ✓" מהבית (20.8) — בקשת-גלילה לטבלת-השיבוצים (דפוס supOpenReq):
+  // הכרטיס נפתח רגיל, והמקטע "תלמידים רשומים" נגלל לתצוגה פעם-אחת.
+  const attnSectionRef = useRef<HTMLElement>(null);
+  const courseAttnReq = useApp((s) => s.courseAttnReq);
+  const ackCourseAttendance = useApp((s) => s.ackCourseAttendance);
+  useEffect(() => {
+    if (courseAttnReq && courseAttnReq === c.id) {
+      attnSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      ackCourseAttendance();
+    }
+  }, [courseAttnReq, c.id, ackCourseAttendance]);
 
   // מעבר לכרטיס קורס אחר בלי unmount (למשל בחירת חוג מפלטת הפקודות בזמן
   // שכרטיס פתוח) — הרכיב אינו ממופתח לפי id, ולכן חוצץ ההערה המקומי היה
@@ -353,7 +365,7 @@ export function CourseDetail(props: { course: Course }) {
       {/* הגריד רספונסיבי (global.css) — במובייל הסרגל הצדדי יורד מתחת לעמודה הראשית */}
       <div className="crs-detail-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
-          <section className="card">
+          <section className="card" ref={attnSectionRef}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <h2 style={{ fontSize: 15, fontWeight: 800 }}>{termOf(cfg, 'entity.students', 'תלמידים') + ' רשומים'}</h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
