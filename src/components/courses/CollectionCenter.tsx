@@ -19,7 +19,11 @@ export function CollectionCenter(props: { onClose: () => void }) {
   const rows = collectionList(db);
   const total = collectionTotal(rows);
   const waOn = integrationOn(config, 'whatsapp');
-  const payUrl = integrationOn(config, 'payments') ? integrationSetting(config, 'payments', 'payUrl') || '' : '';
+  // גל ה׳ (פאזה 12): קישור-הסליקה מגודר גם courses.paylink (חסר=דלוק ⇒ אפס-רגרסיה)
+  const payUrl =
+    integrationOn(config, 'payments') && featureOn(config, 'courses.paylink')
+      ? integrationSetting(config, 'payments', 'payUrl') || ''
+      : '';
   const exportOn = featureOn(config, 'core.export');
   const orgName = config.orgName || db.orgName || '';
 
@@ -65,8 +69,16 @@ export function CollectionCenter(props: { onClose: () => void }) {
               (() => {
                 const href = payLink(payUrl, r.bal, r.name);
                 return href ? (
-                  <a href={href} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', fontSize: 15 }} title="קישור-תשלום">
-                    💳
+                  // תווית גלויה + aria-label (לא אמוג׳י-בודד — עקבי עם ManageModal/SupporterDetail)
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="תשלום מקוון — עמוד-הסליקה של הארגון"
+                    title="קישור-תשלום לעמוד-הסליקה (אינו מנפיק קבלה)"
+                    style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, color: 'var(--accent-deep, var(--accent))', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}
+                  >
+                    💳 תשלום מקוון
                   </a>
                 ) : null;
               })()}
