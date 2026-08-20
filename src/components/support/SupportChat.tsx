@@ -34,7 +34,8 @@ type CloudMod = typeof import('../../store/cloudSync');
  * ככרטיס-פעולה: פרטי-הילד/הורה/חוג + חיוג/וואטסאפ ישיר להורה. מחזיר null אם ההודעה
  * אינה בקשת-שער (⇒ הבועה מציגה טקסט רגיל). אפס-שרת — הכול קישורי-URI.
  */
-function PortalReqCard({ text }: { text: string }) {
+function PortalReqCard({ text, onClose }: { text: string; onClose: () => void }) {
+  const openEnrollDraft = useApp((s) => s.openEnrollDraft);
   const req = parsePortalChat(text);
   if (!req) return null;
   const tel = req.phone.replace(/[^\d+]/g, '');
@@ -61,6 +62,14 @@ function PortalReqCard({ text }: { text: string }) {
         {tel && (
           <a href={'tel:' + tel} style={{ fontSize: 12.5, fontWeight: 700, textDecoration: 'none', color: '#33477e', background: '#e8ecfa', borderRadius: 999, padding: '3px 10px' }}>📞 חיוג</a>
         )}
+        {/* פאזה 3: פנייה⇒שיבוץ — פותח טופס-משפחה עם טלפון+הערת-הפנייה ממולאים */}
+        <button
+          type="button"
+          onClick={() => { openEnrollDraft(req); onClose(); }}
+          style={{ fontSize: 12.5, fontWeight: 800, border: 'none', cursor: 'pointer', color: '#fff', background: '#7c5cff', borderRadius: 999, padding: '3px 12px' }}
+        >
+          ➕ שבץ
+        </button>
       </div>
     </div>
   );
@@ -385,7 +394,7 @@ export function TeamChatModal({ onClose }: { onClose: () => void }) {
                         <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, opacity: 0.85, marginBottom: 1 }}>{m.name || (m.sender ?? '').split('@')[0]}</span>
                       )}
                       {/* פאזה 2: בקשת-שער מרונדרת ככרטיס-פעולה; אחרת טקסט רגיל */}
-                      {parsePortalChat(m.text) ? <PortalReqCard text={m.text} /> : m.text}
+                      {parsePortalChat(m.text) ? <PortalReqCard text={m.text} onClose={onClose} /> : m.text}
                       <span style={{ display: 'block', fontSize: 10.5, opacity: 0.7, textAlign: 'start', marginTop: 2 }}>{supportMsgTime(m.at)}</span>
                     </div>
                   </div>
