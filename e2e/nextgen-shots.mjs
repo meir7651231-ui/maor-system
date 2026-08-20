@@ -66,7 +66,7 @@ await ctx.addInitScript(([sup, today]) => {
   if (!localStorage.getItem('maor_org_config')) {
     localStorage.setItem('maor_org_config', JSON.stringify({
       slug: 'default', orgName: 'עמותת מאור החסד', theme: 'or-rishon', modules: {},
-      features: { 'supporters.cockpit': true, 'supporters.intel': true, 'supporters.galaxy': true, 'supporters.rebrand': true },
+      features: { 'supporters.cockpit': true, 'supporters.intel': true, 'supporters.galaxy': true, 'supporters.rebrand': true, 'supporters.card': true },
     }));
     localStorage.setItem('maor_day', today);
     localStorage.setItem('maor_db', JSON.stringify({ v: 6, supporters: sup }));
@@ -110,6 +110,16 @@ await wait(500);
 await clickBtn('חלון העבודה');
 await wait(800);
 await shot('04-cockpit');
+
+// כרטיס-התורם המאוחד — פותחים תורם ומצלמים את שתי הלשוניות
+await clickBtn('מסך הנתונים');
+await wait(500);
+await page.locator('text=מאפיית הזהב').first().click().catch(() => {});
+await wait(700);
+await shot('05-card');
+await page.locator('button', { hasText: 'מודיעין' }).last().click().catch(() => {});
+await wait(700);
+await shot('05b-card-intel');
 
 console.log('\n✅ shots in', OUT);
 await b.close();
