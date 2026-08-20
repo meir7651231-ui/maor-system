@@ -14,6 +14,7 @@ import { Btn, Empty, Field, Modal, Select, StickyBackBar, TextInput } from '../u
 import { CourseForm } from './CourseForm';
 import { EnrollModal } from './EnrollModal';
 import { AttendanceSheet } from './AttendanceSheet';
+import { ClassBroadcast } from './ClassBroadcast';
 import { ManageModal } from './ManageModal';
 import { AbsenceModal } from './AbsenceModal';
 import { CustomExport } from '../reports/CustomExport';
@@ -57,6 +58,7 @@ type ModalState =
   | { kind: 'edit' }
   | { kind: 'enroll'; waitlist?: boolean }
   | { kind: 'sheet' }
+  | { kind: 'broadcast' }
   | { kind: 'manage'; enrollmentId: string }
   | { kind: 'absence'; enrollmentId: string }
   | null;
@@ -343,6 +345,11 @@ export function CourseDetail(props: { course: Course }) {
           >
             🔔 תזכורת ללוח
           </Btn>
+          )}
+          {featureOn(cfg, 'courses.broadcast') && (
+            <Btn onClick={() => setModal({ kind: 'broadcast' })} title="הודעת-וואטסאפ מרוכזת לכל תלמידי החוג">
+              📢 הודעה לכיתה
+            </Btn>
           )}
           {featureOn(cfg, 'courses.printout.custom') && (
             <Btn onClick={() => setExpOpen(true)} title='דו"ח מותאם — בחירת טווח ונתונים'>
@@ -830,6 +837,7 @@ export function CourseDetail(props: { course: Course }) {
       {modal?.kind === 'edit' && <CourseForm course={c} onClose={() => setModal(null)} />}
       {modal?.kind === 'enroll' && <EnrollModal course={c} waitlist={modal.waitlist} onClose={() => setModal(null)} />}
       {modal?.kind === 'sheet' && <AttendanceSheet course={c} onClose={() => setModal(null)} />}
+      {modal?.kind === 'broadcast' && <ClassBroadcast course={c} onClose={() => setModal(null)} />}
       {modal?.kind === 'manage' && (
         <ManageModal enrollmentId={modal.enrollmentId} course={c} onClose={() => setModal(null)} />
       )}
