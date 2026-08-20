@@ -92,6 +92,15 @@ await closeModals();
 if (await clickText('דשבורד')) await shot('dashboard');
 await closeModals();
 
+// ── 👁 תצוגה כמורה (בעלים) → מסך-המורה של המורה הנבחרת ──
+await nav('חוגים');
+if (await clickText('תצוגה כמורה')) {
+  await wait(400);
+  const tBtn = page.locator('.modal button', { hasText: '🎓' });
+  if (await tBtn.count()) { await tBtn.first().click().catch(() => {}); await wait(800); await shot('teacher-preview'); }
+}
+await closeModals();
+
 // ── 👪 כרטיס-הורה: חיפוש משפחת "כהן" (4 ילדים משובצים) → כפתור כרטיס-הורה בפאנל-השיבוצים ──
 await nav('משפחות'); await wait(400);
 const famSearch = page.locator('main input').first();
