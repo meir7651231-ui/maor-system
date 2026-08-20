@@ -58,9 +58,9 @@ exports.paymentsWebhook = onRequest({ secrets: ['PAY_SECRET'] }, async (req, res
   if (!secretOk(p.secret, process.env.PAY_SECRET)) return res.status(403).send('bad secret');
   const m = mapPaymentCallback(p);
   if (!/^[a-z0-9-]{2,40}$|^root$/.test(m.org)) return res.status(400).send('bad org');
-  // חיוב לא-חיובי (מבוטל=0 · זיכוי=שלילי): קלט **תקין** שמדולג במכוון (פאזה מודעת-כסף).
-  // מחזירים 200 ('skipped') ולא 400 — אחרת נדרים מסמן CallBack-כושל (רעש/התראות-שווא).
-  if (!(m.amount > 0)) return res.status(200).send('ok (skipped: non-positive)');
+  // פאזה-מודעת-כסף: **חיוב**=Amount חיובי · **זיכוי**=שלילי (מקזז) · **ביטול**=0.
+  // קולטים את שלושתם עם kind (במקום 400/דילוג) — הלקוח מקזז/מסמן. תמיד 200 (אין CallBack-כושל).
+  const kind = m.amount < 0 ? 'refund' : m.amount === 0 ? 'cancel' : 'charge';
   // eslint-disable-next-line no-unused-vars
   const { secret, ...rawSafe } = p; // המטען-הגולמי בלי הסוד-המשותף — לתיעוד/דיוק-מיפוי
   const db = getFirestore();
@@ -81,6 +81,7 @@ exports.paymentsWebhook = onRequest({ secrets: ['PAY_SECRET'] }, async (req, res
     d: m.d, // תאריך-העסקה האמיתי (ISO) → hist[].d — עקבי עם המשיכה (לא זמן-הקליטה)
     at: new Date().toISOString(),
     status: 'pending', // ממתין לחיבור (אוטומטי-לכרטיס / אישור-ידני)
+    ...(kind !== 'charge' ? { kind } : {}), // 'refund'/'cancel' — חיוב רגיל ביט-זהה
     raw: JSON.parse(JSON.stringify(rawSafe)),
   };
   // dedup + אי-דריסה: TransactionId ⇒ doc-id דטרמיניסטי משותף עם המשיכה (nedarimSync).

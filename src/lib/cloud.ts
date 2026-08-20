@@ -638,6 +638,7 @@ export interface IncomingPayment {
   d?: string; // תאריך-העסקה (ISO) — hist[].d
   receipt?: string; // KabalaId — מספר-קבלת-נדרים (§46) → hist[].receipt
   last4?: string; // 4 ספרות אחרונות → hist[].last4
+  kind?: string; // 'refund' (Amount<0) / 'cancel' (Amount 0) — פאזה-מודעת-כסף
 }
 
 /** רשומת-תורם מנדרים (staged ב-nedarimDonors) — נקראת לסנכרון-כרטיסים. */

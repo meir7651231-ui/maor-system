@@ -11,6 +11,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { planNedarimSync, type SyncCharge, type SyncDonor } from '../nedarimSync';
+import { supIls, supCount } from '../../components/supporters/lib';
 import type { Supporter } from '../../types/domain';
 
 function sp(id: string, over: Partial<Supporter> = {}): Supporter {
@@ -231,5 +232,53 @@ describe('🔄 ratchet — planNedarimSync (סנכרון-נכנס דרך המפ�
     expect(supporters.filter((s) => s.extId === '950')).toHaveLength(1);
     expect(summary.chargesAdded).toBe(2);
     expect(supporters.find((s) => s.extId === '950')!.hist).toHaveLength(2);
+  });
+});
+
+// 🐛 פאזה-מודעת-כסף (20.8): היה — זיכוי/ביטול מדולגים ⇒ הצבירה מנופחת-נטו. עכשיו:
+// זיכוי (Amount<0) = שורת-hist שלילית שמקזזת; ביטול (Amount 0) = מסומן טופל בלבד.
+describe('🔄 ratchet — זיכויים/ביטולים (פאזה-מודעת-כסף)', () => {
+  it('זיכוי מקזז את הצבירה: חיוב ₪200 ואז זיכוי ₪-50 ⇒ supIls=150', () => {
+    const existing = [sp('a', { name: 'כהן', phone: '0501234567' })];
+    const charges = [
+      charge({ amount: 200, phone: '0501234567', txnId: 'T1' }),
+      charge({ amount: -50, phone: '0501234567', txnId: 'T2', kind: 'refund' }),
+    ];
+    const { supporters, summary } = planNedarimSync(existing, [], charges);
+    const card = supporters.find((s) => s.id === 'a')!;
+    expect(summary.chargesAdded).toBe(1);
+    expect(summary.refundsApplied).toBe(1);
+    expect(supIls(card)).toBe(150); // 200 − 50, נטו
+    expect(supCount(card)).toBe(1); // הזיכוי (שלילי) לא נספר כתרומה
+  });
+
+  it('ביטול (Amount 0) — מסומן טופל, לא נכתב ל-hist ולא יוצר כרטיס', () => {
+    const { supporters, summary, handledChargeIds } = planNedarimSync(
+      [],
+      [],
+      [charge({ id: 'inc-0', amount: 0, name: 'פלוני', txnId: 'C1', kind: 'cancel' })],
+    );
+    expect(summary.chargesNonPositive).toBe(1);
+    expect(summary.newSupporters).toBe(0);
+    expect(supporters).toHaveLength(0);
+    expect(handledChargeIds).toEqual(['inc-0']); // יוצא מהתור (טופל), לא חוזר
+  });
+
+  it('זיכוי בלי כרטיס-תואם — נשאר pending (לא יוצר כרטיס-שלילי)', () => {
+    const { supporters, summary, handledChargeIds } = planNedarimSync(
+      [],
+      [],
+      [charge({ id: 'inc-r', amount: -80, name: 'לא-מוכר', txnId: 'R1', kind: 'refund' })],
+    );
+    expect(summary.refundsApplied).toBe(0);
+    expect(summary.chargesSkipped).toBe(1);
+    expect(supporters).toHaveLength(0);
+    expect(handledChargeIds).toEqual([]); // לא סומן ⇒ לשיוך-ידני
+  });
+
+  it('זיכוי-הו"ק לא ממלא/מעדכן משבצת-הו"ק (withNedarimHok מוגן Amount>0)', () => {
+    const existing = [sp('a', { phone: '0501234567' })];
+    const { supporters } = planNedarimSync(existing, [], [charge({ amount: -30, phone: '0501234567', txnId: 'T9', kevaId: 'K1', kind: 'refund' })]);
+    expect(supporters.find((s) => s.id === 'a')!.hok).toBeUndefined();
   });
 });

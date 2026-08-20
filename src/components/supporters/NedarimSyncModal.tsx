@@ -161,7 +161,8 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
                 <Stat n={s.updatedSupporters} label="כרטיסים שיעודכנו" accent />
                 <Stat n={s.chargesAdded} label="חיובים חדשים" accent />
                 <Stat n={s.chargesDup} label="כבר-קיימים (דילוג)" />
-                {s.chargesNonPositive > 0 && <Stat n={s.chargesNonPositive} label="מבוטלים/זיכויים (מדולג)" />}
+                {s.refundsApplied > 0 && <Stat n={s.refundsApplied} label="זיכויים (קוזזו)" accent />}
+                {s.chargesNonPositive > 0 && <Stat n={s.chargesNonPositive} label="ביטולים (סומנו)" />}
               </div>
               <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 12 }}>
                 סכומים שיירשמו: ₪{s.ilsAdded.toLocaleString('he-IL')}

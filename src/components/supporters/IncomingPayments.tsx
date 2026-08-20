@@ -231,6 +231,8 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700 }}>
               {p.currency || '₪'}{p.amount.toLocaleString('he-IL')} · {p.name || 'ללא שם'}
+              {p.kind === 'refund' ? <span style={{ fontSize: 11, color: 'var(--danger, #e05252)', marginInlineStart: 6 }}>↩️ זיכוי</span> : null}
+              {p.kind === 'cancel' ? <span style={{ fontSize: 11, color: 'var(--ink-faint)', marginInlineStart: 6 }}>🚫 ביטול</span> : null}
               {p.kevaId ? <span style={{ fontSize: 11, color: 'var(--accent)', marginInlineStart: 6 }}>🔁 הו״ק</span> : null}
               {p.category ? <span style={{ fontSize: 11, color: 'var(--ink-faint)', marginInlineStart: 6 }}>· {p.category}</span> : null}
             </div>
