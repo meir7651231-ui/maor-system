@@ -46,4 +46,10 @@ describe('💛 ratchet — חיווט מרכז-המודיעין (opt-in)', () =>
     expect(intelSrc).toContain('<SeasonBand');
     expect(intelSrc).toContain('season = useMemo(');
   });
+
+  it('🛡 לוח-האותות מחווט מהמנוע הטהור (portfolioSignals)', () => {
+    expect(intelSrc).toContain('portfolioSignals(props.supporters');
+    expect(intelSrc).toContain('<SignalsBand');
+    expect(intelSrc).toContain('signals = useMemo(');
+  });
 });
