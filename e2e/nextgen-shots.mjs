@@ -100,6 +100,10 @@ await wait(500);
 await clickBtn('גלקסיה');
 await wait(1800); // אנימציה
 await shot('03-galaxy');
+// מכונת-הזמן החיה — גוררים את הסרגל קדימה ומצלמים את העתיד
+await page.locator('input[type=range]').first().fill('365').catch(() => {});
+await wait(1400);
+await shot('03b-galaxy-future');
 
 await clickBtn('מסך הנתונים');
 await wait(500);
