@@ -42,4 +42,20 @@ describe('💛 ratchet — אינטראקטיביות המסכים החדשים'
     // קוקפיט KPI — אריח-הסיכון
     expect(cockpitSrc).toContain("props.onSegment!('atrisk')");
   });
+
+  it('🛡 מפת-העונתיות + קוהורטת-הגיוס מסננות (חודש/שנת-גיוס)', () => {
+    expect(intelSrc).toContain('onMonth={props.onMonth}');
+    expect(intelSrc).toContain('onYear={props.onYear}');
+    expect(intelSrc).toContain("props.onMonth!(m.month)");
+    expect(intelSrc).toContain("props.onYear!(c.year)");
+    // מסך-הנתונים מקבל את הדריל-אין ומסנן
+    expect(viewSrc).toContain('supGaveInMonth(sp, monthF)');
+    expect(viewSrc).toContain('supAcqYear(sp) !== acqYearF');
+  });
+
+  it('🛡 מקרא-הגלקסיה מסנן דרגה + הפוטר האינרטי הפך לכפתור', () => {
+    expect(galaxySrc).toContain('setTierHi(tierHi === k ? null : k)');
+    expect(galaxySrc).toContain('n.tier === tierHi');
+    expect(intelSrc).toContain('למסך-הנתונים המלא ↗');
+  });
 });

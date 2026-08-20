@@ -349,7 +349,7 @@ function retColor(pct: number): string {
  * קוהורטת-הגיוס — שימור לפי **שנת-הגיוס**: לכל מחזור, כמה גויסו וכמה עדיין-פעילים.
  * חושף אם הגיוס-האחרון "דולף" מול מחזורים-ותיקים.
  */
-function RetentionBand(props: { report: RetentionReport }) {
+function RetentionBand(props: { report: RetentionReport; onYear?: (y: number) => void }) {
   const { report } = props;
   if (report.cohorts.length === 0) return null;
   const maxSize = Math.max(1, ...report.cohorts.map((c) => c.size));
@@ -362,8 +362,10 @@ function RetentionBand(props: { report: RetentionReport }) {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
         {report.cohorts.map((c) => (
-          <div key={c.year} style={{ display: 'grid', gridTemplateColumns: '44px 1fr 92px', gap: 10, alignItems: 'center', fontSize: 12 }}>
-            <span style={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{c.year}</span>
+          <div key={c.year} onClick={props.onYear ? () => props.onYear!(c.year) : undefined}
+            title={props.onYear ? 'סינון לתורמים שגויסו ב-' + c.year : (c.size + ' גויסו · ' + c.activeNow + ' פעילים')}
+            style={{ display: 'grid', gridTemplateColumns: '44px 1fr 92px', gap: 10, alignItems: 'center', fontSize: 12, cursor: props.onYear ? 'pointer' : 'default', borderRadius: 8, padding: '2px 4px' }}>
+            <span style={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{c.year}{props.onYear ? ' ↗' : ''}</span>
             <span style={{ position: 'relative', height: 20, borderRadius: 6, background: 'var(--line, #e4dbc9)', overflow: 'hidden' }} title={c.size + ' גויסו · ' + c.activeNow + ' פעילים'}>
               {/* רוחב = גודל-המחזור יחסית; מילוי = הפעילים */}
               <span style={{ position: 'absolute', inset: 0, width: (c.size / maxSize) * 100 + '%', background: 'var(--panel-2, #f7f2e8)' }} />
@@ -382,7 +384,7 @@ function RetentionBand(props: { report: RetentionReport }) {
  * מפת-העונתיות — **מתי** נכנס הכסף. 12 עמודות-חודש (חוצה-שנים), שיא/שפל מודגשים,
  * וריכוזיות-עונתית ("X% מהכסף השנתי מגיע בחודש-Y"). תזמון-קמפיין במבט-אחד.
  */
-function SeasonBand(props: { season: Seasonality }) {
+function SeasonBand(props: { season: Seasonality; onMonth?: (m: number) => void }) {
   const { season } = props;
   const max = Math.max(1, ...season.byMonth.map((m) => m.ils));
   const peakLabel = season.peakMonth ? MONTHS_HE[season.peakMonth - 1] : '—';
@@ -406,13 +408,16 @@ function SeasonBand(props: { season: Seasonality }) {
           const isTrough = m.month === season.troughMonth && m.gifts > 0 && !isPeak;
           const h = Math.max(3, (m.ils / max) * 74);
           const bg = isPeak ? 'var(--gold-deep, #a05008)' : isTrough ? 'var(--warn, #b45309)' : m.ils > 0 ? 'var(--gold, #e7a72e)' : 'var(--line, #e4dbc9)';
+          const clickable = !!props.onMonth && m.gifts > 0;
           return (
-            <div key={m.month} title={MONTHS_HE[m.month - 1] + ' · ' + ILS(m.ils) + ' · ' + m.gifts + ' מתנות · ' + m.donors + ' תורמים'}
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <button key={m.month} type="button" disabled={!clickable}
+              onClick={clickable ? () => props.onMonth!(m.month) : undefined}
+              title={MONTHS_HE[m.month - 1] + ' · ' + ILS(m.ils) + ' · ' + m.gifts + ' מתנות · ' + m.donors + ' תורמים' + (clickable ? ' · קליק לסינון' : '')}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0, cursor: clickable ? 'pointer' : 'default' }}>
               <span style={{ fontSize: 9.5, fontWeight: isPeak ? 800 : 600, color: isPeak ? 'var(--gold-deep, #a05008)' : 'var(--ink-faint)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{m.ils > 0 ? KILO(m.ils).replace('₪', '') : ''}</span>
               <span style={{ width: '100%', maxWidth: 40, height: h, background: bg, borderRadius: '4px 4px 0 0' }} />
               <span style={{ fontSize: 10, color: isPeak ? 'var(--ink)' : 'var(--ink-faint)', fontWeight: isPeak ? 800 : 600 }}>{MONTHS_HE[m.month - 1]}</span>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -492,6 +497,10 @@ export function SupportersIntel(props: {
   onExit?: () => void;
   /** דריל-אין מאריח → סינון הטבלה במסך-הנתונים (atrisk/gave12m). */
   onSegment?: (key: 'atrisk' | 'gave12m') => void;
+  /** דריל-אין ממפת-העונתיות — סינון לתורמים שנתנו בחודש m (1–12). */
+  onMonth?: (m: number) => void;
+  /** דריל-אין מקוהורטת-הגיוס — סינון לתורמים שגויסו בשנה. */
+  onYear?: (y: number) => void;
 }) {
   const [sort, setSort] = useState<SortKey>('score');
   const [selId, setSelId] = useState<string | null>(null);
@@ -601,7 +610,11 @@ export function SupportersIntel(props: {
               );
             })}
             {shown.length === 0 ? <div style={{ padding: 24, textAlign: 'center', color: 'var(--ink-faint)' }}>אין תורמים עם היסטוריית-נתינה עדיין.</div> : null}
-            {sorted.length > 60 ? <div style={{ padding: 10, textAlign: 'center', fontSize: 11.5, color: 'var(--ink-faint)' }}>מוצגים 60 מתוך {sorted.length} · מסך-הנתונים המלא קליק אחד</div> : null}
+            {sorted.length > 60 ? (
+              props.onExit
+                ? <button type="button" onClick={props.onExit} style={{ display: 'block', width: '100%', padding: 10, textAlign: 'center', fontSize: 11.5, color: 'var(--accent-deep, #a05008)', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>מוצגים 60 מתוך {sorted.length} · למסך-הנתונים המלא ↗</button>
+                : <div style={{ padding: 10, textAlign: 'center', fontSize: 11.5, color: 'var(--ink-faint)' }}>מוצגים 60 מתוך {sorted.length}</div>
+            ) : null}
           </div>
         </div>
 
@@ -609,10 +622,10 @@ export function SupportersIntel(props: {
       </div>
 
       {/* מפת-העונתיות — מתי נכנס הכסף */}
-      {featureOn(props.config, 'supporters.intel.season') && <SeasonBand season={season} />}
+      {featureOn(props.config, 'supporters.intel.season') && <SeasonBand season={season} onMonth={props.onMonth} />}
 
       {/* קוהורטת-גיוס — שימור לפי שנת-הצטרפות */}
-      {featureOn(props.config, 'supporters.intel.retention') && <RetentionBand report={retention} />}
+      {featureOn(props.config, 'supporters.intel.retention') && <RetentionBand report={retention} onYear={props.onYear} />}
 
       {/* ריכוזיות התיק — פארטו/ג׳יני */}
       {featureOn(props.config, 'supporters.intel.pareto') && <ParetoBand report={pareto} />}

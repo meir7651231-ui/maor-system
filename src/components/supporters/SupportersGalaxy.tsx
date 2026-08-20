@@ -31,6 +31,8 @@ export function SupportersGalaxy(props: {
   const [hover, setHover] = useState<{ x: number; y: number; node: ConstellationNode } | null>(null);
   // מכונת-הזמן החיה — הזזת-האופק קדימה (0=היום). הכוכבים נסחפים ומאדימים.
   const [offsetDays, setOffsetDays] = useState(0);
+  // סינון-דרגה מהמקרא — קליק על דרגה מצמצם את רשימת-הנתונים לאותה דרגה.
+  const [tierHi, setTierHi] = useState<TierKey | null>(null);
   const today = new Date().toISOString().slice(0, 10);
   const rate = props.usdRate || 3.7;
 
@@ -198,9 +200,11 @@ export function SupportersGalaxy(props: {
         {/* legend */}
         <div style={{ position: 'absolute', insetBlockEnd: 12, insetInlineEnd: 12, display: 'flex', flexDirection: 'column', gap: 4, background: 'rgba(20,16,10,.6)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 12, padding: '9px 11px', fontSize: 11 }}>
           {(['gold', 'silver', 'bronze', 'dormant'] as TierKey[]).map((k) => (
-            <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 7, color: '#c8bea8' }}>
+            <button key={k} type="button" onClick={() => setTierHi(tierHi === k ? null : k)}
+              title={'סינון הרשימה לדרגת ' + TIER_LABEL[k]}
+              style={{ display: 'flex', alignItems: 'center', gap: 7, color: tierHi === k ? '#fff' : '#c8bea8', background: tierHi === k ? 'rgba(255,255,255,.12)' : 'none', border: 'none', borderRadius: 7, padding: '2px 5px', cursor: 'pointer', font: 'inherit', fontSize: 11 }}>
               <span style={{ width: 8, height: 8, borderRadius: 99, background: TIER_COLOR[k], boxShadow: '0 0 7px ' + TIER_COLOR[k] }} />{TIER_LABEL[k]}
-            </div>
+            </button>
           ))}
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: '#c8bea8' }}>
             <span style={{ width: 8, height: 8, borderRadius: 99, background: '#ff6f5e', boxShadow: '0 0 7px #ff6f5e' }} />מתקרר
@@ -229,11 +233,11 @@ export function SupportersGalaxy(props: {
 
       {/* רשימת-הכוכבים — הנתונים לצד התמונה (לא רק תצוגה חזותית) */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr .7fr .8fr .7fr auto', gap: 8, padding: '9px 14px', fontSize: 11, fontWeight: 800, color: 'var(--ink-faint)', borderBottom: '1px solid var(--line, #e4dbc9)' }}>
-          <span>תורם/ת</span><span>דרגה</span><span>ערך</span><span>סיכון</span><span></span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr .7fr .8fr .7fr auto', gap: 8, padding: '9px 14px', fontSize: 11, fontWeight: 800, color: 'var(--ink-faint)', borderBottom: '1px solid var(--line, #e4dbc9)', alignItems: 'center' }}>
+          <span>תורם/ת {tierHi ? <button type="button" onClick={() => setTierHi(null)} style={{ marginInlineStart: 6, fontSize: 10.5, color: 'var(--accent-deep, #a05008)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>· {TIER_LABEL[tierHi]} ✕</button> : null}</span><span>דרגה</span><span>ערך</span><span>סיכון</span><span></span>
         </div>
         <div style={{ maxHeight: 320, overflowY: 'auto' }}>
-          {shown.map((n) => (
+          {shown.filter((n) => !tierHi || n.tier === tierHi).map((n) => (
             <div key={n.id} onClick={() => props.onOpen(n.id)}
               style={{ display: 'grid', gridTemplateColumns: '1.6fr .7fr .8fr .7fr auto', gap: 8, padding: '8px 14px', alignItems: 'center', borderBottom: '1px solid var(--line-soft, #efe8d9)', cursor: 'pointer', fontSize: 13 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
@@ -246,7 +250,7 @@ export function SupportersGalaxy(props: {
               <Btn sm onClick={() => props.onOpen(n.id)} title="פתיחת כרטיס">פתח</Btn>
             </div>
           ))}
-          {shown.length === 0 ? <div style={{ padding: 20, textAlign: 'center', color: 'var(--ink-faint)' }}>אין תורמים להצגה.</div> : null}
+          {shown.filter((n) => !tierHi || n.tier === tierHi).length === 0 ? <div style={{ padding: 20, textAlign: 'center', color: 'var(--ink-faint)' }}>אין תורמים להצגה.</div> : null}
         </div>
       </div>
     </div>
