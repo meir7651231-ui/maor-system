@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { isSuperAdmin } from '../../lib/config';
 import { ORG_SECRET_KEYS, readOrgSecretsMeta, writeOrgSecrets, type OrgSecretKey } from '../../lib/cloudConfig';
+import { composeSmtpUrl, smtpHostFor } from '../../lib/smtpUrl';
 import { Btn, Field, TextInput } from '../ui';
 import { Section, SectionNote } from './lib';
 
@@ -17,7 +18,6 @@ const FIELDS: { key: OrgSecretKey; label: string; ltr?: boolean }[] = [
   { key: 'nedarimMosad', label: '💳 נדרים-פלוס — מספר מוסד', ltr: true },
   { key: 'nedarimApiPass', label: '💳 נדרים-פלוס — סיסמת API', ltr: true },
   { key: 'smsApiKey', label: '📱 מפתח ספק-SMS', ltr: true },
-  { key: 'smtpUrl', label: '📧 חשבון-מייל לשליחה (smtps://user:pass@host)', ltr: true },
 ];
 
 export function OrgSecretsSection() {
@@ -30,6 +30,12 @@ export function OrgSecretsSection() {
   const [vals, setVals] = useState<Partial<Record<OrgSecretKey, string>>>({});
   const [meta, setMeta] = useState<Partial<Record<OrgSecretKey, boolean>>>({});
   const [busy, setBusy] = useState(false);
+  // 📧 מייל-ידידותי (20.8, בקשת-בעלים): הלקוח מקליד כתובת+סיסמת-אפליקציה —
+  // ה-URL המלא מורכב לבד (composeSmtpUrl); ספק לא-מוכר ⇒ שדה-שרת ידני.
+  const [mailUser, setMailUser] = useState('');
+  const [mailPass, setMailPass] = useState('');
+  const [mailHost, setMailHost] = useState('');
+  const knownHost = smtpHostFor(mailUser);
 
   useEffect(() => {
     if (canEdit) void readOrgSecretsMeta(slug).then(setMeta);
@@ -43,11 +49,26 @@ export function OrgSecretsSection() {
       const v = (vals[k] ?? '').trim();
       if (v) patch[k] = v;
     }
+    // הרכבת חשבון-המייל מהשדות הידידותיים (כתובת+סיסמה ⇒ URL מלא)
+    if (mailUser.trim() || mailPass.trim()) {
+      const url = composeSmtpUrl(mailUser, mailPass, knownHost || mailHost);
+      if (!url) {
+        return toast(
+          knownHost || mailHost
+            ? 'מייל: מלאו גם כתובת וגם סיסמת-אפליקציה'
+            : 'מייל: הספק לא מוכר — מלאו את שדה שרת-היציאה (host:port)',
+        );
+      }
+      patch.smtpUrl = url;
+    }
     if (!Object.keys(patch).length) return toast('הקלידו מפתח לפני השמירה');
     setBusy(true);
     try {
       await writeOrgSecrets(slug, patch);
       setVals({});
+      setMailUser('');
+      setMailPass('');
+      setMailHost('');
       setMeta(await readOrgSecretsMeta(slug));
       toast('🗝 המפתחות נשמרו בכספת — זמינים לשרת בלבד');
     } catch {
@@ -94,6 +115,37 @@ export function OrgSecretsSection() {
           </div>
         </Field>
       ))}
+      {/* 📧 חשבון-המייל של הארגון — מילוי ידידותי: כתובת + סיסמת-אפליקציה בלבד */}
+      <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginTop: 4 }}>
+        <div style={{ fontWeight: 700, fontSize: 13.5, marginBottom: 6 }}>
+          📧 המייל של הארגון — ממנו יישלחו הקבלות והתזכורות{meta.smtpUrl ? ' · מוגדר ✓' : ''}
+          {meta.smtpUrl && (
+            <Btn sm onClick={() => void clearKey('smtpUrl')} disabled={busy}>
+              מחיקה
+            </Btn>
+          )}
+        </div>
+        <Field label="כתובת המייל (השולח)">
+          <TextInput
+            value={mailUser}
+            onChange={setMailUser}
+            dir="ltr"
+            placeholder={meta.smtpUrl ? 'מוגדר — הקלדה מחליפה' : 'למשל receipts@gmail.com'}
+          />
+        </Field>
+        <Field label="סיסמת-אפליקציה (לא הסיסמה הרגילה!)">
+          <TextInput value={mailPass} onChange={setMailPass} type="password" dir="ltr" />
+        </Field>
+        {mailUser.trim() !== '' && !knownHost && (
+          <Field label="שרת-היציאה של הספק (host:port) — הספק לא זוהה אוטומטית">
+            <TextInput value={mailHost} onChange={setMailHost} dir="ltr" placeholder="smtp.example.com:465" />
+          </Field>
+        )}
+        <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>
+          בג'ימייל: מייצרים סיסמת-אפליקציה ב-myaccount.google.com/apppasswords (דורש אימות דו-שלבי).
+          {knownHost ? ' הספק זוהה — שרת-היציאה יוגדר אוטומטית.' : ''}
+        </div>
+      </div>
       <div className="modal-actions">
         <Btn kind="primary" onClick={() => void save()} disabled={busy}>
           {busy ? 'שומר…' : 'שמירה לכספת'}
