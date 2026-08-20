@@ -55,4 +55,11 @@ describe('💛 ratchet — P3 כרטיס תומכת', () => {
     expect(detailSrc).toContain('onClick={() => redownloadReceipt(r.rid!)}');
     expect(detailSrc).toContain('onClick={() => void mailReceipt(r.rid!)}');
   });
+
+  // 🔗 חשיפת extId (מקושר-נדרים) + hok.startedAt ("מאז") בכרטיס-ההו"ק —
+  // שדות שנקלטו לשיוך אך לא הוצגו עד היום. תצוגה-בלבד, additive.
+  it('🛡 כרטיס-ההו"ק מציג extId (🔗 מקושר-נדרים) + startedAt (מאז)', () => {
+    expect(detailSrc).toContain('🔗 מקושר-נדרים');
+    expect(detailSrc).toContain("sp.hok.startedAt ? ' · מאז ' + fmtDate(sp.hok.startedAt) : ''");
+  });
 });

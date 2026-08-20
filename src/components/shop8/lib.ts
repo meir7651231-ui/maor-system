@@ -6,7 +6,7 @@
  */
 import type { Db } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
-import { termOf } from '../../lib/config';
+import { moduleOn, termOf } from '../../lib/config';
 import { holidayOf } from '../../lib/hebrew';
 
 /** יעד ה"טיפול" בהצעה — לאיזו עמודה לקפוץ. */
@@ -19,6 +19,8 @@ export interface Suggestion {
   title: string;
   detail: string;
   famId?: string;
+  /** חיווט-עומק (19.8): חידוש-כרטיסייה קופץ ישר לחוג עצמו — לא רק למסך החוגים. */
+  courseId?: string;
   act: SuggestAct;
 }
 
@@ -59,12 +61,15 @@ function upcomingHoliday(todayIso: string, windowDays: number): { name: string; 
  */
 export function suggestions(db: Db, todayIso: string, config?: OrgConfig): Suggestion[] {
   const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
+  // גידור-מודולים במנוע (20.8, ממצא-ביקורת): הצעה שה-act שלה במודול כבוי לא נוצרת —
+  // בלי config (בדיקות ישנות) הכול פעיל, כמו חוזה-הדגלים.
+  const modOn = (m: 'shop' | 'courses') => !config || moduleOn(config, m);
   const out: Suggestion[] = [];
   const activeFams = db.families.filter((f) => f.status === 'active');
 
-  // A — חג מתקרב
+  // A — חג מתקרב (מודול חנות בלבד — היעד הוא מתנת-חג בחנות)
   const hol = upcomingHoliday(todayIso, 30);
-  if (hol && activeFams.length > 0) {
+  if (modOn('shop') && hol && activeFams.length > 0) {
     out.push({
       key: `sug:holiday:${hol.name}`,
       emoji: '🎁',
@@ -101,8 +106,8 @@ export function suggestions(db: Db, todayIso: string, config?: OrgConfig): Sugge
     }
   }
 
-  // D — כרטיסייה נגמרת
-  for (const e of db.enrollments) {
+  // D — כרטיסייה נגמרת (מודול חוגים בלבד — הנתון והיעד שניהם בחוגים)
+  for (const e of modOn('courses') ? db.enrollments : []) {
     if (e.plan !== 'punch' || e.status !== 'active') continue;
     const rem = e.purchased - e.used;
     if (rem > 2 || rem < 0) continue;
@@ -115,6 +120,7 @@ export function suggestions(db: Db, todayIso: string, config?: OrgConfig): Sugge
       title: `חידוש כרטיסייה · ${member?.first ?? '—'} · ${course?.name ?? '—'}`,
       detail: rem <= 0 ? 'הכרטיסייה נגמרה' : `נותרו ${rem} ניקובים`,
       famId: fam?.id,
+      courseId: e.courseId,
       act: 'courses',
     });
   }

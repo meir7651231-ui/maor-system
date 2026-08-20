@@ -80,7 +80,9 @@ describe('🛡 ביקורת 6.8 — פריסה מלאה כשעריכת-הלוח 
     // הבאג (סמוי): ההרזיה 10⇒6 של סבב-ג׳ נשענה על "מוסיפים בקליק"; בלי עריכת-לוח
     // ארבעת הווידג'טים (קרוסלה/קהילה/מדדי-חוגים/מדדי-אמינות) איבדו כל מסלול-הגעה.
     expect(widgetsSrc).toMatch(/FULL_LAYOUTS[\s\S]{0,200}'carousel'[\s\S]{0,120}'community', 'coursemetrics', 'credmetrics'/);
-    expect(homeViewSrc).toContain('boardOn ? defaultLayoutFor(config.theme) : noBoardLayoutFor(config.theme)');
+    // 19.8: הערכה עברה ל-activeTheme (העדפת-משתמש לפני ערכת-הארגון) — הכוונה זהה:
+    // בלי עריכת-לוח ⇒ noBoardLayoutFor (הפריסה המלאה), עם ⇒ defaultLayoutFor.
+    expect(homeViewSrc).toContain('boardOn ? defaultLayoutFor(activeTheme) : noBoardLayoutFor(activeTheme)');
   });
 });
 

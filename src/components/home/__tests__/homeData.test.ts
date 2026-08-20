@@ -8,6 +8,7 @@ import {
   punchLow,
 } from '../homeData';
 import widgetsSrc from '../widgets.tsx?raw';
+import homeDataSrc from '../homeData.ts?raw';
 import { defaultLayoutFor, sanitizeLayout, THEME_LAYOUTS, WIDGET_LIBRARY, HOME_WIDGETS } from '../widgets';
 import { tierOf } from '../../families/lib';
 import { emptyDb, emptyFamily, emptyMember, type Db, type Enrollment, type Supporter } from '../../../types/domain';
@@ -228,5 +229,14 @@ describe('homeStats — סה"כ חוגים בבית', () => {
   it('הגנת-מקור: הכרטיס מציג coursesTotal, פעילים בשורת-המשנה', () => {
     expect(widgetsSrc).toContain('value={String(s.coursesTotal)}');
     expect(widgetsSrc).toContain('${s.activeCourses} פעילים');
+  });
+});
+
+describe('🔁 תחזית-הו"ק בבית', () => {
+  // "צפוי מהו״ק החודש" — hokMonthlyTotal (נגזרת שכבר מוצגת במבט-הנהלה) נחשף
+  // בפריט-ההו"ק בבית. הגנת-מקור (המנוע עצמו נבדק ב-supporters/lib).
+  it('🛡 פריט-הו"ק מציג "צפוי מהו״ק החודש" דרך hokMonthlyTotal', () => {
+    expect(homeDataSrc).toContain('hokMonthlyTotal');
+    expect(homeDataSrc).toContain('צפוי מהו');
   });
 });

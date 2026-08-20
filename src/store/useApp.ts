@@ -230,6 +230,10 @@ interface AppState {
   supOpenReq: string | null;
   openSupporterCard: (id: string) => void;
   ackSupporterOpen: () => void;
+  /** "נוכחות ✓" מהבית (20.8): כרטיס-החוג נפתח וגולל לטבלת-השיבוצים (הניקוב). */
+  courseAttnReq: string | null;
+  openCourseAttendance: (id: string) => void;
+  ackCourseAttendance: () => void;
   /** ניווט למשפחות מסוננות לפי דרגת אמינות (אריחי הדרגות במדדי הבית, P2 פער 20). */
   famTierReq: '' | 'titan' | 'lion' | 'pale' | 'red';
   openFamiliesByTier: (tier: 'titan' | 'lion' | 'pale' | 'red') => void;
@@ -727,7 +731,10 @@ export const useApp = create<AppState>()((set, get) => {
       get().toast('⚠ הנתונים השמורים נמצאו פגומים — נשמר עותק בצד. שחזרו מגיבוי דרך הגדרות ← ייבוא');
     }
     const pruneCutoff = isoDaysAgo(30);
-    const stale = Object.entries(db.attnDone ?? {}).filter(([, d]) => d < pruneCutoff);
+    // 'sug:' פטורות מהגיזום (19.8): התעלמות מהצעה-מקדימה (SHOP8) חלה כל עוד
+    // התנאי מתקיים (חג-מתקרב חוזר שנה-בשנה, גיל-בי"ס נמשך חודשים) — אחרת
+    // ההצעה שהוסתרה צצה-מחדש אחרי 30 יום; "איפוס סימוני טופל" עדיין מנקה הכל.
+    const stale = Object.entries(db.attnDone ?? {}).filter(([k, d]) => !k.startsWith('sug:') && d < pruneCutoff);
     if (stale.length) {
       setDb((cur) => {
         const attnDone = { ...cur.attnDone };
@@ -1296,6 +1303,10 @@ export const useApp = create<AppState>()((set, get) => {
     supOpenReq: null,
     openSupporterCard: (id) => set({ view: 'supporters', supOpenReq: id }),
     ackSupporterOpen: () => set({ supOpenReq: null }),
+    // "נוכחות ✓" מהבית (20.8) — פתיחת כרטיס-החוג עם גלילה לטבלת-השיבוצים (הניקוב)
+    courseAttnReq: null,
+    openCourseAttendance: (id) => set({ view: 'courses', selCourseId: id, courseAttnReq: id }),
+    ackCourseAttendance: () => set({ courseAttnReq: null }),
     famTierReq: '' as const,
     openFamiliesByTier: (tier) => set({ view: 'families', selFamilyId: null, famTierReq: tier }),
     ackFamiliesTier: () => set({ famTierReq: '' }),
