@@ -14,6 +14,7 @@ import { downloadText } from '../reports/csv';
 import { paidOf, payBal, planWord, punchConfirmStep, PUNCH_CONFIRM_MS, type PunchArm } from '../courses/lib';
 import { AbsenceModal } from '../courses/AbsenceModal';
 import { ManageModal } from '../courses/ManageModal';
+import { ParentCard } from '../courses/ParentCard';
 import { EventModal } from '../calendar/EventModal';
 import { nextOccurIso } from '../calendar/calLib';
 import { ageOf, chipStyle, CRED_HELP_TEXT, EVENT_META, famHistoryOf, fmtDate, isoToday, STATUS_META, tierOf } from './lib';
@@ -227,6 +228,9 @@ export function EnrollPanel(props: { fam: Family }) {
   const punchOn = featureOn(config, 'courses.punch');
   // אישור כפול לניקוב (P1.3, legacy:330-342) — חל גם על הניקוב מהכרטיס
   const punchConfirmOn = featureOn(config, 'courses.punch.confirm');
+  // 👪 כרטיס-הורה (גל ה׳ · פאזה 10) — opt-in מפורש; סיכום read-only לשיתוף, אפס-כסף.
+  const parentCardOn = config.features?.['courses.parentcard'] === true;
+  const [parentFor, setParentFor] = useState<string | null>(null);
   const [joinOpen, setJoinOpen] = useState(false);
   const [opModal, setOpModal] = useState<{ kind: 'absence' | 'manage'; enrollmentId: string } | null>(null);
   const [punchArm, setPunchArm] = useState<PunchArm | null>(null);
@@ -314,7 +318,7 @@ export function EnrollPanel(props: { fam: Family }) {
                 <th>מסלול</th>
                 <th>יתרה</th>
                 <th>סטטוס</th>
-                {cardOpsOn && <th></th>}
+                {(cardOpsOn || parentCardOn) && <th></th>}
               </tr>
             </thead>
             <tbody>
@@ -342,35 +346,44 @@ export function EnrollPanel(props: { fam: Family }) {
                       )}
                     </td>
                     <td>{STATUS[e.status] ?? e.status}</td>
-                    {cardOpsOn && (
+                    {(cardOpsOn || parentCardOn) && (
                       <td>
                         <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                          {punchOn && e.plan === 'punch' && (
-                            <Btn sm kind={noBalance ? 'plain' : 'primary'} onClick={() => doPunch(e)}>
-                              {noBalance ? 'חידוש ←' : punchArm?.id === e.id ? 'לאשר ניקוב?' : 'ניקוב'}
+                          {cardOpsOn && (
+                            <>
+                              {punchOn && e.plan === 'punch' && (
+                                <Btn sm kind={noBalance ? 'plain' : 'primary'} onClick={() => doPunch(e)}>
+                                  {noBalance ? 'חידוש ←' : punchArm?.id === e.id ? 'לאשר ניקוב?' : 'ניקוב'}
+                                </Btn>
+                              )}
+                              {c && (
+                                <Btn
+                                  sm
+                                  title="רישום חיסור (נימוק חובה)"
+                                  onClick={() => setOpModal({ kind: 'absence', enrollmentId: e.id })}
+                                >
+                                  🤒
+                                </Btn>
+                              )}
+                              {c && (
+                                <Btn
+                                  sm
+                                  title={'ניהול ' + termOf(config, 'entity.enrollment', 'שיבוץ') + ': קניית כרטיסייה, מסלול, הקפאה, הסרה'}
+                                  onClick={() => setOpModal({ kind: 'manage', enrollmentId: e.id })}
+                                >
+                                  ⚙
+                                </Btn>
+                              )}
+                              <Btn sm kind="danger" title={'הסרת ה' + termOf(config, 'entity.enrollment', 'שיבוץ')} onClick={() => removeEnroll(e, m?.first ?? '', c?.name ?? '—')}>
+                                🗑
+                              </Btn>
+                            </>
+                          )}
+                          {parentCardOn && (
+                            <Btn sm title="כרטיס-הורה — סיכום read-only לשיתוף עם ההורה" onClick={() => setParentFor(e.memberId)}>
+                              👪
                             </Btn>
                           )}
-                          {c && (
-                            <Btn
-                              sm
-                              title="רישום חיסור (נימוק חובה)"
-                              onClick={() => setOpModal({ kind: 'absence', enrollmentId: e.id })}
-                            >
-                              🤒
-                            </Btn>
-                          )}
-                          {c && (
-                            <Btn
-                              sm
-                              title={'ניהול ' + termOf(config, 'entity.enrollment', 'שיבוץ') + ': קניית כרטיסייה, מסלול, הקפאה, הסרה'}
-                              onClick={() => setOpModal({ kind: 'manage', enrollmentId: e.id })}
-                            >
-                              ⚙
-                            </Btn>
-                          )}
-                          <Btn sm kind="danger" title={'הסרת ה' + termOf(config, 'entity.enrollment', 'שיבוץ')} onClick={() => removeEnroll(e, m?.first ?? '', c?.name ?? '—')}>
-                            🗑
-                          </Btn>
                         </div>
                       </td>
                     )}
@@ -395,6 +408,7 @@ export function EnrollPanel(props: { fam: Family }) {
             <ManageModal enrollmentId={en.id} course={c} onClose={() => setOpModal(null)} />
           );
         })()}
+      {parentCardOn && parentFor && <ParentCard memberId={parentFor} onClose={() => setParentFor(null)} />}
     </SectionCard>
   );
 }
