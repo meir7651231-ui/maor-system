@@ -280,6 +280,8 @@ interface AppState {
   punch: (enrollmentId: string) => void;
   /** החלפת-נוכחות פר-מפגש (#6) — presents+used; false אם אין יתרת-כרטיסייה להוספה. */
   setPresent: (enrollmentId: string, dateIso: string, present: boolean) => boolean;
+  /** נוכחות-אצווה (גיליון roll-call) — מחיל setPresent על רשימת-שיבוצים ב-setDb אחד; מחזיר כמה שונו. */
+  bulkSetPresent: (enrollmentIds: string[], dateIso: string, present: boolean) => number;
   /** ביטול הניקוב האחרון — מחזיר את הדלתא המדויקת מרשומת ה-Check-in (legacy mgUndo). */
   undoPunch: (enrollmentId: string) => void;
   addAbsence: (enrollmentId: string, absence: Absence) => void;
@@ -1574,6 +1576,32 @@ export const useApp = create<AppState>()((set, get) => {
         }),
       }));
       return true;
+    },
+    bulkSetPresent(enrollmentIds, dateIso, present) {
+      const ids = new Set(enrollmentIds);
+      // מי באמת ישתנה (אידמפוטני + שער-יתרת-כרטיסייה) — מחושב לפני הכתיבה, בלי side-effect ב-updater
+      const willChange = new Set(
+        get().db.enrollments
+          .filter((e) => ids.has(e.id))
+          .filter((e) => {
+            const has = (e.presents ?? []).includes(dateIso);
+            if (present === has) return false; // כבר במצב הרצוי
+            if (present && e.plan === 'punch' && e.used >= e.purchased) return false; // אין יתרה
+            return true;
+          })
+          .map((e) => e.id),
+      );
+      if (willChange.size === 0) return 0;
+      setDb((db) => ({
+        enrollments: db.enrollments.map((e) => {
+          if (!willChange.has(e.id)) return e;
+          const cur = e.presents ?? [];
+          return present
+            ? { ...e, presents: [...cur, dateIso], used: e.used + 1 }
+            : { ...e, presents: cur.filter((d) => d !== dateIso), used: Math.max(0, e.used - 1) };
+        }),
+      }));
+      return willChange.size;
     },
     undoPunch(enrollmentId) {
       // ratchet legacy-main-script.js:3372 (mgUndo): הביטול מחזיר את הדלתא

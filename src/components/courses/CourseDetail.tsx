@@ -13,6 +13,7 @@ import { buildCourseDailyRows } from '../../lib/courseDaily';
 import { Btn, Empty, Field, Modal, Select, StickyBackBar, TextInput } from '../ui';
 import { CourseForm } from './CourseForm';
 import { EnrollModal } from './EnrollModal';
+import { AttendanceSheet } from './AttendanceSheet';
 import { ManageModal } from './ManageModal';
 import { AbsenceModal } from './AbsenceModal';
 import { CustomExport } from '../reports/CustomExport';
@@ -52,6 +53,7 @@ const GROUP_PALETTE: [string, string][] = [
 type ModalState =
   | { kind: 'edit' }
   | { kind: 'enroll' }
+  | { kind: 'sheet' }
   | { kind: 'manage'; enrollmentId: string }
   | { kind: 'absence'; enrollmentId: string }
   | null;
@@ -380,6 +382,11 @@ export function CourseDetail(props: { course: Course }) {
                 {featureOn(cfg, 'courses.printout.daily') && (
                   <Btn sm onClick={exportDaily} title='דו"ח יומי מפורט — מפגש-מפגש כולל חיסורים'>
                     ⬇ דו"ח יומי מפורט
+                  </Btn>
+                )}
+                {featureOn(cfg, 'courses.attendance.sheet') && (
+                  <Btn sm disabled={!enrolled.length} onClick={() => setModal({ kind: 'sheet' })} title="גיליון-נוכחות מהיר — כל הקבוצה בבת-אחת">
+                    📋 נוכחות
                   </Btn>
                 )}
                 <Btn sm disabled={full} onClick={() => setModal({ kind: 'enroll' })}>
@@ -742,6 +749,7 @@ export function CourseDetail(props: { course: Course }) {
 
       {modal?.kind === 'edit' && <CourseForm course={c} onClose={() => setModal(null)} />}
       {modal?.kind === 'enroll' && <EnrollModal course={c} onClose={() => setModal(null)} />}
+      {modal?.kind === 'sheet' && <AttendanceSheet course={c} onClose={() => setModal(null)} />}
       {modal?.kind === 'manage' && (
         <ManageModal enrollmentId={modal.enrollmentId} course={c} onClose={() => setModal(null)} />
       )}
