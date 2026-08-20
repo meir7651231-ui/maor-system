@@ -31,6 +31,15 @@ import { FEATURES, TERM_DEFS, type FeatureDef, type TermDef } from '../../types/
 import { Btn, Chip, Field, FormError, TextInput } from '../ui';
 import { buildHandoffHtml, downloadTextFile, INTEGRATION_LABELS, INTEGRATION_STATUS, liveAddons, THEME_LABELS } from './handoff';
 import { featureEffectiveOn, WIZARD_SECTIONS, type WizardSectionDef } from './sections';
+import {
+  diffCount,
+  filterFeatureRows,
+  groupFeatures,
+  integrationMatches,
+  ROW_FILTER_LABELS,
+  wizardDiff,
+  type RowFilter,
+} from './wizardLib';
 import { TEMPLATE_DEFS } from '../../lib/templates';
 import { TelephonyPanel } from '../telephony/TelephonyPanel';
 import { emptyTelephonyConfig } from '../telephony/lib';
@@ -156,15 +165,15 @@ function SectionShell(props: {
   );
 }
 
-/** שורת יכולת — checkbox + תווית + תיאור קטן. */
-function FeatureRow(props: { f: FeatureDef; on: boolean; onToggle: (on: boolean) => void }) {
+/** שורת יכולת — checkbox + תווית + תיאור; ⭐ ל-opt-in; dense מסתיר את התיאור. */
+function FeatureRow(props: { f: FeatureDef; on: boolean; dense?: boolean; onToggle: (on: boolean) => void }) {
   return (
     <label
       style={{
         display: 'flex',
         alignItems: 'flex-start',
         gap: 8,
-        padding: '5px 2px',
+        padding: props.dense ? '3px 2px' : '5px 2px',
         fontSize: 13,
         cursor: 'pointer',
         borderTop: '1px solid var(--line-soft)',
@@ -176,9 +185,28 @@ function FeatureRow(props: { f: FeatureDef; on: boolean; onToggle: (on: boolean)
         onChange={(e) => props.onToggle(e.target.checked)}
         style={{ width: 'auto', marginTop: 2, accentColor: 'var(--accent-deep)' }}
       />
-      <span style={{ lineHeight: 1.35 }}>
+      <span style={{ lineHeight: 1.35, minWidth: 0 }}>
         <span style={{ color: 'var(--ink)' }}>{props.f.label}</span>
-        <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint)' }}>{props.f.desc}</span>
+        {props.f.optIn && (
+          <span
+            title="opt-in — כבוי כברירת-מחדל; דלוק ללקוח רק כשמסומן כאן"
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              marginInlineStart: 6,
+              padding: '1px 6px',
+              borderRadius: 999,
+              border: '1px solid var(--line)',
+              color: 'var(--ink-faint)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            ⭐ opt-in
+          </span>
+        )}
+        {!props.dense && (
+          <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint)' }}>{props.f.desc}</span>
+        )}
       </span>
     </label>
   );
@@ -309,6 +337,10 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   const [installer, setInstaller] = useState('מאיר — הקמת מערכות לעמותות');
   const [slugTouched, setSlugTouched] = useState(config.slug !== 'default');
   const [query, setQuery] = useState('');
+  /** אשף 2.0: סינון-שורות (דלוקות/כבויות/opt-in/שונו) + מצב-צפוף + מחסנית-ביטול. */
+  const [rowFilter, setRowFilter] = useState<RowFilter>('all');
+  const [dense, setDense] = useState(false);
+  const [hist, setHist] = useState<OrgConfig[]>([]);
   /** אילו מקטעים פתוחים — 'branding' פתוח כברירת מחדל, השאר מקופלים. */
   const [open, setOpen] = useState<Record<string, boolean>>({ branding: true });
   /** חיבור ענן: הטקסט שהודבק מקונסולת Firebase + שגיאת פענוח. */
@@ -343,7 +375,22 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
    * זהו צינור ה-live-apply היחיד: כל אינטראקציה (גם "סמן הכול" על מקטע שלם)
    * מזוקקת ל-patch() אחד = קריאת setConfig אחת = render + שמירה אחת.
    */
-  const patch = (p: Partial<OrgConfig>) => setConfig({ ...config, ...p });
+  /** תצלום למחסנית-הביטול — לפני כל שינוי (עד 25 צעדים אחורה). */
+  const snap = () => setHist((h) => [...h.slice(-24), config]);
+  const patch = (p: Partial<OrgConfig>) => {
+    snap();
+    setConfig({ ...config, ...p });
+  };
+  /** ↩ ביטול הצעד האחרון — משחזר קונפיג + ערכה/צבע כפי שהיו. */
+  const undo = () => {
+    const prev = hist[hist.length - 1];
+    if (!prev) return;
+    setHist((h) => h.slice(0, -1));
+    setConfig(prev);
+    setTheme(prev.theme);
+    setAccent(prev.accent);
+    toast('↩ הצעד האחרון בוטל');
+  };
 
   const setName = (orgName: string) =>
     patch({ orgName, ...(slugTouched ? {} : { slug: suggestSlug(orgName) || 'default' }) });
@@ -439,6 +486,10 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
 
   const activeCount = useMemo(() => FEATURES.filter((f) => featureEffectiveOn(config, f)).length, [config]);
 
+  /** אשף 2.0: דוח-השינויים מול ברירת-המחדל — מזין את מונה-✏️ ואת סינון "שונו". */
+  const diff = useMemo(() => wizardDiff(config, FEATURES, TERM_DEFS), [config]);
+  const changedTotal = diffCount(diff);
+
   /** הצעת-המחיר החיה — מתעדכנת עם כל מתג/מחיר/גודל. שמות-מודול מכבדים termOf. */
   const quote = useMemo(() => {
     const nameOf = (m: ModuleKey) => termOf(config, `nav.${m}`, MODULE_SHORT[m] ?? m);
@@ -477,6 +528,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
         toast('קובץ ה-config אינו תקין — לא נטען');
         return;
       }
+      snap();
       setConfig(cfg);
       setTheme(cfg.theme);
       setAccent(cfg.accent);
@@ -487,6 +539,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   };
 
   const resetToDefault = () => {
+    snap();
     // עותק טרי — לא מוסרים את אובייקט ברירת המחדל עצמו ל-store (הגנה ממוטציה)
     setConfig({ ...DEFAULT_CONFIG, modules: {}, features: {}, terms: {}, integrations: {} });
     // setConfig שומר דריסה ב-localStorage — מוחקים אותה אחריו כדי שהאיפוס יהיה אמיתי
@@ -529,6 +582,9 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
 
   const q = query.trim();
   const searching = q.length > 0;
+  /** חיפוש-כולל: גם ההרחבות נמצאות (הפער מביקורת 20.8 — "וואטסאפ" לא נמצא). */
+  const intMatches = useMemo(() => (searching ? integrationMatches(q, INTEGRATION_LABELS) : []), [searching, q]);
+  const filtering = rowFilter !== 'all';
   /** שורת צ'יפי-הניווט — מיתוג, מקטע לכל מסך, והרחבות (בסדר המסכים באפליקציה). */
   const navChips: { domId: string; key: string; label: string }[] = [
     { domId: 'wz-vertical', key: 'vertical', label: '🏢 סוג העסק' },
@@ -543,18 +599,33 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
     const mk = sec.module;
     const feats = FEATURES.filter((f) => f.module === sec.id);
     const terms = TERM_DEFS.filter((t) => sec.termKeys.includes(t.key));
-    const visFeats = searching ? feats.filter((f) => f.label.includes(q) || f.desc.includes(q)) : feats;
-    const visTerms = searching ? terms.filter((t) => t.label.includes(q) || t.fallback.includes(q)) : terms;
+    // סדר-הסינון: קודם חיפוש-טקסט, ואז סינון-המצב (דלוקות/כבויות/opt-in/שונו)
+    const searched = searching ? feats.filter((f) => f.label.includes(q) || f.desc.includes(q) || f.key.includes(q)) : feats;
+    const visFeats = filterFeatureRows(config, searched, rowFilter, diff);
+    const visTerms =
+      rowFilter === 'optin'
+        ? []
+        : searching
+          ? terms.filter((t) => t.label.includes(q) || t.fallback.includes(q))
+          : rowFilter === 'changed'
+            ? terms.filter((t) => diff.terms.includes(t.key))
+            : rowFilter === 'off'
+              ? []
+              : terms;
     // מסלול-B: פיצול-תרומות פר-ייעוד — דגל ברמת-הקונפיג (לא features), מוצג כטוגל
     // במקטע התורמים ליד שאר היכולות. ברירת-מחדל כבוי (חסר=כבוי, רק true מדליק).
     const showSplit =
-      sec.id === 'supporters' && (!searching || 'פיצול תרומות פר-ייעוד אכיפת הרשאה לעובדות ייעוד'.includes(q));
-    if (searching && !visFeats.length && !visTerms.length && !showSplit) return null;
+      sec.id === 'supporters' &&
+      rowFilter === 'all' &&
+      (!searching || 'פיצול תרומות פר-ייעוד אכיפת הרשאה לעובדות ייעוד'.includes(q));
+    if ((searching || filtering) && !visFeats.length && !visTerms.length && !showSplit) return null;
 
     const modOn = mk ? config.modules[mk] !== false : true;
     // opt-in-aware: דגל-optIn חסר = כבוי; דגל-רגיל חסר = דלוק (featureEffectiveOn).
     const onCount = feats.filter((f) => featureEffectiveOn(config, f)).length;
-    const sectionOpen = searching || isOpen(sec.id);
+    const secChanged = feats.filter((f) => diff.features.includes(f.key)).length +
+      terms.filter((t) => diff.terms.includes(t.key)).length;
+    const sectionOpen = searching || filtering || isOpen(sec.id);
 
     return (
       <SectionShell
@@ -562,7 +633,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
         id={`wz-${sec.id}`}
         emoji={sec.emoji}
         title={sec.title}
-        meta={feats.length ? `${onCount}/${feats.length} יכולות` : undefined}
+        meta={feats.length ? `${onCount}/${feats.length} יכולות${secChanged ? ` · ✏️${secChanged}` : ''}` : undefined}
         open={sectionOpen}
         onToggleOpen={() => flipOpen(sec.id)}
         headerEnd={
@@ -601,13 +672,24 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                   נקה הכול
                 </Btn>
               </div>
-              {visFeats.map((f) => (
-                <FeatureRow
-                  key={f.key}
-                  f={f}
-                  on={featureEffectiveOn(config, f)}
-                  onToggle={(on) => setFeatures([f.key], on)}
-                />
+              {/* אשף 2.0: תת-קבוצות אוטומטיות לפי קידומת-המפתח — פירוט מלא שנשאר סרוק */}
+              {groupFeatures(visFeats).map((g) => (
+                <div key={g.label ?? '_general'}>
+                  {g.label && (
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)', padding: '8px 0 2px' }}>
+                      {g.label} <span style={{ fontWeight: 400, color: 'var(--ink-faint)' }}>· {g.items.length}</span>
+                    </div>
+                  )}
+                  {g.items.map((f) => (
+                    <FeatureRow
+                      key={f.key}
+                      f={f}
+                      dense={dense}
+                      on={featureEffectiveOn(config, f)}
+                      onToggle={(on) => setFeatures([f.key], on)}
+                    />
+                  ))}
+                </div>
               ))}
             </>
           )}
@@ -703,8 +785,8 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="🔍 חיפוש יכולת או מונח…"
-            aria-label="חיפוש יכולת או מונח"
+            placeholder="🔍 חיפוש יכולת, מונח או הרחבה…"
+            aria-label="חיפוש יכולת, מונח או הרחבה"
             style={{ flex: 1, fontSize: 13, padding: '6px 10px' }}
           />
           <span
@@ -720,6 +802,23 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
           >
             {activeCount} יכולות פעילות מתוך {FEATURES.length}
           </span>
+        </div>
+        {/* אשף 2.0: שורת-פיקוד — סינון-מצב · ✏️ שינויים · צפוף/מפורט · ↩ ביטול */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 8 }}>
+          {(Object.keys(ROW_FILTER_LABELS) as RowFilter[]).map((k) => (
+            <Chip key={k} on={rowFilter === k} onClick={() => setRowFilter(rowFilter === k ? 'all' : k)}>
+              {k === 'changed' && changedTotal > 0 ? `${ROW_FILTER_LABELS[k]} · ${changedTotal}` : ROW_FILTER_LABELS[k]}
+            </Chip>
+          ))}
+          <span style={{ flex: 1 }} />
+          <Chip on={dense} onClick={() => setDense(!dense)}>
+            {dense ? '☰ צפוף' : '📖 מפורט'}
+          </Chip>
+          {hist.length > 0 && (
+            <Btn sm onClick={undo} title={`ביטול הצעד האחרון (${hist.length} במחסנית)`}>
+              ↩ ביטול
+            </Btn>
+          )}
         </div>
         {/* שורת ניווט מהיר — צ'יפים למקטעים, כמו במסך ההגדרות. מוסתר בזמן חיפוש
             (אז ממילא כל המקטעים פרוסים). */}
@@ -769,6 +868,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                   key={p.id}
                   type="button"
                   onClick={() => {
+                    snap();
                     const next = applyVerticalPack(config, p.id);
                     setConfig(next);
                     // תצוגה חיה: מיישרים גם את דריסת-המשתמש (db.ui) לערכי-החבילה,
@@ -911,6 +1011,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                     <Btn
                       sm
                       onClick={() => {
+                        snap();
                         const next = { ...config };
                         delete next.firebase;
                         setConfig(next);
@@ -976,18 +1077,18 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
 
         {/* הרחבות (INTEGRATIONS גל א׳) — טקסונומיית-כנות: live נמכר · included כלול ·
             roadmap מושבת (אי-אפשר למכור בטעות מה שלא קיים). מוסתר בזמן חיפוש. */}
-        {!searching && (
+        {(!searching || intMatches.length > 0) && (
           <SectionShell
             id="wz-integrations"
             emoji="🔌"
             title="הרחבות"
-            meta="ממומשות בלבד נמכרות"
-            open={isOpen('integrations')}
+            meta={diff.integrationsOn.length ? `${diff.integrationsOn.length} דלוקות · ממומשות בלבד נמכרות` : 'ממומשות בלבד נמכרות'}
+            open={searching || isOpen('integrations')}
             onToggleOpen={() => flipOpen('integrations')}
           >
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', paddingTop: 6 }}>
               {Object.entries(INTEGRATION_LABELS)
-                .filter(([k]) => INTEGRATION_STATUS[k] === 'live')
+                .filter(([k]) => INTEGRATION_STATUS[k] === 'live' && (!searching || intMatches.includes(k)))
                 .map(([k, label]) => (
                   <Chip key={k} on={config.integrations?.[k]?.enabled ?? false} onClick={() => toggleIntegration(k)}>
                     {label}
