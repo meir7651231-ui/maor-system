@@ -20,6 +20,7 @@ import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, sup
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
+import { SupportersCockpit } from './SupportersCockpit';
 import { AyinBoard } from './AyinBoard';
 import { OrgDonationCalendar } from './DonationCalendar';
 import { SupporterImport } from './SupporterImport';
@@ -167,6 +168,16 @@ export function SupportersView() {
   // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל אחד מתקפל.
   // הצ׳יפים והסינון נשמרים בדיוק — רק מתקפלים; החיפוש+קטגוריה גלויים תמיד.
   const [advOpen, setAdvOpen] = useState(false);
+  // חלון-העבודה (הקוקפיט) — opt-in מפורש בלבד (‏featureOn ברירת-מחדל=on, לכן === true).
+  // חסר במפורש בכל הלקוחות-החיים ⇒ אפס-השפעה על הפרודקשן.
+  const cockpitOn = config.features?.['supporters.cockpit'] === true;
+  const [workMode, setWorkMode] = useState(false);
+  // 🔁 זיהוי-הו"ק-מהיסטוריה — הפעולה מקומית-טהורה (detectRecurringHok על hist);
+  // עד היום הכפתור היחיד היה קבור ב-NedarimSyncModal שנעול payments+ענן. חושפים אותו
+  // כאן (מגודר hokOn) — מוצג רק כשיש חיובי-נדרים ב-hist, לא-דורס-הו"ק-ידני, no-op כשריק.
+  const detectNedarimHok = useApp((s) => s.detectNedarimHok);
+  const [hokDetectArmed, setHokDetectArmed] = useState(false);
+  const hasNedarimHist = db.supporters.some((sp) => (sp.hist ?? []).some((h) => h.clearer === 'נדרים'));
   // 🔗 איחוד-כפולים (#13) — הכפתור מוצג רק כשיש מה לאחד
   const [dedupOpen, setDedupOpen] = useState(false);
   // 🐛 נחיל-9×9 (13.8): Union-Find על כל התורמים רץ בכל render (כל הקשה/סינון) —
@@ -259,6 +270,34 @@ export function SupportersView() {
   const selRaw = db.supporters.find((s) => s.id === selId);
   const selected = selRaw && supporterVisibleForDesignations(selRaw, desigLimit) ? selRaw : undefined;
   if (selected) return <SupporterDetail supporter={selected} onBack={() => setSelId(null)} />;
+
+  // חלון-העבודה — נפרס רק כשהוא opt-in ובמצב-עבודה. פתיחת-כרטיס מנתבת ל-SupporterDetail
+  // (ה-early-return למעלה), וחזרה ממנו חוזרת לקוקפיט (workMode נשמר).
+  if (cockpitOn && workMode) {
+    const cockpitList = visibleSupportersForDesignations(db.supporters, desigLimit);
+    return (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>חלון העבודה</h1>
+          <span style={{ fontSize: 13, color: 'var(--ink-faint)' }}>
+            המערכת סידרה את היום — לחיצה-אחת לכל פעולה
+          </span>
+          <Btn
+            onClick={() => setWorkMode(false)}
+            title="מעבר לטבלה המלאה — כל התורמים, סינון, מיון וייצוא"
+          >
+            ☰ מסך הנתונים
+          </Btn>
+        </div>
+        <SupportersCockpit
+          supporters={cockpitList}
+          config={config}
+          usdRate={db.usdRate}
+          onOpen={(id) => setSelId(id)}
+        />
+      </div>
+    );
+  }
 
   const today = isoToday();
   const nq = normSearch(q);
@@ -391,6 +430,15 @@ export function SupportersView() {
             <Btn onClick={toggleSupView} title="החלפת תצוגה: רשימה / גריד">
               {supView === 'grid' ? '☰ רשימה' : '▦ גריד'}
             </Btn>
+            {cockpitOn && (
+              <Btn
+                kind="primary"
+                onClick={() => setWorkMode(true)}
+                title="חלון-העבודה: המערכת מסדרת את משימות היום — שיחות, תודות והו״ק"
+              >
+                🎯 חלון העבודה
+              </Btn>
+            )}
             {telephonyOn(config) && (
               <Btn
                 onClick={() => {
@@ -577,15 +625,35 @@ export function SupportersView() {
       )}
 
       {/* 🔁 הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש (לחיצה מסננת) */}
-      {hokOn && db.supporters.some((sp) => sp.hok) && (
+      {hokOn && (db.supporters.some((sp) => sp.hok) || hasNedarimHist) && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>הוראות קבע:</span>
-          <Chip on={hokF === 'active'} onClick={() => setHokF(hokF === 'active' ? null : 'active')}>
-            {'🔁 פעילות · ' + db.supporters.filter((sp) => sp.hok?.active).length}
-          </Chip>
-          <Chip on={hokF === 'due'} onClick={() => setHokF(hokF === 'due' ? null : 'due')}>
-            {'⏳ טרם נרשמו החודש · ' + hokDue(db.supporters, today).length}
-          </Chip>
+          {db.supporters.some((sp) => sp.hok) && (
+            <>
+              <Chip on={hokF === 'active'} onClick={() => setHokF(hokF === 'active' ? null : 'active')}>
+                {'🔁 פעילות · ' + db.supporters.filter((sp) => sp.hok?.active).length}
+              </Chip>
+              <Chip on={hokF === 'due'} onClick={() => setHokF(hokF === 'due' ? null : 'due')}>
+                {'⏳ טרם נרשמו החודש · ' + hokDue(db.supporters, today).length}
+              </Chip>
+            </>
+          )}
+          {/* זיהוי-רטרואקטיבי מהיסטוריית-נדרים — פעולה מקומית, בלי שער-ענן */}
+          {hasNedarimHist && (
+            <Btn
+              sm
+              kind={hokDetectArmed ? 'danger' : undefined}
+              title="סורק חיובי-נדרים ב-hist ומזהה הוראות-קבע לפי תבנית (3+ חודשים) — הו״ק ידני לא נדרס"
+              onClick={() => {
+                if (!hokDetectArmed) { setHokDetectArmed(true); return; }
+                const n = detectNedarimHok();
+                toast(n ? '🔁 ' + n + ' הוראות-קבע זוהו ומולאו מהיסטוריה' : 'לא זוהו הוראות-קבע חדשות מהתבנית');
+                setHokDetectArmed(false);
+              }}
+            >
+              {hokDetectArmed ? 'לאשר זיהוי הו״ק?' : '🔁 זהה הו״ק מהיסטוריה'}
+            </Btn>
+          )}
         </div>
       )}
 

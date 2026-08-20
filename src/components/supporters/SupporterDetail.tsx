@@ -431,7 +431,14 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         {hokOn && (
           <div className="card">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <h3 style={{ fontSize: 15, flex: 1 }}>הוראת קבע 🔁</h3>
+              <h3 style={{ fontSize: 15 }}>הוראת קבע 🔁</h3>
+              {/* חיווי מקושר-נדרים — extId נקלט לשיוך אך לא הוצג עד היום */}
+              {sp.extId && (
+                <span style={chipStyle('#e8f0fb', '#1d4ed8')} title={'מזהה-נדרים (ToremId): ' + sp.extId}>
+                  🔗 מקושר-נדרים
+                </span>
+              )}
+              <div style={{ flex: 1 }} />
               <Btn sm onClick={() => setHokOpen(true)}>{sp.hok ? '✏️ עריכה' : '➕ הגדרה'}</Btn>
             </div>
             {sp.hok ? (
@@ -439,6 +446,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                 <div style={{ fontSize: 13.5 }}>
                   {(sp.hok.cur === '$' ? '$' : '₪') + sp.hok.amount.toLocaleString('he-IL') +
                     ' · יום ' + sp.hok.day + ' בחודש · ' + hokMethodLabel(sp.hok.method) +
+                    (sp.hok.startedAt ? ' · מאז ' + fmtDate(sp.hok.startedAt) : '') +
                     (sp.hok.active ? '' : ' · ⏸ מושהית')}
                 </div>
                 {sp.hok.note && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 2 }}>{sp.hok.note}</div>}
