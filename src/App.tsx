@@ -142,6 +142,7 @@ export default function App() {
     void import('./store/cloudSync').then((m) => {
       if (!alive) return;
       unsub = m.watchIncomingPayments((rows) => {
+        useApp.setState({ nedPending: rows.length }); // חיווי-מונה (תג + "מושהה") — תמיד
         if (!rows.length) return;
         // ⚠️ חיבור-חי מיועד ל**טפטוף בזמן-אמת** (חיוב-חדש בודד מה-webhook). גיבוי-
         // היסטורי גדול (מאות/אלפי ממתינים, למשל משיכת reset מ-2019) **לא** מעובד

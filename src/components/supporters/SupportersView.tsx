@@ -136,6 +136,7 @@ export function SupportersView() {
     : null;
   // גל ד׳ (payments): מסך תשלומים-נכנסים — רק לארגון-ענן מחובר
   const cloudOn = useApp((s) => s.cloud.enabled && !!s.cloud.user);
+  const nedPending = useApp((s) => s.nedPending); // מונה-ממתינים חי (תג על הכפתור)
   // ג' (13.8) — ייעוד כהרשאת-תצוגה: העובד/ת רואה רק תורמים של הייעודים שהוקצו לו/ה.
   // null = בלי הגבלה (מנהל/בעלים/לקוח-מקומי). מסתיר ברמת-הממשק (כמו shell.privacy).
   const purposeOn = featureOn(config, 'supporters.purpose');
@@ -441,10 +442,19 @@ export function SupportersView() {
         sub={countLabel}
         actions={
           <>
-            {/* גל ד׳ (payments+ענן): תשלומים-נכנסים מה-webhook — לאישור-רישום */}
+            {/* גל ד׳ (payments+ענן): תשלומים-נכנסים מה-webhook — לאישור-רישום.
+                תג-מונה + חיווי "מושהה" (⏸) כשמעל 400 (החיבור-החי מדלג — צריך סנכרון ידני). */}
             {integrationOn(config, 'payments') && cloudOn && (
-              <Btn onClick={() => setIncomingOpen(true)} title="תשלומים שדווחו מחברת-הסליקה — ממתינים לרישום">
+              <Btn
+                onClick={() => setIncomingOpen(true)}
+                title={nedPending > 400 ? 'החיבור-החי מושהה (מעל 400 ממתינים) — בצעו מיזוג/סנכרון ידני' : 'תשלומים שדווחו מחברת-הסליקה — ממתינים לרישום'}
+              >
                 💰 תשלומים נכנסים
+                {nedPending > 0 && (
+                  <span style={{ marginInlineStart: 6, fontSize: 11, fontWeight: 700, background: nedPending > 400 ? 'var(--danger, #e05252)' : 'var(--accent)', color: '#fff', borderRadius: 9, padding: '1px 6px' }}>
+                    {nedPending > 400 ? '⏸ ' : ''}{nedPending.toLocaleString('he-IL')}
+                  </span>
+                )}
               </Btn>
             )}
             {integrationOn(config, 'payments') && cloudOn && (

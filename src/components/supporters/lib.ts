@@ -112,9 +112,11 @@ export function supUsd(sp: Supporter): number {
   return (sp.usd || 0) + (sp.hist ?? []).reduce((a, h) => a + (h.c === '$' ? h.a : 0), 0);
 }
 
-/** מספר תרומות כולל היסטוריה. */
+/** מספר תרומות כולל היסטוריה. סופר **רק שורות-חיוב חיוביות** — כך שאם ייקלטו
+ *  בעתיד זיכויים/ביטולים (שורת-hist שלילית/אפס, "פאזה מודעת-כסף") הם לא ינפחו
+ *  את הספירה ואת ציון-ה-RFM (supIls/supUsd כבר מקזזים סכום שלילי מעצם הסכימה). */
 export function supCount(sp: Supporter): number {
-  return (sp.count || 0) + (sp.hist?.length ?? 0);
+  return (sp.count || 0) + (sp.hist ?? []).filter((h) => (h.a || 0) > 0).length;
 }
 
 /** התרומה האחרונה — המאוחר מבין הקבלות וההיסטוריה ('' כשאין). */
@@ -472,7 +474,7 @@ export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
             ...(g(r, iReceipt) ? { receipt: g(r, iReceipt) } : {}),
             ...(g(r, iBrand) ? { brand: g(r, iBrand) } : {}),
             ...(g(r, iLast4) ? { last4: g(r, iLast4) } : {}),
-            ...(g(r, iClearer) ? { clearer: g(r, iClearer) } : {}),
+            ...(g(r, iClearer) ? { clearer: /נדרים|nedarim/i.test(g(r, iClearer)) ? 'נדרים' : g(r, iClearer) } : {}),
             ...(iPays >= 0 && isFinite(pays) && pays > 0 ? { pays } : {}),
             ...(g(r, iStatus) ? { status: g(r, iStatus) } : {}),
           },
@@ -663,6 +665,29 @@ export function newSupporterFromRow(id: string, row: SupporterImportRow): Suppor
 
 export const HOK_CAT = 'הו"ק';
 
+/** חודשים-אזרחיים מאז תאריך-ISO עד היום (0 = אותו חודש). ריק ⇒ Infinity. */
+function monthsAgoIso(iso: string, todayIso: string): number {
+  if (!iso) return Infinity;
+  const [y, m] = iso.slice(0, 7).split('-').map(Number);
+  const [ty, tm] = todayIso.slice(0, 7).split('-').map(Number);
+  return (ty - y) * 12 + (tm - m);
+}
+
+/** האם ההו"ק **אפקטיבית-פעילה**. הו"ק ידני (בלי kevaId) ⇒ לפי הדגל בלבד. הו"ק
+ *  מנוהלת-נדרים (kevaId) ⇒ נחשבת **פגה** אם אין חיוב-נדרים ב-hist מזה >2 חודשים —
+ *  כי ביטול-הו"ק בנדרים לא שולח אירוע, פשוט מפסיקים להגיע חיובים (אחרת הכרטיס
+ *  נשאר "פעיל" לנצח ומנפח את ההכנסה-הקבועה). **נגזרת** (בלי מוטציה) ⇒ מתאוששת
+ *  מאליה אם החיובים חוזרים. סף = 2 חודשים (עקבי עם detectRecurringHok). (תיקון 20.8) */
+export function hokEffectivelyActive(sp: Supporter, todayIso: string): boolean {
+  const h = sp.hok;
+  if (!h || !h.active) return false;
+  if (!h.kevaId) return true; // הו"ק ידני — אין לאפ-אוטומטי
+  let last = '';
+  for (const e of sp.hist ?? []) if (e.clearer === 'נדרים' && (e.d || '') > last) last = e.d || '';
+  if (!last) return true; // עדיין אין היסטוריית-נדרים — סומכים על הדגל
+  return monthsAgoIso(last, todayIso) <= 2;
+}
+
 /** האם חיוב-החודש של ההוראה כבר נרשם (חודש אזרחי נוכחי).
  *  כולל **חיוב-נדרים חוזר ב-hist** (19.8): נדרים גובה בעצמו, החיוב יושב ב-hist
  *  (לא ב-donations) ⇒ תורם שנדרים כבר חייב החודש לא יופיע כ"ממתין" בטעות. */
@@ -674,24 +699,29 @@ export function hokRecordedThisMonth(sp: Supporter, todayIso: string): boolean {
     (d) => d.date.startsWith(month) && (d.cat === HOK_CAT || (d.amount === hok.amount && (d.cur || '₪') === hok.cur)),
   );
   if (inDonations) return true;
-  // חיוב-סליקה (נדרים) החודש התואם את סכום/מטבע ההוראה ⇒ נחשב "נרשם".
+  // חיוב-נדרים כלשהו החודש ⇒ נחשב "נרשם" — **בלי דרישת-סכום-מדויק** (הו"ק בסכום-
+  // משתנה, למשל שזוהתה-רטרואקטיבית, לא תוצג שגוי כ"ממתין"); נפילה: התאמת-סכום-מדויק
+  // לרשומת-hist שאינה נדרים (מקור-ישן/לגאסי).
   return (sp.hist ?? []).some(
-    (h) => (h.d || '').startsWith(month) && h.a === hok.amount && (h.c || '₪') === hok.cur,
+    (h) => (h.d || '').startsWith(month) && (h.clearer === 'נדרים' || (h.a === hok.amount && (h.c || '₪') === hok.cur)),
   );
 }
 
-/** התומכים שהו"ק-החודש שלהם טרם נרשמה — ממוינים לפי יום-החיוב. */
+/** התומכים שהו"ק-החודש שלהם טרם נרשמה — ממוינים לפי יום-החיוב.
+ *  משתמש ב-hokEffectivelyActive (הו"ק-נדרים שפגה לא נספרת). */
 export function hokDue(supporters: Supporter[], todayIso: string): Supporter[] {
   return supporters
-    .filter((sp) => sp.hok?.active && !hokRecordedThisMonth(sp, todayIso))
+    .filter((sp) => hokEffectivelyActive(sp, todayIso) && !hokRecordedThisMonth(sp, todayIso))
     .sort((a, b) => (a.hok?.day ?? 0) - (b.hok?.day ?? 0));
 }
 
-/** סה"כ הו"ק חודשי פעיל בש"ח-שקול (ההכנסה-הקבועה) — לפי שער-הדולר העריך. */
-export function hokMonthlyTotal(supporters: Supporter[], usdRate: number): number {
+/** סה"כ הו"ק חודשי פעיל בש"ח-שקול (ההכנסה-הקבועה) — לפי שער-הדולר העריך.
+ *  todayIso (אופציונלי) ⇒ מנכה הו"ק-נדרים שפגה (>2 חודשים בלי חיוב). */
+export function hokMonthlyTotal(supporters: Supporter[], usdRate: number, todayIso?: string): number {
+  const active = (sp: Supporter) => (todayIso ? hokEffectivelyActive(sp, todayIso) : !!sp.hok?.active);
   return Math.round(
     supporters.reduce((a, sp) => {
-      if (!sp.hok?.active) return a;
+      if (!active(sp) || !sp.hok) return a;
       return a + (sp.hok.cur === '$' ? sp.hok.amount * usdRate : sp.hok.amount);
     }, 0),
   );

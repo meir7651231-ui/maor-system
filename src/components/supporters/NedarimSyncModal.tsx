@@ -28,12 +28,14 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
   const nedCount = useApp((s) =>
     s.db.supporters.filter((sp) => sp.id.startsWith('sup-ned-') || sp.extId || (sp.hist ?? []).some((h) => h.clearer === 'נדרים')).length,
   );
+  // כרטיסים שיימחקו בפועל (רק אלה שנוצרו מנדרים, 'sup-ned-'); היתר רק **ינוקו** (hist).
+  const createdCount = useApp((s) => s.db.supporters.filter((sp) => sp.id.startsWith('sup-ned-')).length);
+  const cleanedCount = Math.max(0, nedCount - createdCount);
   const [wipeArmed, setWipeArmed] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState<SyncPlan | null>(null);
-  const [chargeIds, setChargeIds] = useState<string[]>([]);
   const [armed, setArmed] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -44,7 +46,6 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
         const m: CloudMod = await import('../../store/cloudSync');
         const [donors, charges] = await Promise.all([m.fetchNedarimDonors(), m.fetchIncomingPayments()]);
         if (!alive) return;
-        setChargeIds(charges.map((c) => c.id));
         setPlan(planNedarimSync(supporters, donors, charges));
       } catch (e) {
         if (alive) setError(String((e as Error)?.message || e));
@@ -67,13 +68,14 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
       plan.summary.updatedSupporters + ' עודכנו · ' +
       plan.summary.chargesAdded + ' חיובים';
     applyNedarimSync(plan.supporters, note);
-    // סימון החיובים כ-handled ⇒ יוצאים מרשימת-הממתינים ולא ייקלטו שוב בחיבור-החי.
-    // ⚠️ בגיבוי-מלא יש אלפי חיובים — סימון **במנות** (300 במקביל, ממתין בין מנה
-    // למנה) במקום אלפי כתיבות-ענן בו-זמנית שמציפות את הדפדפן (תקרית 19.8).
-    if (chargeIds.length) {
+    // סימון handled — **רק** את plan.handledChargeIds (מה שחובר/דדופ בפועל), לא את כל
+    // הממתינים. חיוב מבוטל/זיכוי (amount≤0) שהמנוע דילג **נשאר pending** לפאזה-מודעת-הכסף
+    // העתידית (עקבי עם החיבור-החי). ⚠️ סימון **במנות** (תקרית 19.8 — אלפי כתיבות בבת-אחת).
+    const toMark = plan.handledChargeIds;
+    if (toMark.length) {
       void import('../../store/cloudSync').then(async (m) => {
-        for (let i = 0; i < chargeIds.length; i += 300) {
-          await Promise.all(chargeIds.slice(i, i + 300).map((id) => m.markIncomingPayment(id).catch(() => {})));
+        for (let i = 0; i < toMark.length; i += 300) {
+          await Promise.all(toMark.slice(i, i + 300).map((id) => m.markIncomingPayment(id).catch(() => {})));
         }
       });
     }
@@ -110,7 +112,8 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
         <div style={{ border: '1px solid var(--danger, #e05252)', background: 'var(--bg)', borderRadius: 10, padding: 10, marginBottom: 12 }}>
           <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>🔄 איפוס מלא של ייבוא-נדרים</div>
           <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
-            מוחק את <b>כל</b> הכרטיסים שנכנסו מנדרים (~{nedCount.toLocaleString('he-IL')}) ומנקה את היסטוריות-החיוב מנדרים —
+            <b>יימחקו {createdCount.toLocaleString('he-IL')}</b> כרטיסים שנוצרו מנדרים
+            {cleanedCount ? <> · <b>ינוקו {cleanedCount.toLocaleString('he-IL')}</b> כרטיסים מקוריים (רק היסטוריית-החיוב)</> : null} —
             חזרה למצב שלפני-הייבוא. <b>הקבלות והתרומות המקוריות לא נגעות.</b> אחר-כך: משוך מחדש (<code>reset=1</code>) ובצע סנכרון נקי.
           </div>
           <Btn
@@ -122,7 +125,7 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
               setWipeArmed(false);
             }}
           >
-            {wipeArmed ? `לאשר איפוס ~${nedCount.toLocaleString('he-IL')} כרטיסים?` : `🔄 אפס הכל מנדרים (~${nedCount.toLocaleString('he-IL')})`}
+            {wipeArmed ? `לאשר מחיקת ${createdCount.toLocaleString('he-IL')} כרטיסים?` : `🔄 אפס הכל מנדרים (${createdCount.toLocaleString('he-IL')} יימחקו)`}
           </Btn>
           {wipeArmed && <Btn sm onClick={() => setWipeArmed(false)}>ביטול</Btn>}
         </div>
@@ -158,6 +161,7 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
                 <Stat n={s.updatedSupporters} label="כרטיסים שיעודכנו" accent />
                 <Stat n={s.chargesAdded} label="חיובים חדשים" accent />
                 <Stat n={s.chargesDup} label="כבר-קיימים (דילוג)" />
+                {s.chargesNonPositive > 0 && <Stat n={s.chargesNonPositive} label="מבוטלים/זיכויים (מדולג)" />}
               </div>
               <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 12 }}>
                 סכומים שיירשמו: ₪{s.ilsAdded.toLocaleString('he-IL')}

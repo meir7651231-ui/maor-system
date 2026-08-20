@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { attachChargeTo, chargeToHist, detectRecurringHok, planNedarimSync, withNedarimHok, type SyncCharge } from '../nedarimSync';
-import { hokRecordedThisMonth, hokDue } from '../../components/supporters/lib';
+import { hokRecordedThisMonth, hokDue, hokEffectivelyActive, hokMonthlyTotal, supCount } from '../../components/supporters/lib';
 import type { Supporter } from '../../types/domain';
 
 const sp = (over: Partial<Supporter> = {}): Supporter => ({
@@ -102,6 +102,55 @@ describe('🔁 ratchet — detectRecurringHok (זיהוי-רטרואקטיבי �
     expect(h.kevaId).toBe('K42');
     const pool = [sp({ id: 'a', hist: [{ ...h }, { d: '2026-07-10', a: 100, c: '₪', clearer: 'נדרים' }, { d: '2026-06-10', a: 100, c: '₪', clearer: 'נדרים' }] })];
     expect(detectRecurringHok(pool, today).supporters[0].hok?.kevaId).toBe('K42');
+  });
+});
+
+// 🐛 תורם שביטל הו"ק בנדרים נשאר active:true לנצח (אין אירוע-ביטול) ⇒ ניפוח
+// ההכנסה-הקבועה + "ממתין" נצחי. עכשיו: hokEffectivelyActive מלפף הו"ק-נדרים
+// שאין-לה חיוב מזה >2 חודשים (נגזרת, מתאוששת אם חיובים חוזרים). (תיקון 20.8)
+describe('🔁 ratchet — hokEffectivelyActive (לאפ-אוטומטי להו"ק-נדרים)', () => {
+  const today = '2026-08-19';
+  const hok = (over: Partial<NonNullable<Supporter['hok']>> = {}) => ({
+    amount: 100, cur: '₪' as const, day: 10, method: 'card' as const, note: '', active: true, startedAt: '2025-01-01', ...over,
+  });
+  it('הו"ק-נדרים עם חיוב אחרון >2 חודשים ⇒ פגה (לא-פעילה אפקטיבית)', () => {
+    const s = sp({ hok: hok({ kevaId: 'K1' }), hist: [{ d: '2026-05-10', a: 100, c: '₪', clearer: 'נדרים' }] });
+    expect(hokEffectivelyActive(s, today)).toBe(false);
+    expect(hokDue([s], today)).toHaveLength(0); // לא מוצג כ"ממתין"
+    expect(hokMonthlyTotal([s], 3.7, today)).toBe(0); // לא נספר בהכנסה-הקבועה
+  });
+  it('הו"ק-נדרים עם חיוב אחרון ≤2 חודשים ⇒ פעילה', () => {
+    const s = sp({ hok: hok({ kevaId: 'K1' }), hist: [{ d: '2026-07-10', a: 100, c: '₪', clearer: 'נדרים' }] });
+    expect(hokEffectivelyActive(s, today)).toBe(true);
+  });
+  it('הו"ק ידני (בלי kevaId) ⇒ תמיד פעילה לפי הדגל (אין לאפ-אוטומטי)', () => {
+    const s = sp({ hok: hok({ note: 'ידני' }), hist: [{ d: '2020-01-10', a: 100, c: '₪', clearer: 'נדרים' }] });
+    expect(hokEffectivelyActive(s, today)).toBe(true);
+  });
+  it('הו"ק-נדרים בלי היסטוריה עדיין ⇒ סומכים על הדגל (פעילה)', () => {
+    expect(hokEffectivelyActive(sp({ hok: hok({ kevaId: 'K1' }) }), today)).toBe(true);
+  });
+});
+
+// 🐛 hokRecordedThisMonth דרש סכום-מדויק ⇒ הו"ק בסכום-משתנה הוצגה שגוי כ"ממתין".
+// עכשיו: חיוב-נדרים כלשהו החודש (clearer='נדרים') מכסה, בלי דרישת-סכום.
+describe('🔁 ratchet — hokRecordedThisMonth רופף לסכום (חיוב-נדרים החודש)', () => {
+  const today = '2026-08-19';
+  it('חיוב-נדרים החודש בסכום שונה מההוראה ⇒ עדיין "נרשם"', () => {
+    const s = sp({
+      hok: { amount: 100, cur: '₪', day: 10, method: 'card', note: '', active: true, startedAt: '2025-01-01', kevaId: 'K1' },
+      hist: [{ d: '2026-08-10', a: 120, c: '₪', clearer: 'נדרים' }], // סכום חורג (120≠100)
+    });
+    expect(hokRecordedThisMonth(s, today)).toBe(true);
+    expect(hokDue([s], today)).toHaveLength(0);
+  });
+});
+
+// 🐛 supCount ספר כל שורת-hist — זיכוי/ביטול עתידי (a≤0) ינפח את הספירה. עכשיו: חיובי בלבד.
+describe('🔁 ratchet — supCount סופר רק שורות-hist חיוביות', () => {
+  it('שורת-hist שלילית/אפס לא נספרת ב-supCount (supIls מקזז מעצם הסכימה)', () => {
+    const s = sp({ count: 0, hist: [{ d: '2026-08-10', a: 100, c: '₪', clearer: 'נדרים' }, { d: '2026-08-11', a: -100, c: '₪', clearer: 'נדרים' }] });
+    expect(supCount(s)).toBe(1); // רק החיובי — לא 2
   });
 });
 

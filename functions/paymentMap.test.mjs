@@ -7,7 +7,7 @@
  * param1/param2 המהודהדים משמשים ל-org ולמזהה, ושם-מלא גובר על FirstName/LastName.
  */
 import { describe, expect, it } from 'vitest';
-import { mapPaymentCallback, pickCurrency } from './paymentMap.js';
+import { mapPaymentCallback, pickCurrency, pickAmount, pickDate } from './paymentMap.js';
 
 describe('💳 ratchet — מיפוי CallBack נדרים-פלוס', () => {
   it('מטען-נדרים אמיתי (Webhook/GetHistoryJson) ממופה במלואו', () => {
@@ -43,6 +43,7 @@ describe('💳 ratchet — מיפוי CallBack נדרים-פלוס', () => {
       toremId: '492787', // מפתח-שיוך חזק — חיבור-אוטומטי-לכרטיס
       receipt: 'K-778', // מספר-קבלת-§46 של נדרים
       last4: '1234', // 4 ספרות אחרונות (מ-LastNum, slice(-4))
+      d: '', // אין תאריך בקלט ⇒ ריק (הצרכן נופל ל-isoToday)
     });
   });
 
@@ -80,5 +81,32 @@ describe('💳 ratchet — מיפוי CallBack נדרים-פלוס', () => {
     expect(pickCurrency({ Currency: '1' })).toBe('₪');
     expect(pickCurrency({ Currency: 'ILS' })).toBe('₪');
     expect(pickCurrency({})).toBe('₪');
+  });
+
+  // 🐛 פרסור-סכום שביר: '1,000'/'₪50' ⇒ NaN ⇒ נדחה כ-'bad amount' והעסקה אבדה.
+  // עכשיו: מסירים מפריד-אלפים/סמל-מטבע/רווחים לפני ההמרה. (תיקון 20.8)
+  it('pickAmount מחטא מפריד-אלפים/סמל-מטבע ⇒ מספר תקין (לא NaN)', () => {
+    expect(pickAmount({ Amount: '1,000' })).toBe(1000);
+    expect(pickAmount({ Amount: '₪50' })).toBe(50);
+    expect(pickAmount({ Amount: ' 18.50 ' })).toBe(18.5);
+    expect(pickAmount({ Amount: '-25' })).toBe(-25); // סימן שלילי נשמר (זיכוי)
+    expect(pickAmount({})).toBe(0);
+    expect(pickAmount({ Amount: 'abc' })).toBe(0);
+  });
+
+  // 🐛 ה-webhook לא מיפה תאריך-עסקה ⇒ hist נרשם בזמן-הקליטה (לא תאריך-החיוב).
+  // עכשיו: pickDate ("dd/MM/yyyy HH:mm:ss" → ISO) — מקור-אמת יחיד ל-webhook ולמשיכה.
+  it('pickDate: dd/MM/yyyy → ISO; חסר ⇒ ריק; מ-mapPaymentCallback', () => {
+    expect(pickDate({ TransactionTime: '05/03/2024 14:22:01' })).toBe('2024-03-05');
+    expect(pickDate({ Date: '31/12/2019' })).toBe('2019-12-31');
+    expect(pickDate({ PaymentDate: '1/2/2025' })).toBe('2025-02-01');
+    expect(pickDate({})).toBe('');
+    expect(mapPaymentCallback({ org: 'root', Amount: '5', TransactionTime: '09/08/2022 00:00:00' }).d).toBe('2022-08-09');
+  });
+
+  // 🐛 חילוץ-ToremId ידני במשיכה השמיט את הווריאנט ToremID (D-גדולה); המפַּה מכסה.
+  it('toremId: הווריאנט ToremID (D-גדולה) נתפס במיפוי', () => {
+    expect(mapPaymentCallback({ org: 'root', Amount: '5', ToremID: '777' }).toremId).toBe('777');
+    expect(mapPaymentCallback({ org: 'root', Amount: '5', DonorId: '888' }).toremId).toBe('888');
   });
 });

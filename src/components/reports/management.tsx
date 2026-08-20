@@ -104,7 +104,7 @@ export function managementMetrics(db: Db, config?: OrgConfig): MetricGroup[] {
         title: '🔁 הוראות קבע',
         rows: [
           ['הוראות פעילות', activeHok.length],
-          ['סה"כ חודשי (₪-שקול)', ils(hokMonthlyTotal(db.supporters, db.usdRate || 3.7))],
+          ['סה"כ חודשי (₪-שקול)', ils(hokMonthlyTotal(db.supporters, db.usdRate || 3.7, isoToday()))],
           ['טרם נרשמו החודש', due.length ? due.length + ' (' + due.slice(0, 4).map((s) => s.name).join(', ') + (due.length > 4 ? '…' : '') + ')' : '✓ הכול נרשם'],
         ],
       });
