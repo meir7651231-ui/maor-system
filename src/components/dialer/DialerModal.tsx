@@ -265,6 +265,10 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
               {sp.ayin?.nextTalk && (
                 <div style={{ fontSize: 12, color: 'var(--accent-deep, #a05008)' }}>🔁 לדבר שוב: {fmtDate(sp.ayin.nextTalk)}</div>
               )}
+              {/* 📝 על מה לדבר (20.8) — תזכורת-האג'נדה של קשר-הבא, בדיוק לפני החיוג */}
+              {(sp.nextNote || '').trim() && (
+                <div style={{ fontSize: 12, color: 'var(--accent-deep, #a05008)' }}>📝 לדבר על: {sp.nextNote}</div>
+              )}
               {/* הערות-הכרטיס (20.8) — כולל רישומי-שיחות קודמים */}
               {(sp.notes || '').trim() && (
                 <div style={{ fontSize: 12, color: 'var(--ink-soft)', whiteSpace: 'pre-line', maxHeight: 72, overflowY: 'auto', borderTop: '1px dashed var(--line-soft, var(--line))', paddingTop: 6 }}>

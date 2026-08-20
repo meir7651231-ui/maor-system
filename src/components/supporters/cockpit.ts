@@ -101,7 +101,9 @@ export function cockpitCalls(
       name: sp.name,
       phone: sp.phone || '',
       email: sp.email || '',
-      reason: late <= 0 ? 'יעד-קשר להיום' : 'יעד-קשר עבר לפני ' + late + ' יום',
+      reason:
+        (late <= 0 ? 'יעד-קשר להיום' : 'יעד-קשר עבר לפני ' + late + ' יום') +
+        (sp.nextNote ? ' · 📝 ' + sp.nextNote : ''),
       severity: 'due',
       sort: 1_000_000 + late, // כל היעדים-שעברו לפני כל השקטים
     });
