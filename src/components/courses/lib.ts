@@ -334,9 +334,10 @@ export function enrollCount(db: Db, courseId: string): number {
   return db.enrollments.filter((e) => e.courseId === courseId && e.status !== 'ended').length;
 }
 
-/** המפגש הקרוב הבא של הקורס (לזכאות השלמה בחיסור — 48 שעות). */
-export function nextSessionDate(c: Course): Date | null {
-  const n = new Date();
+/** המפגש הקרוב הבא של הקורס (לזכאות השלמה בחיסור — 48 שעות).
+ *  S7 (20.8): `now` מוזרק (ברירת-מחדל = השעון) ⇒ דטרמיניסטי ובר-בדיקה. */
+export function nextSessionDate(c: Course, now: Date = new Date()): Date | null {
+  const n = now;
   let best: Date | null = null;
   for (const ss of sessionsOf(c)) {
     const t = (ss.time || '17:00').split(':');
