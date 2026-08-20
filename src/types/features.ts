@@ -14,6 +14,12 @@ export interface FeatureDef {
   label: string;
   /** תיאור קצר — מה נעלם כשמכבים. */
   desc: string;
+  /**
+   * דגל-opt-in (20.8): הקוד דורש `features[key] === true` — חסר = כבוי (הפוך
+   * מחוזה-הדגלים הרגיל). האשף חייב לכתוב true מפורש כדי להדליק (setFeatures).
+   * משמש למסכים שאסור שיידלקו מעצמם אצל לקוח-חי (קוקפיט/מודיעין/גלקסיה/ריברנד).
+   */
+  optIn?: true;
   /** המודול-אב; 'core'/'home'/'settings'/'shell' אינם כפופים לטוגל מודול. */
   module:
     | 'families'
@@ -68,7 +74,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.gradeimg', label: 'טווח כיתות ותמונת חוג', desc: 'שדות מכיתה/עד-כיתה (גן–י"ב) שנכנסים לסינון השיבוץ החכם + תמונת חוג בטופס ובכרטיס', module: 'courses' },
   { key: 'courses.absence', label: 'רישום חיסורים', desc: 'רישום חיסור/No-Show לתלמיד (מכרטיס החוג והיומן) + מדד אמינות', module: 'courses' },
   { key: 'courses.attendance.sheet', label: 'גיליון-נוכחות מהיר', desc: 'מסך roll-call — כל הקבוצה בבת-אחת: "כולם נוכחים" בקליק + נוכחות/חיסור פר-תלמיד', module: 'courses' },
-  { key: 'courses.cockpit', label: 'חלון-העבודה (קוקפיט)', desc: 'מסך שמסדר את היום: נוכחות-להיום · חייבים · כרטיסיות-שנגמרות · בסיכון-נשירה (opt-in)', module: 'courses' },
+  { key: 'courses.cockpit', label: 'חלון-העבודה (קוקפיט)', desc: 'מסך שמסדר את היום: נוכחות-להיום · חייבים · כרטיסיות-שנגמרות · בסיכון-נשירה (opt-in)', module: 'courses', optIn: true },
   { key: 'courses.waitlist', label: 'רשימת-המתנה', desc: 'חוג מלא ⇒ "הוסף לרשימת-המתנה" במקום חסימה; שיבוץ מהתור כשמתפנה מקום (לא תופס מקום)', module: 'courses' },
   { key: 'courses.bulkadmin', label: 'הקמה מהירה (סמסטר)', desc: '📑 שכפול-חוג לסמסטר-חדש (בלי תלמידים) + 🎓 סיום-סמסטר (כל השיבוצים ⇒ הסתיים, ניתן לחדש)', module: 'courses' },
   { key: 'courses.collect', label: 'מרכז-גבייה', desc: '💰 "כל החייבים" חוצה-חוגים + תזכורת-WhatsApp + קישור-תשלום + ייצוא (רק תזכורת, לא קבלה)', module: 'courses' },
@@ -127,6 +133,11 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.customreport', label: 'דו"ח מותאם (תומכים)', desc: 'כפתור ייצוא דו"ח מותאם במסך התומכים', module: 'supporters' },
   { key: 'supporters.annualreport', label: 'דוח שנתי לתורם 📄', desc: 'ריכוז תרומות שנת-המס לתורם/ת (ולכולם בקובץ אחד) — לרו"ח ולמס; אינו קבלה', module: 'supporters' },
   { key: 'supporters.hok', label: 'הוראות קבע 🔁', desc: 'הגדרת הו"ק על תורם/ת + תזכורת-חודשית "טרם נרשמה" + רישום-בקליק; החיוב עצמו אצל הסליקה/הבנק', module: 'supporters' },
+  // ── מסכי 20.8 · opt-in מפורש (חסר=כבוי — לא מדליקים לקוח-חי מעצמם) ──
+  { key: 'supporters.cockpit', label: 'חלון-העבודה (קוקפיט) 🎯', desc: 'משטח-עבודה מעל טבלת-התורמים: KPI + תור-משימות (שיחות/תודות/הו"ק) + פלטת-פיקוד ⌘K + ייצוא (opt-in)', module: 'supporters', optIn: true },
+  { key: 'supporters.intel', label: 'מרכז-המודיעין 📊', desc: 'טבלה-עמוקה פר-תורם: RFM מפורק · סיכון-נטישה · תחזית-מתנה · מגמה, עם כרטיס-צלילה (opt-in)', module: 'supporters', optIn: true },
+  { key: 'supporters.galaxy', label: 'גלקסיית-התורמים 🌌', desc: 'מפת-כוכבים חיה: גודל=ערך · צבע=דרגה · מרחק=טריות; קליק על כוכב פותח כרטיס (opt-in)', module: 'supporters', optIn: true },
+  { key: 'supporters.rebrand', label: 'רצועת-KPI לתורמים ✨', desc: 'רצועת מדדים חיה מעל הטבלה הקיימת — סה"כ · פעילים · בסיכון · תחזית; צ׳יפים=סינון (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.ayin.dailyreport', label: 'דוח יומי — מעקב טיפול', desc: 'כפתור ייצוא הדוח היומי של מעקב הטיפול (תת-דגל של מעקב טיפול)', module: 'supporters' },
   { key: 'supporters.hist', label: 'תרומות מהקובץ ההיסטורי', desc: 'מיזוג התרומות שהגיעו מהקובץ ההיסטורי (גיבוי לגאסי) לרשימת "כל התרומות" בכרטיס', module: 'supporters' },
   { key: 'supporters.ayin.sheet', label: 'גיליון מעקב להורדה/ייבוא', desc: 'ייצוא גיליון מעקב הטיפול ל-CSV, מילוי מחוץ למערכת וייבוא חזרה (תת-דגל של מעקב טיפול)', module: 'supporters' },
