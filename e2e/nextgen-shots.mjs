@@ -80,26 +80,30 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const nav = async (label) => { await page.locator(`nav >> text=${label}`).first().click().catch(() => {}); await wait(600); };
 const shot = async (name) => { await page.screenshot({ path: join(OUT, name + '.png') }); console.log('📸', name); };
 
+// בורר-המבטים מרנדר <button role="tab">; כפתור-החזרה בכל מבט הוא <button> רגיל.
+// locator('button', {hasText}) תופס את שניהם (שניהם אלמנט-button) — לא תלוי-role.
+const clickBtn = async (label) => { await page.locator('button', { hasText: label }).first().click().catch(() => {}); };
+
 await nav('תורמים');
 await wait(700);
 await shot('01-rebrand-list'); // הטבלה + רצועת-KPI
 
-await page.getByRole('button', { name: /מודיעין/ }).first().click().catch(() => {});
+await clickBtn('מודיעין');
 await wait(900);
 await shot('02-intel');
-// מכונת-הזמן נמצאת מתחת-לקפל — צילום-עמוד-מלא לאימות
+// שכבות-העומק מתחת-לקפל — צילום-עמוד-מלא לאימות
 await page.screenshot({ path: join(OUT, '02b-intel-full.png'), fullPage: true });
 console.log('📸 02b-intel-full');
 
-await page.getByRole('button', { name: /מסך הנתונים/ }).first().click().catch(() => {});
+await clickBtn('מסך הנתונים');
 await wait(500);
-await page.getByRole('button', { name: /גלקסיה/ }).first().click().catch(() => {});
+await clickBtn('גלקסיה');
 await wait(1800); // אנימציה
 await shot('03-galaxy');
 
-await page.getByRole('button', { name: /מסך הנתונים/ }).first().click().catch(() => {});
+await clickBtn('מסך הנתונים');
 await wait(500);
-await page.getByRole('button', { name: /חלון העבודה/ }).first().click().catch(() => {});
+await clickBtn('חלון העבודה');
 await wait(800);
 await shot('04-cockpit');
 
