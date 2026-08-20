@@ -23,6 +23,7 @@ import {
   setEmployeeOverride,
 } from './lib';
 import { FEATURES } from '../../types/features';
+import { WIZARD_SECTIONS } from '../builder/sections';
 import { allDonationPurposes } from '../supporters/lib';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import type { OrgCloudDoc, OrgJoinRequestDoc } from '../../lib/cloudConfig';
@@ -75,7 +76,17 @@ export function ManagerPanel(props: { onClose: () => void }) {
   const scope: ModuleKey[] = orgEnabledModules((config as OrgConfig) ?? {});
   // תת-הדגלים שהמנהל יכול לחלק = דגלים דלוקים-בארגון תחת מודול-דלוק (אותה תקרה)
   const featScope = orgEnabledFeatures((config as OrgConfig) ?? {}, FEATURES);
-  const featGroups = [...new Set(featScope.map((f) => f.module))];
+  // תיקון 20.8 (בקשת-בעלים "למה אין ❓ לעובדת"): הקבוצות הוצגו כמזהים גולמיים
+  // באנגלית ('shell', 'home'…) — מי שחיפש "עזרה" לא מצא. עכשיו: תווית עברית
+  // + אימוג'י מהאשף, בסדר-המסכים של האפליקציה.
+  const groupLabelOf = (m: string): string => {
+    const sec = WIZARD_SECTIONS.find((s) => s.id === m);
+    return sec ? `${sec.emoji} ${sec.title}` : m;
+  };
+  const groupOrder = WIZARD_SECTIONS.map((s) => s.id as string);
+  const featGroups = [...new Set(featScope.map((f) => f.module))].sort(
+    (a, b) => groupOrder.indexOf(a) - groupOrder.indexOf(b),
+  );
   const employees = (org?.members ?? []).filter((m) => m.trim().toLowerCase() !== managerMail.trim().toLowerCase());
   const inviteLink =
     org?.joinCode && typeof window !== 'undefined'
@@ -270,12 +281,14 @@ export function ManagerPanel(props: { onClose: () => void }) {
                     {featGroups.length > 0 && (
                       <div style={{ marginTop: 10 }}>
                         <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
-                          דגלים עדינים (לפי מודול) — הדלקה/כיבוי פר-עובד/ת:
+                          יכולות פר-עובד/ת — בוחרים מסך ומכבים/מדליקים יכולת. ⚠️ כרטיס-עובד =
+                          <b> הגבלה בלבד</b>: אפשר לכבות לעובד/ת יכולת שדלוקה בארגון; יכולת
+                          שכבויה ברמת-הארגון מדליקים קודם באשף-הארגון (היא לא תופיע כאן).
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
                           {featGroups.map((g) => (
                             <Chip key={g} on={featModule === g} onClick={() => setFeatModule(featModule === g ? '' : g)}>
-                              {g}
+                              {groupLabelOf(g)}
                             </Chip>
                           ))}
                         </div>
