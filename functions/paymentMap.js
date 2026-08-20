@@ -29,6 +29,24 @@ function pickCurrency(p) {
   return '₪'; // '1' / 'ILS' / ריק / שקל
 }
 
+/** סכום מנורמל: מסיר מפריד-אלפים/סמל-מטבע/רווחים לפני ההמרה כדי ש-'1,000'/'₪50'
+ * לא ייהפכו ל-NaN (⇒ 'bad amount' 400 ⇒ עסקה אובדת). שומר סימן ונקודה-עשרונית. */
+function pickAmount(p) {
+  const raw = pick(p, 'Amount', 'amount', 'Sum', 'sum', 'Total');
+  return Number(String(raw || 0).replace(/[^\d.-]/g, '')) || 0;
+}
+
+/** תאריך-עסקה (נדרים: "dd/MM/yyyy HH:mm:ss") → ISO "yyyy-MM-dd". ריק אם אין —
+ * הצרכן (chargeToHist) ייפול ל-isoToday. **מקור-אמת יחיד** ל-webhook ולמשיכה כאחד. */
+function pickDate(p) {
+  const raw = pick(p, 'TransactionTime', 'Date', 'PaymentDate', 'TransactionDate');
+  const m = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(raw);
+  if (!m) return '';
+  const [, d, mo, y] = m;
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${y}-${pad(mo)}-${pad(d)}`;
+}
+
 /**
  * @returns {{org:string, amount:number, currency:string, name:string, phone:string,
  *   email:string, zeout:string, category:string, kevaId:string, reference:string}}
@@ -40,7 +58,7 @@ function mapPaymentCallback(params) {
   return {
     // org מגיע מה-query שמגדירים בפאנל נדרים (‏?org=slug), עם נפילה ל-param1 המהודהד
     org: pick(p, 'org', 'param1', 'Param1'),
-    amount: Number(pick(p, 'Amount', 'amount', 'Sum', 'sum', 'Total') || 0),
+    amount: pickAmount(p),
     currency: pickCurrency(p),
     // נדרים שולח שם-מלא ב-ClientName; שם-מלא מפורש גובר על FirstName/LastName
     name: pick(p, 'ClientName', 'Name', 'name', 'FullName', 'PayerName') || [first, last].filter(Boolean).join(' '),
@@ -56,7 +74,9 @@ function mapPaymentCallback(params) {
     // מספר-קבלת-נדרים (§46) ו-4 ספרות אחרונות — לתיעוד ב-hist[] של הכרטיס
     receipt: pick(p, 'KabalaId', 'KabalaNum', 'ReceiptNum'),
     last4: pick(p, 'LastNum', 'Last4', 'CardSuffix').slice(-4),
+    // תאריך-העסקה האמיתי (ISO) — נכתב ל-hist[].d גם ב-webhook החי (עקבי עם המשיכה)
+    d: pickDate(p),
   };
 }
 
-module.exports = { mapPaymentCallback, pick, pickCurrency };
+module.exports = { mapPaymentCallback, pick, pickCurrency, pickAmount, pickDate };

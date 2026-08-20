@@ -21,9 +21,18 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
+const crypto = require('crypto');
 const { mapPaymentCallback } = require('./paymentMap');
 
 initializeApp();
+
+/** אימות-סוד קבוע-זמן (מונע timing-attack) + fail-closed: PAY_SECRET ריק ⇒ שקר.
+ * שיתוף עם המשיכה (nedarimPull) דרך export כדי לא לשכפל. */
+function secretOk(given, expected) {
+  const a = Buffer.from(String(given ?? ''));
+  const b = Buffer.from(String(expected ?? ''));
+  return b.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
+}
 
 // כיוון-יוצא (משיכת-נדרים) — מודול נפרד; נטען בסוף הקובץ (Object.assign(exports,…)).
 
@@ -46,10 +55,12 @@ exports.paymentsWebhook = onRequest({ secrets: ['PAY_SECRET'] }, async (req, res
   // לעיתים query ולעיתים body. מאחדים את שלושתם ובוררים סובלני-שמות (paymentMap).
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).send('POST/GET only');
   const p = { ...(req.query ?? {}), ...(req.body ?? {}) };
-  if ((p.secret ?? '') !== process.env.PAY_SECRET) return res.status(403).send('bad secret');
+  if (!secretOk(p.secret, process.env.PAY_SECRET)) return res.status(403).send('bad secret');
   const m = mapPaymentCallback(p);
   if (!/^[a-z0-9-]{2,40}$|^root$/.test(m.org)) return res.status(400).send('bad org');
-  if (!(m.amount > 0)) return res.status(400).send('bad amount');
+  // חיוב לא-חיובי (מבוטל=0 · זיכוי=שלילי): קלט **תקין** שמדולג במכוון (פאזה מודעת-כסף).
+  // מחזירים 200 ('skipped') ולא 400 — אחרת נדרים מסמן CallBack-כושל (רעש/התראות-שווא).
+  if (!(m.amount > 0)) return res.status(200).send('ok (skipped: non-positive)');
   // eslint-disable-next-line no-unused-vars
   const { secret, ...rawSafe } = p; // המטען-הגולמי בלי הסוד-המשותף — לתיעוד/דיוק-מיפוי
   const db = getFirestore();
@@ -67,19 +78,22 @@ exports.paymentsWebhook = onRequest({ secrets: ['PAY_SECRET'] }, async (req, res
     toremId: m.toremId, // מזהה-תורם נדרים — חיבור-אוטומטי-לכרטיס לפי מפתח
     receipt: m.receipt, // KabalaId — מספר-קבלת-§46 של נדרים → hist[].receipt
     last4: m.last4, // 4 ספרות אחרונות → hist[].last4
+    d: m.d, // תאריך-העסקה האמיתי (ISO) → hist[].d — עקבי עם המשיכה (לא זמן-הקליטה)
     at: new Date().toISOString(),
     status: 'pending', // ממתין לחיבור (אוטומטי-לכרטיס / אישור-ידני)
     raw: JSON.parse(JSON.stringify(rawSafe)),
   };
   // dedup + אי-דריסה: TransactionId ⇒ doc-id דטרמיניסטי משותף עם המשיכה (nedarimSync).
+  // בלי TransactionId — נופלים לאסמכתא (reference) כמפתח-דדופ ⇒ CallBack-כפול לא משכפל.
   // create() נכשל אם כבר קיים ⇒ עסקה שכבר תועדה (וייתכן שכבר נרשמה) לא מתאפסת ל-pending.
   const tid = String(p.TransactionId ?? p.Transaction ?? '').trim();
+  const dedupKey = tid || (m.reference ? 'ref-' + m.reference : '');
   try {
-    if (tid) {
-      payload.txnId = tid;
-      await col.doc('nedarim-' + tid).create(payload);
+    if (tid) payload.txnId = tid;
+    if (dedupKey) {
+      await col.doc('nedarim-' + dedupKey).create(payload);
     } else {
-      await col.add(payload); // בלי מזהה-עסקה — id אקראי (ספק אחר / CallBack חלקי)
+      await col.add(payload); // בלי מזהה-עסקה ובלי אסמכתא — id אקראי (ספק אחר / CallBack חלקי)
     }
   } catch (e) {
     // ALREADY_EXISTS (code 6) ⇒ כבר תועד ⇒ אידמפוטנטי (מחזירים ok). שגיאה אחרת ⇒ מפילים.

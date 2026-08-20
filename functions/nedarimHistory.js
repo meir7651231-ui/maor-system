@@ -49,10 +49,12 @@ function planHistoryWrites(rows, org) {
     // גם מול גרסת-מפה חלקית/ותיקה.
     // שדות ל-hist[] של כרטיס-התומך (תאריך-אמת, מספר-קבלת-נדרים, 4 ספרות אחרונות)
     // + מזהה-תורם (ToremId) כשנדרים מחזיר אותו בעסקה — מפתח-השיוך ל-100% התאמה.
-    const dIso = nedarimDateToIso(r.TransactionTime ?? r.Date ?? r.PaymentDate);
-    const receipt = String(r.KabalaId ?? r.KabalaNum ?? r.ReceiptNum ?? '').trim();
-    const last4 = String(r.LastNum ?? r.Last4 ?? r.CardSuffix ?? '').trim().slice(-4);
-    const toremId = String(r.ToremId ?? r.ToremId ?? r.ClientId ?? r.DonorId ?? '').trim();
+    // מקור-אמת יחיד: mapPaymentCallback (זהה ל-webhook) — מונע פערי-מיפוי בין המסלולים.
+    // (הבאג הישן: `r.ToremId` הופיע פעמיים בחילוץ-הידני ⇒ הווריאנט ToremID נשמט.)
+    const dIso = m.d;
+    const receipt = m.receipt;
+    const last4 = m.last4;
+    const toremId = m.toremId;
     writes.push({
       id: 'nedarim-' + tid,
       data: {

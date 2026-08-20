@@ -12,13 +12,22 @@
  * doc-id דטרמיניסטי `nedarim-<tid>` מונע כפילות בין ריצות-משיכה.
  *
  * מגבלת-נדרים: 20 פניות/שעה ⇒ תקרת-עמודים נוקשה.
- * secrets: NEDARIM_MOSAD_ID · NEDARIM_API_PASSWORD (npk_, סוד) · NEDARIM_ORG · PAY_SECRET.
+ * secrets: NEDARIM_MOSAD_ID · NEDARIM_API_PASSWORD (npk_, סוד) · PAY_SECRET.
+ * env (לא-סוד): NEDARIM_ORG — slug הארגון לרשת-הביטחון (nedarimSyncHourly).
  */
 const { onRequest } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { getFirestore } = require('firebase-admin/firestore');
+const crypto = require('crypto');
 const { planHistoryWrites } = require('./nedarimHistory');
 const { parseDonorsTsv } = require('./nedarimDonors');
+
+/** אימות-סוד קבוע-זמן + fail-closed (PAY_SECRET ריק ⇒ שקר). זהה ל-index.js. */
+function secretOk(given, expected) {
+  const a = Buffer.from(String(given ?? ''));
+  const b = Buffer.from(String(expected ?? ''));
+  return b.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
+}
 
 function incomingCol(db, org) {
   return org === 'root'
@@ -31,11 +40,26 @@ function syncCol(db, org) {
     : db.collection('orgs').doc(org).collection('nedarimSync');
 }
 
-async function fetchNedarimHistory(lastId, maxId) {
+/** אישורי-נדרים לארגון: **כספת-הארגון גוברת** (orgSecrets/{slug}: nedarimMosad/
+ *  nedarimApiPass), נפילה ל-env הגלובלי (חד-מוסדי). כך שדות-הכספת שהמנהל מזין
+ *  באמת פועלים (הבאג: המשיכה קראה רק env גלובלי ⇒ הכספת הייתה מתה). (תיקון 20.8) */
+async function nedarimCreds(db, org) {
+  let mosad = process.env.NEDARIM_MOSAD_ID || '';
+  let pass = process.env.NEDARIM_API_PASSWORD || '';
+  try {
+    const d = await db.doc('orgSecrets/' + org).get();
+    const s = d.exists ? (d.data() || {}) : {};
+    if (s.nedarimMosad) mosad = String(s.nedarimMosad).trim();
+    if (s.nedarimApiPass) pass = String(s.nedarimApiPass).trim();
+  } catch { /* אין כספת ⇒ הגלובלי */ }
+  return { mosad, pass };
+}
+
+async function fetchNedarimHistory(lastId, maxId, creds = {}) {
   const body = new URLSearchParams({
     Action: 'GetHistoryJson',
-    MosadId: process.env.NEDARIM_MOSAD_ID || '',
-    ApiPassword: process.env.NEDARIM_API_PASSWORD || '',
+    MosadId: creds.mosad || process.env.NEDARIM_MOSAD_ID || '',
+    ApiPassword: creds.pass || process.env.NEDARIM_API_PASSWORD || '',
     MaxId: String(maxId),
   });
   if (lastId) body.set('LastId', String(lastId));
@@ -55,16 +79,14 @@ async function fetchNedarimHistory(lastId, maxId) {
   return Array.isArray(json) ? json : json.Transactions || json.data || [];
 }
 
-/** איפוס-משיכה (opt-in): מחיקת שורות-המשיכה הקודמות (source==pull) + ה-cursor,
- * לפני משיכה-מחדש — כדי למשוך הכל שוב עם המפה המעודכנת (שמות). שורות-webhook נשמרות. */
-/** משיכת רשימת-התורמים כ-CSV (GetTormimCsv). שים לב: השדה הוא MosadNumber (לא MosadId). */
-/** משיכת רשימת-התורמים — בייטים גולמיים (הקידוד הוא Windows-1255, לא UTF-8!). */
-async function fetchNedarimDonorsBytes() {
+/** משיכת רשימת-התורמים — בייטים גולמיים (הקידוד בפועל UTF-16LE, נפילה ל-Windows-1255). */
+async function fetchNedarimDonorsBytes(creds = {}) {
+  const mosad = creds.mosad || process.env.NEDARIM_MOSAD_ID || '';
   const body = new URLSearchParams({
     Action: 'GetTormimCsv',
-    MosadNumber: process.env.NEDARIM_MOSAD_ID || '',
-    MosadId: process.env.NEDARIM_MOSAD_ID || '',
-    ApiPassword: process.env.NEDARIM_API_PASSWORD || '',
+    MosadNumber: mosad,
+    MosadId: mosad,
+    ApiPassword: creds.pass || process.env.NEDARIM_API_PASSWORD || '',
     ToMail: '0',
   });
   const resp = await fetch('https://matara.pro/nedarimplus/Reports/Manage3.aspx', {
@@ -75,9 +97,11 @@ async function fetchNedarimDonorsBytes() {
   return Buffer.from(await resp.arrayBuffer());
 }
 
-/** פענוח בטוח לפי שם-קידוד; מחזיר '' אם הקידוד לא נתמך בסביבה. */
+/** פענוח בטוח לפי שם-קידוד; **fatal:true** ⇒ קידוד-שגוי (בייטים לא-חוקיים) זורק
+ * ⇒ שרשרת-הנפילה (`utf-16le || windows-1255 || utf-8`) באמת מנסה את הבא, במקום
+ * לבלוע ג'יבריש ולהחזיר mojibake שמפרק את פרסור-ה-TSV בשקט. */
 function tryDecode(buf, enc) {
-  try { return new TextDecoder(enc).decode(buf); } catch { return ''; }
+  try { return new TextDecoder(enc, { fatal: true }).decode(buf); } catch { return ''; }
 }
 
 function donorsCol(db, org) {
@@ -88,7 +112,7 @@ function donorsCol(db, org) {
 /** משיכת רשימת-התורמים ואחסונם (doc-id=מזהה-תורם) — צד-הלקוח יוצר מהם כרטיסי-תורם. */
 async function runNedarimDonorsPull(org) {
   const db = getFirestore();
-  const buf = await fetchNedarimDonorsBytes();
+  const buf = await fetchNedarimDonorsBytes(await nedarimCreds(db, org));
   const text = tryDecode(buf, 'utf-16le') || tryDecode(buf, 'windows-1255') || tryDecode(buf, 'utf-8');
   const donors = parseDonorsTsv(text);
   const col = donorsCol(db, org);
@@ -103,12 +127,6 @@ async function runNedarimDonorsPull(org) {
     await batch.commit();
   }
   return { donors: n };
-}
-
-/** רשימת-התורמים כטקסט נקי — Windows-1255 (נפילה ל-UTF-8). */
-async function fetchNedarimDonorsCsv() {
-  const buf = await fetchNedarimDonorsBytes();
-  return tryDecode(buf, 'windows-1255') || tryDecode(buf, 'utf-8');
 }
 
 async function clearPullRows(db, col, cursorRef) {
@@ -130,6 +148,7 @@ async function runNedarimPull(org, opts = {}) {
   const db = getFirestore();
   const col = incomingCol(db, org);
   const cursorRef = syncCol(db, org).doc('cursor');
+  const creds = await nedarimCreds(db, org);
   let removed = 0;
   if (opts.reset) removed = await clearPullRows(db, col, cursorRef); // מוחק שורות-משיכה + cursor
   const cursorSnap = await cursorRef.get();
@@ -142,22 +161,32 @@ async function runNedarimPull(org, opts = {}) {
   const MAX_ID = 2000; // תקרת נדרים
   while (pages < MAX_PAGES) {
     pages++;
-    const rows = await fetchNedarimHistory(lastId, MAX_ID);
+    const rows = await fetchNedarimHistory(lastId, MAX_ID, creds);
     if (!rows.length) break;
     const { writes, cursor } = planHistoryWrites(rows, org);
-    // כתיבה **באצוות** (400/batch) עם doc-id דטרמיניסטי `nedarim-<tid>` ⇒ אידמפוטנטי
-    // בין ריצות-משיכה. **בלי שאילתת-reference פר-שורה** — זו הייתה O(n) קריאות
-    // סדרתיות שגרמו ל-timeout על גיבוי-מלא (אלפי עסקאות). דדופ מול ה-webhook (id
-    // אקראי, אותו reference/txnId) נעשה **בשלב-הסנכרון** (planNedarimSync דדופ לפי
-    // txnId) ⇒ עסקה כפולה ב-incomingPayments לא מייצרת כפל-חיוב בכרטיס.
-    for (let i = 0; i < writes.length; i += 400) {
+    // ⚠️ אי-דריסה (תיקון 20.8): doc-id דטרמיניסטי `nedarim-<tid>` משותף עם ה-webhook.
+    // ה-webhook לא מקדם את ה-cursor, לכן כל משיכה חוזרת על עסקאות-webhook שכבר קיימות
+    // (וייתכן ש**כבר טופלו** — status:'handled'). batch.set היה **דורס** אותן חזרה
+    // ל-'pending' (+ מוחק raw, מוסיף source:'pull') ⇒ הצפת-המזכירה בתשלומים-שכבר-נרשמו.
+    // לכן: קוראים-לפני-כתיבה (getAll במנות) ומדלגים על doc-id שכבר קיים — כותבים רק חדשים.
+    const refs = writes.map((w) => col.doc(w.id));
+    const existing = new Set();
+    for (let i = 0; i < refs.length; i += 300) {
+      const snaps = await db.getAll(...refs.slice(i, i + 300));
+      for (const s of snaps) if (s.exists) existing.add(s.id);
+    }
+    const fresh = writes.filter((w) => !existing.has(w.id));
+    for (let i = 0; i < fresh.length; i += 400) {
       const batch = db.batch();
-      const slice = writes.slice(i, i + 400);
+      const slice = fresh.slice(i, i + 400);
       for (const w of slice) batch.set(col.doc(w.id), { ...w.data, at: new Date().toISOString() });
       await batch.commit();
       added += slice.length;
     }
     if (cursor > maxCursor) maxCursor = cursor;
+    // הגנת-התקדמות: אם ה-cursor לא עלה (עמוד בלי TransactionId תקין ⇒ cursor=0, או
+    // החזרה לא-עולה) — לעצור, לא להתאפס ל-0 ולמשוך שוב מההתחלה בלולאה אינסופית.
+    if (!(cursor > lastId)) break;
     lastId = cursor;
     if (rows.length < MAX_ID) break; // עמוד אחרון (פחות מהמקסימום)
   }
@@ -178,13 +207,13 @@ exports.nedarimPull = onRequest(
   async (req, res) => {
     if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).send('POST/GET only');
     const p = { ...(req.query ?? {}), ...(req.body ?? {}) };
-    if ((p.secret ?? '') !== process.env.PAY_SECRET) return res.status(403).send('bad secret');
+    if (!secretOk(p.secret, process.env.PAY_SECRET)) return res.status(403).send('bad secret');
     const org = String(p.org ?? '').trim();
     if (!/^[a-z0-9-]{2,40}$|^root$/.test(org)) return res.status(400).send('bad org');
     // ?peek=1 ⇒ הצצה: מחזיר את 3 העסקאות הראשונות גולמיות (כל השדות) בלי לכתוב — לתכנון מיפוי.
     if (p.peek === '1') {
       try {
-        return res.status(200).json({ ok: true, sample: await fetchNedarimHistory(0, 3) });
+        return res.status(200).json({ ok: true, sample: await fetchNedarimHistory(0, 3, await nedarimCreds(getFirestore(), org)) });
       } catch (e) {
         return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
       }
@@ -192,7 +221,7 @@ exports.nedarimPull = onRequest(
     // ?peekdonors=1 ⇒ הצצה: 5 התורמים הראשונים אחרי פרסור (מוודא מיפוי נכון).
     if (p.peekdonors === '1') {
       try {
-        const buf = await fetchNedarimDonorsBytes();
+        const buf = await fetchNedarimDonorsBytes(await nedarimCreds(getFirestore(), org));
         const text = tryDecode(buf, 'utf-16le') || tryDecode(buf, 'windows-1255');
         return res.status(200).json({ ok: true, parsed: parseDonorsTsv(text).slice(0, 5) });
       } catch (e) {
@@ -219,12 +248,20 @@ exports.nedarimPull = onRequest(
 
 /**
  * 🕒 nedarimSyncHourly — רשת-הביטחון האוטומטית: כל שעה מושכת עסקאות-חדשות
- * מנדרים לארגון שב-NEDARIM_ORG (ברירת-מחדל root). כשל-רך (לא מפיל את התזמון).
+ * מנדרים לארגון שב-NEDARIM_ORG. כשל-רך (לא מפיל את התזמון).
+ *
+ * ⚠️ NEDARIM_ORG = **משתנה-סביבה** (slug — לא סוד) ולכן **אינו** ב-`secrets`:
+ *   (1) כך פריסה-מלאה (`--only functions`) לא נכשלת כשהסוד טרם נוצר ב-Secret-Manager;
+ *   (2) חסר NEDARIM_ORG ⇒ **מדלגים** (לא מושכים ל-'root' בשקט — הארגון-החי הוא slug).
  */
 exports.nedarimSyncHourly = onSchedule(
-  { schedule: 'every 60 minutes', secrets: ['NEDARIM_MOSAD_ID', 'NEDARIM_API_PASSWORD', 'NEDARIM_ORG'] },
+  { schedule: 'every 60 minutes', secrets: ['NEDARIM_MOSAD_ID', 'NEDARIM_API_PASSWORD'] },
   async () => {
-    const org = (process.env.NEDARIM_ORG || 'root').trim();
+    const org = (process.env.NEDARIM_ORG || '').trim();
+    if (!org) {
+      console.error('nedarimSyncHourly: NEDARIM_ORG לא-מוגדר — מדלג (לא מושך ל-root כדי לא לכתוב לארגון שגוי)');
+      return;
+    }
     try {
       const out = await runNedarimPull(org);
       console.log('nedarimSyncHourly', org, JSON.stringify(out));

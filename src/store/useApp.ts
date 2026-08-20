@@ -150,6 +150,9 @@ interface AppState {
   paletteOpen: boolean;
   /** מצב צנעה (SHOP10) — מסתיר מסכי-מקבלי-הצדקה מעיון מזדמן. Runtime, לא נשמר. */
   privacyMode: boolean;
+  /** מספר התשלומים-הנכנסים הממתינים (עדכון-חי מ-watchIncomingPayments). Runtime, לא
+   *  נשמר — משמש תג-מונה על הכפתור + חיווי "החיבור-החי מושהה" מעל הסף. */
+  nedPending: number;
   /** מצב פתיחת הנעילות — לכל הסשן (לא נשמר ב-db). */
   unlockedPrimary: boolean;
   unlockedAdmin: boolean;
@@ -1064,6 +1067,7 @@ export const useApp = create<AppState>()((set, get) => {
     toasts: [],
     paletteOpen: false,
     privacyMode: false,
+    nedPending: 0,
     unlockedPrimary: readSess(SESS.p),
     unlockedAdmin: readSess(SESS.a),
     lock: readLock(),

@@ -30,10 +30,28 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
   const [mergeFor, setMergeFor] = useState<IncomingPayment | null>(null);
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // חימוש-פוקע (3.5ש') לפעולות-אצווה ההמוניות (כותבות ל-hist של הרבה כרטיסים).
+  const [armed, setArmed] = useState<string | null>(null);
+  function armOr(action: string, run: () => void) {
+    if (armed !== action) {
+      setArmed(action);
+      setTimeout(() => setArmed((a) => (a === action ? null : a)), 3500);
+      return;
+    }
+    setArmed(null);
+    run();
+  }
 
   async function refresh(m: CloudMod) {
     setLoading(true);
-    setRows(await m.fetchIncomingPayments());
+    try {
+      setRows(await m.fetchIncomingPayments());
+      setError(null);
+    } catch (e) {
+      // כשל-קריאה אמיתי (הרשאה/רשת) — מבדילים מ"אין תשלומים" כדי לא להטעות.
+      setError(String((e as Error)?.message || e));
+    }
     setLoading(false);
   }
 
@@ -133,6 +151,19 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
     toast('🔗 ' + added + ' חוברו · ' + (remaining ? remaining.toLocaleString('he-IL') + ' נותרו לשיוך ידני' : 'הרשימה רוקנה'));
   }
 
+  // ✓ סימון **כל** הנותרים כטופל (בלי שיוך) — עובד על כל rows (לא רק 300 המוצגים),
+  // לניקוי-ערימה גדולה שאין-לה כרטיס-תואם. במנות markMany הקיים.
+  async function markAllRemaining() {
+    if (!mod) return;
+    setBusy(true);
+    const n = rows.length;
+    await markMany(rows.map((p) => p.id));
+    setSel(new Set());
+    await refresh(mod);
+    setBusy(false);
+    toast('✓ ' + n.toLocaleString('he-IL') + ' תשלומים סומנו כטופלו');
+  }
+
   if (mergeFor) {
     return <MergeView pay={mergeFor} onBack={() => setMergeFor(null)} onMerged={() => void afterMerge(mergeFor)} onClose={props.onClose} />;
   }
@@ -140,7 +171,14 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
   return (
     <Modal title="💰 תשלומים נכנסים — ממתינים לרישום" onClose={props.onClose}>
       {loading && <div className="empty">טוען…</div>}
-      {!loading && rows.length === 0 && (
+      {!loading && error && (
+        <div style={{ border: '1px solid var(--danger, #e05252)', borderRadius: 10, padding: 10, marginBottom: 10, fontSize: 12.5 }}>
+          ⚠ שגיאת-חיבור לענן — לא ניתן לטעון את התשלומים (זו <b>לא</b> "אין ממתינים").
+          <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 2 }} dir="ltr">{error}</div>
+          <Btn sm onClick={() => mod && void refresh(mod)} disabled={!mod}>נסו שוב</Btn>
+        </div>
+      )}
+      {!loading && !error && rows.length === 0 && (
         <Empty>
           אין תשלומים ממתינים. (הרשימה מתמלאת אוטומטית כשחברת-הסליקה מדווחת —
           דורש את שרת-ההרחבות; ראו RUNBOOK-FUNCTIONS.)
@@ -154,8 +192,11 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
             כפתור זה מחבר <b>את כל</b> בעלי-ההתאמה-הוודאית (מזהה/ת״ז/טלפון/אימייל) לכרטיסים בבת-אחת;
             רק נטולי-התאמה יישארו לשיוך ידני.
           </div>
-          <Btn kind="primary" disabled={busy} onClick={() => void autoMergeAllPending()} title="שיוך-אוטומטי של כל הממתינים לכרטיסים לפי התאמה-ודאית">
-            🔗 מזג אוטומטית את כל הממתינים ({rows.length.toLocaleString('he-IL')})
+          <Btn kind={armed === 'auto' ? 'danger' : 'primary'} disabled={busy} onClick={() => armOr('auto', () => void autoMergeAllPending())} title="שיוך-אוטומטי של כל הממתינים לכרטיסים לפי התאמה-ודאית">
+            {armed === 'auto' ? 'לאשר מיזוג?' : '🔗 מזג אוטומטית את כל הממתינים (' + rows.length.toLocaleString('he-IL') + ')'}
+          </Btn>
+          <Btn sm kind={armed === 'markall' ? 'danger' : undefined} disabled={busy} onClick={() => armOr('markall', () => void markAllRemaining())} title="סימון כל הנותרים כטופל (בלי שיוך לכרטיס)">
+            {armed === 'markall' ? 'לאשר סימון-הכל?' : '✓ סמן הכל כטופל'}
           </Btn>
           {busy && <span style={{ fontSize: 12, color: 'var(--accent)' }}>מעבד…</span>}
         </div>

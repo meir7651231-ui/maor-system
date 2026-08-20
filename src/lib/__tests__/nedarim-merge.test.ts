@@ -168,4 +168,19 @@ describe('🛡 ratchet — חיווט מסך תשלומים-נכנסים', () =>
     // ⚠️ חייב לעבוד על rows המלא, לא על shown (אחרת שוב "לא מצליח למזג את השאר")
     expect(src).toContain('autoMatchCharges(rows, supporters)');
   });
+  it('תיקוני-UI 20.8: סמן-הכל-הנותרים + חימוש-פוקע + באנר-שגיאה + תג-מונה', async () => {
+    const inc = (await import('../../components/supporters/IncomingPayments.tsx?raw')).default as string;
+    expect(inc).toContain('markAllRemaining'); // ניקוי-ערימה על כל rows
+    expect(inc).toContain('rows.map((p) => p.id)');
+    expect(inc).toContain('armOr'); // חימוש-פוקע לפעולות-אצווה המוניות
+    expect(inc).toContain('שגיאת-חיבור'); // כשל-רשת ≠ "אין ממתינים"
+    const sv = (await import('../../components/supporters/SupportersView.tsx?raw')).default as string;
+    expect(sv).toContain('nedPending'); // תג-מונה + "מושהה" על הכפתור
+  });
+  it('מסך-הסנכרון מסמן handled רק את plan.handledChargeIds (לא כל העסקאות)', async () => {
+    const sync = (await import('../../components/supporters/NedarimSyncModal.tsx?raw')).default as string;
+    expect(sync).toContain('plan.handledChargeIds');
+    expect(sync).not.toContain('charges.map((c) => c.id)'); // הבאג הישן — סימון-הכל
+    expect(sync).toContain('מבוטלים/זיכויים'); // מונה-מדולגים בתצוגה-המקדימה
+  });
 });

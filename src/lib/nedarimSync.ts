@@ -64,6 +64,7 @@ export interface SyncSummary {
   chargesDup: number; // כבר קיים ב-hist לפי txn — דילוג
   chargesNoTxn: number; // חיוב בלי מספר-עסקה (לא ניתן-דדופ) — עדיין נוסף
   chargesSkipped: number; // attachOnly: אין כרטיס-תואם ⇒ נשאר pending (לא נוצר כרטיס)
+  chargesNonPositive: number; // מבוטל(0)/זיכוי(שלילי) — מדולג (פאזה מודעת-כסף)
   recurring: number; // חיובי הו"ק שזוהו (kevaId)
   ilsAdded: number;
   usdAdded: number;
@@ -124,6 +125,22 @@ export function chargeToHist(charge: SyncCharge): HistEntry {
   if (l4) h.last4 = l4;
   if (keva) h.kevaId = keva; // חיוב חוזר — נשמר ל-hist לזיהוי-הו"ק מדויק בעתיד
   return h;
+}
+
+/** מפתח-דדופ לעסקה: txn ראשון, נפילה ל-**אסמכתא** (reference) — כך CallBack-כפול
+ *  בלי TransactionId (ספק-אחר/CallBack-חלקי) לא משכפל שורת-hist. ריק ⇒ אין דדופ. */
+export function chargeDedupKey(charge: SyncCharge): string {
+  const txn = (charge.txnId || '').trim();
+  if (txn) return 'txn:' + txn;
+  const ref = (charge.reference || '').trim();
+  return ref ? 'ref:' + ref : '';
+}
+/** מפתח-דדופ מרשומת-hist קיימת (מקביל ל-chargeDedupKey). */
+function histDedupKey(h: HistEntry): string {
+  const txn = (h.txn || '').trim();
+  if (txn) return 'txn:' + txn;
+  const ref = (h.ref || '').trim();
+  return ref ? 'ref:' + ref : '';
 }
 
 /* ── מילוי-אוטומטי של משבצת-ההו"ק מחיוב-נדרים חוזר (הכרעת-בעלים 19.8:
@@ -268,9 +285,9 @@ export function attachChargeTo(supporters: Supporter[], supId: string, charge: S
   const idx = supporters.findIndex((s) => s.id === supId);
   if (idx < 0) return { supporters, added: false };
   const sp = supporters[idx];
-  const txn = (charge.txnId || '').trim();
+  const key = chargeDedupKey(charge);
   const hist = sp.hist || [];
-  if (txn && hist.some((h) => (h.txn || '').trim() === txn)) return { supporters, added: false };
+  if (key && hist.some((h) => histDedupKey(h) === key)) return { supporters, added: false };
   const next = supporters.slice();
   next[idx] = withNedarimHok({ ...sp, hist: [...hist, chargeToHist(charge)] }, charge);
   return { supporters: next, added: true };
@@ -332,10 +349,10 @@ export function attachChargesBulk(supporters: Supporter[], items: { supId: strin
     const idx = byId.get(supId);
     if (idx == null) continue;
     let seen = seenTxn.get(idx);
-    if (!seen) { seen = new Set((next[idx].hist || []).map((h) => (h.txn || '').trim()).filter(Boolean)); seenTxn.set(idx, seen); }
-    const txn = (charge.txnId || '').trim();
-    if (txn && seen.has(txn)) continue;
-    if (txn) seen.add(txn);
+    if (!seen) { seen = new Set((next[idx].hist || []).map(histDedupKey).filter(Boolean)); seenTxn.set(idx, seen); }
+    const key = chargeDedupKey(charge);
+    if (key && seen.has(key)) continue;
+    if (key) seen.add(key);
     next[idx] = withNedarimHok({ ...next[idx], hist: [...(next[idx].hist || []), chargeToHist(charge)] }, charge);
     added++;
   }
@@ -372,12 +389,20 @@ function supFromDonor(d: SyncDonor): Supporter {
   };
 }
 
-/** כרטיס-תומך חדש מעסקה (כשאין תורם/כרטיס תואם) — אפס-אובדן-חיוב. */
+/** כרטיס-תומך חדש מעסקה (כשאין תורם/כרטיס תואם) — אפס-אובדן-חיוב.
+ *  עסקה **חסרת-שם וחסרת-מזהה** מנותבת לכרטיס-אוסף יחיד ('sup-ned-unassigned')
+ *  במקום כרטיס-לכל-עסקה (מונע ריבוי-כרטיסי-'תורם נדרים' ב-CRM). כולם אנונימיים
+ *  ⇒ איגום בטוח (לא ממזג אנשים מזוהים). */
 function supFromCharge(c: SyncCharge, seq: number): Supporter {
-  const id = c.toremId ? 'sup-ned-' + c.toremId : 'sup-ned-txn-' + (c.txnId || String(seq));
+  const anon = !c.toremId && !nameSortKey(c.name || '');
+  const id = c.toremId
+    ? 'sup-ned-' + c.toremId
+    : anon
+      ? 'sup-ned-unassigned'
+      : 'sup-ned-txn-' + (c.txnId || String(seq));
   return {
     id,
-    name: (c.name || 'תורם נדרים').trim(),
+    name: (c.name || (anon ? 'תרומות נדרים ללא שיוך' : 'תורם נדרים')).trim(),
     phone: (c.phone || '').trim(),
     email: (c.email || '').trim(),
     address: '',
@@ -454,6 +479,7 @@ export function planNedarimSync(
     chargesDup: 0,
     chargesNoTxn: 0,
     chargesSkipped: 0,
+    chargesNonPositive: 0,
     recurring: 0,
     ilsAdded: 0,
     usdAdded: 0,
@@ -494,13 +520,13 @@ export function planNedarimSync(
     }
   }
 
-  // ── שלב 2: עסקאות → hist[] של הכרטיס התואם (דדופ לפי txn; יצירה אם אין) ──
-  const seenTxn = new Map<number, Set<string>>(); // idx → txns שכבר ב-hist
-  const txnSetFor = (idx: number): Set<string> => {
-    let s = seenTxn.get(idx);
+  // ── שלב 2: עסקאות → hist[] של הכרטיס התואם (דדופ txn/ref; יצירה אם אין) ──
+  const seenKeys = new Map<number, Set<string>>(); // idx → מפתחות-דדופ שכבר ב-hist
+  const keySetFor = (idx: number): Set<string> => {
+    let s = seenKeys.get(idx);
     if (!s) {
-      s = new Set((out[idx].hist || []).map((h) => (h.txn || '').trim()).filter(Boolean));
-      seenTxn.set(idx, s);
+      s = new Set((out[idx].hist || []).map(histDedupKey).filter(Boolean));
+      seenKeys.set(idx, s);
     }
     return s;
   };
@@ -508,10 +534,12 @@ export function planNedarimSync(
   let chargeSeq = 0;
   for (const c of charges) {
     chargeSeq++;
-    if (!(c.amount > 0)) continue; // חיוב-חיובי בלבד (מבוטל/זיכוי = פאזה מודעת-כסף)
-    if (c.kevaId) summary.recurring++;
+    if (!(c.amount > 0)) { summary.chargesNonPositive++; continue; } // מבוטל/זיכוי = פאזה מודעת-כסף
     let idx = findIdx(keysOf({ extId: c.toremId, zeout: c.zeout, phone: c.phone, email: c.email, name: c.name }));
-    if (idx < 0) idx = findByName(c.name); // קישור-לפי-שם (ClientName) — היסטוריית-נדרים בלי מפתח-חזק
+    // קישור-לפי-שם (ClientName) — היסטוריית-נדרים בלי מפתח-חזק. **רק בסנכרון-המלא:**
+    // בחיבור-החי (attachOnly) שם-בלבד עלול לזקוף לכרטיס-שגוי (שם-יחיד ≠ עמום) בלי
+    // סקירה — כמו במסלול-הידני, שם-בלבד נשאר לשיוך-ידני עם תצוגה-מקדימה.
+    if (idx < 0 && !opts.attachOnly) idx = findByName(c.name);
     if (idx < 0) {
       // אין כרטיס-תואם. במצב attachOnly (חיבור-חי) — **לא** יוצרים כרטיס אוטומטי
       // (מונע ריבוי-כרטיסים); העסקה נשארת pending לסנכרון-הידני עם תצוגה-מקדימה.
@@ -528,11 +556,12 @@ export function planNedarimSync(
         if (newNames.length < 40) newNames.push(sp.name);
       }
     }
-    const txn = (c.txnId || '').trim();
-    const seen = txnSetFor(idx);
-    if (txn && seen.has(txn)) { summary.chargesDup++; if (c.id) handledChargeIds.push(c.id); continue; }
-    if (txn) seen.add(txn);
+    const key = chargeDedupKey(c);
+    const seen = keySetFor(idx);
+    if (key && seen.has(key)) { summary.chargesDup++; if (c.id) handledChargeIds.push(c.id); continue; }
+    if (key) seen.add(key);
     else summary.chargesNoTxn++;
+    if (c.kevaId) summary.recurring++; // נספר **רק** על חיוב-הו"ק שנוסף בפועל (לא על dup)
     // חיוב חוזר (kevaId) ⇒ withNedarimHok ממלא אוטומטית את משבצת-ההו"ק של הכרטיס.
     out[idx] = withNedarimHok({ ...out[idx], hist: [...(out[idx].hist || []), chargeToHist(c)] }, c);
     summary.chargesAdded++;

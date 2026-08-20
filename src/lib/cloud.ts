@@ -655,24 +655,19 @@ export interface NedarimDonor {
   notes?: string;
 }
 
-/** רשימת-התורמים ששוגרה מנדרים (nedarimDonors) — כשל-קריאה ⇒ [] (כשל-רך). */
+/** רשימת-התורמים ששוגרה מנדרים (nedarimDonors). אוסף-ריק ⇒ [] (הצלחה); כשל-קריאה
+ *  אמיתי (הרשאה/רשת) ⇒ **זורק** — כך ה-caller מבחין בין "אין נתונים" ל"תקלת-חיבור"
+ *  (במקום להציג 'הכול מסונכרן' שגוי בזמן תקלה). (תיקון 20.8) */
 export async function fetchNedarimDonors(): Promise<NedarimDonor[]> {
-  try {
-    const snap = await getDocs(collection(requireDb(), scopedCol('nedarimDonors')));
-    return snap.docs.map((d) => ({ toremId: d.id, ...(d.data() as Omit<NedarimDonor, 'toremId'>) }));
-  } catch {
-    return [];
-  }
+  const snap = await getDocs(collection(requireDb(), scopedCol('nedarimDonors')));
+  return snap.docs.map((d) => ({ toremId: d.id, ...(d.data() as Omit<NedarimDonor, 'toremId'>) }));
 }
 
-/** התשלומים הממתינים ("💰 תשלומים נכנסים") — כשל-קריאה ⇒ [] (אין Functions/Rules). */
+/** התשלומים הממתינים ("💰 תשלומים נכנסים"). אוסף-ריק ⇒ [] (הצלחה); כשל-קריאה אמיתי
+ *  ⇒ **זורק** (ה-caller מציג 'שגיאת-חיבור' ולא 'אין תשלומים'/'הכול מסונכרן'). */
 export async function fetchIncomingPayments(): Promise<IncomingPayment[]> {
-  try {
-    const snap = await getDocs(query(collection(requireDb(), scopedCol('incomingPayments')), where('status', '==', 'pending')));
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<IncomingPayment, 'id'>) }));
-  } catch {
-    return [];
-  }
+  const snap = await getDocs(query(collection(requireDb(), scopedCol('incomingPayments')), where('status', '==', 'pending')));
+  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<IncomingPayment, 'id'>) }));
 }
 
 /** סימון תשלום-נכנס כ"נרשם" (אחרי שהמזכירה רשמה תרומה/תשלום במערכת). */

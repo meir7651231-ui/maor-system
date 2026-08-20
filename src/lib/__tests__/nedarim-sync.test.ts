@@ -173,16 +173,53 @@ describe('🔄 ratchet — planNedarimSync (סנכרון-נכנס דרך המפ�
     expect(handledChargeIds).toEqual([]); // לא מסמנים handled ⇒ נשאר ל-🔄 הידני
   });
 
-  it('attachOnly: עסקה עם כרטיס-תואם (שם) — מחוברת, ומזהה-העסקה חוזר לסימון handled', () => {
-    const existing = [sp('a', { name: 'ראובן לוי' })];
+  it('attachOnly: עסקה עם מפתח-חזק (טלפון) — מחוברת, ומזהה-העסקה חוזר לסימון handled', () => {
+    const existing = [sp('a', { name: 'ראובן לוי', phone: '0501234567' })];
     const { summary, handledChargeIds } = planNedarimSync(
       existing,
       [],
-      [charge({ id: 'inc-9', amount: 100, name: 'ראובן לוי', txnId: 'T-9' })],
+      [charge({ id: 'inc-9', amount: 100, name: 'ראובן לוי', phone: '0501234567', txnId: 'T-9' })],
       { attachOnly: true },
     );
     expect(summary.chargesAdded).toBe(1);
     expect(handledChargeIds).toEqual(['inc-9']); // חובר ⇒ מסומן handled
+  });
+
+  // 🐛 החיבור-החי (attachOnly) ביצע התאמת-שם אוטומטית בלי אישור ⇒ עלול לזקוף לכרטיס
+  // שגוי (שם-יחיד ≠ עמום), בניגוד למסלול-הידני שמחריג שם. עכשיו: שם-בלבד בחיבור-החי
+  // **לא** מתחבר — נשאר pending לשיוך-ידני עם תצוגה-מקדימה (כמו bulkAutoMerge). (20.8)
+  it('attachOnly: עסקה עם שם-בלבד (בלי מפתח-חזק) — לא מתחברת אוטומטית, נשארת pending', () => {
+    const existing = [sp('a', { name: 'ראובן לוי' })]; // כרטיס-יחיד באותו שם
+    const { summary, handledChargeIds } = planNedarimSync(
+      existing,
+      [],
+      [charge({ id: 'inc-9', amount: 100, name: 'ראובן לוי', txnId: 'T-9' })], // שם-בלבד
+      { attachOnly: true },
+    );
+    expect(summary.chargesAdded).toBe(0);
+    expect(summary.chargesSkipped).toBe(1);
+    expect(handledChargeIds).toEqual([]); // לא מסומן ⇒ נשאר ל-🔄 הידני
+  });
+
+  // בסנכרון-המלא (לא attachOnly) התאמת-שם-יחיד עדיין מחברת (עם תצוגה-מקדימה+אישור).
+  it('סנכרון-מלא: שם-יחיד תואם — כן מתחבר (המסלול-הידני, עם אישור)', () => {
+    const existing = [sp('a', { name: 'ראובן לוי' })];
+    const { summary } = planNedarimSync(existing, [], [charge({ amount: 100, name: 'ראובן לוי', txnId: 'T-9' })]);
+    expect(summary.chargesAdded).toBe(1);
+    expect(summary.newSupporters).toBe(0); // חובר לקיים, לא נוצר חדש
+  });
+
+  // 🐛 עסקה חסרת-שם-ומזהה יצרה כרטיס פר-txn ⇒ ריבוי-כרטיסים. עכשיו: כרטיס-אוסף יחיד.
+  it('סנכרון-מלא: עסקאות אנונימיות (בלי שם/מזהה) מתאגמות לכרטיס-אוסף יחיד', () => {
+    const charges = [
+      charge({ amount: 10, name: '', txnId: 'X1' }),
+      charge({ amount: 20, name: '', txnId: 'X2' }),
+    ];
+    const { supporters, summary } = planNedarimSync([], [], charges);
+    const collector = supporters.filter((s) => s.id === 'sup-ned-unassigned');
+    expect(collector).toHaveLength(1); // כרטיס-אחד, לא שניים
+    expect(collector[0].hist).toHaveLength(2);
+    expect(summary.newSupporters).toBe(1);
   });
 
   it('עסקה עם ToremId חדש שאין-לו-תורם — לא נוצרים שני כרטיסים לאותו ToremId', () => {
