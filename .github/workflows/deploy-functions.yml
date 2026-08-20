@@ -4,6 +4,11 @@
 # רק ההתחברות, בלי ניתוח-קוד). ⚠️ לא רץ אוטומטית על push — ידני בלבד.
 name: Deploy Functions
 
+# שתי דרכי-הפעלה:
+# 1. ידני — Actions ← Run workflow (כשמפעילים מהאתר).
+# 2. ענף-טריגר — push לענף בשם deploy-fn/<target> (למשל deploy-fn/stage1);
+#    כך גם הארכיטקט יכול להפעיל פריסה מרחוק (dispatch ישיר חסום ל-integration).
+#    הענף נמחק אחרי הריצה בלי להשאיר זנב.
 on:
   workflow_dispatch:
     inputs:
@@ -21,6 +26,9 @@ on:
           - yemot         # yemotProxy (YEMOT_TOKEN)
           - sheets        # sheetsNightly (GOOGLE_SA)
           - everything    # הכול — רק אחרי שכל הסודות קיימים!
+  push:
+    branches:
+      - 'deploy-fn/**'
 
 jobs:
   deploy:
@@ -48,7 +56,9 @@ jobs:
       - name: תרגום היעד לרשימת פונקציות
         id: t
         run: |
-          case "${{ github.event.inputs.target }}" in
+          TARGET="${{ github.event.inputs.target }}"
+          if [ -z "$TARGET" ]; then TARGET="${GITHUB_REF_NAME#deploy-fn/}"; fi
+          case "$TARGET" in
             stage1)     F="functions:icsFeed,functions:remindersNightly,functions:backupNightly" ;;
             mail)       F="functions:mailOutbox" ;;
             nedarim)    F="functions:nedarimPull,functions:nedarimSyncHourly" ;;
@@ -67,7 +77,7 @@ jobs:
         run: npx firebase-tools@13 deploy --project maor-system --only "${{ steps.t.outputs.flist }}" --non-interactive
 
       - name: אימות (stage1)
-        if: ${{ github.event.inputs.target == 'stage1' }}
+        if: ${{ github.event.inputs.target == 'stage1' || github.ref_name == 'deploy-fn/stage1' }}
         run: |
           CODE=$(curl -s -o /dev/null -w '%{http_code}' "https://us-central1-maor-system.cloudfunctions.net/icsFeed" || true)
           echo "icsFeed → HTTP $CODE"
