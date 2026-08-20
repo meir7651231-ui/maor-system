@@ -38,6 +38,7 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
   const undo = useApp((s) => s.dialerUndo);
   const stop = useApp((s) => s.dialerStop);
   const openSupporterCard = useApp((s) => s.openSupporterCard);
+  const toast = useApp((s) => s.toast);
   // סבב ב׳: מעקב-טיפול תוך-שיחה — הוספת-שם וקידום-שלב (אותן פעולות כמו בכרטיס)
   const ayinAddName = useApp((s) => s.ayinAddName);
   const ayinAdvance = useApp((s) => s.ayinAdvance);
@@ -249,25 +250,44 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                 <Btn sm onClick={() => setEditOpen(true)} title={'עריכת פרטי ' + sp.name + ' — טלפון/כתובת/יעד-קשר בלי לעזוב את הקמפיין'}>
                   ✎ עריכת פרטים
                 </Btn>
+                {/* 💳 מסלול-הסליקה: התורם משלם בעצמו אונליין — התשלום נקלט אוטומטית
+                    מהסליקה (תשלומים-נכנסים, דדופ-txn). מגן-כפילות (20.8): שימוש בקישור
+                    ממלא הערת-שיחה ומזהיר לא לרשום גם "תרם/ה" ידנית — אחרת ירשם פעמיים. */}
                 {donateHref && (
-                  <a
-                    href={donateHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="chip"
-                    title="עמוד-התרומה של הארגון — קישור לתשלום מקוון"
+                  <span
+                    style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}
+                    onClickCapture={() => {
+                      if (!note.trim()) setNote('נשלח קישור-תשלום');
+                      toast('💳 הקישור נשלח — לא לרשום "תרם/ה" ידנית; התשלום ייקלט מהסליקה אוטומטית');
+                    }}
                   >
-                    💳 עמוד-תרומה
-                  </a>
-                )}
-                {donateHref && waOn && sp.phone && (
-                  <WaBtn
-                    phone={sp.phone}
-                    text={renderTemplate(config, 'wa.paylink', { name: sp.name, org: orgName, link: donateHref })}
-                    title={'שליחת קישור-התשלום בוואטסאפ ל' + sp.name}
-                  />
+                    <a
+                      href={donateHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="chip"
+                      title="התורם משלם בעצמו בעמוד-הסליקה — התשלום ייקלט אוטומטית (לא לרשום גם ידנית)"
+                    >
+                      💳 עמוד-תרומה
+                    </a>
+                    {waOn && sp.phone && (
+                      <WaBtn
+                        phone={sp.phone}
+                        text={renderTemplate(config, 'wa.paylink', { name: sp.name, org: orgName, link: donateHref })}
+                        title={'שליחת קישור-התשלום בוואטסאפ ל' + sp.name + ' — התשלום ייקלט מהסליקה אוטומטית'}
+                      />
+                    )}
+                  </span>
                 )}
               </div>
+
+              {/* הסבר שני-המסלולים — מוצג רק כשיש קישור-תשלום (אחרת אין מה לבלבל) */}
+              {donateHref && (
+                <div style={{ fontSize: 11, color: 'var(--ink-faint)', lineHeight: 1.5 }}>
+                  💰 <b>תרם/ה</b> = הכסף התקבל אצלכם עכשיו (מזומן/העברה/אשראי) — רישום + קבלה מיד ·{' '}
+                  💳 <b>עמוד-תרומה</b> = התורם משלם אונליין בעצמו — נקלט מהסליקה אוטומטית, בלי רישום ידני
+                </div>
+              )}
 
               {/* 🕯 פאנל שמות-לטיפול — רישום תוך-שיחה + קידום-שלב (מעקב-הטיפול המלא בכרטיס) */}
               {ayinOn && namesOpen && (
@@ -339,7 +359,7 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
               /* כפתורי-סיווג — מקלדת 1–6 */
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-                  <Btn kind="primary" onClick={startDonation} title="רישום התרומה (קבלה) ואז התקדמות — מקש 1">💰 תרם/ה</Btn>
+                  <Btn kind="primary" onClick={startDonation} title="כסף שהתקבל אצלכם עכשיו (מזומן/העברה/אשראי) — רישום + קבלה ואז התקדמות. שילם דרך הקישור? לא לרשום — ייקלט מהסליקה. מקש 1">💰 תרם/ה</Btn>
                   <Btn onClick={() => act('noanswer')} title="חוזר לסוף-התור — מקש 2">📵 לא ענה</Btn>
                   <Btn onClick={() => act('refused')} title="מקש 3">🚫 סירב</Btn>
                   <Btn onClick={() => setCbOpen(true)} title="קביעת מועד-חזרה — מקש 4">🔁 חזרה</Btn>
