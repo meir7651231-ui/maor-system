@@ -62,7 +62,7 @@ import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
 import { applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
-import { applyOutcome, startCampaign } from '../lib/dialer';
+import { applyOutcome, OUTCOME_LABELS, startCampaign, undoLast } from '../lib/dialer';
 import {
   dailySnapshot,
   exportBackupFile,
@@ -472,10 +472,19 @@ interface AppState {
   deleteQuoteTemplate: (templateId: string) => void;
   /** חייגן-מונחה — פתיחת קמפיין מרשימת מזהי-תומכים. */
   dialerStart: (ids: string[], name: string) => void;
-  /** סיווג-תוצאה למתקשר-הנוכחי ומעבר לבא; callback עם תאריך ⇒ "לדבר שוב". */
-  dialerOutcome: (outcome: DialOutcome, note: string, callbackIso?: string) => void;
+  /**
+   * סיווג-תוצאה למתקשר-הנוכחי ומעבר לבא; callback עם תאריך ⇒ "לדבר שוב"
+   * (+ alsoReminder ⇒ גם תזכורת בלוח). הערה לא-ריקה נרשמת גם בכרטיס (20.8).
+   */
+  dialerOutcome: (outcome: DialOutcome, note: string, callbackIso?: string, alsoReminder?: boolean) => void;
+  /** ↩ ביטול הסיווג האחרון — המתקשר חוזר לחזית-התור (20.8). */
+  dialerUndo: () => void;
   /** סגירת/ביטול הקמפיין הפעיל. */
   dialerStop: () => void;
+  /** צ'יפ-קמפיין-צף (20.8): פתיחת החייגן מכל מסך — דפוס famFormReq. */
+  dialerOpenReq: boolean;
+  openDialer: () => void;
+  ackDialerOpen: () => void;
   /** קביעת מועד "לדבר שוב" — שדות בלבד (התזכורת נכתבת ב-ayinCallAgain). */
   ayinSetNextTalk: (id: string, date: string, time: string) => void;
   /** 🔁 שוב — כותב תזכורת ללוח לפי מועד "לדבר שוב". */
@@ -2639,15 +2648,48 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => ({ ui: { ...db.ui, quoteTemplates: (db.ui.quoteTemplates || []).filter((t) => t.id !== templateId) } }));
     },
     dialerStart(ids, name) {
-      setDb((db) => ({ ui: { ...db.ui, dialer: startCampaign(name, ids, new Date().toISOString()) } }));
+      // סינון-מראש (20.8): תומך בלי טלפון = עצירה-מבוזבזת בקמפיין-שיחות —
+      // מושמט עם הודעה ("דלג" היה מחזיר אותו לסוף-התור בלולאה אינסופית).
+      const withPhone = new Set(
+        get().db.supporters.filter((s) => (s.phone || '').trim()).map((s) => s.id),
+      );
+      const callable = ids.filter((id) => withPhone.has(id));
+      const omitted = ids.length - callable.length;
+      setDb((db) => ({ ui: { ...db.ui, dialer: startCampaign(name, callable, new Date().toISOString()) } }));
+      if (omitted > 0) get().toast(`📵 ${omitted} בלי מספר-טלפון הושמטו מהקמפיין`);
     },
-    dialerOutcome(outcome, note, callbackIso) {
+    dialerOutcome(outcome, note, callbackIso, alsoReminder) {
       const cur = get().db.ui.dialer;
       if (!cur) return;
       const id = cur.queue[0];
       // callback עם תאריך ⇒ "לדבר שוב" על מעקב-התומך (משתלב בלוח/בית/מבט-ההנהלה)
-      if (outcome === 'callback' && id && callbackIso) get().ayinSetNextTalk(id, callbackIso, '');
-      setDb((db) => (db.ui.dialer ? { ui: { ...db.ui, dialer: applyOutcome(db.ui.dialer, outcome, note, new Date().toISOString()) } } : {}));
+      if (outcome === 'callback' && id && callbackIso) {
+        get().ayinSetNextTalk(id, callbackIso, '');
+        // 20.8: אופציונלית — גם תזכורת בלוח-השנה (אותו מסלול כמו "🔁 שוב" במעקב)
+        if (alsoReminder) get().ayinCallAgain(id);
+      }
+      const trimmed = (note || '').trim();
+      setDb((db) => {
+        if (!db.ui.dialer) return {};
+        const next: Partial<Db> = {
+          ui: { ...db.ui, dialer: applyOutcome(db.ui.dialer, outcome, trimmed, new Date().toISOString()) },
+        };
+        // רישום-עמיד (20.8): הערת-שיחה לא-ריקה נכתבת גם בכרטיס-התומך —
+        // יומן-הקמפיין נמחק בסיום, וההערה הייתה אובדת לתמיד.
+        if (trimmed && id) {
+          const line = `📞 ${isoToday()} · ${OUTCOME_LABELS[outcome]}: ${trimmed}`;
+          next.supporters = db.supporters.map((s) =>
+            s.id === id ? { ...s, notes: s.notes ? s.notes + '\n' + line : line } : s,
+          );
+        }
+        return next;
+      });
+    },
+    dialerUndo() {
+      const cur = get().db.ui.dialer;
+      if (!cur || !cur.log.length) return;
+      setDb((db) => (db.ui.dialer ? { ui: { ...db.ui, dialer: undoLast(db.ui.dialer) } } : {}));
+      get().toast('↩ הסיווג האחרון בוטל — המתקשר חזר לתור');
     },
     dialerStop() {
       setDb((db) => {
@@ -2656,6 +2698,9 @@ export const useApp = create<AppState>()((set, get) => {
         return { ui };
       });
     },
+    dialerOpenReq: false,
+    openDialer: () => set({ view: 'supporters', dialerOpenReq: true }),
+    ackDialerOpen: () => set({ dialerOpenReq: false }),
     ayinSetNextTalk(id, date, time) {
       setAyin(id, { nextTalk: date, nextTalkTime: time });
     },

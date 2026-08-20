@@ -35,6 +35,13 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     vars: ['first', 'org'],
     def: 'מזל טוב ל{first} ליום ההולדת! 🎂 באהבה, {org}',
   },
+  {
+    // חייגן-מונחה (20.8) — "לא ענה? שלח וואטסאפ" בקמפיין-שיחות; עריך באשף כמו השאר
+    key: 'wa.dialer',
+    label: '📞 הודעת-חייגן (לא ענה)',
+    vars: ['name', 'org'],
+    def: 'שלום {name}, ניסינו להשיג אתכם מ{org} ולא הצלחנו — נשמח שתחזרו אלינו 🙏',
+  },
 ];
 
 export const TEMPLATE_KEYS = TEMPLATE_DEFS.map((d) => d.key);
