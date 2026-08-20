@@ -8,22 +8,27 @@
  * שדרוג 20.8 ("תתקן הכל"): 💰 תרם/ה פותח את מודאל-התרומה (קבלה רציפה!) ·
  * מקלדת 1–6 · שם-לחיץ ⇒ כרטיס-מלא · הקשר הו"ק/הערות · וואטסאפ-מתובנת ·
  * חזרה+תזכורת-בלוח · ⬇ סיכום-CSV · ↩ ביטול-אחרון.
+ *
+ * סבב ב׳ (20.8): 🕯 שמות-לטיפול תוך-שיחה (ayinAddName) + קידום-שלב (ayinAdvance) ·
+ * ✎ עריכת-פרטים (SupporterForm בהחלפה) · 💳 קישור-תשלום + שליחה-בוואטסאפ (wa.paylink).
  */
 import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { termOf, integrationOn } from '../../lib/config';
+import { featureOn, termOf, integrationOn, integrationSetting } from '../../lib/config';
 import { campaignCsvRows, currentId, progress } from '../../lib/dialer';
 import { renderTemplate } from '../../lib/templates';
 import { activeDriver } from '../../lib/telephony/driver';
 import { downloadCsv, type Cell } from '../../lib/csvx';
+import { payLink } from '../../lib/payLink';
 import type { DialOutcome } from '../../types/domain';
 import { Modal, Btn, Empty } from '../ui';
 import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
 import { HebDateInput } from '../HebDateInput';
 import { supIls, supLast, supCount, fmtDate, hokRecordedThisMonth, isoToday } from '../supporters/lib';
-import { stageLabel } from '../../lib/ayin';
+import { ayinAdvanceLabel, featLabel, itemLabel, stageLabel, unitLabel } from '../../lib/ayin';
 import { DonationModal } from '../supporters/DonationModal';
+import { SupporterForm } from '../supporters/SupporterForm';
 
 export function DialerModal({ onClose }: { onClose: () => void }) {
   const config = useApp((s) => s.config);
@@ -33,6 +38,9 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
   const undo = useApp((s) => s.dialerUndo);
   const stop = useApp((s) => s.dialerStop);
   const openSupporterCard = useApp((s) => s.openSupporterCard);
+  // סבב ב׳: מעקב-טיפול תוך-שיחה — הוספת-שם וקידום-שלב (אותן פעולות כמו בכרטיס)
+  const ayinAddName = useApp((s) => s.ayinAddName);
+  const ayinAdvance = useApp((s) => s.ayinAdvance);
 
   const [note, setNote] = useState('');
   const [cbOpen, setCbOpen] = useState(false);
@@ -41,6 +49,12 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
   const [armEnd, setArmEnd] = useState(false); // מגן דו-שלבי לסיום (בלי confirm ילידי)
   // 💰 תרם/ה ⇒ מודאל-התרומה; שומרים כמה תרומות היו — סגירה עם תרומה-חדשה = נרשם
   const [donFor, setDonFor] = useState<{ id: string; had: number } | null>(null);
+  // ✎ עריכת-פרטים תוך-שיחה — SupporterForm מחליף את החייגן (כמו מודאל-התרומה)
+  const [editOpen, setEditOpen] = useState(false);
+  // 🕯 פאנל שמות-לטיפול — מתקפל; קלט שם+כמות
+  const [namesOpen, setNamesOpen] = useState(false);
+  const [nameVal, setNameVal] = useState('');
+  const [eyesVal, setEyesVal] = useState('');
 
   const supWord = termOf(config, 'entity.supporter', 'תומך/ת');
   const waOn = integrationOn(config, 'whatsapp');
@@ -74,7 +88,7 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
 
   // ⌨️ קיצורי-מקלדת 1–6 (20.8) — קמפיין של עשרות שיחות בלי עכבר; לא בזמן הקלדה
   useEffect(() => {
-    if (!sp || cbOpen || donFor) return;
+    if (!sp || cbOpen || donFor || editOpen) return;
     const onKey = (e: globalThis.KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
@@ -91,7 +105,7 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sp?.id, cbOpen, !!donFor, note]);
+  }, [sp?.id, cbOpen, !!donFor, editOpen, note]);
 
   if (!dialer || !prog) {
     return (
@@ -107,12 +121,30 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
     const spDon = supporters.find((s) => s.id === donFor.id);
     if (spDon) return <DonationModal supporter={spDon} onClose={closeDonation} />;
   }
+  // ✎ עריכת-פרטים תוך-שיחה — אותה החלפה; בסגירה חוזרים לחייגן (הפרטים כבר מעודכנים)
+  if (editOpen && sp) {
+    return <SupporterForm supporter={sp} onClose={() => setEditOpen(false)} />;
+  }
 
   const pct = prog.total ? Math.round((prog.finalized / prog.total) * 100) : 0;
   const orgName = config.orgName || 'העמותה';
   const exportCsv = () => {
     const nameOf = (sid: string) => supporters.find((s) => s.id === sid)?.name ?? sid;
     downloadCsv('dialer-' + isoToday() + '.csv', campaignCsvRows(dialer, nameOf) as Cell[][]);
+  };
+
+  // סבב ב׳: מעקב-טיפול + קישור-תשלום — מגודרים בדיוק כמו במסכי-התורמים
+  const ayinOn = featureOn(config, 'supporters.ayin');
+  const donateHref = sp && integrationOn(config, 'payments')
+    ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, sp.name)
+    : null;
+  const addCareName = () => {
+    if (!sp || !nameVal.trim()) return;
+    const raw = eyesVal.trim();
+    const n = Math.max(0, Math.round(Number(raw)));
+    ayinAddName(sp.id, nameVal.trim(), raw !== '' && Number.isFinite(n) ? n : '');
+    setNameVal('');
+    setEyesVal('');
   };
 
   return (
@@ -204,6 +236,79 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
               {(sp.notes || '').trim() && (
                 <div style={{ fontSize: 12, color: 'var(--ink-soft)', whiteSpace: 'pre-line', maxHeight: 72, overflowY: 'auto', borderTop: '1px dashed var(--line-soft, var(--line))', paddingTop: 6 }}>
                   {sp.notes.length > 300 ? '…' + sp.notes.slice(-300) : sp.notes}
+                </div>
+              )}
+
+              {/* סבב ב׳ (20.8): פעולות תוך-שיחה — שמות-לטיפול · עריכה · קישור-תשלום */}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', borderTop: '1px solid var(--line-soft, var(--line))', paddingTop: 8 }}>
+                {ayinOn && (
+                  <Btn sm onClick={() => setNamesOpen((v) => !v)} title={featLabel(config) + ' — רישום ' + itemLabel(config) + ' וקידום-שלב תוך-שיחה'}>
+                    🕯 {itemLabel(config)} ({sp.ayin?.names.length ?? 0}) {namesOpen ? '▴' : '▾'}
+                  </Btn>
+                )}
+                <Btn sm onClick={() => setEditOpen(true)} title={'עריכת פרטי ' + sp.name + ' — טלפון/כתובת/יעד-קשר בלי לעזוב את הקמפיין'}>
+                  ✎ עריכת פרטים
+                </Btn>
+                {donateHref && (
+                  <a
+                    href={donateHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="chip"
+                    title="עמוד-התרומה של הארגון — קישור לתשלום מקוון"
+                  >
+                    💳 עמוד-תרומה
+                  </a>
+                )}
+                {donateHref && waOn && sp.phone && (
+                  <WaBtn
+                    phone={sp.phone}
+                    text={renderTemplate(config, 'wa.paylink', { name: sp.name, org: orgName, link: donateHref })}
+                    title={'שליחת קישור-התשלום בוואטסאפ ל' + sp.name}
+                  />
+                )}
+              </div>
+
+              {/* 🕯 פאנל שמות-לטיפול — רישום תוך-שיחה + קידום-שלב (מעקב-הטיפול המלא בכרטיס) */}
+              {ayinOn && namesOpen && (
+                <div style={{ border: '1px dashed var(--line)', borderRadius: 10, padding: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {(sp.ayin?.names ?? []).map((n) => (
+                    <div key={n.id} style={{ display: 'flex', gap: 8, fontSize: 12.5, alignItems: 'center' }}>
+                      <span style={{ fontWeight: 600, minWidth: 0 }}>{n.name}</span>
+                      {n.eyes !== '' && <span style={{ color: 'var(--ink-faint)' }}>{unitLabel(config)}: {n.eyes}</span>}
+                      {n.done && <span style={{ color: 'var(--green)' }}>✓</span>}
+                    </div>
+                  ))}
+                  {(sp.ayin?.names.length ?? 0) === 0 && (
+                    <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>אין {itemLabel(config)} עדיין — הוסיפו תוך-כדי השיחה:</div>
+                  )}
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input
+                      value={nameVal}
+                      onChange={(e) => setNameVal(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') addCareName(); }}
+                      placeholder={itemLabel(config) + '…'}
+                      style={{ fontSize: 13, padding: '6px 9px', flex: 1, minWidth: 0 }}
+                    />
+                    <input
+                      value={eyesVal}
+                      onChange={(e) => setEyesVal(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') addCareName(); }}
+                      placeholder={unitLabel(config)}
+                      inputMode="numeric"
+                      style={{ fontSize: 13, padding: '6px 9px', width: 72 }}
+                    />
+                    <Btn sm kind="primary" disabled={!nameVal.trim()} onClick={addCareName}>➕</Btn>
+                  </div>
+                  {/* קידום-שלב — הכפתור-החכם של מעקב-הטיפול (אותה מכונת-מצבים כמו בכרטיס) */}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12.5 }}>
+                    <span style={{ color: 'var(--ink-faint)' }}>שלב: {stageLabel(config, sp.ayin?.stage ?? 'new')}</span>
+                    {sp.ayin && ayinAdvanceLabel(config, sp.ayin) && (
+                      <Btn sm onClick={() => ayinAdvance(sp.id)} title="קידום לשלב הבא במעקב-הטיפול">
+                        {ayinAdvanceLabel(config, sp.ayin)}
+                      </Btn>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
