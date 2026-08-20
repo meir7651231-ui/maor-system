@@ -13,6 +13,7 @@ import { supTier } from './lib';
 import { donorIntel, type DonorIntel } from './intel';
 import { activeByMonth, portfolioIntel, tierTrendCounts } from './portfolio';
 import { timeMachine, type TimeMachine } from './timemachine';
+import { seasonality, type Seasonality } from './seasonality';
 
 const ILS = (n: number) => '₪' + Math.round(n).toLocaleString('he-IL');
 const KILO = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K' : ILS(n));
@@ -242,6 +243,48 @@ function TimeBand(props: { machine: TimeMachine }) {
   );
 }
 
+/**
+ * מפת-העונתיות — **מתי** נכנס הכסף. 12 עמודות-חודש (חוצה-שנים), שיא/שפל מודגשים,
+ * וריכוזיות-עונתית ("X% מהכסף השנתי מגיע בחודש-Y"). תזמון-קמפיין במבט-אחד.
+ */
+function SeasonBand(props: { season: Seasonality }) {
+  const { season } = props;
+  const max = Math.max(1, ...season.byMonth.map((m) => m.ils));
+  const peakLabel = season.peakMonth ? MONTHS_HE[season.peakMonth - 1] : '—';
+  const troughLabel = season.troughMonth ? MONTHS_HE[season.troughMonth - 1] : '—';
+
+  return (
+    <div className="card" style={{ padding: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 2 }}>
+        <div style={{ fontSize: 14, fontWeight: 900 }}>מפת-העונתיות</div>
+        <div style={{ fontSize: 11, color: 'var(--ink-faint)' }}>מתי נכנס הכסף — פר-חודש, חוצה-שנים</div>
+        {season.peakMonth ? (
+          <div style={{ marginInlineStart: 'auto', fontSize: 11.5, color: 'var(--ink-soft)' }}>
+            שיא <b style={{ color: 'var(--gold-deep, #a05008)' }}>{peakLabel}</b> · {season.peakShare}% מהכסף · שפל {troughLabel}
+          </div>
+        ) : null}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 96, marginTop: 12 }}>
+        {season.byMonth.map((m) => {
+          const isPeak = m.month === season.peakMonth && m.ils > 0;
+          const isTrough = m.month === season.troughMonth && m.gifts > 0 && !isPeak;
+          const h = Math.max(3, (m.ils / max) * 74);
+          const bg = isPeak ? 'var(--gold-deep, #a05008)' : isTrough ? 'var(--warn, #b45309)' : m.ils > 0 ? 'var(--gold, #e7a72e)' : 'var(--line, #e4dbc9)';
+          return (
+            <div key={m.month} title={MONTHS_HE[m.month - 1] + ' · ' + ILS(m.ils) + ' · ' + m.gifts + ' מתנות · ' + m.donors + ' תורמים'}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <span style={{ fontSize: 9.5, fontWeight: isPeak ? 800 : 600, color: isPeak ? 'var(--gold-deep, #a05008)' : 'var(--ink-faint)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{m.ils > 0 ? KILO(m.ils).replace('₪', '') : ''}</span>
+              <span style={{ width: '100%', maxWidth: 40, height: h, background: bg, borderRadius: '4px 4px 0 0' }} />
+              <span style={{ fontSize: 10, color: isPeak ? 'var(--ink)' : 'var(--ink-faint)', fontWeight: isPeak ? 800 : 600 }}>{MONTHS_HE[m.month - 1]}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function SupportersIntel(props: {
   supporters: Supporter[];
   config: OrgConfig;
@@ -263,6 +306,7 @@ export function SupportersIntel(props: {
   const cohort = useMemo(() => tierTrendCounts(props.supporters, today, rate), [props.supporters, today, rate]);
   const active = useMemo(() => activeByMonth(props.supporters, today, 12, rate), [props.supporters, today, rate]);
   const machine = useMemo(() => timeMachine(props.supporters, today, rate), [props.supporters, today, rate]);
+  const season = useMemo(() => seasonality(props.supporters, rate), [props.supporters, rate]);
 
   const sorted = useMemo(() => {
     const arr = [...rows];
@@ -351,6 +395,9 @@ export function SupportersIntel(props: {
 
         {selected ? <DeepDive sp={selected.sp} intel={selected.intel} /> : null}
       </div>
+
+      {/* מפת-העונתיות — מתי נכנס הכסף */}
+      <SeasonBand season={season} />
 
       {/* מכונת-הזמן — הקרנת-התיק קדימה */}
       <TimeBand machine={machine} />

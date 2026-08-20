@@ -57,6 +57,16 @@
 - UI: `TimeBand` במרכז-המודיעין — כותרת-עלות + עקומת-דעיכה-לחיצה + פירוט-אופק-נבחר.
   ננעל ב-ratchet `intel-wiring` (`timeMachine(props.supporters` + `<TimeBand`).
 
+## מפת-העונתיות (העמקה · אותו PR-משפחה)
+מנוע `seasonality.ts` טהור — **מתי** נכנס הכסף. אגרגציה פר-חודש-לועזי (1–12)
+**חוצת-שנים** על כל אירועי-הנתינה ⇒ חושף מקצב-עונתי (חגי-תשרי · פורים · סוף-שנת-מס)
+לתזמון-קמפיין. מעבר-יחיד O(סה"כ-האירועים); perf 50k < 400ms.
+- `seasonality(supporters, rate)` — `byMonth[12]` (ils/gifts/donors פר-חודש) ·
+  `peakMonth`/`troughMonth` · `peakShare` (ריכוזיות-עונתית).
+- `donorRhythm(sp, rate)` — קצב-אישי: `topMonth` · `concentration` · דגל `seasonal`.
+- UI: `SeasonBand` במרכז-המודיעין — מפת-חום 12-חודשים, שיא/שפל מודגשים.
+  ננעל ב-ratchet `intel-wiring` (`seasonality(props.supporters` + `<SeasonBand`).
+
 ## נותר (roadmap · מוגדר-היקף)
 - **היקום 3D** — הרחבת הגלקסיה למבט-תלת-ממד (סרגל-הזמן כבר קיים במכונת-הזמן).
 - **בורר-מבטים מאוחד** — לאחד את מתגי-המבטים לרכיב-סגמנט אחד.
