@@ -22,6 +22,7 @@ import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
 import { SupporterCard } from './SupporterCard';
 import { SupportersCockpit } from './SupportersCockpit';
+import { matchSegment, SEGMENTS, type SegmentKey } from './segments';
 import { SupportersIntel } from './SupportersIntel';
 import { SupportersGalaxy } from './SupportersGalaxy';
 import { SupportersKpiStrip } from './SupportersKpiStrip';
@@ -178,6 +179,8 @@ export function SupportersView() {
   // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
+  // סינון-סגמנט מהקוקפיט/הבנדים — קליק על סגמנט מסנן את הטבלה (לא רק פותח מסך ריק).
+  const [segF, setSegF] = useState<SegmentKey | null>(null);
   // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל אחד מתקפל.
   // הצ׳יפים והסינון נשמרים בדיוק — רק מתקפלים; החיפוש+קטגוריה גלויים תמיד.
   const [advOpen, setAdvOpen] = useState(false);
@@ -391,6 +394,7 @@ export function SupportersView() {
           usdRate={db.usdRate}
           onOpen={(id) => setSelId(id)}
           onExit={() => setWorkMode(false)}
+          onSegment={(k) => { setSegF(k); setWorkMode(false); }}
         />
         {paletteEl}
       </div>
@@ -447,6 +451,7 @@ export function SupportersView() {
     if (hokF === 'active' && !sp.hok?.active) return false;
     if (hokF === 'due' && !(sp.hok?.active && !hokRecordedThisMonth(sp, today))) return false;
     if (tierF && supTier(supScore(sp, rate)).label !== tierF) return false;
+    if (segF && !matchSegment(sp, segF, visibleBase, today, rate)) return false;
     // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (לפי השער העריך) / ציון
     if (!numMatch(colF.count, supCount(sp))) return false;
     if (!numMatch(colF.total, Math.round(supTotalIls(sp, rate)))) return false;
@@ -489,8 +494,9 @@ export function SupportersView() {
   const tIls = visibleBase.reduce((a, x) => a + supIls(x), 0);
   const tUsd = visibleBase.reduce((a, x) => a + supUsd(x), 0);
   const filtered =
-    q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF || nextF ||
+    q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF || nextF || !!segF ||
     colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';
+  const segLabel = segF ? SEGMENTS.find((s) => s.key === segF)?.label : null;
   const countLabel =
     (filtered ? list.length + ' מתוך ' : '') +
     visibleBase.length +
@@ -689,6 +695,15 @@ export function SupportersView() {
           onTier={(t) => setTierF(tierF === t ? null : t)}
           onHokDue={() => setHokF(hokF === 'due' ? null : 'due')}
         />
+      )}
+
+      {segLabel && (
+        <div style={{ marginBottom: 10 }}>
+          <button type="button" onClick={() => setSegF(null)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 999, border: '1px solid var(--accent-deep, #a05008)', background: 'var(--gold-soft, #fbeecb)', color: 'var(--accent-deep, #a05008)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+            סגמנט: {segLabel} <b>({list.length})</b> <span aria-hidden>✕ ניקוי</span>
+          </button>
+        </div>
       )}
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>

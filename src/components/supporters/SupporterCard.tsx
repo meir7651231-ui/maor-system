@@ -7,6 +7,10 @@
 import { useMemo, useState } from 'react';
 import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
+import { Btn } from '../ui';
+import { CallBtn } from '../CallBtn';
+import { WaBtn } from '../WaBtn';
+import { integrationOn, telephonyOn } from '../../lib/config';
 import { supTier } from './lib';
 import { SupporterDetail } from './SupporterDetail';
 import { donorIntel } from './intel';
@@ -38,7 +42,7 @@ function Tile(props: { label: string; value: string; tone?: string; note?: strin
   );
 }
 
-function IntelPanel(props: { supporter: Supporter; supporters: Supporter[]; usdRate: number }) {
+function IntelPanel(props: { supporter: Supporter; supporters: Supporter[]; usdRate: number; config: OrgConfig; onGoCard: () => void }) {
   const rate = props.usdRate || 3.7;
   const today = new Date().toISOString().slice(0, 10);
   const intel = useMemo(() => donorIntel(props.supporter, today, rate), [props.supporter, today, rate]);
@@ -53,8 +57,17 @@ function IntelPanel(props: { supporter: Supporter; supporters: Supporter[]; usdR
     return <div className="card" style={{ padding: 24, textAlign: 'center', color: 'var(--ink-faint)' }}>אין עדיין היסטוריית-נתינה לניתוח.</div>;
   }
 
+  const sp = props.supporter;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* שורת-פעולה — הניתוח מוביל לפעולה (לא רק קריאה) */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        {telephonyOn(props.config) && sp.phone ? <CallBtn phone={sp.phone} title={'חיוג ל' + sp.name} /> : null}
+        {integrationOn(props.config, 'whatsapp') && sp.phone ? <WaBtn phone={sp.phone} title={'וואטסאפ ל' + sp.name} /> : null}
+        <Btn onClick={props.onGoCard} title="מעבר ללשונית הכרטיס — רישום תרומה · תודה · הו״ק · עריכה">✎ עריכה ופעולות בכרטיס</Btn>
+        <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>הפעולות המלאות (תרומה · תודה · הו״ק · עריכה) בלשונית "📇 הכרטיס"</span>
+      </div>
+
       {/* אריחי-על */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
         <Tile label="דרגה · ציון" value={tier.label + ' ' + intel.rfm.score} tone={tier.c} note={rank ? '#' + rank.ltvRank + '/' + rank.total + ' · אחוזון ' + rank.percentile : undefined} />
@@ -147,7 +160,7 @@ export function SupporterCard(props: {
       {tab === 'card' ? (
         <SupporterDetail supporter={props.supporter} onBack={props.onBack} />
       ) : (
-        <IntelPanel supporter={props.supporter} supporters={props.supporters} usdRate={props.usdRate} />
+        <IntelPanel supporter={props.supporter} supporters={props.supporters} usdRate={props.usdRate} config={props.config} onGoCard={() => setTab('card')} />
       )}
     </div>
   );

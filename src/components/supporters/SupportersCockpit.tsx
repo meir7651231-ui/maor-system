@@ -23,7 +23,7 @@ import {
   type CockpitSeverity,
   type CockpitTask,
 } from './cockpit';
-import { segmentCounts } from './segments';
+import { segmentCounts, type SegmentKey } from './segments';
 import { fmtDate } from './lib';
 import { downloadCsv } from '../../lib/csvx';
 
@@ -199,6 +199,8 @@ export function SupportersCockpit(props: {
   onOpen: (id: string) => void;
   /** מעבר למסך-הנתונים (לחיצה על סגמנט = חפירה בטבלה המלאה). */
   onExit?: () => void;
+  /** קליק על סגמנט — מסנן את הטבלה לפי הסגמנט (לא רק פותח מסך ריק). */
+  onSegment?: (key: SegmentKey) => void;
 }) {
   const [doneIds, setDoneIds] = useState<ReadonlySet<string>>(new Set<string>());
   const today = new Date().toISOString().slice(0, 10);
@@ -336,8 +338,8 @@ export function SupportersCockpit(props: {
                 <button
                   key={s.key}
                   type="button"
-                  onClick={props.onExit}
-                  title={props.onExit ? 'פתיחת מסך-הנתונים לחפירה' : undefined}
+                  onClick={() => (props.onSegment ? props.onSegment(s.key) : props.onExit?.())}
+                  title={props.onSegment ? 'סינון הטבלה לסגמנט ' + s.label : 'פתיחת מסך-הנתונים לחפירה'}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
