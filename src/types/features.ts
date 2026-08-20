@@ -76,6 +76,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.absence.history', label: 'היסטוריית חיסורים', desc: 'כפתור 📜 לצפייה בהיסטוריית החיסורים של התלמיד/ה', module: 'courses' },
   { key: 'courses.makeup.justified', label: 'חיסור מוצדק (השלמה)', desc: 'תיבת "חיסור מוצדק" — זכאות להשלמה גם מתחת ל-48ש׳ (מחלה/אירוע)', module: 'courses' },
   { key: 'courses.makeup.schedule', label: 'תזמון-השלמות', desc: '🔁 מקטע "השלמות ממתינות" בכרטיס-החוג — קביעת תאריך-השלמה לחיסור-זכאי + תזכורת-לוח', module: 'courses' },
+  { key: 'courses.dashboard', label: 'דשבורד-חוגים', desc: '📊 מבט-על פר-חוג במסך-אחד — רשומים · תפוסה% · רשימת-המתנה · חוב · חיסורים · בסיכון-נשירה + החוגים-המבוקשים + ייצוא CSV', module: 'courses' },
   { key: 'courses.reminder', label: 'תזכורת ללוח', desc: 'כפתור "🔔 תזכורת ללוח" — יצירת אירוע תזכורת לחוג בלוח השנה', module: 'courses' },
   { key: 'courses.enroll.freeze', label: 'הקפאת שיבוץ', desc: 'הקפאה/הפשרה זמנית של שיבוץ (הניקוב נחסם עד הפשרה)', module: 'courses' },
   { key: 'courses.enroll.end', label: 'סיום שיבוץ', desc: 'סימון שיבוץ כ"הסתיים" (נשמר בדוח ההיסטורי)', module: 'courses' },
