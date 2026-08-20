@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp, useCourse } from '../../store/useApp';
-import { featureOn, roleOf, teacherIdOf, termOf } from '../../lib/config';
+import { featureOn, isSuperAdmin, roleOf, teacherIdOf, termOf } from '../../lib/config';
 import { normSearch } from '../../lib/validate';
 import { Btn, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { numMatch } from '../families/lib';
@@ -105,6 +105,13 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   // 💚 מרכז-שימור (גל ה׳ · פאזה 11) — חיזוי-נשירה + הצעת-התערבות AI. opt-in מפורש (ולא-מורה).
   const retentionOn = cfg.features?.['courses.ai'] === true && !myTeacherId;
   const [retentionOpen, setRetentionOpen] = useState(false);
+  // 👁 תצוגה-כמורה לבעלים (גל ה׳ · תיקון) — הבעלים אינו מורה ולכן מסך-המורה מוסתר ממנו,
+  // ואינו יכול לאמת את היכולת. כאן: בעלים בוחר מורה וצופה במסך-שלה בדיוק (בלי התחברות-ענן).
+  // גישה: מקומי בלי-ענן = בעלים; בענן = מייל-על בלבד. תמיד `!myTeacherId` (למורה יש מסך-אמת).
+  const canTeacherPreview =
+    cfg.features?.['courses.teacherapp'] === true && !myTeacherId && db.teachers.length > 0 && (!userEmail || isSuperAdmin(userEmail));
+  const [previewTid, setPreviewTid] = useState<string | null>(null);
+  const [previewPickerOpen, setPreviewPickerOpen] = useState(false);
 
   // בקשת "+ חוג" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
   const courseFormReq = useApp((s) => s.courseFormReq);
@@ -224,6 +231,24 @@ function CoursesList(props: { onOpenWheel: () => void }) {
     );
   }
 
+  // 👁 תצוגה-כמורה לבעלים — מציג את מסך-המורה של המורה הנבחרת בדיוק, בלי צורך בהתחברות-מורה.
+  if (canTeacherPreview && previewTid) {
+    const t = db.teachers.find((x) => x.id === previewTid);
+    return (
+      <div>
+        <PageHead
+          title={termOf(cfg, 'nav.courses', 'חוגים')}
+          sub={'👁 תצוגה מקדימה — כפי שהמורה ' + (t?.name || '') + ' רואה'}
+          actions={<Btn onClick={() => setPreviewTid(null)}>← יציאה מהתצוגה</Btn>}
+        />
+        <div style={{ fontSize: 12.5, color: '#9a6414', background: '#fdf1d4', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 12px', marginBottom: 12 }}>
+          👁 זו התצוגה המדויקת שהמורה תראה כשתתחבר לחשבון-הענן שלה — לבדיקה ולהדגמה.
+        </div>
+        <TeacherPanel teacherId={previewTid} />
+      </div>
+    );
+  }
+
   // 🎯 חלון-העבודה — מחליף את הרשימה במסך-אחד שמסדר את היום (כל ההוקים למעלה).
   if (cockpitOn && workMode) {
     return (
@@ -262,6 +287,11 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             {teacherAppOn && (
               <Btn onClick={() => setTeacherMode(true)} title="המסך שלי — המפגשים, הנוכחות וההשלמות שלי">
                 🎓 המסך שלי
+              </Btn>
+            )}
+            {canTeacherPreview && (
+              <Btn onClick={() => setPreviewPickerOpen(true)} title="צפייה במסך-המורה כפי שהמורה רואה אותו — לבדיקה והדגמה">
+                👁 תצוגה כמורה
               </Btn>
             )}
             {wheelOn && (
@@ -539,6 +569,26 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       {collectOpen && <CollectionCenter onClose={() => setCollectOpen(false)} />}
       {dashboardOpen && <CoursesDashboard onClose={() => setDashboardOpen(false)} />}
       {retentionOpen && <RetentionCenter onClose={() => setRetentionOpen(false)} />}
+
+      {/* 👁 בורר-מורה לתצוגה-מקדימה (בעלים) */}
+      {previewPickerOpen && (
+        <Modal title="👁 תצוגה כמורה — בחרו מורה" onClose={() => setPreviewPickerOpen(false)}>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 10 }}>
+            בחרו {termOf(cfg, 'entity.teacher', 'מורה')} כדי לראות את המסך המצומצם שהיא רואה — מפגשי-היום, נוכחות והשלמות.
+          </div>
+          {db.teachers.length === 0 ? (
+            <Empty>עדיין אין {termOf(cfg, 'entity.teacher', 'מורים')} מוגדרים — הוסיפו דרך הגדרות.</Empty>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {db.teachers.map((t) => (
+                <Btn key={t.id} onClick={() => { setPreviewTid(t.id); setPreviewPickerOpen(false); }}>
+                  🎓 {t.name}
+                </Btn>
+              ))}
+            </div>
+          )}
+        </Modal>
+      )}
 
       {/* בקשת-בעלים: תפריט-⋯ במסך-החיצוני — הערות (התיאור) + מעבר לכרטיס */}
       {notesCourse && (

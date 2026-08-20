@@ -78,4 +78,12 @@ describe('🛡 הגנות-מקור — מסך-המורה מחווט ומגודר
     expect(viewSrc).toContain('<TeacherPanel teacherId={myTeacherId} />');
     expect(viewSrc).toContain('🎓 המסך שלי');
   });
+  // תיקון גל ה׳: הבעלים (myTeacherId ריק) לא ראה את מסך-המורה ולא יכול היה לאמת אותו.
+  // תצוגה-כמורה מאפשרת לבעלים לבחור מורה ולצפות במסך-שלה — בלי התחברות-ענן.
+  it('CoursesView: תצוגה-כמורה לבעלים — מגודרת !myTeacherId + (מקומי/מייל-על), ומרנדרת TeacherPanel לפי-בחירה', () => {
+    expect(viewSrc).toContain('const canTeacherPreview =');
+    expect(viewSrc).toContain('!myTeacherId && db.teachers.length > 0 && (!userEmail || isSuperAdmin(userEmail))');
+    expect(viewSrc).toContain('👁 תצוגה כמורה');
+    expect(viewSrc).toContain('<TeacherPanel teacherId={previewTid} />');
+  });
 });
