@@ -3,6 +3,21 @@
 מקור-הרעיונות: `ROADMAP-COURSES-2026-08-20.md` (~70). כאן — **תוכנית-בנייה מסודרת
 לקלות-תפעול מקסימלית**. עיקרון-על: *"המערכת מסדרת את היום"* (תבנית קוקפיט-התורמים).
 
+> ## ✅ סטטוס: 8/8 הושלמו (20.8.2026, PR ‏#281–#288)
+> כל שמונה הפאזות של גלים א׳–ד׳ נבנו, אושרו ומוזגו ל-main — כל אחת PR נפרד עם
+> מנוע-טהור + ratchet + verify ירוק:
+> 1. **📋 גיליון-נוכחות** (`AttendanceSheet` · `bulkSetPresent` · `courses.attendance.sheet`)
+> 2. **🎯 קוקפיט-חוגים** (`ops.ts` · `CoursesCockpit` · `courses.cockpit===true` opt-in)
+> 3. **⏳ רשימת-המתנה** (`Enrollment.status='wait'` · `waitlistFor` · `courses.waitlist`)
+> 4. **📑 הקמה מהירה (סמסטר)** (`duplicateCourse` · `bulkEndCourse` · `courses.bulkadmin`)
+> 5. **💰 מרכז-גבייה** (`collection.ts` · `CollectionCenter` · `courses.collect`)
+> 6. **📢 הודעה-לכיתה** (`broadcast.ts` · `ClassBroadcast` · `courses.broadcast`)
+> 7. **🔁 תזמון-השלמה** (`pendingMakeups` · `scheduleMakeup` · `courses.makeup.schedule`)
+> 8. **📊 דשבורד-חוגים** (`dashboard.ts` · `CoursesDashboard` · `courses.dashboard`)
+>
+> **גל ה׳ (פאזה 9)** — לא-נבנה במכוון: דורש הכרעות-בעלים/שרת/פרטיות (פורטל-הורה,
+> הרשמה-עצמית, אפליקציית-מורה, חיזוי-AI, תשלום-אונליין).
+
 ## שלושת מדדי-התפעול שהתוכנית ממקסמת
 1. **פחות קליקים** — פעולה-המונית במקום פר-שורה (גיליון-נוכחות, שיבוץ-אצווה).
 2. **פחות טעויות** — שער במקום מבוי-סתום (רשימת-המתנה), אזהרות-התנגשות, תזכורות-אוטו.
