@@ -13,7 +13,7 @@ import { NedarimSyncModal } from './NedarimSyncModal';
 import { annualAllLines, downloadAnnualReport } from '../../lib/annualReport';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
-import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, stageIndex, stageLabel, unitLabel } from '../../lib/ayin';
+import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, itemLabel, stageIndex, stageLabel, unitLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
@@ -27,6 +27,7 @@ import { SupportersKpiStrip } from './SupportersKpiStrip';
 import { CommandPalette } from './CommandPalette';
 import type { Command } from './commands';
 import { AyinBoard } from './AyinBoard';
+import { AyinNamesBoard } from './AyinNamesBoard';
 import { OrgDonationCalendar } from './DonationCalendar';
 import { SupporterImport } from './SupporterImport';
 import { SupDedupModal } from './SupDedupModal';
@@ -170,6 +171,8 @@ export function SupportersView() {
   const [ayinF, setAyinF] = useState<null | 'eyes' | 'noeyes' | 'today'>(null);
   // 📞 קוהרנטיות ווידג'ט↔יעד (20.8): סינון יעדי-קשר שהגיעו — הרשימה המלאה של ווידג'ט-הבית
   const [nextF, setNextF] = useState(false);
+  // 📋 מסך-השמות המלא (20.8, "מה עם המסך טיפול") — הרשימה פר-שם שהייתה CSV-בלבד
+  const [ayinNamesOpen, setAyinNamesOpen] = useState(false);
   // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
@@ -550,6 +553,8 @@ export function SupportersView() {
                   },
                 },
                 ayinOn && dailyReportOn && { label: '📋 דוח יומי', onClick: dailyReport },
+                // מסך-השמות המלא (20.8, בקשת-בעלים) — הרשימה פר-שם על-המסך, לא רק CSV
+                ayinOn && { label: '📋 ' + featLabel(config) + ' — כל השמות', onClick: () => setAyinNamesOpen(true), title: 'כל השמות מכל הכרטיסים — טבלה חיה עם חיפוש וסינון' },
                 ayinOn && isAdminUser(config, cloudEmail) && { label: '📥 דוח שמות (למנהל)', onClick: namesReport, title: 'כל השמות בכרטיסי מעקב-הטיפול — CSV' },
                 dedupCount > 0 && { label: '🔗 איחוד כפולים · ' + dedupCount, onClick: () => setDedupOpen(true) },
                 !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
@@ -645,11 +650,17 @@ export function SupportersView() {
 
       {ayinOn && (
         <div className="card" style={{ marginBottom: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
             <h3 style={{ fontSize: 15 }}>🩺 לוח מעקב הטיפול</h3>
-            <Btn sm onClick={() => setAyinBoardOpen((v) => !v)}>
-              {ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה'}
-            </Btn>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {/* 📋 מסך-השמות המלא — הלוח הוא תור פר-תומכ/ת; כאן כל השמות פר-שם */}
+              <Btn sm onClick={() => setAyinNamesOpen(true)} title={'כל ה' + itemLabel(config) + ' מכל הכרטיסים — טבלה חיה עם חיפוש וסינון'}>
+                📋 כל השמות
+              </Btn>
+              <Btn sm onClick={() => setAyinBoardOpen((v) => !v)}>
+                {ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה'}
+              </Btn>
+            </div>
           </div>
           {ayinBoardOpen && (
             <div style={{ marginTop: 10 }}>
@@ -1063,6 +1074,19 @@ export function SupportersView() {
       )}
 
       {dedupOpen && <SupDedupModal onClose={() => setDedupOpen(false)} />}
+      {/* 📋 מסך-השמות המלא (20.8) — הרשימה פר-שם מכל הכרטיסים; שורה ⇒ כרטיס */}
+      {ayinNamesOpen && (
+        <AyinNamesBoard
+          config={config}
+          supporters={visibleSupportersForDesignations(db.supporters, desigLimit)}
+          onClose={() => setAyinNamesOpen(false)}
+          onOpenSupporter={(id) => {
+            setAyinNamesOpen(false);
+            setSelId(id);
+          }}
+          onCsv={isAdminUser(config, cloudEmail) ? namesReport : null}
+        />
+      )}
       {importOpen && (
         <Modal title="⬆ ייבוא תומכות מ-CSV / Excel" onClose={() => setImportOpen(false)}>
           <SupporterImport onDone={() => setImportOpen(false)} />

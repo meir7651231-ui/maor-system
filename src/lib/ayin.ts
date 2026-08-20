@@ -315,6 +315,62 @@ export function ayinAllRows(cfg: OrgConfig, supporters: Supporter[]): Cell[][] {
   return rows;
 }
 
+/* ── מסך הטיפול (20.8, בקשת-בעלים "מה עם המסך טיפול") — הרשימה המלאה על-המסך ──
+   עד היום הדוח-המלא (ayinAllRows) היה CSV-להורדה בלבד; אלה הפונקציות הטהורות
+   של המסך החי: פריט פר-שם עם supporterId (קפיצה-לכרטיס) + סינון חופשי/סטטוס/שלב. */
+
+/** שורת מסך-הטיפול — שם אחד מתוך תיק של תומכ/ת, עם עוגן-הקפיצה לכרטיס. */
+export interface AyinBoardItem {
+  supporterId: string;
+  supporter: string;
+  phone: string;
+  name: string;
+  eyes: number | '';
+  note: string;
+  done: boolean;
+  stage: AyinStage;
+}
+
+/** כל השמות בכרטיסי מעקב-הטיפול — אותה סמנטיקה כמו ayinAllRows (שם ריק מדולג). */
+export function ayinBoardItems(supporters: Supporter[]): AyinBoardItem[] {
+  const out: AyinBoardItem[] = [];
+  for (const sp of supporters) {
+    if (!sp.ayin) continue;
+    const a = { ...emptyAyin(), ...sp.ayin };
+    for (const n of a.names) {
+      if (!n.name.trim()) continue;
+      out.push({
+        supporterId: sp.id,
+        supporter: sp.name,
+        phone: sp.phone || '',
+        name: n.name,
+        eyes: n.eyes !== '' && n.eyes != null ? +n.eyes : '',
+        note: n.note || '',
+        done: !!n.done,
+        stage: a.stage,
+      });
+    }
+  }
+  return out;
+}
+
+/** סינון מסך-הטיפול — טקסט חופשי (תומכ/ת + שם + הערה), סטטוס ושלב. טהור. */
+export function filterAyinBoard(
+  items: AyinBoardItem[],
+  q: string,
+  status: null | 'wait' | 'done',
+  stage: AyinStage | null,
+): AyinBoardItem[] {
+  const nq = normSearch(q);
+  return items.filter((it) => {
+    if (status === 'wait' && it.done) return false;
+    if (status === 'done' && !it.done) return false;
+    if (stage && it.stage !== stage) return false;
+    if (!nq) return true;
+    return normSearch([it.supporter, it.name, it.note].join(' ')).includes(nq);
+  });
+}
+
 /* ── גיליון העיניים — ייצוא/ייבוא round-trip (feature supporters.ayin.sheet) ──
    ratchet: ייצוא verbatim מ-legacy-main-script.js:196-198 (exportImportFormat,
    kind==='ayin'), ייבוא מ-legacy:852-869 (processImport) והחלה מ-legacy:983-993
