@@ -276,7 +276,9 @@ exports.sheetsNightly = onSchedule({ schedule: 'every day 03:00', secrets: ['GOO
  * ‏secrets: ‏SMTP_URL (‏smtps://user:pass@host — כל ספק: Gmail-App-Password /
  * SendGrid / ספק-הדומיין) + ‏MAIL_FROM (כתובת-השולח המוצגת).
  */
-exports.mailOutbox = onSchedule({ schedule: 'every 1 minutes', secrets: ['SMTP_URL', 'MAIL_FROM'] }, async () => {
+// הכרעת-בעלים 20.8 'רק של הלקוח': בלי סודות גלובליים — כל ארגון עם smtpUrl משלו
+// בכספת (orgSecrets); בלי סוד-גלובלי הפריסה לא דורשת Secret Manager.
+exports.mailOutbox = onSchedule({ schedule: 'every 1 minutes' }, async () => {
   const nodemailer = require('nodemailer');
   const db = getFirestore();
   const pending = await db.collectionGroup('mailOutbox').where('status', '==', 'pending').limit(20).get();
