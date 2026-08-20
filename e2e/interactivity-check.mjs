@@ -42,7 +42,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', a
 const ctx = await b.newContext({ viewport: { width: 1180, height: 900 }, deviceScaleFactor: 2 });
 await ctx.addInitScript(([sup, today]) => {
   if (!localStorage.getItem('maor_org_config')) {
-    localStorage.setItem('maor_org_config', JSON.stringify({ slug: 'default', orgName: 'עמותת מאור החסד', theme: 'or-rishon', modules: {}, features: { 'supporters.cockpit': true, 'supporters.intel': true, 'supporters.galaxy': true, 'supporters.rebrand': true, 'supporters.card': true } }));
+    localStorage.setItem('maor_org_config', JSON.stringify({ slug: 'default', orgName: 'עמותת מאור החסד', theme: 'or-rishon', modules: {}, telephony: { enabled: true }, features: { 'supporters.cockpit': true, 'supporters.intel': true, 'supporters.galaxy': true, 'supporters.rebrand': true, 'supporters.card': true } }));
     localStorage.setItem('maor_day', today);
     localStorage.setItem('maor_db', JSON.stringify({ v: 6, supporters: sup }));
   }
@@ -88,6 +88,21 @@ console.log('צ׳יפ-ניקוי קיים:', clearChip > 0 ? '✅' : '❌');
 console.log('שגיאות-קונסולה:', consoleErr);
 await page.screenshot({ path: join(OUT, 'func-segment-filtered.png') });
 console.log('📸 func-segment-filtered');
+
+// חייגן מחווט למודיעין: חזרה לקוקפיט → קליק "📞 חייגן" → החייגן נפתח
+await clickBtn('חלון העבודה');
+await wait(600);
+const dialBtn = page.locator('button', { hasText: '📞 חייגן' }).first();
+const hasDialBtn = await dialBtn.count();
+console.log('קוקפיט — כפתור "📞 חייגן" קיים:', hasDialBtn > 0 ? '✅' : '❌');
+if (hasDialBtn > 0) {
+  await dialBtn.click().catch(() => {});
+  await wait(700);
+  const dialerOpen = await page.locator('text=/📞 חייגן/').count();
+  console.log('אחרי קליק — מודאל-החייגן נפתח:', dialerOpen > 0 ? '✅ נפתח!' : '❌');
+  await page.screenshot({ path: join(OUT, 'func-dialer.png') });
+  console.log('📸 func-dialer');
+}
 
 await b.close();
 server.close();

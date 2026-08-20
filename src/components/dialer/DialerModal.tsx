@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf, integrationOn, integrationSetting } from '../../lib/config';
 import { campaignCsvRows, currentId, progress } from '../../lib/dialer';
+import { contactWindow } from '../supporters/quietHours';
 import { renderTemplate } from '../../lib/templates';
 import { activeDriver } from '../../lib/telephony/driver';
 import { downloadCsv, type Cell } from '../../lib/csvx';
@@ -68,6 +69,9 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
   const prog = dialer ? progress(dialer) : null;
   const id = dialer ? currentId(dialer) : null;
   const sp = id ? supporters.find((s) => s.id === id) : null;
+  // אזהרת "שעה לא-נוחה" לפי קידומת-הטלפון (תורם בחו״ל = אזור-זמן אחר).
+  const _now = new Date();
+  const win = sp?.phone ? contactWindow(sp.phone, _now.getHours(), -_now.getTimezoneOffset() / 60) : null;
 
   const act = (o: DialOutcome, cbIso?: string, alsoReminder?: boolean) => {
     outcome(o, note, cbIso, alsoReminder);
@@ -252,6 +256,17 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                   />
                 )}
               </div>
+
+              {/* אזהרת שעה-לא-נוחה (לפי קידומת) — מעודדת "דילוג" */}
+              {win?.quiet && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: 'var(--warn-bg, #fdf0e1)', border: '1px solid var(--warn, #b45309)', borderRadius: 9, padding: '7px 10px', fontSize: 12.5, color: 'var(--warn, #b45309)', fontWeight: 700 }}>
+                  🌙 שעה לא-נוחה להתקשרות{win.region ? ' · ' + win.region : ''} (‏{String(win.localHour).padStart(2, '0')}:00 שם) — מומלץ לדלג
+                  <button type="button" onClick={() => act('skip')} title="דילוג — התורם חוזר לסוף-התור"
+                    style={{ marginInlineStart: 'auto', padding: '4px 11px', borderRadius: 8, border: '1px solid var(--warn, #b45309)', background: 'var(--panel, #fff)', color: 'var(--warn, #b45309)', fontWeight: 800, cursor: 'pointer', fontSize: 12.5 }}>
+                    ⏭ דלג עכשיו
+                  </button>
+                </div>
+              )}
               {/* הקשר-תרומות מהיר */}
               <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', borderTop: '1px solid var(--line-soft, var(--line))', paddingTop: 8, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 <span>סה"כ: <b style={{ direction: 'ltr', display: 'inline-block' }}>₪{Math.round(supIls(sp)).toLocaleString('en-US')}</b></span>
