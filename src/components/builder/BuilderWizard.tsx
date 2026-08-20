@@ -351,12 +351,17 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   const toggleModule = (k: ModuleKey) =>
     patch({ modules: { ...config.modules, [k]: config.modules[k] === false } });
 
-  /** הדלקה = מחיקת המפתח (חסר = פעיל) — שומר על config.json נקי מרעש. */
+  /** הדלקה = מחיקת המפתח (חסר = פעיל) — שומר על config.json נקי מרעש.
+      ⚠️ חריג opt-in (20.8): דגל שהקוד דורש בו `=== true` (קוקפיט/מודיעין/גלקסיה/
+      ריברנד) — הדלקה חייבת לכתוב true מפורש; מחיקה הייתה משאירה אותו כבוי. */
   const setFeatures = (keys: string[], on: boolean) => {
+    const optIn = new Set(FEATURES.filter((f) => f.optIn).map((f) => f.key));
     const features = { ...config.features };
     for (const k of keys) {
-      if (on) delete features[k];
-      else features[k] = false;
+      if (on) {
+        if (optIn.has(k)) features[k] = true;
+        else delete features[k];
+      } else features[k] = false;
     }
     patch({ features });
   };
