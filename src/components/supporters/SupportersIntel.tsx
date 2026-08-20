@@ -18,6 +18,7 @@ import { donorSignals, portfolioSignals, type PortfolioSignals, type SignalKind 
 import { intelCsvRows } from './intelExport';
 import { donorRanks, type DonorRank } from './ranks';
 import { acquisitionCohorts, type RetentionReport } from './retention';
+import { paretoReport, type ParetoReport } from './pareto';
 import { downloadCsv } from '../../lib/csvx';
 import { featureOn } from '../../lib/config';
 
@@ -278,6 +279,45 @@ function TimeBand(props: { machine: TimeMachine }) {
   );
 }
 
+/**
+ * ריכוזיות (פארטו/לורנץ) — עד כמה התיק תלוי במעטים. עקומת-לורנץ מול קו-השוויון +
+ * מדד-ג׳יני + סף "כמה-מעט תורמים = חצי מהכסף". סיכון-ריכוזיות במבט-אחד.
+ */
+function ParetoBand(props: { report: ParetoReport }) {
+  const { report } = props;
+  if (report.donors === 0) return null;
+  // הקו הופך: אחוז-תורמים על ציר-x (מהגדול), אחוז-כסף על ציר-y. גובה 120, רוחב 300.
+  const pts = report.curve.map((p) => `${(p.donorPct / 100) * 300},${120 - (p.moneyPct / 100) * 120}`).join(' ');
+  const giniColor = report.gini >= 70 ? 'var(--red, #b3261e)' : report.gini >= 45 ? 'var(--warn, #b45309)' : 'var(--good, #2e7d32)';
+  return (
+    <div className="card" style={{ padding: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 2 }}>
+        <div style={{ fontSize: 14, fontWeight: 900 }}>ריכוזיות התיק</div>
+        <div style={{ fontSize: 11, color: 'var(--ink-faint)' }}>עד כמה התיק תלוי במעטים (פארטו/ג׳יני)</div>
+        <div style={{ marginInlineStart: 'auto', fontSize: 11.5, color: 'var(--ink-soft)' }}>ג׳יני <b style={{ color: giniColor }}>{report.gini}</b></div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 160px', gap: 16, alignItems: 'center', marginTop: 8 }}>
+        <svg width="100%" height="140" viewBox="0 0 300 132" preserveAspectRatio="none" style={{ overflow: 'visible' }} role="img" aria-label="עקומת-לורנץ">
+          <line x1="0" y1="120" x2="300" y2="120" stroke="var(--line, #e4dbc9)" />
+          <line x1="0" y1="0" x2="0" y2="120" stroke="var(--line, #e4dbc9)" />
+          {/* קו-שוויון */}
+          <line x1="0" y1="120" x2="300" y2="0" stroke="var(--line, #e4dbc9)" strokeDasharray="4 4" />
+          {/* עקומת-פארטו + מילוי */}
+          <polyline points={`0,120 ${pts} 300,120`} fill="var(--gold-soft, #fbeecb)" opacity="0.55" stroke="none" />
+          <polyline points={pts} fill="none" stroke="var(--gold-deep, #a05008)" strokeWidth="2.5" />
+          <text x="4" y="12" style={{ fontSize: 9.5, fill: 'var(--ink-faint)' }}>כסף</text>
+          <text x="250" y="131" style={{ fontSize: 9.5, fill: 'var(--ink-faint)' }}>תורמים</text>
+        </svg>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 12 }}>
+          <div><div style={{ color: 'var(--ink-faint)', fontSize: 11 }}>20% הגדולים</div><b style={{ fontSize: 17, fontVariantNumeric: 'tabular-nums' }}>{report.top20Share}%</b> <span style={{ color: 'var(--ink-faint)' }}>מהכסף</span></div>
+          <div><div style={{ color: 'var(--ink-faint)', fontSize: 11 }}>חצי מהכסף מ־</div><b style={{ fontSize: 17, color: giniColor, fontVariantNumeric: 'tabular-nums' }}>{report.halfDonorPct}%</b> <span style={{ color: 'var(--ink-faint)' }}>מהתורמים</span></div>
+          <div><div style={{ color: 'var(--ink-faint)', fontSize: 11 }}>80% מהכסף מ־</div><b style={{ fontSize: 17, fontVariantNumeric: 'tabular-nums' }}>{report.eightyDonorPct}%</b> <span style={{ color: 'var(--ink-faint)' }}>מהתורמים</span></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function retColor(pct: number): string {
   return pct >= 66 ? 'var(--good, #2e7d32)' : pct >= 40 ? 'var(--warn, #b45309)' : 'var(--red, #b3261e)';
 }
@@ -446,6 +486,7 @@ export function SupportersIntel(props: {
   const signals = useMemo(() => portfolioSignals(props.supporters, today, rate), [props.supporters, today, rate]);
   const ranks = useMemo(() => donorRanks(props.supporters, today, rate), [props.supporters, today, rate]);
   const retention = useMemo(() => acquisitionCohorts(props.supporters, today, rate), [props.supporters, today, rate]);
+  const pareto = useMemo(() => paretoReport(props.supporters, today, rate), [props.supporters, today, rate]);
 
   const sorted = useMemo(() => {
     const arr = [...rows];
@@ -546,6 +587,9 @@ export function SupportersIntel(props: {
 
       {/* קוהורטת-גיוס — שימור לפי שנת-הצטרפות */}
       <RetentionBand report={retention} />
+
+      {/* ריכוזיות התיק — פארטו/ג׳יני */}
+      <ParetoBand report={pareto} />
 
       {/* מכונת-הזמן — הקרנת-התיק קדימה */}
       <TimeBand machine={machine} />
