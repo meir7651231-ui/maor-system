@@ -26,6 +26,7 @@ on:
           - yemot         # yemotProxy (YEMOT_TOKEN)
           - sheets        # sheetsNightly (GOOGLE_SA)
           - everything    # הכול — רק אחרי שכל הסודות קיימים!
+          - status        # לא פורס כלום — מדווח מה פרוס ואילו סודות קיימים
   push:
     branches:
       - 'deploy-fn/**'
@@ -67,14 +68,35 @@ jobs:
             yemot)      F="functions:yemotProxy" ;;
             sheets)     F="functions:sheetsNightly" ;;
             everything) F="functions" ;;
+            status)     F="__status__" ;;
             *) echo "::error::יעד לא מוכר"; exit 1 ;;
           esac
           echo "flist=$F" >> "$GITHUB_OUTPUT"
 
       - name: פריסה
+        if: ${{ steps.t.outputs.flist != '__status__' }}
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: npx firebase-tools@13 deploy --project maor-system --only "${{ steps.t.outputs.flist }}" --non-interactive
+
+      # דוח-מצב עמוק: אילו פונקציות פרוסות בפועל + אילו סודות קיימים (גרסאות
+      # בלבד — ערכי-הסודות לעולם לא מודפסים). הפעלה: יעד 'status' / ענף deploy-fn/status.
+      - name: דוח סטטוס
+        if: ${{ steps.t.outputs.flist == '__status__' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          echo "═══ פונקציות פרוסות ═══"
+          npx firebase-tools@13 functions:list --project maor-system --non-interactive || true
+          echo ""
+          echo "═══ סודות (קיים/חסר — בלי ערכים) ═══"
+          for s in SMTP_URL MAIL_FROM PAY_SECRET NEDARIM_MOSAD_ID NEDARIM_API_PASSWORD SMS_API_KEY SMS_PROVIDER SMS_SENDER YEMOT_TOKEN GOOGLE_SA; do
+            if npx firebase-tools@13 functions:secrets:get "$s" --project maor-system --non-interactive >/dev/null 2>&1; then
+              echo "✅ $s: קיים"
+            else
+              echo "❌ $s: חסר"
+            fi
+          done
 
       - name: אימות (stage1)
         if: ${{ github.event.inputs.target == 'stage1' || github.ref_name == 'deploy-fn/stage1' }}
