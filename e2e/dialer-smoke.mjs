@@ -99,15 +99,25 @@ await pg.waitForTimeout(300);
 const nameInput = pg.locator('input[placeholder="שם לטיפול…"]').first();
 await nameInput.fill('רפאל בן שרה');
 await pg.locator('input[inputmode="numeric"]').first().fill('3');
+await pg.locator('input[placeholder="הערה חופשית…"]').fill('לרפואה שלמה');
 await pg.getByRole('button', { name: '➕', exact: true }).click(); // ה-➕ של פאנל-השמות (לא '➕ הוספת' שברקע)
 await pg.waitForTimeout(900); // התמדת localStorage
 const care = await pg.evaluate((id) => {
   const sp = JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id);
-  return { n: sp?.ayin?.names?.length ?? 0, name: sp?.ayin?.names?.at(-1)?.name ?? '', eyes: sp?.ayin?.names?.at(-1)?.eyes ?? '' };
+  const last = sp?.ayin?.names?.at(-1);
+  return { n: sp?.ayin?.names?.length ?? 0, name: last?.name ?? '', eyes: last?.eyes ?? '', note: last?.note ?? '' };
 }, firstId);
 care.name === 'רפאל בן שרה' && care.eyes === 3
   ? ok('🕯 שם-לטיפול נרשם תוך-שיחה (שם+כמות)')
   : fail('שם-לטיפול לא נרשם: ' + JSON.stringify(care));
+care.note === 'לרפואה שלמה'
+  ? ok('📝 ההערה-החופשית נשמרה על השם')
+  : fail('ההערה לא נשמרה: ' + JSON.stringify(care));
+// עריכת ההערה בשורה הקיימת (חיווט ayinSetNameNote)
+await pg.locator('input[placeholder="הערה"]').first().fill('לרפואה שלמה ולהצלחה');
+await pg.waitForTimeout(900);
+const edited = await pg.evaluate((id) => JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id)?.ayin?.names?.at(-1)?.note ?? '', firstId);
+edited === 'לרפואה שלמה ולהצלחה' ? ok('📝 עריכת-הערה בשורה קיימת נשמרת') : fail('עריכת-הערה לא נשמרה: ' + edited);
 // קידום-שלב — הכפתור-החכם מופיע ומקדם
 const advBtn = pg.locator('button', { hasText: '←' }).last();
 if (await advBtn.count()) {

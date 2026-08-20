@@ -150,7 +150,11 @@ describe('☎️ שדרוג 20.8 — ביטול-אחרון, ספירה-פר-אד
 
   it('🔒 הגנת-מקור סבב-ב׳: שמות-לטיפול, קידום-שלב, עריכה וקישור-תשלום תוך-שיחה', () => {
     // 🕯 רישום-שם + קידום-שלב — אותן פעולות-store כמו בכרטיס (ayinAddName/ayinAdvance)
-    expect(dialerSrc).toContain('ayinAddName(sp.id, nameVal.trim()');
+    expect(dialerSrc).toContain('ayinAddName(sp.id, nm');
+    // סבב ג׳ (בקשת-בעלים 20.8): מונה עריך + הערת-טקסט חופשית פר-שם — כמו AyinCard
+    expect(dialerSrc).toContain('ayinSetNameEyes(sp.id, n.id');
+    expect(dialerSrc).toContain('ayinSetNameNote(sp.id, n.id, e.target.value)');
+    expect(dialerSrc).toContain('ayinSetNameNote(sp.id, added.id, noteTxt)');
     expect(dialerSrc).toMatch(/ayinAdvance\(sp\.id\)/);
     expect(dialerSrc).toContain('ayinAdvanceLabel(config, sp.ayin)');
     // ✎ עריכת-פרטים — SupporterForm בהחלפה (לא בקינון — מאבקי-Escape)
@@ -161,5 +165,13 @@ describe('☎️ שדרוג 20.8 — ביטול-אחרון, ספירה-פר-אד
     expect(dialerSrc).toContain("renderTemplate(config, 'wa.paylink'");
     // גידור מעקב-הטיפול — הפאנל רק כשהפיצ'ר דלוק
     expect(dialerSrc).toContain("featureOn(config, 'supporters.ayin')");
+  });
+
+  it('🔒 מגן-כפילות קישור-תשלום: שימוש בקישור מזהיר ולא נרשם ידנית', () => {
+    // הבלבול (בעלים 20.8): "תרם/ה" = רישום-ידני-מיידי; "עמוד-תרומה" = סליקה-אוטומטית.
+    // רישום גם-וגם = תרומה כפולה ⇒ קליק על הקישור ממלא הערה + טוסט-אזהרה + הסבר קבוע.
+    expect(dialerSrc).toContain("setNote('נשלח קישור-תשלום')");
+    expect(dialerSrc).toContain('לא לרשום "תרם/ה" ידנית');
+    expect(dialerSrc).toContain('נקלט מהסליקה אוטומטית, בלי רישום ידני');
   });
 });

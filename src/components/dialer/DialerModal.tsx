@@ -38,9 +38,13 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
   const undo = useApp((s) => s.dialerUndo);
   const stop = useApp((s) => s.dialerStop);
   const openSupporterCard = useApp((s) => s.openSupporterCard);
+  const toast = useApp((s) => s.toast);
   // סבב ב׳: מעקב-טיפול תוך-שיחה — הוספת-שם וקידום-שלב (אותן פעולות כמו בכרטיס)
   const ayinAddName = useApp((s) => s.ayinAddName);
   const ayinAdvance = useApp((s) => s.ayinAdvance);
+  // סבב ג׳ (בקשת-בעלים): מונה עריך + הערת-טקסט חופשית פר-שם — אותו חיווט כמו AyinCard
+  const ayinSetNameEyes = useApp((s) => s.ayinSetNameEyes);
+  const ayinSetNameNote = useApp((s) => s.ayinSetNameNote);
 
   const [note, setNote] = useState('');
   const [cbOpen, setCbOpen] = useState(false);
@@ -51,10 +55,11 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
   const [donFor, setDonFor] = useState<{ id: string; had: number } | null>(null);
   // ✎ עריכת-פרטים תוך-שיחה — SupporterForm מחליף את החייגן (כמו מודאל-התרומה)
   const [editOpen, setEditOpen] = useState(false);
-  // 🕯 פאנל שמות-לטיפול — מתקפל; קלט שם+כמות
+  // 🕯 פאנל שמות-לטיפול — מתקפל; קלט שם+כמות+הערה (כמו בכרטיס)
   const [namesOpen, setNamesOpen] = useState(false);
   const [nameVal, setNameVal] = useState('');
   const [eyesVal, setEyesVal] = useState('');
+  const [nameNoteVal, setNameNoteVal] = useState('');
 
   const supWord = termOf(config, 'entity.supporter', 'תומך/ת');
   const waOn = integrationOn(config, 'whatsapp');
@@ -140,11 +145,21 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
     : null;
   const addCareName = () => {
     if (!sp || !nameVal.trim()) return;
+    const nm = nameVal.trim();
     const raw = eyesVal.trim();
     const n = Math.max(0, Math.round(Number(raw)));
-    ayinAddName(sp.id, nameVal.trim(), raw !== '' && Number.isFinite(n) ? n : '');
+    ayinAddName(sp.id, nm, raw !== '' && Number.isFinite(n) ? n : '');
+    // הערת-טקסט חופשית לשם החדש (בקשת-בעלים) — נכתבת אחרי ההוספה; כשההוספה
+    // נדחתה (שם כפול/ריק — ה-store כבר הציג טוסט) השם לא נמצא ולא נכתב כלום.
+    const noteTxt = nameNoteVal.trim();
+    if (noteTxt) {
+      const fresh = useApp.getState().db.supporters.find((s) => s.id === sp.id);
+      const added = fresh?.ayin?.names.find((x) => x.name === nm);
+      if (added && !added.note) ayinSetNameNote(sp.id, added.id, noteTxt);
+    }
     setNameVal('');
     setEyesVal('');
+    setNameNoteVal('');
   };
 
   return (
@@ -249,46 +264,83 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                 <Btn sm onClick={() => setEditOpen(true)} title={'עריכת פרטי ' + sp.name + ' — טלפון/כתובת/יעד-קשר בלי לעזוב את הקמפיין'}>
                   ✎ עריכת פרטים
                 </Btn>
+                {/* 💳 מסלול-הסליקה: התורם משלם בעצמו אונליין — התשלום נקלט אוטומטית
+                    מהסליקה (תשלומים-נכנסים, דדופ-txn). מגן-כפילות (20.8): שימוש בקישור
+                    ממלא הערת-שיחה ומזהיר לא לרשום גם "תרם/ה" ידנית — אחרת ירשם פעמיים. */}
                 {donateHref && (
-                  <a
-                    href={donateHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="chip"
-                    title="עמוד-התרומה של הארגון — קישור לתשלום מקוון"
+                  <span
+                    style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}
+                    onClickCapture={() => {
+                      if (!note.trim()) setNote('נשלח קישור-תשלום');
+                      toast('💳 הקישור נשלח — לא לרשום "תרם/ה" ידנית; התשלום ייקלט מהסליקה אוטומטית');
+                    }}
                   >
-                    💳 עמוד-תרומה
-                  </a>
-                )}
-                {donateHref && waOn && sp.phone && (
-                  <WaBtn
-                    phone={sp.phone}
-                    text={renderTemplate(config, 'wa.paylink', { name: sp.name, org: orgName, link: donateHref })}
-                    title={'שליחת קישור-התשלום בוואטסאפ ל' + sp.name}
-                  />
+                    <a
+                      href={donateHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="chip"
+                      title="התורם משלם בעצמו בעמוד-הסליקה — התשלום ייקלט אוטומטית (לא לרשום גם ידנית)"
+                    >
+                      💳 עמוד-תרומה
+                    </a>
+                    {waOn && sp.phone && (
+                      <WaBtn
+                        phone={sp.phone}
+                        text={renderTemplate(config, 'wa.paylink', { name: sp.name, org: orgName, link: donateHref })}
+                        title={'שליחת קישור-התשלום בוואטסאפ ל' + sp.name + ' — התשלום ייקלט מהסליקה אוטומטית'}
+                      />
+                    )}
+                  </span>
                 )}
               </div>
 
-              {/* 🕯 פאנל שמות-לטיפול — רישום תוך-שיחה + קידום-שלב (מעקב-הטיפול המלא בכרטיס) */}
+              {/* הסבר שני-המסלולים — מוצג רק כשיש קישור-תשלום (אחרת אין מה לבלבל) */}
+              {donateHref && (
+                <div style={{ fontSize: 11, color: 'var(--ink-faint)', lineHeight: 1.5 }}>
+                  💰 <b>תרם/ה</b> = הכסף התקבל אצלכם עכשיו (מזומן/העברה/אשראי) — רישום + קבלה מיד ·{' '}
+                  💳 <b>עמוד-תרומה</b> = התורם משלם אונליין בעצמו — נקלט מהסליקה אוטומטית, בלי רישום ידני
+                </div>
+              )}
+
+              {/* 🕯 פאנל שמות-לטיפול — רישום תוך-שיחה + קידום-שלב; שורה קיימת = מונה
+                  עריך + הערת-טקסט חופשית (בקשת-בעלים 19.8) — אותו חיווט כמו AyinCard */}
               {ayinOn && namesOpen && (
                 <div style={{ border: '1px dashed var(--line)', borderRadius: 10, padding: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {(sp.ayin?.names ?? []).map((n) => (
-                    <div key={n.id} style={{ display: 'flex', gap: 8, fontSize: 12.5, alignItems: 'center' }}>
-                      <span style={{ fontWeight: 600, minWidth: 0 }}>{n.name}</span>
-                      {n.eyes !== '' && <span style={{ color: 'var(--ink-faint)' }}>{unitLabel(config)}: {n.eyes}</span>}
-                      {n.done && <span style={{ color: 'var(--green)' }}>✓</span>}
+                    <div key={n.id} style={{ display: 'flex', gap: 6, fontSize: 12.5, alignItems: 'center' }}>
+                      <span style={{ fontWeight: 600, minWidth: 0, flexShrink: 0 }}>{n.name}</span>
+                      <input
+                        value={n.eyes === '' ? '' : String(n.eyes)}
+                        onChange={(e) => {
+                          const v = e.target.value.replace(/\D/g, '');
+                          ayinSetNameEyes(sp.id, n.id, v === '' ? '' : +v);
+                        }}
+                        placeholder={unitLabel(config)}
+                        dir="ltr"
+                        style={{ width: 56, padding: '3px 6px', fontSize: 12 }}
+                        title={unitLabel(config)}
+                      />
+                      <input
+                        value={n.note || ''}
+                        onChange={(e) => ayinSetNameNote(sp.id, n.id, e.target.value)}
+                        placeholder="הערה"
+                        style={{ flex: 1, minWidth: 60, padding: '3px 6px', fontSize: 12 }}
+                        title="הערת-טקסט חופשית — נשמרת על השם בכרטיס"
+                      />
+                      {n.done && <span style={{ color: 'var(--green)', flexShrink: 0 }}>✓</span>}
                     </div>
                   ))}
                   {(sp.ayin?.names.length ?? 0) === 0 && (
                     <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>אין {itemLabel(config)} עדיין — הוסיפו תוך-כדי השיחה:</div>
                   )}
-                  <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     <input
                       value={nameVal}
                       onChange={(e) => setNameVal(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') addCareName(); }}
                       placeholder={itemLabel(config) + '…'}
-                      style={{ fontSize: 13, padding: '6px 9px', flex: 1, minWidth: 0 }}
+                      style={{ fontSize: 13, padding: '6px 9px', flex: 2, minWidth: 110 }}
                     />
                     <input
                       value={eyesVal}
@@ -296,7 +348,15 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                       onKeyDown={(e) => { if (e.key === 'Enter') addCareName(); }}
                       placeholder={unitLabel(config)}
                       inputMode="numeric"
-                      style={{ fontSize: 13, padding: '6px 9px', width: 72 }}
+                      style={{ fontSize: 13, padding: '6px 9px', width: 64 }}
+                    />
+                    <input
+                      value={nameNoteVal}
+                      onChange={(e) => setNameNoteVal(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') addCareName(); }}
+                      placeholder="הערה חופשית…"
+                      style={{ fontSize: 13, padding: '6px 9px', flex: 1, minWidth: 90 }}
+                      title="הערת-טקסט חופשית שתישמר על השם (כמו בכרטיס)"
                     />
                     <Btn sm kind="primary" disabled={!nameVal.trim()} onClick={addCareName}>➕</Btn>
                   </div>
@@ -339,7 +399,7 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
               /* כפתורי-סיווג — מקלדת 1–6 */
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-                  <Btn kind="primary" onClick={startDonation} title="רישום התרומה (קבלה) ואז התקדמות — מקש 1">💰 תרם/ה</Btn>
+                  <Btn kind="primary" onClick={startDonation} title="כסף שהתקבל אצלכם עכשיו (מזומן/העברה/אשראי) — רישום + קבלה ואז התקדמות. שילם דרך הקישור? לא לרשום — ייקלט מהסליקה. מקש 1">💰 תרם/ה</Btn>
                   <Btn onClick={() => act('noanswer')} title="חוזר לסוף-התור — מקש 2">📵 לא ענה</Btn>
                   <Btn onClick={() => act('refused')} title="מקש 3">🚫 סירב</Btn>
                   <Btn onClick={() => setCbOpen(true)} title="קביעת מועד-חזרה — מקש 4">🔁 חזרה</Btn>
