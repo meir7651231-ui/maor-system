@@ -35,6 +35,20 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     vars: ['first', 'org'],
     def: 'מזל טוב ל{first} ליום ההולדת! 🎂 באהבה, {org}',
   },
+  {
+    // חייגן-מונחה (20.8) — "לא ענה? שלח וואטסאפ" בקמפיין-שיחות; עריך באשף כמו השאר
+    key: 'wa.dialer',
+    label: '📞 הודעת-חייגן (לא ענה)',
+    vars: ['name', 'org'],
+    def: 'שלום {name}, ניסינו להשיג אתכם מ{org} ולא הצלחנו — נשמח שתחזרו אלינו 🙏',
+  },
+  {
+    // קישור-תשלום מהחייגן (20.8) — שליחת עמוד-התרומה בוואטסאפ תוך-שיחה (payments)
+    key: 'wa.paylink',
+    label: '💳 שליחת קישור-תשלום',
+    vars: ['name', 'org', 'link'],
+    def: 'שלום {name}, תודה על השיחה! לתרומה מקוונת ל{org}: {link} 🙏',
+  },
 ];
 
 export const TEMPLATE_KEYS = TEMPLATE_DEFS.map((d) => d.key);

@@ -686,6 +686,8 @@ export default function App() {
           {famCount === 0 && <DemoDrop />}
           <DayGate />
           <Current />
+          {/* 📞 צ'יפ-קמפיין-צף (20.8) — קמפיין-חייגן פעיל נשאר נגיש מכל מסך */}
+          <DialerChip />
         </>
       )}
     </main>
@@ -1222,5 +1224,28 @@ export default function App() {
 
       {toastsEl}
     </div>
+  );
+}
+
+
+/**
+ * 📞 צ'יפ-קמפיין-צף (20.8) — כשקמפיין-חייגן פעיל והמשתמש במסך אחר, צ'יפ קבוע
+ * בתחתית מזכיר וממשיך בקליק (openDialer ⇒ מסך-התורמים + פתיחת-המודאל).
+ * במסך-התורמים עצמו יש כבר כפתור "המשך חייגן" — הצ'יפ מוסתר שם.
+ */
+function DialerChip() {
+  const dialer = useApp((s) => s.db.ui.dialer);
+  const view = useApp((s) => s.view);
+  const openDialer = useApp((s) => s.openDialer);
+  if (!dialer || !dialer.queue.length || view === 'supporters') return null;
+  return (
+    <button
+      type="button"
+      className="dialer-chip"
+      onClick={openDialer}
+      title="קמפיין-חייגן פעיל — לחיצה ממשיכה מאיפה שעצרתם"
+    >
+      📞 קמפיין פעיל ({dialer.queue.length})
+    </button>
   );
 }

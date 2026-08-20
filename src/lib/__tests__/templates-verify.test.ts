@@ -35,7 +35,8 @@ describe('📝 ratchet — תבניות-הודעה עריכות (#12)', () => {
     expect(norm.templates?.['evil.key' as never]).toBeUndefined();
     expect(norm.templates?.['wa.payment']).toBeUndefined();
     expect(norm.templates?.['wa.birthday']?.length).toBe(500);
-    expect(TEMPLATE_KEYS).toEqual(['wa.delivery', 'wa.payment', 'wa.birthday']);
+    // 20.8: נוספה תבנית-החייגן (wa.dialer) — קמפיין-שיחות "לא ענה? שלח וואטסאפ"
+    expect(TEMPLATE_KEYS).toEqual(['wa.delivery', 'wa.payment', 'wa.birthday', 'wa.dialer', 'wa.paylink']);
   });
 
   it('🛡 האשף עורך תבניות תחת וואטסאפ-דלוק', () => {

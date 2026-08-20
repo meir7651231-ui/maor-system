@@ -21,6 +21,8 @@ import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
 import { SupportersCockpit } from './SupportersCockpit';
+import { CommandPalette } from './CommandPalette';
+import type { Command } from './commands';
 import { AyinBoard } from './AyinBoard';
 import { OrgDonationCalendar } from './DonationCalendar';
 import { SupporterImport } from './SupporterImport';
@@ -173,6 +175,7 @@ export function SupportersView() {
   // חסר במפורש בכל הלקוחות-החיים ⇒ אפס-השפעה על הפרודקשן.
   const cockpitOn = config.features?.['supporters.cockpit'] === true;
   const [workMode, setWorkMode] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   // 🔁 זיהוי-הו"ק-מהיסטוריה — הפעולה מקומית-טהורה (detectRecurringHok על hist);
   // עד היום הכפתור היחיד היה קבור ב-NedarimSyncModal שנעול payments+ענן. חושפים אותו
   // כאן (מגודר hokOn) — מוצג רק כשיש חיובי-נדרים ב-hist, לא-דורס-הו"ק-ידני, no-op כשריק.
@@ -214,6 +217,15 @@ export function SupportersView() {
   const [dialerOpen, setDialerOpen] = useState(false);
   const dialer = useApp((s) => s.db.ui.dialer);
   const dialerStart = useApp((s) => s.dialerStart);
+  // צ'יפ-הקמפיין-הצף (20.8) — בקשת-פתיחה מכל מסך (דפוס famFormReq)
+  const dialerOpenReq = useApp((s) => s.dialerOpenReq);
+  const ackDialerOpen = useApp((s) => s.ackDialerOpen);
+  useEffect(() => {
+    if (dialerOpenReq) {
+      setDialerOpen(true);
+      ackDialerOpen();
+    }
+  }, [dialerOpenReq, ackDialerOpen]);
   // לוח התרומות הכלל-ארגוני (P1.4, legacy supCalOn/supCalAll) — מוצג בלחיצה
   const [orgCalOpen, setOrgCalOpen] = useState(false);
   // בקשת-בעלים 19.8 (פריט ז'): לוח מעקב-הטיפול מוסתר כברירת-מחדל — בחירה מפורשת להצגה.
@@ -268,6 +280,55 @@ export function SupportersView() {
 
   // 🐛 נחיל-9×9 (13.8): גם פתיחת-כרטיס-ישיר (מהפלטה/עומק) מכובדת להרשאת-הייעוד —
   // id מחוץ-להיקף לא ייפתח (הגנה-בעומק מעל סינון visibleBase).
+  // ⌘K — פלטת-הפיקוד (קופיילוט). מגודרת opt-in (cockpitOn); עוטפת פעולות קיימות.
+  useEffect(() => {
+    if (!cockpitOn) return;
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [cockpitOn]);
+
+  const paletteCtx = useMemo(
+    () => ({
+      supporters: visibleSupportersForDesignations(db.supporters, desigLimit).map((s) => ({
+        id: s.id,
+        name: s.name,
+        phone: s.phone,
+      })),
+      cockpitOn,
+      importOn,
+      customReportOn,
+      dedupCount,
+      paymentsOn: integrationOn(config, 'payments') && cloudOn,
+      supporterTerm: termOf(config, 'entity.supporter', 'תומך/ת'),
+    }),
+    [db.supporters, desigLimit, cockpitOn, importOn, customReportOn, dedupCount, config, cloudOn],
+  );
+
+  const runCommand = (c: Command) => {
+    switch (c.kind) {
+      case 'add': setFormOpen(true); break;
+      case 'work': setWorkMode(true); break;
+      case 'data': setWorkMode(false); break;
+      case 'import': setImportOpen(true); break;
+      case 'customreport': setExpOpen(true); break;
+      case 'dedup': setDedupOpen(true); break;
+      case 'incoming': setIncomingOpen(true); break;
+      case 'nedarim': setNedSyncOpen(true); break;
+      case 'openDonor': if (c.arg) setSelId(c.arg); break;
+    }
+  };
+
+  const paletteEl =
+    cockpitOn && paletteOpen ? (
+      <CommandPalette ctx={paletteCtx} onRun={runCommand} onClose={() => setPaletteOpen(false)} />
+    ) : null;
+
   const selRaw = db.supporters.find((s) => s.id === selId);
   const selected = selRaw && supporterVisibleForDesignations(selRaw, desigLimit) ? selRaw : undefined;
   if (selected) return <SupporterDetail supporter={selected} onBack={() => setSelId(null)} />;
@@ -297,6 +358,7 @@ export function SupportersView() {
           onOpen={(id) => setSelId(id)}
           onExit={() => setWorkMode(false)}
         />
+        {paletteEl}
       </div>
     );
   }
@@ -972,6 +1034,7 @@ export function SupportersView() {
       )}
 
       {expOpen && <CustomExport target="supporters" onClose={() => setExpOpen(false)} />}
+      {paletteEl}
       {incomingOpen && <IncomingPaymentsModal onClose={() => setIncomingOpen(false)} />}
       {nedSyncOpen && <NedarimSyncModal onClose={() => setNedSyncOpen(false)} />}
       {dialerOpen && <DialerModal onClose={() => setDialerOpen(false)} />}
