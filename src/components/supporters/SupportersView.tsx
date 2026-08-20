@@ -23,6 +23,19 @@ import { SupporterDetail } from './SupporterDetail';
 import { SupporterCard } from './SupporterCard';
 import { SupportersCockpit } from './SupportersCockpit';
 import { matchSegment, SEGMENTS, type SegmentKey } from './segments';
+
+/** האם התורם נתן אי-פעם בחודש-הלועזי m (1–12) — לדריל-אין ממפת-העונתיות. */
+function supGaveInMonth(sp: { donations: { date: string }[]; hist?: { d: string }[] }, m: number): boolean {
+  if (sp.donations.some((d) => +String(d.date).slice(5, 7) === m)) return true;
+  return !!sp.hist?.some((h) => +String(h.d).slice(5, 7) === m);
+}
+/** שנת-הגיוס (המתנה-הראשונה) — לדריל-אין מקוהורטת-הגיוס. null כשאין נתינה. */
+function supAcqYear(sp: { donations: { date: string }[]; hist?: { d: string }[] }): number | null {
+  let min = '';
+  for (const d of sp.donations) if (d.date && (!min || d.date < min)) min = d.date;
+  if (sp.hist) for (const h of sp.hist) if (h.d && (!min || h.d < min)) min = h.d;
+  return min ? +min.slice(0, 4) : null;
+}
 import { SupportersIntel } from './SupportersIntel';
 import { SupportersGalaxy } from './SupportersGalaxy';
 import { SupportersKpiStrip } from './SupportersKpiStrip';
@@ -187,6 +200,9 @@ export function SupportersView() {
   const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
   // סינון-סגמנט מהקוקפיט/הבנדים — קליק על סגמנט מסנן את הטבלה (לא רק פותח מסך ריק).
   const [segF, setSegF] = useState<SegmentKey | null>(null);
+  // סינון-חודש (מפת-עונתיות) + שנת-גיוס (קוהורטה) — דריל-אין מהבנדים האנליטיים.
+  const [monthF, setMonthF] = useState<number | null>(null);
+  const [acqYearF, setAcqYearF] = useState<number | null>(null);
   // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל אחד מתקפל.
   // הצ׳יפים והסינון נשמרים בדיוק — רק מתקפלים; החיפוש+קטגוריה גלויים תמיד.
   const [advOpen, setAdvOpen] = useState(false);
@@ -418,6 +434,8 @@ export function SupportersView() {
           onOpen={(id) => setSelId(id)}
           onExit={() => setIntelMode(false)}
           onSegment={(k) => { setSegF(k); setIntelMode(false); }}
+          onMonth={(m) => { setMonthF(m); setIntelMode(false); }}
+          onYear={(y) => { setAcqYearF(y); setIntelMode(false); }}
         />
         {paletteEl}
       </div>
@@ -459,6 +477,8 @@ export function SupportersView() {
     if (hokF === 'due' && !(sp.hok?.active && !hokRecordedThisMonth(sp, today))) return false;
     if (tierF && supTier(supScore(sp, rate)).label !== tierF) return false;
     if (segF && !matchSegment(sp, segF, visibleBase, today, rate)) return false;
+    if (monthF && !supGaveInMonth(sp, monthF)) return false;
+    if (acqYearF && supAcqYear(sp) !== acqYearF) return false;
     // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (לפי השער העריך) / ציון
     if (!numMatch(colF.count, supCount(sp))) return false;
     if (!numMatch(colF.total, Math.round(supTotalIls(sp, rate)))) return false;
@@ -501,9 +521,15 @@ export function SupportersView() {
   const tIls = visibleBase.reduce((a, x) => a + supIls(x), 0);
   const tUsd = visibleBase.reduce((a, x) => a + supUsd(x), 0);
   const filtered =
-    q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF || nextF || !!segF ||
+    q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF || nextF || !!segF || !!monthF || !!acqYearF ||
     colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';
   const segLabel = segF ? SEGMENTS.find((s) => s.key === segF)?.label : null;
+  const MONTHS_HE = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+  const drillChips: { label: string; clear: () => void }[] = [
+    ...(segLabel ? [{ label: 'סגמנט: ' + segLabel, clear: () => setSegF(null) }] : []),
+    ...(monthF ? [{ label: 'נתנו בחודש ' + MONTHS_HE[monthF - 1], clear: () => setMonthF(null) }] : []),
+    ...(acqYearF ? [{ label: 'גויסו ב-' + acqYearF, clear: () => setAcqYearF(null) }] : []),
+  ];
   const countLabel =
     (filtered ? list.length + ' מתוך ' : '') +
     visibleBase.length +
@@ -713,12 +739,14 @@ export function SupportersView() {
         />
       )}
 
-      {segLabel && (
-        <div style={{ marginBottom: 10 }}>
-          <button type="button" onClick={() => setSegF(null)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 999, border: '1px solid var(--accent-deep, #a05008)', background: 'var(--gold-soft, #fbeecb)', color: 'var(--accent-deep, #a05008)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-            סגמנט: {segLabel} <b>({list.length})</b> <span aria-hidden>✕ ניקוי</span>
-          </button>
+      {drillChips.length > 0 && (
+        <div style={{ marginBottom: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {drillChips.map((c) => (
+            <button key={c.label} type="button" onClick={c.clear}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 999, border: '1px solid var(--accent-deep, #a05008)', background: 'var(--gold-soft, #fbeecb)', color: 'var(--accent-deep, #a05008)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+              {c.label} <b>({list.length})</b> <span aria-hidden>✕ ניקוי</span>
+            </button>
+          ))}
         </div>
       )}
 
