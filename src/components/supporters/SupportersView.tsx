@@ -20,6 +20,7 @@ import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, sup
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
+import { SupporterCard } from './SupporterCard';
 import { SupportersCockpit } from './SupportersCockpit';
 import { SupportersIntel } from './SupportersIntel';
 import { SupportersGalaxy } from './SupportersGalaxy';
@@ -192,6 +193,8 @@ export function SupportersView() {
   const [galaxyMode, setGalaxyMode] = useState(false);
   // ריברנד — רצועת-KPI חיה מעל הטבלה הקיימת (opt-in מפורש).
   const rebrandOn = config.features?.['supporters.rebrand'] === true;
+  // כרטיס-תורם מאוחד (לשוניות) — opt-in מפורש; כבוי = הכרטיס הרגיל (ביט-זהה).
+  const cardOn = config.features?.['supporters.card'] === true;
   const [paletteOpen, setPaletteOpen] = useState(false);
   // 🔁 זיהוי-הו"ק-מהיסטוריה — הפעולה מקומית-טהורה (detectRecurringHok על hist);
   // עד היום הכפתור היחיד היה קבור ב-NedarimSyncModal שנעול payments+ענן. חושפים אותו
@@ -358,7 +361,11 @@ export function SupportersView() {
 
   const selRaw = db.supporters.find((s) => s.id === selId);
   const selected = selRaw && supporterVisibleForDesignations(selRaw, desigLimit) ? selRaw : undefined;
-  if (selected) return <SupporterDetail supporter={selected} onBack={() => setSelId(null)} />;
+  if (selected) {
+    return cardOn
+      ? <SupporterCard supporter={selected} supporters={db.supporters} config={config} usdRate={db.usdRate} onBack={() => setSelId(null)} />
+      : <SupporterDetail supporter={selected} onBack={() => setSelId(null)} />;
+  }
 
   // חלון-העבודה — נפרס רק כשהוא opt-in ובמצב-עבודה. פתיחת-כרטיס מנתבת ל-SupporterDetail
   // (ה-early-return למעלה), וחזרה ממנו חוזרת לקוקפיט (workMode נשמר).

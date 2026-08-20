@@ -20,6 +20,7 @@ const OPT_IN_KEYS = [
   'supporters.intel',
   'supporters.galaxy',
   'supporters.rebrand',
+  'supporters.card',
   'courses.cockpit',
   // גל ה׳ — מסכי-החוגים החדשים מגודרים `=== true` בקוד ⇒ חייבים optIn:true באשף
   'courses.teacherapp',
