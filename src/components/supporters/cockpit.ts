@@ -274,6 +274,24 @@ export interface CockpitFeedItem {
   spId?: string;
 }
 
+const KIND_LABEL: Record<CockpitTaskKind, string> = { call: 'שיחה', thanks: 'תודה', hok: 'הו״ק' };
+const KIND_ICON: Record<CockpitTaskKind, string> = { call: '📞 שיחה', thanks: '💛 תודה', hok: '🔁 הו״ק' };
+
+/** שורות-CSV של תור-המשימות (כותרת + שורה למשימה) — לתדפיס/ייצוא. */
+export function cockpitCsvRows(queue: CockpitQueue): string[][] {
+  return [
+    ['קבוצה', 'שם', 'טלפון', 'סיבה'],
+    ...queue.tasks.map((t) => [KIND_LABEL[t.kind], t.name, t.phone, t.reason]),
+  ];
+}
+
+/** רשימת-המשימות כטקסט (שורה למשימה) — להעתקה/שיתוף. */
+export function cockpitWorkListText(queue: CockpitQueue): string {
+  return queue.tasks
+    .map((t) => KIND_ICON[t.kind] + ' · ' + (t.name || 'ללא שם') + (t.phone ? ' · ' + t.phone : '') + ' — ' + t.reason)
+    .join('\n');
+}
+
 /**
  * פעילות-חיה — N האירועים האחרונים מכל התורמים (תרומות/יעדים/מעקב), מהחדש לישן.
  * נגזר מ-orgCalEntries הקיים; קריאה-בלבד.
