@@ -43,10 +43,13 @@ function riskColor(c: number): string {
   return c >= 60 ? 'var(--red, #b3261e)' : c >= 35 ? 'var(--warn, #b45309)' : 'var(--good, #2e7d32)';
 }
 
-function Tile(props: { label: string; value: string; note?: string; tone?: string }) {
+function Tile(props: { label: string; value: string; note?: string; tone?: string; onClick?: () => void }) {
+  const clickable = !!props.onClick;
   return (
-    <div className="card" style={{ padding: '12px 13px' }}>
-      <div style={{ fontSize: 11, color: 'var(--ink-faint)', fontWeight: 600 }}>{props.label}</div>
+    <div className="card" onClick={props.onClick}
+      style={{ padding: '12px 13px', cursor: clickable ? 'pointer' : 'default', outline: clickable ? '1px solid var(--line, #e4dbc9)' : undefined }}
+      title={clickable ? 'סינון לרשימה' : undefined}>
+      <div style={{ fontSize: 11, color: 'var(--ink-faint)', fontWeight: 600 }}>{props.label}{clickable ? ' ↗' : ''}</div>
       <div style={{ fontSize: 19, fontWeight: 900, letterSpacing: '-.4px', margin: '3px 0 1px', color: props.tone || 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>{props.value}</div>
       {props.note ? <div style={{ fontSize: 11, color: 'var(--ink-faint)', fontWeight: 700 }}>{props.note}</div> : null}
     </div>
@@ -487,6 +490,8 @@ export function SupportersIntel(props: {
   usdRate: number;
   onOpen: (id: string) => void;
   onExit?: () => void;
+  /** דריל-אין מאריח → סינון הטבלה במסך-הנתונים (atrisk/gave12m). */
+  onSegment?: (key: 'atrisk' | 'gave12m') => void;
 }) {
   const [sort, setSort] = useState<SortKey>('score');
   const [selId, setSelId] = useState<string | null>(null);
@@ -547,8 +552,8 @@ export function SupportersIntel(props: {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
         <Tile label="שווי-תיק (LTV)" value={KILO(portfolio.ltv)} note={portfolio.count + ' תורמים'} />
         <Tile label="תחזית 90 יום" value={KILO(portfolio.forecast90)} note="צפי-נכנס" />
-        <Tile label="שימור 12ח׳" value={portfolio.retention12m + '%'} tone="var(--good, #2e7d32)" />
-        <Tile label="₪ בסכנה" value={KILO(portfolio.atRiskMoney)} note={portfolio.atRiskCount + ' תורמים'} tone="var(--warn, #b45309)" />
+        <Tile label="שימור 12ח׳" value={portfolio.retention12m + '%'} tone="var(--good, #2e7d32)" onClick={props.onSegment ? () => props.onSegment!('gave12m') : undefined} />
+        <Tile label="₪ בסכנה" value={KILO(portfolio.atRiskMoney)} note={portfolio.atRiskCount + ' תורמים'} tone="var(--warn, #b45309)" onClick={props.onSegment ? () => props.onSegment!('atrisk') : undefined} />
         <Tile label={'ריכוזיות (top-' + portfolio.topN + ')'} value={portfolio.concentrationTopN + '%'} />
         <Tile label="מתנה ממוצעת" value={ILS(portfolio.avgGift)} />
       </div>

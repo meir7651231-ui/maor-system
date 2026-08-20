@@ -411,6 +411,7 @@ export function SupportersView() {
           usdRate={db.usdRate}
           onOpen={(id) => setSelId(id)}
           onExit={() => setIntelMode(false)}
+          onSegment={(k) => { setSegF(k); setIntelMode(false); }}
         />
         {paletteEl}
       </div>
@@ -694,6 +695,7 @@ export function SupportersView() {
           activeTier={tierF}
           onTier={(t) => setTierF(tierF === t ? null : t)}
           onHokDue={() => setHokF(hokF === 'due' ? null : 'due')}
+          onRisk={() => setSegF(segF === 'atrisk' ? null : 'atrisk')}
         />
       )}
 

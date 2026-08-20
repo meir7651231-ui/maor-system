@@ -41,13 +41,16 @@ function initial(name: string): string {
   return (name || '').trim().charAt(0) || '💛';
 }
 
-function KpiCard(props: { label: string; value: string; tone?: 'risk' }) {
+function KpiCard(props: { label: string; value: string; tone?: 'risk'; onClick?: () => void }) {
+  const clickable = !!props.onClick;
   return (
     <div
       className="card"
-      style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}
+      onClick={props.onClick}
+      title={clickable ? 'סינון לרשימת-הבסיכון' : undefined}
+      style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 6, cursor: clickable ? 'pointer' : 'default', outline: clickable ? '1px solid var(--warn, #b45309)' : undefined }}
     >
-      <span style={{ fontSize: 13, color: 'var(--ink-faint)', fontWeight: 600 }}>{props.label}</span>
+      <span style={{ fontSize: 13, color: 'var(--ink-faint)', fontWeight: 600 }}>{props.label}{clickable ? ' ↗' : ''}</span>
       <span
         style={{
           fontSize: 26,
@@ -235,7 +238,7 @@ export function SupportersCockpit(props: {
         <KpiCard label="סה״כ תורמים" value={String(kpis.total)} />
         <KpiCard label="נגבה החודש" value={ils(kpis.collected)} />
         {hokLabel ? <KpiCard label="צפוי מהו״ק החודש" value={ils(kpis.expectedHok)} /> : null}
-        <KpiCard label="בסיכון נטישה" value={String(kpis.atRisk)} tone="risk" />
+        <KpiCard label="בסיכון נטישה" value={String(kpis.atRisk)} tone="risk" onClick={props.onSegment ? () => props.onSegment!('atrisk') : undefined} />
       </div>
 
       {/* ── כותרת + התקדמות ── */}
