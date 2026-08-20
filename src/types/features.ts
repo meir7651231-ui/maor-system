@@ -142,6 +142,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.intel', label: 'מרכז-המודיעין 📊', desc: 'טבלה-עמוקה פר-תורם: RFM מפורק · סיכון-נטישה · תחזית-מתנה · מגמה, עם כרטיס-צלילה (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.galaxy', label: 'גלקסיית-התורמים 🌌', desc: 'מפת-כוכבים חיה: גודל=ערך · צבע=דרגה · מרחק=טריות; קליק על כוכב פותח כרטיס (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.rebrand', label: 'רצועת-KPI לתורמים ✨', desc: 'רצועת מדדים חיה מעל הטבלה הקיימת — סה"כ · פעילים · בסיכון · תחזית; צ׳יפים=סינון (opt-in)', module: 'supporters', optIn: true },
+  { key: 'supporters.card', label: 'כרטיס-תורם מאוחד (לשוניות) 📇', desc: 'מעטפת-לשוניות על הכרטיס: "הכרטיס" (הכרטיס המלא הקיים כמו-שהוא) + "מודיעין" (RFM · תחזית · סיכון · קצב-עונתי · אותות · דירוג פר-תורם). כבוי = הכרטיס הרגיל (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.ayin.dailyreport', label: 'דוח יומי — מעקב טיפול', desc: 'כפתור ייצוא הדוח היומי של מעקב הטיפול (תת-דגל של מעקב טיפול)', module: 'supporters' },
   { key: 'supporters.hist', label: 'תרומות מהקובץ ההיסטורי', desc: 'מיזוג התרומות שהגיעו מהקובץ ההיסטורי (גיבוי לגאסי) לרשימת "כל התרומות" בכרטיס', module: 'supporters' },
   { key: 'supporters.ayin.sheet', label: 'גיליון מעקב להורדה/ייבוא', desc: 'ייצוא גיליון מעקב הטיפול ל-CSV, מילוי מחוץ למערכת וייבוא חזרה (תת-דגל של מעקב טיפול)', module: 'supporters' },
