@@ -13,6 +13,7 @@ import { CourseForm } from './CourseForm';
 import { CourseDetail } from './CourseDetail';
 import { CourseWheel } from '../wheel/CourseWheel';
 import { CoursesCockpit } from './CoursesCockpit';
+import { CollectionCenter } from './CollectionCenter';
 import { coursesOfTeacher, DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
 
 type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2' | 'price3';
@@ -88,6 +89,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   // 'on' הייתה מדליקה לכל לקוח-חי). חסר-הדגל ⇒ אין מתג, אפס-השפעה.
   const cockpitOn = cfg.features?.['courses.cockpit'] === true;
   const [workMode, setWorkMode] = useState(false);
+  // 💰 מרכז-גבייה (פאזה 5) — כל החייבים חוצה-חוגים, מגודר courses.collect.
+  const collectOn = featureOn(cfg, 'courses.collect') && !myTeacherId;
+  const [collectOpen, setCollectOpen] = useState(false);
 
   // בקשת "+ חוג" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
   const courseFormReq = useApp((s) => s.courseFormReq);
@@ -200,9 +204,15 @@ function CoursesList(props: { onOpenWheel: () => void }) {
         <PageHead
           title={termOf(cfg, 'nav.courses', 'חוגים')}
           sub="חלון-העבודה — המערכת מסדרת את היום"
-          actions={<Btn onClick={() => setWorkMode(false)}>☰ הרשימה</Btn>}
+          actions={
+            <>
+              {collectOn && <Btn onClick={() => setCollectOpen(true)}>💰 גבייה</Btn>}
+              <Btn onClick={() => setWorkMode(false)}>☰ הרשימה</Btn>
+            </>
+          }
         />
         <CoursesCockpit />
+        {collectOpen && <CollectionCenter onClose={() => setCollectOpen(false)} />}
       </div>
     );
   }
@@ -231,6 +241,11 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             {cockpitOn && (
               <Btn onClick={() => setWorkMode(true)} title="חלון-העבודה — המערכת מסדרת את היום">
                 🎯 חלון-העבודה
+              </Btn>
+            )}
+            {collectOn && (
+              <Btn onClick={() => setCollectOpen(true)} title="מרכז-גבייה — כל החייבים חוצה-חוגים">
+                💰 גבייה
               </Btn>
             )}
             {!myTeacherId && (
@@ -475,6 +490,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       )}
 
       {formOpen && <CourseForm course={null} onClose={() => setFormOpen(false)} />}
+      {collectOpen && <CollectionCenter onClose={() => setCollectOpen(false)} />}
 
       {/* בקשת-בעלים: תפריט-⋯ במסך-החיצוני — הערות (התיאור) + מעבר לכרטיס */}
       {notesCourse && (
