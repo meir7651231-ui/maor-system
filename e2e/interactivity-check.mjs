@@ -102,6 +102,24 @@ if (hasDialBtn > 0) {
   console.log('אחרי קליק — מודאל-החייגן נפתח:', dialerOpen > 0 ? '✅ נפתח!' : '❌');
   await page.screenshot({ path: join(OUT, 'func-dialer.png') });
   console.log('📸 func-dialer');
+  await page.keyboard.press('Escape').catch(() => {});
+  await wait(300);
+}
+
+// חיפוש-מפורש לפי שנה: מעבר למסך-הנתונים → בחירת שנת-נתינה → צ׳יפ-תקופה + סינון
+await clickBtn('מסך הנתונים');
+await wait(500);
+const yearSel = page.locator('select').filter({ has: page.locator('option', { hasText: 'כל השנים' }) }).first();
+const hasYearSel = await yearSel.count();
+console.log('מסך-הנתונים — בורר-שנה גלוי:', hasYearSel > 0 ? '✅' : '❌');
+if (hasYearSel > 0) {
+  await yearSel.selectOption('2024').catch(() => {});
+  await wait(600);
+  // הצ׳יפ הוא כפתור-ניקוי (מובחן מאופציית-הבורר) — מוכיח שהסינון פעל
+  const periodChip = await page.locator('button', { hasText: 'נתנו ב-2024' }).filter({ hasText: '✕ ניקוי' }).count();
+  console.log('אחרי בחירת שנה — צ׳יפ-סינון "נתנו ב-2024" הופיע:', periodChip > 0 ? '✅ מסנן!' : '❌');
+  await page.screenshot({ path: join(OUT, 'func-year-filter.png') });
+  console.log('📸 func-year-filter');
 }
 
 await b.close();
