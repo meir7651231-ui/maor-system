@@ -350,6 +350,16 @@ export function nextSessionDate(c: Course, now: Date = new Date()): Date | null 
   return best;
 }
 
+/** גיליון-נוכחות (roll-call) — שיבוצים פעילים/מוקפאים של החוג (לא שהסתיימו). */
+export function sheetRoster(enrollments: Enrollment[], courseId: string): Enrollment[] {
+  return enrollments.filter((e) => e.courseId === courseId && e.status !== 'ended');
+}
+
+/** סיכום-נוכחות ליום: כמה מהרשימה מסומנים-נוכחים (presents כולל את התאריך). */
+export function sheetSummary(roster: Enrollment[], dateIso: string): { present: number; total: number } {
+  return { present: roster.filter((e) => (e.presents ?? []).includes(dateIso)).length, total: roster.length };
+}
+
 /** ערכי הבחירה בטופס — verbatim מהמקור; '__other' פותח הקלדה חופשית. */
 export const OTHER = '__other';
 export const OTHER_LABEL = 'אחר — הקלדה חופשית…';
