@@ -230,6 +230,10 @@ interface AppState {
   supOpenReq: string | null;
   openSupporterCard: (id: string) => void;
   ackSupporterOpen: () => void;
+  /** קוהרנטיות ווידג'ט↔יעד (20.8): "+N יעדי קשר נוספים" בבית ⇒ מסך-התורמים מסונן ליעדים שהגיעו. */
+  supListReq: 'contacts' | null;
+  openSupportersFiltered: (f: 'contacts') => void;
+  ackSupportersFiltered: () => void;
   /** "נוכחות ✓" מהבית (20.8): כרטיס-החוג נפתח וגולל לטבלת-השיבוצים (הניקוב). */
   courseAttnReq: string | null;
   openCourseAttendance: (id: string) => void;
@@ -1312,6 +1316,9 @@ export const useApp = create<AppState>()((set, get) => {
     supOpenReq: null,
     openSupporterCard: (id) => set({ view: 'supporters', supOpenReq: id }),
     ackSupporterOpen: () => set({ supOpenReq: null }),
+    supListReq: null,
+    openSupportersFiltered: (f) => set({ view: 'supporters', supListReq: f }),
+    ackSupportersFiltered: () => set({ supListReq: null }),
     // "נוכחות ✓" מהבית (20.8) — פתיחת כרטיס-החוג עם גלילה לטבלת-השיבוצים (הניקוב)
     courseAttnReq: null,
     openCourseAttendance: (id) => set({ view: 'courses', selCourseId: id, courseAttnReq: id }),

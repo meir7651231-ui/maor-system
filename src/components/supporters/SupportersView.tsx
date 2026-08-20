@@ -168,6 +168,8 @@ export function SupportersView() {
   const [colF, setColF] = useState({ count: '', total: '', score: '' });
   // סינון מעקב הטיפול (P3 פריט 14, לגאסי): עם מונה / בלי מונה / עודכן היום
   const [ayinF, setAyinF] = useState<null | 'eyes' | 'noeyes' | 'today'>(null);
+  // 📞 קוהרנטיות ווידג'ט↔יעד (20.8): סינון יעדי-קשר שהגיעו — הרשימה המלאה של ווידג'ט-הבית
+  const [nextF, setNextF] = useState(false);
   // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
@@ -260,6 +262,16 @@ export function SupportersView() {
       ackSupporterOpen();
     }
   }, [supOpenReq, ackSupporterOpen]);
+  // 📞 "+N יעדי קשר נוספים" מהבית — נוחת על הרשימה המסוננת המלאה (דפוס supOpenReq)
+  const supListReq = useApp((s) => s.supListReq);
+  const ackSupportersFiltered = useApp((s) => s.ackSupportersFiltered);
+  useEffect(() => {
+    if (supListReq === 'contacts') {
+      setNextF(true);
+      setAdvOpen(true);
+      ackSupportersFiltered();
+    }
+  }, [supListReq, ackSupportersFiltered]);
   // הכרעת-בעלים 19.8 (פריט ד'): עובד-סגור-לייעוד ננעל לייעודו — בורר-הייעוד מוסר
   // "כל הייעודים", ולכן ברירת-המסנן עוברת לייעוד הראשון שלו (לא 'all' שאינו קיים).
   useEffect(() => {
@@ -428,6 +440,8 @@ export function SupportersView() {
     if (!numMatch(colF.count, supCount(sp))) return false;
     if (!numMatch(colF.total, Math.round(supTotalIls(sp, rate)))) return false;
     if (!numMatch(colF.score, supScore(sp, rate))) return false;
+    // 📞 יעדי-קשר שהגיעו (20.8) — אותה סמנטיקה כמו dueContacts בווידג'ט-הבית
+    if (nextF && !(sp.nextDate && sp.nextDate <= today)) return false;
     // סינון מעקב הטיפול (פריט 14)
     if (ayinF === 'eyes' && !(sp.ayin && eyesTotal(sp.ayin) > 0)) return false;
     if (ayinF === 'noeyes' && sp.ayin && eyesTotal(sp.ayin) > 0) return false;
@@ -464,7 +478,7 @@ export function SupportersView() {
   const tIls = visibleBase.reduce((a, x) => a + supIls(x), 0);
   const tUsd = visibleBase.reduce((a, x) => a + supUsd(x), 0);
   const filtered =
-    q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF ||
+    q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF || nextF ||
     colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';
   const countLabel =
     (filtered ? list.length + ' מתוך ' : '') +
@@ -483,9 +497,12 @@ export function SupportersView() {
 
   // פאנל-סינון מתקדם: כמה מסננים-מתקדמים פעילים כרגע (לבאדג׳), והאם יש בכלל
   // תוכן-מתקדם להציג (אחרת אין פאנל — מסך ברירת-מחדל נשאר רזה).
-  const advActive = (tierF ? 1 : 0) + (hokF ? 1 : 0) + (ayinF ? 1 : 0);
+  const advActive = (tierF ? 1 : 0) + (hokF ? 1 : 0) + (ayinF ? 1 : 0) + (nextF ? 1 : 0);
+  // 📞 מונה יעדי-הקשר שהגיעו — אותו מספר בדיוק כמו הבאדג' בווידג'ט-הבית
+  const dueCount = visibleBase.filter((sp) => sp.nextDate && sp.nextDate <= today).length;
   const hasAdvFilters =
-    rfmOn || (hokOn && db.supporters.some((sp) => sp.hok)) || (ayinOn && db.supporters.length > 0);
+    rfmOn || (hokOn && db.supporters.some((sp) => sp.hok)) || (ayinOn && db.supporters.length > 0) ||
+    dueCount > 0;
 
   return (
     <div>
@@ -797,6 +814,16 @@ export function SupportersView() {
               {hokDetectArmed ? 'לאשר זיהוי הו״ק?' : '🔁 זהה הו״ק מהיסטוריה'}
             </Btn>
           )}
+        </div>
+      )}
+
+      {/* 📞 יעדי-קשר שהגיעו (20.8) — הרשימה המלאה של ווידג'ט "יעדי קשר" בבית */}
+      {(dueCount > 0 || nextF) && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>יעדי קשר:</span>
+          <Chip on={nextF} onClick={() => setNextF(!nextF)}>
+            {'📞 יעד שהגיע · ' + dueCount}
+          </Chip>
         </div>
       )}
 

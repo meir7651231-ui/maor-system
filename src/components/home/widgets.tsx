@@ -1154,9 +1154,15 @@ function GoldbookWidget({ ctx }: { ctx: HomeCtx }) {
         </div>
       ))}
       {podium.othersCount > 0 && (
-        <div style={softEmpty}>
-          +{podium.othersCount} {termOf(config, 'nav.supporters', 'תורמים')} נוספים · {fmtIls(podium.othersAmount)}
-        </div>
+        // קוהרנטיות (20.8): הרשימה המלאה = טבלת-התורמים (סה"כ + מיון) — לא שורה מתה
+        <button
+          type="button"
+          style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', textDecoration: 'underline' }}
+          onClick={() => go('supporters')}
+          title={'כל ה' + termOf(config, 'nav.supporters', 'תורמים') + ' — הטבלה המלאה עם סה"כ ומיון'}
+        >
+          +{podium.othersCount} {termOf(config, 'nav.supporters', 'תורמים')} נוספים · {fmtIls(podium.othersAmount)} — לטבלה המלאה ←
+        </button>
       )}
     </Panel>
   );
@@ -1396,6 +1402,8 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
  *  חיווט-עומק (19.8): שורה פותחת את כרטיס-התומך עצמו; 📞/💬 ליצירת-קשר בקליק. */
 function ContactsWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, now, go, config, navTo } = ctx;
+  // "+N נוספים" ⇒ מסך-התורמים עם פילטר 📞 יעד-שהגיע (הרשימה המלאה של הווידג'ט)
+  const openSupportersFiltered = useApp((s) => s.openSupportersFiltered);
   // ⚡ קלילות (19.8): נגזר פעם-אחת פר-נתונים (todayIso מייצג את היום — לא את הרגע)
   const { due, monthSum } = useMemo(
     () => ({ due: dueContacts(db, now), monthSum: monthDonationSum(db, now) }),
@@ -1441,7 +1449,17 @@ function ContactsWidget({ ctx }: { ctx: HomeCtx }) {
           )}
         </div>
       ))}
-      {due.length > 6 && <div style={softEmpty}>+{due.length - 6} יעדי קשר נוספים</div>}
+      {due.length > 6 && (
+        // קוהרנטיות ווידג'ט↔יעד (20.8): לא שורה מתה — קפיצה לרשימה המסוננת המלאה בתורמים
+        <button
+          type="button"
+          style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', textDecoration: 'underline' }}
+          onClick={() => openSupportersFiltered('contacts')}
+          title="כל יעדי-הקשר שהגיעו — רשימה מסוננת במסך התורמים"
+        >
+          +{due.length - 6} יעדי קשר נוספים — לרשימה המלאה ←
+        </button>
+      )}
     </Panel>
   );
 }
@@ -1451,12 +1469,14 @@ function PunchlowWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, navTo, config } = ctx;
   // ⚡ קלילות (19.8): נגזר פעם-אחת פר-נתונים
   const items = useMemo(() => punchLow(db), [db]);
+  // קוהרנטיות (20.8): אין מסך-כרטיסיות ייעודי ⇒ "+N נוספות" מרחיב את הרשימה במקום (דפוס תשומת-הלב)
+  const [showAll, setShowAll] = useState(false);
   return (
     <Panel icon="🎫" title="מלאי כרטיסיות" badge={items.length ? String(items.length) : undefined}>
       {items.length === 0 && (
         <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>כל הכרטיסיות במלאי תקין ✓</div>
       )}
-      {items.slice(0, 6).map((p) => (
+      {(showAll ? items : items.slice(0, 6)).map((p) => (
         <button key={p.key} type="button" className="hm-row" onClick={() => navTo(p.nav)} title={'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה')}>
           <span style={chipStyle(ctx, '#efe7f3', '#7c3aed')}>{p.left}/{p.total}</span>
           <span style={{ minWidth: 0 }}>
@@ -1465,7 +1485,15 @@ function PunchlowWidget({ ctx }: { ctx: HomeCtx }) {
           <span className="hm-arrow" aria-hidden>לחידוש ←</span>
         </button>
       ))}
-      {items.length > 6 && <div style={softEmpty}>+{items.length - 6} כרטיסיות נוספות</div>}
+      {items.length > 6 && (
+        <button
+          type="button"
+          style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', textDecoration: 'underline' }}
+          onClick={() => setShowAll((v) => !v)}
+        >
+          {showAll ? 'הצגת 6 ראשונות בלבד' : `+${items.length - 6} כרטיסיות נוספות — הצגת הכל`}
+        </button>
+      )}
     </Panel>
   );
 }
@@ -1605,6 +1633,8 @@ function SuggestWidget({ ctx }: { ctx: HomeCtx }) {
   const privacyMode = useApp((s) => s.privacyMode);
   // ⚡ קלילות (19.8): המנוע סורק משפחות+שיבוצים — פעם-אחת פר-נתונים
   const items = useMemo(() => liveSuggestions(db, todayIso, config), [db, todayIso, config]);
+  // קוהרנטיות (20.8): "+N נוספות" מרחיב במקום — כל ההצעות במלואן (דפוס תשומת-הלב)
+  const [showAll, setShowAll] = useState(false);
   if (privacyMode) {
     return (
       <Panel icon="💡" title="הצעות מקדימות">
@@ -1623,7 +1653,7 @@ function SuggestWidget({ ctx }: { ctx: HomeCtx }) {
       {items.length === 0 && (
         <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>אין הצעות פתוחות כרגע ✓</div>
       )}
-      {items.slice(0, 8).map((s) => (
+      {(showAll ? items : items.slice(0, 8)).map((s) => (
         <div key={s.key} className="hm-row" style={{ alignItems: 'center' }}>
           <span aria-hidden style={{ fontSize: 18 }}>{s.emoji}</span>
           <span style={{ minWidth: 0, flex: 1 }}>
@@ -1634,7 +1664,15 @@ function SuggestWidget({ ctx }: { ctx: HomeCtx }) {
           <Btn sm onClick={() => markAttnDone(s.key)} title={'התעלמות מההצעה: ' + s.title}>✕</Btn>
         </div>
       ))}
-      {items.length > 8 && <div style={softEmpty}>+{items.length - 8} הצעות נוספות</div>}
+      {items.length > 8 && (
+        <button
+          type="button"
+          style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', textDecoration: 'underline' }}
+          onClick={() => setShowAll((v) => !v)}
+        >
+          {showAll ? 'הצגת 8 ראשונות בלבד' : `+${items.length - 8} הצעות נוספות — הצגת הכל`}
+        </button>
+      )}
     </Panel>
   );
 }
