@@ -52,4 +52,21 @@ describe('💛 ratchet — חיווט מרכז-המודיעין (opt-in)', () =>
     expect(intelSrc).toContain('<SignalsBand');
     expect(intelSrc).toContain('signals = useMemo(');
   });
+
+  it('🛡 ייצוא-CSV מגודר core.export + נהוג מ-intelCsvRows', () => {
+    expect(intelSrc).toContain("featureOn(props.config, 'core.export')");
+    expect(intelSrc).toContain('intelCsvRows(props.supporters');
+    expect(intelSrc).toContain('downloadCsv(');
+  });
+
+  it('🛡 כרטיס-הצלילה מועשר בקצב-עונתי + אותות פר-תורם', () => {
+    expect(intelSrc).toContain('donorRhythm(sp');
+    expect(intelSrc).toContain('donorSignals(sp');
+  });
+
+  it('🛡 דירוג/אחוזון מחווט מהמנוע הטהור (donorRanks) לכרטיס-הצלילה', () => {
+    expect(intelSrc).toContain('donorRanks(props.supporters');
+    expect(intelSrc).toContain('rank={ranks.get(');
+    expect(intelSrc).toContain('ranks = useMemo(');
+  });
 });

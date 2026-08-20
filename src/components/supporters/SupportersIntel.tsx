@@ -13,8 +13,12 @@ import { supTier } from './lib';
 import { donorIntel, type DonorIntel } from './intel';
 import { activeByMonth, portfolioIntel, tierTrendCounts } from './portfolio';
 import { timeMachine, type TimeMachine } from './timemachine';
-import { seasonality, type Seasonality } from './seasonality';
-import { portfolioSignals, type PortfolioSignals, type SignalKind } from './signals';
+import { donorRhythm, seasonality, type Seasonality } from './seasonality';
+import { donorSignals, portfolioSignals, type PortfolioSignals, type SignalKind } from './signals';
+import { intelCsvRows } from './intelExport';
+import { donorRanks, type DonorRank } from './ranks';
+import { downloadCsv } from '../../lib/csvx';
+import { featureOn } from '../../lib/config';
 
 const ILS = (n: number) => '₪' + Math.round(n).toLocaleString('he-IL');
 const KILO = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K' : ILS(n));
@@ -46,11 +50,13 @@ function Tile(props: { label: string; value: string; note?: string; tone?: strin
   );
 }
 
-function DeepDive(props: { sp: Supporter; intel: DonorIntel }) {
-  const { intel, sp } = props;
+function DeepDive(props: { sp: Supporter; intel: DonorIntel; rate: number; today: string; rank?: DonorRank }) {
+  const { intel, sp, rank } = props;
   const tier = supTier(intel.rfm.score);
   const mo = intel.scan.monthly;
   const max = Math.max(1, ...mo);
+  const rhythm = donorRhythm(sp, props.rate);
+  const sigs = donorSignals(sp, props.today, props.rate);
   return (
     <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
@@ -61,8 +67,26 @@ function DeepDive(props: { sp: Supporter; intel: DonorIntel }) {
           <h3 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>{sp.name || 'ללא שם'}</h3>
           <div style={{ fontSize: 11, color: 'var(--ink-faint)' }}>{sp.cat || '—'} · {intel.scan.count} מתנות</div>
         </div>
-        <span style={{ fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999, background: tier.bg, color: tier.c }}>{tier.label} {intel.rfm.score}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+          <span style={{ fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999, background: tier.bg, color: tier.c }}>{tier.label} {intel.rfm.score}</span>
+          {rank ? <span style={{ fontSize: 10.5, color: 'var(--ink-faint)', fontWeight: 700 }} title={'דירוג לפי ערך-חיים · אחוזון ' + rank.percentile}>#{rank.ltvRank}/{rank.total} · אחוזון {rank.percentile}</span> : null}
+        </div>
       </div>
+
+      {/* rhythm + signals badges */}
+      {(rhythm.topMonth || sigs.length) ? (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 9 }}>
+          {rhythm.seasonal ? (
+            <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: 'var(--gold-soft, #fbeecb)', color: 'var(--gold-deep, #a05008)' }} title={'רוב הנתינה בחודש ' + MONTHS_HE[rhythm.topMonth - 1]}>🗓️ עונתי · שיא {MONTHS_HE[rhythm.topMonth - 1]}</span>
+          ) : rhythm.topMonth ? (
+            <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: 'var(--panel-2, #f7f2e8)', color: 'var(--ink-soft)' }}>🗓️ שיא {MONTHS_HE[rhythm.topMonth - 1]}</span>
+          ) : null}
+          {sigs.map((s, i) => {
+            const m = SIGNAL_META[s.kind];
+            return <span key={s.kind + i} title={s.detail} style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: m.bg, color: m.color }}>{m.emoji} {s.detail}</span>;
+          })}
+        </div>
+      ) : null}
 
       {/* giving timeline */}
       <div style={{ borderTop: '1px solid var(--line-soft, #efe8d9)', paddingTop: 11, marginTop: 8 }}>
@@ -105,6 +129,15 @@ function DeepDive(props: { sp: Supporter; intel: DonorIntel }) {
 }
 
 const TIER_DOT: Record<string, string> = { 'זהב': '#c98a12', 'כסף': '#5f6b82', 'ארד': '#b5591a', 'רדומה': '#7c7565' };
+
+const SIGNAL_META: Record<SignalKind, { label: string; emoji: string; color: string; bg: string }> = {
+  reactivated: { label: 'חזרו', emoji: '🔄', color: 'var(--good, #2e7d32)', bg: 'var(--good-bg, #e7f4e8)' },
+  jump: { label: 'קפצו', emoji: '📈', color: 'var(--info, #1d4ed8)', bg: 'var(--info-bg, #e7eefb)' },
+  firstgift: { label: 'חדשים', emoji: '✨', color: 'var(--gold-deep, #a05008)', bg: 'var(--gold-soft, #fbeecb)' },
+  drop: { label: 'ירדו', emoji: '📉', color: 'var(--warn, #b45309)', bg: 'var(--warn-bg, #fdf0e1)' },
+  lapsing: { label: 'גולשים', emoji: '⚠️', color: 'var(--red, #b3261e)', bg: 'var(--red-bg, #fdecea)' },
+};
+const SIGNAL_ORDER: SignalKind[] = ['lapsing', 'drop', 'reactivated', 'jump', 'firstgift'];
 
 function CohortBand(props: {
   cohort: ReturnType<typeof tierTrendCounts>;
@@ -286,15 +319,6 @@ function SeasonBand(props: { season: Seasonality }) {
   );
 }
 
-const SIGNAL_META: Record<SignalKind, { label: string; emoji: string; color: string; bg: string }> = {
-  reactivated: { label: 'חזרו', emoji: '🔄', color: 'var(--good, #2e7d32)', bg: 'var(--good-bg, #e7f4e8)' },
-  jump: { label: 'קפצו', emoji: '📈', color: 'var(--info, #1d4ed8)', bg: 'var(--info-bg, #e7eefb)' },
-  firstgift: { label: 'חדשים', emoji: '✨', color: 'var(--gold-deep, #a05008)', bg: 'var(--gold-soft, #fbeecb)' },
-  drop: { label: 'ירדו', emoji: '📉', color: 'var(--warn, #b45309)', bg: 'var(--warn-bg, #fdf0e1)' },
-  lapsing: { label: 'גולשים', emoji: '⚠️', color: 'var(--red, #b3261e)', bg: 'var(--red-bg, #fdecea)' },
-};
-const SIGNAL_ORDER: SignalKind[] = ['lapsing', 'drop', 'reactivated', 'jump', 'firstgift'];
-
 /**
  * לוח-האותות — **מה השתנה**: מונים פר-סוג-אות (גולשים · ירדו · חזרו · קפצו · חדשים) +
  * רשימת ה"מזיזים" הדחופים. משלים את ה-RFM הסטטי בזיהוי-סטיות-דפוס.
@@ -382,6 +406,7 @@ export function SupportersIntel(props: {
   const machine = useMemo(() => timeMachine(props.supporters, today, rate), [props.supporters, today, rate]);
   const season = useMemo(() => seasonality(props.supporters, rate), [props.supporters, rate]);
   const signals = useMemo(() => portfolioSignals(props.supporters, today, rate), [props.supporters, today, rate]);
+  const ranks = useMemo(() => donorRanks(props.supporters, today, rate), [props.supporters, today, rate]);
 
   const sorted = useMemo(() => {
     const arr = [...rows];
@@ -404,6 +429,9 @@ export function SupportersIntel(props: {
         <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>מרכז המודיעין</h1>
         {props.onExit ? (
           <Btn onClick={props.onExit} title="חזרה למסך-הנתונים">☰ מסך הנתונים</Btn>
+        ) : null}
+        {featureOn(props.config, 'core.export') ? (
+          <Btn sm onClick={() => downloadCsv('intel-' + today + '.csv', intelCsvRows(props.supporters, today, rate))} title="ייצוא כל המודיעין ל-CSV">⬇ CSV מלא</Btn>
         ) : null}
         <div style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>מיון:</span>
@@ -471,7 +499,7 @@ export function SupportersIntel(props: {
           </div>
         </div>
 
-        {selected ? <DeepDive sp={selected.sp} intel={selected.intel} /> : null}
+        {selected ? <DeepDive sp={selected.sp} intel={selected.intel} rate={rate} today={today} rank={ranks.get(selected.sp.id)} /> : null}
       </div>
 
       {/* מפת-העונתיות — מתי נכנס הכסף */}
