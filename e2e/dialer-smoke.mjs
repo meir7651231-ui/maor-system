@@ -126,6 +126,17 @@ if (await advBtn.count()) {
   const stg = await pg.evaluate((id) => JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id)?.ayin?.stage ?? '', firstId);
   stg !== 'new' ? ok('שלב-הטיפול קודם (' + stg + ')') : fail('קידום-שלב לא עבד');
 } else fail('כפתור קידום-שלב לא נמצא');
+// ⬇ 🕯 ייצוא-שמות ממוקד-קמפיין — הקובץ יורד ומכיל את השם שנרשם
+const namesBtn = pg.locator('button', { hasText: '⬇ 🕯' }).first();
+if (await namesBtn.count()) {
+  const [dl] = await Promise.all([pg.waitForEvent('download'), namesBtn.click()]);
+  const fname = dl.suggestedFilename();
+  const body = readFileSync(await dl.path(), 'utf8');
+  fname.startsWith('dialer-names-') ? ok('⬇ 🕯 קובץ-השמות ירד (' + fname + ')') : fail('שם-קובץ שגוי: ' + fname);
+  body.includes('רפאל בן שרה') && body.includes('לרפואה שלמה ולהצלחה')
+    ? ok('ה-CSV מכיל את השם וההערה של הקמפיין')
+    : fail('ה-CSV חסר את השם/ההערה');
+} else fail('כפתור ⬇ 🕯 לא מוצג למרות שם-רשום');
 // קישור-תשלום — צ'יפ 💳 עם ה-URL של הארגון
 const payChip = pg.locator('a', { hasText: '💳' }).first();
 if (await payChip.count()) {
