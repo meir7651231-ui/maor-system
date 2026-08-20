@@ -205,6 +205,8 @@ export function SupportersCockpit(props: {
   onExit?: () => void;
   /** קליק על סגמנט — מסנן את הטבלה לפי הסגמנט (לא רק פותח מסך ריק). */
   onSegment?: (key: SegmentKey) => void;
+  /** הפעלת החייגן-המונחה על רשימת-מזהים (חיווט מודיעין→חייגן). */
+  onDial?: (ids: string[]) => void;
 }) {
   const [doneIds, setDoneIds] = useState<ReadonlySet<string>>(new Set<string>());
   const today = new Date().toISOString().slice(0, 10);
@@ -255,6 +257,15 @@ export function SupportersCockpit(props: {
             <Btn sm onClick={() => { if (!guardExport()) return; void navigator.clipboard?.writeText(cockpitWorkListText(queue)); }} title="העתקת רשימת-המשימות ללוח">
               📋 העתקה
             </Btn>
+            {/* חייגן-מונחה על תור-השיחות (מודיעין→חייגן) — רק שיחות עם טלפון */}
+            {props.onDial ? (() => {
+              const callIds = queue.tasks.filter((t) => t.kind === 'call' && t.phone).map((t) => t.supId);
+              return callIds.length ? (
+                <Btn sm kind="primary" onClick={() => props.onDial!(callIds)} title="חייגן-מונחה על כל השיחות המומלצות — אחת-אחת, עם סימון-תוצאה ואזהרת-שעה">
+                  📞 חייגן ({callIds.length})
+                </Btn>
+              ) : null;
+            })() : null}
           </div>
         ) : null}
         {queue.total > 0 ? (

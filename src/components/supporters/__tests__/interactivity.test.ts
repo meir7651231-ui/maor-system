@@ -8,6 +8,7 @@ import cockpitSrc from '../SupportersCockpit.tsx?raw';
 import galaxySrc from '../SupportersGalaxy.tsx?raw';
 import cardSrc from '../SupporterCard.tsx?raw';
 import intelSrc from '../SupportersIntel.tsx?raw';
+import dialerSrc from '../../dialer/DialerModal.tsx?raw';
 
 describe('💛 ratchet — אינטראקטיביות המסכים החדשים', () => {
   it('🛡 סגמנטי-הקוקפיט מסננים באמת (onSegment→segF), לא רק onExit זהה', () => {
@@ -57,5 +58,17 @@ describe('💛 ratchet — אינטראקטיביות המסכים החדשים'
     expect(galaxySrc).toContain('setTierHi(tierHi === k ? null : k)');
     expect(galaxySrc).toContain('n.tier === tierHi');
     expect(intelSrc).toContain('למסך-הנתונים המלא ↗');
+  });
+
+  it('🛡 חייגן מחווט למודיעין (קוקפיט→חייגן) + אזהרת-שעה לפי קידומת', () => {
+    // קוקפיט: כפתור חייגן על תור-השיחות
+    expect(cockpitSrc).toContain("t.kind === 'call' && t.phone");
+    expect(cockpitSrc).toContain('props.onDial!(callIds)');
+    // View: מפעיל את החייגן (מגודר telephony)
+    expect(viewSrc).toContain('onDial={telephonyOn(config)');
+    // חייגן: אזהרת-שעה לפי contactWindow + כפתור-דילוג
+    expect(dialerSrc).toContain('contactWindow(sp.phone');
+    expect(dialerSrc).toContain('win?.quiet');
+    expect(dialerSrc).toContain("act('skip')");
   });
 });

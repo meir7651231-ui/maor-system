@@ -418,6 +418,7 @@ export function SupportersView() {
           onOpen={(id) => setSelId(id)}
           onExit={() => setWorkMode(false)}
           onSegment={(k) => { setSegF(k); setWorkMode(false); }}
+          onDial={telephonyOn(config) ? (ids) => { dialerStart(ids, termOf(config, 'nav.supporters', 'תורמים')); setWorkMode(false); setDialerOpen(true); } : undefined}
         />
         {paletteEl}
       </div>
