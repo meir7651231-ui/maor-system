@@ -4,9 +4,12 @@
  * כניסת-צוות (מוביל למסך-הכניסה הקיים דרך onEnter). מגודר opt-in `shell.portal`.
  * self-contained: overlay משלו בסגנון-האתר, בלי תלות בשלד-האפליקציה.
  */
-import { useState, type CSSProperties } from 'react';
+import { useRef, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
-import { EMPTY_PORTAL_FORM, portalChannels, portalHasChannels, portalValid, type PortalForm } from './portal';
+import {
+  EMPTY_PORTAL_FORM, PORTAL_SENDER, PORTAL_SENDER_NAME, portalChannels, portalChatLine,
+  portalHasChannels, portalValid, type PortalForm,
+} from './portal';
 
 type View = 'hub' | 'parent';
 
@@ -14,9 +17,21 @@ export function PortalEntry({ onEnter }: { onEnter: () => void }) {
   const config = useApp((s) => s.config);
   const dbOrgName = useApp((s) => s.db.orgName);
   const orgName = config.orgName || dbOrgName || '';
+  const slug = config.slug || 'default';
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View>('hub');
   const [form, setForm] = useState<PortalForm>(EMPTY_PORTAL_FORM);
+  const postedRef = useRef(false);
+
+  // פאזה 2 (דורמנטי): שולח את הבקשה גם לצ׳אט-הצוות הפנימי — נופל-רך בלי ענן/הרשאה.
+  // פעם-אחת פר-מילוי (postedRef), best-effort ברקע, בלי לחסום את הערוץ שהמשתמש בחר.
+  const postToTeam = () => {
+    if (postedRef.current || !portalValid(form)) return;
+    postedRef.current = true;
+    void import('../../store/cloudSync')
+      .then((m) => m.sendTeamMessage(slug, PORTAL_SENDER, PORTAL_SENDER_NAME, portalChatLine(form)))
+      .catch(() => { /* אין ענן/הרשאה — דורמנטי */ });
+  };
 
   const hasChannels = portalHasChannels(config);
   const channels = portalValid(form) ? portalChannels(config, orgName, form) : [];
@@ -25,6 +40,7 @@ export function PortalEntry({ onEnter }: { onEnter: () => void }) {
     setOpen(false);
     setView('hub');
     setForm(EMPTY_PORTAL_FORM);
+    postedRef.current = false;
   };
 
   const field = (label: string, key: keyof PortalForm, ph: string, req?: boolean) => (
@@ -126,6 +142,7 @@ export function PortalEntry({ onEnter }: { onEnter: () => void }) {
                           href={ch.href}
                           target={ch.key === 'whatsapp' || ch.key === 'email' ? '_blank' : undefined}
                           rel="noopener noreferrer"
+                          onClick={postToTeam}
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 999, background: '#f4f2ec', border: '1.5px solid #e0ddd5', textDecoration: 'none', color: '#2a2a2a', fontWeight: 700, fontSize: 14.5 }}
                         >
                           {ch.icon} {ch.label}

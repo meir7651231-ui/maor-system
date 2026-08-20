@@ -6,9 +6,10 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG } from '../../../types/config';
 import type { OrgConfig } from '../../../types/config';
-import { EMPTY_PORTAL_FORM, portalChannels, portalHasChannels, portalMessage, portalValid, type PortalForm } from '../portal';
+import { EMPTY_PORTAL_FORM, parsePortalChat, portalChannels, portalChatLine, portalHasChannels, portalMessage, portalValid, type PortalForm } from '../portal';
 import entrySrc from '../PortalEntry.tsx?raw';
 import siteSrc from '../PublicSite.tsx?raw';
+import chatSrc from '../../support/SupportChat.tsx?raw';
 
 function cfg(contact: Partial<NonNullable<NonNullable<OrgConfig['site']>['contact']>>): OrgConfig {
   return { ...DEFAULT_CONFIG, orgName: 'מאור', site: { contact } } as OrgConfig;
@@ -63,5 +64,33 @@ describe('🛡 הגנות-מקור — שער-ההצטרפות מחווט, מג�
     expect(siteSrc).toContain('{portalOn && <PortalEntry onEnter={onEnter} />}');
     // אפס-מחיקה: כפתור-הכניסה הקיים ב-nav נשאר
     expect(siteSrc).toContain('onClick={onEnter}');
+  });
+});
+
+describe('🚪 פאזה 2 — פנייה בצ׳אט-הצוות', () => {
+  const f: PortalForm = { childName: 'דנה', parentName: 'רות', phone: '050-1234567', course: 'ציור', note: 'אלרגיה' };
+  it('portalChatLine ↔ parsePortalChat: round-trip של פרטי-הבקשה', () => {
+    const line = portalChatLine(f);
+    expect(line.startsWith('📥 בקשת-הרשמה')).toBe(true);
+    const req = parsePortalChat(line);
+    expect(req).not.toBeNull();
+    expect(req!.childName).toBe('דנה');
+    expect(req!.phone).toBe('050-1234567');
+    expect(req!.course).toBe('ציור');
+    expect(req!.note).toBe('אלרגיה');
+  });
+  it('parsePortalChat: הודעה רגילה ⇒ null (לא-כרטיס)', () => {
+    expect(parsePortalChat('שלום צוות, מה נשמע?')).toBeNull();
+    expect(parsePortalChat('')).toBeNull();
+  });
+  it('הגנת-מקור — PortalEntry שולח לצ׳אט-הצוות (דורמנטי, נופל-רך)', () => {
+    expect(entrySrc).toContain("import('../../store/cloudSync')");
+    expect(entrySrc).toContain('m.sendTeamMessage(slug, PORTAL_SENDER, PORTAL_SENDER_NAME, portalChatLine(form))');
+    expect(entrySrc).toContain('.catch(() =>'); // נופל-רך בלי ענן/הרשאה
+  });
+  it('הגנת-מקור — צ׳אט-הצוות מרנדר בקשת-שער ככרטיס-פעולה', () => {
+    expect(chatSrc).toContain('parsePortalChat(m.text) ? <PortalReqCard');
+    expect(chatSrc).toContain('📥 בקשת הרשמה לחוג');
+    expect(chatSrc).toContain('💬 וואטסאפ');
   });
 });

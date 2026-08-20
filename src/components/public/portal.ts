@@ -84,3 +84,48 @@ export function portalHasChannels(config: OrgConfig): boolean {
   const c = config.site?.contact ?? {};
   return !!(c.whatsapp || (c.phones && c.phones.length) || c.email);
 }
+
+/* ── פאזה 2 · פנייה בצ׳אט-הצוות ─────────────────────────────────────────────
+   בקשת-ההורה נשלחת גם לצ׳אט-הצוות הפנימי (teamChats) כשורה-מקודדת, והצ׳אט מרנדר
+   אותה ככרטיס-פעולה (טלפון→WhatsApp/חיוג). הכתיבה עצמה דורמנטית — עוברת רק כשהענן
+   דלוק וה-Rules מתירים (חלון-בעלים); נופלת-רך אחרת. טהור (format/parse). */
+
+export const PORTAL_REQ_PREFIX = '📥 בקשת-הרשמה';
+/** זהות-שולח קבועה לפניות-שער (אין למבקר-ציבורי מייל). */
+export const PORTAL_SENDER = 'portal';
+export const PORTAL_SENDER_NAME = 'שער-הרשמה';
+
+/** שורת-צ׳אט מקודדת של בקשת-הרשמה — לפרסום בצ׳אט-הצוות. */
+export function portalChatLine(f: PortalForm): string {
+  return [
+    PORTAL_REQ_PREFIX,
+    'ילד/ה: ' + f.childName.trim(),
+    f.parentName.trim() && 'הורה: ' + f.parentName.trim(),
+    'טלפון: ' + f.phone.trim(),
+    f.course.trim() && 'חוג: ' + f.course.trim(),
+    f.note.trim() && 'הערה: ' + f.note.trim(),
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+export interface ParsedPortalReq {
+  childName: string;
+  parentName: string;
+  phone: string;
+  course: string;
+  note: string;
+}
+
+/** פענוח שורת-צ׳אט לבקשת-הרשמה מובנית, או null אם ההודעה אינה בקשת-שער. */
+export function parsePortalChat(text: string): ParsedPortalReq | null {
+  if (!text || !text.startsWith(PORTAL_REQ_PREFIX)) return null;
+  const get = (label: string) => {
+    const m = text.match(new RegExp('^' + label + ':\\s*(.+)$', 'm'));
+    return m ? m[1].trim() : '';
+  };
+  const phone = get('טלפון');
+  const childName = get('ילד/ה');
+  if (!childName && !phone) return null;
+  return { childName, parentName: get('הורה'), phone, course: get('חוג'), note: get('הערה') };
+}
