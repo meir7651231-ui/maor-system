@@ -77,6 +77,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.makeup.justified', label: 'חיסור מוצדק (השלמה)', desc: 'תיבת "חיסור מוצדק" — זכאות להשלמה גם מתחת ל-48ש׳ (מחלה/אירוע)', module: 'courses' },
   { key: 'courses.makeup.schedule', label: 'תזמון-השלמות', desc: '🔁 מקטע "השלמות ממתינות" בכרטיס-החוג — קביעת תאריך-השלמה לחיסור-זכאי + תזכורת-לוח', module: 'courses' },
   { key: 'courses.dashboard', label: 'דשבורד-חוגים', desc: '📊 מבט-על פר-חוג במסך-אחד — רשומים · תפוסה% · רשימת-המתנה · חוב · חיסורים · בסיכון-נשירה + החוגים-המבוקשים + ייצוא CSV', module: 'courses' },
+  { key: 'courses.teacherapp', label: 'אפליקציית-המורה', desc: '🎓 מסך מצומצם למורה (opt-in) — המפגשים-שלי-היום + נוכחות-בטאפ + השלמות-ממתינות + דוח-חודשי; רק לתפקיד-מורה, אפס-כסף', module: 'courses' },
   { key: 'courses.reminder', label: 'תזכורת ללוח', desc: 'כפתור "🔔 תזכורת ללוח" — יצירת אירוע תזכורת לחוג בלוח השנה', module: 'courses' },
   { key: 'courses.enroll.freeze', label: 'הקפאת שיבוץ', desc: 'הקפאה/הפשרה זמנית של שיבוץ (הניקוב נחסם עד הפשרה)', module: 'courses' },
   { key: 'courses.enroll.end', label: 'סיום שיבוץ', desc: 'סימון שיבוץ כ"הסתיים" (נשמר בדוח ההיסטורי)', module: 'courses' },
