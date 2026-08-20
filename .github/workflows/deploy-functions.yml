@@ -79,9 +79,13 @@ jobs:
       - name: אימות (stage1)
         if: ${{ github.event.inputs.target == 'stage1' || github.ref_name == 'deploy-fn/stage1' }}
         run: |
-          CODE=$(curl -s -o /dev/null -w '%{http_code}' "https://us-central1-maor-system.cloudfunctions.net/icsFeed" || true)
-          echo "icsFeed → HTTP $CODE"
-          if [ "$CODE" = "404" ]; then
-            echo "::error::icsFeed עדיין 404 — הפריסה לא נקלטה"
+          # ⚠️ icsFeed מחזירה 404 עם גוף 'not found' במכוון על פרמטרים חסרים —
+          # זו הוכחת-חיים! פונקציה לא-פרוסה מחזירה את עמוד-ה-404 של גוגל (HTML).
+          BODY=$(curl -s "https://us-central1-maor-system.cloudfunctions.net/icsFeed" || true)
+          echo "icsFeed body: $BODY"
+          if [ "$BODY" = "not found" ]; then
+            echo "✅ icsFeed חיה ועונה (404-מכוון של הפונקציה עצמה)"
+          else
+            echo "::error::icsFeed לא עונה בגוף הצפוי — כנראה לא פרוסה (התקבל: $BODY)"
             exit 1
           fi
