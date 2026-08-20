@@ -19,6 +19,7 @@ import { intelCsvRows } from './intelExport';
 import { donorRanks, type DonorRank } from './ranks';
 import { acquisitionCohorts, type RetentionReport } from './retention';
 import { paretoReport, type ParetoReport } from './pareto';
+import { tierMigration, type TierMigration } from './tierMigration';
 import { downloadCsv } from '../../lib/csvx';
 import { featureOn } from '../../lib/config';
 
@@ -145,8 +146,9 @@ function CohortBand(props: {
   cohort: ReturnType<typeof tierTrendCounts>;
   active: number[];
   scoreBins: number[];
+  migration: TierMigration;
 }) {
-  const { cohort, active, scoreBins } = props;
+  const { cohort, active, scoreBins, migration } = props;
   const maxA = Math.max(1, ...active);
   const maxB = Math.max(1, ...scoreBins);
   const n = active.length;
@@ -157,7 +159,24 @@ function CohortBand(props: {
       {/* מיגרציית-דרגות */}
       <div className="card" style={{ padding: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 2 }}>מיגרציית-דרגות</div>
-        <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginBottom: 12 }}>מגמה פר-דרגה (עולה / יציב / יורד)</div>
+        <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginBottom: 10 }}>מעברים אמיתיים מול לפני שנה</div>
+
+        {/* מעברים אמיתיים (as-of לפני-שנה מול היום) */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          <span style={{ fontSize: 11.5, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: 'var(--good-bg, #e7f4e8)', color: 'var(--good, #2e7d32)' }} title="עלו דרגה מאז לפני שנה">▲ {migration.promoted} עלו</span>
+          <span style={{ fontSize: 11.5, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: 'var(--red-bg, #fdecea)', color: 'var(--red, #b3261e)' }} title="ירדו דרגה">▼ {migration.demoted} ירדו</span>
+          <span style={{ fontSize: 11.5, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: 'var(--panel-2, #f7f2e8)', color: 'var(--ink-soft)' }}>= {migration.stable} יציבים</span>
+          <span style={{ fontSize: 11.5, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: 'var(--gold-soft, #fbeecb)', color: 'var(--gold-deep, #a05008)' }} title="גויסו מאז">✨ {migration.newDonors} חדשים</span>
+        </div>
+        {migration.flows.length ? (
+          <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {migration.flows.slice(0, 3).map((f) => (
+              <div key={f.from + f.to}><b>{f.count}</b> {f.from} <span style={{ color: 'var(--ink-faint)' }}>←</span> {f.to}</div>
+            ))}
+          </div>
+        ) : null}
+
+        <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginBottom: 8, borderTop: '1px solid var(--line-soft, #efe8d9)', paddingTop: 10 }}>מגמה נוכחית פר-דרגה</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
           {cohort.map((row) => {
             const t = Math.max(1, row.total);
@@ -487,6 +506,7 @@ export function SupportersIntel(props: {
   const ranks = useMemo(() => donorRanks(props.supporters, today, rate), [props.supporters, today, rate]);
   const retention = useMemo(() => acquisitionCohorts(props.supporters, today, rate), [props.supporters, today, rate]);
   const pareto = useMemo(() => paretoReport(props.supporters, today, rate), [props.supporters, today, rate]);
+  const migration = useMemo(() => tierMigration(props.supporters, today, 12, rate), [props.supporters, today, rate]);
 
   const sorted = useMemo(() => {
     const arr = [...rows];
@@ -595,7 +615,7 @@ export function SupportersIntel(props: {
       <TimeBand machine={machine} />
 
       {/* רצועת-קוהורטה — מיגרציה · פעילות · פיזור-ציון */}
-      <CohortBand cohort={cohort} active={active} scoreBins={portfolio.scoreBins} />
+      <CohortBand cohort={cohort} active={active} scoreBins={portfolio.scoreBins} migration={migration} />
     </div>
   );
 }
