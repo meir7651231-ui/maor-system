@@ -12,6 +12,7 @@ import { Btn } from '../ui';
 import { supTier } from './lib';
 import { donorIntel, type DonorIntel } from './intel';
 import { activeByMonth, portfolioIntel, tierTrendCounts } from './portfolio';
+import { timeMachine, type TimeMachine } from './timemachine';
 
 const ILS = (n: number) => '₪' + Math.round(n).toLocaleString('he-IL');
 const KILO = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K' : ILS(n));
@@ -173,6 +174,74 @@ function CohortBand(props: {
   );
 }
 
+function labelForOffset(off: number): string {
+  if (off === 0) return 'היום';
+  if (off % 365 === 0) return '+' + off / 365 + ' שנה';
+  return '+' + off + ' ימים';
+}
+
+/**
+ * מכונת-הזמן — "אם לא תעשה כלום": מקרינה את התיק קדימה לאופקים, ומראה כמה תורמים
+ * וכסף גולשים-לסכנה ומה צפוי-להיכנס. סרגל-אופק אינטראקטיבי (בורר את הפירוט התחתון).
+ */
+function TimeBand(props: { machine: TimeMachine }) {
+  const { machine } = props;
+  const H = machine.horizons;
+  const [sel, setSel] = useState(H.length - 1); // ברירת-מחדל: האופק-הרחוק
+  const maxRisk = Math.max(1, ...H.map((h) => h.atRiskCount));
+  const cur = H[Math.min(sel, H.length - 1)];
+
+  return (
+    <div className="card" style={{ padding: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 2 }}>
+        <div style={{ fontSize: 14, fontWeight: 900 }}>מכונת-הזמן</div>
+        <div style={{ fontSize: 11, color: 'var(--ink-faint)' }}>הקרנת-התיק קדימה — "אם לא תעשה כלום"</div>
+      </div>
+
+      {/* עלות-אי-הפעולה */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10, margin: '12px 0' }}>
+        <div style={{ background: 'var(--red-bg, #fdecea)', borderRadius: 10, padding: '10px 12px' }}>
+          <div style={{ fontSize: 11, color: 'var(--ink-faint)', fontWeight: 700 }}>יגלשו-לסכנה עד {labelForOffset(H[H.length - 1].offsetDays)}</div>
+          <div style={{ fontSize: 19, fontWeight: 900, color: 'var(--red, #b3261e)', fontVariantNumeric: 'tabular-nums' }}>{machine.erosionDonors} תורמים</div>
+        </div>
+        <div style={{ background: 'var(--red-bg, #fdecea)', borderRadius: 10, padding: '10px 12px' }}>
+          <div style={{ fontSize: 11, color: 'var(--ink-faint)', fontWeight: 700 }}>שווי-סיכון מתפתח</div>
+          <div style={{ fontSize: 19, fontWeight: 900, color: 'var(--red, #b3261e)', fontVariantNumeric: 'tabular-nums' }}>{KILO(machine.erosionMoney)}</div>
+        </div>
+        <div style={{ background: 'var(--info-bg, #e7eefb)', borderRadius: 10, padding: '10px 12px' }}>
+          <div style={{ fontSize: 11, color: 'var(--ink-faint)', fontWeight: 700 }}>צפוי-להיכנס (אם הרצף נמשך)</div>
+          <div style={{ fontSize: 19, fontWeight: 900, color: 'var(--info, #1d4ed8)', fontVariantNumeric: 'tabular-nums' }}>{KILO(machine.incomingEnd)}</div>
+        </div>
+      </div>
+
+      {/* עקומת-דעיכה: תורמים-בסכנה פר-אופק (לחיץ) */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 92, marginTop: 6 }}>
+        {H.map((h, i) => {
+          const on = i === sel;
+          return (
+            <button key={h.offsetDays} type="button" onClick={() => setSel(i)}
+              title={labelForOffset(h.offsetDays) + ' · ' + h.atRiskCount + ' בסכנה'}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <span style={{ fontSize: 10.5, fontWeight: 800, color: on ? 'var(--red, #b3261e)' : 'var(--ink-faint)', fontVariantNumeric: 'tabular-nums' }}>{h.atRiskCount}</span>
+              <span style={{ width: '100%', maxWidth: 46, height: Math.max(4, (h.atRiskCount / maxRisk) * 60), background: on ? 'var(--red, #b3261e)' : 'var(--red-soft, #f3b8b2)', borderRadius: '4px 4px 0 0', transition: 'height .2s' }} />
+              <span style={{ fontSize: 10, color: on ? 'var(--ink)' : 'var(--ink-faint)', fontWeight: on ? 800 : 600, whiteSpace: 'nowrap' }}>{labelForOffset(h.offsetDays)}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* פירוט האופק-הנבחר */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginTop: 14, borderTop: '1px solid var(--line-soft, #efe8d9)', paddingTop: 12, fontSize: 12 }}>
+        <div><span style={{ color: 'var(--ink-faint)' }}>בסכנה </span><b style={{ fontVariantNumeric: 'tabular-nums' }}>{cur.atRiskCount}</b></div>
+        <div><span style={{ color: 'var(--ink-faint)' }}>חדשים-בסכנה </span><b style={{ color: 'var(--red, #b3261e)', fontVariantNumeric: 'tabular-nums' }}>+{cur.newlyAtRisk}</b></div>
+        <div><span style={{ color: 'var(--ink-faint)' }}>שווי-סיכון </span><b style={{ fontVariantNumeric: 'tabular-nums' }}>{KILO(cur.atRiskMoney)}</b></div>
+        <div><span style={{ color: 'var(--ink-faint)' }}>עדיין-פעילים </span><b style={{ color: 'var(--good, #2e7d32)', fontVariantNumeric: 'tabular-nums' }}>{cur.activeCount}</b></div>
+        <div><span style={{ color: 'var(--ink-faint)' }}>צפוי-נכנס </span><b style={{ color: 'var(--info, #1d4ed8)', fontVariantNumeric: 'tabular-nums' }}>{KILO(cur.expectedIncoming)}</b></div>
+      </div>
+    </div>
+  );
+}
+
 export function SupportersIntel(props: {
   supporters: Supporter[];
   config: OrgConfig;
@@ -193,6 +262,7 @@ export function SupportersIntel(props: {
   const portfolio = useMemo(() => portfolioIntel(props.supporters, today, rate), [props.supporters, today, rate]);
   const cohort = useMemo(() => tierTrendCounts(props.supporters, today, rate), [props.supporters, today, rate]);
   const active = useMemo(() => activeByMonth(props.supporters, today, 12, rate), [props.supporters, today, rate]);
+  const machine = useMemo(() => timeMachine(props.supporters, today, rate), [props.supporters, today, rate]);
 
   const sorted = useMemo(() => {
     const arr = [...rows];
@@ -281,6 +351,9 @@ export function SupportersIntel(props: {
 
         {selected ? <DeepDive sp={selected.sp} intel={selected.intel} /> : null}
       </div>
+
+      {/* מכונת-הזמן — הקרנת-התיק קדימה */}
+      <TimeBand machine={machine} />
 
       {/* רצועת-קוהורטה — מיגרציה · פעילות · פיזור-ציון */}
       <CohortBand cohort={cohort} active={active} scoreBins={portfolio.scoreBins} />
