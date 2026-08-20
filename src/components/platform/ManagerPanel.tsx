@@ -26,7 +26,8 @@ import { FEATURES } from '../../types/features';
 import { WIZARD_SECTIONS } from '../builder/sections';
 import { featureOn } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
-import { agoLabel, teamIntel, teamSummary } from './teamIntel';
+import { agoLabel, goalProgress, quietWorkers, teamCsvRows, teamIntel, teamSummary, trendOf } from './teamIntel';
+import { downloadCsv } from '../../lib/csvx';
 import { allDonationPurposes } from '../supporters/lib';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import type { OrgCloudDoc, OrgJoinRequestDoc } from '../../lib/cloudConfig';
@@ -152,6 +153,17 @@ export function ManagerPanel(props: { onClose: () => void }) {
     const ov = overrideOf(email, org);
     const clean = [...new Set(designations.map((s) => s.trim()).filter(Boolean))];
     const { memberConfigs } = setEmployeeOverride(org, email, { ...ov, designations: clean });
+    await mod.writeOrgCloudDoc(slug, { memberConfigs });
+    await refresh(mod);
+  }
+  /** 🎯 יעד-שבועי פר-עובד/ת (התפרעות-מלאה 20.8) — additive על כרטיס-העובד בענן. */
+  async function setGoalFor(email: string, goal: number) {
+    if (!mod || !org) return;
+    const ov = overrideOf(email, org);
+    const next = { ...ov } as typeof ov & { weeklyGoal?: number };
+    if (goal > 0) next.weeklyGoal = Math.round(goal);
+    else delete next.weeklyGoal;
+    const { memberConfigs } = setEmployeeOverride(org, email, next);
     await mod.writeOrgCloudDoc(slug, { memberConfigs });
     await refresh(mod);
   }
@@ -375,15 +387,36 @@ export function ManagerPanel(props: { onClose: () => void }) {
                 </div>
               );
             }
+            const goals: Record<string, number | undefined> = Object.fromEntries(
+              team.map((w) => [w.email, org ? (overrideOf(w.email, org) as { weeklyGoal?: number }).weeklyGoal : undefined]),
+            );
+            const quiet = quietWorkers(team.filter((w) => w.email !== managerMail), 3);
+            const teamMaxWeek = Math.max(1, ...team.map((w) => w.last7));
             return (
               <div style={{ marginTop: 14, borderTop: '1px solid var(--line)', paddingTop: 10 }}>
-                <h3 style={{ fontSize: 14, margin: '0 0 4px' }}>🕵️ מודיעין-עובדים</h3>
-                <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <h3 style={{ fontSize: 14, margin: 0, flex: 1 }}>🕵️ מודיעין-עובדים</h3>
+                  {featureOn((config as OrgConfig) ?? {}, 'core.export') && (
+                    <Btn sm onClick={() => downloadCsv('team-intel-' + today + '.csv', teamCsvRows(team, goals))}>
+                      ⬇ דוח-צוות CSV
+                    </Btn>
+                  )}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--ink-faint)', margin: '4px 0 8px' }}>
                   {sum.week.toLocaleString('he-IL')} פעולות בשבוע האחרון · {sum.activeToday} פעילים היום
                   {sum.top ? ' · 🏆 ' + sum.top : ''}
                 </div>
+                {/* ⚠️ עובדות-שקטות — 3+ ימים בלי שום פעולה */}
+                {quiet.length > 0 && (
+                  <div style={{ fontSize: 12, color: '#9a6414', background: '#fdf1d4', border: '1px solid #ecd9a8', borderRadius: 9, padding: '6px 10px', marginBottom: 8 }}>
+                    ⚠️ שקטות 3+ ימים:{' '}
+                    {quiet.map((w) => w.email + (w.quietDays >= 99 ? ' (ללא פעילות)' : ' (' + w.quietDays + ' ימים)')).join(' · ')}
+                  </div>
+                )}
                 {team.map((w) => {
                   const max = w.byAct[0]?.n ?? 1;
+                  const sparkMax = Math.max(1, ...w.spark14);
+                  const gp = goalProgress(w, goals[w.email]);
                   return (
                     <div
                       key={w.email}
@@ -397,8 +430,49 @@ export function ManagerPanel(props: { onClose: () => void }) {
                         </span>
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '3px 0' }}>
-                        {w.actions.toLocaleString('he-IL')} פעולות · {w.last7} בשבוע · {w.daysActive} ימי-פעילות
+                        {w.actions.toLocaleString('he-IL')} פעולות · {w.last7} בשבוע{' '}
+                        <span
+                          title={`מגמה מול שבוע-קודם (${w.prevWeek})`}
+                          style={{ fontWeight: 700, color: w.last7 > w.prevWeek ? 'var(--green)' : w.last7 < w.prevWeek ? 'var(--red)' : 'var(--ink-faint)' }}
+                        >
+                          {trendOf(w)}
+                        </span>{' '}
+                        · {w.daysActive} ימי-פעילות
                         {w.peakHour != null ? ` · שעת-שיא ${String(w.peakHour).padStart(2, '0')}:00` : ''}
+                      </div>
+                      {/* פס-14-יום + פס-השוואה-לצוות */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '2px 0 4px' }}>
+                        <span title="14 הימים האחרונים (ישן→חדש)" style={{ display: 'flex', alignItems: 'flex-end', gap: 1, height: 16 }} aria-hidden>
+                          {w.spark14.map((n, i) => (
+                            <span key={i} style={{ width: 4, height: Math.max(2, Math.round((n / sparkMax) * 16)), background: n ? 'var(--accent)' : 'var(--line-soft)', borderRadius: 1 }} />
+                          ))}
+                        </span>
+                        <span title="חלקה מפעילות-השבוע של הצוות" style={{ flex: 1, height: 5, background: 'var(--line-soft)', borderRadius: 99, overflow: 'hidden' }} aria-hidden>
+                          <span style={{ display: 'block', height: '100%', width: `${Math.round((w.last7 / teamMaxWeek) * 100)}%`, background: 'var(--accent-deep, var(--accent))' }} />
+                        </span>
+                      </div>
+                      {/* 🎯 יעד-שבועי — קלט-מנהל + פס-התקדמות; נשמר בכרטיס-העובד בענן */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, margin: '2px 0 4px' }}>
+                        <span>🎯 יעד-שבועי:</span>
+                        <input
+                          type="number"
+                          min={0}
+                          defaultValue={goals[w.email] ?? ''}
+                          onBlur={(e) => void setGoalFor(w.email, Number(e.target.value) || 0)}
+                          dir="ltr"
+                          aria-label={'יעד-שבועי ל-' + w.email}
+                          style={{ width: 64, fontSize: 11.5, padding: '2px 6px' }}
+                        />
+                        {gp && (
+                          <>
+                            <span style={{ flex: 1, height: 6, background: 'var(--line-soft)', borderRadius: 99, overflow: 'hidden' }} aria-hidden>
+                              <span style={{ display: 'block', height: '100%', width: gp.pct + '%', background: gp.done ? 'var(--green)' : 'var(--accent)' }} />
+                            </span>
+                            <span style={{ color: gp.done ? 'var(--green)' : 'var(--ink-faint)', fontWeight: 700 }}>
+                              {gp.done ? '✓ הושג' : gp.pct + '%'}
+                            </span>
+                          </>
+                        )}
                       </div>
                       {w.byAct.slice(0, 3).map((a) => (
                         <div key={a.act} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5 }}>
