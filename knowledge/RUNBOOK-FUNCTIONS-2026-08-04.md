@@ -4,6 +4,39 @@
 (‏SMS · טלפוניית-ימות · גיליון-חי) + השלמת סליקה-מלאה (webhook). הקוד כתוב
 ו-deploy-ready; **עד הפריסה — אפס השפעה** (האתר הסטטי לא תלוי בו).
 
+## ⚡ פריסה מדורגת (20.8) — הדרך המומלצת
+
+אומת 20.8: ‏Blaze פעיל, ‏Rules מפורסמים, הפונקציות **לא פרוסות** (icsFeed=404),
+הקוד נטען תקין (10 פונקציות) והטסטים ירוקים (30/30). ‏⚠️ ‏`deploy --only functions`
+על **הכול** ייכשל כשסוד מוצהר חסר (חוק Functions v2) — לכן מדורג:
+
+```bash
+npm i -g firebase-tools && firebase login
+cd maor-system   # תיקיית הריפו
+
+# ── שלב 1 · בלי סודות — מדליק מיד תזכורות-בוקר, גיבוי-לילי ומנוי-ICS ──
+cd functions && npm install && cd ..
+firebase deploy --project maor-system \
+  --only functions:icsFeed,functions:remindersNightly,functions:backupNightly
+# (גיבוי-לילי דורש Storage דלוק בקונסולה — Build ← Storage ← Get started)
+
+# ── שלב 2 · מייל-קבלות אוטומטי — שני סודות ──
+firebase functions:secrets:set SMTP_URL   # smtps://user:app-password@smtp.gmail.com:465
+firebase functions:secrets:set MAIL_FROM  # כתובת-השולח המוצגת
+firebase deploy --project maor-system --only functions:mailOutbox
+
+# ── שלב 3 · לפי ספק, כשרלוונטי ──
+# סליקה:  PAY_SECRET                            → functions:paymentsWebhook
+# נדרים:  NEDARIM_MOSAD_ID + NEDARIM_API_PASSWORD (+PAY_SECRET)
+#                                               → functions:nedarimPull,functions:nedarimSyncHourly
+# ‏SMS:    SMS_API_KEY + SMS_PROVIDER + SMS_SENDER → functions:smsOutbox
+# ימות:   YEMOT_TOKEN                            → functions:yemotProxy
+# גיליון: GOOGLE_SA                              → functions:sheetsNightly
+```
+
+אימות אחרי שלב 1: ‏`https://us-central1-maor-system.cloudfunctions.net/icsFeed`
+בדפדפן — כל תשובה שאינה 404 = פרוס.
+
 ## צעדי-הבעלים (פעם אחת)
 1. **Blaze:** קונסולת Firebase ← ⚙️ Usage and billing ← Modify plan ← Blaze
    (תשלום-לפי-שימוש; בהיקפים שלנו — שקלים בודדים בחודש, יש Free-tier נדיב).
