@@ -75,4 +75,10 @@ describe('💛 ratchet — חיווט מרכז-המודיעין (opt-in)', () =>
     expect(intelSrc).toContain('<RetentionBand');
     expect(intelSrc).toContain('retention = useMemo(');
   });
+
+  it('🛡 ריכוזיות-התיק מחווטת מהמנוע הטהור (paretoReport)', () => {
+    expect(intelSrc).toContain('paretoReport(props.supporters');
+    expect(intelSrc).toContain('<ParetoBand');
+    expect(intelSrc).toContain('pareto = useMemo(');
+  });
 });
