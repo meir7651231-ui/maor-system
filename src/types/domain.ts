@@ -500,6 +500,8 @@ export interface Supporter {
   last: IsoDate | '';
   /** יעד קשר הבא. */
   nextDate: IsoDate | '';
+  /** על מה לדבר בפעם הבאה — תזכורת-אג'נדה חופשית (additive; מוצג בקוקפיט/חייגן). */
+  nextNote?: string;
   /** אירוע 'שיחה' שנוצר אוטומטית ביומן. */
   nextEventId?: Id;
   donations: Donation[];

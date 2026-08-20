@@ -75,3 +75,15 @@ describe('🛡 הגנות-מקור — הסינון מגודר בדגל, עם "�
     });
   }
 });
+
+describe('🛡 שיבוץ הורה לחוג — הורה עוקף את סינון-הגיל (לא רק ילדים)', () => {
+  it('EnrollModal: מועמד נושא isParent; הורה עובר בלי courseFitsMember (מגבלות-גיל = לילדים)', () => {
+    expect(enrollSrc).toContain('isParent: !!m.isParent');
+    // ה-fitted: o.isParent || courseFitsMember(...) — הורה תמיד מוצג לשיבוץ
+    expect(enrollSrc).toMatch(/o\.isParent \|\| courseFitsMember\(/);
+  });
+  it('EnrollModal: יוצר-בשורה מאפשר יצירת הורה ישירות (isParent) — לא רק ילד/ה', () => {
+    expect(enrollSrc).toContain('setNIsParent');
+    expect(enrollSrc).toContain('nIsParent ? { isParent: true }');
+  });
+});

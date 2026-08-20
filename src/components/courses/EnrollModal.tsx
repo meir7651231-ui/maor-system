@@ -81,6 +81,7 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
         gender: m.gender,
         birth: m.birth,
         grade: m.grade,
+        isParent: !!m.isParent,
         label:
           (m.isParent ? (m.gender === 'f' ? 'אמא — ' : 'אבא — ') : '') +
           m.first +
@@ -95,10 +96,12 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
   // המתאימים לחוג לפי גיל/מגדר — בלי תלות במתג, כדי שהמתג לא ייעלם אחרי "הצג הכל".
   // כיתה נבדקת רק כש-courses.gradeimg פעיל (P2 פער 28) — אותו "הצג הכל" רך.
   const gradeimgOn = featureOn(cfg, 'courses.gradeimg');
+  // הורה (isParent) עוקף את סינון-הגיל החכם — מגבלות-הגיל הן לילדים; הורה תמיד מוצג
+  // לשיבוץ (שיבוץ הורה לחוג, לא רק ילדים). היה נגיש קודם רק דרך "הצג הכל".
   const fitted = useMemo(
     () =>
       smartOn
-        ? options.filter((o) => courseFitsMember(c, o.gender, ageOf(o.birth), gradeimgOn ? o.grade : undefined))
+        ? options.filter((o) => o.isParent || courseFitsMember(c, o.gender, ageOf(o.birth), gradeimgOn ? o.grade : undefined))
         : options,
     [smartOn, options, c, gradeimgOn],
   );
@@ -124,6 +127,7 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
   const [nFirst, setNFirst] = useState('');
   const [nGender, setNGender] = useState<'m' | 'f'>('f'); // ברירת הלגאסי: 'f'
   const [nBirth, setNBirth] = useState('');
+  const [nIsParent, setNIsParent] = useState(false); // יצירת הורה ישירות (לא רק ילד/ה)
 
   const famMatches = useMemo(() => {
     const opts = db.families.map((f) => ({
@@ -179,6 +183,7 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
       birth: nBirth,
       idNum: '', phone: '', phone2: '', school: '', grade: '', health: '',
       mSefach: false, mInvite: false, mRecommend: false, mPhotos: false, mVideos: false, notes: '',
+      ...(nIsParent ? { isParent: true } : {}),
     };
     upsertMember(fam.id, m);
     upsertEnrollment({
@@ -432,6 +437,10 @@ export function EnrollModal(props: { course: Course; onClose: () => void }) {
               <Field label="תאריך לידה (רשות)">
                 <HebDateInput value={nBirth} onChange={setNBirth} />
               </Field>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', margin: '2px 0 6px' }}>
+                <input type="checkbox" checked={nIsParent} onChange={(e) => setNIsParent(e.currentTarget.checked)} style={{ width: 'auto' }} />
+                👨‍👩‍👧 שיבוץ הורה (מבוגר/ת) — לא ילד/ה
+              </label>
               <Btn kind="primary" onClick={saveNew}>
                 {'➕ יצירה ו' + termOf(cfg, 'entity.enrollment', 'שיבוץ')}
               </Btn>

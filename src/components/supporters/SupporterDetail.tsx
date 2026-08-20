@@ -204,6 +204,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const [editOpen, setEditOpen] = useState(false);
   const [donOpen, setDonOpen] = useState(false);
   const [armDelete, setArmDelete] = useState(false);
+  // 📝 "על מה לדבר בפעם הבאה" — טיוטה מקומית, נשמרת ב-blur (בלי כתיבה-לכל-תו).
+  const [nextNoteDraft, setNextNoteDraft] = useState(sp.nextNote || '');
   // P3 פריט 11 — לחיצה על תרומה מסמנת את יומה בלוח האישי
   const [calFocus, setCalFocus] = useState<string | null>(null);
 
@@ -216,6 +218,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
    * ratchet legacy saveSupNext, legacy-main-script.js:1432-1444); ניקוי התאריך
    * מוחק גם את התזכורת המקושרת (unlinkEvent — תיקון האירוע היתום, באג ידוע #6).
    */
+  // תזכורת-האג'נדה נכנסת גם ל-notes של אירוע-הלוח המקושר (מה לדבר, לא רק מתי).
+  const nextEventNotes = (topic: string) => callNotes + (topic.trim() ? ' · 📝 ' + topic.trim() : '');
   function setNextDate(v: string) {
     if (!v) {
       unlinkEvent('supporterNext', sp.id);
@@ -224,7 +228,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     }
     const linked = sp.nextEventId ? events.find((e) => e.id === sp.nextEventId) : undefined;
     if (linked) {
-      upsertEvent({ ...linked, title: 'יעד קשר — ' + termOf(config, 'entity.supporter', 'תומך/ת') + ': ' + sp.name, date: v, done: false, notes: callNotes });
+      upsertEvent({ ...linked, title: 'יעד קשר — ' + termOf(config, 'entity.supporter', 'תומך/ת') + ': ' + sp.name, date: v, done: false, notes: nextEventNotes(nextNoteDraft) });
       upsertSupporter({ ...sp, nextDate: v });
       toast('נקבע תאריך יעד ' + hebDateFull(v) + ' — התזכורת בלוח השנה עודכנה');
     } else {
@@ -236,7 +240,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         time: '',
         type: 'call',
         customType: '',
-        notes: callNotes,
+        notes: nextEventNotes(nextNoteDraft),
         price: 0,
         roomId: '',
         famId: '',
@@ -246,6 +250,15 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       upsertSupporter({ ...sp, nextDate: v, nextEventId: id });
       toast('נקבע תאריך יעד ' + hebDateFull(v) + ' — נוספה תזכורת ללוח השנה');
     }
+  }
+
+  /** שמירת "על מה לדבר בפעם הבאה" (ב-blur) — על התומך + רענון notes של תזכורת-הלוח. */
+  function saveNextNote() {
+    const v = nextNoteDraft.trim();
+    if (v === (sp.nextNote || '')) return;
+    const linked = sp.nextEventId ? events.find((e) => e.id === sp.nextEventId) : undefined;
+    if (linked) upsertEvent({ ...linked, notes: nextEventNotes(v) });
+    upsertSupporter({ ...sp, nextNote: v });
   }
 
   /** 📞 תזכורת טלפון לתודה — נכנסת ללוח השנה כאירוע 'שיחה' ירוק להיום. */
@@ -477,12 +490,22 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             <Field label="תאריך יעד ליצירת קשר">
               <HebDateInput value={sp.nextDate || ''} onChange={setNextDate} />
             </Field>
+            <Field label="על מה לדבר בפעם הבאה (תזכורת)">
+              <input
+                type="text"
+                value={nextNoteDraft}
+                onChange={(e) => setNextNoteDraft(e.currentTarget.value)}
+                onBlur={saveNextNote}
+                placeholder="למשל: לעדכן על הקבלה · לבקש חידוש הו״ק · לברר כתובת"
+              />
+            </Field>
             {sp.nextDate ? (
               <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
                 {sp.nextDate <= isoToday() ? '🔔 תאריך היעד עבר — הגיע הזמן להתקשר' : hebDateFull(sp.nextDate)}
                 {sp.nextEventId && events.some((e) => e.id === sp.nextEventId)
                   ? ' · תזכורת 📞 מקושרת בלוח השנה'
                   : ''}
+                {sp.nextNote ? <div style={{ marginTop: 2 }}>📝 {sp.nextNote}</div> : null}
               </div>
             ) : (
               <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>

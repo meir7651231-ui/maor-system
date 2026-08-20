@@ -77,6 +77,14 @@ describe('💛 ratchet — מנוע הקוקפיט', () => {
     expect(t[0].reason).toBe('יעד-קשר להיום');
   });
 
+  it('cockpitCalls: תזכורת-האג\'נדה (nextNote) נכנסת לסיבת-המשימה — "על מה לדבר"', () => {
+    const withNote = cockpitCalls([sup({ id: 'n', nextDate: '2026-08-05', nextNote: 'לבקש חידוש הו״ק' })], TODAY);
+    expect(withNote[0].reason).toContain('יעד-קשר עבר');
+    expect(withNote[0].reason).toContain('📝 לבקש חידוש הו״ק');
+    // בלי תזכורת — אין 📝 (ביט-זהה לקודם)
+    expect(cockpitCalls([sup({ id: 'p', nextDate: TODAY })], TODAY)[0].reason).not.toContain('📝');
+  });
+
   it('cockpitThanks: תרומה בתוך חלון-התודות בלבד, מהחדש לישן', () => {
     const todayGift = sup({ id: 't', count: 1, last: TODAY, donations: [don({ date: TODAY, amount: 500 })] });
     const twoDays = sup({ id: 'u', count: 1, donations: [don({ date: '2026-08-17', amount: 90 })] });
