@@ -169,9 +169,12 @@ describe('🔁 ratchet — חיווט מלא (attach/sync ⇒ הו"ק)', () => {
     expect(target.hok).toMatchObject({ amount: 90, kevaId: 'K5', active: true });
     expect(plan.summary.recurring).toBe(1);
   });
-  it('🛡 מסך-הסנכרון: כפתור זיהוי-הו"ק מחווט ל-detectNedarimHok', async () => {
-    const src = (await import('../../components/supporters/NedarimSyncModal.tsx?raw')).default as string;
-    expect(src).toContain('🔁 זהה הוראות-קבע מנדרים');
-    expect(src).toContain('detectNedarimHok()');
+  it('🛡 זיהוי-הו"ק: כפתור-יחיד במסך-התורמים (detectNedarimHok) — לא כפול במודאל', async () => {
+    // ניקוי-כפילות 20.8: הכפתור היה גם ב-SupportersView וגם ב-NedarimSyncModal (אותה פעולה בדיוק).
+    // הושאר במסך-התורמים (חשוף, מגודר hasNedarimHist) והוסר מהמודאל (שנעול payments+ענן).
+    const view = (await import('../../components/supporters/SupportersView.tsx?raw')).default as string;
+    expect(view).toContain('detectNedarimHok()');
+    const modal = (await import('../../components/supporters/NedarimSyncModal.tsx?raw')).default as string;
+    expect(modal).not.toContain('detectNedarimHok'); // אין עוד עותק-כפול במודאל
   });
 });
