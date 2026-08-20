@@ -24,6 +24,7 @@ import { SupportersCockpit } from './SupportersCockpit';
 import { SupportersIntel } from './SupportersIntel';
 import { SupportersGalaxy } from './SupportersGalaxy';
 import { SupportersKpiStrip } from './SupportersKpiStrip';
+import { SupportersViewSwitcher } from './SupportersViewSwitcher';
 import { CommandPalette } from './CommandPalette';
 import type { Command } from './commands';
 import { AyinBoard } from './AyinBoard';
@@ -568,31 +569,16 @@ export function SupportersView() {
             <Btn onClick={toggleSupView} title="החלפת תצוגה: רשימה / גריד">
               {supView === 'grid' ? '☰ רשימה' : '▦ גריד'}
             </Btn>
-            {cockpitOn && (
-              <Btn
-                kind="primary"
-                onClick={() => setWorkMode(true)}
-                title="חלון-העבודה: המערכת מסדרת את משימות היום — שיחות, תודות והו״ק"
-              >
-                🎯 חלון העבודה
-              </Btn>
-            )}
-            {intelOn && (
-              <Btn
-                onClick={() => setIntelMode(true)}
-                title="מרכז-המודיעין: RFM · ערך-חיים · תחזית-מתנה · סיכון-נטישה"
-              >
-                📊 מודיעין
-              </Btn>
-            )}
-            {galaxyOn && (
-              <Btn
-                onClick={() => setGalaxyMode(true)}
-                title="גלקסיית-התורמים: כל תורם ככוכב — גודל=ערך · צבע=דרגה · מרחק=טריות"
-              >
-                🌌 גלקסיה
-              </Btn>
-            )}
+            <SupportersViewSwitcher
+              active="data"
+              options={[
+                { key: 'data', label: '☰ מסך הנתונים', title: 'הרשימה/הגריד המלא של התורמים' },
+                ...(cockpitOn ? [{ key: 'work', label: '🎯 חלון העבודה', title: 'חלון-העבודה: המערכת מסדרת את משימות היום — שיחות, תודות והו״ק' }] : []),
+                ...(intelOn ? [{ key: 'intel', label: '📊 מודיעין', title: 'מרכז-המודיעין: RFM · ערך-חיים · תחזית-מתנה · סיכון-נטישה' }] : []),
+                ...(galaxyOn ? [{ key: 'galaxy', label: '🌌 גלקסיה', title: 'גלקסיית-התורמים: כל תורם ככוכב — גודל=ערך · צבע=דרגה · מרחק=טריות' }] : []),
+              ]}
+              onSelect={(k) => { if (k === 'work') setWorkMode(true); else if (k === 'intel') setIntelMode(true); else if (k === 'galaxy') setGalaxyMode(true); }}
+            />
             {telephonyOn(config) && (
               <Btn
                 onClick={() => {
