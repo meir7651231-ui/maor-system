@@ -14,10 +14,12 @@ import { portfolioIntel } from './portfolio';
 const ILS = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K' : '₪' + Math.round(n).toLocaleString('he-IL'));
 const TIER_ORDER = ['זהב', 'כסף', 'ארד', 'רדומה'] as const;
 
-function Tile(props: { label: string; value: string; tone?: string }) {
+function Tile(props: { label: string; value: string; tone?: string; onClick?: () => void }) {
+  const clickable = !!props.onClick;
   return (
-    <div style={{ flex: '1 1 130px', minWidth: 120, background: 'var(--panel-2, #f7f2e8)', border: '1px solid var(--line, #e4dbc9)', borderRadius: 12, padding: '10px 13px' }}>
-      <div style={{ fontSize: 11, color: 'var(--ink-faint)', fontWeight: 600 }}>{props.label}</div>
+    <div onClick={props.onClick} title={clickable ? 'סינון לרשימה' : undefined}
+      style={{ flex: '1 1 130px', minWidth: 120, background: 'var(--panel-2, #f7f2e8)', border: clickable ? '1px solid var(--warn, #b45309)' : '1px solid var(--line, #e4dbc9)', borderRadius: 12, padding: '10px 13px', cursor: clickable ? 'pointer' : 'default' }}>
+      <div style={{ fontSize: 11, color: 'var(--ink-faint)', fontWeight: 600 }}>{props.label}{clickable ? ' ↗' : ''}</div>
       <div style={{ fontSize: 19, fontWeight: 900, letterSpacing: '-.4px', marginTop: 2, color: props.tone || 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>{props.value}</div>
     </div>
   );
@@ -30,6 +32,8 @@ export function SupportersKpiStrip(props: {
   activeTier: string | null;
   onTier: (t: string) => void;
   onHokDue: () => void;
+  /** קליק על אריח-הסיכון → סינון הטבלה לרשימת-הבסיכון. */
+  onRisk?: () => void;
 }) {
   const today = new Date().toISOString().slice(0, 10);
   const rate = props.usdRate || 3.7;
@@ -47,7 +51,7 @@ export function SupportersKpiStrip(props: {
         <Tile label="סה״כ תורמים" value={String(portfolio.count)} />
         <Tile label="נגבה החודש" value={ILS(collected)} tone="var(--good, #2e7d32)" />
         {hokOn ? <Tile label="צפוי מהו״ק" value={ILS(hokExpected)} /> : null}
-        <Tile label="בסיכון נטישה" value={String(portfolio.atRiskCount)} tone="var(--warn, #b45309)" />
+        <Tile label="בסיכון נטישה" value={String(portfolio.atRiskCount)} tone="var(--warn, #b45309)" onClick={props.onRisk} />
         <Tile label="שווי-תיק" value={ILS(portfolio.ltv)} />
       </div>
 
