@@ -35,7 +35,7 @@ describe('🔌 ratchet — חיבור 3: מונה טיפול חוצה-עמודו
 
   it('דגל כבוי ⇒ אפס; מודול כבוי ⇒ אפס לאותה עמודה בלבד', () => {
     const flagOff = { ...DEFAULT_CONFIG, features: { 'home.crosscare': false } };
-    expect(careCounts(db, '2026-07-30', flagOff)).toEqual({ tzedaka: 0, shop: 0, shop7: 0 });
+    expect(careCounts(db, '2026-07-30', flagOff)).toEqual({ tzedaka: 0, shop: 0, shop7: 0, shopMeetings: 0 });
     const tzOff = { ...DEFAULT_CONFIG, modules: { ...DEFAULT_CONFIG.modules, tzedaka: false } };
     const counts = careCounts(db, '2026-07-30', tzOff);
     expect(counts.tzedaka).toBe(0);

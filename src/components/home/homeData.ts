@@ -60,6 +60,10 @@ export function courseActiveOn(c: Course, iso: string): boolean {
 export interface TodaySession {
   course: Course;
   session: CourseSession;
+  /** אינדקס המפגש בתוך sessionsOf(course) — לתווית "קבוצה N" (19.8). */
+  gi: number;
+  /** סה"כ מפגשי החוג — תווית-קבוצה מוצגת רק כשיש יותר ממפגש אחד. */
+  groups: number;
 }
 
 /** מפגשי החוגים של היום — לפי יום בשבוע, רק חוגים בטווח פעילות. */
@@ -69,7 +73,10 @@ export function todaySessions(db: Db, now: Date): TodaySession[] {
   const out: TodaySession[] = [];
   for (const c of db.courses) {
     if (!courseActiveOn(c, iso)) continue;
-    for (const ss of sessionsOf(c)) if (ss.day === dow) out.push({ course: c, session: ss });
+    const all = sessionsOf(c);
+    all.forEach((ss, gi) => {
+      if (ss.day === dow) out.push({ course: c, session: ss, gi, groups: all.length });
+    });
   }
   // מפגש בלי שעה יורד לסוף היום ('99:99') — לא צף מעל המפגשים המתוזמנים
   return out.sort((a, b) => (a.session.time || '99:99').localeCompare(b.session.time || '99:99'));
@@ -395,7 +402,16 @@ export function attentionItems(
         tag: 'הו"ק',
         tagBg: '#e8f0fb',
         tagC: '#1d4ed8',
-        title: `הוראות-קבע של החודש שטרם נרשמו: ${due.length} (${due.slice(0, 3).map((s) => s.name).join(', ')}${due.length > 3 ? '…' : ''})`,
+        // דיוק (19.8): גם מונה "עבר יום-החיוב" — הו"ק ל-25 בחודש אינה "מאחרת" ב-3 בו
+        title: (() => {
+          const dayOfMonth = Number(todayIso.slice(8, 10));
+          const past = due.filter((s) => (s.hok?.day ?? 1) <= dayOfMonth).length;
+          return (
+            `הוראות-קבע של החודש שטרם נרשמו: ${due.length}` +
+            (past > 0 && past < due.length ? ` (מתוכן ${past} שעבר יום-החיוב)` : '') +
+            ` (${due.slice(0, 3).map((s) => s.name).join(', ')}${due.length > 3 ? '…' : ''})`
+          );
+        })(),
         sev: 'warn',
         nav: { kind: 'supporters' },
       });
@@ -919,7 +935,7 @@ export function carouselItems(
 /* ---------- מונה "דורש טיפול" של העמודות המבודדות (CONNECT חיבור 3) ---------- */
 
 import { needsCare as tzNeedsCare } from '../tzedaka/lib';
-import { needsCare as shopNeedsCare } from '../shop/lib';
+import { needsCare as shopNeedsCare, upcomingMeetings } from '../shop/lib';
 import { pendingDeliveriesToday } from '../shop7/lib';
 import { featureOn as featOn, moduleOn as modOn } from '../../lib/config';
 
@@ -928,11 +944,17 @@ import { featureOn as featOn, moduleOn as modOn } from '../../lib/config';
  * אין פירוט פריטים במסך הבית** (חריג-תצוגה מבוקר, הכרעת בעלים). מגודר
  * moduleOn + דגל home.crosscare; מודול/דגל כבויים ⇒ 0 (הצ'יפ לא מוצג).
  */
-export function careCounts(db: Db, todayIso: string, config: OrgConfig): { tzedaka: number; shop: number; shop7: number } {
-  if (!featOn(config, 'home.crosscare')) return { tzedaka: 0, shop: 0, shop7: 0 };
+export function careCounts(
+  db: Db,
+  todayIso: string,
+  config: OrgConfig,
+): { tzedaka: number; shop: number; shop7: number; shopMeetings: number } {
+  if (!featOn(config, 'home.crosscare')) return { tzedaka: 0, shop: 0, shop7: 0, shopMeetings: 0 };
   return {
     tzedaka: modOn(config, 'tzedaka') ? tzNeedsCare(db, todayIso).length : 0,
     shop: modOn(config, 'shop') ? shopNeedsCare(db, todayIso).length : 0,
     shop7: modOn(config, 'shop7') ? pendingDeliveriesToday(db, todayIso).length : 0,
+    // 🤝 פגישות-היום של החנות (SHOP5) — אותו חוזה "מונה-עם-קפיצה בלבד" (19.8)
+    shopMeetings: modOn(config, 'shop') ? upcomingMeetings(db, todayIso, 1).length : 0,
   };
 }

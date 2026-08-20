@@ -32,6 +32,6 @@ describe('🕶️ ratchet — מצב צנעה', () => {
   });
 
   it('מוני-הבית החוצי-עמודות מתאפסים במצב צנעה', () => {
-    expect(widgetsSrc).toContain('privacyMode ? { tzedaka: 0, shop: 0, shop7: 0 }');
+    expect(widgetsSrc).toContain('privacyMode ? { tzedaka: 0, shop: 0, shop7: 0, shopMeetings: 0 }');
   });
 });

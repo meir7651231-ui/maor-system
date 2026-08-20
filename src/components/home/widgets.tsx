@@ -26,6 +26,7 @@ import { waBirthdayText } from '../../lib/wa';
 import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
 import { tierOf } from '../families/lib';
+import { groupLabelOf } from '../courses/lib';
 import { liveSuggestions } from '../shop8/lib';
 import { nextClosure } from '../telephony/lib';
 import { buildPodium, buildWeek, fmtIls } from '../wall/wallData';
@@ -647,6 +648,18 @@ function sessionStatus(time: string | undefined, now: Date): { label: string; bg
 function TodayWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, now, data, go, selectFamily, selectCourse } = ctx;
   const famName = (id: string) => db.families.find((f) => f.id === id)?.name ?? '';
+  // תווית-קבוצה (19.8): חוג רב-מפגשי מציג "קבוצה N" גם בלי label מפורש —
+  // שני מפגשים של אותו חוג באותו יום היו בלתי-ניתנים-להבחנה.
+  const gLabel = (ts: TodaySession) =>
+    ts.session.label || (ts.groups > 1 ? groupLabelOf(ts.session, ts.gi) : '');
+  // רשומות פר-קבוצה בחוג רב-מפגשי (שיבוץ נושא e.group) — חוג יחיד: כל הפעילים
+  const enrolledOf = (ts: TodaySession) => {
+    const act = db.enrollments.filter((e) => e.courseId === ts.course.id && e.status === 'active');
+    if (ts.groups <= 1) return act.length;
+    const lbl = groupLabelOf(ts.session, ts.gi);
+    const inGroup = act.filter((e) => (e.group || '') === lbl).length;
+    return inGroup > 0 ? inGroup : act.length; // אין שיוכי-קבוצה ⇒ המונה הכללי (אפס-הפתעות)
+  };
   const theme = themeOf(ctx);
   const isTsohar = theme === 'tsohar';
   // כותרת הפאנל בשפת המוקאפ של הערכה: היכל "סדר היום" · קהילה "☀️ המפגשים של היום"
@@ -690,9 +703,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
             <tbody>
               {data.sessions.map((ts, i) => {
                 const room = db.rooms.find((r) => r.id === ts.course.roomId)?.name ?? '';
-                const enrolled = db.enrollments.filter(
-                  (e) => e.courseId === ts.course.id && e.status === 'active',
-                ).length;
+                const enrolled = enrolledOf(ts);
                 const st = sessionStatus(ts.session.time, now);
                 return (
                   <tr
@@ -714,7 +725,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
                     </td>
                     <td style={{ fontWeight: 600 }}>
                       {ts.course.name}
-                      {ts.session.label ? ' · ' + ts.session.label : ''}
+                      {gLabel(ts) ? ' · ' + gLabel(ts) : ''}
                     </td>
                     <td>{room || '—'}</td>
                     <td>{enrolled}</td>
@@ -743,7 +754,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
         data.sessions.map((ts, i) => {
           const room = db.rooms.find((r) => r.id === ts.course.roomId)?.name ?? '';
           const teacher = db.teachers.find((t) => t.id === ts.course.teacherId)?.name ?? '';
-          const enrolled = db.enrollments.filter((e) => e.courseId === ts.course.id && e.status === 'active').length;
+          const enrolled = enrolledOf(ts);
           const sub = [room, teacher, `${enrolled} רשומים`].filter(Boolean).join(' · ');
           // גלולת-סטטוס גם בכרטיסי-השורה (19.8) — הייתה רק בטבלת-צֹהַר; אותם נתונים
           const st = sessionStatus(ts.session.time, now);
@@ -753,7 +764,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
               <button type="button" className="hm-meet-main" onClick={() => selectCourse(ts.course.id)} title={'לכרטיס ה' + termOf(config, 'entity.course', 'חוג')}>
                 <span className="hm-meet-title">
                   {ts.course.name}
-                  {ts.session.label ? ' · ' + ts.session.label : ''}
+                  {gLabel(ts) ? ' · ' + gLabel(ts) : ''}
                 </span>
                 <span className="hm-meet-sub">{sub}</span>
               </button>
@@ -827,7 +838,7 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
   const privacyMode = useApp((s) => s.privacyMode);
   // ⚡ קלילות (19.8): המונה סורק 3 מודולים — פעם-אחת פר-נתונים, לא בכל רנדר
   const crossCare = useMemo(
-    () => (privacyMode ? { tzedaka: 0, shop: 0, shop7: 0 } : careCounts(db, todayIso, config)),
+    () => (privacyMode ? { tzedaka: 0, shop: 0, shop7: 0, shopMeetings: 0 } : careCounts(db, todayIso, config)),
     [privacyMode, db, todayIso, config],
   );
   const [showDone, setShowDone] = useState(false);
@@ -861,10 +872,11 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
       badge={openAttn.length ? String(openAttn.length) : undefined}
     >
       {/* "הכל מטופל" רק כשגם העמודות המבודדות נקיות — אחרת הצ'יפים למטה סותרים */}
-      {openAttn.length === 0 && crossCare.tzedaka + crossCare.shop + crossCare.shop7 === 0 && (
-        <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>הכל מטופל ✓</div>
-      )}
-      {(crossCare.tzedaka > 0 || crossCare.shop > 0 || crossCare.shop7 > 0) && (
+      {openAttn.length === 0 &&
+        crossCare.tzedaka + crossCare.shop + crossCare.shop7 + crossCare.shopMeetings === 0 && (
+          <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>הכל מטופל ✓</div>
+        )}
+      {(crossCare.tzedaka > 0 || crossCare.shop > 0 || crossCare.shop7 > 0 || crossCare.shopMeetings > 0) && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 2 }}>
           {crossCare.tzedaka > 0 && (
             <Chip on onClick={() => go('tzedaka')}>
@@ -879,6 +891,12 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
           {crossCare.shop7 > 0 && (
             <Chip on onClick={() => go('shop7')}>
               {'🚚 ' + termOf(config, 'nav.shop7', 'חלוקה') + ': ' + crossCare.shop7}
+            </Chip>
+          )}
+          {/* 🤝 פגישות-היום (SHOP5, 19.8) — מונה-עם-קפיצה בלבד, כמו שאר הצ'יפים */}
+          {crossCare.shopMeetings > 0 && (
+            <Chip on onClick={() => go('shop')}>
+              {'🤝 פגישות היום: ' + crossCare.shopMeetings}
             </Chip>
           )}
         </div>
