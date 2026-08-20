@@ -26,7 +26,7 @@ import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
 import { HebDateInput } from '../HebDateInput';
 import { supIls, supLast, supCount, fmtDate, hokRecordedThisMonth, isoToday } from '../supporters/lib';
-import { ayinAdvanceLabel, featLabel, itemLabel, stageLabel, unitLabel } from '../../lib/ayin';
+import { ayinAdvanceLabel, ayinAllRows, featLabel, itemLabel, stageLabel, unitLabel } from '../../lib/ayin';
 import { DonationModal } from '../supporters/DonationModal';
 import { SupporterForm } from '../supporters/SupporterForm';
 
@@ -140,6 +140,19 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
 
   // סבב ב׳: מעקב-טיפול + קישור-תשלום — מגודרים בדיוק כמו במסכי-התורמים
   const ayinOn = featureOn(config, 'supporters.ayin');
+
+  // ⬇ ייצוא-שמות ממוקד-קמפיין (בקשת-בעלים 20.8): רק השמות-לטיפול של משתתפי
+  // הקמפיין הזה (תור+יומן) — אותו פורמט בדיוק כדוח-המנהל המלא (ayinAllRows).
+  const campaignParticipants = () => {
+    const ids = new Set<string>([...dialer.queue, ...dialer.log.map((e) => e.id)]);
+    return supporters.filter((s) => ids.has(s.id) && (s.ayin?.names.length ?? 0) > 0);
+  };
+  const campaignNamesCount = ayinOn
+    ? campaignParticipants().reduce((a, s) => a + (s.ayin?.names.length ?? 0), 0)
+    : 0;
+  const exportNamesCsv = () => {
+    downloadCsv('dialer-names-' + isoToday() + '.csv', ayinAllRows(config, campaignParticipants()));
+  };
   const donateHref = sp && integrationOn(config, 'payments')
     ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, sp.name)
     : null;
@@ -190,10 +203,15 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
             <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 4 }}>
               {prog.total} {supWord} · 💰 {prog.counts.donated} תרמו · 🔁 {prog.counts.callback} לחזרה
             </div>
-            <div style={{ marginTop: 14, display: 'flex', gap: 8, justifyContent: 'center' }}>
+            <div style={{ marginTop: 14, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
               {dialer.log.length > 0 && (
                 <Btn onClick={exportCsv} title="הורדת יומן-השיחות המלא כ-CSV — לפני שהקמפיין נמחק">
                   ⬇ סיכום CSV
+                </Btn>
+              )}
+              {campaignNamesCount > 0 && (
+                <Btn onClick={exportNamesCsv} title={'רק ה' + itemLabel(config) + ' של משתתפי הקמפיין הזה — אותו פורמט כדוח-המנהל'}>
+                  ⬇ 🕯 {itemLabel(config)} ({campaignNamesCount})
                 </Btn>
               )}
               <Btn kind="primary" onClick={() => { stop(); onClose(); }}>סגירה</Btn>
@@ -423,6 +441,11 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                 <Btn sm onClick={undo} title="ביטול הסיווג האחרון — המתקשר חוזר לחזית-התור">↩ ביטול אחרון</Btn>
                 <Btn sm onClick={exportCsv} title="הורדת יומן-השיחות עד-כה כ-CSV">⬇ CSV</Btn>
               </>
+            )}
+            {campaignNamesCount > 0 && (
+              <Btn sm onClick={exportNamesCsv} title={'ייצוא רק ה' + itemLabel(config) + ' של משתתפי הקמפיין (' + campaignNamesCount + ')'}>
+                ⬇ 🕯
+              </Btn>
             )}
           </span>
           {armEnd ? (
