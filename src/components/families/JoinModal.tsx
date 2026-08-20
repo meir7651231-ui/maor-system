@@ -5,13 +5,13 @@
  * ורמזים מייעצים (גיל/מין) שאינם חוסמים.
  */
 import { useMemo, useRef, useState } from 'react';
-import type { Enrollment, Family, Member } from '../../types/domain';
+import type { Enrollment, Family, Member, PricingTerm } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { smartFilter } from '../../lib/search';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { ageOf, isoToday } from './lib';
-import { DAY_NAMES, courseFitsMember, enrollCount, groupOptionsOf, scheduleClashText, sessionsOf } from '../courses/lib';
+import { DAY_NAMES, PRICING_TERMS, courseFitsMember, enrollCount, groupOptionsOf, lessonTierOptions, scheduleClashText, sessionsOf, weightedQuote } from '../courses/lib';
 import { MemberForm } from './MemberForm';
 
 /** מזהים וירטואליים להורים שטרם קיימים כ-Member (כמו __pf/__pm במקור). */
@@ -73,6 +73,12 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
   const [courseId, setCourseId] = useState('');
   const [purchased, setPurchased] = useState('');
   const [group, setGroup] = useState('');
+  // תמחור משוקלל פר-שיעור — זהה ל-EnrollModal (תיקון S1: לא לקבוע totalDue:0 תמיד)
+  const [freq, setFreq] = useState('1');
+  const [freqUnit, setFreqUnit] = useState<'week' | 'month'>('week');
+  const [term, setTerm] = useState<PricingTerm>('monthly');
+  const [termMonths, setTermMonths] = useState('3');
+  const [tier, setTier] = useState<'' | '1' | '2' | '3'>('');
   const [error, setError] = useState('');
   const [memberFormOpen, setMemberFormOpen] = useState(false);
   // סינון שיבוץ חכם (P1.7, הכרעה 3) — סינון רך לפי גיל/מגדר עם מתג "הצג הכל"
@@ -114,6 +120,16 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
 
   const course = db.courses.find((c) => c.id === courseId);
   const groups = course ? groupOptionsOf(course) : [];
+  // תמחור משוקלל פר-שיעור (13.8 ב') — פעיל רק כשהחוג הנבחר perLesson. זהה ל-EnrollModal
+  // כדי ששיבוץ מכרטיס-המשפחה ומכרטיס-החוג ייתנו totalDue זהה (קודם קובע 0 תמיד — S1).
+  const perLessonOn = featureOn(config, 'courses.perlesson') && !!course?.perLesson;
+  const tierOptions = perLessonOn && course ? lessonTierOptions(course) : [];
+  const quote =
+    perLessonOn && course ? weightedQuote(course, { freq: +freq || 0, unit: freqUnit, term, months: +termMonths || 1, tier }) : null;
+  /** שדות-התמחור להטמעה בשיבוץ (totalDue + פרמטרי-הבחירה) — זהה ל-EnrollModal. */
+  const pricingFields = perLessonOn && quote
+    ? { totalDue: quote.total, freq: +freq || 0, freqUnit, term, termMonths: term === 'months' ? +termMonths || 1 : undefined, tier }
+    : { totalDue: 0 };
 
   /** בן המשפחה הנבחר (או ייצוג ההורה הווירטואלי) — לרמזי הגיל/מין. */
   const jm: { first: string; gender: 'm' | 'f'; birth: string; grade?: string } | undefined =
@@ -260,11 +276,11 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
       group,
       absences: [],
       payments: [],
-      totalDue: 0,
       dueDate: '',
       status: 'active',
       note: '',
       enrolledAt: isoToday(),
+      ...pricingFields,
     };
     upsertEnrollment(enrollment);
     const first = isVirtual
@@ -383,6 +399,45 @@ export function JoinModal(props: { family: Family; onClose: () => void }) {
         <Field label="ניקובים בכרטיסייה">
           <TextInput value={purchased} onChange={setPurchased} placeholder="12" dir="ltr" />
         </Field>
+      )}
+      {perLessonOn && quote && (
+        <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '10px 12px', marginBottom: 10, background: 'var(--surface-2, #fafaf7)' }}>
+          <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 8 }}>💡 תמחור משוקלל פר-שיעור</div>
+          <div className="form-grid">
+            <Field label="תדירות">
+              <div style={{ display: 'flex', gap: 6 }}>
+                <TextInput value={freq} onChange={setFreq} dir="ltr" type="number" />
+                <Select
+                  value={freqUnit}
+                  onChange={(v) => setFreqUnit(v === 'month' ? 'month' : 'week')}
+                  options={[
+                    { value: 'week', label: 'פעמים בשבוע' },
+                    { value: 'month', label: 'פעמים בחודש' },
+                  ]}
+                />
+              </div>
+            </Field>
+            <Field label="תקופת חיוב">
+              <Select value={term} onChange={(v) => setTerm(v as PricingTerm)} options={PRICING_TERMS.map((t) => ({ value: t.v, label: t.t }))} />
+            </Field>
+            {term === 'months' && (
+              <Field label="מספר חודשים">
+                <TextInput value={termMonths} onChange={setTermMonths} dir="ltr" type="number" />
+              </Field>
+            )}
+            {tierOptions.length > 1 && (
+              <Field label="הנחת הלקוח">
+                <Select value={tier} onChange={(v) => setTier(v === '1' ? '1' : v === '2' ? '2' : v === '3' ? '3' : '')} options={tierOptions.map((o) => ({ value: o.v, label: o.t }))} />
+              </Field>
+            )}
+          </div>
+          <div style={{ marginTop: 6, fontSize: 14, fontWeight: 800, color: '#12803c' }}>
+            {'סה"כ ל' + PRICING_TERMS.find((t) => t.v === term)?.t + ': ₪' + quote.total}
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-faint)' }}>
+              {' · ' + quote.lessons + ' שיעורים · ₪' + quote.perLesson + ' לשיעור'}
+            </span>
+          </div>
+        </div>
       )}
       <FormError error={error} />
       <div className="modal-actions">

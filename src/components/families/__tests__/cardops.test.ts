@@ -69,8 +69,13 @@ describe('🎫 ratchet — ניקוב מהכרטיס עובר דרך אותו st
 });
 
 describe('🛡 הגנות-מקור — חיווט למודאלים הקיימים, מגודר בדגל families.cardops', () => {
-  it('EnrollPanel קורא ל-store.punch ולא מממש used+1 מקומי לניקוב', () => {
-    expect(panelsSrc).toMatch(/useApp\(\(s\) => s\.punch\)/);
+  it('EnrollPanel מנקב דרך setPresent האידמפוטני (#6/#10) — לא raw punch, לא used+1 מקומי', () => {
+    // תיקון S2 (20.8): הכרטיס עבר מ-punch() הגולמי ל-setPresent, זהה ל-CourseDetail —
+    // מזין presents[]+מונה-חודשי, שער-תאריך חוצה-מסכים, מסרב כשאין יתרת-כרטיסייה.
+    // קודם: ניקוב מהכרטיס לא הופיע ב"נוכחויות החודש" והיה כפול חוצה-מסכים.
+    expect(panelsSrc).toMatch(/useApp\(\(s\) => s\.setPresent\)/);
+    expect(panelsSrc).toContain('setPresent(e.id, today, true)');
+    expect(panelsSrc).not.toMatch(/useApp\(\(s\) => s\.punch\)/); // אין עוד ניקוב גולמי מהכרטיס
     // דגל הפעולות בכרטיס
     expect(panelsSrc).toMatch(/featureOn\(config, 'families\.cardops'\)/);
   });
