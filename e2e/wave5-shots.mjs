@@ -106,7 +106,8 @@ await nav('משפחות'); await wait(400);
 const famSearch = page.locator('main input').first();
 if (await famSearch.count()) { await famSearch.fill('כהן'); await wait(600); }
 await page.locator('table tbody tr').first().click().catch(() => {}); await wait(700);
-const pc = page.locator('main button', { hasText: 'כרטיס-הורה' });
+// הכפתור מציג רק אימוג׳י 👪 — "כרטיס-הורה" יושב ב-title (hasText לא תופס title)
+const pc = page.locator('main button[title*="כרטיס-הורה"]');
 if (await pc.count()) {
   await pc.first().scrollIntoViewIfNeeded().catch(() => {});
   await wait(300); await shot('family-enrollments');
