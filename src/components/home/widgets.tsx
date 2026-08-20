@@ -1109,6 +1109,8 @@ function RecentWidget({ ctx }: { ctx: HomeCtx }) {
  */
 function GoldbookWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, todayIso, go } = ctx;
+  // קוהרנטיות ווידג'ט↔יעד (20.8): שורת-פודיום = קפיצה ישירה לכרטיס-התומך
+  const openSupporterCard = useApp((s) => s.openSupporterCard);
   const podium = buildPodium(db, todayIso.slice(0, 7), todayIso.slice(0, 4), config);
   const max = podium.rows[0]?.amount ?? 0;
   const medals = ['🥇', '🥈', '🥉'];
@@ -1121,7 +1123,25 @@ function GoldbookWidget({ ctx }: { ctx: HomeCtx }) {
     >
       {podium.rows.length === 0 && <div style={softEmpty}>{'אין ' + termOf(config, 'entity.donations', 'תרומות') + ' עדיין'}</div>}
       {podium.rows.map((r, i) => (
-        <div key={r.name + i} className="hm-gold-row">
+        <div
+          key={r.name + i}
+          className="hm-gold-row"
+          role={r.supporterId ? 'button' : undefined}
+          tabIndex={r.supporterId ? 0 : undefined}
+          title={r.supporterId ? 'לכרטיס ' + r.name : undefined}
+          style={r.supporterId ? { cursor: 'pointer' } : undefined}
+          onClick={r.supporterId ? () => openSupporterCard(r.supporterId!) : undefined}
+          onKeyDown={
+            r.supporterId
+              ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openSupporterCard(r.supporterId!);
+                  }
+                }
+              : undefined
+          }
+        >
           <div className="hm-gold-line">
             <span aria-hidden>{medals[i]}</span>
             <b>{r.name}</b>
