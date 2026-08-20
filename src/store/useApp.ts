@@ -284,6 +284,8 @@ interface AppState {
   bulkSetPresent: (enrollmentIds: string[], dateIso: string, present: boolean) => number;
   /** סיום-סמסטר לחוג — כל השיבוצים הפעילים/מוקפאים ⇒ 'ended'+endedAt (setDb אחד); מחזיר כמה. */
   bulkEndCourse: (courseId: string, dateIso: string) => number;
+  /** תזמון-השלמה — קובע makeupDate על החיסור-הזכאי התואם + יוצר תזכורת-לוח. */
+  scheduleMakeup: (enrollmentId: string, absenceDate: string, makeupDateIso: string) => void;
   /** ביטול הניקוב האחרון — מחזיר את הדלתא המדויקת מרשומת ה-Check-in (legacy mgUndo). */
   undoPunch: (enrollmentId: string) => void;
   addAbsence: (enrollmentId: string, absence: Absence) => void;
@@ -1616,6 +1618,42 @@ export const useApp = create<AppState>()((set, get) => {
         enrollments: db.enrollments.map((e) => (ids.has(e.id) ? { ...e, status: 'ended' as const, endedAt: dateIso } : e)),
       }));
       return ids.size;
+    },
+    scheduleMakeup(enrollmentId, absenceDate, makeupDateIso) {
+      const st = get();
+      const en = st.db.enrollments.find((e) => e.id === enrollmentId);
+      if (!en) return;
+      const idx = en.absences.findIndex((a) => a.date === absenceDate && a.makeup && !a.makeupDate);
+      if (idx < 0) return;
+      setDb((db) => ({
+        enrollments: db.enrollments.map((e) =>
+          e.id !== enrollmentId ? e : { ...e, absences: e.absences.map((a, i) => (i === idx ? { ...a, makeupDate: makeupDateIso } : a)) },
+        ),
+      }));
+      // תזכורת-לוח להשלמה (fire-and-forget — בלי back-link)
+      const course = st.db.courses.find((c) => c.id === en.courseId);
+      let name = '';
+      for (const f of st.db.families) {
+        const m = f.members.find((x) => x.id === en.memberId);
+        if (m) {
+          name = m.first;
+          break;
+        }
+      }
+      get().upsertEvent({
+        id: get().nextId('ev'),
+        title: 'השלמה — ' + name + (course ? ' (' + course.name + ')' : ''),
+        date: makeupDateIso,
+        time: '',
+        type: 'call',
+        customType: '',
+        notes: 'השלמת חיסור מ-' + absenceDate,
+        price: 0,
+        roomId: '',
+        famId: '',
+        priority: 'green',
+        done: false,
+      });
     },
     undoPunch(enrollmentId) {
       // ratchet legacy-main-script.js:3372 (mgUndo): הביטול מחזיר את הדלתא

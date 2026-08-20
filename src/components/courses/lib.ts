@@ -341,6 +341,29 @@ export function duplicateCourse(c: Course, newId: string, dates: { start: string
   return { ...c, id: newId, name: c.name + ' (עותק)', start: dates.start, end: dates.end };
 }
 
+export interface MakeupItem {
+  enrollmentId: string;
+  memberId: string;
+  courseId: string;
+  date: string; // תאריך-החיסור
+  reason: string;
+  makeupDate?: string; // תאריך-השלמה שתוזמן (אם כבר)
+}
+
+/** חיסורים-זכאים-להשלמה (makeup===true) — אופציונלית פר-חוג. לא-מתוזמנים קודם. */
+export function pendingMakeups(enrollments: Enrollment[], courseId?: string): MakeupItem[] {
+  const out: MakeupItem[] = [];
+  for (const e of enrollments) {
+    if (e.status === 'ended' || e.status === 'wait') continue;
+    if (courseId && e.courseId !== courseId) continue;
+    for (const a of e.absences) {
+      if (!a.makeup) continue;
+      out.push({ enrollmentId: e.id, memberId: e.memberId, courseId: e.courseId, date: a.date, reason: a.reason, makeupDate: a.makeupDate });
+    }
+  }
+  return out.sort((x, y) => (x.makeupDate ? 1 : 0) - (y.makeupDate ? 1 : 0) || x.date.localeCompare(y.date));
+}
+
 /** רשימת-ההמתנה של חוג — status 'wait', לפי סדר-ההצטרפות (FIFO). */
 export function waitlistFor(enrollments: Enrollment[], courseId: string): Enrollment[] {
   return enrollments
