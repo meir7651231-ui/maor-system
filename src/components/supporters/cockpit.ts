@@ -10,7 +10,7 @@
  * — הקוקפיט לא ממציא נתונים, רק מגיש את מה שכבר קיים כתור-פעולה.
  */
 import type { Supporter } from '../../types/domain';
-import { hokDue, hokMonthlyTotal, supCount, supIls, supLast, supUsd } from './lib';
+import { hokDue, hokMonthlyTotal, orgCalEntries, supCount, supIls, supLast, supUsd } from './lib';
 
 /** סף שקט (ימים) שמעליו תורם-שנתן-בעבר נחשב "בסיכון נטישה". */
 export const COCKPIT_SILENT_DAYS = 60;
@@ -264,4 +264,38 @@ export function cockpitProgress(queue: CockpitQueue, doneIds: ReadonlySet<string
   let done = 0;
   for (const t of queue.tasks) if (doneIds.has(t.id)) done++;
   return { done, total: queue.total };
+}
+
+export interface CockpitFeedItem {
+  id: string;
+  date: string;
+  who: string;
+  what: string;
+  spId?: string;
+}
+
+/**
+ * פעילות-חיה — N האירועים האחרונים מכל התורמים (תרומות/יעדים/מעקב), מהחדש לישן.
+ * נגזר מ-orgCalEntries הקיים; קריאה-בלבד.
+ */
+export function cockpitFeed(supporters: readonly Supporter[], limit = 8): CockpitFeedItem[] {
+  return orgCalEntries(supporters as Supporter[])
+    .filter((e) => e.date)
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+    .slice(0, limit)
+    .map((e, i) => {
+      const money =
+        e.amount > 0
+          ? e.cur === '$'
+            ? '$' + e.amount.toLocaleString('en-US')
+            : '₪' + e.amount.toLocaleString('he-IL')
+          : '';
+      return {
+        id: (e.spId ?? 'x') + ':' + e.date + ':' + i,
+        date: e.date,
+        who: e.name ?? '',
+        what: money ? 'תרם/ה ' + money : e.src || '',
+        spId: e.spId,
+      };
+    });
 }

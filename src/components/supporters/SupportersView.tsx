@@ -294,6 +294,7 @@ export function SupportersView() {
           config={config}
           usdRate={db.usdRate}
           onOpen={(id) => setSelId(id)}
+          onExit={() => setWorkMode(false)}
         />
       </div>
     );
