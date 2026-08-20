@@ -179,8 +179,10 @@ export interface Course {
 export interface Absence {
   date: IsoDate;
   reason: string;
-  /** שיעור השלמה נקבע. */
+  /** זכאי/ת להשלמה (נגזר מ-makeupEligibility). */
   makeup?: boolean;
+  /** תאריך-השלמה שתוזמן בפועל (additive; ריק = טרם-תוזמן). יוצר תזכורת-לוח. */
+  makeupDate?: IsoDate;
   /** לא הגיע/ה ללא הודעה. */
   noshow?: boolean;
   /**

@@ -15,6 +15,7 @@ import { CourseForm } from './CourseForm';
 import { EnrollModal } from './EnrollModal';
 import { AttendanceSheet } from './AttendanceSheet';
 import { ClassBroadcast } from './ClassBroadcast';
+import { HebDateInput } from '../HebDateInput';
 import { ManageModal } from './ManageModal';
 import { AbsenceModal } from './AbsenceModal';
 import { CustomExport } from '../reports/CustomExport';
@@ -41,6 +42,7 @@ import {
   priceSuffix,
   punchConfirmStep,
   PUNCH_CONFIRM_MS,
+  pendingMakeups,
   sessionsOf,
   waitlistFor,
   type PunchArm,
@@ -135,6 +137,9 @@ export function CourseDetail(props: { course: Course }) {
   const waiters = waitlistOn ? waitlistFor(db.enrollments, c.id) : [];
   const deleteEnrollment = useApp((s) => s.deleteEnrollment);
   const bulkEndCourse = useApp((s) => s.bulkEndCourse);
+  const scheduleMakeup = useApp((s) => s.scheduleMakeup);
+  const makeupSchedOn = featureOn(cfg, 'courses.makeup.schedule');
+  const makeups = makeupSchedOn ? pendingMakeups(db.enrollments, c.id) : [];
   const memberName = (memberId: string) => {
     for (const f of db.families) {
       const m = f.members.find((x) => x.id === memberId);
@@ -635,6 +640,41 @@ export function CourseDetail(props: { course: Course }) {
                   <Btn sm onClick={() => { deleteEnrollment(e.id); toast('הוסר/ה מרשימת-ההמתנה'); }}>
                     ✕
                   </Btn>
+                </div>
+              ))}
+            </section>
+          )}
+
+          {makeupSchedOn && makeups.length > 0 && (
+            <section className="card">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 800 }}>
+                  🔁 השלמות ממתינות <span style={{ color: 'var(--accent)' }}>· {makeups.filter((m) => !m.makeupDate).length}</span>
+                </h2>
+              </div>
+              {makeups.map((m) => (
+                <div key={m.enrollmentId + m.date} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--line)', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: 140 }}>
+                    <div style={{ fontWeight: 700 }}>{memberName(m.memberId)}</div>
+                    <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>
+                      חיסור {fmtDate(m.date)}
+                      {m.reason ? ' · ' + m.reason : ''}
+                    </div>
+                  </div>
+                  {m.makeupDate ? (
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: '#12803c' }}>✓ נקבע ל-{fmtDate(m.makeupDate)}</span>
+                  ) : (
+                    <div style={{ minWidth: 150 }}>
+                      <HebDateInput
+                        value=""
+                        onChange={(v) => {
+                          if (!v) return;
+                          scheduleMakeup(m.enrollmentId, m.date, v);
+                          toast('🔁 השלמה נקבעה ל-' + fmtDate(v) + ' — תזכורת נוספה ללוח');
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </section>
