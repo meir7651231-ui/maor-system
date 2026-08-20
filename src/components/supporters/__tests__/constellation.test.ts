@@ -47,6 +47,21 @@ describe('💛 ratchet — מנוע-הגלקסיה', () => {
     expect(nodes[0].atRisk).toBe(true);
   });
 
+  it('הקרנה-קדימה (offsetDays): כוכב נסחף החוצה ומאדים עם הזמן', () => {
+    // נותן כל חודש עד לפני חצי-שנה — טרי-יחסית היום, גולש קדימה
+    const sp = sup({ id: 'drift', donations: [
+      don({ date: '2026-04-06', amount: 500 }), don({ date: '2026-05-06', amount: 500 }), don({ date: '2026-06-06', amount: 500 }),
+    ] });
+    const now = donorConstellation([sp], TODAY)[0];
+    const future = donorConstellation([sp], TODAY, { offsetDays: 365 })[0];
+    expect(future.radius).toBeGreaterThanOrEqual(now.radius); // נסחף החוצה
+    expect(future.churn).toBeGreaterThanOrEqual(now.churn);   // סיכון עולה
+    // offset=0 מתלכד עם ברירת-המחדל (אותו רדיוס/סיכון)
+    const zero = donorConstellation([sp], TODAY, { offsetDays: 0 })[0];
+    expect(zero.radius).toBe(now.radius);
+    expect(zero.churn).toBe(now.churn);
+  });
+
   it('🚀 ביצועים: ~30k תרומות על ~3k תורמים — פריסה < 500ms', () => {
     const donors: Supporter[] = [];
     for (let d = 0; d < 3000; d++) {

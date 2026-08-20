@@ -9,6 +9,7 @@
 import type { Supporter } from '../../types/domain';
 import { supTier } from './lib';
 import { churnFromScan, dayDiff, donorScan, rfmFromScan } from './intel';
+import { churnAtOffset } from './timemachine';
 
 export type TierKey = 'gold' | 'silver' | 'bronze' | 'dormant';
 const TIER_KEY: Record<string, TierKey> = { 'זהב': 'gold', 'כסף': 'silver', 'ארד': 'bronze', 'רדומה': 'dormant' };
@@ -45,6 +46,11 @@ export interface ConstellationOpts {
   rate?: number;
   /** סף סיכון לבוהק-אדום (ברירת-מחדל 60). */
   riskThreshold?: number;
+  /**
+   * הקרנה-קדימה בימים (מכונת-הזמן החיה): 0 = היום. גדול-מ-0 ⇒ הרדיוס והסיכון
+   * מחושבים כאילו עברו offsetDays ימים בלי נתינה — הכוכבים נסחפים החוצה ומאדימים.
+   */
+  offsetDays?: number;
 }
 
 /**
@@ -58,15 +64,16 @@ export function donorConstellation(
 ): ConstellationNode[] {
   const rate = opts.rate ?? 3.7;
   const riskT = opts.riskThreshold ?? 60;
+  const offset = Math.max(0, opts.offsetDays ?? 0);
   const raw: { sp: Supporter; ils: number; days: number; tier: TierKey; churn: number }[] = [];
   let maxLog = 0;
 
   for (const sp of supporters) {
     const scan = donorScan(sp, todayIso, rate, 12);
     if (scan.count === 0) continue; // רק תורמים-בפועל בגלקסיה
-    const days = dayDiff(scan.last, todayIso);
+    const days = dayDiff(scan.last, todayIso) + offset; // הקרנה-קדימה: יותר ימי-שקט
     const tier = TIER_KEY[supTier(rfmFromScan(scan, todayIso).score).label] ?? 'dormant';
-    const churn = churnFromScan(scan, todayIso);
+    const churn = offset > 0 ? churnAtOffset(scan, todayIso, offset) : churnFromScan(scan, todayIso);
     const lg = Math.log10(scan.ils + 1);
     if (lg > maxLog) maxLog = lg;
     raw.push({ sp, ils: scan.ils, days, tier, churn });
