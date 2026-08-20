@@ -3,7 +3,18 @@
   "orgName": "",
   "theme": "or-rishon",
   "modules": {},
-  "features": {},
+  "features": {
+    "supporters.cockpit": true,
+    "supporters.rebrand": true,
+    "supporters.intel": true,
+    "supporters.galaxy": true,
+    "courses.cockpit": true
+  },
+  "integrations": {
+    "whatsapp": { "enabled": true },
+    "maps": { "enabled": true },
+    "gcal": { "enabled": true }
+  },
   "firebase": {
     "apiKey": "AIzaSyCVvJvJAnTEWSzdtmONXcZyRijHdrvPeIo",
     "authDomain": "maor-system.firebaseapp.com",
