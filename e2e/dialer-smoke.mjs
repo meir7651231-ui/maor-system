@@ -37,7 +37,7 @@ const dbEval = (fn) => pg.evaluate((src) => { const db = JSON.parse(localStorage
 
 await pg.addInitScript(() => {
   // telephony (עיר-עוגן) ⇒ הכפתור "📞 חייגן" מוצג; בלי firebase ⇒ אין מסך-התחברות
-  localStorage.setItem('maor_org_config', JSON.stringify({ slug: 'default', orgName: 'עמותת מאור החסד', theme: 'or-rishon', modules: {}, telephony: { enabled: true, city: 'jerusalem' } }));
+  localStorage.setItem('maor_org_config', JSON.stringify({ slug: 'default', orgName: 'עמותת מאור החסד', theme: 'or-rishon', modules: {}, telephony: { enabled: true, city: 'jerusalem' }, integrations: { payments: { enabled: true, payUrl: 'https://pay.example.org/donate' }, whatsapp: { enabled: true } } }));
 });
 await pg.goto('http://localhost:8232/');
 await pg.waitForSelector('main', { timeout: 20000 });
@@ -92,6 +92,47 @@ undone.q === q0 && undone.head === firstId ? ok('↩ ביטול-אחרון הח�
 (await pg.locator('button', { hasText: 'CSV' }).count()) === 0
   ? ok('אין כפתור-CSV כשאין יומן (אחרי הביטול)')
   : fail('כפתור-CSV מוצג בלי יומן');
+
+/* ── סבב ב׳: שמות-לטיפול · קידום-שלב · עריכת-פרטים · קישור-תשלום ── */
+await pg.locator('button', { hasText: '🕯' }).first().click();
+await pg.waitForTimeout(300);
+const nameInput = pg.locator('input[placeholder="שם לטיפול…"]').first();
+await nameInput.fill('רפאל בן שרה');
+await pg.locator('input[inputmode="numeric"]').first().fill('3');
+await pg.getByRole('button', { name: '➕', exact: true }).click(); // ה-➕ של פאנל-השמות (לא '➕ הוספת' שברקע)
+await pg.waitForTimeout(900); // התמדת localStorage
+const care = await pg.evaluate((id) => {
+  const sp = JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id);
+  return { n: sp?.ayin?.names?.length ?? 0, name: sp?.ayin?.names?.at(-1)?.name ?? '', eyes: sp?.ayin?.names?.at(-1)?.eyes ?? '' };
+}, firstId);
+care.name === 'רפאל בן שרה' && care.eyes === 3
+  ? ok('🕯 שם-לטיפול נרשם תוך-שיחה (שם+כמות)')
+  : fail('שם-לטיפול לא נרשם: ' + JSON.stringify(care));
+// קידום-שלב — הכפתור-החכם מופיע ומקדם
+const advBtn = pg.locator('button', { hasText: '←' }).last();
+if (await advBtn.count()) {
+  await advBtn.click();
+  await pg.waitForTimeout(900);
+  const stg = await pg.evaluate((id) => JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id)?.ayin?.stage ?? '', firstId);
+  stg !== 'new' ? ok('שלב-הטיפול קודם (' + stg + ')') : fail('קידום-שלב לא עבד');
+} else fail('כפתור קידום-שלב לא נמצא');
+// קישור-תשלום — צ'יפ 💳 עם ה-URL של הארגון
+const payChip = pg.locator('a', { hasText: '💳' }).first();
+if (await payChip.count()) {
+  const href = await payChip.getAttribute('href');
+  href?.startsWith('https://pay.example.org') ? ok('💳 קישור-תשלום עם ה-URL של הארגון') : fail('href שגוי: ' + href);
+} else fail('צ׳יפ קישור-תשלום לא מוצג');
+// עריכת-פרטים — SupporterForm מחליף את החייגן וחוזר
+await pg.locator('button', { hasText: '✎ עריכת פרטים' }).click();
+await pg.waitForTimeout(400);
+if (await pg.getByLabel('שם מלא *').count()) {
+  ok('✎ עריכת-פרטים פתחה את טופס-התומך');
+  await pg.getByRole('textbox', { name: 'עיר' }).fill('ירושלים');
+  await pg.locator('button', { hasText: 'שמירה' }).first().click();
+  await pg.waitForTimeout(900);
+  const city = await pg.evaluate((id) => JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id)?.address ?? JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id)?.city ?? '', firstId);
+  (await pg.locator('text=📞 חייגן').count()) ? ok('חזרנו לחייגן אחרי העריכה') : fail('לא חזרנו לחייגן אחרי עריכה');
+} else fail('טופס-העריכה לא נפתח');
 
 /* ── 📵 לא-ענה במקלדת (מקש 2) ⇒ requeue ── */
 await pg.keyboard.press('2');

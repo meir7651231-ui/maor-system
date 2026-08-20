@@ -147,4 +147,19 @@ describe('☎️ שדרוג 20.8 — ביטול-אחרון, ספירה-פר-אד
     // הקשר הו"ק לטלפנית
     expect(dialerSrc).toContain('hokRecordedThisMonth');
   });
+
+  it('🔒 הגנת-מקור סבב-ב׳: שמות-לטיפול, קידום-שלב, עריכה וקישור-תשלום תוך-שיחה', () => {
+    // 🕯 רישום-שם + קידום-שלב — אותן פעולות-store כמו בכרטיס (ayinAddName/ayinAdvance)
+    expect(dialerSrc).toContain('ayinAddName(sp.id, nameVal.trim()');
+    expect(dialerSrc).toMatch(/ayinAdvance\(sp\.id\)/);
+    expect(dialerSrc).toContain('ayinAdvanceLabel(config, sp.ayin)');
+    // ✎ עריכת-פרטים — SupporterForm בהחלפה (לא בקינון — מאבקי-Escape)
+    expect(dialerSrc).toMatch(/if \(editOpen && sp\)/);
+    expect(dialerSrc).toContain('<SupporterForm supporter={sp}');
+    // 💳 קישור-תשלום — payLink מגודר-payments + שליחה-בוואטסאפ בתבנית wa.paylink
+    expect(dialerSrc).toContain("integrationOn(config, 'payments')");
+    expect(dialerSrc).toContain("renderTemplate(config, 'wa.paylink'");
+    // גידור מעקב-הטיפול — הפאנל רק כשהפיצ'ר דלוק
+    expect(dialerSrc).toContain("featureOn(config, 'supporters.ayin')");
+  });
 });
