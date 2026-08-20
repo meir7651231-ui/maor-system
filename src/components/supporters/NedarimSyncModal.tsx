@@ -11,7 +11,7 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { planNedarimSync, type SyncPlan } from '../../lib/nedarimSync';
-import { termOf } from '../../lib/config';
+import { integrationSetting, isSuperAdmin, termOf } from '../../lib/config';
 import { Btn, Empty, Modal } from '../ui';
 
 type CloudMod = typeof import('../../store/cloudSync');
@@ -23,6 +23,11 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
   const resetNedarimImport = useApp((s) => s.resetNedarimImport);
   const detectNedarimHok = useApp((s) => s.detectNedarimHok);
   const toast = useApp((s) => s.toast);
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
+  // 🔄 משיכה-בקליק (ייעול 20.8) — מגודר מייל-על + כתובת-פונקציה מוגדרת (payments.pullUrl).
+  const pullUrl = integrationSetting(config, 'payments', 'pullUrl');
+  const canPull = isSuperAdmin(cloudEmail) && !!pullUrl;
+  const [pulling, setPulling] = useState(false);
   const [hokArmed, setHokArmed] = useState(false);
   // כל מה שנכנס מנדרים: כרטיסים שנוצרו (id 'sup-ned-') + מקוריים עם extId/hist-נדרים
   const nedCount = useApp((s) =>
@@ -57,6 +62,37 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // רענון-התוכנית אחרי משיכה (מושך תורמים+עסקאות טריים ומריץ מחדש את התצוגה-המקדימה).
+  async function reloadPlan() {
+    setLoading(true);
+    setError(null);
+    try {
+      const m: CloudMod = await import('../../store/cloudSync');
+      const [donors, charges] = await Promise.all([m.fetchNedarimDonors(), m.fetchIncomingPayments()]);
+      setPlan(planNedarimSync(supporters, donors, charges));
+    } catch (e) {
+      setError(String((e as Error)?.message || e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // 🔄 משיכה-בקליק: קורא ל-Function (טוקן-כניסה, בלי סוד) — תורמים+עסקאות — ואז מרענן.
+  async function pullNow() {
+    if (!pullUrl) return;
+    setPulling(true);
+    try {
+      const m: CloudMod = await import('../../store/cloudSync');
+      const r = await m.pullNedarim(pullUrl);
+      toast('🔄 נמשכו ' + (r.donors ?? 0) + ' תורמים · ' + (r.added ?? 0) + ' עסקאות');
+      await reloadPlan();
+    } catch (e) {
+      toast('⚠ משיכה נכשלה: ' + String((e as Error)?.message || e));
+    } finally {
+      setPulling(false);
+    }
+  }
+
   const s = plan?.summary;
   const nothing = s && s.newSupporters === 0 && s.updatedSupporters === 0 && s.chargesAdded === 0;
 
@@ -87,6 +123,17 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
 
   return (
     <Modal title={'🔄 סנכרון מנדרים — ' + nav} onClose={props.onClose} wide>
+      {/* 🔄 משיכה-בקליק (ייעול) — מושך תורמים+עסקאות מנדרים בלי כתובות ידניות (מייל-על) */}
+      {canPull && (
+        <div style={{ border: '1px solid var(--accent)', borderRadius: 10, padding: 10, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: 'var(--accent-bg, #f0f6ff)' }}>
+          <div style={{ flex: 1, minWidth: 180, fontSize: 12.5 }}>
+            <b>משיכה-בקליק</b> — מושך את רשימת-התורמים והעסקאות ישירות מנדרים (בלי כתובות ידניות), ואז מרענן את התצוגה-המקדימה למטה.
+          </div>
+          <Btn kind="primary" disabled={pulling || loading} onClick={() => void pullNow()}>
+            {pulling ? 'מושך…' : '🔄 משוך וסנכרן עכשיו'}
+          </Btn>
+        </div>
+      )}
       {/* 🔁 זיהוי-רטרואקטיבי של הו"ק — לחיובים שסונכרו לפני מנגנון-ההו"ק */}
       <div style={{ border: '1px solid var(--accent)', borderRadius: 10, padding: 10, marginBottom: 12 }}>
         <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>🔁 זיהוי הוראות-קבע מהיסטוריה</div>

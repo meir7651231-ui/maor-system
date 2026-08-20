@@ -671,6 +671,27 @@ export async function fetchIncomingPayments(): Promise<IncomingPayment[]> {
   return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<IncomingPayment, 'id'>) }));
 }
 
+/** 🔄 משיכת-נדרים **בקליק** (ייעול 20.8) — קורא ל-Function `nedarimPull?full=1` עם
+ *  **טוקן-הכניסה** של המשתמש (Authorization: Bearer) במקום סוד-בדפדפן; השרת מאמת
+ *  מייל-על/מנהל. מושך תורמים+עסקאות. `pullUrl` = כתובת-הפונקציה מהקונפיג (https בלבד).
+ *  זורק בכשל (רשת/הרשאה/שרת). org נגזר מהתחום הנוכחי (שורש⇒'root', אחרת ה-slug). */
+export async function pullNedarim(pullUrl: string, opts: { reset?: boolean } = {}): Promise<{ donors?: number; added?: number; pages?: number }> {
+  const clean = String(pullUrl || '').trim();
+  if (!/^https:\/\//i.test(clean)) throw new Error('כתובת-משיכה לא-תקינה (חייבת https)');
+  const user = requireAuth().currentUser;
+  if (!user) throw new Error('נדרשת התחברות-ענן');
+  const token = await user.getIdToken();
+  const org = scope.cloudRoot ? 'root' : scope.slug;
+  const u = new URL(clean);
+  u.searchParams.set('org', org);
+  u.searchParams.set('full', '1');
+  if (opts.reset) u.searchParams.set('reset', '1');
+  const r = await fetch(u.toString(), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+  const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; donors?: number; added?: number; pages?: number };
+  if (!r.ok || j.ok === false) throw new Error(j.error || 'משיכה נכשלה (' + r.status + ')');
+  return j;
+}
+
 /** סימון תשלום-נכנס כ"נרשם" (אחרי שהמזכירה רשמה תרומה/תשלום במערכת). */
 export async function markIncomingPayment(id: string): Promise<void> {
   await updateDoc(doc(requireDb(), scopedCol('incomingPayments'), id), {

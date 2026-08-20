@@ -18,6 +18,7 @@
 const { onRequest } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { getFirestore } = require('firebase-admin/firestore');
+const { getAuth } = require('firebase-admin/auth');
 const crypto = require('crypto');
 const { planHistoryWrites } = require('./nedarimHistory');
 const { parseDonorsTsv } = require('./nedarimDonors');
@@ -27,6 +28,28 @@ function secretOk(given, expected) {
   const a = Buffer.from(String(given ?? ''));
   const b = Buffer.from(String(expected ?? ''));
   return b.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+/** אימות **טוקן-כניסה** (Firebase ID token) של מייל-על / מנהל-הארגון — כדי שכפתור
+ * "משוך וסנכרן" באפליקציה יפעל **בלי סוד בדפדפן**. מורשה אם המייל ב-SUPER_ADMIN_EMAILS
+ * (env, לא-סוד) או מנהל/חבר של platformOrgs/{org}. תיקון 20.8 (ייעול נדרים). */
+async function isOrgAdmin(idToken, org) {
+  if (!idToken) return false;
+  try {
+    const tok = await getAuth().verifyIdToken(String(idToken));
+    const email = String(tok.email || '').toLowerCase();
+    if (!email || tok.email_verified === false) return false;
+    const supers = String(process.env.SUPER_ADMIN_EMAILS || '').toLowerCase().split(/[,\s]+/).filter(Boolean);
+    if (supers.includes(email)) return true;
+    if (org === 'root') return false; // אין platformOrgs לשורש ⇒ מייל-על בלבד
+    const d = await getFirestore().doc('platformOrgs/' + org).get();
+    const data = d.exists ? (d.data() || {}) : {};
+    if (String(data.manager || '').toLowerCase() === email) return true;
+    const members = Array.isArray(data.members) ? data.members.map((x) => String(x).toLowerCase()) : [];
+    return members.includes(email);
+  } catch {
+    return false;
+  }
 }
 
 function incomingCol(db, org) {
@@ -195,8 +218,11 @@ async function runNedarimPull(org, opts = {}) {
 }
 
 /**
- * 🔄 nedarimPull (HTTP) — משיכה יזומה/על-דרישה. מאובטח בסוד PAY_SECRET (כמו
- * ה-webhook). פתיחת כתובת ?org=<slug>&secret=<PAY_SECRET>. מחזיר {added,pages,cursor}.
+ * 🔄 nedarimPull (HTTP) — משיכה יזומה/על-דרישה. **שתי דרכי-הרשאה:**
+ *   1. כתובת-ידנית: ?org=<slug>&secret=<PAY_SECRET> (למייל-על מהדפדפן/סקריפט).
+ *   2. **כפתור-האפליקציה:** Authorization: Bearer <Firebase ID token> של מייל-על/מנהל —
+ *      בלי סוד בדפדפן (isOrgAdmin). ?full=1 = תורמים+עסקאות בקליק. CORS פתוח.
+ * env (לא-סוד): SUPER_ADMIN_EMAILS (מיילי-על, מופרד-פסיק) — לאימות כפתור-האפליקציה.
  */
 exports.nedarimPull = onRequest(
   {
@@ -205,11 +231,29 @@ exports.nedarimPull = onRequest(
     memory: '512MiB',
   },
   async (req, res) => {
+    // CORS — הכפתור באפליקציה (gh-pages) קורא cross-origin עם Authorization ⇒ preflight.
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    if (req.method === 'OPTIONS') return res.status(204).send('');
     if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).send('POST/GET only');
     const p = { ...(req.query ?? {}), ...(req.body ?? {}) };
-    if (!secretOk(p.secret, process.env.PAY_SECRET)) return res.status(403).send('bad secret');
     const org = String(p.org ?? '').trim();
     if (!/^[a-z0-9-]{2,40}$|^root$/.test(org)) return res.status(400).send('bad org');
+    // הרשאה: **סוד** (כתובות-ידניות) **או** טוקן-כניסה של מייל-על/מנהל (כפתור באפליקציה).
+    const bearer = /^Bearer (.+)$/i.exec(req.get('authorization') || '');
+    const authed = secretOk(p.secret, process.env.PAY_SECRET) || (await isOrgAdmin(bearer && bearer[1], org));
+    if (!authed) return res.status(403).send('unauthorized');
+    // ?full=1 ⇒ **משיכה מלאה בקליק** (כפתור-האפליקציה): תורמים ואז עסקאות בקריאה אחת.
+    if (p.full === '1') {
+      try {
+        const donors = await runNedarimDonorsPull(org);
+        const pull = await runNedarimPull(org, { reset: p.reset === '1' });
+        return res.status(200).json({ ok: true, ...donors, ...pull });
+      } catch (e) {
+        return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
+      }
+    }
     // ?peek=1 ⇒ הצצה: מחזיר את 3 העסקאות הראשונות גולמיות (כל השדות) בלי לכתוב — לתכנון מיפוי.
     if (p.peek === '1') {
       try {

@@ -184,4 +184,19 @@ describe('🛡 ratchet — חיווט מסך תשלומים-נכנסים', () =>
     expect(sync).toContain('זיכויים (קוזזו)'); // מונה-זיכויים בתצוגה-המקדימה (פאזה-מודעת-כסף)
     expect(sync).toContain('ביטולים (סומנו)');
   });
+  it('ייעול: כפתור "משוך וסנכרן" (משיכה-בקליק) מגודר מייל-על + pullUrl, דרך pullNedarim', async () => {
+    const sync = (await import('../../components/supporters/NedarimSyncModal.tsx?raw')).default as string;
+    expect(sync).toContain('🔄 משוך וסנכרן עכשיו');
+    expect(sync).toContain('pullNedarim(pullUrl)');
+    expect(sync).toContain('isSuperAdmin(cloudEmail)'); // גידור מייל-על
+    expect(sync).toContain("integrationSetting(config, 'payments', 'pullUrl')");
+  });
+});
+
+// ייעול 20.8: pullUrl הוסף ל-allowlist ההגדרות של payments (נשמר ב-normalizeConfig).
+describe('🔗 ratchet — pullUrl ב-INTEGRATION_SETTING_KEYS', () => {
+  it('payments.pullUrl מותר (allowlist)', async () => {
+    const { INTEGRATION_SETTING_KEYS } = await import('../../types/config');
+    expect(INTEGRATION_SETTING_KEYS.payments).toContain('pullUrl');
+  });
 });
