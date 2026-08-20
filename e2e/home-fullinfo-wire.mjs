@@ -213,6 +213,32 @@ if (await goldRow.count()) {
   await goHome();
 } else skip('ספר-הזהב · אין שורות-פודיום לחיצות');
 
+/* ── 12 · הרשימה המסוננת המלאה: באדג'-הווידג'ט ↔ פילטר "📞 יעד שהגיע" בתורמים ── */
+const cPanel = panel('יעדי קשר');
+if (await cPanel.count()) {
+  const badge = digits((await cPanel.locator('.hm-head').textContent()) ?? '');
+  const moreBtn = cPanel.locator('button', { hasText: 'לרשימה המלאה' }).first();
+  if (await moreBtn.count()) {
+    await moreBtn.click(); // קישור-עומק: ווידג'ט ⇒ מסך-התורמים כבר-מסונן
+    await pg.waitForTimeout(700);
+  } else {
+    // פחות מ-7 יעדים — מפעילים את הפילטר ידנית דרך פאנל-הסינון
+    await pg.locator('nav button, .side-link', { hasText: 'תורמים' }).first().click();
+    await pg.waitForTimeout(600);
+    const adv = pg.locator('button', { hasText: '🔎 סינון מתקדם' }).first();
+    if (await adv.count()) { await adv.click(); await pg.waitForTimeout(300); }
+    const chip = pg.locator('button', { hasText: '📞 יעד שהגיע' }).first();
+    if (await chip.count()) { await chip.click(); await pg.waitForTimeout(500); }
+  }
+  const head = await mainText();
+  const chipTxt = (await pg.locator('button', { hasText: '📞 יעד שהגיע' }).first().textContent().catch(() => '')) ?? '';
+  const chipN = digits(chipTxt);
+  badge && chipN === badge && head.includes(badge + ' מתוך')
+    ? ok(`רשימה-מסוננת · באדג'-הווידג'ט (${badge}) = צ'יפ-הפילטר (${chipN}) = "${badge} מתוך" בכותרת`)
+    : fail(`רשימה-מסוננת · אי-התאמה: באדג' ${badge} · צ'יפ ${chipN} · כותרת ${head.match(/\d+ מתוך/)?.[0] ?? '—'}`);
+  await goHome();
+} else skip('רשימה-מסוננת · אין ווידג\'ט יעדי-קשר');
+
 if (errors.length) fail('שגיאות-JS: ' + errors.slice(0, 3).join(' | '));
 else ok('אפס שגיאות JS בכל הבדיקה');
 
