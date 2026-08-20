@@ -174,4 +174,11 @@ describe('☎️ שדרוג 20.8 — ביטול-אחרון, ספירה-פר-אד
     expect(dialerSrc).toContain('לא לרשום "תרם/ה" ידנית');
     expect(dialerSrc).toContain('נקלט מהסליקה אוטומטית, בלי רישום ידני');
   });
+
+  it('🔒 ייצוא-שמות ממוקד-קמפיין (20.8): רק משתתפי-הקמפיין, בפורמט דוח-המנהל', () => {
+    // הבקשה: "ייצוא רק את השמות האלה" — תור+יומן ⇒ ayinAllRows על תת-הקבוצה בלבד
+    expect(dialerSrc).toContain('ayinAllRows(config, campaignParticipants())');
+    expect(dialerSrc).toMatch(/new Set<string>\(\[\.\.\.dialer\.queue, \.\.\.dialer\.log\.map\(\(e\) => e\.id\)\]\)/);
+    expect(dialerSrc).toContain("'dialer-names-'");
+  });
 });
