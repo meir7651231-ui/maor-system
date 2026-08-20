@@ -500,8 +500,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
               />
             </Field>
             {sp.nextDate ? (
-              <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-                {sp.nextDate <= isoToday() ? '🔔 תאריך היעד עבר — הגיע הזמן להתקשר' : hebDateFull(sp.nextDate)}
+              <div style={{ fontSize: 13, color: sp.nextDate < isoToday() ? 'var(--red)' : 'var(--ink-soft)' }}>
+                {sp.nextDate < isoToday()
+                  ? // קוהרנטיות ווידג'ט↔יעד (20.8): אותה שפת-"באיחור" כמו בווידג'ט אנשי-הקשר בבית
+                    `⏰ באיחור ${Math.max(1, Math.round((new Date(isoToday() + 'T12:00:00').getTime() - new Date(sp.nextDate + 'T12:00:00').getTime()) / 86400000))} ימים — הגיע הזמן להתקשר`
+                  : sp.nextDate === isoToday()
+                    ? '🔔 היעד היום — הגיע הזמן להתקשר'
+                    : hebDateFull(sp.nextDate)}
                 {sp.nextEventId && events.some((e) => e.id === sp.nextEventId)
                   ? ' · תזכורת 📞 מקושרת בלוח השנה'
                   : ''}

@@ -33,6 +33,8 @@ export interface WallPodiumRow {
   name: string;
   sub: string;
   amount: number;
+  /** מזהה-התומך — קפיצה-לכרטיס משורת-הפודיום (20.8); ריק בנפילת-לגאסי בלי id. */
+  supporterId?: string;
 }
 
 export interface WallPodium {
@@ -129,10 +131,10 @@ export function buildPodium(db: Db, monthKey: string, yearKey: string, config?: 
   const T = (key: string, fb: string) => (config ? termOf(config, key, fb) : fb);
   const dons = allIlsDonations(db);
   const agg = (filter: (d: DonRow) => boolean) => {
-    const m = new Map<string, { name: string; amount: number; count: number }>();
+    const m = new Map<string, { id: string; name: string; amount: number; count: number }>();
     for (const d of dons) {
       if (!filter(d)) continue;
-      const cur = m.get(d.supporterId) ?? { name: d.name, amount: 0, count: 0 };
+      const cur = m.get(d.supporterId) ?? { id: d.supporterId, name: d.name, amount: 0, count: 0 };
       cur.amount += d.amount;
       cur.count++;
       m.set(d.supporterId, cur);
@@ -151,12 +153,13 @@ export function buildPodium(db: Db, monthKey: string, yearKey: string, config?: 
       .filter((s: Supporter) => s.ils > 0)
       // amount=s.ils הוא סכום השקלים בלבד; count חייב לספור תרומות-שקל בלבד (לא
       // סה"כ כל המטבעות) כדי שהתווית 'N תרומות' תתאים לסכום המוצג.
-      .map((s) => ({ name: s.name, amount: s.ils, count: s.donations.filter((d) => d.cur !== '$').length }));
+      .map((s) => ({ id: s.id, name: s.name, amount: s.ils, count: s.donations.filter((d) => d.cur !== '$').length }));
     scopeLabel = 'מאז ומעולם';
   }
   rows.sort((a, b) => b.amount - a.amount);
   const top = rows.slice(0, 3).map((r) => ({
     name: r.name,
+    supporterId: r.id,
     sub: r.count === 1 ? `${T('entity.donation', 'תרומה')} אחת` : `${r.count} ${T('entity.donations', 'תרומות')}`,
     amount: r.amount,
   }));
