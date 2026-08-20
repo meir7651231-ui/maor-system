@@ -24,6 +24,7 @@ const OPT_IN_KEYS = [
   // גל ה׳ — מסכי-החוגים החדשים מגודרים `=== true` בקוד ⇒ חייבים optIn:true באשף
   'courses.teacherapp',
   'courses.parentcard',
+  'courses.ai',
 ];
 
 function cfg(features: Record<string, boolean>): OrgConfig {

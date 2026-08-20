@@ -85,6 +85,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.dashboard', label: 'דשבורד-חוגים', desc: '📊 מבט-על פר-חוג במסך-אחד — רשומים · תפוסה% · רשימת-המתנה · חוב · חיסורים · בסיכון-נשירה + החוגים-המבוקשים + ייצוא CSV', module: 'courses' },
   { key: 'courses.teacherapp', label: 'אפליקציית-המורה', desc: '🎓 מסך מצומצם למורה (opt-in) — המפגשים-שלי-היום + נוכחות-בטאפ + השלמות-ממתינות + דוח-חודשי; רק לתפקיד-מורה, אפס-כסף', module: 'courses', optIn: true },
   { key: 'courses.parentcard', label: 'כרטיס-הורה', desc: '👪 סיכום read-only פר-ילד (opt-in) בכרטיס-המשפחה — נוכחות%/יתרה/מפגש-קרוב/השלמות + שיתוף WhatsApp/הדפסה/העתקה; הרכז מייצר ומשתף, אפס-כסף', module: 'courses', optIn: true },
+  { key: 'courses.ai', label: 'מרכז-שימור (חיזוי-נשירה)', desc: '💚 רשימת תלמידים-בסיכון-נשירה עם ציון-סיכון (opt-in) + "✍️ הצעת-התערבות" AI (דורש מפתח עוזר-AI, נופל-רך בלעדיו); אפס-כסף', module: 'courses', optIn: true },
   { key: 'courses.reminder', label: 'תזכורת ללוח', desc: 'כפתור "🔔 תזכורת ללוח" — יצירת אירוע תזכורת לחוג בלוח השנה', module: 'courses' },
   { key: 'courses.enroll.freeze', label: 'הקפאת שיבוץ', desc: 'הקפאה/הפשרה זמנית של שיבוץ (הניקוב נחסם עד הפשרה)', module: 'courses' },
   { key: 'courses.enroll.end', label: 'סיום שיבוץ', desc: 'סימון שיבוץ כ"הסתיים" (נשמר בדוח ההיסטורי)', module: 'courses' },

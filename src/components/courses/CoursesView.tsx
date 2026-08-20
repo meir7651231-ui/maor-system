@@ -16,6 +16,7 @@ import { CoursesCockpit } from './CoursesCockpit';
 import { CollectionCenter } from './CollectionCenter';
 import { CoursesDashboard } from './CoursesDashboard';
 import { TeacherPanel } from './TeacherPanel';
+import { RetentionCenter } from './RetentionCenter';
 import { coursesOfTeacher, DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
 
 type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2' | 'price3';
@@ -101,6 +102,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   // המסך המצומצם של המורה (מפגשי-היום שלה + נוכחות + השלמות + דוח). ברירת-מחדל דלוקה למורה.
   const teacherAppOn = cfg.features?.['courses.teacherapp'] === true && !!myTeacherId;
   const [teacherMode, setTeacherMode] = useState(() => teacherAppOn);
+  // 💚 מרכז-שימור (גל ה׳ · פאזה 11) — חיזוי-נשירה + הצעת-התערבות AI. opt-in מפורש (ולא-מורה).
+  const retentionOn = cfg.features?.['courses.ai'] === true && !myTeacherId;
+  const [retentionOpen, setRetentionOpen] = useState(false);
 
   // בקשת "+ חוג" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
   const courseFormReq = useApp((s) => s.courseFormReq);
@@ -231,6 +235,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             <>
               {collectOn && <Btn onClick={() => setCollectOpen(true)}>💰 גבייה</Btn>}
               {dashboardOn && <Btn onClick={() => setDashboardOpen(true)}>📊 דשבורד</Btn>}
+              {retentionOn && <Btn onClick={() => setRetentionOpen(true)}>💚 שימור</Btn>}
               <Btn onClick={() => setWorkMode(false)}>☰ הרשימה</Btn>
             </>
           }
@@ -238,6 +243,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
         <CoursesCockpit />
         {collectOpen && <CollectionCenter onClose={() => setCollectOpen(false)} />}
         {dashboardOpen && <CoursesDashboard onClose={() => setDashboardOpen(false)} />}
+        {retentionOpen && <RetentionCenter onClose={() => setRetentionOpen(false)} />}
       </div>
     );
   }
@@ -281,6 +287,11 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             {dashboardOn && (
               <Btn onClick={() => setDashboardOpen(true)} title="דשבורד-חוגים — תפוסה, חוב, נשירה והחוגים-המבוקשים במבט-אחד">
                 📊 דשבורד
+              </Btn>
+            )}
+            {retentionOn && (
+              <Btn onClick={() => setRetentionOpen(true)} title="מרכז-שימור — תלמידים בסיכון-נשירה + הצעת-התערבות">
+                💚 שימור
               </Btn>
             )}
             {!myTeacherId && (
@@ -527,6 +538,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       {formOpen && <CourseForm course={null} onClose={() => setFormOpen(false)} />}
       {collectOpen && <CollectionCenter onClose={() => setCollectOpen(false)} />}
       {dashboardOpen && <CoursesDashboard onClose={() => setDashboardOpen(false)} />}
+      {retentionOpen && <RetentionCenter onClose={() => setRetentionOpen(false)} />}
 
       {/* בקשת-בעלים: תפריט-⋯ במסך-החיצוני — הערות (התיאור) + מעבר לכרטיס */}
       {notesCourse && (
