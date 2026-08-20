@@ -193,3 +193,7 @@ cloud(enabled+user) · isAdminUser · canIssueReceipt · allowedDesignations.
   מדליק לכל לקוח-חי. חסר-הדגל ⇒ אפס-השפעה על הפרודקשן. ננעל ב-ratchet
   `__tests__/cockpit-wiring.test.ts`.
 - **בדיקות:** `cockpit.test.ts` (12) + `cockpit-wiring.test.ts` (5) — הגנות-מקור על ה-opt-in.
+
+**שלבים 2–4 (20.8.2026) — כולם מוזגו, אותו opt-in, אותו דפוס:** הרצועה (`segments.ts`+`cockpitFeed`,
+PR #238) · הפיקוד (`commands.ts`+`CommandPalette`, פלטת ⌘K, PR #239) · הייצוא
+(`cockpitCsvRows`/`cockpitWorkListText`, PR #245). **הדוח המלא:** `knowledge/CLOSED-COCKPIT-2026-08-20.md`.
