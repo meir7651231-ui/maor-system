@@ -81,4 +81,10 @@ describe('💛 ratchet — חיווט מרכז-המודיעין (opt-in)', () =>
     expect(intelSrc).toContain('<ParetoBand');
     expect(intelSrc).toContain('pareto = useMemo(');
   });
+
+  it('🛡 מעברי-דרגה אמיתיים מחווטים (tierMigration) לרצועת-הקוהורטה', () => {
+    expect(intelSrc).toContain('tierMigration(props.supporters');
+    expect(intelSrc).toContain('migration={migration}');
+    expect(intelSrc).toContain('migration = useMemo(');
+  });
 });
