@@ -346,4 +346,14 @@ describe('אשכול 4 (ביקורת-60) · מנוע הבית — כיסוי ש�
   it('הגנת-מקור — "נוכחות ✓" פותח דרך openCourseAttendance (גלילה לשיבוצים)', () => {
     expect(widgetsSrc).toMatch(/openCourseAttendance\(ts\.course\.id\)/);
   });
+
+  it('הגנת-מקור — מרכז-הטיפול המלא (20.8, "הוויג\'דט שווה לטפל"): כפתור, חיפוש, ופעולות זהות', () => {
+    // כפתור "המסך המלא ←" על פאנל דורש-טיפול/שווה-לטפל
+    expect(widgetsSrc).toContain('המסך המלא ←');
+    expect(widgetsSrc).toContain("'🔔 ' + wTitle + ' — המסך המלא'");
+    // החיפוש מסנן על כותרת+תגית; הרשימה בלי קיצוץ-8
+    expect(widgetsSrc).toContain("fullList = shownAttn.filter((a) => !fq.trim() || (a.title + ' ' + a.tag).includes(fq.trim()))");
+    // אותן פעולות בדיוק: ניווט-עומק וסימון-טופל — לא עותק-לוגיקה
+    expect(widgetsSrc).toMatch(/setFullOpen\(false\);\s*navTo\(a\.nav\);/);
+  });
 });

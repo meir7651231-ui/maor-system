@@ -33,4 +33,23 @@ describe('💛 ratchet — חיווט מרכז-המודיעין (opt-in)', () =>
     expect(intelSrc).toContain('<CohortBand');
     expect(intelSrc).toContain('scoreBins={portfolio.scoreBins}');
   });
+
+  it('🛡 מכונת-הזמן מחווטת מהמנוע הטהור (timeMachine + סרגל-אופק)', () => {
+    expect(intelSrc).toContain('timeMachine(props.supporters');
+    expect(intelSrc).toContain('<TimeBand');
+    // memoized ⇒ הקרנה על עשרות-אלפים בלי סריקה-חוזרת
+    expect(intelSrc).toContain('machine = useMemo(');
+  });
+
+  it('🛡 מפת-העונתיות מחווטת מהמנוע הטהור (seasonality)', () => {
+    expect(intelSrc).toContain('seasonality(props.supporters');
+    expect(intelSrc).toContain('<SeasonBand');
+    expect(intelSrc).toContain('season = useMemo(');
+  });
+
+  it('🛡 לוח-האותות מחווט מהמנוע הטהור (portfolioSignals)', () => {
+    expect(intelSrc).toContain('portfolioSignals(props.supporters');
+    expect(intelSrc).toContain('<SignalsBand');
+    expect(intelSrc).toContain('signals = useMemo(');
+  });
 });
