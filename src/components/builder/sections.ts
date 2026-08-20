@@ -91,5 +91,8 @@ export function featureModuleKey(m: FeatureDef['module']): ModuleKey | null {
 export function featureEffectiveOn(cfg: OrgConfig, f: FeatureDef): boolean {
   const mk = featureModuleKey(f.module);
   if (mk && cfg.modules[mk] === false) return false;
+  // דגל-opt-in (20.8): הקוד דורש true מפורש — חסר = כבוי. בלי זה האשף הציג
+  // "דלוק" על מסך שבפועל כבוי (קוקפיט/מודיעין/גלקסיה/ריברנד) — באג-תצוגה אמיתי.
+  if (f.optIn) return cfg.features?.[f.key] === true;
   return cfg.features?.[f.key] !== false;
 }
