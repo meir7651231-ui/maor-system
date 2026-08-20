@@ -65,10 +65,16 @@ export function deliveriesOfFamily(db: Db, famId: string): Delivery[] {
   return db.deliveries.filter((d) => d.familyId === famId);
 }
 
-/** מסירות "היום" שטרם נמסרו — למונה-הבית (יום מתוארך היום, סטטוס≠delivered). */
+/**
+ * מסירות פתוחות עד-היום שטרם נמסרו — למונה-הבית.
+ * תיקון (19.8): גם ימי-חלוקה **שחלפו** ולא נסגרו נספרים (מסירה שלא בוצעה אתמול
+ * לא נעלמת מהמונה בחצות); יום שסומן closed = ארכיון ואינו צף מחדש.
+ */
 export function pendingDeliveriesToday(db: Db, todayIso: string): Delivery[] {
-  const todayDays = new Set(db.distributionDays.filter((d) => d.date === todayIso).map((d) => d.id));
-  return db.deliveries.filter((d) => todayDays.has(d.dayId) && d.status !== 'delivered');
+  const openDays = new Set(
+    db.distributionDays.filter((d) => d.date <= todayIso && !d.closed).map((d) => d.id),
+  );
+  return db.deliveries.filter((d) => openDays.has(d.dayId) && d.status !== 'delivered');
 }
 
 /**

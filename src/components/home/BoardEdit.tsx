@@ -160,7 +160,8 @@ export function BoardEditor(props: {
           height: 18,
           borderRadius: 9,
           border: '2px dashed ' + (hot ? 'var(--accent-deep, #a05008)' : 'transparent'),
-          background: hot ? 'rgba(243, 199, 107, .3)' : 'transparent',
+          // אסימון-ערכה (19.8) — ההדגשה מתכווננת לצבע-המבטא של הערכה, לא זהב קבוע
+          background: hot ? 'color-mix(in srgb, var(--accent, #f3c76b) 30%, transparent)' : 'transparent',
           transition: 'background .1s',
         }}
       />

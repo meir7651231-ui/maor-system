@@ -26,6 +26,7 @@ import { waBirthdayText } from '../../lib/wa';
 import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
 import { tierOf } from '../families/lib';
+import { groupLabelOf } from '../courses/lib';
 import { liveSuggestions } from '../shop8/lib';
 import { nextClosure } from '../telephony/lib';
 import { buildPodium, buildWeek, fmtIls } from '../wall/wallData';
@@ -246,11 +247,12 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
       )}
       {items.length > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button type="button" aria-label="הפריט הקודם" onClick={() => step(-1)} style={{ padding: '0 6px', color: 'var(--ink-faint)' }}>
+          <button type="button" aria-label="הפריט הקודם" onClick={() => step(-1)} style={{ padding: '8px 10px', color: 'var(--ink-faint)' }}>
             ‹
           </button>
-          <div style={{ display: 'flex', gap: 6 }} role="tablist" aria-label="פריטי הקרוסלה">
-            {/* תיקון (19.8): נקודה לכל פריט (היו רק 8 מתוך 10) והנקודה הפעילה בלי ‎% 8‎ שגוי */}
+          <div style={{ display: 'flex' }} aria-label="פריטי הקרוסלה">
+            {/* תיקון (19.8): נקודה לכל פריט (היו רק 8 מתוך 10) והנקודה הפעילה בלי ‎% 8‎ שגוי.
+                יעד-מגע ≥24px (הנקודה 8px נשארת ויזואלית); צבע-כבוי ערכתי (color-mix). */}
             {items.map((it, i2) => {
               const active = i2 === idx % items.length;
               return (
@@ -260,18 +262,22 @@ function Carousel(props: { items: CarouselItem[]; navTo: (nav: AttentionNav) => 
                   aria-label={`פריט ${i2 + 1}`}
                   aria-current={active}
                   onClick={() => setIdx(i2)}
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 99,
-                    padding: 0,
-                    background: active ? 'var(--accent-deep)' : 'rgba(127, 119, 103, .3)',
-                  }}
-                />
+                  style={{ padding: 8, background: 'transparent', display: 'inline-flex' }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 99,
+                      background: active ? 'var(--accent-deep)' : 'color-mix(in srgb, var(--ink-faint) 45%, transparent)',
+                    }}
+                  />
+                </button>
               );
             })}
           </div>
-          <button type="button" aria-label="הפריט הבא" onClick={() => step(1)} style={{ padding: '0 6px', color: 'var(--ink-faint)' }}>
+          <button type="button" aria-label="הפריט הבא" onClick={() => step(1)} style={{ padding: '8px 10px', color: 'var(--ink-faint)' }}>
             ›
           </button>
         </div>
@@ -642,6 +648,18 @@ function sessionStatus(time: string | undefined, now: Date): { label: string; bg
 function TodayWidget({ ctx }: { ctx: HomeCtx }) {
   const { db, config, now, data, go, selectFamily, selectCourse } = ctx;
   const famName = (id: string) => db.families.find((f) => f.id === id)?.name ?? '';
+  // תווית-קבוצה (19.8): חוג רב-מפגשי מציג "קבוצה N" גם בלי label מפורש —
+  // שני מפגשים של אותו חוג באותו יום היו בלתי-ניתנים-להבחנה.
+  const gLabel = (ts: TodaySession) =>
+    ts.session.label || (ts.groups > 1 ? groupLabelOf(ts.session, ts.gi) : '');
+  // רשומות פר-קבוצה בחוג רב-מפגשי (שיבוץ נושא e.group) — חוג יחיד: כל הפעילים
+  const enrolledOf = (ts: TodaySession) => {
+    const act = db.enrollments.filter((e) => e.courseId === ts.course.id && e.status === 'active');
+    if (ts.groups <= 1) return act.length;
+    const lbl = groupLabelOf(ts.session, ts.gi);
+    const inGroup = act.filter((e) => (e.group || '') === lbl).length;
+    return inGroup > 0 ? inGroup : act.length; // אין שיוכי-קבוצה ⇒ המונה הכללי (אפס-הפתעות)
+  };
   const theme = themeOf(ctx);
   const isTsohar = theme === 'tsohar';
   // כותרת הפאנל בשפת המוקאפ של הערכה: היכל "סדר היום" · קהילה "☀️ המפגשים של היום"
@@ -685,9 +703,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
             <tbody>
               {data.sessions.map((ts, i) => {
                 const room = db.rooms.find((r) => r.id === ts.course.roomId)?.name ?? '';
-                const enrolled = db.enrollments.filter(
-                  (e) => e.courseId === ts.course.id && e.status === 'active',
-                ).length;
+                const enrolled = enrolledOf(ts);
                 const st = sessionStatus(ts.session.time, now);
                 return (
                   <tr
@@ -709,7 +725,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
                     </td>
                     <td style={{ fontWeight: 600 }}>
                       {ts.course.name}
-                      {ts.session.label ? ' · ' + ts.session.label : ''}
+                      {gLabel(ts) ? ' · ' + gLabel(ts) : ''}
                     </td>
                     <td>{room || '—'}</td>
                     <td>{enrolled}</td>
@@ -738,7 +754,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
         data.sessions.map((ts, i) => {
           const room = db.rooms.find((r) => r.id === ts.course.roomId)?.name ?? '';
           const teacher = db.teachers.find((t) => t.id === ts.course.teacherId)?.name ?? '';
-          const enrolled = db.enrollments.filter((e) => e.courseId === ts.course.id && e.status === 'active').length;
+          const enrolled = enrolledOf(ts);
           const sub = [room, teacher, `${enrolled} רשומים`].filter(Boolean).join(' · ');
           // גלולת-סטטוס גם בכרטיסי-השורה (19.8) — הייתה רק בטבלת-צֹהַר; אותם נתונים
           const st = sessionStatus(ts.session.time, now);
@@ -748,7 +764,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
               <button type="button" className="hm-meet-main" onClick={() => selectCourse(ts.course.id)} title={'לכרטיס ה' + termOf(config, 'entity.course', 'חוג')}>
                 <span className="hm-meet-title">
                   {ts.course.name}
-                  {ts.session.label ? ' · ' + ts.session.label : ''}
+                  {gLabel(ts) ? ' · ' + gLabel(ts) : ''}
                 </span>
                 <span className="hm-meet-sub">{sub}</span>
               </button>
@@ -790,7 +806,8 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
                 borderRadius: 99,
                 flexShrink: 0,
                 marginInlineStart: 'auto',
-                background: ev.priority === 'red' ? '#dc2626' : '#d97706',
+                // אסימוני-ערכה (19.8) — הנקודה מתכווננת גם בערכה הכהה (היכל)
+                background: ev.priority === 'red' ? 'var(--red)' : 'var(--orange)',
               }}
             />
           )}
@@ -821,7 +838,7 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
   const privacyMode = useApp((s) => s.privacyMode);
   // ⚡ קלילות (19.8): המונה סורק 3 מודולים — פעם-אחת פר-נתונים, לא בכל רנדר
   const crossCare = useMemo(
-    () => (privacyMode ? { tzedaka: 0, shop: 0, shop7: 0 } : careCounts(db, todayIso, config)),
+    () => (privacyMode ? { tzedaka: 0, shop: 0, shop7: 0, shopMeetings: 0 } : careCounts(db, todayIso, config)),
     [privacyMode, db, todayIso, config],
   );
   const [showDone, setShowDone] = useState(false);
@@ -855,10 +872,11 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
       badge={openAttn.length ? String(openAttn.length) : undefined}
     >
       {/* "הכל מטופל" רק כשגם העמודות המבודדות נקיות — אחרת הצ'יפים למטה סותרים */}
-      {openAttn.length === 0 && crossCare.tzedaka + crossCare.shop + crossCare.shop7 === 0 && (
-        <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>הכל מטופל ✓</div>
-      )}
-      {(crossCare.tzedaka > 0 || crossCare.shop > 0 || crossCare.shop7 > 0) && (
+      {openAttn.length === 0 &&
+        crossCare.tzedaka + crossCare.shop + crossCare.shop7 + crossCare.shopMeetings === 0 && (
+          <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>הכל מטופל ✓</div>
+        )}
+      {(crossCare.tzedaka > 0 || crossCare.shop > 0 || crossCare.shop7 > 0 || crossCare.shopMeetings > 0) && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 2 }}>
           {crossCare.tzedaka > 0 && (
             <Chip on onClick={() => go('tzedaka')}>
@@ -873,6 +891,12 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
           {crossCare.shop7 > 0 && (
             <Chip on onClick={() => go('shop7')}>
               {'🚚 ' + termOf(config, 'nav.shop7', 'חלוקה') + ': ' + crossCare.shop7}
+            </Chip>
+          )}
+          {/* 🤝 פגישות-היום (SHOP5, 19.8) — מונה-עם-קפיצה בלבד, כמו שאר הצ'יפים */}
+          {crossCare.shopMeetings > 0 && (
+            <Chip on onClick={() => go('shop')}>
+              {'🤝 פגישות היום: ' + crossCare.shopMeetings}
             </Chip>
           )}
         </div>
@@ -947,7 +971,7 @@ function AttentionWidget({ ctx }: { ctx: HomeCtx }) {
       {showDone && doneAttn.length > 0 && (
         <button
           type="button"
-          style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', color: resetArmed ? '#b91c1c' : undefined }}
+          style={{ ...softEmpty, textAlign: 'right', cursor: 'pointer', color: resetArmed ? 'var(--red)' : undefined }}
           onClick={() => {
             if (!resetArmed) {
               setResetArmed(true);
@@ -1091,7 +1115,7 @@ function HebcalWidget({ ctx }: { ctx: HomeCtx }) {
     <Panel icon="📜" title="הלוח העברי" action={<Btn sm onClick={() => go('calendar')}>ללוח השנה ←</Btn>}>
       {rows.length === 0 && <div style={softEmpty}>שבוע שקט — אין אירועים קרובים</div>}
       {rows.map((r) => (
-        <div key={r.key} className="hm-row" style={{ cursor: 'default' }}>
+        <div key={r.key} className="hm-row static">
           <span className="hm-time" style={{ direction: 'rtl' }}>{r.hd}</span>
           <span aria-hidden>{r.emoji}</span>
           <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -1136,7 +1160,6 @@ function CommunityWidget({ ctx }: { ctx: HomeCtx }) {
               className="hm-tier"
               onClick={() => openFamiliesByTier(t.key)}
               title={'ל' + famPlural + ' בדרגת ' + t.label}
-              style={{ cursor: 'pointer', textAlign: 'right', background: 'transparent' }}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span aria-hidden style={{ width: 8, height: 8, borderRadius: 99, background: t.dot, flexShrink: 0 }} />
@@ -1161,7 +1184,8 @@ function CourseMetricsWidget({ ctx }: { ctx: HomeCtx }) {
   const m = useMemo(() => courseMetrics(db), [db]);
   const crsPlural = termOf(config, 'nav.courses', 'חוגים');
   const openCourse = (id: string) => { selectCourse(id); go('courses'); };
-  const barColor = (pct: number) => (pct >= 100 ? '#dc2626' : pct >= 85 ? '#f3c76b' : pct >= 40 ? '#16a34a' : '#d97706');
+  // אסימוני-ערכה (19.8) — העמודות מתכווננות לערכה (היכל הכהה קיבל צבעים צורמים)
+  const barColor = (pct: number) => (pct >= 100 ? 'var(--red)' : pct >= 85 ? 'var(--accent)' : pct >= 40 ? 'var(--green)' : 'var(--orange)');
   return (
     <Panel
       icon="📊"
@@ -1263,7 +1287,7 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
             ))}
           </div>
           <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
-            מגמת היום: <b style={{ color: trend > 0 ? '#12803c' : trend < 0 ? '#b91c1c' : 'inherit' }}>{trend > 0 ? '+' + trend : trend}</b> נק׳
+            מגמת היום: <b style={{ color: trend > 0 ? 'var(--green)' : trend < 0 ? 'var(--red)' : 'inherit' }}>{trend > 0 ? '+' + trend : trend}</b> נק׳
             {/* מונה-אלמנות מ-homeStats (מקור-אמת אחד) — עמותתי בלבד, כמו בכרטיס-המשפחות */}
             {ctx.data.stats.widows > 0 && featureOn(config, 'core.taxreceipt')
               ? ' · 👵 ' + ctx.data.stats.widows + ' אלמנות'
@@ -1283,7 +1307,6 @@ function CredMetricsWidget({ ctx }: { ctx: HomeCtx }) {
                 className="hm-tier"
                 onClick={() => openFamiliesByTier(key)}
                 title={'ל' + famPlural + ' בדרגת ' + t.label}
-                style={{ cursor: 'pointer', textAlign: 'right', background: 'transparent' }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span aria-hidden style={{ width: 8, height: 8, borderRadius: 99, background: t.dot, flexShrink: 0 }} />

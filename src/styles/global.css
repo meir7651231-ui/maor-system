@@ -1374,10 +1374,15 @@ h1,
   gap: 12px;
   flex: 1;
   min-width: 0;
-  text-align: right;
+  text-align: start;
   padding: 8px 6px;
   border-radius: 10px;
   cursor: pointer;
+}
+
+/* ריחוף על שורת-החוגג (19.8) — הבאנר כולו היה בלי שום חיווי-קליק */
+.hm-bday-main:hover {
+  background: color-mix(in srgb, var(--bday-ink) 7%, transparent);
 }
 
 /* 🎉 "לברך במפגש" (קהילה) — גלולה צבעונית שמנווטת לחוג של היום */
@@ -1581,6 +1586,13 @@ h1,
   background: var(--hover-bg);
 }
 
+/* שורת-תצוגה שאינה לחיצה (הלוח העברי) — בלי ריחוף-שווא שמבטיח קליק (19.8) */
+.hm-row.static,
+.hm-row.static:hover {
+  background: none;
+  cursor: default;
+}
+
 /* חץ פעולה RTL — "לטפל ←" */
 .hm-arrow {
   margin-inline-start: auto;
@@ -1609,8 +1621,13 @@ h1,
   gap: 1px;
   flex: 1;
   min-width: 0;
-  text-align: right;
+  text-align: start;
   cursor: pointer;
+}
+
+/* ריחוף על שם-המפגש (19.8) — חיווי-קליק שהיה חסר */
+.hm-meet-main:hover .hm-meet-title {
+  color: var(--accent-deep);
 }
 
 .hm-meet-title {
@@ -1697,6 +1714,27 @@ h1,
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+/* אריח-דרגה לחיץ (19.8) — הרקע הערכתי נשמר (קהילה: var(--bg)); חיווי בריחוף */
+button.hm-tier {
+  background: transparent;
+  cursor: pointer;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+}
+
+button.hm-tier:hover,
+button.hm-tier:focus-visible {
+  border-color: var(--accent);
+  background: var(--hover-bg);
+}
+
+/* בקהילה האריח כבר על var(--bg) בלי מסגרת — הריחוף מכהה קלות במקום מסגרת */
+:root[data-theme="kehila"] button.hm-tier:hover,
+:root[data-theme="kehila"] button.hm-tier:focus-visible {
+  filter: brightness(0.96);
 }
 
 /* ── ⚡ פעולות מהירות (ווידג'ט) ── */
@@ -1861,7 +1899,8 @@ h1,
 
 /* h1 בזהב בהיר עם הילה רכה (crown h1 במוקאפ) */
 :root[data-theme="heichal"] .hm-hero-title {
-  font-size: 34px;
+  /* clamp (19.8): הכותרת הענקית התעלמה מהקטנת-המובייל (ספציפיות) — מתכווצת עם המסך */
+  font-size: clamp(24px, 6vw, 34px);
   font-weight: 900;
   color: #f7dfa8;
   text-shadow: 0 0 34px rgba(233, 189, 99, 0.25);
@@ -2253,7 +2292,7 @@ h1,
 /* "בוקר טוב! יום שני שמח 🌞" — Suez One 400 36px (hello h1 במוקאפ) */
 :root[data-theme="kehila"] .hm-hero-title {
   font-weight: 400;
-  font-size: 36px;
+  font-size: clamp(25px, 6.5vw, 36px);
 }
 
 /* הכרטיסים נעוצים בתחתית הבאנר (main margin-top -44px במוקאפ) */
@@ -2413,7 +2452,7 @@ h1,
 }
 
 :root[data-theme="or-rishon"] .hm-hero-title {
-  font-size: 32px;
+  font-size: clamp(24px, 6vw, 32px);
   font-weight: 900;
 }
 

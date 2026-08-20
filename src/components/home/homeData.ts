@@ -60,6 +60,10 @@ export function courseActiveOn(c: Course, iso: string): boolean {
 export interface TodaySession {
   course: Course;
   session: CourseSession;
+  /** אינדקס המפגש בתוך sessionsOf(course) — לתווית "קבוצה N" (19.8). */
+  gi: number;
+  /** סה"כ מפגשי החוג — תווית-קבוצה מוצגת רק כשיש יותר ממפגש אחד. */
+  groups: number;
 }
 
 /** מפגשי החוגים של היום — לפי יום בשבוע, רק חוגים בטווח פעילות. */
@@ -69,7 +73,10 @@ export function todaySessions(db: Db, now: Date): TodaySession[] {
   const out: TodaySession[] = [];
   for (const c of db.courses) {
     if (!courseActiveOn(c, iso)) continue;
-    for (const ss of sessionsOf(c)) if (ss.day === dow) out.push({ course: c, session: ss });
+    const all = sessionsOf(c);
+    all.forEach((ss, gi) => {
+      if (ss.day === dow) out.push({ course: c, session: ss, gi, groups: all.length });
+    });
   }
   // מפגש בלי שעה יורד לסוף היום ('99:99') — לא צף מעל המפגשים המתוזמנים
   return out.sort((a, b) => (a.session.time || '99:99').localeCompare(b.session.time || '99:99'));
@@ -238,6 +245,9 @@ export function attentionItems(
   const on = (m: ModuleKey) => modules[m] !== false;
   const todayIso = isoOf(now);
   const members = allMembers(db);
+  // ⚡ קלילות (19.8): מפות O(1) במקום find בלולאה — O(n+m) במקום O(n×m)
+  const memberById = new Map(members.map((m) => [m.id, m]));
+  const courseById = new Map(db.courses.map((c) => [c.id, c]));
   const out: AttentionItem[] = [];
 
   // אירועים דחופים (עדיפות אדומה, לא טופלו) — מודול לוח-שנה בלבד (גידור 19.8)
@@ -291,8 +301,8 @@ export function attentionItems(
   for (const e of on('courses') ? db.enrollments : []) {
     const bal = payBal(e); // מקור-אמת משותף (הגנת NaN + max(0)) — עקבי עם מסך הקורסים
     if (bal > 0 && e.dueDate && e.dueDate < todayIso) {
-      const m = members.find((x) => x.id === e.memberId);
-      const c = db.courses.find((x) => x.id === e.courseId);
+      const m = memberById.get(e.memberId);
+      const c = courseById.get(e.courseId);
       out.push({
         key: 'debt:' + e.id,
         tag: 'תשלום',
@@ -302,7 +312,8 @@ export function attentionItems(
           `יתרת ₪${bal} — ${m?.first ?? ''} (${m?.famName ?? ''}) · ${c?.name ?? ''}` +
           ` · עבר המועד ${fmtD(e.dueDate)}`,
         sev: 'warn',
-        nav: m ? { kind: 'family', id: m.famId } : { kind: 'calendar' },
+        // נפילה הגיונית (19.8): בלי בן-משפחה — לחוג שבו השיבוץ, לא ללוח-השנה
+        nav: m ? { kind: 'family', id: m.famId } : { kind: 'course', id: e.courseId },
       });
     }
   }
@@ -315,8 +326,8 @@ export function attentionItems(
     .map((e) => ({ e, rem: e.purchased - e.used }))
     .sort((a, b) => a.rem - b.rem);
   for (const { e, rem } of low) {
-    const m = members.find((x) => x.id === e.memberId);
-    const c = db.courses.find((x) => x.id === e.courseId);
+    const m = memberById.get(e.memberId);
+    const c = courseById.get(e.courseId);
     out.push({
       key: 'punch:' + e.id,
       tag: 'יתרה',
@@ -327,7 +338,8 @@ export function attentionItems(
         (rem <= 0 ? 'הכרטיסייה נגמרה' : 'נשאר ניקוב אחד') +
         ` ב${c?.name ?? ''}`,
       sev: 'warn',
-      nav: m ? { kind: 'family', id: m.famId } : { kind: 'calendar' },
+      // נפילה הגיונית (19.8): בלי בן-משפחה — לחוג של הכרטיסייה, לא ללוח-השנה
+      nav: m ? { kind: 'family', id: m.famId } : { kind: 'course', id: e.courseId },
     });
   }
 
@@ -390,7 +402,16 @@ export function attentionItems(
         tag: 'הו"ק',
         tagBg: '#e8f0fb',
         tagC: '#1d4ed8',
-        title: `הוראות-קבע של החודש שטרם נרשמו: ${due.length} (${due.slice(0, 3).map((s) => s.name).join(', ')}${due.length > 3 ? '…' : ''})`,
+        // דיוק (19.8): גם מונה "עבר יום-החיוב" — הו"ק ל-25 בחודש אינה "מאחרת" ב-3 בו
+        title: (() => {
+          const dayOfMonth = Number(todayIso.slice(8, 10));
+          const past = due.filter((s) => (s.hok?.day ?? 1) <= dayOfMonth).length;
+          return (
+            `הוראות-קבע של החודש שטרם נרשמו: ${due.length}` +
+            (past > 0 && past < due.length ? ` (מתוכן ${past} שעבר יום-החיוב)` : '') +
+            ` (${due.slice(0, 3).map((s) => s.name).join(', ')}${due.length > 3 ? '…' : ''})`
+          );
+        })(),
         sev: 'warn',
         nav: { kind: 'supporters' },
       });
@@ -500,6 +521,8 @@ export function digestLines(
   now: Date,
   modules: ModulesMap,
   config: OrgConfig = DEFAULT_CONFIG,
+  /** ⚡ קלילות (19.8): attention שכבר חושב ב-HomeView — חוסך חישוב-כפול בכל רנדר. */
+  precomputedAttention?: AttentionItem[],
 ): DigestLine[] {
   const on = (m: ModuleKey) => modules[m] !== false;
   const members = allMembers(db);
@@ -507,7 +530,9 @@ export function digestLines(
 
   // שבוע דחוף — פריטים קריטיים שטרם סומנו כטופלו
   const done = db.attnDone ?? {};
-  const crit = attentionItems(db, now, modules, config).filter((a) => a.sev === 'crit' && !done[a.key]);
+  const crit = (precomputedAttention ?? attentionItems(db, now, modules, config)).filter(
+    (a) => a.sev === 'crit' && !done[a.key],
+  );
   if (crit.length) {
     out.push({
       key: 'urgent',
@@ -573,6 +598,8 @@ export function digestLines(
   const calls = (on('calendar') ? db.events : []).filter(
     (e) => e.type === 'call' && !e.done && !!e.date && e.date <= isoAddDays(now, 1),
   );
+  // דטרמיניסטי (19.8): הוותיקה-ביותר מוצגת ראשונה — לא סדר-הכנסה שרירותי
+  calls.sort((a, b) => a.date.localeCompare(b.date));
   if (calls.length) {
     out.push({
       key: 'calls',
@@ -659,7 +686,7 @@ export function monthDonationSum(db: Db, now: Date): number {
   const key = monthKeyOf(now, 0);
   let sum = 0;
   for (const sp of db.supporters) {
-    for (const dn of sp.donations) if (dn.cur !== '$' && dn.date.startsWith(key)) sum += dn.amount;
+    for (const dn of sp.donations) if (dn.cur !== '$' && (dn.date || '').startsWith(key)) sum += dn.amount;
     for (const h of sp.hist ?? []) if (h.c !== '$' && (h.d || '').startsWith(key)) sum += h.a;
   }
   return sum;
@@ -908,7 +935,7 @@ export function carouselItems(
 /* ---------- מונה "דורש טיפול" של העמודות המבודדות (CONNECT חיבור 3) ---------- */
 
 import { needsCare as tzNeedsCare } from '../tzedaka/lib';
-import { needsCare as shopNeedsCare } from '../shop/lib';
+import { needsCare as shopNeedsCare, upcomingMeetings } from '../shop/lib';
 import { pendingDeliveriesToday } from '../shop7/lib';
 import { featureOn as featOn, moduleOn as modOn } from '../../lib/config';
 
@@ -917,11 +944,17 @@ import { featureOn as featOn, moduleOn as modOn } from '../../lib/config';
  * אין פירוט פריטים במסך הבית** (חריג-תצוגה מבוקר, הכרעת בעלים). מגודר
  * moduleOn + דגל home.crosscare; מודול/דגל כבויים ⇒ 0 (הצ'יפ לא מוצג).
  */
-export function careCounts(db: Db, todayIso: string, config: OrgConfig): { tzedaka: number; shop: number; shop7: number } {
-  if (!featOn(config, 'home.crosscare')) return { tzedaka: 0, shop: 0, shop7: 0 };
+export function careCounts(
+  db: Db,
+  todayIso: string,
+  config: OrgConfig,
+): { tzedaka: number; shop: number; shop7: number; shopMeetings: number } {
+  if (!featOn(config, 'home.crosscare')) return { tzedaka: 0, shop: 0, shop7: 0, shopMeetings: 0 };
   return {
     tzedaka: modOn(config, 'tzedaka') ? tzNeedsCare(db, todayIso).length : 0,
     shop: modOn(config, 'shop') ? shopNeedsCare(db, todayIso).length : 0,
     shop7: modOn(config, 'shop7') ? pendingDeliveriesToday(db, todayIso).length : 0,
+    // 🤝 פגישות-היום של החנות (SHOP5) — אותו חוזה "מונה-עם-קפיצה בלבד" (19.8)
+    shopMeetings: modOn(config, 'shop') ? upcomingMeetings(db, todayIso, 1).length : 0,
   };
 }
