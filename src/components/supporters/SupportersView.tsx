@@ -22,7 +22,7 @@ import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
 import { SupporterCard } from './SupporterCard';
 import { SupportersCockpit } from './SupportersCockpit';
-import { matchSegment, SEGMENTS, type SegmentKey } from './segments';
+import { matchSegment, SEGMENTS, takeSupportersSegment, type SegmentKey } from './segments';
 
 /** האם התורם נתן אי-פעם בחודש-הלועזי m (1–12) — לדריל-אין ממפת-העונתיות. */
 function supGaveInMonth(sp: { donations: { date: string }[]; hist?: { d: string }[] }, m: number): boolean {
@@ -199,7 +199,8 @@ export function SupportersView() {
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
   // סינון-סגמנט מהקוקפיט/הבנדים — קליק על סגמנט מסנן את הטבלה (לא רק פותח מסך ריק).
-  const [segF, setSegF] = useState<SegmentKey | null>(null);
+  // אתחול-עצל: אם הבית ביקש נחיתה-על-סגמנט (התראת-סיכון) — נכנסים כבר מסונן.
+  const [segF, setSegF] = useState<SegmentKey | null>(() => takeSupportersSegment());
   // סינון-חודש (מפת-עונתיות) + שנת-גיוס (קוהורטה) — דריל-אין מהבנדים האנליטיים.
   const [monthF, setMonthF] = useState<number | null>(null);
   const [acqYearF, setAcqYearF] = useState<number | null>(null);
