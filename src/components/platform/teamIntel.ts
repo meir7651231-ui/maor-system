@@ -27,6 +27,19 @@ export interface WorkerIntel {
   recent: AuditEntry[];
   /** שעת-השיא (0–23) של העובד/ת, או null כשאין נתונים. */
   peakHour: number | null;
+  /** התפרעות-מלאה (20.8): פעולות בשבוע-שעבר (ימים 7–13 אחורה) — למגמה. */
+  prevWeek: number;
+  /** פס-פעילות 14-יום: פעולות פר-יום, מהישן (אינדקס 0 = לפני 13 ימים) לחדש. */
+  spark14: number[];
+  /** כמה ימים העובד/ת שקטה (0 = פעילה היום; 99+ = מעולם). */
+  quietDays: number;
+}
+
+/** חץ-מגמה: שבוע-נוכחי מול שבוע-קודם. */
+export function trendOf(w: WorkerIntel): '▲' | '▼' | '＝' {
+  if (w.last7 > w.prevWeek) return '▲';
+  if (w.last7 < w.prevWeek) return '▼';
+  return '＝';
 }
 
 const RECENT_LIMIT = 6;
@@ -52,7 +65,10 @@ export function workerIntel(audit: AuditEntry[], email: string, todayIso: string
   const byActMap: Record<string, number> = {};
   const days = new Set<string>();
   const hours: number[] = Array.from({ length: 24 }, () => 0);
+  const spark14: number[] = Array.from({ length: 14 }, () => 0);
+  const t = new Date(todayIso + 'T12:00:00').getTime();
   let last7 = 0;
+  let prevWeek = 0;
   let today = 0;
   let lastAt = '';
   for (const a of mine) {
@@ -61,9 +77,14 @@ export function workerIntel(audit: AuditEntry[], email: string, todayIso: string
     if (a.at > lastAt) lastAt = a.at;
     if (withinDays(a.at, todayIso, 7)) last7++;
     if (dayOf(a.at) === todayIso) today++;
+    // שבוע-קודם + פס-14-יום — אותו חישוב-ימים דטרמיניסטי (צהריים מקומי)
+    const diff = Math.round((t - new Date(dayOf(a.at) + 'T12:00:00').getTime()) / 86400000);
+    if (diff >= 7 && diff < 14) prevWeek++;
+    if (diff >= 0 && diff < 14) spark14[13 - diff]++;
     const h = Number(a.at.slice(11, 13));
     if (Number.isFinite(h) && h >= 0 && h < 24) hours[h]++;
   }
+  const quietDays = lastAt ? Math.max(0, Math.round((t - new Date(dayOf(lastAt) + 'T12:00:00').getTime()) / 86400000)) : 99;
   const byAct = Object.entries(byActMap)
     .map(([act, n]) => ({ act, n }))
     .sort((a, b) => b.n - a.n || a.act.localeCompare(b.act, 'he'));
@@ -79,6 +100,9 @@ export function workerIntel(audit: AuditEntry[], email: string, todayIso: string
     byAct,
     recent,
     peakHour: mine.length ? peak : null,
+    prevWeek,
+    spark14,
+    quietDays,
   };
 }
 
@@ -96,6 +120,45 @@ export function teamSummary(list: WorkerIntel[]): { week: number; activeToday: n
   const activeToday = list.filter((w) => w.today > 0).length;
   const top = list.find((w) => w.last7 > 0)?.email ?? '';
   return { week, activeToday, top };
+}
+
+/** העובדות השקטות — quietDays ≥ הסף וגם לא-חדשות-לגמרי בלי כלום מעולם. */
+export function quietWorkers(list: WorkerIntel[], minDays = 3): WorkerIntel[] {
+  return list.filter((w) => w.quietDays >= minDays);
+}
+
+/**
+ * 🎯 התקדמות מול יעד-שבועי: אחוז-חסום-ל-100 + סטטוס. goal≤0/חסר ⇒ null.
+ */
+export function goalProgress(w: WorkerIntel, goal: number | undefined): { pct: number; done: boolean } | null {
+  if (!goal || goal <= 0) return null;
+  const pct = Math.min(100, Math.round((w.last7 / goal) * 100));
+  return { pct, done: w.last7 >= goal };
+}
+
+/** שורות-CSV לדוח-הצוות (שורה ראשונה = כותרות) — לייצוא דרך downloadCsv. */
+export function teamCsvRows(list: WorkerIntel[], goals: Record<string, number | undefined>): (string | number)[][] {
+  const rows: (string | number)[][] = [
+    ['עובד/ת', 'סה"כ פעולות', 'השבוע', 'שבוע-קודם', 'מגמה', 'ימי-פעילות', 'שקט (ימים)', 'שעת-שיא', 'יעד-שבועי', 'עמידה-ביעד', 'פעולה-מובילה'],
+  ];
+  for (const w of list) {
+    const g = goals[w.email];
+    const gp = goalProgress(w, g);
+    rows.push([
+      w.email,
+      w.actions,
+      w.last7,
+      w.prevWeek,
+      trendOf(w),
+      w.daysActive,
+      w.quietDays >= 99 ? '' : w.quietDays,
+      w.peakHour == null ? '' : String(w.peakHour).padStart(2, '0') + ':00',
+      g ?? '',
+      gp ? gp.pct + '%' : '',
+      w.byAct[0]?.act ?? '',
+    ]);
+  }
+  return rows;
 }
 
 /** תווית "לפני N ימים / היום / אתמול" — דטרמיניסטית מול todayIso. */
