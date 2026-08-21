@@ -92,6 +92,83 @@ describe('🧹 מחיקת משפחה — מנקה שיבוצים + אירועי�
   });
 });
 
+describe('🧹 🐛 swarm-audit — deleteFamily: cascade מלא גם במודולי-הרוחב', () => {
+  // הבאג: המחיקה דירגה רק families/enrollments/events והשאירה יתומים —
+  // שיוכי-חנות (המשיכו לצרוך מלאי ולהיספר בסבסוד), מסירות-חלוקה על שיוך מת,
+  // קופות/רכזי-צדקה עם famId תלוי, waits עם famId מת, ומשימות עם עוגן-משפחה.
+  function seedWide() {
+    useApp.getState().setDb(() => ({
+      ...seed(),
+      shopAssignments: [
+        { id: 'a1', productId: 'p1', famId: 'f1', memberId: '', criterionIds: [], status: 'active', redemptions: [] },
+        { id: 'a2', productId: 'p1', famId: 'f2', memberId: '', criterionIds: [], status: 'active', redemptions: [] },
+      ] as unknown as Db['shopAssignments'],
+      deliveries: [
+        { id: 'd1', dayId: 'dd1', assignmentId: 'a1', volunteerId: 'v1', familyId: 'f1', status: 'pickup' },
+        { id: 'd2', dayId: 'dd1', assignmentId: 'a2', volunteerId: 'v1', familyId: 'f2', status: 'pickup' },
+      ] as unknown as Db['deliveries'],
+      tzBoxes: [
+        { id: 'b1', num: '1', coordinatorId: 'tc1', famId: 'f1', holderKind: 'supported', since: '', status: 'home', collections: [], notes: '' },
+      ] as unknown as Db['tzBoxes'],
+      tzCoordinators: [
+        { id: 'tc1', name: 'רכזת', famId: 'f1', memberId: 'm1', phone: '', notes: '', score: 0, scoreLog: [] },
+      ] as unknown as Db['tzCoordinators'],
+      shopItems: [
+        { id: 'i1', name: 'פריט', kind: 'coupon', storeId: '', active: true, notes: '',
+          waits: [{ famId: 'f1', date: '2026-08-01', note: '' }, { famId: 'f2', date: '2026-08-02', note: '' }] },
+      ] as unknown as Db['shopItems'],
+      tasks: [
+        { id: 't1', assignee: 'a@b.c', by: 'מקומי', title: 'טיפול', ref: { kind: 'family', id: 'f1' }, pri: 2, createdAt: '2026-08-01T10:00:00Z' },
+        { id: 't2', assignee: 'a@b.c', by: 'מקומי', title: 'אחר', ref: { kind: 'family', id: 'f2' }, pri: 2, createdAt: '2026-08-01T10:00:00Z' },
+      ] as unknown as Db['tasks'],
+    }));
+  }
+
+  it('שיוכי-חנות ומסירות של המשפחה נמחקים; של משפחה אחרת נשארים', () => {
+    seedWide();
+    useApp.getState().deleteFamily('f1');
+    expect(db().shopAssignments.map((a) => a.id)).toEqual(['a2']);
+    expect(db().deliveries.map((d) => d.id)).toEqual(['d2']);
+  });
+
+  it('מסירה שמצביעה על שיוך שנמחק מוסרת גם כשה-familyId שלה שונה (אין מסירה יתומה)', () => {
+    seedWide();
+    // מסירה עם familyId לא-תואם אך assignmentId של המשפחה הנמחקת — עדיין יתומה
+    useApp.getState().setDb((cur) => ({
+      deliveries: [...cur.deliveries,
+        { id: 'd3', dayId: 'dd1', assignmentId: 'a1', volunteerId: 'v1', familyId: 'f2', status: 'pickup' } as unknown as Db['deliveries'][number]],
+    }));
+    useApp.getState().deleteFamily('f1');
+    expect(db().deliveries.map((d) => d.id)).toEqual(['d2']);
+  });
+
+  it('קופה/רכז-צדקה: הקישור מתנתק (famId/memberId ריקים) — הישות עצמה נשארת', () => {
+    seedWide();
+    useApp.getState().deleteFamily('f1');
+    expect(db().tzBoxes).toHaveLength(1);
+    expect(db().tzBoxes[0].famId).toBe('');
+    expect(db().tzCoordinators).toHaveLength(1);
+    expect(db().tzCoordinators[0].famId).toBe('');
+    expect(db().tzCoordinators[0].memberId).toBe('');
+  });
+
+  it('רשימת-המתנה (waits) מנוקה מהמשפחה שנמחקה בלבד', () => {
+    seedWide();
+    useApp.getState().deleteFamily('f1');
+    expect(db().shopItems[0].waits?.map((w) => w.famId)).toEqual(['f2']);
+  });
+
+  it('משימת-עבודה נשארת אך העוגן התלוי (ref) מוסר; משימת משפחה אחרת לא נגעה', () => {
+    seedWide();
+    useApp.getState().deleteFamily('f1');
+    const t1 = db().tasks.find((t) => t.id === 't1')!;
+    const t2 = db().tasks.find((t) => t.id === 't2')!;
+    expect(t1.ref).toBeUndefined();
+    expect(t1.title).toBe('טיפול'); // העבודה עצמה לא אבדה
+    expect(t2.ref).toEqual({ kind: 'family', id: 'f2' });
+  });
+});
+
 describe('🧹 מחיקת בן-משפחה — מנקה את שיבוציו בלבד', () => {
   it('deleteMember(f1,m1): m1 יורד מהמשפחה, e1 נמחק, e2 נשאר', () => {
     useApp.getState().deleteMember('f1', 'm1');

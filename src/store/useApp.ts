@@ -145,6 +145,13 @@ interface AppState {
   ready: boolean;
   corrupt: boolean;
   saveOk: boolean;
+  /**
+   * 🐛 swarm-audit (ריבוי-טאבים במצב-מוצפן): טאב אחר כתב עותק מוצפן חדש ל-DB
+   * המאוחסן, ולטאב הזה אין עריכה ממתינה — אי-אפשר לאמץ (אין פענוח-ואימוץ),
+   * ולכן אסור גם לכתוב: שמירה מהטאב הזה הייתה דורסת בשקט את כל יום-העבודה
+   * של הטאב האחר. true ⇒ scheduleSave/flush חסומים עד רענון-הדף.
+   */
+  staleTab: boolean;
   view: View;
   /** משפחה/קורס נבחרים לתצוגת פירוט. */
   selFamilyId: string | null;
@@ -703,10 +710,26 @@ function trendFactor(log: CredLogEntry[]): number {
 }
 
 export const useApp = create<AppState>()((set, get) => {
+  /** טוסט "רעננו את הדף" לטאב-מיושן — מוגבל-קצב כדי לא להציף בכל עריכה. */
+  let staleToastAt = 0;
+  function warnStaleTab() {
+    const now = Date.now();
+    if (now - staleToastAt < 15_000) return;
+    staleToastAt = now;
+    get().toast('⚠ הנתונים עודכנו בחלון אחר — רעננו את הדף כדי להמשיך לעבוד');
+  }
+
   /** שמירה אוטומטית — חצי שנייה אחרי השינוי האחרון. */
   function scheduleSave() {
+    // 🐛 swarm-audit (ריבוי-טאבים במצב-מוצפן): טאב שסומן מיושן לא כותב —
+    // כתיבה ממנו הייתה דורסת בשקט את יום-העבודה של הטאב האחר.
+    if (get().staleTab) {
+      warnStaleTab();
+      return;
+    }
     clearTimeout(saveTimer);
     saveTimer = setTimeout(async () => {
+      if (get().staleTab) return; // הדגל נדלק בחלון ה-debounce — לא כותבים
       const saving = get().db;
       const ok = await saveDb(saving);
       // 🐛 נחיל-עמוק (13.8): רק אם לא נכנסה עריכה חדשה תוך-כדי ה-await מנקים dirty.
@@ -752,7 +775,19 @@ export const useApp = create<AppState>()((set, get) => {
     mtGuardOn = true;
     window.addEventListener('storage', (e) => {
       if (e.key !== currentDbKey() || e.newValue == null) return;
-      if (dirty || get().needDecrypt || get().encrypted) return;
+      // 🐛 swarm-audit: במצב-מוצפן השער נהג לצאת בשקט (bail) — וטאב מיושן דרס
+      // בשמירה הבאה את כל מה שהטאב האחר כתב. אין פענוח-ואימוץ (שמרני במכוון:
+      // ה-DEK/סיסמה לא זמינים כאן) — במקום זה: כשאין עריכה מקומית ממתינה,
+      // מסמנים את הטאב כמיושן, חוסמים את השמירות ומבקשים רענון. עריכה ממתינה
+      // (dirty) ⇒ ההתנהגות הקודמת נשמרת (כוונת המשתמש בטאב הפעיל מנצחת).
+      if (get().encrypted) {
+        if (!dirty && !get().staleTab) {
+          set({ staleTab: true });
+          warnStaleTab();
+        }
+        return;
+      }
+      if (dirty || get().needDecrypt) return;
       const ext = readStoredPlainDb(e.newValue);
       if (!ext || !ext.savedAt) return;
       const cur = get().db.savedAt;
@@ -852,6 +887,17 @@ export const useApp = create<AppState>()((set, get) => {
           };
           // האזנה חיה לקונפיג (ענן 2) — הענן גובר; מטמון-ענן נפרד, לא דריסת-אשף
           const applyCloudDoc = (orgDoc: OrgCloudDoc | null) => {
+            // 🗑 swarm-audit: מצבת-מחיקה (deleted:true) שמגיעה דרך ההאזנה-החיה
+            // (watchOrgCloudConfig/onSnapshot) בעוד הלקוח מחובר — נבלעה: שער
+            // ה-config החזיר מוקדם, וענף-הניקוי רץ רק ב-fetch החד-פעמי של
+            // ההתחברות. אותו נתיב-ניקוי בדיוק: רק על דגל-מצבת מפורש (לעולם לא
+            // על null/כשל-קריאה); wipeLocalOrgData מנקה רק את מגירת-ה-slug
+            // ומגן קשיח על השורש; applyCloudDoc מחוּוט רק לארגון-פלטפורמה.
+            if (orgDoc?.deleted) {
+              void import('./persist').then((p) => p.wipeLocalOrgData(cfg.slug));
+              setCloud({ membership: 'removed' });
+              return;
+            }
             if (!orgDoc?.config) return;
             const merged = resolveOrgConfig(get().config, orgDoc.config);
             // ORGADMIN — עובד/ת: הקונפיג-האפקטיבי = קונפיג-הארגון בניכוי כרטיס-העובד
@@ -1112,6 +1158,7 @@ export const useApp = create<AppState>()((set, get) => {
     ready: false,
     corrupt: false,
     saveOk: true,
+    staleTab: false,
     view: 'home',
     selFamilyId: null,
     selCourseId: null,
@@ -1131,6 +1178,12 @@ export const useApp = create<AppState>()((set, get) => {
       const config = await loadOrgConfig();
       // בידוד נתונים בין לקוחות על אותו host — חייב לקרות לפני loadDb
       setPersistNamespace(config.slug);
+      // 🐛 swarm-audit (סדר-אתחול הנעילה): lock נקרא פעם אחת ב-import של המודול
+      // (readLock במצב-ההתחלה), **לפני** קביעת ה-namespace — אצל ?org=<slug> נקרא
+      // המפתח הגלובלי במקום 'maor_lock:<slug>' ⇒ ה-PIN הפר-ארגוני "נעלם" ברענון.
+      // קוראים מחדש אחרי setPersistNamespace. מדיניות-המפתח לא השתנתה: readLock
+      // עצמו כולל מיגרציה-רכה מהמפתח הגלובלי (הכרעת-בעלים 9.8 — PIN משותף נשמר).
+      set({ lock: readLock() });
       const res = await loadDb();
       const cloudOn = !!config.firebase;
       if (res.encrypted) {
@@ -1395,10 +1448,40 @@ export const useApp = create<AppState>()((set, get) => {
         const memberIds = new Set(
           db.families.find((f) => f.id === id)?.members.map((m) => m.id) ?? [],
         );
+        // 🐛 swarm-audit: המחיקה דירגה רק families/enrollments/events והשאירה יתומים
+        // במודולי-הרוחב: שיוכי-חנות (המשיכו לצרוך מלאי ולהיספר בסבסוד), מסירות-חלוקה
+        // (מצביעות על שיוך/משפחה מתים), קופות/רכזי-צדקה (famId תלוי), רשימות-המתנה
+        // (waits עם famId מת) ומשימות-עבודה עם עוגן-משפחה. cascade מלא כדפוס
+        // deleteSupporter/deleteCourse. שים לב: המסירות מוסרות גם דרך שיוכיהן
+        // (assignmentId) — מסירה בלי שיוך חי היא יתומה בעצמה.
+        const deadAssign = new Set(
+          db.shopAssignments.filter((a) => a.famId === id).map((a) => a.id),
+        );
         return {
           families: db.families.filter((f) => f.id !== id),
           enrollments: db.enrollments.filter((e) => !memberIds.has(e.memberId)),
           events: db.events.filter((ev) => ev.famId !== id),
+          shopAssignments: db.shopAssignments.filter((a) => a.famId !== id),
+          deliveries: db.deliveries.filter(
+            (d) => d.familyId !== id && !deadAssign.has(d.assignmentId),
+          ),
+          // קופה/רכז = ישויות עצמאיות (קופה יכולה לשבת במשרד) — מנתקים את הקישור
+          // בלבד, לא מוחקים (אפס אובדן-יכולת; memberId של הרכז שייך למשפחה שנמחקה).
+          tzBoxes: db.tzBoxes.map((b) => (b.famId === id ? { ...b, famId: '' } : b)),
+          tzCoordinators: db.tzCoordinators.map((c) =>
+            c.famId === id ? { ...c, famId: '', memberId: '' } : c,
+          ),
+          shopItems: db.shopItems.map((i) =>
+            i.waits?.some((w) => w.famId === id)
+              ? { ...i, waits: i.waits.filter((w) => w.famId !== id) }
+              : i,
+          ),
+          // משימת-עבודה נשארת (העבודה עצמה עוד רלוונטית לעובדת) — רק העוגן התלוי מוסר.
+          tasks: db.tasks.map((t) => {
+            if (t.ref?.kind !== 'family' || t.ref.id !== id) return t;
+            const { ref: _dropRef, ...rest } = t;
+            return rest;
+          }),
         };
       });
     },
@@ -1698,9 +1781,22 @@ export const useApp = create<AppState>()((set, get) => {
       const log = fam?.cred?.log ?? [];
       const li = log.findIndex((l) => l.delta > 0 && l.reason.startsWith('נוכחות (Check-in)'));
       setDb((db) => {
-        const enrollments = db.enrollments.map((e) =>
-          e.id === enrollmentId ? { ...e, used: e.used - 1 } : e,
-        );
+        const enrollments = db.enrollments.map((e) => {
+          if (e.id !== enrollmentId) return e;
+          // 🐛 swarm-audit: הביטול הוריד used אך השאיר את תאריך-הניקוב ב-presents[]
+          // ⇒ שבירת-הצימוד (#6): גיליון-הנוכחות המשיך להראות "נוכח", הסרה ידנית
+          // שם זיכתה **שוב** (החזר-כפול של used), וניקוב-חוזר נחסם ע"י שער-התאריך
+          // (presents.includes(today)). הביטול נגיש מ-ManageModal בלי שער-יום, לכן
+          // מסירים את התאריך **האחרון** — presents נצברים כרונולוגית (כל ניקוב/סימון
+          // נרשם ביום-ביצועו), כך שהמאוחר-ביותר הוא הניקוב האחרון שמבוטל.
+          const cur = e.presents ?? [];
+          const latest = cur.length ? cur.reduce((mx, d) => (d > mx ? d : mx)) : '';
+          return {
+            ...e,
+            used: e.used - 1,
+            ...(latest ? { presents: cur.filter((d) => d !== latest) } : {}),
+          };
+        });
         if (!fam || li < 0) return { enrollments };
         const rev = log[li].delta;
         return {
@@ -2222,6 +2318,14 @@ export const useApp = create<AppState>()((set, get) => {
         get().toast('הפריט משובץ בחבילות — הסירו אותו מהן קודם');
         return false;
       }
+      // 🐛 swarm-audit: המחיקה שמרה רק על שער-הרכיבים והשאירה קליטות-מלאי
+      // (shopIntakes.itemId) יתומות על מזהה-מת — יומן "המלאי הנכנס" איבד את
+      // ההקשר. חוסמים באותו סגנון כמו שער-הרכיבים (מיזוג לפריט אחר משמר הכול).
+      const hasIntakes = get().db.shopIntakes.some((n) => n.itemId === id);
+      if (hasIntakes) {
+        get().toast('לפריט יש קליטות-מלאי ביומן — מזגו אותו לפריט אחר קודם');
+        return false;
+      }
       setDb((db) => ({ shopItems: db.shopItems.filter((x) => x.id !== id) }));
       return true;
     },
@@ -2237,10 +2341,19 @@ export const useApp = create<AppState>()((set, get) => {
         return false;
       }
       // המלאי מתחבר (ברירת ארכיטקט — שניהם מלאי אמיתי); שניהם בלי מעקב = נשאר בלי
-      const merged =
+      const stockMerged =
         target.stock !== undefined || source.stock !== undefined
           ? { ...target, stock: (target.stock ?? 0) + (source.stock ?? 0) }
           : target;
+      // 🐛 swarm-audit: המיזוג הסב רכיבים בלבד — קליטות-המלאי של המקור נשארו על
+      // מזהה-מת, ורשימת-ההמתנה (waits) של המקור נזרקה. איחוד waits בדדופ פר-משפחה
+      // (הרשומה של היעד — הוותיקה — מנצחת); בלי ממתינים ⇒ בלי מפתח (ביט-זהה).
+      const tWaits = target.waits ?? [];
+      const unionWaits = [
+        ...tWaits,
+        ...(source.waits ?? []).filter((w) => !tWaits.some((t) => t.famId === w.famId)),
+      ];
+      const merged = unionWaits.length ? { ...stockMerged, waits: unionWaits } : stockMerged;
       setDb((db) => ({
         shopItems: db.shopItems.filter((x) => x.id !== sourceId).map((x) => (x.id === targetId ? merged : x)),
         // הסבת כל הרכיבים המצביעים על המקור — המימושים (componentId) לא נגעו
@@ -2249,6 +2362,8 @@ export const useApp = create<AppState>()((set, get) => {
             ? { ...p, components: p.components.map((c) => (c.itemId === sourceId ? { ...c, itemId: targetId } : c)) }
             : p,
         ),
+        // הקליטות של המקור עוברות ליעד — יומן "המלאי הנכנס" ממשיך לספר את האמת
+        shopIntakes: db.shopIntakes.map((n) => (n.itemId === sourceId ? { ...n, itemId: targetId } : n)),
       }));
       return true;
     },
@@ -3260,6 +3375,11 @@ export const useApp = create<AppState>()((set, get) => {
         // כמו האחרים (metaOf/bumpCounter) אך נשמט מה-clamp ⇒ שחזור גיבוי ישן דרס
         // בענן לערך נמוך ⇒ אישור S- כפול חוצה-מכשירים. ?? 0 — גיבוי שקדם לשדה.
         shopReceiptSeq: Math.max(prev.shopReceiptSeq ?? 0, db.shopReceiptSeq ?? 0),
+        // 🐛 swarm-audit: audit של הגיבוי דרס את טבעת-הלוג **החיה** — כולל רשומת
+        // 'שחזור מגיבוי' שנרשמה שורה קודם (logAudit רץ לפני קריאת prev, כך שהיא
+        // כבר בטבעת). הטבעת החיה היא הלוג התפעולי המחייב — נושאים אותה קדימה;
+        // ה-audit של הגיבוי (תמונת-עבר) נזנח. ריפוי: תמיד מערך.
+        audit: Array.isArray(prev.audit) ? prev.audit : [],
       };
       set({ db });
       dirty = true; // 🐛 נחיל-עמוק (13.8): שחזור עוקף setDb ⇒ בלי סימון-dirty שער ריבוי-הטאבים דרס שחזור טרי
@@ -3309,7 +3429,12 @@ if (typeof window !== 'undefined') {
   // הטאב/מעבר-אפליקציה בחלון הזה היה מאבד את השינוי האחרון. pagehide/hidden
   // כותבים סינכרונית מיד (flushSaveSync); הטיימר התלוי, אם עוד יירה, פשוט
   // יכתוב את אותו מצב (אידמפוטנטי).
-  const flush = () => flushSaveSync(useApp.getState().db);
+  // 🐛 swarm-audit: טאב-מיושן (staleTab, מצב-מוצפן) לא כותב גם ביציאה — אחרת
+  // סגירת הטאב הייתה דורסת סינכרונית את הכתיבה של הטאב האחר.
+  const flush = () => {
+    const s = useApp.getState();
+    if (!s.staleTab) flushSaveSync(s.db);
+  };
   window.addEventListener('pagehide', flush);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') flush();
