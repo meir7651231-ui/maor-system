@@ -360,7 +360,7 @@ const BACKUP_COLLECTIONS = [
   'families', 'courses', 'enrollments', 'events', 'rooms', 'teachers', 'supporters',
   'tzCoordinators', 'tzBoxes', 'tzCampaigns', 'tzEvents',
   'shopItems', 'shopProducts', 'shopStores', 'shopCriteria', 'shopAssignments', 'shopEvents', 'shopIntakes',
-  'volunteers', 'distributionDays', 'deliveries',
+  'volunteers', 'distributionDays', 'deliveries', 'tasks',
 ];
 const BACKUP_KEEP = 30;
 

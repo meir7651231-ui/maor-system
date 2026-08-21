@@ -43,6 +43,7 @@ import {
   type DistributionDay,
   type Delivery,
   type DialOutcome,
+  type WorkTask,
 } from '../types/domain';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
@@ -499,6 +500,10 @@ interface AppState {
   dialerOpenReq: boolean;
   openDialer: () => void;
   ackDialerOpen: () => void;
+  /** 📋 WORKPREP (20.8): המנהל משבץ משימות פר-עובד/ת; העובדת מסמנת ✓. */
+  addWorkTasks: (drafts: Omit<WorkTask, 'id' | 'createdAt' | 'by'>[]) => void;
+  setWorkTaskDone: (id: string, done: boolean) => void;
+  deleteWorkTask: (id: string) => void;
   /** קביעת מועד "לדבר שוב" — שדות בלבד (התזכורת נכתבת ב-ayinCallAgain). */
   ayinSetNextTalk: (id: string, date: string, time: string) => void;
   /** 🔁 שוב — כותב תזכורת ללוח לפי מועד "לדבר שוב". */
@@ -2796,6 +2801,29 @@ export const useApp = create<AppState>()((set, get) => {
     dialerOpenReq: false,
     openDialer: () => set({ view: 'supporters', dialerOpenReq: true }),
     ackDialerOpen: () => set({ dialerOpenReq: false }),
+    // 📋 WORKPREP: שיבוץ/ביצוע/מחיקה — עם רישום-לוג (מזין את מודיעין-העובדים)
+    addWorkTasks(drafts) {
+      if (!drafts.length) return;
+      const by = get().cloud.user?.email ?? 'מקומי';
+      const now = new Date().toISOString();
+      const items: WorkTask[] = drafts.map((d) => ({ ...d, id: get().nextId('tsk'), createdAt: now, by }));
+      setDb((db) => ({ tasks: [...items, ...db.tasks] }));
+      logAudit('שיבוץ משימות', items.length === 1 ? items[0].title : items.length + ' משימות ל-' + items[0].assignee);
+      get().toast('📋 ' + (items.length === 1 ? 'המשימה שובצה' : items.length + ' משימות שובצו'));
+    },
+    setWorkTaskDone(id, done) {
+      const t = get().db.tasks.find((x) => x.id === id);
+      if (!t) return;
+      setDb((db) => ({
+        tasks: db.tasks.map((x) => (x.id === id ? { ...x, doneAt: done ? new Date().toISOString() : undefined } : x)),
+      }));
+      if (done) logAudit('משימה בוצעה', t.title);
+    },
+    deleteWorkTask(id) {
+      const t = get().db.tasks.find((x) => x.id === id);
+      setDb((db) => ({ tasks: db.tasks.filter((x) => x.id !== id) }));
+      if (t) logAudit('מחיקת משימה', t.title);
+    },
     ayinSetNextTalk(id, date, time) {
       setAyin(id, { nextTalk: date, nextTalkTime: time });
     },

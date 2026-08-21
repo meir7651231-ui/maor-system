@@ -866,6 +866,33 @@ export interface Volunteer {
 }
 
 /** סטטוס מסירה — מכונה לינארית קדימה בלבד; delivered = סופי. */
+/**
+ * 📋 משימת-עבודה (WORKPREP, 20.8, בקשת-בעלים "המנהל מכין לעובד את העבודה"):
+ * המנהל משבץ ⇒ הסנכרון מזרים ⇒ העובדת רואה ב"המשימות שלי" ומסמנת ✓.
+ * additive — מסמכים ישנים בלי המערך מרופאים ב-migrate.
+ */
+export interface WorkTask {
+  id: string;
+  /** מייל-העובדת המשובצת (lowercase); 'מקומי' בארגון בלי ענן. */
+  assignee: string;
+  /** מי ששיבץ (מייל-המנהל / 'מקומי'). */
+  by: string;
+  /** מה לעשות — נוסח חופשי. */
+  title: string;
+  /** עוגן-ישות אופציונלי — קפיצה-לכרטיס מהמשימה. */
+  ref?: { kind: 'supporter' | 'family' | 'course'; id: string };
+  /** עדיפות: 1=דחוף · 2=רגיל · 3=בהמשך. */
+  pri: 1 | 2 | 3;
+  /** תאריך-יעד ISO (יום) — ריק = בלי יעד. */
+  due?: string;
+  /** חותמת-יצירה ISO מלאה. */
+  createdAt: string;
+  /** חותמת-ביצוע ISO מלאה — ריק/חסר = פתוחה. */
+  doneAt?: string;
+  /** הערת-העובדת בביצוע. */
+  note?: string;
+}
+
 export type DeliveryStatus = 'pickup' | 'enroute' | 'delivered';
 
 export interface Delivery {
@@ -933,6 +960,8 @@ export interface Db {
   volunteers: Volunteer[];
   distributionDays: DistributionDay[];
   deliveries: Delivery[];
+  /** 📋 משימות-עבודה (WORKPREP, 20.8) — המנהל מכין תור פר-עובד/ת; הישות ה-22. */
+  tasks: WorkTask[];
   orgName: string;
   orgSite: string;
   orgDonate: string;
@@ -1023,6 +1052,7 @@ export function emptyDb(): Db {
     volunteers: [],
     distributionDays: [],
     deliveries: [],
+    tasks: [],
     orgName: 'מאור החסד',
     orgSite: '',
     orgDonate: '',
