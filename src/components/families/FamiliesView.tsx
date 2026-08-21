@@ -137,6 +137,9 @@ export function FamiliesView() {
     for (const f of db.families) for (const m of f.members) m2f.set(m.id, f.id);
     const cnt = new Map<string, number>();
     for (const e of db.enrollments) {
+      // עמודת/סינון/מיון "חוגים" = השתתפות חיה בלבד (active+paused) — 'ended' כבר
+      // לא משתתף ו-'wait' עדיין לא; ספירתם ניפחה את המונה (כמו famLiveEnrollments).
+      if (e.status === 'ended' || e.status === 'wait') continue;
       const fid = m2f.get(e.memberId);
       if (fid) cnt.set(fid, (cnt.get(fid) || 0) + 1);
     }

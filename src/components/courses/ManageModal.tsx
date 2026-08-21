@@ -216,6 +216,12 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
 
   function togglePause() {
     if (!en) return;
+    // ⏳ רשימת-המתנה: "הקפאה" הייתה הופכת wait⇒paused — קידום-שקט מעבר לקיבולת
+    // (paused תופס מקום ונספר ברוסטר/דוחות/גבייה) בלי דרך-חזרה לתור. רק active⇄paused.
+    if (en.status === 'wait') {
+      toast('ברשימת-המתנה — קדמו לפעיל קודם (▲ שבץ בכרטיס ה' + termOf(cfg, 'entity.course', 'חוג') + ')');
+      return;
+    }
     const paused = en.status !== 'paused';
     upsertEnrollment({ ...en, status: paused ? 'paused' : 'active' });
     toast(

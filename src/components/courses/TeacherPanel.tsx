@@ -118,7 +118,8 @@ export function TeacherPanel(props: { teacherId: string }) {
 
       <section className="card">
         <h3 style={{ fontSize: 14, fontWeight: 800, marginBottom: 8 }}>
-          🔁 השלמות ממתינות {makeups.length > 0 && <span style={{ color: 'var(--accent)' }}>· {makeups.length}</span>}
+          {/* המונה = שטרם-תוזמנו בלבד (!makeupDate) — כמו כרטיס-החוג; הרשימה מציגה גם 'נקבע' */}
+          🔁 השלמות ממתינות {makeups.filter((m) => !m.makeupDate).length > 0 && <span style={{ color: 'var(--accent)' }}>· {makeups.filter((m) => !m.makeupDate).length}</span>}
         </h3>
         {makeups.length === 0 ? (
           <Empty>אין השלמות ממתינות</Empty>
