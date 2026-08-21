@@ -9,6 +9,7 @@
     "supporters.intel": true,
     "supporters.galaxy": true,
     "supporters.card": true,
+    "supporters.hokbulk": true,
     "courses.cockpit": true
   },
   "integrations": {

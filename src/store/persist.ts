@@ -236,6 +236,8 @@ export function migrate(raw: unknown): Db | null {
     volunteers: Array.isArray(db.volunteers) ? db.volunteers : [],
     distributionDays: Array.isArray(db.distributionDays) ? db.distributionDays : [],
     deliveries: Array.isArray(db.deliveries) ? db.deliveries : [],
+    // WORKPREP (20.8): משימות-עבודה — אדיטיבי (גיבוי/ענן ישן = מערך ריק)
+    tasks: Array.isArray(db.tasks) ? db.tasks : [],
     notif: { ...base.notif, ...db.notif },
     reports: { ...base.reports, ...db.reports },
     ui: { ...base.ui, ...db.ui },
