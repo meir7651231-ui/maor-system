@@ -11,6 +11,7 @@
     "supporters.universe3d": true,
     "supporters.card": true,
     "supporters.hokbulk": true,
+    "supporters.photos": true,
     "courses.cockpit": true
   },
   "integrations": {

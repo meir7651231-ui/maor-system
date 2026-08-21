@@ -9,6 +9,7 @@
 import { openDB, type IDBPDatabase } from 'idb';
 import { isoLocal } from '../lib/date-util';
 import { supporterAggregates } from '../lib/supporterAgg';
+import { sanitizePhotos } from '../lib/photoGallery';
 import {
   DB_VERSION,
   emptyDb,
@@ -303,6 +304,9 @@ export function migrate(raw: unknown): Db | null {
   merged.supporters = merged.supporters.map((s) => ({
     ...s,
     donations: Array.isArray(s.donations) ? s.donations : [],
+    // גלריית-תמונות: חיטוי-הגנתי (ייבוא/ענן/ישן) — רק data:URI תקינים מתחת-לתקרה.
+    // נוגעים רק כשהשדה קיים ⇒ כרטיס בלי-תמונות נשאר ביט-זהה (undefined).
+    ...(s.photos !== undefined ? { photos: sanitizePhotos(s.photos) } : {}),
     // hist מהקובץ ההיסטורי (לגאסי {d,a,c}) — נרמול: לא-מערך → undefined;
     // איברים בלי תאריך d או סכום a מספרי — נזרקים. מטבע לא-מוכר → ברירת ₪ בתצוגה.
     // 🐛 נחיל-עמוק (13.8): המיגרציה שכתבה {d,a,c} בלבד ומחקה את מטא-דאטת-הסליקה
