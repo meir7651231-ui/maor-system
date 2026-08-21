@@ -55,6 +55,7 @@ import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isSuperAdm
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
+import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth } from '../components/supporters/lib';
 import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
 import { attachChargeTo, attachChargesBulk, detectRecurringHok, planNedarimSync, type SyncCharge } from '../lib/nedarimSync';
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
@@ -352,6 +353,9 @@ interface AppState {
   resetNedarimImport: () => number;
   /** רישום תרומה — {ok:false} כשה-store דחה (התומכת נעלמה); rid רק כשהונפק בפועל. */
   addDonation: (supporterId: string, donation: Omit<Donation, 'rid'>) => { ok: boolean; rid?: string };
+  /** רישום-הו״ק המוני — חיוב-החודש לכל המזהים המסומנים בבת-אחת (קבלות רציפות D-).
+   *  מחזיר {done,rids,failed}; שער-הקבלות נבדק פעם-אחת, כתיבה אטומית אחת. */
+  bulkRecordHok: (ids: string[], todayIso: string) => { done: number; rids: { id: string; rid: string; amount: number; cur: string }[]; failed: number };
 
   // קופות צדקה (מודול tzedaka — מבודד; BUILD-ORDER-TZEDAKA-2026-07-30).
   // הכסף/האירועים/הניקוד נכתבים רק למערכי tz* — לא לקבלות/תרומות/לוח הראשי.
@@ -2029,6 +2033,43 @@ export const useApp = create<AppState>()((set, get) => {
       // מונח-דינמי גם בלוג — הרשומה מוצגת בטבלת-הלוג ובוורטיקל עסקי "תרומה" היא דליפה
       logAudit(termOf(get().config, 'entity.donation', 'תרומה'), rid + ' · ' + (donation.cur === '$' ? '$' : '₪') + donation.amount);
       return { ok: true, rid };
+    },
+
+    bulkRecordHok(ids, todayIso) {
+      // 🔐 שער-הקבלות פעם-אחת (זהה ל-addDonation) — רק המנהל מנפיק קבלות-§46.
+      const cl = get().cloud;
+      if (!canIssueReceipt({ superAdmin: isSuperAdmin(cl.user?.email), isManager: !!cl.isManager, cloudRoot: get().config.cloudRoot === true, cloudConnected: !!cl.user })) {
+        get().toast('⛔ רק המנהל מנפיק קבלות — פנו למנהל/ת הארגון');
+        return { done: 0, rids: [], failed: ids.length };
+      }
+      const idSet = new Set(ids);
+      const rids: { id: string; rid: string; amount: number; cur: string }[] = [];
+      let failed = 0;
+      // כתיבה אטומית אחת: מקצה D-{seq} רץ לכל מסומן-כשיר, מונע מרוץ-מונים.
+      setDb((db) => {
+        let seq = db.donationSeq;
+        const supporters = db.supporters.map((s) => {
+          if (!idSet.has(s.id)) return s;
+          const hok = s.hok;
+          // דילוג-בטיחות: הו״ק לא-פעילה או שכבר-נרשמה-החודש (בחירה מיושנת) ⇒ לא כופלים.
+          if (!hok || !hokEffectivelyActive(s, todayIso) || hokRecordedThisMonth(s, todayIso)) {
+            failed++;
+            return s;
+          }
+          const rid = 'D-' + seq++;
+          rids.push({ id: s.id, rid, amount: hok.amount, cur: hok.cur });
+          const donations = [{ date: todayIso, amount: hok.amount, cur: hok.cur, cat: HOK_CAT, rid }, ...s.donations];
+          const agg = supporterAggregates({ donations, hist: s.hist });
+          return { ...s, donations, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
+        });
+        return { donationSeq: seq, supporters };
+      });
+      // מזהה-שנעלם (בחירה מיושנת) שלא נצרך ⇒ נחשב כשל.
+      failed += ids.filter((id) => !get().db.supporters.some((s) => s.id === id)).length;
+      if (rids.length) {
+        logAudit(termOf(get().config, 'entity.donation', 'תרומה') + ' · הו"ק המוני', rids.length + ' חיובים · ' + rids[0].rid + '…' + rids[rids.length - 1].rid);
+      }
+      return { done: rids.length, rids, failed };
     },
 
     // ── קופות צדקה (מודול tzedaka — מבודד; הכרעת בעלים 30.7.2026) ──
