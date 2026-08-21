@@ -81,3 +81,22 @@ describe('💛 ratchet — מודיעין-תיק', () => {
     expect(ms).toBeLessThan(500);
   });
 });
+
+describe('🐛 ratchet — תחזית-30/90 בלי כסף-אבוד (swarm-audit 21.8)', () => {
+  // 🐛 הבאג: forecast30/forecast90 בדקו רק dueIso <= אופק — בלי גבול-תחתון —
+  // כך שכל תורם-שאיחר (dueIso בעבר, גם 2019) נספר ב"תחזית 30/90 יום" והתחזית
+  // התנפחה בכסף-אבוד. התיקון: רק dueIso >= todayIso נספר.
+  it('תורם-שנטש (מועד-צפוי ב-2024) לא נספר בתחזית; מועד-עתידי בחלון כן', () => {
+    const lapsed = sup({
+      id: 'lapsed',
+      donations: [don({ date: '2023-11-01', amount: 1000 }), don({ date: '2024-01-01', amount: 1000 })],
+    }); // קצב ~61 יום ⇒ dueIso ≈ 2024-03 — עמוק בעבר
+    const upcoming = sup({
+      id: 'up',
+      donations: [don({ date: '2026-06-10', amount: 500 }), don({ date: '2026-08-10', amount: 500 })],
+    }); // קצב ~61 יום ⇒ dueIso ≈ 2026-10-10 — בתוך 90 יום, מחוץ ל-30
+    const p = portfolioIntel([lapsed, upcoming], TODAY);
+    expect(p.forecast30).toBe(0); // הנוטש לא נספר; העתידי מחוץ ל-30
+    expect(p.forecast90).toBe(500); // רק המועד-העתידי שבחלון
+  });
+});

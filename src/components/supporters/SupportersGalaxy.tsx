@@ -10,6 +10,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
 import { Btn } from '../ui';
+import { termOf } from '../../lib/config';
+import { isoToday } from '../../lib/date-util';
 import { donorConstellation, type ConstellationNode, type TierKey } from './constellation';
 
 const TIER_COLOR: Record<TierKey, string> = {
@@ -33,7 +35,8 @@ export function SupportersGalaxy(props: {
   const [offsetDays, setOffsetDays] = useState(0);
   // סינון-דרגה מהמקרא — קליק על דרגה מצמצם את רשימת-הנתונים לאותה דרגה.
   const [tierHi, setTierHi] = useState<TierKey | null>(null);
-  const today = new Date().toISOString().slice(0, 10);
+  // 🐛 (21.8): toISOString = UTC ⇒ בין חצות מקומי ל-02:00/03:00 "היום" היה אתמול.
+  const today = isoToday();
   const rate = props.usdRate || 3.7;
 
   const nodes = useMemo(
@@ -164,7 +167,7 @@ export function SupportersGalaxy(props: {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>גלקסיית התורמים</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>{'גלקסיית ה' + termOf(props.config, 'nav.supporters', 'תורמים')}</h1>
         <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
           {nodes.length} כוכבים · {atRiskCount} מתקררים · ריחוף לפרטים · לחיצה לכרטיס
         </span>
@@ -250,7 +253,7 @@ export function SupportersGalaxy(props: {
               <Btn sm onClick={() => props.onOpen(n.id)} title="פתיחת כרטיס">פתח</Btn>
             </div>
           ))}
-          {shown.filter((n) => !tierHi || n.tier === tierHi).length === 0 ? <div style={{ padding: 20, textAlign: 'center', color: 'var(--ink-faint)' }}>אין תורמים להצגה.</div> : null}
+          {shown.filter((n) => !tierHi || n.tier === tierHi).length === 0 ? <div style={{ padding: 20, textAlign: 'center', color: 'var(--ink-faint)' }}>{'אין ' + termOf(props.config, 'nav.supporters', 'תורמים') + ' להצגה.'}</div> : null}
         </div>
       </div>
     </div>

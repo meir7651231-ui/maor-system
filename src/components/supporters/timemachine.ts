@@ -12,9 +12,7 @@
  */
 import type { Supporter } from '../../types/domain';
 import { PORTFOLIO_RISK_THRESHOLD } from './portfolio';
-import { dayDiff, donorScan, forecastFromScan, type DonorScan } from './intel';
-
-const MS_DAY = 86_400_000;
+import { dayDiff, donorScan, forecastFromScan, shiftIso, type DonorScan } from './intel';
 
 /** אופקי-הסימולציה המוגדרים-מראש (ימים קדימה). */
 export const DEFAULT_HORIZONS = [0, 30, 60, 90, 180, 365] as const;
@@ -70,11 +68,7 @@ export interface TimeMachine {
   incomingEnd: number;
 }
 
-/** הזזת תאריך-ISO ב-N ימים (ללא Date.now). */
-function shiftIso(iso: string, days: number): string {
-  const ms = Date.parse(iso.slice(0, 10) + 'T12:00:00') + days * MS_DAY;
-  return new Date(ms).toISOString().slice(0, 10);
-}
+/* הזזת-תאריך: shiftIso המשותף מ-intel.ts (חשבון-לוח מקומי, בלי toISOString/UTC). */
 
 /**
  * סימולציה קדימה על כל התיק. סורק כל תורם פעם-אחת ומקרין על כל האופקים.
