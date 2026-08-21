@@ -24,7 +24,7 @@ import {
   type CockpitTask,
 } from './cockpit';
 import { segmentCounts, type SegmentKey } from './segments';
-import { fmtDate } from './lib';
+import { fmtDate, isoToday } from './lib';
 import { downloadCsv } from '../../lib/csvx';
 import { guardExport } from '../../lib/exportGate';
 
@@ -209,7 +209,7 @@ export function SupportersCockpit(props: {
   onDial?: (ids: string[]) => void;
 }) {
   const [doneIds, setDoneIds] = useState<ReadonlySet<string>>(new Set<string>());
-  const today = new Date().toISOString().slice(0, 10);
+  const today = isoToday();
   const rate = props.usdRate || 3.7;
 
   const kpis = cockpitKpis(props.supporters, today, rate);

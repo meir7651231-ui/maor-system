@@ -234,7 +234,7 @@ export function cockpitKpis(
   return {
     total: supporters.length,
     collected: cockpitCollectedThisMonth(supporters, todayIso, rate),
-    expectedHok: hokMonthlyTotal(supporters as Supporter[], rate),
+    expectedHok: hokMonthlyTotal(supporters as Supporter[], rate, todayIso),
     atRisk: cockpitAtRisk(supporters, todayIso).length,
   };
 }
