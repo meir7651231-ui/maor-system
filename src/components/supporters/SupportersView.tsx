@@ -58,6 +58,7 @@ function donationYears(sups: { donations: { date: string }[]; hist?: { d: string
 }
 import { SupportersIntel } from './SupportersIntel';
 import { SupportersGalaxy } from './SupportersGalaxy';
+import { SupportersUniverse3D } from './SupportersUniverse3D';
 import { SupportersKpiStrip } from './SupportersKpiStrip';
 import { SupportersViewSwitcher } from './SupportersViewSwitcher';
 import { CommandPalette } from './CommandPalette';
@@ -245,6 +246,9 @@ export function SupportersView() {
   // גלקסיית-התורמים — opt-in מפורש נפרד.
   const galaxyOn = config.features?.['supporters.galaxy'] === true;
   const [galaxyMode, setGalaxyMode] = useState(false);
+  // היקום התלת-ממדי — opt-in מפורש נפרד (ענן-כוכבים מסתובב).
+  const universeOn = config.features?.['supporters.universe3d'] === true;
+  const [universeMode, setUniverseMode] = useState(false);
   // ריברנד — רצועת-KPI חיה מעל הטבלה הקיימת (opt-in מפורש).
   const rebrandOn = config.features?.['supporters.rebrand'] === true;
   // כרטיס-תורם מאוחד (לשוניות) — opt-in מפורש; כבוי = הכרטיס הרגיל (ביט-זהה).
@@ -488,6 +492,22 @@ export function SupportersView() {
     );
   }
 
+  if (universeOn && universeMode) {
+    const uniList = visibleSupportersForDesignations(db.supporters, desigLimit);
+    return (
+      <div>
+        <SupportersUniverse3D
+          supporters={uniList}
+          config={config}
+          usdRate={db.usdRate}
+          onOpen={(id) => setSelId(id)}
+          onExit={() => setUniverseMode(false)}
+        />
+        {paletteEl}
+      </div>
+    );
+  }
+
   const today = isoToday();
   const nq = normSearch(q);
   const qd = q.replace(/\D/g, '');
@@ -667,8 +687,9 @@ export function SupportersView() {
                 ...(cockpitOn ? [{ key: 'work', label: '🎯 חלון העבודה', title: 'חלון-העבודה: המערכת מסדרת את משימות היום — שיחות, תודות והו״ק' }] : []),
                 ...(intelOn ? [{ key: 'intel', label: '📊 מודיעין', title: 'מרכז-המודיעין: RFM · ערך-חיים · תחזית-מתנה · סיכון-נטישה' }] : []),
                 ...(galaxyOn ? [{ key: 'galaxy', label: '🌌 גלקסיה', title: 'גלקסיית-התורמים: כל תורם ככוכב — גודל=ערך · צבע=דרגה · מרחק=טריות' }] : []),
+                ...(universeOn ? [{ key: 'universe', label: '🪐 היקום 3D', title: 'היקום התלת-ממדי: ענן-כוכבים מסתובב — גררו לסובב, לחיצה לכרטיס' }] : []),
               ]}
-              onSelect={(k) => { if (k === 'work') setWorkMode(true); else if (k === 'intel') setIntelMode(true); else if (k === 'galaxy') setGalaxyMode(true); }}
+              onSelect={(k) => { if (k === 'work') setWorkMode(true); else if (k === 'intel') setIntelMode(true); else if (k === 'galaxy') setGalaxyMode(true); else if (k === 'universe') setUniverseMode(true); }}
             />
             {telephonyOn(config) && (
               <Btn
