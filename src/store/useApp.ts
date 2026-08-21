@@ -57,6 +57,7 @@ import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth } from '../components/supporters/lib';
+import { canAddPhoto, isDataImage, PHOTO_MAX, PHOTO_MAX_LEN } from '../lib/photoGallery';
 import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
 import { attachChargeTo, attachChargesBulk, detectRecurringHok, planNedarimSync, type SyncCharge } from '../lib/nedarimSync';
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
@@ -319,6 +320,10 @@ interface AppState {
   deleteTeacher: (id: string) => { ok: boolean; error?: string };
   upsertRoom: (r: Room) => void;
   upsertSupporter: (s: Supporter) => void;
+  /** גלריית-תמונות: הוספת תמונה מוקטנת (data:URI) לתורם, עד PHOTO_MAX. */
+  addSupporterPhoto: (id: string, dataUri: string) => void;
+  /** גלריית-תמונות: הסרת תמונה לפי אינדקס. */
+  removeSupporterPhoto: (id: string, index: number) => void;
   deleteSupporter: (id: string) => void;
   /** מחיקה-מרובה — כל ה-ids בעדכון-מצב יחיד (אותו ניקוי-מדורג כמו הבודד). */
   deleteSupporters: (ids: string[]) => void;
@@ -1824,6 +1829,30 @@ export const useApp = create<AppState>()((set, get) => {
           : s;
       setDb((db) => ({ supporters: upsertIn(db.supporters, sup) }));
       logAudit('שמירת תומכ/ת', sup.name);
+    },
+    addSupporterPhoto(id, dataUri) {
+      if (!isDataImage(dataUri) || dataUri.length > PHOTO_MAX_LEN) {
+        get().toast('תמונה לא-תקינה או גדולה מדי');
+        return;
+      }
+      const sp = get().db.supporters.find((x) => x.id === id);
+      if (!sp) return;
+      if (!canAddPhoto(sp.photos)) {
+        get().toast('הגעתם לתקרת ' + PHOTO_MAX + ' תמונות — הסירו תמונה כדי להוסיף');
+        return;
+      }
+      setDb((db) => ({
+        supporters: db.supporters.map((s) => (s.id === id ? { ...s, photos: [...(s.photos || []), dataUri] } : s)),
+      }));
+    },
+    removeSupporterPhoto(id, index) {
+      setDb((db) => ({
+        supporters: db.supporters.map((s) => {
+          if (s.id !== id) return s;
+          const photos = (s.photos || []).filter((_, i) => i !== index);
+          return { ...s, photos: photos.length ? photos : undefined };
+        }),
+      }));
     },
     mergeSupporters(keepId, dropId) {
       const { supporters } = get().db;

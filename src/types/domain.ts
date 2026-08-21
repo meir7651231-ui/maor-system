@@ -535,6 +535,12 @@ export interface Supporter {
   nextDate: IsoDate | '';
   /** על מה לדבר בפעם הבאה — תזכורת-אג'נדה חופשית (additive; מוצג בקוקפיט/חייגן). */
   nextNote?: string;
+  /**
+   * גלריית-תמונות מקומית (data:URI מוקטנים) — additive, אופציונלי, אין מיגרציה.
+   * נשמרות בתוך ה-DB ⇒ מגובות/מסונכרנות; תקרה קשיחה (PHOTO_MAX) + הקטנה בהעלאה.
+   * מגודר supporters.photos. undefined בכרטיסים ישנים.
+   */
+  photos?: string[];
   /** אירוע 'שיחה' שנוצר אוטומטית ביומן. */
   nextEventId?: Id;
   donations: Donation[];

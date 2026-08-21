@@ -136,6 +136,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.doncal', label: 'לוח תרומות בכרטיס', desc: 'לוח-חודש חזותי של תרומות התורם/ת + יעד הקשר הבא, בכרטיס התורם', module: 'supporters' },
   { key: 'supporters.customreport', label: 'דו"ח מותאם (תומכים)', desc: 'כפתור ייצוא דו"ח מותאם במסך התומכים', module: 'supporters' },
   { key: 'supporters.annualreport', label: 'דוח שנתי לתורם 📄', desc: 'ריכוז תרומות שנת-המס לתורם/ת (ולכולם בקובץ אחד) — לרו"ח ולמס; אינו קבלה', module: 'supporters' },
+  { key: 'supporters.photos', label: 'גלריית-תמונות 📷', desc: 'אלבום-תמונות על כרטיס-התורם/ת (עד 5, מוקטנות אוטומטית) — נשמרות במכשיר ומגובות/מסונכרנות עם הנתונים', module: 'supporters' },
   { key: 'supporters.hok', label: 'הוראות קבע 🔁', desc: 'הגדרת הו"ק על תורם/ת + תזכורת-חודשית "טרם נרשמה" + רישום-בקליק; החיוב עצמו אצל הסליקה/הבנק', module: 'supporters' },
   // ── מסכי 20.8 · opt-in מפורש (חסר=כבוי — לא מדליקים לקוח-חי מעצמם) ──
   { key: 'supporters.cockpit', label: 'חלון-העבודה (קוקפיט) 🎯', desc: 'משטח-עבודה מעל טבלת-התורמים: KPI + תור-משימות (שיחות/תודות/הו"ק) + פלטת-פיקוד ⌘K + ייצוא (opt-in)', module: 'supporters', optIn: true },
