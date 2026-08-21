@@ -284,8 +284,11 @@ service cloud.firestore {
     // כותבים/מרעננים, והעולם מקבל **רק** דרך פונקציית icsFeed (Admin SDK) עם
     // ה-token. אוסף-שורש (כמו הכספת); הארגון-השורש (default) — דרך allowedRoot.
     match /icsFeeds/{slug} {
+      // 21.8: הלקוח-החי מפרסם עם slug 'maor-hachesed' (public/c/maor-hachesed) —
+      // הבריחה של 'default' לבדה הייתה מתה עבורו (מוסווה היום כי allowedRoot≡מייל-העל;
+      // נשברת ברגע שנוסף מייל-משרד שני). שני ה-slugs של השורש עוברים דרך allowedRoot.
       allow read, write: if superAdmin() || orgMember(slug)
-        || (slug == 'default' && allowedRoot());
+        || ((slug == 'default' || slug == 'maor-hachesed') && allowedRoot());
     }
 
     // 💬 צ׳אט-צוות תוך-ארגוני (17.8) — ערוץ-קבוצה אחד לכל הארגון: כל אנשי-הצוות
@@ -293,8 +296,10 @@ service cloud.firestore {
     // בלבד (בלתי-משתנות); טקסט תחום-גודל + hasOnly (DoS). מגודר `shell.teamchat`
     // בקליינט (Rules לא יודעות דגלים). teamChats מוחרג מ-catch-all השורש למטה.
     match /teamChats/{slug}/messages/{id} {
-      allow read: if superAdmin() || orgMember(slug) || (slug == 'default' && allowedRoot());
-      allow create: if (superAdmin() || orgMember(slug) || (slug == 'default' && allowedRoot()))
+      // 21.8: כמו ב-icsFeeds — גם 'maor-hachesed' (ה-slug של הלקוח-החי) הוא שורש
+      // לעניין allowedRoot, אחרת מייל-משרד שני (לא מייל-על) היה ננעל בחוץ.
+      allow read: if superAdmin() || orgMember(slug) || ((slug == 'default' || slug == 'maor-hachesed') && allowedRoot());
+      allow create: if (superAdmin() || orgMember(slug) || ((slug == 'default' || slug == 'maor-hachesed') && allowedRoot()))
         && request.resource.data.keys().hasOnly(['sender', 'name', 'text', 'at'])
         && request.resource.data.text is string
         && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
