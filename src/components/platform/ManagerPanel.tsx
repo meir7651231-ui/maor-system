@@ -27,6 +27,7 @@ import { WIZARD_SECTIONS } from '../builder/sections';
 import { featureOn } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import { agoLabel, goalProgress, quietWorkers, teamCsvRows, teamIntel, teamSummary, trendOf } from './teamIntel';
+import { openTasksFor, overdueContactTaskDrafts, PRI_LABELS, taskStatsFor } from '../../lib/worktasks';
 import { downloadCsv } from '../../lib/csvx';
 import { allDonationPurposes } from '../supporters/lib';
 import type { ModuleKey, OrgConfig } from '../../types/config';
@@ -41,6 +42,15 @@ export function ManagerPanel(props: { onClose: () => void }) {
   const managerMail = useApp((s) => s.cloud.user?.email ?? '');
   // 🕵️ מודיעין-עובדים: הלוג נקרא כמו-שהוא (בלי ?? [] בסלקטור — לקח React #185)
   const auditRaw = useApp((s) => s.db.audit);
+  // 📋 מכין-העבודה (WORKPREP): משימות + תורמים לשיבוץ + פעולות
+  const tasksRaw = useApp((s) => s.db.tasks);
+  const supporters = useApp((s) => s.db.supporters);
+  const addWorkTasks = useApp((s) => s.addWorkTasks);
+  const deleteWorkTask = useApp((s) => s.deleteWorkTask);
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskPri, setTaskPri] = useState<1 | 2 | 3>(2);
+  const [taskDue, setTaskDue] = useState('');
+  const [taskSupQ, setTaskSupQ] = useState('');
   const slug = config.slug;
   const { armed, confirmTwice } = useArmed(true);
 
@@ -367,6 +377,81 @@ export function ManagerPanel(props: { onClose: () => void }) {
                         </div>
                       </div>
                     )}
+
+                    {/* 📋 מכין-העבודה (WORKPREP, 20.8) — המנהל משבץ לעובד/ת את יום-העבודה:
+                        משימה חופשית / קשורה-לתורם, עדיפות, יעד, ושיבוץ-המוני של יעדי-קשר
+                        שעברו. הביצוע אצל העובדת ב"המשימות שלי" (מסך-הבית). */}
+                    {featureOn((config as OrgConfig) ?? {}, 'settings.workprep') && (() => {
+                      const tasks = tasksRaw ?? [];
+                      const today = isoToday();
+                      const st = taskStatsFor(tasks, email, today);
+                      const open = openTasksFor(tasks, email);
+                      const supMatches = taskSupQ.trim()
+                        ? supporters.filter((sp) => sp.name.includes(taskSupQ.trim())).slice(0, 5)
+                        : [];
+                      const assign = (title: string, ref?: { kind: 'supporter'; id: string }) => {
+                        if (!title.trim()) return;
+                        addWorkTasks([{ assignee: email, title: title.trim(), pri: taskPri, ...(taskDue ? { due: taskDue } : {}), ...(ref ? { ref } : {}) }]);
+                        setTaskTitle('');
+                        setTaskSupQ('');
+                      };
+                      const bulk = () => {
+                        const drafts = overdueContactTaskDrafts(supporters, tasks, email, today);
+                        if (!drafts.length) return toast('אין יעדי-קשר שעברו שטרם שובצו');
+                        addWorkTasks(drafts);
+                      };
+                      return (
+                        <div style={{ marginTop: 10, borderTop: '1px dashed var(--line)', paddingTop: 8 }}>
+                          <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 4 }}>
+                            📋 מכין-העבודה — {st.open} פתוחות{st.overdue ? ` · ⏰ ${st.overdue} באיחור` : ''} · ✓ {st.doneWeek} השבוע
+                          </div>
+                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 6 }}>
+                            <input
+                              value={taskTitle}
+                              onChange={(e) => setTaskTitle(e.target.value)}
+                              placeholder="משימה חדשה — למשל: לסגור את רשימת החג…"
+                              aria-label={'משימה חדשה ל-' + email}
+                              style={{ flex: '1 1 180px', fontSize: 12.5, padding: '5px 8px' }}
+                            />
+                            <select value={taskPri} onChange={(e) => setTaskPri(Number(e.target.value) as 1 | 2 | 3)} aria-label="עדיפות" style={{ fontSize: 12, padding: '4px 6px' }}>
+                              {( [1, 2, 3] as const).map((p) => <option key={p} value={p}>{PRI_LABELS[p]}</option>)}
+                            </select>
+                            <input type="date" value={taskDue} onChange={(e) => setTaskDue(e.target.value)} aria-label="תאריך-יעד" dir="ltr" style={{ fontSize: 12, padding: '4px 6px' }} />
+                            <Btn sm kind="primary" onClick={() => assign(taskTitle)}>➕ שיבוץ</Btn>
+                          </div>
+                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 6 }}>
+                            <input
+                              value={taskSupQ}
+                              onChange={(e) => setTaskSupQ(e.target.value)}
+                              placeholder="🔎 שיבוץ-תורם — חיפוש שם…"
+                              aria-label="חיפוש תורם לשיבוץ"
+                              style={{ flex: '1 1 160px', fontSize: 12.5, padding: '5px 8px' }}
+                            />
+                            <Btn sm onClick={bulk} title="כל התורמים שיעד-הקשר שלהם עבר וטרם שובצו — משימת 📞 לכל אחד">
+                              📞 שיבוץ כל יעדי-הקשר שעברו
+                            </Btn>
+                          </div>
+                          {supMatches.length > 0 && (
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
+                              {supMatches.map((sp) => (
+                                <Chip key={sp.id} onClick={() => assign('📞 להתקשר — ' + sp.name, { kind: 'supporter', id: sp.id })}>
+                                  📞 {sp.name}
+                                </Chip>
+                              ))}
+                            </div>
+                          )}
+                          {open.slice(0, 8).map((t) => (
+                            <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '2px 0', color: 'var(--ink-soft)' }}>
+                              <span>{PRI_LABELS[t.pri].slice(0, 2)}</span>
+                              <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
+                              {t.due && <span style={{ color: t.due < today ? 'var(--red)' : 'var(--ink-faint)', whiteSpace: 'nowrap' }}>{t.due.slice(5).split('-').reverse().join('/')}</span>}
+                              <Btn sm onClick={() => deleteWorkTask(t.id)} title="ביטול המשימה">🗑</Btn>
+                            </div>
+                          ))}
+                          {open.length > 8 && <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>+{open.length - 8} נוספות בתור</div>}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

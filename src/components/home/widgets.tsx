@@ -23,6 +23,7 @@ import { Btn, Chip, Modal } from '../ui';
 import { hebDateFull } from '../../lib/hebrew';
 import { featureOn, integrationOn, moduleOn, telephonyOn, termOf } from '../../lib/config';
 import { waBirthdayText } from '../../lib/wa';
+import { doneTodayFor, openTasksFor, PRI_LABELS, taskIdentity, taskOverdue } from '../../lib/worktasks';
 import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
 import { tierOf } from '../families/lib';
@@ -129,6 +130,73 @@ export interface HomeCtx {
 }
 
 /* ── רכיבי עזר ── */
+
+/**
+ * 🎯 המשימות שלי (WORKPREP, 20.8) — התור שהמנהל הכין לעובד/ת המחוברת:
+ * ממוין עדיפות→יעד, איחור באדום, קפיצה-לכרטיס מהעוגן, ✓ מסמן-בוצע (נרשם
+ * בלוג ⇒ נספר במודיעין וביעד-השבועי). זהות = מייל-הענן; בלי-ענן = 'מקומי'.
+ */
+function MyTasksWidget({ ctx }: { ctx: HomeCtx }) {
+  const { db, todayIso, toast } = ctx;
+  const email = useApp((s) => s.cloud.user?.email);
+  const setDone = useApp((s) => s.setWorkTaskDone);
+  const openSupporterCard = useApp((s) => s.openSupporterCard);
+  const me = taskIdentity(email);
+  const open = openTasksFor(db.tasks ?? [], me);
+  const doneToday = doneTodayFor(db.tasks ?? [], me, todayIso);
+  if (open.length === 0 && doneToday === 0) return null;
+  const jump = (t: (typeof open)[number]) => {
+    if (!t.ref) return;
+    if (t.ref.kind === 'supporter') openSupporterCard(t.ref.id);
+    else if (t.ref.kind === 'family') ctx.selectFamily(t.ref.id);
+    else ctx.selectCourse(t.ref.id);
+  };
+  return (
+    <Panel
+      icon="🎯"
+      title="המשימות שלי"
+      badge={open.length ? String(open.length) : undefined}
+    >
+      {doneToday > 0 && (
+        <div style={{ fontSize: 12, color: 'var(--green)', fontWeight: 600 }}>✓ {doneToday} בוצעו היום</div>
+      )}
+      {open.length === 0 && (
+        <div style={{ ...softEmpty, color: 'var(--green)', fontWeight: 600 }}>סגרת הכול — כל הכבוד! 🎉</div>
+      )}
+      {open.slice(0, 8).map((t) => (
+        <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            type="button"
+            className="hm-row"
+            style={{ flex: 1, minWidth: 0, cursor: t.ref ? 'pointer' : 'default' }}
+            onClick={() => jump(t)}
+            title={t.ref ? 'לכרטיס ←' : undefined}
+          >
+            <span aria-hidden>{PRI_LABELS[t.pri].slice(0, 2)}</span>
+            <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</span>
+            {t.due && (
+              <span style={{ marginInlineStart: 'auto', fontSize: 11.5, whiteSpace: 'nowrap', color: taskOverdue(t, todayIso) ? 'var(--red)' : 'var(--ink-faint)' }}>
+                {taskOverdue(t, todayIso) ? '⏰ באיחור' : t.due.slice(5).split('-').reverse().join('/')}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            className="hm-pill-btn"
+            onClick={() => {
+              setDone(t.id, true);
+              toast('✓ בוצע — נרשם לזכותך');
+            }}
+            title="סימון המשימה כבוצעה"
+          >
+            ✓ בוצע
+          </button>
+        </div>
+      ))}
+      {open.length > 8 && <div style={softEmpty}>+{open.length - 8} נוספות בתור</div>}
+    </Panel>
+  );
+}
 
 /** כרטיס נתון — אייקון בעיגול מגוון, מספר גדול, צ'יפ מגמה וספארקליין (רק מנתונים אמיתיים). */
 function StatCard(props: {
@@ -1729,6 +1797,7 @@ export type WidgetId =
   | 'carousel'
   | 'stats'
   | 'today'
+  | 'mytasks'
   | 'attention'
   | 'recent'
   | 'goldbook'
@@ -1880,6 +1949,16 @@ export const HOME_WIDGETS: Record<WidgetId, HomeWidget> = {
       (moduleOn(cfg, 'courses') || moduleOn(cfg, 'calendar') || moduleOn(cfg, 'families')),
     render: (ctx) => <TodayWidget ctx={ctx} />,
   },
+  mytasks: {
+    id: 'mytasks',
+    label: 'המשימות שלי',
+    icon: '🎯',
+    slot: 'half',
+    removable: true,
+    // WORKPREP (20.8): התור שהמנהל הכין — הרכיב עצמו נעלם כשאין משימות לזהות
+    visible: (cfg) => featureOn(cfg, 'home.mytasks'),
+    render: (ctx) => <MyTasksWidget ctx={ctx} />,
+  },
   attention: {
     id: 'attention',
     label: 'דורש טיפול',
@@ -2003,13 +2082,13 @@ export const THEME_LAYOUTS: Record<string, readonly WidgetId[]> = {
   /* אור ראשון — UX סבב-ג׳ (5.8): רזה כברירת-מחדל (6 במקום 10) — האנליטיקה
      (carousel/coursemetrics/credmetrics/community) נשארת בספרייה, הוספה בקליק
      דרך BoardEdit; פריסות-שמורות של לקוחות (db.ui.homeLayout) לא נגעות. */
-  'or-rishon': ['hero', 'stats', 'today', 'attention', 'suggest', 'recent'],
+  'or-rishon': ['hero', 'stats', 'mytasks', 'today', 'attention', 'suggest', 'recent'],
   /* היכל (mock-heichal) — "ערב גאלה": רצועת נתונים ושתי עמודות שקטות */
-  heichal: ['hero', 'stats', 'today', 'attention', 'suggest', 'goldbook', 'hebcal'],
+  heichal: ['hero', 'stats', 'mytasks', 'today', 'attention', 'suggest', 'goldbook', 'hebcal'],
   /* צֹהַר (mock-tsohar) — דשבורד תפעולי נקי: נתונים, היום 2:1 מול דורש טיפול */
-  tsohar: ['hero', 'stats', 'today', 'attention', 'suggest', 'recent'],
+  tsohar: ['hero', 'stats', 'mytasks', 'today', 'attention', 'suggest', 'recent'],
   /* קהילה (mock-kehila) — נתונים "נעוצים" ב-hero, באנר יום הולדת, ואז עמודות */
-  kehila: ['hero', 'stats', 'bdays', 'today', 'attention', 'suggest', 'community'],
+  kehila: ['hero', 'stats', 'bdays', 'mytasks', 'today', 'attention', 'suggest', 'community'],
 };
 
 /**
@@ -2028,15 +2107,15 @@ export interface ThemeBoardTemplate {
 
 export const THEME_TEMPLATES: Record<string, ThemeBoardTemplate> = {
   /* mock-desktop רזה (UX סבב-ג׳): ימין היום+אחרונות · שמאל דורש-טיפול+הצעות */
-  'or-rishon': { pre: ['stats'], colA: ['today', 'recent'], colB: ['attention', 'suggest'], post: [] },
+  'or-rishon': { pre: ['stats'], colA: ['mytasks', 'today', 'recent'], colB: ['attention', 'suggest'], post: [] },
   /* mock-heichal: ימין סדר היום+נר תמיד · שמאל ספר הזהב+הלוח העברי (1.3fr/1fr)
      תיקון-סחף (19.8): 'suggest' היה ב-THEME_LAYOUTS אך נשמט מהתבנית — הווידג'ט
      נעלם בתצוגת-התבנית של שלוש הערכות; הסדר השטוח הוחזר לזהות עם ה-preset. */
-  heichal: { pre: ['stats'], colA: ['today', 'attention', 'suggest'], colB: ['goldbook', 'hebcal'], post: [] },
+  heichal: { pre: ['stats'], colA: ['mytasks', 'today', 'attention', 'suggest'], colB: ['goldbook', 'hebcal'], post: [] },
   /* mock-tsohar: היום כטבלה רחבה (2fr) מול דורש טיפול (1fr) */
-  tsohar: { pre: ['stats'], colA: ['today'], colB: ['attention', 'suggest'], post: ['recent'] },
+  tsohar: { pre: ['stats'], colA: ['mytasks', 'today'], colB: ['attention', 'suggest'], post: ['recent'] },
   /* mock-kehila: ימין המפגשים של היום · שמאל שווה לטפל+הקהילה שלנו (1.3fr/1fr) */
-  kehila: { pre: ['stats', 'bdays'], colA: ['today'], colB: ['attention', 'suggest', 'community'], post: [] },
+  kehila: { pre: ['stats', 'bdays'], colA: ['mytasks', 'today'], colB: ['attention', 'suggest', 'community'], post: [] },
 };
 
 /** סדר ברירת המחדל הקלאסי (אור ראשון) — fallback לערכה לא מוכרת. */
@@ -2052,13 +2131,13 @@ export function defaultLayoutFor(theme: string): readonly WidgetId[] {
  *  ארגון כזה מקבל את הפריסה המלאה ההיסטורית, וכל ווידג'ט ממשיך להיגדר בדגל
  *  שלו (home.carousel/community/coursemetrics/credmetrics דרך visible(config)). */
 export const FULL_LAYOUTS: Record<string, readonly WidgetId[]> = {
-  'or-rishon': ['hero', 'stats', 'carousel', 'today', 'recent', 'attention', 'suggest', 'community', 'coursemetrics', 'credmetrics'],
+  'or-rishon': ['hero', 'stats', 'mytasks', 'carousel', 'today', 'recent', 'attention', 'suggest', 'community', 'coursemetrics', 'credmetrics'],
   /* תיקון (19.8): גם שלוש הערכות האחרות מקבלות פריסה-מלאה כש-home.board כבוי —
      קודם רק or-rishon כוסתה והשאר נפלו לפריסה הרזה (האנליטיקה אבדה בלי דרך להוסיף).
      כל ווידג'ט עדיין מגודר visible(config) — דגל כבוי פשוט מדולג. */
-  heichal: ['hero', 'stats', 'carousel', 'today', 'attention', 'suggest', 'goldbook', 'hebcal', 'community', 'coursemetrics', 'credmetrics'],
-  tsohar: ['hero', 'stats', 'carousel', 'today', 'attention', 'suggest', 'recent', 'community', 'coursemetrics', 'credmetrics'],
-  kehila: ['hero', 'stats', 'bdays', 'carousel', 'today', 'attention', 'suggest', 'community', 'coursemetrics', 'credmetrics'],
+  heichal: ['hero', 'stats', 'mytasks', 'carousel', 'today', 'attention', 'suggest', 'goldbook', 'hebcal', 'community', 'coursemetrics', 'credmetrics'],
+  tsohar: ['hero', 'stats', 'mytasks', 'carousel', 'today', 'attention', 'suggest', 'recent', 'community', 'coursemetrics', 'credmetrics'],
+  kehila: ['hero', 'stats', 'bdays', 'mytasks', 'carousel', 'today', 'attention', 'suggest', 'community', 'coursemetrics', 'credmetrics'],
 };
 export function noBoardLayoutFor(theme: string): readonly WidgetId[] {
   return FULL_LAYOUTS[theme] ?? defaultLayoutFor(theme);
@@ -2071,6 +2150,7 @@ export const WIDGET_LIBRARY: readonly WidgetId[] = [
   'digest',
   'carousel',
   'stats',
+  'mytasks',
   'today',
   'attention',
   'recent',
