@@ -95,20 +95,23 @@ export interface TzCareItem {
   hint: string;
 }
 
-/** רשימת הטיפול המשרדי — ממוינת לפי סוג (ישנות → אבודות → רכזים → מבצעים). */
-export function needsCare(db: Db, todayIso: IsoDate): TzCareItem[] {
+/** רשימת הטיפול המשרדי — ממוינת לפי סוג (ישנות → אבודות → רכזים → מבצעים).
+ *  config (רשות, swarm-audit): 'קופה' היה קשיח ועקף את termOf('entity.tzBox') —
+ *  דליפת-מונח בוורטיקלים; בלי config הנוסח ההיסטורי נשמר ביט-זהה. */
+export function needsCare(db: Db, todayIso: IsoDate, config?: OrgConfig): TzCareItem[] {
+  const boxTerm = config ? termOf(config, 'entity.tzBox', 'קופה') : 'קופה';
   const out: TzCareItem[] = [];
   for (const b of staleBoxes(db.tzBoxes, todayIso)) {
     const last = lastCollectionIso(b);
     out.push({
       kind: 'stale',
       id: b.id,
-      label: 'קופה ' + b.num + ' לא רוקנה מזמן',
+      label: boxTerm + ' ' + b.num + ' לא רוקנה מזמן',
       hint: last ? 'ריקון אחרון: ' + last : 'מעולם לא רוקנה (מאז ' + (b.since || '—') + ')',
     });
   }
   for (const b of db.tzBoxes.filter((x) => x.status === 'lost'))
-    out.push({ kind: 'lost', id: b.id, label: 'קופה ' + b.num + ' מסומנת כאבודה', hint: 'לברר או להוציא משימוש' });
+    out.push({ kind: 'lost', id: b.id, label: boxTerm + ' ' + b.num + ' מסומנת כאבודה', hint: 'לברר או להוציא משימוש' });
   for (const c of db.tzCoordinators.filter((x) => !x.active)) {
     const holding = coordinatorBoxes(db.tzBoxes, c.id).filter((b) => b.status === 'home').length;
     if (holding)

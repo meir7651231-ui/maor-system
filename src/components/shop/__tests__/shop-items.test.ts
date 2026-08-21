@@ -6,6 +6,8 @@
 import { describe, expect, it } from 'vitest';
 import { itemOf, itemRemaining } from '../lib';
 import { migrate } from '../../../store/persist';
+import itemsPanelSrc from '../ItemsPanel.tsx?raw';
+import productFormSrc from '../ProductForm.tsx?raw';
 import { diffDb, ENTITY_COLLECTIONS } from '../../../lib/cloud-diff';
 import { applyEntityPartial } from '../../../lib/cloud-merge';
 import {
@@ -105,5 +107,25 @@ describe('🛍 ratchet — חנות 17: פריטים עם מלאי משותף', 
       { id: 'shi7', data: { name: 'מרוחק', kind: 'gift', storeId: '', value: 10, basePrice: 5, active: true, notes: '' }, deleted: false },
     ]);
     expect(merged.shopItems.find((x) => x.id === 'shi7')?.name).toBe('מרוחק');
+  });
+});
+
+// ratchet (swarm-audit) — שני באגי-טפסים על אותם פריטים:
+// 1) ItemsPanel.save בנה רשומה מאפס ⇒ ה-upsert (שמחליף את הרשומה כולה) מחק
+//    בשקט שדות שאינם בטופס — שינוי-שם מחק את רשימת-ההמתנה (waits).
+// 2) ProductForm.removeComp הסיר רכיב גם כשיש עליו מימושים ⇒ המימושים יותמו:
+//    היחידות חזרו למלאי בשקט והשורות נעלמו מכרטיס-השיוך בלי אפשרות ביטול.
+describe('🛡 ratchet — שימור-שדות והגנת-מימושים בטפסי הפריטים (swarm-audit)', () => {
+  it('ItemsPanel.save בונה {...existing, ...הטופס} — עריכה לא מוחקת waits', () => {
+    expect(itemsPanelSrc).toMatch(/\.\.\.\(existing as ShopItem \| undefined\)/);
+    expect(itemsPanelSrc).toContain('upsertShopItem(saved)');
+    // שדות-הרשות שרוקנו בטופס עדיין נמחקים במפורש (ההתנהגות הקודמת נשמרת)
+    expect(itemsPanelSrc).toContain('delete saved.stock');
+    expect(itemsPanelSrc).toContain('delete saved.minStock');
+  });
+
+  it('ProductForm.removeComp חסום כשלרכיב יש מימושים (אין ייתום שקט)', () => {
+    expect(productFormSrc).toMatch(/a\.redemptions\.some\(\(r\) => r\.componentId === comp\.id\)/);
+    expect(productFormSrc).toContain('לרכיב יש מימושים רשומים');
   });
 });
