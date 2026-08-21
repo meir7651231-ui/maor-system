@@ -25,6 +25,8 @@ import {
   unitLabel,
 } from '../../lib/ayin';
 import { featureOn } from '../../lib/config';
+import { scheduleTasks } from '../../lib/projectSchedule';
+import { kitProgress, DEFAULT_KIT_LABELS } from '../../lib/installKit';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -52,6 +54,8 @@ export function AyinCard(props: { supporter: Supporter }) {
   const removeTime = useApp((s) => s.ayinRemoveTime);
   const addMat = useApp((s) => s.ayinAddMat);
   const removeMat = useApp((s) => s.ayinRemoveMat);
+  const setSchedule = useApp((s) => s.ayinSetNameSchedule);
+  const setKit = useApp((s) => s.ayinSetKit);
   const saveTpl = useApp((s) => s.saveQuoteTemplate);
   const applyTpl = useApp((s) => s.applyQuoteTemplate);
   const deleteTpl = useApp((s) => s.deleteQuoteTemplate);
@@ -69,6 +73,7 @@ export function AyinCard(props: { supporter: Supporter }) {
   const [mCost, setMCost] = useState('');
   const [tplName, setTplName] = useState('');
   const [tplSaving, setTplSaving] = useState(false);
+  const [kitIn, setKitIn] = useState('');
 
   const feat = featLabel(cfg);
   const item = itemLabel(cfg);
@@ -91,6 +96,11 @@ export function AyinCard(props: { supporter: Supporter }) {
   const matRows = a.mat || [];
   const totalCost = cost + matCost;
   const pnlOn = boqOn || timeOn || matOn;
+  // ורטיקל-הסטודיו (פריט 6): גאנט-תלויות + install-kit — מסחרי בלבד (§46 כבוי).
+  const ganttOn = featureOn(cfg, 'supporters.ayin.gantt') && !featureOn(cfg, 'core.taxreceipt');
+  const kitOn = featureOn(cfg, 'supporters.ayin.kit') && !featureOn(cfg, 'core.taxreceipt');
+  const schedule = ganttOn ? scheduleTasks(a.names) : { tasks: [], total: 0 };
+  const kit = kitProgress(a);
   const tpls = templatesRaw || []; // אין ?? בסלקטור zustand (React #185) — ברירת-מחדל כאן
   function doSaveTpl() {
     if (!tplName.trim()) return;
@@ -415,6 +425,88 @@ export function AyinCard(props: { supporter: Supporter }) {
               </span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* גאנט-תלויות (ורטיקל-הסטודיו) — משך+תלויות פר-שורה, ותצוגת-סרגלים */}
+      {ganttOn && a.names.length > 0 && (
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+            📅 גאנט הפרויקט{schedule.total > 0 ? ' · ' + schedule.total + ' ימים' : ''}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {a.names.map((n) => {
+              const t = schedule.tasks.find((x) => x.id === n.id);
+              const others = a.names.filter((o) => o.id !== n.id);
+              return (
+                <div key={n.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: '6px 8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ flex: 1, minWidth: 90, fontWeight: 600, fontSize: 12.5 }}>{n.name}{t?.critical ? <span title="נתיב-קריטי" style={{ color: '#b91c1c', marginInlineStart: 5 }}>◆</span> : null}</span>
+                    <label style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>ימים:
+                      <input value={n.days ?? ''} onChange={(e) => setSchedule(sp.id, n.id, +e.target.value || 0, n.deps || [])}
+                        dir="ltr" style={{ width: 44, marginInlineStart: 4, padding: '2px 4px', fontSize: 12 }} />
+                    </label>
+                    {others.length > 0 && (
+                      <select value="" onChange={(e) => { if (e.target.value) setSchedule(sp.id, n.id, n.days || 0, [...(n.deps || []), e.target.value]); }}
+                        title="הוסף תלות (אחרי…)" style={{ fontSize: 11.5, padding: '2px 4px', maxWidth: 130 }}>
+                        <option value="">+ אחרי…</option>
+                        {others.filter((o) => !(n.deps || []).includes(o.id)).map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+                      </select>
+                    )}
+                  </div>
+                  {(n.deps || []).length > 0 && (
+                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 4 }}>
+                      {(n.deps || []).map((d) => {
+                        const dn = a.names.find((x) => x.id === d);
+                        return dn ? (
+                          <button key={d} type="button" onClick={() => setSchedule(sp.id, n.id, n.days || 0, (n.deps || []).filter((x) => x !== d))}
+                            title="הסר תלות" style={{ fontSize: 11, padding: '1px 7px', borderRadius: 999, border: '1px solid var(--line)', background: 'var(--panel-2, #f7f2e8)', cursor: 'pointer' }}>
+                            אחרי {dn.name} ✕
+                          </button>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
+                  {t && schedule.total > 0 && (
+                    <div style={{ position: 'relative', height: 10, marginTop: 5, background: 'var(--line-soft, #efe8d9)', borderRadius: 5 }}>
+                      <div style={{ position: 'absolute', insetBlock: 0, insetInlineStart: (t.start / schedule.total) * 100 + '%', width: Math.max(3, (t.days / schedule.total) * 100) + '%', background: t.critical ? '#d1495b' : 'var(--accent, #a05008)', borderRadius: 5 }} title={'יום ' + t.start + '–' + t.end} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* install-kit — צ'ק-ליסט מסירה (ורטיקל-הסטודיו) */}
+      {kitOn && (
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            📦 ערכת-מסירה ({kit.done}/{kit.total}){kit.ready ? <span style={{ color: '#12803c', fontSize: 12 }}>✓ מוכן למסירה</span> : null}
+          </div>
+          {kit.total > 0 && (
+            <div style={{ height: 6, background: 'var(--line-soft, #efe8d9)', borderRadius: 4, marginBottom: 8 }}>
+              <div style={{ height: '100%', width: kit.pct + '%', background: kit.ready ? '#12803c' : 'var(--accent, #a05008)', borderRadius: 4 }} />
+            </div>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {(a.kit || []).map((k, i) => (
+              <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, padding: '3px 8px', border: '1px solid var(--line)', borderRadius: 6, cursor: 'pointer' }}>
+                <input type="checkbox" checked={k.done} onChange={() => setKit(sp.id, (a.kit || []).map((x, j) => (j === i ? { ...x, done: !x.done } : x)))} />
+                <span style={{ flex: 1, textDecoration: k.done ? 'line-through' : 'none', color: k.done ? 'var(--ink-faint)' : 'inherit' }}>{k.label}</span>
+                <button onClick={(e) => { e.preventDefault(); setKit(sp.id, (a.kit || []).filter((_, j) => j !== i)); }} title="הסרה" style={{ color: 'var(--ink-faint)', fontWeight: 800, background: 'none', border: 'none', cursor: 'pointer' }}>🗑</button>
+              </label>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+            <input value={kitIn} onChange={(e) => setKitIn(e.target.value)} placeholder="פריט-מסירה חדש…" style={{ flex: 1, minWidth: 130, padding: '4px 6px', fontSize: 12 }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && kitIn.trim()) { setKit(sp.id, [...(a.kit || []), { label: kitIn.trim(), done: false }]); setKitIn(''); } }} />
+            <Btn sm onClick={() => { if (kitIn.trim()) { setKit(sp.id, [...(a.kit || []), { label: kitIn.trim(), done: false }]); setKitIn(''); } }}>+ הוספה</Btn>
+            {(a.kit || []).length === 0 && (
+              <Btn sm onClick={() => setKit(sp.id, DEFAULT_KIT_LABELS.map((label) => ({ label, done: false })))} title="טעינת ערכת-ברירת-מחדל">⚡ ערכה מומלצת</Btn>
+            )}
+          </div>
         </div>
       )}
 
