@@ -69,12 +69,14 @@ jobs:
             sheets)     F="functions:sheetsNightly" ;;
             everything) F="functions" ;;
             status)     F="__status__" ;;
+            logs)       F="__logs__" ;;
+            indexes)    F="__indexes__" ;;
             *) echo "::error::יעד לא מוכר"; exit 1 ;;
           esac
           echo "flist=$F" >> "$GITHUB_OUTPUT"
 
       - name: פריסה
-        if: ${{ steps.t.outputs.flist != '__status__' }}
+        if: ${{ steps.t.outputs.flist != '__status__' && steps.t.outputs.flist != '__logs__' && steps.t.outputs.flist != '__indexes__' }}
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: npx firebase-tools@13 deploy --project maor-system --only "${{ steps.t.outputs.flist }}" --non-interactive
@@ -97,6 +99,25 @@ jobs:
               echo "❌ $s: חסר"
             fi
           done
+
+      # דוח-לוגים: האם המתוזמנות (גיבוי/תקציר/מייל) רצו באמת — בלי לפרוס כלום.
+      - name: דוח לוגים
+        if: ${{ steps.t.outputs.flist == '__logs__' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          for fn in backupNightly remindersNightly mailOutbox; do
+            echo "═══ $fn ═══"
+            npx firebase-tools@13 functions:log --project maor-system --only "$fn" -n 25 --non-interactive || true
+          done
+
+      # פריסת אינדקסי-Firestore (firestore.indexes.json) — למשל האינדקס
+      # ש-mailOutbox דורש לשאילתת-collectionGroup על status (ממצא-לוגים 21.8).
+      - name: פריסת אינדקסים
+        if: ${{ steps.t.outputs.flist == '__indexes__' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: npx firebase-tools@13 deploy --project maor-system --only firestore:indexes --non-interactive
 
       - name: אימות (stage1)
         if: ${{ github.event.inputs.target == 'stage1' || github.ref_name == 'deploy-fn/stage1' }}
