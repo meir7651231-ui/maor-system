@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
 import { Btn } from '../ui';
+import { isoToday } from './lib';
 import { donorConstellation, type ConstellationNode, type TierKey } from './constellation';
 
 const TIER_COLOR: Record<TierKey, string> = {
@@ -33,7 +34,7 @@ export function SupportersGalaxy(props: {
   const [offsetDays, setOffsetDays] = useState(0);
   // סינון-דרגה מהמקרא — קליק על דרגה מצמצם את רשימת-הנתונים לאותה דרגה.
   const [tierHi, setTierHi] = useState<TierKey | null>(null);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = isoToday();
   const rate = props.usdRate || 3.7;
 
   const nodes = useMemo(
@@ -136,8 +137,11 @@ export function SupportersGalaxy(props: {
       hoverRef.current = { mx: e.clientX - r.left, my: e.clientY - r.top };
     };
     const onLeave = () => { hoverRef.current = { mx: -9e9, my: -9e9 }; };
-    const onClick = () => {
-      const { mx, my } = hoverRef.current;
+    // מיקום-ה-hit-test מקואורדינטות אירוע-הלחיצה עצמו (לא hoverRef) — במגע אין
+    // hover ו-pointerleave מאפס את הרפרנס לפני click, אחרת הקשה לא פותחת כרטיס.
+    const onClick = (e: MouseEvent) => {
+      const r = cv.getBoundingClientRect();
+      const mx = e.clientX - r.left, my = e.clientY - r.top;
       let best: string | null = null, bd = 18;
       for (const p of posRef.current) { const d = Math.hypot(p.x - mx, p.y - my); if (d < bd + p.r) { bd = d; best = p.id; } }
       if (best) props.onOpen(best);

@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
 import { Btn } from '../ui';
-import { supTier } from './lib';
+import { isoToday, supTier } from './lib';
 import { donorIntel, type DonorIntel } from './intel';
 import { activeByMonth, portfolioIntel, tierTrendCounts } from './portfolio';
 import { timeMachine, type TimeMachine } from './timemachine';
@@ -504,7 +504,7 @@ export function SupportersIntel(props: {
 }) {
   const [sort, setSort] = useState<SortKey>('score');
   const [selId, setSelId] = useState<string | null>(null);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = isoToday();
   const rate = props.usdRate || 3.7;
 
   // מעבר-יחיד לתורם, memoized — הבסיס לכל הטבלה והתיק.

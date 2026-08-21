@@ -7,7 +7,7 @@ import { useMemo } from 'react';
 import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
 import { featureOn } from '../../lib/config';
-import { hokDue, hokMonthlyTotal, supTier } from './lib';
+import { hokDue, hokMonthlyTotal, isoToday, supTier } from './lib';
 import { cockpitCollectedThisMonth } from './cockpit';
 import { portfolioIntel } from './portfolio';
 
@@ -35,7 +35,7 @@ export function SupportersKpiStrip(props: {
   /** קליק על אריח-הסיכון → סינון הטבלה לרשימת-הבסיכון. */
   onRisk?: () => void;
 }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = isoToday();
   const rate = props.usdRate || 3.7;
   const hokOn = featureOn(props.config, 'supporters.hok');
 
