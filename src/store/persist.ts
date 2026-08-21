@@ -238,6 +238,8 @@ export function migrate(raw: unknown): Db | null {
     deliveries: Array.isArray(db.deliveries) ? db.deliveries : [],
     // WORKPREP (20.8): משימות-עבודה — אדיטיבי (גיבוי/ענן ישן = מערך ריק)
     tasks: Array.isArray(db.tasks) ? db.tasks : [],
+    // ורטיקל-הסטודיו: מלאי-מחסן — אדיטיבי (גיבוי/ענן ישן = מערך ריק)
+    warehouse: Array.isArray(db.warehouse) ? db.warehouse : [],
     notif: { ...base.notif, ...db.notif },
     reports: { ...base.reports, ...db.reports },
     ui: { ...base.ui, ...db.ui },

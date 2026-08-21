@@ -31,6 +31,7 @@ export const ENTITY_COLLECTIONS = [
   'distributionDays',
   'deliveries',
   'tasks',
+  'warehouse',
 ] as const;
 
 export type EntityCol = (typeof ENTITY_COLLECTIONS)[number];

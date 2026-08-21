@@ -490,6 +490,9 @@ interface AppState {
   ayinSetNameSchedule: (id: string, nameId: string, days: number, deps: string[]) => void;
   /** install-kit (ורטיקל-סטודיו): החלפת צ'ק-ליסט-המסירה של הפרויקט. */
   ayinSetKit: (id: string, kit: { label: string; done: boolean }[]) => void;
+  /** מלאי-מחסן (ורטיקל-סטודיו): הוספה/עדכון + מחיקה של פריט-מלאי. */
+  upsertWarehouseItem: (item: { id?: string; name: string; unit: string; qty: number; cost: number }) => void;
+  deleteWarehouseItem: (id: string) => void;
   saveQuoteTemplate: (id: string, name: string) => void;
   applyQuoteTemplate: (id: string, templateId: string) => void;
   deleteQuoteTemplate: (templateId: string) => void;
@@ -2775,6 +2778,16 @@ export const useApp = create<AppState>()((set, get) => {
       if (!c) return;
       const clean = kit.map((k) => ({ label: (k.label || '').trim(), done: !!k.done })).filter((k) => k.label);
       setAyin(id, { kit: clean });
+    },
+    upsertWarehouseItem(item) {
+      const name = (item.name || '').trim();
+      if (!name) { get().toast('הזינו שם-פריט'); return; }
+      const id = item.id || get().nextId('wh');
+      const clean = { id, name, unit: (item.unit || '').trim(), qty: +item.qty || 0, cost: +item.cost || 0 };
+      setDb((db) => ({ warehouse: upsertIn(db.warehouse, clean) }));
+    },
+    deleteWarehouseItem(id) {
+      setDb((db) => ({ warehouse: db.warehouse.filter((w) => w.id !== id) }));
     },
     saveQuoteTemplate(id, name) {
       const c = curAyin(id);
