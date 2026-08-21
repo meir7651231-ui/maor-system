@@ -45,9 +45,12 @@ export function ReportTable(props: { head: string[]; rows: Row[]; foot?: Cell[] 
   const [sort, setSort] = useState<{ i: number; dir: 1 | -1 } | null>(null);
   const [filterOn, setFilterOn] = useState(false);
   const [filters, setFilters] = useState<Record<number, string>>({});
-  const colfilterOn = featureOn(useApp.getState().config, 'reports.colfilter');
-  const sortOn = featureOn(useApp.getState().config, 'reports.sort');
-  const drilldownOn = featureOn(useApp.getState().config, 'reports.drilldown');
+  // מנוי חי ל-config (לא getState() ברנדר — קריאה חד-פעמית בלי subscription גרמה
+  // לכך שהחלפת-דגלים חיה לא השפיעה עד רענון). config = רפרנס יציב שמתחלף בעדכון.
+  const config = useApp((s) => s.config);
+  const colfilterOn = featureOn(config, 'reports.colfilter');
+  const sortOn = featureOn(config, 'reports.sort');
+  const drilldownOn = featureOn(config, 'reports.drilldown');
 
   if (!props.rows.length) return <div className="empty">אין נתונים להצגה</div>;
 
@@ -197,7 +200,8 @@ export function Section(props: {
   extra?: ReactNode;
   children: ReactNode;
 }) {
-  const csvOn = featureOn(useApp.getState().config, 'reports.csv');
+  // מנוי חי (כמו ב-ReportTable) — getState() ברנדר לא מתעדכן בהחלפת-דגלים חיה
+  const csvOn = featureOn(useApp((s) => s.config), 'reports.csv');
   return (
     <section className={'card' + (props.hidden ? ' no-print' : '')} style={{ marginTop: 16 }}>
       <div

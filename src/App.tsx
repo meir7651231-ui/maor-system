@@ -374,7 +374,10 @@ export default function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [setPalette]);
+    // config בתלויות: דחיפת-קונפיג חיה מהענן (למשל כיבוי shell.palette) חייבת
+    // להגיע גם לקיצור — בלי זה ה-listener נשאר עם config ישן (closure). עלות
+    // ה-re-subscribe זניחה (מאזין יחיד, רק כשה-config מתחלף).
+  }, [config, setPalette]);
 
   // גיבוי סוף-יום: פעם ביום, אחרי שעת הסיום שנקבעה בפתיחת היום
   // (localStorage 'maor_dayend', ברירת מחדל 17:00), יורד קובץ גיבוי אוטומטית
