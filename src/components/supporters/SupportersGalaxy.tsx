@@ -139,8 +139,11 @@ export function SupportersGalaxy(props: {
       hoverRef.current = { mx: e.clientX - r.left, my: e.clientY - r.top };
     };
     const onLeave = () => { hoverRef.current = { mx: -9e9, my: -9e9 }; };
-    const onClick = () => {
-      const { mx, my } = hoverRef.current;
+    // מיקום-ה-hit-test מקואורדינטות אירוע-הלחיצה עצמו (לא hoverRef) — במגע אין
+    // hover ו-pointerleave מאפס את הרפרנס לפני click, אחרת הקשה לא פותחת כרטיס.
+    const onClick = (e: MouseEvent) => {
+      const r = cv.getBoundingClientRect();
+      const mx = e.clientX - r.left, my = e.clientY - r.top;
       let best: string | null = null, bd = 18;
       for (const p of posRef.current) { const d = Math.hypot(p.x - mx, p.y - my); if (d < bd + p.r) { bd = d; best = p.id; } }
       if (best) props.onOpen(best);

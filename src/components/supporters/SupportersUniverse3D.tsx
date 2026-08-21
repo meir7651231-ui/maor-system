@@ -42,8 +42,8 @@ export function SupportersUniverse3D(props: {
   const hoverRef = useRef<{ mx: number; my: number }>({ mx: -9e9, my: -9e9 });
   const posRef = useRef<{ id: string; x: number; y: number; r: number; node: UniverseNode }[]>([]);
   // מצב-הסיבוב — יציב בין רינדורים, נשלט בגרירה.
-  const rotRef = useRef<{ yaw: number; pitch: number; drag: boolean; px: number; py: number; auto: boolean }>({
-    yaw: 0.5, pitch: 0.35, drag: false, px: 0, py: 0, auto: true,
+  const rotRef = useRef<{ yaw: number; pitch: number; drag: boolean; px: number; py: number; downX: number; downY: number; auto: boolean }>({
+    yaw: 0.5, pitch: 0.35, drag: false, px: 0, py: 0, downX: 0, downY: 0, auto: true,
   });
 
   useEffect(() => {
@@ -74,7 +74,8 @@ export function SupportersUniverse3D(props: {
 
     let t = 0;
     const frame = () => {
-      t++;
+      // מכבד prefers-reduced-motion: הקפאת-המונה עוצרת גם את פעימת-הסיכון (כמו הגלקסיה).
+      t += reduce ? 0 : 1;
       const R = rotRef.current;
       if (R.auto && !R.drag && !reduce) R.yaw += 0.0035;
       ctx.clearRect(0, 0, W, H);
@@ -128,14 +129,19 @@ export function SupportersUniverse3D(props: {
       }
     };
     const onDown = (e: PointerEvent) => {
-      const R = rotRef.current; R.drag = true; R.px = e.clientX; R.py = e.clientY;
+      const R = rotRef.current; R.drag = true; R.px = e.clientX; R.py = e.clientY; R.downX = e.clientX; R.downY = e.clientY;
       hoverRef.current.mx = -9e9; // מדכא hover בזמן גרירה
     };
     const onUp = () => { rotRef.current.drag = false; };
     const onLeave = () => { hoverRef.current = { mx: -9e9, my: -9e9 }; rotRef.current.drag = false; };
-    const onClick = () => {
-      if (rotRef.current.drag) return;
-      const { mx, my } = hoverRef.current;
+    // מיקום-ה-hit-test מקואורדינטות אירוע-הלחיצה עצמו (לא hoverRef) — תמיכת-מגע.
+    // אבחנת גרירה-מול-קליק לפי מרחק-מהנקודת-לחיצה (pointerup מאפס drag לפני click,
+    // לכן הבדיקה על תזוזה ולא על הדגל) — שחרור-גרירה לא פותח כרטיס.
+    const onClick = (e: MouseEvent) => {
+      const R = rotRef.current;
+      if (Math.hypot(e.clientX - R.downX, e.clientY - R.downY) > 6) return;
+      const r = cv.getBoundingClientRect();
+      const mx = e.clientX - r.left, my = e.clientY - r.top;
       let best: string | null = null, bd = 18;
       for (const p of posRef.current) { const d = Math.hypot(p.x - mx, p.y - my); if (d < bd + p.r) { bd = d; best = p.id; } }
       if (best) props.onOpen(best);
