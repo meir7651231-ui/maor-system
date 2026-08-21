@@ -393,6 +393,19 @@ export interface AyinName {
   rate?: number;
   /** הערת-טקסט חופשית ליד המונה (בקשת-בעלים 19.8) — אופציונלי, additive, אין מיגרציה. */
   note?: string;
+  /**
+   * תזמון-משימה לגאנט-התלויות (ורטיקל מסחרי): משך בימים + מזהי-שורות-קודמות
+   * (תלויות "אחרי"). additive, אופציונלי, אין מיגרציה; מגודר supporters.ayin.gantt.
+   * חסר ⇒ המשימה לא-מתוזמנת (לא מוצגת בגאנט). בעמותה נשאר undefined.
+   */
+  days?: number;
+  deps?: Id[];
+}
+
+/** פריט ערכת-התקנה/מסירה (install-kit) על פרויקט — צ'ק-ליסט מסירה. additive. */
+export interface KitItem {
+  label: string;
+  done: boolean;
 }
 
 /** תשובה/הערה מתוארכת בתהליך הטיפול. */
@@ -452,6 +465,8 @@ export interface AyinCase {
   time?: TimeEntry[];
   /** חומרים/רכש של הפרויקט — additive, ורטיקל מסחרי; undefined בתיקים ישנים. */
   mat?: MatEntry[];
+  /** ערכת-התקנה/מסירה (install-kit) — צ'ק-ליסט מסירה; additive, ורטיקל מסחרי. */
+  kit?: KitItem[];
   /**
    * מזהי אירועי-הלוח שנוצרו במעברי-השלב, לפי שלב-המקור של המעבר
    * ('new'/'lead'/'eyes'/'answer') + 'answerPush' (מעבר הדחיפה). מאפשר ל-revert

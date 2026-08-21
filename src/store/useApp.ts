@@ -486,6 +486,10 @@ interface AppState {
   ayinRemoveTime: (id: string, index: number) => void;
   ayinAddMat: (id: string, entry: { name: string; qty: number; cost: number }) => void;
   ayinRemoveMat: (id: string, index: number) => void;
+  /** גאנט-תלויות (ורטיקל-סטודיו): משך-משימה (ימים) + תלויות (מזהי-שורות) על שורת-פרויקט. */
+  ayinSetNameSchedule: (id: string, nameId: string, days: number, deps: string[]) => void;
+  /** install-kit (ורטיקל-סטודיו): החלפת צ'ק-ליסט-המסירה של הפרויקט. */
+  ayinSetKit: (id: string, kit: { label: string; done: boolean }[]) => void;
   saveQuoteTemplate: (id: string, name: string) => void;
   applyQuoteTemplate: (id: string, templateId: string) => void;
   deleteQuoteTemplate: (templateId: string) => void;
@@ -2755,6 +2759,22 @@ export const useApp = create<AppState>()((set, get) => {
       const c = curAyin(id);
       if (!c) return;
       setAyin(id, { mat: (c.a.mat || []).filter((_, i) => i !== index) });
+    },
+    ayinSetNameSchedule(id, nameId, days, deps) {
+      const c = curAyin(id);
+      if (!c) return;
+      const d = Math.max(0, Math.round(+days || 0));
+      const cleanDeps = [...new Set(deps.filter((x) => x && x !== nameId))];
+      const names = c.a.names.map((n) =>
+        n.id === nameId ? { ...n, days: d > 0 ? d : undefined, deps: cleanDeps.length ? cleanDeps : undefined } : n,
+      );
+      setAyin(id, { names });
+    },
+    ayinSetKit(id, kit) {
+      const c = curAyin(id);
+      if (!c) return;
+      const clean = kit.map((k) => ({ label: (k.label || '').trim(), done: !!k.done })).filter((k) => k.label);
+      setAyin(id, { kit: clean });
     },
     saveQuoteTemplate(id, name) {
       const c = curAyin(id);
