@@ -16,7 +16,7 @@ export function moduleOn(cfg: OrgConfig, m: ModuleKey): boolean {
   return cfg.modules[m] !== false;
 }
 
-/** שמונת מודולי הניווט הניתנים לכיבוי — קידומות של פיצ'רים שכפופות לטוגל מודול. */
+/** תשעת מודולי הניווט הניתנים לכיבוי — קידומות של פיצ'רים שכפופות לטוגל מודול. */
 const NAV_MODULE_KEYS: readonly ModuleKey[] = [
   'families',
   'courses',

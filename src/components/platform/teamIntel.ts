@@ -55,13 +55,25 @@ function withinDays(iso: string, todayIso: string, days: number): boolean {
   return diff >= 0 && diff < days;
 }
 
-/** נרמול-מייל להשוואה (הלוג כותב את המייל המחובר כמו-שהוא). */
-const norm = (e: string): string => e.trim().toLowerCase();
+/** נרמול-מייל להשוואה (הלוג כותב את המייל המחובר כמו-שהוא).
+ *  תיקון 21.8 (ממצא-נחיל): מקבל unknown — רשומת-לוג ממוזגת-ענן בלי `who`
+ *  (cloud-merge מציב meta.audit בלי ולידציה) הפילה את norm ב-TypeError
+ *  והלבינה את כל פאנל-המנהל. */
+const norm = (e: unknown): string => String(e ?? '').trim().toLowerCase();
+
+/** סינון-מגן על לוג שהגיע מהענן: רק אובייקטים עם חותמת-`at` מחרוזתית נספרים
+ *  (בלעדיה חישובי-הימים היו קורסים). רשומה עקומה מדולגת — לא מפילה מסך. */
+function safeAudit(audit: unknown): AuditEntry[] {
+  if (!Array.isArray(audit)) return [];
+  return audit.filter(
+    (a): a is AuditEntry => !!a && typeof a === 'object' && typeof (a as { at?: unknown }).at === 'string',
+  );
+}
 
 /** מודיעין לעובד/ת אחת — סריקה אחת על הלוג. */
 export function workerIntel(audit: AuditEntry[], email: string, todayIso: string): WorkerIntel {
   const me = norm(email);
-  const mine = audit.filter((a) => norm(a.who) === me);
+  const mine = safeAudit(audit).filter((a) => norm((a as { who?: unknown }).who) === me);
   const byActMap: Record<string, number> = {};
   const days = new Set<string>();
   const hours: number[] = Array.from({ length: 24 }, () => 0);
@@ -108,14 +120,15 @@ export function workerIntel(audit: AuditEntry[], email: string, todayIso: string
 
 /** מודיעין-צוות: כרטיס לכל מייל, ממוין לפי פעילות-השבוע (ואז סך-הכול). */
 export function teamIntel(audit: AuditEntry[], emails: string[], todayIso: string): WorkerIntel[] {
-  const uniq = [...new Set(emails.map((e) => e.trim()).filter(Boolean))];
+  const uniq = [...new Set((Array.isArray(emails) ? emails : []).map((e) => String(e ?? '').trim()).filter(Boolean))];
   return uniq
-    .map((e) => workerIntel(audit, e, todayIso))
+    .map((e) => workerIntel(safeAudit(audit), e, todayIso))
     .sort((a, b) => b.last7 - a.last7 || b.actions - a.actions || a.email.localeCompare(b.email));
 }
 
 /** שורת-סיכום לצוות: סך-פעולות-השבוע + המובילה + כמה פעילים היום. */
 export function teamSummary(list: WorkerIntel[]): { week: number; activeToday: number; top: string } {
+  if (!Array.isArray(list)) return { week: 0, activeToday: 0, top: '' }; // מגן-קלט (21.8)
   const week = list.reduce((t, w) => t + w.last7, 0);
   const activeToday = list.filter((w) => w.today > 0).length;
   const top = list.find((w) => w.last7 > 0)?.email ?? '';

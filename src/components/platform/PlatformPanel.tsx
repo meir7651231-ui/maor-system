@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { normalizeConfig } from '../../lib/config';
+import { featureEffectiveOn } from '../builder/sections';
 import { FEATURES, TERM_DEFS } from '../../types/features';
 import type { OrgConfig } from '../../types/config';
 import { THEME_LABELS } from '../builder/handoff';
@@ -15,7 +16,7 @@ import { VERTICAL_PACKS, applyVerticalPack } from '../../lib/verticalPacks';
 import { industryLabel, needLabel, sizeLabel } from '../../lib/signupWizard';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
-import { ALL_MODULES, MODULE_LABELS, allOffConfig, approveMember, isValidSlug, orgLink, slugify } from './lib';
+import { ALL_MODULES, MODULE_LABELS, allOffConfig, isValidSlug, orgLink, slugify } from './lib';
 
 type CloudMod = typeof import('../../store/cloudSync');
 interface ReqRow {
@@ -181,12 +182,13 @@ export function PlatformPanel(props: { onClose: () => void }) {
     await refresh(mod);
   }
 
-  /** אישור עובד/ת מהלוח (ORGADMIN) — אותה פעולה כמו פאנל-המנהל: members+מחיקת-הבקשה. */
+  /** אישור עובד/ת מהלוח (ORGADMIN) — אותה פעולה כמו פאנל-המנהל: members+מחיקת-הבקשה.
+   *  תיקון 21.8 (ממצא-נחיל): addOrgMember (arrayUnion אטומי) במקום דריסת המערך המלא
+   *  מ-state אולי-ישן — אישור-מקביל אצל המנהל לא נמחק עוד בשקט. */
   async function approveJoin(r: JoinReqRow) {
     if (!mod || !r.email) return;
-    const org = orgs.find((o) => o.slug === r.slug);
-    const { members } = approveMember({ members: org?.members ?? [] }, r.email);
-    await mod.writeOrgCloudDoc(r.slug, { members });
+    const { addOrgMember } = await import('../../lib/cloudConfig');
+    await addOrgMember(r.slug, r.email);
     await mod.deleteOrgJoinRequest(r.slug, r.uid).catch(() => {});
     toast('העובד/ת ' + r.email + ' אושר/ה לארגון ' + (r.orgName || r.slug) + ' — שיתחברו שוב');
     await refresh(mod);
@@ -434,10 +436,19 @@ export function PlatformPanel(props: { onClose: () => void }) {
                   {FEATURES.filter((f) => f.module === featModule).map((f) => (
                     <Chip
                       key={f.key}
-                      on={cfg.features?.[f.key] !== false}
-                      onClick={() =>
-                        updateCfg({ ...cfg, features: { ...cfg.features, [f.key]: cfg.features?.[f.key] === false } })
-                      }
+                      // תיקון 21.8 (ממצא-נחיל): הצ'יפ קרא `!== false` — לכל 13 דגלי-ה-opt-in
+                      // (חסר=כבוי!) הוא היה הפוך: ארגון-חדש all-off הציג 🟢 על מסך כבוי,
+                      // ולחיצת-"הדלקה" כתבה ערך שאינו true ⇒ בלתי-ניתן-להדלקה מהלוח.
+                      on={featureEffectiveOn(cfg, f)}
+                      onClick={() => {
+                        // שיקוף setFeatures של האשף: כיבוי=false מפורש; הדלקה —
+                        // opt-in כותב true מפורש, דגל-רגיל מוחק את המפתח (חסר=פעיל).
+                        const features = { ...cfg.features };
+                        if (featureEffectiveOn(cfg, f)) features[f.key] = false;
+                        else if (f.optIn) features[f.key] = true;
+                        else delete features[f.key];
+                        updateCfg({ ...cfg, features });
+                      }}
                     >
                       {f.label}
                     </Chip>
