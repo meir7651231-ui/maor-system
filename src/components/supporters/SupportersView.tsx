@@ -67,6 +67,7 @@ import { AyinNamesBoard } from './AyinNamesBoard';
 import { OrgDonationCalendar } from './DonationCalendar';
 import { SupporterImport } from './SupporterImport';
 import { SupDedupModal } from './SupDedupModal';
+import { HokBulkModal } from './HokBulkModal';
 import { findSupporterDupGroups } from '../../lib/dedup';
 import { CustomExport } from '../reports/CustomExport';
 
@@ -217,6 +218,9 @@ export function SupportersView() {
   const [ayinNamesOpen, setAyinNamesOpen] = useState(false);
   // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש
   const hokOn = featureOn(config, 'supporters.hok');
+  // opt-in מפורש (=== true, לא featureOn) — יוצר קבלות-מס, חייב הפעלה מכוונת.
+  const hokBulkOn = config.features?.['supporters.hokbulk'] === true;
+  const [hokBulkOpen, setHokBulkOpen] = useState(false);
   const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
   // סינון-סגמנט מהקוקפיט/הבנדים — קליק על סגמנט מסנן את הטבלה (לא רק פותח מסך ריק).
   // אתחול-עצל: אם הבית ביקש נחיתה-על-סגמנט (התראת-סיכון) — נכנסים כבר מסונן.
@@ -910,6 +914,13 @@ export function SupportersView() {
               <Chip on={hokF === 'due'} onClick={() => setHokF(hokF === 'due' ? null : 'due')}>
                 {'⏳ טרם נרשמו החודש · ' + hokDue(db.supporters, today).length}
               </Chip>
+              {/* לחיצה-אחת-שמבצעת (הכרעת-בעלים "בחירה ידנית מרשימה") — רישום-הו״ק
+                  המוני, מגודר opt-in מפורש כי יוצר קבלות-מס אמיתיות. */}
+              {hokBulkOn && hokDue(db.supporters, today).length > 0 && (
+                <Btn sm kind="primary" title="רישום חיוב-החודש למספר תורמים בבת-אחת — קבלות בסדרה הרציפה" onClick={() => setHokBulkOpen(true)}>
+                  {'🔁 רישום המוני · ' + hokDue(db.supporters, today).length}
+                </Btn>
+              )}
             </>
           )}
           {/* זיהוי-רטרואקטיבי מהיסטוריית-נדרים — פעולה מקומית, בלי שער-ענן */}
@@ -1190,6 +1201,7 @@ export function SupportersView() {
       )}
 
       {dedupOpen && <SupDedupModal onClose={() => setDedupOpen(false)} />}
+      {hokBulkOpen && <HokBulkModal config={config} onClose={() => setHokBulkOpen(false)} />}
       {/* 📋 מסך-השמות המלא (20.8) — הרשימה פר-שם מכל הכרטיסים; שורה ⇒ כרטיס */}
       {ayinNamesOpen && (
         <AyinNamesBoard
