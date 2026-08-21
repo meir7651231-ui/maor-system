@@ -37,4 +37,15 @@ describe('🛡 ratchet — ביקורת-איכות הנחיל (21.8)', () => {
       expect(src).toMatch(/const mx = e\.clientX - r\.left, my = e\.clientY - r\.top;/);
     }
   });
+
+  it('יקום-3D: שחרור-גרירה לא פותח כרטיס (אבחנה לפי מרחק, לא דגל-drag המת)', () => {
+    // הבאג: pointerup מאפס drag לפני click ⇒ המגן `if(drag) return` מת.
+    expect(uniSrc).toContain('Math.hypot(e.clientX - R.downX, e.clientY - R.downY) > 6');
+    expect(uniSrc).not.toContain('if (rotRef.current.drag) return;');
+  });
+
+  it('יקום-3D: פעימת-הסיכון קופאת ב-prefers-reduced-motion (t מגודר כמו הגלקסיה)', () => {
+    expect(uniSrc).toContain('t += reduce ? 0 : 1;');
+    expect(uniSrc).not.toMatch(/^\s*t\+\+;/m);
+  });
 });
