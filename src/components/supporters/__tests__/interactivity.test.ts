@@ -8,6 +8,7 @@ import cockpitSrc from '../SupportersCockpit.tsx?raw';
 import galaxySrc from '../SupportersGalaxy.tsx?raw';
 import cardSrc from '../SupporterCard.tsx?raw';
 import intelSrc from '../SupportersIntel.tsx?raw';
+import dialerSrc from '../../dialer/DialerModal.tsx?raw';
 
 describe('💛 ratchet — אינטראקטיביות המסכים החדשים', () => {
   it('🛡 סגמנטי-הקוקפיט מסננים באמת (onSegment→segF), לא רק onExit זהה', () => {
@@ -49,13 +50,36 @@ describe('💛 ratchet — אינטראקטיביות המסכים החדשים'
     expect(intelSrc).toContain("props.onMonth!(m.month)");
     expect(intelSrc).toContain("props.onYear!(c.year)");
     // מסך-הנתונים מקבל את הדריל-אין ומסנן
-    expect(viewSrc).toContain('supGaveInMonth(sp, monthF)');
+    expect(viewSrc).toContain('supGaveInPeriod(sp, gaveYearF, monthF)');
     expect(viewSrc).toContain('supAcqYear(sp) !== acqYearF');
+  });
+
+  it('🛡 חיפוש-מפורש לפי שנה/חודש/קטגוריה — בוררים גלויים + מנוע-תקופה', () => {
+    // בוררי-שנה+חודש גלויים בשורת-החיפוש (לא רק דריל-אין)
+    expect(viewSrc).toContain('setGaveYearF(v === \'all\' ? null : +v)');
+    expect(viewSrc).toContain('setMonthF(v === \'all\' ? null : +v)');
+    expect(viewSrc).toContain('כל השנים');
+    expect(viewSrc).toContain('כל החודשים');
+    // מנוע-התקופה: שנה+חודש משולבים, צ׳יפ-יחיד מנקה שניהם
+    expect(viewSrc).toContain('supGaveInPeriod(sp, gaveYearF, monthF)');
+    expect(viewSrc).toContain('setMonthF(null); setGaveYearF(null);');
   });
 
   it('🛡 מקרא-הגלקסיה מסנן דרגה + הפוטר האינרטי הפך לכפתור', () => {
     expect(galaxySrc).toContain('setTierHi(tierHi === k ? null : k)');
     expect(galaxySrc).toContain('n.tier === tierHi');
     expect(intelSrc).toContain('למסך-הנתונים המלא ↗');
+  });
+
+  it('🛡 חייגן מחווט למודיעין (קוקפיט→חייגן) + אזהרת-שעה לפי קידומת', () => {
+    // קוקפיט: כפתור חייגן על תור-השיחות
+    expect(cockpitSrc).toContain("t.kind === 'call' && t.phone");
+    expect(cockpitSrc).toContain('props.onDial!(callIds)');
+    // View: מפעיל את החייגן (מגודר telephony)
+    expect(viewSrc).toContain('onDial={telephonyOn(config)');
+    // חייגן: אזהרת-שעה לפי contactWindow + כפתור-דילוג
+    expect(dialerSrc).toContain('contactWindow(sp.phone');
+    expect(dialerSrc).toContain('win?.quiet');
+    expect(dialerSrc).toContain("act('skip')");
   });
 });

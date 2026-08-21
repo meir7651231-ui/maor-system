@@ -23,6 +23,8 @@ import { DEFAULT_CONFIG } from '../../types/config';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import { featureOn, termOf } from '../../lib/config';
 import { hokDue, hokMonthlyTotal, supIls, supUsd } from '../supporters/lib';
+import { cockpitAtRisk } from '../supporters/cockpit';
+import type { SegmentKey } from '../supporters/segments';
 
 /** מפת המודולים הפעילים (config.modules) — חסר = פעיל; false = כבוי. */
 export type ModulesMap = OrgConfig['modules'];
@@ -194,7 +196,8 @@ export type AttentionNav =
   | { kind: 'family'; id: string }
   /** חיווט-עומק (19.8): פתיחת כרטיס-תומך ספציפי (openSupporterCard) — לא רק הרשימה. */
   | { kind: 'supporter'; id: string }
-  | { kind: 'supporters' }
+  /** seg — נחיתה על מסך-התורמים מסונן לסגמנט (למשל 'atrisk'). */
+  | { kind: 'supporters'; seg?: SegmentKey }
   | { kind: 'calendar' };
 
 /** חומרת פריט טיפול — קריטי מוצג לפני אזהרה. */
@@ -388,6 +391,25 @@ export function attentionItems(
       sev: 'warn',
       nav: { kind: 'supporters' },
     });
+  }
+
+  // ⚠️ תורמים בסיכון-נטישה (מהבינה החדשה) — פריט מצטבר אחד; מגודר במודול-תורמים +
+  // דגל הקוקפיט/המודיעין (רק ארגון שהדליק את הבינה רואה זאת). קליק ⇒ הרשימה המסוננת.
+  if (on('supporters') && (featureOn(config, 'supporters.cockpit') || featureOn(config, 'supporters.intel'))) {
+    const risk = cockpitAtRisk(db.supporters, todayIso);
+    if (risk.length) {
+      out.push({
+        key: 'suprisk:' + todayIso.slice(0, 7),
+        tag: termOf(config, 'entity.supporter', 'תורם'),
+        tagBg: '#fdeaea',
+        tagC: '#b91c1c',
+        title:
+          `${risk.length} ${termOf(config, 'nav.supporters', 'תורמים')} בסיכון-נטישה — ` +
+          `${risk.slice(0, 3).map((s) => s.name).join(', ')}${risk.length > 3 ? '…' : ''}`,
+        sev: 'warn',
+        nav: { kind: 'supporters', seg: 'atrisk' },
+      });
+    }
   }
 
   // 🔁 הו"ק שטרם נרשמו החודש (ROADMAP-100 ‏#2) — פריט מצטבר אחד, מודול תורמים +

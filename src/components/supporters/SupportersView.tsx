@@ -22,19 +22,39 @@ import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
 import { SupporterCard } from './SupporterCard';
 import { SupportersCockpit } from './SupportersCockpit';
-import { matchSegment, SEGMENTS, type SegmentKey } from './segments';
+import { matchSegment, SEGMENTS, takeSupportersSegment, type SegmentKey } from './segments';
 
-/** האם התורם נתן אי-פעם בחודש-הלועזי m (1–12) — לדריל-אין ממפת-העונתיות. */
-function supGaveInMonth(sp: { donations: { date: string }[]; hist?: { d: string }[] }, m: number): boolean {
-  if (sp.donations.some((d) => +String(d.date).slice(5, 7) === m)) return true;
-  return !!sp.hist?.some((h) => +String(h.d).slice(5, 7) === m);
-}
 /** שנת-הגיוס (המתנה-הראשונה) — לדריל-אין מקוהורטת-הגיוס. null כשאין נתינה. */
 function supAcqYear(sp: { donations: { date: string }[]; hist?: { d: string }[] }): number | null {
   let min = '';
   for (const d of sp.donations) if (d.date && (!min || d.date < min)) min = d.date;
   if (sp.hist) for (const h of sp.hist) if (h.d && (!min || h.d < min)) min = h.d;
   return min ? +min.slice(0, 4) : null;
+}
+/** האם התורם נתן בתקופה — שנה (yyyy) ו/או חודש (1–12). null=כל. חיפוש-מפורש. */
+function supGaveInPeriod(
+  sp: { donations: { date: string }[]; hist?: { d: string }[] },
+  year: number | null,
+  month: number | null,
+): boolean {
+  if (year == null && month == null) return true;
+  const hit = (iso: string): boolean => {
+    if (!iso) return false;
+    if (year != null && +iso.slice(0, 4) !== year) return false;
+    if (month != null && +iso.slice(5, 7) !== month) return false;
+    return true;
+  };
+  if (sp.donations.some((d) => hit(String(d.date)))) return true;
+  return !!sp.hist?.some((h) => hit(String(h.d)));
+}
+/** כל שנות-הנתינה שקיימות במאגר — לבורר-השנה, מהחדשה לישנה. */
+function donationYears(sups: { donations: { date: string }[]; hist?: { d: string }[] }[]): number[] {
+  const set = new Set<number>();
+  for (const sp of sups) {
+    for (const d of sp.donations) if (d.date) set.add(+String(d.date).slice(0, 4));
+    if (sp.hist) for (const h of sp.hist) if (h.d) set.add(+String(h.d).slice(0, 4));
+  }
+  return [...set].filter((y) => y > 1900 && y < 3000).sort((a, b) => b - a);
 }
 import { SupportersIntel } from './SupportersIntel';
 import { SupportersGalaxy } from './SupportersGalaxy';
@@ -199,10 +219,15 @@ export function SupportersView() {
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
   // סינון-סגמנט מהקוקפיט/הבנדים — קליק על סגמנט מסנן את הטבלה (לא רק פותח מסך ריק).
-  const [segF, setSegF] = useState<SegmentKey | null>(null);
+  // אתחול-עצל: אם הבית ביקש נחיתה-על-סגמנט (התראת-סיכון) — נכנסים כבר מסונן.
+  const [segF, setSegF] = useState<SegmentKey | null>(() => takeSupportersSegment());
   // סינון-חודש (מפת-עונתיות) + שנת-גיוס (קוהורטה) — דריל-אין מהבנדים האנליטיים.
   const [monthF, setMonthF] = useState<number | null>(null);
   const [acqYearF, setAcqYearF] = useState<number | null>(null);
+  // חיפוש-מפורש לפי תקופת-נתינה (בקשת-בעלים "חיפוש לפי שנה לפי חודש בקטגוריה"):
+  // שנת-נתינה נבחרת (מובחנת משנת-הגיוס acqYearF); החודש חולק את monthF כדי
+  // שדריל-אין מהעונתיות ובורר-החודש ישקפו זה את זה.
+  const [gaveYearF, setGaveYearF] = useState<number | null>(null);
   // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל אחד מתקפל.
   // הצ׳יפים והסינון נשמרים בדיוק — רק מתקפלים; החיפוש+קטגוריה גלויים תמיד.
   const [advOpen, setAdvOpen] = useState(false);
@@ -417,6 +442,7 @@ export function SupportersView() {
           onOpen={(id) => setSelId(id)}
           onExit={() => setWorkMode(false)}
           onSegment={(k) => { setSegF(k); setWorkMode(false); }}
+          onDial={telephonyOn(config) ? (ids) => { dialerStart(ids, termOf(config, 'nav.supporters', 'תורמים')); setWorkMode(false); setDialerOpen(true); } : undefined}
         />
         {paletteEl}
       </div>
@@ -477,7 +503,7 @@ export function SupportersView() {
     if (hokF === 'due' && !(sp.hok?.active && !hokRecordedThisMonth(sp, today))) return false;
     if (tierF && supTier(supScore(sp, rate)).label !== tierF) return false;
     if (segF && !matchSegment(sp, segF, visibleBase, today, rate)) return false;
-    if (monthF && !supGaveInMonth(sp, monthF)) return false;
+    if ((monthF || gaveYearF) && !supGaveInPeriod(sp, gaveYearF, monthF)) return false;
     if (acqYearF && supAcqYear(sp) !== acqYearF) return false;
     // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (לפי השער העריך) / ציון
     if (!numMatch(colF.count, supCount(sp))) return false;
@@ -521,13 +547,24 @@ export function SupportersView() {
   const tIls = visibleBase.reduce((a, x) => a + supIls(x), 0);
   const tUsd = visibleBase.reduce((a, x) => a + supUsd(x), 0);
   const filtered =
-    q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF || nextF || !!segF || !!monthF || !!acqYearF ||
+    q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF || nextF || !!segF || !!monthF || !!gaveYearF || !!acqYearF ||
     colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';
   const segLabel = segF ? SEGMENTS.find((s) => s.key === segF)?.label : null;
   const MONTHS_HE = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+  const yearOptions = donationYears(visibleBase);
+  // תווית-התקופה: שנה+חודש = "נתנו ב-8/2025"; רק-חודש = "נתנו בחודש אוגוסט";
+  // רק-שנה = "נתנו ב-2025". צ׳יפ יחיד מנקה את שני הרכיבים.
+  const periodLabel =
+    monthF && gaveYearF
+      ? 'נתנו ב-' + MONTHS_HE[monthF - 1] + ' ' + gaveYearF
+      : monthF
+        ? 'נתנו בחודש ' + MONTHS_HE[monthF - 1]
+        : gaveYearF
+          ? 'נתנו ב-' + gaveYearF
+          : null;
   const drillChips: { label: string; clear: () => void }[] = [
     ...(segLabel ? [{ label: 'סגמנט: ' + segLabel, clear: () => setSegF(null) }] : []),
-    ...(monthF ? [{ label: 'נתנו בחודש ' + MONTHS_HE[monthF - 1], clear: () => setMonthF(null) }] : []),
+    ...(periodLabel ? [{ label: periodLabel, clear: () => { setMonthF(null); setGaveYearF(null); } }] : []),
     ...(acqYearF ? [{ label: 'גויסו ב-' + acqYearF, clear: () => setAcqYearF(null) }] : []),
   ];
   const countLabel =
@@ -758,6 +795,20 @@ export function SupportersView() {
           value={cat}
           onChange={setCat}
           options={[{ value: 'all', label: 'כל הקטגוריות' }, ...catOptions.map((c) => ({ value: c, label: c }))]}
+        />
+        {/* חיפוש-מפורש לפי תקופת-נתינה (בקשת-בעלים "לפי שנה לפי חודש") —
+            שנה/חודש עצמאיים; יחד = חודש-מסוים-בשנה-מסוימת. אפס-נתונים ⇒ מוסתר. */}
+        {yearOptions.length > 0 && (
+          <Select
+            value={gaveYearF == null ? 'all' : String(gaveYearF)}
+            onChange={(v) => setGaveYearF(v === 'all' ? null : +v)}
+            options={[{ value: 'all', label: 'כל השנים' }, ...yearOptions.map((y) => ({ value: String(y), label: 'נתנו ב-' + y }))]}
+          />
+        )}
+        <Select
+          value={monthF == null ? 'all' : String(monthF)}
+          onChange={(v) => setMonthF(v === 'all' ? null : +v)}
+          options={[{ value: 'all', label: 'כל החודשים' }, ...MONTHS_HE.map((m, i) => ({ value: String(i + 1), label: m }))]}
         />
         {/* בקשת-בעלים 15.8 ("פר תורם") — סינון לפי ייעוד-שעל-הכרטיס */}
         {purposeOn && purposeOptions.length > 0 && (

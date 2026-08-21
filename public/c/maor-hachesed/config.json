@@ -5,6 +5,7 @@
   "modules": {},
   "features": {},
   "terms": {},
+  "telephony": { "enabled": true },
   "adminEmails": ["meir7651231@gmail.com"],
   "firebase": {
     "apiKey": "AIzaSyCVvJvJAnTEWSzdtmONXcZyRijHdrvPeIo",

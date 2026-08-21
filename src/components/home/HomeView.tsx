@@ -21,6 +21,7 @@ import {
   type AttentionNav,
 } from './homeData';
 import { visibleSupportersForDesignations } from '../supporters/lib';
+import { requestSupportersSegment } from '../supporters/segments';
 import {
   defaultLayoutFor,
   noBoardLayoutFor,
@@ -100,7 +101,7 @@ export function HomeView() {
       // חיווט-עומק (19.8): ישר לכרטיס-התומך (openSupporterCard) — מגודר-מודול
       if (supportersOn) openSupporterCard(nav.id);
     } else if (nav.kind === 'supporters') {
-      if (supportersOn) go('supporters');
+      if (supportersOn) { if (nav.seg) requestSupportersSegment(nav.seg); go('supporters'); }
     } else if (calendarOn) go('calendar');
   };
 
