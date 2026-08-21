@@ -151,6 +151,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.ayin.mat', label: 'חומרים ורכש פר-פרויקט', desc: 'רישום חומרים/רכש (שם · כמות · מחיר) → עלות-חומרים ב-P&L; רווח = הצעה − עבודה − חומרים (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
   { key: 'supporters.ayin.gantt', label: 'גאנט-תלויות פר-פרויקט', desc: 'משך (ימים) + תלויות ("אחרי…") על שורות-הפרויקט → תזמון-אוטומטי, משך-כולל ונתיב-קריטי בתצוגת-סרגלים (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
   { key: 'supporters.ayin.kit', label: 'ערכת-מסירה (install-kit)', desc: 'צ׳ק-ליסט מסירה פר-פרויקט עם פס-התקדמות ו"מוכן-למסירה" + ערכת-ברירת-מחדל (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
+  { key: 'supporters.ayin.warehouse', label: 'מלאי-מחסן חוצה-פרויקטים', desc: 'מחסן-חומרים מרכזי; ההקצאה מחושבת מרשומות-החומרים של הפרויקטים לפי שם → מלאי/הוקצה/נותר + התרעת-מחסור (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
   { key: 'supporters.import.preview', label: 'סיכום לפני ייבוא', desc: 'ייבוא תומכות דו-שלבי — בדיקת הקובץ והצגת חדשות/עדכונים לפני ההחלה; כבוי = החלה מיידית', module: 'supporters' },
   { key: 'supporters.thankyou', label: 'תזכורת "התקשר לתודה"', desc: 'כפתור "📞 תודה" — יצירת אירוע תזכורת קשר בלוח', module: 'supporters' },
   { key: 'supporters.click2call', label: 'חיוג ישיר מהרשימה', desc: 'קישור tel: להתקשרות ישירה מטבלת התומכים', module: 'supporters' },
