@@ -14,6 +14,8 @@ export function DiaryAbsenceModal(props: {
   enrollmentId: string;
   course: Course;
   who: string;
+  /** תאריך-המפגש הנצפה ביומן — החיסור נרשם עליו (לא על "היום"). */
+  date?: string;
   onClose: () => void;
 }) {
   const db = useApp((s) => s.db);
@@ -48,8 +50,11 @@ export function DiaryAbsenceModal(props: {
     if (!en) return props.onClose();
     if (!reason.trim()) return setError('נימוק הוא שדה חובה');
     const { eligible: elig, dropsPunch } = makeupEligibility(kind, justified, rawHrs);
+    // החיסור נחתם על תאריך-המפגש שהפאנל צופה בו (props.date — כמו הנוכחות ב-
+    // AttendancePanel), לא על isoToday(): רישום-בדיעבד ממסך יום-אחר חתם "היום"
+    // והחיסור לא הופיע בדוח-היומי של המפגש עצמו. שעון-הזכאות (48ש׳) לא שונה.
     addAbsence(en.id, {
-      date: isoToday(),
+      date: props.date || isoToday(),
       reason: reason.trim(),
       makeup: elig,
       noshow: kind === 'noshow',

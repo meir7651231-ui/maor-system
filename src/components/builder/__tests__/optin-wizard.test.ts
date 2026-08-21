@@ -11,24 +11,13 @@
 import { describe, it, expect } from 'vitest';
 import { FEATURES } from '../../../types/features';
 import { featureEffectiveOn } from '../sections';
+import { removedFeatures } from '../handoff';
 import { DEFAULT_CONFIG } from '../../../types/config';
 import type { OrgConfig } from '../../../types/config';
 import wizardSrc from '../BuilderWizard.tsx?raw';
-
-const OPT_IN_KEYS = [
-  'supporters.cockpit',
-  'supporters.intel',
-  'supporters.galaxy',
-  'supporters.rebrand',
-  'supporters.card',
-  'courses.cockpit',
-  // גל ה׳ — מסכי-החוגים החדשים מגודרים `=== true` בקוד ⇒ חייבים optIn:true באשף
-  'courses.teacherapp',
-  'courses.parentcard',
-  'courses.ai',
-  // שער-הצטרפות בעמוד-השיווק — opt-in מפורש
-  'shell.portal',
-];
+import platformPanelSrc from '../../platform/PlatformPanel.tsx?raw';
+// הרשימה חולצה ל-optin-keys.ts (21.8) — משותפת לראצ'ט-הסריקה הדו-צדדי optin-registry
+import { OPT_IN_KEYS } from './optin-keys';
 
 function cfg(features: Record<string, boolean>): OrgConfig {
   return { ...DEFAULT_CONFIG, modules: { ...DEFAULT_CONFIG.modules }, features };
@@ -67,5 +56,26 @@ describe('דגלי-opt-in חשופים באשף עם הסמנטיקה הנכונ
     expect(wizardSrc).toContain('on={featureEffectiveOn(config, f)}');
     expect(wizardSrc).toContain('feats.filter((f) => featureEffectiveOn(config, f)).length');
     expect(wizardSrc).not.toContain('on={config.features?.[f.key] !== false}');
+  });
+
+  it('דף-המסירה: דגל-opt-in חסר = "הוסר מהחבילה" (removedFeatures דרך featureEffectiveOn)', () => {
+    // הבאג (21.8, ממצא-נחיל): removedFeatures קרא גולמית `=== false` ⇒ לקוח בלי
+    // המפתח supporters.cockpit קיבל דף-מסירה שמרמז שהקוקפיט **נמסר** לו.
+    const missing = removedFeatures(cfg({})).map((f) => f.key);
+    expect(missing).toContain('supporters.cockpit'); // חסר ⇒ כבוי ⇒ לא-נמסר
+    expect(missing).toContain('supporters.hokbulk');
+    expect(missing).not.toContain('supporters.rfm'); // דגל-רגיל חסר = דלוק = נמסר
+    const withCockpit = removedFeatures(cfg({ 'supporters.cockpit': true })).map((f) => f.key);
+    expect(withCockpit).not.toContain('supporters.cockpit'); // הודלק ⇒ נמסר
+  });
+
+  it('הגנת-מקור: גם צ׳יפי-הדגלים בלוח-הבקרה (PlatformPanel) עוברים featureEffectiveOn', () => {
+    // הבאג (21.8, ממצא-נחיל): הצ'יפ קרא `!== false` וכתב `=== false` — לכל 13
+    // דגלי-ה-opt-in הצ'יפ היה הפוך: ארגון-חדש (all-off) הציג 🟢 על מסך כבוי,
+    // ולחיצת-"הדלקה" כתבה ערך שאינו true ⇒ הבעלים לא יכול היה להדליק מהלוח.
+    expect(platformPanelSrc).toContain('on={featureEffectiveOn(cfg, f)}');
+    expect(platformPanelSrc).not.toContain('on={cfg.features?.[f.key] !== false}');
+    // הדלקת-opt-in חייבת לכתוב true מפורש (שיקוף setFeatures של האשף)
+    expect(platformPanelSrc).toContain('features[f.key] = true');
   });
 });

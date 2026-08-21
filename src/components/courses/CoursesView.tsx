@@ -145,7 +145,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const enrollCounts = useMemo(() => {
     const cnt = new Map<string, number>();
     for (const e of db.enrollments) {
-      if (e.status === 'ended') continue;
+      // כמו enrollCount (lib): 'wait' אינו תופס מקום — ספירתו כאן ניפחה את התפוסה
+      // המוצגת בלוח ("11/10" אדום) בעוד הכרטיס הראה 8/10 (המונה היחיד שסטה).
+      if (e.status === 'ended' || e.status === 'wait') continue;
       cnt.set(e.courseId, (cnt.get(e.courseId) || 0) + 1);
     }
     return cnt;

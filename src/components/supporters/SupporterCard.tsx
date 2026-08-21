@@ -44,6 +44,7 @@ function Tile(props: { label: string; value: string; tone?: string; note?: strin
 
 function IntelPanel(props: { supporter: Supporter; supporters: Supporter[]; usdRate: number; config: OrgConfig; onGoCard: () => void }) {
   const rate = props.usdRate || 3.7;
+  // 🐛 (21.8): toISOString = UTC ⇒ בין חצות מקומי ל-02:00/03:00 "היום" היה אתמול.
   const today = isoToday();
   const intel = useMemo(() => donorIntel(props.supporter, today, rate), [props.supporter, today, rate]);
   const rhythm = useMemo(() => donorRhythm(props.supporter, rate), [props.supporter, rate]);

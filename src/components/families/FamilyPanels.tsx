@@ -257,6 +257,8 @@ export function EnrollPanel(props: { fam: Family }) {
   function doPunch(e: Enrollment) {
     if (e.status === 'paused') return toast('ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' מוקפא — הפשירו אותו בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
     if (e.status === 'ended') return toast('ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' הסתיים — ניתן לחדש בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
+    // ⏳ רשימת-המתנה לא משתתפת במפגשים — ניקוב היה שורף ניקוב-בתשלום ששום דוח לא מציג
+    if (e.status === 'wait') return toast('ברשימת-המתנה — עדיין לא משתתפ/ת; קדמו לפעיל קודם (▲ שבץ בכרטיס ה' + termOf(config, 'entity.course', 'חוג') + ')');
     if (e.plan === 'punch' && e.used >= e.purchased) {
       setOpModal({ kind: 'manage', enrollmentId: e.id });
       return;
@@ -546,7 +548,7 @@ function familyReportLines(db: Db, f: Family, config: OrgConfig): string[] {
       '• ' + first + ' — ' + cname + (e.group ? ' · ' + e.group : '') + ' · ' +
         (e.plan === 'punch' ? 'כרטיסייה ' + (e.purchased - e.used) + '/' + e.purchased : planWord(e.plan)) +
         (e.enrolledAt ? ' · נרשם ' + hebDateFull(e.enrolledAt) : '') +
-        (e.status === 'paused' ? ' · מוקפא' : e.status === 'ended' ? ' · הסתיים' : ''),
+        (e.status === 'paused' ? ' · מוקפא' : e.status === 'ended' ? ' · הסתיים' : e.status === 'wait' ? ' · ברשימת-המתנה' : ''),
     );
     if (e.totalDue || paid) {
       L.push(

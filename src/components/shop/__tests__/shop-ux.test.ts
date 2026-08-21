@@ -28,4 +28,11 @@ describe('🛍 ratchet — חנות 16: תיקוני שטח', () => {
   it('מובייל: שורת הפעולות בכרטיס השיוך עם flexWrap + gap אחיד', () => {
     expect(tabSrc).toMatch(/marginInlineStart: 'auto', display: 'flex', flexWrap: 'wrap', gap: 6/);
   });
+
+  // ratchet — הבאג: save() בדק סכומים אך לא תאריך; HebDateInput במצב לועזי פולט ''
+  // בניקוי ⇒ מימוש + אישור S- נכתבו עם תאריך ריק (ריק על האישור המודפס, שובר
+  // סינון-היסטוריה לפי תאריך). הגנת-מקור: השמירה חסומה על תאריך ריק, כמו BulkRedeemModal.
+  it('🛡 תאריך ריק חסום ב-save() של RedeemModal (swarm-audit)', () => {
+    expect(redeemSrc).toMatch(/if \(!f\.date\) return setError\(/);
+  });
 });

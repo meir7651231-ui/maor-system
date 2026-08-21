@@ -8,7 +8,7 @@
  * ייעודיים: ‏platformOrgs/{slug} ו-platformRequests/{uid}. אותם שמות, אותה
  * סמנטיקה, נתיבים חוקיים; אין התנגשות עם 18 אוספי הישויות.
  */
-import { addDoc, collection, deleteDoc, deleteField, doc, FieldPath, getDoc, getDocs, increment, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { addDoc, arrayRemove, arrayUnion, collection, deleteDoc, deleteField, doc, FieldPath, getDoc, getDocs, increment, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { cloudDb } from './cloud';
 import type { OrgConfig } from '../types/config';
 import { sanitizeSupportText, type SupportMsg, type SupportSide, type SupportThread, type TeamMsg } from './supportChat';
@@ -235,6 +235,33 @@ export async function deleteOrgMemberConfig(slug: string, email: string): Promis
 }
 
 /**
+ * מחיקת שדה-יחיד מכרטיס-העובד (תיקון 21.8, ממצא-נחיל): setDoc(merge:true) ממזג-עומק
+ * מפות ⇒ `delete next.weeklyGoal` ואז כתיבה **לא מוחקת** את השדה בענן — יעד 40 היה
+ * חוזר לנצח אחרי שהמנהל איפס ל-0. אותו דפוס כמו deleteOrgMemberConfig:
+ * FieldPath('memberConfigs', email, field) + deleteField() (המייל מכיל נקודות — FieldPath מטפל).
+ */
+export async function clearEmployeeField(slug: string, email: string, field: string): Promise<void> {
+  await updateDoc(doc(cloudDb(), PLATFORM_ORGS, slug), new FieldPath('memberConfigs', email, field), deleteField());
+}
+
+/**
+ * הוספת/הסרת חבר-ארגון **אטומית** (תיקון 21.8, ממצא-נחיל): הדפוס הישן בנה את
+ * members המלא מ-state בזיכרון (אולי-ישן) וכתב אותו — כתיבה-מקבילה (מנהל+בעלים,
+ * שני מסכים) הייתה מוחקת בשקט עובד/ת שאושרו במקביל (last-writer-wins).
+ * arrayUnion/arrayRemove פועלים על הערך העדכני בשרת — אין דריסה.
+ * ההוספה במייל מנורמל (כמו approveMember); ההסרה מסירה גם את הצורה הגולמית —
+ * רשומות-עבר לא-מנורמלות לא נתקעות.
+ */
+export async function addOrgMember(slug: string, email: string): Promise<void> {
+  await updateDoc(doc(cloudDb(), PLATFORM_ORGS, slug), { members: arrayUnion(email.trim().toLowerCase()) });
+}
+
+export async function removeOrgMember(slug: string, email: string): Promise<void> {
+  const variants = [...new Set([email.trim(), email.trim().toLowerCase()])];
+  await updateDoc(doc(cloudDb(), PLATFORM_ORGS, slug), { members: arrayRemove(...variants) });
+}
+
+/**
  * 🗑 מחיקת-לקוח מלאה (5.8.2026 — "איך אני מוחק לקוחות"): ב-Firestore מחיקת
  * מסמך **לא** מוחקת תתי-אוספים — לכן מוחקים מסודר: כל אוספי-הנתונים של הארגון
  * (‏ENTITY_COLLECTIONS + התורים + meta + envelope), בקשות-ההצטרפות, ולבסוף
@@ -255,10 +282,23 @@ export async function deleteOrgCompletely(
       deleted++;
     }
   };
-  // אוספי-הנתונים + התורים של השרת (webhook/sms/mail) תחת orgs/{slug}
-  for (const col of [...entityCols, 'incomingPayments', 'smsOutbox', 'mailOutbox']) {
+  // אוספי-הנתונים + התורים של השרת (webhook/sms/mail) תחת orgs/{slug}.
+  // תיקון 21.8 (ממצא-נחיל): נוספו 'donations' (מסלול-B — doc-per-donation, אינו
+  // ב-ENTITY_COLLECTIONS) ו-'auditlog' (טבעות-הלוג פר-משתמש) — המודאל מבטיח
+  // "הכול נמחק", ובלעדיהם התרומות ולוג-הפעולות היו שורדים לנצח.
+  for (const col of [...entityCols, 'donations', 'auditlog', 'incomingPayments', 'smsOutbox', 'mailOutbox']) {
     await wipeCol('orgs/' + slug + '/' + col);
   }
+  // מסמכי-שורש פר-ארגון (21.8): כספת-הסודות (smtpUrl/yemotToken/nedarimApiPass/
+  // smsApiKey), המטא שלה ופיד-ה-ICS — בלעדיהם אישורי-הגישה (credentials) של
+  // הלקוח היו שורדים את המחיקה לנצח. מדולגים בשקט אם אינם.
+  for (const p of ['orgSecrets/' + slug, 'orgSecretsMeta/' + slug, 'icsFeeds/' + slug]) {
+    await deleteDoc(doc(db, p)).catch(() => {});
+    deleted++;
+  }
+  // צ'אט-הצוות (21.8): ההודעות (subcollection) ואז מסמך-האב (אם קיים)
+  await wipeCol(TEAM_CHATS + '/' + slug + '/messages');
+  await deleteDoc(doc(db, TEAM_CHATS, slug)).catch(() => {});
   // מסמכי-היחיד: meta + envelope-ההצפנה (מדולגים בשקט אם אינם)
   for (const p of ['orgs/' + slug + '/meta/org', 'orgs/' + slug + '/_enc/envelope']) {
     await deleteDoc(doc(db, p)).catch(() => {});

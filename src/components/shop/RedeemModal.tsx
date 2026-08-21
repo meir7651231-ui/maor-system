@@ -54,6 +54,9 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
     const value = isMeeting ? 0 : isCoupon ? ri.value : f.value.trim() === '' ? 0 : Math.round(+f.value);
     if (!Number.isFinite(paid) || paid < 0 || !Number.isFinite(value) || value < 0)
       return setError('הסכומים חייבים להיות מספרים אי-שליליים (0 = מתנה מלאה)');
+    // תיקון (swarm-audit): תאריך ריק (ניקוי בשדה הלועזי של HebDateInput) נכתב verbatim
+    // למימוש ול-S- — אישור מודפס בלי תאריך וסינון-היסטוריה נשבר. חוסמים כמו BulkRedeemModal.
+    if (!f.date) return setError(isMeeting ? 'בחרו תאריך לפגישה' : 'בחרו תאריך למימוש');
     if (ri.kind === 'holidayGift' && !f.holiday) return setError('למתנת-חג נדרש לבחור חג');
     const res = addShopRedemption(a.id, {
       componentId: c.id,
@@ -132,7 +135,7 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
               onClick={() => {
                 try {
                   sessionStorage.setItem(nsLsKey('maor_cashbox_amount'), String(Math.round(+f.paid)));
-                  sessionStorage.setItem(nsLsKey('maor_cashbox_client'), beneficiaryLabel(db, a));
+                  sessionStorage.setItem(nsLsKey('maor_cashbox_client'), beneficiaryLabel(db, a, config));
                 } catch {
                   /* sessionStorage חסום — הקופה תיפתח ריקה */
                 }

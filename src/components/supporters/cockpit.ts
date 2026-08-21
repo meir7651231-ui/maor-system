@@ -234,6 +234,8 @@ export function cockpitKpis(
   return {
     total: supporters.length,
     collected: cockpitCollectedThisMonth(supporters, todayIso, rate),
+    // 🐛 (21.8): בלי todayIso הו"ק-נדרים שפגה (>2 חודשים שקט) נספרה ב"צפוי מהו״ק",
+    // בעוד תור-המשימות (hokDue) כבר מחריג אותה — אותו-כלל לשני המשטחים.
     expectedHok: hokMonthlyTotal(supporters as Supporter[], rate, todayIso),
     atRisk: cockpitAtRisk(supporters, todayIso).length,
   };

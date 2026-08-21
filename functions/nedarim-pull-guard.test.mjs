@@ -80,4 +80,25 @@ describe('🛡 ratchet — תיקוני-שרת נדרים (הגנות-מקור)'
     expect(pull).toContain('Access-Control-Allow-Origin'); // CORS ל-cross-origin fetch
     expect(pull).toContain("p.full === '1'"); // משיכה-מלאה בקליק (תורמים+עסקאות)
   });
+
+  // 🐛 (21.8) ה-webhook בנה doc-id מ-reference גולמי — '/' זרק ⇒ 500 ⇒ תשלום אבד.
+  it('F13: מפתח-הדדופ של ה-webhook עובר sanitizeDedupKey לפני doc()', () => {
+    expect(index).toContain('sanitizeDedupKey(rawKey, rawSafe)');
+    expect(index).toContain("require('./paymentMap')");
+  });
+
+  // 🐛 (21.8) mailOutbox לא מצהירה secrets ⇒ MAIL_FROM תמיד undefined ⇒ מיילים בלי
+  // From (ספאם/דחייה). הכרעת-בעלים "מייל פר-לקוח": השולח נגזר מ-username של
+  // ה-smtpUrl הארגוני (decodeURIComponent); ‏MAIL_FROM נפילה-לאחור בלבד.
+  it('F14: mailOutbox גוזרת From מה-smtpUrl של הארגון (לא רק MAIL_FROM הריק)', () => {
+    expect(index).toContain('decodeURIComponent(new URL(smtpUrl).username)');
+    expect(index).toMatch(/sendMail\(\{ from,/);
+  });
+
+  // 🐛 (21.8) BACKUP_COLLECTIONS ≡ ENTITY_COLLECTIONS מחריג במכוון את 'donations'
+  // (מסלול-B) ⇒ גיבוי-לילה של ארגון-מפוצל יצא בלי תרומות/קבלות. EXTRA_BACKUP משלים.
+  it("F15: backupNightly מגבה גם את אוסף-התרומות הנפרד (EXTRA_BACKUP=['donations'])", () => {
+    expect(index).toMatch(/EXTRA_BACKUP = \['donations'\]/);
+    expect(index).toContain('[...BACKUP_COLLECTIONS, ...EXTRA_BACKUP]');
+  });
 });

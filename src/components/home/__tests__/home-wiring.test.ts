@@ -330,8 +330,10 @@ describe('אשכול 4 (ביקורת-60) · מנוע הבית — כיסוי ש�
     const coursesOff = suggestions(db, NOW.toISOString().slice(0, 10), cfgCoursesOff);
     expect(shopOff.some((x) => x.act === 'shop')).toBe(false);
     expect(coursesOff.some((x) => x.act === 'courses')).toBe(false);
-    // עם הכל דלוק — חידוש-הכרטיסייה קיים ונושא courseId לעומק
-    const renew = all.find((x) => x.key === 'sug:renew:e1');
+    // עם הכל דלוק — חידוש-הכרטיסייה קיים ונושא courseId לעומק.
+    // לפי-קידומת: מפתח-החידוש נושא גם רכיב-מחזוריות (purchased — ratchet של shop8),
+    // והבדיקה כאן על עומק-הניווט, לא על פורמט-המפתח.
+    const renew = all.find((x) => x.key.startsWith('sug:renew:e1'));
     expect(renew?.courseId).toBe('c1');
   });
 

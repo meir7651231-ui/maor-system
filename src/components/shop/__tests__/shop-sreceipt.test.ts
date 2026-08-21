@@ -12,6 +12,8 @@ import { metaOf } from '../../../lib/cloud-diff';
 import { DEFAULT_CONFIG } from '../../../types/config';
 import { emptyDb, type Db, type ShopAssignment, type ShopRedemption } from '../../../types/domain';
 import tabSrc from '../AssignmentsTab.tsx?raw';
+import settingsSrc from '../../settings/SettingsView.tsx?raw';
+import { receiptVerifyCode } from '../../../lib/receipt';
 
 function assignment(over: Partial<ShopAssignment>): ShopAssignment {
   return { id: 'sha1', productId: 'shp1', famId: 'f1', memberId: '', criterionIds: [], since: '', status: 'active', notes: '', redemptions: [], ...over };
@@ -77,5 +79,24 @@ describe('🧾 ratchet — חנות 10: סדרת S- נפרדת', () => {
     expect(tabSrc).not.toContain('orgTaxId');
     expect(tabSrc).not.toContain('signatory');
     expect(tabSrc).toContain('אינו קבלה לצורכי מס');
+  });
+
+  // ratchet — הבאג (swarm-audit): כלי-האימות בהגדרות סרק רק תרומות (D-) ותשלומי-
+  // חוגים (R-), בעוד אישורי S- מודפסים עם קוד-אימות (AssignmentsTab מעביר verify)
+  // ⇒ אישור S- אמיתי קיבל '✗ לא נמצאה' — פסק-זיוף על מסמך כשר.
+  it('🔍 כלי-האימות בהגדרות מזהה גם אישורי S- — אותם קלטים כמו ההדפסה', () => {
+    // הכלי סורק את shopAssignments[].redemptions עם הקלטים שההדפסה השתמשה בהם:
+    // rid | r.paid | ברירת-המטבע ₪ | r.date
+    expect(settingsSrc).toMatch(/for \(const a of db\.shopAssignments\)/);
+    expect(settingsSrc).toMatch(/amount: rr\.paid, cur: '₪', date: rr\.date/);
+    // ההדפסה (downloadConfirmation) באמת מעבירה amount=r.paid ו-date=r.date בלי currency
+    expect(tabSrc).toMatch(/amount: r\.paid,\s*date: r\.date,/);
+    expect(tabSrc).not.toMatch(/downloadConfirmation[\s\S]{0,400}currency:/);
+    // מקרה S- מלא: הקוד המוטבע על אישור S-3 של 50 ₪ תואם את מה שהכלי יצפה לו
+    const printed = receiptVerifyCode('S-3', 50, '₪', '2026-07-30');
+    expect(printed).toBe(receiptVerifyCode('S-3'.toUpperCase(), 50, '₪', '2026-07-30'));
+    expect(printed).toMatch(/^[0-9A-Z]{3}-[0-9A-Z]{3}$/);
+    // זיוף-סכום מתגלה — הקוד לרישום האמיתי שונה
+    expect(receiptVerifyCode('S-3', 500, '₪', '2026-07-30')).not.toBe(printed);
   });
 });

@@ -34,6 +34,11 @@ jobs:
       - name: Tests
         run: npx vitest run
 
+      # שער-lint לפני פרודקשן — אותו סטנדרט כמו ci.yml (0 אזהרות); בלעדיו main
+      # היה חלש יותר מענפי-העבודה.
+      - name: Lint
+        run: npm run lint
+
       - name: Build
         run: npm run build
 

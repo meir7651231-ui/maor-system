@@ -16,13 +16,13 @@ import { hebDateFull } from '../../lib/hebrew';
 import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, itemLabel, stageIndex, stageLabel, unitLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
+import { chipStyle, fmtDate, hokDue, hokEffectivelyActive, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
 import { SupporterCard } from './SupporterCard';
 import { SupportersCockpit } from './SupportersCockpit';
-import { matchSegment, SEGMENTS, takeSupportersSegment, type SegmentKey } from './segments';
+import { atRiskIdSet, matchSegment, SEGMENTS, takeSupportersSegment, type SegmentKey } from './segments';
 
 /** שנת-הגיוס (המתנה-הראשונה) — לדריל-אין מקוהורטת-הגיוס. null כשאין נתינה. */
 function supAcqYear(sp: { donations: { date: string }[]; hist?: { d: string }[] }): number | null {
@@ -270,6 +270,14 @@ export function SupportersView() {
   // ממומואיז על db.supporters בלבד.
   const dedupCount = useMemo(() => findSupporterDupGroups(db.supporters).length, [db.supporters]);
   const rfmBins = useMemo(() => supScoreBins(db.supporters, rate), [db.supporters, rate]);
+  // "היום" המקומי — פעם-אחת לרנדר (isoToday, לא UTC), משמש גם את סינון-הרשימה למטה.
+  const today = isoToday();
+  // 🐛 ביצועים (21.8): סינון-סגמנט 'atrisk' הריץ cockpitAtRisk (סינון+מיון+פרסור-תאריכים)
+  // פר-תורם ⇒ O(n²) על כל הקשה. ה-Set מחושב פעם-אחת (useMemo) ומוזרק ל-matchSegment.
+  const atRiskIds = useMemo(
+    () => (segF === 'atrisk' ? atRiskIdSet(db.supporters, today) : undefined),
+    [segF, db.supporters, today],
+  );
   const rfmMax = Math.max(1, ...rfmBins);
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
@@ -521,7 +529,6 @@ export function SupportersView() {
     );
   }
 
-  const today = isoToday();
   const nq = normSearch(q);
   const qd = q.replace(/\D/g, '');
 
@@ -537,9 +544,12 @@ export function SupportersView() {
     if (purposeF !== 'all' && (sp.forWho || '').trim() !== purposeF) return false;
     // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): הוראות פעילות / רק שטרם-נרשמו-החודש
     if (hokF === 'active' && !sp.hok?.active) return false;
-    if (hokF === 'due' && !(sp.hok?.active && !hokRecordedThisMonth(sp, today))) return false;
+    // 🐛 קוהרנטיות (21.8): הצ'יפ "⏳ טרם נרשמו" מונה לפי hokDue (hokEffectivelyActive —
+    // הו"ק-נדרים ששתקה >2 חודשים מוחרגת), אבל הסינון השתמש ב-hok?.active הגולמי ⇒
+    // מונה-הצ'יפ ≠ שורות-הרשימה ≠ אוכלוסיית HokBulkModal. עכשיו אותו-כלל בדיוק.
+    if (hokF === 'due' && !(hokEffectivelyActive(sp, today) && !hokRecordedThisMonth(sp, today))) return false;
     if (tierF && supTier(supScore(sp, rate)).label !== tierF) return false;
-    if (segF && !matchSegment(sp, segF, visibleBase, today, rate)) return false;
+    if (segF && !matchSegment(sp, segF, visibleBase, today, rate, atRiskIds)) return false;
     if ((monthF || gaveYearF) && !supGaveInPeriod(sp, gaveYearF, monthF)) return false;
     if (acqYearF && supAcqYear(sp) !== acqYearF) return false;
     // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (לפי השער העריך) / ציון
@@ -583,8 +593,10 @@ export function SupportersView() {
   // תרומות לא מתעדכן" אחרי ייבוא/סנכרון נדרים — 19.8.2026.)
   const tIls = visibleBase.reduce((a, x) => a + supIls(x), 0);
   const tUsd = visibleBase.reduce((a, x) => a + supUsd(x), 0);
+  // 🐛 (21.8): hokF ו-purposeF מצמצמים את הרשימה אבל לא נכללו בדגל ⇒ הכותרת
+  // הציגה "M תומכות" בלי "N מתוך" כשסיננו לפי הו"ק/ייעוד. עכשיו כל מסנן נספר.
   const filtered =
-    q.trim() !== '' || cat !== 'all' || !!tierF || !!ayinF || nextF || !!segF || !!monthF || !!gaveYearF || !!acqYearF ||
+    q.trim() !== '' || cat !== 'all' || purposeF !== 'all' || !!tierF || !!hokF || !!ayinF || nextF || !!segF || !!monthF || !!gaveYearF || !!acqYearF ||
     colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';
   const segLabel = segF ? SEGMENTS.find((s) => s.key === segF)?.label : null;
   const MONTHS_HE = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];

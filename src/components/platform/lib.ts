@@ -142,16 +142,20 @@ export function orgEnabledModules(orgConfig: { modules?: Record<string, boolean>
  * לארגון, או שנמצא תחת מודול כבוי — לא מופיע למנהל (עקרון התקרה, גם ברזולוציית-דגל).
  * טהור; מקבל את מרשם ה-FEATURES מבחוץ (בלי תלות מעגלית).
  */
-export function orgEnabledFeatures<F extends { key: string; module: string }>(
+export function orgEnabledFeatures<F extends { key: string; module: string; optIn?: boolean }>(
   orgConfig: { modules?: Record<string, boolean>; features?: Record<string, boolean> },
   features: readonly F[],
 ): F[] {
   const enabledMods = new Set<string>(orgEnabledModules(orgConfig));
   return features.filter((f) => {
-    if (orgConfig.features?.[f.key] === false) return false; // דגל כבוי בארגון
     const isRealModule = (ALL_MODULES as string[]).includes(f.module);
     if (isRealModule && !enabledMods.has(f.module)) return false; // מודול-אב כבוי
-    return true;
+    // דגל-opt-in (תיקון 21.8, ממצא-נחיל): חסר = **כבוי** — הקריאה הגולמית `=== false`
+    // הציגה למנהל צ'יפ-עובד ליכולת שהארגון מעולם לא הדליק/קנה (13 דגלי-opt-in).
+    // שיקוף featureEffectiveOn (builder/sections) — משוכפל מקומית כדי להשאיר את
+    // ה-lib טהור וגנרי (מקבל את מרשם-הדגלים מבחוץ, בלי תלות ברכיבי-builder).
+    if (f.optIn === true) return orgConfig.features?.[f.key] === true;
+    return orgConfig.features?.[f.key] !== false; // דגל רגיל: רק false מכבה
   });
 }
 

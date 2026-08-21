@@ -41,9 +41,10 @@ export function HomeTab() {
   const [quickAssignId, setQuickAssignId] = useState('');
   const [quickCompId, setQuickCompId] = useState('');
 
-  const care = needsCare(db, today);
+  // תיקון (swarm-audit): config מוזרק — מונחי termOf בתוויות + גידור shop.expiry
+  const care = needsCare(db, today, config);
   const holidays = upcomingHolidays(today, 45);
-  const meetings = upcomingMeetings(db, today);
+  const meetings = upcomingMeetings(db, today, 2, config);
   const upsertShopEvent = useApp((s) => s.upsertShopEvent);
   const activeProducts = db.shopProducts.filter((p) => p.active).length;
   const activeAssignments = db.shopAssignments.filter((a) => a.status === 'active');
@@ -89,7 +90,7 @@ export function HomeTab() {
         <Btn onClick={() => setProductFormOpen(true)}>➕ {termOf(config, 'entity.shopProduct', 'מוצר')}</Btn>
         {/* ייצוא המימושים (CONNECT חיבור 6) — מבוטל מסומן ולא מוסתר */}
         {featureOn(config, 'shop.export') && (
-          <Btn onClick={() => downloadCsv('shop-redemptions.csv', redemptionsCsvRows(db))}>⬇ ייצוא מימושים (CSV)</Btn>
+          <Btn onClick={() => downloadCsv('shop-redemptions.csv', redemptionsCsvRows(db, config))}>⬇ ייצוא מימושים (CSV)</Btn>
         )}
         <Btn onClick={() => setAssignFormOpen(true)}>➕ {termOf(config, 'entity.shopAssignment', 'שיוך')}</Btn>
         {featureOn(config, 'shop.quickredeem') && db.shopAssignments.length > 0 && (
@@ -104,7 +105,7 @@ export function HomeTab() {
                 { value: '', label: '🎁 מימוש מהיר — בחרו שיוך' },
                 ...activeAssignments.map((a) => ({
                   value: a.id,
-                  label: beneficiaryLabel(db, a) + ' · ' + (db.shopProducts.find((p) => p.id === a.productId)?.name ?? ''),
+                  label: beneficiaryLabel(db, a, config) + ' · ' + (db.shopProducts.find((p) => p.id === a.productId)?.name ?? ''),
                 })),
               ]}
             />

@@ -12,6 +12,20 @@ import type { Supporter } from '../../types/domain';
 
 const MS_DAY = 86_400_000;
 
+/**
+ * הזזת תאריך-ISO ב-N ימים — חשבון-לוח **מקומי** (Date(y,m,d+N) בצהריים), פורמט ידני.
+ * 🐛 (21.8): הדפוס הישן `new Date(ms).toISOString().slice(0,10)` עבר round-trip דרך
+ * UTC — בהיסטי-אזור-זמן קיצוניים היום מתהפך, וזו גם עקיפה של כלל אין-toISOString
+ * של הפרויקט. עזר משותף יחיד לשלושת המנועים (intel/portfolio/timemachine); טהור,
+ * דטרמיניסטי, בלי Date.now. days שברי (קצב-נתינה ממוצע) מעוגל ליום השלם הקרוב.
+ */
+export function shiftIso(iso: string, days: number): string {
+  const y = +iso.slice(0, 4), m = +iso.slice(5, 7), d = +iso.slice(8, 10);
+  const dt = new Date(y, m - 1, d + Math.round(days), 12, 0, 0);
+  const p2 = (n: number) => String(n).padStart(2, '0');
+  return dt.getFullYear() + '-' + p2(dt.getMonth() + 1) + '-' + p2(dt.getDate());
+}
+
 /** הפרש-ימים בין תאריך-ISO ליום המוזרק (חיובי = בעבר). Infinity לריק/לא-תקין. */
 export function dayDiff(iso: string, todayIso: string): number {
   if (!iso) return Infinity;
@@ -133,9 +147,7 @@ export function forecastFromScan(scan: DonorScan, todayIso: string): GiftForecas
   const avg = Math.round(scan.ils / scan.count);
   const span = scan.first && scan.first !== scan.last ? dayDiff(scan.first, scan.last) : 0;
   const cadence = scan.count >= 2 && span > 0 ? span / (scan.count - 1) : 365;
-  const lastMs = Date.parse(scan.last.slice(0, 10) + 'T12:00:00');
-  const dueMs = lastMs + cadence * MS_DAY;
-  const dueIso = new Date(dueMs).toISOString().slice(0, 10);
+  const dueIso = shiftIso(scan.last, cadence);
   // ביטחון: עולה עם מספר-המתנות, יורד כשכבר איחרו הרבה מעבר לקצב.
   const daysSince = dayDiff(scan.last, todayIso);
   const overdue = cadence > 0 ? Math.max(0, daysSince / cadence - 1) : 0;
