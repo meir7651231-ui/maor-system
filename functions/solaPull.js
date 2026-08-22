@@ -120,6 +120,14 @@ async function fetchSolaReport(xKey, beginIso, endIso) {
     throw new Error('sola: ' + String(json.xError || json.xStatus || 'שגיאת-שער'));
   }
   const rows = json.xReportData ?? json.ReportData ?? json.data;
+  // אבחון-שטח (23.8): דוח-ריק/מבנה-לא-מוכר — מתעדים את מפתחות-התשובה ותחילת-הגוף
+  // (בלי xKey — הוא בבקשה בלבד; כרטיסים ממילא ממוסכים בדוח) ⇒ קריאים ביעד-logs.
+  if (!Array.isArray(rows) || rows.length === 0) {
+    console.log('sola report empty/unknown', beginIso, '..', endIso,
+      'keys=' + Object.keys(json).join(','), 'raw=' + text.slice(0, 600));
+  } else {
+    console.log('sola report rows=' + rows.length, 'first-keys=' + Object.keys(rows[0] || {}).join(','));
+  }
   return Array.isArray(rows) ? rows : [];
 }
 
@@ -156,7 +164,9 @@ async function runSolaPull(org, opts = {}) {
   if (opts.reset) removed = await clearPullRows(db, col, cursorRef);
   const cursorSnap = await cursorRef.get();
   const lastDate = String((cursorSnap.exists && cursorSnap.data().lastDateIso) || '');
-  const firstDays = Number(process.env.SOLA_FIRST_DAYS || 30);
+  // ריצה-ראשונה: שנה אחורה ("תביא את העסקה האחרונה" — 23.8; 30 יום פספסו חשבון
+  // שקט). ריצות-המשך = חלון-הפרש קטן מה-cursor, כרגיל.
+  const firstDays = Number(process.env.SOLA_FIRST_DAYS || 365);
   const today = new Date().toISOString().slice(0, 10);
   // חלון: מהתאריך-האחרון-שנראה מינוס יום-חפיפה (או N-ימים-ראשונים) ועד מחר.
   const begin = lastDate ? shiftIsoDays(lastDate, -1) : shiftIsoDays(today, -firstDays);
