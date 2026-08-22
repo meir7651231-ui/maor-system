@@ -1,0 +1,101 @@
+/**
+ * בדיקות-יחידה · מיפוי דוח-סולה → תשלומים-נכנסים (planSolaWrites) + ratchet
+ * גבול-הכסף: solaPull כותב רק incomingPayments — לעולם לא קבלות/מונים.
+ * (21.8.2026 — "תתחיל לחווט כמו נדרים".)
+ */
+import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { planSolaWrites, solaDateToIso, safeId } = require('./solaReport.js');
+const HERE = dirname(fileURLToPath(import.meta.url));
+
+const row = (over = {}) => ({
+  xResult: 'A',
+  xCommand: 'cc:sale',
+  xRefNum: '900000001234',
+  xAuthAmount: '180.00',
+  xName: 'ישראל ישראלי',
+  xMaskedCardNumber: '4xxxxxxxxxxx1111',
+  xInvoice: 'INV-7',
+  xEnteredDate: '8/21/2026 10:15:00 AM',
+  xCurrency: 'ILS',
+  ...over,
+});
+
+describe('planSolaWrites — מיפוי דוח-סולה', () => {
+  it('עסקה מאושרת ⇒ רשומת-pending מלאה עם doc-id דטרמיניסטי sola-<refnum>', () => {
+    const { writes } = planSolaWrites([row()], 'demo');
+    expect(writes).toHaveLength(1);
+    const w = writes[0];
+    expect(w.id).toBe('sola-900000001234');
+    expect(w.data.amount).toBe(180);
+    expect(w.data.currency).toBe('₪');
+    expect(w.data.name).toBe('ישראל ישראלי');
+    expect(w.data.last4).toBe('1111');
+    expect(w.data.d).toBe('2026-08-21');
+    expect(w.data.status).toBe('pending');
+    expect(w.data.provider).toBe('sola');
+    // ⚠️ סולה לא מנפיקה §46 — receipt חייב להישאר ריק (הקבלה תירשם במאור באישור)
+    expect(w.data.receipt).toBe('');
+    expect(w.data.reference).toBe('900000001234');
+  });
+
+  it('נדחית (D) / שגיאה (E) / void / save / סכום-0 — לא נקלטות; refund ⇒ kind+סכום-שלילי', () => {
+    const { writes } = planSolaWrites(
+      [
+        row({ xResult: 'D' }),
+        row({ xResult: 'E', xRefNum: 'r2' }),
+        row({ xCommand: 'cc:void', xRefNum: 'r3' }),
+        row({ xCommand: 'cc:save', xRefNum: 'r4' }),
+        row({ xAuthAmount: '0', xRefNum: 'r5' }),
+        row({ xCommand: 'cc:refund', xAuthAmount: '50', xRefNum: 'r6' }),
+      ],
+      'demo',
+    );
+    expect(writes).toHaveLength(1);
+    expect(writes[0].id).toBe('sola-r6');
+    expect(writes[0].data.kind).toBe('refund');
+    expect(writes[0].data.amount).toBe(-50);
+  });
+
+  it('תאריך אמריקאי (חודש/יום!) + ISO + cursor-תאריך; USD ⇒ $; בלי xRefNum ⇒ דילוג', () => {
+    expect(solaDateToIso('1/2/2026 3:00:00 PM')).toBe('2026-01-02'); // 2 בינואר, לא 1 בפברואר
+    expect(solaDateToIso('2026-03-04T00:00:00')).toBe('2026-03-04');
+    const { writes, lastDateIso } = planSolaWrites(
+      [row({ xRefNum: '' }), row({ xRefNum: 'a1', xEnteredDate: '12/31/2026 1:00:00 PM', xCurrency: 'USD' })],
+      'demo',
+    );
+    expect(writes).toHaveLength(1);
+    expect(writes[0].data.currency).toBe('$');
+    expect(lastDateIso).toBe('2026-12-31');
+  });
+
+  it('safeId מחטא תווים אסורים ל-doc-id (לקח F13 — "/" מפיל create)', () => {
+    expect(safeId('ref/with/slashes..')).toBe('ref_with_slashes__');
+    expect(safeId('')).toBe('');
+  });
+});
+
+describe('🔒 ratchet — גבול-הכסף של solaPull', () => {
+  const src = readFileSync(join(HERE, 'solaPull.js'), 'utf8');
+  it('כותב רק ל-incomingPayments/solaSync — אפס נגיעה בקבלות/מונים/תרומות', () => {
+    expect(src).toContain("collection('incomingPayments')");
+    for (const forbidden of ['receiptSeq', 'donationSeq', 'shopReceiptSeq', "collection('donations')", 'supporters']) {
+      expect(src).not.toContain(forbidden);
+    }
+    // חוזה-הרשומה עצמו (status pending · receipt ריק) ננעל במנוע הטהור
+    const engine = readFileSync(join(HERE, 'solaReport.js'), 'utf8');
+    expect(engine).toContain("status: 'pending'");
+    expect(engine).toMatch(/receipt: ''/);
+  });
+  it('הכספת גוברת (orgSecrets.solaXKey) + דורמנטי בלי SOLA_ORG + אי-דריסת handled', () => {
+    expect(src).toContain("doc('orgSecrets/' + org)");
+    expect(src).toContain('solaXKey');
+    expect(src).toMatch(/SOLA_ORG[\s\S]{0,120}if \(!org\) return/);
+    expect(src).toMatch(/getAll[\s\S]{0,200}existing/); // קריאה-לפני-כתיבה
+  });
+});

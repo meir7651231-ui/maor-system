@@ -21,6 +21,7 @@ on:
           - stage1        # בלי סודות: icsFeed + remindersNightly + backupNightly
           - mail          # mailOutbox — בלי סוד-גלובלי: SMTP פר-לקוח מהכספת (orgSecrets), והשולח נגזר מה-smtpUrl של הארגון
           - nedarim       # nedarimPull + nedarimSyncHourly (NEDARIM_* + PAY_SECRET)
+          - sola          # solaPull + solaSyncHourly (xKey מהכספת פר-ארגון; PAY_SECRET בלבד)
           - payments      # paymentsWebhook (PAY_SECRET)
           - sms           # smsOutbox (SMS_*)
           - yemot         # yemotProxy (YEMOT_TOKEN)
@@ -66,6 +67,7 @@ jobs:
             stage1)     F="functions:icsFeed,functions:remindersNightly,functions:backupNightly" ;;
             mail)       F="functions:mailOutbox" ;;
             nedarim)    F="functions:nedarimPull,functions:nedarimSyncHourly" ;;
+            sola)       F="functions:solaPull,functions:solaSyncHourly" ;;
             payments)   F="functions:paymentsWebhook" ;;
             sms)        F="functions:smsOutbox" ;;
             yemot)      F="functions:yemotProxy" ;;
