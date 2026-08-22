@@ -33,20 +33,28 @@ function secretOk(given, expected) {
 }
 
 async function isOrgAdmin(idToken, org) {
-  if (!idToken) return false;
+  if (!idToken) { console.warn('solaPull auth: אין Bearer (org=' + org + ')'); return false; }
   try {
     const tok = await getAuth().verifyIdToken(String(idToken));
     const email = String(tok.email || '').toLowerCase();
-    if (!email || tok.email_verified === false) return false;
-    const supers = String(process.env.SUPER_ADMIN_EMAILS || '').toLowerCase().split(/[,\s]+/).filter(Boolean);
-    if (supers.includes(email)) return true;
-    if (org === 'root') return false;
+    // 🐛 (22.8, "עדיין 403"): הדרישה email_verified דחתה גם את מייל-העל — חשבון
+    // אימייל+סיסמה שלא לחץ על מייל-אימות הוא verified=false, אבל הזהות מוכחת
+    // בסיסמה (verifyIdToken מאמת שהטוקן שלנו). הדרישה הוסרה; נשאר רק email-קיים.
+    if (!email) { console.warn('solaPull auth: טוקן בלי email'); return false; }
+    // מיילי-העל: env ‏SUPER_ADMIN_EMAILS + עוגן-קשיח שמשקף את allowlist-השורש
+    // ב-firestore.rules (ציבורי בריפו) — מנטרל תלות בטעינת-env ("עדיין 403").
+    const supers = new Set(['meir7651231@gmail.com',
+      ...String(process.env.SUPER_ADMIN_EMAILS || '').toLowerCase().split(/[,\s]+/).filter(Boolean)]);
+    if (supers.has(email)) return true;
+    if (org === 'root') { console.warn('solaPull auth: נדחה על root — ' + email + ' (verified=' + tok.email_verified + ')'); return false; }
     const d = await getFirestore().doc('platformOrgs/' + org).get();
     const data = d.exists ? (d.data() || {}) : {};
     if (String(data.manager || '').toLowerCase() === email) return true;
     const members = Array.isArray(data.members) ? data.members.map((x) => String(x).toLowerCase()) : [];
+    if (!members.includes(email)) console.warn('solaPull auth: נדחה — ' + email + ' לא חבר/מנהל ב-' + org);
     return members.includes(email);
-  } catch {
+  } catch (e) {
+    console.warn('solaPull auth: verifyIdToken נכשל — ' + String((e && e.message) || e));
     return false;
   }
 }

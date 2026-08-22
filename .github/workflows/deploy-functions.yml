@@ -115,7 +115,7 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          for fn in backupNightly remindersNightly mailOutbox; do
+          for fn in backupNightly remindersNightly mailOutbox solaPull; do
             echo "═══ $fn ═══"
             npx firebase-tools@13 functions:log --project maor-system --only "$fn" -n 25 --non-interactive || true
           done
