@@ -153,8 +153,11 @@ button:focus-visible {
   align-items: center;
   flex-wrap: wrap;
   gap: 6px 14px;
-  /* שורת הניווט מיושרת לעמודת התוכן (1200px) — כמו במוקאפים של היכל/קהילה */
-  padding: 10px max(22px, calc(50% - 600px));
+  /* שורת-הניווט מיושרת ל**תוכן** של עמודת-ה-1200 — לא לקצה-העמודה. ‏.app-main‎
+     ממרכז 1200px ומוסיף ריפוד-פנימי 28px, כך שהתוכן מתחיל ב-‎calc(50% - 572px)‎
+     (‏600−28). קודם היה 600px ⇒ הכותרת (מותג/כלים) בלטה 28px החוצה מהתוכן שמתחת
+     ⇒ "לא ישר" בין הבר-העליון למסך-הבית. עכשיו הבר והתוכן חולקים אותו קו. */
+  padding: 10px max(28px, calc(50% - 572px));
   background: var(--nav2-bg);
   color: var(--nav2-ink);
   border-bottom: 1px solid var(--nav2-line);
@@ -323,7 +326,8 @@ button:focus-visible {
 
 @media (max-width: 760px) {
   .app-top {
-    padding: 8px 12px;
+    /* ריפוד-אופקי זהה ל-.app-main‎ במובייל (14px) ⇒ הבר-העליון והתוכן על אותו קו */
+    padding: 8px 14px;
     gap: 4px 10px;
   }
   /* הרצועה יורדת לשורה שנייה ברוחב מלא ונגללת אופקית */
