@@ -119,13 +119,19 @@ async function fetchSolaReport(xKey, beginIso, endIso) {
   if (json.xResult === 'E' || /^error$/i.test(String(json.xStatus || '')) || json.xError) {
     throw new Error('sola: ' + String(json.xError || json.xStatus || 'שגיאת-שער'));
   }
-  const rows = json.xReportData ?? json.ReportData ?? json.data;
+  let rows = json.xReportData ?? json.ReportData ?? json.data;
+  // 💎 שטח-אמת 23.8 (טוסט-הבעלים, xResult=S): התשובה כולה urlencoded, ו-xReportData
+  // מגיע כ**מחרוזת-JSON ארוזה** בתוכה — פותחים אותה למערך. xRecordsReturned = האמת.
+  if (typeof rows === 'string' && rows.trim()) {
+    try { rows = JSON.parse(rows); } catch { /* מבנה-לא-מוכר — יטופל כריק עם debug */ }
+  }
   // אבחון-שטח (23.8): דוח-ריק/מבנה-לא-מוכר — debug חוזר גם ל-caller (ומשם למסך!)
   // וגם ללוג **כמחרוזת-אחת** (console.log מרובה-ארגומנטים מודפס ריק ב-functions:log).
   // בלי xKey (בבקשה בלבד); כרטיסים ממילא ממוסכים בדוח.
   let debug = '';
   if (!Array.isArray(rows) || rows.length === 0) {
-    debug = 'חלון=' + beginIso + '..' + endIso + ' · keys=' + Object.keys(json).join(',') + ' · raw=' + text.slice(0, 300);
+    debug = 'חלון=' + beginIso + '..' + endIso + ' · records=' + String(json.xRecordsReturned ?? '?')
+      + ' · keys=' + Object.keys(json).join(',') + ' · raw=' + text.slice(0, 300);
     console.log('sola report empty/unknown: ' + debug + text.slice(300, 900));
   } else {
     console.log('sola report rows=' + rows.length + ' first-keys=' + Object.keys(rows[0] || {}).join(','));
