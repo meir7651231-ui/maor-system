@@ -15,3 +15,5 @@ firebase-debug.log
 e2e/nextgen-shots/
 e2e/shots-wave5/
 e2e/shots-filters/
+e2e/shots-width/
+e2e/shots-align/
