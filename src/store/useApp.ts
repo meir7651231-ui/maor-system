@@ -932,15 +932,14 @@ export const useApp = create<AppState>()((set, get) => {
               }
               const mail = user.email.trim().toLowerCase();
               // ORGADMIN — האם המשתמש הוא מנהל-הארגון (org.manager)? ⇒ פאנל-המנהל 👥
-              const allowed = allowedDesignationsFor(user.email, orgDoc ?? {});
               const orgIsManager = isOrgManager(user.email, orgDoc ?? {});
-              // 🐛 (21.8, "למה המנהל נשאר תקוע בחוץ"): החברות נבחנה רק מול members —
-              // מנהל שנשמט מהרשימה (דריסת-מערך ישנה / הקלדה) נתקע במסך-ההמתנה בלי
-              // שום דרך-תיקון. מנהל-הארגון (org.manager) הוא חבר מעצם-הגדרתו.
+              // המנהל תמיד חבר (הגנה: מסמך שבו manager מוגדר אך חסר מ-members[] לא ינעל
+              // את המנהל ל-pending). מייל-על עוקף תמיד; אחרת נדרש ב-members.
               const member =
                 isSuperAdmin(user.email) ||
                 orgIsManager ||
                 !!orgDoc?.members?.some((m) => m.trim().toLowerCase() === mail);
+              const allowed = allowedDesignationsFor(user.email, orgDoc ?? {});
               setCloud({ membership: member ? 'member' : 'pending', isManager: orgIsManager, allowedDesignations: allowed });
               // מסלול-B P3: שאילתת-donations מסוננת לעובד/ת מוגבל/ת (Rules דוחים list לא-מסוננת)
               mod.setAllowedPurposes(allowed);
