@@ -1,0 +1,123 @@
+{
+  "slug": "maor-hachesed",
+  "orgName": "מאור החסד",
+  "theme": "or-rishon",
+  "modules": {},
+  "features": {},
+  "terms": {},
+  "telephony": { "enabled": true },
+  "adminEmails": ["meir7651231@gmail.com"],
+  "firebase": {
+    "apiKey": "AIzaSyCVvJvJAnTEWSzdtmONXcZyRijHdrvPeIo",
+    "authDomain": "maor-system.firebaseapp.com",
+    "projectId": "maor-system",
+    "storageBucket": "maor-system.firebasestorage.app",
+    "messagingSenderId": "437845665303",
+    "appId": "1:437845665303:web:955fa5636e5b408ae7de52"
+  },
+  "cloudRoot": true,
+  "site": {
+    "enabled": true,
+    "langs": ["he", "en"],
+    "icon": "🕯️",
+    "ticker": { "he": "קמפיין החגים · ₪342,180 נאספו · מתעדכן חי", "en": "Holiday drive · ₪342,180 raised · live" },
+    "heroBadge": { "he": "2,800 משפחות איתנו היום", "en": "2,800 families with us today" },
+    "heroTitle": { "he": "הבית של", "en": "A home for" },
+    "titleAccent": { "he": "האלמנות.", "en": "widows & orphans." },
+    "brandLine": { "he": "אור לאלמנה וליתום", "en": "Light for widow & orphan" },
+    "tagline": { "he": "כבר 24 שנה אנחנו הבית של האלמנות והיתומים: סלי מזון, מלגות, שמחות בכבוד וליווי אישי ל־2,800 משפחות — בלי בירוקרטיה ובלי לוותר על הכבוד של אף אחד.", "en": "For 24 years, a home for widows and orphans: food, scholarships, dignified celebrations and personal care for 2,800 families." },
+    "microCopy": { "he": "כל ₪9 = ארוחה חמה לילד ♡", "en": "Every ₪9 = a warm meal ♡" },
+    "marquee": [
+      { "he": "1,204 סלים יצאו השבוע" },
+      { "he": "סל למשפחה = ₪90" },
+      { "he": "92% מכל שקל — ישירות למשפחות" },
+      { "he": "2,800 משפחות · 24 שנות נתינה" },
+      { "he": "קבלה מוכרת · סעיף 46" },
+      { "he": "340 מתנדבות ומתנדבים" }
+    ],
+    "servicesHeading": { "he": "שישה דרכים לחבק משפחה", "en": "Six ways to hold a family" },
+    "services": [
+      { "icon": "🍞", "title": { "he": "סל מזון שבועי" }, "text": { "he": "סל מלא לכל משפחה, כל שבוע, עד הבית" } },
+      { "icon": "🤝", "title": { "he": "ליווי אישי קבוע" }, "text": { "he": "רכזת אישית שמכירה כל משפחה בשמה" } },
+      { "icon": "🚨", "title": { "he": "חירום ופריסה ארצית" }, "text": { "he": "מענה מהיר בכל שעה, בכל מקום בארץ" } },
+      { "icon": "🎓", "title": { "he": "מלגות וחוגים ליתומים" }, "text": { "he": "חינוך, העשרה ועתיד לילדי המשפחות" } },
+      { "icon": "💍", "title": { "he": "שמחות בכבוד" }, "text": { "he": "הכנסת כלה וחתונות — עד הפרט האחרון" } },
+      { "icon": "🕯️", "title": { "he": "חגים עם אור" }, "text": { "he": "סלי חג ושמחת חג לכל בית" } }
+    ],
+    "stats": [
+      { "value": "2,800", "label": { "he": "משפחות בליווי" } },
+      { "value": "340", "label": { "he": "מתנדבות ומתנדבים" } },
+      { "value": "24", "label": { "he": "שנות נתינה" } },
+      { "value": "92%", "label": { "he": "מכל שקל — ישירות למשפחות" } }
+    ],
+    "transparency": {
+      "heading": { "he": "כל שקל מתועד. כל הדו״חות פתוחים.", "en": "Every shekel tracked. All reports open." },
+      "text": { "he": "אנחנו מאמינים ששקיפות היא כבוד. כל תרומה מתועדת, וכל שקל מגיע למי שצריך — 92% ישירות למשפחות.", "en": "Transparency is dignity. Every donation is documented — 92% goes directly to families." },
+      "badges": [
+        { "he": "ניהול תקין 2026" },
+        { "he": "אישור סעיף 46 למס" },
+        { "he": "דו״ח שנתי פתוח" },
+        { "he": "92% ישירות למשפחות" }
+      ]
+    },
+    "story": { "he": "לפני 24 שנה, אחרי אובדן שקרע את הלב, קמה מרים לוצקין והחליטה שאף אלמנה לא תישאר לבד עם הכאב — ושכל יתום ירגיש שיש לו בית. מה שהתחיל בסל אחד לשכנה, הפך לבית חם ל־2,800 משפחות: סלי מזון, מלגות, שמחות בכבוד וכתף אמיתית.", "en": "24 years ago, after a heartbreaking loss, Miriam Lutzkin resolved that no widow would carry the pain alone — and that every orphan would feel they have a home. One basket for a neighbor grew into a warm home for 2,800 families." },
+    "storyTitle": { "he": "24 שנה של בית חם.", "en": "24 years of a warm home." },
+    "storyTitleAccent": { "he": "וזה רק מתחיל.", "en": "And it's only beginning." },
+    "storyBadge": { "he": "בברכת גדולי ישראל ♡", "en": "Blessed by Torah leaders ♡" },
+    "founder": {
+      "name": { "he": "מרים לוצקין · מייסדת", "en": "Miriam Lutzkin · Founder" },
+      "quote": { "he": "\"חסד אמיתי זה לא לתת — זה להיות שם.\"", "en": "\"True kindness isn't giving — it's being there.\"" }
+    },
+    "timeline": [
+      { "year": "2002", "title": { "he": "ההתחלה" }, "note": { "he": "סל ראשון לשכנה שהתאלמנה" } },
+      { "year": "2009", "title": { "he": "מרכז החלוקה הראשון" }, "note": { "he": "ירושלים" } },
+      { "year": "2015", "title": { "he": "1,000 משפחות מלוות" }, "note": { "he": "ופריסה ארצית" } },
+      { "year": "2021", "title": { "he": "קו חם ארצי 24/6" }, "note": { "he": "מענה תמיד" } },
+      { "year": "2026", "title": { "he": "2,800 משפחות" }, "note": { "he": "ושלוש שפות" } }
+    ],
+    "growth": {
+      "label": { "he": "סלים שבועיים · 12 חודשים אחרונים", "en": "Weekly baskets · last 12 months" },
+      "delta": "+38% מהשנה שעברה",
+      "points": [0.15, 0.23, 0.2, 0.36, 0.44, 0.4, 0.58, 0.68, 0.64, 0.83, 0.9, 1]
+    },
+    "paymentMethods": [
+      { "label": { "he": "אונליין" }, "detail": { "he": "אשראי / ביט / PayPal — קבלה מיידית למייל" } },
+      { "label": { "he": "העברה בנקאית" }, "detail": { "he": "מזרחי־טפחות · סניף 000 · ח־ן 000000 · ע״ש מאור החסד לוצקין (ע״ר)" } },
+      { "label": { "he": "Checks" }, "detail": { "he": "\"Maor Hachesed\" · P.O.B 000, Monsey NY" }, "ltr": true }
+    ],
+    "donateNote": { "he": "תרומות מוכרות למס לפי סעיף 46 · ביטול הוראת קבע בכל רגע, בלי שאלות", "en": "Tax-deductible under §46 · cancel a standing order anytime, no questions." },
+    "calc": { "unitAmount": 9, "unit": { "he": "ארוחות חמות" }, "note": { "he": "כל ₪9 = ארוחה חמה לילד ♡" } },
+    "campaign": { "title": { "he": "בחרו את התרומה שלכם" }, "goal": 500000, "raised": 342311, "end": "2026-09-14", "currency": "₪" },
+    "testimonials": [
+      { "quote": { "he": "בפעם הראשונה מזה שנים, מישהי דפקה בדלת בשביל לתת — לא בשביל לקחת." }, "author": "ר׳", "role": { "he": "אם לשלושה · ירושלים" } },
+      { "quote": { "he": "אני תורם להרבה מקומות. כאן זה היחיד שבו אני רואה בדיוק לאן הכסף הלך." }, "author": "אבי כ׳", "role": { "he": "תורם חודשי משנת 2019" } },
+      { "quote": { "he": "להתנדב פה זה הדבר הכי קרוב לראות נס קורה בזמן אמת. כל שבוע מחדש." }, "author": "נועה ל׳", "role": { "he": "מתנדבת · מוקד מרכז" } }
+    ],
+    "tiers": [
+      { "name": { "he": "ידיד ♡" }, "amount": 50, "period": { "he": "/ חודש" }, "perks": [{ "he": "5 ארוחות חמות בכל חודש" }, { "he": "עדכון רבעוני מהשטח" }, { "he": "קבלה שנתית מרוכזת" }] },
+      { "name": { "he": "שותפה ♡" }, "amount": 180, "period": { "he": "/ חודש" }, "featured": true, "perks": [{ "he": "2 סלים שבועיים למשפחה" }, { "he": "שם על לוח השותפים השנתי" }, { "he": "סיור שנתי במרכז שלנו" }] },
+      { "name": { "he": "מחוללת שינוי ♡" }, "amount": 500, "period": { "he": "/ חודש" }, "perks": [{ "he": "אימוץ מלא של משפחה" }, { "he": "דו״ח השפעה אישי" }, { "he": "קשר ישיר עם צוות הליווי" }] }
+    ],
+    "events": [
+      { "date": "14\nספט'", "title": { "he": "מגבית ערב ראש השנה" }, "meta": { "he": "שידור חי + מוקד טלפוני · כל הארץ" } },
+      { "date": "20\nספט'", "title": { "he": "חלוקת סלי חג למשפחות" }, "meta": { "he": "כל מוקדי החלוקה · בואו להתנדב" } }
+    ],
+    "news": { "he": "נפתחה ההרשמה למלגות תשפ״ז ליתומים ויתומות — מהרו להירשם!" },
+    "faq": [
+      { "q": { "he": "לאן בדיוק הולך הכסף שלי?" }, "a": { "he": "92% מכל שקל מגיע ישירות למשפחות — מזון, מלגות וליווי. השאר מכסה תפעול מינימלי. כל הדו״חות פתוחים." } },
+      { "q": { "he": "האם התרומה מוכרת לצורכי מס?" }, "a": { "he": "כן — קבלה מוכרת לפי סעיף 46. הקבלה נשלחת אוטומטית לאחר התרומה." } },
+      { "q": { "he": "איך מצטרפים כמשפחה שזקוקה לעזרה?" }, "a": { "he": "פנו אלינו דרך טופס יצירת הקשר או בטלפון — בדיסקרטיות מלאה, ורכזת אישית תחזור אליכם." } },
+      { "q": { "he": "אפשר להתנדב במקום לתרום?" }, "a": { "he": "בשמחה! יש לנו 340 מתנדבים ותמיד מקום לעוד לב טוב. כתבו לנו והצטרפו." } },
+      { "q": { "he": "איך מבטלים הוראת קבע?" }, "a": { "he": "בכל רגע, בלי שאלות — פנייה אחת אלינו וזה בוטל." } }
+    ],
+    "contactForm": { "enabled": true, "note": { "he": "מענה תוך יום עסקים · דיסקרטיות מלאה" } },
+    "contact": {
+      "phones": [],
+      "whatsapp": "",
+      "email": "",
+      "hours": { "he": "א׳–ה׳ 9:00–17:00 · ו׳ עד 12:00", "en": "Sun–Thu 9:00–17:00 · Fri until 12:00" },
+      "address": { "he": "אדוניהו הכהן 23, ירושלים · 14 Olympia Lane, Monsey NY", "en": "Adoniyahu HaCohen 23, Jerusalem · 14 Olympia Lane, Monsey NY" },
+      "taxNote": { "he": "ע.ר. 580XXXXXX · אישור ניהול תקין 2026 · הפרטים יוחלפו בנתונים האמיתיים שלכם", "en": "NPO 580XXXXXX · Proper Management 2026 · details to be replaced with your real data" }
+    }
+  }
+}

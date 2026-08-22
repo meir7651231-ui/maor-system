@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='38' fill='%23f3c76b'/><circle cx='50' cy='50' r='20' fill='%23b45309'/></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#211d17" />
+    <!-- PWA: התקנה כאפליקציה — המניפסט מוחלף בזמן-ריצה לארגון-לקוח (lib/pwa) -->
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <!-- מגן מסך-לבן: אחרי פריסה חדשה, index.html ישן מהמטמון מצביע על קובצי assets
+         עם hash שכבר נמחקו → 404 → מסך לבן. מאזין ללחיצת-כשל של סקריפט ה-assets
+         ומרענן פעם אחת (שומר-ריצה מונע לולאה) כדי למשוך את ה-index.html הטרי. -->
+    <script>
+      // רוצח service-worker זר: אם SW ישן מפרויקט אחר באותו origin שולט בעמוד —
+      // הוא מגיש assets ישנים מהמטמון ומשאיר מסך לבן. מבטלים כל רישום זר.
+      // ‏PWA (6.8): ל-מאור יש עכשיו SW משלה (sw.js) — הוא פטור מהרוצח; ההגנה
+      // מפני עצמנו היא network-first ל-index בתוך sw.js עצמו.
+      (function () {
+        if (!('serviceWorker' in navigator)) return;
+        var ourSw = new URL('./sw.js', location.href).href;
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          var controlsUs = regs.filter(function (r) {
+            var script = (r.active && r.active.scriptURL) || (r.installing && r.installing.scriptURL) || (r.waiting && r.waiting.scriptURL) || '';
+            return location.href.indexOf(r.scope) === 0 && script !== ourSw;
+          });
+          if (!controlsUs.length) return;
+          // לא מוחקים caches: מאור לא רושמת SW ולא מחזיקה caches משלה, ואחרי
+          // unregister+reload ה-SW הזר כבר לא שולט בעמוד ולא יכול להגיש assets ישנים.
+          // מחיקה גורפת של caches.keys() הייתה מוחקת מטמון של אפליקציה אחרת באותו origin.
+          Promise.all(controlsUs.map(function (r) { return r.unregister(); }))
+            .then(function () {
+              if (!sessionStorage.getItem('maorSwKilled')) {
+                sessionStorage.setItem('maorSwKilled', '1');
+                location.reload();
+              }
+            });
+        });
+      })();
+
+      window.addEventListener(
+        'error',
+        function (e) {
+          var t = e && e.target;
+          if (t && t.tagName === 'SCRIPT' && /\/assets\/index-.*\.js/.test(t.src || '')) {
+            if (!sessionStorage.getItem('maorAssetReload')) {
+              sessionStorage.setItem('maorAssetReload', '1');
+              location.reload();
+            }
+          }
+        },
+        true,
+      );
+      window.addEventListener('load', function () {
+        // טעינה תקינה — מאפסים כדי שהמגן יעבוד שוב בפריסה הבאה
+        setTimeout(function () {
+          sessionStorage.removeItem('maorAssetReload');
+        }, 4000);
+      });
+    </script>
+    <!-- גופני המוקאפים (Heebo · Frank Ruhl Libre · Rubik · Suez One) — נטענים ראשונים,
+         בנתיב יחסי כדי לשרוד פריסה תחת תת-נתיב (base: './') -->
+    <link rel="stylesheet" href="./fonts/fonts.css" />
+    <title>מאור החסד — מערכת ניהול</title>
+    <script type="module" crossorigin src="./assets/index-D6df76YT.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-QTnfLwEv.js">
+    <link rel="modulepreload" crossorigin href="./assets/persist-91Qh4sda.js">
+    <link rel="modulepreload" crossorigin href="./assets/donationPartition-BLUNwSDx.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-Cz9itGm8.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
