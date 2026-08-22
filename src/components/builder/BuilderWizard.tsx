@@ -1129,6 +1129,26 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                 <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
                   כתובת ה-Cloud Function שנפרסה. עם כתובת זו, מייל-על מקבל כפתור 🔄 "משוך וסנכרן עכשיו" במסך-הסנכרון (בלי כתובות ידניות; אימות בטוקן-כניסה).
                 </div>
+                {/* סולה (21.8, חיווט-כמו-נדרים): בלי השדה הזה אין דרך להדליק את כפתור-
+                    המשיכה לארגון-ענן (הקונפיג שלו חי בענן, לא בריפו) — "אני לא רואה את הכפתור". */}
+                <Field label="💳 סולה (Sola) — כתובת פונקציית-המשיכה (solaPullUrl)">
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <TextInput
+                      value={integrationSetting(config, 'payments', 'solaPullUrl')}
+                      onChange={(v) => setIntegrationField('payments', 'solaPullUrl', v)}
+                      dir="ltr"
+                      placeholder="https://us-central1-maor-system.cloudfunctions.net/solaPull"
+                    />
+                    {!integrationSetting(config, 'payments', 'solaPullUrl') && (
+                      <Btn sm onClick={() => setIntegrationField('payments', 'solaPullUrl', 'https://us-central1-maor-system.cloudfunctions.net/solaPull')}>
+                        מילוי אוטומטי
+                      </Btn>
+                    )}
+                  </div>
+                </Field>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                  עם כתובת זו (+ ‏xKey בכספת: הגדרות←מפתחות-ההרחבות), מנהל/מייל-על מקבל כפתור "🔄 משיכה מסולה" בתשלומים-הנכנסים.
+                </div>
               </div>
             )}
             {config.integrations?.campaign?.enabled && (
