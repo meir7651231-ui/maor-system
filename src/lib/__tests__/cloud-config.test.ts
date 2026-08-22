@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { cloudCfgCacheKey, readCloudConfigCache, resolveOrgConfig, writeCloudConfigCache } from '../config';
 import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 import useAppSrc from '../../store/useApp.ts?raw';
+import configSrc from '../config.ts?raw';
 
 // localStorage מדומה בזיכרון — כמו persist-crypto (סביבת node, אין DOM)
 class MemStorage {
@@ -77,5 +78,26 @@ describe('☁️ ratchet — ענן 2: קונפיג חי מהענן', () => {
     expect(applyBlock).not.toContain('saveConfigOverride');
     // הלקוח הקיים (cloudRoot) ואתר-השורש (default) — לא ארגון-פלטפורמה
     expect(useAppSrc).toContain("cfg.cloudRoot !== true && cfg.slug !== 'default'");
+  });
+});
+
+describe('🔴 ratchet — cloudRoot לא-מוריש ל-slug זר (נעילת-מנהל-פלטפורמה)', () => {
+  // הבאג: ארגון-פלטפורמה בלי קובץ-סטטי (mavr-hchsd) נפל לפולבק קונפיג-השורש
+  // וירש cloudRoot:true ⇒ ענף-הכניסה-לשורש (מייל-על/adminEmails בלבד) ⇒ המנהל
+  // והעובדות ננעלו ל-pending, והנתונים נקראו מהשורש. התיקון: פולבק ל-slug≠default
+  // מנקה cloudRoot ⇒ ענף-פלטפורמה (חברות מ-members[]).
+  it('loadOrgConfig: פולבק-שורש ל-slug≠default מאפס cloudRoot; default שומר', () => {
+    // שני מסלולי-הפולבק (‎./config.json‎ ו-DEFAULT_CONFIG) מגדרים slug==='default'
+    expect(configSrc).toContain("cloudRoot: slug === 'default' ? cfg.cloudRoot : false");
+    expect(configSrc).toContain("...(slug !== 'default' ? { cloudRoot: false } : {})");
+    // קובץ-הלקוח-שלו (‎./c/{slug}/config.json‎) נטען לפני הפולבק ⇒ מאור-החסד לא מושפע
+    expect(configSrc).toContain('await fetch(`./c/${slug}/config.json`');
+  });
+
+  it('שער-החברות: המנהל (isOrgManager) תמיד member — לא ננעל ל-pending', () => {
+    const gate = useAppSrc.slice(useAppSrc.indexOf('const orgIsManager ='), useAppSrc.indexOf('const allowed ='));
+    // orgIsManager מחושב לפני member, ו-member כולל אותו (בנוסף למייל-על ו-members[])
+    expect(useAppSrc).toContain('const member =\n                isSuperAdmin(user.email) ||\n                orgIsManager ||');
+    expect(gate).toContain('isOrgManager');
   });
 });
