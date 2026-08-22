@@ -32,6 +32,23 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
   const solaPullUrl = integrationSetting(config, 'payments', 'solaPullUrl');
   const canPullSola = !!solaPullUrl && (isSuperAdmin(cloudEmail) || isManager);
   const [pulling, setPulling] = useState(false);
+  async function doSolaPull(reset: boolean) {
+    setPulling(true);
+    try {
+      const m: CloudMod = mod ?? (await import('../../store/cloudSync'));
+      const r = await m.pullSola(solaPullUrl, { reset });
+      // אבחון-שקוף (23.8): דוח-ריק מציג את החלון ואת מבנה-התשובה של השער —
+      // במקום "0" סתום, רואים במסך למה (חלון ריק אמיתי / מבנה-לא-מוכר).
+      toast(r.scanned === 0 && r.debug
+        ? '🔎 נסרקו 0 — ' + r.debug.slice(0, 220)
+        : '🔄 נסרקו ' + (r.scanned ?? 0) + ' עסקאות · נוספו ' + (r.added ?? 0));
+      if (mod) await refresh(mod);
+    } catch (e) {
+      toast('⚠ משיכה נכשלה: ' + String((e as Error)?.message || e));
+    } finally {
+      setPulling(false);
+    }
+  }
   const [mod, setMod] = useState<CloudMod | null>(null);
   const [rows, setRows] = useState<IncomingPayment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -184,24 +201,13 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
           <div style={{ flex: 1, minWidth: 180, fontSize: 12.5 }}>
             <b>משיכה מסולה</b> — מושך את העסקאות המאושרות מחשבון-הסליקה (Sola) לרשימה שלמטה.
           </div>
-          <Btn kind="primary" disabled={pulling || loading} onClick={() => void (async () => {
-            setPulling(true);
-            try {
-              const m: CloudMod = mod ?? (await import('../../store/cloudSync'));
-              const r = await m.pullSola(solaPullUrl);
-              // אבחון-שקוף (23.8): דוח-ריק מציג את החלון ואת מבנה-התשובה של השער —
-              // במקום "0" סתום, רואים במסך למה (חלון ריק אמיתי / מבנה-לא-מוכר).
-              toast(r.scanned === 0 && r.debug
-                ? '🔎 נסרקו 0 — ' + r.debug.slice(0, 220)
-                : '🔄 נסרקו ' + (r.scanned ?? 0) + ' עסקאות · נוספו ' + (r.added ?? 0));
-              if (mod) await refresh(mod);
-            } catch (e) {
-              toast('⚠ משיכה נכשלה: ' + String((e as Error)?.message || e));
-            } finally {
-              setPulling(false);
-            }
-          })()}>
+          <Btn kind="primary" disabled={pulling || loading} onClick={() => void doSolaPull(false)}>
             {pulling ? 'מושך…' : '🔄 משיכה מסולה'}
+          </Btn>
+          {/* איפוס-ומשיכה-מלאה (23.8): סמן-ישן מצמצם את החלון — איפוס מוחק את שורות-
+              סולה הממתינות ואת הסמן ומושך שנה מחדש (חימוש דו-שלבי; דדופ מונע כפילויות). */}
+          <Btn sm disabled={pulling || loading} onClick={() => armOr('sola-reset', () => void doSolaPull(true))}>
+            {armed === 'sola-reset' ? 'בטוח? מושך הכול מחדש' : '🧹 משיכה מלאה (איפוס)'}
           </Btn>
         </div>
       )}
