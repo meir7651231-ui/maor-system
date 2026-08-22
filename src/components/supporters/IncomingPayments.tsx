@@ -189,7 +189,11 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
             try {
               const m: CloudMod = mod ?? (await import('../../store/cloudSync'));
               const r = await m.pullSola(solaPullUrl);
-              toast('🔄 נסרקו ' + (r.scanned ?? 0) + ' עסקאות · נוספו ' + (r.added ?? 0));
+              // אבחון-שקוף (23.8): דוח-ריק מציג את החלון ואת מבנה-התשובה של השער —
+              // במקום "0" סתום, רואים במסך למה (חלון ריק אמיתי / מבנה-לא-מוכר).
+              toast(r.scanned === 0 && r.debug
+                ? '🔎 נסרקו 0 — ' + r.debug.slice(0, 220)
+                : '🔄 נסרקו ' + (r.scanned ?? 0) + ' עסקאות · נוספו ' + (r.added ?? 0));
               if (mod) await refresh(mod);
             } catch (e) {
               toast('⚠ משיכה נכשלה: ' + String((e as Error)?.message || e));
