@@ -1411,7 +1411,9 @@ export const useApp = create<AppState>()((set, get) => {
     openFamiliesByTier: (tier) => set({ view: 'families', selFamilyId: null, famTierReq: tier }),
     ackFamiliesTier: () => set({ famTierReq: '' }),
     // מנקה בחירה קודמת כדי שרשימת המשפחות (והטופס) יוצגו — לא כרטיס משפחה
-    openFamilyForm: () => set({ view: 'families', selFamilyId: null, famFormReq: true }),
+    // enrollDraft:null — כניסה ל"הוספת משפחה" רגילה מנקה טיוטת-פנייה תקועה (אחרת
+    // ניווט-בלי-onClose השאיר טלפון+הערת-פנייה קודמים בטופס-המשפחה הבא).
+    openFamilyForm: () => set({ view: 'families', selFamilyId: null, famFormReq: true, enrollDraft: null }),
     ackFamilyForm: () => set({ famFormReq: false }),
     // שער-הצטרפות · פאזה 3: פנייה⇒שיבוץ — פותח טופס-משפחה עם טלפון+הערה ממולאים
     enrollDraft: null,

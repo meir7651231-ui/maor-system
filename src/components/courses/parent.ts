@@ -51,13 +51,17 @@ export function parentCard(db: Db, memberId: string, now: Date = new Date()): Pa
     const present = (e.presents ?? []).length;
     const absences = e.absences.length;
     const denom = present + absences;
-    const next = c ? nextSessionDate(c, now) : null;
+    // חוג שהסתיים (c.end עבר) ⇒ אין מפגש-קרוב אמיתי גם אם השיבוץ נשאר 'active'
+    const ended = !!(c && c.end && c.end < isoOf(now));
+    const next = c && !ended ? nextSessionDate(c, now) : null;
     courses.push({
       courseId: e.courseId,
       courseName: c?.name ?? '—',
       present,
       absences,
-      attendancePct: denom > 0 ? Math.round((present / denom) * 100) : null,
+      // מודל-החיסורים-ההפוך: presents=[] כברירת-מחדל ⇒ present 0 עם חיסורים היה מציג
+      // "0%" שקרי להורה. אחוז אמין רק כשיש נוכחויות מתועדות; אחרת "—" (null).
+      attendancePct: present > 0 ? Math.round((present / denom) * 100) : null,
       balance: payBal(e),
       nextSession: next ? isoOf(next) : null,
     });

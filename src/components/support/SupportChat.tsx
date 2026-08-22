@@ -230,11 +230,15 @@ export function SupportInbox({ onClose }: { onClose: () => void }) {
   const [open, setOpen] = useState<(SupportThread & { uid: string }) | null>(null);
   const [q, setQ] = useState('');
   useEffect(() => {
+    // דליפת-מאזין: החזרת unsub מתוך callback של .then אינה ה-cleanup של useEffect ⇒
+    // watchAllSupportThreads לא בוטל אף פעם (onSnapshot חי + setThreads על רכיב מפורק).
+    // כמו TeamChatModal: unsub בסקופ-חיצוני + cleanup אמיתי מה-effect.
+    let unsub: (() => void) | undefined;
     void import('../../store/cloudSync').then((m) => {
       setMod(m);
-      const unsub = m.watchAllSupportThreads(setThreads);
-      return unsub;
+      unsub = m.watchAllSupportThreads(setThreads);
     });
+    return () => unsub?.();
   }, []);
 
   const shown = useMemo(() => {

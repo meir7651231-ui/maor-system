@@ -4,7 +4,7 @@
  * כניסת-צוות (מוביל למסך-הכניסה הקיים דרך onEnter). מגודר opt-in `shell.portal`.
  * self-contained: overlay משלו בסגנון-האתר, בלי תלות בשלד-האפליקציה.
  */
-import { useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
 import {
   EMPTY_PORTAL_FORM, PORTAL_SENDER, PORTAL_SENDER_NAME, portalChannels, portalChatLine,
@@ -43,7 +43,15 @@ export function PortalEntry({ onEnter }: { onEnter: () => void }) {
     postedRef.current = false;
   };
 
-  const field = (label: string, key: keyof PortalForm, ph: string, req?: boolean) => (
+  // מקלדת: Escape סוגר את השער (הדיאלוג היה aria-modal אך לא נסגר במקלדת — ממצא-נחיל)
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  const field = (label: string, key: keyof PortalForm, ph: string, req?: boolean, type?: 'tel') => (
     <label style={{ display: 'block', marginBottom: 10 }}>
       <span style={{ fontSize: 13, fontWeight: 700, color: '#3a3a3a' }}>
         {label} {req && <span style={{ color: '#c0392b' }}>*</span>}
@@ -52,6 +60,9 @@ export function PortalEntry({ onEnter }: { onEnter: () => void }) {
         value={form[key]}
         onChange={(e) => setForm({ ...form, [key]: e.target.value })}
         placeholder={ph}
+        type={type === 'tel' ? 'tel' : 'text'}
+        inputMode={type === 'tel' ? 'tel' : undefined}
+        dir={type === 'tel' ? 'ltr' : undefined}
         style={{ width: '100%', marginTop: 4, padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e0ddd5', fontSize: 15, fontFamily: 'inherit' }}
       />
     </label>
@@ -122,7 +133,7 @@ export function PortalEntry({ onEnter }: { onEnter: () => void }) {
               <div>
                 {field('שם הילד/ה', 'childName', 'שם מלא', true)}
                 {field('שם ההורה', 'parentName', 'שם מלא')}
-                {field('טלפון', 'phone', '050-0000000', true)}
+                {field('טלפון', 'phone', '050-0000000', true, 'tel')}
                 {field('חוג מבוקש', 'course', 'למשל: ציור, גיטרה…')}
                 {field('הערה', 'note', 'משהו שנרצה לדעת?')}
 

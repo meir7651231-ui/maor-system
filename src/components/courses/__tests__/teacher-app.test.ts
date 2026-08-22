@@ -54,7 +54,9 @@ describe('🎓 אפליקציית-המורה — מנוע', () => {
   it('teacherKpis: חוגים/תלמידים-חיים/מפגשים-היום/השלמות', () => {
     const k = teacherKpis(db(), 't1', 0, '2026-08-16');
     expect(k.courses).toBe(2);
-    expect(k.students).toBe(2); // a(c1)+b(c2); w=המתנה מוחרג
+    // תלמידים ייחודיים: a(c1) ו-b(c2) הם אותו memberId 'm1' (תלמיד ב-2 חוגי-אותה-מורה)
+    // ⇒ נספר פעם-אחת (ממצא-נחיל: קודם ‏.length ספר 2 שיבוצים כ"2 תלמידים"). w=המתנה מוחרג.
+    expect(k.students).toBe(1);
     expect(k.todaySessions).toBe(1);
     expect(k.makeups).toBe(1);
   });

@@ -45,9 +45,11 @@ export interface TeacherKpis {
 /** מדדי-על למסך-המורה. students = שיבוצים-חיים (לא-הסתיימו/לא-המתנה) בחוגי-המורה. */
 export function teacherKpis(db: Db, teacherId: string, todayDow: number, todayIso: string): TeacherKpis {
   const mine = new Set(teacherCourses(db, teacherId).map((c) => c.id));
-  const students = db.enrollments.filter(
-    (e) => mine.has(e.courseId) && e.status !== 'ended' && e.status !== 'wait',
-  ).length;
+  // תלמידים ייחודיים (Set על memberId) — תלמיד/ה ב-2 חוגי-אותה-מורה נספר/ת פעם-אחת;
+  // קודם ‏.length על שיבוצים ניפח את המונה תחת התווית "תלמידים".
+  const students = new Set(
+    db.enrollments.filter((e) => mine.has(e.courseId) && e.status !== 'ended' && e.status !== 'wait').map((e) => e.memberId),
+  ).size;
   return {
     courses: mine.size,
     students,
