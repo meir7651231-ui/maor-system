@@ -93,8 +93,10 @@ describe('🔒 ratchet — גבול-הכסף של solaPull', () => {
     expect(engine).toMatch(/receipt: ''/);
   });
   it('הכספת גוברת (orgSecrets.solaXKey) + דורמנטי בלי SOLA_ORG + אי-דריסת handled', () => {
-    expect(src).toContain("doc('orgSecrets/' + org)");
+    expect(src).toContain("doc('orgSecrets/' + t)");
     expect(src).toContain('solaXKey');
+    // הכתובת-החשופה (root בלי vault): נפילה לכספת הלקוח-החי — תקדים מילוט-השורש ב-Rules
+    expect(src).toContain("['root', 'maor-hachesed']");
     expect(src).toMatch(/SOLA_ORG[\s\S]{0,120}if \(!org\) return/);
     expect(src).toMatch(/getAll[\s\S]{0,200}existing/); // קריאה-לפני-כתיבה
   });

@@ -62,14 +62,20 @@ function syncCol(db, org) {
     : db.collection('orgs').doc(org).collection('solaSync');
 }
 
-/** ה-xKey לארגון: כספת-הארגון גוברת (orgSecrets/{slug}.solaXKey), נפילה ל-env. */
+/** ה-xKey לארגון: כספת-הארגון גוברת (orgSecrets/{slug}.solaXKey), נפילה ל-env.
+ *  ‏org='root' בלי vault (הכתובת החשופה, slug='default' — שם אין כספת בכלל):
+ *  נופלים לכספת הלקוח-החי 'maor-hachesed' — אותו תקדים כמו מילוט-השורש ב-Rules
+ *  (icsFeeds/teamChats), כי שתי הכתובות הן אותו לקוח-שורש בדיוק. */
 async function solaKey(db, org) {
   let key = process.env.SOLA_XKEY || '';
-  try {
-    const d = await db.doc('orgSecrets/' + org).get();
-    const s = d.exists ? (d.data() || {}) : {};
-    if (s.solaXKey) key = String(s.solaXKey).trim();
-  } catch { /* אין כספת ⇒ הגלובלי */ }
+  const tries = org === 'root' ? ['root', 'maor-hachesed'] : [org];
+  for (const t of tries) {
+    try {
+      const d = await db.doc('orgSecrets/' + t).get();
+      const s = d.exists ? (d.data() || {}) : {};
+      if (s.solaXKey) return String(s.solaXKey).trim();
+    } catch { /* אין כספת ⇒ הבא/הגלובלי */ }
+  }
   return key;
 }
 
