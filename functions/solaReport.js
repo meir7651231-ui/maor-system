@@ -24,10 +24,11 @@ function pick(r, ...keys) {
   return '';
 }
 
-/** 'usd'/'USD'/'$' ⇒ '$'; כל השאר (ILS/ריק/₪) ⇒ '₪'. */
+/** 🐛 (23.8, הכרעת-בעלים "צריך להיות לפי דולר"): סולה = שער אמריקאי — ברירת-
+ *  המחדל '$'; שקל רק כשהשער אומר במפורש ILS/₪ (ההפך מברירת-המחדל של נדרים). */
 function pickCurrency(r) {
   const raw = pick(r, 'xCurrency', 'Currency', 'currency');
-  return /usd|\$|דולר/i.test(raw) ? '$' : '₪';
+  return /ils|₪|שקל|nis/i.test(raw) ? '₪' : '$';
 }
 
 /** סכום: xAuthAmount (מה שאושר בפועל — המלצת-סולה לאמת מולו) עם נפילה ל-xAmount. */

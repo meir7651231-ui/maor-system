@@ -33,7 +33,7 @@ describe('planSolaWrites — מיפוי דוח-סולה', () => {
     const w = writes[0];
     expect(w.id).toBe('sola-900000001234');
     expect(w.data.amount).toBe(180);
-    expect(w.data.currency).toBe('₪');
+    expect(w.data.currency).toBe('₪'); // xCurrency:'ILS' מפורש בשורת-הדוגמה
     expect(w.data.name).toBe('ישראל ישראלי');
     expect(w.data.last4).toBe('1111');
     expect(w.data.d).toBe('2026-08-21');
@@ -72,6 +72,9 @@ describe('planSolaWrites — מיפוי דוח-סולה', () => {
     expect(writes).toHaveLength(1);
     expect(writes[0].data.currency).toBe('$');
     expect(lastDateIso).toBe('2026-12-31');
+    // הכרעת-בעלים 23.8: בלי xCurrency בכלל ⇒ '$' (שער אמריקאי) — לא '₪'
+    const noCur = planSolaWrites([{ ...row({ xRefNum: 'a2' }), xCurrency: undefined }], 'demo');
+    expect(noCur.writes[0].data.currency).toBe('$');
   });
 
   it('safeId מחטא תווים אסורים ל-doc-id (לקח F13 — "/" מפיל create)', () => {
