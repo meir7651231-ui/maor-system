@@ -6,6 +6,9 @@
   "features": {},
   "terms": {},
   "telephony": { "enabled": true },
+  "integrations": {
+    "payments": { "enabled": true, "solaPullUrl": "https://us-central1-maor-system.cloudfunctions.net/solaPull" }
+  },
   "adminEmails": ["meir7651231@gmail.com"],
   "firebase": {
     "apiKey": "AIzaSyCVvJvJAnTEWSzdtmONXcZyRijHdrvPeIo",
