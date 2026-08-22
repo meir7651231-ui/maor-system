@@ -126,6 +126,19 @@ export function supLast(sp: Supporter): string {
   return m;
 }
 
+/** האם **התרומה האחרונה** של התורם נפלה בתקופה — שנה (yyyy) ו/או חודש (1–12).
+ *  ‏null=כל. משלים את supGaveInPeriod (שבודק אם נתן **בכלל** בתקופה): כאן נבדקת
+ *  רק ה**אחרונה** (המאוחרת מבין קבלות+היסטוריה, דרך supLast) — "מי שתרם לאחרונה
+ *  ב-…". בקשת-בעלים: "סינון לפי תרומה אחרונה של הלקוח". תורם בלי תרומה = לא-נכלל. */
+export function supLastInPeriod(sp: Supporter, year: number | null, month: number | null): boolean {
+  if (year == null && month == null) return true;
+  const iso = supLast(sp);
+  if (!iso) return false;
+  if (year != null && +iso.slice(0, 4) !== year) return false;
+  if (month != null && +iso.slice(5, 7) !== month) return false;
+  return true;
+}
+
 /** שווי כולל בש"ח — דולר לפי השער העריך (ברירת-מחדל 3.7, כמו במקור); כולל היסטוריה. */
 export function supTotalIls(sp: Supporter, rate = 3.7): number {
   return supIls(sp) + supUsd(sp) * rate;
