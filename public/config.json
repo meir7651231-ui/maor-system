@@ -17,7 +17,8 @@
   "integrations": {
     "whatsapp": { "enabled": true },
     "maps": { "enabled": true },
-    "gcal": { "enabled": true }
+    "gcal": { "enabled": true },
+    "payments": { "enabled": true, "solaPullUrl": "https://us-central1-maor-system.cloudfunctions.net/solaPull" }
   },
   "telephony": {
     "enabled": true
