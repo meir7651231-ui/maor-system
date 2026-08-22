@@ -694,7 +694,7 @@ export async function pullNedarim(pullUrl: string, opts: { reset?: boolean } = {
 
 /** 🔄 משיכה-בקליק מסולה (21.8, חיווט-כמו-נדרים) — קורא ל-solaPull עם טוקן-הכניסה
  *  (בלי סוד בדפדפן); ה-xKey יושב בכספת-הענן והפונקציה קוראת אותו בעצמה. */
-export async function pullSola(pullUrl: string, opts: { reset?: boolean } = {}): Promise<{ added?: number; scanned?: number; window?: string }> {
+export async function pullSola(pullUrl: string, opts: { reset?: boolean } = {}): Promise<{ added?: number; scanned?: number; window?: string; debug?: string }> {
   const clean = String(pullUrl || '').trim();
   if (!/^https:\/\//i.test(clean)) throw new Error('כתובת-משיכה לא-תקינה (חייבת https)');
   const user = requireAuth().currentUser;
@@ -708,7 +708,7 @@ export async function pullSola(pullUrl: string, opts: { reset?: boolean } = {}):
   if (scope.cloudRoot && scope.slug && scope.slug !== 'default') u.searchParams.set('vault', scope.slug);
   if (opts.reset) u.searchParams.set('reset', '1');
   const r = await fetch(u.toString(), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
-  const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; added?: number; scanned?: number; window?: string };
+  const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; added?: number; scanned?: number; window?: string; debug?: string };
   if (!r.ok || j.ok === false) throw new Error(j.error || 'משיכה נכשלה (' + r.status + ')');
   return j;
 }
