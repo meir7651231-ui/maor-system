@@ -71,6 +71,11 @@ export function registerPwa(config: OrgConfig): void {
   });
 }
 
+/** ה-blob-URL האחרון שיצרנו למניפסט — משוחרר לפני יצירת חדש (מונע דליפה בטאב
+ *  ארוך-חיים שמקבל דחיפות-קונפיג חיות). משחררים רק URL שאנחנו יצרנו —
+ *  לעולם לא את נתיב-המניפסט הסטטי. */
+let orgManifestUrl: string | null = null;
+
 /** מניפסט דינמי לארגון-לקוח — שם והתקנה עם ?org כדי שהאפליקציה תיפתח בארגון הנכון. */
 export function applyOrgManifest(config: OrgConfig): void {
   if (typeof document === 'undefined') return;
@@ -97,5 +102,7 @@ export function applyOrgManifest(config: OrgConfig): void {
       { src: base + 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
   };
-  link.setAttribute('href', URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' })));
+  if (orgManifestUrl) URL.revokeObjectURL(orgManifestUrl);
+  orgManifestUrl = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
+  link.setAttribute('href', orgManifestUrl);
 }

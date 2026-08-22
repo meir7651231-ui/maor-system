@@ -65,10 +65,19 @@ export function tierOf(score: number): Tier {
   return { key: 'red', label: 'סיכון נטישה', bg: '#fdeaea', c: '#b91c1c', dot: '#dc2626' };
 }
 
-/** כל השיבוצים של בני המשפחה. */
+/** כל השיבוצים של בני המשפחה (כולל שהסתיימו/ברשימת-המתנה — להיסטוריה/דוחות). */
 export function famEnrollments(db: Db, fam: Family): Enrollment[] {
   const ids = new Set(fam.members.map((m) => m.id));
   return db.enrollments.filter((e) => ids.has(e.memberId));
+}
+
+/**
+ * השיבוצים ה"חיים" של המשפחה — פעילים+מוקפאים בלבד. 'ended' כבר לא משתתף,
+ * ו-'wait' (רשימת-המתנה) עדיין לא — ספירתם כ"השתתפות" ניפחה את עמודת/ציר
+ * ה"חוגים" והציגה משפחה עם היסטוריה-בלבד כמשתתפת.
+ */
+export function famLiveEnrollments(db: Db, fam: Family): Enrollment[] {
+  return famEnrollments(db, fam).filter((e) => e.status !== 'ended' && e.status !== 'wait');
 }
 
 /* ── מאתר המשפחות (גלגל הסינון) — עזרים טהורים (הועברו מ-FamilyFinder כדי
@@ -99,7 +108,7 @@ export function finderAxisValue(db: Db, f: Family, axis: string, config?: OrgCon
     case 'status': return STATUS_META[f.status].label;
     case 'cred': return tierOf(f.cred?.score ?? 700).label;
     case 'kids': return f.members.some((m) => !m.isParent) ? 'עם ילדים' : 'בלי ילדים';
-    case 'enrolled': return famEnrollments(db, f).length ? 'משתתפות ב' + T('nav.courses', 'חוגים') : 'לא משתתפות';
+    case 'enrolled': return famLiveEnrollments(db, f).length ? 'משתתפות ב' + T('nav.courses', 'חוגים') : 'לא משתתפות';
     case 'sefach': return f.fullSefach ? 'קיים' : 'חסר';
     case 'lang': return f.language || '';
     default: return '';
@@ -167,7 +176,8 @@ export function famHistoryOf(db: Db, fam: Family, config: OrgConfig = DEFAULT_CO
       termOf(config, 'entity.enrollment', 'שיבוץ'),
       '#eef7e6',
       '#3f6212',
-      'נרשמ/ה ' + first + ' ל' + cname + (e.group ? ' · ' + e.group : ''),
+      // 'wait' מסומן — אחרת שיבוץ-בהמתנה נראה בהיסטוריה/בתדפיס כרישום רגיל
+      'נרשמ/ה ' + first + ' ל' + cname + (e.group ? ' · ' + e.group : '') + (e.status === 'wait' ? ' · ברשימת-המתנה' : ''),
     );
     for (const p of e.payments) {
       push(p.date, 'תשלום', '#e4f5ea', '#12803c', 'תשלום ₪' + p.amount + ' (' + p.method + ') — ' + cname + ' · ' + p.rid);

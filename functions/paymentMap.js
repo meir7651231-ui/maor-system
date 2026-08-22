@@ -79,4 +79,26 @@ function mapPaymentCallback(params) {
   };
 }
 
-module.exports = { mapPaymentCallback, pick, pickCurrency, pickAmount, pickDate };
+/**
+ * 🧼 חיטוי מפתח-דדופ ל-doc-id של Firestore (21.8). reference/TransactionId מגיעים
+ * מהספק כמו-שהם — '/' בתוך doc() **זורק** ⇒ 500 ⇒ ה-CallBack (חד-פעמי אצל
+ * נדרים) אובד והתשלום נעלם. הכללים:
+ *   • מותר [A-Za-z0-9_-]; כל תו אחר ⇒ '_' · תקרת-אורך ~100.
+ *   • אם החיטוי שינה משהו (או קוצר) — מוסיפים זנב-hash דטרמיניסטי של המקור,
+ *     אחרת שתי אסמכתאות-בעברית שונות היו מתמזגות ל-'ref-___' אחד (דדופ-שווא
+ *     שבולע תשלום שני).
+ *   • מפתח ריק ⇒ hash של המטען הגולמי (fallback אחרון; ה-caller בדרך-כלל
+ *     נופל ל-add() עם id אקראי לפני שמגיעים לכאן).
+ * טהור ודטרמיניסטי — אותו קלט ⇒ אותו id (הדדופ נשמר).
+ */
+function sanitizeDedupKey(raw, payload) {
+  const crypto = require('crypto');
+  const hash = (s) => crypto.createHash('sha256').update(String(s)).digest('hex');
+  const s = String(raw ?? '');
+  if (!s) return 'h' + hash(JSON.stringify(payload ?? '')).slice(0, 32);
+  const clean = s.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 92);
+  if (clean !== s) return clean + '-' + hash(s).slice(0, 8);
+  return clean;
+}
+
+module.exports = { mapPaymentCallback, pick, pickCurrency, pickAmount, pickDate, sanitizeDedupKey };

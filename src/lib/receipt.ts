@@ -120,10 +120,14 @@ export function receiptLines(o: ReceiptInfo): string[] {
     ];
   }
 
+  // תיקון (swarm-audit): סדרת S- (אישורי-תשלום של החנות — shopReceiptSeq, לא קבלת
+  // מס) הוצגה בכותרת "קבלה" — מצג-שווא כשההסתייגות קבורה באמצע המסמך. S- מקבל
+  // "אישור תשלום"; כל rid אחר (כולל R-/D- מסחריים בלי §46) נשאר ביט-זהה.
+  const isShopConfirmation = o.rid.startsWith('S-');
   return [
     ...(o.mark === false ? [] : [o.copy ? 'העתק נאמן למקור' : 'מקור']),
-    'קבלה — ' + (o.orgName || 'מאור החסד'),
-    'קבלה מס׳: ' + o.rid,
+    (isShopConfirmation ? 'אישור תשלום — ' : 'קבלה — ') + (o.orgName || 'מאור החסד'),
+    (isShopConfirmation ? 'אישור מס׳: ' : 'קבלה מס׳: ') + o.rid,
     ...(o.verify ? ['קוד-אימות: ' + receiptVerifyCode(o.rid, o.amount, cur, o.date)] : []),
     // תאריך עברי + לועזי, כמו באב-טיפוס
     'תאריך: ' + (heb ? heb + ' · ' : '') + gregorian,

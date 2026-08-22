@@ -115,15 +115,27 @@ export function segmentCounts(
   }));
 }
 
-/** פרדיקט-סגמנט בודד (למסננים חיצוניים) — 'atrisk' עוטף את מנוע-הקוקפיט. */
+/**
+ * קבוצת-מזהי-הבסיכון — חישוב-פעם-אחת של cockpitAtRisk כ-Set (מקור-אמת יחיד).
+ * 🐛 ביצועים (21.8): matchSegment('atrisk') הריץ את cockpitAtRisk (סינון+מיון מלא)
+ * **פר-תורם** בתוך filter של המסך ⇒ O(n²) על כל הקשה. הרכיב ממאמן (useMemo) את
+ * ה-Set הזה פעם-אחת ומזריק אותו ל-matchSegment. הפרדיקט זהה — רק החישוב יחיד.
+ */
+export function atRiskIdSet(supporters: readonly Supporter[], todayIso: string): ReadonlySet<string> {
+  return new Set(cockpitAtRisk(supporters, todayIso).map((s) => s.id));
+}
+
+/** פרדיקט-סגמנט בודד (למסננים חיצוניים) — 'atrisk' עוטף את מנוע-הקוקפיט.
+ *  atRiskIds (אופציונלי): Set ממומאז מ-atRiskIdSet — מונע חישוב-מחדש פר-פריט. */
 export function matchSegment(
   sp: Supporter,
   key: SegmentKey,
   supporters: readonly Supporter[],
   todayIso: string,
   rate = 3.7,
+  atRiskIds?: ReadonlySet<string>,
 ): boolean {
-  if (key === 'atrisk') return cockpitAtRisk(supporters, todayIso).some((s) => s.id === sp.id);
+  if (key === 'atrisk') return (atRiskIds ?? atRiskIdSet(supporters, todayIso)).has(sp.id);
   const def = SEGMENTS.find((s) => s.key === key);
   return def ? def.match(sp, todayIso, rate) : false;
 }

@@ -646,6 +646,157 @@ h1,
   color: var(--primary-ink);
 }
 
+/* ── סרגל-סינון אחיד · מסך התורמים (עיצוב 22.8) ─────────────────────
+   במקום שורת-בוררים שטוחה: כרטיס-סינון עם חיפוש-פנינה ובוררים בצורת-כדור;
+   פאנל-מתקדם כמיכל-אחד בקבוצות מתויגות ומיושרות; צ׳יפי-סינון-פעיל אחידים עם
+   "נקה הכל". כל הצבעים דרך tokens ⇒ תואם 4 ערכות-נושא + ניגודיות-גבוהה. */
+.filterbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+.filterbar .fb-search {
+  flex: 1 1 240px;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding-inline-start: 12px;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.filterbar .fb-search::before {
+  content: '🔍';
+  font-size: 13px;
+  opacity: 0.55;
+  margin-inline-end: 4px;
+  flex: none;
+}
+.filterbar .fb-search input {
+  border: none;
+  background: none;
+  border-radius: 999px;
+  padding: 9px 8px 9px 2px;
+}
+.filterbar .fb-search input:focus-visible {
+  outline: none;
+}
+.filterbar .fb-search:focus-within {
+  border-color: var(--accent-deep);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 34%, transparent);
+}
+.filterbar select {
+  width: auto;
+  min-width: 122px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: var(--bg);
+  cursor: pointer;
+}
+
+/* צ׳יפי-הסינון-הפעיל (דריל-אין/תקופה/גיוס) + "נקה הכל" */
+.active-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: var(--primary-bg);
+  color: var(--primary-ink);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.filter-pill .x {
+  opacity: 0.7;
+  font-size: 12px;
+}
+.filter-pill:hover .x {
+  opacity: 1;
+}
+.filter-clear-all {
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 6px;
+}
+.filter-clear-all:hover {
+  color: var(--accent-deep);
+}
+
+/* כפתור-פתיחת הפאנל-המתקדם — כדור עקבי עם שאר הסרגל */
+.filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  transition: border-color 0.12s;
+}
+.filter-toggle:hover {
+  border-color: var(--accent-deep);
+}
+
+/* הפאנל-המתקדם — מיכל אחד, קבוצות מתויגות ומיושרות */
+.filter-adv {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.filter-group > .fg-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-faint);
+  min-width: 82px;
+  flex: none;
+}
+
+/* קלט-סינון-בעמודה (בכותרת-הטבלה) — רקע-שקוע דק שמסמן "שדה-סינון" */
+.colfilter {
+  width: 100%;
+  min-width: 70px;
+  padding: 5px 8px;
+  font-size: 12px;
+  border-radius: 8px;
+  background: var(--bg);
+}
+
 .field {
   display: flex;
   flex-direction: column;

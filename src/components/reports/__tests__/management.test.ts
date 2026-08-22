@@ -7,6 +7,7 @@ import { emptyDb } from '../../../types/domain';
 import type { Db } from '../../../types/domain';
 import { managementMetrics } from '../management';
 import mgmtSrc from '../management.tsx?raw';
+import { DEFAULT_CONFIG } from '../../../types/config';
 
 function db(): Db {
   return {
@@ -111,5 +112,43 @@ describe('📊 ratchet — מבט הנהלה', () => {
     for (const kw of ['setDb', 'upsert', 'receiptSeq', 'donationSeq']) {
       expect(mgmtSrc).not.toContain(kw);
     }
+  });
+});
+
+/**
+ * ratchet (swarm-audit #5, 21.8.2026): קבוצות-הבסיס נדחפו ללא-תנאי בעוד
+ * האופציונליות מגודרות show() ⇒ סעיפים מאופסים של מודולים כבויים רכבו
+ * למסך+CSV. עכשיו כל קבוצת-בסיס מגודרת במודול שלה (moduleOn); בלי config
+ * (טסטים) — הכול מוצג כמו קודם. וכן: נתיב-החרגה יחיד למימושים מבוטלים —
+ * liveRedemptions (SHOP3), לא סינון-inline על voidedAt.
+ */
+describe('📊 ratchet — גידור-מודולים לקבוצות-הבסיס (swarm-audit #5)', () => {
+  const cfgOff = (modules: Record<string, boolean>) => ({ ...DEFAULT_CONFIG, modules });
+
+  it('מודול כבוי ⇒ הקבוצה שלו לא נדחפת (לא סעיף-אפסים במסך/CSV)', () => {
+    const g = managementMetrics(db(), cfgOff({ shop7: false, shop: false, tzedaka: false, families: false }));
+    for (const t of ['🚚 חלוקה', '🛍 חנות', '🪙 קופות צדקה', '👨‍👩‍👧 משפחות']) {
+      expect(g.find((x) => x.title === t)).toBeUndefined();
+    }
+  });
+
+  it('כל מודול מגודר בנפרד — כיבוי חלוקה בלבד משאיר את השאר', () => {
+    const g = managementMetrics(db(), cfgOff({ shop7: false }));
+    expect(g.find((x) => x.title === '🚚 חלוקה')).toBeUndefined();
+    expect(g.find((x) => x.title === '🛍 חנות')).toBeTruthy();
+    expect(g.find((x) => x.title === '🪙 קופות צדקה')).toBeTruthy();
+    expect(g.find((x) => x.title === '👨‍👩‍👧 משפחות')).toBeTruthy();
+  });
+
+  it('בלי config (טסטים/ברירת-מחדל) — כל קבוצות-הבסיס מוצגות כמו קודם', () => {
+    const g = managementMetrics(db());
+    for (const t of ['🚚 חלוקה', '🛍 חנות', '🪙 קופות צדקה', '👨‍👩‍👧 משפחות']) {
+      expect(g.find((x) => x.title === t)).toBeTruthy();
+    }
+  });
+
+  it('🛡 מימושים דרך liveRedemptions בלבד — אין סינון-inline על voidedAt', () => {
+    expect(mgmtSrc).toContain('liveRedemptions(x).length');
+    expect(mgmtSrc).not.toContain('redemptions.filter((r) => !r.voidedAt)');
   });
 });

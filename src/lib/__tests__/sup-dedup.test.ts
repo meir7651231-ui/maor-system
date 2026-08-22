@@ -125,3 +125,50 @@ describe('🔒 ratchet — mergeSupportersByFields (בחירת-ערך פר-שד�
     }
   });
 });
+
+describe('🐛 ratchet — mergeSupporterInto: hist אידמפוטנטי + photos/nextNote ניצלים (swarm-audit 21.8)', () => {
+  // 🐛 באג א': ההיסטוריה שורשרה כמו-שהיא במיזוג — אותו חיוב-סליקה שיובא לשני
+  // כרטיסי-הכפילות נספר פעמיים ב-supIls לנצח. עכשיו דרך mergeHist האידמפוטנטי
+  // (מפתח d|a|c, כמות=max) — אותו-כלל כמו ייבוא-חוזר.
+  it('אותו חיוב על שני הכרטיסים ⇒ נספר פעם-אחת; עסקאות שונות נשמרות', async () => {
+    const { mergeSupporterInto } = await import('../dedup');
+    const charge = { d: '2026-05-01', a: 180, c: '₪' as const, clearer: 'נדרים', txn: 'T-9' };
+    const keep = sp('k', { hist: [charge, { d: '2026-06-01', a: 50, c: '₪' }] });
+    const drop = sp('d', { hist: [{ ...charge }] }); // אותה עסקה יובאה גם לכרטיס-הכפול
+    const m = mergeSupporterInto(keep, drop);
+    expect(m.hist).toHaveLength(2); // לא 3 — החיוב-הכפול התמזג
+    expect(m.hist!.filter((h) => h.d === '2026-05-01')).toHaveLength(1);
+    // מטא-דאטת-הסליקה שרדה (mergeHist משמר את כל שדות-הרשומה)
+    expect(m.hist!.find((h) => h.d === '2026-05-01')!.txn).toBe('T-9');
+  });
+
+  it('עסקת-אמת כפולה בתוך אותו כרטיס (אותו יום/סכום פעמיים) לא נבלעת', async () => {
+    const { mergeSupporterInto } = await import('../dedup');
+    const keep = sp('k', { hist: [{ d: '2026-05-01', a: 100, c: '₪' }, { d: '2026-05-01', a: 100, c: '₪' }] });
+    const m = mergeSupporterInto(keep, sp('d'));
+    expect(m.hist).toHaveLength(2); // כמות=max — הכפל-האמיתי בכרטיס נשמר
+  });
+
+  // 🐛 באג ב': photos ו-nextNote של הנמחק נזרקו בשקט — כל שדה-תוכן אחר ניצל.
+  it('photos מאוחדים עד תקרת PHOTO_MAX; nextNote — של השומר גובר, ריק ⇒ של הנמחק', async () => {
+    const { mergeSupporterInto } = await import('../dedup');
+    const img = (i: number) => 'data:image/jpeg;base64,PIC' + i;
+    const keep = sp('k', { photos: [img(1), img(2)], nextNote: '' });
+    const drop = sp('d', { photos: [img(2), img(3), img(4), img(5), img(6)], nextNote: 'להתקשר אחרי החג' });
+    const m = mergeSupporterInto(keep, drop);
+    // איחוד בלי כפילויות, של-השומר קודם, קטום לתקרת האפליקציה (5)
+    expect(m.photos).toEqual([img(1), img(2), img(3), img(4), img(5)]);
+    expect(m.photos!.length).toBeLessThanOrEqual(5);
+    expect(m.nextNote).toBe('להתקשר אחרי החג'); // ריק אצל השומר ⇒ ניצל מהנמחק
+
+    const both = mergeSupporterInto(sp('k2', { nextNote: 'של השומר' }), sp('d2', { nextNote: 'של הנמחק' }));
+    expect(both.nextNote).toBe('של השומר'); // שניהם ⇒ השומר גובר
+  });
+
+  it('בלי photos/nextNote בשני הצדדים ⇒ המפתחות לא מומצאים (ביט-זהה)', async () => {
+    const { mergeSupporterInto } = await import('../dedup');
+    const m = mergeSupporterInto(sp('k'), sp('d'));
+    expect('photos' in m).toBe(false);
+    expect('nextNote' in m).toBe(false);
+  });
+});

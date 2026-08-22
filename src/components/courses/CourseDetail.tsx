@@ -169,6 +169,9 @@ export function CourseDetail(props: { course: Course }) {
   function doPunch(e: Enrollment) {
     if (e.status === 'paused') return toast('ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' מוקפא — הפשירו אותו בניהול ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
     if (e.status === 'ended') return toast('ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' הסתיים — ניתן לחדש בניהול ה' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
+    // ⏳ רשימת-המתנה לא משתתפת במפגשים — שער-בטיחות (הטבלה כבר מסננת 'wait', אך
+    // הפונקציה חשופה גם לזרימות עתידיות; אותו דין כמו כרטיס-המשפחה והיומן)
+    if (e.status === 'wait') return toast('ברשימת-המתנה — עדיין לא משתתפ/ת; קדמו לפעיל קודם (▲ שבץ)');
     if (e.plan === 'punch' && e.used >= e.purchased) {
       setModal({ kind: 'manage', enrollmentId: e.id });
       return;
@@ -265,7 +268,11 @@ export function CourseDetail(props: { course: Course }) {
     upsertCourse({ ...c, sessions: next, weekday: next[0].day, time: next[0].time });
     let moved = 0;
     let remapped = 0;
-    for (const e of enrolled) {
+    // גם שיבוצי רשימת-ההמתנה ('wait') של החוג עוברים את אותו ניקוי/מיפוי — אחרת
+    // ממתין/ה שומר/ת תווית-קבוצה שכבר לא קיימת (או שזזה) ונוחת/ת בקבוצה הלא-נכונה
+    // בקידום מהתור ("▲ שבץ" משמר את e.group).
+    const waitOfCourse = db.enrollments.filter((e) => e.courseId === c.id && e.status === 'wait');
+    for (const e of [...enrolled, ...waitOfCourse]) {
       if (e.group === removed) {
         upsertEnrollment({ ...e, group: '' });
         moved++;

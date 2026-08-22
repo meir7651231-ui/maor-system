@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { normalizeConfig } from '../../lib/config';
+import { featureEffectiveOn } from '../builder/sections';
 import { FEATURES, TERM_DEFS } from '../../types/features';
 import type { OrgConfig } from '../../types/config';
 import { THEME_LABELS } from '../builder/handoff';
@@ -15,7 +16,7 @@ import { VERTICAL_PACKS, applyVerticalPack } from '../../lib/verticalPacks';
 import { industryLabel, needLabel, sizeLabel } from '../../lib/signupWizard';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
-import { ALL_MODULES, MODULE_LABELS, allOffConfig, approveMember, isValidSlug, orgLink, slugify } from './lib';
+import { ALL_MODULES, MODULE_LABELS, allOffConfig, isValidSlug, orgLink, slugify } from './lib';
 
 type CloudMod = typeof import('../../store/cloudSync');
 interface ReqRow {
@@ -35,6 +36,7 @@ interface OrgRow {
   orgName?: string;
   provisioned?: boolean;
   members?: string[];
+  manager?: string;
   config?: unknown;
 }
 interface LeadRow {
@@ -78,6 +80,9 @@ export function PlatformPanel(props: { onClose: () => void }) {
   const [slugErr, setSlugErr] = useState('');
   // עורך הלקוח
   const [sel, setSel] = useState('');
+  // 👥 תיקון-חברות (21.8) — עריכת מנהל/חברים של הארגון הנבחר
+  const [mgrEdit, setMgrEdit] = useState('');
+  const [memberAdd, setMemberAdd] = useState('');
   const [cfg, setCfg] = useState<OrgConfig | null>(null);
   const [featModule, setFeatModule] = useState('');
 
@@ -181,12 +186,13 @@ export function PlatformPanel(props: { onClose: () => void }) {
     await refresh(mod);
   }
 
-  /** אישור עובד/ת מהלוח (ORGADMIN) — אותה פעולה כמו פאנל-המנהל: members+מחיקת-הבקשה. */
+  /** אישור עובד/ת מהלוח (ORGADMIN) — אותה פעולה כמו פאנל-המנהל: members+מחיקת-הבקשה.
+   *  תיקון 21.8 (ממצא-נחיל): addOrgMember (arrayUnion אטומי) במקום דריסת המערך המלא
+   *  מ-state אולי-ישן — אישור-מקביל אצל המנהל לא נמחק עוד בשקט. */
   async function approveJoin(r: JoinReqRow) {
     if (!mod || !r.email) return;
-    const org = orgs.find((o) => o.slug === r.slug);
-    const { members } = approveMember({ members: org?.members ?? [] }, r.email);
-    await mod.writeOrgCloudDoc(r.slug, { members });
+    const { addOrgMember } = await import('../../lib/cloudConfig');
+    await addOrgMember(r.slug, r.email);
     await mod.deleteOrgJoinRequest(r.slug, r.uid).catch(() => {});
     toast('העובד/ת ' + r.email + ' אושר/ה לארגון ' + (r.orgName || r.slug) + ' — שיתחברו שוב');
     await refresh(mod);
@@ -224,6 +230,41 @@ export function PlatformPanel(props: { onClose: () => void }) {
     const row = orgs.find((o) => o.slug === s);
     const norm = row?.config ? normalizeConfig(row.config) : null;
     setCfg(norm ? { ...norm, slug: s } : allOffConfig(s, row?.orgName ?? ''));
+    setMgrEdit(row?.manager ?? '');
+    setMemberAdd('');
+  }
+
+  /** 👥 תיקון-חברות (21.8, "למה המנהל נשאר תקוע בחוץ"): עד עכשיו לא הייתה שום דרך
+   *  לראות/לתקן את manager/members אחרי ההקמה — מייל שגוי במינוי או רשימה שנדרסה
+   *  ⇒ המנהל תקוע במסך-ההמתנה לנצח. עדכון-מנהל כותב manager **וגם** מוסיף ל-members
+   *  (arrayUnion אטומי); הוספה/הסרה של חבר/ה — אותם עוזרים האטומיים. */
+  async function saveManager() {
+    if (!mod || !sel) return;
+    const m = mgrEdit.trim().toLowerCase();
+    if (!m || !m.includes('@')) return toast('מייל המנהל חסר/לא תקין');
+    const { addOrgMember } = await import('../../lib/cloudConfig');
+    await mod.writeOrgCloudDoc(sel, { manager: m });
+    await addOrgMember(sel, m);
+    toast('המנהל עודכן ל-' + m + ' — שיתחבר/תתחבר שוב לכתובת עם ?org=' + sel);
+    await refresh(mod);
+  }
+  async function addMember() {
+    if (!mod || !sel) return;
+    const m = memberAdd.trim().toLowerCase();
+    if (!m || !m.includes('@')) return toast('מייל לא תקין');
+    const { addOrgMember } = await import('../../lib/cloudConfig');
+    await addOrgMember(sel, m);
+    setMemberAdd('');
+    toast('נוסף/ה לארגון: ' + m + ' — שיתחבר/תתחבר שוב');
+    await refresh(mod);
+  }
+  async function removeMember(m: string) {
+    if (!mod || !sel) return;
+    if (!confirmTwice('rmm-' + sel + m, 'להסיר את ' + m + ' מהארגון? הכניסה תיחסם')) return;
+    const { removeOrgMember } = await import('../../lib/cloudConfig');
+    await removeOrgMember(sel, m);
+    toast(m + ' הוסר/ה מהארגון');
+    await refresh(mod);
   }
 
   /** הלב של העריכה-בלייב: כל שינוי נכתב מיד למסמך הענן — הלקוח רואה חי. */
@@ -421,6 +462,38 @@ export function PlatformPanel(props: { onClose: () => void }) {
               </Field>
             </div>
 
+            {/* 👥 תיקון-חברות (21.8, "למה המנהל נשאר תקוע בחוץ") — עד עכשיו manager/members
+                לא היו גלויים ולא ניתנים-לתיקון אחרי ההקמה: מייל שגוי ⇒ מנהל תקוע במסך-
+                ההמתנה לנצח, בלי שום כלי. רק מי שברשימה (או המנהל) נכנס לאתר-הארגון. */}
+            <Field label="👥 מי נכנס לארגון — מנהל וצוות">
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
+                <span style={{ fontSize: 12.5, fontWeight: 700 }}>🔑 מנהל:</span>
+                <TextInput value={mgrEdit} onChange={setMgrEdit} dir="ltr" placeholder="manager@org.org" />
+                <Btn sm onClick={() => void saveManager()}>עדכון מנהל</Btn>
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 6 }}>
+                {(orgs.find((o) => o.slug === sel)?.members ?? []).map((m) => (
+                  <Chip key={m} on>
+                    <span dir="ltr">{m}</span>
+                    <span
+                      role="button"
+                      aria-label={'הסרת ' + m}
+                      style={{ marginInlineStart: 6, cursor: 'pointer', fontWeight: 800, color: armed === 'rmm-' + sel + m ? 'var(--danger, #c0392b)' : undefined }}
+                      onClick={(e) => { e.stopPropagation(); void removeMember(m); }}
+                    >✖</span>
+                  </Chip>
+                ))}
+                {(orgs.find((o) => o.slug === sel)?.members ?? []).length === 0 && (
+                  <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>אין חברים — זו הסיבה שאף אחד לא נכנס!</span>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                <TextInput value={memberAdd} onChange={setMemberAdd} dir="ltr" placeholder="worker@org.org" />
+                <Btn sm onClick={() => void addMember()}>➕ הוספת חבר/ה</Btn>
+                <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>מי שלא ברשימה רואה מסך-המתנה. אחרי שינוי — שיתחברו שוב.</span>
+              </div>
+            </Field>
+
             <Field label="דגלים עדינים (לפי מודול)">
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
                 {featGroups.map((g) => (
@@ -434,10 +507,19 @@ export function PlatformPanel(props: { onClose: () => void }) {
                   {FEATURES.filter((f) => f.module === featModule).map((f) => (
                     <Chip
                       key={f.key}
-                      on={cfg.features?.[f.key] !== false}
-                      onClick={() =>
-                        updateCfg({ ...cfg, features: { ...cfg.features, [f.key]: cfg.features?.[f.key] === false } })
-                      }
+                      // תיקון 21.8 (ממצא-נחיל): הצ'יפ קרא `!== false` — לכל 13 דגלי-ה-opt-in
+                      // (חסר=כבוי!) הוא היה הפוך: ארגון-חדש all-off הציג 🟢 על מסך כבוי,
+                      // ולחיצת-"הדלקה" כתבה ערך שאינו true ⇒ בלתי-ניתן-להדלקה מהלוח.
+                      on={featureEffectiveOn(cfg, f)}
+                      onClick={() => {
+                        // שיקוף setFeatures של האשף: כיבוי=false מפורש; הדלקה —
+                        // opt-in כותב true מפורש, דגל-רגיל מוחק את המפתח (חסר=פעיל).
+                        const features = { ...cfg.features };
+                        if (featureEffectiveOn(cfg, f)) features[f.key] = false;
+                        else if (f.optIn) features[f.key] = true;
+                        else delete features[f.key];
+                        updateCfg({ ...cfg, features });
+                      }}
                     >
                       {f.label}
                     </Chip>

@@ -80,3 +80,34 @@ describe('🔒 ratchet — קבלת סעיף 46 פורמלית', () => {
     expect(receiptLines(base)[0]).toBe('מקור');
   });
 });
+
+// ratchet — הבאג (swarm-audit): אישור-תשלום-סמלי מסדרת S- (shopReceiptSeq — לא
+// קבלת מס) הודפס בכותרת "קבלה — <ארגון>" + "קבלה מס׳: S-3" — מצג-שווא, כשההסתייגות
+// ("אינו קבלה לצורכי מס") קבורה באמצע המסמך. S- מקבל "אישור תשלום"/"אישור מס׳";
+// כל rid אחר בענף הלא-§46 (כולל R-/D- מסחריים) נשאר ביט-זהה.
+describe('🧾 ratchet — כותרת אישור S- (swarm-audit)', () => {
+  const sDoc = { ...base, rid: 'S-3', forWhat: 'מימוש: סט תפילין · אישור תשלום — אינו קבלה לצורכי מס' };
+
+  it('rid בסדרת S- ⇒ "אישור תשלום — <ארגון>" + "אישור מס׳: S-3", בלי "קבלה"', () => {
+    const L = receiptLines(sDoc);
+    expect(L).toContain('אישור תשלום — מאור');
+    expect(L).toContain('אישור מס׳: S-3');
+    expect(L.some((l) => l.startsWith('קבלה — '))).toBe(false);
+    expect(L.some((l) => l.startsWith('קבלה מס׳:'))).toBe(false);
+  });
+
+  it('R-/D- בענף הלא-§46 (ארגון מסחרי) — הנוסח ההיסטורי ביט-זהה', () => {
+    const r = receiptLines(base); // rid R-1
+    expect(r).toContain('קבלה — מאור');
+    expect(r).toContain('קבלה מס׳: R-1');
+    const d = receiptLines({ ...base, rid: 'D-9' });
+    expect(d).toContain('קבלה — מאור');
+    expect(d).toContain('קבלה מס׳: D-9');
+  });
+
+  it('קבלת §46 לא מושפעת — הכותרת הפורמלית נשארת', () => {
+    const L = receiptLines({ ...base, rid: 'D-42', taxReceipt: true });
+    expect(L).toContain('קבלה על תרומה — לפי סעיף 46 לפקודת מס הכנסה');
+    expect(L).toContain('קבלה מס׳: D-42');
+  });
+});

@@ -20,6 +20,7 @@ import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
+import { SupporterPhotos } from './SupporterPhotos';
 import { DonationCalendar } from './DonationCalendar';
 
 function InfoRow(props: { k: string; v: string; ltr?: boolean }) {
@@ -153,6 +154,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     toast('🔁 חיוב-החודש נרשם' + (featureOn(config, 'core.receipts') ? ' — קבלה ' + res.rid : ''));
   }
   const ayinOn = featureOn(config, 'supporters.ayin');
+  // גלריית-תמונות — opt-in מפורש (=== true), שומר על ברירת-המחדל ביט-זהה בלקוח-החי.
+  const photosOn = config.features?.['supporters.photos'] === true;
   const histOn = featureOn(config, 'supporters.hist');
   const receiptsOn = featureOn(config, 'core.receipts');
 
@@ -522,6 +525,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           </div>
         )}
       </div>
+
+      {/* גלריית-תמונות מקומית (opt-in supporters.photos) */}
+      {photosOn && (
+        <div className="card">
+          <SupporterPhotos supporter={sp} />
+        </div>
+      )}
 
       {/* מעקב טיפול רב-שלבי */}
       {ayinOn && <AyinCard supporter={sp} />}

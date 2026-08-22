@@ -6,10 +6,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Enrollment } from '../../../types/domain';
 import { emptyDb } from '../../../types/domain';
-import { enrollCount, waitlistFor } from '../lib';
+import { enrollCount, enrollStatusMeta, waitlistFor } from '../lib';
 import enrollSrc from '../EnrollModal.tsx?raw';
 import detailSrc from '../CourseDetail.tsx?raw';
 import sections1Src from '../../reports/sections1.tsx?raw';
+import manageSrc from '../ManageModal.tsx?raw';
+import viewSrc from '../CoursesView.tsx?raw';
+import famPanelsSrc from '../../families/FamilyPanels.tsx?raw';
+import attnPanelSrc from '../../diary/AttendancePanel.tsx?raw';
 
 function enr(over: Partial<Enrollment>): Enrollment {
   return {
@@ -47,5 +51,29 @@ describe('🛡 הגנות-מקור — רשימת-המתנה מחווטת ומג
   });
   it("דוח-הרישום לא מנפח: 'wait' מוחרג מספירת-הרשומים", () => {
     expect(sections1Src).toContain("e.status !== 'ended' && e.status !== 'wait'");
+  });
+});
+
+describe("🛡 ratchet — האינווריאנט של רשימת-ההמתנה: 'wait' לא תופס מקום, לא חייב, לא משתתף", () => {
+  it("ManageModal: '⏸ הקפאה' חסומה ל-'wait' — הקפאה הפכה ממתין/ה ל-paused (קידום-שקט מעבר לקיבולת בלי דרך-חזרה)", () => {
+    expect(manageSrc).toContain("if (en.status === 'wait')");
+    expect(manageSrc).toContain('קדמו לפעיל קודם');
+  });
+  it("CoursesView: מונה-הרשימה מדלג גם על 'wait' — המונה היחיד בריפו שספר המתנה והציג \"11/10\" אדום מול 8/10 בכרטיס", () => {
+    expect(viewSrc).toContain("if (e.status === 'ended' || e.status === 'wait') continue;");
+  });
+  it("CourseDetail: מיפוי-קבוצות בהסרת-מפגש חל גם על שיבוצי-'wait' — אחרת ממתין/ה שומר/ת תווית-קבוצה שלא קיימת ונוחת/ת מוטעה בקידום", () => {
+    expect(detailSrc).toContain("const waitOfCourse = db.enrollments.filter((e) => e.courseId === c.id && e.status === 'wait')");
+    expect(detailSrc).toContain('[...enrolled, ...waitOfCourse]');
+  });
+  it("ניקוב חסום ל-'wait' בשלושת המשטחים (כרטיס-משפחה / כרטיס-חוג / יומן) — ניקוב-בתשלום נשרף בלי ששום דוח יציג אותו", () => {
+    for (const src of [famPanelsSrc, detailSrc, attnPanelSrc]) {
+      expect(src).toContain("e.status === 'wait'");
+      expect(src).toContain('עדיין לא משתתפ/ת');
+    }
+  });
+  it("enrollStatusMeta: 'wait' מקבל צ'יפ משלו — קודם נפל ל'פעיל' והטעה בכרטיס ⚙ ניהול-שיבוץ", () => {
+    const wait = { status: 'wait' } as Enrollment;
+    expect(enrollStatusMeta(wait).label).toContain('רשימת-המתנה');
   });
 });

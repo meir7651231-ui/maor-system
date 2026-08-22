@@ -408,6 +408,22 @@ export interface KitItem {
   done: boolean;
 }
 
+/**
+ * פריט-מלאי במחסן חוצה-פרויקטים (ורטיקל-הסטודיו). המחסן עצמאי; הצריכה מחושבת
+ * כנגזרת מרשומות-החומרים (MatEntry) של הפרויקטים לפי התאמת-שם. additive, ורטיקל
+ * מסחרי בלבד (מגודר supporters.ayin.warehouse). לא נוגע בכסף/קבלות.
+ */
+export interface WarehouseItem {
+  id: Id;
+  name: string;
+  /** יחידת-מידה חופשית (יח׳ / מ׳ / ק"ג …). */
+  unit: string;
+  /** מלאי-במחסן (כמות). */
+  qty: number;
+  /** מחיר-יחידה (לעלות-מלאי; אופציונלי). */
+  cost: number;
+}
+
 /** תשובה/הערה מתוארכת בתהליך הטיפול. */
 export interface AyinAnswer {
   date: IsoDate;
@@ -519,6 +535,12 @@ export interface Supporter {
   nextDate: IsoDate | '';
   /** על מה לדבר בפעם הבאה — תזכורת-אג'נדה חופשית (additive; מוצג בקוקפיט/חייגן). */
   nextNote?: string;
+  /**
+   * גלריית-תמונות מקומית (data:URI מוקטנים) — additive, אופציונלי, אין מיגרציה.
+   * נשמרות בתוך ה-DB ⇒ מגובות/מסונכרנות; תקרה קשיחה (PHOTO_MAX) + הקטנה בהעלאה.
+   * מגודר supporters.photos. undefined בכרטיסים ישנים.
+   */
+  photos?: string[];
   /** אירוע 'שיחה' שנוצר אוטומטית ביומן. */
   nextEventId?: Id;
   donations: Donation[];
@@ -977,6 +999,8 @@ export interface Db {
   deliveries: Delivery[];
   /** 📋 משימות-עבודה (WORKPREP, 20.8) — המנהל מכין תור פר-עובד/ת; הישות ה-22. */
   tasks: WorkTask[];
+  /** 🏭 מלאי-מחסן חוצה-פרויקטים (ורטיקל-הסטודיו) — הישות ה-23; מסחרי, additive. */
+  warehouse: WarehouseItem[];
   orgName: string;
   orgSite: string;
   orgDonate: string;
@@ -1068,6 +1092,7 @@ export function emptyDb(): Db {
     distributionDays: [],
     deliveries: [],
     tasks: [],
+    warehouse: [],
     orgName: 'מאור החסד',
     orgSite: '',
     orgDonate: '',

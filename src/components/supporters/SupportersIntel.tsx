@@ -9,7 +9,8 @@ import { useMemo, useState } from 'react';
 import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
 import { Btn } from '../ui';
-import { supTier } from './lib';
+import { isoToday, supTier } from './lib';
+import { cockpitAtRisk } from './cockpit';
 import { donorIntel, type DonorIntel } from './intel';
 import { activeByMonth, portfolioIntel, tierTrendCounts } from './portfolio';
 import { timeMachine, type TimeMachine } from './timemachine';
@@ -21,7 +22,7 @@ import { acquisitionCohorts, type RetentionReport } from './retention';
 import { paretoReport, type ParetoReport } from './pareto';
 import { tierMigration, type TierMigration } from './tierMigration';
 import { downloadCsv } from '../../lib/csvx';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 
 const ILS = (n: number) => '₪' + Math.round(n).toLocaleString('he-IL');
 const KILO = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K' : ILS(n));
@@ -504,7 +505,8 @@ export function SupportersIntel(props: {
 }) {
   const [sort, setSort] = useState<SortKey>('score');
   const [selId, setSelId] = useState<string | null>(null);
-  const today = new Date().toISOString().slice(0, 10);
+  // 🐛 (21.8): toISOString = UTC ⇒ בין חצות מקומי ל-02:00/03:00 "היום" היה אתמול.
+  const today = isoToday();
   const rate = props.usdRate || 3.7;
 
   // מעבר-יחיד לתורם, memoized — הבסיס לכל הטבלה והתיק.
@@ -522,6 +524,11 @@ export function SupportersIntel(props: {
   const retention = useMemo(() => acquisitionCohorts(props.supporters, today, rate), [props.supporters, today, rate]);
   const pareto = useMemo(() => paretoReport(props.supporters, today, rate), [props.supporters, today, rate]);
   const migration = useMemo(() => tierMigration(props.supporters, today, 12, rate), [props.supporters, today, rate]);
+  // 🐛 קוהרנטיות אריח↔סינון (21.8): האריח הקליקי "₪ בסכנה" פותח את סגמנט 'atrisk'
+  // (=cockpitAtRisk) — המונה שעליו חייב להציג את אותה אוכלוסייה, לא את
+  // portfolio.atRiskCount (churn≥60, אוכלוסייה אחרת) שנשאר לאנליטיקה לא-קליקית.
+  const atRiskClickCount = useMemo(() => cockpitAtRisk(props.supporters, today).length, [props.supporters, today]);
+  const supPlural = termOf(props.config, 'nav.supporters', 'תורמים');
 
   const sorted = useMemo(() => {
     const arr = [...rows];
@@ -559,10 +566,10 @@ export function SupportersIntel(props: {
 
       {/* portfolio tiles */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-        <Tile label="שווי-תיק (LTV)" value={KILO(portfolio.ltv)} note={portfolio.count + ' תורמים'} />
+        <Tile label="שווי-תיק (LTV)" value={KILO(portfolio.ltv)} note={portfolio.count + ' ' + supPlural} />
         <Tile label="תחזית 90 יום" value={KILO(portfolio.forecast90)} note="צפי-נכנס" />
         <Tile label="שימור 12ח׳" value={portfolio.retention12m + '%'} tone="var(--good, #2e7d32)" onClick={props.onSegment ? () => props.onSegment!('gave12m') : undefined} />
-        <Tile label="₪ בסכנה" value={KILO(portfolio.atRiskMoney)} note={portfolio.atRiskCount + ' תורמים'} tone="var(--warn, #b45309)" onClick={props.onSegment ? () => props.onSegment!('atrisk') : undefined} />
+        <Tile label="₪ בסכנה" value={KILO(portfolio.atRiskMoney)} note={atRiskClickCount + ' ' + supPlural} tone="var(--warn, #b45309)" onClick={props.onSegment ? () => props.onSegment!('atrisk') : undefined} />
         <Tile label={'ריכוזיות (top-' + portfolio.topN + ')'} value={portfolio.concentrationTopN + '%'} />
         <Tile label="מתנה ממוצעת" value={ILS(portfolio.avgGift)} />
       </div>
@@ -575,7 +582,7 @@ export function SupportersIntel(props: {
         <div className="card" style={{ overflowX: 'auto' }}>
           <div style={{ minWidth: 640 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr .9fr 1.1fr .9fr auto', gap: 10, padding: '10px 14px', fontSize: 11, fontWeight: 800, color: 'var(--ink-faint)', borderBottom: '1px solid var(--line, #e4dbc9)' }}>
-              <span>תורם/ת</span><span>ציון · RFM</span><span>LTV</span><span>תחזית</span><span>סיכון</span><span></span>
+              <span>{termOf(props.config, 'entity.supporter', 'תורם/ת')}</span><span>ציון · RFM</span><span>LTV</span><span>תחזית</span><span>סיכון</span><span></span>
             </div>
             {shown.map(({ sp, intel }) => {
               const tier = supTier(intel.rfm.score);

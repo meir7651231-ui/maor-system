@@ -62,6 +62,18 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
     setComps(comps.map((c, j) => (j === i ? { ...c, ...patch } : c)));
   }
   function removeComp(i: number) {
+    // תיקון (swarm-audit): הסרת רכיב שיש עליו מימושים ייתמה אותם בשקט — היחידות
+    // חזרו למלאי (itemRemaining סופר רק רכיבים קיימים) והשורות נעלמו מכרטיס-השיוך
+    // בלי אפשרות ביטול. חוסמים — כמו deleteShopProduct שחוסם על שיוכים פעילים.
+    const comp = comps[i];
+    if (
+      comp?.id &&
+      p &&
+      db.shopAssignments.some((a) => a.productId === p.id && a.redemptions.some((r) => r.componentId === comp.id))
+    ) {
+      toast('לרכיב יש מימושים רשומים — לא ניתן להסירו; אפשר לבטל את המימושים בכרטיס ה' + termOf(config, 'entity.shopAssignment', 'שיוך') + ' או לסמן את ה' + itemTerm + ' לא-פעיל');
+      return;
+    }
     setComps(comps.filter((_, j) => j !== i));
   }
 

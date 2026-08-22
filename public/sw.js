@@ -10,6 +10,20 @@
  */
 const CACHE = 'maor-pwa-v1';
 
+// טבעת-assets (21.8): כל build מייצר שמות-hash חדשים — בלי ניקוי המטמון היחיד
+// היה תופח לנצח. אחרי put מוצלח גוזמים לתקרה: cache.keys() מוחזר בסדר-הכנסה
+// ⇒ מוחקים מהראש (הישנים ביותר). דפנסיבי — כל כשל שקט, לא מפיל את ה-fetch.
+const ASSET_KEEP = 80;
+async function pruneAssets(cache) {
+  try {
+    const keys = await cache.keys();
+    const assets = keys.filter((k) => new URL(k.url).pathname.includes('/assets/'));
+    for (const k of assets.slice(0, Math.max(0, assets.length - ASSET_KEEP))) {
+      await cache.delete(k).catch(() => {});
+    }
+  } catch { /* מטמון לא-זמין — מוותרים על הגיזום בלבד */ }
+}
+
 self.addEventListener('install', () => {
   self.skipWaiting();
 });
@@ -34,10 +48,15 @@ self.addEventListener('fetch', (e) => {
   if (url.pathname.includes('/assets/')) {
     e.respondWith(
       (async () => {
-        const cached = await caches.match(req);
+        // תחום למטמון שלנו בלבד (caches.match גלובלי מחפש בכל המטמונים ב-origin —
+        // כולל שאריות של SW זר) + put עם catch (חריגת-quota לא מפילה את התשובה)
+        const cache = await caches.open(CACHE);
+        const cached = await cache.match(req);
         if (cached) return cached;
         const res = await fetch(req);
-        if (res.ok) (await caches.open(CACHE)).put(req, res.clone());
+        if (res.ok) {
+          cache.put(req, res.clone()).then(() => pruneAssets(cache)).catch(() => {});
+        }
         return res;
       })(),
     );
@@ -50,7 +69,12 @@ self.addEventListener('fetch', (e) => {
     (async () => {
       try {
         const res = await fetch(req);
-        if (res.ok) (await caches.open(CACHE)).put(req, res.clone());
+        // put לא-ממתין — עם catch, אחרת דחייה (quota מלא וכד׳) הופכת לשגיאה לא-מטופלת.
+        // clone() סינכרוני לפני ההחזרה — אחרי שהעמוד מתחיל לצרוך את הגוף clone זורק.
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        }
         return res;
       } catch {
         const cached = await caches.match(req, { ignoreSearch: req.mode === 'navigate' });

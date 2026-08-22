@@ -46,6 +46,10 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number; d
       return toast('השיבוץ מוקפא — הפשירו אותו בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
     if (e.status === 'ended')
       return toast('השיבוץ הסתיים — ניתן לחדש בניהול ה' + termOf(config, 'entity.enrollment', 'שיבוץ') + ' (⚙)');
+    // ⏳ רשימת-המתנה לא משתתפת במפגש — enrollmentsForSession מחזירה את כל שיבוצי
+    // הקורס (כולל 'wait'), ולכן בלי השער ממתין/ה היה ננקב/ת מהיומן
+    if (e.status === 'wait')
+      return toast('ברשימת-המתנה — עדיין לא משתתפ/ת; קדמו לפעיל קודם (▲ שבץ בכרטיס ה' + termOf(config, 'entity.course', 'חוג') + ')');
     const fam = db.families.find((f) => f.members.some((m) => m.id === e.memberId));
     // לחיצה חוזרת על מפגש שכבר סומן נוכח — מבטלת (החלפה)
     if ((e.presents ?? []).includes(props.date)) {
@@ -140,6 +144,7 @@ export function AttendancePanel(props: { course: Course; sessionIndex: number; d
           enrollmentId={absFor.id}
           course={props.course}
           who={absFor.who}
+          date={props.date}
           onClose={() => setAbsFor(null)}
         />
       )}

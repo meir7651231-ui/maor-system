@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { emptyDb } from '../../../types/domain';
 import type { Db } from '../../../types/domain';
 import { expiringIntakes, needsCare } from '../lib';
+import { DEFAULT_CONFIG } from '../../../types/config';
 import stockSrc from '../StockModal.tsx?raw';
 
 const TODAY = '2026-08-01';
@@ -43,5 +44,16 @@ describe('⏳ ratchet — אצוות/תפוגה (SHOP10)', () => {
   it('הגנת-מקור: StockModal מעביר expiry (רשות)', () => {
     expect(stockSrc).toContain('setExpiry');
     expect(stockSrc).toMatch(/expiry \? \{ expiry \} : \{\}/);
+  });
+
+  // ratchet — הבאג (swarm-audit): הקלט (תאריך-תפוגה בקליטה) מגודר בדגל shop.expiry
+  // אבל שורות 'expiring' נפלטו מ-needsCare ללא-תנאי — ארגון עם הדגל כבוי עדיין
+  // קיבל התרעות-תפוגה.
+  it('shop.expiry כבוי בקונפיג ⇒ אין שורות expiring; דלוק/בלי-config — ביט-זהה להיום', () => {
+    const off = { ...DEFAULT_CONFIG, features: { 'shop.expiry': false } };
+    expect(needsCare(db(), TODAY, off).filter((c) => c.kind === 'expiring')).toHaveLength(0);
+    const on = { ...DEFAULT_CONFIG, features: {} }; // חסר = פעיל (חוזה-הדגלים)
+    expect(needsCare(db(), TODAY, on).filter((c) => c.kind === 'expiring')).toHaveLength(2);
+    expect(needsCare(db(), TODAY).filter((c) => c.kind === 'expiring')).toHaveLength(2); // קוראים ישנים
   });
 });

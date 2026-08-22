@@ -165,6 +165,24 @@ describe('👥 ORGADMIN — היררכיית 3 שכבות + כרטיס-עובד 
     expect(keys).toContain('shell.lock'); // פסאודו-מודול נשאר
   });
 
+  it('orgEnabledFeatures: דגל-opt-in חסר = כבוי — המנהל לא רואה יכולת שהארגון לא הדליק (21.8)', () => {
+    // הבאג (ממצא-נחיל): `=== false` התייחס למפתח-opt-in חסר כ"דלוק" ⇒ ManagerPanel
+    // הציג צ'יפ-עובד לקוקפיט/גלקסיה/הו"ק-המוני שהארגון מעולם לא קנה.
+    const FEATS = [
+      { key: 'supporters.cockpit', module: 'supporters', optIn: true },
+      { key: 'supporters.hokbulk', module: 'supporters', optIn: true },
+      { key: 'supporters.rfm', module: 'supporters' },
+    ];
+    const cfg = { modules: { supporters: true }, features: { 'supporters.cockpit': true } };
+    const keys = orgEnabledFeatures(cfg, FEATS).map((f) => f.key);
+    expect(keys).toContain('supporters.cockpit'); // opt-in שהודלק true מפורש ⇒ בתקרה
+    expect(keys).not.toContain('supporters.hokbulk'); // opt-in חסר ⇒ כבוי ⇒ מחוץ לתקרה
+    expect(keys).toContain('supporters.rfm'); // דגל-רגיל חסר = דלוק (החוזה הישן נשמר)
+    // גם opt-in דלוק תחת מודול-כבוי — מחוץ לתקרה
+    const offMod = orgEnabledFeatures({ modules: { supporters: false }, features: { 'supporters.cockpit': true } }, FEATS);
+    expect(offMod.map((f) => f.key)).not.toContain('supporters.cockpit');
+  });
+
   it('overrideOf: מחזיר את הכרטיס, ריק לחבר-בלי-כרטיס', () => {
     expect(overrideOf('rina@maor.org', org).modules?.supporters).toBe(false);
     expect(overrideOf('boss@maor.org', org)).toEqual({});
@@ -272,7 +290,13 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     // (cloud.isManager). ארגון בלי מנהל-ממונה — או בעלים שאינו המנהל — לא ראה
     // את הבקשה בשום מסך. הלוח שולף מכל הארגונים + מאשר/דוחה באותה פעולה כמו המנהל.
     expect(panelSrc).toContain('fetchOrgJoinRequests');
-    expect(panelSrc).toMatch(/approveJoin[\s\S]{0,300}approveMember/);
+    // עודכן 21.8 (ממצא-נחיל): approveMember-מ-state הוחלף ב-addOrgMember אטומי
+    // (arrayUnion בשרת) — כתיבת members מלא מ-state ישן דרסה אישורים מקבילים.
+    expect(panelSrc).toMatch(/approveJoin[\s\S]{0,400}addOrgMember/);
+    expect(cloudConfigSrc).toContain('members: arrayUnion(');
+    expect(cloudConfigSrc).toContain('members: arrayRemove(');
+    expect(managerSrc).toMatch(/async function approve\(r: JoinRow\)[\s\S]{0,500}addOrgMember/);
+    expect(managerSrc).toMatch(/async function removeEmp\(email: string\)[\s\S]{0,500}removeOrgMember/);
     expect(panelSrc).toMatch(/approveJoin[\s\S]{0,500}deleteOrgJoinRequest/);
     expect(panelSrc).toContain('בקשות-הצטרפות של עובדים');
   });
@@ -313,6 +337,15 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     expect(cloudConfigSrc).toContain('export async function deleteOrgCompletely');
     expect(cloudConfigSrc).toMatch(/'incomingPayments', 'smsOutbox', 'mailOutbox'/);
     expect(cloudConfigSrc).toMatch(/_enc\/envelope/);
+    // ratchet 21.8 (ממצא-נחיל): המודאל מבטיח "הכול נמחק" — אבל שש מטרות שרדו:
+    // תרומות-מסלול-B (donations) · טבעות-הלוג (auditlog) · כספת-הסודות
+    // (orgSecrets — smtpUrl/yemotToken/nedarimApiPass/smsApiKey שרדו לנצח!) ·
+    // המטא שלה · פיד-ה-ICS · צ'אט-הצוות. כולן חייבות להימחק:
+    expect(cloudConfigSrc).toMatch(/'donations', 'auditlog', 'incomingPayments'/);
+    expect(cloudConfigSrc).toContain("'orgSecrets/' + slug");
+    expect(cloudConfigSrc).toContain("'orgSecretsMeta/' + slug");
+    expect(cloudConfigSrc).toContain("'icsFeeds/' + slug");
+    expect(cloudConfigSrc).toContain("TEAM_CHATS + '/' + slug + '/messages'");
     // סדר: joinRequests ואז המצבת (אחרונה — כשל-באמצע משאיר את הלקוח גלוי לניסיון-חוזר)
     const wipeIdx = cloudConfigSrc.indexOf("PLATFORM_ORGS + '/' + slug + '/joinRequests'");
     const docIdx = cloudConfigSrc.indexOf('setDoc(doc(db, PLATFORM_ORGS, slug), { deleted: true');

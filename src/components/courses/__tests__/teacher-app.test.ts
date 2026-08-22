@@ -54,9 +54,22 @@ describe('🎓 אפליקציית-המורה — מנוע', () => {
   it('teacherKpis: חוגים/תלמידים-חיים/מפגשים-היום/השלמות', () => {
     const k = teacherKpis(db(), 't1', 0, '2026-08-16');
     expect(k.courses).toBe(2);
-    expect(k.students).toBe(2); // a(c1)+b(c2); w=המתנה מוחרג
+    // תלמידים ייחודיים: a(c1) ו-b(c2) הם אותו memberId 'm1' (תלמיד ב-2 חוגי-אותה-מורה)
+    // ⇒ נספר פעם-אחת (ממצא-נחיל: קודם ‏.length ספר 2 שיבוצים כ"2 תלמידים"). w=המתנה מוחרג.
+    expect(k.students).toBe(1);
     expect(k.todaySessions).toBe(1);
     expect(k.makeups).toBe(1);
+  });
+  it('teacherKpis.makeups: רק שטרם-תוזמנו (!makeupDate) — כמו המונה בכרטיס-החוג', () => {
+    // ratchet — הבאג: ה-KPI "השלמות ממתינות" ספר גם השלמות שכבר נקבע להן תאריך
+    // (makeupDate), בעוד כרטיס-החוג (CourseDetail) סופר רק !makeupDate — סתירה בין המסכים.
+    const d = db();
+    d.enrollments = [
+      ...d.enrollments,
+      enr({ id: 's', courseId: 'c1', absences: [{ date: '2026-08-03', reason: 'מחלה', makeup: true, makeupDate: '2026-08-24' }] }),
+    ];
+    const k = teacherKpis(d, 't1', 0, '2026-08-16');
+    expect(k.makeups).toBe(1); // רק a (לא-מתוזמן); s כבר נקבע ⇒ לא "ממתין"
   });
   it('teacherMonthCsvRows: שורה פר תלמיד עם נוכחות/חיסור בחודש', () => {
     const rows = teacherMonthCsvRows(db(), 't1', '2026-08', () => 'דנה · כהן');
@@ -64,9 +77,29 @@ describe('🎓 אפליקציית-המורה — מנוע', () => {
     const painting = rows.find((r) => r[0] === 'ציור');
     expect(painting).toEqual(['ציור', 'דנה · כהן', 1, 1]); // נוכחות 16.8 + חיסור 2.8
   });
+  it('teacherMonthCsvRows: תלמיד/ה שסיימ/ה באמצע-החודש נשאר/ת בדוח אותו חודש (כמו buildCourseDailyRows)', () => {
+    // ratchet — הבאג: הדוח עבר דרך sheetRoster שמפיל 'ended' ללא-תנאי — תלמידה
+    // שסיימה ב-10.8 (או חוג שלם אחרי bulkEndCourse) נעלמה רטרואקטיבית מדוח אוגוסט
+    // כולל הנוכחויות ששולמו ונרשמו. הכלל (כמו courseDaily): ended נכלל בחודש-הדוח
+    // כשה-endedAt מאוחר מתחילת-החודש; ended בלי endedAt מוחרג (אין תאריך אמין);
+    // 'wait' תמיד מוחרג (עדיין לא משתתפ/ת).
+    const d = db();
+    d.enrollments = [
+      enr({ id: 'mid', courseId: 'c1', status: 'ended', endedAt: '2026-08-10', presents: ['2026-08-02'] }),
+      enr({ id: 'old', courseId: 'c1', status: 'ended', endedAt: '2026-07-20', presents: ['2026-07-05'] }),
+      enr({ id: 'noDate', courseId: 'c1', status: 'ended', presents: ['2026-08-02'] }),
+      enr({ id: 'w2', courseId: 'c1', status: 'wait' }),
+    ];
+    const rows = teacherMonthCsvRows(d, 't1', '2026-08', () => '');
+    expect(rows.length).toBe(2); // כותרת + 'mid' בלבד (old/noDate/w2 מוחרגים)
+    expect(rows[1][2]).toBe(1); // הנוכחות של 2.8 נשמרה בדוח
+  });
 });
 
 describe('🛡 הגנות-מקור — מסך-המורה מחווט ומגודר', () => {
+  it('TeacherPanel: מונה-ההשלמות בכותרת = שטרם-תוזמנו בלבד (!makeupDate)', () => {
+    expect(panelSrc).toContain('makeups.filter((m) => !m.makeupDate).length');
+  });
   it('TeacherPanel: ממחזר AttendanceSheet + teacher.ts, בלי כסף', () => {
     expect(panelSrc).toContain('teacherAgenda(db, tid');
     expect(panelSrc).toContain('AttendanceSheet');

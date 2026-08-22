@@ -15,3 +15,13 @@ describe('🛡 ratchet — ייבוא JSON: משפחה בלי טלפון מתו�
     expect(importSrc).not.toContain('parsed.families.filter((f) => !existing.has(famKey(f.name, f.phone)))');
   });
 });
+
+describe('🛡 ratchet — ייבוא JSON: ברירת-מחדל מדד-אמינות = 700 הקנונית', () => {
+  it('משפחה מיובאת בלי cred נזרעת 700 (emptyFamily) — לא 500', () => {
+    // הבאג: המסלול זרע {score:500} בעוד הקנון בכל המשטחים (emptyFamily/כרטיס/finder/
+    // בית) הוא 700 — בסיס-לקוחות מהגר שלם נולד "טעון שיפור", נקודה אחת בלבד מעל
+    // סף-הסיכון (CRED_RED_THRESHOLD=500), במקום בדרגה הניטרלית.
+    expect(importSrc).toContain('cred: f.cred ?? { score: 700, log: [] }');
+    expect(importSrc).not.toContain('score: 500');
+  });
+});

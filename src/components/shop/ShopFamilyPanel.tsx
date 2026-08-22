@@ -8,7 +8,7 @@ import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import { Btn } from '../ui';
-import { assignmentRedeemed, needsCare } from './lib';
+import { SHOP_HOLIDAY_DUE_DAYS, componentRedeemedNow, needsCare, upcomingHolidays } from './lib';
 
 export function ShopFamilyPanel(props: { famId: string }) {
   const db = useApp((s) => s.db);
@@ -17,7 +17,9 @@ export function ShopFamilyPanel(props: { famId: string }) {
   const assignments = db.shopAssignments.filter((a) => a.famId === props.famId && a.status === 'active');
   if (assignments.length === 0) return null;
   const ids = new Set(assignments.map((a) => a.id));
-  const pending = needsCare(db, isoToday()).filter((x) => ids.has(x.assignmentId));
+  // תיקון (swarm-audit): config מוזרק — מונחי termOf בתוויות + גידור shop.expiry
+  const pending = needsCare(db, isoToday(), config).filter((x) => ids.has(x.assignmentId));
+  const dueHolidays = upcomingHolidays(isoToday(), SHOP_HOLIDAY_DUE_DAYS);
 
   return (
     <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -28,7 +30,9 @@ export function ShopFamilyPanel(props: { famId: string }) {
       {assignments.map((a) => {
         const product = db.shopProducts.find((p) => p.id === a.productId);
         const total = product?.components.length ?? 0;
-        const done = product ? product.components.filter((c) => assignmentRedeemed(a, c.id)).length : 0;
+        // תיקון (swarm-audit): מתנת-חג פר-חג-ושנה-עברית — לא "מומש אי-פעם" (מצג '3/3'
+        // בעוד needsCare התריע שהמתנה של השנה מגיעה)
+        const done = product ? product.components.filter((c) => componentRedeemedNow(db, a, c, dueHolidays)).length : 0;
         return (
           <div key={a.id} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 13 }}>
             <b>{product?.name ?? termOf(config, 'entity.shopProduct', 'מוצר')}</b>

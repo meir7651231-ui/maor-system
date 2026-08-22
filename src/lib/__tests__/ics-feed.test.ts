@@ -37,7 +37,9 @@ describe('🔗 ratchet — מנוי-יומן חי (9.8)', () => {
   });
 
   it('Rules: icsFeeds לחברי-הארגון + השורש; ה-catch-all מחריג כספת+פיד', () => {
-    expect(rulesSrc).toMatch(/match \/icsFeeds\/\{slug\} \{[\s\S]{0,220}orgMember\(slug\)[\s\S]{0,120}allowedRoot\(\)/);
+    // נחיל 21.8: מילוט-השורש הורחב — גם 'maor-hachesed' (ה-slug של הלקוח-החי) נחשב
+    // שורש; קודם רק slug=='default' והלקוח-החי היה נשען במקרה על superAdmin≡allowedRoot.
+    expect(rulesSrc).toMatch(/match \/icsFeeds\/\{slug\} \{[\s\S]{0,700}orgMember\(slug\)[\s\S]{0,160}\(slug == 'default' \|\| slug == 'maor-hachesed'\) && allowedRoot\(\)/);
     expect(rulesSrc).toMatch(/!\(rootCol in \['platformOrgs', 'platformRequests', 'platformLeads', 'orgs', 'orgSecrets', 'orgSecretsMeta', 'icsFeeds', 'supportChats', 'teamChats'\]\)/);
   });
 

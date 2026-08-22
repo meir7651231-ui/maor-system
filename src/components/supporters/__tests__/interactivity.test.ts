@@ -15,7 +15,8 @@ describe('💛 ratchet — אינטראקטיביות המסכים החדשים'
     // הבאג: כל צ׳יפ קרא props.onExit בלי מפתח ⇒ כפתורים זהים מחופשים לסינון.
     expect(cockpitSrc).toContain('props.onSegment ? props.onSegment(s.key)');
     expect(viewSrc).toContain('onSegment={(k) => { setSegF(k); setWorkMode(false); }}');
-    expect(viewSrc).toContain('matchSegment(sp, segF, visibleBase, today, rate)');
+    // חוזק (21.8): הסינון עובר גם Set-בסיכון ממומאז (תיקון O(n²)) — ראה atrisk-filter.test
+    expect(viewSrc).toContain('matchSegment(sp, segF, visibleBase, today, rate, atRiskIds)');
   });
 
   it('🛡 הגלקסיה כוללת רשימת-נתונים לחיצה (לא רק canvas)', () => {
