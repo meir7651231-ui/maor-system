@@ -26,7 +26,9 @@ describe('🔒 ratchet — חיווט-סולה (תבנית-נדרים)', () => {
   it('תור-האישור: כפתור-משיכה מגודר (solaPullUrl + מנהל/מייל-על) וקורא pullSola', () => {
     expect(incomingSrc).toMatch(/integrationSetting\(config, 'payments', 'solaPullUrl'\)/);
     expect(incomingSrc).toMatch(/canPullSola = !!solaPullUrl && \(isSuperAdmin\(cloudEmail\) \|\| isManager\)/);
-    expect(incomingSrc).toContain('pullSola(solaPullUrl)');
+    expect(incomingSrc).toContain('pullSola(solaPullUrl, { reset })');
+    // 🧹 משיכה-מלאה-באיפוס (23.8) — חמושה דו-שלבית (סמן-ישן צמצם את החלון)
+    expect(incomingSrc).toMatch(/armOr\('sola-reset'[\s\S]{0,60}doSolaPull\(true\)/);
   });
 
   it('pullSola (cloud.ts): https-בלבד + טוקן-כניסה — אפס-סוד בדפדפן', () => {
