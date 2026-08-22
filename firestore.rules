@@ -123,7 +123,12 @@ service cloud.firestore {
       // קריאת-מסמך-יחיד (get) — חבר או מייל-על; וכן **מצבת-מחיקה** (deleted:true,
       // 5.8) — כל מחובר רשאי לקרוא אותה (היא מכילה רק את עובדת-המחיקה), כדי
       // שהלקוח ידע שהארגון הוסר וינקה את המגירה המקומית שלו.
+      // 21.8 ("המנהל נשאר תקוע בחוץ"): גם מנהל-הארגון (שדה manager) רשאי get —
+      // מנהל שנשמט מ-members (דריסת-מערך ישנה) לא יכול היה אפילו לקרוא את מסמך-
+      // הארגון כדי שהקליינט יזהה אותו כמנהל. resource.data ישיר — בלי get() נוסף.
       allow get: if superAdmin() || orgMember(slug)
+        || (request.auth != null
+            && request.auth.token.email.lower() == resource.data.get('manager', ''))
         || (request.auth != null && resource.data.get('deleted', false) == true);
       // שאילתה (list) — מייל-על (לוח-הבקרה: כל הארגונים) או **ניתוב-עצמי**:
       // המשתמש רשאי לשאול רק מסמכים שבהם המייל שלו ב-members (array-contains).

@@ -931,12 +931,16 @@ export const useApp = create<AppState>()((set, get) => {
                 return;
               }
               const mail = user.email.trim().toLowerCase();
-              const member =
-                isSuperAdmin(user.email) ||
-                !!orgDoc?.members?.some((m) => m.trim().toLowerCase() === mail);
               // ORGADMIN — האם המשתמש הוא מנהל-הארגון (org.manager)? ⇒ פאנל-המנהל 👥
               const allowed = allowedDesignationsFor(user.email, orgDoc ?? {});
               const orgIsManager = isOrgManager(user.email, orgDoc ?? {});
+              // 🐛 (21.8, "למה המנהל נשאר תקוע בחוץ"): החברות נבחנה רק מול members —
+              // מנהל שנשמט מהרשימה (דריסת-מערך ישנה / הקלדה) נתקע במסך-ההמתנה בלי
+              // שום דרך-תיקון. מנהל-הארגון (org.manager) הוא חבר מעצם-הגדרתו.
+              const member =
+                isSuperAdmin(user.email) ||
+                orgIsManager ||
+                !!orgDoc?.members?.some((m) => m.trim().toLowerCase() === mail);
               setCloud({ membership: member ? 'member' : 'pending', isManager: orgIsManager, allowedDesignations: allowed });
               // מסלול-B P3: שאילתת-donations מסוננת לעובד/ת מוגבל/ת (Rules דוחים list לא-מסוננת)
               mod.setAllowedPurposes(allowed);
