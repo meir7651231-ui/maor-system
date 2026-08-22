@@ -120,7 +120,17 @@ async function fetchSolaReport(xKey, beginIso, endIso) {
     throw new Error('sola: ' + String(json.xError || json.xStatus || 'שגיאת-שער'));
   }
   const rows = json.xReportData ?? json.ReportData ?? json.data;
-  return Array.isArray(rows) ? rows : [];
+  // אבחון-שטח (23.8): דוח-ריק/מבנה-לא-מוכר — debug חוזר גם ל-caller (ומשם למסך!)
+  // וגם ללוג **כמחרוזת-אחת** (console.log מרובה-ארגומנטים מודפס ריק ב-functions:log).
+  // בלי xKey (בבקשה בלבד); כרטיסים ממילא ממוסכים בדוח.
+  let debug = '';
+  if (!Array.isArray(rows) || rows.length === 0) {
+    debug = 'חלון=' + beginIso + '..' + endIso + ' · keys=' + Object.keys(json).join(',') + ' · raw=' + text.slice(0, 300);
+    console.log('sola report empty/unknown: ' + debug + text.slice(300, 900));
+  } else {
+    console.log('sola report rows=' + rows.length + ' first-keys=' + Object.keys(rows[0] || {}).join(','));
+  }
+  return { rows: Array.isArray(rows) ? rows : [], debug };
 }
 
 /** yyyy-MM-dd בהזזת-ימים, זמן-UTC (השרת; דיוק-יום מספיק — הדדופ בולע חפיפה). */
@@ -156,33 +166,51 @@ async function runSolaPull(org, opts = {}) {
   if (opts.reset) removed = await clearPullRows(db, col, cursorRef);
   const cursorSnap = await cursorRef.get();
   const lastDate = String((cursorSnap.exists && cursorSnap.data().lastDateIso) || '');
-  const firstDays = Number(process.env.SOLA_FIRST_DAYS || 30);
+  // ריצה-ראשונה: שנה אחורה ("תביא את העסקה האחרונה" — 23.8; 30 יום פספסו חשבון
+  // שקט). 🐛 שטח-אמת 23.8 (טוסט-הבעלים): השער מגביל דוח ל-100 יום ("Date range
+  // exceeds 100 day limit") ⇒ החלון מפוצל לפרוסות ≤90 יום, מהישן לחדש; הדדופ
+  // ב-doc-id בולע חפיפות. ריצות-המשך = חלון-הפרש קטן מה-cursor (פרוסה אחת בד"כ).
+  const firstDays = Number(process.env.SOLA_FIRST_DAYS || 365);
   const today = new Date().toISOString().slice(0, 10);
-  // חלון: מהתאריך-האחרון-שנראה מינוס יום-חפיפה (או N-ימים-ראשונים) ועד מחר.
   const begin = lastDate ? shiftIsoDays(lastDate, -1) : shiftIsoDays(today, -firstDays);
   const end = shiftIsoDays(today, 1);
-  const rows = await fetchSolaReport(xKey, begin, end);
-  const { writes, lastDateIso } = planSolaWrites(rows, org);
-  // אי-דריסה (הלקח מנדרים 20.8): doc-id שכבר קיים — ייתכן שכבר 'handled' — לא נכתב שוב.
-  const refs = writes.map((w) => col.doc(w.id));
-  const existing = new Set();
-  for (let i = 0; i < refs.length; i += 300) {
-    const snaps = await db.getAll(...refs.slice(i, i + 300));
-    for (const s of snaps) if (s.exists) existing.add(s.id);
+  const CHUNK = 90;
+  const windows = [];
+  for (let s = begin; s < end; s = shiftIsoDays(s, CHUNK)) {
+    const e = shiftIsoDays(s, CHUNK) < end ? shiftIsoDays(s, CHUNK) : end;
+    windows.push([s, e]);
   }
-  const fresh = writes.filter((w) => !existing.has(w.id));
   let added = 0;
-  for (let i = 0; i < fresh.length; i += 400) {
-    const batch = db.batch();
-    const slice = fresh.slice(i, i + 400);
-    for (const w of slice) batch.set(col.doc(w.id), { ...w.data, at: new Date().toISOString() });
-    await batch.commit();
-    added += slice.length;
+  let scanned = 0;
+  let lastDebug = '';
+  let maxDate = lastDate;
+  for (const [ws, we] of windows) {
+    const { rows, debug } = await fetchSolaReport(xKey, ws, we);
+    scanned += rows.length;
+    if (debug) lastDebug = debug;
+    const { writes, lastDateIso } = planSolaWrites(rows, org);
+    // אי-דריסה (הלקח מנדרים 20.8): doc-id שכבר קיים — ייתכן שכבר 'handled' — לא נכתב שוב.
+    const refs = writes.map((w) => col.doc(w.id));
+    const existing = new Set();
+    for (let i = 0; i < refs.length; i += 300) {
+      const snaps = await db.getAll(...refs.slice(i, i + 300));
+      for (const s of snaps) if (s.exists) existing.add(s.id);
+    }
+    const fresh = writes.filter((w) => !existing.has(w.id));
+    for (let i = 0; i < fresh.length; i += 400) {
+      const batch = db.batch();
+      const slice = fresh.slice(i, i + 400);
+      for (const w of slice) batch.set(col.doc(w.id), { ...w.data, at: new Date().toISOString() });
+      await batch.commit();
+      added += slice.length;
+    }
+    if (lastDateIso && lastDateIso > maxDate) maxDate = lastDateIso;
   }
-  if (lastDateIso && lastDateIso > lastDate) {
-    await cursorRef.set({ lastDateIso, at: new Date().toISOString() }, { merge: true });
+  if (maxDate && maxDate > lastDate) {
+    await cursorRef.set({ lastDateIso: maxDate, at: new Date().toISOString() }, { merge: true });
   }
-  return { added, scanned: rows.length, window: begin + '..' + end, removed };
+  // debug חוזר ל-caller רק כשכלום-לא-נסרק — הקליינט מציג אותו במקום "0" סתום.
+  return { added, scanned, window: begin + '..' + end + ' (' + windows.length + ' פרוסות)', removed, ...(scanned === 0 && lastDebug ? { debug: lastDebug } : {}) };
 }
 
 /**
@@ -216,8 +244,8 @@ exports.solaPull = onRequest(
         const xKey = await solaKey(db, vaultOrg);
         if (!xKey) return res.status(400).json({ ok: false, error: 'אין xKey בכספת' });
         const today = new Date().toISOString().slice(0, 10);
-        const rows = await fetchSolaReport(xKey, shiftIsoDays(today, -30), shiftIsoDays(today, 1));
-        return res.status(200).json({ ok: true, count: rows.length, sample: rows.slice(0, 3) });
+        const peek = await fetchSolaReport(xKey, shiftIsoDays(today, -90), shiftIsoDays(today, 1));
+        return res.status(200).json({ ok: true, count: peek.rows.length, sample: peek.rows.slice(0, 3), ...(peek.debug ? { debug: peek.debug } : {}) });
       } catch (e) {
         return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
       }
