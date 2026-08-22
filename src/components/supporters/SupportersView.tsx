@@ -651,6 +651,23 @@ export function SupportersView() {
     rfmOn || (hokOn && db.supporters.some((sp) => sp.hok)) || (ayinOn && db.supporters.length > 0) ||
     dueCount > 0;
 
+  // "נקה הכל" — איפוס כל מסנני-המסך בקליק אחד (מוצג רק כשיש סינון פעיל).
+  const clearAllFilters = () => {
+    setQ('');
+    setCat('all');
+    setPurposeF('all');
+    setTierF(null);
+    setHokF(null);
+    setAyinF(null);
+    setNextF(false);
+    setSegF(null);
+    setMonthF(null);
+    setGaveYearF(null);
+    setAcqYearF(null);
+    setPeriodMode('gave');
+    setColF({ count: '', total: '', score: '' });
+  };
+
   return (
     <div>
       <PageHead
@@ -838,19 +855,23 @@ export function SupportersView() {
         />
       )}
 
-      {drillChips.length > 0 && (
-        <div style={{ marginBottom: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {(filtered || drillChips.length > 0) && (
+        <div className="active-filters">
           {drillChips.map((c) => (
-            <button key={c.label} type="button" onClick={c.clear}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 999, border: '1px solid var(--accent-deep, #a05008)', background: 'var(--gold-soft, #fbeecb)', color: 'var(--accent-deep, #a05008)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-              {c.label} <b>({list.length})</b> <span aria-hidden>✕ ניקוי</span>
+            <button key={c.label} type="button" className="filter-pill" onClick={c.clear}>
+              {c.label} <b>({list.length})</b> <span className="x" aria-hidden>✕</span>
             </button>
           ))}
+          {filtered && (
+            <button type="button" className="filter-clear-all" onClick={clearAllFilters} title="איפוס כל הסינון והחיפוש">
+              ✕ נקה הכל
+            </button>
+          )}
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 260px', minWidth: 220 }}>
+      <div className="filterbar">
+        <div className="fb-search">
           <TextInput value={q} onChange={setQ} placeholder="חיפוש לפי שם, טלפון, מייל או קטגוריה…" />
         </div>
         <Select
@@ -903,22 +924,10 @@ export function SupportersView() {
         <div style={{ marginBottom: advOpen ? 8 : 10 }}>
           <button
             type="button"
+            className="filter-toggle"
             onClick={() => setAdvOpen((v) => !v)}
             aria-expanded={advOpen}
             title="דרגות · הוראות-קבע · מעקב טיפול"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              cursor: 'pointer',
-              background: 'var(--panel)',
-              border: '1px solid var(--line)',
-              borderRadius: 10,
-              padding: '6px 12px',
-              fontSize: 13,
-              fontWeight: 700,
-              color: 'var(--ink)',
-            }}
           >
             <span aria-hidden style={{ fontSize: 11 }}>{advOpen ? '▾' : '▸'}</span>
             🔎 סינון מתקדם
@@ -931,10 +940,10 @@ export function SupportersView() {
         </div>
       )}
       {advFilterOn && hasAdvFilters && advOpen && (
-        <>
+        <div className="filter-adv">
       {rfmOn && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>דרגות (לחיצה מסננת):</span>
+        <div className="filter-group">
+          <span className="fg-label">דרגות (לחיצה מסננת):</span>
           {TIER_ORDER.map((t) => (
             <Chip key={t} on={tierF === t} onClick={() => setTierF(tierF === t ? null : t)}>
               {t + ' · ' + tierCounts[t]}
@@ -945,7 +954,7 @@ export function SupportersView() {
 
       {/* P3 פריט 12 — סטטים והיסטוגרמת ציון (נוסחאות הלגאסי supBars/supAvgDon/sup12m) */}
       {rfmOn && db.supporters.length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginBottom: 14, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 600 }}>
             {'תרמו ב-12 החודשים: ' + sup12m(db.supporters, today) + ' · ממוצע ל' + termOf(config, 'entity.donation', 'תרומה') + ': ' +
               (supAvgDon(db.supporters, rate) != null ? '₪' + supAvgDon(db.supporters, rate)!.toLocaleString('he-IL') : '—')}
@@ -975,8 +984,8 @@ export function SupportersView() {
 
       {/* 🔁 הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש (לחיצה מסננת) */}
       {hokOn && (db.supporters.some((sp) => sp.hok) || hasNedarimHist) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>הוראות קבע:</span>
+        <div className="filter-group">
+          <span className="fg-label">הוראות קבע:</span>
           {db.supporters.some((sp) => sp.hok) && (
             <>
               <Chip on={hokF === 'active'} onClick={() => setHokF(hokF === 'active' ? null : 'active')}>
@@ -1016,8 +1025,8 @@ export function SupportersView() {
       {/* 📞 יעדי-קשר שהגיעו (20.8) — הרשימה המלאה של ווידג'ט "יעדי קשר" בבית.
           🐛 FLAGMAX: הצ'יפ הוצג גם כש-supporters.nextdate כבוי — נוסף תנאי nextOn. */}
       {nextOn && (dueCount > 0 || nextF) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>יעדי קשר:</span>
+        <div className="filter-group">
+          <span className="fg-label">יעדי קשר:</span>
           <Chip on={nextF} onClick={() => setNextF(!nextF)}>
             {'📞 יעד שהגיע · ' + dueCount}
           </Chip>
@@ -1026,8 +1035,8 @@ export function SupportersView() {
 
       {/* P3 פריט 14 — סינון מעקב הטיפול: עם מונה / בלי מונה / עודכן היום */}
       {ayinOn && db.supporters.length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{featLabel(config)}:</span>
+        <div className="filter-group">
+          <span className="fg-label">{featLabel(config)}:</span>
           <Chip on={ayinF === 'eyes'} onClick={() => setAyinF(ayinF === 'eyes' ? null : 'eyes')}>
             עם מונה
           </Chip>
@@ -1040,7 +1049,7 @@ export function SupportersView() {
           </Chip>
         </div>
       )}
-        </>
+        </div>
       )}
 
       {db.supporters.length === 0 ? (
@@ -1163,7 +1172,7 @@ export function SupportersView() {
                         }
                         placeholder={h.key === 'ils' ? '₪-שקול: 500+' : '3 / 3+ / 1-5'}
                         aria-label={'סינון ' + h.label}
-                        style={{ width: '100%', minWidth: 70, padding: '4px 6px', fontSize: 12 }}
+                        className="colfilter"
                         dir="ltr"
                       />
                     </th>

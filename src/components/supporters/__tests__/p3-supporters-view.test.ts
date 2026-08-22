@@ -152,4 +152,40 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     expect(viewSrc).toContain("const periodVerb = periodMode === 'last' ? 'תרומה אחרונה' : 'נתנו'");
     expect(viewSrc).toContain('setMonthF(null); setGaveYearF(null); setPeriodMode(\'gave\');');
   });
+
+  // עיצוב-הסינון-האחיד (בקשת-בעלים "תעצב את כל המסננים טוב יותר", 22.8): במקום
+  // שורת-בוררים שטוחה — כרטיס-סינון (.filterbar) עם חיפוש-פנינה (.fb-search) ובוררי-
+  // כדור; פאנל-מתקדם כמיכל-אחד (.filter-adv) בקבוצות מתויגות (.filter-group/.fg-label);
+  // צ׳יפי-סינון-פעיל אחידים (.filter-pill) + "נקה הכל" (.filter-clear-all). כל הצבעים
+  // דרך tokens ⇒ תואם-ערכות. אפס אובדן-יכולת: כל הסינון נשמר, רק מקובץ ומעוצב.
+  it('🎨 סרגל-סינון אחיד: כרטיס-חיפוש + בוררי-כדור, במקום שורה שטוחה', () => {
+    expect(viewSrc).toContain('className="filterbar"');
+    expect(viewSrc).toContain('className="fb-search"');
+    // המחלקות מוגדרות ב-global.css (מיובא-גלובלי, לא ניתן-raw בבדיקה — אומת בבנייה)
+  });
+
+  it('🎨 פאנל-מתקדם = מיכל-אחד בקבוצות מתויגות (.filter-adv/.filter-group/.fg-label)', () => {
+    expect(viewSrc).toContain('className="filter-adv"');
+    expect(viewSrc).toContain('className="filter-group"');
+    expect(viewSrc).toContain('className="fg-label"');
+    // הפאנל נשאר מגודר (מוצג רק כשפתוח) — אפס-רגרסיה בגידור
+    expect(viewSrc).toContain('{advFilterOn && hasAdvFilters && advOpen && (');
+  });
+
+  it('🎨 צ׳יפי-סינון-פעיל אחידים + "נקה הכל" מאפס את כל המסננים בקליק', () => {
+    expect(viewSrc).toContain('className="filter-pill"');
+    expect(viewSrc).toContain('className="filter-clear-all"');
+    expect(viewSrc).toContain('✕ נקה הכל');
+    // הרצועה מופיעה כשיש סינון פעיל (filtered) — כולל מסננים בלי צ׳יפ (חיפוש/קטגוריה)
+    expect(viewSrc).toContain('{(filtered || drillChips.length > 0) && (');
+    // clearAllFilters מאפס את כל שדות-הסינון (כולל התקופה והמצב החדש)
+    expect(viewSrc).toContain('const clearAllFilters = () => {');
+    for (const reset of [
+      "setQ('')", "setCat('all')", "setPurposeF('all')", 'setTierF(null)', 'setHokF(null)',
+      'setAyinF(null)', 'setNextF(false)', 'setSegF(null)', 'setMonthF(null)', 'setGaveYearF(null)',
+      'setAcqYearF(null)', "setPeriodMode('gave')", "setColF({ count: '', total: '', score: '' })",
+    ]) {
+      expect(viewSrc).toContain(reset);
+    }
+  });
 });
