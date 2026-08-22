@@ -14,7 +14,7 @@ import type { IncomingPayment } from '../../store/cloudSync';
 import { autoMatchCharges, candidateSupportersForCharge, strongMatchForCharge } from '../../lib/nedarimSync';
 import { normId, normPhone } from '../../lib/dedup';
 import { normSearch } from '../../lib/validate';
-import { termOf } from '../../lib/config';
+import { integrationSetting, isSuperAdmin, termOf } from '../../lib/config';
 import { fmtDate, supCount, totalLabel } from './lib';
 import type { Supporter } from '../../types/domain';
 
@@ -24,6 +24,14 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
   const toast = useApp((s) => s.toast);
   const supporters = useApp((s) => s.db.supporters);
   const attachBulk = useApp((s) => s.attachIncomingBulk);
+  const config = useApp((s) => s.config);
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
+  const isManager = useApp((s) => s.cloud.isManager);
+  // 🔄 סולה · משיכה-בקליק (21.8, חיווט-כמו-נדרים) — מגודר כתובת-פונקציה (payments.solaPullUrl)
+  // + מנהל/מייל-על; ה-xKey בכספת-הענן, הפונקציה קוראת אותו בעצמה (אפס-סוד בדפדפן).
+  const solaPullUrl = integrationSetting(config, 'payments', 'solaPullUrl');
+  const canPullSola = !!solaPullUrl && (isSuperAdmin(cloudEmail) || isManager);
+  const [pulling, setPulling] = useState(false);
   const [mod, setMod] = useState<CloudMod | null>(null);
   const [rows, setRows] = useState<IncomingPayment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -170,6 +178,29 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
 
   return (
     <Modal title="💰 תשלומים נכנסים — ממתינים לרישום" onClose={props.onClose}>
+      {/* 🔄 סולה · משיכה-בקליק — מושך את עסקאות-החשבון מהשער ומרענן את הרשימה */}
+      {canPullSola && (
+        <div style={{ border: '1px solid var(--accent)', borderRadius: 10, padding: 10, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: 'var(--accent-bg, #f0f6ff)' }}>
+          <div style={{ flex: 1, minWidth: 180, fontSize: 12.5 }}>
+            <b>משיכה מסולה</b> — מושך את העסקאות המאושרות מחשבון-הסליקה (Sola) לרשימה שלמטה.
+          </div>
+          <Btn kind="primary" disabled={pulling || loading} onClick={() => void (async () => {
+            setPulling(true);
+            try {
+              const m: CloudMod = mod ?? (await import('../../store/cloudSync'));
+              const r = await m.pullSola(solaPullUrl);
+              toast('🔄 נסרקו ' + (r.scanned ?? 0) + ' עסקאות · נוספו ' + (r.added ?? 0));
+              if (mod) await refresh(mod);
+            } catch (e) {
+              toast('⚠ משיכה נכשלה: ' + String((e as Error)?.message || e));
+            } finally {
+              setPulling(false);
+            }
+          })()}>
+            {pulling ? 'מושך…' : '🔄 משיכה מסולה'}
+          </Btn>
+        </div>
+      )}
       {loading && <div className="empty">טוען…</div>}
       {!loading && error && (
         <div style={{ border: '1px solid var(--danger, #e05252)', borderRadius: 10, padding: 10, marginBottom: 10, fontSize: 12.5 }}>

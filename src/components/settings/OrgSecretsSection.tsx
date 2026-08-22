@@ -18,6 +18,8 @@ const FIELDS: { key: OrgSecretKey; label: string; ltr?: boolean }[] = [
   { key: 'nedarimMosad', label: '💳 נדרים-פלוס — מספר מוסד', ltr: true },
   { key: 'nedarimApiPass', label: '💳 נדרים-פלוס — סיסמת API', ltr: true },
   { key: 'smsApiKey', label: '📱 מפתח ספק-SMS', ltr: true },
+  // סולה (Cardknox) — ה-xKey מזהה את חשבון-הסליקה; sandbox וייצור = מפתחות שונים.
+  { key: 'solaXKey', label: '💳 Sola Payments — xKey', ltr: true },
 ];
 
 export function OrgSecretsSection() {

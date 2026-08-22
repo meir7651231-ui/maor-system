@@ -415,3 +415,6 @@ exports.backupNightly = onSchedule({ schedule: 'every day 02:30', timeZone: 'Asi
 // כיוון-יוצא · נדרים (משיכת-עסקאות + רשת-ביטחון) — מודול עצמאי, נטען כאן כדי
 // ש-firebase יגלה את exports.nedarimPull / exports.nedarimSyncHourly.
 Object.assign(exports, require('./nedarimPull'));
+
+// כיוון-נכנס · Sola Payments (חיווט-כמו-נדרים, 21.8) — משיכת-עסקאות + רשת-ביטחון.
+Object.assign(exports, require('./solaPull'));
