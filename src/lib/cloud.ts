@@ -703,6 +703,9 @@ export async function pullSola(pullUrl: string, opts: { reset?: boolean } = {}):
   const org = scope.cloudRoot ? 'root' : scope.slug;
   const u = new URL(clean);
   u.searchParams.set('org', org);
+  // לקוח-השורש: האוספים ב-root אבל הכספת (orgSecrets) נכתבת תחת ה-slug האמיתי —
+  // vault מגשר כדי שהפונקציה תמצא את ה-xKey שהוזן בהגדרות.
+  if (scope.cloudRoot && scope.slug && scope.slug !== 'default') u.searchParams.set('vault', scope.slug);
   if (opts.reset) u.searchParams.set('reset', '1');
   const r = await fetch(u.toString(), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
   const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; added?: number; scanned?: number; window?: string };

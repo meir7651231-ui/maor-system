@@ -129,7 +129,9 @@ async function runSolaPull(org, opts = {}) {
   const db = getFirestore();
   const col = incomingCol(db, org);
   const cursorRef = syncCol(db, org).doc('cursor');
-  const xKey = await solaKey(db, org);
+  // ⚠️ לקוח-השורש: האוספים ב-root אבל הכספת נכתבת תחת ה-slug האמיתי
+  // (OrgSecretsSection כותב orgSecrets/{config.slug}) — vaultOrg מגשר.
+  const xKey = await solaKey(db, opts.vaultOrg || org);
   if (!xKey) throw new Error('אין xKey — הזינו "🔑 Sola xKey" בהגדרות←מפתחות-ההרחבות');
   let removed = 0;
   if (opts.reset) removed = await clearPullRows(db, col, cursorRef);
@@ -185,10 +187,14 @@ exports.solaPull = onRequest(
     const bearer = /^Bearer (.+)$/i.exec(req.get('authorization') || '');
     const authed = secretOk(p.secret, process.env.PAY_SECRET) || (await isOrgAdmin(bearer && bearer[1], org));
     if (!authed) return res.status(403).send('unauthorized');
+    // vault: **רק** ללקוח-השורש (org=root ⇒ מורשי-root בלבד עברו את השער) מותר
+    // להצביע על מגירת-הכספת של ה-slug האמיתי; ארגון-פלטפורמה תמיד קורא את שלו.
+    const vaultRaw = String(p.vault ?? '').trim();
+    const vaultOrg = org === 'root' && /^[a-z0-9-]{2,40}$/.test(vaultRaw) ? vaultRaw : org;
     if (p.peek === '1') {
       try {
         const db = getFirestore();
-        const xKey = await solaKey(db, org);
+        const xKey = await solaKey(db, vaultOrg);
         if (!xKey) return res.status(400).json({ ok: false, error: 'אין xKey בכספת' });
         const today = new Date().toISOString().slice(0, 10);
         const rows = await fetchSolaReport(xKey, shiftIsoDays(today, -30), shiftIsoDays(today, 1));
@@ -198,7 +204,7 @@ exports.solaPull = onRequest(
       }
     }
     try {
-      const out = await runSolaPull(org, { reset: p.reset === '1' });
+      const out = await runSolaPull(org, { reset: p.reset === '1', vaultOrg });
       res.status(200).json({ ok: true, ...out });
     } catch (e) {
       res.status(502).json({ ok: false, error: String((e && e.message) || e) });
