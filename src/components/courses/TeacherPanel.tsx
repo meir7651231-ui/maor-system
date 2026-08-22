@@ -103,7 +103,7 @@ export function TeacherPanel(props: { teacherId: string }) {
               </button>
               {broadcastOn && (
                 <Btn sm onClick={() => setBcastFor(course)} title="הודעת-WhatsApp לכל הכיתה">
-                  📢
+                  📢 הודעה
                 </Btn>
               )}
               {sheetOn && (

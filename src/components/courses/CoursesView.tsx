@@ -98,7 +98,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const [notesCourse, setNotesCourse] = useState<Course | null>(null);
   // 🎯 קוקפיט-חוגים (פאזה 2) — opt-in מפורש (=== true), במכוון לא featureOn (ברירת-מחדל
   // 'on' הייתה מדליקה לכל לקוח-חי). חסר-הדגל ⇒ אין מתג, אפס-השפעה.
-  const cockpitOn = cfg.features?.['courses.cockpit'] === true;
+  // ‏!myTeacherId — כמו אחיו (גבייה/דשבורד/שימור): מורה מחוברת לא רואה חובות/סיכון
+  // של כל החוגים (חשיפת מידע חוצה-מורים). לבעלים/מקומי ⇒ נשאר כשהיה.
+  const cockpitOn = cfg.features?.['courses.cockpit'] === true && !myTeacherId;
   const [workMode, setWorkMode] = useState(false);
   // 💰 מרכז-גבייה (פאזה 5) — כל החייבים חוצה-חוגים, מגודר courses.collect.
   const collectOn = featureOn(cfg, 'courses.collect') && !myTeacherId;

@@ -55,6 +55,10 @@ export function CoursesDashboard(props: { onClose: () => void }) {
   const thSort = (key: SortKey, label: string) => (
     <th
       onClick={() => clickSort(key)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); clickSort(key); } }}
+      role="button"
+      tabIndex={0}
+      aria-sort={sort.key === key ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none'}
       title="מיון לפי העמודה — לחיצה נוספת הופכת כיוון"
       style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
     >
