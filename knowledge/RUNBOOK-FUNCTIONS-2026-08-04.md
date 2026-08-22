@@ -74,3 +74,26 @@ firebase deploy --project maor-system --only functions:mailOutbox
   נכתבים ע"י Functions (Admin SDK עוקף Rules) ונקראים ע"י חברי-הארגון.
 - מחיקת-עלויות: הכול בתוך Free-tier ברמות-השימוש הצפויות; `smsOutbox` מוגבל
   20 הודעות/דקה.
+
+## עדכון 21.8 — מייל פר-לקוח בפועל, יעדי-workflow חדשים, ו-Rules ממתינים לבעלים
+- **From נגזר מהלקוח עצמו:** ‏`mailOutbox` כבר לא מסתמכת על ‏`MAIL_FROM` גלובלי
+  (שלא קיים כ-secret — הכרעת-הבעלים "מייל פר-לקוח בלבד" ⇒ מיילים יצאו **בלי
+  From** ונפלו לספאם/נדחו). כתובת-השולח נגזרת עכשיו מה-`smtpUrl` של הארגון
+  (ה-username ב-URL = כתובת-המייל שהלקוח הזין בכספת; ‏`lib/smtpUrl.ts` מרכיב עם
+  ‏encodeURIComponent ⇒ ‏decodeURIComponent בשרת). ‏`SMTP_URL`/`MAIL_FROM`
+  הגלובליים = נפילה-לאחור בלבד ואינם נדרשים לפריסה.
+- **יעדי-workflow חדשים נגישים מה-Actions UI** (‏`deploy-functions.yml`):
+  ‏`logs` (לוגי-המתוזמנות בלי לפרוס) · ‏`indexes` (פריסת firestore.indexes.json) ·
+  ‏`rules` (פריסת firestore.rules — **פעולת-בעלים מפורשת בלבד**). ה-case-ים היו
+  קיימים אך חסרו מרשימת-הבחירה ⇒ לא היו ניתנים-להפעלה מהאתר.
+- **גיבוי-לילה כולל את אוסף-התרומות הנפרד:** ‏`backupNightly` מגבה עכשיו גם את
+  ‏`orgs/{slug}/donations` (מסלול-B, ‏donationSplit) דרך ‏`EXTRA_BACKUP` —
+  ‏`BACKUP_COLLECTIONS` נשאר ≡ ל-‏ENTITY_COLLECTIONS (ratchet).
+- **חיטוי מפתח-דדופ ב-webhook:** ‏reference עם '/' כבר לא מפיל את ‏paymentsWebhook
+  ב-500 (ה-CallBack של נדרים חד-פעמי — תשלום היה אובד); ‏`sanitizeDedupKey`
+  ב-‏paymentMap.js (דטרמיניסטי, שומר-ייחודיות).
+- **⚠️ שינוי-Rules ממתין לפרסום-בעלים:** ‏firestore.rules שבריפו הורחב —
+  הבריחה של הארגון-השורש ב-‏icsFeeds/‏teamChats מכסה עכשיו גם ‏slug
+  ‏'maor-hachesed' (הלקוח-החי), לא רק ‏'default'. **לא פורסם** — ייכנס לתוקף רק
+  בפרסום-ה-Rules הבא של הבעלים (יעד ‏`rules` ב-workflow או ‏firebase deploy
+  ‏--only firestore:rules).

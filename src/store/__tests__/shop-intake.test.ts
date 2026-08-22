@@ -87,7 +87,7 @@ describe('🛍 ratchet — חנות 25: קליטות מלאי', () => {
 
   it('ענן: shopIntakes באוספים (18) — diff set/delete ו-round-trip', () => {
     expect(ENTITY_COLLECTIONS).toContain('shopIntakes');
-    expect(ENTITY_COLLECTIONS).toHaveLength(22) // WORKPREP (20.8): tasks = הישות ה-22;
+    expect(ENTITY_COLLECTIONS).toHaveLength(23) // ורטיקל-הסטודיו: warehouse = הישות ה-23;
     const rec: ShopIntake = { id: 'shn1', ...intake({}) };
     const prev: Db = { ...emptyDb(), shopIntakes: [rec, { ...rec, id: 'shn2' }] };
     const next: Db = { ...emptyDb(), shopIntakes: [{ ...rec, qty: 9 }] };

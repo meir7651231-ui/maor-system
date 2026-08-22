@@ -88,7 +88,9 @@ export function ImportSection() {
           createdAt: f.createdAt || isoToday(),
           members: (f.members ?? []).map((m) => ({ ...m, id: 'm' + seq++ })),
           docs: f.docs ?? [],
-          cred: f.cred ?? { score: 500, log: [] },
+          // ברירת-המחדל הקנונית 700 (emptyFamily) — 500 זרע בסיס-לקוחות מיובא שלם
+          // נקודה אחת בלבד מעל סף-הסיכון (CRED_RED_THRESHOLD=500, "טעון שיפור")
+          cred: f.cred ?? { score: 700, log: [] },
         }));
         added = fresh.length;
         members = fresh.reduce((n, f) => n + f.members.length, 0);

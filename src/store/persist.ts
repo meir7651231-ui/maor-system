@@ -9,6 +9,7 @@
 import { openDB, type IDBPDatabase } from 'idb';
 import { isoLocal } from '../lib/date-util';
 import { supporterAggregates } from '../lib/supporterAgg';
+import { sanitizePhotos } from '../lib/photoGallery';
 import {
   DB_VERSION,
   emptyDb,
@@ -179,14 +180,19 @@ function migrateCred(raw: unknown): FamilyCred {
  * תכנון דדופ מספרי-קבלה דטרמיניסטי (#5.5a). כשכמה רשומות חולקות אותו rid (מרוץ
  * סנכרון בין-מכשירי), הרשומה **המוקדמת-בתאריך** שומרת על המספר המקורי (מספר נמוך
  * = הונפק מוקדם, המשמעות הסטנדרטית של מספור-קבלות רציף), והאחרות ממוספרות מחדש
- * מעל המונה הזרוע. שובר-שוויון: אינדקס נמוך. כך אותה קבלה שומרת על מספרה בכל
+ * מעל המונה הזרוע. כך אותה קבלה שומרת על מספרה בכל
  * טעינה — בלי תלות בסדר-המערך, שמיזוג-הענן עלול לשנות (החשיפה שסומנה ב-ANALYSIS).
  *
- * טהור: מקבל רשומות שטוחות {rid,date}, מחזיר newRid[] (null = שומר מקורי) והמונה
- * הבא. no-op מוחלט כשאין כפילויות (הנתיב הרווח) ⇒ אפס שינוי לנתונים נקיים.
+ * 🐛 swarm-audit — שובר-שוויון דטרמיניסטי: כשהתאריכים שווים, ההכרעה נפלה
+ * לסדר-המערך — ש-snapshot-ענן אינו מייצב ⇒ מספר-קבלה שנמסר לתורם יכול היה
+ * "לזוז" בין טעינות. עכשיו: תאריך שווה ⇒ משווים key משני יציב (מזהה-הבעלים
+ * + סכום, שהמערך לא משנה); רק כששניהם שווים נופלים לאינדקס (התנהגות ישנה).
+ *
+ * טהור: מקבל רשומות שטוחות {rid,date,key?}, מחזיר newRid[] (null = שומר מקורי)
+ * והמונה הבא. no-op מוחלט כשאין כפילויות (הנתיב הרווח) ⇒ אפס שינוי לנתונים נקיים.
  */
 export function planRidRenumber(
-  entries: { rid?: string; date?: string }[],
+  entries: { rid?: string; date?: string; key?: string }[],
   startSeq: number,
   prefix: string,
 ): { newRid: (string | null)[]; nextSeq: number } {
@@ -194,11 +200,23 @@ export function planRidRenumber(
   entries.forEach((e, i) => {
     if (!e.rid) return;
     const prev = keep.get(e.rid);
-    if (prev === undefined || (e.date ?? '') < (entries[prev].date ?? '')) keep.set(e.rid, i);
+    if (prev === undefined) {
+      keep.set(e.rid, i);
+      return;
+    }
+    const p = entries[prev];
+    const dNew = e.date ?? '';
+    const dOld = p.date ?? '';
+    if (dNew < dOld || (dNew === dOld && (e.key ?? '') < (p.key ?? ''))) keep.set(e.rid, i);
   });
   let seq = startSeq;
   const newRid = entries.map((e, i) => (!e.rid || keep.get(e.rid) === i ? null : prefix + seq++));
   return { newRid, nextSeq: seq };
+}
+
+/** מונה-קבלות תקין: מספר סופי אי-שלילי (שלם); כל השאר ⇒ ברירת-המחדל. */
+function seqCounterOf(v: unknown, fallback: number): number {
+  return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.floor(v) : fallback;
 }
 
 export function migrate(raw: unknown): Db | null {
@@ -238,13 +256,19 @@ export function migrate(raw: unknown): Db | null {
     deliveries: Array.isArray(db.deliveries) ? db.deliveries : [],
     // WORKPREP (20.8): משימות-עבודה — אדיטיבי (גיבוי/ענן ישן = מערך ריק)
     tasks: Array.isArray(db.tasks) ? db.tasks : [],
+    // ורטיקל-הסטודיו: מלאי-מחסן — אדיטיבי (גיבוי/ענן ישן = מערך ריק)
+    warehouse: Array.isArray(db.warehouse) ? db.warehouse : [],
     notif: { ...base.notif, ...db.notif },
     reports: { ...base.reports, ...db.reports },
     ui: { ...base.ui, ...db.ui },
     seq: Math.max(db.seq ?? 0, base.seq),
-    receiptSeq: db.receiptSeq ?? base.receiptSeq,
-    donationSeq: db.donationSeq ?? base.donationSeq,
-    shopReceiptSeq: db.shopReceiptSeq ?? base.shopReceiptSeq,
+    // 🐛 swarm-audit: המונים התקבלו מהגיבוי/ענן בלי בדיקת-טיפוס — "donationSeq":"5"
+    // (מחרוזת) הנפיק D-5 ואז "5"+1="51" ⇒ D-51, שבירת רציפות מספור §46. לא-מספר/
+    // שלילי/אינסופי ⇒ נופלים ל-base (בטוח: זריעת maxRid בהמשך מרימה את המונה מעל
+    // המספר הגבוה ביותר שכבר הונפק בפועל בנתונים — כמו שערי usdRate/budget השכנים).
+    receiptSeq: seqCounterOf(db.receiptSeq, base.receiptSeq),
+    donationSeq: seqCounterOf(db.donationSeq, base.donationSeq),
+    shopReceiptSeq: seqCounterOf(db.shopReceiptSeq, base.shopReceiptSeq),
     // ציד-באגים 3.8.2026 (🟡): usdRate=0/null בגיבוי מושחת אִפֵּס את כל ערך-הדולר
     // של התורמים (סכום/דירוג/tier/ייצוא). מרפאים לברירת-מחדל חיובית. budget שלילי→0.
     usdRate: typeof db.usdRate === 'number' && db.usdRate > 0 ? db.usdRate : base.usdRate,
@@ -292,7 +316,10 @@ export function migrate(raw: unknown): Db | null {
   // 🐛 נחיל-9×9 (13.8): חוג מגיבוי-ישן/ענן-חלקי יכול להגיע עם sessions===undefined —
   // כל קוד ש-.length/.map עליו (יצוא-CSV, עריכת-חוג) קרס. ריפוי: מערך תמיד.
   merged.courses = merged.courses.map((c) => ({ ...c, sessions: Array.isArray(c.sessions) ? c.sessions : [] }));
-  const payCoords = merged.enrollments.flatMap((e, ei) => e.payments.map((p, pi) => ({ ei, pi, rid: p.rid, date: p.date })));
+  // key = מזהה-השיבוץ + סכום — זהות יציבה שסדר-המערך (מיזוג-ענן) אינו משנה (swarm-audit)
+  const payCoords = merged.enrollments.flatMap((e, ei) =>
+    e.payments.map((p, pi) => ({ ei, pi, rid: p.rid, date: p.date, key: e.id + '|' + p.amount + '|' + (p.method ?? '') })),
+  );
   const rPlan = planRidRenumber(payCoords, merged.receiptSeq, 'R-');
   payCoords.forEach((c, k) => {
     if (rPlan.newRid[k]) merged.enrollments[c.ei].payments[c.pi] = { ...merged.enrollments[c.ei].payments[c.pi], rid: rPlan.newRid[k]! };
@@ -301,6 +328,9 @@ export function migrate(raw: unknown): Db | null {
   merged.supporters = merged.supporters.map((s) => ({
     ...s,
     donations: Array.isArray(s.donations) ? s.donations : [],
+    // גלריית-תמונות: חיטוי-הגנתי (ייבוא/ענן/ישן) — רק data:URI תקינים מתחת-לתקרה.
+    // נוגעים רק כשהשדה קיים ⇒ כרטיס בלי-תמונות נשאר ביט-זהה (undefined).
+    ...(s.photos !== undefined ? { photos: sanitizePhotos(s.photos) } : {}),
     // hist מהקובץ ההיסטורי (לגאסי {d,a,c}) — נרמול: לא-מערך → undefined;
     // איברים בלי תאריך d או סכום a מספרי — נזרקים. מטבע לא-מוכר → ברירת ₪ בתצוגה.
     // 🐛 נחיל-עמוק (13.8): המיגרציה שכתבה {d,a,c} בלבד ומחקה את מטא-דאטת-הסליקה
@@ -317,7 +347,10 @@ export function migrate(raw: unknown): Db | null {
           })
       : undefined,
   }));
-  const donCoords = merged.supporters.flatMap((s, si) => s.donations.map((d, di) => ({ si, di, rid: d.rid, date: d.date })));
+  // key = מזהה-התומכ/ת + סכום/מטבע/קטגוריה — זהות יציבה בלי תלות בסדר-המערך (swarm-audit)
+  const donCoords = merged.supporters.flatMap((s, si) =>
+    s.donations.map((d, di) => ({ si, di, rid: d.rid, date: d.date, key: s.id + '|' + d.amount + '|' + (d.cur ?? '') + '|' + (d.cat ?? '') })),
+  );
   const dPlan = planRidRenumber(donCoords, merged.donationSeq, 'D-');
   donCoords.forEach((c, k) => {
     if (dPlan.newRid[k]) merged.supporters[c.si].donations[c.di] = { ...merged.supporters[c.si].donations[c.di], rid: dPlan.newRid[k]! };

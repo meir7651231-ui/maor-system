@@ -26,6 +26,10 @@ export function CollectModal(props: { box: TzBox; onClose: () => void }) {
     const amount = Math.round(+f.amount);
     if (!f.amount.trim() || !Number.isFinite(amount) || amount <= 0)
       return setError('סכום הריקון חייב להיות מספר חיובי בש"ח');
+    // תיקון (swarm-audit): תאריך ריק (ניקוי בשדה הלועזי של HebDateInput) נכתב verbatim
+    // לריקון — הקופה מוצגת 'טרם רוקנה' לנצח, staleBoxes ממשיך להתריע והרצף נשבר.
+    // חוסמים כמו TzEventModal.
+    if (!f.date) return setError('יש לבחור תאריך');
     const res = addTzCollection(props.box.id, {
       date: f.date,
       amount,

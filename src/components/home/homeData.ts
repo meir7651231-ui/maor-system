@@ -395,7 +395,9 @@ export function attentionItems(
 
   // ⚠️ תורמים בסיכון-נטישה (מהבינה החדשה) — פריט מצטבר אחד; מגודר במודול-תורמים +
   // דגל הקוקפיט/המודיעין (רק ארגון שהדליק את הבינה רואה זאת). קליק ⇒ הרשימה המסוננת.
-  if (on('supporters') && (featureOn(config, 'supporters.cockpit') || featureOn(config, 'supporters.intel'))) {
+  // ⚠️ opt-in מפורש === true (לא featureOn — הדגלים optIn:true, חסר=כבוי; featureOn
+  // היה מדליק את הפיצ'ר ה"דורמנטי" לכל לקוח-חי בניגוד לחוזה ה-opt-in).
+  if (on('supporters') && (config.features?.['supporters.cockpit'] === true || config.features?.['supporters.intel'] === true)) {
     const risk = cockpitAtRisk(db.supporters, todayIso);
     if (risk.length) {
       out.push({
@@ -441,8 +443,11 @@ export function attentionItems(
     }
   }
 
-  // ספח ת"ז חסר — משפחות פעילות ללא ספח מלא, פריט מצטבר — מודול משפחות
-  const noSefach = (on('families') ? db.families : []).filter((f) => f.status === 'active' && f.fullSefach === false);
+  // ספח ת"ז חסר — משפחות פעילות ללא ספח מלא, פריט מצטבר — מודול משפחות.
+  // עמותתי בלבד (core.taxreceipt, כמו מונה-האלמנות בכרטיסי-הבית): ורטיקל מסחרי
+  // בלי קבלות-מס לא עוקב ספחי-ת"ז — בלעדי הגידור הפריט דלק שם לתמיד (fullSefach חסר=false).
+  const sefachOn = on('families') && featureOn(config, 'core.taxreceipt');
+  const noSefach = (sefachOn ? db.families : []).filter((f) => f.status === 'active' && f.fullSefach === false);
   if (noSefach.length) {
     out.push({
       key: 'sefach:families',
@@ -459,8 +464,12 @@ export function attentionItems(
   }
 
   // מדד אמינות אדום — מתחת לסף הסיכון המשותף (יישור ללגאסי: red <500), פריט מצטבר — מודול משפחות
-  const redCred = (on('families') ? db.families : []).filter((f) => (f.cred?.score ?? 700) < CRED_RED_THRESHOLD);
+  // + דגל families.cred (כמו ווידג'ט-הקהילה ומסך-המשפחות — ורטיקל מסחרי מכבה אותו ⇒
+  // בלעדי הגידור נוצר פריט-crit למדד שאינו מוצג בשום מסך); המונח דרך termOf (entity.cred).
+  const credOn = on('families') && featureOn(config, 'families.cred');
+  const redCred = (credOn ? db.families : []).filter((f) => (f.cred?.score ?? 700) < CRED_RED_THRESHOLD);
   if (redCred.length) {
+    const credTerm = termOf(config, 'entity.cred', 'מדד אמינות');
     out.push({
       key: 'redcred:families',
       tag: 'סיכון',
@@ -468,8 +477,8 @@ export function attentionItems(
       tagC: '#b91c1c',
       title:
         redCred.length === 1
-          ? `${termOf(config, 'entity.family', 'משפחה')} אחת במדד אמינות אדום`
-          : `${redCred.length} ${termOf(config, 'nav.families', 'משפחות')} במדד אמינות אדום`,
+          ? `${termOf(config, 'entity.family', 'משפחה')} אחת ב${credTerm} אדום`
+          : `${redCred.length} ${termOf(config, 'nav.families', 'משפחות')} ב${credTerm} אדום`,
       sev: 'crit',
       nav: { kind: 'family', id: redCred[0].id },
     });

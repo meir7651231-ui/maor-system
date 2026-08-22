@@ -8,8 +8,10 @@
     "supporters.rebrand": true,
     "supporters.intel": true,
     "supporters.galaxy": true,
+    "supporters.universe3d": true,
     "supporters.card": true,
     "supporters.hokbulk": true,
+    "supporters.photos": true,
     "courses.cockpit": true
   },
   "integrations": {
@@ -28,6 +30,7 @@
     "messagingSenderId": "437845665303",
     "appId": "1:437845665303:web:955fa5636e5b408ae7de52"
   },
+  "cloudRoot": true,
   "adminEmails": [
     "meir7651231@gmail.com"
   ]

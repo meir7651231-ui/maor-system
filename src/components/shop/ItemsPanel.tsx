@@ -74,22 +74,32 @@ export function ItemsPanel() {
       return setError('מלאי מינימום חייב להיות מספר אי-שלילי (ריק = בלי התרעה)');
     if (f.validDays.trim() !== '' && (!Number.isFinite(+f.validDays) || +f.validDays < 0))
       return setError('ימי תוקף חייבים להיות מספר אי-שלילי (ריק = ללא תוקף)');
-    upsertShopItem({
+    // תיקון (swarm-audit): ה-upsert מחליף את הרשומה כולה — בנייה מאפס מחקה בשקט
+    // שדות שאינם בטופס (waits — רשימת ההמתנה נמחקה בכל שינוי-שם!). הרשומה נבנית
+    // {...existing, ...שדות-הטופס}; שדות-רשות שרוקנו בטופס נמחקים במפורש (כמו קודם).
+    const existing = editId ? db.shopItems.find((x) => x.id === editId) : undefined;
+    const saved: ShopItem = {
+      ...(existing as ShopItem | undefined),
       id: editId ?? '',
       name: f.name.trim(),
       kind: f.kind,
       storeId: f.kind === 'coupon' ? f.storeId : '',
       value: Math.round(value),
       basePrice: Math.round(basePrice),
-      ...(f.stock.trim() === '' ? {} : { stock: Math.max(0, Math.round(+f.stock)) }),
-      // מלאי מינימום (SHOP6) — מתחתיו נדלקת התרעת "להצטייד" (restock)
-      ...(f.minStock.trim() === '' ? {} : { minStock: Math.max(0, Math.round(+f.minStock)) }),
-      ...(f.kind === 'coupon' && f.validDays.trim() !== '' ? { validDays: Math.max(0, Math.round(+f.validDays)) } : {}),
-      // חגים נבחרים (הכרעה 17) — ריק = כל החגים (לא נשמר)
-      ...(f.kind === 'holidayGift' && f.holidays.length > 0 ? { holidays: f.holidays } : {}),
       active: f.active,
       notes: f.notes.trim(),
-    });
+    };
+    if (f.stock.trim() === '') delete saved.stock;
+    else saved.stock = Math.max(0, Math.round(+f.stock));
+    // מלאי מינימום (SHOP6) — מתחתיו נדלקת התרעת "להצטייד" (restock)
+    if (f.minStock.trim() === '') delete saved.minStock;
+    else saved.minStock = Math.max(0, Math.round(+f.minStock));
+    if (f.kind === 'coupon' && f.validDays.trim() !== '') saved.validDays = Math.max(0, Math.round(+f.validDays));
+    else delete saved.validDays;
+    // חגים נבחרים (הכרעה 17) — ריק = כל החגים (לא נשמר)
+    if (f.kind === 'holidayGift' && f.holidays.length > 0) saved.holidays = f.holidays;
+    else delete saved.holidays;
+    upsertShopItem(saved);
     toast(editId ? 'ה' + term + ' עודכן' : '"' + f.name.trim() + '" נוסף לקטלוג הפריטים');
     setEditId(null);
     setF(EMPTY);

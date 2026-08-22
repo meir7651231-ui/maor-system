@@ -14,7 +14,7 @@ import type { ShopAssignment, ShopComponent, ShopRedemption } from '../../types/
 import { Btn, Chip, Empty, Field, Modal, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
 import { isoToday } from '../../lib/date-util';
-import { assignmentRedeemed, beneficiaryLabel, componentRemaining, couponExpiry, filterAssignments, filterRedemptions, itemOf, itemRemaining, upcomingHolidays } from './lib';
+import { SHOP_HOLIDAY_DUE_DAYS, assignmentRedeemed, beneficiaryLabel, componentRedeemedNow, componentRemaining, couponExpiry, filterAssignments, filterRedemptions, itemOf, itemRemaining, upcomingHolidays } from './lib';
 import { AssignmentForm } from './AssignmentForm';
 import { BulkAssignModal } from './BulkAssignModal';
 import { RedeemModal } from './RedeemModal';
@@ -255,7 +255,10 @@ export function AssignmentsTab() {
   if (selected) return <AssignmentCard assignment={selected} onBack={() => setSelId(null)} />;
 
   // קיבוץ לפי משפחה — סדר ההופעה של התוצאה הממוינת (הקבוצה הדחופה ראשונה)
-  const filtered = filterAssignments(db, q, status, pendingOnly, productFilter, sort);
+  // תיקון (swarm-audit): todayIso מוזרק ⇒ מתנת-חג שנמסרה אשתקד נחשבת ממתינה
+  // לחג הקרוב (פר-שנה-עברית) — לא מוסתרת ב"ממתינים בלבד" ולא ממוינת אחרונה.
+  const filtered = filterAssignments(db, q, status, pendingOnly, productFilter, sort, isoToday());
+  const dueHolidays = upcomingHolidays(isoToday(), SHOP_HOLIDAY_DUE_DAYS);
   const groups: { famId: string; list: ShopAssignment[] }[] = [];
   for (const a of filtered) {
     const g = groups.find((x) => x.famId === a.famId);
@@ -327,7 +330,9 @@ export function AssignmentsTab() {
                 {g.list.map((a) => {
                   const product = db.shopProducts.find((p) => p.id === a.productId);
                   const total = product?.components.length ?? 0;
-                  const doneCount = product ? product.components.filter((c) => assignmentRedeemed(a, c.id)).length : 0;
+                  // תיקון (swarm-audit): מתנת-חג נספרת פר-חג-ושנה-עברית (כמו needsCare
+                  // ותג-הכרטיס) — '3/3' בעוד המתנה של השנה מגיעה היה מצג-שווא.
+                  const doneCount = product ? product.components.filter((c) => componentRedeemedNow(db, a, c, dueHolidays)).length : 0;
                   return (
                     <button
                       key={a.id}

@@ -52,7 +52,9 @@ export function teacherKpis(db: Db, teacherId: string, todayDow: number, todayIs
     courses: mine.size,
     students,
     todaySessions: teacherAgenda(db, teacherId, todayDow, todayIso).length,
-    makeups: teacherMakeups(db, teacherId).length,
+    // "ממתינות" = שטרם תוזמנו (!makeupDate) — כמו המונה בכרטיס-החוג (CourseDetail);
+    // ספירת השלמות שכבר נקבע להן תאריך ניפחה את ה-KPI בשקר.
+    makeups: teacherMakeups(db, teacherId).filter((m) => !m.makeupDate).length,
   };
 }
 
@@ -68,8 +70,20 @@ export function teacherMonthCsvRows(
 ): (string | number)[][] {
   const head = ['חוג', 'תלמיד', 'נוכחויות בחודש', 'חיסורים בחודש'];
   const body: (string | number)[][] = [];
+  const monthFirst = ym + '-01';
   for (const c of teacherCourses(db, teacherId)) {
-    for (const e of sheetRoster(db.enrollments, c.id)) {
+    // לא sheetRoster (שמפיל 'ended' ללא-תנאי): תלמיד/ה שסיימ/ה באמצע-החודש —
+    // או חוג שלם אחרי bulkEndCourse — נעלמו רטרואקטיבית מדוח אותו חודש. כמו
+    // buildCourseDailyRows: 'ended' נכלל כשה-endedAt מאוחר מתחילת-החודש (כלומר
+    // היו לו ימים בחודש-הדוח); 'ended' ישן בלי endedAt מוחרג (אין תאריך אמין).
+    // 'wait' (רשימת-המתנה) מוחרג — עדיין לא משתתפ/ת.
+    const roster = db.enrollments.filter(
+      (e) =>
+        e.courseId === c.id &&
+        e.status !== 'wait' &&
+        (e.status !== 'ended' || (!!e.endedAt && e.endedAt > monthFirst)),
+    );
+    for (const e of roster) {
       const present = presentsInMonth(e.presents, ym + '-01');
       const absent = e.absences.filter((a) => (a.date || '').slice(0, 7) === ym).length;
       body.push([c.name, nameOf(e.memberId), present, absent]);

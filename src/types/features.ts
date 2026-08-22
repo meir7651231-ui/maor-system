@@ -136,6 +136,9 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.doncal', label: 'לוח תרומות בכרטיס', desc: 'לוח-חודש חזותי של תרומות התורם/ת + יעד הקשר הבא, בכרטיס התורם', module: 'supporters' },
   { key: 'supporters.customreport', label: 'דו"ח מותאם (תומכים)', desc: 'כפתור ייצוא דו"ח מותאם במסך התומכים', module: 'supporters' },
   { key: 'supporters.annualreport', label: 'דוח שנתי לתורם 📄', desc: 'ריכוז תרומות שנת-המס לתורם/ת (ולכולם בקובץ אחד) — לרו"ח ולמס; אינו קבלה', module: 'supporters' },
+  // ⚠️ opt-in (תיקון 21.8, ממצא-נחיל): הקוד גודר `=== true` — בלי optIn האשף הציג
+  // "דלוק" על מסך כבוי ולחיצת-"הדלקה" מחקה את המפתח ⇒ בלתי-ניתן-להדלקה לעולם.
+  { key: 'supporters.photos', label: 'גלריית-תמונות 📷', desc: 'אלבום-תמונות על כרטיס-התורם/ת (עד 5, מוקטנות אוטומטית) — נשמרות במכשיר ומגובות/מסונכרנות עם הנתונים (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.hok', label: 'הוראות קבע 🔁', desc: 'הגדרת הו"ק על תורם/ת + תזכורת-חודשית "טרם נרשמה" + רישום-בקליק; החיוב עצמו אצל הסליקה/הבנק', module: 'supporters' },
   // ── מסכי 20.8 · opt-in מפורש (חסר=כבוי — לא מדליקים לקוח-חי מעצמם) ──
   { key: 'supporters.cockpit', label: 'חלון-העבודה (קוקפיט) 🎯', desc: 'משטח-עבודה מעל טבלת-התורמים: KPI + תור-משימות (שיחות/תודות/הו"ק) + פלטת-פיקוד ⌘K + ייצוא (opt-in)', module: 'supporters', optIn: true },
@@ -143,12 +146,19 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.galaxy', label: 'גלקסיית-התורמים 🌌', desc: 'מפת-כוכבים חיה: גודל=ערך · צבע=דרגה · מרחק=טריות; קליק על כוכב פותח כרטיס (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.rebrand', label: 'רצועת-KPI לתורמים ✨', desc: 'רצועת מדדים חיה מעל הטבלה הקיימת — סה"כ · פעילים · בסיכון · תחזית; צ׳יפים=סינון (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.card', label: 'כרטיס-תורם מאוחד (לשוניות) 📇', desc: 'מעטפת-לשוניות על הכרטיס: "הכרטיס" (הכרטיס המלא הקיים כמו-שהוא) + "מודיעין" (RFM · תחזית · סיכון · קצב-עונתי · אותות · דירוג פר-תורם). כבוי = הכרטיס הרגיל (opt-in)', module: 'supporters', optIn: true },
+  // ── צרור-ה-Roadmap 21.8 · נרשמו במרשם רק ב-21.8 (ממצא-נחיל: נשלחו מגודרים
+  //    `=== true` בלי FeatureDef ⇒ לא היו באשף, לקוח-ענן לא יכול היה להדליק לעולם) ──
+  { key: 'supporters.hokbulk', label: 'רישום הו"ק המוני 🖊️', desc: 'רישום כל הוראות-הקבע שטרם-נרשמו החודש בלחיצה אחת — מנפיק קבלות-מס אמיתיות (D-) ⇒ חייב הפעלה מכוונת (opt-in)', module: 'supporters', optIn: true },
+  { key: 'supporters.universe3d', label: 'היקום התלת-ממדי 🪐', desc: 'גלקסיית-התורמים על קליפת-כדור תלת-ממדית — גרירה-לסיבוב, פרספקטיבה בלי three.js; קליק על כוכב פותח כרטיס (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.ayin.dailyreport', label: 'דוח יומי — מעקב טיפול', desc: 'כפתור ייצוא הדוח היומי של מעקב הטיפול (תת-דגל של מעקב טיפול)', module: 'supporters' },
   { key: 'supporters.hist', label: 'תרומות מהקובץ ההיסטורי', desc: 'מיזוג התרומות שהגיעו מהקובץ ההיסטורי (גיבוי לגאסי) לרשימת "כל התרומות" בכרטיס', module: 'supporters' },
   { key: 'supporters.ayin.sheet', label: 'גיליון מעקב להורדה/ייבוא', desc: 'ייצוא גיליון מעקב הטיפול ל-CSV, מילוי מחוץ למערכת וייבוא חזרה (תת-דגל של מעקב טיפול)', module: 'supporters' },
   { key: 'supporters.ayin.boq', label: 'כתב-כמויות / הצעת-מחיר', desc: 'שורות הפריטים במעקב מקבלות מחיר-יחידה → סכום-שורה, סה"כ-הצעה ו-P&L מול הנגבה (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
   { key: 'supporters.ayin.time', label: 'שעתון פר-פרויקט', desc: 'תיוג-שעות על הפרויקט (תאריך · שעות · תעריף) → עלות-עבודה ורווח ב-P&L (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
   { key: 'supporters.ayin.mat', label: 'חומרים ורכש פר-פרויקט', desc: 'רישום חומרים/רכש (שם · כמות · מחיר) → עלות-חומרים ב-P&L; רווח = הצעה − עבודה − חומרים (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
+  { key: 'supporters.ayin.gantt', label: 'גאנט-תלויות פר-פרויקט', desc: 'משך (ימים) + תלויות ("אחרי…") על שורות-הפרויקט → תזמון-אוטומטי, משך-כולל ונתיב-קריטי בתצוגת-סרגלים (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
+  { key: 'supporters.ayin.kit', label: 'ערכת-מסירה (install-kit)', desc: 'צ׳ק-ליסט מסירה פר-פרויקט עם פס-התקדמות ו"מוכן-למסירה" + ערכת-ברירת-מחדל (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
+  { key: 'supporters.ayin.warehouse', label: 'מלאי-מחסן חוצה-פרויקטים', desc: 'מחסן-חומרים מרכזי; ההקצאה מחושבת מרשומות-החומרים של הפרויקטים לפי שם → מלאי/הוקצה/נותר + התרעת-מחסור (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
   { key: 'supporters.import.preview', label: 'סיכום לפני ייבוא', desc: 'ייבוא תומכות דו-שלבי — בדיקת הקובץ והצגת חדשות/עדכונים לפני ההחלה; כבוי = החלה מיידית', module: 'supporters' },
   { key: 'supporters.thankyou', label: 'תזכורת "התקשר לתודה"', desc: 'כפתור "📞 תודה" — יצירת אירוע תזכורת קשר בלוח', module: 'supporters' },
   { key: 'supporters.click2call', label: 'חיוג ישיר מהרשימה', desc: 'קישור tel: להתקשרות ישירה מטבלת התומכים', module: 'supporters' },

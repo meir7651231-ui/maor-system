@@ -47,6 +47,13 @@ describe('🌙 ratchet — צרור-הלילה (#1/#3/#9)', () => {
     expect(functionsSrc).toContain('BACKUP_KEEP = 30');
   });
 
+  it("🛡 מסלול-B בגיבוי: 'donations' (האוסף-הנפרד, מוחרג-במכוון מ-ENTITY_COLLECTIONS) מגובה דרך EXTRA_BACKUP", () => {
+    // 🐛 (21.8): גיבוי-לילה של ארגון-donationSplit יצא בלי תרומות/קבלות — שחזור
+    // היה מאבד אותן בשקט. BACKUP_COLLECTIONS נשאר ≡ (הבדיקה למעלה); התוספת נפרדת.
+    expect(functionsSrc).toMatch(/EXTRA_BACKUP = \['donations'\]/);
+    expect(functionsSrc).toContain('[...BACKUP_COLLECTIONS, ...EXTRA_BACKUP]');
+  });
+
   it('🛡 בידוד-קבלות: הפונקציות החדשות לא נוגעות במוני-הקבלות (R-/D-/S-) ולא רושמות תרומות', () => {
     // אותו אינווריאנט כמו paymentsWebhook — השרת מזרים/מצלם, המזכירה רושמת
     const night = functionsSrc.slice(functionsSrc.indexOf('═ צרור-הלילה'));

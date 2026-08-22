@@ -15,7 +15,8 @@ describe('🛍 ratchet — חנות 6: טיפול משרדי', () => {
   });
 
   it('שורות הטיפול והמימוש המהיר נפתחים ל-RedeemModal; חגים עם מונה ממתינות', () => {
-    expect(homeSrc).toContain('needsCare(db, today)');
+    // תיקון (swarm-audit): config מוזרק ל-needsCare — מונחי termOf + גידור shop.expiry
+    expect(homeSrc).toContain('needsCare(db, today, config)');
     expect(homeSrc).toContain('upcomingHolidays(today, 45)');
     expect(homeSrc).toContain('RedeemModal');
     expect(homeSrc).toContain('מתנות ממתינות');

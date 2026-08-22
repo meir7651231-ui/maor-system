@@ -28,9 +28,14 @@ describe('📱 ratchet — PWA שלב 1', () => {
     const sw = swRaw;
     expect(sw).toContain("if (req.method !== 'GET') return");
     expect(sw).toContain('if (url.origin !== self.location.origin) return');
-    // ‏assets מגובבים = cache-first; השאר עובר קודם fetch (רשת) עם fallback למטמון
-    expect(sw).toMatch(/url\.pathname\.includes\('\/assets\/'\)[\s\S]{0,400}caches\.match/);
-    expect(sw).toMatch(/const res = await fetch\(req\);[\s\S]{0,200}catch \{[\s\S]{0,200}caches\.match/);
+    // ‏assets מגובבים = cache-first **תחום למטמון שלנו** (נחיל 21.8: caches.match הגלובלי
+    // חיפש בכל המטמונים ב-origin כולל שאריות SW זר) + put מוגן-catch + גיזום-טבעת
+    expect(sw).toMatch(/url\.pathname\.includes\('\/assets\/'\)[\s\S]{0,400}caches\.open\(CACHE\)[\s\S]{0,120}cache\.match\(req\)/);
+    expect(sw).toMatch(/cache\.put\(req, res\.clone\(\)\)\.then\(\(\) => pruneAssets\(cache\)\)\.catch/);
+    // השאר: network-first — fetch ואז fallback למטמון רק בהיעדר-רשת; put לא-ממתין מוגן-catch
+    expect(sw).toMatch(/const res = await fetch\(req\);[\s\S]{0,400}catch \{[\s\S]{0,120}caches\.match\(req/);
+    expect(sw).toMatch(/caches\.open\(CACHE\)\.then\(\(c\) => c\.put\(req, copy\)\)\.catch/);
+    expect(sw).toContain('function pruneAssets');
   });
 
   it('הרישום מגודר: דגל shell.pwa (כיבוי מסיר רישום) + webdriver + PROD', () => {

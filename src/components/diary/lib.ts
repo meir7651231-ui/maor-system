@@ -268,6 +268,8 @@ export function planLabelOf(e: Enrollment): string {
 export function enrollStatusMeta(e: Enrollment): { label: string; bg: string; c: string } | null {
   if (e.status === 'paused') return { label: 'מוקפא', bg: '#fdf1d4', c: '#9a6414' };
   if (e.status === 'ended') return { label: 'הסתיים', bg: '#eceae2', c: '#8b8474' };
+  // ⏳ רשימת-המתנה — בלי צ'יפ הממתין/ה נראה/ית כתלמיד/ה רגיל/ה בפאנל-הנוכחות
+  if (e.status === 'wait') return { label: 'רשימת-המתנה ⏳', bg: '#e7edf5', c: '#3a5a86' };
   return null;
 }
 

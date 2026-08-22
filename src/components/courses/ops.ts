@@ -12,10 +12,12 @@ export function coursesToday(courses: Course[], todayDow: number, todayIso: stri
   );
 }
 
-/** שיבוצים עם יתרת-חוב פתוחה (payBal>0), מהגבוה לנמוך. */
+/** שיבוצים עם יתרת-חוב פתוחה (payBal>0), מהגבוה לנמוך.
+ *  'wait' מוחרג כמו opsKpis/collectionList — רשימת-המתנה לא חייבת כסף (עוד לא לומדת);
+ *  ספירתה גרמה לקוקפיט "חייבים" לסתור את מרכז-הגבייה (CollectionCenter). */
 export function debtors(enrollments: Enrollment[]): { e: Enrollment; bal: number }[] {
   return enrollments
-    .filter((e) => e.status !== 'ended')
+    .filter((e) => e.status !== 'ended' && e.status !== 'wait')
     .map((e) => ({ e, bal: payBal(e) }))
     .filter((x) => x.bal > 0)
     .sort((a, b) => b.bal - a.bal);
@@ -39,9 +41,11 @@ export function dropoutRisk(enrollments: Enrollment[], minAbs = 3): { e: Enrollm
     .sort((a, b) => b.absences - a.absences);
 }
 
-/** מדדי-על לקוקפיט: חוגים-פעילים · שיבוצים-פעילים · תפוסה-ממוצעת%. */
-export function opsKpis(courses: Course[], enrollments: Enrollment[]): { activeCourses: number; enrollments: number; avgOccupancy: number } {
-  const activeCourses = courses.length;
+/** מדדי-על לקוקפיט: חוגים-פעילים · שיבוצים-פעילים · תפוסה-ממוצעת%.
+ *  todayIso מוזרק (דטרמיניסטי) — "פעילים" = שטרם הסתיימו (c.end >= היום, כמו
+ *  coursesToday); קודם נספרו כל החוגים כולל שהסתיימו מזמן, בסתירה לתווית. */
+export function opsKpis(courses: Course[], enrollments: Enrollment[], todayIso: string): { activeCourses: number; enrollments: number; avgOccupancy: number } {
+  const activeCourses = courses.filter((c) => !c.end || c.end >= todayIso).length;
   const live = enrollments.filter((e) => e.status !== 'ended' && e.status !== 'wait');
   // תפוסה-ממוצעת: ממוצע של (רשומים/מקסימום) על חוגים עם מקסימום מוגדר
   const withMax = courses.filter((c) => (c.maxStudents || 0) > 0);

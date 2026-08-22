@@ -393,6 +393,35 @@ export interface AyinName {
   rate?: number;
   /** הערת-טקסט חופשית ליד המונה (בקשת-בעלים 19.8) — אופציונלי, additive, אין מיגרציה. */
   note?: string;
+  /**
+   * תזמון-משימה לגאנט-התלויות (ורטיקל מסחרי): משך בימים + מזהי-שורות-קודמות
+   * (תלויות "אחרי"). additive, אופציונלי, אין מיגרציה; מגודר supporters.ayin.gantt.
+   * חסר ⇒ המשימה לא-מתוזמנת (לא מוצגת בגאנט). בעמותה נשאר undefined.
+   */
+  days?: number;
+  deps?: Id[];
+}
+
+/** פריט ערכת-התקנה/מסירה (install-kit) על פרויקט — צ'ק-ליסט מסירה. additive. */
+export interface KitItem {
+  label: string;
+  done: boolean;
+}
+
+/**
+ * פריט-מלאי במחסן חוצה-פרויקטים (ורטיקל-הסטודיו). המחסן עצמאי; הצריכה מחושבת
+ * כנגזרת מרשומות-החומרים (MatEntry) של הפרויקטים לפי התאמת-שם. additive, ורטיקל
+ * מסחרי בלבד (מגודר supporters.ayin.warehouse). לא נוגע בכסף/קבלות.
+ */
+export interface WarehouseItem {
+  id: Id;
+  name: string;
+  /** יחידת-מידה חופשית (יח׳ / מ׳ / ק"ג …). */
+  unit: string;
+  /** מלאי-במחסן (כמות). */
+  qty: number;
+  /** מחיר-יחידה (לעלות-מלאי; אופציונלי). */
+  cost: number;
 }
 
 /** תשובה/הערה מתוארכת בתהליך הטיפול. */
@@ -452,6 +481,8 @@ export interface AyinCase {
   time?: TimeEntry[];
   /** חומרים/רכש של הפרויקט — additive, ורטיקל מסחרי; undefined בתיקים ישנים. */
   mat?: MatEntry[];
+  /** ערכת-התקנה/מסירה (install-kit) — צ'ק-ליסט מסירה; additive, ורטיקל מסחרי. */
+  kit?: KitItem[];
   /**
    * מזהי אירועי-הלוח שנוצרו במעברי-השלב, לפי שלב-המקור של המעבר
    * ('new'/'lead'/'eyes'/'answer') + 'answerPush' (מעבר הדחיפה). מאפשר ל-revert
@@ -504,6 +535,12 @@ export interface Supporter {
   nextDate: IsoDate | '';
   /** על מה לדבר בפעם הבאה — תזכורת-אג'נדה חופשית (additive; מוצג בקוקפיט/חייגן). */
   nextNote?: string;
+  /**
+   * גלריית-תמונות מקומית (data:URI מוקטנים) — additive, אופציונלי, אין מיגרציה.
+   * נשמרות בתוך ה-DB ⇒ מגובות/מסונכרנות; תקרה קשיחה (PHOTO_MAX) + הקטנה בהעלאה.
+   * מגודר supporters.photos. undefined בכרטיסים ישנים.
+   */
+  photos?: string[];
   /** אירוע 'שיחה' שנוצר אוטומטית ביומן. */
   nextEventId?: Id;
   donations: Donation[];
@@ -962,6 +999,8 @@ export interface Db {
   deliveries: Delivery[];
   /** 📋 משימות-עבודה (WORKPREP, 20.8) — המנהל מכין תור פר-עובד/ת; הישות ה-22. */
   tasks: WorkTask[];
+  /** 🏭 מלאי-מחסן חוצה-פרויקטים (ורטיקל-הסטודיו) — הישות ה-23; מסחרי, additive. */
+  warehouse: WarehouseItem[];
   orgName: string;
   orgSite: string;
   orgDonate: string;
@@ -1053,6 +1092,7 @@ export function emptyDb(): Db {
     distributionDays: [],
     deliveries: [],
     tasks: [],
+    warehouse: [],
     orgName: 'מאור החסד',
     orgSite: '',
     orgDonate: '',

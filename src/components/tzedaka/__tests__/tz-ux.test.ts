@@ -9,6 +9,7 @@ import { emptyDb, type Db, type TzBox, type TzCoordinator } from '../../../types
 import coordsTabSrc from '../CoordinatorsTab.tsx?raw';
 import coordCardSrc from '../CoordinatorCard.tsx?raw';
 import calSrc from '../CalendarTab.tsx?raw';
+import collectSrc from '../CollectModal.tsx?raw';
 
 function coord(over: Partial<TzCoordinator>): TzCoordinator {
   return { id: 'tzc1', name: 'שרה לוינשטיין', famId: '', memberId: '', phone: '', notes: '', active: true, startDate: '', score: 0, scoreLog: [], ...over };
@@ -78,5 +79,12 @@ describe('🔍 ratchet — סינון 1: קופות צדקה', () => {
     expect(coordCardSrc).toMatch(/moduleOn\(config, 'families'\)/);
     expect(calSrc).toMatch(/tzEvents\.filter\(\(e\) => !kindsOff\.has\(e\.kind\)\)/);
     expect(calSrc).toContain('buildTzGrid(shownEvents');
+  });
+
+  // ratchet — הבאג: save() של CollectModal בדק סכום אך לא תאריך; HebDateInput במצב
+  // לועזי פולט '' בניקוי ⇒ ריקון עם date:'' — הקופה מוצגת 'טרם רוקנה' לנצח,
+  // staleBoxes ממשיך להתריע והרצף NaN. הגנת-מקור: חסימה כמו TzEventModal.
+  it('🛡 תאריך ריק חסום ב-save() של CollectModal (swarm-audit)', () => {
+    expect(collectSrc).toMatch(/if \(!f\.date\) return setError\(/);
   });
 });

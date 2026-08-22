@@ -11,7 +11,7 @@ import { Btn } from '../ui';
 import { CallBtn } from '../CallBtn';
 import { WaBtn } from '../WaBtn';
 import { integrationOn, telephonyOn } from '../../lib/config';
-import { supTier } from './lib';
+import { isoToday, supTier } from './lib';
 import { SupporterDetail } from './SupporterDetail';
 import { donorIntel } from './intel';
 import { donorRhythm } from './seasonality';
@@ -44,7 +44,8 @@ function Tile(props: { label: string; value: string; tone?: string; note?: strin
 
 function IntelPanel(props: { supporter: Supporter; supporters: Supporter[]; usdRate: number; config: OrgConfig; onGoCard: () => void }) {
   const rate = props.usdRate || 3.7;
-  const today = new Date().toISOString().slice(0, 10);
+  // 🐛 (21.8): toISOString = UTC ⇒ בין חצות מקומי ל-02:00/03:00 "היום" היה אתמול.
+  const today = isoToday();
   const intel = useMemo(() => donorIntel(props.supporter, today, rate), [props.supporter, today, rate]);
   const rhythm = useMemo(() => donorRhythm(props.supporter, rate), [props.supporter, rate]);
   const sigs = useMemo(() => donorSignals(props.supporter, today, rate), [props.supporter, today, rate]);

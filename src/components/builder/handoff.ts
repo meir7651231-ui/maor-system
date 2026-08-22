@@ -5,7 +5,7 @@
  */
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import { FEATURES, type FeatureDef } from '../../types/features';
-import { featureModuleKey, WIZARD_SECTIONS } from './sections';
+import { featureEffectiveOn, featureModuleKey, WIZARD_SECTIONS } from './sections';
 import { SIZE_LABELS, shekel, type Quote } from '../../lib/pricing';
 import { guardExport } from '../../lib/exportGate';
 
@@ -95,14 +95,15 @@ function featureGroupName(cfg: OrgConfig, m: FeatureDef['module']): string {
 }
 
 /**
- * מה הוסר מהחבילה — פיצ'רים שאינם פעילים בפועל: כובו במפורש (features[key]=false)
- * או שהמודול-האב שלהם כבוי. הרשימה נמסרת ללקוח כ"ניתן להפעלה בעתיד".
+ * מה הוסר מהחבילה — פיצ'רים שאינם פעילים בפועל: כובו במפורש (features[key]=false),
+ * המודול-האב שלהם כבוי, או דגל-opt-in שלא הודלק (חסר=כבוי!). הרשימה נמסרת ללקוח
+ * כ"ניתן להפעלה בעתיד".
+ * תיקון 21.8 (ממצא-נחיל): הקריאה הגולמית `=== false` פספסה דגלי-opt-in חסרים —
+ * לקוח בלי supporters.cockpit קיבל דף-מסירה שמרמז שהקוקפיט **נמסר**. עכשיו דרך
+ * featureEffectiveOn — אותה אמת כמו האשף והקוד.
  */
 export function removedFeatures(cfg: OrgConfig): FeatureDef[] {
-  return FEATURES.filter((f) => {
-    const mk = featureModuleKey(f.module);
-    return (mk && cfg.modules[mk] === false) || cfg.features?.[f.key] === false;
-  });
+  return FEATURES.filter((f) => !featureEffectiveOn(cfg, f));
 }
 
 /** מקטע הצעת-המחיר בדף המסירה — נבנה רק כשנמסר quote (אחרת ריק, ביט-זהה לקודם). */

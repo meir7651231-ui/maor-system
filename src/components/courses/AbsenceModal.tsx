@@ -16,7 +16,9 @@ import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { isoToday, nextSessionDate } from './lib';
 import { ABSENCE_REASON_CHIPS, makeupEligibility } from '../diary/lib';
 
-export function AbsenceModal(props: { enrollmentId: string; course: Course; onClose: () => void }) {
+/** date אופציונלי — תאריך-מפגש להחתמת החיסור (סימטריה ל-DiaryAbsenceModal);
+ *  הקוראים הנוכחיים (כרטיס-משפחה/כרטיס-חוג/גיליון-נוכחות) הם זרימות-"היום" ⇒ ברירת-מחדל isoToday. */
+export function AbsenceModal(props: { enrollmentId: string; course: Course; date?: string; onClose: () => void }) {
   const db = useApp((s) => s.db);
   const config = useApp((s) => s.config);
   const upsertEnrollment = useApp((s) => s.upsertEnrollment);
@@ -42,7 +44,7 @@ export function AbsenceModal(props: { enrollmentId: string; course: Course; onCl
       ...en,
       absences: [
         {
-          date: isoToday(),
+          date: props.date || isoToday(),
           reason: reason.trim(),
           makeup: elig,
           noshow: kind === 'noshow',

@@ -19,7 +19,7 @@ on:
         type: choice
         options:
           - stage1        # בלי סודות: icsFeed + remindersNightly + backupNightly
-          - mail          # mailOutbox (דורש סודות SMTP_URL + MAIL_FROM)
+          - mail          # mailOutbox — בלי סוד-גלובלי: SMTP פר-לקוח מהכספת (orgSecrets), והשולח נגזר מה-smtpUrl של הארגון
           - nedarim       # nedarimPull + nedarimSyncHourly (NEDARIM_* + PAY_SECRET)
           - payments      # paymentsWebhook (PAY_SECRET)
           - sms           # smsOutbox (SMS_*)
@@ -27,6 +27,9 @@ on:
           - sheets        # sheetsNightly (GOOGLE_SA)
           - everything    # הכול — רק אחרי שכל הסודות קיימים!
           - status        # לא פורס כלום — מדווח מה פרוס ואילו סודות קיימים
+          - logs          # לא פורס כלום — לוגים אחרונים של המתוזמנות (גיבוי/תקציר/מייל)
+          - indexes       # פריסת אינדקסי-Firestore (firestore.indexes.json) בלבד
+          - rules         # פריסת Firestore Rules (firestore.rules) בלבד — פעולת-בעלים!
   push:
     branches:
       - 'deploy-fn/**'
@@ -69,12 +72,15 @@ jobs:
             sheets)     F="functions:sheetsNightly" ;;
             everything) F="functions" ;;
             status)     F="__status__" ;;
+            logs)       F="__logs__" ;;
+            indexes)    F="__indexes__" ;;
+            rules)      F="__rules__" ;;
             *) echo "::error::יעד לא מוכר"; exit 1 ;;
           esac
           echo "flist=$F" >> "$GITHUB_OUTPUT"
 
       - name: פריסה
-        if: ${{ steps.t.outputs.flist != '__status__' }}
+        if: ${{ steps.t.outputs.flist != '__status__' && steps.t.outputs.flist != '__logs__' && steps.t.outputs.flist != '__indexes__' && steps.t.outputs.flist != '__rules__' }}
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: npx firebase-tools@13 deploy --project maor-system --only "${{ steps.t.outputs.flist }}" --non-interactive
@@ -90,13 +96,44 @@ jobs:
           npx firebase-tools@13 functions:list --project maor-system --non-interactive || true
           echo ""
           echo "═══ סודות (קיים/חסר — בלי ערכים) ═══"
+          # ⚠️ SMTP_URL/MAIL_FROM צפויים "חסר" — לא-בשימוש (מייל פר-לקוח: smtpUrl בכספת orgSecrets)
           for s in SMTP_URL MAIL_FROM PAY_SECRET NEDARIM_MOSAD_ID NEDARIM_API_PASSWORD SMS_API_KEY SMS_PROVIDER SMS_SENDER YEMOT_TOKEN GOOGLE_SA; do
+            note=""
+            case "$s" in SMTP_URL|MAIL_FROM) note=" (לא-בשימוש — מייל פר-לקוח מהכספת)" ;; esac
             if npx firebase-tools@13 functions:secrets:get "$s" --project maor-system --non-interactive >/dev/null 2>&1; then
-              echo "✅ $s: קיים"
+              echo "✅ $s: קיים$note"
             else
-              echo "❌ $s: חסר"
+              echo "❌ $s: חסר$note"
             fi
           done
+
+      # דוח-לוגים: האם המתוזמנות (גיבוי/תקציר/מייל) רצו באמת — בלי לפרוס כלום.
+      - name: דוח לוגים
+        if: ${{ steps.t.outputs.flist == '__logs__' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          for fn in backupNightly remindersNightly mailOutbox; do
+            echo "═══ $fn ═══"
+            npx firebase-tools@13 functions:log --project maor-system --only "$fn" -n 25 --non-interactive || true
+          done
+
+      # פריסת אינדקסי-Firestore (firestore.indexes.json) — למשל האינדקס
+      # ש-mailOutbox דורש לשאילתת-collectionGroup על status (ממצא-לוגים 21.8).
+      - name: פריסת אינדקסים
+        if: ${{ steps.t.outputs.flist == '__indexes__' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: npx firebase-tools@13 deploy --project maor-system --only firestore:indexes --non-interactive
+
+      # פריסת Firestore Rules (firestore.rules שבריפו) — ⚠️ פרסום-Rules = פעולת-
+      # בעלים מפורשת (משנה הרשאות חיות בפרודקשן); היעד קיים כדי שהבעלים יוכל
+      # לפרסם בקליק מה-Actions, לא להרצה אוטומטית.
+      - name: פריסת Rules
+        if: ${{ steps.t.outputs.flist == '__rules__' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: npx firebase-tools@13 deploy --project maor-system --only firestore:rules --non-interactive
 
       - name: אימות (stage1)
         if: ${{ github.event.inputs.target == 'stage1' || github.ref_name == 'deploy-fn/stage1' }}

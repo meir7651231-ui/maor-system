@@ -19,19 +19,19 @@ function member(id: string): Member {
     mPhotos: false, mVideos: false, notes: '',
   };
 }
-function enr(used: number): Enrollment {
+function enr(used: number, presents?: string[]): Enrollment {
   return {
     id: 'e1', memberId: 'm1', courseId: 'c1', plan: 'punch', purchased: 10, used, group: '',
     absences: [], payments: [], totalDue: 0, dueDate: '', status: 'active', note: '',
-    enrolledAt: '2026-01-01',
+    enrolledAt: '2026-01-01', ...(presents ? { presents } : {}),
   };
 }
 
-function seed(log: CredLogEntry[], used = 3): Db {
+function seed(log: CredLogEntry[], used = 3, presents?: string[]): Db {
   return {
     ...emptyDb(),
     families: [{ ...emptyFamily(), id: 'f1', createdAt: '2026-01-01', name: 'כהן', members: [member('m1')], cred: { score: 700, log } }],
-    enrollments: [enr(used)],
+    enrollments: [enr(used, presents)],
   };
 }
 
@@ -66,6 +66,28 @@ describe('↩ ratchet — undoPunch (legacy:3372 mgUndo)', () => {
     expect(db.families[0].cred.log[0].delta).toBe(-5);
     // רשומת הפעולה הקהילתית לא נגעה
     expect(db.families[0].cred.log.some((l) => l.delta === 15)).toBe(true);
+  });
+
+  it('🐛 swarm-audit — הביטול מסיר גם את תאריך-הניקוב האחרון מ-presents[] (שבירת-הצימוד)', () => {
+    // הבאג: undoPunch הוריד used אך השאיר את התאריך ב-presents ⇒ גיליון-הנוכחות
+    // המשיך להראות "נוכח", הסרה ידנית שם זיכתה שוב (החזר-כפול), וניקוב-חוזר
+    // נחסם ע"י presents.includes(today). הביטול מסיר את התאריך המאוחר-ביותר
+    // (presents נצברים כרונולוגית — האחרון הוא הניקוב האחרון).
+    useApp.getState().setDb(() =>
+      seed([{ date: '2026-07-29', delta: 5, reason: 'נוכחות (Check-in)' }], 3, ['2026-07-20', '2026-07-29']),
+    );
+    useApp.getState().undoPunch('e1');
+    const e = useApp.getState().db.enrollments[0];
+    expect(e.used).toBe(2);
+    expect(e.presents).toEqual(['2026-07-20']); // המאוחר הוסר, המוקדם נשאר
+  });
+
+  it('🐛 swarm-audit — presents ריק/חסר: הביטול לא קורס ולא ממציא מערך', () => {
+    useApp.getState().setDb(() => seed([{ date: '2026-07-29', delta: 5, reason: 'נוכחות (Check-in)' }], 2));
+    useApp.getState().undoPunch('e1');
+    const e = useApp.getState().db.enrollments[0];
+    expect(e.used).toBe(1);
+    expect(e.presents).toBeUndefined(); // אין presents ⇒ נשאר בלי המפתח (ביט-זהה)
   });
 
   it('אין ניקוב לביטול (used=0) → כלום לא משתנה', () => {

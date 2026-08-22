@@ -130,9 +130,12 @@ export function DayModal(props: {
           {count} אירועים ביום זה
         </span>
         <span style={{ flex: 1 }} />
-        <Btn kind="primary" sm onClick={() => onAdd(iso)}>
-          ➕ הוספת אירוע
-        </Btn>
+        {/* calendar.addevent כבוי = לוח-לקריאה: גם ה-➕ של תצוגת-היום מוסתר (היה נתיב-יצירה עוקף) */}
+        {featureOn(config, 'calendar.addevent') && (
+          <Btn kind="primary" sm onClick={() => onAdd(iso)}>
+            ➕ הוספת אירוע
+          </Btn>
+        )}
       </div>
 
       {block && (
