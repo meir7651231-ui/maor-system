@@ -77,12 +77,13 @@ jobs:
             logs)       F="__logs__" ;;
             indexes)    F="__indexes__" ;;
             rules)      F="__rules__" ;;
+            solapeek)   F="__solapeek__" ;;
             *) echo "::error::יעד לא מוכר"; exit 1 ;;
           esac
           echo "flist=$F" >> "$GITHUB_OUTPUT"
 
       - name: פריסה
-        if: ${{ steps.t.outputs.flist != '__status__' && steps.t.outputs.flist != '__logs__' && steps.t.outputs.flist != '__indexes__' && steps.t.outputs.flist != '__rules__' }}
+        if: ${{ steps.t.outputs.flist != '__status__' && steps.t.outputs.flist != '__logs__' && steps.t.outputs.flist != '__indexes__' && steps.t.outputs.flist != '__rules__' && steps.t.outputs.flist != '__solapeek__' }}
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: npx firebase-tools@13 deploy --project maor-system --only "${{ steps.t.outputs.flist }}" --non-interactive
@@ -119,6 +120,22 @@ jobs:
             echo "═══ $fn ═══"
             npx firebase-tools@13 functions:log --project maor-system --only "$fn" -n 25 --non-interactive || true
           done
+
+      # 🔎 הצצת-סולה (23.8, "אתה יכול לראות מה הוא מושך") — קורא ל-solaPull?peek=1
+      # עם PAY_SECRET מה-Secret-Manager (ממוסך — לא מודפס) ומדפיס את השורות
+      # הגולמיות מהשער; כך הארכיטקט מאמת את המיפוי בעצמו בלי גישת-קונסולה.
+      - name: הצצת-סולה
+        if: ${{ steps.t.outputs.flist == '__solapeek__' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          SEC=$(npx firebase-tools@13 functions:secrets:access PAY_SECRET --project maor-system 2>/dev/null | tail -1)
+          echo "::add-mask::$SEC"
+          echo "═══ solaPull peek (root/maor-hachesed) ═══"
+          # בלי vault — org=root מפעיל את שרשרת-הנפילה המלאה (root → maor-hachesed),
+          # בדיוק כמו כפתור-האפליקציה של הבעלים (ההצצה הראשונה כיוונה למגירה ריקה).
+          curl -s "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=root&peek=1&secret=$SEC" | head -c 6000
+          echo ""
 
       # פריסת אינדקסי-Firestore (firestore.indexes.json) — למשל האינדקס
       # ש-mailOutbox דורש לשאילתת-collectionGroup על status (ממצא-לוגים 21.8).
