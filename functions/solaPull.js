@@ -89,29 +89,34 @@ async function solaKey(db, org) {
 
 const API_BASE = () => (process.env.SOLA_API_BASE || 'https://x1.cardknox.com').replace(/\/+$/, '');
 
-/** משיכת דוח-עסקאות: Report:Transactions בין תאריכים (כולל). */
+/** משיכת דוח-עסקאות: Report:Transactions בין תאריכים (כולל).
+ *  🐛 (23.8, שטח-אמת מצילום-הבעלים): נקודת-הקצה /report מדברת form-urlencoded —
+ *  גוף-JSON נבלע ("Required: xKey" מקושר). הבקשה = URLSearchParams; התשובה —
+ *  ‏JSON כשיש נתונים, ו-urlencoded בשגיאות — הפרסור מטפל בשתי הצורות. */
 async function fetchSolaReport(xKey, beginIso, endIso) {
+  const body = new URLSearchParams({
+    xKey,
+    xVersion: '5.0.0',
+    xSoftwareName: 'MaorOrbit',
+    xSoftwareVersion: '1.0',
+    xCommand: 'Report:Transactions',
+    xBeginDate: beginIso,
+    xEndDate: endIso,
+  });
   const resp = await fetch(API_BASE() + '/report', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      xKey,
-      xVersion: '5.0.0',
-      xSoftwareName: 'MaorOrbit',
-      xSoftwareVersion: '1.0',
-      xCommand: 'Report:Transactions',
-      xBeginDate: beginIso,
-      xEndDate: endIso,
-    }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
   });
   const text = await resp.text();
-  let json;
+  let json = null;
   try {
     json = JSON.parse(text);
   } catch {
-    throw new Error('sola: תשובה לא-JSON — ' + text.slice(0, 200));
+    // תשובה מקושרת (xResult=E&xError=…) — הצורה שהשער מחזיר שגיאות בה
+    json = Object.fromEntries(new URLSearchParams(text));
   }
-  if (json.xResult === 'E' || /^error$/i.test(String(json.xStatus || ''))) {
+  if (json.xResult === 'E' || /^error$/i.test(String(json.xStatus || '')) || json.xError) {
     throw new Error('sola: ' + String(json.xError || json.xStatus || 'שגיאת-שער'));
   }
   const rows = json.xReportData ?? json.ReportData ?? json.data;
