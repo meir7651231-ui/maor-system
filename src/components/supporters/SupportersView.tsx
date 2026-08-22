@@ -16,7 +16,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, itemLabel, stageIndex, stageLabel, unitLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, fmtDate, hokDue, hokEffectivelyActive, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
+import { chipStyle, fmtDate, hokDue, hokEffectivelyActive, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supLastInPeriod, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
@@ -234,6 +234,10 @@ export function SupportersView() {
   // שנת-נתינה נבחרת (מובחנת משנת-הגיוס acqYearF); החודש חולק את monthF כדי
   // שדריל-אין מהעונתיות ובורר-החודש ישקפו זה את זה.
   const [gaveYearF, setGaveYearF] = useState<number | null>(null);
+  // מצב-התקופה (בקשת-בעלים "סינון לפי תרומה אחרונה"): אותם בוררי שנה/חודש מסננים
+  // או לפי **כל** תרומה בתקופה ('gave', ברירת-מחדל = התנהגות קיימת ביט-זהה) או לפי
+  // ה**אחרונה** בלבד ('last'). מוצג רק כשנבחרה תקופה — אינרטי אחרת (אפס-שינוי).
+  const [periodMode, setPeriodMode] = useState<'gave' | 'last'>('gave');
   // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל אחד מתקפל.
   // הצ׳יפים והסינון נשמרים בדיוק — רק מתקפלים; החיפוש+קטגוריה גלויים תמיד.
   const [advOpen, setAdvOpen] = useState(false);
@@ -550,7 +554,13 @@ export function SupportersView() {
     if (hokF === 'due' && !(hokEffectivelyActive(sp, today) && !hokRecordedThisMonth(sp, today))) return false;
     if (tierF && supTier(supScore(sp, rate)).label !== tierF) return false;
     if (segF && !matchSegment(sp, segF, visibleBase, today, rate, atRiskIds)) return false;
-    if ((monthF || gaveYearF) && !supGaveInPeriod(sp, gaveYearF, monthF)) return false;
+    // תקופה: 'last' ⇒ רק מי שתרומתו האחרונה בתקופה; 'gave' ⇒ מי שנתן בכלל בתקופה.
+    if (monthF || gaveYearF) {
+      const inPeriod = periodMode === 'last'
+        ? supLastInPeriod(sp, gaveYearF, monthF)
+        : supGaveInPeriod(sp, gaveYearF, monthF);
+      if (!inPeriod) return false;
+    }
     if (acqYearF && supAcqYear(sp) !== acqYearF) return false;
     // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (לפי השער העריך) / ציון
     if (!numMatch(colF.count, supCount(sp))) return false;
@@ -602,18 +612,19 @@ export function SupportersView() {
   const MONTHS_HE = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
   const yearOptions = donationYears(visibleBase);
   // תווית-התקופה: שנה+חודש = "נתנו ב-8/2025"; רק-חודש = "נתנו בחודש אוגוסט";
-  // רק-שנה = "נתנו ב-2025". צ׳יפ יחיד מנקה את שני הרכיבים.
+  // רק-שנה = "נתנו ב-2025". במצב 'last' — "תרומה אחרונה ב-…". צ׳יפ יחיד מנקה הכול.
+  const periodVerb = periodMode === 'last' ? 'תרומה אחרונה' : 'נתנו';
   const periodLabel =
     monthF && gaveYearF
-      ? 'נתנו ב-' + MONTHS_HE[monthF - 1] + ' ' + gaveYearF
+      ? periodVerb + ' ב-' + MONTHS_HE[monthF - 1] + ' ' + gaveYearF
       : monthF
-        ? 'נתנו בחודש ' + MONTHS_HE[monthF - 1]
+        ? periodVerb + ' בחודש ' + MONTHS_HE[monthF - 1]
         : gaveYearF
-          ? 'נתנו ב-' + gaveYearF
+          ? periodVerb + ' ב-' + gaveYearF
           : null;
   const drillChips: { label: string; clear: () => void }[] = [
     ...(segLabel ? [{ label: 'סגמנט: ' + segLabel, clear: () => setSegF(null) }] : []),
-    ...(periodLabel ? [{ label: periodLabel, clear: () => { setMonthF(null); setGaveYearF(null); } }] : []),
+    ...(periodLabel ? [{ label: periodLabel, clear: () => { setMonthF(null); setGaveYearF(null); setPeriodMode('gave'); } }] : []),
     ...(acqYearF ? [{ label: 'גויסו ב-' + acqYearF, clear: () => setAcqYearF(null) }] : []),
   ];
   const countLabel =
@@ -861,6 +872,19 @@ export function SupportersView() {
           onChange={(v) => setMonthF(v === 'all' ? null : +v)}
           options={[{ value: 'all', label: 'כל החודשים' }, ...MONTHS_HE.map((m, i) => ({ value: String(i + 1), label: m }))]}
         />
+        {/* בקשת-בעלים "סינון לפי תרומה אחרונה של הלקוח": אותם בוררי שנה/חודש —
+            מצב "כל תרומה בתקופה" מול "התרומה האחרונה בתקופה". מוצג רק כשנבחרה
+            תקופה (אחרת אינרטי) — ברירת-המחדל 'gave' = התנהגות קיימת ביט-זהה. */}
+        {(monthF || gaveYearF) && (
+          <Select
+            value={periodMode}
+            onChange={(v) => setPeriodMode(v === 'last' ? 'last' : 'gave')}
+            options={[
+              { value: 'gave', label: '📅 נתנו בתקופה' },
+              { value: 'last', label: '🕐 תרומה אחרונה בתקופה' },
+            ]}
+          />
+        )}
         {/* בקשת-בעלים 15.8 ("פר תורם") — סינון לפי ייעוד-שעל-הכרטיס */}
         {purposeOn && purposeOptions.length > 0 && (
           <Select

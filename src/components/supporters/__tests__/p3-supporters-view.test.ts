@@ -7,7 +7,7 @@
  * פריט 14: סינון עם/בלי מונה + עודכן-היום + עמודת "שולם".
  */
 import { describe, expect, it } from 'vitest';
-import { sup12m, supAvgDon, supScoreBins } from '../lib';
+import { sup12m, supAvgDon, supLastInPeriod, supScoreBins } from '../lib';
 import { numMatch } from '../../families/lib';
 import viewSrc from '../SupportersView.tsx?raw';
 import type { Supporter } from '../../../types/domain';
@@ -115,5 +115,41 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     expect(viewSrc).toContain('🔁 זהה הו״ק מהיסטוריה');
     expect(viewSrc).toContain('detectNedarimHok()');
     expect(viewSrc).toContain("(sp.hist ?? []).some((h) => h.clearer === 'נדרים')");
+  });
+
+  // בקשת-בעלים "הסינון בתורמים כל החודשים כל השנים גם לסינון לפי תרומה אחרונה
+  // של הלקוח": מנוע-תקופה חדש supLastInPeriod — בודק **רק** את התרומה האחרונה
+  // (המאוחרת מבין קבלות+היסטוריה) מול השנה/החודש, לעומת supGaveInPeriod שבודק
+  // אם נתן בכלל בתקופה. מצב-בורר 'gave'/'last' על אותם בוררי שנה/חודש.
+  it('מנוע — supLastInPeriod: רק מי שתרומתו האחרונה בתקופה (שנה/חודש, null=כל)', () => {
+    // תרומה אחרונה = המאוחרת מבין last וה-hist
+    const spAug = sup({ last: '2025-05-01', hist: [{ d: '2025-08-20', a: 100 }] });
+    const spJul = sup({ last: '2025-07-15', donations: [{ rid: 'D1', date: '2025-07-15', amount: 50, cur: '₪', cat: '' }] });
+    const spNone = sup({});
+    // אוגוסט 2025 — רק spAug (אחרונתו 20.8.25)
+    expect(supLastInPeriod(spAug, 2025, 8)).toBe(true);
+    expect(supLastInPeriod(spJul, 2025, 8)).toBe(false); // נתן ביולי, לא באוגוסט
+    // חודש-בלבד (כל השנים): אוגוסט
+    expect(supLastInPeriod(spAug, null, 8)).toBe(true);
+    expect(supLastInPeriod(spJul, null, 8)).toBe(false);
+    // שנה-בלבד (כל החודשים): 2025
+    expect(supLastInPeriod(spJul, 2025, null)).toBe(true);
+    expect(supLastInPeriod(spJul, 2024, null)).toBe(false);
+    // null,null = הכל; בלי תרומה = לא-נכלל (אין תאריך אחרון)
+    expect(supLastInPeriod(spNone, null, null)).toBe(true);
+    expect(supLastInPeriod(spNone, 2025, 8)).toBe(false);
+  });
+
+  it('🛡 חיווט: בורר-מצב-תקופה (gave/last) + ענף-הסינון + תווית-הצ׳יפ (הגנת-מקור)', () => {
+    // ברירת-מחדל 'gave' = ביט-זהה להתנהגות הקיימת
+    expect(viewSrc).toContain("useState<'gave' | 'last'>('gave')");
+    // ענף-הסינון: 'last' ⇒ supLastInPeriod, אחרת supGaveInPeriod (שניהם על gaveYearF/monthF)
+    expect(viewSrc).toContain('supLastInPeriod(sp, gaveYearF, monthF)');
+    expect(viewSrc).toContain('supGaveInPeriod(sp, gaveYearF, monthF)');
+    // בורר-המצב מוצג רק כשנבחרה תקופה
+    expect(viewSrc).toContain('🕐 תרומה אחרונה בתקופה');
+    // תווית-הצ׳יפ עוקבת אחרי המצב; ניקוי-הצ׳יפ מאפס גם את המצב
+    expect(viewSrc).toContain("const periodVerb = periodMode === 'last' ? 'תרומה אחרונה' : 'נתנו'");
+    expect(viewSrc).toContain('setMonthF(null); setGaveYearF(null); setPeriodMode(\'gave\');');
   });
 });
