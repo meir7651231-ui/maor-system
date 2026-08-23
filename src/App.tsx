@@ -78,6 +78,8 @@ const ManagerPanel = lazy(async () => ({ default: (await import('./components/pl
 const PublicSite = lazy(async () => ({ default: (await import('./components/public/PublicSite')).PublicSite }));
 const LoginScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).LoginScreen }));
 const PendingApprovalScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).PendingApprovalScreen }));
+// 🤖 "שאל את מאור" (VISION-LIGHT #30) — עצל: נטען רק בפתיחה ממרכז-העזרה
+const AskMaorModal = lazy(async () => ({ default: (await import('./components/AskMaor')).AskMaorModal }));
 /** מפתח תצלום-המיתוג של האשף-קשור-הענן — חייב להיות זהה ל-BUILDER_PREV_KEY
  *  ב-RemoteWizard (ננעל ב-ratchet bundle-light; ייבוא-ערך סטטי היה מחזיר את
  *  chunk-האשף לבנדל הראשי). */
@@ -284,6 +286,9 @@ export default function App() {
   const [adminHubOpen, setAdminHubOpen] = useState(false);
   // UX סבב-א׳ (5.8): כפתור-עזרה מאוחד (📖+▶ ⇒ ❓) + תפריט-חשבון (אווטאר)
   const [helpOpen, setHelpOpen] = useState(false);
+  // 🤖 שאל-את-מאור — opt-in מפורש; חסר-דגל = הכפתור לא קיים
+  const askMaorOn = config.features?.['shell.askmaor'] === true;
+  const [askOpen, setAskOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [logoutArmed, setLogoutArmed] = useState(false);
   const [changePassOpen, setChangePassOpen] = useState(false);
@@ -1037,6 +1042,9 @@ export default function App() {
             {guideOn && (
               <HubButton emoji="📖" title="המדריך המהיר" sub="הסבר קצר על כל מסך ומה עושים בו" onClick={() => { setHelpOpen(false); window.location.hash = '#guide'; }} />
             )}
+            {askMaorOn && (
+              <HubButton emoji="🤖" title="שאל את מאור" sub={'שאלה חופשית על הנתונים — "מי לא תרם השנה?" — הכול במכשיר'} onClick={() => { setHelpOpen(false); setAskOpen(true); }} />
+            )}
             {demoOn && (
               <HubButton emoji="▶" title="סיור מודרך" sub="מצב הדגמה — המערכת מדגימה את עצמה" onClick={() => { setHelpOpen(false); window.location.hash = '#tour'; }} />
             )}
@@ -1115,6 +1123,13 @@ export default function App() {
         </Modal>
       )}
       {changePassOpen && cloud.user && <ChangePasswordModal onClose={() => setChangePassOpen(false)} />}
+      {/* 🤖 שאל-את-מאור (VISION-LIGHT #30) — עצל, opt-in */}
+      {askOpen && askMaorOn && (
+        <Suspense fallback={null}>
+          <AskMaorModal onClose={() => setAskOpen(false)} />
+        </Suspense>
+      )}
+
       {adminHubOpen && canAdminHub && (
         <AdminHub
           onClose={() => setAdminHubOpen(false)}
