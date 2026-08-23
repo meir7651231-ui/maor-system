@@ -19,6 +19,7 @@ import {
   orgJoinLink,
   overrideOf,
   setEmployeeOverride,
+  isGrantableFeature,
 } from './lib';
 import { FEATURES } from '../../types/features';
 import { WIZARD_SECTIONS } from '../builder/sections';
@@ -150,8 +151,11 @@ export function ManagerPanel(props: { onClose: () => void }) {
   async function toggleFeatureFor(email: string, key: string) {
     if (!mod || !org) return;
     const ov = overrideOf(email, org);
-    const curOff = ov.features?.[key] === false;
-    const nextFeatures = { ...ov.features, [key]: curOff ? true : false }; // curOff→הדלקה · דלוק→כיבוי
+    // יכולת-הדלקה-פר-עובד (בחירה-מרובה וכו') = כבויה כברירת-מחדל לעובד; הקליק **מדליק**
+    // (true=grant) או מבטל (false). יכולת רגילה = דלוקה כברירת-מחדל; הקליק מכבה (הגבלה).
+    const grant = isGrantableFeature(key);
+    const cur = grant ? ov.features?.[key] === true : ov.features?.[key] !== false;
+    const nextFeatures = { ...ov.features, [key]: cur ? false : true };
     const { memberConfigs } = setEmployeeOverride(org, email, { ...ov, features: nextFeatures });
     await mod.writeOrgCloudDoc(slug, { memberConfigs });
     await refresh(mod);
@@ -331,15 +335,21 @@ export function ManagerPanel(props: { onClose: () => void }) {
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                             {featScope
                               .filter((f) => f.module === featModule)
-                              .map((f) => (
-                                <Chip
-                                  key={f.key}
-                                  on={ov.features?.[f.key] !== false}
-                                  onClick={() => void toggleFeatureFor(email, f.key)}
-                                >
-                                  {f.label}
-                                </Chip>
-                              ))}
+                              .map((f) => {
+                                // יכולת-הדלקה = כבויה כברירת-מחדל (on רק כשהודלקה במפורש);
+                                // רגילה = דלוקה אלא-אם כובתה. תווית 🔓 מסמנת "הדלקה פר-עובד".
+                                const grant = isGrantableFeature(f.key);
+                                const on = grant ? ov.features?.[f.key] === true : ov.features?.[f.key] !== false;
+                                return (
+                                  <Chip
+                                    key={f.key}
+                                    on={on}
+                                    onClick={() => void toggleFeatureFor(email, f.key)}
+                                  >
+                                    {(grant ? '🔓 ' : '') + f.label}
+                                  </Chip>
+                                );
+                              })}
                           </div>
                         )}
                       </div>

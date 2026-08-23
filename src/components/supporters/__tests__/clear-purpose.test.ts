@@ -18,13 +18,16 @@ describe('🏷 ratchet — כפתור הסרת-ייעוד מפורש בבחיר�
     expect(src).toMatch(/clearPurposeConfirm && \(/);
   });
 
-  // בקשת-בעלים 23.8 "כל היכולות האלה רק למנהל" — כל פעולות הבחירה-המרובה מגודרות מנהל
-  it('כל יכולות הבחירה-המרובה למנהל בלבד (כניסה + מחיקה + שיוך + הסרה)', () => {
-    // הכניסה עצמה (☑ בחירה) — עובד/ת לא-מנהל/ת כלל לא נכנס/ת
-    expect(src).toMatch(/featureOn\(config, 'supporters\.bulkselect'\) && isAdminUser\(config, cloudEmail\)/);
-    // מחיקה-המונית — מנהל בלבד (לא רק דגל-פיצ'ר)
-    expect(src).toMatch(/featureOn\(config, 'supporters\.bulkdelete'\) && isAdminUser\(config, cloudEmail\)/);
-    // שיוך + הסרת ייעוד — שני מופעי isAdminUser תחת purposeOn (כבר היו)
-    expect((src.match(/purposeOn && isAdminUser\(config, cloudEmail\)/g) ?? []).length).toBeGreaterThanOrEqual(2);
+  // בקשת-בעלים 23.8: מנהל/בעלים תמיד; עובד/ת רק אם הודלק לו/ה (bulkGranted)
+  it('כל יכולות הבחירה-המרובה מגודרות bulkGranted (מנהל/בעלים או הדלקה-פר-עובד)', () => {
+    // ההגדרה: מנהל/בעלים תמיד, אחרת רק אם features[key]===true בקונפיג-האפקטיבי
+    expect(src).toContain('const canBulkManage = isAdminUser(config, cloudEmail) || isOrgMgr');
+    expect(src).toContain('const bulkGranted = (key: string) => canBulkManage || config.features?.[key] === true');
+    // הכניסה (☑ בחירה) + מחיקה-המונית + שיוך/הסרת-ייעוד — כולן דרך bulkGranted
+    expect(src).toContain("bulkGranted('supporters.bulkselect')");
+    expect(src).toContain("bulkGranted('supporters.bulkdelete')");
+    expect((src.match(/purposeOn && bulkGranted\('supporters\.purpose'\)/g) ?? []).length).toBeGreaterThanOrEqual(2);
+    // אין יותר גידור-קשיח isAdminUser על כפתורי-הבחירה (חוסם הדלקה-פר-עובד)
+    expect(src).not.toContain("supporters.bulkselect') && isAdminUser");
   });
 });
