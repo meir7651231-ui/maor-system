@@ -10,8 +10,9 @@
 import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
-// תקרה נוכחית: 520KB gzip (נמדד 498KB אחרי חילוץ-Firebase + ‏~4% מרווח-סחף).
-const ENTRY_GZIP_BUDGET = 520_000;
+// תקרה נוכחית: 180KB gzip (נמדד 153KB אחרי פיצול-chunks ‏#13 + מרווח-סחף).
+// היסטוריה (יורדת-בלבד): ‏520K (אחרי חילוץ-Firebase, נמדד 498K) ⇒ ‏180K.
+const ENTRY_GZIP_BUDGET = 180_000;
 
 const html = readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
 const m = /assets\/(index-[^"']+\.js)/.exec(html);
