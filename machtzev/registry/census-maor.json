@@ -4,7 +4,7 @@
  "generatedBy": "machtzev/census v1",
  "totals": {
   "files": 1020,
-  "lines": 636622,
+  "lines": 639473,
   "orphans": 0
  },
  "byDomain": {
@@ -14,11 +14,11 @@
   },
   "data": {
    "files": 48,
-   "lines": 478569
+   "lines": 481414
   },
   "knowledge": {
    "files": 146,
-   "lines": 24851
+   "lines": 24854
   },
   "tests": {
    "files": 368,
@@ -30,7 +30,7 @@
   },
   "source": {
    "files": 88,
-   "lines": 13212
+   "lines": 13215
   },
   "assets": {
    "files": 38,
@@ -1177,7 +1177,7 @@
    "path": "machtzev/extract/functions.mjs",
    "bucket": "source",
    "domain": "source",
-   "lines": 28
+   "lines": 31
   },
   {
    "path": "machtzev/extract/knowledge.mjs",
@@ -1531,7 +1531,7 @@
    "path": "machtzev/registry/atoms-L6b-buildsmart.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 93
+   "lines": 2914
   },
   {
    "path": "machtzev/registry/atoms-L6b-maor.json",
@@ -1591,7 +1591,7 @@
    "path": "machtzev/registry/census-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 6163
+   "lines": 6187
   },
   {
    "path": "machtzev/registry/census-yoman.json",
@@ -1615,7 +1615,7 @@
    "path": "machtzev/STATUS.md",
    "bucket": "knowledge",
    "domain": "knowledge",
-   "lines": 45
+   "lines": 48
   },
   {
    "path": "machtzev/wiring-check.mjs",

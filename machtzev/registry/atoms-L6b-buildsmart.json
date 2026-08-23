@@ -1,6 +1,6 @@
 [
  {
-  "id": "L6b:buildsmart:app/src/lib/barcode.ts#isBarcodeSupported",
+  "id": "L6b:buildsmart:app/src/lib/barcode.ts#isBarcodeSupported@18",
   "level": "L6b-function",
   "name": "isBarcodeSupported",
   "lines": 9,
@@ -12,7 +12,7 @@
   "source": "buildsmart/app/src/lib/barcode.ts:18-26"
  },
  {
-  "id": "L6b:buildsmart:app/src/lib/barcode.ts#startBarcodeScanner",
+  "id": "L6b:buildsmart:app/src/lib/barcode.ts#startBarcodeScanner@27",
   "level": "L6b-function",
   "name": "startBarcodeScanner",
   "lines": 57,
@@ -34,7 +34,7 @@
   "source": "buildsmart/app/src/lib/barcode.ts:27-83"
  },
  {
-  "id": "L6b:buildsmart:app/src/lib/search.ts#searchExact",
+  "id": "L6b:buildsmart:app/src/lib/search.ts#searchExact@16",
   "level": "L6b-function",
   "name": "searchExact",
   "lines": 49,
@@ -48,7 +48,7 @@
   "source": "buildsmart/app/src/lib/search.ts:16-64"
  },
  {
-  "id": "L6b:buildsmart:app/src/lib/search.ts#searchFuzzy",
+  "id": "L6b:buildsmart:app/src/lib/search.ts#searchFuzzy@65",
   "level": "L6b-function",
   "name": "searchFuzzy",
   "lines": 27,
@@ -62,7 +62,7 @@
   "source": "buildsmart/app/src/lib/search.ts:65-91"
  },
  {
-  "id": "L6b:buildsmart:app/src/lib/voice.ts#isVoiceSupported",
+  "id": "L6b:buildsmart:app/src/lib/voice.ts#isVoiceSupported@30",
   "level": "L6b-function",
   "name": "isVoiceSupported",
   "lines": 10,
@@ -74,7 +74,7 @@
   "source": "buildsmart/app/src/lib/voice.ts:30-39"
  },
  {
-  "id": "L6b:buildsmart:app/src/lib/voice.ts#startVoiceRecognition",
+  "id": "L6b:buildsmart:app/src/lib/voice.ts#startVoiceRecognition@40",
   "level": "L6b-function",
   "name": "startVoiceRecognition",
   "lines": 37,
@@ -89,5 +89,2826 @@
   ],
   "pure": true,
   "source": "buildsmart/app/src/lib/voice.ts:40-76"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/brand_profile.dart#parseBore@292",
+  "level": "L6b-function",
+  "name": "parseBore",
+  "lines": 143,
+  "calls": [
+   "parseBore",
+   "toString",
+   "allMatches",
+   "tryParse",
+   "group",
+   "toList",
+   "specEnvelopeFor",
+   "engineeringSpecFor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/brand_profile.dart:292-434"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/brand_profile.dart#profileForBrand@435",
+  "level": "L6b-function",
+  "name": "profileForBrand",
+  "lines": 3,
+  "calls": [
+   "profileForBrand"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/brand_profile.dart:435-437"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/connection_resolver.dart#canConnect@211",
+  "level": "L6b-function",
+  "name": "canConnect",
+  "lines": 12,
+  "calls": [
+   "canConnect"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/connection_resolver.dart:211-222"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/connection_resolver.dart#_endPairMemoized@223",
+  "level": "L6b-function",
+  "name": "_endPairMemoized",
+  "lines": 16,
+  "calls": [
+   "putIfAbsent"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/connection_resolver.dart:223-238"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/connection_resolver.dart#_endPair@239",
+  "level": "L6b-function",
+  "name": "_endPair",
+  "lines": 81,
+  "calls": [
+   "normalizeSize"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/connection_resolver.dart:239-319"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/connection_resolver.dart#completion@320",
+  "level": "L6b-function",
+  "name": "completion",
+  "lines": 71,
+  "calls": [
+   "completion",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/connection_resolver.dart:320-390"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/connection_resolver.dart#systemCoherence@391",
+  "level": "L6b-function",
+  "name": "systemCoherence",
+  "lines": 21,
+  "calls": [
+   "systemCoherence"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/connection_resolver.dart:391-411"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/connection_schema.dart#_strList@33",
+  "level": "L6b-function",
+  "name": "_strList",
+  "lines": 2,
+  "calls": [
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/connection_schema.dart:33-34"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/connection_schema.dart#_strListOrNull@35",
+  "level": "L6b-function",
+  "name": "_strListOrNull",
+  "lines": 11,
+  "calls": [
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/connection_schema.dart:35-45"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/connection_schema.dart#_sizeMatchFrom@46",
+  "level": "L6b-function",
+  "name": "_sizeMatchFrom",
+  "lines": 5,
+  "calls": [
+   "firstWhere"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/connection_schema.dart:46-50"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/connection_schema.dart#_sizeTableEq@51",
+  "level": "L6b-function",
+  "name": "_sizeTableEq",
+  "lines": 9,
+  "calls": [
+   "listEquals"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/connection_schema.dart:51-59"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/connection_schema.dart#_sizeTableHash@60",
+  "level": "L6b-function",
+  "name": "_sizeTableHash",
+  "lines": 70,
+  "calls": [
+   "hashAll",
+   "fromJson",
+   "toJson",
+   "listEquals",
+   "hash"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/connection_schema.dart:60-129"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/connection_schema.dart#toJson@130",
+  "level": "L6b-function",
+  "name": "toJson",
+  "lines": 27,
+  "calls": [
+   "toJson",
+   "hash",
+   "fromJson"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/connection_schema.dart:130-156"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/connection_schema.dart#toJson@157",
+  "level": "L6b-function",
+  "name": "toJson",
+  "lines": 238,
+  "calls": [
+   "toJson",
+   "hash",
+   "fromJson",
+   "toList",
+   "listEquals",
+   "mapEquals",
+   "hashAll"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/connection_schema.dart:157-394"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#_galvanicGroup@46",
+  "level": "L6b-function",
+  "name": "_galvanicGroup",
+  "lines": 24,
+  "calls": [
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart:46-69"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#_buildCategoryResolvers@70",
+  "level": "L6b-function",
+  "name": "_buildCategoryResolvers",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart:70-72"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#walk@73",
+  "level": "L6b-function",
+  "name": "walk",
+  "lines": 18,
+  "calls": [
+   "walk"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart:73-90"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#_lipskeyCategoryToId@91",
+  "level": "L6b-function",
+  "name": "_lipskeyCategoryToId",
+  "lines": 6,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart:91-96"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#_smartKeyToId@97",
+  "level": "L6b-function",
+  "name": "_smartKeyToId",
+  "lines": 17,
+  "calls": [
+   "plumbingTrade",
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart:97-113"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#plumbingCategories@114",
+  "level": "L6b-function",
+  "name": "plumbingCategories",
+  "lines": 2,
+  "calls": [
+   "plumbingCategories"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart:114-115"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#walk@116",
+  "level": "L6b-function",
+  "name": "walk",
+  "lines": 40,
+  "calls": [
+   "walk",
+   "compareTo"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart:116-155"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#plumbingProducts@156",
+  "level": "L6b-function",
+  "name": "plumbingProducts",
+  "lines": 18,
+  "calls": [
+   "plumbingProducts",
+   "tradeProductFromLegacy",
+   "toList",
+   "compareTo"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart:156-173"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#plumbingAccessories@174",
+  "level": "L6b-function",
+  "name": "plumbingAccessories",
+  "lines": 30,
+  "calls": [
+   "plumbingAccessories",
+   "compareTo"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart:174-203"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#plumbingFixtures@204",
+  "level": "L6b-function",
+  "name": "plumbingFixtures",
+  "lines": 67,
+  "calls": [
+   "plumbingFixtures",
+   "toList",
+   "compareTo",
+   "plumbingSystems"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart:204-270"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#plumbingConnectorTypes@271",
+  "level": "L6b-function",
+  "name": "plumbingConnectorTypes",
+  "lines": 57,
+  "calls": [
+   "plumbingConnectorTypes",
+   "toList",
+   "compareTo",
+   "plumbingProductSpecs"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart:271-327"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#plumbingCompatRules@328",
+  "level": "L6b-function",
+  "name": "plumbingCompatRules",
+  "lines": 57,
+  "calls": [
+   "plumbingCompatRules",
+   "compareTo",
+   "plumbingCompletionRules",
+   "buildPlumbingSeed",
+   "plumbingTrade",
+   "plumbingCategories",
+   "plumbingProducts",
+   "plumbingAccessories",
+   "plumbingFixtures",
+   "plumbingConnectorTypes",
+   "plumbingSystems",
+   "plumbingProductSpecs"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart:328-384"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/trade_import.dart#generateCsvTemplate@36",
+  "level": "L6b-function",
+  "name": "generateCsvTemplate",
+  "lines": 197,
+  "calls": [
+   "generateCsvTemplate",
+   "filled",
+   "hash",
+   "parseAndValidateCsv",
+   "removeLast",
+   "cell",
+   "contains",
+   "addAll"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/trade_import.dart:36-232"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/trade_schema.dart#_strList@36",
+  "level": "L6b-function",
+  "name": "_strList",
+  "lines": 5,
+  "calls": [
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/trade_schema.dart:36-40"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/domain/trade_schema.dart#_dynMap@41",
+  "level": "L6b-function",
+  "name": "_dynMap",
+  "lines": 597,
+  "calls": [
+   "fromJson",
+   "toJson",
+   "listEquals",
+   "hash",
+   "hashAll",
+   "toList",
+   "mapEquals"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/domain/trade_schema.dart:41-637"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/ai_hub_logic.dart#aiAlternatives@202",
+  "level": "L6b-function",
+  "name": "aiAlternatives",
+  "lines": 144,
+  "calls": [
+   "aiAlternatives",
+   "indexWhere",
+   "cheaperAlternativeBrand",
+   "cheaperAlternativesAcrossCatalog",
+   "compareTo",
+   "sublist",
+   "contains",
+   "where"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/ai_hub_logic.dart:202-345"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/ai_hub_logic.dart#computeAnalyticsInsights@346",
+  "level": "L6b-function",
+  "name": "computeAnalyticsInsights",
+  "lines": 49,
+  "calls": [
+   "computeAnalyticsInsights",
+   "where",
+   "fMoney",
+   "aiAlternatives"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/ai_hub_logic.dart:346-394"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/assistant_intent.dart#assistantCategories@52",
+  "level": "L6b-function",
+  "name": "assistantCategories",
+  "lines": 8,
+  "calls": [
+   "assistantCategories",
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/assistant_intent.dart:52-59"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/assistant_intent.dart#matchAssistantCategory@60",
+  "level": "L6b-function",
+  "name": "matchAssistantCategory",
+  "lines": 22,
+  "calls": [
+   "matchAssistantCategory",
+   "assistantCategories",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/assistant_intent.dart:60-81"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/assistant_intent.dart#matchAssistantRecipeKey@82",
+  "level": "L6b-function",
+  "name": "matchAssistantRecipeKey",
+  "lines": 17,
+  "calls": [
+   "matchAssistantRecipeKey",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/assistant_intent.dart:82-98"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/assistant_intent.dart#_actionFromString@99",
+  "level": "L6b-function",
+  "name": "_actionFromString",
+  "lines": 25,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/assistant_intent.dart:99-123"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/assistant_intent.dart#assistantIntentPrompt@124",
+  "level": "L6b-function",
+  "name": "assistantIntentPrompt",
+  "lines": 46,
+  "calls": [
+   "assistantIntentPrompt",
+   "sublist",
+   "assistantCategories",
+   "writeln",
+   "promptSafeText",
+   "toString"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/assistant_intent.dart:124-169"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/assistant_intent.dart#parseAssistantIntent@170",
+  "level": "L6b-function",
+  "name": "parseAssistantIntent",
+  "lines": 44,
+  "calls": [
+   "parseAssistantIntent",
+   "lastIndexOf",
+   "answer",
+   "jsonDecode",
+   "substring",
+   "matchAssistantCategory",
+   "matchAssistantRecipeKey"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/assistant_intent.dart:170-213"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/attention_engine.dart#attentionItems@81",
+  "level": "L6b-function",
+  "name": "attentionItems",
+  "lines": 74,
+  "calls": [
+   "attentionItems",
+   "termOf",
+   "take",
+   "where"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/attention_engine.dart:81-154"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/attention_engine.dart#digestLines@155",
+  "level": "L6b-function",
+  "name": "digestLines",
+  "lines": 39,
+  "calls": [
+   "digestLines",
+   "attentionItems",
+   "where",
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/attention_engine.dart:155-193"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/calendar_days.dart#daysBetweenDst@21",
+  "level": "L6b-function",
+  "name": "daysBetweenDst",
+  "lines": 12,
+  "calls": [
+   "daysBetweenDst",
+   "difference",
+   "subtract"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/calendar_days.dart:21-32"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/calendar_days.dart#startOfWeekSunday@33",
+  "level": "L6b-function",
+  "name": "startOfWeekSunday",
+  "lines": 3,
+  "calls": [
+   "startOfWeekSunday"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/calendar_days.dart:33-35"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/category_division.dart#resolveCatTitle@84",
+  "level": "L6b-function",
+  "name": "resolveCatTitle",
+  "lines": 2,
+  "calls": [
+   "resolveCatTitle"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/category_division.dart:84-85"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/category_division.dart#walk@86",
+  "level": "L6b-function",
+  "name": "walk",
+  "lines": 24,
+  "calls": [
+   "walk",
+   "catalogRepo",
+   "allProducts"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/category_division.dart:86-109"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/category_division.dart#catNodeProductCount@110",
+  "level": "L6b-function",
+  "name": "catNodeProductCount",
+  "lines": 2,
+  "calls": [
+   "catNodeProductCount"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/category_division.dart:110-111"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/category_division.dart#collect@112",
+  "level": "L6b-function",
+  "name": "collect",
+  "lines": 15,
+  "calls": [
+   "collect",
+   "catalogRepo",
+   "allProducts",
+   "where",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/category_division.dart:112-126"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/customer_score.dart#_band@61",
+  "level": "L6b-function",
+  "name": "_band",
+  "lines": 4,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/customer_score.dart:61-64"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/customer_score.dart#scoreCustomer@65",
+  "level": "L6b-function",
+  "name": "scoreCustomer",
+  "lines": 46,
+  "calls": [
+   "scoreCustomer"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/customer_score.dart:65-110"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/data_quality.dart#auditRows@56",
+  "level": "L6b-function",
+  "name": "auditRows",
+  "lines": 35,
+  "calls": [
+   "auditRows",
+   "normName"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/data_quality.dart:56-90"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/equipment_stock_join.dart#_tokens@42",
+  "level": "L6b-function",
+  "name": "_tokens",
+  "lines": 10,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/equipment_stock_join.dart:42-51"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/equipment_stock_join.dart#_isContiguousSubsequence@52",
+  "level": "L6b-function",
+  "name": "_isContiguousSubsequence",
+  "lines": 17,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/equipment_stock_join.dart:52-68"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/equipment_stock_join.dart#_locationToAvailability@69",
+  "level": "L6b-function",
+  "name": "_locationToAvailability",
+  "lines": 61,
+  "calls": [
+   "availabilityFor",
+   "annotate"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/equipment_stock_join.dart:69-129"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/finance_report_pdf.dart#_pdfSafe@38",
+  "level": "L6b-function",
+  "name": "_pdfSafe",
+  "lines": 89,
+  "calls": [
+   "writeCharCode",
+   "toString",
+   "buildFinanceReportPdf",
+   "load",
+   "withFont",
+   "symmetric",
+   "addPage",
+   "fMoney"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/finance_report_pdf.dart:38-126"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/fuzzy_match.dart#damerauLevenshtein@16",
+  "level": "L6b-function",
+  "name": "damerauLevenshtein",
+  "lines": 42,
+  "calls": [
+   "damerauLevenshtein",
+   "filled",
+   "generate",
+   "codeUnitAt",
+   "fuzzyTolerance"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/fuzzy_match.dart:16-57"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/fuzzy_match.dart#fuzzyMatch@58",
+  "level": "L6b-function",
+  "name": "fuzzyMatch",
+  "lines": 10,
+  "calls": [
+   "fuzzyMatch",
+   "normSearch",
+   "contains",
+   "damerauLevenshtein",
+   "fuzzyTolerance"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/fuzzy_match.dart:58-67"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/fuzzy_match.dart#fuzzyNameMatch@68",
+  "level": "L6b-function",
+  "name": "fuzzyNameMatch",
+  "lines": 10,
+  "calls": [
+   "fuzzyNameMatch",
+   "fuzzyMatch"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/fuzzy_match.dart:68-77"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/fuzzy_match.dart#fuzzyScore@78",
+  "level": "L6b-function",
+  "name": "fuzzyScore",
+  "lines": 11,
+  "calls": [
+   "fuzzyScore",
+   "normSearch",
+   "contains",
+   "damerauLevenshtein",
+   "fuzzyTolerance"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/fuzzy_match.dart:78-88"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/input_validators.dart#validIsraeliMobile@11",
+  "level": "L6b-function",
+  "name": "validIsraeliMobile",
+  "lines": 6,
+  "calls": [
+   "validIsraeliMobile",
+   "replaceAll",
+   "hasMatch"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/input_validators.dart:11-16"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/input_validators.dart#validEmail@17",
+  "level": "L6b-function",
+  "name": "validEmail",
+  "lines": 12,
+  "calls": [
+   "validEmail",
+   "hasMatch"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/input_validators.dart:17-28"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/input_validators.dart#validBusinessId@29",
+  "level": "L6b-function",
+  "name": "validBusinessId",
+  "lines": 19,
+  "calls": [
+   "validBusinessId",
+   "replaceAll",
+   "hasMatch",
+   "codeUnitAt"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/input_validators.dart:29-47"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/input_validators.dart#normalizePhone@48",
+  "level": "L6b-function",
+  "name": "normalizePhone",
+  "lines": 11,
+  "calls": [
+   "normalizePhone",
+   "replaceAll",
+   "substring"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/input_validators.dart:48-58"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/input_validators.dart#validBoardCode@59",
+  "level": "L6b-function",
+  "name": "validBoardCode",
+  "lines": 15,
+  "calls": [
+   "validBoardCode",
+   "replaceAll",
+   "hasMatch"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/input_validators.dart:59-73"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/input_validators.dart#waMeDigits@74",
+  "level": "L6b-function",
+  "name": "waMeDigits",
+  "lines": 17,
+  "calls": [
+   "waMeDigits",
+   "replaceAll",
+   "substring"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/input_validators.dart:74-90"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/input_validators.dart#validPositiveAmount@91",
+  "level": "L6b-function",
+  "name": "validPositiveAmount",
+  "lines": 6,
+  "calls": [
+   "validPositiveAmount",
+   "validDateRange",
+   "isAfter"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/input_validators.dart:91-96"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_skuOf@21",
+  "level": "L6b-function",
+  "name": "_skuOf",
+  "lines": 44,
+  "calls": [
+   "productMaxTempC",
+   "productMaterial"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:21-64"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#productSuitableForTemp@65",
+  "level": "L6b-function",
+  "name": "productSuitableForTemp",
+  "lines": 93,
+  "calls": [
+   "productSuitableForTemp",
+   "productMaxTempC",
+   "lineIsSupply",
+   "contains",
+   "connectionMethodLabel",
+   "specOf",
+   "canConnect",
+   "directMatesWith",
+   "pipeSharedWith"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:65-157"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_galvanicallyDissimilar@158",
+  "level": "L6b-function",
+  "name": "_galvanicallyDissimilar",
+  "lines": 13,
+  "calls": [
+   "toSet",
+   "intersection"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:158-170"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_isDirectionalDevice@171",
+  "level": "L6b-function",
+  "name": "_isDirectionalDevice",
+  "lines": 10,
+  "calls": [
+   "replaceAll",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:171-180"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_directionalContext@181",
+  "level": "L6b-function",
+  "name": "_directionalContext",
+  "lines": 266,
+  "calls": [
+   "lineComplianceChecklist",
+   "specOf",
+   "systemCoherence",
+   "completion",
+   "toSet",
+   "contains",
+   "where",
+   "lineIsSupply",
+   "lineInstallReminders",
+   "flowRole",
+   "productSystems"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:181-446"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#productSystems@447",
+  "level": "L6b-function",
+  "name": "productSystems",
+  "lines": 32,
+  "calls": [
+   "productSystems",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:447-478"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#flowRole@479",
+  "level": "L6b-function",
+  "name": "flowRole",
+  "lines": 16,
+  "calls": [
+   "flowRole",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:479-494"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_usableConnector@495",
+  "level": "L6b-function",
+  "name": "_usableConnector",
+  "lines": 3,
+  "calls": [
+   "flowRole"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:495-497"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#canConnect@498",
+  "level": "L6b-function",
+  "name": "canConnect",
+  "lines": 26,
+  "calls": [
+   "canConnect",
+   "compatibleWith",
+   "toSet",
+   "intersection"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:498-523"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#connectionFailReason@524",
+  "level": "L6b-function",
+  "name": "connectionFailReason",
+  "lines": 72,
+  "calls": [
+   "connectionFailReason",
+   "sizes",
+   "where",
+   "toSet",
+   "intersection"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:524-595"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#pipeConnectionDn@596",
+  "level": "L6b-function",
+  "name": "pipeConnectionDn",
+  "lines": 74,
+  "calls": [
+   "pipeConnectionDn",
+   "pipeSharedWith",
+   "compatibleWith",
+   "putIfAbsent",
+   "where",
+   "canConnect",
+   "productSuitableForTemp",
+   "toList",
+   "compareTo",
+   "findAlternativePaths",
+   "findShortestPath",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:596-669"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_pathCost@670",
+  "level": "L6b-function",
+  "name": "_pathCost",
+  "lines": 146,
+  "calls": [
+   "flowRole",
+   "productSystems",
+   "intersection",
+   "canConnect",
+   "contains",
+   "firstKey",
+   "removeLast",
+   "remove",
+   "compatibleWith",
+   "putIfAbsent",
+   "findShortestPath"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:670-815"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#isFitting@816",
+  "level": "L6b-function",
+  "name": "isFitting",
+  "lines": 36,
+  "calls": [
+   "isFitting",
+   "contains",
+   "isPipe"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:816-851"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_minBoreMmOf@852",
+  "level": "L6b-function",
+  "name": "_minBoreMmOf",
+  "lines": 23,
+  "calls": [
+   "tryParse",
+   "replaceAll",
+   "toDouble"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:852-874"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_edgeCost@875",
+  "level": "L6b-function",
+  "name": "_edgeCost",
+  "lines": 60,
+  "calls": [
+   "contains",
+   "directMatesWith",
+   "clamp",
+   "isFitting",
+   "connectionFailReason"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:875-934"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_branchLabel@935",
+  "level": "L6b-function",
+  "name": "_branchLabel",
+  "lines": 37,
+  "calls": [
+   "toString",
+   "fold",
+   "qtyOf"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:935-971"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#compliance@972",
+  "level": "L6b-function",
+  "name": "compliance",
+  "lines": 4,
+  "calls": [
+   "compliance",
+   "lineComplianceChecklist"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:972-975"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#criticalOpen@976",
+  "level": "L6b-function",
+  "name": "criticalOpen",
+  "lines": 43,
+  "calls": [
+   "criticalOpen",
+   "compliance",
+   "where",
+   "toSet",
+   "contains",
+   "intersection"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:976-1018"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#insertAt@1019",
+  "level": "L6b-function",
+  "name": "insertAt",
+  "lines": 18,
+  "calls": [
+   "insertAt",
+   "clamp",
+   "buildInstallation",
+   "toInt",
+   "insert"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:1019-1036"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#isShutoff@1037",
+  "level": "L6b-function",
+  "name": "isShutoff",
+  "lines": 161,
+  "calls": [
+   "isShutoff",
+   "contains",
+   "isolations",
+   "where",
+   "lineIsSupply",
+   "insertAt",
+   "indexWhere",
+   "insert",
+   "toSet",
+   "productMaterial",
+   "flowRole",
+   "productSystems"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:1037-1197"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_isPipeProductE@1198",
+  "level": "L6b-function",
+  "name": "_isPipeProductE",
+  "lines": 10,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:1198-1207"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_realPipeOf@1208",
+  "level": "L6b-function",
+  "name": "_realPipeOf",
+  "lines": 20,
+  "calls": [
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:1208-1227"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_syntheticPipe@1228",
+  "level": "L6b-function",
+  "name": "_syntheticPipe",
+  "lines": 31,
+  "calls": [
+   "putIfAbsent"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:1228-1258"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#_couplingFor@1259",
+  "level": "L6b-function",
+  "name": "_couplingFor",
+  "lines": 60,
+  "calls": [
+   "contains",
+   "where",
+   "directMatesWith",
+   "pipeSharedWith"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:1259-1318"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#materializeChain@1319",
+  "level": "L6b-function",
+  "name": "materializeChain",
+  "lines": 32,
+  "calls": [
+   "materializeChain",
+   "buildInstallation"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:1319-1350"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#add@1351",
+  "level": "L6b-function",
+  "name": "add",
+  "lines": 120,
+  "calls": [
+   "containsKey",
+   "findShortestPath",
+   "skip",
+   "sublist",
+   "materializeChain",
+   "clear",
+   "addAll",
+   "where",
+   "flowRole",
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:1351-1470"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#manifoldOutlets@1471",
+  "level": "L6b-function",
+  "name": "manifoldOutlets",
+  "lines": 36,
+  "calls": [
+   "manifoldOutlets",
+   "fold",
+   "buildTreeInstallation"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:1471-1506"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#add@1507",
+  "level": "L6b-function",
+  "name": "add",
+  "lines": 129,
+  "calls": [
+   "containsKey",
+   "putIfAbsent",
+   "contains",
+   "buildInstallation",
+   "qtyOf",
+   "addAll",
+   "where",
+   "toList",
+   "manifoldOutlets",
+   "skip",
+   "findShortestPath",
+   "toSet"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_engine.dart:1507-1635"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_kit.dart#recommendedKitForProduct@42",
+  "level": "L6b-function",
+  "name": "recommendedKitForProduct",
+  "lines": 113,
+  "calls": [
+   "recommendedKitForProduct",
+   "toString",
+   "tryParse",
+   "contains",
+   "putIfAbsent",
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_kit.dart:42-154"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_kit.dart#recommendedKitFor@155",
+  "level": "L6b-function",
+  "name": "recommendedKitFor",
+  "lines": 4,
+  "calls": [
+   "recommendedKitFor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_kit.dart:155-158"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/install_kit.dart#addItem@159",
+  "level": "L6b-function",
+  "name": "addItem",
+  "lines": 128,
+  "calls": [
+   "addItem",
+   "putIfAbsent",
+   "directMatesWith",
+   "pipeSharedWith",
+   "contains",
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/install_kit.dart:159-286"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/intel/funnels.dart#_maxOscillation@269",
+  "level": "L6b-function",
+  "name": "_maxOscillation",
+  "lines": 53,
+  "calls": [
+   "analyzeIntel",
+   "computeFunnel",
+   "detectCheckoutAbandon",
+   "detectRepeatedNoResult",
+   "detectDeadEndLoop"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/intel/funnels.dart:269-321"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/intel/segments.dart#segmentKeyOf@43",
+  "level": "L6b-function",
+  "name": "segmentKeyOf",
+  "lines": 133,
+  "calls": [
+   "segmentKeyOf",
+   "segmentsByActor",
+   "isAfter",
+   "detectCheckoutAbandon",
+   "detectRepeatedNoResult",
+   "detectDeadEndLoop",
+   "returning"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/intel/segments.dart:43-175"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/intel/segments.dart#retentionPct@176",
+  "level": "L6b-function",
+  "name": "retentionPct",
+  "lines": 46,
+  "calls": [
+   "retentionPct",
+   "returning",
+   "retentionCohorts",
+   "segmentKeyOf",
+   "isBefore",
+   "compareTo"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/intel/segments.dart:176-221"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/intel/segments.dart#_buildCohort@222",
+  "level": "L6b-function",
+  "name": "_buildCohort",
+  "lines": 27,
+  "calls": [
+   "difference",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/intel/segments.dart:222-248"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/intel/segments.dart#_dayBucket@249",
+  "level": "L6b-function",
+  "name": "_dayBucket",
+  "lines": 65,
+  "calls": [
+   "toUtc",
+   "joinSegmentsToCustomers",
+   "uidOf",
+   "compareTo"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/intel/segments.dart:249-313"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/invoice.dart#invoiceVatOf@19",
+  "level": "L6b-function",
+  "name": "invoiceVatOf",
+  "lines": 26,
+  "calls": [
+   "invoiceVatOf",
+   "buildInvoiceRows",
+   "formatNis"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/invoice.dart:19-44"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/invoice.dart#invoiceTitle@45",
+  "level": "L6b-function",
+  "name": "invoiceTitle",
+  "lines": 3,
+  "calls": [
+   "invoiceTitle"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/invoice.dart:45-47"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/manager_copilot.dart#money@59",
+  "level": "L6b-function",
+  "name": "money",
+  "lines": 42,
+  "calls": [
+   "money",
+   "toString",
+   "write",
+   "take",
+   "promptSafeText",
+   "clamp",
+   "writeln"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/manager_copilot.dart:59-100"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/manager_copilot.dart#managerCopilotPrompt@101",
+  "level": "L6b-function",
+  "name": "managerCopilotPrompt",
+  "lines": 8,
+  "calls": [
+   "managerCopilotPrompt",
+   "promptSafeText"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/manager_copilot.dart:101-108"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/manager_copilot.dart#managerMorningBriefPrompt@109",
+  "level": "L6b-function",
+  "name": "managerMorningBriefPrompt",
+  "lines": 8,
+  "calls": [
+   "managerMorningBriefPrompt"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/manager_copilot.dart:109-116"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/manager_dashboard.dart#contractorCredit@263",
+  "level": "L6b-function",
+  "name": "contractorCredit",
+  "lines": 16,
+  "calls": [
+   "contractorCredit"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/manager_dashboard.dart:263-278"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/manager_dashboard.dart#mgrCustomerList@279",
+  "level": "L6b-function",
+  "name": "mgrCustomerList",
+  "lines": 88,
+  "calls": [
+   "mgrCustomerList",
+   "toList",
+   "compareTo",
+   "copyWith"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/manager_dashboard.dart:279-366"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/money_format.dart#groupThousands@19",
+  "level": "L6b-function",
+  "name": "groupThousands",
+  "lines": 12,
+  "calls": [
+   "groupThousands",
+   "toString",
+   "write"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/money_format.dart:19-30"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/money_format.dart#formatNis@31",
+  "level": "L6b-function",
+  "name": "formatNis",
+  "lines": 3,
+  "calls": [
+   "formatNis",
+   "groupThousands"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/money_format.dart:31-33"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/offline_order_queue.dart#enqueue@226",
+  "level": "L6b-function",
+  "name": "enqueue",
+  "lines": 3,
+  "calls": [
+   "enqueue"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/offline_order_queue.dart:226-228"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/offline_order_queue.dart#_enqueueNow@229",
+  "level": "L6b-function",
+  "name": "_enqueueNow",
+  "lines": 14,
+  "calls": [
+   "getInstance",
+   "getString",
+   "setString",
+   "debugPrint"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/offline_order_queue.dart:229-242"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/offline_order_queue.dart#pending@243",
+  "level": "L6b-function",
+  "name": "pending",
+  "lines": 26,
+  "calls": [
+   "pending",
+   "getInstance",
+   "getString",
+   "debugPrint",
+   "drainQueue"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/offline_order_queue.dart:243-268"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/offline_order_queue.dart#_drainNow@269",
+  "level": "L6b-function",
+  "name": "_drainNow",
+  "lines": 44,
+  "calls": [
+   "getInstance",
+   "getString",
+   "read",
+   "placeOrder",
+   "debugPrint",
+   "sublist",
+   "setString"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/offline_order_queue.dart:269-312"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/offline_order_queue.dart#_encode@313",
+  "level": "L6b-function",
+  "name": "_encode",
+  "lines": 7,
+  "calls": [
+   "jsonEncode",
+   "toJson",
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/offline_order_queue.dart:313-319"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/offline_order_queue.dart#_decode@320",
+  "level": "L6b-function",
+  "name": "_decode",
+  "lines": 26,
+  "calls": [
+   "jsonDecode",
+   "fromJson",
+   "debugPrint"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/offline_order_queue.dart:320-345"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/pressure_drop.dart#_kForType@29",
+  "level": "L6b-function",
+  "name": "_kForType",
+  "lines": 44,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/pressure_drop.dart:29-72"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/pressure_drop.dart#_boreMeters@73",
+  "level": "L6b-function",
+  "name": "_boreMeters",
+  "lines": 31,
+  "calls": [
+   "tryParse",
+   "replaceAll"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/pressure_drop.dart:73-103"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/pressure_drop.dart#_minBoreOf@104",
+  "level": "L6b-function",
+  "name": "_minBoreOf",
+  "lines": 79,
+  "calls": [
+   "where",
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/pressure_drop.dart:104-182"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/pressure_drop.dart#toString@183",
+  "level": "L6b-function",
+  "name": "toString",
+  "lines": 89,
+  "calls": [
+   "toString",
+   "toStringAsFixed",
+   "autoFlowFix",
+   "estimatePressureDrop",
+   "indexWhere",
+   "widerSiblingOf",
+   "where",
+   "toList",
+   "compatibleWith"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/pressure_drop.dart:183-271"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/pressure_drop.dart#widerSiblingOf@272",
+  "level": "L6b-function",
+  "name": "widerSiblingOf",
+  "lines": 47,
+  "calls": [
+   "widerSiblingOf",
+   "catalogRepo",
+   "allProducts"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/pressure_drop.dart:272-318"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/pressure_drop.dart#_frictionFactor@319",
+  "level": "L6b-function",
+  "name": "_frictionFactor",
+  "lines": 8,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/pressure_drop.dart:319-326"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/pressure_drop.dart#_pow025@327",
+  "level": "L6b-function",
+  "name": "_pow025",
+  "lines": 7,
+  "calls": [
+   "sqrt"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/pressure_drop.dart:327-333"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/pressure_drop.dart#_sqrt@334",
+  "level": "L6b-function",
+  "name": "_sqrt",
+  "lines": 170,
+  "calls": [
+   "estimatePressureDrop",
+   "contains",
+   "widerSiblingOf",
+   "toStringAsFixed",
+   "checkDrainageSlope"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/pressure_drop.dart:334-503"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/price_estimate.dart#estimatePrice@90",
+  "level": "L6b-function",
+  "name": "estimatePrice",
+  "lines": 20,
+  "calls": [
+   "estimatePrice"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/price_estimate.dart:90-109"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/action_catalog.dart#actionDescriptor@245",
+  "level": "L6b-function",
+  "name": "actionDescriptor",
+  "lines": 21,
+  "calls": [
+   "actionDescriptor",
+   "actionHe",
+   "matchScreenId",
+   "matchElementId"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/action_catalog.dart:245-265"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/action_catalog.dart#matchCatalogActionId@266",
+  "level": "L6b-function",
+  "name": "matchCatalogActionId",
+  "lines": 14,
+  "calls": [
+   "matchCatalogActionId",
+   "matchElementId",
+   "actionIdsFor",
+   "catalogActionIdsFor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/action_catalog.dart:266-279"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/action_catalog.dart#catalogActionIdsFor@280",
+  "level": "L6b-function",
+  "name": "catalogActionIdsFor",
+  "lines": 8,
+  "calls": [
+   "catalogActionIdsFor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/action_catalog.dart:280-287"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/component_palette.dart#componentTypeNames@232",
+  "level": "L6b-function",
+  "name": "componentTypeNames",
+  "lines": 13,
+  "calls": [
+   "componentTypeNames"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/component_palette.dart:232-244"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/component_palette.dart#templateFor@245",
+  "level": "L6b-function",
+  "name": "templateFor",
+  "lines": 9,
+  "calls": [
+   "templateFor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/component_palette.dart:245-253"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/component_palette.dart#templateForName@254",
+  "level": "L6b-function",
+  "name": "templateForName",
+  "lines": 17,
+  "calls": [
+   "templateForName",
+   "componentHe",
+   "templateFor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/component_palette.dart:254-270"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/component_palette.dart#matchComponentTypeName@271",
+  "level": "L6b-function",
+  "name": "matchComponentTypeName",
+  "lines": 6,
+  "calls": [
+   "matchComponentTypeName",
+   "matchComponentType"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/component_palette.dart:271-276"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/component_palette.dart#canPlace@277",
+  "level": "L6b-function",
+  "name": "canPlace",
+  "lines": 7,
+  "calls": [
+   "canPlace",
+   "templateFor",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/component_palette.dart:277-283"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/component_palette.dart#_safeProp@284",
+  "level": "L6b-function",
+  "name": "_safeProp",
+  "lines": 155,
+  "calls": [
+   "contains",
+   "promptSafeText",
+   "accepted",
+   "rejected",
+   "validateAddComponent",
+   "templateFor",
+   "matchCatalogActionId",
+   "unmodifiable"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/component_palette.dart:284-438"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/config_op.dart#configOpFromJson@77",
+  "level": "L6b-function",
+  "name": "configOpFromJson",
+  "lines": 33,
+  "calls": [
+   "configOpFromJson",
+   "toString",
+   "toInt",
+   "fromJson"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/config_op.dart:77-109"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/config_op.dart#configOpsToJson@110",
+  "level": "L6b-function",
+  "name": "configOpsToJson",
+  "lines": 6,
+  "calls": [
+   "configOpsToJson",
+   "configOpToJson"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/config_op.dart:110-115"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/config_op.dart#configOpsFromJson@116",
+  "level": "L6b-function",
+  "name": "configOpsFromJson",
+  "lines": 13,
+  "calls": [
+   "configOpsFromJson",
+   "configOpFromJson"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/config_op.dart:116-128"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/config_op.dart#configOpEquals@129",
+  "level": "L6b-function",
+  "name": "configOpEquals",
+  "lines": 14,
+  "calls": [
+   "configOpEquals"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/config_op.dart:129-142"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/config_op.dart#_strMap@143",
+  "level": "L6b-function",
+  "name": "_strMap",
+  "lines": 3,
+  "calls": [
+   "toString"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/config_op.dart:143-145"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/diff_preview.dart#_broadcastRow@112",
+  "level": "L6b-function",
+  "name": "_broadcastRow",
+  "lines": 28,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/diff_preview.dart:112-139"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/diff_preview.dart#_kindEmoji@140",
+  "level": "L6b-function",
+  "name": "_kindEmoji",
+  "lines": 11,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/diff_preview.dart:140-150"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/diff_preview.dart#_kindPlural@151",
+  "level": "L6b-function",
+  "name": "_kindPlural",
+  "lines": 14,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/diff_preview.dart:151-164"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/diff_preview.dart#_heForOp@165",
+  "level": "L6b-function",
+  "name": "_heForOp",
+  "lines": 19,
+  "calls": [
+   "actionHe",
+   "allowedValues"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/diff_preview.dart:165-183"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/diff_preview.dart#_styleHe@184",
+  "level": "L6b-function",
+  "name": "_styleHe",
+  "lines": 12,
+  "calls": [
+   "allowedValues",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/diff_preview.dart:184-195"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/diff_preview.dart#_colorHe@196",
+  "level": "L6b-function",
+  "name": "_colorHe",
+  "lines": 11,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/diff_preview.dart:196-206"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_intent.dart#_validateOp@171",
+  "level": "L6b-function",
+  "name": "_validateOp",
+  "lines": 47,
+  "calls": [
+   "toString",
+   "configOpFromJson",
+   "matchElementId",
+   "matchPropKey",
+   "matchActionId",
+   "matchCatalogActionId"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_intent.dart:171-217"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_intent.dart#_axisOf@218",
+  "level": "L6b-function",
+  "name": "_axisOf",
+  "lines": 13,
+  "calls": [
+   "allowedValues"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_intent.dart:218-230"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_intent.dart#_freeValueOk@231",
+  "level": "L6b-function",
+  "name": "_freeValueOk",
+  "lines": 56,
+  "calls": [
+   "allowedValues",
+   "matchValue"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_intent.dart:231-286"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_intent.dart#_actionIdOf@287",
+  "level": "L6b-function",
+  "name": "_actionIdOf",
+  "lines": 16,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_intent.dart:287-302"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_intent.dart#_rawOps@303",
+  "level": "L6b-function",
+  "name": "_rawOps",
+  "lines": 11,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_intent.dart:303-313"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_intent.dart#_firstOpen@314",
+  "level": "L6b-function",
+  "name": "_firstOpen",
+  "lines": 9,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_intent.dart:314-322"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_intent.dart#_lastClose@323",
+  "level": "L6b-function",
+  "name": "_lastClose",
+  "lines": 11,
+  "calls": [
+   "lastIndexOf"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_intent.dart:323-333"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_intent.dart#_looksTruncated@334",
+  "level": "L6b-function",
+  "name": "_looksTruncated",
+  "lines": 91,
+  "calls": [
+   "elementIds",
+   "contains",
+   "where",
+   "actionIdsFor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_intent.dart:334-424"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_intent.dart#expandScope@425",
+  "level": "L6b-function",
+  "name": "expandScope",
+  "lines": 31,
+  "calls": [
+   "expandScope",
+   "elementIds",
+   "where",
+   "actionIdsFor",
+   "substring",
+   "matchElementId",
+   "scopeElementIds",
+   "toSet",
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_intent.dart:425-455"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_intent.dart#_batchRejectHe@456",
+  "level": "L6b-function",
+  "name": "_batchRejectHe",
+  "lines": 28,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_intent.dart:456-483"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_intent.dart#dryCountScope@484",
+  "level": "L6b-function",
+  "name": "dryCountScope",
+  "lines": 81,
+  "calls": [
+   "dryCountScope",
+   "expandScope",
+   "buildScopeEdit",
+   "empty",
+   "parseConfigEdit",
+   "jsonEncode"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_intent.dart:484-564"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_intent.dart#scopeHe@565",
+  "level": "L6b-function",
+  "name": "scopeHe",
+  "lines": 15,
+  "calls": [
+   "scopeHe",
+   "substring"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_intent.dart:565-579"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_prompt.dart#_namespaceOf@119",
+  "level": "L6b-function",
+  "name": "_namespaceOf",
+  "lines": 12,
+  "calls": [
+   "substring",
+   "elementIds"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_prompt.dart:119-130"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_prompt.dart#studioScopeTokens@131",
+  "level": "L6b-function",
+  "name": "studioScopeTokens",
+  "lines": 16,
+  "calls": [
+   "studioScopeTokens",
+   "elementIds"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_prompt.dart:131-146"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_prompt.dart#classifyScope@147",
+  "level": "L6b-function",
+  "name": "classifyScope",
+  "lines": 21,
+  "calls": [
+   "classifyScope",
+   "studioScopeTokens",
+   "matchElementId",
+   "contains",
+   "elementIds"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_prompt.dart:147-167"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_prompt.dart#scopeElementIds@168",
+  "level": "L6b-function",
+  "name": "scopeElementIds",
+  "lines": 21,
+  "calls": [
+   "scopeElementIds",
+   "elementIds",
+   "substring",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_prompt.dart:168-188"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_prompt.dart#scopeLabel@189",
+  "level": "L6b-function",
+  "name": "scopeLabel",
+  "lines": 13,
+  "calls": [
+   "scopeLabel",
+   "substring"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_prompt.dart:189-201"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_prompt.dart#_scopeTokenHe@202",
+  "level": "L6b-function",
+  "name": "_scopeTokenHe",
+  "lines": 11,
+  "calls": [
+   "substring"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_prompt.dart:202-212"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_prompt.dart#studioScopePrompt@213",
+  "level": "L6b-function",
+  "name": "studioScopePrompt",
+  "lines": 23,
+  "calls": [
+   "studioScopePrompt",
+   "promptSafeText",
+   "studioScopeTokens",
+   "toList",
+   "writeln",
+   "toString"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_prompt.dart:213-235"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_prompt.dart#_elementLine@236",
+  "level": "L6b-function",
+  "name": "_elementLine",
+  "lines": 13,
+  "calls": [
+   "propKeysFor",
+   "toList",
+   "actionIdsFor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_prompt.dart:236-248"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_prompt.dart#_fewShotExample@249",
+  "level": "L6b-function",
+  "name": "_fewShotExample",
+  "lines": 71,
+  "calls": [
+   "propKeysFor",
+   "contains",
+   "studioEditPrompt",
+   "promptSafeText",
+   "scopeElementIds",
+   "toList",
+   "writeln",
+   "scopeLabel",
+   "toString",
+   "assert"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_prompt.dart:249-319"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_safety.dart#_criticalBusinessKind@189",
+  "level": "L6b-function",
+  "name": "_criticalBusinessKind",
+  "lines": 24,
+  "calls": [
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_safety.dart:189-212"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_safety.dart#_isNavStructural@213",
+  "level": "L6b-function",
+  "name": "_isNavStructural",
+  "lines": 13,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_safety.dart:213-225"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_safety.dart#_roleFloorBlock@226",
+  "level": "L6b-function",
+  "name": "_roleFloorBlock",
+  "lines": 28,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_safety.dart:226-253"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_safety.dart#_colorForToken@254",
+  "level": "L6b-function",
+  "name": "_colorForToken",
+  "lines": 24,
+  "calls": [
+   "computeLuminance"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_safety.dart:254-277"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_safety.dart#_contrastRatio@278",
+  "level": "L6b-function",
+  "name": "_contrastRatio",
+  "lines": 95,
+  "calls": [
+   "computeLuminance",
+   "validateSafe",
+   "elementIds"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_safety.dart:278-372"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_safety.dart#softBatchWarnHe@373",
+  "level": "L6b-function",
+  "name": "softBatchWarnHe",
+  "lines": 101,
+  "calls": [
+   "softBatchWarnHe",
+   "findDescriptor",
+   "allowedValues",
+   "contains",
+   "toStringAsFixed",
+   "actionIdsFor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_safety.dart:373-473"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_safety.dart#_opTag@474",
+  "level": "L6b-function",
+  "name": "_opTag",
+  "lines": 10,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_safety.dart:474-483"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_safety.dart#auditLine@484",
+  "level": "L6b-function",
+  "name": "auditLine",
+  "lines": 5,
+  "calls": [
+   "auditLine"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_safety.dart:484-488"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/edit_safety.dart#auditTrail@489",
+  "level": "L6b-function",
+  "name": "auditTrail",
+  "lines": 7,
+  "calls": [
+   "auditTrail",
+   "auditLine",
+   "renderAuditTrail"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_safety.dart:489-495"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#frozen@69",
+  "level": "L6b-function",
+  "name": "frozen",
+  "lines": 81,
+  "calls": [
+   "frozen",
+   "elementIds",
+   "propKeysFor",
+   "actionIdsFor",
+   "allowedValues",
+   "componentTypes",
+   "unmodifiable"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:69-149"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#allowedValues@150",
+  "level": "L6b-function",
+  "name": "allowedValues",
+  "lines": 35,
+  "calls": [
+   "allowedValues",
+   "actionIdsFor",
+   "componentTypes",
+   "builtIn",
+   "elementIds"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:150-184"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#propKeysFor@185",
+  "level": "L6b-function",
+  "name": "propKeysFor",
+  "lines": 7,
+  "calls": [
+   "propKeysFor",
+   "findDescriptor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:185-191"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#allowedValues@192",
+  "level": "L6b-function",
+  "name": "allowedValues",
+  "lines": 6,
+  "calls": [
+   "allowedValues",
+   "findDescriptor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:192-197"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#actionIdsFor@198",
+  "level": "L6b-function",
+  "name": "actionIdsFor",
+  "lines": 39,
+  "calls": [
+   "actionIdsFor",
+   "findDescriptor",
+   "componentTypes"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:198-236"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#_matchClosed@237",
+  "level": "L6b-function",
+  "name": "_matchClosed",
+  "lines": 24,
+  "calls": [
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:237-260"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#_matchAllClosed@261",
+  "level": "L6b-function",
+  "name": "_matchAllClosed",
+  "lines": 11,
+  "calls": [
+   "contains",
+   "elementIds"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:261-271"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#matchElementId@272",
+  "level": "L6b-function",
+  "name": "matchElementId",
+  "lines": 5,
+  "calls": [
+   "matchElementId",
+   "elementIds",
+   "propKeysFor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:272-276"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#matchPropKey@277",
+  "level": "L6b-function",
+  "name": "matchPropKey",
+  "lines": 6,
+  "calls": [
+   "matchPropKey",
+   "propKeysFor",
+   "allowedValues"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:277-282"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#matchValue@283",
+  "level": "L6b-function",
+  "name": "matchValue",
+  "lines": 5,
+  "calls": [
+   "matchValue",
+   "allowedValues",
+   "actionIdsFor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:283-287"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#matchActionId@288",
+  "level": "L6b-function",
+  "name": "matchActionId",
+  "lines": 5,
+  "calls": [
+   "matchActionId",
+   "actionIdsFor",
+   "componentTypes"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:288-292"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#matchComponentType@293",
+  "level": "L6b-function",
+  "name": "matchComponentType",
+  "lines": 6,
+  "calls": [
+   "matchComponentType",
+   "componentTypes"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:293-298"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#matchAllElementIds@299",
+  "level": "L6b-function",
+  "name": "matchAllElementIds",
+  "lines": 3,
+  "calls": [
+   "matchAllElementIds",
+   "elementIds"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/registry_view.dart:299-301"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#ruleActionIsMutating@167",
+  "level": "L6b-function",
+  "name": "ruleActionIsMutating",
+  "lines": 13,
+  "calls": [
+   "ruleActionIsMutating"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:167-179"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#_matchClosed@180",
+  "level": "L6b-function",
+  "name": "_matchClosed",
+  "lines": 21,
+  "calls": [
+   "contains",
+   "matchTriggerId"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:180-200"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#matchConditionField@201",
+  "level": "L6b-function",
+  "name": "matchConditionField",
+  "lines": 29,
+  "calls": [
+   "matchConditionField",
+   "matchRuleOp",
+   "matchRuleActionId"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:201-229"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#toJson@230",
+  "level": "L6b-function",
+  "name": "toJson",
+  "lines": 78,
+  "calls": [
+   "toJson",
+   "fromJson",
+   "identical",
+   "hash",
+   "ruleActionIsMutating"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:230-307"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#parseRule@308",
+  "level": "L6b-function",
+  "name": "parseRule",
+  "lines": 36,
+  "calls": [
+   "parseRule",
+   "lastIndexOf",
+   "substring",
+   "jsonDecode",
+   "toString",
+   "matchTriggerId",
+   "matchRuleActionId"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:308-343"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#_validateCondition@344",
+  "level": "L6b-function",
+  "name": "_validateCondition",
+  "lines": 41,
+  "calls": [
+   "toString",
+   "matchConditionField",
+   "matchRuleOp",
+   "tryParse",
+   "evalRuleAdvisory"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:344-384"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#_triggerMatches@385",
+  "level": "L6b-function",
+  "name": "_triggerMatches",
+  "lines": 16,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:385-400"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#_conditionMatches@401",
+  "level": "L6b-function",
+  "name": "_conditionMatches",
+  "lines": 19,
+  "calls": [],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:401-419"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#_fieldValue@420",
+  "level": "L6b-function",
+  "name": "_fieldValue",
+  "lines": 16,
+  "calls": [
+   "difference"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:420-435"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#triggerLabelHe@436",
+  "level": "L6b-function",
+  "name": "triggerLabelHe",
+  "lines": 8,
+  "calls": [
+   "triggerLabelHe"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:436-443"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#fieldLabelHe@444",
+  "level": "L6b-function",
+  "name": "fieldLabelHe",
+  "lines": 8,
+  "calls": [
+   "fieldLabelHe"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:444-451"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#actionLabelHe@452",
+  "level": "L6b-function",
+  "name": "actionLabelHe",
+  "lines": 8,
+  "calls": [
+   "actionLabelHe"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:452-459"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#ruleSummaryHe@460",
+  "level": "L6b-function",
+  "name": "ruleSummaryHe",
+  "lines": 10,
+  "calls": [
+   "ruleSummaryHe",
+   "triggerLabelHe",
+   "fieldLabelHe",
+   "actionLabelHe",
+   "advisoryHe"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/studio/rules_model.dart:460-469"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/system_division.dart#productDivisionSystems@22",
+  "level": "L6b-function",
+  "name": "productDivisionSystems",
+  "lines": 48,
+  "calls": [
+   "productDivisionSystems",
+   "filterBySystem",
+   "where",
+   "contains",
+   "toList",
+   "catalogRepo",
+   "allProducts"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/system_division.dart:22-69"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/system_division.dart#nodeHasSystem@70",
+  "level": "L6b-function",
+  "name": "nodeHasSystem",
+  "lines": 6,
+  "calls": [
+   "nodeHasSystem",
+   "contains"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/system_division.dart:70-75"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/system_division.dart#walk@76",
+  "level": "L6b-function",
+  "name": "walk",
+  "lines": 25,
+  "calls": [
+   "walk"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/system_division.dart:76-100"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/system_division.dart#smartProductSystems@101",
+  "level": "L6b-function",
+  "name": "smartProductSystems",
+  "lines": 17,
+  "calls": [
+   "smartProductSystems",
+   "catalogRepo",
+   "allProducts",
+   "addAll",
+   "productDivisionSystems"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/system_division.dart:101-117"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/system_division.dart#smartProductInSystem@118",
+  "level": "L6b-function",
+  "name": "smartProductInSystem",
+  "lines": 13,
+  "calls": [
+   "smartProductInSystem",
+   "smartProductSystems",
+   "contains",
+   "filterSmartBySystem",
+   "where",
+   "toList"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/system_division.dart:118-130"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/tasks_gantt.dart#_donePercent@94",
+  "level": "L6b-function",
+  "name": "_donePercent",
+  "lines": 33,
+  "calls": [
+   "difference"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/tasks_gantt.dart:94-126"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/tasks_gantt.dart#buildTasksGantt@127",
+  "level": "L6b-function",
+  "name": "buildTasksGantt",
+  "lines": 61,
+  "calls": [
+   "buildTasksGantt",
+   "isBefore",
+   "daysBetweenDst",
+   "compareTo"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/tasks_gantt.dart:127-187"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/text_normalize.dart#normSearch@24",
+  "level": "L6b-function",
+  "name": "normSearch",
+  "lines": 14,
+  "calls": [
+   "normSearch",
+   "replaceAll",
+   "write",
+   "toString",
+   "normName"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/text_normalize.dart:24-37"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/workflow_engine.dart#wfStageKey@34",
+  "level": "L6b-function",
+  "name": "wfStageKey",
+  "lines": 8,
+  "calls": [
+   "wfStageKey"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/workflow_engine.dart:34-41"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/workflow_engine.dart#wfStageFromKey@42",
+  "level": "L6b-function",
+  "name": "wfStageFromKey",
+  "lines": 18,
+  "calls": [
+   "wfStageFromKey"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/workflow_engine.dart:42-59"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/workflow_engine.dart#wfStageLabel@60",
+  "level": "L6b-function",
+  "name": "wfStageLabel",
+  "lines": 10,
+  "calls": [
+   "wfStageLabel",
+   "termOf",
+   "wfStageKey",
+   "wfFeatureLabel",
+   "wfItemLabel",
+   "wfUnitLabel",
+   "wfStageIndex"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/workflow_engine.dart:60-69"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/workflow_engine.dart#wfNextStage@70",
+  "level": "L6b-function",
+  "name": "wfNextStage",
+  "lines": 66,
+  "calls": [
+   "wfNextStage",
+   "wfStageIndex",
+   "copyWith"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/workflow_engine.dart:70-135"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/workflow_engine.dart#wfUnitsTotal@136",
+  "level": "L6b-function",
+  "name": "wfUnitsTotal",
+  "lines": 4,
+  "calls": [
+   "wfUnitsTotal",
+   "fold"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/workflow_engine.dart:136-139"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/workflow_engine.dart#wfActive@140",
+  "level": "L6b-function",
+  "name": "wfActive",
+  "lines": 9,
+  "calls": [
+   "wfActive"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/workflow_engine.dart:140-148"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/workflow_engine.dart#wfActionVisible@149",
+  "level": "L6b-function",
+  "name": "wfActionVisible",
+  "lines": 15,
+  "calls": [
+   "wfActionVisible"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/workflow_engine.dart:149-163"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/workflow_engine.dart#wfAdvanceLabel@164",
+  "level": "L6b-function",
+  "name": "wfAdvanceLabel",
+  "lines": 28,
+  "calls": [
+   "wfAdvanceLabel",
+   "wfStageLabel"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/workflow_engine.dart:164-191"
+ },
+ {
+  "id": "L6b:buildsmart:app_flutter/lib/logic/workflow_engine.dart#planWfAdvance@192",
+  "level": "L6b-function",
+  "name": "planWfAdvance",
+  "lines": 113,
+  "calls": [
+   "planWfAdvance",
+   "wfActionVisible",
+   "wfFeatureLabel",
+   "wfItemLabel",
+   "wfUnitLabel",
+   "copyWith",
+   "wfStageLabel",
+   "wfUnitsTotal",
+   "wfRevertPatch",
+   "wfStageIndex",
+   "wfNormName",
+   "normName"
+  ],
+  "pure": true,
+  "source": "buildsmart/app_flutter/lib/logic/workflow_engine.dart:192-304"
  }
 ]
