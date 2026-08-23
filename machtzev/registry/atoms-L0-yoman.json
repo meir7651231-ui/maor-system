@@ -1,0 +1,132 @@
+[
+ {
+  "id": "L0:yoman:--paper",
+  "level": "L0-token",
+  "name": "--paper",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#f1eee7",
+    "at": "paper.css:5"
+   }
+  ],
+  "source": "yoman/paper.css:5"
+ },
+ {
+  "id": "L0:yoman:--paper-2",
+  "level": "L0-token",
+  "name": "--paper-2",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#eae6dc",
+    "at": "paper.css:6"
+   }
+  ],
+  "source": "yoman/paper.css:6"
+ },
+ {
+  "id": "L0:yoman:--ink",
+  "level": "L0-token",
+  "name": "--ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#201e1d",
+    "at": "paper.css:7"
+   }
+  ],
+  "source": "yoman/paper.css:7"
+ },
+ {
+  "id": "L0:yoman:--ink-70",
+  "level": "L0-token",
+  "name": "--ink-70",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#4f4b47",
+    "at": "paper.css:8"
+   }
+  ],
+  "source": "yoman/paper.css:8"
+ },
+ {
+  "id": "L0:yoman:--ink-50",
+  "level": "L0-token",
+  "name": "--ink-50",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#7a746c",
+    "at": "paper.css:9"
+   }
+  ],
+  "source": "yoman/paper.css:9"
+ },
+ {
+  "id": "L0:yoman:--accent",
+  "level": "L0-token",
+  "name": "--accent",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#ec3013",
+    "at": "paper.css:10"
+   }
+  ],
+  "source": "yoman/paper.css:10"
+ },
+ {
+  "id": "L0:yoman:--accent-d",
+  "level": "L0-token",
+  "name": "--accent-d",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#c22208",
+    "at": "paper.css:11"
+   }
+  ],
+  "source": "yoman/paper.css:11"
+ },
+ {
+  "id": "L0:yoman:--accent-2",
+  "level": "L0-token",
+  "name": "--accent-2",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#b0442f",
+    "at": "paper.css:12"
+   }
+  ],
+  "source": "yoman/paper.css:12"
+ },
+ {
+  "id": "L0:yoman:--hair",
+  "level": "L0-token",
+  "name": "--hair",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#b9b2a6",
+    "at": "paper.css:13"
+   }
+  ],
+  "source": "yoman/paper.css:13"
+ },
+ {
+  "id": "L0:yoman:--hair-2",
+  "level": "L0-token",
+  "name": "--hair-2",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#cdc6ba",
+    "at": "paper.css:14"
+   }
+  ],
+  "source": "yoman/paper.css:14"
+ }
+]

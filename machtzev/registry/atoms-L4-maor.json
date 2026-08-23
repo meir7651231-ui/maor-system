@@ -1,0 +1,2620 @@
+[
+ {
+  "id": "L4:maor:integration:receipts",
+  "level": "L4-capability",
+  "name": "receipts",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:integration:payments",
+  "level": "L4-capability",
+  "name": "payments",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:integration:whatsapp",
+  "level": "L4-capability",
+  "name": "whatsapp",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:integration:sms",
+  "level": "L4-capability",
+  "name": "sms",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:integration:phone",
+  "level": "L4-capability",
+  "name": "phone",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:integration:gcal",
+  "level": "L4-capability",
+  "name": "gcal",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:integration:drive",
+  "level": "L4-capability",
+  "name": "drive",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:integration:sheets",
+  "level": "L4-capability",
+  "name": "sheets",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:integration:maps",
+  "level": "L4-capability",
+  "name": "maps",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:integration:esign",
+  "level": "L4-capability",
+  "name": "esign",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:integration:ai",
+  "level": "L4-capability",
+  "name": "ai",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:integration:campaign",
+  "level": "L4-capability",
+  "name": "campaign",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:integration:mail",
+  "level": "L4-capability",
+  "name": "mail",
+  "label": "הרחבה",
+  "source": "maor/src/types/config.ts"
+ },
+ {
+  "id": "L4:maor:flag:families.cred",
+  "level": "L4-capability",
+  "name": "families.cred",
+  "label": "מדד אמינות",
+  "source": "maor/src/types/features.ts:43"
+ },
+ {
+  "id": "L4:maor:flag:families.docs",
+  "level": "L4-capability",
+  "name": "families.docs",
+  "label": "מסמכים",
+  "source": "maor/src/types/features.ts:44"
+ },
+ {
+  "id": "L4:maor:flag:families.history",
+  "level": "L4-capability",
+  "name": "families.history",
+  "label": "היסטוריית משפחה",
+  "source": "maor/src/types/features.ts:45"
+ },
+ {
+  "id": "L4:maor:flag:families.join",
+  "level": "L4-capability",
+  "name": "families.join",
+  "label": "שיבוץ מכרטיס המשפחה",
+  "source": "maor/src/types/features.ts:46"
+ },
+ {
+  "id": "L4:maor:flag:families.media",
+  "level": "L4-capability",
+  "name": "families.media",
+  "label": "הסכמות מדיה בטופס",
+  "source": "maor/src/types/features.ts:47"
+ },
+ {
+  "id": "L4:maor:flag:families.report",
+  "level": "L4-capability",
+  "name": "families.report",
+  "label": "דוח משפחה להורדה",
+  "source": "maor/src/types/features.ts:48"
+ },
+ {
+  "id": "L4:maor:flag:families.finder",
+  "level": "L4-capability",
+  "name": "families.finder",
+  "label": "גלגל מאתר המשפחות",
+  "source": "maor/src/types/features.ts:49"
+ },
+ {
+  "id": "L4:maor:flag:families.cardops",
+  "level": "L4-capability",
+  "name": "families.cardops",
+  "label": "פעולות תפעול בכרטיס",
+  "source": "maor/src/types/features.ts:50"
+ },
+ {
+  "id": "L4:maor:flag:families.cred.trendCreditsOnly",
+  "level": "L4-capability",
+  "name": "families.cred.trendCreditsOnly",
+  "label": "מקדם מגמה על זיכויים בלבד",
+  "source": "maor/src/types/features.ts:51"
+ },
+ {
+  "id": "L4:maor:flag:families.shortcuts",
+  "level": "L4-capability",
+  "name": "families.shortcuts",
+  "label": "קיצורי ייבוא ובדיקה במסך",
+  "source": "maor/src/types/features.ts:52"
+ },
+ {
+  "id": "L4:maor:flag:families.showid",
+  "level": "L4-capability",
+  "name": "families.showid",
+  "label": "חשיפת ת\"ז בכרטיס",
+  "source": "maor/src/types/features.ts:53"
+ },
+ {
+  "id": "L4:maor:flag:families.filter",
+  "level": "L4-capability",
+  "name": "families.filter",
+  "label": "סינון מורחב",
+  "source": "maor/src/types/features.ts:54"
+ },
+ {
+  "id": "L4:maor:flag:courses.punch",
+  "level": "L4-capability",
+  "name": "courses.punch",
+  "label": "כרטיסיות ניקוב",
+  "source": "maor/src/types/features.ts:57"
+ },
+ {
+  "id": "L4:maor:flag:courses.payments",
+  "level": "L4-capability",
+  "name": "courses.payments",
+  "label": "תשלומים וחובות",
+  "source": "maor/src/types/features.ts:58"
+ },
+ {
+  "id": "L4:maor:flag:courses.groups",
+  "level": "L4-capability",
+  "name": "courses.groups",
+  "label": "קבוצות מרובות",
+  "source": "maor/src/types/features.ts:59"
+ },
+ {
+  "id": "L4:maor:flag:courses.wheel",
+  "level": "L4-capability",
+  "name": "courses.wheel",
+  "label": "גלגל החוגים",
+  "source": "maor/src/types/features.ts:60"
+ },
+ {
+  "id": "L4:maor:flag:courses.printout",
+  "level": "L4-capability",
+  "name": "courses.printout",
+  "label": "תדפיס למורה",
+  "source": "maor/src/types/features.ts:61"
+ },
+ {
+  "id": "L4:maor:flag:courses.punch.buy",
+  "level": "L4-capability",
+  "name": "courses.punch.buy",
+  "label": "קניית/טעינת כרטיסייה",
+  "source": "maor/src/types/features.ts:63"
+ },
+ {
+  "id": "L4:maor:flag:courses.punch.confirm",
+  "level": "L4-capability",
+  "name": "courses.punch.confirm",
+  "label": "אישור כפול לניקוב",
+  "source": "maor/src/types/features.ts:64"
+ },
+ {
+  "id": "L4:maor:flag:courses.punch.undo",
+  "level": "L4-capability",
+  "name": "courses.punch.undo",
+  "label": "ביטול ניקוב אחרון",
+  "source": "maor/src/types/features.ts:65"
+ },
+ {
+  "id": "L4:maor:flag:courses.punch.switchmonthly",
+  "level": "L4-capability",
+  "name": "courses.punch.switchmonthly",
+  "label": "מעבר למנוי חודשי",
+  "source": "maor/src/types/features.ts:66"
+ },
+ {
+  "id": "L4:maor:flag:courses.printout.daily",
+  "level": "L4-capability",
+  "name": "courses.printout.daily",
+  "label": "דו\"ח יומי מפורט",
+  "source": "maor/src/types/features.ts:67"
+ },
+ {
+  "id": "L4:maor:flag:courses.printout.custom",
+  "level": "L4-capability",
+  "name": "courses.printout.custom",
+  "label": "דו\"ח מותאם (חוג)",
+  "source": "maor/src/types/features.ts:68"
+ },
+ {
+  "id": "L4:maor:flag:courses.discounts",
+  "level": "L4-capability",
+  "name": "courses.discounts",
+  "label": "מדרגות מחיר",
+  "source": "maor/src/types/features.ts:69"
+ },
+ {
+  "id": "L4:maor:flag:courses.receipt.summary",
+  "level": "L4-capability",
+  "name": "courses.receipt.summary",
+  "label": "קבלה מלאה",
+  "source": "maor/src/types/features.ts:70"
+ },
+ {
+  "id": "L4:maor:flag:courses.enroll.smartfilter",
+  "level": "L4-capability",
+  "name": "courses.enroll.smartfilter",
+  "label": "סינון שיבוץ חכם",
+  "source": "maor/src/types/features.ts:71"
+ },
+ {
+  "id": "L4:maor:flag:courses.enroll.inlinecreate",
+  "level": "L4-capability",
+  "name": "courses.enroll.inlinecreate",
+  "label": "תלמיד/ה חדש/ה מתוך השיבוץ",
+  "source": "maor/src/types/features.ts:72"
+ },
+ {
+  "id": "L4:maor:flag:courses.roomslive",
+  "level": "L4-capability",
+  "name": "courses.roomslive",
+  "label": "רצועת חדרים LIVE",
+  "source": "maor/src/types/features.ts:73"
+ },
+ {
+  "id": "L4:maor:flag:courses.gradeimg",
+  "level": "L4-capability",
+  "name": "courses.gradeimg",
+  "label": "טווח כיתות ותמונת חוג",
+  "source": "maor/src/types/features.ts:74"
+ },
+ {
+  "id": "L4:maor:flag:courses.absence",
+  "level": "L4-capability",
+  "name": "courses.absence",
+  "label": "רישום חיסורים",
+  "source": "maor/src/types/features.ts:75"
+ },
+ {
+  "id": "L4:maor:flag:courses.attendance.sheet",
+  "level": "L4-capability",
+  "name": "courses.attendance.sheet",
+  "label": "גיליון-נוכחות מהיר",
+  "source": "maor/src/types/features.ts:76"
+ },
+ {
+  "id": "L4:maor:flag:courses.cockpit",
+  "level": "L4-capability",
+  "name": "courses.cockpit",
+  "label": "חלון-העבודה (קוקפיט)",
+  "source": "maor/src/types/features.ts:77"
+ },
+ {
+  "id": "L4:maor:flag:courses.waitlist",
+  "level": "L4-capability",
+  "name": "courses.waitlist",
+  "label": "רשימת-המתנה",
+  "source": "maor/src/types/features.ts:78"
+ },
+ {
+  "id": "L4:maor:flag:courses.bulkadmin",
+  "level": "L4-capability",
+  "name": "courses.bulkadmin",
+  "label": "הקמה מהירה (סמסטר) 🔓",
+  "source": "maor/src/types/features.ts:79"
+ },
+ {
+  "id": "L4:maor:flag:courses.collect",
+  "level": "L4-capability",
+  "name": "courses.collect",
+  "label": "מרכז-גבייה",
+  "source": "maor/src/types/features.ts:80"
+ },
+ {
+  "id": "L4:maor:flag:courses.broadcast",
+  "level": "L4-capability",
+  "name": "courses.broadcast",
+  "label": "הודעה לכיתה",
+  "source": "maor/src/types/features.ts:81"
+ },
+ {
+  "id": "L4:maor:flag:courses.absence.history",
+  "level": "L4-capability",
+  "name": "courses.absence.history",
+  "label": "היסטוריית חיסורים",
+  "source": "maor/src/types/features.ts:82"
+ },
+ {
+  "id": "L4:maor:flag:courses.reenroll",
+  "level": "L4-capability",
+  "name": "courses.reenroll",
+  "label": "רישום לשנה הבאה",
+  "source": "maor/src/types/features.ts:83"
+ },
+ {
+  "id": "L4:maor:flag:courses.reenroll.bulk",
+  "level": "L4-capability",
+  "name": "courses.reenroll.bulk",
+  "label": "רישום המוני לשנה הבאה",
+  "source": "maor/src/types/features.ts:84"
+ },
+ {
+  "id": "L4:maor:flag:courses.reenroll.familypanel",
+  "level": "L4-capability",
+  "name": "courses.reenroll.familypanel",
+  "label": "רישום לשנה הבאה בכרטיס-המשפחה",
+  "source": "maor/src/types/features.ts:85"
+ },
+ {
+  "id": "L4:maor:flag:courses.makeup.justified",
+  "level": "L4-capability",
+  "name": "courses.makeup.justified",
+  "label": "חיסור מוצדק (השלמה)",
+  "source": "maor/src/types/features.ts:86"
+ },
+ {
+  "id": "L4:maor:flag:courses.makeup.schedule",
+  "level": "L4-capability",
+  "name": "courses.makeup.schedule",
+  "label": "תזמון-השלמות",
+  "source": "maor/src/types/features.ts:87"
+ },
+ {
+  "id": "L4:maor:flag:courses.dashboard",
+  "level": "L4-capability",
+  "name": "courses.dashboard",
+  "label": "דשבורד-חוגים",
+  "source": "maor/src/types/features.ts:88"
+ },
+ {
+  "id": "L4:maor:flag:courses.teacherapp",
+  "level": "L4-capability",
+  "name": "courses.teacherapp",
+  "label": "אפליקציית-המורה",
+  "source": "maor/src/types/features.ts:89"
+ },
+ {
+  "id": "L4:maor:flag:courses.parentcard",
+  "level": "L4-capability",
+  "name": "courses.parentcard",
+  "label": "כרטיס-הורה",
+  "source": "maor/src/types/features.ts:90"
+ },
+ {
+  "id": "L4:maor:flag:courses.ai",
+  "level": "L4-capability",
+  "name": "courses.ai",
+  "label": "מרכז-שימור (חיזוי-נשירה)",
+  "source": "maor/src/types/features.ts:91"
+ },
+ {
+  "id": "L4:maor:flag:courses.paylink",
+  "level": "L4-capability",
+  "name": "courses.paylink",
+  "label": "תשלום מקוון בחוגים",
+  "source": "maor/src/types/features.ts:92"
+ },
+ {
+  "id": "L4:maor:flag:courses.reminder",
+  "level": "L4-capability",
+  "name": "courses.reminder",
+  "label": "תזכורת ללוח",
+  "source": "maor/src/types/features.ts:93"
+ },
+ {
+  "id": "L4:maor:flag:courses.enroll.freeze",
+  "level": "L4-capability",
+  "name": "courses.enroll.freeze",
+  "label": "הקפאת שיבוץ",
+  "source": "maor/src/types/features.ts:94"
+ },
+ {
+  "id": "L4:maor:flag:courses.enroll.end",
+  "level": "L4-capability",
+  "name": "courses.enroll.end",
+  "label": "סיום שיבוץ",
+  "source": "maor/src/types/features.ts:95"
+ },
+ {
+  "id": "L4:maor:flag:courses.enroll.note",
+  "level": "L4-capability",
+  "name": "courses.enroll.note",
+  "label": "הערה על שיבוץ",
+  "source": "maor/src/types/features.ts:96"
+ },
+ {
+  "id": "L4:maor:flag:courses.notes",
+  "level": "L4-capability",
+  "name": "courses.notes",
+  "label": "הערות פנימיות לחוג",
+  "source": "maor/src/types/features.ts:97"
+ },
+ {
+  "id": "L4:maor:flag:courses.colfilter",
+  "level": "L4-capability",
+  "name": "courses.colfilter",
+  "label": "סינון עמודות ברשימה",
+  "source": "maor/src/types/features.ts:98"
+ },
+ {
+  "id": "L4:maor:flag:courses.viewtoggle",
+  "level": "L4-capability",
+  "name": "courses.viewtoggle",
+  "label": "החלפת גריד/רשימה",
+  "source": "maor/src/types/features.ts:99"
+ },
+ {
+  "id": "L4:maor:flag:courses.files",
+  "level": "L4-capability",
+  "name": "courses.files",
+  "label": "צירוף קבצים לחוג",
+  "source": "maor/src/types/features.ts:100"
+ },
+ {
+  "id": "L4:maor:flag:courses.perlesson",
+  "level": "L4-capability",
+  "name": "courses.perlesson",
+  "label": "תמחור משוקלל פר-שיעור",
+  "source": "maor/src/types/features.ts:101"
+ },
+ {
+  "id": "L4:maor:flag:calendar.dayview",
+  "level": "L4-capability",
+  "name": "calendar.dayview",
+  "label": "תצוגת יום",
+  "source": "maor/src/types/features.ts:104"
+ },
+ {
+  "id": "L4:maor:flag:calendar.hebdefault",
+  "level": "L4-capability",
+  "name": "calendar.hebdefault",
+  "label": "הלוח נפתח בעברי",
+  "source": "maor/src/types/features.ts:105"
+ },
+ {
+  "id": "L4:maor:flag:calendar.upcoming",
+  "level": "L4-capability",
+  "name": "calendar.upcoming",
+  "label": "פאנל \"הקרובים\"",
+  "source": "maor/src/types/features.ts:106"
+ },
+ {
+  "id": "L4:maor:flag:calendar.layers",
+  "level": "L4-capability",
+  "name": "calendar.layers",
+  "label": "שכבות אירועים",
+  "source": "maor/src/types/features.ts:107"
+ },
+ {
+  "id": "L4:maor:flag:calendar.blocking",
+  "level": "L4-capability",
+  "name": "calendar.blocking",
+  "label": "חסימת שבת/חג והתנגשויות",
+  "source": "maor/src/types/features.ts:108"
+ },
+ {
+  "id": "L4:maor:flag:calendar.blocking.roomclash",
+  "level": "L4-capability",
+  "name": "calendar.blocking.roomclash",
+  "label": "התרעת התנגשות חדר",
+  "source": "maor/src/types/features.ts:110"
+ },
+ {
+  "id": "L4:maor:flag:calendar.blocking.shabbat",
+  "level": "L4-capability",
+  "name": "calendar.blocking.shabbat",
+  "label": "חסימת שבת/חג",
+  "source": "maor/src/types/features.ts:111"
+ },
+ {
+  "id": "L4:maor:flag:calendar.layers.bdays",
+  "level": "L4-capability",
+  "name": "calendar.layers.bdays",
+  "label": "שכבת ימי הולדת",
+  "source": "maor/src/types/features.ts:113"
+ },
+ {
+  "id": "L4:maor:flag:calendar.layers.joins",
+  "level": "L4-capability",
+  "name": "calendar.layers.joins",
+  "label": "שכבת הצטרפות",
+  "source": "maor/src/types/features.ts:114"
+ },
+ {
+  "id": "L4:maor:flag:calendar.layers.enrolls",
+  "level": "L4-capability",
+  "name": "calendar.layers.enrolls",
+  "label": "שכבת הרשמות",
+  "source": "maor/src/types/features.ts:115"
+ },
+ {
+  "id": "L4:maor:flag:calendar.layers.holidays",
+  "level": "L4-capability",
+  "name": "calendar.layers.holidays",
+  "label": "שכבת חגים",
+  "source": "maor/src/types/features.ts:116"
+ },
+ {
+  "id": "L4:maor:flag:calendar.layers.reminders",
+  "level": "L4-capability",
+  "name": "calendar.layers.reminders",
+  "label": "שכבת תזכורות",
+  "source": "maor/src/types/features.ts:117"
+ },
+ {
+  "id": "L4:maor:flag:calendar.layers.calls",
+  "level": "L4-capability",
+  "name": "calendar.layers.calls",
+  "label": "שכבת טלפונים",
+  "source": "maor/src/types/features.ts:118"
+ },
+ {
+  "id": "L4:maor:flag:calendar.layers.family",
+  "level": "L4-capability",
+  "name": "calendar.layers.family",
+  "label": "שכבת אירועים משפחתיים",
+  "source": "maor/src/types/features.ts:119"
+ },
+ {
+  "id": "L4:maor:flag:calendar.export",
+  "level": "L4-capability",
+  "name": "calendar.export",
+  "label": "דו\"ח מותאם מהלוח",
+  "source": "maor/src/types/features.ts:120"
+ },
+ {
+  "id": "L4:maor:flag:calendar.ics.bdays",
+  "level": "L4-capability",
+  "name": "calendar.ics.bdays",
+  "label": "ימי-הולדת בייצוא ליומן",
+  "source": "maor/src/types/features.ts:122"
+ },
+ {
+  "id": "L4:maor:flag:calendar.ics.sessions",
+  "level": "L4-capability",
+  "name": "calendar.ics.sessions",
+  "label": "מפגשים בייצוא ליומן",
+  "source": "maor/src/types/features.ts:123"
+ },
+ {
+  "id": "L4:maor:flag:calendar.layers.urgent",
+  "level": "L4-capability",
+  "name": "calendar.layers.urgent",
+  "label": "סינון \"דחוף בלבד\"",
+  "source": "maor/src/types/features.ts:124"
+ },
+ {
+  "id": "L4:maor:flag:calendar.hebtoggle",
+  "level": "L4-capability",
+  "name": "calendar.hebtoggle",
+  "label": "מתג גריד עברי/לועזי",
+  "source": "maor/src/types/features.ts:125"
+ },
+ {
+  "id": "L4:maor:flag:diary.booking",
+  "level": "L4-capability",
+  "name": "diary.booking",
+  "label": "הזמנת משבצת",
+  "source": "maor/src/types/features.ts:128"
+ },
+ {
+  "id": "L4:maor:flag:diary.utilization",
+  "level": "L4-capability",
+  "name": "diary.utilization",
+  "label": "ניצולת חדרים",
+  "source": "maor/src/types/features.ts:129"
+ },
+ {
+  "id": "L4:maor:flag:diary.attendance",
+  "level": "L4-capability",
+  "name": "diary.attendance",
+  "label": "פאנל נוכחות ביומן",
+  "source": "maor/src/types/features.ts:130"
+ },
+ {
+  "id": "L4:maor:flag:diary.inactivewarn",
+  "level": "L4-capability",
+  "name": "diary.inactivewarn",
+  "label": "אזהרת חדר לא-פעיל",
+  "source": "maor/src/types/features.ts:131"
+ },
+ {
+  "id": "L4:maor:flag:supporters.rfm",
+  "level": "L4-capability",
+  "name": "supporters.rfm",
+  "label": "דירוג תורמים",
+  "source": "maor/src/types/features.ts:134"
+ },
+ {
+  "id": "L4:maor:flag:supporters.sponsor",
+  "level": "L4-capability",
+  "name": "supporters.sponsor",
+  "label": "אמץ חתן/משפחה 🤝",
+  "source": "maor/src/types/features.ts:135"
+ },
+ {
+  "id": "L4:maor:flag:supporters.nextdate",
+  "level": "L4-capability",
+  "name": "supporters.nextdate",
+  "label": "יעדי קשר",
+  "source": "maor/src/types/features.ts:136"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin",
+  "level": "L4-capability",
+  "name": "supporters.ayin",
+  "label": "מעקב טיפול רב-שלבי",
+  "source": "maor/src/types/features.ts:137"
+ },
+ {
+  "id": "L4:maor:flag:supporters.multicur",
+  "level": "L4-capability",
+  "name": "supporters.multicur",
+  "label": "מטבע כפול (₪/$)",
+  "source": "maor/src/types/features.ts:138"
+ },
+ {
+  "id": "L4:maor:flag:supporters.doncal",
+  "level": "L4-capability",
+  "name": "supporters.doncal",
+  "label": "לוח תרומות בכרטיס",
+  "source": "maor/src/types/features.ts:139"
+ },
+ {
+  "id": "L4:maor:flag:supporters.customreport",
+  "level": "L4-capability",
+  "name": "supporters.customreport",
+  "label": "דו\"ח מותאם (תומכים)",
+  "source": "maor/src/types/features.ts:140"
+ },
+ {
+  "id": "L4:maor:flag:supporters.annualreport",
+  "level": "L4-capability",
+  "name": "supporters.annualreport",
+  "label": "דוח שנתי לתורם 📄",
+  "source": "maor/src/types/features.ts:141"
+ },
+ {
+  "id": "L4:maor:flag:supporters.photos",
+  "level": "L4-capability",
+  "name": "supporters.photos",
+  "label": "גלריית-תמונות 📷",
+  "source": "maor/src/types/features.ts:144"
+ },
+ {
+  "id": "L4:maor:flag:supporters.hok",
+  "level": "L4-capability",
+  "name": "supporters.hok",
+  "label": "הוראות קבע 🔁",
+  "source": "maor/src/types/features.ts:145"
+ },
+ {
+  "id": "L4:maor:flag:supporters.cockpit",
+  "level": "L4-capability",
+  "name": "supporters.cockpit",
+  "label": "חלון-העבודה (קוקפיט) 🎯",
+  "source": "maor/src/types/features.ts:147"
+ },
+ {
+  "id": "L4:maor:flag:supporters.oneflow",
+  "level": "L4-capability",
+  "name": "supporters.oneflow",
+  "label": "פעולה אחת עכשיו ▶",
+  "source": "maor/src/types/features.ts:148"
+ },
+ {
+  "id": "L4:maor:flag:supporters.hebtiming",
+  "level": "L4-capability",
+  "name": "supporters.hebtiming",
+  "label": "העונה שלהם — עיתוי עברי 🕎",
+  "source": "maor/src/types/features.ts:149"
+ },
+ {
+  "id": "L4:maor:flag:home.morningbrief",
+  "level": "L4-capability",
+  "name": "home.morningbrief",
+  "label": "תדרוך-הבוקר 🌅",
+  "source": "maor/src/types/features.ts:150"
+ },
+ {
+  "id": "L4:maor:flag:shell.askmaor",
+  "level": "L4-capability",
+  "name": "shell.askmaor",
+  "label": "שאל את מאור 🤖",
+  "source": "maor/src/types/features.ts:151"
+ },
+ {
+  "id": "L4:maor:flag:supporters.intel",
+  "level": "L4-capability",
+  "name": "supporters.intel",
+  "label": "מרכז-המודיעין 📊",
+  "source": "maor/src/types/features.ts:152"
+ },
+ {
+  "id": "L4:maor:flag:supporters.galaxy",
+  "level": "L4-capability",
+  "name": "supporters.galaxy",
+  "label": "גלקסיית-התורמים 🌌",
+  "source": "maor/src/types/features.ts:153"
+ },
+ {
+  "id": "L4:maor:flag:supporters.rebrand",
+  "level": "L4-capability",
+  "name": "supporters.rebrand",
+  "label": "רצועת-KPI לתורמים ✨",
+  "source": "maor/src/types/features.ts:154"
+ },
+ {
+  "id": "L4:maor:flag:supporters.card",
+  "level": "L4-capability",
+  "name": "supporters.card",
+  "label": "כרטיס-תורם מאוחד (לשוניות) 📇",
+  "source": "maor/src/types/features.ts:155"
+ },
+ {
+  "id": "L4:maor:flag:supporters.hokbulk",
+  "level": "L4-capability",
+  "name": "supporters.hokbulk",
+  "label": "רישום הו\"ק המוני 🖊️",
+  "source": "maor/src/types/features.ts:158"
+ },
+ {
+  "id": "L4:maor:flag:supporters.universe3d",
+  "level": "L4-capability",
+  "name": "supporters.universe3d",
+  "label": "היקום התלת-ממדי 🪐",
+  "source": "maor/src/types/features.ts:159"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.dailyreport",
+  "level": "L4-capability",
+  "name": "supporters.ayin.dailyreport",
+  "label": "דוח יומי — מעקב טיפול",
+  "source": "maor/src/types/features.ts:160"
+ },
+ {
+  "id": "L4:maor:flag:supporters.hist",
+  "level": "L4-capability",
+  "name": "supporters.hist",
+  "label": "תרומות מהקובץ ההיסטורי",
+  "source": "maor/src/types/features.ts:161"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.sheet",
+  "level": "L4-capability",
+  "name": "supporters.ayin.sheet",
+  "label": "גיליון מעקב להורדה/ייבוא",
+  "source": "maor/src/types/features.ts:162"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.boq",
+  "level": "L4-capability",
+  "name": "supporters.ayin.boq",
+  "label": "כתב-כמויות / הצעת-מחיר",
+  "source": "maor/src/types/features.ts:163"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.time",
+  "level": "L4-capability",
+  "name": "supporters.ayin.time",
+  "label": "שעתון פר-פרויקט",
+  "source": "maor/src/types/features.ts:164"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.mat",
+  "level": "L4-capability",
+  "name": "supporters.ayin.mat",
+  "label": "חומרים ורכש פר-פרויקט",
+  "source": "maor/src/types/features.ts:165"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.gantt",
+  "level": "L4-capability",
+  "name": "supporters.ayin.gantt",
+  "label": "גאנט-תלויות פר-פרויקט",
+  "source": "maor/src/types/features.ts:166"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.kit",
+  "level": "L4-capability",
+  "name": "supporters.ayin.kit",
+  "label": "ערכת-מסירה (install-kit)",
+  "source": "maor/src/types/features.ts:167"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.warehouse",
+  "level": "L4-capability",
+  "name": "supporters.ayin.warehouse",
+  "label": "מלאי-מחסן חוצה-פרויקטים",
+  "source": "maor/src/types/features.ts:168"
+ },
+ {
+  "id": "L4:maor:flag:supporters.import.preview",
+  "level": "L4-capability",
+  "name": "supporters.import.preview",
+  "label": "סיכום לפני ייבוא",
+  "source": "maor/src/types/features.ts:169"
+ },
+ {
+  "id": "L4:maor:flag:supporters.thankyou",
+  "level": "L4-capability",
+  "name": "supporters.thankyou",
+  "label": "תזכורת \"התקשר לתודה\"",
+  "source": "maor/src/types/features.ts:170"
+ },
+ {
+  "id": "L4:maor:flag:supporters.click2call",
+  "level": "L4-capability",
+  "name": "supporters.click2call",
+  "label": "חיוג ישיר מהרשימה",
+  "source": "maor/src/types/features.ts:171"
+ },
+ {
+  "id": "L4:maor:flag:supporters.purpose",
+  "level": "L4-capability",
+  "name": "supporters.purpose",
+  "label": "ייעוד תרומה + הרשאה פר-עובד 🔐",
+  "source": "maor/src/types/features.ts:172"
+ },
+ {
+  "id": "L4:maor:flag:home.digest",
+  "level": "L4-capability",
+  "name": "home.digest",
+  "label": "תקציר הבוקר",
+  "source": "maor/src/types/features.ts:175"
+ },
+ {
+  "id": "L4:maor:flag:home.carousel",
+  "level": "L4-capability",
+  "name": "home.carousel",
+  "label": "קרוסלה",
+  "source": "maor/src/types/features.ts:176"
+ },
+ {
+  "id": "L4:maor:flag:home.care",
+  "level": "L4-capability",
+  "name": "home.care",
+  "label": "דורש טיפול",
+  "source": "maor/src/types/features.ts:177"
+ },
+ {
+  "id": "L4:maor:flag:home.board",
+  "level": "L4-capability",
+  "name": "home.board",
+  "label": "לוח נבנה אישית",
+  "source": "maor/src/types/features.ts:178"
+ },
+ {
+  "id": "L4:maor:flag:home.impactwall",
+  "level": "L4-capability",
+  "name": "home.impactwall",
+  "label": "קיר ההשפעה ✨",
+  "source": "maor/src/types/features.ts:179"
+ },
+ {
+  "id": "L4:maor:flag:home.suggest",
+  "level": "L4-capability",
+  "name": "home.suggest",
+  "label": "הצעות מקדימות 💡",
+  "source": "maor/src/types/features.ts:180"
+ },
+ {
+  "id": "L4:maor:flag:home.bdays",
+  "level": "L4-capability",
+  "name": "home.bdays",
+  "label": "ווידג\\",
+  "source": "maor/src/types/features.ts:182"
+ },
+ {
+  "id": "L4:maor:flag:home.stats",
+  "level": "L4-capability",
+  "name": "home.stats",
+  "label": "ווידג\\",
+  "source": "maor/src/types/features.ts:183"
+ },
+ {
+  "id": "L4:maor:flag:home.today",
+  "level": "L4-capability",
+  "name": "home.today",
+  "label": "ווידג\\",
+  "source": "maor/src/types/features.ts:184"
+ },
+ {
+  "id": "L4:maor:flag:home.recent",
+  "level": "L4-capability",
+  "name": "home.recent",
+  "label": "ווידג\\",
+  "source": "maor/src/types/features.ts:185"
+ },
+ {
+  "id": "L4:maor:flag:home.goldbook",
+  "level": "L4-capability",
+  "name": "home.goldbook",
+  "label": "ווידג\\",
+  "source": "maor/src/types/features.ts:186"
+ },
+ {
+  "id": "L4:maor:flag:home.hebcal",
+  "level": "L4-capability",
+  "name": "home.hebcal",
+  "label": "ווידג\\",
+  "source": "maor/src/types/features.ts:187"
+ },
+ {
+  "id": "L4:maor:flag:home.community",
+  "level": "L4-capability",
+  "name": "home.community",
+  "label": "ווידג\\",
+  "source": "maor/src/types/features.ts:188"
+ },
+ {
+  "id": "L4:maor:flag:home.coursemetrics",
+  "level": "L4-capability",
+  "name": "home.coursemetrics",
+  "label": "ווידג\\",
+  "source": "maor/src/types/features.ts:189"
+ },
+ {
+  "id": "L4:maor:flag:home.credmetrics",
+  "level": "L4-capability",
+  "name": "home.credmetrics",
+  "label": "ווידג\\",
+  "source": "maor/src/types/features.ts:190"
+ },
+ {
+  "id": "L4:maor:flag:home.contacts",
+  "level": "L4-capability",
+  "name": "home.contacts",
+  "label": "ווידג\\",
+  "source": "maor/src/types/features.ts:191"
+ },
+ {
+  "id": "L4:maor:flag:home.punchlow",
+  "level": "L4-capability",
+  "name": "home.punchlow",
+  "label": "ווידג\\",
+  "source": "maor/src/types/features.ts:192"
+ },
+ {
+  "id": "L4:maor:flag:home.quick",
+  "level": "L4-capability",
+  "name": "home.quick",
+  "label": "ווידג\\",
+  "source": "maor/src/types/features.ts:193"
+ },
+ {
+  "id": "L4:maor:flag:home.crosscare",
+  "level": "L4-capability",
+  "name": "home.crosscare",
+  "label": "מונה טיפול מהעמודות",
+  "source": "maor/src/types/features.ts:195"
+ },
+ {
+  "id": "L4:maor:flag:reports.enroll",
+  "level": "L4-capability",
+  "name": "reports.enroll",
+  "label": "דוח רישום לחוגים",
+  "source": "maor/src/types/features.ts:197"
+ },
+ {
+  "id": "L4:maor:flag:reports.attendance",
+  "level": "L4-capability",
+  "name": "reports.attendance",
+  "label": "דוח נוכחות",
+  "source": "maor/src/types/features.ts:198"
+ },
+ {
+  "id": "L4:maor:flag:reports.donations",
+  "level": "L4-capability",
+  "name": "reports.donations",
+  "label": "דוח תרומות",
+  "source": "maor/src/types/features.ts:199"
+ },
+ {
+  "id": "L4:maor:flag:reports.families",
+  "level": "L4-capability",
+  "name": "reports.families",
+  "label": "דוח מבט-על משפחות",
+  "source": "maor/src/types/features.ts:200"
+ },
+ {
+  "id": "L4:maor:flag:reports.punch",
+  "level": "L4-capability",
+  "name": "reports.punch",
+  "label": "דוח כרטיסיות ניקוב",
+  "source": "maor/src/types/features.ts:201"
+ },
+ {
+  "id": "L4:maor:flag:reports.management",
+  "level": "L4-capability",
+  "name": "reports.management",
+  "label": "מבט הנהלה 📊",
+  "source": "maor/src/types/features.ts:202"
+ },
+ {
+  "id": "L4:maor:flag:reports.periodic",
+  "level": "L4-capability",
+  "name": "reports.periodic",
+  "label": "דוחות תקופתיים",
+  "source": "maor/src/types/features.ts:203"
+ },
+ {
+  "id": "L4:maor:flag:reports.custom.full",
+  "level": "L4-capability",
+  "name": "reports.custom.full",
+  "label": "דו\"ח מותאם מלא",
+  "source": "maor/src/types/features.ts:204"
+ },
+ {
+  "id": "L4:maor:flag:reports.export.full",
+  "level": "L4-capability",
+  "name": "reports.export.full",
+  "label": "השלמות ייצוא CSV",
+  "source": "maor/src/types/features.ts:205"
+ },
+ {
+  "id": "L4:maor:flag:reports.csv",
+  "level": "L4-capability",
+  "name": "reports.csv",
+  "label": "ייצוא/הדפסה פר-סעיף",
+  "source": "maor/src/types/features.ts:206"
+ },
+ {
+  "id": "L4:maor:flag:reports.management.recon",
+  "level": "L4-capability",
+  "name": "reports.management.recon",
+  "label": "התחשבנות במבט-ההנהלה",
+  "source": "maor/src/types/features.ts:207"
+ },
+ {
+  "id": "L4:maor:flag:reports.management.sponsor",
+  "level": "L4-capability",
+  "name": "reports.management.sponsor",
+  "label": "אימוצים במבט-ההנהלה",
+  "source": "maor/src/types/features.ts:208"
+ },
+ {
+  "id": "L4:maor:flag:reports.donations.bycat",
+  "level": "L4-capability",
+  "name": "reports.donations.bycat",
+  "label": "תרומות לפי קטגוריה",
+  "source": "maor/src/types/features.ts:209"
+ },
+ {
+  "id": "L4:maor:flag:reports.families.geo",
+  "level": "L4-capability",
+  "name": "reports.families.geo",
+  "label": "פילוח עיר/קהילה",
+  "source": "maor/src/types/features.ts:210"
+ },
+ {
+  "id": "L4:maor:flag:reports.attendance.member",
+  "level": "L4-capability",
+  "name": "reports.attendance.member",
+  "label": "נוכחות לפי תלמיד/ה",
+  "source": "maor/src/types/features.ts:211"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.campaigns",
+  "level": "L4-capability",
+  "name": "tzedaka.campaigns",
+  "label": "מבצעי התרמה",
+  "source": "maor/src/types/features.ts:214"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.score",
+  "level": "L4-capability",
+  "name": "tzedaka.score",
+  "label": "ניקוד רכזים",
+  "source": "maor/src/types/features.ts:215"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.showcase",
+  "level": "L4-capability",
+  "name": "tzedaka.showcase",
+  "label": "מסך ראווה",
+  "source": "maor/src/types/features.ts:216"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.calendar",
+  "level": "L4-capability",
+  "name": "tzedaka.calendar",
+  "label": "לוח ייעודי",
+  "source": "maor/src/types/features.ts:217"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.inlinecreate",
+  "level": "L4-capability",
+  "name": "tzedaka.inlinecreate",
+  "label": "הוספת לא-רשומים",
+  "source": "maor/src/types/features.ts:218"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.familypanel",
+  "level": "L4-capability",
+  "name": "tzedaka.familypanel",
+  "label": "פאנל בכרטיס המשפחה",
+  "source": "maor/src/types/features.ts:219"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.export",
+  "level": "L4-capability",
+  "name": "tzedaka.export",
+  "label": "תדפיס וייצוא",
+  "source": "maor/src/types/features.ts:220"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.boxstatus",
+  "level": "L4-capability",
+  "name": "tzedaka.boxstatus",
+  "label": "מעברי-סטטוס לקופה",
+  "source": "maor/src/types/features.ts:221"
+ },
+ {
+  "id": "L4:maor:flag:shop.stores",
+  "level": "L4-capability",
+  "name": "shop.stores",
+  "label": "חנויות שותפות",
+  "source": "maor/src/types/features.ts:224"
+ },
+ {
+  "id": "L4:maor:flag:shop.criteria",
+  "level": "L4-capability",
+  "name": "shop.criteria",
+  "label": "קריטריוני זכאות",
+  "source": "maor/src/types/features.ts:225"
+ },
+ {
+  "id": "L4:maor:flag:shop.calendar",
+  "level": "L4-capability",
+  "name": "shop.calendar",
+  "label": "לוח ייעודי",
+  "source": "maor/src/types/features.ts:226"
+ },
+ {
+  "id": "L4:maor:flag:shop.showcase",
+  "level": "L4-capability",
+  "name": "shop.showcase",
+  "label": "מסך ראווה",
+  "source": "maor/src/types/features.ts:227"
+ },
+ {
+  "id": "L4:maor:flag:shop.inlinecreate",
+  "level": "L4-capability",
+  "name": "shop.inlinecreate",
+  "label": "הוספת לא-רשומים",
+  "source": "maor/src/types/features.ts:228"
+ },
+ {
+  "id": "L4:maor:flag:shop.familypanel",
+  "level": "L4-capability",
+  "name": "shop.familypanel",
+  "label": "פאנל בכרטיס המשפחה",
+  "source": "maor/src/types/features.ts:229"
+ },
+ {
+  "id": "L4:maor:flag:shop.export",
+  "level": "L4-capability",
+  "name": "shop.export",
+  "label": "ייצוא מימושים",
+  "source": "maor/src/types/features.ts:230"
+ },
+ {
+  "id": "L4:maor:flag:shop.photo",
+  "level": "L4-capability",
+  "name": "shop.photo",
+  "label": "תמונת מוצר",
+  "source": "maor/src/types/features.ts:231"
+ },
+ {
+  "id": "L4:maor:flag:shop.stock",
+  "level": "L4-capability",
+  "name": "shop.stock",
+  "label": "מלאי וקליטות",
+  "source": "maor/src/types/features.ts:232"
+ },
+ {
+  "id": "L4:maor:flag:shop.expiry",
+  "level": "L4-capability",
+  "name": "shop.expiry",
+  "label": "תפוגת אצווה",
+  "source": "maor/src/types/features.ts:233"
+ },
+ {
+  "id": "L4:maor:flag:shop.waitlist",
+  "level": "L4-capability",
+  "name": "shop.waitlist",
+  "label": "רשימות המתנה",
+  "source": "maor/src/types/features.ts:234"
+ },
+ {
+  "id": "L4:maor:flag:shop.bulkassign",
+  "level": "L4-capability",
+  "name": "shop.bulkassign",
+  "label": "שיוך המוני",
+  "source": "maor/src/types/features.ts:235"
+ },
+ {
+  "id": "L4:maor:flag:shop.bulkredeem",
+  "level": "L4-capability",
+  "name": "shop.bulkredeem",
+  "label": "חלוקה המונית",
+  "source": "maor/src/types/features.ts:236"
+ },
+ {
+  "id": "L4:maor:flag:shop.sreceipt",
+  "level": "L4-capability",
+  "name": "shop.sreceipt",
+  "label": "אישור תשלום סמלי",
+  "source": "maor/src/types/features.ts:237"
+ },
+ {
+  "id": "L4:maor:flag:shop.void",
+  "level": "L4-capability",
+  "name": "shop.void",
+  "label": "ביטול מימוש",
+  "source": "maor/src/types/features.ts:238"
+ },
+ {
+  "id": "L4:maor:flag:shop.meeting",
+  "level": "L4-capability",
+  "name": "shop.meeting",
+  "label": "קביעת פגישה ביומן",
+  "source": "maor/src/types/features.ts:239"
+ },
+ {
+  "id": "L4:maor:flag:shop.merge",
+  "level": "L4-capability",
+  "name": "shop.merge",
+  "label": "מיזוג פריטים כפולים",
+  "source": "maor/src/types/features.ts:240"
+ },
+ {
+  "id": "L4:maor:flag:shop7.familypanel",
+  "level": "L4-capability",
+  "name": "shop7.familypanel",
+  "label": "פאנל חלוקה בכרטיס המשפחה",
+  "source": "maor/src/types/features.ts:243"
+ },
+ {
+  "id": "L4:maor:flag:shop7.export",
+  "level": "L4-capability",
+  "name": "shop7.export",
+  "label": "תדפיס וייצוא מסירות",
+  "source": "maor/src/types/features.ts:244"
+ },
+ {
+  "id": "L4:maor:flag:shop7.capacity",
+  "level": "L4-capability",
+  "name": "shop7.capacity",
+  "label": "קיבולת מתנדב",
+  "source": "maor/src/types/features.ts:245"
+ },
+ {
+  "id": "L4:maor:flag:settings.rooms",
+  "level": "L4-capability",
+  "name": "settings.rooms",
+  "label": "ניהול חדרים",
+  "source": "maor/src/types/features.ts:248"
+ },
+ {
+  "id": "L4:maor:flag:settings.teachers",
+  "level": "L4-capability",
+  "name": "settings.teachers",
+  "label": "ניהול מורים",
+  "source": "maor/src/types/features.ts:249"
+ },
+ {
+  "id": "L4:maor:flag:settings.import",
+  "level": "L4-capability",
+  "name": "settings.import",
+  "label": "ייבוא נתונים",
+  "source": "maor/src/types/features.ts:250"
+ },
+ {
+  "id": "L4:maor:flag:settings.import.families13",
+  "level": "L4-capability",
+  "name": "settings.import.families13",
+  "label": "ייבוא משפחות 13 עמודות",
+  "source": "maor/src/types/features.ts:251"
+ },
+ {
+  "id": "L4:maor:flag:settings.audit",
+  "level": "L4-capability",
+  "name": "settings.audit",
+  "label": "בדיקת תקינות נתונים",
+  "source": "maor/src/types/features.ts:252"
+ },
+ {
+  "id": "L4:maor:flag:settings.audittrail",
+  "level": "L4-capability",
+  "name": "settings.audittrail",
+  "label": "לוג פעולות 🧾",
+  "source": "maor/src/types/features.ts:253"
+ },
+ {
+  "id": "L4:maor:flag:settings.dedup",
+  "level": "L4-capability",
+  "name": "settings.dedup",
+  "label": "איחוד כפילויות משפחות",
+  "source": "maor/src/types/features.ts:254"
+ },
+ {
+  "id": "L4:maor:flag:settings.audit.extra",
+  "level": "L4-capability",
+  "name": "settings.audit.extra",
+  "label": "ביקורת מורחבת",
+  "source": "maor/src/types/features.ts:255"
+ },
+ {
+  "id": "L4:maor:flag:settings.dedup.fields",
+  "level": "L4-capability",
+  "name": "settings.dedup.fields",
+  "label": "מיזוג שדה-שדה",
+  "source": "maor/src/types/features.ts:256"
+ },
+ {
+  "id": "L4:maor:flag:settings.export",
+  "level": "L4-capability",
+  "name": "settings.export",
+  "label": "ייצוא נתונים",
+  "source": "maor/src/types/features.ts:257"
+ },
+ {
+  "id": "L4:maor:flag:settings.reset",
+  "level": "L4-capability",
+  "name": "settings.reset",
+  "label": "איפוס מערכת",
+  "source": "maor/src/types/features.ts:258"
+ },
+ {
+  "id": "L4:maor:flag:settings.backup",
+  "level": "L4-capability",
+  "name": "settings.backup",
+  "label": "גיבוי ושחזור",
+  "source": "maor/src/types/features.ts:259"
+ },
+ {
+  "id": "L4:maor:flag:settings.encryption",
+  "level": "L4-capability",
+  "name": "settings.encryption",
+  "label": "סעיף הצפנה",
+  "source": "maor/src/types/features.ts:260"
+ },
+ {
+  "id": "L4:maor:flag:settings.access",
+  "level": "L4-capability",
+  "name": "settings.access",
+  "label": "סעיף נגישות",
+  "source": "maor/src/types/features.ts:261"
+ },
+ {
+  "id": "L4:maor:flag:settings.notif",
+  "level": "L4-capability",
+  "name": "settings.notif",
+  "label": "ערוצי התראות",
+  "source": "maor/src/types/features.ts:262"
+ },
+ {
+  "id": "L4:maor:flag:settings.theme",
+  "level": "L4-capability",
+  "name": "settings.theme",
+  "label": "בורר ערכת נושא",
+  "source": "maor/src/types/features.ts:263"
+ },
+ {
+  "id": "L4:maor:flag:shell.navhist",
+  "level": "L4-capability",
+  "name": "shell.navhist",
+  "label": "ניווט אחורה ↩",
+  "source": "maor/src/types/features.ts:266"
+ },
+ {
+  "id": "L4:maor:flag:shell.palette.actions",
+  "level": "L4-capability",
+  "name": "shell.palette.actions",
+  "label": "פעולות בחיפוש המהיר",
+  "source": "maor/src/types/features.ts:267"
+ },
+ {
+  "id": "L4:maor:flag:shell.guide",
+  "level": "L4-capability",
+  "name": "shell.guide",
+  "label": "המדריך המהיר 📖",
+  "source": "maor/src/types/features.ts:268"
+ },
+ {
+  "id": "L4:maor:flag:shell.privacy",
+  "level": "L4-capability",
+  "name": "shell.privacy",
+  "label": "מצב צנעה 🕶️",
+  "source": "maor/src/types/features.ts:269"
+ },
+ {
+  "id": "L4:maor:flag:shell.demo",
+  "level": "L4-capability",
+  "name": "shell.demo",
+  "label": "מצב הדגמה ▶",
+  "source": "maor/src/types/features.ts:270"
+ },
+ {
+  "id": "L4:maor:flag:shell.a11yfab",
+  "level": "L4-capability",
+  "name": "shell.a11yfab",
+  "label": "כפתור נגישות צף ♿",
+  "source": "maor/src/types/features.ts:271"
+ },
+ {
+  "id": "L4:maor:flag:shell.roles",
+  "level": "L4-capability",
+  "name": "shell.roles",
+  "label": "תפקיד מורה",
+  "source": "maor/src/types/features.ts:272"
+ },
+ {
+  "id": "L4:maor:flag:shell.lock",
+  "level": "L4-capability",
+  "name": "shell.lock",
+  "label": "נעילת PIN",
+  "source": "maor/src/types/features.ts:273"
+ },
+ {
+  "id": "L4:maor:flag:shell.palette",
+  "level": "L4-capability",
+  "name": "shell.palette",
+  "label": "פלטת פקודות וחיפוש-על",
+  "source": "maor/src/types/features.ts:274"
+ },
+ {
+  "id": "L4:maor:flag:shell.pwa",
+  "level": "L4-capability",
+  "name": "shell.pwa",
+  "label": "התקנה כאפליקציה 📱",
+  "source": "maor/src/types/features.ts:275"
+ },
+ {
+  "id": "L4:maor:flag:shell.publicsite",
+  "level": "L4-capability",
+  "name": "shell.publicsite",
+  "label": "אתר ציבורי 🌐",
+  "source": "maor/src/types/features.ts:276"
+ },
+ {
+  "id": "L4:maor:flag:shell.portal",
+  "level": "L4-capability",
+  "name": "shell.portal",
+  "label": "שער-הצטרפות באתר 🚪",
+  "source": "maor/src/types/features.ts:277"
+ },
+ {
+  "id": "L4:maor:flag:shell.teamchat",
+  "level": "L4-capability",
+  "name": "shell.teamchat",
+  "label": "צ׳אט צוות 💬",
+  "source": "maor/src/types/features.ts:278"
+ },
+ {
+  "id": "L4:maor:flag:reports.ayin",
+  "level": "L4-capability",
+  "name": "reports.ayin",
+  "label": "דוח שמות-לטיפול 👁",
+  "source": "maor/src/types/features.ts:279"
+ },
+ {
+  "id": "L4:maor:flag:shell.armdel",
+  "level": "L4-capability",
+  "name": "shell.armdel",
+  "label": "מחיקה בשני קליקים",
+  "source": "maor/src/types/features.ts:280"
+ },
+ {
+  "id": "L4:maor:flag:signup.hero3d",
+  "level": "L4-capability",
+  "name": "signup.hero3d",
+  "label": "כדור-מוח תלת-ממד בהרשמה",
+  "source": "maor/src/types/features.ts:281"
+ },
+ {
+  "id": "L4:maor:flag:core.receipts",
+  "level": "L4-capability",
+  "name": "core.receipts",
+  "label": "קבלות להורדה",
+  "source": "maor/src/types/features.ts:284"
+ },
+ {
+  "id": "L4:maor:flag:core.timer",
+  "level": "L4-capability",
+  "name": "core.timer",
+  "label": "טיימר כסף",
+  "source": "maor/src/types/features.ts:285"
+ },
+ {
+  "id": "L4:maor:flag:core.taxreceipt",
+  "level": "L4-capability",
+  "name": "core.taxreceipt",
+  "label": "קבלת סעיף 46",
+  "source": "maor/src/types/features.ts:286"
+ },
+ {
+  "id": "L4:maor:flag:core.receipt.verifycode",
+  "level": "L4-capability",
+  "name": "core.receipt.verifycode",
+  "label": "קוד-אימות על קבלה 🔍",
+  "source": "maor/src/types/features.ts:287"
+ },
+ {
+  "id": "L4:maor:flag:core.cashbox",
+  "level": "L4-capability",
+  "name": "core.cashbox",
+  "label": "קופה רושמת",
+  "source": "maor/src/types/features.ts:288"
+ },
+ {
+  "id": "L4:maor:flag:core.bodymap",
+  "level": "L4-capability",
+  "name": "core.bodymap",
+  "label": "מפת אזורי טיפול",
+  "source": "maor/src/types/features.ts:289"
+ },
+ {
+  "id": "L4:maor:flag:core.daygate",
+  "level": "L4-capability",
+  "name": "core.daygate",
+  "label": "מסך פתיחת יום",
+  "source": "maor/src/types/features.ts:290"
+ },
+ {
+  "id": "L4:maor:flag:core.receipt.copymark",
+  "level": "L4-capability",
+  "name": "core.receipt.copymark",
+  "label": "סימון מקור/העתק",
+  "source": "maor/src/types/features.ts:291"
+ },
+ {
+  "id": "L4:maor:flag:core.receipt.pdf",
+  "level": "L4-capability",
+  "name": "core.receipt.pdf",
+  "label": "קבלה כ-PDF 🖨",
+  "source": "maor/src/types/features.ts:292"
+ },
+ {
+  "id": "L4:maor:flag:core.dayendbackup",
+  "level": "L4-capability",
+  "name": "core.dayendbackup",
+  "label": "גיבוי אוטומטי בסוף-יום",
+  "source": "maor/src/types/features.ts:293"
+ },
+ {
+  "id": "L4:maor:flag:core.export",
+  "level": "L4-capability",
+  "name": "core.export",
+  "label": "הוצאת מידע (ייצוא/גיבוי) 🔐",
+  "source": "maor/src/types/features.ts:294"
+ },
+ {
+  "id": "L4:maor:flag:shop.items",
+  "level": "L4-capability",
+  "name": "shop.items",
+  "label": "פריטי קטלוג",
+  "source": "maor/src/types/features.ts:298"
+ },
+ {
+  "id": "L4:maor:flag:shop.quickredeem",
+  "level": "L4-capability",
+  "name": "shop.quickredeem",
+  "label": "מימוש מהיר מהבית",
+  "source": "maor/src/types/features.ts:299"
+ },
+ {
+  "id": "L4:maor:flag:shop.care",
+  "level": "L4-capability",
+  "name": "shop.care",
+  "label": "רצועת \"מה מגיע וטרם נמסר\"",
+  "source": "maor/src/types/features.ts:300"
+ },
+ {
+  "id": "L4:maor:flag:shop.holidays",
+  "level": "L4-capability",
+  "name": "shop.holidays",
+  "label": "רצועת החגים הקרובים",
+  "source": "maor/src/types/features.ts:301"
+ },
+ {
+  "id": "L4:maor:flag:shop.assignstatus",
+  "level": "L4-capability",
+  "name": "shop.assignstatus",
+  "label": "שינוי סטטוס שיוך",
+  "source": "maor/src/types/features.ts:302"
+ },
+ {
+  "id": "L4:maor:flag:shop.showcase.wall",
+  "level": "L4-capability",
+  "name": "shop.showcase.wall",
+  "label": "מסך-מלא לראווה",
+  "source": "maor/src/types/features.ts:303"
+ },
+ {
+  "id": "L4:maor:flag:shop.calendar.hebtoggle",
+  "level": "L4-capability",
+  "name": "shop.calendar.hebtoggle",
+  "label": "מתג עברי/לועזי בלוח החנות",
+  "source": "maor/src/types/features.ts:304"
+ },
+ {
+  "id": "L4:maor:flag:shop.histfilter",
+  "level": "L4-capability",
+  "name": "shop.histfilter",
+  "label": "מסנן היסטוריית מימושים",
+  "source": "maor/src/types/features.ts:305"
+ },
+ {
+  "id": "L4:maor:flag:shop.stockfilter",
+  "level": "L4-capability",
+  "name": "shop.stockfilter",
+  "label": "חיפוש וסינון מלאי",
+  "source": "maor/src/types/features.ts:306"
+ },
+ {
+  "id": "L4:maor:flag:shop.filter",
+  "level": "L4-capability",
+  "name": "shop.filter",
+  "label": "סרגל סינון מקבלים",
+  "source": "maor/src/types/features.ts:307"
+ },
+ {
+  "id": "L4:maor:flag:shop.intake.delete",
+  "level": "L4-capability",
+  "name": "shop.intake.delete",
+  "label": "מחיקת קליטת מלאי",
+  "source": "maor/src/types/features.ts:308"
+ },
+ {
+  "id": "L4:maor:flag:shop.delete",
+  "level": "L4-capability",
+  "name": "shop.delete",
+  "label": "מחיקה בקטלוג החנות 🔓",
+  "source": "maor/src/types/features.ts:309"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.boxesview",
+  "level": "L4-capability",
+  "name": "tzedaka.boxesview",
+  "label": "מבט כל-הקופות",
+  "source": "maor/src/types/features.ts:311"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.quickcollect",
+  "level": "L4-capability",
+  "name": "tzedaka.quickcollect",
+  "label": "ריקון מהיר מהבית",
+  "source": "maor/src/types/features.ts:312"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.care",
+  "level": "L4-capability",
+  "name": "tzedaka.care",
+  "label": "רצועת \"דורש טיפול\"",
+  "source": "maor/src/types/features.ts:313"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.showcase.wall",
+  "level": "L4-capability",
+  "name": "tzedaka.showcase.wall",
+  "label": "מסך-מלא לראווה",
+  "source": "maor/src/types/features.ts:314"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.calendar.hebtoggle",
+  "level": "L4-capability",
+  "name": "tzedaka.calendar.hebtoggle",
+  "label": "מתג עברי/לועזי בלוח הקופות",
+  "source": "maor/src/types/features.ts:315"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.history",
+  "level": "L4-capability",
+  "name": "tzedaka.history",
+  "label": "היסטוריית ריקונים לקופה",
+  "source": "maor/src/types/features.ts:316"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.histfilter",
+  "level": "L4-capability",
+  "name": "tzedaka.histfilter",
+  "label": "מסנן היסטוריית ריקונים",
+  "source": "maor/src/types/features.ts:317"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.filter",
+  "level": "L4-capability",
+  "name": "tzedaka.filter",
+  "label": "סרגל סינון רכזים",
+  "source": "maor/src/types/features.ts:318"
+ },
+ {
+  "id": "L4:maor:flag:tzedaka.delete",
+  "level": "L4-capability",
+  "name": "tzedaka.delete",
+  "label": "מחיקת קופה 🔓",
+  "source": "maor/src/types/features.ts:319"
+ },
+ {
+  "id": "L4:maor:flag:shop7.volunteers",
+  "level": "L4-capability",
+  "name": "shop7.volunteers",
+  "label": "לשונית מתנדבים",
+  "source": "maor/src/types/features.ts:321"
+ },
+ {
+  "id": "L4:maor:flag:shop7.unassign",
+  "level": "L4-capability",
+  "name": "shop7.unassign",
+  "label": "הסרת שיוך-מסירה",
+  "source": "maor/src/types/features.ts:322"
+ },
+ {
+  "id": "L4:maor:flag:shop7.dayclose",
+  "level": "L4-capability",
+  "name": "shop7.dayclose",
+  "label": "סגירת יום-חלוקה",
+  "source": "maor/src/types/features.ts:323"
+ },
+ {
+  "id": "L4:maor:flag:shop7.note",
+  "level": "L4-capability",
+  "name": "shop7.note",
+  "label": "הערת-מסירה חופשית",
+  "source": "maor/src/types/features.ts:324"
+ },
+ {
+  "id": "L4:maor:flag:supporters.bulkselect",
+  "level": "L4-capability",
+  "name": "supporters.bulkselect",
+  "label": "בחירה מרובה",
+  "source": "maor/src/types/features.ts:326"
+ },
+ {
+  "id": "L4:maor:flag:supporters.bulkdelete",
+  "level": "L4-capability",
+  "name": "supporters.bulkdelete",
+  "label": "מחיקה מרוכזת",
+  "source": "maor/src/types/features.ts:327"
+ },
+ {
+  "id": "L4:maor:flag:supporters.dedup",
+  "level": "L4-capability",
+  "name": "supporters.dedup",
+  "label": "איחוד כפולים",
+  "source": "maor/src/types/features.ts:328"
+ },
+ {
+  "id": "L4:maor:flag:supporters.delete",
+  "level": "L4-capability",
+  "name": "supporters.delete",
+  "label": "מחיקת תורם מהכרטיס 🔓",
+  "source": "maor/src/types/features.ts:329"
+ },
+ {
+  "id": "L4:maor:flag:supporters.grid",
+  "level": "L4-capability",
+  "name": "supporters.grid",
+  "label": "מתג גריד/רשימה",
+  "source": "maor/src/types/features.ts:330"
+ },
+ {
+  "id": "L4:maor:flag:supporters.advfilter",
+  "level": "L4-capability",
+  "name": "supporters.advfilter",
+  "label": "סינון מתקדם",
+  "source": "maor/src/types/features.ts:331"
+ },
+ {
+  "id": "L4:maor:flag:supporters.colfilter",
+  "level": "L4-capability",
+  "name": "supporters.colfilter",
+  "label": "סינון עמודות מספרי",
+  "source": "maor/src/types/features.ts:332"
+ },
+ {
+  "id": "L4:maor:flag:supporters.sort",
+  "level": "L4-capability",
+  "name": "supporters.sort",
+  "label": "מיון בלחיצה על כותרת",
+  "source": "maor/src/types/features.ts:333"
+ },
+ {
+  "id": "L4:maor:flag:supporters.doncats",
+  "level": "L4-capability",
+  "name": "supporters.doncats",
+  "label": "צ׳יפי קטגוריות בתרומה",
+  "source": "maor/src/types/features.ts:334"
+ },
+ {
+  "id": "L4:maor:flag:supporters.hint",
+  "level": "L4-capability",
+  "name": "supporters.hint",
+  "label": "שורת העזרה התחתונה",
+  "source": "maor/src/types/features.ts:335"
+ },
+ {
+  "id": "L4:maor:flag:supporters.dialer.edit",
+  "level": "L4-capability",
+  "name": "supporters.dialer.edit",
+  "label": "עריכת פרטים מהחייגן",
+  "source": "maor/src/types/features.ts:336"
+ },
+ {
+  "id": "L4:maor:flag:supporters.dialer.export",
+  "level": "L4-capability",
+  "name": "supporters.dialer.export",
+  "label": "ייצוא יומן-חייגן",
+  "source": "maor/src/types/features.ts:337"
+ },
+ {
+  "id": "L4:maor:flag:supporters.dialer.namesexport",
+  "level": "L4-capability",
+  "name": "supporters.dialer.namesexport",
+  "label": "ייצוא שמות-הקמפיין",
+  "source": "maor/src/types/features.ts:338"
+ },
+ {
+  "id": "L4:maor:flag:supporters.dialer.reset",
+  "level": "L4-capability",
+  "name": "supporters.dialer.reset",
+  "label": "איפוס/ביטול בחייגן",
+  "source": "maor/src/types/features.ts:339"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.names",
+  "level": "L4-capability",
+  "name": "supporters.ayin.names",
+  "label": "מסך-השמות המלא",
+  "source": "maor/src/types/features.ts:340"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.restart",
+  "level": "L4-capability",
+  "name": "supporters.ayin.restart",
+  "label": "מחזור טיפול חדש",
+  "source": "maor/src/types/features.ts:341"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.nexttalk",
+  "level": "L4-capability",
+  "name": "supporters.ayin.nexttalk",
+  "label": "\"מתי לדבר שוב\"",
+  "source": "maor/src/types/features.ts:342"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.answers",
+  "level": "L4-capability",
+  "name": "supporters.ayin.answers",
+  "label": "יומן תשובות",
+  "source": "maor/src/types/features.ts:343"
+ },
+ {
+  "id": "L4:maor:flag:supporters.ayin.revert",
+  "level": "L4-capability",
+  "name": "supporters.ayin.revert",
+  "label": "חזרה לשלב קודם",
+  "source": "maor/src/types/features.ts:344"
+ },
+ {
+  "id": "L4:maor:flag:supporters.doncal.hebgrid",
+  "level": "L4-capability",
+  "name": "supporters.doncal.hebgrid",
+  "label": "גריד עברי בלוח-התרומות",
+  "source": "maor/src/types/features.ts:345"
+ },
+ {
+  "id": "L4:maor:flag:supporters.intel.signals",
+  "level": "L4-capability",
+  "name": "supporters.intel.signals",
+  "label": "לוח-האותות (מודיעין)",
+  "source": "maor/src/types/features.ts:346"
+ },
+ {
+  "id": "L4:maor:flag:supporters.intel.season",
+  "level": "L4-capability",
+  "name": "supporters.intel.season",
+  "label": "עונתיות (מודיעין)",
+  "source": "maor/src/types/features.ts:347"
+ },
+ {
+  "id": "L4:maor:flag:supporters.intel.retention",
+  "level": "L4-capability",
+  "name": "supporters.intel.retention",
+  "label": "שימור (מודיעין)",
+  "source": "maor/src/types/features.ts:348"
+ },
+ {
+  "id": "L4:maor:flag:supporters.intel.pareto",
+  "level": "L4-capability",
+  "name": "supporters.intel.pareto",
+  "label": "פארטו (מודיעין)",
+  "source": "maor/src/types/features.ts:349"
+ },
+ {
+  "id": "L4:maor:flag:supporters.intel.time",
+  "level": "L4-capability",
+  "name": "supporters.intel.time",
+  "label": "ציר-זמן (מודיעין)",
+  "source": "maor/src/types/features.ts:350"
+ },
+ {
+  "id": "L4:maor:flag:supporters.intel.cohort",
+  "level": "L4-capability",
+  "name": "supporters.intel.cohort",
+  "label": "קוהורטות (מודיעין)",
+  "source": "maor/src/types/features.ts:351"
+ },
+ {
+  "id": "L4:maor:flag:families.health",
+  "level": "L4-capability",
+  "name": "families.health",
+  "label": "מידע רפואי/רגישויות ⚕",
+  "source": "maor/src/types/features.ts:353"
+ },
+ {
+  "id": "L4:maor:flag:families.viewtoggle",
+  "level": "L4-capability",
+  "name": "families.viewtoggle",
+  "label": "מתג גריד/רשימה",
+  "source": "maor/src/types/features.ts:354"
+ },
+ {
+  "id": "L4:maor:flag:families.colfilter",
+  "level": "L4-capability",
+  "name": "families.colfilter",
+  "label": "סינון עמודות ברשימה",
+  "source": "maor/src/types/features.ts:355"
+ },
+ {
+  "id": "L4:maor:flag:families.cred.manual",
+  "level": "L4-capability",
+  "name": "families.cred.manual",
+  "label": "עדכון-אמינות ידני",
+  "source": "maor/src/types/features.ts:356"
+ },
+ {
+  "id": "L4:maor:flag:families.suggest",
+  "level": "L4-capability",
+  "name": "families.suggest",
+  "label": "צ׳יפי חיזוי-חיפוש",
+  "source": "maor/src/types/features.ts:357"
+ },
+ {
+  "id": "L4:maor:flag:families.delete",
+  "level": "L4-capability",
+  "name": "families.delete",
+  "label": "מחיקת משפחה 🔓",
+  "source": "maor/src/types/features.ts:358"
+ },
+ {
+  "id": "L4:maor:flag:families.extradetails",
+  "level": "L4-capability",
+  "name": "families.extradetails",
+  "label": "כרטיס \"פרטים נוספים\"",
+  "source": "maor/src/types/features.ts:359"
+ },
+ {
+  "id": "L4:maor:flag:families.marital",
+  "level": "L4-capability",
+  "name": "families.marital",
+  "label": "תג מצב-משפחתי ברשימות",
+  "source": "maor/src/types/features.ts:360"
+ },
+ {
+  "id": "L4:maor:flag:families.events",
+  "level": "L4-capability",
+  "name": "families.events",
+  "label": "מקטע אירועים-מיוחדים",
+  "source": "maor/src/types/features.ts:361"
+ },
+ {
+  "id": "L4:maor:flag:families.sort",
+  "level": "L4-capability",
+  "name": "families.sort",
+  "label": "מיון בלחיצה על כותרת",
+  "source": "maor/src/types/features.ts:362"
+ },
+ {
+  "id": "L4:maor:flag:courses.enroll.contact",
+  "level": "L4-capability",
+  "name": "courses.enroll.contact",
+  "label": "רצועת פרטי-קשר בשיבוץ",
+  "source": "maor/src/types/features.ts:364"
+ },
+ {
+  "id": "L4:maor:flag:courses.rownotes",
+  "level": "L4-capability",
+  "name": "courses.rownotes",
+  "label": "תפריט ⋯ הערות ברשימה",
+  "source": "maor/src/types/features.ts:365"
+ },
+ {
+  "id": "L4:maor:flag:courses.teacherpick",
+  "level": "L4-capability",
+  "name": "courses.teacherpick",
+  "label": "בחירת-מורה מהכרטיס",
+  "source": "maor/src/types/features.ts:366"
+ },
+ {
+  "id": "L4:maor:flag:courses.attendance.clearall",
+  "level": "L4-capability",
+  "name": "courses.attendance.clearall",
+  "label": "ניקוי-נוכחות גורף",
+  "source": "maor/src/types/features.ts:367"
+ },
+ {
+  "id": "L4:maor:flag:courses.delete",
+  "level": "L4-capability",
+  "name": "courses.delete",
+  "label": "מחיקת חוג 🔓",
+  "source": "maor/src/types/features.ts:368"
+ },
+ {
+  "id": "L4:maor:flag:courses.occupancy",
+  "level": "L4-capability",
+  "name": "courses.occupancy",
+  "label": "תג תפוסה N/max",
+  "source": "maor/src/types/features.ts:369"
+ },
+ {
+  "id": "L4:maor:flag:courses.sort",
+  "level": "L4-capability",
+  "name": "courses.sort",
+  "label": "מיון בלחיצה על כותרת",
+  "source": "maor/src/types/features.ts:370"
+ },
+ {
+  "id": "L4:maor:flag:home.care.full",
+  "level": "L4-capability",
+  "name": "home.care.full",
+  "label": "מרכז-הטיפול המלא",
+  "source": "maor/src/types/features.ts:373"
+ },
+ {
+  "id": "L4:maor:flag:home.care.filters",
+  "level": "L4-capability",
+  "name": "home.care.filters",
+  "label": "סינון והיסטוריה בטיפול",
+  "source": "maor/src/types/features.ts:374"
+ },
+ {
+  "id": "L4:maor:flag:home.care.reset",
+  "level": "L4-capability",
+  "name": "home.care.reset",
+  "label": "איפוס סימוני-טופל",
+  "source": "maor/src/types/features.ts:375"
+ },
+ {
+  "id": "L4:maor:flag:home.quick.backup",
+  "level": "L4-capability",
+  "name": "home.quick.backup",
+  "label": "גיבוי מהבית",
+  "source": "maor/src/types/features.ts:376"
+ },
+ {
+  "id": "L4:maor:flag:home.hero.actions",
+  "level": "L4-capability",
+  "name": "home.hero.actions",
+  "label": "פעולות-מהירות ב-Hero",
+  "source": "maor/src/types/features.ts:377"
+ },
+ {
+  "id": "L4:maor:flag:calendar.eventextra",
+  "level": "L4-capability",
+  "name": "calendar.eventextra",
+  "label": "\"פרטים נוספים\" באירוע",
+  "source": "maor/src/types/features.ts:379"
+ },
+ {
+  "id": "L4:maor:flag:calendar.calldone",
+  "level": "L4-capability",
+  "name": "calendar.calldone",
+  "label": "כפתור \"✓ בוצע\" לשיחות",
+  "source": "maor/src/types/features.ts:380"
+ },
+ {
+  "id": "L4:maor:flag:calendar.addevent",
+  "level": "L4-capability",
+  "name": "calendar.addevent",
+  "label": "הוספת אירוע מהלוח",
+  "source": "maor/src/types/features.ts:381"
+ },
+ {
+  "id": "L4:maor:flag:diary.blocking",
+  "level": "L4-capability",
+  "name": "diary.blocking",
+  "label": "חסימת שבת וחג",
+  "source": "maor/src/types/features.ts:383"
+ },
+ {
+  "id": "L4:maor:flag:diary.cleaning",
+  "level": "L4-capability",
+  "name": "diary.cleaning",
+  "label": "משבצת ניקיון-יומי",
+  "source": "maor/src/types/features.ts:384"
+ },
+ {
+  "id": "L4:maor:flag:reports.colfilter",
+  "level": "L4-capability",
+  "name": "reports.colfilter",
+  "label": "סינון עמודות בדוחות",
+  "source": "maor/src/types/features.ts:386"
+ },
+ {
+  "id": "L4:maor:flag:reports.sort",
+  "level": "L4-capability",
+  "name": "reports.sort",
+  "label": "מיון בלחיצה בדוחות",
+  "source": "maor/src/types/features.ts:387"
+ },
+ {
+  "id": "L4:maor:flag:reports.printall",
+  "level": "L4-capability",
+  "name": "reports.printall",
+  "label": "הדפסת כל הדוחות",
+  "source": "maor/src/types/features.ts:388"
+ },
+ {
+  "id": "L4:maor:flag:reports.drilldown",
+  "level": "L4-capability",
+  "name": "reports.drilldown",
+  "label": "צלילה מהדוח לכרטיס",
+  "source": "maor/src/types/features.ts:389"
+ },
+ {
+  "id": "L4:maor:flag:reports.range",
+  "level": "L4-capability",
+  "name": "reports.range",
+  "label": "טווח-תאריכים לדוחות",
+  "source": "maor/src/types/features.ts:390"
+ },
+ {
+  "id": "L4:maor:flag:settings.import.contacts",
+  "level": "L4-capability",
+  "name": "settings.import.contacts",
+  "label": "ייבוא אנשי-קשר (VCF)",
+  "source": "maor/src/types/features.ts:392"
+ },
+ {
+  "id": "L4:maor:flag:settings.teachers.pay",
+  "level": "L4-capability",
+  "name": "settings.teachers.pay",
+  "label": "פרטי-תשלום למורה",
+  "source": "maor/src/types/features.ts:393"
+ },
+ {
+  "id": "L4:maor:flag:settings.teachers.callreminder",
+  "level": "L4-capability",
+  "name": "settings.teachers.callreminder",
+  "label": "תזכורת-קשר למורה",
+  "source": "maor/src/types/features.ts:394"
+ },
+ {
+  "id": "L4:maor:flag:settings.teachers.delete",
+  "level": "L4-capability",
+  "name": "settings.teachers.delete",
+  "label": "מחיקת מורה 🔓",
+  "source": "maor/src/types/features.ts:395"
+ },
+ {
+  "id": "L4:maor:flag:settings.audit.fixphones",
+  "level": "L4-capability",
+  "name": "settings.audit.fixphones",
+  "label": "תיקון-טלפונים גורף",
+  "source": "maor/src/types/features.ts:396"
+ },
+ {
+  "id": "L4:maor:flag:settings.backup.snapshots",
+  "level": "L4-capability",
+  "name": "settings.backup.snapshots",
+  "label": "צילומים-יומיים ושחזור",
+  "source": "maor/src/types/features.ts:397"
+ },
+ {
+  "id": "L4:maor:flag:settings.org.goals",
+  "level": "L4-capability",
+  "name": "settings.org.goals",
+  "label": "יעדי גיוס ותקציב",
+  "source": "maor/src/types/features.ts:398"
+ },
+ {
+  "id": "L4:maor:flag:shell.netcheck",
+  "level": "L4-capability",
+  "name": "shell.netcheck",
+  "label": "בדיקת-תקשורת",
+  "source": "maor/src/types/features.ts:400"
+ },
+ {
+  "id": "L4:maor:flag:shell.support",
+  "level": "L4-capability",
+  "name": "shell.support",
+  "label": "צ׳אט-תמיכה",
+  "source": "maor/src/types/features.ts:401"
+ },
+ {
+  "id": "L4:maor:flag:shell.demodrop",
+  "level": "L4-capability",
+  "name": "shell.demodrop",
+  "label": "באנר מערכת-ריקה",
+  "source": "maor/src/types/features.ts:402"
+ },
+ {
+  "id": "L4:maor:flag:shell.dialerchip",
+  "level": "L4-capability",
+  "name": "shell.dialerchip",
+  "label": "צ׳יפ-חייגן צף",
+  "source": "maor/src/types/features.ts:403"
+ },
+ {
+  "id": "L4:maor:flag:settings.teamintel",
+  "level": "L4-capability",
+  "name": "settings.teamintel",
+  "label": "מודיעין-עובדים (מנהל) 🕵️",
+  "source": "maor/src/types/features.ts:405"
+ },
+ {
+  "id": "L4:maor:flag:home.mytasks",
+  "level": "L4-capability",
+  "name": "home.mytasks",
+  "label": "\"המשימות שלי\" 🎯",
+  "source": "maor/src/types/features.ts:406"
+ },
+ {
+  "id": "L4:maor:flag:settings.workprep",
+  "level": "L4-capability",
+  "name": "settings.workprep",
+  "label": "מכין-העבודה (מנהל) 📋",
+  "source": "maor/src/types/features.ts:407"
+ },
+ {
+  "id": "L4:maor:flag:nav.families",
+  "level": "L4-capability",
+  "name": "nav.families",
+  "label": "שם מסך המשפחות",
+  "source": "maor/src/types/features.ts:422"
+ },
+ {
+  "id": "L4:maor:flag:nav.courses",
+  "level": "L4-capability",
+  "name": "nav.courses",
+  "label": "שם מסך החוגים",
+  "source": "maor/src/types/features.ts:423"
+ },
+ {
+  "id": "L4:maor:flag:nav.calendar",
+  "level": "L4-capability",
+  "name": "nav.calendar",
+  "label": "שם לוח השנה",
+  "source": "maor/src/types/features.ts:424"
+ },
+ {
+  "id": "L4:maor:flag:nav.diary",
+  "level": "L4-capability",
+  "name": "nav.diary",
+  "label": "שם יומן החדרים",
+  "source": "maor/src/types/features.ts:425"
+ },
+ {
+  "id": "L4:maor:flag:nav.supporters",
+  "level": "L4-capability",
+  "name": "nav.supporters",
+  "label": "שם מסך התורמים",
+  "source": "maor/src/types/features.ts:426"
+ },
+ {
+  "id": "L4:maor:flag:nav.reports",
+  "level": "L4-capability",
+  "name": "nav.reports",
+  "label": "שם מסך הדוחות",
+  "source": "maor/src/types/features.ts:427"
+ },
+ {
+  "id": "L4:maor:flag:nav.timer",
+  "level": "L4-capability",
+  "name": "nav.timer",
+  "label": "שם טיימר הכסף",
+  "source": "maor/src/types/features.ts:428"
+ },
+ {
+  "id": "L4:maor:flag:nav.cashbox",
+  "level": "L4-capability",
+  "name": "nav.cashbox",
+  "label": "שם הקופה הרושמת",
+  "source": "maor/src/types/features.ts:429"
+ },
+ {
+  "id": "L4:maor:flag:nav.bodymap",
+  "level": "L4-capability",
+  "name": "nav.bodymap",
+  "label": "שם מפת אזורי הטיפול",
+  "source": "maor/src/types/features.ts:430"
+ },
+ {
+  "id": "L4:maor:flag:nav.tzedaka",
+  "level": "L4-capability",
+  "name": "nav.tzedaka",
+  "label": "שם עמודת קופות הצדקה",
+  "source": "maor/src/types/features.ts:431"
+ },
+ {
+  "id": "L4:maor:flag:entity.tzCoordinator",
+  "level": "L4-capability",
+  "name": "entity.tzCoordinator",
+  "label": "רכז/ת קופות",
+  "source": "maor/src/types/features.ts:432"
+ },
+ {
+  "id": "L4:maor:flag:entity.tzBox",
+  "level": "L4-capability",
+  "name": "entity.tzBox",
+  "label": "קופת צדקה",
+  "source": "maor/src/types/features.ts:433"
+ },
+ {
+  "id": "L4:maor:flag:entity.tzCampaign",
+  "level": "L4-capability",
+  "name": "entity.tzCampaign",
+  "label": "מבצע התרמה",
+  "source": "maor/src/types/features.ts:434"
+ },
+ {
+  "id": "L4:maor:flag:nav.shop",
+  "level": "L4-capability",
+  "name": "nav.shop",
+  "label": "שם עמודת החנות",
+  "source": "maor/src/types/features.ts:435"
+ },
+ {
+  "id": "L4:maor:flag:nav.shop7",
+  "level": "L4-capability",
+  "name": "nav.shop7",
+  "label": "שם עמודת החלוקה",
+  "source": "maor/src/types/features.ts:436"
+ },
+ {
+  "id": "L4:maor:flag:entity.volunteer",
+  "level": "L4-capability",
+  "name": "entity.volunteer",
+  "label": "מתנדב",
+  "source": "maor/src/types/features.ts:437"
+ },
+ {
+  "id": "L4:maor:flag:entity.volunteers",
+  "level": "L4-capability",
+  "name": "entity.volunteers",
+  "label": "מתנדבים (רבים)",
+  "source": "maor/src/types/features.ts:438"
+ },
+ {
+  "id": "L4:maor:flag:entity.shopProduct",
+  "level": "L4-capability",
+  "name": "entity.shopProduct",
+  "label": "מוצר שירות",
+  "source": "maor/src/types/features.ts:439"
+ },
+ {
+  "id": "L4:maor:flag:entity.shopStore",
+  "level": "L4-capability",
+  "name": "entity.shopStore",
+  "label": "חנות שותפה",
+  "source": "maor/src/types/features.ts:440"
+ },
+ {
+  "id": "L4:maor:flag:entity.shopCriterion",
+  "level": "L4-capability",
+  "name": "entity.shopCriterion",
+  "label": "קריטריון זכאות",
+  "source": "maor/src/types/features.ts:441"
+ },
+ {
+  "id": "L4:maor:flag:entity.shopAssignment",
+  "level": "L4-capability",
+  "name": "entity.shopAssignment",
+  "label": "שיוך מוצר",
+  "source": "maor/src/types/features.ts:442"
+ },
+ {
+  "id": "L4:maor:flag:entity.shopItem",
+  "level": "L4-capability",
+  "name": "entity.shopItem",
+  "label": "פריט קטלוג",
+  "source": "maor/src/types/features.ts:443"
+ },
+ {
+  "id": "L4:maor:flag:entity.family",
+  "level": "L4-capability",
+  "name": "entity.family",
+  "label": "משפחה (יחיד)",
+  "source": "maor/src/types/features.ts:446"
+ },
+ {
+  "id": "L4:maor:flag:entity.familyOf",
+  "level": "L4-capability",
+  "name": "entity.familyOf",
+  "label": "משפחה (סמיכות: \"משפחת דוד\")",
+  "source": "maor/src/types/features.ts:448"
+ },
+ {
+  "id": "L4:maor:flag:entity.member",
+  "level": "L4-capability",
+  "name": "entity.member",
+  "label": "בן/בת משפחה",
+  "source": "maor/src/types/features.ts:449"
+ },
+ {
+  "id": "L4:maor:flag:entity.members",
+  "level": "L4-capability",
+  "name": "entity.members",
+  "label": "בני משפחה (רבים)",
+  "source": "maor/src/types/features.ts:450"
+ },
+ {
+  "id": "L4:maor:flag:entity.course",
+  "level": "L4-capability",
+  "name": "entity.course",
+  "label": "חוג (יחיד)",
+  "source": "maor/src/types/features.ts:451"
+ },
+ {
+  "id": "L4:maor:flag:entity.teacher",
+  "level": "L4-capability",
+  "name": "entity.teacher",
+  "label": "מורה",
+  "source": "maor/src/types/features.ts:452"
+ },
+ {
+  "id": "L4:maor:flag:entity.room",
+  "level": "L4-capability",
+  "name": "entity.room",
+  "label": "חדר",
+  "source": "maor/src/types/features.ts:453"
+ },
+ {
+  "id": "L4:maor:flag:entity.rooms",
+  "level": "L4-capability",
+  "name": "entity.rooms",
+  "label": "חדרים (רבים)",
+  "source": "maor/src/types/features.ts:454"
+ },
+ {
+  "id": "L4:maor:flag:entity.student",
+  "level": "L4-capability",
+  "name": "entity.student",
+  "label": "תלמיד/ה",
+  "source": "maor/src/types/features.ts:455"
+ },
+ {
+  "id": "L4:maor:flag:entity.students",
+  "level": "L4-capability",
+  "name": "entity.students",
+  "label": "תלמידים (רבים)",
+  "source": "maor/src/types/features.ts:456"
+ },
+ {
+  "id": "L4:maor:flag:entity.supporter",
+  "level": "L4-capability",
+  "name": "entity.supporter",
+  "label": "תורם",
+  "source": "maor/src/types/features.ts:457"
+ },
+ {
+  "id": "L4:maor:flag:entity.donation",
+  "level": "L4-capability",
+  "name": "entity.donation",
+  "label": "תרומה",
+  "source": "maor/src/types/features.ts:458"
+ },
+ {
+  "id": "L4:maor:flag:entity.donations",
+  "level": "L4-capability",
+  "name": "entity.donations",
+  "label": "תרומות (רבים)",
+  "source": "maor/src/types/features.ts:459"
+ },
+ {
+  "id": "L4:maor:flag:entity.enrollment",
+  "level": "L4-capability",
+  "name": "entity.enrollment",
+  "label": "שיבוץ",
+  "source": "maor/src/types/features.ts:460"
+ },
+ {
+  "id": "L4:maor:flag:entity.enrollments",
+  "level": "L4-capability",
+  "name": "entity.enrollments",
+  "label": "שיבוצים (רבים)",
+  "source": "maor/src/types/features.ts:461"
+ },
+ {
+  "id": "L4:maor:flag:entity.cred",
+  "level": "L4-capability",
+  "name": "entity.cred",
+  "label": "מדד אמינות",
+  "source": "maor/src/types/features.ts:462"
+ },
+ {
+  "id": "L4:maor:flag:nav.ayin",
+  "level": "L4-capability",
+  "name": "nav.ayin",
+  "label": "שם מעקב הטיפול",
+  "source": "maor/src/types/features.ts:465"
+ },
+ {
+  "id": "L4:maor:flag:entity.ayinItem",
+  "level": "L4-capability",
+  "name": "entity.ayinItem",
+  "label": "פריט למעקב (יחיד)",
+  "source": "maor/src/types/features.ts:466"
+ },
+ {
+  "id": "L4:maor:flag:entity.ayinUnit",
+  "level": "L4-capability",
+  "name": "entity.ayinUnit",
+  "label": "מונה הפריט",
+  "source": "maor/src/types/features.ts:467"
+ },
+ {
+  "id": "L4:maor:flag:ayin.stage.new",
+  "level": "L4-capability",
+  "name": "ayin.stage.new",
+  "label": "שלב מעקב 1",
+  "source": "maor/src/types/features.ts:468"
+ },
+ {
+  "id": "L4:maor:flag:ayin.stage.lead",
+  "level": "L4-capability",
+  "name": "ayin.stage.lead",
+  "label": "שלב מעקב 2",
+  "source": "maor/src/types/features.ts:469"
+ },
+ {
+  "id": "L4:maor:flag:ayin.stage.eyes",
+  "level": "L4-capability",
+  "name": "ayin.stage.eyes",
+  "label": "שלב מעקב 3",
+  "source": "maor/src/types/features.ts:470"
+ },
+ {
+  "id": "L4:maor:flag:ayin.stage.answer",
+  "level": "L4-capability",
+  "name": "ayin.stage.answer",
+  "label": "שלב מעקב 4",
+  "source": "maor/src/types/features.ts:471"
+ },
+ {
+  "id": "L4:maor:flag:ayin.stage.done",
+  "level": "L4-capability",
+  "name": "ayin.stage.done",
+  "label": "שלב מעקב 5",
+  "source": "maor/src/types/features.ts:472"
+ }
+]

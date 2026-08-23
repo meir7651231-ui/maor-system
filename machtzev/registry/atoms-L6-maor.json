@@ -1,0 +1,1551 @@
+[
+ {
+  "id": "L6:maor:src/components/courses/lib.ts",
+  "level": "L6-engine",
+  "name": "lib.ts",
+  "exports": [
+   "fmtDate",
+   "isoToday",
+   "defaultCourseDates",
+   "presentsInMonth",
+   "courseDateError",
+   "ageOf",
+   "DAY_NAMES",
+   "DAY_LETTERS",
+   "sessionsOf",
+   "groupsHintFromAudience",
+   "coursesOfTeacher",
+   "roomsNow",
+   "groupLabelOf",
+   "groupRemapOnRemoval",
+   "groupOptionsOf",
+   "planWord",
+   "priceSuffix",
+   "modelMeta",
+   "WEEKS_PER_MONTH",
+   "PRICING_TERMS",
+   "termLabel",
+   "lessonsInTerm",
+   "lessonPriceForTier",
+   "lessonTierOptions",
+   "weightedQuote",
+   "enrollmentQuote",
+   "paidOf",
+   "payBal",
+   "enrollmentPaidStatus",
+   "enrollCount",
+   "duplicateCourse",
+   "pendingMakeups",
+   "waitlistFor",
+   "nextSessionDate",
+   "sheetRoster",
+   "sheetSummary",
+   "OTHER",
+   "OTHER_LABEL",
+   "ADD_TEACHER",
+   "CAT_OPTIONS",
+   "SEMESTER_OPTIONS",
+   "PAY_METHODS",
+   "TINTS",
+   "enrollStatusMeta",
+   "planLabelOf",
+   "chipStyle",
+   "GRADE_ORDER",
+   "gradeIndex",
+   "gradeFits",
+   "courseFitsMember",
+   "scheduleClashText",
+   "ENROLL_NEW_FAMILY",
+   "offerNewFamily",
+   "resolveEnrollFamily",
+   "PUNCH_CONFIRM_MS",
+   "punchConfirmStep",
+   "wheelIndexUnderPointer"
+  ],
+  "lines": 598,
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts"
+ },
+ {
+  "id": "L6:maor:src/components/courses/reenroll-lib.ts",
+  "level": "L6-engine",
+  "name": "reenroll-lib.ts",
+  "exports": [
+   "academicYearLabel",
+   "nextYearDates",
+   "renewOf",
+   "isRenewed",
+   "enrollSummary",
+   "buildReenrollRows",
+   "reenrollCounts",
+   "renewTargets",
+   "freshNextYearEnrollment",
+   "nextYearCourseDraft",
+   "studentHistory",
+   "studentHistoryText",
+   "reenrollCsvRows",
+   "reenrollListText"
+  ],
+  "lines": 344,
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts"
+ },
+ {
+  "id": "L6:maor:src/components/diary/lib.ts",
+  "level": "L6-engine",
+  "name": "lib.ts",
+  "exports": [
+   "fmtDate",
+   "localIso",
+   "isoToday",
+   "DAY_NAMES",
+   "pad2",
+   "timeToMin",
+   "minToHM",
+   "groupLabelOf",
+   "ABSENCE_REASON_CHIPS",
+   "makeupEligibility",
+   "blockReason",
+   "buildSlots",
+   "enrollmentsForSession",
+   "weeklyRoomSessions",
+   "inactiveRoomCourses",
+   "planLabelOf",
+   "enrollStatusMeta",
+   "chipStyle",
+   "roomInfoLabel"
+  ],
+  "lines": 304,
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts"
+ },
+ {
+  "id": "L6:maor:src/components/families/lib.ts",
+  "level": "L6-engine",
+  "name": "lib.ts",
+  "exports": [
+   "fmtDate",
+   "isoToday",
+   "ageOf",
+   "STATUS_META",
+   "CRED_RED_THRESHOLD",
+   "CRED_HELP_TEXT",
+   "tierOf",
+   "famEnrollments",
+   "famLiveEnrollments",
+   "finderAxes",
+   "finderAxisValue",
+   "finderMatches",
+   "numMatch",
+   "famHistoryOf",
+   "MARITAL_OPTIONS",
+   "LANGUAGE_OPTIONS",
+   "OTHER",
+   "OTHER_LABEL",
+   "chipStyle",
+   "maritalChipStyle"
+  ],
+  "lines": 232,
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts"
+ },
+ {
+  "id": "L6:maor:src/components/platform/lib.ts",
+  "level": "L6-engine",
+  "name": "lib.ts",
+  "exports": [
+   "slugify",
+   "isValidSlug",
+   "ALL_MODULES",
+   "MODULE_LABELS",
+   "allOffConfig",
+   "orgLink",
+   "normEmail",
+   "genJoinCode",
+   "orgJoinLink",
+   "orgJoinFullCode",
+   "parseJoinFullCode",
+   "isOrgManager",
+   "orgEnabledModules",
+   "orgEnabledFeatures",
+   "isMember",
+   "overrideOf",
+   "GRANTABLE_STAFF_FEATURES",
+   "isGrantableFeature",
+   "effectiveConfigFor",
+   "allowedDesignationsFor",
+   "canIssueReceipt",
+   "approveMember",
+   "setEmployeeOverride",
+   "removeMember"
+  ],
+  "lines": 276,
+  "pure": false,
+  "source": "maor/src/components/platform/lib.ts"
+ },
+ {
+  "id": "L6:maor:src/components/reports/lib.ts",
+  "level": "L6-engine",
+  "name": "lib.ts",
+  "exports": [
+   "isoToday",
+   "fmtDate",
+   "inRange",
+   "rangeLabel",
+   "paidOf",
+   "round2",
+   "paidInRange",
+   "balanceOf",
+   "monthKey",
+   "monthLabel",
+   "nameIndex",
+   "STATUS_LABEL",
+   "countBy"
+  ],
+  "lines": 91,
+  "pure": false,
+  "source": "maor/src/components/reports/lib.ts"
+ },
+ {
+  "id": "L6:maor:src/components/shop/lib.ts",
+  "level": "L6-engine",
+  "name": "lib.ts",
+  "exports": [
+   "liveRedemptions",
+   "itemOf",
+   "holidayAllowed",
+   "itemRemaining",
+   "effectivePrice",
+   "maxDiscountPct",
+   "upcomingHolidays",
+   "holidayNames",
+   "assignmentRedeemed",
+   "componentRemaining",
+   "couponExpiry",
+   "SHOP_HOLIDAY_DUE_DAYS",
+   "needsCare",
+   "SHOP_EXPIRY_WARN_DAYS",
+   "expiringIntakes",
+   "upcomingMeetings",
+   "givenValue",
+   "collectedPaid",
+   "subsidyTotal",
+   "productAssignments",
+   "componentRedeemedNow",
+   "filterAssignments",
+   "filterProducts",
+   "filterItems",
+   "filterRedemptions",
+   "intakeLog",
+   "eligibleFamilies",
+   "distributionListLines",
+   "redemptionsCsvRows",
+   "beneficiaryLabel",
+   "componentCounts"
+  ],
+  "lines": 696,
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts"
+ },
+ {
+  "id": "L6:maor:src/components/shop7/lib.ts",
+  "level": "L6-engine",
+  "name": "lib.ts",
+  "exports": [
+   "advanceStatus",
+   "statusLabel",
+   "deliveriesOfDay",
+   "deliveriesOfVolunteer",
+   "eligibleAssignmentsForDay",
+   "dayProgress",
+   "volunteerLoadHint",
+   "deliveriesOfFamily",
+   "pendingDeliveriesToday",
+   "deliveryListLines",
+   "deliveriesCsvRows",
+   "volunteerRouteStops",
+   "filterVolunteers",
+   "filterDeliveries"
+  ],
+  "lines": 162,
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts"
+ },
+ {
+  "id": "L6:maor:src/components/shop8/lib.ts",
+  "level": "L6-engine",
+  "name": "lib.ts",
+  "exports": [
+   "suggestions",
+   "liveSuggestions"
+  ],
+  "lines": 144,
+  "pure": false,
+  "source": "maor/src/components/shop8/lib.ts"
+ },
+ {
+  "id": "L6:maor:src/components/supporters/lib.ts",
+  "level": "L6-engine",
+  "name": "lib.ts",
+  "exports": [
+   "fmtDate",
+   "isoToday",
+   "supporterPurposes",
+   "supporterVisibleForDesignations",
+   "visibleSupportersForDesignations",
+   "allDonationPurposes",
+   "supIls",
+   "supUsd",
+   "supCount",
+   "supLast",
+   "supLastInPeriod",
+   "supTotalIls",
+   "supScore",
+   "supTier",
+   "TIER_ORDER",
+   "supScoreBins",
+   "supAvgDon",
+   "sup12m",
+   "chipStyle",
+   "fixPhone",
+   "totalLabel",
+   "supDonEvents",
+   "personalCalEntries",
+   "orgCalEntries",
+   "donCalMonthLine",
+   "normName",
+   "SUP_NAME_KEYS",
+   "excelSerialToIso",
+   "parseSupporterGrid",
+   "parseSupporterCsv",
+   "applyAyinNames",
+   "mergeHist",
+   "planSupporterImport",
+   "mergeSupporterRow",
+   "newSupporterFromRow",
+   "HOK_CAT",
+   "hokEffectivelyActive",
+   "hokRecordedThisMonth",
+   "hokDue",
+   "hokMonthlyTotal",
+   "hokMethodLabel"
+  ],
+  "lines": 751,
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts"
+ },
+ {
+  "id": "L6:maor:src/components/telephony/lib.ts",
+  "level": "L6-engine",
+  "name": "lib.ts",
+  "exports": [
+   "emptyTelephonyConfig",
+   "toTenantId",
+   "telephonyToTenant",
+   "previewTelephony",
+   "nextClosure",
+   "explainOne"
+  ],
+  "lines": 206,
+  "pure": true,
+  "source": "maor/src/components/telephony/lib.ts"
+ },
+ {
+  "id": "L6:maor:src/components/tzedaka/lib.ts",
+  "level": "L6-engine",
+  "name": "lib.ts",
+  "exports": [
+   "TZ_SCORE_RULES",
+   "lastCollectionIso",
+   "collectionScoreDelta",
+   "boxTotal",
+   "coordinatorBoxes",
+   "coordinatorTotal",
+   "grandTotal",
+   "campaignTotal",
+   "TZ_STALE_DAYS",
+   "staleBoxes",
+   "needsCare",
+   "leaderboard",
+   "campaignProgress",
+   "filterCoordinators",
+   "boxesOverview",
+   "filterCollections",
+   "coordinatorPrintLines",
+   "collectionsCsvRows",
+   "buildTzGrid"
+  ],
+  "lines": 307,
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/a11y.ts",
+  "level": "L6-engine",
+  "name": "a11y.ts",
+  "exports": [
+   "SCALE_MIN",
+   "SCALE_MAX",
+   "SCALE_STEP",
+   "A11Y_FAB_TOGGLES",
+   "clampScale",
+   "stepScale",
+   "parseAcc"
+  ],
+  "lines": 59,
+  "pure": false,
+  "source": "maor/src/lib/a11y.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/ai.ts",
+  "level": "L6-engine",
+  "name": "ai.ts",
+  "exports": [
+   "readAiKey",
+   "writeAiKey",
+   "thanksPrompt",
+   "askClaude"
+  ],
+  "lines": 87,
+  "pure": false,
+  "source": "maor/src/lib/ai.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/annualReport.ts",
+  "level": "L6-engine",
+  "name": "annualReport.ts",
+  "exports": [
+   "donationYears",
+   "donationsOfYear",
+   "annualReportLines",
+   "annualAllLines",
+   "downloadAnnualReport"
+  ],
+  "lines": 117,
+  "pure": false,
+  "source": "maor/src/lib/annualReport.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/appCheck.ts",
+  "level": "L6-engine",
+  "name": "appCheck.ts",
+  "exports": [
+   "initAppCheck"
+  ],
+  "lines": 39,
+  "pure": false,
+  "source": "maor/src/lib/appCheck.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/audit.ts",
+  "level": "L6-engine",
+  "name": "audit.ts",
+  "exports": [
+   "AUDIT_CAT_COLORS",
+   "AUDIT_CATEGORIES",
+   "phoneIssue",
+   "runAudit",
+   "auditReportLines"
+  ],
+  "lines": 227,
+  "pure": true,
+  "source": "maor/src/lib/audit.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/ayin.ts",
+  "level": "L6-engine",
+  "name": "ayin.ts",
+  "exports": [
+   "AYIN_STAGES",
+   "stageLabel",
+   "featLabel",
+   "itemLabel",
+   "unitLabel",
+   "stageIndex",
+   "nextStage",
+   "revertPatch",
+   "normName",
+   "ayinActive",
+   "eyesTotal",
+   "boqLineAmount",
+   "boqTotal",
+   "timeHoursTotal",
+   "timeCostTotal",
+   "matCostTotal",
+   "namesToTemplateLines",
+   "templateLinesToNames",
+   "ayinActionVisible",
+   "ayinAdvanceLabel",
+   "planAyinAdvance",
+   "planAddName",
+   "ayinDailyRows",
+   "ayinAllRows",
+   "ayinBoardItems",
+   "filterAyinBoard",
+   "AYIN_SHEET_HEADER",
+   "ayinSheetRows",
+   "parseAyinSheet",
+   "applyAyinSheet"
+  ],
+  "lines": 546,
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/callerId.ts",
+  "level": "L6-engine",
+  "name": "callerId.ts",
+  "exports": [
+   "callerKindLabel",
+   "phoneKey",
+   "findCaller",
+   "familyContext"
+  ],
+  "lines": 118,
+  "pure": true,
+  "source": "maor/src/lib/callerId.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/cloud-diff.ts",
+  "level": "L6-engine",
+  "name": "cloud-diff.ts",
+  "exports": [
+   "ENTITY_COLLECTIONS",
+   "colPath",
+   "metaPath",
+   "envPath",
+   "DONATIONS_COL",
+   "donationsPath",
+   "stripSupporterDonations",
+   "metaOf",
+   "diffDb",
+   "fullDbDiff",
+   "emptyDiff"
+  ],
+  "lines": 187,
+  "pure": false,
+  "source": "maor/src/lib/cloud-diff.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/cloud-merge.ts",
+  "level": "L6-engine",
+  "name": "cloud-merge.ts",
+  "exports": [
+   "sanitizeIncoming",
+   "mergeDonationsPreserving",
+   "applyEntityPartial",
+   "applyMetaPartial"
+  ],
+  "lines": 141,
+  "pure": false,
+  "source": "maor/src/lib/cloud-merge.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/cloud.ts",
+  "level": "L6-engine",
+  "name": "cloud.ts",
+  "exports": [
+   "setCloudScope",
+   "setDonationSplit",
+   "donationSplitActive",
+   "setAllowedPurposes",
+   "setSupEnforce",
+   "supEnforceActive",
+   "setAuditContext",
+   "auditWriterEmail",
+   "pushAuditRing",
+   "pullAuditRing",
+   "pushDonations",
+   "migrateDonationsToCollection",
+   "migrateSupportersToKeyed",
+   "initCloud",
+   "cloudDb",
+   "watchAuth",
+   "signIn",
+   "signUp",
+   "signOutCloud",
+   "resetPassword",
+   "changePassword",
+   "pushDiff",
+   "readCloudEnvelope",
+   "writeCloudEnvelope",
+   "encryptExistingCloud",
+   "pullAll",
+   "subscribeAll",
+   "fetchNedarimDonors",
+   "fetchIncomingPayments",
+   "fetchProviderRows",
+   "pullNedarim",
+   "pullSola",
+   "markIncomingPayment",
+   "watchIncomingPayments",
+   "writeSmsOutbox",
+   "writeMailOutbox"
+  ],
+  "lines": 771,
+  "pure": false,
+  "source": "maor/src/lib/cloud.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/cloudConfig.ts",
+  "level": "L6-engine",
+  "name": "cloudConfig.ts",
+  "exports": [
+   "PLATFORM_ORGS",
+   "PLATFORM_REQUESTS",
+   "PLATFORM_LEADS",
+   "fetchOrgCloudConfig",
+   "watchOrgCloudConfig",
+   "writeOrgCloudDoc",
+   "writeOrgCloudConfig",
+   "ORG_SECRET_KEYS",
+   "writeOrgSecrets",
+   "readOrgSecretsMeta",
+   "deleteOrgRequest",
+   "writeOrgRequest",
+   "fetchOrgRequests",
+   "findMemberOrgSlugs",
+   "fetchAllOrgs",
+   "writeOrgJoinRequest",
+   "fetchOrgJoinRequests",
+   "deleteOrgJoinRequest",
+   "deleteOrgMemberConfig",
+   "clearEmployeeField",
+   "addOrgMember",
+   "removeOrgMember",
+   "deleteOrgCompletely",
+   "writeOrgLead",
+   "fetchOrgLeads",
+   "SUPPORT_CHATS",
+   "sendSupportMessage",
+   "sendSupportReply",
+   "watchSupportMessages",
+   "watchSupportThreadMeta",
+   "watchAllSupportThreads",
+   "markSupportRead",
+   "TEAM_CHATS",
+   "sendTeamMessage",
+   "watchTeamMessages"
+  ],
+  "lines": 432,
+  "pure": false,
+  "source": "maor/src/lib/cloudConfig.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/cloudCrypto.ts",
+  "level": "L6-engine",
+  "name": "cloudCrypto.ts",
+  "exports": [
+   "isEncDoc",
+   "encryptDoc",
+   "decryptDoc",
+   "createCloudKey",
+   "openCloudKey"
+  ],
+  "lines": 77,
+  "pure": true,
+  "source": "maor/src/lib/cloudCrypto.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/config.ts",
+  "level": "L6-engine",
+  "name": "config.ts",
+  "exports": [
+   "moduleOn",
+   "featureOn",
+   "donationSplitOn",
+   "supEnforceOn",
+   "integrationOn",
+   "telephonyOn",
+   "integrationSetting",
+   "safeHttpsUrl",
+   "termOf",
+   "normalizeTelephony",
+   "normalizeSite",
+   "normalizeConfig",
+   "publicSiteOn",
+   "roleOf",
+   "teacherIdOf",
+   "isAdminUser",
+   "canGrantedAction",
+   "readConfigOverride",
+   "saveConfigOverride",
+   "clearConfigOverride",
+   "SUPER_ADMIN_EMAILS",
+   "isSuperAdmin",
+   "signUpError",
+   "employeeSignUpError",
+   "cloudCfgCacheKey",
+   "readCloudConfigCache",
+   "writeCloudConfigCache",
+   "resolveOrgConfig",
+   "orgSlugFromUrl",
+   "loadOrgConfig",
+   "isSafeAccent",
+   "applyTheme",
+   "DEFAULT_FAVICON",
+   "faviconDataUri",
+   "applyFavicon",
+   "applyConfig"
+  ],
+  "lines": 915,
+  "pure": false,
+  "source": "maor/src/lib/config.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/courseDaily.ts",
+  "level": "L6-engine",
+  "name": "courseDaily.ts",
+  "exports": [
+   "buildCourseDailyRows"
+  ],
+  "lines": 92,
+  "pure": true,
+  "source": "maor/src/lib/courseDaily.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/crypto.ts",
+  "level": "L6-engine",
+  "name": "crypto.ts",
+  "exports": [
+   "genRecoveryKey",
+   "encryptDb",
+   "isEncrypted",
+   "openDek",
+   "decryptDb",
+   "reencryptDb",
+   "rewrapPassword"
+  ],
+  "lines": 139,
+  "pure": true,
+  "source": "maor/src/lib/crypto.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/csvx.ts",
+  "level": "L6-engine",
+  "name": "csvx.ts",
+  "exports": [
+   "csvEscape",
+   "toCsv",
+   "downloadCsv",
+   "decodeCsvBuffer",
+   "readCsvFileText",
+   "parseCsv",
+   "parseAnyDate"
+  ],
+  "lines": 160,
+  "pure": false,
+  "source": "maor/src/lib/csvx.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/customExport.ts",
+  "level": "L6-engine",
+  "name": "customExport.ts",
+  "exports": [
+   "expFieldDefs",
+   "overrideColumn",
+   "buildCustomExport"
+  ],
+  "lines": 323,
+  "pure": true,
+  "source": "maor/src/lib/customExport.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/date-util.ts",
+  "level": "L6-engine",
+  "name": "date-util.ts",
+  "exports": [
+   "isoToday",
+   "isoLocal",
+   "isoDaysAgo",
+   "dateInRange"
+  ],
+  "lines": 33,
+  "pure": true,
+  "source": "maor/src/lib/date-util.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/dedup.ts",
+  "level": "L6-engine",
+  "name": "dedup.ts",
+  "exports": [
+   "normPhone",
+   "findDuplicateGroups",
+   "mergeFamilies",
+   "DUP_FIELDS",
+   "dupFieldValue",
+   "mergeFamiliesByFields",
+   "normId",
+   "findSupporterDupGroups",
+   "mergeSupporterInto",
+   "mergeSupportersGroup",
+   "SUP_DUP_FIELDS",
+   "supDupFieldValue",
+   "mergeSupportersByFields"
+  ],
+  "lines": 453,
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/demoCleanup.ts",
+  "level": "L6-engine",
+  "name": "demoCleanup.ts",
+  "exports": [
+   "planDemoCleanup"
+  ],
+  "lines": 138,
+  "pure": true,
+  "source": "maor/src/lib/demoCleanup.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/demoFresh.ts",
+  "level": "L6-engine",
+  "name": "demoFresh.ts",
+  "exports": [
+   "DEMO_ANCHOR",
+   "freshenDemoDb"
+  ],
+  "lines": 51,
+  "pure": true,
+  "source": "maor/src/lib/demoFresh.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/dialer.ts",
+  "level": "L6-engine",
+  "name": "dialer.ts",
+  "exports": [
+   "REQUEUE_OUTCOMES",
+   "TERMINAL_OUTCOMES",
+   "OUTCOME_LABELS",
+   "startCampaign",
+   "currentId",
+   "applyOutcome",
+   "progress",
+   "isDone",
+   "undoLast",
+   "CALL_LOG_CAP",
+   "appendCall",
+   "popCall",
+   "callStats",
+   "campaignCsvRows"
+  ],
+  "lines": 169,
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/donationPartition.ts",
+  "level": "L6-engine",
+  "name": "donationPartition.ts",
+  "exports": [
+   "SHARED_PURPOSE_KEY",
+   "purposeKeyOf",
+   "donAllowedKeys",
+   "explodeSupporter",
+   "reassembleDonations",
+   "donationPartitionDiff"
+  ],
+  "lines": 120,
+  "pure": true,
+  "source": "maor/src/lib/donationPartition.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/eventMeta.ts",
+  "level": "L6-engine",
+  "name": "eventMeta.ts",
+  "exports": [
+   "EV_META",
+   "evLabel"
+  ],
+  "lines": 22,
+  "pure": true,
+  "source": "maor/src/lib/eventMeta.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/exportGate.ts",
+  "level": "L6-engine",
+  "name": "exportGate.ts",
+  "exports": [
+   "setExportBlocked",
+   "exportAllowed",
+   "guardExport"
+  ],
+  "lines": 40,
+  "pure": true,
+  "source": "maor/src/lib/exportGate.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/exportRows.ts",
+  "level": "L6-engine",
+  "name": "exportRows.ts",
+  "exports": [
+   "familiesImportFormatRows",
+   "supportersImportFormatRows",
+   "eventsCsvRows"
+  ],
+  "lines": 77,
+  "pure": true,
+  "source": "maor/src/lib/exportRows.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/familiesImport.ts",
+  "level": "L6-engine",
+  "name": "familiesImport.ts",
+  "exports": [
+   "parseFamiliesCsv",
+   "mergeFamilyImport"
+  ],
+  "lines": 123,
+  "pure": true,
+  "source": "maor/src/lib/familiesImport.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/guide.ts",
+  "level": "L6-engine",
+  "name": "guide.ts",
+  "exports": [
+   "GUIDE_INTRO_LABEL",
+   "GUIDE_INTRO",
+   "GUIDE_SECTIONS",
+   "GUIDE_RECIPES_LABEL",
+   "GUIDE_RECIPES",
+   "GUIDE_FOOT",
+   "guideSections",
+   "guideRecipes"
+  ],
+  "lines": 135,
+  "pure": true,
+  "source": "maor/src/lib/guide.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/hebdate.ts",
+  "level": "L6-engine",
+  "name": "hebdate.ts",
+  "exports": [
+   "monthHeOf",
+   "monthEnOf",
+   "hebYearNow",
+   "isHebLeapYear",
+   "hebMonthsOf",
+   "hebToIso",
+   "isoToHebParts",
+   "validateHebMonthNames"
+  ],
+  "lines": 144,
+  "pure": true,
+  "source": "maor/src/lib/hebdate.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/hebrew.ts",
+  "level": "L6-engine",
+  "name": "hebrew.ts",
+  "exports": [
+   "gem",
+   "gemYear",
+   "adarNorm",
+   "hebAnnualEq",
+   "hebParts",
+   "hebPartsOfIso",
+   "hebDateFull",
+   "HOLIDAYS",
+   "holidayOf"
+  ],
+  "lines": 230,
+  "pure": true,
+  "source": "maor/src/lib/hebrew.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/hebrewNumber.ts",
+  "level": "L6-engine",
+  "name": "hebrewNumber.ts",
+  "exports": [
+   "integerInWords",
+   "amountInWords"
+  ],
+  "lines": 136,
+  "pure": true,
+  "source": "maor/src/lib/hebrewNumber.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/ics.ts",
+  "level": "L6-engine",
+  "name": "ics.ts",
+  "exports": [
+   "icsEscape",
+   "foldIcsLine",
+   "buildIcs",
+   "downloadIcs"
+  ],
+  "lines": 141,
+  "pure": false,
+  "source": "maor/src/lib/ics.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/icsFeed.ts",
+  "level": "L6-engine",
+  "name": "icsFeed.ts",
+  "exports": [
+   "mintFeedToken",
+   "readIcsFeedToken",
+   "publishIcsFeed",
+   "icsFeedUrl"
+  ],
+  "lines": 47,
+  "pure": false,
+  "source": "maor/src/lib/icsFeed.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/ids.ts",
+  "level": "L6-engine",
+  "name": "ids.ts",
+  "exports": [
+   "makeId",
+   "deviceTag"
+  ],
+  "lines": 45,
+  "pure": false,
+  "source": "maor/src/lib/ids.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/imagePick.ts",
+  "level": "L6-engine",
+  "name": "imagePick.ts",
+  "exports": [
+   "MAX_UPLOAD_BYTES",
+   "pickAndCompressImage",
+   "MAX_EMBED_BYTES",
+   "readFileAsDataUrl"
+  ],
+  "lines": 62,
+  "pure": false,
+  "source": "maor/src/lib/imagePick.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/installKit.ts",
+  "level": "L6-engine",
+  "name": "installKit.ts",
+  "exports": [
+   "kitProgress",
+   "DEFAULT_KIT_LABELS"
+  ],
+  "lines": 32,
+  "pure": true,
+  "source": "maor/src/lib/installKit.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/lock.ts",
+  "level": "L6-engine",
+  "name": "lock.ts",
+  "exports": [
+   "LOCK_ZONES",
+   "DEFAULT_LOCK_ZONES",
+   "lockKey",
+   "readLock",
+   "writeLock",
+   "isValidPin",
+   "hashPin",
+   "verifyPin"
+  ],
+  "lines": 86,
+  "pure": false,
+  "source": "maor/src/lib/lock.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/mapsLink.ts",
+  "level": "L6-engine",
+  "name": "mapsLink.ts",
+  "exports": [
+   "mapsSearchUrl",
+   "mapsRouteUrl"
+  ],
+  "lines": 41,
+  "pure": true,
+  "source": "maor/src/lib/mapsLink.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/monthGrid.ts",
+  "level": "L6-engine",
+  "name": "monthGrid.ts",
+  "exports": [
+   "buildMonthGrid"
+  ],
+  "lines": 114,
+  "pure": true,
+  "source": "maor/src/lib/monthGrid.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/navhist.ts",
+  "level": "L6-engine",
+  "name": "navhist.ts",
+  "exports": [
+   "NAV_HIST_MAX",
+   "RECENT_MAX",
+   "sameLoc",
+   "pushNav",
+   "pushRecent"
+  ],
+  "lines": 37,
+  "pure": true,
+  "source": "maor/src/lib/navhist.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/nedarimSync.ts",
+  "level": "L6-engine",
+  "name": "nedarimSync.ts",
+  "exports": [
+   "CLEARING_PROVIDERS",
+   "providerClearer",
+   "chargeToHist",
+   "chargeDedupKey",
+   "withNedarimHok",
+   "detectRecurringHok",
+   "candidateSupportersForCharge",
+   "fillCardFromCharge",
+   "attachChargeTo",
+   "relabelHistByTxn",
+   "repairCardsFromRows",
+   "strongMatchForCharge",
+   "autoMatchCharges",
+   "attachChargesBulk",
+   "planNedarimSync"
+  ],
+  "lines": 694,
+  "pure": false,
+  "source": "maor/src/lib/nedarimSync.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/netcheck.ts",
+  "level": "L6-engine",
+  "name": "netcheck.ts",
+  "exports": [
+   "netCheckTargets",
+   "runNetCheck",
+   "netCheckScript"
+  ],
+  "lines": 115,
+  "pure": false,
+  "source": "maor/src/lib/netcheck.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/orbitTheme.ts",
+  "level": "L6-engine",
+  "name": "orbitTheme.ts",
+  "exports": [
+   "ORBIT_BLUE",
+   "orbitTheme"
+  ],
+  "lines": 132,
+  "pure": true,
+  "source": "maor/src/lib/orbitTheme.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/originGuard.ts",
+  "level": "L6-engine",
+  "name": "originGuard.ts",
+  "exports": [
+   "foreignHost",
+   "runOriginGuard"
+  ],
+  "lines": 49,
+  "pure": false,
+  "source": "maor/src/lib/originGuard.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/paletteGroups.ts",
+  "level": "L6-engine",
+  "name": "paletteGroups.ts",
+  "exports": [
+   "groupPaletteResults"
+  ],
+  "lines": 65,
+  "pure": true,
+  "source": "maor/src/lib/paletteGroups.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/payLink.ts",
+  "level": "L6-engine",
+  "name": "payLink.ts",
+  "exports": [
+   "payLink"
+  ],
+  "lines": 38,
+  "pure": true,
+  "source": "maor/src/lib/payLink.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/photoGallery.ts",
+  "level": "L6-engine",
+  "name": "photoGallery.ts",
+  "exports": [
+   "PHOTO_MAX",
+   "PHOTO_MAX_DIM",
+   "PHOTO_MAX_LEN",
+   "canAddPhoto",
+   "isDataImage",
+   "fitDimensions",
+   "sanitizePhotos"
+  ],
+  "lines": 42,
+  "pure": true,
+  "source": "maor/src/lib/photoGallery.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/pricing.ts",
+  "level": "L6-engine",
+  "name": "pricing.ts",
+  "exports": [
+   "DEFAULT_PRICES",
+   "SIZE_LABELS",
+   "normalizePrices",
+   "computeQuote",
+   "shekel",
+   "readPrices",
+   "writePrices"
+  ],
+  "lines": 212,
+  "pure": false,
+  "source": "maor/src/lib/pricing.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/projectSchedule.ts",
+  "level": "L6-engine",
+  "name": "projectSchedule.ts",
+  "exports": [
+   "scheduleTasks"
+  ],
+  "lines": 93,
+  "pure": true,
+  "source": "maor/src/lib/projectSchedule.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/publicSite.ts",
+  "level": "L6-engine",
+  "name": "publicSite.ts",
+  "exports": [
+   "SITE_UI",
+   "isRtlLang",
+   "CORAL_PALETTE",
+   "sitePalette",
+   "siteVocab",
+   "resolveLocalized",
+   "siteLangs",
+   "siteUi",
+   "campaignProgress",
+   "hasPublicSite",
+   "siteDonateUrl"
+  ],
+  "lines": 254,
+  "pure": true,
+  "source": "maor/src/lib/publicSite.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/pwa.ts",
+  "level": "L6-engine",
+  "name": "pwa.ts",
+  "exports": [
+   "installAvailable",
+   "promptInstall",
+   "isStandalone",
+   "isIos",
+   "registerPwa",
+   "applyOrgManifest"
+  ],
+  "lines": 109,
+  "pure": false,
+  "source": "maor/src/lib/pwa.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/receipt.ts",
+  "level": "L6-engine",
+  "name": "receipt.ts",
+  "exports": [
+   "receiptVerifyCode",
+   "receiptLines",
+   "downloadReceipt",
+   "receiptHtml",
+   "printReceipt",
+   "deliverReceipt",
+   "receiptFmtOf"
+  ],
+  "lines": 237,
+  "pure": false,
+  "source": "maor/src/lib/receipt.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/search.ts",
+  "level": "L6-engine",
+  "name": "search.ts",
+  "exports": [
+   "XLAT",
+   "levenshtein",
+   "scoreTerm",
+   "expandQuery",
+   "smartScore",
+   "smartFilter"
+  ],
+  "lines": 204,
+  "pure": true,
+  "source": "maor/src/lib/search.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/signupWizard.ts",
+  "level": "L6-engine",
+  "name": "signupWizard.ts",
+  "exports": [
+   "WIZARD_INDUSTRIES",
+   "ORG_SIZES",
+   "ORG_NEEDS",
+   "WIZARD_STEPS",
+   "EMPTY_WIZARD",
+   "wizardStepError",
+   "industryLabel",
+   "sizeLabel",
+   "needLabel"
+  ],
+  "lines": 97,
+  "pure": true,
+  "source": "maor/src/lib/signupWizard.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/smtpUrl.ts",
+  "level": "L6-engine",
+  "name": "smtpUrl.ts",
+  "exports": [
+   "SMTP_HOSTS",
+   "smtpHostFor",
+   "composeSmtpUrl"
+  ],
+  "lines": 41,
+  "pure": true,
+  "source": "maor/src/lib/smtpUrl.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/supportChat.ts",
+  "level": "L6-engine",
+  "name": "supportChat.ts",
+  "exports": [
+   "SUPPORT_MSG_MAX",
+   "sanitizeSupportText",
+   "isSendableSupportText",
+   "sortSupportMsgs",
+   "supportMsgTime",
+   "supportDayLabel",
+   "supportPreview",
+   "supportUnread",
+   "sortTeamMsgs",
+   "sortSupportThreads"
+  ],
+  "lines": 116,
+  "pure": false,
+  "source": "maor/src/lib/supportChat.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/supporterAgg.ts",
+  "level": "L6-engine",
+  "name": "supporterAgg.ts",
+  "exports": [
+   "supporterAggregates"
+  ],
+  "lines": 42,
+  "pure": true,
+  "source": "maor/src/lib/supporterAgg.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/supporterPartition.ts",
+  "level": "L6-engine",
+  "name": "supporterPartition.ts",
+  "exports": [
+   "SHARED_SUP_KEY",
+   "supKeyOf",
+   "SUP_KEYED_COLS",
+   "docSkey",
+   "supKeyMapOf",
+   "supAllowedKeys",
+   "stripSupKey",
+   "stripAuditMeta"
+  ],
+  "lines": 88,
+  "pure": true,
+  "source": "maor/src/lib/supporterPartition.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/tel.ts",
+  "level": "L6-engine",
+  "name": "tel.ts",
+  "exports": [
+   "telHref"
+  ],
+  "lines": 15,
+  "pure": true,
+  "source": "maor/src/lib/tel.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/telephony/driver.ts",
+  "level": "L6-engine",
+  "name": "driver.ts",
+  "exports": [
+   "manualDriver",
+   "activeDriver"
+  ],
+  "lines": 48,
+  "pure": true,
+  "source": "maor/src/lib/telephony/driver.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/telephony/engine.ts",
+  "level": "L6-engine",
+  "name": "engine.ts",
+  "exports": [
+   "validateTenant",
+   "buildTenant",
+   "simulateCall",
+   "explainCall",
+   "trustReport",
+   "hebrewClosedWindows",
+   "CITIES"
+  ],
+  "lines": 119,
+  "pure": true,
+  "source": "maor/src/lib/telephony/engine.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/templates.ts",
+  "level": "L6-engine",
+  "name": "templates.ts",
+  "exports": [
+   "TEMPLATE_DEFS",
+   "TEMPLATE_KEYS",
+   "renderTemplate"
+  ],
+  "lines": 67,
+  "pure": true,
+  "source": "maor/src/lib/templates.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/three-scene.ts",
+  "level": "L6-engine",
+  "name": "three-scene.ts",
+  "exports": [
+   "mountBrainScene"
+  ],
+  "lines": 289,
+  "pure": false,
+  "source": "maor/src/lib/three-scene.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/tour.ts",
+  "level": "L6-engine",
+  "name": "tour.ts",
+  "exports": [
+   "TOUR_STOP_LABEL",
+   "TOUR_STEPS",
+   "tourSteps",
+   "tourAdvance",
+   "spotlightBox"
+  ],
+  "lines": 109,
+  "pure": true,
+  "source": "maor/src/lib/tour.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/validate.ts",
+  "level": "L6-engine",
+  "name": "validate.ts",
+  "exports": [
+   "validIsraeliId",
+   "normalizePhone",
+   "formatIsraeliPhone",
+   "normSearch",
+   "normName",
+   "nameSortKey"
+  ],
+  "lines": 91,
+  "pure": true,
+  "source": "maor/src/lib/validate.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/vcardImport.ts",
+  "level": "L6-engine",
+  "name": "vcardImport.ts",
+  "exports": [
+   "decodeQuotedPrintable",
+   "parseVcards",
+   "isJunkContact",
+   "importableContacts",
+   "contactToRow"
+  ],
+  "lines": 266,
+  "pure": true,
+  "source": "maor/src/lib/vcardImport.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/verticalPacks.ts",
+  "level": "L6-engine",
+  "name": "verticalPacks.ts",
+  "exports": [
+   "COMMERCIAL_OFF",
+   "VERTICAL_PACKS",
+   "applyVerticalPack"
+  ],
+  "lines": 495,
+  "pure": false,
+  "source": "maor/src/lib/verticalPacks.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/wa.ts",
+  "level": "L6-engine",
+  "name": "wa.ts",
+  "exports": [
+   "waDigits",
+   "waLink",
+   "waDeliveryText",
+   "waPaymentText",
+   "waBirthdayText"
+  ],
+  "lines": 69,
+  "pure": true,
+  "source": "maor/src/lib/wa.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/warehouse.ts",
+  "level": "L6-engine",
+  "name": "warehouse.ts",
+  "exports": [
+   "warehouseOverview",
+   "warehouseValue"
+  ],
+  "lines": 71,
+  "pure": true,
+  "source": "maor/src/lib/warehouse.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/worktasks.ts",
+  "level": "L6-engine",
+  "name": "worktasks.ts",
+  "exports": [
+   "taskIdentity",
+   "openTasksFor",
+   "doneTodayFor",
+   "taskOverdue",
+   "taskStatsFor",
+   "PRI_LABELS",
+   "overdueContactTaskDrafts"
+  ],
+  "lines": 94,
+  "pure": true,
+  "source": "maor/src/lib/worktasks.ts"
+ },
+ {
+  "id": "L6:maor:src/lib/xlsx.ts",
+  "level": "L6-engine",
+  "name": "xlsx.ts",
+  "exports": [
+   "colRefToIndex",
+   "parseXlsxSheet"
+  ],
+  "lines": 106,
+  "pure": true,
+  "source": "maor/src/lib/xlsx.ts"
+ }
+]

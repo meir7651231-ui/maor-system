@@ -1,0 +1,204 @@
+{
+ "repo": "yoman",
+ "root": "/home/user/yoman-habina",
+ "generatedBy": "machtzev/census v1",
+ "totals": {
+  "files": 27,
+  "lines": 5688,
+  "orphans": 0
+ },
+ "byDomain": {
+  "assets": {
+   "files": 2,
+   "lines": 0
+  },
+  "config": {
+   "files": 3,
+   "lines": 34
+  },
+  "source": {
+   "files": 5,
+   "lines": 749
+  },
+  "knowledge": {
+   "files": 4,
+   "lines": 184
+  },
+  "tokens": {
+   "files": 2,
+   "lines": 356
+  },
+  "data": {
+   "files": 11,
+   "lines": 4365
+  }
+ },
+ "opaqueDirs": [
+  ".git"
+ ],
+ "orphans": [],
+ "files": [
+  {
+   "path": "_a4sec2.png",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "_a4top.png",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": ".github/workflows/verify.yml",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 25
+  },
+  {
+   "path": ".gitignore",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 7
+  },
+  {
+   "path": ".nvmrc",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 2
+  },
+  {
+   "path": "build-artifact.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 54
+  },
+  {
+   "path": "build-pdf.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 36
+  },
+  {
+   "path": "EDITOR-AGENT.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 53
+  },
+  {
+   "path": "engine.js",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 383
+  },
+  {
+   "path": "fonts.css",
+   "bucket": "tokens",
+   "domain": "tokens",
+   "lines": 34
+  },
+  {
+   "path": "index.html",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 28
+  },
+  {
+   "path": "ISSUE-TEMPLATE.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 43
+  },
+  {
+   "path": "issue.personal.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 518
+  },
+  {
+   "path": "issue.public.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 346
+  },
+  {
+   "path": "issues/2026-07-29.personal.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 523
+  },
+  {
+   "path": "issues/2026-07-29.public.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 539
+  },
+  {
+   "path": "issues/2026-07-30.personal.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 619
+  },
+  {
+   "path": "issues/2026-07-30.public.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 567
+  },
+  {
+   "path": "issues/2026-08-13.personal.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 518
+  },
+  {
+   "path": "issues/2026-08-13.public.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 346
+  },
+  {
+   "path": "package.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 15
+  },
+  {
+   "path": "paper.css",
+   "bucket": "tokens",
+   "domain": "tokens",
+   "lines": 322
+  },
+  {
+   "path": "reader-profile.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 29
+  },
+  {
+   "path": "README.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 59
+  },
+  {
+   "path": "schema.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 325
+  },
+  {
+   "path": "sources.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 49
+  },
+  {
+   "path": "verify.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 248
+  }
+ ]
+}

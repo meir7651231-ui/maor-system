@@ -1,0 +1,5803 @@
+{
+ "repo": "maor",
+ "root": "/home/user/maor-system",
+ "generatedBy": "machtzev/census v1",
+ "totals": {
+  "files": 956,
+  "lines": 223770,
+  "orphans": 0
+ },
+ "byDomain": {
+  "config": {
+   "files": 11,
+   "lines": 830
+  },
+  "data": {
+   "files": 26,
+   "lines": 66928
+  },
+  "knowledge": {
+   "files": 134,
+   "lines": 24606
+  },
+  "tests": {
+   "files": 359,
+   "lines": 32722
+  },
+  "server": {
+   "files": 64,
+   "lines": 16083
+  },
+  "source": {
+   "files": 67,
+   "lines": 12357
+  },
+  "assets": {
+   "files": 38,
+   "lines": 28
+  },
+  "tokens": {
+   "files": 6,
+   "lines": 4522
+  },
+  "screens": {
+   "files": 162,
+   "lines": 44435
+  },
+  "engines": {
+   "files": 83,
+   "lines": 15484
+  },
+  "actions": {
+   "files": 4,
+   "lines": 4890
+  },
+  "flags": {
+   "files": 2,
+   "lines": 885
+  }
+ },
+ "opaqueDirs": [
+  ".git",
+  "node_modules"
+ ],
+ "orphans": [],
+ "files": [
+  {
+   "path": ".claude/hooks/session-start.sh",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 42
+  },
+  {
+   "path": ".claude/settings.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 15
+  },
+  {
+   "path": ".githooks/commit-msg",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 23
+  },
+  {
+   "path": ".githooks/pre-commit",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 36
+  },
+  {
+   "path": ".githooks/pre-push",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 45
+  },
+  {
+   "path": ".github/workflows/ci.yml",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 40
+  },
+  {
+   "path": ".github/workflows/deploy-functions.yml",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 195
+  },
+  {
+   "path": ".github/workflows/deploy.yml",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 55
+  },
+  {
+   "path": ".gitignore",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 25
+  },
+  {
+   "path": ".nvmrc",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 2
+  },
+  {
+   "path": ".oxlintrc.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 4
+  },
+  {
+   "path": "CLAUDE.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 113
+  },
+  {
+   "path": "e2e/ayin-names-smoke.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 107
+  },
+  {
+   "path": "e2e/care-center-smoke.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 108
+  },
+  {
+   "path": "e2e/cloud2-truth-test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 65
+  },
+  {
+   "path": "e2e/crosswire-smoke.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 140
+  },
+  {
+   "path": "e2e/demo-link.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 76
+  },
+  {
+   "path": "e2e/demo-walkthrough.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 275
+  },
+  {
+   "path": "e2e/dialer-smoke.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 172
+  },
+  {
+   "path": "e2e/filters-shot.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 113
+  },
+  {
+   "path": "e2e/fixtures/legacy-backup.json",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 114
+  },
+  {
+   "path": "e2e/flagmax-smoke.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 159
+  },
+  {
+   "path": "e2e/full-audit.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 157
+  },
+  {
+   "path": "e2e/home-fullinfo-wire.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 275
+  },
+  {
+   "path": "e2e/home-widgets-wire.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 264
+  },
+  {
+   "path": "e2e/interactivity-check.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 127
+  },
+  {
+   "path": "e2e/launch-readiness.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 197
+  },
+  {
+   "path": "e2e/modal-audit.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 110
+  },
+  {
+   "path": "e2e/nextgen-shots.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 129
+  },
+  {
+   "path": "e2e/portal-shot.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 68
+  },
+  {
+   "path": "e2e/rules-redteam.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 172
+  },
+  {
+   "path": "e2e/signup.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 128
+  },
+  {
+   "path": "e2e/swarm-capture.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 85
+  },
+  {
+   "path": "e2e/toggle-matrix.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 507
+  },
+  {
+   "path": "e2e/vertical-matrix-data.json",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 509
+  },
+  {
+   "path": "e2e/vertical-matrix.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 175
+  },
+  {
+   "path": "e2e/wave5-shots.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 129
+  },
+  {
+   "path": "e2e/wizard-shot.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 55
+  },
+  {
+   "path": "firebase.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 10
+  },
+  {
+   "path": "firestore.indexes.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 20
+  },
+  {
+   "path": "firestore.rules",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 365
+  },
+  {
+   "path": "functions/.env",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 14
+  },
+  {
+   "path": "functions/index.js",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 421
+  },
+  {
+   "path": "functions/nedarim-pull-guard.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 105
+  },
+  {
+   "path": "functions/nedarimDonors.js",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 72
+  },
+  {
+   "path": "functions/nedarimDonors.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 58
+  },
+  {
+   "path": "functions/nedarimHistory.js",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 88
+  },
+  {
+   "path": "functions/nedarimHistory.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 89
+  },
+  {
+   "path": "functions/nedarimPull.js",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 317
+  },
+  {
+   "path": "functions/package-lock.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 2826
+  },
+  {
+   "path": "functions/package.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 13
+  },
+  {
+   "path": "functions/paymentMap.js",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 105
+  },
+  {
+   "path": "functions/paymentMap.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 140
+  },
+  {
+   "path": "functions/solaPull.js",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 545
+  },
+  {
+   "path": "functions/solaReport.js",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 129
+  },
+  {
+   "path": "functions/solaReport.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 209
+  },
+  {
+   "path": "index.html",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 71
+  },
+  {
+   "path": "knowledge/AGENT_CONTEXT.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 38
+  },
+  {
+   "path": "knowledge/ANALYSIS-2026-07-29.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 155
+  },
+  {
+   "path": "knowledge/ARCHITECT-LESSONS.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 45
+  },
+  {
+   "path": "knowledge/ARCHITECT-SIGNOFF-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 21
+  },
+  {
+   "path": "knowledge/atoms/B-SURFACE-ATLAS.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 294
+  },
+  {
+   "path": "knowledge/atoms/b-surface-atoms.json",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 4865
+  },
+  {
+   "path": "knowledge/ATOMS-K0-2026-08-23.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 57
+  },
+  {
+   "path": "knowledge/AUDIT-CLOUD2-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 18
+  },
+  {
+   "path": "knowledge/AUDIT-SHOP-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 24
+  },
+  {
+   "path": "knowledge/AUDIT-SHOP2-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 19
+  },
+  {
+   "path": "knowledge/AUDIT-SHOP3-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 18
+  },
+  {
+   "path": "knowledge/AUDIT-SHOP4-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 21
+  },
+  {
+   "path": "knowledge/AUDIT-SHOP5-CONNECT-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 12
+  },
+  {
+   "path": "knowledge/AUDIT-SHOP6-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 13
+  },
+  {
+   "path": "knowledge/AUDIT-SIGNUP-2026-07-31.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 62
+  },
+  {
+   "path": "knowledge/AUDIT-TZEDAKA-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 22
+  },
+  {
+   "path": "knowledge/AUDIT-UX-PLATFORM-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 13
+  },
+  {
+   "path": "knowledge/BUGHUNT-2026-08-03.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 51
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-ADMINHUB-2026-07-31.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 38
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-CLOUD2-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 56
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-CONNECT-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 48
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-COURSES-2026-08-20.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 120
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-DATALAYER-ENFORCEMENT-2026-08-14.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 96
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-INTEGRATIONS-2026-08-04.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 90
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-INTEGRATIONS-C-2026-08-04.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 65
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-ORGADMIN-2026-08-03.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 101
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-P0-2026-07-29.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 121
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-P1-2026-07-29.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 37
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-P2-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 42
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-P2-MICRO.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 86
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-P3-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 39
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-PLATFORM-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 31
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-SHOP-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 218
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-SHOP2-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 56
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-SHOP3-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 38
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-SHOP4-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 77
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-SHOP5-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 40
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-SHOP6-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 57
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-SHOP7-2026-08-01.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 86
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-SIGNUP-2026-07-31.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 40
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-SIGNUP2-2026-07-31.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 38
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-TZEDAKA-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 211
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-UX-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 43
+  },
+  {
+   "path": "knowledge/BUILD-ORDER-UX-SIMPLE-2026-08-05.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 324
+  },
+  {
+   "path": "knowledge/CLOSED-ADMINHUB-2026-07-31.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 34
+  },
+  {
+   "path": "knowledge/CLOSED-BUGLOOP-2026-08-03.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 48
+  },
+  {
+   "path": "knowledge/CLOSED-CLOUD2-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 62
+  },
+  {
+   "path": "knowledge/CLOSED-COCKPIT-2026-08-20.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 42
+  },
+  {
+   "path": "knowledge/CLOSED-CONNECT-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 32
+  },
+  {
+   "path": "knowledge/CLOSED-DATALAYER-ENFORCE-2026-08-16.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 90
+  },
+  {
+   "path": "knowledge/CLOSED-HOME-MAX-2026-08-20.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 32
+  },
+  {
+   "path": "knowledge/CLOSED-NEDARIM-SYNC-2026-08-19.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 106
+  },
+  {
+   "path": "knowledge/CLOSED-NEXTGEN-2026-08-20.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 159
+  },
+  {
+   "path": "knowledge/CLOSED-NIGHT-2026-08-05.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 49
+  },
+  {
+   "path": "knowledge/CLOSED-ONBOARD-2026-08-05.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 49
+  },
+  {
+   "path": "knowledge/CLOSED-P0-2026-07-29.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 92
+  },
+  {
+   "path": "knowledge/CLOSED-P1-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 131
+  },
+  {
+   "path": "knowledge/CLOSED-P2-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 103
+  },
+  {
+   "path": "knowledge/CLOSED-P3-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 54
+  },
+  {
+   "path": "knowledge/CLOSED-PLATFORM-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 30
+  },
+  {
+   "path": "knowledge/CLOSED-PORTAL-CHAT-2026-08-21.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 73
+  },
+  {
+   "path": "knowledge/CLOSED-PUBLICSITE-2026-08-16.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 73
+  },
+  {
+   "path": "knowledge/CLOSED-ROADMAP-BATCH-2026-08-21.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 84
+  },
+  {
+   "path": "knowledge/CLOSED-SHOP-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 51
+  },
+  {
+   "path": "knowledge/CLOSED-SHOP2-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 46
+  },
+  {
+   "path": "knowledge/CLOSED-SHOP3-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 38
+  },
+  {
+   "path": "knowledge/CLOSED-SHOP4-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 50
+  },
+  {
+   "path": "knowledge/CLOSED-SHOP5-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 41
+  },
+  {
+   "path": "knowledge/CLOSED-SHOP6-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 36
+  },
+  {
+   "path": "knowledge/CLOSED-SHOP7-2026-08-01.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 29
+  },
+  {
+   "path": "knowledge/CLOSED-SIGNUP-2026-07-31.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 44
+  },
+  {
+   "path": "knowledge/CLOSED-SIGNUP2-2026-07-31.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 38
+  },
+  {
+   "path": "knowledge/CLOSED-SOLA-2026-08-23.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 77
+  },
+  {
+   "path": "knowledge/CLOSED-STUDIO-2026-08-16.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 103
+  },
+  {
+   "path": "knowledge/CLOSED-SWARM-2026-08-21.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 37
+  },
+  {
+   "path": "knowledge/CLOSED-TZEDAKA-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 40
+  },
+  {
+   "path": "knowledge/CLOSED-UX-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 45
+  },
+  {
+   "path": "knowledge/CLOSED-UX-SIMPLE-2026-08-06.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 49
+  },
+  {
+   "path": "knowledge/CLOSED-VERTICALS-TERMS-2026-08-03.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 98
+  },
+  {
+   "path": "knowledge/CLOUD2-DESIGN-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 38
+  },
+  {
+   "path": "knowledge/DECISIONS-2026-07-29.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 208
+  },
+  {
+   "path": "knowledge/DESIGN-CLOUD-ENCRYPTION-2026-08-01.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 152
+  },
+  {
+   "path": "knowledge/ECOSYSTEM-MAP-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 50
+  },
+  {
+   "path": "knowledge/FILTERED-NET-PLAYBOOK-2026-08-11.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 106
+  },
+  {
+   "path": "knowledge/HANDOFF-ARCHITECT-2026-07-29.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 125
+  },
+  {
+   "path": "knowledge/INVENTORY-COURSES-2026-08-20.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 169
+  },
+  {
+   "path": "knowledge/INVENTORY-SUPPORTERS-2026-08-19.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 200
+  },
+  {
+   "path": "knowledge/legacy/gaps.json",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 1211
+  },
+  {
+   "path": "knowledge/legacy/inventory.json",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 1711
+  },
+  {
+   "path": "knowledge/legacy/legacy-main-script.js",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 3473
+  },
+  {
+   "path": "knowledge/legacy/legacy-markup.html",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 3029
+  },
+  {
+   "path": "knowledge/LEGACY-GAP-2026-07-29.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 154
+  },
+  {
+   "path": "knowledge/MASTER-PLAN-SHOP-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 27
+  },
+  {
+   "path": "knowledge/NORTH-STAR-2026-08-23.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 39
+  },
+  {
+   "path": "knowledge/ORBIT-BRAND-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 25
+  },
+  {
+   "path": "knowledge/orbit-design/orbit-final.png",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 0
+  },
+  {
+   "path": "knowledge/orbit-design/orbit-logo-clean.png",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 0
+  },
+  {
+   "path": "knowledge/orbit-design/orbit-logo.png",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 0
+  },
+  {
+   "path": "knowledge/orbit-design/orbit-news.html",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 902
+  },
+  {
+   "path": "knowledge/orbit-design/orbit-news.pdf",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 0
+  },
+  {
+   "path": "knowledge/orbit-design/orbit-signup.dc.html",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 717
+  },
+  {
+   "path": "knowledge/orbit-design/ref-callback.png",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 0
+  },
+  {
+   "path": "knowledge/orbit-design/ref-wizard.png",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 0
+  },
+  {
+   "path": "knowledge/ORBIT-PRESSKIT-2026-07-30.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 53
+  },
+  {
+   "path": "knowledge/OWNER-SECURITY-BACKLOG-2026-08-16.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 50
+  },
+  {
+   "path": "knowledge/ROADMAP-100-2026-08-05.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 122
+  },
+  {
+   "path": "knowledge/ROADMAP-COURSES-2026-08-20.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 128
+  },
+  {
+   "path": "knowledge/RUNBOOK-ANTICLONE-2026-08-16.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 44
+  },
+  {
+   "path": "knowledge/RUNBOOK-AUTH-EMAIL-2026-08-09.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 41
+  },
+  {
+   "path": "knowledge/RUNBOOK-CLOUD-ENCRYPTION-2026-08-02.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 61
+  },
+  {
+   "path": "knowledge/RUNBOOK-DONATION-SPLIT-2026-08-14.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 31
+  },
+  {
+   "path": "knowledge/RUNBOOK-FUNCTIONS-2026-08-04.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 119
+  },
+  {
+   "path": "knowledge/RUNBOOK-ORBIT-DOMAIN-2026-08-12.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 43
+  },
+  {
+   "path": "knowledge/SALES-CAPABILITIES-2026-08-23.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 71
+  },
+  {
+   "path": "knowledge/SOLA-PAYMENTS-2026-08-21.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 56
+  },
+  {
+   "path": "knowledge/TELEPHONY-MAOR-INTEGRATION.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 68
+  },
+  {
+   "path": "knowledge/TELEPHONY-PLATFORM-PLAN.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 184
+  },
+  {
+   "path": "knowledge/VISION-LIGHT-2026-08-23.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 136
+  },
+  {
+   "path": "machtzev/census.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 65
+  },
+  {
+   "path": "machtzev/extract/engines.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 18
+  },
+  {
+   "path": "machtzev/extract/flags.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 20
+  },
+  {
+   "path": "machtzev/extract/terms.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 18
+  },
+  {
+   "path": "machtzev/extract/tokens.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 24
+  },
+  {
+   "path": "machtzev/README.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 13
+  },
+  {
+   "path": "machtzev/reconcile.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 34
+  },
+  {
+   "path": "machtzev/registry/atoms-L0-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 333
+  },
+  {
+   "path": "machtzev/registry/atoms-L0-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 2280
+  },
+  {
+   "path": "machtzev/registry/atoms-L0-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 132
+  },
+  {
+   "path": "machtzev/registry/atoms-L4-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
+   "path": "machtzev/registry/atoms-L4-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 2620
+  },
+  {
+   "path": "machtzev/registry/atoms-L4-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
+   "path": "machtzev/registry/atoms-L5-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
+   "path": "machtzev/registry/atoms-L5-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 324
+  },
+  {
+   "path": "machtzev/registry/atoms-L5-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
+   "path": "machtzev/registry/census-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 43908
+  },
+  {
+   "path": "machtzev/registry/census-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 5737
+  },
+  {
+   "path": "machtzev/registry/census-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 204
+  },
+  {
+   "path": "machtzev/run.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 29
+  },
+  {
+   "path": "machtzev/STATUS.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 27
+  },
+  {
+   "path": "package-lock.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 10944
+  },
+  {
+   "path": "package.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 43
+  },
+  {
+   "path": "public/c/demo/config.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 103
+  },
+  {
+   "path": "public/c/maor-hachesed/config.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 127
+  },
+  {
+   "path": "public/CNAME",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 2
+  },
+  {
+   "path": "public/config.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 39
+  },
+  {
+   "path": "public/demo.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
+   "path": "public/favicon.svg",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 1
+  },
+  {
+   "path": "public/fonts/fonts.css",
+   "bucket": "tokens",
+   "domain": "tokens",
+   "lines": 81
+  },
+  {
+   "path": "public/fonts/frank-ruhl-libre-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/fonts/frank-ruhl-libre-latin.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/fonts/heebo-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/fonts/heebo-latin.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/fonts/rubik-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/fonts/rubik-latin.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/fonts/suez-one-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/fonts/suez-one-latin.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/icons/apple-touch-icon.png",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/icons/icon-192.png",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/icons/icon-512.png",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/icons/icon-maskable-512.png",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/icons.svg",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 25
+  },
+  {
+   "path": "public/manifest.webmanifest",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 19
+  },
+  {
+   "path": "public/orbit/orbit-hero.png",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/orbit/orbit-logo.png",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/orbit/orbit-news.20260818.html",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 902
+  },
+  {
+   "path": "public/orbit/orbit-news.html",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 902
+  },
+  {
+   "path": "public/orbit/orbit-tour.webm",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "public/plans.html",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 238
+  },
+  {
+   "path": "public/sw.js",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 87
+  },
+  {
+   "path": "README.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 78
+  },
+  {
+   "path": "scripts/bundle-budget.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 35
+  },
+  {
+   "path": "scripts/gen-icons.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 40
+  },
+  {
+   "path": "scripts/make-demo.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 553
+  },
+  {
+   "path": "scripts/shot-signup-flow.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 99
+  },
+  {
+   "path": "scripts/shot-signup-org.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 47
+  },
+  {
+   "path": "scripts/shot-signup.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 61
+  },
+  {
+   "path": "scripts/shot-site.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 58
+  },
+  {
+   "path": "scripts/shot-verticals.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 78
+  },
+  {
+   "path": "scripts/shot-wizard.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 72
+  },
+  {
+   "path": "src/App.tsx",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 1343
+  },
+  {
+   "path": "src/assets/hero.png",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/assets/vite.svg",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 2
+  },
+  {
+   "path": "src/components/__tests__/adminhub.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 98
+  },
+  {
+   "path": "src/components/__tests__/audit-2026-08-06.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 110
+  },
+  {
+   "path": "src/components/__tests__/calendar-picker.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 33
+  },
+  {
+   "path": "src/components/__tests__/callbtn-telephony.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 55
+  },
+  {
+   "path": "src/components/__tests__/connect-cashbox-ns.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 35
+  },
+  {
+   "path": "src/components/__tests__/connect-crosscare.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 56
+  },
+  {
+   "path": "src/components/__tests__/connect-export.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 93
+  },
+  {
+   "path": "src/components/__tests__/connect-familypanel.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 41
+  },
+  {
+   "path": "src/components/__tests__/connect-palette.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 31
+  },
+  {
+   "path": "src/components/__tests__/demo-sandbox.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 46
+  },
+  {
+   "path": "src/components/__tests__/destructive-grant.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 75
+  },
+  {
+   "path": "src/components/__tests__/gadget-day-ns.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 98
+  },
+  {
+   "path": "src/components/__tests__/incremental.test.tsx",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 68
+  },
+  {
+   "path": "src/components/__tests__/integrations-wave1.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 112
+  },
+  {
+   "path": "src/components/__tests__/integrations-wave3.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 183
+  },
+  {
+   "path": "src/components/__tests__/modal-fit.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 26
+  },
+  {
+   "path": "src/components/__tests__/nedarim-backfill-guard.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 36
+  },
+  {
+   "path": "src/components/__tests__/p3-armdel-shortcuts.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 41
+  },
+  {
+   "path": "src/components/__tests__/picker-phone-card-notes.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 39
+  },
+  {
+   "path": "src/components/__tests__/privacy-mode.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 38
+  },
+  {
+   "path": "src/components/__tests__/shell-align.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 38
+  },
+  {
+   "path": "src/components/__tests__/shell-parity.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 40
+  },
+  {
+   "path": "src/components/__tests__/sticky-back.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 24
+  },
+  {
+   "path": "src/components/__tests__/swarm2-D-polish.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 32
+  },
+  {
+   "path": "src/components/__tests__/version-heal.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 24
+  },
+  {
+   "path": "src/components/__tests__/vertical-matrix-drift.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 37
+  },
+  {
+   "path": "src/components/__tests__/wheel-scroll-trap.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 42
+  },
+  {
+   "path": "src/components/A11yFab.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 194
+  },
+  {
+   "path": "src/components/AdminHub.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 72
+  },
+  {
+   "path": "src/components/AskMaor.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 78
+  },
+  {
+   "path": "src/components/builder/__tests__/optin-keys.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 36
+  },
+  {
+   "path": "src/components/builder/__tests__/optin-registry.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 75
+  },
+  {
+   "path": "src/components/builder/__tests__/optin-wizard.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 82
+  },
+  {
+   "path": "src/components/builder/__tests__/sections.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 100
+  },
+  {
+   "path": "src/components/builder/__tests__/wizard2.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 121
+  },
+  {
+   "path": "src/components/builder/BuilderWizard.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 1910
+  },
+  {
+   "path": "src/components/builder/handoff.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 263
+  },
+  {
+   "path": "src/components/builder/RemoteWizard.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 162
+  },
+  {
+   "path": "src/components/builder/sections.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 99
+  },
+  {
+   "path": "src/components/builder/wizardLib.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 139
+  },
+  {
+   "path": "src/components/calendar/__tests__/event-modal-fold.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 36
+  },
+  {
+   "path": "src/components/calendar/__tests__/heb-default.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 39
+  },
+  {
+   "path": "src/components/calendar/__tests__/next-occur.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 29
+  },
+  {
+   "path": "src/components/calendar/__tests__/p3-calendar.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 51
+  },
+  {
+   "path": "src/components/calendar/__tests__/quick-date.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 29
+  },
+  {
+   "path": "src/components/calendar/__tests__/readonly-board.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 57
+  },
+  {
+   "path": "src/components/calendar/__tests__/upcoming.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 91
+  },
+  {
+   "path": "src/components/calendar/CalendarView.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 661
+  },
+  {
+   "path": "src/components/calendar/calLib.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 737
+  },
+  {
+   "path": "src/components/calendar/DayModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 231
+  },
+  {
+   "path": "src/components/calendar/EventModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 349
+  },
+  {
+   "path": "src/components/calendar/IcsFeedModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 114
+  },
+  {
+   "path": "src/components/CalendarPicker.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 175
+  },
+  {
+   "path": "src/components/CallBtn.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 24
+  },
+  {
+   "path": "src/components/CallerLookup.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 186
+  },
+  {
+   "path": "src/components/cloud/__tests__/signup-screen.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 114
+  },
+  {
+   "path": "src/components/cloud/CallbackModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 114
+  },
+  {
+   "path": "src/components/cloud/ChangePasswordModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 66
+  },
+  {
+   "path": "src/components/cloud/EmployeeSignup.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 87
+  },
+  {
+   "path": "src/components/cloud/LoginScreen.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 294
+  },
+  {
+   "path": "src/components/cloud/NetCheckModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 129
+  },
+  {
+   "path": "src/components/cloud/NewsReader.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 41
+  },
+  {
+   "path": "src/components/cloud/SignupHero.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 58
+  },
+  {
+   "path": "src/components/cloud/SignupWizard.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 209
+  },
+  {
+   "path": "src/components/cloud/VideoModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 44
+  },
+  {
+   "path": "src/components/courses/__tests__/attendance-sheet.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 82
+  },
+  {
+   "path": "src/components/courses/__tests__/broadcast.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 70
+  },
+  {
+   "path": "src/components/courses/__tests__/collection.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 77
+  },
+  {
+   "path": "src/components/courses/__tests__/course-default-dates.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 52
+  },
+  {
+   "path": "src/components/courses/__tests__/course-detail-header.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 17
+  },
+  {
+   "path": "src/components/courses/__tests__/course-img-teacher.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 37
+  },
+  {
+   "path": "src/components/courses/__tests__/course-multiday.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 27
+  },
+  {
+   "path": "src/components/courses/__tests__/course-paid.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 44
+  },
+  {
+   "path": "src/components/courses/__tests__/courses-cockpit.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 88
+  },
+  {
+   "path": "src/components/courses/__tests__/courses-dashboard.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 102
+  },
+  {
+   "path": "src/components/courses/__tests__/courses-paylink.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 38
+  },
+  {
+   "path": "src/components/courses/__tests__/courses-semester.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 74
+  },
+  {
+   "path": "src/components/courses/__tests__/courses-waitlist.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 80
+  },
+  {
+   "path": "src/components/courses/__tests__/enroll-inline.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 53
+  },
+  {
+   "path": "src/components/courses/__tests__/grade-fit.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 60
+  },
+  {
+   "path": "src/components/courses/__tests__/group-remap.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 41
+  },
+  {
+   "path": "src/components/courses/__tests__/inventory-cleanup.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 46
+  },
+  {
+   "path": "src/components/courses/__tests__/makeup-schedule.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 62
+  },
+  {
+   "path": "src/components/courses/__tests__/p3-courses.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 36
+  },
+  {
+   "path": "src/components/courses/__tests__/parent-card.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 85
+  },
+  {
+   "path": "src/components/courses/__tests__/pricing-weighted.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 120
+  },
+  {
+   "path": "src/components/courses/__tests__/punch-confirm.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 61
+  },
+  {
+   "path": "src/components/courses/__tests__/reenroll.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 240
+  },
+  {
+   "path": "src/components/courses/__tests__/retention.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 65
+  },
+  {
+   "path": "src/components/courses/__tests__/rooms-live.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 59
+  },
+  {
+   "path": "src/components/courses/__tests__/smart-filter.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 101
+  },
+  {
+   "path": "src/components/courses/__tests__/teacher-app.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 123
+  },
+  {
+   "path": "src/components/courses/__tests__/wheel-manual.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 42
+  },
+  {
+   "path": "src/components/courses/AbsenceModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 131
+  },
+  {
+   "path": "src/components/courses/AttendanceSheet.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 108
+  },
+  {
+   "path": "src/components/courses/broadcast.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 41
+  },
+  {
+   "path": "src/components/courses/ClassBroadcast.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 68
+  },
+  {
+   "path": "src/components/courses/collection.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 63
+  },
+  {
+   "path": "src/components/courses/CollectionCenter.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 116
+  },
+  {
+   "path": "src/components/courses/CourseDetail.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 1001
+  },
+  {
+   "path": "src/components/courses/CourseFilesField.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 127
+  },
+  {
+   "path": "src/components/courses/CourseForm.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 648
+  },
+  {
+   "path": "src/components/courses/CoursesCockpit.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 125
+  },
+  {
+   "path": "src/components/courses/CoursesDashboard.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 185
+  },
+  {
+   "path": "src/components/courses/CoursesView.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 661
+  },
+  {
+   "path": "src/components/courses/dashboard.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 135
+  },
+  {
+   "path": "src/components/courses/EnrollModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 464
+  },
+  {
+   "path": "src/components/courses/lib.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 598
+  },
+  {
+   "path": "src/components/courses/ManageModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 586
+  },
+  {
+   "path": "src/components/courses/ops.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 69
+  },
+  {
+   "path": "src/components/courses/parent.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 112
+  },
+  {
+   "path": "src/components/courses/ParentCard.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 129
+  },
+  {
+   "path": "src/components/courses/reenroll-lib.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 344
+  },
+  {
+   "path": "src/components/courses/ReenrollModals.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 170
+  },
+  {
+   "path": "src/components/courses/ReenrollView.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 349
+  },
+  {
+   "path": "src/components/courses/retention.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 67
+  },
+  {
+   "path": "src/components/courses/RetentionCenter.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 138
+  },
+  {
+   "path": "src/components/courses/teacher.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 96
+  },
+  {
+   "path": "src/components/courses/TeacherPanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 151
+  },
+  {
+   "path": "src/components/DemoDrop.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 114
+  },
+  {
+   "path": "src/components/DemoRibbon.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 85
+  },
+  {
+   "path": "src/components/dialer/DialerModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 535
+  },
+  {
+   "path": "src/components/diary/__tests__/absence-ux.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 56
+  },
+  {
+   "path": "src/components/diary/__tests__/block-reason.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 38
+  },
+  {
+   "path": "src/components/diary/__tests__/makeup-eligibility.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 30
+  },
+  {
+   "path": "src/components/diary/AbsenceHistoryModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 59
+  },
+  {
+   "path": "src/components/diary/AttendancePanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 157
+  },
+  {
+   "path": "src/components/diary/DiaryAbsenceModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 136
+  },
+  {
+   "path": "src/components/diary/DiaryView.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 295
+  },
+  {
+   "path": "src/components/diary/lib.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 304
+  },
+  {
+   "path": "src/components/ErrorBoundary.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 38
+  },
+  {
+   "path": "src/components/families/__tests__/cardops.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 105
+  },
+  {
+   "path": "src/components/families/__tests__/cred-threshold.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 58
+  },
+  {
+   "path": "src/components/families/__tests__/marital-column.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 42
+  },
+  {
+   "path": "src/components/families/__tests__/p3-families.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 47
+  },
+  {
+   "path": "src/components/families/__tests__/waitlist-participation.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 94
+  },
+  {
+   "path": "src/components/families/DedupModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 218
+  },
+  {
+   "path": "src/components/families/FamiliesView.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 661
+  },
+  {
+   "path": "src/components/families/FamilyDetail.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 497
+  },
+  {
+   "path": "src/components/families/FamilyFinder.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 203
+  },
+  {
+   "path": "src/components/families/FamilyForm.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 338
+  },
+  {
+   "path": "src/components/families/FamilyPanels.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 640
+  },
+  {
+   "path": "src/components/families/JoinModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 452
+  },
+  {
+   "path": "src/components/families/lib.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 232
+  },
+  {
+   "path": "src/components/families/MemberForm.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 205
+  },
+  {
+   "path": "src/components/families/ReenrollFamilyPanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 132
+  },
+  {
+   "path": "src/components/GuideModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 65
+  },
+  {
+   "path": "src/components/HebDateInput.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 174
+  },
+  {
+   "path": "src/components/home/__tests__/attn-gates.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 86
+  },
+  {
+   "path": "src/components/home/__tests__/birthday-consistency.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 62
+  },
+  {
+   "path": "src/components/home/__tests__/home-atrisk.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 39
+  },
+  {
+   "path": "src/components/home/__tests__/home-masonry.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 33
+  },
+  {
+   "path": "src/components/home/__tests__/home-stretch-void.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 44
+  },
+  {
+   "path": "src/components/home/__tests__/home-wiring.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 373
+  },
+  {
+   "path": "src/components/home/__tests__/homeData.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 243
+  },
+  {
+   "path": "src/components/home/__tests__/metrics.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 137
+  },
+  {
+   "path": "src/components/home/__tests__/module-guard-nav.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 48
+  },
+  {
+   "path": "src/components/home/__tests__/morning-brief.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 73
+  },
+  {
+   "path": "src/components/home/BoardEdit.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 312
+  },
+  {
+   "path": "src/components/home/homeData.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 995
+  },
+  {
+   "path": "src/components/home/HomeView.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 287
+  },
+  {
+   "path": "src/components/home/morningBrief.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 96
+  },
+  {
+   "path": "src/components/home/MorningBrief.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 92
+  },
+  {
+   "path": "src/components/home/widgets.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 2201
+  },
+  {
+   "path": "src/components/incremental.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 95
+  },
+  {
+   "path": "src/components/lock/CloudUnlockScreen.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 107
+  },
+  {
+   "path": "src/components/lock/EncUnlockScreen.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 106
+  },
+  {
+   "path": "src/components/lock/LockScreen.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 200
+  },
+  {
+   "path": "src/components/palette/__tests__/palette-land.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 26
+  },
+  {
+   "path": "src/components/palette/CommandPalette.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 963
+  },
+  {
+   "path": "src/components/PhotoField.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 68
+  },
+  {
+   "path": "src/components/platform/__tests__/grantable-features.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 71
+  },
+  {
+   "path": "src/components/platform/__tests__/manager-groups.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 27
+  },
+  {
+   "path": "src/components/platform/__tests__/manager-lockout.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 38
+  },
+  {
+   "path": "src/components/platform/__tests__/platform.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 388
+  },
+  {
+   "path": "src/components/platform/__tests__/role-presets.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 60
+  },
+  {
+   "path": "src/components/platform/__tests__/team-intel.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 161
+  },
+  {
+   "path": "src/components/platform/lib.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 276
+  },
+  {
+   "path": "src/components/platform/ManagerPanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 637
+  },
+  {
+   "path": "src/components/platform/PlatformPanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 661
+  },
+  {
+   "path": "src/components/platform/rolePresets.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 83
+  },
+  {
+   "path": "src/components/platform/teamIntel.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 187
+  },
+  {
+   "path": "src/components/public/__tests__/portal.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 115
+  },
+  {
+   "path": "src/components/public/assets/hero.mp4",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/assistant-300-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/assistant-300-latin.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/assistant-400-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/assistant-400-latin.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/assistant-600-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/assistant-600-latin.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/assistant-700-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/assistant-700-latin.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/playpensanshebrew-400-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/playpensanshebrew-600-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/rubik-500-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/rubik-500-latin.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/rubik-700-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/rubik-700-latin.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/rubik-800-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/rubik-800-latin.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/varelaround-400-hebrew.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/fonts/varelaround-400-latin.woff2",
+   "bucket": "asset",
+   "domain": "assets",
+   "lines": 0
+  },
+  {
+   "path": "src/components/public/portal.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 132
+  },
+  {
+   "path": "src/components/public/PortalEntry.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 186
+  },
+  {
+   "path": "src/components/public/public-site-fonts.css",
+   "bucket": "tokens",
+   "domain": "tokens",
+   "lines": 20
+  },
+  {
+   "path": "src/components/public/public-site.css",
+   "bucket": "tokens",
+   "domain": "tokens",
+   "lines": 293
+  },
+  {
+   "path": "src/components/public/PublicSite.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 764
+  },
+  {
+   "path": "src/components/reports/__tests__/management.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 155
+  },
+  {
+   "path": "src/components/reports/csv.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 38
+  },
+  {
+   "path": "src/components/reports/CustomExport.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 199
+  },
+  {
+   "path": "src/components/reports/lib.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 91
+  },
+  {
+   "path": "src/components/reports/management.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 144
+  },
+  {
+   "path": "src/components/reports/parts.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 239
+  },
+  {
+   "path": "src/components/reports/prefs.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 103
+  },
+  {
+   "path": "src/components/reports/ReportsView.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 169
+  },
+  {
+   "path": "src/components/reports/sections1.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 200
+  },
+  {
+   "path": "src/components/reports/sections2.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 262
+  },
+  {
+   "path": "src/components/settings/__tests__/donation-split-activate.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 62
+  },
+  {
+   "path": "src/components/settings/__tests__/employee-mgmt-enable.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 32
+  },
+  {
+   "path": "src/components/settings/__tests__/import-json-dedup.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 28
+  },
+  {
+   "path": "src/components/settings/__tests__/native-dialogs.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 47
+  },
+  {
+   "path": "src/components/settings/__tests__/settings-groups.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 102
+  },
+  {
+   "path": "src/components/settings/__tests__/sup-enforce-activate.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 72
+  },
+  {
+   "path": "src/components/settings/__tests__/uizoom-overflow.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 30
+  },
+  {
+   "path": "src/components/settings/a11yApply.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 78
+  },
+  {
+   "path": "src/components/settings/AccessSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 109
+  },
+  {
+   "path": "src/components/settings/AuditSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 156
+  },
+  {
+   "path": "src/components/settings/BackupSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 359
+  },
+  {
+   "path": "src/components/settings/CloudEncryptionSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 186
+  },
+  {
+   "path": "src/components/settings/DonationSplitSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 164
+  },
+  {
+   "path": "src/components/settings/DonorImportSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 120
+  },
+  {
+   "path": "src/components/settings/EmployeeMgmtSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 97
+  },
+  {
+   "path": "src/components/settings/EncryptionSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 234
+  },
+  {
+   "path": "src/components/settings/ExportSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 227
+  },
+  {
+   "path": "src/components/settings/helpers.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 38
+  },
+  {
+   "path": "src/components/settings/ImportSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 1093
+  },
+  {
+   "path": "src/components/settings/lib.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 98
+  },
+  {
+   "path": "src/components/settings/OrgSecretsSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 170
+  },
+  {
+   "path": "src/components/settings/RoomsSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 233
+  },
+  {
+   "path": "src/components/settings/SecuritySection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 181
+  },
+  {
+   "path": "src/components/settings/SettingsView.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 566
+  },
+  {
+   "path": "src/components/settings/SupEnforceSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 85
+  },
+  {
+   "path": "src/components/settings/TeachersSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 388
+  },
+  {
+   "path": "src/components/settings/ThemeSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 208
+  },
+  {
+   "path": "src/components/shop/__tests__/expiry.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 60
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-assign.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 43
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-bulk.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 127
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-calendar.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 38
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-cards.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 42
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-coupon.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 86
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-diary-cashbox.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 67
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-filter.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 115
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-holidays.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 114
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-home.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 26
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-items.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 132
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-lib.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 238
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-meeting-room.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 86
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-meetings-soon.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 55
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-merge.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 83
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-restock.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 52
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-shell.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 27
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-sreceipt.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 103
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-stock.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 80
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-ux.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 39
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-void.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 115
+  },
+  {
+   "path": "src/components/shop/__tests__/shop-waits.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 66
+  },
+  {
+   "path": "src/components/shop/AssignmentForm.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 274
+  },
+  {
+   "path": "src/components/shop/AssignmentsTab.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 376
+  },
+  {
+   "path": "src/components/shop/BulkAssignModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 188
+  },
+  {
+   "path": "src/components/shop/CalendarTab.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 209
+  },
+  {
+   "path": "src/components/shop/CatalogTab.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 149
+  },
+  {
+   "path": "src/components/shop/CriteriaPanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 110
+  },
+  {
+   "path": "src/components/shop/HomeTab.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 211
+  },
+  {
+   "path": "src/components/shop/IntakePanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 90
+  },
+  {
+   "path": "src/components/shop/ItemsPanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 315
+  },
+  {
+   "path": "src/components/shop/lib.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 696
+  },
+  {
+   "path": "src/components/shop/ProductForm.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 232
+  },
+  {
+   "path": "src/components/shop/RedeemModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 166
+  },
+  {
+   "path": "src/components/shop/ShopEventModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 147
+  },
+  {
+   "path": "src/components/shop/ShopFamilyPanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 57
+  },
+  {
+   "path": "src/components/shop/ShopView.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 56
+  },
+  {
+   "path": "src/components/shop/ShowcaseTab.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 112
+  },
+  {
+   "path": "src/components/shop/StockModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 81
+  },
+  {
+   "path": "src/components/shop/StoresPanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 97
+  },
+  {
+   "path": "src/components/shop7/__tests__/shop7-lib.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 115
+  },
+  {
+   "path": "src/components/shop7/lib.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 162
+  },
+  {
+   "path": "src/components/shop7/Shop7FamilyPanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 38
+  },
+  {
+   "path": "src/components/shop7/Shop7View.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 465
+  },
+  {
+   "path": "src/components/shop8/__tests__/shop8-lib.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 120
+  },
+  {
+   "path": "src/components/shop8/lib.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 144
+  },
+  {
+   "path": "src/components/SignaturePad.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 96
+  },
+  {
+   "path": "src/components/support/SupportChat.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 434
+  },
+  {
+   "path": "src/components/supporters/__tests__/ask-maor.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 91
+  },
+  {
+   "path": "src/components/supporters/__tests__/atrisk-filter.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 67
+  },
+  {
+   "path": "src/components/supporters/__tests__/ayin-board-default.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 20
+  },
+  {
+   "path": "src/components/supporters/__tests__/ayin-note.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 27
+  },
+  {
+   "path": "src/components/supporters/__tests__/card-wiring.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 32
+  },
+  {
+   "path": "src/components/supporters/__tests__/clear-purpose.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 34
+  },
+  {
+   "path": "src/components/supporters/__tests__/cockpit-export.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 68
+  },
+  {
+   "path": "src/components/supporters/__tests__/cockpit-rail.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 101
+  },
+  {
+   "path": "src/components/supporters/__tests__/cockpit-wiring.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 45
+  },
+  {
+   "path": "src/components/supporters/__tests__/cockpit.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 163
+  },
+  {
+   "path": "src/components/supporters/__tests__/commands.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 106
+  },
+  {
+   "path": "src/components/supporters/__tests__/constellation.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 79
+  },
+  {
+   "path": "src/components/supporters/__tests__/contacts-filter.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 43
+  },
+  {
+   "path": "src/components/supporters/__tests__/designation-surfaces.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 29
+  },
+  {
+   "path": "src/components/supporters/__tests__/designation-visibility.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 193
+  },
+  {
+   "path": "src/components/supporters/__tests__/doncal-entries.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 79
+  },
+  {
+   "path": "src/components/supporters/__tests__/galaxy-wiring.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 37
+  },
+  {
+   "path": "src/components/supporters/__tests__/heb-timing.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 87
+  },
+  {
+   "path": "src/components/supporters/__tests__/hok.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 59
+  },
+  {
+   "path": "src/components/supporters/__tests__/hokBulkWire.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 29
+  },
+  {
+   "path": "src/components/supporters/__tests__/intel-wiring.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 91
+  },
+  {
+   "path": "src/components/supporters/__tests__/intel.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 126
+  },
+  {
+   "path": "src/components/supporters/__tests__/intelExport.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 49
+  },
+  {
+   "path": "src/components/supporters/__tests__/interactivity.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 87
+  },
+  {
+   "path": "src/components/supporters/__tests__/kpi-coherence.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 113
+  },
+  {
+   "path": "src/components/supporters/__tests__/local-today.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 68
+  },
+  {
+   "path": "src/components/supporters/__tests__/next-note.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 37
+  },
+  {
+   "path": "src/components/supporters/__tests__/nextgen-term-guard.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 40
+  },
+  {
+   "path": "src/components/supporters/__tests__/oneflow.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 52
+  },
+  {
+   "path": "src/components/supporters/__tests__/p3-supporter-card.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 66
+  },
+  {
+   "path": "src/components/supporters/__tests__/p3-supporters-view.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 196
+  },
+  {
+   "path": "src/components/supporters/__tests__/pareto.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 70
+  },
+  {
+   "path": "src/components/supporters/__tests__/portfolio.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 103
+  },
+  {
+   "path": "src/components/supporters/__tests__/qualitySwarm.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 52
+  },
+  {
+   "path": "src/components/supporters/__tests__/quietHours.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 48
+  },
+  {
+   "path": "src/components/supporters/__tests__/ranks.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 70
+  },
+  {
+   "path": "src/components/supporters/__tests__/rebrand-wiring.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 29
+  },
+  {
+   "path": "src/components/supporters/__tests__/retention.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 75
+  },
+  {
+   "path": "src/components/supporters/__tests__/seasonality.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 89
+  },
+  {
+   "path": "src/components/supporters/__tests__/signals.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 93
+  },
+  {
+   "path": "src/components/supporters/__tests__/sola-wire.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 67
+  },
+  {
+   "path": "src/components/supporters/__tests__/sponsor.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 26
+  },
+  {
+   "path": "src/components/supporters/__tests__/supdon-events.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 100
+  },
+  {
+   "path": "src/components/supporters/__tests__/supporter-import-preview.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 45
+  },
+  {
+   "path": "src/components/supporters/__tests__/supporter-xlsx-import.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 151
+  },
+  {
+   "path": "src/components/supporters/__tests__/tierMigration.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 96
+  },
+  {
+   "path": "src/components/supporters/__tests__/timemachine.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 106
+  },
+  {
+   "path": "src/components/supporters/__tests__/universe3d.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 53
+  },
+  {
+   "path": "src/components/supporters/__tests__/view-switcher.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 32
+  },
+  {
+   "path": "src/components/supporters/askMaor.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 150
+  },
+  {
+   "path": "src/components/supporters/AyinBoard.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 250
+  },
+  {
+   "path": "src/components/supporters/AyinCard.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 602
+  },
+  {
+   "path": "src/components/supporters/AyinNamesBoard.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 126
+  },
+  {
+   "path": "src/components/supporters/cockpit.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 324
+  },
+  {
+   "path": "src/components/supporters/CommandPalette.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 123
+  },
+  {
+   "path": "src/components/supporters/commands.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 102
+  },
+  {
+   "path": "src/components/supporters/constellation.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 94
+  },
+  {
+   "path": "src/components/supporters/DonationCalendar.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 294
+  },
+  {
+   "path": "src/components/supporters/DonationModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 189
+  },
+  {
+   "path": "src/components/supporters/hebTiming.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 112
+  },
+  {
+   "path": "src/components/supporters/HokBulkModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 114
+  },
+  {
+   "path": "src/components/supporters/IncomingPayments.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 478
+  },
+  {
+   "path": "src/components/supporters/intel.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 203
+  },
+  {
+   "path": "src/components/supporters/intelExport.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 51
+  },
+  {
+   "path": "src/components/supporters/lib.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 751
+  },
+  {
+   "path": "src/components/supporters/NedarimSyncModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 264
+  },
+  {
+   "path": "src/components/supporters/OneFlow.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 143
+  },
+  {
+   "path": "src/components/supporters/pareto.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 80
+  },
+  {
+   "path": "src/components/supporters/portfolio.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 157
+  },
+  {
+   "path": "src/components/supporters/quietHours.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 71
+  },
+  {
+   "path": "src/components/supporters/ranks.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 67
+  },
+  {
+   "path": "src/components/supporters/retention.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 62
+  },
+  {
+   "path": "src/components/supporters/seasonality.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 112
+  },
+  {
+   "path": "src/components/supporters/segments.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 142
+  },
+  {
+   "path": "src/components/supporters/signals.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 119
+  },
+  {
+   "path": "src/components/supporters/SupDedupModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 178
+  },
+  {
+   "path": "src/components/supporters/SupporterCard.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 169
+  },
+  {
+   "path": "src/components/supporters/SupporterDetail.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 823
+  },
+  {
+   "path": "src/components/supporters/SupporterForm.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 171
+  },
+  {
+   "path": "src/components/supporters/SupporterImport.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 206
+  },
+  {
+   "path": "src/components/supporters/SupporterPhotos.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 103
+  },
+  {
+   "path": "src/components/supporters/SupportersCockpit.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 478
+  },
+  {
+   "path": "src/components/supporters/SupportersGalaxy.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 265
+  },
+  {
+   "path": "src/components/supporters/SupportersIntel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 648
+  },
+  {
+   "path": "src/components/supporters/SupportersKpiStrip.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 110
+  },
+  {
+   "path": "src/components/supporters/SupportersUniverse3D.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 245
+  },
+  {
+   "path": "src/components/supporters/SupportersView.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 1416
+  },
+  {
+   "path": "src/components/supporters/SupportersViewSwitcher.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 55
+  },
+  {
+   "path": "src/components/supporters/tierMigration.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 113
+  },
+  {
+   "path": "src/components/supporters/timemachine.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 127
+  },
+  {
+   "path": "src/components/supporters/universe3d.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 85
+  },
+  {
+   "path": "src/components/supporters/WarehouseBoard.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 91
+  },
+  {
+   "path": "src/components/telephony/__tests__/config-sanitize.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 132
+  },
+  {
+   "path": "src/components/telephony/__tests__/lib.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 119
+  },
+  {
+   "path": "src/components/telephony/lib.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 206
+  },
+  {
+   "path": "src/components/telephony/TelephonyPanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 370
+  },
+  {
+   "path": "src/components/timer/__tests__/cash-smart.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 87
+  },
+  {
+   "path": "src/components/timer/__tests__/cashbox-cart.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 28
+  },
+  {
+   "path": "src/components/timer/__tests__/cashbox-gal1-ui.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 32
+  },
+  {
+   "path": "src/components/timer/__tests__/cashbox-gal2-ui.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 43
+  },
+  {
+   "path": "src/components/timer/__tests__/cashLib.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 72
+  },
+  {
+   "path": "src/components/timer/BodyMap.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 212
+  },
+  {
+   "path": "src/components/timer/cashLib.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 166
+  },
+  {
+   "path": "src/components/timer/CashRegister.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 862
+  },
+  {
+   "path": "src/components/timer/MoneyTimer.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 325
+  },
+  {
+   "path": "src/components/TourOverlay.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 157
+  },
+  {
+   "path": "src/components/tzedaka/__tests__/tz-calendar.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 25
+  },
+  {
+   "path": "src/components/tzedaka/__tests__/tz-cards.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 31
+  },
+  {
+   "path": "src/components/tzedaka/__tests__/tz-lib.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 193
+  },
+  {
+   "path": "src/components/tzedaka/__tests__/tz-shell.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 27
+  },
+  {
+   "path": "src/components/tzedaka/__tests__/tz-ux.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 91
+  },
+  {
+   "path": "src/components/tzedaka/BoxForm.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 158
+  },
+  {
+   "path": "src/components/tzedaka/CalendarTab.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 177
+  },
+  {
+   "path": "src/components/tzedaka/CollectModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 74
+  },
+  {
+   "path": "src/components/tzedaka/CoordinatorCard.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 279
+  },
+  {
+   "path": "src/components/tzedaka/CoordinatorForm.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 211
+  },
+  {
+   "path": "src/components/tzedaka/CoordinatorsTab.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 169
+  },
+  {
+   "path": "src/components/tzedaka/HomeTab.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 247
+  },
+  {
+   "path": "src/components/tzedaka/lib.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 307
+  },
+  {
+   "path": "src/components/tzedaka/ShowcaseTab.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 129
+  },
+  {
+   "path": "src/components/tzedaka/TzedakaView.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 62
+  },
+  {
+   "path": "src/components/tzedaka/TzEventModal.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 119
+  },
+  {
+   "path": "src/components/tzedaka/TzFamilyPanel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 45
+  },
+  {
+   "path": "src/components/ui.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 288
+  },
+  {
+   "path": "src/components/useArmed.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 41
+  },
+  {
+   "path": "src/components/WaBtn.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 25
+  },
+  {
+   "path": "src/components/wall/ImpactWall.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 433
+  },
+  {
+   "path": "src/components/wall/wallData.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 453
+  },
+  {
+   "path": "src/components/wheel/CourseWheel.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 506
+  },
+  {
+   "path": "src/components/wheel/DayGate.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 115
+  },
+  {
+   "path": "src/lib/__tests__/a11y.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 69
+  },
+  {
+   "path": "src/lib/__tests__/admin-lock.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 25
+  },
+  {
+   "path": "src/lib/__tests__/adversarial.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 0
+  },
+  {
+   "path": "src/lib/__tests__/adversarial2.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 112
+  },
+  {
+   "path": "src/lib/__tests__/age.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 41
+  },
+  {
+   "path": "src/lib/__tests__/annual-report.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 67
+  },
+  {
+   "path": "src/lib/__tests__/anticlone.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 57
+  },
+  {
+   "path": "src/lib/__tests__/audit-extra.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 90
+  },
+  {
+   "path": "src/lib/__tests__/audit.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 87
+  },
+  {
+   "path": "src/lib/__tests__/ayin-sheet.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 201
+  },
+  {
+   "path": "src/lib/__tests__/ayin.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 386
+  },
+  {
+   "path": "src/lib/__tests__/bundle-light.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 106
+  },
+  {
+   "path": "src/lib/__tests__/callerId.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 167
+  },
+  {
+   "path": "src/lib/__tests__/cloud-config.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 104
+  },
+  {
+   "path": "src/lib/__tests__/cloud-counter-sync.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 33
+  },
+  {
+   "path": "src/lib/__tests__/cloud-crypto.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 86
+  },
+  {
+   "path": "src/lib/__tests__/cloud-merge.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 128
+  },
+  {
+   "path": "src/lib/__tests__/cloud-meta-counter-safe.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 34
+  },
+  {
+   "path": "src/lib/__tests__/cloud-paths.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 51
+  },
+  {
+   "path": "src/lib/__tests__/cloud-signup.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 193
+  },
+  {
+   "path": "src/lib/__tests__/cloud.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 136
+  },
+  {
+   "path": "src/lib/__tests__/config-identity.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 58
+  },
+  {
+   "path": "src/lib/__tests__/connect-guide-tour.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 29
+  },
+  {
+   "path": "src/lib/__tests__/courseDaily.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 188
+  },
+  {
+   "path": "src/lib/__tests__/coursesLib.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 74
+  },
+  {
+   "path": "src/lib/__tests__/cross-surface.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 218
+  },
+  {
+   "path": "src/lib/__tests__/crypto.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 107
+  },
+  {
+   "path": "src/lib/__tests__/csv-injection.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 32
+  },
+  {
+   "path": "src/lib/__tests__/csvx.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 214
+  },
+  {
+   "path": "src/lib/__tests__/custom-export-full.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 197
+  },
+  {
+   "path": "src/lib/__tests__/customExport.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 127
+  },
+  {
+   "path": "src/lib/__tests__/date-util.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 49
+  },
+  {
+   "path": "src/lib/__tests__/dedup-fields.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 72
+  },
+  {
+   "path": "src/lib/__tests__/dedup.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 126
+  },
+  {
+   "path": "src/lib/__tests__/demo-fresh.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 45
+  },
+  {
+   "path": "src/lib/__tests__/demoCleanup.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 68
+  },
+  {
+   "path": "src/lib/__tests__/dialer.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 250
+  },
+  {
+   "path": "src/lib/__tests__/diaryLib.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 59
+  },
+  {
+   "path": "src/lib/__tests__/donationPartition.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 141
+  },
+  {
+   "path": "src/lib/__tests__/export-rows.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 70
+  },
+  {
+   "path": "src/lib/__tests__/exportGate.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 35
+  },
+  {
+   "path": "src/lib/__tests__/families-import.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 154
+  },
+  {
+   "path": "src/lib/__tests__/features.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 230
+  },
+  {
+   "path": "src/lib/__tests__/filters.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 85
+  },
+  {
+   "path": "src/lib/__tests__/firestore-rules-leads.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 56
+  },
+  {
+   "path": "src/lib/__tests__/guide.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 69
+  },
+  {
+   "path": "src/lib/__tests__/hebdate-consistency.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 52
+  },
+  {
+   "path": "src/lib/__tests__/hebdate.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 101
+  },
+  {
+   "path": "src/lib/__tests__/hebparts-cache.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 30
+  },
+  {
+   "path": "src/lib/__tests__/hebrew-recurrence.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 238
+  },
+  {
+   "path": "src/lib/__tests__/hebrew.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 55
+  },
+  {
+   "path": "src/lib/__tests__/hebrewNumber.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 81
+  },
+  {
+   "path": "src/lib/__tests__/holidays-coverage.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 89
+  },
+  {
+   "path": "src/lib/__tests__/ics-feed.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 60
+  },
+  {
+   "path": "src/lib/__tests__/ics.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 181
+  },
+  {
+   "path": "src/lib/__tests__/ids.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 23
+  },
+  {
+   "path": "src/lib/__tests__/image-pick.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 30
+  },
+  {
+   "path": "src/lib/__tests__/installKit.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 36
+  },
+  {
+   "path": "src/lib/__tests__/lock.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 57
+  },
+  {
+   "path": "src/lib/__tests__/mapslink.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 65
+  },
+  {
+   "path": "src/lib/__tests__/name-sort-key.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 79
+  },
+  {
+   "path": "src/lib/__tests__/nedarim-hok.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 183
+  },
+  {
+   "path": "src/lib/__tests__/nedarim-merge.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 340
+  },
+  {
+   "path": "src/lib/__tests__/nedarim-sync.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 285
+  },
+  {
+   "path": "src/lib/__tests__/netcheck.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 69
+  },
+  {
+   "path": "src/lib/__tests__/night-bundle.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 73
+  },
+  {
+   "path": "src/lib/__tests__/normname-consistency.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 47
+  },
+  {
+   "path": "src/lib/__tests__/orbitTheme.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 53
+  },
+  {
+   "path": "src/lib/__tests__/org-secrets.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 46
+  },
+  {
+   "path": "src/lib/__tests__/p3-roundtrip.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 47
+  },
+  {
+   "path": "src/lib/__tests__/palette-groups.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 47
+  },
+  {
+   "path": "src/lib/__tests__/password-reset.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 51
+  },
+  {
+   "path": "src/lib/__tests__/persist.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 140
+  },
+  {
+   "path": "src/lib/__tests__/photoGallery.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 49
+  },
+  {
+   "path": "src/lib/__tests__/pricing.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 78
+  },
+  {
+   "path": "src/lib/__tests__/projectSchedule.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 47
+  },
+  {
+   "path": "src/lib/__tests__/publicSite.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 263
+  },
+  {
+   "path": "src/lib/__tests__/pwa.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 68
+  },
+  {
+   "path": "src/lib/__tests__/receipt-format.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 85
+  },
+  {
+   "path": "src/lib/__tests__/receipt-summary.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 66
+  },
+  {
+   "path": "src/lib/__tests__/receipt.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 114
+  },
+  {
+   "path": "src/lib/__tests__/roles.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 52
+  },
+  {
+   "path": "src/lib/__tests__/search.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 156
+  },
+  {
+   "path": "src/lib/__tests__/security-swarm-16-8.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 60
+  },
+  {
+   "path": "src/lib/__tests__/signup-wizard.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 84
+  },
+  {
+   "path": "src/lib/__tests__/smtpUrl.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 57
+  },
+  {
+   "path": "src/lib/__tests__/sup-dedup.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 175
+  },
+  {
+   "path": "src/lib/__tests__/support-chat.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 126
+  },
+  {
+   "path": "src/lib/__tests__/supporter-agg.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 52
+  },
+  {
+   "path": "src/lib/__tests__/supporter-enforce-sync.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 52
+  },
+  {
+   "path": "src/lib/__tests__/supporterImport.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 82
+  },
+  {
+   "path": "src/lib/__tests__/supporterPartition.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 75
+  },
+  {
+   "path": "src/lib/__tests__/templates-verify.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 107
+  },
+  {
+   "path": "src/lib/__tests__/term-propagation.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 109
+  },
+  {
+   "path": "src/lib/__tests__/three-scene.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 37
+  },
+  {
+   "path": "src/lib/__tests__/tour.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 59
+  },
+  {
+   "path": "src/lib/__tests__/validate.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 88
+  },
+  {
+   "path": "src/lib/__tests__/vcardImport.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 132
+  },
+  {
+   "path": "src/lib/__tests__/vertical-packs.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 259
+  },
+  {
+   "path": "src/lib/__tests__/vertical-term-leaks.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 72
+  },
+  {
+   "path": "src/lib/__tests__/wa.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 80
+  },
+  {
+   "path": "src/lib/__tests__/warehouse.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 56
+  },
+  {
+   "path": "src/lib/__tests__/worktasks.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 97
+  },
+  {
+   "path": "src/lib/a11y.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 59
+  },
+  {
+   "path": "src/lib/ai.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 87
+  },
+  {
+   "path": "src/lib/annualReport.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 117
+  },
+  {
+   "path": "src/lib/appCheck.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 39
+  },
+  {
+   "path": "src/lib/audit.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 227
+  },
+  {
+   "path": "src/lib/ayin.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 546
+  },
+  {
+   "path": "src/lib/callerId.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 118
+  },
+  {
+   "path": "src/lib/cloud-diff.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 187
+  },
+  {
+   "path": "src/lib/cloud-merge.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 141
+  },
+  {
+   "path": "src/lib/cloud.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 771
+  },
+  {
+   "path": "src/lib/cloudConfig.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 432
+  },
+  {
+   "path": "src/lib/cloudCrypto.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 77
+  },
+  {
+   "path": "src/lib/config.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 915
+  },
+  {
+   "path": "src/lib/courseDaily.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 92
+  },
+  {
+   "path": "src/lib/crypto.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 139
+  },
+  {
+   "path": "src/lib/csvx.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 160
+  },
+  {
+   "path": "src/lib/customExport.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 323
+  },
+  {
+   "path": "src/lib/date-util.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 33
+  },
+  {
+   "path": "src/lib/dedup.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 453
+  },
+  {
+   "path": "src/lib/demoCleanup.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 138
+  },
+  {
+   "path": "src/lib/demoFresh.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 51
+  },
+  {
+   "path": "src/lib/dialer.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 169
+  },
+  {
+   "path": "src/lib/donationPartition.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 120
+  },
+  {
+   "path": "src/lib/eventMeta.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 22
+  },
+  {
+   "path": "src/lib/exportGate.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 40
+  },
+  {
+   "path": "src/lib/exportRows.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 77
+  },
+  {
+   "path": "src/lib/familiesImport.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 123
+  },
+  {
+   "path": "src/lib/guide.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 135
+  },
+  {
+   "path": "src/lib/hebdate.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 144
+  },
+  {
+   "path": "src/lib/hebrew.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 230
+  },
+  {
+   "path": "src/lib/hebrewNumber.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 136
+  },
+  {
+   "path": "src/lib/ics.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 141
+  },
+  {
+   "path": "src/lib/icsFeed.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 47
+  },
+  {
+   "path": "src/lib/ids.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 45
+  },
+  {
+   "path": "src/lib/imagePick.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 62
+  },
+  {
+   "path": "src/lib/installKit.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 32
+  },
+  {
+   "path": "src/lib/lock.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 86
+  },
+  {
+   "path": "src/lib/mapsLink.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 41
+  },
+  {
+   "path": "src/lib/monthGrid.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 114
+  },
+  {
+   "path": "src/lib/navhist.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 37
+  },
+  {
+   "path": "src/lib/nedarimSync.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 694
+  },
+  {
+   "path": "src/lib/netcheck.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 115
+  },
+  {
+   "path": "src/lib/orbitTheme.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 132
+  },
+  {
+   "path": "src/lib/originGuard.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 49
+  },
+  {
+   "path": "src/lib/paletteGroups.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 65
+  },
+  {
+   "path": "src/lib/payLink.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 38
+  },
+  {
+   "path": "src/lib/photoGallery.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 42
+  },
+  {
+   "path": "src/lib/pricing.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 212
+  },
+  {
+   "path": "src/lib/projectSchedule.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 93
+  },
+  {
+   "path": "src/lib/publicSite.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 254
+  },
+  {
+   "path": "src/lib/pwa.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 109
+  },
+  {
+   "path": "src/lib/receipt.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 237
+  },
+  {
+   "path": "src/lib/search.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 204
+  },
+  {
+   "path": "src/lib/signupWizard.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 97
+  },
+  {
+   "path": "src/lib/smtpUrl.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 41
+  },
+  {
+   "path": "src/lib/supportChat.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 116
+  },
+  {
+   "path": "src/lib/supporterAgg.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 42
+  },
+  {
+   "path": "src/lib/supporterPartition.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 88
+  },
+  {
+   "path": "src/lib/tel.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 15
+  },
+  {
+   "path": "src/lib/telephony/driver.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 48
+  },
+  {
+   "path": "src/lib/telephony/engine.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 119
+  },
+  {
+   "path": "src/lib/templates.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 67
+  },
+  {
+   "path": "src/lib/three-scene.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 289
+  },
+  {
+   "path": "src/lib/tour.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 109
+  },
+  {
+   "path": "src/lib/validate.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 91
+  },
+  {
+   "path": "src/lib/vcardImport.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 266
+  },
+  {
+   "path": "src/lib/verticalPacks.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 495
+  },
+  {
+   "path": "src/lib/wa.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 69
+  },
+  {
+   "path": "src/lib/warehouse.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 71
+  },
+  {
+   "path": "src/lib/worktasks.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 94
+  },
+  {
+   "path": "src/lib/xlsx.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 106
+  },
+  {
+   "path": "src/main.tsx",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 30
+  },
+  {
+   "path": "src/store/__tests__/audit-trail.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 51
+  },
+  {
+   "path": "src/store/__tests__/ayin-revert.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 56
+  },
+  {
+   "path": "src/store/__tests__/bughunt-9x9.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 60
+  },
+  {
+   "path": "src/store/__tests__/cascade.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 290
+  },
+  {
+   "path": "src/store/__tests__/cloud-firstconnect.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 145
+  },
+  {
+   "path": "src/store/__tests__/cloud-reset-wipe.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 81
+  },
+  {
+   "path": "src/store/__tests__/courses-donors-upgrade.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 60
+  },
+  {
+   "path": "src/store/__tests__/db-watch.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 85
+  },
+  {
+   "path": "src/store/__tests__/decay-cadence.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 57
+  },
+  {
+   "path": "src/store/__tests__/decay.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 74
+  },
+  {
+   "path": "src/store/__tests__/demo-data.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 53
+  },
+  {
+   "path": "src/store/__tests__/donation-first.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 40
+  },
+  {
+   "path": "src/store/__tests__/donation-split-sync.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 99
+  },
+  {
+   "path": "src/store/__tests__/hok-bulk.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 72
+  },
+  {
+   "path": "src/store/__tests__/lock-store.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 106
+  },
+  {
+   "path": "src/store/__tests__/migrate-legacy.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 184
+  },
+  {
+   "path": "src/store/__tests__/migrate-normalize.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 67
+  },
+  {
+   "path": "src/store/__tests__/multitab-guard.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 31
+  },
+  {
+   "path": "src/store/__tests__/navhist.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 84
+  },
+  {
+   "path": "src/store/__tests__/nedarim-reset.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 73
+  },
+  {
+   "path": "src/store/__tests__/persist-crypto.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 113
+  },
+  {
+   "path": "src/store/__tests__/persist-multitab.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 67
+  },
+  {
+   "path": "src/store/__tests__/receipt-gate.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 89
+  },
+  {
+   "path": "src/store/__tests__/receipt-seq.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 157
+  },
+  {
+   "path": "src/store/__tests__/receipt-ui-ratchet.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 29
+  },
+  {
+   "path": "src/store/__tests__/rid-dedup.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 85
+  },
+  {
+   "path": "src/store/__tests__/set-present.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 70
+  },
+  {
+   "path": "src/store/__tests__/shop-intake.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 103
+  },
+  {
+   "path": "src/store/__tests__/shop-migrate.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 112
+  },
+  {
+   "path": "src/store/__tests__/supporter-bulk-delete.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 68
+  },
+  {
+   "path": "src/store/__tests__/swarm-audit-fixes.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 264
+  },
+  {
+   "path": "src/store/__tests__/swarm2-C-guards.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 40
+  },
+  {
+   "path": "src/store/__tests__/teacher-payment.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 95
+  },
+  {
+   "path": "src/store/__tests__/trend-flag.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 70
+  },
+  {
+   "path": "src/store/__tests__/tz-migrate.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 74
+  },
+  {
+   "path": "src/store/__tests__/undo-punch.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 102
+  },
+  {
+   "path": "src/store/__tests__/unlink-event.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 86
+  },
+  {
+   "path": "src/store/cloudSync.ts",
+   "bucket": "actions",
+   "domain": "actions",
+   "lines": 305
+  },
+  {
+   "path": "src/store/dbWatch.ts",
+   "bucket": "actions",
+   "domain": "actions",
+   "lines": 38
+  },
+  {
+   "path": "src/store/persist.ts",
+   "bucket": "actions",
+   "domain": "actions",
+   "lines": 961
+  },
+  {
+   "path": "src/store/useApp.ts",
+   "bucket": "actions",
+   "domain": "actions",
+   "lines": 3586
+  },
+  {
+   "path": "src/styles/global.css",
+   "bucket": "tokens",
+   "domain": "tokens",
+   "lines": 3048
+  },
+  {
+   "path": "src/styles/orbit.css",
+   "bucket": "tokens",
+   "domain": "tokens",
+   "lines": 718
+  },
+  {
+   "path": "src/styles/themes.css",
+   "bucket": "tokens",
+   "domain": "tokens",
+   "lines": 362
+  },
+  {
+   "path": "src/types/__tests__/new-toggles.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 49
+  },
+  {
+   "path": "src/types/config.ts",
+   "bucket": "flags",
+   "domain": "flags",
+   "lines": 411
+  },
+  {
+   "path": "src/types/domain.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 1186
+  },
+  {
+   "path": "src/types/features.ts",
+   "bucket": "flags",
+   "domain": "flags",
+   "lines": 474
+  },
+  {
+   "path": "src/types/fflate.d.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 14
+  },
+  {
+   "path": "src/vite-env.d.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 5
+  },
+  {
+   "path": "telephony/apply-cli.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 25
+  },
+  {
+   "path": "telephony/BUILD-LOOP-20.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 56
+  },
+  {
+   "path": "telephony/cli.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 45
+  },
+  {
+   "path": "telephony/CLOSED-DEEP-CONVERGED.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 39
+  },
+  {
+   "path": "telephony/CLOSED-DEEP-R5.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 47
+  },
+  {
+   "path": "telephony/CLOSED-DEEP-R6.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 41
+  },
+  {
+   "path": "telephony/CLOSED-DEEP-R7.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 37
+  },
+  {
+   "path": "telephony/CLOSED-DEEP-R8.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 36
+  },
+  {
+   "path": "telephony/CLOSED-DEEP-R9.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 32
+  },
+  {
+   "path": "telephony/CLOSED-IMPROVE-9x9.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 43
+  },
+  {
+   "path": "telephony/fixtures/golden/dialplan/tenant_chesed-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 179
+  },
+  {
+   "path": "telephony/fixtures/golden/directory/chesed-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 57
+  },
+  {
+   "path": "telephony/fixtures/golden/manifest.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 122
+  },
+  {
+   "path": "telephony/fixtures/golden/sip_profiles/gateways/chesed-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 46
+  },
+  {
+   "path": "telephony/fixtures/golden/verticals.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 8
+  },
+  {
+   "path": "telephony/fixtures/golden-full/dialplan/tenant_full-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 229
+  },
+  {
+   "path": "telephony/fixtures/golden-full/directory/full-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 77
+  },
+  {
+   "path": "telephony/fixtures/golden-full/manifest.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 112
+  },
+  {
+   "path": "telephony/fixtures/golden-full/sip_profiles/gateways/full-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 26
+  },
+  {
+   "path": "telephony/fixtures/golden-kollel/dialplan/tenant_kollel-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 241
+  },
+  {
+   "path": "telephony/fixtures/golden-kollel/directory/kollel-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 46
+  },
+  {
+   "path": "telephony/fixtures/golden-kollel/manifest.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 148
+  },
+  {
+   "path": "telephony/fixtures/golden-kollel/sip_profiles/gateways/kollel-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 26
+  },
+  {
+   "path": "telephony/fixtures/golden-voice/dialplan/tenant_voice-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 220
+  },
+  {
+   "path": "telephony/fixtures/golden-voice/directory/voice-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 61
+  },
+  {
+   "path": "telephony/fixtures/golden-voice/manifest.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 146
+  },
+  {
+   "path": "telephony/fixtures/golden-voice/sip_profiles/gateways/voice-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 16
+  },
+  {
+   "path": "telephony/fixtures/golden-zmanim/dialplan/tenant_zmanim-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 224
+  },
+  {
+   "path": "telephony/fixtures/golden-zmanim/directory/zmanim-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 42
+  },
+  {
+   "path": "telephony/fixtures/golden-zmanim/manifest.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 208
+  },
+  {
+   "path": "telephony/fixtures/golden-zmanim/sip_profiles/gateways/zmanim-demo.xml",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 16
+  },
+  {
+   "path": "telephony/fixtures/intake-minimal.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 17
+  },
+  {
+   "path": "telephony/fixtures/luach-known.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 1619
+  },
+  {
+   "path": "telephony/fixtures/maor-db.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 17
+  },
+  {
+   "path": "telephony/fixtures/tenant-chesed.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 95
+  },
+  {
+   "path": "telephony/fixtures/tenant-full.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 42
+  },
+  {
+   "path": "telephony/fixtures/tenant-kollel.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 17
+  },
+  {
+   "path": "telephony/fixtures/tenant-voice.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 24
+  },
+  {
+   "path": "telephony/fixtures/tenant-zmanim.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 25
+  },
+  {
+   "path": "telephony/lib/apply.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 356
+  },
+  {
+   "path": "telephony/lib/audit-routes.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 72
+  },
+  {
+   "path": "telephony/lib/billing.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 86
+  },
+  {
+   "path": "telephony/lib/channels.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 258
+  },
+  {
+   "path": "telephony/lib/config.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 302
+  },
+  {
+   "path": "telephony/lib/cti.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 427
+  },
+  {
+   "path": "telephony/lib/generate.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 954
+  },
+  {
+   "path": "telephony/lib/hebcal.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 168
+  },
+  {
+   "path": "telephony/lib/index.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 62
+  },
+  {
+   "path": "telephony/lib/normalize.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 70
+  },
+  {
+   "path": "telephony/lib/onboard.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 351
+  },
+  {
+   "path": "telephony/lib/prompts.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 57
+  },
+  {
+   "path": "telephony/lib/reminders.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 61
+  },
+  {
+   "path": "telephony/lib/report.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 82
+  },
+  {
+   "path": "telephony/lib/routing.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 160
+  },
+  {
+   "path": "telephony/lib/security.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 181
+  },
+  {
+   "path": "telephony/lib/simulate.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 308
+  },
+  {
+   "path": "telephony/lib/validate.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 412
+  },
+  {
+   "path": "telephony/lib/validators.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 96
+  },
+  {
+   "path": "telephony/lib/zmanim.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 195
+  },
+  {
+   "path": "telephony/OPERATOR-GUIDE.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 67
+  },
+  {
+   "path": "telephony/README.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 130
+  },
+  {
+   "path": "telephony/RUNBOOK-INSTALL.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 67
+  },
+  {
+   "path": "telephony/schema.json",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 231
+  },
+  {
+   "path": "telephony/tel.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 179
+  },
+  {
+   "path": "telephony/test.mjs",
+   "bucket": "server",
+   "domain": "server",
+   "lines": 2309
+  },
+  {
+   "path": "telephony/UPGRADE-100.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 126
+  },
+  {
+   "path": "tsconfig.app.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 28
+  },
+  {
+   "path": "tsconfig.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 8
+  },
+  {
+   "path": "tsconfig.node.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 25
+  },
+  {
+   "path": "vite.config.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 29
+  }
+ ]
+}

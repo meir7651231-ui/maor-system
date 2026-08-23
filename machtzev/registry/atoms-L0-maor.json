@@ -1,0 +1,2280 @@
+[
+ {
+  "id": "L0:maor:--c-ink",
+  "level": "L0-token",
+  "name": "--c-ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#33272a",
+    "at": "src/components/public/public-site.css:7"
+   },
+   {
+    "value": "#f6ece9",
+    "at": "src/components/public/public-site.css:33"
+   }
+  ],
+  "source": "maor/src/components/public/public-site.css:7"
+ },
+ {
+  "id": "L0:maor:--c-soft",
+  "level": "L0-token",
+  "name": "--c-soft",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(51, 39, 42, 0.72)",
+    "at": "src/components/public/public-site.css:8"
+   }
+  ],
+  "source": "maor/src/components/public/public-site.css:8"
+ },
+ {
+  "id": "L0:maor:--c-faint",
+  "level": "L0-token",
+  "name": "--c-faint",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(51, 39, 42, 0.5)",
+    "at": "src/components/public/public-site.css:9"
+   }
+  ],
+  "source": "maor/src/components/public/public-site.css:9"
+ },
+ {
+  "id": "L0:maor:--c-coral",
+  "level": "L0-token",
+  "name": "--c-coral",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#b95f5f",
+    "at": "src/components/public/public-site.css:10"
+   }
+  ],
+  "source": "maor/src/components/public/public-site.css:10"
+ },
+ {
+  "id": "L0:maor:--c-coral2",
+  "level": "L0-token",
+  "name": "--c-coral2",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#d97f7f",
+    "at": "src/components/public/public-site.css:11"
+   }
+  ],
+  "source": "maor/src/components/public/public-site.css:11"
+ },
+ {
+  "id": "L0:maor:--c-coral3",
+  "level": "L0-token",
+  "name": "--c-coral3",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#ec9c9c",
+    "at": "src/components/public/public-site.css:12"
+   }
+  ],
+  "source": "maor/src/components/public/public-site.css:12"
+ },
+ {
+  "id": "L0:maor:--c-paper",
+  "level": "L0-token",
+  "name": "--c-paper",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#fffcfa",
+    "at": "src/components/public/public-site.css:13"
+   },
+   {
+    "value": "#1a1211",
+    "at": "src/components/public/public-site.css:34"
+   }
+  ],
+  "source": "maor/src/components/public/public-site.css:13"
+ },
+ {
+  "id": "L0:maor:--c-cream",
+  "level": "L0-token",
+  "name": "--c-cream",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#fbf1ef",
+    "at": "src/components/public/public-site.css:14"
+   }
+  ],
+  "source": "maor/src/components/public/public-site.css:14"
+ },
+ {
+  "id": "L0:maor:--c-blush",
+  "level": "L0-token",
+  "name": "--c-blush",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#fff3f0",
+    "at": "src/components/public/public-site.css:15"
+   }
+  ],
+  "source": "maor/src/components/public/public-site.css:15"
+ },
+ {
+  "id": "L0:maor:--c-surface",
+  "level": "L0-token",
+  "name": "--c-surface",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#ffffff",
+    "at": "src/components/public/public-site.css:16"
+   }
+  ],
+  "source": "maor/src/components/public/public-site.css:16"
+ },
+ {
+  "id": "L0:maor:--c-line",
+  "level": "L0-token",
+  "name": "--c-line",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#f0e0dc",
+    "at": "src/components/public/public-site.css:17"
+   }
+  ],
+  "source": "maor/src/components/public/public-site.css:17"
+ },
+ {
+  "id": "L0:maor:--c-shadow",
+  "level": "L0-token",
+  "name": "--c-shadow",
+  "kind": "color",
+  "values": [
+   {
+    "value": "0 26px 50px -30px rgba(120, 60, 60, 0.45)",
+    "at": "src/components/public/public-site.css:18"
+   },
+   {
+    "value": "0 26px 50px -30px rgba(0, 0, 0, 0.7)",
+    "at": "src/components/public/public-site.css:35"
+   }
+  ],
+  "source": "maor/src/components/public/public-site.css:18"
+ },
+ {
+  "id": "L0:maor:--bg",
+  "level": "L0-token",
+  "name": "--bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#f6f3ec",
+    "at": "src/styles/global.css:5"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/global.css:111"
+   },
+   {
+    "value": "#ffffff !important",
+    "at": "src/styles/global.css:1032"
+   },
+   {
+    "value": "#f6f3ec",
+    "at": "src/styles/themes.css:92"
+   },
+   {
+    "value": "#12100c",
+    "at": "src/styles/themes.css:164"
+   },
+   {
+    "value": "#faf9f7",
+    "at": "src/styles/themes.css:238"
+   },
+   {
+    "value": "#fdf8ef",
+    "at": "src/styles/themes.css:310"
+   }
+  ],
+  "source": "maor/src/styles/global.css:5"
+ },
+ {
+  "id": "L0:maor:--panel",
+  "level": "L0-token",
+  "name": "--panel",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#fffdf8",
+    "at": "src/styles/global.css:6"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/global.css:112"
+   },
+   {
+    "value": "#ffffff !important",
+    "at": "src/styles/global.css:1034"
+   },
+   {
+    "value": "#fffdf8",
+    "at": "src/styles/themes.css:93"
+   },
+   {
+    "value": "#1b1812",
+    "at": "src/styles/themes.css:166"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:239"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:311"
+   }
+  ],
+  "source": "maor/src/styles/global.css:6"
+ },
+ {
+  "id": "L0:maor:--ink",
+  "level": "L0-token",
+  "name": "--ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#2e2c26",
+    "at": "src/styles/global.css:7"
+   },
+   {
+    "value": "#000000",
+    "at": "src/styles/global.css:113"
+   },
+   {
+    "value": "#000000 !important",
+    "at": "src/styles/global.css:1036"
+   },
+   {
+    "value": "#241f18",
+    "at": "src/styles/themes.css:94"
+   },
+   {
+    "value": "#f2ead8",
+    "at": "src/styles/themes.css:168"
+   },
+   {
+    "value": "#1c1a17",
+    "at": "src/styles/themes.css:240"
+   },
+   {
+    "value": "#2b2620",
+    "at": "src/styles/themes.css:312"
+   }
+  ],
+  "source": "maor/src/styles/global.css:7"
+ },
+ {
+  "id": "L0:maor:--ink-soft",
+  "level": "L0-token",
+  "name": "--ink-soft",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#4d463c",
+    "at": "src/styles/global.css:8"
+   },
+   {
+    "value": "#1a1a1a",
+    "at": "src/styles/global.css:114"
+   },
+   {
+    "value": "#222222 !important",
+    "at": "src/styles/global.css:1037"
+   },
+   {
+    "value": "#57503f",
+    "at": "src/styles/themes.css:95"
+   },
+   {
+    "value": "#c4b795",
+    "at": "src/styles/themes.css:169"
+   },
+   {
+    "value": "#55504a",
+    "at": "src/styles/themes.css:241"
+   },
+   {
+    "value": "#6b6152",
+    "at": "src/styles/themes.css:313"
+   }
+  ],
+  "source": "maor/src/styles/global.css:8"
+ },
+ {
+  "id": "L0:maor:--ink-faint",
+  "level": "L0-token",
+  "name": "--ink-faint",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#8a8172",
+    "at": "src/styles/global.css:9"
+   },
+   {
+    "value": "#333333",
+    "at": "src/styles/global.css:115"
+   },
+   {
+    "value": "#555555 !important",
+    "at": "src/styles/global.css:1038"
+   },
+   {
+    "value": "#94886f",
+    "at": "src/styles/themes.css:96"
+   },
+   {
+    "value": "#847a61",
+    "at": "src/styles/themes.css:170"
+   },
+   {
+    "value": "#98918a",
+    "at": "src/styles/themes.css:242"
+   },
+   {
+    "value": "#a2957e",
+    "at": "src/styles/themes.css:314"
+   }
+  ],
+  "source": "maor/src/styles/global.css:9"
+ },
+ {
+  "id": "L0:maor:--line",
+  "level": "L0-token",
+  "name": "--line",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#ded7c8",
+    "at": "src/styles/global.css:10"
+   },
+   {
+    "value": "#666666",
+    "at": "src/styles/global.css:116"
+   },
+   {
+    "value": "#bbbbbb !important",
+    "at": "src/styles/global.css:1039"
+   },
+   {
+    "value": "#e7dfd0",
+    "at": "src/styles/themes.css:97"
+   },
+   {
+    "value": "#332d21",
+    "at": "src/styles/themes.css:171"
+   },
+   {
+    "value": "#e8e4dc",
+    "at": "src/styles/themes.css:243"
+   },
+   {
+    "value": "#efe5d3",
+    "at": "src/styles/themes.css:315"
+   }
+  ],
+  "source": "maor/src/styles/global.css:10"
+ },
+ {
+  "id": "L0:maor:--line-soft",
+  "level": "L0-token",
+  "name": "--line-soft",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#ece7db",
+    "at": "src/styles/global.css:11"
+   },
+   {
+    "value": "#666666",
+    "at": "src/styles/global.css:117"
+   },
+   {
+    "value": "#d5d5d5 !important",
+    "at": "src/styles/global.css:1040"
+   },
+   {
+    "value": "#f1ead9",
+    "at": "src/styles/themes.css:98"
+   },
+   {
+    "value": "#262115",
+    "at": "src/styles/themes.css:172"
+   },
+   {
+    "value": "#f1eee8",
+    "at": "src/styles/themes.css:244"
+   },
+   {
+    "value": "#f4ecdd",
+    "at": "src/styles/themes.css:316"
+   }
+  ],
+  "source": "maor/src/styles/global.css:11"
+ },
+ {
+  "id": "L0:maor:--hover-bg",
+  "level": "L0-token",
+  "name": "--hover-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#faf8f2",
+    "at": "src/styles/global.css:12"
+   },
+   {
+    "value": "#f2f2f2",
+    "at": "src/styles/global.css:118"
+   },
+   {
+    "value": "#ffffff !important",
+    "at": "src/styles/global.css:1042"
+   },
+   {
+    "value": "#fbf7ec",
+    "at": "src/styles/themes.css:99"
+   },
+   {
+    "value": "#221e16",
+    "at": "src/styles/themes.css:173"
+   },
+   {
+    "value": "#fbfaf7",
+    "at": "src/styles/themes.css:245"
+   },
+   {
+    "value": "#faf4e6",
+    "at": "src/styles/themes.css:317"
+   }
+  ],
+  "source": "maor/src/styles/global.css:12"
+ },
+ {
+  "id": "L0:maor:--accent",
+  "level": "L0-token",
+  "name": "--accent",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#f3c76b",
+    "at": "src/styles/global.css:13"
+   },
+   {
+    "value": "var(--o-accent)",
+    "at": "src/styles/orbit.css:26"
+   },
+   {
+    "value": "#f3c76b",
+    "at": "src/styles/themes.css:100"
+   },
+   {
+    "value": "#e9bd63",
+    "at": "src/styles/themes.css:174"
+   },
+   {
+    "value": "#0e7a6c",
+    "at": "src/styles/themes.css:246"
+   },
+   {
+    "value": "#178f80",
+    "at": "src/styles/themes.css:318"
+   }
+  ],
+  "source": "maor/src/styles/global.css:13"
+ },
+ {
+  "id": "L0:maor:--accent-deep",
+  "level": "L0-token",
+  "name": "--accent-deep",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#a05008",
+    "at": "src/styles/global.css:14"
+   },
+   {
+    "value": "#a05008",
+    "at": "src/styles/themes.css:101"
+   },
+   {
+    "value": "#d9a84e",
+    "at": "src/styles/themes.css:175"
+   },
+   {
+    "value": "#0a5d53",
+    "at": "src/styles/themes.css:247"
+   },
+   {
+    "value": "#0e6f63",
+    "at": "src/styles/themes.css:319"
+   }
+  ],
+  "source": "maor/src/styles/global.css:14"
+ },
+ {
+  "id": "L0:maor:--amber",
+  "level": "L0-token",
+  "name": "--amber",
+  "kind": "other",
+  "values": [
+   {
+    "value": "var(--accent)",
+    "at": "src/styles/global.css:16"
+   }
+  ],
+  "source": "maor/src/styles/global.css:16"
+ },
+ {
+  "id": "L0:maor:--amber-deep",
+  "level": "L0-token",
+  "name": "--amber-deep",
+  "kind": "other",
+  "values": [
+   {
+    "value": "var(--accent-deep)",
+    "at": "src/styles/global.css:17"
+   }
+  ],
+  "source": "maor/src/styles/global.css:17"
+ },
+ {
+  "id": "L0:maor:--dark",
+  "level": "L0-token",
+  "name": "--dark",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#211d17",
+    "at": "src/styles/global.css:18"
+   },
+   {
+    "value": "#211d17",
+    "at": "src/styles/themes.css:102"
+   },
+   {
+    "value": "#453a24",
+    "at": "src/styles/themes.css:176"
+   },
+   {
+    "value": "#1c1a17",
+    "at": "src/styles/themes.css:248"
+   },
+   {
+    "value": "#14554d",
+    "at": "src/styles/themes.css:320"
+   }
+  ],
+  "source": "maor/src/styles/global.css:18"
+ },
+ {
+  "id": "L0:maor:--green",
+  "level": "L0-token",
+  "name": "--green",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#2e7d32",
+    "at": "src/styles/global.css:19"
+   },
+   {
+    "value": "#4a7031",
+    "at": "src/styles/themes.css:103"
+   },
+   {
+    "value": "#9dc472",
+    "at": "src/styles/themes.css:177"
+   },
+   {
+    "value": "#3e7d2e",
+    "at": "src/styles/themes.css:249"
+   }
+  ],
+  "source": "maor/src/styles/global.css:19"
+ },
+ {
+  "id": "L0:maor:--red",
+  "level": "L0-token",
+  "name": "--red",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#b3261e",
+    "at": "src/styles/global.css:20"
+   },
+   {
+    "value": "#a8321e",
+    "at": "src/styles/themes.css:104"
+   },
+   {
+    "value": "#e58a75",
+    "at": "src/styles/themes.css:178"
+   },
+   {
+    "value": "#b3362a",
+    "at": "src/styles/themes.css:250"
+   }
+  ],
+  "source": "maor/src/styles/global.css:20"
+ },
+ {
+  "id": "L0:maor:--orange",
+  "level": "L0-token",
+  "name": "--orange",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#b45309",
+    "at": "src/styles/global.css:21"
+   },
+   {
+    "value": "#a05008",
+    "at": "src/styles/themes.css:105"
+   },
+   {
+    "value": "#e2a85c",
+    "at": "src/styles/themes.css:179"
+   },
+   {
+    "value": "#a1620a",
+    "at": "src/styles/themes.css:251"
+   }
+  ],
+  "source": "maor/src/styles/global.css:21"
+ },
+ {
+  "id": "L0:maor:--nav-bg",
+  "level": "L0-token",
+  "name": "--nav-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#211d17",
+    "at": "src/styles/global.css:22"
+   },
+   {
+    "value": "#211d17",
+    "at": "src/styles/themes.css:106"
+   },
+   {
+    "value": "#0b0906",
+    "at": "src/styles/themes.css:180"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:252"
+   },
+   {
+    "value": "linear-gradient(180deg, #1a9c8b 0%, #0e6f63 100%)",
+    "at": "src/styles/themes.css:321"
+   }
+  ],
+  "source": "maor/src/styles/global.css:22"
+ },
+ {
+  "id": "L0:maor:--nav-ink",
+  "level": "L0-token",
+  "name": "--nav-ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#f7f3ea",
+    "at": "src/styles/global.css:23"
+   },
+   {
+    "value": "#f7f3ea",
+    "at": "src/styles/themes.css:107"
+   },
+   {
+    "value": "#f2ead8",
+    "at": "src/styles/themes.css:181"
+   },
+   {
+    "value": "#1c1a17",
+    "at": "src/styles/themes.css:253"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:322"
+   }
+  ],
+  "source": "maor/src/styles/global.css:23"
+ },
+ {
+  "id": "L0:maor:--nav-ink-soft",
+  "level": "L0-token",
+  "name": "--nav-ink-soft",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#d9d2c4",
+    "at": "src/styles/global.css:24"
+   },
+   {
+    "value": "#d9d2c4",
+    "at": "src/styles/themes.css:108"
+   },
+   {
+    "value": "#a89b7f",
+    "at": "src/styles/themes.css:182"
+   },
+   {
+    "value": "#5f594f",
+    "at": "src/styles/themes.css:254"
+   },
+   {
+    "value": "#cdeae6",
+    "at": "src/styles/themes.css:323"
+   }
+  ],
+  "source": "maor/src/styles/global.css:24"
+ },
+ {
+  "id": "L0:maor:--nav-hover-bg",
+  "level": "L0-token",
+  "name": "--nav-hover-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(243, 199, 107, 0.12)",
+    "at": "src/styles/global.css:25"
+   },
+   {
+    "value": "rgba(243, 199, 107, 0.12)",
+    "at": "src/styles/themes.css:109"
+   },
+   {
+    "value": "rgba(233, 189, 99, 0.12)",
+    "at": "src/styles/themes.css:183"
+   },
+   {
+    "value": "rgba(14, 122, 108, 0.08)",
+    "at": "src/styles/themes.css:255"
+   },
+   {
+    "value": "rgba(255, 255, 255, 0.14)",
+    "at": "src/styles/themes.css:324"
+   }
+  ],
+  "source": "maor/src/styles/global.css:25"
+ },
+ {
+  "id": "L0:maor:--nav-active-bg",
+  "level": "L0-token",
+  "name": "--nav-active-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "var(--accent)",
+    "at": "src/styles/global.css:26"
+   },
+   {
+    "value": "var(--accent)",
+    "at": "src/styles/themes.css:110"
+   },
+   {
+    "value": "var(--accent)",
+    "at": "src/styles/themes.css:184"
+   },
+   {
+    "value": "var(--accent)",
+    "at": "src/styles/themes.css:256"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:325"
+   }
+  ],
+  "source": "maor/src/styles/global.css:26"
+ },
+ {
+  "id": "L0:maor:--nav-active-ink",
+  "level": "L0-token",
+  "name": "--nav-active-ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#211d17",
+    "at": "src/styles/global.css:27"
+   },
+   {
+    "value": "#211d17",
+    "at": "src/styles/themes.css:111"
+   },
+   {
+    "value": "#12100c",
+    "at": "src/styles/themes.css:185"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:257"
+   },
+   {
+    "value": "#178f80",
+    "at": "src/styles/themes.css:326"
+   }
+  ],
+  "source": "maor/src/styles/global.css:27"
+ },
+ {
+  "id": "L0:maor:--primary-bg",
+  "level": "L0-token",
+  "name": "--primary-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#211d17",
+    "at": "src/styles/global.css:28"
+   },
+   {
+    "value": "#211d17",
+    "at": "src/styles/themes.css:112"
+   },
+   {
+    "value": "var(--accent)",
+    "at": "src/styles/themes.css:186"
+   },
+   {
+    "value": "var(--accent)",
+    "at": "src/styles/themes.css:258"
+   },
+   {
+    "value": "var(--accent)",
+    "at": "src/styles/themes.css:327"
+   }
+  ],
+  "source": "maor/src/styles/global.css:28"
+ },
+ {
+  "id": "L0:maor:--primary-ink",
+  "level": "L0-token",
+  "name": "--primary-ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "var(--accent)",
+    "at": "src/styles/global.css:29"
+   },
+   {
+    "value": "var(--accent)",
+    "at": "src/styles/themes.css:113"
+   },
+   {
+    "value": "#1b1509",
+    "at": "src/styles/themes.css:187"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:259"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:328"
+   }
+  ],
+  "source": "maor/src/styles/global.css:29"
+ },
+ {
+  "id": "L0:maor:--primary-hover-bg",
+  "level": "L0-token",
+  "name": "--primary-hover-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#35302a",
+    "at": "src/styles/global.css:30"
+   },
+   {
+    "value": "#35302a",
+    "at": "src/styles/themes.css:114"
+   },
+   {
+    "value": "#f0cc7f",
+    "at": "src/styles/themes.css:188"
+   },
+   {
+    "value": "var(--accent-deep)",
+    "at": "src/styles/themes.css:260"
+   },
+   {
+    "value": "var(--accent-deep)",
+    "at": "src/styles/themes.css:329"
+   }
+  ],
+  "source": "maor/src/styles/global.css:30"
+ },
+ {
+  "id": "L0:maor:--toast-bg",
+  "level": "L0-token",
+  "name": "--toast-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#211d17",
+    "at": "src/styles/global.css:31"
+   },
+   {
+    "value": "#211d17",
+    "at": "src/styles/themes.css:115"
+   },
+   {
+    "value": "#2c2618",
+    "at": "src/styles/themes.css:189"
+   },
+   {
+    "value": "#1c1a17",
+    "at": "src/styles/themes.css:261"
+   },
+   {
+    "value": "#14554d",
+    "at": "src/styles/themes.css:330"
+   }
+  ],
+  "source": "maor/src/styles/global.css:31"
+ },
+ {
+  "id": "L0:maor:--toast-ink",
+  "level": "L0-token",
+  "name": "--toast-ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#f7f3ea",
+    "at": "src/styles/global.css:32"
+   },
+   {
+    "value": "#f7f3ea",
+    "at": "src/styles/themes.css:116"
+   },
+   {
+    "value": "#f2ead8",
+    "at": "src/styles/themes.css:190"
+   },
+   {
+    "value": "#faf9f7",
+    "at": "src/styles/themes.css:262"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:331"
+   }
+  ],
+  "source": "maor/src/styles/global.css:32"
+ },
+ {
+  "id": "L0:maor:--error-bg",
+  "level": "L0-token",
+  "name": "--error-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#fdecea",
+    "at": "src/styles/global.css:33"
+   },
+   {
+    "value": "#fdecea",
+    "at": "src/styles/themes.css:117"
+   },
+   {
+    "value": "#3c211d",
+    "at": "src/styles/themes.css:191"
+   },
+   {
+    "value": "#fdecea",
+    "at": "src/styles/themes.css:263"
+   },
+   {
+    "value": "#fdecea",
+    "at": "src/styles/themes.css:332"
+   }
+  ],
+  "source": "maor/src/styles/global.css:33"
+ },
+ {
+  "id": "L0:maor:--overlay",
+  "level": "L0-token",
+  "name": "--overlay",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(33, 29, 23, 0.45)",
+    "at": "src/styles/global.css:34"
+   },
+   {
+    "value": "rgba(33, 29, 23, 0.45)",
+    "at": "src/styles/themes.css:118"
+   },
+   {
+    "value": "rgba(0, 0, 0, 0.6)",
+    "at": "src/styles/themes.css:192"
+   },
+   {
+    "value": "rgba(28, 26, 23, 0.4)",
+    "at": "src/styles/themes.css:264"
+   },
+   {
+    "value": "rgba(20, 85, 77, 0.4)",
+    "at": "src/styles/themes.css:333"
+   }
+  ],
+  "source": "maor/src/styles/global.css:34"
+ },
+ {
+  "id": "L0:maor:--overlay-soft",
+  "level": "L0-token",
+  "name": "--overlay-soft",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(33, 29, 23, 0.35)",
+    "at": "src/styles/global.css:35"
+   },
+   {
+    "value": "rgba(33, 29, 23, 0.35)",
+    "at": "src/styles/themes.css:119"
+   },
+   {
+    "value": "rgba(0, 0, 0, 0.5)",
+    "at": "src/styles/themes.css:193"
+   },
+   {
+    "value": "rgba(28, 26, 23, 0.3)",
+    "at": "src/styles/themes.css:265"
+   },
+   {
+    "value": "rgba(20, 85, 77, 0.3)",
+    "at": "src/styles/themes.css:334"
+   }
+  ],
+  "source": "maor/src/styles/global.css:35"
+ },
+ {
+  "id": "L0:maor:--radius",
+  "level": "L0-token",
+  "name": "--radius",
+  "kind": "shape",
+  "values": [
+   {
+    "value": "12px",
+    "at": "src/styles/global.css:36"
+   },
+   {
+    "value": "14px",
+    "at": "src/styles/themes.css:120"
+   },
+   {
+    "value": "16px",
+    "at": "src/styles/themes.css:194"
+   },
+   {
+    "value": "14px",
+    "at": "src/styles/themes.css:266"
+   },
+   {
+    "value": "20px",
+    "at": "src/styles/themes.css:335"
+   }
+  ],
+  "source": "maor/src/styles/global.css:36"
+ },
+ {
+  "id": "L0:maor:--shadow",
+  "level": "L0-token",
+  "name": "--shadow",
+  "kind": "color",
+  "values": [
+   {
+    "value": "0 1px 4px rgba(0, 0, 0, 0.08)",
+    "at": "src/styles/global.css:37"
+   },
+   {
+    "value": "0 1px 4px rgba(0, 0, 0, 0.5)",
+    "at": "src/styles/themes.css:195"
+   },
+   {
+    "value": "0 1px 3px rgba(28, 26, 23, 0.07)",
+    "at": "src/styles/themes.css:267"
+   },
+   {
+    "value": "0 2px 14px -8px rgba(43, 38, 32, 0.22)",
+    "at": "src/styles/themes.css:336"
+   }
+  ],
+  "source": "maor/src/styles/global.css:37"
+ },
+ {
+  "id": "L0:maor:--shadow-lift",
+  "level": "L0-token",
+  "name": "--shadow-lift",
+  "kind": "color",
+  "values": [
+   {
+    "value": "0 6px 24px rgba(33, 29, 23, 0.14)",
+    "at": "src/styles/global.css:38"
+   },
+   {
+    "value": "0 6px 24px rgba(33, 29, 23, 0.14)",
+    "at": "src/styles/themes.css:123"
+   },
+   {
+    "value": "0 6px 24px rgba(0, 0, 0, 0.6)",
+    "at": "src/styles/themes.css:196"
+   },
+   {
+    "value": "0 6px 24px rgba(28, 26, 23, 0.12)",
+    "at": "src/styles/themes.css:268"
+   },
+   {
+    "value": "0 10px 30px -12px rgba(43, 38, 32, 0.35)",
+    "at": "src/styles/themes.css:337"
+   }
+  ],
+  "source": "maor/src/styles/global.css:38"
+ },
+ {
+  "id": "L0:maor:--page-bg",
+  "level": "L0-token",
+  "name": "--page-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#ffffff !important",
+    "at": "src/styles/global.css:1033"
+   },
+   {
+    "value": "var(--bg)",
+    "at": "src/styles/themes.css:53"
+   },
+   {
+    "value": "var(--bg)",
+    "at": "src/styles/themes.css:136"
+   },
+   {
+    "value": "radial-gradient(1200px 500px at 50% -200px, #241f15, #12100c) fixed",
+    "at": "src/styles/themes.css:165"
+   },
+   {
+    "value": "var(--bg)",
+    "at": "src/styles/themes.css:282"
+   },
+   {
+    "value": "var(--bg)",
+    "at": "src/styles/themes.css:350"
+   }
+  ],
+  "source": "maor/src/styles/global.css:1033"
+ },
+ {
+  "id": "L0:maor:--card-bg",
+  "level": "L0-token",
+  "name": "--card-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#ffffff !important",
+    "at": "src/styles/global.css:1035"
+   },
+   {
+    "value": "var(--panel)",
+    "at": "src/styles/themes.css:54"
+   },
+   {
+    "value": "var(--panel)",
+    "at": "src/styles/themes.css:137"
+   },
+   {
+    "value": "linear-gradient(180deg, #221e16, #1b1812)",
+    "at": "src/styles/themes.css:167"
+   },
+   {
+    "value": "var(--panel)",
+    "at": "src/styles/themes.css:283"
+   },
+   {
+    "value": "var(--panel)",
+    "at": "src/styles/themes.css:351"
+   }
+  ],
+  "source": "maor/src/styles/global.css:1035"
+ },
+ {
+  "id": "L0:maor:--panel-line",
+  "level": "L0-token",
+  "name": "--panel-line",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#bbbbbb !important",
+    "at": "src/styles/global.css:1041"
+   },
+   {
+    "value": "var(--line)",
+    "at": "src/styles/themes.css:55"
+   },
+   {
+    "value": "var(--line)",
+    "at": "src/styles/themes.css:138"
+   },
+   {
+    "value": "#332d21",
+    "at": "src/styles/themes.css:212"
+   },
+   {
+    "value": "var(--line)",
+    "at": "src/styles/themes.css:284"
+   },
+   {
+    "value": "transparent",
+    "at": "src/styles/themes.css:353"
+   }
+  ],
+  "source": "maor/src/styles/global.css:1041"
+ },
+ {
+  "id": "L0:maor:--o-serif",
+  "level": "L0-token",
+  "name": "--o-serif",
+  "kind": "other",
+  "values": [
+   {
+    "value": "'Frank Ruhl Libre', 'David', 'Noto Serif Hebrew', 'Times New Roman', serif",
+    "at": "src/styles/orbit.css:8"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:8"
+ },
+ {
+  "id": "L0:maor:--o-text",
+  "level": "L0-token",
+  "name": "--o-text",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#eef1fb",
+    "at": "src/styles/orbit.css:9"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:9"
+ },
+ {
+  "id": "L0:maor:--o-muted",
+  "level": "L0-token",
+  "name": "--o-muted",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(238, 241, 251, 0.62)",
+    "at": "src/styles/orbit.css:10"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:10"
+ },
+ {
+  "id": "L0:maor:--o-g1",
+  "level": "L0-token",
+  "name": "--o-g1",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#1a2340",
+    "at": "src/styles/orbit.css:12"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:12"
+ },
+ {
+  "id": "L0:maor:--o-g2",
+  "level": "L0-token",
+  "name": "--o-g2",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#0d1120",
+    "at": "src/styles/orbit.css:13"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:13"
+ },
+ {
+  "id": "L0:maor:--o-g3",
+  "level": "L0-token",
+  "name": "--o-g3",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#070a12",
+    "at": "src/styles/orbit.css:14"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:14"
+ },
+ {
+  "id": "L0:maor:--o-a1",
+  "level": "L0-token",
+  "name": "--o-a1",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(110, 168, 254, 0.3)",
+    "at": "src/styles/orbit.css:15"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:15"
+ },
+ {
+  "id": "L0:maor:--o-a2",
+  "level": "L0-token",
+  "name": "--o-a2",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(140, 150, 255, 0.2)",
+    "at": "src/styles/orbit.css:16"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:16"
+ },
+ {
+  "id": "L0:maor:--o-a3",
+  "level": "L0-token",
+  "name": "--o-a3",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(120, 200, 255, 0.15)",
+    "at": "src/styles/orbit.css:17"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:17"
+ },
+ {
+  "id": "L0:maor:--o-a4",
+  "level": "L0-token",
+  "name": "--o-a4",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(110, 168, 254, 0.12)",
+    "at": "src/styles/orbit.css:18"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:18"
+ },
+ {
+  "id": "L0:maor:--o-accent",
+  "level": "L0-token",
+  "name": "--o-accent",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#6ea8fe",
+    "at": "src/styles/orbit.css:19"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:19"
+ },
+ {
+  "id": "L0:maor:--o-accent-rgb",
+  "level": "L0-token",
+  "name": "--o-accent-rgb",
+  "kind": "color",
+  "values": [
+   {
+    "value": "110, 168, 254",
+    "at": "src/styles/orbit.css:20"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:20"
+ },
+ {
+  "id": "L0:maor:--o-accent2",
+  "level": "L0-token",
+  "name": "--o-accent2",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#8fa8ff",
+    "at": "src/styles/orbit.css:21"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:21"
+ },
+ {
+  "id": "L0:maor:--o-glow",
+  "level": "L0-token",
+  "name": "--o-glow",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(120, 150, 255, 0.3)",
+    "at": "src/styles/orbit.css:22"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:22"
+ },
+ {
+  "id": "L0:maor:--o-btn-a",
+  "level": "L0-token",
+  "name": "--o-btn-a",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#7d9bff",
+    "at": "src/styles/orbit.css:23"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:23"
+ },
+ {
+  "id": "L0:maor:--o-btn-b",
+  "level": "L0-token",
+  "name": "--o-btn-b",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#5570ff",
+    "at": "src/styles/orbit.css:24"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:24"
+ },
+ {
+  "id": "L0:maor:--o-btn-text",
+  "level": "L0-token",
+  "name": "--o-btn-text",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#ffffff",
+    "at": "src/styles/orbit.css:25"
+   }
+  ],
+  "source": "maor/src/styles/orbit.css:25"
+ },
+ {
+  "id": "L0:maor:--hero-ink",
+  "level": "L0-token",
+  "name": "--hero-ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#241f18",
+    "at": "src/styles/themes.css:27"
+   },
+   {
+    "value": "#241f18",
+    "at": "src/styles/themes.css:80"
+   },
+   {
+    "value": "#f7dfa8",
+    "at": "src/styles/themes.css:152"
+   },
+   {
+    "value": "#1c1a17",
+    "at": "src/styles/themes.css:226"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:298"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:27"
+ },
+ {
+  "id": "L0:maor:--hero-ink-soft",
+  "level": "L0-token",
+  "name": "--hero-ink-soft",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#57503f",
+    "at": "src/styles/themes.css:28"
+   },
+   {
+    "value": "#57503f",
+    "at": "src/styles/themes.css:81"
+   },
+   {
+    "value": "#c4b795",
+    "at": "src/styles/themes.css:153"
+   },
+   {
+    "value": "#98918a",
+    "at": "src/styles/themes.css:227"
+   },
+   {
+    "value": "rgba(255, 255, 255, 0.9)",
+    "at": "src/styles/themes.css:299"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:28"
+ },
+ {
+  "id": "L0:maor:--hero-btn-bg",
+  "level": "L0-token",
+  "name": "--hero-btn-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#fffdf8",
+    "at": "src/styles/themes.css:29"
+   },
+   {
+    "value": "#fffdf8",
+    "at": "src/styles/themes.css:82"
+   },
+   {
+    "value": "transparent",
+    "at": "src/styles/themes.css:154"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:228"
+   },
+   {
+    "value": "rgba(255, 255, 255, 0.16)",
+    "at": "src/styles/themes.css:300"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:29"
+ },
+ {
+  "id": "L0:maor:--hero-btn-ink",
+  "level": "L0-token",
+  "name": "--hero-btn-ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#57503f",
+    "at": "src/styles/themes.css:30"
+   },
+   {
+    "value": "#57503f",
+    "at": "src/styles/themes.css:83"
+   },
+   {
+    "value": "#e9bd63",
+    "at": "src/styles/themes.css:155"
+   },
+   {
+    "value": "#55504a",
+    "at": "src/styles/themes.css:229"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:301"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:30"
+ },
+ {
+  "id": "L0:maor:--hero-btn-line",
+  "level": "L0-token",
+  "name": "--hero-btn-line",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#e7dfd0",
+    "at": "src/styles/themes.css:31"
+   },
+   {
+    "value": "#e7dfd0",
+    "at": "src/styles/themes.css:84"
+   },
+   {
+    "value": "#8a6c2f",
+    "at": "src/styles/themes.css:156"
+   },
+   {
+    "value": "#e8e4dc",
+    "at": "src/styles/themes.css:230"
+   },
+   {
+    "value": "rgba(255, 255, 255, 0.42)",
+    "at": "src/styles/themes.css:302"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:31"
+ },
+ {
+  "id": "L0:maor:--stat-tint",
+  "level": "L0-token",
+  "name": "--stat-tint",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#f9e5bb",
+    "at": "src/styles/themes.css:32"
+   },
+   {
+    "value": "#f9e5bb",
+    "at": "src/styles/themes.css:85"
+   },
+   {
+    "value": "rgba(233, 189, 99, 0.14)",
+    "at": "src/styles/themes.css:157"
+   },
+   {
+    "value": "#e2f1ee",
+    "at": "src/styles/themes.css:231"
+   },
+   {
+    "value": "#e0f3f0",
+    "at": "src/styles/themes.css:303"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:32"
+ },
+ {
+  "id": "L0:maor:--stat-bar",
+  "level": "L0-token",
+  "name": "--stat-bar",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#ece3d0",
+    "at": "src/styles/themes.css:33"
+   },
+   {
+    "value": "#ece3d0",
+    "at": "src/styles/themes.css:86"
+   },
+   {
+    "value": "#2a2517",
+    "at": "src/styles/themes.css:158"
+   },
+   {
+    "value": "#e2f1ee",
+    "at": "src/styles/themes.css:232"
+   },
+   {
+    "value": "#e0f3f0",
+    "at": "src/styles/themes.css:304"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:33"
+ },
+ {
+  "id": "L0:maor:--spark-hot",
+  "level": "L0-token",
+  "name": "--spark-hot",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#a05008",
+    "at": "src/styles/themes.css:34"
+   },
+   {
+    "value": "#a05008",
+    "at": "src/styles/themes.css:87"
+   },
+   {
+    "value": "#e9bd63",
+    "at": "src/styles/themes.css:159"
+   },
+   {
+    "value": "#0e7a6c",
+    "at": "src/styles/themes.css:233"
+   },
+   {
+    "value": "#178f80",
+    "at": "src/styles/themes.css:305"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:34"
+ },
+ {
+  "id": "L0:maor:--bday-bg",
+  "level": "L0-token",
+  "name": "--bday-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "linear-gradient(270deg, #f9e5bb, #fffdf8 55%)",
+    "at": "src/styles/themes.css:35"
+   },
+   {
+    "value": "linear-gradient(270deg, #f9e5bb, #fffdf8 55%)",
+    "at": "src/styles/themes.css:88"
+   },
+   {
+    "value": "linear-gradient(120deg, #2d1e26 0%, #33270f 100%)",
+    "at": "src/styles/themes.css:160"
+   },
+   {
+    "value": "linear-gradient(120deg, #fdeff5 0%, #fff7ee 100%)",
+    "at": "src/styles/themes.css:234"
+   },
+   {
+    "value": "linear-gradient(135deg, #fdf1d7, #ffffff)",
+    "at": "src/styles/themes.css:306"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:35"
+ },
+ {
+  "id": "L0:maor:--bday-ink",
+  "level": "L0-token",
+  "name": "--bday-ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#241f18",
+    "at": "src/styles/themes.css:36"
+   },
+   {
+    "value": "#241f18",
+    "at": "src/styles/themes.css:89"
+   },
+   {
+    "value": "#f3c9dd",
+    "at": "src/styles/themes.css:161"
+   },
+   {
+    "value": "#a81c5f",
+    "at": "src/styles/themes.css:235"
+   },
+   {
+    "value": "#2b2620",
+    "at": "src/styles/themes.css:307"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:36"
+ },
+ {
+  "id": "L0:maor:--bday-ink-soft",
+  "level": "L0-token",
+  "name": "--bday-ink-soft",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#57503f",
+    "at": "src/styles/themes.css:37"
+   },
+   {
+    "value": "#57503f",
+    "at": "src/styles/themes.css:90"
+   },
+   {
+    "value": "#c4b795",
+    "at": "src/styles/themes.css:162"
+   },
+   {
+    "value": "#6b6459",
+    "at": "src/styles/themes.css:236"
+   },
+   {
+    "value": "#6b6152",
+    "at": "src/styles/themes.css:308"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:37"
+ },
+ {
+  "id": "L0:maor:--bday-cta-bg",
+  "level": "L0-token",
+  "name": "--bday-cta-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#a05008",
+    "at": "src/styles/themes.css:38"
+   },
+   {
+    "value": "#a05008",
+    "at": "src/styles/themes.css:91"
+   },
+   {
+    "value": "#8a6c2f",
+    "at": "src/styles/themes.css:163"
+   },
+   {
+    "value": "#a81c5f",
+    "at": "src/styles/themes.css:237"
+   },
+   {
+    "value": "#f0a92e",
+    "at": "src/styles/themes.css:309"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:38"
+ },
+ {
+  "id": "L0:maor:--nav2-bg",
+  "level": "L0-token",
+  "name": "--nav2-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#211d17",
+    "at": "src/styles/themes.css:40"
+   },
+   {
+    "value": "#211d17",
+    "at": "src/styles/themes.css:124"
+   },
+   {
+    "value": "#12100c",
+    "at": "src/styles/themes.css:198"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:270"
+   },
+   {
+    "value": "linear-gradient(135deg, #178f80, #1da28f 130%)",
+    "at": "src/styles/themes.css:339"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:40"
+ },
+ {
+  "id": "L0:maor:--nav2-ink",
+  "level": "L0-token",
+  "name": "--nav2-ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#efe7d6",
+    "at": "src/styles/themes.css:41"
+   },
+   {
+    "value": "#efe7d6",
+    "at": "src/styles/themes.css:125"
+   },
+   {
+    "value": "#f2ead8",
+    "at": "src/styles/themes.css:199"
+   },
+   {
+    "value": "#1c1a17",
+    "at": "src/styles/themes.css:271"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:340"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:41"
+ },
+ {
+  "id": "L0:maor:--nav2-ink-soft",
+  "level": "L0-token",
+  "name": "--nav2-ink-soft",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#cfc4ac",
+    "at": "src/styles/themes.css:42"
+   },
+   {
+    "value": "#cfc4ac",
+    "at": "src/styles/themes.css:126"
+   },
+   {
+    "value": "#c4b795",
+    "at": "src/styles/themes.css:200"
+   },
+   {
+    "value": "#55504a",
+    "at": "src/styles/themes.css:272"
+   },
+   {
+    "value": "#eafaf7",
+    "at": "src/styles/themes.css:341"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:42"
+ },
+ {
+  "id": "L0:maor:--nav2-hover-bg",
+  "level": "L0-token",
+  "name": "--nav2-hover-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(243, 199, 107, 0.09)",
+    "at": "src/styles/themes.css:43"
+   },
+   {
+    "value": "rgba(243, 199, 107, 0.09)",
+    "at": "src/styles/themes.css:127"
+   },
+   {
+    "value": "rgba(233, 189, 99, 0.1)",
+    "at": "src/styles/themes.css:201"
+   },
+   {
+    "value": "#f1eee8",
+    "at": "src/styles/themes.css:273"
+   },
+   {
+    "value": "rgba(255, 255, 255, 0.16)",
+    "at": "src/styles/themes.css:342"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:43"
+ },
+ {
+  "id": "L0:maor:--nav2-active-bg",
+  "level": "L0-token",
+  "name": "--nav2-active-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#f3c76b",
+    "at": "src/styles/themes.css:44"
+   },
+   {
+    "value": "#f3c76b",
+    "at": "src/styles/themes.css:128"
+   },
+   {
+    "value": "linear-gradient(180deg, #2c2618, #241f14)",
+    "at": "src/styles/themes.css:202"
+   },
+   {
+    "value": "#e2f1ee",
+    "at": "src/styles/themes.css:274"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:343"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:44"
+ },
+ {
+  "id": "L0:maor:--nav2-active-ink",
+  "level": "L0-token",
+  "name": "--nav2-active-ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#211d17",
+    "at": "src/styles/themes.css:45"
+   },
+   {
+    "value": "#211d17",
+    "at": "src/styles/themes.css:129"
+   },
+   {
+    "value": "#f7dfa8",
+    "at": "src/styles/themes.css:203"
+   },
+   {
+    "value": "#0a5d53",
+    "at": "src/styles/themes.css:275"
+   },
+   {
+    "value": "#178f80",
+    "at": "src/styles/themes.css:344"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:45"
+ },
+ {
+  "id": "L0:maor:--nav2-line",
+  "level": "L0-token",
+  "name": "--nav2-line",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#3a332a",
+    "at": "src/styles/themes.css:46"
+   },
+   {
+    "value": "#3a332a",
+    "at": "src/styles/themes.css:130"
+   },
+   {
+    "value": "#332d21",
+    "at": "src/styles/themes.css:204"
+   },
+   {
+    "value": "#e8e4dc",
+    "at": "src/styles/themes.css:276"
+   },
+   {
+    "value": "rgba(255, 255, 255, 0.001)",
+    "at": "src/styles/themes.css:345"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:46"
+ },
+ {
+  "id": "L0:maor:--font-stat",
+  "level": "L0-token",
+  "name": "--font-stat",
+  "kind": "font",
+  "values": [
+   {
+    "value": "var(--font-body)",
+    "at": "src/styles/themes.css:52"
+   },
+   {
+    "value": "var(--font-body)",
+    "at": "src/styles/themes.css:135"
+   },
+   {
+    "value": "var(--font-body)",
+    "at": "src/styles/themes.css:281"
+   },
+   {
+    "value": "\"Suez One\", \"David\", \"Noto Serif Hebrew\", serif",
+    "at": "src/styles/themes.css:349"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:52"
+ },
+ {
+  "id": "L0:maor:--side-bg",
+  "level": "L0-token",
+  "name": "--side-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "linear-gradient(180deg, #211d17 0%, #2c261e 100%)",
+    "at": "src/styles/themes.css:57"
+   },
+   {
+    "value": "linear-gradient(180deg, #211d17 0%, #2c261e 100%)",
+    "at": "src/styles/themes.css:139"
+   },
+   {
+    "value": "#0b0906",
+    "at": "src/styles/themes.css:213"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:286"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:354"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:57"
+ },
+ {
+  "id": "L0:maor:--side-ink",
+  "level": "L0-token",
+  "name": "--side-ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#efe7d6",
+    "at": "src/styles/themes.css:58"
+   },
+   {
+    "value": "#efe7d6",
+    "at": "src/styles/themes.css:140"
+   },
+   {
+    "value": "#f2ead8",
+    "at": "src/styles/themes.css:214"
+   },
+   {
+    "value": "#0a5d53",
+    "at": "src/styles/themes.css:287"
+   },
+   {
+    "value": "#2b2620",
+    "at": "src/styles/themes.css:355"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:58"
+ },
+ {
+  "id": "L0:maor:--side-ink-soft",
+  "level": "L0-token",
+  "name": "--side-ink-soft",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#cfc4ac",
+    "at": "src/styles/themes.css:59"
+   },
+   {
+    "value": "#cfc4ac",
+    "at": "src/styles/themes.css:141"
+   },
+   {
+    "value": "#b5a884",
+    "at": "src/styles/themes.css:215"
+   },
+   {
+    "value": "#98918a",
+    "at": "src/styles/themes.css:288"
+   },
+   {
+    "value": "#6b6152",
+    "at": "src/styles/themes.css:356"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:59"
+ },
+ {
+  "id": "L0:maor:--side-hover-bg",
+  "level": "L0-token",
+  "name": "--side-hover-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "rgba(243, 199, 107, 0.09)",
+    "at": "src/styles/themes.css:60"
+   },
+   {
+    "value": "rgba(243, 199, 107, 0.09)",
+    "at": "src/styles/themes.css:142"
+   },
+   {
+    "value": "rgba(233, 189, 99, 0.1)",
+    "at": "src/styles/themes.css:216"
+   },
+   {
+    "value": "#f1eee8",
+    "at": "src/styles/themes.css:289"
+   },
+   {
+    "value": "rgba(23, 143, 128, 0.1)",
+    "at": "src/styles/themes.css:357"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:60"
+ },
+ {
+  "id": "L0:maor:--side-active-bg",
+  "level": "L0-token",
+  "name": "--side-active-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#f3c76b",
+    "at": "src/styles/themes.css:61"
+   },
+   {
+    "value": "#f3c76b",
+    "at": "src/styles/themes.css:143"
+   },
+   {
+    "value": "rgba(233, 189, 99, 0.16)",
+    "at": "src/styles/themes.css:217"
+   },
+   {
+    "value": "#e2f1ee",
+    "at": "src/styles/themes.css:290"
+   },
+   {
+    "value": "#178f80",
+    "at": "src/styles/themes.css:358"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:61"
+ },
+ {
+  "id": "L0:maor:--side-active-ink",
+  "level": "L0-token",
+  "name": "--side-active-ink",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#211d17",
+    "at": "src/styles/themes.css:62"
+   },
+   {
+    "value": "#211d17",
+    "at": "src/styles/themes.css:144"
+   },
+   {
+    "value": "#e9bd63",
+    "at": "src/styles/themes.css:218"
+   },
+   {
+    "value": "#0a5d53",
+    "at": "src/styles/themes.css:291"
+   },
+   {
+    "value": "#ffffff",
+    "at": "src/styles/themes.css:359"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:62"
+ },
+ {
+  "id": "L0:maor:--side-line",
+  "level": "L0-token",
+  "name": "--side-line",
+  "kind": "color",
+  "values": [
+   {
+    "value": "#3a332a",
+    "at": "src/styles/themes.css:63"
+   },
+   {
+    "value": "#3a332a",
+    "at": "src/styles/themes.css:145"
+   },
+   {
+    "value": "#332d21",
+    "at": "src/styles/themes.css:219"
+   },
+   {
+    "value": "#e8e4dc",
+    "at": "src/styles/themes.css:292"
+   },
+   {
+    "value": "#efe5d3",
+    "at": "src/styles/themes.css:360"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:63"
+ },
+ {
+  "id": "L0:maor:--hero-bg",
+  "level": "L0-token",
+  "name": "--hero-bg",
+  "kind": "color",
+  "values": [
+   {
+    "value": "transparent",
+    "at": "src/styles/themes.css:151"
+   },
+   {
+    "value": "transparent",
+    "at": "src/styles/themes.css:225"
+   },
+   {
+    "value": "linear-gradient(135deg, #178f80, #1da28f 55%, #3fb3a0)",
+    "at": "src/styles/themes.css:297"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:151"
+ },
+ {
+  "id": "L0:maor:--font-display",
+  "level": "L0-token",
+  "name": "--font-display",
+  "kind": "font",
+  "values": [
+   {
+    "value": "\"Suez One\", \"David\", \"Noto Serif Hebrew\", serif",
+    "at": "src/styles/themes.css:348"
+   }
+  ],
+  "source": "maor/src/styles/themes.css:348"
+ }
+]
