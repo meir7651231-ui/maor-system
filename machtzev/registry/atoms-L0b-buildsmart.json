@@ -1,0 +1,17 @@
+[
+ {
+  "id": "L0b:buildsmart:animationDelay:",
+  "level": "L0b-inline-style",
+  "prop": "animationDelay",
+  "value": "",
+  "count": 11,
+  "sources": [
+   "app/src/components/bs/bs-dial.tsx:276",
+   "app/src/components/bs/bs-dial.tsx:340",
+   "app/src/components/menu/submenu-settings.tsx:360",
+   "app/src/components/menu/submenu-settings.tsx:739",
+   "app/src/components/menu/submenu-settings.tsx:993"
+  ],
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx:276"
+ }
+]

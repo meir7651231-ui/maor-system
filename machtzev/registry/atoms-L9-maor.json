@@ -1,0 +1,3022 @@
+[
+ {
+  "id": "L9:maor:machtzev/census.mjs:63:100:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "20",
+  "hint": "if (orphans.length) { console.error(`\\n🚨 אזעקה: ${orphans.length} קבצ",
+  "source": "maor/machtzev/census.mjs:63"
+ },
+ {
+  "id": "L9:maor:machtzev/contract-check.mjs:16:75:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (!fs.existsSync(contract) || fs.readFileSync(contract, 'utf8').leng",
+  "source": "maor/machtzev/contract-check.mjs:16"
+ },
+ {
+  "id": "L9:maor:machtzev/dedup.mjs:61:84:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "5",
+  "hint": "coverage = `שילוב נדרש — ייחודי-למאור: ${a.exports.filter(x=>!bSet.has",
+  "source": "maor/machtzev/dedup.mjs:61"
+ },
+ {
+  "id": "L9:maor:machtzev/dedup.mjs:61:174:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "5",
+  "hint": "coverage = `שילוב נדרש — ייחודי-למאור: ${a.exports.filter(x=>!bSet.has",
+  "source": "maor/machtzev/dedup.mjs:61"
+ },
+ {
+  "id": "L9:maor:machtzev/dedup.mjs:63:80:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "scores: { maor: Math.round(sa), buildsmart: Math.round(sb) }, shared: ",
+  "source": "maor/machtzev/dedup.mjs:63"
+ },
+ {
+  "id": "L9:maor:machtzev/dedup.mjs:73:90:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "20",
+  "hint": "groups.filter(g => g.kind === 'string').sort((a,b) => b.members.length",
+  "source": "maor/machtzev/dedup.mjs:73"
+ },
+ {
+  "id": "L9:maor:machtzev/dedup.mjs:75:38:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "15",
+  "hint": "groups.filter(g => g.kind === 'color').slice(0, 15).forEach(g => md +=",
+  "source": "maor/machtzev/dedup.mjs:75"
+ },
+ {
+  "id": "L9:maor:machtzev/extract/actions.mjs:12:25:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "80",
+  "hint": "hint: line.trim().slice(0, 80), source: `${census.repo}/${f.path}:${i+",
+  "source": "maor/machtzev/extract/actions.mjs:12"
+ },
+ {
+  "id": "L9:maor:machtzev/extract/consts.mjs:19:79:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "70",
+  "hint": "value: m[2] || m[1], name: m[2] ? m[1] : undefined, hint: line.trim().",
+  "source": "maor/machtzev/extract/consts.mjs:19"
+ },
+ {
+  "id": "L9:maor:machtzev/extract/engines.mjs:9:117:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "30",
+  "hint": "const dartFns = f.path.endsWith('.dart') ? [...txt.matchAll(/^[A-Za-z<",
+  "source": "maor/machtzev/extract/engines.mjs:9"
+ },
+ {
+  "id": "L9:maor:machtzev/extract/functions.mjs:22:630:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": ".filter(c => !['return','const','function','await','if','for','while',",
+  "source": "maor/machtzev/extract/functions.mjs:22"
+ },
+ {
+  "id": "L9:maor:machtzev/extract/knowledge.mjs:7:81:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "400",
+  "hint": "let head = ''; try { head = fs.readFileSync(`${census.root}/${f.path}`",
+  "source": "maor/machtzev/extract/knowledge.mjs:7"
+ },
+ {
+  "id": "L9:maor:machtzev/extract/knowledge.mjs:12:52:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "80",
+  "hint": "title: (head.match(/^#\\s*(.+)$/m) || ['',''])[1].slice(0, 80), source:",
+  "source": "maor/machtzev/extract/knowledge.mjs:12"
+ },
+ {
+  "id": "L9:maor:machtzev/extract/knowledge.mjs:16:136:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "console.log(`L8 ${census.repo}: ${atoms.length} מסמכי-ידע —`, JSON.str",
+  "source": "maor/machtzev/extract/knowledge.mjs:16"
+ },
+ {
+  "id": "L9:maor:machtzev/extract/regexes.mjs:12:21:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "80",
+  "hint": "pattern: m[1].slice(0, 80), flags: m[3], source: `${census.repo}/${f.p",
+  "source": "maor/machtzev/extract/regexes.mjs:12"
+ },
+ {
+  "id": "L9:maor:machtzev/extract/schema.mjs:16:73:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "40",
+  "hint": "entity, name: fld[1], optional: fld[2] === '?', type: fld[3].trim().sl",
+  "source": "maor/machtzev/extract/schema.mjs:16"
+ },
+ {
+  "id": "L9:maor:machtzev/extract/strings.mjs:14:18:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "60",
+  "hint": "text: m[1].slice(0, 60), viaTermOf: viaTerm, source: `${census.repo}/$",
+  "source": "maor/machtzev/extract/strings.mjs:14"
+ },
+ {
+  "id": "L9:maor:machtzev/extract/verticals.mjs:20:82:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "15",
+  "hint": "modulesOn: [...block.matchAll(/([a-z][a-z0-9]*):\\s*true/g)].map(x => x",
+  "source": "maor/machtzev/extract/verticals.mjs:20"
+ },
+ {
+  "id": "L9:maor:machtzev/new/atoms/smart-score.mjs:11:19:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (phrase >= 100) break;",
+  "source": "maor/machtzev/new/atoms/smart-score.mjs:11"
+ },
+ {
+  "id": "L9:maor:machtzev/new/atoms/smart-score.mjs:13:17:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (phrase >= 100) break;",
+  "source": "maor/machtzev/new/atoms/smart-score.mjs:13"
+ },
+ {
+  "id": "L9:maor:machtzev/new/atoms/smart-score.mjs:22:17:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (best >= 100) break;",
+  "source": "maor/machtzev/new/atoms/smart-score.mjs:22"
+ },
+ {
+  "id": "L9:maor:machtzev/new/atoms/smart-score.mjs:24:15:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (best >= 100) break;",
+  "source": "maor/machtzev/new/atoms/smart-score.mjs:24"
+ },
+ {
+  "id": "L9:maor:machtzev/refine.mjs:14:76:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "twins.push({ maor: a.source, buildsmart: b.source, sharedExports: shar",
+  "source": "maor/machtzev/refine.mjs:14"
+ },
+ {
+  "id": "L9:maor:machtzev/refine.mjs:20:67:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "25",
+  "hint": "const topFiles = Object.entries(byFile).sort((a, b) => b[1] - a[1]).sl",
+  "source": "maor/machtzev/refine.mjs:20"
+ },
+ {
+  "id": "L9:maor:machtzev/refine.mjs:25:99:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "15",
+  "hint": "const dupColors = Object.entries(byVal).filter(([, s]) => s.size >= 3)",
+  "source": "maor/machtzev/refine.mjs:25"
+ },
+ {
+  "id": "L9:maor:machtzev/refine.mjs:28:5:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "30",
+  "hint": "twins.slice(0, 30).forEach(t => md += `| ${t.maor.split('/').pop()} | ",
+  "source": "maor/machtzev/refine.mjs:28"
+ },
+ {
+  "id": "L9:maor:machtzev/refine.mjs:32:61:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "dupColors.forEach(([v, names]) => md += `| \\`${v}\\` | ${names.slice(0,",
+  "source": "maor/machtzev/refine.mjs:32"
+ },
+ {
+  "id": "L9:maor:scripts/make-demo.mjs:34:34:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const iso = (d) => d.toISOString().slice(0, 10);",
+  "source": "maor/scripts/make-demo.mjs:34"
+ },
+ {
+  "id": "L9:maor:scripts/make-demo.mjs:298:27:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "150",
+  "hint": "if (enrollments.length >= 150) break outer;",
+  "source": "maor/scripts/make-demo.mjs:298"
+ },
+ {
+  "id": "L9:maor:scripts/shot-signup-flow.mjs:96:49:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "console.log('console errors:', errs.length ? errs.slice(0, 4) : 'none'",
+  "source": "maor/scripts/shot-signup-flow.mjs:96"
+ },
+ {
+  "id": "L9:maor:scripts/shot-signup-org.mjs:44:63:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "console.log('mobile shot · console errors:', errs.length ? errs.slice(",
+  "source": "maor/scripts/shot-signup-org.mjs:44"
+ },
+ {
+  "id": "L9:maor:scripts/shot-signup.mjs:58:63:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "console.log('mobile shot · console errors:', errs.length ? errs.slice(",
+  "source": "maor/scripts/shot-signup.mjs:58"
+ },
+ {
+  "id": "L9:maor:scripts/shot-wizard.mjs:69:156:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "console.log('found #wz-site:', !!box, '· round-trip unitAmount(first-n",
+  "source": "maor/scripts/shot-wizard.mjs:69"
+ },
+ {
+  "id": "L9:maor:src/App.tsx:92:6:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "400",
+  "name": "NED_LIVE_MAX",
+  "hint": "const NED_LIVE_MAX = 400;",
+  "source": "maor/src/App.tsx:92"
+ },
+ {
+  "id": "L9:maor:src/App.tsx:375:82:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "3000",
+  "hint": "const id = hasIdle ? w.requestIdleCallback!(warm, { timeout: 8000 }) :",
+  "source": "maor/src/App.tsx:375"
+ },
+ {
+  "id": "L9:maor:src/App.tsx:603:8:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "6",
+  "name": "NAV_PRIMARY_MAX",
+  "hint": "const NAV_PRIMARY_MAX = 6;",
+  "source": "maor/src/App.tsx:603"
+ },
+ {
+  "id": "L9:maor:src/App.tsx:830:12:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "{nav.slice(0, 4).map((n) => (",
+  "source": "maor/src/App.tsx:830"
+ },
+ {
+  "id": "L9:maor:src/components/builder/BuilderWizard.tsx:107:4:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "30",
+  "hint": ".slice(0, 30);",
+  "source": "maor/src/components/builder/BuilderWizard.tsx:107"
+ },
+ {
+  "id": "L9:maor:src/components/builder/BuilderWizard.tsx:953:58:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": "onChange={(v) => patch({ emoji: v.trim().slice(0, 12) || undefined })}",
+  "source": "maor/src/components/builder/BuilderWizard.tsx:953"
+ },
+ {
+  "id": "L9:maor:src/components/builder/handoff.ts:261:2:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "5000",
+  "hint": "setTimeout(() => URL.revokeObjectURL(a.href), 5000);",
+  "source": "maor/src/components/builder/handoff.ts:261"
+ },
+ {
+  "id": "L9:maor:src/components/calendar/calLib.ts:49:6:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "3000",
+  "name": "HP_CACHE_MAX",
+  "hint": "const HP_CACHE_MAX = 3000;",
+  "source": "maor/src/components/calendar/calLib.ts:49"
+ },
+ {
+  "id": "L9:maor:src/components/calendar/calLib.ts:312:18:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "const n = +iso.slice(0, 4) - +f.createdAt.slice(0, 4);",
+  "source": "maor/src/components/calendar/calLib.ts:312"
+ },
+ {
+  "id": "L9:maor:src/components/calendar/calLib.ts:312:45:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "const n = +iso.slice(0, 4) - +f.createdAt.slice(0, 4);",
+  "source": "maor/src/components/calendar/calLib.ts:312"
+ },
+ {
+  "id": "L9:maor:src/components/calendar/calLib.ts:558:20:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "400",
+  "hint": "for (let i = 0; i < 400; i++) {",
+  "source": "maor/src/components/calendar/calLib.ts:558"
+ },
+ {
+  "id": "L9:maor:src/components/calendar/EventModal.tsx:202:37:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "400",
+  "hint": "if (Date.now() - armedAt.current < 400) return;",
+  "source": "maor/src/components/calendar/EventModal.tsx:202"
+ },
+ {
+  "id": "L9:maor:src/components/calendar/IcsFeedModal.tsx:99:49:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "400",
+  "hint": "if (Date.now() - armedAt.current < 400) return; // מגן-דאבל-טאפ",
+  "source": "maor/src/components/calendar/IcsFeedModal.tsx:99"
+ },
+ {
+  "id": "L9:maor:src/components/courses/CourseFilesField.tsx:17:8:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1024",
+  "hint": "if (n < 1024) return n + 'B';",
+  "source": "maor/src/components/courses/CourseFilesField.tsx:17"
+ },
+ {
+  "id": "L9:maor:src/components/courses/CourseFilesField.tsx:18:8:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1024",
+  "hint": "if (n < 1024 * 1024) return Math.round(n / 1024) + 'KB';",
+  "source": "maor/src/components/courses/CourseFilesField.tsx:18"
+ },
+ {
+  "id": "L9:maor:src/components/courses/CoursesDashboard.tsx:19:18:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (r.occupancy >= 100) return '#dc2626';",
+  "source": "maor/src/components/courses/CoursesDashboard.tsx:19"
+ },
+ {
+  "id": "L9:maor:src/components/courses/CoursesDashboard.tsx:117:30:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "{dash.mostWanted.slice(0, 6).map((r) => (",
+  "source": "maor/src/components/courses/CoursesDashboard.tsx:117"
+ },
+ {
+  "id": "L9:maor:src/components/courses/EnrollModal.tsx:113:38:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "if (!q.trim()) return shownOptions.slice(0, 7);",
+  "source": "maor/src/components/courses/EnrollModal.tsx:113"
+ },
+ {
+  "id": "L9:maor:src/components/courses/EnrollModal.tsx:138:80:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "const list = famQ.trim() ? smartFilter(famQ, opts, (o) => o.terms, 6) ",
+  "source": "maor/src/components/courses/EnrollModal.tsx:138"
+ },
+ {
+  "id": "L9:maor:src/components/courses/lib.ts:15:23:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const [y, m, d] = iso.slice(0, 10).split('-');",
+  "source": "maor/src/components/courses/lib.ts:15"
+ },
+ {
+  "id": "L9:maor:src/components/courses/lib.ts:33:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const d = new Date(today.slice(0, 10) + 'T12:00:00');",
+  "source": "maor/src/components/courses/lib.ts:33"
+ },
+ {
+  "id": "L9:maor:src/components/courses/lib.ts:48:21:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const ym = todayIso.slice(0, 7); // YYYY-MM",
+  "source": "maor/src/components/courses/lib.ts:48"
+ },
+ {
+  "id": "L9:maor:src/components/courses/lib.ts:49:66:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "return (presents ?? []).filter((d) => typeof d === 'string' && d.slice",
+  "source": "maor/src/components/courses/lib.ts:49"
+ },
+ {
+  "id": "L9:maor:src/components/courses/lib.ts:70:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const d = new Date(birth.slice(0, 10) + 'T12:00:00');",
+  "source": "maor/src/components/courses/lib.ts:70"
+ },
+ {
+  "id": "L9:maor:src/components/courses/ManageModal.tsx:186:38:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "200",
+  "hint": "if (isNaN(qty) || qty <= 0 || qty > 200 || !Number.isInteger(qty)) {",
+  "source": "maor/src/components/courses/ManageModal.tsx:186"
+ },
+ {
+  "id": "L9:maor:src/components/courses/ManageModal.tsx:251:29:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "400",
+  "hint": "if (Date.now() - armedAt < 400) return;",
+  "source": "maor/src/components/courses/ManageModal.tsx:251"
+ },
+ {
+  "id": "L9:maor:src/components/courses/ParentCard.tsx:44:2:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "1000",
+  "hint": "setTimeout(() => document.body.removeChild(iframe), 1000);",
+  "source": "maor/src/components/courses/ParentCard.tsx:44"
+ },
+ {
+  "id": "L9:maor:src/components/courses/ReenrollView.tsx:78:11:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "2600",
+  "hint": "window.setTimeout(() => setMsg(''), 2600);",
+  "source": "maor/src/components/courses/ReenrollView.tsx:78"
+ },
+ {
+  "id": "L9:maor:src/components/courses/ReenrollView.tsx:119:72:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "downloadCsv('reenroll-' + academicYearLabel(new Date().toISOString().s",
+  "source": "maor/src/components/courses/ReenrollView.tsx:119"
+ },
+ {
+  "id": "L9:maor:src/components/courses/teacher.ts:90:60:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const absent = e.absences.filter((a) => (a.date || '').slice(0, 7) ===",
+  "source": "maor/src/components/courses/teacher.ts:90"
+ },
+ {
+  "id": "L9:maor:src/components/courses/TeacherPanel.tsx:63:20:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const ym = today.slice(0, 7);",
+  "source": "maor/src/components/courses/TeacherPanel.tsx:63"
+ },
+ {
+  "id": "L9:maor:src/components/courses/TeacherPanel.tsx:127:17:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": "makeups.slice(0, 12).map((m, i) => (",
+  "source": "maor/src/components/courses/TeacherPanel.tsx:127"
+ },
+ {
+  "id": "L9:maor:src/components/dialer/DialerModal.tsx:313:35:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "300",
+  "hint": "{sp.notes.length > 300 ? '…' + sp.notes.slice(-300) : sp.notes}",
+  "source": "maor/src/components/dialer/DialerModal.tsx:313"
+ },
+ {
+  "id": "L9:maor:src/components/diary/lib.ts:18:23:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const [y, m, d] = iso.slice(0, 10).split('-');",
+  "source": "maor/src/components/diary/lib.ts:18"
+ },
+ {
+  "id": "L9:maor:src/components/diary/lib.ts:160:24:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "900",
+  "hint": "if (cleaningOn && t >= 900 && t < 960) {",
+  "source": "maor/src/components/diary/lib.ts:160"
+ },
+ {
+  "id": "L9:maor:src/components/diary/lib.ts:160:36:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "960",
+  "hint": "if (cleaningOn && t >= 900 && t < 960) {",
+  "source": "maor/src/components/diary/lib.ts:160"
+ },
+ {
+  "id": "L9:maor:src/components/diary/lib.ts:301:31:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "(eqOn.length ? ' · ' + eqOn.slice(0, 3).join(', ') : '')",
+  "source": "maor/src/components/diary/lib.ts:301"
+ },
+ {
+  "id": "L9:maor:src/components/families/FamiliesView.tsx:56:33:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "500",
+  "hint": "{ value: 'red', label: 'סיכון (<500)' },",
+  "source": "maor/src/components/families/FamiliesView.tsx:56"
+ },
+ {
+  "id": "L9:maor:src/components/families/FamiliesView.tsx:91:4:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "250",
+  "hint": "setTimeout(() => document.getElementById(sectionId)?.scrollIntoView({ ",
+  "source": "maor/src/components/families/FamiliesView.tsx:91"
+ },
+ {
+  "id": "L9:maor:src/components/families/FamiliesView.tsx:615:22:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": ".slice(0, 3)",
+  "source": "maor/src/components/families/FamiliesView.tsx:615"
+ },
+ {
+  "id": "L9:maor:src/components/families/FamilyFinder.tsx:51:22:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "wheelOpts = opts.slice(0, 8).map(([v, n]) => ({ label: v + ' · ' + n, ",
+  "source": "maor/src/components/families/FamilyFinder.tsx:51"
+ },
+ {
+  "id": "L9:maor:src/components/families/FamilyFinder.tsx:71:25:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "const results = matched.slice(0, 8);",
+  "source": "maor/src/components/families/FamilyFinder.tsx:71"
+ },
+ {
+  "id": "L9:maor:src/components/families/FamilyPanels.tsx:119:43:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1000",
+  "hint": "if (!Number.isInteger(v) || v < 0 || v > 1000) {",
+  "source": "maor/src/components/families/FamilyPanels.tsx:119"
+ },
+ {
+  "id": "L9:maor:src/components/families/FamilyPanels.tsx:191:19:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "{cred.log.slice(0, 8).map((l, i) => (",
+  "source": "maor/src/components/families/FamilyPanels.tsx:191"
+ },
+ {
+  "id": "L9:maor:src/components/families/JoinModal.tsx:117:98:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "() => (memberQ.trim() ? smartFilter(memberQ, memberOptions, (o) => o.t",
+  "source": "maor/src/components/families/JoinModal.tsx:117"
+ },
+ {
+  "id": "L9:maor:src/components/families/JoinModal.tsx:158:108:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "() => (courseQ.trim() ? smartFilter(courseQ, shownCourseOptions, (o) =",
+  "source": "maor/src/components/families/JoinModal.tsx:158"
+ },
+ {
+  "id": "L9:maor:src/components/families/lib.ts:14:23:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const [y, m, d] = iso.slice(0, 10).split('-');",
+  "source": "maor/src/components/families/lib.ts:14"
+ },
+ {
+  "id": "L9:maor:src/components/families/lib.ts:28:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const d = new Date(birth.slice(0, 10) + 'T12:00:00');",
+  "source": "maor/src/components/families/lib.ts:28"
+ },
+ {
+  "id": "L9:maor:src/components/families/lib.ts:51:80:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "500",
+  "hint": "/** סף מדד-אמינות \"סיכון\" — יישור ללגאסי (tierOf red). ratchet: legacy",
+  "source": "maor/src/components/families/lib.ts:51"
+ },
+ {
+  "id": "L9:maor:src/components/families/lib.ts:52:13:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "500",
+  "name": "CRED_RED_THRESHOLD",
+  "hint": "export const CRED_RED_THRESHOLD = 500;",
+  "source": "maor/src/components/families/lib.ts:52"
+ },
+ {
+  "id": "L9:maor:src/components/families/lib.ts:62:12:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "950",
+  "hint": "if (score >= 950) return { key: 'titan', label: 'טיטאן', bg: '#fdf3dd'",
+  "source": "maor/src/components/families/lib.ts:62"
+ },
+ {
+  "id": "L9:maor:src/components/families/lib.ts:63:12:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "800",
+  "hint": "if (score >= 800) return { key: 'lion', label: 'לביאה', bg: '#e4f5ea',",
+  "source": "maor/src/components/families/lib.ts:63"
+ },
+ {
+  "id": "L9:maor:src/components/families/lib.ts:195:57:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "40",
+  "hint": "return out.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 40);",
+  "source": "maor/src/components/families/lib.ts:195"
+ },
+ {
+  "id": "L9:maor:src/components/home/homeData.ts:370:36:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "for (const { sp, late } of lateSup.slice(0, 3)) {",
+  "source": "maor/src/components/home/homeData.ts:370"
+ },
+ {
+  "id": "L9:maor:src/components/home/homeData.ts:404:34:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "key: 'suprisk:' + todayIso.slice(0, 7),",
+  "source": "maor/src/components/home/homeData.ts:404"
+ },
+ {
+  "id": "L9:maor:src/components/home/homeData.ts:410:17:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "`${risk.slice(0, 3).map((s) => s.name).join(', ')}${risk.length > 3 ? ",
+  "source": "maor/src/components/home/homeData.ts:410"
+ },
+ {
+  "id": "L9:maor:src/components/home/homeData.ts:425:33:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "key: 'hokdue:' + todayIso.slice(0, 7),",
+  "source": "maor/src/components/home/homeData.ts:425"
+ },
+ {
+  "id": "L9:maor:src/components/home/homeData.ts:437:20:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "` (${due.slice(0, 3).map((s) => s.name).join(', ')}${due.length > 3 ? ",
+  "source": "maor/src/components/home/homeData.ts:437"
+ },
+ {
+  "id": "L9:maor:src/components/home/homeData.ts:499:32:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "for (const { c, n } of filling.slice(0, 3)) {",
+  "source": "maor/src/components/home/homeData.ts:499"
+ },
+ {
+  "id": "L9:maor:src/components/home/homeData.ts:611:113:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": ": `${pend.length} ${termOf(config, 'nav.families', 'משפחות')} ממתינות ",
+  "source": "maor/src/components/home/homeData.ts:611"
+ },
+ {
+  "id": "L9:maor:src/components/home/homeData.ts:707:36:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const i = idx.get((p.date || '').slice(0, 7));",
+  "source": "maor/src/components/home/homeData.ts:707"
+ },
+ {
+  "id": "L9:maor:src/components/home/homeData.ts:804:40:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "fullCount: rows.filter((r) => r.pct >= 100).length,",
+  "source": "maor/src/components/home/homeData.ts:804"
+ },
+ {
+  "id": "L9:maor:src/components/home/homeData.ts:807:51:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "top: rows.slice().sort((a, b) => b.pct - a.pct).slice(0, 3),",
+  "source": "maor/src/components/home/homeData.ts:807"
+ },
+ {
+  "id": "L9:maor:src/components/home/homeData.ts:966:12:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "return out.slice(0, 10);",
+  "source": "maor/src/components/home/homeData.ts:966"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:173:11:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "{open.slice(0, 8).map((t) => (",
+  "source": "maor/src/components/home/widgets.tsx:173"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:182:48:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "2",
+  "hint": "<span aria-hidden>{PRI_LABELS[t.pri].slice(0, 2)}</span>",
+  "source": "maor/src/components/home/widgets.tsx:182"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:1070:39:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "{(showAll ? shownAttn : shownAttn.slice(0, 8)).map((a) => (",
+  "source": "maor/src/components/home/widgets.tsx:1070"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:1314:41:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const podium = buildPodium(db, todayIso.slice(0, 7), todayIso.slice(0,",
+  "source": "maor/src/components/home/widgets.tsx:1314"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:1314:63:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "const podium = buildPodium(db, todayIso.slice(0, 7), todayIso.slice(0,",
+  "source": "maor/src/components/home/widgets.tsx:1314"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:1381:4:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": ".slice(0, 4);",
+  "source": "maor/src/components/home/widgets.tsx:1381"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:1457:41:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "const barColor = (pct: number) => (pct >= 100 ? 'var(--red)' : pct >= ",
+  "source": "maor/src/components/home/widgets.tsx:1457"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:1481:35:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "boxShadow: r.pct >= 100 ? '0 0 12px rgba(220,38,38,.45)' : 'none',",
+  "source": "maor/src/components/home/widgets.tsx:1481"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:1545:105:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "500",
+  "hint": "<span style={{ position: 'absolute', insetInlineStart: '50%', transfor",
+  "source": "maor/src/components/home/widgets.tsx:1545"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:1546:105:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "800",
+  "hint": "<span style={{ position: 'absolute', insetInlineStart: '80%', transfor",
+  "source": "maor/src/components/home/widgets.tsx:1546"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:1547:107:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1000",
+  "hint": "<span style={{ position: 'absolute', insetInlineStart: '100%', transfo",
+  "source": "maor/src/components/home/widgets.tsx:1547"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:1628:10:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "{due.slice(0, 6).map((c) => (",
+  "source": "maor/src/components/home/widgets.tsx:1628"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:1691:31:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "{(showAll ? items : items.slice(0, 6)).map((p) => (",
+  "source": "maor/src/components/home/widgets.tsx:1691"
+ },
+ {
+  "id": "L9:maor:src/components/home/widgets.tsx:1871:31:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "{(showAll ? items : items.slice(0, 8)).map((s) => (",
+  "source": "maor/src/components/home/widgets.tsx:1871"
+ },
+ {
+  "id": "L9:maor:src/components/palette/CommandPalette.tsx:810:17:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "return scored.slice(0, 6).map((x) => x.w);",
+  "source": "maor/src/components/palette/CommandPalette.tsx:810"
+ },
+ {
+  "id": "L9:maor:src/components/platform/lib.ts:25:35:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "30",
+  "hint": "if (base.length > 30) base = base.slice(0, 30).replace(/-+$/g, '');",
+  "source": "maor/src/components/platform/lib.ts:25"
+ },
+ {
+  "id": "L9:maor:src/components/platform/ManagerPanel.tsx:433:86:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "5",
+  "hint": "? supporters.filter((sp) => sp.name.includes(taskSupQ.trim())).slice(0",
+  "source": "maor/src/components/platform/ManagerPanel.tsx:433"
+ },
+ {
+  "id": "L9:maor:src/components/platform/ManagerPanel.tsx:486:31:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "{open.slice(0, 8).map((t) => (",
+  "source": "maor/src/components/platform/ManagerPanel.tsx:486"
+ },
+ {
+  "id": "L9:maor:src/components/platform/ManagerPanel.tsx:488:54:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "2",
+  "hint": "<span>{PRI_LABELS[t.pri].slice(0, 2)}</span>",
+  "source": "maor/src/components/platform/ManagerPanel.tsx:488"
+ },
+ {
+  "id": "L9:maor:src/components/platform/ManagerPanel.tsx:605:30:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "{w.byAct.slice(0, 3).map((a) => (",
+  "source": "maor/src/components/platform/ManagerPanel.tsx:605"
+ },
+ {
+  "id": "L9:maor:src/components/platform/ManagerPanel.tsx:621:35:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "{a.at.slice(0, 10)} {a.at.slice(11, 16)} · {a.act} — {a.what}",
+  "source": "maor/src/components/platform/ManagerPanel.tsx:621"
+ },
+ {
+  "id": "L9:maor:src/components/platform/PlatformPanel.tsx:319:87:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "16",
+  "hint": "<span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{(r.at ?? ",
+  "source": "maor/src/components/platform/PlatformPanel.tsx:319"
+ },
+ {
+  "id": "L9:maor:src/components/platform/PlatformPanel.tsx:351:89:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "16",
+  "hint": "<span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{(r.at ?? ",
+  "source": "maor/src/components/platform/PlatformPanel.tsx:351"
+ },
+ {
+  "id": "L9:maor:src/components/platform/PlatformPanel.tsx:375:116:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "16",
+  "hint": "<span style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginInline",
+  "source": "maor/src/components/platform/PlatformPanel.tsx:375"
+ },
+ {
+  "id": "L9:maor:src/components/platform/teamIntel.ts:45:6:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "6",
+  "name": "RECENT_LIMIT",
+  "hint": "const RECENT_LIMIT = 6;",
+  "source": "maor/src/components/platform/teamIntel.ts:45"
+ },
+ {
+  "id": "L9:maor:src/components/platform/teamIntel.ts:48:42:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const dayOf = (iso: string): string => iso.slice(0, 10);",
+  "source": "maor/src/components/platform/teamIntel.ts:48"
+ },
+ {
+  "id": "L9:maor:src/components/public/PublicSite.tsx:399:20:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "{stats.slice(0, 4).map((s, i) => {",
+  "source": "maor/src/components/public/PublicSite.tsx:399"
+ },
+ {
+  "id": "L9:maor:src/components/public/PublicSite.tsx:572:20:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "{gallery.slice(0, 6).map((src, i) => {",
+  "source": "maor/src/components/public/PublicSite.tsx:572"
+ },
+ {
+  "id": "L9:maor:src/components/reports/csv.ts:26:2:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "5000",
+  "hint": "setTimeout(() => URL.revokeObjectURL(a.href), 5000);",
+  "source": "maor/src/components/reports/csv.ts:26"
+ },
+ {
+  "id": "L9:maor:src/components/reports/CustomExport.tsx:25:6:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "30",
+  "name": "PREVIEW_MAX",
+  "hint": "const PREVIEW_MAX = 30;",
+  "source": "maor/src/components/reports/CustomExport.tsx:25"
+ },
+ {
+  "id": "L9:maor:src/components/reports/CustomExport.tsx:77:32:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "setFrom(kind === 'month' ? t.slice(0, 7) + '-01' : t.slice(0, 4) + '-0",
+  "source": "maor/src/components/reports/CustomExport.tsx:77"
+ },
+ {
+  "id": "L9:maor:src/components/reports/CustomExport.tsx:77:56:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "setFrom(kind === 'month' ? t.slice(0, 7) + '-01' : t.slice(0, 4) + '-0",
+  "source": "maor/src/components/reports/CustomExport.tsx:77"
+ },
+ {
+  "id": "L9:maor:src/components/reports/lib.ts:20:23:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const [y, m, d] = iso.slice(0, 10).split('-');",
+  "source": "maor/src/components/reports/lib.ts:20"
+ },
+ {
+  "id": "L9:maor:src/components/reports/lib.ts:60:12:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "return iso.slice(0, 7);",
+  "source": "maor/src/components/reports/lib.ts:60"
+ },
+ {
+  "id": "L9:maor:src/components/reports/management.tsx:110:66:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "['טרם נרשמו החודש', due.length ? due.length + ' (' + due.slice(0, 4).m",
+  "source": "maor/src/components/reports/management.tsx:110"
+ },
+ {
+  "id": "L9:maor:src/components/reports/ReportsView.tsx:27:42:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "{ label: 'החודש', range: { from: today.slice(0, 8) + '01', to: today }",
+  "source": "maor/src/components/reports/ReportsView.tsx:27"
+ },
+ {
+  "id": "L9:maor:src/components/reports/ReportsView.tsx:29:41:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "{ label: 'השנה', range: { from: today.slice(0, 4) + '-01-01', to: toda",
+  "source": "maor/src/components/reports/ReportsView.tsx:29"
+ },
+ {
+  "id": "L9:maor:src/components/settings/DonationSplitSection.tsx:90:48:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "400",
+  "hint": "void disableSplit().finally(() => setTimeout(() => window.location.rel",
+  "source": "maor/src/components/settings/DonationSplitSection.tsx:90"
+ },
+ {
+  "id": "L9:maor:src/components/settings/DonorImportSection.tsx:42:6:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "3500",
+  "hint": "setTimeout(() => setArmed((a) => (a === action ? null : a)), 3500);",
+  "source": "maor/src/components/settings/DonorImportSection.tsx:42"
+ },
+ {
+  "id": "L9:maor:src/components/settings/DonorImportSection.tsx:63:35:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "220",
+  "hint": "? '🔎 נסרקו 0 — ' + r.debug.slice(0, 220)",
+  "source": "maor/src/components/settings/DonorImportSection.tsx:63"
+ },
+ {
+  "id": "L9:maor:src/components/settings/EncryptionSection.tsx:174:6:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "4000",
+  "hint": "setTimeout(() => setDisArmed(false), 4000);",
+  "source": "maor/src/components/settings/EncryptionSection.tsx:174"
+ },
+ {
+  "id": "L9:maor:src/components/settings/EncryptionSection.tsx:177:40:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "400",
+  "hint": "if (Date.now() - disArmedAt.current < 400) return;",
+  "source": "maor/src/components/settings/EncryptionSection.tsx:177"
+ },
+ {
+  "id": "L9:maor:src/components/settings/helpers.ts:10:15:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const p = iso.slice(0, 10).split('-');",
+  "source": "maor/src/components/settings/helpers.ts:10"
+ },
+ {
+  "id": "L9:maor:src/components/settings/ImportSection.tsx:434:28:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": "{plan.news.slice(0, 12).map((r, i) => (",
+  "source": "maor/src/components/settings/ImportSection.tsx:434"
+ },
+ {
+  "id": "L9:maor:src/components/settings/SecuritySection.tsx:52:6:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "4000",
+  "hint": "setTimeout(() => setRemoveArmed(false), 4000);",
+  "source": "maor/src/components/settings/SecuritySection.tsx:52"
+ },
+ {
+  "id": "L9:maor:src/components/settings/SecuritySection.tsx:55:43:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "400",
+  "hint": "if (Date.now() - removeArmedAt.current < 400) return;",
+  "source": "maor/src/components/settings/SecuritySection.tsx:55"
+ },
+ {
+  "id": "L9:maor:src/components/settings/SettingsView.tsx:80:16:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "120",
+  "hint": "const t = setTimeout(() => document.getElementById(focusId)?.scrollInt",
+  "source": "maor/src/components/settings/SettingsView.tsx:80"
+ },
+ {
+  "id": "L9:maor:src/components/settings/SettingsView.tsx:539:35:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "100",
+  "hint": "const rows = [...audit].reverse().slice(0, 100);",
+  "source": "maor/src/components/settings/SettingsView.tsx:539"
+ },
+ {
+  "id": "L9:maor:src/components/settings/SettingsView.tsx:553:62:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "16",
+  "hint": "<td dir=\"ltr\" style={{ fontSize: 12 }}>{r.at.slice(0, 16).replace('T',",
+  "source": "maor/src/components/settings/SettingsView.tsx:553"
+ },
+ {
+  "id": "L9:maor:src/components/settings/SupEnforceSection.tsx:36:8:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "400",
+  "hint": "setTimeout(() => window.location.reload(), 400);",
+  "source": "maor/src/components/settings/SupEnforceSection.tsx:36"
+ },
+ {
+  "id": "L9:maor:src/components/settings/TeachersSection.tsx:41:35:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "3000",
+  "hint": "disarmTimer.current = window.setTimeout(() => setArmedId((a) => (a ===",
+  "source": "maor/src/components/settings/TeachersSection.tsx:41"
+ },
+ {
+  "id": "L9:maor:src/components/shop/CalendarTab.tsx:145:28:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "{cell.events.slice(0, 3).map((ev) => {",
+  "source": "maor/src/components/shop/CalendarTab.tsx:145"
+ },
+ {
+  "id": "L9:maor:src/components/shop/CriteriaPanel.tsx:44:48:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (!Number.isFinite(pct) || pct < 0 || pct > 100) return setError('אח",
+  "source": "maor/src/components/shop/CriteriaPanel.tsx:44"
+ },
+ {
+  "id": "L9:maor:src/components/shop/lib.ts:158:20:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "400",
+  "hint": "for (let i = 0; i < 400; i++) {",
+  "source": "maor/src/components/shop/lib.ts:158"
+ },
+ {
+  "id": "L9:maor:src/components/shop/ShopFamilyPanel.tsx:46:18:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "5",
+  "hint": "{pending.slice(0, 5).map((x) => (",
+  "source": "maor/src/components/shop/ShopFamilyPanel.tsx:46"
+ },
+ {
+  "id": "L9:maor:src/components/shop8/lib.ts:29:21:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "return new Date(iso.slice(0, 10) + 'T12:00:00');",
+  "source": "maor/src/components/shop8/lib.ts:29"
+ },
+ {
+  "id": "L9:maor:src/components/support/SupportChat.tsx:286:148:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "<b style={{ fontSize: 14.5, overflow: 'hidden', textOverflow: 'ellipsi",
+  "source": "maor/src/components/support/SupportChat.tsx:286"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/askMaor.ts:51:23:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "const year = todayIso.slice(0, 4);",
+  "source": "maor/src/components/supporters/askMaor.ts:51"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/askMaor.ts:83:44:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const month = /החודש/.test(t) ? todayIso.slice(0, 7) : null;",
+  "source": "maor/src/components/supporters/askMaor.ts:83"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/AyinCard.tsx:579:18:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "30",
+  "hint": "{a.log.slice(0, 30).map((l, i) => (",
+  "source": "maor/src/components/supporters/AyinCard.tsx:579"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/cockpit.ts:58:10:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "5000",
+  "hint": "if (ils >= 5000) return 'תורם/ת מרכזי/ת';",
+  "source": "maor/src/components/supporters/cockpit.ts:58"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/cockpit.ts:59:10:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1000",
+  "hint": "if (ils >= 1000) return 'תורם/ת מהותי/ת';",
+  "source": "maor/src/components/supporters/cockpit.ts:59"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/cockpit.ts:206:24:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const month = todayIso.slice(0, 7);",
+  "source": "maor/src/components/supporters/cockpit.ts:206"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/constellation.ts:41:75:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "180",
+  "hint": "const base = daysSince <= 30 ? 0.30 : daysSince <= 90 ? 0.45 : daysSin",
+  "source": "maor/src/components/supporters/constellation.ts:41"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/constellation.ts:41:101:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "365",
+  "hint": "const base = daysSince <= 30 ? 0.30 : daysSince <= 90 ? 0.45 : daysSin",
+  "source": "maor/src/components/supporters/constellation.ts:41"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/DonationCalendar.tsx:233:66:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "2",
+  "hint": "<div style={{ textAlign: 'center' }}>{marks[0].src.slice(0, 2)}</div>",
+  "source": "maor/src/components/supporters/DonationCalendar.tsx:233"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/DonationModal.tsx:43:60:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "5",
+  "hint": "return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).m",
+  "source": "maor/src/components/supporters/DonationModal.tsx:43"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/DonationModal.tsx:170:30:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "{knownPurposes.slice(0, 8).map((p) => (",
+  "source": "maor/src/components/supporters/DonationModal.tsx:170"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/IncomingPayments.tsx:49:6:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "3500",
+  "hint": "setTimeout(() => setArmed((a) => (a === action ? null : a)), 3500);",
+  "source": "maor/src/components/supporters/IncomingPayments.tsx:49"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/IncomingPayments.tsx:274:69:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "{p.reference ? ' · ' + p.reference : ''} · {p.d || p.at.slice(0, 10)}",
+  "source": "maor/src/components/supporters/IncomingPayments.tsx:274"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/IncomingPayments.tsx:335:15:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "return rows.slice(0, 10);",
+  "source": "maor/src/components/supporters/IncomingPayments.tsx:335"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/IncomingPayments.tsx:341:27:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "date: pay.d || pay.at.slice(0, 10),",
+  "source": "maor/src/components/supporters/IncomingPayments.tsx:341"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/IncomingPayments.tsx:356:6:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": ".slice(0, 10);",
+  "source": "maor/src/components/supporters/IncomingPayments.tsx:356"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/IncomingPayments.tsx:368:33:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const payDate = pay.d || pay.at.slice(0, 10);",
+  "source": "maor/src/components/supporters/IncomingPayments.tsx:368"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/intel.ts:23:16:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "const y = +iso.slice(0, 4), m = +iso.slice(5, 7), d = +iso.slice(8, 10",
+  "source": "maor/src/components/supporters/intel.ts:23"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/intel.ts:32:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const a = Date.parse(iso.slice(0, 10) + 'T12:00:00');",
+  "source": "maor/src/components/supporters/intel.ts:32"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/intel.ts:33:31:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const b = Date.parse(todayIso.slice(0, 10) + 'T12:00:00');",
+  "source": "maor/src/components/supporters/intel.ts:33"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/intel.ts:41:16:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "const y = +iso.slice(0, 4), m = +iso.slice(5, 7);",
+  "source": "maor/src/components/supporters/intel.ts:41"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/intel.ts:42:22:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "const ty = +todayIso.slice(0, 4), tm = +todayIso.slice(5, 7);",
+  "source": "maor/src/components/supporters/intel.ts:42"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/intel.ts:88:52:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "180",
+  "hint": "return days <= 30 ? 350 : days <= 90 ? 280 : days <= 180 ? 200 : days ",
+  "source": "maor/src/components/supporters/intel.ts:88"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/intel.ts:88:72:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "365",
+  "hint": "return days <= 30 ? 350 : days <= 90 ? 280 : days <= 180 ? 200 : days ",
+  "source": "maor/src/components/supporters/intel.ts:88"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/intel.ts:94:13:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "5000",
+  "hint": "return tot >= 5000 ? 350 : tot >= 2000 ? 280 : tot >= 1000 ? 210 : tot",
+  "source": "maor/src/components/supporters/intel.ts:94"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/intel.ts:94:33:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "2000",
+  "hint": "return tot >= 5000 ? 350 : tot >= 2000 ? 280 : tot >= 1000 ? 210 : tot",
+  "source": "maor/src/components/supporters/intel.ts:94"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/intel.ts:94:53:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1000",
+  "hint": "return tot >= 5000 ? 350 : tot >= 2000 ? 280 : tot >= 1000 ? 210 : tot",
+  "source": "maor/src/components/supporters/intel.ts:94"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/intel.ts:94:73:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "500",
+  "hint": "return tot >= 5000 ? 350 : tot >= 2000 ? 280 : tot >= 1000 ? 210 : tot",
+  "source": "maor/src/components/supporters/intel.ts:94"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/intel.ts:94:92:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "return tot >= 5000 ? 350 : tot >= 2000 ? 280 : tot >= 1000 ? 210 : tot",
+  "source": "maor/src/components/supporters/intel.ts:94"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:17:23:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const [y, m, d] = iso.slice(0, 10).split('-');",
+  "source": "maor/src/components/supporters/lib.ts:17"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:137:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "if (year != null && +iso.slice(0, 4) !== year) return false;",
+  "source": "maor/src/components/supporters/lib.ts:137"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:158:55:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "180",
+  "hint": "const R = days <= 30 ? 350 : days <= 90 ? 280 : days <= 180 ? 200 : da",
+  "source": "maor/src/components/supporters/lib.ts:158"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:158:75:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "365",
+  "hint": "const R = days <= 30 ? 350 : days <= 90 ? 280 : days <= 180 ? 200 : da",
+  "source": "maor/src/components/supporters/lib.ts:158"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:160:16:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "5000",
+  "hint": "const M = tot >= 5000 ? 350 : tot >= 2000 ? 280 : tot >= 1000 ? 210 : ",
+  "source": "maor/src/components/supporters/lib.ts:160"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:160:36:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "2000",
+  "hint": "const M = tot >= 5000 ? 350 : tot >= 2000 ? 280 : tot >= 1000 ? 210 : ",
+  "source": "maor/src/components/supporters/lib.ts:160"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:160:56:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1000",
+  "hint": "const M = tot >= 5000 ? 350 : tot >= 2000 ? 280 : tot >= 1000 ? 210 : ",
+  "source": "maor/src/components/supporters/lib.ts:160"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:160:76:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "500",
+  "hint": "const M = tot >= 5000 ? 350 : tot >= 2000 ? 280 : tot >= 1000 ? 210 : ",
+  "source": "maor/src/components/supporters/lib.ts:160"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:160:95:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "const M = tot >= 5000 ? 350 : tot >= 2000 ? 280 : tot >= 1000 ? 210 : ",
+  "source": "maor/src/components/supporters/lib.ts:160"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:173:9:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "800",
+  "hint": "if (sc >= 800) return { label: 'זהב', bg: '#fdf3dd', c: '#9a6414', dot",
+  "source": "maor/src/components/supporters/lib.ts:173"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:174:9:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "600",
+  "hint": "if (sc >= 600) return { label: 'כסף', bg: '#eef1f5', c: '#44546a', dot",
+  "source": "maor/src/components/supporters/lib.ts:174"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:175:9:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "400",
+  "hint": "if (sc >= 400) return { label: 'ארד', bg: '#f6ead1', c: '#9a6414', dot",
+  "source": "maor/src/components/supporters/lib.ts:175"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:420:4:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "15",
+  "hint": ".slice(0, 15)",
+  "source": "maor/src/components/supporters/lib.ts:420"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:684:20:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const [y, m] = iso.slice(0, 7).split('-').map(Number);",
+  "source": "maor/src/components/supporters/lib.ts:684"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:685:27:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const [ty, tm] = todayIso.slice(0, 7).split('-').map(Number);",
+  "source": "maor/src/components/supporters/lib.ts:685"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/lib.ts:710:24:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const month = todayIso.slice(0, 7);",
+  "source": "maor/src/components/supporters/lib.ts:710"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/portfolio.ts:21:13:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "60",
+  "name": "PORTFOLIO_RISK_THRESHOLD",
+  "hint": "export const PORTFOLIO_RISK_THRESHOLD = 60;",
+  "source": "maor/src/components/supporters/portfolio.ts:21"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/portfolio.ts:67:37:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "365",
+  "hint": "if (dayDiff(scan.last, todayIso) <= 365) retained++;",
+  "source": "maor/src/components/supporters/portfolio.ts:67"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/retention.ts:43:28:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "const year = +scan.first.slice(0, 4);",
+  "source": "maor/src/components/supporters/retention.ts:43"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/retention.ts:49:50:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "365",
+  "hint": "if (scan.last && dayDiff(scan.last, todayIso) <= 365) row.activeNow++;",
+  "source": "maor/src/components/supporters/retention.ts:49"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/segments.ts:79:46:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "365",
+  "hint": "return !!last && daysSince(last, today) <= 365;",
+  "source": "maor/src/components/supporters/segments.ts:79"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/signals.ts:31:25:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "out.push({ date: date.slice(0, 10), ils: (cur || '₪') === '$' ? amount",
+  "source": "maor/src/components/supporters/signals.ts:31"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupporterCard.tsx:22:31:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1000",
+  "hint": "const KILO = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >=",
+  "source": "maor/src/components/supporters/SupporterCard.tsx:22"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupporterCard.tsx:22:68:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "10000",
+  "hint": "const KILO = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >=",
+  "source": "maor/src/components/supporters/SupporterCard.tsx:22"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupporterCard.tsx:124:88:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "{MONTHS_HE[+intel.forecast.dueIso.slice(5, 7) - 1]} {intel.forecast.du",
+  "source": "maor/src/components/supporters/SupporterCard.tsx:124"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupporterDetail.tsx:299:13:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "4000",
+  "hint": "window.setTimeout(() => setArmDelete(false), 4000);",
+  "source": "maor/src/components/supporters/SupporterDetail.tsx:299"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupporterDetail.tsx:618:24:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "60",
+  "hint": "{donRows.slice(0, 60).map((r, i) => (",
+  "source": "maor/src/components/supporters/SupporterDetail.tsx:618"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupporterForm.tsx:144:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "{known.slice(0, 8).map((p) => (",
+  "source": "maor/src/components/supporters/SupporterForm.tsx:144"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupporterImport.tsx:54:25:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "200",
+  "hint": "setCsv(toCsv(grid.slice(0, 200))); // שקיפות: הצגת מה שנקרא מהגיליון",
+  "source": "maor/src/components/supporters/SupporterImport.tsx:54"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersGalaxy.tsx:22:6:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "400",
+  "name": "RENDER_CAP",
+  "hint": "const RENDER_CAP = 400;",
+  "source": "maor/src/components/supporters/SupportersGalaxy.tsx:22"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersIntel.tsx:28:31:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1000",
+  "hint": "const KILO = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >=",
+  "source": "maor/src/components/supporters/SupportersIntel.tsx:28"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersIntel.tsx:28:68:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "10000",
+  "hint": "const KILO = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >=",
+  "source": "maor/src/components/supporters/SupportersIntel.tsx:28"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersIntel.tsx:130:83:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "חלון צפוי: {monthLabel(intel.forecast.dueIso)} {intel.forecast.dueIso.",
+  "source": "maor/src/components/supporters/SupportersIntel.tsx:130"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersIntel.tsx:178:28:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "{migration.flows.slice(0, 3).map((f) => (",
+  "source": "maor/src/components/supporters/SupportersIntel.tsx:178"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersIntel.tsx:231:83:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1000",
+  "hint": "<text x=\"272\" y=\"118\" style={{ fontSize: 9.5, fill: 'var(--ink-faint)'",
+  "source": "maor/src/components/supporters/SupportersIntel.tsx:231"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersIntel.tsx:472:15:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "{movers.slice(0, 8).map((s, i) => {",
+  "source": "maor/src/components/supporters/SupportersIntel.tsx:472"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersIntel.tsx:544:22:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "60",
+  "hint": "const shown = sorted.slice(0, 60);",
+  "source": "maor/src/components/supporters/SupportersIntel.tsx:544"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersKpiStrip.tsx:14:30:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1000",
+  "hint": "const ILS = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >= ",
+  "source": "maor/src/components/supporters/SupportersKpiStrip.tsx:14"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersKpiStrip.tsx:14:67:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "10000",
+  "hint": "const ILS = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >= ",
+  "source": "maor/src/components/supporters/SupportersKpiStrip.tsx:14"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersUniverse3D.tsx:19:6:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "400",
+  "name": "RENDER_CAP",
+  "hint": "const RENDER_CAP = 400;",
+  "source": "maor/src/components/supporters/SupportersUniverse3D.tsx:19"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:35:19:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "return min ? +min.slice(0, 4) : null;",
+  "source": "maor/src/components/supporters/SupportersView.tsx:35"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:46:28:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "if (year != null && +iso.slice(0, 4) !== year) return false;",
+  "source": "maor/src/components/supporters/SupportersView.tsx:46"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:57:69:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "for (const d of sp.donations) if (d.date) set.add(+String(d.date).slic",
+  "source": "maor/src/components/supporters/SupportersView.tsx:57"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:58:71:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "if (sp.hist) for (const h of sp.hist) if (h.d) set.add(+String(h.d).sl",
+  "source": "maor/src/components/supporters/SupportersView.tsx:58"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:60:34:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1900",
+  "hint": "return [...set].filter((y) => y > 1900 && y < 3000).sort((a, b) => b -",
+  "source": "maor/src/components/supporters/SupportersView.tsx:60"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:60:46:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "3000",
+  "hint": "return [...set].filter((y) => y > 1900 && y < 3000).sort((a, b) => b -",
+  "source": "maor/src/components/supporters/SupportersView.tsx:60"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:435:4:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "250",
+  "hint": "setTimeout(() => document.getElementById(sectionId)?.scrollIntoView({ ",
+  "source": "maor/src/components/supporters/SupportersView.tsx:435"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:708:34:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "400",
+  "hint": "title={nedPending > 400 ? 'החיבור-החי מושהה (מעל 400 ממתינים) — בצעו מ",
+  "source": "maor/src/components/supporters/SupportersView.tsx:708"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:712:109:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "400",
+  "hint": "<span style={{ marginInlineStart: 6, fontSize: 11, fontWeight: 700, ba",
+  "source": "maor/src/components/supporters/SupportersView.tsx:712"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:713:32:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "400",
+  "hint": "{nedPending > 400 ? '⏸ ' : ''}{nedPending.toLocaleString('he-IL')}",
+  "source": "maor/src/components/supporters/SupportersView.tsx:713"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:730:43:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "const year = isoToday().slice(0, 4);",
+  "source": "maor/src/components/supporters/SupportersView.tsx:730"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/tierMigration.ts:18:90:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "180",
+  "hint": "function rScore(days: number): number { return days <= 30 ? 350 : days",
+  "source": "maor/src/components/supporters/tierMigration.ts:18"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/tierMigration.ts:18:110:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "365",
+  "hint": "function rScore(days: number): number { return days <= 30 ? 350 : days",
+  "source": "maor/src/components/supporters/tierMigration.ts:18"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/tierMigration.ts:20:46:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "5000",
+  "hint": "function mScore(t: number): number { return t >= 5000 ? 350 : t >= 200",
+  "source": "maor/src/components/supporters/tierMigration.ts:20"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/tierMigration.ts:20:64:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "2000",
+  "hint": "function mScore(t: number): number { return t >= 5000 ? 350 : t >= 200",
+  "source": "maor/src/components/supporters/tierMigration.ts:20"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/tierMigration.ts:20:82:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "1000",
+  "hint": "function mScore(t: number): number { return t >= 5000 ? 350 : t >= 200",
+  "source": "maor/src/components/supporters/tierMigration.ts:20"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/tierMigration.ts:20:100:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "500",
+  "hint": "function mScore(t: number): number { return t >= 5000 ? 350 : t >= 200",
+  "source": "maor/src/components/supporters/tierMigration.ts:20"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/tierMigration.ts:20:117:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "function mScore(t: number): number { return t >= 5000 ? 350 : t >= 200",
+  "source": "maor/src/components/supporters/tierMigration.ts:20"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/tierMigration.ts:27:21:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const cut = asOfIso.slice(0, 10);",
+  "source": "maor/src/components/supporters/tierMigration.ts:27"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/tierMigration.ts:32:18:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const d = date.slice(0, 10);",
+  "source": "maor/src/components/supporters/tierMigration.ts:32"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/tierMigration.ts:70:16:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "const y = +iso.slice(0, 4), m = +iso.slice(5, 7), d = +iso.slice(8, 10",
+  "source": "maor/src/components/supporters/tierMigration.ts:70"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/tierMigration.ts:87:38:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const fromIso = shiftMonths(todayIso.slice(0, 10), monthsBack);",
+  "source": "maor/src/components/supporters/tierMigration.ts:87"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/timemachine.ts:105:54:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "365",
+  "hint": "if (dayDiff(scan.last, todayIso) + h.offsetDays <= 365) h.activeCount+",
+  "source": "maor/src/components/supporters/timemachine.ts:105"
+ },
+ {
+  "id": "L9:maor:src/components/telephony/lib.ts:59:4:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "38",
+  "hint": ".slice(0, 38);",
+  "source": "maor/src/components/telephony/lib.ts:59"
+ },
+ {
+  "id": "L9:maor:src/components/telephony/lib.ts:61:58:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "40",
+  "hint": "return /^[a-z0-9]/.test(padded) ? padded : `x-${padded}`.slice(0, 40);",
+  "source": "maor/src/components/telephony/lib.ts:61"
+ },
+ {
+  "id": "L9:maor:src/components/timer/CashRegister.tsx:62:12:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "return iso.slice(0, 10) === new Date().toISOString().slice(0, 10);",
+  "source": "maor/src/components/timer/CashRegister.tsx:62"
+ },
+ {
+  "id": "L9:maor:src/components/timer/CashRegister.tsx:62:54:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "return iso.slice(0, 10) === new Date().toISOString().slice(0, 10);",
+  "source": "maor/src/components/timer/CashRegister.tsx:62"
+ },
+ {
+  "id": "L9:maor:src/components/timer/CashRegister.tsx:110:74:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "100",
+  "hint": "localStorage.setItem(nsLsKey(LS_SHIFT_LOG), JSON.stringify([z, ...arr]",
+  "source": "maor/src/components/timer/CashRegister.tsx:110"
+ },
+ {
+  "id": "L9:maor:src/components/timer/CashRegister.tsx:135:73:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "200",
+  "hint": "localStorage.setItem(nsLsKey(LS_RECEIPTS), JSON.stringify([r, ...arr].",
+  "source": "maor/src/components/timer/CashRegister.tsx:135"
+ },
+ {
+  "id": "L9:maor:src/components/timer/MoneyTimer.tsx:172:38:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "100",
+  "hint": "const next = [rec, ...collections].slice(0, 100);",
+  "source": "maor/src/components/timer/MoneyTimer.tsx:172"
+ },
+ {
+  "id": "L9:maor:src/components/timer/MoneyTimer.tsx:305:39:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "{collections.filter((c) => c.at.slice(0, 10) === todayIso).length === ",
+  "source": "maor/src/components/timer/MoneyTimer.tsx:305"
+ },
+ {
+  "id": "L9:maor:src/components/timer/MoneyTimer.tsx:310:33:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": ".filter((c) => c.at.slice(0, 10) === todayIso)",
+  "source": "maor/src/components/timer/MoneyTimer.tsx:310"
+ },
+ {
+  "id": "L9:maor:src/components/TourOverlay.tsx:51:14:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "350",
+  "hint": "const t = setTimeout(measure, 350);",
+  "source": "maor/src/components/TourOverlay.tsx:51"
+ },
+ {
+  "id": "L9:maor:src/components/tzedaka/CalendarTab.tsx:114:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "{cell.events.slice(0, 3).map((ev) => {",
+  "source": "maor/src/components/tzedaka/CalendarTab.tsx:114"
+ },
+ {
+  "id": "L9:maor:src/components/tzedaka/CoordinatorCard.tsx:243:25:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": "{c.scoreLog.slice(0, 12).map((l, i) => (",
+  "source": "maor/src/components/tzedaka/CoordinatorCard.tsx:243"
+ },
+ {
+  "id": "L9:maor:src/components/tzedaka/ShowcaseTab.tsx:23:71:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const rows = useMemo(() => leaderboard(db.tzCoordinators, db.tzBoxes).",
+  "source": "maor/src/components/tzedaka/ShowcaseTab.tsx:23"
+ },
+ {
+  "id": "L9:maor:src/components/wall/ImpactWall.tsx:67:26:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "3000",
+  "hint": "idleTimer.current = setTimeout(() => setIdle(true), 3000);",
+  "source": "maor/src/components/wall/ImpactWall.tsx:67"
+ },
+ {
+  "id": "L9:maor:src/components/wall/wallData.ts:160:18:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "const top = rows.slice(0, 3).map((r) => ({",
+  "source": "maor/src/components/wall/wallData.ts:160"
+ },
+ {
+  "id": "L9:maor:src/components/wall/wallData.ts:194:25:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const i = idx.get(iso.slice(0, 7));",
+  "source": "maor/src/components/wall/wallData.ts:194"
+ },
+ {
+  "id": "L9:maor:src/components/wall/wallData.ts:283:18:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "sub: names.slice(0, 3).join(' · '),",
+  "source": "maor/src/components/wall/wallData.ts:283"
+ },
+ {
+  "id": "L9:maor:src/components/wall/wallData.ts:312:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "const yearKey = todayIso.slice(0, 4);",
+  "source": "maor/src/components/wall/wallData.ts:312"
+ },
+ {
+  "id": "L9:maor:src/components/wall/wallData.ts:313:27:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const monthKey = todayIso.slice(0, 7);",
+  "source": "maor/src/components/wall/wallData.ts:313"
+ },
+ {
+  "id": "L9:maor:src/components/wall/wallData.ts:378:21:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "700",
+  "hint": "badge: credAvg >= 700 ? '▲' : undefined,",
+  "source": "maor/src/components/wall/wallData.ts:378"
+ },
+ {
+  "id": "L9:maor:src/components/wall/wallData.ts:417:28:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "2",
+  "hint": "for (const f of famsByDate.slice(0, 2)) ticker.push(`🎉 ${T('entity.fa",
+  "source": "maor/src/components/wall/wallData.ts:417"
+ },
+ {
+  "id": "L9:maor:src/components/wall/wallData.ts:419:28:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "for (const d of donsByDate.slice(0, 3)) ticker.push(`💛 ${T('entity.do",
+  "source": "maor/src/components/wall/wallData.ts:419"
+ },
+ {
+  "id": "L9:maor:src/components/wall/wallData.ts:437:23:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "2",
+  "hint": "for (const b of bdays.slice(0, 2)) ticker.push(`🎂 מזל טוב ל${b.first}",
+  "source": "maor/src/components/wall/wallData.ts:437"
+ },
+ {
+  "id": "L9:maor:src/components/wall/wallData.ts:450:18:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "ticker: ticker.slice(0, 8),",
+  "source": "maor/src/components/wall/wallData.ts:450"
+ },
+ {
+  "id": "L9:maor:src/components/wheel/CourseWheel.tsx:68:24:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "180",
+  "hint": "const large = a1 - a0 > 180 ? 1 : 0;",
+  "source": "maor/src/components/wheel/CourseWheel.tsx:68"
+ },
+ {
+  "id": "L9:maor:src/components/wheel/CourseWheel.tsx:179:28:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "2500",
+  "hint": "confettiTimer.current = setTimeout(() => setConfetti([]), 2500);",
+  "source": "maor/src/components/wheel/CourseWheel.tsx:179"
+ },
+ {
+  "id": "L9:maor:src/lib/a11y.ts:13:13:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "0",
+  "name": "SCALE_MIN",
+  "hint": "export const SCALE_MIN = 0.8;",
+  "source": "maor/src/lib/a11y.ts:13"
+ },
+ {
+  "id": "L9:maor:src/lib/a11y.ts:14:13:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "1",
+  "name": "SCALE_MAX",
+  "hint": "export const SCALE_MAX = 1.6;",
+  "source": "maor/src/lib/a11y.ts:14"
+ },
+ {
+  "id": "L9:maor:src/lib/annualReport.ts:33:56:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "4",
+  "hint": "return [...new Set(donations.map((d) => (d.date || '').slice(0, 4)).fi",
+  "source": "maor/src/lib/annualReport.ts:33"
+ },
+ {
+  "id": "L9:maor:src/lib/annualReport.ts:115:2:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "5000",
+  "hint": "setTimeout(() => URL.revokeObjectURL(a.href), 5000);",
+  "source": "maor/src/lib/annualReport.ts:115"
+ },
+ {
+  "id": "L9:maor:src/lib/audit.ts:113:125:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "add('כפילות', 'טלפון ' + k + ' משותף ל-' + a.length + ' ' + T('nav.fam",
+  "source": "maor/src/lib/audit.ts:113"
+ },
+ {
+  "id": "L9:maor:src/lib/audit.ts:119:138:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "2",
+  "hint": "if (a.length > 1) add('כפילות', 'ת\"ז ' + k + ' מופיעה ב-' + a.length +",
+  "source": "maor/src/lib/audit.ts:119"
+ },
+ {
+  "id": "L9:maor:src/lib/cloudConfig.ts:350:31:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "120",
+  "hint": "email: (meta.email ?? '').slice(0, 120),",
+  "source": "maor/src/lib/cloudConfig.ts:350"
+ },
+ {
+  "id": "L9:maor:src/lib/cloudConfig.ts:351:35:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "120",
+  "hint": "orgName: (meta.orgName ?? '').slice(0, 120),",
+  "source": "maor/src/lib/cloudConfig.ts:351"
+ },
+ {
+  "id": "L9:maor:src/lib/cloudConfig.ts:352:21:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "120",
+  "hint": "lastText: clean.slice(0, 120),",
+  "source": "maor/src/lib/cloudConfig.ts:352"
+ },
+ {
+  "id": "L9:maor:src/lib/cloudConfig.ts:369:21:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "120",
+  "hint": "{ lastText: clean.slice(0, 120), lastAt: now, lastFrom: 'admin', unrea",
+  "source": "maor/src/lib/cloudConfig.ts:369"
+ },
+ {
+  "id": "L9:maor:src/lib/cloudConfig.ts:417:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "120",
+  "hint": "sender: (sender || '').slice(0, 120),",
+  "source": "maor/src/lib/cloudConfig.ts:417"
+ },
+ {
+  "id": "L9:maor:src/lib/cloudConfig.ts:418:22:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "60",
+  "hint": "name: (name || '').slice(0, 60),",
+  "source": "maor/src/lib/cloudConfig.ts:418"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:158:56:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "const s = typeof v === 'string' ? v.replace(/\\D/g, '').slice(0, 8) : '",
+  "source": "maor/src/lib/config.ts:158"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:172:54:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "64",
+  "hint": "const numsRaw = Array.isArray(t.numbers) ? t.numbers.slice(0, 64) : []",
+  "source": "maor/src/lib/config.ts:172"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:178:88:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "24",
+  "hint": "const e164 = typeof o.e164 === 'string' ? o.e164.replace(/[^\\d+()\\-\\s]",
+  "source": "maor/src/lib/config.ts:178"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:241:70:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "24",
+  "hint": "return typeof v === 'string' ? v.replace(/[^\\d+()\\-\\s]/g, '').trim().s",
+  "source": "maor/src/lib/config.ts:241"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:264:101:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "const words = s.heroWords.map((w) => normLocalized(w, 60)).filter((w):",
+  "source": "maor/src/lib/config.ts:264"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:277:6:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": ".slice(0, 8);",
+  "source": "maor/src/lib/config.ts:277"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:313:6:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": ".slice(0, 12);",
+  "source": "maor/src/lib/config.ts:313"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:324:6:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "24",
+  "hint": ".slice(0, 24);",
+  "source": "maor/src/lib/config.ts:324"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:331:61:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "const phones = c.phones.map(sitePhone).filter((p) => p).slice(0, 8);",
+  "source": "maor/src/lib/config.ts:331"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:373:96:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "16",
+  "hint": "const mq = s.marquee.map((m) => normLocalized(m, 80)).filter((m): m is",
+  "source": "maor/src/lib/config.ts:373"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:393:102:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "const perks = o.perks.map((p) => normLocalized(p, 100)).filter((p): p ",
+  "source": "maor/src/lib/config.ts:393"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:399:79:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "}).filter((x): x is NonNullable<PublicSiteContent['tiers']>[number] =>",
+  "source": "maor/src/lib/config.ts:399"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:411:86:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": "}).filter((x): x is NonNullable<PublicSiteContent['testimonials']>[num",
+  "source": "maor/src/lib/config.ts:411"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:420:70:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "20",
+  "hint": "}).filter((x): x is { q: LocalizedText; a: LocalizedText } => !!x).sli",
+  "source": "maor/src/lib/config.ts:420"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:433:80:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": "}).filter((x): x is NonNullable<PublicSiteContent['events']>[number] =",
+  "source": "maor/src/lib/config.ts:433"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:445:82:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "24",
+  "hint": "}).filter((x): x is NonNullable<PublicSiteContent['partners']>[number]",
+  "source": "maor/src/lib/config.ts:445"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:455:101:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "const badges = o.badges.map((b) => normLocalized(b, 60)).filter((b): b",
+  "source": "maor/src/lib/config.ts:455"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:478:82:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "}).filter((x): x is NonNullable<PublicSiteContent['timeline']>[number]",
+  "source": "maor/src/lib/config.ts:478"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:487:160:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "40",
+  "hint": "const pts = o.points.map((p) => (typeof p === 'number' && Number.isFin",
+  "source": "maor/src/lib/config.ts:487"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:501:88:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "}).filter((x): x is NonNullable<PublicSiteContent['paymentMethods']>[n",
+  "source": "maor/src/lib/config.ts:501"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:574:62:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "500",
+  "hint": "if (typeof v === 'string' && v.trim()) tpl[k] = v.trim().slice(0, 500)",
+  "source": "maor/src/lib/config.ts:574"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:605:79:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": "if (typeof c.emoji === 'string' && c.emoji.trim()) cfg.emoji = c.emoji",
+  "source": "maor/src/lib/config.ts:605"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:626:116:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "120",
+  "hint": "const hosts = c.allowedHosts.filter((h): h is string => typeof h === '",
+  "source": "maor/src/lib/config.ts:626"
+ },
+ {
+  "id": "L9:maor:src/lib/config.ts:626:131:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": "const hosts = c.allowedHosts.filter((h): h is string => typeof h === '",
+  "source": "maor/src/lib/config.ts:626"
+ },
+ {
+  "id": "L9:maor:src/lib/csvx.ts:33:2:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "5000",
+  "hint": "setTimeout(() => URL.revokeObjectURL(a.href), 5000);",
+  "source": "maor/src/lib/csvx.ts:33"
+ },
+ {
+  "id": "L9:maor:src/lib/csvx.ts:143:10:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (y < 100) {",
+  "source": "maor/src/lib/csvx.ts:143"
+ },
+ {
+  "id": "L9:maor:src/lib/csvx.ts:156:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "return b.toISOString().slice(0, 10);",
+  "source": "maor/src/lib/csvx.ts:156"
+ },
+ {
+  "id": "L9:maor:src/lib/demoCleanup.ts:102:54:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "removed[ent] = { count: drop.length, names: drop.slice(0, 8).map(nameO",
+  "source": "maor/src/lib/demoCleanup.ts:102"
+ },
+ {
+  "id": "L9:maor:src/lib/demoCleanup.ts:121:96:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "removed[ent] = { count: prev + drop.length, names: (removed[ent]?.name",
+  "source": "maor/src/lib/demoCleanup.ts:121"
+ },
+ {
+  "id": "L9:maor:src/lib/demoCleanup.ts:121:121:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "removed[ent] = { count: prev + drop.length, names: (removed[ent]?.name",
+  "source": "maor/src/lib/demoCleanup.ts:121"
+ },
+ {
+  "id": "L9:maor:src/lib/demoFresh.ts:26:24:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const d = new Date(iso.slice(0, 10) + 'T12:00:00');",
+  "source": "maor/src/lib/demoFresh.ts:26"
+ },
+ {
+  "id": "L9:maor:src/lib/dialer.ts:120:13:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "200",
+  "name": "CALL_LOG_CAP",
+  "hint": "export const CALL_LOG_CAP = 200;",
+  "source": "maor/src/lib/dialer.ts:120"
+ },
+ {
+  "id": "L9:maor:src/lib/donationPartition.ts:35:74:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "29",
+  "hint": "const clean = [...new Set(allowed.map((s) => s.trim()).filter(Boolean)",
+  "source": "maor/src/lib/donationPartition.ts:35"
+ },
+ {
+  "id": "L9:maor:src/lib/hebdate.ts:67:44:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "4000",
+  "hint": "if (!Number.isInteger(hebYear) || hebYear < 4000 || hebYear > 7000) re",
+  "source": "maor/src/lib/hebdate.ts:67"
+ },
+ {
+  "id": "L9:maor:src/lib/hebdate.ts:67:62:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "7000",
+  "hint": "if (!Number.isInteger(hebYear) || hebYear < 4000 || hebYear > 7000) re",
+  "source": "maor/src/lib/hebdate.ts:67"
+ },
+ {
+  "id": "L9:maor:src/lib/hebdate.ts:69:20:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "440",
+  "hint": "for (let i = 0; i < 440; i++) {",
+  "source": "maor/src/lib/hebdate.ts:69"
+ },
+ {
+  "id": "L9:maor:src/lib/hebdate.ts:130:20:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "440",
+  "hint": "for (let i = 0; i < 440; i++) {",
+  "source": "maor/src/lib/hebdate.ts:130"
+ },
+ {
+  "id": "L9:maor:src/lib/hebrew.ts:67:20:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "440",
+  "hint": "for (let i = 0; i < 440; i++) {",
+  "source": "maor/src/lib/hebrew.ts:67"
+ },
+ {
+  "id": "L9:maor:src/lib/hebrew.ts:137:6:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "3000",
+  "name": "HP_CACHE_MAX",
+  "hint": "const HP_CACHE_MAX = 3000;",
+  "source": "maor/src/lib/hebrew.ts:137"
+ },
+ {
+  "id": "L9:maor:src/lib/hebrew.ts:143:30:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "hp = hebParts(new Date(iso.slice(0, 10) + 'T12:00:00'));",
+  "source": "maor/src/lib/hebrew.ts:143"
+ },
+ {
+  "id": "L9:maor:src/lib/hebrew.ts:158:24:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const d = new Date(iso.slice(0, 10) + 'T12:00:00');",
+  "source": "maor/src/lib/hebrew.ts:158"
+ },
+ {
+  "id": "L9:maor:src/lib/ics.ts:139:2:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "5000",
+  "hint": "setTimeout(() => URL.revokeObjectURL(a.href), 5000);",
+  "source": "maor/src/lib/ics.ts:139"
+ },
+ {
+  "id": "L9:maor:src/lib/navhist.ts:19:13:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "20",
+  "name": "NAV_HIST_MAX",
+  "hint": "export const NAV_HIST_MAX = 20;",
+  "source": "maor/src/lib/navhist.ts:19"
+ },
+ {
+  "id": "L9:maor:src/lib/navhist.ts:20:13:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "6",
+  "name": "RECENT_MAX",
+  "hint": "export const RECENT_MAX = 6;",
+  "source": "maor/src/lib/navhist.ts:20"
+ },
+ {
+  "id": "L9:maor:src/lib/nedarimSync.ts:126:37:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "d: (charge.d || (charge.at || '').slice(0, 10) || '').trim(),",
+  "source": "maor/src/lib/nedarimSync.ts:126"
+ },
+ {
+  "id": "L9:maor:src/lib/nedarimSync.ts:177:42:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const cd = (charge.d || charge.at || '').slice(0, 10);",
+  "source": "maor/src/lib/nedarimSync.ts:177"
+ },
+ {
+  "id": "L9:maor:src/lib/nedarimSync.ts:201:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const [y1, m1] = dateIso.slice(0, 7).split('-').map(Number);",
+  "source": "maor/src/lib/nedarimSync.ts:201"
+ },
+ {
+  "id": "L9:maor:src/lib/nedarimSync.ts:202:27:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const [y2, m2] = todayIso.slice(0, 7).split('-').map(Number);",
+  "source": "maor/src/lib/nedarimSync.ts:202"
+ },
+ {
+  "id": "L9:maor:src/lib/nedarimSync.ts:247:52:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "7",
+  "hint": "const distinctMonths = new Set(nd.map((h) => h.d.slice(0, 7)));",
+  "source": "maor/src/lib/nedarimSync.ts:247"
+ },
+ {
+  "id": "L9:maor:src/lib/orbitTheme.ts:42:24:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "2",
+  "hint": "return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16",
+  "source": "maor/src/lib/orbitTheme.ts:42"
+ },
+ {
+  "id": "L9:maor:src/lib/orbitTheme.ts:110:80:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "180",
+  "hint": "const scene: OrbitScene = l > 0.86 ? 'Ice' : h >= 15 && h <= 70 ? 'Emb",
+  "source": "maor/src/lib/orbitTheme.ts:110"
+ },
+ {
+  "id": "L9:maor:src/lib/orbitTheme.ts:110:92:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "265",
+  "hint": "const scene: OrbitScene = l > 0.86 ? 'Ice' : h >= 15 && h <= 70 ? 'Emb",
+  "source": "maor/src/lib/orbitTheme.ts:110"
+ },
+ {
+  "id": "L9:maor:src/lib/photoGallery.ts:8:13:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "5",
+  "name": "PHOTO_MAX",
+  "hint": "export const PHOTO_MAX = 5;",
+  "source": "maor/src/lib/photoGallery.ts:8"
+ },
+ {
+  "id": "L9:maor:src/lib/photoGallery.ts:10:13:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "800",
+  "name": "PHOTO_MAX_DIM",
+  "hint": "export const PHOTO_MAX_DIM = 800;",
+  "source": "maor/src/lib/photoGallery.ts:10"
+ },
+ {
+  "id": "L9:maor:src/lib/photoGallery.ts:12:13:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "460",
+  "name": "PHOTO_MAX_LEN",
+  "hint": "export const PHOTO_MAX_LEN = 460_000;",
+  "source": "maor/src/lib/photoGallery.ts:12"
+ },
+ {
+  "id": "L9:maor:src/lib/publicSite.ts:104:13:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "120",
+  "hint": "else if (h < 120) [r, g, b] = [x, c, 0];",
+  "source": "maor/src/lib/publicSite.ts:104"
+ },
+ {
+  "id": "L9:maor:src/lib/publicSite.ts:105:13:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "180",
+  "hint": "else if (h < 180) [r, g, b] = [0, c, x];",
+  "source": "maor/src/lib/publicSite.ts:105"
+ },
+ {
+  "id": "L9:maor:src/lib/publicSite.ts:106:13:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "240",
+  "hint": "else if (h < 240) [r, g, b] = [0, x, c];",
+  "source": "maor/src/lib/publicSite.ts:106"
+ },
+ {
+  "id": "L9:maor:src/lib/publicSite.ts:107:13:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "300",
+  "hint": "else if (h < 300) [r, g, b] = [x, 0, c];",
+  "source": "maor/src/lib/publicSite.ts:107"
+ },
+ {
+  "id": "L9:maor:src/lib/publicSite.ts:229:30:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const t = Date.parse(c.end.slice(0, 10) + 'T00:00:00');",
+  "source": "maor/src/lib/publicSite.ts:229"
+ },
+ {
+  "id": "L9:maor:src/lib/pwa.ts:90:39:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": "short_name: name.length > 12 ? name.slice(0, 12) : name,",
+  "source": "maor/src/lib/pwa.ts:90"
+ },
+ {
+  "id": "L9:maor:src/lib/receipt.ts:60:24:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const d = new Date(iso.slice(0, 10) + 'T12:00:00');",
+  "source": "maor/src/lib/receipt.ts:60"
+ },
+ {
+  "id": "L9:maor:src/lib/receipt.ts:76:69:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const s = rid + '|' + amount + '|' + (currency || '₪') + '|' + date.sl",
+  "source": "maor/src/lib/receipt.ts:76"
+ },
+ {
+  "id": "L9:maor:src/lib/receipt.ts:83:13:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "return code.slice(0, 3) + '-' + code.slice(3);",
+  "source": "maor/src/lib/receipt.ts:83"
+ },
+ {
+  "id": "L9:maor:src/lib/receipt.ts:88:27:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const d = new Date(o.date.slice(0, 10) + 'T12:00:00');",
+  "source": "maor/src/lib/receipt.ts:88"
+ },
+ {
+  "id": "L9:maor:src/lib/receipt.ts:160:2:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "5000",
+  "hint": "setTimeout(() => URL.revokeObjectURL(a.href), 5000);",
+  "source": "maor/src/lib/receipt.ts:160"
+ },
+ {
+  "id": "L9:maor:src/lib/search.ts:159:19:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (phrase >= 100) break;",
+  "source": "maor/src/lib/search.ts:159"
+ },
+ {
+  "id": "L9:maor:src/lib/search.ts:161:17:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (phrase >= 100) break;",
+  "source": "maor/src/lib/search.ts:161"
+ },
+ {
+  "id": "L9:maor:src/lib/search.ts:171:17:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (best >= 100) break;",
+  "source": "maor/src/lib/search.ts:171"
+ },
+ {
+  "id": "L9:maor:src/lib/search.ts:173:15:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (best >= 100) break;",
+  "source": "maor/src/lib/search.ts:173"
+ },
+ {
+  "id": "L9:maor:src/lib/supportChat.ts:33:13:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "2000",
+  "name": "SUPPORT_MSG_MAX",
+  "hint": "export const SUPPORT_MSG_MAX = 2000;",
+  "source": "maor/src/lib/supportChat.ts:33"
+ },
+ {
+  "id": "L9:maor:src/lib/supportChat.ts:62:16:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const day = at.slice(0, 10);",
+  "source": "maor/src/lib/supportChat.ts:62"
+ },
+ {
+  "id": "L9:maor:src/lib/supporterPartition.ts:62:74:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "29",
+  "hint": "const clean = [...new Set(allowed.map((s) => s.trim()).filter(Boolean)",
+  "source": "maor/src/lib/supporterPartition.ts:62"
+ },
+ {
+  "id": "L9:maor:src/lib/validate.ts:41:33:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "if (d.length === 10) return d.slice(0, 3) + '-' + d.slice(3);",
+  "source": "maor/src/lib/validate.ts:41"
+ },
+ {
+  "id": "L9:maor:src/lib/validate.ts:42:32:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "2",
+  "hint": "if (d.length === 9) return d.slice(0, 2) + '-' + d.slice(2);",
+  "source": "maor/src/lib/validate.ts:42"
+ },
+ {
+  "id": "L9:maor:src/lib/validate.ts:45:36:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "2",
+  "hint": "if (d.length === 9) return '0' + d.slice(0, 2) + '-' + d.slice(2);",
+  "source": "maor/src/lib/validate.ts:45"
+ },
+ {
+  "id": "L9:maor:src/lib/worktasks.ts:30:80:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "return tasks.filter((t) => taskIdentity(t.assignee) === me && (t.doneA",
+  "source": "maor/src/lib/worktasks.ts:30"
+ },
+ {
+  "id": "L9:maor:src/lib/worktasks.ts:56:41:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "const d = new Date((t.doneAt ?? '').slice(0, 10) + 'T12:00:00').getTim",
+  "source": "maor/src/lib/worktasks.ts:56"
+ },
+ {
+  "id": "L9:maor:src/store/cloudSync.ts:235:18:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "5000",
+  "hint": "pushTimer = setTimeout(() => void flushPush(), 5000);",
+  "source": "maor/src/store/cloudSync.ts:235"
+ },
+ {
+  "id": "L9:maor:src/store/cloudSync.ts:294:18:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "5000",
+  "hint": "pushTimer = setTimeout(() => void flushPush(), 5000);",
+  "source": "maor/src/store/cloudSync.ts:294"
+ },
+ {
+  "id": "L9:maor:src/store/persist.ts:901:2:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "5000",
+  "hint": "setTimeout(() => URL.revokeObjectURL(a.href), 5000);",
+  "source": "maor/src/store/persist.ts:901"
+ },
+ {
+  "id": "L9:maor:src/store/useApp.ts:684:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "120",
+  "hint": "return code || String(e).slice(0, 120);",
+  "source": "maor/src/store/useApp.ts:684"
+ },
+ {
+  "id": "L9:maor:src/store/useApp.ts:722:69:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "3",
+  "hint": "const last3 = log.filter((e) => e.reason !== 'דעיכה — חוסר פעילות').sl",
+  "source": "maor/src/store/useApp.ts:722"
+ },
+ {
+  "id": "L9:maor:src/store/useApp.ts:1457:6:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "4000",
+  "hint": "setTimeout(() => get().dismissToast(id), 4000);",
+  "source": "maor/src/store/useApp.ts:1457"
+ },
+ {
+  "id": "L9:maor:src/store/useApp.ts:1599:90:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "200",
+  "hint": "log: [{ date: isoToday(), delta: applied, reason: entryReason }, ...lo",
+  "source": "maor/src/store/useApp.ts:1599"
+ },
+ {
+  "id": "L9:maor:src/store/useApp.ts:1634:15:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "200",
+  "hint": "].slice(0, 200),",
+  "source": "maor/src/store/useApp.ts:1634"
+ },
+ {
+  "id": "L9:maor:src/store/useApp.ts:1834:17:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "200",
+  "hint": "].slice(0, 200),",
+  "source": "maor/src/store/useApp.ts:1834"
+ },
+ {
+  "id": "L9:maor:src/store/useApp.ts:2055:82:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "logAudit('מיזוג ' + dropList.length + ' תורמים', dropList.map((d) => d",
+  "source": "maor/src/store/useApp.ts:2055"
+ },
+ {
+  "id": "L9:maor:src/store/useApp.ts:2227:56:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "logAudit('מחיקת ' + idSet.size + ' תומכ/ות', names.slice(0, 6).join(',",
+  "source": "maor/src/store/useApp.ts:2227"
+ },
+ {
+  "id": "L9:maor:src/store/useApp.ts:3052:80:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "30",
+  "hint": "return { seq: db.seq + 1, ui: { ...db.ui, quoteTemplates: [tpl, ...pre",
+  "source": "maor/src/store/useApp.ts:3052"
+ },
+ {
+  "id": "L9:maor:src/types/domain.ts:1072:13:named-cap",
+  "level": "L9-const",
+  "kind": "named-cap",
+  "value": "500",
+  "name": "AUDIT_CAP",
+  "hint": "export const AUDIT_CAP = 500;",
+  "source": "maor/src/types/domain.ts:1072"
+ }
+]

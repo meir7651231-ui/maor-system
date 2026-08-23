@@ -1,0 +1,2053 @@
+[
+ {
+  "id": "L11:buildsmart:icon:👷",
+  "level": "L11-icon",
+  "glyph": "👷",
+  "count": 66,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:👔",
+  "level": "L11-icon",
+  "glyph": "👔",
+  "count": 21,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🏪",
+  "level": "L11-icon",
+  "glyph": "🏪",
+  "count": 108,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🛵",
+  "level": "L11-icon",
+  "glyph": "🛵",
+  "count": 71,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🦺",
+  "level": "L11-icon",
+  "glyph": "🦺",
+  "count": 57,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔧",
+  "level": "L11-icon",
+  "glyph": "🔧",
+  "count": 791,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📦",
+  "level": "L11-icon",
+  "glyph": "📦",
+  "count": 207,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:💰",
+  "level": "L11-icon",
+  "glyph": "💰",
+  "count": 54,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🏠",
+  "level": "L11-icon",
+  "glyph": "🏠",
+  "count": 16,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📥",
+  "level": "L11-icon",
+  "glyph": "📥",
+  "count": 19,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:✅",
+  "level": "L11-icon",
+  "glyph": "✅",
+  "count": 162,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:❌",
+  "level": "L11-icon",
+  "glyph": "❌",
+  "count": 56,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧰",
+  "level": "L11-icon",
+  "glyph": "🧰",
+  "count": 43,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:⭐",
+  "level": "L11-icon",
+  "glyph": "⭐",
+  "count": 17,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:⏱",
+  "level": "L11-icon",
+  "glyph": "⏱",
+  "count": 36,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🗺",
+  "level": "L11-icon",
+  "glyph": "🗺",
+  "count": 10,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📉",
+  "level": "L11-icon",
+  "glyph": "📉",
+  "count": 4,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🏷",
+  "level": "L11-icon",
+  "glyph": "🏷",
+  "count": 26,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚛",
+  "level": "L11-icon",
+  "glyph": "🚛",
+  "count": 35,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:💬",
+  "level": "L11-icon",
+  "glyph": "💬",
+  "count": 57,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔄",
+  "level": "L11-icon",
+  "glyph": "🔄",
+  "count": 40,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚚",
+  "level": "L11-icon",
+  "glyph": "🚚",
+  "count": 66,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚐",
+  "level": "L11-icon",
+  "glyph": "🚐",
+  "count": 4,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧭",
+  "level": "L11-icon",
+  "glyph": "🧭",
+  "count": 14,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📸",
+  "level": "L11-icon",
+  "glyph": "📸",
+  "count": 56,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:⏳",
+  "level": "L11-icon",
+  "glyph": "⏳",
+  "count": 32,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔨",
+  "level": "L11-icon",
+  "glyph": "🔨",
+  "count": 21,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:↩",
+  "level": "L11-icon",
+  "glyph": "↩",
+  "count": 59,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📋",
+  "level": "L11-icon",
+  "glyph": "📋",
+  "count": 87,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📊",
+  "level": "L11-icon",
+  "glyph": "📊",
+  "count": 113,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:👥",
+  "level": "L11-icon",
+  "glyph": "👥",
+  "count": 28,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🛠",
+  "level": "L11-icon",
+  "glyph": "🛠",
+  "count": 40,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🟢",
+  "level": "L11-icon",
+  "glyph": "🟢",
+  "count": 60,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:⚠",
+  "level": "L11-icon",
+  "glyph": "⚠",
+  "count": 97,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🌳",
+  "level": "L11-icon",
+  "glyph": "🌳",
+  "count": 31,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🗂",
+  "level": "L11-icon",
+  "glyph": "🗂",
+  "count": 28,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:⚙",
+  "level": "L11-icon",
+  "glyph": "⚙",
+  "count": 173,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎧",
+  "level": "L11-icon",
+  "glyph": "🎧",
+  "count": 29,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🤖",
+  "level": "L11-icon",
+  "glyph": "🤖",
+  "count": 53,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📳",
+  "level": "L11-icon",
+  "glyph": "📳",
+  "count": 1,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📏",
+  "level": "L11-icon",
+  "glyph": "📏",
+  "count": 122,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:↔",
+  "level": "L11-icon",
+  "glyph": "↔",
+  "count": 155,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📅",
+  "level": "L11-icon",
+  "glyph": "📅",
+  "count": 49,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧮",
+  "level": "L11-icon",
+  "glyph": "🧮",
+  "count": 6,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🛒",
+  "level": "L11-icon",
+  "glyph": "🛒",
+  "count": 45,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎮",
+  "level": "L11-icon",
+  "glyph": "🎮",
+  "count": 11,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎉",
+  "level": "L11-icon",
+  "glyph": "🎉",
+  "count": 9,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🏗",
+  "level": "L11-icon",
+  "glyph": "🏗",
+  "count": 49,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧠",
+  "level": "L11-icon",
+  "glyph": "🧠",
+  "count": 17,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚀",
+  "level": "L11-icon",
+  "glyph": "🚀",
+  "count": 7,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎯",
+  "level": "L11-icon",
+  "glyph": "🎯",
+  "count": 13,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🏆",
+  "level": "L11-icon",
+  "glyph": "🏆",
+  "count": 4,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🌿",
+  "level": "L11-icon",
+  "glyph": "🌿",
+  "count": 28,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📍",
+  "level": "L11-icon",
+  "glyph": "📍",
+  "count": 45,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:💎",
+  "level": "L11-icon",
+  "glyph": "💎",
+  "count": 8,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎁",
+  "level": "L11-icon",
+  "glyph": "🎁",
+  "count": 10,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔒",
+  "level": "L11-icon",
+  "glyph": "🔒",
+  "count": 78,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📷",
+  "level": "L11-icon",
+  "glyph": "📷",
+  "count": 81,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎙",
+  "level": "L11-icon",
+  "glyph": "🎙",
+  "count": 13,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:💡",
+  "level": "L11-icon",
+  "glyph": "💡",
+  "count": 69,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📐",
+  "level": "L11-icon",
+  "glyph": "📐",
+  "count": 225,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔗",
+  "level": "L11-icon",
+  "glyph": "🔗",
+  "count": 212,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🌦",
+  "level": "L11-icon",
+  "glyph": "🌦",
+  "count": 8,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚿",
+  "level": "L11-icon",
+  "glyph": "🚿",
+  "count": 156,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:⚡",
+  "level": "L11-icon",
+  "glyph": "⚡",
+  "count": 94,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🏛",
+  "level": "L11-icon",
+  "glyph": "🏛",
+  "count": 4,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎨",
+  "level": "L11-icon",
+  "glyph": "🎨",
+  "count": 35,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🏬",
+  "level": "L11-icon",
+  "glyph": "🏬",
+  "count": 14,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🏢",
+  "level": "L11-icon",
+  "glyph": "🏢",
+  "count": 10,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📓",
+  "level": "L11-icon",
+  "glyph": "📓",
+  "count": 8,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔍",
+  "level": "L11-icon",
+  "glyph": "🔍",
+  "count": 27,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🗄",
+  "level": "L11-icon",
+  "glyph": "🗄",
+  "count": 8,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📨",
+  "level": "L11-icon",
+  "glyph": "📨",
+  "count": 21,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧪",
+  "level": "L11-icon",
+  "glyph": "🧪",
+  "count": 18,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📈",
+  "level": "L11-icon",
+  "glyph": "📈",
+  "count": 8,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🗓",
+  "level": "L11-icon",
+  "glyph": "🗓",
+  "count": 13,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔔",
+  "level": "L11-icon",
+  "glyph": "🔔",
+  "count": 92,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧾",
+  "level": "L11-icon",
+  "glyph": "🧾",
+  "count": 20,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:⏰",
+  "level": "L11-icon",
+  "glyph": "⏰",
+  "count": 16,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📄",
+  "level": "L11-icon",
+  "glyph": "📄",
+  "count": 36,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:💱",
+  "level": "L11-icon",
+  "glyph": "💱",
+  "count": 6,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔬",
+  "level": "L11-icon",
+  "glyph": "🔬",
+  "count": 10,
+  "source": "buildsmart/app/src/components/regression/regression-panel.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:▶",
+  "level": "L11-icon",
+  "glyph": "▶",
+  "count": 4,
+  "source": "buildsmart/app/src/components/regression/regression-panel.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🕓",
+  "level": "L11-icon",
+  "glyph": "🕓",
+  "count": 1,
+  "source": "buildsmart/app/src/components/search/results-list.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚰",
+  "level": "L11-icon",
+  "glyph": "🚰",
+  "count": 152,
+  "source": "buildsmart/app/src/components/search/submenu-catalog.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚽",
+  "level": "L11-icon",
+  "glyph": "🚽",
+  "count": 75,
+  "source": "buildsmart/app/src/components/search/submenu-catalog.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:♨",
+  "level": "L11-icon",
+  "glyph": "♨",
+  "count": 6,
+  "source": "buildsmart/app/src/components/search/submenu-catalog.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🍽",
+  "level": "L11-icon",
+  "glyph": "🍽",
+  "count": 10,
+  "source": "buildsmart/app/src/components/search/submenu-catalog.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🕳",
+  "level": "L11-icon",
+  "glyph": "🕳",
+  "count": 31,
+  "source": "buildsmart/app/src/components/search/submenu-catalog.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚾",
+  "level": "L11-icon",
+  "glyph": "🚾",
+  "count": 6,
+  "source": "buildsmart/app/src/components/search/submenu-catalog.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧱",
+  "level": "L11-icon",
+  "glyph": "🧱",
+  "count": 31,
+  "source": "buildsmart/app/src/components/search/submenu-catalog.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:✨",
+  "level": "L11-icon",
+  "glyph": "✨",
+  "count": 25,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔥",
+  "level": "L11-icon",
+  "glyph": "🔥",
+  "count": 24,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🍳",
+  "level": "L11-icon",
+  "glyph": "🍳",
+  "count": 3,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🛁",
+  "level": "L11-icon",
+  "glyph": "🛁",
+  "count": 28,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔩",
+  "level": "L11-icon",
+  "glyph": "🔩",
+  "count": 331,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:⭕",
+  "level": "L11-icon",
+  "glyph": "⭕",
+  "count": 84,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧴",
+  "level": "L11-icon",
+  "glyph": "🧴",
+  "count": 97,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔘",
+  "level": "L11-icon",
+  "glyph": "🔘",
+  "count": 82,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:✂",
+  "level": "L11-icon",
+  "glyph": "✂",
+  "count": 28,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔱",
+  "level": "L11-icon",
+  "glyph": "🔱",
+  "count": 333,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎗",
+  "level": "L11-icon",
+  "glyph": "🎗",
+  "count": 61,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:⚫",
+  "level": "L11-icon",
+  "glyph": "⚫",
+  "count": 117,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪛",
+  "level": "L11-icon",
+  "glyph": "🪛",
+  "count": 33,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:⬛",
+  "level": "L11-icon",
+  "glyph": "⬛",
+  "count": 15,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:⬜",
+  "level": "L11-icon",
+  "glyph": "⬜",
+  "count": 47,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🟦",
+  "level": "L11-icon",
+  "glyph": "🟦",
+  "count": 57,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🟫",
+  "level": "L11-icon",
+  "glyph": "🟫",
+  "count": 14,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🛡",
+  "level": "L11-icon",
+  "glyph": "🛡",
+  "count": 67,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🟪",
+  "level": "L11-icon",
+  "glyph": "🟪",
+  "count": 2,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪣",
+  "level": "L11-icon",
+  "glyph": "🪣",
+  "count": 26,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧵",
+  "level": "L11-icon",
+  "glyph": "🧵",
+  "count": 22,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪨",
+  "level": "L11-icon",
+  "glyph": "🪨",
+  "count": 8,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🟧",
+  "level": "L11-icon",
+  "glyph": "🟧",
+  "count": 10,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:➖",
+  "level": "L11-icon",
+  "glyph": "➖",
+  "count": 20,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:➕",
+  "level": "L11-icon",
+  "glyph": "➕",
+  "count": 50,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🌀",
+  "level": "L11-icon",
+  "glyph": "🌀",
+  "count": 75,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔌",
+  "level": "L11-icon",
+  "glyph": "🔌",
+  "count": 107,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:⚪",
+  "level": "L11-icon",
+  "glyph": "⚪",
+  "count": 22,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:💧",
+  "level": "L11-icon",
+  "glyph": "💧",
+  "count": 17,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🦵",
+  "level": "L11-icon",
+  "glyph": "🦵",
+  "count": 8,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:⏹",
+  "level": "L11-icon",
+  "glyph": "⏹",
+  "count": 6,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🌧",
+  "level": "L11-icon",
+  "glyph": "🌧",
+  "count": 13,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🟩",
+  "level": "L11-icon",
+  "glyph": "🟩",
+  "count": 4,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚪",
+  "level": "L11-icon",
+  "glyph": "🚪",
+  "count": 11,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🌡",
+  "level": "L11-icon",
+  "glyph": "🌡",
+  "count": 16,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔋",
+  "level": "L11-icon",
+  "glyph": "🔋",
+  "count": 3,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:☀",
+  "level": "L11-icon",
+  "glyph": "☀",
+  "count": 9,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧼",
+  "level": "L11-icon",
+  "glyph": "🧼",
+  "count": 5,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧺",
+  "level": "L11-icon",
+  "glyph": "🧺",
+  "count": 5,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🛗",
+  "level": "L11-icon",
+  "glyph": "🛗",
+  "count": 2,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔀",
+  "level": "L11-icon",
+  "glyph": "🔀",
+  "count": 30,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔻",
+  "level": "L11-icon",
+  "glyph": "🔻",
+  "count": 26,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔵",
+  "level": "L11-icon",
+  "glyph": "🔵",
+  "count": 23,
+  "source": "buildsmart/app/src/data/catalog.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔰",
+  "level": "L11-icon",
+  "glyph": "🔰",
+  "count": 1,
+  "source": "buildsmart/app/src/data/identity.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:👤",
+  "level": "L11-icon",
+  "glyph": "👤",
+  "count": 22,
+  "source": "buildsmart/app/src/data/search-index.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔪",
+  "level": "L11-icon",
+  "glyph": "🔪",
+  "count": 4,
+  "source": "buildsmart/app/src/data/tools.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪚",
+  "level": "L11-icon",
+  "glyph": "🪚",
+  "count": 12,
+  "source": "buildsmart/app/src/data/tools.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧽",
+  "level": "L11-icon",
+  "glyph": "🧽",
+  "count": 3,
+  "source": "buildsmart/app/src/data/tools.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🖌",
+  "level": "L11-icon",
+  "glyph": "🖌",
+  "count": 1,
+  "source": "buildsmart/app/src/data/tools.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪜",
+  "level": "L11-icon",
+  "glyph": "🪜",
+  "count": 3,
+  "source": "buildsmart/app/src/data/tools.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔫",
+  "level": "L11-icon",
+  "glyph": "🔫",
+  "count": 2,
+  "source": "buildsmart/app/src/data/tools.ts"
+ },
+ {
+  "id": "L11:buildsmart:icon:💳",
+  "level": "L11-icon",
+  "glyph": "💳",
+  "count": 20,
+  "source": "buildsmart/app/src/views/store.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📆",
+  "level": "L11-icon",
+  "glyph": "📆",
+  "count": 6,
+  "source": "buildsmart/app/src/views/store.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:📞",
+  "level": "L11-icon",
+  "glyph": "📞",
+  "count": 36,
+  "source": "buildsmart/app/src/views/store.tsx"
+ },
+ {
+  "id": "L11:buildsmart:icon:🖥",
+  "level": "L11-icon",
+  "glyph": "🖥",
+  "count": 14,
+  "source": "buildsmart/app_flutter/lib/config/screen_registry.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔁",
+  "level": "L11-icon",
+  "glyph": "🔁",
+  "count": 17,
+  "source": "buildsmart/app_flutter/lib/config/screen_registry.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🕸",
+  "level": "L11-icon",
+  "glyph": "🕸",
+  "count": 10,
+  "source": "buildsmart/app_flutter/lib/config/screen_registry.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🛣",
+  "level": "L11-icon",
+  "glyph": "🛣",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/config/screen_registry.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔎",
+  "level": "L11-icon",
+  "glyph": "🔎",
+  "count": 9,
+  "source": "buildsmart/app_flutter/lib/config/screen_registry.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:⏸",
+  "level": "L11-icon",
+  "glyph": "⏸",
+  "count": 5,
+  "source": "buildsmart/app_flutter/lib/config/screen_registry.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🏭",
+  "level": "L11-icon",
+  "glyph": "🏭",
+  "count": 8,
+  "source": "buildsmart/app_flutter/lib/data/brands.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:📂",
+  "level": "L11-icon",
+  "glyph": "📂",
+  "count": 8,
+  "source": "buildsmart/app_flutter/lib/data/catalog_lens.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎚",
+  "level": "L11-icon",
+  "glyph": "🎚",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/data/catalog_lens.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:⚓",
+  "level": "L11-icon",
+  "glyph": "⚓",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔺",
+  "level": "L11-icon",
+  "glyph": "🔺",
+  "count": 9,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧷",
+  "level": "L11-icon",
+  "glyph": "🧷",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:〰",
+  "level": "L11-icon",
+  "glyph": "〰",
+  "count": 17,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🤚",
+  "level": "L11-icon",
+  "glyph": "🤚",
+  "count": 5,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:⤴",
+  "level": "L11-icon",
+  "glyph": "⤴",
+  "count": 8,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🌱",
+  "level": "L11-icon",
+  "glyph": "🌱",
+  "count": 5,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🤝",
+  "level": "L11-icon",
+  "glyph": "🤝",
+  "count": 5,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:❄",
+  "level": "L11-icon",
+  "glyph": "❄",
+  "count": 6,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:↪",
+  "level": "L11-icon",
+  "glyph": "↪",
+  "count": 103,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪢",
+  "level": "L11-icon",
+  "glyph": "🪢",
+  "count": 83,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🛟",
+  "level": "L11-icon",
+  "glyph": "🛟",
+  "count": 7,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🃏",
+  "level": "L11-icon",
+  "glyph": "🃏",
+  "count": 13,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:↘",
+  "level": "L11-icon",
+  "glyph": "↘",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔭",
+  "level": "L11-icon",
+  "glyph": "🔭",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧩",
+  "level": "L11-icon",
+  "glyph": "🧩",
+  "count": 26,
+  "source": "buildsmart/app_flutter/lib/data/catalog_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧯",
+  "level": "L11-icon",
+  "glyph": "🧯",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/data/contractor_seeds.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔲",
+  "level": "L11-icon",
+  "glyph": "🔲",
+  "count": 3,
+  "source": "buildsmart/app_flutter/lib/data/contractor_seeds.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🌉",
+  "level": "L11-icon",
+  "glyph": "🌉",
+  "count": 34,
+  "source": "buildsmart/app_flutter/lib/data/edge/edge_collection_source.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:™",
+  "level": "L11-icon",
+  "glyph": "™",
+  "count": 36,
+  "source": "buildsmart/app_flutter/lib/data/huliot_catalog.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪝",
+  "level": "L11-icon",
+  "glyph": "🪝",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/data/lipskey_catalog.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:⬇",
+  "level": "L11-icon",
+  "glyph": "⬇",
+  "count": 13,
+  "source": "buildsmart/app_flutter/lib/data/lipskey_catalog.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪠",
+  "level": "L11-icon",
+  "glyph": "🪠",
+  "count": 11,
+  "source": "buildsmart/app_flutter/lib/data/lipskey_catalog.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪑",
+  "level": "L11-icon",
+  "glyph": "🪑",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/data/lipskey_smart_data.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧹",
+  "level": "L11-icon",
+  "glyph": "🧹",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/data/lipskey_smart_data.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:📝",
+  "level": "L11-icon",
+  "glyph": "📝",
+  "count": 18,
+  "source": "buildsmart/app_flutter/lib/data/persona_data.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:✔",
+  "level": "L11-icon",
+  "glyph": "✔",
+  "count": 7,
+  "source": "buildsmart/app_flutter/lib/data/related_info.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:👑",
+  "level": "L11-icon",
+  "glyph": "👑",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/data/related_info.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🕐",
+  "level": "L11-icon",
+  "glyph": "🕐",
+  "count": 17,
+  "source": "buildsmart/app_flutter/lib/data/repositories/chat_firebase.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🟡",
+  "level": "L11-icon",
+  "glyph": "🟡",
+  "count": 9,
+  "source": "buildsmart/app_flutter/lib/data/score_band.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔴",
+  "level": "L11-icon",
+  "glyph": "🔴",
+  "count": 30,
+  "source": "buildsmart/app_flutter/lib/data/score_band.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:💾",
+  "level": "L11-icon",
+  "glyph": "💾",
+  "count": 23,
+  "source": "buildsmart/app_flutter/lib/data/search_index.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎤",
+  "level": "L11-icon",
+  "glyph": "🎤",
+  "count": 5,
+  "source": "buildsmart/app_flutter/lib/data/search_index.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:↕",
+  "level": "L11-icon",
+  "glyph": "↕",
+  "count": 13,
+  "source": "buildsmart/app_flutter/lib/data/search_index.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:♿",
+  "level": "L11-icon",
+  "glyph": "♿",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/data/search_index.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🌐",
+  "level": "L11-icon",
+  "glyph": "🌐",
+  "count": 18,
+  "source": "buildsmart/app_flutter/lib/data/search_index.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:ℹ",
+  "level": "L11-icon",
+  "glyph": "ℹ",
+  "count": 14,
+  "source": "buildsmart/app_flutter/lib/data/search_index.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:📱",
+  "level": "L11-icon",
+  "glyph": "📱",
+  "count": 16,
+  "source": "buildsmart/app_flutter/lib/data/search_index.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔊",
+  "level": "L11-icon",
+  "glyph": "🔊",
+  "count": 9,
+  "source": "buildsmart/app_flutter/lib/data/search_index.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔐",
+  "level": "L11-icon",
+  "glyph": "🔐",
+  "count": 10,
+  "source": "buildsmart/app_flutter/lib/data/search_index.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:❤",
+  "level": "L11-icon",
+  "glyph": "❤",
+  "count": 6,
+  "source": "buildsmart/app_flutter/lib/data/search_index.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎛",
+  "level": "L11-icon",
+  "glyph": "🎛",
+  "count": 12,
+  "source": "buildsmart/app_flutter/lib/data/smart_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🟤",
+  "level": "L11-icon",
+  "glyph": "🟤",
+  "count": 3,
+  "source": "buildsmart/app_flutter/lib/data/smart_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚧",
+  "level": "L11-icon",
+  "glyph": "🚧",
+  "count": 7,
+  "source": "buildsmart/app_flutter/lib/data/smart_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪀",
+  "level": "L11-icon",
+  "glyph": "🪀",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/data/smart_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🤫",
+  "level": "L11-icon",
+  "glyph": "🤫",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/data/smart_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🕷",
+  "level": "L11-icon",
+  "glyph": "🕷",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/data/smart_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪡",
+  "level": "L11-icon",
+  "glyph": "🪡",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/data/smart_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:💨",
+  "level": "L11-icon",
+  "glyph": "💨",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/data/smart_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:❓",
+  "level": "L11-icon",
+  "glyph": "❓",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/domain/seeds/plumbing_trade_seed.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🫀",
+  "level": "L11-icon",
+  "glyph": "🫀",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/features/catalog_config/config_card.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🥇",
+  "level": "L11-icon",
+  "glyph": "🥇",
+  "count": 3,
+  "source": "buildsmart/app_flutter/lib/features/catalog_config/config_card.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🥈",
+  "level": "L11-icon",
+  "glyph": "🥈",
+  "count": 3,
+  "source": "buildsmart/app_flutter/lib/features/catalog_config/config_card.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🖤",
+  "level": "L11-icon",
+  "glyph": "🖤",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/features/catalog_config/image_quality.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:◼",
+  "level": "L11-icon",
+  "glyph": "◼",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/features/catalog_config/image_quality.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:◾",
+  "level": "L11-icon",
+  "glyph": "◾",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/features/catalog_config/image_quality.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:▪",
+  "level": "L11-icon",
+  "glyph": "▪",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/features/catalog_config/image_quality.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔳",
+  "level": "L11-icon",
+  "glyph": "🔳",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/features/catalog_config/image_quality.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔢",
+  "level": "L11-icon",
+  "glyph": "🔢",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/features/catalog_config/product_chips.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:💥",
+  "level": "L11-icon",
+  "glyph": "💥",
+  "count": 7,
+  "source": "buildsmart/app_flutter/lib/features/fittings/geometry/route_assembly.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪧",
+  "level": "L11-icon",
+  "glyph": "🪧",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/features/fittings/intel/line_builder_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔑",
+  "level": "L11-icon",
+  "glyph": "🔑",
+  "count": 10,
+  "source": "buildsmart/app_flutter/lib/features/fittings/plan/buildable_spec.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧊",
+  "level": "L11-icon",
+  "glyph": "🧊",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/features/fittings/render/product_line_3d.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:◀",
+  "level": "L11-icon",
+  "glyph": "◀",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/features/internal_card/full_internal_card.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:📁",
+  "level": "L11-icon",
+  "glyph": "📁",
+  "count": 3,
+  "source": "buildsmart/app_flutter/lib/features/ring_dive/catalog_axes.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎡",
+  "level": "L11-icon",
+  "glyph": "🎡",
+  "count": 5,
+  "source": "buildsmart/app_flutter/lib/features/ring_dive/catalog_wheel_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🖼",
+  "level": "L11-icon",
+  "glyph": "🖼",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/features/ring_dive/catalog_wheel_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🗣",
+  "level": "L11-icon",
+  "glyph": "🗣",
+  "count": 6,
+  "source": "buildsmart/app_flutter/lib/features/word_finder/word_finder_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:⛅",
+  "level": "L11-icon",
+  "glyph": "⛅",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/logic/ai_hub_logic.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🛢",
+  "level": "L11-icon",
+  "glyph": "🛢",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/logic/ai_hub_logic.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:💵",
+  "level": "L11-icon",
+  "glyph": "💵",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/logic/ai_hub_logic.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🙈",
+  "level": "L11-icon",
+  "glyph": "🙈",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/logic/studio/diff_preview.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:✏",
+  "level": "L11-icon",
+  "glyph": "✏",
+  "count": 22,
+  "source": "buildsmart/app_flutter/lib/logic/studio/diff_preview.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🙂",
+  "level": "L11-icon",
+  "glyph": "🙂",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/logic/studio/diff_preview.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:⛔",
+  "level": "L11-icon",
+  "glyph": "⛔",
+  "count": 6,
+  "source": "buildsmart/app_flutter/lib/logic/studio/edit_safety.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:⌨",
+  "level": "L11-icon",
+  "glyph": "⌨",
+  "count": 5,
+  "source": "buildsmart/app_flutter/lib/main.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🗑",
+  "level": "L11-icon",
+  "glyph": "🗑",
+  "count": 10,
+  "source": "buildsmart/app_flutter/lib/screens/budget_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🕘",
+  "level": "L11-icon",
+  "glyph": "🕘",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/screens/catalog_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:⤵",
+  "level": "L11-icon",
+  "glyph": "⤵",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/catalog_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚗",
+  "level": "L11-icon",
+  "glyph": "🚗",
+  "count": 3,
+  "source": "buildsmart/app_flutter/lib/screens/chat_settings_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🙏",
+  "level": "L11-icon",
+  "glyph": "🙏",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/screens/chat_settings_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:👍",
+  "level": "L11-icon",
+  "glyph": "👍",
+  "count": 3,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:👋",
+  "level": "L11-icon",
+  "glyph": "👋",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:😀",
+  "level": "L11-icon",
+  "glyph": "😀",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:😁",
+  "level": "L11-icon",
+  "glyph": "😁",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:😂",
+  "level": "L11-icon",
+  "glyph": "😂",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:😉",
+  "level": "L11-icon",
+  "glyph": "😉",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:😍",
+  "level": "L11-icon",
+  "glyph": "😍",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:😘",
+  "level": "L11-icon",
+  "glyph": "😘",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:😎",
+  "level": "L11-icon",
+  "glyph": "😎",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🤔",
+  "level": "L11-icon",
+  "glyph": "🤔",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:👏",
+  "level": "L11-icon",
+  "glyph": "👏",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:💪",
+  "level": "L11-icon",
+  "glyph": "💪",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:👀",
+  "level": "L11-icon",
+  "glyph": "👀",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:😅",
+  "level": "L11-icon",
+  "glyph": "😅",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:⬆",
+  "level": "L11-icon",
+  "glyph": "⬆",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/screens/company_catalog_import_sheet.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🕒",
+  "level": "L11-icon",
+  "glyph": "🕒",
+  "count": 14,
+  "source": "buildsmart/app_flutter/lib/screens/contractor_attendance_sheet.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🌴",
+  "level": "L11-icon",
+  "glyph": "🌴",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/screens/contractor_hr_sheet.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎓",
+  "level": "L11-icon",
+  "glyph": "🎓",
+  "count": 10,
+  "source": "buildsmart/app_flutter/lib/screens/contractor_hr_sheet.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:📜",
+  "level": "L11-icon",
+  "glyph": "📜",
+  "count": 6,
+  "source": "buildsmart/app_flutter/lib/screens/contractor_hr_sheet.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪪",
+  "level": "L11-icon",
+  "glyph": "🪪",
+  "count": 24,
+  "source": "buildsmart/app_flutter/lib/screens/courier_certs_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪙",
+  "level": "L11-icon",
+  "glyph": "🪙",
+  "count": 23,
+  "source": "buildsmart/app_flutter/lib/screens/courier_dashboard_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚫",
+  "level": "L11-icon",
+  "glyph": "🚫",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/screens/courier_dashboard_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🏖",
+  "level": "L11-icon",
+  "glyph": "🏖",
+  "count": 10,
+  "source": "buildsmart/app_flutter/lib/screens/courier_forms_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🤒",
+  "level": "L11-icon",
+  "glyph": "🤒",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/screens/courier_forms_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:📭",
+  "level": "L11-icon",
+  "glyph": "📭",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/courier_reports_tab.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🟠",
+  "level": "L11-icon",
+  "glyph": "🟠",
+  "count": 6,
+  "source": "buildsmart/app_flutter/lib/screens/home_shell.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔇",
+  "level": "L11-icon",
+  "glyph": "🔇",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/screens/home_shell.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🟣",
+  "level": "L11-icon",
+  "glyph": "🟣",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/install_studio_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🚨",
+  "level": "L11-icon",
+  "glyph": "🚨",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/install_studio_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:📡",
+  "level": "L11-icon",
+  "glyph": "📡",
+  "count": 6,
+  "source": "buildsmart/app_flutter/lib/screens/intel/intel_tab.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:💓",
+  "level": "L11-icon",
+  "glyph": "💓",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/intel/journey_labels.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:👁",
+  "level": "L11-icon",
+  "glyph": "👁",
+  "count": 6,
+  "source": "buildsmart/app_flutter/lib/screens/intel/journey_labels.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🆕",
+  "level": "L11-icon",
+  "glyph": "🆕",
+  "count": 5,
+  "source": "buildsmart/app_flutter/lib/screens/keyboard_store_deriver.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔕",
+  "level": "L11-icon",
+  "glyph": "🔕",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/screens/keyboard_tool_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:📎",
+  "level": "L11-icon",
+  "glyph": "📎",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/screens/keyboard_tool_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🛍",
+  "level": "L11-icon",
+  "glyph": "🛍",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/screens/keyboard_tool_tree.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎬",
+  "level": "L11-icon",
+  "glyph": "🎬",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/screens/manager_dashboard_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔹",
+  "level": "L11-icon",
+  "glyph": "🔹",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/screens/manager_dashboard_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:💤",
+  "level": "L11-icon",
+  "glyph": "💤",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/manager_dashboard_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🌙",
+  "level": "L11-icon",
+  "glyph": "🌙",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/notifications_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔓",
+  "level": "L11-icon",
+  "glyph": "🔓",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/org_setup_wizard_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:✍",
+  "level": "L11-icon",
+  "glyph": "✍",
+  "count": 13,
+  "source": "buildsmart/app_flutter/lib/screens/persona_pod_sheet.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🥉",
+  "level": "L11-icon",
+  "glyph": "🥉",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/rewards_hub_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🎟",
+  "level": "L11-icon",
+  "glyph": "🎟",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/rewards_hub_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:📤",
+  "level": "L11-icon",
+  "glyph": "📤",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/rewards_hub_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:📲",
+  "level": "L11-icon",
+  "glyph": "📲",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/store_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🔖",
+  "level": "L11-icon",
+  "glyph": "🔖",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/screens/store_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🖨",
+  "level": "L11-icon",
+  "glyph": "🖨",
+  "count": 2,
+  "source": "buildsmart/app_flutter/lib/screens/worker_forms_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪗",
+  "level": "L11-icon",
+  "glyph": "🪗",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/screens/worker_settings_screen.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:☑",
+  "level": "L11-icon",
+  "glyph": "☑",
+  "count": 4,
+  "source": "buildsmart/app_flutter/lib/screens/worker_task_detail_sheet.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🌫",
+  "level": "L11-icon",
+  "glyph": "🌫",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/services/weather.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:⛈",
+  "level": "L11-icon",
+  "glyph": "⛈",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/services/weather.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🛑",
+  "level": "L11-icon",
+  "glyph": "🛑",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/state/feature_flags.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:💼",
+  "level": "L11-icon",
+  "glyph": "💼",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/state/profession_mode.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:♻",
+  "level": "L11-icon",
+  "glyph": "♻",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/state/rewards_state.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🪵",
+  "level": "L11-icon",
+  "glyph": "🪵",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/state/site_hub_state.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🛋",
+  "level": "L11-icon",
+  "glyph": "🛋",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/state/site_hub_state.dart"
+ },
+ {
+  "id": "L11:buildsmart:icon:🧻",
+  "level": "L11-icon",
+  "glyph": "🧻",
+  "count": 1,
+  "source": "buildsmart/app_flutter/lib/state/sys_orders.dart"
+ }
+]

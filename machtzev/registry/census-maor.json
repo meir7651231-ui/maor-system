@@ -3,8 +3,8 @@
  "root": "/home/user/maor-system",
  "generatedBy": "machtzev/census v1",
  "totals": {
-  "files": 1020,
-  "lines": 639473,
+  "files": 1052,
+  "lines": 672995,
   "orphans": 0
  },
  "byDomain": {
@@ -13,24 +13,24 @@
    "lines": 830
   },
   "data": {
-   "files": 48,
-   "lines": 481414
+   "files": 63,
+   "lines": 514724
   },
   "knowledge": {
-   "files": 146,
-   "lines": 24854
+   "files": 150,
+   "lines": 24886
   },
   "tests": {
-   "files": 368,
-   "lines": 32833
+   "files": 372,
+   "lines": 32866
   },
   "server": {
    "files": 64,
    "lines": 16083
   },
   "source": {
-   "files": 88,
-   "lines": 13215
+   "files": 97,
+   "lines": 13362
   },
   "assets": {
    "files": 38,
@@ -1162,6 +1162,12 @@
    "lines": 31
   },
   {
+   "path": "machtzev/extract/consts.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 25
+  },
+  {
    "path": "machtzev/extract/engines.mjs",
    "bucket": "source",
    "domain": "source",
@@ -1180,16 +1186,40 @@
    "lines": 31
   },
   {
+   "path": "machtzev/extract/icons.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 17
+  },
+  {
    "path": "machtzev/extract/knowledge.mjs",
    "bucket": "source",
    "domain": "source",
    "lines": 17
   },
   {
+   "path": "machtzev/extract/regexes.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 17
+  },
+  {
+   "path": "machtzev/extract/schema.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 23
+  },
+  {
    "path": "machtzev/extract/strings.mjs",
    "bucket": "source",
    "domain": "source",
    "lines": 21
+  },
+  {
+   "path": "machtzev/extract/styles.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 26
   },
   {
    "path": "machtzev/extract/terms.mjs",
@@ -1214,6 +1244,42 @@
    "bucket": "knowledge",
    "domain": "knowledge",
    "lines": 43
+  },
+  {
+   "path": "machtzev/new/atoms/csv-escape.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 8
+  },
+  {
+   "path": "machtzev/new/atoms/csv-escape.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 10
+  },
+  {
+   "path": "machtzev/new/atoms/csv-escape.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 5
+  },
+  {
+   "path": "machtzev/new/atoms/is-admin.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 8
+  },
+  {
+   "path": "machtzev/new/atoms/is-admin.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 8
+  },
+  {
+   "path": "machtzev/new/atoms/is-admin.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 5
   },
   {
    "path": "machtzev/new/atoms/levenshtein.contract.md",
@@ -1324,6 +1390,24 @@
    "lines": 10
   },
   {
+   "path": "machtzev/new/atoms/to-csv.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 6
+  },
+  {
+   "path": "machtzev/new/atoms/to-csv.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 5
+  },
+  {
+   "path": "machtzev/new/atoms/to-csv.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 8
+  },
+  {
    "path": "machtzev/new/atoms/xlat.contract.md",
    "bucket": "knowledge",
    "domain": "knowledge",
@@ -1340,6 +1424,24 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 12
+  },
+  {
+   "path": "machtzev/new/boxes/names-export.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 10
+  },
+  {
+   "path": "machtzev/new/boxes/names-export.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 16
+  },
+  {
+   "path": "machtzev/new/boxes/names-export.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 15
   },
   {
    "path": "machtzev/new/boxes/search.contract.md",
@@ -1420,6 +1522,24 @@
    "lines": 132
   },
   {
+   "path": "machtzev/registry/atoms-L0b-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 17
+  },
+  {
+   "path": "machtzev/registry/atoms-L0b-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 17092
+  },
+  {
+   "path": "machtzev/registry/atoms-L0b-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
    "path": "machtzev/registry/atoms-L1-buildsmart.json",
    "bucket": "data",
    "domain": "data",
@@ -1433,6 +1553,60 @@
   },
   {
    "path": "machtzev/registry/atoms-L1-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
+   "path": "machtzev/registry/atoms-L10-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
+   "path": "machtzev/registry/atoms-L10-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 4430
+  },
+  {
+   "path": "machtzev/registry/atoms-L10-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
+   "path": "machtzev/registry/atoms-L11-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 2053
+  },
+  {
+   "path": "machtzev/registry/atoms-L11-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1521
+  },
+  {
+   "path": "machtzev/registry/atoms-L11-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
+   "path": "machtzev/registry/atoms-L12-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 14
+  },
+  {
+   "path": "machtzev/registry/atoms-L12-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 4952
+  },
+  {
+   "path": "machtzev/registry/atoms-L12-yoman.json",
    "bucket": "data",
    "domain": "data",
    "lines": 1
@@ -1580,6 +1754,24 @@
    "bucket": "data",
    "domain": "data",
    "lines": 42
+  },
+  {
+   "path": "machtzev/registry/atoms-L9-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 202
+  },
+  {
+   "path": "machtzev/registry/atoms-L9-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 2998
+  },
+  {
+   "path": "machtzev/registry/atoms-L9-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 26
   },
   {
    "path": "machtzev/registry/census-buildsmart.json",

@@ -1,0 +1,202 @@
+[
+ {
+  "id": "L9:buildsmart:app/src/components/search/search-panel.tsx:25:14:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "60",
+  "hint": "const t = setTimeout(() => inputRef.current?.focus(), 60);",
+  "source": "buildsmart/app/src/components/search/search-panel.tsx:25"
+ },
+ {
+  "id": "L9:buildsmart:app/src/components/search/submenu-barcode.tsx:34:8:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "400",
+  "hint": "setTimeout(() => setActiveTool(null), 400);",
+  "source": "buildsmart/app/src/components/search/submenu-barcode.tsx:34"
+ },
+ {
+  "id": "L9:buildsmart:app/src/data/identity.ts:71:88:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "10000",
+  "hint": "{ ic: '💰',  name: 'מחזור ₪10K',     desc: '₪10,000 דרך האפליקציה',   ",
+  "source": "buildsmart/app/src/data/identity.ts:71"
+ },
+ {
+  "id": "L9:buildsmart:app/src/views/store.tsx:30:26:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "1",
+  "hint": "const cartItems = allItems.slice(0, 1);",
+  "source": "buildsmart/app/src/views/store.tsx:30"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/data/company_catalog_import.dart:191:17:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "5000",
+  "hint": "if (dataRows > 5000) {",
+  "source": "buildsmart/app_flutter/lib/data/company_catalog_import.dart:191"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/data/customer_import.dart:137:17:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "5000",
+  "hint": "if (dataRows > 5000) {",
+  "source": "buildsmart/app_flutter/lib/data/customer_import.dart:137"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/data/related_info.dart:1402:12:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (score > 100) score = 100;",
+  "source": "buildsmart/app_flutter/lib/data/related_info.dart:1402"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/data/related_info.dart:1428:8:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (s > 100) s = 100;",
+  "source": "buildsmart/app_flutter/lib/data/related_info.dart:1428"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/data/repositories/server_rollout.dart:31:8:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (p >= 100) return true;",
+  "source": "buildsmart/app_flutter/lib/data/repositories/server_rollout.dart:31"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/features/card_keyboard/opening_surface.dart:79:34:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "800",
+  "hint": "final wide = c.maxWidth >= 800;",
+  "source": "buildsmart/app_flutter/lib/features/card_keyboard/opening_surface.dart:79"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/features/fittings/engine/fitting_dims.dart:171:6:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "160",
+  "hint": "d >= 160 ? miteredElbow(d) : elbow(d, angle: angle);",
+  "source": "buildsmart/app_flutter/lib/features/fittings/engine/fitting_dims.dart:171"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/features/ring_dive/ring_dive_wheel.dart:74:20:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "360",
+  "hint": "double get _step => 360 / _n;",
+  "source": "buildsmart/app_flutter/lib/features/ring_dive/ring_dive_wheel.dart:74"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/logic/pressure_drop.dart:320:15:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "if (reynolds < 100) return 0.64; // very slow trickle — cap to avoid b",
+  "source": "buildsmart/app_flutter/lib/logic/pressure_drop.dart:320"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/logic/pressure_drop.dart:321:15:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "2300",
+  "hint": "if (reynolds < 2300) return 64.0 / reynolds;",
+  "source": "buildsmart/app_flutter/lib/logic/pressure_drop.dart:321"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/logic/pressure_drop.dart:457:15:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "2300",
+  "hint": "if (reynolds < 2300 && flowRateLPS >= 0.2 && bottleneck != null) {",
+  "source": "buildsmart/app_flutter/lib/logic/pressure_drop.dart:457"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/logic/tasks_gantt.dart:97:30:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "return pct < 0 ? 0 : (pct > 100 ? 100 : pct);",
+  "source": "buildsmart/app_flutter/lib/logic/tasks_gantt.dart:97"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/screens/finance_hub_sheets.dart:697:21:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "100",
+  "hint": "final over = pct > 100;",
+  "source": "buildsmart/app_flutter/lib/screens/finance_hub_sheets.dart:697"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/screens/lipskey_products_screen.dart:1246:30:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "112",
+  "hint": "CatalogImageSize.large => 112.0,",
+  "source": "buildsmart/app_flutter/lib/screens/lipskey_products_screen.dart:1246"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/screens/lipskey_products_screen.dart:1251:30:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "106",
+  "hint": "CatalogImageSize.large => 106.0,",
+  "source": "buildsmart/app_flutter/lib/screens/lipskey_products_screen.dart:1251"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/screens/smart_home_screen.dart:823:20:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "360",
+  "hint": "height: avail > 360 ? avail : 360,",
+  "source": "buildsmart/app_flutter/lib/screens/smart_home_screen.dart:823"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/screens/store_screen.dart:452:24:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "120",
+  "hint": "CartDelivery.express => 120,",
+  "source": "buildsmart/app_flutter/lib/screens/store_screen.dart:452"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/services/task_photo.dart:276:15:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "200",
+  "hint": "if (status >= 200 && status < 300) {",
+  "source": "buildsmart/app_flutter/lib/services/task_photo.dart:276"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/services/task_photo.dart:276:32:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "300",
+  "hint": "if (status >= 200 && status < 300) {",
+  "source": "buildsmart/app_flutter/lib/services/task_photo.dart:276"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/state/finance_hub_state.dart:234:24:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "200",
+  "hint": "state = next.length > 200 ? next.sublist(0, 200) : next;",
+  "source": "buildsmart/app_flutter/lib/state/finance_hub_state.dart:234"
+ },
+ {
+  "id": "L9:buildsmart:app_flutter/lib/widgets/smart_input/keyboard/bs_keyboard.dart:526:30:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "600",
+  "hint": "final bool mobile = width < 600;",
+  "source": "buildsmart/app_flutter/lib/widgets/smart_input/keyboard/bs_keyboard.dart:526"
+ }
+]

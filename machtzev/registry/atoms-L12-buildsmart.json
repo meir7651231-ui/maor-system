@@ -1,0 +1,14 @@
+[
+ {
+  "id": "L12:buildsmart:app/src/lib/barcode.ts:68:5",
+  "level": "L12-regex",
+  "pattern": "* transient detect error — keep scanning *",
+  "source": "buildsmart/app/src/lib/barcode.ts:68"
+ },
+ {
+  "id": "L12:buildsmart:app/src/lib/search.ts:40:0",
+  "level": "L12-regex",
+  "pattern": "* Damerau-style Levenshtein for short Hebrew strings *",
+  "source": "buildsmart/app/src/lib/search.ts:40"
+ }
+]

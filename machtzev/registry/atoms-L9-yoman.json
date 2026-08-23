@@ -1,0 +1,26 @@
+[
+ {
+  "id": "L9:yoman:verify.mjs:63:72:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "60",
+  "hint": "errs.push(`${pathStr}: לא תואם לתבנית /${node.pattern}/ — \"${val.slice",
+  "source": "yoman/verify.mjs:63"
+ },
+ {
+  "id": "L9:yoman:verify.mjs:106:59:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": "if (e.length) { bad(`${f}: ${e.length} שגיאות סכמה`); e.slice(0, 12).f",
+  "source": "yoman/verify.mjs:106"
+ },
+ {
+  "id": "L9:yoman:verify.mjs:227:20:threshold",
+  "level": "L9-const",
+  "kind": "threshold",
+  "value": "3000",
+  "hint": "if (r.textLen <= 3000) bad(`${label}: תוכן דל (${r.textLen} תווים ≤ 30",
+  "source": "yoman/verify.mjs:227"
+ }
+]

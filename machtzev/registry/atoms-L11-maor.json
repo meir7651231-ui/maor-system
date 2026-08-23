@@ -1,0 +1,1521 @@
+[
+ {
+  "id": "L11:maor:icon:⚡",
+  "level": "L11-icon",
+  "glyph": "⚡",
+  "count": 32,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🤖",
+  "level": "L11-icon",
+  "glyph": "🤖",
+  "count": 17,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔄",
+  "level": "L11-icon",
+  "glyph": "🔄",
+  "count": 51,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🏠",
+  "level": "L11-icon",
+  "glyph": "🏠",
+  "count": 20,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:👨",
+  "level": "L11-icon",
+  "glyph": "👨",
+  "count": 14,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:👩",
+  "level": "L11-icon",
+  "glyph": "👩",
+  "count": 17,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:👧",
+  "level": "L11-icon",
+  "glyph": "👧",
+  "count": 15,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:👦",
+  "level": "L11-icon",
+  "glyph": "👦",
+  "count": 13,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🎨",
+  "level": "L11-icon",
+  "glyph": "🎨",
+  "count": 16,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📅",
+  "level": "L11-icon",
+  "glyph": "📅",
+  "count": 33,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📖",
+  "level": "L11-icon",
+  "glyph": "📖",
+  "count": 15,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:💛",
+  "level": "L11-icon",
+  "glyph": "💛",
+  "count": 26,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🪙",
+  "level": "L11-icon",
+  "glyph": "🪙",
+  "count": 13,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🛍",
+  "level": "L11-icon",
+  "glyph": "🛍",
+  "count": 19,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🚚",
+  "level": "L11-icon",
+  "glyph": "🚚",
+  "count": 11,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📊",
+  "level": "L11-icon",
+  "glyph": "📊",
+  "count": 27,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⚙",
+  "level": "L11-icon",
+  "glyph": "⚙",
+  "count": 29,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔴",
+  "level": "L11-icon",
+  "glyph": "🔴",
+  "count": 10,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🐛",
+  "level": "L11-icon",
+  "glyph": "🐛",
+  "count": 88,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⚠",
+  "level": "L11-icon",
+  "glyph": "⚠",
+  "count": 120,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🌐",
+  "level": "L11-icon",
+  "glyph": "🌐",
+  "count": 6,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🛠",
+  "level": "L11-icon",
+  "glyph": "🛠",
+  "count": 8,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:▶",
+  "level": "L11-icon",
+  "glyph": "▶",
+  "count": 20,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:❓",
+  "level": "L11-icon",
+  "glyph": "❓",
+  "count": 17,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:💬",
+  "level": "L11-icon",
+  "glyph": "💬",
+  "count": 37,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:↔",
+  "level": "L11-icon",
+  "glyph": "↔",
+  "count": 22,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔐",
+  "level": "L11-icon",
+  "glyph": "🔐",
+  "count": 31,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⛔",
+  "level": "L11-icon",
+  "glyph": "⛔",
+  "count": 9,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🗑",
+  "level": "L11-icon",
+  "glyph": "🗑",
+  "count": 54,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:↩",
+  "level": "L11-icon",
+  "glyph": "↩",
+  "count": 16,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:👥",
+  "level": "L11-icon",
+  "glyph": "👥",
+  "count": 31,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🕶",
+  "level": "L11-icon",
+  "glyph": "🕶",
+  "count": 6,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:👁",
+  "level": "L11-icon",
+  "glyph": "👁",
+  "count": 18,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⏳",
+  "level": "L11-icon",
+  "glyph": "⏳",
+  "count": 32,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📞",
+  "level": "L11-icon",
+  "glyph": "📞",
+  "count": 83,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔍",
+  "level": "L11-icon",
+  "glyph": "🔍",
+  "count": 14,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📲",
+  "level": "L11-icon",
+  "glyph": "📲",
+  "count": 3,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🩺",
+  "level": "L11-icon",
+  "glyph": "🩺",
+  "count": 7,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔑",
+  "level": "L11-icon",
+  "glyph": "🔑",
+  "count": 9,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔒",
+  "level": "L11-icon",
+  "glyph": "🔒",
+  "count": 25,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:♿",
+  "level": "L11-icon",
+  "glyph": "♿",
+  "count": 8,
+  "source": "maor/src/components/A11yFab.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📦",
+  "level": "L11-icon",
+  "glyph": "📦",
+  "count": 20,
+  "source": "maor/src/components/AdminHub.tsx"
+ },
+ {
+  "id": "L11:maor:icon:↗",
+  "level": "L11-icon",
+  "glyph": "↗",
+  "count": 7,
+  "source": "maor/src/components/AskMaor.tsx"
+ },
+ {
+  "id": "L11:maor:icon:◀",
+  "level": "L11-icon",
+  "glyph": "◀",
+  "count": 5,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⭐",
+  "level": "L11-icon",
+  "glyph": "⭐",
+  "count": 4,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:✏",
+  "level": "L11-icon",
+  "glyph": "✏",
+  "count": 22,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:➕",
+  "level": "L11-icon",
+  "glyph": "➕",
+  "count": 96,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:✅",
+  "level": "L11-icon",
+  "glyph": "✅",
+  "count": 18,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🎪",
+  "level": "L11-icon",
+  "glyph": "🎪",
+  "count": 2,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🏢",
+  "level": "L11-icon",
+  "glyph": "🏢",
+  "count": 11,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🏷",
+  "level": "L11-icon",
+  "glyph": "🏷",
+  "count": 7,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔌",
+  "level": "L11-icon",
+  "glyph": "🔌",
+  "count": 3,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:☎",
+  "level": "L11-icon",
+  "glyph": "☎",
+  "count": 7,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔀",
+  "level": "L11-icon",
+  "glyph": "🔀",
+  "count": 8,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🎛",
+  "level": "L11-icon",
+  "glyph": "🎛",
+  "count": 3,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🏗",
+  "level": "L11-icon",
+  "glyph": "🏗",
+  "count": 3,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:☁",
+  "level": "L11-icon",
+  "glyph": "☁",
+  "count": 7,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔜",
+  "level": "L11-icon",
+  "glyph": "🔜",
+  "count": 2,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:💳",
+  "level": "L11-icon",
+  "glyph": "💳",
+  "count": 42,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📣",
+  "level": "L11-icon",
+  "glyph": "📣",
+  "count": 3,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📱",
+  "level": "L11-icon",
+  "glyph": "📱",
+  "count": 9,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📝",
+  "level": "L11-icon",
+  "glyph": "📝",
+  "count": 19,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📧",
+  "level": "L11-icon",
+  "glyph": "📧",
+  "count": 11,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔎",
+  "level": "L11-icon",
+  "glyph": "🔎",
+  "count": 8,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🕯",
+  "level": "L11-icon",
+  "glyph": "🕯",
+  "count": 20,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:✍",
+  "level": "L11-icon",
+  "glyph": "✍",
+  "count": 10,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🧩",
+  "level": "L11-icon",
+  "glyph": "🧩",
+  "count": 5,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🍞",
+  "level": "L11-icon",
+  "glyph": "🍞",
+  "count": 1,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📈",
+  "level": "L11-icon",
+  "glyph": "📈",
+  "count": 4,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🛡",
+  "level": "L11-icon",
+  "glyph": "🛡",
+  "count": 5,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🧮",
+  "level": "L11-icon",
+  "glyph": "🧮",
+  "count": 2,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🎯",
+  "level": "L11-icon",
+  "glyph": "🎯",
+  "count": 35,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:💰",
+  "level": "L11-icon",
+  "glyph": "💰",
+  "count": 46,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔗",
+  "level": "L11-icon",
+  "glyph": "🔗",
+  "count": 38,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🖼",
+  "level": "L11-icon",
+  "glyph": "🖼",
+  "count": 9,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📰",
+  "level": "L11-icon",
+  "glyph": "📰",
+  "count": 5,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:💼",
+  "level": "L11-icon",
+  "glyph": "💼",
+  "count": 6,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📂",
+  "level": "L11-icon",
+  "glyph": "📂",
+  "count": 3,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⤴",
+  "level": "L11-icon",
+  "glyph": "⤴",
+  "count": 1,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🧾",
+  "level": "L11-icon",
+  "glyph": "🧾",
+  "count": 25,
+  "source": "maor/src/components/builder/handoff.ts"
+ },
+ {
+  "id": "L11:maor:icon:🗺",
+  "level": "L11-icon",
+  "glyph": "🗺",
+  "count": 6,
+  "source": "maor/src/components/builder/handoff.ts"
+ },
+ {
+  "id": "L11:maor:icon:➖",
+  "level": "L11-icon",
+  "glyph": "➖",
+  "count": 1,
+  "source": "maor/src/components/builder/handoff.ts"
+ },
+ {
+  "id": "L11:maor:icon:✖",
+  "level": "L11-icon",
+  "glyph": "✖",
+  "count": 8,
+  "source": "maor/src/components/builder/handoff.ts"
+ },
+ {
+  "id": "L11:maor:icon:💾",
+  "level": "L11-icon",
+  "glyph": "💾",
+  "count": 4,
+  "source": "maor/src/components/builder/handoff.ts"
+ },
+ {
+  "id": "L11:maor:icon:🛰",
+  "level": "L11-icon",
+  "glyph": "🛰",
+  "count": 3,
+  "source": "maor/src/components/builder/RemoteWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🧱",
+  "level": "L11-icon",
+  "glyph": "🧱",
+  "count": 2,
+  "source": "maor/src/components/builder/sections.ts"
+ },
+ {
+  "id": "L11:maor:icon:🧭",
+  "level": "L11-icon",
+  "glyph": "🧭",
+  "count": 1,
+  "source": "maor/src/components/builder/sections.ts"
+ },
+ {
+  "id": "L11:maor:icon:🪐",
+  "level": "L11-icon",
+  "glyph": "🪐",
+  "count": 4,
+  "source": "maor/src/components/builder/sections.ts"
+ },
+ {
+  "id": "L11:maor:icon:⬜",
+  "level": "L11-icon",
+  "glyph": "⬜",
+  "count": 1,
+  "source": "maor/src/components/builder/wizardLib.ts"
+ },
+ {
+  "id": "L11:maor:icon:🎟",
+  "level": "L11-icon",
+  "glyph": "🎟",
+  "count": 9,
+  "source": "maor/src/components/builder/wizardLib.ts"
+ },
+ {
+  "id": "L11:maor:icon:🖨",
+  "level": "L11-icon",
+  "glyph": "🖨",
+  "count": 11,
+  "source": "maor/src/components/builder/wizardLib.ts"
+ },
+ {
+  "id": "L11:maor:icon:🕐",
+  "level": "L11-icon",
+  "glyph": "🕐",
+  "count": 6,
+  "source": "maor/src/components/builder/wizardLib.ts"
+ },
+ {
+  "id": "L11:maor:icon:🗂",
+  "level": "L11-icon",
+  "glyph": "🗂",
+  "count": 7,
+  "source": "maor/src/components/builder/wizardLib.ts"
+ },
+ {
+  "id": "L11:maor:icon:🔁",
+  "level": "L11-icon",
+  "glyph": "🔁",
+  "count": 54,
+  "source": "maor/src/components/builder/wizardLib.ts"
+ },
+ {
+  "id": "L11:maor:icon:🎂",
+  "level": "L11-icon",
+  "glyph": "🎂",
+  "count": 17,
+  "source": "maor/src/components/calendar/calLib.ts"
+ },
+ {
+  "id": "L11:maor:icon:📋",
+  "level": "L11-icon",
+  "glyph": "📋",
+  "count": 45,
+  "source": "maor/src/components/calendar/IcsFeedModal.tsx"
+ },
+ {
+  "id": "L11:maor:icon:♻",
+  "level": "L11-icon",
+  "glyph": "♻",
+  "count": 1,
+  "source": "maor/src/components/calendar/IcsFeedModal.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🤝",
+  "level": "L11-icon",
+  "glyph": "🤝",
+  "count": 25,
+  "source": "maor/src/components/CallerLookup.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🙈",
+  "level": "L11-icon",
+  "glyph": "🙈",
+  "count": 3,
+  "source": "maor/src/components/cloud/EmployeeSignup.tsx"
+ },
+ {
+  "id": "L11:maor:icon:©",
+  "level": "L11-icon",
+  "glyph": "©",
+  "count": 1,
+  "source": "maor/src/components/cloud/LoginScreen.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🌌",
+  "level": "L11-icon",
+  "glyph": "🌌",
+  "count": 2,
+  "source": "maor/src/components/cloud/SignupHero.tsx"
+ },
+ {
+  "id": "L11:maor:icon:☑",
+  "level": "L11-icon",
+  "glyph": "☑",
+  "count": 2,
+  "source": "maor/src/components/cloud/SignupWizard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🎬",
+  "level": "L11-icon",
+  "glyph": "🎬",
+  "count": 3,
+  "source": "maor/src/components/cloud/VideoModal.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🟡",
+  "level": "L11-icon",
+  "glyph": "🟡",
+  "count": 10,
+  "source": "maor/src/components/courses/AbsenceModal.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📢",
+  "level": "L11-icon",
+  "glyph": "📢",
+  "count": 4,
+  "source": "maor/src/components/courses/ClassBroadcast.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⬇",
+  "level": "L11-icon",
+  "glyph": "⬇",
+  "count": 51,
+  "source": "maor/src/components/courses/CollectionCenter.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🎉",
+  "level": "L11-icon",
+  "glyph": "🎉",
+  "count": 19,
+  "source": "maor/src/components/courses/CollectionCenter.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⚕",
+  "level": "L11-icon",
+  "glyph": "⚕",
+  "count": 4,
+  "source": "maor/src/components/courses/CourseDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🟠",
+  "level": "L11-icon",
+  "glyph": "🟠",
+  "count": 4,
+  "source": "maor/src/components/courses/CourseDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔔",
+  "level": "L11-icon",
+  "glyph": "🔔",
+  "count": 14,
+  "source": "maor/src/components/courses/CourseDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📑",
+  "level": "L11-icon",
+  "glyph": "📑",
+  "count": 1,
+  "source": "maor/src/components/courses/CourseDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🎓",
+  "level": "L11-icon",
+  "glyph": "🎓",
+  "count": 9,
+  "source": "maor/src/components/courses/CourseDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📎",
+  "level": "L11-icon",
+  "glyph": "📎",
+  "count": 2,
+  "source": "maor/src/components/courses/CourseDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📄",
+  "level": "L11-icon",
+  "glyph": "📄",
+  "count": 11,
+  "source": "maor/src/components/courses/CourseDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🏫",
+  "level": "L11-icon",
+  "glyph": "🏫",
+  "count": 5,
+  "source": "maor/src/components/courses/CourseDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📕",
+  "level": "L11-icon",
+  "glyph": "📕",
+  "count": 1,
+  "source": "maor/src/components/courses/CourseFilesField.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🎵",
+  "level": "L11-icon",
+  "glyph": "🎵",
+  "count": 1,
+  "source": "maor/src/components/courses/CourseFilesField.tsx"
+ },
+ {
+  "id": "L11:maor:icon:💡",
+  "level": "L11-icon",
+  "glyph": "💡",
+  "count": 10,
+  "source": "maor/src/components/courses/CourseForm.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🎫",
+  "level": "L11-icon",
+  "glyph": "🎫",
+  "count": 8,
+  "source": "maor/src/components/courses/CoursesCockpit.tsx"
+ },
+ {
+  "id": "L11:maor:icon:↕",
+  "level": "L11-icon",
+  "glyph": "↕",
+  "count": 4,
+  "source": "maor/src/components/courses/CoursesDashboard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔥",
+  "level": "L11-icon",
+  "glyph": "🔥",
+  "count": 2,
+  "source": "maor/src/components/courses/CoursesDashboard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🗓",
+  "level": "L11-icon",
+  "glyph": "🗓",
+  "count": 21,
+  "source": "maor/src/components/courses/CoursesView.tsx"
+ },
+ {
+  "id": "L11:maor:icon:💚",
+  "level": "L11-icon",
+  "glyph": "💚",
+  "count": 5,
+  "source": "maor/src/components/courses/CoursesView.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🎡",
+  "level": "L11-icon",
+  "glyph": "🎡",
+  "count": 13,
+  "source": "maor/src/components/courses/CoursesView.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🟢",
+  "level": "L11-icon",
+  "glyph": "🟢",
+  "count": 5,
+  "source": "maor/src/components/courses/CoursesView.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⏸",
+  "level": "L11-icon",
+  "glyph": "⏸",
+  "count": 13,
+  "source": "maor/src/components/courses/lib.ts"
+ },
+ {
+  "id": "L11:maor:icon:👤",
+  "level": "L11-icon",
+  "glyph": "👤",
+  "count": 7,
+  "source": "maor/src/components/courses/ManageModal.tsx"
+ },
+ {
+  "id": "L11:maor:icon:👪",
+  "level": "L11-icon",
+  "glyph": "👪",
+  "count": 11,
+  "source": "maor/src/components/courses/ManageModal.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🏙",
+  "level": "L11-icon",
+  "glyph": "🏙",
+  "count": 1,
+  "source": "maor/src/components/courses/ManageModal.tsx"
+ },
+ {
+  "id": "L11:maor:icon:👋",
+  "level": "L11-icon",
+  "glyph": "👋",
+  "count": 4,
+  "source": "maor/src/components/courses/parent.ts"
+ },
+ {
+  "id": "L11:maor:icon:🚀",
+  "level": "L11-icon",
+  "glyph": "🚀",
+  "count": 2,
+  "source": "maor/src/components/courses/ReenrollView.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🕘",
+  "level": "L11-icon",
+  "glyph": "🕘",
+  "count": 3,
+  "source": "maor/src/components/courses/ReenrollView.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🧪",
+  "level": "L11-icon",
+  "glyph": "🧪",
+  "count": 2,
+  "source": "maor/src/components/DemoRibbon.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⌨",
+  "level": "L11-icon",
+  "glyph": "⌨",
+  "count": 4,
+  "source": "maor/src/components/dialer/DialerModal.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📵",
+  "level": "L11-icon",
+  "glyph": "📵",
+  "count": 6,
+  "source": "maor/src/components/dialer/DialerModal.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🚫",
+  "level": "L11-icon",
+  "glyph": "🚫",
+  "count": 8,
+  "source": "maor/src/components/dialer/DialerModal.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🌙",
+  "level": "L11-icon",
+  "glyph": "🌙",
+  "count": 3,
+  "source": "maor/src/components/dialer/DialerModal.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⏭",
+  "level": "L11-icon",
+  "glyph": "⏭",
+  "count": 5,
+  "source": "maor/src/components/dialer/DialerModal.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📜",
+  "level": "L11-icon",
+  "glyph": "📜",
+  "count": 7,
+  "source": "maor/src/components/diary/AttendancePanel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⬆",
+  "level": "L11-icon",
+  "glyph": "⬆",
+  "count": 8,
+  "source": "maor/src/components/families/FamiliesView.tsx"
+ },
+ {
+  "id": "L11:maor:icon:💍",
+  "level": "L11-icon",
+  "glyph": "💍",
+  "count": 3,
+  "source": "maor/src/components/families/FamilyDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⏱",
+  "level": "L11-icon",
+  "glyph": "⏱",
+  "count": 5,
+  "source": "maor/src/components/families/FamilyDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🧍",
+  "level": "L11-icon",
+  "glyph": "🧍",
+  "count": 4,
+  "source": "maor/src/components/families/FamilyDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📥",
+  "level": "L11-icon",
+  "glyph": "📥",
+  "count": 8,
+  "source": "maor/src/components/families/FamilyForm.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🖇",
+  "level": "L11-icon",
+  "glyph": "🖇",
+  "count": 1,
+  "source": "maor/src/components/families/FamilyPanels.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🤒",
+  "level": "L11-icon",
+  "glyph": "🤒",
+  "count": 1,
+  "source": "maor/src/components/families/FamilyPanels.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🌅",
+  "level": "L11-icon",
+  "glyph": "🌅",
+  "count": 4,
+  "source": "maor/src/components/home/HomeView.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⏰",
+  "level": "L11-icon",
+  "glyph": "⏰",
+  "count": 5,
+  "source": "maor/src/components/home/HomeView.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🕎",
+  "level": "L11-icon",
+  "glyph": "🕎",
+  "count": 16,
+  "source": "maor/src/components/home/morningBrief.ts"
+ },
+ {
+  "id": "L11:maor:icon:🔊",
+  "level": "L11-icon",
+  "glyph": "🔊",
+  "count": 5,
+  "source": "maor/src/components/home/MorningBrief.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⏹",
+  "level": "L11-icon",
+  "glyph": "⏹",
+  "count": 1,
+  "source": "maor/src/components/home/MorningBrief.tsx"
+ },
+ {
+  "id": "L11:maor:icon:✨",
+  "level": "L11-icon",
+  "glyph": "✨",
+  "count": 5,
+  "source": "maor/src/components/home/MorningBrief.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📆",
+  "level": "L11-icon",
+  "glyph": "📆",
+  "count": 3,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🌞",
+  "level": "L11-icon",
+  "glyph": "🌞",
+  "count": 2,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🌤",
+  "level": "L11-icon",
+  "glyph": "🌤",
+  "count": 1,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L11:maor:icon:☀",
+  "level": "L11-icon",
+  "glyph": "☀",
+  "count": 7,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🧒",
+  "level": "L11-icon",
+  "glyph": "🧒",
+  "count": 1,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🏆",
+  "level": "L11-icon",
+  "glyph": "🏆",
+  "count": 13,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🥇",
+  "level": "L11-icon",
+  "glyph": "🥇",
+  "count": 4,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🥈",
+  "level": "L11-icon",
+  "glyph": "🥈",
+  "count": 4,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🥉",
+  "level": "L11-icon",
+  "glyph": "🥉",
+  "count": 4,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🏅",
+  "level": "L11-icon",
+  "glyph": "🏅",
+  "count": 1,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L11:maor:icon:👵",
+  "level": "L11-icon",
+  "glyph": "👵",
+  "count": 1,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L11:maor:icon:💵",
+  "level": "L11-icon",
+  "glyph": "💵",
+  "count": 7,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🖥",
+  "level": "L11-icon",
+  "glyph": "🖥",
+  "count": 4,
+  "source": "maor/src/components/palette/CommandPalette.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🧑",
+  "level": "L11-icon",
+  "glyph": "🧑",
+  "count": 13,
+  "source": "maor/src/components/palette/CommandPalette.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📷",
+  "level": "L11-icon",
+  "glyph": "📷",
+  "count": 2,
+  "source": "maor/src/components/PhotoField.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🕵",
+  "level": "L11-icon",
+  "glyph": "🕵",
+  "count": 5,
+  "source": "maor/src/components/platform/ManagerPanel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⚪",
+  "level": "L11-icon",
+  "glyph": "⚪",
+  "count": 3,
+  "source": "maor/src/components/platform/ManagerPanel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🃏",
+  "level": "L11-icon",
+  "glyph": "🃏",
+  "count": 1,
+  "source": "maor/src/components/platform/ManagerPanel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔓",
+  "level": "L11-icon",
+  "glyph": "🔓",
+  "count": 5,
+  "source": "maor/src/components/platform/ManagerPanel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⬅",
+  "level": "L11-icon",
+  "glyph": "⬅",
+  "count": 1,
+  "source": "maor/src/components/platform/PlatformPanel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🖊",
+  "level": "L11-icon",
+  "glyph": "🖊",
+  "count": 1,
+  "source": "maor/src/components/platform/rolePresets.ts"
+ },
+ {
+  "id": "L11:maor:icon:🚪",
+  "level": "L11-icon",
+  "glyph": "🚪",
+  "count": 5,
+  "source": "maor/src/components/public/PortalEntry.tsx"
+ },
+ {
+  "id": "L11:maor:icon:♥",
+  "level": "L11-icon",
+  "glyph": "♥",
+  "count": 1,
+  "source": "maor/src/components/public/PublicSite.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🏦",
+  "level": "L11-icon",
+  "glyph": "🏦",
+  "count": 1,
+  "source": "maor/src/components/public/PublicSite.tsx"
+ },
+ {
+  "id": "L11:maor:icon:✉",
+  "level": "L11-icon",
+  "glyph": "✉",
+  "count": 1,
+  "source": "maor/src/components/public/PublicSite.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📚",
+  "level": "L11-icon",
+  "glyph": "📚",
+  "count": 3,
+  "source": "maor/src/components/reports/sections1.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📌",
+  "level": "L11-icon",
+  "glyph": "📌",
+  "count": 7,
+  "source": "maor/src/components/settings/AuditSection.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🧹",
+  "level": "L11-icon",
+  "glyph": "🧹",
+  "count": 20,
+  "source": "maor/src/components/settings/BackupSection.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📇",
+  "level": "L11-icon",
+  "glyph": "📇",
+  "count": 4,
+  "source": "maor/src/components/settings/ImportSection.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🗝",
+  "level": "L11-icon",
+  "glyph": "🗝",
+  "count": 3,
+  "source": "maor/src/components/settings/OrgSecretsSection.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🤲",
+  "level": "L11-icon",
+  "glyph": "🤲",
+  "count": 7,
+  "source": "maor/src/components/shop/AssignmentForm.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🎁",
+  "level": "L11-icon",
+  "glyph": "🎁",
+  "count": 24,
+  "source": "maor/src/components/shop/AssignmentsTab.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🎗",
+  "level": "L11-icon",
+  "glyph": "🎗",
+  "count": 3,
+  "source": "maor/src/components/shop/IntakePanel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🛒",
+  "level": "L11-icon",
+  "glyph": "🛒",
+  "count": 5,
+  "source": "maor/src/components/shop/IntakePanel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🏬",
+  "level": "L11-icon",
+  "glyph": "🏬",
+  "count": 1,
+  "source": "maor/src/components/shop/StoresPanel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📍",
+  "level": "L11-icon",
+  "glyph": "📍",
+  "count": 2,
+  "source": "maor/src/components/shop7/lib.ts"
+ },
+ {
+  "id": "L11:maor:icon:🦺",
+  "level": "L11-icon",
+  "glyph": "🦺",
+  "count": 2,
+  "source": "maor/src/components/shop7/lib.ts"
+ },
+ {
+  "id": "L11:maor:icon:🎒",
+  "level": "L11-icon",
+  "glyph": "🎒",
+  "count": 1,
+  "source": "maor/src/components/shop8/lib.ts"
+ },
+ {
+  "id": "L11:maor:icon:👶",
+  "level": "L11-icon",
+  "glyph": "👶",
+  "count": 1,
+  "source": "maor/src/components/shop8/lib.ts"
+ },
+ {
+  "id": "L11:maor:icon:🕳",
+  "level": "L11-icon",
+  "glyph": "🕳",
+  "count": 1,
+  "source": "maor/src/components/supporters/askMaor.ts"
+ },
+ {
+  "id": "L11:maor:icon:🔢",
+  "level": "L11-icon",
+  "glyph": "🔢",
+  "count": 2,
+  "source": "maor/src/components/supporters/askMaor.ts"
+ },
+ {
+  "id": "L11:maor:icon:🍯",
+  "level": "L11-icon",
+  "glyph": "🍯",
+  "count": 1,
+  "source": "maor/src/components/supporters/hebTiming.ts"
+ },
+ {
+  "id": "L11:maor:icon:🎭",
+  "level": "L11-icon",
+  "glyph": "🎭",
+  "count": 1,
+  "source": "maor/src/components/supporters/hebTiming.ts"
+ },
+ {
+  "id": "L11:maor:icon:🌿",
+  "level": "L11-icon",
+  "glyph": "🌿",
+  "count": 1,
+  "source": "maor/src/components/supporters/hebTiming.ts"
+ },
+ {
+  "id": "L11:maor:icon:🔧",
+  "level": "L11-icon",
+  "glyph": "🔧",
+  "count": 6,
+  "source": "maor/src/components/supporters/IncomingPayments.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🧿",
+  "level": "L11-icon",
+  "glyph": "🧿",
+  "count": 3,
+  "source": "maor/src/components/supporters/lib.ts"
+ },
+ {
+  "id": "L11:maor:icon:📉",
+  "level": "L11-icon",
+  "glyph": "📉",
+  "count": 2,
+  "source": "maor/src/components/supporters/SupporterCard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🏭",
+  "level": "L11-icon",
+  "glyph": "🏭",
+  "count": 3,
+  "source": "maor/src/components/supporters/SupportersView.tsx"
+ },
+ {
+  "id": "L11:maor:icon:⤵",
+  "level": "L11-icon",
+  "glyph": "⤵",
+  "count": 1,
+  "source": "maor/src/components/tzedaka/CoordinatorCard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🤍",
+  "level": "L11-icon",
+  "glyph": "🤍",
+  "count": 1,
+  "source": "maor/src/components/wall/ImpactWall.tsx"
+ },
+ {
+  "id": "L11:maor:icon:💓",
+  "level": "L11-icon",
+  "glyph": "💓",
+  "count": 1,
+  "source": "maor/src/components/wall/ImpactWall.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📿",
+  "level": "L11-icon",
+  "glyph": "📿",
+  "count": 2,
+  "source": "maor/src/components/wall/wallData.ts"
+ },
+ {
+  "id": "L11:maor:icon:🎲",
+  "level": "L11-icon",
+  "glyph": "🎲",
+  "count": 3,
+  "source": "maor/src/components/wheel/CourseWheel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:✋",
+  "level": "L11-icon",
+  "glyph": "✋",
+  "count": 1,
+  "source": "maor/src/components/wheel/CourseWheel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:👆",
+  "level": "L11-icon",
+  "glyph": "👆",
+  "count": 2,
+  "source": "maor/src/components/wheel/CourseWheel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:😄",
+  "level": "L11-icon",
+  "glyph": "😄",
+  "count": 1,
+  "source": "maor/src/components/wheel/CourseWheel.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🧲",
+  "level": "L11-icon",
+  "glyph": "🧲",
+  "count": 1,
+  "source": "maor/src/lib/nedarimSync.ts"
+ },
+ {
+  "id": "L11:maor:icon:🙏",
+  "level": "L11-icon",
+  "glyph": "🙏",
+  "count": 2,
+  "source": "maor/src/lib/templates.ts"
+ },
+ {
+  "id": "L11:maor:icon:🧠",
+  "level": "L11-icon",
+  "glyph": "🧠",
+  "count": 1,
+  "source": "maor/src/lib/three-scene.ts"
+ },
+ {
+  "id": "L11:maor:icon:🕊",
+  "level": "L11-icon",
+  "glyph": "🕊",
+  "count": 1,
+  "source": "maor/src/lib/verticalPacks.ts"
+ },
+ {
+  "id": "L11:maor:icon:💇",
+  "level": "L11-icon",
+  "glyph": "💇",
+  "count": 2,
+  "source": "maor/src/lib/verticalPacks.ts"
+ },
+ {
+  "id": "L11:maor:icon:🚗",
+  "level": "L11-icon",
+  "glyph": "🚗",
+  "count": 2,
+  "source": "maor/src/lib/verticalPacks.ts"
+ },
+ {
+  "id": "L11:maor:icon:🏨",
+  "level": "L11-icon",
+  "glyph": "🏨",
+  "count": 2,
+  "source": "maor/src/lib/verticalPacks.ts"
+ },
+ {
+  "id": "L11:maor:icon:🧰",
+  "level": "L11-icon",
+  "glyph": "🧰",
+  "count": 1,
+  "source": "maor/src/lib/verticalPacks.ts"
+ },
+ {
+  "id": "L11:maor:icon:💻",
+  "level": "L11-icon",
+  "glyph": "💻",
+  "count": 2,
+  "source": "maor/src/lib/verticalPacks.ts"
+ }
+]

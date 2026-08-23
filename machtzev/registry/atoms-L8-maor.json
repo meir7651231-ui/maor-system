@@ -1080,6 +1080,26 @@
   "source": "maor/machtzev/LAW.md"
  },
  {
+  "id": "L8:maor:machtzev/new/atoms/csv-escape.contract.md",
+  "level": "L8-knowledge",
+  "name": "csv-escape.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 8,
+  "title": "חוזה · חוט csv-escape",
+  "source": "maor/machtzev/new/atoms/csv-escape.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/atoms/is-admin.contract.md",
+  "level": "L8-knowledge",
+  "name": "is-admin.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 8,
+  "title": "חוזה · חוט is-admin",
+  "source": "maor/machtzev/new/atoms/is-admin.contract.md"
+ },
+ {
   "id": "L8:maor:machtzev/new/atoms/levenshtein.contract.md",
   "level": "L8-knowledge",
   "name": "levenshtein.contract.md",
@@ -1140,6 +1160,16 @@
   "source": "maor/machtzev/new/atoms/smart-score.contract.md"
  },
  {
+  "id": "L8:maor:machtzev/new/atoms/to-csv.contract.md",
+  "level": "L8-knowledge",
+  "name": "to-csv.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 6,
+  "title": "חוזה · חוט to-csv",
+  "source": "maor/machtzev/new/atoms/to-csv.contract.md"
+ },
+ {
   "id": "L8:maor:machtzev/new/atoms/xlat.contract.md",
   "level": "L8-knowledge",
   "name": "xlat.contract.md",
@@ -1148,6 +1178,16 @@
   "lines": 7,
   "title": "חוזה · חוט xlat",
   "source": "maor/machtzev/new/atoms/xlat.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/boxes/names-export.contract.md",
+  "level": "L8-knowledge",
+  "name": "names-export.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 10,
+  "title": "חוזה · קופסת-חיבורים \"כפתור ייצוא-השמות\"",
+  "source": "maor/machtzev/new/boxes/names-export.contract.md"
  },
  {
   "id": "L8:maor:machtzev/new/boxes/search.contract.md",

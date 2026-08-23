@@ -1,0 +1,4430 @@
+[
+ {
+  "id": "L10:maor:Member.id",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:22"
+ },
+ {
+  "id": "L10:maor:Member.first",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "first",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:23"
+ },
+ {
+  "id": "L10:maor:Member.gender",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "gender",
+  "optional": false,
+  "type": "Gender",
+  "source": "maor/src/types/domain.ts:24"
+ },
+ {
+  "id": "L10:maor:Member.birth",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "birth",
+  "optional": false,
+  "type": "IsoDate | ''",
+  "source": "maor/src/types/domain.ts:25"
+ },
+ {
+  "id": "L10:maor:Member.idNum",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "idNum",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:27"
+ },
+ {
+  "id": "L10:maor:Member.phone",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "phone",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:28"
+ },
+ {
+  "id": "L10:maor:Member.phone2",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "phone2",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:29"
+ },
+ {
+  "id": "L10:maor:Member.school",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "school",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:30"
+ },
+ {
+  "id": "L10:maor:Member.grade",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "grade",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:31"
+ },
+ {
+  "id": "L10:maor:Member.health",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "health",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:33"
+ },
+ {
+  "id": "L10:maor:Member.mSefach",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "mSefach",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:35"
+ },
+ {
+  "id": "L10:maor:Member.mInvite",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "mInvite",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:36"
+ },
+ {
+  "id": "L10:maor:Member.mRecommend",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "mRecommend",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:37"
+ },
+ {
+  "id": "L10:maor:Member.mPhotos",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "mPhotos",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:38"
+ },
+ {
+  "id": "L10:maor:Member.mVideos",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "mVideos",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:39"
+ },
+ {
+  "id": "L10:maor:Member.notes",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:40"
+ },
+ {
+  "id": "L10:maor:Member.isParent",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "isParent",
+  "optional": true,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:41"
+ },
+ {
+  "id": "L10:maor:CredLogEntry.date",
+  "level": "L10-field",
+  "entity": "CredLogEntry",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:46"
+ },
+ {
+  "id": "L10:maor:CredLogEntry.delta",
+  "level": "L10-field",
+  "entity": "CredLogEntry",
+  "name": "delta",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:47"
+ },
+ {
+  "id": "L10:maor:CredLogEntry.reason",
+  "level": "L10-field",
+  "entity": "CredLogEntry",
+  "name": "reason",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:48"
+ },
+ {
+  "id": "L10:maor:FamilyCred.score",
+  "level": "L10-field",
+  "entity": "FamilyCred",
+  "name": "score",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:53"
+ },
+ {
+  "id": "L10:maor:FamilyCred.log",
+  "level": "L10-field",
+  "entity": "FamilyCred",
+  "name": "log",
+  "optional": false,
+  "type": "CredLogEntry[]",
+  "source": "maor/src/types/domain.ts:54"
+ },
+ {
+  "id": "L10:maor:FamilyDoc.id",
+  "level": "L10-field",
+  "entity": "FamilyDoc",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:58"
+ },
+ {
+  "id": "L10:maor:FamilyDoc.name",
+  "level": "L10-field",
+  "entity": "FamilyDoc",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:59"
+ },
+ {
+  "id": "L10:maor:FamilyDoc.addedAt",
+  "level": "L10-field",
+  "entity": "FamilyDoc",
+  "name": "addedAt",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:60"
+ },
+ {
+  "id": "L10:maor:Family.id",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:66"
+ },
+ {
+  "id": "L10:maor:Family.name",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:67"
+ },
+ {
+  "id": "L10:maor:Family.father",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "father",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:68"
+ },
+ {
+  "id": "L10:maor:Family.fatherId",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "fatherId",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:69"
+ },
+ {
+  "id": "L10:maor:Family.mother",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "mother",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:70"
+ },
+ {
+  "id": "L10:maor:Family.motherId",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "motherId",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:71"
+ },
+ {
+  "id": "L10:maor:Family.phone",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "phone",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:72"
+ },
+ {
+  "id": "L10:maor:Family.phone2",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "phone2",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:73"
+ },
+ {
+  "id": "L10:maor:Family.email",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "email",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:74"
+ },
+ {
+  "id": "L10:maor:Family.city",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "city",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:75"
+ },
+ {
+  "id": "L10:maor:Family.address",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "address",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:76"
+ },
+ {
+  "id": "L10:maor:Family.community",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "community",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:77"
+ },
+ {
+  "id": "L10:maor:Family.maritalStatus",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "maritalStatus",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:78"
+ },
+ {
+  "id": "L10:maor:Family.language",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "language",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:79"
+ },
+ {
+  "id": "L10:maor:Family.tzedaka",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "tzedaka",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:81"
+ },
+ {
+  "id": "L10:maor:Family.fullSefach",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "fullSefach",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:83"
+ },
+ {
+  "id": "L10:maor:Family.discount",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "discount",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:85"
+ },
+ {
+  "id": "L10:maor:Family.status",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "status",
+  "optional": false,
+  "type": "FamilyStatus",
+  "source": "maor/src/types/domain.ts:86"
+ },
+ {
+  "id": "L10:maor:Family.notes",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:87"
+ },
+ {
+  "id": "L10:maor:Family.kidsHome",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "kidsHome",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:89"
+ },
+ {
+  "id": "L10:maor:Family.kidsMarried",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "kidsMarried",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:91"
+ },
+ {
+  "id": "L10:maor:Family.members",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "members",
+  "optional": false,
+  "type": "Member[]",
+  "source": "maor/src/types/domain.ts:92"
+ },
+ {
+  "id": "L10:maor:Family.docs",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "docs",
+  "optional": false,
+  "type": "FamilyDoc[]",
+  "source": "maor/src/types/domain.ts:93"
+ },
+ {
+  "id": "L10:maor:Family.cred",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "cred",
+  "optional": false,
+  "type": "FamilyCred",
+  "source": "maor/src/types/domain.ts:94"
+ },
+ {
+  "id": "L10:maor:Family.createdAt",
+  "level": "L10-field",
+  "entity": "Family",
+  "name": "createdAt",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:95"
+ },
+ {
+  "id": "L10:maor:CourseSession.day",
+  "level": "L10-field",
+  "entity": "CourseSession",
+  "name": "day",
+  "optional": false,
+  "type": "Weekday",
+  "source": "maor/src/types/domain.ts:99"
+ },
+ {
+  "id": "L10:maor:CourseSession.time",
+  "level": "L10-field",
+  "entity": "CourseSession",
+  "name": "time",
+  "optional": false,
+  "type": "TimeHM",
+  "source": "maor/src/types/domain.ts:100"
+ },
+ {
+  "id": "L10:maor:CourseSession.label",
+  "level": "L10-field",
+  "entity": "CourseSession",
+  "name": "label",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:102"
+ },
+ {
+  "id": "L10:maor:CourseFile.id",
+  "level": "L10-field",
+  "entity": "CourseFile",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:114"
+ },
+ {
+  "id": "L10:maor:CourseFile.name",
+  "level": "L10-field",
+  "entity": "CourseFile",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:115"
+ },
+ {
+  "id": "L10:maor:CourseFile.kind",
+  "level": "L10-field",
+  "entity": "CourseFile",
+  "name": "kind",
+  "optional": false,
+  "type": "'image' | 'file' | 'link'",
+  "source": "maor/src/types/domain.ts:116"
+ },
+ {
+  "id": "L10:maor:CourseFile.data",
+  "level": "L10-field",
+  "entity": "CourseFile",
+  "name": "data",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:118"
+ },
+ {
+  "id": "L10:maor:CourseFile.mime",
+  "level": "L10-field",
+  "entity": "CourseFile",
+  "name": "mime",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:120"
+ },
+ {
+  "id": "L10:maor:CourseFile.size",
+  "level": "L10-field",
+  "entity": "CourseFile",
+  "name": "size",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:122"
+ },
+ {
+  "id": "L10:maor:Course.id",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:126"
+ },
+ {
+  "id": "L10:maor:Course.name",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:127"
+ },
+ {
+  "id": "L10:maor:Course.teacherId",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "teacherId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:128"
+ },
+ {
+  "id": "L10:maor:Course.roomId",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "roomId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:129"
+ },
+ {
+  "id": "L10:maor:Course.description",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "description",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:130"
+ },
+ {
+  "id": "L10:maor:Course.price",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "price",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:131"
+ },
+ {
+  "id": "L10:maor:Course.price1",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "price1",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:133"
+ },
+ {
+  "id": "L10:maor:Course.price2",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "price2",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:134"
+ },
+ {
+  "id": "L10:maor:Course.price1Name",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "price1Name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:135"
+ },
+ {
+  "id": "L10:maor:Course.price2Name",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "price2Name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:136"
+ },
+ {
+  "id": "L10:maor:Course.price3",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "price3",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:138"
+ },
+ {
+  "id": "L10:maor:Course.price3Name",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "price3Name",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:139"
+ },
+ {
+  "id": "L10:maor:Course.model",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "model",
+  "optional": false,
+  "type": "PricingModel",
+  "source": "maor/src/types/domain.ts:140"
+ },
+ {
+  "id": "L10:maor:Course.size",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "size",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:142"
+ },
+ {
+  "id": "L10:maor:Course.start",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "start",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:143"
+ },
+ {
+  "id": "L10:maor:Course.end",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "end",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:144"
+ },
+ {
+  "id": "L10:maor:Course.weekday",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "weekday",
+  "optional": false,
+  "type": "Weekday",
+  "source": "maor/src/types/domain.ts:145"
+ },
+ {
+  "id": "L10:maor:Course.time",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "time",
+  "optional": false,
+  "type": "TimeHM",
+  "source": "maor/src/types/domain.ts:146"
+ },
+ {
+  "id": "L10:maor:Course.maxStudents",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "maxStudents",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:147"
+ },
+ {
+  "id": "L10:maor:Course.gender",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "gender",
+  "optional": false,
+  "type": "Gender | 'all'",
+  "source": "maor/src/types/domain.ts:148"
+ },
+ {
+  "id": "L10:maor:Course.ageMin",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "ageMin",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:149"
+ },
+ {
+  "id": "L10:maor:Course.ageMax",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "ageMax",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:150"
+ },
+ {
+  "id": "L10:maor:Course.cat",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "cat",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:151"
+ },
+ {
+  "id": "L10:maor:Course.semester",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "semester",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:152"
+ },
+ {
+  "id": "L10:maor:Course.sector",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "sector",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:153"
+ },
+ {
+  "id": "L10:maor:Course.audience",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "audience",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:154"
+ },
+ {
+  "id": "L10:maor:Course.img",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "img",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:155"
+ },
+ {
+  "id": "L10:maor:Course.gradeMin",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "gradeMin",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:157"
+ },
+ {
+  "id": "L10:maor:Course.gradeMax",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "gradeMax",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:158"
+ },
+ {
+  "id": "L10:maor:Course.sessions",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "sessions",
+  "optional": false,
+  "type": "CourseSession[]",
+  "source": "maor/src/types/domain.ts:159"
+ },
+ {
+  "id": "L10:maor:Course.notes",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:160"
+ },
+ {
+  "id": "L10:maor:Course.files",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "files",
+  "optional": true,
+  "type": "CourseFile[]",
+  "source": "maor/src/types/domain.ts:162"
+ },
+ {
+  "id": "L10:maor:Course.perLesson",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "perLesson",
+  "optional": true,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:168"
+ },
+ {
+  "id": "L10:maor:Course.lessonPrice",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "lessonPrice",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:170"
+ },
+ {
+  "id": "L10:maor:Course.lessonPrice1",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "lessonPrice1",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:172"
+ },
+ {
+  "id": "L10:maor:Course.lessonPrice2",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "lessonPrice2",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:174"
+ },
+ {
+  "id": "L10:maor:Course.lessonPrice3",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "lessonPrice3",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:176"
+ },
+ {
+  "id": "L10:maor:Course.year",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "year",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:181"
+ },
+ {
+  "id": "L10:maor:Course.prevYearId",
+  "level": "L10-field",
+  "entity": "Course",
+  "name": "prevYearId",
+  "optional": true,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:183"
+ },
+ {
+  "id": "L10:maor:Absence.date",
+  "level": "L10-field",
+  "entity": "Absence",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:187"
+ },
+ {
+  "id": "L10:maor:Absence.reason",
+  "level": "L10-field",
+  "entity": "Absence",
+  "name": "reason",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:188"
+ },
+ {
+  "id": "L10:maor:Absence.makeup",
+  "level": "L10-field",
+  "entity": "Absence",
+  "name": "makeup",
+  "optional": true,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:190"
+ },
+ {
+  "id": "L10:maor:Absence.makeupDate",
+  "level": "L10-field",
+  "entity": "Absence",
+  "name": "makeupDate",
+  "optional": true,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:192"
+ },
+ {
+  "id": "L10:maor:Absence.noshow",
+  "level": "L10-field",
+  "entity": "Absence",
+  "name": "noshow",
+  "optional": true,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:194"
+ },
+ {
+  "id": "L10:maor:Absence.justified",
+  "level": "L10-field",
+  "entity": "Absence",
+  "name": "justified",
+  "optional": true,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:199"
+ },
+ {
+  "id": "L10:maor:Payment.rid",
+  "level": "L10-field",
+  "entity": "Payment",
+  "name": "rid",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:204"
+ },
+ {
+  "id": "L10:maor:Payment.date",
+  "level": "L10-field",
+  "entity": "Payment",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:205"
+ },
+ {
+  "id": "L10:maor:Payment.amount",
+  "level": "L10-field",
+  "entity": "Payment",
+  "name": "amount",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:206"
+ },
+ {
+  "id": "L10:maor:Payment.method",
+  "level": "L10-field",
+  "entity": "Payment",
+  "name": "method",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:207"
+ },
+ {
+  "id": "L10:maor:Enrollment.id",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:213"
+ },
+ {
+  "id": "L10:maor:Enrollment.memberId",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "memberId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:214"
+ },
+ {
+  "id": "L10:maor:Enrollment.courseId",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "courseId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:215"
+ },
+ {
+  "id": "L10:maor:Enrollment.plan",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "plan",
+  "optional": false,
+  "type": "PricingModel",
+  "source": "maor/src/types/domain.ts:216"
+ },
+ {
+  "id": "L10:maor:Enrollment.purchased",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "purchased",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:218"
+ },
+ {
+  "id": "L10:maor:Enrollment.used",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "used",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:220"
+ },
+ {
+  "id": "L10:maor:Enrollment.group",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "group",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:222"
+ },
+ {
+  "id": "L10:maor:Enrollment.absences",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "absences",
+  "optional": false,
+  "type": "Absence[]",
+  "source": "maor/src/types/domain.ts:223"
+ },
+ {
+  "id": "L10:maor:Enrollment.presents",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "presents",
+  "optional": true,
+  "type": "IsoDate[]",
+  "source": "maor/src/types/domain.ts:229"
+ },
+ {
+  "id": "L10:maor:Enrollment.payments",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "payments",
+  "optional": false,
+  "type": "Payment[]",
+  "source": "maor/src/types/domain.ts:230"
+ },
+ {
+  "id": "L10:maor:Enrollment.totalDue",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "totalDue",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:231"
+ },
+ {
+  "id": "L10:maor:Enrollment.dueDate",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "dueDate",
+  "optional": false,
+  "type": "IsoDate | ''",
+  "source": "maor/src/types/domain.ts:232"
+ },
+ {
+  "id": "L10:maor:Enrollment.dueEventId",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "dueEventId",
+  "optional": true,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:234"
+ },
+ {
+  "id": "L10:maor:Enrollment.status",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "status",
+  "optional": false,
+  "type": "EnrollmentStatus",
+  "source": "maor/src/types/domain.ts:235"
+ },
+ {
+  "id": "L10:maor:Enrollment.note",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "note",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:236"
+ },
+ {
+  "id": "L10:maor:Enrollment.enrolledAt",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "enrolledAt",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:237"
+ },
+ {
+  "id": "L10:maor:Enrollment.endedAt",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "endedAt",
+  "optional": true,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:243"
+ },
+ {
+  "id": "L10:maor:Enrollment.paidFull",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "paidFull",
+  "optional": true,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:249"
+ },
+ {
+  "id": "L10:maor:Enrollment.freq",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "freq",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:254"
+ },
+ {
+  "id": "L10:maor:Enrollment.freqUnit",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "freqUnit",
+  "optional": true,
+  "type": "'week' | 'month'",
+  "source": "maor/src/types/domain.ts:255"
+ },
+ {
+  "id": "L10:maor:Enrollment.term",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "term",
+  "optional": true,
+  "type": "PricingTerm",
+  "source": "maor/src/types/domain.ts:256"
+ },
+ {
+  "id": "L10:maor:Enrollment.termMonths",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "termMonths",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:258"
+ },
+ {
+  "id": "L10:maor:Enrollment.tier",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "tier",
+  "optional": true,
+  "type": "'' | '1' | '2' | '3'",
+  "source": "maor/src/types/domain.ts:260"
+ },
+ {
+  "id": "L10:maor:Enrollment.renew",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "renew",
+  "optional": true,
+  "type": "'yes' | 'no' | 'hold'",
+  "source": "maor/src/types/domain.ts:266"
+ },
+ {
+  "id": "L10:maor:Enrollment.renewNote",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "renewNote",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:268"
+ },
+ {
+  "id": "L10:maor:Enrollment.renewedToId",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "renewedToId",
+  "optional": true,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:270"
+ },
+ {
+  "id": "L10:maor:Teacher.id",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:277"
+ },
+ {
+  "id": "L10:maor:Teacher.name",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:278"
+ },
+ {
+  "id": "L10:maor:Teacher.phone",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "phone",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:279"
+ },
+ {
+  "id": "L10:maor:Teacher.phone2",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "phone2",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:280"
+ },
+ {
+  "id": "L10:maor:Teacher.email",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "email",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:281"
+ },
+ {
+  "id": "L10:maor:Teacher.idNum",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "idNum",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:282"
+ },
+ {
+  "id": "L10:maor:Teacher.address",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "address",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:283"
+ },
+ {
+  "id": "L10:maor:Teacher.specialty",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "specialty",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:284"
+ },
+ {
+  "id": "L10:maor:Teacher.payRate",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "payRate",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:286"
+ },
+ {
+  "id": "L10:maor:Teacher.startDate",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "startDate",
+  "optional": false,
+  "type": "IsoDate | ''",
+  "source": "maor/src/types/domain.ts:287"
+ },
+ {
+  "id": "L10:maor:Teacher.notes",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:288"
+ },
+ {
+  "id": "L10:maor:Teacher.payMethod",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "payMethod",
+  "optional": true,
+  "type": "'cash' | 'salary' | 'check' | ''",
+  "source": "maor/src/types/domain.ts:294"
+ },
+ {
+  "id": "L10:maor:Teacher.payToOther",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "payToOther",
+  "optional": true,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:299"
+ },
+ {
+  "id": "L10:maor:Teacher.payeeName",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "payeeName",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:301"
+ },
+ {
+  "id": "L10:maor:Teacher.payeePhone",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "payeePhone",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:303"
+ },
+ {
+  "id": "L10:maor:Teacher.payeeIdNum",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "payeeIdNum",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:305"
+ },
+ {
+  "id": "L10:maor:Teacher.bankName",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "bankName",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:306"
+ },
+ {
+  "id": "L10:maor:Teacher.bankBranch",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "bankBranch",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:307"
+ },
+ {
+  "id": "L10:maor:Teacher.bankAccount",
+  "level": "L10-field",
+  "entity": "Teacher",
+  "name": "bankAccount",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:308"
+ },
+ {
+  "id": "L10:maor:Room.id",
+  "level": "L10-field",
+  "entity": "Room",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:312"
+ },
+ {
+  "id": "L10:maor:Room.name",
+  "level": "L10-field",
+  "entity": "Room",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:313"
+ },
+ {
+  "id": "L10:maor:Room.active",
+  "level": "L10-field",
+  "entity": "Room",
+  "name": "active",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:314"
+ },
+ {
+  "id": "L10:maor:Room.slot",
+  "level": "L10-field",
+  "entity": "Room",
+  "name": "slot",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:316"
+ },
+ {
+  "id": "L10:maor:Room.cap",
+  "level": "L10-field",
+  "entity": "Room",
+  "name": "cap",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:318"
+ },
+ {
+  "id": "L10:maor:Room.location",
+  "level": "L10-field",
+  "entity": "Room",
+  "name": "location",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:319"
+ },
+ {
+  "id": "L10:maor:Room.rate",
+  "level": "L10-field",
+  "entity": "Room",
+  "name": "rate",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:321"
+ },
+ {
+  "id": "L10:maor:Room.from",
+  "level": "L10-field",
+  "entity": "Room",
+  "name": "from",
+  "optional": false,
+  "type": "TimeHM",
+  "source": "maor/src/types/domain.ts:322"
+ },
+ {
+  "id": "L10:maor:Room.to",
+  "level": "L10-field",
+  "entity": "Room",
+  "name": "to",
+  "optional": false,
+  "type": "TimeHM",
+  "source": "maor/src/types/domain.ts:323"
+ },
+ {
+  "id": "L10:maor:Room.access",
+  "level": "L10-field",
+  "entity": "Room",
+  "name": "access",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:325"
+ },
+ {
+  "id": "L10:maor:Room.notes",
+  "level": "L10-field",
+  "entity": "Room",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:326"
+ },
+ {
+  "id": "L10:maor:Room.eq",
+  "level": "L10-field",
+  "entity": "Room",
+  "name": "eq",
+  "optional": false,
+  "type": "Record<string, boolean>",
+  "source": "maor/src/types/domain.ts:328"
+ },
+ {
+  "id": "L10:maor:OrgEvent.id",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:344"
+ },
+ {
+  "id": "L10:maor:OrgEvent.title",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "title",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:345"
+ },
+ {
+  "id": "L10:maor:OrgEvent.date",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:346"
+ },
+ {
+  "id": "L10:maor:OrgEvent.time",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "time",
+  "optional": false,
+  "type": "TimeHM",
+  "source": "maor/src/types/domain.ts:347"
+ },
+ {
+  "id": "L10:maor:OrgEvent.type",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "type",
+  "optional": false,
+  "type": "EventType",
+  "source": "maor/src/types/domain.ts:348"
+ },
+ {
+  "id": "L10:maor:OrgEvent.customType",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "customType",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:350"
+ },
+ {
+  "id": "L10:maor:OrgEvent.notes",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:351"
+ },
+ {
+  "id": "L10:maor:OrgEvent.price",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "price",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:352"
+ },
+ {
+  "id": "L10:maor:OrgEvent.roomId",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "roomId",
+  "optional": false,
+  "type": "Id | ''",
+  "source": "maor/src/types/domain.ts:353"
+ },
+ {
+  "id": "L10:maor:OrgEvent.famId",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "famId",
+  "optional": false,
+  "type": "Id | ''",
+  "source": "maor/src/types/domain.ts:355"
+ },
+ {
+  "id": "L10:maor:OrgEvent.spId",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "spId",
+  "optional": true,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:357"
+ },
+ {
+  "id": "L10:maor:OrgEvent.priority",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "priority",
+  "optional": false,
+  "type": "EventPriority",
+  "source": "maor/src/types/domain.ts:358"
+ },
+ {
+  "id": "L10:maor:OrgEvent.done",
+  "level": "L10-field",
+  "entity": "OrgEvent",
+  "name": "done",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:359"
+ },
+ {
+  "id": "L10:maor:Donation.rid",
+  "level": "L10-field",
+  "entity": "Donation",
+  "name": "rid",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:371"
+ },
+ {
+  "id": "L10:maor:Donation.date",
+  "level": "L10-field",
+  "entity": "Donation",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:372"
+ },
+ {
+  "id": "L10:maor:Donation.amount",
+  "level": "L10-field",
+  "entity": "Donation",
+  "name": "amount",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:373"
+ },
+ {
+  "id": "L10:maor:Donation.cur",
+  "level": "L10-field",
+  "entity": "Donation",
+  "name": "cur",
+  "optional": false,
+  "type": "'₪' | '$'",
+  "source": "maor/src/types/domain.ts:374"
+ },
+ {
+  "id": "L10:maor:Donation.cat",
+  "level": "L10-field",
+  "entity": "Donation",
+  "name": "cat",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:375"
+ },
+ {
+  "id": "L10:maor:Donation.designation",
+  "level": "L10-field",
+  "entity": "Donation",
+  "name": "designation",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:381"
+ },
+ {
+  "id": "L10:maor:Donation.purpose",
+  "level": "L10-field",
+  "entity": "Donation",
+  "name": "purpose",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:388"
+ },
+ {
+  "id": "L10:maor:AyinName.id",
+  "level": "L10-field",
+  "entity": "AyinName",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:400"
+ },
+ {
+  "id": "L10:maor:AyinName.name",
+  "level": "L10-field",
+  "entity": "AyinName",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:401"
+ },
+ {
+  "id": "L10:maor:AyinName.eyes",
+  "level": "L10-field",
+  "entity": "AyinName",
+  "name": "eyes",
+  "optional": false,
+  "type": "number | ''",
+  "source": "maor/src/types/domain.ts:403"
+ },
+ {
+  "id": "L10:maor:AyinName.done",
+  "level": "L10-field",
+  "entity": "AyinName",
+  "name": "done",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:404"
+ },
+ {
+  "id": "L10:maor:AyinName.rate",
+  "level": "L10-field",
+  "entity": "AyinName",
+  "name": "rate",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:410"
+ },
+ {
+  "id": "L10:maor:AyinName.note",
+  "level": "L10-field",
+  "entity": "AyinName",
+  "name": "note",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:412"
+ },
+ {
+  "id": "L10:maor:AyinName.days",
+  "level": "L10-field",
+  "entity": "AyinName",
+  "name": "days",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:418"
+ },
+ {
+  "id": "L10:maor:AyinName.deps",
+  "level": "L10-field",
+  "entity": "AyinName",
+  "name": "deps",
+  "optional": true,
+  "type": "Id[]",
+  "source": "maor/src/types/domain.ts:419"
+ },
+ {
+  "id": "L10:maor:KitItem.label",
+  "level": "L10-field",
+  "entity": "KitItem",
+  "name": "label",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:424"
+ },
+ {
+  "id": "L10:maor:KitItem.done",
+  "level": "L10-field",
+  "entity": "KitItem",
+  "name": "done",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:425"
+ },
+ {
+  "id": "L10:maor:WarehouseItem.id",
+  "level": "L10-field",
+  "entity": "WarehouseItem",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:434"
+ },
+ {
+  "id": "L10:maor:WarehouseItem.name",
+  "level": "L10-field",
+  "entity": "WarehouseItem",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:435"
+ },
+ {
+  "id": "L10:maor:WarehouseItem.unit",
+  "level": "L10-field",
+  "entity": "WarehouseItem",
+  "name": "unit",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:437"
+ },
+ {
+  "id": "L10:maor:WarehouseItem.qty",
+  "level": "L10-field",
+  "entity": "WarehouseItem",
+  "name": "qty",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:439"
+ },
+ {
+  "id": "L10:maor:WarehouseItem.cost",
+  "level": "L10-field",
+  "entity": "WarehouseItem",
+  "name": "cost",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:441"
+ },
+ {
+  "id": "L10:maor:AyinAnswer.date",
+  "level": "L10-field",
+  "entity": "AyinAnswer",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:446"
+ },
+ {
+  "id": "L10:maor:AyinAnswer.note",
+  "level": "L10-field",
+  "entity": "AyinAnswer",
+  "name": "note",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:447"
+ },
+ {
+  "id": "L10:maor:TimeEntry.date",
+  "level": "L10-field",
+  "entity": "TimeEntry",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:455"
+ },
+ {
+  "id": "L10:maor:TimeEntry.hours",
+  "level": "L10-field",
+  "entity": "TimeEntry",
+  "name": "hours",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:456"
+ },
+ {
+  "id": "L10:maor:TimeEntry.note",
+  "level": "L10-field",
+  "entity": "TimeEntry",
+  "name": "note",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:457"
+ },
+ {
+  "id": "L10:maor:TimeEntry.rate",
+  "level": "L10-field",
+  "entity": "TimeEntry",
+  "name": "rate",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:459"
+ },
+ {
+  "id": "L10:maor:MatEntry.name",
+  "level": "L10-field",
+  "entity": "MatEntry",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:468"
+ },
+ {
+  "id": "L10:maor:MatEntry.qty",
+  "level": "L10-field",
+  "entity": "MatEntry",
+  "name": "qty",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:469"
+ },
+ {
+  "id": "L10:maor:MatEntry.cost",
+  "level": "L10-field",
+  "entity": "MatEntry",
+  "name": "cost",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:470"
+ },
+ {
+  "id": "L10:maor:AyinLog.date",
+  "level": "L10-field",
+  "entity": "AyinLog",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:475"
+ },
+ {
+  "id": "L10:maor:AyinLog.eyes",
+  "level": "L10-field",
+  "entity": "AyinLog",
+  "name": "eyes",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:476"
+ },
+ {
+  "id": "L10:maor:AyinLog.name",
+  "level": "L10-field",
+  "entity": "AyinLog",
+  "name": "name",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:477"
+ },
+ {
+  "id": "L10:maor:AyinCase.stage",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "stage",
+  "optional": false,
+  "type": "AyinStage",
+  "source": "maor/src/types/domain.ts:482"
+ },
+ {
+  "id": "L10:maor:AyinCase.note",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "note",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:483"
+ },
+ {
+  "id": "L10:maor:AyinCase.answeredNote",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "answeredNote",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:484"
+ },
+ {
+  "id": "L10:maor:AyinCase.paid",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "paid",
+  "optional": true,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:489"
+ },
+ {
+  "id": "L10:maor:AyinCase.answerPushed",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "answerPushed",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:490"
+ },
+ {
+  "id": "L10:maor:AyinCase.nextTalk",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "nextTalk",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:491"
+ },
+ {
+  "id": "L10:maor:AyinCase.nextTalkTime",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "nextTalkTime",
+  "optional": false,
+  "type": "TimeHM",
+  "source": "maor/src/types/domain.ts:492"
+ },
+ {
+  "id": "L10:maor:AyinCase.lastTouch",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "lastTouch",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:493"
+ },
+ {
+  "id": "L10:maor:AyinCase.names",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "names",
+  "optional": false,
+  "type": "AyinName[]",
+  "source": "maor/src/types/domain.ts:494"
+ },
+ {
+  "id": "L10:maor:AyinCase.answers",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "answers",
+  "optional": false,
+  "type": "AyinAnswer[]",
+  "source": "maor/src/types/domain.ts:495"
+ },
+ {
+  "id": "L10:maor:AyinCase.log",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "log",
+  "optional": false,
+  "type": "AyinLog[]",
+  "source": "maor/src/types/domain.ts:496"
+ },
+ {
+  "id": "L10:maor:AyinCase.time",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "time",
+  "optional": true,
+  "type": "TimeEntry[]",
+  "source": "maor/src/types/domain.ts:498"
+ },
+ {
+  "id": "L10:maor:AyinCase.mat",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "mat",
+  "optional": true,
+  "type": "MatEntry[]",
+  "source": "maor/src/types/domain.ts:500"
+ },
+ {
+  "id": "L10:maor:AyinCase.kit",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "kit",
+  "optional": true,
+  "type": "KitItem[]",
+  "source": "maor/src/types/domain.ts:502"
+ },
+ {
+  "id": "L10:maor:AyinCase.boardEventIds",
+  "level": "L10-field",
+  "entity": "AyinCase",
+  "name": "boardEventIds",
+  "optional": true,
+  "type": "Partial<Record<string, Id>>",
+  "source": "maor/src/types/domain.ts:509"
+ },
+ {
+  "id": "L10:maor:Hok.amount",
+  "level": "L10-field",
+  "entity": "Hok",
+  "name": "amount",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:514"
+ },
+ {
+  "id": "L10:maor:Hok.cur",
+  "level": "L10-field",
+  "entity": "Hok",
+  "name": "cur",
+  "optional": false,
+  "type": "'₪' | '$'",
+  "source": "maor/src/types/domain.ts:515"
+ },
+ {
+  "id": "L10:maor:Hok.day",
+  "level": "L10-field",
+  "entity": "Hok",
+  "name": "day",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:517"
+ },
+ {
+  "id": "L10:maor:Hok.method",
+  "level": "L10-field",
+  "entity": "Hok",
+  "name": "method",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:519"
+ },
+ {
+  "id": "L10:maor:Hok.note",
+  "level": "L10-field",
+  "entity": "Hok",
+  "name": "note",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:520"
+ },
+ {
+  "id": "L10:maor:Hok.active",
+  "level": "L10-field",
+  "entity": "Hok",
+  "name": "active",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:521"
+ },
+ {
+  "id": "L10:maor:Hok.startedAt",
+  "level": "L10-field",
+  "entity": "Hok",
+  "name": "startedAt",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:522"
+ },
+ {
+  "id": "L10:maor:Hok.kevaId",
+  "level": "L10-field",
+  "entity": "Hok",
+  "name": "kevaId",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:525"
+ },
+ {
+  "id": "L10:maor:Supporter.id",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:529"
+ },
+ {
+  "id": "L10:maor:Supporter.name",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:530"
+ },
+ {
+  "id": "L10:maor:Supporter.phone",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "phone",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:531"
+ },
+ {
+  "id": "L10:maor:Supporter.email",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "email",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:532"
+ },
+ {
+  "id": "L10:maor:Supporter.address",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "address",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:533"
+ },
+ {
+  "id": "L10:maor:Supporter.city",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "city",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:535"
+ },
+ {
+  "id": "L10:maor:Supporter.idNum",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "idNum",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:536"
+ },
+ {
+  "id": "L10:maor:Supporter.extId",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "extId",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:539"
+ },
+ {
+  "id": "L10:maor:Supporter.cat",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "cat",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:540"
+ },
+ {
+  "id": "L10:maor:Supporter.forWho",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "forWho",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:542"
+ },
+ {
+  "id": "L10:maor:Supporter.notes",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:543"
+ },
+ {
+  "id": "L10:maor:Supporter.count",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "count",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:545"
+ },
+ {
+  "id": "L10:maor:Supporter.ils",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "ils",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:547"
+ },
+ {
+  "id": "L10:maor:Supporter.usd",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "usd",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:548"
+ },
+ {
+  "id": "L10:maor:Supporter.first",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "first",
+  "optional": false,
+  "type": "IsoDate | ''",
+  "source": "maor/src/types/domain.ts:549"
+ },
+ {
+  "id": "L10:maor:Supporter.last",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "last",
+  "optional": false,
+  "type": "IsoDate | ''",
+  "source": "maor/src/types/domain.ts:550"
+ },
+ {
+  "id": "L10:maor:Supporter.nextDate",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "nextDate",
+  "optional": false,
+  "type": "IsoDate | ''",
+  "source": "maor/src/types/domain.ts:552"
+ },
+ {
+  "id": "L10:maor:Supporter.nextNote",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "nextNote",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:554"
+ },
+ {
+  "id": "L10:maor:Supporter.photos",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "photos",
+  "optional": true,
+  "type": "string[]",
+  "source": "maor/src/types/domain.ts:560"
+ },
+ {
+  "id": "L10:maor:Supporter.nextEventId",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "nextEventId",
+  "optional": true,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:562"
+ },
+ {
+  "id": "L10:maor:Supporter.donations",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "donations",
+  "optional": false,
+  "type": "Donation[]",
+  "source": "maor/src/types/domain.ts:563"
+ },
+ {
+  "id": "L10:maor:Supporter.hok",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "hok",
+  "optional": true,
+  "type": "Hok",
+  "source": "maor/src/types/domain.ts:587"
+ },
+ {
+  "id": "L10:maor:Supporter.ayin",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "ayin",
+  "optional": true,
+  "type": "AyinCase",
+  "source": "maor/src/types/domain.ts:589"
+ },
+ {
+  "id": "L10:maor:Supporter.calls",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "calls",
+  "optional": true,
+  "type": "CallEntry[]",
+  "source": "maor/src/types/domain.ts:595"
+ },
+ {
+  "id": "L10:maor:NotifPrefs.email",
+  "level": "L10-field",
+  "entity": "NotifPrefs",
+  "name": "email",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:617"
+ },
+ {
+  "id": "L10:maor:NotifPrefs.push",
+  "level": "L10-field",
+  "entity": "NotifPrefs",
+  "name": "push",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:618"
+ },
+ {
+  "id": "L10:maor:NotifPrefs.sms",
+  "level": "L10-field",
+  "entity": "NotifPrefs",
+  "name": "sms",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:619"
+ },
+ {
+  "id": "L10:maor:NotifPrefs.strong",
+  "level": "L10-field",
+  "entity": "NotifPrefs",
+  "name": "strong",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:620"
+ },
+ {
+  "id": "L10:maor:ReportPrefs.daily",
+  "level": "L10-field",
+  "entity": "ReportPrefs",
+  "name": "daily",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:624"
+ },
+ {
+  "id": "L10:maor:ReportPrefs.weekly",
+  "level": "L10-field",
+  "entity": "ReportPrefs",
+  "name": "weekly",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:625"
+ },
+ {
+  "id": "L10:maor:ReportPrefs.monthly",
+  "level": "L10-field",
+  "entity": "ReportPrefs",
+  "name": "monthly",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:626"
+ },
+ {
+  "id": "L10:maor:ReportPrefs.quarterly",
+  "level": "L10-field",
+  "entity": "ReportPrefs",
+  "name": "quarterly",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:627"
+ },
+ {
+  "id": "L10:maor:QuoteTemplate.id",
+  "level": "L10-field",
+  "entity": "QuoteTemplate",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:635"
+ },
+ {
+  "id": "L10:maor:QuoteTemplate.name",
+  "level": "L10-field",
+  "entity": "QuoteTemplate",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:636"
+ },
+ {
+  "id": "L10:maor:QuoteTemplate.lines",
+  "level": "L10-field",
+  "entity": "QuoteTemplate",
+  "name": "lines",
+  "optional": false,
+  "type": "{ name: string",
+  "source": "maor/src/types/domain.ts:637"
+ },
+ {
+  "id": "L10:maor:DialLogEntry.id",
+  "level": "L10-field",
+  "entity": "DialLogEntry",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:649"
+ },
+ {
+  "id": "L10:maor:DialLogEntry.outcome",
+  "level": "L10-field",
+  "entity": "DialLogEntry",
+  "name": "outcome",
+  "optional": false,
+  "type": "DialOutcome",
+  "source": "maor/src/types/domain.ts:650"
+ },
+ {
+  "id": "L10:maor:DialLogEntry.note",
+  "level": "L10-field",
+  "entity": "DialLogEntry",
+  "name": "note",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:651"
+ },
+ {
+  "id": "L10:maor:DialLogEntry.at",
+  "level": "L10-field",
+  "entity": "DialLogEntry",
+  "name": "at",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:652"
+ },
+ {
+  "id": "L10:maor:CallEntry.at",
+  "level": "L10-field",
+  "entity": "CallEntry",
+  "name": "at",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:657"
+ },
+ {
+  "id": "L10:maor:CallEntry.outcome",
+  "level": "L10-field",
+  "entity": "CallEntry",
+  "name": "outcome",
+  "optional": false,
+  "type": "DialOutcome",
+  "source": "maor/src/types/domain.ts:658"
+ },
+ {
+  "id": "L10:maor:DialerCampaign.name",
+  "level": "L10-field",
+  "entity": "DialerCampaign",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:662"
+ },
+ {
+  "id": "L10:maor:DialerCampaign.startedAt",
+  "level": "L10-field",
+  "entity": "DialerCampaign",
+  "name": "startedAt",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:663"
+ },
+ {
+  "id": "L10:maor:DialerCampaign.queue",
+  "level": "L10-field",
+  "entity": "DialerCampaign",
+  "name": "queue",
+  "optional": false,
+  "type": "Id[]",
+  "source": "maor/src/types/domain.ts:665"
+ },
+ {
+  "id": "L10:maor:DialerCampaign.total",
+  "level": "L10-field",
+  "entity": "DialerCampaign",
+  "name": "total",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:667"
+ },
+ {
+  "id": "L10:maor:DialerCampaign.log",
+  "level": "L10-field",
+  "entity": "DialerCampaign",
+  "name": "log",
+  "optional": false,
+  "type": "DialLogEntry[]",
+  "source": "maor/src/types/domain.ts:669"
+ },
+ {
+  "id": "L10:maor:UiPrefs.famView",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "famView",
+  "optional": false,
+  "type": "'list' | 'grid'",
+  "source": "maor/src/types/domain.ts:673"
+ },
+ {
+  "id": "L10:maor:UiPrefs.crsView",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "crsView",
+  "optional": false,
+  "type": "'list' | 'grid'",
+  "source": "maor/src/types/domain.ts:674"
+ },
+ {
+  "id": "L10:maor:UiPrefs.quoteTemplates",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "quoteTemplates",
+  "optional": true,
+  "type": "QuoteTemplate[]",
+  "source": "maor/src/types/domain.ts:676"
+ },
+ {
+  "id": "L10:maor:UiPrefs.supView",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "supView",
+  "optional": true,
+  "type": "'list' | 'grid'",
+  "source": "maor/src/types/domain.ts:678"
+ },
+ {
+  "id": "L10:maor:UiPrefs.receiptFmt",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "receiptFmt",
+  "optional": true,
+  "type": "'txt' | 'pdf'",
+  "source": "maor/src/types/domain.ts:680"
+ },
+ {
+  "id": "L10:maor:UiPrefs.homeLayout",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "homeLayout",
+  "optional": true,
+  "type": "string[]",
+  "source": "maor/src/types/domain.ts:682"
+ },
+ {
+  "id": "L10:maor:UiPrefs.theme",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "theme",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:684"
+ },
+ {
+  "id": "L10:maor:UiPrefs.accent",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "accent",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:686"
+ },
+ {
+  "id": "L10:maor:UiPrefs.dialer",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "dialer",
+  "optional": true,
+  "type": "DialerCampaign",
+  "source": "maor/src/types/domain.ts:688"
+ },
+ {
+  "id": "L10:maor:TzScoreEntry.date",
+  "level": "L10-field",
+  "entity": "TzScoreEntry",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:695"
+ },
+ {
+  "id": "L10:maor:TzScoreEntry.delta",
+  "level": "L10-field",
+  "entity": "TzScoreEntry",
+  "name": "delta",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:696"
+ },
+ {
+  "id": "L10:maor:TzScoreEntry.reason",
+  "level": "L10-field",
+  "entity": "TzScoreEntry",
+  "name": "reason",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:697"
+ },
+ {
+  "id": "L10:maor:TzCoordinator.id",
+  "level": "L10-field",
+  "entity": "TzCoordinator",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:702"
+ },
+ {
+  "id": "L10:maor:TzCoordinator.name",
+  "level": "L10-field",
+  "entity": "TzCoordinator",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:703"
+ },
+ {
+  "id": "L10:maor:TzCoordinator.famId",
+  "level": "L10-field",
+  "entity": "TzCoordinator",
+  "name": "famId",
+  "optional": false,
+  "type": "Id | ''",
+  "source": "maor/src/types/domain.ts:704"
+ },
+ {
+  "id": "L10:maor:TzCoordinator.memberId",
+  "level": "L10-field",
+  "entity": "TzCoordinator",
+  "name": "memberId",
+  "optional": false,
+  "type": "Id | ''",
+  "source": "maor/src/types/domain.ts:705"
+ },
+ {
+  "id": "L10:maor:TzCoordinator.phone",
+  "level": "L10-field",
+  "entity": "TzCoordinator",
+  "name": "phone",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:706"
+ },
+ {
+  "id": "L10:maor:TzCoordinator.notes",
+  "level": "L10-field",
+  "entity": "TzCoordinator",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:707"
+ },
+ {
+  "id": "L10:maor:TzCoordinator.active",
+  "level": "L10-field",
+  "entity": "TzCoordinator",
+  "name": "active",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:708"
+ },
+ {
+  "id": "L10:maor:TzCoordinator.startDate",
+  "level": "L10-field",
+  "entity": "TzCoordinator",
+  "name": "startDate",
+  "optional": false,
+  "type": "IsoDate | ''",
+  "source": "maor/src/types/domain.ts:709"
+ },
+ {
+  "id": "L10:maor:TzCoordinator.score",
+  "level": "L10-field",
+  "entity": "TzCoordinator",
+  "name": "score",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:711"
+ },
+ {
+  "id": "L10:maor:TzCoordinator.scoreLog",
+  "level": "L10-field",
+  "entity": "TzCoordinator",
+  "name": "scoreLog",
+  "optional": false,
+  "type": "TzScoreEntry[]",
+  "source": "maor/src/types/domain.ts:712"
+ },
+ {
+  "id": "L10:maor:TzCollection.id",
+  "level": "L10-field",
+  "entity": "TzCollection",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:717"
+ },
+ {
+  "id": "L10:maor:TzCollection.date",
+  "level": "L10-field",
+  "entity": "TzCollection",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:718"
+ },
+ {
+  "id": "L10:maor:TzCollection.amount",
+  "level": "L10-field",
+  "entity": "TzCollection",
+  "name": "amount",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:720"
+ },
+ {
+  "id": "L10:maor:TzCollection.campaignId",
+  "level": "L10-field",
+  "entity": "TzCollection",
+  "name": "campaignId",
+  "optional": false,
+  "type": "Id | ''",
+  "source": "maor/src/types/domain.ts:721"
+ },
+ {
+  "id": "L10:maor:TzCollection.note",
+  "level": "L10-field",
+  "entity": "TzCollection",
+  "name": "note",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:722"
+ },
+ {
+  "id": "L10:maor:TzBox.id",
+  "level": "L10-field",
+  "entity": "TzBox",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:729"
+ },
+ {
+  "id": "L10:maor:TzBox.num",
+  "level": "L10-field",
+  "entity": "TzBox",
+  "name": "num",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:731"
+ },
+ {
+  "id": "L10:maor:TzBox.coordinatorId",
+  "level": "L10-field",
+  "entity": "TzBox",
+  "name": "coordinatorId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:732"
+ },
+ {
+  "id": "L10:maor:TzBox.famId",
+  "level": "L10-field",
+  "entity": "TzBox",
+  "name": "famId",
+  "optional": false,
+  "type": "Id | ''",
+  "source": "maor/src/types/domain.ts:734"
+ },
+ {
+  "id": "L10:maor:TzBox.holderKind",
+  "level": "L10-field",
+  "entity": "TzBox",
+  "name": "holderKind",
+  "optional": false,
+  "type": "'donor' | 'supported' | ''",
+  "source": "maor/src/types/domain.ts:735"
+ },
+ {
+  "id": "L10:maor:TzBox.since",
+  "level": "L10-field",
+  "entity": "TzBox",
+  "name": "since",
+  "optional": false,
+  "type": "IsoDate | ''",
+  "source": "maor/src/types/domain.ts:736"
+ },
+ {
+  "id": "L10:maor:TzBox.status",
+  "level": "L10-field",
+  "entity": "TzBox",
+  "name": "status",
+  "optional": false,
+  "type": "TzBoxStatus",
+  "source": "maor/src/types/domain.ts:737"
+ },
+ {
+  "id": "L10:maor:TzBox.notes",
+  "level": "L10-field",
+  "entity": "TzBox",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:738"
+ },
+ {
+  "id": "L10:maor:TzBox.collections",
+  "level": "L10-field",
+  "entity": "TzBox",
+  "name": "collections",
+  "optional": false,
+  "type": "TzCollection[]",
+  "source": "maor/src/types/domain.ts:739"
+ },
+ {
+  "id": "L10:maor:TzCampaign.id",
+  "level": "L10-field",
+  "entity": "TzCampaign",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:743"
+ },
+ {
+  "id": "L10:maor:TzCampaign.name",
+  "level": "L10-field",
+  "entity": "TzCampaign",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:744"
+ },
+ {
+  "id": "L10:maor:TzCampaign.start",
+  "level": "L10-field",
+  "entity": "TzCampaign",
+  "name": "start",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:745"
+ },
+ {
+  "id": "L10:maor:TzCampaign.end",
+  "level": "L10-field",
+  "entity": "TzCampaign",
+  "name": "end",
+  "optional": false,
+  "type": "IsoDate | ''",
+  "source": "maor/src/types/domain.ts:746"
+ },
+ {
+  "id": "L10:maor:TzCampaign.goal",
+  "level": "L10-field",
+  "entity": "TzCampaign",
+  "name": "goal",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:748"
+ },
+ {
+  "id": "L10:maor:TzCampaign.active",
+  "level": "L10-field",
+  "entity": "TzCampaign",
+  "name": "active",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:749"
+ },
+ {
+  "id": "L10:maor:TzCampaign.notes",
+  "level": "L10-field",
+  "entity": "TzCampaign",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:750"
+ },
+ {
+  "id": "L10:maor:TzEvent.id",
+  "level": "L10-field",
+  "entity": "TzEvent",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:755"
+ },
+ {
+  "id": "L10:maor:TzEvent.title",
+  "level": "L10-field",
+  "entity": "TzEvent",
+  "name": "title",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:756"
+ },
+ {
+  "id": "L10:maor:TzEvent.date",
+  "level": "L10-field",
+  "entity": "TzEvent",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:757"
+ },
+ {
+  "id": "L10:maor:TzEvent.time",
+  "level": "L10-field",
+  "entity": "TzEvent",
+  "name": "time",
+  "optional": false,
+  "type": "TimeHM | ''",
+  "source": "maor/src/types/domain.ts:758"
+ },
+ {
+  "id": "L10:maor:TzEvent.kind",
+  "level": "L10-field",
+  "entity": "TzEvent",
+  "name": "kind",
+  "optional": false,
+  "type": "'round' | 'campaign' | 'reminder' | 'cus",
+  "source": "maor/src/types/domain.ts:760"
+ },
+ {
+  "id": "L10:maor:TzEvent.coordinatorId",
+  "level": "L10-field",
+  "entity": "TzEvent",
+  "name": "coordinatorId",
+  "optional": false,
+  "type": "Id | ''",
+  "source": "maor/src/types/domain.ts:761"
+ },
+ {
+  "id": "L10:maor:TzEvent.boxId",
+  "level": "L10-field",
+  "entity": "TzEvent",
+  "name": "boxId",
+  "optional": false,
+  "type": "Id | ''",
+  "source": "maor/src/types/domain.ts:762"
+ },
+ {
+  "id": "L10:maor:TzEvent.notes",
+  "level": "L10-field",
+  "entity": "TzEvent",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:763"
+ },
+ {
+  "id": "L10:maor:TzEvent.done",
+  "level": "L10-field",
+  "entity": "TzEvent",
+  "name": "done",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:764"
+ },
+ {
+  "id": "L10:maor:ShopItem.id",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:774"
+ },
+ {
+  "id": "L10:maor:ShopItem.name",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:775"
+ },
+ {
+  "id": "L10:maor:ShopItem.kind",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "kind",
+  "optional": false,
+  "type": "ShopComponentKind",
+  "source": "maor/src/types/domain.ts:776"
+ },
+ {
+  "id": "L10:maor:ShopItem.storeId",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "storeId",
+  "optional": false,
+  "type": "Id | ''",
+  "source": "maor/src/types/domain.ts:778"
+ },
+ {
+  "id": "L10:maor:ShopItem.value",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "value",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:779"
+ },
+ {
+  "id": "L10:maor:ShopItem.basePrice",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "basePrice",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:780"
+ },
+ {
+  "id": "L10:maor:ShopItem.stock",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "stock",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:782"
+ },
+ {
+  "id": "L10:maor:ShopItem.minStock",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "minStock",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:784"
+ },
+ {
+  "id": "L10:maor:ShopItem.validDays",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "validDays",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:786"
+ },
+ {
+  "id": "L10:maor:ShopItem.holidays",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "holidays",
+  "optional": true,
+  "type": "string[]",
+  "source": "maor/src/types/domain.ts:788"
+ },
+ {
+  "id": "L10:maor:ShopItem.waits",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "waits",
+  "optional": true,
+  "type": "{ famId: Id",
+  "source": "maor/src/types/domain.ts:790"
+ },
+ {
+  "id": "L10:maor:ShopItem.active",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "active",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:791"
+ },
+ {
+  "id": "L10:maor:ShopItem.notes",
+  "level": "L10-field",
+  "entity": "ShopItem",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:792"
+ },
+ {
+  "id": "L10:maor:ShopComponent.id",
+  "level": "L10-field",
+  "entity": "ShopComponent",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:801"
+ },
+ {
+  "id": "L10:maor:ShopComponent.itemId",
+  "level": "L10-field",
+  "entity": "ShopComponent",
+  "name": "itemId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:803"
+ },
+ {
+  "id": "L10:maor:ShopComponent.kind",
+  "level": "L10-field",
+  "entity": "ShopComponent",
+  "name": "kind",
+  "optional": false,
+  "type": "ShopComponentKind",
+  "source": "maor/src/types/domain.ts:804"
+ },
+ {
+  "id": "L10:maor:ShopComponent.label",
+  "level": "L10-field",
+  "entity": "ShopComponent",
+  "name": "label",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:805"
+ },
+ {
+  "id": "L10:maor:ShopComponent.storeId",
+  "level": "L10-field",
+  "entity": "ShopComponent",
+  "name": "storeId",
+  "optional": false,
+  "type": "Id | ''",
+  "source": "maor/src/types/domain.ts:807"
+ },
+ {
+  "id": "L10:maor:ShopComponent.value",
+  "level": "L10-field",
+  "entity": "ShopComponent",
+  "name": "value",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:809"
+ },
+ {
+  "id": "L10:maor:ShopComponent.basePrice",
+  "level": "L10-field",
+  "entity": "ShopComponent",
+  "name": "basePrice",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:811"
+ },
+ {
+  "id": "L10:maor:ShopComponent.stock",
+  "level": "L10-field",
+  "entity": "ShopComponent",
+  "name": "stock",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:812"
+ },
+ {
+  "id": "L10:maor:ShopComponent.validDays",
+  "level": "L10-field",
+  "entity": "ShopComponent",
+  "name": "validDays",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:813"
+ },
+ {
+  "id": "L10:maor:ShopComponent.notes",
+  "level": "L10-field",
+  "entity": "ShopComponent",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:814"
+ },
+ {
+  "id": "L10:maor:ShopIntake.id",
+  "level": "L10-field",
+  "entity": "ShopIntake",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:819"
+ },
+ {
+  "id": "L10:maor:ShopIntake.itemId",
+  "level": "L10-field",
+  "entity": "ShopIntake",
+  "name": "itemId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:820"
+ },
+ {
+  "id": "L10:maor:ShopIntake.date",
+  "level": "L10-field",
+  "entity": "ShopIntake",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:821"
+ },
+ {
+  "id": "L10:maor:ShopIntake.qty",
+  "level": "L10-field",
+  "entity": "ShopIntake",
+  "name": "qty",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:822"
+ },
+ {
+  "id": "L10:maor:ShopIntake.kind",
+  "level": "L10-field",
+  "entity": "ShopIntake",
+  "name": "kind",
+  "optional": false,
+  "type": "'buy' | 'donation'",
+  "source": "maor/src/types/domain.ts:823"
+ },
+ {
+  "id": "L10:maor:ShopIntake.source",
+  "level": "L10-field",
+  "entity": "ShopIntake",
+  "name": "source",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:825"
+ },
+ {
+  "id": "L10:maor:ShopIntake.cost",
+  "level": "L10-field",
+  "entity": "ShopIntake",
+  "name": "cost",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:827"
+ },
+ {
+  "id": "L10:maor:ShopIntake.note",
+  "level": "L10-field",
+  "entity": "ShopIntake",
+  "name": "note",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:828"
+ },
+ {
+  "id": "L10:maor:ShopIntake.expiry",
+  "level": "L10-field",
+  "entity": "ShopIntake",
+  "name": "expiry",
+  "optional": true,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:830"
+ },
+ {
+  "id": "L10:maor:ShopProduct.id",
+  "level": "L10-field",
+  "entity": "ShopProduct",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:835"
+ },
+ {
+  "id": "L10:maor:ShopProduct.name",
+  "level": "L10-field",
+  "entity": "ShopProduct",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:836"
+ },
+ {
+  "id": "L10:maor:ShopProduct.desc",
+  "level": "L10-field",
+  "entity": "ShopProduct",
+  "name": "desc",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:837"
+ },
+ {
+  "id": "L10:maor:ShopProduct.img",
+  "level": "L10-field",
+  "entity": "ShopProduct",
+  "name": "img",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:838"
+ },
+ {
+  "id": "L10:maor:ShopProduct.active",
+  "level": "L10-field",
+  "entity": "ShopProduct",
+  "name": "active",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:839"
+ },
+ {
+  "id": "L10:maor:ShopProduct.components",
+  "level": "L10-field",
+  "entity": "ShopProduct",
+  "name": "components",
+  "optional": false,
+  "type": "ShopComponent[]",
+  "source": "maor/src/types/domain.ts:840"
+ },
+ {
+  "id": "L10:maor:ShopProduct.notes",
+  "level": "L10-field",
+  "entity": "ShopProduct",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:841"
+ },
+ {
+  "id": "L10:maor:ShopStore.id",
+  "level": "L10-field",
+  "entity": "ShopStore",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:846"
+ },
+ {
+  "id": "L10:maor:ShopStore.name",
+  "level": "L10-field",
+  "entity": "ShopStore",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:847"
+ },
+ {
+  "id": "L10:maor:ShopStore.contact",
+  "level": "L10-field",
+  "entity": "ShopStore",
+  "name": "contact",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:848"
+ },
+ {
+  "id": "L10:maor:ShopStore.phone",
+  "level": "L10-field",
+  "entity": "ShopStore",
+  "name": "phone",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:849"
+ },
+ {
+  "id": "L10:maor:ShopStore.active",
+  "level": "L10-field",
+  "entity": "ShopStore",
+  "name": "active",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:850"
+ },
+ {
+  "id": "L10:maor:ShopStore.notes",
+  "level": "L10-field",
+  "entity": "ShopStore",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:851"
+ },
+ {
+  "id": "L10:maor:ShopCriterion.id",
+  "level": "L10-field",
+  "entity": "ShopCriterion",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:856"
+ },
+ {
+  "id": "L10:maor:ShopCriterion.name",
+  "level": "L10-field",
+  "entity": "ShopCriterion",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:857"
+ },
+ {
+  "id": "L10:maor:ShopCriterion.discountPct",
+  "level": "L10-field",
+  "entity": "ShopCriterion",
+  "name": "discountPct",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:858"
+ },
+ {
+  "id": "L10:maor:ShopCriterion.notes",
+  "level": "L10-field",
+  "entity": "ShopCriterion",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:859"
+ },
+ {
+  "id": "L10:maor:ShopRedemption.id",
+  "level": "L10-field",
+  "entity": "ShopRedemption",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:864"
+ },
+ {
+  "id": "L10:maor:ShopRedemption.rid",
+  "level": "L10-field",
+  "entity": "ShopRedemption",
+  "name": "rid",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:866"
+ },
+ {
+  "id": "L10:maor:ShopRedemption.voidedAt",
+  "level": "L10-field",
+  "entity": "ShopRedemption",
+  "name": "voidedAt",
+  "optional": true,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:868"
+ },
+ {
+  "id": "L10:maor:ShopRedemption.voidReason",
+  "level": "L10-field",
+  "entity": "ShopRedemption",
+  "name": "voidReason",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:869"
+ },
+ {
+  "id": "L10:maor:ShopRedemption.componentId",
+  "level": "L10-field",
+  "entity": "ShopRedemption",
+  "name": "componentId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:870"
+ },
+ {
+  "id": "L10:maor:ShopRedemption.date",
+  "level": "L10-field",
+  "entity": "ShopRedemption",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:871"
+ },
+ {
+  "id": "L10:maor:ShopRedemption.holiday",
+  "level": "L10-field",
+  "entity": "ShopRedemption",
+  "name": "holiday",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:872"
+ },
+ {
+  "id": "L10:maor:ShopRedemption.paid",
+  "level": "L10-field",
+  "entity": "ShopRedemption",
+  "name": "paid",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:873"
+ },
+ {
+  "id": "L10:maor:ShopRedemption.value",
+  "level": "L10-field",
+  "entity": "ShopRedemption",
+  "name": "value",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:874"
+ },
+ {
+  "id": "L10:maor:ShopRedemption.note",
+  "level": "L10-field",
+  "entity": "ShopRedemption",
+  "name": "note",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:875"
+ },
+ {
+  "id": "L10:maor:ShopAssignment.id",
+  "level": "L10-field",
+  "entity": "ShopAssignment",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:882"
+ },
+ {
+  "id": "L10:maor:ShopAssignment.productId",
+  "level": "L10-field",
+  "entity": "ShopAssignment",
+  "name": "productId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:883"
+ },
+ {
+  "id": "L10:maor:ShopAssignment.famId",
+  "level": "L10-field",
+  "entity": "ShopAssignment",
+  "name": "famId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:884"
+ },
+ {
+  "id": "L10:maor:ShopAssignment.memberId",
+  "level": "L10-field",
+  "entity": "ShopAssignment",
+  "name": "memberId",
+  "optional": false,
+  "type": "Id | ''",
+  "source": "maor/src/types/domain.ts:885"
+ },
+ {
+  "id": "L10:maor:ShopAssignment.criterionIds",
+  "level": "L10-field",
+  "entity": "ShopAssignment",
+  "name": "criterionIds",
+  "optional": false,
+  "type": "Id[]",
+  "source": "maor/src/types/domain.ts:887"
+ },
+ {
+  "id": "L10:maor:ShopAssignment.since",
+  "level": "L10-field",
+  "entity": "ShopAssignment",
+  "name": "since",
+  "optional": false,
+  "type": "IsoDate | ''",
+  "source": "maor/src/types/domain.ts:888"
+ },
+ {
+  "id": "L10:maor:ShopAssignment.status",
+  "level": "L10-field",
+  "entity": "ShopAssignment",
+  "name": "status",
+  "optional": false,
+  "type": "ShopAssignmentStatus",
+  "source": "maor/src/types/domain.ts:889"
+ },
+ {
+  "id": "L10:maor:ShopAssignment.notes",
+  "level": "L10-field",
+  "entity": "ShopAssignment",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:890"
+ },
+ {
+  "id": "L10:maor:ShopAssignment.redemptions",
+  "level": "L10-field",
+  "entity": "ShopAssignment",
+  "name": "redemptions",
+  "optional": false,
+  "type": "ShopRedemption[]",
+  "source": "maor/src/types/domain.ts:891"
+ },
+ {
+  "id": "L10:maor:ShopEvent.id",
+  "level": "L10-field",
+  "entity": "ShopEvent",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:901"
+ },
+ {
+  "id": "L10:maor:ShopEvent.title",
+  "level": "L10-field",
+  "entity": "ShopEvent",
+  "name": "title",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:902"
+ },
+ {
+  "id": "L10:maor:ShopEvent.date",
+  "level": "L10-field",
+  "entity": "ShopEvent",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:903"
+ },
+ {
+  "id": "L10:maor:ShopEvent.time",
+  "level": "L10-field",
+  "entity": "ShopEvent",
+  "name": "time",
+  "optional": false,
+  "type": "TimeHM | ''",
+  "source": "maor/src/types/domain.ts:904"
+ },
+ {
+  "id": "L10:maor:ShopEvent.kind",
+  "level": "L10-field",
+  "entity": "ShopEvent",
+  "name": "kind",
+  "optional": false,
+  "type": "'meeting' | 'delivery' | 'holiday' | 'cu",
+  "source": "maor/src/types/domain.ts:906"
+ },
+ {
+  "id": "L10:maor:ShopEvent.assignmentId",
+  "level": "L10-field",
+  "entity": "ShopEvent",
+  "name": "assignmentId",
+  "optional": false,
+  "type": "Id | ''",
+  "source": "maor/src/types/domain.ts:907"
+ },
+ {
+  "id": "L10:maor:ShopEvent.roomId",
+  "level": "L10-field",
+  "entity": "ShopEvent",
+  "name": "roomId",
+  "optional": true,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:909"
+ },
+ {
+  "id": "L10:maor:ShopEvent.mainEventId",
+  "level": "L10-field",
+  "entity": "ShopEvent",
+  "name": "mainEventId",
+  "optional": true,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:911"
+ },
+ {
+  "id": "L10:maor:ShopEvent.notes",
+  "level": "L10-field",
+  "entity": "ShopEvent",
+  "name": "notes",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:912"
+ },
+ {
+  "id": "L10:maor:ShopEvent.done",
+  "level": "L10-field",
+  "entity": "ShopEvent",
+  "name": "done",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:913"
+ },
+ {
+  "id": "L10:maor:Volunteer.id",
+  "level": "L10-field",
+  "entity": "Volunteer",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:922"
+ },
+ {
+  "id": "L10:maor:Volunteer.name",
+  "level": "L10-field",
+  "entity": "Volunteer",
+  "name": "name",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:923"
+ },
+ {
+  "id": "L10:maor:Volunteer.phone",
+  "level": "L10-field",
+  "entity": "Volunteer",
+  "name": "phone",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:924"
+ },
+ {
+  "id": "L10:maor:Volunteer.area",
+  "level": "L10-field",
+  "entity": "Volunteer",
+  "name": "area",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:926"
+ },
+ {
+  "id": "L10:maor:Volunteer.maxDeliveries",
+  "level": "L10-field",
+  "entity": "Volunteer",
+  "name": "maxDeliveries",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:928"
+ },
+ {
+  "id": "L10:maor:Volunteer.active",
+  "level": "L10-field",
+  "entity": "Volunteer",
+  "name": "active",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:929"
+ },
+ {
+  "id": "L10:maor:Volunteer.note",
+  "level": "L10-field",
+  "entity": "Volunteer",
+  "name": "note",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:930"
+ },
+ {
+  "id": "L10:maor:Volunteer.createdAt",
+  "level": "L10-field",
+  "entity": "Volunteer",
+  "name": "createdAt",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:931"
+ },
+ {
+  "id": "L10:maor:WorkTask.id",
+  "level": "L10-field",
+  "entity": "WorkTask",
+  "name": "id",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:941"
+ },
+ {
+  "id": "L10:maor:WorkTask.assignee",
+  "level": "L10-field",
+  "entity": "WorkTask",
+  "name": "assignee",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:943"
+ },
+ {
+  "id": "L10:maor:WorkTask.by",
+  "level": "L10-field",
+  "entity": "WorkTask",
+  "name": "by",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:945"
+ },
+ {
+  "id": "L10:maor:WorkTask.title",
+  "level": "L10-field",
+  "entity": "WorkTask",
+  "name": "title",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:947"
+ },
+ {
+  "id": "L10:maor:WorkTask.ref",
+  "level": "L10-field",
+  "entity": "WorkTask",
+  "name": "ref",
+  "optional": true,
+  "type": "{ kind: 'supporter' | 'family' | 'course",
+  "source": "maor/src/types/domain.ts:949"
+ },
+ {
+  "id": "L10:maor:WorkTask.pri",
+  "level": "L10-field",
+  "entity": "WorkTask",
+  "name": "pri",
+  "optional": false,
+  "type": "1 | 2 | 3",
+  "source": "maor/src/types/domain.ts:951"
+ },
+ {
+  "id": "L10:maor:WorkTask.due",
+  "level": "L10-field",
+  "entity": "WorkTask",
+  "name": "due",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:953"
+ },
+ {
+  "id": "L10:maor:WorkTask.createdAt",
+  "level": "L10-field",
+  "entity": "WorkTask",
+  "name": "createdAt",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:955"
+ },
+ {
+  "id": "L10:maor:WorkTask.doneAt",
+  "level": "L10-field",
+  "entity": "WorkTask",
+  "name": "doneAt",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:957"
+ },
+ {
+  "id": "L10:maor:WorkTask.note",
+  "level": "L10-field",
+  "entity": "WorkTask",
+  "name": "note",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:959"
+ },
+ {
+  "id": "L10:maor:Delivery.id",
+  "level": "L10-field",
+  "entity": "Delivery",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:965"
+ },
+ {
+  "id": "L10:maor:Delivery.dayId",
+  "level": "L10-field",
+  "entity": "Delivery",
+  "name": "dayId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:967"
+ },
+ {
+  "id": "L10:maor:Delivery.assignmentId",
+  "level": "L10-field",
+  "entity": "Delivery",
+  "name": "assignmentId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:969"
+ },
+ {
+  "id": "L10:maor:Delivery.volunteerId",
+  "level": "L10-field",
+  "entity": "Delivery",
+  "name": "volunteerId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:971"
+ },
+ {
+  "id": "L10:maor:Delivery.familyId",
+  "level": "L10-field",
+  "entity": "Delivery",
+  "name": "familyId",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:973"
+ },
+ {
+  "id": "L10:maor:Delivery.status",
+  "level": "L10-field",
+  "entity": "Delivery",
+  "name": "status",
+  "optional": false,
+  "type": "DeliveryStatus",
+  "source": "maor/src/types/domain.ts:974"
+ },
+ {
+  "id": "L10:maor:Delivery.deliveredAt",
+  "level": "L10-field",
+  "entity": "Delivery",
+  "name": "deliveredAt",
+  "optional": true,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:976"
+ },
+ {
+  "id": "L10:maor:Delivery.note",
+  "level": "L10-field",
+  "entity": "Delivery",
+  "name": "note",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:977"
+ },
+ {
+  "id": "L10:maor:Delivery.signature",
+  "level": "L10-field",
+  "entity": "Delivery",
+  "name": "signature",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:979"
+ },
+ {
+  "id": "L10:maor:DistributionDay.id",
+  "level": "L10-field",
+  "entity": "DistributionDay",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:983"
+ },
+ {
+  "id": "L10:maor:DistributionDay.date",
+  "level": "L10-field",
+  "entity": "DistributionDay",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:984"
+ },
+ {
+  "id": "L10:maor:DistributionDay.title",
+  "level": "L10-field",
+  "entity": "DistributionDay",
+  "name": "title",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:985"
+ },
+ {
+  "id": "L10:maor:DistributionDay.note",
+  "level": "L10-field",
+  "entity": "DistributionDay",
+  "name": "note",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:986"
+ },
+ {
+  "id": "L10:maor:DistributionDay.closed",
+  "level": "L10-field",
+  "entity": "DistributionDay",
+  "name": "closed",
+  "optional": false,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:987"
+ },
+ {
+  "id": "L10:maor:DistributionDay.createdAt",
+  "level": "L10-field",
+  "entity": "DistributionDay",
+  "name": "createdAt",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:988"
+ },
+ {
+  "id": "L10:maor:Db.v",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "v",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:994"
+ },
+ {
+  "id": "L10:maor:Db.savedAt",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "savedAt",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:995"
+ },
+ {
+  "id": "L10:maor:Db.seq",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "seq",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:997"
+ },
+ {
+  "id": "L10:maor:Db.receiptSeq",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "receiptSeq",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:999"
+ },
+ {
+  "id": "L10:maor:Db.donationSeq",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "donationSeq",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:1001"
+ },
+ {
+  "id": "L10:maor:Db.shopReceiptSeq",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "shopReceiptSeq",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:1003"
+ },
+ {
+  "id": "L10:maor:Db.families",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "families",
+  "optional": false,
+  "type": "Family[]",
+  "source": "maor/src/types/domain.ts:1004"
+ },
+ {
+  "id": "L10:maor:Db.enrollments",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "enrollments",
+  "optional": false,
+  "type": "Enrollment[]",
+  "source": "maor/src/types/domain.ts:1005"
+ },
+ {
+  "id": "L10:maor:Db.courses",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "courses",
+  "optional": false,
+  "type": "Course[]",
+  "source": "maor/src/types/domain.ts:1006"
+ },
+ {
+  "id": "L10:maor:Db.events",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "events",
+  "optional": false,
+  "type": "OrgEvent[]",
+  "source": "maor/src/types/domain.ts:1007"
+ },
+ {
+  "id": "L10:maor:Db.rooms",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "rooms",
+  "optional": false,
+  "type": "Room[]",
+  "source": "maor/src/types/domain.ts:1008"
+ },
+ {
+  "id": "L10:maor:Db.teachers",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "teachers",
+  "optional": false,
+  "type": "Teacher[]",
+  "source": "maor/src/types/domain.ts:1009"
+ },
+ {
+  "id": "L10:maor:Db.supporters",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "supporters",
+  "optional": false,
+  "type": "Supporter[]",
+  "source": "maor/src/types/domain.ts:1010"
+ },
+ {
+  "id": "L10:maor:Db.tzCoordinators",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "tzCoordinators",
+  "optional": false,
+  "type": "TzCoordinator[]",
+  "source": "maor/src/types/domain.ts:1012"
+ },
+ {
+  "id": "L10:maor:Db.tzBoxes",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "tzBoxes",
+  "optional": false,
+  "type": "TzBox[]",
+  "source": "maor/src/types/domain.ts:1013"
+ },
+ {
+  "id": "L10:maor:Db.tzCampaigns",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "tzCampaigns",
+  "optional": false,
+  "type": "TzCampaign[]",
+  "source": "maor/src/types/domain.ts:1014"
+ },
+ {
+  "id": "L10:maor:Db.tzEvents",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "tzEvents",
+  "optional": false,
+  "type": "TzEvent[]",
+  "source": "maor/src/types/domain.ts:1015"
+ },
+ {
+  "id": "L10:maor:Db.shopItems",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "shopItems",
+  "optional": false,
+  "type": "ShopItem[]",
+  "source": "maor/src/types/domain.ts:1017"
+ },
+ {
+  "id": "L10:maor:Db.shopProducts",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "shopProducts",
+  "optional": false,
+  "type": "ShopProduct[]",
+  "source": "maor/src/types/domain.ts:1018"
+ },
+ {
+  "id": "L10:maor:Db.shopStores",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "shopStores",
+  "optional": false,
+  "type": "ShopStore[]",
+  "source": "maor/src/types/domain.ts:1019"
+ },
+ {
+  "id": "L10:maor:Db.shopCriteria",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "shopCriteria",
+  "optional": false,
+  "type": "ShopCriterion[]",
+  "source": "maor/src/types/domain.ts:1020"
+ },
+ {
+  "id": "L10:maor:Db.shopAssignments",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "shopAssignments",
+  "optional": false,
+  "type": "ShopAssignment[]",
+  "source": "maor/src/types/domain.ts:1021"
+ },
+ {
+  "id": "L10:maor:Db.shopEvents",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "shopEvents",
+  "optional": false,
+  "type": "ShopEvent[]",
+  "source": "maor/src/types/domain.ts:1022"
+ },
+ {
+  "id": "L10:maor:Db.shopIntakes",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "shopIntakes",
+  "optional": false,
+  "type": "ShopIntake[]",
+  "source": "maor/src/types/domain.ts:1024"
+ },
+ {
+  "id": "L10:maor:Db.volunteers",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "volunteers",
+  "optional": false,
+  "type": "Volunteer[]",
+  "source": "maor/src/types/domain.ts:1026"
+ },
+ {
+  "id": "L10:maor:Db.distributionDays",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "distributionDays",
+  "optional": false,
+  "type": "DistributionDay[]",
+  "source": "maor/src/types/domain.ts:1027"
+ },
+ {
+  "id": "L10:maor:Db.deliveries",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "deliveries",
+  "optional": false,
+  "type": "Delivery[]",
+  "source": "maor/src/types/domain.ts:1028"
+ },
+ {
+  "id": "L10:maor:Db.tasks",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "tasks",
+  "optional": false,
+  "type": "WorkTask[]",
+  "source": "maor/src/types/domain.ts:1030"
+ },
+ {
+  "id": "L10:maor:Db.warehouse",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "warehouse",
+  "optional": false,
+  "type": "WarehouseItem[]",
+  "source": "maor/src/types/domain.ts:1032"
+ },
+ {
+  "id": "L10:maor:Db.orgName",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "orgName",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:1033"
+ },
+ {
+  "id": "L10:maor:Db.orgSite",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "orgSite",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:1034"
+ },
+ {
+  "id": "L10:maor:Db.orgDonate",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "orgDonate",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:1035"
+ },
+ {
+  "id": "L10:maor:Db.orgGoal",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "orgGoal",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:1037"
+ },
+ {
+  "id": "L10:maor:Db.budget",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "budget",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:1042"
+ },
+ {
+  "id": "L10:maor:Db.usdRate",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "usdRate",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:1044"
+ },
+ {
+  "id": "L10:maor:Db.notif",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "notif",
+  "optional": false,
+  "type": "NotifPrefs",
+  "source": "maor/src/types/domain.ts:1045"
+ },
+ {
+  "id": "L10:maor:Db.reports",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "reports",
+  "optional": false,
+  "type": "ReportPrefs",
+  "source": "maor/src/types/domain.ts:1046"
+ },
+ {
+  "id": "L10:maor:Db.ui",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "ui",
+  "optional": false,
+  "type": "UiPrefs",
+  "source": "maor/src/types/domain.ts:1047"
+ },
+ {
+  "id": "L10:maor:Db.attnDone",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "attnDone",
+  "optional": false,
+  "type": "Record<string, string>",
+  "source": "maor/src/types/domain.ts:1049"
+ },
+ {
+  "id": "L10:maor:Db.security",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "security",
+  "optional": false,
+  "type": "SecurityCfg",
+  "source": "maor/src/types/domain.ts:1051"
+ },
+ {
+  "id": "L10:maor:Db.audit",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "audit",
+  "optional": true,
+  "type": "AuditEntry[]",
+  "source": "maor/src/types/domain.ts:1056"
+ },
+ {
+  "id": "L10:maor:AuditEntry.at",
+  "level": "L10-field",
+  "entity": "AuditEntry",
+  "name": "at",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:1062"
+ },
+ {
+  "id": "L10:maor:AuditEntry.who",
+  "level": "L10-field",
+  "entity": "AuditEntry",
+  "name": "who",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:1064"
+ },
+ {
+  "id": "L10:maor:AuditEntry.act",
+  "level": "L10-field",
+  "entity": "AuditEntry",
+  "name": "act",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:1066"
+ },
+ {
+  "id": "L10:maor:AuditEntry.what",
+  "level": "L10-field",
+  "entity": "AuditEntry",
+  "name": "what",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:1068"
+ },
+ {
+  "id": "L10:maor:SecurityCfg.primary",
+  "level": "L10-field",
+  "entity": "SecurityCfg",
+  "name": "primary",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:1086"
+ },
+ {
+  "id": "L10:maor:SecurityCfg.secondary",
+  "level": "L10-field",
+  "entity": "SecurityCfg",
+  "name": "secondary",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:1087"
+ },
+ {
+  "id": "L10:maor:SecurityCfg.zones",
+  "level": "L10-field",
+  "entity": "SecurityCfg",
+  "name": "zones",
+  "optional": true,
+  "type": "string[]",
+  "source": "maor/src/types/domain.ts:1089"
+ }
+]
