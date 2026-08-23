@@ -20,8 +20,19 @@ describe('🔒 ratchet — חיווט-סולה (תבנית-נדרים)', () => {
     expect(secretsSrc).toContain("key: 'solaXKey'");
   });
 
-  it('allowlist-הרחבות: payments.solaPullUrl מותר (אחרת האשף/הענן ימחקו אותו)', () => {
+  it('allowlist-הרחבות: payments.solaPullUrl+solaPayUrl מותרים (אחרת האשף/הענן ימחקו אותם)', () => {
     expect(INTEGRATION_SETTING_KEYS.payments).toContain('solaPullUrl');
+    expect(INTEGRATION_SETTING_KEYS.payments).toContain('solaPayUrl');
+  });
+
+  it('💳 סולה (23.8, "מה עם סולה"): כפתור-סליקה שני בכל משטחי-התשלום', async () => {
+    for (const path of ['../SupporterDetail.tsx', '../../dialer/DialerModal.tsx', '../../courses/ManageModal.tsx', '../../courses/CollectionCenter.tsx']) {
+      const src = (await import(/* @vite-ignore */ path + '?raw')).default as string;
+      expect(src, path).toMatch(/solaPayUrl/);
+      expect(src, path).toMatch(/💳 סולה/);
+    }
+    const wiz = (await import('../../builder/BuilderWizard.tsx?raw')).default as string;
+    expect(wiz).toContain("setIntegrationField('payments', 'solaPayUrl', v)");
   });
 
   it('הכרעת-בעלים 23.8: כפתורי-המשיכה במסך-המנהל (DonorImportSection), מגודרים solaPullUrl+מנהל', () => {

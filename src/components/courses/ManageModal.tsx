@@ -270,6 +270,11 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     integrationOn(cfg, 'payments') && featureOn(cfg, 'courses.paylink') && bal > 0
       ? payLink(integrationSetting(cfg, 'payments', 'payUrl'), bal, (m?.first ?? '') + ' ' + (m?.famName ?? ''))
       : null;
+  // 💳 סולה (23.8) — עמוד-התשלום השני, הסכום ממולא
+  const solaPayHref =
+    integrationOn(cfg, 'payments') && featureOn(cfg, 'courses.paylink') && bal > 0
+      ? payLink(integrationSetting(cfg, 'payments', 'solaPayUrl'), bal, (m?.first ?? '') + ' ' + (m?.famName ?? ''))
+      : null;
 
   return (
     <Modal title={'⚙ ניהול ' + termOf(cfg, 'entity.enrollment', 'שיבוץ')} onClose={props.onClose}>
@@ -441,6 +446,18 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
                 style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, color: 'var(--accent-deep, var(--accent))', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 8px' }}
               >
                 💳 תשלום מקוון
+              </a>
+            ) : null}
+            {solaPayHref ? (
+              <a
+                href={solaPayHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="תשלום מקוון בסולה — הסכום ממולא"
+                title="עמוד-התשלום בסולה — הסכום ממולא (אינו מנפיק קבלה)"
+                style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, color: 'var(--accent-deep, var(--accent))', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 8px' }}
+              >
+                💳 סולה
               </a>
             ) : null}
             {balLine}

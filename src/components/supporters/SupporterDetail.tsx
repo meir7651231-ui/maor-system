@@ -69,6 +69,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const donateHref = integrationOn(config, 'payments')
     ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, sp.name)
     : null;
+  // 💳 סולה (23.8, "אני לוחץ על אייקון אשראי אני מגיע לנדרים — ומה עם סולה"):
+  // עמוד-התשלום של סולה לצד נדרים — אותה בניית-קישור, השם ממולא.
+  const solaDonateHref = integrationOn(config, 'payments')
+    ? payLink(integrationSetting(config, 'payments', 'solaPayUrl'), 0, sp.name)
+    : null;
   const aiReady = integrationOn(config, 'ai') && !!readAiKey();
   // גל ד׳ (sms): תור-שליחה בענן — הכפתור רק לארגון-ענן מחובר עם ההרחבה
   const cloudReady = useApp((s) => s.cloud.enabled && !!s.cloud.user);
@@ -425,6 +430,19 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                   style={{ textDecoration: 'none' }}
                 >
                   💳 עמוד תרומה
+                </a>
+              )}
+              {solaDonateHref && (
+                <a
+                  href={solaDonateHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="chip"
+                  title="עמוד-התשלום בסולה — קישור לתשלום מקוון (נקלט אוטומטית בתשלומים-הנכנסים)"
+                  aria-label="פתיחת עמוד-התשלום בסולה"
+                  style={{ textDecoration: 'none' }}
+                >
+                  💳 סולה
                 </a>
               )}
               {smsReady && (

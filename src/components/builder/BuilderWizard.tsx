@@ -1115,6 +1115,17 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                     placeholder="https://www.matara.pro/nedarimplus/online/?mosad=…"
                   />
                 </Field>
+                {/* 💳 סולה (23.8, "אני לוחץ על אייקון אשראי אני מגיע לנדרים — ומה עם
+                    סולה"): עמוד-התשלום של סולה — כפתור-סליקה שני לצד נדרים בכל
+                    משטחי-התשלום (כרטיס-תורם/חייגן/שיבוץ/מרכז-גבייה). */}
+                <Field label="💳 כתובת עמוד-התשלום בסולה (PaymentSITE; https — אופציונלי)">
+                  <TextInput
+                    value={integrationSetting(config, 'payments', 'solaPayUrl')}
+                    onChange={(v) => setIntegrationField('payments', 'solaPayUrl', v)}
+                    dir="ltr"
+                    placeholder="https://paymentsite.cardknox.com/…"
+                  />
+                </Field>
                 <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
                   אפשר תבנית עם {'{amount}'}/{'{name}'} — אחרת הסכום מתווסף כ-amount. בלי כתובת — הכפתורים לא מוצגים.
                 </div>
