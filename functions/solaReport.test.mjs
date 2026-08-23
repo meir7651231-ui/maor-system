@@ -44,7 +44,7 @@ describe('planSolaWrites — מיפוי דוח-סולה', () => {
     expect(w.data.reference).toBe('900000001234');
   });
 
-  it('נדחית (D) / שגיאה (E) / void / save / סכום-0 — לא נקלטות; refund ⇒ kind+סכום-שלילי', () => {
+  it('נדחית (D) / שגיאה (E) / void / save / סכום-0 / xVoid=1 — לא נקלטות; refund ⇒ kind+סכום-שלילי', () => {
     const { writes } = planSolaWrites(
       [
         row({ xResult: 'D' }),
@@ -53,6 +53,8 @@ describe('planSolaWrites — מיפוי דוח-סולה', () => {
         row({ xCommand: 'cc:save', xRefNum: 'r4' }),
         row({ xAuthAmount: '0', xRefNum: 'r5' }),
         row({ xCommand: 'cc:refund', xAuthAmount: '50', xRefNum: 'r6' }),
+        // 💎 שטח-אמת (הצצה #26): מכירה שבוטלה = CC:Sale + Approved + xVoid='1'
+        row({ xRefNum: 'r7', xVoid: '1' }),
       ],
       'demo',
     );
@@ -60,6 +62,26 @@ describe('planSolaWrites — מיפוי דוח-סולה', () => {
     expect(writes[0].id).toBe('sola-r6');
     expect(writes[0].data.kind).toBe('refund');
     expect(writes[0].data.amount).toBe(-50);
+  });
+
+  it('💎 שטח-אמת (הצצה #26, שורת-דוח אמיתית): xResponseResult=Approved · בלי xAuthAmount/xCurrency · CC:Sale', () => {
+    // שורה גולמית מהשער (שמות/מספרים שונו) — המבנה בדיוק כפי שחזר ב-peek
+    const real = {
+      xRefNum: '10894679744', xCommand: 'CC:Sale', xName: 'Lisa R',
+      xMaskedCardNumber: '3xxxxxxxxxxx1009', xToken: 'tok', xAmount: '1800.00',
+      xRequestAmount: '1800.00', xCustom01: 'c1', xEnteredDate: '5/25/2026 1:06:53 AM',
+      xResponseAuthCode: '149605', xResponseResult: 'Approved', xVoid: '0', xVoidable: '1',
+    };
+    const err = { ...real, xRefNum: '10894897255', xName: '', xResponseResult: 'Error' };
+    const { writes } = planSolaWrites([real, err], 'demo');
+    expect(writes).toHaveLength(1); // Error לא נקלטת
+    const w = writes[0];
+    expect(w.id).toBe('sola-10894679744');
+    expect(w.data.amount).toBe(1800); // xAmount כשאין xAuthAmount
+    expect(w.data.currency).toBe('$'); // אין xCurrency ⇒ דולר (הכרעת-בעלים 23.8)
+    expect(w.data.d).toBe('2026-05-25'); // 25 במאי — חודש/יום אמריקאי
+    expect(w.data.last4).toBe('1009');
+    expect(w.data.name).toBe('Lisa R');
   });
 
   it('תאריך אמריקאי (חודש/יום!) + ISO + cursor-תאריך; USD ⇒ $; בלי xRefNum ⇒ דילוג', () => {
@@ -102,5 +124,14 @@ describe('🔒 ratchet — גבול-הכסף של solaPull', () => {
     expect(src).toContain("['root', 'maor-hachesed']");
     expect(src).toMatch(/SOLA_ORG[\s\S]{0,120}if \(!org\) return/);
     expect(src).toMatch(/getAll[\s\S]{0,200}existing/); // קריאה-לפני-כתיבה
+  });
+  it('🐛 23.8 · נפילת-הכספת הדינמית: root סורק את orgSecrets ומקבל מגירה יחידה בלבד; ריבוי ⇒ שגיאה מפורשת (לא מנחשים של מי הכסף)', () => {
+    // האבחון (הצצה #23-24) הוכיח שהניחוש הסטטי מחטיא — הבעלים שומר את המפתח
+    // תחת ה-slug שממנו הוא עובד. הסריקה מוגבלת ל-org==='root' (עבר שער-הרשאה).
+    expect(src).toMatch(/org === 'root'[\s\S]{0,300}collection\('orgSecrets'\)/);
+    expect(src).toMatch(/withKey\.length === 1/);
+    expect(src).toMatch(/withKey\.length > 1[\s\S]{0,80}ambiguous/);
+    // ההצצה מדווחת שמות-מגירות + בוליאני-קיום בלבד — לעולם לא את ערך המפתח
+    expect(src).toMatch(/vaultDrawers[\s\S]{0,200}solaXKey \? '✓' : '·'/);
   });
 });
