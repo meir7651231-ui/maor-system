@@ -310,7 +310,11 @@ export function CourseDetail(props: { course: Course }) {
 
   return (
     <div style={{ paddingBottom: 60 }}>
-      <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 15, marginBottom: 14 }}>
+      {/* כותרת-החוג: קודם שורת-flex יחידה — צביר 7 כפתורי-הפעולה (בלי הגבלת-רוחב)
+          מעך את הכותרת לעמודה צרה שגלשה מילה-בכל-שורה (ממצא-נחיל 23.8). עכשיו
+          השורה עוטפת (flexWrap) והכותרת שומרת רוחב-מינימום ⇒ הכפתורים יורדים
+          לשורה שנייה במקום למעוך את שם-החוג. */}
+      <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 15, marginBottom: 14, flexWrap: 'wrap' }}>
         <div
           style={{
             width: 64,
@@ -328,7 +332,7 @@ export function CourseDetail(props: { course: Course }) {
         >
           {c.name[0]}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: '1 1 240px', minWidth: 200 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <h1 className="page-title" style={{ marginBottom: 0 }}>
               {c.name}
