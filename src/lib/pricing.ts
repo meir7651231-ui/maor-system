@@ -29,40 +29,48 @@ export interface PriceTable {
 /** סוג-העסקה: מנוי חודשי (הענן שלך) או Enterprise חד-פעמי (הענן שלו). */
 export type DealMode = 'subscription' | 'enterprise';
 
-/** מחירי-ברירת-מחדל להרחבות (placeholder — הבעלים משנה). מפתחות = INTEGRATION_LABELS. */
+/**
+ * מחירי-ברירת-מחדל להרחבות — כויילו למחירי-שוק ריאליים ‏(SaaS ניהול-עמותות
+ * בישראל, 2026). placeholder עריך — הבעלים משנה באשף. מפתחות = INTEGRATION_LABELS.
+ */
 const DEFAULT_INTEGRATION_PRICES: Record<string, number> = {
-  receipts: 40, // קבלות §46 אוטומטיות — ערך-ציות גבוה
-  payments: 60, // סליקה והוראות-קבע
-  whatsapp: 40,
-  sms: 30,
-  phone: 50,
-  gcal: 20,
-  drive: 20,
-  sheets: 30,
-  maps: 30,
-  esign: 40,
-  ai: 80, // עוזר-חכם — פרימיום
-  campaign: 40,
+  receipts: 60, // קבלות §46 אוטומטיות — ערך-ציות גבוה
+  payments: 90, // סליקה והוראות-קבע
+  whatsapp: 50,
+  sms: 40, // דמי-מודול (עלות-הודעה בפועל נגבית בנפרד)
+  phone: 90, // טלפוניה/מרכזייה
+  gcal: 30,
+  drive: 30,
+  sheets: 40,
+  maps: 40,
+  esign: 60, // חתימה דיגיטלית
+  ai: 120, // עוזר-חכם — פרימיום
+  campaign: 60,
 };
 
-/** ברירות-מחדל = placeholder (הבעלים משנה). המספרים מבוססי-שוק, לא מחייבים. */
+/**
+ * ברירות-מחדל = **מחירי-שוק ריאליים** (בקשת-בעלים 23.8) — כיול לשוק ה-SaaS
+ * לניהול-עמותות בישראל: ארגון-קטן עם ליבה+תורמים ≈ ₪470/ח׳, ארגון-בינוני מלא
+ * ≈ ₪1,000/ח׳, ארגון-גדול רב-מודולי ≈ ₪2,300/ח׳. עדיין placeholder עריך —
+ * הבעלים דורס בפועל דרך האשף (נשמר מקומית, לא בקונפיג-הלקוח).
+ */
 export const DEFAULT_PRICES: PriceTable = {
-  base: 149,
+  base: 290, // ליבה: בית · משפחות · לוח · הגדרות (CRM בסיסי)
   modules: {
     families: 0, // כלול בבסיס (CRM ליבה)
     calendar: 0, // כלול בבסיס
-    courses: 60,
-    diary: 40,
-    supporters: 100, // תורמים + קבלות §46 — הערך הגבוה ביותר
-    reports: 40,
-    tzedaka: 50,
-    shop: 60,
-    shop7: 50, // חלוקה
+    courses: 120, // חוגים · שיבוצים · נוכחות — מודול כבד
+    diary: 70,
+    supporters: 180, // תורמים + קבלות §46 — הערך הגבוה ביותר
+    reports: 60,
+    tzedaka: 90,
+    shop: 90,
+    shop7: 80, // חלוקה
   },
   integrations: DEFAULT_INTEGRATION_PRICES,
   sizeMult: { small: 1, medium: 1.6, large: 2.4 },
-  setup: 0,
-  enterprise: { oneTime: 40000, annualMaintenance: 6000 },
+  setup: 1500, // הקמה/הטמעה חד-פעמית — נורמת-שוק (הבעלים יכול לאפס כמנוף-מכירה)
+  enterprise: { oneTime: 55000, annualMaintenance: 9000 },
 };
 
 export const SIZE_LABELS: Record<OrgSize, string> = {
