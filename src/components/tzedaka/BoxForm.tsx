@@ -4,6 +4,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, termOf } from '../../lib/config';
 import { emptyFamily, type TzBox, type TzBoxStatus } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
@@ -18,7 +19,7 @@ const STATUS_OPTIONS: { value: TzBoxStatus; label: string }[] = [
 ];
 
 export function BoxForm(props: { box: TzBox | null; coordinatorId: string; onClose: () => void }) {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('families', 'tzBoxes');
   const config = useApp((s) => s.config);
   const upsertTzBox = useApp((s) => s.upsertTzBox);
   const upsertFamily = useApp((s) => s.upsertFamily);

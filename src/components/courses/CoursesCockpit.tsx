@@ -5,6 +5,7 @@
  */
 import type { ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, termOf } from '../../lib/config';
 import { isoToday, planLabelOf } from './lib';
 import { coursesToday, debtors, dropoutRisk, opsKpis, punchLowList } from './ops';
@@ -35,7 +36,7 @@ function Group(props: { title: string; count: number; empty: string; children: R
 const CAP = 8;
 
 export function CoursesCockpit() {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('courses', 'enrollments', 'families');
   const config = useApp((s) => s.config);
   const selectCourse = useApp((s) => s.selectCourse);
 

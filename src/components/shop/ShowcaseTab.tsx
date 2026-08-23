@@ -6,13 +6,14 @@
  */
 import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, termOf } from '../../lib/config';
 import { Btn } from '../ui';
 import { fmtIls } from '../wall/wallData';
 import { componentCounts, givenValue, subsidyTotal } from './lib';
 
 function ShowcaseContent(props: { wall?: boolean }) {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('shopAssignments', 'shopProducts');
   const config = useApp((s) => s.config);
   const products = db.shopProducts.filter((p) => p.active);
   const helpedFamilies = new Set(db.shopAssignments.map((a) => a.famId)).size;

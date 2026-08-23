@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn } from '../../lib/config';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { isoToday, nextSessionDate } from './lib';
@@ -19,7 +20,7 @@ import { ABSENCE_REASON_CHIPS, makeupEligibility } from '../diary/lib';
 /** date אופציונלי — תאריך-מפגש להחתמת החיסור (סימטריה ל-DiaryAbsenceModal);
  *  הקוראים הנוכחיים (כרטיס-משפחה/כרטיס-חוג/גיליון-נוכחות) הם זרימות-"היום" ⇒ ברירת-מחדל isoToday. */
 export function AbsenceModal(props: { enrollmentId: string; course: Course; date?: string; onClose: () => void }) {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('enrollments', 'families');
   const config = useApp((s) => s.config);
   const upsertEnrollment = useApp((s) => s.upsertEnrollment);
   const addCred = useApp((s) => s.addCred);
