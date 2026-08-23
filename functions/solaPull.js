@@ -350,6 +350,41 @@ exports.solaPull = onRequest(
     // להצביע על מגירת-הכספת של ה-slug האמיתי; ארגון-פלטפורמה תמיד קורא את שלו.
     const vaultRaw = String(p.vault ?? '').trim();
     const vaultOrg = org === 'root' && /^[a-z0-9-]{2,40}$/.test(vaultRaw) ? vaultRaw : org;
+    // 🔎 peek=2 — גישוש-לקוחות (23.8, "שם יכנס לשם, טלפון לטלפון"): דוח-העסקאות
+    // חוזר בלי טלפון/אימייל; מגששים אילו נקודות-קצה של השער כן מחזירות פרטי-קשר
+    // ומדפיסים גלם קצוץ ללוג-הבעלים — כדי לחווט העשרה אמיתית על עובדות, לא ניחוש.
+    if (p.peek === '2') {
+      try {
+        const db = getFirestore();
+        const { key: xKey } = await solaKey(db, vaultOrg);
+        if (!xKey) return res.status(400).json({ ok: false, error: 'אין xKey בכספת' });
+        const today = new Date().toISOString().slice(0, 10);
+        const form = (extra) => new URLSearchParams({
+          xKey, xVersion: '5.0.0', xSoftwareName: 'MaorOrbit', xSoftwareVersion: '1.0',
+          xBeginDate: shiftIsoDays(today, -30), xEndDate: shiftIsoDays(today, 1), ...extra,
+        });
+        const probes = [];
+        const tryPost = async (name, url, body, headers) => {
+          try {
+            const r = await fetch(url, { method: 'POST', headers, body });
+            const t = await r.text();
+            probes.push({ name, status: r.status, body: t.slice(0, 400) });
+          } catch (e) {
+            probes.push({ name, status: -1, body: String((e && e.message) || e).slice(0, 200) });
+          }
+        };
+        const FORM_H = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        await tryPost('Report:Customers', API_BASE() + '/report', form({ xCommand: 'Report:Customers' }), FORM_H);
+        await tryPost('Report:Transactions+xFields', API_BASE() + '/report',
+          form({ xCommand: 'Report:Transactions', xFields: 'xBillFirstName,xBillLastName,xBillPhone,xEmail,xBillMobile' }), FORM_H);
+        await tryPost('v1/Customers', 'https://api.cardknox.com/v1/Customers',
+          JSON.stringify({ SoftwareName: 'MaorOrbit', SoftwareVersion: '1.0' }),
+          { 'Content-Type': 'application/json', Authorization: xKey });
+        return res.status(200).json({ ok: true, probes });
+      } catch (e) {
+        return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
+      }
+    }
     if (p.peek === '1') {
       try {
         const db = getFirestore();

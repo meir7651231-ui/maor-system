@@ -139,6 +139,10 @@ jobs:
           echo "═══ solaPull audit (org=mavr-hchsd) ═══"
           curl -s --max-time 240 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&audit=1&secret=$SEC" | head -c 6000
           echo ""
+          # 🔎 גישוש-לקוחות (peek=2): אילו נקודות-קצה מחזירות טלפון/אימייל של תורם
+          echo "═══ solaPull customer-probe (peek=2) ═══"
+          curl -s --max-time 120 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=root&peek=2&secret=$SEC" | head -c 6000
+          echo ""
 
       # פריסת אינדקסי-Firestore (firestore.indexes.json) — למשל האינדקס
       # ש-mailOutbox דורש לשאילתת-collectionGroup על status (ממצא-לוגים 21.8).
