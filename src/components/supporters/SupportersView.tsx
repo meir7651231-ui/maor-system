@@ -2,7 +2,8 @@
  * משפחות תומכות (תורמים) — חיפוש מנורמל, סינון קטגוריה ודרגות RFM,
  * טבלה עם מיון תלת-מצבי (עולה/יורד/כבוי), טופס תומכ/ת וכרטיס מפורט.
  */
-import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState, type KeyboardEvent } from 'react';
+import { IncMoreCard, IncMoreRow, incSlice, useIncCap } from '../incremental';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting, isAdminUser, safeHttpsUrl, telephonyOn, termOf } from '../../lib/config';
@@ -210,6 +211,9 @@ export function SupportersView() {
     setDb((d) => ({ ui: { ...d.ui, supView: (d.ui.supView ?? 'list') === 'grid' ? 'list' : 'grid' } }));
 
   const [q, setQ] = useState('');
+  // ⚡ מהירות (VISION-LIGHT ‏#4): ההקלדה בתיבת-החיפוש מיידית; הסינון-והמיון על
+  // אלפי-תורמים רצים בעדיפות-נדחית (useDeferredValue) — האות מופיעה מיד.
+  const dq = useDeferredValue(q);
   const [cat, setCat] = useState('all');
   // בקשת-בעלים 15.8 ("פר תורם") — סינון לפי ייעוד-שעל-הכרטיס (forWho), מגודר supporters.purpose
   const [purposeF, setPurposeF] = useState('all');
@@ -285,6 +289,9 @@ export function SupportersView() {
   );
   const rfmMax = Math.max(1, ...rfmBins);
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
+  // ⚡ ציור-מדורג (VISION-LIGHT ‏#15): חלון-שגדל-בגלילה במקום כל הרשימה בבת-אחת;
+  // שינוי חיפוש/סינון מחזיר את החלון להתחלה. הלוגיקה נשארת על הרשימה המלאה.
+  const inc = useIncCap(JSON.stringify([dq, cat, purposeF, tierF, colF, ayinF, nextF, hokF, segF, monthF, acqYearF, gaveYearF, periodMode, sort]));
   const [selId, setSelId] = useState<string | null>(null);
   // בחירה-מרובה למחיקה (בקשת-בעלים 13.8) — מצב-בחירה + קבוצת-ids + אישור-הרסני.
   const [selMode, setSelMode] = useState(false);
@@ -543,8 +550,8 @@ export function SupportersView() {
     );
   }
 
-  const nq = normSearch(q);
-  const qd = q.replace(/\D/g, '');
+  const nq = normSearch(dq);
+  const qd = dq.replace(/\D/g, '');
 
   // ג' (13.8) — בסיס-הראייה של המשתמש: תורמים המותרים לפי הייעודים שהוקצו.
   // כל הנגזרות בתצוגה (רשימה, מונים, סה"כ, קטגוריות) יוצאות מ-visibleBase כדי
@@ -582,7 +589,7 @@ export function SupportersView() {
     if (ayinF === 'eyes' && !(sp.ayin && eyesTotal(sp.ayin) > 0)) return false;
     if (ayinF === 'noeyes' && sp.ayin && eyesTotal(sp.ayin) > 0) return false;
     if (ayinF === 'today' && !(sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today)))) return false;
-    if (!q.trim()) return true;
+    if (!dq.trim()) return true;
     const phoneHit = qd.length >= 3 && (sp.phone || '').replace(/\D/g, '').includes(qd);
     const textHit =
       !!nq && normSearch([sp.name, sp.email, sp.cat, sp.address, sp.forWho].join(' ')).includes(nq);
@@ -598,6 +605,9 @@ export function SupportersView() {
       return c * dir;
     });
   }
+
+  // ⚡ ‏#15: החלון-לציור — כל הלוגיקה (בחירה/CSV/סיכומים) נשארת על `list` המלאה
+  const shownRows = incSlice(list, inc.cap);
 
   const clickSort = (key: SortKey) =>
     setSort(sort && sort.key === key ? (sort.dir > 0 ? { key, dir: -1 } : null) : { key, dir: 1 });
@@ -1062,7 +1072,7 @@ export function SupportersView() {
       ) : supView === 'grid' ? (
         /* תצוגת גריד (5.8) — כרטיסים ידידותיים-למובייל; אותו דפוס כמו המשפחות */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-          {list.map((sp) => {
+          {shownRows.map((sp) => {
             const score = supScore(sp, rate);
             const tier = supTier(score);
             return (
@@ -1112,6 +1122,7 @@ export function SupportersView() {
               </div>
             );
           })}
+          <IncMoreCard shown={shownRows.length} total={list.length} refCb={inc.ref} />
         </div>
       ) : (
         <div className="card hscroll" style={{ padding: 0, overflowX: 'auto', overflowY: 'hidden' }}>
@@ -1186,7 +1197,7 @@ export function SupportersView() {
               )}
             </thead>
             <tbody>
-              {list.map((sp) => (
+              {shownRows.map((sp) => (
                 <tr
                   key={sp.id}
                   onClick={() => (selMode ? toggleSel(sp.id) : setSelId(sp.id))}
@@ -1258,6 +1269,7 @@ export function SupportersView() {
                   </td>
                 </tr>
               ))}
+              <IncMoreRow shown={shownRows.length} total={list.length} refCb={inc.ref} colSpan={12} />
             </tbody>
           </table>
         </div>
