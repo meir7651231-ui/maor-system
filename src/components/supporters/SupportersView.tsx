@@ -24,6 +24,7 @@ import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
 import { SupporterCard } from './SupporterCard';
 import { SupportersCockpit } from './SupportersCockpit';
+import { OneFlow } from './OneFlow';
 import { atRiskIdSet, matchSegment, SEGMENTS, takeSupportersSegment, type SegmentKey } from './segments';
 
 /** שנת-הגיוס (המתנה-הראשונה) — לדריל-אין מקוהורטת-הגיוס. null כשאין נתינה. */
@@ -253,6 +254,8 @@ export function SupportersView() {
   // חלון-העבודה (הקוקפיט) — opt-in מפורש בלבד (‏featureOn ברירת-מחדל=on, לכן === true).
   // חסר במפורש בכל הלקוחות-החיים ⇒ אפס-השפעה על הפרודקשן.
   const cockpitOn = config.features?.['supporters.cockpit'] === true;
+  // ▶ "פעולה אחת עכשיו" (VISION-LIGHT #16) — opt-in מפורש: חסר-דגל = דורמנטי
+  const oneflowOn = config.features?.['supporters.oneflow'] === true;
   const [workMode, setWorkMode] = useState(false);
   // מרכז-המודיעין — opt-in מפורש נפרד (אותו טעם: === true, לא featureOn).
   const intelOn = config.features?.['supporters.intel'] === true;
@@ -266,6 +269,7 @@ export function SupportersView() {
   // מחסן-החומרים — ורטיקל-הסטודיו (מסחרי בלבד: §46 כבוי + דגל).
   const warehouseOn = featureOn(config, 'supporters.ayin.warehouse') && !featureOn(config, 'core.taxreceipt');
   const [warehouseMode, setWarehouseMode] = useState(false);
+  const [oneflowOpen, setOneflowOpen] = useState(false);
   // ריברנד — רצועת-KPI חיה מעל הטבלה הקיימת (opt-in מפורש).
   const rebrandOn = config.features?.['supporters.rebrand'] === true;
   // כרטיס-תורם מאוחד (לשוניות) — opt-in מפורש; כבוי = הכרטיס הרגיל (ביט-זהה).
@@ -758,12 +762,13 @@ export function SupportersView() {
               options={[
                 { key: 'data', label: '☰ מסך הנתונים', title: 'הרשימה/הגריד המלא של התורמים' },
                 ...(cockpitOn ? [{ key: 'work', label: '🎯 חלון העבודה', title: 'חלון-העבודה: המערכת מסדרת את משימות היום — שיחות, תודות והו״ק' }] : []),
+                ...(oneflowOn ? [{ key: 'oneflow', label: '▶ פעולה אחת', title: 'פעולה אחת עכשיו: משימה אחת בכל רגע — בוצע/דלג והמערכת מתקדמת' }] : []),
                 ...(intelOn ? [{ key: 'intel', label: '📊 מודיעין', title: 'מרכז-המודיעין: RFM · ערך-חיים · תחזית-מתנה · סיכון-נטישה' }] : []),
                 ...(galaxyOn ? [{ key: 'galaxy', label: '🌌 גלקסיה', title: 'גלקסיית-התורמים: כל תורם ככוכב — גודל=ערך · צבע=דרגה · מרחק=טריות' }] : []),
                 ...(universeOn ? [{ key: 'universe', label: '🪐 היקום 3D', title: 'היקום התלת-ממדי: ענן-כוכבים מסתובב — גררו לסובב, לחיצה לכרטיס' }] : []),
                 ...(warehouseOn ? [{ key: 'warehouse', label: '🏭 מחסן', title: 'מחסן-החומרים: מלאי חוצה-פרויקטים — מלאי/הוקצה/נותר + התרעת-מחסור' }] : []),
               ]}
-              onSelect={(k) => { if (k === 'work') setWorkMode(true); else if (k === 'intel') setIntelMode(true); else if (k === 'galaxy') setGalaxyMode(true); else if (k === 'universe') setUniverseMode(true); else if (k === 'warehouse') setWarehouseMode(true); }}
+              onSelect={(k) => { if (k === 'work') setWorkMode(true); else if (k === 'oneflow') setOneflowOpen(true); else if (k === 'intel') setIntelMode(true); else if (k === 'galaxy') setGalaxyMode(true); else if (k === 'universe') setUniverseMode(true); else if (k === 'warehouse') setWarehouseMode(true); }}
             />
             {telephonyOn(config) && (
               <Btn
@@ -1290,6 +1295,17 @@ export function SupportersView() {
             setFormOpen(false);
             if (newId) setSelId(newId);
           }}
+        />
+      )}
+
+      {/* ▶ "פעולה אחת עכשיו" (VISION-LIGHT ‏#16) — מסך-מלא, opt-in מפורש */}
+      {oneflowOpen && oneflowOn && (
+        <OneFlow
+          supporters={db.supporters}
+          config={config}
+          usdRate={db.usdRate}
+          onOpen={(id) => { setOneflowOpen(false); setSelId(id); }}
+          onClose={() => setOneflowOpen(false)}
         />
       )}
 
