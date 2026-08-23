@@ -17,4 +17,14 @@ describe('🏷 ratchet — כפתור הסרת-ייעוד מפורש בבחיר�
     expect(src).toContain("setSupportersPurpose(ids, '')");
     expect(src).toMatch(/clearPurposeConfirm && \(/);
   });
+
+  // בקשת-בעלים 23.8 "כל היכולות האלה רק למנהל" — כל פעולות הבחירה-המרובה מגודרות מנהל
+  it('כל יכולות הבחירה-המרובה למנהל בלבד (כניסה + מחיקה + שיוך + הסרה)', () => {
+    // הכניסה עצמה (☑ בחירה) — עובד/ת לא-מנהל/ת כלל לא נכנס/ת
+    expect(src).toMatch(/featureOn\(config, 'supporters\.bulkselect'\) && isAdminUser\(config, cloudEmail\)/);
+    // מחיקה-המונית — מנהל בלבד (לא רק דגל-פיצ'ר)
+    expect(src).toMatch(/featureOn\(config, 'supporters\.bulkdelete'\) && isAdminUser\(config, cloudEmail\)/);
+    // שיוך + הסרת ייעוד — שני מופעי isAdminUser תחת purposeOn (כבר היו)
+    expect((src.match(/purposeOn && isAdminUser\(config, cloudEmail\)/g) ?? []).length).toBeGreaterThanOrEqual(2);
+  });
 });

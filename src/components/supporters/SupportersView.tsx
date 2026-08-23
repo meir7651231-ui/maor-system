@@ -723,9 +723,11 @@ export function SupportersView() {
                 !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
               ]}
             />
-            {/* בחירה-מרובה למחיקה (13.8, בקשת-בעלים) — טוגל מצב-בחירה */}
-            {featureOn(config, 'supporters.bulkselect') && (
-              <Btn onClick={() => (selMode ? exitSelMode() : setSelMode(true))} title="בחירה מרובה למחיקה">
+            {/* בחירה-מרובה — כל פעולותיה (שיוך/הסרת-ייעוד, מחיקה) למנהל בלבד
+                (בקשת-בעלים 23.8: "כל היכולות האלה רק למנהל"). גידור בכניסה עצמה
+                ⇒ עובד/ת לא-מנהל/ת כלל לא נכנס/ת למצב-הבחירה. */}
+            {featureOn(config, 'supporters.bulkselect') && isAdminUser(config, cloudEmail) && (
+              <Btn onClick={() => (selMode ? exitSelMode() : setSelMode(true))} title="בחירה מרובה (למנהל)">
                 {selMode ? '✕ סיום בחירה' : '☑ בחירה'}
               </Btn>
             )}
@@ -800,7 +802,7 @@ export function SupportersView() {
               {'🧹 הסר ייעוד · ' + selSet.size}
             </Btn>
           )}
-          {featureOn(config, 'supporters.bulkdelete') && (
+          {featureOn(config, 'supporters.bulkdelete') && isAdminUser(config, cloudEmail) && (
             <Btn kind="danger" disabled={!selSet.size} onClick={() => setConfirmDel(true)}>
               {'🗑 מחיקת ' + selSet.size}
             </Btn>
