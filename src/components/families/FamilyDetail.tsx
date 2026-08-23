@@ -20,6 +20,7 @@ import { CredPanel, DocsPanel, EnrollPanel, EventsPanel } from './FamilyPanels';
 import { TzFamilyPanel } from '../tzedaka/TzFamilyPanel';
 import { ShopFamilyPanel } from '../shop/ShopFamilyPanel';
 import { Shop7FamilyPanel } from '../shop7/Shop7FamilyPanel';
+import { ReenrollFamilyPanel } from './ReenrollFamilyPanel';
 import { useArmed } from '../useArmed';
 
 function InfoRow(props: { k: string; v: string; action?: ReactNode }) {
@@ -454,6 +455,8 @@ export function FamilyDetail(props: { family: Family }) {
       )}
 
       <EnrollPanel fam={fam} />
+      {/* רישום-לשנה-הבאה (courses.reenroll.familypanel) — מודול-חוגים, לא צדקה ⇒ מחוץ לצנעה. הפאנל מגדר את עצמו. */}
+      <ReenrollFamilyPanel fam={fam} />
       <EventsPanel fam={fam} />
       {/* מצב-צנעה (SHOP10) מסתיר את פאנלי מקבלי-הצדקה מעיון מזדמן */}
       {privacyMode ? (
