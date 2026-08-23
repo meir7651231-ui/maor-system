@@ -146,6 +146,7 @@ export const FEATURES: FeatureDef[] = [
   // ── מסכי 20.8 · opt-in מפורש (חסר=כבוי — לא מדליקים לקוח-חי מעצמם) ──
   { key: 'supporters.cockpit', label: 'חלון-העבודה (קוקפיט) 🎯', desc: 'משטח-עבודה מעל טבלת-התורמים: KPI + תור-משימות (שיחות/תודות/הו"ק) + פלטת-פיקוד ⌘K + ייצוא (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.oneflow', label: 'פעולה אחת עכשיו ▶', desc: 'מסך-מלא שמציג משימה אחת בכל רגע מתור-הקוקפיט — ✓ בוצע / ⏭ דלג והמערכת מתקדמת לבאה; אפס-הסחות (opt-in)', module: 'supporters', optIn: true },
+  { key: 'supporters.hebtiming', label: 'העונה שלהם — עיתוי עברי 🕎', desc: 'הלוח העברי מסדר את הקמפיין: תורמים שנוהגים לתת בחודש-העברי הנוכחי (אלול/חנוכה/פורים/פסח) וטרם נתנו השנה — עולים בחלון-העבודה (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.intel', label: 'מרכז-המודיעין 📊', desc: 'טבלה-עמוקה פר-תורם: RFM מפורק · סיכון-נטישה · תחזית-מתנה · מגמה, עם כרטיס-צלילה (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.galaxy', label: 'גלקסיית-התורמים 🌌', desc: 'מפת-כוכבים חיה: גודל=ערך · צבע=דרגה · מרחק=טריות; קליק על כוכב פותח כרטיס (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.rebrand', label: 'רצועת-KPI לתורמים ✨', desc: 'רצועת מדדים חיה מעל הטבלה הקיימת — סה"כ · פעילים · בסיכון · תחזית; צ׳יפים=סינון (opt-in)', module: 'supporters', optIn: true },

@@ -26,4 +26,6 @@ export const OPT_IN_KEYS = [
   'courses.reenroll',
   // ▶ "פעולה אחת עכשיו" (VISION-LIGHT ‏#16, 23.8) — מסך-משימה-אחת opt-in
   'supporters.oneflow',
+  // 🕎 מנוע-העיתוי העברי (VISION-LIGHT ‏#37, 23.8) — "העונה שלהם" בקוקפיט
+  'supporters.hebtiming',
 ];

@@ -12,6 +12,7 @@ import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
 import { featureOn, integrationOn, termOf } from '../../lib/config';
 import { WaBtn } from '../WaBtn';
+import { hebSeasonOf, hebTimingTasks } from './hebTiming';
 import { Btn } from '../ui';
 import {
   cockpitCsvRows,
@@ -216,6 +217,22 @@ export function SupportersCockpit(props: {
   const kpis = cockpitKpis(props.supporters, today, rate);
   const queue = cockpitQueue(props.supporters, today, rate);
   const prog = cockpitProgress(queue, doneIds);
+  // 🕎 מנוע-העיתוי העברי (VISION-LIGHT #37) — opt-in מפורש; אפס-השפעה בלי הדגל
+  const hebOn = props.config.features?.['supporters.hebtiming'] === true;
+  const hebSeason = hebOn ? hebSeasonOf(today) : null;
+  const hebTasks = hebOn
+    ? hebTimingTasks(props.supporters, today).map((t) => ({
+        id: 'heb-' + t.supId,
+        kind: 'call' as const,
+        supId: t.supId,
+        name: t.name,
+        phone: t.phone,
+        email: '',
+        reason: t.reason,
+        severity: 'warm' as const,
+        sort: t.timesInMonth,
+      }))
+    : [];
   const segs = segmentCounts(props.supporters, today, rate).filter((s) => s.count > 0);
   const feed = cockpitFeed(props.supporters, 8);
 
@@ -326,6 +343,26 @@ export function SupportersCockpit(props: {
             title="הוראות-קבע שטרם נרשמו"
             icon="🔁"
             tasks={queue.hok}
+            config={props.config}
+            doneIds={doneIds}
+            onOpen={props.onOpen}
+            onToggleDone={toggleDone}
+          />
+        </>
+      )}
+
+      {/* 🕎 העונה-שלהם (VISION-LIGHT #37, opt-in) — הלוח העברי מסדר את הקמפיין */}
+      {hebOn && hebTasks.length > 0 && (
+        <>
+          {hebSeason?.season && (
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--accent-deep, #a05008)', background: 'var(--accent-soft, #fbeecb)', borderRadius: 9, padding: '7px 12px' }}>
+              {hebSeason.season} — {hebTasks.length} תורמים שזו העונה שלהם
+            </div>
+          )}
+          <TaskGroup
+            title={'העונה שלהם — ' + (hebSeason?.monthHe ?? '')}
+            icon="🕎"
+            tasks={hebTasks}
             config={props.config}
             doneIds={doneIds}
             onOpen={props.onOpen}
