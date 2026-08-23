@@ -228,10 +228,49 @@ describe('🔗 ratchet — תווית-סליקה לפי ספק (סולה ≠ נ�
     const r2 = relabelHistByTxn(r1.supporters, ['10940329920'], 'סולה');
     expect(r2.changed).toBe(0); // אידמפוטנטי
   });
-  it('המסך מריץ ריפוי-רטרו בפתיחה (fetchProviderTxns→relabelHistClearer) מגודר canPullSola', async () => {
+  it('המסך מריץ ריפוי-רטרו בפתיחה (fetchProviderRows→repairProviderCards) מגודר canPullSola', async () => {
     const inc = (await import('../../components/supporters/IncomingPayments.tsx?raw')).default as string;
-    expect(inc).toMatch(/fetchProviderTxns\('sola'\)/);
-    expect(inc).toMatch(/relabel\(txns, 'סולה'\)/);
+    expect(inc).toMatch(/fetchProviderRows\('sola'\)/);
+    expect(inc).toMatch(/repairCards\(provRows, 'סולה'\)/);
     expect(inc).toMatch(/if \(canPullSola\) \{/);
+  });
+});
+
+// 🧲 (23.8, בקשת-הבעלים "שם יכנס לשם, טלפון לטלפון, הכל במקום"): מיזוג עסקה
+// ממלא את שדות-הכרטיס **הריקים** מפרטי-העסקה — ולעולם לא דורס ערך קיים.
+describe('🧲 ratchet — מילוי-אם-ריק של פרטי-קשר במיזוג + ריפוי-רטרו מלא', () => {
+  it('attachChargeTo ממלא טלפון/אימייל/ת"ז ריקים — ולא דורס קיימים', async () => {
+    const { attachChargeTo } = await import('../nedarimSync');
+    const sups = [
+      { id: 's1', name: 'ריקה', hist: [] },
+      { id: 's2', name: 'מלאה', phone: '050-1111111', email: 'keep@x.com', hist: [] },
+    ] as never[];
+    const c = { amount: 72, provider: 'sola', txnId: 'tx1', d: '2026-08-20', name: 'Ruchi S', phone: '0502222222', email: 'new@x.com', zeout: '123456782' };
+    const r1 = attachChargeTo(sups, 's1', c);
+    const s1 = r1.supporters[0] as { phone?: string; email?: string; idNum?: string };
+    expect(s1.phone).toBe('0502222222');
+    expect(s1.email).toBe('new@x.com');
+    expect(s1.idNum).toBeTruthy();
+    const r2 = attachChargeTo(sups, 's2', { ...c, txnId: 'tx2' });
+    const s2 = r2.supporters[1] as { phone?: string; email?: string };
+    expect(s2.phone).toBe('050-1111111'); // קיים — לא נדרס
+    expect(s2.email).toBe('keep@x.com');
+  });
+  it('repairCardsFromRows: תווית + מילוי-פרטים יחד, אידמפוטנטי', async () => {
+    const { repairCardsFromRows } = await import('../nedarimSync');
+    const sups = [{
+      id: 's1', name: 'א', hist: [{ d: '2026-01-01', a: 72, c: '$', clearer: 'נדרים', txn: '10940329920' }],
+    }] as never[];
+    const rows = [{ amount: 72, txnId: '10940329920', phone: '0503333333', email: 'don@x.com' }];
+    const r1 = repairCardsFromRows(sups, rows as never[], 'סולה');
+    expect(r1.relabeled).toBe(1);
+    expect(r1.enriched).toBe(1);
+    const s = r1.supporters[0] as { phone?: string; email?: string; hist: { clearer: string }[] };
+    expect(s.hist[0].clearer).toBe('סולה');
+    expect(s.phone).toBe('0503333333');
+    expect(s.email).toBe('don@x.com');
+    const r2 = repairCardsFromRows(r1.supporters, rows as never[], 'סולה');
+    expect(r2.relabeled).toBe(0);
+    expect(r2.enriched).toBe(0); // אידמפוטנטי — ריצה-חוזרת לא נוגעת
   });
 });

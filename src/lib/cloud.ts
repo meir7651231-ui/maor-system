@@ -672,18 +672,12 @@ export async function fetchIncomingPayments(): Promise<IncomingPayment[]> {
   return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<IncomingPayment, 'id'>) }));
 }
 
-/** מזהי-העסקאות (txn/reference) של ספק נתון — **כל** הסטטוסים (גם handled).
- *  🐛 (23.8, "זה לא נכנס במקום הנכון"): עסקאות-סולה שכבר מוזגו נרשמו ב-hist
- *  בתווית 'נדרים'; הריפוי בכרטיסים צריך את רשימת-המזהים כדי לתקן רק אותן. */
-export async function fetchProviderTxns(provider: string): Promise<string[]> {
+/** רשומות-הספק המלאות — **כל** הסטטוסים (גם handled). 🐛 (23.8, "זה לא נכנס
+ *  במקום הנכון" + "שם יכנס לשם, טלפון לטלפון"): הריפוי בכרטיסים צריך גם את
+ *  מזהי-העסקאות (תיקון-תווית) וגם את פרטי-הקשר (מילוי-אם-ריק בכרטיס). */
+export async function fetchProviderRows(provider: string): Promise<IncomingPayment[]> {
   const snap = await getDocs(query(collection(requireDb(), scopedCol('incomingPayments')), where('provider', '==', provider)));
-  const out: string[] = [];
-  for (const d of snap.docs) {
-    const data = d.data() as { txnId?: string; reference?: string };
-    const t = String(data.txnId || data.reference || '').trim();
-    if (t) out.push(t);
-  }
-  return out;
+  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<IncomingPayment, 'id'>) }));
 }
 
 /** 🔄 משיכת-נדרים **בקליק** (ייעול 20.8) — קורא ל-Function `nedarimPull?full=1` עם

@@ -54,7 +54,7 @@ export function getCloudDek(): CryptoKey | null {
 }
 
 // יצוא-מחדש של שכבת ה-auth — ל-useApp יש import דינמי אחד בלבד (המודול הזה)
-export { changePassword, encryptExistingCloud, fetchIncomingPayments, fetchNedarimDonors, fetchProviderTxns, initCloud, markIncomingPayment, pullNedarim, pullSola, migrateDonationsToCollection, migrateSupportersToKeyed, readCloudEnvelope, resetPassword, setAllowedPurposes, setAuditContext, setCloudScope, setDonationSplit, setSupEnforce, signIn, signOutCloud, signUp, supEnforceActive, watchAuth, watchIncomingPayments, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
+export { changePassword, encryptExistingCloud, fetchIncomingPayments, fetchNedarimDonors, fetchProviderRows, initCloud, markIncomingPayment, pullNedarim, pullSola, migrateDonationsToCollection, migrateSupportersToKeyed, readCloudEnvelope, resetPassword, setAllowedPurposes, setAuditContext, setCloudScope, setDonationSplit, setSupEnforce, signIn, signOutCloud, signUp, supEnforceActive, watchAuth, watchIncomingPayments, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
 export type { CloudUser, IncomingPayment, NedarimDonor } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
 export { deleteOrgCompletely, deleteOrgRequest, deleteOrgJoinRequest, deleteOrgMemberConfig, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgJoinRequests, fetchOrgLeads, fetchOrgRequests, findMemberOrgSlugs, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgJoinRequest, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
