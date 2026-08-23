@@ -28,6 +28,8 @@ const OPT_IN_KEYS = [
   'courses.ai',
   // שער-הצטרפות בעמוד-השיווק — opt-in מפורש
   'shell.portal',
+  // רישום-לשנה-הבאה — מסך "רישום" מגודר `=== true` בקוד ⇒ חייב optIn:true באשף
+  'courses.reenroll',
 ];
 
 function cfg(features: Record<string, boolean>): OrgConfig {
