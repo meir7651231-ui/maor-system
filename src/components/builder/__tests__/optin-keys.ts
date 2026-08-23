@@ -24,4 +24,6 @@ export const OPT_IN_KEYS = [
   'supporters.universe3d',
   // רישום-לשנה-הבאה — מסך "רישום" מגודר `=== true` בקוד ⇒ חייב optIn:true באשף
   'courses.reenroll',
+  // ▶ "פעולה אחת עכשיו" (VISION-LIGHT ‏#16, 23.8) — מסך-משימה-אחת opt-in
+  'supporters.oneflow',
 ];
