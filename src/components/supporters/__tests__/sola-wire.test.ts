@@ -10,6 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { ORG_SECRET_KEYS } from '../../../lib/cloudConfig';
 import { INTEGRATION_SETTING_KEYS } from '../../../types/config';
 import incomingSrc from '../IncomingPayments.tsx?raw';
+import donorImportSrc from '../../settings/DonorImportSection.tsx?raw';
 import secretsSrc from '../../settings/OrgSecretsSection.tsx?raw';
 import cloudSrc from '../../../lib/cloud.ts?raw';
 
@@ -23,12 +24,15 @@ describe('🔒 ratchet — חיווט-סולה (תבנית-נדרים)', () => {
     expect(INTEGRATION_SETTING_KEYS.payments).toContain('solaPullUrl');
   });
 
-  it('תור-האישור: כפתור-משיכה מגודר (solaPullUrl + מנהל/מייל-על) וקורא pullSola', () => {
-    expect(incomingSrc).toMatch(/integrationSetting\(config, 'payments', 'solaPullUrl'\)/);
-    expect(incomingSrc).toMatch(/canPullSola = !!solaPullUrl && \(isSuperAdmin\(cloudEmail\) \|\| isManager\)/);
-    expect(incomingSrc).toContain('pullSola(solaPullUrl, { reset })');
+  it('הכרעת-בעלים 23.8: כפתורי-המשיכה במסך-המנהל (DonorImportSection), מגודרים solaPullUrl+מנהל', () => {
+    expect(donorImportSrc).toMatch(/integrationSetting\(config, 'payments', 'solaPullUrl'\)/);
+    expect(donorImportSrc).toMatch(/canPullSola = !!solaPullUrl && \(isSuperAdmin\(cloudUser\?\.email\) \|\| isManager\)/);
+    expect(donorImportSrc).toContain('pullSola(solaPullUrl, { reset })');
     // 🧹 משיכה-מלאה-באיפוס (23.8) — חמושה דו-שלבית (סמן-ישן צמצם את החלון)
-    expect(incomingSrc).toMatch(/armOr\('sola-reset'[\s\S]{0,60}doSolaPull\(true\)/);
+    expect(donorImportSrc).toMatch(/armOr\('sola-reset'[\s\S]{0,60}doSolaPull\(true\)/);
+    // מסך-התורמים נשאר לצפייה — בלי כפתורי-משיכה, עם ריפוי-הפתיחה בלבד
+    expect(incomingSrc).not.toContain('doSolaPull');
+    expect(incomingSrc).toMatch(/fetchProviderRows\('sola'\)/);
   });
 
   it('pullSola (cloud.ts): https-בלבד + טוקן-כניסה — אפס-סוד בדפדפן', () => {

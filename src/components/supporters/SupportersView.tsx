@@ -9,7 +9,7 @@ import { featureOn, integrationOn, integrationSetting, isAdminUser, safeHttpsUrl
 import { DialerModal } from '../dialer/DialerModal';
 import { WaBtn } from '../WaBtn';
 import { IncomingPaymentsModal } from './IncomingPayments';
-import { NedarimSyncModal } from './NedarimSyncModal';
+import { requestSettingsSection } from '../settings/lib';
 import { annualAllLines, downloadAnnualReport } from '../../lib/annualReport';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
@@ -67,7 +67,6 @@ import type { Command } from './commands';
 import { AyinBoard } from './AyinBoard';
 import { AyinNamesBoard } from './AyinNamesBoard';
 import { OrgDonationCalendar } from './DonationCalendar';
-import { SupporterImport } from './SupporterImport';
 import { SupDedupModal } from './SupDedupModal';
 import { HokBulkModal } from './HokBulkModal';
 import { findSupporterDupGroups } from '../../lib/dedup';
@@ -187,7 +186,6 @@ export function SupportersView() {
   const cloudEmail = useApp((s) => s.cloud.user?.email);
   const desigLimit = purposeOn ? allowedDesignations : null;
   const [incomingOpen, setIncomingOpen] = useState(false);
-  const [nedSyncOpen, setNedSyncOpen] = useState(false);
   const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');
   const importOn = featureOn(config, 'settings.import');
   // גידור-דגלים (FLAGMAX): מיון-כותרות / סינון-עמודות / פאנל-מתקדם / מסך-השמות —
@@ -197,6 +195,7 @@ export function SupportersView() {
   const advFilterOn = featureOn(config, 'supporters.advfilter');
   const ayinNamesOn = featureOn(config, 'supporters.ayin.names');
   const toast = useApp((s) => s.toast);
+  const go = useApp((s) => s.go);
   // תצוגת גריד (5.8, בקשת-בעלים) — נשמרת ב-db.ui.supView, אותו דפוס כמו famView
   const setDb = useApp((s) => s.setDb);
   // UX סבב-ד׳: ברירת-מחדל חכמה — מסך-צר בלי העדפה-שמורה ⇒ גריד (טבלת 14
@@ -265,9 +264,6 @@ export function SupportersView() {
   // 🔁 זיהוי-הו"ק-מהיסטוריה — הפעולה מקומית-טהורה (detectRecurringHok על hist);
   // עד היום הכפתור היחיד היה קבור ב-NedarimSyncModal שנעול payments+ענן. חושפים אותו
   // כאן (מגודר hokOn) — מוצג רק כשיש חיובי-נדרים ב-hist, לא-דורס-הו"ק-ידני, no-op כשריק.
-  const detectNedarimHok = useApp((s) => s.detectNedarimHok);
-  const [hokDetectArmed, setHokDetectArmed] = useState(false);
-  const hasNedarimHist = db.supporters.some((sp) => (sp.hist ?? []).some((h) => h.clearer === 'נדרים' || h.clearer === 'סולה'));
   // 🔗 איחוד-כפולים (#13) — הכפתור מוצג רק כשיש מה לאחד
   const [dedupOpen, setDedupOpen] = useState(false);
   // 🐛 נחיל-9×9 (13.8): Union-Find על כל התורמים רץ בכל render (כל הקשה/סינון) —
@@ -306,7 +302,6 @@ export function SupportersView() {
     setConfirmDel(false);
   };
   const [formOpen, setFormOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
   const [expOpen, setExpOpen] = useState(false);
   const [dialerOpen, setDialerOpen] = useState(false);
   const dialer = useApp((s) => s.db.ui.dialer);
@@ -414,16 +409,24 @@ export function SupportersView() {
     [db.supporters, desigLimit, cockpitOn, importOn, customReportOn, dedupCount, config, cloudOn],
   );
 
+  // ניווט-חוצה-מסכים לסעיף-הגדרות (דפוס FamiliesView) — הייבוא גר במסך-המנהל
+  function goSettingsSection(sectionId: string) {
+    requestSettingsSection(sectionId);
+    go('settings');
+    setTimeout(() => document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' }), 250);
+  }
+
   const runCommand = (c: Command) => {
     switch (c.kind) {
       case 'add': setFormOpen(true); break;
       case 'work': setWorkMode(true); break;
       case 'data': setWorkMode(false); break;
-      case 'import': setImportOpen(true); break;
+      // הכרעת-בעלים 23.8: הייבוא רוכז במסך-המנהל — הפקודות מנווטות לשם
+      case 'import': goSettingsSection('sec-import'); break;
       case 'customreport': setExpOpen(true); break;
       case 'dedup': setDedupOpen(true); break;
       case 'incoming': setIncomingOpen(true); break;
-      case 'nedarim': setNedSyncOpen(true); break;
+      case 'nedarim': goSettingsSection('sec-donor-import'); break;
       case 'openDonor': if (c.arg) setSelId(c.arg); break;
     }
   };
@@ -690,17 +693,14 @@ export function SupportersView() {
                 )}
               </Btn>
             )}
-            {integrationOn(config, 'payments') && cloudOn && (
-              <Btn onClick={() => setNedSyncOpen(true)} title="ייבוא תורמים ועסקאות מנדרים לכרטיסים — התאמה לפי מפתחות, עם תצוגה-מקדימה">
-                🔄 סנכרון מנדרים
-              </Btn>
-            )}
+            {/* הכרעת-בעלים 23.8: פעולות-הייבוא (נדרים/סולה/CSV/הו"ק) רוכזו במסך-
+                המנהל (הגדרות ← 📚 נתונים ← 🔄 ייבוא תורמים ותורמות); כאן נשאר רק
+                תור-התשלומים-הנכנסים לצפייה ורישום. */}
             {/* UX סבב-ד׳: כל הפעולות המשניות בתפריט ⋯ אחד — אפס אובדן-יכולת,
                 אותם handlers בדיוק, קליק-אחד-נוסף */}
             <ActionsMenu
               title={'עוד פעולות — ' + termOf(config, 'nav.supporters', 'תורמים')}
               items={[
-                importOn && { label: '⬆ ייבוא מקובץ CSV', onClick: () => setImportOpen(true) },
                 customReportOn && { label: '📊 דו"ח מותאם', onClick: () => setExpOpen(true), title: 'בחירת טווח ונתונים' },
                 featureOn(config, 'supporters.annualreport') && {
                   label: '📄 דוחות שנתיים לכולם',
@@ -983,7 +983,7 @@ export function SupportersView() {
       )}
 
       {/* 🔁 הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש (לחיצה מסננת) */}
-      {hokOn && (db.supporters.some((sp) => sp.hok) || hasNedarimHist) && (
+      {hokOn && db.supporters.some((sp) => sp.hok) && (
         <div className="filter-group">
           <span className="fg-label">הוראות קבע:</span>
           {db.supporters.some((sp) => sp.hok) && (
@@ -1002,22 +1002,6 @@ export function SupportersView() {
                 </Btn>
               )}
             </>
-          )}
-          {/* זיהוי-רטרואקטיבי מהיסטוריית-נדרים — פעולה מקומית, בלי שער-ענן */}
-          {hasNedarimHist && (
-            <Btn
-              sm
-              kind={hokDetectArmed ? 'danger' : undefined}
-              title="סורק חיובי-נדרים ב-hist ומזהה הוראות-קבע לפי תבנית (3+ חודשים) — הו״ק ידני לא נדרס"
-              onClick={() => {
-                if (!hokDetectArmed) { setHokDetectArmed(true); return; }
-                const n = detectNedarimHok();
-                toast(n ? '🔁 ' + n + ' הוראות-קבע זוהו ומולאו מהיסטוריה' : 'לא זוהו הוראות-קבע חדשות מהתבנית');
-                setHokDetectArmed(false);
-              }}
-            >
-              {hokDetectArmed ? 'לאשר זיהוי הו״ק?' : '🔁 זהה הו״ק מהיסטוריה'}
-            </Btn>
           )}
         </div>
       )}
@@ -1295,12 +1279,6 @@ export function SupportersView() {
           onCsv={isAdminUser(config, cloudEmail) ? namesReport : null}
         />
       )}
-      {importOpen && (
-        <Modal title="⬆ ייבוא תומכות מ-CSV / Excel" onClose={() => setImportOpen(false)}>
-          <SupporterImport onDone={() => setImportOpen(false)} />
-        </Modal>
-      )}
-
       {confirmDel && (
         <Modal
           title={'מחיקת ' + selSet.size + ' ' + termOf(config, 'nav.supporters', 'תומכים')}
@@ -1365,7 +1343,6 @@ export function SupportersView() {
       {expOpen && <CustomExport target="supporters" onClose={() => setExpOpen(false)} />}
       {paletteEl}
       {incomingOpen && <IncomingPaymentsModal onClose={() => setIncomingOpen(false)} />}
-      {nedSyncOpen && <NedarimSyncModal onClose={() => setNedSyncOpen(false)} />}
       {dialerOpen && <DialerModal onClose={() => setDialerOpen(false)} />}
     </div>
   );
