@@ -174,6 +174,13 @@ export interface Course {
   lessonPrice2?: number;
   /** מחיר-לשיעור ברמת-הנחה 3 (price3Name). */
   lessonPrice3?: number;
+  /**
+   * 🗓 תווית שנת-הלימודים (courses.reenroll, additive · אין מיגרציה) — למשל "2026/27".
+   * חסר/undefined = לא-מסומן (החוג משתייך לשנה לפי start/end כמו היום).
+   */
+  year?: string;
+  /** קישור לחוג של השנה הקודמת (rollover) — נוצר ב"פתיחת שנה חדשה". */
+  prevYearId?: Id;
 }
 
 export interface Absence {
@@ -251,6 +258,16 @@ export interface Enrollment {
   termMonths?: number;
   /** רמת-ההנחה שנבחרה: '' = מלא · '1' · '2' (מיפוי ל-lessonPrice1/2). */
   tier?: '' | '1' | '2' | '3';
+  /**
+   * 🗓 רישום-לשנה-הבאה (courses.reenroll, additive · אין מיגרציה):
+   * החלטת-המשך של התלמיד/ה — 'yes'=ממשיך · 'no'=לא ממשיך · 'hold'=בהמתנה.
+   * חסר/undefined = טרם הוחלט. אינפורמטיבי בלבד עד לרישום בפועל.
+   */
+  renew?: 'yes' | 'no' | 'hold';
+  /** הערה חופשית לרישום-ההמשך ("היה מצוין, ממליץ להמשיך"). */
+  renewNote?: string;
+  /** קישור לשיבוץ שנוצר בשנה הבאה — מונע רישום-כפול ושומר את שרשרת ההיסטוריה. */
+  renewedToId?: Id;
 }
 
 /** תקופת-חיוב לתמחור המשוקלל (בקשת-בעלים 13.8 ב'). */
