@@ -88,6 +88,16 @@ async function solaKey(db, org) {
   // סורקים את אוסף-הכספות הקטן ומאתרים את המגירה **היחידה** שמחזיקה solaXKey;
   // יותר מאחת ⇒ דו-משמעי — נדרש ?vault= מפורש (לא מנחשים של מי הכסף).
   if (org === 'root') {
+    // 🐛 נחיל-סולה S7: הסריקה הדינמית עלולה (בריבוי-לקוחות עתידי) להרים מפתח של
+    // ארגון זר. עוגן מפורש: SOLA_ROOT_VAULT (env, slug לא-סוד) גובר על הסריקה.
+    const pinned = (process.env.SOLA_ROOT_VAULT || '').trim();
+    if (pinned) {
+      try {
+        const d = await db.doc('orgSecrets/' + pinned).get();
+        const sec = d.exists ? (d.data() || {}) : {};
+        if (sec.solaXKey) return { key: String(sec.solaXKey).trim(), from: pinned };
+      } catch { /* ממשיכים לסריקה */ }
+    }
     try {
       const all = await db.collection('orgSecrets').limit(30).get();
       const withKey = all.docs.filter((d) => (d.data() || {}).solaXKey);
@@ -144,6 +154,10 @@ async function fetchSolaReport(xKey, beginIso, endIso) {
     body,
   });
   const text = await resp.text();
+  // 🐛 נחיל-סולה S1 (23.8, HIGH): כשל-HTTP (502/HTML מ-proxy) נבלע בעבר כ"דוח
+  // ריק" — פרוסה כושלת בשקט בזמן שפרוסות מאוחרות מקדמות את ה-cursor = חור-
+  // עסקאות קבוע. כשל ⇒ throw: הריצה נופלת לפני עדכון-cursor, והדדופ בולע retry.
+  if (!resp.ok) throw new Error('sola: HTTP ' + resp.status + ' — ' + text.slice(0, 120));
   let json = null;
   try {
     json = JSON.parse(text);
@@ -154,11 +168,17 @@ async function fetchSolaReport(xKey, beginIso, endIso) {
   if (json.xResult === 'E' || /^error$/i.test(String(json.xStatus || '')) || json.xError) {
     throw new Error('sola: ' + String(json.xError || json.xStatus || 'שגיאת-שער'));
   }
+  // 🐛 נחיל-סולה S1ב: תשובה בלי סימן-הצלחה מוכר (xResult=S/Success) היא מבנה-זר
+  // (HTML/JSON-אחר) — לא "0 עסקאות". דוח-ריק אמיתי חוזר עם xResult=S.
+  const okMarker = json.xResult === 'S' || /^success$/i.test(String(json.xStatus || ''));
   let rows = json.xReportData ?? json.ReportData ?? json.data;
   // 💎 שטח-אמת 23.8 (טוסט-הבעלים, xResult=S): התשובה כולה urlencoded, ו-xReportData
   // מגיע כ**מחרוזת-JSON ארוזה** בתוכה — פותחים אותה למערך. xRecordsReturned = האמת.
   if (typeof rows === 'string' && rows.trim()) {
-    try { rows = JSON.parse(rows); } catch { /* מבנה-לא-מוכר — יטופל כריק עם debug */ }
+    try { rows = JSON.parse(rows); } catch { /* מבנה-לא-מוכר — ייזרק למטה */ }
+  }
+  if (!okMarker && !Array.isArray(rows)) {
+    throw new Error('sola: תשובה לא-מוכרת מהשער — ' + text.slice(0, 160));
   }
   // אבחון-שטח (23.8): דוח-ריק/מבנה-לא-מוכר — debug חוזר גם ל-caller (ומשם למסך!)
   // וגם ללוג **כמחרוזת-אחת** (console.log מרובה-ארגומנטים מודפס ריק ב-functions:log).
@@ -183,7 +203,10 @@ function shiftIsoDays(iso, days) {
 async function clearPullRows(db, col, cursorRef) {
   let removed = 0;
   for (;;) {
-    const snap = await col.where('provider', '==', 'sola').limit(400).get();
+    // 🐛 נחיל-סולה S6 (23.8, HIGH): האיפוס מחק גם שורות handled והחיה 300 עסקאות
+    // שכבר מוזגו כ-pending. מוחקים **pending בלבד** — המטופלות נשארות, והקריאה-
+    // לפני-כתיבה במשיכה-מחדש מדלגת עליהן (הדדופ מגן ממיזוג-כפול).
+    const snap = await col.where('provider', '==', 'sola').where('status', '==', 'pending').limit(400).get();
     if (snap.empty) break;
     const batch = db.batch();
     for (const d of snap.docs) batch.delete(d.ref);
@@ -259,7 +282,9 @@ async function runSolaAudit(org) {
   }
   const missing = [...gwWrites.keys()].filter((id) => !qIds.has(id));
   const extra = [...qIds].filter((id) => !gwWrites.has(id));
-  const sumsMatch = JSON.stringify(gw.byCur) === JSON.stringify(q.byCur);
+  // 🐛 נחיל-סולה S5: השוואת-JSON רגישה לסדר-מפתחות ⇒ mismatch-כוזב בריבוי-מטבעות.
+  const curKeys = new Set([...Object.keys(gw.byCur), ...Object.keys(q.byCur)]);
+  const sumsMatch = [...curKeys].every((k) => (gw.byCur[k] || 0) === (q.byCur[k] || 0));
   return {
     vault: vaultFrom,
     window: begin + '..' + end,
@@ -306,6 +331,7 @@ async function runSolaPull(org, opts = {}) {
   let added = 0;
   let scanned = 0;
   let enrichedRows = 0;
+  let voided = 0;
   let lastDebug = '';
   let maxDate = lastDate;
   for (const [ws, we] of windows) {
@@ -351,13 +377,36 @@ async function runSolaPull(org, opts = {}) {
       await batch.commit();
       enrichedRows += slice.length;
     }
-    if (lastDateIso && lastDateIso > maxDate) maxDate = lastDateIso;
+    // 🐛 נחיל-סולה S2 (23.8, HIGH): מכירה שנמשכה כ-pending ואז **בוטלה בשער**
+    // (xVoid הופך '1') נשארה ממתינה לעד ⇒ סיכון קבלה על כסף שהוחזר. שורת-void
+    // שה-doc שלה קיים ועדיין pending ⇒ status:'voided' (יוצאת מהתור; handled
+    // לא נגוע — ביטול-אחרי-מיזוג הוא החלטת-מנהל, מוצג ב-audit).
+    const { safeId: sid } = require('./solaReport');
+    const voidRefs = rows
+      .filter((r) => String(r.xVoid || '') === '1' && String(r.xRefNum || '').trim())
+      .map((r) => col.doc('sola-' + sid(String(r.xRefNum).trim())));
+    for (let i = 0; i < voidRefs.length; i += 300) {
+      const snaps = await db.getAll(...voidRefs.slice(i, i + 300));
+      const batch = db.batch();
+      let n = 0;
+      for (const s of snaps) {
+        if (!s.exists || (s.data() || {}).status !== 'pending') continue;
+        batch.set(s.ref, { status: 'voided', voidedAt: new Date().toISOString() }, { merge: true });
+        n++;
+        voided++;
+      }
+      if (n) await batch.commit();
+    }
+    // 🐛 נחיל-סולה S3 (23.8): lastDateIso לא נכבל לחלון — תאריך-עתידי משובש בשורה
+    // אחת היה תוקע את ה-cursor בעתיד והמשיכות מתות בשקט. כובלים לקצה-החלון.
+    const clamped = lastDateIso > we ? we : lastDateIso;
+    if (clamped && clamped > maxDate) maxDate = clamped;
   }
   if (maxDate && maxDate > lastDate) {
     await cursorRef.set({ lastDateIso: maxDate, at: new Date().toISOString() }, { merge: true });
   }
   // debug חוזר ל-caller רק כשכלום-לא-נסרק — הקליינט מציג אותו במקום "0" סתום.
-  return { added, scanned, window: begin + '..' + end + ' (' + windows.length + ' פרוסות)', removed, vault: vaultFrom, enriched: enrichedRows, ...(scanned === 0 && lastDebug ? { debug: lastDebug } : {}) };
+  return { added, scanned, window: begin + '..' + end + ' (' + windows.length + ' פרוסות)', removed, vault: vaultFrom, enriched: enrichedRows, voided, ...(scanned === 0 && lastDebug ? { debug: lastDebug } : {}) };
 }
 
 /**

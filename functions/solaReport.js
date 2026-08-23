@@ -84,7 +84,9 @@ function planSolaWrites(rows, org) {
     if (!isApproved(r)) continue; // נדחות/שגיאות לא נקלטות (אין כסף שזז)
     const cmd = pick(r, 'xCommand', 'xType').toLowerCase();
     // void/adjust/save אינם כסף-נכנס; capture/sale/postauth = חיוב; refund/credit = זיכוי.
-    if (/void|save|adjust|verify|balance/.test(cmd)) continue;
+    // 🐛 נחיל-סולה S4 (23.8): cc:authonly = אישור-מסגרת בלי לכידה — אין כסף שנכנס;
+    // בלעדי-הסינון היה נקלט כהכנסה. (postauth כן חיוב — הרג'קס תופס authonly בלבד.)
+    if (/void|save|adjust|verify|balance|authonly/.test(cmd)) continue;
     // 💎 שטח-אמת 23.8 (הצצה #26): שורות-הדוח נושאות דגל xVoid — מכירה שבוטלה
     // נשארת CC:Sale/Approved אבל xVoid='1'. בלי הסינון היא נקלטת כהכנסה!
     if (pick(r, 'xVoid') === '1') continue;

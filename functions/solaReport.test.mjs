@@ -119,6 +119,33 @@ describe('planSolaWrites — מיפוי דוח-סולה', () => {
   });
 });
 
+describe('🔒 ratchet — ממצאי-נחיל-סולה (23.8) בשרת', () => {
+  const src = readFileSync(join(HERE, 'solaPull.js'), 'utf8');
+  const engine = readFileSync(join(HERE, 'solaReport.js'), 'utf8');
+  it('S1 · כשל-HTTP/מבנה-זר מהשער ⇒ throw (לא "דוח ריק" שקט שמקדם cursor)', () => {
+    expect(src).toMatch(/if \(!resp\.ok\) throw new Error\('sola: HTTP '/);
+    expect(src).toMatch(/okMarker[\s\S]{0,200}xResult === 'S'/);
+    expect(src).toMatch(/if \(!okMarker && !Array\.isArray\(rows\)\)[\s\S]{0,80}throw/);
+  });
+  it('S2 · ביטול-אחרי-משיכה: שורת-xVoid שה-doc שלה pending ⇒ status voided (handled לא נגוע)', () => {
+    expect(src).toMatch(/xVoid[\s\S]{0,700}status !== 'pending'\) continue;/);
+    expect(src).toMatch(/status: 'voided', voidedAt/);
+  });
+  it('S3 · ה-cursor כבול לקצה-החלון — תאריך-עתידי משובש לא הורג את המשיכות', () => {
+    expect(src).toMatch(/clamped = lastDateIso > we \? we : lastDateIso/);
+  });
+  it('S4 · authonly (אישור-בלי-לכידה) מדולג — לא נקלט כהכנסה', () => {
+    expect(engine).toMatch(/void\|save\|adjust\|verify\|balance\|authonly/);
+    const { writes } = planSolaWrites([row({ xCommand: 'CC:AuthOnly', xRefNum: 'a9' })], 'demo');
+    expect(writes).toHaveLength(0);
+  });
+  it('S5+S6+S7 · השוואת-סכומים חסינת-סדר · איפוס מוחק pending-בלבד · עוגן SOLA_ROOT_VAULT', () => {
+    expect(src).toMatch(/curKeys[\s\S]{0,120}every/);
+    expect(src).toMatch(/clearPullRows[\s\S]{0,600}where\('status', '==', 'pending'\)/);
+    expect(src).toContain('SOLA_ROOT_VAULT');
+  });
+});
+
 describe('🔒 ratchet — גבול-הכסף של solaPull', () => {
   const src = readFileSync(join(HERE, 'solaPull.js'), 'utf8');
   it('כותב רק ל-incomingPayments/solaSync — אפס נגיעה בקבלות/מונים/תרומות', () => {
@@ -142,7 +169,7 @@ describe('🔒 ratchet — גבול-הכסף של solaPull', () => {
   it('🐛 23.8 · נפילת-הכספת הדינמית: root סורק את orgSecrets ומקבל מגירה יחידה בלבד; ריבוי ⇒ שגיאה מפורשת (לא מנחשים של מי הכסף)', () => {
     // האבחון (הצצה #23-24) הוכיח שהניחוש הסטטי מחטיא — הבעלים שומר את המפתח
     // תחת ה-slug שממנו הוא עובד. הסריקה מוגבלת ל-org==='root' (עבר שער-הרשאה).
-    expect(src).toMatch(/org === 'root'[\s\S]{0,300}collection\('orgSecrets'\)/);
+    expect(src).toMatch(/org === 'root'[\s\S]{0,900}collection\('orgSecrets'\)/);
     expect(src).toMatch(/withKey\.length === 1/);
     expect(src).toMatch(/withKey\.length > 1[\s\S]{0,80}ambiguous/);
     // ההצצה מדווחת שמות-מגירות + בוליאני-קיום בלבד — לעולם לא את ערך המפתח
