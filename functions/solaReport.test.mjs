@@ -134,4 +134,15 @@ describe('🔒 ratchet — גבול-הכסף של solaPull', () => {
     // ההצצה מדווחת שמות-מגירות + בוליאני-קיום בלבד — לעולם לא את ערך המפתח
     expect(src).toMatch(/vaultDrawers[\s\S]{0,200}solaXKey \? '✓' : '·'/);
   });
+  it('🧮 23.8 · בדיקת-ההתאמה (runSolaAudit) קריאה-בלבד — אפס batch/set/delete בגוף שלה', () => {
+    const m = /async function runSolaAudit[\s\S]*?\nasync function runSolaPull/.exec(src);
+    expect(m).toBeTruthy();
+    const body = m[0];
+    // אסורות כתיבות-Firestore בלבד (batch/commit/delete/update/create); ‏Map.set
+    // בזיכרון מותר — לכן הדפוס תופס set רק על ref (doc(...).set / cursorRef.set).
+    expect(body).not.toMatch(/batch\(|\.commit\(|\.delete\(|\.update\(|\.create\(|Ref\.set\(|\)\.set\(/);
+    // משווה באותו מנוע-מיפוי בדיוק (planSolaWrites) — לא חישוב מקביל שיכול לסטות
+    expect(body).toContain('planSolaWrites');
+    expect(body).toMatch(/missing[\s\S]{0,200}extra/);
+  });
 });
