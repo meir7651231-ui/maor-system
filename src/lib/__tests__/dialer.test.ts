@@ -7,6 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import { startCampaign, currentId, applyOutcome, progress, isDone, undoLast, campaignCsvRows, OUTCOME_LABELS, REQUEUE_OUTCOMES, TERMINAL_OUTCOMES, appendCall, popCall, callStats, CALL_LOG_CAP } from '../dialer';
 import storeSrc from '../../store/useApp.ts?raw';
+import supDetailSrc from '../../components/supporters/SupporterDetail.tsx?raw';
 import { manualDriver, activeDriver } from '../telephony/driver';
 import dialerSrc from '../../components/dialer/DialerModal.tsx?raw';
 import supViewSrc from '../../components/supporters/SupportersView.tsx?raw';
@@ -236,5 +237,13 @@ describe('📞 יומן-שיחות עמיד (23.8 — "שיראה כמה התק�
     expect(dialerSrc).toContain('התקשרו פעם אחת');
     expect(dialerSrc).toContain('התקשרו {cst.total} פעמים');
     expect(dialerSrc).toContain('ללא-מענה');
+  });
+
+  it('🔒 הגנת-מקור: המונה מוצג גם בכרטיס-התורם ("גם אצל המנהל זה לא הופיע")', () => {
+    // הבאג: המונה הוצג רק בתוך החייגן בזמן-קמפיין — המנהל שפתח כרטיס-תורם
+    // לא ראה כלום. עכשיו הכותרת של הכרטיס מציגה את אותו callStats תמיד.
+    expect(supDetailSrc).toContain('callStats(sp.calls)');
+    expect(supDetailSrc).toContain('טרם התקשרו');
+    expect(supDetailSrc).toContain('התקשרו {cst.total} פעמים');
   });
 });
