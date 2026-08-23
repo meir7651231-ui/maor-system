@@ -103,6 +103,8 @@ export function CourseDetail(props: { course: Course }) {
   // featureOn נשמר (מכבד כיבוי-ארגוני קיים של courses.delete) ⇒ אפס-רגרסיה.
   const isOrgMgr = useApp((s) => s.cloud.isManager) === true;
   const canDeleteCourse = featureOn(cfg, 'courses.delete') && canGrantedAction(cfg, userEmail, isOrgMgr, 'courses.delete');
+  // הקמה-מהירה (שכפול-סמסטר + סיום-סמסטר מרוכז) — פעולת-ניהול: מנהל/בעלים תמיד; עובד/ת רק אם הודלק/ה.
+  const canBulkAdmin = featureOn(cfg, 'courses.bulkadmin') && canGrantedAction(cfg, userEmail, isOrgMgr, 'courses.bulkadmin');
   // מחיקה בשני קליקים (P3 פריט 19, shell.armdel)
   const { armed, confirmTwice } = useArmed(featureOn(cfg, 'shell.armdel'));
 
@@ -389,7 +391,7 @@ export function CourseDetail(props: { course: Course }) {
           {!isTeacherUser && (
             <Btn onClick={() => setModal({ kind: 'edit' })}>{'✎ עריכת ' + termOf(cfg, 'entity.course', 'חוג')}</Btn>
           )}
-          {!isTeacherUser && featureOn(cfg, 'courses.bulkadmin') && (
+          {!isTeacherUser && canBulkAdmin && (
             <Btn
               onClick={() => {
                 const id = nextId('c');
@@ -402,7 +404,7 @@ export function CourseDetail(props: { course: Course }) {
               📑 שכפל
             </Btn>
           )}
-          {!isTeacherUser && featureOn(cfg, 'courses.bulkadmin') && enrolled.some((e) => e.status === 'active' || e.status === 'paused') && (
+          {!isTeacherUser && canBulkAdmin && enrolled.some((e) => e.status === 'active' || e.status === 'paused') && (
             <Btn
               kind={armed === 'endsem-' + c.id ? 'danger' : undefined}
               onClick={() => {

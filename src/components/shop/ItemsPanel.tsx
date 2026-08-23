@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { canGrantedAction, featureOn, termOf } from '../../lib/config';
 import type { ShopComponentKind, ShopItem } from '../../types/domain';
 import { Btn, Chip, Field, FormError, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
@@ -32,6 +32,10 @@ export function ItemsPanel() {
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const storesOn = featureOn(config, 'shop.stores');
   const term = termOf(config, 'entity.shopItem', 'פריט');
+  // הרשאה אחידה (בקשת-בעלים 23.8): מחיקת-פריט למנהל/בעלים תמיד; עובד/ת רק אם הודלק/ה.
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
+  const isOrgMgr = useApp((s) => s.cloud.isManager) === true;
+  const canDeleteShop = featureOn(config, 'shop.delete') && canGrantedAction(config, cloudEmail, isOrgMgr, 'shop.delete');
 
   const [open, setOpen] = useState(true);
   const [editId, setEditId] = useState<string | null>(null);
@@ -165,7 +169,9 @@ export function ItemsPanel() {
                     </Btn>
                   )}
                   <Btn sm onClick={() => startEdit(i)}>✏️</Btn>
-                  <Btn sm kind="danger" onClick={() => remove(i)}>{armed === 'shi-' + i.id ? 'שוב למחיקה' : '🗑'}</Btn>
+                  {canDeleteShop && (
+                    <Btn sm kind="danger" onClick={() => remove(i)}>{armed === 'shi-' + i.id ? 'שוב למחיקה' : '🗑'}</Btn>
+                  )}
                 </span>
               </div>
               {/* רשימת ההמתנה של הפריט (SHOP6 חנות 27) — שם, תאריך, הסרה */}

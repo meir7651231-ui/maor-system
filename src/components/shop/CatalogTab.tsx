@@ -6,7 +6,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { canGrantedAction, featureOn, termOf } from '../../lib/config';
 import type { ShopItem, ShopProduct } from '../../types/domain';
 import { Btn, Chip, Empty, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
@@ -42,6 +42,10 @@ export function CatalogTab() {
   const criteriaOn = featureOn(config, 'shop.criteria');
   const exportOn = featureOn(config, 'shop.export');
   const term = termOf(config, 'entity.shopProduct', 'מוצר');
+  // הרשאה אחידה (בקשת-בעלים 23.8): מחיקה בקטלוג למנהל/בעלים תמיד; עובד/ת רק אם הודלק/ה.
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
+  const isOrgMgr = useApp((s) => s.cloud.isManager) === true;
+  const canDeleteShop = featureOn(config, 'shop.delete') && canGrantedAction(config, cloudEmail, isOrgMgr, 'shop.delete');
 
   function removeProduct(p: ShopProduct) {
     if (!confirmTwice('shp-' + p.id, 'למחוק את "' + p.name + '" מהקטלוג?')) return;
@@ -121,9 +125,11 @@ export function CatalogTab() {
                     </Btn>
                   )}
                   <Btn sm onClick={() => { setEditing(p); setFormOpen(true); }}>✏️ עריכה</Btn>
-                  <Btn sm kind="danger" onClick={() => removeProduct(p)}>
-                    {armed === 'shp-' + p.id ? 'בטוח/ה? לחיצה שוב מוחקת' : '🗑 מחיקה'}
-                  </Btn>
+                  {canDeleteShop && (
+                    <Btn sm kind="danger" onClick={() => removeProduct(p)}>
+                      {armed === 'shp-' + p.id ? 'בטוח/ה? לחיצה שוב מוחקת' : '🗑 מחיקה'}
+                    </Btn>
+                  )}
                 </div>
               </div>
             );
