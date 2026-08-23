@@ -28,4 +28,6 @@ export const OPT_IN_KEYS = [
   'supporters.oneflow',
   // 🕎 מנוע-העיתוי העברי (VISION-LIGHT ‏#37, 23.8) — "העונה שלהם" בקוקפיט
   'supporters.hebtiming',
+  // 🌅 תדרוך-הבוקר (VISION-LIGHT ‏#29, 23.8) — "הבוקר שלך" במסך-הבית
+  'home.morningbrief',
 ];

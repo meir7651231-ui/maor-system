@@ -17,8 +17,13 @@ import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-/** תקרת המנויים-המלאים — יורדת-בלבד (הייתה 72 לפני ההמרה). */
-const FULL_SUB_CAP = 56;
+/**
+ * תקרת המנויים-המלאים (הייתה 72 לפני ההמרה). עלייה מותרת **רק** לרכיב
+ * מזין-מנוע חדש (מעביר db שלם למנוע שקורא אוספים רבים) — ורק עם רישום כאן:
+ *  · 56 — היסטוריים (אחרי המרת 17 הצרים, 23.8)
+ *  · +1 — MorningBriefCard (23.8, ‏#29): מזין cockpitQueue/hebTiming/todaySessions
+ */
+const FULL_SUB_CAP = 57;
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
