@@ -1065,7 +1065,7 @@
   "name": "DEDUP-REPORT.md",
   "type": "OTHER",
   "date": null,
-  "lines": 53,
+  "lines": 38,
   "title": "⚖️ מחצב — דוח הכרעת-כפילויות",
   "source": "maor/machtzev/DEDUP-REPORT.md"
  },
@@ -1075,7 +1075,7 @@
   "name": "LAW.md",
   "type": "OTHER",
   "date": null,
-  "lines": 37,
+  "lines": 43,
   "title": "⚡ חוקי-החשמלאי — חוקת הבנייה-מחדש (הכרעת-בעלים 24.8.2026)",
   "source": "maor/machtzev/LAW.md"
  },
@@ -1098,6 +1098,16 @@
   "lines": 11,
   "title": "חוזה · חוט norm-search",
   "source": "maor/machtzev/new/atoms/norm-search.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/atoms/palette.contract.md",
+  "level": "L8-knowledge",
+  "name": "palette.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 8,
+  "title": "חוזה · אטום פלטה (פיגמנטים)",
+  "source": "maor/machtzev/new/atoms/palette.contract.md"
  },
  {
   "id": "L8:maor:machtzev/new/atoms/score-term.contract.md",
@@ -1148,6 +1158,16 @@
   "lines": 10,
   "title": "חוזה · קופסת-חיבורים \"חיפוש\"",
   "source": "maor/machtzev/new/boxes/search.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/boxes/theme.contract.md",
+  "level": "L8-knowledge",
+  "name": "theme.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 10,
+  "title": "חוזה · קופסת-ערכה",
+  "source": "maor/machtzev/new/boxes/theme.contract.md"
  },
  {
   "id": "L8:maor:machtzev/README.md",

@@ -3,8 +3,8 @@
  "root": "/home/user/maor-system",
  "generatedBy": "machtzev/census v1",
  "totals": {
-  "files": 1009,
-  "lines": 583004,
+  "files": 1016,
+  "lines": 627538,
   "orphans": 0
  },
  "byDomain": {
@@ -14,23 +14,23 @@
   },
   "data": {
    "files": 45,
-   "lines": 425344
+   "lines": 469513
   },
   "knowledge": {
-   "files": 144,
-   "lines": 24842
+   "files": 146,
+   "lines": 24851
   },
   "tests": {
-   "files": 366,
-   "lines": 32801
+   "files": 368,
+   "lines": 32833
   },
   "server": {
    "files": 64,
    "lines": 16083
   },
   "source": {
-   "files": 84,
-   "lines": 12860
+   "files": 87,
+   "lines": 13184
   },
   "assets": {
    "files": 38,
@@ -1114,6 +1114,12 @@
    "lines": 136
   },
   {
+   "path": "machtzev/assemble/gen-theme.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 40
+  },
+  {
    "path": "machtzev/assemble/tokens-roundtrip.mjs",
    "bucket": "source",
    "domain": "source",
@@ -1135,13 +1141,13 @@
    "path": "machtzev/DEDUP-REPORT.md",
    "bucket": "knowledge",
    "domain": "knowledge",
-   "lines": 53
+   "lines": 38
   },
   {
    "path": "machtzev/dedup.mjs",
    "bucket": "source",
    "domain": "source",
-   "lines": 72
+   "lines": 78
   },
   {
    "path": "machtzev/extract/actions.mjs",
@@ -1201,7 +1207,7 @@
    "path": "machtzev/LAW.md",
    "bucket": "knowledge",
    "domain": "knowledge",
-   "lines": 37
+   "lines": 43
   },
   {
    "path": "machtzev/new/atoms/levenshtein.contract.md",
@@ -1238,6 +1244,24 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 5
+  },
+  {
+   "path": "machtzev/new/atoms/palette.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 8
+  },
+  {
+   "path": "machtzev/new/atoms/palette.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 93
+  },
+  {
+   "path": "machtzev/new/atoms/palette.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 12
   },
   {
    "path": "machtzev/new/atoms/score-term.contract.md",
@@ -1328,6 +1352,24 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 18
+  },
+  {
+   "path": "machtzev/new/boxes/theme.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 10
+  },
+  {
+   "path": "machtzev/new/boxes/theme.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 185
+  },
+  {
+   "path": "machtzev/new/boxes/theme.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 20
   },
   {
    "path": "machtzev/README.md",
@@ -1507,7 +1549,7 @@
    "path": "machtzev/registry/atoms-L8-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 1252
+   "lines": 1312
   },
   {
    "path": "machtzev/registry/atoms-L8-yoman.json",
@@ -1525,7 +1567,7 @@
    "path": "machtzev/registry/census-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 6013
+   "lines": 6121
   },
   {
    "path": "machtzev/registry/census-yoman.json",
@@ -1537,7 +1579,7 @@
    "path": "machtzev/registry/dupgroups.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 23953
+   "lines": 67954
   },
   {
    "path": "machtzev/run.mjs",
