@@ -4,7 +4,7 @@
  * לסוף-התור (requeue). downstream לחלוטין: המנוע מנהל את הרשימה — החיוג עצמו
  * קורה על הטלפון הקיים (tel:) דרך telephony/driver. נבדק ביחידה.
  */
-import type { DialerCampaign, DialLogEntry, DialOutcome } from '../types/domain';
+import type { CallEntry, DialerCampaign, DialLogEntry, DialOutcome, IsoDate } from '../types/domain';
 
 /** תוצאות לא-סופיות — מחזירות את המתקשר לסוף-התור (עוד ניסיון). */
 export const REQUEUE_OUTCOMES: readonly DialOutcome[] = ['noanswer', 'skip'];
@@ -112,6 +112,44 @@ export function undoLast(c: DialerCampaign): DialerCampaign {
     queue = at >= 0 ? [...queue.slice(0, at), ...queue.slice(at + 1)] : queue;
   }
   return { ...c, queue: [last.id, ...queue], log: c.log.slice(0, -1) };
+}
+
+/* ---------- יומן-שיחות עמיד פר-תומך (23.8 — "שיראה כמה התקשרו אליו") ---------- */
+
+/** תקרת יומן-השיחות פר-תומך — טבעת: ותיקות נשמטות, האחרונות נשמרות. */
+export const CALL_LOG_CAP = 200;
+
+/**
+ * הוספת רישום-שיחה ליומן-העמיד: כל סיווג = שיחה שבוצעה, **חוץ מדלג** (המתקשר
+ * כלל לא חויג). שומר טבעת CALL_LOG_CAP. טהור — מחזיר מערך חדש (או המקור בדלג).
+ */
+export function appendCall(calls: CallEntry[] | undefined, outcome: DialOutcome, iso: IsoDate): CallEntry[] | undefined {
+  if (outcome === 'skip') return calls;
+  const next: CallEntry[] = [...(calls ?? []), { at: iso, outcome }];
+  return next.length > CALL_LOG_CAP ? next.slice(next.length - CALL_LOG_CAP) : next;
+}
+
+/** ביטול-סיווג ⇒ הסרת רישום-השיחה האחרון (בן-הזוג של appendCall ב-undo). */
+export function popCall(calls: CallEntry[] | undefined): CallEntry[] | undefined {
+  if (!calls || !calls.length) return calls;
+  return calls.slice(0, -1);
+}
+
+export interface CallStats {
+  /** כמה שיחות נרשמו בסך-הכול (כל הקמפיינים). */
+  total: number;
+  /** תאריך השיחה האחרונה, או '' כשאין. */
+  last: IsoDate | '';
+  /** מתוכן — כמה "לא ענה" (עוזר לטלפנית לדעת שזה מספר קשה). */
+  noanswer: number;
+}
+
+/** סיכום יומן-השיחות לתצוגת-החייגן. טהור, סובל undefined. */
+export function callStats(calls: CallEntry[] | undefined): CallStats {
+  const list = calls ?? [];
+  let noanswer = 0;
+  for (const c of list) if (c.outcome === 'noanswer') noanswer++;
+  return { total: list.length, last: list.length ? list[list.length - 1].at : '', noanswer };
 }
 
 /**
