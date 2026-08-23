@@ -75,16 +75,40 @@ function syncCol(db, org) {
  *  נופלים לכספת הלקוח-החי 'maor-hachesed' — אותו תקדים כמו מילוט-השורש ב-Rules
  *  (icsFeeds/teamChats), כי שתי הכתובות הן אותו לקוח-שורש בדיוק. */
 async function solaKey(db, org) {
-  let key = process.env.SOLA_XKEY || '';
   const tries = org === 'root' ? ['root', 'maor-hachesed'] : [org];
   for (const t of tries) {
     try {
       const d = await db.doc('orgSecrets/' + t).get();
       const s = d.exists ? (d.data() || {}) : {};
-      if (s.solaXKey) return String(s.solaXKey).trim();
-    } catch { /* אין כספת ⇒ הבא/הגלובלי */ }
+      if (s.solaXKey) return { key: String(s.solaXKey).trim(), from: t };
+    } catch { /* אין כספת ⇒ הבא */ }
   }
-  return key;
+  // 🐛 (23.8, אבחון-ההצצה): הבעלים שומר את המפתח מהכתובת שבה הוא עובד
+  // (?org=<slug>) — וה-slug האמיתי אינו בהכרח הניחוש הסטטי שלמעלה. root בלבד:
+  // סורקים את אוסף-הכספות הקטן ומאתרים את המגירה **היחידה** שמחזיקה solaXKey;
+  // יותר מאחת ⇒ דו-משמעי — נדרש ?vault= מפורש (לא מנחשים של מי הכסף).
+  if (org === 'root') {
+    try {
+      const all = await db.collection('orgSecrets').limit(30).get();
+      const withKey = all.docs.filter((d) => (d.data() || {}).solaXKey);
+      if (withKey.length === 1) {
+        return { key: String(withKey[0].data().solaXKey).trim(), from: withKey[0].id };
+      }
+      if (withKey.length > 1) return { key: '', from: '', ambiguous: withKey.map((d) => d.id) };
+    } catch { /* נפילה ל-env */ }
+  }
+  const env = process.env.SOLA_XKEY || '';
+  return { key: env, from: env ? 'env' : '' };
+}
+
+/** אבחון-כספות להצצה (שמות-מגירות + האם-יש-מפתח בלבד — לעולם לא ערכים). */
+async function vaultDrawers(db) {
+  try {
+    const all = await db.collection('orgSecrets').limit(30).get();
+    return all.docs.map((d) => d.id + ((d.data() || {}).solaXKey ? '✓' : '·'));
+  } catch {
+    return [];
+  }
 }
 
 const API_BASE = () => (process.env.SOLA_API_BASE || 'https://x1.cardknox.com').replace(/\/+$/, '');
@@ -166,8 +190,12 @@ async function runSolaPull(org, opts = {}) {
   const cursorRef = syncCol(db, org).doc('cursor');
   // ⚠️ לקוח-השורש: האוספים ב-root אבל הכספת נכתבת תחת ה-slug האמיתי
   // (OrgSecretsSection כותב orgSecrets/{config.slug}) — vaultOrg מגשר.
-  const xKey = await solaKey(db, opts.vaultOrg || org);
-  if (!xKey) throw new Error('אין xKey — הזינו "🔑 Sola xKey" בהגדרות←מפתחות-ההרחבות');
+  const { key: xKey, from: vaultFrom, ambiguous } = await solaKey(db, opts.vaultOrg || org);
+  if (!xKey) {
+    throw new Error(ambiguous
+      ? 'כמה כספות מחזיקות xKey (' + ambiguous.join(', ') + ') — נדרש vault מפורש'
+      : 'אין xKey — הזינו "🔑 Sola xKey" בהגדרות←מפתחות-ההרחבות');
+  }
   let removed = 0;
   if (opts.reset) removed = await clearPullRows(db, col, cursorRef);
   const cursorSnap = await cursorRef.get();
@@ -216,7 +244,7 @@ async function runSolaPull(org, opts = {}) {
     await cursorRef.set({ lastDateIso: maxDate, at: new Date().toISOString() }, { merge: true });
   }
   // debug חוזר ל-caller רק כשכלום-לא-נסרק — הקליינט מציג אותו במקום "0" סתום.
-  return { added, scanned, window: begin + '..' + end + ' (' + windows.length + ' פרוסות)', removed, ...(scanned === 0 && lastDebug ? { debug: lastDebug } : {}) };
+  return { added, scanned, window: begin + '..' + end + ' (' + windows.length + ' פרוסות)', removed, vault: vaultFrom, ...(scanned === 0 && lastDebug ? { debug: lastDebug } : {}) };
 }
 
 /**
@@ -247,11 +275,21 @@ exports.solaPull = onRequest(
     if (p.peek === '1') {
       try {
         const db = getFirestore();
-        const xKey = await solaKey(db, vaultOrg);
-        if (!xKey) return res.status(400).json({ ok: false, error: 'אין xKey בכספת' });
+        // אבחון (23.8): אילו מגירות קיימות ובמי יש מפתח (שמות+בוליאני בלבד) +
+        // כמה שורות-סולה כבר יושבות בתור-השורש — מודפס רק ללוג-Actions של הבעלים.
+        const drawers = await vaultDrawers(db);
+        let rootRows = -1;
+        try {
+          rootRows = (await incomingCol(db, 'root').where('provider', '==', 'sola').count().get()).data().count;
+        } catch { /* אגרגט-לא-זמין ⇒ ‎-1 */ }
+        const { key: xKey, from, ambiguous } = await solaKey(db, vaultOrg);
+        if (!xKey) {
+          const error = ambiguous ? 'כמה כספות עם xKey: ' + ambiguous.join(', ') : 'אין xKey בכספת';
+          return res.status(400).json({ ok: false, error, drawers, rootRows });
+        }
         const today = new Date().toISOString().slice(0, 10);
         const peek = await fetchSolaReport(xKey, shiftIsoDays(today, -90), shiftIsoDays(today, 1));
-        return res.status(200).json({ ok: true, count: peek.rows.length, sample: peek.rows.slice(0, 3), ...(peek.debug ? { debug: peek.debug } : {}) });
+        return res.status(200).json({ ok: true, count: peek.rows.length, sample: peek.rows.slice(0, 3), vault: from, drawers, rootRows, ...(peek.debug ? { debug: peek.debug } : {}) });
       } catch (e) {
         return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
       }
