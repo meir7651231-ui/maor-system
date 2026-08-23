@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbit — יכולות ומחירון · מערכת ניהול בענן לעסק ולעמותה</title>
+<meta name="description" content="CRM, חוגים, תורמים וקבלות סעיף 46, לוח עברי, יומן חדרים, חנות וחלוקה — בחרו מודולים וקבלו הצעת מחיר מיידית.">
+<link rel="icon" href="/favicon.svg">
+<link rel="stylesheet" href="/fonts/fonts.css">
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#111735; --card:#161d3f; --card2:#1b2350;
+    --ink:#eef1ff; --dim:#9aa3c7; --line:#2a3364;
+    --acc:#7c8cff; --acc2:#4ade80; --gold:#fbbf24; --danger:#f87171;
+    --font:'Heebo',system-ui,sans-serif; --disp:'Suez One','Heebo',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.6;
+    background-image:radial-gradient(ellipse 80% 50% at 50% -10%,#1e2a6b55,transparent),
+                     radial-gradient(ellipse 60% 40% at 90% 110%,#4ade8011,transparent)}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  a{color:var(--acc);text-decoration:none}
+  /* ── hero ── */
+  header{padding:48px 0 36px;text-align:center}
+  .logo{width:88px;height:88px;border-radius:24px;box-shadow:0 8px 40px #7c8cff44}
+  h1{font-family:var(--disp);font-size:clamp(1.9rem,5vw,3rem);margin:18px 0 8px;
+     background:linear-gradient(120deg,#fff,#aab4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--dim);font-size:1.1rem;max-width:640px;margin:0 auto 26px}
+  .ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-block;padding:12px 26px;border-radius:14px;font-weight:700;font-size:1rem;
+       border:1px solid var(--line);color:var(--ink);background:var(--card);transition:.15s}
+  .btn:hover{transform:translateY(-2px);border-color:var(--acc)}
+  .btn.primary{background:linear-gradient(120deg,#6366f1,#7c8cff);border:none;color:#fff;box-shadow:0 6px 24px #6366f166}
+  .btn.go{background:linear-gradient(120deg,#059669,#4ade80);border:none;color:#04120b}
+  /* ── strips / sections ── */
+  section{padding:44px 0}
+  h2{font-family:var(--disp);font-size:1.7rem;margin-bottom:6px;text-align:center}
+  .lead{color:var(--dim);text-align:center;margin-bottom:28px}
+  .trust{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 16px;font-size:.9rem;color:var(--dim)}
+  .chip b{color:var(--ink)}
+  /* ── verticals ── */
+  .verts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .vert{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+  .vert .em{font-size:1.6rem}
+  .vert .nm{font-weight:700;font-size:.92rem;margin-top:4px}
+  .vert .sb{color:var(--dim);font-size:.74rem}
+  /* ── capability cards ── */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  .cap{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;position:relative}
+  .cap.core{border-color:#4ade8055;background:linear-gradient(180deg,#12301f33,var(--card))}
+  .cap h3{font-size:1.08rem;margin-bottom:6px}
+  .cap .price{position:absolute;top:16px;left:16px;font-weight:800;color:var(--gold);font-size:.95rem}
+  .cap .price.inc{color:var(--acc2)}
+  .cap ul{list-style:none;color:var(--dim);font-size:.9rem}
+  .cap li{padding:2px 0}
+  .cap li::before{content:'✓ ';color:var(--acc2);font-weight:700}
+  /* ── calculator ── */
+  .calc{background:var(--bg2);border:1px solid var(--line);border-radius:24px;padding:26px;display:grid;grid-template-columns:1.4fr 1fr;gap:26px}
+  @media(max-width:820px){.calc{grid-template-columns:1fr}}
+  .calc h3{margin-bottom:10px;font-size:1.05rem}
+  .seg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  .seg button{flex:1;min-width:100px;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-family:var(--font);font-size:.95rem;cursor:pointer}
+  .seg button.on{background:linear-gradient(120deg,#6366f1,#7c8cff);border-color:transparent;font-weight:700}
+  .seg button small{display:block;color:#ffffffaa;font-size:.72rem}
+  .opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+  .opt{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 12px;cursor:pointer;font-size:.9rem;user-select:none}
+  .opt input{accent-color:var(--acc);width:16px;height:16px}
+  .opt .p{margin-inline-start:auto;color:var(--gold);font-size:.8rem;font-weight:700}
+  .opt.inc .p{color:var(--acc2)}
+  /* quote box */
+  .quote{background:var(--card2);border:1px solid var(--acc);border-radius:18px;padding:22px;height:fit-content;position:sticky;top:16px}
+  .quote .big{font-family:var(--disp);font-size:2.6rem;color:#fff;line-height:1.1}
+  .quote .per{color:var(--dim);font-size:.95rem}
+  .qline{display:flex;justify-content:space-between;color:var(--dim);font-size:.88rem;padding:3px 0;border-bottom:1px dashed #2a336455}
+  .qline b{color:var(--ink)}
+  .save{color:var(--acc2);font-weight:700;font-size:.9rem;margin-top:8px}
+  .note{color:var(--dim);font-size:.78rem;margin-top:12px}
+  /* enterprise */
+  .ent{margin-top:22px;background:linear-gradient(120deg,#1b2350,#161d3f);border:1px solid var(--gold);border-radius:20px;padding:22px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+  .ent .t{font-weight:800;font-size:1.1rem;color:var(--gold)}
+  .ent .d{color:var(--dim);font-size:.9rem;max-width:520px}
+  footer{border-top:1px solid var(--line);padding:30px 0 48px;text-align:center;color:var(--dim);font-size:.85rem}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <img class="logo" src="/orbit/orbit-logo.png" alt="Orbit">
+  <h1>מערכת ניהול אחת. כל העסק שלכם.</h1>
+  <p class="sub">CRM · חוגים · תורמים וקבלות סעיף 46 · לוח עברי-לועזי · יומן חדרים · חנות · חלוקה — בענן שלכם, עם הנתונים אצלכם. מותאם ב-13 ורטיקלים מוכנים.</p>
+  <div class="ctas">
+    <a class="btn go" href="/?org=demo">🎮 נסו דמו חי — בלי הרשמה</a>
+    <a class="btn primary" href="/">🚀 פתיחת חשבון</a>
+    <a class="btn" href="/" title="כפתור 'נחזור אליכם' במסך הכניסה">💬 שנחזור אליכם?</a>
+  </div>
+  <div class="trust">
+    <span class="chip">🔒 הנתונים <b>אצלכם</b> — local-first</span>
+    <span class="chip">🧾 קבלות <b>סעיף 46</b> מובנות</span>
+    <span class="chip">📅 לוח <b>עברי</b> אמיתי</span>
+    <span class="chip">📱 מותקן <b>כאפליקציה</b></span>
+    <span class="chip">💾 גיבוי <b>אוטומטי יומי</b></span>
+  </div>
+</header>
+
+<section class="wrap" id="verticals">
+  <h2>מותאם לתחום שלכם — בקליק אחד</h2>
+  <p class="lead">בחירת ורטיקל מלבישה מונחים, מודולים, עיצוב וזהות — הכול מוכן מראש.</p>
+  <div class="verts" id="vertGrid"></div>
+</section>
+
+<section class="wrap" id="caps">
+  <h2>פירוק היכולות</h2>
+  <p class="lead">בסיס חזק שכלול תמיד — ומודולים שמדליקים רק כשצריך, ומשלמים רק עליהם.</p>
+  <div class="grid" id="capGrid"></div>
+</section>
+
+<section class="wrap" id="calc">
+  <h2>בנו את החבילה — הצעת מחיר מיידית</h2>
+  <p class="lead">בדיוק כמו אשף ההקמה שלנו: בסיס + מודולים + הרחבות × גודל הארגון.</p>
+  <div class="calc">
+    <div>
+      <h3>גודל הארגון</h3>
+      <div class="seg" id="sizeSeg"></div>
+      <h3>מודולים</h3>
+      <div class="opts" id="modOpts"></div>
+      <h3 style="margin-top:18px">הרחבות</h3>
+      <div class="opts" id="intOpts"></div>
+    </div>
+    <div class="quote">
+      <div class="per">המחיר החודשי שלכם</div>
+      <div class="big" id="qMonthly">₪—</div>
+      <div id="qLines"></div>
+      <div class="save" id="qSave"></div>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn primary" style="flex:1;text-align:center" href="/">להתחיל עכשיו</a>
+        <a class="btn" style="flex:1;text-align:center" href="/?org=demo">קודם דמו</a>
+      </div>
+      <div class="note">הקמה והטמעה ₪1,500 — <b style="color:var(--acc2)">חינם בתקופת ההשקה</b>. המחירים להמחשה וניתנים להתאמה בהצעה אישית.</div>
+    </div>
+  </div>
+  <div class="ent">
+    <div>
+      <div class="t">🏛️ מסלול Enterprise — "הענן שלכם"</div>
+      <div class="d">התקנה על תשתית בבעלותכם המלאה, מסירה עד-המפתח, ליווי הטמעה — תשלום חד-פעמי החל מ-₪55,000 + תחזוקה שנתית ₪9,000.</div>
+    </div>
+    <a class="btn" href="/">לתיאום שיחה</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Orbit · orbit-il.com — מערכת הניהול שמסתובבת סביבכם.<br>
+    דמו חי: <a href="/?org=demo">orbit-il.com/?org=demo</a> · כניסה והרשמה: <a href="/">orbit-il.com</a>
+  </div>
+</footer>
+
+<script>
+/* ─── נתונים — מראה של src/lib/pricing.ts (DEFAULT_PRICES) + platform/lib ─── */
+var SIZES=[{id:'small',l:'קטן',s:'עד 5 אנשי צוות',m:1},{id:'medium',l:'בינוני',s:'5–20 אנשי צוות',m:1.6},{id:'large',l:'גדול',s:'20+ אנשי צוות',m:2.4}];
+var BASE=290;
+var MODS=[
+ {k:'families',e:'👥',l:'לקוחות / משפחות (CRM)',p:0,on:1,lock:1,f:['כרטיס מלא + בני-משפחה','חיפוש חכם בעברית','ייבוא אנשי-קשר מהטלפון (VCF)']},
+ {k:'calendar',e:'📅',l:'לוח שנה עברי-לועזי',p:0,on:1,lock:1,f:['חגים וחזרתיות עברית','ייצוא ליומן גוגל (ICS)','גריד עברי מלא']},
+ {k:'supporters',e:'💖',l:'תורמים + קבלות סעיף 46',p:180,on:1,f:['קבלות מס רציפות + דוח שנתי','הוראות-קבע ורישום המוני','מרכז מודיעין-תורמים (RFM)','חלון-עבודה יומי + פלטת ⌘K']},
+ {k:'courses',e:'🎓',l:'חוגים ושיבוצים',p:120,f:['נוכחות לכל הקבוצה בטאפ','כרטיסיות, גבייה ורשימת-המתנה','אפליקציית-מורה + כרטיס-הורה','חיזוי נשירה והתערבות']},
+ {k:'diary',e:'🚪',l:'יומן חדרים',p:70,f:['תפיסת חדרים ופגישות','חסימות חגים אוטומטיות','משולב עם החנות והחוגים']},
+ {k:'reports',e:'📊',l:'דוחות והנהלה',p:60,f:['מבט-הנהלה חוצה-מודולים','CSV ותדפיסים מכל מסך','ייצוא מותאם אישית']},
+ {k:'tzedaka',e:'🪙',l:'קופות ומבצעי התרמה',p:90,f:['רכזים, קופות וריקונים','מבצעים ולוח ייעודי','ראווה ציבורית']},
+ {k:'shop',e:'🛍️',l:'חנות שירותים ומוצרים',p:90,f:['קטלוג, מלאי וקליטות','זכאות והנחות','מימושים ואישורי תשלום']},
+ {k:'shop7',e:'📦',l:'חלוקה ומתנדבים',p:80,f:['ימי-חלוקה ולוח מסירות','מסלול ניווט לכל מתנדב','חתימת מקבל דיגיטלית']}
+];
+var INTS=[
+ {k:'whatsapp',e:'💬',l:'וואטסאפ',p:50},{k:'payments',e:'💳',l:'סליקה וקישורי-תשלום',p:90},
+ {k:'maps',e:'🗺️',l:'מפות ומסלולים',p:40},{k:'gcal',e:'📆',l:'יומן גוגל',p:30},
+ {k:'ai',e:'🤖',l:'עוזר AI למכתבי-תודה',p:120},{k:'esign',e:'✍️',l:'חתימה דיגיטלית',p:60},
+ {k:'campaign',e:'📣',l:'עמוד קמפיין',p:60}
+];
+var VERTS=[
+ ['🕯️','עמותת חסד','גמ"ח · קופת צדקה'],['💇','קליניקה','לייזר · קוסמטיקה · רפואה'],
+ ['🛍️','חנות / קמעונאות','מכירה · שירות'],['💼','שירותים / פרילנסר','ייעוץ · צלם · טיפול-בית'],
+ ['🏠','השכרת חללים','חדרי ישיבות · אולמות'],['🚗','צי רכב / השכרה','רכבים · ציוד · כלים'],
+ ['🔧','מוסך / מעבדה','תיקונים · שירות'],['🏨','אירוח / צימרים','מלונית · אכסניה'],
+ ['🤝','גמ"ח (השאלת ציוד)','קטלוג · השאלות'],['🪙','ארגון התרמה','רכזים · קופות · מבצעים'],
+ ['💻','סטודיו דיגיטל','אפליקציות · אתרים'],['🏗️','בנייה / קבלנות','אתרים · שלבי-ביצוע'],
+ ['🏢','סטודיו + בנייה','פרויקטים משולב']
+];
+
+/* ─── רינדור ─── */
+function el(h){var d=document.createElement('div');d.innerHTML=h;return d.firstElementChild}
+var vg=document.getElementById('vertGrid');
+VERTS.forEach(function(v){vg.appendChild(el('<div class="vert"><div class="em">'+v[0]+'</div><div class="nm">'+v[1]+'</div><div class="sb">'+v[2]+'</div></div>'))});
+
+var cg=document.getElementById('capGrid');
+cg.appendChild(el('<div class="cap core"><span class="price inc">כלול תמיד</span><h3>🧡 הבסיס — ₪'+BASE+'/ח׳</h3><ul><li>לוח בקרה יומי</li><li>הגדרות, צוות והרשאות</li><li>גיבוי יומי אוטומטי + שחזור עצמי</li><li>התקנה כאפליקציה (PWA), אופליין מלא</li><li>עיצוב וזהות בהתאמה מלאה</li></ul></div>'));
+MODS.forEach(function(m){
+  var tag=m.p?'+₪'+m.p+'/ח׳':'כלול';
+  cg.appendChild(el('<div class="cap'+(m.p?'':' core')+'"><span class="price'+(m.p?'':' inc')+'">'+tag+'</span><h3>'+m.e+' '+m.l+'</h3><ul>'+m.f.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul></div>'));
+});
+
+/* ─── מחשבון ─── */
+var state={size:'small',mods:{},ints:{}};
+MODS.forEach(function(m){state.mods[m.k]=!!m.on});
+var ss=document.getElementById('sizeSeg');
+SIZES.forEach(function(s){
+  var b=el('<button type="button">'+s.l+'<small>'+s.s+'</small></button>');
+  b.onclick=function(){state.size=s.id;render()};b.dataset.id=s.id;ss.appendChild(b);
+});
+function optRow(box,item,map){
+  var lab=el('<label class="opt'+(item.p?'':' inc')+'"><input type="checkbox"'+(map[item.k]?' checked':'')+(item.lock?' disabled':'')+'> <span>'+item.e+' '+item.l+'</span><span class="p">'+(item.p?'+₪'+item.p:'כלול')+'</span></label>');
+  lab.querySelector('input').onchange=function(e){map[item.k]=e.target.checked;render()};
+  box.appendChild(lab);
+}
+var mo=document.getElementById('modOpts'),io=document.getElementById('intOpts');
+MODS.forEach(function(m){optRow(mo,m,state.mods)});
+INTS.forEach(function(i){optRow(io,i,state.ints)});
+
+function render(){
+  ss.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.id===state.size)});
+  var s=SIZES.filter(function(x){return x.id===state.size})[0];
+  var sub=0,lines=[];
+  MODS.forEach(function(m){if(state.mods[m.k]&&m.p){sub+=m.p;lines.push([m.e+' '+m.l,m.p])}});
+  INTS.forEach(function(i){if(state.ints[i.k]&&i.p){sub+=i.p;lines.push([i.e+' '+i.l,i.p])}});
+  var monthly=Math.round((BASE+sub)*s.m);
+  document.getElementById('qMonthly').textContent='₪'+monthly.toLocaleString('he-IL');
+  var lh='<div class="qline"><span>בסיס (ליבה מלאה)</span><b>₪'+BASE+'</b></div>';
+  lines.forEach(function(L){lh+='<div class="qline"><span>'+L[0]+'</span><b>₪'+L[1]+'</b></div>'});
+  if(s.m!==1)lh+='<div class="qline"><span>מכפיל גודל ('+s.l+')</span><b>×'+s.m+'</b></div>';
+  lh+='<div class="qline"><span>שנתי (12 ח׳)</span><b>₪'+(monthly*12).toLocaleString('he-IL')+'</b></div>';
+  document.getElementById('qLines').innerHTML=lh;
+  document.getElementById('qSave').textContent='🎁 במסלול שנתי: חודשיים חינם — ₪'+(monthly*10).toLocaleString('he-IL')+' בלבד';
+}
+render();
+</script>
+</body>
+</html>
