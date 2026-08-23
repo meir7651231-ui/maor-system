@@ -123,7 +123,7 @@ describe('🔒 ratchet — ממצאי-נחיל-סולה (23.8) בשרת', () => 
   const src = readFileSync(join(HERE, 'solaPull.js'), 'utf8');
   const engine = readFileSync(join(HERE, 'solaReport.js'), 'utf8');
   it('S1 · כשל-HTTP/מבנה-זר מהשער ⇒ throw (לא "דוח ריק" שקט שמקדם cursor)', () => {
-    expect(src).toMatch(/if \(!resp\.ok\) throw new Error\('sola: HTTP '/);
+    expect(src).toMatch(/if \(!httpOk\) throw new Error\('sola: HTTP '/);
     expect(src).toMatch(/okMarker[\s\S]{0,200}xResult === 'S'/);
     expect(src).toMatch(/if \(!okMarker && !Array\.isArray\(rows\)\)[\s\S]{0,80}throw/);
   });
@@ -177,8 +177,14 @@ describe('🔒 ratchet — גבול-הכסף של solaPull', () => {
   });
   it('💎 23.8 · פרטי-קשר מהשער: xFields מבקש את עמודות-הקשר; העשרת-קיימות נוגעת רק ב-phone/email/name', () => {
     // הגשש (peek=2) הוכיח: בלי xFields הדוח חוזר בלי טלפון/אימייל; איתו — חוזרים.
-    expect(src).toMatch(/SOLA_FIELDS[\s\S]{0,300}xBillPhone/);
-    expect(src).toMatch(/xFields: SOLA_FIELDS/);
+    // 🐛 solarun #35+#37: xFields עם גיזום-עצמי — שם שנדחה ("Invalid Field") מוסר
+    // מהרשימה והבקשה מנוסה שוב; xVoid לא מבוקש (נדחה) אך חוזר כעמודת-ברירת-מחדל.
+    expect(src).toMatch(/solaFieldList[\s\S]{0,300}xBillPhone/);
+    expect(src).toMatch(/invalid field[\s\S]{0,300}solaFieldList = solaFieldList\.filter/i);
+    expect(src).not.toMatch(/solaFieldList = \[[\s\S]{0,300}xVoid'/);
+    // כשל-חלון לא מקדם cursor (רק כשנכתב משהו)
+    expect(src).toMatch(/writes\.length && clamped/);
+    expect(src).toMatch(/xFields: solaFieldList\.join/);
     // העשרת רשומות-קיימות: מיזוג-חלקי של שדות-קשר ריקים בלבד — לעולם לא סטטוס/סכום
     expect(src).toMatch(/\['phone', 'email', 'name'\]/);
     expect(src).toMatch(/batch\.set\(e\.ref, e\.fill, \{ merge: true \}\)/);

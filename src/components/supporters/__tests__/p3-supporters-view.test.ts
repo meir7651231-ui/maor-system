@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { sup12m, supAvgDon, supLastInPeriod, supScoreBins } from '../lib';
 import { numMatch } from '../../families/lib';
 import viewSrc from '../SupportersView.tsx?raw';
+import donorImportSrc from '../../settings/DonorImportSection.tsx?raw';
 import type { Supporter } from '../../../types/domain';
 
 function sup(over: Partial<Supporter>): Supporter {
@@ -111,10 +112,13 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
   // 🔁 חשיפת זיהוי-הו"ק-מהיסטוריה מחוץ לשער-הענן — המנוע (detectRecurringHok)
   // מקומי-טהור, נבדק ב-nedarim-hok.test; הכפתור היה קבור ב-NedarimSyncModal שנעול
   // payments+ענן. נוסף לבלוק-הו"ק, מוצג רק כשיש חיובי-נדרים ב-hist.
-  it('🛡 כפתור "זהה הו״ק מהיסטוריה" חשוף (detectNedarimHok, מגודר hasNedarimHist)', () => {
-    expect(viewSrc).toContain('🔁 זהה הו״ק מהיסטוריה');
-    expect(viewSrc).toContain('detectNedarimHok()');
-    expect(viewSrc).toContain("(sp.hist ?? []).some((h) => h.clearer === 'נדרים')");
+  it('🛡 כפתור "זהה הו״ק מהיסטוריה" — עבר למסך-המנהל (הכרעת-בעלים 23.8)', () => {
+    const donorImport = donorImportSrc;
+    expect(donorImport).toContain('🔁 זהה הו״ק מהיסטוריה');
+    expect(donorImport).toContain('detectNedarimHok()');
+    expect(viewSrc).not.toContain('detectNedarimHok');
+    // 🐝 נחיל-סולה C7 (23.8): הגידור מכיר גם בסולה — הו"ק מזוהה מכל חברת-סליקה
+    expect(donorImportSrc).toContain("h.clearer === 'נדרים' || h.clearer === 'סולה'");
   });
 
   // בקשת-בעלים "הסינון בתורמים כל החודשים כל השנים גם לסינון לפי תרומה אחרונה

@@ -130,34 +130,52 @@ const API_BASE = () => (process.env.SOLA_API_BASE || 'https://x1.cardknox.com').
 /** 💎 גשש-הלקוחות (peek=2, ‏23.8): ברירת-המחדל של הדוח חוזרת **בלי** טלפון/אימייל,
  *  אבל בקשת-עמודות מפורשת (xFields) כן מחזירה אותם — אומת מול השער האמיתי
  *  (xBillPhone/xEmail מלאים). הרשימה = כל העמודות שנצפו-חיות + פרטי-הקשר. */
-const SOLA_FIELDS = [
-  'xRefNum', 'xCommand', 'xName', 'xMaskedCardNumber', 'xToken', 'xAmount',
-  'xRequestAmount', 'xCustom01', 'xEnteredDate', 'xResponseAuthCode',
-  'xResponseResult', 'xVoid', 'xVoidable',
+/** 🐛 שטח-אמת (solarun #35+#37): ‏xFields הוא חרב-פיפיות — (א) השער דוחה חלק
+ *  מהשמות ("Invalid Field: xvoid") למרות שהוא מחזיר אותם כברירת-מחדל; ‏(ב) בקשה
+ *  של שדות-קשר-בלבד מחזירה שורות **בלי** עמודות-הסטטוס (כל 733 נראו לא-מאושרות
+ *  — שערי-הבטיחות עצרו הכול). הפתרון: רשימה מלאה עם **גיזום-עצמי** — שם שנדחה
+ *  מוסר מהרשימה (module-level, נשמר בין קריאות) והבקשה מנוסה שוב. */
+let solaFieldList = [
+  'xRefNum', 'xCommand', 'xName', 'xMaskedCardNumber', 'xAmount',
+  'xRequestAmount', 'xEnteredDate', 'xResponseAuthCode', 'xResponseResult',
   'xBillFirstName', 'xBillLastName', 'xBillPhone', 'xBillMobile', 'xEmail',
-].join(',');
+];
 
 async function fetchSolaReport(xKey, beginIso, endIso) {
-  const body = new URLSearchParams({
-    xKey,
-    xVersion: '5.0.0',
-    xSoftwareName: 'MaorOrbit',
-    xSoftwareVersion: '1.0',
-    xCommand: 'Report:Transactions',
-    xBeginDate: beginIso,
-    xEndDate: endIso,
-    xFields: SOLA_FIELDS,
-  });
-  const resp = await fetch(API_BASE() + '/report', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body,
-  });
-  const text = await resp.text();
+  let text = '';
+  let httpOk = true;
+  let httpStatus = 0;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const body = new URLSearchParams({
+      xKey,
+      xVersion: '5.0.0',
+      xSoftwareName: 'MaorOrbit',
+      xSoftwareVersion: '1.0',
+      xCommand: 'Report:Transactions',
+      xBeginDate: beginIso,
+      xEndDate: endIso,
+      ...(solaFieldList.length ? { xFields: solaFieldList.join(',') } : {}),
+    });
+    const resp = await fetch(API_BASE() + '/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    text = await resp.text();
+    httpOk = resp.ok;
+    httpStatus = resp.status;
+    if (!resp.ok) break; // ה-throw למטה (S1)
+    const bad = /invalid field:?\s*([A-Za-z0-9_]+)/i.exec(text);
+    if (!bad) break;
+    const before = solaFieldList.length;
+    solaFieldList = solaFieldList.filter((f) => f.toLowerCase() !== bad[1].toLowerCase());
+    console.log('sola xFields prune: ' + bad[1] + ' (נותרו ' + solaFieldList.length + ')');
+    if (solaFieldList.length === before) break; // שם לא-ברשימה — שגיאה אמיתית, ייזרק למטה
+  }
   // 🐛 נחיל-סולה S1 (23.8, HIGH): כשל-HTTP (502/HTML מ-proxy) נבלע בעבר כ"דוח
   // ריק" — פרוסה כושלת בשקט בזמן שפרוסות מאוחרות מקדמות את ה-cursor = חור-
   // עסקאות קבוע. כשל ⇒ throw: הריצה נופלת לפני עדכון-cursor, והדדופ בולע retry.
-  if (!resp.ok) throw new Error('sola: HTTP ' + resp.status + ' — ' + text.slice(0, 120));
+  if (!httpOk) throw new Error('sola: HTTP ' + httpStatus + ' — ' + text.slice(0, 120));
   let json = null;
   try {
     json = JSON.parse(text);
@@ -399,8 +417,10 @@ async function runSolaPull(org, opts = {}) {
     }
     // 🐛 נחיל-סולה S3 (23.8): lastDateIso לא נכבל לחלון — תאריך-עתידי משובש בשורה
     // אחת היה תוקע את ה-cursor בעתיד והמשיכות מתות בשקט. כובלים לקצה-החלון.
+    // 🐛 solarun #37: ה-cursor מתקדם רק כשנכתב משהו — חלון שכל-שורותיו נפסלו
+    // (למשל בגלל עמודות-חסרות) לא מזיז את הסמן, והדדופ בולע סריקה-חוזרת.
     const clamped = lastDateIso > we ? we : lastDateIso;
-    if (clamped && clamped > maxDate) maxDate = clamped;
+    if (writes.length && clamped && clamped > maxDate) maxDate = clamped;
   }
   if (maxDate && maxDate > lastDate) {
     await cursorRef.set({ lastDateIso: maxDate, at: new Date().toISOString() }, { merge: true });

@@ -15,10 +15,13 @@ import modalSrc from '../supporters/NedarimSyncModal.tsx?raw';
 describe('🛡 ratchet — חיבור-חי מנדרים לא מקפיא על באלק היסטורי', () => {
   it('App.tsx: החיבור-החי מדלג מעל תקרה (NED_LIVE_MAX) לפני עיבוד', () => {
     expect(appSrc).toContain('const NED_LIVE_MAX = 400');
-    expect(appSrc).toContain('if (rows.length > NED_LIVE_MAX) return;');
+    // 🐝 נחיל-סולה C3 (23.8): התקרה נבדקת על שורות-נדרים בלבד — ערימת-סולה
+    // הממתינה (אישור-ידני במכוון) לא משתיקה את החיבור-החי.
+    expect(appSrc).toContain("rows.filter((r) => r.provider !== 'sola')");
+    expect(appSrc).toContain('if (nedRows.length > NED_LIVE_MAX) return;');
     // הדילוג חייב להיות **לפני** applyNedarimAuto (אחרת כבר עיבדנו את כל ה-12K)
-    const guard = appSrc.indexOf('rows.length > NED_LIVE_MAX');
-    const apply = appSrc.indexOf('applyNedarimAuto(rows)');
+    const guard = appSrc.indexOf('nedRows.length > NED_LIVE_MAX');
+    const apply = appSrc.indexOf('applyNedarimAuto(nedRows)');
     expect(guard).toBeGreaterThan(0);
     expect(guard).toBeLessThan(apply);
   });
