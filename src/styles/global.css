@@ -1966,41 +1966,44 @@ button.hm-tier:focus-visible {
 
 /* ── שתי עמודות המוקאפ (פריסת ברירת המחדל בלבד) — ימין רחבה, שמאל צרה ── */
 
-.hm-cols {
-  display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  gap: 14px;
-  align-items: start;
+/* masonry דו-טורי לפאנלי-הבית (בקשת-בעלים "מסך הבית בלגן", 23.8): הדפדפן
+   מאזן את גבהי-הטורים **בפועל** (column-fill:balance), כך שווידג'ט שסונן/קצר
+   לא מותיר חצי-לוח-ריק ליד טור עמוס — הבעיה שהחליפה את הגריד-הקבוע 1.3fr/1fr.
+   כל ווידג'ט = פריט שלם (break-inside:avoid) שלא נחתך בין הטורים. */
+.hm-masonry {
+  columns: 2;
+  column-gap: 14px;
 }
 
-.hm-col {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-width: 0;
+.hm-ma-item {
+  break-inside: avoid;
+  margin-bottom: 14px;
 }
 
-:root[data-theme="heichal"] .hm-cols {
-  grid-template-columns: 1.3fr 1fr;
-  gap: 18px;
+/* הפריט האחרון בכל טור — בלי שוליים תחתונים כפולים מול הבלוק שאחרי ה-masonry */
+.hm-masonry > .hm-ma-item:last-child {
+  margin-bottom: 0;
 }
 
-:root[data-theme="heichal"] .hm-col {
-  gap: 18px;
+:root[data-theme="heichal"] .hm-masonry {
+  column-gap: 18px;
 }
 
-:root[data-theme="kehila"] .hm-cols {
-  grid-template-columns: 1.3fr 1fr;
+:root[data-theme="heichal"] .hm-ma-item {
+  margin-bottom: 18px;
 }
 
-:root[data-theme="tsohar"] .hm-cols {
-  grid-template-columns: 2fr 1fr;
-  gap: 12px;
+:root[data-theme="tsohar"] .hm-masonry {
+  column-gap: 12px;
+}
+
+:root[data-theme="tsohar"] .hm-ma-item {
+  margin-bottom: 12px;
 }
 
 @media (max-width: 900px) {
-  .hm-cols {
-    grid-template-columns: 1fr !important;
+  .hm-masonry {
+    columns: 1;
   }
 }
 

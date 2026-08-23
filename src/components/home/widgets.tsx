@@ -2121,7 +2121,10 @@ export const THEME_TEMPLATES: Record<string, ThemeBoardTemplate> = {
   heichal: { pre: ['stats'], colA: ['mytasks', 'today', 'attention', 'suggest'], colB: ['goldbook', 'hebcal'], post: [] },
   /* mock-tsohar: היום כטבלה רחבה (2fr) מול דורש טיפול (1fr) */
   tsohar: { pre: ['stats'], colA: ['mytasks', 'today'], colB: ['attention', 'suggest'], post: ['recent'] },
-  /* mock-kehila: ימין המפגשים של היום · שמאל שווה לטפל+הקהילה שלנו (1.3fr/1fr) */
+  /* mock-kehila: ימין המפגשים של היום · שמאל שווה לטפל+הקהילה שלנו (1.3fr/1fr).
+     הפיצול נשמר כסדר-מקור; החלוקה-בפועל לעמודות מאוזנת-גובה ב-HomeView
+     (balanceColumns) — כדי שלא ייווצר חצי-לוח-ריק כשווידג'ט מסונן (בקשת-בעלים
+     "מסך הבית בלגן", 23.8). */
   kehila: { pre: ['stats', 'bdays'], colA: ['mytasks', 'today'], colB: ['attention', 'suggest', 'community'], post: [] },
 };
 
