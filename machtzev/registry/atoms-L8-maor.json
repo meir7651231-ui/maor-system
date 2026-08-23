@@ -1,0 +1,1222 @@
+[
+ {
+  "id": "L8:maor:CLAUDE.md",
+  "level": "L8-knowledge",
+  "name": "CLAUDE.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 113,
+  "title": "maor-system («מאור החסד») — הוראות לכל סשן",
+  "source": "maor/CLAUDE.md"
+ },
+ {
+  "id": "L8:maor:knowledge/AGENT_CONTEXT.md",
+  "level": "L8-knowledge",
+  "name": "AGENT_CONTEXT.md",
+  "type": "AGENT",
+  "date": null,
+  "lines": 38,
+  "title": "AGENT_CONTEXT — קרא לפני כל תקציר",
+  "source": "maor/knowledge/AGENT_CONTEXT.md"
+ },
+ {
+  "id": "L8:maor:knowledge/ANALYSIS-2026-07-29.md",
+  "level": "L8-knowledge",
+  "name": "ANALYSIS-2026-07-29.md",
+  "type": "ANALYSIS",
+  "date": "2026-07-29",
+  "lines": 155,
+  "title": "ניתוח מלא — maor-system («מאור החסד»)",
+  "source": "maor/knowledge/ANALYSIS-2026-07-29.md"
+ },
+ {
+  "id": "L8:maor:knowledge/ARCHITECT-LESSONS.md",
+  "level": "L8-knowledge",
+  "name": "ARCHITECT-LESSONS.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 45,
+  "title": "📕 לקחי הארכיטקט — קובץ חי (נלמד בדם בסשן 29-30.7.2026)",
+  "source": "maor/knowledge/ARCHITECT-LESSONS.md"
+ },
+ {
+  "id": "L8:maor:knowledge/ARCHITECT-SIGNOFF-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "ARCHITECT-SIGNOFF-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 21,
+  "title": "🏁 חתימת הארכיטקט — משימת המעבר מהקובץ החי הושלמה",
+  "source": "maor/knowledge/ARCHITECT-SIGNOFF-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/atoms/B-SURFACE-ATLAS.md",
+  "level": "L8-knowledge",
+  "name": "B-SURFACE-ATLAS.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 294,
+  "title": "אטלס-אטומים · משטח-B (תרומות + סנכרון) — מפת-בטיחות לרי-ארכיטקצורה",
+  "source": "maor/knowledge/atoms/B-SURFACE-ATLAS.md"
+ },
+ {
+  "id": "L8:maor:knowledge/ATOMS-K0-2026-08-23.md",
+  "level": "L8-knowledge",
+  "name": "ATOMS-K0-2026-08-23.md",
+  "type": "ATOMS",
+  "date": "2026-08-23",
+  "lines": 57,
+  "title": "⚛️ פירוק-לאטומים · K0 — עשרה לקוחות משלמים עד 31.12.2026",
+  "source": "maor/knowledge/ATOMS-K0-2026-08-23.md"
+ },
+ {
+  "id": "L8:maor:knowledge/AUDIT-CLOUD2-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "AUDIT-CLOUD2-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 18,
+  "title": "🔍 ביקורת ארכיטקט — גל I: ‏CLOUD2 (הרשמה → אישור → עריכה חיה → \"הוקם\")",
+  "source": "maor/knowledge/AUDIT-CLOUD2-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/AUDIT-SHOP-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "AUDIT-SHOP-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 24,
+  "title": "🔍 ביקורת ארכיטקט — מסירת עמודת \"חנות\" (מודול shop)",
+  "source": "maor/knowledge/AUDIT-SHOP-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/AUDIT-SHOP2-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "AUDIT-SHOP2-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 19,
+  "title": "🔍 ביקורת ארכיטקט — מסירת SHOP2 (מלאי · אישור S- · תוקף קופונים)",
+  "source": "maor/knowledge/AUDIT-SHOP2-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/AUDIT-SHOP3-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "AUDIT-SHOP3-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 18,
+  "title": "🔍 ביקורת ארכיטקט — מסירת SHOP3 (חידוש מלאי · ביטול עם סימון)",
+  "source": "maor/knowledge/AUDIT-SHOP3-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/AUDIT-SHOP4-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "AUDIT-SHOP4-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 21,
+  "title": "🔍 ביקורת ארכיטקט — מסירת SHOP4 (תיקוני שטח · פריטים · חגים · פגישות-חדר)",
+  "source": "maor/knowledge/AUDIT-SHOP4-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/AUDIT-SHOP5-CONNECT-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "AUDIT-SHOP5-CONNECT-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 12,
+  "title": "🔍 ביקורת ארכיטקט — גלים A+B: ‏SHOP5 (חנות 21-24) + CONNECT (חיבור 1-7)",
+  "source": "maor/knowledge/AUDIT-SHOP5-CONNECT-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/AUDIT-SHOP6-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "AUDIT-SHOP6-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 13,
+  "title": "🔍 ביקורת ארכיטקט — גל D: ‏SHOP6 (חלוקה המונית · מלאי נכנס · רשימות המתנה)",
+  "source": "maor/knowledge/AUDIT-SHOP6-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/AUDIT-SIGNUP-2026-07-31.md",
+  "level": "L8-knowledge",
+  "name": "AUDIT-SIGNUP-2026-07-31.md",
+  "type": "OTHER",
+  "date": "2026-07-31",
+  "lines": 62,
+  "title": "🔍 ביקורת ארכיטקט — SIGNUP (מסך ההרשמה של אורביט)",
+  "source": "maor/knowledge/AUDIT-SIGNUP-2026-07-31.md"
+ },
+ {
+  "id": "L8:maor:knowledge/AUDIT-TZEDAKA-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "AUDIT-TZEDAKA-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 22,
+  "title": "🔍 ביקורת ארכיטקט — מסירת עמודת \"קופות צדקה\"",
+  "source": "maor/knowledge/AUDIT-TZEDAKA-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/AUDIT-UX-PLATFORM-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "AUDIT-UX-PLATFORM-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 13,
+  "title": "🔍 ביקורת ארכיטקט — גלים B½+C: ‏UX (סינון 1-4) + PLATFORM (אשף 1-4)",
+  "source": "maor/knowledge/AUDIT-UX-PLATFORM-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUGHUNT-2026-08-03.md",
+  "level": "L8-knowledge",
+  "name": "BUGHUNT-2026-08-03.md",
+  "type": "OTHER",
+  "date": "2026-08-03",
+  "lines": 51,
+  "title": "דוח ציד-באגים — לקראת מסירה למאור (3.8.2026)",
+  "source": "maor/knowledge/BUGHUNT-2026-08-03.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-ADMINHUB-2026-07-31.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-ADMINHUB-2026-07-31.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-31",
+  "lines": 38,
+  "title": "🛠 פקודת בנייה — ADMINHUB: כניסת-ניהול גלויה למנהל-העל בלבד",
+  "source": "maor/knowledge/BUILD-ORDER-ADMINHUB-2026-07-31.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-CLOUD2-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-CLOUD2-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 56,
+  "title": "☁️ פקודת בנייה — CLOUD2: הרשמה → אישור → עריכה חיה → \"יש לו אתר\"",
+  "source": "maor/knowledge/BUILD-ORDER-CLOUD2-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-CONNECT-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-CONNECT-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 48,
+  "title": "🔌 פקודת בנייה — CONNECT: שבעת חיבורי המערכת לעמודות החדשות",
+  "source": "maor/knowledge/BUILD-ORDER-CONNECT-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-COURSES-2026-08-20.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-COURSES-2026-08-20.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-08-20",
+  "lines": 120,
+  "title": "סדר-בנייה · שיפורי החוגים — אופטימיזציה לתפעול",
+  "source": "maor/knowledge/BUILD-ORDER-COURSES-2026-08-20.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-DATALAYER-ENFORCEMENT-2026-08-14.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-DATALAYER-ENFORCEMENT-2026-08-14.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-08-14",
+  "lines": 96,
+  "title": "BUILD-ORDER · אכיפת-הרשאות בשכבת-הנתונים (Data-Layer Enforcement)",
+  "source": "maor/knowledge/BUILD-ORDER-DATALAYER-ENFORCEMENT-2026-08-14.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-INTEGRATIONS-2026-08-04.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-INTEGRATIONS-2026-08-04.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-08-04",
+  "lines": 90,
+  "title": "BUILD-ORDER · הרחבות אמיתיות (INTEGRATIONS גל א׳) — 4.8.2026",
+  "source": "maor/knowledge/BUILD-ORDER-INTEGRATIONS-2026-08-04.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-INTEGRATIONS-C-2026-08-04.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-INTEGRATIONS-C-2026-08-04.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-08-04",
+  "lines": 65,
+  "title": "BUILD-ORDER · הרחבות גל ג׳ — \"עד-המפתח\" (4.8.2026)",
+  "source": "maor/knowledge/BUILD-ORDER-INTEGRATIONS-C-2026-08-04.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-ORGADMIN-2026-08-03.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-ORGADMIN-2026-08-03.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-08-03",
+  "lines": 101,
+  "title": "BUILD-ORDER · היררכיית ניהול 3-שכבתית (מנהל-ארגון + עובדות)",
+  "source": "maor/knowledge/BUILD-ORDER-ORGADMIN-2026-08-03.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-P0-2026-07-29.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-P0-2026-07-29.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-29",
+  "lines": 121,
+  "title": "🏗️ פקודת בנייה P0 — מהארכיטקט לסוכן הבנייה",
+  "source": "maor/knowledge/BUILD-ORDER-P0-2026-07-29.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-P1-2026-07-29.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-P1-2026-07-29.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-29",
+  "lines": 37,
+  "title": "🏗️ פקודת בנייה P1 — פערי החוויה המרכזיים + באגי הקבלות",
+  "source": "maor/knowledge/BUILD-ORDER-P1-2026-07-29.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-P2-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-P2-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 42,
+  "title": "🏗️ פקודת בנייה P2 — ויזואליזציה, איכות נתונים, והסגירה ל-199/199",
+  "source": "maor/knowledge/BUILD-ORDER-P2-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-P2-MICRO.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-P2-MICRO.md",
+  "type": "BUILD-ORDER",
+  "date": null,
+  "lines": 86,
+  "title": "⚡ P2-MICRO — שארית P2 לעוסה לביצוע ישיר (בלי ארכיאולוגיה)",
+  "source": "maor/knowledge/BUILD-ORDER-P2-MICRO.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-P3-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-P3-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 39,
+  "title": "🏁 פקודת בנייה P3 — סגירת 23 הנותרים → 129/129",
+  "source": "maor/knowledge/BUILD-ORDER-P3-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-PLATFORM-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-PLATFORM-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 31,
+  "title": "🏗 פקודת בנייה — PLATFORM: חיבור העמודות החדשות למכונת ה-white-label",
+  "source": "maor/knowledge/BUILD-ORDER-PLATFORM-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-SHOP-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-SHOP-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 218,
+  "title": "🛍 פקודת בנייה — עמודת \"חנות\" (מודול shop — מוצרי שירות)",
+  "source": "maor/knowledge/BUILD-ORDER-SHOP-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-SHOP2-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-SHOP2-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 56,
+  "title": "🛍 פקודת בנייה — שדרוגי חנות (SHOP2: מלאי · אישור תשלום · תוקף קופונים)",
+  "source": "maor/knowledge/BUILD-ORDER-SHOP2-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-SHOP3-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-SHOP3-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 38,
+  "title": "🛍 פקודת בנייה — SHOP3: חידוש מלאי מהיר · ביטול מימוש עם סימון",
+  "source": "maor/knowledge/BUILD-ORDER-SHOP3-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-SHOP4-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-SHOP4-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 77,
+  "title": "🛍 פקודת בנייה — SHOP4: תיקוני שטח · פריטים עם מלאי משותף · חגים נבחרים · פגישות",
+  "source": "maor/knowledge/BUILD-ORDER-SHOP4-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-SHOP5-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-SHOP5-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 40,
+  "title": "🛍 פקודת בנייה — SHOP5: יומן · קופה רושמת · מיזוג פריטים · תזכורות פגישה",
+  "source": "maor/knowledge/BUILD-ORDER-SHOP5-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-SHOP6-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-SHOP6-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 57,
+  "title": "🛍 פקודת בנייה — SHOP6: חלוקה המונית · מלאי נכנס · רשימות המתנה",
+  "source": "maor/knowledge/BUILD-ORDER-SHOP6-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-SHOP7-2026-08-01.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-SHOP7-2026-08-01.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-08-01",
+  "lines": 86,
+  "title": "🚚 פקודת-בנייה — SHOP7: מתנדבים · יום-חלוקה · מסירות (מעקב קדימה)",
+  "source": "maor/knowledge/BUILD-ORDER-SHOP7-2026-08-01.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-SIGNUP-2026-07-31.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-SIGNUP-2026-07-31.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-31",
+  "lines": 40,
+  "title": "🪐 פקודת בנייה — SIGNUP: הטמעת מסך ההרשמה של אורביט (עיצוב Claude Design)",
+  "source": "maor/knowledge/BUILD-ORDER-SIGNUP-2026-07-31.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-SIGNUP2-2026-07-31.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-SIGNUP2-2026-07-31.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-31",
+  "lines": 38,
+  "title": "🪐 פקודת בנייה — SIGNUP2: פיצול three ל-lazy-chunk (ביצועים)",
+  "source": "maor/knowledge/BUILD-ORDER-SIGNUP2-2026-07-31.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-TZEDAKA-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-TZEDAKA-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 211,
+  "title": "🪙 פקודת בנייה — עמודת \"קופות צדקה\" (מודול tzedaka)",
+  "source": "maor/knowledge/BUILD-ORDER-TZEDAKA-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-UX-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-UX-2026-07-30.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-07-30",
+  "lines": 43,
+  "title": "🔍 פקודת בנייה — UX: חיפוש · סינון · מיון · קישורים צולבים בעמודות החדשות",
+  "source": "maor/knowledge/BUILD-ORDER-UX-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/BUILD-ORDER-UX-SIMPLE-2026-08-05.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-ORDER-UX-SIMPLE-2026-08-05.md",
+  "type": "BUILD-ORDER",
+  "date": "2026-08-05",
+  "lines": 324,
+  "title": "BUILD-ORDER-UX-SIMPLE — \"אתר ידידותי וקליל מקסימום\" (5.8.2026)",
+  "source": "maor/knowledge/BUILD-ORDER-UX-SIMPLE-2026-08-05.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-ADMINHUB-2026-07-31.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-ADMINHUB-2026-07-31.md",
+  "type": "CLOSED",
+  "date": "2026-07-31",
+  "lines": 34,
+  "title": "✅ CLOSED-ADMINHUB — כניסת-ניהול גלויה למנהל-העל",
+  "source": "maor/knowledge/CLOSED-ADMINHUB-2026-07-31.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-BUGLOOP-2026-08-03.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-BUGLOOP-2026-08-03.md",
+  "type": "CLOSED",
+  "date": "2026-08-03",
+  "lines": 48,
+  "title": "סגירת לולאת-הבאגים — ANALYSIS §5 (2026-08-03)",
+  "source": "maor/knowledge/CLOSED-BUGLOOP-2026-08-03.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-CLOUD2-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-CLOUD2-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 62,
+  "title": "✅ CLOSED-CLOUD2 — הרשמה → אישור → עריכה חיה → \"יש לו אתר\"",
+  "source": "maor/knowledge/CLOSED-CLOUD2-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-COCKPIT-2026-08-20.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-COCKPIT-2026-08-20.md",
+  "type": "CLOSED",
+  "date": "2026-08-20",
+  "lines": 42,
+  "title": "דוח סגירה · שכבת-ההעצמה של מסך התורמים (הקוקפיט) — 20.8.2026",
+  "source": "maor/knowledge/CLOSED-COCKPIT-2026-08-20.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-CONNECT-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-CONNECT-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 32,
+  "title": "CLOSED-CONNECT — דוח מסירה · שבעת חיבורי המערכת לעמודות החדשות",
+  "source": "maor/knowledge/CLOSED-CONNECT-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-DATALAYER-ENFORCE-2026-08-16.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-DATALAYER-ENFORCE-2026-08-16.md",
+  "type": "CLOSED",
+  "date": "2026-08-16",
+  "lines": 90,
+  "title": "CLOSED · אכיפת-נתונים פר-ייעוד — \"אפס מידע בין עובדות\" (16.8.2026)",
+  "source": "maor/knowledge/CLOSED-DATALAYER-ENFORCE-2026-08-16.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-HOME-MAX-2026-08-20.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-HOME-MAX-2026-08-20.md",
+  "type": "CLOSED",
+  "date": "2026-08-20",
+  "lines": 32,
+  "title": "CLOSED · לולאת \"בית למקסימום\" (19–20.8.2026, PR ‏#232 / ‏#234 / ‏#235)",
+  "source": "maor/knowledge/CLOSED-HOME-MAX-2026-08-20.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-NEDARIM-SYNC-2026-08-19.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-NEDARIM-SYNC-2026-08-19.md",
+  "type": "CLOSED",
+  "date": "2026-08-19",
+  "lines": 106,
+  "title": "סנכרון נדרים-פלוס ↔ מאור — דו-כווני מלא דרך המפתחות (19.8.2026)",
+  "source": "maor/knowledge/CLOSED-NEDARIM-SYNC-2026-08-19.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-NEXTGEN-2026-08-20.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-NEXTGEN-2026-08-20.md",
+  "type": "CLOSED",
+  "date": "2026-08-20",
+  "lines": 159,
+  "title": "דוח סגירה · מסכי-הדור-הבא לתורמים — 20.8.2026",
+  "source": "maor/knowledge/CLOSED-NEXTGEN-2026-08-20.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-NIGHT-2026-08-05.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-NIGHT-2026-08-05.md",
+  "type": "CLOSED",
+  "date": "2026-08-05",
+  "lines": 49,
+  "title": "סגירת צרור-הלילה (ROADMAP-100) — 5.8.2026",
+  "source": "maor/knowledge/CLOSED-NIGHT-2026-08-05.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-ONBOARD-2026-08-05.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-ONBOARD-2026-08-05.md",
+  "type": "CLOSED",
+  "date": "2026-08-05",
+  "lines": 49,
+  "title": "סגירת מקבץ-ההצטרפות (5.8.2026 אחה\"צ) — PR ‏#68–#76",
+  "source": "maor/knowledge/CLOSED-ONBOARD-2026-08-05.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-P0-2026-07-29.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-P0-2026-07-29.md",
+  "type": "CLOSED",
+  "date": "2026-07-29",
+  "lines": 92,
+  "title": "✅ מה נסגר — חבילת P0 במלואה (דוח מסירה לארכיטקט)",
+  "source": "maor/knowledge/CLOSED-P0-2026-07-29.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-P1-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-P1-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 131,
+  "title": "✅ מה נסגר — חבילת P1 במלואה (דוח מסירה לארכיטקט)",
+  "source": "maor/knowledge/CLOSED-P1-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-P2-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-P2-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 103,
+  "title": "CLOSED-P2 — דוח מסירה · חבילת P2 (פערים 19–33) + מעבר 199/199",
+  "source": "maor/knowledge/CLOSED-P2-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-P3-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-P3-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 54,
+  "title": "CLOSED-P3 — דוח מסירה · סגירת 23 הנותרים → 129/129",
+  "source": "maor/knowledge/CLOSED-P3-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-PLATFORM-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-PLATFORM-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 30,
+  "title": "✅ CLOSED-PLATFORM — גל ד: חיבור העמודות החדשות למכונת ה-white-label",
+  "source": "maor/knowledge/CLOSED-PLATFORM-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-PORTAL-CHAT-2026-08-21.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-PORTAL-CHAT-2026-08-21.md",
+  "type": "CLOSED",
+  "date": "2026-08-21",
+  "lines": 73,
+  "title": "סגירה · שער-ההצטרפות + צ׳אט-הצוות + תצוגת-מורה + מודיעין — 21.8.2026",
+  "source": "maor/knowledge/CLOSED-PORTAL-CHAT-2026-08-21.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-PUBLICSITE-2026-08-16.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-PUBLICSITE-2026-08-16.md",
+  "type": "CLOSED",
+  "date": "2026-08-16",
+  "lines": 73,
+  "title": "CLOSED · אתר-ציבורי (דף-תרומות) pixel-perfect — 2026-08-16",
+  "source": "maor/knowledge/CLOSED-PUBLICSITE-2026-08-16.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-ROADMAP-BATCH-2026-08-21.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-ROADMAP-BATCH-2026-08-21.md",
+  "type": "CLOSED",
+  "date": "2026-08-21",
+  "lines": 84,
+  "title": "סגירת צרור-ה-Roadmap (21.8.2026) — 1/4/5/6 + חייגן/חיפוש/טלפוניה",
+  "source": "maor/knowledge/CLOSED-ROADMAP-BATCH-2026-08-21.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-SHOP-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-SHOP-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 51,
+  "title": "CLOSED-SHOP — דוח מסירה · עמודת \"חנות\" (מוצרי שירות)",
+  "source": "maor/knowledge/CLOSED-SHOP-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-SHOP2-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-SHOP2-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 46,
+  "title": "CLOSED-SHOP2 — דוח מסירה · שדרוגי החנות (מלאי · אישור תשלום · תוקף קופונים)",
+  "source": "maor/knowledge/CLOSED-SHOP2-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-SHOP3-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-SHOP3-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 38,
+  "title": "CLOSED-SHOP3 — דוח מסירה · חידוש מלאי מהיר + ביטול מימוש עם סימון",
+  "source": "maor/knowledge/CLOSED-SHOP3-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-SHOP4-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-SHOP4-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 50,
+  "title": "CLOSED-SHOP4 — דוח מסירה · תיקוני שטח · פריטים במלאי משותף · חגים נבחרים · פגישו",
+  "source": "maor/knowledge/CLOSED-SHOP4-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-SHOP5-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-SHOP5-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 41,
+  "title": "CLOSED-SHOP5 — דוח מסירה · יומן · קופה רושמת · מיזוג פריטים · פגישות קרובות",
+  "source": "maor/knowledge/CLOSED-SHOP5-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-SHOP6-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-SHOP6-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 36,
+  "title": "✅ CLOSED-SHOP6 — גל ה: חלוקה המונית · מלאי נכנס · רשימות המתנה",
+  "source": "maor/knowledge/CLOSED-SHOP6-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-SHOP7-2026-08-01.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-SHOP7-2026-08-01.md",
+  "type": "CLOSED",
+  "date": "2026-08-01",
+  "lines": 29,
+  "title": "✅ סגירה — SHOP7: מתנדבים · יום-חלוקה · מסירות",
+  "source": "maor/knowledge/CLOSED-SHOP7-2026-08-01.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-SIGNUP-2026-07-31.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-SIGNUP-2026-07-31.md",
+  "type": "CLOSED",
+  "date": "2026-07-31",
+  "lines": 44,
+  "title": "✅ CLOSED-SIGNUP — מסך ההרשמה של אורביט (עיצוב Claude Design)",
+  "source": "maor/knowledge/CLOSED-SIGNUP-2026-07-31.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-SIGNUP2-2026-07-31.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-SIGNUP2-2026-07-31.md",
+  "type": "CLOSED",
+  "date": "2026-07-31",
+  "lines": 38,
+  "title": "✅ CLOSED-SIGNUP2 — פיצול three ל-lazy + חיווט \"צפו בסרטון\"",
+  "source": "maor/knowledge/CLOSED-SIGNUP2-2026-07-31.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-SOLA-2026-08-23.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-SOLA-2026-08-23.md",
+  "type": "CLOSED",
+  "date": "2026-08-23",
+  "lines": 77,
+  "title": "CLOSED · חיווט Sola Payments מקצה-לקצה + אימות-התאמה מלא (23.8.2026)",
+  "source": "maor/knowledge/CLOSED-SOLA-2026-08-23.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-STUDIO-2026-08-16.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-STUDIO-2026-08-16.md",
+  "type": "CLOSED",
+  "date": "2026-08-16",
+  "lines": 103,
+  "title": "CLOSED · ורטיקל הסטודיו (דיגיטל + בנייה) — דוח סגירה",
+  "source": "maor/knowledge/CLOSED-STUDIO-2026-08-16.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-SWARM-2026-08-21.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-SWARM-2026-08-21.md",
+  "type": "CLOSED",
+  "date": "2026-08-21",
+  "lines": 37,
+  "title": "דוח סגירה · נחיל מלא על כל האתר (21.8.2026, PR ‏#334)",
+  "source": "maor/knowledge/CLOSED-SWARM-2026-08-21.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-TZEDAKA-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-TZEDAKA-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 40,
+  "title": "CLOSED-TZEDAKA — דוח מסירה · עמודת \"קופות צדקה\"",
+  "source": "maor/knowledge/CLOSED-TZEDAKA-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-UX-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-UX-2026-07-30.md",
+  "type": "CLOSED",
+  "date": "2026-07-30",
+  "lines": 45,
+  "title": "✅ CLOSED-UX — גל B½: חיפוש/סינון/מיון בעמודות החדשות",
+  "source": "maor/knowledge/CLOSED-UX-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-UX-SIMPLE-2026-08-06.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-UX-SIMPLE-2026-08-06.md",
+  "type": "CLOSED",
+  "date": "2026-08-06",
+  "lines": 49,
+  "title": "CLOSED — לולאת \"האתר ידידותי וקליל\" (UX-SIMPLE) + הביקורת המקיפה · 6.8.2026",
+  "source": "maor/knowledge/CLOSED-UX-SIMPLE-2026-08-06.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOSED-VERTICALS-TERMS-2026-08-03.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-VERTICALS-TERMS-2026-08-03.md",
+  "type": "CLOSED",
+  "date": "2026-08-03",
+  "lines": 98,
+  "title": "סגירה · ורטיקלים + מונחים-חיים + מקסום-דגלים באשף (3.8.2026)",
+  "source": "maor/knowledge/CLOSED-VERTICALS-TERMS-2026-08-03.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CLOUD2-DESIGN-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "CLOUD2-DESIGN-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 38,
+  "title": "☁️ CLOUD2 — עיצוב ארכיטקטוני: מ\"אתר עם קונפיגים\" לפלטפורמת SaaS",
+  "source": "maor/knowledge/CLOUD2-DESIGN-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/DECISIONS-2026-07-29.md",
+  "level": "L8-knowledge",
+  "name": "DECISIONS-2026-07-29.md",
+  "type": "OTHER",
+  "date": "2026-07-29",
+  "lines": 208,
+  "title": "✅ הכרעות המשתמש — צורת השדרוג של 6 הפריטים הפתוחים",
+  "source": "maor/knowledge/DECISIONS-2026-07-29.md"
+ },
+ {
+  "id": "L8:maor:knowledge/DESIGN-CLOUD-ENCRYPTION-2026-08-01.md",
+  "level": "L8-knowledge",
+  "name": "DESIGN-CLOUD-ENCRYPTION-2026-08-01.md",
+  "type": "OTHER",
+  "date": "2026-08-01",
+  "lines": 152,
+  "title": "🔐 עיצוב · הצפנת-ענן במנוחה (Cloud-at-Rest Encryption)",
+  "source": "maor/knowledge/DESIGN-CLOUD-ENCRYPTION-2026-08-01.md"
+ },
+ {
+  "id": "L8:maor:knowledge/ECOSYSTEM-MAP-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "ECOSYSTEM-MAP-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 50,
+  "title": "🗺️ מפת האקוסיסטם — maor ↔ בנייה חכמה (מאומת-קוד, 30.7.2026)",
+  "source": "maor/knowledge/ECOSYSTEM-MAP-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/FILTERED-NET-PLAYBOOK-2026-08-11.md",
+  "level": "L8-knowledge",
+  "name": "FILTERED-NET-PLAYBOOK-2026-08-11.md",
+  "type": "OTHER",
+  "date": "2026-08-11",
+  "lines": 106,
+  "title": "Playbook · לקוחות על אינטרנט מסונן (11.8.2026 · עודכן 12.8 אחרי תקרית-הדומיין)",
+  "source": "maor/knowledge/FILTERED-NET-PLAYBOOK-2026-08-11.md"
+ },
+ {
+  "id": "L8:maor:knowledge/HANDOFF-ARCHITECT-2026-07-29.md",
+  "level": "L8-knowledge",
+  "name": "HANDOFF-ARCHITECT-2026-07-29.md",
+  "type": "HANDOFF",
+  "date": "2026-07-29",
+  "lines": 125,
+  "title": "📋 מסירה לארכיטקט — סגירת הפער בין הקובץ החי ל־maor-system",
+  "source": "maor/knowledge/HANDOFF-ARCHITECT-2026-07-29.md"
+ },
+ {
+  "id": "L8:maor:knowledge/INVENTORY-COURSES-2026-08-20.md",
+  "level": "L8-knowledge",
+  "name": "INVENTORY-COURSES-2026-08-20.md",
+  "type": "INVENTORY",
+  "date": "2026-08-20",
+  "lines": 169,
+  "title": "אינוונטר-עומק · מודול החוגים (חוגים ושיבוצים) — 2026-08-20",
+  "source": "maor/knowledge/INVENTORY-COURSES-2026-08-20.md"
+ },
+ {
+  "id": "L8:maor:knowledge/INVENTORY-SUPPORTERS-2026-08-19.md",
+  "level": "L8-knowledge",
+  "name": "INVENTORY-SUPPORTERS-2026-08-19.md",
+  "type": "INVENTORY",
+  "date": "2026-08-19",
+  "lines": 200,
+  "title": "אינוונטר מלא · מסך התורמים (origin/main, 19.8.2026)",
+  "source": "maor/knowledge/INVENTORY-SUPPORTERS-2026-08-19.md"
+ },
+ {
+  "id": "L8:maor:knowledge/LEGACY-GAP-2026-07-29.md",
+  "level": "L8-knowledge",
+  "name": "LEGACY-GAP-2026-07-29.md",
+  "type": "LEGACY",
+  "date": "2026-07-29",
+  "lines": 154,
+  "title": "ניתוח פערים — הקובץ החי מול maor-system",
+  "source": "maor/knowledge/LEGACY-GAP-2026-07-29.md"
+ },
+ {
+  "id": "L8:maor:knowledge/MASTER-PLAN-SHOP-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "MASTER-PLAN-SHOP-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 27,
+  "title": "🗺 תוכנית-האב — השלמת עמודות החסד (חנות + קופות) ל-100%",
+  "source": "maor/knowledge/MASTER-PLAN-SHOP-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/NORTH-STAR-2026-08-23.md",
+  "level": "L8-knowledge",
+  "name": "NORTH-STAR-2026-08-23.md",
+  "type": "NORTH-STAR",
+  "date": "2026-08-23",
+  "lines": 39,
+  "title": "🎯 יעד-העל — Orbit · נרשם 23.8.2026 בהוראת הבעלים",
+  "source": "maor/knowledge/NORTH-STAR-2026-08-23.md"
+ },
+ {
+  "id": "L8:maor:knowledge/ORBIT-BRAND-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "ORBIT-BRAND-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 25,
+  "title": "🪐 אורביט — מסמך המותג (הכרעות בעלים 30.7.2026)",
+  "source": "maor/knowledge/ORBIT-BRAND-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/ORBIT-PRESSKIT-2026-07-30.md",
+  "level": "L8-knowledge",
+  "name": "ORBIT-PRESSKIT-2026-07-30.md",
+  "type": "OTHER",
+  "date": "2026-07-30",
+  "lines": 53,
+  "title": "🪐 אורביט — ערכת עורך (Press Kit)",
+  "source": "maor/knowledge/ORBIT-PRESSKIT-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/OWNER-SECURITY-BACKLOG-2026-08-16.md",
+  "level": "L8-knowledge",
+  "name": "OWNER-SECURITY-BACKLOG-2026-08-16.md",
+  "type": "OTHER",
+  "date": "2026-08-16",
+  "lines": 50,
+  "title": "OWNER SECURITY BACKLOG — הכרעות/פעולות-בעלים שנותרו (16.8.2026)",
+  "source": "maor/knowledge/OWNER-SECURITY-BACKLOG-2026-08-16.md"
+ },
+ {
+  "id": "L8:maor:knowledge/ROADMAP-100-2026-08-05.md",
+  "level": "L8-knowledge",
+  "name": "ROADMAP-100-2026-08-05.md",
+  "type": "ROADMAP",
+  "date": "2026-08-05",
+  "lines": 122,
+  "title": "🗺️ 100 הרחבות ושיפורים — מדורג לפי ערך (5.8.2026)",
+  "source": "maor/knowledge/ROADMAP-100-2026-08-05.md"
+ },
+ {
+  "id": "L8:maor:knowledge/ROADMAP-COURSES-2026-08-20.md",
+  "level": "L8-knowledge",
+  "name": "ROADMAP-COURSES-2026-08-20.md",
+  "type": "ROADMAP",
+  "date": "2026-08-20",
+  "lines": 128,
+  "title": "מפת-דרכים · שיפורי מודול החוגים — 2026-08-20",
+  "source": "maor/knowledge/ROADMAP-COURSES-2026-08-20.md"
+ },
+ {
+  "id": "L8:maor:knowledge/RUNBOOK-ANTICLONE-2026-08-16.md",
+  "level": "L8-knowledge",
+  "name": "RUNBOOK-ANTICLONE-2026-08-16.md",
+  "type": "RUNBOOK",
+  "date": "2026-08-16",
+  "lines": 44,
+  "title": "RUNBOOK · הגנת-מקור (anti-clone) — למנוע לקוח שגורר את המערכת ומקים משלו",
+  "source": "maor/knowledge/RUNBOOK-ANTICLONE-2026-08-16.md"
+ },
+ {
+  "id": "L8:maor:knowledge/RUNBOOK-AUTH-EMAIL-2026-08-09.md",
+  "level": "L8-knowledge",
+  "name": "RUNBOOK-AUTH-EMAIL-2026-08-09.md",
+  "type": "RUNBOOK",
+  "date": "2026-08-09",
+  "lines": 41,
+  "title": "Runbook · ניסוח עברי למייל איפוס-הסיסמה (הכרעת-בעלים 9.8)",
+  "source": "maor/knowledge/RUNBOOK-AUTH-EMAIL-2026-08-09.md"
+ },
+ {
+  "id": "L8:maor:knowledge/RUNBOOK-CLOUD-ENCRYPTION-2026-08-02.md",
+  "level": "L8-knowledge",
+  "name": "RUNBOOK-CLOUD-ENCRYPTION-2026-08-02.md",
+  "type": "RUNBOOK",
+  "date": "2026-08-02",
+  "lines": 61,
+  "title": "🔐 Runbook · הפעלת הצפנת-הענן (חלון-בעלים)",
+  "source": "maor/knowledge/RUNBOOK-CLOUD-ENCRYPTION-2026-08-02.md"
+ },
+ {
+  "id": "L8:maor:knowledge/RUNBOOK-DONATION-SPLIT-2026-08-14.md",
+  "level": "L8-knowledge",
+  "name": "RUNBOOK-DONATION-SPLIT-2026-08-14.md",
+  "type": "RUNBOOK",
+  "date": "2026-08-14",
+  "lines": 31,
+  "title": "RUNBOOK · הפעלת מסלול-B (פיצול-תרומות פר-ייעוד) — חלון-בעלים",
+  "source": "maor/knowledge/RUNBOOK-DONATION-SPLIT-2026-08-14.md"
+ },
+ {
+  "id": "L8:maor:knowledge/RUNBOOK-FUNCTIONS-2026-08-04.md",
+  "level": "L8-knowledge",
+  "name": "RUNBOOK-FUNCTIONS-2026-08-04.md",
+  "type": "RUNBOOK",
+  "date": "2026-08-04",
+  "lines": 119,
+  "title": "RUNBOOK · הפעלת שרת-ההרחבות (Cloud Functions) — חלון-בעלים",
+  "source": "maor/knowledge/RUNBOOK-FUNCTIONS-2026-08-04.md"
+ },
+ {
+  "id": "L8:maor:knowledge/RUNBOOK-ORBIT-DOMAIN-2026-08-12.md",
+  "level": "L8-knowledge",
+  "name": "RUNBOOK-ORBIT-DOMAIN-2026-08-12.md",
+  "type": "RUNBOOK",
+  "date": "2026-08-12",
+  "lines": 43,
+  "title": "Runbook · חיבור orbit-il.com למאור (נקנה 12.8) — מעבר מתוכנן, לא לילי",
+  "source": "maor/knowledge/RUNBOOK-ORBIT-DOMAIN-2026-08-12.md"
+ },
+ {
+  "id": "L8:maor:knowledge/SALES-CAPABILITIES-2026-08-23.md",
+  "level": "L8-knowledge",
+  "name": "SALES-CAPABILITIES-2026-08-23.md",
+  "type": "SALES",
+  "date": "2026-08-23",
+  "lines": 71,
+  "title": "פירוק יכולות למכירה — Orbit (מאור) · 23.8.2026",
+  "source": "maor/knowledge/SALES-CAPABILITIES-2026-08-23.md"
+ },
+ {
+  "id": "L8:maor:knowledge/SOLA-PAYMENTS-2026-08-21.md",
+  "level": "L8-knowledge",
+  "name": "SOLA-PAYMENTS-2026-08-21.md",
+  "type": "SOLA",
+  "date": "2026-08-21",
+  "lines": 56,
+  "title": "Sola Payments — ידע-יסוד לשילוב סליקה (21.8.2026, מהבעלים: \"תתעדכן על זה\")",
+  "source": "maor/knowledge/SOLA-PAYMENTS-2026-08-21.md"
+ },
+ {
+  "id": "L8:maor:knowledge/TELEPHONY-MAOR-INTEGRATION.md",
+  "level": "L8-knowledge",
+  "name": "TELEPHONY-MAOR-INTEGRATION.md",
+  "type": "TELEPHONY",
+  "date": null,
+  "lines": 68,
+  "title": "🔌 חיבור מנוע-הטלפוניה למאור — מסמך-לארכיטקט",
+  "source": "maor/knowledge/TELEPHONY-MAOR-INTEGRATION.md"
+ },
+ {
+  "id": "L8:maor:knowledge/TELEPHONY-PLATFORM-PLAN.md",
+  "level": "L8-knowledge",
+  "name": "TELEPHONY-PLATFORM-PLAN.md",
+  "type": "TELEPHONY",
+  "date": null,
+  "lines": 184,
+  "title": "📞 פלטפורמת-טלפוניה לעמותות — תוכנית-האב (self-configuring · 0→100)",
+  "source": "maor/knowledge/TELEPHONY-PLATFORM-PLAN.md"
+ },
+ {
+  "id": "L8:maor:knowledge/VISION-LIGHT-2026-08-23.md",
+  "level": "L8-knowledge",
+  "name": "VISION-LIGHT-2026-08-23.md",
+  "type": "VISION",
+  "date": "2026-08-23",
+  "lines": 136,
+  "title": "VISION-LIGHT — להקליל ולהשאיר אבק (23.8.2026)",
+  "source": "maor/knowledge/VISION-LIGHT-2026-08-23.md"
+ },
+ {
+  "id": "L8:maor:machtzev/README.md",
+  "level": "L8-knowledge",
+  "name": "README.md",
+  "type": "README",
+  "date": null,
+  "lines": 13,
+  "title": "🏗️ מַחְצֵב — מנוע החילוץ והבנייה-מחדש",
+  "source": "maor/machtzev/README.md"
+ },
+ {
+  "id": "L8:maor:machtzev/REFINE-REPORT.md",
+  "level": "L8-knowledge",
+  "name": "REFINE-REPORT.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 57,
+  "title": "🧪 מחצב — דוח-זיקוק ראשון",
+  "source": "maor/machtzev/REFINE-REPORT.md"
+ },
+ {
+  "id": "L8:maor:machtzev/STATUS.md",
+  "level": "L8-knowledge",
+  "name": "STATUS.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 45,
+  "title": "🏗️ מחצב — לוח-מצב",
+  "source": "maor/machtzev/STATUS.md"
+ },
+ {
+  "id": "L8:maor:README.md",
+  "level": "L8-knowledge",
+  "name": "README.md",
+  "type": "README",
+  "date": null,
+  "lines": 78,
+  "title": "מאור החסד — מערכת ניהול",
+  "source": "maor/README.md"
+ },
+ {
+  "id": "L8:maor:telephony/BUILD-LOOP-20.md",
+  "level": "L8-knowledge",
+  "name": "BUILD-LOOP-20.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 56,
+  "title": "לולאת-הבנייה של 20 הרעיונות — מנוע-הטלפוניה",
+  "source": "maor/telephony/BUILD-LOOP-20.md"
+ },
+ {
+  "id": "L8:maor:telephony/CLOSED-DEEP-CONVERGED.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-DEEP-CONVERGED.md",
+  "type": "CLOSED",
+  "date": null,
+  "lines": 39,
+  "title": "נחיל-עומק — התכנסות (R4→R10)",
+  "source": "maor/telephony/CLOSED-DEEP-CONVERGED.md"
+ },
+ {
+  "id": "L8:maor:telephony/CLOSED-DEEP-R5.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-DEEP-R5.md",
+  "type": "CLOSED",
+  "date": null,
+  "lines": 47,
+  "title": "סגירת נחיל-עומק · סבב-5 (R5)",
+  "source": "maor/telephony/CLOSED-DEEP-R5.md"
+ },
+ {
+  "id": "L8:maor:telephony/CLOSED-DEEP-R6.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-DEEP-R6.md",
+  "type": "CLOSED",
+  "date": null,
+  "lines": 41,
+  "title": "סגירת נחיל-עומק · סבב-6 (R6)",
+  "source": "maor/telephony/CLOSED-DEEP-R6.md"
+ },
+ {
+  "id": "L8:maor:telephony/CLOSED-DEEP-R7.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-DEEP-R7.md",
+  "type": "CLOSED",
+  "date": null,
+  "lines": 37,
+  "title": "סגירת נחיל-עומק · סבב-7 (R7)",
+  "source": "maor/telephony/CLOSED-DEEP-R7.md"
+ },
+ {
+  "id": "L8:maor:telephony/CLOSED-DEEP-R8.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-DEEP-R8.md",
+  "type": "CLOSED",
+  "date": null,
+  "lines": 36,
+  "title": "סגירת נחיל-עומק · סבב-8 (R8)",
+  "source": "maor/telephony/CLOSED-DEEP-R8.md"
+ },
+ {
+  "id": "L8:maor:telephony/CLOSED-DEEP-R9.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-DEEP-R9.md",
+  "type": "CLOSED",
+  "date": null,
+  "lines": 32,
+  "title": "סגירת נחיל-עומק · סבב-9 (R9)",
+  "source": "maor/telephony/CLOSED-DEEP-R9.md"
+ },
+ {
+  "id": "L8:maor:telephony/CLOSED-IMPROVE-9x9.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-IMPROVE-9x9.md",
+  "type": "CLOSED",
+  "date": null,
+  "lines": 43,
+  "title": "סגירת נחיל-השיפור האחרון (9×9) — מנוע-הטלפוניה",
+  "source": "maor/telephony/CLOSED-IMPROVE-9x9.md"
+ },
+ {
+  "id": "L8:maor:telephony/OPERATOR-GUIDE.md",
+  "level": "L8-knowledge",
+  "name": "OPERATOR-GUIDE.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 67,
+  "title": "📗 מדריך-המפעיל — מרכזייה מתצורה-עצמית",
+  "source": "maor/telephony/OPERATOR-GUIDE.md"
+ },
+ {
+  "id": "L8:maor:telephony/README.md",
+  "level": "L8-knowledge",
+  "name": "README.md",
+  "type": "README",
+  "date": null,
+  "lines": 130,
+  "title": "telephony — מנוע מרכזייה מתצורה-עצמית (config-as-data → מרכזייה)",
+  "source": "maor/telephony/README.md"
+ },
+ {
+  "id": "L8:maor:telephony/RUNBOOK-INSTALL.md",
+  "level": "L8-knowledge",
+  "name": "RUNBOOK-INSTALL.md",
+  "type": "RUNBOOK",
+  "date": null,
+  "lines": 67,
+  "title": "🛠 Runbook — התקנת המרכזייה (חד-פעמי אצל המפעיל)",
+  "source": "maor/telephony/RUNBOOK-INSTALL.md"
+ },
+ {
+  "id": "L8:maor:telephony/UPGRADE-100.md",
+  "level": "L8-knowledge",
+  "name": "UPGRADE-100.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 126,
+  "title": "📈 מנוע-הטלפוניה — 100 שדרוגים משמעותיים קדימה",
+  "source": "maor/telephony/UPGRADE-100.md"
+ }
+]

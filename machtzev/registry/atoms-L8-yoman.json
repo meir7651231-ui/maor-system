@@ -1,0 +1,42 @@
+[
+ {
+  "id": "L8:yoman:EDITOR-AGENT.md",
+  "level": "L8-knowledge",
+  "name": "EDITOR-AGENT.md",
+  "type": "EDITOR",
+  "date": null,
+  "lines": 53,
+  "title": "📰 הנחיה לסוכן עדכוני הבינה — העורך הראשי (רץ כל יום)",
+  "source": "yoman/EDITOR-AGENT.md"
+ },
+ {
+  "id": "L8:yoman:ISSUE-TEMPLATE.md",
+  "level": "L8-knowledge",
+  "name": "ISSUE-TEMPLATE.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 43,
+  "title": "איך כותבים גיליון — ISSUE-TEMPLATE",
+  "source": "yoman/ISSUE-TEMPLATE.md"
+ },
+ {
+  "id": "L8:yoman:reader-profile.md",
+  "level": "L8-knowledge",
+  "name": "reader-profile.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 29,
+  "title": "פרופיל הקורא — למהדורה האישית",
+  "source": "yoman/reader-profile.md"
+ },
+ {
+  "id": "L8:yoman:README.md",
+  "level": "L8-knowledge",
+  "name": "README.md",
+  "type": "README",
+  "date": null,
+  "lines": 59,
+  "title": "יומן הבינה 🗞️",
+  "source": "yoman/README.md"
+ }
+]

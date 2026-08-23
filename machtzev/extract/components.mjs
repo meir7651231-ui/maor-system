@@ -4,14 +4,14 @@
 import fs from 'node:fs';
 const census = JSON.parse(fs.readFileSync(new URL(`../registry/census-${process.argv[2]}.json`, import.meta.url)));
 const comps = [];
-const files = census.files.filter(f => /\.(tsx|dart)$/.test(f.path) && f.domain === 'screens');
+const files = census.files.filter(f => /\.(tsx|dart)$/.test(f.path) && ['screens','source'].includes(f.domain));
 // שלב א: אסוף שמות רכיבים
 for (const f of files) {
   let txt; try { txt = fs.readFileSync(`${census.root}/${f.path}`, 'utf8'); } catch { continue; }
   const names = new Set();
   for (const m of txt.matchAll(/export\s+(?:default\s+)?function\s+([A-Z][A-Za-z0-9_]*)/g)) names.add(m[1]);
   for (const m of txt.matchAll(/export\s+const\s+([A-Z][A-Za-z0-9_]*)\s*[:=]/g)) names.add(m[1]);
-  for (const m of txt.matchAll(/class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:StatelessWidget|StatefulWidget|ConsumerWidget|State<)/g)) names.add(m[1]);
+  for (const m of txt.matchAll(/class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget|HookWidget|State<|ConsumerState<)/g)) names.add(m[1]);
   comps.push({ file: f, txt, names: [...names] });
 }
 const allNames = new Map(); // שם ⇒ קובץ מגדיר
