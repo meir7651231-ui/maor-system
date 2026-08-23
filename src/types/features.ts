@@ -82,6 +82,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.absence.history', label: 'היסטוריית חיסורים', desc: 'כפתור 📜 לצפייה בהיסטוריית החיסורים של התלמיד/ה', module: 'courses' },
   { key: 'courses.reenroll', label: 'רישום לשנה הבאה', desc: 'מסך "רישום" עם חייגן — סיכום מה היה בחוג פר-תלמיד/ה, החלטת המשך (ממשיך/בהמתנה/עוזב), ורישום לשנה הבאה ששומר היסטוריה. אופט-אין (מכובה כברירת-מחדל).', module: 'courses', optIn: true },
   { key: 'courses.reenroll.bulk', label: 'רישום המוני לשנה הבאה', desc: 'כפתור "רישום כל הממשיכים" — יצירת שיבוצים לשנה הבאה בבת-אחת לכל מי שסומן "ממשיך".', module: 'courses' },
+  { key: 'courses.reenroll.familypanel', label: 'רישום לשנה הבאה בכרטיס-המשפחה', desc: 'פאנל בכרטיס-המשפחה: החלטת-המשך + היסטוריית-תלמיד + רישום פר-ילד/ה, ישירות מהכרטיס.', module: 'courses' },
   { key: 'courses.makeup.justified', label: 'חיסור מוצדק (השלמה)', desc: 'תיבת "חיסור מוצדק" — זכאות להשלמה גם מתחת ל-48ש׳ (מחלה/אירוע)', module: 'courses' },
   { key: 'courses.makeup.schedule', label: 'תזמון-השלמות', desc: '🔁 מקטע "השלמות ממתינות" בכרטיס-החוג — קביעת תאריך-השלמה לחיסור-זכאי + תזכורת-לוח', module: 'courses' },
   { key: 'courses.dashboard', label: 'דשבורד-חוגים', desc: '📊 מבט-על פר-חוג במסך-אחד — רשומים · תפוסה% · רשימת-המתנה · חוב · חיסורים · בסיכון-נשירה + החוגים-המבוקשים + ייצוא CSV', module: 'courses' },

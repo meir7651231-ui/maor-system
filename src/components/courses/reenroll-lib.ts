@@ -209,6 +209,7 @@ export function freshNextYearEnrollment(
   targetCourseId: string,
   newId: string,
   todayIso: string,
+  groupOverride?: string,
 ): Enrollment {
   return {
     id: newId,
@@ -217,7 +218,8 @@ export function freshNextYearEnrollment(
     plan: src.plan,
     purchased: 0,
     used: 0,
-    group: src.group,
+    // ‏groupOverride: מנהל-העבודה בחר קבוצה ברישום. undefined ⇒ אותה קבוצה של אשתקד.
+    group: groupOverride ?? src.group,
     absences: [],
     payments: [],
     totalDue: src.totalDue,
@@ -248,6 +250,67 @@ export function nextYearCourseDraft(src: Course, newId: string): Course {
     year: academicYearLabel(start),
     prevYearId: src.id,
   };
+}
+
+// ---------- היסטוריית-תלמיד (איפה השתתף ומתי — חוצה-חוגים/שנים) ----------
+
+export interface StudentHistoryEntry {
+  enrollment: Enrollment;
+  courseId: string;
+  courseName: string;
+  group: string;
+  /** תווית שנת-לימודים (החוג.year אם קיים, אחרת מחושב מתאריך-הפתיחה). */
+  yearLabel: string;
+  /** תאריך-פתיחת החוג (ISO) — לצורך מיון וכיתוב. */
+  start: string;
+  end: string;
+  summary: EnrollSummary;
+  /** האם שיבוץ זה נולד מרישום-לשנה-הבאה (מישהו הצביע אליו ב-renewedToId). */
+  fromRenewal: boolean;
+  /** האם שיבוץ זה כבר חודש קדימה (יש לו renewedToId). */
+  renewedForward: boolean;
+}
+
+/**
+ * כל ההשתתפויות של תלמיד/ה לאורך הזמן — שיבוץ אחר שיבוץ בכל החוגים והשנים,
+ * ממויין מהחדש לישן לפי תאריך-פתיחת-החוג (שובר-שוויון: enrolledAt). דטרמיניסטי,
+ * נגזר מהשדות הקיימים בלבד. "איפה השתתף ומתי" — courseName + yearLabel + תאריכים.
+ */
+export function studentHistory(db: Db, memberId: string): StudentHistoryEntry[] {
+  // מזהי-שיבוצים שמישהו התחדש אליהם (יעד-רישום) — לזיהוי fromRenewal.
+  const renewTargetIds = new Set(db.enrollments.map((e) => e.renewedToId).filter(Boolean) as string[]);
+  const out: StudentHistoryEntry[] = [];
+  for (const e of db.enrollments) {
+    if (e.memberId !== memberId) continue;
+    const course = db.courses.find((c) => c.id === e.courseId) ?? null;
+    const start = course?.start ?? '';
+    out.push({
+      enrollment: e,
+      courseId: e.courseId,
+      courseName: course?.name ?? '—',
+      group: e.group || '',
+      yearLabel: course?.year || (start ? academicYearLabel(start) : ''),
+      start,
+      end: course?.end ?? '',
+      summary: enrollSummary(e),
+      fromRenewal: renewTargetIds.has(e.id),
+      renewedForward: !!e.renewedToId,
+    });
+  }
+  // מהחדש לישן — תאריך-פתיחת-החוג יורד, ואז enrolledAt יורד.
+  out.sort((a, b) => (b.start || '').localeCompare(a.start || '') || (b.enrollment.enrolledAt || '').localeCompare(a.enrollment.enrolledAt || ''));
+  return out;
+}
+
+/** טקסט קריא של ההיסטוריה (שורה להשתתפות) — לתדפיס/העתקה. */
+export function studentHistoryText(entries: StudentHistoryEntry[]): string {
+  return entries
+    .map((h) => {
+      const yr = h.yearLabel ? `[${h.yearLabel}] ` : '';
+      const grp = h.group ? ` · ${h.group}` : '';
+      return `${yr}${h.courseName}${grp} — נוכחות ${h.summary.presents}, חיסורים ${h.summary.absences} · ${h.summary.statusLabel}`;
+    })
+    .join('\n');
 }
 
 // ---------- ייצוא (דרך שער core.export ב-UI) ----------

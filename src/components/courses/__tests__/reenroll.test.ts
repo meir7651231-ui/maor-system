@@ -23,6 +23,7 @@ import {
   nextYearDates,
   reenrollCounts,
   renewTargets,
+  studentHistory,
 } from '../reenroll-lib';
 
 function mkEnroll(over: Partial<Enrollment> = {}): Enrollment {
@@ -200,5 +201,39 @@ describe('🗓 ratchet — רישום לשנה הבאה', () => {
     // בלי החלטה — לא נכנס ליעדי-רישום:
     const db = mkDb({ enrollments: [e] });
     expect(renewTargets(buildReenrollRows(db))).toHaveLength(0);
+  });
+
+  it('7. בחירת-קבוצה ברישום — groupOverride גובר על קבוצת-אשתקד', () => {
+    const src = mkEnroll({ group: 'קבוצה א׳' });
+    // בלי override — נשמרת קבוצת-אשתקד:
+    expect(freshNextYearEnrollment(src, 'c2', 'e-a', '2026-09-01').group).toBe('קבוצה א׳');
+    // עם override — הקבוצה שנבחרה:
+    expect(freshNextYearEnrollment(src, 'c2', 'e-b', '2026-09-01', 'קבוצה ב׳').group).toBe('קבוצה ב׳');
+    // override ריק (ללא שיוך) — מכובד, לא נופל חזרה לאשתקד:
+    expect(freshNextYearEnrollment(src, 'c2', 'e-c', '2026-09-01', '').group).toBe('');
+  });
+
+  it('8. היסטוריית-תלמיד — כל ההשתתפויות, מהחדש לישן + תווית-שנה', () => {
+    const db = mkDb({
+      courses: [
+        mkCourse({ id: 'c1', name: 'התעמלות', start: '2024-09-01', end: '2025-07-31' }),
+        mkCourse({ id: 'c2', name: 'ציור', start: '2025-09-01', end: '2026-07-31' }),
+      ],
+      enrollments: [
+        mkEnroll({ id: 'e1', memberId: 'm1', courseId: 'c1', group: 'א׳', presents: ['2024-10-01'], renewedToId: 'e2' }),
+        mkEnroll({ id: 'e2', memberId: 'm1', courseId: 'c2', group: 'ב׳', presents: ['2025-10-01', '2025-11-01'] }),
+        mkEnroll({ id: 'e9', memberId: 'm2', courseId: 'c1' }), // תלמיד/ה אחר/ת — לא נכלל/ת
+      ],
+    });
+    const hist = studentHistory(db, 'm1');
+    expect(hist.map((h) => h.enrollment.id)).toEqual(['e2', 'e1']); // החדש (c2) קודם
+    expect(hist[0].courseName).toBe('ציור');
+    expect(hist[0].yearLabel).toBe('2025/26');
+    expect(hist[0].group).toBe('ב׳');
+    expect(hist[0].summary.presents).toBe(2);
+    expect(hist[1].courseName).toBe('התעמלות');
+    expect(hist[1].yearLabel).toBe('2024/25');
+    expect(hist[1].renewedForward).toBe(true); // e1 חודש קדימה ל-e2
+    expect(hist[0].fromRenewal).toBe(true); // e2 נולד מרישום (e1.renewedToId===e2)
   });
 });

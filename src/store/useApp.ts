@@ -315,7 +315,7 @@ interface AppState {
   /** 🗓 יצירת חוג לשנה הבאה (עותק עם תאריכים מוזזים + prevYearId). מחזיר את ה-id החדש. */
   openNextYearCourse: (courseId: string) => { ok: boolean; id?: string };
   /** 🗓 רישום שיבוץ יחיד לשנה הבאה — שיבוץ חדש בחוג-היעד, קישור מקור→יעד; שער-תפוסה. */
-  reenrollEnrollment: (enrollmentId: string, targetCourseId: string) => { ok: boolean; id?: string };
+  reenrollEnrollment: (enrollmentId: string, targetCourseId: string, group?: string) => { ok: boolean; id?: string };
   /** 🗓 רישום המוני — כל ה"ממשיך" של חוג → חוג השנה-הבאה (נוצר אם חסר). מחזיר כמה נרשמו. */
   bulkReenrollCourse: (courseId: string) => { created: number; courseId?: string };
 
@@ -1880,7 +1880,7 @@ export const useApp = create<AppState>()((set, get) => {
       get().upsertCourse(nextYearCourseDraft(src, id));
       return { ok: true, id };
     },
-    reenrollEnrollment(enrollmentId, targetCourseId) {
+    reenrollEnrollment(enrollmentId, targetCourseId, group) {
       const db = get().db;
       const src = db.enrollments.find((e) => e.id === enrollmentId);
       if (!src) return { ok: false };
@@ -1890,7 +1890,8 @@ export const useApp = create<AppState>()((set, get) => {
       // שער-תפוסה — כמו EnrollModal (excludes ended).
       if (enrollCount(db, targetCourseId) >= (target.maxStudents || 999)) return { ok: false };
       const id = get().nextId('e');
-      const fresh = freshNextYearEnrollment(src, targetCourseId, id, isoToday());
+      // group: בחירת מנהל-העבודה ברישום. undefined ⇒ אותה קבוצה של אשתקד.
+      const fresh = freshNextYearEnrollment(src, targetCourseId, id, isoToday(), group);
       get().upsertEnrollment(fresh);
       // קישור מקור→יעד (שרשרת-היסטוריה) — לא נוגע בכספי/נוכחות המקור.
       get().upsertEnrollment({ ...src, renewedToId: id });

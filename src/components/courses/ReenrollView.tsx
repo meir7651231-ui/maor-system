@@ -22,6 +22,7 @@ import {
   renewTargets,
   type ReenrollRow,
 } from './reenroll-lib';
+import { HistoryModal, RegisterModal } from './ReenrollModals';
 
 const DEC_META: Record<string, { label: string; bg: string; c: string }> = {
   yes: { label: '✅ ממשיך', bg: '#e3f5e8', c: '#2f7d52' },
@@ -34,7 +35,6 @@ export default function ReenrollView() {
   const cfg = useApp((s) => s.config);
   const go = useApp((s) => s.go);
   const setRenewDecision = useApp((s) => s.setRenewDecision);
-  const reenrollEnrollment = useApp((s) => s.reenrollEnrollment);
   const openNextYearCourse = useApp((s) => s.openNextYearCourse);
   const bulkReenrollCourse = useApp((s) => s.bulkReenrollCourse);
 
@@ -47,6 +47,9 @@ export default function ReenrollView() {
   const [q, setQ] = useState('');
   const [dial, setDial] = useState(false);
   const [msg, setMsg] = useState('');
+  // מודאלים: רישום פרטני (בחירת חוג-יעד+קבוצה) והיסטוריית-תלמיד.
+  const [regRow, setRegRow] = useState<ReenrollRow | null>(null);
+  const [histRow, setHistRow] = useState<ReenrollRow | null>(null);
 
   const studentW = termOf(cfg, 'entity.student', 'תלמיד/ה');
   const courseW = termOf(cfg, 'entity.course', 'חוג');
@@ -84,13 +87,10 @@ export default function ReenrollView() {
     );
   }
 
-  // ----- פעולה: רישום שיבוץ יחיד לשנה הבאה (פותח את חוג-השנה-הבאה אם חסר) -----
+  // ----- פעולה: רישום שיבוץ יחיד — פותח מודאל לבחירת חוג-יעד + קבוצה -----
   function doReenroll(row: ReenrollRow) {
     if (row.renewed) return;
-    const t = openNextYearCourse(row.e.courseId);
-    if (!t.ok || !t.id) return flash('לא ניתן לפתוח את חוג השנה הבאה');
-    const r = reenrollEnrollment(row.e.id, t.id);
-    flash(r.ok ? `✓ ${row.memberName} נרשם/ה לשנה הבאה` : 'לא נרשם — שער-תפוסה חסם או כבר רשום');
+    setRegRow(row);
   }
 
   // ----- חייגן: רישום המוני (לפי החוג שבסינון, או כל החוגים) -----
@@ -209,7 +209,18 @@ export default function ReenrollView() {
               {rows.map((r) => (
                 <tr key={r.e.id} style={{ borderTop: '1px solid #eee' }}>
                   <td style={tdS}>
-                    <div style={{ fontWeight: 700 }}>{r.memberName || '—'}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontWeight: 700 }}>{r.memberName || '—'}</span>
+                      <button
+                        type="button"
+                        title={'היסטוריה מלאה של ' + (r.memberName || studentW) + ' — איפה השתתף/ה ומתי'}
+                        aria-label={'היסטוריה של ' + r.memberName}
+                        onClick={() => setHistRow(r)}
+                        style={{ cursor: 'pointer', border: 0, background: 'transparent', fontSize: 14, padding: 0 }}
+                      >
+                        🕘
+                      </button>
+                    </div>
                     <div style={{ color: '#8a8378', fontSize: 11.5 }}>{r.familyName}</div>
                   </td>
                   <td style={tdS}>{r.courseName || '—'}</td>
@@ -320,6 +331,15 @@ export default function ReenrollView() {
           {dial ? '×' : '☎'}
         </button>
       </div>
+
+      {regRow && (
+        <RegisterModal
+          enrollment={regRow.e}
+          onClose={() => setRegRow(null)}
+          onDone={(m) => flash(m)}
+        />
+      )}
+      {histRow && <HistoryModal memberId={histRow.e.memberId} memberName={histRow.memberName} onClose={() => setHistRow(null)} />}
     </div>
   );
 }
