@@ -51,6 +51,7 @@ export interface SyncCharge {
   category?: string;
   kevaId?: string;
   kind?: string; // 'refund' (Amount<0) / 'cancel' (Amount 0) / חסר=חיוב רגיל — פאזה-מודעת-כסף
+  provider?: string; // 'sola' | חסר=נדרים — קובע את תווית-הסליקה ב-hist (🐛 23.8 "זה לא נכנס במקום הנכון")
 }
 
 type HistEntry = NonNullable<Supporter['hist']>[number];
@@ -108,13 +109,21 @@ function curOf(charge: SyncCharge): '₪' | '$' {
   return raw === '$' || raw === '2' || /usd|\$|דולר/i.test(raw) ? '$' : '₪';
 }
 
+/** תווית-הסליקה לפי ספק-העסקה. 🐛 (23.8, "זה לא נכנס במקום הנכון"): עסקאות-סולה
+ *  שמוזגו נרשמו 'נדרים' — תווית שגויה בכרטיס, וגרוע מזה: "ביטול ייבוא נדרים"
+ *  (wipeNedarimImport מסנן clearer==='נדרים') היה **מוחק גם אותן**. חסר-ספק ⇒
+ *  'נדרים' — ביט-זהה לכל זרימות-נדרים הקיימות. */
+export function providerClearer(provider?: string): string {
+  return /sola/i.test(provider || '') ? 'סולה' : 'נדרים';
+}
+
 /** בניית רשומת-hist מעסקה (רק שדות לא-ריקים; d/a/c תמיד). */
 export function chargeToHist(charge: SyncCharge): HistEntry {
   const h: HistEntry = {
     d: (charge.d || (charge.at || '').slice(0, 10) || '').trim(),
     a: charge.amount,
     c: curOf(charge),
-    clearer: 'נדרים',
+    clearer: providerClearer(charge.provider),
   };
   const ref = (charge.reference || '').trim();
   const txn = (charge.txnId || '').trim();
@@ -294,6 +303,30 @@ export function attachChargeTo(supporters: Supporter[], supId: string, charge: S
   const next = supporters.slice();
   next[idx] = withNedarimHok({ ...sp, hist: [...hist, chargeToHist(charge)] }, charge);
   return { supporters: next, added: true };
+}
+
+/** ריפוי-תוויות רטרואקטיבי: רשומות-hist שמפתח-הדדופ שלהן (txn/ref) שייך לספק
+ *  נתון מקבלות את התווית הנכונה. 🐛 (23.8): עסקאות-סולה שמוזגו לפני התיקון
+ *  נרשמו 'נדרים' — גם תווית-מקור שגויה בכרטיס, וגם נמחקות ב"ביטול ייבוא נדרים".
+ *  אידמפוטנטי; נוגע רק בשורות שבאמת ברשימת-המזהים. */
+export function relabelHistByTxn(supporters: Supporter[], txns: string[], label: string): { supporters: Supporter[]; changed: number } {
+  const set = new Set(txns.map((t) => t.trim()).filter(Boolean));
+  if (!set.size) return { supporters, changed: 0 };
+  let changed = 0;
+  const out = supporters.map((sp) => {
+    const hist = sp.hist;
+    if (!hist?.length) return sp;
+    let touched = false;
+    const next = hist.map((h) => {
+      const key = (h.txn || '').trim() || (h.ref || '').trim();
+      if (!key || !set.has(key) || h.clearer === label) return h;
+      touched = true;
+      changed++;
+      return { ...h, clearer: label };
+    });
+    return touched ? { ...sp, hist: next } : sp;
+  });
+  return { supporters: out, changed };
 }
 
 /** ההתאמה-החזקה-ביותר לעסקה — לפי מפתח-**ודאי** בלבד (ToremId/ת"ז/טלפון/אימייל,
