@@ -9,8 +9,11 @@ const groups = [];
 /* ── 1) צבעים: אותו ערך בכמה שמות ── */
 for (const repo of ['maor', 'buildsmart', 'yoman']) {
   const byVal = {};
-  for (const a of load(`atoms-L0-${repo}.json`).filter(a => a.kind === 'color'))
-    for (const v of a.values) if (/^#|^rgb|^hsl|^oklch/.test(v.value)) (byVal[repo+'|'+v.value] = byVal[repo+'|'+v.value] || []).push(a);
+  // איחוד לפי *תפקיד*: רק שמות שכל סט-הערכים שלהם זהה (מתנהגים אותו דבר בכל הערכות)
+  for (const a of load(`atoms-L0-${repo}.json`).filter(a => a.kind === 'color')) {
+    const sig = a.values.map(v => v.value).sort().join('||');
+    if (/#|rgb|hsl|oklch/.test(sig)) (byVal[repo+'|'+sig] = byVal[repo+'|'+sig] || []).push(a);
+  }
   for (const [key, as] of Object.entries(byVal)) {
     const uniq = [...new Map(as.map(a => [a.id, a])).values()];
     if (uniq.length < 3) continue;
