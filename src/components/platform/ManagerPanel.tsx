@@ -7,6 +7,7 @@
  * ראה knowledge/BUILD-ORDER-ORGADMIN-2026-08-03.md.
  */
 import { useEffect, useState } from 'react';
+import { presetMatches, presetModules, ROLE_PRESETS } from './rolePresets';
 import { useApp } from '../../store/useApp';
 import { Btn, Chip, Field, Modal, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
@@ -136,6 +137,19 @@ export function ManagerPanel(props: { onClose: () => void }) {
     await mod.deleteOrgJoinRequest(slug, r.uid).catch(() => {});
     await refresh(mod);
     toast('הבקשה נדחתה');
+  }
+
+  /** 👤 פרופיל-תפקיד בקליק (VISION-LIGHT #2): מלביש מפת-מודולים שלמה בבת-אחת.
+   *  אותו נתיב-כתיבה בדיוק כמו הצ'יפים (setEmployeeOverride+writeOrgCloudDoc). */
+  async function applyRolePreset(email: string, presetKey: string) {
+    if (!mod || !org) return;
+    const preset = ROLE_PRESETS.find((r) => r.key === presetKey);
+    if (!preset) return;
+    const ov = overrideOf(email, org);
+    const { memberConfigs } = setEmployeeOverride(org, email, { ...ov, modules: presetModules(preset, scope) });
+    await mod.writeOrgCloudDoc(slug, { memberConfigs });
+    await refresh(mod);
+    toast('👤 הפרופיל "' + preset.label + '" הוחל על ' + email + ' — אפשר להמשיך לכוונן בצ\'יפים');
   }
 
   async function toggleModuleFor(email: string, m: ModuleKey) {
@@ -303,6 +317,17 @@ export function ManagerPanel(props: { onClose: () => void }) {
                       <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 5 }}>
                         כיבוי חוסם לעובד/ת ייצוא CSV, הורדת גיבוי ודו"חות-מותאמים.
                       </div>
+                    </div>
+                    {/* 👤 פרופילי-תפקיד בקליק (VISION-LIGHT #2) — נקודת-פתיחה; הצ'יפים ממשיכים לכוונן */}
+                    <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
+                      👤 פרופיל בקליק — מלביש כרטיס שלם (אפשר לכוונן אחר-כך):
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                      {ROLE_PRESETS.map((r) => (
+                        <Chip key={r.key} on={presetMatches(r, ov.modules, scope)} onClick={() => void applyRolePreset(email, r.key)}>
+                          <span title={r.desc}>{r.icon} {r.label}</span>
+                        </Chip>
+                      ))}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
                       מדליקים/מכבים לעובד/ת — רק הכפתורים שהודלקו לארגון:
