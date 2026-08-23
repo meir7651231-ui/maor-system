@@ -33,6 +33,7 @@ import { A11yFab } from './components/A11yFab';
 import { HomeView } from './components/home/HomeView';
 import { FamiliesView } from './components/families/FamiliesView';
 import { CoursesView } from './components/courses/CoursesView';
+import ReenrollView from './components/courses/ReenrollView';
 import { CalendarView } from './components/calendar/CalendarView';
 import { DiaryView } from './components/diary/DiaryView';
 import { SupportersView } from './components/supporters/SupportersView';
@@ -96,6 +97,7 @@ const VIEWS: Record<View, () => JSX.Element> = {
   shop: ShopView,
   shop7: Shop7View,
   reports: ReportsView,
+  reenroll: ReenrollView,
   settings: SettingsView,
 };
 
@@ -536,7 +538,7 @@ export default function App() {
   // מודולים: בית תמיד; השאר לפי config.modules (חסר = פעיל).
   // הגדרות עברו לאייקון/פריט ⚙️ נפרד — לא קישור ברצועה.
   const nav = NAV.filter(
-    (n) => n.view !== 'settings' && (n.view === 'home' || config.modules[n.view] !== false),
+    (n) => n.view !== 'settings' && n.view !== 'reenroll' && (n.view === 'home' || config.modules[n.view] !== false),
   );
   // UX סבב-ב׳: ברצועה העליונה עד 6 ראשיים; השאר ב'עוד ▾' (הכול נשאר נגיש).
   // בשלדי-הצד יש מקום אנכי — הרשימה המלאה נשארת שם.

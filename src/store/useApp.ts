@@ -63,6 +63,8 @@ import { attachChargeTo, attachChargesBulk, detectRecurringHok, planNedarimSync,
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
+import { enrollCount } from '../components/courses/lib';
+import { freshNextYearEnrollment, nextYearCourseDraft } from '../components/courses/reenroll-lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
 import { applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
 import { appendCall, applyOutcome, OUTCOME_LABELS, popCall, startCampaign, undoLast } from '../lib/dialer';
@@ -96,6 +98,7 @@ export type View =
   | 'shop'
   | 'shop7'
   | 'reports'
+  | 'reenroll'
   | 'settings';
 
 export interface Toast {
@@ -307,6 +310,14 @@ interface AppState {
   addPayment: (enrollmentId: string, payment: Omit<Payment, 'rid'>) => { ok: boolean; rid?: string };
   /** 💰 סימון-סטטוס תשלום מהיר פר-שיבוץ (17.8) — לתשלום/שולם, בלי לגעת בקבלות. */
   setEnrollmentPaid: (enrollmentId: string, paid: boolean) => void;
+  /** 🗓 רישום-לשנה-הבאה — החלטת-המשך פר-שיבוץ (ממשיך/עוזב/בהמתנה) + הערה. additive. */
+  setRenewDecision: (enrollmentId: string, decision: 'yes' | 'no' | 'hold' | '', note?: string) => void;
+  /** 🗓 יצירת חוג לשנה הבאה (עותק עם תאריכים מוזזים + prevYearId). מחזיר את ה-id החדש. */
+  openNextYearCourse: (courseId: string) => { ok: boolean; id?: string };
+  /** 🗓 רישום שיבוץ יחיד לשנה הבאה — שיבוץ חדש בחוג-היעד, קישור מקור→יעד; שער-תפוסה. */
+  reenrollEnrollment: (enrollmentId: string, targetCourseId: string) => { ok: boolean; id?: string };
+  /** 🗓 רישום המוני — כל ה"ממשיך" של חוג → חוג השנה-הבאה (נוצר אם חסר). מחזיר כמה נרשמו. */
+  bulkReenrollCourse: (courseId: string) => { created: number; courseId?: string };
 
   // יומן ואירועים
   /**
@@ -1843,6 +1854,62 @@ export const useApp = create<AppState>()((set, get) => {
           e.id === enrollmentId ? { ...e, paidFull: paid } : e,
         ),
       }));
+    },
+    // ---------- 🗓 רישום-לשנה-הבאה (courses.reenroll) ----------
+    setRenewDecision(enrollmentId, decision, note) {
+      // additive בלבד — עדכון החלטת-ההמשך; אינו נוגע בכספים/היסטוריה.
+      setDb((db) => ({
+        enrollments: db.enrollments.map((e) => {
+          if (e.id !== enrollmentId) return e;
+          const next = { ...e };
+          if (decision === '') delete next.renew;
+          else next.renew = decision;
+          if (note !== undefined) next.renewNote = note;
+          return next;
+        }),
+      }));
+    },
+    openNextYearCourse(courseId) {
+      const db = get().db;
+      const src = db.courses.find((c) => c.id === courseId);
+      if (!src) return { ok: false };
+      // מניעת-כפילות: אם כבר קיים חוג-שנה-הבאה למקור הזה — מחזירים אותו.
+      const existing = db.courses.find((c) => c.prevYearId === courseId);
+      if (existing) return { ok: true, id: existing.id };
+      const id = get().nextId('c');
+      get().upsertCourse(nextYearCourseDraft(src, id));
+      return { ok: true, id };
+    },
+    reenrollEnrollment(enrollmentId, targetCourseId) {
+      const db = get().db;
+      const src = db.enrollments.find((e) => e.id === enrollmentId);
+      if (!src) return { ok: false };
+      if (src.renewedToId) return { ok: true, id: src.renewedToId }; // כבר נרשם — אידמפוטנטי
+      const target = db.courses.find((c) => c.id === targetCourseId);
+      if (!target) return { ok: false };
+      // שער-תפוסה — כמו EnrollModal (excludes ended).
+      if (enrollCount(db, targetCourseId) >= (target.maxStudents || 999)) return { ok: false };
+      const id = get().nextId('e');
+      const fresh = freshNextYearEnrollment(src, targetCourseId, id, isoToday());
+      get().upsertEnrollment(fresh);
+      // קישור מקור→יעד (שרשרת-היסטוריה) — לא נוגע בכספי/נוכחות המקור.
+      get().upsertEnrollment({ ...src, renewedToId: id });
+      return { ok: true, id };
+    },
+    bulkReenrollCourse(courseId) {
+      const targetRes = get().openNextYearCourse(courseId);
+      if (!targetRes.ok || !targetRes.id) return { created: 0 };
+      const targetId = targetRes.id;
+      // צילום רשימת-המקורות לפני הלולאה (ה-db משתנה בכל reenroll).
+      const srcIds = get()
+        .db.enrollments.filter((e) => e.courseId === courseId && e.renew === 'yes' && !e.renewedToId)
+        .map((e) => e.id);
+      let created = 0;
+      for (const eid of srcIds) {
+        const r = get().reenrollEnrollment(eid, targetId);
+        if (r.ok && r.id) created++;
+      }
+      return { created, courseId: targetId };
     },
     addPayment(enrollmentId, payment) {
       // שער לפני צריכת המונה: אם השיבוץ נעלם (למשל נמחק בסנכרון ממכשיר אחר בעוד

@@ -61,6 +61,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const setDb = useApp((s) => s.setDb);
   const selectCourse = useApp((s) => s.selectCourse);
   const cfg = useApp((s) => s.config);
+  const go = useApp((s) => s.go);
+  // 🗓 רישום-לשנה-הבאה — אופט-אין מפורש (===true) כדי שהלקוח-החי לא יראה כלום.
+  const reenrollOn = cfg?.features?.['courses.reenroll'] === true;
   const wheelOn = featureOn(cfg, 'courses.wheel');
   // תמונת-חוג בלוח (בקשת-בעלים 9.8) — אותו דגל של התמונה בכרטיס
   const gradeimgOn = featureOn(cfg, 'courses.gradeimg');
@@ -338,6 +341,11 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             {retentionOn && (
               <Btn onClick={() => setRetentionOpen(true)} title="מרכז-שימור — תלמידים בסיכון-נשירה + הצעת-התערבות">
                 💚 שימור
+              </Btn>
+            )}
+            {reenrollOn && (
+              <Btn onClick={() => go('reenroll')} title="מסך רישום לשנה הבאה — מה היה בעבר + החלטת המשך">
+                🗓 רישום לשנה הבאה
               </Btn>
             )}
             {!myTeacherId && (
