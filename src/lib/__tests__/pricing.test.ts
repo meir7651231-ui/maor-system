@@ -16,29 +16,29 @@ describe('💰 ratchet — מנוע התמחור', () => {
     // families/calendar מחירם 0 ⇒ included
     expect(q.included.some((l) => l.key === 'families')).toBe(true);
     expect(q.lines.some((l) => l.key === 'families')).toBe(false);
-    // supporters מחירו 100 ⇒ line
-    expect(q.lines.some((l) => l.key === 'supporters' && l.price === 100)).toBe(true);
+    // supporters מחירו 180 ⇒ line (מחיר-שוק ריאלי)
+    expect(q.lines.some((l) => l.key === 'supporters' && l.price === 180)).toBe(true);
   });
 
   it('סכום חודשי = (בסיס + מודולים-בתשלום) × מכפיל-גודל, מעוגל', () => {
     const cfg = { modules: { courses: false, diary: false, tzedaka: false, shop: false, shop7: false, reports: false } };
-    // דלוקים בתשלום: supporters(100). בסיס 149. small×1 ⇒ 249
+    // דלוקים בתשלום: supporters(180). בסיס 290. small×1 ⇒ 470
     const small = computeQuote(cfg, 'small', DEFAULT_PRICES, nameOf);
-    expect(small.monthly).toBe(249);
-    // medium ×1.6 ⇒ round(249*1.6)=398
+    expect(small.monthly).toBe(470);
+    // medium ×1.6 ⇒ round(470*1.6)=752
     const medium = computeQuote(cfg, 'medium', DEFAULT_PRICES, nameOf);
-    expect(medium.monthly).toBe(Math.round(249 * 1.6));
+    expect(medium.monthly).toBe(Math.round(470 * 1.6));
   });
 
   it('הרחבות (addons) דלוקות מתווספות לפי prices.integrations', () => {
     const cfg = { modules: { courses: false, diary: false, tzedaka: false, shop: false, shop7: false, reports: false, supporters: false } };
-    // רק בסיס 149; מוסיפים הרחבת ai (80) ו-receipts (40)
+    // רק בסיס 290; מוסיפים הרחבת ai (120) ו-receipts (60)
     const q = computeQuote(cfg, 'small', DEFAULT_PRICES, nameOf, [
       { key: 'ai', label: 'AI' },
       { key: 'receipts', label: 'קבלות' },
     ]);
     expect(q.lines.filter((l) => l.kind === 'integration').length).toBe(2);
-    expect(q.monthly).toBe(149 + 80 + 40);
+    expect(q.monthly).toBe(290 + 120 + 60);
   });
 
   it('הטבת-שנתי = חודשי × 10 (חודשיים חינם); שנתי-מלא = ×12', () => {
@@ -52,9 +52,9 @@ describe('💰 ratchet — מנוע התמחור', () => {
     expect(q.mode).toBe('enterprise');
     expect(q.enterpriseOneTime).toBe(DEFAULT_PRICES.enterprise.oneTime);
     expect(q.enterpriseAnnual).toBe(DEFAULT_PRICES.enterprise.annualMaintenance);
-    // ברירת-מחדל: 40000 חד-פעמי + 6000 שנתי
-    expect(q.enterpriseOneTime).toBe(40000);
-    expect(q.enterpriseAnnual).toBe(6000);
+    // ברירת-מחדל (מחיר-שוק ריאלי): 55000 חד-פעמי + 9000 שנתי
+    expect(q.enterpriseOneTime).toBe(55000);
+    expect(q.enterpriseAnnual).toBe(9000);
   });
 
   it('normalizePrices: מספרים שליליים/פגומים → ברירת-מחדל', () => {
