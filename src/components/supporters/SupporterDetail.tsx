@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
-import { featureOn, integrationOn, integrationSetting, isSuperAdmin, telephonyOn, termOf } from '../../lib/config';
+import { canGrantedAction, featureOn, integrationOn, integrationSetting, isSuperAdmin, telephonyOn, termOf } from '../../lib/config';
 import { canIssueReceipt } from '../platform/lib';
 import { payLink } from '../../lib/payLink';
 import { askClaude, readAiKey, thanksPrompt } from '../../lib/ai';
@@ -58,6 +58,9 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   // האכיפה-הקשיחה בליבה (addDonation). לקוח-שורש/מקומי/מנהל = מנפיק.
   const cloud = useApp((s) => s.cloud);
   const canIssue = canIssueReceipt({ superAdmin: isSuperAdmin(cloud.user?.email), isManager: !!cloud.isManager, cloudRoot: config.cloudRoot === true, cloudConnected: !!cloud.user });
+  // הרשאה אחידה (בקשת-בעלים 23.8): מחיקת-תורם למנהל/בעלים תמיד; עובד/ת רק אם הודלק/ה.
+  // featureOn נשמר (מכבד כיבוי-ארגוני קיים של supporters.delete) ⇒ אפס-רגרסיה.
+  const canDeleteSupporter = featureOn(config, 'supporters.delete') && canGrantedAction(config, cloud.user?.email, !!cloud.isManager, 'supporters.delete');
   // 🔒 ייעוד-הרשאה (13.8): גם בכרטיס של תורם-גלוי, התצוגה (ציון/סטטיסטיקה/רשימה/
   // לוח/דוח-שנתי-לתורם) מסתירה תרומות בייעוד אסור. `sp` הגולמי נשמר לכל הכתיבות
   // (upsertSupporter/addDonation) — `dsp` הוא עותק-תצוגה בלבד.
@@ -402,7 +405,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             </Btn>
           )}
           <Btn onClick={() => setEditOpen(true)}>✎ עריכה</Btn>
-          {featureOn(config, 'supporters.delete') && (
+          {canDeleteSupporter && (
             <Btn kind="danger" onClick={onDelete}>
               {armDelete ? 'לאשר מחיקה סופית?' : '🗑 מחיקה'}
             </Btn>
