@@ -10,6 +10,7 @@ import { canIssueReceipt } from '../platform/lib';
 import { payLink } from '../../lib/payLink';
 import { askClaude, readAiKey, thanksPrompt } from '../../lib/ai';
 import { annualReportLines, donationYears, downloadAnnualReport } from '../../lib/annualReport';
+import { callStats } from '../../lib/dialer';
 import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
@@ -350,6 +351,21 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             )}
           </div>
           <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 2 }}>{statsLine}</div>
+          {/* 📞 מונה-שיחות עמיד (23.8, "גם אצל המנהל") — אותו יומן Supporter.calls
+              כמו בחייגן; נראה לכל מי שפותח את הכרטיס, גם בלי קמפיין פעיל */}
+          {(() => {
+            const cst = callStats(sp.calls);
+            return (
+              <div
+                style={{ fontSize: 12.5, color: cst.total ? 'var(--ink-soft)' : 'var(--ink-faint)', marginTop: 2 }}
+                title={cst.total ? 'שיחות שנרשמו מהחייגן (כל הקמפיינים)' : 'טרם נרשמה שיחה מהחייגן'}
+              >
+                {cst.total === 0 && <>📞 טרם התקשרו (החייגן רושם כל שיחה)</>}
+                {cst.total === 1 && <>📞 התקשרו פעם אחת · {fmtDate(cst.last)}</>}
+                {cst.total > 1 && <>📞 התקשרו {cst.total} פעמים · אחרונה {fmtDate(cst.last)}{cst.noanswer > 0 && <> · 📵 {cst.noanswer} ללא-מענה</>}</>}
+              </div>
+            );
+          })()}
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {canIssue && (
