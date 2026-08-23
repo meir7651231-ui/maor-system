@@ -172,9 +172,28 @@ export function overrideOf(email: string, org: OrgCloudDoc): EmployeeOverride {
 }
 
 /**
+ * יכולות-הדלקה-פר-עובד (בקשת-בעלים 23.8: "המנהל יוכל להדליק לעובד"). רשימה סגורה
+ * וקטנה: פעולות-בחירה-מרובה רגישות שכבויות-לעובד כברירת-מחדל, והמנהל **מדליק** פר-עובד.
+ * ⚠️ **רק** מפתחות אלה מכבדים `true` בכרטיס-העובד — כל שאר המנוע נשאר הגבלה-בלבד
+ * (false=כיבוי; true מתעלמים). כך ההרחבה מנתחית ואינה נוגעת בחוזה-ההרשאות הכללי.
+ */
+export const GRANTABLE_STAFF_FEATURES: ReadonlySet<string> = new Set([
+  'supporters.bulkselect',
+  'supporters.bulkdelete',
+  'supporters.purpose',
+]);
+
+/** האם המפתח הוא יכולת-הדלקה-פר-עובד (מכבד `true` בכרטיס-העובד). */
+export function isGrantableFeature(key: string): boolean {
+  return GRANTABLE_STAFF_FEATURES.has(key);
+}
+
+/**
  * הקונפיג האפקטיבי של עובד/ת = קונפיג-הארגון **בניכוי** מה שהמנהל כיבה לה
  * בכרטיס-העובד (רק הגבלה — לא מדליקה מה שהארגון כיבה). מנהל = קונפיג-הארגון כמו-שהוא.
  * זהה בסמנטיקה ל-featureOn/moduleOn (false=כבוי; חסר=יורש). טהור — לב האכיפה בממשק.
+ * **חריג יחיד — GRANTABLE_STAFF_FEATURES:** עבורן `true` בכרטיס-העובד **מדליק** (הדלקה
+ * פר-עובד). לכל שאר המפתחות `true` מתעלמים (הגבלה-בלבד, כמקודם).
  */
 export function effectiveConfigFor<
   T extends { modules?: Record<string, boolean>; features?: Record<string, boolean> },
@@ -185,7 +204,10 @@ export function effectiveConfigFor<
   const modules = { ...orgConfig.modules };
   for (const [m, v] of Object.entries(ov.modules ?? {})) if (v === false) modules[m] = false;
   const features = { ...orgConfig.features };
-  for (const [k, v] of Object.entries(ov.features ?? {})) if (v === false) features[k] = false;
+  for (const [k, v] of Object.entries(ov.features ?? {})) {
+    if (v === false) features[k] = false;
+    else if (v === true && GRANTABLE_STAFF_FEATURES.has(k)) features[k] = true; // הדלקה פר-עובד
+  }
   return { ...orgConfig, modules, features };
 }
 

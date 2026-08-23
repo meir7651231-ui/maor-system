@@ -184,6 +184,11 @@ export function SupportersView() {
   const purposeOn = featureOn(config, 'supporters.purpose');
   const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
   const cloudEmail = useApp((s) => s.cloud.user?.email);
+  // הרשאת פעולות-הבחירה-המרובה (בקשת-בעלים 23.8): מנהל/בעלים תמיד; עובד/ת רק אם
+  // המנהל **הדליק** לו/ה את היכולת בכרטיס-העובד (features[key]===true בקונפיג-האפקטיבי).
+  const isOrgMgr = useApp((s) => s.cloud.isManager) === true;
+  const canBulkManage = isAdminUser(config, cloudEmail) || isOrgMgr;
+  const bulkGranted = (key: string) => canBulkManage || config.features?.[key] === true;
   const desigLimit = purposeOn ? allowedDesignations : null;
   const [incomingOpen, setIncomingOpen] = useState(false);
   const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');
@@ -726,7 +731,7 @@ export function SupportersView() {
             {/* בחירה-מרובה — כל פעולותיה (שיוך/הסרת-ייעוד, מחיקה) למנהל בלבד
                 (בקשת-בעלים 23.8: "כל היכולות האלה רק למנהל"). גידור בכניסה עצמה
                 ⇒ עובד/ת לא-מנהל/ת כלל לא נכנס/ת למצב-הבחירה. */}
-            {featureOn(config, 'supporters.bulkselect') && isAdminUser(config, cloudEmail) && (
+            {bulkGranted('supporters.bulkselect') && (
               <Btn onClick={() => (selMode ? exitSelMode() : setSelMode(true))} title="בחירה מרובה (למנהל)">
                 {selMode ? '✕ סיום בחירה' : '☑ בחירה'}
               </Btn>
@@ -790,19 +795,19 @@ export function SupportersView() {
           </Btn>
           <div style={{ flex: 1 }} />
           {/* בקשת-בעלים 19.8 (פריט ד'): המנהל משייך ייעוד לכמה תומכ/ות בבת-אחת */}
-          {purposeOn && isAdminUser(config, cloudEmail) && (
+          {purposeOn && bulkGranted('supporters.purpose') && (
             <Btn disabled={!selSet.size} onClick={() => { setAssignVal(''); setAssignOpen(true); }}>
               {'🏷 שיוך ייעוד · ' + selSet.size}
             </Btn>
           )}
           {/* בקשת-בעלים 23.8: כפתור מפורש להסרת-ייעוד (forWho ריק) — היכולת הייתה סמויה
               ("השאירו ריק ושייכו"); עכשיו פעולה גלויה. הלא-מסומנים שומרים את ייעודם. */}
-          {purposeOn && isAdminUser(config, cloudEmail) && (
+          {purposeOn && bulkGranted('supporters.purpose') && (
             <Btn disabled={!selSet.size} onClick={() => setClearPurposeConfirm(true)} title="הסרת הייעוד מהמסומנים — הלא-מסומנים שומרים את ייעודם">
               {'🧹 הסר ייעוד · ' + selSet.size}
             </Btn>
           )}
-          {featureOn(config, 'supporters.bulkdelete') && isAdminUser(config, cloudEmail) && (
+          {bulkGranted('supporters.bulkdelete') && (
             <Btn kind="danger" disabled={!selSet.size} onClick={() => setConfirmDel(true)}>
               {'🗑 מחיקת ' + selSet.size}
             </Btn>
