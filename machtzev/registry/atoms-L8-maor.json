@@ -1060,6 +1060,16 @@
   "source": "maor/knowledge/VISION-LIGHT-2026-08-23.md"
  },
  {
+  "id": "L8:maor:machtzev/DEDUP-REPORT.md",
+  "level": "L8-knowledge",
+  "name": "DEDUP-REPORT.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 53,
+  "title": "⚖️ מחצב — דוח הכרעת-כפילויות",
+  "source": "maor/machtzev/DEDUP-REPORT.md"
+ },
+ {
   "id": "L8:maor:machtzev/README.md",
   "level": "L8-knowledge",
   "name": "README.md",

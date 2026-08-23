@@ -3,8 +3,8 @@
  "root": "/home/user/maor-system",
  "generatedBy": "machtzev/census v1",
  "totals": {
-  "files": 981,
-  "lines": 558321,
+  "files": 985,
+  "lines": 582478,
   "orphans": 0
  },
  "byDomain": {
@@ -13,12 +13,12 @@
    "lines": 830
   },
   "data": {
-   "files": 44,
-   "lines": 401243
+   "files": 45,
+   "lines": 425254
   },
   "knowledge": {
-   "files": 135,
-   "lines": 24681
+   "files": 136,
+   "lines": 24734
   },
   "tests": {
    "files": 359,
@@ -29,8 +29,8 @@
    "lines": 16083
   },
   "source": {
-   "files": 73,
-   "lines": 12518
+   "files": 75,
+   "lines": 12611
   },
   "assets": {
    "files": 38,
@@ -1114,10 +1114,28 @@
    "lines": 136
   },
   {
+   "path": "machtzev/assemble/tokens-roundtrip.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 20
+  },
+  {
    "path": "machtzev/census.mjs",
    "bucket": "source",
    "domain": "source",
    "lines": 65
+  },
+  {
+   "path": "machtzev/DEDUP-REPORT.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 53
+  },
+  {
+   "path": "machtzev/dedup.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 72
   },
   {
    "path": "machtzev/extract/actions.mjs",
@@ -1351,7 +1369,7 @@
    "path": "machtzev/registry/atoms-L8-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 1212
+   "lines": 1222
   },
   {
    "path": "machtzev/registry/atoms-L8-yoman.json",
@@ -1369,7 +1387,7 @@
    "path": "machtzev/registry/census-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 5905
+   "lines": 5953
   },
   {
    "path": "machtzev/registry/census-yoman.json",
@@ -1378,10 +1396,16 @@
    "lines": 204
   },
   {
+   "path": "machtzev/registry/dupgroups.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 23953
+  },
+  {
    "path": "machtzev/run.mjs",
    "bucket": "source",
    "domain": "source",
-   "lines": 30
+   "lines": 31
   },
   {
    "path": "machtzev/STATUS.md",
