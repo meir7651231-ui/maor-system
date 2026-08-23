@@ -7,9 +7,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { buildIcs } from '../../lib/ics';
-import { icsFeedUrl, publishIcsFeed } from '../../lib/icsFeed';
 import { Btn, Modal, TextInput } from '../ui';
 import { icsWindowEvents, isoOf } from './calLib';
+
+// ⚡ VISION-LIGHT ‏#1: ‏lib/icsFeed מושך את כל Firebase לבנדל הראשי — ייבוא
+// דינמי בלבד (המודאל ממילא async). ננעל ב-ratchet ‏bundle-light.
 
 export function IcsFeedModal({ onClose }: { onClose: () => void }) {
   const db = useApp((s) => s.db);
@@ -29,6 +31,7 @@ export function IcsFeedModal({ onClose }: { onClose: () => void }) {
     setBusy(true);
     setErr('');
     try {
+      const { icsFeedUrl, publishIcsFeed } = await import('../../lib/icsFeed');
       const ics = buildIcs(
         icsWindowEvents(db, isoOf(new Date()), 385, slug, config),
         config.orgName || 'לוח הארגון',
