@@ -274,3 +274,66 @@ describe('🧲 ratchet — מילוי-אם-ריק של פרטי-קשר במיז�
     expect(r2.enriched).toBe(0); // אידמפוטנטי — ריצה-חוזרת לא נוגעת
   });
 });
+
+// 🐝 נחיל-סולה (23.8) — ממצאי-קליינט מאומתים, כל אחד ננעל:
+describe('🐝 ratchet — ממצאי-נחיל-סולה בקליינט', () => {
+  it('C2 · דדופ גלובלי: אותה עסקה לא נרשמת בשני כרטיסים (ידני+אצווה)', async () => {
+    const { attachChargeTo, attachChargesBulk } = await import('../nedarimSync');
+    const sups = [
+      { id: 's1', name: 'א', hist: [{ d: '2026-01-01', a: 72, c: '$', clearer: 'סולה', txn: 'dup1' }] },
+      { id: 's2', name: 'ב', hist: [] },
+    ] as never[];
+    const c = { amount: 72, provider: 'sola', txnId: 'dup1', d: '2026-01-01' };
+    expect(attachChargeTo(sups, 's2', c).added).toBe(false); // כבר על s1
+    const bulk = attachChargesBulk(sups, [
+      { supId: 's2', charge: c }, // כפול מול s1
+      { supId: 's2', charge: { ...c, txnId: 'new1' } },
+      { supId: 's1', charge: { ...c, txnId: 'new1', amount: 50 } }, // כפול בתוך-האצווה מול s2
+    ] as never);
+    expect(bulk.added).toBe(1);
+  });
+  it('C10 · ביטול (amount=0) לא נכתב ל-hist במיזוג ידני/אצווה', async () => {
+    const { attachChargeTo, attachChargesBulk } = await import('../nedarimSync');
+    const sups = [{ id: 's1', name: 'א', hist: [] }] as never[];
+    expect(attachChargeTo(sups, 's1', { amount: 0, txnId: 'z1' }).added).toBe(false);
+    expect(attachChargesBulk(sups, [{ supId: 's1', charge: { amount: 0, txnId: 'z2' } }] as never).added).toBe(0);
+  });
+  it('C12 · טלפון-דמה (לא שורד נורמליזציה) לא ממלא שדה ריק', async () => {
+    const { fillCardFromCharge } = await import('../nedarimSync');
+    const sp = { id: 's1', name: 'א' } as never;
+    expect((fillCardFromCharge(sp, { amount: 1, phone: '123' } as never) as { phone?: string }).phone).toBeUndefined();
+    expect((fillCardFromCharge(sp, { amount: 1, phone: '050-1234567' } as never) as { phone?: string }).phone).toBe('050-1234567');
+  });
+  it('C7 · detectRecurringHok מזהה הו"ק גם מחיובי-סולה דולריים חוזרים', async () => {
+    const { detectRecurringHok } = await import('../nedarimSync');
+    const sups = [{
+      id: 's1', name: 'א', hist: [
+        { d: '2026-05-25', a: 180, c: '$', clearer: 'סולה', txn: 't1' },
+        { d: '2026-06-25', a: 180, c: '$', clearer: 'סולה', txn: 't2' },
+        { d: '2026-07-25', a: 180, c: '$', clearer: 'סולה', txn: 't3' },
+      ],
+    }] as never[];
+    const { detected, supporters } = detectRecurringHok(sups, '2026-08-23');
+    expect(detected).toBe(1);
+    const hok = (supporters[0] as { hok?: { amount: number; cur: string; active: boolean } }).hok;
+    expect(hok?.amount).toBe(180);
+    expect(hok?.cur).toBe('$');
+    expect(hok?.active).toBe(true);
+  });
+  it('C1+C3+C5+C13 · הגנות-מקור: שער-הזיכויים, סינון-סולה מהחיבור-החי ומסנכרון-נדרים, איפוס משמר hist-זר', async () => {
+    const store = (await import('../../store/useApp.ts?raw')).default as string;
+    expect(store).toMatch(/chargesAdded > 0 \|\| plan\.summary\.refundsApplied > 0/); // C1
+    expect(store).toMatch(/sup-ned-'\) && !\(s\.hist \?\? \[\]\)\.some\(\(h\) => h\.clearer && h\.clearer !== 'נדרים'\)/); // C5 reset
+    expect(store).toMatch(/sup-ned-txn-'\) && !\(s\.hist \?\? \[\]\)\.some/); // C5 junk
+    const app = (await import('../../App.tsx?raw')).default as string;
+    expect(app).toMatch(/rows\.filter\(\(r\) => r\.provider !== 'sola'\)/); // C3
+    expect(app).toMatch(/applyNedarimAuto\(nedRows\)/);
+    const modal = (await import('../../components/supporters/NedarimSyncModal.tsx?raw')).default as string;
+    expect(modal).toMatch(/charges\.filter\(\(c\) => c\.provider !== 'sola'\)/); // C13
+    expect(modal).toMatch(/repairCards\(provRows, 'סולה'\)[\s\S]{0,200}resetNedarimImport\(\)/); // C6
+    const inc = (await import('../../components/supporters/IncomingPayments.tsx?raw')).default as string;
+    expect(inc).toMatch(/p\.d \|\| p\.at\.slice\(0, 10\)/); // C4
+    expect(inc).toMatch(/failed\+\+/); // C8
+    expect(inc).toMatch(/auditNote\('✓ סימון תשלום-נכנס כטופל'/); // C9
+  });
+});

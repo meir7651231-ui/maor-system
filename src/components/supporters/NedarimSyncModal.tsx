@@ -21,6 +21,7 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
   const config = useApp((s) => s.config);
   const applyNedarimSync = useApp((s) => s.applyNedarimSync);
   const resetNedarimImport = useApp((s) => s.resetNedarimImport);
+  const repairCards = useApp((s) => s.repairProviderCards);
   const toast = useApp((s) => s.toast);
   const cloudEmail = useApp((s) => s.cloud.user?.email);
   // 🔄 משיכה-בקליק (ייעול 20.8) — מגודר מייל-על + כתובת-פונקציה מוגדרת (payments.pullUrl).
@@ -49,7 +50,9 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
         const m: CloudMod = await import('../../store/cloudSync');
         const [donors, charges] = await Promise.all([m.fetchNedarimDonors(), m.fetchIncomingPayments()]);
         if (!alive) return;
-        setPlan(planNedarimSync(supporters, donors, charges));
+        // 🐛 נחיל-סולה C13: סנכרון-נדרים המלא בלע גם עסקאות-סולה ויצר להן כרטיסי
+        // 'sup-ned-txn-' — סולה שייכת לתור-האישור הידני בלבד.
+        setPlan(planNedarimSync(supporters, donors, charges.filter((c) => c.provider !== 'sola')));
       } catch (e) {
         if (alive) setError(String((e as Error)?.message || e));
       } finally {
@@ -67,7 +70,7 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
     try {
       const m: CloudMod = await import('../../store/cloudSync');
       const [donors, charges] = await Promise.all([m.fetchNedarimDonors(), m.fetchIncomingPayments()]);
-      setPlan(planNedarimSync(supporters, donors, charges));
+      setPlan(planNedarimSync(supporters, donors, charges.filter((c) => c.provider !== 'sola')));
     } catch (e) {
       setError(String((e as Error)?.message || e));
     } finally {
@@ -147,7 +150,16 @@ export function NedarimSyncModal(props: { onClose: () => void }) {
             sm
             onClick={() => {
               if (!wipeArmed) { setWipeArmed(true); return; }
-              resetNedarimImport();
+              // 🐛 נחיל-סולה C6: מיזוגי-סולה שנרשמו 'נדרים' לפני תיקון-התווית היו
+              // נמחקים כאן. ריפוי-התוויות רץ קודם (נופל-רך בלי ענן) — ורק אז האיפוס.
+              void (async () => {
+                try {
+                  const m: CloudMod = await import('../../store/cloudSync');
+                  const provRows = await m.fetchProviderRows('sola');
+                  if (provRows.length) repairCards(provRows, 'סולה');
+                } catch { /* אין ענן/הרשאה — ממשיכים; providerClearer כבר מגן קדימה */ }
+                resetNedarimImport();
+              })();
               setWipeArmed(false);
             }}
           >

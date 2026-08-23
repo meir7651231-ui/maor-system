@@ -356,6 +356,8 @@ interface AppState {
   attachIncomingBulk: (items: { supId: string; charge: SyncCharge }[]) => number;
   /** ריפוי-כרטיסים מרשומות-ספק: תיקון תווית-הסליקה + מילוי-אם-ריק של פרטי-קשר (🐛 23.8). */
   repairProviderCards: (rows: SyncCharge[], label: string) => { relabeled: number; enriched: number };
+  /** רישום-פעולה ללוג-המנהל ממסכים (🐛 נחיל-סולה C9 — פעולות-כסף בלי עקבה). */
+  auditNote: (act: string, what: string) => void;
   /** 🔁 זיהוי-רטרואקטיבי של הו"ק מתבנית-החיובים ב-hist (מילוי משבצת-ההו"ק לכרטיסים
    *  שסונכרו לפני מנגנון-ההו"ק). מחזיר כמה זוהו. */
   detectNedarimHok: () => number;
@@ -2024,8 +2026,10 @@ export const useApp = create<AppState>()((set, get) => {
       // יוצר כרטיסים (מונע ריבוי-כרטיסים); מה שלא-תואם נשאר pending ל-🔄 הידני.
       // שקט (בלי toast — רץ ברקע); אידמפוטנטי (דדופ-txn).
       const plan = planNedarimSync(get().db.supporters, [], charges, { attachOnly: true });
-      if (plan.summary.chargesAdded > 0) {
-        logAudit('🔴 חיבור-חי מנדרים', plan.summary.chargesAdded + ' חיובים חוברו לכרטיסים');
+      // 🐛 נחיל-סולה C1 (HIGH): זיכוי-בלבד (refundsApplied>0, chargesAdded=0) סומן
+      // handled בלי שנכתב ל-hist — אובדן-זיכוי קבוע. השער כולל עכשיו גם זיכויים.
+      if (plan.summary.chargesAdded > 0 || plan.summary.refundsApplied > 0) {
+        logAudit('🔴 חיבור-חי מנדרים', plan.summary.chargesAdded + ' חיובים + ' + plan.summary.refundsApplied + ' זיכויים חוברו לכרטיסים');
         setDb(() => ({ supporters: plan.supporters }));
       }
       return plan.handledChargeIds; // רק העסקאות שחוברו — לסימון handled
@@ -2049,6 +2053,10 @@ export const useApp = create<AppState>()((set, get) => {
         setDb(() => ({ supporters }));
       }
       return added;
+    },
+
+    auditNote(act, what) {
+      logAudit(act, what);
     },
 
     repairProviderCards(rows, label) {
@@ -2077,7 +2085,11 @@ export const useApp = create<AppState>()((set, get) => {
       // ניקוי כרטיסים שנוצרו-אוטומטית מעסקאות (id 'sup-ned-txn-') — נוצרו בטעות
       // כשהחיבור-החי רץ עם קוד-ישן. כרטיסי-התורם ('sup-ned-<toremId>') והמקוריים
       // נשמרים. גם ניקוי אירועי-עי"ן/תזכורות של הנמחקים.
-      const junk = get().db.supporters.filter((s) => s.id.startsWith('sup-ned-txn-'));
+      // 🐛 נחיל-סולה C5: כרטיס-עסקה שמחזיק hist שאינו-נדרים (למשל סולה) לא נמחק —
+      // מחיקתו הייתה מאבדת כסף-$ מהצבירות בשקט.
+      const junk = get().db.supporters.filter(
+        (s) => s.id.startsWith('sup-ned-txn-') && !(s.hist ?? []).some((h) => h.clearer && h.clearer !== 'נדרים'),
+      );
       if (!junk.length) return 0;
       const ids = new Set(junk.map((s) => s.id));
       const evIds = new Set(junk.map((s) => s.nextEventId).filter(Boolean) as string[]);
@@ -2095,7 +2107,12 @@ export const useApp = create<AppState>()((set, get) => {
       // מהמקוריים של hist מנדרים (clearer='נדרים') ו-extId — חזרה למצב שלפני-הייבוא.
       // הקבלות/תרומות (donations/rid) לא נגעות; hist מיצוא-לגאסי (clearer≠נדרים) נשמר.
       const sups = get().db.supporters;
-      const created = sups.filter((s) => s.id.startsWith('sup-ned-'));
+      // 🐛 נחיל-סולה C5 (HIGH): כרטיס 'sup-ned-*' שמחזיק hist של ספק אחר (סולה)
+      // אינו נמחק — הוא עובר למסלול-הניקוי (מוסרות רק שורות-הנדרים + extId),
+      // אחרת מחיקתו מאבדת $-hist מהצבירות בשקט.
+      const created = sups.filter(
+        (s) => s.id.startsWith('sup-ned-') && !(s.hist ?? []).some((h) => h.clearer && h.clearer !== 'נדרים'),
+      );
       const createdIds = new Set(created.map((s) => s.id));
       const evIds = new Set(created.map((s) => s.nextEventId).filter(Boolean) as string[]);
       const remaining = sups

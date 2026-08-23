@@ -143,16 +143,19 @@ export default function App() {
       if (!alive) return;
       unsub = m.watchIncomingPayments((rows) => {
         useApp.setState({ nedPending: rows.length }); // חיווי-מונה (תג + "מושהה") — תמיד
-        if (!rows.length) return;
+        // 🐛 נחיל-סולה C3: ערימת-סולה הממתינה (אישור-ידני במכוון) נספרה בתקרת
+        // NED_LIVE_MAX והשתיקה את החיבור-החי של נדרים. סולה מסוננת מהחיבור-החי.
+        const nedRows = rows.filter((r) => r.provider !== 'sola');
+        if (!nedRows.length) return;
         // ⚠️ חיבור-חי מיועד ל**טפטוף בזמן-אמת** (חיוב-חדש בודד מה-webhook). גיבוי-
         // היסטורי גדול (מאות/אלפי ממתינים, למשל משיכת reset מ-2019) **לא** מעובד
         // כאן — זה היה מריץ אלפי חישובים + אלפי כתיבות-ענן סינכרונית על כל טעינה
         // ומקפיא/מפיל את הדפדפן (תקרית 19.8). מעל הסף ⇒ מדלגים; הבּאלק עובר למסך
         // 🔄 הידני עם תצוגה-מקדימה (מנה אחת, לא לולאה). ratchet: nedarim-backfill-guard.
-        if (rows.length > NED_LIVE_MAX) return;
+        if (nedRows.length > NED_LIVE_MAX) return;
         // attachOnly ⇒ מחזיר רק את מזהי-העסקאות שחוברו לכרטיס-קיים; מה שלא-תואם
         // נשאר pending (ל-🔄 הידני) ⇒ לא מסמנים handled ולא יוצרים כרטיסים.
-        const handled = applyNedarimAuto(rows);
+        const handled = applyNedarimAuto(nedRows);
         for (const id of handled) void m.markIncomingPayment(id).catch(() => {});
       });
     });
