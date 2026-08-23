@@ -1070,12 +1070,22 @@
   "source": "maor/machtzev/DEDUP-REPORT.md"
  },
  {
+  "id": "L8:maor:machtzev/DUPDEEP-REPORT.md",
+  "level": "L8-knowledge",
+  "name": "DUPDEEP-REPORT.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 50,
+  "title": "🔍 מחצב — כפילויות ברזולוציית-הפירוק-המלא",
+  "source": "maor/machtzev/DUPDEEP-REPORT.md"
+ },
+ {
   "id": "L8:maor:machtzev/LAW.md",
   "level": "L8-knowledge",
   "name": "LAW.md",
   "type": "OTHER",
   "date": null,
-  "lines": 43,
+  "lines": 49,
   "title": "⚡ חוקי-החשמלאי — חוקת הבנייה-מחדש (הכרעת-בעלים 24.8.2026)",
   "source": "maor/machtzev/LAW.md"
  },
@@ -1130,14 +1140,64 @@
   "source": "maor/machtzev/new/atoms/palette.contract.md"
  },
  {
-  "id": "L8:maor:machtzev/new/atoms/score-term.contract.md",
+  "id": "L8:maor:machtzev/new/atoms/rule-contains.contract.md",
   "level": "L8-knowledge",
-  "name": "score-term.contract.md",
+  "name": "rule-contains.contract.md",
   "type": "OTHER",
   "date": null,
-  "lines": 9,
-  "title": "חוזה · חוט score-term",
-  "source": "maor/machtzev/new/atoms/score-term.contract.md"
+  "lines": 5,
+  "title": "חוזה · חוט rule-contains",
+  "source": "maor/machtzev/new/atoms/rule-contains.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/atoms/rule-exact.contract.md",
+  "level": "L8-knowledge",
+  "name": "rule-exact.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 5,
+  "title": "חוזה · חוט rule-exact",
+  "source": "maor/machtzev/new/atoms/rule-exact.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/atoms/rule-plural.contract.md",
+  "level": "L8-knowledge",
+  "name": "rule-plural.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 5,
+  "title": "חוזה · חוט rule-plural",
+  "source": "maor/machtzev/new/atoms/rule-plural.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/atoms/rule-prefix.contract.md",
+  "level": "L8-knowledge",
+  "name": "rule-prefix.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 5,
+  "title": "חוזה · חוט rule-prefix",
+  "source": "maor/machtzev/new/atoms/rule-prefix.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/atoms/rule-skeleton.contract.md",
+  "level": "L8-knowledge",
+  "name": "rule-skeleton.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 5,
+  "title": "חוזה · חוט rule-skeleton",
+  "source": "maor/machtzev/new/atoms/rule-skeleton.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/atoms/rule-typo.contract.md",
+  "level": "L8-knowledge",
+  "name": "rule-typo.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 5,
+  "title": "חוזה · חוט rule-typo",
+  "source": "maor/machtzev/new/atoms/rule-typo.contract.md"
  },
  {
   "id": "L8:maor:machtzev/new/atoms/smart-filter.contract.md",
@@ -1210,6 +1270,16 @@
   "source": "maor/machtzev/new/boxes/theme.contract.md"
  },
  {
+  "id": "L8:maor:machtzev/new/MOVED.md",
+  "level": "L8-knowledge",
+  "name": "MOVED.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 4,
+  "title": "⚠️ העץ החדש עבר לריפו Genesis",
+  "source": "maor/machtzev/new/MOVED.md"
+ },
+ {
   "id": "L8:maor:machtzev/README.md",
   "level": "L8-knowledge",
   "name": "README.md",
@@ -1235,7 +1305,7 @@
   "name": "STATUS.md",
   "type": "OTHER",
   "date": null,
-  "lines": 48,
+  "lines": 63,
   "title": "🏗️ מחצב — לוח-מצב",
   "source": "maor/machtzev/STATUS.md"
  },

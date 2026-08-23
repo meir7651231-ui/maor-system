@@ -13,6 +13,7 @@ for (const [, name] of REPOS) for (const x of ['tokens', 'flags', 'terms', 'engi
 run('./reconcile.mjs', []);
 run('./wiring-check.mjs', []);
 run('./contract-check.mjs', []);
+try { run('./drift-check.mjs', []); } catch {}
 try { run('./refine.mjs', []); } catch {}
 try { run('./dedup.mjs', []); } catch {}
 try { run('./dedup-deep.mjs', []); } catch {}

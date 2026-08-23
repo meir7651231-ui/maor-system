@@ -51,7 +51,9 @@ let opaqueBytes = 0, opaqueDirs = [];
 
 const byDomain = {};
 for (const f of files) { byDomain[f.domain] = byDomain[f.domain] || { files: 0, lines: 0 }; byDomain[f.domain].files++; byDomain[f.domain].lines += f.lines; }
-const out = { repo: NAME, root: ROOT, generatedBy: 'machtzev/census v1',
+import { execSync } from 'node:child_process';
+let HEAD = null; try { HEAD = execSync('git -C ' + JSON.stringify(ROOT) + ' rev-parse HEAD').toString().trim(); } catch {}
+const out = { repo: NAME, root: ROOT, head: HEAD, generatedBy: 'machtzev/census v1',
   totals: { files: files.length, lines: files.reduce((s,f)=>s+f.lines,0), orphans: orphans.length },
   byDomain, opaqueDirs, orphans, files };
 fs.mkdirSync(new URL('./registry/', import.meta.url).pathname, { recursive: true });

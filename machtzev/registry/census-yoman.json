@@ -1,6 +1,7 @@
 {
  "repo": "yoman",
  "root": "/home/user/yoman-habina",
+ "head": "ea2030d9233dbd11872448fb09206ba89c894b90",
  "generatedBy": "machtzev/census v1",
  "totals": {
   "files": 27,

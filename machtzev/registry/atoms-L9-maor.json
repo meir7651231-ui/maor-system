@@ -1,11 +1,11 @@
 [
  {
-  "id": "L9:maor:machtzev/census.mjs:63:100:list-cap",
+  "id": "L9:maor:machtzev/census.mjs:65:100:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "20",
   "hint": "if (orphans.length) { console.error(`\\n🚨 אזעקה: ${orphans.length} קבצ",
-  "source": "maor/machtzev/census.mjs:63"
+  "source": "maor/machtzev/census.mjs:65"
  },
  {
   "id": "L9:maor:machtzev/contract-check.mjs:16:75:threshold",
@@ -14,6 +14,62 @@
   "value": "100",
   "hint": "if (!fs.existsSync(contract) || fs.readFileSync(contract, 'utf8').leng",
   "source": "maor/machtzev/contract-check.mjs:16"
+ },
+ {
+  "id": "L9:maor:machtzev/dedup-deep.mjs:21:66:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "12",
+  "hint": "const h = crypto.createHash('sha1').update(body).digest('hex').slice(0",
+  "source": "maor/machtzev/dedup-deep.mjs:21"
+ },
+ {
+  "id": "L9:maor:machtzev/dedup-deep.mjs:29:70:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "6",
+  "hint": "if (files.size >= 2) findings.nameTwins.push({ name: n, members: ids.s",
+  "source": "maor/machtzev/dedup-deep.mjs:29"
+ },
+ {
+  "id": "L9:maor:machtzev/dedup-deep.mjs:36:97:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "50",
+  "hint": "for (const [p, ids] of byRe.entries()) if (ids.length >= 3) findings.r",
+  "source": "maor/machtzev/dedup-deep.mjs:36"
+ },
+ {
+  "id": "L9:maor:machtzev/dedup-deep.mjs:49:18:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "15",
+  "hint": "findings.bodyTwins.slice(0, 15).forEach(g => md += `| ${g.members.map(",
+  "source": "maor/machtzev/dedup-deep.mjs:49"
+ },
+ {
+  "id": "L9:maor:machtzev/dedup-deep.mjs:51:52:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "15",
+  "hint": "findings.nameTwins.sort((a, b) => b.count - a.count).slice(0, 15).forE",
+  "source": "maor/machtzev/dedup-deep.mjs:51"
+ },
+ {
+  "id": "L9:maor:machtzev/dedup-deep.mjs:53:53:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "findings.regexTwins.sort((a, b) => b.count - a.count).slice(0, 10).for",
+  "source": "maor/machtzev/dedup-deep.mjs:53"
+ },
+ {
+  "id": "L9:maor:machtzev/dedup-deep.mjs:55:54:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "10",
+  "hint": "findings.styleRewire.sort((a, b) => b.count - a.count).slice(0, 10).fo",
+  "source": "maor/machtzev/dedup-deep.mjs:55"
  },
  {
   "id": "L9:maor:machtzev/dedup.mjs:61:84:list-cap",
@@ -54,6 +110,14 @@
   "value": "15",
   "hint": "groups.filter(g => g.kind === 'color').slice(0, 15).forEach(g => md +=",
   "source": "maor/machtzev/dedup.mjs:75"
+ },
+ {
+  "id": "L9:maor:machtzev/drift-check.mjs:16:70:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "8",
+  "hint": "if (now === c.head) console.log(`✓ ${c.repo}: המחצבה במקום (${c.head.s",
+  "source": "maor/machtzev/drift-check.mjs:16"
  },
  {
   "id": "L9:maor:machtzev/extract/actions.mjs:12:25:list-cap",

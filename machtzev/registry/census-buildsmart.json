@@ -1,6 +1,7 @@
 {
  "repo": "buildsmart",
  "root": "/tmp/claude-0/-home-user/2d086046-4b60-52a1-9aee-58e2962b1958/scratchpad/bs-tip",
+ "head": "bc36aec48bd3e0104817788d14ff8fba24e53a5d",
  "generatedBy": "machtzev/census v1",
  "totals": {
   "files": 7308,

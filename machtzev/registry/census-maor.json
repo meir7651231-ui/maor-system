@@ -1,10 +1,11 @@
 {
  "repo": "maor",
  "root": "/home/user/maor-system",
+ "head": "8fab0bd6ba87097638ecbf45a84c30205f7abc9b",
  "generatedBy": "machtzev/census v1",
  "totals": {
-  "files": 1052,
-  "lines": 672995,
+  "files": 1072,
+  "lines": 673861,
   "orphans": 0
  },
  "byDomain": {
@@ -13,24 +14,24 @@
    "lines": 830
   },
   "data": {
-   "files": 63,
-   "lines": 514724
+   "files": 64,
+   "lines": 515370
   },
   "knowledge": {
-   "files": 150,
-   "lines": 24886
+   "files": 157,
+   "lines": 24982
   },
   "tests": {
-   "files": 372,
-   "lines": 32866
+   "files": 377,
+   "lines": 32885
   },
   "server": {
    "files": 64,
    "lines": 16083
   },
   "source": {
-   "files": 97,
-   "lines": 13362
+   "files": 104,
+   "lines": 13467
   },
   "assets": {
    "files": 38,
@@ -1129,13 +1130,19 @@
    "path": "machtzev/census.mjs",
    "bucket": "source",
    "domain": "source",
-   "lines": 65
+   "lines": 67
   },
   {
    "path": "machtzev/contract-check.mjs",
    "bucket": "source",
    "domain": "source",
    "lines": 23
+  },
+  {
+   "path": "machtzev/dedup-deep.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 58
   },
   {
    "path": "machtzev/DEDUP-REPORT.md",
@@ -1148,6 +1155,18 @@
    "bucket": "source",
    "domain": "source",
    "lines": 78
+  },
+  {
+   "path": "machtzev/drift-check.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 20
+  },
+  {
+   "path": "machtzev/DUPDEEP-REPORT.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 50
   },
   {
    "path": "machtzev/extract/actions.mjs",
@@ -1243,7 +1262,7 @@
    "path": "machtzev/LAW.md",
    "bucket": "knowledge",
    "domain": "knowledge",
-   "lines": 43
+   "lines": 49
   },
   {
    "path": "machtzev/new/atoms/csv-escape.contract.md",
@@ -1336,22 +1355,112 @@
    "lines": 12
   },
   {
-   "path": "machtzev/new/atoms/score-term.contract.md",
+   "path": "machtzev/new/atoms/rule-contains.contract.md",
    "bucket": "knowledge",
    "domain": "knowledge",
+   "lines": 5
+  },
+  {
+   "path": "machtzev/new/atoms/rule-contains.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 3
+  },
+  {
+   "path": "machtzev/new/atoms/rule-contains.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 4
+  },
+  {
+   "path": "machtzev/new/atoms/rule-exact.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 5
+  },
+  {
+   "path": "machtzev/new/atoms/rule-exact.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 3
+  },
+  {
+   "path": "machtzev/new/atoms/rule-exact.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 4
+  },
+  {
+   "path": "machtzev/new/atoms/rule-plural.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 5
+  },
+  {
+   "path": "machtzev/new/atoms/rule-plural.mjs",
+   "bucket": "source",
+   "domain": "source",
    "lines": 9
   },
   {
-   "path": "machtzev/new/atoms/score-term.mjs",
-   "bucket": "source",
-   "domain": "source",
-   "lines": 24
-  },
-  {
-   "path": "machtzev/new/atoms/score-term.test.mjs",
+   "path": "machtzev/new/atoms/rule-plural.test.mjs",
    "bucket": "test",
    "domain": "tests",
+   "lines": 4
+  },
+  {
+   "path": "machtzev/new/atoms/rule-prefix.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 5
+  },
+  {
+   "path": "machtzev/new/atoms/rule-prefix.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 3
+  },
+  {
+   "path": "machtzev/new/atoms/rule-prefix.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 4
+  },
+  {
+   "path": "machtzev/new/atoms/rule-skeleton.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 5
+  },
+  {
+   "path": "machtzev/new/atoms/rule-skeleton.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 7
+  },
+  {
+   "path": "machtzev/new/atoms/rule-skeleton.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 4
+  },
+  {
+   "path": "machtzev/new/atoms/rule-typo.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 5
+  },
+  {
+   "path": "machtzev/new/atoms/rule-typo.mjs",
+   "bucket": "source",
+   "domain": "source",
    "lines": 8
+  },
+  {
+   "path": "machtzev/new/atoms/rule-typo.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 5
   },
   {
    "path": "machtzev/new/atoms/smart-filter.contract.md",
@@ -1453,13 +1562,13 @@
    "path": "machtzev/new/boxes/search.mjs",
    "bucket": "source",
    "domain": "source",
-   "lines": 20
+   "lines": 34
   },
   {
    "path": "machtzev/new/boxes/search.test.mjs",
    "bucket": "test",
    "domain": "tests",
-   "lines": 18
+   "lines": 20
   },
   {
    "path": "machtzev/new/boxes/theme.contract.md",
@@ -1478,6 +1587,12 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 20
+  },
+  {
+   "path": "machtzev/new/MOVED.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 4
   },
   {
    "path": "machtzev/README.md",
@@ -1747,7 +1862,7 @@
    "path": "machtzev/registry/atoms-L8-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 1332
+   "lines": 1372
   },
   {
    "path": "machtzev/registry/atoms-L8-yoman.json",
@@ -1765,7 +1880,7 @@
    "path": "machtzev/registry/atoms-L9-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 2998
+   "lines": 3022
   },
   {
    "path": "machtzev/registry/atoms-L9-yoman.json",
@@ -1783,13 +1898,19 @@
    "path": "machtzev/registry/census-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 6187
+   "lines": 6500
   },
   {
    "path": "machtzev/registry/census-yoman.json",
    "bucket": "data",
    "domain": "data",
    "lines": 204
+  },
+  {
+   "path": "machtzev/registry/dupdeep.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 269
   },
   {
    "path": "machtzev/registry/dupgroups.json",
@@ -1801,13 +1922,13 @@
    "path": "machtzev/run.mjs",
    "bucket": "source",
    "domain": "source",
-   "lines": 33
+   "lines": 35
   },
   {
    "path": "machtzev/STATUS.md",
    "bucket": "knowledge",
    "domain": "knowledge",
-   "lines": 48
+   "lines": 63
   },
   {
    "path": "machtzev/wiring-check.mjs",
