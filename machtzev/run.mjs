@@ -15,6 +15,7 @@ run('./wiring-check.mjs', []);
 run('./contract-check.mjs', []);
 try { run('./refine.mjs', []); } catch {}
 try { run('./dedup.mjs', []); } catch {}
+try { run('./dedup-deep.mjs', []); } catch {}
 // לוח-מצב
 const R = new URL('./registry/', import.meta.url).pathname;
 let totalAtoms = 0, rows = [];

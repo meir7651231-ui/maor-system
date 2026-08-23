@@ -1,0 +1,269 @@
+{
+ "bodyTwins": [
+  {
+   "hash": "b6995ca46886",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#fmtDate@13",
+    "L6b:maor:src/components/diary/lib.ts#fmtDate@16",
+    "L6b:maor:src/components/families/lib.ts#fmtDate@12",
+    "L6b:maor:src/components/supporters/lib.ts#fmtDate@15"
+   ]
+  },
+  {
+   "hash": "2bb3f1e3a13e",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#ageOf@66",
+    "L6b:maor:src/components/families/lib.ts#ageOf@24"
+   ]
+  },
+  {
+   "hash": "4e3a48c4932a",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#groupLabelOf@148",
+    "L6b:maor:src/components/diary/lib.ts#groupLabelOf@51"
+   ]
+  },
+  {
+   "hash": "cb5a2dec5b1d",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#paidOf@304",
+    "L6b:maor:src/components/reports/lib.ts#paidOf@39"
+   ]
+  },
+  {
+   "hash": "f929d0d67172",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#chipStyle@432",
+    "L6b:maor:src/components/diary/lib.ts#chipStyle@277",
+    "L6b:maor:src/components/supporters/lib.ts#chipStyle@212"
+   ]
+  }
+ ],
+ "nameTwins": [
+  {
+   "name": "fmtDate",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#fmtDate@13",
+    "L6b:maor:src/components/diary/lib.ts#fmtDate@16",
+    "L6b:maor:src/components/families/lib.ts#fmtDate@12",
+    "L6b:maor:src/components/reports/lib.ts#fmtDate@18",
+    "L6b:maor:src/components/supporters/lib.ts#fmtDate@15"
+   ],
+   "count": 5
+  },
+  {
+   "name": "ageOf",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#ageOf@66",
+    "L6b:maor:src/components/families/lib.ts#ageOf@24"
+   ],
+   "count": 2
+  },
+  {
+   "name": "DAY_NAMES",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#DAY_NAMES@80",
+    "L6b:maor:src/components/diary/lib.ts#DAY_NAMES@32"
+   ],
+   "count": 2
+  },
+  {
+   "name": "groupLabelOf",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#groupLabelOf@148",
+    "L6b:maor:src/components/diary/lib.ts#groupLabelOf@51"
+   ],
+   "count": 2
+  },
+  {
+   "name": "paidOf",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#paidOf@304",
+    "L6b:maor:src/components/reports/lib.ts#paidOf@39"
+   ],
+   "count": 2
+  },
+  {
+   "name": "enrollStatusMeta",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#enrollStatusMeta@412",
+    "L6b:maor:src/components/diary/lib.ts#enrollStatusMeta@268"
+   ],
+   "count": 2
+  },
+  {
+   "name": "planLabelOf",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#planLabelOf@421",
+    "L6b:maor:src/components/diary/lib.ts#planLabelOf@261"
+   ],
+   "count": 2
+  },
+  {
+   "name": "chipStyle",
+   "members": [
+    "L6b:maor:src/components/courses/lib.ts#chipStyle@432",
+    "L6b:maor:src/components/diary/lib.ts#chipStyle@277",
+    "L6b:maor:src/components/families/lib.ts#chipStyle@208",
+    "L6b:maor:src/components/supporters/lib.ts#chipStyle@212"
+   ],
+   "count": 4
+  },
+  {
+   "name": "needsCare",
+   "members": [
+    "L6b:maor:src/components/shop/lib.ts#needsCare@249",
+    "L6b:maor:src/components/tzedaka/lib.ts#needsCare@101"
+   ],
+   "count": 2
+  },
+  {
+   "name": "normName",
+   "members": [
+    "L6b:maor:src/components/supporters/lib.ts#normName@360",
+    "L6b:maor:src/lib/ayin.ts#normName@69",
+    "L6b:maor:src/lib/validate.ts#normName@65"
+   ],
+   "count": 3
+  },
+  {
+   "name": "campaignProgress",
+   "members": [
+    "L6b:maor:src/components/tzedaka/lib.ts#campaignProgress@149",
+    "L6b:maor:src/lib/publicSite.ts#campaignProgress@218"
+   ],
+   "count": 2
+  },
+  {
+   "name": "normalizePhone",
+   "members": [
+    "L6b:maor:src/lib/validate.ts#normalizePhone@19",
+    "L6b:buildsmart:app_flutter/lib/logic/input_validators.dart#normalizePhone@48"
+   ],
+   "count": 2
+  },
+  {
+   "name": "normSearch",
+   "members": [
+    "L6b:maor:src/lib/validate.ts#normSearch@51",
+    "L6b:buildsmart:app_flutter/lib/logic/text_normalize.dart#normSearch@24"
+   ],
+   "count": 2
+  },
+  {
+   "name": "canConnect",
+   "members": [
+    "L6b:buildsmart:app_flutter/lib/domain/connection_resolver.dart#canConnect@211",
+    "L6b:buildsmart:app_flutter/lib/logic/install_engine.dart#canConnect@498"
+   ],
+   "count": 2
+  },
+  {
+   "name": "_strList",
+   "members": [
+    "L6b:buildsmart:app_flutter/lib/domain/connection_schema.dart#_strList@33",
+    "L6b:buildsmart:app_flutter/lib/domain/trade_schema.dart#_strList@36"
+   ],
+   "count": 2
+  },
+  {
+   "name": "toJson",
+   "members": [
+    "L6b:buildsmart:app_flutter/lib/domain/connection_schema.dart#toJson@130",
+    "L6b:buildsmart:app_flutter/lib/domain/connection_schema.dart#toJson@157",
+    "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#toJson@230"
+   ],
+   "count": 3
+  },
+  {
+   "name": "walk",
+   "members": [
+    "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#walk@73",
+    "L6b:buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#walk@116",
+    "L6b:buildsmart:app_flutter/lib/logic/category_division.dart#walk@86",
+    "L6b:buildsmart:app_flutter/lib/logic/system_division.dart#walk@76"
+   ],
+   "count": 4
+  },
+  {
+   "name": "_matchClosed",
+   "members": [
+    "L6b:buildsmart:app_flutter/lib/logic/studio/registry_view.dart#_matchClosed@237",
+    "L6b:buildsmart:app_flutter/lib/logic/studio/rules_model.dart#_matchClosed@180"
+   ],
+   "count": 2
+  }
+ ],
+ "regexTwins": [
+  {
+   "pattern": "** תצוגת תאריך DD",
+   "count": 6
+  },
+  {
+   "pattern": "* אין הרשאה",
+   "count": 3
+  }
+ ],
+ "styleRewire": [
+  {
+   "style": "background:var(--bg)",
+   "count": 16
+  },
+  {
+   "style": "background:transparent",
+   "count": 17
+  },
+  {
+   "style": "color:#b3362a",
+   "count": 1
+  },
+  {
+   "style": "accentColor:var(--accent-deep)",
+   "count": 5
+  },
+  {
+   "style": "background:var(--panel)",
+   "count": 5
+  },
+  {
+   "style": "color:var(--accent)",
+   "count": 11
+  },
+  {
+   "style": "color:#b45309",
+   "count": 2
+  },
+  {
+   "style": "background:var(--line)",
+   "count": 5
+  },
+  {
+   "style": "background:var(--accent)",
+   "count": 6
+  },
+  {
+   "style": "textDecorationColor:var(--line)",
+   "count": 1
+  },
+  {
+   "style": "color:#f3c76b",
+   "count": 5
+  },
+  {
+   "style": "color:#a8321e",
+   "count": 1
+  },
+  {
+   "style": "background:var(--accent-deep)",
+   "count": 1
+  },
+  {
+   "style": "background:#fdecea",
+   "count": 1
+  },
+  {
+   "style": "GRAD:transparent",
+   "count": 1
+  }
+ ]
+}
