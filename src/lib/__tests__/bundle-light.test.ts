@@ -69,13 +69,37 @@ describe('⚡ bundle-light — Firebase מחוץ לבנדל הראשי', () => {
     expect(ics).not.toMatch(/^import \{[^}]*publishIcsFeed/m);
   });
 
+  it('⚡ ‏#13 פיצול-chunks: המסכים עצלים, חימום-לפי-מודול, מגן-רענון ומפתח-האשף', () => {
+    const app = readFileSync('src/App.tsx', 'utf8');
+    // כל מסכי-המודולים נטענים lazy דרך VIEW_LOADERS (הבית נשאר סטטי — first paint)
+    expect(app).toContain('const VIEW_LOADERS = {');
+    for (const v of ['families', 'courses', 'calendar', 'diary', 'supporters', 'tzedaka', 'shop', 'shop7', 'reports', 'reenroll', 'settings']) {
+      expect(app, 'loader חסר למסך ' + v).toMatch(new RegExp('\\b' + v + ": \\(\\) => import\\('"));
+    }
+    expect(app).toContain("import { HomeView } from './components/home/HomeView'");
+    // חימום-ב-idle רק למודולים דלוקים — מודול כבוי לא יורד ("שוקל רק מה שהדלקת")
+    expect(app).toContain("mods[modKey] !== false) void VIEW_LOADERS[k]()");
+    // משטחי-הניהול/כניסה עצלים — בלי ייבוא-ערך סטטי שמחזיר אותם לבנדל
+    for (const c of ['BuilderWizard', 'RemoteWizard', 'PlatformPanel', 'ManagerPanel', 'PublicSite', 'LoginScreen']) {
+      expect(app, c + ' חזר לייבוא סטטי').not.toMatch(new RegExp("^import .*\\{[^}]*\\b" + c + "\\b[^}]*\\} from", 'm'));
+    }
+    // מפתח תצלום-האשף ב-App חייב להישאר זהה ל-BUILDER_PREV_KEY ב-RemoteWizard
+    const rw = readFileSync('src/components/builder/RemoteWizard.tsx', 'utf8');
+    const key = /BUILDER_PREV_KEY = '([^']+)'/.exec(rw)![1];
+    expect(app).toContain("const BUILDER_PREV_LS = '" + key + "'");
+    // מגן-הרענון: deploy מחליף chunks ⇒ ייבוא-עצל שנפל מרענן פעם-אחת (main.tsx)
+    const main = readFileSync('src/main.tsx', 'utf8');
+    expect(main).toContain("addEventListener('vite:preloadError'");
+    expect(main).toContain('window.location.reload()');
+  });
+
   it('שער-התקציב מחווט: postbuild מריץ את bundle-budget עם תקרה יורדת-בלבד', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> };
     expect(pkg.scripts.postbuild).toBe('node scripts/bundle-budget.mjs');
     const budget = readFileSync('scripts/bundle-budget.mjs', 'utf8');
     const m = /ENTRY_GZIP_BUDGET = ([\d_]+)/.exec(budget);
     expect(m).not.toBeNull();
-    // ratchet: התקרה לעולם לא עולה מעל נקודת-הפתיחה (520KB); הקטנה = מותרת ורצויה
-    expect(Number(m![1].replace(/_/g, ''))).toBeLessThanOrEqual(520_000);
+    // ratchet יורד-בלבד: ‏520K (חילוץ-Firebase) ⇒ ‏180K (פיצול-chunks ‏#13)
+    expect(Number(m![1].replace(/_/g, ''))).toBeLessThanOrEqual(180_000);
   });
 });
