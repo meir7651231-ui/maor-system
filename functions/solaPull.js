@@ -130,10 +130,11 @@ const API_BASE = () => (process.env.SOLA_API_BASE || 'https://x1.cardknox.com').
 /** 💎 גשש-הלקוחות (peek=2, ‏23.8): ברירת-המחדל של הדוח חוזרת **בלי** טלפון/אימייל,
  *  אבל בקשת-עמודות מפורשת (xFields) כן מחזירה אותם — אומת מול השער האמיתי
  *  (xBillPhone/xEmail מלאים). הרשימה = כל העמודות שנצפו-חיות + פרטי-הקשר. */
+/** 🐛 שטח-אמת (solarun #35): השער דוחה חלק מהעמודות-הסטנדרטיות ב-xFields
+ *  ("Invalid Field: xvoid") למרות שהוא מחזיר אותן כברירת-מחדל — מבקשים **רק**
+ *  את חמשת שדות-הקשר שהגשש (peek=2) הוכיח שעובדים; העמודות הסטנדרטיות
+ *  (xRefNum/xAmount/xEnteredDate/xVoid…) חוזרות ממילא לצדן. */
 const SOLA_FIELDS = [
-  'xRefNum', 'xCommand', 'xName', 'xMaskedCardNumber', 'xToken', 'xAmount',
-  'xRequestAmount', 'xCustom01', 'xEnteredDate', 'xResponseAuthCode',
-  'xResponseResult', 'xVoid', 'xVoidable',
   'xBillFirstName', 'xBillLastName', 'xBillPhone', 'xBillMobile', 'xEmail',
 ].join(',');
 

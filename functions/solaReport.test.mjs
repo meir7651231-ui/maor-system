@@ -177,7 +177,9 @@ describe('🔒 ratchet — גבול-הכסף של solaPull', () => {
   });
   it('💎 23.8 · פרטי-קשר מהשער: xFields מבקש את עמודות-הקשר; העשרת-קיימות נוגעת רק ב-phone/email/name', () => {
     // הגשש (peek=2) הוכיח: בלי xFields הדוח חוזר בלי טלפון/אימייל; איתו — חוזרים.
-    expect(src).toMatch(/SOLA_FIELDS[\s\S]{0,300}xBillPhone/);
+    // 🐛 solarun #35: השער דוחה עמודות-סטנדרטיות ב-xFields — מבקשים שדות-קשר בלבד
+    expect(src).toMatch(/SOLA_FIELDS[\s\S]{0,120}xBillPhone/);
+    expect(src).not.toMatch(/SOLA_FIELDS = \[[\s\S]{0,200}xVoid/);
     expect(src).toMatch(/xFields: SOLA_FIELDS/);
     // העשרת רשומות-קיימות: מיזוג-חלקי של שדות-קשר ריקים בלבד — לעולם לא סטטוס/סכום
     expect(src).toMatch(/\['phone', 'email', 'name'\]/);
