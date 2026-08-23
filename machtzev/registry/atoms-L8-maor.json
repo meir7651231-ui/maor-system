@@ -1090,6 +1090,66 @@
   "source": "maor/machtzev/new/atoms/levenshtein.contract.md"
  },
  {
+  "id": "L8:maor:machtzev/new/atoms/norm-search.contract.md",
+  "level": "L8-knowledge",
+  "name": "norm-search.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 11,
+  "title": "חוזה · חוט norm-search",
+  "source": "maor/machtzev/new/atoms/norm-search.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/atoms/score-term.contract.md",
+  "level": "L8-knowledge",
+  "name": "score-term.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 9,
+  "title": "חוזה · חוט score-term",
+  "source": "maor/machtzev/new/atoms/score-term.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/atoms/smart-filter.contract.md",
+  "level": "L8-knowledge",
+  "name": "smart-filter.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 7,
+  "title": "חוזה · חוט smart-filter",
+  "source": "maor/machtzev/new/atoms/smart-filter.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/atoms/smart-score.contract.md",
+  "level": "L8-knowledge",
+  "name": "smart-score.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 9,
+  "title": "חוזה · חוט smart-score",
+  "source": "maor/machtzev/new/atoms/smart-score.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/atoms/xlat.contract.md",
+  "level": "L8-knowledge",
+  "name": "xlat.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 7,
+  "title": "חוזה · חוט xlat",
+  "source": "maor/machtzev/new/atoms/xlat.contract.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/boxes/search.contract.md",
+  "level": "L8-knowledge",
+  "name": "search.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 10,
+  "title": "חוזה · קופסת-חיבורים \"חיפוש\"",
+  "source": "maor/machtzev/new/boxes/search.contract.md"
+ },
+ {
   "id": "L8:maor:machtzev/README.md",
   "level": "L8-knowledge",
   "name": "README.md",

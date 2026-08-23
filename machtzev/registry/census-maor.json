@@ -3,8 +3,8 @@
  "root": "/home/user/maor-system",
  "generatedBy": "machtzev/census v1",
  "totals": {
-  "files": 991,
-  "lines": 582657,
+  "files": 1009,
+  "lines": 583004,
   "orphans": 0
  },
  "byDomain": {
@@ -14,23 +14,23 @@
   },
   "data": {
    "files": 45,
-   "lines": 425288
+   "lines": 425344
   },
   "knowledge": {
-   "files": 138,
-   "lines": 24789
+   "files": 144,
+   "lines": 24842
   },
   "tests": {
-   "files": 360,
-   "lines": 32735
+   "files": 366,
+   "lines": 32801
   },
   "server": {
    "files": 64,
    "lines": 16083
   },
   "source": {
-   "files": 78,
-   "lines": 12688
+   "files": 84,
+   "lines": 12860
   },
   "assets": {
    "files": 38,
@@ -1222,6 +1222,114 @@
    "lines": 13
   },
   {
+   "path": "machtzev/new/atoms/norm-search.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 11
+  },
+  {
+   "path": "machtzev/new/atoms/norm-search.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 11
+  },
+  {
+   "path": "machtzev/new/atoms/norm-search.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 5
+  },
+  {
+   "path": "machtzev/new/atoms/score-term.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 9
+  },
+  {
+   "path": "machtzev/new/atoms/score-term.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 24
+  },
+  {
+   "path": "machtzev/new/atoms/score-term.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 8
+  },
+  {
+   "path": "machtzev/new/atoms/smart-filter.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 7
+  },
+  {
+   "path": "machtzev/new/atoms/smart-filter.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 13
+  },
+  {
+   "path": "machtzev/new/atoms/smart-filter.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 13
+  },
+  {
+   "path": "machtzev/new/atoms/smart-score.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 9
+  },
+  {
+   "path": "machtzev/new/atoms/smart-score.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 31
+  },
+  {
+   "path": "machtzev/new/atoms/smart-score.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 10
+  },
+  {
+   "path": "machtzev/new/atoms/xlat.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 7
+  },
+  {
+   "path": "machtzev/new/atoms/xlat.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 73
+  },
+  {
+   "path": "machtzev/new/atoms/xlat.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 12
+  },
+  {
+   "path": "machtzev/new/boxes/search.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 10
+  },
+  {
+   "path": "machtzev/new/boxes/search.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 20
+  },
+  {
+   "path": "machtzev/new/boxes/search.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 18
+  },
+  {
    "path": "machtzev/README.md",
    "bucket": "knowledge",
    "domain": "knowledge",
@@ -1399,7 +1507,7 @@
    "path": "machtzev/registry/atoms-L8-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 1232
+   "lines": 1252
   },
   {
    "path": "machtzev/registry/atoms-L8-yoman.json",
@@ -1417,7 +1525,7 @@
    "path": "machtzev/registry/census-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 5977
+   "lines": 6013
   },
   {
    "path": "machtzev/registry/census-yoman.json",
