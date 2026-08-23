@@ -166,6 +166,10 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
   const donateHref = sp && integrationOn(config, 'payments')
     ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, sp.name)
     : null;
+  // 💳 סולה (23.8) — עמוד-התשלום השני לצד נדרים; אותו מגן-כפילות (onClickCapture)
+  const solaDonateHref = sp && integrationOn(config, 'payments')
+    ? payLink(integrationSetting(config, 'payments', 'solaPayUrl'), 0, sp.name)
+    : null;
   const addCareName = () => {
     if (!sp || !nameVal.trim()) return;
     const nm = nameVal.trim();
@@ -312,7 +316,7 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                 {/* 💳 מסלול-הסליקה: התורם משלם בעצמו אונליין — התשלום נקלט אוטומטית
                     מהסליקה (תשלומים-נכנסים, דדופ-txn). מגן-כפילות (20.8): שימוש בקישור
                     ממלא הערת-שיחה ומזהיר לא לרשום גם "תרם/ה" ידנית — אחרת ירשם פעמיים. */}
-                {donateHref && (
+                {(donateHref || solaDonateHref) && (
                   <span
                     style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}
                     onClickCapture={() => {
@@ -320,20 +324,40 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                       toast('💳 הקישור נשלח — לא לרשום "תרם/ה" ידנית; התשלום ייקלט מהסליקה אוטומטית');
                     }}
                   >
-                    <a
-                      href={donateHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="chip"
-                      title="התורם משלם בעצמו בעמוד-הסליקה — התשלום ייקלט אוטומטית (לא לרשום גם ידנית)"
-                    >
-                      💳 עמוד-תרומה
-                    </a>
-                    {waOn && sp.phone && (
+                    {donateHref && (
+                      <a
+                        href={donateHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="chip"
+                        title="התורם משלם בעצמו בעמוד-הסליקה — התשלום ייקלט אוטומטית (לא לרשום גם ידנית)"
+                      >
+                        💳 עמוד-תרומה
+                      </a>
+                    )}
+                    {solaDonateHref && (
+                      <a
+                        href={solaDonateHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="chip"
+                        title="עמוד-התשלום בסולה — התשלום ייקלט אוטומטית (לא לרשום גם ידנית)"
+                      >
+                        💳 סולה
+                      </a>
+                    )}
+                    {donateHref && waOn && sp.phone && (
                       <WaBtn
                         phone={sp.phone}
                         text={renderTemplate(config, 'wa.paylink', { name: sp.name, org: orgName, link: donateHref })}
                         title={'שליחת קישור-התשלום בוואטסאפ ל' + sp.name + ' — התשלום ייקלט מהסליקה אוטומטית'}
+                      />
+                    )}
+                    {!donateHref && solaDonateHref && waOn && sp.phone && (
+                      <WaBtn
+                        phone={sp.phone}
+                        text={renderTemplate(config, 'wa.paylink', { name: sp.name, org: orgName, link: solaDonateHref })}
+                        title={'שליחת קישור-סולה בוואטסאפ ל' + sp.name}
                       />
                     )}
                   </span>

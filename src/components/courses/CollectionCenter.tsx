@@ -20,6 +20,10 @@ export function CollectionCenter(props: { onClose: () => void }) {
   const total = collectionTotal(rows);
   const waOn = integrationOn(config, 'whatsapp');
   // גל ה׳ (פאזה 12): קישור-הסליקה מגודר גם courses.paylink (חסר=דלוק ⇒ אפס-רגרסיה)
+  const solaPayUrl =
+    integrationOn(config, 'payments') && featureOn(config, 'courses.paylink')
+      ? integrationSetting(config, 'payments', 'solaPayUrl') || ''
+      : '';
   const payUrl =
     integrationOn(config, 'payments') && featureOn(config, 'courses.paylink')
       ? integrationSetting(config, 'payments', 'payUrl') || ''
@@ -79,6 +83,23 @@ export function CollectionCenter(props: { onClose: () => void }) {
                     style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, color: 'var(--accent-deep, var(--accent))', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}
                   >
                     💳 תשלום מקוון
+                  </a>
+                ) : null;
+              })()}
+            {solaPayUrl &&
+              (() => {
+                const href = payLink(solaPayUrl, r.bal, r.name);
+                return href ? (
+                  // תווית גלויה + aria-label (לא אמוג׳י-בודד — עקבי עם ManageModal/SupporterDetail)
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="תשלום מקוון בסולה"
+                    title="קישור לעמוד-התשלום בסולה (אינו מנפיק קבלה)"
+                    style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, color: 'var(--accent-deep, var(--accent))', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}
+                  >
+                    💳 סולה
                   </a>
                 ) : null;
               })()}
