@@ -1,0 +1,93 @@
+[
+ {
+  "id": "L6b:buildsmart:app/src/lib/barcode.ts#isBarcodeSupported",
+  "level": "L6b-function",
+  "name": "isBarcodeSupported",
+  "lines": 9,
+  "calls": [
+   "isBarcodeSupported",
+   "getCtor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app/src/lib/barcode.ts:18-26"
+ },
+ {
+  "id": "L6b:buildsmart:app/src/lib/barcode.ts#startBarcodeScanner",
+  "level": "L6b-function",
+  "name": "startBarcodeScanner",
+  "lines": 57,
+  "calls": [
+   "startBarcodeScanner",
+   "getCtor",
+   "onError",
+   "getUserMedia",
+   "setAttribute",
+   "play",
+   "detect",
+   "onDetect",
+   "requestAnimationFrame",
+   "cancelAnimationFrame",
+   "getTracks",
+   "stop"
+  ],
+  "pure": true,
+  "source": "buildsmart/app/src/lib/barcode.ts:27-83"
+ },
+ {
+  "id": "L6b:buildsmart:app/src/lib/search.ts#searchExact",
+  "level": "L6b-function",
+  "name": "searchExact",
+  "lines": 49,
+  "calls": [
+   "searchExact",
+   "normalize",
+   "searchIndex",
+   "editDistance"
+  ],
+  "pure": true,
+  "source": "buildsmart/app/src/lib/search.ts:16-64"
+ },
+ {
+  "id": "L6b:buildsmart:app/src/lib/search.ts#searchFuzzy",
+  "level": "L6b-function",
+  "name": "searchFuzzy",
+  "lines": 27,
+  "calls": [
+   "searchFuzzy",
+   "normalize",
+   "searchIndex",
+   "editDistance"
+  ],
+  "pure": true,
+  "source": "buildsmart/app/src/lib/search.ts:65-91"
+ },
+ {
+  "id": "L6b:buildsmart:app/src/lib/voice.ts#isVoiceSupported",
+  "level": "L6b-function",
+  "name": "isVoiceSupported",
+  "lines": 10,
+  "calls": [
+   "isVoiceSupported",
+   "getCtor"
+  ],
+  "pure": true,
+  "source": "buildsmart/app/src/lib/voice.ts:30-39"
+ },
+ {
+  "id": "L6b:buildsmart:app/src/lib/voice.ts#startVoiceRecognition",
+  "level": "L6b-function",
+  "name": "startVoiceRecognition",
+  "lines": 37,
+  "calls": [
+   "startVoiceRecognition",
+   "getCtor",
+   "onError",
+   "onEnd",
+   "onTranscript",
+   "start",
+   "stop"
+  ],
+  "pure": true,
+  "source": "buildsmart/app/src/lib/voice.ts:40-76"
+ }
+]

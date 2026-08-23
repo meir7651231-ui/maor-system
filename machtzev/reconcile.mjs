@@ -28,6 +28,6 @@ for (const f of fs.readdirSync(R).filter(f => f.startsWith('census-'))) {
   c.files.forEach(x => censusFiles.add(`${c.repo}/${x.path}`));
 }
 let ghosts = 0;
-for (const [id, src] of seen) if (!censusFiles.has(src.replace(/:\d+$/, ''))) { alarm(`רשומת-רפאים: ${id} ← ${src}`); ghosts++; }
+for (const [id, src] of seen) if (!censusFiles.has(src.replace(/:\d+(-\d+)?$/, ''))) { alarm(`רשומת-רפאים: ${id} ← ${src}`); ghosts++; }
 if (!ghosts) ok('אפס רשומות-רפאים — כל אטום מגובה בקובץ חי');
 process.exit(fail);

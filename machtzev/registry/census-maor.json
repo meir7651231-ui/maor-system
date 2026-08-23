@@ -3,8 +3,8 @@
  "root": "/home/user/maor-system",
  "generatedBy": "machtzev/census v1",
  "totals": {
-  "files": 1016,
-  "lines": 627538,
+  "files": 1020,
+  "lines": 636622,
   "orphans": 0
  },
  "byDomain": {
@@ -13,8 +13,8 @@
    "lines": 830
   },
   "data": {
-   "files": 45,
-   "lines": 469513
+   "files": 48,
+   "lines": 478569
   },
   "knowledge": {
    "files": 146,
@@ -29,8 +29,8 @@
    "lines": 16083
   },
   "source": {
-   "files": 87,
-   "lines": 13184
+   "files": 88,
+   "lines": 13212
   },
   "assets": {
    "files": 38,
@@ -1174,6 +1174,12 @@
    "lines": 20
   },
   {
+   "path": "machtzev/extract/functions.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 28
+  },
+  {
    "path": "machtzev/extract/knowledge.mjs",
    "bucket": "source",
    "domain": "source",
@@ -1522,6 +1528,24 @@
    "lines": 1
   },
   {
+   "path": "machtzev/registry/atoms-L6b-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 93
+  },
+  {
+   "path": "machtzev/registry/atoms-L6b-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 8900
+  },
+  {
+   "path": "machtzev/registry/atoms-L6b-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
    "path": "machtzev/registry/atoms-L7-buildsmart.json",
    "bucket": "data",
    "domain": "data",
@@ -1549,7 +1573,7 @@
    "path": "machtzev/registry/atoms-L8-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 1312
+   "lines": 1332
   },
   {
    "path": "machtzev/registry/atoms-L8-yoman.json",
@@ -1567,7 +1591,7 @@
    "path": "machtzev/registry/census-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 6121
+   "lines": 6163
   },
   {
    "path": "machtzev/registry/census-yoman.json",

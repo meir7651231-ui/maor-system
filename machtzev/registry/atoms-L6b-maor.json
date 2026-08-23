@@ -1,0 +1,8900 @@
+[
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#fmtDate",
+  "level": "L6b-function",
+  "name": "fmtDate",
+  "lines": 7,
+  "calls": [
+   "fmtDate"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:13-19"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#isoToday",
+  "level": "L6b-function",
+  "name": "isoToday",
+  "lines": 12,
+  "calls": [
+   "isoToday",
+   "isoTodayLocal"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:20-31"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#defaultCourseDates",
+  "level": "L6b-function",
+  "name": "defaultCourseDates",
+  "lines": 15,
+  "calls": [
+   "defaultCourseDates",
+   "isoTodayLocal",
+   "isNaN",
+   "getTime",
+   "getFullYear",
+   "getMonth"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:32-46"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#presentsInMonth",
+  "level": "L6b-function",
+  "name": "presentsInMonth",
+  "lines": 10,
+  "calls": [
+   "presentsInMonth"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:47-56"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#courseDateError",
+  "level": "L6b-function",
+  "name": "courseDateError",
+  "lines": 9,
+  "calls": [
+   "courseDateError",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:57-65"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#ageOf",
+  "level": "L6b-function",
+  "name": "ageOf",
+  "lines": 14,
+  "calls": [
+   "ageOf",
+   "isNaN",
+   "getTime",
+   "getFullYear",
+   "getMonth",
+   "getDate"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:66-79"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#DAY_NAMES",
+  "level": "L6b-function",
+  "name": "DAY_NAMES",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:80-80"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#DAY_LETTERS",
+  "level": "L6b-function",
+  "name": "DAY_LETTERS",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:81-83"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#sessionsOf",
+  "level": "L6b-function",
+  "name": "sessionsOf",
+  "lines": 8,
+  "calls": [
+   "sessionsOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:84-91"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#groupsHintFromAudience",
+  "level": "L6b-function",
+  "name": "groupsHintFromAudience",
+  "lines": 11,
+  "calls": [
+   "groupsHintFromAudience",
+   "parseInt"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:92-102"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#coursesOfTeacher",
+  "level": "L6b-function",
+  "name": "coursesOfTeacher",
+  "lines": 17,
+  "calls": [
+   "coursesOfTeacher"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:103-119"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#roomsNow",
+  "level": "L6b-function",
+  "name": "roomsNow",
+  "lines": 28,
+  "calls": [
+   "roomsNow",
+   "getDay",
+   "getHours",
+   "getMinutes",
+   "sessionsOf",
+   "toMin"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:120-147"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#groupLabelOf",
+  "level": "L6b-function",
+  "name": "groupLabelOf",
+  "lines": 11,
+  "calls": [
+   "groupLabelOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:148-158"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#groupRemapOnRemoval",
+  "level": "L6b-function",
+  "name": "groupRemapOnRemoval",
+  "lines": 15,
+  "calls": [
+   "groupRemapOnRemoval",
+   "groupLabelOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:159-173"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#groupOptionsOf",
+  "level": "L6b-function",
+  "name": "groupOptionsOf",
+  "lines": 10,
+  "calls": [
+   "groupOptionsOf",
+   "sessionsOf",
+   "groupLabelOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:174-183"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#planWord",
+  "level": "L6b-function",
+  "name": "planWord",
+  "lines": 11,
+  "calls": [
+   "planWord"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:184-194"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#priceSuffix",
+  "level": "L6b-function",
+  "name": "priceSuffix",
+  "lines": 5,
+  "calls": [
+   "priceSuffix"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:195-199"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#modelMeta",
+  "level": "L6b-function",
+  "name": "modelMeta",
+  "lines": 13,
+  "calls": [
+   "modelMeta"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:200-212"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#WEEKS_PER_MONTH",
+  "level": "L6b-function",
+  "name": "WEEKS_PER_MONTH",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:213-215"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#PRICING_TERMS",
+  "level": "L6b-function",
+  "name": "PRICING_TERMS",
+  "lines": 11,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:216-226"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#termLabel",
+  "level": "L6b-function",
+  "name": "termLabel",
+  "lines": 9,
+  "calls": [
+   "termLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:227-235"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#lessonsInTerm",
+  "level": "L6b-function",
+  "name": "lessonsInTerm",
+  "lines": 26,
+  "calls": [
+   "lessonsInTerm",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:236-261"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#lessonPriceForTier",
+  "level": "L6b-function",
+  "name": "lessonPriceForTier",
+  "lines": 8,
+  "calls": [
+   "lessonPriceForTier"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:262-269"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#lessonTierOptions",
+  "level": "L6b-function",
+  "name": "lessonTierOptions",
+  "lines": 18,
+  "calls": [
+   "lessonTierOptions"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:270-287"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#weightedQuote",
+  "level": "L6b-function",
+  "name": "weightedQuote",
+  "lines": 10,
+  "calls": [
+   "weightedQuote",
+   "lessonPriceForTier",
+   "lessonsInTerm"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:288-297"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#enrollmentQuote",
+  "level": "L6b-function",
+  "name": "enrollmentQuote",
+  "lines": 6,
+  "calls": [
+   "enrollmentQuote",
+   "weightedQuote"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:298-303"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#paidOf",
+  "level": "L6b-function",
+  "name": "paidOf",
+  "lines": 5,
+  "calls": [
+   "paidOf",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:304-308"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#payBal",
+  "level": "L6b-function",
+  "name": "payBal",
+  "lines": 12,
+  "calls": [
+   "payBal",
+   "paidOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:309-320"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#enrollmentPaidStatus",
+  "level": "L6b-function",
+  "name": "enrollmentPaidStatus",
+  "lines": 12,
+  "calls": [
+   "enrollmentPaidStatus",
+   "payBal",
+   "paidOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:321-332"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#enrollCount",
+  "level": "L6b-function",
+  "name": "enrollCount",
+  "lines": 7,
+  "calls": [
+   "enrollCount"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:333-339"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#duplicateCourse",
+  "level": "L6b-function",
+  "name": "duplicateCourse",
+  "lines": 14,
+  "calls": [
+   "duplicateCourse"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:340-353"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#pendingMakeups",
+  "level": "L6b-function",
+  "name": "pendingMakeups",
+  "lines": 14,
+  "calls": [
+   "pendingMakeups"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:354-367"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#waitlistFor",
+  "level": "L6b-function",
+  "name": "waitlistFor",
+  "lines": 8,
+  "calls": [
+   "waitlistFor"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:368-375"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#nextSessionDate",
+  "level": "L6b-function",
+  "name": "nextSessionDate",
+  "lines": 15,
+  "calls": [
+   "nextSessionDate",
+   "sessionsOf",
+   "getFullYear",
+   "getMonth",
+   "getDate",
+   "getDay",
+   "setDate"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:376-390"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#sheetRoster",
+  "level": "L6b-function",
+  "name": "sheetRoster",
+  "lines": 5,
+  "calls": [
+   "sheetRoster"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:391-395"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#sheetSummary",
+  "level": "L6b-function",
+  "name": "sheetSummary",
+  "lines": 5,
+  "calls": [
+   "sheetSummary"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:396-400"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#OTHER",
+  "level": "L6b-function",
+  "name": "OTHER",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:401-401"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#OTHER_LABEL",
+  "level": "L6b-function",
+  "name": "OTHER_LABEL",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:402-402"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#ADD_TEACHER",
+  "level": "L6b-function",
+  "name": "ADD_TEACHER",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:403-403"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#CAT_OPTIONS",
+  "level": "L6b-function",
+  "name": "CAT_OPTIONS",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:404-404"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#SEMESTER_OPTIONS",
+  "level": "L6b-function",
+  "name": "SEMESTER_OPTIONS",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:405-405"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#PAY_METHODS",
+  "level": "L6b-function",
+  "name": "PAY_METHODS",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:406-408"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#TINTS",
+  "level": "L6b-function",
+  "name": "TINTS",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:409-411"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#enrollStatusMeta",
+  "level": "L6b-function",
+  "name": "enrollStatusMeta",
+  "lines": 9,
+  "calls": [
+   "enrollStatusMeta"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:412-420"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#planLabelOf",
+  "level": "L6b-function",
+  "name": "planLabelOf",
+  "lines": 11,
+  "calls": [
+   "planLabelOf",
+   "planWord",
+   "payBal"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:421-431"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#chipStyle",
+  "level": "L6b-function",
+  "name": "chipStyle",
+  "lines": 21,
+  "calls": [
+   "chipStyle"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:432-452"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#GRADE_ORDER",
+  "level": "L6b-function",
+  "name": "GRADE_ORDER",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:453-455"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#gradeIndex",
+  "level": "L6b-function",
+  "name": "gradeIndex",
+  "lines": 10,
+  "calls": [
+   "gradeIndex"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:456-465"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#gradeFits",
+  "level": "L6b-function",
+  "name": "gradeFits",
+  "lines": 11,
+  "calls": [
+   "gradeFits",
+   "gradeIndex"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:466-476"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#courseFitsMember",
+  "level": "L6b-function",
+  "name": "courseFitsMember",
+  "lines": 20,
+  "calls": [
+   "courseFitsMember",
+   "gradeFits"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:477-496"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#scheduleClashText",
+  "level": "L6b-function",
+  "name": "scheduleClashText",
+  "lines": 26,
+  "calls": [
+   "scheduleClashText",
+   "sessionsOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:497-522"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#ENROLL_NEW_FAMILY",
+  "level": "L6b-function",
+  "name": "ENROLL_NEW_FAMILY",
+  "lines": 8,
+  "calls": [
+   "normNameLocal",
+   "normSearch"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:523-530"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#offerNewFamily",
+  "level": "L6b-function",
+  "name": "offerNewFamily",
+  "lines": 9,
+  "calls": [
+   "offerNewFamily",
+   "normNameLocal"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:531-539"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#resolveEnrollFamily",
+  "level": "L6b-function",
+  "name": "resolveEnrollFamily",
+  "lines": 20,
+  "calls": [
+   "normNameLocal"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:540-559"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#PUNCH_CONFIRM_MS",
+  "level": "L6b-function",
+  "name": "PUNCH_CONFIRM_MS",
+  "lines": 12,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:560-571"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#punchConfirmStep",
+  "level": "L6b-function",
+  "name": "punchConfirmStep",
+  "lines": 20,
+  "calls": [
+   "punchConfirmStep"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:572-591"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/lib.ts#wheelIndexUnderPointer",
+  "level": "L6b-function",
+  "name": "wheelIndexUnderPointer",
+  "lines": 7,
+  "calls": [
+   "wheelIndexUnderPointer"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/lib.ts:592-598"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#academicYearLabel",
+  "level": "L6b-function",
+  "name": "academicYearLabel",
+  "lines": 9,
+  "calls": [
+   "academicYearLabel",
+   "atNoon",
+   "getFullYear",
+   "getMonth"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:26-34"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#nextYearDates",
+  "level": "L6b-function",
+  "name": "nextYearDates",
+  "lines": 12,
+  "calls": [
+   "nextYearDates",
+   "atNoon",
+   "setFullYear",
+   "getFullYear",
+   "toIso",
+   "shift"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:35-46"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#renewOf",
+  "level": "L6b-function",
+  "name": "renewOf",
+  "lines": 5,
+  "calls": [
+   "renewOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:47-51"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#isRenewed",
+  "level": "L6b-function",
+  "name": "isRenewed",
+  "lines": 29,
+  "calls": [
+   "isRenewed"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:52-80"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#enrollSummary",
+  "level": "L6b-function",
+  "name": "enrollSummary",
+  "lines": 53,
+  "calls": [
+   "enrollSummary",
+   "payBal",
+   "paidOf",
+   "findMember"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:81-133"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#buildReenrollRows",
+  "level": "L6b-function",
+  "name": "buildReenrollRows",
+  "lines": 50,
+  "calls": [
+   "buildReenrollRows",
+   "isRenewed",
+   "findMember",
+   "renewOf",
+   "enrollSummary"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:134-183"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#reenrollCounts",
+  "level": "L6b-function",
+  "name": "reenrollCounts",
+  "lines": 14,
+  "calls": [
+   "reenrollCounts"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:184-197"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#renewTargets",
+  "level": "L6b-function",
+  "name": "renewTargets",
+  "lines": 9,
+  "calls": [
+   "renewTargets"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:198-206"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#freshNextYearEnrollment",
+  "level": "L6b-function",
+  "name": "freshNextYearEnrollment",
+  "lines": 36,
+  "calls": [
+   "freshNextYearEnrollment"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:207-242"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#nextYearCourseDraft",
+  "level": "L6b-function",
+  "name": "nextYearCourseDraft",
+  "lines": 36,
+  "calls": [
+   "nextYearCourseDraft",
+   "nextYearDates",
+   "academicYearLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:243-278"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#studentHistory",
+  "level": "L6b-function",
+  "name": "studentHistory",
+  "lines": 27,
+  "calls": [
+   "studentHistory",
+   "academicYearLabel",
+   "enrollSummary"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:279-305"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#studentHistoryText",
+  "level": "L6b-function",
+  "name": "studentHistoryText",
+  "lines": 13,
+  "calls": [
+   "studentHistoryText"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:306-318"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#reenrollCsvRows",
+  "level": "L6b-function",
+  "name": "reenrollCsvRows",
+  "lines": 19,
+  "calls": [
+   "reenrollCsvRows",
+   "decWord"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:319-337"
+ },
+ {
+  "id": "L6b:maor:src/components/courses/reenroll-lib.ts#reenrollListText",
+  "level": "L6b-function",
+  "name": "reenrollListText",
+  "lines": 7,
+  "calls": [
+   "reenrollListText",
+   "decWord"
+  ],
+  "pure": true,
+  "source": "maor/src/components/courses/reenroll-lib.ts:338-344"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#fmtDate",
+  "level": "L6b-function",
+  "name": "fmtDate",
+  "lines": 8,
+  "calls": [
+   "fmtDate"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:16-23"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#localIso",
+  "level": "L6b-function",
+  "name": "localIso",
+  "lines": 4,
+  "calls": [
+   "localIso",
+   "isoLocal"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:24-27"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#isoToday",
+  "level": "L6b-function",
+  "name": "isoToday",
+  "lines": 4,
+  "calls": [
+   "isoToday",
+   "localIso"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:28-31"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#DAY_NAMES",
+  "level": "L6b-function",
+  "name": "DAY_NAMES",
+  "lines": 2,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:32-33"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#pad2",
+  "level": "L6b-function",
+  "name": "pad2",
+  "lines": 5,
+  "calls": [
+   "pad2"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:34-38"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#timeToMin",
+  "level": "L6b-function",
+  "name": "timeToMin",
+  "lines": 6,
+  "calls": [
+   "timeToMin"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:39-44"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#minToHM",
+  "level": "L6b-function",
+  "name": "minToHM",
+  "lines": 6,
+  "calls": [
+   "minToHM",
+   "pad2"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:45-50"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#groupLabelOf",
+  "level": "L6b-function",
+  "name": "groupLabelOf",
+  "lines": 14,
+  "calls": [
+   "groupLabelOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:51-64"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#ABSENCE_REASON_CHIPS",
+  "level": "L6b-function",
+  "name": "ABSENCE_REASON_CHIPS",
+  "lines": 2,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:65-66"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#makeupEligibility",
+  "level": "L6b-function",
+  "name": "makeupEligibility",
+  "lines": 30,
+  "calls": [
+   "makeupEligibility"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:67-96"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#blockReason",
+  "level": "L6b-function",
+  "name": "blockReason",
+  "lines": 42,
+  "calls": [
+   "blockReason",
+   "getDay",
+   "hebParts",
+   "courseOnDate"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:97-138"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#buildSlots",
+  "level": "L6b-function",
+  "name": "buildSlots",
+  "lines": 89,
+  "calls": [
+   "buildSlots",
+   "isNaN",
+   "timeToMin",
+   "getDay",
+   "courseOnDate",
+   "minToHM",
+   "sessionsOf",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:139-227"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#enrollmentsForSession",
+  "level": "L6b-function",
+  "name": "enrollmentsForSession",
+  "lines": 9,
+  "calls": [
+   "enrollmentsForSession",
+   "sessionsOf",
+   "groupLabelOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:228-236"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#weeklyRoomSessions",
+  "level": "L6b-function",
+  "name": "weeklyRoomSessions",
+  "lines": 7,
+  "calls": [
+   "weeklyRoomSessions",
+   "sessionsOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:237-243"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#inactiveRoomCourses",
+  "level": "L6b-function",
+  "name": "inactiveRoomCourses",
+  "lines": 17,
+  "calls": [
+   "inactiveRoomCourses",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:244-260"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#planLabelOf",
+  "level": "L6b-function",
+  "name": "planLabelOf",
+  "lines": 7,
+  "calls": [
+   "planLabelOf",
+   "planWord"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:261-267"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#enrollStatusMeta",
+  "level": "L6b-function",
+  "name": "enrollStatusMeta",
+  "lines": 9,
+  "calls": [
+   "enrollStatusMeta"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:268-276"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#chipStyle",
+  "level": "L6b-function",
+  "name": "chipStyle",
+  "lines": 14,
+  "calls": [
+   "chipStyle"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:277-290"
+ },
+ {
+  "id": "L6b:maor:src/components/diary/lib.ts#roomInfoLabel",
+  "level": "L6b-function",
+  "name": "roomInfoLabel",
+  "lines": 14,
+  "calls": [
+   "roomInfoLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/components/diary/lib.ts:291-304"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#fmtDate",
+  "level": "L6b-function",
+  "name": "fmtDate",
+  "lines": 7,
+  "calls": [
+   "fmtDate"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:12-18"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#isoToday",
+  "level": "L6b-function",
+  "name": "isoToday",
+  "lines": 5,
+  "calls": [
+   "isoToday",
+   "isoTodayLocal"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:19-23"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#ageOf",
+  "level": "L6b-function",
+  "name": "ageOf",
+  "lines": 13,
+  "calls": [
+   "ageOf",
+   "isNaN",
+   "getTime",
+   "getFullYear",
+   "getMonth",
+   "getDate"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:24-36"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#STATUS_META",
+  "level": "L6b-function",
+  "name": "STATUS_META",
+  "lines": 15,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:37-51"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#CRED_RED_THRESHOLD",
+  "level": "L6b-function",
+  "name": "CRED_RED_THRESHOLD",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:52-54"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#CRED_HELP_TEXT",
+  "level": "L6b-function",
+  "name": "CRED_HELP_TEXT",
+  "lines": 6,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:55-60"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#tierOf",
+  "level": "L6b-function",
+  "name": "tierOf",
+  "lines": 8,
+  "calls": [
+   "tierOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:61-68"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#famEnrollments",
+  "level": "L6b-function",
+  "name": "famEnrollments",
+  "lines": 10,
+  "calls": [
+   "famEnrollments"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:69-78"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#famLiveEnrollments",
+  "level": "L6b-function",
+  "name": "famLiveEnrollments",
+  "lines": 8,
+  "calls": [
+   "famLiveEnrollments",
+   "famEnrollments"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:79-86"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#finderAxes",
+  "level": "L6b-function",
+  "name": "finderAxes",
+  "lines": 15,
+  "calls": [
+   "finderAxes",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:87-101"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#finderAxisValue",
+  "level": "L6b-function",
+  "name": "finderAxisValue",
+  "lines": 17,
+  "calls": [
+   "finderAxisValue",
+   "termOf",
+   "tierOf",
+   "famLiveEnrollments"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:102-118"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#finderMatches",
+  "level": "L6b-function",
+  "name": "finderMatches",
+  "lines": 10,
+  "calls": [
+   "finderMatches",
+   "finderAxisValue"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:119-128"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#numMatch",
+  "level": "L6b-function",
+  "name": "numMatch",
+  "lines": 25,
+  "calls": [
+   "numMatch"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:129-153"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#famHistoryOf",
+  "level": "L6b-function",
+  "name": "famHistoryOf",
+  "lines": 45,
+  "calls": [
+   "famHistoryOf",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:154-198"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#MARITAL_OPTIONS",
+  "level": "L6b-function",
+  "name": "MARITAL_OPTIONS",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:199-199"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#LANGUAGE_OPTIONS",
+  "level": "L6b-function",
+  "name": "LANGUAGE_OPTIONS",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:200-200"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#OTHER",
+  "level": "L6b-function",
+  "name": "OTHER",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:201-201"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#OTHER_LABEL",
+  "level": "L6b-function",
+  "name": "OTHER_LABEL",
+  "lines": 6,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:202-207"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#chipStyle",
+  "level": "L6b-function",
+  "name": "chipStyle",
+  "lines": 20,
+  "calls": [
+   "chipStyle"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:208-227"
+ },
+ {
+  "id": "L6b:maor:src/components/families/lib.ts#maritalChipStyle",
+  "level": "L6b-function",
+  "name": "maritalChipStyle",
+  "lines": 5,
+  "calls": [
+   "maritalChipStyle",
+   "chipStyle"
+  ],
+  "pure": true,
+  "source": "maor/src/components/families/lib.ts:228-232"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#slugify",
+  "level": "L6b-function",
+  "name": "slugify",
+  "lines": 13,
+  "calls": [
+   "slugify"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:21-33"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#isValidSlug",
+  "level": "L6b-function",
+  "name": "isValidSlug",
+  "lines": 5,
+  "calls": [
+   "isValidSlug"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:34-38"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#ALL_MODULES",
+  "level": "L6b-function",
+  "name": "ALL_MODULES",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:39-41"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#MODULE_LABELS",
+  "level": "L6b-function",
+  "name": "MODULE_LABELS",
+  "lines": 16,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:42-57"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#allOffConfig",
+  "level": "L6b-function",
+  "name": "allOffConfig",
+  "lines": 7,
+  "calls": [
+   "allOffConfig"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:58-64"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#orgLink",
+  "level": "L6b-function",
+  "name": "orgLink",
+  "lines": 12,
+  "calls": [
+   "orgLink"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:65-76"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#normEmail",
+  "level": "L6b-function",
+  "name": "normEmail",
+  "lines": 6,
+  "calls": [
+   "normEmail"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:77-82"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#genJoinCode",
+  "level": "L6b-function",
+  "name": "genJoinCode",
+  "lines": 16,
+  "calls": [
+   "genJoinCode",
+   "charCodeAt",
+   "imul",
+   "toString"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:83-98"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#orgJoinLink",
+  "level": "L6b-function",
+  "name": "orgJoinLink",
+  "lines": 9,
+  "calls": [
+   "orgJoinLink"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:99-107"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#orgJoinFullCode",
+  "level": "L6b-function",
+  "name": "orgJoinFullCode",
+  "lines": 5,
+  "calls": [
+   "orgJoinFullCode"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:108-112"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#parseJoinFullCode",
+  "level": "L6b-function",
+  "name": "parseJoinFullCode",
+  "lines": 11,
+  "calls": [
+   "parseJoinFullCode",
+   "isValidSlug"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:113-123"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#isOrgManager",
+  "level": "L6b-function",
+  "name": "isOrgManager",
+  "lines": 11,
+  "calls": [
+   "isOrgManager",
+   "normEmail"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:124-134"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#orgEnabledModules",
+  "level": "L6b-function",
+  "name": "orgEnabledModules",
+  "lines": 10,
+  "calls": [
+   "orgEnabledModules"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:135-144"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#orgEnabledFeatures",
+  "level": "L6b-function",
+  "name": "orgEnabledFeatures",
+  "lines": 18,
+  "calls": [
+   "orgEnabledModules"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:145-162"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#isMember",
+  "level": "L6b-function",
+  "name": "isMember",
+  "lines": 7,
+  "calls": [
+   "isMember",
+   "normEmail",
+   "isOrgManager"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:163-169"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#overrideOf",
+  "level": "L6b-function",
+  "name": "overrideOf",
+  "lines": 10,
+  "calls": [
+   "overrideOf",
+   "normEmail"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:170-179"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#GRANTABLE_STAFF_FEATURES",
+  "level": "L6b-function",
+  "name": "GRANTABLE_STAFF_FEATURES",
+  "lines": 14,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:180-193"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#isGrantableFeature",
+  "level": "L6b-function",
+  "name": "isGrantableFeature",
+  "lines": 11,
+  "calls": [
+   "isGrantableFeature"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:194-204"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#effectiveConfigFor",
+  "level": "L6b-function",
+  "name": "effectiveConfigFor",
+  "lines": 21,
+  "calls": [
+   "isOrgManager",
+   "overrideOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:205-225"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#allowedDesignationsFor",
+  "level": "L6b-function",
+  "name": "allowedDesignationsFor",
+  "lines": 13,
+  "calls": [
+   "allowedDesignationsFor",
+   "isOrgManager",
+   "overrideOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:226-238"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#canIssueReceipt",
+  "level": "L6b-function",
+  "name": "canIssueReceipt",
+  "lines": 10,
+  "calls": [
+   "canIssueReceipt"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:239-248"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#approveMember",
+  "level": "L6b-function",
+  "name": "approveMember",
+  "lines": 7,
+  "calls": [
+   "approveMember",
+   "normEmail"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:249-255"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#setEmployeeOverride",
+  "level": "L6b-function",
+  "name": "setEmployeeOverride",
+  "lines": 10,
+  "calls": [
+   "setEmployeeOverride",
+   "normEmail"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:256-265"
+ },
+ {
+  "id": "L6b:maor:src/components/platform/lib.ts#removeMember",
+  "level": "L6b-function",
+  "name": "removeMember",
+  "lines": 11,
+  "calls": [
+   "removeMember",
+   "normEmail"
+  ],
+  "pure": true,
+  "source": "maor/src/components/platform/lib.ts:266-276"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#isoToday",
+  "level": "L6b-function",
+  "name": "isoToday",
+  "lines": 5,
+  "calls": [
+   "isoToday",
+   "isoTodayLocal"
+  ],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:13-17"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#fmtDate",
+  "level": "L6b-function",
+  "name": "fmtDate",
+  "lines": 7,
+  "calls": [
+   "fmtDate"
+  ],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:18-24"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#inRange",
+  "level": "L6b-function",
+  "name": "inRange",
+  "lines": 7,
+  "calls": [
+   "inRange"
+  ],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:25-31"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#rangeLabel",
+  "level": "L6b-function",
+  "name": "rangeLabel",
+  "lines": 7,
+  "calls": [
+   "rangeLabel",
+   "fmtDate"
+  ],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:32-38"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#paidOf",
+  "level": "L6b-function",
+  "name": "paidOf",
+  "lines": 5,
+  "calls": [
+   "paidOf",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:39-43"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#round2",
+  "level": "L6b-function",
+  "name": "round2",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:44-46"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#paidInRange",
+  "level": "L6b-function",
+  "name": "paidInRange",
+  "lines": 7,
+  "calls": [
+   "paidInRange",
+   "inRange",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:47-53"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#balanceOf",
+  "level": "L6b-function",
+  "name": "balanceOf",
+  "lines": 5,
+  "calls": [
+   "balanceOf",
+   "paidOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:54-58"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#monthKey",
+  "level": "L6b-function",
+  "name": "monthKey",
+  "lines": 5,
+  "calls": [
+   "monthKey"
+  ],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:59-63"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#monthLabel",
+  "level": "L6b-function",
+  "name": "monthLabel",
+  "lines": 6,
+  "calls": [
+   "monthLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:64-69"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#nameIndex",
+  "level": "L6b-function",
+  "name": "nameIndex",
+  "lines": 6,
+  "calls": [
+   "nameIndex",
+   "allMembers"
+  ],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:70-75"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#STATUS_LABEL",
+  "level": "L6b-function",
+  "name": "STATUS_LABEL",
+  "lines": 7,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:76-82"
+ },
+ {
+  "id": "L6b:maor:src/components/reports/lib.ts#countBy",
+  "level": "L6b-function",
+  "name": "countBy",
+  "lines": 9,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/reports/lib.ts:83-91"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#liveRedemptions",
+  "level": "L6b-function",
+  "name": "liveRedemptions",
+  "lines": 24,
+  "calls": [
+   "liveRedemptions"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:25-48"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#itemOf",
+  "level": "L6b-function",
+  "name": "itemOf",
+  "lines": 30,
+  "calls": [
+   "itemOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:49-78"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#holidayAllowed",
+  "level": "L6b-function",
+  "name": "holidayAllowed",
+  "lines": 8,
+  "calls": [
+   "holidayAllowed"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:79-86"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#itemRemaining",
+  "level": "L6b-function",
+  "name": "itemRemaining",
+  "lines": 22,
+  "calls": [
+   "itemRemaining",
+   "liveRedemptions"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:87-108"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#effectivePrice",
+  "level": "L6b-function",
+  "name": "effectivePrice",
+  "lines": 7,
+  "calls": [
+   "effectivePrice",
+   "maxDiscountPct",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:109-115"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#maxDiscountPct",
+  "level": "L6b-function",
+  "name": "maxDiscountPct",
+  "lines": 15,
+  "calls": [
+   "maxDiscountPct",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:116-130"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#upcomingHolidays",
+  "level": "L6b-function",
+  "name": "upcomingHolidays",
+  "lines": 22,
+  "calls": [
+   "upcomingHolidays",
+   "getFullYear",
+   "getMonth",
+   "getDate",
+   "holidayOf",
+   "isoOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:131-152"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#holidayNames",
+  "level": "L6b-function",
+  "name": "holidayNames",
+  "lines": 27,
+  "calls": [
+   "holidayNames",
+   "getFullYear",
+   "getMonth",
+   "getDate",
+   "holidayOf",
+   "hebYearOf",
+   "hebParts"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:153-179"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#assignmentRedeemed",
+  "level": "L6b-function",
+  "name": "assignmentRedeemed",
+  "lines": 20,
+  "calls": [
+   "assignmentRedeemed",
+   "liveRedemptions",
+   "hebYearOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:180-199"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#componentRemaining",
+  "level": "L6b-function",
+  "name": "componentRemaining",
+  "lines": 21,
+  "calls": [
+   "componentRemaining",
+   "liveRedemptions"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:200-220"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#couponExpiry",
+  "level": "L6b-function",
+  "name": "couponExpiry",
+  "lines": 18,
+  "calls": [
+   "couponExpiry",
+   "setDate",
+   "getDate",
+   "isoOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:221-238"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#SHOP_HOLIDAY_DUE_DAYS",
+  "level": "L6b-function",
+  "name": "SHOP_HOLIDAY_DUE_DAYS",
+  "lines": 10,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:239-248"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#needsCare",
+  "level": "L6b-function",
+  "name": "needsCare",
+  "lines": 126,
+  "calls": [
+   "needsCare",
+   "upcomingHolidays",
+   "itemRemaining",
+   "componentRemaining",
+   "beneficiaryLabel",
+   "itemOf",
+   "holidayAllowed",
+   "assignmentRedeemed",
+   "couponExpiry",
+   "featureOn",
+   "expiringIntakes"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:249-374"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#SHOP_EXPIRY_WARN_DAYS",
+  "level": "L6b-function",
+  "name": "SHOP_EXPIRY_WARN_DAYS",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:375-377"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#expiringIntakes",
+  "level": "L6b-function",
+  "name": "expiringIntakes",
+  "lines": 28,
+  "calls": [
+   "expiringIntakes",
+   "setDate",
+   "getDate",
+   "isoOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:378-405"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#upcomingMeetings",
+  "level": "L6b-function",
+  "name": "upcomingMeetings",
+  "lines": 27,
+  "calls": [
+   "upcomingMeetings",
+   "setDate",
+   "getDate",
+   "isoOf",
+   "beneficiaryLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:406-432"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#givenValue",
+  "level": "L6b-function",
+  "name": "givenValue",
+  "lines": 7,
+  "calls": [
+   "givenValue",
+   "liveRedemptions",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:433-439"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#collectedPaid",
+  "level": "L6b-function",
+  "name": "collectedPaid",
+  "lines": 7,
+  "calls": [
+   "collectedPaid",
+   "liveRedemptions",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:440-446"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#subsidyTotal",
+  "level": "L6b-function",
+  "name": "subsidyTotal",
+  "lines": 5,
+  "calls": [
+   "subsidyTotal",
+   "givenValue",
+   "collectedPaid"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:447-451"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#productAssignments",
+  "level": "L6b-function",
+  "name": "productAssignments",
+  "lines": 14,
+  "calls": [
+   "productAssignments"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:452-465"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#componentRedeemedNow",
+  "level": "L6b-function",
+  "name": "componentRedeemedNow",
+  "lines": 38,
+  "calls": [
+   "componentRedeemedNow",
+   "itemOf",
+   "holidayAllowed",
+   "assignmentRedeemed",
+   "pendingCount",
+   "progressOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:466-503"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#filterAssignments",
+  "level": "L6b-function",
+  "name": "filterAssignments",
+  "lines": 34,
+  "calls": [
+   "filterAssignments",
+   "upcomingHolidays",
+   "pendingCount",
+   "smartFilter",
+   "famName",
+   "progressOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:504-537"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#filterProducts",
+  "level": "L6b-function",
+  "name": "filterProducts",
+  "lines": 13,
+  "calls": [
+   "filterProducts",
+   "smartFilter"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:538-550"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#filterItems",
+  "level": "L6b-function",
+  "name": "filterItems",
+  "lines": 14,
+  "calls": [
+   "filterItems",
+   "itemRemaining",
+   "smartFilter"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:551-564"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#filterRedemptions",
+  "level": "L6b-function",
+  "name": "filterRedemptions",
+  "lines": 23,
+  "calls": [
+   "filterRedemptions",
+   "dateInRange"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:565-587"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#intakeLog",
+  "level": "L6b-function",
+  "name": "intakeLog",
+  "lines": 22,
+  "calls": [
+   "intakeLog"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:588-609"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#eligibleFamilies",
+  "level": "L6b-function",
+  "name": "eligibleFamilies",
+  "lines": 17,
+  "calls": [
+   "eligibleFamilies",
+   "flatMap"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:610-626"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#distributionListLines",
+  "level": "L6b-function",
+  "name": "distributionListLines",
+  "lines": 29,
+  "calls": [
+   "distributionListLines",
+   "repeat",
+   "itemOf",
+   "beneficiaryLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:627-655"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#redemptionsCsvRows",
+  "level": "L6b-function",
+  "name": "redemptionsCsvRows",
+  "lines": 25,
+  "calls": [
+   "redemptionsCsvRows",
+   "beneficiaryLabel",
+   "itemOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:656-680"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#beneficiaryLabel",
+  "level": "L6b-function",
+  "name": "beneficiaryLabel",
+  "lines": 10,
+  "calls": [
+   "beneficiaryLabel",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:681-690"
+ },
+ {
+  "id": "L6b:maor:src/components/shop/lib.ts#componentCounts",
+  "level": "L6b-function",
+  "name": "componentCounts",
+  "lines": 6,
+  "calls": [
+   "componentCounts"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop/lib.ts:691-696"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#advanceStatus",
+  "level": "L6b-function",
+  "name": "advanceStatus",
+  "lines": 6,
+  "calls": [
+   "advanceStatus"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:15-20"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#statusLabel",
+  "level": "L6b-function",
+  "name": "statusLabel",
+  "lines": 4,
+  "calls": [
+   "statusLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:21-24"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#deliveriesOfDay",
+  "level": "L6b-function",
+  "name": "deliveriesOfDay",
+  "lines": 4,
+  "calls": [
+   "deliveriesOfDay"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:25-28"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#deliveriesOfVolunteer",
+  "level": "L6b-function",
+  "name": "deliveriesOfVolunteer",
+  "lines": 8,
+  "calls": [
+   "deliveriesOfVolunteer"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:29-36"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#eligibleAssignmentsForDay",
+  "level": "L6b-function",
+  "name": "eligibleAssignmentsForDay",
+  "lines": 6,
+  "calls": [
+   "eligibleAssignmentsForDay"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:37-42"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#dayProgress",
+  "level": "L6b-function",
+  "name": "dayProgress",
+  "lines": 14,
+  "calls": [
+   "dayProgress",
+   "deliveriesOfDay"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:43-56"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#volunteerLoadHint",
+  "level": "L6b-function",
+  "name": "volunteerLoadHint",
+  "lines": 7,
+  "calls": [
+   "volunteerLoadHint",
+   "deliveriesOfVolunteer"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:57-63"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#deliveriesOfFamily",
+  "level": "L6b-function",
+  "name": "deliveriesOfFamily",
+  "lines": 9,
+  "calls": [
+   "deliveriesOfFamily"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:64-72"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#pendingDeliveriesToday",
+  "level": "L6b-function",
+  "name": "pendingDeliveriesToday",
+  "lines": 13,
+  "calls": [
+   "pendingDeliveriesToday"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:73-85"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#deliveryListLines",
+  "level": "L6b-function",
+  "name": "deliveryListLines",
+  "lines": 28,
+  "calls": [
+   "deliveryListLines",
+   "statusLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:86-113"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#deliveriesCsvRows",
+  "level": "L6b-function",
+  "name": "deliveriesCsvRows",
+  "lines": 22,
+  "calls": [
+   "deliveriesCsvRows",
+   "termOf",
+   "dayDate",
+   "famName",
+   "famAddr",
+   "volName",
+   "statusLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:114-135"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#volunteerRouteStops",
+  "level": "L6b-function",
+  "name": "volunteerRouteStops",
+  "lines": 13,
+  "calls": [
+   "volunteerRouteStops"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:136-148"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#filterVolunteers",
+  "level": "L6b-function",
+  "name": "filterVolunteers",
+  "lines": 6,
+  "calls": [
+   "filterVolunteers",
+   "smartFilter"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:149-154"
+ },
+ {
+  "id": "L6b:maor:src/components/shop7/lib.ts#filterDeliveries",
+  "level": "L6b-function",
+  "name": "filterDeliveries",
+  "lines": 8,
+  "calls": [
+   "filterDeliveries",
+   "smartFilter",
+   "statusLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop7/lib.ts:155-162"
+ },
+ {
+  "id": "L6b:maor:src/components/shop8/lib.ts#suggestions",
+  "level": "L6b-function",
+  "name": "suggestions",
+  "lines": 78,
+  "calls": [
+   "suggestions",
+   "termOf",
+   "moduleOn",
+   "upcomingHoliday",
+   "modOn",
+   "ageAt"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop8/lib.ts:62-139"
+ },
+ {
+  "id": "L6b:maor:src/components/shop8/lib.ts#liveSuggestions",
+  "level": "L6b-function",
+  "name": "liveSuggestions",
+  "lines": 5,
+  "calls": [
+   "liveSuggestions",
+   "suggestions"
+  ],
+  "pure": true,
+  "source": "maor/src/components/shop8/lib.ts:140-144"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#fmtDate",
+  "level": "L6b-function",
+  "name": "fmtDate",
+  "lines": 7,
+  "calls": [
+   "fmtDate"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:15-21"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#isoToday",
+  "level": "L6b-function",
+  "name": "isoToday",
+  "lines": 14,
+  "calls": [
+   "isoToday",
+   "isoTodayLocal"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:22-35"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supporterPurposes",
+  "level": "L6b-function",
+  "name": "supporterPurposes",
+  "lines": 19,
+  "calls": [
+   "supporterPurposes"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:36-54"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supporterVisibleForDesignations",
+  "level": "L6b-function",
+  "name": "supporterVisibleForDesignations",
+  "lines": 20,
+  "calls": [
+   "supporterVisibleForDesignations"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:55-74"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#visibleSupportersForDesignations",
+  "level": "L6b-function",
+  "name": "visibleSupportersForDesignations",
+  "lines": 19,
+  "calls": [
+   "visibleSupportersForDesignations",
+   "supporterVisibleForDesignations"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:75-93"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#allDonationPurposes",
+  "level": "L6b-function",
+  "name": "allDonationPurposes",
+  "lines": 12,
+  "calls": [
+   "allDonationPurposes",
+   "supporterPurposes"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:94-105"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supIls",
+  "level": "L6b-function",
+  "name": "supIls",
+  "lines": 5,
+  "calls": [
+   "supIls"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:106-110"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supUsd",
+  "level": "L6b-function",
+  "name": "supUsd",
+  "lines": 7,
+  "calls": [
+   "supUsd"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:111-117"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supCount",
+  "level": "L6b-function",
+  "name": "supCount",
+  "lines": 5,
+  "calls": [
+   "supCount"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:118-122"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supLast",
+  "level": "L6b-function",
+  "name": "supLast",
+  "lines": 10,
+  "calls": [
+   "supLast"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:123-132"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supLastInPeriod",
+  "level": "L6b-function",
+  "name": "supLastInPeriod",
+  "lines": 10,
+  "calls": [
+   "supLastInPeriod",
+   "supLast"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:133-142"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supTotalIls",
+  "level": "L6b-function",
+  "name": "supTotalIls",
+  "lines": 8,
+  "calls": [
+   "supTotalIls",
+   "supIls",
+   "supUsd"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:143-150"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supScore",
+  "level": "L6b-function",
+  "name": "supScore",
+  "lines": 21,
+  "calls": [
+   "supScore",
+   "supTotalIls",
+   "supLast",
+   "supCount",
+   "getTime"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:151-171"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supTier",
+  "level": "L6b-function",
+  "name": "supTier",
+  "lines": 7,
+  "calls": [
+   "supTier"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:172-178"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#TIER_ORDER",
+  "level": "L6b-function",
+  "name": "TIER_ORDER",
+  "lines": 5,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:179-183"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supScoreBins",
+  "level": "L6b-function",
+  "name": "supScoreBins",
+  "lines": 7,
+  "calls": [
+   "supScoreBins",
+   "fill",
+   "supScore"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:184-190"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supAvgDon",
+  "level": "L6b-function",
+  "name": "supAvgDon",
+  "lines": 7,
+  "calls": [
+   "supAvgDon",
+   "supTotalIls",
+   "supCount"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:191-197"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#sup12m",
+  "level": "L6b-function",
+  "name": "sup12m",
+  "lines": 14,
+  "calls": [
+   "sup12m",
+   "setDate",
+   "getDate",
+   "getFullYear",
+   "getMonth",
+   "supLast"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:198-211"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#chipStyle",
+  "level": "L6b-function",
+  "name": "chipStyle",
+  "lines": 18,
+  "calls": [
+   "chipStyle"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:212-229"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#fixPhone",
+  "level": "L6b-function",
+  "name": "fixPhone",
+  "lines": 5,
+  "calls": [
+   "fixPhone",
+   "formatIsraeliPhone"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:230-234"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#totalLabel",
+  "level": "L6b-function",
+  "name": "totalLabel",
+  "lines": 26,
+  "calls": [
+   "totalLabel",
+   "supIls",
+   "supUsd"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:235-260"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#supDonEvents",
+  "level": "L6b-function",
+  "name": "supDonEvents",
+  "lines": 53,
+  "calls": [
+   "supDonEvents",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:261-313"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#personalCalEntries",
+  "level": "L6b-function",
+  "name": "personalCalEntries",
+  "lines": 12,
+  "calls": [
+   "personalCalEntries",
+   "supDonEvents"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:314-325"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#orgCalEntries",
+  "level": "L6b-function",
+  "name": "orgCalEntries",
+  "lines": 14,
+  "calls": [
+   "orgCalEntries",
+   "supDonEvents"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:326-339"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#donCalMonthLine",
+  "level": "L6b-function",
+  "name": "donCalMonthLine",
+  "lines": 20,
+  "calls": [
+   "donCalMonthLine",
+   "termOf",
+   "inMonth"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:340-359"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#normName",
+  "level": "L6b-function",
+  "name": "normName",
+  "lines": 36,
+  "calls": [
+   "normName",
+   "normSearch"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:360-395"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#SUP_NAME_KEYS",
+  "level": "L6b-function",
+  "name": "SUP_NAME_KEYS",
+  "lines": 5,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:396-400"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#excelSerialToIso",
+  "level": "L6b-function",
+  "name": "excelSerialToIso",
+  "lines": 15,
+  "calls": [
+   "excelSerialToIso",
+   "isFinite",
+   "isNaN",
+   "getTime",
+   "getUTCMonth",
+   "getUTCDate",
+   "getUTCFullYear"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:401-415"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#parseSupporterGrid",
+  "level": "L6b-function",
+  "name": "parseSupporterGrid",
+  "lines": 90,
+  "calls": [
+   "parseSupporterGrid",
+   "parseAnyDate",
+   "excelSerialToIso",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:416-505"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#parseSupporterCsv",
+  "level": "L6b-function",
+  "name": "parseSupporterCsv",
+  "lines": 28,
+  "calls": [
+   "parseSupporterCsv",
+   "parseSupporterGrid",
+   "parseCsv",
+   "fillEmpty"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:506-533"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#applyAyinNames",
+  "level": "L6b-function",
+  "name": "applyAyinNames",
+  "lines": 23,
+  "calls": [
+   "applyAyinNames",
+   "emptyAyin",
+   "planAddName",
+   "mkId"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:534-556"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#mergeHist",
+  "level": "L6b-function",
+  "name": "mergeHist",
+  "lines": 41,
+  "calls": [
+   "mergeHist"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:557-597"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#planSupporterImport",
+  "level": "L6b-function",
+  "name": "planSupporterImport",
+  "lines": 39,
+  "calls": [
+   "planSupporterImport",
+   "normName",
+   "fillEmpty"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:598-636"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#mergeSupporterRow",
+  "level": "L6b-function",
+  "name": "mergeSupporterRow",
+  "lines": 15,
+  "calls": [
+   "mergeSupporterRow",
+   "mergeHist",
+   "fixPhone"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:637-651"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#newSupporterFromRow",
+  "level": "L6b-function",
+  "name": "newSupporterFromRow",
+  "lines": 27,
+  "calls": [
+   "newSupporterFromRow",
+   "fixPhone",
+   "mergeHist"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:652-678"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#HOK_CAT",
+  "level": "L6b-function",
+  "name": "HOK_CAT",
+  "lines": 15,
+  "calls": [
+   "monthsAgoIso"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:679-693"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#hokEffectivelyActive",
+  "level": "L6b-function",
+  "name": "hokEffectivelyActive",
+  "lines": 14,
+  "calls": [
+   "hokEffectivelyActive",
+   "monthsAgoIso"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:694-707"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#hokRecordedThisMonth",
+  "level": "L6b-function",
+  "name": "hokRecordedThisMonth",
+  "lines": 18,
+  "calls": [
+   "hokRecordedThisMonth"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:708-725"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#hokDue",
+  "level": "L6b-function",
+  "name": "hokDue",
+  "lines": 8,
+  "calls": [
+   "hokDue",
+   "hokEffectivelyActive",
+   "hokRecordedThisMonth"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:726-733"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#hokMonthlyTotal",
+  "level": "L6b-function",
+  "name": "hokMonthlyTotal",
+  "lines": 11,
+  "calls": [
+   "hokMonthlyTotal",
+   "hokEffectivelyActive",
+   "active"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:734-744"
+ },
+ {
+  "id": "L6b:maor:src/components/supporters/lib.ts#hokMethodLabel",
+  "level": "L6b-function",
+  "name": "hokMethodLabel",
+  "lines": 7,
+  "calls": [
+   "hokMethodLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/components/supporters/lib.ts:745-751"
+ },
+ {
+  "id": "L6b:maor:src/components/telephony/lib.ts#emptyTelephonyConfig",
+  "level": "L6b-function",
+  "name": "emptyTelephonyConfig",
+  "lines": 20,
+  "calls": [
+   "emptyTelephonyConfig"
+  ],
+  "pure": true,
+  "source": "maor/src/components/telephony/lib.ts:34-53"
+ },
+ {
+  "id": "L6b:maor:src/components/telephony/lib.ts#toTenantId",
+  "level": "L6b-function",
+  "name": "toTenantId",
+  "lines": 14,
+  "calls": [
+   "toTenantId"
+  ],
+  "pure": true,
+  "source": "maor/src/components/telephony/lib.ts:54-67"
+ },
+ {
+  "id": "L6b:maor:src/components/telephony/lib.ts#telephonyToTenant",
+  "level": "L6b-function",
+  "name": "telephonyToTenant",
+  "lines": 65,
+  "calls": [
+   "telephonyToTenant",
+   "anchorToday",
+   "getFullYear",
+   "getMonth",
+   "getDate"
+  ],
+  "pure": true,
+  "source": "maor/src/components/telephony/lib.ts:68-132"
+ },
+ {
+  "id": "L6b:maor:src/components/telephony/lib.ts#previewTelephony",
+  "level": "L6b-function",
+  "name": "previewTelephony",
+  "lines": 53,
+  "calls": [
+   "previewTelephony",
+   "telephonyToTenant",
+   "anchorToday",
+   "validateTenant",
+   "buildTenant",
+   "explainCall",
+   "trustReport"
+  ],
+  "pure": true,
+  "source": "maor/src/components/telephony/lib.ts:133-185"
+ },
+ {
+  "id": "L6b:maor:src/components/telephony/lib.ts#nextClosure",
+  "level": "L6b-function",
+  "name": "nextClosure",
+  "lines": 13,
+  "calls": [
+   "nextClosure",
+   "hebrewClosedWindows"
+  ],
+  "pure": true,
+  "source": "maor/src/components/telephony/lib.ts:186-198"
+ },
+ {
+  "id": "L6b:maor:src/components/telephony/lib.ts#explainOne",
+  "level": "L6b-function",
+  "name": "explainOne",
+  "lines": 8,
+  "calls": [
+   "explainOne",
+   "telephonyToTenant",
+   "validateTenant",
+   "explainCall",
+   "anchorToday"
+  ],
+  "pure": true,
+  "source": "maor/src/components/telephony/lib.ts:199-206"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#TZ_SCORE_RULES",
+  "level": "L6b-function",
+  "name": "TZ_SCORE_RULES",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:23-25"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#lastCollectionIso",
+  "level": "L6b-function",
+  "name": "lastCollectionIso",
+  "lines": 7,
+  "calls": [
+   "lastCollectionIso"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:26-32"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#collectionScoreDelta",
+  "level": "L6b-function",
+  "name": "collectionScoreDelta",
+  "lines": 19,
+  "calls": [
+   "collectionScoreDelta",
+   "lastCollectionIso",
+   "getTime"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:33-51"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#boxTotal",
+  "level": "L6b-function",
+  "name": "boxTotal",
+  "lines": 4,
+  "calls": [
+   "boxTotal",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:52-55"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#coordinatorBoxes",
+  "level": "L6b-function",
+  "name": "coordinatorBoxes",
+  "lines": 4,
+  "calls": [
+   "coordinatorBoxes"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:56-59"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#coordinatorTotal",
+  "level": "L6b-function",
+  "name": "coordinatorTotal",
+  "lines": 4,
+  "calls": [
+   "coordinatorTotal",
+   "coordinatorBoxes",
+   "boxTotal"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:60-63"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#grandTotal",
+  "level": "L6b-function",
+  "name": "grandTotal",
+  "lines": 4,
+  "calls": [
+   "grandTotal",
+   "boxTotal"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:64-67"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#campaignTotal",
+  "level": "L6b-function",
+  "name": "campaignTotal",
+  "lines": 9,
+  "calls": [
+   "campaignTotal",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:68-76"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#TZ_STALE_DAYS",
+  "level": "L6b-function",
+  "name": "TZ_STALE_DAYS",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:77-79"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#staleBoxes",
+  "level": "L6b-function",
+  "name": "staleBoxes",
+  "lines": 21,
+  "calls": [
+   "staleBoxes",
+   "setDate",
+   "getDate",
+   "isoOf",
+   "lastCollectionIso",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:80-100"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#needsCare",
+  "level": "L6b-function",
+  "name": "needsCare",
+  "lines": 41,
+  "calls": [
+   "needsCare",
+   "termOf",
+   "staleBoxes",
+   "lastCollectionIso",
+   "coordinatorBoxes",
+   "setDate",
+   "getDate",
+   "isoOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:101-141"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#leaderboard",
+  "level": "L6b-function",
+  "name": "leaderboard",
+  "lines": 7,
+  "calls": [
+   "leaderboard",
+   "coordinatorTotal",
+   "coordinatorBoxes"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:142-148"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#campaignProgress",
+  "level": "L6b-function",
+  "name": "campaignProgress",
+  "lines": 25,
+  "calls": [
+   "campaignProgress",
+   "campaignTotal",
+   "coordinatorLastCollection",
+   "coordinatorBoxes",
+   "lastCollectionIso"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:149-173"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#filterCoordinators",
+  "level": "L6b-function",
+  "name": "filterCoordinators",
+  "lines": 29,
+  "calls": [
+   "filterCoordinators",
+   "smartFilter",
+   "coordinatorTotal",
+   "coordinatorLastCollection"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:174-202"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#boxesOverview",
+  "level": "L6b-function",
+  "name": "boxesOverview",
+  "lines": 30,
+  "calls": [
+   "boxesOverview",
+   "lastCollectionIso",
+   "boxTotal",
+   "smartFilter",
+   "parseInt"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:203-232"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#filterCollections",
+  "level": "L6b-function",
+  "name": "filterCollections",
+  "lines": 17,
+  "calls": [
+   "filterCollections",
+   "dateInRange"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:233-249"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#coordinatorPrintLines",
+  "level": "L6b-function",
+  "name": "coordinatorPrintLines",
+  "lines": 31,
+  "calls": [
+   "coordinatorPrintLines",
+   "termOf",
+   "coordinatorBoxes",
+   "repeat",
+   "lastCollectionIso"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:250-280"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#collectionsCsvRows",
+  "level": "L6b-function",
+  "name": "collectionsCsvRows",
+  "lines": 21,
+  "calls": [
+   "collectionsCsvRows",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:281-301"
+ },
+ {
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#buildTzGrid",
+  "level": "L6b-function",
+  "name": "buildTzGrid",
+  "lines": 6,
+  "calls": [
+   "buildTzGrid",
+   "buildMonthGrid"
+  ],
+  "pure": true,
+  "source": "maor/src/components/tzedaka/lib.ts:302-307"
+ },
+ {
+  "id": "L6b:maor:src/lib/a11y.ts#SCALE_MIN",
+  "level": "L6b-function",
+  "name": "SCALE_MIN",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/a11y.ts:13-13"
+ },
+ {
+  "id": "L6b:maor:src/lib/a11y.ts#SCALE_MAX",
+  "level": "L6b-function",
+  "name": "SCALE_MAX",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/a11y.ts:14-14"
+ },
+ {
+  "id": "L6b:maor:src/lib/a11y.ts#SCALE_STEP",
+  "level": "L6b-function",
+  "name": "SCALE_STEP",
+  "lines": 12,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/a11y.ts:15-26"
+ },
+ {
+  "id": "L6b:maor:src/lib/a11y.ts#A11Y_FAB_TOGGLES",
+  "level": "L6b-function",
+  "name": "A11Y_FAB_TOGGLES",
+  "lines": 8,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/a11y.ts:27-34"
+ },
+ {
+  "id": "L6b:maor:src/lib/a11y.ts#clampScale",
+  "level": "L6b-function",
+  "name": "clampScale",
+  "lines": 9,
+  "calls": [
+   "clampScale",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/a11y.ts:35-43"
+ },
+ {
+  "id": "L6b:maor:src/lib/a11y.ts#stepScale",
+  "level": "L6b-function",
+  "name": "stepScale",
+  "lines": 5,
+  "calls": [
+   "stepScale",
+   "clampScale"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/a11y.ts:44-48"
+ },
+ {
+  "id": "L6b:maor:src/lib/a11y.ts#parseAcc",
+  "level": "L6b-function",
+  "name": "parseAcc",
+  "lines": 11,
+  "calls": [
+   "parseAcc"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/a11y.ts:49-59"
+ },
+ {
+  "id": "L6b:maor:src/lib/ai.ts#readAiKey",
+  "level": "L6b-function",
+  "name": "readAiKey",
+  "lines": 8,
+  "calls": [
+   "readAiKey",
+   "getItem",
+   "nsLsKey"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/ai.ts:15-22"
+ },
+ {
+  "id": "L6b:maor:src/lib/ai.ts#writeAiKey",
+  "level": "L6b-function",
+  "name": "writeAiKey",
+  "lines": 23,
+  "calls": [
+   "writeAiKey",
+   "setItem",
+   "nsLsKey",
+   "removeItem"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/ai.ts:23-45"
+ },
+ {
+  "id": "L6b:maor:src/lib/ai.ts#thanksPrompt",
+  "level": "L6b-function",
+  "name": "thanksPrompt",
+  "lines": 15,
+  "calls": [
+   "thanksPrompt"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ai.ts:46-60"
+ },
+ {
+  "id": "L6b:maor:src/lib/ai.ts#askClaude",
+  "level": "L6b-function",
+  "name": "askClaude",
+  "lines": 27,
+  "calls": [
+   "askClaude",
+   "doFetch",
+   "json"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ai.ts:61-87"
+ },
+ {
+  "id": "L6b:maor:src/lib/annualReport.ts#donationYears",
+  "level": "L6b-function",
+  "name": "donationYears",
+  "lines": 5,
+  "calls": [
+   "donationYears",
+   "reverse"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/annualReport.ts:32-36"
+ },
+ {
+  "id": "L6b:maor:src/lib/annualReport.ts#donationsOfYear",
+  "level": "L6b-function",
+  "name": "donationsOfYear",
+  "lines": 9,
+  "calls": [
+   "donationsOfYear",
+   "money"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/annualReport.ts:37-45"
+ },
+ {
+  "id": "L6b:maor:src/lib/annualReport.ts#annualReportLines",
+  "level": "L6b-function",
+  "name": "annualReportLines",
+  "lines": 41,
+  "calls": [
+   "annualReportLines",
+   "donationsOfYear",
+   "isFinite",
+   "repeat",
+   "money"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/annualReport.ts:46-86"
+ },
+ {
+  "id": "L6b:maor:src/lib/annualReport.ts#annualAllLines",
+  "level": "L6b-function",
+  "name": "annualAllLines",
+  "lines": 22,
+  "calls": [
+   "annualAllLines",
+   "donationsOfYear",
+   "annualReportLines"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/annualReport.ts:87-108"
+ },
+ {
+  "id": "L6b:maor:src/lib/annualReport.ts#downloadAnnualReport",
+  "level": "L6b-function",
+  "name": "downloadAnnualReport",
+  "lines": 9,
+  "calls": [
+   "downloadAnnualReport",
+   "guardExport",
+   "createElement",
+   "createObjectURL",
+   "click",
+   "setTimeout",
+   "revokeObjectURL"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/annualReport.ts:109-117"
+ },
+ {
+  "id": "L6b:maor:src/lib/appCheck.ts#initAppCheck",
+  "level": "L6b-function",
+  "name": "initAppCheck",
+  "lines": 20,
+  "calls": [
+   "initAppCheck",
+   "import",
+   "then",
+   "initializeAppCheck",
+   "catch"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/appCheck.ts:20-39"
+ },
+ {
+  "id": "L6b:maor:src/lib/audit.ts#AUDIT_CAT_COLORS",
+  "level": "L6b-function",
+  "name": "AUDIT_CAT_COLORS",
+  "lines": 11,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/audit.ts:34-44"
+ },
+ {
+  "id": "L6b:maor:src/lib/audit.ts#AUDIT_CATEGORIES",
+  "level": "L6b-function",
+  "name": "AUDIT_CATEGORIES",
+  "lines": 15,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/audit.ts:45-59"
+ },
+ {
+  "id": "L6b:maor:src/lib/audit.ts#phoneIssue",
+  "level": "L6b-function",
+  "name": "phoneIssue",
+  "lines": 18,
+  "calls": [
+   "phoneIssue",
+   "digits"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/audit.ts:60-77"
+ },
+ {
+  "id": "L6b:maor:src/lib/audit.ts#runAudit",
+  "level": "L6b-function",
+  "name": "runAudit",
+  "lines": 144,
+  "calls": [
+   "runAudit",
+   "termOf",
+   "normName",
+   "digits",
+   "validIsraeliId",
+   "phoneIssue",
+   "members",
+   "ageOf",
+   "supporterAggregates"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/audit.ts:78-221"
+ },
+ {
+  "id": "L6b:maor:src/lib/audit.ts#auditReportLines",
+  "level": "L6b-function",
+  "name": "auditReportLines",
+  "lines": 6,
+  "calls": [
+   "auditReportLines"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/audit.ts:222-227"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#AYIN_STAGES",
+  "level": "L6b-function",
+  "name": "AYIN_STAGES",
+  "lines": 12,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:18-29"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#stageLabel",
+  "level": "L6b-function",
+  "name": "stageLabel",
+  "lines": 5,
+  "calls": [
+   "stageLabel",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:30-34"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#featLabel",
+  "level": "L6b-function",
+  "name": "featLabel",
+  "lines": 5,
+  "calls": [
+   "featLabel",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:35-39"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#itemLabel",
+  "level": "L6b-function",
+  "name": "itemLabel",
+  "lines": 5,
+  "calls": [
+   "itemLabel",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:40-44"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#unitLabel",
+  "level": "L6b-function",
+  "name": "unitLabel",
+  "lines": 5,
+  "calls": [
+   "unitLabel",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:45-49"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#stageIndex",
+  "level": "L6b-function",
+  "name": "stageIndex",
+  "lines": 6,
+  "calls": [
+   "stageIndex"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:50-55"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#nextStage",
+  "level": "L6b-function",
+  "name": "nextStage",
+  "lines": 6,
+  "calls": [
+   "nextStage",
+   "stageIndex"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:56-61"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#revertPatch",
+  "level": "L6b-function",
+  "name": "revertPatch",
+  "lines": 7,
+  "calls": [
+   "revertPatch",
+   "stageIndex"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:62-68"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#normName",
+  "level": "L6b-function",
+  "name": "normName",
+  "lines": 5,
+  "calls": [
+   "normName",
+   "normSearch"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:69-73"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#ayinActive",
+  "level": "L6b-function",
+  "name": "ayinActive",
+  "lines": 12,
+  "calls": [
+   "ayinActive"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:74-85"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#eyesTotal",
+  "level": "L6b-function",
+  "name": "eyesTotal",
+  "lines": 8,
+  "calls": [
+   "eyesTotal"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:86-93"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#boqLineAmount",
+  "level": "L6b-function",
+  "name": "boqLineAmount",
+  "lines": 5,
+  "calls": [
+   "boqLineAmount"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:94-98"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#boqTotal",
+  "level": "L6b-function",
+  "name": "boqTotal",
+  "lines": 5,
+  "calls": [
+   "boqTotal",
+   "boqLineAmount"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:99-103"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#timeHoursTotal",
+  "level": "L6b-function",
+  "name": "timeHoursTotal",
+  "lines": 5,
+  "calls": [
+   "timeHoursTotal"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:104-108"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#timeCostTotal",
+  "level": "L6b-function",
+  "name": "timeCostTotal",
+  "lines": 5,
+  "calls": [
+   "timeCostTotal"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:109-113"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#matCostTotal",
+  "level": "L6b-function",
+  "name": "matCostTotal",
+  "lines": 5,
+  "calls": [
+   "matCostTotal"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:114-118"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#namesToTemplateLines",
+  "level": "L6b-function",
+  "name": "namesToTemplateLines",
+  "lines": 7,
+  "calls": [
+   "namesToTemplateLines"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:119-125"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#templateLinesToNames",
+  "level": "L6b-function",
+  "name": "templateLinesToNames",
+  "lines": 19,
+  "calls": [
+   "templateLinesToNames",
+   "nextId"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:126-144"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#ayinActionVisible",
+  "level": "L6b-function",
+  "name": "ayinActionVisible",
+  "lines": 9,
+  "calls": [
+   "ayinActionVisible"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:145-153"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#ayinAdvanceLabel",
+  "level": "L6b-function",
+  "name": "ayinAdvanceLabel",
+  "lines": 21,
+  "calls": [
+   "ayinAdvanceLabel",
+   "stageLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:154-174"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#planAyinAdvance",
+  "level": "L6b-function",
+  "name": "planAyinAdvance",
+  "lines": 51,
+  "calls": [
+   "planAyinAdvance",
+   "ayinActionVisible",
+   "featLabel",
+   "itemLabel",
+   "unitLabel",
+   "stageLabel",
+   "eyesTotal"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:175-225"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#planAddName",
+  "level": "L6b-function",
+  "name": "planAddName",
+  "lines": 23,
+  "calls": [
+   "planAddName",
+   "normName",
+   "isoToday"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:226-248"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#ayinDailyRows",
+  "level": "L6b-function",
+  "name": "ayinDailyRows",
+  "lines": 47,
+  "calls": [
+   "ayinDailyRows",
+   "unitLabel",
+   "itemLabel",
+   "emptyAyin",
+   "eyesTotal",
+   "stageLabel",
+   "fmtD"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:249-295"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#ayinAllRows",
+  "level": "L6b-function",
+  "name": "ayinAllRows",
+  "lines": 39,
+  "calls": [
+   "ayinAllRows",
+   "unitLabel",
+   "emptyAyin",
+   "stageLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:296-334"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#ayinBoardItems",
+  "level": "L6b-function",
+  "name": "ayinBoardItems",
+  "lines": 23,
+  "calls": [
+   "ayinBoardItems",
+   "emptyAyin"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:335-357"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#filterAyinBoard",
+  "level": "L6b-function",
+  "name": "filterAyinBoard",
+  "lines": 22,
+  "calls": [
+   "filterAyinBoard",
+   "normSearch"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:358-379"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#AYIN_SHEET_HEADER",
+  "level": "L6b-function",
+  "name": "AYIN_SHEET_HEADER",
+  "lines": 16,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:380-395"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#ayinSheetRows",
+  "level": "L6b-function",
+  "name": "ayinSheetRows",
+  "lines": 47,
+  "calls": [
+   "ayinSheetRows"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:396-442"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#parseAyinSheet",
+  "level": "L6b-function",
+  "name": "parseAyinSheet",
+  "lines": 59,
+  "calls": [
+   "parseAyinSheet",
+   "clean",
+   "hIdx",
+   "normName"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:443-501"
+ },
+ {
+  "id": "L6b:maor:src/lib/ayin.ts#applyAyinSheet",
+  "level": "L6b-function",
+  "name": "applyAyinSheet",
+  "lines": 45,
+  "calls": [
+   "applyAyinSheet"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ayin.ts:502-546"
+ },
+ {
+  "id": "L6b:maor:src/lib/callerId.ts#callerKindLabel",
+  "level": "L6b-function",
+  "name": "callerKindLabel",
+  "lines": 33,
+  "calls": [
+   "callerKindLabel",
+   "termOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/callerId.ts:24-56"
+ },
+ {
+  "id": "L6b:maor:src/lib/callerId.ts#phoneKey",
+  "level": "L6b-function",
+  "name": "phoneKey",
+  "lines": 13,
+  "calls": [
+   "phoneKey"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/callerId.ts:57-69"
+ },
+ {
+  "id": "L6b:maor:src/lib/callerId.ts#findCaller",
+  "level": "L6b-function",
+  "name": "findCaller",
+  "lines": 43,
+  "calls": [
+   "findCaller",
+   "phoneKey"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/callerId.ts:70-112"
+ },
+ {
+  "id": "L6b:maor:src/lib/callerId.ts#familyContext",
+  "level": "L6b-function",
+  "name": "familyContext",
+  "lines": 6,
+  "calls": [
+   "familyContext"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/callerId.ts:113-118"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-diff.ts#ENTITY_COLLECTIONS",
+  "level": "L6b-function",
+  "name": "ENTITY_COLLECTIONS",
+  "lines": 34,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/cloud-diff.ts:11-44"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-diff.ts#colPath",
+  "level": "L6b-function",
+  "name": "colPath",
+  "lines": 5,
+  "calls": [
+   "colPath"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-diff.ts:45-49"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-diff.ts#metaPath",
+  "level": "L6b-function",
+  "name": "metaPath",
+  "lines": 9,
+  "calls": [
+   "metaPath"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-diff.ts:50-58"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-diff.ts#envPath",
+  "level": "L6b-function",
+  "name": "envPath",
+  "lines": 5,
+  "calls": [
+   "envPath"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-diff.ts:59-63"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-diff.ts#DONATIONS_COL",
+  "level": "L6b-function",
+  "name": "DONATIONS_COL",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/cloud-diff.ts:64-66"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-diff.ts#donationsPath",
+  "level": "L6b-function",
+  "name": "donationsPath",
+  "lines": 8,
+  "calls": [
+   "donationsPath",
+   "colPath"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-diff.ts:67-74"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-diff.ts#stripSupporterDonations",
+  "level": "L6b-function",
+  "name": "stripSupporterDonations",
+  "lines": 42,
+  "calls": [
+   "stripSupporterDonations"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-diff.ts:75-116"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-diff.ts#metaOf",
+  "level": "L6b-function",
+  "name": "metaOf",
+  "lines": 30,
+  "calls": [
+   "metaOf",
+   "sameJson"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-diff.ts:117-146"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-diff.ts#diffDb",
+  "level": "L6b-function",
+  "name": "diffDb",
+  "lines": 26,
+  "calls": [
+   "diffDb",
+   "sameJson",
+   "metaOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-diff.ts:147-172"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-diff.ts#fullDbDiff",
+  "level": "L6b-function",
+  "name": "fullDbDiff",
+  "lines": 11,
+  "calls": [
+   "fullDbDiff",
+   "metaOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-diff.ts:173-183"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-diff.ts#emptyDiff",
+  "level": "L6b-function",
+  "name": "emptyDiff",
+  "lines": 4,
+  "calls": [
+   "emptyDiff"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-diff.ts:184-187"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-merge.ts#sanitizeIncoming",
+  "level": "L6b-function",
+  "name": "sanitizeIncoming",
+  "lines": 19,
+  "calls": [
+   "sanitizeIncoming"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-merge.ts:32-50"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-merge.ts#mergeDonationsPreserving",
+  "level": "L6b-function",
+  "name": "mergeDonationsPreserving",
+  "lines": 22,
+  "calls": [
+   "mergeDonationsPreserving",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-merge.ts:51-72"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-merge.ts#applyEntityPartial",
+  "level": "L6b-function",
+  "name": "applyEntityPartial",
+  "lines": 33,
+  "calls": [
+   "applyEntityPartial",
+   "sanitizeIncoming",
+   "mergeDonationsPreserving"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-merge.ts:73-105"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud-merge.ts#applyMetaPartial",
+  "level": "L6b-function",
+  "name": "applyMetaPartial",
+  "lines": 36,
+  "calls": [
+   "applyMetaPartial",
+   "assign",
+   "isFinite",
+   "bumpCounter"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud-merge.ts:106-141"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#setCloudScope",
+  "level": "L6b-function",
+  "name": "setCloudScope",
+  "lines": 21,
+  "calls": [
+   "setCloudScope",
+   "scopedCol",
+   "colPath",
+   "scopedMeta",
+   "metaPath",
+   "scopedEnv",
+   "envPath",
+   "scopedDonations",
+   "donationsPath",
+   "donationSplitOn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:79-99"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#setDonationSplit",
+  "level": "L6b-function",
+  "name": "setDonationSplit",
+  "lines": 4,
+  "calls": [
+   "setDonationSplit"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:100-103"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#donationSplitActive",
+  "level": "L6b-function",
+  "name": "donationSplitActive",
+  "lines": 8,
+  "calls": [
+   "donationSplitActive"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:104-111"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#setAllowedPurposes",
+  "level": "L6b-function",
+  "name": "setAllowedPurposes",
+  "lines": 10,
+  "calls": [
+   "setAllowedPurposes",
+   "supEnforceOn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:112-121"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#setSupEnforce",
+  "level": "L6b-function",
+  "name": "setSupEnforce",
+  "lines": 4,
+  "calls": [
+   "setSupEnforce"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:122-125"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#supEnforceActive",
+  "level": "L6b-function",
+  "name": "supEnforceActive",
+  "lines": 12,
+  "calls": [
+   "supEnforceActive"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:126-137"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#setAuditContext",
+  "level": "L6b-function",
+  "name": "setAuditContext",
+  "lines": 6,
+  "calls": [
+   "setAuditContext"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:138-143"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#auditWriterEmail",
+  "level": "L6b-function",
+  "name": "auditWriterEmail",
+  "lines": 5,
+  "calls": [
+   "auditWriterEmail"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:144-148"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#pushAuditRing",
+  "level": "L6b-function",
+  "name": "pushAuditRing",
+  "lines": 9,
+  "calls": [
+   "pushAuditRing",
+   "requireDb",
+   "encryptDoc",
+   "setDoc",
+   "scopedCol"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:149-157"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#pullAuditRing",
+  "level": "L6b-function",
+  "name": "pullAuditRing",
+  "lines": 17,
+  "calls": [
+   "pullAuditRing",
+   "requireDb",
+   "getDocs",
+   "collection",
+   "scopedCol",
+   "decryptDoc",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:158-174"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#pushDonations",
+  "level": "L6b-function",
+  "name": "pushDonations",
+  "lines": 26,
+  "calls": [
+   "pushDonations",
+   "requireDb",
+   "encryptDoc",
+   "scopedDonations",
+   "writeBatch",
+   "commit"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:175-200"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#migrateDonationsToCollection",
+  "level": "L6b-function",
+  "name": "migrateDonationsToCollection",
+  "lines": 13,
+  "calls": [
+   "migrateDonationsToCollection",
+   "import",
+   "donationPartitionDiff",
+   "pushDonations"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:201-213"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#migrateSupportersToKeyed",
+  "level": "L6b-function",
+  "name": "migrateSupportersToKeyed",
+  "lines": 27,
+  "calls": [
+   "migrateSupportersToKeyed",
+   "requireDb",
+   "supKeyMapOf",
+   "encryptDoc",
+   "toPlain",
+   "scopedCol",
+   "supKeyOf",
+   "docSkey",
+   "writeBatch",
+   "commit"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:214-240"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#initCloud",
+  "level": "L6b-function",
+  "name": "initCloud",
+  "lines": 32,
+  "calls": [
+   "initCloud",
+   "initializeApp",
+   "initAppCheck",
+   "getAuth",
+   "useDeviceLanguage",
+   "initializeFirestore",
+   "persistentLocalCache",
+   "persistentMultipleTabManager",
+   "getFirestore",
+   "requireAuth",
+   "requireDb"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/cloud.ts:241-272"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#cloudDb",
+  "level": "L6b-function",
+  "name": "cloudDb",
+  "lines": 26,
+  "calls": [
+   "cloudDb",
+   "requireDb",
+   "hebrewAuthError",
+   "toString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:273-298"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#watchAuth",
+  "level": "L6b-function",
+  "name": "watchAuth",
+  "lines": 7,
+  "calls": [
+   "watchAuth",
+   "onAuthStateChanged",
+   "requireAuth"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:299-305"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#signIn",
+  "level": "L6b-function",
+  "name": "signIn",
+  "lines": 12,
+  "calls": [
+   "signIn",
+   "signInWithEmailAndPassword",
+   "requireAuth",
+   "hebrewAuthError"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:306-317"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#signUp",
+  "level": "L6b-function",
+  "name": "signUp",
+  "lines": 20,
+  "calls": [
+   "signUp",
+   "createUserWithEmailAndPassword",
+   "requireAuth",
+   "sendEmailVerification",
+   "catch",
+   "toString",
+   "hebrewAuthError"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:318-337"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#signOutCloud",
+  "level": "L6b-function",
+  "name": "signOutCloud",
+  "lines": 9,
+  "calls": [
+   "signOutCloud",
+   "signOut",
+   "requireAuth"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:338-346"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#resetPassword",
+  "level": "L6b-function",
+  "name": "resetPassword",
+  "lines": 15,
+  "calls": [
+   "resetPassword",
+   "sendPasswordResetEmail",
+   "requireAuth",
+   "toString",
+   "hebrewAuthError"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:347-361"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#changePassword",
+  "level": "L6b-function",
+  "name": "changePassword",
+  "lines": 60,
+  "calls": [
+   "changePassword",
+   "requireAuth",
+   "reauthenticateWithCredential",
+   "credential",
+   "toString",
+   "hebrewAuthError",
+   "updatePassword",
+   "toPlain",
+   "pushMetaCounterSafe",
+   "requireDb",
+   "scopedMeta",
+   "runTransaction"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:362-421"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#pushDiff",
+  "level": "L6b-function",
+  "name": "pushDiff",
+  "lines": 36,
+  "calls": [
+   "pushDiff",
+   "requireDb",
+   "encryptDoc",
+   "toPlain",
+   "docSkey",
+   "scopedCol",
+   "writeBatch",
+   "commit",
+   "stripAuditMeta",
+   "pushMetaCounterSafe"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:422-457"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#readCloudEnvelope",
+  "level": "L6b-function",
+  "name": "readCloudEnvelope",
+  "lines": 13,
+  "calls": [
+   "readCloudEnvelope",
+   "getDoc",
+   "requireDb",
+   "scopedEnv",
+   "exists",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:458-470"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#writeCloudEnvelope",
+  "level": "L6b-function",
+  "name": "writeCloudEnvelope",
+  "lines": 10,
+  "calls": [
+   "writeCloudEnvelope",
+   "setDoc",
+   "requireDb",
+   "scopedEnv",
+   "pushDiff",
+   "fullDbDiff"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:471-480"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#encryptExistingCloud",
+  "level": "L6b-function",
+  "name": "encryptExistingCloud",
+  "lines": 9,
+  "calls": [
+   "encryptExistingCloud",
+   "pushDiff",
+   "fullDbDiff",
+   "supKeyMapOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:481-489"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#pullAll",
+  "level": "L6b-function",
+  "name": "pullAll",
+  "lines": 66,
+  "calls": [
+   "pullAll",
+   "requireDb",
+   "getDoc",
+   "scopedMeta",
+   "exists",
+   "decryptDoc",
+   "data",
+   "getDocs",
+   "query",
+   "collection",
+   "scopedCol",
+   "where"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:490-555"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#subscribeAll",
+  "level": "L6b-function",
+  "name": "subscribeAll",
+  "lines": 107,
+  "calls": [
+   "subscribeAll",
+   "requireDb",
+   "stripSupKey",
+   "onSnapshot",
+   "query",
+   "collection",
+   "scopedCol",
+   "where",
+   "supAllowedKeys",
+   "docChanges",
+   "onRemote",
+   "clean"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:556-662"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#fetchNedarimDonors",
+  "level": "L6b-function",
+  "name": "fetchNedarimDonors",
+  "lines": 7,
+  "calls": [
+   "fetchNedarimDonors",
+   "getDocs",
+   "collection",
+   "requireDb",
+   "scopedCol",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:663-669"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#fetchIncomingPayments",
+  "level": "L6b-function",
+  "name": "fetchIncomingPayments",
+  "lines": 8,
+  "calls": [
+   "fetchIncomingPayments",
+   "getDocs",
+   "query",
+   "collection",
+   "requireDb",
+   "scopedCol",
+   "where",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:670-677"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#fetchProviderRows",
+  "level": "L6b-function",
+  "name": "fetchProviderRows",
+  "lines": 9,
+  "calls": [
+   "fetchProviderRows",
+   "getDocs",
+   "query",
+   "collection",
+   "requireDb",
+   "scopedCol",
+   "where",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:678-686"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#pullNedarim",
+  "level": "L6b-function",
+  "name": "pullNedarim",
+  "lines": 19,
+  "calls": [
+   "pullNedarim",
+   "requireAuth",
+   "getIdToken",
+   "fetch",
+   "toString",
+   "json",
+   "catch"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:687-705"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#pullSola",
+  "level": "L6b-function",
+  "name": "pullSola",
+  "lines": 20,
+  "calls": [
+   "pullSola",
+   "requireAuth",
+   "getIdToken",
+   "fetch",
+   "toString",
+   "json",
+   "catch"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:706-725"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#markIncomingPayment",
+  "level": "L6b-function",
+  "name": "markIncomingPayment",
+  "lines": 12,
+  "calls": [
+   "markIncomingPayment",
+   "updateDoc",
+   "requireDb",
+   "scopedCol",
+   "toISOString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:726-737"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#watchIncomingPayments",
+  "level": "L6b-function",
+  "name": "watchIncomingPayments",
+  "lines": 14,
+  "calls": [
+   "watchIncomingPayments",
+   "query",
+   "collection",
+   "requireDb",
+   "scopedCol",
+   "where",
+   "onSnapshot",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:738-751"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#writeSmsOutbox",
+  "level": "L6b-function",
+  "name": "writeSmsOutbox",
+  "lines": 10,
+  "calls": [
+   "writeSmsOutbox",
+   "addDoc",
+   "collection",
+   "requireDb",
+   "scopedCol",
+   "toISOString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:752-761"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloud.ts#writeMailOutbox",
+  "level": "L6b-function",
+  "name": "writeMailOutbox",
+  "lines": 10,
+  "calls": [
+   "writeMailOutbox",
+   "addDoc",
+   "collection",
+   "requireDb",
+   "scopedCol",
+   "toISOString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloud.ts:762-771"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#PLATFORM_ORGS",
+  "level": "L6b-function",
+  "name": "PLATFORM_ORGS",
+  "lines": 2,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:17-18"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#PLATFORM_REQUESTS",
+  "level": "L6b-function",
+  "name": "PLATFORM_REQUESTS",
+  "lines": 2,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:19-20"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#PLATFORM_LEADS",
+  "level": "L6b-function",
+  "name": "PLATFORM_LEADS",
+  "lines": 75,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:21-95"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#fetchOrgCloudConfig",
+  "level": "L6b-function",
+  "name": "fetchOrgCloudConfig",
+  "lines": 14,
+  "calls": [
+   "fetchOrgCloudConfig",
+   "getDoc",
+   "cloudDb",
+   "exists",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:96-109"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#watchOrgCloudConfig",
+  "level": "L6b-function",
+  "name": "watchOrgCloudConfig",
+  "lines": 11,
+  "calls": [
+   "watchOrgCloudConfig",
+   "onSnapshot",
+   "cloudDb",
+   "exists",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:110-120"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#writeOrgCloudDoc",
+  "level": "L6b-function",
+  "name": "writeOrgCloudDoc",
+  "lines": 5,
+  "calls": [
+   "writeOrgCloudDoc",
+   "setDoc",
+   "cloudDb"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:121-125"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#writeOrgCloudConfig",
+  "level": "L6b-function",
+  "name": "writeOrgCloudConfig",
+  "lines": 12,
+  "calls": [
+   "writeOrgCloudConfig",
+   "writeOrgCloudDoc"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:126-137"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#ORG_SECRET_KEYS",
+  "level": "L6b-function",
+  "name": "ORG_SECRET_KEYS",
+  "lines": 5,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:138-142"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#writeOrgSecrets",
+  "level": "L6b-function",
+  "name": "writeOrgSecrets",
+  "lines": 15,
+  "calls": [
+   "writeOrgSecrets",
+   "deleteField",
+   "setDoc",
+   "cloudDb",
+   "toISOString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:143-157"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#readOrgSecretsMeta",
+  "level": "L6b-function",
+  "name": "readOrgSecretsMeta",
+  "lines": 10,
+  "calls": [
+   "readOrgSecretsMeta",
+   "getDoc",
+   "cloudDb",
+   "exists",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:158-167"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#deleteOrgRequest",
+  "level": "L6b-function",
+  "name": "deleteOrgRequest",
+  "lines": 5,
+  "calls": [
+   "deleteOrgRequest",
+   "deleteDoc",
+   "cloudDb"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:168-172"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#writeOrgRequest",
+  "level": "L6b-function",
+  "name": "writeOrgRequest",
+  "lines": 5,
+  "calls": [
+   "writeOrgRequest",
+   "setDoc",
+   "cloudDb"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:173-177"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#fetchOrgRequests",
+  "level": "L6b-function",
+  "name": "fetchOrgRequests",
+  "lines": 12,
+  "calls": [
+   "fetchOrgRequests",
+   "getDocs",
+   "collection",
+   "cloudDb",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:178-189"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#findMemberOrgSlugs",
+  "level": "L6b-function",
+  "name": "findMemberOrgSlugs",
+  "lines": 13,
+  "calls": [
+   "findMemberOrgSlugs",
+   "query",
+   "collection",
+   "cloudDb",
+   "where",
+   "getDocs"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:190-202"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#fetchAllOrgs",
+  "level": "L6b-function",
+  "name": "fetchAllOrgs",
+  "lines": 9,
+  "calls": [
+   "fetchAllOrgs",
+   "getDocs",
+   "collection",
+   "cloudDb",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:203-211"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#writeOrgJoinRequest",
+  "level": "L6b-function",
+  "name": "writeOrgJoinRequest",
+  "lines": 5,
+  "calls": [
+   "writeOrgJoinRequest",
+   "setDoc",
+   "cloudDb"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:212-216"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#fetchOrgJoinRequests",
+  "level": "L6b-function",
+  "name": "fetchOrgJoinRequests",
+  "lines": 6,
+  "calls": [
+   "fetchOrgJoinRequests",
+   "getDocs",
+   "collection",
+   "cloudDb",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:217-222"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#deleteOrgJoinRequest",
+  "level": "L6b-function",
+  "name": "deleteOrgJoinRequest",
+  "lines": 10,
+  "calls": [
+   "deleteOrgJoinRequest",
+   "deleteDoc",
+   "cloudDb",
+   "deleteField"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:223-232"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#deleteOrgMemberConfig",
+  "level": "L6b-function",
+  "name": "deleteOrgMemberConfig",
+  "lines": 10,
+  "calls": [
+   "deleteOrgMemberConfig",
+   "updateDoc",
+   "cloudDb",
+   "deleteField",
+   "setDoc"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:233-242"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#clearEmployeeField",
+  "level": "L6b-function",
+  "name": "clearEmployeeField",
+  "lines": 12,
+  "calls": [
+   "clearEmployeeField",
+   "updateDoc",
+   "cloudDb",
+   "deleteField"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:243-254"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#addOrgMember",
+  "level": "L6b-function",
+  "name": "addOrgMember",
+  "lines": 4,
+  "calls": [
+   "addOrgMember",
+   "updateDoc",
+   "cloudDb",
+   "arrayUnion"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:255-258"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#removeOrgMember",
+  "level": "L6b-function",
+  "name": "removeOrgMember",
+  "lines": 13,
+  "calls": [
+   "removeOrgMember",
+   "updateDoc",
+   "cloudDb",
+   "arrayRemove"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:259-271"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#deleteOrgCompletely",
+  "level": "L6b-function",
+  "name": "deleteOrgCompletely",
+  "lines": 50,
+  "calls": [
+   "deleteOrgCompletely",
+   "cloudDb",
+   "getDocs",
+   "collection",
+   "deleteDoc",
+   "wipeCol",
+   "catch",
+   "setDoc",
+   "toISOString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:272-321"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#writeOrgLead",
+  "level": "L6b-function",
+  "name": "writeOrgLead",
+  "lines": 5,
+  "calls": [
+   "writeOrgLead",
+   "addDoc",
+   "collection",
+   "cloudDb"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:322-326"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#fetchOrgLeads",
+  "level": "L6b-function",
+  "name": "fetchOrgLeads",
+  "lines": 8,
+  "calls": [
+   "fetchOrgLeads",
+   "getDocs",
+   "collection",
+   "cloudDb",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:327-334"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#SUPPORT_CHATS",
+  "level": "L6b-function",
+  "name": "SUPPORT_CHATS",
+  "lines": 3,
+  "calls": [
+   "message"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:335-337"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#sendSupportMessage",
+  "level": "L6b-function",
+  "name": "sendSupportMessage",
+  "lines": 24,
+  "calls": [
+   "sendSupportMessage",
+   "sanitizeSupportText",
+   "toISOString",
+   "addDoc",
+   "collection",
+   "cloudDb",
+   "setDoc",
+   "increment",
+   "message"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:338-361"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#sendSupportReply",
+  "level": "L6b-function",
+  "name": "sendSupportReply",
+  "lines": 13,
+  "calls": [
+   "sendSupportReply",
+   "sanitizeSupportText",
+   "toISOString",
+   "addDoc",
+   "collection",
+   "cloudDb",
+   "setDoc",
+   "increment"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:362-374"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#watchSupportMessages",
+  "level": "L6b-function",
+  "name": "watchSupportMessages",
+  "lines": 9,
+  "calls": [
+   "watchSupportMessages",
+   "onSnapshot",
+   "collection",
+   "cloudDb",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:375-383"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#watchSupportThreadMeta",
+  "level": "L6b-function",
+  "name": "watchSupportThreadMeta",
+  "lines": 9,
+  "calls": [
+   "watchSupportThreadMeta",
+   "onSnapshot",
+   "cloudDb",
+   "exists",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:384-392"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#watchAllSupportThreads",
+  "level": "L6b-function",
+  "name": "watchAllSupportThreads",
+  "lines": 9,
+  "calls": [
+   "watchAllSupportThreads",
+   "onSnapshot",
+   "collection",
+   "cloudDb",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:393-401"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#markSupportRead",
+  "level": "L6b-function",
+  "name": "markSupportRead",
+  "lines": 8,
+  "calls": [
+   "markSupportRead",
+   "setDoc",
+   "cloudDb",
+   "catch"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:402-409"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#TEAM_CHATS",
+  "level": "L6b-function",
+  "name": "TEAM_CHATS",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:410-412"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#sendTeamMessage",
+  "level": "L6b-function",
+  "name": "sendTeamMessage",
+  "lines": 12,
+  "calls": [
+   "sendTeamMessage",
+   "sanitizeSupportText",
+   "addDoc",
+   "collection",
+   "cloudDb",
+   "toISOString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:413-424"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudConfig.ts#watchTeamMessages",
+  "level": "L6b-function",
+  "name": "watchTeamMessages",
+  "lines": 8,
+  "calls": [
+   "watchTeamMessages",
+   "onSnapshot",
+   "collection",
+   "cloudDb",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudConfig.ts:425-432"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudCrypto.ts#isEncDoc",
+  "level": "L6b-function",
+  "name": "isEncDoc",
+  "lines": 5,
+  "calls": [
+   "isEncDoc"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudCrypto.ts:30-34"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudCrypto.ts#encryptDoc",
+  "level": "L6b-function",
+  "name": "encryptDoc",
+  "lines": 14,
+  "calls": [
+   "encryptDoc",
+   "getRandomValues",
+   "encrypt",
+   "encode"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudCrypto.ts:35-48"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudCrypto.ts#decryptDoc",
+  "level": "L6b-function",
+  "name": "decryptDoc",
+  "lines": 15,
+  "calls": [
+   "decryptDoc",
+   "isEncDoc",
+   "decrypt",
+   "unb64",
+   "decode"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudCrypto.ts:49-63"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudCrypto.ts#createCloudKey",
+  "level": "L6b-function",
+  "name": "createCloudKey",
+  "lines": 8,
+  "calls": [
+   "createCloudKey",
+   "encryptDb",
+   "openDek"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudCrypto.ts:64-71"
+ },
+ {
+  "id": "L6b:maor:src/lib/cloudCrypto.ts#openCloudKey",
+  "level": "L6b-function",
+  "name": "openCloudKey",
+  "lines": 6,
+  "calls": [
+   "openCloudKey",
+   "openDek"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/cloudCrypto.ts:72-77"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#moduleOn",
+  "level": "L6b-function",
+  "name": "moduleOn",
+  "lines": 25,
+  "calls": [
+   "moduleOn",
+   "featureOn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:15-39"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#featureOn",
+  "level": "L6b-function",
+  "name": "featureOn",
+  "lines": 23,
+  "calls": [
+   "featureOn",
+   "moduleOn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:40-62"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#donationSplitOn",
+  "level": "L6b-function",
+  "name": "donationSplitOn",
+  "lines": 10,
+  "calls": [
+   "donationSplitOn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:63-72"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#supEnforceOn",
+  "level": "L6b-function",
+  "name": "supEnforceOn",
+  "lines": 9,
+  "calls": [
+   "supEnforceOn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:73-81"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#integrationOn",
+  "level": "L6b-function",
+  "name": "integrationOn",
+  "lines": 8,
+  "calls": [
+   "integrationOn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:82-89"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#telephonyOn",
+  "level": "L6b-function",
+  "name": "telephonyOn",
+  "lines": 5,
+  "calls": [
+   "telephonyOn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:90-94"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#integrationSetting",
+  "level": "L6b-function",
+  "name": "integrationSetting",
+  "lines": 9,
+  "calls": [
+   "integrationSetting"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:95-103"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#safeHttpsUrl",
+  "level": "L6b-function",
+  "name": "safeHttpsUrl",
+  "lines": 15,
+  "calls": [
+   "safeHttpsUrl",
+   "toString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:104-118"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#termOf",
+  "level": "L6b-function",
+  "name": "termOf",
+  "lines": 50,
+  "calls": [
+   "termOf",
+   "normalizeFirebase",
+   "telStr",
+   "telExt"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:119-168"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#normalizeTelephony",
+  "level": "L6b-function",
+  "name": "normalizeTelephony",
+  "lines": 80,
+  "calls": [
+   "normalizeTelephony",
+   "telStr",
+   "isInteger",
+   "hhmm",
+   "telExt",
+   "bool",
+   "siteStr",
+   "normLocalized",
+   "sitePosNum",
+   "isFinite",
+   "sitePhone"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:169-248"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#normalizeSite",
+  "level": "L6b-function",
+  "name": "normalizeSite",
+  "lines": 266,
+  "calls": [
+   "normalizeSite",
+   "siteStr",
+   "normLocalized",
+   "sitePosNum",
+   "safeHttpsUrl",
+   "sitePhone",
+   "imgUrl",
+   "setLT",
+   "isFinite"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:249-514"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#normalizeConfig",
+  "level": "L6b-function",
+  "name": "normalizeConfig",
+  "lines": 122,
+  "calls": [
+   "normalizeConfig",
+   "normalizeFirebase",
+   "normalizeTelephony",
+   "isSafeAccent",
+   "normalizeSite"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:515-636"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#publicSiteOn",
+  "level": "L6b-function",
+  "name": "publicSiteOn",
+  "lines": 13,
+  "calls": [
+   "publicSiteOn",
+   "featureOn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:637-649"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#roleOf",
+  "level": "L6b-function",
+  "name": "roleOf",
+  "lines": 10,
+  "calls": [
+   "roleOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:650-659"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#teacherIdOf",
+  "level": "L6b-function",
+  "name": "teacherIdOf",
+  "lines": 13,
+  "calls": [
+   "teacherIdOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:660-672"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#isAdminUser",
+  "level": "L6b-function",
+  "name": "isAdminUser",
+  "lines": 14,
+  "calls": [
+   "isAdminUser"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:673-686"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#canGrantedAction",
+  "level": "L6b-function",
+  "name": "canGrantedAction",
+  "lines": 10,
+  "calls": [
+   "canGrantedAction",
+   "isAdminUser"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:687-696"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#readConfigOverride",
+  "level": "L6b-function",
+  "name": "readConfigOverride",
+  "lines": 10,
+  "calls": [
+   "readConfigOverride",
+   "getItem",
+   "normalizeConfig"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:697-706"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#saveConfigOverride",
+  "level": "L6b-function",
+  "name": "saveConfigOverride",
+  "lines": 9,
+  "calls": [
+   "saveConfigOverride",
+   "setItem"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:707-715"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#clearConfigOverride",
+  "level": "L6b-function",
+  "name": "clearConfigOverride",
+  "lines": 11,
+  "calls": [
+   "clearConfigOverride",
+   "removeItem"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:716-726"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#SUPER_ADMIN_EMAILS",
+  "level": "L6b-function",
+  "name": "SUPER_ADMIN_EMAILS",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:727-729"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#isSuperAdmin",
+  "level": "L6b-function",
+  "name": "isSuperAdmin",
+  "lines": 9,
+  "calls": [
+   "isSuperAdmin"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:730-738"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#signUpError",
+  "level": "L6b-function",
+  "name": "signUpError",
+  "lines": 23,
+  "calls": [
+   "signUpError"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:739-761"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#employeeSignUpError",
+  "level": "L6b-function",
+  "name": "employeeSignUpError",
+  "lines": 11,
+  "calls": [
+   "employeeSignUpError"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:762-772"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#cloudCfgCacheKey",
+  "level": "L6b-function",
+  "name": "cloudCfgCacheKey",
+  "lines": 5,
+  "calls": [
+   "cloudCfgCacheKey"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:773-777"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#readCloudConfigCache",
+  "level": "L6b-function",
+  "name": "readCloudConfigCache",
+  "lines": 11,
+  "calls": [
+   "readCloudConfigCache",
+   "getItem",
+   "cloudCfgCacheKey",
+   "normalizeConfig"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:778-788"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#writeCloudConfigCache",
+  "level": "L6b-function",
+  "name": "writeCloudConfigCache",
+  "lines": 14,
+  "calls": [
+   "writeCloudConfigCache",
+   "setItem",
+   "cloudCfgCacheKey"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:789-802"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#resolveOrgConfig",
+  "level": "L6b-function",
+  "name": "resolveOrgConfig",
+  "lines": 9,
+  "calls": [
+   "resolveOrgConfig",
+   "normalizeConfig"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:803-811"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#orgSlugFromUrl",
+  "level": "L6b-function",
+  "name": "orgSlugFromUrl",
+  "lines": 10,
+  "calls": [
+   "orgSlugFromUrl"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:812-821"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#loadOrgConfig",
+  "level": "L6b-function",
+  "name": "loadOrgConfig",
+  "lines": 44,
+  "calls": [
+   "loadOrgConfig",
+   "orgSlugFromUrl",
+   "readCloudConfigCache",
+   "fetch",
+   "normalizeConfig",
+   "json",
+   "readConfigOverride"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:822-865"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#isSafeAccent",
+  "level": "L6b-function",
+  "name": "isSafeAccent",
+  "lines": 9,
+  "calls": [
+   "isSafeAccent"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:866-874"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#applyTheme",
+  "level": "L6b-function",
+  "name": "applyTheme",
+  "lines": 11,
+  "calls": [
+   "applyTheme",
+   "isSafeAccent",
+   "setProperty",
+   "removeProperty"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:875-885"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#DEFAULT_FAVICON",
+  "level": "L6b-function",
+  "name": "DEFAULT_FAVICON",
+  "lines": 4,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:886-889"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#faviconDataUri",
+  "level": "L6b-function",
+  "name": "faviconDataUri",
+  "lines": 9,
+  "calls": [
+   "faviconDataUri",
+   "encodeURIComponent"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:890-898"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#applyFavicon",
+  "level": "L6b-function",
+  "name": "applyFavicon",
+  "lines": 12,
+  "calls": [
+   "applyFavicon",
+   "createElement",
+   "appendChild",
+   "faviconDataUri"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/config.ts:899-910"
+ },
+ {
+  "id": "L6b:maor:src/lib/config.ts#applyConfig",
+  "level": "L6b-function",
+  "name": "applyConfig",
+  "lines": 5,
+  "calls": [
+   "applyConfig",
+   "applyTheme",
+   "applyFavicon"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/config.ts:911-915"
+ },
+ {
+  "id": "L6b:maor:src/lib/courseDaily.ts#buildCourseDailyRows",
+  "level": "L6b-function",
+  "name": "buildCourseDailyRows",
+  "lines": 70,
+  "calls": [
+   "buildCourseDailyRows",
+   "termOf",
+   "setDate",
+   "getDate",
+   "isoOf",
+   "getDay",
+   "hebDateFull",
+   "fmtD"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/courseDaily.ts:23-92"
+ },
+ {
+  "id": "L6b:maor:src/lib/crypto.ts#genRecoveryKey",
+  "level": "L6b-function",
+  "name": "genRecoveryKey",
+  "lines": 10,
+  "calls": [
+   "genRecoveryKey",
+   "rand"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/crypto.ts:69-78"
+ },
+ {
+  "id": "L6b:maor:src/lib/crypto.ts#encryptDb",
+  "level": "L6b-function",
+  "name": "encryptDb",
+  "lines": 22,
+  "calls": [
+   "encryptDb",
+   "rand",
+   "importKey",
+   "deriveWrapKey",
+   "aesEnc",
+   "encode"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/crypto.ts:79-100"
+ },
+ {
+  "id": "L6b:maor:src/lib/crypto.ts#isEncrypted",
+  "level": "L6b-function",
+  "name": "isEncrypted",
+  "lines": 5,
+  "calls": [
+   "isEncrypted"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/crypto.ts:101-105"
+ },
+ {
+  "id": "L6b:maor:src/lib/crypto.ts#openDek",
+  "level": "L6b-function",
+  "name": "openDek",
+  "lines": 17,
+  "calls": [
+   "openDek",
+   "unb64",
+   "deriveWrapKey",
+   "aesDec",
+   "importKey"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/crypto.ts:106-122"
+ },
+ {
+  "id": "L6b:maor:src/lib/crypto.ts#decryptDb",
+  "level": "L6b-function",
+  "name": "decryptDb",
+  "lines": 5,
+  "calls": [
+   "decryptDb",
+   "decode",
+   "aesDec"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/crypto.ts:123-127"
+ },
+ {
+  "id": "L6b:maor:src/lib/crypto.ts#reencryptDb",
+  "level": "L6b-function",
+  "name": "reencryptDb",
+  "lines": 5,
+  "calls": [
+   "reencryptDb",
+   "aesEnc",
+   "encode"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/crypto.ts:128-132"
+ },
+ {
+  "id": "L6b:maor:src/lib/crypto.ts#rewrapPassword",
+  "level": "L6b-function",
+  "name": "rewrapPassword",
+  "lines": 7,
+  "calls": [
+   "rewrapPassword",
+   "exportKey",
+   "rand",
+   "deriveWrapKey",
+   "aesEnc"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/crypto.ts:133-139"
+ },
+ {
+  "id": "L6b:maor:src/lib/csvx.ts#csvEscape",
+  "level": "L6b-function",
+  "name": "csvEscape",
+  "lines": 10,
+  "calls": [
+   "csvEscape"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/csvx.ts:12-21"
+ },
+ {
+  "id": "L6b:maor:src/lib/csvx.ts#toCsv",
+  "level": "L6b-function",
+  "name": "toCsv",
+  "lines": 5,
+  "calls": [
+   "toCsv"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/csvx.ts:22-26"
+ },
+ {
+  "id": "L6b:maor:src/lib/csvx.ts#downloadCsv",
+  "level": "L6b-function",
+  "name": "downloadCsv",
+  "lines": 16,
+  "calls": [
+   "downloadCsv",
+   "guardExport",
+   "createElement",
+   "createObjectURL",
+   "toCsv",
+   "click",
+   "setTimeout",
+   "revokeObjectURL"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/csvx.ts:27-42"
+ },
+ {
+  "id": "L6b:maor:src/lib/csvx.ts#decodeCsvBuffer",
+  "level": "L6b-function",
+  "name": "decodeCsvBuffer",
+  "lines": 21,
+  "calls": [
+   "decodeCsvBuffer",
+   "decode",
+   "subarray"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/csvx.ts:43-63"
+ },
+ {
+  "id": "L6b:maor:src/lib/csvx.ts#readCsvFileText",
+  "level": "L6b-function",
+  "name": "readCsvFileText",
+  "lines": 8,
+  "calls": [
+   "readCsvFileText",
+   "decodeCsvBuffer",
+   "arrayBuffer"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/csvx.ts:64-71"
+ },
+ {
+  "id": "L6b:maor:src/lib/csvx.ts#parseCsv",
+  "level": "L6b-function",
+  "name": "parseCsv",
+  "lines": 49,
+  "calls": [
+   "parseCsv"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/csvx.ts:72-120"
+ },
+ {
+  "id": "L6b:maor:src/lib/csvx.ts#parseAnyDate",
+  "level": "L6b-function",
+  "name": "parseAnyDate",
+  "lines": 40,
+  "calls": [
+   "parseAnyDate",
+   "getUTCFullYear",
+   "getUTCMonth",
+   "getUTCDate",
+   "getFullYear",
+   "setUTCDate",
+   "toISOString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/csvx.ts:121-160"
+ },
+ {
+  "id": "L6b:maor:src/lib/customExport.ts#expFieldDefs",
+  "level": "L6b-function",
+  "name": "expFieldDefs",
+  "lines": 91,
+  "calls": [
+   "expFieldDefs",
+   "featureOn",
+   "termOf",
+   "featLabel",
+   "itemLabel",
+   "unitLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/customExport.ts:36-126"
+ },
+ {
+  "id": "L6b:maor:src/lib/customExport.ts#overrideColumn",
+  "level": "L6b-function",
+  "name": "overrideColumn",
+  "lines": 32,
+  "calls": [
+   "overrideColumn",
+   "isoOf",
+   "getFullYear",
+   "getMonth",
+   "getDate",
+   "fmtD"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/customExport.ts:127-158"
+ },
+ {
+  "id": "L6b:maor:src/lib/customExport.ts#buildCustomExport",
+  "level": "L6b-function",
+  "name": "buildCustomExport",
+  "lines": 165,
+  "calls": [
+   "buildCustomExport",
+   "expFieldDefs",
+   "pick",
+   "sessionsOf",
+   "enrollCount",
+   "hebParts",
+   "getTime",
+   "setDate",
+   "getDate",
+   "isoOf",
+   "hebAnnualEq",
+   "hebDateFull"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/customExport.ts:159-323"
+ },
+ {
+  "id": "L6b:maor:src/lib/date-util.ts#isoToday",
+  "level": "L6b-function",
+  "name": "isoToday",
+  "lines": 5,
+  "calls": [
+   "isoToday",
+   "isoLocal"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/date-util.ts:9-13"
+ },
+ {
+  "id": "L6b:maor:src/lib/date-util.ts#isoLocal",
+  "level": "L6b-function",
+  "name": "isoLocal",
+  "lines": 6,
+  "calls": [
+   "isoLocal",
+   "getFullYear",
+   "getMonth",
+   "getDate"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/date-util.ts:14-19"
+ },
+ {
+  "id": "L6b:maor:src/lib/date-util.ts#isoDaysAgo",
+  "level": "L6b-function",
+  "name": "isoDaysAgo",
+  "lines": 10,
+  "calls": [
+   "isoDaysAgo",
+   "setDate",
+   "getDate",
+   "isoLocal"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/date-util.ts:20-29"
+ },
+ {
+  "id": "L6b:maor:src/lib/date-util.ts#dateInRange",
+  "level": "L6b-function",
+  "name": "dateInRange",
+  "lines": 4,
+  "calls": [
+   "dateInRange"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/date-util.ts:30-33"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#normPhone",
+  "level": "L6b-function",
+  "name": "normPhone",
+  "lines": 27,
+  "calls": [
+   "normPhone",
+   "nameCityKey",
+   "phonesOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:15-41"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#findDuplicateGroups",
+  "level": "L6b-function",
+  "name": "findDuplicateGroups",
+  "lines": 67,
+  "calls": [
+   "findDuplicateGroups",
+   "phonesOf",
+   "union",
+   "nameCityKey"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:42-108"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#mergeFamilies",
+  "level": "L6b-function",
+  "name": "mergeFamilies",
+  "lines": 80,
+  "calls": [
+   "mergeFamilies",
+   "pick",
+   "rank",
+   "firstNonEmpty",
+   "normPhone",
+   "dedupById",
+   "flatMap"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:109-188"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#DUP_FIELDS",
+  "level": "L6b-function",
+  "name": "DUP_FIELDS",
+  "lines": 22,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:189-210"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#dupFieldValue",
+  "level": "L6b-function",
+  "name": "dupFieldValue",
+  "lines": 13,
+  "calls": [
+   "dupFieldValue"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:211-223"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#mergeFamiliesByFields",
+  "level": "L6b-function",
+  "name": "mergeFamiliesByFields",
+  "lines": 48,
+  "calls": [
+   "mergeFamiliesByFields",
+   "mergeFamilies",
+   "dupFieldValue",
+   "supNameCityKey"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:224-271"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#normId",
+  "level": "L6b-function",
+  "name": "normId",
+  "lines": 14,
+  "calls": [
+   "normId"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:272-285"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#findSupporterDupGroups",
+  "level": "L6b-function",
+  "name": "findSupporterDupGroups",
+  "lines": 56,
+  "calls": [
+   "findSupporterDupGroups",
+   "union",
+   "normPhone",
+   "link",
+   "normId",
+   "supNameCityKey",
+   "nameSortKey"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:286-341"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#mergeSupporterInto",
+  "level": "L6b-function",
+  "name": "mergeSupporterInto",
+  "lines": 46,
+  "calls": [
+   "mergeSupporterInto",
+   "mergeHist"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:342-387"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#mergeSupportersGroup",
+  "level": "L6b-function",
+  "name": "mergeSupportersGroup",
+  "lines": 16,
+  "calls": [
+   "mergeSupportersGroup",
+   "mergeSupporterInto"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:388-403"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#SUP_DUP_FIELDS",
+  "level": "L6b-function",
+  "name": "SUP_DUP_FIELDS",
+  "lines": 13,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:404-416"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#supDupFieldValue",
+  "level": "L6b-function",
+  "name": "supDupFieldValue",
+  "lines": 13,
+  "calls": [
+   "supDupFieldValue"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:417-429"
+ },
+ {
+  "id": "L6b:maor:src/lib/dedup.ts#mergeSupportersByFields",
+  "level": "L6b-function",
+  "name": "mergeSupportersByFields",
+  "lines": 24,
+  "calls": [
+   "mergeSupportersByFields",
+   "mergeSupportersGroup",
+   "supDupFieldValue"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dedup.ts:430-453"
+ },
+ {
+  "id": "L6b:maor:src/lib/demoCleanup.ts#planDemoCleanup",
+  "level": "L6b-function",
+  "name": "planDemoCleanup",
+  "lines": 73,
+  "calls": [
+   "planDemoCleanup",
+   "fingerprint",
+   "pred",
+   "cascade"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/demoCleanup.ts:66-138"
+ },
+ {
+  "id": "L6b:maor:src/lib/demoFresh.ts#DEMO_ANCHOR",
+  "level": "L6b-function",
+  "name": "DEMO_ANCHOR",
+  "lines": 18,
+  "calls": [
+   "daysBetween",
+   "getTime",
+   "isNaN",
+   "shift",
+   "setDate",
+   "getDate",
+   "isoLocal"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/demoFresh.ts:14-31"
+ },
+ {
+  "id": "L6b:maor:src/lib/demoFresh.ts#freshenDemoDb",
+  "level": "L6b-function",
+  "name": "freshenDemoDb",
+  "lines": 20,
+  "calls": [
+   "freshenDemoDb",
+   "daysBetween",
+   "shift"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/demoFresh.ts:32-51"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#REQUEUE_OUTCOMES",
+  "level": "L6b-function",
+  "name": "REQUEUE_OUTCOMES",
+  "lines": 2,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:10-11"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#TERMINAL_OUTCOMES",
+  "level": "L6b-function",
+  "name": "TERMINAL_OUTCOMES",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:12-14"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#OUTCOME_LABELS",
+  "level": "L6b-function",
+  "name": "OUTCOME_LABELS",
+  "lines": 10,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:15-24"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#startCampaign",
+  "level": "L6b-function",
+  "name": "startCampaign",
+  "lines": 12,
+  "calls": [
+   "startCampaign"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:25-36"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#currentId",
+  "level": "L6b-function",
+  "name": "currentId",
+  "lines": 9,
+  "calls": [
+   "currentId"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:37-45"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#applyOutcome",
+  "level": "L6b-function",
+  "name": "applyOutcome",
+  "lines": 34,
+  "calls": [
+   "applyOutcome",
+   "currentId"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:46-79"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#progress",
+  "level": "L6b-function",
+  "name": "progress",
+  "lines": 17,
+  "calls": [
+   "progress"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:80-96"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#isDone",
+  "level": "L6b-function",
+  "name": "isDone",
+  "lines": 9,
+  "calls": [
+   "isDone"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:97-105"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#undoLast",
+  "level": "L6b-function",
+  "name": "undoLast",
+  "lines": 14,
+  "calls": [
+   "undoLast",
+   "lastIndexOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:106-119"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#CALL_LOG_CAP",
+  "level": "L6b-function",
+  "name": "CALL_LOG_CAP",
+  "lines": 6,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:120-125"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#appendCall",
+  "level": "L6b-function",
+  "name": "appendCall",
+  "lines": 7,
+  "calls": [
+   "appendCall"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:126-132"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#popCall",
+  "level": "L6b-function",
+  "name": "popCall",
+  "lines": 15,
+  "calls": [
+   "popCall"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:133-147"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#callStats",
+  "level": "L6b-function",
+  "name": "callStats",
+  "lines": 11,
+  "calls": [
+   "callStats"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:148-158"
+ },
+ {
+  "id": "L6b:maor:src/lib/dialer.ts#campaignCsvRows",
+  "level": "L6b-function",
+  "name": "campaignCsvRows",
+  "lines": 11,
+  "calls": [
+   "campaignCsvRows",
+   "nameOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/dialer.ts:159-169"
+ },
+ {
+  "id": "L6b:maor:src/lib/donationPartition.ts#SHARED_PURPOSE_KEY",
+  "level": "L6b-function",
+  "name": "SHARED_PURPOSE_KEY",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/donationPartition.ts:21-23"
+ },
+ {
+  "id": "L6b:maor:src/lib/donationPartition.ts#purposeKeyOf",
+  "level": "L6b-function",
+  "name": "purposeKeyOf",
+  "lines": 10,
+  "calls": [
+   "purposeKeyOf",
+   "where"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/donationPartition.ts:24-33"
+ },
+ {
+  "id": "L6b:maor:src/lib/donationPartition.ts#donAllowedKeys",
+  "level": "L6b-function",
+  "name": "donAllowedKeys",
+  "lines": 22,
+  "calls": [
+   "donAllowedKeys"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/donationPartition.ts:34-55"
+ },
+ {
+  "id": "L6b:maor:src/lib/donationPartition.ts#explodeSupporter",
+  "level": "L6b-function",
+  "name": "explodeSupporter",
+  "lines": 25,
+  "calls": [
+   "explodeSupporter",
+   "purposeKeyOf",
+   "byDateThenRid"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/donationPartition.ts:56-80"
+ },
+ {
+  "id": "L6b:maor:src/lib/donationPartition.ts#reassembleDonations",
+  "level": "L6b-function",
+  "name": "reassembleDonations",
+  "lines": 22,
+  "calls": [
+   "reassembleDonations"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/donationPartition.ts:81-102"
+ },
+ {
+  "id": "L6b:maor:src/lib/donationPartition.ts#donationPartitionDiff",
+  "level": "L6b-function",
+  "name": "donationPartitionDiff",
+  "lines": 18,
+  "calls": [
+   "donationPartitionDiff",
+   "explodeSupporter",
+   "index"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/donationPartition.ts:103-120"
+ },
+ {
+  "id": "L6b:maor:src/lib/eventMeta.ts#EV_META",
+  "level": "L6b-function",
+  "name": "EV_META",
+  "lines": 12,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/eventMeta.ts:7-18"
+ },
+ {
+  "id": "L6b:maor:src/lib/eventMeta.ts#evLabel",
+  "level": "L6b-function",
+  "name": "evLabel",
+  "lines": 4,
+  "calls": [
+   "evLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/eventMeta.ts:19-22"
+ },
+ {
+  "id": "L6b:maor:src/lib/exportGate.ts#setExportBlocked",
+  "level": "L6b-function",
+  "name": "setExportBlocked",
+  "lines": 6,
+  "calls": [
+   "setExportBlocked"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/exportGate.ts:19-24"
+ },
+ {
+  "id": "L6b:maor:src/lib/exportGate.ts#exportAllowed",
+  "level": "L6b-function",
+  "name": "exportAllowed",
+  "lines": 8,
+  "calls": [
+   "exportAllowed"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/exportGate.ts:25-32"
+ },
+ {
+  "id": "L6b:maor:src/lib/exportGate.ts#guardExport",
+  "level": "L6b-function",
+  "name": "guardExport",
+  "lines": 8,
+  "calls": [
+   "guardExport"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/exportGate.ts:33-40"
+ },
+ {
+  "id": "L6b:maor:src/lib/exportRows.ts#familiesImportFormatRows",
+  "level": "L6b-function",
+  "name": "familiesImportFormatRows",
+  "lines": 14,
+  "calls": [
+   "familiesImportFormatRows"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/exportRows.ts:33-46"
+ },
+ {
+  "id": "L6b:maor:src/lib/exportRows.ts#supportersImportFormatRows",
+  "level": "L6b-function",
+  "name": "supportersImportFormatRows",
+  "lines": 9,
+  "calls": [
+   "supportersImportFormatRows"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/exportRows.ts:47-55"
+ },
+ {
+  "id": "L6b:maor:src/lib/exportRows.ts#eventsCsvRows",
+  "level": "L6b-function",
+  "name": "eventsCsvRows",
+  "lines": 22,
+  "calls": [
+   "eventsCsvRows",
+   "termOf",
+   "hebDateFull",
+   "fmtD"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/exportRows.ts:56-77"
+ },
+ {
+  "id": "L6b:maor:src/lib/familiesImport.ts#parseFamiliesCsv",
+  "level": "L6b-function",
+  "name": "parseFamiliesCsv",
+  "lines": 55,
+  "calls": [
+   "parseFamiliesCsv",
+   "clean",
+   "normName",
+   "digits"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/familiesImport.ts:60-114"
+ },
+ {
+  "id": "L6b:maor:src/lib/familiesImport.ts#mergeFamilyImport",
+  "level": "L6b-function",
+  "name": "mergeFamilyImport",
+  "lines": 9,
+  "calls": [
+   "mergeFamilyImport"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/familiesImport.ts:115-123"
+ },
+ {
+  "id": "L6b:maor:src/lib/guide.ts#GUIDE_INTRO_LABEL",
+  "level": "L6b-function",
+  "name": "GUIDE_INTRO_LABEL",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/guide.ts:25-25"
+ },
+ {
+  "id": "L6b:maor:src/lib/guide.ts#GUIDE_INTRO",
+  "level": "L6b-function",
+  "name": "GUIDE_INTRO",
+  "lines": 5,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/guide.ts:26-30"
+ },
+ {
+  "id": "L6b:maor:src/lib/guide.ts#GUIDE_SECTIONS",
+  "level": "L6b-function",
+  "name": "GUIDE_SECTIONS",
+  "lines": 48,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/guide.ts:31-78"
+ },
+ {
+  "id": "L6b:maor:src/lib/guide.ts#GUIDE_RECIPES_LABEL",
+  "level": "L6b-function",
+  "name": "GUIDE_RECIPES_LABEL",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/guide.ts:79-79"
+ },
+ {
+  "id": "L6b:maor:src/lib/guide.ts#GUIDE_RECIPES",
+  "level": "L6b-function",
+  "name": "GUIDE_RECIPES",
+  "lines": 7,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/guide.ts:80-86"
+ },
+ {
+  "id": "L6b:maor:src/lib/guide.ts#GUIDE_FOOT",
+  "level": "L6b-function",
+  "name": "GUIDE_FOOT",
+  "lines": 14,
+  "calls": [
+   "swap"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/guide.ts:87-100"
+ },
+ {
+  "id": "L6b:maor:src/lib/guide.ts#guideSections",
+  "level": "L6b-function",
+  "name": "guideSections",
+  "lines": 20,
+  "calls": [
+   "guideSections",
+   "termOf",
+   "swap",
+   "isModuleOn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/guide.ts:101-120"
+ },
+ {
+  "id": "L6b:maor:src/lib/guide.ts#guideRecipes",
+  "level": "L6b-function",
+  "name": "guideRecipes",
+  "lines": 15,
+  "calls": [
+   "guideRecipes",
+   "termOf",
+   "swap"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/guide.ts:121-135"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebdate.ts#monthHeOf",
+  "level": "L6b-function",
+  "name": "monthHeOf",
+  "lines": 5,
+  "calls": [
+   "monthHeOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebdate.ts:42-46"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebdate.ts#monthEnOf",
+  "level": "L6b-function",
+  "name": "monthEnOf",
+  "lines": 5,
+  "calls": [
+   "monthEnOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebdate.ts:47-51"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebdate.ts#hebYearNow",
+  "level": "L6b-function",
+  "name": "hebYearNow",
+  "lines": 27,
+  "calls": [
+   "hebYearNow",
+   "hebParts",
+   "pad2",
+   "isoOf",
+   "getFullYear",
+   "getMonth",
+   "getDate",
+   "hebToIsoEn",
+   "isInteger"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebdate.ts:52-78"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebdate.ts#isHebLeapYear",
+  "level": "L6b-function",
+  "name": "isHebLeapYear",
+  "lines": 12,
+  "calls": [
+   "isHebLeapYear",
+   "hebToIsoEn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebdate.ts:79-90"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebdate.ts#hebMonthsOf",
+  "level": "L6b-function",
+  "name": "hebMonthsOf",
+  "lines": 9,
+  "calls": [
+   "hebMonthsOf",
+   "isHebLeapYear"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebdate.ts:91-99"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebdate.ts#hebToIso",
+  "level": "L6b-function",
+  "name": "hebToIso",
+  "lines": 7,
+  "calls": [
+   "hebToIso",
+   "monthEnOf",
+   "hebToIsoEn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebdate.ts:100-106"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebdate.ts#isoToHebParts",
+  "level": "L6b-function",
+  "name": "isoToHebParts",
+  "lines": 18,
+  "calls": [
+   "isoToHebParts",
+   "isNaN",
+   "getTime",
+   "hebParts",
+   "monthHeOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebdate.ts:107-124"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebdate.ts#validateHebMonthNames",
+  "level": "L6b-function",
+  "name": "validateHebMonthNames",
+  "lines": 20,
+  "calls": [
+   "validateHebMonthNames",
+   "hebYearNow",
+   "hebParts",
+   "warn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebdate.ts:125-144"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebrew.ts#gem",
+  "level": "L6b-function",
+  "name": "gem",
+  "lines": 14,
+  "calls": [
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebrew.ts:15-28"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebrew.ts#gemYear",
+  "level": "L6b-function",
+  "name": "gemYear",
+  "lines": 16,
+  "calls": [
+   "gemYear"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebrew.ts:29-44"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebrew.ts#adarNorm",
+  "level": "L6b-function",
+  "name": "adarNorm",
+  "lines": 50,
+  "calls": [
+   "adarNorm",
+   "isAdar",
+   "scanHebYear",
+   "hebParts"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebrew.ts:45-94"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebrew.ts#hebAnnualEq",
+  "level": "L6b-function",
+  "name": "hebAnnualEq",
+  "lines": 29,
+  "calls": [
+   "hebAnnualEq",
+   "scanHebYear",
+   "isAdar"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebrew.ts:95-123"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebrew.ts#hebParts",
+  "level": "L6b-function",
+  "name": "hebParts",
+  "lines": 15,
+  "calls": [
+   "hebParts",
+   "isNaN",
+   "getTime",
+   "formatToParts"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebrew.ts:124-138"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebrew.ts#hebPartsOfIso",
+  "level": "L6b-function",
+  "name": "hebPartsOfIso",
+  "lines": 17,
+  "calls": [
+   "hebPartsOfIso",
+   "clear",
+   "hebParts"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebrew.ts:139-155"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebrew.ts#hebDateFull",
+  "level": "L6b-function",
+  "name": "hebDateFull",
+  "lines": 8,
+  "calls": [
+   "hebDateFull",
+   "isNaN",
+   "getTime",
+   "hebParts",
+   "format",
+   "gemYear"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebrew.ts:156-163"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebrew.ts#HOLIDAYS",
+  "level": "L6b-function",
+  "name": "HOLIDAYS",
+  "lines": 41,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/hebrew.ts:164-204"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebrew.ts#holidayOf",
+  "level": "L6b-function",
+  "name": "holidayOf",
+  "lines": 26,
+  "calls": [
+   "holidayOf",
+   "hebParts",
+   "scanHebYear",
+   "getDay"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebrew.ts:205-230"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebrewNumber.ts#integerInWords",
+  "level": "L6b-function",
+  "name": "integerInWords",
+  "lines": 22,
+  "calls": [
+   "integerInWords",
+   "isFinite",
+   "joinHeb",
+   "words0_999",
+   "thousandWords"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebrewNumber.ts:79-100"
+ },
+ {
+  "id": "L6b:maor:src/lib/hebrewNumber.ts#amountInWords",
+  "level": "L6b-function",
+  "name": "amountInWords",
+  "lines": 36,
+  "calls": [
+   "amountInWords",
+   "isFinite",
+   "integerInWords",
+   "agorotPhrase"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/hebrewNumber.ts:101-136"
+ },
+ {
+  "id": "L6b:maor:src/lib/ics.ts#icsEscape",
+  "level": "L6b-function",
+  "name": "icsEscape",
+  "lines": 14,
+  "calls": [
+   "icsEscape"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ics.ts:26-39"
+ },
+ {
+  "id": "L6b:maor:src/lib/ics.ts#foldIcsLine",
+  "level": "L6b-function",
+  "name": "foldIcsLine",
+  "lines": 56,
+  "calls": [
+   "foldIcsLine",
+   "encode",
+   "basicDate",
+   "basicLocal",
+   "getFullYear",
+   "getMonth",
+   "getDate",
+   "getHours",
+   "getMinutes",
+   "getSeconds",
+   "stampUtc",
+   "getUTCFullYear"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ics.ts:40-95"
+ },
+ {
+  "id": "L6b:maor:src/lib/ics.ts#buildIcs",
+  "level": "L6b-function",
+  "name": "buildIcs",
+  "lines": 37,
+  "calls": [
+   "buildIcs",
+   "icsEscape",
+   "stampUtc",
+   "isNaN",
+   "getTime",
+   "basicLocal",
+   "basicDate",
+   "nextIso",
+   "flatMap"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/ics.ts:96-132"
+ },
+ {
+  "id": "L6b:maor:src/lib/ics.ts#downloadIcs",
+  "level": "L6b-function",
+  "name": "downloadIcs",
+  "lines": 9,
+  "calls": [
+   "downloadIcs",
+   "guardExport",
+   "createElement",
+   "createObjectURL",
+   "click",
+   "setTimeout",
+   "revokeObjectURL"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/ics.ts:133-141"
+ },
+ {
+  "id": "L6b:maor:src/lib/icsFeed.ts#mintFeedToken",
+  "level": "L6b-function",
+  "name": "mintFeedToken",
+  "lines": 7,
+  "calls": [
+   "mintFeedToken",
+   "getRandomValues",
+   "toString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/icsFeed.ts:17-23"
+ },
+ {
+  "id": "L6b:maor:src/lib/icsFeed.ts#readIcsFeedToken",
+  "level": "L6b-function",
+  "name": "readIcsFeedToken",
+  "lines": 10,
+  "calls": [
+   "readIcsFeedToken",
+   "getDoc",
+   "cloudDb",
+   "exists",
+   "data"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/icsFeed.ts:24-33"
+ },
+ {
+  "id": "L6b:maor:src/lib/icsFeed.ts#publishIcsFeed",
+  "level": "L6b-function",
+  "name": "publishIcsFeed",
+  "lines": 10,
+  "calls": [
+   "publishIcsFeed",
+   "encode",
+   "readIcsFeedToken",
+   "mintFeedToken",
+   "setDoc",
+   "cloudDb",
+   "toISOString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/icsFeed.ts:34-43"
+ },
+ {
+  "id": "L6b:maor:src/lib/icsFeed.ts#icsFeedUrl",
+  "level": "L6b-function",
+  "name": "icsFeedUrl",
+  "lines": 4,
+  "calls": [
+   "icsFeedUrl",
+   "encodeURIComponent"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/icsFeed.ts:44-47"
+ },
+ {
+  "id": "L6b:maor:src/lib/ids.ts#makeId",
+  "level": "L6b-function",
+  "name": "makeId",
+  "lines": 12,
+  "calls": [
+   "makeId"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/ids.ts:19-30"
+ },
+ {
+  "id": "L6b:maor:src/lib/ids.ts#deviceTag",
+  "level": "L6b-function",
+  "name": "deviceTag",
+  "lines": 15,
+  "calls": [
+   "deviceTag",
+   "getItem",
+   "random",
+   "toString",
+   "setItem"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/ids.ts:31-45"
+ },
+ {
+  "id": "L6b:maor:src/lib/imagePick.ts#MAX_UPLOAD_BYTES",
+  "level": "L6b-function",
+  "name": "MAX_UPLOAD_BYTES",
+  "lines": 2,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/imagePick.ts:13-14"
+ },
+ {
+  "id": "L6b:maor:src/lib/imagePick.ts#pickAndCompressImage",
+  "level": "L6b-function",
+  "name": "pickAndCompressImage",
+  "lines": 22,
+  "calls": [
+   "pickAndCompressImage",
+   "readAsDataUrl",
+   "loadImage",
+   "createElement",
+   "getContext",
+   "drawImage",
+   "toDataURL"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/imagePick.ts:15-36"
+ },
+ {
+  "id": "L6b:maor:src/lib/imagePick.ts#MAX_EMBED_BYTES",
+  "level": "L6b-function",
+  "name": "MAX_EMBED_BYTES",
+  "lines": 2,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/imagePick.ts:37-38"
+ },
+ {
+  "id": "L6b:maor:src/lib/imagePick.ts#readFileAsDataUrl",
+  "level": "L6b-function",
+  "name": "readFileAsDataUrl",
+  "lines": 24,
+  "calls": [
+   "readFileAsDataUrl",
+   "readAsDataUrl",
+   "resolve",
+   "reject",
+   "readAsDataURL",
+   "loadImage"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/imagePick.ts:39-62"
+ },
+ {
+  "id": "L6b:maor:src/lib/installKit.ts#kitProgress",
+  "level": "L6b-function",
+  "name": "kitProgress",
+  "lines": 8,
+  "calls": [
+   "kitProgress"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/installKit.ts:17-24"
+ },
+ {
+  "id": "L6b:maor:src/lib/installKit.ts#DEFAULT_KIT_LABELS",
+  "level": "L6b-function",
+  "name": "DEFAULT_KIT_LABELS",
+  "lines": 8,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/installKit.ts:25-32"
+ },
+ {
+  "id": "L6b:maor:src/lib/lock.ts#LOCK_ZONES",
+  "level": "L6b-function",
+  "name": "LOCK_ZONES",
+  "lines": 8,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/lock.ts:13-20"
+ },
+ {
+  "id": "L6b:maor:src/lib/lock.ts#DEFAULT_LOCK_ZONES",
+  "level": "L6b-function",
+  "name": "DEFAULT_LOCK_ZONES",
+  "lines": 19,
+  "calls": [],
+  "pure": false,
+  "source": "maor/src/lib/lock.ts:21-39"
+ },
+ {
+  "id": "L6b:maor:src/lib/lock.ts#lockKey",
+  "level": "L6b-function",
+  "name": "lockKey",
+  "lines": 4,
+  "calls": [
+   "lockKey",
+   "nsLsKey"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/lock.ts:40-43"
+ },
+ {
+  "id": "L6b:maor:src/lib/lock.ts#readLock",
+  "level": "L6b-function",
+  "name": "readLock",
+  "lines": 13,
+  "calls": [
+   "readLock",
+   "lockKey",
+   "getItem"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/lock.ts:44-56"
+ },
+ {
+  "id": "L6b:maor:src/lib/lock.ts#writeLock",
+  "level": "L6b-function",
+  "name": "writeLock",
+  "lines": 11,
+  "calls": [
+   "writeLock",
+   "lockKey",
+   "removeItem",
+   "setItem"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/lock.ts:57-67"
+ },
+ {
+  "id": "L6b:maor:src/lib/lock.ts#isValidPin",
+  "level": "L6b-function",
+  "name": "isValidPin",
+  "lines": 5,
+  "calls": [
+   "isValidPin"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/lock.ts:68-72"
+ },
+ {
+  "id": "L6b:maor:src/lib/lock.ts#hashPin",
+  "level": "L6b-function",
+  "name": "hashPin",
+  "lines": 9,
+  "calls": [
+   "hashPin",
+   "encode",
+   "digest",
+   "toString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/lock.ts:73-81"
+ },
+ {
+  "id": "L6b:maor:src/lib/lock.ts#verifyPin",
+  "level": "L6b-function",
+  "name": "verifyPin",
+  "lines": 5,
+  "calls": [
+   "verifyPin",
+   "hashPin"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/lock.ts:82-86"
+ },
+ {
+  "id": "L6b:maor:src/lib/mapsLink.ts#mapsSearchUrl",
+  "level": "L6b-function",
+  "name": "mapsSearchUrl",
+  "lines": 12,
+  "calls": [
+   "mapsSearchUrl",
+   "encodeURIComponent"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/mapsLink.ts:14-25"
+ },
+ {
+  "id": "L6b:maor:src/lib/mapsLink.ts#mapsRouteUrl",
+  "level": "L6b-function",
+  "name": "mapsRouteUrl",
+  "lines": 16,
+  "calls": [
+   "mapsRouteUrl",
+   "encodeURIComponent"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/mapsLink.ts:26-41"
+ },
+ {
+  "id": "L6b:maor:src/lib/monthGrid.ts#buildMonthGrid",
+  "level": "L6b-function",
+  "name": "buildMonthGrid",
+  "lines": 61,
+  "calls": [
+   "getFullYear",
+   "getMonth",
+   "getDay",
+   "getDate",
+   "cellOf",
+   "format",
+   "isoOf",
+   "hpOf",
+   "gemYear"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/monthGrid.ts:54-114"
+ },
+ {
+  "id": "L6b:maor:src/lib/navhist.ts#NAV_HIST_MAX",
+  "level": "L6b-function",
+  "name": "NAV_HIST_MAX",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/navhist.ts:19-19"
+ },
+ {
+  "id": "L6b:maor:src/lib/navhist.ts#RECENT_MAX",
+  "level": "L6b-function",
+  "name": "RECENT_MAX",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/navhist.ts:20-22"
+ },
+ {
+  "id": "L6b:maor:src/lib/navhist.ts#sameLoc",
+  "level": "L6b-function",
+  "name": "sameLoc",
+  "lines": 5,
+  "calls": [
+   "sameLoc"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/navhist.ts:23-27"
+ },
+ {
+  "id": "L6b:maor:src/lib/navhist.ts#pushNav",
+  "level": "L6b-function",
+  "name": "pushNav",
+  "lines": 6,
+  "calls": [
+   "pushNav"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/navhist.ts:28-33"
+ },
+ {
+  "id": "L6b:maor:src/lib/navhist.ts#pushRecent",
+  "level": "L6b-function",
+  "name": "pushRecent",
+  "lines": 4,
+  "calls": [
+   "pushRecent"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/navhist.ts:34-37"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#CLEARING_PROVIDERS",
+  "level": "L6b-function",
+  "name": "CLEARING_PROVIDERS",
+  "lines": 6,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:113-118"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#providerClearer",
+  "level": "L6b-function",
+  "name": "providerClearer",
+  "lines": 5,
+  "calls": [
+   "providerClearer"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:119-123"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#chargeToHist",
+  "level": "L6b-function",
+  "name": "chargeToHist",
+  "lines": 22,
+  "calls": [
+   "chargeToHist",
+   "curOf",
+   "providerClearer"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:124-145"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#chargeDedupKey",
+  "level": "L6b-function",
+  "name": "chargeDedupKey",
+  "lines": 26,
+  "calls": [
+   "chargeDedupKey",
+   "histDedupKey",
+   "hokDayFromDate",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:146-171"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#withNedarimHok",
+  "level": "L6b-function",
+  "name": "withNedarimHok",
+  "lines": 64,
+  "calls": [
+   "withNedarimHok",
+   "curOf",
+   "hokDayFromDate",
+   "monthsAgo",
+   "modeOf",
+   "modeStr"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:172-235"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#detectRecurringHok",
+  "level": "L6b-function",
+  "name": "detectRecurringHok",
+  "lines": 43,
+  "calls": [
+   "detectRecurringHok",
+   "modeStr",
+   "modeOf",
+   "monthsAgo"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:236-278"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#candidateSupportersForCharge",
+  "level": "L6b-function",
+  "name": "candidateSupportersForCharge",
+  "lines": 24,
+  "calls": [
+   "candidateSupportersForCharge",
+   "keysOf",
+   "nameSortKey"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:279-302"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#fillCardFromCharge",
+  "level": "L6b-function",
+  "name": "fillCardFromCharge",
+  "lines": 19,
+  "calls": [
+   "fillCardFromCharge",
+   "normPhone",
+   "normId"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:303-321"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#attachChargeTo",
+  "level": "L6b-function",
+  "name": "attachChargeTo",
+  "lines": 22,
+  "calls": [
+   "attachChargeTo",
+   "chargeDedupKey",
+   "histDedupKey",
+   "withNedarimHok",
+   "fillCardFromCharge",
+   "chargeToHist"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:322-343"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#relabelHistByTxn",
+  "level": "L6b-function",
+  "name": "relabelHistByTxn",
+  "lines": 23,
+  "calls": [
+   "relabelHistByTxn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:344-366"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#repairCardsFromRows",
+  "level": "L6b-function",
+  "name": "repairCardsFromRows",
+  "lines": 38,
+  "calls": [
+   "repairCardsFromRows",
+   "fillCardFromCharge"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:367-404"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#strongMatchForCharge",
+  "level": "L6b-function",
+  "name": "strongMatchForCharge",
+  "lines": 22,
+  "calls": [
+   "strongMatchForCharge",
+   "keysOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:405-426"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#autoMatchCharges",
+  "level": "L6b-function",
+  "name": "autoMatchCharges",
+  "lines": 22,
+  "calls": [
+   "autoMatchCharges",
+   "keysOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:427-448"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#attachChargesBulk",
+  "level": "L6b-function",
+  "name": "attachChargesBulk",
+  "lines": 92,
+  "calls": [
+   "attachChargesBulk",
+   "histDedupKey",
+   "chargeDedupKey",
+   "withNedarimHok",
+   "fillCardFromCharge",
+   "chargeToHist",
+   "supFromDonor",
+   "normId",
+   "supFromCharge",
+   "nameSortKey"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:449-540"
+ },
+ {
+  "id": "L6b:maor:src/lib/nedarimSync.ts#planNedarimSync",
+  "level": "L6b-function",
+  "name": "planNedarimSync",
+  "lines": 154,
+  "calls": [
+   "planNedarimSync",
+   "nameSortKey",
+   "nkey",
+   "keysOf",
+   "registerName",
+   "register",
+   "findIdx",
+   "findByName",
+   "fill",
+   "normId",
+   "supFromDonor",
+   "supFromCharge"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/nedarimSync.ts:541-694"
+ },
+ {
+  "id": "L6b:maor:src/lib/netcheck.ts#netCheckTargets",
+  "level": "L6b-function",
+  "name": "netCheckTargets",
+  "lines": 59,
+  "calls": [
+   "netCheckTargets",
+   "random",
+   "toString",
+   "encodeURIComponent",
+   "checkOne",
+   "setTimeout",
+   "abort",
+   "fetch",
+   "clearTimeout"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/netcheck.ts:41-99"
+ },
+ {
+  "id": "L6b:maor:src/lib/netcheck.ts#runNetCheck",
+  "level": "L6b-function",
+  "name": "runNetCheck",
+  "lines": 5,
+  "calls": [
+   "runNetCheck",
+   "checkOne"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/netcheck.ts:100-104"
+ },
+ {
+  "id": "L6b:maor:src/lib/netcheck.ts#netCheckScript",
+  "level": "L6b-function",
+  "name": "netCheckScript",
+  "lines": 11,
+  "calls": [
+   "netCheckScript"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/netcheck.ts:105-115"
+ },
+ {
+  "id": "L6b:maor:src/lib/orbitTheme.ts#ORBIT_BLUE",
+  "level": "L6b-function",
+  "name": "ORBIT_BLUE",
+  "lines": 76,
+  "calls": [
+   "rgba",
+   "hexToRgb",
+   "parseInt",
+   "rgbToHsl",
+   "hslToRgb",
+   "toString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/orbitTheme.ts:17-92"
+ },
+ {
+  "id": "L6b:maor:src/lib/orbitTheme.ts#orbitTheme",
+  "level": "L6b-function",
+  "name": "orbitTheme",
+  "lines": 40,
+  "calls": [
+   "orbitTheme",
+   "hexToRgb",
+   "rgbToHsl",
+   "toHex",
+   "rgbStr",
+   "hslToRgb",
+   "luminance",
+   "rgba"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/orbitTheme.ts:93-132"
+ },
+ {
+  "id": "L6b:maor:src/lib/originGuard.ts#foreignHost",
+  "level": "L6b-function",
+  "name": "foreignHost",
+  "lines": 12,
+  "calls": [
+   "foreignHost",
+   "normHost"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/originGuard.ts:24-35"
+ },
+ {
+  "id": "L6b:maor:src/lib/originGuard.ts#runOriginGuard",
+  "level": "L6b-function",
+  "name": "runOriginGuard",
+  "lines": 14,
+  "calls": [
+   "runOriginGuard",
+   "foreignHost",
+   "warn"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/originGuard.ts:36-49"
+ },
+ {
+  "id": "L6b:maor:src/lib/paletteGroups.ts#groupPaletteResults",
+  "level": "L6b-function",
+  "name": "groupPaletteResults",
+  "lines": 15,
+  "calls": [
+   "buckets",
+   "bucketOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/paletteGroups.ts:51-65"
+ },
+ {
+  "id": "L6b:maor:src/lib/payLink.ts#payLink",
+  "level": "L6b-function",
+  "name": "payLink",
+  "lines": 24,
+  "calls": [
+   "payLink",
+   "safeHttpsUrl",
+   "encodeURIComponent",
+   "toString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/payLink.ts:15-38"
+ },
+ {
+  "id": "L6b:maor:src/lib/photoGallery.ts#PHOTO_MAX",
+  "level": "L6b-function",
+  "name": "PHOTO_MAX",
+  "lines": 2,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/photoGallery.ts:8-9"
+ },
+ {
+  "id": "L6b:maor:src/lib/photoGallery.ts#PHOTO_MAX_DIM",
+  "level": "L6b-function",
+  "name": "PHOTO_MAX_DIM",
+  "lines": 2,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/photoGallery.ts:10-11"
+ },
+ {
+  "id": "L6b:maor:src/lib/photoGallery.ts#PHOTO_MAX_LEN",
+  "level": "L6b-function",
+  "name": "PHOTO_MAX_LEN",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/photoGallery.ts:12-14"
+ },
+ {
+  "id": "L6b:maor:src/lib/photoGallery.ts#canAddPhoto",
+  "level": "L6b-function",
+  "name": "canAddPhoto",
+  "lines": 5,
+  "calls": [
+   "canAddPhoto"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/photoGallery.ts:15-19"
+ },
+ {
+  "id": "L6b:maor:src/lib/photoGallery.ts#isDataImage",
+  "level": "L6b-function",
+  "name": "isDataImage",
+  "lines": 8,
+  "calls": [
+   "isDataImage"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/photoGallery.ts:20-27"
+ },
+ {
+  "id": "L6b:maor:src/lib/photoGallery.ts#fitDimensions",
+  "level": "L6b-function",
+  "name": "fitDimensions",
+  "lines": 10,
+  "calls": [
+   "fitDimensions"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/photoGallery.ts:28-37"
+ },
+ {
+  "id": "L6b:maor:src/lib/photoGallery.ts#sanitizePhotos",
+  "level": "L6b-function",
+  "name": "sanitizePhotos",
+  "lines": 5,
+  "calls": [
+   "sanitizePhotos",
+   "isDataImage"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/photoGallery.ts:38-42"
+ },
+ {
+  "id": "L6b:maor:src/lib/pricing.ts#DEFAULT_PRICES",
+  "level": "L6b-function",
+  "name": "DEFAULT_PRICES",
+  "lines": 19,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/pricing.ts:57-75"
+ },
+ {
+  "id": "L6b:maor:src/lib/pricing.ts#SIZE_LABELS",
+  "level": "L6b-function",
+  "name": "SIZE_LABELS",
+  "lines": 46,
+  "calls": [],
+  "pure": false,
+  "source": "maor/src/lib/pricing.ts:76-121"
+ },
+ {
+  "id": "L6b:maor:src/lib/pricing.ts#normalizePrices",
+  "level": "L6b-function",
+  "name": "normalizePrices",
+  "lines": 30,
+  "calls": [
+   "normalizePrices",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/pricing.ts:122-151"
+ },
+ {
+  "id": "L6b:maor:src/lib/pricing.ts#computeQuote",
+  "level": "L6b-function",
+  "name": "computeQuote",
+  "lines": 36,
+  "calls": [
+   "computeQuote",
+   "nameOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/pricing.ts:152-187"
+ },
+ {
+  "id": "L6b:maor:src/lib/pricing.ts#shekel",
+  "level": "L6b-function",
+  "name": "shekel",
+  "lines": 7,
+  "calls": [
+   "shekel"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/pricing.ts:188-194"
+ },
+ {
+  "id": "L6b:maor:src/lib/pricing.ts#readPrices",
+  "level": "L6b-function",
+  "name": "readPrices",
+  "lines": 10,
+  "calls": [
+   "readPrices",
+   "getItem",
+   "normalizePrices"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/pricing.ts:195-204"
+ },
+ {
+  "id": "L6b:maor:src/lib/pricing.ts#writePrices",
+  "level": "L6b-function",
+  "name": "writePrices",
+  "lines": 8,
+  "calls": [
+   "writePrices",
+   "setItem"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/pricing.ts:205-212"
+ },
+ {
+  "id": "L6b:maor:src/lib/projectSchedule.ts#scheduleTasks",
+  "level": "L6b-function",
+  "name": "scheduleTasks",
+  "lines": 56,
+  "calls": [
+   "scheduleTasks",
+   "earliest",
+   "deps",
+   "latestStart"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/projectSchedule.ts:38-93"
+ },
+ {
+  "id": "L6b:maor:src/lib/publicSite.ts#SITE_UI",
+  "level": "L6b-function",
+  "name": "SITE_UI",
+  "lines": 22,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/publicSite.ts:13-34"
+ },
+ {
+  "id": "L6b:maor:src/lib/publicSite.ts#isRtlLang",
+  "level": "L6b-function",
+  "name": "isRtlLang",
+  "lines": 34,
+  "calls": [
+   "isRtlLang"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/publicSite.ts:35-68"
+ },
+ {
+  "id": "L6b:maor:src/lib/publicSite.ts#CORAL_PALETTE",
+  "level": "L6b-function",
+  "name": "CORAL_PALETTE",
+  "lines": 52,
+  "calls": [
+   "hexToRgb",
+   "parseInt",
+   "rgbToHsl",
+   "hslToRgb",
+   "toHex",
+   "toString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/publicSite.ts:69-120"
+ },
+ {
+  "id": "L6b:maor:src/lib/publicSite.ts#sitePalette",
+  "level": "L6b-function",
+  "name": "sitePalette",
+  "lines": 32,
+  "calls": [
+   "sitePalette",
+   "hexToRgb",
+   "rgbToHsl",
+   "hslToRgb",
+   "toHex",
+   "rgbStr"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/publicSite.ts:121-152"
+ },
+ {
+  "id": "L6b:maor:src/lib/publicSite.ts#siteVocab",
+  "level": "L6b-function",
+  "name": "siteVocab",
+  "lines": 24,
+  "calls": [
+   "siteVocab"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/publicSite.ts:153-176"
+ },
+ {
+  "id": "L6b:maor:src/lib/publicSite.ts#resolveLocalized",
+  "level": "L6b-function",
+  "name": "resolveLocalized",
+  "lines": 14,
+  "calls": [
+   "resolveLocalized"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/publicSite.ts:177-190"
+ },
+ {
+  "id": "L6b:maor:src/lib/publicSite.ts#siteLangs",
+  "level": "L6b-function",
+  "name": "siteLangs",
+  "lines": 7,
+  "calls": [
+   "siteLangs"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/publicSite.ts:191-197"
+ },
+ {
+  "id": "L6b:maor:src/lib/publicSite.ts#siteUi",
+  "level": "L6b-function",
+  "name": "siteUi",
+  "lines": 20,
+  "calls": [
+   "siteUi"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/publicSite.ts:198-217"
+ },
+ {
+  "id": "L6b:maor:src/lib/publicSite.ts#campaignProgress",
+  "level": "L6b-function",
+  "name": "campaignProgress",
+  "lines": 24,
+  "calls": [
+   "campaignProgress",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/publicSite.ts:218-241"
+ },
+ {
+  "id": "L6b:maor:src/lib/publicSite.ts#hasPublicSite",
+  "level": "L6b-function",
+  "name": "hasPublicSite",
+  "lines": 5,
+  "calls": [
+   "hasPublicSite"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/publicSite.ts:242-246"
+ },
+ {
+  "id": "L6b:maor:src/lib/publicSite.ts#siteDonateUrl",
+  "level": "L6b-function",
+  "name": "siteDonateUrl",
+  "lines": 8,
+  "calls": [
+   "siteDonateUrl"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/publicSite.ts:247-254"
+ },
+ {
+  "id": "L6b:maor:src/lib/pwa.ts#installAvailable",
+  "level": "L6b-function",
+  "name": "installAvailable",
+  "lines": 5,
+  "calls": [
+   "installAvailable"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/pwa.ts:32-36"
+ },
+ {
+  "id": "L6b:maor:src/lib/pwa.ts#promptInstall",
+  "level": "L6b-function",
+  "name": "promptInstall",
+  "lines": 9,
+  "calls": [
+   "promptInstall",
+   "prompt"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/pwa.ts:37-45"
+ },
+ {
+  "id": "L6b:maor:src/lib/pwa.ts#isStandalone",
+  "level": "L6b-function",
+  "name": "isStandalone",
+  "lines": 7,
+  "calls": [
+   "isStandalone"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/pwa.ts:46-52"
+ },
+ {
+  "id": "L6b:maor:src/lib/pwa.ts#isIos",
+  "level": "L6b-function",
+  "name": "isIos",
+  "lines": 4,
+  "calls": [
+   "isIos"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/pwa.ts:53-56"
+ },
+ {
+  "id": "L6b:maor:src/lib/pwa.ts#registerPwa",
+  "level": "L6b-function",
+  "name": "registerPwa",
+  "lines": 23,
+  "calls": [
+   "registerPwa",
+   "featureOn",
+   "getRegistrations",
+   "then",
+   "unregister",
+   "register",
+   "catch"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/pwa.ts:57-79"
+ },
+ {
+  "id": "L6b:maor:src/lib/pwa.ts#applyOrgManifest",
+  "level": "L6b-function",
+  "name": "applyOrgManifest",
+  "lines": 30,
+  "calls": [
+   "applyOrgManifest",
+   "querySelector",
+   "encodeURIComponent",
+   "revokeObjectURL",
+   "createObjectURL",
+   "setAttribute"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/pwa.ts:80-109"
+ },
+ {
+  "id": "L6b:maor:src/lib/receipt.ts#receiptVerifyCode",
+  "level": "L6b-function",
+  "name": "receiptVerifyCode",
+  "lines": 11,
+  "calls": [
+   "receiptVerifyCode",
+   "charCodeAt",
+   "imul",
+   "toString"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/receipt.ts:75-85"
+ },
+ {
+  "id": "L6b:maor:src/lib/receipt.ts#receiptLines",
+  "level": "L6b-function",
+  "name": "receiptLines",
+  "lines": 64,
+  "calls": [
+   "receiptLines",
+   "isNaN",
+   "getTime",
+   "toLocaleDateString",
+   "hebDateFull",
+   "amountInWords",
+   "receiptVerifyCode",
+   "receipt",
+   "hebrewLocaleDate"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/receipt.ts:86-149"
+ },
+ {
+  "id": "L6b:maor:src/lib/receipt.ts#downloadReceipt",
+  "level": "L6b-function",
+  "name": "downloadReceipt",
+  "lines": 25,
+  "calls": [
+   "downloadReceipt",
+   "guardExport",
+   "receiptLines",
+   "createElement",
+   "createObjectURL",
+   "click",
+   "setTimeout",
+   "revokeObjectURL"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/receipt.ts:150-174"
+ },
+ {
+  "id": "L6b:maor:src/lib/receipt.ts#receiptHtml",
+  "level": "L6b-function",
+  "name": "receiptHtml",
+  "lines": 26,
+  "calls": [
+   "receiptHtml",
+   "receiptLines"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/receipt.ts:175-200"
+ },
+ {
+  "id": "L6b:maor:src/lib/receipt.ts#printReceipt",
+  "level": "L6b-function",
+  "name": "printReceipt",
+  "lines": 24,
+  "calls": [
+   "printReceipt",
+   "guardExport",
+   "createElement",
+   "setAttribute",
+   "receiptHtml",
+   "focus",
+   "print",
+   "setTimeout",
+   "remove",
+   "appendChild"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/receipt.ts:201-224"
+ },
+ {
+  "id": "L6b:maor:src/lib/receipt.ts#deliverReceipt",
+  "level": "L6b-function",
+  "name": "deliverReceipt",
+  "lines": 9,
+  "calls": [
+   "deliverReceipt",
+   "printReceipt",
+   "downloadReceipt"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/receipt.ts:225-233"
+ },
+ {
+  "id": "L6b:maor:src/lib/receipt.ts#receiptFmtOf",
+  "level": "L6b-function",
+  "name": "receiptFmtOf",
+  "lines": 4,
+  "calls": [
+   "receiptFmtOf",
+   "featureOn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/receipt.ts:234-237"
+ },
+ {
+  "id": "L6b:maor:src/lib/search.ts#XLAT",
+  "level": "L6b-function",
+  "name": "XLAT",
+  "lines": 60,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/search.ts:12-71"
+ },
+ {
+  "id": "L6b:maor:src/lib/search.ts#levenshtein",
+  "level": "L6b-function",
+  "name": "levenshtein",
+  "lines": 28,
+  "calls": [
+   "levenshtein"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/search.ts:72-99"
+ },
+ {
+  "id": "L6b:maor:src/lib/search.ts#scoreTerm",
+  "level": "L6b-function",
+  "name": "scoreTerm",
+  "lines": 29,
+  "calls": [
+   "scoreTerm",
+   "normSearch",
+   "levenshtein"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/search.ts:100-128"
+ },
+ {
+  "id": "L6b:maor:src/lib/search.ts#expandQuery",
+  "level": "L6b-function",
+  "name": "expandQuery",
+  "lines": 20,
+  "calls": [
+   "expandQuery",
+   "normSearch"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/search.ts:129-148"
+ },
+ {
+  "id": "L6b:maor:src/lib/search.ts#smartScore",
+  "level": "L6b-function",
+  "name": "smartScore",
+  "lines": 39,
+  "calls": [
+   "smartScore",
+   "normSearch",
+   "expandQuery",
+   "scoreTerm"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/search.ts:149-187"
+ },
+ {
+  "id": "L6b:maor:src/lib/search.ts#smartFilter",
+  "level": "L6b-function",
+  "name": "smartFilter",
+  "lines": 17,
+  "calls": [
+   "normSearch",
+   "smartScore",
+   "getTerms"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/search.ts:188-204"
+ },
+ {
+  "id": "L6b:maor:src/lib/signupWizard.ts#WIZARD_INDUSTRIES",
+  "level": "L6b-function",
+  "name": "WIZARD_INDUSTRIES",
+  "lines": 8,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/signupWizard.ts:10-17"
+ },
+ {
+  "id": "L6b:maor:src/lib/signupWizard.ts#ORG_SIZES",
+  "level": "L6b-function",
+  "name": "ORG_SIZES",
+  "lines": 7,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/signupWizard.ts:18-24"
+ },
+ {
+  "id": "L6b:maor:src/lib/signupWizard.ts#ORG_NEEDS",
+  "level": "L6b-function",
+  "name": "ORG_NEEDS",
+  "lines": 10,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/signupWizard.ts:25-34"
+ },
+ {
+  "id": "L6b:maor:src/lib/signupWizard.ts#WIZARD_STEPS",
+  "level": "L6b-function",
+  "name": "WIZARD_STEPS",
+  "lines": 15,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/signupWizard.ts:35-49"
+ },
+ {
+  "id": "L6b:maor:src/lib/signupWizard.ts#EMPTY_WIZARD",
+  "level": "L6b-function",
+  "name": "EMPTY_WIZARD",
+  "lines": 16,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/signupWizard.ts:50-65"
+ },
+ {
+  "id": "L6b:maor:src/lib/signupWizard.ts#wizardStepError",
+  "level": "L6b-function",
+  "name": "wizardStepError",
+  "lines": 22,
+  "calls": [
+   "wizardStepError",
+   "signUpError"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/signupWizard.ts:66-87"
+ },
+ {
+  "id": "L6b:maor:src/lib/signupWizard.ts#industryLabel",
+  "level": "L6b-function",
+  "name": "industryLabel",
+  "lines": 3,
+  "calls": [
+   "industryLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/signupWizard.ts:88-90"
+ },
+ {
+  "id": "L6b:maor:src/lib/signupWizard.ts#sizeLabel",
+  "level": "L6b-function",
+  "name": "sizeLabel",
+  "lines": 3,
+  "calls": [
+   "sizeLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/signupWizard.ts:91-93"
+ },
+ {
+  "id": "L6b:maor:src/lib/signupWizard.ts#needLabel",
+  "level": "L6b-function",
+  "name": "needLabel",
+  "lines": 4,
+  "calls": [
+   "needLabel"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/signupWizard.ts:94-97"
+ },
+ {
+  "id": "L6b:maor:src/lib/smtpUrl.ts#SMTP_HOSTS",
+  "level": "L6b-function",
+  "name": "SMTP_HOSTS",
+  "lines": 10,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/smtpUrl.ts:11-20"
+ },
+ {
+  "id": "L6b:maor:src/lib/smtpUrl.ts#smtpHostFor",
+  "level": "L6b-function",
+  "name": "smtpHostFor",
+  "lines": 12,
+  "calls": [
+   "smtpHostFor",
+   "lastIndexOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/smtpUrl.ts:21-32"
+ },
+ {
+  "id": "L6b:maor:src/lib/smtpUrl.ts#composeSmtpUrl",
+  "level": "L6b-function",
+  "name": "composeSmtpUrl",
+  "lines": 9,
+  "calls": [
+   "composeSmtpUrl",
+   "encodeURIComponent"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/smtpUrl.ts:33-41"
+ },
+ {
+  "id": "L6b:maor:src/lib/supportChat.ts#SUPPORT_MSG_MAX",
+  "level": "L6b-function",
+  "name": "SUPPORT_MSG_MAX",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/supportChat.ts:33-35"
+ },
+ {
+  "id": "L6b:maor:src/lib/supportChat.ts#sanitizeSupportText",
+  "level": "L6b-function",
+  "name": "sanitizeSupportText",
+  "lines": 5,
+  "calls": [
+   "sanitizeSupportText"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supportChat.ts:36-40"
+ },
+ {
+  "id": "L6b:maor:src/lib/supportChat.ts#isSendableSupportText",
+  "level": "L6b-function",
+  "name": "isSendableSupportText",
+  "lines": 5,
+  "calls": [
+   "isSendableSupportText",
+   "sanitizeSupportText"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supportChat.ts:41-45"
+ },
+ {
+  "id": "L6b:maor:src/lib/supportChat.ts#sortSupportMsgs",
+  "level": "L6b-function",
+  "name": "sortSupportMsgs",
+  "lines": 5,
+  "calls": [
+   "sortSupportMsgs"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supportChat.ts:46-50"
+ },
+ {
+  "id": "L6b:maor:src/lib/supportChat.ts#supportMsgTime",
+  "level": "L6b-function",
+  "name": "supportMsgTime",
+  "lines": 10,
+  "calls": [
+   "supportMsgTime",
+   "isNaN",
+   "getTime",
+   "toLocaleTimeString",
+   "isoToday"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supportChat.ts:51-60"
+ },
+ {
+  "id": "L6b:maor:src/lib/supportChat.ts#supportDayLabel",
+  "level": "L6b-function",
+  "name": "supportDayLabel",
+  "lines": 15,
+  "calls": [
+   "supportDayLabel",
+   "setDate",
+   "getDate",
+   "getFullYear",
+   "getMonth"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supportChat.ts:61-75"
+ },
+ {
+  "id": "L6b:maor:src/lib/supportChat.ts#supportPreview",
+  "level": "L6b-function",
+  "name": "supportPreview",
+  "lines": 6,
+  "calls": [
+   "supportPreview"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supportChat.ts:76-81"
+ },
+ {
+  "id": "L6b:maor:src/lib/supportChat.ts#supportUnread",
+  "level": "L6b-function",
+  "name": "supportUnread",
+  "lines": 17,
+  "calls": [
+   "supportUnread"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supportChat.ts:82-98"
+ },
+ {
+  "id": "L6b:maor:src/lib/supportChat.ts#sortTeamMsgs",
+  "level": "L6b-function",
+  "name": "sortTeamMsgs",
+  "lines": 5,
+  "calls": [
+   "sortTeamMsgs"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supportChat.ts:99-103"
+ },
+ {
+  "id": "L6b:maor:src/lib/supportChat.ts#sortSupportThreads",
+  "level": "L6b-function",
+  "name": "sortSupportThreads",
+  "lines": 13,
+  "calls": [
+   "sortSupportThreads",
+   "supportUnread"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supportChat.ts:104-116"
+ },
+ {
+  "id": "L6b:maor:src/lib/supporterAgg.ts#supporterAggregates",
+  "level": "L6b-function",
+  "name": "supporterAggregates",
+  "lines": 16,
+  "calls": [
+   "supporterAggregates",
+   "isFinite"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supporterAgg.ts:27-42"
+ },
+ {
+  "id": "L6b:maor:src/lib/supporterPartition.ts#SHARED_SUP_KEY",
+  "level": "L6b-function",
+  "name": "SHARED_SUP_KEY",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/supporterPartition.ts:23-25"
+ },
+ {
+  "id": "L6b:maor:src/lib/supporterPartition.ts#supKeyOf",
+  "level": "L6b-function",
+  "name": "supKeyOf",
+  "lines": 9,
+  "calls": [
+   "supKeyOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supporterPartition.ts:26-34"
+ },
+ {
+  "id": "L6b:maor:src/lib/supporterPartition.ts#SUP_KEYED_COLS",
+  "level": "L6b-function",
+  "name": "SUP_KEYED_COLS",
+  "lines": 7,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/supporterPartition.ts:35-41"
+ },
+ {
+  "id": "L6b:maor:src/lib/supporterPartition.ts#docSkey",
+  "level": "L6b-function",
+  "name": "docSkey",
+  "lines": 10,
+  "calls": [
+   "docSkey",
+   "supKeyOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supporterPartition.ts:42-51"
+ },
+ {
+  "id": "L6b:maor:src/lib/supporterPartition.ts#supKeyMapOf",
+  "level": "L6b-function",
+  "name": "supKeyMapOf",
+  "lines": 9,
+  "calls": [
+   "supKeyMapOf",
+   "supKeyOf",
+   "where"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supporterPartition.ts:52-60"
+ },
+ {
+  "id": "L6b:maor:src/lib/supporterPartition.ts#supAllowedKeys",
+  "level": "L6b-function",
+  "name": "supAllowedKeys",
+  "lines": 9,
+  "calls": [
+   "supAllowedKeys"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supporterPartition.ts:61-69"
+ },
+ {
+  "id": "L6b:maor:src/lib/supporterPartition.ts#stripSupKey",
+  "level": "L6b-function",
+  "name": "stripSupKey",
+  "lines": 12,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/supporterPartition.ts:70-81"
+ },
+ {
+  "id": "L6b:maor:src/lib/supporterPartition.ts#stripAuditMeta",
+  "level": "L6b-function",
+  "name": "stripAuditMeta",
+  "lines": 7,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/supporterPartition.ts:82-88"
+ },
+ {
+  "id": "L6b:maor:src/lib/tel.ts#telHref",
+  "level": "L6b-function",
+  "name": "telHref",
+  "lines": 7,
+  "calls": [
+   "telHref"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/tel.ts:9-15"
+ },
+ {
+  "id": "L6b:maor:src/lib/telephony/driver.ts#manualDriver",
+  "level": "L6b-function",
+  "name": "manualDriver",
+  "lines": 11,
+  "calls": [
+   "telHref"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/telephony/driver.ts:34-44"
+ },
+ {
+  "id": "L6b:maor:src/lib/telephony/driver.ts#activeDriver",
+  "level": "L6b-function",
+  "name": "activeDriver",
+  "lines": 4,
+  "calls": [
+   "activeDriver"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/telephony/driver.ts:45-48"
+ },
+ {
+  "id": "L6b:maor:src/lib/telephony/engine.ts#validateTenant",
+  "level": "L6b-function",
+  "name": "validateTenant",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/telephony/engine.ts:77-77"
+ },
+ {
+  "id": "L6b:maor:src/lib/telephony/engine.ts#buildTenant",
+  "level": "L6b-function",
+  "name": "buildTenant",
+  "lines": 4,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/telephony/engine.ts:78-81"
+ },
+ {
+  "id": "L6b:maor:src/lib/telephony/engine.ts#simulateCall",
+  "level": "L6b-function",
+  "name": "simulateCall",
+  "lines": 5,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/telephony/engine.ts:82-86"
+ },
+ {
+  "id": "L6b:maor:src/lib/telephony/engine.ts#explainCall",
+  "level": "L6b-function",
+  "name": "explainCall",
+  "lines": 5,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/telephony/engine.ts:87-91"
+ },
+ {
+  "id": "L6b:maor:src/lib/telephony/engine.ts#trustReport",
+  "level": "L6b-function",
+  "name": "trustReport",
+  "lines": 12,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/telephony/engine.ts:92-103"
+ },
+ {
+  "id": "L6b:maor:src/lib/telephony/engine.ts#hebrewClosedWindows",
+  "level": "L6b-function",
+  "name": "hebrewClosedWindows",
+  "lines": 14,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/telephony/engine.ts:104-117"
+ },
+ {
+  "id": "L6b:maor:src/lib/telephony/engine.ts#CITIES",
+  "level": "L6b-function",
+  "name": "CITIES",
+  "lines": 2,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/telephony/engine.ts:118-119"
+ },
+ {
+  "id": "L6b:maor:src/lib/templates.ts#TEMPLATE_DEFS",
+  "level": "L6b-function",
+  "name": "TEMPLATE_DEFS",
+  "lines": 35,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/templates.ts:19-53"
+ },
+ {
+  "id": "L6b:maor:src/lib/templates.ts#TEMPLATE_KEYS",
+  "level": "L6b-function",
+  "name": "TEMPLATE_KEYS",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/templates.ts:54-56"
+ },
+ {
+  "id": "L6b:maor:src/lib/templates.ts#renderTemplate",
+  "level": "L6b-function",
+  "name": "renderTemplate",
+  "lines": 11,
+  "calls": [
+   "renderTemplate"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/templates.ts:57-67"
+ },
+ {
+  "id": "L6b:maor:src/lib/three-scene.ts#mountBrainScene",
+  "level": "L6b-function",
+  "name": "mountBrainScene",
+  "lines": 254,
+  "calls": [
+   "mountBrainScene",
+   "setClearColor",
+   "setPixelRatio",
+   "sqrt",
+   "random",
+   "setAttribute",
+   "main",
+   "vec4",
+   "smoothstep",
+   "clamp",
+   "sign",
+   "distanceToSquared"
+  ],
+  "pure": false,
+  "source": "maor/src/lib/three-scene.ts:36-289"
+ },
+ {
+  "id": "L6b:maor:src/lib/tour.ts#TOUR_STOP_LABEL",
+  "level": "L6b-function",
+  "name": "TOUR_STOP_LABEL",
+  "lines": 3,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/tour.ts:33-35"
+ },
+ {
+  "id": "L6b:maor:src/lib/tour.ts#TOUR_STEPS",
+  "level": "L6b-function",
+  "name": "TOUR_STEPS",
+  "lines": 28,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/tour.ts:36-63"
+ },
+ {
+  "id": "L6b:maor:src/lib/tour.ts#tourSteps",
+  "level": "L6b-function",
+  "name": "tourSteps",
+  "lines": 16,
+  "calls": [
+   "tourSteps",
+   "termOf",
+   "isModuleOn"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/tour.ts:64-79"
+ },
+ {
+  "id": "L6b:maor:src/lib/tour.ts#tourAdvance",
+  "level": "L6b-function",
+  "name": "tourAdvance",
+  "lines": 18,
+  "calls": [
+   "tourAdvance"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/tour.ts:80-97"
+ },
+ {
+  "id": "L6b:maor:src/lib/tour.ts#spotlightBox",
+  "level": "L6b-function",
+  "name": "spotlightBox",
+  "lines": 12,
+  "calls": [
+   "spotlightBox"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/tour.ts:98-109"
+ },
+ {
+  "id": "L6b:maor:src/lib/validate.ts#validIsraeliId",
+  "level": "L6b-function",
+  "name": "validIsraeliId",
+  "lines": 15,
+  "calls": [
+   "validIsraeliId"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/validate.ts:4-18"
+ },
+ {
+  "id": "L6b:maor:src/lib/validate.ts#normalizePhone",
+  "level": "L6b-function",
+  "name": "normalizePhone",
+  "lines": 14,
+  "calls": [
+   "normalizePhone"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/validate.ts:19-32"
+ },
+ {
+  "id": "L6b:maor:src/lib/validate.ts#formatIsraeliPhone",
+  "level": "L6b-function",
+  "name": "formatIsraeliPhone",
+  "lines": 18,
+  "calls": [
+   "formatIsraeliPhone"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/validate.ts:33-50"
+ },
+ {
+  "id": "L6b:maor:src/lib/validate.ts#normSearch",
+  "level": "L6b-function",
+  "name": "normSearch",
+  "lines": 14,
+  "calls": [
+   "normSearch"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/validate.ts:51-64"
+ },
+ {
+  "id": "L6b:maor:src/lib/validate.ts#normName",
+  "level": "L6b-function",
+  "name": "normName",
+  "lines": 20,
+  "calls": [
+   "normName",
+   "normSearch"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/validate.ts:65-84"
+ },
+ {
+  "id": "L6b:maor:src/lib/validate.ts#nameSortKey",
+  "level": "L6b-function",
+  "name": "nameSortKey",
+  "lines": 7,
+  "calls": [
+   "nameSortKey",
+   "normSearch"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/validate.ts:85-91"
+ },
+ {
+  "id": "L6b:maor:src/lib/vcardImport.ts#decodeQuotedPrintable",
+  "level": "L6b-function",
+  "name": "decodeQuotedPrintable",
+  "lines": 114,
+  "calls": [
+   "decodeQuotedPrintable",
+   "parseInt",
+   "charCodeAt",
+   "decode",
+   "unfoldLines",
+   "splitProperty",
+   "shift",
+   "decodeValue",
+   "hasParam",
+   "phoneLabel",
+   "lastIndexOf",
+   "joinAddress"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/vcardImport.ts:39-152"
+ },
+ {
+  "id": "L6b:maor:src/lib/vcardImport.ts#parseVcards",
+  "level": "L6b-function",
+  "name": "parseVcards",
+  "lines": 76,
+  "calls": [
+   "parseVcards",
+   "unfoldLines",
+   "splitProperty",
+   "decodeValue",
+   "phoneLabel",
+   "joinAddress"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/vcardImport.ts:153-228"
+ },
+ {
+  "id": "L6b:maor:src/lib/vcardImport.ts#isJunkContact",
+  "level": "L6b-function",
+  "name": "isJunkContact",
+  "lines": 7,
+  "calls": [
+   "isJunkContact",
+   "digitsOnly"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/vcardImport.ts:229-235"
+ },
+ {
+  "id": "L6b:maor:src/lib/vcardImport.ts#importableContacts",
+  "level": "L6b-function",
+  "name": "importableContacts",
+  "lines": 19,
+  "calls": [
+   "importableContacts",
+   "parseVcards",
+   "isJunkContact"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/vcardImport.ts:236-254"
+ },
+ {
+  "id": "L6b:maor:src/lib/vcardImport.ts#contactToRow",
+  "level": "L6b-function",
+  "name": "contactToRow",
+  "lines": 12,
+  "calls": [
+   "contactToRow"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/vcardImport.ts:255-266"
+ },
+ {
+  "id": "L6b:maor:src/lib/verticalPacks.ts#COMMERCIAL_OFF",
+  "level": "L6b-function",
+  "name": "COMMERCIAL_OFF",
+  "lines": 11,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/verticalPacks.ts:43-53"
+ },
+ {
+  "id": "L6b:maor:src/lib/verticalPacks.ts#VERTICAL_PACKS",
+  "level": "L6b-function",
+  "name": "VERTICAL_PACKS",
+  "lines": 413,
+  "calls": [],
+  "pure": false,
+  "source": "maor/src/lib/verticalPacks.ts:54-466"
+ },
+ {
+  "id": "L6b:maor:src/lib/verticalPacks.ts#applyVerticalPack",
+  "level": "L6b-function",
+  "name": "applyVerticalPack",
+  "lines": 29,
+  "calls": [
+   "applyVerticalPack"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/verticalPacks.ts:467-495"
+ },
+ {
+  "id": "L6b:maor:src/lib/wa.ts#waDigits",
+  "level": "L6b-function",
+  "name": "waDigits",
+  "lines": 18,
+  "calls": [
+   "waDigits"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/wa.ts:14-31"
+ },
+ {
+  "id": "L6b:maor:src/lib/wa.ts#waLink",
+  "level": "L6b-function",
+  "name": "waLink",
+  "lines": 20,
+  "calls": [
+   "waLink",
+   "waDigits",
+   "encodeURIComponent",
+   "orgOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/wa.ts:32-51"
+ },
+ {
+  "id": "L6b:maor:src/lib/wa.ts#waDeliveryText",
+  "level": "L6b-function",
+  "name": "waDeliveryText",
+  "lines": 5,
+  "calls": [
+   "waDeliveryText",
+   "renderTemplate",
+   "orgOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/wa.ts:52-56"
+ },
+ {
+  "id": "L6b:maor:src/lib/wa.ts#waPaymentText",
+  "level": "L6b-function",
+  "name": "waPaymentText",
+  "lines": 9,
+  "calls": [
+   "waPaymentText",
+   "renderTemplate",
+   "orgOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/wa.ts:57-65"
+ },
+ {
+  "id": "L6b:maor:src/lib/wa.ts#waBirthdayText",
+  "level": "L6b-function",
+  "name": "waBirthdayText",
+  "lines": 4,
+  "calls": [
+   "waBirthdayText",
+   "renderTemplate",
+   "orgOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/wa.ts:66-69"
+ },
+ {
+  "id": "L6b:maor:src/lib/warehouse.ts#warehouseOverview",
+  "level": "L6b-function",
+  "name": "warehouseOverview",
+  "lines": 37,
+  "calls": [
+   "warehouseOverview",
+   "norm"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/warehouse.ts:31-67"
+ },
+ {
+  "id": "L6b:maor:src/lib/warehouse.ts#warehouseValue",
+  "level": "L6b-function",
+  "name": "warehouseValue",
+  "lines": 4,
+  "calls": [
+   "warehouseValue"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/warehouse.ts:68-71"
+ },
+ {
+  "id": "L6b:maor:src/lib/worktasks.ts#taskIdentity",
+  "level": "L6b-function",
+  "name": "taskIdentity",
+  "lines": 6,
+  "calls": [
+   "taskIdentity"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/worktasks.ts:9-14"
+ },
+ {
+  "id": "L6b:maor:src/lib/worktasks.ts#openTasksFor",
+  "level": "L6b-function",
+  "name": "openTasksFor",
+  "lines": 13,
+  "calls": [
+   "openTasksFor",
+   "taskIdentity"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/worktasks.ts:15-27"
+ },
+ {
+  "id": "L6b:maor:src/lib/worktasks.ts#doneTodayFor",
+  "level": "L6b-function",
+  "name": "doneTodayFor",
+  "lines": 6,
+  "calls": [
+   "doneTodayFor",
+   "taskIdentity"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/worktasks.ts:28-33"
+ },
+ {
+  "id": "L6b:maor:src/lib/worktasks.ts#taskOverdue",
+  "level": "L6b-function",
+  "name": "taskOverdue",
+  "lines": 11,
+  "calls": [
+   "taskOverdue"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/worktasks.ts:34-44"
+ },
+ {
+  "id": "L6b:maor:src/lib/worktasks.ts#taskStatsFor",
+  "level": "L6b-function",
+  "name": "taskStatsFor",
+  "lines": 20,
+  "calls": [
+   "taskStatsFor",
+   "taskIdentity",
+   "getTime",
+   "taskOverdue"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/worktasks.ts:45-64"
+ },
+ {
+  "id": "L6b:maor:src/lib/worktasks.ts#PRI_LABELS",
+  "level": "L6b-function",
+  "name": "PRI_LABELS",
+  "lines": 7,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/worktasks.ts:65-71"
+ },
+ {
+  "id": "L6b:maor:src/lib/worktasks.ts#overdueContactTaskDrafts",
+  "level": "L6b-function",
+  "name": "overdueContactTaskDrafts",
+  "lines": 23,
+  "calls": [
+   "overdueContactTaskDrafts",
+   "taskIdentity"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/worktasks.ts:72-94"
+ },
+ {
+  "id": "L6b:maor:src/lib/xlsx.ts#colRefToIndex",
+  "level": "L6b-function",
+  "name": "colRefToIndex",
+  "lines": 29,
+  "calls": [
+   "colRefToIndex",
+   "charCodeAt",
+   "readSharedStrings",
+   "unescapeXml"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/xlsx.ts:26-54"
+ },
+ {
+  "id": "L6b:maor:src/lib/xlsx.ts#parseXlsxSheet",
+  "level": "L6b-function",
+  "name": "parseXlsxSheet",
+  "lines": 52,
+  "calls": [
+   "parseXlsxSheet",
+   "unzipSync",
+   "readSharedStrings",
+   "strFromU8",
+   "colRefToIndex",
+   "unescapeXml"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/xlsx.ts:55-106"
+ }
+]
