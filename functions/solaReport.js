@@ -85,6 +85,9 @@ function planSolaWrites(rows, org) {
     const cmd = pick(r, 'xCommand', 'xType').toLowerCase();
     // void/adjust/save אינם כסף-נכנס; capture/sale/postauth = חיוב; refund/credit = זיכוי.
     if (/void|save|adjust|verify|balance/.test(cmd)) continue;
+    // 💎 שטח-אמת 23.8 (הצצה #26): שורות-הדוח נושאות דגל xVoid — מכירה שבוטלה
+    // נשארת CC:Sale/Approved אבל xVoid='1'. בלי הסינון היא נקלטת כהכנסה!
+    if (pick(r, 'xVoid') === '1') continue;
     const amount = pickAmount(r);
     if (!amount) continue; // 0 ⇒ אין מה לקלוט (עסקת-אימות וכד')
     const isRefund = /refund|credit/.test(cmd) || amount < 0;
