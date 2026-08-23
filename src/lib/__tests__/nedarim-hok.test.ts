@@ -169,11 +169,13 @@ describe('🔁 ratchet — חיווט מלא (attach/sync ⇒ הו"ק)', () => {
     expect(target.hok).toMatchObject({ amount: 90, kevaId: 'K5', active: true });
     expect(plan.summary.recurring).toBe(1);
   });
-  it('🛡 זיהוי-הו"ק: כפתור-יחיד במסך-התורמים (detectNedarimHok) — לא כפול במודאל', async () => {
+  it('🛡 זיהוי-הו"ק: כפתור-יחיד במסך-המנהל (הכרעת-בעלים 23.8) — לא כפול במודאל/מסך-התורמים', async () => {
     // ניקוי-כפילות 20.8: הכפתור היה גם ב-SupportersView וגם ב-NedarimSyncModal (אותה פעולה בדיוק).
     // הושאר במסך-התורמים (חשוף, מגודר hasNedarimHist) והוסר מהמודאל (שנעול payments+ענן).
-    const view = (await import('../../components/supporters/SupportersView.tsx?raw')).default as string;
+    const view = (await import('../../components/settings/DonorImportSection.tsx?raw')).default as string;
     expect(view).toContain('detectNedarimHok()');
+    const supView = (await import('../../components/supporters/SupportersView.tsx?raw')).default as string;
+    expect(supView).not.toContain('detectNedarimHok'); // הוסר ממסך-התורמים
     const modal = (await import('../../components/supporters/NedarimSyncModal.tsx?raw')).default as string;
     expect(modal).not.toContain('detectNedarimHok'); // אין עוד עותק-כפול במודאל
   });

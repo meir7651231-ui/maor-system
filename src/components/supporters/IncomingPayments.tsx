@@ -31,24 +31,8 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
   // + מנהל/מייל-על; ה-xKey בכספת-הענן, הפונקציה קוראת אותו בעצמה (אפס-סוד בדפדפן).
   const solaPullUrl = integrationSetting(config, 'payments', 'solaPullUrl');
   const canPullSola = !!solaPullUrl && (isSuperAdmin(cloudEmail) || isManager);
-  const [pulling, setPulling] = useState(false);
-  async function doSolaPull(reset: boolean) {
-    setPulling(true);
-    try {
-      const m: CloudMod = mod ?? (await import('../../store/cloudSync'));
-      const r = await m.pullSola(solaPullUrl, { reset });
-      // אבחון-שקוף (23.8): דוח-ריק מציג את החלון ואת מבנה-התשובה של השער —
-      // במקום "0" סתום, רואים במסך למה (חלון ריק אמיתי / מבנה-לא-מוכר).
-      toast(r.scanned === 0 && r.debug
-        ? '🔎 נסרקו 0 — ' + r.debug.slice(0, 220)
-        : '🔄 נסרקו ' + (r.scanned ?? 0) + ' עסקאות · נוספו ' + (r.added ?? 0));
-      if (mod) await refresh(mod);
-    } catch (e) {
-      toast('⚠ משיכה נכשלה: ' + String((e as Error)?.message || e));
-    } finally {
-      setPulling(false);
-    }
-  }
+  // הכרעת-בעלים 23.8: כפתורי-המשיכה מסולה עברו למסך-המנהל (הגדרות ← נתונים ←
+  // 🔄 ייבוא תורמים ותורמות) — המסך הזה נשאר לצפייה ורישום בלבד.
   const [mod, setMod] = useState<CloudMod | null>(null);
   const [rows, setRows] = useState<IncomingPayment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -217,22 +201,6 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
 
   return (
     <Modal title="💰 תשלומים נכנסים — ממתינים לרישום" onClose={props.onClose}>
-      {/* 🔄 סולה · משיכה-בקליק — מושך את עסקאות-החשבון מהשער ומרענן את הרשימה */}
-      {canPullSola && (
-        <div style={{ border: '1px solid var(--accent)', borderRadius: 10, padding: 10, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: 'var(--accent-bg, #f0f6ff)' }}>
-          <div style={{ flex: 1, minWidth: 180, fontSize: 12.5 }}>
-            <b>משיכה מסולה</b> — מושך את העסקאות המאושרות מחשבון-הסליקה (Sola) לרשימה שלמטה.
-          </div>
-          <Btn kind="primary" disabled={pulling || loading} onClick={() => void doSolaPull(false)}>
-            {pulling ? 'מושך…' : '🔄 משיכה מסולה'}
-          </Btn>
-          {/* איפוס-ומשיכה-מלאה (23.8): סמן-ישן מצמצם את החלון — איפוס מוחק את שורות-
-              סולה הממתינות ואת הסמן ומושך שנה מחדש (חימוש דו-שלבי; דדופ מונע כפילויות). */}
-          <Btn sm disabled={pulling || loading} onClick={() => armOr('sola-reset', () => void doSolaPull(true))}>
-            {armed === 'sola-reset' ? 'בטוח? מושך הכול מחדש' : '🧹 משיכה מלאה (איפוס)'}
-          </Btn>
-        </div>
-      )}
       {loading && <div className="empty">טוען…</div>}
       {!loading && error && (
         <div style={{ border: '1px solid var(--danger, #e05252)', borderRadius: 10, padding: 10, marginBottom: 10, fontSize: 12.5 }}>
