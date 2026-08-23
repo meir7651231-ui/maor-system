@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Course, Enrollment, Teacher, Weekday } from '../../types/domain';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { allMembers, useApp } from '../../store/useApp';
-import { featureOn, roleOf, termOf } from '../../lib/config';
+import { canGrantedAction, featureOn, roleOf, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { downloadCsv, type Cell } from '../../lib/csvx';
 import { buildCourseDailyRows } from '../../lib/courseDaily';
@@ -99,6 +99,10 @@ export function CourseDetail(props: { course: Course }) {
   // תפקיד מורה (P3 פריט 15) — עריכה/מחיקה מוסתרות למורה מחוברת
   const userEmail = useApp((s) => s.cloud.user?.email ?? null);
   const isTeacherUser = featureOn(cfg, 'shell.roles') && roleOf(cfg, userEmail) === 'teacher';
+  // הרשאה אחידה (בקשת-בעלים 23.8): מחיקת-חוג למנהל/בעלים תמיד; עובד/ת רק אם הודלק/ה.
+  // featureOn נשמר (מכבד כיבוי-ארגוני קיים של courses.delete) ⇒ אפס-רגרסיה.
+  const isOrgMgr = useApp((s) => s.cloud.isManager) === true;
+  const canDeleteCourse = featureOn(cfg, 'courses.delete') && canGrantedAction(cfg, userEmail, isOrgMgr, 'courses.delete');
   // מחיקה בשני קליקים (P3 פריט 19, shell.armdel)
   const { armed, confirmTwice } = useArmed(featureOn(cfg, 'shell.armdel'));
 
@@ -415,7 +419,7 @@ export function CourseDetail(props: { course: Course }) {
               {armed === 'endsem-' + c.id ? '🎓 בטוח? עוד לחיצה' : '🎓 סיום סמסטר'}
             </Btn>
           )}
-          {!isTeacherUser && featureOn(cfg, 'courses.delete') && (
+          {!isTeacherUser && canDeleteCourse && (
           <Btn
             kind="danger"
             onClick={() => {

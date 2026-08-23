@@ -348,7 +348,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'families.colfilter', label: 'סינון עמודות ברשימה', desc: 'כפתור "⏷ סינון עמודות" ושורת-הסינון', module: 'families' },
   { key: 'families.cred.manual', label: 'עדכון-אמינות ידני', desc: 'כפתורי +15/+5/−5 ודריסת-ציון ידנית (בלי — הציון לקריאה בלבד)', module: 'families' },
   { key: 'families.suggest', label: 'צ׳יפי חיזוי-חיפוש', desc: 'שורת "חיזוי:" — הצעות-סינון אוטומטיות מעל הרשימה', module: 'families' },
-  { key: 'families.delete', label: 'מחיקת משפחה', desc: 'כפתור "🗑 מחיקת משפחה" — מוחק גם בני-בית ושיבוצים', module: 'families' },
+  { key: 'families.delete', label: 'מחיקת משפחה 🔓', desc: 'כפתור "🗑 מחיקת משפחה" — פעולה-הרסנית; מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'families' },
   { key: 'families.extradetails', label: 'כרטיס "פרטים נוספים"', desc: 'מצב-משפחתי/שפה/תת-קהילה/ספח — שדות-עמותה בכרטיס', module: 'families' },
   { key: 'families.marital', label: 'תג מצב-משפחתי ברשימות', desc: 'תג אלמן/גרוש/… על שורות-הרשימה והגריד (רגיש בחלק מהענפים)', module: 'families' },
   { key: 'families.events', label: 'מקטע אירועים-מיוחדים', desc: 'פאנל "אירועים מיוחדים" בכרטיס-המשפחה', module: 'families' },
@@ -358,7 +358,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.rownotes', label: 'תפריט ⋯ הערות ברשימה', desc: 'פתיחת הערות-ופרטים ישירות משורת-החוג', module: 'courses' },
   { key: 'courses.teacherpick', label: 'בחירת-מורה מהכרטיס', desc: 'עריכה/הוספת-מורה ישירות מכרטיס-החוג (בלי הגדרות)', module: 'courses' },
   { key: 'courses.attendance.clearall', label: 'ניקוי-נוכחות גורף', desc: 'כפתור "○ נקה הכל" בגיליון-הנוכחות (הרסני)', module: 'courses' },
-  { key: 'courses.delete', label: 'מחיקת חוג', desc: 'כפתור 🗑 — מוחק חוג כולל כל השיבוצים', module: 'courses' },
+  { key: 'courses.delete', label: 'מחיקת חוג 🔓', desc: 'כפתור 🗑 — פעולה-הרסנית; מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'courses' },
   { key: 'courses.occupancy', label: 'תג תפוסה N/max', desc: 'תג-התפוסה הצבעוני ברשימות ובכרטיס', module: 'courses' },
   { key: 'courses.sort', label: 'מיון בלחיצה על כותרת', desc: 'כותרות-הטבלה ממיינות בלחיצה', module: 'courses' },
 

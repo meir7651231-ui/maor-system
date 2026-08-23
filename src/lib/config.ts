@@ -678,6 +678,21 @@ export function isAdminUser(config: OrgConfig, email: string | null | undefined)
   return admins.some((a) => a.trim().toLowerCase() === e);
 }
 
+/**
+ * הרשאת פעולה-הרסנית/מוגבלת אחידה (בקשת-בעלים 23.8: "מנהל תמיד · הדלקה-פר-עובד"):
+ * מנהל-ארגון/בעלים תמיד מורשים; עובד/ת רק אם הודלק/ה לו/ה במפורש (`features[key]===true`
+ * בקונפיג-האפקטיבי — נגזרת effectiveConfigFor על GRANTABLE_STAFF_FEATURES). key שאינו
+ * ברשימת-ההדלקה לעולם לא יקבל `true` לעובד ⇒ נשאר מנהל-בלבד. משטח יחיד לכל המסכים.
+ */
+export function canGrantedAction(
+  config: OrgConfig,
+  email: string | null | undefined,
+  isManager: boolean,
+  key: string,
+): boolean {
+  return isManager || isAdminUser(config, email) || config.features?.[key] === true;
+}
+
 /** דריסת הריצה השמורה בדפדפן, אם קיימת ותקינה. */
 export function readConfigOverride(): OrgConfig | null {
   try {
