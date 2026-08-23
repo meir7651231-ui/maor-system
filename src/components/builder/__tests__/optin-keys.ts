@@ -30,4 +30,6 @@ export const OPT_IN_KEYS = [
   'supporters.hebtiming',
   // 🌅 תדרוך-הבוקר (VISION-LIGHT ‏#29, 23.8) — "הבוקר שלך" במסך-הבית
   'home.morningbrief',
+  // 🤖 שאל-את-מאור (VISION-LIGHT ‏#30, 23.8) — פרשן-שאלות מקומי במרכז-העזרה
+  'shell.askmaor',
 ];

@@ -148,6 +148,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.oneflow', label: 'פעולה אחת עכשיו ▶', desc: 'מסך-מלא שמציג משימה אחת בכל רגע מתור-הקוקפיט — ✓ בוצע / ⏭ דלג והמערכת מתקדמת לבאה; אפס-הסחות (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.hebtiming', label: 'העונה שלהם — עיתוי עברי 🕎', desc: 'הלוח העברי מסדר את הקמפיין: תורמים שנוהגים לתת בחודש-העברי הנוכחי (אלול/חנוכה/פורים/פסח) וטרם נתנו השנה — עולים בחלון-העבודה (opt-in)', module: 'supporters', optIn: true },
   { key: 'home.morningbrief', label: 'תדרוך-הבוקר 🌅', desc: '"הבוקר שלך" בראש מסך-הבית: שיחות · תודות · הו"ק · העונה-העברית · מפגשי-היום · אירועים — במבט-אחד עם קפיצה-למסך והקראה-בקול (opt-in)', module: 'home', optIn: true },
+  { key: 'shell.askmaor', label: 'שאל את מאור 🤖', desc: 'שאלות בשפה חופשית על הנתונים — "מי לא תרם השנה?", "מי בסיכון?" — פרשן מקומי-לחלוטין: שום נתון לא עוזב את המכשיר; נפתח ממרכז-העזרה ❓ (opt-in)', module: 'shell', optIn: true },
   { key: 'supporters.intel', label: 'מרכז-המודיעין 📊', desc: 'טבלה-עמוקה פר-תורם: RFM מפורק · סיכון-נטישה · תחזית-מתנה · מגמה, עם כרטיס-צלילה (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.galaxy', label: 'גלקסיית-התורמים 🌌', desc: 'מפת-כוכבים חיה: גודל=ערך · צבע=דרגה · מרחק=טריות; קליק על כוכב פותח כרטיס (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.rebrand', label: 'רצועת-KPI לתורמים ✨', desc: 'רצועת מדדים חיה מעל הטבלה הקיימת — סה"כ · פעילים · בסיכון · תחזית; צ׳יפים=סינון (opt-in)', module: 'supporters', optIn: true },
