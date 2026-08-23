@@ -4,6 +4,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, termOf } from '../../lib/config';
 import type { TzEvent } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
@@ -18,7 +19,7 @@ const KIND_OPTIONS: { value: TzEvent['kind']; label: string }[] = [
 ];
 
 export function TzEventModal(props: { ev: TzEvent | null; date: string; onClose: () => void }) {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('events', 'tzBoxes', 'tzCoordinators', 'tzEvents');
   const config = useApp((s) => s.config);
   const upsertTzEvent = useApp((s) => s.upsertTzEvent);
   const deleteTzEvent = useApp((s) => s.deleteTzEvent);

@@ -24,4 +24,12 @@ export const OPT_IN_KEYS = [
   'supporters.universe3d',
   // רישום-לשנה-הבאה — מסך "רישום" מגודר `=== true` בקוד ⇒ חייב optIn:true באשף
   'courses.reenroll',
+  // ▶ "פעולה אחת עכשיו" (VISION-LIGHT ‏#16, 23.8) — מסך-משימה-אחת opt-in
+  'supporters.oneflow',
+  // 🕎 מנוע-העיתוי העברי (VISION-LIGHT ‏#37, 23.8) — "העונה שלהם" בקוקפיט
+  'supporters.hebtiming',
+  // 🌅 תדרוך-הבוקר (VISION-LIGHT ‏#29, 23.8) — "הבוקר שלך" במסך-הבית
+  'home.morningbrief',
+  // 🤖 שאל-את-מאור (VISION-LIGHT ‏#30, 23.8) — פרשן-שאלות מקומי במרכז-העזרה
+  'shell.askmaor',
 ];

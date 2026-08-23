@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { featureOn } from '../../lib/config';
 import { ABSENCE_REASON_CHIPS, DAY_NAMES, isoToday, makeupEligibility, nextSessionDate, pad2 } from './lib';
@@ -18,7 +19,7 @@ export function DiaryAbsenceModal(props: {
   date?: string;
   onClose: () => void;
 }) {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('enrollments', 'families');
   const config = useApp((s) => s.config);
   const addAbsence = useApp((s) => s.addAbsence);
   const punch = useApp((s) => s.punch);

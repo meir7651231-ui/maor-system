@@ -2,9 +2,11 @@
  * משפחות תומכות (תורמים) — חיפוש מנורמל, סינון קטגוריה ודרגות RFM,
  * טבלה עם מיון תלת-מצבי (עולה/יורד/כבוי), טופס תומכ/ת וכרטיס מפורט.
  */
-import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState, type KeyboardEvent } from 'react';
+import { IncMoreCard, IncMoreRow, incSlice, useIncCap } from '../incremental';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, integrationOn, integrationSetting, isAdminUser, safeHttpsUrl, telephonyOn, termOf } from '../../lib/config';
 import { DialerModal } from '../dialer/DialerModal';
 import { WaBtn } from '../WaBtn';
@@ -22,6 +24,7 @@ import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
 import { SupporterCard } from './SupporterCard';
 import { SupportersCockpit } from './SupportersCockpit';
+import { OneFlow } from './OneFlow';
 import { atRiskIdSet, matchSegment, SEGMENTS, takeSupportersSegment, type SegmentKey } from './segments';
 
 /** שנת-הגיוס (המתנה-הראשונה) — לדריל-אין מקוהורטת-הגיוס. null כשאין נתינה. */
@@ -148,7 +151,7 @@ function TierChip(props: { sp: Supporter; rate?: number }) {
 }
 
 export function SupportersView() {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('orgName', 'supporters', 'ui', 'usdRate');
   const rate = db.usdRate; // שער-דולר עריך — משוקלל בכל חישובי ה-₪-שקול והציון
   const config = useApp((s) => s.config);
   // תוויות-עמודה מונחיות — בורטיקל מסחרי "תורם/תרומות" הופכים למונח-הענף (termOf).
@@ -210,6 +213,9 @@ export function SupportersView() {
     setDb((d) => ({ ui: { ...d.ui, supView: (d.ui.supView ?? 'list') === 'grid' ? 'list' : 'grid' } }));
 
   const [q, setQ] = useState('');
+  // ⚡ מהירות (VISION-LIGHT ‏#4): ההקלדה בתיבת-החיפוש מיידית; הסינון-והמיון על
+  // אלפי-תורמים רצים בעדיפות-נדחית (useDeferredValue) — האות מופיעה מיד.
+  const dq = useDeferredValue(q);
   const [cat, setCat] = useState('all');
   // בקשת-בעלים 15.8 ("פר תורם") — סינון לפי ייעוד-שעל-הכרטיס (forWho), מגודר supporters.purpose
   const [purposeF, setPurposeF] = useState('all');
@@ -248,6 +254,8 @@ export function SupportersView() {
   // חלון-העבודה (הקוקפיט) — opt-in מפורש בלבד (‏featureOn ברירת-מחדל=on, לכן === true).
   // חסר במפורש בכל הלקוחות-החיים ⇒ אפס-השפעה על הפרודקשן.
   const cockpitOn = config.features?.['supporters.cockpit'] === true;
+  // ▶ "פעולה אחת עכשיו" (VISION-LIGHT #16) — opt-in מפורש: חסר-דגל = דורמנטי
+  const oneflowOn = config.features?.['supporters.oneflow'] === true;
   const [workMode, setWorkMode] = useState(false);
   // מרכז-המודיעין — opt-in מפורש נפרד (אותו טעם: === true, לא featureOn).
   const intelOn = config.features?.['supporters.intel'] === true;
@@ -261,6 +269,7 @@ export function SupportersView() {
   // מחסן-החומרים — ורטיקל-הסטודיו (מסחרי בלבד: §46 כבוי + דגל).
   const warehouseOn = featureOn(config, 'supporters.ayin.warehouse') && !featureOn(config, 'core.taxreceipt');
   const [warehouseMode, setWarehouseMode] = useState(false);
+  const [oneflowOpen, setOneflowOpen] = useState(false);
   // ריברנד — רצועת-KPI חיה מעל הטבלה הקיימת (opt-in מפורש).
   const rebrandOn = config.features?.['supporters.rebrand'] === true;
   // כרטיס-תורם מאוחד (לשוניות) — opt-in מפורש; כבוי = הכרטיס הרגיל (ביט-זהה).
@@ -285,6 +294,9 @@ export function SupportersView() {
   );
   const rfmMax = Math.max(1, ...rfmBins);
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
+  // ⚡ ציור-מדורג (VISION-LIGHT ‏#15): חלון-שגדל-בגלילה במקום כל הרשימה בבת-אחת;
+  // שינוי חיפוש/סינון מחזיר את החלון להתחלה. הלוגיקה נשארת על הרשימה המלאה.
+  const inc = useIncCap(JSON.stringify([dq, cat, purposeF, tierF, colF, ayinF, nextF, hokF, segF, monthF, acqYearF, gaveYearF, periodMode, sort]));
   const [selId, setSelId] = useState<string | null>(null);
   // בחירה-מרובה למחיקה (בקשת-בעלים 13.8) — מצב-בחירה + קבוצת-ids + אישור-הרסני.
   const [selMode, setSelMode] = useState(false);
@@ -543,8 +555,8 @@ export function SupportersView() {
     );
   }
 
-  const nq = normSearch(q);
-  const qd = q.replace(/\D/g, '');
+  const nq = normSearch(dq);
+  const qd = dq.replace(/\D/g, '');
 
   // ג' (13.8) — בסיס-הראייה של המשתמש: תורמים המותרים לפי הייעודים שהוקצו.
   // כל הנגזרות בתצוגה (רשימה, מונים, סה"כ, קטגוריות) יוצאות מ-visibleBase כדי
@@ -582,7 +594,7 @@ export function SupportersView() {
     if (ayinF === 'eyes' && !(sp.ayin && eyesTotal(sp.ayin) > 0)) return false;
     if (ayinF === 'noeyes' && sp.ayin && eyesTotal(sp.ayin) > 0) return false;
     if (ayinF === 'today' && !(sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today)))) return false;
-    if (!q.trim()) return true;
+    if (!dq.trim()) return true;
     const phoneHit = qd.length >= 3 && (sp.phone || '').replace(/\D/g, '').includes(qd);
     const textHit =
       !!nq && normSearch([sp.name, sp.email, sp.cat, sp.address, sp.forWho].join(' ')).includes(nq);
@@ -598,6 +610,9 @@ export function SupportersView() {
       return c * dir;
     });
   }
+
+  // ⚡ ‏#15: החלון-לציור — כל הלוגיקה (בחירה/CSV/סיכומים) נשארת על `list` המלאה
+  const shownRows = incSlice(list, inc.cap);
 
   const clickSort = (key: SortKey) =>
     setSort(sort && sort.key === key ? (sort.dir > 0 ? { key, dir: -1 } : null) : { key, dir: 1 });
@@ -747,12 +762,13 @@ export function SupportersView() {
               options={[
                 { key: 'data', label: '☰ מסך הנתונים', title: 'הרשימה/הגריד המלא של התורמים' },
                 ...(cockpitOn ? [{ key: 'work', label: '🎯 חלון העבודה', title: 'חלון-העבודה: המערכת מסדרת את משימות היום — שיחות, תודות והו״ק' }] : []),
+                ...(oneflowOn ? [{ key: 'oneflow', label: '▶ פעולה אחת', title: 'פעולה אחת עכשיו: משימה אחת בכל רגע — בוצע/דלג והמערכת מתקדמת' }] : []),
                 ...(intelOn ? [{ key: 'intel', label: '📊 מודיעין', title: 'מרכז-המודיעין: RFM · ערך-חיים · תחזית-מתנה · סיכון-נטישה' }] : []),
                 ...(galaxyOn ? [{ key: 'galaxy', label: '🌌 גלקסיה', title: 'גלקסיית-התורמים: כל תורם ככוכב — גודל=ערך · צבע=דרגה · מרחק=טריות' }] : []),
                 ...(universeOn ? [{ key: 'universe', label: '🪐 היקום 3D', title: 'היקום התלת-ממדי: ענן-כוכבים מסתובב — גררו לסובב, לחיצה לכרטיס' }] : []),
                 ...(warehouseOn ? [{ key: 'warehouse', label: '🏭 מחסן', title: 'מחסן-החומרים: מלאי חוצה-פרויקטים — מלאי/הוקצה/נותר + התרעת-מחסור' }] : []),
               ]}
-              onSelect={(k) => { if (k === 'work') setWorkMode(true); else if (k === 'intel') setIntelMode(true); else if (k === 'galaxy') setGalaxyMode(true); else if (k === 'universe') setUniverseMode(true); else if (k === 'warehouse') setWarehouseMode(true); }}
+              onSelect={(k) => { if (k === 'work') setWorkMode(true); else if (k === 'oneflow') setOneflowOpen(true); else if (k === 'intel') setIntelMode(true); else if (k === 'galaxy') setGalaxyMode(true); else if (k === 'universe') setUniverseMode(true); else if (k === 'warehouse') setWarehouseMode(true); }}
             />
             {telephonyOn(config) && (
               <Btn
@@ -1062,7 +1078,7 @@ export function SupportersView() {
       ) : supView === 'grid' ? (
         /* תצוגת גריד (5.8) — כרטיסים ידידותיים-למובייל; אותו דפוס כמו המשפחות */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-          {list.map((sp) => {
+          {shownRows.map((sp) => {
             const score = supScore(sp, rate);
             const tier = supTier(score);
             return (
@@ -1112,6 +1128,7 @@ export function SupportersView() {
               </div>
             );
           })}
+          <IncMoreCard shown={shownRows.length} total={list.length} refCb={inc.ref} />
         </div>
       ) : (
         <div className="card hscroll" style={{ padding: 0, overflowX: 'auto', overflowY: 'hidden' }}>
@@ -1186,7 +1203,7 @@ export function SupportersView() {
               )}
             </thead>
             <tbody>
-              {list.map((sp) => (
+              {shownRows.map((sp) => (
                 <tr
                   key={sp.id}
                   onClick={() => (selMode ? toggleSel(sp.id) : setSelId(sp.id))}
@@ -1258,6 +1275,7 @@ export function SupportersView() {
                   </td>
                 </tr>
               ))}
+              <IncMoreRow shown={shownRows.length} total={list.length} refCb={inc.ref} colSpan={12} />
             </tbody>
           </table>
         </div>
@@ -1277,6 +1295,17 @@ export function SupportersView() {
             setFormOpen(false);
             if (newId) setSelId(newId);
           }}
+        />
+      )}
+
+      {/* ▶ "פעולה אחת עכשיו" (VISION-LIGHT ‏#16) — מסך-מלא, opt-in מפורש */}
+      {oneflowOpen && oneflowOn && (
+        <OneFlow
+          supporters={db.supporters}
+          config={config}
+          usdRate={db.usdRate}
+          onOpen={(id) => { setOneflowOpen(false); setSelId(id); }}
+          onClose={() => setOneflowOpen(false)}
         />
       )}
 

@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, termOf } from '../../lib/config';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Modal } from '../ui';
@@ -14,7 +15,7 @@ import { ageOf, isoToday, planLabelOf, sheetRoster, sheetSummary } from './lib';
 import { AbsenceModal } from './AbsenceModal';
 
 export function AttendanceSheet(props: { course: Course; onClose: () => void }) {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('enrollments', 'families');
   const config = useApp((s) => s.config);
   const setPresent = useApp((s) => s.setPresent);
   const bulkSetPresent = useApp((s) => s.bulkSetPresent);

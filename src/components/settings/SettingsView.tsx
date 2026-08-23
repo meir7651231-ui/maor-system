@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import type { NotifPrefs } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, integrationOn, isAdminUser, isSuperAdmin, termOf } from '../../lib/config';
 import { readAiKey, writeAiKey } from '../../lib/ai';
 import { receiptVerifyCode } from '../../lib/receipt';
@@ -472,7 +473,7 @@ function AiKeySection() {
  *  רישומי-המערכת (תרומות D-, תשלומי-חוגים R- ואישורי-חנות S-). מגודר core.receipt.verifycode. */
 function VerifyReceiptSection() {
   const config = useApp((s) => s.config);
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('audit', 'budget', 'enrollments', 'notif', 'orgDonate', 'orgGoal', 'orgName', 'orgSite', 'shopAssignments', 'supporters', 'ui', 'usdRate');
   const [rid, setRid] = useState('');
   const [code, setCode] = useState('');
   const [result, setResult] = useState('');

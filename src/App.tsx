@@ -7,7 +7,7 @@
  * במובייל (≤760px) גם צֹהַר חוזרת לשלד העליון — הפתרון הפשוט והעמיד
  * לגלילה אופקית. הקישורים/גייטינג/מונחים זהים בשני השלדים (מערך NAV אחד).
  */
-import { useEffect, useState, type JSX, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode } from 'react';
 import { useApp, type View } from './store/useApp';
 import { nsLsKey, parseBackupFile } from './store/persist';
 import { applyFavicon, featureOn, integrationOn, isAdminUser, isSuperAdmin, moduleOn, publicSiteOn, roleOf, telephonyOn, termOf } from './lib/config';
@@ -19,8 +19,6 @@ import { isoToday } from './lib/date-util';
 import { freshenDemoDb } from './lib/demoFresh';
 import { todaySessions } from './components/home/homeData';
 import { Btn, Modal } from './components/ui';
-import { BuilderWizard } from './components/builder/BuilderWizard';
-import { RemoteWizard, restoreBuilderPrev } from './components/builder/RemoteWizard';
 import { ImpactWall } from './components/wall/ImpactWall';
 import { MoneyTimer } from './components/timer/MoneyTimer';
 import { CashRegister } from './components/timer/CashRegister';
@@ -31,33 +29,61 @@ import { GuideModal } from './components/GuideModal';
 import { TourOverlay } from './components/TourOverlay';
 import { A11yFab } from './components/A11yFab';
 import { HomeView } from './components/home/HomeView';
-import { FamiliesView } from './components/families/FamiliesView';
-import { CoursesView } from './components/courses/CoursesView';
-import ReenrollView from './components/courses/ReenrollView';
-import { CalendarView } from './components/calendar/CalendarView';
-import { DiaryView } from './components/diary/DiaryView';
-import { SupportersView } from './components/supporters/SupportersView';
-import { TzedakaView } from './components/tzedaka/TzedakaView';
-import { ShopView } from './components/shop/ShopView';
-import { Shop7View } from './components/shop7/Shop7View';
-import { ReportsView } from './components/reports/ReportsView';
-import { SettingsView } from './components/settings/SettingsView';
 import { CommandPalette } from './components/palette/CommandPalette';
 import { DemoDrop } from './components/DemoDrop';
 import { DemoRibbon } from './components/DemoRibbon';
 import { DayGate } from './components/wheel/DayGate';
-import { LoginScreen, PendingApprovalScreen } from './components/cloud/LoginScreen';
 import { ChangePasswordModal } from './components/cloud/ChangePasswordModal';
 import { NetCheckModal } from './components/cloud/NetCheckModal';
 import { SupportChatModal, SupportInbox, TeamChatModal } from './components/support/SupportChat';
-import { PlatformPanel } from './components/platform/PlatformPanel';
-import { ManagerPanel } from './components/platform/ManagerPanel';
 import { AdminHub, HubButton } from './components/AdminHub';
 import { LockScreen } from './components/lock/LockScreen';
-import { PublicSite } from './components/public/PublicSite';
 import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
 import { CloudUnlockScreen } from './components/lock/CloudUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
+
+/* ⚡ VISION-LIGHT ‏#13 — פיצול-chunks לפי מודולים: כל מסך-מודול נטען עצל
+ * ‏(React.lazy) ב-chunk משלו; הבנדל הראשי נשאר בית+שלד. ה-loaders משותפים
+ * ל-lazy ולחימום-ב-idle (רק מודולים דלוקים — "האתר שלך שוקל רק מה שהדלקת").
+ * מדליף-רענון: ‏vite:preloadError ב-main.tsx מרענן על chunk שהוחלף ב-deploy. */
+const VIEW_LOADERS = {
+  families: () => import('./components/families/FamiliesView'),
+  courses: () => import('./components/courses/CoursesView'),
+  reenroll: () => import('./components/courses/ReenrollView'),
+  calendar: () => import('./components/calendar/CalendarView'),
+  diary: () => import('./components/diary/DiaryView'),
+  supporters: () => import('./components/supporters/SupportersView'),
+  tzedaka: () => import('./components/tzedaka/TzedakaView'),
+  shop: () => import('./components/shop/ShopView'),
+  shop7: () => import('./components/shop7/Shop7View'),
+  reports: () => import('./components/reports/ReportsView'),
+  settings: () => import('./components/settings/SettingsView'),
+} as const;
+const FamiliesView = lazy(async () => ({ default: (await VIEW_LOADERS.families()).FamiliesView }));
+const CoursesView = lazy(async () => ({ default: (await VIEW_LOADERS.courses()).CoursesView }));
+const ReenrollView = lazy(VIEW_LOADERS.reenroll);
+const CalendarView = lazy(async () => ({ default: (await VIEW_LOADERS.calendar()).CalendarView }));
+const DiaryView = lazy(async () => ({ default: (await VIEW_LOADERS.diary()).DiaryView }));
+const SupportersView = lazy(async () => ({ default: (await VIEW_LOADERS.supporters()).SupportersView }));
+const TzedakaView = lazy(async () => ({ default: (await VIEW_LOADERS.tzedaka()).TzedakaView }));
+const ShopView = lazy(async () => ({ default: (await VIEW_LOADERS.shop()).ShopView }));
+const Shop7View = lazy(async () => ({ default: (await VIEW_LOADERS.shop7()).Shop7View }));
+const ReportsView = lazy(async () => ({ default: (await VIEW_LOADERS.reports()).ReportsView }));
+const SettingsView = lazy(async () => ({ default: (await VIEW_LOADERS.settings()).SettingsView }));
+// משטחי-ניהול/כניסה נדירים — עצלים גם הם (מנהל-על/מרקטינג לא מכבידים על כולם)
+const BuilderWizard = lazy(async () => ({ default: (await import('./components/builder/BuilderWizard')).BuilderWizard }));
+const RemoteWizard = lazy(async () => ({ default: (await import('./components/builder/RemoteWizard')).RemoteWizard }));
+const PlatformPanel = lazy(async () => ({ default: (await import('./components/platform/PlatformPanel')).PlatformPanel }));
+const ManagerPanel = lazy(async () => ({ default: (await import('./components/platform/ManagerPanel')).ManagerPanel }));
+const PublicSite = lazy(async () => ({ default: (await import('./components/public/PublicSite')).PublicSite }));
+const LoginScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).LoginScreen }));
+const PendingApprovalScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).PendingApprovalScreen }));
+// 🤖 "שאל את מאור" (VISION-LIGHT #30) — עצל: נטען רק בפתיחה ממרכז-העזרה
+const AskMaorModal = lazy(async () => ({ default: (await import('./components/AskMaor')).AskMaorModal }));
+/** מפתח תצלום-המיתוג של האשף-קשור-הענן — חייב להיות זהה ל-BUILDER_PREV_KEY
+ *  ב-RemoteWizard (ננעל ב-ratchet bundle-light; ייבוא-ערך סטטי היה מחזיר את
+ *  chunk-האשף לבנדל הראשי). */
+const BUILDER_PREV_LS = 'maor_builder_prev';
 
 /** צבע נקודת הסטטוס של סנכרון הענן — ירוק = synced. */
 /** תקרת החיבור-החי מנדרים: מעל זה = גיבוי-בּאלק (לא טפטוף בזמן-אמת) ⇒ מדולג
@@ -86,7 +112,7 @@ const NAV: { view: View; icon: string; label: string }[] = [
   { view: 'settings', icon: '⚙️', label: 'הגדרות' },
 ];
 
-const VIEWS: Record<View, () => JSX.Element> = {
+const VIEWS: Record<View, ComponentType> = {
   home: HomeView,
   families: FamiliesView,
   courses: CoursesView,
@@ -260,6 +286,9 @@ export default function App() {
   const [adminHubOpen, setAdminHubOpen] = useState(false);
   // UX סבב-א׳ (5.8): כפתור-עזרה מאוחד (📖+▶ ⇒ ❓) + תפריט-חשבון (אווטאר)
   const [helpOpen, setHelpOpen] = useState(false);
+  // 🤖 שאל-את-מאור — opt-in מפורש; חסר-דגל = הכפתור לא קיים
+  const askMaorOn = config.features?.['shell.askmaor'] === true;
+  const [askOpen, setAskOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [logoutArmed, setLogoutArmed] = useState(false);
   const [changePassOpen, setChangePassOpen] = useState(false);
@@ -324,8 +353,31 @@ export default function App() {
   // מיתוג-הבעלים + הערכה-האישית (restoreBuilderPrev — localStorage, שורד סגירה).
   useEffect(() => {
     if (window.location.hash.startsWith('#builder=')) return;
-    restoreBuilderPrev();
+    // ⚡ ‏#13: ‏chunk-האשף נטען רק אם באמת נשאר תצלום-מיתוג מסשן שנקטע —
+    // בלי התצלום (המקרה הרגיל) אף בייט של האשף לא יורד.
+    if (!localStorage.getItem(BUILDER_PREV_LS)) return;
+    void import('./components/builder/RemoteWizard').then((m) => m.restoreBuilderPrev());
   }, []);
+
+  // ⚡ חימום-ב-idle (VISION-LIGHT ‏#13): אחרי שהבית חי, מסכי המודולים הדלוקים
+  // בלבד נטענים ברקע — ניווט מיידי בלי להכביד על הפתיחה; מודול כבוי לא יורד.
+  useEffect(() => {
+    if (!ready) return;
+    const warm = () => {
+      const mods = useApp.getState().config.modules as Partial<Record<string, boolean>>;
+      for (const k of Object.keys(VIEW_LOADERS) as (keyof typeof VIEW_LOADERS)[]) {
+        const modKey = k === 'reenroll' ? 'courses' : k;
+        if (k === 'settings' || mods[modKey] !== false) void VIEW_LOADERS[k]().catch(() => { /* אופליין — ייטען בניווט */ });
+      }
+    };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+    const hasIdle = typeof w.requestIdleCallback === 'function';
+    const id = hasIdle ? w.requestIdleCallback!(warm, { timeout: 8000 }) : window.setTimeout(warm, 3000);
+    return () => {
+      if (hasIdle && typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id as number);
+      else window.clearTimeout(id as number);
+    };
+  }, [ready]);
   useEffect(() => {
     const onHash = () => {
       setBuilderOpen(window.location.hash.startsWith('#builder'));
@@ -413,6 +465,7 @@ export default function App() {
   // "כניסה למערכת" מנקה את הבקשה (‎?site/#site‎) וממשיך לשרשרת-השערים הרגילה.
   if (siteRequested && publicSiteOn(config)) {
     return (
+      <Suspense fallback={<div className="empty">טוען…</div>}>
       <PublicSite
         onEnter={() => {
           try {
@@ -426,6 +479,7 @@ export default function App() {
           setSiteRequested(false);
         }}
       />
+      </Suspense>
     );
   }
 
@@ -454,7 +508,9 @@ export default function App() {
   if (cloud.enabled && !cloud.user) {
     return (
       <>
-        <LoginScreen />
+        <Suspense fallback={<div className="empty">טוען…</div>}>
+          <LoginScreen />
+        </Suspense>
         {toastsEl}
       </>
     );
@@ -480,7 +536,9 @@ export default function App() {
   if (cloud.enabled && cloud.membership === 'pending') {
     return (
       <>
-        <PendingApprovalScreen />
+        <Suspense fallback={<div className="empty">טוען…</div>}>
+          <PendingApprovalScreen />
+        </Suspense>
         {toastsEl}
       </>
     );
@@ -693,7 +751,10 @@ export default function App() {
           {config.slug === 'demo' && <DemoRibbon />}
           {featureOn(config, 'shell.demodrop') && famCount === 0 && <DemoDrop />}
           <DayGate />
-          <Current />
+          {/* ⚡ ‏#13: המסך-הנוכחי עצל — נפילת-הטעינה מקומית, הכרום נשאר חי */}
+          <Suspense fallback={<div className="empty">⏳ טוען את המסך…</div>}>
+            <Current />
+          </Suspense>
           {/* 📞 צ'יפ-קמפיין-צף (20.8) — קמפיין-חייגן פעיל נשאר נגיש מכל מסך */}
           {featureOn(config, 'shell.dialerchip') && telephonyOn(config) && <DialerChip />}
         </>
@@ -981,6 +1042,9 @@ export default function App() {
             {guideOn && (
               <HubButton emoji="📖" title="המדריך המהיר" sub="הסבר קצר על כל מסך ומה עושים בו" onClick={() => { setHelpOpen(false); window.location.hash = '#guide'; }} />
             )}
+            {askMaorOn && (
+              <HubButton emoji="🤖" title="שאל את מאור" sub={'שאלה חופשית על הנתונים — "מי לא תרם השנה?" — הכול במכשיר'} onClick={() => { setHelpOpen(false); setAskOpen(true); }} />
+            )}
             {demoOn && (
               <HubButton emoji="▶" title="סיור מודרך" sub="מצב הדגמה — המערכת מדגימה את עצמה" onClick={() => { setHelpOpen(false); window.location.hash = '#tour'; }} />
             )}
@@ -1059,6 +1123,13 @@ export default function App() {
         </Modal>
       )}
       {changePassOpen && cloud.user && <ChangePasswordModal onClose={() => setChangePassOpen(false)} />}
+      {/* 🤖 שאל-את-מאור (VISION-LIGHT #30) — עצל, opt-in */}
+      {askOpen && askMaorOn && (
+        <Suspense fallback={null}>
+          <AskMaorModal onClose={() => setAskOpen(false)} />
+        </Suspense>
+      )}
+
       {adminHubOpen && canAdminHub && (
         <AdminHub
           onClose={() => setAdminHubOpen(false)}
@@ -1110,36 +1181,42 @@ export default function App() {
         ) : remoteBuilderSlug ? (
           // אשף-הרכבה קשור-ענן (5.8) — עריכת לקוח-פלטפורמה באשף המלא; מיילי-על בלבד
           isSuperAdmin(cloud.user?.email) ? (
-            <RemoteWizard
-              slug={remoteBuilderSlug}
-              onClose={() => {
-                window.location.hash = '#platform'; // חזרה ללוח-הבקרה
-              }}
-            />
+            <Suspense fallback={<div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}><div className="empty" style={{ marginTop: 120 }}>⏳ טוען…</div></div>}>
+              <RemoteWizard
+                slug={remoteBuilderSlug}
+                onClose={() => {
+                  window.location.hash = '#platform'; // חזרה ללוח-הבקרה
+                }}
+              />
+            </Suspense>
           ) : (
             <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
               <div className="empty" style={{ marginTop: 120 }}>🔒 עריכת לקוח-ענן זמינה למנהל הפלטפורמה בלבד.</div>
             </div>
           )
         ) : (
-          <BuilderWizard
-            onClose={() => {
-              window.location.hash = '';
-              setBuilderOpen(false);
-            }}
-          />
+          <Suspense fallback={<div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}><div className="empty" style={{ marginTop: 120 }}>⏳ טוען…</div></div>}>
+            <BuilderWizard
+              onClose={() => {
+                window.location.hash = '';
+                setBuilderOpen(false);
+              }}
+            />
+          </Suspense>
         ))}
 
       {platformOpen &&
         (isAdmin && isSuperAdmin(cloud.user?.email) ? (
           // לוח הבקרה של הפלטפורמה (CLOUD2 ענן 4) — מיילי-על בלבד; משתמש
           // אחר שמנסה #platform מקבל אין-הרשאה, לא את הלוח
-          <PlatformPanel
-            onClose={() => {
-              window.location.hash = '';
-              setPlatformOpen(false);
-            }}
-          />
+          <Suspense fallback={<div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}><div className="empty" style={{ marginTop: 120 }}>⏳ טוען…</div></div>}>
+            <PlatformPanel
+              onClose={() => {
+                window.location.hash = '';
+                setPlatformOpen(false);
+              }}
+            />
+          </Suspense>
         ) : (
           <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
             <div className="empty" style={{ marginTop: 120 }}>
@@ -1150,12 +1227,14 @@ export default function App() {
 
       {/* פאנל-המנהל (ORGADMIN) — #manage, למנהל-הארגון בלבד (cloud.isManager) */}
       {managerOpen && cloud.isManager && (
-        <ManagerPanel
-          onClose={() => {
-            window.location.hash = '';
-            setManagerOpen(false);
-          }}
-        />
+        <Suspense fallback={<div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}><div className="empty" style={{ marginTop: 120 }}>⏳ טוען…</div></div>}>
+          <ManagerPanel
+            onClose={() => {
+              window.location.hash = '';
+              setManagerOpen(false);
+            }}
+          />
+        </Suspense>
       )}
 
       {wallOpen && featureOn(config, 'home.impactwall') && (
