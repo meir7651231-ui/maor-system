@@ -184,6 +184,84 @@ async function clearPullRows(db, col, cursorRef) {
   return removed;
 }
 
+/**
+ * 🧮 בדיקת-התאמה (23.8, "תבדוק אם נמשך הכל והמספרים תואמים") — **קריאה בלבד**:
+ * מושכת את הדוח המלא מהשער (בלי לכתוב דבר), ממפה אותו בדיוק כמו משיכה אמיתית,
+ * ומשווה מול מה שיושב בתור: כמות · סכומים פר-מטבע · טווח-תאריכים · אסמכתאות
+ * חסרות/עודפות. אפס-כתיבה — אין batch/set/delete בפונקציה הזו.
+ */
+async function runSolaAudit(org) {
+  const db = getFirestore();
+  const { key: xKey, from: vaultFrom, ambiguous } = await solaKey(db, org);
+  if (!xKey) {
+    throw new Error(ambiguous
+      ? 'כמה כספות מחזיקות xKey (' + ambiguous.join(', ') + ') — נדרש vault מפורש'
+      : 'אין xKey בכספת של ' + org);
+  }
+  const firstDays = Number(process.env.SOLA_FIRST_DAYS || 365);
+  const today = new Date().toISOString().slice(0, 10);
+  const begin = shiftIsoDays(today, -firstDays);
+  const end = shiftIsoDays(today, 1);
+  const CHUNK = 90;
+  // צד-השער: כל השורות בחלון המלא, ממופות באותו מנוע בדיוק (planSolaWrites)
+  const gwWrites = new Map(); // id → data (ה-Map בולע כפילויות בין-פרוסות)
+  let gwRaw = 0;
+  const seenRefs = new Set();
+  let voided = 0;
+  let notApproved = 0;
+  for (let s = begin; s < end; s = shiftIsoDays(s, CHUNK)) {
+    const e = shiftIsoDays(s, CHUNK) < end ? shiftIsoDays(s, CHUNK) : end;
+    const { rows } = await fetchSolaReport(xKey, s, e);
+    for (const r of rows) {
+      const ref = String(r.xRefNum || '');
+      if (ref && seenRefs.has(ref)) continue; // חפיפת-פרוסות — לא נספרת פעמיים
+      if (ref) seenRefs.add(ref);
+      gwRaw += 1;
+      const res = String(r.xResult || r.xResponseResult || r.xStatus || '');
+      if (!(res === 'A' || /approved/i.test(res))) notApproved += 1;
+      else if (String(r.xVoid || '') === '1') voided += 1;
+    }
+    for (const w of planSolaWrites(rows, org).writes) gwWrites.set(w.id, w.data);
+  }
+  const gw = { raw: gwRaw, eligible: gwWrites.size, notApproved, voided, byCur: {}, first: '', last: '' };
+  for (const d of gwWrites.values()) {
+    const c = String(d.currency || '?');
+    gw.byCur[c] = Math.round(((gw.byCur[c] || 0) + Number(d.amount || 0)) * 100) / 100;
+    const dt = String(d.d || '');
+    if (dt && (!gw.first || dt < gw.first)) gw.first = dt;
+    if (dt > gw.last) gw.last = dt;
+  }
+  // צד-התור: כל שורות-סולה שכבר נכתבו (כולל handled — הדדופ שומר אותן לעד)
+  const snap = await incomingCol(db, org).where('provider', '==', 'sola').get();
+  const q = { count: snap.size, byCur: {}, byStatus: {}, first: '', last: '' };
+  const qIds = new Set();
+  for (const doc of snap.docs) {
+    const d = doc.data() || {};
+    qIds.add(doc.id);
+    const c = String(d.currency || '?');
+    q.byCur[c] = Math.round(((q.byCur[c] || 0) + Number(d.amount || 0)) * 100) / 100;
+    const st = String(d.status || '?');
+    q.byStatus[st] = (q.byStatus[st] || 0) + 1;
+    const dt = String(d.d || '');
+    if (dt && (!q.first || dt < q.first)) q.first = dt;
+    if (dt > q.last) q.last = dt;
+  }
+  const missing = [...gwWrites.keys()].filter((id) => !qIds.has(id));
+  const extra = [...qIds].filter((id) => !gwWrites.has(id));
+  const sumsMatch = JSON.stringify(gw.byCur) === JSON.stringify(q.byCur);
+  return {
+    vault: vaultFrom,
+    window: begin + '..' + end,
+    gateway: gw,
+    queue: q,
+    missing: missing.length,
+    missingSample: missing.slice(0, 5),
+    extra: extra.length,
+    extraSample: extra.slice(0, 5),
+    match: missing.length === 0 && extra.length === 0 && sumsMatch,
+  };
+}
+
 async function runSolaPull(org, opts = {}) {
   const db = getFirestore();
   const col = incomingCol(db, org);
@@ -290,6 +368,14 @@ exports.solaPull = onRequest(
         const today = new Date().toISOString().slice(0, 10);
         const peek = await fetchSolaReport(xKey, shiftIsoDays(today, -90), shiftIsoDays(today, 1));
         return res.status(200).json({ ok: true, count: peek.rows.length, sample: peek.rows.slice(0, 3), vault: from, drawers, rootRows, ...(peek.debug ? { debug: peek.debug } : {}) });
+      } catch (e) {
+        return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
+      }
+    }
+    // 🧮 ?audit=1 — בדיקת-התאמה קריאה-בלבד: שער מול תור (אפס-כתיבה)
+    if (p.audit === '1') {
+      try {
+        return res.status(200).json({ ok: true, ...(await runSolaAudit(org)) });
       } catch (e) {
         return res.status(502).json({ ok: false, error: String((e && e.message) || e) });
       }
