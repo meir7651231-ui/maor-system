@@ -3,9 +3,10 @@
  * חיווי שמירה אוטומטית (אדום כשנכשלת), הורדת גיבוי מלא, שחזור מקובץ,
  * וצילומים יומיים (30 אחרונים) עם שחזור לכל צילום.
  */
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import type { Db } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { planDemoCleanup } from '../../lib/demoCleanup';
 import {
   listSnapshots,
   loadSnapshot,
@@ -27,9 +28,21 @@ type RestoreStage =
   | { stage: 'password'; encText: string; fail: boolean }
   | { stage: 'confirm'; parsed: Db; sourceLabel: string; plainWarn: boolean };
 
+/** תוויות-ישות עבריות לתצוגה-מקדימה של ניקוי-הדמו. */
+const ENT_LABEL: Record<string, string> = {
+  families: 'משפחות', supporters: 'תורמים', courses: 'חוגים', teachers: 'מורים',
+  rooms: 'חדרים', events: 'אירועים', enrollments: 'שיבוצים', volunteers: 'מתנדבים',
+  distributionDays: 'ימי חלוקה', deliveries: 'מסירות', tzCoordinators: 'רכזי קופות',
+  tzBoxes: 'קופות צדקה', tzCampaigns: 'מבצעים', tzEvents: 'אירועי קופות',
+  shopItems: 'פריטי חנות', shopStores: 'חנויות', shopCriteria: 'קריטריונים',
+  shopProducts: 'מוצרי חנות', shopAssignments: 'שיוכי חנות', shopEvents: 'אירועי חנות',
+  shopIntakes: 'קליטות', tasks: 'משימות', warehouse: 'מחסן',
+};
+
 export function BackupSection() {
   const saveOk = useApp((s) => s.saveOk);
   const savedAt = useApp((s) => s.db.savedAt);
+  const db = useApp((s) => s.db);
   const exportBackup = useApp((s) => s.exportBackup);
   const restoreDb = useApp((s) => s.restoreDb);
   const toast = useApp((s) => s.toast);
@@ -42,6 +55,34 @@ export function BackupSection() {
   useEffect(() => {
     void listSnapshots().then(setSnaps);
   }, []);
+
+  // ── ניקוי נתוני-הדגמה שהתערבבו (ממצא-בעלים 23.8) ──
+  // טוענים את demo.json פעם-אחת; זיהוי לפי-תוכן (planDemoCleanup) נגזר מ-db הנוכחי.
+  // הכרטיס מופיע **רק** כשזוהו רשומות-דמו ⇒ לקוח נקי לעולם לא רואה כפתור-מחיקה.
+  const [demoDb, setDemoDb] = useState<Partial<Db> | null>(null);
+  const [demoConfirm, setDemoConfirm] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(`${import.meta.env.BASE_URL}demo.json`, { cache: 'no-store' });
+        if (!res.ok || cancelled) return;
+        setDemoDb(parseBackupFile(await res.text()) as Partial<Db>);
+      } catch {
+        /* אין demo.json זמין — הכרטיס פשוט לא יופיע */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  const demoPlan = useMemo(() => (demoDb ? planDemoCleanup(db, demoDb) : null), [db, demoDb]);
+  const demoTotal = demoPlan?.total ?? 0;
+
+  function applyDemoCleanup() {
+    if (!demoPlan || demoPlan.total === 0) return;
+    restoreDb(demoPlan.cleaned);
+    setDemoConfirm(false);
+    toast(`🧹 הוסרו ${demoPlan.total} רשומות-הדגמה — הנתונים האמיתיים נשמרו`);
+  }
 
   async function onRestoreFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -169,6 +210,18 @@ export function BackupSection() {
         </label>
       </div>
 
+      {/* 🧹 ניקוי נתוני-הדגמה שהתערבבו — מופיע רק כשזוהו רשומות-דמו */}
+      {demoTotal > 0 && (
+        <div style={{ background: '#fdecec', border: '1px solid #f2b8b8', borderRadius: 12, padding: '14px 16px', margin: '4px 0 18px' }}>
+          <h3 style={{ fontSize: 15, fontWeight: 800, color: '#a12222', margin: '0 0 6px' }}>🧹 זוהו נתוני-הדגמה שהתערבבו</h3>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6, margin: '0 0 10px' }}>
+            נמצאו <b>{demoTotal}</b> רשומות של נתוני-ההדגמה בתוך הנתונים שלך.{' '}
+            <b>רק רשומות-הדמו יוסרו — הנתונים האמיתיים שלך יישמרו במלואם</b> (הזיהוי לפי-תוכן, לא לפי מספר-מזהה).
+          </p>
+          <Btn kind="primary" onClick={() => setDemoConfirm(true)}>🧹 הסרת נתוני-ההדגמה ({demoTotal})</Btn>
+        </div>
+      )}
+
       {featureOn(useApp.getState().config, 'settings.backup.snapshots') && (
         <>
       <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>צילומים יומיים בדפדפן זה</h3>
@@ -205,6 +258,30 @@ export function BackupSection() {
         אמיתי השתמשו ב"הורדת גיבוי מלא".
       </SectionNote>
         </>
+      )}
+
+      {/* 🧹 אישור הסרת-הדמו — תצוגה-מקדימה בשמות + אישור מפורש */}
+      {demoConfirm && demoPlan && demoPlan.total > 0 && (
+        <Modal title="🧹 אישור הסרת נתוני-הדגמה" onClose={() => setDemoConfirm(false)}>
+          <p style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 10 }}>
+            יוסרו <b>{demoPlan.total}</b> רשומות-הדגמה בלבד. <b>הנתונים האמיתיים שלך לא ייגעו.</b> פירוט:
+          </p>
+          <ul style={{ fontSize: 13, lineHeight: 1.7, maxHeight: 220, overflowY: 'auto', margin: '0 0 12px', paddingInlineStart: 18 }}>
+            {Object.entries(demoPlan.removed).map(([ent, r]) => (
+              <li key={ent}>
+                <b>{ENT_LABEL[ent] ?? ent}:</b> {r.count}
+                {r.names.length ? (
+                  <span style={{ color: 'var(--ink-faint)' }}> — {r.names.join(', ')}{r.count > r.names.length ? '…' : ''}</span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+          <SectionNote>מומלץ להוריד "גיבוי מלא" לפני, ליתר ביטחון. הפעולה מסירה רק את רשומות-ההדגמה.</SectionNote>
+          <div className="modal-actions">
+            <Btn kind="primary" onClick={applyDemoCleanup}>הסר {demoPlan.total} רשומות-הדגמה</Btn>
+            <Btn onClick={() => setDemoConfirm(false)}>ביטול</Btn>
+          </div>
+        </Modal>
       )}
 
       {/* שלב פענוח — קובץ גיבוי מוצפן */}
