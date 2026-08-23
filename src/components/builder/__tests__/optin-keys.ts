@@ -22,4 +22,6 @@ export const OPT_IN_KEYS = [
   'supporters.photos',
   'supporters.hokbulk',
   'supporters.universe3d',
+  // רישום-לשנה-הבאה — מסך "רישום" מגודר `=== true` בקוד ⇒ חייב optIn:true באשף
+  'courses.reenroll',
 ];
