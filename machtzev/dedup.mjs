@@ -22,13 +22,16 @@ for (const repo of ['maor', 'buildsmart', 'yoman']) {
 }
 
 /* ── 2) מחרוזות: אותו טקסט ב≥5 מקומות ⇒ מועמד-לאטום-מונח יחיד ── */
+const tpl = t => t.replace(/\d+/g, '#').replace(/["'׳״!?.:…]/g, '').trim();
 const byText = {};
 for (const repo of ['maor', 'buildsmart'])
-  for (const a of load(`atoms-L5b-${repo}.json`).filter(a => !a.viaTermOf && a.text.length >= 3))
-    (byText[a.text] = byText[a.text] || []).push(a.id);
-for (const [text, ids] of Object.entries(byText).filter(([, v]) => v.length >= 5))
+  for (const a of load(`atoms-L5b-${repo}.json`).filter(a => !a.viaTermOf && a.text.length >= 3)) {
+    const k = tpl(a.text);
+    if (k.length >= 3) (byText[k] = byText[k] || []).push(a.id);
+  }
+for (const [text, ids] of Object.entries(byText).filter(([, v]) => v.length >= 2))
   groups.push({ kind: 'string', key: text, canonical: `PROPOSED:term:'${text}'`, decision: 'merge',
-    coverage: `שילוב: מונח אחד יחליף ${ids.length} מופעים`, members: ids });
+    coverage: `שילוב-תבנית: חוט אחד יחליף ${ids.length} מופעים`, members: ids });
 
 /* ── 3) מנועים: תאומים חוצי-ריפו — ניקוד והכרעה ── */
 const eng = { maor: load('atoms-L6-maor.json'), buildsmart: load('atoms-L6-buildsmart.json') };
