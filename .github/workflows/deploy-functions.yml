@@ -78,12 +78,13 @@ jobs:
             indexes)    F="__indexes__" ;;
             rules)      F="__rules__" ;;
             solapeek)   F="__solapeek__" ;;
+            solarun)    F="__solarun__" ;;
             *) echo "::error::יעד לא מוכר"; exit 1 ;;
           esac
           echo "flist=$F" >> "$GITHUB_OUTPUT"
 
       - name: פריסה
-        if: ${{ steps.t.outputs.flist != '__status__' && steps.t.outputs.flist != '__logs__' && steps.t.outputs.flist != '__indexes__' && steps.t.outputs.flist != '__rules__' && steps.t.outputs.flist != '__solapeek__' }}
+        if: ${{ steps.t.outputs.flist != '__status__' && steps.t.outputs.flist != '__logs__' && steps.t.outputs.flist != '__indexes__' && steps.t.outputs.flist != '__rules__' && steps.t.outputs.flist != '__solapeek__' && steps.t.outputs.flist != '__solarun__' }}
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: npx firebase-tools@13 deploy --project maor-system --only "${{ steps.t.outputs.flist }}" --non-interactive
@@ -142,6 +143,23 @@ jobs:
           # 🔎 גישוש-לקוחות (peek=2): אילו נקודות-קצה מחזירות טלפון/אימייל של תורם
           echo "═══ solaPull customer-probe (peek=2) ═══"
           curl -s --max-time 120 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=root&peek=2&secret=$SEC" | head -c 6000
+          echo ""
+
+      # 🔄 משיכת-סולה מהקונסולה (23.8): reset-משיכה מלאה לארגון-החי — כל השורות
+      # נכתבות מחדש עם פרטי-הקשר (xFields); pending-בלבד נמחק (handled מוגן, S6),
+      # הדדופ מגן על ה-hist. ואז audit לאימות. הפעלה: ענף deploy-fn/solarun.
+      - name: משיכת-סולה מלאה + אימות
+        if: ${{ steps.t.outputs.flist == '__solarun__' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          SEC=$(npx firebase-tools@13 functions:secrets:access PAY_SECRET --project maor-system 2>/dev/null | tail -1)
+          echo "::add-mask::$SEC"
+          echo "═══ solaPull reset-run (org=mavr-hchsd) ═══"
+          curl -s --max-time 280 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&reset=1&secret=$SEC" | head -c 2000
+          echo ""
+          echo "═══ audit אחרי המשיכה ═══"
+          curl -s --max-time 240 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&audit=1&secret=$SEC" | head -c 6000
           echo ""
 
       # פריסת אינדקסי-Firestore (firestore.indexes.json) — למשל האינדקס
