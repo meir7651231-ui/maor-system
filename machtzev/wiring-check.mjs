@@ -19,10 +19,11 @@ for (const f of files) {
     if (!imp.startsWith('.')) continue; // שפה/סטנדרט — מותר
     const target = path.relative(NEW, path.resolve(path.dirname(f), imp)).replace(/\\/g, '/');
     const tz = target.startsWith('atoms/') ? 'atom' : target.startsWith('boxes/') ? 'box' : /^board\./.test(target) ? 'board' : 'other';
-    const bad =
+    const ownTest = /\.test\.mjs$/.test(rel) && target === rel.replace(/\.test\.mjs$/, '.mjs');
+    const bad = !ownTest && (
       (zone === 'atom') ||                                    // אטום לא מייבא כלום פנימי
       (zone === 'box' && tz !== 'atom') ||                    // קופסה מייבאת רק אטומים
-      (zone === 'board' && tz !== 'box');                     // לוח מייבא רק קופסאות
+      (zone === 'board' && tz !== 'box'));                     // לוח מייבא רק קופסאות
     if (bad) { console.error(`🚨 הפרת-חיווט: ${rel} (${zone}) ← ${target} (${tz})`); fail = 1; }
   }
 }

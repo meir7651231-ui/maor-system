@@ -3,8 +3,8 @@
  "root": "/home/user/maor-system",
  "generatedBy": "machtzev/census v1",
  "totals": {
-  "files": 985,
-  "lines": 582478,
+  "files": 991,
+  "lines": 582657,
   "orphans": 0
  },
  "byDomain": {
@@ -14,23 +14,23 @@
   },
   "data": {
    "files": 45,
-   "lines": 425254
+   "lines": 425288
   },
   "knowledge": {
-   "files": 136,
-   "lines": 24734
+   "files": 138,
+   "lines": 24789
   },
   "tests": {
-   "files": 359,
-   "lines": 32722
+   "files": 360,
+   "lines": 32735
   },
   "server": {
    "files": 64,
    "lines": 16083
   },
   "source": {
-   "files": 75,
-   "lines": 12611
+   "files": 78,
+   "lines": 12688
   },
   "assets": {
    "files": 38,
@@ -1126,6 +1126,12 @@
    "lines": 65
   },
   {
+   "path": "machtzev/contract-check.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 23
+  },
+  {
    "path": "machtzev/DEDUP-REPORT.md",
    "bucket": "knowledge",
    "domain": "knowledge",
@@ -1190,6 +1196,30 @@
    "bucket": "source",
    "domain": "source",
    "lines": 28
+  },
+  {
+   "path": "machtzev/LAW.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 37
+  },
+  {
+   "path": "machtzev/new/atoms/levenshtein.contract.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 18
+  },
+  {
+   "path": "machtzev/new/atoms/levenshtein.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 21
+  },
+  {
+   "path": "machtzev/new/atoms/levenshtein.test.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 13
   },
   {
    "path": "machtzev/README.md",
@@ -1369,7 +1399,7 @@
    "path": "machtzev/registry/atoms-L8-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 1222
+   "lines": 1232
   },
   {
    "path": "machtzev/registry/atoms-L8-yoman.json",
@@ -1387,7 +1417,7 @@
    "path": "machtzev/registry/census-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 5953
+   "lines": 5977
   },
   {
    "path": "machtzev/registry/census-yoman.json",
@@ -1405,13 +1435,19 @@
    "path": "machtzev/run.mjs",
    "bucket": "source",
    "domain": "source",
-   "lines": 31
+   "lines": 33
   },
   {
    "path": "machtzev/STATUS.md",
    "bucket": "knowledge",
    "domain": "knowledge",
    "lines": 45
+  },
+  {
+   "path": "machtzev/wiring-check.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 31
   },
   {
    "path": "package-lock.json",

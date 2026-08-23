@@ -1070,6 +1070,26 @@
   "source": "maor/machtzev/DEDUP-REPORT.md"
  },
  {
+  "id": "L8:maor:machtzev/LAW.md",
+  "level": "L8-knowledge",
+  "name": "LAW.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 37,
+  "title": "⚡ חוקי-החשמלאי — חוקת הבנייה-מחדש (הכרעת-בעלים 24.8.2026)",
+  "source": "maor/machtzev/LAW.md"
+ },
+ {
+  "id": "L8:maor:machtzev/new/atoms/levenshtein.contract.md",
+  "level": "L8-knowledge",
+  "name": "levenshtein.contract.md",
+  "type": "OTHER",
+  "date": null,
+  "lines": 18,
+  "title": "חוזה · חוט levenshtein",
+  "source": "maor/machtzev/new/atoms/levenshtein.contract.md"
+ },
+ {
   "id": "L8:maor:machtzev/README.md",
   "level": "L8-knowledge",
   "name": "README.md",
