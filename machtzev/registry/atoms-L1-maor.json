@@ -1,0 +1,2175 @@
+[
+ {
+  "id": "L1:maor:A11yFab@src/components/A11yFab.tsx",
+  "level": "L1-component",
+  "name": "A11yFab",
+  "lines": 194,
+  "source": "maor/src/components/A11yFab.tsx"
+ },
+ {
+  "id": "L1:maor:HubButton@src/components/AdminHub.tsx",
+  "level": "L1-component",
+  "name": "HubButton",
+  "lines": 72,
+  "source": "maor/src/components/AdminHub.tsx"
+ },
+ {
+  "id": "L1:maor:AdminHub@src/components/AdminHub.tsx",
+  "level": "L1-component",
+  "name": "AdminHub",
+  "lines": 72,
+  "source": "maor/src/components/AdminHub.tsx"
+ },
+ {
+  "id": "L1:maor:AskMaorModal@src/components/AskMaor.tsx",
+  "level": "L1-component",
+  "name": "AskMaorModal",
+  "lines": 78,
+  "source": "maor/src/components/AskMaor.tsx"
+ },
+ {
+  "id": "L1:maor:BuilderWizard@src/components/builder/BuilderWizard.tsx",
+  "level": "L3-screen",
+  "name": "BuilderWizard",
+  "composes": [
+   "TelephonyPanel",
+   "Btn",
+   "Chip",
+   "Field",
+   "TextInput",
+   "FormError"
+  ],
+  "lines": 1910,
+  "source": "maor/src/components/builder/BuilderWizard.tsx"
+ },
+ {
+  "id": "L1:maor:RemoteWizard@src/components/builder/RemoteWizard.tsx",
+  "level": "L1-component",
+  "name": "RemoteWizard",
+  "lines": 162,
+  "source": "maor/src/components/builder/RemoteWizard.tsx"
+ },
+ {
+  "id": "L1:maor:BUILDER_PREV_KEY@src/components/builder/RemoteWizard.tsx",
+  "level": "L1-component",
+  "name": "BUILDER_PREV_KEY",
+  "lines": 162,
+  "source": "maor/src/components/builder/RemoteWizard.tsx"
+ },
+ {
+  "id": "L1:maor:CalendarView@src/components/calendar/CalendarView.tsx",
+  "level": "L3-screen",
+  "name": "CalendarView",
+  "composes": [
+   "DayModal",
+   "EventModal",
+   "IcsFeedModal",
+   "CustomExport",
+   "Btn",
+   "Chip",
+   "Empty",
+   "PageHead"
+  ],
+  "lines": 661,
+  "source": "maor/src/components/calendar/CalendarView.tsx"
+ },
+ {
+  "id": "L1:maor:DayModal@src/components/calendar/DayModal.tsx",
+  "level": "L1-component",
+  "name": "DayModal",
+  "lines": 231,
+  "source": "maor/src/components/calendar/DayModal.tsx"
+ },
+ {
+  "id": "L1:maor:EventModal@src/components/calendar/EventModal.tsx",
+  "level": "L3-screen",
+  "name": "EventModal",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 349,
+  "source": "maor/src/components/calendar/EventModal.tsx"
+ },
+ {
+  "id": "L1:maor:IcsFeedModal@src/components/calendar/IcsFeedModal.tsx",
+  "level": "L1-component",
+  "name": "IcsFeedModal",
+  "lines": 114,
+  "source": "maor/src/components/calendar/IcsFeedModal.tsx"
+ },
+ {
+  "id": "L1:maor:CalendarPicker@src/components/CalendarPicker.tsx",
+  "level": "L1-component",
+  "name": "CalendarPicker",
+  "lines": 175,
+  "source": "maor/src/components/CalendarPicker.tsx"
+ },
+ {
+  "id": "L1:maor:CallBtn@src/components/CallBtn.tsx",
+  "level": "L1-component",
+  "name": "CallBtn",
+  "lines": 24,
+  "source": "maor/src/components/CallBtn.tsx"
+ },
+ {
+  "id": "L1:maor:CallerLookup@src/components/CallerLookup.tsx",
+  "level": "L1-component",
+  "name": "CallerLookup",
+  "lines": 186,
+  "source": "maor/src/components/CallerLookup.tsx"
+ },
+ {
+  "id": "L1:maor:CallbackModal@src/components/cloud/CallbackModal.tsx",
+  "level": "L1-component",
+  "name": "CallbackModal",
+  "lines": 114,
+  "source": "maor/src/components/cloud/CallbackModal.tsx"
+ },
+ {
+  "id": "L1:maor:ChangePasswordModal@src/components/cloud/ChangePasswordModal.tsx",
+  "level": "L1-component",
+  "name": "ChangePasswordModal",
+  "lines": 66,
+  "source": "maor/src/components/cloud/ChangePasswordModal.tsx"
+ },
+ {
+  "id": "L1:maor:EmployeeSignup@src/components/cloud/EmployeeSignup.tsx",
+  "level": "L1-component",
+  "name": "EmployeeSignup",
+  "lines": 87,
+  "source": "maor/src/components/cloud/EmployeeSignup.tsx"
+ },
+ {
+  "id": "L1:maor:LoginScreen@src/components/cloud/LoginScreen.tsx",
+  "level": "L3-screen",
+  "name": "LoginScreen",
+  "composes": [
+   "CallbackModal",
+   "EmployeeSignup",
+   "NewsReader",
+   "SignupHero",
+   "SignupWizard",
+   "VideoModal"
+  ],
+  "lines": 294,
+  "source": "maor/src/components/cloud/LoginScreen.tsx"
+ },
+ {
+  "id": "L1:maor:PendingApprovalScreen@src/components/cloud/LoginScreen.tsx",
+  "level": "L3-screen",
+  "name": "PendingApprovalScreen",
+  "composes": [
+   "CallbackModal",
+   "EmployeeSignup",
+   "NewsReader",
+   "SignupHero",
+   "SignupWizard",
+   "VideoModal"
+  ],
+  "lines": 294,
+  "source": "maor/src/components/cloud/LoginScreen.tsx"
+ },
+ {
+  "id": "L1:maor:NetCheckModal@src/components/cloud/NetCheckModal.tsx",
+  "level": "L1-component",
+  "name": "NetCheckModal",
+  "lines": 129,
+  "source": "maor/src/components/cloud/NetCheckModal.tsx"
+ },
+ {
+  "id": "L1:maor:NewsReader@src/components/cloud/NewsReader.tsx",
+  "level": "L1-component",
+  "name": "NewsReader",
+  "lines": 41,
+  "source": "maor/src/components/cloud/NewsReader.tsx"
+ },
+ {
+  "id": "L1:maor:SignupHero@src/components/cloud/SignupHero.tsx",
+  "level": "L1-component",
+  "name": "SignupHero",
+  "lines": 58,
+  "source": "maor/src/components/cloud/SignupHero.tsx"
+ },
+ {
+  "id": "L1:maor:SignupWizard@src/components/cloud/SignupWizard.tsx",
+  "level": "L1-component",
+  "name": "SignupWizard",
+  "lines": 209,
+  "source": "maor/src/components/cloud/SignupWizard.tsx"
+ },
+ {
+  "id": "L1:maor:VideoModal@src/components/cloud/VideoModal.tsx",
+  "level": "L1-component",
+  "name": "VideoModal",
+  "lines": 44,
+  "source": "maor/src/components/cloud/VideoModal.tsx"
+ },
+ {
+  "id": "L1:maor:AbsenceModal@src/components/courses/AbsenceModal.tsx",
+  "level": "L3-screen",
+  "name": "AbsenceModal",
+  "composes": [
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 131,
+  "source": "maor/src/components/courses/AbsenceModal.tsx"
+ },
+ {
+  "id": "L1:maor:AttendanceSheet@src/components/courses/AttendanceSheet.tsx",
+  "level": "L1-component",
+  "name": "AttendanceSheet",
+  "lines": 108,
+  "source": "maor/src/components/courses/AttendanceSheet.tsx"
+ },
+ {
+  "id": "L1:maor:ClassBroadcast@src/components/courses/ClassBroadcast.tsx",
+  "level": "L3-screen",
+  "name": "ClassBroadcast",
+  "composes": [
+   "Btn",
+   "Modal",
+   "Field",
+   "Empty",
+   "WaBtn"
+  ],
+  "lines": 68,
+  "source": "maor/src/components/courses/ClassBroadcast.tsx"
+ },
+ {
+  "id": "L1:maor:CollectionCenter@src/components/courses/CollectionCenter.tsx",
+  "level": "L1-component",
+  "name": "CollectionCenter",
+  "lines": 116,
+  "source": "maor/src/components/courses/CollectionCenter.tsx"
+ },
+ {
+  "id": "L1:maor:CourseDetail@src/components/courses/CourseDetail.tsx",
+  "level": "L3-screen",
+  "name": "CourseDetail",
+  "composes": [
+   "AbsenceModal",
+   "AttendanceSheet",
+   "ClassBroadcast",
+   "CourseForm",
+   "EnrollModal",
+   "ManageModal",
+   "HebDateInput",
+   "CustomExport",
+   "Btn",
+   "StickyBackBar",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "Empty"
+  ],
+  "lines": 1001,
+  "source": "maor/src/components/courses/CourseDetail.tsx"
+ },
+ {
+  "id": "L1:maor:CourseFilesField@src/components/courses/CourseFilesField.tsx",
+  "level": "L1-component",
+  "name": "CourseFilesField",
+  "lines": 127,
+  "source": "maor/src/components/courses/CourseFilesField.tsx"
+ },
+ {
+  "id": "L1:maor:CourseForm@src/components/courses/CourseForm.tsx",
+  "level": "L3-screen",
+  "name": "CourseForm",
+  "composes": [
+   "CourseFilesField",
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 648,
+  "source": "maor/src/components/courses/CourseForm.tsx"
+ },
+ {
+  "id": "L1:maor:CoursesCockpit@src/components/courses/CoursesCockpit.tsx",
+  "level": "L1-component",
+  "name": "CoursesCockpit",
+  "lines": 125,
+  "source": "maor/src/components/courses/CoursesCockpit.tsx"
+ },
+ {
+  "id": "L1:maor:CoursesDashboard@src/components/courses/CoursesDashboard.tsx",
+  "level": "L1-component",
+  "name": "CoursesDashboard",
+  "lines": 185,
+  "source": "maor/src/components/courses/CoursesDashboard.tsx"
+ },
+ {
+  "id": "L1:maor:CoursesView@src/components/courses/CoursesView.tsx",
+  "level": "L3-screen",
+  "name": "CoursesView",
+  "composes": [
+   "CollectionCenter",
+   "CourseDetail",
+   "CourseForm",
+   "CoursesCockpit",
+   "CoursesDashboard",
+   "RetentionCenter",
+   "TeacherPanel",
+   "Btn",
+   "Modal",
+   "TextInput",
+   "Select",
+   "Empty",
+   "PageHead",
+   "CourseWheel"
+  ],
+  "lines": 661,
+  "source": "maor/src/components/courses/CoursesView.tsx"
+ },
+ {
+  "id": "L1:maor:EnrollModal@src/components/courses/EnrollModal.tsx",
+  "level": "L3-screen",
+  "name": "EnrollModal",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 464,
+  "source": "maor/src/components/courses/EnrollModal.tsx"
+ },
+ {
+  "id": "L1:maor:ManageModal@src/components/courses/ManageModal.tsx",
+  "level": "L3-screen",
+  "name": "ManageModal",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "WaBtn"
+  ],
+  "lines": 586,
+  "source": "maor/src/components/courses/ManageModal.tsx"
+ },
+ {
+  "id": "L1:maor:ParentCard@src/components/courses/ParentCard.tsx",
+  "level": "L1-component",
+  "name": "ParentCard",
+  "lines": 129,
+  "source": "maor/src/components/courses/ParentCard.tsx"
+ },
+ {
+  "id": "L1:maor:RegisterModal@src/components/courses/ReenrollModals.tsx",
+  "level": "L1-component",
+  "name": "RegisterModal",
+  "lines": 170,
+  "source": "maor/src/components/courses/ReenrollModals.tsx"
+ },
+ {
+  "id": "L1:maor:HistoryModal@src/components/courses/ReenrollModals.tsx",
+  "level": "L1-component",
+  "name": "HistoryModal",
+  "lines": 170,
+  "source": "maor/src/components/courses/ReenrollModals.tsx"
+ },
+ {
+  "id": "L1:maor:ReenrollView@src/components/courses/ReenrollView.tsx",
+  "level": "L3-screen",
+  "name": "ReenrollView",
+  "composes": [
+   "RegisterModal",
+   "HistoryModal",
+   "Btn",
+   "TextInput",
+   "Select",
+   "Empty",
+   "PageHead"
+  ],
+  "lines": 349,
+  "source": "maor/src/components/courses/ReenrollView.tsx"
+ },
+ {
+  "id": "L1:maor:RetentionCenter@src/components/courses/RetentionCenter.tsx",
+  "level": "L1-component",
+  "name": "RetentionCenter",
+  "lines": 138,
+  "source": "maor/src/components/courses/RetentionCenter.tsx"
+ },
+ {
+  "id": "L1:maor:TeacherPanel@src/components/courses/TeacherPanel.tsx",
+  "level": "L3-screen",
+  "name": "TeacherPanel",
+  "composes": [
+   "AttendanceSheet",
+   "ClassBroadcast",
+   "Btn",
+   "Empty"
+  ],
+  "lines": 151,
+  "source": "maor/src/components/courses/TeacherPanel.tsx"
+ },
+ {
+  "id": "L1:maor:DemoDrop@src/components/DemoDrop.tsx",
+  "level": "L1-component",
+  "name": "DemoDrop",
+  "lines": 114,
+  "source": "maor/src/components/DemoDrop.tsx"
+ },
+ {
+  "id": "L1:maor:DemoRibbon@src/components/DemoRibbon.tsx",
+  "level": "L1-component",
+  "name": "DemoRibbon",
+  "lines": 85,
+  "source": "maor/src/components/DemoRibbon.tsx"
+ },
+ {
+  "id": "L1:maor:DialerModal@src/components/dialer/DialerModal.tsx",
+  "level": "L3-screen",
+  "name": "DialerModal",
+  "composes": [
+   "CallBtn",
+   "HebDateInput",
+   "DonationModal",
+   "SupporterForm",
+   "Btn",
+   "Modal",
+   "Empty",
+   "WaBtn"
+  ],
+  "lines": 535,
+  "source": "maor/src/components/dialer/DialerModal.tsx"
+ },
+ {
+  "id": "L1:maor:AbsenceHistoryModal@src/components/diary/AbsenceHistoryModal.tsx",
+  "level": "L1-component",
+  "name": "AbsenceHistoryModal",
+  "lines": 59,
+  "source": "maor/src/components/diary/AbsenceHistoryModal.tsx"
+ },
+ {
+  "id": "L1:maor:AttendancePanel@src/components/diary/AttendancePanel.tsx",
+  "level": "L3-screen",
+  "name": "AttendancePanel",
+  "composes": [
+   "AbsenceHistoryModal",
+   "DiaryAbsenceModal",
+   "Btn",
+   "Empty"
+  ],
+  "lines": 157,
+  "source": "maor/src/components/diary/AttendancePanel.tsx"
+ },
+ {
+  "id": "L1:maor:DiaryAbsenceModal@src/components/diary/DiaryAbsenceModal.tsx",
+  "level": "L3-screen",
+  "name": "DiaryAbsenceModal",
+  "composes": [
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 136,
+  "source": "maor/src/components/diary/DiaryAbsenceModal.tsx"
+ },
+ {
+  "id": "L1:maor:DiaryView@src/components/diary/DiaryView.tsx",
+  "level": "L3-screen",
+  "name": "DiaryView",
+  "composes": [
+   "EventModal",
+   "AttendancePanel",
+   "HebDateInput",
+   "Btn",
+   "Chip",
+   "Empty",
+   "PageHead"
+  ],
+  "lines": 295,
+  "source": "maor/src/components/diary/DiaryView.tsx"
+ },
+ {
+  "id": "L1:maor:DedupModal@src/components/families/DedupModal.tsx",
+  "level": "L1-component",
+  "name": "DedupModal",
+  "lines": 218,
+  "source": "maor/src/components/families/DedupModal.tsx"
+ },
+ {
+  "id": "L1:maor:FamiliesView@src/components/families/FamiliesView.tsx",
+  "level": "L3-screen",
+  "name": "FamiliesView",
+  "composes": [
+   "CallBtn",
+   "FamilyDetail",
+   "FamilyFinder",
+   "FamilyForm",
+   "IncMoreRow",
+   "IncMoreCard",
+   "Btn",
+   "TextInput",
+   "Select",
+   "Empty",
+   "PageHead",
+   "ActionsMenu"
+  ],
+  "lines": 661,
+  "source": "maor/src/components/families/FamiliesView.tsx"
+ },
+ {
+  "id": "L1:maor:FamilyDetail@src/components/families/FamilyDetail.tsx",
+  "level": "L3-screen",
+  "name": "FamilyDetail",
+  "composes": [
+   "CallBtn",
+   "FamilyForm",
+   "DocsPanel",
+   "CredPanel",
+   "EnrollPanel",
+   "EventsPanel",
+   "MemberForm",
+   "ReenrollFamilyPanel",
+   "ShopFamilyPanel",
+   "Shop7FamilyPanel",
+   "TzFamilyPanel",
+   "Btn",
+   "StickyBackBar",
+   "Empty",
+   "WaBtn"
+  ],
+  "lines": 497,
+  "source": "maor/src/components/families/FamilyDetail.tsx"
+ },
+ {
+  "id": "L1:maor:FamilyFinder@src/components/families/FamilyFinder.tsx",
+  "level": "L1-component",
+  "name": "FamilyFinder",
+  "lines": 203,
+  "source": "maor/src/components/families/FamilyFinder.tsx"
+ },
+ {
+  "id": "L1:maor:FamilyForm@src/components/families/FamilyForm.tsx",
+  "level": "L3-screen",
+  "name": "FamilyForm",
+  "composes": [
+   "Btn",
+   "Chip",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 338,
+  "source": "maor/src/components/families/FamilyForm.tsx"
+ },
+ {
+  "id": "L1:maor:DocsPanel@src/components/families/FamilyPanels.tsx",
+  "level": "L3-screen",
+  "name": "DocsPanel",
+  "composes": [
+   "EventModal",
+   "AbsenceModal",
+   "ManageModal",
+   "ParentCard",
+   "JoinModal",
+   "Btn",
+   "TextInput",
+   "Empty"
+  ],
+  "lines": 640,
+  "source": "maor/src/components/families/FamilyPanels.tsx"
+ },
+ {
+  "id": "L1:maor:CredPanel@src/components/families/FamilyPanels.tsx",
+  "level": "L3-screen",
+  "name": "CredPanel",
+  "composes": [
+   "EventModal",
+   "AbsenceModal",
+   "ManageModal",
+   "ParentCard",
+   "JoinModal",
+   "Btn",
+   "TextInput",
+   "Empty"
+  ],
+  "lines": 640,
+  "source": "maor/src/components/families/FamilyPanels.tsx"
+ },
+ {
+  "id": "L1:maor:EnrollPanel@src/components/families/FamilyPanels.tsx",
+  "level": "L3-screen",
+  "name": "EnrollPanel",
+  "composes": [
+   "EventModal",
+   "AbsenceModal",
+   "ManageModal",
+   "ParentCard",
+   "JoinModal",
+   "Btn",
+   "TextInput",
+   "Empty"
+  ],
+  "lines": 640,
+  "source": "maor/src/components/families/FamilyPanels.tsx"
+ },
+ {
+  "id": "L1:maor:EventsPanel@src/components/families/FamilyPanels.tsx",
+  "level": "L3-screen",
+  "name": "EventsPanel",
+  "composes": [
+   "EventModal",
+   "AbsenceModal",
+   "ManageModal",
+   "ParentCard",
+   "JoinModal",
+   "Btn",
+   "TextInput",
+   "Empty"
+  ],
+  "lines": 640,
+  "source": "maor/src/components/families/FamilyPanels.tsx"
+ },
+ {
+  "id": "L1:maor:JoinModal@src/components/families/JoinModal.tsx",
+  "level": "L3-screen",
+  "name": "JoinModal",
+  "composes": [
+   "MemberForm",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 452,
+  "source": "maor/src/components/families/JoinModal.tsx"
+ },
+ {
+  "id": "L1:maor:MemberForm@src/components/families/MemberForm.tsx",
+  "level": "L3-screen",
+  "name": "MemberForm",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Chip",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 205,
+  "source": "maor/src/components/families/MemberForm.tsx"
+ },
+ {
+  "id": "L1:maor:ReenrollFamilyPanel@src/components/families/ReenrollFamilyPanel.tsx",
+  "level": "L3-screen",
+  "name": "ReenrollFamilyPanel",
+  "composes": [
+   "RegisterModal",
+   "HistoryModal",
+   "Btn",
+   "Empty"
+  ],
+  "lines": 132,
+  "source": "maor/src/components/families/ReenrollFamilyPanel.tsx"
+ },
+ {
+  "id": "L1:maor:GuideModal@src/components/GuideModal.tsx",
+  "level": "L1-component",
+  "name": "GuideModal",
+  "lines": 65,
+  "source": "maor/src/components/GuideModal.tsx"
+ },
+ {
+  "id": "L1:maor:HebDateInput@src/components/HebDateInput.tsx",
+  "level": "L1-component",
+  "name": "HebDateInput",
+  "lines": 174,
+  "source": "maor/src/components/HebDateInput.tsx"
+ },
+ {
+  "id": "L1:maor:BoardEditor@src/components/home/BoardEdit.tsx",
+  "level": "L1-component",
+  "name": "BoardEditor",
+  "lines": 312,
+  "source": "maor/src/components/home/BoardEdit.tsx"
+ },
+ {
+  "id": "L1:maor:HomeView@src/components/home/HomeView.tsx",
+  "level": "L3-screen",
+  "name": "HomeView",
+  "composes": [
+   "BoardEditor",
+   "MorningBriefCard"
+  ],
+  "lines": 287,
+  "source": "maor/src/components/home/HomeView.tsx"
+ },
+ {
+  "id": "L1:maor:MorningBriefCard@src/components/home/MorningBrief.tsx",
+  "level": "L1-component",
+  "name": "MorningBriefCard",
+  "lines": 92,
+  "source": "maor/src/components/home/MorningBrief.tsx"
+ },
+ {
+  "id": "L1:maor:HOME_WIDGETS@src/components/home/widgets.tsx",
+  "level": "L3-screen",
+  "name": "HOME_WIDGETS",
+  "composes": [
+   "CallBtn",
+   "Btn",
+   "Chip",
+   "Modal",
+   "WaBtn"
+  ],
+  "lines": 2201,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L1:maor:THEME_LAYOUTS@src/components/home/widgets.tsx",
+  "level": "L3-screen",
+  "name": "THEME_LAYOUTS",
+  "composes": [
+   "CallBtn",
+   "Btn",
+   "Chip",
+   "Modal",
+   "WaBtn"
+  ],
+  "lines": 2201,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L1:maor:THEME_TEMPLATES@src/components/home/widgets.tsx",
+  "level": "L3-screen",
+  "name": "THEME_TEMPLATES",
+  "composes": [
+   "CallBtn",
+   "Btn",
+   "Chip",
+   "Modal",
+   "WaBtn"
+  ],
+  "lines": 2201,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L1:maor:DEFAULT_LAYOUT@src/components/home/widgets.tsx",
+  "level": "L3-screen",
+  "name": "DEFAULT_LAYOUT",
+  "composes": [
+   "CallBtn",
+   "Btn",
+   "Chip",
+   "Modal",
+   "WaBtn"
+  ],
+  "lines": 2201,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L1:maor:FULL_LAYOUTS@src/components/home/widgets.tsx",
+  "level": "L3-screen",
+  "name": "FULL_LAYOUTS",
+  "composes": [
+   "CallBtn",
+   "Btn",
+   "Chip",
+   "Modal",
+   "WaBtn"
+  ],
+  "lines": 2201,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L1:maor:WIDGET_LIBRARY@src/components/home/widgets.tsx",
+  "level": "L3-screen",
+  "name": "WIDGET_LIBRARY",
+  "composes": [
+   "CallBtn",
+   "Btn",
+   "Chip",
+   "Modal",
+   "WaBtn"
+  ],
+  "lines": 2201,
+  "source": "maor/src/components/home/widgets.tsx"
+ },
+ {
+  "id": "L1:maor:IncMoreRow@src/components/incremental.tsx",
+  "level": "L1-component",
+  "name": "IncMoreRow",
+  "lines": 95,
+  "source": "maor/src/components/incremental.tsx"
+ },
+ {
+  "id": "L1:maor:IncMoreCard@src/components/incremental.tsx",
+  "level": "L1-component",
+  "name": "IncMoreCard",
+  "lines": 95,
+  "source": "maor/src/components/incremental.tsx"
+ },
+ {
+  "id": "L1:maor:INC_CHUNK@src/components/incremental.tsx",
+  "level": "L1-component",
+  "name": "INC_CHUNK",
+  "lines": 95,
+  "source": "maor/src/components/incremental.tsx"
+ },
+ {
+  "id": "L1:maor:CloudUnlockScreen@src/components/lock/CloudUnlockScreen.tsx",
+  "level": "L3-screen",
+  "name": "CloudUnlockScreen",
+  "composes": [
+   "Btn",
+   "Field",
+   "TextInput",
+   "FormError"
+  ],
+  "lines": 107,
+  "source": "maor/src/components/lock/CloudUnlockScreen.tsx"
+ },
+ {
+  "id": "L1:maor:EncUnlockScreen@src/components/lock/EncUnlockScreen.tsx",
+  "level": "L3-screen",
+  "name": "EncUnlockScreen",
+  "composes": [
+   "Btn",
+   "Field",
+   "TextInput",
+   "FormError"
+  ],
+  "lines": 106,
+  "source": "maor/src/components/lock/EncUnlockScreen.tsx"
+ },
+ {
+  "id": "L1:maor:LockScreen@src/components/lock/LockScreen.tsx",
+  "level": "L3-screen",
+  "name": "LockScreen",
+  "composes": [],
+  "lines": 200,
+  "source": "maor/src/components/lock/LockScreen.tsx"
+ },
+ {
+  "id": "L1:maor:CommandPalette@src/components/palette/CommandPalette.tsx",
+  "level": "L1-component",
+  "name": "CommandPalette",
+  "lines": 963,
+  "source": "maor/src/components/palette/CommandPalette.tsx"
+ },
+ {
+  "id": "L1:maor:PhotoField@src/components/PhotoField.tsx",
+  "level": "L1-component",
+  "name": "PhotoField",
+  "lines": 68,
+  "source": "maor/src/components/PhotoField.tsx"
+ },
+ {
+  "id": "L1:maor:ManagerPanel@src/components/platform/ManagerPanel.tsx",
+  "level": "L3-screen",
+  "name": "ManagerPanel",
+  "composes": [
+   "Btn",
+   "Chip",
+   "Modal",
+   "Field",
+   "TextInput"
+  ],
+  "lines": 637,
+  "source": "maor/src/components/platform/ManagerPanel.tsx"
+ },
+ {
+  "id": "L1:maor:PlatformPanel@src/components/platform/PlatformPanel.tsx",
+  "level": "L3-screen",
+  "name": "PlatformPanel",
+  "composes": [
+   "Btn",
+   "Chip",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 661,
+  "source": "maor/src/components/platform/PlatformPanel.tsx"
+ },
+ {
+  "id": "L1:maor:PortalEntry@src/components/public/PortalEntry.tsx",
+  "level": "L1-component",
+  "name": "PortalEntry",
+  "lines": 186,
+  "source": "maor/src/components/public/PortalEntry.tsx"
+ },
+ {
+  "id": "L1:maor:PublicSite@src/components/public/PublicSite.tsx",
+  "level": "L1-component",
+  "name": "PublicSite",
+  "lines": 764,
+  "source": "maor/src/components/public/PublicSite.tsx"
+ },
+ {
+  "id": "L1:maor:CustomExport@src/components/reports/CustomExport.tsx",
+  "level": "L1-component",
+  "name": "CustomExport",
+  "lines": 199,
+  "source": "maor/src/components/reports/CustomExport.tsx"
+ },
+ {
+  "id": "L1:maor:ManagementSection@src/components/reports/management.tsx",
+  "level": "L1-component",
+  "name": "ManagementSection",
+  "lines": 144,
+  "source": "maor/src/components/reports/management.tsx"
+ },
+ {
+  "id": "L1:maor:ReportTable@src/components/reports/parts.tsx",
+  "level": "L1-component",
+  "name": "ReportTable",
+  "lines": 239,
+  "source": "maor/src/components/reports/parts.tsx"
+ },
+ {
+  "id": "L1:maor:Section@src/components/reports/parts.tsx",
+  "level": "L1-component",
+  "name": "Section",
+  "lines": 239,
+  "source": "maor/src/components/reports/parts.tsx"
+ },
+ {
+  "id": "L1:maor:ReportPrefsSection@src/components/reports/prefs.tsx",
+  "level": "L1-component",
+  "name": "ReportPrefsSection",
+  "lines": 103,
+  "source": "maor/src/components/reports/prefs.tsx"
+ },
+ {
+  "id": "L1:maor:ReportsView@src/components/reports/ReportsView.tsx",
+  "level": "L3-screen",
+  "name": "ReportsView",
+  "composes": [
+   "ManagementSection",
+   "ReportPrefsSection",
+   "EnrollmentSection",
+   "AttendanceSection",
+   "AyinNamesSection",
+   "DonationsSection",
+   "FamiliesSection",
+   "PunchSection",
+   "Btn",
+   "Field",
+   "TextInput",
+   "FormError",
+   "PageHead"
+  ],
+  "lines": 169,
+  "source": "maor/src/components/reports/ReportsView.tsx"
+ },
+ {
+  "id": "L1:maor:EnrollmentSection@src/components/reports/sections1.tsx",
+  "level": "L1-component",
+  "name": "EnrollmentSection",
+  "lines": 200,
+  "source": "maor/src/components/reports/sections1.tsx"
+ },
+ {
+  "id": "L1:maor:AttendanceSection@src/components/reports/sections1.tsx",
+  "level": "L1-component",
+  "name": "AttendanceSection",
+  "lines": 200,
+  "source": "maor/src/components/reports/sections1.tsx"
+ },
+ {
+  "id": "L1:maor:AyinNamesSection@src/components/reports/sections2.tsx",
+  "level": "L1-component",
+  "name": "AyinNamesSection",
+  "lines": 262,
+  "source": "maor/src/components/reports/sections2.tsx"
+ },
+ {
+  "id": "L1:maor:DonationsSection@src/components/reports/sections2.tsx",
+  "level": "L1-component",
+  "name": "DonationsSection",
+  "lines": 262,
+  "source": "maor/src/components/reports/sections2.tsx"
+ },
+ {
+  "id": "L1:maor:FamiliesSection@src/components/reports/sections2.tsx",
+  "level": "L1-component",
+  "name": "FamiliesSection",
+  "lines": 262,
+  "source": "maor/src/components/reports/sections2.tsx"
+ },
+ {
+  "id": "L1:maor:PunchSection@src/components/reports/sections2.tsx",
+  "level": "L1-component",
+  "name": "PunchSection",
+  "lines": 262,
+  "source": "maor/src/components/reports/sections2.tsx"
+ },
+ {
+  "id": "L1:maor:AccessSection@src/components/settings/AccessSection.tsx",
+  "level": "L1-component",
+  "name": "AccessSection",
+  "lines": 109,
+  "source": "maor/src/components/settings/AccessSection.tsx"
+ },
+ {
+  "id": "L1:maor:AuditSection@src/components/settings/AuditSection.tsx",
+  "level": "L1-component",
+  "name": "AuditSection",
+  "lines": 156,
+  "source": "maor/src/components/settings/AuditSection.tsx"
+ },
+ {
+  "id": "L1:maor:BackupSection@src/components/settings/BackupSection.tsx",
+  "level": "L3-screen",
+  "name": "BackupSection",
+  "composes": [
+   "Section",
+   "SectionNote",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "FormError"
+  ],
+  "lines": 359,
+  "source": "maor/src/components/settings/BackupSection.tsx"
+ },
+ {
+  "id": "L1:maor:CloudEncryptionSection@src/components/settings/CloudEncryptionSection.tsx",
+  "level": "L3-screen",
+  "name": "CloudEncryptionSection",
+  "composes": [
+   "Section",
+   "SectionNote",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "FormError"
+  ],
+  "lines": 186,
+  "source": "maor/src/components/settings/CloudEncryptionSection.tsx"
+ },
+ {
+  "id": "L1:maor:DonationSplitSection@src/components/settings/DonationSplitSection.tsx",
+  "level": "L1-component",
+  "name": "DonationSplitSection",
+  "lines": 164,
+  "source": "maor/src/components/settings/DonationSplitSection.tsx"
+ },
+ {
+  "id": "L1:maor:DonorImportSection@src/components/settings/DonorImportSection.tsx",
+  "level": "L1-component",
+  "name": "DonorImportSection",
+  "lines": 120,
+  "source": "maor/src/components/settings/DonorImportSection.tsx"
+ },
+ {
+  "id": "L1:maor:EmployeeMgmtSection@src/components/settings/EmployeeMgmtSection.tsx",
+  "level": "L1-component",
+  "name": "EmployeeMgmtSection",
+  "lines": 97,
+  "source": "maor/src/components/settings/EmployeeMgmtSection.tsx"
+ },
+ {
+  "id": "L1:maor:EncryptionSection@src/components/settings/EncryptionSection.tsx",
+  "level": "L3-screen",
+  "name": "EncryptionSection",
+  "composes": [
+   "Section",
+   "SectionNote",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "FormError"
+  ],
+  "lines": 234,
+  "source": "maor/src/components/settings/EncryptionSection.tsx"
+ },
+ {
+  "id": "L1:maor:ExportSection@src/components/settings/ExportSection.tsx",
+  "level": "L1-component",
+  "name": "ExportSection",
+  "lines": 227,
+  "source": "maor/src/components/settings/ExportSection.tsx"
+ },
+ {
+  "id": "L1:maor:ImportSection@src/components/settings/ImportSection.tsx",
+  "level": "L3-screen",
+  "name": "ImportSection",
+  "composes": [
+   "Section",
+   "SectionNote",
+   "SupporterImport",
+   "Btn",
+   "Chip",
+   "Field",
+   "FormError"
+  ],
+  "lines": 1093,
+  "source": "maor/src/components/settings/ImportSection.tsx"
+ },
+ {
+  "id": "L1:maor:Section@src/components/settings/lib.tsx",
+  "level": "L1-component",
+  "name": "Section",
+  "lines": 98,
+  "source": "maor/src/components/settings/lib.tsx"
+ },
+ {
+  "id": "L1:maor:SectionNote@src/components/settings/lib.tsx",
+  "level": "L1-component",
+  "name": "SectionNote",
+  "lines": 98,
+  "source": "maor/src/components/settings/lib.tsx"
+ },
+ {
+  "id": "L1:maor:Toggle@src/components/settings/lib.tsx",
+  "level": "L1-component",
+  "name": "Toggle",
+  "lines": 98,
+  "source": "maor/src/components/settings/lib.tsx"
+ },
+ {
+  "id": "L1:maor:OrgSecretsSection@src/components/settings/OrgSecretsSection.tsx",
+  "level": "L3-screen",
+  "name": "OrgSecretsSection",
+  "composes": [
+   "Section",
+   "SectionNote",
+   "Btn",
+   "Field",
+   "TextInput"
+  ],
+  "lines": 170,
+  "source": "maor/src/components/settings/OrgSecretsSection.tsx"
+ },
+ {
+  "id": "L1:maor:RoomsSection@src/components/settings/RoomsSection.tsx",
+  "level": "L3-screen",
+  "name": "RoomsSection",
+  "composes": [
+   "Section",
+   "SectionNote",
+   "Btn",
+   "Chip",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError",
+   "Empty"
+  ],
+  "lines": 233,
+  "source": "maor/src/components/settings/RoomsSection.tsx"
+ },
+ {
+  "id": "L1:maor:SecuritySection@src/components/settings/SecuritySection.tsx",
+  "level": "L3-screen",
+  "name": "SecuritySection",
+  "composes": [
+   "Section",
+   "SectionNote",
+   "Btn",
+   "Chip",
+   "Field",
+   "TextInput",
+   "FormError"
+  ],
+  "lines": 181,
+  "source": "maor/src/components/settings/SecuritySection.tsx"
+ },
+ {
+  "id": "L1:maor:SettingsView@src/components/settings/SettingsView.tsx",
+  "level": "L3-screen",
+  "name": "SettingsView",
+  "composes": [
+   "Section",
+   "AccessSection",
+   "AuditSection",
+   "BackupSection",
+   "CloudEncryptionSection",
+   "DonationSplitSection",
+   "DonorImportSection",
+   "EmployeeMgmtSection",
+   "EncryptionSection",
+   "ExportSection",
+   "ImportSection",
+   "SectionNote",
+   "Toggle",
+   "OrgSecretsSection",
+   "RoomsSection",
+   "SecuritySection",
+   "SupEnforceSection",
+   "TeachersSection",
+   "ThemeSection",
+   "Btn",
+   "Chip",
+   "Field",
+   "TextInput",
+   "FormError",
+   "PageHead"
+  ],
+  "lines": 566,
+  "source": "maor/src/components/settings/SettingsView.tsx"
+ },
+ {
+  "id": "L1:maor:SupEnforceSection@src/components/settings/SupEnforceSection.tsx",
+  "level": "L1-component",
+  "name": "SupEnforceSection",
+  "lines": 85,
+  "source": "maor/src/components/settings/SupEnforceSection.tsx"
+ },
+ {
+  "id": "L1:maor:TeachersSection@src/components/settings/TeachersSection.tsx",
+  "level": "L3-screen",
+  "name": "TeachersSection",
+  "composes": [
+   "HebDateInput",
+   "Section",
+   "SectionNote",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError",
+   "Empty"
+  ],
+  "lines": 388,
+  "source": "maor/src/components/settings/TeachersSection.tsx"
+ },
+ {
+  "id": "L1:maor:ThemeSection@src/components/settings/ThemeSection.tsx",
+  "level": "L1-component",
+  "name": "ThemeSection",
+  "lines": 208,
+  "source": "maor/src/components/settings/ThemeSection.tsx"
+ },
+ {
+  "id": "L1:maor:AssignmentForm@src/components/shop/AssignmentForm.tsx",
+  "level": "L3-screen",
+  "name": "AssignmentForm",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 274,
+  "source": "maor/src/components/shop/AssignmentForm.tsx"
+ },
+ {
+  "id": "L1:maor:AssignmentsTab@src/components/shop/AssignmentsTab.tsx",
+  "level": "L3-screen",
+  "name": "AssignmentsTab",
+  "composes": [
+   "AssignmentForm",
+   "BulkAssignModal",
+   "RedeemModal",
+   "ShopEventModal",
+   "Btn",
+   "Chip",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "Empty"
+  ],
+  "lines": 376,
+  "source": "maor/src/components/shop/AssignmentsTab.tsx"
+ },
+ {
+  "id": "L1:maor:BulkAssignModal@src/components/shop/BulkAssignModal.tsx",
+  "level": "L3-screen",
+  "name": "BulkAssignModal",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Chip",
+   "Modal",
+   "Field",
+   "Select",
+   "FormError"
+  ],
+  "lines": 188,
+  "source": "maor/src/components/shop/BulkAssignModal.tsx"
+ },
+ {
+  "id": "L1:maor:BulkRedeemModal@src/components/shop/BulkAssignModal.tsx",
+  "level": "L3-screen",
+  "name": "BulkRedeemModal",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Chip",
+   "Modal",
+   "Field",
+   "Select",
+   "FormError"
+  ],
+  "lines": 188,
+  "source": "maor/src/components/shop/BulkAssignModal.tsx"
+ },
+ {
+  "id": "L1:maor:CalendarTab@src/components/shop/CalendarTab.tsx",
+  "level": "L3-screen",
+  "name": "CalendarTab",
+  "composes": [
+   "ShopEventModal",
+   "Btn",
+   "Chip"
+  ],
+  "lines": 209,
+  "source": "maor/src/components/shop/CalendarTab.tsx"
+ },
+ {
+  "id": "L1:maor:CatalogTab@src/components/shop/CatalogTab.tsx",
+  "level": "L3-screen",
+  "name": "CatalogTab",
+  "composes": [
+   "BulkRedeemModal",
+   "CriteriaPanel",
+   "IntakePanel",
+   "ItemsPanel",
+   "ProductForm",
+   "StockModal",
+   "StoresPanel",
+   "Btn",
+   "Chip",
+   "TextInput",
+   "Empty"
+  ],
+  "lines": 149,
+  "source": "maor/src/components/shop/CatalogTab.tsx"
+ },
+ {
+  "id": "L1:maor:CriteriaPanel@src/components/shop/CriteriaPanel.tsx",
+  "level": "L3-screen",
+  "name": "CriteriaPanel",
+  "composes": [
+   "Btn",
+   "Field",
+   "TextInput",
+   "FormError"
+  ],
+  "lines": 110,
+  "source": "maor/src/components/shop/CriteriaPanel.tsx"
+ },
+ {
+  "id": "L1:maor:HomeTab@src/components/shop/HomeTab.tsx",
+  "level": "L3-screen",
+  "name": "HomeTab",
+  "composes": [
+   "AssignmentForm",
+   "ProductForm",
+   "RedeemModal",
+   "ShopEventModal",
+   "Btn",
+   "Chip",
+   "Select"
+  ],
+  "lines": 211,
+  "source": "maor/src/components/shop/HomeTab.tsx"
+ },
+ {
+  "id": "L1:maor:IntakePanel@src/components/shop/IntakePanel.tsx",
+  "level": "L3-screen",
+  "name": "IntakePanel",
+  "composes": [
+   "Btn"
+  ],
+  "lines": 90,
+  "source": "maor/src/components/shop/IntakePanel.tsx"
+ },
+ {
+  "id": "L1:maor:ItemsPanel@src/components/shop/ItemsPanel.tsx",
+  "level": "L3-screen",
+  "name": "ItemsPanel",
+  "composes": [
+   "StockModal",
+   "Btn",
+   "Chip",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 315,
+  "source": "maor/src/components/shop/ItemsPanel.tsx"
+ },
+ {
+  "id": "L1:maor:ProductForm@src/components/shop/ProductForm.tsx",
+  "level": "L3-screen",
+  "name": "ProductForm",
+  "composes": [
+   "PhotoField",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 232,
+  "source": "maor/src/components/shop/ProductForm.tsx"
+ },
+ {
+  "id": "L1:maor:RedeemModal@src/components/shop/RedeemModal.tsx",
+  "level": "L3-screen",
+  "name": "RedeemModal",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 166,
+  "source": "maor/src/components/shop/RedeemModal.tsx"
+ },
+ {
+  "id": "L1:maor:ShopEventModal@src/components/shop/ShopEventModal.tsx",
+  "level": "L3-screen",
+  "name": "ShopEventModal",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 147,
+  "source": "maor/src/components/shop/ShopEventModal.tsx"
+ },
+ {
+  "id": "L1:maor:ShopFamilyPanel@src/components/shop/ShopFamilyPanel.tsx",
+  "level": "L3-screen",
+  "name": "ShopFamilyPanel",
+  "composes": [
+   "Btn"
+  ],
+  "lines": 57,
+  "source": "maor/src/components/shop/ShopFamilyPanel.tsx"
+ },
+ {
+  "id": "L1:maor:ShopView@src/components/shop/ShopView.tsx",
+  "level": "L3-screen",
+  "name": "ShopView",
+  "composes": [
+   "AssignmentsTab",
+   "CalendarTab",
+   "CatalogTab",
+   "HomeTab",
+   "ShowcaseTab",
+   "Chip",
+   "PageHead"
+  ],
+  "lines": 56,
+  "source": "maor/src/components/shop/ShopView.tsx"
+ },
+ {
+  "id": "L1:maor:ShowcaseTab@src/components/shop/ShowcaseTab.tsx",
+  "level": "L3-screen",
+  "name": "ShowcaseTab",
+  "composes": [
+   "Btn"
+  ],
+  "lines": 112,
+  "source": "maor/src/components/shop/ShowcaseTab.tsx"
+ },
+ {
+  "id": "L1:maor:StockModal@src/components/shop/StockModal.tsx",
+  "level": "L3-screen",
+  "name": "StockModal",
+  "composes": [
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 81,
+  "source": "maor/src/components/shop/StockModal.tsx"
+ },
+ {
+  "id": "L1:maor:StoresPanel@src/components/shop/StoresPanel.tsx",
+  "level": "L3-screen",
+  "name": "StoresPanel",
+  "composes": [
+   "Btn",
+   "Chip",
+   "Field",
+   "TextInput",
+   "FormError"
+  ],
+  "lines": 97,
+  "source": "maor/src/components/shop/StoresPanel.tsx"
+ },
+ {
+  "id": "L1:maor:Shop7FamilyPanel@src/components/shop7/Shop7FamilyPanel.tsx",
+  "level": "L3-screen",
+  "name": "Shop7FamilyPanel",
+  "composes": [
+   "Btn"
+  ],
+  "lines": 38,
+  "source": "maor/src/components/shop7/Shop7FamilyPanel.tsx"
+ },
+ {
+  "id": "L1:maor:Shop7View@src/components/shop7/Shop7View.tsx",
+  "level": "L3-screen",
+  "name": "Shop7View",
+  "composes": [
+   "CallBtn",
+   "HebDateInput",
+   "SignaturePad",
+   "Btn",
+   "Chip",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "Empty",
+   "PageHead",
+   "WaBtn"
+  ],
+  "lines": 465,
+  "source": "maor/src/components/shop7/Shop7View.tsx"
+ },
+ {
+  "id": "L1:maor:SignaturePad@src/components/SignaturePad.tsx",
+  "level": "L1-component",
+  "name": "SignaturePad",
+  "lines": 96,
+  "source": "maor/src/components/SignaturePad.tsx"
+ },
+ {
+  "id": "L1:maor:SupportChat@src/components/support/SupportChat.tsx",
+  "level": "L1-component",
+  "name": "SupportChat",
+  "lines": 434,
+  "source": "maor/src/components/support/SupportChat.tsx"
+ },
+ {
+  "id": "L1:maor:SupportChatModal@src/components/support/SupportChat.tsx",
+  "level": "L1-component",
+  "name": "SupportChatModal",
+  "lines": 434,
+  "source": "maor/src/components/support/SupportChat.tsx"
+ },
+ {
+  "id": "L1:maor:SupportInbox@src/components/support/SupportChat.tsx",
+  "level": "L1-component",
+  "name": "SupportInbox",
+  "lines": 434,
+  "source": "maor/src/components/support/SupportChat.tsx"
+ },
+ {
+  "id": "L1:maor:TeamChatModal@src/components/support/SupportChat.tsx",
+  "level": "L1-component",
+  "name": "TeamChatModal",
+  "lines": 434,
+  "source": "maor/src/components/support/SupportChat.tsx"
+ },
+ {
+  "id": "L1:maor:AyinBoard@src/components/supporters/AyinBoard.tsx",
+  "level": "L1-component",
+  "name": "AyinBoard",
+  "lines": 250,
+  "source": "maor/src/components/supporters/AyinBoard.tsx"
+ },
+ {
+  "id": "L1:maor:AyinCard@src/components/supporters/AyinCard.tsx",
+  "level": "L1-component",
+  "name": "AyinCard",
+  "lines": 602,
+  "source": "maor/src/components/supporters/AyinCard.tsx"
+ },
+ {
+  "id": "L1:maor:AyinNamesBoard@src/components/supporters/AyinNamesBoard.tsx",
+  "level": "L1-component",
+  "name": "AyinNamesBoard",
+  "lines": 126,
+  "source": "maor/src/components/supporters/AyinNamesBoard.tsx"
+ },
+ {
+  "id": "L1:maor:CommandPalette@src/components/supporters/CommandPalette.tsx",
+  "level": "L1-component",
+  "name": "CommandPalette",
+  "lines": 123,
+  "source": "maor/src/components/supporters/CommandPalette.tsx"
+ },
+ {
+  "id": "L1:maor:DonationCalendar@src/components/supporters/DonationCalendar.tsx",
+  "level": "L1-component",
+  "name": "DonationCalendar",
+  "lines": 294,
+  "source": "maor/src/components/supporters/DonationCalendar.tsx"
+ },
+ {
+  "id": "L1:maor:OrgDonationCalendar@src/components/supporters/DonationCalendar.tsx",
+  "level": "L1-component",
+  "name": "OrgDonationCalendar",
+  "lines": 294,
+  "source": "maor/src/components/supporters/DonationCalendar.tsx"
+ },
+ {
+  "id": "L1:maor:DonationModal@src/components/supporters/DonationModal.tsx",
+  "level": "L3-screen",
+  "name": "DonationModal",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 189,
+  "source": "maor/src/components/supporters/DonationModal.tsx"
+ },
+ {
+  "id": "L1:maor:HokBulkModal@src/components/supporters/HokBulkModal.tsx",
+  "level": "L1-component",
+  "name": "HokBulkModal",
+  "lines": 114,
+  "source": "maor/src/components/supporters/HokBulkModal.tsx"
+ },
+ {
+  "id": "L1:maor:IncomingPaymentsModal@src/components/supporters/IncomingPayments.tsx",
+  "level": "L1-component",
+  "name": "IncomingPaymentsModal",
+  "lines": 478,
+  "source": "maor/src/components/supporters/IncomingPayments.tsx"
+ },
+ {
+  "id": "L1:maor:NedarimSyncModal@src/components/supporters/NedarimSyncModal.tsx",
+  "level": "L1-component",
+  "name": "NedarimSyncModal",
+  "lines": 264,
+  "source": "maor/src/components/supporters/NedarimSyncModal.tsx"
+ },
+ {
+  "id": "L1:maor:OneFlow@src/components/supporters/OneFlow.tsx",
+  "level": "L1-component",
+  "name": "OneFlow",
+  "lines": 143,
+  "source": "maor/src/components/supporters/OneFlow.tsx"
+ },
+ {
+  "id": "L1:maor:SupDedupModal@src/components/supporters/SupDedupModal.tsx",
+  "level": "L1-component",
+  "name": "SupDedupModal",
+  "lines": 178,
+  "source": "maor/src/components/supporters/SupDedupModal.tsx"
+ },
+ {
+  "id": "L1:maor:SupporterCard@src/components/supporters/SupporterCard.tsx",
+  "level": "L1-component",
+  "name": "SupporterCard",
+  "lines": 169,
+  "source": "maor/src/components/supporters/SupporterCard.tsx"
+ },
+ {
+  "id": "L1:maor:SupporterDetail@src/components/supporters/SupporterDetail.tsx",
+  "level": "L3-screen",
+  "name": "SupporterDetail",
+  "composes": [
+   "CallBtn",
+   "HebDateInput",
+   "AyinCard",
+   "DonationCalendar",
+   "DonationModal",
+   "SupporterForm",
+   "SupporterPhotos",
+   "Btn",
+   "StickyBackBar",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError",
+   "Empty",
+   "WaBtn"
+  ],
+  "lines": 823,
+  "source": "maor/src/components/supporters/SupporterDetail.tsx"
+ },
+ {
+  "id": "L1:maor:SupporterForm@src/components/supporters/SupporterForm.tsx",
+  "level": "L3-screen",
+  "name": "SupporterForm",
+  "composes": [
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "FormError"
+  ],
+  "lines": 171,
+  "source": "maor/src/components/supporters/SupporterForm.tsx"
+ },
+ {
+  "id": "L1:maor:SupporterImport@src/components/supporters/SupporterImport.tsx",
+  "level": "L1-component",
+  "name": "SupporterImport",
+  "lines": 206,
+  "source": "maor/src/components/supporters/SupporterImport.tsx"
+ },
+ {
+  "id": "L1:maor:SupporterPhotos@src/components/supporters/SupporterPhotos.tsx",
+  "level": "L1-component",
+  "name": "SupporterPhotos",
+  "lines": 103,
+  "source": "maor/src/components/supporters/SupporterPhotos.tsx"
+ },
+ {
+  "id": "L1:maor:SupportersCockpit@src/components/supporters/SupportersCockpit.tsx",
+  "level": "L1-component",
+  "name": "SupportersCockpit",
+  "lines": 478,
+  "source": "maor/src/components/supporters/SupportersCockpit.tsx"
+ },
+ {
+  "id": "L1:maor:SupportersGalaxy@src/components/supporters/SupportersGalaxy.tsx",
+  "level": "L1-component",
+  "name": "SupportersGalaxy",
+  "lines": 265,
+  "source": "maor/src/components/supporters/SupportersGalaxy.tsx"
+ },
+ {
+  "id": "L1:maor:SupportersIntel@src/components/supporters/SupportersIntel.tsx",
+  "level": "L1-component",
+  "name": "SupportersIntel",
+  "lines": 648,
+  "source": "maor/src/components/supporters/SupportersIntel.tsx"
+ },
+ {
+  "id": "L1:maor:SupportersKpiStrip@src/components/supporters/SupportersKpiStrip.tsx",
+  "level": "L1-component",
+  "name": "SupportersKpiStrip",
+  "lines": 110,
+  "source": "maor/src/components/supporters/SupportersKpiStrip.tsx"
+ },
+ {
+  "id": "L1:maor:SupportersUniverse3D@src/components/supporters/SupportersUniverse3D.tsx",
+  "level": "L1-component",
+  "name": "SupportersUniverse3D",
+  "lines": 245,
+  "source": "maor/src/components/supporters/SupportersUniverse3D.tsx"
+ },
+ {
+  "id": "L1:maor:SupportersView@src/components/supporters/SupportersView.tsx",
+  "level": "L3-screen",
+  "name": "SupportersView",
+  "composes": [
+   "DialerModal",
+   "IncMoreRow",
+   "IncMoreCard",
+   "CommandPalette",
+   "CustomExport",
+   "AyinBoard",
+   "AyinNamesBoard",
+   "OrgDonationCalendar",
+   "HokBulkModal",
+   "IncomingPaymentsModal",
+   "OneFlow",
+   "SupDedupModal",
+   "SupporterCard",
+   "SupporterDetail",
+   "SupporterForm",
+   "SupportersCockpit",
+   "SupportersGalaxy",
+   "SupportersIntel",
+   "SupportersKpiStrip",
+   "SupportersUniverse3D",
+   "SupportersViewSwitcher",
+   "WarehouseBoard",
+   "Btn",
+   "Chip",
+   "Modal",
+   "TextInput",
+   "Select",
+   "Empty",
+   "PageHead",
+   "ActionsMenu",
+   "WaBtn"
+  ],
+  "lines": 1416,
+  "source": "maor/src/components/supporters/SupportersView.tsx"
+ },
+ {
+  "id": "L1:maor:SupportersViewSwitcher@src/components/supporters/SupportersViewSwitcher.tsx",
+  "level": "L1-component",
+  "name": "SupportersViewSwitcher",
+  "lines": 55,
+  "source": "maor/src/components/supporters/SupportersViewSwitcher.tsx"
+ },
+ {
+  "id": "L1:maor:WarehouseBoard@src/components/supporters/WarehouseBoard.tsx",
+  "level": "L1-component",
+  "name": "WarehouseBoard",
+  "lines": 91,
+  "source": "maor/src/components/supporters/WarehouseBoard.tsx"
+ },
+ {
+  "id": "L1:maor:TelephonyPanel@src/components/telephony/TelephonyPanel.tsx",
+  "level": "L3-screen",
+  "name": "TelephonyPanel",
+  "composes": [
+   "Toggle",
+   "Btn",
+   "Chip",
+   "Field",
+   "TextInput",
+   "Select"
+  ],
+  "lines": 370,
+  "source": "maor/src/components/telephony/TelephonyPanel.tsx"
+ },
+ {
+  "id": "L1:maor:BodyMap@src/components/timer/BodyMap.tsx",
+  "level": "L1-component",
+  "name": "BodyMap",
+  "lines": 212,
+  "source": "maor/src/components/timer/BodyMap.tsx"
+ },
+ {
+  "id": "L1:maor:CashRegister@src/components/timer/CashRegister.tsx",
+  "level": "L1-component",
+  "name": "CashRegister",
+  "lines": 862,
+  "source": "maor/src/components/timer/CashRegister.tsx"
+ },
+ {
+  "id": "L1:maor:MoneyTimer@src/components/timer/MoneyTimer.tsx",
+  "level": "L1-component",
+  "name": "MoneyTimer",
+  "lines": 325,
+  "source": "maor/src/components/timer/MoneyTimer.tsx"
+ },
+ {
+  "id": "L1:maor:TourOverlay@src/components/TourOverlay.tsx",
+  "level": "L1-component",
+  "name": "TourOverlay",
+  "lines": 157,
+  "source": "maor/src/components/TourOverlay.tsx"
+ },
+ {
+  "id": "L1:maor:BoxForm@src/components/tzedaka/BoxForm.tsx",
+  "level": "L3-screen",
+  "name": "BoxForm",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 158,
+  "source": "maor/src/components/tzedaka/BoxForm.tsx"
+ },
+ {
+  "id": "L1:maor:CalendarTab@src/components/tzedaka/CalendarTab.tsx",
+  "level": "L3-screen",
+  "name": "CalendarTab",
+  "composes": [
+   "CalendarTab",
+   "TzEventModal",
+   "Btn",
+   "Chip"
+  ],
+  "lines": 177,
+  "source": "maor/src/components/tzedaka/CalendarTab.tsx"
+ },
+ {
+  "id": "L1:maor:CollectModal@src/components/tzedaka/CollectModal.tsx",
+  "level": "L3-screen",
+  "name": "CollectModal",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 74,
+  "source": "maor/src/components/tzedaka/CollectModal.tsx"
+ },
+ {
+  "id": "L1:maor:CoordinatorCard@src/components/tzedaka/CoordinatorCard.tsx",
+  "level": "L3-screen",
+  "name": "CoordinatorCard",
+  "composes": [
+   "BoxForm",
+   "CollectModal",
+   "CoordinatorForm",
+   "Btn",
+   "Chip",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "Empty"
+  ],
+  "lines": 279,
+  "source": "maor/src/components/tzedaka/CoordinatorCard.tsx"
+ },
+ {
+  "id": "L1:maor:CoordinatorForm@src/components/tzedaka/CoordinatorForm.tsx",
+  "level": "L3-screen",
+  "name": "CoordinatorForm",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 211,
+  "source": "maor/src/components/tzedaka/CoordinatorForm.tsx"
+ },
+ {
+  "id": "L1:maor:CoordinatorsTab@src/components/tzedaka/CoordinatorsTab.tsx",
+  "level": "L3-screen",
+  "name": "CoordinatorsTab",
+  "composes": [
+   "CallBtn",
+   "CoordinatorCard",
+   "CoordinatorForm",
+   "Btn",
+   "Chip",
+   "TextInput",
+   "Select",
+   "Empty",
+   "WaBtn"
+  ],
+  "lines": 169,
+  "source": "maor/src/components/tzedaka/CoordinatorsTab.tsx"
+ },
+ {
+  "id": "L1:maor:HomeTab@src/components/tzedaka/HomeTab.tsx",
+  "level": "L3-screen",
+  "name": "HomeTab",
+  "composes": [
+   "HebDateInput",
+   "HomeTab",
+   "BoxForm",
+   "CollectModal",
+   "CoordinatorForm",
+   "Btn",
+   "Chip",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError",
+   "Empty"
+  ],
+  "lines": 247,
+  "source": "maor/src/components/tzedaka/HomeTab.tsx"
+ },
+ {
+  "id": "L1:maor:ShowcaseTab@src/components/tzedaka/ShowcaseTab.tsx",
+  "level": "L3-screen",
+  "name": "ShowcaseTab",
+  "composes": [
+   "ShowcaseTab",
+   "Btn"
+  ],
+  "lines": 129,
+  "source": "maor/src/components/tzedaka/ShowcaseTab.tsx"
+ },
+ {
+  "id": "L1:maor:TzedakaView@src/components/tzedaka/TzedakaView.tsx",
+  "level": "L3-screen",
+  "name": "TzedakaView",
+  "composes": [
+   "CalendarTab",
+   "HomeTab",
+   "ShowcaseTab",
+   "CoordinatorsTab",
+   "Chip",
+   "PageHead"
+  ],
+  "lines": 62,
+  "source": "maor/src/components/tzedaka/TzedakaView.tsx"
+ },
+ {
+  "id": "L1:maor:TzEventModal@src/components/tzedaka/TzEventModal.tsx",
+  "level": "L3-screen",
+  "name": "TzEventModal",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select",
+   "FormError"
+  ],
+  "lines": 119,
+  "source": "maor/src/components/tzedaka/TzEventModal.tsx"
+ },
+ {
+  "id": "L1:maor:TzFamilyPanel@src/components/tzedaka/TzFamilyPanel.tsx",
+  "level": "L3-screen",
+  "name": "TzFamilyPanel",
+  "composes": [
+   "Btn"
+  ],
+  "lines": 45,
+  "source": "maor/src/components/tzedaka/TzFamilyPanel.tsx"
+ },
+ {
+  "id": "L1:maor:Btn@src/components/ui.tsx",
+  "level": "L1-component",
+  "name": "Btn",
+  "lines": 288,
+  "source": "maor/src/components/ui.tsx"
+ },
+ {
+  "id": "L1:maor:Chip@src/components/ui.tsx",
+  "level": "L1-component",
+  "name": "Chip",
+  "lines": 288,
+  "source": "maor/src/components/ui.tsx"
+ },
+ {
+  "id": "L1:maor:StickyBackBar@src/components/ui.tsx",
+  "level": "L1-component",
+  "name": "StickyBackBar",
+  "lines": 288,
+  "source": "maor/src/components/ui.tsx"
+ },
+ {
+  "id": "L1:maor:Modal@src/components/ui.tsx",
+  "level": "L1-component",
+  "name": "Modal",
+  "lines": 288,
+  "source": "maor/src/components/ui.tsx"
+ },
+ {
+  "id": "L1:maor:Field@src/components/ui.tsx",
+  "level": "L1-component",
+  "name": "Field",
+  "lines": 288,
+  "source": "maor/src/components/ui.tsx"
+ },
+ {
+  "id": "L1:maor:TextInput@src/components/ui.tsx",
+  "level": "L1-component",
+  "name": "TextInput",
+  "lines": 288,
+  "source": "maor/src/components/ui.tsx"
+ },
+ {
+  "id": "L1:maor:Select@src/components/ui.tsx",
+  "level": "L1-component",
+  "name": "Select",
+  "lines": 288,
+  "source": "maor/src/components/ui.tsx"
+ },
+ {
+  "id": "L1:maor:FormError@src/components/ui.tsx",
+  "level": "L1-component",
+  "name": "FormError",
+  "lines": 288,
+  "source": "maor/src/components/ui.tsx"
+ },
+ {
+  "id": "L1:maor:Empty@src/components/ui.tsx",
+  "level": "L1-component",
+  "name": "Empty",
+  "lines": 288,
+  "source": "maor/src/components/ui.tsx"
+ },
+ {
+  "id": "L1:maor:PageHead@src/components/ui.tsx",
+  "level": "L1-component",
+  "name": "PageHead",
+  "lines": 288,
+  "source": "maor/src/components/ui.tsx"
+ },
+ {
+  "id": "L1:maor:ActionsMenu@src/components/ui.tsx",
+  "level": "L1-component",
+  "name": "ActionsMenu",
+  "lines": 288,
+  "source": "maor/src/components/ui.tsx"
+ },
+ {
+  "id": "L1:maor:WaBtn@src/components/WaBtn.tsx",
+  "level": "L1-component",
+  "name": "WaBtn",
+  "lines": 25,
+  "source": "maor/src/components/WaBtn.tsx"
+ },
+ {
+  "id": "L1:maor:ImpactWall@src/components/wall/ImpactWall.tsx",
+  "level": "L1-component",
+  "name": "ImpactWall",
+  "lines": 433,
+  "source": "maor/src/components/wall/ImpactWall.tsx"
+ },
+ {
+  "id": "L1:maor:CourseWheel@src/components/wheel/CourseWheel.tsx",
+  "level": "L1-component",
+  "name": "CourseWheel",
+  "lines": 506,
+  "source": "maor/src/components/wheel/CourseWheel.tsx"
+ },
+ {
+  "id": "L1:maor:DayGate@src/components/wheel/DayGate.tsx",
+  "level": "L1-component",
+  "name": "DayGate",
+  "lines": 115,
+  "source": "maor/src/components/wheel/DayGate.tsx"
+ }
+]

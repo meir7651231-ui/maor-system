@@ -1,0 +1,770 @@
+[
+ {
+  "id": "L1:buildsmart:BsDial@app/src/components/bs/bs-dial.tsx",
+  "level": "L1-component",
+  "name": "BsDial",
+  "lines": 362,
+  "source": "buildsmart/app/src/components/bs/bs-dial.tsx"
+ },
+ {
+  "id": "L1:buildsmart:CategoryCircles@app/src/components/category-circles.tsx",
+  "level": "L1-component",
+  "name": "CategoryCircles",
+  "lines": 73,
+  "source": "buildsmart/app/src/components/category-circles.tsx"
+ },
+ {
+  "id": "L1:buildsmart:Fabs@app/src/components/fabs.tsx",
+  "level": "L1-component",
+  "name": "Fabs",
+  "lines": 44,
+  "source": "buildsmart/app/src/components/fabs.tsx"
+ },
+ {
+  "id": "L1:buildsmart:FloatingHeader@app/src/components/floating-header.tsx",
+  "level": "L1-component",
+  "name": "FloatingHeader",
+  "lines": 36,
+  "source": "buildsmart/app/src/components/floating-header.tsx"
+ },
+ {
+  "id": "L1:buildsmart:SettingsSubmenu@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "SettingsSubmenu",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:SettingsTreeSubmenu@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "SettingsTreeSubmenu",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:SettingsTopSubmenu@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "SettingsTopSubmenu",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:ProfileTreeSubmenu@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "ProfileTreeSubmenu",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:HomeSubmenu@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "HomeSubmenu",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:CartSubmenu@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "CartSubmenu",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:ProjectsSubmenu@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "ProjectsSubmenu",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:SETTINGS_ROWS@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "SETTINGS_ROWS",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:SETTINGS_SUB@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "SETTINGS_SUB",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:LEAF_BINDINGS@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "LEAF_BINDINGS",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:PROFILE_TREE@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "PROFILE_TREE",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:PROFILE_TOP_ICON@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "PROFILE_TOP_ICON",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:ADVANCED_TOP_ICON@app/src/components/menu/submenu-settings.tsx",
+  "level": "L1-component",
+  "name": "ADVANCED_TOP_ICON",
+  "lines": 1462,
+  "source": "buildsmart/app/src/components/menu/submenu-settings.tsx"
+ },
+ {
+  "id": "L1:buildsmart:MenuSpeedDial@app/src/components/menu-speed-dial.tsx",
+  "level": "L3-screen",
+  "name": "MenuSpeedDial",
+  "composes": [
+   "SettingsSubmenu",
+   "SettingsTreeSubmenu",
+   "SettingsTopSubmenu",
+   "ProfileTreeSubmenu",
+   "HomeSubmenu",
+   "CartSubmenu",
+   "ProjectsSubmenu"
+  ],
+  "lines": 298,
+  "source": "buildsmart/app/src/components/menu-speed-dial.tsx"
+ },
+ {
+  "id": "L1:buildsmart:ProductCard@app/src/components/product-card.tsx",
+  "level": "L1-component",
+  "name": "ProductCard",
+  "lines": 98,
+  "source": "buildsmart/app/src/components/product-card.tsx"
+ },
+ {
+  "id": "L1:buildsmart:ProductGrid@app/src/components/product-grid.tsx",
+  "level": "L1-component",
+  "name": "ProductGrid",
+  "lines": 24,
+  "source": "buildsmart/app/src/components/product-grid.tsx"
+ },
+ {
+  "id": "L1:buildsmart:ProductSheet@app/src/components/product-sheet.tsx",
+  "level": "L1-component",
+  "name": "ProductSheet",
+  "lines": 103,
+  "source": "buildsmart/app/src/components/product-sheet.tsx"
+ },
+ {
+  "id": "L1:buildsmart:RegressionPanel@app/src/components/regression/regression-panel.tsx",
+  "level": "L1-component",
+  "name": "RegressionPanel",
+  "lines": 136,
+  "source": "buildsmart/app/src/components/regression/regression-panel.tsx"
+ },
+ {
+  "id": "L1:buildsmart:ResultsList@app/src/components/search/results-list.tsx",
+  "level": "L1-component",
+  "name": "ResultsList",
+  "lines": 125,
+  "source": "buildsmart/app/src/components/search/results-list.tsx"
+ },
+ {
+  "id": "L1:buildsmart:ScopeChips@app/src/components/search/scope-chips.tsx",
+  "level": "L1-component",
+  "name": "ScopeChips",
+  "lines": 29,
+  "source": "buildsmart/app/src/components/search/scope-chips.tsx"
+ },
+ {
+  "id": "L1:buildsmart:SearchPanel@app/src/components/search/search-panel.tsx",
+  "level": "L3-screen",
+  "name": "SearchPanel",
+  "composes": [
+   "ResultsList",
+   "ScopeChips",
+   "BarcodeSubmenu",
+   "CatalogSubmenu",
+   "FiltersSubmenu",
+   "SortSubmenu",
+   "VoiceSubmenu",
+   "ToolsRail"
+  ],
+  "lines": 89,
+  "source": "buildsmart/app/src/components/search/search-panel.tsx"
+ },
+ {
+  "id": "L1:buildsmart:BarcodeSubmenu@app/src/components/search/submenu-barcode.tsx",
+  "level": "L1-component",
+  "name": "BarcodeSubmenu",
+  "lines": 72,
+  "source": "buildsmart/app/src/components/search/submenu-barcode.tsx"
+ },
+ {
+  "id": "L1:buildsmart:CatalogSubmenu@app/src/components/search/submenu-catalog.tsx",
+  "level": "L1-component",
+  "name": "CatalogSubmenu",
+  "lines": 42,
+  "source": "buildsmart/app/src/components/search/submenu-catalog.tsx"
+ },
+ {
+  "id": "L1:buildsmart:FiltersSubmenu@app/src/components/search/submenu-filters.tsx",
+  "level": "L1-component",
+  "name": "FiltersSubmenu",
+  "lines": 55,
+  "source": "buildsmart/app/src/components/search/submenu-filters.tsx"
+ },
+ {
+  "id": "L1:buildsmart:SortSubmenu@app/src/components/search/submenu-sort.tsx",
+  "level": "L1-component",
+  "name": "SortSubmenu",
+  "lines": 80,
+  "source": "buildsmart/app/src/components/search/submenu-sort.tsx"
+ },
+ {
+  "id": "L1:buildsmart:VoiceSubmenu@app/src/components/search/submenu-voice.tsx",
+  "level": "L1-component",
+  "name": "VoiceSubmenu",
+  "lines": 94,
+  "source": "buildsmart/app/src/components/search/submenu-voice.tsx"
+ },
+ {
+  "id": "L1:buildsmart:ToolsRail@app/src/components/search/tools-dial.tsx",
+  "level": "L1-component",
+  "name": "ToolsRail",
+  "lines": 100,
+  "source": "buildsmart/app/src/components/search/tools-dial.tsx"
+ },
+ {
+  "id": "L1:buildsmart:Toast@app/src/components/toast.tsx",
+  "level": "L1-component",
+  "name": "Toast",
+  "lines": 12,
+  "source": "buildsmart/app/src/components/toast.tsx"
+ },
+ {
+  "id": "L1:buildsmart:AIHubScreen@app_flutter/lib/screens/ai_hub_screen.dart",
+  "level": "L1-component",
+  "name": "AIHubScreen",
+  "lines": 1033,
+  "source": "buildsmart/app_flutter/lib/screens/ai_hub_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:AiMdHead@app_flutter/lib/screens/ai_hub_screen.dart",
+  "level": "L1-component",
+  "name": "AiMdHead",
+  "lines": 1033,
+  "source": "buildsmart/app_flutter/lib/screens/ai_hub_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:AiFinTile@app_flutter/lib/screens/ai_hub_screen.dart",
+  "level": "L1-component",
+  "name": "AiFinTile",
+  "lines": 1033,
+  "source": "buildsmart/app_flutter/lib/screens/ai_hub_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:AiCard@app_flutter/lib/screens/ai_hub_screen.dart",
+  "level": "L1-component",
+  "name": "AiCard",
+  "lines": 1033,
+  "source": "buildsmart/app_flutter/lib/screens/ai_hub_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:AiCardTop@app_flutter/lib/screens/ai_hub_screen.dart",
+  "level": "L1-component",
+  "name": "AiCardTop",
+  "lines": 1033,
+  "source": "buildsmart/app_flutter/lib/screens/ai_hub_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:AiCardSub@app_flutter/lib/screens/ai_hub_screen.dart",
+  "level": "L1-component",
+  "name": "AiCardSub",
+  "lines": 1033,
+  "source": "buildsmart/app_flutter/lib/screens/ai_hub_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:AiBar@app_flutter/lib/screens/ai_hub_screen.dart",
+  "level": "L1-component",
+  "name": "AiBar",
+  "lines": 1033,
+  "source": "buildsmart/app_flutter/lib/screens/ai_hub_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:AiCardBtn@app_flutter/lib/screens/ai_hub_screen.dart",
+  "level": "L1-component",
+  "name": "AiCardBtn",
+  "lines": 1033,
+  "source": "buildsmart/app_flutter/lib/screens/ai_hub_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:AiPrimary@app_flutter/lib/screens/ai_hub_screen.dart",
+  "level": "L1-component",
+  "name": "AiPrimary",
+  "lines": 1033,
+  "source": "buildsmart/app_flutter/lib/screens/ai_hub_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:AiServerNote@app_flutter/lib/screens/ai_hub_screen.dart",
+  "level": "L1-component",
+  "name": "AiServerNote",
+  "lines": 1033,
+  "source": "buildsmart/app_flutter/lib/screens/ai_hub_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:AuditScreen@app_flutter/lib/screens/audit_screen.dart",
+  "level": "L1-component",
+  "name": "AuditScreen",
+  "lines": 397,
+  "source": "buildsmart/app_flutter/lib/screens/audit_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:BarcodeScanner@app_flutter/lib/screens/barcode_scanner.dart",
+  "level": "L1-component",
+  "name": "BarcodeScanner",
+  "lines": 162,
+  "source": "buildsmart/app_flutter/lib/screens/barcode_scanner.dart"
+ },
+ {
+  "id": "L1:buildsmart:BudgetScreen@app_flutter/lib/screens/budget_screen.dart",
+  "level": "L1-component",
+  "name": "BudgetScreen",
+  "lines": 782,
+  "source": "buildsmart/app_flutter/lib/screens/budget_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:GlobalSearchResultsView@app_flutter/lib/screens/catalog_screen.dart",
+  "level": "L1-component",
+  "name": "GlobalSearchResultsView",
+  "lines": 7634,
+  "source": "buildsmart/app_flutter/lib/screens/catalog_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:CatalogSettingsScreen@app_flutter/lib/screens/catalog_settings_screen.dart",
+  "level": "L1-component",
+  "name": "CatalogSettingsScreen",
+  "lines": 1013,
+  "source": "buildsmart/app_flutter/lib/screens/catalog_settings_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:ChatSettingsScreen@app_flutter/lib/screens/chat_settings_screen.dart",
+  "level": "L1-component",
+  "name": "ChatSettingsScreen",
+  "lines": 1128,
+  "source": "buildsmart/app_flutter/lib/screens/chat_settings_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:ChatsArchiveScreen@app_flutter/lib/screens/chats_screen.dart",
+  "level": "L1-component",
+  "name": "ChatsArchiveScreen",
+  "lines": 2890,
+  "source": "buildsmart/app_flutter/lib/screens/chats_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:ComingSoonScreen@app_flutter/lib/screens/coming_soon_screen.dart",
+  "level": "L1-component",
+  "name": "ComingSoonScreen",
+  "lines": 127,
+  "source": "buildsmart/app_flutter/lib/screens/coming_soon_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:CourierCertsScreen@app_flutter/lib/screens/courier_certs_screen.dart",
+  "level": "L1-component",
+  "name": "CourierCertsScreen",
+  "lines": 770,
+  "source": "buildsmart/app_flutter/lib/screens/courier_certs_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:CourierDeliveryDetailSheet@app_flutter/lib/screens/courier_delivery_detail_sheet.dart",
+  "level": "L1-component",
+  "name": "CourierDeliveryDetailSheet",
+  "lines": 446,
+  "source": "buildsmart/app_flutter/lib/screens/courier_delivery_detail_sheet.dart"
+ },
+ {
+  "id": "L1:buildsmart:CourierPortalTab@app_flutter/lib/screens/courier_portal_tab.dart",
+  "level": "L1-component",
+  "name": "CourierPortalTab",
+  "lines": 514,
+  "source": "buildsmart/app_flutter/lib/screens/courier_portal_tab.dart"
+ },
+ {
+  "id": "L1:buildsmart:CourierProfileScreen@app_flutter/lib/screens/courier_profile_screen.dart",
+  "level": "L1-component",
+  "name": "CourierProfileScreen",
+  "lines": 1148,
+  "source": "buildsmart/app_flutter/lib/screens/courier_profile_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:CourierProfileBody@app_flutter/lib/screens/courier_profile_screen.dart",
+  "level": "L1-component",
+  "name": "CourierProfileBody",
+  "lines": 1148,
+  "source": "buildsmart/app_flutter/lib/screens/courier_profile_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:CourierReportsTab@app_flutter/lib/screens/courier_reports_tab.dart",
+  "level": "L1-component",
+  "name": "CourierReportsTab",
+  "lines": 1086,
+  "source": "buildsmart/app_flutter/lib/screens/courier_reports_tab.dart"
+ },
+ {
+  "id": "L1:buildsmart:CourierSettingsScreen@app_flutter/lib/screens/courier_settings_screen.dart",
+  "level": "L1-component",
+  "name": "CourierSettingsScreen",
+  "lines": 545,
+  "source": "buildsmart/app_flutter/lib/screens/courier_settings_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:DepartmentsScreen@app_flutter/lib/screens/departments_screen.dart",
+  "level": "L1-component",
+  "name": "DepartmentsScreen",
+  "lines": 628,
+  "source": "buildsmart/app_flutter/lib/screens/departments_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:DocsReadinessGate@app_flutter/lib/screens/docs_readiness_gate.dart",
+  "level": "L1-component",
+  "name": "DocsReadinessGate",
+  "lines": 442,
+  "source": "buildsmart/app_flutter/lib/screens/docs_readiness_gate.dart"
+ },
+ {
+  "id": "L1:buildsmart:HomeContentReorder@app_flutter/lib/screens/home_content_reorder.dart",
+  "level": "L1-component",
+  "name": "HomeContentReorder",
+  "lines": 285,
+  "source": "buildsmart/app_flutter/lib/screens/home_content_reorder.dart"
+ },
+ {
+  "id": "L1:buildsmart:HomeShell@app_flutter/lib/screens/home_shell.dart",
+  "level": "L1-component",
+  "name": "HomeShell",
+  "lines": 1885,
+  "source": "buildsmart/app_flutter/lib/screens/home_shell.dart"
+ },
+ {
+  "id": "L1:buildsmart:CartFab@app_flutter/lib/screens/home_shell.dart",
+  "level": "L1-component",
+  "name": "CartFab",
+  "lines": 1885,
+  "source": "buildsmart/app_flutter/lib/screens/home_shell.dart"
+ },
+ {
+  "id": "L1:buildsmart:IntelTab@app_flutter/lib/screens/intel/intel_tab.dart",
+  "level": "L1-component",
+  "name": "IntelTab",
+  "lines": 675,
+  "source": "buildsmart/app_flutter/lib/screens/intel/intel_tab.dart"
+ },
+ {
+  "id": "L1:buildsmart:LegalScreen@app_flutter/lib/screens/legal_screen.dart",
+  "level": "L1-component",
+  "name": "LegalScreen",
+  "lines": 227,
+  "source": "buildsmart/app_flutter/lib/screens/legal_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:LensSelectorRow@app_flutter/lib/screens/lens_selector_row.dart",
+  "level": "L1-component",
+  "name": "LensSelectorRow",
+  "lines": 106,
+  "source": "buildsmart/app_flutter/lib/screens/lens_selector_row.dart"
+ },
+ {
+  "id": "L1:buildsmart:LipskeyBrandScreen@app_flutter/lib/screens/lipskey_brand_screen.dart",
+  "level": "L1-component",
+  "name": "LipskeyBrandScreen",
+  "lines": 401,
+  "source": "buildsmart/app_flutter/lib/screens/lipskey_brand_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:LipskeySectionScreen@app_flutter/lib/screens/lipskey_brand_screen.dart",
+  "level": "L1-component",
+  "name": "LipskeySectionScreen",
+  "lines": 401,
+  "source": "buildsmart/app_flutter/lib/screens/lipskey_brand_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:LipskeyProductsScreen@app_flutter/lib/screens/lipskey_products_screen.dart",
+  "level": "L1-component",
+  "name": "LipskeyProductsScreen",
+  "lines": 2538,
+  "source": "buildsmart/app_flutter/lib/screens/lipskey_products_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:LipskeyProductCard@app_flutter/lib/screens/lipskey_products_screen.dart",
+  "level": "L1-component",
+  "name": "LipskeyProductCard",
+  "lines": 2538,
+  "source": "buildsmart/app_flutter/lib/screens/lipskey_products_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:LipskeyProductGridCard@app_flutter/lib/screens/lipskey_products_screen.dart",
+  "level": "L1-component",
+  "name": "LipskeyProductGridCard",
+  "lines": 2538,
+  "source": "buildsmart/app_flutter/lib/screens/lipskey_products_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:ManagerDashboardScreen@app_flutter/lib/screens/manager_dashboard_screen.dart",
+  "level": "L1-component",
+  "name": "ManagerDashboardScreen",
+  "lines": 5540,
+  "source": "buildsmart/app_flutter/lib/screens/manager_dashboard_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:JourneyTimeline@app_flutter/lib/screens/manager_dashboard_screen.dart",
+  "level": "L1-component",
+  "name": "JourneyTimeline",
+  "lines": 5540,
+  "source": "buildsmart/app_flutter/lib/screens/manager_dashboard_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:ManagerProfileScreen@app_flutter/lib/screens/manager_profile_screen.dart",
+  "level": "L1-component",
+  "name": "ManagerProfileScreen",
+  "lines": 296,
+  "source": "buildsmart/app_flutter/lib/screens/manager_profile_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:NotifSettingsScreen@app_flutter/lib/screens/notif_settings_screen.dart",
+  "level": "L1-component",
+  "name": "NotifSettingsScreen",
+  "lines": 1086,
+  "source": "buildsmart/app_flutter/lib/screens/notif_settings_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:OnboardingGate@app_flutter/lib/screens/onboarding_screen.dart",
+  "level": "L1-component",
+  "name": "OnboardingGate",
+  "lines": 370,
+  "source": "buildsmart/app_flutter/lib/screens/onboarding_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:OrderNotifSheet@app_flutter/lib/screens/order_notif_sheet.dart",
+  "level": "L1-component",
+  "name": "OrderNotifSheet",
+  "lines": 77,
+  "source": "buildsmart/app_flutter/lib/screens/order_notif_sheet.dart"
+ },
+ {
+  "id": "L1:buildsmart:PersonaPickingSheet@app_flutter/lib/screens/persona_picking_sheet.dart",
+  "level": "L1-component",
+  "name": "PersonaPickingSheet",
+  "lines": 1200,
+  "source": "buildsmart/app_flutter/lib/screens/persona_picking_sheet.dart"
+ },
+ {
+  "id": "L1:buildsmart:ContractorMissingDecisionSheet@app_flutter/lib/screens/persona_picking_sheet.dart",
+  "level": "L1-component",
+  "name": "ContractorMissingDecisionSheet",
+  "lines": 1200,
+  "source": "buildsmart/app_flutter/lib/screens/persona_picking_sheet.dart"
+ },
+ {
+  "id": "L1:buildsmart:PersonaPodSheet@app_flutter/lib/screens/persona_pod_sheet.dart",
+  "level": "L1-component",
+  "name": "PersonaPodSheet",
+  "lines": 412,
+  "source": "buildsmart/app_flutter/lib/screens/persona_pod_sheet.dart"
+ },
+ {
+  "id": "L1:buildsmart:PortalTileButton@app_flutter/lib/screens/persona_portal.dart",
+  "level": "L1-component",
+  "name": "PortalTileButton",
+  "lines": 413,
+  "source": "buildsmart/app_flutter/lib/screens/persona_portal.dart"
+ },
+ {
+  "id": "L1:buildsmart:ProfessionScreen@app_flutter/lib/screens/profession_screen.dart",
+  "level": "L1-component",
+  "name": "ProfessionScreen",
+  "lines": 190,
+  "source": "buildsmart/app_flutter/lib/screens/profession_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:ProjectsScreen@app_flutter/lib/screens/projects_screen.dart",
+  "level": "L1-component",
+  "name": "ProjectsScreen",
+  "lines": 698,
+  "source": "buildsmart/app_flutter/lib/screens/projects_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:RegressionPanelScreen@app_flutter/lib/screens/regression_panel_screen.dart",
+  "level": "L1-component",
+  "name": "RegressionPanelScreen",
+  "lines": 368,
+  "source": "buildsmart/app_flutter/lib/screens/regression_panel_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:RewardsHubScreen@app_flutter/lib/screens/rewards_hub_screen.dart",
+  "level": "L1-component",
+  "name": "RewardsHubScreen",
+  "lines": 1013,
+  "source": "buildsmart/app_flutter/lib/screens/rewards_hub_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:SmartHomeBody@app_flutter/lib/screens/smart_home_screen.dart",
+  "level": "L1-component",
+  "name": "SmartHomeBody",
+  "lines": 1175,
+  "source": "buildsmart/app_flutter/lib/screens/smart_home_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:StockScreen@app_flutter/lib/screens/stock_screen.dart",
+  "level": "L1-component",
+  "name": "StockScreen",
+  "lines": 402,
+  "source": "buildsmart/app_flutter/lib/screens/stock_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:StoreProfileScreen@app_flutter/lib/screens/store_profile_screen.dart",
+  "level": "L1-component",
+  "name": "StoreProfileScreen",
+  "lines": 1606,
+  "source": "buildsmart/app_flutter/lib/screens/store_profile_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:StoreProfileBody@app_flutter/lib/screens/store_profile_screen.dart",
+  "level": "L1-component",
+  "name": "StoreProfileBody",
+  "lines": 1606,
+  "source": "buildsmart/app_flutter/lib/screens/store_profile_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:StoreCertsScreen@app_flutter/lib/screens/store_profile_screen.dart",
+  "level": "L1-component",
+  "name": "StoreCertsScreen",
+  "lines": 1606,
+  "source": "buildsmart/app_flutter/lib/screens/store_profile_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:StoreSettingsScreen@app_flutter/lib/screens/store_settings_screen.dart",
+  "level": "L1-component",
+  "name": "StoreSettingsScreen",
+  "lines": 1135,
+  "source": "buildsmart/app_flutter/lib/screens/store_settings_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:HistoryPane@app_flutter/lib/screens/studio/panes/history_pane.dart",
+  "level": "L1-component",
+  "name": "HistoryPane",
+  "lines": 101,
+  "source": "buildsmart/app_flutter/lib/screens/studio/panes/history_pane.dart"
+ },
+ {
+  "id": "L1:buildsmart:ThemePane@app_flutter/lib/screens/studio/panes/theme_pane.dart",
+  "level": "L1-component",
+  "name": "ThemePane",
+  "lines": 264,
+  "source": "buildsmart/app_flutter/lib/screens/studio/panes/theme_pane.dart"
+ },
+ {
+  "id": "L1:buildsmart:StudioEntryCard@app_flutter/lib/screens/studio/studio_entry.dart",
+  "level": "L1-component",
+  "name": "StudioEntryCard",
+  "lines": 49,
+  "source": "buildsmart/app_flutter/lib/screens/studio/studio_entry.dart"
+ },
+ {
+  "id": "L1:buildsmart:StudioTopBar@app_flutter/lib/screens/studio/studio_top_bar.dart",
+  "level": "L1-component",
+  "name": "StudioTopBar",
+  "lines": 302,
+  "source": "buildsmart/app_flutter/lib/screens/studio/studio_top_bar.dart"
+ },
+ {
+  "id": "L1:buildsmart:SuppliersScreen@app_flutter/lib/screens/suppliers_screen.dart",
+  "level": "L1-component",
+  "name": "SuppliersScreen",
+  "lines": 170,
+  "source": "buildsmart/app_flutter/lib/screens/suppliers_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:SystemSetupHostScreen@app_flutter/lib/screens/trade_builder/system_setup_host_screen.dart",
+  "level": "L1-component",
+  "name": "SystemSetupHostScreen",
+  "lines": 68,
+  "source": "buildsmart/app_flutter/lib/screens/trade_builder/system_setup_host_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:TradeBuilderHomeScreen@app_flutter/lib/screens/trade_builder/trade_builder_home.dart",
+  "level": "L1-component",
+  "name": "TradeBuilderHomeScreen",
+  "lines": 437,
+  "source": "buildsmart/app_flutter/lib/screens/trade_builder/trade_builder_home.dart"
+ },
+ {
+  "id": "L1:buildsmart:TradePublishSheet@app_flutter/lib/screens/trade_builder/trade_publish_sheet.dart",
+  "level": "L1-component",
+  "name": "TradePublishSheet",
+  "lines": 302,
+  "source": "buildsmart/app_flutter/lib/screens/trade_builder/trade_publish_sheet.dart"
+ },
+ {
+  "id": "L1:buildsmart:UpdatesScreen@app_flutter/lib/screens/updates_screen.dart",
+  "level": "L1-component",
+  "name": "UpdatesScreen",
+  "lines": 124,
+  "source": "buildsmart/app_flutter/lib/screens/updates_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:WebcamCaptureScreen@app_flutter/lib/screens/webcam_capture_sheet.dart",
+  "level": "L1-component",
+  "name": "WebcamCaptureScreen",
+  "lines": 281,
+  "source": "buildsmart/app_flutter/lib/screens/webcam_capture_sheet.dart"
+ },
+ {
+  "id": "L1:buildsmart:WorkerNotifsBell@app_flutter/lib/screens/worker_notifs_sheet.dart",
+  "level": "L1-component",
+  "name": "WorkerNotifsBell",
+  "lines": 372,
+  "source": "buildsmart/app_flutter/lib/screens/worker_notifs_sheet.dart"
+ },
+ {
+  "id": "L1:buildsmart:WorkerProfileScreen@app_flutter/lib/screens/worker_profile_screen.dart",
+  "level": "L1-component",
+  "name": "WorkerProfileScreen",
+  "lines": 1460,
+  "source": "buildsmart/app_flutter/lib/screens/worker_profile_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:WorkerReportsTab@app_flutter/lib/screens/worker_reports_tab.dart",
+  "level": "L1-component",
+  "name": "WorkerReportsTab",
+  "lines": 1347,
+  "source": "buildsmart/app_flutter/lib/screens/worker_reports_tab.dart"
+ },
+ {
+  "id": "L1:buildsmart:WorkerSafetyScreen@app_flutter/lib/screens/worker_safety_screen.dart",
+  "level": "L1-component",
+  "name": "WorkerSafetyScreen",
+  "lines": 1258,
+  "source": "buildsmart/app_flutter/lib/screens/worker_safety_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:WorkerSettingsScreen@app_flutter/lib/screens/worker_settings_screen.dart",
+  "level": "L1-component",
+  "name": "WorkerSettingsScreen",
+  "lines": 405,
+  "source": "buildsmart/app_flutter/lib/screens/worker_settings_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:WorkerTaskBoardScreen@app_flutter/lib/screens/worker_task_board_screen.dart",
+  "level": "L1-component",
+  "name": "WorkerTaskBoardScreen",
+  "lines": 356,
+  "source": "buildsmart/app_flutter/lib/screens/worker_task_board_screen.dart"
+ },
+ {
+  "id": "L1:buildsmart:WorkerTodayStrip@app_flutter/lib/screens/worker_today_strip.dart",
+  "level": "L1-component",
+  "name": "WorkerTodayStrip",
+  "lines": 259,
+  "source": "buildsmart/app_flutter/lib/screens/worker_today_strip.dart"
+ }
+]

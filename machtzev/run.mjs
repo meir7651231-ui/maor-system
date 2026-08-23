@@ -9,7 +9,7 @@ const REPOS = [
 ];
 const run = (script, args) => execFileSync('node', [new URL(script, import.meta.url).pathname, ...args], { stdio: 'inherit' });
 for (const [root, name] of REPOS) { if (fs.existsSync(root)) run('./census.mjs', [root, name]); }
-for (const [, name] of REPOS) for (const x of ['tokens', 'flags', 'terms', 'engines']) { try { run(`./extract/${x}.mjs`, [name]); } catch {} }
+for (const [, name] of REPOS) for (const x of ['tokens', 'flags', 'terms', 'engines', 'actions', 'strings', 'components']) { try { run(`./extract/${x}.mjs`, [name]); } catch {} }
 run('./reconcile.mjs', []);
 // לוח-מצב
 const R = new URL('./registry/', import.meta.url).pathname;

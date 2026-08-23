@@ -3,8 +3,8 @@
  "root": "/home/user/maor-system",
  "generatedBy": "machtzev/census v1",
  "totals": {
-  "files": 956,
-  "lines": 223770,
+  "files": 968,
+  "lines": 523112,
   "orphans": 0
  },
  "byDomain": {
@@ -13,12 +13,12 @@
    "lines": 830
   },
   "data": {
-   "files": 26,
-   "lines": 66928
+   "files": 35,
+   "lines": 366181
   },
   "knowledge": {
    "files": 134,
-   "lines": 24606
+   "lines": 24615
   },
   "tests": {
    "files": 359,
@@ -29,8 +29,8 @@
    "lines": 16083
   },
   "source": {
-   "files": 67,
-   "lines": 12357
+   "files": 70,
+   "lines": 12437
   },
   "assets": {
    "files": 38,
@@ -1120,6 +1120,18 @@
    "lines": 65
   },
   {
+   "path": "machtzev/extract/actions.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 28
+  },
+  {
+   "path": "machtzev/extract/components.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 31
+  },
+  {
    "path": "machtzev/extract/engines.mjs",
    "bucket": "source",
    "domain": "source",
@@ -1130,6 +1142,12 @@
    "bucket": "source",
    "domain": "source",
    "lines": 20
+  },
+  {
+   "path": "machtzev/extract/strings.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 21
   },
   {
    "path": "machtzev/extract/terms.mjs",
@@ -1174,6 +1192,24 @@
    "lines": 132
   },
   {
+   "path": "machtzev/registry/atoms-L2-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 8962
+  },
+  {
+   "path": "machtzev/registry/atoms-L2-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 14562
+  },
+  {
+   "path": "machtzev/registry/atoms-L2-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
    "path": "machtzev/registry/atoms-L4-buildsmart.json",
    "bucket": "data",
    "domain": "data",
@@ -1210,6 +1246,42 @@
    "lines": 1
   },
   {
+   "path": "machtzev/registry/atoms-L5b-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 216092
+  },
+  {
+   "path": "machtzev/registry/atoms-L5b-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 56842
+  },
+  {
+   "path": "machtzev/registry/atoms-L5b-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
+   "path": "machtzev/registry/atoms-L6-buildsmart.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1145
+  },
+  {
+   "path": "machtzev/registry/atoms-L6-maor.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1551
+  },
+  {
+   "path": "machtzev/registry/atoms-L6-yoman.json",
+   "bucket": "data",
+   "domain": "data",
+   "lines": 1
+  },
+  {
    "path": "machtzev/registry/census-buildsmart.json",
    "bucket": "data",
    "domain": "data",
@@ -1219,7 +1291,7 @@
    "path": "machtzev/registry/census-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 5737
+   "lines": 5833
   },
   {
    "path": "machtzev/registry/census-yoman.json",
@@ -1237,7 +1309,7 @@
    "path": "machtzev/STATUS.md",
    "bucket": "knowledge",
    "domain": "knowledge",
-   "lines": 27
+   "lines": 36
   },
   {
    "path": "package-lock.json",
