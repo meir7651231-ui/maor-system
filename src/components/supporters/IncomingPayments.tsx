@@ -81,6 +81,7 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
   }
 
   const repairCards = useApp((s) => s.repairProviderCards);
+  const auditNote = useApp((s) => s.auditNote); // 🐛 C9: פעולות-כסף עם עקבה בלוג
   useEffect(() => {
     let alive = true;
     void import('../../store/cloudSync').then((m) => {
@@ -109,7 +110,9 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
 
   async function markDone(id: string) {
     if (!mod) return;
+    const row = rows.find((r) => r.id === id);
     await mod.markIncomingPayment(id).catch(() => toast('⚠ הסימון נכשל — נסו שוב'));
+    auditNote('✓ סימון תשלום-נכנס כטופל', row ? (row.currency || '₪') + row.amount + ' · ' + (row.name || row.reference || id) : id);
     await refresh(mod);
   }
 
@@ -136,11 +139,15 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
       return n;
     });
   }
-  async function markMany(ids: string[]) {
-    if (!mod) return;
+  // 🐛 נחיל-סולה C8: כשלי-סימון נבלעו בשקט — עכשיו נספרים ומדווחים למסך.
+  async function markMany(ids: string[]): Promise<number> {
+    if (!mod) return ids.length;
+    let failed = 0;
     for (let i = 0; i < ids.length; i += 300) {
-      await Promise.all(ids.slice(i, i + 300).map((id) => mod.markIncomingPayment(id).catch(() => {})));
+      await Promise.all(ids.slice(i, i + 300).map((id) => mod.markIncomingPayment(id).catch(() => { failed++; })));
     }
+    if (failed) toast('⚠ ' + failed + ' סימונים נכשלו — חלק מהעסקאות יופיעו שוב; נסו שוב');
+    return failed;
   }
   // בחירה-מרובה → סימון-שנרשמו לכל המסומנים (בלי שיוך).
   async function bulkMark() {
@@ -294,7 +301,8 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
             </div>
             <div style={{ fontSize: 12, color: 'var(--ink-faint)' }} dir="ltr">
               {[p.phone, p.email, p.zeout && ('ת"ז ' + p.zeout)].filter(Boolean).join(' · ')}
-              {p.reference ? ' · ' + p.reference : ''} · {p.at.slice(0, 10)}
+              {/* 🐛 נחיל-סולה C4: תאריך-העסקה (d), לא תאריך-המשיכה (at) */}
+              {p.reference ? ' · ' + p.reference : ''} · {p.d || p.at.slice(0, 10)}
             </div>
           </div>
           <Btn sm kind="primary" onClick={() => setMergeFor(p)} title="שיוך העסקה לכרטיס-תומך (בסגנון בדיקת-כפילויות)">

@@ -267,7 +267,7 @@ export function SupportersView() {
   // כאן (מגודר hokOn) — מוצג רק כשיש חיובי-נדרים ב-hist, לא-דורס-הו"ק-ידני, no-op כשריק.
   const detectNedarimHok = useApp((s) => s.detectNedarimHok);
   const [hokDetectArmed, setHokDetectArmed] = useState(false);
-  const hasNedarimHist = db.supporters.some((sp) => (sp.hist ?? []).some((h) => h.clearer === 'נדרים'));
+  const hasNedarimHist = db.supporters.some((sp) => (sp.hist ?? []).some((h) => h.clearer === 'נדרים' || h.clearer === 'סולה'));
   // 🔗 איחוד-כפולים (#13) — הכפתור מוצג רק כשיש מה לאחד
   const [dedupOpen, setDedupOpen] = useState(false);
   // 🐛 נחיל-9×9 (13.8): Union-Find על כל התורמים רץ בכל render (כל הקשה/סינון) —

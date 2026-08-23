@@ -109,6 +109,9 @@ function curOf(charge: SyncCharge): '₪' | '$' {
   return raw === '$' || raw === '2' || /usd|\$|דולר/i.test(raw) ? '$' : '₪';
 }
 
+/** חברות-הסליקה המוכרות (תוויות-hist) — הו״ק/חיות/סינונים מכירים בשתיהן. */
+export const CLEARING_PROVIDERS = ['נדרים', 'סולה'] as const;
+
 /** תווית-הסליקה לפי ספק-העסקה. 🐛 (23.8, "זה לא נכנס במקום הנכון"): עסקאות-סולה
  *  שמוזגו נרשמו 'נדרים' — תווית שגויה בכרטיס, וגרוע מזה: "ביטול ייבוא נדרים"
  *  (wipeNedarimImport מסנן clearer==='נדרים') היה **מוחק גם אותן**. חסר-ספק ⇒
@@ -234,7 +237,8 @@ export function detectRecurringHok(supporters: Supporter[], todayIso: string, mi
   let detected = 0;
   const out = supporters.map((sp) => {
     if (sp.hok && !sp.hok.kevaId) return sp; // הו"ק ידני — לא נוגעים
-    const nd = (sp.hist ?? []).filter((h) => h.clearer === 'נדרים' && h.a > 0 && !!h.d);
+    // 🐛 נחיל-סולה C7: המנוע היה עיוור לסולה — 552 חיובים דולריים חוזרים לא מילאו הו"ק.
+    const nd = (sp.hist ?? []).filter((h) => (CLEARING_PROVIDERS as readonly string[]).includes(h.clearer || '') && h.a > 0 && !!h.d);
     if (!nd.length) return sp;
     // חיוב עם kevaId ⇒ הו"ק **ודאי** (גם חיוב-בודד). אחרת ⇒ תבנית: חיובי-נדרים
     // ב-≥minMonths חודשים **שונים** (סכום עשוי להשתנות בין שנים ⇒ לא דורשים
@@ -254,7 +258,9 @@ export function detectRecurringHok(supporters: Supporter[], todayIso: string, mi
         cur,
         day: Math.min(28, Math.max(1, modeOf(nd.map((h) => Number(h.d.slice(8, 10)) || 1)))),
         method: 'card',
-        note: kevaCharge ? 'הו״ק נדרים · ' + kevaCharge.kevaId : 'הו״ק נדרים (זוהה מהיסטוריה · ' + distinctMonths.size + ' חודשים)',
+        note: kevaCharge
+          ? 'הו״ק ' + (nd[0]?.clearer || 'סליקה') + ' · ' + kevaCharge.kevaId
+          : 'הו״ק ' + (nd[0]?.clearer || 'סליקה') + ' (זוהה מהיסטוריה · ' + distinctMonths.size + ' חודשים)',
         active: monthsAgo(dates[dates.length - 1], todayIso) <= 2,
         startedAt: dates[0],
         kevaId: kevaCharge?.kevaId || 'auto',
@@ -296,7 +302,10 @@ export function candidateSupportersForCharge(charge: SyncCharge, supporters: Sup
  *  ערך קיים (הכרטיס = מקור-האמת; העסקה רק משלימה חוסרים). */
 export function fillCardFromCharge(sp: Supporter, charge: SyncCharge): Supporter {
   const fill: Partial<Supporter> = {};
-  const phone = (charge.phone || '').trim();
+  // 🐛 נחיל-סולה C12: טלפון שלא שורד נורמליזציה (קצר/דמה) לא ממלא שדה ריק —
+  // אחרת הוא חוסם השלמה אמיתית עתידית (מילוי-אם-ריק לא דורס).
+  const rawPhone = (charge.phone || '').trim();
+  const phone = normPhone(rawPhone).length >= 7 ? rawPhone : '';
   const email = (charge.email || '').trim();
   const zeout = normId(charge.zeout || '');
   const name = (charge.name || '').trim();
@@ -313,10 +322,16 @@ export function fillCardFromCharge(sp: Supporter, charge: SyncCharge): Supporter
 export function attachChargeTo(supporters: Supporter[], supId: string, charge: SyncCharge): { supporters: Supporter[]; added: boolean } {
   const idx = supporters.findIndex((s) => s.id === supId);
   if (idx < 0) return { supporters, added: false };
+  // 🐛 נחיל-סולה C10: ביטול (amount=0) אינו כסף — המנוע המלא מדלג, וגם המיזוג הידני.
+  if (!charge.amount) return { supporters, added: false };
   const sp = supporters[idx];
   const key = chargeDedupKey(charge);
+  // 🐛 נחיל-סולה C2 (HIGH): הדדופ היה פר-כרטיס — אותה עסקה נרשמה בשני כרטיסים
+  // שונים = כסף נספר פעמיים. עכשיו המפתח נבדק מול hist של **כל** התומכים.
+  if (key && supporters.some((s) => (s.hist ?? []).some((h) => histDedupKey(h) === key))) {
+    return { supporters, added: false };
+  }
   const hist = sp.hist || [];
-  if (key && hist.some((h) => histDedupKey(h) === key)) return { supporters, added: false };
   const next = supporters.slice();
   next[idx] = withNedarimHok(fillCardFromCharge({ ...sp, hist: [...hist, chargeToHist(charge)] }, charge), charge);
   return { supporters: next, added: true };
@@ -434,16 +449,18 @@ export function autoMatchCharges(charges: SyncCharge[], supporters: Supporter[])
 export function attachChargesBulk(supporters: Supporter[], items: { supId: string; charge: SyncCharge }[]): { supporters: Supporter[]; added: number } {
   const byId = new Map(supporters.map((s, i) => [s.id, i]));
   const next = supporters.slice();
-  const seenTxn = new Map<number, Set<string>>();
+  // 🐛 נחיל-סולה C2 (HIGH): דדופ **גלובלי** — מפתח שכבר יושב על כרטיס כלשהו
+  // (או שנוסף במהלך האצווה) לא נרשם שוב בשום כרטיס אחר.
+  const globalKeys = new Set<string>();
+  for (const s of supporters) for (const h of s.hist ?? []) { const k = histDedupKey(h); if (k) globalKeys.add(k); }
   let added = 0;
   for (const { supId, charge } of items) {
     const idx = byId.get(supId);
     if (idx == null) continue;
-    let seen = seenTxn.get(idx);
-    if (!seen) { seen = new Set((next[idx].hist || []).map(histDedupKey).filter(Boolean)); seenTxn.set(idx, seen); }
+    if (!charge.amount) continue; // 🐛 C10: ביטול (amount=0) אינו כסף
     const key = chargeDedupKey(charge);
-    if (key && seen.has(key)) continue;
-    if (key) seen.add(key);
+    if (key && globalKeys.has(key)) continue;
+    if (key) globalKeys.add(key);
     next[idx] = withNedarimHok(fillCardFromCharge({ ...next[idx], hist: [...(next[idx].hist || []), chargeToHist(charge)] }, charge), charge);
     added++;
   }
