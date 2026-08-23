@@ -16,11 +16,13 @@ const org = {
 const cfg = { features: {} as Record<string, boolean>, modules: {} as Record<string, boolean> };
 
 describe('🔓 ratchet — הדלקה-פר-עובד (grantable) מנתחית', () => {
-  it('רשימת-ההדלקה = בדיוק 3 יכולות-הבחירה-המרובה', () => {
+  it('רשימת-ההדלקה = פעולות-הבחירה + מחיקות-הישויות (מנהל תמיד · הדלקה-פר-עובד)', () => {
     expect([...GRANTABLE_STAFF_FEATURES].sort()).toEqual(
-      ['supporters.bulkdelete', 'supporters.bulkselect', 'supporters.purpose'],
+      ['courses.delete', 'families.delete', 'supporters.bulkdelete', 'supporters.bulkselect', 'supporters.purpose'],
     );
     expect(isGrantableFeature('supporters.bulkselect')).toBe(true);
+    expect(isGrantableFeature('families.delete')).toBe(true);
+    expect(isGrantableFeature('courses.delete')).toBe(true);
     expect(isGrantableFeature('supporters.cockpit')).toBe(false);
   });
 

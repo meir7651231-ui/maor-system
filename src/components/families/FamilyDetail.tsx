@@ -6,7 +6,7 @@ import { useState, type ReactNode } from 'react';
 import type { Family, Member } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { nsLsKey } from '../../store/persist';
-import { featureOn, integrationOn, telephonyOn, termOf } from '../../lib/config';
+import { canGrantedAction, featureOn, integrationOn, telephonyOn, termOf } from '../../lib/config';
 import { mapsSearchUrl } from '../../lib/mapsLink';
 import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
@@ -184,6 +184,11 @@ export function FamilyDetail(props: { family: Family }) {
   const deleteMember = useApp((s) => s.deleteMember);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
+  // הרשאה אחידה (בקשת-בעלים 23.8): מחיקת-משפחה למנהל/בעלים תמיד; עובד/ת רק אם הודלק/ה.
+  // featureOn נשמר (מכבד כיבוי-ארגוני קיים של families.delete) ⇒ אפס-רגרסיה.
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
+  const isOrgMgr = useApp((s) => s.cloud.isManager) === true;
+  const canDeleteFamily = featureOn(config, 'families.delete') && canGrantedAction(config, cloudEmail, isOrgMgr, 'families.delete');
   const credOn = featureOn(config, 'families.cred');
   const privacyMode = useApp((s) => s.privacyMode);
   // מחיקות בשני קליקים (P3 פריט 19, shell.armdel; כבוי = דיאלוג דפדפן)
@@ -340,7 +345,7 @@ export function FamilyDetail(props: { family: Family }) {
             </Btn>
           )}
           <Btn onClick={() => setEditOpen(true)}>✎ עריכת {termOf(config, 'entity.family', 'משפחה')}</Btn>
-          {featureOn(config, 'families.delete') && (
+          {canDeleteFamily && (
             <Btn kind="danger" onClick={onDeleteFamily}>
               🗑 מחיקת {termOf(config, 'entity.family', 'משפחה')}
             </Btn>

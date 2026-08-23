@@ -181,6 +181,8 @@ export const GRANTABLE_STAFF_FEATURES: ReadonlySet<string> = new Set([
   'supporters.bulkselect',
   'supporters.bulkdelete',
   'supporters.purpose',
+  'families.delete',
+  'courses.delete',
 ]);
 
 /** האם המפתח הוא יכולת-הדלקה-פר-עובד (מכבד `true` בכרטיס-העובד). */
