@@ -65,7 +65,7 @@ import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
 import { applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
-import { applyOutcome, OUTCOME_LABELS, startCampaign, undoLast } from '../lib/dialer';
+import { appendCall, applyOutcome, OUTCOME_LABELS, popCall, startCampaign, undoLast } from '../lib/dialer';
 import {
   dailySnapshot,
   exportBackupFile,
@@ -3030,11 +3030,16 @@ export const useApp = create<AppState>()((set, get) => {
         };
         // רישום-עמיד (20.8): הערת-שיחה לא-ריקה נכתבת גם בכרטיס-התומך —
         // יומן-הקמפיין נמחק בסיום, וההערה הייתה אובדת לתמיד.
-        if (trimmed && id) {
-          const line = `📞 ${isoToday()} · ${OUTCOME_LABELS[outcome]}: ${trimmed}`;
-          next.supporters = db.supporters.map((s) =>
-            s.id === id ? { ...s, notes: s.notes ? s.notes + '\n' + line : line } : s,
-          );
+        // יומן-שיחות (23.8, "שיראה כמה התקשרו אליו"): כל סיווג — חוץ מדלג,
+        // שבו לא חויג בפועל — נרשם ב-Supporter.calls ושורד את מחיקת-הקמפיין.
+        if (id && (trimmed || outcome !== 'skip')) {
+          const line = trimmed ? `📞 ${isoToday()} · ${OUTCOME_LABELS[outcome]}: ${trimmed}` : '';
+          next.supporters = db.supporters.map((s) => {
+            if (s.id !== id) return s;
+            let sp = outcome !== 'skip' ? { ...s, calls: appendCall(s.calls, outcome, isoToday()) } : s;
+            if (line) sp = { ...sp, notes: sp.notes ? sp.notes + '\n' + line : line };
+            return sp;
+          });
         }
         return next;
       });
@@ -3042,7 +3047,17 @@ export const useApp = create<AppState>()((set, get) => {
     dialerUndo() {
       const cur = get().db.ui.dialer;
       if (!cur || !cur.log.length) return;
-      setDb((db) => (db.ui.dialer ? { ui: { ...db.ui, dialer: undoLast(db.ui.dialer) } } : {}));
+      const last = cur.log[cur.log.length - 1];
+      setDb((db) => {
+        if (!db.ui.dialer) return {};
+        const next: Partial<Db> = { ui: { ...db.ui, dialer: undoLast(db.ui.dialer) } };
+        // ביטול-סיווג מסיר גם את רישום-השיחה שנוסף (בן-הזוג של appendCall) —
+        // אחרת סיווג-בטעות שבוטל היה מנפח את מונה-השיחות לתמיד. דלג לא נרשם ⇒ אין מה להסיר.
+        if (last.outcome !== 'skip') {
+          next.supporters = db.supporters.map((s) => (s.id === last.id ? { ...s, calls: popCall(s.calls) } : s));
+        }
+        return next;
+      });
       get().toast('↩ הסיווג האחרון בוטל — המתקשר חזר לתור');
     },
     dialerStop() {
