@@ -10,7 +10,7 @@
 import { useState } from 'react';
 import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
-import { featureOn, integrationOn } from '../../lib/config';
+import { featureOn, integrationOn, termOf } from '../../lib/config';
 import { WaBtn } from '../WaBtn';
 import { Btn } from '../ui';
 import {
@@ -209,6 +209,7 @@ export function SupportersCockpit(props: {
   onDial?: (ids: string[]) => void;
 }) {
   const [doneIds, setDoneIds] = useState<ReadonlySet<string>>(new Set<string>());
+  // 🐛 (21.8): toISOString = UTC ⇒ בין חצות מקומי ל-02:00/03:00 "היום" היה אתמול.
   const today = isoToday();
   const rate = props.usdRate || 3.7;
 
@@ -238,7 +239,7 @@ export function SupportersCockpit(props: {
           gap: 12,
         }}
       >
-        <KpiCard label="סה״כ תורמים" value={String(kpis.total)} />
+        <KpiCard label={'סה״כ ' + termOf(props.config, 'nav.supporters', 'תורמים')} value={String(kpis.total)} />
         <KpiCard label="נגבה החודש" value={ils(kpis.collected)} />
         {hokLabel ? <KpiCard label="צפוי מהו״ק החודש" value={ils(kpis.expectedHok)} /> : null}
         <KpiCard label="בסיכון נטישה" value={String(kpis.atRisk)} tone="risk" onClick={props.onSegment ? () => props.onSegment!('atrisk') : undefined} />

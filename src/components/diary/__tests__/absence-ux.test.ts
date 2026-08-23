@@ -10,6 +10,7 @@ import { ABSENCE_REASON_CHIPS } from '../lib';
 import courseSrc from '../../courses/AbsenceModal.tsx?raw';
 import diarySrc from '../DiaryAbsenceModal.tsx?raw';
 import supDedupSrc from '../../supporters/SupDedupModal.tsx?raw';
+import attnPanelSrc from '../AttendancePanel.tsx?raw';
 
 describe('📋 ratchet — צ׳יפי-נימוק משותפים לשני מודאלי-החיסור', () => {
   it('מקור-אמת אחד (diary/lib) ושני הצרכנים מייבאים ממנו', () => {
@@ -32,5 +33,23 @@ describe('🔗 ratchet — מיזוג-תורמים חמוש בשני שלבים 
     expect(supDedupSrc).toMatch(/if \(armed !== gi\) \{\s*setArmed\(gi\);\s*return;/);
     expect(supDedupSrc).toContain("armed === gi ? 'לאשר מיזוג סופי?'");
     expect(supDedupSrc).toMatch(/armed === gi && <Btn sm onClick=\{\(\) => setArmed\(null\)\}>ביטול<\/Btn>/);
+  });
+});
+
+describe('📅 ratchet — החיסור מהיומן נחתם על תאריך-המפגש הנצפה, לא על "היום"', () => {
+  // הבאג: DiaryAbsenceModal כתב date: isoToday() בעוד הפאנל כולו (AttendancePanel)
+  // ממוקד ב-props.date — תאריך-המפגש הנצפה (הנוכחות נרשמת עליו). רישום-חיסור-בדיעבד
+  // ממסך של יום אחר נחת על "היום" ולא הופיע בדוח-היומי של המפגש עצמו.
+  // שעון-הזכאות (48ש׳ עד המפגש הבא) לא שונה במעבר הזה.
+  it('DiaryAbsenceModal: prop ‏date + החתמה עליו (isoToday רק כנפילה)', () => {
+    expect(diarySrc).toContain('date?: string;');
+    expect(diarySrc).toContain('date: props.date || isoToday(),');
+  });
+  it('AttendancePanel מזרים את תאריך-המפגש למודאל', () => {
+    expect(attnPanelSrc).toContain('date={props.date}');
+  });
+  it('AbsenceModal (חוגים): prop ‏date אופציונלי לסימטריה — זרימות-"היום" נשארות ברירת-מחדל', () => {
+    expect(courseSrc).toContain('date?: string;');
+    expect(courseSrc).toContain('date: props.date || isoToday(),');
   });
 });

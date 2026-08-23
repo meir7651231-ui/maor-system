@@ -6,9 +6,9 @@
 import { useMemo } from 'react';
 import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { hokDue, hokMonthlyTotal, isoToday, supTier } from './lib';
-import { cockpitCollectedThisMonth } from './cockpit';
+import { cockpitAtRisk, cockpitCollectedThisMonth } from './cockpit';
 import { portfolioIntel } from './portfolio';
 
 const ILS = (n: number) => (n >= 1000 ? '₪' + (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K' : '₪' + Math.round(n).toLocaleString('he-IL'));
@@ -35,23 +35,31 @@ export function SupportersKpiStrip(props: {
   /** קליק על אריח-הסיכון → סינון הטבלה לרשימת-הבסיכון. */
   onRisk?: () => void;
 }) {
+  // 🐛 (21.8): toISOString = UTC ⇒ בין חצות מקומי ל-02:00/03:00 "היום" היה אתמול.
   const today = isoToday();
   const rate = props.usdRate || 3.7;
   const hokOn = featureOn(props.config, 'supporters.hok');
 
   const portfolio = useMemo(() => portfolioIntel(props.supporters, today, rate), [props.supporters, today, rate]);
   const collected = useMemo(() => cockpitCollectedThisMonth(props.supporters, today, rate), [props.supporters, today, rate]);
-  const hokExpected = useMemo(() => hokMonthlyTotal(props.supporters, rate), [props.supporters, rate]);
+  // 🐛 (21.8): בלי todayIso הו"ק-נדרים שפגה (>2 חודשים שקט) נספרה ב"צפוי מהו״ק" —
+  // בעוד תור-המשימות (hokDue) כבר מחריג אותה. אותו-כלל לשני המשטחים.
+  const hokExpected = useMemo(() => hokMonthlyTotal(props.supporters, rate, today), [props.supporters, rate, today]);
   const dueCount = useMemo(() => (hokOn ? hokDue(props.supporters, today).length : 0), [props.supporters, today, hokOn]);
+  // 🐛 קוהרנטיות אריח↔סינון (21.8): האריח הקליקי "בסיכון נטישה" הציג את
+  // portfolio.atRiskCount (churn≥60) אבל הקליק סינן לסגמנט 'atrisk' = cockpitAtRisk
+  // (אוכלוסייה אחרת) ⇒ המספר על האריח לא תאם את הרשימה שנפתחה. הכלל: אריח קליקי
+  // מציג את אותה אוכלוסייה שהוא פותח; atRiskCount נשאר לאנליטיקה לא-קליקית.
+  const atRiskClickCount = useMemo(() => cockpitAtRisk(props.supporters, today).length, [props.supporters, today]);
 
   return (
     <div className="card" style={{ padding: '13px 15px', marginBottom: 10, display: 'flex', flexDirection: 'column', gap: 11 }}>
       {/* אריחי-מדד */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <Tile label="סה״כ תורמים" value={String(portfolio.count)} />
+        <Tile label={'סה״כ ' + termOf(props.config, 'nav.supporters', 'תורמים')} value={String(portfolio.count)} />
         <Tile label="נגבה החודש" value={ILS(collected)} tone="var(--good, #2e7d32)" />
         {hokOn ? <Tile label="צפוי מהו״ק" value={ILS(hokExpected)} /> : null}
-        <Tile label="בסיכון נטישה" value={String(portfolio.atRiskCount)} tone="var(--warn, #b45309)" onClick={props.onRisk} />
+        <Tile label="בסיכון נטישה" value={String(atRiskClickCount)} tone="var(--warn, #b45309)" onClick={props.onRisk} />
         <Tile label="שווי-תיק" value={ILS(portfolio.ltv)} />
       </div>
 

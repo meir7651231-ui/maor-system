@@ -7,9 +7,10 @@
  * פריט 14: סינון עם/בלי מונה + עודכן-היום + עמודת "שולם".
  */
 import { describe, expect, it } from 'vitest';
-import { sup12m, supAvgDon, supScoreBins } from '../lib';
+import { sup12m, supAvgDon, supLastInPeriod, supScoreBins } from '../lib';
 import { numMatch } from '../../families/lib';
 import viewSrc from '../SupportersView.tsx?raw';
+import donorImportSrc from '../../settings/DonorImportSection.tsx?raw';
 import type { Supporter } from '../../../types/domain';
 
 function sup(over: Partial<Supporter>): Supporter {
@@ -111,9 +112,84 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
   // 🔁 חשיפת זיהוי-הו"ק-מהיסטוריה מחוץ לשער-הענן — המנוע (detectRecurringHok)
   // מקומי-טהור, נבדק ב-nedarim-hok.test; הכפתור היה קבור ב-NedarimSyncModal שנעול
   // payments+ענן. נוסף לבלוק-הו"ק, מוצג רק כשיש חיובי-נדרים ב-hist.
-  it('🛡 כפתור "זהה הו״ק מהיסטוריה" חשוף (detectNedarimHok, מגודר hasNedarimHist)', () => {
-    expect(viewSrc).toContain('🔁 זהה הו״ק מהיסטוריה');
-    expect(viewSrc).toContain('detectNedarimHok()');
-    expect(viewSrc).toContain("(sp.hist ?? []).some((h) => h.clearer === 'נדרים')");
+  it('🛡 כפתור "זהה הו״ק מהיסטוריה" — עבר למסך-המנהל (הכרעת-בעלים 23.8)', () => {
+    const donorImport = donorImportSrc;
+    expect(donorImport).toContain('🔁 זהה הו״ק מהיסטוריה');
+    expect(donorImport).toContain('detectNedarimHok()');
+    expect(viewSrc).not.toContain('detectNedarimHok');
+    // 🐝 נחיל-סולה C7 (23.8): הגידור מכיר גם בסולה — הו"ק מזוהה מכל חברת-סליקה
+    expect(donorImportSrc).toContain("h.clearer === 'נדרים' || h.clearer === 'סולה'");
+  });
+
+  // בקשת-בעלים "הסינון בתורמים כל החודשים כל השנים גם לסינון לפי תרומה אחרונה
+  // של הלקוח": מנוע-תקופה חדש supLastInPeriod — בודק **רק** את התרומה האחרונה
+  // (המאוחרת מבין קבלות+היסטוריה) מול השנה/החודש, לעומת supGaveInPeriod שבודק
+  // אם נתן בכלל בתקופה. מצב-בורר 'gave'/'last' על אותם בוררי שנה/חודש.
+  it('מנוע — supLastInPeriod: רק מי שתרומתו האחרונה בתקופה (שנה/חודש, null=כל)', () => {
+    // תרומה אחרונה = המאוחרת מבין last וה-hist
+    const spAug = sup({ last: '2025-05-01', hist: [{ d: '2025-08-20', a: 100 }] });
+    const spJul = sup({ last: '2025-07-15', donations: [{ rid: 'D1', date: '2025-07-15', amount: 50, cur: '₪', cat: '' }] });
+    const spNone = sup({});
+    // אוגוסט 2025 — רק spAug (אחרונתו 20.8.25)
+    expect(supLastInPeriod(spAug, 2025, 8)).toBe(true);
+    expect(supLastInPeriod(spJul, 2025, 8)).toBe(false); // נתן ביולי, לא באוגוסט
+    // חודש-בלבד (כל השנים): אוגוסט
+    expect(supLastInPeriod(spAug, null, 8)).toBe(true);
+    expect(supLastInPeriod(spJul, null, 8)).toBe(false);
+    // שנה-בלבד (כל החודשים): 2025
+    expect(supLastInPeriod(spJul, 2025, null)).toBe(true);
+    expect(supLastInPeriod(spJul, 2024, null)).toBe(false);
+    // null,null = הכל; בלי תרומה = לא-נכלל (אין תאריך אחרון)
+    expect(supLastInPeriod(spNone, null, null)).toBe(true);
+    expect(supLastInPeriod(spNone, 2025, 8)).toBe(false);
+  });
+
+  it('🛡 חיווט: בורר-מצב-תקופה (gave/last) + ענף-הסינון + תווית-הצ׳יפ (הגנת-מקור)', () => {
+    // ברירת-מחדל 'gave' = ביט-זהה להתנהגות הקיימת
+    expect(viewSrc).toContain("useState<'gave' | 'last'>('gave')");
+    // ענף-הסינון: 'last' ⇒ supLastInPeriod, אחרת supGaveInPeriod (שניהם על gaveYearF/monthF)
+    expect(viewSrc).toContain('supLastInPeriod(sp, gaveYearF, monthF)');
+    expect(viewSrc).toContain('supGaveInPeriod(sp, gaveYearF, monthF)');
+    // בורר-המצב מוצג רק כשנבחרה תקופה
+    expect(viewSrc).toContain('🕐 תרומה אחרונה בתקופה');
+    // תווית-הצ׳יפ עוקבת אחרי המצב; ניקוי-הצ׳יפ מאפס גם את המצב
+    expect(viewSrc).toContain("const periodVerb = periodMode === 'last' ? 'תרומה אחרונה' : 'נתנו'");
+    expect(viewSrc).toContain('setMonthF(null); setGaveYearF(null); setPeriodMode(\'gave\');');
+  });
+
+  // עיצוב-הסינון-האחיד (בקשת-בעלים "תעצב את כל המסננים טוב יותר", 22.8): במקום
+  // שורת-בוררים שטוחה — כרטיס-סינון (.filterbar) עם חיפוש-פנינה (.fb-search) ובוררי-
+  // כדור; פאנל-מתקדם כמיכל-אחד (.filter-adv) בקבוצות מתויגות (.filter-group/.fg-label);
+  // צ׳יפי-סינון-פעיל אחידים (.filter-pill) + "נקה הכל" (.filter-clear-all). כל הצבעים
+  // דרך tokens ⇒ תואם-ערכות. אפס אובדן-יכולת: כל הסינון נשמר, רק מקובץ ומעוצב.
+  it('🎨 סרגל-סינון אחיד: כרטיס-חיפוש + בוררי-כדור, במקום שורה שטוחה', () => {
+    expect(viewSrc).toContain('className="filterbar"');
+    expect(viewSrc).toContain('className="fb-search"');
+    // המחלקות מוגדרות ב-global.css (מיובא-גלובלי, לא ניתן-raw בבדיקה — אומת בבנייה)
+  });
+
+  it('🎨 פאנל-מתקדם = מיכל-אחד בקבוצות מתויגות (.filter-adv/.filter-group/.fg-label)', () => {
+    expect(viewSrc).toContain('className="filter-adv"');
+    expect(viewSrc).toContain('className="filter-group"');
+    expect(viewSrc).toContain('className="fg-label"');
+    // הפאנל נשאר מגודר (מוצג רק כשפתוח) — אפס-רגרסיה בגידור
+    expect(viewSrc).toContain('{advFilterOn && hasAdvFilters && advOpen && (');
+  });
+
+  it('🎨 צ׳יפי-סינון-פעיל אחידים + "נקה הכל" מאפס את כל המסננים בקליק', () => {
+    expect(viewSrc).toContain('className="filter-pill"');
+    expect(viewSrc).toContain('className="filter-clear-all"');
+    expect(viewSrc).toContain('✕ נקה הכל');
+    // הרצועה מופיעה כשיש סינון פעיל (filtered) — כולל מסננים בלי צ׳יפ (חיפוש/קטגוריה)
+    expect(viewSrc).toContain('{(filtered || drillChips.length > 0) && (');
+    // clearAllFilters מאפס את כל שדות-הסינון (כולל התקופה והמצב החדש)
+    expect(viewSrc).toContain('const clearAllFilters = () => {');
+    for (const reset of [
+      "setQ('')", "setCat('all')", "setPurposeF('all')", 'setTierF(null)', 'setHokF(null)',
+      'setAyinF(null)', 'setNextF(false)', 'setSegF(null)', 'setMonthF(null)', 'setGaveYearF(null)',
+      'setAcqYearF(null)', "setPeriodMode('gave')", "setColF({ count: '', total: '', score: '' })",
+    ]) {
+      expect(viewSrc).toContain(reset);
+    }
   });
 });

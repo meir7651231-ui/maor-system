@@ -208,6 +208,9 @@ export function CalendarView() {
 
   // גייטים ברמת פיצ'ר: תצוגת יום (calendar.dayview) ושכבות נגזרות (calendar.layers)
   const dayviewOn = featureOn(config, 'calendar.dayview');
+  // calendar.addevent ("כיבוי = לוח לקריאה") — חוסם את כל נתיבי-היצירה (➕ בכותרת,
+  // ➕ בתצוגת-היום, ולחיצת-תא כש-dayview כבוי); עריכת אירוע קיים נשארת.
+  const addeventOn = featureOn(config, 'calendar.addevent');
   const layersOn = featureOn(config, 'calendar.layers');
   // כיבוי מודול משורשר לשכבות הנגזרות מהמודול הכבוי: משפחות → ימי-הולדת ·
   // הצטרפות · משפחתיים · הרשמות; חוגים → מפגשי-קורס · הרשמות. השכבה מכובה
@@ -268,7 +271,15 @@ export function CalendarView() {
       })),
     [grid, effFilters],
   );
-  const upcoming = useMemo(() => upcomingRows(db, 14), [db]);
+  // גם הפאנל הבסיסי מכבד את צ'יפי-השכבות של הלוח (כמו upcoming30) — השורה עוברת
+  // אותו allowItem; לפני-כן הצ'יפים סיננו רק את הגריד והרשימה נשארה מלאה.
+  const upcoming = useMemo(
+    () =>
+      upcomingRows(db, 14).filter((u) =>
+        allowItem({ key: u.key, label: u.title, title: u.title, bg: u.bg, c: u.c, typeLabel: u.typeLabel, sort: 1, prC: u.prC, ev: u.ev }, effFilters),
+      ),
+    [db, effFilters],
+  );
   // פאנל "קרובים" מלא (P2 פער 25, feature calendar.upcoming): 30 יום,
   // שכבות עברי-נגזרות, מכבד את פילטרי-הסוג הפעילים של הלוח (הכרעה 6)
   const upcomingOn = featureOn(config, 'calendar.upcoming');
@@ -376,7 +387,7 @@ export function CalendarView() {
                 🔗 מנוי-יומן
               </Btn>
             )}
-            {featureOn(config, 'calendar.addevent') && (
+            {addeventOn && (
               <Btn kind="primary" onClick={() => setModal({ ev: null, date: isoOf(new Date()) })}>
                 ➕ הוספת אירוע
               </Btn>
@@ -435,8 +446,9 @@ export function CalendarView() {
             <DayCell
               key={cell.iso}
               cell={cell}
-              // calendar.dayview כבוי — לחיצה על תא פותחת אירוע חדש ישירות (ההתנהגות הישנה)
-              onOpen={() => (dayviewOn ? setDayIso(cell.iso) : setModal({ ev: null, date: cell.iso }))}
+              // calendar.dayview כבוי — לחיצה על תא פותחת אירוע חדש ישירות (ההתנהגות הישנה);
+              // אבל כשגם calendar.addevent כבוי (לוח-לקריאה) — אין נתיב-יצירה עוקף: no-op.
+              onOpen={() => (dayviewOn ? setDayIso(cell.iso) : addeventOn ? setModal({ ev: null, date: cell.iso }) : undefined)}
               onItem={onItem}
               pillsOpenDay={dayviewOn && coarsePointer}
             />

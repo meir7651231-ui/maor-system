@@ -7,7 +7,7 @@
  */
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, moduleOn } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import { runAudit, auditReportLines, AUDIT_CATEGORIES, AUDIT_CAT_COLORS, type AuditIssue } from '../../lib/audit';
 import { downloadText } from '../reports/csv';
@@ -19,6 +19,7 @@ export function AuditSection() {
   const db = useApp((s) => s.db);
   const selectFamily = useApp((s) => s.selectFamily);
   const go = useApp((s) => s.go);
+  const toast = useApp((s) => s.toast);
   const fixAllPhones = useApp((s) => s.fixAllPhones);
   const auditToAttention = useApp((s) => s.auditToAttention);
   const config = useApp((s) => s.config);
@@ -90,7 +91,17 @@ export function AuditSection() {
                     <div key={i} style={{ display: 'flex', gap: 4, alignItems: 'stretch' }}>
                       <button
                         type="button"
-                        onClick={() => (it.famId ? selectFamily(it.famId) : it.spId ? go('supporters') : undefined)}
+                        // ממוגן-מודולים: ניווט למסך של מודול כבוי ⇒ מסך בלי כניסת-ניווט
+                        // ובלי דרך-חזרה — במקום זה טוסט מסביר (אותו דפוס כמו ווידג'טי-הבית).
+                        onClick={() => {
+                          if (it.famId) {
+                            if (moduleOn(config, 'families')) selectFamily(it.famId);
+                            else toast('המודול כבוי');
+                          } else if (it.spId) {
+                            if (moduleOn(config, 'supporters')) go('supporters');
+                            else toast('המודול כבוי');
+                          }
+                        }}
                         title={it.famId || it.spId ? 'פתיחת הכרטיס' : undefined}
                         style={{
                           flex: 1,

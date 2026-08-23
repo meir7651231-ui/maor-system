@@ -199,16 +199,18 @@ export function HomeView() {
   // הערכה המוחלת בפועל — העדפת המשתמש גוברת על ערכת הארגון (כמו applyTheme)
   const tpl = !boardOn || !db.ui.homeLayout ? THEME_TEMPLATES[activeTheme] : undefined;
   if (tpl) {
-    const colA = tpl.colA.filter(visible);
-    const colB = tpl.colB.filter(visible);
+    // איזון-עמודות מדויק (בקשת-בעלים "מסך הבית בלגן", 23.8): במקום פיצול-קבוע
+    // colA/colB שהשאיר חצי-לוח-ריק כשווידג'ט סונן — masonry דו-טורי (CSS columns)
+    // שמאזן את הגבהים **בפועל** בדפדפן ⇒ שתי העמודות דומות-גובה בכל צירוף-ווידג'טים.
+    const mainIds = [...tpl.colA, ...tpl.colB].filter(visible);
     // 🛡 תיקון (20.8, ממצא-ביקורת HIGH): מסלול-התבנית עקף את ערובת-הפריסה-המלאה —
     // ב-home.board:false ה-savedLayout הוא FULL_LAYOUTS, אבל התבנית רינדרה רק את
     // הווידג'טים שלה ⇒ 4 ווידג'טי-האנליטיקה לא עלו כלל. ה"עודפים" מרונדרים אחרי
     // התבנית (קיבוץ-חצאים כמו בגריד); כשאין עודפים — ביט-זהה להיום.
     const tplIds = new Set<WidgetId>(['hero', ...tpl.pre, ...tpl.colA, ...tpl.colB, ...tpl.post]);
     const extras = savedLayout.filter((id) => visible(id) && !tplIds.has(id));
-    // עמודה שהתרוקנה כולה (מודולים כבויים) — נופלים לגריד הגנרי במקום חצי לוח ריק
-    if (colA.length && colB.length) {
+    // פחות משני ווידג'טים גלויים (מודולים כבויים) — נופלים לגריד הגנרי במקום טור-בודד
+    if (mainIds.length >= 2) {
       const extraGroups: WidgetId[][] = [];
       for (const id of extras) {
         const last = extraGroups[extraGroups.length - 1];
@@ -221,17 +223,10 @@ export function HomeView() {
           {tpl.pre.filter(visible).map((id) => (
             <Fragment key={id}>{HOME_WIDGETS[id].render(ctx)}</Fragment>
           ))}
-          <div className="hm-cols">
-            <div className="hm-col">
-              {colA.map((id) => (
-                <Fragment key={id}>{HOME_WIDGETS[id].render(ctx)}</Fragment>
-              ))}
-            </div>
-            <div className="hm-col">
-              {colB.map((id) => (
-                <Fragment key={id}>{HOME_WIDGETS[id].render(ctx)}</Fragment>
-              ))}
-            </div>
+          <div className="hm-masonry">
+            {mainIds.map((id) => (
+              <div className="hm-ma-item" key={id}>{HOME_WIDGETS[id].render(ctx)}</div>
+            ))}
           </div>
           {tpl.post.filter(visible).map((id) => (
             <Fragment key={id}>{HOME_WIDGETS[id].render(ctx)}</Fragment>
@@ -240,7 +235,7 @@ export function HomeView() {
             HOME_WIDGETS[g[0]].slot === 'half' ? (
               <div
                 key={g[0]}
-                style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}
+                style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14, alignItems: 'start' }}
               >
                 {g.map((id) => (
                   <Fragment key={id}>{HOME_WIDGETS[id].render(ctx)}</Fragment>
@@ -271,7 +266,7 @@ export function HomeView() {
         HOME_WIDGETS[g[0]].slot === 'half' ? (
           <div
             key={g[0]}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14, alignItems: 'start' }}
           >
             {g.map((id) => (
               <Fragment key={id}>{HOME_WIDGETS[id].render(ctx)}</Fragment>

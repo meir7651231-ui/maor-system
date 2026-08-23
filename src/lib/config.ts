@@ -16,7 +16,7 @@ export function moduleOn(cfg: OrgConfig, m: ModuleKey): boolean {
   return cfg.modules[m] !== false;
 }
 
-/** שמונת מודולי הניווט הניתנים לכיבוי — קידומות של פיצ'רים שכפופות לטוגל מודול. */
+/** תשעת מודולי הניווט הניתנים לכיבוי — קידומות של פיצ'רים שכפופות לטוגל מודול. */
 const NAV_MODULE_KEYS: readonly ModuleKey[] = [
   'families',
   'courses',
@@ -831,13 +831,19 @@ export async function loadOrgConfig(): Promise<OrgConfig> {
     if (res.ok) {
       const cfg = normalizeConfig(await res.json());
       // ארגון-פלטפורמה בלי קובץ סטטי (CLOUD2): קונפיג-השורש נותן את
-      // ה-firebase, וה-slug מהכתובת נשמר — כך הקונפיג-מהענן יימצא אחרי הכניסה
-      if (cfg) return slug ? { ...cfg, slug } : cfg;
+      // ה-firebase, וה-slug מהכתובת נשמר — כך הקונפיג-מהענן יימצא אחרי הכניסה.
+      // 🔴 קריטי: קונפיג-השורש כולל `cloudRoot:true` (נתיבי-שורש + ענף-כניסה
+      // מיוחד למייל-על/adminEmails). אסור להורישו ל-slug זר — אחרת ארגון-פלטפורמה
+      // נכנס לענף-השורש, המנהל/עובדות נעולים ל-pending, והנתונים נקראים מהשורש.
+      // לכן: בלווית קונפיג-השורש ל-slug≠default — cloudRoot:false (ענף-פלטפורמה).
+      // (מאור-החסד אינו מושפע: יש לו קובץ-משלו שנטען למעלה, לא דרך פולבק זה.)
+      if (cfg) return slug ? { ...cfg, slug, cloudRoot: slug === 'default' ? cfg.cloudRoot : false } : cfg;
     }
   } catch {
     /* אין קובץ / רשת — נמשיך לברירת המחדל */
   }
-  return slug ? { ...DEFAULT_CONFIG, slug } : DEFAULT_CONFIG;
+  // אותו כלל כמו הפולבק לעיל — slug זר לא יורש cloudRoot (ברירת-מחדל ⇒ ענף-פלטפורמה)
+  return slug ? { ...DEFAULT_CONFIG, slug, ...(slug !== 'default' ? { cloudRoot: false } : {}) } : DEFAULT_CONFIG;
 }
 
 /** צבע-CSS בטוח בלבד (hex/rgb/hsl/keyword) — חוסם הזרקת `url()` וכו' ל-`--accent`.

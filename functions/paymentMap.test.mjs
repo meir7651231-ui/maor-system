@@ -7,7 +7,7 @@
  * param1/param2 המהודהדים משמשים ל-org ולמזהה, ושם-מלא גובר על FirstName/LastName.
  */
 import { describe, expect, it } from 'vitest';
-import { mapPaymentCallback, pickCurrency, pickAmount, pickDate } from './paymentMap.js';
+import { mapPaymentCallback, pickCurrency, pickAmount, pickDate, sanitizeDedupKey } from './paymentMap.js';
 
 describe('💳 ratchet — מיפוי CallBack נדרים-פלוס', () => {
   it('מטען-נדרים אמיתי (Webhook/GetHistoryJson) ממופה במלואו', () => {
@@ -108,5 +108,32 @@ describe('💳 ratchet — מיפוי CallBack נדרים-פלוס', () => {
   it('toremId: הווריאנט ToremID (D-גדולה) נתפס במיפוי', () => {
     expect(mapPaymentCallback({ org: 'root', Amount: '5', ToremID: '777' }).toremId).toBe('777');
     expect(mapPaymentCallback({ org: 'root', Amount: '5', DonorId: '888' }).toremId).toBe('888');
+  });
+
+  // 🐛 (21.8) doc-id נבנה מ-reference גולמי של הספק: '/' בתוך col.doc() זורק ⇒
+  // 500 ⇒ ה-CallBack (חד-פעמי אצל נדרים) אובד והתשלום נעלם. sanitizeDedupKey
+  // מחטא ל-[A-Za-z0-9_-], תוחם ~100, שומר ייחודיות (זנב-hash) ודטרמיניסטי.
+  it('sanitizeDedupKey: מפתח נקי עובר כמו-שהוא (הדדופ ההיסטורי נשמר ביט-זהה)', () => {
+    expect(sanitizeDedupKey('ref-12345')).toBe('ref-12345');
+    expect(sanitizeDedupKey('Tx_9-A')).toBe('Tx_9-A');
+  });
+  it('sanitizeDedupKey: תווים אסורים (כולל "/") מוחלפים — התוצאה חוקית כ-doc-id', () => {
+    const k = sanitizeDedupKey('ref-אס/מכתא 7');
+    expect(k).toMatch(/^[A-Za-z0-9_-]+$/);
+    expect(k).not.toContain('/');
+  });
+  it('sanitizeDedupKey: דטרמיניסטי, ושתי אסמכתאות שונות לא מתמזגות (זנב-hash)', () => {
+    expect(sanitizeDedupKey('ref-א/ב')).toBe(sanitizeDedupKey('ref-א/ב'));
+    expect(sanitizeDedupKey('ref-א/ב')).not.toBe(sanitizeDedupKey('ref-ג/ד'));
+  });
+  it('sanitizeDedupKey: תקרת-אורך ~100 גם על קלט ענק', () => {
+    const k = sanitizeDedupKey('x/'.repeat(400));
+    expect(k.length).toBeLessThanOrEqual(101);
+    expect(k).toMatch(/^[A-Za-z0-9_-]+$/);
+  });
+  it('sanitizeDedupKey: מפתח ריק ⇒ hash של המטען הגולמי (לא id ריק)', () => {
+    const k = sanitizeDedupKey('', { Amount: '5' });
+    expect(k).toMatch(/^h[a-f0-9]{32}$/);
+    expect(sanitizeDedupKey('', { Amount: '5' })).toBe(k); // דטרמיניסטי
   });
 });

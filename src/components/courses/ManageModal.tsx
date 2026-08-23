@@ -216,6 +216,12 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
 
   function togglePause() {
     if (!en) return;
+    // ⏳ רשימת-המתנה: "הקפאה" הייתה הופכת wait⇒paused — קידום-שקט מעבר לקיבולת
+    // (paused תופס מקום ונספר ברוסטר/דוחות/גבייה) בלי דרך-חזרה לתור. רק active⇄paused.
+    if (en.status === 'wait') {
+      toast('ברשימת-המתנה — קדמו לפעיל קודם (▲ שבץ בכרטיס ה' + termOf(cfg, 'entity.course', 'חוג') + ')');
+      return;
+    }
     const paused = en.status !== 'paused';
     upsertEnrollment({ ...en, status: paused ? 'paused' : 'active' });
     toast(
@@ -263,6 +269,11 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   const payHref =
     integrationOn(cfg, 'payments') && featureOn(cfg, 'courses.paylink') && bal > 0
       ? payLink(integrationSetting(cfg, 'payments', 'payUrl'), bal, (m?.first ?? '') + ' ' + (m?.famName ?? ''))
+      : null;
+  // 💳 סולה (23.8) — עמוד-התשלום השני, הסכום ממולא
+  const solaPayHref =
+    integrationOn(cfg, 'payments') && featureOn(cfg, 'courses.paylink') && bal > 0
+      ? payLink(integrationSetting(cfg, 'payments', 'solaPayUrl'), bal, (m?.first ?? '') + ' ' + (m?.famName ?? ''))
       : null;
 
   return (
@@ -435,6 +446,18 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
                 style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, color: 'var(--accent-deep, var(--accent))', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 8px' }}
               >
                 💳 תשלום מקוון
+              </a>
+            ) : null}
+            {solaPayHref ? (
+              <a
+                href={solaPayHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="תשלום מקוון בסולה — הסכום ממולא"
+                title="עמוד-התשלום בסולה — הסכום ממולא (אינו מנפיק קבלה)"
+                style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, color: 'var(--accent-deep, var(--accent))', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 8px' }}
+              >
+                💳 סולה
               </a>
             ) : null}
             {balLine}

@@ -74,3 +74,45 @@ firebase deploy --project maor-system --only functions:mailOutbox
   נכתבים ע"י Functions (Admin SDK עוקף Rules) ונקראים ע"י חברי-הארגון.
 - מחיקת-עלויות: הכול בתוך Free-tier ברמות-השימוש הצפויות; `smsOutbox` מוגבל
   20 הודעות/דקה.
+
+## עדכון 21.8 — מייל פר-לקוח בפועל, יעדי-workflow חדשים, ו-Rules ממתינים לבעלים
+- **From נגזר מהלקוח עצמו:** ‏`mailOutbox` כבר לא מסתמכת על ‏`MAIL_FROM` גלובלי
+  (שלא קיים כ-secret — הכרעת-הבעלים "מייל פר-לקוח בלבד" ⇒ מיילים יצאו **בלי
+  From** ונפלו לספאם/נדחו). כתובת-השולח נגזרת עכשיו מה-`smtpUrl` של הארגון
+  (ה-username ב-URL = כתובת-המייל שהלקוח הזין בכספת; ‏`lib/smtpUrl.ts` מרכיב עם
+  ‏encodeURIComponent ⇒ ‏decodeURIComponent בשרת). ‏`SMTP_URL`/`MAIL_FROM`
+  הגלובליים = נפילה-לאחור בלבד ואינם נדרשים לפריסה.
+- **יעדי-workflow חדשים נגישים מה-Actions UI** (‏`deploy-functions.yml`):
+  ‏`logs` (לוגי-המתוזמנות בלי לפרוס) · ‏`indexes` (פריסת firestore.indexes.json) ·
+  ‏`rules` (פריסת firestore.rules — **פעולת-בעלים מפורשת בלבד**). ה-case-ים היו
+  קיימים אך חסרו מרשימת-הבחירה ⇒ לא היו ניתנים-להפעלה מהאתר.
+- **גיבוי-לילה כולל את אוסף-התרומות הנפרד:** ‏`backupNightly` מגבה עכשיו גם את
+  ‏`orgs/{slug}/donations` (מסלול-B, ‏donationSplit) דרך ‏`EXTRA_BACKUP` —
+  ‏`BACKUP_COLLECTIONS` נשאר ≡ ל-‏ENTITY_COLLECTIONS (ratchet).
+- **חיטוי מפתח-דדופ ב-webhook:** ‏reference עם '/' כבר לא מפיל את ‏paymentsWebhook
+  ב-500 (ה-CallBack של נדרים חד-פעמי — תשלום היה אובד); ‏`sanitizeDedupKey`
+  ב-‏paymentMap.js (דטרמיניסטי, שומר-ייחודיות).
+- **⚠️ שינוי-Rules ממתין לפרסום-בעלים:** ‏firestore.rules שבריפו הורחב —
+  הבריחה של הארגון-השורש ב-‏icsFeeds/‏teamChats מכסה עכשיו גם ‏slug
+  ‏'maor-hachesed' (הלקוח-החי), לא רק ‏'default'. **לא פורסם** — ייכנס לתוקף רק
+  בפרסום-ה-Rules הבא של הבעלים (יעד ‏`rules` ב-workflow או ‏firebase deploy
+  ‏--only firestore:rules).
+
+## 💳 סולה (Sola Payments) — חיווט-כמו-נדרים (21.8, ערב)
+- **פונקציות:** `solaPull` (HTTP — משיכת עסקאות מאושרות מ-Reporting API אל תור-האישור
+  incomingPayments; ‏`?peek=1` = הצצה בשורות גולמיות בלי כתיבה; ‏`?reset=1` = ניקוי-
+  שורות-סולה ומשיכה-מחדש) + `solaSyncHourly` (רשת-ביטחון; **דורמנטית** עד שנקבע env
+  ‏`SOLA_ORG`). פריסה: יעד `sola` ב-Actions / ענף `deploy-fn/sola`. סודות: ‏PAY_SECRET
+  בלבד (קיים) — ה-xKey **פר-ארגון בכספת** (`orgSecrets/{slug}.solaXKey`).
+- **הפעלה ללקוח:** ‏(1) הגדרות ← מפתחות-ההרחבות ← "💳 Sola Payments — xKey" (המנהל
+  מזין; sandbox וייצור = מפתחות שונים!). ‏(2) באשף: ‏payments.solaPullUrl = כתובת
+  הפונקציה (https://us-central1-maor-system.cloudfunctions.net/solaPull) ⇒ מופיע
+  כפתור "🔄 משיכה מסולה" בתשלומים-הנכנסים (מנהל/מייל-על).
+- **גבול-הכסף:** סולה **לא** מנפיקה קבלת-§46 (בשונה מנדרים) — העסקאות נוחתות
+  ‏pending בתור-האישור, והקבלה נרשמת במאור באישור-המנהל כרגיל. ‏xRefNum נשמר
+  כ-reference. ‏ratchets: ‏functions/solaReport.test.mjs + ‏sola-wire.test.ts.
+- **צעד-אימות ראשון מול החשבון האמיתי (לפני אמון במיפוי):**
+  `curl -s -X POST "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=<slug>&peek=1&secret=<PAY_SECRET>"`
+  — מחזיר 3 שורות-דוח גולמיות; אם שמות-השדות שונים מהצפוי, מדייקים את solaReport.js
+  (תפר-יחיד) ופורסים שוב. endpoint ניתן-לדריסה ב-env ‏SOLA_API_BASE (ברירת-מחדל
+  ‏https://x1.cardknox.com — השער של Cardknox שסולה white-label שלו).

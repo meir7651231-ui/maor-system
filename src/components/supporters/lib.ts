@@ -126,6 +126,19 @@ export function supLast(sp: Supporter): string {
   return m;
 }
 
+/** האם **התרומה האחרונה** של התורם נפלה בתקופה — שנה (yyyy) ו/או חודש (1–12).
+ *  ‏null=כל. משלים את supGaveInPeriod (שבודק אם נתן **בכלל** בתקופה): כאן נבדקת
+ *  רק ה**אחרונה** (המאוחרת מבין קבלות+היסטוריה, דרך supLast) — "מי שתרם לאחרונה
+ *  ב-…". בקשת-בעלים: "סינון לפי תרומה אחרונה של הלקוח". תורם בלי תרומה = לא-נכלל. */
+export function supLastInPeriod(sp: Supporter, year: number | null, month: number | null): boolean {
+  if (year == null && month == null) return true;
+  const iso = supLast(sp);
+  if (!iso) return false;
+  if (year != null && +iso.slice(0, 4) !== year) return false;
+  if (month != null && +iso.slice(5, 7) !== month) return false;
+  return true;
+}
+
 /** שווי כולל בש"ח — דולר לפי השער העריך (ברירת-מחדל 3.7, כמו במקור); כולל היסטוריה. */
 export function supTotalIls(sp: Supporter, rate = 3.7): number {
   return supIls(sp) + supUsd(sp) * rate;
@@ -683,7 +696,8 @@ export function hokEffectivelyActive(sp: Supporter, todayIso: string): boolean {
   if (!h || !h.active) return false;
   if (!h.kevaId) return true; // הו"ק ידני — אין לאפ-אוטומטי
   let last = '';
-  for (const e of sp.hist ?? []) if (e.clearer === 'נדרים' && (e.d || '') > last) last = e.d || '';
+  // 🐛 נחיל-סולה C7: גם חיובי-סולה נחשבים "חיות" של הו"ק-סליקה
+  for (const e of sp.hist ?? []) if ((e.clearer === 'נדרים' || e.clearer === 'סולה') && (e.d || '') > last) last = e.d || '';
   if (!last) return true; // עדיין אין היסטוריית-נדרים — סומכים על הדגל
   return monthsAgoIso(last, todayIso) <= 2;
 }
@@ -703,7 +717,7 @@ export function hokRecordedThisMonth(sp: Supporter, todayIso: string): boolean {
   // משתנה, למשל שזוהתה-רטרואקטיבית, לא תוצג שגוי כ"ממתין"); נפילה: התאמת-סכום-מדויק
   // לרשומת-hist שאינה נדרים (מקור-ישן/לגאסי).
   return (sp.hist ?? []).some(
-    (h) => (h.d || '').startsWith(month) && (h.clearer === 'נדרים' || (h.a === hok.amount && (h.c || '₪') === hok.cur)),
+    (h) => (h.d || '').startsWith(month) && (h.clearer === 'נדרים' || h.clearer === 'סולה' || (h.a === hok.amount && (h.c || '₪') === hok.cur)),
   );
 }
 

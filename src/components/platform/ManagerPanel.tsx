@@ -12,14 +12,12 @@ import { Btn, Chip, Field, Modal, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
 import {
   MODULE_LABELS,
-  approveMember,
   genJoinCode,
   orgEnabledFeatures,
   orgEnabledModules,
   orgJoinFullCode,
   orgJoinLink,
   overrideOf,
-  removeMember,
   setEmployeeOverride,
 } from './lib';
 import { FEATURES } from '../../types/features';
@@ -123,8 +121,10 @@ export function ManagerPanel(props: { onClose: () => void }) {
 
   async function approve(r: JoinRow) {
     if (!mod || !org || !r.email) return;
-    const { members } = approveMember(org, r.email);
-    await mod.writeOrgCloudDoc(slug, { members });
+    // תיקון 21.8 (ממצא-נחיל): כתיבת members המלא מ-state (אולי-ישן) דרסה בשקט
+    // עובד/ת שאושרו במקביל במסך אחר — addOrgMember = arrayUnion אטומי בשרת.
+    const { addOrgMember } = await import('../../lib/cloudConfig');
+    await addOrgMember(slug, r.email);
     await mod.deleteOrgJoinRequest(slug, r.uid).catch(() => {});
     await refresh(mod);
     toast('העובד/ת ' + r.email + ' אושר/ה — כעת אפשר לקבוע לו/ה כרטיס');
@@ -169,12 +169,18 @@ export function ManagerPanel(props: { onClose: () => void }) {
   /** 🎯 יעד-שבועי פר-עובד/ת (התפרעות-מלאה 20.8) — additive על כרטיס-העובד בענן. */
   async function setGoalFor(email: string, goal: number) {
     if (!mod || !org) return;
-    const ov = overrideOf(email, org);
-    const next = { ...ov } as typeof ov & { weeklyGoal?: number };
-    if (goal > 0) next.weeklyGoal = Math.round(goal);
-    else delete next.weeklyGoal;
-    const { memberConfigs } = setEmployeeOverride(org, email, next);
-    await mod.writeOrgCloudDoc(slug, { memberConfigs });
+    if (goal > 0) {
+      const ov = overrideOf(email, org);
+      const { memberConfigs } = setEmployeeOverride(org, email, { ...ov, weeklyGoal: Math.round(goal) });
+      await mod.writeOrgCloudDoc(slug, { memberConfigs });
+    } else {
+      // תיקון 21.8 (ממצא-נחיל): `delete next.weeklyGoal` + setDoc(merge:true) ממזג-עומק
+      // ⇒ השדה מעולם לא נמחק בענן (יעד 40 חזר אחרי איפוס-ל-0). מחיקת-שדה נקודתית
+      // (FieldPath+deleteField, דפוס deleteOrgMemberConfig). dynamic-import — firebase
+      // נשאר מחוץ לבנדל הראשי (הפאנל ממילא חי רק בענן).
+      const { clearEmployeeField } = await import('../../lib/cloudConfig');
+      await clearEmployeeField(slug, email, 'weeklyGoal');
+    }
     await refresh(mod);
   }
   function toggleDesignationFor(email: string, p: string) {
@@ -184,8 +190,10 @@ export function ManagerPanel(props: { onClose: () => void }) {
 
   async function removeEmp(email: string) {
     if (!mod || !org) return;
-    const { members } = removeMember(org, email);
-    await mod.writeOrgCloudDoc(slug, { members });
+    // תיקון 21.8 (ממצא-נחיל): הסרה אטומית (arrayRemove) במקום דריסת המערך המלא
+    // מ-state אולי-ישן — כתיבה-מקבילה לא מוחקת עוד עובד/ת אחרים בשקט.
+    const { removeOrgMember } = await import('../../lib/cloudConfig');
+    await removeOrgMember(slug, email);
     // ציד-באגים 3.8 (🟠): merge:true לא מוחק מפתח-מפה ⇒ מוחקים את כרטיס-העובד מפורשות
     await mod.deleteOrgMemberConfig(slug, email).catch(() => {});
     await refresh(mod);

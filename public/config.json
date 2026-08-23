@@ -17,7 +17,8 @@
   "integrations": {
     "whatsapp": { "enabled": true },
     "maps": { "enabled": true },
-    "gcal": { "enabled": true }
+    "gcal": { "enabled": true },
+    "payments": { "enabled": true, "solaPullUrl": "https://us-central1-maor-system.cloudfunctions.net/solaPull" }
   },
   "telephony": {
     "enabled": true
@@ -30,6 +31,7 @@
     "messagingSenderId": "437845665303",
     "appId": "1:437845665303:web:955fa5636e5b408ae7de52"
   },
+  "cloudRoot": true,
   "adminEmails": [
     "meir7651231@gmail.com"
   ]

@@ -8,7 +8,7 @@
  */
 import type { Db, Id, IsoDate, ShopAssignment, ShopAssignmentStatus, ShopComponent, ShopCriterion, ShopIntake, ShopItem, ShopProduct, ShopRedemption } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
-import { termOf } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { isoOf } from '../calendar/calLib';
 import { hebParts, holidayOf } from '../../lib/hebrew';
 import { smartFilter } from '../../lib/search';
@@ -243,8 +243,10 @@ export const SHOP_HOLIDAY_DUE_DAYS = 30;
  * פגישות שטרם מומשו → קופונים שטרם מומשו → קופונים שפקעו → מלאי שאזל.
  * שיוכים active בלבד (מלאי — פר-רכיב במוצר active, בלי שיוך: assignmentId='').
  * קופון שפקע מדווח כ-couponExpired (במקום couponPending — לא כפול).
+ * config (רשות, swarm-audit): מונחי termOf בתוויות (beneficiaryLabel) + גידור
+ * שורות 'expiring' בדגל shop.expiry — בלי config ההתנהגות ההיסטורית (הכול פעיל).
  */
-export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
+export function needsCare(db: Db, todayIso: IsoDate, config?: OrgConfig): ShopCareItem[] {
   const holidays = upcomingHolidays(todayIso, SHOP_HOLIDAY_DUE_DAYS);
   const due: ShopCareItem[] = [];
   const meetings: ShopCareItem[] = [];
@@ -307,7 +309,7 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
     if (a.status !== 'active') continue;
     const product = db.shopProducts.find((p) => p.id === a.productId);
     if (!product) continue;
-    const who = beneficiaryLabel(db, a);
+    const who = beneficiaryLabel(db, a, config);
     for (const comp of product.components) {
       const ri = itemOf(db, comp);
       if (ri.kind === 'holidayGift') {
@@ -355,7 +357,11 @@ export function needsCare(db: Db, todayIso: IsoDate): ShopCareItem[] {
     }
   }
   // אצוות/תפוגה (SHOP10) — קליטות מתכלות שפגו או עומדות לפוג (≤7 ימים).
-  const expiring: ShopCareItem[] = expiringIntakes(db, todayIso).map((x) => ({
+  // תיקון (swarm-audit): הקלט (שדה-תפוגה בקליטה) מגודר shop.expiry אבל ההתרעות
+  // נפלטו ללא-תנאי — ארגון עם הדגל כבוי עדיין קיבל התרעות-תפוגה. עם config
+  // הדגל נאכף; בלי config (קוראים ישנים/בדיקות) — ביט-זהה להיום.
+  const expiryOn = !config || featureOn(config, 'shop.expiry');
+  const expiring: ShopCareItem[] = (expiryOn ? expiringIntakes(db, todayIso) : []).map((x) => ({
     kind: 'expiring' as const,
     assignmentId: '',
     componentId: x.intake.itemId,
@@ -401,6 +407,7 @@ export function upcomingMeetings(
   db: Db,
   todayIso: IsoDate,
   days = 2,
+  config?: OrgConfig, // רשות (swarm-audit): מונחי termOf בשם-המוטב — בלי config כמו היום
 ): { ev: ShopEventLike; who: string; roomName: string }[] {
   const end = new Date(todayIso + 'T12:00:00');
   end.setDate(end.getDate() + days - 1);
@@ -412,7 +419,7 @@ export function upcomingMeetings(
       const a = db.shopAssignments.find((x) => x.id === ev.assignmentId);
       return {
         ev,
-        who: a ? beneficiaryLabel(db, a) : ev.title,
+        who: a ? beneficiaryLabel(db, a, config) : ev.title,
         roomName: ev.roomId ? (db.rooms.find((r) => r.id === ev.roomId)?.name ?? '') : '',
       };
     });
@@ -448,25 +455,51 @@ export function productAssignments(assignments: readonly ShopAssignment[], produ
 
 /* ---------- חיפוש/סינון/מיון (UX סינון 2) — טהור, smartFilter הקיים ---------- */
 
-/** כמה רכיבים בשיוך עדיין ממתינים (לא-מומשים; מבוטל = ממתין). */
-function pendingCount(db: Db, a: ShopAssignment): number {
+/**
+ * תיקון (swarm-audit): "האם הרכיב מומש עכשיו" — מתנת-חג נבחנת מול מופע-החג
+ * הקרוב **פר-שנה-עברית** (כמו needsCare ותג-הכרטיס), לא "מומש אי-פעם":
+ * מתנה שנמסרה אשתקד נספרה כמומשת-לנצח — השיוך מוין אחרון, הוסתר ב"ממתינים
+ * בלבד" והציג '3/3' בעוד needsCare התריע שהמתנה מגיעה. holidays = החגים
+ * הקרובים (upcomingHolidays); בלי רשימה (או כשאין חג רלוונטי קרוב) —
+ * ההתנהגות ההיסטורית (מימוש-חי כלשהו) נשמרת.
+ */
+export function componentRedeemedNow(
+  db: Db,
+  a: ShopAssignment,
+  comp: ShopComponent,
+  holidays?: readonly { iso: IsoDate; name: string }[],
+): boolean {
+  if (holidays) {
+    const ri = itemOf(db, comp);
+    if (ri.kind === 'holidayGift') {
+      // חגים נבחרים (הכרעה 17) — רק חג שסומן על הפריט רלוונטי
+      const next = holidays.find((h) => holidayAllowed(ri, h.name));
+      if (next) return assignmentRedeemed(a, comp.id, next);
+    }
+  }
+  return assignmentRedeemed(a, comp.id);
+}
+
+/** כמה רכיבים בשיוך עדיין ממתינים (לא-מומשים; מבוטל = ממתין; מתנת-חג — פר-חג-ושנה). */
+function pendingCount(db: Db, a: ShopAssignment, holidays?: readonly { iso: IsoDate; name: string }[]): number {
   const product = db.shopProducts.find((p) => p.id === a.productId);
   if (!product) return 0;
-  return product.components.filter((c) => !assignmentRedeemed(a, c.id)).length;
+  return product.components.filter((c) => !componentRedeemedNow(db, a, c, holidays)).length;
 }
 
 /** התקדמות המימוש 0..1 (בלי רכיבים = 1 — אין מה לממש). */
-function progressOf(db: Db, a: ShopAssignment): number {
+function progressOf(db: Db, a: ShopAssignment, holidays?: readonly { iso: IsoDate; name: string }[]): number {
   const product = db.shopProducts.find((p) => p.id === a.productId);
   const total = product?.components.length ?? 0;
   if (!total) return 1;
-  return (total - pendingCount(db, a)) / total;
+  return (total - pendingCount(db, a, holidays)) / total;
 }
 
 /**
  * סינון+מיון השיוכים: q על שם המשפחה/החבילה (smartFilter); 'pending'
  * (ברירת המחדל) = יש-רכיב-ממתין קודם, ובתוכם since עולה — הכי-ותיק-ממתין
- * ראשון; ממומש-כולו אחרון.
+ * ראשון; ממומש-כולו אחרון. todayIso (רשות, swarm-audit): מפעיל את דין
+ * מתנת-החג פר-שנה-עברית (componentRedeemedNow) — בלעדיו ההתנהגות ההיסטורית.
  */
 export function filterAssignments(
   db: Db,
@@ -475,11 +508,13 @@ export function filterAssignments(
   pendingOnly: boolean,
   productId: Id | '',
   sort: 'pending' | 'name' | 'progress',
+  todayIso?: IsoDate,
 ): ShopAssignment[] {
+  const holidays = todayIso ? upcomingHolidays(todayIso, SHOP_HOLIDAY_DUE_DAYS) : undefined;
   let list = [...db.shopAssignments];
   if (status) list = list.filter((a) => a.status === status);
   if (productId) list = list.filter((a) => a.productId === productId);
-  if (pendingOnly) list = list.filter((a) => pendingCount(db, a) > 0);
+  if (pendingOnly) list = list.filter((a) => pendingCount(db, a, holidays) > 0);
   list = smartFilter(q, list, (a) => {
     const fam = db.families.find((f) => f.id === a.famId);
     const product = db.shopProducts.find((p) => p.id === a.productId);
@@ -488,13 +523,13 @@ export function filterAssignments(
   const famName = (a: ShopAssignment) => db.families.find((f) => f.id === a.famId)?.name ?? '';
   const cmp: Record<typeof sort, (a: ShopAssignment, b: ShopAssignment) => number> = {
     pending: (a, b) => {
-      const pa = pendingCount(db, a) > 0 ? 0 : 1;
-      const pb = pendingCount(db, b) > 0 ? 0 : 1;
+      const pa = pendingCount(db, a, holidays) > 0 ? 0 : 1;
+      const pb = pendingCount(db, b, holidays) > 0 ? 0 : 1;
       if (pa !== pb) return pa - pb; // ממתינים קודם; ממומש-כולו אחרון
       return (a.since || '9999').localeCompare(b.since || '9999'); // הכי-ותיק-ממתין ראשון
     },
     name: (a, b) => famName(a).localeCompare(famName(b), 'he'),
-    progress: (a, b) => progressOf(db, a) - progressOf(db, b),
+    progress: (a, b) => progressOf(db, a, holidays) - progressOf(db, b, holidays),
   };
   return list.sort(cmp[sort]);
 }
@@ -589,7 +624,7 @@ export function eligibleFamilies(db: Db, criterionIds: Id[], excludeProductId: I
  * רשימת חלוקה מודפסת לחבילה — משפחה, כתובת, טלפון, רכיבים, עמודת "☐ נמסר".
  * שיוכים active בלבד; דפוס תדפיס-הרכז מ-CONNECT (downloadText ב-UI).
  */
-export function distributionListLines(db: Db, productId: Id): string[] {
+export function distributionListLines(db: Db, productId: Id, config?: OrgConfig): string[] {
   const product = db.shopProducts.find((p) => p.id === productId);
   const lines = ['רשימת חלוקה — ' + (product?.name ?? ''), '='.repeat(30)];
   const active = db.shopAssignments.filter((a) => a.productId === productId && a.status === 'active');
@@ -598,7 +633,7 @@ export function distributionListLines(db: Db, productId: Id): string[] {
     const comps = (product?.components ?? []).map((c) => itemOf(db, c).name).filter(Boolean).join(' + ');
     lines.push(
       [
-        beneficiaryLabel(db, a),
+        beneficiaryLabel(db, a, config),
         fam ? [fam.address, fam.city].filter(Boolean).join(', ') : '',
         fam?.phone ?? '',
         comps,
@@ -618,11 +653,11 @@ export function distributionListLines(db: Db, productId: Id): string[] {
  * שורות CSV של כל המימושים — תאריך, מוטב, פריט, חבילה, שולם, שווי, אישור,
  * מבוטל. **מבוטל מסומן ולא מוסתר** — שקיפות מלאה בייצוא.
  */
-export function redemptionsCsvRows(db: Db): (string | number)[][] {
+export function redemptionsCsvRows(db: Db, config?: OrgConfig): (string | number)[][] {
   const rows: (string | number)[][] = [['תאריך', 'מוטב', 'פריט', 'חבילה', 'שולם', 'שווי', 'אישור', 'מבוטל']];
   for (const a of db.shopAssignments) {
     const product = db.shopProducts.find((p) => p.id === a.productId);
-    const who = beneficiaryLabel(db, a);
+    const who = beneficiaryLabel(db, a, config);
     for (const r of a.redemptions) {
       const comp = product?.components.find((c) => c.id === r.componentId);
       rows.push([

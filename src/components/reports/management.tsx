@@ -5,11 +5,12 @@
  */
 import type { Db } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
-import { featureOn, termOf } from '../../lib/config';
+import type { ModuleKey } from '../../types/config';
+import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { useApp } from '../../store/useApp';
 import type { Cell } from './csv';
 import { ReportTable, Section } from './parts';
-import { expiringIntakes, givenValue, collectedPaid, subsidyTotal } from '../shop/lib';
+import { expiringIntakes, givenValue, collectedPaid, subsidyTotal, liveRedemptions } from '../shop/lib';
 import { hokDue, hokMonthlyTotal } from '../supporters/lib';
 import { isoToday } from '../../lib/date-util';
 
@@ -21,6 +22,9 @@ export interface MetricGroup {
 /** אגרגציה טהורה — נבדקת ביחידה. */
 export function managementMetrics(db: Db, config?: OrgConfig): MetricGroup[] {
   const show = (k: string) => !config || featureOn(config, k); // בלי config (טסטים) = מוצג
+  // גידור-מודול לקבוצות-הבסיס: מודול כבוי ⇒ הקבוצה לא נדחפת (היו רוכבות מאופסות
+  // למסך+CSV גם כשהמודול כבוי, בעוד הקבוצות האופציונליות כבר מגודרות show()).
+  const mod = (m: ModuleKey) => !config || moduleOn(config, m);
   const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   const deliveries = db.deliveries;
   const delivered = deliveries.filter((d) => d.status === 'delivered').length;
@@ -28,10 +32,8 @@ export function managementMetrics(db: Db, config?: OrgConfig): MetricGroup[] {
   const activeVols = db.volunteers.filter((v) => v.active).length;
 
   const activeAssign = db.shopAssignments.filter((a) => a.status === 'active').length;
-  const redemptions = db.shopAssignments.reduce(
-    (a, x) => a + x.redemptions.filter((r) => !r.voidedAt).length,
-    0,
-  );
+  // נתיב-החרגה יחיד למימושים מבוטלים — liveRedemptions (SHOP3), לא סינון-inline
+  const redemptions = db.shopAssignments.reduce((a, x) => a + liveRedemptions(x).length, 0);
 
   const collections = db.tzBoxes.reduce((a, b) => a + b.collections.length, 0);
   const tzTotal = db.tzBoxes.reduce(
@@ -53,13 +55,13 @@ export function managementMetrics(db: Db, config?: OrgConfig): MetricGroup[] {
     }
   }
 
-  const groups: MetricGroup[] = [
-    // מטריצת-ורטיקלים 4.8.2026: כותרות-הקבוצות דרך termOf — היו קשיחות ודלפו
-    { title: '🚚 ' + T('nav.shop7', 'חלוקה'), rows: [['ימי חלוקה', db.distributionDays.length], ['מסירות סה"כ', deliveries.length], ['נמסרו', delivered], [T('nav.families', 'משפחות') + ' שקיבלו', famReached], [T('entity.volunteers', 'מתנדבים') + ' פעילים', activeVols]] },
-    { title: '🛍 ' + T('nav.shop', 'חנות'), rows: [['שיוכים פעילים', activeAssign], ['מימושים', redemptions], ['אצוות פג/עומד-לפוג', expiringIntakes(db, isoToday()).length]] },
-    { title: '🪙 ' + T('nav.tzedaka', 'קופות צדקה'), rows: [['קופות', db.tzBoxes.length], ['ריקונים', collections], ['סה"כ נאסף (₪)', tzTotal]] },
-    { title: '👨‍👩‍👧 ' + T('nav.families', 'משפחות'), rows: [[T('nav.families', 'משפחות') + ' פעילות', activeFams], ['סה"כ ' + T('nav.families', 'משפחות'), db.families.length]] },
-  ];
+  const groups: MetricGroup[] = [];
+  // מטריצת-ורטיקלים 4.8.2026: כותרות-הקבוצות דרך termOf — היו קשיחות ודלפו.
+  // כל קבוצת-בסיס מגודרת במודול שלה — מודול כבוי לא מציג סעיף מאופס.
+  if (mod('shop7')) groups.push({ title: '🚚 ' + T('nav.shop7', 'חלוקה'), rows: [['ימי חלוקה', db.distributionDays.length], ['מסירות סה"כ', deliveries.length], ['נמסרו', delivered], [T('nav.families', 'משפחות') + ' שקיבלו', famReached], [T('entity.volunteers', 'מתנדבים') + ' פעילים', activeVols]] });
+  if (mod('shop')) groups.push({ title: '🛍 ' + T('nav.shop', 'חנות'), rows: [['שיוכים פעילים', activeAssign], ['מימושים', redemptions], ['אצוות פג/עומד-לפוג', expiringIntakes(db, isoToday()).length]] });
+  if (mod('tzedaka')) groups.push({ title: '🪙 ' + T('nav.tzedaka', 'קופות צדקה'), rows: [['קופות', db.tzBoxes.length], ['ריקונים', collections], ['סה"כ נאסף (₪)', tzTotal]] });
+  if (mod('families')) groups.push({ title: '👨‍👩‍👧 ' + T('nav.families', 'משפחות'), rows: [[T('nav.families', 'משפחות') + ' פעילות', activeFams], ['סה"כ ' + T('nav.families', 'משפחות'), db.families.length]] });
 
   const sponsorTotal = [...sponsor.values()].reduce((a, g) => a + g.ils, 0);
   if (sponsor.size > 0 && show('reports.management.sponsor')) {

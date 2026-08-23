@@ -5,7 +5,9 @@
  * שהמעבר לקופסת-GSM עתידית יהיה החלפת-נהג ולא בנייה-מחדש.
  */
 import { describe, expect, it } from 'vitest';
-import { startCampaign, currentId, applyOutcome, progress, isDone, undoLast, campaignCsvRows, OUTCOME_LABELS, REQUEUE_OUTCOMES, TERMINAL_OUTCOMES } from '../dialer';
+import { startCampaign, currentId, applyOutcome, progress, isDone, undoLast, campaignCsvRows, OUTCOME_LABELS, REQUEUE_OUTCOMES, TERMINAL_OUTCOMES, appendCall, popCall, callStats, CALL_LOG_CAP } from '../dialer';
+import storeSrc from '../../store/useApp.ts?raw';
+import supDetailSrc from '../../components/supporters/SupporterDetail.tsx?raw';
 import { manualDriver, activeDriver } from '../telephony/driver';
 import dialerSrc from '../../components/dialer/DialerModal.tsx?raw';
 import supViewSrc from '../../components/supporters/SupportersView.tsx?raw';
@@ -180,5 +182,68 @@ describe('☎️ שדרוג 20.8 — ביטול-אחרון, ספירה-פר-אד
     expect(dialerSrc).toContain('ayinAllRows(config, campaignParticipants())');
     expect(dialerSrc).toMatch(/new Set<string>\(\[\.\.\.dialer\.queue, \.\.\.dialer\.log\.map\(\(e\) => e\.id\)\]\)/);
     expect(dialerSrc).toContain("'dialer-names-'");
+  });
+});
+
+describe('📞 יומן-שיחות עמיד (23.8 — "שיראה כמה התקשרו אליו")', () => {
+  // הבאג המקורי: יומן-הקמפיין (db.ui.dialer.log) נמחק ב-dialerStop ⇒ בקמפיין
+  // הבא אין שום זכר לכמה פעמים כבר התקשרו לתורם. עכשיו: Supporter.calls עמיד.
+  const D = '2026-08-23';
+
+  it('appendCall: כל סיווג נרשם — חוץ מדלג (לא חויג בפועל)', () => {
+    let calls = appendCall(undefined, 'noanswer', D);
+    expect(calls).toEqual([{ at: D, outcome: 'noanswer' }]);
+    calls = appendCall(calls, 'donated', D);
+    expect(calls).toHaveLength(2);
+    // דלג = המתקשר כלל לא חויג ⇒ לא נרשם (מחזיר את המקור כמו-שהוא)
+    expect(appendCall(calls, 'skip', D)).toBe(calls);
+    expect(appendCall(undefined, 'skip', D)).toBeUndefined();
+  });
+
+  it('appendCall: טבעת CALL_LOG_CAP — הוותיקות נשמטות, האחרונות נשמרות', () => {
+    let calls: ReturnType<typeof appendCall> = undefined;
+    for (let i = 0; i < CALL_LOG_CAP + 5; i++) calls = appendCall(calls, 'noanswer', '2026-01-01');
+    calls = appendCall(calls, 'donated', D);
+    expect(calls).toHaveLength(CALL_LOG_CAP);
+    expect(calls![calls!.length - 1]).toEqual({ at: D, outcome: 'donated' });
+  });
+
+  it('popCall: בן-הזוג של undo — מסיר את הרישום האחרון; ריק/חסר = no-op', () => {
+    const calls = appendCall(appendCall(undefined, 'noanswer', D), 'donated', D)!;
+    expect(popCall(calls)).toEqual([{ at: D, outcome: 'noanswer' }]);
+    expect(popCall(undefined)).toBeUndefined();
+    expect(popCall([])).toEqual([]);
+  });
+
+  it('callStats: סך-הכול + אחרונה + מונה-ללא-מענה; סובל undefined', () => {
+    expect(callStats(undefined)).toEqual({ total: 0, last: '', noanswer: 0 });
+    const calls = [
+      { at: '2026-08-01', outcome: 'noanswer' as const },
+      { at: '2026-08-10', outcome: 'noanswer' as const },
+      { at: D, outcome: 'donated' as const },
+    ];
+    expect(callStats(calls)).toEqual({ total: 3, last: D, noanswer: 2 });
+  });
+
+  it('🔒 הגנת-מקור: ה-store רושם בכל סיווג ומסיר ב-undo; החייגן מציג את המונה', () => {
+    // dialerOutcome רושם appendCall (חוץ מדלג) — לא רק כשיש הערה
+    expect(storeSrc).toContain('appendCall(s.calls, outcome, isoToday())');
+    expect(storeSrc).toMatch(/if \(id && \(trimmed \|\| outcome !== 'skip'\)\)/);
+    // dialerUndo מסיר את הרישום (אחרת סיווג-בטעות מנפח את המונה לתמיד)
+    expect(storeSrc).toContain('popCall(s.calls)');
+    // החייגן מציג: ראשונה / פעם אחת / N פעמים + ללא-מענה
+    expect(dialerSrc).toContain('callStats(sp.calls)');
+    expect(dialerSrc).toContain('שיחה ראשונה — טרם התקשרו');
+    expect(dialerSrc).toContain('התקשרו פעם אחת');
+    expect(dialerSrc).toContain('התקשרו {cst.total} פעמים');
+    expect(dialerSrc).toContain('ללא-מענה');
+  });
+
+  it('🔒 הגנת-מקור: המונה מוצג גם בכרטיס-התורם ("גם אצל המנהל זה לא הופיע")', () => {
+    // הבאג: המונה הוצג רק בתוך החייגן בזמן-קמפיין — המנהל שפתח כרטיס-תורם
+    // לא ראה כלום. עכשיו הכותרת של הכרטיס מציגה את אותו callStats תמיד.
+    expect(supDetailSrc).toContain('callStats(sp.calls)');
+    expect(supDetailSrc).toContain('טרם התקשרו');
+    expect(supDetailSrc).toContain('התקשרו {cst.total} פעמים');
   });
 });

@@ -639,6 +639,7 @@ export interface IncomingPayment {
   receipt?: string; // KabalaId — מספר-קבלת-נדרים (§46) → hist[].receipt
   last4?: string; // 4 ספרות אחרונות → hist[].last4
   kind?: string; // 'refund' (Amount<0) / 'cancel' (Amount 0) — פאזה-מודעת-כסף
+  provider?: string; // 'sola' | חסר=נדרים — תווית-הסליקה ב-hist (המסמך נושא אותו; הוקלד 23.8)
 }
 
 /** רשומת-תורם מנדרים (staged ב-nedarimDonors) — נקראת לסנכרון-כרטיסים. */
@@ -671,6 +672,14 @@ export async function fetchIncomingPayments(): Promise<IncomingPayment[]> {
   return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<IncomingPayment, 'id'>) }));
 }
 
+/** רשומות-הספק המלאות — **כל** הסטטוסים (גם handled). 🐛 (23.8, "זה לא נכנס
+ *  במקום הנכון" + "שם יכנס לשם, טלפון לטלפון"): הריפוי בכרטיסים צריך גם את
+ *  מזהי-העסקאות (תיקון-תווית) וגם את פרטי-הקשר (מילוי-אם-ריק בכרטיס). */
+export async function fetchProviderRows(provider: string): Promise<IncomingPayment[]> {
+  const snap = await getDocs(query(collection(requireDb(), scopedCol('incomingPayments')), where('provider', '==', provider)));
+  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<IncomingPayment, 'id'>) }));
+}
+
 /** 🔄 משיכת-נדרים **בקליק** (ייעול 20.8) — קורא ל-Function `nedarimPull?full=1` עם
  *  **טוקן-הכניסה** של המשתמש (Authorization: Bearer) במקום סוד-בדפדפן; השרת מאמת
  *  מייל-על/מנהל. מושך תורמים+עסקאות. `pullUrl` = כתובת-הפונקציה מהקונפיג (https בלבד).
@@ -688,6 +697,27 @@ export async function pullNedarim(pullUrl: string, opts: { reset?: boolean } = {
   if (opts.reset) u.searchParams.set('reset', '1');
   const r = await fetch(u.toString(), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
   const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; donors?: number; added?: number; pages?: number };
+  if (!r.ok || j.ok === false) throw new Error(j.error || 'משיכה נכשלה (' + r.status + ')');
+  return j;
+}
+
+/** 🔄 משיכה-בקליק מסולה (21.8, חיווט-כמו-נדרים) — קורא ל-solaPull עם טוקן-הכניסה
+ *  (בלי סוד בדפדפן); ה-xKey יושב בכספת-הענן והפונקציה קוראת אותו בעצמה. */
+export async function pullSola(pullUrl: string, opts: { reset?: boolean } = {}): Promise<{ added?: number; scanned?: number; window?: string; debug?: string }> {
+  const clean = String(pullUrl || '').trim();
+  if (!/^https:\/\//i.test(clean)) throw new Error('כתובת-משיכה לא-תקינה (חייבת https)');
+  const user = requireAuth().currentUser;
+  if (!user) throw new Error('נדרשת התחברות-ענן');
+  const token = await user.getIdToken();
+  const org = scope.cloudRoot ? 'root' : scope.slug;
+  const u = new URL(clean);
+  u.searchParams.set('org', org);
+  // לקוח-השורש: האוספים ב-root אבל הכספת (orgSecrets) נכתבת תחת ה-slug האמיתי —
+  // vault מגשר כדי שהפונקציה תמצא את ה-xKey שהוזן בהגדרות.
+  if (scope.cloudRoot && scope.slug && scope.slug !== 'default') u.searchParams.set('vault', scope.slug);
+  if (opts.reset) u.searchParams.set('reset', '1');
+  const r = await fetch(u.toString(), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+  const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; added?: number; scanned?: number; window?: string; debug?: string };
   if (!r.ok || j.ok === false) throw new Error(j.error || 'משיכה נכשלה (' + r.status + ')');
   return j;
 }

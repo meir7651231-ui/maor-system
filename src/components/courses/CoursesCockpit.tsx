@@ -45,7 +45,7 @@ export function CoursesCockpit() {
 
   const today = isoToday();
   const dow = new Date(today + 'T12:00:00').getDay();
-  const kpis = opsKpis(db.courses, db.enrollments);
+  const kpis = opsKpis(db.courses, db.enrollments, today);
   const todayC = coursesToday(db.courses, dow, today);
   const debt = debtors(db.enrollments);
   const low = punchLowList(db.enrollments);

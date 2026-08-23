@@ -153,8 +153,11 @@ button:focus-visible {
   align-items: center;
   flex-wrap: wrap;
   gap: 6px 14px;
-  /* שורת הניווט מיושרת לעמודת התוכן (1200px) — כמו במוקאפים של היכל/קהילה */
-  padding: 10px max(22px, calc(50% - 600px));
+  /* שורת-הניווט מיושרת ל**תוכן** של עמודת-ה-1200 — לא לקצה-העמודה. ‏.app-main‎
+     ממרכז 1200px ומוסיף ריפוד-פנימי 28px, כך שהתוכן מתחיל ב-‎calc(50% - 572px)‎
+     (‏600−28). קודם היה 600px ⇒ הכותרת (מותג/כלים) בלטה 28px החוצה מהתוכן שמתחת
+     ⇒ "לא ישר" בין הבר-העליון למסך-הבית. עכשיו הבר והתוכן חולקים אותו קו. */
+  padding: 10px max(28px, calc(50% - 572px));
   background: var(--nav2-bg);
   color: var(--nav2-ink);
   border-bottom: 1px solid var(--nav2-line);
@@ -323,7 +326,8 @@ button:focus-visible {
 
 @media (max-width: 760px) {
   .app-top {
-    padding: 8px 12px;
+    /* ריפוד-אופקי זהה ל-.app-main‎ במובייל (14px) ⇒ הבר-העליון והתוכן על אותו קו */
+    padding: 8px 14px;
     gap: 4px 10px;
   }
   /* הרצועה יורדת לשורה שנייה ברוחב מלא ונגללת אופקית */
@@ -646,6 +650,157 @@ h1,
   color: var(--primary-ink);
 }
 
+/* ── סרגל-סינון אחיד · מסך התורמים (עיצוב 22.8) ─────────────────────
+   במקום שורת-בוררים שטוחה: כרטיס-סינון עם חיפוש-פנינה ובוררים בצורת-כדור;
+   פאנל-מתקדם כמיכל-אחד בקבוצות מתויגות ומיושרות; צ׳יפי-סינון-פעיל אחידים עם
+   "נקה הכל". כל הצבעים דרך tokens ⇒ תואם 4 ערכות-נושא + ניגודיות-גבוהה. */
+.filterbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+.filterbar .fb-search {
+  flex: 1 1 240px;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding-inline-start: 12px;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.filterbar .fb-search::before {
+  content: '🔍';
+  font-size: 13px;
+  opacity: 0.55;
+  margin-inline-end: 4px;
+  flex: none;
+}
+.filterbar .fb-search input {
+  border: none;
+  background: none;
+  border-radius: 999px;
+  padding: 9px 8px 9px 2px;
+}
+.filterbar .fb-search input:focus-visible {
+  outline: none;
+}
+.filterbar .fb-search:focus-within {
+  border-color: var(--accent-deep);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 34%, transparent);
+}
+.filterbar select {
+  width: auto;
+  min-width: 122px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: var(--bg);
+  cursor: pointer;
+}
+
+/* צ׳יפי-הסינון-הפעיל (דריל-אין/תקופה/גיוס) + "נקה הכל" */
+.active-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: var(--primary-bg);
+  color: var(--primary-ink);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.filter-pill .x {
+  opacity: 0.7;
+  font-size: 12px;
+}
+.filter-pill:hover .x {
+  opacity: 1;
+}
+.filter-clear-all {
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 6px;
+}
+.filter-clear-all:hover {
+  color: var(--accent-deep);
+}
+
+/* כפתור-פתיחת הפאנל-המתקדם — כדור עקבי עם שאר הסרגל */
+.filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  transition: border-color 0.12s;
+}
+.filter-toggle:hover {
+  border-color: var(--accent-deep);
+}
+
+/* הפאנל-המתקדם — מיכל אחד, קבוצות מתויגות ומיושרות */
+.filter-adv {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.filter-group > .fg-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-faint);
+  min-width: 82px;
+  flex: none;
+}
+
+/* קלט-סינון-בעמודה (בכותרת-הטבלה) — רקע-שקוע דק שמסמן "שדה-סינון" */
+.colfilter {
+  width: 100%;
+  min-width: 70px;
+  padding: 5px 8px;
+  font-size: 12px;
+  border-radius: 8px;
+  background: var(--bg);
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -707,6 +862,16 @@ h1,
   gap: 8px;
   justify-content: flex-start;
   margin-top: 16px;
+}
+
+/* חלונות-קופצים במסך-נמוך (נוף/landscape בטלפון, גובה ≤620): ריפוד-הרקע האנכי
+   יורד מ-48 ל-10 ⇒ המודאל מתחיל בראש-החלון ומנצל את הגובה המצומצם (חוסך ~76px
+   מבוזבזים), פחות גלילה, וכפתורי-הפעולה קרובים יותר. הרקע עדיין overflow-y:auto
+   ⇒ טופס גבוה עדיין נגלל וכל השדות/הכפתורים נגישים. בקשת-בעלים "מתאים הכל". */
+@media (max-height: 620px) {
+  .modal-back {
+    padding: 10px 16px;
+  }
 }
 
 /* טוסטים */
@@ -1442,10 +1607,12 @@ h1,
 
 .hm-stats {
   position: relative;
-  display: grid;
-  /* ‏min(185px,100%) — הרצועה לעולם לא רחבה מהמכולה (מונע גלישה כשהרוחב הפנוי
-     קטן מ-185px: זום-נגישות / גופן-מערכת גדול / מכולה צרה). */
-  grid-template-columns: repeat(auto-fill, minmax(min(185px, 100%), 1fr));
+  /* flex-wrap (לא grid) — כשמספר-הכרטיסים לא ממלא שורה (5 כרטיסים בטלפון-לרוחב
+     ‏~900px ⇒ 4+1), הכרטיס-הבודד בשורה-האחרונה **גדל למלא את כל הרוחב** במקום
+     להשאיר חצי-שורה-ריקה לצדו. grid/auto-fit לא פותר זאת — הוא מקפל רק מסילות
+     ריקות-לגמרי (השורה-העליונה ממלאת את כל המסילות). ממצא-בעלים 23.8. */
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
@@ -1454,6 +1621,10 @@ h1,
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  /* ‏flex:1 1 185px + min-width:0 — הכרטיסים חולקים את השורה שווה-בשווה (בסיס 185px,
+     כמו minmax הישן), נמתחים למלא כשמעטים, ומתכווצים בבטחה בלי גלישה במסך צר. */
+  flex: 1 1 185px;
+  min-width: 0;
   gap: 8px;
   padding: 14px 14px 12px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
@@ -1801,41 +1972,44 @@ button.hm-tier:focus-visible {
 
 /* ── שתי עמודות המוקאפ (פריסת ברירת המחדל בלבד) — ימין רחבה, שמאל צרה ── */
 
-.hm-cols {
-  display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  gap: 14px;
-  align-items: start;
+/* masonry דו-טורי לפאנלי-הבית (בקשת-בעלים "מסך הבית בלגן", 23.8): הדפדפן
+   מאזן את גבהי-הטורים **בפועל** (column-fill:balance), כך שווידג'ט שסונן/קצר
+   לא מותיר חצי-לוח-ריק ליד טור עמוס — הבעיה שהחליפה את הגריד-הקבוע 1.3fr/1fr.
+   כל ווידג'ט = פריט שלם (break-inside:avoid) שלא נחתך בין הטורים. */
+.hm-masonry {
+  columns: 2;
+  column-gap: 14px;
 }
 
-.hm-col {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-width: 0;
+.hm-ma-item {
+  break-inside: avoid;
+  margin-bottom: 14px;
 }
 
-:root[data-theme="heichal"] .hm-cols {
-  grid-template-columns: 1.3fr 1fr;
-  gap: 18px;
+/* הפריט האחרון בכל טור — בלי שוליים תחתונים כפולים מול הבלוק שאחרי ה-masonry */
+.hm-masonry > .hm-ma-item:last-child {
+  margin-bottom: 0;
 }
 
-:root[data-theme="heichal"] .hm-col {
-  gap: 18px;
+:root[data-theme="heichal"] .hm-masonry {
+  column-gap: 18px;
 }
 
-:root[data-theme="kehila"] .hm-cols {
-  grid-template-columns: 1.3fr 1fr;
+:root[data-theme="heichal"] .hm-ma-item {
+  margin-bottom: 18px;
 }
 
-:root[data-theme="tsohar"] .hm-cols {
-  grid-template-columns: 2fr 1fr;
-  gap: 12px;
+:root[data-theme="tsohar"] .hm-masonry {
+  column-gap: 12px;
+}
+
+:root[data-theme="tsohar"] .hm-ma-item {
+  margin-bottom: 12px;
 }
 
 @media (max-width: 900px) {
-  .hm-cols {
-    grid-template-columns: 1fr !important;
+  .hm-masonry {
+    columns: 1;
   }
 }
 
@@ -1938,6 +2112,8 @@ button.hm-tier:focus-visible {
 }
 
 :root[data-theme="heichal"] .hm-stats {
+  /* היכל = רצועה-מחוברת (gap:0 + מסגרת) — נשאר גריד למרות שבסיס-הערכות עבר ל-flex */
+  display: grid;
   gap: 0;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   border: 1px solid var(--line);

@@ -14,3 +14,11 @@ firestore-debug.log
 firebase-debug.log
 e2e/nextgen-shots/
 e2e/shots-wave5/
+e2e/shots-filters/
+e2e/shots-width/
+e2e/shots-align/
+e2e/shots-audit/
+e2e/shots-modal/
+e2e/shots-kh/
+e2e/shots-swarm/
+e2e/shots-mob/

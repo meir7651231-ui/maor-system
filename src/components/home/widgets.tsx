@@ -18,7 +18,7 @@
 import { useEffect, useMemo, useState, type CSSProperties, type ReactElement, type ReactNode } from 'react';
 import { useApp, type View } from '../../store/useApp';
 import type { Db, Family, OrgEvent } from '../../types/domain';
-import type { OrgConfig } from '../../types/config';
+import type { ModuleKey, OrgConfig } from '../../types/config';
 import { Btn, Chip, Modal } from '../ui';
 import { hebDateFull } from '../../lib/hebrew';
 import { featureOn, integrationOn, moduleOn, telephonyOn, termOf } from '../../lib/config';
@@ -145,8 +145,15 @@ function MyTasksWidget({ ctx }: { ctx: HomeCtx }) {
   const open = openTasksFor(db.tasks ?? [], me);
   const doneToday = doneTodayFor(db.tasks ?? [], me, todayIso);
   if (open.length === 0 && doneToday === 0) return null;
+  // ממוגן-מודולים (כמו SuggestWidget): קפיצה לכרטיס של מודול כבוי ⇒ מסך בלי
+  // כניסת-ניווט ובלי דרך-חזרה — במקום זה טוסט מסביר.
   const jump = (t: (typeof open)[number]) => {
     if (!t.ref) return;
+    const mod: ModuleKey = t.ref.kind === 'supporter' ? 'supporters' : t.ref.kind === 'family' ? 'families' : 'courses';
+    if (!moduleOn(ctx.config, mod)) {
+      toast('המודול כבוי');
+      return;
+    }
     if (t.ref.kind === 'supporter') openSupporterCard(t.ref.id);
     else if (t.ref.kind === 'family') ctx.selectFamily(t.ref.id);
     else ctx.selectCourse(t.ref.id);
@@ -2114,7 +2121,10 @@ export const THEME_TEMPLATES: Record<string, ThemeBoardTemplate> = {
   heichal: { pre: ['stats'], colA: ['mytasks', 'today', 'attention', 'suggest'], colB: ['goldbook', 'hebcal'], post: [] },
   /* mock-tsohar: היום כטבלה רחבה (2fr) מול דורש טיפול (1fr) */
   tsohar: { pre: ['stats'], colA: ['mytasks', 'today'], colB: ['attention', 'suggest'], post: ['recent'] },
-  /* mock-kehila: ימין המפגשים של היום · שמאל שווה לטפל+הקהילה שלנו (1.3fr/1fr) */
+  /* mock-kehila: ימין המפגשים של היום · שמאל שווה לטפל+הקהילה שלנו (1.3fr/1fr).
+     הפיצול נשמר כסדר-מקור; החלוקה-בפועל לעמודות מאוזנת-גובה ב-HomeView
+     (balanceColumns) — כדי שלא ייווצר חצי-לוח-ריק כשווידג'ט מסונן (בקשת-בעלים
+     "מסך הבית בלגן", 23.8). */
   kehila: { pre: ['stats', 'bdays'], colA: ['mytasks', 'today'], colB: ['attention', 'suggest', 'community'], post: [] },
 };
 

@@ -24,6 +24,7 @@ import { EmployeeMgmtSection } from './EmployeeMgmtSection';
 import { SupEnforceSection } from './SupEnforceSection';
 import { ThemeSection } from './ThemeSection';
 import { AuditSection } from './AuditSection';
+import { DonorImportSection } from './DonorImportSection';
 import { OrgSecretsSection } from './OrgSecretsSection';
 
 /** feature key פר-סעיף — הצ'יפ מוצג רק כשהסעיף עצמו מרונדר (אותו דגל בדיוק).
@@ -55,7 +56,7 @@ const GROUPS = [
 type GroupId = (typeof GROUPS)[number]['id'];
 const SECTION_GROUP: Record<string, GroupId> = {
   'sec-org': 'org', 'sec-theme': 'org', 'sec-teachers': 'org', 'sec-rooms': 'org', 'sec-notif': 'org', 'sec-access': 'org',
-  'sec-backup': 'data', 'sec-export': 'data', 'sec-import': 'data', 'sec-audit': 'data',
+  'sec-backup': 'data', 'sec-export': 'data', 'sec-import': 'data', 'sec-donor-import': 'data', 'sec-audit': 'data',
   'sec-security': 'security', 'sec-encryption': 'security', 'sec-cloud-encryption': 'security', 'sec-org-secrets': 'security', 'sec-donation-split': 'security',
   'sec-ai': 'adv', 'sec-audittrail': 'adv', 'sec-verifyreceipt': 'adv', 'sec-reset': 'adv',
 };
@@ -101,6 +102,7 @@ export function SettingsView() {
     ...(integrationOn(config, 'ai') && isAdmin ? [{ id: 'sec-ai', label: 'עוזר AI' }] : []),
     ...(featureOn(config, 'settings.audittrail') && isAdmin ? [{ id: 'sec-audittrail', label: 'לוג פעולות' }] : []),
     ...(featureOn(config, 'core.receipt.verifycode') ? [{ id: 'sec-verifyreceipt', label: 'אימות קבלה' }] : []),
+    ...(isAdmin && integrationOn(config, 'payments') && cloudOn ? [{ id: 'sec-donor-import', label: 'ייבוא ' + termOf(config, 'nav.supporters', 'תורמים') }] : []),
   ];
   const groupChips = [...sections, ...extraChips].filter((s) => SECTION_GROUP[s.id] === shownGroup);
 
@@ -152,6 +154,8 @@ export function SettingsView() {
           {featureOn(config, 'settings.backup') && <BackupSection />}
           {secOn('sec-export') && <ExportSection />}
           {secOn('sec-import') && <ImportSection />}
+          {/* הכרעת-בעלים 23.8: ייבוא-התורמים (נדרים/סולה/הו"ק) רוכז כאן — מסך-מנהל */}
+          <DonorImportSection />
           {secOn('sec-audit') && <AuditSection />}
         </>
       )}
@@ -465,7 +469,7 @@ function AiKeySection() {
 /** לוג-פעולות (ROADMAP-100 ‏#10) — מי-שינה-מה-ומתי; מנהל בלבד, דגל settings.audittrail.
  *  הטבעת חצובת-תקרה (AUDIT_CAP) נשמרת ב-Db ומסתנכרנת בענן כמו שאר ה-meta. */
 /** 🔍 אימות-קבלה (ROADMAP-100 ‏#11): הקלדת מס'-קבלה + קוד-אימות ⇒ השוואה מול
- *  רישומי-המערכת (תרומות D- ותשלומי-חוגים R-). מגודר core.receipt.verifycode. */
+ *  רישומי-המערכת (תרומות D-, תשלומי-חוגים R- ואישורי-חנות S-). מגודר core.receipt.verifycode. */
 function VerifyReceiptSection() {
   const config = useApp((s) => s.config);
   const db = useApp((s) => s.db);
@@ -477,7 +481,7 @@ function VerifyReceiptSection() {
     const r = rid.trim().toUpperCase();
     const c = code.trim().toUpperCase();
     if (!r || !c) return setResult('הקלידו מס׳-קבלה וקוד-אימות מהקבלה');
-    // חיפוש בתרומות (D-) ובתשלומי-חוגים (R-) — השדות היציבים בלבד
+    // חיפוש בתרומות (D-), בתשלומי-חוגים (R-) ובאישורי-החנות (S-) — השדות היציבים בלבד
     let found: { amount: number; cur: string; date: string } | null = null;
     for (const sp of db.supporters) {
       const d = sp.donations.find((x) => (x.rid || '').toUpperCase() === r);
@@ -487,6 +491,16 @@ function VerifyReceiptSection() {
       for (const en of db.enrollments) {
         const p = en.payments.find((x) => (x.rid || '').toUpperCase() === r);
         if (p) { found = { amount: p.amount, cur: '₪', date: p.date }; break; }
+      }
+    }
+    if (!found) {
+      // תיקון (swarm-audit): גם אישורי S- של החנות נושאים קוד-אימות (AssignmentsTab
+      // מעביר verify) — בלי הסריקה כאן, אישור S- אמיתי קיבל '✗ לא נמצאה' (פסק-זיוף).
+      // אותם קלטים כמו ההדפסה: rid | r.paid | '₪' (ברירת המחדל) | r.date; מבוטל נשאר
+      // ברישומים (voidedAt מסמן, לא מוחק) — האישור המודפס עדיין ניתן לאימות.
+      for (const a of db.shopAssignments) {
+        const rr = a.redemptions.find((x) => (x.rid || '').toUpperCase() === r);
+        if (rr) { found = { amount: rr.paid, cur: '₪', date: rr.date }; break; }
       }
     }
     if (!found) return setResult('✗ קבלה ' + r + ' לא נמצאה ברישומי המערכת');
@@ -500,7 +514,7 @@ function VerifyReceiptSection() {
   return (
     <Section id="sec-verifyreceipt" title="🔍 אימות קבלה" sub="בדיקה שקבלה מודפסת תואמת את הרישום במערכת — לפי הקוד המוטבע עליה">
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <Field label="מס׳ קבלה (D-/R-)">
+        <Field label="מס׳ קבלה/אישור (D-/R-/S-)">
           <TextInput value={rid} onChange={setRid} dir="ltr" placeholder="D-123" />
         </Field>
         <Field label="קוד-אימות מהקבלה">

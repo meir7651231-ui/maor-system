@@ -15,7 +15,7 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf, integrationOn, integrationSetting } from '../../lib/config';
-import { campaignCsvRows, currentId, progress } from '../../lib/dialer';
+import { callStats, campaignCsvRows, currentId, progress } from '../../lib/dialer';
 import { contactWindow } from '../supporters/quietHours';
 import { renderTemplate } from '../../lib/templates';
 import { activeDriver } from '../../lib/telephony/driver';
@@ -166,6 +166,10 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
   const donateHref = sp && integrationOn(config, 'payments')
     ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, sp.name)
     : null;
+  // 💳 סולה (23.8) — עמוד-התשלום השני לצד נדרים; אותו מגן-כפילות (onClickCapture)
+  const solaDonateHref = sp && integrationOn(config, 'payments')
+    ? payLink(integrationSetting(config, 'payments', 'solaPayUrl'), 0, sp.name)
+    : null;
   const addCareName = () => {
     if (!sp || !nameVal.trim()) return;
     const nm = nameVal.trim();
@@ -274,6 +278,19 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                 {supLast(sp) && <span>אחרונה: {fmtDate(supLast(sp))}</span>}
                 {sp.ayin && <span>· {stageLabel(config, sp.ayin.stage)}</span>}
               </div>
+              {/* 📞 מונה-שיחות עמיד (23.8, "שיראה כמה התקשרו אליו") — כל הקמפיינים,
+                  שורד את מחיקת-הקמפיין; דלג לא נספר (לא חויג בפועל) */}
+              {(() => {
+                const cst = callStats(sp.calls);
+                return (
+                  <div style={{ fontSize: 12, color: cst.total ? 'var(--ink-soft)' : 'var(--ink-faint)' }}
+                    title={cst.total ? 'שיחות שנרשמו מהחייגן בכל הקמפיינים' + (cst.noanswer ? ' — מתוכן ' + cst.noanswer + ' ללא-מענה' : '') : 'טרם נרשמה שיחה מהחייגן לתורם זה'}>
+                    {cst.total === 0 && <>📞 שיחה ראשונה — טרם התקשרו</>}
+                    {cst.total === 1 && <>📞 התקשרו פעם אחת · {fmtDate(cst.last)}</>}
+                    {cst.total > 1 && <>📞 התקשרו {cst.total} פעמים · אחרונה {fmtDate(cst.last)}{cst.noanswer > 0 && <> · 📵 {cst.noanswer} ללא-מענה</>}</>}
+                  </div>
+                );
+              })()}
               {/* הקשר הו"ק (20.8) — בדיוק מה שטלפנית צריכה לפני שהיא מדברת */}
               {sp.hok?.active && (
                 <div style={{ fontSize: 12 }}>
@@ -312,7 +329,7 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                 {/* 💳 מסלול-הסליקה: התורם משלם בעצמו אונליין — התשלום נקלט אוטומטית
                     מהסליקה (תשלומים-נכנסים, דדופ-txn). מגן-כפילות (20.8): שימוש בקישור
                     ממלא הערת-שיחה ומזהיר לא לרשום גם "תרם/ה" ידנית — אחרת ירשם פעמיים. */}
-                {donateHref && (
+                {(donateHref || solaDonateHref) && (
                   <span
                     style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}
                     onClickCapture={() => {
@@ -320,20 +337,40 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                       toast('💳 הקישור נשלח — לא לרשום "תרם/ה" ידנית; התשלום ייקלט מהסליקה אוטומטית');
                     }}
                   >
-                    <a
-                      href={donateHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="chip"
-                      title="התורם משלם בעצמו בעמוד-הסליקה — התשלום ייקלט אוטומטית (לא לרשום גם ידנית)"
-                    >
-                      💳 עמוד-תרומה
-                    </a>
-                    {waOn && sp.phone && (
+                    {donateHref && (
+                      <a
+                        href={donateHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="chip"
+                        title="התורם משלם בעצמו בעמוד-הסליקה — התשלום ייקלט אוטומטית (לא לרשום גם ידנית)"
+                      >
+                        💳 עמוד-תרומה
+                      </a>
+                    )}
+                    {solaDonateHref && (
+                      <a
+                        href={solaDonateHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="chip"
+                        title="עמוד-התשלום בסולה — התשלום ייקלט אוטומטית (לא לרשום גם ידנית)"
+                      >
+                        💳 סולה
+                      </a>
+                    )}
+                    {donateHref && waOn && sp.phone && (
                       <WaBtn
                         phone={sp.phone}
                         text={renderTemplate(config, 'wa.paylink', { name: sp.name, org: orgName, link: donateHref })}
                         title={'שליחת קישור-התשלום בוואטסאפ ל' + sp.name + ' — התשלום ייקלט מהסליקה אוטומטית'}
+                      />
+                    )}
+                    {!donateHref && solaDonateHref && waOn && sp.phone && (
+                      <WaBtn
+                        phone={sp.phone}
+                        text={renderTemplate(config, 'wa.paylink', { name: sp.name, org: orgName, link: solaDonateHref })}
+                        title={'שליחת קישור-סולה בוואטסאפ ל' + sp.name}
                       />
                     )}
                   </span>

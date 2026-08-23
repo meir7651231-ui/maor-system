@@ -10,6 +10,7 @@ import { canIssueReceipt } from '../platform/lib';
 import { payLink } from '../../lib/payLink';
 import { askClaude, readAiKey, thanksPrompt } from '../../lib/ai';
 import { annualReportLines, donationYears, downloadAnnualReport } from '../../lib/annualReport';
+import { callStats } from '../../lib/dialer';
 import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
@@ -68,6 +69,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   // גל ג׳ — פעולות-הרחבה בכרטיס: 💳 עמוד-תרומה (payments) · 🤖 מכתב-תודה (ai)
   const donateHref = integrationOn(config, 'payments')
     ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, sp.name)
+    : null;
+  // 💳 סולה (23.8, "אני לוחץ על אייקון אשראי אני מגיע לנדרים — ומה עם סולה"):
+  // עמוד-התשלום של סולה לצד נדרים — אותה בניית-קישור, השם ממולא.
+  const solaDonateHref = integrationOn(config, 'payments')
+    ? payLink(integrationSetting(config, 'payments', 'solaPayUrl'), 0, sp.name)
     : null;
   const aiReady = integrationOn(config, 'ai') && !!readAiKey();
   // גל ד׳ (sms): תור-שליחה בענן — הכפתור רק לארגון-ענן מחובר עם ההרחבה
@@ -345,6 +351,21 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             )}
           </div>
           <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 2 }}>{statsLine}</div>
+          {/* 📞 מונה-שיחות עמיד (23.8, "גם אצל המנהל") — אותו יומן Supporter.calls
+              כמו בחייגן; נראה לכל מי שפותח את הכרטיס, גם בלי קמפיין פעיל */}
+          {(() => {
+            const cst = callStats(sp.calls);
+            return (
+              <div
+                style={{ fontSize: 12.5, color: cst.total ? 'var(--ink-soft)' : 'var(--ink-faint)', marginTop: 2 }}
+                title={cst.total ? 'שיחות שנרשמו מהחייגן (כל הקמפיינים)' : 'טרם נרשמה שיחה מהחייגן'}
+              >
+                {cst.total === 0 && <>📞 טרם התקשרו (החייגן רושם כל שיחה)</>}
+                {cst.total === 1 && <>📞 התקשרו פעם אחת · {fmtDate(cst.last)}</>}
+                {cst.total > 1 && <>📞 התקשרו {cst.total} פעמים · אחרונה {fmtDate(cst.last)}{cst.noanswer > 0 && <> · 📵 {cst.noanswer} ללא-מענה</>}</>}
+              </div>
+            );
+          })()}
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {canIssue && (
@@ -425,6 +446,19 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                   style={{ textDecoration: 'none' }}
                 >
                   💳 עמוד תרומה
+                </a>
+              )}
+              {solaDonateHref && (
+                <a
+                  href={solaDonateHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="chip"
+                  title="עמוד-התשלום בסולה — קישור לתשלום מקוון (נקלט אוטומטית בתשלומים-הנכנסים)"
+                  aria-label="פתיחת עמוד-התשלום בסולה"
+                  style={{ textDecoration: 'none' }}
+                >
+                  💳 סולה
                 </a>
               )}
               {smsReady && (

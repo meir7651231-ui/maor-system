@@ -393,7 +393,7 @@ export const INTEGRATION_KEYS = [
  * מפתח-AI וכד' נשמרים מקומית-למכשיר בלבד.
  */
 export const INTEGRATION_SETTING_KEYS: Record<string, readonly string[]> = {
-  payments: ['provider', 'payUrl', 'pullUrl'],
+  payments: ['provider', 'payUrl', 'pullUrl', 'solaPullUrl', 'solaPayUrl'],
   campaign: ['url'],
   sheets: ['spreadsheetId'], // גל ד׳ — sheetsNightly קורא מכאן (platformOrgs.config)
   // צרור-הלילה (ROADMAP-100 ‏#3): remindersNightly קורא מכאן את יעדי-התקציר

@@ -22,7 +22,7 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const crypto = require('crypto');
-const { mapPaymentCallback } = require('./paymentMap');
+const { mapPaymentCallback, sanitizeDedupKey } = require('./paymentMap');
 
 initializeApp();
 
@@ -87,8 +87,12 @@ exports.paymentsWebhook = onRequest({ secrets: ['PAY_SECRET'] }, async (req, res
   // dedup + אי-דריסה: TransactionId ⇒ doc-id דטרמיניסטי משותף עם המשיכה (nedarimSync).
   // בלי TransactionId — נופלים לאסמכתא (reference) כמפתח-דדופ ⇒ CallBack-כפול לא משכפל.
   // create() נכשל אם כבר קיים ⇒ עסקה שכבר תועדה (וייתכן שכבר נרשמה) לא מתאפסת ל-pending.
+  // ⚠️ חיטוי-doc-id (21.8): reference מגיע מהספק ויכול להכיל '/' וכד׳ — doc() עם
+  // '/' זורק ⇒ 500 ⇒ ה-CallBack (חד-פעמי אצל נדרים!) אובד. sanitizeDedupKey
+  // (paymentMap) מחטא ל-[A-Za-z0-9_-], שומר ייחודיות (hash-זנב דטרמיניסטי) ותוחם אורך.
   const tid = String(p.TransactionId ?? p.Transaction ?? '').trim();
-  const dedupKey = tid || (m.reference ? 'ref-' + m.reference : '');
+  const rawKey = tid || (m.reference ? 'ref-' + m.reference : '');
+  const dedupKey = rawKey ? sanitizeDedupKey(rawKey, rawSafe) : '';
   try {
     if (tid) payload.txnId = tid;
     if (dedupKey) {
@@ -273,8 +277,8 @@ exports.sheetsNightly = onSchedule({ schedule: 'every day 03:00', secrets: ['GOO
  * 📧 mailOutbox — כל דקה: שולח מיילים שממתינים ב-mailOutbox (שורש +
  * orgs/{slug}/mailOutbox — ‏collectionGroup). האפליקציה כותבת {to,subject,text}
  * (קבלות-במייל, תקצירים); כאן נשלח ב-SMTP ומסומן sent/error. מוגבל 20/דקה.
- * ‏secrets: ‏SMTP_URL (‏smtps://user:pass@host — כל ספק: Gmail-App-Password /
- * SendGrid / ספק-הדומיין) + ‏MAIL_FROM (כתובת-השולח המוצגת).
+ * ‏SMTP פר-לקוח (orgSecrets.smtpUrl מהכספת); כתובת-השולח (From) נגזרת מה-username
+ * של ה-smtpUrl — ‏SMTP_URL/MAIL_FROM הגלובליים = נפילה-לאחור בלבד (לא קיימים כ-secrets).
  */
 // הכרעת-בעלים 20.8 'רק של הלקוח': בלי סודות גלובליים — כל ארגון עם smtpUrl משלו
 // בכספת (orgSecrets); בלי סוד-גלובלי הפריסה לא דורשת Secret Manager.
@@ -293,7 +297,16 @@ exports.mailOutbox = onSchedule({ schedule: 'every 1 minutes' }, async () => {
       const sec = await orgSecretsOf(db, slugOfQueueDoc(doc));
       const smtpUrl = sec.smtpUrl || process.env.SMTP_URL || '';
       if (!smtpUrl) continue; // אין SMTP (ארגוני או גלובלי) — נשאר pending עד שיוגדר
-      await transportFor(smtpUrl).sendMail({ from: process.env.MAIL_FROM || undefined, to: String(to), subject: String(subject ?? ''), text: String(text ?? '') });
+      // ✉️ כתובת-השולח (21.8): הפונקציה לא מצהירה secrets ⇒ MAIL_FROM תמיד ריק היה
+      // שולח מיילים בלי From (ספאם/דחייה). הכרעת-הבעלים "מייל פר-לקוח" ⇒ השולח
+      // נגזר מה-smtpUrl של הארגון עצמו: ה-username ב-URL הוא כתובת-המייל של הלקוח
+      // (smtpUrl.ts מרכיב עם encodeURIComponent ⇒ decodeURIComponent מחזיר).
+      let from = process.env.MAIL_FROM || undefined; // נפילה-לאחור בלבד (לא קיים כ-secret)
+      try {
+        const u = decodeURIComponent(new URL(smtpUrl).username);
+        if (u) from = u;
+      } catch { /* smtpUrl לא-URL-תקין — נופלים ל-MAIL_FROM אם הוגדר אי-פעם */ }
+      await transportFor(smtpUrl).sendMail({ from, to: String(to), subject: String(subject ?? ''), text: String(text ?? '') });
       await doc.ref.update({ status: 'sent', sentAt: new Date().toISOString() });
     } catch (e) {
       await doc.ref.update({ status: 'error', error: String(e).slice(0, 500) });
@@ -362,6 +375,11 @@ const BACKUP_COLLECTIONS = [
   'shopItems', 'shopProducts', 'shopStores', 'shopCriteria', 'shopAssignments', 'shopEvents', 'shopIntakes',
   'volunteers', 'distributionDays', 'deliveries', 'tasks', 'warehouse',
 ];
+// 🔀 מסלול-B · פיצול-תרומות (21.8): ארגון עם donationSplit שומר את התרומות באוסף
+// נפרד orgs/{slug}/donations — **במכוון לא** ב-ENTITY_COLLECTIONS (ולכן לא
+// ב-BACKUP_COLLECTIONS, שנשאר ≡ ל-ratchet ‏night-bundle). בלי הגיבוי הנוסף הזה
+// צילום-לילה של ארגון-מפוצל היה יוצא בלי תרומות/קבלות — שחזור היה מאבד אותן בשקט.
+const EXTRA_BACKUP = ['donations'];
 const BACKUP_KEEP = 30;
 
 exports.backupNightly = onSchedule({ schedule: 'every day 02:30', timeZone: 'Asia/Jerusalem' }, async () => {
@@ -377,7 +395,7 @@ exports.backupNightly = onSchedule({ schedule: 'every day 02:30', timeZone: 'Asi
       if (metaDoc.exists) snapshot.meta = metaDoc.data();
       const envDoc = await db.doc('orgs/' + org.id + '/_enc/envelope').get();
       if (envDoc.exists) snapshot.envelope = envDoc.data();
-      for (const col of BACKUP_COLLECTIONS) {
+      for (const col of [...BACKUP_COLLECTIONS, ...EXTRA_BACKUP]) {
         const snap = await base.collection(col).get();
         if (snap.size) snapshot.collections[col] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       }
@@ -397,3 +415,6 @@ exports.backupNightly = onSchedule({ schedule: 'every day 02:30', timeZone: 'Asi
 // כיוון-יוצא · נדרים (משיכת-עסקאות + רשת-ביטחון) — מודול עצמאי, נטען כאן כדי
 // ש-firebase יגלה את exports.nedarimPull / exports.nedarimSyncHourly.
 Object.assign(exports, require('./nedarimPull'));
+
+// כיוון-נכנס · Sola Payments (חיווט-כמו-נדרים, 21.8) — משיכת-עסקאות + רשת-ביטחון.
+Object.assign(exports, require('./solaPull'));

@@ -8,14 +8,15 @@
  * בלי Functions פרוסות: הרשימה ריקה — המסך ישר אומר זאת.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { useApp } from '../../store/useApp';
+import { allMembers, useApp } from '../../store/useApp';
 import { Btn, Empty, Modal } from '../ui';
 import type { IncomingPayment } from '../../store/cloudSync';
 import { autoMatchCharges, candidateSupportersForCharge, strongMatchForCharge } from '../../lib/nedarimSync';
 import { normId, normPhone } from '../../lib/dedup';
 import { normSearch } from '../../lib/validate';
-import { termOf } from '../../lib/config';
+import { integrationSetting, isSuperAdmin, termOf } from '../../lib/config';
 import { fmtDate, supCount, totalLabel } from './lib';
+import { payBal } from '../courses/lib';
 import type { Supporter } from '../../types/domain';
 
 type CloudMod = typeof import('../../store/cloudSync');
@@ -24,6 +25,15 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
   const toast = useApp((s) => s.toast);
   const supporters = useApp((s) => s.db.supporters);
   const attachBulk = useApp((s) => s.attachIncomingBulk);
+  const config = useApp((s) => s.config);
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
+  const isManager = useApp((s) => s.cloud.isManager);
+  // 🔄 סולה · משיכה-בקליק (21.8, חיווט-כמו-נדרים) — מגודר כתובת-פונקציה (payments.solaPullUrl)
+  // + מנהל/מייל-על; ה-xKey בכספת-הענן, הפונקציה קוראת אותו בעצמה (אפס-סוד בדפדפן).
+  const solaPullUrl = integrationSetting(config, 'payments', 'solaPullUrl');
+  const canPullSola = !!solaPullUrl && (isSuperAdmin(cloudEmail) || isManager);
+  // הכרעת-בעלים 23.8: כפתורי-המשיכה מסולה עברו למסך-המנהל (הגדרות ← נתונים ←
+  // 🔄 ייבוא תורמים ותורמות) — המסך הזה נשאר לצפייה ורישום בלבד.
   const [mod, setMod] = useState<CloudMod | null>(null);
   const [rows, setRows] = useState<IncomingPayment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,21 +65,39 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
     setLoading(false);
   }
 
+  const repairCards = useApp((s) => s.repairProviderCards);
+  const auditNote = useApp((s) => s.auditNote); // 🐛 C9: פעולות-כסף עם עקבה בלוג
   useEffect(() => {
     let alive = true;
     void import('../../store/cloudSync').then((m) => {
       if (!alive) return;
       setMod(m);
       void refresh(m);
+      // 🔧 ריפוי-כרטיסים (23.8, "זה לא נכנס במקום הנכון" + "שם יכנס לשם, טלפון
+      // לטלפון"): בפתיחת-המסך — תיקון תווית-הסליקה של מיזוגי-סולה שנרשמו 'נדרים'
+      // + מילוי-אם-ריק של פרטי-הקשר בכרטיסים מרשומות-העסקה (כל הסטטוסים, גם
+      // handled). אידמפוטנטי ושקט כשאין מה לתקן; מגודר כמו כפתור-המשיכה.
+      if (canPullSola) {
+        void m.fetchProviderRows('sola').then((provRows) => {
+          if (!alive || !provRows.length) return;
+          const { relabeled, enriched } = repairCards(provRows, 'סולה');
+          if (relabeled || enriched) {
+            toast('🔧 ריפוי-סולה: ' + relabeled + ' תוויות-מקור תוקנו · ' + enriched + ' כרטיסים הושלמו פרטים');
+          }
+        }).catch(() => {});
+      }
     });
     return () => {
       alive = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ריצת-פתיחה חד-פעמית
   }, []);
 
   async function markDone(id: string) {
     if (!mod) return;
+    const row = rows.find((r) => r.id === id);
     await mod.markIncomingPayment(id).catch(() => toast('⚠ הסימון נכשל — נסו שוב'));
+    auditNote('✓ סימון תשלום-נכנס כטופל', row ? (row.currency || '₪') + row.amount + ' · ' + (row.name || row.reference || id) : id);
     await refresh(mod);
   }
 
@@ -96,11 +124,15 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
       return n;
     });
   }
-  async function markMany(ids: string[]) {
-    if (!mod) return;
+  // 🐛 נחיל-סולה C8: כשלי-סימון נבלעו בשקט — עכשיו נספרים ומדווחים למסך.
+  async function markMany(ids: string[]): Promise<number> {
+    if (!mod) return ids.length;
+    let failed = 0;
     for (let i = 0; i < ids.length; i += 300) {
-      await Promise.all(ids.slice(i, i + 300).map((id) => mod.markIncomingPayment(id).catch(() => {})));
+      await Promise.all(ids.slice(i, i + 300).map((id) => mod.markIncomingPayment(id).catch(() => { failed++; })));
     }
+    if (failed) toast('⚠ ' + failed + ' סימונים נכשלו — חלק מהעסקאות יופיעו שוב; נסו שוב');
+    return failed;
   }
   // בחירה-מרובה → סימון-שנרשמו לכל המסומנים (בלי שיוך).
   async function bulkMark() {
@@ -238,7 +270,8 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
             </div>
             <div style={{ fontSize: 12, color: 'var(--ink-faint)' }} dir="ltr">
               {[p.phone, p.email, p.zeout && ('ת"ז ' + p.zeout)].filter(Boolean).join(' · ')}
-              {p.reference ? ' · ' + p.reference : ''} · {p.at.slice(0, 10)}
+              {/* 🐛 נחיל-סולה C4: תאריך-העסקה (d), לא תאריך-המשיכה (at) */}
+              {p.reference ? ' · ' + p.reference : ''} · {p.d || p.at.slice(0, 10)}
             </div>
           </div>
           <Btn sm kind="primary" onClick={() => setMergeFor(p)} title="שיוך העסקה לכרטיס-תומך (בסגנון בדיקת-כפילויות)">
@@ -266,6 +299,52 @@ function MergeView(props: { pay: IncomingPayment; onBack: () => void; onMerged: 
   const toast = useApp((s) => s.toast);
   const [q, setQ] = useState('');
   const [armed, setArmed] = useState<string | null>(null);
+  // 👪 ניתוב-חוגים (23.8, הכרעת-בעלים: "שהחיוב לא יכנס לתורמים אלא למשפחות
+  // על חוגים"): נתיב-יעד שני — תשלום-חוג נרשם על השיבוץ של המשפחה דרך
+  // addPayment הקיים (קבלת R- בסדרה הרציפה, כמו ＋קבלת-תשלום בניהול-השיבוץ),
+  // ולא נוגע בכרטיסי-התורמים. זיכויים (סכום-שלילי) נשארים בנתיב-התורם.
+  const db = useApp((s) => s.db);
+  const addPayment = useApp((s) => s.addPayment);
+  const [dest, setDest] = useState<'sup' | 'fam'>('sup');
+  const payDigits = normPhone(pay.phone || '');
+  const enrollRows = useMemo(() => {
+    const members = allMembers(db);
+    const byId = new Map(members.map((m) => [m.id, m]));
+    const courseOf = new Map(db.courses.map((c) => [c.id, c.name]));
+    const famOf = new Map(db.families.map((f) => [f.id, f]));
+    const qn = normSearch(q);
+    const qd = q.replace(/\D/g, '');
+    const rows: { en: (typeof db.enrollments)[number]; label: string; sub: string; phoneHit: boolean }[] = [];
+    for (const en of db.enrollments) {
+      if (en.status === 'wait' || en.endedAt) continue;
+      const m = byId.get(en.memberId);
+      if (!m) continue;
+      const fam = famOf.get(m.famId || '');
+      const label = ((m.first || '') + ' ' + (m.famName || '')).trim() || fam?.name || '—';
+      const course = courseOf.get(en.courseId) || '';
+      const phones = [m.phone, fam?.phone, fam?.phone2].map((x) => normPhone(x || '')).filter((x) => x.length >= 7);
+      const phoneHit = payDigits.length >= 7 && phones.some((x) => x === payDigits);
+      const textHit =
+        (qn.length >= 2 && (normSearch(label).includes(qn) || normSearch(course).includes(qn))) ||
+        (qd.length >= 3 && phones.some((x) => x.includes(qd)));
+      if (q.trim() ? textHit : phoneHit) {
+        rows.push({ en, label, sub: course + ' · יתרה ₪' + payBal(en).toLocaleString('he-IL'), phoneHit });
+      }
+    }
+    rows.sort((a, b) => Number(b.phoneHit) - Number(a.phoneHit));
+    return rows.slice(0, 10);
+  }, [db, q, payDigits]);
+
+  function doPayEnrollment(enId: string, label: string) {
+    if (armed !== 'en-' + enId) { setArmed('en-' + enId); return; }
+    const res = addPayment(enId, {
+      date: pay.d || pay.at.slice(0, 10),
+      amount: pay.amount,
+      method: 'אשראי · ' + (pay.provider === 'sola' ? 'סולה' : 'נדרים') + (pay.reference ? ' · ' + pay.reference : ''),
+    });
+    toast(res.ok ? '👪 נרשם תשלום-' + termOf(config, 'entity.course', 'חוג') + ' ל' + label + ' — קבלה ' + (res.rid || '') : 'הרישום נכשל');
+    if (res.ok) props.onMerged();
+  }
 
   const candidates = useMemo(() => candidateSupportersForCharge(pay, supporters), [pay, supporters]);
   const qn = normSearch(q);
@@ -302,15 +381,49 @@ function MergeView(props: { pay: IncomingPayment; onBack: () => void; onMerged: 
         </div>
       </div>
 
+      {/* בורר-יעד (23.8): תרומה⇒כרטיס-תורם · תשלום-חוג⇒שיבוץ-המשפחה (קבלת R-) */}
+      {pay.amount > 0 && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+          <Btn sm kind={dest === 'sup' ? 'primary' : undefined} onClick={() => setDest('sup')}>
+            {'🎗 תרומה — ל' + nav}
+          </Btn>
+          <Btn sm kind={dest === 'fam' ? 'primary' : undefined} onClick={() => setDest('fam')} title="רישום כתשלום-חוג על השיבוץ של המשפחה — קבלת R- בסדרה הרציפה, לא נוגע בתורמים">
+            {'👪 תשלום ' + termOf(config, 'entity.course', 'חוג') + ' — למשפחה'}
+          </Btn>
+        </div>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder={'🔎 חיפוש ' + nav + ' (שם או טלפון)…'}
+          placeholder={dest === 'fam' ? '🔎 חיפוש משפחה/חוג (שם או טלפון)…' : '🔎 חיפוש ' + nav + ' (שם או טלפון)…'}
           style={{ flex: 1, fontSize: 13, padding: '5px 8px' }}
         />
         <Btn sm onClick={props.onBack}>← חזרה</Btn>
       </div>
+
+      {dest === 'fam' && pay.amount > 0 && (
+        <>
+          {enrollRows.length === 0 ? (
+            <Empty>לא נמצאו שיבוצים תואמים — חפשו לפי שם-משפחה, שם-ילד/ה או טלפון</Empty>
+          ) : (
+            enrollRows.map((r) => (
+              <div key={r.en.id} style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid var(--line)', borderRadius: 10, padding: '8px 10px', marginBottom: 6 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700 }}>{r.label}{r.phoneHit ? <span style={{ fontSize: 11, color: 'var(--accent)', marginInlineStart: 6 }}>📞 טלפון תואם</span> : null}</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{r.sub}</div>
+                </div>
+                <Btn sm kind={armed === 'en-' + r.en.id ? 'danger' : 'primary'} onClick={() => doPayEnrollment(r.en.id, r.label)}
+                  title={'רישום ' + (pay.currency || '₪') + pay.amount.toLocaleString('he-IL') + ' כתשלום על השיבוץ — קבלת R- רציפה'}>
+                  {armed === 'en-' + r.en.id ? 'לאשר רישום + קבלה?' : '＋ רשום תשלום'}
+                </Btn>
+              </div>
+            ))
+          )}
+        </>
+      )}
+      {dest === 'fam' && pay.amount > 0 ? null : (
+        <>
 
       {list.length === 0 ? (
         <Empty>
@@ -338,6 +451,8 @@ function MergeView(props: { pay: IncomingPayment; onBack: () => void; onMerged: 
               </div>
             </div>
           ))}
+        </>
+      )}
         </>
       )}
 

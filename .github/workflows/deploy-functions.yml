@@ -19,14 +19,18 @@ on:
         type: choice
         options:
           - stage1        # בלי סודות: icsFeed + remindersNightly + backupNightly
-          - mail          # mailOutbox (דורש סודות SMTP_URL + MAIL_FROM)
+          - mail          # mailOutbox — בלי סוד-גלובלי: SMTP פר-לקוח מהכספת (orgSecrets), והשולח נגזר מה-smtpUrl של הארגון
           - nedarim       # nedarimPull + nedarimSyncHourly (NEDARIM_* + PAY_SECRET)
+          - sola          # solaPull + solaSyncHourly (xKey מהכספת פר-ארגון; PAY_SECRET בלבד)
           - payments      # paymentsWebhook (PAY_SECRET)
           - sms           # smsOutbox (SMS_*)
           - yemot         # yemotProxy (YEMOT_TOKEN)
           - sheets        # sheetsNightly (GOOGLE_SA)
           - everything    # הכול — רק אחרי שכל הסודות קיימים!
           - status        # לא פורס כלום — מדווח מה פרוס ואילו סודות קיימים
+          - logs          # לא פורס כלום — לוגים אחרונים של המתוזמנות (גיבוי/תקציר/מייל)
+          - indexes       # פריסת אינדקסי-Firestore (firestore.indexes.json) בלבד
+          - rules         # פריסת Firestore Rules (firestore.rules) בלבד — פעולת-בעלים!
   push:
     branches:
       - 'deploy-fn/**'
@@ -63,6 +67,7 @@ jobs:
             stage1)     F="functions:icsFeed,functions:remindersNightly,functions:backupNightly" ;;
             mail)       F="functions:mailOutbox" ;;
             nedarim)    F="functions:nedarimPull,functions:nedarimSyncHourly" ;;
+            sola)       F="functions:solaPull,functions:solaSyncHourly" ;;
             payments)   F="functions:paymentsWebhook" ;;
             sms)        F="functions:smsOutbox" ;;
             yemot)      F="functions:yemotProxy" ;;
@@ -71,12 +76,15 @@ jobs:
             status)     F="__status__" ;;
             logs)       F="__logs__" ;;
             indexes)    F="__indexes__" ;;
+            rules)      F="__rules__" ;;
+            solapeek)   F="__solapeek__" ;;
+            solarun)    F="__solarun__" ;;
             *) echo "::error::יעד לא מוכר"; exit 1 ;;
           esac
           echo "flist=$F" >> "$GITHUB_OUTPUT"
 
       - name: פריסה
-        if: ${{ steps.t.outputs.flist != '__status__' && steps.t.outputs.flist != '__logs__' && steps.t.outputs.flist != '__indexes__' }}
+        if: ${{ steps.t.outputs.flist != '__status__' && steps.t.outputs.flist != '__logs__' && steps.t.outputs.flist != '__indexes__' && steps.t.outputs.flist != '__rules__' && steps.t.outputs.flist != '__solapeek__' && steps.t.outputs.flist != '__solarun__' }}
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: npx firebase-tools@13 deploy --project maor-system --only "${{ steps.t.outputs.flist }}" --non-interactive
@@ -92,11 +100,14 @@ jobs:
           npx firebase-tools@13 functions:list --project maor-system --non-interactive || true
           echo ""
           echo "═══ סודות (קיים/חסר — בלי ערכים) ═══"
+          # ⚠️ SMTP_URL/MAIL_FROM צפויים "חסר" — לא-בשימוש (מייל פר-לקוח: smtpUrl בכספת orgSecrets)
           for s in SMTP_URL MAIL_FROM PAY_SECRET NEDARIM_MOSAD_ID NEDARIM_API_PASSWORD SMS_API_KEY SMS_PROVIDER SMS_SENDER YEMOT_TOKEN GOOGLE_SA; do
+            note=""
+            case "$s" in SMTP_URL|MAIL_FROM) note=" (לא-בשימוש — מייל פר-לקוח מהכספת)" ;; esac
             if npx firebase-tools@13 functions:secrets:get "$s" --project maor-system --non-interactive >/dev/null 2>&1; then
-              echo "✅ $s: קיים"
+              echo "✅ $s: קיים$note"
             else
-              echo "❌ $s: חסר"
+              echo "❌ $s: חסר$note"
             fi
           done
 
@@ -106,10 +117,50 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          for fn in backupNightly remindersNightly mailOutbox; do
+          for fn in backupNightly remindersNightly mailOutbox solaPull; do
             echo "═══ $fn ═══"
             npx firebase-tools@13 functions:log --project maor-system --only "$fn" -n 25 --non-interactive || true
           done
+
+      # 🔎 הצצת-סולה (23.8, "אתה יכול לראות מה הוא מושך") — קורא ל-solaPull?peek=1
+      # עם PAY_SECRET מה-Secret-Manager (ממוסך — לא מודפס) ומדפיס את השורות
+      # הגולמיות מהשער; כך הארכיטקט מאמת את המיפוי בעצמו בלי גישת-קונסולה.
+      - name: הצצת-סולה
+        if: ${{ steps.t.outputs.flist == '__solapeek__' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          SEC=$(npx firebase-tools@13 functions:secrets:access PAY_SECRET --project maor-system 2>/dev/null | tail -1)
+          echo "::add-mask::$SEC"
+          echo "═══ solaPull peek (org=root, נפילת-כספת דינמית) ═══"
+          curl -s "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=root&peek=1&secret=$SEC" | head -c 6000
+          echo ""
+          # 🧮 בדיקת-התאמה (23.8, "תבדוק אם נמשך הכל והמספרים תואמים") — קריאה-בלבד:
+          # הדוח המלא מהשער מול התור של הארגון-החי (mavr-hchsd — שם יושבות המשיכות).
+          echo "═══ solaPull audit (org=mavr-hchsd) ═══"
+          curl -s --max-time 240 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&audit=1&secret=$SEC" | head -c 6000
+          echo ""
+          # 🔎 גישוש-לקוחות (peek=2): אילו נקודות-קצה מחזירות טלפון/אימייל של תורם
+          echo "═══ solaPull customer-probe (peek=2) ═══"
+          curl -s --max-time 120 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=root&peek=2&secret=$SEC" | head -c 6000
+          echo ""
+
+      # 🔄 משיכת-סולה מהקונסולה (23.8): reset-משיכה מלאה לארגון-החי — כל השורות
+      # נכתבות מחדש עם פרטי-הקשר (xFields); pending-בלבד נמחק (handled מוגן, S6),
+      # הדדופ מגן על ה-hist. ואז audit לאימות. הפעלה: ענף deploy-fn/solarun.
+      - name: משיכת-סולה מלאה + אימות
+        if: ${{ steps.t.outputs.flist == '__solarun__' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          SEC=$(npx firebase-tools@13 functions:secrets:access PAY_SECRET --project maor-system 2>/dev/null | tail -1)
+          echo "::add-mask::$SEC"
+          echo "═══ solaPull reset-run (org=mavr-hchsd) ═══"
+          curl -s --max-time 280 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&reset=1&secret=$SEC" | head -c 2000
+          echo ""
+          echo "═══ audit אחרי המשיכה ═══"
+          curl -s --max-time 240 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&audit=1&secret=$SEC" | head -c 6000
+          echo ""
 
       # פריסת אינדקסי-Firestore (firestore.indexes.json) — למשל האינדקס
       # ש-mailOutbox דורש לשאילתת-collectionGroup על status (ממצא-לוגים 21.8).
@@ -118,6 +169,15 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: npx firebase-tools@13 deploy --project maor-system --only firestore:indexes --non-interactive
+
+      # פריסת Firestore Rules (firestore.rules שבריפו) — ⚠️ פרסום-Rules = פעולת-
+      # בעלים מפורשת (משנה הרשאות חיות בפרודקשן); היעד קיים כדי שהבעלים יוכל
+      # לפרסם בקליק מה-Actions, לא להרצה אוטומטית.
+      - name: פריסת Rules
+        if: ${{ steps.t.outputs.flist == '__rules__' }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: npx firebase-tools@13 deploy --project maor-system --only firestore:rules --non-interactive
 
       - name: אימות (stage1)
         if: ${{ github.event.inputs.target == 'stage1' || github.ref_name == 'deploy-fn/stage1' }}

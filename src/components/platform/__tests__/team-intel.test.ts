@@ -9,6 +9,7 @@ import { describe, it, expect } from 'vitest';
 import type { AuditEntry } from '../../../types/domain';
 import { agoLabel, goalProgress, quietWorkers, teamCsvRows, teamIntel, teamSummary, trendOf, workerIntel } from '../teamIntel';
 import panelSrc from '../ManagerPanel.tsx?raw';
+import cloudConfigSrc from '../../../lib/cloudConfig.ts?raw';
 
 const TODAY = '2026-08-20';
 const e = (who: string, at: string, act = 'תרומה', what = 'x'): AuditEntry => ({ who, at, act, what });
@@ -37,6 +38,27 @@ describe('workerIntel — נגזרת פר-עובד/ת', () => {
     expect(w.actions).toBe(0);
     expect(w.peakHour).toBeNull();
     expect(agoLabel(w.lastAt, TODAY)).toBe('ללא פעילות');
+  });
+
+  it('ratchet 21.8 (ממצא-נחיל): לוג ממוזג-ענן עם רשומות עקומות לא מפיל — מדלגים', () => {
+    // הבאג: cloud-merge מציב meta.audit בלי ולידציה ⇒ רשומה בלי `who` הפילה את
+    // norm(a.who) ב-TypeError והלבינה את כל פאנל-המנהל (white-screen).
+    const dirty = [
+      e('dana@org.org', '2026-08-20T09:00:00.000Z'),
+      { at: '2026-08-20T10:00:00.000Z', act: 'x', what: 'y' }, // בלי who
+      { who: 'dana@org.org', act: 'x', what: 'y' }, // בלי at
+      null, // רשומה לא-אובייקט
+      42,
+      'zבל',
+      { who: 7, at: '2026-08-19T08:00:00.000Z', act: 'x', what: 'y' }, // who לא-מחרוזת
+    ] as unknown as AuditEntry[];
+    const w = workerIntel(dirty, 'dana@org.org', TODAY);
+    expect(w.actions).toBe(1); // רק הרשומה התקינה נספרה
+    // גם נקודות-הכניסה העוטפות מוגנות (Array.isArray + סינון)
+    const team = teamIntel(dirty, ['dana@org.org'], TODAY);
+    expect(team[0].actions).toBe(1);
+    expect(teamIntel('לא-מערך' as unknown as AuditEntry[], ['a@b.c'], TODAY)[0].actions).toBe(0);
+    expect(teamSummary(undefined as unknown as ReturnType<typeof teamIntel>)).toEqual({ week: 0, activeToday: 0, top: '' });
   });
 });
 
@@ -126,6 +148,13 @@ describe('הגנות-מקור — החיווט באשף-המנהל', () => {
     expect(panelSrc).toContain("featureOn((config as OrgConfig) ?? {}, 'core.export')");
     expect(panelSrc).toContain("downloadCsv('team-intel-' + today + '.csv', teamCsvRows(team, goals))");
     expect(panelSrc).toContain('async function setGoalFor(email: string, goal: number)');
+    // ratchet 21.8 (ממצא-נחיל): איפוס-יעד חייב מחיקת-שדה נקודתית — setDoc(merge:true)
+    // ממזג-עומק מפות ⇒ `delete next.weeklyGoal` לא מחק בענן ויעד 40 חזר אחרי איפוס-ל-0.
+    expect(panelSrc).toContain("clearEmployeeField(slug, email, 'weeklyGoal')");
+    expect(panelSrc).not.toMatch(/^\s*delete next\.weeklyGoal;/m); // הדפוס-הישן כקוד (לא בהערה)
+    // ההלפר עצמו: מחיקה דרך FieldPath תלת-מקטעי + deleteField (המייל מכיל נקודות)
+    expect(cloudConfigSrc).toContain('export async function clearEmployeeField');
+    expect(cloudConfigSrc).toContain("new FieldPath('memberConfigs', email, field), deleteField()");
     expect(panelSrc).toContain('quietWorkers(team.filter((w) => w.email !== managerMail), 3)');
   });
 });

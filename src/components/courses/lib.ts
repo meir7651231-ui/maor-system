@@ -412,6 +412,8 @@ export const TINTS = ['#f6ead1', '#e3eddc', '#dfe8f2', '#f2e0e4', '#e9dff0', '#e
 export function enrollStatusMeta(e: Enrollment): { label: string; bg: string; c: string } {
   if (e.status === 'paused') return { label: 'מוקפא', bg: '#fdf1d4', c: '#9a6414' };
   if (e.status === 'ended') return { label: 'הסתיים', bg: '#eceae2', c: '#8b8474' };
+  // ⏳ רשימת-המתנה — קודם נפלה ל"פעיל" והטעתה (למשל בכרטיס ⚙ ניהול-שיבוץ)
+  if (e.status === 'wait') return { label: 'רשימת-המתנה ⏳', bg: '#e7edf5', c: '#3a5a86' };
   return { label: 'פעיל', bg: '#e4f5ea', c: '#12803c' };
 }
 

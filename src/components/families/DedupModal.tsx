@@ -11,6 +11,7 @@ import { useApp } from '../../store/useApp';
 import { DUP_FIELDS, findDuplicateGroups, mergeFamilies } from '../../lib/dedup';
 import { featureOn, termOf } from '../../lib/config';
 import { Btn, Empty, Modal } from '../ui';
+import { useArmed } from '../useArmed';
 
 export function DedupModal({ onClose }: { onClose: () => void }) {
   const families = useApp((s) => s.db.families);
@@ -18,6 +19,7 @@ export function DedupModal({ onClose }: { onClose: () => void }) {
   const mergeFamilyGroup = useApp((s) => s.mergeFamilyGroup);
   const mergeFamilyGroupFields = useApp((s) => s.mergeFamilyGroupFields);
   const deleteFamily = useApp((s) => s.deleteFamily);
+  const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const fieldsOn = featureOn(config, 'settings.dedup.fields');
 
@@ -31,8 +33,10 @@ export function DedupModal({ onClose }: { onClose: () => void }) {
   const [fieldsFor, setFieldsFor] = useState<string | null>(null);
   const [pick, setPick] = useState<Record<string, number>>({});
   const [edit, setEdit] = useState<Record<string, string>>({});
-  // מחיקת רשומה מהקבוצה (לגאסי dupDrop) — שתי לחיצות.
-  const [dropArmed, setDropArmed] = useState<string | null>(null);
+  // מחיקת רשומה מהקבוצה (לגאסי dupDrop) — דרך useArmed (חלון 3.5ש׳ + פקיעה),
+  // לא שתי-לחיצות-חשופות: 🗑 מוחק לצמיתות משפחה שלמה כולל שיבוצים ותשלומים,
+  // בתוך דיאלוג שכותרתו מבטיחה "אין מחיקת נתונים" — חייב אזהרה מפורשת + timeout.
+  const { armed: dropArmed, confirmTwice: confirmDrop } = useArmed(featureOn(config, 'shell.armdel'));
 
   const groups = useMemo(() => findDuplicateGroups(families), [families]);
   const byId = useMemo(() => new Map(families.map((f) => [f.id, f])), [families]);
@@ -84,15 +88,25 @@ export function DedupModal({ onClose }: { onClose: () => void }) {
                         {fieldsOn && (
                           <Btn
                             sm
-                            kind={dropArmed === f.id ? 'danger' : undefined}
+                            kind={dropArmed === 'drop-' + f.id ? 'danger' : undefined}
                             onClick={() => {
-                              if (dropArmed !== f.id) { setDropArmed(f.id); return; }
+                              // אזהרה מפורשת על ההשלכות — המחיקה גוררת גם שיבוצים,
+                              // תשלומים ורשומות קבלה של בני-המשפחה (deleteFamily).
+                              const msg =
+                                'למחוק את "' + f.name + '" מהמערכת? יימחקו גם ה' +
+                                termOf(config, 'entity.enrollments', 'שיבוצים') +
+                                ', התשלומים ורשומות הקבלה של בני-ה' +
+                                termOf(config, 'entity.family', 'משפחה') + '. לא ניתן לבטל.';
+                              if (!confirmDrop('drop-' + f.id, msg)) {
+                                toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תמחק לצמיתות — כולל שיבוצים ותשלומים');
+                                return;
+                              }
                               deleteFamily(f.id);
-                              setDropArmed(null);
+                              toast('הרשומה "' + f.name + '" נמחקה מהמערכת');
                             }}
-                            title="מחיקת הרשומה הזו מהמערכת (לגאסי dupDrop)"
+                            title="מחיקת הרשומה הזו מהמערכת — כולל שיבוצים ותשלומים (לגאסי dupDrop)"
                           >
-                            {dropArmed === f.id ? 'לאשר מחיקה?' : '🗑'}
+                            {dropArmed === 'drop-' + f.id ? '🗑 בטוח? ימחקו גם שיבוצים ותשלומים' : '🗑'}
                           </Btn>
                         )}
                       </label>

@@ -13,8 +13,13 @@ describe('💛 ratchet — התראת-סיכון בבית → סגמנט מסו�
     expect(homeSrc).toContain('cockpitAtRisk(db.supporters');
     expect(homeSrc).toContain('בסיכון-נטישה');
     expect(homeSrc).toContain("nav: { kind: 'supporters', seg: 'atrisk' }");
-    // מגודר: cockpit או intel (רק ארגון שהדליק את הבינה)
-    expect(homeSrc).toContain("featureOn(config, 'supporters.cockpit')");
+    // מגודר: cockpit או intel — **opt-in מפורש === true** (swarm-audit #1):
+    // הדגלים optIn:true (חסר=כבוי); featureOn (חסר=פעיל) הדליק את הפיצ'ר
+    // ה"דורמנטי" לכל לקוח-חי בניגוד לחוזה ה-opt-in של הקוקפיט/המודיעין.
+    expect(homeSrc).toContain("config.features?.['supporters.cockpit'] === true");
+    expect(homeSrc).toContain("config.features?.['supporters.intel'] === true");
+    expect(homeSrc).not.toContain("featureOn(config, 'supporters.cockpit')");
+    expect(homeSrc).not.toContain("featureOn(config, 'supporters.intel')");
   });
 
   it('🛡 HomeView מעביר את הסגמנט לפני המעבר', () => {

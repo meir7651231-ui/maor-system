@@ -13,6 +13,7 @@ import {
   donorScan,
   forecastFromScan,
   rfmFromScan,
+  shiftIso,
   trendFromScan,
 } from './intel';
 
@@ -53,7 +54,7 @@ export function portfolioIntel(
   let giftCount = 0, ltv = 0, gaveEver = 0, retained = 0,
     atRiskCount = 0, atRiskMoney = 0, forecast30 = 0, forecast90 = 0;
 
-  const in30 = _shiftIso(todayIso, 30), in90 = _shiftIso(todayIso, 90);
+  const in30 = shiftIso(todayIso, 30), in90 = shiftIso(todayIso, 90);
 
   for (const sp of supporters) {
     const scan = donorScan(sp, todayIso, rate, 12);
@@ -74,7 +75,9 @@ export function portfolioIntel(
     if (churn >= PORTFOLIO_RISK_THRESHOLD) { atRiskCount++; atRiskMoney += scan.ils; }
 
     const fc = forecastFromScan(scan, todayIso);
-    if (fc) {
+    // 🐛 (21.8): בלי גבול-תחתון כל תורם-שאיחר (dueIso בעבר — גם 2019) נספר
+    // ב"תחזית 30/90 יום" ⇒ התחזית התנפחה בכסף-אבוד. רק מועדים מהיום-והלאה נספרים.
+    if (fc && fc.dueIso >= todayIso) {
       if (fc.dueIso <= in30) forecast30 += fc.amount;
       if (fc.dueIso <= in90) forecast90 += fc.amount;
     }
@@ -150,8 +153,4 @@ export function activeByMonth(
   return out;
 }
 
-/** הזזת תאריך-ISO ב-N ימים (עזר פנימי, ללא Date.now). */
-function _shiftIso(iso: string, days: number): string {
-  const ms = Date.parse(iso.slice(0, 10) + 'T12:00:00') + days * 86_400_000;
-  return new Date(ms).toISOString().slice(0, 10);
-}
+/* הזזת-תאריך: shiftIso המשותף מ-intel.ts (חשבון-לוח מקומי, בלי toISOString/UTC). */

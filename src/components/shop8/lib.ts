@@ -7,7 +7,7 @@
 import type { Db } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { moduleOn, termOf } from '../../lib/config';
-import { holidayOf } from '../../lib/hebrew';
+import { hebParts, holidayOf } from '../../lib/hebrew';
 
 /** יעד ה"טיפול" בהצעה — לאיזו עמודה לקפוץ. */
 export type SuggestAct = 'families' | 'shop' | 'courses';
@@ -41,13 +41,13 @@ function ageAt(birth: string, todayIso: string): number | null {
   return a;
 }
 
-/** החג הקרוב ב-window ימים קדימה (או null). */
-function upcomingHoliday(todayIso: string, windowDays: number): { name: string; inDays: number } | null {
+/** החג הקרוב ב-window ימים קדימה (או null) — כולל השנה העברית של מופע החג. */
+function upcomingHoliday(todayIso: string, windowDays: number): { name: string; inDays: number; hebYear: number } | null {
   const base = atNoon(todayIso);
   for (let i = 1; i <= windowDays; i++) {
     const d = new Date(base.getTime() + i * 86400000);
     const h = holidayOf(d);
-    if (h) return { name: h, inDays: i };
+    if (h) return { name: h, inDays: i, hebYear: hebParts(d).year };
   }
   return null;
 }
@@ -70,8 +70,11 @@ export function suggestions(db: Db, todayIso: string, config?: OrgConfig): Sugge
   // A — חג מתקרב (מודול חנות בלבד — היעד הוא מתנת-חג בחנות)
   const hol = upcomingHoliday(todayIso, 30);
   if (modOn('shop') && hol && activeFams.length > 0) {
+    // תיקון (swarm-audit): מפתחות 'sug:' פטורים מגיזום-30-הימים (useApp postLoad) —
+    // מפתח בלי שנה עברית ⇒ ביטול חד-פעמי של "מתנת-חג · פסח" קובר את ההצעה לנצח,
+    // לכל השנים. השנה העברית של מופע-החג במפתח ⇒ החג הבא (שנה אחרת) עולה מחדש.
     out.push({
-      key: `sug:holiday:${hol.name}`,
+      key: `sug:holiday:${hol.name}:${hol.hebYear}`,
       emoji: '🎁',
       title: `מתנת-חג · ${hol.name} בעוד ${hol.inDays} ימים`,
       detail: `${activeFams.length} ${T('nav.families', 'משפחות')} פעילות — שקלו חלוקת מתנות לקראת החג`,
@@ -85,8 +88,10 @@ export function suggestions(db: Db, todayIso: string, config?: OrgConfig): Sugge
       if (m.isParent) continue;
       const age = ageAt(m.birth, todayIso);
       if (age === 6 || age === 5) {
+        // תיקון (swarm-audit): הגיל במפתח — ביטול בגיל 5 לא מסתיר את ההצעה
+        // המחודשת בגיל 6 (מפתח יחיד היה מכסה את שתי השנים; 'sug:' לא נגזם).
         out.push({
-          key: `sug:school:${m.id}`,
+          key: `sug:school:${m.id}:${age}`,
           emoji: '🎒',
           title: `ערכת בית-ספר · ${m.first} (${f.name})`,
           detail: `בן/בת ${age} — לקראת/בתחילת כיתה א׳`,
@@ -114,8 +119,11 @@ export function suggestions(db: Db, todayIso: string, config?: OrgConfig): Sugge
     const course = db.courses.find((c) => c.id === e.courseId);
     const fam = db.families.find((f) => f.members.some((m) => m.id === e.memberId));
     const member = fam?.members.find((m) => m.id === e.memberId);
+    // תיקון (swarm-audit): purchased = סמן-דור-מילוי דטרמיניסטי — אחרי חידוש
+    // הכרטיסייה (purchased גדל) המפתח מתחלף, וההצעה הבאה כש"נגמרת שוב" עולה
+    // גם אם הקודמת בוטלה ('sug:' פטור מגיזום ⇒ מפתח קבוע היה נקבר לנצח).
     out.push({
-      key: `sug:renew:${e.id}`,
+      key: `sug:renew:${e.id}:${e.purchased}`,
       emoji: '🎫',
       title: `חידוש כרטיסייה · ${member?.first ?? '—'} · ${course?.name ?? '—'}`,
       detail: rem <= 0 ? 'הכרטיסייה נגמרה' : `נותרו ${rem} ניקובים`,

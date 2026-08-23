@@ -62,12 +62,17 @@ export interface TierMigration {
   fromIso: string;
 }
 
-/** הזזת-תאריך אחורה ב-N חודשים (ללא Date.now). */
+/** הזזת-תאריך אחורה ב-N חודשים (ללא Date.now).
+ *  🐛 (21.8): היום נגרר-מילולית ⇒ 2024-02-29 מינוס 12 חודשים הפיק "2023-02-29"
+ *  (תאריך לא-קיים) ⇒ Date.parse=NaN ⇒ dayDiff=Infinity ⇒ כל דרגות-הבסיס קרסו
+ *  בשקט לדלי-הגרוע. עכשיו היום נקטם לאורך חודש-היעד (29.2 ⇒ 28.2, 31 ⇒ 30/28). */
 function shiftMonths(iso: string, monthsBack: number): string {
-  const y = +iso.slice(0, 4), m = +iso.slice(5, 7), d = iso.slice(8, 10);
+  const y = +iso.slice(0, 4), m = +iso.slice(5, 7), d = +iso.slice(8, 10);
   const tot = y * 12 + (m - 1) - monthsBack;
   const ny = Math.floor(tot / 12), nm = (tot % 12) + 1;
-  return ny + '-' + String(nm).padStart(2, '0') + '-' + d;
+  const maxD = new Date(ny, nm, 0).getDate(); // היום-האחרון של חודש-היעד (דטרמיניסטי)
+  const nd = Math.min(d, maxD);
+  return ny + '-' + String(nm).padStart(2, '0') + '-' + String(nd).padStart(2, '0');
 }
 
 /**

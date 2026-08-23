@@ -117,7 +117,8 @@ describe('👥 ratchet — צ׳אט-צוות תוך-ארגוני (17.8)', () => 
 
   it('🛡 Rules: teamChats — צוות-הארגון (orgMember/allowedRoot-לשורש), create-בלבד, טקסט תחום', () => {
     expect(rulesSrc).toContain('match /teamChats/{slug}/messages/{id}');
-    expect(rulesSrc).toMatch(/teamChats\/\{slug\}[\s\S]{0,400}orgMember\(slug\) \|\| \(slug == 'default' && allowedRoot\(\)\)/);
+    // נחיל 21.8: מילוט-השורש הורחב גם ל-'maor-hachesed' (כמו ב-icsFeeds)
+    expect(rulesSrc).toMatch(/teamChats\/\{slug\}[\s\S]{0,500}orgMember\(slug\) \|\| \(\(slug == 'default' \|\| slug == 'maor-hachesed'\) && allowedRoot\(\)\)/);
     // מוחרג מ-catch-all השורש (אחרת allowedRoot היה קורא כל ארגון)
     expect(rulesSrc).toMatch(/rootCol in \[[^\]]*'teamChats'/);
   });

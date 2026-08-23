@@ -76,6 +76,25 @@ describe('🪙 ratchet — קופות 3: סכומים, טיפול, מובילי�
     expect(kinds.filter((k) => k === 'campaignEnding')).toHaveLength(1);
   });
 
+  // ratchet — הבאג (swarm-audit): 'קופה' היה קשיח בתוויות needsCare ועקף את
+  // termOf('entity.tzBox') — דליפת-מונח-ברירת-מחדל בוורטיקלים שהחליפו את המונח.
+  it('needsCare עם config: termOf(entity.tzBox) בתוויות; בלי config — הנוסח ההיסטורי ביט-זהה', () => {
+    const db: Db = {
+      ...emptyDb(),
+      tzBoxes: [
+        box({ id: 'a', collections: [coll('l1', '2026-01-01', 10)] }), // ישנה
+        box({ id: 'b', num: '7', status: 'lost' }), // אבודה
+      ],
+    };
+    const cfg = { ...DEFAULT_CONFIG, terms: { ...DEFAULT_CONFIG.terms, 'entity.tzBox': 'צנצנת' } };
+    const withCfg = needsCare(db, '2026-07-30', cfg);
+    expect(withCfg.find((x) => x.kind === 'stale')?.label).toContain('צנצנת');
+    expect(withCfg.find((x) => x.kind === 'lost')?.label).toContain('צנצנת');
+    const noCfg = needsCare(db, '2026-07-30');
+    expect(noCfg.find((x) => x.kind === 'stale')?.label).toBe('קופה 42 לא רוקנה מזמן');
+    expect(noCfg.find((x) => x.kind === 'lost')?.label).toBe('קופה 7 מסומנת כאבודה');
+  });
+
   it('leaderboard: פעילים בלבד, score יורד ואז סכום; campaignProgress קטום ו-goal=0⇒pct=0', () => {
     const boxes = [
       box({ id: 'a', coordinatorId: 'c1', collections: [coll('l1', '2026-07-01', 300, 'p1')] }),

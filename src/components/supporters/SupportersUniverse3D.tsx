@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
 import { Btn } from '../ui';
-import { isoToday } from './lib';
+import { isoToday } from '../../lib/date-util';
 import type { TierKey } from './constellation';
 import { donorUniverse, project, type UniverseNode } from './universe3d';
 
@@ -29,6 +29,7 @@ export function SupportersUniverse3D(props: {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<{ x: number; y: number; node: UniverseNode } | null>(null);
   const [tierHi, setTierHi] = useState<TierKey | null>(null);
+  // 🐛 (21.8): toISOString = UTC ⇒ בין חצות מקומי ל-02:00/03:00 "היום" היה אתמול.
   const today = isoToday();
   const rate = props.usdRate || 3.7;
 

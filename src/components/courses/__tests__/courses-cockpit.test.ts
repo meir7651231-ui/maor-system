@@ -32,12 +32,16 @@ describe('🎯 קוקפיט-חוגים — מנוע ops', () => {
     expect(coursesToday([c], 2, '2026-08-20')).toEqual([]); // יום אחר
     expect(coursesToday([course({ id: 'z', weekday: 3, end: '2026-01-01' })], 3, '2026-08-20')).toEqual([]); // הסתיים
   });
-  it('debtors: payBal>0, מהגבוה-לנמוך, בלי ended', () => {
+  it('debtors: payBal>0, מהגבוה-לנמוך, בלי ended ובלי wait', () => {
     const a = enr({ id: 'a', totalDue: 200, payments: [{ rid: 'R-1', date: '', amount: 50, method: '' }] }); // 150
     const b = enr({ id: 'b', totalDue: 100 }); // 100
     const paid = enr({ id: 'p', totalDue: 100, payments: [{ rid: 'R-2', date: '', amount: 100, method: '' }] }); // 0
     const ended = enr({ id: 'x', totalDue: 500, status: 'ended' });
-    expect(debtors([b, a, paid, ended]).map((d) => d.e.id)).toEqual(['a', 'b']);
+    // ratchet — הבאג: debtors החריג רק 'ended' וספר יתרות של רשימת-המתנה, כך
+    // שה"חייבים" בקוקפיט סתר את מרכז-הגבייה (CollectionCenter מחריג wait).
+    // ממתין/ה לא חייב/ת כסף — עוד לא לומד/ת.
+    const wait = enr({ id: 'w', totalDue: 300, status: 'wait' });
+    expect(debtors([b, a, paid, ended, wait]).map((d) => d.e.id)).toEqual(['a', 'b']);
   });
   it('punchLowList: כרטיסייה פעילה עם ≤ סף (2)', () => {
     const low = enr({ id: 'l', plan: 'punch', purchased: 10, used: 9 }); // 1
@@ -52,10 +56,19 @@ describe('🎯 קוקפיט-חוגים — מנוע ops', () => {
     expect(dropoutRisk([few, risk, endedRisk]).map((x) => x.e.id)).toEqual(['r']);
   });
   it('opsKpis: חוגים-פעילים · שיבוצים (בלי ended) · תפוסה%', () => {
-    const k = opsKpis([course({ maxStudents: 10 })], [enr({ id: '1' }), enr({ id: '2' }), enr({ id: '3', status: 'ended' })]);
+    const k = opsKpis([course({ maxStudents: 10 })], [enr({ id: '1' }), enr({ id: '2' }), enr({ id: '3', status: 'ended' })], '2026-08-20');
     expect(k.activeCourses).toBe(1);
     expect(k.enrollments).toBe(2);
     expect(k.avgOccupancy).toBe(20); // 2/10
+  });
+  it("opsKpis: 'פעילים' = שטרם הסתיימו (c.end >= היום) — לא כל החוגים אי-פעם", () => {
+    // ratchet — הבאג: activeCourses = courses.length ספר גם חוגים שהסתיימו מזמן,
+    // בסתירה לתווית "חוגים פעילים" (coursesToday כן מסנן לפי end). היום מוזרק.
+    const live = course({ id: 'live', end: '2027-01-01' });
+    const old = course({ id: 'old', end: '2026-01-01' });
+    const noEnd = course({ id: 'ne', end: '' });
+    const k = opsKpis([live, old, noEnd], [], '2026-08-20');
+    expect(k.activeCourses).toBe(2); // live + noEnd; old הסתיים
   });
 });
 
