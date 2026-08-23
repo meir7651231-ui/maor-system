@@ -99,6 +99,20 @@ describe('planSolaWrites — מיפוי דוח-סולה', () => {
     expect(noCur.writes[0].data.currency).toBe('$');
   });
 
+  it('💎 שטח-אמת (גשש peek=2): xName ריק ⇒ שם מ-xBillLastName; טלפון/אימייל נקלטים', () => {
+    // שורה אמיתית מהגשש (פרטים שונו קלות): xBillFirstName ריק והשם ב-xBillLastName
+    const { writes } = planSolaWrites([{
+      xRefNum: '11000000001', xCommand: 'CC:Sale', xName: '', xAmount: '250.00',
+      xBillFirstName: '', xBillLastName: 'Halberstam Sinai', xBillPhone: '3472496884',
+      xBillMobile: '', xEmail: 'M05@GMAIL.COM', xEnteredDate: '7/24/2026 1:02:23 AM',
+      xResponseResult: 'Approved', xVoid: '0',
+    }], 'demo');
+    expect(writes).toHaveLength(1);
+    expect(writes[0].data.name).toBe('Halberstam Sinai');
+    expect(writes[0].data.phone).toBe('3472496884');
+    expect(writes[0].data.email).toBe('M05@GMAIL.COM');
+  });
+
   it('safeId מחטא תווים אסורים ל-doc-id (לקח F13 — "/" מפיל create)', () => {
     expect(safeId('ref/with/slashes..')).toBe('ref_with_slashes__');
     expect(safeId('')).toBe('');
@@ -134,6 +148,19 @@ describe('🔒 ratchet — גבול-הכסף של solaPull', () => {
     // ההצצה מדווחת שמות-מגירות + בוליאני-קיום בלבד — לעולם לא את ערך המפתח
     expect(src).toMatch(/vaultDrawers[\s\S]{0,200}solaXKey \? '✓' : '·'/);
   });
+  it('💎 23.8 · פרטי-קשר מהשער: xFields מבקש את עמודות-הקשר; העשרת-קיימות נוגעת רק ב-phone/email/name', () => {
+    // הגשש (peek=2) הוכיח: בלי xFields הדוח חוזר בלי טלפון/אימייל; איתו — חוזרים.
+    expect(src).toMatch(/SOLA_FIELDS[\s\S]{0,300}xBillPhone/);
+    expect(src).toMatch(/xFields: SOLA_FIELDS/);
+    // העשרת רשומות-קיימות: מיזוג-חלקי של שדות-קשר ריקים בלבד — לעולם לא סטטוס/סכום
+    expect(src).toMatch(/\['phone', 'email', 'name'\]/);
+    expect(src).toMatch(/batch\.set\(e\.ref, e\.fill, \{ merge: true \}\)/);
+    // מיפוי-שם מהשטח: xName ריק ⇒ הרכבה מ-xBillFirst/LastName; טלפון כולל xBillMobile
+    const engine = readFileSync(join(HERE, 'solaReport.js'), 'utf8');
+    expect(engine).toMatch(/xBillFirstName'\), pick\(r, 'xBillLastName'\)/);
+    expect(engine).toContain("'xBillPhone', 'xBillMobile'");
+  });
+
   it('🧮 23.8 · בדיקת-ההתאמה (runSolaAudit) קריאה-בלבד — אפס batch/set/delete בגוף שלה', () => {
     const m = /async function runSolaAudit[\s\S]*?\nasync function runSolaPull/.exec(src);
     expect(m).toBeTruthy();
