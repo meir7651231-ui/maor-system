@@ -639,6 +639,7 @@ export interface IncomingPayment {
   receipt?: string; // KabalaId — מספר-קבלת-נדרים (§46) → hist[].receipt
   last4?: string; // 4 ספרות אחרונות → hist[].last4
   kind?: string; // 'refund' (Amount<0) / 'cancel' (Amount 0) — פאזה-מודעת-כסף
+  provider?: string; // 'sola' | חסר=נדרים — תווית-הסליקה ב-hist (המסמך נושא אותו; הוקלד 23.8)
 }
 
 /** רשומת-תורם מנדרים (staged ב-nedarimDonors) — נקראת לסנכרון-כרטיסים. */
@@ -669,6 +670,20 @@ export async function fetchNedarimDonors(): Promise<NedarimDonor[]> {
 export async function fetchIncomingPayments(): Promise<IncomingPayment[]> {
   const snap = await getDocs(query(collection(requireDb(), scopedCol('incomingPayments')), where('status', '==', 'pending')));
   return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<IncomingPayment, 'id'>) }));
+}
+
+/** מזהי-העסקאות (txn/reference) של ספק נתון — **כל** הסטטוסים (גם handled).
+ *  🐛 (23.8, "זה לא נכנס במקום הנכון"): עסקאות-סולה שכבר מוזגו נרשמו ב-hist
+ *  בתווית 'נדרים'; הריפוי בכרטיסים צריך את רשימת-המזהים כדי לתקן רק אותן. */
+export async function fetchProviderTxns(provider: string): Promise<string[]> {
+  const snap = await getDocs(query(collection(requireDb(), scopedCol('incomingPayments')), where('provider', '==', provider)));
+  const out: string[] = [];
+  for (const d of snap.docs) {
+    const data = d.data() as { txnId?: string; reference?: string };
+    const t = String(data.txnId || data.reference || '').trim();
+    if (t) out.push(t);
+  }
+  return out;
 }
 
 /** 🔄 משיכת-נדרים **בקליק** (ייעול 20.8) — קורא ל-Function `nedarimPull?full=1` עם
