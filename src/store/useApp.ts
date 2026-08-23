@@ -59,7 +59,7 @@ import { supporterAggregates } from '../lib/supporterAgg';
 import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth } from '../components/supporters/lib';
 import { canAddPhoto, isDataImage, PHOTO_MAX, PHOTO_MAX_LEN } from '../lib/photoGallery';
 import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
-import { attachChargeTo, attachChargesBulk, detectRecurringHok, planNedarimSync, relabelHistByTxn, type SyncCharge } from '../lib/nedarimSync';
+import { attachChargeTo, attachChargesBulk, detectRecurringHok, planNedarimSync, repairCardsFromRows, type SyncCharge } from '../lib/nedarimSync';
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
@@ -354,8 +354,8 @@ interface AppState {
   attachIncomingToSupporter: (supId: string, charge: SyncCharge) => boolean;
   /** 🔗 שיוך-אצווה: מחבר רשימת {supId, charge} בבת-אחת (setDb יחיד). מחזיר כמה נוספו. */
   attachIncomingBulk: (items: { supId: string; charge: SyncCharge }[]) => number;
-  /** ריפוי-תוויות: רשומות-hist של עסקאות-הספק מקבלות את התווית הנכונה (🐛 23.8). */
-  relabelHistClearer: (txns: string[], label: string) => number;
+  /** ריפוי-כרטיסים מרשומות-ספק: תיקון תווית-הסליקה + מילוי-אם-ריק של פרטי-קשר (🐛 23.8). */
+  repairProviderCards: (rows: SyncCharge[], label: string) => { relabeled: number; enriched: number };
   /** 🔁 זיהוי-רטרואקטיבי של הו"ק מתבנית-החיובים ב-hist (מילוי משבצת-ההו"ק לכרטיסים
    *  שסונכרו לפני מנגנון-ההו"ק). מחזיר כמה זוהו. */
   detectNedarimHok: () => number;
@@ -2051,15 +2051,16 @@ export const useApp = create<AppState>()((set, get) => {
       return added;
     },
 
-    relabelHistClearer(txns, label) {
-      // 🐛 (23.8, "זה לא נכנס במקום הנכון"): עסקאות-סולה שמוזגו לפני התיקון נרשמו
-      // ב-hist בתווית 'נדרים' — ריפוי אידמפוטנטי לפי מזהי-העסקאות של הספק.
-      const { supporters, changed } = relabelHistByTxn(get().db.supporters, txns, label);
-      if (changed) {
-        logAudit('🔧 ריפוי תוויות-סליקה', changed + ' תרומות עודכנו ל-' + label);
+    repairProviderCards(rows, label) {
+      // 🐛 (23.8, "זה לא נכנס במקום הנכון" + "שם יכנס לשם, טלפון לטלפון"):
+      // תיקון תווית-הסליקה של עסקאות-הספק ב-hist + מילוי-אם-ריק של פרטי-הקשר
+      // בכרטיסים מהעסקאות עצמן. אידמפוטנטי — ריצה-חוזרת לא משנה דבר.
+      const { supporters, relabeled, enriched } = repairCardsFromRows(get().db.supporters, rows, label);
+      if (relabeled || enriched) {
+        logAudit('🔧 ריפוי כרטיסים מרשומות-' + label, relabeled + ' תוויות · ' + enriched + ' כרטיסים הושלמו');
         setDb(() => ({ supporters }));
       }
-      return changed;
+      return { relabeled, enriched };
     },
 
     detectNedarimHok() {

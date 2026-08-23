@@ -80,22 +80,24 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
     setLoading(false);
   }
 
-  const relabel = useApp((s) => s.relabelHistClearer);
+  const repairCards = useApp((s) => s.repairProviderCards);
   useEffect(() => {
     let alive = true;
     void import('../../store/cloudSync').then((m) => {
       if (!alive) return;
       setMod(m);
       void refresh(m);
-      // 🔧 ריפוי-תוויות (23.8, "זה לא נכנס במקום הנכון"): מיזוגי-סולה שנעשו לפני
-      // התיקון נרשמו בכרטיסים בתווית 'נדרים' — בפתיחת-המסך מתקנים לפי מזהי-
-      // העסקאות האמיתיים של סולה (כל הסטטוסים, גם handled). אידמפוטנטי ושקט
-      // כשאין מה לתקן; מגודר כמו כפתור-המשיכה (כתובת+מנהל/מייל-על).
+      // 🔧 ריפוי-כרטיסים (23.8, "זה לא נכנס במקום הנכון" + "שם יכנס לשם, טלפון
+      // לטלפון"): בפתיחת-המסך — תיקון תווית-הסליקה של מיזוגי-סולה שנרשמו 'נדרים'
+      // + מילוי-אם-ריק של פרטי-הקשר בכרטיסים מרשומות-העסקה (כל הסטטוסים, גם
+      // handled). אידמפוטנטי ושקט כשאין מה לתקן; מגודר כמו כפתור-המשיכה.
       if (canPullSola) {
-        void m.fetchProviderTxns('sola').then((txns) => {
-          if (!alive || !txns.length) return;
-          const n = relabel(txns, 'סולה');
-          if (n) toast('🔧 תוקן מקור "סולה" על ' + n + ' תרומות בכרטיסים');
+        void m.fetchProviderRows('sola').then((provRows) => {
+          if (!alive || !provRows.length) return;
+          const { relabeled, enriched } = repairCards(provRows, 'סולה');
+          if (relabeled || enriched) {
+            toast('🔧 ריפוי-סולה: ' + relabeled + ' תוויות-מקור תוקנו · ' + enriched + ' כרטיסים הושלמו פרטים');
+          }
         }).catch(() => {});
       }
     });

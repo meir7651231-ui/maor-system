@@ -291,7 +291,24 @@ export function candidateSupportersForCharge(charge: SyncCharge, supporters: Sup
   return scored.slice(0, limit).map((x) => x.sp);
 }
 
-/** חיבור-ידני של עסקה לכרטיס נבחר — מוסיף chargeToHist ל-hist (דדופ לפי txn).
+/** 🧲 מילוי-אם-ריק (23.8, בקשת-הבעלים "שם יכנס לשם, טלפון לטלפון, הכל במקום"):
+ *  פרטי-הקשר שהעסקה נושאת נכנסים לשדות-הכרטיס **הריקים** — לעולם לא דורסים
+ *  ערך קיים (הכרטיס = מקור-האמת; העסקה רק משלימה חוסרים). */
+export function fillCardFromCharge(sp: Supporter, charge: SyncCharge): Supporter {
+  const fill: Partial<Supporter> = {};
+  const phone = (charge.phone || '').trim();
+  const email = (charge.email || '').trim();
+  const zeout = normId(charge.zeout || '');
+  const name = (charge.name || '').trim();
+  if (phone && !(sp.phone || '').trim()) fill.phone = phone;
+  if (email && !(sp.email || '').trim()) fill.email = email;
+  if (zeout && !(sp.idNum || '').trim()) fill.idNum = zeout;
+  if (name && !(sp.name || '').trim()) fill.name = name;
+  return Object.keys(fill).length ? { ...sp, ...fill } : sp;
+}
+
+/** חיבור-ידני של עסקה לכרטיס נבחר — מוסיף chargeToHist ל-hist (דדופ לפי txn)
+ *  + מילוי-אם-ריק של פרטי-הקשר מהעסקה.
  *  מחזיר { supporters, added }; added=false אם הכרטיס לא-נמצא או העסקה כבר קיימת. */
 export function attachChargeTo(supporters: Supporter[], supId: string, charge: SyncCharge): { supporters: Supporter[]; added: boolean } {
   const idx = supporters.findIndex((s) => s.id === supId);
@@ -301,7 +318,7 @@ export function attachChargeTo(supporters: Supporter[], supId: string, charge: S
   const hist = sp.hist || [];
   if (key && hist.some((h) => histDedupKey(h) === key)) return { supporters, added: false };
   const next = supporters.slice();
-  next[idx] = withNedarimHok({ ...sp, hist: [...hist, chargeToHist(charge)] }, charge);
+  next[idx] = withNedarimHok(fillCardFromCharge({ ...sp, hist: [...hist, chargeToHist(charge)] }, charge), charge);
   return { supporters: next, added: true };
 }
 
@@ -327,6 +344,44 @@ export function relabelHistByTxn(supporters: Supporter[], txns: string[], label:
     return touched ? { ...sp, hist: next } : sp;
   });
   return { supporters: out, changed };
+}
+
+/** 🔧 ריפוי-כרטיסים מרשומות-ספק (23.8): לכל כרטיס שמחזיק ב-hist עסקאות של
+ *  הספק (לפי txn/ref) — (א) תיקון תווית-הסליקה, (ב) מילוי-אם-ריק של פרטי-הקשר
+ *  מהעסקאות ("שם יכנס לשם, טלפון לטלפון"). אידמפוטנטי; לעולם לא דורס ערך קיים. */
+export function repairCardsFromRows(supporters: Supporter[], rows: SyncCharge[], label: string): { supporters: Supporter[]; relabeled: number; enriched: number } {
+  const map = new Map<string, SyncCharge>();
+  for (const r of rows) {
+    const k = (r.txnId || '').trim() || (r.reference || '').trim();
+    if (k && !map.has(k)) map.set(k, r);
+  }
+  if (!map.size) return { supporters, relabeled: 0, enriched: 0 };
+  let relabeled = 0;
+  let enriched = 0;
+  const out = supporters.map((sp) => {
+    const hist = sp.hist;
+    if (!hist?.length) return sp;
+    let touched = false;
+    const mine: SyncCharge[] = [];
+    const next = hist.map((h) => {
+      const key = (h.txn || '').trim() || (h.ref || '').trim();
+      const row = key ? map.get(key) : undefined;
+      if (!row) return h;
+      mine.push(row);
+      if (h.clearer === label) return h;
+      touched = true;
+      relabeled++;
+      return { ...h, clearer: label };
+    });
+    if (!mine.length) return touched ? { ...sp, hist: next } : sp;
+    let filled: Supporter = { ...sp, hist: next };
+    const before = filled;
+    for (const row of mine) filled = fillCardFromCharge(filled, row);
+    if (filled !== before) enriched++;
+    if (filled !== before || touched) return filled;
+    return sp;
+  });
+  return { supporters: out, relabeled, enriched };
 }
 
 /** ההתאמה-החזקה-ביותר לעסקה — לפי מפתח-**ודאי** בלבד (ToremId/ת"ז/טלפון/אימייל,
@@ -389,7 +444,7 @@ export function attachChargesBulk(supporters: Supporter[], items: { supId: strin
     const key = chargeDedupKey(charge);
     if (key && seen.has(key)) continue;
     if (key) seen.add(key);
-    next[idx] = withNedarimHok({ ...next[idx], hist: [...(next[idx].hist || []), chargeToHist(charge)] }, charge);
+    next[idx] = withNedarimHok(fillCardFromCharge({ ...next[idx], hist: [...(next[idx].hist || []), chargeToHist(charge)] }, charge), charge);
     added++;
   }
   return { supporters: next, added };
