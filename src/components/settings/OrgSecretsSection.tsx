@@ -8,10 +8,15 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { isSuperAdmin } from '../../lib/config';
-import { ORG_SECRET_KEYS, readOrgSecretsMeta, writeOrgSecrets, type OrgSecretKey } from '../../lib/cloudConfig';
+import type { OrgSecretKey } from '../../lib/cloudConfig';
 import { composeSmtpUrl, smtpHostFor } from '../../lib/smtpUrl';
 import { Btn, Field, TextInput } from '../ui';
 import { Section, SectionNote } from './lib';
+
+// ⚡ VISION-LIGHT ‏#1: ייבוא-ערך סטטי של cloudConfig גורר את כל Firebase
+// ‏(‎~340KB gzip) לבנדל של כל לקוח — גם local-first בלי ענן. הכספת היא מסך-מנהל
+// נדיר ⇒ ייבוא דינמי בלבד (import type חינם). ננעל ב-ratchet ‏bundle-light.
+const cloudCfg = () => import('../../lib/cloudConfig');
 
 const FIELDS: { key: OrgSecretKey; label: string; ltr?: boolean }[] = [
   { key: 'yemotToken', label: '📞 טוקן ימות-המשיח', ltr: true },
@@ -40,14 +45,15 @@ export function OrgSecretsSection() {
   const knownHost = smtpHostFor(mailUser);
 
   useEffect(() => {
-    if (canEdit) void readOrgSecretsMeta(slug).then(setMeta);
+    if (canEdit) void cloudCfg().then((m) => m.readOrgSecretsMeta(slug)).then(setMeta);
   }, [canEdit, slug]);
 
   if (!canEdit) return null;
 
   async function save() {
+    const m = await cloudCfg();
     const patch: Partial<Record<OrgSecretKey, string>> = {};
-    for (const k of ORG_SECRET_KEYS) {
+    for (const k of m.ORG_SECRET_KEYS) {
       const v = (vals[k] ?? '').trim();
       if (v) patch[k] = v;
     }
@@ -66,12 +72,12 @@ export function OrgSecretsSection() {
     if (!Object.keys(patch).length) return toast('הקלידו מפתח לפני השמירה');
     setBusy(true);
     try {
-      await writeOrgSecrets(slug, patch);
+      await m.writeOrgSecrets(slug, patch);
       setVals({});
       setMailUser('');
       setMailPass('');
       setMailHost('');
-      setMeta(await readOrgSecretsMeta(slug));
+      setMeta(await m.readOrgSecretsMeta(slug));
       toast('🗝 המפתחות נשמרו בכספת — זמינים לשרת בלבד');
     } catch {
       toast('⚠ השמירה נכשלה — בדקו חיבור/הרשאות');
@@ -83,8 +89,9 @@ export function OrgSecretsSection() {
   async function clearKey(k: OrgSecretKey) {
     setBusy(true);
     try {
-      await writeOrgSecrets(slug, { [k]: '' });
-      setMeta(await readOrgSecretsMeta(slug));
+      const m = await cloudCfg();
+      await m.writeOrgSecrets(slug, { [k]: '' });
+      setMeta(await m.readOrgSecretsMeta(slug));
       toast('המפתח נמחק מהכספת');
     } catch {
       toast('⚠ המחיקה נכשלה');
