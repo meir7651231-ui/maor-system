@@ -32,6 +32,7 @@ import {
   type WidgetId,
 } from './widgets';
 import { BoardEditor } from './BoardEdit';
+import { MorningBriefCard } from './MorningBrief';
 
 export function HomeView() {
   const db = useApp((s) => s.db);
@@ -44,6 +45,8 @@ export function HomeView() {
   const supportersOn = moduleOn(config, 'supporters');
   // לוח הווידג'טים — כשהפיצ'ר home.board כבוי: אין כפתור עריכה ותמיד ברירת המחדל
   const boardOn = featureOn(config, 'home.board');
+  // 🌅 תדרוך-הבוקר (VISION-LIGHT #29) — opt-in מפורש: חסר-דגל = הבית ביט-זהה
+  const briefOn = config.features?.['home.morningbrief'] === true;
   const go = useApp((s) => s.go);
   const selectFamily = useApp((s) => s.selectFamily);
   const selectCourse = useApp((s) => s.selectCourse);
@@ -219,6 +222,7 @@ export function HomeView() {
       }
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {briefOn && <MorningBriefCard />}
           {HOME_WIDGETS.hero.render(ctx)}
           {tpl.pre.filter(visible).map((id) => (
             <Fragment key={id}>{HOME_WIDGETS[id].render(ctx)}</Fragment>
@@ -262,6 +266,7 @@ export function HomeView() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {briefOn && <MorningBriefCard />}
       {groups.map((g) =>
         HOME_WIDGETS[g[0]].slot === 'half' ? (
           <div
