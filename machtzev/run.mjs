@@ -11,6 +11,7 @@ const run = (script, args) => execFileSync('node', [new URL(script, import.meta.
 for (const [root, name] of REPOS) { if (fs.existsSync(root)) run('./census.mjs', [root, name]); }
 for (const [, name] of REPOS) for (const x of ['tokens', 'flags', 'terms', 'engines', 'actions', 'strings', 'components', 'verticals', 'knowledge']) { try { run(`./extract/${x}.mjs`, [name]); } catch {} }
 run('./reconcile.mjs', []);
+run('./wiring-check.mjs', []);
 try { run('./refine.mjs', []); } catch {}
 try { run('./dedup.mjs', []); } catch {}
 // לוח-מצב
