@@ -69,9 +69,9 @@ async function pass(width, height, theme, tag) {
   const openByText = async (txt, sel = 'button') => { const l = page.locator(sel, { hasText: txt }); if (await l.count()) { await l.first().click().catch(() => {}); await wait(450); return true; } return false; };
   const nav = async (label) => { await esc(); let b = page.locator('.app-side .side-link, .bottomnav button, nav.app-nav button', { hasText: label }); if (!(await b.count())) { const more = page.locator('.bottomnav button', { hasText: 'עוד' }); if (await more.count()) { await more.first().click().catch(() => {}); await wait(300); b = page.locator('[role="dialog"] button, .modal button', { hasText: label }); } } if (await b.count()) { await b.first().click().catch(() => {}); await wait(600); } };
 
-  // 1) שער-היום (מודאל בטעינה)
+  // 1) שער-היום (מודאל בטעינה) — נמדד ואז **מנוטרל בקליק** (Escape לא סוגר שער!)
   if (await page.locator('.modal-back, [role="dialog"]').count()) await measure('01-daygate');
-  await esc();
+  await openByText('פתיחת יום'); await wait(300); await esc();
 
   // 2) הוספת משפחה
   await nav('בית'); await openByText('הוספת'); await measure('02-add-family'); await esc();
