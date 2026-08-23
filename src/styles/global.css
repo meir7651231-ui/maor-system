@@ -1607,10 +1607,12 @@ h1,
 
 .hm-stats {
   position: relative;
-  display: grid;
-  /* ‏min(185px,100%) — הרצועה לעולם לא רחבה מהמכולה (מונע גלישה כשהרוחב הפנוי
-     קטן מ-185px: זום-נגישות / גופן-מערכת גדול / מכולה צרה). */
-  grid-template-columns: repeat(auto-fill, minmax(min(185px, 100%), 1fr));
+  /* flex-wrap (לא grid) — כשמספר-הכרטיסים לא ממלא שורה (5 כרטיסים בטלפון-לרוחב
+     ‏~900px ⇒ 4+1), הכרטיס-הבודד בשורה-האחרונה **גדל למלא את כל הרוחב** במקום
+     להשאיר חצי-שורה-ריקה לצדו. grid/auto-fit לא פותר זאת — הוא מקפל רק מסילות
+     ריקות-לגמרי (השורה-העליונה ממלאת את כל המסילות). ממצא-בעלים 23.8. */
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
@@ -1619,6 +1621,10 @@ h1,
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  /* ‏flex:1 1 185px + min-width:0 — הכרטיסים חולקים את השורה שווה-בשווה (בסיס 185px,
+     כמו minmax הישן), נמתחים למלא כשמעטים, ומתכווצים בבטחה בלי גלישה במסך צר. */
+  flex: 1 1 185px;
+  min-width: 0;
   gap: 8px;
   padding: 14px 14px 12px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
@@ -2106,6 +2112,8 @@ button.hm-tier:focus-visible {
 }
 
 :root[data-theme="heichal"] .hm-stats {
+  /* היכל = רצועה-מחוברת (gap:0 + מסגרת) — נשאר גריד למרות שבסיס-הערכות עבר ל-flex */
+  display: grid;
   gap: 0;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   border: 1px solid var(--line);

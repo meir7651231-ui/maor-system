@@ -235,7 +235,7 @@ export function HomeView() {
             HOME_WIDGETS[g[0]].slot === 'half' ? (
               <div
                 key={g[0]}
-                style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}
+                style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14, alignItems: 'start' }}
               >
                 {g.map((id) => (
                   <Fragment key={id}>{HOME_WIDGETS[id].render(ctx)}</Fragment>
@@ -266,7 +266,7 @@ export function HomeView() {
         HOME_WIDGETS[g[0]].slot === 'half' ? (
           <div
             key={g[0]}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14, alignItems: 'start' }}
           >
             {g.map((id) => (
               <Fragment key={id}>{HOME_WIDGETS[id].render(ctx)}</Fragment>
