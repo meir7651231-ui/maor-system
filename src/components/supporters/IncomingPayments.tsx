@@ -80,16 +80,29 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
     setLoading(false);
   }
 
+  const relabel = useApp((s) => s.relabelHistClearer);
   useEffect(() => {
     let alive = true;
     void import('../../store/cloudSync').then((m) => {
       if (!alive) return;
       setMod(m);
       void refresh(m);
+      // 🔧 ריפוי-תוויות (23.8, "זה לא נכנס במקום הנכון"): מיזוגי-סולה שנעשו לפני
+      // התיקון נרשמו בכרטיסים בתווית 'נדרים' — בפתיחת-המסך מתקנים לפי מזהי-
+      // העסקאות האמיתיים של סולה (כל הסטטוסים, גם handled). אידמפוטנטי ושקט
+      // כשאין מה לתקן; מגודר כמו כפתור-המשיכה (כתובת+מנהל/מייל-על).
+      if (canPullSola) {
+        void m.fetchProviderTxns('sola').then((txns) => {
+          if (!alive || !txns.length) return;
+          const n = relabel(txns, 'סולה');
+          if (n) toast('🔧 תוקן מקור "סולה" על ' + n + ' תרומות בכרטיסים');
+        }).catch(() => {});
+      }
     });
     return () => {
       alive = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ריצת-פתיחה חד-פעמית
   }, []);
 
   async function markDone(id: string) {

@@ -200,3 +200,38 @@ describe('🔗 ratchet — pullUrl ב-INTEGRATION_SETTING_KEYS', () => {
     expect(INTEGRATION_SETTING_KEYS.payments).toContain('pullUrl');
   });
 });
+
+// 🐛 (23.8, "זה לא נכנס במקום הנכון"): עסקאות-סולה שמוזגו נרשמו ב-hist בתווית
+// 'נדרים' — תווית-מקור שגויה בכרטיס, וגרוע מזה: "ביטול ייבוא נדרים" (מסנן
+// clearer==='נדרים') היה מוחק גם אותן. התיקון: התווית נגזרת מהספק + ריפוי-רטרו.
+describe('🔗 ratchet — תווית-סליקה לפי ספק (סולה ≠ נדרים)', () => {
+  it('chargeToHist: provider=sola ⇒ clearer=סולה; חסר/אחר ⇒ נדרים (ביט-זהה)', async () => {
+    const { chargeToHist, providerClearer } = await import('../nedarimSync');
+    expect(providerClearer('sola')).toBe('סולה');
+    expect(providerClearer()).toBe('נדרים');
+    expect(chargeToHist({ amount: 100, provider: 'sola', d: '2026-08-20', txnId: 't1' }).clearer).toBe('סולה');
+    expect(chargeToHist({ amount: 100, d: '2026-08-20', txnId: 't2' }).clearer).toBe('נדרים');
+  });
+  it('relabelHistByTxn: מתקן רק שורות שברשימת-המזהים; אידמפוטנטי; לא נוגע בנדרים-אמיתי', async () => {
+    const { relabelHistByTxn } = await import('../nedarimSync');
+    const sups = [{
+      id: 's1', name: 'א', hist: [
+        { d: '2026-01-01', a: 72, c: '$', clearer: 'נדרים', txn: '10940329920' }, // סולה שמוזג לפני-התיקון
+        { d: '2026-01-02', a: 50, c: '₪', clearer: 'נדרים', txn: 'ned-777' }, // נדרים אמיתי — לא נוגעים
+      ],
+    }] as never[];
+    const r1 = relabelHistByTxn(sups, ['10940329920'], 'סולה');
+    expect(r1.changed).toBe(1);
+    const hist = (r1.supporters[0] as { hist: { clearer: string }[] }).hist;
+    expect(hist[0].clearer).toBe('סולה');
+    expect(hist[1].clearer).toBe('נדרים');
+    const r2 = relabelHistByTxn(r1.supporters, ['10940329920'], 'סולה');
+    expect(r2.changed).toBe(0); // אידמפוטנטי
+  });
+  it('המסך מריץ ריפוי-רטרו בפתיחה (fetchProviderTxns→relabelHistClearer) מגודר canPullSola', async () => {
+    const inc = (await import('../../components/supporters/IncomingPayments.tsx?raw')).default as string;
+    expect(inc).toMatch(/fetchProviderTxns\('sola'\)/);
+    expect(inc).toMatch(/relabel\(txns, 'סולה'\)/);
+    expect(inc).toMatch(/if \(canPullSola\) \{/);
+  });
+});
