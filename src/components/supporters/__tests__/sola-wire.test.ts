@@ -51,3 +51,16 @@ describe('🔒 ratchet — חיווט-סולה (תבנית-נדרים)', () => {
     expect(cloudSrc).toMatch(/pullSola[\s\S]{0,600}getIdToken/);
   });
 });
+
+// 👪 (23.8, הכרעת-בעלים "שהחיוב לא יכנס לתורמים אלא למשפחות על חוגים"):
+// מודאל-המיזוג מציע יעד שני — רישום כתשלום-חוג על שיבוץ-המשפחה דרך addPayment
+// הקיים (קבלת R- רציפה, הזרימה של ＋קבלת-תשלום) — בלי לגעת בכרטיסי-התורמים.
+describe('👪 ratchet — ניתוב תשלום-נכנס לחוג/משפחה', () => {
+  it('בורר-יעד תרומה/חוג + רישום דרך addPayment (R- רציפה) + זיכויים רק לנתיב-התורם', () => {
+    expect(incomingSrc).toMatch(/dest, setDest\] = useState<'sup' \| 'fam'>\('sup'\)/);
+    expect(incomingSrc).toMatch(/addPayment\(enId, \{/); // הזרימה הקיימת — לא מנגנון-קבלות חדש
+    expect(incomingSrc).toMatch(/pay\.amount > 0 && \(/); // זיכוי/ביטול לא מוצע כתשלום-חוג
+    expect(incomingSrc).toMatch(/en\.status === 'wait' \|\| en\.endedAt\) continue/); // המתנה/הסתיים לא מוצעים
+    expect(incomingSrc).toContain('לאשר רישום + קבלה?'); // חימוש דו-שלבי לפני קבלת-מס
+  });
+});
