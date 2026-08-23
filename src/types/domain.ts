@@ -570,6 +570,12 @@ export interface Supporter {
   hok?: Hok;
   /** תיק מעקב טיפול רב-שלבי (feature supporters.ayin) — אופציונלי. */
   ayin?: AyinCase;
+  /**
+   * יומן-שיחות עמיד (23.8 — "שיראה כמה התקשרו אליו"): כל סיווג-חייגן (חוץ
+   * מדלג — לא חויג בפועל) נרשם כאן ושורד את מחיקת-הקמפיין (יומן-הקמפיין
+   * ב-db.ui.dialer נמחק בסיום). additive — חסר = אפס שיחות; טבעת CALL_LOG_CAP.
+   */
+  calls?: CallEntry[];
 }
 
 /** תיק טיפול ריק — נוצר בשימוש הראשון בכרטיס/לוח. */
@@ -627,6 +633,12 @@ export interface DialLogEntry {
   outcome: DialOutcome;
   note?: string;
   at: string;
+}
+
+/** רישום-שיחה בודד ביומן-השיחות העמיד של תומך (Supporter.calls). */
+export interface CallEntry {
+  at: IsoDate;
+  outcome: DialOutcome;
 }
 
 export interface DialerCampaign {
