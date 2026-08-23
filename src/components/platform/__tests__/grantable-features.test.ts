@@ -18,7 +18,7 @@ const cfg = { features: {} as Record<string, boolean>, modules: {} as Record<str
 describe('🔓 ratchet — הדלקה-פר-עובד (grantable) מנתחית', () => {
   it('רשימת-ההדלקה = פעולות-הבחירה + מחיקות-הישויות (מנהל תמיד · הדלקה-פר-עובד)', () => {
     expect([...GRANTABLE_STAFF_FEATURES].sort()).toEqual(
-      ['courses.delete', 'families.delete', 'supporters.bulkdelete', 'supporters.bulkselect', 'supporters.purpose'],
+      ['courses.delete', 'families.delete', 'supporters.bulkdelete', 'supporters.bulkselect', 'supporters.delete', 'supporters.purpose'],
     );
     expect(isGrantableFeature('supporters.bulkselect')).toBe(true);
     expect(isGrantableFeature('families.delete')).toBe(true);

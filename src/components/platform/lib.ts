@@ -181,6 +181,7 @@ export const GRANTABLE_STAFF_FEATURES: ReadonlySet<string> = new Set([
   'supporters.bulkselect',
   'supporters.bulkdelete',
   'supporters.purpose',
+  'supporters.delete',
   'families.delete',
   'courses.delete',
 ]);
