@@ -117,6 +117,16 @@ const API_BASE = () => (process.env.SOLA_API_BASE || 'https://x1.cardknox.com').
  *  🐛 (23.8, שטח-אמת מצילום-הבעלים): נקודת-הקצה /report מדברת form-urlencoded —
  *  גוף-JSON נבלע ("Required: xKey" מקושר). הבקשה = URLSearchParams; התשובה —
  *  ‏JSON כשיש נתונים, ו-urlencoded בשגיאות — הפרסור מטפל בשתי הצורות. */
+/** 💎 גשש-הלקוחות (peek=2, ‏23.8): ברירת-המחדל של הדוח חוזרת **בלי** טלפון/אימייל,
+ *  אבל בקשת-עמודות מפורשת (xFields) כן מחזירה אותם — אומת מול השער האמיתי
+ *  (xBillPhone/xEmail מלאים). הרשימה = כל העמודות שנצפו-חיות + פרטי-הקשר. */
+const SOLA_FIELDS = [
+  'xRefNum', 'xCommand', 'xName', 'xMaskedCardNumber', 'xToken', 'xAmount',
+  'xRequestAmount', 'xCustom01', 'xEnteredDate', 'xResponseAuthCode',
+  'xResponseResult', 'xVoid', 'xVoidable',
+  'xBillFirstName', 'xBillLastName', 'xBillPhone', 'xBillMobile', 'xEmail',
+].join(',');
+
 async function fetchSolaReport(xKey, beginIso, endIso) {
   const body = new URLSearchParams({
     xKey,
@@ -126,6 +136,7 @@ async function fetchSolaReport(xKey, beginIso, endIso) {
     xCommand: 'Report:Transactions',
     xBeginDate: beginIso,
     xEndDate: endIso,
+    xFields: SOLA_FIELDS,
   });
   const resp = await fetch(API_BASE() + '/report', {
     method: 'POST',
@@ -294,6 +305,7 @@ async function runSolaPull(org, opts = {}) {
   }
   let added = 0;
   let scanned = 0;
+  let enrichedRows = 0;
   let lastDebug = '';
   let maxDate = lastDate;
   for (const [ws, we] of windows) {
@@ -302,11 +314,27 @@ async function runSolaPull(org, opts = {}) {
     if (debug) lastDebug = debug;
     const { writes, lastDateIso } = planSolaWrites(rows, org);
     // אי-דריסה (הלקח מנדרים 20.8): doc-id שכבר קיים — ייתכן שכבר 'handled' — לא נכתב שוב.
+    // 💎 העשרה (23.8, "שם לשם, טלפון לטלפון"): רשומה קיימת שחסרים בה פרטי-קשר
+    // והדוח (עם xFields) מביא אותם — ממלאים **רק** phone/email/name ריקים במיזוג-
+    // חלקי; הסטטוס/הסכום/הקבלה לעולם לא נגעים.
+    const byId = new Map(writes.map((w) => [w.id, w]));
     const refs = writes.map((w) => col.doc(w.id));
     const existing = new Set();
+    const enrichSets = [];
     for (let i = 0; i < refs.length; i += 300) {
       const snaps = await db.getAll(...refs.slice(i, i + 300));
-      for (const s of snaps) if (s.exists) existing.add(s.id);
+      for (const s of snaps) {
+        if (!s.exists) continue;
+        existing.add(s.id);
+        const w = byId.get(s.id);
+        const cur = s.data() || {};
+        const fill = {};
+        for (const f of ['phone', 'email', 'name']) {
+          const nv = String((w && w.data[f]) || '').trim();
+          if (nv && !String(cur[f] || '').trim()) fill[f] = nv;
+        }
+        if (Object.keys(fill).length) enrichSets.push({ ref: s.ref, fill });
+      }
     }
     const fresh = writes.filter((w) => !existing.has(w.id));
     for (let i = 0; i < fresh.length; i += 400) {
@@ -316,13 +344,20 @@ async function runSolaPull(org, opts = {}) {
       await batch.commit();
       added += slice.length;
     }
+    for (let i = 0; i < enrichSets.length; i += 400) {
+      const batch = db.batch();
+      const slice = enrichSets.slice(i, i + 400);
+      for (const e of slice) batch.set(e.ref, e.fill, { merge: true });
+      await batch.commit();
+      enrichedRows += slice.length;
+    }
     if (lastDateIso && lastDateIso > maxDate) maxDate = lastDateIso;
   }
   if (maxDate && maxDate > lastDate) {
     await cursorRef.set({ lastDateIso: maxDate, at: new Date().toISOString() }, { merge: true });
   }
   // debug חוזר ל-caller רק כשכלום-לא-נסרק — הקליינט מציג אותו במקום "0" סתום.
-  return { added, scanned, window: begin + '..' + end + ' (' + windows.length + ' פרוסות)', removed, vault: vaultFrom, ...(scanned === 0 && lastDebug ? { debug: lastDebug } : {}) };
+  return { added, scanned, window: begin + '..' + end + ' (' + windows.length + ' פרוסות)', removed, vault: vaultFrom, enriched: enrichedRows, ...(scanned === 0 && lastDebug ? { debug: lastDebug } : {}) };
 }
 
 /**

@@ -97,8 +97,10 @@ function planSolaWrites(rows, org) {
       data: {
         amount: isRefund ? -Math.abs(amount) : amount,
         currency: pickCurrency(r),
-        name: pick(r, 'xName', 'xBillFirstName') || '',
-        phone: pick(r, 'xBillPhone', 'xPhone') || '',
+        // 💎 שטח-אמת (גשש 23.8): xName לפעמים ריק וה-שם יושב ב-xBillLastName
+        // ("Halberstam Sinai"); טלפון = xBillPhone עם נפילה ל-xBillMobile.
+        name: pick(r, 'xName') || [pick(r, 'xBillFirstName'), pick(r, 'xBillLastName')].filter(Boolean).join(' '),
+        phone: pick(r, 'xBillPhone', 'xBillMobile', 'xPhone') || '',
         email: pick(r, 'xEmail', 'xBillEmail') || '',
         zeout: '',
         category: '',
