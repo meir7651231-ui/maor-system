@@ -287,6 +287,8 @@ export function SupportersView() {
   const [confirmDel, setConfirmDel] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignVal, setAssignVal] = useState('');
+  // בקשת-בעלים 23.8: הסרת-ייעוד מפורשת (forWho ריק) — לא רק שיוך; אישור-דו-שלבי
+  const [clearPurposeConfirm, setClearPurposeConfirm] = useState(false);
   const deleteSupporters = useApp((s) => s.deleteSupporters);
   const setSupportersPurpose = useApp((s) => s.setSupportersPurpose);
   const toggleSel = (id: string) =>
@@ -789,6 +791,13 @@ export function SupportersView() {
           {purposeOn && isAdminUser(config, cloudEmail) && (
             <Btn disabled={!selSet.size} onClick={() => { setAssignVal(''); setAssignOpen(true); }}>
               {'🏷 שיוך ייעוד · ' + selSet.size}
+            </Btn>
+          )}
+          {/* בקשת-בעלים 23.8: כפתור מפורש להסרת-ייעוד (forWho ריק) — היכולת הייתה סמויה
+              ("השאירו ריק ושייכו"); עכשיו פעולה גלויה. הלא-מסומנים שומרים את ייעודם. */}
+          {purposeOn && isAdminUser(config, cloudEmail) && (
+            <Btn disabled={!selSet.size} onClick={() => setClearPurposeConfirm(true)} title="הסרת הייעוד מהמסומנים — הלא-מסומנים שומרים את ייעודם">
+              {'🧹 הסר ייעוד · ' + selSet.size}
             </Btn>
           )}
           {featureOn(config, 'supporters.bulkdelete') && (
@@ -1336,6 +1345,27 @@ export function SupportersView() {
               🏷 שייך
             </Btn>
             <Btn onClick={() => setAssignOpen(false)}>ביטול</Btn>
+          </div>
+        </Modal>
+      )}
+
+      {/* 🧹 אישור הסרת-ייעוד מהמסומנים */}
+      {clearPurposeConfirm && (
+        <Modal title={'🧹 הסרת ייעוד מ-' + selSet.size + ' ' + termOf(config, 'nav.supporters', 'תומכים')} onClose={() => setClearPurposeConfirm(false)}>
+          <p style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 12 }}>
+            הייעוד יוסר מ-<b>{selSet.size}</b> המסומנים (השדה יתרוקן). <b>שאר התומכים שומרים את ייעודם.</b> אפשר לשייך ייעוד מחדש בכל עת.
+          </p>
+          <div className="modal-actions">
+            <Btn kind="primary" onClick={() => {
+              const ids = [...selSet];
+              setSupportersPurpose(ids, '');
+              toast('🧹 הוסר הייעוד מ-' + ids.length + ' ' + termOf(config, 'nav.supporters', 'תומכים'));
+              setClearPurposeConfirm(false);
+              exitSelMode();
+            }}>
+              {'🧹 הסר ייעוד · ' + selSet.size}
+            </Btn>
+            <Btn onClick={() => setClearPurposeConfirm(false)}>ביטול</Btn>
           </div>
         </Modal>
       )}
