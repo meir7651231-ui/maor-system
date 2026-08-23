@@ -131,10 +131,13 @@ jobs:
         run: |
           SEC=$(npx firebase-tools@13 functions:secrets:access PAY_SECRET --project maor-system 2>/dev/null | tail -1)
           echo "::add-mask::$SEC"
-          echo "═══ solaPull peek (root/maor-hachesed) ═══"
-          # בלי vault — org=root מפעיל את שרשרת-הנפילה המלאה (root → maor-hachesed),
-          # בדיוק כמו כפתור-האפליקציה של הבעלים (ההצצה הראשונה כיוונה למגירה ריקה).
+          echo "═══ solaPull peek (org=root, נפילת-כספת דינמית) ═══"
           curl -s "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=root&peek=1&secret=$SEC" | head -c 6000
+          echo ""
+          # 🧮 בדיקת-התאמה (23.8, "תבדוק אם נמשך הכל והמספרים תואמים") — קריאה-בלבד:
+          # הדוח המלא מהשער מול התור של הארגון-החי (mavr-hchsd — שם יושבות המשיכות).
+          echo "═══ solaPull audit (org=mavr-hchsd) ═══"
+          curl -s --max-time 240 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&audit=1&secret=$SEC" | head -c 6000
           echo ""
 
       # פריסת אינדקסי-Firestore (firestore.indexes.json) — למשל האינדקס
