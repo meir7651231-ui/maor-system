@@ -3,7 +3,8 @@
  * הקלדה ולתעתיק) + צ'יפים של חיזוי, סינון סטטוס/עיר/קהילה, מיון בלחיצה על
  * כותרת עמודה, שורת סינון-עמודות, פאנל סינון מורחב וגלגל מאתר המשפחות.
  */
-import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState, type KeyboardEvent } from 'react';
+import { IncMoreCard, IncMoreRow, incSlice, useIncCap } from '../incremental';
 import type { Family } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn, telephonyOn, termOf } from '../../lib/config';
@@ -91,6 +92,8 @@ export function FamiliesView() {
   }
 
   const [q, setQ] = useState('');
+  // ⚡ מהירות (VISION-LIGHT ‏#4): ההקלדה מיידית; החיפוש-החכם רץ בעדיפות-נדחית.
+  const dq = useDeferredValue(q);
   const [status, setStatus] = useState('all');
   const [city, setCity] = useState('all');
   const [comm, setComm] = useState('all');
@@ -104,6 +107,8 @@ export function FamiliesView() {
   const [fwLocks, setFwLocks] = useState<Record<string, string>>({});
   const [fwRot, setFwRot] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
+  // ⚡ ציור-מדורג (VISION-LIGHT ‏#15) — חלון-שגדל-בגלילה; הלוגיקה על הרשימה המלאה.
+  const inc = useIncCap(JSON.stringify([dq, status, city, comm, commMulti, colF, adv, sort, fwLocks, finderOpen]));
 
   // בקשת "משפחה חדשה" מהכרום (כותרת צֹהַר / פעולות מהירות) — אותו טופס בדיוק
   const famFormReq = useApp((s) => s.famFormReq);
@@ -180,8 +185,8 @@ export function FamiliesView() {
     return true;
   });
   // חיפוש חכם — סבלני לשגיאות הקלדה ולתעתיק עברית/לועזית
-  const searched = q.trim()
-    ? smartFilter(q, prefiltered, (f) =>
+  const searched = dq.trim()
+    ? smartFilter(dq, prefiltered, (f) =>
         [
           f.name,
           f.father,
@@ -209,6 +214,9 @@ export function FamiliesView() {
         return c * sort.dir;
       })
     : searched;
+
+  // ⚡ ‏#15: החלון-לציור — הסיכומים/הבחירה נשארים על `filtered` המלאה
+  const shownFams = incSlice(filtered, inc.cap);
 
   const clickSort = (key: SortKey) =>
     setSort((s) => (s?.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
@@ -517,7 +525,7 @@ export function FamiliesView() {
         <Empty>לא נמצאו {termOf(config, 'nav.families', 'משפחות')} התואמות את החיפוש והסינון</Empty>
       ) : famView === 'grid' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
-          {filtered.map((f) => {
+          {shownFams.map((f) => {
             const st = STATUS_META[f.status];
             const kids = kidsOf(f);
             const parents = [f.father, f.mother].filter(Boolean).join(' ו');
@@ -549,6 +557,7 @@ export function FamiliesView() {
               </div>
             );
           })}
+          <IncMoreCard shown={shownFams.length} total={filtered.length} refCb={inc.ref} />
         </div>
       ) : (
         <div className="card" style={{ padding: 0, overflowX: 'auto', overflowY: 'hidden' }}>
@@ -598,7 +607,7 @@ export function FamiliesView() {
               )}
             </thead>
             <tbody>
-              {filtered.map((f) => {
+              {shownFams.map((f) => {
                 const st = STATUS_META[f.status];
                 const kids = kidsOf(f);
                 const kidsLine = kids.length
@@ -639,6 +648,7 @@ export function FamiliesView() {
                   </tr>
                 );
               })}
+              <IncMoreRow shown={shownFams.length} total={filtered.length} refCb={inc.ref} colSpan={8} />
             </tbody>
           </table>
         </div>
