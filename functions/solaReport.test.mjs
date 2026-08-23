@@ -103,4 +103,13 @@ describe('🔒 ratchet — גבול-הכסף של solaPull', () => {
     expect(src).toMatch(/SOLA_ORG[\s\S]{0,120}if \(!org\) return/);
     expect(src).toMatch(/getAll[\s\S]{0,200}existing/); // קריאה-לפני-כתיבה
   });
+  it('🐛 23.8 · נפילת-הכספת הדינמית: root סורק את orgSecrets ומקבל מגירה יחידה בלבד; ריבוי ⇒ שגיאה מפורשת (לא מנחשים של מי הכסף)', () => {
+    // האבחון (הצצה #23-24) הוכיח שהניחוש הסטטי מחטיא — הבעלים שומר את המפתח
+    // תחת ה-slug שממנו הוא עובד. הסריקה מוגבלת ל-org==='root' (עבר שער-הרשאה).
+    expect(src).toMatch(/org === 'root'[\s\S]{0,300}collection\('orgSecrets'\)/);
+    expect(src).toMatch(/withKey\.length === 1/);
+    expect(src).toMatch(/withKey\.length > 1[\s\S]{0,80}ambiguous/);
+    // ההצצה מדווחת שמות-מגירות + בוליאני-קיום בלבד — לעולם לא את ערך המפתח
+    expect(src).toMatch(/vaultDrawers[\s\S]{0,200}solaXKey \? '✓' : '·'/);
+  });
 });
