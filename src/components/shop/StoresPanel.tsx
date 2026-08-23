@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { canGrantedAction, featureOn, termOf } from '../../lib/config';
 import type { ShopStore } from '../../types/domain';
 import { Btn, Chip, Field, FormError, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
@@ -20,6 +20,10 @@ export function StoresPanel() {
   const toast = useApp((s) => s.toast);
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const term = termOf(config, 'entity.shopStore', 'חנות');
+  // הרשאה אחידה (בקשת-בעלים 23.8): מחיקת-חנות למנהל/בעלים תמיד; עובד/ת רק אם הודלק/ה.
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
+  const isOrgMgr = useApp((s) => s.cloud.isManager) === true;
+  const canDeleteShop = featureOn(config, 'shop.delete') && canGrantedAction(config, cloudEmail, isOrgMgr, 'shop.delete');
 
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -63,7 +67,9 @@ export function StoresPanel() {
               <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{[s.contact, s.phone].filter(Boolean).join(' · ')}</span>
               <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
                 <Btn sm onClick={() => startEdit(s)}>✏️</Btn>
-                <Btn sm kind="danger" onClick={() => remove(s)}>{armed === 'shs-' + s.id ? 'שוב למחיקה' : '🗑'}</Btn>
+                {canDeleteShop && (
+                  <Btn sm kind="danger" onClick={() => remove(s)}>{armed === 'shs-' + s.id ? 'שוב למחיקה' : '🗑'}</Btn>
+                )}
               </span>
             </div>
           ))}

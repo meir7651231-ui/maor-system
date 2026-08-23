@@ -8,7 +8,7 @@ import { useApp } from '../../store/useApp';
 import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
 import { isoToday } from '../../lib/date-util';
 import { Btn, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
-import { featureOn, termOf } from '../../lib/config';
+import { canGrantedAction, featureOn, termOf } from '../../lib/config';
 import { HebDateInput } from '../HebDateInput';
 import { Section, SectionNote } from './lib';
 
@@ -18,6 +18,13 @@ export function TeachersSection() {
   const deleteTeacher = useApp((s) => s.deleteTeacher);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
+  // הרשאה אחידה (בקשת-בעלים 23.8): מחיקת-מורה למנהל/בעלים תמיד; עובד/ת רק אם הודלק/ה.
+  // featureOn נשמר (מכבד כיבוי-ארגוני אפשרי) ⇒ אפס-רגרסיה ללקוח-החי (adminEmails ריק ⇒ בעלים).
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
+  const isOrgMgr = useApp((s) => s.cloud.isManager) === true;
+  const canDeleteTeacher =
+    featureOn(config, 'settings.teachers.delete') &&
+    canGrantedAction(config, cloudEmail, isOrgMgr, 'settings.teachers.delete');
   const teacher = termOf(config, 'entity.teacher', 'מורה');
   // רבים: אם המונח ברירת-המחדל ("מורה") — "מורים"; אחרת המונח כמות-שהוא (אין מפתח-רבים).
   const teachersT = teacher === 'מורה' ? 'מורים' : teacher;
@@ -88,9 +95,11 @@ export function TeachersSection() {
                       <Btn sm onClick={() => setEditing(t)} title="כרטיס מלא">
                         ✎ עריכה
                       </Btn>
-                      <Btn sm kind="danger" onClick={() => onDelete(t.id)}>
-                        {armedId === t.id ? 'לאשר מחיקה?' : 'מחיקה'}
-                      </Btn>
+                      {canDeleteTeacher && (
+                        <Btn sm kind="danger" onClick={() => onDelete(t.id)}>
+                          {armedId === t.id ? 'לאשר מחיקה?' : 'מחיקה'}
+                        </Btn>
+                      )}
                     </span>
                   </td>
                 </tr>

@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, moduleOn, termOf } from '../../lib/config';
+import { canGrantedAction, featureOn, moduleOn, termOf } from '../../lib/config';
 import type { TzBox, TzCoordinator } from '../../types/domain';
 import { Btn, Chip, Empty, Field, Modal, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
@@ -32,6 +32,10 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
   const scoreOn = featureOn(config, 'tzedaka.score');
   const histOn = featureOn(config, 'tzedaka.history');
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
+  // הרשאה אחידה (בקשת-בעלים 23.8): מחיקת-קופה למנהל/בעלים תמיד; עובד/ת רק אם הודלק/ה.
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
+  const isOrgMgr = useApp((s) => s.cloud.isManager) === true;
+  const canDeleteBox = featureOn(config, 'tzedaka.delete') && canGrantedAction(config, cloudEmail, isOrgMgr, 'tzedaka.delete');
 
   const c = props.coordinator;
   const boxes = coordinatorBoxes(db.tzBoxes, c.id);
@@ -166,20 +170,22 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
                       ⚠ אבדה
                     </Btn>
                   )}
-                  <Btn
-                    sm
-                    kind="danger"
-                    onClick={() => {
-                      if (!confirmTwice('tzb-' + b.id, 'למחוק את קופה ' + b.num + '? כל הריקונים שלה יימחקו.')) {
-                        toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תמחק לצמיתות');
-                        return;
-                      }
-                      deleteTzBox(b.id);
-                      toast('הקופה נמחקה');
-                    }}
-                  >
-                    {armed === 'tzb-' + b.id ? 'בטוח?' : '🗑'}
-                  </Btn>
+                  {canDeleteBox && (
+                    <Btn
+                      sm
+                      kind="danger"
+                      onClick={() => {
+                        if (!confirmTwice('tzb-' + b.id, 'למחוק את קופה ' + b.num + '? כל הריקונים שלה יימחקו.')) {
+                          toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תמחק לצמיתות');
+                          return;
+                        }
+                        deleteTzBox(b.id);
+                        toast('הקופה נמחקה');
+                      }}
+                    >
+                      {armed === 'tzb-' + b.id ? 'בטוח?' : '🗑'}
+                    </Btn>
+                  )}
                   {histOn && (
                     <Btn sm onClick={() => setOpenHist(openHist === b.id ? null : b.id)}>
                       {openHist === b.id ? '▲' : '▼ היסטוריה'}

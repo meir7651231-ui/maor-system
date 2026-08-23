@@ -76,7 +76,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.attendance.sheet', label: 'גיליון-נוכחות מהיר', desc: 'מסך roll-call — כל הקבוצה בבת-אחת: "כולם נוכחים" בקליק + נוכחות/חיסור פר-תלמיד', module: 'courses' },
   { key: 'courses.cockpit', label: 'חלון-העבודה (קוקפיט)', desc: 'מסך שמסדר את היום: נוכחות-להיום · חייבים · כרטיסיות-שנגמרות · בסיכון-נשירה (opt-in)', module: 'courses', optIn: true },
   { key: 'courses.waitlist', label: 'רשימת-המתנה', desc: 'חוג מלא ⇒ "הוסף לרשימת-המתנה" במקום חסימה; שיבוץ מהתור כשמתפנה מקום (לא תופס מקום)', module: 'courses' },
-  { key: 'courses.bulkadmin', label: 'הקמה מהירה (סמסטר)', desc: '📑 שכפול-חוג לסמסטר-חדש (בלי תלמידים) + 🎓 סיום-סמסטר (כל השיבוצים ⇒ הסתיים, ניתן לחדש)', module: 'courses' },
+  { key: 'courses.bulkadmin', label: 'הקמה מהירה (סמסטר) 🔓', desc: '📑 שכפול-חוג לסמסטר-חדש (בלי תלמידים) + 🎓 סיום-סמסטר (כל השיבוצים ⇒ הסתיים, ניתן לחדש); פעולת-ניהול — מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'courses' },
   { key: 'courses.collect', label: 'מרכז-גבייה', desc: '💰 "כל החייבים" חוצה-חוגים + תזכורת-WhatsApp + קישור-תשלום + ייצוא (רק תזכורת, לא קבלה)', module: 'courses' },
   { key: 'courses.broadcast', label: 'הודעה לכיתה', desc: '📢 הודעת-WhatsApp מרוכזת לרוסטר-החוג (wa.me פר-נמען, דדופ-משפחה) + העתקת-טלפונים', module: 'courses' },
   { key: 'courses.absence.history', label: 'היסטוריית חיסורים', desc: 'כפתור 📜 לצפייה בהיסטוריית החיסורים של התלמיד/ה', module: 'courses' },
@@ -302,6 +302,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'shop.stockfilter', label: 'חיפוש וסינון מלאי', desc: 'חיפוש-פריט + צ׳יפי 🔴 אזל / 🟠 נמוך בפאנל-הפריטים', module: 'shop' },
   { key: 'shop.filter', label: 'סרגל סינון מקבלים', desc: 'חיפוש/סטטוס/ממתינים/מוצר + מיון ברשימת-המקבלים', module: 'shop' },
   { key: 'shop.intake.delete', label: 'מחיקת קליטת מלאי', desc: 'כפתור 🗑 על קליטה — מחזיר את המלאי אחורה', module: 'shop' },
+  { key: 'shop.delete', label: 'מחיקה בקטלוג החנות 🔓', desc: 'כפתורי 🗑 (שתי-לחיצות) על מוצר/פריט/חנות-שותפה/קריטריון — פעולות-הרסניות; מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'shop' },
   // — קופות צדקה —
   { key: 'tzedaka.boxesview', label: 'מבט כל-הקופות', desc: 'צ׳יפ "📦 כל הקופות" — טבלה רוחבית של כל הקופות מכל הרכזים', module: 'tzedaka' },
   { key: 'tzedaka.quickcollect', label: 'ריקון מהיר מהבית', desc: 'בוחר "💰 ריקון מהיר" במסך-הבית של הקופות', module: 'tzedaka' },
@@ -311,6 +312,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'tzedaka.history', label: 'היסטוריית ריקונים לקופה', desc: 'מרחיב "▼ היסטוריה" פר-קופה (תאריכים, סכומים, מבצע)', module: 'tzedaka' },
   { key: 'tzedaka.histfilter', label: 'מסנן היסטוריית ריקונים', desc: 'טווח-תאריכים + בורר-מבצע מעל היסטוריית-הריקונים', module: 'tzedaka' },
   { key: 'tzedaka.filter', label: 'סרגל סינון רכזים', desc: 'חיפוש/פעילים-בלבד/מיון ברשימת-הרכזים ובמבט-הקופות', module: 'tzedaka' },
+  { key: 'tzedaka.delete', label: 'מחיקת קופה 🔓', desc: 'כפתור 🗑 (שתי-לחיצות) על קופה בכרטיס-הרכז — פעולה-הרסנית (כל הריקונים יימחקו); מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'tzedaka' },
   // — חלוקה —
   { key: 'shop7.volunteers', label: 'לשונית מתנדבים', desc: 'צ׳יפ "🦺 מתנדבים" — ניהול המתנדבים (ארגון בלי מתנדבים מסתיר)', module: 'shop7' },
   { key: 'shop7.unassign', label: 'הסרת שיוך-מסירה', desc: 'כפתור 🗑 על שורת-מסירה בלוח-המסירות', module: 'shop7' },
@@ -386,6 +388,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'settings.import.contacts', label: 'ייבוא אנשי-קשר (VCF)', desc: 'לשונית 📇 — קליטת פנקס-טלפונים למשפחות/לידים', module: 'settings' },
   { key: 'settings.teachers.pay', label: 'פרטי-תשלום למורה', desc: 'בלוק 💳 בנק/חשבון/מוטב בכרטיס-המורה (PII פיננסי)', module: 'settings' },
   { key: 'settings.teachers.callreminder', label: 'תזכורת-קשר למורה', desc: 'כפתור "📞 תזכורת קשר" בכרטיס-המורה', module: 'settings' },
+  { key: 'settings.teachers.delete', label: 'מחיקת מורה 🔓', desc: 'כפתור מחיקה (שתי-לחיצות) בטבלת-המורים — פעולה-הרסנית; מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'settings' },
   { key: 'settings.audit.fixphones', label: 'תיקון-טלפונים גורף', desc: 'כפתור "📞 תיקון טלפונים אוטומטי" — כתיבה גורפת על כל ה-DB', module: 'settings' },
   { key: 'settings.backup.snapshots', label: 'צילומים-יומיים ושחזור', desc: 'טבעת-הצילומים בדפדפן + שחזור-מצילום פר-שורה', module: 'settings' },
   { key: 'settings.org.goals', label: 'יעדי גיוס ותקציב', desc: 'שדות "יעד גיוס שנתי" ו"יעד תקציב סיוע" בפרטי-הארגון', module: 'settings' },

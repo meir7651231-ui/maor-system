@@ -16,13 +16,28 @@ const org = {
 const cfg = { features: {} as Record<string, boolean>, modules: {} as Record<string, boolean> };
 
 describe('🔓 ratchet — הדלקה-פר-עובד (grantable) מנתחית', () => {
-  it('רשימת-ההדלקה = פעולות-הבחירה + מחיקות-הישויות (מנהל תמיד · הדלקה-פר-עובד)', () => {
-    expect([...GRANTABLE_STAFF_FEATURES].sort()).toEqual(
-      ['courses.delete', 'families.delete', 'supporters.bulkdelete', 'supporters.bulkselect', 'supporters.delete', 'supporters.purpose'],
-    );
+  it('רשימת-ההדלקה = פעולות-הבחירה + מחיקות-הישויות + פעולות-הניהול (מנהל תמיד · הדלקה-פר-עובד)', () => {
+    // בקשת-בעלים 23.8 "פרוס + המשך לכולם": הרשימה הורחבה מ-שלישיית-ה-CRM לכל
+    // הפעולות-ההרסניות/ניהוליות שנותרו — מורה · חנות · קופה · הקמה-מהירה בחוגים.
+    expect([...GRANTABLE_STAFF_FEATURES].sort()).toEqual([
+      'courses.bulkadmin',
+      'courses.delete',
+      'families.delete',
+      'settings.teachers.delete',
+      'shop.delete',
+      'supporters.bulkdelete',
+      'supporters.bulkselect',
+      'supporters.delete',
+      'supporters.purpose',
+      'tzedaka.delete',
+    ]);
     expect(isGrantableFeature('supporters.bulkselect')).toBe(true);
     expect(isGrantableFeature('families.delete')).toBe(true);
     expect(isGrantableFeature('courses.delete')).toBe(true);
+    expect(isGrantableFeature('settings.teachers.delete')).toBe(true);
+    expect(isGrantableFeature('shop.delete')).toBe(true);
+    expect(isGrantableFeature('tzedaka.delete')).toBe(true);
+    expect(isGrantableFeature('courses.bulkadmin')).toBe(true);
     expect(isGrantableFeature('supporters.cockpit')).toBe(false);
   });
 
