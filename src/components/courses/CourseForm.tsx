@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import type { Course, CourseFile, Gender, PricingModel, Teacher, Weekday } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, safeHttpsUrl, termOf } from '../../lib/config';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
@@ -147,7 +148,7 @@ function initState(course: Course | null, firstTeacherId: string, firstRoomId: s
 }
 
 export function CourseForm(props: { course: Course | null; onClose: () => void }) {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('rooms', 'teachers');
   const upsertCourse = useApp((s) => s.upsertCourse);
   const upsertTeacher = useApp((s) => s.upsertTeacher);
   const upsertRoom = useApp((s) => s.upsertRoom);

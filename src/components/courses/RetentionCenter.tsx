@@ -6,6 +6,7 @@
  */
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { integrationOn } from '../../lib/config';
 import { askClaude, readAiKey } from '../../lib/ai';
 import { Btn, Empty, Modal } from '../ui';
@@ -19,7 +20,7 @@ function scoreColor(score: number): { bg: string; c: string } {
 }
 
 export function RetentionCenter(props: { onClose: () => void }) {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('courses', 'enrollments', 'families', 'orgName');
   const config = useApp((s) => s.config);
   const toast = useApp((s) => s.toast);
 

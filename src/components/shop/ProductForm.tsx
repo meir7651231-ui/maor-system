@@ -7,6 +7,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, termOf } from '../../lib/config';
 import type { ShopComponentKind, ShopProduct } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
@@ -29,7 +30,7 @@ interface CompDraft {
 }
 
 export function ProductForm(props: { product: ShopProduct | null; onClose: () => void }) {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('shopAssignments', 'shopItems');
   const config = useApp((s) => s.config);
   const upsertShopProduct = useApp((s) => s.upsertShopProduct);
   const upsertShopItem = useApp((s) => s.upsertShopItem);

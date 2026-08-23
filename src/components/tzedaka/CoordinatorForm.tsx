@@ -6,6 +6,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, termOf } from '../../lib/config';
 import { emptyFamily, emptyMember, type TzCoordinator } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
@@ -13,7 +14,7 @@ import { HebDateInput } from '../HebDateInput';
 import { isoToday } from '../../lib/date-util';
 
 export function CoordinatorForm(props: { coordinator: TzCoordinator | null; onClose: () => void }) {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('families');
   const config = useApp((s) => s.config);
   const upsertTzCoordinator = useApp((s) => s.upsertTzCoordinator);
   const upsertFamily = useApp((s) => s.upsertFamily);

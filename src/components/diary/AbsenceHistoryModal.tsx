@@ -2,7 +2,7 @@
  * היסטוריית חיסורים של תלמיד/ה בשיבוץ — תאריך, נימוק וסטטוס
  * (זכאי/ת להשלמה · ביטול מאוחר · No-Show), כולל יתרת כרטיסייה.
  */
-import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import type { Absence } from '../../types/domain';
 import { Btn, Empty, Modal } from '../ui';
 import { chipStyle, fmtDate, planLabelOf } from './lib';
@@ -14,7 +14,7 @@ function absenceMeta(a: Absence): { label: string; bg: string; c: string } {
 }
 
 export function AbsenceHistoryModal(props: { enrollmentId: string; who: string; onClose: () => void }) {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('enrollments');
   const en = db.enrollments.find((e) => e.id === props.enrollmentId);
   if (!en) return null;
 

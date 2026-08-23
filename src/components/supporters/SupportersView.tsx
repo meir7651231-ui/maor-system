@@ -6,6 +6,7 @@ import { useDeferredValue, useEffect, useMemo, useState, type KeyboardEvent } fr
 import { IncMoreCard, IncMoreRow, incSlice, useIncCap } from '../incremental';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, integrationOn, integrationSetting, isAdminUser, safeHttpsUrl, telephonyOn, termOf } from '../../lib/config';
 import { DialerModal } from '../dialer/DialerModal';
 import { WaBtn } from '../WaBtn';
@@ -149,7 +150,7 @@ function TierChip(props: { sp: Supporter; rate?: number }) {
 }
 
 export function SupportersView() {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('orgName', 'supporters', 'ui', 'usdRate');
   const rate = db.usdRate; // שער-דולר עריך — משוקלל בכל חישובי ה-₪-שקול והציון
   const config = useApp((s) => s.config);
   // תוויות-עמודה מונחיות — בורטיקל מסחרי "תורם/תרומות" הופכים למונח-הענף (termOf).

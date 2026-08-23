@@ -5,6 +5,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, termOf } from '../../lib/config';
 import {
   AYIN_STAGES,
@@ -57,7 +58,7 @@ function namesLineOf(a: AyinCase): string {
 }
 
 export function AyinBoard(props: { onOpen: (id: string) => void }) {
-  const db = useApp((s) => s.db);
+  const db = useDbWatch('supporters');
   const cfg = useApp((s) => s.config);
   const advance = useApp((s) => s.ayinAdvance);
   // 🔒 ייעוד-הרשאה (13.8): לוח-הטיפול לא יחשוף שמות תורמים לעובד/ת שאינו מורשה לייעודם.
