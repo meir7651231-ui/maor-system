@@ -1,7 +1,8 @@
 /**
  * מודאלי רישום-לשנה-הבאה — משותפים למסך "רישום" ולכרטיס-המשפחה (courses.reenroll).
  * ------------------------------------------------------------------
- *  · RegisterModal — בחירת חוג-יעד (אוטומטי-לשנה-הבאה או חוג קיים) + קבוצה, ואז רישום.
+ *  · RegisterModal — אישור-רישום לתלמיד/ה עם בחירת-קבוצה; הרישום נעשה על אותו
+ *    החוג (שינוי-מודל 24.8: לא מוקם חוג-שנה-הבאה — הבידול דרך `year` על השיבוץ).
  *  · HistoryModal  — היסטוריית-התלמיד/ה המלאה (איפה השתתף/ה ומתי, חוצה-חוגים/שנים).
  * כל הלוגיקה במנוע-הטהור reenroll-lib; כאן חיווט + בחירה בלבד.
  */
@@ -10,7 +11,7 @@ import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import { Btn, Empty, Modal, Select } from '../ui';
 import { groupOptionsOf } from './lib';
-import { studentHistory } from './reenroll-lib';
+import { nextAcademicYearLabel, studentHistory } from './reenroll-lib';
 import type { Enrollment } from '../../types/domain';
 
 /** ISO קצר "DD.MM.YY" לתצוגה עברית. */
@@ -21,18 +22,17 @@ function shortDate(iso: string): string {
 }
 
 /**
- * מודאל-רישום פר-שיבוץ: בוחרים לאיזה חוג לרשום (ברירת-מחדל = שכפול-לשנה-הבאה של
- * חוג-המקור, נוצר אוטומטית), ולאיזו קבוצה (ברירת-מחדל = קבוצת-אשתקד). ואז «רשום».
+ * מודאל-רישום פר-שיבוץ (שינוי-מודל 24.8): הרישום יוצר שיבוץ חדש **על אותו החוג**
+ * עם תווית שנה הבאה (תשפ״ז/תשפ״ח) — בלי שכפול-חוגים. המשתמש/ת בוחר/ת רק קבוצה.
+ * ההערה על התלמיד/ה עוברת קדימה אוטומטית (`note` ב-`freshNextYearEnrollment`).
  */
 export function RegisterModal(props: { enrollment: Enrollment; onClose: () => void; onDone?: (msg: string) => void }) {
   const db = useApp((s) => s.db);
   const cfg = useApp((s) => s.config);
-  const openNextYearCourse = useApp((s) => s.openNextYearCourse);
   const reenrollEnrollment = useApp((s) => s.reenrollEnrollment);
 
   const src = props.enrollment;
   const srcCourse = db.courses.find((c) => c.id === src.courseId) ?? null;
-  const courseW = termOf(cfg, 'entity.course', 'חוג');
   const studentW = termOf(cfg, 'entity.student', 'תלמיד/ה');
   const member = useMemo(() => {
     for (const f of db.families) {
@@ -42,65 +42,50 @@ export function RegisterModal(props: { enrollment: Enrollment; onClose: () => vo
     return null;
   }, [db.families, src.memberId]);
 
-  // '' = ברירת-מחדל אוטומטית (שכפול חוג-המקור לשנה הבאה). אחרת id של חוג קיים.
-  const [target, setTarget] = useState('');
   const [group, setGroup] = useState(src.group || '');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
-  const courseOpts = useMemo(() => {
-    const opts = [{ value: '', label: `🗓 ${courseW} לשנה הבאה (אוטומטי — שכפול «${srcCourse?.name ?? ''}»)` }];
-    for (const c of db.courses) {
-      if (c.id === src.courseId) continue; // המקור עצמו לא רלוונטי כיעד
-      const yr = c.year ? ` [${c.year}]` : '';
-      opts.push({ value: c.id, label: `${c.name}${yr}` });
-    }
-    return opts;
-  }, [db.courses, src.courseId, srcCourse, courseW]);
-
-  // אפשרויות-קבוצה נגזרות מחוג-היעד שנבחר (או, באוטומטי, מחוג-המקור — השכפול זהה).
   const groupOpts = useMemo(() => {
-    const tc = target ? db.courses.find((c) => c.id === target) : srcCourse;
-    const gs = tc ? groupOptionsOf(tc) : [];
+    const gs = srcCourse ? groupOptionsOf(srcCourse) : [];
     return [{ value: '', label: 'ללא שיוך' }, ...gs.map((g) => ({ value: g.v, label: g.t }))];
-  }, [target, db.courses, srcCourse]);
+  }, [srcCourse]);
+
+  const nextYearLabel = srcCourse ? nextAcademicYearLabel(srcCourse.start) : '';
 
   function doRegister() {
     setBusy(true);
     setErr('');
-    // חוג-יעד: אוטומטי ⇒ פתיחת/שליפת שכפול-לשנה-הבאה; אחרת החוג שנבחר.
-    let targetId = target;
-    if (!targetId) {
-      const t = openNextYearCourse(src.courseId);
-      if (!t.ok || !t.id) {
-        setBusy(false);
-        return setErr('לא ניתן לפתוח את ' + courseW + ' לשנה הבאה');
-      }
-      targetId = t.id;
-    }
-    const r = reenrollEnrollment(src.id, targetId, group);
+    // targetCourseId ריק ⇒ store משתמש בחוג-המקור עצמו (אותו החוג, תווית-שנה חדשה).
+    const r = reenrollEnrollment(src.id, '', group);
     setBusy(false);
     if (!r.ok) return setErr('הרישום נחסם — שער-תפוסה מלא, או שכבר נרשם/ה');
-    props.onDone?.(`✓ ${member?.first || studentW} נרשם/ה לשנה הבאה`);
+    props.onDone?.(`✓ ${member?.first || studentW} נרשם/ה ל${nextYearLabel || 'שנה הבאה'}`);
     props.onClose();
   }
 
   return (
-    <Modal title={`רישום לשנה הבאה — ${member?.first || studentW}`} onClose={props.onClose}>
+    <Modal title={`רישום ${nextYearLabel ? 'ל' + nextYearLabel + ' ' : 'לשנה הבאה — '}${member?.first || studentW}`} onClose={props.onClose}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 280 }}>
         <div style={{ fontSize: 13, color: 'var(--ink-faint, #8a8378)' }}>
-          מתוך «{srcCourse?.name ?? '—'}»{src.group ? ` · קבוצה: ${src.group}` : ''}
+          «{srcCourse?.name ?? '—'}»{src.group ? ` · קבוצה: ${src.group}` : ''}
+          {nextYearLabel && (
+            <span style={{ marginInlineStart: 8, background: '#e6f0ff', color: '#2a5cad', borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 800 }}>
+              {nextYearLabel}
+            </span>
+          )}
         </div>
-
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, fontWeight: 700 }}>
-          {courseW} יעד
-          <Select value={target} onChange={setTarget} options={courseOpts} />
-        </label>
 
         <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, fontWeight: 700 }}>
           קבוצה
           <Select value={group} onChange={setGroup} options={groupOpts} />
         </label>
+
+        {src.note && (
+          <div style={{ fontSize: 12, color: 'var(--ink-faint, #8a8378)' }}>
+            📝 ההערה על ה{studentW} תעבור לשנה הבאה: «{src.note}»
+          </div>
+        )}
 
         {err && (
           <div role="alert" style={{ background: '#fbe6e2', color: '#b04530', borderRadius: 8, padding: '8px 12px', fontSize: 13, fontWeight: 700 }}>{err}</div>
@@ -108,7 +93,7 @@ export function RegisterModal(props: { enrollment: Enrollment; onClose: () => vo
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-start' }}>
           <Btn kind="primary" onClick={doRegister} disabled={busy}>
-            {busy ? '…רושם' : '✓ רשום/י לשנה הבאה'}
+            {busy ? '…רושם' : `✓ רשום/י ל${nextYearLabel || 'שנה הבאה'}`}
           </Btn>
           <Btn onClick={props.onClose}>ביטול</Btn>
         </div>
