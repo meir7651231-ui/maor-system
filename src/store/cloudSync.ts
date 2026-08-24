@@ -189,13 +189,34 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
     // 'synced' אחרי ה-'idle'. מגן על שני ה-await (81 ו-100), כמו השער בשורה 76.
     if (hooks !== h) return;
     active = true;
-    unsubAll = subscribeAll(
-      onRemote,
-      () => {
-        setStat(hooks, 'error');
-      },
-      cloudDek,
-    );
+    // 🔧 בקשת-שטח 24.8 ("אני כל הזמן מאבד סנכרון" H5): כשמנוי-Firestore נופל, האדום
+    // היה נותר לצמיתות עד רענון-דף. עכשיו: onError שוטף את המנוי, ממתין 3 שניות
+    // ומחזיר אותו — טוקן-blip/רשת-חלשה מתאוששים בשקט. attemptResubscribe מגודר
+    // ב-active/hooks כדי לא להריץ אחרי stopCloudSync (יציאה מהחשבון).
+    let recoverTimer: ReturnType<typeof setTimeout> | null = null;
+    const subscribe = () => {
+      unsubAll = subscribeAll(
+        onRemote,
+        () => {
+          setStat(hooks, 'error');
+          if (recoverTimer) return;
+          recoverTimer = setTimeout(() => {
+            recoverTimer = null;
+            if (!active || hooks !== h) return; // הסנכרון נעצר (logout) — לא מחדשים
+            try {
+              unsubAll?.();
+            } catch {
+              /* ignore — the old sub may already be dead */
+            }
+            unsubAll = null;
+            setStat(hooks, 'connecting');
+            subscribe();
+          }, 3000);
+        },
+        cloudDek,
+      );
+    };
+    subscribe();
     // 🐛 נחיל-עמוק (13.8): עריכות שנעשו בזמן לחיצת-היד (לפני active) נשמרו מקומית אך
     // cloudOnDbChange דילג עליהן (!active) ולא נדחפו לעולם. דחיפת-השלמה חד-פעמית:
     // diff בין מה שהענן מחזיק (syncedBaseline) לבין המצב החי כעת.
