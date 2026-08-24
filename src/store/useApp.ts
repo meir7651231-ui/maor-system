@@ -325,6 +325,14 @@ interface AppState {
   addAbsence: (enrollmentId: string, absence: Absence) => void;
   /** רישום תשלום — {ok:false} כשה-store דחה (השיבוץ נעלם); rid רק כשהונפק בפועל. */
   addPayment: (enrollmentId: string, payment: Omit<Payment, 'rid'>) => { ok: boolean; rid?: string };
+  /** 📅 פריסת חיובים-מתוכננים על שיבוץ (בקשת-בעלים 25.8) — לא-קבלה עד חיוב-בפועל.
+   *  זהה במושג ל-addPlannedCharges של תומכים; ההבדל: `chargeEnrollmentPlanned`
+   *  מנפיק R- (לא D-) דרך `addPayment`. מגודר courses.plannedcharges. */
+  addEnrollmentPlanned: (enrollmentId: string, spec: { firstDate: string; count: number; amount: number; cur: '₪' | '$'; method: string; note?: string; gapMonths?: number }) => { ok: boolean; ids?: string[] };
+  cancelEnrollmentPlanned: (enrollmentId: string, planId: string, todayIso: string) => { ok: boolean };
+  /** ✓ החיוב ירד — יוצר Payment עם R- דרך addPayment, מקשר chargedRid.
+   *  אידמפוטנטי (chargedRid קיים ⇒ מחזיר אותו rid בלי לקדם seq). */
+  chargeEnrollmentPlanned: (enrollmentId: string, planId: string) => { ok: boolean; rid?: string };
   /** 💰 סימון-סטטוס תשלום מהיר פר-שיבוץ (17.8) — לתשלום/שולם, בלי לגעת בקבלות. */
   setEnrollmentPaid: (enrollmentId: string, paid: boolean) => void;
   /** 🗓 רישום-לשנה-הבאה — החלטת-המשך פר-שיבוץ (ממשיך/עוזב/בהמתנה) + הערה. additive. */
@@ -2034,6 +2042,79 @@ export const useApp = create<AppState>()((set, get) => {
       }));
       logAudit('תשלום', rid + ' · ₪' + payment.amount);
       return { ok: true, rid };
+    },
+
+    // ── 📅 חיובים-מתוכננים על שיבוץ (בקשת-בעלים 25.8) ──
+    // ה-schema זהה ל-Supporter (`PlannedCharge`); ההבדל: chargeEnrollmentPlanned
+    // מנפיק R- (קבלת-שיבוץ) דרך addPayment, לא D-. אין שער-קבלות ב-add/cancel —
+    // זו הבטחה, לא-קבלה; שער חל רק ב-chargeEnrollmentPlanned (דרך addPayment).
+    addEnrollmentPlanned(enrollmentId, spec) {
+      if (!get().db.enrollments.some((e) => e.id === enrollmentId)) {
+        get().toast('ה' + termOf(get().config, 'entity.enrollment', 'שיבוץ') + ' לא נמצא');
+        return { ok: false };
+      }
+      const count = Math.max(1, Math.floor(spec.count));
+      const ids = Array.from({ length: count }, () => get().nextId('pc'));
+      const groupId = get().nextId('pcg');
+      const plans = planCharges({
+        firstDate: spec.firstDate,
+        count,
+        amount: spec.amount,
+        cur: spec.cur,
+        method: spec.method,
+        cat: '', // לשיבוץ אין cat של-ייעוד — הקבלה תכתוב את שם-החוג ידנית
+        note: spec.note,
+        gapMonths: spec.gapMonths,
+        groupId,
+        ids,
+      });
+      setDb((db) => ({
+        enrollments: db.enrollments.map((e) =>
+          e.id === enrollmentId ? { ...e, plannedCharges: [...(e.plannedCharges || []), ...plans] } : e,
+        ),
+      }));
+      logAudit('חיוב-מתוכנן (שיבוץ)', count + ' × ' + spec.cur + spec.amount + ' · החל ' + spec.firstDate);
+      return { ok: true, ids };
+    },
+    cancelEnrollmentPlanned(enrollmentId, planId, todayIso) {
+      let done = false;
+      setDb((db) => ({
+        enrollments: db.enrollments.map((e) => {
+          if (e.id !== enrollmentId) return e;
+          const plans = (e.plannedCharges || []).map((p) => {
+            if (p.id !== planId) return p;
+            if (p.chargedRid || p.cancelledAt) return p;
+            done = true;
+            return { ...p, cancelledAt: todayIso };
+          });
+          return { ...e, plannedCharges: plans };
+        }),
+      }));
+      if (done) logAudit('ביטול חיוב-מתוכנן (שיבוץ)', planId);
+      return { ok: done };
+    },
+    chargeEnrollmentPlanned(enrollmentId, planId) {
+      const en0 = get().db.enrollments.find((e) => e.id === enrollmentId);
+      const plan0 = en0?.plannedCharges?.find((p) => p.id === planId);
+      if (!plan0) return { ok: false };
+      if (plan0.chargedRid) return { ok: true, rid: plan0.chargedRid };
+      if (plan0.cancelledAt) return { ok: false };
+      const r = get().addPayment(enrollmentId, {
+        date: plan0.date,
+        amount: plan0.amount,
+        method: plan0.method || 'אשראי',
+      });
+      if (!r.ok || !r.rid) return { ok: false };
+      setDb((db) => ({
+        enrollments: db.enrollments.map((e) => {
+          if (e.id !== enrollmentId) return e;
+          return {
+            ...e,
+            plannedCharges: (e.plannedCharges || []).map((p) => (p.id === planId ? { ...p, chargedRid: r.rid } : p)),
+          };
+        }),
+      }));
+      return { ok: true, rid: r.rid };
     },
 
     unlinkEvent(kind, id) {

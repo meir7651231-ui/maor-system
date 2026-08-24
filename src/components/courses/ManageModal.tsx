@@ -12,6 +12,7 @@ import { WaBtn } from '../WaBtn';
 import { deliverReceipt, receiptFmtOf } from '../../lib/receipt';
 import { Btn, Field, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
+import { EnrollmentPlannedSection } from './EnrollmentPlannedSection';
 import {
   PAY_METHODS,
   ageOf,
@@ -45,6 +46,9 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
 
   const punchOn = featureOn(cfg, 'courses.punch');
   const paymentsOn = featureOn(cfg, 'courses.payments');
+  // 📅 חיובים-מתוכננים (בקשת-בעלים 25.8) — opt-in מפורש; חסר-הדגל ⇒ מוסתר.
+  const plannedOn = cfg.features?.['courses.plannedcharges'] === true;
+  const addEnrollmentPlanned = useApp((s) => s.addEnrollmentPlanned);
   const groupsOn = featureOn(cfg, 'courses.groups');
   const receiptsOn = featureOn(cfg, 'core.receipts');
   // קבלה מלאה (P1.2) — שורות סיכום העסקה + הורדה חוזרת פר-תשלום (legacy receipt())
@@ -122,6 +126,18 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     }
     const date = payDate || isoToday();
     const method = payMethod || 'מזומן';
+    // 📅 מסלול-אשראי (בקשת-בעלים 25.8): plannedOn + method='אשראי' ⇒ הרישום
+    // הופך ל-PlannedCharge של שיבוץ (count=1) — לא-R- עד "✓ החיוב ירד" בסעיף
+    // חיובים-מתוכננים. אפס נגיעה ב-receiptSeq/קבלות. פוסטים אחרים = כמו קודם.
+    if (plannedOn && method === 'אשראי') {
+      const r = addEnrollmentPlanned(en.id, {
+        firstDate: date, count: 1, amount: amt, cur: '₪', method: 'אשראי',
+      });
+      if (!r.ok) return;
+      setPayAmt('');
+      toast('💳 נרשם ₪' + amt + ' · ⏳ ממתין לחיוב-נכנס');
+      return;
+    }
     // הקבלה יורדת רק כשה-store קיבל את התשלום, ועם ה-rid שהונפק בפועל —
     // קודם ניחשנו rid מ-receiptSeq והורדנו קבלה גם על דחייה (rid שמעולם לא הונפק).
     const res = addPayment(en.id, { date, amount: amt, method });
@@ -514,8 +530,17 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
             ＋ קבלת תשלום
           </Btn>
         </div>
+        {/* 💳 חיווי: אשראי דלוק ⇒ מסלול חיוב-מתוכנן, לא קבלה מיידית */}
+        {plannedOn && payMethod === 'אשראי' && (
+          <div style={{ fontSize: 12, color: '#0369a1', marginTop: 6 }}>
+            ⏳ אשראי → הרישום ישמר כחיוב-מתוכנן. הקבלה תונפק אחרי אישור "✓ החיוב ירד" בסעיף חיובים-מתוכננים.
+          </div>
+        )}
       </div>
       )}
+
+      {/* 📅 חיובים-מתוכננים על השיבוץ (בקשת-בעלים 25.8, courses.plannedcharges) */}
+      {plannedOn && paymentsOn && <EnrollmentPlannedSection enrollment={en} />}
 
       {punchOn && featureOn(cfg, 'courses.punch.buy') && (
       <div

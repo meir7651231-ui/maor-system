@@ -15,43 +15,49 @@
  *  • plan מבוטל (`cancelledAt` מלא) לא נספר.
  *  • pending לפי-מטבע — ₪/$ נספרים בנפרד (עקבי עם `ils`/`usd` על התומך).
  */
-import type { PlannedCharge, Supporter } from '../../types/domain';
+import type { PlannedCharge } from '../../types/domain';
+
+/** מרכב-פלנים: כל אובייקט (Supporter/Enrollment) שיש לו plannedCharges? — גנרי
+ *  לשימוש-חוזר של אותן פונקציות-חישוב בין מודולים (25.8). */
+export interface HasPlannedCharges {
+  plannedCharges?: PlannedCharge[];
+}
 
 /** האם החיוב פעיל (עדיין ממתין לחיוב)? */
 export function isOpenPlan(p: PlannedCharge): boolean {
   return !p.chargedRid && !p.cancelledAt;
 }
 
-/** רק החיובים הפתוחים של תומך. */
-export function openPlans(sup: Supporter): PlannedCharge[] {
-  return (sup.plannedCharges || []).filter(isOpenPlan);
+/** רק החיובים הפתוחים של הישות. */
+export function openPlans(o: HasPlannedCharges): PlannedCharge[] {
+  return (o.plannedCharges || []).filter(isOpenPlan);
 }
 
 /** סכום פתוח בשקלים (חיובים בשקל, לא-חויבו-עדיין ולא-בוטלו). */
-export function pendingIls(sup: Supporter): number {
-  return openPlans(sup).filter((p) => p.cur === '₪').reduce((a, p) => a + (Number.isFinite(p.amount) ? p.amount : 0), 0);
+export function pendingIls(o: HasPlannedCharges): number {
+  return openPlans(o).filter((p) => p.cur === '₪').reduce((a, p) => a + (Number.isFinite(p.amount) ? p.amount : 0), 0);
 }
 
 /** סכום פתוח בדולרים. */
-export function pendingUsd(sup: Supporter): number {
-  return openPlans(sup).filter((p) => p.cur === '$').reduce((a, p) => a + (Number.isFinite(p.amount) ? p.amount : 0), 0);
+export function pendingUsd(o: HasPlannedCharges): number {
+  return openPlans(o).filter((p) => p.cur === '$').reduce((a, p) => a + (Number.isFinite(p.amount) ? p.amount : 0), 0);
 }
 
 /** התאריך של החיוב-הפתוח הקרוב-ביותר (ISO); '' = אין פתוחים. */
-export function plannedNextDate(sup: Supporter): string {
-  const open = openPlans(sup);
+export function plannedNextDate(o: HasPlannedCharges): string {
+  const open = openPlans(o);
   if (!open.length) return '';
   return open.map((p) => p.date).sort()[0];
 }
 
 /** חיובים-פתוחים שכבר עבר תאריכם ומעולם לא חויבו (איחור). */
-export function overduePlans(sup: Supporter, todayIso: string): PlannedCharge[] {
-  return openPlans(sup).filter((p) => p.date < todayIso);
+export function overduePlans(o: HasPlannedCharges, todayIso: string): PlannedCharge[] {
+  return openPlans(o).filter((p) => p.date < todayIso);
 }
 
 /** הבא-בזמן (הקרוב שעדיין לא-עבר). undefined = אין. */
-export function nextUpcomingPlan(sup: Supporter, todayIso: string): PlannedCharge | undefined {
-  return openPlans(sup)
+export function nextUpcomingPlan(o: HasPlannedCharges, todayIso: string): PlannedCharge | undefined {
+  return openPlans(o)
     .filter((p) => p.date >= todayIso)
     .sort((a, b) => a.date.localeCompare(b.date))[0];
 }
