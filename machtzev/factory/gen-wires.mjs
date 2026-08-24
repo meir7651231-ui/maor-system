@@ -13,7 +13,10 @@ const atoms = JSON.parse(fs.readFileSync(R + `atoms-L6b-${REPO}.json`));
 const Q = OUT + '/quarry/'; fs.mkdirSync(Q, { recursive: true });
 let ok = 0, skip = 0;
 const done = new Set(fs.readdirSync(OUT + '/new/atoms').map(f => f.replace(/\..*$/, '')));
+// 🚫 חוק-6: זהות/סודות לעולם לא אטום — denylist קשיח (אזעקת-אבטחה 24.8; נחצב-בטעות פעמיים)
+const LAW6_DENY = new Set(['SUPER_ADMIN_EMAILS']);
 for (const a of atoms) {
+  if (LAW6_DENY.has(a.name)) { skip++; continue; }
   if (!a.pure) { skip++; continue; }
   const m = a.source.match(/^[^/]+\/(.+):(\d+)(?:-(\d+))?$/); if (!m) continue; // גם אטום-חד-שורתי (לקח-הרג'קס של reconcile)
   const kebab = a.name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
