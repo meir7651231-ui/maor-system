@@ -145,6 +145,11 @@ export interface CloudState {
    * מוצג במסך-ההמתנה — כשל לא נבלע יותר בשקט. undefined = טרם נוסה.
    */
   reqStatus?: string;
+  /**
+   * שגיאת-הסנכרון האחרונה (בקשת-שטח 25.8 — "אני ממשיך לאבד סנכרון, אדום סתום").
+   * טקסט לתצוגה בממשק ליד הטבעת האדומה. null/undefined = אין שגיאה פעילה.
+   */
+  lastSyncError?: string | null;
 }
 
 interface AppState {
@@ -943,6 +948,8 @@ export const useApp = create<AppState>()((set, get) => {
               },
               toast: (t) => get().toast(t),
               setStatus: (status) => setCloud({ status }),
+              // 📛 בקשת-שטח 25.8: חושף את השגיאה האחרונה של הסנכרון בממשק
+              setLastError: (msg) => setCloud({ lastSyncError: msg }),
             });
           // שער הצפנת-ענן (opt-in): אם לארגון יש envelope ואין DEK בזיכרון —
           // עוצרים לפני הסנכרון ומציגים מסך-פתיחה. readCloudEnvelope הוא
@@ -1955,13 +1962,21 @@ export const useApp = create<AppState>()((set, get) => {
       const tid = targetCourseId || src.courseId;
       const target = db.courses.find((c) => c.id === tid);
       if (!target) return { ok: false };
-      // שער-תפוסה — כמו EnrollModal (excludes ended).
-      if (enrollCount(db, tid) >= (target.maxStudents || 999)) return { ok: false };
-      const id = get().nextId('e');
       // תווית שנת-הלימודים החדשה — מחושבת מתאריך-פתיחת חוג-המקור (לא של-היעד):
       // "הרישום הוא-הוא המעבר לשנה הבאה", ולכן תמיד מתקדם +1 מהשנה של המקור.
       const srcCourse = db.courses.find((c) => c.id === src.courseId);
       const yearLabel = srcCourse ? nextAcademicYearLabel(srcCourse.start) : '';
+      // 🐛 באג 25.8 ("2 חסום, 0 נרשם"): כשה-tid == src.courseId (רישום-במקום למודל
+      // In-Card), enrollCount ספר את **שיבוצי-השנה-הנוכחית** ⇒ maxStudents=2 וכבר
+      // 2 תלמידות ⇒ 2>=2 ⇒ נחסם תמיד. במודל-השנים החדש, שיבוצים ישנים לא תופסים
+      // מקום פיזי בשנה החדשה — סופרים רק שיבוצי-אותה-שנת-יעד. שיבוץ בלי year (שנה-
+      // נוכחית) לא נחשב מול קיבולת של תווית-שנה. שלד: `renewedToId` על-המקור לא
+      // דורש בדיקה נפרדת — האידמפוטנטיות שומרת מקום למקור עצמו.
+      const capUsed = yearLabel
+        ? db.enrollments.filter((e) => e.courseId === tid && e.year === yearLabel && e.status !== 'ended' && e.status !== 'wait').length
+        : enrollCount(db, tid);
+      if (capUsed >= (target.maxStudents || 999)) return { ok: false };
+      const id = get().nextId('e');
       const fresh = freshNextYearEnrollment(src, tid, id, isoToday(), group, yearLabel);
       get().upsertEnrollment(fresh);
       // קישור מקור→יעד (שרשרת-היסטוריה) — לא נוגע בכספי/נוכחות המקור.

@@ -81,10 +81,42 @@ export interface CloudSyncHooks {
   setDbFromRemote: (db: Db) => void;
   toast: (text: string) => void;
   setStatus: (status: CloudStatus) => void;
+  /** שגיאת-סנכרון אחרונה לתצוגה בממשק (null = אין) — בקשת-שטח 25.8. */
+  setLastError?: (msg: string | null) => void;
 }
 
 let hooks: CloudSyncHooks | null = null;
 let active = false;
+// 📛 שגיאה אחרונה של הסנכרון (בקשת-שטח 25.8 — "נהיה אדום, לא ברור למה").
+// הודעת-טקסט לצריכה בממשק; null = אין שגיאה פעילה.
+let lastError: string | null = null;
+
+/** מפרש שגיאת-Firestore/רשת להודעה קצרה + סימון האם היא קבועה (permission-denied). */
+function describeErr(e: unknown): { msg: string; perm: boolean } {
+  const err = e as { code?: string; message?: string } | undefined;
+  const code = String(err?.code ?? '');
+  const raw = String(err?.message ?? e ?? '');
+  const perm = code === 'permission-denied' || /permission[- ]denied/i.test(raw);
+  const map: Record<string, string> = {
+    'permission-denied': 'הרשאה חסרה (Rules)',
+    unauthenticated: 'ההתחברות פגה — כניסה מחדש',
+    unavailable: 'ענן זמנית לא-זמין',
+    'failed-precondition': 'תקלת-קדם בענן',
+    'resource-exhausted': 'מכסת-הענן מוצתה — נסי שוב מאוחר יותר',
+  };
+  const msg = map[code] || raw.slice(0, 120) || 'שגיאה לא-ידועה';
+  return { msg, perm };
+}
+
+/** השגיאה האחרונה של הסנכרון (לתצוגה בממשק). null = אין שגיאה. */
+export function getSyncLastError(): string | null { return lastError; }
+
+/** ⚡ ניסיון-חוזר מיידי (בלי להמתין ל-5 שניות של ה-backoff). */
+export function retrySyncNow(): void {
+  if (!active) return;
+  clearTimeout(pushTimer);
+  if (pushBase && pushLatest) void flushPush();
+}
 /** דגל הד: true בזמן החלת שינוי מרוחק — cloudOnDbChange מדלג. */
 let applyingRemote = false;
 let unsubAll: (() => void) | null = null;
@@ -197,8 +229,11 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
     const subscribe = () => {
       unsubAll = subscribeAll(
         onRemote,
-        () => {
+        (err?: unknown) => {
+          const info = describeErr(err);
+          lastError = info.msg; hooks?.setLastError?.(info.msg);
           setStat(hooks, 'error');
+          if (info.perm) return; // הרשאה — לא מנסים שוב בלולאה, מציגים שגיאה יציבה
           if (recoverTimer) return;
           recoverTimer = setTimeout(() => {
             recoverTimer = null;
@@ -222,9 +257,11 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
     // diff בין מה שהענן מחזיק (syncedBaseline) לבין המצב החי כעת.
     const liveDb = h.getDb();
     await pushSplitAware(syncedBaseline.supporters, liveDb.supporters, diffDb(syncedBaseline, liveDb));
+    lastError = null; hooks?.setLastError?.(null);
     setStat(h, 'synced');
   } catch (e) {
     active = false;
+    lastError = describeErr(e).msg; hooks?.setLastError?.(lastError);
     setStat(h, 'error');
     h.toast(e instanceof Error ? `⚠ ${e.message}` : '⚠ הסנכרון לענן נכשל — ממשיכים בעבודה מקומית');
   }
@@ -256,21 +293,24 @@ async function flushPush(): Promise<void> {
   if (emptyDiff(diff)) return; // כל שינוי-תרומה משנה גם את מסמך-התומך ⇒ diff לא-ריק (גם בפיצול)
   try {
     await pushSplitAware(base.supporters, latest.supporters, diff);
-    if (active) setStat(hooks, 'synced');
-  } catch {
+    if (active) { lastError = null; hooks?.setLastError?.(null); setStat(hooks, 'synced'); }
+  } catch (e) {
     // כשל שאינו-offline: משחזרים את הדלתא הממתינה כדי שתידחף בעריכה הבאה.
     // base תמיד המוקדם ביותר; latest נשמר אם עריכה מקבילה כבר קבעה חדש יותר.
     if (active) {
+      const info = describeErr(e);
+      lastError = info.msg; hooks?.setLastError?.(info.msg);
       pushBase = base;
       pushLatest ??= latest;
       setStat(hooks, 'error');
-      hooks?.toast('⚠ הדחיפה לענן נכשלה — הנתונים שמורים מקומית ויסונכרנו בהמשך');
-      // flushPush נקרא רק מטיימר ה-debounce של cloudOnDbChange (עריכת משתמש). בלי
-      // תזמון-מחדש, דלתא שנכשלה הייתה תלויה לנצח עד העריכה הבאה. מתזמנים ניסיון
-      // חוזר עם backoff (5s, לא זמן ה-debounce) כדי לא להיכנס ללולאה הדוקה על
-      // כשל מתמשך (permission-denied). stopCloudSync מנקה את pushTimer.
-      clearTimeout(pushTimer);
-      pushTimer = setTimeout(() => void flushPush(), 5000);
+      // הצגת השגיאה המדויקת (בקשת-שטח 25.8): המשתמש צריך לדעת מה קורה במקום
+      // לראות "אדום סתום". permission-denied ⇒ בעיית-Rules/הרשאה שלא תתוקן ע"י
+      // ניסיון-חוזר; משאירים אדום עם ההודעה, בלי retry-לולאה.
+      hooks?.toast(info.perm ? '🔒 שגיאת-הרשאה בענן — ' + info.msg : '⚠ הדחיפה לענן נכשלה: ' + info.msg + ' — הנתונים שמורים מקומית');
+      if (!info.perm) {
+        clearTimeout(pushTimer);
+        pushTimer = setTimeout(() => void flushPush(), 5000);
+      }
     }
   }
 }
