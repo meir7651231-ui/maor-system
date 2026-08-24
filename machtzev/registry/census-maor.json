@@ -1,37 +1,37 @@
 {
  "repo": "maor",
  "root": "/home/user/maor-system",
- "head": "8fab0bd6ba87097638ecbf45a84c30205f7abc9b",
+ "head": "8bed0e693f512ac1650b6ba822a62b0d98cee9b2",
  "generatedBy": "machtzev/census v1",
  "totals": {
-  "files": 1072,
-  "lines": 673861,
+  "files": 1163,
+  "lines": 684116,
   "orphans": 0
  },
  "byDomain": {
   "config": {
-   "files": 11,
-   "lines": 830
+   "files": 12,
+   "lines": 899
   },
   "data": {
    "files": 64,
-   "lines": 515370
+   "lines": 515506
   },
   "knowledge": {
-   "files": 157,
-   "lines": 24982
+   "files": 160,
+   "lines": 25154
   },
   "tests": {
-   "files": 377,
-   "lines": 32885
+   "files": 395,
+   "lines": 34290
   },
   "server": {
    "files": 64,
-   "lines": 16083
+   "lines": 16106
   },
   "source": {
-   "files": 104,
-   "lines": 13467
+   "files": 169,
+   "lines": 19962
   },
   "assets": {
    "files": 38,
@@ -42,20 +42,20 @@
    "lines": 4522
   },
   "screens": {
-   "files": 162,
-   "lines": 44435
+   "files": 165,
+   "lines": 45422
   },
   "engines": {
-   "files": 83,
-   "lines": 15484
+   "files": 84,
+   "lines": 15918
   },
   "actions": {
    "files": 4,
-   "lines": 4890
+   "lines": 5419
   },
   "flags": {
    "files": 2,
-   "lines": 885
+   "lines": 890
   }
  },
  "opaqueDirs": [
@@ -95,10 +95,16 @@
    "lines": 45
   },
   {
+   "path": ".github/dependabot.yml",
+   "bucket": "config",
+   "domain": "config",
+   "lines": 22
+  },
+  {
    "path": ".github/workflows/ci.yml",
    "bucket": "config",
    "domain": "config",
-   "lines": 40
+   "lines": 73
   },
   {
    "path": ".github/workflows/deploy-functions.yml",
@@ -134,7 +140,7 @@
    "path": "CLAUDE.md",
    "bucket": "knowledge",
    "domain": "knowledge",
-   "lines": 113
+   "lines": 115
   },
   {
    "path": "e2e/ayin-names-smoke.mjs",
@@ -248,7 +254,7 @@
    "path": "e2e/rules-redteam.mjs",
    "bucket": "test",
    "domain": "tests",
-   "lines": 172
+   "lines": 179
   },
   {
    "path": "e2e/signup.mjs",
@@ -308,13 +314,13 @@
    "path": "firestore.rules",
    "bucket": "config",
    "domain": "config",
-   "lines": 365
+   "lines": 379
   },
   {
    "path": "functions/.env",
    "bucket": "server",
    "domain": "server",
-   "lines": 14
+   "lines": 24
   },
   {
    "path": "functions/index.js",
@@ -326,7 +332,7 @@
    "path": "functions/nedarim-pull-guard.test.mjs",
    "bucket": "test",
    "domain": "tests",
-   "lines": 105
+   "lines": 133
   },
   {
    "path": "functions/nedarimDonors.js",
@@ -356,7 +362,7 @@
    "path": "functions/nedarimPull.js",
    "bucket": "server",
    "domain": "server",
-   "lines": 317
+   "lines": 330
   },
   {
    "path": "functions/package-lock.json",
@@ -857,6 +863,12 @@
    "lines": 37
   },
   {
+   "path": "knowledge/CLOSED-TRUST-2026-08-24.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 46
+  },
+  {
    "path": "knowledge/CLOSED-TZEDAKA-2026-07-30.md",
    "bucket": "knowledge",
    "domain": "knowledge",
@@ -885,6 +897,12 @@
    "bucket": "knowledge",
    "domain": "knowledge",
    "lines": 38
+  },
+  {
+   "path": "knowledge/CUSTOMER-PROMISE-2026-08-24.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 64
   },
   {
    "path": "knowledge/DECISIONS-2026-07-29.md",
@@ -1109,6 +1127,12 @@
    "lines": 184
   },
   {
+   "path": "knowledge/VISION-AUTOPILOT-2026-08-24.md",
+   "bucket": "knowledge",
+   "domain": "knowledge",
+   "lines": 60
+  },
+  {
    "path": "knowledge/VISION-LIGHT-2026-08-23.md",
    "bucket": "knowledge",
    "domain": "knowledge",
@@ -1257,6 +1281,30 @@
    "bucket": "source",
    "domain": "source",
    "lines": 28
+  },
+  {
+   "path": "machtzev/factory/gen-boxes.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 35
+  },
+  {
+   "path": "machtzev/factory/gen-data.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 38
+  },
+  {
+   "path": "machtzev/factory/gen-wires-dart.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 38
+  },
+  {
+   "path": "machtzev/factory/gen-wires.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 39
   },
   {
    "path": "machtzev/LAW.md",
@@ -1595,6 +1643,378 @@
    "lines": 4
   },
   {
+   "path": "machtzev/parity/a11y.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 75
+  },
+  {
+   "path": "machtzev/parity/annual-report.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 76
+  },
+  {
+   "path": "machtzev/parity/audit.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 123
+  },
+  {
+   "path": "machtzev/parity/ayin.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 156
+  },
+  {
+   "path": "machtzev/parity/caller-id.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 63
+  },
+  {
+   "path": "machtzev/parity/cloud-crypto.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 101
+  },
+  {
+   "path": "machtzev/parity/cloud-diff.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 112
+  },
+  {
+   "path": "machtzev/parity/cloud-merge.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 92
+  },
+  {
+   "path": "machtzev/parity/components-courses.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 204
+  },
+  {
+   "path": "machtzev/parity/csvx.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 94
+  },
+  {
+   "path": "machtzev/parity/custom-export.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 149
+  },
+  {
+   "path": "machtzev/parity/date-util.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 102
+  },
+  {
+   "path": "machtzev/parity/dedup.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 122
+  },
+  {
+   "path": "machtzev/parity/dialer.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 91
+  },
+  {
+   "path": "machtzev/parity/diary.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 98
+  },
+  {
+   "path": "machtzev/parity/distribution.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 118
+  },
+  {
+   "path": "machtzev/parity/donation-partition.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 104
+  },
+  {
+   "path": "machtzev/parity/export-gate.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 56
+  },
+  {
+   "path": "machtzev/parity/export-rows.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 75
+  },
+  {
+   "path": "machtzev/parity/families.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 147
+  },
+  {
+   "path": "machtzev/parity/guide.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 65
+  },
+  {
+   "path": "machtzev/parity/hebdate.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 93
+  },
+  {
+   "path": "machtzev/parity/hebrew-calendar.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 42
+  },
+  {
+   "path": "machtzev/parity/hebrew.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 96
+  },
+  {
+   "path": "machtzev/parity/ics-feed.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 118
+  },
+  {
+   "path": "machtzev/parity/image-pick.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 84
+  },
+  {
+   "path": "machtzev/parity/lib-ai.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 119
+  },
+  {
+   "path": "machtzev/parity/lib-cloud-config.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 193
+  },
+  {
+   "path": "machtzev/parity/lib-cloud.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 90
+  },
+  {
+   "path": "machtzev/parity/lib-config.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 0
+  },
+  {
+   "path": "machtzev/parity/lib-crypto.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 105
+  },
+  {
+   "path": "machtzev/parity/lib-ics.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 69
+  },
+  {
+   "path": "machtzev/parity/lib-lock.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 108
+  },
+  {
+   "path": "machtzev/parity/lib-nedarim-sync.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 103
+  },
+  {
+   "path": "machtzev/parity/lib-pwa.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 179
+  },
+  {
+   "path": "machtzev/parity/names-export.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 51
+  },
+  {
+   "path": "machtzev/parity/navhist.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 102
+  },
+  {
+   "path": "machtzev/parity/net-check.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 69
+  },
+  {
+   "path": "machtzev/parity/photo-gallery.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 72
+  },
+  {
+   "path": "machtzev/parity/platform.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 119
+  },
+  {
+   "path": "machtzev/parity/pricing.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 95
+  },
+  {
+   "path": "machtzev/parity/public-site.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 107
+  },
+  {
+   "path": "machtzev/parity/receipt.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 102
+  },
+  {
+   "path": "machtzev/parity/reenroll.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 138
+  },
+  {
+   "path": "machtzev/parity/reports.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 98
+  },
+  {
+   "path": "machtzev/parity/search.parity.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 51
+  },
+  {
+   "path": "machtzev/parity/shop.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 254
+  },
+  {
+   "path": "machtzev/parity/signup-wizard.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 91
+  },
+  {
+   "path": "machtzev/parity/smtp-url.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 85
+  },
+  {
+   "path": "machtzev/parity/sup-partition.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 77
+  },
+  {
+   "path": "machtzev/parity/support-chat.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 90
+  },
+  {
+   "path": "machtzev/parity/supporters.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 205
+  },
+  {
+   "path": "machtzev/parity/telephony.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 125
+  },
+  {
+   "path": "machtzev/parity/templates.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 68
+  },
+  {
+   "path": "machtzev/parity/theme.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 49
+  },
+  {
+   "path": "machtzev/parity/tour.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 95
+  },
+  {
+   "path": "machtzev/parity/tzedaka.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 144
+  },
+  {
+   "path": "machtzev/parity/validate.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 69
+  },
+  {
+   "path": "machtzev/parity/vcard-import.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 111
+  },
+  {
+   "path": "machtzev/parity/vertical-packs.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 58
+  },
+  {
+   "path": "machtzev/parity/wa.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 57
+  },
+  {
+   "path": "machtzev/parity/worktasks.parity.mjs",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 81
+  },
+  {
    "path": "machtzev/README.md",
    "bucket": "knowledge",
    "domain": "knowledge",
@@ -1862,7 +2282,7 @@
    "path": "machtzev/registry/atoms-L8-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 1372
+   "lines": 1442
   },
   {
    "path": "machtzev/registry/atoms-L8-yoman.json",
@@ -1880,7 +2300,7 @@
    "path": "machtzev/registry/atoms-L9-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 3022
+   "lines": 3086
   },
   {
    "path": "machtzev/registry/atoms-L9-yoman.json",
@@ -1892,7 +2312,7 @@
    "path": "machtzev/registry/census-buildsmart.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 43908
+   "lines": 43909
   },
   {
    "path": "machtzev/registry/census-maor.json",
@@ -1904,7 +2324,7 @@
    "path": "machtzev/registry/census-yoman.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 204
+   "lines": 205
   },
   {
    "path": "machtzev/registry/dupdeep.json",
@@ -1922,7 +2342,7 @@
    "path": "machtzev/run.mjs",
    "bucket": "source",
    "domain": "source",
-   "lines": 35
+   "lines": 36
   },
   {
    "path": "machtzev/STATUS.md",
@@ -2105,12 +2525,6 @@
    "lines": 0
   },
   {
-   "path": "public/plans.html",
-   "bucket": "source",
-   "domain": "source",
-   "lines": 238
-  },
-  {
    "path": "public/sw.js",
    "bucket": "source",
    "domain": "source",
@@ -2180,7 +2594,7 @@
    "path": "src/App.tsx",
    "bucket": "source",
    "domain": "source",
-   "lines": 1343
+   "lines": 1381
   },
   {
    "path": "src/assets/hero.png",
@@ -2378,7 +2792,7 @@
    "path": "src/components/builder/__tests__/optin-keys.ts",
    "bucket": "test",
    "domain": "tests",
-   "lines": 36
+   "lines": 39
   },
   {
    "path": "src/components/builder/__tests__/optin-registry.test.ts",
@@ -2480,7 +2894,7 @@
    "path": "src/components/calendar/CalendarView.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 661
+   "lines": 670
   },
   {
    "path": "src/components/calendar/calLib.ts",
@@ -2720,7 +3134,7 @@
    "path": "src/components/courses/__tests__/reenroll.test.ts",
    "bucket": "test",
    "domain": "tests",
-   "lines": 240
+   "lines": 250
   },
   {
    "path": "src/components/courses/__tests__/retention.test.ts",
@@ -2792,7 +3206,7 @@
    "path": "src/components/courses/CourseDetail.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 1001
+   "lines": 1127
   },
   {
    "path": "src/components/courses/CourseFilesField.tsx",
@@ -2822,13 +3236,19 @@
    "path": "src/components/courses/CoursesView.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 661
+   "lines": 699
   },
   {
    "path": "src/components/courses/dashboard.ts",
    "bucket": "source",
    "domain": "source",
    "lines": 135
+  },
+  {
+   "path": "src/components/courses/EnrollmentPlannedSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 183
   },
   {
    "path": "src/components/courses/EnrollModal.tsx",
@@ -2840,13 +3260,13 @@
    "path": "src/components/courses/lib.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 598
+   "lines": 608
   },
   {
    "path": "src/components/courses/ManageModal.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 586
+   "lines": 611
   },
   {
    "path": "src/components/courses/ops.ts",
@@ -2870,19 +3290,19 @@
    "path": "src/components/courses/reenroll-lib.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 344
+   "lines": 383
   },
   {
    "path": "src/components/courses/ReenrollModals.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 170
+   "lines": 155
   },
   {
    "path": "src/components/courses/ReenrollView.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 349
+   "lines": 343
   },
   {
    "path": "src/components/courses/retention.ts",
@@ -2987,6 +3407,12 @@
    "lines": 105
   },
   {
+   "path": "src/components/families/__tests__/consent-stamp.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 28
+  },
+  {
    "path": "src/components/families/__tests__/cred-threshold.test.ts",
    "bucket": "test",
    "domain": "tests",
@@ -3003,6 +3429,12 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 47
+  },
+  {
+   "path": "src/components/families/__tests__/report-pii-gate.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 49
   },
   {
    "path": "src/components/families/__tests__/waitlist-participation.test.ts",
@@ -3026,7 +3458,7 @@
    "path": "src/components/families/FamilyDetail.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 497
+   "lines": 502
   },
   {
    "path": "src/components/families/FamilyFinder.tsx",
@@ -3044,7 +3476,7 @@
    "path": "src/components/families/FamilyPanels.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 640
+   "lines": 646
   },
   {
    "path": "src/components/families/JoinModal.tsx",
@@ -3062,7 +3494,7 @@
    "path": "src/components/families/MemberForm.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 205
+   "lines": 221
   },
   {
    "path": "src/components/families/ReenrollFamilyPanel.tsx",
@@ -3188,19 +3620,19 @@
    "path": "src/components/lock/CloudUnlockScreen.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 107
+   "lines": 122
   },
   {
    "path": "src/components/lock/EncUnlockScreen.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 106
+   "lines": 121
   },
   {
    "path": "src/components/lock/LockScreen.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 200
+   "lines": 198
   },
   {
    "path": "src/components/palette/__tests__/palette-land.test.ts",
@@ -3497,6 +3929,12 @@
    "lines": 262
   },
   {
+   "path": "src/components/settings/__tests__/cloud-encryption-manager.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 21
+  },
+  {
    "path": "src/components/settings/__tests__/donation-split-activate.test.ts",
    "bucket": "test",
    "domain": "tests",
@@ -3521,10 +3959,16 @@
    "lines": 47
   },
   {
+   "path": "src/components/settings/__tests__/outbox-health.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 40
+  },
+  {
    "path": "src/components/settings/__tests__/settings-groups.test.ts",
    "bucket": "test",
    "domain": "tests",
-   "lines": 102
+   "lines": 103
   },
   {
    "path": "src/components/settings/__tests__/sup-enforce-activate.test.ts",
@@ -3566,7 +4010,7 @@
    "path": "src/components/settings/CloudEncryptionSection.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 186
+   "lines": 190
   },
   {
    "path": "src/components/settings/DonationSplitSection.tsx",
@@ -3623,6 +4067,12 @@
    "lines": 170
   },
   {
+   "path": "src/components/settings/OutboxSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 94
+  },
+  {
    "path": "src/components/settings/RoomsSection.tsx",
    "bucket": "screens",
    "domain": "screens",
@@ -3638,7 +4088,7 @@
    "path": "src/components/settings/SettingsView.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 566
+   "lines": 569
   },
   {
    "path": "src/components/settings/SupEnforceSection.tsx",
@@ -3860,7 +4310,7 @@
    "path": "src/components/shop/RedeemModal.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 166
+   "lines": 203
   },
   {
    "path": "src/components/shop/ShopEventModal.tsx",
@@ -4139,6 +4589,12 @@
    "lines": 70
   },
   {
+   "path": "src/components/supporters/__tests__/planned.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 121
+  },
+  {
    "path": "src/components/supporters/__tests__/portfolio.test.ts",
    "bucket": "test",
    "domain": "tests",
@@ -4181,6 +4637,12 @@
    "lines": 89
   },
   {
+   "path": "src/components/supporters/__tests__/segula.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 40
+  },
+  {
    "path": "src/components/supporters/__tests__/signals.test.ts",
    "bucket": "test",
    "domain": "tests",
@@ -4197,6 +4659,18 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 26
+  },
+  {
+   "path": "src/components/supporters/__tests__/sup-events-desig.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 41
+  },
+  {
+   "path": "src/components/supporters/__tests__/sup-phones.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 76
   },
   {
    "path": "src/components/supporters/__tests__/supdon-events.test.ts",
@@ -4298,7 +4772,7 @@
    "path": "src/components/supporters/DonationModal.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 189
+   "lines": 231
   },
   {
    "path": "src/components/supporters/hebTiming.ts",
@@ -4334,7 +4808,7 @@
    "path": "src/components/supporters/lib.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 751
+   "lines": 859
   },
   {
    "path": "src/components/supporters/NedarimSyncModal.tsx",
@@ -4353,6 +4827,18 @@
    "bucket": "source",
    "domain": "source",
    "lines": 80
+  },
+  {
+   "path": "src/components/supporters/planned.ts",
+   "bucket": "source",
+   "domain": "source",
+   "lines": 119
+  },
+  {
+   "path": "src/components/supporters/PlannedChargesSection.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 212
   },
   {
    "path": "src/components/supporters/portfolio.ts",
@@ -4412,13 +4898,13 @@
    "path": "src/components/supporters/SupporterDetail.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 823
+   "lines": 874
   },
   {
    "path": "src/components/supporters/SupporterForm.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 171
+   "lines": 218
   },
   {
    "path": "src/components/supporters/SupporterImport.tsx",
@@ -4466,7 +4952,7 @@
    "path": "src/components/supporters/SupportersView.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 1416
+   "lines": 1479
   },
   {
    "path": "src/components/supporters/SupportersViewSwitcher.tsx",
@@ -4535,6 +5021,12 @@
    "lines": 28
   },
   {
+   "path": "src/components/timer/__tests__/cashbox-durable.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 37
+  },
+  {
    "path": "src/components/timer/__tests__/cashbox-gal1-ui.test.ts",
    "bucket": "test",
    "domain": "tests",
@@ -4568,7 +5060,7 @@
    "path": "src/components/timer/CashRegister.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 862
+   "lines": 881
   },
   {
    "path": "src/components/timer/MoneyTimer.tsx",
@@ -4994,7 +5486,7 @@
    "path": "src/lib/__tests__/firestore-rules-leads.test.ts",
    "bucket": "test",
    "domain": "tests",
-   "lines": 56
+   "lines": 64
   },
   {
    "path": "src/lib/__tests__/guide.test.ts",
@@ -5078,7 +5570,7 @@
    "path": "src/lib/__tests__/lock.test.ts",
    "bucket": "test",
    "domain": "tests",
-   "lines": 57
+   "lines": 80
   },
   {
    "path": "src/lib/__tests__/mapslink.test.ts",
@@ -5169,6 +5661,12 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 49
+  },
+  {
+   "path": "src/lib/__tests__/plannedMatch.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 99
   },
   {
    "path": "src/lib/__tests__/pricing.test.ts",
@@ -5390,19 +5888,19 @@
    "path": "src/lib/cloud-diff.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 187
+   "lines": 189
   },
   {
    "path": "src/lib/cloud-merge.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 141
+   "lines": 150
   },
   {
    "path": "src/lib/cloud.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 771
+   "lines": 809
   },
   {
    "path": "src/lib/cloudConfig.ts",
@@ -5564,7 +6062,7 @@
    "path": "src/lib/lock.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 86
+   "lines": 170
   },
   {
    "path": "src/lib/mapsLink.ts",
@@ -5625,6 +6123,12 @@
    "bucket": "engines",
    "domain": "engines",
    "lines": 42
+  },
+  {
+   "path": "src/lib/plannedMatch.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 144
   },
   {
    "path": "src/lib/pricing.ts",
@@ -5837,6 +6341,12 @@
    "lines": 74
   },
   {
+   "path": "src/store/__tests__/del-tombstones.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 54
+  },
+  {
    "path": "src/store/__tests__/demo-data.test.ts",
    "bucket": "test",
    "domain": "tests",
@@ -5853,6 +6363,12 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 99
+  },
+  {
+   "path": "src/store/__tests__/enrollment-planned.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 127
   },
   {
    "path": "src/store/__tests__/hok-bulk.test.ts",
@@ -5909,6 +6425,18 @@
    "lines": 67
   },
   {
+   "path": "src/store/__tests__/planned-auto.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 93
+  },
+  {
+   "path": "src/store/__tests__/planned-charges.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 120
+  },
+  {
    "path": "src/store/__tests__/receipt-gate.test.ts",
    "bucket": "test",
    "domain": "tests",
@@ -5925,6 +6453,12 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 29
+  },
+  {
+   "path": "src/store/__tests__/reenroll-capacity.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 166
   },
   {
    "path": "src/store/__tests__/rid-dedup.test.ts",
@@ -5951,6 +6485,12 @@
    "lines": 112
   },
   {
+   "path": "src/store/__tests__/shop-planned.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 97
+  },
+  {
    "path": "src/store/__tests__/supporter-bulk-delete.test.ts",
    "bucket": "test",
    "domain": "tests",
@@ -5967,6 +6507,12 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 40
+  },
+  {
+   "path": "src/store/__tests__/sync-recovery.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 65
   },
   {
    "path": "src/store/__tests__/teacher-payment.test.ts",
@@ -6002,7 +6548,7 @@
    "path": "src/store/cloudSync.ts",
    "bucket": "actions",
    "domain": "actions",
-   "lines": 305
+   "lines": 385
   },
   {
    "path": "src/store/dbWatch.ts",
@@ -6020,7 +6566,7 @@
    "path": "src/store/useApp.ts",
    "bucket": "actions",
    "domain": "actions",
-   "lines": 3586
+   "lines": 4035
   },
   {
    "path": "src/styles/global.css",
@@ -6056,13 +6602,13 @@
    "path": "src/types/domain.ts",
    "bucket": "source",
    "domain": "source",
-   "lines": 1186
+   "lines": 1377
   },
   {
    "path": "src/types/features.ts",
    "bucket": "flags",
    "domain": "flags",
-   "lines": 474
+   "lines": 479
   },
   {
    "path": "src/types/fflate.d.ts",

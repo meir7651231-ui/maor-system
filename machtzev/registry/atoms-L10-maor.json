@@ -135,13 +135,22 @@
   "source": "maor/src/types/domain.ts:39"
  },
  {
+  "id": "L10:maor:Member.mConsentAt",
+  "level": "L10-field",
+  "entity": "Member",
+  "name": "mConsentAt",
+  "optional": true,
+  "type": "Partial<Record<'mSefach' | 'mInvite' | '",
+  "source": "maor/src/types/domain.ts:45"
+ },
+ {
   "id": "L10:maor:Member.notes",
   "level": "L10-field",
   "entity": "Member",
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:40"
+  "source": "maor/src/types/domain.ts:46"
  },
  {
   "id": "L10:maor:Member.isParent",
@@ -150,7 +159,7 @@
   "name": "isParent",
   "optional": true,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:41"
+  "source": "maor/src/types/domain.ts:47"
  },
  {
   "id": "L10:maor:CredLogEntry.date",
@@ -159,7 +168,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:46"
+  "source": "maor/src/types/domain.ts:52"
  },
  {
   "id": "L10:maor:CredLogEntry.delta",
@@ -168,7 +177,7 @@
   "name": "delta",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:47"
+  "source": "maor/src/types/domain.ts:53"
  },
  {
   "id": "L10:maor:CredLogEntry.reason",
@@ -177,7 +186,7 @@
   "name": "reason",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:48"
+  "source": "maor/src/types/domain.ts:54"
  },
  {
   "id": "L10:maor:FamilyCred.score",
@@ -186,7 +195,7 @@
   "name": "score",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:53"
+  "source": "maor/src/types/domain.ts:59"
  },
  {
   "id": "L10:maor:FamilyCred.log",
@@ -195,7 +204,7 @@
   "name": "log",
   "optional": false,
   "type": "CredLogEntry[]",
-  "source": "maor/src/types/domain.ts:54"
+  "source": "maor/src/types/domain.ts:60"
  },
  {
   "id": "L10:maor:FamilyDoc.id",
@@ -204,7 +213,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:58"
+  "source": "maor/src/types/domain.ts:64"
  },
  {
   "id": "L10:maor:FamilyDoc.name",
@@ -213,7 +222,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:59"
+  "source": "maor/src/types/domain.ts:65"
  },
  {
   "id": "L10:maor:FamilyDoc.addedAt",
@@ -222,7 +231,7 @@
   "name": "addedAt",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:60"
+  "source": "maor/src/types/domain.ts:66"
  },
  {
   "id": "L10:maor:Family.id",
@@ -231,7 +240,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:66"
+  "source": "maor/src/types/domain.ts:72"
  },
  {
   "id": "L10:maor:Family.name",
@@ -240,7 +249,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:67"
+  "source": "maor/src/types/domain.ts:73"
  },
  {
   "id": "L10:maor:Family.father",
@@ -249,7 +258,7 @@
   "name": "father",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:68"
+  "source": "maor/src/types/domain.ts:74"
  },
  {
   "id": "L10:maor:Family.fatherId",
@@ -258,7 +267,7 @@
   "name": "fatherId",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:69"
+  "source": "maor/src/types/domain.ts:75"
  },
  {
   "id": "L10:maor:Family.mother",
@@ -267,7 +276,7 @@
   "name": "mother",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:70"
+  "source": "maor/src/types/domain.ts:76"
  },
  {
   "id": "L10:maor:Family.motherId",
@@ -276,7 +285,7 @@
   "name": "motherId",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:71"
+  "source": "maor/src/types/domain.ts:77"
  },
  {
   "id": "L10:maor:Family.phone",
@@ -285,7 +294,7 @@
   "name": "phone",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:72"
+  "source": "maor/src/types/domain.ts:78"
  },
  {
   "id": "L10:maor:Family.phone2",
@@ -294,7 +303,7 @@
   "name": "phone2",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:73"
+  "source": "maor/src/types/domain.ts:79"
  },
  {
   "id": "L10:maor:Family.email",
@@ -303,7 +312,7 @@
   "name": "email",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:74"
+  "source": "maor/src/types/domain.ts:80"
  },
  {
   "id": "L10:maor:Family.city",
@@ -312,7 +321,7 @@
   "name": "city",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:75"
+  "source": "maor/src/types/domain.ts:81"
  },
  {
   "id": "L10:maor:Family.address",
@@ -321,7 +330,7 @@
   "name": "address",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:76"
+  "source": "maor/src/types/domain.ts:82"
  },
  {
   "id": "L10:maor:Family.community",
@@ -330,7 +339,7 @@
   "name": "community",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:77"
+  "source": "maor/src/types/domain.ts:83"
  },
  {
   "id": "L10:maor:Family.maritalStatus",
@@ -339,7 +348,7 @@
   "name": "maritalStatus",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:78"
+  "source": "maor/src/types/domain.ts:84"
  },
  {
   "id": "L10:maor:Family.language",
@@ -348,7 +357,7 @@
   "name": "language",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:79"
+  "source": "maor/src/types/domain.ts:85"
  },
  {
   "id": "L10:maor:Family.tzedaka",
@@ -357,7 +366,7 @@
   "name": "tzedaka",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:81"
+  "source": "maor/src/types/domain.ts:87"
  },
  {
   "id": "L10:maor:Family.fullSefach",
@@ -366,7 +375,7 @@
   "name": "fullSefach",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:83"
+  "source": "maor/src/types/domain.ts:89"
  },
  {
   "id": "L10:maor:Family.discount",
@@ -375,7 +384,7 @@
   "name": "discount",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:85"
+  "source": "maor/src/types/domain.ts:91"
  },
  {
   "id": "L10:maor:Family.status",
@@ -384,7 +393,7 @@
   "name": "status",
   "optional": false,
   "type": "FamilyStatus",
-  "source": "maor/src/types/domain.ts:86"
+  "source": "maor/src/types/domain.ts:92"
  },
  {
   "id": "L10:maor:Family.notes",
@@ -393,7 +402,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:87"
+  "source": "maor/src/types/domain.ts:93"
  },
  {
   "id": "L10:maor:Family.kidsHome",
@@ -402,7 +411,7 @@
   "name": "kidsHome",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:89"
+  "source": "maor/src/types/domain.ts:95"
  },
  {
   "id": "L10:maor:Family.kidsMarried",
@@ -411,7 +420,7 @@
   "name": "kidsMarried",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:91"
+  "source": "maor/src/types/domain.ts:97"
  },
  {
   "id": "L10:maor:Family.members",
@@ -420,7 +429,7 @@
   "name": "members",
   "optional": false,
   "type": "Member[]",
-  "source": "maor/src/types/domain.ts:92"
+  "source": "maor/src/types/domain.ts:98"
  },
  {
   "id": "L10:maor:Family.docs",
@@ -429,7 +438,7 @@
   "name": "docs",
   "optional": false,
   "type": "FamilyDoc[]",
-  "source": "maor/src/types/domain.ts:93"
+  "source": "maor/src/types/domain.ts:99"
  },
  {
   "id": "L10:maor:Family.cred",
@@ -438,7 +447,7 @@
   "name": "cred",
   "optional": false,
   "type": "FamilyCred",
-  "source": "maor/src/types/domain.ts:94"
+  "source": "maor/src/types/domain.ts:100"
  },
  {
   "id": "L10:maor:Family.createdAt",
@@ -447,7 +456,7 @@
   "name": "createdAt",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:95"
+  "source": "maor/src/types/domain.ts:101"
  },
  {
   "id": "L10:maor:CourseSession.day",
@@ -456,7 +465,7 @@
   "name": "day",
   "optional": false,
   "type": "Weekday",
-  "source": "maor/src/types/domain.ts:99"
+  "source": "maor/src/types/domain.ts:105"
  },
  {
   "id": "L10:maor:CourseSession.time",
@@ -465,7 +474,7 @@
   "name": "time",
   "optional": false,
   "type": "TimeHM",
-  "source": "maor/src/types/domain.ts:100"
+  "source": "maor/src/types/domain.ts:106"
  },
  {
   "id": "L10:maor:CourseSession.label",
@@ -474,7 +483,7 @@
   "name": "label",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:102"
+  "source": "maor/src/types/domain.ts:108"
  },
  {
   "id": "L10:maor:CourseFile.id",
@@ -483,7 +492,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:114"
+  "source": "maor/src/types/domain.ts:120"
  },
  {
   "id": "L10:maor:CourseFile.name",
@@ -492,7 +501,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:115"
+  "source": "maor/src/types/domain.ts:121"
  },
  {
   "id": "L10:maor:CourseFile.kind",
@@ -501,7 +510,7 @@
   "name": "kind",
   "optional": false,
   "type": "'image' | 'file' | 'link'",
-  "source": "maor/src/types/domain.ts:116"
+  "source": "maor/src/types/domain.ts:122"
  },
  {
   "id": "L10:maor:CourseFile.data",
@@ -510,7 +519,7 @@
   "name": "data",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:118"
+  "source": "maor/src/types/domain.ts:124"
  },
  {
   "id": "L10:maor:CourseFile.mime",
@@ -519,7 +528,7 @@
   "name": "mime",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:120"
+  "source": "maor/src/types/domain.ts:126"
  },
  {
   "id": "L10:maor:CourseFile.size",
@@ -528,7 +537,7 @@
   "name": "size",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:122"
+  "source": "maor/src/types/domain.ts:128"
  },
  {
   "id": "L10:maor:Course.id",
@@ -537,7 +546,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:126"
+  "source": "maor/src/types/domain.ts:132"
  },
  {
   "id": "L10:maor:Course.name",
@@ -546,7 +555,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:127"
+  "source": "maor/src/types/domain.ts:133"
  },
  {
   "id": "L10:maor:Course.teacherId",
@@ -555,7 +564,7 @@
   "name": "teacherId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:128"
+  "source": "maor/src/types/domain.ts:134"
  },
  {
   "id": "L10:maor:Course.roomId",
@@ -564,7 +573,7 @@
   "name": "roomId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:129"
+  "source": "maor/src/types/domain.ts:135"
  },
  {
   "id": "L10:maor:Course.description",
@@ -573,7 +582,7 @@
   "name": "description",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:130"
+  "source": "maor/src/types/domain.ts:136"
  },
  {
   "id": "L10:maor:Course.price",
@@ -582,7 +591,7 @@
   "name": "price",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:131"
+  "source": "maor/src/types/domain.ts:137"
  },
  {
   "id": "L10:maor:Course.price1",
@@ -591,7 +600,7 @@
   "name": "price1",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:133"
+  "source": "maor/src/types/domain.ts:139"
  },
  {
   "id": "L10:maor:Course.price2",
@@ -600,7 +609,7 @@
   "name": "price2",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:134"
+  "source": "maor/src/types/domain.ts:140"
  },
  {
   "id": "L10:maor:Course.price1Name",
@@ -609,7 +618,7 @@
   "name": "price1Name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:135"
+  "source": "maor/src/types/domain.ts:141"
  },
  {
   "id": "L10:maor:Course.price2Name",
@@ -618,7 +627,7 @@
   "name": "price2Name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:136"
+  "source": "maor/src/types/domain.ts:142"
  },
  {
   "id": "L10:maor:Course.price3",
@@ -627,7 +636,7 @@
   "name": "price3",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:138"
+  "source": "maor/src/types/domain.ts:144"
  },
  {
   "id": "L10:maor:Course.price3Name",
@@ -636,7 +645,7 @@
   "name": "price3Name",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:139"
+  "source": "maor/src/types/domain.ts:145"
  },
  {
   "id": "L10:maor:Course.model",
@@ -645,7 +654,7 @@
   "name": "model",
   "optional": false,
   "type": "PricingModel",
-  "source": "maor/src/types/domain.ts:140"
+  "source": "maor/src/types/domain.ts:146"
  },
  {
   "id": "L10:maor:Course.size",
@@ -654,7 +663,7 @@
   "name": "size",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:142"
+  "source": "maor/src/types/domain.ts:148"
  },
  {
   "id": "L10:maor:Course.start",
@@ -663,7 +672,7 @@
   "name": "start",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:143"
+  "source": "maor/src/types/domain.ts:149"
  },
  {
   "id": "L10:maor:Course.end",
@@ -672,7 +681,7 @@
   "name": "end",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:144"
+  "source": "maor/src/types/domain.ts:150"
  },
  {
   "id": "L10:maor:Course.weekday",
@@ -681,7 +690,7 @@
   "name": "weekday",
   "optional": false,
   "type": "Weekday",
-  "source": "maor/src/types/domain.ts:145"
+  "source": "maor/src/types/domain.ts:151"
  },
  {
   "id": "L10:maor:Course.time",
@@ -690,7 +699,7 @@
   "name": "time",
   "optional": false,
   "type": "TimeHM",
-  "source": "maor/src/types/domain.ts:146"
+  "source": "maor/src/types/domain.ts:152"
  },
  {
   "id": "L10:maor:Course.maxStudents",
@@ -699,7 +708,7 @@
   "name": "maxStudents",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:147"
+  "source": "maor/src/types/domain.ts:153"
  },
  {
   "id": "L10:maor:Course.gender",
@@ -708,7 +717,7 @@
   "name": "gender",
   "optional": false,
   "type": "Gender | 'all'",
-  "source": "maor/src/types/domain.ts:148"
+  "source": "maor/src/types/domain.ts:154"
  },
  {
   "id": "L10:maor:Course.ageMin",
@@ -717,7 +726,7 @@
   "name": "ageMin",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:149"
+  "source": "maor/src/types/domain.ts:155"
  },
  {
   "id": "L10:maor:Course.ageMax",
@@ -726,7 +735,7 @@
   "name": "ageMax",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:150"
+  "source": "maor/src/types/domain.ts:156"
  },
  {
   "id": "L10:maor:Course.cat",
@@ -735,7 +744,7 @@
   "name": "cat",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:151"
+  "source": "maor/src/types/domain.ts:157"
  },
  {
   "id": "L10:maor:Course.semester",
@@ -744,7 +753,7 @@
   "name": "semester",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:152"
+  "source": "maor/src/types/domain.ts:158"
  },
  {
   "id": "L10:maor:Course.sector",
@@ -753,7 +762,7 @@
   "name": "sector",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:153"
+  "source": "maor/src/types/domain.ts:159"
  },
  {
   "id": "L10:maor:Course.audience",
@@ -762,7 +771,7 @@
   "name": "audience",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:154"
+  "source": "maor/src/types/domain.ts:160"
  },
  {
   "id": "L10:maor:Course.img",
@@ -771,7 +780,7 @@
   "name": "img",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:155"
+  "source": "maor/src/types/domain.ts:161"
  },
  {
   "id": "L10:maor:Course.gradeMin",
@@ -780,7 +789,7 @@
   "name": "gradeMin",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:157"
+  "source": "maor/src/types/domain.ts:163"
  },
  {
   "id": "L10:maor:Course.gradeMax",
@@ -789,7 +798,7 @@
   "name": "gradeMax",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:158"
+  "source": "maor/src/types/domain.ts:164"
  },
  {
   "id": "L10:maor:Course.sessions",
@@ -798,7 +807,7 @@
   "name": "sessions",
   "optional": false,
   "type": "CourseSession[]",
-  "source": "maor/src/types/domain.ts:159"
+  "source": "maor/src/types/domain.ts:165"
  },
  {
   "id": "L10:maor:Course.notes",
@@ -807,7 +816,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:160"
+  "source": "maor/src/types/domain.ts:166"
  },
  {
   "id": "L10:maor:Course.files",
@@ -816,7 +825,7 @@
   "name": "files",
   "optional": true,
   "type": "CourseFile[]",
-  "source": "maor/src/types/domain.ts:162"
+  "source": "maor/src/types/domain.ts:168"
  },
  {
   "id": "L10:maor:Course.perLesson",
@@ -825,7 +834,7 @@
   "name": "perLesson",
   "optional": true,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:168"
+  "source": "maor/src/types/domain.ts:174"
  },
  {
   "id": "L10:maor:Course.lessonPrice",
@@ -834,7 +843,7 @@
   "name": "lessonPrice",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:170"
+  "source": "maor/src/types/domain.ts:176"
  },
  {
   "id": "L10:maor:Course.lessonPrice1",
@@ -843,7 +852,7 @@
   "name": "lessonPrice1",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:172"
+  "source": "maor/src/types/domain.ts:178"
  },
  {
   "id": "L10:maor:Course.lessonPrice2",
@@ -852,7 +861,7 @@
   "name": "lessonPrice2",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:174"
+  "source": "maor/src/types/domain.ts:180"
  },
  {
   "id": "L10:maor:Course.lessonPrice3",
@@ -861,7 +870,7 @@
   "name": "lessonPrice3",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:176"
+  "source": "maor/src/types/domain.ts:182"
  },
  {
   "id": "L10:maor:Course.year",
@@ -870,7 +879,7 @@
   "name": "year",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:181"
+  "source": "maor/src/types/domain.ts:187"
  },
  {
   "id": "L10:maor:Course.prevYearId",
@@ -879,7 +888,7 @@
   "name": "prevYearId",
   "optional": true,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:183"
+  "source": "maor/src/types/domain.ts:189"
  },
  {
   "id": "L10:maor:Absence.date",
@@ -888,7 +897,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:187"
+  "source": "maor/src/types/domain.ts:193"
  },
  {
   "id": "L10:maor:Absence.reason",
@@ -897,7 +906,7 @@
   "name": "reason",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:188"
+  "source": "maor/src/types/domain.ts:194"
  },
  {
   "id": "L10:maor:Absence.makeup",
@@ -906,7 +915,7 @@
   "name": "makeup",
   "optional": true,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:190"
+  "source": "maor/src/types/domain.ts:196"
  },
  {
   "id": "L10:maor:Absence.makeupDate",
@@ -915,7 +924,7 @@
   "name": "makeupDate",
   "optional": true,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:192"
+  "source": "maor/src/types/domain.ts:198"
  },
  {
   "id": "L10:maor:Absence.noshow",
@@ -924,7 +933,7 @@
   "name": "noshow",
   "optional": true,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:194"
+  "source": "maor/src/types/domain.ts:200"
  },
  {
   "id": "L10:maor:Absence.justified",
@@ -933,7 +942,7 @@
   "name": "justified",
   "optional": true,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:199"
+  "source": "maor/src/types/domain.ts:205"
  },
  {
   "id": "L10:maor:Payment.rid",
@@ -942,7 +951,7 @@
   "name": "rid",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:204"
+  "source": "maor/src/types/domain.ts:210"
  },
  {
   "id": "L10:maor:Payment.date",
@@ -951,7 +960,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:205"
+  "source": "maor/src/types/domain.ts:211"
  },
  {
   "id": "L10:maor:Payment.amount",
@@ -960,7 +969,7 @@
   "name": "amount",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:206"
+  "source": "maor/src/types/domain.ts:212"
  },
  {
   "id": "L10:maor:Payment.method",
@@ -969,7 +978,7 @@
   "name": "method",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:207"
+  "source": "maor/src/types/domain.ts:213"
  },
  {
   "id": "L10:maor:Enrollment.id",
@@ -978,7 +987,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:213"
+  "source": "maor/src/types/domain.ts:219"
  },
  {
   "id": "L10:maor:Enrollment.memberId",
@@ -987,7 +996,7 @@
   "name": "memberId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:214"
+  "source": "maor/src/types/domain.ts:220"
  },
  {
   "id": "L10:maor:Enrollment.courseId",
@@ -996,7 +1005,7 @@
   "name": "courseId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:215"
+  "source": "maor/src/types/domain.ts:221"
  },
  {
   "id": "L10:maor:Enrollment.plan",
@@ -1005,7 +1014,7 @@
   "name": "plan",
   "optional": false,
   "type": "PricingModel",
-  "source": "maor/src/types/domain.ts:216"
+  "source": "maor/src/types/domain.ts:222"
  },
  {
   "id": "L10:maor:Enrollment.purchased",
@@ -1014,7 +1023,7 @@
   "name": "purchased",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:218"
+  "source": "maor/src/types/domain.ts:224"
  },
  {
   "id": "L10:maor:Enrollment.used",
@@ -1023,7 +1032,7 @@
   "name": "used",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:220"
+  "source": "maor/src/types/domain.ts:226"
  },
  {
   "id": "L10:maor:Enrollment.group",
@@ -1032,7 +1041,7 @@
   "name": "group",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:222"
+  "source": "maor/src/types/domain.ts:228"
  },
  {
   "id": "L10:maor:Enrollment.absences",
@@ -1041,7 +1050,7 @@
   "name": "absences",
   "optional": false,
   "type": "Absence[]",
-  "source": "maor/src/types/domain.ts:223"
+  "source": "maor/src/types/domain.ts:229"
  },
  {
   "id": "L10:maor:Enrollment.presents",
@@ -1050,7 +1059,7 @@
   "name": "presents",
   "optional": true,
   "type": "IsoDate[]",
-  "source": "maor/src/types/domain.ts:229"
+  "source": "maor/src/types/domain.ts:235"
  },
  {
   "id": "L10:maor:Enrollment.payments",
@@ -1059,7 +1068,7 @@
   "name": "payments",
   "optional": false,
   "type": "Payment[]",
-  "source": "maor/src/types/domain.ts:230"
+  "source": "maor/src/types/domain.ts:236"
  },
  {
   "id": "L10:maor:Enrollment.totalDue",
@@ -1068,7 +1077,7 @@
   "name": "totalDue",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:231"
+  "source": "maor/src/types/domain.ts:237"
  },
  {
   "id": "L10:maor:Enrollment.dueDate",
@@ -1077,7 +1086,7 @@
   "name": "dueDate",
   "optional": false,
   "type": "IsoDate | ''",
-  "source": "maor/src/types/domain.ts:232"
+  "source": "maor/src/types/domain.ts:238"
  },
  {
   "id": "L10:maor:Enrollment.dueEventId",
@@ -1086,7 +1095,7 @@
   "name": "dueEventId",
   "optional": true,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:234"
+  "source": "maor/src/types/domain.ts:240"
  },
  {
   "id": "L10:maor:Enrollment.status",
@@ -1095,7 +1104,7 @@
   "name": "status",
   "optional": false,
   "type": "EnrollmentStatus",
-  "source": "maor/src/types/domain.ts:235"
+  "source": "maor/src/types/domain.ts:241"
  },
  {
   "id": "L10:maor:Enrollment.note",
@@ -1104,7 +1113,7 @@
   "name": "note",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:236"
+  "source": "maor/src/types/domain.ts:242"
  },
  {
   "id": "L10:maor:Enrollment.enrolledAt",
@@ -1113,7 +1122,7 @@
   "name": "enrolledAt",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:237"
+  "source": "maor/src/types/domain.ts:243"
  },
  {
   "id": "L10:maor:Enrollment.endedAt",
@@ -1122,7 +1131,7 @@
   "name": "endedAt",
   "optional": true,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:243"
+  "source": "maor/src/types/domain.ts:249"
  },
  {
   "id": "L10:maor:Enrollment.paidFull",
@@ -1131,7 +1140,7 @@
   "name": "paidFull",
   "optional": true,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:249"
+  "source": "maor/src/types/domain.ts:255"
  },
  {
   "id": "L10:maor:Enrollment.freq",
@@ -1140,7 +1149,7 @@
   "name": "freq",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:254"
+  "source": "maor/src/types/domain.ts:260"
  },
  {
   "id": "L10:maor:Enrollment.freqUnit",
@@ -1149,7 +1158,7 @@
   "name": "freqUnit",
   "optional": true,
   "type": "'week' | 'month'",
-  "source": "maor/src/types/domain.ts:255"
+  "source": "maor/src/types/domain.ts:261"
  },
  {
   "id": "L10:maor:Enrollment.term",
@@ -1158,7 +1167,7 @@
   "name": "term",
   "optional": true,
   "type": "PricingTerm",
-  "source": "maor/src/types/domain.ts:256"
+  "source": "maor/src/types/domain.ts:262"
  },
  {
   "id": "L10:maor:Enrollment.termMonths",
@@ -1167,7 +1176,7 @@
   "name": "termMonths",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:258"
+  "source": "maor/src/types/domain.ts:264"
  },
  {
   "id": "L10:maor:Enrollment.tier",
@@ -1176,7 +1185,7 @@
   "name": "tier",
   "optional": true,
   "type": "'' | '1' | '2' | '3'",
-  "source": "maor/src/types/domain.ts:260"
+  "source": "maor/src/types/domain.ts:266"
  },
  {
   "id": "L10:maor:Enrollment.renew",
@@ -1185,7 +1194,7 @@
   "name": "renew",
   "optional": true,
   "type": "'yes' | 'no' | 'hold'",
-  "source": "maor/src/types/domain.ts:266"
+  "source": "maor/src/types/domain.ts:272"
  },
  {
   "id": "L10:maor:Enrollment.renewNote",
@@ -1194,7 +1203,7 @@
   "name": "renewNote",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:268"
+  "source": "maor/src/types/domain.ts:274"
  },
  {
   "id": "L10:maor:Enrollment.renewedToId",
@@ -1203,7 +1212,34 @@
   "name": "renewedToId",
   "optional": true,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:270"
+  "source": "maor/src/types/domain.ts:276"
+ },
+ {
+  "id": "L10:maor:Enrollment.year",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "year",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:280"
+ },
+ {
+  "id": "L10:maor:Enrollment.plannedCharges",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "plannedCharges",
+  "optional": true,
+  "type": "PlannedCharge[]",
+  "source": "maor/src/types/domain.ts:288"
+ },
+ {
+  "id": "L10:maor:Enrollment.carryBalance",
+  "level": "L10-field",
+  "entity": "Enrollment",
+  "name": "carryBalance",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:301"
  },
  {
   "id": "L10:maor:Teacher.id",
@@ -1212,7 +1248,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:277"
+  "source": "maor/src/types/domain.ts:308"
  },
  {
   "id": "L10:maor:Teacher.name",
@@ -1221,7 +1257,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:278"
+  "source": "maor/src/types/domain.ts:309"
  },
  {
   "id": "L10:maor:Teacher.phone",
@@ -1230,7 +1266,7 @@
   "name": "phone",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:279"
+  "source": "maor/src/types/domain.ts:310"
  },
  {
   "id": "L10:maor:Teacher.phone2",
@@ -1239,7 +1275,7 @@
   "name": "phone2",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:280"
+  "source": "maor/src/types/domain.ts:311"
  },
  {
   "id": "L10:maor:Teacher.email",
@@ -1248,7 +1284,7 @@
   "name": "email",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:281"
+  "source": "maor/src/types/domain.ts:312"
  },
  {
   "id": "L10:maor:Teacher.idNum",
@@ -1257,7 +1293,7 @@
   "name": "idNum",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:282"
+  "source": "maor/src/types/domain.ts:313"
  },
  {
   "id": "L10:maor:Teacher.address",
@@ -1266,7 +1302,7 @@
   "name": "address",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:283"
+  "source": "maor/src/types/domain.ts:314"
  },
  {
   "id": "L10:maor:Teacher.specialty",
@@ -1275,7 +1311,7 @@
   "name": "specialty",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:284"
+  "source": "maor/src/types/domain.ts:315"
  },
  {
   "id": "L10:maor:Teacher.payRate",
@@ -1284,7 +1320,7 @@
   "name": "payRate",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:286"
+  "source": "maor/src/types/domain.ts:317"
  },
  {
   "id": "L10:maor:Teacher.startDate",
@@ -1293,7 +1329,7 @@
   "name": "startDate",
   "optional": false,
   "type": "IsoDate | ''",
-  "source": "maor/src/types/domain.ts:287"
+  "source": "maor/src/types/domain.ts:318"
  },
  {
   "id": "L10:maor:Teacher.notes",
@@ -1302,7 +1338,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:288"
+  "source": "maor/src/types/domain.ts:319"
  },
  {
   "id": "L10:maor:Teacher.payMethod",
@@ -1311,7 +1347,7 @@
   "name": "payMethod",
   "optional": true,
   "type": "'cash' | 'salary' | 'check' | ''",
-  "source": "maor/src/types/domain.ts:294"
+  "source": "maor/src/types/domain.ts:325"
  },
  {
   "id": "L10:maor:Teacher.payToOther",
@@ -1320,7 +1356,7 @@
   "name": "payToOther",
   "optional": true,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:299"
+  "source": "maor/src/types/domain.ts:330"
  },
  {
   "id": "L10:maor:Teacher.payeeName",
@@ -1329,7 +1365,7 @@
   "name": "payeeName",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:301"
+  "source": "maor/src/types/domain.ts:332"
  },
  {
   "id": "L10:maor:Teacher.payeePhone",
@@ -1338,7 +1374,7 @@
   "name": "payeePhone",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:303"
+  "source": "maor/src/types/domain.ts:334"
  },
  {
   "id": "L10:maor:Teacher.payeeIdNum",
@@ -1347,7 +1383,7 @@
   "name": "payeeIdNum",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:305"
+  "source": "maor/src/types/domain.ts:336"
  },
  {
   "id": "L10:maor:Teacher.bankName",
@@ -1356,7 +1392,7 @@
   "name": "bankName",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:306"
+  "source": "maor/src/types/domain.ts:337"
  },
  {
   "id": "L10:maor:Teacher.bankBranch",
@@ -1365,7 +1401,7 @@
   "name": "bankBranch",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:307"
+  "source": "maor/src/types/domain.ts:338"
  },
  {
   "id": "L10:maor:Teacher.bankAccount",
@@ -1374,7 +1410,7 @@
   "name": "bankAccount",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:308"
+  "source": "maor/src/types/domain.ts:339"
  },
  {
   "id": "L10:maor:Room.id",
@@ -1383,7 +1419,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:312"
+  "source": "maor/src/types/domain.ts:343"
  },
  {
   "id": "L10:maor:Room.name",
@@ -1392,7 +1428,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:313"
+  "source": "maor/src/types/domain.ts:344"
  },
  {
   "id": "L10:maor:Room.active",
@@ -1401,7 +1437,7 @@
   "name": "active",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:314"
+  "source": "maor/src/types/domain.ts:345"
  },
  {
   "id": "L10:maor:Room.slot",
@@ -1410,7 +1446,7 @@
   "name": "slot",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:316"
+  "source": "maor/src/types/domain.ts:347"
  },
  {
   "id": "L10:maor:Room.cap",
@@ -1419,7 +1455,7 @@
   "name": "cap",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:318"
+  "source": "maor/src/types/domain.ts:349"
  },
  {
   "id": "L10:maor:Room.location",
@@ -1428,7 +1464,7 @@
   "name": "location",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:319"
+  "source": "maor/src/types/domain.ts:350"
  },
  {
   "id": "L10:maor:Room.rate",
@@ -1437,7 +1473,7 @@
   "name": "rate",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:321"
+  "source": "maor/src/types/domain.ts:352"
  },
  {
   "id": "L10:maor:Room.from",
@@ -1446,7 +1482,7 @@
   "name": "from",
   "optional": false,
   "type": "TimeHM",
-  "source": "maor/src/types/domain.ts:322"
+  "source": "maor/src/types/domain.ts:353"
  },
  {
   "id": "L10:maor:Room.to",
@@ -1455,7 +1491,7 @@
   "name": "to",
   "optional": false,
   "type": "TimeHM",
-  "source": "maor/src/types/domain.ts:323"
+  "source": "maor/src/types/domain.ts:354"
  },
  {
   "id": "L10:maor:Room.access",
@@ -1464,7 +1500,7 @@
   "name": "access",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:325"
+  "source": "maor/src/types/domain.ts:356"
  },
  {
   "id": "L10:maor:Room.notes",
@@ -1473,7 +1509,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:326"
+  "source": "maor/src/types/domain.ts:357"
  },
  {
   "id": "L10:maor:Room.eq",
@@ -1482,7 +1518,7 @@
   "name": "eq",
   "optional": false,
   "type": "Record<string, boolean>",
-  "source": "maor/src/types/domain.ts:328"
+  "source": "maor/src/types/domain.ts:359"
  },
  {
   "id": "L10:maor:OrgEvent.id",
@@ -1491,7 +1527,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:344"
+  "source": "maor/src/types/domain.ts:375"
  },
  {
   "id": "L10:maor:OrgEvent.title",
@@ -1500,7 +1536,7 @@
   "name": "title",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:345"
+  "source": "maor/src/types/domain.ts:376"
  },
  {
   "id": "L10:maor:OrgEvent.date",
@@ -1509,7 +1545,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:346"
+  "source": "maor/src/types/domain.ts:377"
  },
  {
   "id": "L10:maor:OrgEvent.time",
@@ -1518,7 +1554,7 @@
   "name": "time",
   "optional": false,
   "type": "TimeHM",
-  "source": "maor/src/types/domain.ts:347"
+  "source": "maor/src/types/domain.ts:378"
  },
  {
   "id": "L10:maor:OrgEvent.type",
@@ -1527,7 +1563,7 @@
   "name": "type",
   "optional": false,
   "type": "EventType",
-  "source": "maor/src/types/domain.ts:348"
+  "source": "maor/src/types/domain.ts:379"
  },
  {
   "id": "L10:maor:OrgEvent.customType",
@@ -1536,7 +1572,7 @@
   "name": "customType",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:350"
+  "source": "maor/src/types/domain.ts:381"
  },
  {
   "id": "L10:maor:OrgEvent.notes",
@@ -1545,7 +1581,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:351"
+  "source": "maor/src/types/domain.ts:382"
  },
  {
   "id": "L10:maor:OrgEvent.price",
@@ -1554,7 +1590,7 @@
   "name": "price",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:352"
+  "source": "maor/src/types/domain.ts:383"
  },
  {
   "id": "L10:maor:OrgEvent.roomId",
@@ -1563,7 +1599,7 @@
   "name": "roomId",
   "optional": false,
   "type": "Id | ''",
-  "source": "maor/src/types/domain.ts:353"
+  "source": "maor/src/types/domain.ts:384"
  },
  {
   "id": "L10:maor:OrgEvent.famId",
@@ -1572,7 +1608,7 @@
   "name": "famId",
   "optional": false,
   "type": "Id | ''",
-  "source": "maor/src/types/domain.ts:355"
+  "source": "maor/src/types/domain.ts:386"
  },
  {
   "id": "L10:maor:OrgEvent.spId",
@@ -1581,7 +1617,7 @@
   "name": "spId",
   "optional": true,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:357"
+  "source": "maor/src/types/domain.ts:388"
  },
  {
   "id": "L10:maor:OrgEvent.priority",
@@ -1590,7 +1626,7 @@
   "name": "priority",
   "optional": false,
   "type": "EventPriority",
-  "source": "maor/src/types/domain.ts:358"
+  "source": "maor/src/types/domain.ts:389"
  },
  {
   "id": "L10:maor:OrgEvent.done",
@@ -1599,7 +1635,7 @@
   "name": "done",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:359"
+  "source": "maor/src/types/domain.ts:390"
  },
  {
   "id": "L10:maor:Donation.rid",
@@ -1608,7 +1644,7 @@
   "name": "rid",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:371"
+  "source": "maor/src/types/domain.ts:402"
  },
  {
   "id": "L10:maor:Donation.date",
@@ -1617,7 +1653,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:372"
+  "source": "maor/src/types/domain.ts:403"
  },
  {
   "id": "L10:maor:Donation.amount",
@@ -1626,7 +1662,7 @@
   "name": "amount",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:373"
+  "source": "maor/src/types/domain.ts:404"
  },
  {
   "id": "L10:maor:Donation.cur",
@@ -1635,7 +1671,7 @@
   "name": "cur",
   "optional": false,
   "type": "'₪' | '$'",
-  "source": "maor/src/types/domain.ts:374"
+  "source": "maor/src/types/domain.ts:405"
  },
  {
   "id": "L10:maor:Donation.cat",
@@ -1644,7 +1680,7 @@
   "name": "cat",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:375"
+  "source": "maor/src/types/domain.ts:406"
  },
  {
   "id": "L10:maor:Donation.designation",
@@ -1653,7 +1689,7 @@
   "name": "designation",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:381"
+  "source": "maor/src/types/domain.ts:412"
  },
  {
   "id": "L10:maor:Donation.purpose",
@@ -1662,7 +1698,7 @@
   "name": "purpose",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:388"
+  "source": "maor/src/types/domain.ts:419"
  },
  {
   "id": "L10:maor:AyinName.id",
@@ -1671,7 +1707,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:400"
+  "source": "maor/src/types/domain.ts:431"
  },
  {
   "id": "L10:maor:AyinName.name",
@@ -1680,7 +1716,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:401"
+  "source": "maor/src/types/domain.ts:432"
  },
  {
   "id": "L10:maor:AyinName.eyes",
@@ -1689,7 +1725,7 @@
   "name": "eyes",
   "optional": false,
   "type": "number | ''",
-  "source": "maor/src/types/domain.ts:403"
+  "source": "maor/src/types/domain.ts:434"
  },
  {
   "id": "L10:maor:AyinName.done",
@@ -1698,7 +1734,7 @@
   "name": "done",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:404"
+  "source": "maor/src/types/domain.ts:435"
  },
  {
   "id": "L10:maor:AyinName.rate",
@@ -1707,7 +1743,7 @@
   "name": "rate",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:410"
+  "source": "maor/src/types/domain.ts:441"
  },
  {
   "id": "L10:maor:AyinName.note",
@@ -1716,7 +1752,7 @@
   "name": "note",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:412"
+  "source": "maor/src/types/domain.ts:443"
  },
  {
   "id": "L10:maor:AyinName.days",
@@ -1725,7 +1761,7 @@
   "name": "days",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:418"
+  "source": "maor/src/types/domain.ts:449"
  },
  {
   "id": "L10:maor:AyinName.deps",
@@ -1734,7 +1770,7 @@
   "name": "deps",
   "optional": true,
   "type": "Id[]",
-  "source": "maor/src/types/domain.ts:419"
+  "source": "maor/src/types/domain.ts:450"
  },
  {
   "id": "L10:maor:KitItem.label",
@@ -1743,7 +1779,7 @@
   "name": "label",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:424"
+  "source": "maor/src/types/domain.ts:455"
  },
  {
   "id": "L10:maor:KitItem.done",
@@ -1752,7 +1788,7 @@
   "name": "done",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:425"
+  "source": "maor/src/types/domain.ts:456"
  },
  {
   "id": "L10:maor:WarehouseItem.id",
@@ -1761,7 +1797,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:434"
+  "source": "maor/src/types/domain.ts:465"
  },
  {
   "id": "L10:maor:WarehouseItem.name",
@@ -1770,7 +1806,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:435"
+  "source": "maor/src/types/domain.ts:466"
  },
  {
   "id": "L10:maor:WarehouseItem.unit",
@@ -1779,7 +1815,7 @@
   "name": "unit",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:437"
+  "source": "maor/src/types/domain.ts:468"
  },
  {
   "id": "L10:maor:WarehouseItem.qty",
@@ -1788,7 +1824,7 @@
   "name": "qty",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:439"
+  "source": "maor/src/types/domain.ts:470"
  },
  {
   "id": "L10:maor:WarehouseItem.cost",
@@ -1797,7 +1833,7 @@
   "name": "cost",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:441"
+  "source": "maor/src/types/domain.ts:472"
  },
  {
   "id": "L10:maor:AyinAnswer.date",
@@ -1806,7 +1842,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:446"
+  "source": "maor/src/types/domain.ts:477"
  },
  {
   "id": "L10:maor:AyinAnswer.note",
@@ -1815,7 +1851,7 @@
   "name": "note",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:447"
+  "source": "maor/src/types/domain.ts:478"
  },
  {
   "id": "L10:maor:TimeEntry.date",
@@ -1824,7 +1860,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:455"
+  "source": "maor/src/types/domain.ts:486"
  },
  {
   "id": "L10:maor:TimeEntry.hours",
@@ -1833,7 +1869,7 @@
   "name": "hours",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:456"
+  "source": "maor/src/types/domain.ts:487"
  },
  {
   "id": "L10:maor:TimeEntry.note",
@@ -1842,7 +1878,7 @@
   "name": "note",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:457"
+  "source": "maor/src/types/domain.ts:488"
  },
  {
   "id": "L10:maor:TimeEntry.rate",
@@ -1851,7 +1887,7 @@
   "name": "rate",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:459"
+  "source": "maor/src/types/domain.ts:490"
  },
  {
   "id": "L10:maor:MatEntry.name",
@@ -1860,7 +1896,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:468"
+  "source": "maor/src/types/domain.ts:499"
  },
  {
   "id": "L10:maor:MatEntry.qty",
@@ -1869,7 +1905,7 @@
   "name": "qty",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:469"
+  "source": "maor/src/types/domain.ts:500"
  },
  {
   "id": "L10:maor:MatEntry.cost",
@@ -1878,7 +1914,7 @@
   "name": "cost",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:470"
+  "source": "maor/src/types/domain.ts:501"
  },
  {
   "id": "L10:maor:AyinLog.date",
@@ -1887,7 +1923,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:475"
+  "source": "maor/src/types/domain.ts:506"
  },
  {
   "id": "L10:maor:AyinLog.eyes",
@@ -1896,7 +1932,7 @@
   "name": "eyes",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:476"
+  "source": "maor/src/types/domain.ts:507"
  },
  {
   "id": "L10:maor:AyinLog.name",
@@ -1905,7 +1941,7 @@
   "name": "name",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:477"
+  "source": "maor/src/types/domain.ts:508"
  },
  {
   "id": "L10:maor:AyinCase.stage",
@@ -1914,7 +1950,7 @@
   "name": "stage",
   "optional": false,
   "type": "AyinStage",
-  "source": "maor/src/types/domain.ts:482"
+  "source": "maor/src/types/domain.ts:513"
  },
  {
   "id": "L10:maor:AyinCase.note",
@@ -1923,7 +1959,7 @@
   "name": "note",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:483"
+  "source": "maor/src/types/domain.ts:514"
  },
  {
   "id": "L10:maor:AyinCase.answeredNote",
@@ -1932,7 +1968,7 @@
   "name": "answeredNote",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:484"
+  "source": "maor/src/types/domain.ts:515"
  },
  {
   "id": "L10:maor:AyinCase.paid",
@@ -1941,7 +1977,7 @@
   "name": "paid",
   "optional": true,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:489"
+  "source": "maor/src/types/domain.ts:520"
  },
  {
   "id": "L10:maor:AyinCase.answerPushed",
@@ -1950,7 +1986,7 @@
   "name": "answerPushed",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:490"
+  "source": "maor/src/types/domain.ts:521"
  },
  {
   "id": "L10:maor:AyinCase.nextTalk",
@@ -1959,7 +1995,7 @@
   "name": "nextTalk",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:491"
+  "source": "maor/src/types/domain.ts:522"
  },
  {
   "id": "L10:maor:AyinCase.nextTalkTime",
@@ -1968,7 +2004,7 @@
   "name": "nextTalkTime",
   "optional": false,
   "type": "TimeHM",
-  "source": "maor/src/types/domain.ts:492"
+  "source": "maor/src/types/domain.ts:523"
  },
  {
   "id": "L10:maor:AyinCase.lastTouch",
@@ -1977,7 +2013,7 @@
   "name": "lastTouch",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:493"
+  "source": "maor/src/types/domain.ts:524"
  },
  {
   "id": "L10:maor:AyinCase.names",
@@ -1986,7 +2022,7 @@
   "name": "names",
   "optional": false,
   "type": "AyinName[]",
-  "source": "maor/src/types/domain.ts:494"
+  "source": "maor/src/types/domain.ts:525"
  },
  {
   "id": "L10:maor:AyinCase.answers",
@@ -1995,7 +2031,7 @@
   "name": "answers",
   "optional": false,
   "type": "AyinAnswer[]",
-  "source": "maor/src/types/domain.ts:495"
+  "source": "maor/src/types/domain.ts:526"
  },
  {
   "id": "L10:maor:AyinCase.log",
@@ -2004,7 +2040,7 @@
   "name": "log",
   "optional": false,
   "type": "AyinLog[]",
-  "source": "maor/src/types/domain.ts:496"
+  "source": "maor/src/types/domain.ts:527"
  },
  {
   "id": "L10:maor:AyinCase.time",
@@ -2013,7 +2049,7 @@
   "name": "time",
   "optional": true,
   "type": "TimeEntry[]",
-  "source": "maor/src/types/domain.ts:498"
+  "source": "maor/src/types/domain.ts:529"
  },
  {
   "id": "L10:maor:AyinCase.mat",
@@ -2022,7 +2058,7 @@
   "name": "mat",
   "optional": true,
   "type": "MatEntry[]",
-  "source": "maor/src/types/domain.ts:500"
+  "source": "maor/src/types/domain.ts:531"
  },
  {
   "id": "L10:maor:AyinCase.kit",
@@ -2031,7 +2067,7 @@
   "name": "kit",
   "optional": true,
   "type": "KitItem[]",
-  "source": "maor/src/types/domain.ts:502"
+  "source": "maor/src/types/domain.ts:533"
  },
  {
   "id": "L10:maor:AyinCase.boardEventIds",
@@ -2040,7 +2076,124 @@
   "name": "boardEventIds",
   "optional": true,
   "type": "Partial<Record<string, Id>>",
-  "source": "maor/src/types/domain.ts:509"
+  "source": "maor/src/types/domain.ts:540"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.id",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:552"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.date",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "date",
+  "optional": false,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:554"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.amount",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "amount",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:555"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.cur",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "cur",
+  "optional": false,
+  "type": "'₪' | '$'",
+  "source": "maor/src/types/domain.ts:556"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.method",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "method",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:558"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.cat",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "cat",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:560"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.installmentOf",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "installmentOf",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:562"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.chargedRid",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "chargedRid",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:564"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.cancelledAt",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "cancelledAt",
+  "optional": true,
+  "type": "IsoDate",
+  "source": "maor/src/types/domain.ts:566"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.note",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "note",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:567"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.componentId",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "componentId",
+  "optional": true,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:570"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.shopValue",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "shopValue",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:573"
+ },
+ {
+  "id": "L10:maor:PlannedCharge.shopHoliday",
+  "level": "L10-field",
+  "entity": "PlannedCharge",
+  "name": "shopHoliday",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:575"
  },
  {
   "id": "L10:maor:Hok.amount",
@@ -2049,7 +2202,7 @@
   "name": "amount",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:514"
+  "source": "maor/src/types/domain.ts:579"
  },
  {
   "id": "L10:maor:Hok.cur",
@@ -2058,7 +2211,7 @@
   "name": "cur",
   "optional": false,
   "type": "'₪' | '$'",
-  "source": "maor/src/types/domain.ts:515"
+  "source": "maor/src/types/domain.ts:580"
  },
  {
   "id": "L10:maor:Hok.day",
@@ -2067,7 +2220,7 @@
   "name": "day",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:517"
+  "source": "maor/src/types/domain.ts:582"
  },
  {
   "id": "L10:maor:Hok.method",
@@ -2076,7 +2229,7 @@
   "name": "method",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:519"
+  "source": "maor/src/types/domain.ts:584"
  },
  {
   "id": "L10:maor:Hok.note",
@@ -2085,7 +2238,7 @@
   "name": "note",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:520"
+  "source": "maor/src/types/domain.ts:585"
  },
  {
   "id": "L10:maor:Hok.active",
@@ -2094,7 +2247,7 @@
   "name": "active",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:521"
+  "source": "maor/src/types/domain.ts:586"
  },
  {
   "id": "L10:maor:Hok.startedAt",
@@ -2103,7 +2256,7 @@
   "name": "startedAt",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:522"
+  "source": "maor/src/types/domain.ts:587"
  },
  {
   "id": "L10:maor:Hok.kevaId",
@@ -2112,7 +2265,52 @@
   "name": "kevaId",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:525"
+  "source": "maor/src/types/domain.ts:590"
+ },
+ {
+  "id": "L10:maor:SupPhone.id",
+  "level": "L10-field",
+  "entity": "SupPhone",
+  "name": "id",
+  "optional": false,
+  "type": "Id",
+  "source": "maor/src/types/domain.ts:595"
+ },
+ {
+  "id": "L10:maor:SupPhone.num",
+  "level": "L10-field",
+  "entity": "SupPhone",
+  "name": "num",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:597"
+ },
+ {
+  "id": "L10:maor:SupPhone.label",
+  "level": "L10-field",
+  "entity": "SupPhone",
+  "name": "label",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:599"
+ },
+ {
+  "id": "L10:maor:SupPhone.note",
+  "level": "L10-field",
+  "entity": "SupPhone",
+  "name": "note",
+  "optional": true,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:601"
+ },
+ {
+  "id": "L10:maor:SupPhone.wa",
+  "level": "L10-field",
+  "entity": "SupPhone",
+  "name": "wa",
+  "optional": true,
+  "type": "boolean",
+  "source": "maor/src/types/domain.ts:603"
  },
  {
   "id": "L10:maor:Supporter.id",
@@ -2121,7 +2319,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:529"
+  "source": "maor/src/types/domain.ts:607"
  },
  {
   "id": "L10:maor:Supporter.name",
@@ -2130,7 +2328,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:530"
+  "source": "maor/src/types/domain.ts:608"
  },
  {
   "id": "L10:maor:Supporter.phone",
@@ -2139,7 +2337,16 @@
   "name": "phone",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:531"
+  "source": "maor/src/types/domain.ts:609"
+ },
+ {
+  "id": "L10:maor:Supporter.phones",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "phones",
+  "optional": true,
+  "type": "SupPhone[]",
+  "source": "maor/src/types/domain.ts:613"
  },
  {
   "id": "L10:maor:Supporter.email",
@@ -2148,7 +2355,7 @@
   "name": "email",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:532"
+  "source": "maor/src/types/domain.ts:614"
  },
  {
   "id": "L10:maor:Supporter.address",
@@ -2157,7 +2364,7 @@
   "name": "address",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:533"
+  "source": "maor/src/types/domain.ts:615"
  },
  {
   "id": "L10:maor:Supporter.city",
@@ -2166,7 +2373,7 @@
   "name": "city",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:535"
+  "source": "maor/src/types/domain.ts:617"
  },
  {
   "id": "L10:maor:Supporter.idNum",
@@ -2175,7 +2382,7 @@
   "name": "idNum",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:536"
+  "source": "maor/src/types/domain.ts:618"
  },
  {
   "id": "L10:maor:Supporter.extId",
@@ -2184,7 +2391,7 @@
   "name": "extId",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:539"
+  "source": "maor/src/types/domain.ts:621"
  },
  {
   "id": "L10:maor:Supporter.cat",
@@ -2193,7 +2400,7 @@
   "name": "cat",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:540"
+  "source": "maor/src/types/domain.ts:622"
  },
  {
   "id": "L10:maor:Supporter.forWho",
@@ -2202,7 +2409,7 @@
   "name": "forWho",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:542"
+  "source": "maor/src/types/domain.ts:624"
  },
  {
   "id": "L10:maor:Supporter.notes",
@@ -2211,7 +2418,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:543"
+  "source": "maor/src/types/domain.ts:625"
  },
  {
   "id": "L10:maor:Supporter.count",
@@ -2220,7 +2427,7 @@
   "name": "count",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:545"
+  "source": "maor/src/types/domain.ts:627"
  },
  {
   "id": "L10:maor:Supporter.ils",
@@ -2229,7 +2436,7 @@
   "name": "ils",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:547"
+  "source": "maor/src/types/domain.ts:629"
  },
  {
   "id": "L10:maor:Supporter.usd",
@@ -2238,7 +2445,7 @@
   "name": "usd",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:548"
+  "source": "maor/src/types/domain.ts:630"
  },
  {
   "id": "L10:maor:Supporter.first",
@@ -2247,7 +2454,7 @@
   "name": "first",
   "optional": false,
   "type": "IsoDate | ''",
-  "source": "maor/src/types/domain.ts:549"
+  "source": "maor/src/types/domain.ts:631"
  },
  {
   "id": "L10:maor:Supporter.last",
@@ -2256,7 +2463,7 @@
   "name": "last",
   "optional": false,
   "type": "IsoDate | ''",
-  "source": "maor/src/types/domain.ts:550"
+  "source": "maor/src/types/domain.ts:632"
  },
  {
   "id": "L10:maor:Supporter.nextDate",
@@ -2265,7 +2472,7 @@
   "name": "nextDate",
   "optional": false,
   "type": "IsoDate | ''",
-  "source": "maor/src/types/domain.ts:552"
+  "source": "maor/src/types/domain.ts:634"
  },
  {
   "id": "L10:maor:Supporter.nextNote",
@@ -2274,7 +2481,7 @@
   "name": "nextNote",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:554"
+  "source": "maor/src/types/domain.ts:636"
  },
  {
   "id": "L10:maor:Supporter.photos",
@@ -2283,7 +2490,7 @@
   "name": "photos",
   "optional": true,
   "type": "string[]",
-  "source": "maor/src/types/domain.ts:560"
+  "source": "maor/src/types/domain.ts:642"
  },
  {
   "id": "L10:maor:Supporter.nextEventId",
@@ -2292,7 +2499,7 @@
   "name": "nextEventId",
   "optional": true,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:562"
+  "source": "maor/src/types/domain.ts:644"
  },
  {
   "id": "L10:maor:Supporter.donations",
@@ -2301,7 +2508,7 @@
   "name": "donations",
   "optional": false,
   "type": "Donation[]",
-  "source": "maor/src/types/domain.ts:563"
+  "source": "maor/src/types/domain.ts:645"
  },
  {
   "id": "L10:maor:Supporter.hok",
@@ -2310,7 +2517,16 @@
   "name": "hok",
   "optional": true,
   "type": "Hok",
-  "source": "maor/src/types/domain.ts:587"
+  "source": "maor/src/types/domain.ts:669"
+ },
+ {
+  "id": "L10:maor:Supporter.plannedCharges",
+  "level": "L10-field",
+  "entity": "Supporter",
+  "name": "plannedCharges",
+  "optional": true,
+  "type": "PlannedCharge[]",
+  "source": "maor/src/types/domain.ts:679"
  },
  {
   "id": "L10:maor:Supporter.ayin",
@@ -2319,7 +2535,7 @@
   "name": "ayin",
   "optional": true,
   "type": "AyinCase",
-  "source": "maor/src/types/domain.ts:589"
+  "source": "maor/src/types/domain.ts:681"
  },
  {
   "id": "L10:maor:Supporter.calls",
@@ -2328,7 +2544,7 @@
   "name": "calls",
   "optional": true,
   "type": "CallEntry[]",
-  "source": "maor/src/types/domain.ts:595"
+  "source": "maor/src/types/domain.ts:687"
  },
  {
   "id": "L10:maor:NotifPrefs.email",
@@ -2337,7 +2553,7 @@
   "name": "email",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:617"
+  "source": "maor/src/types/domain.ts:709"
  },
  {
   "id": "L10:maor:NotifPrefs.push",
@@ -2346,7 +2562,7 @@
   "name": "push",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:618"
+  "source": "maor/src/types/domain.ts:710"
  },
  {
   "id": "L10:maor:NotifPrefs.sms",
@@ -2355,7 +2571,7 @@
   "name": "sms",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:619"
+  "source": "maor/src/types/domain.ts:711"
  },
  {
   "id": "L10:maor:NotifPrefs.strong",
@@ -2364,7 +2580,7 @@
   "name": "strong",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:620"
+  "source": "maor/src/types/domain.ts:712"
  },
  {
   "id": "L10:maor:ReportPrefs.daily",
@@ -2373,7 +2589,7 @@
   "name": "daily",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:624"
+  "source": "maor/src/types/domain.ts:716"
  },
  {
   "id": "L10:maor:ReportPrefs.weekly",
@@ -2382,7 +2598,7 @@
   "name": "weekly",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:625"
+  "source": "maor/src/types/domain.ts:717"
  },
  {
   "id": "L10:maor:ReportPrefs.monthly",
@@ -2391,7 +2607,7 @@
   "name": "monthly",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:626"
+  "source": "maor/src/types/domain.ts:718"
  },
  {
   "id": "L10:maor:ReportPrefs.quarterly",
@@ -2400,7 +2616,7 @@
   "name": "quarterly",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:627"
+  "source": "maor/src/types/domain.ts:719"
  },
  {
   "id": "L10:maor:QuoteTemplate.id",
@@ -2409,7 +2625,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:635"
+  "source": "maor/src/types/domain.ts:727"
  },
  {
   "id": "L10:maor:QuoteTemplate.name",
@@ -2418,7 +2634,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:636"
+  "source": "maor/src/types/domain.ts:728"
  },
  {
   "id": "L10:maor:QuoteTemplate.lines",
@@ -2427,7 +2643,7 @@
   "name": "lines",
   "optional": false,
   "type": "{ name: string",
-  "source": "maor/src/types/domain.ts:637"
+  "source": "maor/src/types/domain.ts:729"
  },
  {
   "id": "L10:maor:DialLogEntry.id",
@@ -2436,7 +2652,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:649"
+  "source": "maor/src/types/domain.ts:741"
  },
  {
   "id": "L10:maor:DialLogEntry.outcome",
@@ -2445,7 +2661,7 @@
   "name": "outcome",
   "optional": false,
   "type": "DialOutcome",
-  "source": "maor/src/types/domain.ts:650"
+  "source": "maor/src/types/domain.ts:742"
  },
  {
   "id": "L10:maor:DialLogEntry.note",
@@ -2454,7 +2670,7 @@
   "name": "note",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:651"
+  "source": "maor/src/types/domain.ts:743"
  },
  {
   "id": "L10:maor:DialLogEntry.at",
@@ -2463,7 +2679,7 @@
   "name": "at",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:652"
+  "source": "maor/src/types/domain.ts:744"
  },
  {
   "id": "L10:maor:CallEntry.at",
@@ -2472,7 +2688,7 @@
   "name": "at",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:657"
+  "source": "maor/src/types/domain.ts:749"
  },
  {
   "id": "L10:maor:CallEntry.outcome",
@@ -2481,7 +2697,7 @@
   "name": "outcome",
   "optional": false,
   "type": "DialOutcome",
-  "source": "maor/src/types/domain.ts:658"
+  "source": "maor/src/types/domain.ts:750"
  },
  {
   "id": "L10:maor:DialerCampaign.name",
@@ -2490,7 +2706,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:662"
+  "source": "maor/src/types/domain.ts:754"
  },
  {
   "id": "L10:maor:DialerCampaign.startedAt",
@@ -2499,7 +2715,7 @@
   "name": "startedAt",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:663"
+  "source": "maor/src/types/domain.ts:755"
  },
  {
   "id": "L10:maor:DialerCampaign.queue",
@@ -2508,7 +2724,7 @@
   "name": "queue",
   "optional": false,
   "type": "Id[]",
-  "source": "maor/src/types/domain.ts:665"
+  "source": "maor/src/types/domain.ts:757"
  },
  {
   "id": "L10:maor:DialerCampaign.total",
@@ -2517,7 +2733,7 @@
   "name": "total",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:667"
+  "source": "maor/src/types/domain.ts:759"
  },
  {
   "id": "L10:maor:DialerCampaign.log",
@@ -2526,7 +2742,7 @@
   "name": "log",
   "optional": false,
   "type": "DialLogEntry[]",
-  "source": "maor/src/types/domain.ts:669"
+  "source": "maor/src/types/domain.ts:761"
  },
  {
   "id": "L10:maor:UiPrefs.famView",
@@ -2535,7 +2751,7 @@
   "name": "famView",
   "optional": false,
   "type": "'list' | 'grid'",
-  "source": "maor/src/types/domain.ts:673"
+  "source": "maor/src/types/domain.ts:765"
  },
  {
   "id": "L10:maor:UiPrefs.crsView",
@@ -2544,7 +2760,7 @@
   "name": "crsView",
   "optional": false,
   "type": "'list' | 'grid'",
-  "source": "maor/src/types/domain.ts:674"
+  "source": "maor/src/types/domain.ts:766"
  },
  {
   "id": "L10:maor:UiPrefs.quoteTemplates",
@@ -2553,7 +2769,7 @@
   "name": "quoteTemplates",
   "optional": true,
   "type": "QuoteTemplate[]",
-  "source": "maor/src/types/domain.ts:676"
+  "source": "maor/src/types/domain.ts:768"
  },
  {
   "id": "L10:maor:UiPrefs.supView",
@@ -2562,7 +2778,7 @@
   "name": "supView",
   "optional": true,
   "type": "'list' | 'grid'",
-  "source": "maor/src/types/domain.ts:678"
+  "source": "maor/src/types/domain.ts:770"
  },
  {
   "id": "L10:maor:UiPrefs.receiptFmt",
@@ -2571,7 +2787,7 @@
   "name": "receiptFmt",
   "optional": true,
   "type": "'txt' | 'pdf'",
-  "source": "maor/src/types/domain.ts:680"
+  "source": "maor/src/types/domain.ts:772"
  },
  {
   "id": "L10:maor:UiPrefs.homeLayout",
@@ -2580,7 +2796,7 @@
   "name": "homeLayout",
   "optional": true,
   "type": "string[]",
-  "source": "maor/src/types/domain.ts:682"
+  "source": "maor/src/types/domain.ts:774"
  },
  {
   "id": "L10:maor:UiPrefs.theme",
@@ -2589,7 +2805,7 @@
   "name": "theme",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:684"
+  "source": "maor/src/types/domain.ts:776"
  },
  {
   "id": "L10:maor:UiPrefs.accent",
@@ -2598,7 +2814,7 @@
   "name": "accent",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:686"
+  "source": "maor/src/types/domain.ts:778"
  },
  {
   "id": "L10:maor:UiPrefs.dialer",
@@ -2607,7 +2823,241 @@
   "name": "dialer",
   "optional": true,
   "type": "DialerCampaign",
-  "source": "maor/src/types/domain.ts:688"
+  "source": "maor/src/types/domain.ts:780"
+ },
+ {
+  "id": "L10:maor:UiPrefs.cashSeq",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "cashSeq",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:788"
+ },
+ {
+  "id": "L10:maor:UiPrefs.cashReceipts",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "cashReceipts",
+  "optional": true,
+  "type": "CashReceiptRec[]",
+  "source": "maor/src/types/domain.ts:789"
+ },
+ {
+  "id": "L10:maor:UiPrefs.cashShift",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "cashShift",
+  "optional": true,
+  "type": "CashShiftRec | null",
+  "source": "maor/src/types/domain.ts:790"
+ },
+ {
+  "id": "L10:maor:UiPrefs.cashShifts",
+  "level": "L10-field",
+  "entity": "UiPrefs",
+  "name": "cashShifts",
+  "optional": true,
+  "type": "CashShiftCloseRec[]",
+  "source": "maor/src/types/domain.ts:791"
+ },
+ {
+  "id": "L10:maor:CashReceiptRec.num",
+  "level": "L10-field",
+  "entity": "CashReceiptRec",
+  "name": "num",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:796"
+ },
+ {
+  "id": "L10:maor:CashReceiptRec.at",
+  "level": "L10-field",
+  "entity": "CashReceiptRec",
+  "name": "at",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:797"
+ },
+ {
+  "id": "L10:maor:CashReceiptRec.client",
+  "level": "L10-field",
+  "entity": "CashReceiptRec",
+  "name": "client",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:798"
+ },
+ {
+  "id": "L10:maor:CashReceiptRec.due",
+  "level": "L10-field",
+  "entity": "CashReceiptRec",
+  "name": "due",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:799"
+ },
+ {
+  "id": "L10:maor:CashReceiptRec.received",
+  "level": "L10-field",
+  "entity": "CashReceiptRec",
+  "name": "received",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:800"
+ },
+ {
+  "id": "L10:maor:CashReceiptRec.change",
+  "level": "L10-field",
+  "entity": "CashReceiptRec",
+  "name": "change",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:801"
+ },
+ {
+  "id": "L10:maor:CashReceiptRec.items",
+  "level": "L10-field",
+  "entity": "CashReceiptRec",
+  "name": "items",
+  "optional": true,
+  "type": "{ name: string",
+  "source": "maor/src/types/domain.ts:802"
+ },
+ {
+  "id": "L10:maor:CashShiftRec.openedAt",
+  "level": "L10-field",
+  "entity": "CashShiftRec",
+  "name": "openedAt",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:807"
+ },
+ {
+  "id": "L10:maor:CashShiftRec.float",
+  "level": "L10-field",
+  "entity": "CashShiftRec",
+  "name": "float",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:808"
+ },
+ {
+  "id": "L10:maor:CashShiftRec.checks",
+  "level": "L10-field",
+  "entity": "CashShiftRec",
+  "name": "checks",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:809"
+ },
+ {
+  "id": "L10:maor:CashShiftRec.other",
+  "level": "L10-field",
+  "entity": "CashShiftRec",
+  "name": "other",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:810"
+ },
+ {
+  "id": "L10:maor:CashShiftCloseRec.closedAt",
+  "level": "L10-field",
+  "entity": "CashShiftCloseRec",
+  "name": "closedAt",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:815"
+ },
+ {
+  "id": "L10:maor:CashShiftCloseRec.openedAt",
+  "level": "L10-field",
+  "entity": "CashShiftCloseRec",
+  "name": "openedAt",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:816"
+ },
+ {
+  "id": "L10:maor:CashShiftCloseRec.float",
+  "level": "L10-field",
+  "entity": "CashShiftCloseRec",
+  "name": "float",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:817"
+ },
+ {
+  "id": "L10:maor:CashShiftCloseRec.sales",
+  "level": "L10-field",
+  "entity": "CashShiftCloseRec",
+  "name": "sales",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:818"
+ },
+ {
+  "id": "L10:maor:CashShiftCloseRec.count",
+  "level": "L10-field",
+  "entity": "CashShiftCloseRec",
+  "name": "count",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:819"
+ },
+ {
+  "id": "L10:maor:CashShiftCloseRec.counted",
+  "level": "L10-field",
+  "entity": "CashShiftCloseRec",
+  "name": "counted",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:820"
+ },
+ {
+  "id": "L10:maor:CashShiftCloseRec.diff",
+  "level": "L10-field",
+  "entity": "CashShiftCloseRec",
+  "name": "diff",
+  "optional": false,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:821"
+ },
+ {
+  "id": "L10:maor:CashShiftCloseRec.openChecks",
+  "level": "L10-field",
+  "entity": "CashShiftCloseRec",
+  "name": "openChecks",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:822"
+ },
+ {
+  "id": "L10:maor:CashShiftCloseRec.closeChecks",
+  "level": "L10-field",
+  "entity": "CashShiftCloseRec",
+  "name": "closeChecks",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:823"
+ },
+ {
+  "id": "L10:maor:CashShiftCloseRec.openOther",
+  "level": "L10-field",
+  "entity": "CashShiftCloseRec",
+  "name": "openOther",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:824"
+ },
+ {
+  "id": "L10:maor:CashShiftCloseRec.closeOther",
+  "level": "L10-field",
+  "entity": "CashShiftCloseRec",
+  "name": "closeOther",
+  "optional": true,
+  "type": "number",
+  "source": "maor/src/types/domain.ts:825"
  },
  {
   "id": "L10:maor:TzScoreEntry.date",
@@ -2616,7 +3066,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:695"
+  "source": "maor/src/types/domain.ts:832"
  },
  {
   "id": "L10:maor:TzScoreEntry.delta",
@@ -2625,7 +3075,7 @@
   "name": "delta",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:696"
+  "source": "maor/src/types/domain.ts:833"
  },
  {
   "id": "L10:maor:TzScoreEntry.reason",
@@ -2634,7 +3084,7 @@
   "name": "reason",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:697"
+  "source": "maor/src/types/domain.ts:834"
  },
  {
   "id": "L10:maor:TzCoordinator.id",
@@ -2643,7 +3093,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:702"
+  "source": "maor/src/types/domain.ts:839"
  },
  {
   "id": "L10:maor:TzCoordinator.name",
@@ -2652,7 +3102,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:703"
+  "source": "maor/src/types/domain.ts:840"
  },
  {
   "id": "L10:maor:TzCoordinator.famId",
@@ -2661,7 +3111,7 @@
   "name": "famId",
   "optional": false,
   "type": "Id | ''",
-  "source": "maor/src/types/domain.ts:704"
+  "source": "maor/src/types/domain.ts:841"
  },
  {
   "id": "L10:maor:TzCoordinator.memberId",
@@ -2670,7 +3120,7 @@
   "name": "memberId",
   "optional": false,
   "type": "Id | ''",
-  "source": "maor/src/types/domain.ts:705"
+  "source": "maor/src/types/domain.ts:842"
  },
  {
   "id": "L10:maor:TzCoordinator.phone",
@@ -2679,7 +3129,7 @@
   "name": "phone",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:706"
+  "source": "maor/src/types/domain.ts:843"
  },
  {
   "id": "L10:maor:TzCoordinator.notes",
@@ -2688,7 +3138,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:707"
+  "source": "maor/src/types/domain.ts:844"
  },
  {
   "id": "L10:maor:TzCoordinator.active",
@@ -2697,7 +3147,7 @@
   "name": "active",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:708"
+  "source": "maor/src/types/domain.ts:845"
  },
  {
   "id": "L10:maor:TzCoordinator.startDate",
@@ -2706,7 +3156,7 @@
   "name": "startDate",
   "optional": false,
   "type": "IsoDate | ''",
-  "source": "maor/src/types/domain.ts:709"
+  "source": "maor/src/types/domain.ts:846"
  },
  {
   "id": "L10:maor:TzCoordinator.score",
@@ -2715,7 +3165,7 @@
   "name": "score",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:711"
+  "source": "maor/src/types/domain.ts:848"
  },
  {
   "id": "L10:maor:TzCoordinator.scoreLog",
@@ -2724,7 +3174,7 @@
   "name": "scoreLog",
   "optional": false,
   "type": "TzScoreEntry[]",
-  "source": "maor/src/types/domain.ts:712"
+  "source": "maor/src/types/domain.ts:849"
  },
  {
   "id": "L10:maor:TzCollection.id",
@@ -2733,7 +3183,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:717"
+  "source": "maor/src/types/domain.ts:854"
  },
  {
   "id": "L10:maor:TzCollection.date",
@@ -2742,7 +3192,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:718"
+  "source": "maor/src/types/domain.ts:855"
  },
  {
   "id": "L10:maor:TzCollection.amount",
@@ -2751,7 +3201,7 @@
   "name": "amount",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:720"
+  "source": "maor/src/types/domain.ts:857"
  },
  {
   "id": "L10:maor:TzCollection.campaignId",
@@ -2760,7 +3210,7 @@
   "name": "campaignId",
   "optional": false,
   "type": "Id | ''",
-  "source": "maor/src/types/domain.ts:721"
+  "source": "maor/src/types/domain.ts:858"
  },
  {
   "id": "L10:maor:TzCollection.note",
@@ -2769,7 +3219,7 @@
   "name": "note",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:722"
+  "source": "maor/src/types/domain.ts:859"
  },
  {
   "id": "L10:maor:TzBox.id",
@@ -2778,7 +3228,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:729"
+  "source": "maor/src/types/domain.ts:866"
  },
  {
   "id": "L10:maor:TzBox.num",
@@ -2787,7 +3237,7 @@
   "name": "num",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:731"
+  "source": "maor/src/types/domain.ts:868"
  },
  {
   "id": "L10:maor:TzBox.coordinatorId",
@@ -2796,7 +3246,7 @@
   "name": "coordinatorId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:732"
+  "source": "maor/src/types/domain.ts:869"
  },
  {
   "id": "L10:maor:TzBox.famId",
@@ -2805,7 +3255,7 @@
   "name": "famId",
   "optional": false,
   "type": "Id | ''",
-  "source": "maor/src/types/domain.ts:734"
+  "source": "maor/src/types/domain.ts:871"
  },
  {
   "id": "L10:maor:TzBox.holderKind",
@@ -2814,7 +3264,7 @@
   "name": "holderKind",
   "optional": false,
   "type": "'donor' | 'supported' | ''",
-  "source": "maor/src/types/domain.ts:735"
+  "source": "maor/src/types/domain.ts:872"
  },
  {
   "id": "L10:maor:TzBox.since",
@@ -2823,7 +3273,7 @@
   "name": "since",
   "optional": false,
   "type": "IsoDate | ''",
-  "source": "maor/src/types/domain.ts:736"
+  "source": "maor/src/types/domain.ts:873"
  },
  {
   "id": "L10:maor:TzBox.status",
@@ -2832,7 +3282,7 @@
   "name": "status",
   "optional": false,
   "type": "TzBoxStatus",
-  "source": "maor/src/types/domain.ts:737"
+  "source": "maor/src/types/domain.ts:874"
  },
  {
   "id": "L10:maor:TzBox.notes",
@@ -2841,7 +3291,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:738"
+  "source": "maor/src/types/domain.ts:875"
  },
  {
   "id": "L10:maor:TzBox.collections",
@@ -2850,7 +3300,7 @@
   "name": "collections",
   "optional": false,
   "type": "TzCollection[]",
-  "source": "maor/src/types/domain.ts:739"
+  "source": "maor/src/types/domain.ts:876"
  },
  {
   "id": "L10:maor:TzCampaign.id",
@@ -2859,7 +3309,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:743"
+  "source": "maor/src/types/domain.ts:880"
  },
  {
   "id": "L10:maor:TzCampaign.name",
@@ -2868,7 +3318,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:744"
+  "source": "maor/src/types/domain.ts:881"
  },
  {
   "id": "L10:maor:TzCampaign.start",
@@ -2877,7 +3327,7 @@
   "name": "start",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:745"
+  "source": "maor/src/types/domain.ts:882"
  },
  {
   "id": "L10:maor:TzCampaign.end",
@@ -2886,7 +3336,7 @@
   "name": "end",
   "optional": false,
   "type": "IsoDate | ''",
-  "source": "maor/src/types/domain.ts:746"
+  "source": "maor/src/types/domain.ts:883"
  },
  {
   "id": "L10:maor:TzCampaign.goal",
@@ -2895,7 +3345,7 @@
   "name": "goal",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:748"
+  "source": "maor/src/types/domain.ts:885"
  },
  {
   "id": "L10:maor:TzCampaign.active",
@@ -2904,7 +3354,7 @@
   "name": "active",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:749"
+  "source": "maor/src/types/domain.ts:886"
  },
  {
   "id": "L10:maor:TzCampaign.notes",
@@ -2913,7 +3363,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:750"
+  "source": "maor/src/types/domain.ts:887"
  },
  {
   "id": "L10:maor:TzEvent.id",
@@ -2922,7 +3372,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:755"
+  "source": "maor/src/types/domain.ts:892"
  },
  {
   "id": "L10:maor:TzEvent.title",
@@ -2931,7 +3381,7 @@
   "name": "title",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:756"
+  "source": "maor/src/types/domain.ts:893"
  },
  {
   "id": "L10:maor:TzEvent.date",
@@ -2940,7 +3390,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:757"
+  "source": "maor/src/types/domain.ts:894"
  },
  {
   "id": "L10:maor:TzEvent.time",
@@ -2949,7 +3399,7 @@
   "name": "time",
   "optional": false,
   "type": "TimeHM | ''",
-  "source": "maor/src/types/domain.ts:758"
+  "source": "maor/src/types/domain.ts:895"
  },
  {
   "id": "L10:maor:TzEvent.kind",
@@ -2958,7 +3408,7 @@
   "name": "kind",
   "optional": false,
   "type": "'round' | 'campaign' | 'reminder' | 'cus",
-  "source": "maor/src/types/domain.ts:760"
+  "source": "maor/src/types/domain.ts:897"
  },
  {
   "id": "L10:maor:TzEvent.coordinatorId",
@@ -2967,7 +3417,7 @@
   "name": "coordinatorId",
   "optional": false,
   "type": "Id | ''",
-  "source": "maor/src/types/domain.ts:761"
+  "source": "maor/src/types/domain.ts:898"
  },
  {
   "id": "L10:maor:TzEvent.boxId",
@@ -2976,7 +3426,7 @@
   "name": "boxId",
   "optional": false,
   "type": "Id | ''",
-  "source": "maor/src/types/domain.ts:762"
+  "source": "maor/src/types/domain.ts:899"
  },
  {
   "id": "L10:maor:TzEvent.notes",
@@ -2985,7 +3435,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:763"
+  "source": "maor/src/types/domain.ts:900"
  },
  {
   "id": "L10:maor:TzEvent.done",
@@ -2994,7 +3444,7 @@
   "name": "done",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:764"
+  "source": "maor/src/types/domain.ts:901"
  },
  {
   "id": "L10:maor:ShopItem.id",
@@ -3003,7 +3453,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:774"
+  "source": "maor/src/types/domain.ts:911"
  },
  {
   "id": "L10:maor:ShopItem.name",
@@ -3012,7 +3462,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:775"
+  "source": "maor/src/types/domain.ts:912"
  },
  {
   "id": "L10:maor:ShopItem.kind",
@@ -3021,7 +3471,7 @@
   "name": "kind",
   "optional": false,
   "type": "ShopComponentKind",
-  "source": "maor/src/types/domain.ts:776"
+  "source": "maor/src/types/domain.ts:913"
  },
  {
   "id": "L10:maor:ShopItem.storeId",
@@ -3030,7 +3480,7 @@
   "name": "storeId",
   "optional": false,
   "type": "Id | ''",
-  "source": "maor/src/types/domain.ts:778"
+  "source": "maor/src/types/domain.ts:915"
  },
  {
   "id": "L10:maor:ShopItem.value",
@@ -3039,7 +3489,7 @@
   "name": "value",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:779"
+  "source": "maor/src/types/domain.ts:916"
  },
  {
   "id": "L10:maor:ShopItem.basePrice",
@@ -3048,7 +3498,7 @@
   "name": "basePrice",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:780"
+  "source": "maor/src/types/domain.ts:917"
  },
  {
   "id": "L10:maor:ShopItem.stock",
@@ -3057,7 +3507,7 @@
   "name": "stock",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:782"
+  "source": "maor/src/types/domain.ts:919"
  },
  {
   "id": "L10:maor:ShopItem.minStock",
@@ -3066,7 +3516,7 @@
   "name": "minStock",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:784"
+  "source": "maor/src/types/domain.ts:921"
  },
  {
   "id": "L10:maor:ShopItem.validDays",
@@ -3075,7 +3525,7 @@
   "name": "validDays",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:786"
+  "source": "maor/src/types/domain.ts:923"
  },
  {
   "id": "L10:maor:ShopItem.holidays",
@@ -3084,7 +3534,7 @@
   "name": "holidays",
   "optional": true,
   "type": "string[]",
-  "source": "maor/src/types/domain.ts:788"
+  "source": "maor/src/types/domain.ts:925"
  },
  {
   "id": "L10:maor:ShopItem.waits",
@@ -3093,7 +3543,7 @@
   "name": "waits",
   "optional": true,
   "type": "{ famId: Id",
-  "source": "maor/src/types/domain.ts:790"
+  "source": "maor/src/types/domain.ts:927"
  },
  {
   "id": "L10:maor:ShopItem.active",
@@ -3102,7 +3552,7 @@
   "name": "active",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:791"
+  "source": "maor/src/types/domain.ts:928"
  },
  {
   "id": "L10:maor:ShopItem.notes",
@@ -3111,7 +3561,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:792"
+  "source": "maor/src/types/domain.ts:929"
  },
  {
   "id": "L10:maor:ShopComponent.id",
@@ -3120,7 +3570,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:801"
+  "source": "maor/src/types/domain.ts:938"
  },
  {
   "id": "L10:maor:ShopComponent.itemId",
@@ -3129,7 +3579,7 @@
   "name": "itemId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:803"
+  "source": "maor/src/types/domain.ts:940"
  },
  {
   "id": "L10:maor:ShopComponent.kind",
@@ -3138,7 +3588,7 @@
   "name": "kind",
   "optional": false,
   "type": "ShopComponentKind",
-  "source": "maor/src/types/domain.ts:804"
+  "source": "maor/src/types/domain.ts:941"
  },
  {
   "id": "L10:maor:ShopComponent.label",
@@ -3147,7 +3597,7 @@
   "name": "label",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:805"
+  "source": "maor/src/types/domain.ts:942"
  },
  {
   "id": "L10:maor:ShopComponent.storeId",
@@ -3156,7 +3606,7 @@
   "name": "storeId",
   "optional": false,
   "type": "Id | ''",
-  "source": "maor/src/types/domain.ts:807"
+  "source": "maor/src/types/domain.ts:944"
  },
  {
   "id": "L10:maor:ShopComponent.value",
@@ -3165,7 +3615,7 @@
   "name": "value",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:809"
+  "source": "maor/src/types/domain.ts:946"
  },
  {
   "id": "L10:maor:ShopComponent.basePrice",
@@ -3174,7 +3624,7 @@
   "name": "basePrice",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:811"
+  "source": "maor/src/types/domain.ts:948"
  },
  {
   "id": "L10:maor:ShopComponent.stock",
@@ -3183,7 +3633,7 @@
   "name": "stock",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:812"
+  "source": "maor/src/types/domain.ts:949"
  },
  {
   "id": "L10:maor:ShopComponent.validDays",
@@ -3192,7 +3642,7 @@
   "name": "validDays",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:813"
+  "source": "maor/src/types/domain.ts:950"
  },
  {
   "id": "L10:maor:ShopComponent.notes",
@@ -3201,7 +3651,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:814"
+  "source": "maor/src/types/domain.ts:951"
  },
  {
   "id": "L10:maor:ShopIntake.id",
@@ -3210,7 +3660,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:819"
+  "source": "maor/src/types/domain.ts:956"
  },
  {
   "id": "L10:maor:ShopIntake.itemId",
@@ -3219,7 +3669,7 @@
   "name": "itemId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:820"
+  "source": "maor/src/types/domain.ts:957"
  },
  {
   "id": "L10:maor:ShopIntake.date",
@@ -3228,7 +3678,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:821"
+  "source": "maor/src/types/domain.ts:958"
  },
  {
   "id": "L10:maor:ShopIntake.qty",
@@ -3237,7 +3687,7 @@
   "name": "qty",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:822"
+  "source": "maor/src/types/domain.ts:959"
  },
  {
   "id": "L10:maor:ShopIntake.kind",
@@ -3246,7 +3696,7 @@
   "name": "kind",
   "optional": false,
   "type": "'buy' | 'donation'",
-  "source": "maor/src/types/domain.ts:823"
+  "source": "maor/src/types/domain.ts:960"
  },
  {
   "id": "L10:maor:ShopIntake.source",
@@ -3255,7 +3705,7 @@
   "name": "source",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:825"
+  "source": "maor/src/types/domain.ts:962"
  },
  {
   "id": "L10:maor:ShopIntake.cost",
@@ -3264,7 +3714,7 @@
   "name": "cost",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:827"
+  "source": "maor/src/types/domain.ts:964"
  },
  {
   "id": "L10:maor:ShopIntake.note",
@@ -3273,7 +3723,7 @@
   "name": "note",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:828"
+  "source": "maor/src/types/domain.ts:965"
  },
  {
   "id": "L10:maor:ShopIntake.expiry",
@@ -3282,7 +3732,7 @@
   "name": "expiry",
   "optional": true,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:830"
+  "source": "maor/src/types/domain.ts:967"
  },
  {
   "id": "L10:maor:ShopProduct.id",
@@ -3291,7 +3741,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:835"
+  "source": "maor/src/types/domain.ts:972"
  },
  {
   "id": "L10:maor:ShopProduct.name",
@@ -3300,7 +3750,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:836"
+  "source": "maor/src/types/domain.ts:973"
  },
  {
   "id": "L10:maor:ShopProduct.desc",
@@ -3309,7 +3759,7 @@
   "name": "desc",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:837"
+  "source": "maor/src/types/domain.ts:974"
  },
  {
   "id": "L10:maor:ShopProduct.img",
@@ -3318,7 +3768,7 @@
   "name": "img",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:838"
+  "source": "maor/src/types/domain.ts:975"
  },
  {
   "id": "L10:maor:ShopProduct.active",
@@ -3327,7 +3777,7 @@
   "name": "active",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:839"
+  "source": "maor/src/types/domain.ts:976"
  },
  {
   "id": "L10:maor:ShopProduct.components",
@@ -3336,7 +3786,7 @@
   "name": "components",
   "optional": false,
   "type": "ShopComponent[]",
-  "source": "maor/src/types/domain.ts:840"
+  "source": "maor/src/types/domain.ts:977"
  },
  {
   "id": "L10:maor:ShopProduct.notes",
@@ -3345,7 +3795,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:841"
+  "source": "maor/src/types/domain.ts:978"
  },
  {
   "id": "L10:maor:ShopStore.id",
@@ -3354,7 +3804,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:846"
+  "source": "maor/src/types/domain.ts:983"
  },
  {
   "id": "L10:maor:ShopStore.name",
@@ -3363,7 +3813,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:847"
+  "source": "maor/src/types/domain.ts:984"
  },
  {
   "id": "L10:maor:ShopStore.contact",
@@ -3372,7 +3822,7 @@
   "name": "contact",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:848"
+  "source": "maor/src/types/domain.ts:985"
  },
  {
   "id": "L10:maor:ShopStore.phone",
@@ -3381,7 +3831,7 @@
   "name": "phone",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:849"
+  "source": "maor/src/types/domain.ts:986"
  },
  {
   "id": "L10:maor:ShopStore.active",
@@ -3390,7 +3840,7 @@
   "name": "active",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:850"
+  "source": "maor/src/types/domain.ts:987"
  },
  {
   "id": "L10:maor:ShopStore.notes",
@@ -3399,7 +3849,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:851"
+  "source": "maor/src/types/domain.ts:988"
  },
  {
   "id": "L10:maor:ShopCriterion.id",
@@ -3408,7 +3858,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:856"
+  "source": "maor/src/types/domain.ts:993"
  },
  {
   "id": "L10:maor:ShopCriterion.name",
@@ -3417,7 +3867,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:857"
+  "source": "maor/src/types/domain.ts:994"
  },
  {
   "id": "L10:maor:ShopCriterion.discountPct",
@@ -3426,7 +3876,7 @@
   "name": "discountPct",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:858"
+  "source": "maor/src/types/domain.ts:995"
  },
  {
   "id": "L10:maor:ShopCriterion.notes",
@@ -3435,7 +3885,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:859"
+  "source": "maor/src/types/domain.ts:996"
  },
  {
   "id": "L10:maor:ShopRedemption.id",
@@ -3444,7 +3894,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:864"
+  "source": "maor/src/types/domain.ts:1001"
  },
  {
   "id": "L10:maor:ShopRedemption.rid",
@@ -3453,7 +3903,7 @@
   "name": "rid",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:866"
+  "source": "maor/src/types/domain.ts:1003"
  },
  {
   "id": "L10:maor:ShopRedemption.voidedAt",
@@ -3462,7 +3912,7 @@
   "name": "voidedAt",
   "optional": true,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:868"
+  "source": "maor/src/types/domain.ts:1005"
  },
  {
   "id": "L10:maor:ShopRedemption.voidReason",
@@ -3471,7 +3921,7 @@
   "name": "voidReason",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:869"
+  "source": "maor/src/types/domain.ts:1006"
  },
  {
   "id": "L10:maor:ShopRedemption.componentId",
@@ -3480,7 +3930,7 @@
   "name": "componentId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:870"
+  "source": "maor/src/types/domain.ts:1007"
  },
  {
   "id": "L10:maor:ShopRedemption.date",
@@ -3489,7 +3939,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:871"
+  "source": "maor/src/types/domain.ts:1008"
  },
  {
   "id": "L10:maor:ShopRedemption.holiday",
@@ -3498,7 +3948,7 @@
   "name": "holiday",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:872"
+  "source": "maor/src/types/domain.ts:1009"
  },
  {
   "id": "L10:maor:ShopRedemption.paid",
@@ -3507,7 +3957,7 @@
   "name": "paid",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:873"
+  "source": "maor/src/types/domain.ts:1010"
  },
  {
   "id": "L10:maor:ShopRedemption.value",
@@ -3516,7 +3966,7 @@
   "name": "value",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:874"
+  "source": "maor/src/types/domain.ts:1011"
  },
  {
   "id": "L10:maor:ShopRedemption.note",
@@ -3525,7 +3975,7 @@
   "name": "note",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:875"
+  "source": "maor/src/types/domain.ts:1012"
  },
  {
   "id": "L10:maor:ShopAssignment.id",
@@ -3534,7 +3984,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:882"
+  "source": "maor/src/types/domain.ts:1019"
  },
  {
   "id": "L10:maor:ShopAssignment.productId",
@@ -3543,7 +3993,7 @@
   "name": "productId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:883"
+  "source": "maor/src/types/domain.ts:1020"
  },
  {
   "id": "L10:maor:ShopAssignment.famId",
@@ -3552,7 +4002,7 @@
   "name": "famId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:884"
+  "source": "maor/src/types/domain.ts:1021"
  },
  {
   "id": "L10:maor:ShopAssignment.memberId",
@@ -3561,7 +4011,7 @@
   "name": "memberId",
   "optional": false,
   "type": "Id | ''",
-  "source": "maor/src/types/domain.ts:885"
+  "source": "maor/src/types/domain.ts:1022"
  },
  {
   "id": "L10:maor:ShopAssignment.criterionIds",
@@ -3570,7 +4020,7 @@
   "name": "criterionIds",
   "optional": false,
   "type": "Id[]",
-  "source": "maor/src/types/domain.ts:887"
+  "source": "maor/src/types/domain.ts:1024"
  },
  {
   "id": "L10:maor:ShopAssignment.since",
@@ -3579,7 +4029,7 @@
   "name": "since",
   "optional": false,
   "type": "IsoDate | ''",
-  "source": "maor/src/types/domain.ts:888"
+  "source": "maor/src/types/domain.ts:1025"
  },
  {
   "id": "L10:maor:ShopAssignment.status",
@@ -3588,7 +4038,7 @@
   "name": "status",
   "optional": false,
   "type": "ShopAssignmentStatus",
-  "source": "maor/src/types/domain.ts:889"
+  "source": "maor/src/types/domain.ts:1026"
  },
  {
   "id": "L10:maor:ShopAssignment.notes",
@@ -3597,7 +4047,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:890"
+  "source": "maor/src/types/domain.ts:1027"
  },
  {
   "id": "L10:maor:ShopAssignment.redemptions",
@@ -3606,7 +4056,16 @@
   "name": "redemptions",
   "optional": false,
   "type": "ShopRedemption[]",
-  "source": "maor/src/types/domain.ts:891"
+  "source": "maor/src/types/domain.ts:1028"
+ },
+ {
+  "id": "L10:maor:ShopAssignment.plannedCharges",
+  "level": "L10-field",
+  "entity": "ShopAssignment",
+  "name": "plannedCharges",
+  "optional": true,
+  "type": "PlannedCharge[]",
+  "source": "maor/src/types/domain.ts:1036"
  },
  {
   "id": "L10:maor:ShopEvent.id",
@@ -3615,7 +4074,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:901"
+  "source": "maor/src/types/domain.ts:1046"
  },
  {
   "id": "L10:maor:ShopEvent.title",
@@ -3624,7 +4083,7 @@
   "name": "title",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:902"
+  "source": "maor/src/types/domain.ts:1047"
  },
  {
   "id": "L10:maor:ShopEvent.date",
@@ -3633,7 +4092,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:903"
+  "source": "maor/src/types/domain.ts:1048"
  },
  {
   "id": "L10:maor:ShopEvent.time",
@@ -3642,7 +4101,7 @@
   "name": "time",
   "optional": false,
   "type": "TimeHM | ''",
-  "source": "maor/src/types/domain.ts:904"
+  "source": "maor/src/types/domain.ts:1049"
  },
  {
   "id": "L10:maor:ShopEvent.kind",
@@ -3651,7 +4110,7 @@
   "name": "kind",
   "optional": false,
   "type": "'meeting' | 'delivery' | 'holiday' | 'cu",
-  "source": "maor/src/types/domain.ts:906"
+  "source": "maor/src/types/domain.ts:1051"
  },
  {
   "id": "L10:maor:ShopEvent.assignmentId",
@@ -3660,7 +4119,7 @@
   "name": "assignmentId",
   "optional": false,
   "type": "Id | ''",
-  "source": "maor/src/types/domain.ts:907"
+  "source": "maor/src/types/domain.ts:1052"
  },
  {
   "id": "L10:maor:ShopEvent.roomId",
@@ -3669,7 +4128,7 @@
   "name": "roomId",
   "optional": true,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:909"
+  "source": "maor/src/types/domain.ts:1054"
  },
  {
   "id": "L10:maor:ShopEvent.mainEventId",
@@ -3678,7 +4137,7 @@
   "name": "mainEventId",
   "optional": true,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:911"
+  "source": "maor/src/types/domain.ts:1056"
  },
  {
   "id": "L10:maor:ShopEvent.notes",
@@ -3687,7 +4146,7 @@
   "name": "notes",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:912"
+  "source": "maor/src/types/domain.ts:1057"
  },
  {
   "id": "L10:maor:ShopEvent.done",
@@ -3696,7 +4155,7 @@
   "name": "done",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:913"
+  "source": "maor/src/types/domain.ts:1058"
  },
  {
   "id": "L10:maor:Volunteer.id",
@@ -3705,7 +4164,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:922"
+  "source": "maor/src/types/domain.ts:1067"
  },
  {
   "id": "L10:maor:Volunteer.name",
@@ -3714,7 +4173,7 @@
   "name": "name",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:923"
+  "source": "maor/src/types/domain.ts:1068"
  },
  {
   "id": "L10:maor:Volunteer.phone",
@@ -3723,7 +4182,7 @@
   "name": "phone",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:924"
+  "source": "maor/src/types/domain.ts:1069"
  },
  {
   "id": "L10:maor:Volunteer.area",
@@ -3732,7 +4191,7 @@
   "name": "area",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:926"
+  "source": "maor/src/types/domain.ts:1071"
  },
  {
   "id": "L10:maor:Volunteer.maxDeliveries",
@@ -3741,7 +4200,7 @@
   "name": "maxDeliveries",
   "optional": true,
   "type": "number",
-  "source": "maor/src/types/domain.ts:928"
+  "source": "maor/src/types/domain.ts:1073"
  },
  {
   "id": "L10:maor:Volunteer.active",
@@ -3750,7 +4209,7 @@
   "name": "active",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:929"
+  "source": "maor/src/types/domain.ts:1074"
  },
  {
   "id": "L10:maor:Volunteer.note",
@@ -3759,7 +4218,7 @@
   "name": "note",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:930"
+  "source": "maor/src/types/domain.ts:1075"
  },
  {
   "id": "L10:maor:Volunteer.createdAt",
@@ -3768,7 +4227,7 @@
   "name": "createdAt",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:931"
+  "source": "maor/src/types/domain.ts:1076"
  },
  {
   "id": "L10:maor:WorkTask.id",
@@ -3777,7 +4236,7 @@
   "name": "id",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:941"
+  "source": "maor/src/types/domain.ts:1086"
  },
  {
   "id": "L10:maor:WorkTask.assignee",
@@ -3786,7 +4245,7 @@
   "name": "assignee",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:943"
+  "source": "maor/src/types/domain.ts:1088"
  },
  {
   "id": "L10:maor:WorkTask.by",
@@ -3795,7 +4254,7 @@
   "name": "by",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:945"
+  "source": "maor/src/types/domain.ts:1090"
  },
  {
   "id": "L10:maor:WorkTask.title",
@@ -3804,7 +4263,7 @@
   "name": "title",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:947"
+  "source": "maor/src/types/domain.ts:1092"
  },
  {
   "id": "L10:maor:WorkTask.ref",
@@ -3813,7 +4272,7 @@
   "name": "ref",
   "optional": true,
   "type": "{ kind: 'supporter' | 'family' | 'course",
-  "source": "maor/src/types/domain.ts:949"
+  "source": "maor/src/types/domain.ts:1094"
  },
  {
   "id": "L10:maor:WorkTask.pri",
@@ -3822,7 +4281,7 @@
   "name": "pri",
   "optional": false,
   "type": "1 | 2 | 3",
-  "source": "maor/src/types/domain.ts:951"
+  "source": "maor/src/types/domain.ts:1096"
  },
  {
   "id": "L10:maor:WorkTask.due",
@@ -3831,7 +4290,7 @@
   "name": "due",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:953"
+  "source": "maor/src/types/domain.ts:1098"
  },
  {
   "id": "L10:maor:WorkTask.createdAt",
@@ -3840,7 +4299,7 @@
   "name": "createdAt",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:955"
+  "source": "maor/src/types/domain.ts:1100"
  },
  {
   "id": "L10:maor:WorkTask.doneAt",
@@ -3849,7 +4308,7 @@
   "name": "doneAt",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:957"
+  "source": "maor/src/types/domain.ts:1102"
  },
  {
   "id": "L10:maor:WorkTask.note",
@@ -3858,7 +4317,7 @@
   "name": "note",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:959"
+  "source": "maor/src/types/domain.ts:1104"
  },
  {
   "id": "L10:maor:Delivery.id",
@@ -3867,7 +4326,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:965"
+  "source": "maor/src/types/domain.ts:1110"
  },
  {
   "id": "L10:maor:Delivery.dayId",
@@ -3876,7 +4335,7 @@
   "name": "dayId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:967"
+  "source": "maor/src/types/domain.ts:1112"
  },
  {
   "id": "L10:maor:Delivery.assignmentId",
@@ -3885,7 +4344,7 @@
   "name": "assignmentId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:969"
+  "source": "maor/src/types/domain.ts:1114"
  },
  {
   "id": "L10:maor:Delivery.volunteerId",
@@ -3894,7 +4353,7 @@
   "name": "volunteerId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:971"
+  "source": "maor/src/types/domain.ts:1116"
  },
  {
   "id": "L10:maor:Delivery.familyId",
@@ -3903,7 +4362,7 @@
   "name": "familyId",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:973"
+  "source": "maor/src/types/domain.ts:1118"
  },
  {
   "id": "L10:maor:Delivery.status",
@@ -3912,7 +4371,7 @@
   "name": "status",
   "optional": false,
   "type": "DeliveryStatus",
-  "source": "maor/src/types/domain.ts:974"
+  "source": "maor/src/types/domain.ts:1119"
  },
  {
   "id": "L10:maor:Delivery.deliveredAt",
@@ -3921,7 +4380,7 @@
   "name": "deliveredAt",
   "optional": true,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:976"
+  "source": "maor/src/types/domain.ts:1121"
  },
  {
   "id": "L10:maor:Delivery.note",
@@ -3930,7 +4389,7 @@
   "name": "note",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:977"
+  "source": "maor/src/types/domain.ts:1122"
  },
  {
   "id": "L10:maor:Delivery.signature",
@@ -3939,7 +4398,7 @@
   "name": "signature",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:979"
+  "source": "maor/src/types/domain.ts:1124"
  },
  {
   "id": "L10:maor:DistributionDay.id",
@@ -3948,7 +4407,7 @@
   "name": "id",
   "optional": false,
   "type": "Id",
-  "source": "maor/src/types/domain.ts:983"
+  "source": "maor/src/types/domain.ts:1128"
  },
  {
   "id": "L10:maor:DistributionDay.date",
@@ -3957,7 +4416,7 @@
   "name": "date",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:984"
+  "source": "maor/src/types/domain.ts:1129"
  },
  {
   "id": "L10:maor:DistributionDay.title",
@@ -3966,7 +4425,7 @@
   "name": "title",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:985"
+  "source": "maor/src/types/domain.ts:1130"
  },
  {
   "id": "L10:maor:DistributionDay.note",
@@ -3975,7 +4434,7 @@
   "name": "note",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:986"
+  "source": "maor/src/types/domain.ts:1131"
  },
  {
   "id": "L10:maor:DistributionDay.closed",
@@ -3984,7 +4443,7 @@
   "name": "closed",
   "optional": false,
   "type": "boolean",
-  "source": "maor/src/types/domain.ts:987"
+  "source": "maor/src/types/domain.ts:1132"
  },
  {
   "id": "L10:maor:DistributionDay.createdAt",
@@ -3993,7 +4452,7 @@
   "name": "createdAt",
   "optional": false,
   "type": "IsoDate",
-  "source": "maor/src/types/domain.ts:988"
+  "source": "maor/src/types/domain.ts:1133"
  },
  {
   "id": "L10:maor:Db.v",
@@ -4002,7 +4461,7 @@
   "name": "v",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:994"
+  "source": "maor/src/types/domain.ts:1139"
  },
  {
   "id": "L10:maor:Db.savedAt",
@@ -4011,7 +4470,7 @@
   "name": "savedAt",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:995"
+  "source": "maor/src/types/domain.ts:1140"
  },
  {
   "id": "L10:maor:Db.seq",
@@ -4020,7 +4479,7 @@
   "name": "seq",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:997"
+  "source": "maor/src/types/domain.ts:1142"
  },
  {
   "id": "L10:maor:Db.receiptSeq",
@@ -4029,7 +4488,7 @@
   "name": "receiptSeq",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:999"
+  "source": "maor/src/types/domain.ts:1144"
  },
  {
   "id": "L10:maor:Db.donationSeq",
@@ -4038,7 +4497,7 @@
   "name": "donationSeq",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:1001"
+  "source": "maor/src/types/domain.ts:1146"
  },
  {
   "id": "L10:maor:Db.shopReceiptSeq",
@@ -4047,7 +4506,7 @@
   "name": "shopReceiptSeq",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:1003"
+  "source": "maor/src/types/domain.ts:1148"
  },
  {
   "id": "L10:maor:Db.families",
@@ -4056,7 +4515,7 @@
   "name": "families",
   "optional": false,
   "type": "Family[]",
-  "source": "maor/src/types/domain.ts:1004"
+  "source": "maor/src/types/domain.ts:1149"
  },
  {
   "id": "L10:maor:Db.enrollments",
@@ -4065,7 +4524,7 @@
   "name": "enrollments",
   "optional": false,
   "type": "Enrollment[]",
-  "source": "maor/src/types/domain.ts:1005"
+  "source": "maor/src/types/domain.ts:1150"
  },
  {
   "id": "L10:maor:Db.courses",
@@ -4074,7 +4533,7 @@
   "name": "courses",
   "optional": false,
   "type": "Course[]",
-  "source": "maor/src/types/domain.ts:1006"
+  "source": "maor/src/types/domain.ts:1151"
  },
  {
   "id": "L10:maor:Db.events",
@@ -4083,7 +4542,7 @@
   "name": "events",
   "optional": false,
   "type": "OrgEvent[]",
-  "source": "maor/src/types/domain.ts:1007"
+  "source": "maor/src/types/domain.ts:1152"
  },
  {
   "id": "L10:maor:Db.rooms",
@@ -4092,7 +4551,7 @@
   "name": "rooms",
   "optional": false,
   "type": "Room[]",
-  "source": "maor/src/types/domain.ts:1008"
+  "source": "maor/src/types/domain.ts:1153"
  },
  {
   "id": "L10:maor:Db.teachers",
@@ -4101,7 +4560,7 @@
   "name": "teachers",
   "optional": false,
   "type": "Teacher[]",
-  "source": "maor/src/types/domain.ts:1009"
+  "source": "maor/src/types/domain.ts:1154"
  },
  {
   "id": "L10:maor:Db.supporters",
@@ -4110,7 +4569,7 @@
   "name": "supporters",
   "optional": false,
   "type": "Supporter[]",
-  "source": "maor/src/types/domain.ts:1010"
+  "source": "maor/src/types/domain.ts:1155"
  },
  {
   "id": "L10:maor:Db.tzCoordinators",
@@ -4119,7 +4578,7 @@
   "name": "tzCoordinators",
   "optional": false,
   "type": "TzCoordinator[]",
-  "source": "maor/src/types/domain.ts:1012"
+  "source": "maor/src/types/domain.ts:1157"
  },
  {
   "id": "L10:maor:Db.tzBoxes",
@@ -4128,7 +4587,7 @@
   "name": "tzBoxes",
   "optional": false,
   "type": "TzBox[]",
-  "source": "maor/src/types/domain.ts:1013"
+  "source": "maor/src/types/domain.ts:1158"
  },
  {
   "id": "L10:maor:Db.tzCampaigns",
@@ -4137,7 +4596,7 @@
   "name": "tzCampaigns",
   "optional": false,
   "type": "TzCampaign[]",
-  "source": "maor/src/types/domain.ts:1014"
+  "source": "maor/src/types/domain.ts:1159"
  },
  {
   "id": "L10:maor:Db.tzEvents",
@@ -4146,7 +4605,7 @@
   "name": "tzEvents",
   "optional": false,
   "type": "TzEvent[]",
-  "source": "maor/src/types/domain.ts:1015"
+  "source": "maor/src/types/domain.ts:1160"
  },
  {
   "id": "L10:maor:Db.shopItems",
@@ -4155,7 +4614,7 @@
   "name": "shopItems",
   "optional": false,
   "type": "ShopItem[]",
-  "source": "maor/src/types/domain.ts:1017"
+  "source": "maor/src/types/domain.ts:1162"
  },
  {
   "id": "L10:maor:Db.shopProducts",
@@ -4164,7 +4623,7 @@
   "name": "shopProducts",
   "optional": false,
   "type": "ShopProduct[]",
-  "source": "maor/src/types/domain.ts:1018"
+  "source": "maor/src/types/domain.ts:1163"
  },
  {
   "id": "L10:maor:Db.shopStores",
@@ -4173,7 +4632,7 @@
   "name": "shopStores",
   "optional": false,
   "type": "ShopStore[]",
-  "source": "maor/src/types/domain.ts:1019"
+  "source": "maor/src/types/domain.ts:1164"
  },
  {
   "id": "L10:maor:Db.shopCriteria",
@@ -4182,7 +4641,7 @@
   "name": "shopCriteria",
   "optional": false,
   "type": "ShopCriterion[]",
-  "source": "maor/src/types/domain.ts:1020"
+  "source": "maor/src/types/domain.ts:1165"
  },
  {
   "id": "L10:maor:Db.shopAssignments",
@@ -4191,7 +4650,7 @@
   "name": "shopAssignments",
   "optional": false,
   "type": "ShopAssignment[]",
-  "source": "maor/src/types/domain.ts:1021"
+  "source": "maor/src/types/domain.ts:1166"
  },
  {
   "id": "L10:maor:Db.shopEvents",
@@ -4200,7 +4659,7 @@
   "name": "shopEvents",
   "optional": false,
   "type": "ShopEvent[]",
-  "source": "maor/src/types/domain.ts:1022"
+  "source": "maor/src/types/domain.ts:1167"
  },
  {
   "id": "L10:maor:Db.shopIntakes",
@@ -4209,7 +4668,7 @@
   "name": "shopIntakes",
   "optional": false,
   "type": "ShopIntake[]",
-  "source": "maor/src/types/domain.ts:1024"
+  "source": "maor/src/types/domain.ts:1169"
  },
  {
   "id": "L10:maor:Db.volunteers",
@@ -4218,7 +4677,7 @@
   "name": "volunteers",
   "optional": false,
   "type": "Volunteer[]",
-  "source": "maor/src/types/domain.ts:1026"
+  "source": "maor/src/types/domain.ts:1171"
  },
  {
   "id": "L10:maor:Db.distributionDays",
@@ -4227,7 +4686,7 @@
   "name": "distributionDays",
   "optional": false,
   "type": "DistributionDay[]",
-  "source": "maor/src/types/domain.ts:1027"
+  "source": "maor/src/types/domain.ts:1172"
  },
  {
   "id": "L10:maor:Db.deliveries",
@@ -4236,7 +4695,7 @@
   "name": "deliveries",
   "optional": false,
   "type": "Delivery[]",
-  "source": "maor/src/types/domain.ts:1028"
+  "source": "maor/src/types/domain.ts:1173"
  },
  {
   "id": "L10:maor:Db.tasks",
@@ -4245,7 +4704,7 @@
   "name": "tasks",
   "optional": false,
   "type": "WorkTask[]",
-  "source": "maor/src/types/domain.ts:1030"
+  "source": "maor/src/types/domain.ts:1175"
  },
  {
   "id": "L10:maor:Db.warehouse",
@@ -4254,7 +4713,7 @@
   "name": "warehouse",
   "optional": false,
   "type": "WarehouseItem[]",
-  "source": "maor/src/types/domain.ts:1032"
+  "source": "maor/src/types/domain.ts:1177"
  },
  {
   "id": "L10:maor:Db.orgName",
@@ -4263,7 +4722,7 @@
   "name": "orgName",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:1033"
+  "source": "maor/src/types/domain.ts:1178"
  },
  {
   "id": "L10:maor:Db.orgSite",
@@ -4272,7 +4731,7 @@
   "name": "orgSite",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:1034"
+  "source": "maor/src/types/domain.ts:1179"
  },
  {
   "id": "L10:maor:Db.orgDonate",
@@ -4281,7 +4740,7 @@
   "name": "orgDonate",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:1035"
+  "source": "maor/src/types/domain.ts:1180"
  },
  {
   "id": "L10:maor:Db.orgGoal",
@@ -4290,7 +4749,7 @@
   "name": "orgGoal",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:1037"
+  "source": "maor/src/types/domain.ts:1182"
  },
  {
   "id": "L10:maor:Db.budget",
@@ -4299,7 +4758,7 @@
   "name": "budget",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:1042"
+  "source": "maor/src/types/domain.ts:1187"
  },
  {
   "id": "L10:maor:Db.usdRate",
@@ -4308,7 +4767,7 @@
   "name": "usdRate",
   "optional": false,
   "type": "number",
-  "source": "maor/src/types/domain.ts:1044"
+  "source": "maor/src/types/domain.ts:1189"
  },
  {
   "id": "L10:maor:Db.notif",
@@ -4317,7 +4776,7 @@
   "name": "notif",
   "optional": false,
   "type": "NotifPrefs",
-  "source": "maor/src/types/domain.ts:1045"
+  "source": "maor/src/types/domain.ts:1190"
  },
  {
   "id": "L10:maor:Db.reports",
@@ -4326,7 +4785,7 @@
   "name": "reports",
   "optional": false,
   "type": "ReportPrefs",
-  "source": "maor/src/types/domain.ts:1046"
+  "source": "maor/src/types/domain.ts:1191"
  },
  {
   "id": "L10:maor:Db.ui",
@@ -4335,7 +4794,7 @@
   "name": "ui",
   "optional": false,
   "type": "UiPrefs",
-  "source": "maor/src/types/domain.ts:1047"
+  "source": "maor/src/types/domain.ts:1192"
  },
  {
   "id": "L10:maor:Db.attnDone",
@@ -4344,7 +4803,7 @@
   "name": "attnDone",
   "optional": false,
   "type": "Record<string, string>",
-  "source": "maor/src/types/domain.ts:1049"
+  "source": "maor/src/types/domain.ts:1194"
  },
  {
   "id": "L10:maor:Db.security",
@@ -4353,7 +4812,7 @@
   "name": "security",
   "optional": false,
   "type": "SecurityCfg",
-  "source": "maor/src/types/domain.ts:1051"
+  "source": "maor/src/types/domain.ts:1196"
  },
  {
   "id": "L10:maor:Db.audit",
@@ -4362,7 +4821,16 @@
   "name": "audit",
   "optional": true,
   "type": "AuditEntry[]",
-  "source": "maor/src/types/domain.ts:1056"
+  "source": "maor/src/types/domain.ts:1201"
+ },
+ {
+  "id": "L10:maor:Db.delLog",
+  "level": "L10-field",
+  "entity": "Db",
+  "name": "delLog",
+  "optional": true,
+  "type": "DelEntry[]",
+  "source": "maor/src/types/domain.ts:1208"
  },
  {
   "id": "L10:maor:AuditEntry.at",
@@ -4371,7 +4839,7 @@
   "name": "at",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:1062"
+  "source": "maor/src/types/domain.ts:1214"
  },
  {
   "id": "L10:maor:AuditEntry.who",
@@ -4380,7 +4848,7 @@
   "name": "who",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:1064"
+  "source": "maor/src/types/domain.ts:1216"
  },
  {
   "id": "L10:maor:AuditEntry.act",
@@ -4389,7 +4857,7 @@
   "name": "act",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:1066"
+  "source": "maor/src/types/domain.ts:1218"
  },
  {
   "id": "L10:maor:AuditEntry.what",
@@ -4398,7 +4866,34 @@
   "name": "what",
   "optional": false,
   "type": "string",
-  "source": "maor/src/types/domain.ts:1068"
+  "source": "maor/src/types/domain.ts:1220"
+ },
+ {
+  "id": "L10:maor:DelEntry.at",
+  "level": "L10-field",
+  "entity": "DelEntry",
+  "name": "at",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:1226"
+ },
+ {
+  "id": "L10:maor:DelEntry.col",
+  "level": "L10-field",
+  "entity": "DelEntry",
+  "name": "col",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:1228"
+ },
+ {
+  "id": "L10:maor:DelEntry.id",
+  "level": "L10-field",
+  "entity": "DelEntry",
+  "name": "id",
+  "optional": false,
+  "type": "string",
+  "source": "maor/src/types/domain.ts:1230"
  },
  {
   "id": "L10:maor:SecurityCfg.primary",
@@ -4407,7 +4902,7 @@
   "name": "primary",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:1086"
+  "source": "maor/src/types/domain.ts:1277"
  },
  {
   "id": "L10:maor:SecurityCfg.secondary",
@@ -4416,7 +4911,7 @@
   "name": "secondary",
   "optional": true,
   "type": "string",
-  "source": "maor/src/types/domain.ts:1087"
+  "source": "maor/src/types/domain.ts:1278"
  },
  {
   "id": "L10:maor:SecurityCfg.zones",
@@ -4425,6 +4920,6 @@
   "name": "zones",
   "optional": true,
   "type": "string[]",
-  "source": "maor/src/types/domain.ts:1089"
+  "source": "maor/src/types/domain.ts:1280"
  }
 ]
