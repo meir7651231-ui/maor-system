@@ -26,11 +26,18 @@ describe('firestore.rules — מסלול-B: אכיפת-ייעוד על אוסף-
   it('אוסף-התרומות מוחרג מקריאת-הגנרי (אחרת ה-OR של Firestore עוקף)', () => {
     expect(rules).toContain("!(col in ['donations', 'supporters', 'events', 'auditlog', 'incomingPayments', 'smsOutbox', 'mailOutbox'])");
   });
-  it('מאץ׳ ייעודי לאוסף-התרומות — קריאה פר-pkey', () => {
+  it('מאץ׳ ייעודי לאוסף-התרומות — קריאה פר-pkey · עדכון/מחיקה=מנהל בלבד', () => {
     expect(rules).toContain('match /orgs/{slug}/donations/{id}');
     expect(rules).toContain("memberSeesPurpose(slug, resource.data.get('pkey', '_shared_'))");
-    // נחיל 16.8 (CRITICAL): כתיבה נאכפת פר-pkey — חוסמת הפיכת-מפתח-ל-_shared_ ומחיקת-קבלה
-    expect(rules).toContain('canWriteKeyed(slug, resource.data.get');
+    // לולאת-האמון 8 (24.8) מחליפה את אכיפת-canWriteKeyed בהגנת-קבלות מלאה:
+    // חבר-מוגבל יכול היה לעדכן/למחוק קבלת-§46 בייעוד-שלו. עכשיו עדכון/מחיקה =
+    // מנהל/מייל-על בלבד (סימטרי ל-create). red-team 63/63 מאמת מול אמולטור.
+    const donBlock = rules.slice(rules.indexOf('match /orgs/{slug}/donations/{id}'));
+    const block = donBlock.slice(0, donBlock.indexOf('}'));
+    expect(block).toContain('allow update: if superAdmin() || orgManager(slug);');
+    expect(block).toContain('allow delete: if superAdmin() || orgManager(slug);');
+    expect(block).not.toContain('canWriteKeyed');
+    expect(block).not.toContain('allow update: if canWriteKeyed');
   });
   it('memberSeesPurpose — בלי-הגבלה / משותף / ייעוד-מותר', () => {
     expect(rules).toContain("pkey == '_shared_'");
