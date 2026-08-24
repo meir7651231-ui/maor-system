@@ -110,6 +110,12 @@ export function PlannedChargesSection({ supporter }: { supporter: Supporter }) {
                 {overdue && (
                   <span style={{ fontSize: 12.5, color: '#92400e', fontWeight: 700 }}>⚠️ באיחור</span>
                 )}
+                {/* ⏳ אשראי-פתוח (בקשת-בעלים 25.8): "שיהיה הודעה ממתין לחיוב-נכנס" */}
+                {!chargedOk && !cancelled && !overdue && pl.method === 'credit' && (
+                  <span style={{ fontSize: 12.5, color: '#0369a1', fontWeight: 700, background: '#e0f2fe', padding: '2px 6px', borderRadius: 4 }}>
+                    ⏳ ממתין לחיוב-נכנס
+                  </span>
+                )}
                 <div style={{ flex: 1 }} />
                 {!chargedOk && !cancelled && (
                   <>

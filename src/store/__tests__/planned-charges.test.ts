@@ -102,4 +102,18 @@ describe('📅 ratchet — חיובים-מתוכננים בתומכים (store)'
     // המונה לא זז:
     expect(db().supporters.find((s) => s.id === 'a')!.donations).toHaveLength(0);
   });
+
+  it('DonationModal בורר-אמצעי (בקשת-בעלים 25.8): הגנת-מקור', async () => {
+    // המקור של DonationModal מנתב "אשראי" ל-PlannedCharge בלבד — אין ניחוש
+    // D-, אין מסמך-קבלה, אין מייל. חסימת-רגרסיה: אם מישהו יסיר את הבלוק,
+    // ראצ'ט זה ייכשל ⇒ המשתמשת לא תגלה שוב שאשראי הפיק D- טרם-אישור.
+    const src = await import('../../components/supporters/DonationModal.tsx?raw').then((m) => (m as { default: string }).default);
+    expect(src).toMatch(/plannedOn && method === 'credit'/);
+    expect(src).toContain('addPlannedCharges(');
+    expect(src).toContain("firstDate: date, count: 1");
+    expect(src).toContain("method: 'credit'");
+    expect(src).toContain('ממתין לחיוב-נכנס');
+    // בורר-האמצעי מגודר plannedOn:
+    expect(src).toMatch(/\{plannedOn && \(\s*<Field label="אמצעי">/);
+  });
 });
