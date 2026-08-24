@@ -21,6 +21,7 @@ export const OPT_IN_KEYS = [
   // ו-photos היה במרשם בלי optIn (האשף הציג "דלוק" ולחיצת-הדלקה מחקה את המפתח).
   'supporters.photos',
   'supporters.hokbulk',
+  'supporters.plannedcharges',
   'supporters.universe3d',
   // רישום-לשנה-הבאה — מסך "רישום" מגודר `=== true` בקוד ⇒ חייב optIn:true באשף
   'courses.reenroll',

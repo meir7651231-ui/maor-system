@@ -533,6 +533,32 @@ export interface AyinCase {
 }
 
 /** הוראת-קבע של תומך/ת — הגדרה בלבד; אין חיוב-כרטיסים במערכת (רגולציה). */
+/**
+ * 📅 חיוב-מתוכנן (בקשת-בעלים 25.8) — הבטחה עתידית לגייתוויי, בלי-קבלה עד
+ * שהחיוב באמת יורד. מקושר לפריסת-תשלומים דרך `installmentOf` (מזהה-קבוצה
+ * ידני, שנוצר ב-`planCharges` כשמזמינים 3×₪400 בפריסה-אחידה). המעבר לחיוב
+ * בפועל = `chargePlanned` (יוצר Donation D- ומקשר `chargedRid`).
+ */
+export interface PlannedCharge {
+  /** מזהה-פנימי (nextId 'pc') — ייחודי בתוך מערך התומך. */
+  id: Id;
+  /** תאריך-החיוב הצפוי (YYYY-MM-DD). */
+  date: IsoDate;
+  amount: number;
+  cur: '₪' | '$';
+  /** אמצעי — 'credit' | 'bank' | 'cash' | 'check' (טקסט-חופשי). */
+  method: string;
+  /** קטגוריית-הייעוד שתועבר לתרומה בעת החיוב. */
+  cat: string;
+  /** מזהה-קבוצה של פריסת-תשלומים (למשל '3-מתוך-3'); undefined = חיוב-בודד. */
+  installmentOf?: string;
+  /** ה-rid (D-…) של התרומה שנוצרה בעת החיוב. חסר = ממתין. */
+  chargedRid?: string;
+  /** תאריך-הביטול (undefined = פעיל). */
+  cancelledAt?: IsoDate;
+  note?: string;
+}
+
 export interface Hok {
   amount: number;
   cur: '₪' | '$';
@@ -625,6 +651,16 @@ export interface Supporter {
    * (addDonation, קבלה בסדרה הרציפה) עם קטגוריית HOK_CAT.
    */
   hok?: Hok;
+  /**
+   * 📅 חיובים-מתוכננים (בקשת-בעלים 25.8, additive · אין מיגרציה):
+   * "כאני מגדיר חיוב אני רושם מתי החיוב יתבצע ובכמה תשלומים אבל לא מוציא
+   * חשבונית על אשראי — רק שהחיוב יירד זה יסתנכרן". חיוב-מתוכנן = הבטחה
+   * עתידית, בלי D- (אין קבלת-מס על כסף-שלא-נגבה). כשהחיוב באמת יורד →
+   * `chargePlanned` יוצרת Donation רגילה עם D- דרך `addDonation`, וממלאת
+   * `chargedRid` על-הפלן ⇒ אין כפילות, יש שרשרת-ביקורת. מסתנכרן ככל שדה-
+   * שיבוץ (בתוך מסמך-התומך). מגודר supporters.plannedcharges (opt-in).
+   */
+  plannedCharges?: PlannedCharge[];
   /** תיק מעקב טיפול רב-שלבי (feature supporters.ayin) — אופציונלי. */
   ayin?: AyinCase;
   /**

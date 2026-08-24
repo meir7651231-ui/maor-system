@@ -61,6 +61,7 @@ import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, SEGULA_OFFSETS, segulaReminders, segulaTitle } from '../components/supporters/lib';
+import { planCharges } from '../components/supporters/planned';
 import { canAddPhoto, isDataImage, PHOTO_MAX, PHOTO_MAX_LEN } from '../lib/photoGallery';
 import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
 import { attachChargeTo, attachChargesBulk, detectRecurringHok, planNedarimSync, repairCardsFromRows, type SyncCharge } from '../lib/nedarimSync';
@@ -402,6 +403,14 @@ interface AppState {
   /** רישום-הו״ק המוני — חיוב-החודש לכל המזהים המסומנים בבת-אחת (קבלות רציפות D-).
    *  מחזיר {done,rids,failed}; שער-הקבלות נבדק פעם-אחת, כתיבה אטומית אחת. */
   bulkRecordHok: (ids: string[], todayIso: string) => { done: number; rids: { id: string; rid: string; amount: number; cur: string }[]; failed: number };
+  /** 📅 פריסת חיובים-מתוכננים לתומכ/ת (בקשת-בעלים 25.8) — לא-קבלה עד חיוב-בפועל.
+   *  N שורות PlannedCharge בפערי-חודש קבועים; groupId משותף (installmentOf). */
+  addPlannedCharges: (supporterId: string, spec: { firstDate: string; count: number; amount: number; cur: '₪' | '$'; method: string; cat: string; note?: string; gapMonths?: number }) => { ok: boolean; ids?: string[] };
+  /** ביטול-רך של חיוב-מתוכנן — מסמן cancelledAt (לא מוחק, שרשרת-ביקורת נשמרת). */
+  cancelPlannedCharge: (supporterId: string, planId: string, todayIso: string) => { ok: boolean };
+  /** ✓ החיוב ירד — הפיכת PlannedCharge ל-Donation D- בפועל (דרך addDonation).
+   *  שער-הקבלות של addDonation חל; אידמפוטנטי (chargedRid קיים ⇒ החזרת אותו rid). */
+  chargePlanned: (supporterId: string, planId: string) => { ok: boolean; rid?: string };
 
   // קופות צדקה (מודול tzedaka — מבודד; BUILD-ORDER-TZEDAKA-2026-07-30).
   // הכסף/האירועים/הניקוד נכתבים רק למערכי tz* — לא לקבלות/תרומות/לוח הראשי.
@@ -2436,6 +2445,85 @@ export const useApp = create<AppState>()((set, get) => {
         logAudit(termOf(get().config, 'entity.donation', 'תרומה') + ' · הו"ק המוני', rids.length + ' חיובים · ' + rids[0].rid + '…' + rids[rids.length - 1].rid);
       }
       return { done: rids.length, rids, failed };
+    },
+
+    // ── 📅 חיובים-מתוכננים לתומכ/ת (בקשת-בעלים 25.8) ──
+    // "אני רושם מתי החיוב יתבצע ובכמה תשלומים, אבל לא מוציא חשבונית על אשראי —
+    // רק שהחיוב יירד זה יסתנכרן". PlannedCharge = הבטחה, לא-קבלה. addDonation
+    // רץ רק כשהחיוב באמת יורד (chargePlanned) ⇒ שרשרת-D- נשמרת רציפה.
+    addPlannedCharges(supporterId, spec) {
+      // אין שער-קבלות כאן — plannedCharges זה **לא-קבלה** (רק הבטחה עתידית).
+      // מותר לכל עובד/ת עם גישה-לכתיבה, כמו עריכת-הערה/nextDate.
+      if (!get().db.supporters.some((s) => s.id === supporterId)) {
+        get().toast(termOf(get().config, 'entity.supporter', 'התומך/ת') + ' לא נמצא/ה');
+        return { ok: false };
+      }
+      const count = Math.max(1, Math.floor(spec.count));
+      const ids = Array.from({ length: count }, () => get().nextId('pc'));
+      const groupId = get().nextId('pcg'); // מזהה-קבוצה של פריסה
+      const plans = planCharges({
+        firstDate: spec.firstDate,
+        count,
+        amount: spec.amount,
+        cur: spec.cur,
+        method: spec.method,
+        cat: spec.cat,
+        note: spec.note,
+        gapMonths: spec.gapMonths,
+        groupId,
+        ids,
+      });
+      setDb((db) => ({
+        supporters: db.supporters.map((s) =>
+          s.id === supporterId ? { ...s, plannedCharges: [...(s.plannedCharges || []), ...plans] } : s,
+        ),
+      }));
+      logAudit('חיוב-מתוכנן', count + ' × ' + spec.cur + spec.amount + ' · החל ' + spec.firstDate);
+      return { ok: true, ids };
+    },
+    cancelPlannedCharge(supporterId, planId, todayIso) {
+      let done = false;
+      setDb((db) => ({
+        supporters: db.supporters.map((s) => {
+          if (s.id !== supporterId) return s;
+          const plans = (s.plannedCharges || []).map((p) => {
+            if (p.id !== planId) return p;
+            if (p.chargedRid || p.cancelledAt) return p; // כבר חויב/בוטל — no-op
+            done = true;
+            return { ...p, cancelledAt: todayIso };
+          });
+          return { ...s, plannedCharges: plans };
+        }),
+      }));
+      if (done) logAudit('ביטול חיוב-מתוכנן', planId);
+      return { ok: done };
+    },
+    chargePlanned(supporterId, planId) {
+      // אידמפוטנטי: אם chargedRid כבר קיים — מחזירים אותו (מונע כפל-קבלה).
+      const sup0 = get().db.supporters.find((s) => s.id === supporterId);
+      const plan0 = sup0?.plannedCharges?.find((p) => p.id === planId);
+      if (!plan0) return { ok: false };
+      if (plan0.chargedRid) return { ok: true, rid: plan0.chargedRid };
+      if (plan0.cancelledAt) return { ok: false }; // בוטל — לא-מחייבים
+      // הזרמה ל-addDonation (שער-הקבלות רץ כאן; רק המנהל יכול לחייב).
+      const r = get().addDonation(supporterId, {
+        date: plan0.date,
+        amount: plan0.amount,
+        cur: plan0.cur,
+        cat: plan0.cat || '',
+      });
+      if (!r.ok || !r.rid) return { ok: false };
+      // קישור-בין: PlannedCharge.chargedRid = ה-D- שנוצר (שרשרת-ביקורת).
+      setDb((db) => ({
+        supporters: db.supporters.map((s) => {
+          if (s.id !== supporterId) return s;
+          return {
+            ...s,
+            plannedCharges: (s.plannedCharges || []).map((p) => (p.id === planId ? { ...p, chargedRid: r.rid } : p)),
+          };
+        }),
+      }));
+      return { ok: true, rid: r.rid };
     },
 
     // ── קופות צדקה (מודול tzedaka — מבודד; הכרעת בעלים 30.7.2026) ──

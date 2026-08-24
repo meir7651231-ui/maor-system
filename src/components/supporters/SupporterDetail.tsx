@@ -22,6 +22,7 @@ import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
 import { SupporterPhotos } from './SupporterPhotos';
+import { PlannedChargesSection } from './PlannedChargesSection';
 import { DonationCalendar } from './DonationCalendar';
 
 function InfoRow(props: { k: string; v: string; ltr?: boolean }) {
@@ -167,6 +168,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     toast('🔁 חיוב-החודש נרשם' + (featureOn(config, 'core.receipts') ? ' — קבלה ' + res.rid : ''));
   }
   const ayinOn = featureOn(config, 'supporters.ayin');
+  // 📅 חיובים-מתוכננים (בקשת-בעלים 25.8) — opt-in מפורש; חסר-הדגל ⇒ מוסתר.
+  const plannedOn = config.features?.['supporters.plannedcharges'] === true;
   // גלריית-תמונות — opt-in מפורש (=== true), שומר על ברירת-המחדל ביט-זהה בלקוח-החי.
   const photosOn = config.features?.['supporters.photos'] === true;
   const histOn = featureOn(config, 'supporters.hist');
@@ -543,6 +546,10 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             )}
           </div>
         )}
+
+        {/* 📅 חיובים-מתוכננים (בקשת-בעלים 25.8): פריסת-תשלומים עתידית בלי-קבלה
+             עד שהחיוב באמת יורד. opt-in supporters.plannedcharges. */}
+        {plannedOn && <PlannedChargesSection supporter={sp} />}
 
         {/* קשר הבא */}
         {nextOn && (
