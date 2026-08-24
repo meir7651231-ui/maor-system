@@ -37,6 +37,12 @@ export interface Member {
   mRecommend: boolean;
   mPhotos: boolean;
   mVideos: boolean;
+  /**
+   * 🗓 חותמות-הסכמה (ביקורת-האמון 24.8, additive): מתי כל הסכמה ניתנה.
+   * הבוליאנים לבדם לא ענו על "מאיזה תאריך יש הסכמת-צילום" — דרישת-יסוד
+   * בניהול-הסכמות. נכתב בטופס כשמדליקים צ'יפ; כיבוי מסיר את החותמת.
+   */
+  mConsentAt?: Partial<Record<'mSefach' | 'mInvite' | 'mRecommend' | 'mPhotos' | 'mVideos', IsoDate>>;
   notes: string;
   isParent?: boolean;
 }
