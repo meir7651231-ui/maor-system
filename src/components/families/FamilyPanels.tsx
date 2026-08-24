@@ -507,14 +507,18 @@ function familyReportLines(db: Db, f: Family, config: OrgConfig): string[] {
   const ids = new Set(f.members.map((m) => m.id));
   // ברירת המחדל 700 זהה לכל שאר המשטחים (emptyFamily · כרטיס · finder · בית) — בלי פער
   const tier = tierOf(f.cred?.score ?? 700);
+  // 🛡️ ביקורת-האמון 24.8: הדוח כיבד את הדגלים רק במסך — ת"ז ורגישויות דלפו לקובץ
+  // גם כש-families.showid/families.health כבויים. חסר-דגל=פעיל ⇒ ברירת-מחדל ביט-זהה.
+  const showId = featureOn(config, 'families.showid');
+  const showHealth = featureOn(config, 'families.health');
   const L: string[] = [
     'דוח ' + termOf(config, 'entity.family', 'משפחה') + ' מלא — ' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + f.name,
     'הופק: ' + hebDateFull(isoToday()) + ' · ' + new Date().toLocaleString('he-IL'),
     '='.repeat(46),
     '',
     '— פרטי ה' + termOf(config, 'entity.family', 'משפחה') + ' —',
-    'אב: ' + (f.father || '—') + (f.fatherId ? ' · ת"ז ' + f.fatherId : ''),
-    'אם: ' + (f.mother || '—') + (f.motherId ? ' · ת"ז ' + f.motherId : ''),
+    'אב: ' + (f.father || '—') + (showId && f.fatherId ? ' · ת"ז ' + f.fatherId : ''),
+    'אם: ' + (f.mother || '—') + (showId && f.motherId ? ' · ת"ז ' + f.motherId : ''),
     'טלפון: ' + (f.phone || '—') + (f.phone2 ? ' · ' + f.phone2 : '') + (f.email ? ' · ' + f.email : ''),
     'כתובת: ' + ([f.address, f.city].filter(Boolean).join(', ') || '—'),
     'קהילה: ' + (f.community || '—') + ' · שפה: ' + (f.language || '—') + ' · מצב משפחתי: ' + (f.maritalStatus || '—'),
@@ -532,7 +536,7 @@ function familyReportLines(db: Db, f: Family, config: OrgConfig): string[] {
         (m.birth ? ' · ' + hebDateFull(m.birth) + ' (' + fmtDate(m.birth) + ')' + (age != null ? ' · גיל ' + age : '') : '') +
         (m.school ? ' · ' + m.school + (m.grade ? ' ' + m.grade : '') : '') +
         (m.phone ? ' · ' + m.phone : '') +
-        (m.health ? ' · רגישויות: ' + m.health : ''),
+        (showHealth && m.health ? ' · רגישויות: ' + m.health : ''),
     );
   }
   if (!f.members.length) L.push('(אין ' + termOf(config, 'entity.members', 'בני משפחה') + ')');
@@ -578,6 +582,7 @@ function familyReportLines(db: Db, f: Family, config: OrgConfig): string[] {
 function HistoryPanel(props: { fam: Family }) {
   const db = useApp((s) => s.db);
   const toast = useApp((s) => s.toast);
+  const logAccess = useApp((s) => s.logAccess);
   const config = useApp((s) => s.config);
   const reportOn = featureOn(config, 'families.report');
   const [open, setOpen] = useState(false);
@@ -585,6 +590,7 @@ function HistoryPanel(props: { fam: Family }) {
   const hist = famHistoryOf(db, props.fam, config);
 
   function exportReport() {
+    logAccess('הורדת דוח-משפחה', props.fam.name);
     downloadText('family-' + props.fam.name + '.txt', familyReportLines(db, props.fam, config));
     toast('דוח ה' + termOf(config, 'entity.family', 'משפחה') + ' המלא ירד למחשב');
   }

@@ -271,6 +271,11 @@ interface AppState {
   // הודעות
   toast: (text: string) => void;
   dismissToast: (id: number) => void;
+  /**
+   * 🕵️ יומן-גישה (ביקורת-האמון 24.8): הלוג תיעד רק *שינויים* — חשיפת ת"ז,
+   * הורדת דוח-משפחה וייצוא-גיבוי היו בלתי-נראים. רישום-צפייה לפעולות רגישות.
+   */
+  logAccess: (act: string, what: string) => void;
 
   // משפחות ובני משפחה
   upsertFamily: (fam: Family) => void;
@@ -1457,6 +1462,7 @@ export const useApp = create<AppState>()((set, get) => {
       setTimeout(() => get().dismissToast(id), 4000);
     },
     dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+    logAccess: (act, what) => logAudit(act, what),
 
     upsertFamily(fam) {
       setDb((db) => ({ families: upsertIn(db.families, fam) }));
@@ -1913,6 +1919,15 @@ export const useApp = create<AppState>()((set, get) => {
       return { created, courseId: targetId };
     },
     addPayment(enrollmentId, payment) {
+      // 🔐 ביקורת-האמון 24.8: שער "רק המנהל מנפיק קבלות" (הכרעת-בעלים 14.8) כיסה
+      // רק D- — קבלת R- (קבלת-מס באותה מידה) הייתה פתוחה לכל עובד/ת-ענן. אותו
+      // שער בדיוק: fail-open ללקוח-החי (cloudRoot) ולעבודה מקומית/אופליין.
+      // ‏S- נשאר פתוח במכוון — "אישור תשלום" סמלי, לא מסמך-מס.
+      const clP = get().cloud;
+      if (!canIssueReceipt({ superAdmin: isSuperAdmin(clP.user?.email), isManager: !!clP.isManager, cloudRoot: get().config.cloudRoot === true, cloudConnected: !!clP.user })) {
+        get().toast('⛔ רק המנהל מנפיק קבלות — פנו למנהל/ת הארגון');
+        return { ok: false };
+      }
       // שער לפני צריכת המונה: אם השיבוץ נעלם (למשל נמחק בסנכרון ממכשיר אחר בעוד
       // הטופס פתוח), אין לקדם את receiptSeq — אחרת מספר קבלה R-{n} מדולג לצמיתות
       // (פוגם ברציפות הקבלות) והתשלום אובד בשקט. עקבי עם addCred/deleteTeacher.
@@ -3210,6 +3225,7 @@ export const useApp = create<AppState>()((set, get) => {
         get().toast('⛔ הוצאת מידע חסומה עבורך על-ידי מנהל הארגון');
         return;
       }
+      logAudit('ייצוא גיבוי מלא', get().encrypted ? 'מוצפן' : 'גלוי');
       void exportBackupFile(get().db).then(() => {
         get().toast(
           get().encrypted ? 'גיבוי מוצפן ירד — שמרו את הסיסמה/מפתח השחזור ✓' : 'קובץ גיבוי מלא ירד למחשב ✓',
