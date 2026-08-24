@@ -305,9 +305,11 @@ export function paidOf(e: Enrollment): number {
   return (e.payments || []).reduce((a, p) => a + (Number.isFinite(p.amount) ? p.amount : 0), 0);
 }
 
-/** יתרת חוב — max(0, סה"כ עסקה - שולם). */
+/** יתרת חוב — max(0, סה"כ-עסקה + חוב-מועבר-משנה-קודמת - שולם).
+ *  ‏carryBalance (25.8): רישום-לשנה-הבאה נושא את יתרת-האשתקד קדימה, כדי שגבייה
+ *  לא-מלאה לא "תיעלם" עם המעבר לשנה. חסר = 0 ⇒ ביט-זהה לשיבוץ ישן. */
 export function payBal(e: Enrollment): number {
-  return Math.max(0, (e.totalDue || 0) - paidOf(e));
+  return Math.max(0, (e.totalDue || 0) + (e.carryBalance || 0) - paidOf(e));
 }
 
 /** סטטוס-תשלום נגזר-אוטומטית (17.8, "למה השולם לא מתעדכן לבד"): */

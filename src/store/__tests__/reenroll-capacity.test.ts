@@ -103,4 +103,40 @@ describe('🐛 ratchet — רישום-לשנה-הבאה In-Card (25.8, "0 נרש
     expect(res2.created).toBe(0);
     expect(useApp.getState().db.enrollments.length).toBe(before);
   });
+
+  it('💰 יתרה מהשנה-הקודמת עוברת ל-carryBalance בשיבוץ החדש (בקשת-בעלים 25.8)', () => {
+    // הכנה: שיבוץ עם totalDue=200 ותשלום חלקי ₪120 ⇒ יתרה ₪80.
+    useApp.getState().setDb((db) => ({
+      enrollments: db.enrollments.map((e) =>
+        e.id === 'e1'
+          ? { ...e, totalDue: 200, payments: [{ rid: 'R-1', date: '2025-09-05', amount: 120, method: 'מזומן' }] }
+          : e,
+      ),
+    }));
+    const res = useApp.getState().reenrollEnrollment('e1', '', undefined);
+    expect(res.ok).toBe(true);
+    const fresh = useApp.getState().db.enrollments.find((e) => e.id === res.id)!;
+    // חוב-מועבר: ₪200 - ₪120 = ₪80.
+    expect(fresh.carryBalance).toBe(80);
+    // ה-payments של-החדש נולד ריק (הקבלה נשארת אצל המקור לרציפות R-):
+    expect(fresh.payments).toEqual([]);
+    // המקור לא נגע — הקבלה עדיין שם:
+    const src = useApp.getState().db.enrollments.find((e) => e.id === 'e1')!;
+    expect(src.payments).toHaveLength(1);
+    expect(src.payments[0].rid).toBe('R-1');
+  });
+
+  it('💰 שיבוץ בלי-יתרה לא מקבל carryBalance (חסר = 0, additive לגיטימי)', () => {
+    // e2 שולם במלואו — payBal=0 ⇒ אין carryBalance על החדש.
+    useApp.getState().setDb((db) => ({
+      enrollments: db.enrollments.map((e) =>
+        e.id === 'e2'
+          ? { ...e, totalDue: 200, payments: [{ rid: 'R-9', date: '2025-09-05', amount: 200, method: 'מזומן' }] }
+          : e,
+      ),
+    }));
+    const res = useApp.getState().reenrollEnrollment('e2', '', undefined);
+    const fresh = useApp.getState().db.enrollments.find((e) => e.id === res.id)!;
+    expect(fresh.carryBalance).toBeUndefined();
+  });
 });
