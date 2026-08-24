@@ -114,6 +114,13 @@ export function CourseDetail(props: { course: Course }) {
   // 🗓 סינון-פנימי לפי שנת-לימודים (בקשת-בעלים 24.8 — "צ׳יפ תשפ״ז/תשפ״ח").
   // null ⇒ הכל (כולל שיבוצים ישנים בלי `year`). ריקון אוטומטי כשעוברים חוג.
   const [yearF, setYearF] = useState<string | null>(null);
+  // ☑ מצב-בחירה-מרובה לרישום-לשנה-הבאה בתוך כרטיס-החוג (בקשת-בעלים 24.8, המשך):
+  // "אני יכול לבחור משתתפים בחירה-מרובה לרישום או לא, וכמובן שיסתכרן ברישום".
+  // אותו מנוע `reenrollEnrollment` כמו מסך "רישום" — אותם רשומות, אותה סמנטיקה.
+  const [regMode, setRegMode] = useState(false);
+  const [regSel, setRegSel] = useState<ReadonlySet<string>>(new Set<string>());
+  const reenrollEnrollment = useApp((s) => s.reenrollEnrollment);
+  const reenrollOn = cfg?.features?.['courses.reenroll'] === true;
   // בקשת-בעלים 9.8: בורר-מורה מכרטיס-החוג (קיים או חדש) — בלי מסע לטופס-העריכה
   const [teacherPick, setTeacherPick] = useState(false);
   const [expOpen, setExpOpen] = useState(false);
@@ -145,6 +152,8 @@ export function CourseDetail(props: { course: Course }) {
     setNoteVal(c.notes);
     setModal(null);
     setYearF(null); // איפוס סינון-שנה במעבר חוג
+    setRegMode(false); // איפוס מצב-בחירה-לרישום
+    setRegSel(new Set());
   }
 
   const teacher = db.teachers.find((t) => t.id === c.teacherId);
@@ -497,6 +506,17 @@ export function CourseDetail(props: { course: Course }) {
                 <Btn sm disabled={full && !waitlistOn} onClick={() => setModal({ kind: 'enroll', waitlist: full && waitlistOn })}>
                   {full ? (waitlistOn ? '⏳ רשימת-המתנה' : 'ה' + termOf(cfg, 'entity.course', 'חוג') + ' מלא') : '➕ ' + termOf(cfg, 'entity.enrollment', 'שיבוץ')}
                 </Btn>
+                {/* 🗓 בקשת-בעלים 24.8: מעבר-בחירה לרישום-לשנה-הבאה ישירות מהכרטיס */}
+                {reenrollOn && !isTeacherUser && enrolledAll.some((e) => !e.renewedToId) && (
+                  <Btn
+                    sm
+                    kind={regMode ? 'primary' : undefined}
+                    onClick={() => { setRegMode(!regMode); setRegSel(new Set()); }}
+                    title="בחירה-מרובה לרישום לשנה הבאה — מסמנים תלמידים ולוחצים «רשום»"
+                  >
+                    {regMode ? '✕ סיום-בחירה' : '☑ רישום לשנה הבאה'}
+                  </Btn>
+                )}
               </div>
             </div>
             {groupCounts.length > 0 && (
@@ -541,9 +561,49 @@ export function CourseDetail(props: { course: Course }) {
               <Empty>{'אין ' + termOf(cfg, 'entity.students', 'תלמידים') + ' רשומים — לחצו על "' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' ' + termOf(cfg, 'entity.student', 'תלמיד/ה') + '"'}</Empty>
             ) : (
               <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
+                {/* ☑ פס-פעולות של רישום-לשנה-הבאה — מוצג רק במצב-בחירה, מעל הטבלה */}
+                {regMode && (() => {
+                  const selectable = enrolled.filter((e) => !e.renewedToId);
+                  const selCount = selectable.filter((e) => regSel.has(e.id)).length;
+                  const allSel = selCount > 0 && selCount === selectable.length;
+                  return (
+                    <div style={{
+                      display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center',
+                      padding: '8px 10px', marginBottom: 8, borderRadius: 8,
+                      background: 'var(--accent-soft, #fdf3dd)',
+                      border: '1px solid var(--accent, #d9a84e)',
+                      fontSize: 13, fontWeight: 700,
+                    }}>
+                      <span>☑ נבחרו {selCount} מתוך {selectable.length}</span>
+                      <Btn sm onClick={() => setRegSel(allSel ? new Set() : new Set(selectable.map((e) => e.id)))}>
+                        {allSel ? 'נקה בחירה' : 'בחר הכל'}
+                      </Btn>
+                      <span style={{ flex: 1 }} />
+                      <Btn
+                        sm
+                        kind="primary"
+                        disabled={!selCount}
+                        onClick={() => {
+                          const ids = [...regSel];
+                          let ok = 0, fail = 0;
+                          for (const id of ids) {
+                            const r = reenrollEnrollment(id, '', undefined);
+                            if (r.ok) ok++; else fail++;
+                          }
+                          toast(fail ? `נרשמו ${ok}, ${fail} נחסמו (תפוסה/כבר-נרשם)` : `✓ נרשמו ${ok} לשנה הבאה 🚀`);
+                          setRegSel(new Set());
+                          setRegMode(false);
+                        }}
+                      >
+                        🚀 רשום {selCount || ''} לשנה הבאה
+                      </Btn>
+                    </div>
+                  );
+                })()}
                 <table className="table">
                   <thead>
                     <tr>
+                      {regMode && <th style={{ width: 32 }}></th>}
                       <th>{termOf(cfg, 'entity.student', 'תלמיד/ה')}</th>
                       <th>{termOf(cfg, 'entity.family', 'משפחה')}</th>
                       <th>קבוצה</th>
@@ -566,6 +626,24 @@ export function CourseDetail(props: { course: Course }) {
                       const age = m ? ageOf(m.birth) : null;
                       return (
                         <tr key={e.id}>
+                          {regMode && (
+                            <td style={{ width: 32, textAlign: 'center' }}>
+                              {e.renewedToId ? (
+                                <span title="כבר נרשם לשנה הבאה" style={{ color: '#2f7d52', fontWeight: 700, fontSize: 14 }}>✓</span>
+                              ) : (
+                                <input
+                                  type="checkbox"
+                                  aria-label={'בחר את ' + (m?.first ?? 'התלמיד/ה') + ' לרישום'}
+                                  checked={regSel.has(e.id)}
+                                  onChange={() => {
+                                    const next = new Set(regSel);
+                                    if (next.has(e.id)) next.delete(e.id); else next.add(e.id);
+                                    setRegSel(next);
+                                  }}
+                                />
+                              )}
+                            </td>
+                          )}
                           <td>
                             <div style={{ fontWeight: 700 }}>{m?.first ?? '—'}</div>
                             {age != null && (
