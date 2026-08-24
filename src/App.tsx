@@ -1108,9 +1108,18 @@ export default function App() {
       {userMenuOpen && cloud.user && (
         <Modal title="החשבון שלי" onClose={() => setUserMenuOpen(false)}>
           <div style={{ direction: 'ltr', textAlign: 'end', fontWeight: 700, fontSize: 14, marginBottom: 6 }}>{cloud.user.email}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginBottom: 12, flexWrap: 'wrap' }}>
             <span aria-hidden style={{ width: 10, height: 10, borderRadius: 99, background: syncDot.color, display: 'inline-block' }} />
             {syncDot.title}
+            {/* 📛 חשיפת-שגיאה מפורטת + כפתור "נסי שוב" (בקשת-שטח 25.8) */}
+            {cloud.status === 'error' && (
+              <>
+                <span style={{ color: '#dc2626', fontWeight: 700 }}>· {cloud.lastSyncError || 'שגיאה'}</span>
+                <Btn sm onClick={() => { void import('./store/cloudSync').then((m) => m.retrySyncNow()); }} title="ניסיון סנכרון מיידי — בלי להמתין ל-5 שניות של ה-backoff">
+                  🔄 נסי שוב
+                </Btn>
+              </>
+            )}
           </div>
           <div className="modal-actions">
             {/* איפוס-סיסמה 9.8: שינוי סיסמה מתוך האפליקציה — בלי לעבור דרך מייל */}

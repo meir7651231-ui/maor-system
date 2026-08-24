@@ -145,6 +145,11 @@ export interface CloudState {
    * מוצג במסך-ההמתנה — כשל לא נבלע יותר בשקט. undefined = טרם נוסה.
    */
   reqStatus?: string;
+  /**
+   * שגיאת-הסנכרון האחרונה (בקשת-שטח 25.8 — "אני ממשיך לאבד סנכרון, אדום סתום").
+   * טקסט לתצוגה בממשק ליד הטבעת האדומה. null/undefined = אין שגיאה פעילה.
+   */
+  lastSyncError?: string | null;
 }
 
 interface AppState {
@@ -943,6 +948,8 @@ export const useApp = create<AppState>()((set, get) => {
               },
               toast: (t) => get().toast(t),
               setStatus: (status) => setCloud({ status }),
+              // 📛 בקשת-שטח 25.8: חושף את השגיאה האחרונה של הסנכרון בממשק
+              setLastError: (msg) => setCloud({ lastSyncError: msg }),
             });
           // שער הצפנת-ענן (opt-in): אם לארגון יש envelope ואין DEK בזיכרון —
           // עוצרים לפני הסנכרון ומציגים מסך-פתיחה. readCloudEnvelope הוא

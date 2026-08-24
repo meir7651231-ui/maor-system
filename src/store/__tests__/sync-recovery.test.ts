@@ -17,6 +17,7 @@ import { dirname, join } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const useApp = readFileSync(join(here, '..', 'useApp.ts'), 'utf8');
 const sync = readFileSync(join(here, '..', 'cloudSync.ts'), 'utf8');
+const app = readFileSync(join(here, '..', '..', 'App.tsx'), 'utf8');
 
 describe('🔧 ratchet — התאוששות-סנכרון (H2+H5)', () => {
   it('H2: watchAuth(null) מקבל חלון-חסד 5 שניות ולא מפיל מיידית', () => {
@@ -41,5 +42,23 @@ describe('🔧 ratchet — התאוששות-סנכרון (H2+H5)', () => {
     expect(sync).toMatch(/if \(!active \|\| hooks !== h\) return/);
     // מציג 'connecting' בזמן התאוששות (ולא נשאר 'error')
     expect(sync).toContain("setStat(hooks, 'connecting')");
+  });
+
+  it('📛 בקשת-שטח 25.8: השגיאה האחרונה נחשפת בממשק (לא "אדום סתום")', () => {
+    // cloudSync מייצא את השגיאה + retry-מיידי
+    expect(sync).toMatch(/export function getSyncLastError\(\)/);
+    expect(sync).toMatch(/export function retrySyncNow\(\)/);
+    // מפרש שגיאות-Firestore (permission-denied ⇒ לא retry-לולאה)
+    expect(sync).toMatch(/function describeErr/);
+    expect(sync).toContain("'permission-denied'");
+    // hook לחשיפה בשכבת ה-store
+    expect(sync).toMatch(/setLastError\?: \(msg: string \| null\) => void/);
+    // useApp מחזיק שדה בשכבת cloud + מחווט hook
+    expect(useApp).toMatch(/lastSyncError\?: string \| null/);
+    expect(useApp).toMatch(/setLastError: \(msg\) => setCloud\(\{ lastSyncError: msg \}\)/);
+    // App.tsx מציג את השגיאה + כפתור "נסי שוב" (עם dynamic-import כדי לא לגרור Firebase לבנדל הראשי)
+    expect(app).toContain('cloud.lastSyncError');
+    expect(app).toContain('🔄 נסי שוב');
+    expect(app).toMatch(/import\('\.\/store\/cloudSync'\)\.then\(\(m\) => m\.retrySyncNow\(\)\)/);
   });
 });
