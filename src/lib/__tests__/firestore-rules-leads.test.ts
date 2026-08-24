@@ -33,11 +33,12 @@ describe('firestore.rules — מסלול-B: אכיפת-ייעוד על אוסף-
     // חבר-מוגבל יכול היה לעדכן/למחוק קבלת-§46 בייעוד-שלו. עכשיו עדכון/מחיקה =
     // מנהל/מייל-על בלבד (סימטרי ל-create). red-team 63/63 מאמת מול אמולטור.
     const donBlock = rules.slice(rules.indexOf('match /orgs/{slug}/donations/{id}'));
-    const block = donBlock.slice(0, donBlock.indexOf('}'));
+    // עד המאץ' הבא — '}' בודד היה נתפס בתוך {slug} וקוטם את הבלוק
+    const block = donBlock.slice(0, donBlock.indexOf('match /orgs/{slug}/supporters'));
     expect(block).toContain('allow update: if superAdmin() || orgManager(slug);');
     expect(block).toContain('allow delete: if superAdmin() || orgManager(slug);');
-    expect(block).not.toContain('canWriteKeyed');
-    expect(block).not.toContain('allow update: if canWriteKeyed');
+    // pin על קוד, לא על הערות (לקח חוזר): אסור שיחזור שימוש-בפועל ב-canWriteKeyed
+    expect(block).not.toContain('if canWriteKeyed');
   });
   it('memberSeesPurpose — בלי-הגבלה / משותף / ייעוד-מותר', () => {
     expect(rules).toContain("pkey == '_shared_'");
