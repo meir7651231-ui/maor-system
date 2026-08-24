@@ -7,16 +7,17 @@ const REPOS = [
   [process.env.BS_TIP || '/tmp/claude-0/-home-user/2d086046-4b60-52a1-9aee-58e2962b1958/scratchpad/bs-tip', 'buildsmart'],
   ['/home/user/yoman-habina', 'yoman'],
 ];
+const FAST = process.argv.includes('--fast'); // לקח-#8 של מאור: שער לפי רדיוס-פגיעה
 const run = (script, args) => execFileSync('node', [new URL(script, import.meta.url).pathname, ...args], { stdio: 'inherit' });
-for (const [root, name] of REPOS) { if (fs.existsSync(root)) run('./census.mjs', [root, name]); }
-for (const [, name] of REPOS) for (const x of ['tokens', 'flags', 'terms', 'engines', 'actions', 'strings', 'components', 'verticals', 'knowledge', 'functions', 'styles', 'consts', 'schema', 'icons', 'regexes']) { try { run(`./extract/${x}.mjs`, [name]); } catch {} }
+if (!FAST) for (const [root, name] of REPOS) { if (fs.existsSync(root)) run('./census.mjs', [root, name]); }
+if (!FAST) for (const [, name] of REPOS) for (const x of ['tokens', 'flags', 'terms', 'engines', 'actions', 'strings', 'components', 'verticals', 'knowledge', 'functions', 'styles', 'consts', 'schema', 'icons', 'regexes']) { try { run(`./extract/${x}.mjs`, [name]); } catch {} }
 run('./reconcile.mjs', []);
 run('./wiring-check.mjs', []);
 run('./contract-check.mjs', []);
 try { run('./drift-check.mjs', []); } catch {}
-try { run('./refine.mjs', []); } catch {}
-try { run('./dedup.mjs', []); } catch {}
-try { run('./dedup-deep.mjs', []); } catch {}
+if (!FAST) try { run('./refine.mjs', []); } catch {}
+if (!FAST) try { run('./dedup.mjs', []); } catch {}
+if (!FAST) try { run('./dedup-deep.mjs', []); } catch {}
 // לוח-מצב
 const R = new URL('./registry/', import.meta.url).pathname;
 let totalAtoms = 0, rows = [];
