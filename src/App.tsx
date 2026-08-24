@@ -154,6 +154,8 @@ export default function App() {
   const privacyMode = useApp((s) => s.privacyMode);
   const togglePrivacy = useApp((s) => s.togglePrivacy);
   const applyNedarimAuto = useApp((s) => s.applyNedarimAuto);
+  const autoMatchPlanned = useApp((s) => s.autoMatchPlanned);
+  const seedOverduePlannedReminders = useApp((s) => s.seedOverduePlannedReminders);
 
   useEffect(() => {
     void init();
@@ -186,13 +188,39 @@ export default function App() {
         // נשאר pending (ל-🔄 הידני) ⇒ לא מסמנים handled ולא יוצרים כרטיסים.
         const handled = applyNedarimAuto(nedRows);
         for (const id of handled) void m.markIncomingPayment(id).catch(() => {});
+        // 🔍 שיוך-אוטומטי לחיובים-מתוכננים (בקשת-בעלים 25.8): מה שלא-חובר לכרטיס
+        // נבדק גם מול הפלנים הפתוחים (D-/R-/S-). התאמה חד-משמעית ⇒ chargeXxx רץ,
+        // המסמך הרשמי נופק, וה-incoming מסומן handled בענן.
+        const stillPending = nedRows.filter((r) => !handled.includes(r.id));
+        if (stillPending.length) {
+          const { matched } = autoMatchPlanned(stillPending);
+          for (const id of matched) void m.markIncomingPayment(id).catch(() => {});
+        }
       });
     });
     return () => {
       alive = false;
       if (unsub) unsub();
     };
-  }, [nedAutoOn, applyNedarimAuto]);
+  }, [nedAutoOn, applyNedarimAuto, autoMatchPlanned]);
+
+  // 📞 תזכורות-שלא-נכנס (בקשת-בעלים 25.8): פעם-ביום בסטארט-אפ, זורע אירוע-שיחה
+  // בלוח לפלנים שעברו-תאריכם ולא-חויבו. spId=planId מונע כפילות (nsLsKey לא
+  // נדרש — spId ב-events הוא מפתח-המניעה הטבעי).
+  const plannedRemindersOn =
+    (config.features?.['supporters.plannedcharges'] === true) ||
+    (config.features?.['courses.plannedcharges'] === true) ||
+    (config.features?.['shop.plannedcharges'] === true);
+  useEffect(() => {
+    if (!plannedRemindersOn) return;
+    // דילוג בסביבת Playwright (navigator.webdriver) — E2E לא מריץ ריפויים אוטומטיים
+    if (typeof navigator !== 'undefined' && (navigator as { webdriver?: boolean }).webdriver) return;
+    try {
+      seedOverduePlannedReminders(new Date().toISOString().slice(0, 10));
+    } catch {
+      /* אל תפיל את-האפליקציה על שגיאת-תזכורת */
+    }
+  }, [plannedRemindersOn, seedOverduePlannedReminders]);
 
   // אייקון-הארגון (זהות-ורטיקל) — favicon מאימוג'י כשמוגדר; חסר ⇒ הדיפולט (זהב).
   // ה-store כבר קורא applyTheme (ערכה+צבע+תנועה); ה-favicon אינו על ה-root, לכן כאן.
