@@ -111,6 +111,16 @@ export function CourseDetail(props: { course: Course }) {
   const c = props.course;
   const [prevCourseId, setPrevCourseId] = useState(c.id);
   const [modal, setModal] = useState<ModalState>(null);
+  // 🗓 סינון-פנימי לפי שנת-לימודים (בקשת-בעלים 24.8 — "צ׳יפ תשפ״ז/תשפ״ח").
+  // null ⇒ הכל (כולל שיבוצים ישנים בלי `year`). ריקון אוטומטי כשעוברים חוג.
+  const [yearF, setYearF] = useState<string | null>(null);
+  // ☑ מצב-בחירה-מרובה לרישום-לשנה-הבאה בתוך כרטיס-החוג (בקשת-בעלים 24.8, המשך):
+  // "אני יכול לבחור משתתפים בחירה-מרובה לרישום או לא, וכמובן שיסתכרן ברישום".
+  // אותו מנוע `reenrollEnrollment` כמו מסך "רישום" — אותם רשומות, אותה סמנטיקה.
+  const [regMode, setRegMode] = useState(false);
+  const [regSel, setRegSel] = useState<ReadonlySet<string>>(new Set<string>());
+  const reenrollEnrollment = useApp((s) => s.reenrollEnrollment);
+  const reenrollOn = cfg?.features?.['courses.reenroll'] === true;
   // בקשת-בעלים 9.8: בורר-מורה מכרטיס-החוג (קיים או חדש) — בלי מסע לטופס-העריכה
   const [teacherPick, setTeacherPick] = useState(false);
   const [expOpen, setExpOpen] = useState(false);
@@ -141,12 +151,30 @@ export function CourseDetail(props: { course: Course }) {
     setPrevCourseId(c.id);
     setNoteVal(c.notes);
     setModal(null);
+    setYearF(null); // איפוס סינון-שנה במעבר חוג
+    setRegMode(false); // איפוס מצב-בחירה-לרישום
+    setRegSel(new Set());
   }
 
   const teacher = db.teachers.find((t) => t.id === c.teacherId);
   const room = db.rooms.find((r) => r.id === c.roomId);
   // רשימת-ההמתנה ('wait') לא בין הרשומים — לא בטבלה, לא בתדפיס, לא בספירת-קבוצות.
-  const enrolled = db.enrollments.filter((e) => e.courseId === c.id && e.status !== 'wait');
+  const enrolledAll = db.enrollments.filter((e) => e.courseId === c.id && e.status !== 'wait');
+  // ‏🗓 סינון-פנימי לפי שנת-לימודים (יעד-בעלים 24.8): צ׳יפ תשפ״ז/תשפ״ח שולט על הטבלה
+  // בלבד. groupCounts/waiter/csv נשארים על enrolledAll כדי לא לפגוע בייצוא ובספירה.
+  const enrolled = yearF ? enrolledAll.filter((e) => (e.year ?? '') === yearF) : enrolledAll;
+  // תוויות שנת-הלימודים הקיימות בחוג + מונים (בסדר: ישנות → חדשות, "ללא-סיווג" בסוף).
+  const yearCounts = (() => {
+    const m = new Map<string, number>();
+    for (const e of enrolledAll) {
+      const k = (e.year ?? '').trim();
+      m.set(k, (m.get(k) ?? 0) + 1);
+    }
+    const arr = [...m.entries()].filter(([k]) => !!k);
+    arr.sort((a, b) => a[0].localeCompare(b[0]));
+    if (m.has('') && (m.get('') ?? 0) > 0) arr.push(['', m.get('') ?? 0]);
+    return arr;
+  })();
   const waitlistOn = featureOn(cfg, 'courses.waitlist');
   const waiters = waitlistOn ? waitlistFor(db.enrollments, c.id) : [];
   const deleteEnrollment = useApp((s) => s.deleteEnrollment);
@@ -299,10 +327,10 @@ export function CourseDetail(props: { course: Course }) {
           ...sessions.map((ss, i) => {
             const v = groupLabelOf(ss, i);
             const [bg, fg] = GROUP_PALETTE[i % GROUP_PALETTE.length];
-            return { label: v + ' · ' + enrolled.filter((e) => e.group === v).length, bg, fg };
+            return { label: v + ' · ' + enrolledAll.filter((e) => e.group === v).length, bg, fg };
           }),
-          ...(enrolled.some((e) => !e.group)
-            ? [{ label: 'ללא שיוך · ' + enrolled.filter((e) => !e.group).length, bg: '#eceae2', fg: '#8b8474' }]
+          ...(enrolledAll.some((e) => !e.group)
+            ? [{ label: 'ללא שיוך · ' + enrolledAll.filter((e) => !e.group).length, bg: '#eceae2', fg: '#8b8474' }]
             : []),
         ]
       : [];
@@ -404,11 +432,11 @@ export function CourseDetail(props: { course: Course }) {
               📑 שכפל
             </Btn>
           )}
-          {!isTeacherUser && canBulkAdmin && enrolled.some((e) => e.status === 'active' || e.status === 'paused') && (
+          {!isTeacherUser && canBulkAdmin && enrolledAll.some((e) => e.status === 'active' || e.status === 'paused') && (
             <Btn
               kind={armed === 'endsem-' + c.id ? 'danger' : undefined}
               onClick={() => {
-                const n = enrolled.filter((e) => e.status === 'active' || e.status === 'paused').length;
+                const n = enrolledAll.filter((e) => e.status === 'active' || e.status === 'paused').length;
                 if (!confirmTwice('endsem-' + c.id, 'לסיים את הסמסטר? ' + n + ' שיבוצים יסומנו "הסתיים" (נשמרים בדוח ההיסטורי; אפשר לחדש).')) {
                   toast('בטוחים? לחיצה נוספת תסיים את הסמסטר');
                   return;
@@ -425,7 +453,7 @@ export function CourseDetail(props: { course: Course }) {
           <Btn
             kind="danger"
             onClick={() => {
-              const n = enrolled.length;
+              const n = enrolledAll.length;
               const msg =
                 'למחוק את ה' + termOf(cfg, 'entity.course', 'חוג') + ' "' + c.name + '"?' +
                 (n ? ' פעולה זו תמחק גם את ' + n + ' ה' + termOf(cfg, 'entity.enrollments', 'שיבוצים') + ' שלו (כולל תשלומים ונוכחות).' : '') +
@@ -478,6 +506,17 @@ export function CourseDetail(props: { course: Course }) {
                 <Btn sm disabled={full && !waitlistOn} onClick={() => setModal({ kind: 'enroll', waitlist: full && waitlistOn })}>
                   {full ? (waitlistOn ? '⏳ רשימת-המתנה' : 'ה' + termOf(cfg, 'entity.course', 'חוג') + ' מלא') : '➕ ' + termOf(cfg, 'entity.enrollment', 'שיבוץ')}
                 </Btn>
+                {/* 🗓 בקשת-בעלים 24.8: מעבר-בחירה לרישום-לשנה-הבאה ישירות מהכרטיס */}
+                {reenrollOn && !isTeacherUser && enrolledAll.some((e) => !e.renewedToId) && (
+                  <Btn
+                    sm
+                    kind={regMode ? 'primary' : undefined}
+                    onClick={() => { setRegMode(!regMode); setRegSel(new Set()); }}
+                    title="בחירה-מרובה לרישום לשנה הבאה — מסמנים תלמידים ולוחצים «רשום»"
+                  >
+                    {regMode ? '✕ סיום-בחירה' : '☑ רישום לשנה הבאה'}
+                  </Btn>
+                )}
               </div>
             </div>
             {groupCounts.length > 0 && (
@@ -489,13 +528,82 @@ export function CourseDetail(props: { course: Course }) {
                 ))}
               </div>
             )}
+            {/* 🗓 סינון-פנימי לפי שנת-לימודים (בקשת-בעלים 24.8) — צ׳יפים תשפ״ז/תשפ״ח.
+                מוצג רק כשיש בפועל שנים מסווגות (או שיש גם ישנים בלי-סיווג). */}
+            {yearCounts.length > 1 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 9, alignItems: 'center' }}>
+                <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>שנת-לימודים:</span>
+                <button
+                  type="button"
+                  onClick={() => setYearF(null)}
+                  style={{ ...chipStyle('#eef0f2', '#444'), cursor: 'pointer', border: yearF === null ? '1px solid #444' : '1px solid transparent' }}
+                >
+                  הכל · {enrolledAll.length}
+                </button>
+                {yearCounts.map(([y, n]) => (
+                  <button
+                    key={y || '__none'}
+                    type="button"
+                    onClick={() => setYearF(yearF === y ? null : y)}
+                    style={{
+                      ...chipStyle(y ? '#e6f0ff' : '#eceae2', y ? '#2a5cad' : '#8b8474'),
+                      cursor: 'pointer',
+                      border: yearF === y ? '1px solid ' + (y ? '#2a5cad' : '#8b8474') : '1px solid transparent',
+                    }}
+                    title={'סינון לשיבוצים בשנה ' + (y || 'ללא-סיווג')}
+                  >
+                    {(y || 'ללא-סיווג') + ' · ' + n}
+                  </button>
+                ))}
+              </div>
+            )}
             {enrolled.length === 0 ? (
               <Empty>{'אין ' + termOf(cfg, 'entity.students', 'תלמידים') + ' רשומים — לחצו על "' + termOf(cfg, 'entity.enrollment', 'שיבוץ') + ' ' + termOf(cfg, 'entity.student', 'תלמיד/ה') + '"'}</Empty>
             ) : (
               <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
+                {/* ☑ פס-פעולות של רישום-לשנה-הבאה — מוצג רק במצב-בחירה, מעל הטבלה */}
+                {regMode && (() => {
+                  const selectable = enrolled.filter((e) => !e.renewedToId);
+                  const selCount = selectable.filter((e) => regSel.has(e.id)).length;
+                  const allSel = selCount > 0 && selCount === selectable.length;
+                  return (
+                    <div style={{
+                      display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center',
+                      padding: '8px 10px', marginBottom: 8, borderRadius: 8,
+                      background: 'var(--accent-soft, #fdf3dd)',
+                      border: '1px solid var(--accent, #d9a84e)',
+                      fontSize: 13, fontWeight: 700,
+                    }}>
+                      <span>☑ נבחרו {selCount} מתוך {selectable.length}</span>
+                      <Btn sm onClick={() => setRegSel(allSel ? new Set() : new Set(selectable.map((e) => e.id)))}>
+                        {allSel ? 'נקה בחירה' : 'בחר הכל'}
+                      </Btn>
+                      <span style={{ flex: 1 }} />
+                      <Btn
+                        sm
+                        kind="primary"
+                        disabled={!selCount}
+                        onClick={() => {
+                          const ids = [...regSel];
+                          let ok = 0, fail = 0;
+                          for (const id of ids) {
+                            const r = reenrollEnrollment(id, '', undefined);
+                            if (r.ok) ok++; else fail++;
+                          }
+                          toast(fail ? `נרשמו ${ok}, ${fail} נחסמו (תפוסה/כבר-נרשם)` : `✓ נרשמו ${ok} לשנה הבאה 🚀`);
+                          setRegSel(new Set());
+                          setRegMode(false);
+                        }}
+                      >
+                        🚀 רשום {selCount || ''} לשנה הבאה
+                      </Btn>
+                    </div>
+                  );
+                })()}
                 <table className="table">
                   <thead>
                     <tr>
+                      {regMode && <th style={{ width: 32 }}></th>}
                       <th>{termOf(cfg, 'entity.student', 'תלמיד/ה')}</th>
                       <th>{termOf(cfg, 'entity.family', 'משפחה')}</th>
                       <th>קבוצה</th>
@@ -518,6 +626,24 @@ export function CourseDetail(props: { course: Course }) {
                       const age = m ? ageOf(m.birth) : null;
                       return (
                         <tr key={e.id}>
+                          {regMode && (
+                            <td style={{ width: 32, textAlign: 'center' }}>
+                              {e.renewedToId ? (
+                                <span title="כבר נרשם לשנה הבאה" style={{ color: '#2f7d52', fontWeight: 700, fontSize: 14 }}>✓</span>
+                              ) : (
+                                <input
+                                  type="checkbox"
+                                  aria-label={'בחר את ' + (m?.first ?? 'התלמיד/ה') + ' לרישום'}
+                                  checked={regSel.has(e.id)}
+                                  onChange={() => {
+                                    const next = new Set(regSel);
+                                    if (next.has(e.id)) next.delete(e.id); else next.add(e.id);
+                                    setRegSel(next);
+                                  }}
+                                />
+                              )}
+                            </td>
+                          )}
                           <td>
                             <div style={{ fontWeight: 700 }}>{m?.first ?? '—'}</div>
                             {age != null && (

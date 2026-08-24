@@ -21,8 +21,11 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
   const criteria = useApp((s) => s.db.shopCriteria);
   const assignments = useApp((s) => s.db.shopAssignments);
   const addShopRedemption = useApp((s) => s.addShopRedemption);
+  const addShopPlanned = useApp((s) => s.addShopPlanned);
   const addShopWait = useApp((s) => s.addShopWait);
   const toast = useApp((s) => s.toast);
+  // 📅 חיובים-מתוכננים בחנות (בקשת-בעלים 25.8) — opt-in.
+  const shopPlannedOn = config.features?.['shop.plannedcharges'] === true;
   const a = props.assignment;
   const c = props.component;
   // הפריט + דריסות הרכיב (SHOP4, הכרעה 18) — מקור האמת לשווי/מחיר/מלאי/תוקף
@@ -46,6 +49,8 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
     value: ri.value ? String(ri.value) : '0',
     note: '',
   });
+  // אמצעי-תשלום — 'immediate' = מימוש-מיידי (S- עכשיו); 'credit' = חיוב-מתוכנן.
+  const [method, setMethod] = useState('immediate');
   const [error, setError] = useState('');
 
   function save() {
@@ -58,6 +63,20 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
     // למימוש ול-S- — אישור מודפס בלי תאריך וסינון-היסטוריה נשבר. חוסמים כמו BulkRedeemModal.
     if (!f.date) return setError(isMeeting ? 'בחרו תאריך לפגישה' : 'בחרו תאריך למימוש');
     if (ri.kind === 'holidayGift' && !f.holiday) return setError('למתנת-חג נדרש לבחור חג');
+    // 📅 מסלול-אשראי (בקשת-בעלים 25.8): shopPlannedOn + method='credit' + paid>0
+    // ⇒ הרישום הופך ל-PlannedCharge (count=1) — לא-S- עד "✓ החיוב ירד" בסעיף
+    // חיובים-מתוכננים. פגישה (paid=0) לא-רלוונטית ⇒ ממשיך למסלול-המקורי.
+    if (shopPlannedOn && method === 'credit' && !isMeeting && paid > 0) {
+      const r = addShopPlanned(a.id, {
+        componentId: c.id, firstDate: f.date, count: 1, amount: paid, method: 'אשראי',
+        shopValue: value, shopHoliday: ri.kind === 'holidayGift' ? f.holiday : '',
+        note: f.note.trim() || undefined,
+      });
+      if (!r.ok) return;
+      toast('💳 נרשם ₪' + paid + ' · ⏳ ממתין לחיוב-נכנס');
+      props.onClose();
+      return;
+    }
     const res = addShopRedemption(a.id, {
       componentId: c.id,
       date: f.date,
@@ -124,6 +143,24 @@ export function RedeemModal(props: { assignment: ShopAssignment; component: Shop
         {!isMeeting && (
           <Field label='לתשלום (ש"ח) — ניתן לעריכה'>
             <TextInput value={f.paid} onChange={(v) => setF({ ...f, paid: v })} type="number" dir="ltr" />
+          </Field>
+        )}
+        {/* 📅 בורר-אמצעי (בקשת-בעלים 25.8) — רק לחיוב-מוצר (לא-פגישה) וכשהדגל דלוק */}
+        {!isMeeting && shopPlannedOn && Math.round(+f.paid) > 0 && (
+          <Field label="אמצעי">
+            <Select
+              value={method}
+              onChange={setMethod}
+              options={[
+                { value: 'immediate', label: '💵 מיידי (מזומן/צ׳ק/העברה — S- עכשיו)' },
+                { value: 'credit', label: '💳 אשראי (ממתין לחיוב-נכנס — S- יונפק כשיאושר)' },
+              ]}
+            />
+            {method === 'credit' && (
+              <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
+                ⏳ המימוש ישמר כחיוב-מתוכנן. כשמאשרים "✓ החיוב ירד" בסעיף חיובים-מתוכננים ⇒ ‎S-‎ אמיתי + ShopRedemption נוצרים אוטומטית.
+              </div>
+            )}
           </Field>
         )}
         {/* גבייה בקופה הרושמת (הכרעה 20) — כלי ספירה בלבד: sessionStorage +

@@ -63,6 +63,13 @@ await T('עובדת-מוגבלת לא קוראת תומך-fundB', assertFails(ge
 await T('🔴 עובדת-מוגבלת לא הופכת pkey ל-_shared_ (חור-#177)', assertFails(updateDoc(doc(ltd, 'orgs/acme/donations/D-1'), { pkey: '_shared_' })));
 await T('🔴 עובדת-מוגבלת לא הופכת skey ל-_shared_ על תומך-fundB', assertFails(updateDoc(doc(ltd, 'orgs/acme/supporters/s3'), { skey: '_shared_' })));
 await T('🔴 עובדת-מוגבלת לא מוחקת קבלת-§46 של fundB', assertFails(deleteDoc(doc(ltd, 'orgs/acme/donations/D-1'))));
+// 🛡️ הגנת-קבלות (לולאת-האמון 8, 24.8): החור שנמצא בביקורת — חבר/עובדת-מוגבלת
+// יכלו לעדכן/למחוק קבלת-§46 בתחום-הייעוד *שלהם*. עכשיו עדכון/מחיקה=מנהל בלבד.
+await T('🔴 עובדת-מוגבלת לא מעדכנת קבלה גם בייעוד-שלה (fundA)', assertFails(updateDoc(doc(ltd, 'orgs/acme/donations/D-2'), { donation: { rid: 'D-2', amount: 1 } })));
+await T('🔴 עובדת-מוגבלת לא מוחקת קבלה גם בייעוד-שלה (fundA)', assertFails(deleteDoc(doc(ltd, 'orgs/acme/donations/D-2'))));
+await T('🔴 חבר לא-מנהל לא מוחק קבלת-§46 (הגנת-קבלות)', assertFails(deleteDoc(doc(emp, 'orgs/acme/donations/D-1'))));
+await T('🔴 חבר לא-מנהל לא מעדכן קבלת-§46', assertFails(updateDoc(doc(emp, 'orgs/acme/donations/D-1'), { donation: { rid: 'D-1', amount: 1 } })));
+await T('מנהל-acme כן מעדכן קבלה (מספור-מחדש לגיטימי)', assertSucceeds(updateDoc(doc(boss, 'orgs/acme/donations/D-1'), { pkey: 'fundB', supporterId: 's1', donation: { rid: 'D-1', amount: 100, note: 'fix' } })));
 
 console.log('\n═══ ג׳ · הסלמה / השתלטות-פלטפורמה ═══');
 await T('חבר-acme לא ממנה עצמו מנהל (עדכון platformOrgs/acme)', assertFails(updateDoc(doc(emp, 'platformOrgs/acme'), { manager: 'emp@acme.com' })));

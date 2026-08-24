@@ -18,7 +18,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, itemLabel, stageIndex, stageLabel, unitLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, fmtDate, hokDue, hokEffectivelyActive, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supLastInPeriod, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
+import { allSupPhones, chipStyle, fmtDate, hokDue, hokEffectivelyActive, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supHasRegion, supIls, supLast, supLastInPeriod, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
@@ -217,6 +217,8 @@ export function SupportersView() {
   // אלפי-תורמים רצים בעדיפות-נדחית (useDeferredValue) — האות מופיעה מיד.
   const dq = useDeferredValue(q);
   const [cat, setCat] = useState('all');
+  // סינון אזור-טלפון (בקשת-שטח) — הפרדת מספרי חו"ל ממספרי ישראל.
+  const [regionF, setRegionF] = useState<'all' | 'il' | 'intl'>('all');
   // בקשת-בעלים 15.8 ("פר תורם") — סינון לפי ייעוד-שעל-הכרטיס (forWho), מגודר supporters.purpose
   const [purposeF, setPurposeF] = useState('all');
   const [tierF, setTierF] = useState<string | null>(null);
@@ -304,6 +306,10 @@ export function SupportersView() {
   const [confirmDel, setConfirmDel] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignVal, setAssignVal] = useState('');
+  // מיזוג-ידני מהבחירה (בקשת-שטח 22.8) — בורר-מנצח + מיזוג group.
+  const [mergeSelOpen, setMergeSelOpen] = useState(false);
+  const [mergeKeep, setMergeKeep] = useState('');
+  const mergeSupportersGroup = useApp((s) => s.mergeSupportersGroup);
   // בקשת-בעלים 23.8: הסרת-ייעוד מפורשת (forWho ריק) — לא רק שיוך; אישור-דו-שלבי
   const [clearPurposeConfirm, setClearPurposeConfirm] = useState(false);
   const deleteSupporters = useApp((s) => s.deleteSupporters);
@@ -568,6 +574,8 @@ export function SupportersView() {
   let list = visibleBase.filter((sp) => {
     if (cat !== 'all' && (sp.cat || '') !== cat) return false;
     if (purposeF !== 'all' && (sp.forWho || '').trim() !== purposeF) return false;
+    // סינון אזור-טלפון (חול/ישראל) — לפי כל מספרי התורם (ראשי + נוספים).
+    if (regionF !== 'all' && !supHasRegion(sp, regionF)) return false;
     // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): הוראות פעילות / רק שטרם-נרשמו-החודש
     if (hokF === 'active' && !sp.hok?.active) return false;
     // 🐛 קוהרנטיות (21.8): הצ'יפ "⏳ טרם נרשמו" מונה לפי hokDue (hokEffectivelyActive —
@@ -595,7 +603,8 @@ export function SupportersView() {
     if (ayinF === 'noeyes' && sp.ayin && eyesTotal(sp.ayin) > 0) return false;
     if (ayinF === 'today' && !(sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today)))) return false;
     if (!dq.trim()) return true;
-    const phoneHit = qd.length >= 3 && (sp.phone || '').replace(/\D/g, '').includes(qd);
+    // חיפוש-טלפון כולל את כל המספרים (ראשי + נוספים), לא רק phone.
+    const phoneHit = qd.length >= 3 && allSupPhones(sp).some((r) => r.num.replace(/\D/g, '').includes(qd));
     const textHit =
       !!nq && normSearch([sp.name, sp.email, sp.cat, sp.address, sp.forWho].join(' ')).includes(nq);
     return phoneHit || textHit;
@@ -823,6 +832,13 @@ export function SupportersView() {
               {'🧹 הסר ייעוד · ' + selSet.size}
             </Btn>
           )}
+          {/* בקשת-שטח 22.8: מיזוג-ידני מהבחירה — למקרים שהמנוע-האוטומטי לא זיהה
+              ("מצאתי 4 טלפונים למזג"). דורש ≥2 מסומנים; פותח בורר-מנצח. */}
+          {bulkGranted('supporters.bulkmerge') && (
+            <Btn disabled={selSet.size < 2} onClick={() => setMergeSelOpen(true)} title="מיזוג התומכים המסומנים לכרטיס אחד — כל התרומות והקבלות נשמרות">
+              {'🔗 מזג נבחרים · ' + selSet.size}
+            </Btn>
+          )}
           {bulkGranted('supporters.bulkdelete') && (
             <Btn kind="danger" disabled={!selSet.size} onClick={() => setConfirmDel(true)}>
               {'🗑 מחיקת ' + selSet.size}
@@ -938,6 +954,16 @@ export function SupportersView() {
             ]}
           />
         )}
+        {/* סינון אזור-טלפון (בקשת-שטח) — הפרדת חו"ל מישראל */}
+        <Select
+          value={regionF}
+          onChange={(v) => setRegionF(v as 'all' | 'il' | 'intl')}
+          options={[
+            { value: 'all', label: '🌐 כל הטלפונים' },
+            { value: 'il', label: '🇮🇱 ישראל בלבד' },
+            { value: 'intl', label: '🌍 חו"ל בלבד' },
+          ]}
+        />
         {/* בקשת-בעלים 15.8 ("פר תורם") — סינון לפי ייעוד-שעל-הכרטיס */}
         {purposeOn && purposeOptions.length > 0 && (
           <Select
@@ -1350,6 +1376,43 @@ export function SupportersView() {
           </div>
         </Modal>
       )}
+
+      {/* מיזוג-ידני מהבחירה (בקשת-שטח 22.8) — בורר-מנצח; כל התרומות/קבלות נשמרות */}
+      {mergeSelOpen && (() => {
+        const chosen = db.supporters.filter((sp) => selSet.has(sp.id));
+        const keepId = mergeKeep && chosen.some((sp) => sp.id === mergeKeep)
+          ? mergeKeep
+          : [...chosen].sort((a, b) => supCount(b) - supCount(a))[0]?.id ?? '';
+        return (
+          <Modal title={'מיזוג ' + chosen.length + ' ' + termOf(config, 'nav.supporters', 'תומכים') + ' לכרטיס אחד'} onClose={() => { setMergeSelOpen(false); setMergeKeep(''); }}>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+              בחרו את הכרטיס <b>שיישאר</b> — כל התרומות, הקבלות וההיסטוריה של השאר יעברו אליו, והם יימחקו. פעולה בלתי-הפיכה.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 260, overflowY: 'auto', margin: '8px 0' }}>
+              {chosen.map((sp) => (
+                <label key={sp.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: '1px solid var(--line, #e6ddce)', borderRadius: 8, cursor: 'pointer' }}>
+                  <input type="radio" name="mergekeep" checked={sp.id === keepId} onChange={() => setMergeKeep(sp.id)} />
+                  <span style={{ fontWeight: 700 }}>{sp.name}</span>
+                  <span style={{ color: 'var(--ink-faint, #8a8378)', fontSize: 12.5 }} dir="ltr">{sp.phone || '—'}</span>
+                  <span style={{ flex: 1 }} />
+                  <span style={{ fontSize: 12, color: 'var(--ink-faint, #8a8378)' }}>{supCount(sp)} {termOf(config, 'entity.donations', 'תרומות')}</span>
+                </label>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <Btn kind="primary" disabled={!keepId || chosen.length < 2} onClick={() => {
+                const losers = chosen.map((sp) => sp.id).filter((id) => id !== keepId);
+                mergeSupportersGroup(keepId, losers);
+                toast('מוזגו ' + (losers.length + 1) + ' ' + termOf(config, 'nav.supporters', 'תומכים') + ' לכרטיס אחד');
+                setMergeSelOpen(false); setMergeKeep(''); exitSelMode();
+              }}>
+                🔗 מזג אל הנבחר
+              </Btn>
+              <Btn onClick={() => { setMergeSelOpen(false); setMergeKeep(''); }}>ביטול</Btn>
+            </div>
+          </Modal>
+        );
+      })()}
 
       {/* פריט ד' (19.8): שיוך-ייעוד לכמה תומכ/ות בבת-אחת */}
       {assignOpen && (

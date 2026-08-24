@@ -305,9 +305,19 @@ export function paidOf(e: Enrollment): number {
   return (e.payments || []).reduce((a, p) => a + (Number.isFinite(p.amount) ? p.amount : 0), 0);
 }
 
-/** יתרת חוב — max(0, סה"כ עסקה - שולם). */
+/** יתרת חוב — max(0, סה"כ-עסקה + חוב-מועבר-משנה-קודמת - שולם).
+ *  ‏carryBalance (25.8): רישום-לשנה-הבאה נושא את יתרת-האשתקד קדימה (חיובי=חוב,
+ *  שלילי=זכות), כדי שגבייה חלקית או תשלום-יתר לא "יעלמו" עם המעבר לשנה.
+ *  חסר = 0 ⇒ ביט-זהה לשיבוץ ישן. */
 export function payBal(e: Enrollment): number {
-  return Math.max(0, (e.totalDue || 0) - paidOf(e));
+  return Math.max(0, (e.totalDue || 0) + (e.carryBalance || 0) - paidOf(e));
+}
+
+/** יתרת-זכות — max(0, שולם - סה"כ-עסקה - חוב-מועבר). היפוך של payBal:
+ *  כשהתשלום עלה על החוב, ההפרש הוא זכות (25.8, בקשת-בעלים "גם יתרת-זכות עוברת").
+ *  ‏carryBalance שלילי = זכות שהובאה מהשנה הקודמת; חיובי או חסר = 0-זכות. */
+export function payCredit(e: Enrollment): number {
+  return Math.max(0, paidOf(e) - (e.totalDue || 0) - (e.carryBalance || 0));
 }
 
 /** סטטוס-תשלום נגזר-אוטומטית (17.8, "למה השולם לא מתעדכן לבד"): */

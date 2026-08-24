@@ -10,6 +10,8 @@ export const OPT_IN_KEYS = [
   'supporters.rebrand',
   'supporters.card',
   'courses.cockpit',
+  'courses.plannedcharges',
+  'shop.plannedcharges',
   // גל ה׳ — מסכי-החוגים החדשים מגודרים `=== true` בקוד ⇒ חייבים optIn:true באשף
   'courses.teacherapp',
   'courses.parentcard',
@@ -21,6 +23,7 @@ export const OPT_IN_KEYS = [
   // ו-photos היה במרשם בלי optIn (האשף הציג "דלוק" ולחיצת-הדלקה מחקה את המפתח).
   'supporters.photos',
   'supporters.hokbulk',
+  'supporters.plannedcharges',
   'supporters.universe3d',
   // רישום-לשנה-הבאה — מסך "רישום" מגודר `=== true` בקוד ⇒ חייב optIn:true באשף
   'courses.reenroll',

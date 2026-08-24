@@ -16,12 +16,13 @@ import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field, FormError, Modal, Select, StickyBackBar, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
+import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, SEGULA_OFFSETS, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
 import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
 import { SupporterPhotos } from './SupporterPhotos';
+import { PlannedChargesSection } from './PlannedChargesSection';
 import { DonationCalendar } from './DonationCalendar';
 
 function InfoRow(props: { k: string; v: string; ltr?: boolean }) {
@@ -128,6 +129,10 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   }
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
+  // 🕯 סגולת 40 יום (בקשת-שטח) — opt-in; חסר-הדגל ⇒ מוסתר.
+  const segulaOn = featureOn(config, 'supporters.segula');
+  const seedSegulaReminders = useApp((s) => s.seedSegulaReminders);
+  const [segulaStart, setSegulaStart] = useState('');
   // 🔁 הו"ק (ROADMAP-100 ‏#2): הגדרה+רישום — התרומה דרך addDonation (קבלה רציפה)
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokOpen, setHokOpen] = useState(false);
@@ -163,6 +168,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     toast('🔁 חיוב-החודש נרשם' + (featureOn(config, 'core.receipts') ? ' — קבלה ' + res.rid : ''));
   }
   const ayinOn = featureOn(config, 'supporters.ayin');
+  // 📅 חיובים-מתוכננים (בקשת-בעלים 25.8) — opt-in מפורש; חסר-הדגל ⇒ מוסתר.
+  const plannedOn = config.features?.['supporters.plannedcharges'] === true;
   // גלריית-תמונות — opt-in מפורש (=== true), שומר על ברירת-המחדל ביט-זהה בלקוח-החי.
   const photosOn = config.features?.['supporters.photos'] === true;
   const histOn = featureOn(config, 'supporters.hist');
@@ -474,6 +481,21 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             </div>
           )}
           <InfoRow k="טלפון" v={sp.phone || '—'} ltr />
+          {/* טלפונים נוספים (ריבוי-טלפונים) — כל אחד עם תווית, הערה "ממי זה", סיווג ישראל/חו"ל, וכפתורי חיוג/וואטסאפ */}
+          {(sp.phones ?? []).length > 0 && (
+            <div style={{ margin: '2px 0 6px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {allSupPhones(sp).filter((r) => !r.primary).map((r, i) => (
+                <div key={i} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, fontSize: 13 }}>
+                  <span dir="ltr" style={{ fontWeight: 600 }}>{r.num}</span>
+                  {r.label && <span style={{ color: 'var(--ink-faint, #8a8378)' }}>· {r.label}</span>}
+                  {r.note && <span style={{ color: 'var(--ink-faint, #8a8378)' }}>({r.note})</span>}
+                  <span style={{ fontSize: 11, color: r.region === 'intl' ? '#a5651a' : '#2f7d52', fontWeight: 700 }}>{r.region === 'intl' ? '🌍 חו"ל' : '🇮🇱 ישראל'}</span>
+                  {telephonyOn(config) && <CallBtn phone={r.num} title={'חיוג ל' + sp.name} />}
+                  {integrationOn(config, 'whatsapp') && (r.wa || r.region !== 'intl') && <WaBtn phone={r.num} title={'וואטסאפ ל' + sp.name} />}
+                </div>
+              ))}
+            </div>
+          )}
           <InfoRow k="אימייל" v={sp.email || '—'} ltr />
           <InfoRow k="כתובת" v={sp.address || '—'} />
           <InfoRow k='ת"ז' v={sp.idNum || '—'} ltr />
@@ -525,6 +547,10 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           </div>
         )}
 
+        {/* 📅 חיובים-מתוכננים (בקשת-בעלים 25.8): פריסת-תשלומים עתידית בלי-קבלה
+             עד שהחיוב באמת יורד. opt-in supporters.plannedcharges. */}
+        {plannedOn && <PlannedChargesSection supporter={sp} />}
+
         {/* קשר הבא */}
         {nextOn && (
           <div className="card">
@@ -559,6 +585,31 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                 קביעת תאריך תציע להוסיף תזכורת שיחה ללוח השנה
               </div>
             )}
+          </div>
+        )}
+
+        {/* 🕯 סגולת 40 יום — תזכורות מדורגות מתאריך-התחלה (בקשת-שטח) */}
+        {segulaOn && (
+          <div className="card">
+            <h3 style={{ fontSize: 15, marginBottom: 8 }}>🕯 סגולת 40 יום</h3>
+            <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
+              בחרו תאריך-התחלה — המערכת תזרע תזכורות ביומן בימים 1 · 7 · 21 · 35 · 40 (סיום), בלי לחשב ידני.
+            </div>
+            <Field label="תאריך התחלה">
+              <HebDateInput value={segulaStart} onChange={setSegulaStart} />
+            </Field>
+            <div style={{ marginTop: 8 }}>
+              <Btn
+                kind="primary"
+                disabled={!segulaStart}
+                onClick={() => {
+                  const n = seedSegulaReminders(sp.id, segulaStart);
+                  if (n) setSegulaStart('');
+                }}
+              >
+                🕯 זריעת {SEGULA_OFFSETS.length} תזכורות
+              </Btn>
+            </div>
           </div>
         )}
       </div>

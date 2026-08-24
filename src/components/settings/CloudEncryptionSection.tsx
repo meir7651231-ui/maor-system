@@ -133,10 +133,14 @@ export function CloudEncryptionSection() {
   const cloudUser = useApp((s) => s.cloud.user);
   const cloudOn = useApp((s) => s.cloud.enabled);
   const cloudEncrypted = useApp((s) => s.cloud.cloudEncrypted);
+  const isManager = useApp((s) => s.cloud.isManager);
   const [enabling, setEnabling] = useState(false);
 
-  // מגודר למייל-על בלבד — לא נחשף לאף לקוח (isSuperAdmin, לא isAdminUser).
-  if (!isSuperAdmin(cloudUser?.email)) return null;
+  // הכרעת-בעלים 24.8 ("הצפנה לכל מנהל-ארגון, כל אחד והארגון שלו"): נפתח גם
+  // למנהל-ארגון — הסשן שלו מנותב לנתיבי-הארגון שלו בלבד, וה-Rules כבר מתירים
+  // ל-orgManager לכתוב את מעטפת-ה-_enc של ארגונו. מייל-על שומר גישה מלאה.
+  // עדיין נסתר מעובד/ת רגיל/ה (לא isManager ⇒ null).
+  if (!isSuperAdmin(cloudUser?.email) && !isManager) return null;
 
   return (
     <Section
@@ -177,7 +181,7 @@ export function CloudEncryptionSection() {
       )}
 
       <SectionNote>
-        ⚠️ נדרש פרסום כלל Firestore ל-<code>_enc</code> (בעלים בלבד). <b>שמרו את מפתח-השחזור</b> —
+        זו הצפנה של <b>הארגון שלכם</b> — כל מנהל מפעיל ומנהל אותה לעצמו. <b>שמרו את מפתח-השחזור</b> —
         בלי הסיסמה והמפתח, עותק-הענן אבוד לצמיתות (אין דלת אחורית). ההצפנה המקומית היא ערוץ נפרד.
       </SectionNote>
     </Section>

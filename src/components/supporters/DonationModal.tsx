@@ -14,9 +14,13 @@ import { allDonationPurposes, isoToday } from './lib';
 
 export function DonationModal(props: { supporter: Supporter; onClose: () => void }) {
   const addDonation = useApp((s) => s.addDonation);
+  const addPlannedCharges = useApp((s) => s.addPlannedCharges);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
   const receiptsOn = featureOn(config, 'core.receipts');
+  // 📅 חיובים-מתוכננים (בקשת-בעלים 25.8): אשראי-ידני = הבטחה, לא-קבלה עד
+  // ש"תשלומים-נכנסים" מאשר. כשהדגל דלוק — בורר-האמצעי חושף אפשרות "אשראי".
+  const plannedOn = config.features?.['supporters.plannedcharges'] === true;
   // supporters.multicur כבוי — אין בורר מטבע, הכול נרשם בשקלים
   const multiCurOn = featureOn(config, 'supporters.multicur');
 
@@ -31,6 +35,9 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
   const purposeOn = featureOn(config, 'supporters.purpose');
   const [purpose, setPurpose] = useState('');
   const knownPurposes = purposeOn ? allDonationPurposes(useApp.getState().db.supporters) : [];
+  // אמצעי-התשלום — additive. חסר/'immediate' = ההתנהגות הישנה (D- מיידי).
+  // 'credit' + plannedOn = יוצר PlannedCharge (הבטחה), D- יופק כשהחיוב יאושר.
+  const [method, setMethod] = useState('immediate');
   const [error, setError] = useState('');
   // UX סבב-ה׳: הקטגוריות הנפוצות בארגון (עד 5) — ברירות-מחדל בקליק
   const topCats = (() => {
@@ -57,6 +64,22 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
     // קודם ניחשנו rid מ-donationSeq והורדנו קבלה גם על דחייה (rid שמעולם לא הונפק).
     const desig = sponsorOn ? designation.trim() : '';
     const purp = purposeOn ? purpose.trim() : '';
+    // 📅 מסלול-אשראי (בקשת-בעלים 25.8): "אשראי-ידני" הופך ל-PlannedCharge —
+    // לא-קבלה, לא-D-, רק "רישום ⏳ ממתין לחיוב-נכנס". D- יונפק כשמאשרים
+    // "✓ החיוב ירד" בסעיף חיובים-מתוכננים (או בעתיד — אוטומטית ממטבעים
+    // ‏incomingPayments). designation/purpose נשמרים ב-note לחיפוש-שיוך.
+    if (plannedOn && method === 'credit') {
+      const noteParts = [desig ? 'ייעוד: ' + desig : '', purp ? 'עבודה: ' + purp : ''].filter(Boolean);
+      const r = addPlannedCharges(props.supporter.id, {
+        firstDate: date, count: 1, amount: amt, cur, method: 'credit',
+        cat: cat.trim() || termOf(config, 'entity.donation', 'תרומה'),
+        note: noteParts.join(' · ') || undefined,
+      });
+      if (!r.ok) { props.onClose(); return; }
+      toast('💳 נרשם ' + (cur === '$' ? '$' : '₪') + amt.toLocaleString('he-IL') + ' · ⏳ ממתין לחיוב-נכנס');
+      props.onClose();
+      return;
+    }
     const res = addDonation(props.supporter.id, {
       date,
       amount: amt,
@@ -142,6 +165,25 @@ export function DonationModal(props: { supporter: Supporter; onClose: () => void
                 { value: '$', label: '$ דולר' },
               ]}
             />
+          </Field>
+        )}
+        {/* 📅 בורר-אמצעי (בקשת-בעלים 25.8) — נחשף רק כשהדגל plannedcharges דלוק.
+             "אשראי" ⇒ רישום-הבטחה בלי-קבלה; מיידי ⇒ D- מיידי כמו קודם. */}
+        {plannedOn && (
+          <Field label="אמצעי">
+            <Select
+              value={method}
+              onChange={setMethod}
+              options={[
+                { value: 'immediate', label: '💵 מיידי (מזומן/צ׳ק/העברה — קבלה עכשיו)' },
+                { value: 'credit', label: '💳 אשראי (ממתין לחיוב-נכנס — הקבלה תונפק כשיאושר)' },
+              ]}
+            />
+            {method === 'credit' && (
+              <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
+                ⏳ הרישום ישמר כחיוב-מתוכנן. כשמוודאים שהחיוב ירד — לוחצים "✓ החיוב ירד" בסעיף חיובים-מתוכננים ואז נופקת קבלת D-.
+              </div>
+            )}
           </Field>
         )}
         <Field label="קטגוריה">

@@ -90,6 +90,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'courses.parentcard', label: 'כרטיס-הורה', desc: '👪 סיכום read-only פר-ילד (opt-in) בכרטיס-המשפחה — נוכחות%/יתרה/מפגש-קרוב/השלמות + שיתוף WhatsApp/הדפסה/העתקה; הרכז מייצר ומשתף, אפס-כסף', module: 'courses', optIn: true },
   { key: 'courses.ai', label: 'מרכז-שימור (חיזוי-נשירה)', desc: '💚 רשימת תלמידים-בסיכון-נשירה עם ציון-סיכון (opt-in) + "✍️ הצעת-התערבות" AI (דורש מפתח עוזר-AI, נופל-רך בלעדיו); אפס-כסף', module: 'courses', optIn: true },
   { key: 'courses.paylink', label: 'תשלום מקוון בחוגים', desc: '💳 כפתור "תשלום מקוון" בכרטיס-השיבוץ ובמרכז-הגבייה — מפנה לעמוד-הסליקה של הארגון (דורם עד שמפעילים סליקה+כתובת). כבוי מסתיר את הכפתור בחוגים בלבד; אפס-קבלה (הקבלה נרשמת ידנית אחרי התשלום)', module: 'courses' },
+  { key: 'courses.plannedcharges', label: 'חיובים-מתוכננים בחוגים 📅', desc: 'פריסת-תשלומים עתידית על שיבוץ (למשל 3×₪400 באשראי) — בלי-R- עד שהחיוב באמת יורד. תשלום-אשראי-ידני נשמר כ"⏳ ממתין לחיוב-נכנס"; כשמאשרים "✓ החיוב ירד" נוצרת קבלת R- רגילה בסדרה הרציפה (opt-in — קבלת-§46)', module: 'courses', optIn: true },
+  { key: 'shop.plannedcharges', label: 'חיובים-מתוכננים בחנות 📅', desc: 'פריסת-תשלומים עתידית על מוצר-חנות (למשל 3×₪150 באשראי לקופון) — בלי-S- עד שהחיוב באמת יורד. מימוש-באשראי-ידני נשמר כ"⏳ ממתין לחיוב-נכנס"; כשמאשרים "✓ החיוב ירד" נוצר ShopRedemption עם אישור-תשלום S- (opt-in)', module: 'shop', optIn: true },
   { key: 'courses.reminder', label: 'תזכורת ללוח', desc: 'כפתור "🔔 תזכורת ללוח" — יצירת אירוע תזכורת לחוג בלוח השנה', module: 'courses' },
   { key: 'courses.enroll.freeze', label: 'הקפאת שיבוץ', desc: 'הקפאה/הפשרה זמנית של שיבוץ (הניקוב נחסם עד הפשרה)', module: 'courses' },
   { key: 'courses.enroll.end', label: 'סיום שיבוץ', desc: 'סימון שיבוץ כ"הסתיים" (נשמר בדוח ההיסטורי)', module: 'courses' },
@@ -143,6 +145,7 @@ export const FEATURES: FeatureDef[] = [
   // "דלוק" על מסך כבוי ולחיצת-"הדלקה" מחקה את המפתח ⇒ בלתי-ניתן-להדלקה לעולם.
   { key: 'supporters.photos', label: 'גלריית-תמונות 📷', desc: 'אלבום-תמונות על כרטיס-התורם/ת (עד 5, מוקטנות אוטומטית) — נשמרות במכשיר ומגובות/מסונכרנות עם הנתונים (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.hok', label: 'הוראות קבע 🔁', desc: 'הגדרת הו"ק על תורם/ת + תזכורת-חודשית "טרם נרשמה" + רישום-בקליק; החיוב עצמו אצל הסליקה/הבנק', module: 'supporters' },
+  { key: 'supporters.plannedcharges', label: 'חיובים-מתוכננים 📅', desc: 'פריסת-תשלומים עתידית על תומכ/ת (למשל 3×₪400 באשראי) — בלי קבלת-מס עד שהחיוב באמת יורד. כשמאשרים "החיוב ירד" נוצרת תרומה D- רגילה בסדרה הרציפה (opt-in — קבלת-§46)', module: 'supporters', optIn: true },
   // ── מסכי 20.8 · opt-in מפורש (חסר=כבוי — לא מדליקים לקוח-חי מעצמם) ──
   { key: 'supporters.cockpit', label: 'חלון-העבודה (קוקפיט) 🎯', desc: 'משטח-עבודה מעל טבלת-התורמים: KPI + תור-משימות (שיחות/תודות/הו"ק) + פלטת-פיקוד ⌘K + ייצוא (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.oneflow', label: 'פעולה אחת עכשיו ▶', desc: 'מסך-מלא שמציג משימה אחת בכל רגע מתור-הקוקפיט — ✓ בוצע / ⏭ דלג והמערכת מתקדמת לבאה; אפס-הסחות (opt-in)', module: 'supporters', optIn: true },
@@ -325,6 +328,8 @@ export const FEATURES: FeatureDef[] = [
   // — תורמים —
   { key: 'supporters.bulkselect', label: 'בחירה מרובה', desc: 'כפתור "☑ בחירה" — מצב סימון-מרובה עם פס-פעולות', module: 'supporters' },
   { key: 'supporters.bulkdelete', label: 'מחיקה מרוכזת', desc: 'כפתור "🗑 מחיקת N" במצב-הבחירה — מוחק תורמים כולל היסטוריה', module: 'supporters' },
+  { key: 'supporters.bulkmerge', label: 'מיזוג-ידני מהבחירה', desc: 'כפתור "🔗 מזג נבחרים" במצב-הבחירה — מיזוג תורמים שסומנו לכרטיס אחד (למקרים שהמנוע האוטומטי לא זיהה); כל התרומות והקבלות נשמרות', module: 'supporters' },
+  { key: 'supporters.segula', label: 'סגולת 40 יום', desc: 'כפתור "🕯 סגולת 40 יום" בכרטיס-התורם — זריעת תזכורות-לוח מדורגות (יום 1/7/21/35/40) מתאריך-התחלה, בלי לחשב ידנית', module: 'supporters' },
   { key: 'supporters.dedup', label: 'איחוד כפולים', desc: 'פריט "🔗 איחוד כפולים" בתפריט — מיזוג תורמים כפולים', module: 'supporters' },
   { key: 'supporters.delete', label: 'מחיקת תורם מהכרטיס 🔓', desc: 'כפתור 🗑 (שתי-לחיצות) בכרטיס-התורם — פעולה-הרסנית; מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'supporters' },
   { key: 'supporters.grid', label: 'מתג גריד/רשימה', desc: 'כפתור "▦ גריד / ☰ רשימה" במסך-התורמים', module: 'supporters' },

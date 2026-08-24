@@ -52,7 +52,15 @@ interface Receipt {
 function readReceipts(): Receipt[] {
   try {
     const raw = localStorage.getItem(nsLsKey(LS_RECEIPTS));
-    return raw ? (JSON.parse(raw) as Receipt[]) : [];
+    if (raw) return JSON.parse(raw) as Receipt[];
+    // 🛡️ ביקורת-האמון 24.8: localStorage אבד (ניקוי-דפדפן/מכשיר חדש) — ריפוי
+    // מהעותק-העמיד ב-db.ui (מגיע מגיבוי/סנכרון) + זריעה-חוזרת מקומית.
+    const mirror = useApp.getState().db.ui.cashReceipts as Receipt[] | undefined;
+    if (mirror?.length) {
+      localStorage.setItem(nsLsKey(LS_RECEIPTS), JSON.stringify(mirror));
+      return mirror;
+    }
+    return [];
   } catch {
     return [];
   }
@@ -90,7 +98,8 @@ interface ShiftClose {
 function readShift(): Shift | null {
   try {
     const raw = localStorage.getItem(nsLsKey(LS_SHIFT));
-    return raw ? (JSON.parse(raw) as Shift) : null;
+    if (raw) return JSON.parse(raw) as Shift;
+    return (useApp.getState().db.ui.cashShift as Shift | null | undefined) ?? null;
   } catch {
     return null;
   }
@@ -102,15 +111,19 @@ function writeShift(s: Shift | null): void {
   } catch {
     /* חסום */
   }
+  useApp.getState().cashboxMirror({ cashShift: s });
 }
 function appendShiftClose(z: ShiftClose): void {
+  let next: ShiftClose[] = [z];
   try {
     const raw = localStorage.getItem(nsLsKey(LS_SHIFT_LOG));
-    const arr = raw ? (JSON.parse(raw) as ShiftClose[]) : [];
-    localStorage.setItem(nsLsKey(LS_SHIFT_LOG), JSON.stringify([z, ...arr].slice(0, 100)));
+    const arr = raw ? (JSON.parse(raw) as ShiftClose[]) : (useApp.getState().db.ui.cashShifts as ShiftClose[] | undefined) ?? [];
+    next = [z, ...arr].slice(0, 100);
+    localStorage.setItem(nsLsKey(LS_SHIFT_LOG), JSON.stringify(next));
   } catch {
     /* חסום */
   }
+  useApp.getState().cashboxMirror({ cashShifts: next });
 }
 /** גבייה מאז פתיחת-המשמרת: כל חשבונית שהופקה מאז openedAt (net = due). */
 function salesSince(openedAt: string): { sales: number; count: number } {
@@ -119,23 +132,29 @@ function salesSince(openedAt: string): { sales: number; count: number } {
 }
 
 function nextReceiptNum(): number {
+  // המונה = המקסימום בין localStorage לעותק-העמיד — localStorage שאבד לא
+  // מאפס את המספור (אין כפל מספרי-אישור), כמו מוני-הקבלות בענן.
+  const dbSeq = useApp.getState().db.ui.cashSeq ?? 0;
   try {
-    const n = Number(localStorage.getItem(nsLsKey(LS_SEQ)) || '0') + 1;
+    const n = Math.max(Number(localStorage.getItem(nsLsKey(LS_SEQ)) || '0'), dbSeq) + 1;
     localStorage.setItem(nsLsKey(LS_SEQ), String(n));
     return n;
   } catch {
-    return 1;
+    return dbSeq + 1;
   }
 }
 
 function saveReceipt(r: Receipt): void {
+  let next: Receipt[] = [r];
   try {
     const raw = localStorage.getItem(nsLsKey(LS_RECEIPTS));
-    const arr = raw ? (JSON.parse(raw) as Receipt[]) : [];
-    localStorage.setItem(nsLsKey(LS_RECEIPTS), JSON.stringify([r, ...arr].slice(0, 200)));
+    const arr = raw ? (JSON.parse(raw) as Receipt[]) : (useApp.getState().db.ui.cashReceipts as Receipt[] | undefined) ?? [];
+    next = [r, ...arr].slice(0, 200);
+    localStorage.setItem(nsLsKey(LS_RECEIPTS), JSON.stringify(next));
   } catch {
-    /* localStorage חסום */
+    /* localStorage חסום — העותק-העמיד עדיין נכתב */
   }
+  useApp.getState().cashboxMirror({ cashReceipts: next, cashSeq: r.num });
 }
 
 function money(n: number): string {

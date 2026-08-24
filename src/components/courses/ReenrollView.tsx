@@ -35,7 +35,6 @@ export default function ReenrollView() {
   const cfg = useApp((s) => s.config);
   const go = useApp((s) => s.go);
   const setRenewDecision = useApp((s) => s.setRenewDecision);
-  const openNextYearCourse = useApp((s) => s.openNextYearCourse);
   const bulkReenrollCourse = useApp((s) => s.bulkReenrollCourse);
 
   const reenrollOn = cfg?.features?.['courses.reenroll'] === true;
@@ -103,12 +102,6 @@ export default function ReenrollView() {
     flash(`נרשמו ${created} לשנה הבאה 🚀`);
     setDial(false);
   }
-  function doOpenYear() {
-    if (!courseId) return flash('בחרו קודם ' + courseW + ' בסינון');
-    const r = openNextYearCourse(courseId);
-    flash(r.ok ? 'נפתח חוג לשנה הבאה ✓' : 'שגיאה בפתיחת השנה');
-    setDial(false);
-  }
   function markAll(dec: 'yes' | 'hold' | 'no' | '') {
     for (const r of rows) if (!r.renewed) setRenewDecision(r.e.id, dec);
     flash(dec === '' ? 'ההחלטות אופסו' : `סומנו ${rows.filter((r) => !r.renewed).length}`);
@@ -116,7 +109,7 @@ export default function ReenrollView() {
   }
   function doExport() {
     if (!guardExport()) return;
-    downloadCsv('reenroll-' + academicYearLabel(new Date().toISOString().slice(0, 10)).replace('/', '-') + '.csv', reenrollCsvRows(rows) as Cell[][]);
+    downloadCsv('reenroll-' + academicYearLabel(new Date().toISOString().slice(0, 10)) + '.csv', reenrollCsvRows(rows) as Cell[][]);
     setDial(false);
   }
   function doCopy() {
@@ -125,9 +118,10 @@ export default function ReenrollView() {
     setDial(false);
   }
 
+  // ⚠️ שינוי-מודל 24.8: הכפתור "🗓 פתיחת שנה הבאה" (שפתח חוג מוחשל) הוסר —
+  // הרישום הפרטני/ההמוני יוצר עכשיו שיבוץ **על אותו החוג** עם תווית שנה חדשה.
   const dialActions: { key: string; label: string; on: boolean; run: () => void }[] = [
     { key: 'bulk', label: '🚀 רישום כל הממשיכים', on: bulkOn, run: doBulk },
-    { key: 'year', label: '🗓 פתיחת שנה הבאה', on: true, run: doOpenYear },
     { key: 'allyes', label: '✅ סמן הכל «ממשיך»', on: true, run: () => markAll('yes') },
     { key: 'reset', label: '🔄 איפוס החלטות', on: true, run: () => markAll('') },
     { key: 'csv', label: '⬇ ייצוא CSV', on: exportOn, run: doExport },

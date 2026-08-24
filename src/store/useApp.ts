@@ -16,6 +16,9 @@ import {
   type Course,
   type CredLogEntry,
   pushAudit,
+  pushDelLog,
+  type DelEntry,
+  type UiPrefs,
   type Db,
   type Donation,
   type Enrollment,
@@ -45,6 +48,7 @@ import {
   type DialOutcome,
   type WorkTask,
 } from '../types/domain';
+import { ENTITY_COLLECTIONS } from '../lib/cloud-diff';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { advanceStatus } from '../components/shop7/lib';
@@ -56,7 +60,9 @@ import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isSuperAdm
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
-import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth } from '../components/supporters/lib';
+import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, SEGULA_OFFSETS, segulaReminders, segulaTitle } from '../components/supporters/lib';
+import { planCharges } from '../components/supporters/planned';
+import { findAllOpenPlans, matchAll } from '../lib/plannedMatch';
 import { canAddPhoto, isDataImage, PHOTO_MAX, PHOTO_MAX_LEN } from '../lib/photoGallery';
 import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
 import { attachChargeTo, attachChargesBulk, detectRecurringHok, planNedarimSync, repairCardsFromRows, type SyncCharge } from '../lib/nedarimSync';
@@ -64,7 +70,7 @@ import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
 import { enrollCount } from '../components/courses/lib';
-import { freshNextYearEnrollment, nextYearCourseDraft } from '../components/courses/reenroll-lib';
+import { freshNextYearEnrollment, nextAcademicYearLabel, nextYearCourseDraft } from '../components/courses/reenroll-lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
 import { applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
 import { appendCall, applyOutcome, OUTCOME_LABELS, popCall, startCampaign, undoLast } from '../lib/dialer';
@@ -141,6 +147,11 @@ export interface CloudState {
    * מוצג במסך-ההמתנה — כשל לא נבלע יותר בשקט. undefined = טרם נוסה.
    */
   reqStatus?: string;
+  /**
+   * שגיאת-הסנכרון האחרונה (בקשת-שטח 25.8 — "אני ממשיך לאבד סנכרון, אדום סתום").
+   * טקסט לתצוגה בממשק ליד הטבעת האדומה. null/undefined = אין שגיאה פעילה.
+   */
+  lastSyncError?: string | null;
 }
 
 interface AppState {
@@ -271,6 +282,13 @@ interface AppState {
   // הודעות
   toast: (text: string) => void;
   dismissToast: (id: number) => void;
+  /**
+   * 🕵️ יומן-גישה (ביקורת-האמון 24.8): הלוג תיעד רק *שינויים* — חשיפת ת"ז,
+   * הורדת דוח-משפחה וייצוא-גיבוי היו בלתי-נראים. רישום-צפייה לפעולות רגישות.
+   */
+  logAccess: (act: string, what: string) => void;
+  /** 💵 שיקוף הקופה-הרושמת אל db.ui (עותק-עמיד: גיבוי/סנכרון/צילומים). */
+  cashboxMirror: (patch: Partial<Pick<UiPrefs, 'cashSeq' | 'cashReceipts' | 'cashShift' | 'cashShifts'>>) => void;
 
   // משפחות ובני משפחה
   upsertFamily: (fam: Family) => void;
@@ -308,6 +326,14 @@ interface AppState {
   addAbsence: (enrollmentId: string, absence: Absence) => void;
   /** רישום תשלום — {ok:false} כשה-store דחה (השיבוץ נעלם); rid רק כשהונפק בפועל. */
   addPayment: (enrollmentId: string, payment: Omit<Payment, 'rid'>) => { ok: boolean; rid?: string };
+  /** 📅 פריסת חיובים-מתוכננים על שיבוץ (בקשת-בעלים 25.8) — לא-קבלה עד חיוב-בפועל.
+   *  זהה במושג ל-addPlannedCharges של תומכים; ההבדל: `chargeEnrollmentPlanned`
+   *  מנפיק R- (לא D-) דרך `addPayment`. מגודר courses.plannedcharges. */
+  addEnrollmentPlanned: (enrollmentId: string, spec: { firstDate: string; count: number; amount: number; cur: '₪' | '$'; method: string; note?: string; gapMonths?: number }) => { ok: boolean; ids?: string[] };
+  cancelEnrollmentPlanned: (enrollmentId: string, planId: string, todayIso: string) => { ok: boolean };
+  /** ✓ החיוב ירד — יוצר Payment עם R- דרך addPayment, מקשר chargedRid.
+   *  אידמפוטנטי (chargedRid קיים ⇒ מחזיר אותו rid בלי לקדם seq). */
+  chargeEnrollmentPlanned: (enrollmentId: string, planId: string) => { ok: boolean; rid?: string };
   /** 💰 סימון-סטטוס תשלום מהיר פר-שיבוץ (17.8) — לתשלום/שולם, בלי לגעת בקבלות. */
   setEnrollmentPaid: (enrollmentId: string, paid: boolean) => void;
   /** 🗓 רישום-לשנה-הבאה — החלטת-המשך פר-שיבוץ (ממשיך/עוזב/בהמתנה) + הערה. additive. */
@@ -353,6 +379,8 @@ interface AppState {
   mergeSupportersGroup: (keepId: string, loserIds: string[]) => void;
   /** מיזוג-לפי-שדות (פאריטי משפחות): ids[0]=בסיס-השומר; ערכי-שדות לפי pick/edit. */
   mergeSupportersFields: (ids: string[], pick: Record<string, number>, edit: Record<string, string>) => void;
+  /** 🕯 סגולת 40 יום — זריעת תזכורות-לוח מדורגות לתורם מתאריך-התחלה. מחזיר כמה נוצרו. */
+  seedSegulaReminders: (supId: string, startIso: string) => number;
   /** 🔄 יישום תוכנית-סנכרון נדרים (planNedarimSync): החלפת מערך-התומכים המלא +
    *  לוג. אחרי תצוגה-מקדימה+אישור בלבד (מסך הסנכרון). */
   applyNedarimSync: (supporters: Supporter[], note: string) => void;
@@ -384,6 +412,14 @@ interface AppState {
   /** רישום-הו״ק המוני — חיוב-החודש לכל המזהים המסומנים בבת-אחת (קבלות רציפות D-).
    *  מחזיר {done,rids,failed}; שער-הקבלות נבדק פעם-אחת, כתיבה אטומית אחת. */
   bulkRecordHok: (ids: string[], todayIso: string) => { done: number; rids: { id: string; rid: string; amount: number; cur: string }[]; failed: number };
+  /** 📅 פריסת חיובים-מתוכננים לתומכ/ת (בקשת-בעלים 25.8) — לא-קבלה עד חיוב-בפועל.
+   *  N שורות PlannedCharge בפערי-חודש קבועים; groupId משותף (installmentOf). */
+  addPlannedCharges: (supporterId: string, spec: { firstDate: string; count: number; amount: number; cur: '₪' | '$'; method: string; cat: string; note?: string; gapMonths?: number }) => { ok: boolean; ids?: string[] };
+  /** ביטול-רך של חיוב-מתוכנן — מסמן cancelledAt (לא מוחק, שרשרת-ביקורת נשמרת). */
+  cancelPlannedCharge: (supporterId: string, planId: string, todayIso: string) => { ok: boolean };
+  /** ✓ החיוב ירד — הפיכת PlannedCharge ל-Donation D- בפועל (דרך addDonation).
+   *  שער-הקבלות של addDonation חל; אידמפוטנטי (chargedRid קיים ⇒ החזרת אותו rid). */
+  chargePlanned: (supporterId: string, planId: string) => { ok: boolean; rid?: string };
 
   // קופות צדקה (מודול tzedaka — מבודד; BUILD-ORDER-TZEDAKA-2026-07-30).
   // הכסף/האירועים/הניקוד נכתבים רק למערכי tz* — לא לקבלות/תרומות/לוח הראשי.
@@ -446,6 +482,21 @@ interface AppState {
    * rid מוחזר רק כשהונפק בפועל — ה-UI לא מנחש (לקח באג-5).
    */
   addShopRedemption: (assignmentId: string, r: Omit<ShopRedemption, 'id' | 'rid'>) => { ok: boolean; rid?: string };
+  /** 📅 פריסת חיובים-מתוכננים על שיוך-חנות (בקשת-בעלים 25.8) — לא-S- עד חיוב-בפועל.
+   *  componentId חובה — הוא מזין את המימוש בעת החיוב. */
+  addShopPlanned: (assignmentId: string, spec: { componentId: string; firstDate: string; count: number; amount: number; method: string; shopValue?: number; shopHoliday?: string; note?: string; gapMonths?: number }) => { ok: boolean; ids?: string[] };
+  cancelShopPlanned: (assignmentId: string, planId: string, todayIso: string) => { ok: boolean };
+  /** ✓ החיוב ירד — יוצר ShopRedemption עם S- דרך addShopRedemption, מקשר chargedRid. */
+  chargeShopPlanned: (assignmentId: string, planId: string) => { ok: boolean; rid?: string };
+  /** 🔍 שיוך-אוטומטי של תשלומים-נכנסים לחיובים-מתוכננים (בקשת-בעלים 25.8):
+   *  לכל incoming מוצא match חד-משמעי (סכום+שם+תאריך±3) ומריץ chargeXxxPlanned
+   *  לפי סוג-הישות. מחזיר את מזהי-ה-incomingIds שקיבלו שיוך (הקורא יכול לסמן
+   *  אותם handled בענן). דורמנטי כשאין פלנים פתוחים ⇒ עלות אפסית. */
+  autoMatchPlanned: (incomings: import('../lib/cloud').IncomingPayment[]) => { matched: string[] };
+  /** 📞 זריעת תזכורות-שיחה לחיובים-מתוכננים שלא-נכנסו (בקשת-בעלים 25.8):
+   *  לפלנים פתוחים עם date < todayIso — יוצר אירוע-שיחה בלוח (בלי-כפילות ע"י
+   *  spId=planId). מחזיר כמה נזרעו. עקבי עם seedSegulaReminders. */
+  seedOverduePlannedReminders: (todayIso: string) => { seeded: number };
   /**
    * ביטול מימוש עם סימון (הכרעת בעלים 14) — הרשומה לעולם לא נמחקת:
    * voidedAt=היום + voidReason (רשות). ה-rid נשאר בסדרה וה-מונים לא זזים
@@ -766,7 +817,24 @@ export const useApp = create<AppState>()((set, get) => {
 
   function setDb(patch: Partial<Db> | ((db: Db) => Partial<Db>)) {
     const prev = get().db;
-    set((s) => ({ db: { ...s.db, ...(typeof patch === 'function' ? patch(s.db) : patch) } }));
+    set((s) => {
+      const p = typeof patch === 'function' ? patch(s.db) : patch;
+      // 🪦 מצבות-מחיקה (ביקורת-האמון 24.8): נקודת-החיבור המרכזית — כל פעולה
+      // שמסירה רשומות מאוסף-ישות (deleteFamily/deleteSupporter/מיזוג/שחזור…)
+      // מטביעה מצבה, כדי שמכשיר-אופליין לא יחיה אותן בהתחברות-הבאה.
+      const dels: DelEntry[] = [];
+      const at = new Date().toISOString();
+      for (const col of ENTITY_COLLECTIONS) {
+        const nextList = p[col] as Array<{ id: string }> | undefined;
+        if (!nextList) continue;
+        const prevList = s.db[col] as Array<{ id: string }>;
+        if (nextList === prevList) continue;
+        const nextIds = new Set(nextList.map((x) => x.id));
+        for (const x of prevList) if (!nextIds.has(x.id)) dels.push({ at, col, id: x.id });
+      }
+      const withDels = dels.length ? { ...p, delLog: pushDelLog((p.delLog as DelEntry[] | undefined) ?? s.db.delLog, dels) } : p;
+      return { db: { ...s.db, ...withDels } };
+    });
     dirty = true; // עריכה מקומית ממתינה — שער ריבוי-הטאבים לא ידרוס אותה (#3)
     scheduleSave();
     // דחיפה לענן (debounced במודול הענן) — no-op כשאין ענן / בזמן החלת שינוי מרוחק
@@ -870,7 +938,36 @@ export const useApp = create<AppState>()((set, get) => {
       mod.setDonationSplit(donationSplitOn(cfg));
       // אכיפת-תומכים (ארגוני-פלטפורמה בלבד) — off-by-default; חסר ⇒ ביט-זהה.
       mod.setSupEnforce(supEnforceOn(cfg));
+      // 🔧 בקשת-שטח 24.8 ("אני כל הזמן מאבד סנכרון" H2): watchAuth היה מפיל את
+      // הסנכרון מיידית על כל אירוע-null (טוקן-blip, IndexedDB לחוץ במובייל,
+      // App-Check חולף) ⇒ המשתמש הופנה לכניסה-מחדש. עכשיו: null מקבל **חלון-חסד
+      // של 5 שניות** — אם ה-SDK מרענן את הטוקן בתוך החלון, לא נוגעים בכלום
+      // (המנוי חי). רק אם null נמשך → מבצעים logout-נקי.
+      let authGrace: ReturnType<typeof setTimeout> | null = null;
       mod.watchAuth((user) => {
+        // אירוע-user תקין (כולל התאוששות מ-null) — מבטלים חלון-חסד תלוי.
+        if (user && authGrace) { clearTimeout(authGrace); authGrace = null; }
+        // אירוע null במהלך חלון-חסד קיים ⇒ מדלגים; הטיפול יבוצע בפקיעת-החלון.
+        if (!user && authGrace) return;
+        // אירוע null ראשון כשיש משתמש נוכחי ⇒ נכנס לחסד, לא נוגעים בסטטוס עדיין.
+        if (!user && get().cloud.user !== null) {
+          setCloud({ status: 'connecting' as const });
+          authGrace = setTimeout(() => {
+            authGrace = null;
+            if (get().cloud.user === null) return; // כבר טופל
+            // חסד נגמר — logout-נקי (הזרימה המקורית).
+            const hadUser2 = true;
+            setCloud({ authReady: true, user: null, status: 'idle' as const });
+            if (hadUser2) {
+              cloudCfgUnsub?.();
+              cloudCfgUnsub = null;
+              setCloud({ membership: 'na' });
+              mod.stopCloudSync();
+              mod.setCloudDek(null);
+            }
+          }, 5000);
+          return;
+        }
         const hadUser = get().cloud.user !== null;
         setCloud({ authReady: true, user, ...(user ? {} : { status: 'idle' as const }) });
         if (user && !hadUser) {
@@ -884,6 +981,8 @@ export const useApp = create<AppState>()((set, get) => {
               },
               toast: (t) => get().toast(t),
               setStatus: (status) => setCloud({ status }),
+              // 📛 בקשת-שטח 25.8: חושף את השגיאה האחרונה של הסנכרון בממשק
+              setLastError: (msg) => setCloud({ lastSyncError: msg }),
             });
           // שער הצפנת-ענן (opt-in): אם לארגון יש envelope ואין DEK בזיכרון —
           // עוצרים לפני הסנכרון ומציגים מסך-פתיחה. readCloudEnvelope הוא
@@ -1457,6 +1556,9 @@ export const useApp = create<AppState>()((set, get) => {
       setTimeout(() => get().dismissToast(id), 4000);
     },
     dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+    logAccess: (act, what) => logAudit(act, what),
+    // 💵 שיקוף הקופה-הרושמת (ביקורת-האמון 24.8) — עותק-עמיד ב-db.ui
+    cashboxMirror: (patch) => setDb((db) => ({ ui: { ...db.ui, ...patch } })),
 
     upsertFamily(fam) {
       setDb((db) => ({ families: upsertIn(db.families, fam) }));
@@ -1881,26 +1983,44 @@ export const useApp = create<AppState>()((set, get) => {
       return { ok: true, id };
     },
     reenrollEnrollment(enrollmentId, targetCourseId, group) {
+      // ⚠️ שינוי-מודל 24.8 (בקשת-בעלים "לא לשכפל חוגים"): ה-`targetCourseId` הוא
+      // כברירת-מחדל **חוג-המקור עצמו** — הבידול בין השנים נעשה דרך `year` על
+      // השיבוץ (תווית עברית תשפ״ז/תשפ״ח לסינון-פנימי). קריאה עם targetCourseId
+      // ריק ⇒ אותו החוג. גיבוי-לאחור: העברת targetCourseId שונה (=לחוג-שנה-הבאה
+      // שהמנהל פתח ידנית) עדיין עובדת.
       const db = get().db;
       const src = db.enrollments.find((e) => e.id === enrollmentId);
       if (!src) return { ok: false };
       if (src.renewedToId) return { ok: true, id: src.renewedToId }; // כבר נרשם — אידמפוטנטי
-      const target = db.courses.find((c) => c.id === targetCourseId);
+      const tid = targetCourseId || src.courseId;
+      const target = db.courses.find((c) => c.id === tid);
       if (!target) return { ok: false };
-      // שער-תפוסה — כמו EnrollModal (excludes ended).
-      if (enrollCount(db, targetCourseId) >= (target.maxStudents || 999)) return { ok: false };
+      // תווית שנת-הלימודים החדשה — מחושבת מתאריך-פתיחת חוג-המקור (לא של-היעד):
+      // "הרישום הוא-הוא המעבר לשנה הבאה", ולכן תמיד מתקדם +1 מהשנה של המקור.
+      const srcCourse = db.courses.find((c) => c.id === src.courseId);
+      const yearLabel = srcCourse ? nextAcademicYearLabel(srcCourse.start) : '';
+      // 🐛 באג 25.8 ("2 חסום, 0 נרשם"): כשה-tid == src.courseId (רישום-במקום למודל
+      // In-Card), enrollCount ספר את **שיבוצי-השנה-הנוכחית** ⇒ maxStudents=2 וכבר
+      // 2 תלמידות ⇒ 2>=2 ⇒ נחסם תמיד. במודל-השנים החדש, שיבוצים ישנים לא תופסים
+      // מקום פיזי בשנה החדשה — סופרים רק שיבוצי-אותה-שנת-יעד. שיבוץ בלי year (שנה-
+      // נוכחית) לא נחשב מול קיבולת של תווית-שנה. שלד: `renewedToId` על-המקור לא
+      // דורש בדיקה נפרדת — האידמפוטנטיות שומרת מקום למקור עצמו.
+      const capUsed = yearLabel
+        ? db.enrollments.filter((e) => e.courseId === tid && e.year === yearLabel && e.status !== 'ended' && e.status !== 'wait').length
+        : enrollCount(db, tid);
+      if (capUsed >= (target.maxStudents || 999)) return { ok: false };
       const id = get().nextId('e');
-      // group: בחירת מנהל-העבודה ברישום. undefined ⇒ אותה קבוצה של אשתקד.
-      const fresh = freshNextYearEnrollment(src, targetCourseId, id, isoToday(), group);
+      const fresh = freshNextYearEnrollment(src, tid, id, isoToday(), group, yearLabel);
       get().upsertEnrollment(fresh);
       // קישור מקור→יעד (שרשרת-היסטוריה) — לא נוגע בכספי/נוכחות המקור.
       get().upsertEnrollment({ ...src, renewedToId: id });
       return { ok: true, id };
     },
     bulkReenrollCourse(courseId) {
-      const targetRes = get().openNextYearCourse(courseId);
-      if (!targetRes.ok || !targetRes.id) return { created: 0 };
-      const targetId = targetRes.id;
+      // ⚠️ שינוי-מודל 24.8: **אין יותר שכפול-חוג** — כל השיבוצים החדשים נרשמים על
+      // אותו החוג (targetId=courseId), עם תווית-שנה חדשה על השיבוץ. הכפתור "🗓
+      // פתיחת שנה הבאה" הפך למיותר.
+      const targetId = courseId;
       // צילום רשימת-המקורות לפני הלולאה (ה-db משתנה בכל reenroll).
       const srcIds = get()
         .db.enrollments.filter((e) => e.courseId === courseId && e.renew === 'yes' && !e.renewedToId)
@@ -1913,6 +2033,15 @@ export const useApp = create<AppState>()((set, get) => {
       return { created, courseId: targetId };
     },
     addPayment(enrollmentId, payment) {
+      // 🔐 ביקורת-האמון 24.8: שער "רק המנהל מנפיק קבלות" (הכרעת-בעלים 14.8) כיסה
+      // רק D- — קבלת R- (קבלת-מס באותה מידה) הייתה פתוחה לכל עובד/ת-ענן. אותו
+      // שער בדיוק: fail-open ללקוח-החי (cloudRoot) ולעבודה מקומית/אופליין.
+      // ‏S- נשאר פתוח במכוון — "אישור תשלום" סמלי, לא מסמך-מס.
+      const clP = get().cloud;
+      if (!canIssueReceipt({ superAdmin: isSuperAdmin(clP.user?.email), isManager: !!clP.isManager, cloudRoot: get().config.cloudRoot === true, cloudConnected: !!clP.user })) {
+        get().toast('⛔ רק המנהל מנפיק קבלות — פנו למנהל/ת הארגון');
+        return { ok: false };
+      }
       // שער לפני צריכת המונה: אם השיבוץ נעלם (למשל נמחק בסנכרון ממכשיר אחר בעוד
       // הטופס פתוח), אין לקדם את receiptSeq — אחרת מספר קבלה R-{n} מדולג לצמיתות
       // (פוגם ברציפות הקבלות) והתשלום אובד בשקט. עקבי עם addCred/deleteTeacher.
@@ -1929,6 +2058,79 @@ export const useApp = create<AppState>()((set, get) => {
       }));
       logAudit('תשלום', rid + ' · ₪' + payment.amount);
       return { ok: true, rid };
+    },
+
+    // ── 📅 חיובים-מתוכננים על שיבוץ (בקשת-בעלים 25.8) ──
+    // ה-schema זהה ל-Supporter (`PlannedCharge`); ההבדל: chargeEnrollmentPlanned
+    // מנפיק R- (קבלת-שיבוץ) דרך addPayment, לא D-. אין שער-קבלות ב-add/cancel —
+    // זו הבטחה, לא-קבלה; שער חל רק ב-chargeEnrollmentPlanned (דרך addPayment).
+    addEnrollmentPlanned(enrollmentId, spec) {
+      if (!get().db.enrollments.some((e) => e.id === enrollmentId)) {
+        get().toast('ה' + termOf(get().config, 'entity.enrollment', 'שיבוץ') + ' לא נמצא');
+        return { ok: false };
+      }
+      const count = Math.max(1, Math.floor(spec.count));
+      const ids = Array.from({ length: count }, () => get().nextId('pc'));
+      const groupId = get().nextId('pcg');
+      const plans = planCharges({
+        firstDate: spec.firstDate,
+        count,
+        amount: spec.amount,
+        cur: spec.cur,
+        method: spec.method,
+        cat: '', // לשיבוץ אין cat של-ייעוד — הקבלה תכתוב את שם-החוג ידנית
+        note: spec.note,
+        gapMonths: spec.gapMonths,
+        groupId,
+        ids,
+      });
+      setDb((db) => ({
+        enrollments: db.enrollments.map((e) =>
+          e.id === enrollmentId ? { ...e, plannedCharges: [...(e.plannedCharges || []), ...plans] } : e,
+        ),
+      }));
+      logAudit('חיוב-מתוכנן (שיבוץ)', count + ' × ' + spec.cur + spec.amount + ' · החל ' + spec.firstDate);
+      return { ok: true, ids };
+    },
+    cancelEnrollmentPlanned(enrollmentId, planId, todayIso) {
+      let done = false;
+      setDb((db) => ({
+        enrollments: db.enrollments.map((e) => {
+          if (e.id !== enrollmentId) return e;
+          const plans = (e.plannedCharges || []).map((p) => {
+            if (p.id !== planId) return p;
+            if (p.chargedRid || p.cancelledAt) return p;
+            done = true;
+            return { ...p, cancelledAt: todayIso };
+          });
+          return { ...e, plannedCharges: plans };
+        }),
+      }));
+      if (done) logAudit('ביטול חיוב-מתוכנן (שיבוץ)', planId);
+      return { ok: done };
+    },
+    chargeEnrollmentPlanned(enrollmentId, planId) {
+      const en0 = get().db.enrollments.find((e) => e.id === enrollmentId);
+      const plan0 = en0?.plannedCharges?.find((p) => p.id === planId);
+      if (!plan0) return { ok: false };
+      if (plan0.chargedRid) return { ok: true, rid: plan0.chargedRid };
+      if (plan0.cancelledAt) return { ok: false };
+      const r = get().addPayment(enrollmentId, {
+        date: plan0.date,
+        amount: plan0.amount,
+        method: plan0.method || 'אשראי',
+      });
+      if (!r.ok || !r.rid) return { ok: false };
+      setDb((db) => ({
+        enrollments: db.enrollments.map((e) => {
+          if (e.id !== enrollmentId) return e;
+          return {
+            ...e,
+            plannedCharges: (e.plannedCharges || []).map((p) => (p.id === planId ? { ...p, chargedRid: r.rid } : p)),
+          };
+        }),
+      }));
+      return { ok: true, rid: r.rid };
     },
 
     unlinkEvent(kind, id) {
@@ -2078,6 +2280,35 @@ export const useApp = create<AppState>()((set, get) => {
         events: db.events.filter((ev) => !dropEvIds.has(ev.id) && !(ev.spId && losers.has(ev.spId))),
       }));
       get().toast('הרשומות מוזגו לפי הבחירה ✓ — נשמרה רשומה אחת');
+    },
+
+    seedSegulaReminders(supId, startIso) {
+      // 🕯 סגולת 40 יום — תזכורות-לוח מדורגות (call) עם spId, כדי שיופיעו על התורם
+      // וביומן. דטרמיניסטי (segulaReminders); אינו נוגע בכספים/קבלות.
+      const sp = get().db.supporters.find((s) => s.id === supId);
+      if (!sp || !startIso) return 0;
+      const target = Math.max(...SEGULA_OFFSETS);
+      const reminders = segulaReminders(startIso);
+      for (const r of reminders) {
+        get().upsertEvent({
+          id: get().nextId('ev'),
+          title: segulaTitle(sp.name, r, target),
+          date: r.date,
+          time: '',
+          type: 'call',
+          customType: '',
+          notes: 'סגולת ' + target + ' יום · ' + (sp.phone || ''),
+          price: 0,
+          roomId: '',
+          famId: '',
+          spId: sp.id,
+          priority: r.final ? 'orange' : 'green',
+          done: false,
+        });
+      }
+      logAudit('🕯 סגולת ' + target + ' יום', sp.name);
+      get().toast('נזרעו ' + reminders.length + ' תזכורות-סגולה ביומן 🕯');
+      return reminders.length;
     },
 
     applyNedarimSync(supporters, note) {
@@ -2311,6 +2542,85 @@ export const useApp = create<AppState>()((set, get) => {
         logAudit(termOf(get().config, 'entity.donation', 'תרומה') + ' · הו"ק המוני', rids.length + ' חיובים · ' + rids[0].rid + '…' + rids[rids.length - 1].rid);
       }
       return { done: rids.length, rids, failed };
+    },
+
+    // ── 📅 חיובים-מתוכננים לתומכ/ת (בקשת-בעלים 25.8) ──
+    // "אני רושם מתי החיוב יתבצע ובכמה תשלומים, אבל לא מוציא חשבונית על אשראי —
+    // רק שהחיוב יירד זה יסתנכרן". PlannedCharge = הבטחה, לא-קבלה. addDonation
+    // רץ רק כשהחיוב באמת יורד (chargePlanned) ⇒ שרשרת-D- נשמרת רציפה.
+    addPlannedCharges(supporterId, spec) {
+      // אין שער-קבלות כאן — plannedCharges זה **לא-קבלה** (רק הבטחה עתידית).
+      // מותר לכל עובד/ת עם גישה-לכתיבה, כמו עריכת-הערה/nextDate.
+      if (!get().db.supporters.some((s) => s.id === supporterId)) {
+        get().toast(termOf(get().config, 'entity.supporter', 'התומך/ת') + ' לא נמצא/ה');
+        return { ok: false };
+      }
+      const count = Math.max(1, Math.floor(spec.count));
+      const ids = Array.from({ length: count }, () => get().nextId('pc'));
+      const groupId = get().nextId('pcg'); // מזהה-קבוצה של פריסה
+      const plans = planCharges({
+        firstDate: spec.firstDate,
+        count,
+        amount: spec.amount,
+        cur: spec.cur,
+        method: spec.method,
+        cat: spec.cat,
+        note: spec.note,
+        gapMonths: spec.gapMonths,
+        groupId,
+        ids,
+      });
+      setDb((db) => ({
+        supporters: db.supporters.map((s) =>
+          s.id === supporterId ? { ...s, plannedCharges: [...(s.plannedCharges || []), ...plans] } : s,
+        ),
+      }));
+      logAudit('חיוב-מתוכנן', count + ' × ' + spec.cur + spec.amount + ' · החל ' + spec.firstDate);
+      return { ok: true, ids };
+    },
+    cancelPlannedCharge(supporterId, planId, todayIso) {
+      let done = false;
+      setDb((db) => ({
+        supporters: db.supporters.map((s) => {
+          if (s.id !== supporterId) return s;
+          const plans = (s.plannedCharges || []).map((p) => {
+            if (p.id !== planId) return p;
+            if (p.chargedRid || p.cancelledAt) return p; // כבר חויב/בוטל — no-op
+            done = true;
+            return { ...p, cancelledAt: todayIso };
+          });
+          return { ...s, plannedCharges: plans };
+        }),
+      }));
+      if (done) logAudit('ביטול חיוב-מתוכנן', planId);
+      return { ok: done };
+    },
+    chargePlanned(supporterId, planId) {
+      // אידמפוטנטי: אם chargedRid כבר קיים — מחזירים אותו (מונע כפל-קבלה).
+      const sup0 = get().db.supporters.find((s) => s.id === supporterId);
+      const plan0 = sup0?.plannedCharges?.find((p) => p.id === planId);
+      if (!plan0) return { ok: false };
+      if (plan0.chargedRid) return { ok: true, rid: plan0.chargedRid };
+      if (plan0.cancelledAt) return { ok: false }; // בוטל — לא-מחייבים
+      // הזרמה ל-addDonation (שער-הקבלות רץ כאן; רק המנהל יכול לחייב).
+      const r = get().addDonation(supporterId, {
+        date: plan0.date,
+        amount: plan0.amount,
+        cur: plan0.cur,
+        cat: plan0.cat || '',
+      });
+      if (!r.ok || !r.rid) return { ok: false };
+      // קישור-בין: PlannedCharge.chargedRid = ה-D- שנוצר (שרשרת-ביקורת).
+      setDb((db) => ({
+        supporters: db.supporters.map((s) => {
+          if (s.id !== supporterId) return s;
+          return {
+            ...s,
+            plannedCharges: (s.plannedCharges || []).map((p) => (p.id === planId ? { ...p, chargedRid: r.rid } : p)),
+          };
+        }),
+      }));
+      return { ok: true, rid: r.rid };
     },
 
     // ── קופות צדקה (מודול tzedaka — מבודד; הכרעת בעלים 30.7.2026) ──
@@ -2612,6 +2922,144 @@ export const useApp = create<AppState>()((set, get) => {
       }));
       return rid ? { ok: true, rid } : { ok: true };
     },
+    // ── 📅 חיובים-מתוכננים על שיוך-חנות (בקשת-בעלים 25.8) ──
+    // chargeShopPlanned יוצר ShopRedemption עם S- דרך addShopRedemption המקורי
+    // (שער-המנהל חל שם; ‏shopReceiptSeq מנוהל שם). כאן: יצירה/ביטול-רך בלבד.
+    addShopPlanned(assignmentId, spec) {
+      if (!get().db.shopAssignments.some((a) => a.id === assignmentId)) {
+        get().toast('השיוך לא נמצא');
+        return { ok: false };
+      }
+      const count = Math.max(1, Math.floor(spec.count));
+      const ids = Array.from({ length: count }, () => get().nextId('pc'));
+      const groupId = get().nextId('pcg');
+      const plans = planCharges({
+        firstDate: spec.firstDate,
+        count,
+        amount: spec.amount,
+        cur: '₪',
+        method: spec.method,
+        cat: '',
+        note: spec.note,
+        gapMonths: spec.gapMonths,
+        groupId,
+        ids,
+      }).map((p) => ({
+        ...p,
+        componentId: spec.componentId,
+        ...(spec.shopValue !== undefined ? { shopValue: spec.shopValue } : {}),
+        ...(spec.shopHoliday ? { shopHoliday: spec.shopHoliday } : {}),
+      }));
+      setDb((db) => ({
+        shopAssignments: db.shopAssignments.map((a) =>
+          a.id === assignmentId ? { ...a, plannedCharges: [...(a.plannedCharges || []), ...plans] } : a,
+        ),
+      }));
+      logAudit('חיוב-מתוכנן (חנות)', count + ' × ₪' + spec.amount + ' · החל ' + spec.firstDate);
+      return { ok: true, ids };
+    },
+    cancelShopPlanned(assignmentId, planId, todayIso) {
+      let done = false;
+      setDb((db) => ({
+        shopAssignments: db.shopAssignments.map((a) => {
+          if (a.id !== assignmentId) return a;
+          const plans = (a.plannedCharges || []).map((p) => {
+            if (p.id !== planId) return p;
+            if (p.chargedRid || p.cancelledAt) return p;
+            done = true;
+            return { ...p, cancelledAt: todayIso };
+          });
+          return { ...a, plannedCharges: plans };
+        }),
+      }));
+      if (done) logAudit('ביטול חיוב-מתוכנן (חנות)', planId);
+      return { ok: done };
+    },
+    chargeShopPlanned(assignmentId, planId) {
+      const a0 = get().db.shopAssignments.find((a) => a.id === assignmentId);
+      const plan0 = a0?.plannedCharges?.find((p) => p.id === planId);
+      if (!plan0) return { ok: false };
+      if (plan0.chargedRid) return { ok: true, rid: plan0.chargedRid };
+      if (plan0.cancelledAt) return { ok: false };
+      if (!plan0.componentId) { get().toast('חסר componentId על החיוב-המתוכנן'); return { ok: false }; }
+      const r = get().addShopRedemption(assignmentId, {
+        componentId: plan0.componentId,
+        date: plan0.date,
+        holiday: plan0.shopHoliday || '',
+        paid: plan0.amount,
+        value: plan0.shopValue || plan0.amount,
+        note: 'חיוב-מתוכנן ' + planId + (plan0.note ? ' · ' + plan0.note : ''),
+      });
+      if (!r.ok || !r.rid) return { ok: false };
+      setDb((db) => ({
+        shopAssignments: db.shopAssignments.map((a) => {
+          if (a.id !== assignmentId) return a;
+          return {
+            ...a,
+            plannedCharges: (a.plannedCharges || []).map((p) => (p.id === planId ? { ...p, chargedRid: r.rid } : p)),
+          };
+        }),
+      }));
+      return { ok: true, rid: r.rid };
+    },
+
+    // ── 🔍 שיוך-אוטומטי של תשלומים-נכנסים לחיובים-מתוכננים ──
+    // מריץ matchAll (חסין-כפילות) על כלל הפלנים הפתוחים בכל הישויות, ומריץ
+    // את פעולת-החיוב המתאימה פר-סוג. אין קליק, אין אמביגואי — התקשרות ידנית
+    // רק כשמישהו רואה תג "⏳ ממתין" ובוחר "✓ החיוב ירד" (לא-שוייך אוטומטית).
+    autoMatchPlanned(incomings) {
+      const open = findAllOpenPlans(get().db);
+      if (!open.length || !incomings.length) return { matched: [] };
+      const matches = matchAll(incomings, open);
+      const handled: string[] = [];
+      for (const m of matches) {
+        let r: { ok: boolean; rid?: string } = { ok: false };
+        if (m.entityType === 'supporter') r = get().chargePlanned(m.entityId, m.plan.id);
+        else if (m.entityType === 'enrollment') r = get().chargeEnrollmentPlanned(m.entityId, m.plan.id);
+        else if (m.entityType === 'shopAssignment') r = get().chargeShopPlanned(m.entityId, m.plan.id);
+        if (r.ok) {
+          handled.push(m.incomingId);
+          logAudit('שיוך-אוטומטי', m.plan.id + ' ⇒ ' + (r.rid || ''));
+        }
+      }
+      return { matched: handled };
+    },
+
+    // ── 📞 זריעת תזכורות-שיחה לחיובים-מתוכננים שלא-נכנסו ──
+    // עוברת על כל הפלנים הפתוחים באיחור, ויוצרת אירוע-שיחה בלוח (spId=planId
+    // למניעת-כפילות בסטארט-אפים חוזרים). נקראת פעם-ביום מ-App.tsx.
+    seedOverduePlannedReminders(todayIso) {
+      const db = get().db;
+      const open = findAllOpenPlans(db);
+      const overdue = open.filter((r) => r.plan.date && r.plan.date < todayIso);
+      if (!overdue.length) return { seeded: 0 };
+      // סנן פלנים שכבר-יש-להם אירוע-תזכורת:
+      const already = new Set(db.events.filter((e) => e.spId).map((e) => e.spId));
+      const toSeed = overdue.filter((r) => !already.has(r.plan.id));
+      if (!toSeed.length) return { seeded: 0 };
+      const seedEvents = toSeed.map((r) => {
+        const eid = get().nextId('ev');
+        return {
+          id: eid,
+          date: todayIso,
+          time: '10:00',
+          title: 'חיוב-אשראי לא-נכנס — התקשרי ל-' + r.name,
+          type: 'call' as const,
+          customType: '',
+          notes: '₪' + r.plan.amount + ' · תאריך-מתוכנן ' + r.plan.date + (r.plan.note ? ' · ' + r.plan.note : ''),
+          price: 0,
+          roomId: '' as const,
+          famId: '' as const,
+          spId: r.plan.id, // מפתח-מניעת-כפילות
+          priority: 'orange' as const,
+          done: false,
+        };
+      });
+      setDb((db) => ({ events: [...db.events, ...seedEvents] }));
+      logAudit('תזכורות-חיוב-מתוכנן', String(toSeed.length));
+      return { seeded: toSeed.length };
+    },
+
     voidShopRedemption(assignmentId, redemptionId, reason) {
       const a = get().db.shopAssignments.find((x) => x.id === assignmentId);
       const r = a?.redemptions.find((x) => x.id === redemptionId);
@@ -3210,6 +3658,7 @@ export const useApp = create<AppState>()((set, get) => {
         get().toast('⛔ הוצאת מידע חסומה עבורך על-ידי מנהל הארגון');
         return;
       }
+      logAudit('ייצוא גיבוי מלא', get().encrypted ? 'מוצפן' : 'גלוי');
       void exportBackupFile(get().db).then(() => {
         get().toast(
           get().encrypted ? 'גיבוי מוצפן ירד — שמרו את הסיסמה/מפתח השחזור ✓' : 'קובץ גיבוי מלא ירד למחשב ✓',

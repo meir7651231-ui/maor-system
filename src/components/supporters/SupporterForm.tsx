@@ -3,12 +3,12 @@
  * ייעוד התרומה והערות. יצירה ועריכה באותו מודאל.
  */
 import { useState } from 'react';
-import type { Supporter } from '../../types/domain';
+import type { Supporter, SupPhone } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { normSearch, validIsraeliId } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, TextInput } from '../ui';
-import { allDonationPurposes, fixPhone } from './lib';
+import { allDonationPurposes, cleanSupPhones, fixPhone, phoneRegion } from './lib';
 
 export interface SupporterFormProps {
   /** null — תומכת חדשה. */
@@ -35,9 +35,15 @@ export function SupporterForm(props: SupporterFormProps) {
     forWho: sp?.forWho ?? '',
     notes: sp?.notes ?? '',
   });
+  // ריבוי-טלפונים (בקשת-שטח) — מספרים נוספים מעבר לראשי, כל אחד עם תווית והערה.
+  const [phones, setPhones] = useState<SupPhone[]>(sp?.phones ? sp.phones.map((p) => ({ ...p })) : []);
   const [error, setError] = useState('');
 
   const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v });
+  const nextIdFn = useApp((s) => s.nextId);
+  const addPhone = () => setPhones([...phones, { id: nextIdFn('ph'), num: '', label: '', note: '', wa: false }]);
+  const setPhone = (i: number, patch: Partial<SupPhone>) => setPhones(phones.map((p, j) => (j === i ? { ...p, ...patch } : p)));
+  const removePhone = (i: number) => setPhones(phones.filter((_, j) => j !== i));
 
   function save() {
     if (!f.name.trim()) {
@@ -59,6 +65,7 @@ export function SupporterForm(props: SupporterFormProps) {
       cat: f.cat.trim(),
       forWho: f.forWho.trim(),
       notes: f.notes.trim(),
+      phones: cleanSupPhones(phones),
     };
 
     if (sp) {
@@ -112,7 +119,7 @@ export function SupporterForm(props: SupporterFormProps) {
         <Field label="שם מלא *">
           <TextInput value={f.name} onChange={set('name')} placeholder={'שם התומכ/ת או ה' + termOf(config, 'entity.family', 'משפחה')} />
         </Field>
-        <Field label="טלפון">
+        <Field label="טלפון ראשי">
           <TextInput value={f.phone} onChange={set('phone')} dir="ltr" placeholder="050-0000000" />
         </Field>
         <Field label="אימייל">
@@ -159,6 +166,46 @@ export function SupporterForm(props: SupporterFormProps) {
           <TextInput value={f.notes} onChange={set('notes')} />
         </Field>
       </div>
+
+      {/* ריבוי-טלפונים (בקשת-שטח) — וואטסאפ/בית/עבודה, כל אחד עם תווית והערה "ממי זה" */}
+      <div style={{ marginTop: 12, borderTop: '1px solid var(--line, #e6ddce)', paddingTop: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+          <span style={{ fontWeight: 700, fontSize: 13.5 }}>📞 טלפונים נוספים</span>
+          <Btn sm onClick={addPhone}>➕ הוסף טלפון</Btn>
+        </div>
+        {phones.length === 0 ? (
+          <div style={{ fontSize: 12, color: 'var(--ink-faint, #8a8378)' }}>אפשר להוסיף וואטסאפ, בית, עבודה — עם הערה ממי המספר.</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {phones.map((p, i) => {
+              const reg = p.num ? phoneRegion(p.num) : null;
+              return (
+                <div key={p.id} style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                  <div style={{ flex: '1 1 140px', minWidth: 120 }}>
+                    <TextInput value={p.num} onChange={(v) => setPhone(i, { num: v })} dir="ltr" placeholder="מספר" ariaLabel="מספר טלפון נוסף" />
+                  </div>
+                  <div style={{ flex: '0 1 110px' }}>
+                    <TextInput value={p.label ?? ''} onChange={(v) => setPhone(i, { label: v })} placeholder="תווית (בית/עבודה)" ariaLabel="תווית" />
+                  </div>
+                  <div style={{ flex: '1 1 130px', minWidth: 110 }}>
+                    <TextInput value={p.note ?? ''} onChange={(v) => setPhone(i, { note: v })} placeholder="ממי זה" ariaLabel="ממי המספר" />
+                  </div>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, whiteSpace: 'nowrap' }}>
+                    <input type="checkbox" checked={!!p.wa} onChange={(e) => setPhone(i, { wa: e.target.checked })} /> 💬 וואטסאפ
+                  </label>
+                  {reg && (
+                    <span style={{ fontSize: 11, color: reg === 'intl' ? '#a5651a' : '#2f7d52', fontWeight: 700 }}>{reg === 'intl' ? '🌍 חו"ל' : '🇮🇱 ישראל'}</span>
+                  )}
+                  <button type="button" onClick={() => removePhone(i)} aria-label="הסר מספר" title="הסר" style={{ cursor: 'pointer', border: 0, background: 'transparent', fontSize: 15 }}>
+                    ✕
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>
           שמירה

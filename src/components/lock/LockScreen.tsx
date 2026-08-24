@@ -5,12 +5,10 @@
  */
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
-import { verifyPin } from '../../lib/lock';
+import { clearPinFails, cooldownForFails, notePinFail, pinNeedsRehash, readPinFails, verifyPin } from '../../lib/lock';
 
-/** השהיה גדֵלה אחרי כשלונות (הגבלת-קצב מול ניחוש-המוני): 3→5ש׳, 4→15ש׳, 5+→30ש׳. */
-export function cooldownFor(fails: number): number {
-  return fails >= 5 ? 30000 : fails >= 4 ? 15000 : fails >= 3 ? 5000 : 0;
-}
+/** השהיה גדֵלה אחרי כשלונות — הלוח עצמו ב-lib/lock (משותף גם למסכי-ההצפנה). */
+export const cooldownFor = cooldownForFails;
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
@@ -23,6 +21,7 @@ export function LockScreen({
 }) {
   const hash = useApp((s) => s.lock[kind]);
   const clearLock = useApp((s) => s.clearLock);
+  const setLockCode = useApp((s) => s.setLockCode);
   const config = useApp((s) => s.config);
   const dbOrgName = useApp((s) => s.db.orgName);
   const orgName = config.orgName || dbOrgName;
@@ -30,9 +29,8 @@ export function LockScreen({
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  // הגבלת-קצב: מונה כשלונות + חותמת-סיום להשהיה, עם ספירה-לאחור חיה
-  const [fails, setFails] = useState(0);
-  const [until, setUntil] = useState(0);
+  // הגבלת-קצב מתמידה (ביקורת-האמון 24.8): רענון-דף כבר לא מאפס את ההשהיה
+  const [until, setUntil] = useState(() => readPinFails(kind).until);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (until <= now) return;
@@ -78,17 +76,17 @@ export function LockScreen({
     const ok = await verifyPin(pin, hash);
     setBusy(false);
     if (ok) {
-      setFails(0);
       setUntil(0);
+      clearPinFails(kind);
+      // שדרוג-שקט: גיבוב-לגאסי (SHA-256) ⇒ נכתב-מחדש כ-PBKDF2 v2 באותו קוד
+      if (pinNeedsRehash(hash)) void setLockCode(kind, pin);
       onUnlock();
     } else {
-      const nf = fails + 1;
-      setFails(nf);
-      const cd = cooldownFor(nf);
-      if (cd) {
-        setUntil(Date.now() + cd);
+      const st = notePinFail(kind, Date.now());
+      if (st.until > Date.now()) {
+        setUntil(st.until);
         setNow(Date.now());
-        setError(`יותר מדי ניסיונות — המתינו ${Math.ceil(cd / 1000)} שניות`);
+        setError(`יותר מדי ניסיונות — המתינו ${Math.ceil((st.until - Date.now()) / 1000)} שניות`);
       } else {
         setError('קוד שגוי — נסו שוב');
       }

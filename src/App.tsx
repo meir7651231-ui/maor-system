@@ -93,6 +93,7 @@ const NED_LIVE_MAX = 400;
 
 const SYNC_DOT: Record<string, { color: string; title: string }> = {
   synced: { color: '#3fae5a', title: 'מסונכרן עם הענן' },
+  pending: { color: '#5b8def', title: 'שינויים ממתינים לסנכרון…' },
   connecting: { color: '#e2b93b', title: 'מתחבר לענן…' },
   error: { color: '#e05252', title: 'שגיאת סנכרון — הנתונים שמורים מקומית' },
   idle: { color: '#9aa0a6', title: 'סנכרון לא פעיל' },
@@ -153,6 +154,8 @@ export default function App() {
   const privacyMode = useApp((s) => s.privacyMode);
   const togglePrivacy = useApp((s) => s.togglePrivacy);
   const applyNedarimAuto = useApp((s) => s.applyNedarimAuto);
+  const autoMatchPlanned = useApp((s) => s.autoMatchPlanned);
+  const seedOverduePlannedReminders = useApp((s) => s.seedOverduePlannedReminders);
 
   useEffect(() => {
     void init();
@@ -185,13 +188,39 @@ export default function App() {
         // נשאר pending (ל-🔄 הידני) ⇒ לא מסמנים handled ולא יוצרים כרטיסים.
         const handled = applyNedarimAuto(nedRows);
         for (const id of handled) void m.markIncomingPayment(id).catch(() => {});
+        // 🔍 שיוך-אוטומטי לחיובים-מתוכננים (בקשת-בעלים 25.8): מה שלא-חובר לכרטיס
+        // נבדק גם מול הפלנים הפתוחים (D-/R-/S-). התאמה חד-משמעית ⇒ chargeXxx רץ,
+        // המסמך הרשמי נופק, וה-incoming מסומן handled בענן.
+        const stillPending = nedRows.filter((r) => !handled.includes(r.id));
+        if (stillPending.length) {
+          const { matched } = autoMatchPlanned(stillPending);
+          for (const id of matched) void m.markIncomingPayment(id).catch(() => {});
+        }
       });
     });
     return () => {
       alive = false;
       if (unsub) unsub();
     };
-  }, [nedAutoOn, applyNedarimAuto]);
+  }, [nedAutoOn, applyNedarimAuto, autoMatchPlanned]);
+
+  // 📞 תזכורות-שלא-נכנס (בקשת-בעלים 25.8): פעם-ביום בסטארט-אפ, זורע אירוע-שיחה
+  // בלוח לפלנים שעברו-תאריכם ולא-חויבו. spId=planId מונע כפילות (nsLsKey לא
+  // נדרש — spId ב-events הוא מפתח-המניעה הטבעי).
+  const plannedRemindersOn =
+    (config.features?.['supporters.plannedcharges'] === true) ||
+    (config.features?.['courses.plannedcharges'] === true) ||
+    (config.features?.['shop.plannedcharges'] === true);
+  useEffect(() => {
+    if (!plannedRemindersOn) return;
+    // דילוג בסביבת Playwright (navigator.webdriver) — E2E לא מריץ ריפויים אוטומטיים
+    if (typeof navigator !== 'undefined' && (navigator as { webdriver?: boolean }).webdriver) return;
+    try {
+      seedOverduePlannedReminders(new Date().toISOString().slice(0, 10));
+    } catch {
+      /* אל תפיל את-האפליקציה על שגיאת-תזכורת */
+    }
+  }, [plannedRemindersOn, seedOverduePlannedReminders]);
 
   // אייקון-הארגון (זהות-ורטיקל) — favicon מאימוג'י כשמוגדר; חסר ⇒ הדיפולט (זהב).
   // ה-store כבר קורא applyTheme (ערכה+צבע+תנועה); ה-favicon אינו על ה-root, לכן כאן.
@@ -1107,9 +1136,18 @@ export default function App() {
       {userMenuOpen && cloud.user && (
         <Modal title="החשבון שלי" onClose={() => setUserMenuOpen(false)}>
           <div style={{ direction: 'ltr', textAlign: 'end', fontWeight: 700, fontSize: 14, marginBottom: 6 }}>{cloud.user.email}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginBottom: 12, flexWrap: 'wrap' }}>
             <span aria-hidden style={{ width: 10, height: 10, borderRadius: 99, background: syncDot.color, display: 'inline-block' }} />
             {syncDot.title}
+            {/* 📛 חשיפת-שגיאה מפורטת + כפתור "נסי שוב" (בקשת-שטח 25.8) */}
+            {cloud.status === 'error' && (
+              <>
+                <span style={{ color: '#dc2626', fontWeight: 700 }}>· {cloud.lastSyncError || 'שגיאה'}</span>
+                <Btn sm onClick={() => { void import('./store/cloudSync').then((m) => m.retrySyncNow()); }} title="ניסיון סנכרון מיידי — בלי להמתין ל-5 שניות של ה-backoff">
+                  🔄 נסי שוב
+                </Btn>
+              </>
+            )}
           </div>
           <div className="modal-actions">
             {/* איפוס-סיסמה 9.8: שינוי סיסמה מתוך האפליקציה — בלי לעבור דרך מייל */}

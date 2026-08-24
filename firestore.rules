@@ -224,8 +224,15 @@ service cloud.firestore {
     match /orgs/{slug}/donations/{id} {
       allow read: if superAdmin() || orgManager(slug) || memberSeesPurpose(slug, resource.data.get('pkey', '_shared_'));
       allow create: if superAdmin() || orgManager(slug);
-      allow update: if canWriteKeyed(slug, resource.data.get('pkey', '_shared_'), request.resource.data.get('pkey', '_shared_'));
-      allow delete: if superAdmin() || orgManager(slug) || memberSeesPurpose(slug, resource.data.get('pkey', '_shared_'));
+      // 🛡️ הגנת-קבלות (לולאת-האמון 8, 24.8 — טיוטה, הפרסום=חלון-בעלים+רו"ח):
+      // ביקורת-העומק מצאה שחבר-מוגבל יכול היה **לעדכן/למחוק** מסמך-קבלה-§46
+      // בתחום-הייעוד שלו (memberSeesPurpose/canWriteKeyed). עכשיו עדכון/מחיקה =
+      // מנהל/מייל-על בלבד — סימטרי ל"רק מנהל מנפיק" (create), ושומר את הזרימות
+      // הלגיטימיות של המנהל (מספור-מחדש planRidRenumber, מחיקת-כרטיס מדורגת).
+      // אופציה מחמירה (הכרעת-רו"ח, טרם הוכרעה): append-only מלא — allow update,
+      // delete: if false; — תיקון-קבלה יהיה רק במסמך-זיכוי (שטרם קיים ל-D-/R-).
+      allow update: if superAdmin() || orgManager(slug);
+      allow delete: if superAdmin() || orgManager(slug);
     }
 
     // אכיפת-תומכים (15.8) — קריאה **וכתיבה** פר-ייעוד (skey=forWho). תאימות-לאחור
@@ -266,8 +273,15 @@ service cloud.firestore {
     // לוג-מנהל מסונכרן (15.8, "מנהל מסונכרן") — auditlog/{uid}: כל חבר כותב **רק**
     // את מסמכו (טבעת-פעולותיו, uid=חשבונו); **קריאה = מנהל/מייל-על בלבד** ⇒ מנהל
     // רואה את פעולות כולן, ועובדת לא לומדת על פעולה של אחרת. הלוג לא רוכב על meta.
+    // 🔴 25.8 (בקשת-שטח "אני ממשיך לאבד סנכרון"): הוספת `superAdmin() ||` bypass —
+    // מייל-על שלא רשום ב-platformOrgs/{slug}.members היה נדחה על כתיבת-audit
+    // (`orgMember(slug)==false`), והסנכרון היה נשאר אדום-לצמיתות (permission-denied).
+    // כל בלוק אחר תחת orgs/{slug}/* כבר עוקף למייל-על — auditlog היה הכלל היחיד שדילג
+    // (סימטריה גם עם הקריאה, ששם superAdmin() כבר עוקף). ה-uid==uid נשמר כאינווריאנט
+    // "כל חבר כותב **רק** את מסמכו" — מייל-על ממילא כותב רק כשה-uid שלו תואם.
     match /orgs/{slug}/auditlog/{uid} {
-      allow write: if request.auth != null && request.auth.uid == uid && orgMember(slug);
+      allow write: if request.auth != null && request.auth.uid == uid
+        && (superAdmin() || orgMember(slug));
       allow read: if superAdmin() || orgManager(slug);
     }
 

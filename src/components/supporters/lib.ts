@@ -3,7 +3,7 @@
  * פורמט תאריכים וטלפון. עזרים מקומיים בלבד — אין גישה ל-store או ל-DOM.
  */
 import type { CSSProperties } from 'react';
-import { emptyAyin, type Supporter } from '../../types/domain';
+import { emptyAyin, type Supporter, type SupPhone } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
 import { normSearch, formatIsraeliPhone } from '../../lib/validate';
@@ -87,6 +87,26 @@ export function visibleSupportersForDesignations(
         return !p || set.has(p);
       }),
     }));
+}
+
+/**
+ * סינון אירועי-לוח לעובד/ת מוגבל/ת-ייעוד (בקשת-שטח 24.8): תזכורת המקושרת לתורם
+ * (spId) נראית לעובד/ת רק אם התורם גלוי לה (forWho בייעודיה); אירוע שאינו מקושר
+ * לתורם (חוג/משפחה/כללי) נשאר. allowed=null ⇒ הרשימה כמו-שהיא (מנהל/בעלים/מקומי).
+ * טהור — הגבלה ברמת-הממשק בלבד (כמו visibleSupportersForDesignations).
+ */
+export function visibleEventsForDesignations<E extends { spId?: string }>(
+  events: E[],
+  supporters: { id: string; forWho?: string }[],
+  allowed: string[] | null,
+): E[] {
+  if (!allowed || !allowed.length) return events;
+  const byId = new Map(supporters.map((s) => [s.id, s]));
+  return events.filter((ev) => {
+    if (!ev.spId) return true; // אירוע לא-מקושר-לתורם — לא בתחום-ההגבלה
+    const sp = byId.get(ev.spId);
+    return sp ? supporterVisibleForDesignations(sp, allowed) : false;
+  });
 }
 
 /** כל ייעודי-התרומה הקיימים (distinct, ממויין) — להצעה באשף ולבורר-הסינון.
@@ -229,6 +249,94 @@ export function chipStyle(bg: string, c: string): CSSProperties {
  */
 export function fixPhone(p: string): string {
   return formatIsraeliPhone(p);
+}
+
+// ---------- ריבוי-טלפונים + סיווג ישראל/חו"ל ----------
+
+/**
+ * סיווג מספר-טלפון: ישראלי ('il') או חו"ל ('intl'). דטרמיניסטי, מקבל צורות שונות.
+ * ‏972/+972/00972 ⇒ ישראל · ‏+/00 עם קידומת אחרת ⇒ חו"ל · ‏0+9 ספרות או 5+8 ⇒ ישראל
+ * (נייד/קווי מקומי) · אחרת (למשל 11 ספרות שמתחילות ב-1 = ארה"ב) ⇒ חו"ל. ריק ⇒ ישראל.
+ */
+export function phoneRegion(raw: string): 'il' | 'intl' {
+  const s = (raw || '').replace(/[^\d+]/g, '');
+  if (!s) return 'il';
+  if (/^(\+?972|00972)/.test(s)) return 'il';
+  if (/^\+/.test(s)) return 'intl';
+  if (/^00/.test(s)) return 'intl';
+  const d = s.replace(/\D/g, '');
+  if (/^0\d{8,9}$/.test(d)) return 'il'; // 0 + 9/10 ספרות
+  if (/^5\d{8}$/.test(d)) return 'il'; // נייד ישראלי בלי 0 מוביל
+  return 'intl';
+}
+
+export interface SupPhoneRow {
+  num: string;
+  label: string;
+  note: string;
+  wa: boolean;
+  region: 'il' | 'intl';
+  /** האם זהו המספר-הראשי (השדה phone) — להבחנה מהמספרים הנוספים. */
+  primary: boolean;
+}
+
+/** כל הטלפונים של תורם — הראשי (phone) ואז phones[], עם סיווג-אזור. דטרמיניסטי. */
+export function allSupPhones(sp: Supporter): SupPhoneRow[] {
+  const rows: SupPhoneRow[] = [];
+  if (sp.phone) rows.push({ num: sp.phone, label: '', note: '', wa: false, region: phoneRegion(sp.phone), primary: true });
+  for (const p of sp.phones ?? []) {
+    if (!p.num) continue;
+    rows.push({ num: p.num, label: p.label ?? '', note: p.note ?? '', wa: !!p.wa, region: phoneRegion(p.num), primary: false });
+  }
+  return rows;
+}
+
+/** האם לתורם יש מספר באזור המבוקש (לסינון חול/ישראל בלוח התורמים). */
+export function supHasRegion(sp: Supporter, region: 'il' | 'intl'): boolean {
+  return allSupPhones(sp).some((r) => r.region === region);
+}
+
+/** ניקוי מערך-טלפונים לשמירה: fixPhone לכל מספר, סינון ריקים, שמירת שדות. */
+export function cleanSupPhones(phones: SupPhone[] | undefined): SupPhone[] {
+  return (phones ?? [])
+    .map((p) => ({ ...p, num: fixPhone((p.num || '').trim()) }))
+    .filter((p) => p.num);
+}
+
+// ---------- סגולת 40 יום — תזכורות מדורגות (בקשת-שטח) ----------
+
+/** ברירת-מחדל: דילוגי-התזכורת עד יעד-הסגולה (40). מחר → שבוע → 21 → 35 → 40 (סיום). */
+export const SEGULA_OFFSETS = [1, 7, 21, 35, 40] as const;
+
+export interface SegulaReminder {
+  /** מספר-הימים מתאריך-ההתחלה. */
+  day: number;
+  /** תאריך-היעד (ISO). */
+  date: string;
+  /** האם זו נקודת-הסיום (היום ה-40). */
+  final: boolean;
+}
+
+/**
+ * תזכורות-סגולה מדורגות מתאריך-התחלה — יום N מוסיף N ימים. דטרמיניסטי (בלי Date.now),
+ * צהריים-מקומי (מוסכמת-התאריכים). היעד = הדילוג הגדול ביותר (40) מסומן final.
+ */
+export function segulaReminders(startIso: string, offsets: readonly number[] = SEGULA_OFFSETS): SegulaReminder[] {
+  const base = new Date(`${startIso}T12:00:00`);
+  const max = Math.max(...offsets);
+  return offsets.map((day) => {
+    const d = new Date(base);
+    d.setDate(d.getDate() + day);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return { day, date: `${y}-${m}-${dd}`, final: day === max };
+  });
+}
+
+/** כותרת-תזכורת לסגולה (יום N מתוך היעד). */
+export function segulaTitle(name: string, r: SegulaReminder, target: number): string {
+  return (r.final ? '🎯 סיום סגולה' : '🕯 סגולה') + ' — ' + (name || '') + ' · יום ' + r.day + '/' + target;
 }
 
 /** "₪1,200 + $300" או "—" כשאין כלום — כולל היסטוריה (הכרעת 9.8). */

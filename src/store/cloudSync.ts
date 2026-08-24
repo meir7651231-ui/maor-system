@@ -10,7 +10,7 @@
  * 3. cloudOnDbChange(prev, next) — נקרא מנתיב setDb של ה-store, debounce
  *    800ms, מחשב diffDb ודוחף. תור לא-מקוון מנוהל ע"י Firestore עצמו.
  */
-import type { AuditEntry, Db } from '../types/domain';
+import { mergeDelLogs, type AuditEntry, type Db } from '../types/domain';
 import { diffDb, emptyDiff, ENTITY_COLLECTIONS, fullDbDiff, stripSupporterDonations, type DbDiff } from '../lib/cloud-diff';
 import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
 import { auditWriterEmail, donationSplitActive, pullAll, pullAuditRing, pushAuditRing, pushDiff, pushDonations, subscribeAll, supEnforceActive, type RemotePartial } from '../lib/cloud';
@@ -54,8 +54,8 @@ export function getCloudDek(): CryptoKey | null {
 }
 
 // יצוא-מחדש של שכבת ה-auth — ל-useApp יש import דינמי אחד בלבד (המודול הזה)
-export { changePassword, encryptExistingCloud, fetchIncomingPayments, fetchNedarimDonors, fetchProviderRows, initCloud, markIncomingPayment, pullNedarim, pullSola, migrateDonationsToCollection, migrateSupportersToKeyed, readCloudEnvelope, resetPassword, setAllowedPurposes, setAuditContext, setCloudScope, setDonationSplit, setSupEnforce, signIn, signOutCloud, signUp, supEnforceActive, watchAuth, watchIncomingPayments, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
-export type { CloudUser, IncomingPayment, NedarimDonor } from '../lib/cloud';
+export { changePassword, encryptExistingCloud, fetchIncomingPayments, fetchOutboxIssues, retryOutboxItem, fetchNedarimDonors, fetchProviderRows, initCloud, markIncomingPayment, pullNedarim, pullSola, migrateDonationsToCollection, migrateSupportersToKeyed, readCloudEnvelope, resetPassword, setAllowedPurposes, setAuditContext, setCloudScope, setDonationSplit, setSupEnforce, signIn, signOutCloud, signUp, supEnforceActive, watchAuth, watchIncomingPayments, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
+export type { CloudUser, IncomingPayment, NedarimDonor, OutboxIssue } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
 export { deleteOrgCompletely, deleteOrgRequest, deleteOrgJoinRequest, deleteOrgMemberConfig, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgJoinRequests, fetchOrgLeads, fetchOrgRequests, findMemberOrgSlugs, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgJoinRequest, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
 export type { EmployeeOverride, OrgCloudDoc, OrgJoinRequestDoc, OrgLeadDoc, OrgRequestDoc } from '../lib/cloudConfig';
@@ -64,7 +64,16 @@ export { sendSupportMessage, sendSupportReply, watchSupportMessages, watchSuppor
 // 💬 צ׳אט-צוות תוך-ארגוני (17.8)
 export { sendTeamMessage, watchTeamMessages } from '../lib/cloudConfig';
 
-export type CloudStatus = 'idle' | 'connecting' | 'synced' | 'error';
+export type CloudStatus = 'idle' | 'connecting' | 'pending' | 'synced' | 'error';
+
+// 🔵 חיווי-"ממתין" (ביקורת-האמון 24.8): בזמן ה-debounce והדחיפה הסטטוס נשאר
+// 'synced' — למשתמש לא היה שום סימן שיש שינויים שטרם הגיעו לענן. המטמון
+// מאפשר לעבור ל-'pending' פעם-אחת-לצבר בלי הצפת-רינדורים.
+let statusCache: CloudStatus = 'idle';
+function setStat(h: CloudSyncHooks | null, s: CloudStatus): void {
+  statusCache = s;
+  h?.setStatus(s);
+}
 
 export interface CloudSyncHooks {
   getDb: () => Db;
@@ -72,10 +81,42 @@ export interface CloudSyncHooks {
   setDbFromRemote: (db: Db) => void;
   toast: (text: string) => void;
   setStatus: (status: CloudStatus) => void;
+  /** שגיאת-סנכרון אחרונה לתצוגה בממשק (null = אין) — בקשת-שטח 25.8. */
+  setLastError?: (msg: string | null) => void;
 }
 
 let hooks: CloudSyncHooks | null = null;
 let active = false;
+// 📛 שגיאה אחרונה של הסנכרון (בקשת-שטח 25.8 — "נהיה אדום, לא ברור למה").
+// הודעת-טקסט לצריכה בממשק; null = אין שגיאה פעילה.
+let lastError: string | null = null;
+
+/** מפרש שגיאת-Firestore/רשת להודעה קצרה + סימון האם היא קבועה (permission-denied). */
+function describeErr(e: unknown): { msg: string; perm: boolean } {
+  const err = e as { code?: string; message?: string } | undefined;
+  const code = String(err?.code ?? '');
+  const raw = String(err?.message ?? e ?? '');
+  const perm = code === 'permission-denied' || /permission[- ]denied/i.test(raw);
+  const map: Record<string, string> = {
+    'permission-denied': 'הרשאה חסרה (Rules)',
+    unauthenticated: 'ההתחברות פגה — כניסה מחדש',
+    unavailable: 'ענן זמנית לא-זמין',
+    'failed-precondition': 'תקלת-קדם בענן',
+    'resource-exhausted': 'מכסת-הענן מוצתה — נסי שוב מאוחר יותר',
+  };
+  const msg = map[code] || raw.slice(0, 120) || 'שגיאה לא-ידועה';
+  return { msg, perm };
+}
+
+/** השגיאה האחרונה של הסנכרון (לתצוגה בממשק). null = אין שגיאה. */
+export function getSyncLastError(): string | null { return lastError; }
+
+/** ⚡ ניסיון-חוזר מיידי (בלי להמתין ל-5 שניות של ה-backoff). */
+export function retrySyncNow(): void {
+  if (!active) return;
+  clearTimeout(pushTimer);
+  if (pushBase && pushLatest) void flushPush();
+}
 /** דגל הד: true בזמן החלת שינוי מרוחק — cloudOnDbChange מדלג. */
 let applyingRemote = false;
 let unsubAll: (() => void) | null = null;
@@ -119,7 +160,7 @@ function onRemote(partial: RemotePartial): void {
  */
 export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
   hooks = h;
-  h.setStatus('connecting');
+  setStat(h, 'connecting');
   try {
     const cloudDb = await pullAll(cloudDek);
     // לוג-מנהל מסונכרן: כשאכיפה דלוקה, הלוג לא רוכב על meta — מנהל/מייל-על ממזג
@@ -146,10 +187,18 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
       // בהתנגשות, והתוספות המקומיות נשמרות ונדחפות לענן. בלי זה, כל עבודה
       // מקומית שקדמה לחיבור הראשון נמחקת בשקט.
       const merged: Db = { ...cloudDb };
+      // 🪦 ביקורת-האמון 24.8: id-מקומי שחסר בענן היה תמיד "תוספת" ונדחף חזרה —
+      // גם כשנמחק בענן בזמן שהמכשיר הזה היה אופליין (תחיית-מתים). המצבות
+      // (delLog, איחוד מקומי+ענן) מבדילות: יש-מצבה ⇒ המחיקה גוברת והרשומה
+      // יורדת גם כאן; אין-מצבה ⇒ תוספת-אופליין אמיתית שנשמרת ונדחפת.
+      const tombs = new Set(mergeDelLogs(local.delLog, cloudDb.delLog).map((e) => e.col + '|' + e.id));
+      merged.delLog = mergeDelLogs(local.delLog, cloudDb.delLog);
       for (const col of ENTITY_COLLECTIONS) {
         const cloudList = cloudDb[col] as Array<{ id: string }>;
         const cloudIds = new Set(cloudList.map((x) => x.id));
-        const localOnly = (local[col] as Array<{ id: string }>).filter((x) => !cloudIds.has(x.id));
+        const localOnly = (local[col] as Array<{ id: string }>).filter(
+          (x) => !cloudIds.has(x.id) && !tombs.has(col + '|' + x.id),
+        );
         if (localOnly.length) (merged[col] as Array<{ id: string }>) = [...cloudList, ...localOnly];
       }
       // 🐛 נחיל-עמוק (13.8): מוני-הקבלות חייבים לעלות בלבד. merged ירש את מונה-הענן
@@ -172,22 +221,48 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
     // 'synced' אחרי ה-'idle'. מגן על שני ה-await (81 ו-100), כמו השער בשורה 76.
     if (hooks !== h) return;
     active = true;
-    unsubAll = subscribeAll(
-      onRemote,
-      () => {
-        hooks?.setStatus('error');
-      },
-      cloudDek,
-    );
+    // 🔧 בקשת-שטח 24.8 ("אני כל הזמן מאבד סנכרון" H5): כשמנוי-Firestore נופל, האדום
+    // היה נותר לצמיתות עד רענון-דף. עכשיו: onError שוטף את המנוי, ממתין 3 שניות
+    // ומחזיר אותו — טוקן-blip/רשת-חלשה מתאוששים בשקט. attemptResubscribe מגודר
+    // ב-active/hooks כדי לא להריץ אחרי stopCloudSync (יציאה מהחשבון).
+    let recoverTimer: ReturnType<typeof setTimeout> | null = null;
+    const subscribe = () => {
+      unsubAll = subscribeAll(
+        onRemote,
+        (err?: unknown) => {
+          const info = describeErr(err);
+          lastError = info.msg; hooks?.setLastError?.(info.msg);
+          setStat(hooks, 'error');
+          if (info.perm) return; // הרשאה — לא מנסים שוב בלולאה, מציגים שגיאה יציבה
+          if (recoverTimer) return;
+          recoverTimer = setTimeout(() => {
+            recoverTimer = null;
+            if (!active || hooks !== h) return; // הסנכרון נעצר (logout) — לא מחדשים
+            try {
+              unsubAll?.();
+            } catch {
+              /* ignore — the old sub may already be dead */
+            }
+            unsubAll = null;
+            setStat(hooks, 'connecting');
+            subscribe();
+          }, 3000);
+        },
+        cloudDek,
+      );
+    };
+    subscribe();
     // 🐛 נחיל-עמוק (13.8): עריכות שנעשו בזמן לחיצת-היד (לפני active) נשמרו מקומית אך
     // cloudOnDbChange דילג עליהן (!active) ולא נדחפו לעולם. דחיפת-השלמה חד-פעמית:
     // diff בין מה שהענן מחזיק (syncedBaseline) לבין המצב החי כעת.
     const liveDb = h.getDb();
     await pushSplitAware(syncedBaseline.supporters, liveDb.supporters, diffDb(syncedBaseline, liveDb));
-    h.setStatus('synced');
+    lastError = null; hooks?.setLastError?.(null);
+    setStat(h, 'synced');
   } catch (e) {
     active = false;
-    h.setStatus('error');
+    lastError = describeErr(e).msg; hooks?.setLastError?.(lastError);
+    setStat(h, 'error');
     h.toast(e instanceof Error ? `⚠ ${e.message}` : '⚠ הסנכרון לענן נכשל — ממשיכים בעבודה מקומית');
   }
 }
@@ -200,7 +275,7 @@ export function stopCloudSync(): void {
   clearTimeout(pushTimer);
   pushBase = null;
   pushLatest = null;
-  hooks?.setStatus('idle');
+  setStat(hooks, 'idle');
   hooks = null;
 }
 
@@ -218,21 +293,24 @@ async function flushPush(): Promise<void> {
   if (emptyDiff(diff)) return; // כל שינוי-תרומה משנה גם את מסמך-התומך ⇒ diff לא-ריק (גם בפיצול)
   try {
     await pushSplitAware(base.supporters, latest.supporters, diff);
-    if (active) hooks?.setStatus('synced');
-  } catch {
+    if (active) { lastError = null; hooks?.setLastError?.(null); setStat(hooks, 'synced'); }
+  } catch (e) {
     // כשל שאינו-offline: משחזרים את הדלתא הממתינה כדי שתידחף בעריכה הבאה.
     // base תמיד המוקדם ביותר; latest נשמר אם עריכה מקבילה כבר קבעה חדש יותר.
     if (active) {
+      const info = describeErr(e);
+      lastError = info.msg; hooks?.setLastError?.(info.msg);
       pushBase = base;
       pushLatest ??= latest;
-      hooks?.setStatus('error');
-      hooks?.toast('⚠ הדחיפה לענן נכשלה — הנתונים שמורים מקומית ויסונכרנו בהמשך');
-      // flushPush נקרא רק מטיימר ה-debounce של cloudOnDbChange (עריכת משתמש). בלי
-      // תזמון-מחדש, דלתא שנכשלה הייתה תלויה לנצח עד העריכה הבאה. מתזמנים ניסיון
-      // חוזר עם backoff (5s, לא זמן ה-debounce) כדי לא להיכנס ללולאה הדוקה על
-      // כשל מתמשך (permission-denied). stopCloudSync מנקה את pushTimer.
-      clearTimeout(pushTimer);
-      pushTimer = setTimeout(() => void flushPush(), 5000);
+      setStat(hooks, 'error');
+      // הצגת השגיאה המדויקת (בקשת-שטח 25.8): המשתמש צריך לדעת מה קורה במקום
+      // לראות "אדום סתום". permission-denied ⇒ בעיית-Rules/הרשאה שלא תתוקן ע"י
+      // ניסיון-חוזר; משאירים אדום עם ההודעה, בלי retry-לולאה.
+      hooks?.toast(info.perm ? '🔒 שגיאת-הרשאה בענן — ' + info.msg : '⚠ הדחיפה לענן נכשלה: ' + info.msg + ' — הנתונים שמורים מקומית');
+      if (!info.perm) {
+        clearTimeout(pushTimer);
+        pushTimer = setTimeout(() => void flushPush(), 5000);
+      }
     }
   }
 }
@@ -244,6 +322,8 @@ async function flushPush(): Promise<void> {
  */
 export function cloudOnDbChange(prev: Db, next: Db): void {
   if (!active || applyingRemote) return;
+  // שינוי מקומי שטרם נדחף ⇒ הנקודה מחווה "ממתין" (חוזרת ל"מסונכרן" אחרי flush)
+  if (statusCache === 'synced') setStat(hooks, 'pending');
   pushBase ??= prev;
   pushLatest = next;
   clearTimeout(pushTimer);
@@ -280,10 +360,10 @@ export async function cloudReplaceNow(prev: Db, next: Db): Promise<void> {
     if (live && live !== next) {
       await pushSplitAware(next.supporters, live.supporters, diffDb(next, live));
     }
-    if (active) hooks?.setStatus('synced');
+    if (active) setStat(hooks, 'synced');
   } catch {
     if (active) {
-      hooks?.setStatus('error');
+      setStat(hooks, 'error');
       hooks?.toast('⚠ מחיקת הנתונים בענן נכשלה — נסו שוב כשהחיבור יציב');
       // 🐛 נחיל-9×9 (13.8): כשל-רשת באמצע reset/restore (pushDiff לא-אטומי, אצוות
       // ≤400) השאיר מחיקות חלקיות בענן בלי retry. מציבים דחייה ממתינה ומתזמנים

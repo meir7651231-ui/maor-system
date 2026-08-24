@@ -37,6 +37,12 @@ export interface Member {
   mRecommend: boolean;
   mPhotos: boolean;
   mVideos: boolean;
+  /**
+   * 🗓 חותמות-הסכמה (ביקורת-האמון 24.8, additive): מתי כל הסכמה ניתנה.
+   * הבוליאנים לבדם לא ענו על "מאיזה תאריך יש הסכמת-צילום" — דרישת-יסוד
+   * בניהול-הסכמות. נכתב בטופס כשמדליקים צ'יפ; כיבוי מסיר את החותמת.
+   */
+  mConsentAt?: Partial<Record<'mSefach' | 'mInvite' | 'mRecommend' | 'mPhotos' | 'mVideos', IsoDate>>;
   notes: string;
   isParent?: boolean;
 }
@@ -268,6 +274,31 @@ export interface Enrollment {
   renewNote?: string;
   /** קישור לשיבוץ שנוצר בשנה הבאה — מונע רישום-כפול ושומר את שרשרת ההיסטוריה. */
   renewedToId?: Id;
+  /** תווית שנת-לימודים עברית (תשפ״ז/תשפ״ח) — סינון-פנימי בכרטיס-החוג
+   *  (בקשת-בעלים 24.8: "לא לשכפל חוגים אלא סינון פנימי צ׳יפ תשפ״ז תשפ״ח").
+   *  Additive: חסר = לא-מסווג (ביט-זהה לשיבוץ קיים). */
+  year?: string;
+  /**
+   * 📅 חיובים-מתוכננים על שיבוץ (בקשת-בעלים 25.8, additive · אין מיגרציה):
+   * הבטחת-חיוב עתידית (למשל אשראי-בפריסה 3×₪400) — בלי-`R-` עד שהחיוב באמת
+   * יורד. `chargeEnrollmentPlanned` יוצר Payment עם `R-` דרך `addPayment`,
+   * וממלא `chargedRid` על-הפלן ⇒ אין כפילות, יש שרשרת-ביקורת. מסתנכרן ככל
+   * שדה-שיבוץ. מגודר `courses.plannedcharges` (opt-in).
+   */
+  plannedCharges?: PlannedCharge[];
+  /**
+   * 💰 יתרה שהובאה מהשנה הקודמת (בקשת-בעלים 25.8 "אם יש לו יתרה בשנה הקודמת
+   * זה עובר לשנה הבאה" + "גם עם יש יתרת-זכות זה צריך לעבור"):
+   *   • **חיובי** = חוב-פתוח (התלמידה נשארה חייבת) — נכנס ל-payBal של-החדש.
+   *   • **שלילי** = יתרת-זכות (התלמידה שילמה מעבר) — מקזזת את חוב-החדש דרך payBal
+   *     (וגם payCredit מציגה אותה מפורשות כשהעודף גדול מהחוב-החדש).
+   *   • **0/חסר** = אין יתרה (ביט-זהה לשיבוץ ישן, קל למיגרציה).
+   * ‏reenrollEnrollment מזין `src.totalDue + src.carryBalance − paidOf(src)` —
+   * ה-net המלא (עם סימן) של המקור, בלי max(0). הקבלה של-אשתקד נשארת אצל השיבוץ
+   * הישן (רציפות R-/§46). מסתנכרן כשדה-כמו-שאר שדות-השיבוץ (upsertEnrollment →
+   * cloudSync ⇒ round-trip בין מכשירים).
+   */
+  carryBalance?: number;
 }
 
 /** תקופת-חיוב לתמחור המשוקלל (בקשת-בעלים 13.8 ב'). */
@@ -510,6 +541,40 @@ export interface AyinCase {
 }
 
 /** הוראת-קבע של תומך/ת — הגדרה בלבד; אין חיוב-כרטיסים במערכת (רגולציה). */
+/**
+ * 📅 חיוב-מתוכנן (בקשת-בעלים 25.8) — הבטחה עתידית לגייתוויי, בלי-קבלה עד
+ * שהחיוב באמת יורד. מקושר לפריסת-תשלומים דרך `installmentOf` (מזהה-קבוצה
+ * ידני, שנוצר ב-`planCharges` כשמזמינים 3×₪400 בפריסה-אחידה). המעבר לחיוב
+ * בפועל = `chargePlanned` (יוצר Donation D- ומקשר `chargedRid`).
+ */
+export interface PlannedCharge {
+  /** מזהה-פנימי (nextId 'pc') — ייחודי בתוך מערך התומך. */
+  id: Id;
+  /** תאריך-החיוב הצפוי (YYYY-MM-DD). */
+  date: IsoDate;
+  amount: number;
+  cur: '₪' | '$';
+  /** אמצעי — 'credit' | 'bank' | 'cash' | 'check' (טקסט-חופשי). */
+  method: string;
+  /** קטגוריית-הייעוד שתועבר לתרומה בעת החיוב. */
+  cat: string;
+  /** מזהה-קבוצה של פריסת-תשלומים (למשל '3-מתוך-3'); undefined = חיוב-בודד. */
+  installmentOf?: string;
+  /** ה-rid (D-/R-/S-) של המסמך שנוצר בעת החיוב. חסר = ממתין. */
+  chargedRid?: string;
+  /** תאריך-הביטול (undefined = פעיל). */
+  cancelledAt?: IsoDate;
+  note?: string;
+  /** רכיב-חנות (shop): מזהה-הרכיב שאליו הפלן משויך — נדרש ל-chargeShopPlanned
+   *  שיוצר ShopRedemption עם componentId זה. חסר = פלן שאינו-חנות. */
+  componentId?: Id;
+  /** רכיב-חנות (shop): שווי-שנמסר (למתנה/מתנת-חג) — נשמר כדי שהמימוש בעת
+   *  החיוב יידע להזין אותו. חסר = 0. */
+  shopValue?: number;
+  /** רכיב-חנות (shop): החג — לרכיב-מתנת-חג. חסר = ריק. */
+  shopHoliday?: string;
+}
+
 export interface Hok {
   amount: number;
   cur: '₪' | '$';
@@ -525,10 +590,27 @@ export interface Hok {
   kevaId?: string;
 }
 
+/** מספר-טלפון נוסף לתורם (ריבוי-טלפונים) — additive. */
+export interface SupPhone {
+  id: Id;
+  /** המספר עצמו (מפורמט דרך fixPhone). */
+  num: string;
+  /** תווית: וואטסאפ / בית / עבודה / … (חופשי). */
+  label?: string;
+  /** "ממי זה" — הערה חופשית על בעל-המספר. */
+  note?: string;
+  /** האם זהו מספר וואטסאפ. */
+  wa?: boolean;
+}
+
 export interface Supporter {
   id: Id;
   name: string;
   phone: string;
+  /** טלפונים נוספים (וואטסאפ/בית/עבודה/…) — additive, אין מיגרציה. השדה `phone`
+   *  נשאר המספר-הראשי (מקור-אמת לכל המשטחים הקיימים); כאן רק מספרים נוספים.
+   *  כל מספר עם תווית ("ממי זה"), סימון-וואטסאפ, וסיווג ישראל/חו"ל נגזר. */
+  phones?: SupPhone[];
   email: string;
   address: string;
   /** עיר (P2 פער 23 — עמודת הדוח המותאם המלא; אופציונלי, אין מיגרציה). */
@@ -585,6 +667,16 @@ export interface Supporter {
    * (addDonation, קבלה בסדרה הרציפה) עם קטגוריית HOK_CAT.
    */
   hok?: Hok;
+  /**
+   * 📅 חיובים-מתוכננים (בקשת-בעלים 25.8, additive · אין מיגרציה):
+   * "כאני מגדיר חיוב אני רושם מתי החיוב יתבצע ובכמה תשלומים אבל לא מוציא
+   * חשבונית על אשראי — רק שהחיוב יירד זה יסתנכרן". חיוב-מתוכנן = הבטחה
+   * עתידית, בלי D- (אין קבלת-מס על כסף-שלא-נגבה). כשהחיוב באמת יורד →
+   * `chargePlanned` יוצרת Donation רגילה עם D- דרך `addDonation`, וממלאת
+   * `chargedRid` על-הפלן ⇒ אין כפילות, יש שרשרת-ביקורת. מסתנכרן ככל שדה-
+   * שיבוץ (בתוך מסמך-התומך). מגודר supporters.plannedcharges (opt-in).
+   */
+  plannedCharges?: PlannedCharge[];
   /** תיק מעקב טיפול רב-שלבי (feature supporters.ayin) — אופציונלי. */
   ayin?: AyinCase;
   /**
@@ -686,6 +778,51 @@ export interface UiPrefs {
   accent?: string;
   /** קמפיין חייגן-מונחה פעיל — חסר = אין קמפיין (ביט-זהה להיום). */
   dialer?: DialerCampaign;
+  /**
+   * 💵 שיקוף הקופה-הרושמת (ביקורת-האמון 24.8, additive): הרשומות חיו
+   * ב-localStorage בלבד — לא בגיבוי, לא בסנכרון, נמחקו עם ניקוי-דפדפן.
+   * ‏localStorage נשאר מקור-העבודה (בידוד הקופה לא זז); כאן עותק-עמיד
+   * שמתעדכן בכל כתיבה ומרפא localStorage שאבד (המונה לוקח את המקסימום —
+   * אין כפל מספרי-אישור).
+   */
+  cashSeq?: number;
+  cashReceipts?: CashReceiptRec[];
+  cashShift?: CashShiftRec | null;
+  cashShifts?: CashShiftCloseRec[];
+}
+
+/** רשומת אישור-תשלום של הקופה-הרושמת (שיקוף — המבנה של הרכיב). */
+export interface CashReceiptRec {
+  num: number;
+  at: string;
+  client: string;
+  due: number;
+  received: number;
+  change: number;
+  items?: { name: string; amount: number }[];
+}
+
+/** משמרת-קופה פתוחה (שיקוף). */
+export interface CashShiftRec {
+  openedAt: string;
+  float: number;
+  checks?: number;
+  other?: number;
+}
+
+/** סגירת-קופה (דוח-Z, שיקוף). */
+export interface CashShiftCloseRec {
+  closedAt: string;
+  openedAt: string;
+  float: number;
+  sales: number;
+  count: number;
+  counted: number;
+  diff: number;
+  openChecks?: number;
+  closeChecks?: number;
+  openOther?: number;
+  closeOther?: number;
 }
 
 /* ---------- קופות צדקה (מודול tzedaka — מבודד; BUILD-ORDER-TZEDAKA-2026-07-30) ---------- */
@@ -889,6 +1026,14 @@ export interface ShopAssignment {
   status: ShopAssignmentStatus;
   notes: string;
   redemptions: ShopRedemption[];
+  /**
+   * 📅 חיובים-מתוכננים על השיוך (בקשת-בעלים 25.8, additive · אין מיגרציה):
+   * הבטחת-חיוב בפריסה על מוצר-חנות (למשל 3×₪150 באשראי לקופון-חתונה). ‏
+   * `chargeShopPlanned` יוצר ShopRedemption עם S- דרך `addShopRedemption`,
+   * וממלא `chargedRid` על-הפלן ⇒ אין כפילות, יש שרשרת-ביקורת. componentId
+   * חובה בפלן — הוא מזין את המימוש בעת החיוב. מגודר shop.plannedcharges.
+   */
+  plannedCharges?: PlannedCharge[];
 }
 
 /**
@@ -1054,6 +1199,13 @@ export interface Db {
    * (AUDIT_CAP): הוותיק נדחק. אופציונלי — גיבוי ישן בלי השדה נטען עם [].
    */
   audit?: AuditEntry[];
+  /**
+   * 🪦 טבעת-מצבות (ביקורת-האמון 24.8, additive) — מזהי-ישויות שנמחקו.
+   * הבאג: מכשיר שהיה אופליין בזמן שרשומה נמחקה בענן דחף אותה חזרה בהתחברות
+   * (איחוד-ראשון מתייחס לכל id-מקומי-בלבד כ"תוספת"). המצבה מבדילה בין
+   * "נוצר-אופליין" ל"נמחק-בענן". רוכבת על meta; טבעת DEL_LOG_CAP.
+   */
+  delLog?: DelEntry[];
 }
 
 /** רשומת-audit אחת — קצרה במכוון (הלוג רוכב על meta בסנכרון-הענן). */
@@ -1066,6 +1218,45 @@ export interface AuditEntry {
   act: string;
   /** זיהוי-היעד: שם/מספר-קבלה/כותרת. */
   what: string;
+}
+
+/** מצבת-מחיקה אחת — אוסף+מזהה+מתי. קצרה במכוון (רוכבת על meta). */
+export interface DelEntry {
+  /** חותמת ISO מלאה של המחיקה. */
+  at: string;
+  /** שם אוסף-הישות (families/supporters/…). */
+  col: string;
+  /** מזהה-הרשומה שנמחקה. */
+  id: string;
+}
+
+/** תקרת טבעת-המצבות. */
+export const DEL_LOG_CAP = 500;
+
+/** דחיפת מצבות לטבעת (טהור) — דדופ לפי col|id (החדשה גוברת), הוותיקות נדחקות. */
+export function pushDelLog(list: DelEntry[] | undefined, entries: DelEntry[]): DelEntry[] {
+  if (!entries.length) return list ?? [];
+  const merged = [...(list ?? []), ...entries];
+  const seen = new Set<string>();
+  const out: DelEntry[] = [];
+  for (let i = merged.length - 1; i >= 0; i--) {
+    const k = merged[i].col + '|' + merged[i].id;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.unshift(merged[i]);
+  }
+  return out.slice(-DEL_LOG_CAP);
+}
+
+/** איחוד שתי טבעות-מצבות (מקומית+ענן) — לפי col|id, החותמת החדשה גוברת. */
+export function mergeDelLogs(a: DelEntry[] | undefined, b: DelEntry[] | undefined): DelEntry[] {
+  const byKey = new Map<string, DelEntry>();
+  for (const e of [...(a ?? []), ...(b ?? [])]) {
+    const k = e.col + '|' + e.id;
+    const cur = byKey.get(k);
+    if (!cur || e.at > cur.at) byKey.set(k, e);
+  }
+  return [...byKey.values()].sort((x, y) => (x.at < y.at ? -1 : 1)).slice(-DEL_LOG_CAP);
 }
 
 /** תקרת-הלוג — טבעת: מעבר לתקרה דוחק את הוותיקות. */

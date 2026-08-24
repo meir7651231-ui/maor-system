@@ -101,4 +101,32 @@ describe('🛡 ratchet — תיקוני-שרת נדרים (הגנות-מקור)'
     expect(index).toMatch(/EXTRA_BACKUP = \['donations'\]/);
     expect(index).toContain('[...BACKUP_COLLECTIONS, ...EXTRA_BACKUP]');
   });
+
+  // 🔒 (24.8, בקשת-שטח "נדרים מסתכרן לא רק לענף-הפלטפורמה של מאור") — בידוד-בין-ארגונים:
+  // ה-mosad הגלובלי (של מאור) היה זמין ל-org=root ⇒ משיכה מהשורש (Orbit) מושכת את
+  // נתוני-מאור לשורש. עכשיו: הגלובלי שייך אך-ורק לארגון הנקוב ב-NEDARIM_ORG.
+  it('F16: nedarimCreds — ה-mosad הגלובלי מגודר ל-NEDARIM_ORG בלבד (לא root/אחר), וזריקה כשאין', () => {
+    expect(pull).toMatch(/const globalOwner = \(process\.env\.NEDARIM_ORG \|\| ''\)\.trim\(\);/);
+    expect(pull).toMatch(/const ownsGlobal = !!globalOwner && org === globalOwner;/);
+    expect(pull).toMatch(/ownsGlobal \? \(process\.env\.NEDARIM_MOSAD_ID/);
+    // root אינו מקבל את הגלובלי דרך isRoot יותר — אין קיצור-דרך כזה
+    expect(pull).not.toMatch(/isRoot \? \(process\.env\.NEDARIM_MOSAD_ID/);
+    // אין mosad ⇒ throw מפורש, לא משיכה עם ה-mosad של מאור
+    expect(pull).toMatch(/if \(!mosad\) \{/);
+    expect(pull).toContain('אין אישורי-סליקה לארגון');
+  });
+
+  it('F17: הפוחות (fetchers) לא נופלים חזרה ל-env הגלובלי — creds בלבד', () => {
+    expect(pull).not.toContain('creds.mosad || process.env.NEDARIM_MOSAD_ID');
+    expect(pull).not.toContain('creds.pass || process.env.NEDARIM_API_PASSWORD');
+  });
+
+  // 🔒 קונפיג: SOLA_ROOT_VAULT (שגרם למשיכת root להשתמש בכספת-מאור) מושבת;
+  // NEDARIM_ORG מוגדר (בעל ה-mosad הגלובלי) — סימטריה ל-SOLA_ORG.
+  it('F18: functions/.env — SOLA_ROOT_VAULT מושבת, NEDARIM_ORG מוגדר', () => {
+    const env = read('.env');
+    // אין שורה פעילה SOLA_ROOT_VAULT=<slug> (רק מוערת/ריקה מותרת)
+    expect(env).not.toMatch(/^\s*SOLA_ROOT_VAULT=\S/m);
+    expect(env).toMatch(/^\s*NEDARIM_ORG=\S/m);
+  });
 });
