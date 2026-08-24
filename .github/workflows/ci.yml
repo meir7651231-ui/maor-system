@@ -37,3 +37,36 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # 🛡️ ביקורת-האמון 24.8: סוויטת ה-red-team של Firestore Rules הייתה מוגדרת
+  # (npm run test:rules) אך לא רצה ב-CI — שינוי-Rules שובר-בידוד היה עובר בשקט.
+  # ג'וב נפרד: האמולטור (~1ד') לא מאט את שער-הקוד הראשי.
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install dependencies
+        run: npm ci
+      - name: Firestore Rules red-team (emulator)
+        run: npm run test:rules
+
+  # סריקת-תלויות מדווחת (לא-חוסמת בשלב זה — ביקורת-האמון 24.8): מציפה CVEs
+  # בלוג-הריצה; החמרה לחוסם = החלטת-בעלים בהמשך.
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: npm audit (report-only)
+        run: npm audit --audit-level=high || echo '⚠ נמצאו חולשות ברמת high+ — ראו למעלה'
