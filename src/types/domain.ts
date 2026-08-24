@@ -560,11 +560,19 @@ export interface PlannedCharge {
   cat: string;
   /** מזהה-קבוצה של פריסת-תשלומים (למשל '3-מתוך-3'); undefined = חיוב-בודד. */
   installmentOf?: string;
-  /** ה-rid (D-…) של התרומה שנוצרה בעת החיוב. חסר = ממתין. */
+  /** ה-rid (D-/R-/S-) של המסמך שנוצר בעת החיוב. חסר = ממתין. */
   chargedRid?: string;
   /** תאריך-הביטול (undefined = פעיל). */
   cancelledAt?: IsoDate;
   note?: string;
+  /** רכיב-חנות (shop): מזהה-הרכיב שאליו הפלן משויך — נדרש ל-chargeShopPlanned
+   *  שיוצר ShopRedemption עם componentId זה. חסר = פלן שאינו-חנות. */
+  componentId?: Id;
+  /** רכיב-חנות (shop): שווי-שנמסר (למתנה/מתנת-חג) — נשמר כדי שהמימוש בעת
+   *  החיוב יידע להזין אותו. חסר = 0. */
+  shopValue?: number;
+  /** רכיב-חנות (shop): החג — לרכיב-מתנת-חג. חסר = ריק. */
+  shopHoliday?: string;
 }
 
 export interface Hok {
@@ -1018,6 +1026,14 @@ export interface ShopAssignment {
   status: ShopAssignmentStatus;
   notes: string;
   redemptions: ShopRedemption[];
+  /**
+   * 📅 חיובים-מתוכננים על השיוך (בקשת-בעלים 25.8, additive · אין מיגרציה):
+   * הבטחת-חיוב בפריסה על מוצר-חנות (למשל 3×₪150 באשראי לקופון-חתונה). ‏
+   * `chargeShopPlanned` יוצר ShopRedemption עם S- דרך `addShopRedemption`,
+   * וממלא `chargedRid` על-הפלן ⇒ אין כפילות, יש שרשרת-ביקורת. componentId
+   * חובה בפלן — הוא מזין את המימוש בעת החיוב. מגודר shop.plannedcharges.
+   */
+  plannedCharges?: PlannedCharge[];
 }
 
 /**

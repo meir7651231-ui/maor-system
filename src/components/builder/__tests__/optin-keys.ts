@@ -11,6 +11,7 @@ export const OPT_IN_KEYS = [
   'supporters.card',
   'courses.cockpit',
   'courses.plannedcharges',
+  'shop.plannedcharges',
   // גל ה׳ — מסכי-החוגים החדשים מגודרים `=== true` בקוד ⇒ חייבים optIn:true באשף
   'courses.teacherapp',
   'courses.parentcard',
