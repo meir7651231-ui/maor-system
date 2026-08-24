@@ -326,6 +326,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.bulkselect', label: 'בחירה מרובה', desc: 'כפתור "☑ בחירה" — מצב סימון-מרובה עם פס-פעולות', module: 'supporters' },
   { key: 'supporters.bulkdelete', label: 'מחיקה מרוכזת', desc: 'כפתור "🗑 מחיקת N" במצב-הבחירה — מוחק תורמים כולל היסטוריה', module: 'supporters' },
   { key: 'supporters.bulkmerge', label: 'מיזוג-ידני מהבחירה', desc: 'כפתור "🔗 מזג נבחרים" במצב-הבחירה — מיזוג תורמים שסומנו לכרטיס אחד (למקרים שהמנוע האוטומטי לא זיהה); כל התרומות והקבלות נשמרות', module: 'supporters' },
+  { key: 'supporters.segula', label: 'סגולת 40 יום', desc: 'כפתור "🕯 סגולת 40 יום" בכרטיס-התורם — זריעת תזכורות-לוח מדורגות (יום 1/7/21/35/40) מתאריך-התחלה, בלי לחשב ידנית', module: 'supporters' },
   { key: 'supporters.dedup', label: 'איחוד כפולים', desc: 'פריט "🔗 איחוד כפולים" בתפריט — מיזוג תורמים כפולים', module: 'supporters' },
   { key: 'supporters.delete', label: 'מחיקת תורם מהכרטיס 🔓', desc: 'כפתור 🗑 (שתי-לחיצות) בכרטיס-התורם — פעולה-הרסנית; מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'supporters' },
   { key: 'supporters.grid', label: 'מתג גריד/רשימה', desc: 'כפתור "▦ גריד / ☰ רשימה" במסך-התורמים', module: 'supporters' },

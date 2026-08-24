@@ -60,7 +60,7 @@ import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isSuperAdm
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
-import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth } from '../components/supporters/lib';
+import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, SEGULA_OFFSETS, segulaReminders, segulaTitle } from '../components/supporters/lib';
 import { canAddPhoto, isDataImage, PHOTO_MAX, PHOTO_MAX_LEN } from '../lib/photoGallery';
 import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
 import { attachChargeTo, attachChargesBulk, detectRecurringHok, planNedarimSync, repairCardsFromRows, type SyncCharge } from '../lib/nedarimSync';
@@ -364,6 +364,8 @@ interface AppState {
   mergeSupportersGroup: (keepId: string, loserIds: string[]) => void;
   /** מיזוג-לפי-שדות (פאריטי משפחות): ids[0]=בסיס-השומר; ערכי-שדות לפי pick/edit. */
   mergeSupportersFields: (ids: string[], pick: Record<string, number>, edit: Record<string, string>) => void;
+  /** 🕯 סגולת 40 יום — זריעת תזכורות-לוח מדורגות לתורם מתאריך-התחלה. מחזיר כמה נוצרו. */
+  seedSegulaReminders: (supId: string, startIso: string) => number;
   /** 🔄 יישום תוכנית-סנכרון נדרים (planNedarimSync): החלפת מערך-התומכים המלא +
    *  לוג. אחרי תצוגה-מקדימה+אישור בלבד (מסך הסנכרון). */
   applyNedarimSync: (supporters: Supporter[], note: string) => void;
@@ -2118,6 +2120,35 @@ export const useApp = create<AppState>()((set, get) => {
         events: db.events.filter((ev) => !dropEvIds.has(ev.id) && !(ev.spId && losers.has(ev.spId))),
       }));
       get().toast('הרשומות מוזגו לפי הבחירה ✓ — נשמרה רשומה אחת');
+    },
+
+    seedSegulaReminders(supId, startIso) {
+      // 🕯 סגולת 40 יום — תזכורות-לוח מדורגות (call) עם spId, כדי שיופיעו על התורם
+      // וביומן. דטרמיניסטי (segulaReminders); אינו נוגע בכספים/קבלות.
+      const sp = get().db.supporters.find((s) => s.id === supId);
+      if (!sp || !startIso) return 0;
+      const target = Math.max(...SEGULA_OFFSETS);
+      const reminders = segulaReminders(startIso);
+      for (const r of reminders) {
+        get().upsertEvent({
+          id: get().nextId('ev'),
+          title: segulaTitle(sp.name, r, target),
+          date: r.date,
+          time: '',
+          type: 'call',
+          customType: '',
+          notes: 'סגולת ' + target + ' יום · ' + (sp.phone || ''),
+          price: 0,
+          roomId: '',
+          famId: '',
+          spId: sp.id,
+          priority: r.final ? 'orange' : 'green',
+          done: false,
+        });
+      }
+      logAudit('🕯 סגולת ' + target + ' יום', sp.name);
+      get().toast('נזרעו ' + reminders.length + ' תזכורות-סגולה ביומן 🕯');
+      return reminders.length;
     },
 
     applyNedarimSync(supporters, note) {

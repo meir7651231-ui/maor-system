@@ -16,7 +16,7 @@ import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field, FormError, Modal, Select, StickyBackBar, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
+import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, SEGULA_OFFSETS, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
 import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
@@ -128,6 +128,10 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   }
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
+  // 🕯 סגולת 40 יום (בקשת-שטח) — opt-in; חסר-הדגל ⇒ מוסתר.
+  const segulaOn = featureOn(config, 'supporters.segula');
+  const seedSegulaReminders = useApp((s) => s.seedSegulaReminders);
+  const [segulaStart, setSegulaStart] = useState('');
   // 🔁 הו"ק (ROADMAP-100 ‏#2): הגדרה+רישום — התרומה דרך addDonation (קבלה רציפה)
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokOpen, setHokOpen] = useState(false);
@@ -574,6 +578,31 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                 קביעת תאריך תציע להוסיף תזכורת שיחה ללוח השנה
               </div>
             )}
+          </div>
+        )}
+
+        {/* 🕯 סגולת 40 יום — תזכורות מדורגות מתאריך-התחלה (בקשת-שטח) */}
+        {segulaOn && (
+          <div className="card">
+            <h3 style={{ fontSize: 15, marginBottom: 8 }}>🕯 סגולת 40 יום</h3>
+            <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
+              בחרו תאריך-התחלה — המערכת תזרע תזכורות ביומן בימים 1 · 7 · 21 · 35 · 40 (סיום), בלי לחשב ידני.
+            </div>
+            <Field label="תאריך התחלה">
+              <HebDateInput value={segulaStart} onChange={setSegulaStart} />
+            </Field>
+            <div style={{ marginTop: 8 }}>
+              <Btn
+                kind="primary"
+                disabled={!segulaStart}
+                onClick={() => {
+                  const n = seedSegulaReminders(sp.id, segulaStart);
+                  if (n) setSegulaStart('');
+                }}
+              >
+                🕯 זריעת {SEGULA_OFFSETS.length} תזכורות
+              </Btn>
+            </div>
           </div>
         )}
       </div>
