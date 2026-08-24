@@ -62,6 +62,7 @@ import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, SEGULA_OFFSETS, segulaReminders, segulaTitle } from '../components/supporters/lib';
 import { planCharges } from '../components/supporters/planned';
+import { findAllOpenPlans, matchAll } from '../lib/plannedMatch';
 import { canAddPhoto, isDataImage, PHOTO_MAX, PHOTO_MAX_LEN } from '../lib/photoGallery';
 import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
 import { attachChargeTo, attachChargesBulk, detectRecurringHok, planNedarimSync, repairCardsFromRows, type SyncCharge } from '../lib/nedarimSync';
@@ -487,6 +488,15 @@ interface AppState {
   cancelShopPlanned: (assignmentId: string, planId: string, todayIso: string) => { ok: boolean };
   /** ✓ החיוב ירד — יוצר ShopRedemption עם S- דרך addShopRedemption, מקשר chargedRid. */
   chargeShopPlanned: (assignmentId: string, planId: string) => { ok: boolean; rid?: string };
+  /** 🔍 שיוך-אוטומטי של תשלומים-נכנסים לחיובים-מתוכננים (בקשת-בעלים 25.8):
+   *  לכל incoming מוצא match חד-משמעי (סכום+שם+תאריך±3) ומריץ chargeXxxPlanned
+   *  לפי סוג-הישות. מחזיר את מזהי-ה-incomingIds שקיבלו שיוך (הקורא יכול לסמן
+   *  אותם handled בענן). דורמנטי כשאין פלנים פתוחים ⇒ עלות אפסית. */
+  autoMatchPlanned: (incomings: import('../lib/cloud').IncomingPayment[]) => { matched: string[] };
+  /** 📞 זריעת תזכורות-שיחה לחיובים-מתוכננים שלא-נכנסו (בקשת-בעלים 25.8):
+   *  לפלנים פתוחים עם date < todayIso — יוצר אירוע-שיחה בלוח (בלי-כפילות ע"י
+   *  spId=planId). מחזיר כמה נזרעו. עקבי עם seedSegulaReminders. */
+  seedOverduePlannedReminders: (todayIso: string) => { seeded: number };
   /**
    * ביטול מימוש עם סימון (הכרעת בעלים 14) — הרשומה לעולם לא נמחקת:
    * voidedAt=היום + voidReason (רשות). ה-rid נשאר בסדרה וה-מונים לא זזים
@@ -2991,6 +3001,63 @@ export const useApp = create<AppState>()((set, get) => {
         }),
       }));
       return { ok: true, rid: r.rid };
+    },
+
+    // ── 🔍 שיוך-אוטומטי של תשלומים-נכנסים לחיובים-מתוכננים ──
+    // מריץ matchAll (חסין-כפילות) על כלל הפלנים הפתוחים בכל הישויות, ומריץ
+    // את פעולת-החיוב המתאימה פר-סוג. אין קליק, אין אמביגואי — התקשרות ידנית
+    // רק כשמישהו רואה תג "⏳ ממתין" ובוחר "✓ החיוב ירד" (לא-שוייך אוטומטית).
+    autoMatchPlanned(incomings) {
+      const open = findAllOpenPlans(get().db);
+      if (!open.length || !incomings.length) return { matched: [] };
+      const matches = matchAll(incomings, open);
+      const handled: string[] = [];
+      for (const m of matches) {
+        let r: { ok: boolean; rid?: string } = { ok: false };
+        if (m.entityType === 'supporter') r = get().chargePlanned(m.entityId, m.plan.id);
+        else if (m.entityType === 'enrollment') r = get().chargeEnrollmentPlanned(m.entityId, m.plan.id);
+        else if (m.entityType === 'shopAssignment') r = get().chargeShopPlanned(m.entityId, m.plan.id);
+        if (r.ok) {
+          handled.push(m.incomingId);
+          logAudit('שיוך-אוטומטי', m.plan.id + ' ⇒ ' + (r.rid || ''));
+        }
+      }
+      return { matched: handled };
+    },
+
+    // ── 📞 זריעת תזכורות-שיחה לחיובים-מתוכננים שלא-נכנסו ──
+    // עוברת על כל הפלנים הפתוחים באיחור, ויוצרת אירוע-שיחה בלוח (spId=planId
+    // למניעת-כפילות בסטארט-אפים חוזרים). נקראת פעם-ביום מ-App.tsx.
+    seedOverduePlannedReminders(todayIso) {
+      const db = get().db;
+      const open = findAllOpenPlans(db);
+      const overdue = open.filter((r) => r.plan.date && r.plan.date < todayIso);
+      if (!overdue.length) return { seeded: 0 };
+      // סנן פלנים שכבר-יש-להם אירוע-תזכורת:
+      const already = new Set(db.events.filter((e) => e.spId).map((e) => e.spId));
+      const toSeed = overdue.filter((r) => !already.has(r.plan.id));
+      if (!toSeed.length) return { seeded: 0 };
+      const seedEvents = toSeed.map((r) => {
+        const eid = get().nextId('ev');
+        return {
+          id: eid,
+          date: todayIso,
+          time: '10:00',
+          title: 'חיוב-אשראי לא-נכנס — התקשרי ל-' + r.name,
+          type: 'call' as const,
+          customType: '',
+          notes: '₪' + r.plan.amount + ' · תאריך-מתוכנן ' + r.plan.date + (r.plan.note ? ' · ' + r.plan.note : ''),
+          price: 0,
+          roomId: '' as const,
+          famId: '' as const,
+          spId: r.plan.id, // מפתח-מניעת-כפילות
+          priority: 'orange' as const,
+          done: false,
+        };
+      });
+      setDb((db) => ({ events: [...db.events, ...seedEvents] }));
+      logAudit('תזכורות-חיוב-מתוכנן', String(toSeed.length));
+      return { seeded: toSeed.length };
     },
 
     voidShopRedemption(assignmentId, redemptionId, reason) {
