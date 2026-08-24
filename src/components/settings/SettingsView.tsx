@@ -100,7 +100,7 @@ export function SettingsView() {
   const extraChips: { id: string; label: string }[] = [
     ...(featureOn(config, 'shell.lock') ? [{ id: 'sec-security', label: 'נעילת PIN' }] : []),
     ...(featureOn(config, 'settings.encryption') ? [{ id: 'sec-encryption', label: 'הצפנה' }] : []),
-    ...(canPlatform ? [{ id: 'sec-cloud-encryption', label: 'הצפנת ענן' }] : []),
+    ...(canPlatform || (cloudOn && isManager && config.slug !== 'default') ? [{ id: 'sec-cloud-encryption', label: 'הצפנת ענן' }] : []),
     ...(integrationOn(config, 'ai') && isAdmin ? [{ id: 'sec-ai', label: 'עוזר AI' }] : []),
     ...(featureOn(config, 'settings.audittrail') && isAdmin ? [{ id: 'sec-audittrail', label: 'לוג פעולות' }] : []),
     ...(featureOn(config, 'core.receipt.verifycode') ? [{ id: 'sec-verifyreceipt', label: 'אימות קבלה' }] : []),

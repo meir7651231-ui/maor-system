@@ -78,7 +78,8 @@ describe('⚙️ ratchet — UX סבב-ו׳: הגדרות ב-4 לשוניות (5
   it('"צ׳יפ לכל מה שמרונדר" — גם הסעיפים המגודרים-עצמית קיבלו צ׳יפ-קפיצה באותם שערים', () => {
     expect(viewSrc).toMatch(/featureOn\(config, 'shell\.lock'\) \? \[\{ id: 'sec-security'/);
     expect(viewSrc).toMatch(/featureOn\(config, 'settings\.encryption'\) \? \[\{ id: 'sec-encryption'/);
-    expect(viewSrc).toMatch(/canPlatform \? \[\{ id: 'sec-cloud-encryption'/);
+    // הכרעת-בעלים 24.8: הצפנת-ענן פר-מנהל-ארגון (לא מייל-על בלבד) — הצ׳יפ נפתח גם למנהל
+    expect(viewSrc).toMatch(/canPlatform \|\| \(cloudOn && isManager && config\.slug !== 'default'\) \? \[\{ id: 'sec-cloud-encryption'/);
     expect(viewSrc).toMatch(/integrationOn\(config, 'ai'\) && isAdmin \? \[\{ id: 'sec-ai'/);
     expect(viewSrc).toMatch(/featureOn\(config, 'settings\.audittrail'\) && isAdmin \? \[\{ id: 'sec-audittrail'/);
     expect(viewSrc).toMatch(/featureOn\(config, 'core\.receipt\.verifycode'\) \? \[\{ id: 'sec-verifyreceipt'/);
