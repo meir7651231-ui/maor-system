@@ -234,10 +234,11 @@ export function freshNextYearEnrollment(
   groupOverride?: string,
   yearLabel?: string,
 ): Enrollment {
-  // 💰 יתרת-חוב מהשנה הקודמת (בקשת-בעלים 25.8): payBal של-המקור עובר קדימה
-  // כ-carryBalance. הקבלות/התשלומים של-אשתקד נשארים על-השיבוץ-הישן (רציפות
-  // R-/§46 נשמרת) — פה רק הסכום-הפתוח מועבר לחישוב-היתרה של-החדש.
-  const carry = payBal(src);
+  // 💰 יתרה מהשנה הקודמת (בקשת-בעלים 25.8): ה-net **המלא** של-המקור עובר קדימה
+  // כ-carryBalance — חיובי=חוב, שלילי=זכות ("גם עם יש יתרת-זכות זה צריך לעבור").
+  // הנוסחה זהה ל-payBal אבל בלי max(0) ⇒ שומרת את הסימן. הקבלות/התשלומים של-
+  // אשתקד נשארים על-השיבוץ-הישן (רציפות R-/§46) — פה רק ההפרש עובר לשנה החדשה.
+  const carry = (src.totalDue || 0) + (src.carryBalance || 0) - paidOf(src);
   return {
     id: newId,
     memberId: src.memberId,
@@ -257,8 +258,9 @@ export function freshNextYearEnrollment(
     enrolledAt: todayIso,
     // תווית שנת-הלימודים — לסינון-פנימי בכרטיס-החוג (תשפ״ז/תשפ״ח).
     ...(yearLabel ? { year: yearLabel } : {}),
-    // חוב-מועבר: רק אם קיים בפועל (חסר/0 = ביט-זהה לשיבוץ ישן, קל למיגרציה).
-    ...(carry > 0 ? { carryBalance: carry } : {}),
+    // יתרה-מועברת: רק אם קיימת בפועל (חיובי=חוב · שלילי=זכות · 0/חסר = ביט-זהה
+    // לשיבוץ ישן, קל למיגרציה).
+    ...(carry !== 0 ? { carryBalance: carry } : {}),
     // תמחור משוקלל — נשמר כדי שהמחיר יעבור לשנה הבאה כמו שהיה.
     ...(src.freq !== undefined ? { freq: src.freq } : {}),
     ...(src.freqUnit !== undefined ? { freqUnit: src.freqUnit } : {}),

@@ -127,7 +127,7 @@ describe('🐛 ratchet — רישום-לשנה-הבאה In-Card (25.8, "0 נרש
   });
 
   it('💰 שיבוץ בלי-יתרה לא מקבל carryBalance (חסר = 0, additive לגיטימי)', () => {
-    // e2 שולם במלואו — payBal=0 ⇒ אין carryBalance על החדש.
+    // e2 שולם במלואו — net=0 ⇒ אין carryBalance על החדש.
     useApp.getState().setDb((db) => ({
       enrollments: db.enrollments.map((e) =>
         e.id === 'e2'
@@ -138,5 +138,24 @@ describe('🐛 ratchet — רישום-לשנה-הבאה In-Card (25.8, "0 נרש
     const res = useApp.getState().reenrollEnrollment('e2', '', undefined);
     const fresh = useApp.getState().db.enrollments.find((e) => e.id === res.id)!;
     expect(fresh.carryBalance).toBeUndefined();
+  });
+
+  it('💰 יתרת-זכות (תשלום-יתר) עוברת שלילית — בקשת-בעלים 25.8 "גם עם יש יתרת-זכות"', () => {
+    // e1: totalDue=200, שולם ₪250 ⇒ עודף ₪50 (זכות). carryBalance = -50 על החדש.
+    useApp.getState().setDb((db) => ({
+      enrollments: db.enrollments.map((e) =>
+        e.id === 'e1'
+          ? { ...e, totalDue: 200, payments: [{ rid: 'R-2', date: '2025-09-05', amount: 250, method: 'מזומן' }] }
+          : e,
+      ),
+    }));
+    const res = useApp.getState().reenrollEnrollment('e1', '', undefined);
+    const fresh = useApp.getState().db.enrollments.find((e) => e.id === res.id)!;
+    expect(fresh.carryBalance).toBe(-50);            // זכות = ערך שלילי
+    // payBal של-החדש = max(0, 200 + (-50) - 0) = 150 — הזכות מקזזת את החוב-החדש.
+    // payCredit מציג את הזכות רק אם היא עולה על החוב:
+    // 0 - 200 - (-50) = -150 ⇒ max(0, -150) = 0 (עדיין חוב-נטו).
+    // מקרה-אמת של זכות-מלאה כשעדיין לא הוקלד totalDue-חדש → נכון להיום totalDue
+    // עובר מהמקור, אך זכות נשמרת במלוא בקזז החוב הבא. שער-חשבונאי: לא-אובד.
   });
 });
