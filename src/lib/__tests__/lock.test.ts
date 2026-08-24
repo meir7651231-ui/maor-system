@@ -3,7 +3,8 @@
  * בלבד. כולל ולידציית אורך וסירוב לקלט לא-ספרתי/ריק.
  */
 import { describe, expect, it } from 'vitest';
-import { hashPin, verifyPin, isValidPin } from '../lock';
+import { hashPin, verifyPin, isValidPin, pinNeedsRehash } from '../lock';
+import lockSrc from '../lock.ts?raw';
 import { cooldownFor } from '../../components/lock/LockScreen';
 
 // ANALYSIS §5 אבטחה — הגבלת-קצב על מסך ה-PIN (השהיה גדֵלה מול ניחוש-המוני).
@@ -27,16 +28,38 @@ describe('🔑 isValidPin — 4–8 ספרות בלבד', () => {
   });
 });
 
-describe('🔒 hashPin — דטרמיניסטי, לא הפיך-בקלות, לא טקסט גלוי', () => {
-  it('אותו קוד → אותו גיבוב (64 hex)', async () => {
+describe('🔒 hashPin v2 — PBKDF2 עם מלח אקראי (ביקורת-האמון 24.8)', () => {
+  // הבאג: SHA-256 חד-סיבובי עם מלח גלובלי קבוע — קוד 4–8 ספרות נפרץ-אופליין
+  // במילישניות ממי שקרא localStorage. התיקון: PBKDF2 ‏310K + מלח אקראי פר-קוד.
+  it('פורמט v2:{salt}:{hash} — לא הקוד הגלוי', async () => {
+    const a = await hashPin('1234');
+    expect(a).toMatch(/^v2:[0-9a-f]{32}:[0-9a-f]{64}$/);
+  });
+  it('מלח אקראי: אותו קוד ⇒ גיבובים שונים, שניהם מאמתים', async () => {
     const a = await hashPin('1234');
     const b = await hashPin('1234');
-    expect(a).toBe(b);
-    expect(a).toMatch(/^[0-9a-f]{64}$/); // גיבוב 64-hex — לא הקוד הגלוי
-    expect(a).not.toBe('1234'); // (לא בודקים toContain: "1234" הוא hex תקין ועלול להופיע במקרה)
+    expect(a).not.toBe(b);
+    expect(await verifyPin('1234', a)).toBe(true);
+    expect(await verifyPin('1234', b)).toBe(true);
+  }, 20000);
+  it('🔒 המנוע: PBKDF2 ילידי, לא SHA-256 חד-סיבובי לקודים חדשים', () => {
+    expect(lockSrc).toContain("name: 'PBKDF2'");
+    expect(lockSrc).toContain('310_000');
   });
-  it('קודים שונים → גיבוב שונה', async () => {
-    expect(await hashPin('1234')).not.toBe(await hashPin('1235'));
+});
+
+describe('🔓 תאימות-לאחור — גיבוב-לגאסי נפתח ומסומן-לשדרוג', () => {
+  // גיבוב SHA-256 היסטורי של הקוד 4729 (מלח maor.lock.v1::) — PIN קיים
+  // של לקוח-חי חייב להמשיך להיפתח; pinNeedsRehash מסמן אותו לשדרוג-שקט.
+  const LEGACY_4729 = '30bd812b82992b21dacbb54b495b281fcd226304d7e88ae5d611f09895b70cd5';
+  it('קוד נכון מול גיבוב-לגאסי → true', async () => {
+    expect(await verifyPin('4729', LEGACY_4729)).toBe(true);
+    expect(await verifyPin('0000', LEGACY_4729)).toBe(false);
+  });
+  it('pinNeedsRehash: לגאסי=true · v2=false · חסר=false', async () => {
+    expect(pinNeedsRehash(LEGACY_4729)).toBe(true);
+    expect(pinNeedsRehash(await hashPin('4729'))).toBe(false);
+    expect(pinNeedsRehash(undefined)).toBe(false);
   });
 });
 

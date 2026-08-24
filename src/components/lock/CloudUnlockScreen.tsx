@@ -6,6 +6,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { clearPinFails, notePinFail, readPinFails } from '../../lib/lock';
 import { Btn, Field, FormError, TextInput } from '../ui';
 
 export function CloudUnlockScreen() {
@@ -21,13 +22,27 @@ export function CloudUnlockScreen() {
 
   const submit = async () => {
     if (busy || !value.trim()) return;
+    // 🛡️ הגבלת-קצב מתמידה (ביקורת-האמון 24.8): המסך היה בלי-הגבלה — ניחוש
+    // חופשי מול הסיסמה. אותו לוח-השהיות של מסך-ה-PIN, שורד רענון-דף.
+    const rl = readPinFails('cloudenc');
+    if (rl.until > Date.now()) {
+      setError('יותר מדי ניסיונות — המתינו ' + Math.ceil((rl.until - Date.now()) / 1000) + ' שניות');
+      return;
+    }
     setBusy(true);
     setError('');
     const ok = await cloudUnlock(value.trim(), mode);
     setBusy(false);
     if (!ok) {
-      setError(mode === 'pass' ? 'סיסמה שגויה — נסו שוב' : 'מפתח שחזור שגוי');
+      const st = notePinFail('cloudenc', Date.now());
+      setError(
+        st.until > Date.now()
+          ? 'יותר מדי ניסיונות — המתינו ' + Math.ceil((st.until - Date.now()) / 1000) + ' שניות'
+          : mode === 'pass' ? 'סיסמה שגויה — נסו שוב' : 'מפתח שחזור שגוי',
+      );
       setValue('');
+    } else {
+      clearPinFails('cloudenc');
     }
     // הצלחה → needUnlock=false + הסנכרון ממשיך, App עובר לאפליקציה
   };
