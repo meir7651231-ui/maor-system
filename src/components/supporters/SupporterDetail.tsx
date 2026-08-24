@@ -16,7 +16,7 @@ import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field, FormError, Modal, Select, StickyBackBar, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
+import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
 import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
@@ -474,6 +474,21 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             </div>
           )}
           <InfoRow k="טלפון" v={sp.phone || '—'} ltr />
+          {/* טלפונים נוספים (ריבוי-טלפונים) — כל אחד עם תווית, הערה "ממי זה", סיווג ישראל/חו"ל, וכפתורי חיוג/וואטסאפ */}
+          {(sp.phones ?? []).length > 0 && (
+            <div style={{ margin: '2px 0 6px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {allSupPhones(sp).filter((r) => !r.primary).map((r, i) => (
+                <div key={i} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, fontSize: 13 }}>
+                  <span dir="ltr" style={{ fontWeight: 600 }}>{r.num}</span>
+                  {r.label && <span style={{ color: 'var(--ink-faint, #8a8378)' }}>· {r.label}</span>}
+                  {r.note && <span style={{ color: 'var(--ink-faint, #8a8378)' }}>({r.note})</span>}
+                  <span style={{ fontSize: 11, color: r.region === 'intl' ? '#a5651a' : '#2f7d52', fontWeight: 700 }}>{r.region === 'intl' ? '🌍 חו"ל' : '🇮🇱 ישראל'}</span>
+                  {telephonyOn(config) && <CallBtn phone={r.num} title={'חיוג ל' + sp.name} />}
+                  {integrationOn(config, 'whatsapp') && (r.wa || r.region !== 'intl') && <WaBtn phone={r.num} title={'וואטסאפ ל' + sp.name} />}
+                </div>
+              ))}
+            </div>
+          )}
           <InfoRow k="אימייל" v={sp.email || '—'} ltr />
           <InfoRow k="כתובת" v={sp.address || '—'} />
           <InfoRow k='ת"ז' v={sp.idNum || '—'} ltr />

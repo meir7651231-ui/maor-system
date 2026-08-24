@@ -531,10 +531,27 @@ export interface Hok {
   kevaId?: string;
 }
 
+/** מספר-טלפון נוסף לתורם (ריבוי-טלפונים) — additive. */
+export interface SupPhone {
+  id: Id;
+  /** המספר עצמו (מפורמט דרך fixPhone). */
+  num: string;
+  /** תווית: וואטסאפ / בית / עבודה / … (חופשי). */
+  label?: string;
+  /** "ממי זה" — הערה חופשית על בעל-המספר. */
+  note?: string;
+  /** האם זהו מספר וואטסאפ. */
+  wa?: boolean;
+}
+
 export interface Supporter {
   id: Id;
   name: string;
   phone: string;
+  /** טלפונים נוספים (וואטסאפ/בית/עבודה/…) — additive, אין מיגרציה. השדה `phone`
+   *  נשאר המספר-הראשי (מקור-אמת לכל המשטחים הקיימים); כאן רק מספרים נוספים.
+   *  כל מספר עם תווית ("ממי זה"), סימון-וואטסאפ, וסיווג ישראל/חו"ל נגזר. */
+  phones?: SupPhone[];
   email: string;
   address: string;
   /** עיר (P2 פער 23 — עמודת הדוח המותאם המלא; אופציונלי, אין מיגרציה). */
