@@ -686,6 +686,51 @@ export interface UiPrefs {
   accent?: string;
   /** קמפיין חייגן-מונחה פעיל — חסר = אין קמפיין (ביט-זהה להיום). */
   dialer?: DialerCampaign;
+  /**
+   * 💵 שיקוף הקופה-הרושמת (ביקורת-האמון 24.8, additive): הרשומות חיו
+   * ב-localStorage בלבד — לא בגיבוי, לא בסנכרון, נמחקו עם ניקוי-דפדפן.
+   * ‏localStorage נשאר מקור-העבודה (בידוד הקופה לא זז); כאן עותק-עמיד
+   * שמתעדכן בכל כתיבה ומרפא localStorage שאבד (המונה לוקח את המקסימום —
+   * אין כפל מספרי-אישור).
+   */
+  cashSeq?: number;
+  cashReceipts?: CashReceiptRec[];
+  cashShift?: CashShiftRec | null;
+  cashShifts?: CashShiftCloseRec[];
+}
+
+/** רשומת אישור-תשלום של הקופה-הרושמת (שיקוף — המבנה של הרכיב). */
+export interface CashReceiptRec {
+  num: number;
+  at: string;
+  client: string;
+  due: number;
+  received: number;
+  change: number;
+  items?: { name: string; amount: number }[];
+}
+
+/** משמרת-קופה פתוחה (שיקוף). */
+export interface CashShiftRec {
+  openedAt: string;
+  float: number;
+  checks?: number;
+  other?: number;
+}
+
+/** סגירת-קופה (דוח-Z, שיקוף). */
+export interface CashShiftCloseRec {
+  closedAt: string;
+  openedAt: string;
+  float: number;
+  sales: number;
+  count: number;
+  counted: number;
+  diff: number;
+  openChecks?: number;
+  closeChecks?: number;
+  openOther?: number;
+  closeOther?: number;
 }
 
 /* ---------- קופות צדקה (מודול tzedaka — מבודד; BUILD-ORDER-TZEDAKA-2026-07-30) ---------- */

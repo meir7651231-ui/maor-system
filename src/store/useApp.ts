@@ -18,6 +18,7 @@ import {
   pushAudit,
   pushDelLog,
   type DelEntry,
+  type UiPrefs,
   type Db,
   type Donation,
   type Enrollment,
@@ -279,6 +280,8 @@ interface AppState {
    * הורדת דוח-משפחה וייצוא-גיבוי היו בלתי-נראים. רישום-צפייה לפעולות רגישות.
    */
   logAccess: (act: string, what: string) => void;
+  /** 💵 שיקוף הקופה-הרושמת אל db.ui (עותק-עמיד: גיבוי/סנכרון/צילומים). */
+  cashboxMirror: (patch: Partial<Pick<UiPrefs, 'cashSeq' | 'cashReceipts' | 'cashShift' | 'cashShifts'>>) => void;
 
   // משפחות ובני משפחה
   upsertFamily: (fam: Family) => void;
@@ -1483,6 +1486,8 @@ export const useApp = create<AppState>()((set, get) => {
     },
     dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
     logAccess: (act, what) => logAudit(act, what),
+    // 💵 שיקוף הקופה-הרושמת (ביקורת-האמון 24.8) — עותק-עמיד ב-db.ui
+    cashboxMirror: (patch) => setDb((db) => ({ ui: { ...db.ui, ...patch } })),
 
     upsertFamily(fam) {
       setDb((db) => ({ families: upsertIn(db.families, fam) }));
