@@ -306,6 +306,10 @@ export function SupportersView() {
   const [confirmDel, setConfirmDel] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignVal, setAssignVal] = useState('');
+  // מיזוג-ידני מהבחירה (בקשת-שטח 22.8) — בורר-מנצח + מיזוג group.
+  const [mergeSelOpen, setMergeSelOpen] = useState(false);
+  const [mergeKeep, setMergeKeep] = useState('');
+  const mergeSupportersGroup = useApp((s) => s.mergeSupportersGroup);
   // בקשת-בעלים 23.8: הסרת-ייעוד מפורשת (forWho ריק) — לא רק שיוך; אישור-דו-שלבי
   const [clearPurposeConfirm, setClearPurposeConfirm] = useState(false);
   const deleteSupporters = useApp((s) => s.deleteSupporters);
@@ -826,6 +830,13 @@ export function SupportersView() {
           {purposeOn && bulkGranted('supporters.purpose') && (
             <Btn disabled={!selSet.size} onClick={() => setClearPurposeConfirm(true)} title="הסרת הייעוד מהמסומנים — הלא-מסומנים שומרים את ייעודם">
               {'🧹 הסר ייעוד · ' + selSet.size}
+            </Btn>
+          )}
+          {/* בקשת-שטח 22.8: מיזוג-ידני מהבחירה — למקרים שהמנוע-האוטומטי לא זיהה
+              ("מצאתי 4 טלפונים למזג"). דורש ≥2 מסומנים; פותח בורר-מנצח. */}
+          {bulkGranted('supporters.bulkmerge') && (
+            <Btn disabled={selSet.size < 2} onClick={() => setMergeSelOpen(true)} title="מיזוג התומכים המסומנים לכרטיס אחד — כל התרומות והקבלות נשמרות">
+              {'🔗 מזג נבחרים · ' + selSet.size}
             </Btn>
           )}
           {bulkGranted('supporters.bulkdelete') && (
@@ -1365,6 +1376,43 @@ export function SupportersView() {
           </div>
         </Modal>
       )}
+
+      {/* מיזוג-ידני מהבחירה (בקשת-שטח 22.8) — בורר-מנצח; כל התרומות/קבלות נשמרות */}
+      {mergeSelOpen && (() => {
+        const chosen = db.supporters.filter((sp) => selSet.has(sp.id));
+        const keepId = mergeKeep && chosen.some((sp) => sp.id === mergeKeep)
+          ? mergeKeep
+          : [...chosen].sort((a, b) => supCount(b) - supCount(a))[0]?.id ?? '';
+        return (
+          <Modal title={'מיזוג ' + chosen.length + ' ' + termOf(config, 'nav.supporters', 'תומכים') + ' לכרטיס אחד'} onClose={() => { setMergeSelOpen(false); setMergeKeep(''); }}>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+              בחרו את הכרטיס <b>שיישאר</b> — כל התרומות, הקבלות וההיסטוריה של השאר יעברו אליו, והם יימחקו. פעולה בלתי-הפיכה.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 260, overflowY: 'auto', margin: '8px 0' }}>
+              {chosen.map((sp) => (
+                <label key={sp.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: '1px solid var(--line, #e6ddce)', borderRadius: 8, cursor: 'pointer' }}>
+                  <input type="radio" name="mergekeep" checked={sp.id === keepId} onChange={() => setMergeKeep(sp.id)} />
+                  <span style={{ fontWeight: 700 }}>{sp.name}</span>
+                  <span style={{ color: 'var(--ink-faint, #8a8378)', fontSize: 12.5 }} dir="ltr">{sp.phone || '—'}</span>
+                  <span style={{ flex: 1 }} />
+                  <span style={{ fontSize: 12, color: 'var(--ink-faint, #8a8378)' }}>{supCount(sp)} {termOf(config, 'entity.donations', 'תרומות')}</span>
+                </label>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <Btn kind="primary" disabled={!keepId || chosen.length < 2} onClick={() => {
+                const losers = chosen.map((sp) => sp.id).filter((id) => id !== keepId);
+                mergeSupportersGroup(keepId, losers);
+                toast('מוזגו ' + (losers.length + 1) + ' ' + termOf(config, 'nav.supporters', 'תומכים') + ' לכרטיס אחד');
+                setMergeSelOpen(false); setMergeKeep(''); exitSelMode();
+              }}>
+                🔗 מזג אל הנבחר
+              </Btn>
+              <Btn onClick={() => { setMergeSelOpen(false); setMergeKeep(''); }}>ביטול</Btn>
+            </div>
+          </Modal>
+        );
+      })()}
 
       {/* פריט ד' (19.8): שיוך-ייעוד לכמה תומכ/ות בבת-אחת */}
       {assignOpen && (
