@@ -3,7 +3,7 @@
  * לבדוק ביחידה את הלוגיקה הרגישה ביותר: החלת שינוי מרוחק על ה-DB המקומי בלי
  * לדלוף, בלי לשכפל ובלי לקרוס על מסמך מרוחק פגום.
  */
-import type { Db } from '../types/domain';
+import { mergeDelLogs, type DelEntry, type Db } from '../types/domain';
 import { ENTITY_COLLECTIONS, type EntityCol } from './cloud-diff';
 
 /**
@@ -120,6 +120,15 @@ export function applyMetaPartial(db: Db, meta: Record<string, unknown>): Db {
   assign('budget', meta.budget); // ORGADMIN/SHOP9 — סנכרון סקלר ארגוני (ציד-באגים 3.8)
   assign('usdRate', meta.usdRate);
   assign('audit', meta.audit); // לוג-פעולות (#10) — הענן-מנצח כמו שאר ה-meta
+  // 🪦 מצבות (ביקורת-האמון 24.8): איחוד — לא הענן-מנצח, אחרת מצבה מקומית
+  // טרייה (מחיקה שטרם נדחפה) נמחקת מהטבעת והרשומה קמה לתחייה בסיבוב הבא.
+  if (Array.isArray(meta.delLog)) {
+    const mergedDel = mergeDelLogs(db.delLog, meta.delLog as DelEntry[]);
+    if (JSON.stringify(mergedDel) !== JSON.stringify(db.delLog ?? [])) {
+      next.delLog = mergedDel;
+      changed = true;
+    }
+  }
   assign('notif', meta.notif);
   assign('reports', meta.reports);
   assign('ui', meta.ui);

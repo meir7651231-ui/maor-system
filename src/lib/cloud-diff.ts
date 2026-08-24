@@ -94,6 +94,7 @@ const META_KEYS = [
   'budget',
   'usdRate',
   'audit', // לוג-פעולות (#10) — רוכב על meta; חצוב-תקרה בצד-הלקוח (AUDIT_CAP)
+  'delLog', // 🪦 טבעת-מצבות (ביקורת-האמון 24.8) — רוכבת על meta; DEL_LOG_CAP
   'notif',
   'reports',
   'ui',
@@ -123,6 +124,7 @@ export function metaOf(db: Db): Record<string, unknown> {
     budget: db.budget,
     usdRate: db.usdRate,
     audit: db.audit, // לוג-פעולות (#10) — רוכב על meta כמו attnDone
+    delLog: db.delLog, // 🪦 מצבות-מחיקה — רוכבות על meta (ביקורת-האמון 24.8)
     notif: db.notif,
     reports: db.reports,
     ui: db.ui,
