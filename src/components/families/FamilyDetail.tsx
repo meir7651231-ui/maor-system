@@ -183,6 +183,7 @@ export function FamilyDetail(props: { family: Family }) {
   const deleteFamily = useApp((s) => s.deleteFamily);
   const deleteMember = useApp((s) => s.deleteMember);
   const toast = useApp((s) => s.toast);
+  const logAccess = useApp((s) => s.logAccess);
   const config = useApp((s) => s.config);
   // הרשאה אחידה (בקשת-בעלים 23.8): מחיקת-משפחה למנהל/בעלים תמיד; עובד/ת רק אם הודלק/ה.
   // featureOn נשמר (מכבד כיבוי-ארגוני קיים של families.delete) ⇒ אפס-רגרסיה.
@@ -359,7 +360,7 @@ export function FamilyDetail(props: { family: Family }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <h2 style={{ fontSize: 16, fontWeight: 700 }}>פרטי קשר והורים</h2>
             {featureOn(config, 'families.showid') && (
-              <Btn sm onClick={() => setShowIds((v) => !v)}>
+              <Btn sm onClick={() => { if (!showIds) logAccess('חשיפת ת"ז', fam.name); setShowIds((v) => !v); }}>
                 {showIds ? 'הסתר ת"ז' : 'הצג ת"ז'}
               </Btn>
             )}
