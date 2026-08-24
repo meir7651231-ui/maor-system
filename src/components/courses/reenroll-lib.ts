@@ -250,7 +250,12 @@ export function freshNextYearEnrollment(
     group: groupOverride ?? src.group,
     absences: [],
     payments: [],
-    totalDue: src.totalDue,
+    // ⚠️ תיקון 25.8 (בקשת-בעלים "היתרה צריכה להיות אותו דבר בשניהם"): לא מעתיקים
+    // יותר את totalDue של-אשתקד — אחרת payBal של-החדש = totalDue + carry ⇒ כפילות
+    // (₪280 במקום ₪80). היתרה עצמה עוברת ב-carryBalance; totalDue של-השנה-החדשה
+    // ייקבע כשירשמו/יוסיפו תשלום. פרמטרי-התמחור (tier/freq/term) עדיין נישאים
+    // קדימה כמסמכי-עזר להתמחור-החדש. אינווריאנט: payBal(new) === payBal(src).
+    totalDue: 0,
     dueDate: '',
     status: 'active',
     // הערת-התלמיד/ה עוברת קדימה (בקשת-בעלים 24.8) — הרישום ממשיך את הסיפור.
@@ -261,7 +266,7 @@ export function freshNextYearEnrollment(
     // יתרה-מועברת: רק אם קיימת בפועל (חיובי=חוב · שלילי=זכות · 0/חסר = ביט-זהה
     // לשיבוץ ישן, קל למיגרציה).
     ...(carry !== 0 ? { carryBalance: carry } : {}),
-    // תמחור משוקלל — נשמר כדי שהמחיר יעבור לשנה הבאה כמו שהיה.
+    // תמחור משוקלל — נשמר כדי שיהיה זמין להגדרת totalDue של-השנה החדשה.
     ...(src.freq !== undefined ? { freq: src.freq } : {}),
     ...(src.freqUnit !== undefined ? { freqUnit: src.freqUnit } : {}),
     ...(src.term !== undefined ? { term: src.term } : {}),
