@@ -481,6 +481,12 @@ interface AppState {
    * rid מוחזר רק כשהונפק בפועל — ה-UI לא מנחש (לקח באג-5).
    */
   addShopRedemption: (assignmentId: string, r: Omit<ShopRedemption, 'id' | 'rid'>) => { ok: boolean; rid?: string };
+  /** 📅 פריסת חיובים-מתוכננים על שיוך-חנות (בקשת-בעלים 25.8) — לא-S- עד חיוב-בפועל.
+   *  componentId חובה — הוא מזין את המימוש בעת החיוב. */
+  addShopPlanned: (assignmentId: string, spec: { componentId: string; firstDate: string; count: number; amount: number; method: string; shopValue?: number; shopHoliday?: string; note?: string; gapMonths?: number }) => { ok: boolean; ids?: string[] };
+  cancelShopPlanned: (assignmentId: string, planId: string, todayIso: string) => { ok: boolean };
+  /** ✓ החיוב ירד — יוצר ShopRedemption עם S- דרך addShopRedemption, מקשר chargedRid. */
+  chargeShopPlanned: (assignmentId: string, planId: string) => { ok: boolean; rid?: string };
   /**
    * ביטול מימוש עם סימון (הכרעת בעלים 14) — הרשומה לעולם לא נמחקת:
    * voidedAt=היום + voidReason (רשות). ה-rid נשאר בסדרה וה-מונים לא זזים
@@ -2906,6 +2912,87 @@ export const useApp = create<AppState>()((set, get) => {
       }));
       return rid ? { ok: true, rid } : { ok: true };
     },
+    // ── 📅 חיובים-מתוכננים על שיוך-חנות (בקשת-בעלים 25.8) ──
+    // chargeShopPlanned יוצר ShopRedemption עם S- דרך addShopRedemption המקורי
+    // (שער-המנהל חל שם; ‏shopReceiptSeq מנוהל שם). כאן: יצירה/ביטול-רך בלבד.
+    addShopPlanned(assignmentId, spec) {
+      if (!get().db.shopAssignments.some((a) => a.id === assignmentId)) {
+        get().toast('השיוך לא נמצא');
+        return { ok: false };
+      }
+      const count = Math.max(1, Math.floor(spec.count));
+      const ids = Array.from({ length: count }, () => get().nextId('pc'));
+      const groupId = get().nextId('pcg');
+      const plans = planCharges({
+        firstDate: spec.firstDate,
+        count,
+        amount: spec.amount,
+        cur: '₪',
+        method: spec.method,
+        cat: '',
+        note: spec.note,
+        gapMonths: spec.gapMonths,
+        groupId,
+        ids,
+      }).map((p) => ({
+        ...p,
+        componentId: spec.componentId,
+        ...(spec.shopValue !== undefined ? { shopValue: spec.shopValue } : {}),
+        ...(spec.shopHoliday ? { shopHoliday: spec.shopHoliday } : {}),
+      }));
+      setDb((db) => ({
+        shopAssignments: db.shopAssignments.map((a) =>
+          a.id === assignmentId ? { ...a, plannedCharges: [...(a.plannedCharges || []), ...plans] } : a,
+        ),
+      }));
+      logAudit('חיוב-מתוכנן (חנות)', count + ' × ₪' + spec.amount + ' · החל ' + spec.firstDate);
+      return { ok: true, ids };
+    },
+    cancelShopPlanned(assignmentId, planId, todayIso) {
+      let done = false;
+      setDb((db) => ({
+        shopAssignments: db.shopAssignments.map((a) => {
+          if (a.id !== assignmentId) return a;
+          const plans = (a.plannedCharges || []).map((p) => {
+            if (p.id !== planId) return p;
+            if (p.chargedRid || p.cancelledAt) return p;
+            done = true;
+            return { ...p, cancelledAt: todayIso };
+          });
+          return { ...a, plannedCharges: plans };
+        }),
+      }));
+      if (done) logAudit('ביטול חיוב-מתוכנן (חנות)', planId);
+      return { ok: done };
+    },
+    chargeShopPlanned(assignmentId, planId) {
+      const a0 = get().db.shopAssignments.find((a) => a.id === assignmentId);
+      const plan0 = a0?.plannedCharges?.find((p) => p.id === planId);
+      if (!plan0) return { ok: false };
+      if (plan0.chargedRid) return { ok: true, rid: plan0.chargedRid };
+      if (plan0.cancelledAt) return { ok: false };
+      if (!plan0.componentId) { get().toast('חסר componentId על החיוב-המתוכנן'); return { ok: false }; }
+      const r = get().addShopRedemption(assignmentId, {
+        componentId: plan0.componentId,
+        date: plan0.date,
+        holiday: plan0.shopHoliday || '',
+        paid: plan0.amount,
+        value: plan0.shopValue || plan0.amount,
+        note: 'חיוב-מתוכנן ' + planId + (plan0.note ? ' · ' + plan0.note : ''),
+      });
+      if (!r.ok || !r.rid) return { ok: false };
+      setDb((db) => ({
+        shopAssignments: db.shopAssignments.map((a) => {
+          if (a.id !== assignmentId) return a;
+          return {
+            ...a,
+            plannedCharges: (a.plannedCharges || []).map((p) => (p.id === planId ? { ...p, chargedRid: r.rid } : p)),
+          };
+        }),
+      }));
+      return { ok: true, rid: r.rid };
+    },
+
     voidShopRedemption(assignmentId, redemptionId, reason) {
       const a = get().db.shopAssignments.find((x) => x.id === assignmentId);
       const r = a?.redemptions.find((x) => x.id === redemptionId);
