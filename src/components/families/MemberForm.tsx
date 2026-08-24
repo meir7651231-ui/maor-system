@@ -10,7 +10,7 @@ import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { ageOf } from './lib';
+import { ageOf, isoToday } from './lib';
 
 const MEDIA: { key: keyof MemberMedia; label: string }[] = [
   { key: 'mSefach', label: 'ספח' },
@@ -29,6 +29,7 @@ interface MemberMedia {
 }
 
 interface MemberFormState extends MemberMedia {
+  mConsentAt: NonNullable<Member['mConsentAt']>;
   first: string;
   gender: Gender;
   birth: string;
@@ -65,6 +66,7 @@ function initState(member: Member | null, prefill?: MemberPrefill): MemberFormSt
     mRecommend: member?.mRecommend ?? false,
     mPhotos: member?.mPhotos ?? false,
     mVideos: member?.mVideos ?? false,
+    mConsentAt: member?.mConsentAt ?? {},
     notes: member?.notes ?? '',
   };
 }
@@ -110,6 +112,8 @@ export function MemberForm(props: { famId: string; member: Member | null; prefil
       mRecommend: f.mRecommend,
       mPhotos: f.mPhotos,
       mVideos: f.mVideos,
+      // 🗓 חותמות-הסכמה — נשמרות רק כשיש לפחות אחת (אין רעש-סכמה)
+      ...(Object.keys(f.mConsentAt).length ? { mConsentAt: f.mConsentAt } : {}),
       notes: f.notes,
     };
     if (props.member?.isParent || (!props.member && props.prefill?.isParent)) member.isParent = true;
@@ -182,8 +186,20 @@ export function MemberForm(props: { famId: string; member: Member | null; prefil
         <Field label="תיעוד ומדיה — מה קיים בתיק?">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
             {MEDIA.map((mc) => (
-              <Chip key={mc.key} on={f[mc.key]} onClick={() => set({ [mc.key]: !f[mc.key] } as Partial<MemberFormState>)}>
+              <Chip
+                key={mc.key}
+                on={f[mc.key]}
+                // 🗓 הדלקה = חותמת-תאריך-הסכמה; כיבוי = הסרת-החותמת (ביקורת-האמון 24.8)
+                onClick={() => {
+                  const on = !f[mc.key];
+                  const nextAt = { ...f.mConsentAt };
+                  if (on) nextAt[mc.key] = isoToday();
+                  else delete nextAt[mc.key];
+                  set({ [mc.key]: on, mConsentAt: nextAt } as Partial<MemberFormState>);
+                }}
+              >
                 {mc.label}
+                {f[mc.key] && f.mConsentAt[mc.key] ? ' · ' + (f.mConsentAt[mc.key] as string).slice(0, 10) : ''}
               </Chip>
             ))}
           </div>

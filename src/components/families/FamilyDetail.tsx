@@ -63,7 +63,11 @@ function MemberCard(props: { m: Member; onEdit: () => void; onDelete: () => void
   const gLabel = m.isParent ? (m.gender === 'f' ? 'אם' : 'אב') : m.gender === 'f' ? 'בת' : 'בן';
   const gBg = m.isParent ? '#f6ead1' : m.gender === 'f' ? '#fbeef3' : '#e7edf5';
   const gC = m.isParent ? '#9a6414' : m.gender === 'f' ? '#be185d' : '#3a5a86';
-  const media = MEDIA_LABELS.filter((x) => m[x.key] === true).map((x) => x.label);
+  // 🗓 חותמת-הסכמה מוצגת ליד כל הסכמה שנרשם לה תאריך (ביקורת-האמון 24.8)
+  const media = MEDIA_LABELS.filter((x) => m[x.key] === true).map((x) => {
+    const at = m.mConsentAt?.[x.key as keyof NonNullable<Member['mConsentAt']>];
+    return x.label + (at ? ' (מ-' + at.slice(0, 10) + ')' : '');
+  });
   return (
     <div
       style={{
