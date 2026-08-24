@@ -16,6 +16,8 @@ import {
   type Course,
   type CredLogEntry,
   pushAudit,
+  pushDelLog,
+  type DelEntry,
   type Db,
   type Donation,
   type Enrollment,
@@ -45,6 +47,7 @@ import {
   type DialOutcome,
   type WorkTask,
 } from '../types/domain';
+import { ENTITY_COLLECTIONS } from '../lib/cloud-diff';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { advanceStatus } from '../components/shop7/lib';
@@ -771,7 +774,24 @@ export const useApp = create<AppState>()((set, get) => {
 
   function setDb(patch: Partial<Db> | ((db: Db) => Partial<Db>)) {
     const prev = get().db;
-    set((s) => ({ db: { ...s.db, ...(typeof patch === 'function' ? patch(s.db) : patch) } }));
+    set((s) => {
+      const p = typeof patch === 'function' ? patch(s.db) : patch;
+      // 🪦 מצבות-מחיקה (ביקורת-האמון 24.8): נקודת-החיבור המרכזית — כל פעולה
+      // שמסירה רשומות מאוסף-ישות (deleteFamily/deleteSupporter/מיזוג/שחזור…)
+      // מטביעה מצבה, כדי שמכשיר-אופליין לא יחיה אותן בהתחברות-הבאה.
+      const dels: DelEntry[] = [];
+      const at = new Date().toISOString();
+      for (const col of ENTITY_COLLECTIONS) {
+        const nextList = p[col] as Array<{ id: string }> | undefined;
+        if (!nextList) continue;
+        const prevList = s.db[col] as Array<{ id: string }>;
+        if (nextList === prevList) continue;
+        const nextIds = new Set(nextList.map((x) => x.id));
+        for (const x of prevList) if (!nextIds.has(x.id)) dels.push({ at, col, id: x.id });
+      }
+      const withDels = dels.length ? { ...p, delLog: pushDelLog((p.delLog as DelEntry[] | undefined) ?? s.db.delLog, dels) } : p;
+      return { db: { ...s.db, ...withDels } };
+    });
     dirty = true; // עריכה מקומית ממתינה — שער ריבוי-הטאבים לא ידרוס אותה (#3)
     scheduleSave();
     // דחיפה לענן (debounced במודול הענן) — no-op כשאין ענן / בזמן החלת שינוי מרוחק

@@ -10,7 +10,7 @@
  * 3. cloudOnDbChange(prev, next) — נקרא מנתיב setDb של ה-store, debounce
  *    800ms, מחשב diffDb ודוחף. תור לא-מקוון מנוהל ע"י Firestore עצמו.
  */
-import type { AuditEntry, Db } from '../types/domain';
+import { mergeDelLogs, type AuditEntry, type Db } from '../types/domain';
 import { diffDb, emptyDiff, ENTITY_COLLECTIONS, fullDbDiff, stripSupporterDonations, type DbDiff } from '../lib/cloud-diff';
 import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
 import { auditWriterEmail, donationSplitActive, pullAll, pullAuditRing, pushAuditRing, pushDiff, pushDonations, subscribeAll, supEnforceActive, type RemotePartial } from '../lib/cloud';
@@ -146,10 +146,18 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
       // בהתנגשות, והתוספות המקומיות נשמרות ונדחפות לענן. בלי זה, כל עבודה
       // מקומית שקדמה לחיבור הראשון נמחקת בשקט.
       const merged: Db = { ...cloudDb };
+      // 🪦 ביקורת-האמון 24.8: id-מקומי שחסר בענן היה תמיד "תוספת" ונדחף חזרה —
+      // גם כשנמחק בענן בזמן שהמכשיר הזה היה אופליין (תחיית-מתים). המצבות
+      // (delLog, איחוד מקומי+ענן) מבדילות: יש-מצבה ⇒ המחיקה גוברת והרשומה
+      // יורדת גם כאן; אין-מצבה ⇒ תוספת-אופליין אמיתית שנשמרת ונדחפת.
+      const tombs = new Set(mergeDelLogs(local.delLog, cloudDb.delLog).map((e) => e.col + '|' + e.id));
+      merged.delLog = mergeDelLogs(local.delLog, cloudDb.delLog);
       for (const col of ENTITY_COLLECTIONS) {
         const cloudList = cloudDb[col] as Array<{ id: string }>;
         const cloudIds = new Set(cloudList.map((x) => x.id));
-        const localOnly = (local[col] as Array<{ id: string }>).filter((x) => !cloudIds.has(x.id));
+        const localOnly = (local[col] as Array<{ id: string }>).filter(
+          (x) => !cloudIds.has(x.id) && !tombs.has(col + '|' + x.id),
+        );
         if (localOnly.length) (merged[col] as Array<{ id: string }>) = [...cloudList, ...localOnly];
       }
       // 🐛 נחיל-עמוק (13.8): מוני-הקבלות חייבים לעלות בלבד. merged ירש את מונה-הענן

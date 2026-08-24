@@ -1054,6 +1054,13 @@ export interface Db {
    * (AUDIT_CAP): הוותיק נדחק. אופציונלי — גיבוי ישן בלי השדה נטען עם [].
    */
   audit?: AuditEntry[];
+  /**
+   * 🪦 טבעת-מצבות (ביקורת-האמון 24.8, additive) — מזהי-ישויות שנמחקו.
+   * הבאג: מכשיר שהיה אופליין בזמן שרשומה נמחקה בענן דחף אותה חזרה בהתחברות
+   * (איחוד-ראשון מתייחס לכל id-מקומי-בלבד כ"תוספת"). המצבה מבדילה בין
+   * "נוצר-אופליין" ל"נמחק-בענן". רוכבת על meta; טבעת DEL_LOG_CAP.
+   */
+  delLog?: DelEntry[];
 }
 
 /** רשומת-audit אחת — קצרה במכוון (הלוג רוכב על meta בסנכרון-הענן). */
@@ -1066,6 +1073,45 @@ export interface AuditEntry {
   act: string;
   /** זיהוי-היעד: שם/מספר-קבלה/כותרת. */
   what: string;
+}
+
+/** מצבת-מחיקה אחת — אוסף+מזהה+מתי. קצרה במכוון (רוכבת על meta). */
+export interface DelEntry {
+  /** חותמת ISO מלאה של המחיקה. */
+  at: string;
+  /** שם אוסף-הישות (families/supporters/…). */
+  col: string;
+  /** מזהה-הרשומה שנמחקה. */
+  id: string;
+}
+
+/** תקרת טבעת-המצבות. */
+export const DEL_LOG_CAP = 500;
+
+/** דחיפת מצבות לטבעת (טהור) — דדופ לפי col|id (החדשה גוברת), הוותיקות נדחקות. */
+export function pushDelLog(list: DelEntry[] | undefined, entries: DelEntry[]): DelEntry[] {
+  if (!entries.length) return list ?? [];
+  const merged = [...(list ?? []), ...entries];
+  const seen = new Set<string>();
+  const out: DelEntry[] = [];
+  for (let i = merged.length - 1; i >= 0; i--) {
+    const k = merged[i].col + '|' + merged[i].id;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.unshift(merged[i]);
+  }
+  return out.slice(-DEL_LOG_CAP);
+}
+
+/** איחוד שתי טבעות-מצבות (מקומית+ענן) — לפי col|id, החותמת החדשה גוברת. */
+export function mergeDelLogs(a: DelEntry[] | undefined, b: DelEntry[] | undefined): DelEntry[] {
+  const byKey = new Map<string, DelEntry>();
+  for (const e of [...(a ?? []), ...(b ?? [])]) {
+    const k = e.col + '|' + e.id;
+    const cur = byKey.get(k);
+    if (!cur || e.at > cur.at) byKey.set(k, e);
+  }
+  return [...byKey.values()].sort((x, y) => (x.at < y.at ? -1 : 1)).slice(-DEL_LOG_CAP);
 }
 
 /** תקרת-הלוג — טבעת: מעבר לתקרה דוחק את הוותיקות. */
