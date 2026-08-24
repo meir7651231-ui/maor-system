@@ -118,6 +118,10 @@ describe('🐛 ratchet — רישום-לשנה-הבאה In-Card (25.8, "0 נרש
     const fresh = useApp.getState().db.enrollments.find((e) => e.id === res.id)!;
     // חוב-מועבר: ₪200 - ₪120 = ₪80.
     expect(fresh.carryBalance).toBe(80);
+    // 🎯 האינווריאנט של-הבעלים (25.8): "היתרה צריכה להיות אותו דבר בשניהם".
+    // totalDue של-החדש = 0 (לא-כפילות עם carryBalance); payBal = max(0, 0+80-0) = 80.
+    // ב-payBal של-המקור: max(0, 200+0-120) = 80. שווים בדיוק ⇒ לא-כפילות.
+    expect(fresh.totalDue).toBe(0);
     // ה-payments של-החדש נולד ריק (הקבלה נשארת אצל המקור לרציפות R-):
     expect(fresh.payments).toEqual([]);
     // המקור לא נגע — הקבלה עדיין שם:
@@ -152,10 +156,10 @@ describe('🐛 ratchet — רישום-לשנה-הבאה In-Card (25.8, "0 נרש
     const res = useApp.getState().reenrollEnrollment('e1', '', undefined);
     const fresh = useApp.getState().db.enrollments.find((e) => e.id === res.id)!;
     expect(fresh.carryBalance).toBe(-50);            // זכות = ערך שלילי
-    // payBal של-החדש = max(0, 200 + (-50) - 0) = 150 — הזכות מקזזת את החוב-החדש.
-    // payCredit מציג את הזכות רק אם היא עולה על החוב:
-    // 0 - 200 - (-50) = -150 ⇒ max(0, -150) = 0 (עדיין חוב-נטו).
-    // מקרה-אמת של זכות-מלאה כשעדיין לא הוקלד totalDue-חדש → נכון להיום totalDue
-    // עובר מהמקור, אך זכות נשמרת במלוא בקזז החוב הבא. שער-חשבונאי: לא-אובד.
+    // 🎯 אינווריאנט "אותה יתרה בשניהם" גם לזכות (25.8):
+    // totalDue של-החדש = 0; payBal = max(0, 0+(-50)-0) = 0 (אין חוב).
+    // payCredit של-החדש = max(0, 0-0-(-50)) = 50 (זכות של-אשתקד גלויה).
+    // מקבילה למקור: payBal(src) = max(0, 200-250) = 0; payCredit(src) = 50. שווים.
+    expect(fresh.totalDue).toBe(0);
   });
 });
