@@ -900,7 +900,36 @@ export const useApp = create<AppState>()((set, get) => {
       mod.setDonationSplit(donationSplitOn(cfg));
       // אכיפת-תומכים (ארגוני-פלטפורמה בלבד) — off-by-default; חסר ⇒ ביט-זהה.
       mod.setSupEnforce(supEnforceOn(cfg));
+      // 🔧 בקשת-שטח 24.8 ("אני כל הזמן מאבד סנכרון" H2): watchAuth היה מפיל את
+      // הסנכרון מיידית על כל אירוע-null (טוקן-blip, IndexedDB לחוץ במובייל,
+      // App-Check חולף) ⇒ המשתמש הופנה לכניסה-מחדש. עכשיו: null מקבל **חלון-חסד
+      // של 5 שניות** — אם ה-SDK מרענן את הטוקן בתוך החלון, לא נוגעים בכלום
+      // (המנוי חי). רק אם null נמשך → מבצעים logout-נקי.
+      let authGrace: ReturnType<typeof setTimeout> | null = null;
       mod.watchAuth((user) => {
+        // אירוע-user תקין (כולל התאוששות מ-null) — מבטלים חלון-חסד תלוי.
+        if (user && authGrace) { clearTimeout(authGrace); authGrace = null; }
+        // אירוע null במהלך חלון-חסד קיים ⇒ מדלגים; הטיפול יבוצע בפקיעת-החלון.
+        if (!user && authGrace) return;
+        // אירוע null ראשון כשיש משתמש נוכחי ⇒ נכנס לחסד, לא נוגעים בסטטוס עדיין.
+        if (!user && get().cloud.user !== null) {
+          setCloud({ status: 'connecting' as const });
+          authGrace = setTimeout(() => {
+            authGrace = null;
+            if (get().cloud.user === null) return; // כבר טופל
+            // חסד נגמר — logout-נקי (הזרימה המקורית).
+            const hadUser2 = true;
+            setCloud({ authReady: true, user: null, status: 'idle' as const });
+            if (hadUser2) {
+              cloudCfgUnsub?.();
+              cloudCfgUnsub = null;
+              setCloud({ membership: 'na' });
+              mod.stopCloudSync();
+              mod.setCloudDek(null);
+            }
+          }, 5000);
+          return;
+        }
         const hadUser = get().cloud.user !== null;
         setCloud({ authReady: true, user, ...(user ? {} : { status: 'idle' as const }) });
         if (user && !hadUser) {
