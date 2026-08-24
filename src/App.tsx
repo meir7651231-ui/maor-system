@@ -93,6 +93,7 @@ const NED_LIVE_MAX = 400;
 
 const SYNC_DOT: Record<string, { color: string; title: string }> = {
   synced: { color: '#3fae5a', title: 'מסונכרן עם הענן' },
+  pending: { color: '#5b8def', title: 'שינויים ממתינים לסנכרון…' },
   connecting: { color: '#e2b93b', title: 'מתחבר לענן…' },
   error: { color: '#e05252', title: 'שגיאת סנכרון — הנתונים שמורים מקומית' },
   idle: { color: '#9aa0a6', title: 'סנכרון לא פעיל' },

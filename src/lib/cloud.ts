@@ -26,6 +26,7 @@ import {
 import {
   addDoc,
   collection,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -767,4 +768,41 @@ export async function writeMailOutbox(to: string, subject: string, text: string)
     status: 'pending',
     at: new Date().toISOString(),
   });
+}
+
+/**
+ * 📤 בריאות תור-השליחות (ביקורת-האמון 24.8): ה-Functions כותבות status:'error'
+ * על כשל-שליחה — ואף מסך לא קרא אותו; כשל SMS/מייל היה בלתי-נראה. קריאת
+ * הכשלים + מוני-הממתינים למסך-ההגדרות (Rules: קריאה = מנהל בלבד).
+ */
+export interface OutboxIssue {
+  id: string;
+  box: 'sms' | 'mail';
+  to: string;
+  subject?: string;
+  error?: string;
+  at?: string;
+}
+
+export async function fetchOutboxIssues(): Promise<{ issues: OutboxIssue[]; pending: { sms: number; mail: number } }> {
+  const issues: OutboxIssue[] = [];
+  const pending = { sms: 0, mail: 0 };
+  for (const box of ['sms', 'mail'] as const) {
+    const colName = box === 'sms' ? 'smsOutbox' : 'mailOutbox';
+    const ref = collection(requireDb(), scopedCol(colName));
+    const errs = await getDocs(query(ref, where('status', '==', 'error')));
+    for (const d of errs.docs) {
+      const v = d.data() as { to?: string; subject?: string; error?: string; at?: string };
+      issues.push({ id: d.id, box, to: v.to ?? '', subject: v.subject, error: v.error, at: v.at });
+    }
+    pending[box] = (await getDocs(query(ref, where('status', '==', 'pending')))).size;
+  }
+  issues.sort((a, b) => ((a.at ?? '') < (b.at ?? '') ? 1 : -1));
+  return { issues, pending };
+}
+
+/** 🔁 שליחה-חוזרת: החזרת הרשומה ל-pending — ה-Function הדקתית תרים אותה שוב. */
+export async function retryOutboxItem(box: 'sms' | 'mail', id: string): Promise<void> {
+  const colName = box === 'sms' ? 'smsOutbox' : 'mailOutbox';
+  await updateDoc(doc(requireDb(), scopedCol(colName), id), { status: 'pending', error: deleteField() });
 }
