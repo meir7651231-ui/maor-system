@@ -15,11 +15,11 @@ let ok = 0, skip = 0;
 const done = new Set(fs.readdirSync(OUT + '/new/atoms').map(f => f.replace(/\..*$/, '')));
 for (const a of atoms) {
   if (!a.pure) { skip++; continue; }
-  const m = a.source.match(/^[^/]+\/(.+):(\d+)-(\d+)$/); if (!m) continue;
+  const m = a.source.match(/^[^/]+\/(.+):(\d+)(?:-(\d+))?$/); if (!m) continue; // גם אטום-חד-שורתי (לקח-הרג'קס של reconcile)
   const kebab = a.name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
   if (done.has(kebab)) { skip++; continue; } // כבר חצוב-ידנית לדרגת-חוזה
   let txt; try { txt = fs.readFileSync(`${census.root}/${m[1]}`, 'utf8'); } catch { continue; }
-  const snippet = txt.split('\n').slice(+m[2] - 1, +m[3]).join('\n');
+  const snippet = txt.split('\n').slice(+m[2] - 1, +(m[3] || m[2])).join('\n');
   const js = ts.transpileModule(snippet, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText.trim();
   if (!js || !/export/.test(js)) { skip++; continue; }
   const file = `${kebab}@${m[1].replace(/[\/.]/g, '_')}.mjs`;
