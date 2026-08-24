@@ -3,7 +3,7 @@
  * פורמט תאריכים וטלפון. עזרים מקומיים בלבד — אין גישה ל-store או ל-DOM.
  */
 import type { CSSProperties } from 'react';
-import { emptyAyin, type Supporter } from '../../types/domain';
+import { emptyAyin, type Supporter, type SupPhone } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
 import { normSearch, formatIsraeliPhone } from '../../lib/validate';
@@ -229,6 +229,58 @@ export function chipStyle(bg: string, c: string): CSSProperties {
  */
 export function fixPhone(p: string): string {
   return formatIsraeliPhone(p);
+}
+
+// ---------- ריבוי-טלפונים + סיווג ישראל/חו"ל ----------
+
+/**
+ * סיווג מספר-טלפון: ישראלי ('il') או חו"ל ('intl'). דטרמיניסטי, מקבל צורות שונות.
+ * ‏972/+972/00972 ⇒ ישראל · ‏+/00 עם קידומת אחרת ⇒ חו"ל · ‏0+9 ספרות או 5+8 ⇒ ישראל
+ * (נייד/קווי מקומי) · אחרת (למשל 11 ספרות שמתחילות ב-1 = ארה"ב) ⇒ חו"ל. ריק ⇒ ישראל.
+ */
+export function phoneRegion(raw: string): 'il' | 'intl' {
+  const s = (raw || '').replace(/[^\d+]/g, '');
+  if (!s) return 'il';
+  if (/^(\+?972|00972)/.test(s)) return 'il';
+  if (/^\+/.test(s)) return 'intl';
+  if (/^00/.test(s)) return 'intl';
+  const d = s.replace(/\D/g, '');
+  if (/^0\d{8,9}$/.test(d)) return 'il'; // 0 + 9/10 ספרות
+  if (/^5\d{8}$/.test(d)) return 'il'; // נייד ישראלי בלי 0 מוביל
+  return 'intl';
+}
+
+export interface SupPhoneRow {
+  num: string;
+  label: string;
+  note: string;
+  wa: boolean;
+  region: 'il' | 'intl';
+  /** האם זהו המספר-הראשי (השדה phone) — להבחנה מהמספרים הנוספים. */
+  primary: boolean;
+}
+
+/** כל הטלפונים של תורם — הראשי (phone) ואז phones[], עם סיווג-אזור. דטרמיניסטי. */
+export function allSupPhones(sp: Supporter): SupPhoneRow[] {
+  const rows: SupPhoneRow[] = [];
+  if (sp.phone) rows.push({ num: sp.phone, label: '', note: '', wa: false, region: phoneRegion(sp.phone), primary: true });
+  for (const p of sp.phones ?? []) {
+    if (!p.num) continue;
+    rows.push({ num: p.num, label: p.label ?? '', note: p.note ?? '', wa: !!p.wa, region: phoneRegion(p.num), primary: false });
+  }
+  return rows;
+}
+
+/** האם לתורם יש מספר באזור המבוקש (לסינון חול/ישראל בלוח התורמים). */
+export function supHasRegion(sp: Supporter, region: 'il' | 'intl'): boolean {
+  return allSupPhones(sp).some((r) => r.region === region);
+}
+
+/** ניקוי מערך-טלפונים לשמירה: fixPhone לכל מספר, סינון ריקים, שמירת שדות. */
+export function cleanSupPhones(phones: SupPhone[] | undefined): SupPhone[] {
+  return (phones ?? [])
+    .map((p) => ({ ...p, num: fixPhone((p.num || '').trim()) }))
+    .filter((p) => p.num);
 }
 
 /** "₪1,200 + $300" או "—" כשאין כלום — כולל היסטוריה (הכרעת 9.8). */

@@ -18,7 +18,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, itemLabel, stageIndex, stageLabel, unitLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, fmtDate, hokDue, hokEffectivelyActive, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supIls, supLast, supLastInPeriod, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
+import { allSupPhones, chipStyle, fmtDate, hokDue, hokEffectivelyActive, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supHasRegion, supIls, supLast, supLastInPeriod, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
@@ -217,6 +217,8 @@ export function SupportersView() {
   // אלפי-תורמים רצים בעדיפות-נדחית (useDeferredValue) — האות מופיעה מיד.
   const dq = useDeferredValue(q);
   const [cat, setCat] = useState('all');
+  // סינון אזור-טלפון (בקשת-שטח) — הפרדת מספרי חו"ל ממספרי ישראל.
+  const [regionF, setRegionF] = useState<'all' | 'il' | 'intl'>('all');
   // בקשת-בעלים 15.8 ("פר תורם") — סינון לפי ייעוד-שעל-הכרטיס (forWho), מגודר supporters.purpose
   const [purposeF, setPurposeF] = useState('all');
   const [tierF, setTierF] = useState<string | null>(null);
@@ -568,6 +570,8 @@ export function SupportersView() {
   let list = visibleBase.filter((sp) => {
     if (cat !== 'all' && (sp.cat || '') !== cat) return false;
     if (purposeF !== 'all' && (sp.forWho || '').trim() !== purposeF) return false;
+    // סינון אזור-טלפון (חול/ישראל) — לפי כל מספרי התורם (ראשי + נוספים).
+    if (regionF !== 'all' && !supHasRegion(sp, regionF)) return false;
     // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): הוראות פעילות / רק שטרם-נרשמו-החודש
     if (hokF === 'active' && !sp.hok?.active) return false;
     // 🐛 קוהרנטיות (21.8): הצ'יפ "⏳ טרם נרשמו" מונה לפי hokDue (hokEffectivelyActive —
@@ -595,7 +599,8 @@ export function SupportersView() {
     if (ayinF === 'noeyes' && sp.ayin && eyesTotal(sp.ayin) > 0) return false;
     if (ayinF === 'today' && !(sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today)))) return false;
     if (!dq.trim()) return true;
-    const phoneHit = qd.length >= 3 && (sp.phone || '').replace(/\D/g, '').includes(qd);
+    // חיפוש-טלפון כולל את כל המספרים (ראשי + נוספים), לא רק phone.
+    const phoneHit = qd.length >= 3 && allSupPhones(sp).some((r) => r.num.replace(/\D/g, '').includes(qd));
     const textHit =
       !!nq && normSearch([sp.name, sp.email, sp.cat, sp.address, sp.forWho].join(' ')).includes(nq);
     return phoneHit || textHit;
@@ -938,6 +943,16 @@ export function SupportersView() {
             ]}
           />
         )}
+        {/* סינון אזור-טלפון (בקשת-שטח) — הפרדת חו"ל מישראל */}
+        <Select
+          value={regionF}
+          onChange={(v) => setRegionF(v as 'all' | 'il' | 'intl')}
+          options={[
+            { value: 'all', label: '🌐 כל הטלפונים' },
+            { value: 'il', label: '🇮🇱 ישראל בלבד' },
+            { value: 'intl', label: '🌍 חו"ל בלבד' },
+          ]}
+        />
         {/* בקשת-בעלים 15.8 ("פר תורם") — סינון לפי ייעוד-שעל-הכרטיס */}
         {purposeOn && purposeOptions.length > 0 && (
           <Select
