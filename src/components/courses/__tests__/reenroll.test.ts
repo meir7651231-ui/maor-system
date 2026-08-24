@@ -19,6 +19,7 @@ import {
   buildReenrollRows,
   enrollSummary,
   freshNextYearEnrollment,
+  nextAcademicYearLabel,
   nextYearCourseDraft,
   nextYearDates,
   reenrollCounts,
@@ -110,17 +111,22 @@ describe('🗓 ratchet — רישום לשנה הבאה', () => {
     expect(s.statusLabel).toBe('פעיל');
   });
 
-  it('2. תווית-שנה ותאריכי-שנה-הבאה', () => {
-    expect(academicYearLabel('2025-09-01')).toBe('2025/26');
-    expect(academicYearLabel('2026-09-01')).toBe('2026/27');
+  it('2. תווית-שנה-לימודים עברית + השנה-הבאה', () => {
+    // שינוי-מודל 24.8: התוויות בעברית (תשפ״ו/תשפ״ז), נגזרות מ-hebPartsOfIso.
+    expect(academicYearLabel('2025-09-01')).toBe('תשפ״ו');
+    expect(academicYearLabel('2026-09-01')).toBe('תשפ״ז');
     // חוג שהתחיל אחרי 1.1 עדיין שייך לשנה"ל שנפתחה בספטמבר הקודם:
-    expect(academicYearLabel('2026-03-01')).toBe('2025/26');
+    expect(academicYearLabel('2026-03-01')).toBe('תשפ״ו');
+    // "השנה הבאה" תמיד +1 עברית:
+    expect(nextAcademicYearLabel('2025-09-01')).toBe('תשפ״ז');
+    expect(nextAcademicYearLabel('2026-09-01')).toBe('תשפ״ח');
+    // שדרוג-לאחור: התאריכים עדיין מזוזים (nextYearDates), למי שרוצה לפתוח חוג-שנה-הבאה ידנית.
     const nd = nextYearDates('2025-09-01', '2026-07-31');
     expect(nd.start).toBe('2026-09-01');
     expect(nd.end).toBe('2027-07-31');
   });
 
-  it('3. טיוטת-שיבוץ לשנה הבאה מאפסת היסטוריה ושומרת תמחור/מסלול', () => {
+  it('3. טיוטת-שיבוץ לשנה הבאה: מאפסת היסטוריה, מעבירה הערה קדימה, ומסמנת שנה', () => {
     const src = mkEnroll({
       presents: ['2025-10-01'],
       absences: [{ date: '2025-12-01', reason: 'x' }],
@@ -131,14 +137,19 @@ describe('🗓 ratchet — רישום לשנה הבאה', () => {
       group: 'קבוצה ב׳',
       status: 'ended',
       endedAt: '2026-06-01',
-      note: 'הערה ישנה',
+      note: 'רגישה, מעדיפה שקט',
     });
-    const fresh = freshNextYearEnrollment(src, 'c2', 'e-new', '2026-09-01');
+    // שינוי-מודל 24.8: החוג לא משוכפל — targetCourseId = חוג-המקור עצמו (c1).
+    const fresh = freshNextYearEnrollment(src, 'c1', 'e-new', '2026-09-01', undefined, 'תשפ״ז');
     expect(fresh.id).toBe('e-new');
-    expect(fresh.courseId).toBe('c2');
+    expect(fresh.courseId).toBe('c1'); // אותו חוג — לא שוכפל
     expect(fresh.memberId).toBe('m1');
     expect(fresh.status).toBe('active'); // נולד פעיל, לא ended
     expect(fresh.enrolledAt).toBe('2026-09-01');
+    // 🗓 תווית שנת-הלימודים על השיבוץ (לסינון-פנימי בכרטיס-החוג):
+    expect(fresh.year).toBe('תשפ״ז');
+    // ההערה מועברת קדימה (בקשת-בעלים 24.8):
+    expect(fresh.note).toBe('רגישה, מעדיפה שקט');
     // היסטוריה אופסה:
     expect(fresh.presents).toBeUndefined();
     expect(fresh.absences).toEqual([]);
@@ -146,7 +157,6 @@ describe('🗓 ratchet — רישום לשנה הבאה', () => {
     expect(fresh.used).toBe(0);
     expect(fresh.purchased).toBe(0);
     expect(fresh.endedAt).toBeUndefined();
-    expect(fresh.note).toBe('');
     // תמחור/מסלול נשמרו:
     expect(fresh.tier).toBe('1');
     expect(fresh.group).toBe('קבוצה ב׳');
@@ -159,7 +169,7 @@ describe('🗓 ratchet — רישום לשנה הבאה', () => {
     expect(draft.id).toBe('c-next');
     expect(draft.start).toBe('2026-09-01');
     expect(draft.end).toBe('2027-07-31');
-    expect(draft.year).toBe('2026/27');
+    expect(draft.year).toBe('תשפ״ז');
     expect(draft.prevYearId).toBe('c1');
     expect(draft.name).toBe(src.name); // שאר הפרטים זהים
     // המקור לא נגע:
@@ -228,11 +238,11 @@ describe('🗓 ratchet — רישום לשנה הבאה', () => {
     const hist = studentHistory(db, 'm1');
     expect(hist.map((h) => h.enrollment.id)).toEqual(['e2', 'e1']); // החדש (c2) קודם
     expect(hist[0].courseName).toBe('ציור');
-    expect(hist[0].yearLabel).toBe('2025/26');
+    expect(hist[0].yearLabel).toBe('תשפ״ו');
     expect(hist[0].group).toBe('ב׳');
     expect(hist[0].summary.presents).toBe(2);
     expect(hist[1].courseName).toBe('התעמלות');
-    expect(hist[1].yearLabel).toBe('2024/25');
+    expect(hist[1].yearLabel).toBe('תשפ״ה');
     expect(hist[1].renewedForward).toBe(true); // e1 חודש קדימה ל-e2
     expect(hist[0].fromRenewal).toBe(true); // e2 נולד מרישום (e1.renewedToId===e2)
   });

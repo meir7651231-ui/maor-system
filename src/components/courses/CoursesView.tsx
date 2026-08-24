@@ -7,6 +7,7 @@ import type { Course } from '../../types/domain';
 import { useApp, useCourse } from '../../store/useApp';
 import { featureOn, isSuperAdmin, roleOf, teacherIdOf, termOf } from '../../lib/config';
 import { normSearch } from '../../lib/validate';
+import { isoToday } from '../../lib/date-util';
 import { Btn, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { numMatch } from '../families/lib';
 import { CourseForm } from './CourseForm';
@@ -93,6 +94,10 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
   const [sem, setSem] = useState('all');
+  // 📚 סינון היסטוריה (בקשת-בעלים 24.8) — חוג שתאריך-הסיום שלו עבר נכנס
+  // אוטומטית ל"היסטוריה". ברירת-המחדל 'active' ⇒ מסתיר חוגים ישנים.
+  const [histF, setHistF] = useState<'active' | 'history' | 'all'>('active');
+  const today = isoToday();
   const [sort, setSort] = useState<{ key: CrsSortKey; dir: 1 | -1 } | null>(null);
   const [colFOn, setColFOn] = useState(false);
   const [colF, setColF] = useState(EMPTY_CRS_COLF);
@@ -163,6 +168,10 @@ function CoursesList(props: { onOpenWheel: () => void }) {
     const list = coursesOfTeacher(db.courses, myTeacherId).filter((c) => {
       if (cat !== 'all' && c.cat !== cat) return false;
       if (sem !== 'all' && c.semester !== sem) return false;
+      // 📚 היסטוריה: c.end < today ⇒ נגמר. חוג בלי end כלול תמיד ב'active'.
+      const isHistory = !!c.end && c.end < today;
+      if (histF === 'active' && isHistory) return false;
+      if (histF === 'history' && !isHistory) return false;
       if (colF.name.trim() && !normSearch(c.name).includes(normSearch(colF.name))) return false;
       if (colF.audience.trim() && !normSearch(c.audience || '').includes(normSearch(colF.audience))) return false;
       if (colF.teacher.trim() && !normSearch(teacherName(c.teacherId)).includes(normSearch(colF.teacher))) return false;
@@ -192,7 +201,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       const cc = typeof va === 'string' ? va.localeCompare(String(vb), 'he') : va - (vb as number);
       return cc * sort.dir;
     });
-  }, [db, q, cat, sem, colF, sort, teacherName, enrollCounts]);
+  }, [db, q, cat, sem, colF, sort, teacherName, enrollCounts, histF, today]);
 
   const clickSort = (key: CrsSortKey) =>
     setSort((s) => (s?.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
@@ -386,6 +395,35 @@ function CoursesList(props: { onOpenWheel: () => void }) {
           ))}
         </div>
       )}
+
+      {/* 📚 מתג היסטוריה (בקשת-בעלים 24.8) — 3 מצבים: פעילים / היסטוריה / הכל */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12 }}>
+        {(
+          [
+            ['active', '🎓 פעילים'],
+            ['history', '📚 היסטוריה'],
+            ['all', 'הכל'],
+          ] as const
+        ).map(([v, label]) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setHistF(v)}
+            style={{
+              cursor: 'pointer',
+              padding: '4px 12px',
+              borderRadius: 999,
+              border: '1px solid ' + (histF === v ? 'var(--accent, #d9a84e)' : 'var(--line, #e6ddce)'),
+              background: histF === v ? 'var(--accent-soft, #fdf3dd)' : 'var(--panel, #fff)',
+              color: histF === v ? 'var(--ink, #241f18)' : 'var(--ink-faint, #8a8378)',
+              fontSize: 13,
+              fontWeight: histF === v ? 800 : 600,
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0' }}>
         <div style={{ flex: 1, minWidth: 200 }}>

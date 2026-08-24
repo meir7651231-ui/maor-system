@@ -68,7 +68,7 @@ import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
 import { enrollCount } from '../components/courses/lib';
-import { freshNextYearEnrollment, nextYearCourseDraft } from '../components/courses/reenroll-lib';
+import { freshNextYearEnrollment, nextAcademicYearLabel, nextYearCourseDraft } from '../components/courses/reenroll-lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
 import { applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
 import { appendCall, applyOutcome, OUTCOME_LABELS, popCall, startCampaign, undoLast } from '../lib/dialer';
@@ -1914,26 +1914,36 @@ export const useApp = create<AppState>()((set, get) => {
       return { ok: true, id };
     },
     reenrollEnrollment(enrollmentId, targetCourseId, group) {
+      // ⚠️ שינוי-מודל 24.8 (בקשת-בעלים "לא לשכפל חוגים"): ה-`targetCourseId` הוא
+      // כברירת-מחדל **חוג-המקור עצמו** — הבידול בין השנים נעשה דרך `year` על
+      // השיבוץ (תווית עברית תשפ״ז/תשפ״ח לסינון-פנימי). קריאה עם targetCourseId
+      // ריק ⇒ אותו החוג. גיבוי-לאחור: העברת targetCourseId שונה (=לחוג-שנה-הבאה
+      // שהמנהל פתח ידנית) עדיין עובדת.
       const db = get().db;
       const src = db.enrollments.find((e) => e.id === enrollmentId);
       if (!src) return { ok: false };
       if (src.renewedToId) return { ok: true, id: src.renewedToId }; // כבר נרשם — אידמפוטנטי
-      const target = db.courses.find((c) => c.id === targetCourseId);
+      const tid = targetCourseId || src.courseId;
+      const target = db.courses.find((c) => c.id === tid);
       if (!target) return { ok: false };
       // שער-תפוסה — כמו EnrollModal (excludes ended).
-      if (enrollCount(db, targetCourseId) >= (target.maxStudents || 999)) return { ok: false };
+      if (enrollCount(db, tid) >= (target.maxStudents || 999)) return { ok: false };
       const id = get().nextId('e');
-      // group: בחירת מנהל-העבודה ברישום. undefined ⇒ אותה קבוצה של אשתקד.
-      const fresh = freshNextYearEnrollment(src, targetCourseId, id, isoToday(), group);
+      // תווית שנת-הלימודים החדשה — מחושבת מתאריך-פתיחת חוג-המקור (לא של-היעד):
+      // "הרישום הוא-הוא המעבר לשנה הבאה", ולכן תמיד מתקדם +1 מהשנה של המקור.
+      const srcCourse = db.courses.find((c) => c.id === src.courseId);
+      const yearLabel = srcCourse ? nextAcademicYearLabel(srcCourse.start) : '';
+      const fresh = freshNextYearEnrollment(src, tid, id, isoToday(), group, yearLabel);
       get().upsertEnrollment(fresh);
       // קישור מקור→יעד (שרשרת-היסטוריה) — לא נוגע בכספי/נוכחות המקור.
       get().upsertEnrollment({ ...src, renewedToId: id });
       return { ok: true, id };
     },
     bulkReenrollCourse(courseId) {
-      const targetRes = get().openNextYearCourse(courseId);
-      if (!targetRes.ok || !targetRes.id) return { created: 0 };
-      const targetId = targetRes.id;
+      // ⚠️ שינוי-מודל 24.8: **אין יותר שכפול-חוג** — כל השיבוצים החדשים נרשמים על
+      // אותו החוג (targetId=courseId), עם תווית-שנה חדשה על השיבוץ. הכפתור "🗓
+      // פתיחת שנה הבאה" הפך למיותר.
+      const targetId = courseId;
       // צילום רשימת-המקורות לפני הלולאה (ה-db משתנה בכל reenroll).
       const srcIds = get()
         .db.enrollments.filter((e) => e.courseId === courseId && e.renew === 'yes' && !e.renewedToId)
