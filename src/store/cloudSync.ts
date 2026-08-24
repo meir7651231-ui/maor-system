@@ -54,8 +54,8 @@ export function getCloudDek(): CryptoKey | null {
 }
 
 // יצוא-מחדש של שכבת ה-auth — ל-useApp יש import דינמי אחד בלבד (המודול הזה)
-export { changePassword, encryptExistingCloud, fetchIncomingPayments, fetchNedarimDonors, fetchProviderRows, initCloud, markIncomingPayment, pullNedarim, pullSola, migrateDonationsToCollection, migrateSupportersToKeyed, readCloudEnvelope, resetPassword, setAllowedPurposes, setAuditContext, setCloudScope, setDonationSplit, setSupEnforce, signIn, signOutCloud, signUp, supEnforceActive, watchAuth, watchIncomingPayments, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
-export type { CloudUser, IncomingPayment, NedarimDonor } from '../lib/cloud';
+export { changePassword, encryptExistingCloud, fetchIncomingPayments, fetchOutboxIssues, retryOutboxItem, fetchNedarimDonors, fetchProviderRows, initCloud, markIncomingPayment, pullNedarim, pullSola, migrateDonationsToCollection, migrateSupportersToKeyed, readCloudEnvelope, resetPassword, setAllowedPurposes, setAuditContext, setCloudScope, setDonationSplit, setSupEnforce, signIn, signOutCloud, signUp, supEnforceActive, watchAuth, watchIncomingPayments, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
+export type { CloudUser, IncomingPayment, NedarimDonor, OutboxIssue } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
 export { deleteOrgCompletely, deleteOrgRequest, deleteOrgJoinRequest, deleteOrgMemberConfig, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgJoinRequests, fetchOrgLeads, fetchOrgRequests, findMemberOrgSlugs, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgJoinRequest, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
 export type { EmployeeOverride, OrgCloudDoc, OrgJoinRequestDoc, OrgLeadDoc, OrgRequestDoc } from '../lib/cloudConfig';
@@ -64,7 +64,16 @@ export { sendSupportMessage, sendSupportReply, watchSupportMessages, watchSuppor
 // 💬 צ׳אט-צוות תוך-ארגוני (17.8)
 export { sendTeamMessage, watchTeamMessages } from '../lib/cloudConfig';
 
-export type CloudStatus = 'idle' | 'connecting' | 'synced' | 'error';
+export type CloudStatus = 'idle' | 'connecting' | 'pending' | 'synced' | 'error';
+
+// 🔵 חיווי-"ממתין" (ביקורת-האמון 24.8): בזמן ה-debounce והדחיפה הסטטוס נשאר
+// 'synced' — למשתמש לא היה שום סימן שיש שינויים שטרם הגיעו לענן. המטמון
+// מאפשר לעבור ל-'pending' פעם-אחת-לצבר בלי הצפת-רינדורים.
+let statusCache: CloudStatus = 'idle';
+function setStat(h: CloudSyncHooks | null, s: CloudStatus): void {
+  statusCache = s;
+  h?.setStatus(s);
+}
 
 export interface CloudSyncHooks {
   getDb: () => Db;
@@ -119,7 +128,7 @@ function onRemote(partial: RemotePartial): void {
  */
 export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
   hooks = h;
-  h.setStatus('connecting');
+  setStat(h, 'connecting');
   try {
     const cloudDb = await pullAll(cloudDek);
     // לוג-מנהל מסונכרן: כשאכיפה דלוקה, הלוג לא רוכב על meta — מנהל/מייל-על ממזג
@@ -183,7 +192,7 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
     unsubAll = subscribeAll(
       onRemote,
       () => {
-        hooks?.setStatus('error');
+        setStat(hooks, 'error');
       },
       cloudDek,
     );
@@ -192,10 +201,10 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
     // diff בין מה שהענן מחזיק (syncedBaseline) לבין המצב החי כעת.
     const liveDb = h.getDb();
     await pushSplitAware(syncedBaseline.supporters, liveDb.supporters, diffDb(syncedBaseline, liveDb));
-    h.setStatus('synced');
+    setStat(h, 'synced');
   } catch (e) {
     active = false;
-    h.setStatus('error');
+    setStat(h, 'error');
     h.toast(e instanceof Error ? `⚠ ${e.message}` : '⚠ הסנכרון לענן נכשל — ממשיכים בעבודה מקומית');
   }
 }
@@ -208,7 +217,7 @@ export function stopCloudSync(): void {
   clearTimeout(pushTimer);
   pushBase = null;
   pushLatest = null;
-  hooks?.setStatus('idle');
+  setStat(hooks, 'idle');
   hooks = null;
 }
 
@@ -226,14 +235,14 @@ async function flushPush(): Promise<void> {
   if (emptyDiff(diff)) return; // כל שינוי-תרומה משנה גם את מסמך-התומך ⇒ diff לא-ריק (גם בפיצול)
   try {
     await pushSplitAware(base.supporters, latest.supporters, diff);
-    if (active) hooks?.setStatus('synced');
+    if (active) setStat(hooks, 'synced');
   } catch {
     // כשל שאינו-offline: משחזרים את הדלתא הממתינה כדי שתידחף בעריכה הבאה.
     // base תמיד המוקדם ביותר; latest נשמר אם עריכה מקבילה כבר קבעה חדש יותר.
     if (active) {
       pushBase = base;
       pushLatest ??= latest;
-      hooks?.setStatus('error');
+      setStat(hooks, 'error');
       hooks?.toast('⚠ הדחיפה לענן נכשלה — הנתונים שמורים מקומית ויסונכרנו בהמשך');
       // flushPush נקרא רק מטיימר ה-debounce של cloudOnDbChange (עריכת משתמש). בלי
       // תזמון-מחדש, דלתא שנכשלה הייתה תלויה לנצח עד העריכה הבאה. מתזמנים ניסיון
@@ -252,6 +261,8 @@ async function flushPush(): Promise<void> {
  */
 export function cloudOnDbChange(prev: Db, next: Db): void {
   if (!active || applyingRemote) return;
+  // שינוי מקומי שטרם נדחף ⇒ הנקודה מחווה "ממתין" (חוזרת ל"מסונכרן" אחרי flush)
+  if (statusCache === 'synced') setStat(hooks, 'pending');
   pushBase ??= prev;
   pushLatest = next;
   clearTimeout(pushTimer);
@@ -288,10 +299,10 @@ export async function cloudReplaceNow(prev: Db, next: Db): Promise<void> {
     if (live && live !== next) {
       await pushSplitAware(next.supporters, live.supporters, diffDb(next, live));
     }
-    if (active) hooks?.setStatus('synced');
+    if (active) setStat(hooks, 'synced');
   } catch {
     if (active) {
-      hooks?.setStatus('error');
+      setStat(hooks, 'error');
       hooks?.toast('⚠ מחיקת הנתונים בענן נכשלה — נסו שוב כשהחיבור יציב');
       // 🐛 נחיל-9×9 (13.8): כשל-רשת באמצע reset/restore (pushDiff לא-אטומי, אצוות
       // ≤400) השאיר מחיקות חלקיות בענן בלי retry. מציבים דחייה ממתינה ומתזמנים

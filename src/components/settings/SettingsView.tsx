@@ -27,6 +27,7 @@ import { ThemeSection } from './ThemeSection';
 import { AuditSection } from './AuditSection';
 import { DonorImportSection } from './DonorImportSection';
 import { OrgSecretsSection } from './OrgSecretsSection';
+import { OutboxSection } from './OutboxSection';
 
 /** feature key פר-סעיף — הצ'יפ מוצג רק כשהסעיף עצמו מרונדר (אותו דגל בדיוק).
  *  ביקורת 6.8: ערכה/התראות/גיבוי/נגישות היו בלי מפתח ⇒ צ'יפ-מת כשהדגל כבוי;
@@ -58,7 +59,7 @@ type GroupId = (typeof GROUPS)[number]['id'];
 const SECTION_GROUP: Record<string, GroupId> = {
   'sec-org': 'org', 'sec-theme': 'org', 'sec-teachers': 'org', 'sec-rooms': 'org', 'sec-notif': 'org', 'sec-access': 'org',
   'sec-backup': 'data', 'sec-export': 'data', 'sec-import': 'data', 'sec-donor-import': 'data', 'sec-audit': 'data',
-  'sec-security': 'security', 'sec-encryption': 'security', 'sec-cloud-encryption': 'security', 'sec-org-secrets': 'security', 'sec-donation-split': 'security',
+  'sec-security': 'security', 'sec-encryption': 'security', 'sec-cloud-encryption': 'security', 'sec-org-secrets': 'security', 'sec-donation-split': 'security', 'sec-outbox': 'security',
   'sec-ai': 'adv', 'sec-audittrail': 'adv', 'sec-verifyreceipt': 'adv', 'sec-reset': 'adv',
 };
 
@@ -174,6 +175,8 @@ export function SettingsView() {
           <SupEnforceSection />
           {/* כספת-מפתחות פר-ארגון (9.8) — הרכיב מגודר בעצמו (ענן+מנהל+לא-שורש) */}
           <OrgSecretsSection />
+          {/* 📤 בריאות תור-השליחות (ביקורת-האמון 24.8) — מגודר בעצמו (ענן+מנהל) */}
+          <OutboxSection />
         </>
       )}
       {shownGroup === 'adv' && (
