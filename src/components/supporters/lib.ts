@@ -89,6 +89,26 @@ export function visibleSupportersForDesignations(
     }));
 }
 
+/**
+ * סינון אירועי-לוח לעובד/ת מוגבל/ת-ייעוד (בקשת-שטח 24.8): תזכורת המקושרת לתורם
+ * (spId) נראית לעובד/ת רק אם התורם גלוי לה (forWho בייעודיה); אירוע שאינו מקושר
+ * לתורם (חוג/משפחה/כללי) נשאר. allowed=null ⇒ הרשימה כמו-שהיא (מנהל/בעלים/מקומי).
+ * טהור — הגבלה ברמת-הממשק בלבד (כמו visibleSupportersForDesignations).
+ */
+export function visibleEventsForDesignations<E extends { spId?: string }>(
+  events: E[],
+  supporters: { id: string; forWho?: string }[],
+  allowed: string[] | null,
+): E[] {
+  if (!allowed || !allowed.length) return events;
+  const byId = new Map(supporters.map((s) => [s.id, s]));
+  return events.filter((ev) => {
+    if (!ev.spId) return true; // אירוע לא-מקושר-לתורם — לא בתחום-ההגבלה
+    const sp = byId.get(ev.spId);
+    return sp ? supporterVisibleForDesignations(sp, allowed) : false;
+  });
+}
+
 /** כל ייעודי-התרומה הקיימים (distinct, ממויין) — להצעה באשף ולבורר-הסינון.
  *  כולל את הייעוד-פר-תורם (`forWho`) — כך המנהל בוחר מהערכים הקיימים בפועל. */
 export function allDonationPurposes(supporters: { donations?: Supporter['donations']; forWho?: string }[]): string[] {
