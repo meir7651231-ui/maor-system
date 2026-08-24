@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, moduleOn, termOf } from '../../lib/config';
+import { visibleEventsForDesignations } from '../supporters/lib';
 import { buildIcs, downloadIcs } from '../../lib/ics';
 import { Btn, Chip, Empty, PageHead } from '../ui';
 import type { OrgEvent } from '../../types/domain';
@@ -154,8 +155,16 @@ const FILTER_CHIPS: { key: keyof Omit<CalFilters, 'urgentOnly'>; label: string }
 ];
 
 export function CalendarView() {
-  const db = useApp((s) => s.db);
+  const rawDb = useApp((s) => s.db);
   const config = useApp((s) => s.config);
+  // סינון פר-עובדת (בקשת-שטח 24.8): עובד/ת מוגבל/ת-ייעוד רואה בלוח רק את תזכורות
+  // התורמים שלה (spId שגלוי לה). מנהל/בעלים/מקומי (allowed=null) ⇒ db ביט-זהה.
+  const allowedDesig = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = featureOn(config, 'supporters.purpose') ? allowedDesig : null;
+  const db = useMemo(
+    () => (desigLimit ? { ...rawDb, events: visibleEventsForDesignations(rawDb.events, rawDb.supporters, desigLimit) } : rawDb),
+    [rawDb, desigLimit],
+  );
   const selectCourse = useApp((s) => s.selectCourse);
   const selectFamily = useApp((s) => s.selectFamily);
   const upsertEvent = useApp((s) => s.upsertEvent);
