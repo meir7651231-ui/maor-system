@@ -101,4 +101,22 @@ describe('🛡 ratchet — תיקוני-שרת נדרים (הגנות-מקור)'
     expect(index).toMatch(/EXTRA_BACKUP = \['donations'\]/);
     expect(index).toContain('[...BACKUP_COLLECTIONS, ...EXTRA_BACKUP]');
   });
+
+  // 🔒 (24.8, בקשת-שטח "נדרים מסתכרן לא רק לענף-הפלטפורמה של מאור") — בידוד-בין-ארגונים:
+  // ה-fallback ל-mosad הגלובלי (של מאור) היה לכל ארגון בלי כספת ⇒ ארגון-פלטפורמה
+  // משך את נתוני-מאור לתוך scope שלו. עכשיו: גלובלי רק ל-root, ארגון בלי כספת = שגיאה.
+  it('F16: nedarimCreds — נפילה גלובלית רק ל-root, וזריקה כשאין mosad לארגון-פלטפורמה', () => {
+    // ה-fallback הגלובלי מגודר org==='root' (isRoot) — לא ניתן ללא-שורש
+    expect(pull).toMatch(/const isRoot = org === 'root';/);
+    expect(pull).toMatch(/isRoot \? \(process\.env\.NEDARIM_MOSAD_ID/);
+    // אין mosad (ארגון-פלטפורמה בלי כספת) ⇒ throw מפורש, לא משיכה עם ה-mosad של מאור
+    expect(pull).toMatch(/if \(!mosad\) \{/);
+    expect(pull).toContain('אין אישורי-סליקה לארגון');
+  });
+
+  it('F17: הפוחות (fetchers) לא נופלים חזרה ל-env הגלובלי — creds בלבד', () => {
+    // לפני-התיקון: `creds.mosad || process.env.NEDARIM_MOSAD_ID` בשני הפוחות = דלף.
+    expect(pull).not.toContain('creds.mosad || process.env.NEDARIM_MOSAD_ID');
+    expect(pull).not.toContain('creds.pass || process.env.NEDARIM_API_PASSWORD');
+  });
 });
