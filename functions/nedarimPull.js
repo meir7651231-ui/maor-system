@@ -64,25 +64,35 @@ function syncCol(db, org) {
 }
 
 /** אישורי-נדרים לארגון: **כספת-הארגון גוברת** (orgSecrets/{slug}: nedarimMosad/
- *  nedarimApiPass), נפילה ל-env הגלובלי (חד-מוסדי). כך שדות-הכספת שהמנהל מזין
- *  באמת פועלים (הבאג: המשיכה קראה רק env גלובלי ⇒ הכספת הייתה מתה). (תיקון 20.8) */
+ *  nedarimApiPass).
+ *  🔒 בידוד-בין-ארגונים (תיקון 24.8): נפילה ל-env הגלובלי מותרת **אך-ורק ל-root**
+ *  (מאור עצמו — ה-mosad הגלובלי הוא שלו). ארגון-פלטפורמה משתמש **רק** בכספת שלו,
+ *  בלי שום נפילה גלובלית — אחרת הוא מושך את נתוני-מאור (רשימת-תורמים + היסטוריית-
+ *  עסקאות) עם ה-mosad של מאור, וכותב אותם לתוך scope שלו = דליפת-PII בין-ארגונית.
+ *  אין mosad לארגון-פלטפורמה ⇒ שגיאה מפורשת (מראה את שער-הרב-כספות של Sola). */
 async function nedarimCreds(db, org) {
-  let mosad = process.env.NEDARIM_MOSAD_ID || '';
-  let pass = process.env.NEDARIM_API_PASSWORD || '';
+  const isRoot = org === 'root';
+  let mosad = isRoot ? (process.env.NEDARIM_MOSAD_ID || '') : '';
+  let pass = isRoot ? (process.env.NEDARIM_API_PASSWORD || '') : '';
   try {
     const d = await db.doc('orgSecrets/' + org).get();
     const s = d.exists ? (d.data() || {}) : {};
     if (s.nedarimMosad) mosad = String(s.nedarimMosad).trim();
     if (s.nedarimApiPass) pass = String(s.nedarimApiPass).trim();
-  } catch { /* אין כספת ⇒ הגלובלי */ }
+  } catch { /* אין כספת */ }
+  if (!mosad) {
+    // ארגון-פלטפורמה בלי כספת = חסום (לא נמשך עם ה-mosad הגלובלי של מאור).
+    throw new Error('nedarim: אין אישורי-סליקה לארגון "' + org + '" — יש להזין MosadId/ApiPassword בכספת-הארגון (orgSecrets)');
+  }
   return { mosad, pass };
 }
 
 async function fetchNedarimHistory(lastId, maxId, creds = {}) {
   const body = new URLSearchParams({
     Action: 'GetHistoryJson',
-    MosadId: creds.mosad || process.env.NEDARIM_MOSAD_ID || '',
-    ApiPassword: creds.pass || process.env.NEDARIM_API_PASSWORD || '',
+    // 🔒 בידוד: creds בלבד (נפתרו ב-nedarimCreds, root=גלובלי / ארגון=כספת-שלו).
+    MosadId: creds.mosad || '',
+    ApiPassword: creds.pass || '',
     MaxId: String(maxId),
   });
   if (lastId) body.set('LastId', String(lastId));
@@ -104,12 +114,13 @@ async function fetchNedarimHistory(lastId, maxId, creds = {}) {
 
 /** משיכת רשימת-התורמים — בייטים גולמיים (הקידוד בפועל UTF-16LE, נפילה ל-Windows-1255). */
 async function fetchNedarimDonorsBytes(creds = {}) {
-  const mosad = creds.mosad || process.env.NEDARIM_MOSAD_ID || '';
+  // 🔒 בידוד: creds בלבד (נפתרו ב-nedarimCreds); בלי נפילה גלובלית לארגון-פלטפורמה.
+  const mosad = creds.mosad || '';
   const body = new URLSearchParams({
     Action: 'GetTormimCsv',
     MosadNumber: mosad,
     MosadId: mosad,
-    ApiPassword: creds.pass || process.env.NEDARIM_API_PASSWORD || '',
+    ApiPassword: creds.pass || '',
     ToMail: '0',
   });
   const resp = await fetch('https://matara.pro/nedarimplus/Reports/Manage3.aspx', {
