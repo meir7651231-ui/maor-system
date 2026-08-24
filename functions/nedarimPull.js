@@ -65,15 +65,18 @@ function syncCol(db, org) {
 
 /** אישורי-נדרים לארגון: **כספת-הארגון גוברת** (orgSecrets/{slug}: nedarimMosad/
  *  nedarimApiPass).
- *  🔒 בידוד-בין-ארגונים (תיקון 24.8): נפילה ל-env הגלובלי מותרת **אך-ורק ל-root**
- *  (מאור עצמו — ה-mosad הגלובלי הוא שלו). ארגון-פלטפורמה משתמש **רק** בכספת שלו,
- *  בלי שום נפילה גלובלית — אחרת הוא מושך את נתוני-מאור (רשימת-תורמים + היסטוריית-
- *  עסקאות) עם ה-mosad של מאור, וכותב אותם לתוך scope שלו = דליפת-PII בין-ארגונית.
- *  אין mosad לארגון-פלטפורמה ⇒ שגיאה מפורשת (מראה את שער-הרב-כספות של Sola). */
+ *  🔒 בידוד-בין-ארגונים (תיקון 24.8): ה-mosad הגלובלי (env) שייך לארגון-**אחד**
+ *  בלבד — זה שנקוב ב-NEDARIM_ORG (בדיוק כמו SOLA_ORG). **רק הוא** רשאי ליפול אליו.
+ *  השורש (Orbit, org=root) ו-כל ארגון-אחר משתמשים **אך-ורק בכספת שלהם** — אחרת
+ *  משיכה מ-root מושכת את רשימת-התורמים+העסקאות של מאור (בעל ה-mosad הגלובלי) וכותבת
+ *  אותם ל-scope של root = דליפת-PII בין-ארגונית. אין mosad ⇒ שגיאה מפורשת (חוסם
+ *  משיכה, לא מנחש של מי הכסף — מראה את שער-הרב-כספות של Sola). */
 async function nedarimCreds(db, org) {
-  const isRoot = org === 'root';
-  let mosad = isRoot ? (process.env.NEDARIM_MOSAD_ID || '') : '';
-  let pass = isRoot ? (process.env.NEDARIM_API_PASSWORD || '') : '';
+  // בעל ה-mosad הגלובלי: הארגון הנקוב ב-NEDARIM_ORG בלבד (ריק ⇒ אף אחד, כספת בלבד).
+  const globalOwner = (process.env.NEDARIM_ORG || '').trim();
+  const ownsGlobal = !!globalOwner && org === globalOwner;
+  let mosad = ownsGlobal ? (process.env.NEDARIM_MOSAD_ID || '') : '';
+  let pass = ownsGlobal ? (process.env.NEDARIM_API_PASSWORD || '') : '';
   try {
     const d = await db.doc('orgSecrets/' + org).get();
     const s = d.exists ? (d.data() || {}) : {};
@@ -81,8 +84,7 @@ async function nedarimCreds(db, org) {
     if (s.nedarimApiPass) pass = String(s.nedarimApiPass).trim();
   } catch { /* אין כספת */ }
   if (!mosad) {
-    // ארגון-פלטפורמה בלי כספת = חסום (לא נמשך עם ה-mosad הגלובלי של מאור).
-    throw new Error('nedarim: אין אישורי-סליקה לארגון "' + org + '" — יש להזין MosadId/ApiPassword בכספת-הארגון (orgSecrets)');
+    throw new Error('nedarim: אין אישורי-סליקה לארגון "' + org + '" — הזן MosadId/ApiPassword בכספת-הארגון (orgSecrets), או הגדר NEDARIM_ORG לארגון בעל ה-mosad הגלובלי');
   }
   return { mosad, pass };
 }
