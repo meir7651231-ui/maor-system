@@ -9,6 +9,7 @@
  * ה-id וה-upsert נעשים ב-store בלבד.
  */
 import type { Course, Db, Enrollment, Member } from '../../types/domain';
+import { gemYear, hebPartsOfIso } from '../../lib/hebrew';
 import { payBal, paidOf } from './lib';
 
 /** פרסור ISO לצהריים-מקומי — מוסכמת-התאריכים של הפרויקט (בלי היסט UTC). */
@@ -22,13 +23,28 @@ function toIso(d: Date): string {
   return `${y}-${m}-${dd}`;
 }
 
-/** תווית שנת-לימודים מתאריך-פתיחה (שנה"ל מתחילה ב-1.9). לדוגמה 2026-09-01 → "2026/27". */
+/**
+ * תווית שנת-לימודים עברית מתוך תאריך-פתיחה — למשל 2026-09-01 → "תשפ״ז".
+ * שנה"ל 1.9→31.8 של השנה הבאה; ה-31.12 שבתוכה תמיד אחרי ראש-השנה העברי,
+ * ולכן `hebPartsOfIso("YYYY-12-31").year` מחזיר בדיוק את השנה העברית הרצויה.
+ */
 export function academicYearLabel(startIso: string): string {
+  if (!startIso) return '';
   const d = atNoon(startIso);
-  const y = d.getFullYear();
-  const startYear = d.getMonth() >= 8 ? y : y - 1; // ספט׳=8
-  const nn = String((startYear + 1) % 100).padStart(2, '0');
-  return `${startYear}/${nn}`;
+  // מתי חלה ה-31.12 שבתוך שנת-הלימודים הזאת:
+  // חוג שנפתח 1.9.2026 (September=8) ⇒ 31.12.2026 = תוך-השנה, שיין ל-תשפ״ז.
+  // חוג שנפתח 1.3.2026 (March=2) ⇒ שנת-הלימודים ההיא נפתחה 1.9.2025 ⇒ 31.12.2025.
+  const yy = d.getMonth() >= 8 ? d.getFullYear() : d.getFullYear() - 1;
+  return gemYear(hebPartsOfIso(`${yy}-12-31`).year);
+}
+
+/** תווית שנת-הלימודים העברית **הבאה** אחרי תאריך-הפתיחה — למשל 2025-09-01 → "תשפ״ז". */
+export function nextAcademicYearLabel(startIso: string): string {
+  if (!startIso) return '';
+  const d = atNoon(startIso);
+  const yy = d.getMonth() >= 8 ? d.getFullYear() : d.getFullYear() - 1;
+  // "השנה הבאה" = הוסף שנה עברית אחת (31.12 של השנה הלועזית הבאה).
+  return gemYear(hebPartsOfIso(`${yy + 1}-12-31`).year);
 }
 
 /** תאריכי השנה הבאה — הזזת start/end בשנה קדימה (שומר יום/חודש). */
@@ -201,8 +217,14 @@ export function renewTargets(rows: ReenrollRow[]): ReenrollRow[] {
 
 /**
  * טיוטת-שיבוץ טהורה לשנה הבאה — מעתיקה מסלול/קבוצה/תמחור מהמקור, מאפסת היסטוריה
- * (used/purchased/presents/absences/payments) ומסמנת פעיל מהיום. ה-id מוזרק
- * מבחוץ (nextId ב-store). אינה נוגעת ב-receiptSeq/כספים.
+ * (used/purchased/presents/absences/payments) ומסמנת פעיל מהיום. ה-id מוזרק מבחוץ
+ * (nextId ב-store). אינה נוגעת ב-receiptSeq/כספים.
+ *
+ * ⚠️ שינוי-מודל 24.8 (בקשת-בעלים): **החוג לא משוכפל** — targetCourseId ברירת-מחדל
+ * = חוג-המקור עצמו. הבידול בין השנים נעשה דרך `year` (תווית עברית תשפ״ז/תשפ״ח),
+ * וסינון-פנימי בכרטיס-החוג. `yearLabel` = תווית שנת-הלימודים החדשה (מוזרק מבחוץ).
+ * ה**הערה** על התלמיד/ה מועברת קדימה במכוון (בקשה: "הערה על תלמיד בחוג שגם
+ * יעבור לשנה הבאה") — אינה מתאפסת יותר.
  */
 export function freshNextYearEnrollment(
   src: Enrollment,
@@ -210,6 +232,7 @@ export function freshNextYearEnrollment(
   newId: string,
   todayIso: string,
   groupOverride?: string,
+  yearLabel?: string,
 ): Enrollment {
   return {
     id: newId,
@@ -225,8 +248,11 @@ export function freshNextYearEnrollment(
     totalDue: src.totalDue,
     dueDate: '',
     status: 'active',
-    note: '',
+    // הערת-התלמיד/ה עוברת קדימה (בקשת-בעלים 24.8) — הרישום ממשיך את הסיפור.
+    note: src.note || '',
     enrolledAt: todayIso,
+    // תווית שנת-הלימודים — לסינון-פנימי בכרטיס-החוג (תשפ״ז/תשפ״ח).
+    ...(yearLabel ? { year: yearLabel } : {}),
     // תמחור משוקלל — נשמר כדי שהמחיר יעבור לשנה הבאה כמו שהיה.
     ...(src.freq !== undefined ? { freq: src.freq } : {}),
     ...(src.freqUnit !== undefined ? { freqUnit: src.freqUnit } : {}),

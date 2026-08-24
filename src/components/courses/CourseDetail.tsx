@@ -111,6 +111,9 @@ export function CourseDetail(props: { course: Course }) {
   const c = props.course;
   const [prevCourseId, setPrevCourseId] = useState(c.id);
   const [modal, setModal] = useState<ModalState>(null);
+  // 🗓 סינון-פנימי לפי שנת-לימודים (בקשת-בעלים 24.8 — "צ׳יפ תשפ״ז/תשפ״ח").
+  // null ⇒ הכל (כולל שיבוצים ישנים בלי `year`). ריקון אוטומטי כשעוברים חוג.
+  const [yearF, setYearF] = useState<string | null>(null);
   // בקשת-בעלים 9.8: בורר-מורה מכרטיס-החוג (קיים או חדש) — בלי מסע לטופס-העריכה
   const [teacherPick, setTeacherPick] = useState(false);
   const [expOpen, setExpOpen] = useState(false);
@@ -141,12 +144,28 @@ export function CourseDetail(props: { course: Course }) {
     setPrevCourseId(c.id);
     setNoteVal(c.notes);
     setModal(null);
+    setYearF(null); // איפוס סינון-שנה במעבר חוג
   }
 
   const teacher = db.teachers.find((t) => t.id === c.teacherId);
   const room = db.rooms.find((r) => r.id === c.roomId);
   // רשימת-ההמתנה ('wait') לא בין הרשומים — לא בטבלה, לא בתדפיס, לא בספירת-קבוצות.
-  const enrolled = db.enrollments.filter((e) => e.courseId === c.id && e.status !== 'wait');
+  const enrolledAll = db.enrollments.filter((e) => e.courseId === c.id && e.status !== 'wait');
+  // ‏🗓 סינון-פנימי לפי שנת-לימודים (יעד-בעלים 24.8): צ׳יפ תשפ״ז/תשפ״ח שולט על הטבלה
+  // בלבד. groupCounts/waiter/csv נשארים על enrolledAll כדי לא לפגוע בייצוא ובספירה.
+  const enrolled = yearF ? enrolledAll.filter((e) => (e.year ?? '') === yearF) : enrolledAll;
+  // תוויות שנת-הלימודים הקיימות בחוג + מונים (בסדר: ישנות → חדשות, "ללא-סיווג" בסוף).
+  const yearCounts = (() => {
+    const m = new Map<string, number>();
+    for (const e of enrolledAll) {
+      const k = (e.year ?? '').trim();
+      m.set(k, (m.get(k) ?? 0) + 1);
+    }
+    const arr = [...m.entries()].filter(([k]) => !!k);
+    arr.sort((a, b) => a[0].localeCompare(b[0]));
+    if (m.has('') && (m.get('') ?? 0) > 0) arr.push(['', m.get('') ?? 0]);
+    return arr;
+  })();
   const waitlistOn = featureOn(cfg, 'courses.waitlist');
   const waiters = waitlistOn ? waitlistFor(db.enrollments, c.id) : [];
   const deleteEnrollment = useApp((s) => s.deleteEnrollment);
@@ -299,10 +318,10 @@ export function CourseDetail(props: { course: Course }) {
           ...sessions.map((ss, i) => {
             const v = groupLabelOf(ss, i);
             const [bg, fg] = GROUP_PALETTE[i % GROUP_PALETTE.length];
-            return { label: v + ' · ' + enrolled.filter((e) => e.group === v).length, bg, fg };
+            return { label: v + ' · ' + enrolledAll.filter((e) => e.group === v).length, bg, fg };
           }),
-          ...(enrolled.some((e) => !e.group)
-            ? [{ label: 'ללא שיוך · ' + enrolled.filter((e) => !e.group).length, bg: '#eceae2', fg: '#8b8474' }]
+          ...(enrolledAll.some((e) => !e.group)
+            ? [{ label: 'ללא שיוך · ' + enrolledAll.filter((e) => !e.group).length, bg: '#eceae2', fg: '#8b8474' }]
             : []),
         ]
       : [];
@@ -404,11 +423,11 @@ export function CourseDetail(props: { course: Course }) {
               📑 שכפל
             </Btn>
           )}
-          {!isTeacherUser && canBulkAdmin && enrolled.some((e) => e.status === 'active' || e.status === 'paused') && (
+          {!isTeacherUser && canBulkAdmin && enrolledAll.some((e) => e.status === 'active' || e.status === 'paused') && (
             <Btn
               kind={armed === 'endsem-' + c.id ? 'danger' : undefined}
               onClick={() => {
-                const n = enrolled.filter((e) => e.status === 'active' || e.status === 'paused').length;
+                const n = enrolledAll.filter((e) => e.status === 'active' || e.status === 'paused').length;
                 if (!confirmTwice('endsem-' + c.id, 'לסיים את הסמסטר? ' + n + ' שיבוצים יסומנו "הסתיים" (נשמרים בדוח ההיסטורי; אפשר לחדש).')) {
                   toast('בטוחים? לחיצה נוספת תסיים את הסמסטר');
                   return;
@@ -425,7 +444,7 @@ export function CourseDetail(props: { course: Course }) {
           <Btn
             kind="danger"
             onClick={() => {
-              const n = enrolled.length;
+              const n = enrolledAll.length;
               const msg =
                 'למחוק את ה' + termOf(cfg, 'entity.course', 'חוג') + ' "' + c.name + '"?' +
                 (n ? ' פעולה זו תמחק גם את ' + n + ' ה' + termOf(cfg, 'entity.enrollments', 'שיבוצים') + ' שלו (כולל תשלומים ונוכחות).' : '') +
@@ -486,6 +505,35 @@ export function CourseDetail(props: { course: Course }) {
                   <span key={g.label} style={chipStyle(g.bg, g.fg)}>
                     {g.label}
                   </span>
+                ))}
+              </div>
+            )}
+            {/* 🗓 סינון-פנימי לפי שנת-לימודים (בקשת-בעלים 24.8) — צ׳יפים תשפ״ז/תשפ״ח.
+                מוצג רק כשיש בפועל שנים מסווגות (או שיש גם ישנים בלי-סיווג). */}
+            {yearCounts.length > 1 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 9, alignItems: 'center' }}>
+                <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>שנת-לימודים:</span>
+                <button
+                  type="button"
+                  onClick={() => setYearF(null)}
+                  style={{ ...chipStyle('#eef0f2', '#444'), cursor: 'pointer', border: yearF === null ? '1px solid #444' : '1px solid transparent' }}
+                >
+                  הכל · {enrolledAll.length}
+                </button>
+                {yearCounts.map(([y, n]) => (
+                  <button
+                    key={y || '__none'}
+                    type="button"
+                    onClick={() => setYearF(yearF === y ? null : y)}
+                    style={{
+                      ...chipStyle(y ? '#e6f0ff' : '#eceae2', y ? '#2a5cad' : '#8b8474'),
+                      cursor: 'pointer',
+                      border: yearF === y ? '1px solid ' + (y ? '#2a5cad' : '#8b8474') : '1px solid transparent',
+                    }}
+                    title={'סינון לשיבוצים בשנה ' + (y || 'ללא-סיווג')}
+                  >
+                    {(y || 'ללא-סיווג') + ' · ' + n}
+                  </button>
                 ))}
               </div>
             )}
