@@ -283,6 +283,42 @@ export function cleanSupPhones(phones: SupPhone[] | undefined): SupPhone[] {
     .filter((p) => p.num);
 }
 
+// ---------- סגולת 40 יום — תזכורות מדורגות (בקשת-שטח) ----------
+
+/** ברירת-מחדל: דילוגי-התזכורת עד יעד-הסגולה (40). מחר → שבוע → 21 → 35 → 40 (סיום). */
+export const SEGULA_OFFSETS = [1, 7, 21, 35, 40] as const;
+
+export interface SegulaReminder {
+  /** מספר-הימים מתאריך-ההתחלה. */
+  day: number;
+  /** תאריך-היעד (ISO). */
+  date: string;
+  /** האם זו נקודת-הסיום (היום ה-40). */
+  final: boolean;
+}
+
+/**
+ * תזכורות-סגולה מדורגות מתאריך-התחלה — יום N מוסיף N ימים. דטרמיניסטי (בלי Date.now),
+ * צהריים-מקומי (מוסכמת-התאריכים). היעד = הדילוג הגדול ביותר (40) מסומן final.
+ */
+export function segulaReminders(startIso: string, offsets: readonly number[] = SEGULA_OFFSETS): SegulaReminder[] {
+  const base = new Date(`${startIso}T12:00:00`);
+  const max = Math.max(...offsets);
+  return offsets.map((day) => {
+    const d = new Date(base);
+    d.setDate(d.getDate() + day);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return { day, date: `${y}-${m}-${dd}`, final: day === max };
+  });
+}
+
+/** כותרת-תזכורת לסגולה (יום N מתוך היעד). */
+export function segulaTitle(name: string, r: SegulaReminder, target: number): string {
+  return (r.final ? '🎯 סיום סגולה' : '🕯 סגולה') + ' — ' + (name || '') + ' · יום ' + r.day + '/' + target;
+}
+
 /** "₪1,200 + $300" או "—" כשאין כלום — כולל היסטוריה (הכרעת 9.8). */
 export function totalLabel(sp: Supporter): string {
   const i = supIls(sp);
