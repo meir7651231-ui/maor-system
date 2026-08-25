@@ -69,7 +69,6 @@ import { attachChargeTo, attachChargesBulk, detectRecurringHok, planNedarimSync,
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
-import { enrollCount } from '../components/courses/lib';
 import { freshNextYearEnrollment, nextAcademicYearLabel, nextYearCourseDraft } from '../components/courses/reenroll-lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
 import { applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
@@ -341,7 +340,7 @@ interface AppState {
   /** 🗓 יצירת חוג לשנה הבאה (עותק עם תאריכים מוזזים + prevYearId). מחזיר את ה-id החדש. */
   openNextYearCourse: (courseId: string) => { ok: boolean; id?: string };
   /** 🗓 רישום שיבוץ יחיד לשנה הבאה — שיבוץ חדש בחוג-היעד, קישור מקור→יעד; שער-תפוסה. */
-  reenrollEnrollment: (enrollmentId: string, targetCourseId: string, group?: string) => { ok: boolean; id?: string };
+  reenrollEnrollment: (enrollmentId: string, targetCourseId: string, group?: string) => { ok: boolean; id?: string; reason?: string };
   /** 🗓 רישום המוני — כל ה"ממשיך" של חוג → חוג השנה-הבאה (נוצר אם חסר). מחזיר כמה נרשמו. */
   bulkReenrollCourse: (courseId: string) => { created: number; courseId?: string };
 
@@ -1990,25 +1989,26 @@ export const useApp = create<AppState>()((set, get) => {
       // שהמנהל פתח ידנית) עדיין עובדת.
       const db = get().db;
       const src = db.enrollments.find((e) => e.id === enrollmentId);
-      if (!src) return { ok: false };
+      if (!src) return { ok: false, reason: 'שיבוץ-המקור לא נמצא' };
       if (src.renewedToId) return { ok: true, id: src.renewedToId }; // כבר נרשם — אידמפוטנטי
       const tid = targetCourseId || src.courseId;
       const target = db.courses.find((c) => c.id === tid);
-      if (!target) return { ok: false };
+      if (!target) return { ok: false, reason: 'חוג-היעד לא נמצא' };
       // תווית שנת-הלימודים החדשה — מחושבת מתאריך-פתיחת חוג-המקור (לא של-היעד):
       // "הרישום הוא-הוא המעבר לשנה הבאה", ולכן תמיד מתקדם +1 מהשנה של המקור.
       const srcCourse = db.courses.find((c) => c.id === src.courseId);
       const yearLabel = srcCourse ? nextAcademicYearLabel(srcCourse.start) : '';
-      // 🐛 באג 25.8 ("2 חסום, 0 נרשם"): כשה-tid == src.courseId (רישום-במקום למודל
-      // In-Card), enrollCount ספר את **שיבוצי-השנה-הנוכחית** ⇒ maxStudents=2 וכבר
-      // 2 תלמידות ⇒ 2>=2 ⇒ נחסם תמיד. במודל-השנים החדש, שיבוצים ישנים לא תופסים
-      // מקום פיזי בשנה החדשה — סופרים רק שיבוצי-אותה-שנת-יעד. שיבוץ בלי year (שנה-
-      // נוכחית) לא נחשב מול קיבולת של תווית-שנה. שלד: `renewedToId` על-המקור לא
-      // דורש בדיקה נפרדת — האידמפוטנטיות שומרת מקום למקור עצמו.
+      // 🐛 באג 25.8 ("2 חסום, 0 נרשם") + חיזוק 26.8: שער-התפוסה מונה רק שיבוצים
+      // שאינם-מוחלפים (‏!renewedToId). בלי החיזוק, שיבוצי-שנה-נוכחית שכבר קיבלו
+      // חלופה לשנה-הבאה עדיין נספרים ⇒ נחסם. עם yearLabel — סופרים רק שיבוצי-
+      // אותה-שנת-יעד; בלי yearLabel (חוג בלי-תאריך-פתיחה) — סופרים כל-שיבוץ-פעיל
+      // שאין לו renewedToId. שני המסלולים מחריגים ended/wait כי אינם תופסים מקום.
       const capUsed = yearLabel
         ? db.enrollments.filter((e) => e.courseId === tid && e.year === yearLabel && e.status !== 'ended' && e.status !== 'wait').length
-        : enrollCount(db, tid);
-      if (capUsed >= (target.maxStudents || 999)) return { ok: false };
+        : db.enrollments.filter((e) => e.courseId === tid && !e.renewedToId && e.status !== 'ended' && e.status !== 'wait').length;
+      if (capUsed >= (target.maxStudents || 999)) {
+        return { ok: false, reason: 'חוג-מלא (' + capUsed + '/' + target.maxStudents + ')' + (yearLabel ? ' בשנה ' + yearLabel : '') };
+      }
       const id = get().nextId('e');
       const fresh = freshNextYearEnrollment(src, tid, id, isoToday(), group, yearLabel);
       get().upsertEnrollment(fresh);

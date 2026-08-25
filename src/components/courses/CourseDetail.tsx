@@ -585,12 +585,24 @@ export function CourseDetail(props: { course: Course }) {
                         disabled={!selCount}
                         onClick={() => {
                           const ids = [...regSel];
-                          let ok = 0, fail = 0;
+                          let ok = 0;
+                          const reasons: string[] = [];
                           for (const id of ids) {
                             const r = reenrollEnrollment(id, '', undefined);
-                            if (r.ok) ok++; else fail++;
+                            if (r.ok) ok++; else if (r.reason) reasons.push(r.reason);
+                            else reasons.push('שגיאה לא-ידועה');
                           }
-                          toast(fail ? `נרשמו ${ok}, ${fail} נחסמו (תפוסה/כבר-נרשם)` : `✓ נרשמו ${ok} לשנה הבאה 🚀`);
+                          if (reasons.length === 0) {
+                            toast(`✓ נרשמו ${ok} לשנה הבאה 🚀`);
+                          } else {
+                            // חיווי מפורט למה נחסם (בקשת-בעלים 25.8): במקום "0 נרשם N חסום"
+                            // סתום — מציגים את הסיבה הראשונה (אחידה למרוב-הכשלים).
+                            const uniqueReasons = [...new Set(reasons)];
+                            const summary = uniqueReasons.length === 1
+                              ? uniqueReasons[0]
+                              : uniqueReasons.slice(0, 2).join(' · ');
+                            toast(`נרשמו ${ok}, ${reasons.length} נחסמו — ${summary}`);
+                          }
                           setRegSel(new Set());
                           setRegMode(false);
                         }}
