@@ -98,6 +98,33 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       toast('⚠ ההכנסה לתור נכשלה — נסו שוב');
     }
   }
+  // 📧 שליחת-מייל ידנית (בקשת-בעלים 26.8) — מעל-mailOutbox הקיים (שמשמש
+  // אוטומטית לקבלות). ‏mailReady כבר מוגדר למטה (לצרור-הלילה); אנחנו רק מוסיפים
+  // מודאל-שליחה חופשי (נושא+תוכן) על תשתית-הקבלות הקיימת.
+  const [mailOpen, setMailOpen] = useState(false);
+  const [mailSubject, setMailSubject] = useState('');
+  const [mailBody, setMailBody] = useState('');
+  const [mailBusy, setMailBusy] = useState(false);
+  async function sendMail() {
+    const subj = mailSubject.trim();
+    const body = mailBody.trim();
+    if (!subj) return toast('כתבו נושא-מייל');
+    if (!body) return toast('כתבו תוכן קודם');
+    if (mailBusy) return;
+    setMailBusy(true);
+    try {
+      const mod = await import('../../store/cloudSync');
+      await mod.writeMailOutbox(sp.email.trim(), subj, body);
+      toast('📧 המייל נכנס לתור-השליחה');
+      setMailOpen(false);
+      setMailSubject('');
+      setMailBody('');
+    } catch {
+      toast('⚠ ההכנסה לתור נכשלה — ודאי שהמייל מוגדר בהרחבות');
+    } finally {
+      setMailBusy(false);
+    }
+  }
   const [aiDraft, setAiDraft] = useState('');
   const [aiBusy, setAiBusy] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
@@ -476,6 +503,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                   📱 SMS
                 </Btn>
               )}
+              {mailReady && (
+                <Btn sm onClick={() => setMailOpen(true)} title="שליחת מייל דרך תור-הענן (דורש SMTP מוגדר בהרחבות)">
+                  📧 מייל
+                </Btn>
+              )}
               {telephonyOn(config) && sp.phone && <CallBtn phone={sp.phone} title={'חיוג ל' + sp.name} />}
               {integrationOn(config, 'whatsapp') && sp.phone && <WaBtn phone={sp.phone} title={'וואטסאפ ל' + sp.name} />}
             </div>
@@ -731,6 +763,35 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <div className="modal-actions">
             <Btn kind="primary" onClick={() => void sendSms()}>שליחה לתור</Btn>
             <Btn onClick={() => setSmsOpen(false)}>ביטול</Btn>
+          </div>
+        </Modal>
+      )}
+      {mailOpen && (
+        <Modal title={'📧 מייל אל ' + sp.name} onClose={() => setMailOpen(false)}>
+          <input
+            type="text"
+            value={mailSubject}
+            onChange={(e) => setMailSubject(e.target.value)}
+            placeholder="נושא-המייל…"
+            maxLength={200}
+            style={{ width: '100%', fontSize: 13.5, padding: 10, borderRadius: 10, border: '1px solid var(--line)', marginBottom: 8 }}
+          />
+          <textarea
+            value={mailBody}
+            onChange={(e) => setMailBody(e.target.value)}
+            rows={8}
+            maxLength={10000}
+            placeholder="תוכן המייל…"
+            style={{ width: '100%', fontSize: 13.5, padding: 10, borderRadius: 10, border: '1px solid var(--line)', resize: 'vertical' }}
+          />
+          <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 4 }}>
+            נשלח אל <span dir="ltr">{sp.email}</span> דרך תור-הענן (שרת-ההרחבות שולח מיד).
+          </div>
+          <div className="modal-actions">
+            <Btn kind="primary" onClick={() => void sendMail()} disabled={mailBusy}>
+              {mailBusy ? 'שולח…' : 'שליחה לתור'}
+            </Btn>
+            <Btn onClick={() => setMailOpen(false)}>ביטול</Btn>
           </div>
         </Modal>
       )}
