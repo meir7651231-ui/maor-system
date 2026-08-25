@@ -36,6 +36,29 @@ export function waLink(phone: string, text = ''): string | null {
   return 'https://wa.me/' + digits + (t ? '?text=' + encodeURIComponent(t) : '');
 }
 
+/**
+ * 📱 קישור-אפליקציה (הכרעת-בעלים 24.8 "שהקישור יתבצע אצלי, לא דרך wa.me"):
+ * סכמת `whatsapp://send` — **קריאה ישירה לאפליקציה המותקנת דרך מערכת-ההפעלה,
+ * בלי לפנות לדומיין wa.me**. סינון-כשר שחוסם גלישה-לאתרים (dom wa.me) אך מתיר
+ * את אפליקציית-וואטסאפ — יפתח דרך הסכמה הזו. בלי מספר תקין ⇒ null.
+ */
+export function waAppLink(phone: string, text = ''): string | null {
+  const digits = waDigits(phone);
+  if (!digits) return null;
+  const t = text.trim();
+  return 'whatsapp://send?phone=' + digits + (t ? '&text=' + encodeURIComponent(t) : '');
+}
+
+/**
+ * בורר-הסכמה לפי הקונפיג: mode='app' ⇒ whatsapp:// (קריאה-ישירה, עוקף חסימת-
+ * דומיין של סינון-כשר); אחרת wa.me (ביט-זהה להיום). מחזיר גם דגל-אפליקציה
+ * כדי שה-caller ידע לא להשתמש ב-target=_blank (סכמת-אפליקציה ⇒ אין טאב חדש).
+ */
+export function waHref(phone: string, text: string, appScheme: boolean): { href: string; app: boolean } | null {
+  const href = appScheme ? waAppLink(phone, text) : waLink(phone, text);
+  return href ? { href, app: appScheme } : null;
+}
+
 /* ---------- תבניות-הודעה (גל ב׳ + עריכות #12) — טהורות; המשתמש עורך לפני שליחה ---------- */
 /* וואטסאפ פותח עם הטקסט ממולא אך **לא שולח** — המזכירה רואה, מתקנת, שולחת.
  * ‏#12 (5.8.2026): הנוסחים עריכים פר-ארגון (config.templates דרך האשף);
