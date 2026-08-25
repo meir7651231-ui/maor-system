@@ -15,7 +15,7 @@
     "courses.cockpit": true
   },
   "integrations": {
-    "whatsapp": { "enabled": true },
+    "whatsapp": { "enabled": true, "mode": "app" },
     "maps": { "enabled": true },
     "gcal": { "enabled": true },
     "payments": { "enabled": true, "solaPullUrl": "https://us-central1-maor-system.cloudfunctions.net/solaPull" }
