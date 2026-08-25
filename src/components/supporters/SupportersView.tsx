@@ -73,6 +73,8 @@ import { OrgDonationCalendar } from './DonationCalendar';
 import { SupDedupModal } from './SupDedupModal';
 import { HokBulkModal } from './HokBulkModal';
 import { findSupporterDupGroups } from '../../lib/dedup';
+import { bulkMailRecipients, bulkWaRecipients } from '../../lib/bulkContact';
+import { waLink } from '../../lib/wa';
 import { CustomExport } from '../reports/CustomExport';
 
 type SortKey =
@@ -312,6 +314,17 @@ export function SupportersView() {
   const mergeSupportersGroup = useApp((s) => s.mergeSupportersGroup);
   // בקשת-בעלים 23.8: הסרת-ייעוד מפורשת (forWho ריק) — לא רק שיוך; אישור-דו-שלבי
   const [clearPurposeConfirm, setClearPurposeConfirm] = useState(false);
+  // בקשת-בעלים 26.8: שליחה-מרובה — מייל דרך התור (writeMailOutbox) · וואטסאפ
+  // דרך wa.me (הודעה-אחת פר-טלפון, המזכירה לוחצת פתח פר-שורה). הכול additive
+  // ומגודר bulkGranted+integrationOn — אפס-השפעה בלי-הדגלים+בלי-ההרחבה.
+  const [bulkMailOpen, setBulkMailOpen] = useState(false);
+  const [bulkMailSubject, setBulkMailSubject] = useState('');
+  const [bulkMailBody, setBulkMailBody] = useState('');
+  const [bulkMailBusy, setBulkMailBusy] = useState(false);
+  const [bulkMailResult, setBulkMailResult] = useState<{ ok: number; fail: number } | null>(null);
+  const [bulkWaOpen, setBulkWaOpen] = useState(false);
+  const [bulkWaText, setBulkWaText] = useState('');
+  const [bulkWaSent, setBulkWaSent] = useState<ReadonlySet<string>>(new Set<string>());
   const deleteSupporters = useApp((s) => s.deleteSupporters);
   const setSupportersPurpose = useApp((s) => s.setSupportersPurpose);
   const toggleSel = (id: string) =>
@@ -839,6 +852,38 @@ export function SupportersView() {
               {'🔗 מזג נבחרים · ' + selSet.size}
             </Btn>
           )}
+          {/* בקשת-בעלים 26.8: שליחה-מרובה — מייל דרך התור, וואטסאפ דרך wa.me.
+              ‏N בכפתור = הנמענים-בפועל (אחרי דדופ/סינון) — לא מספר-המסומנים. */}
+          {(() => {
+            if (!selSet.size) return null;
+            const chosen = db.supporters.filter((sp) => selSet.has(sp.id));
+            const mailReady = integrationOn(config, 'mail') && cloudOn;
+            const waReady = integrationOn(config, 'whatsapp');
+            const mails = mailReady && bulkGranted('supporters.bulkmail') ? bulkMailRecipients(chosen) : [];
+            const was = waReady && bulkGranted('supporters.bulkwa') ? bulkWaRecipients(chosen) : [];
+            return (
+              <>
+                {mailReady && bulkGranted('supporters.bulkmail') && (
+                  <Btn
+                    disabled={!mails.length}
+                    onClick={() => { setBulkMailResult(null); setBulkMailOpen(true); }}
+                    title={mails.length ? 'שליחת אותו נוסח לכל התומכ/ות המסומנים בעלי מייל (דדופ לפי-כתובת)' : 'אף מסומן/ת ללא כתובת-מייל תקינה'}
+                  >
+                    {'📧 מייל למסומנים · ' + mails.length}
+                  </Btn>
+                )}
+                {waReady && bulkGranted('supporters.bulkwa') && (
+                  <Btn
+                    disabled={!was.length}
+                    onClick={() => { setBulkWaSent(new Set<string>()); setBulkWaOpen(true); }}
+                    title={was.length ? 'רשימת wa.me פר-נמען — הודעה-אחת פר-טלפון; המזכירה לוחצת פתח פר-שורה' : 'אף מסומן/ת ללא טלפון-תקין ל-wa.me'}
+                  >
+                    {'💬 וואטסאפ למסומנים · ' + was.length}
+                  </Btn>
+                )}
+              </>
+            );
+          })()}
           {bulkGranted('supporters.bulkdelete') && (
             <Btn kind="danger" disabled={!selSet.size} onClick={() => setConfirmDel(true)}>
               {'🗑 מחיקת ' + selSet.size}
@@ -1468,6 +1513,146 @@ export function SupportersView() {
           </div>
         </Modal>
       )}
+
+      {/* 📧 שליחת-מייל מרוכזת (בקשת-בעלים 26.8) — לולאה על writeMailOutbox
+          פר-נמען; כשלים-רכים נספרים בנפרד (המשך-שליחה לשאר). */}
+      {bulkMailOpen && (() => {
+        const chosen = db.supporters.filter((sp) => selSet.has(sp.id));
+        const rows = bulkMailRecipients(chosen);
+        return (
+          <Modal title={'📧 שליחת-מייל ל-' + rows.length + ' ' + termOf(config, 'nav.supporters', 'תומכים')} onClose={() => setBulkMailOpen(false)}>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+              המייל ייכנס לתור-השליחה (mailOutbox) — כל הנמענים יקבלו את אותו נוסח.
+              דדופ לפי-כתובת ⇒ שני-כרטיסים-אותו-מייל = הודעה-אחת.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+              <label style={{ fontSize: 13, fontWeight: 600 }}>נושא</label>
+              <input
+                value={bulkMailSubject}
+                onChange={(e) => setBulkMailSubject(e.target.value)}
+                placeholder="למשל: עדכון לתורמים"
+                style={{ width: '100%', padding: '8px 10px', fontSize: 14, borderRadius: 8, border: '1px solid var(--line)' }}
+                disabled={bulkMailBusy}
+              />
+              <label style={{ fontSize: 13, fontWeight: 600 }}>תוכן</label>
+              <textarea
+                value={bulkMailBody}
+                onChange={(e) => setBulkMailBody(e.target.value)}
+                rows={7}
+                placeholder="גוף המייל…"
+                style={{ width: '100%', padding: '8px 10px', fontSize: 14, borderRadius: 8, border: '1px solid var(--line)', resize: 'vertical' }}
+                disabled={bulkMailBusy}
+              />
+            </div>
+            <details style={{ marginTop: 8 }}>
+              <summary style={{ cursor: 'pointer', fontSize: 12.5, color: 'var(--ink-faint, #8a8378)' }}>
+                {'רשימת-הנמענים (' + rows.length + ')'}
+              </summary>
+              <div style={{ maxHeight: 160, overflowY: 'auto', marginTop: 6, fontSize: 12.5, lineHeight: 1.6 }}>
+                {rows.map((r) => (
+                  <div key={r.id} style={{ display: 'flex', gap: 8 }}>
+                    <span style={{ fontWeight: 600 }}>{r.name}</span>
+                    <span dir="ltr" style={{ color: 'var(--ink-faint, #8a8378)' }}>{r.email}</span>
+                  </div>
+                ))}
+              </div>
+            </details>
+            {bulkMailResult && (
+              <p style={{ marginTop: 10, fontSize: 13.5, color: bulkMailResult.fail ? 'var(--warn, #c07a00)' : 'var(--good, #2b7a2b)' }}>
+                {'נשלחו ' + bulkMailResult.ok + ' מתוך ' + rows.length + (bulkMailResult.fail ? ' (' + bulkMailResult.fail + ' נכשלו)' : ' ✓')}
+              </p>
+            )}
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <Btn
+                kind="primary"
+                disabled={bulkMailBusy || !rows.length || !bulkMailSubject.trim() || !bulkMailBody.trim()}
+                onClick={async () => {
+                  setBulkMailBusy(true);
+                  setBulkMailResult(null);
+                  let ok = 0;
+                  let fail = 0;
+                  try {
+                    const mod = await import('../../store/cloudSync');
+                    const subj = bulkMailSubject.trim();
+                    const body = bulkMailBody.trim();
+                    for (const r of rows) {
+                      try {
+                        await mod.writeMailOutbox(r.email, subj, body);
+                        ok += 1;
+                      } catch {
+                        fail += 1;
+                      }
+                    }
+                  } finally {
+                    setBulkMailBusy(false);
+                    setBulkMailResult({ ok, fail });
+                    if (ok) toast('📧 נשלחו ' + ok + ' מיילים לתור' + (fail ? ' · ' + fail + ' נכשלו' : ''));
+                    else if (fail) toast('⚠️ שליחת-המייל נכשלה');
+                  }
+                }}
+              >
+                {bulkMailBusy ? '⏳ שולח…' : '📧 שלח ל-' + rows.length}
+              </Btn>
+              <Btn onClick={() => setBulkMailOpen(false)} disabled={bulkMailBusy}>סגירה</Btn>
+            </div>
+          </Modal>
+        );
+      })()}
+
+      {/* 💬 שליחת-וואטסאפ מרוכזת (בקשת-בעלים 26.8) — wa.me פר-נמען;
+          המזכירה רואה מה-נשלח (סימון-מתמיד עד סגירת-המודאל) ולוחצת פתח פר-שורה. */}
+      {bulkWaOpen && (() => {
+        const chosen = db.supporters.filter((sp) => selSet.has(sp.id));
+        const rows = bulkWaRecipients(chosen);
+        const text = bulkWaText.trim();
+        const sentCount = rows.filter((r) => bulkWaSent.has(r.digits)).length;
+        return (
+          <Modal title={'💬 וואטסאפ ל-' + rows.length + ' ' + termOf(config, 'nav.supporters', 'תומכים')} onClose={() => setBulkWaOpen(false)}>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+              וואטסאפ **פותח** את הנוסח בכל שורה — לא שולח אוטומטית. המזכירה לוחצת "פתח",
+              מוודאת, ולוחצת "שלח" בוואטסאפ. דדופ לפי-טלפון ⇒ שני-כרטיסים-אותו-טלפון = פתיחה-אחת.
+            </p>
+            <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginTop: 8 }}>נוסח-ההודעה</label>
+            <textarea
+              value={bulkWaText}
+              onChange={(e) => setBulkWaText(e.target.value)}
+              rows={5}
+              placeholder="שלום, זו הודעה מהעמותה…"
+              style={{ width: '100%', padding: '8px 10px', fontSize: 14, borderRadius: 8, border: '1px solid var(--line)', resize: 'vertical' }}
+            />
+            <p style={{ marginTop: 8, fontSize: 12.5, color: 'var(--ink-faint, #8a8378)' }}>
+              {'נפתחו: ' + sentCount + ' / ' + rows.length}
+            </p>
+            <div style={{ maxHeight: 300, overflowY: 'auto', marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {rows.map((r) => {
+                const href = waLink(r.phone, text);
+                const opened = bulkWaSent.has(r.digits);
+                return (
+                  <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: '1px solid var(--line, #e6ddce)', borderRadius: 8, background: opened ? 'var(--sel, #eef3ff)' : undefined }}>
+                    <span style={{ fontWeight: 600, minWidth: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}</span>
+                    <span dir="ltr" style={{ color: 'var(--ink-faint, #8a8378)', fontSize: 12.5 }}>{r.phone}</span>
+                    {href ? (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setBulkWaSent((prev) => { const next = new Set(prev); next.add(r.digits); return next; })}
+                        className="btn"
+                        style={{ textDecoration: 'none', fontSize: 12.5, padding: '4px 10px' }}
+                      >
+                        {opened ? '↻ פתח שוב' : '💬 פתח'}
+                      </a>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <Btn onClick={() => setBulkWaOpen(false)}>סגירה</Btn>
+            </div>
+          </Modal>
+        );
+      })()}
 
       {expOpen && <CustomExport target="supporters" onClose={() => setExpOpen(false)} />}
       {paletteEl}
