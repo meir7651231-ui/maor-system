@@ -74,6 +74,7 @@ import { SupDedupModal } from './SupDedupModal';
 import { HokBulkModal } from './HokBulkModal';
 import { findSupporterDupGroups } from '../../lib/dedup';
 import { bulkMailRecipients, bulkWaRecipients } from '../../lib/bulkContact';
+import { runBatch } from '../../lib/batch';
 import { waLink } from '../../lib/wa';
 import { CustomExport } from '../reports/CustomExport';
 
@@ -321,6 +322,7 @@ export function SupportersView() {
   const [bulkMailSubject, setBulkMailSubject] = useState('');
   const [bulkMailBody, setBulkMailBody] = useState('');
   const [bulkMailBusy, setBulkMailBusy] = useState(false);
+  const [bulkMailProgress, setBulkMailProgress] = useState<{ done: number; total: number } | null>(null);
   const [bulkMailResult, setBulkMailResult] = useState<{ ok: number; fail: number } | null>(null);
   const [bulkWaOpen, setBulkWaOpen] = useState(false);
   const [bulkWaText, setBulkWaText] = useState('');
@@ -1557,6 +1559,23 @@ export function SupportersView() {
                 ))}
               </div>
             </details>
+            {bulkMailBusy && bulkMailProgress && (
+              <div style={{ marginTop: 10 }}>
+                <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: 0 }}>
+                  {'נשלח ' + bulkMailProgress.done + ' / ' + bulkMailProgress.total + '…'}
+                </p>
+                <div style={{ height: 6, borderRadius: 4, background: 'var(--line)', marginTop: 6, overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      width: (bulkMailProgress.total ? Math.round((bulkMailProgress.done / bulkMailProgress.total) * 100) : 0) + '%',
+                      background: 'var(--accent, #2b7a2b)',
+                      transition: 'width .2s',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
             {bulkMailResult && (
               <p style={{ marginTop: 10, fontSize: 13.5, color: bulkMailResult.fail ? 'var(--warn, #c07a00)' : 'var(--good, #2b7a2b)' }}>
                 {'נשלחו ' + bulkMailResult.ok + ' מתוך ' + rows.length + (bulkMailResult.fail ? ' (' + bulkMailResult.fail + ' נכשלו)' : ' ✓')}
@@ -1569,29 +1588,36 @@ export function SupportersView() {
                 onClick={async () => {
                   setBulkMailBusy(true);
                   setBulkMailResult(null);
+                  setBulkMailProgress({ done: 0, total: rows.length });
                   let ok = 0;
                   let fail = 0;
                   try {
                     const mod = await import('../../store/cloudSync');
                     const subj = bulkMailSubject.trim();
                     const body = bulkMailBody.trim();
-                    for (const r of rows) {
-                      try {
-                        await mod.writeMailOutbox(r.email, subj, body);
-                        ok += 1;
-                      } catch {
-                        fail += 1;
-                      }
-                    }
+                    // מקביליות-מבוקרת + ניסיון-חוזר-בטוח (רק שגיאת-מעבר) + התקדמות-חיה.
+                    // ‏writeMailOutbox=addDoc (מזהה-אוטומטי) ⇒ בטוח למקביליות.
+                    const res = await runBatch(rows, (r) => mod.writeMailOutbox(r.email, subj, body), {
+                      concurrency: 4,
+                      retries: 2,
+                      onProgress: (done, total) => setBulkMailProgress({ done, total }),
+                    });
+                    ok = res.ok;
+                    fail = res.fail;
                   } finally {
                     setBulkMailBusy(false);
+                    setBulkMailProgress(null);
                     setBulkMailResult({ ok, fail });
                     if (ok) toast('📧 נשלחו ' + ok + ' מיילים לתור' + (fail ? ' · ' + fail + ' נכשלו' : ''));
                     else if (fail) toast('⚠️ שליחת-המייל נכשלה');
                   }
                 }}
               >
-                {bulkMailBusy ? '⏳ שולח…' : '📧 שלח ל-' + rows.length}
+                {bulkMailBusy
+                  ? bulkMailProgress
+                    ? '⏳ שולח… ' + bulkMailProgress.done + '/' + bulkMailProgress.total
+                    : '⏳ שולח…'
+                  : '📧 שלח ל-' + rows.length}
               </Btn>
               <Btn onClick={() => setBulkMailOpen(false)} disabled={bulkMailBusy}>סגירה</Btn>
             </div>
