@@ -552,6 +552,8 @@ interface AppState {
   ayinRevert: (id: string, stage: AyinStage) => void;
   ayinAddName: (id: string, name: string, eyes: number | '') => void;
   ayinToggleName: (id: string, nameId: string) => void;
+  /** 💳 סימון/ביטול "שולם" ידני בתיק-הטיפול (שער-התשלום). */
+  ayinSetPaid: (id: string, paid: boolean) => void;
   ayinSetNameEyes: (id: string, nameId: string, eyes: number | '') => void;
   ayinSetNameRate: (id: string, nameId: string, rate: number) => void;
   ayinSetNameNote: (id: string, nameId: string, note: string) => void;
@@ -2492,6 +2494,9 @@ export const useApp = create<AppState>()((set, get) => {
         return { ok: false };
       }
       const rid = 'D-' + get().db.donationSeq;
+      // 💳 שער-תשלום במעקב-הטיפול (בקשת-בעלים 25.8, opt-in): רישום-תרומה מסמן
+      // את תיק-הטיפול הפעיל כ"שולם" ⇒ מאפשר להתקדם ל"הושלם". כבוי ⇒ ביט-זהה.
+      const payGateOn = get().config.features?.['supporters.ayin.paygate'] === true;
       setDb((db) => ({
         donationSeq: db.donationSeq + 1,
         supporters: db.supporters.map((s) => {
@@ -2499,7 +2504,8 @@ export const useApp = create<AppState>()((set, get) => {
           const donations = [{ ...donation, rid }, ...s.donations];
           // מצבור = קבלות-בלבד (#14, hist מתווסף בתצוגה) — מקור-אמת יחיד עם migrate/audit.
           const agg = supporterAggregates({ donations, hist: s.hist });
-          return { ...s, donations, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
+          const ayin = payGateOn && s.ayin && s.ayin.stage !== 'done' && !s.ayin.paid ? { ...s.ayin, paid: true } : s.ayin;
+          return { ...s, ...(ayin ? { ayin } : {}), donations, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
         }),
       }));
       // מונח-דינמי גם בלוג — הרשומה מוצגת בטבלת-הלוג ובוורטיקל עסקי "תרומה" היא דליפה
@@ -3350,6 +3356,12 @@ export const useApp = create<AppState>()((set, get) => {
       if (!plan.ok) return;
       setAyin(id, plan.log ? { names: plan.names, log: plan.log } : { names: plan.names });
       get().toast('"' + name.trim() + '" נוסף לרשימה');
+    },
+    ayinSetPaid(id, paid) {
+      const c = curAyin(id);
+      if (!c) return;
+      setAyin(id, { paid }, false);
+      get().toast(paid ? '💳 סומן כשולם ✓' : 'סימון-התשלום בוטל');
     },
     ayinToggleName(id, nameId) {
       const c = curAyin(id);

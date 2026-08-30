@@ -37,6 +37,7 @@ export function AyinCard(props: { supporter: Supporter }) {
   const a = sp.ayin ?? emptyAyin();
   const cfg = useApp((s) => s.config);
   const advance = useApp((s) => s.ayinAdvance);
+  const setPaid = useApp((s) => s.ayinSetPaid);
   const revert = useApp((s) => s.ayinRevert);
   const addName = useApp((s) => s.ayinAddName);
   const toggleName = useApp((s) => s.ayinToggleName);
@@ -83,6 +84,8 @@ export function AyinCard(props: { supporter: Supporter }) {
   // גידור-דגלים (FLAGMAX): חזרה-לשלב / יומן-תשובות / "מתי לדבר שוב" / מחזור-חדש —
   // חסר-דגל = פעיל (עטיפה = אפס-שינוי-ברירת-מחדל); false מסתיר.
   const revertOn = featureOn(cfg, 'supporters.ayin.revert');
+  // 💳 שער-תשלום (בקשת-בעלים 25.8, opt-in) — חסר-הדגל ⇒ מוסתר, ביט-זהה להיום.
+  const payGateOn = cfg.features?.['supporters.ayin.paygate'] === true;
   // כתב-כמויות/הצעת-מחיר — רק בהקשר מסחרי (§46 כבוי) + דגל. בעמותה מוסתר לגמרי.
   const boqOn = featureOn(cfg, 'supporters.ayin.boq') && !featureOn(cfg, 'core.taxreceipt');
   const timeOn = featureOn(cfg, 'supporters.ayin.time') && !featureOn(cfg, 'core.taxreceipt');
@@ -188,6 +191,29 @@ export function AyinCard(props: { supporter: Supporter }) {
           );
         })}
       </div>
+
+      {/* 💳 שער-תשלום (בקשת-בעלים 25.8, opt-in) — סטטוס-שולם + סימון-ידני;
+          רישום-תרומה בכרטיס מסמן שולם אוטומטית. חסר-הדגל ⇒ מוסתר (ביט-זהה). */}
+      {payGateOn && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0' }}>
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              padding: '2px 10px',
+              borderRadius: 999,
+              background: a.paid ? '#e4f5ea' : '#fdeaea',
+              color: a.paid ? '#12803c' : '#b91c1c',
+            }}
+          >
+            {a.paid ? '💰 שולם ✓' : '💰 טרם שולם'}
+          </span>
+          <Btn sm onClick={() => setPaid(sp.id, !a.paid)} title="סימון/ביטול תשלום — רישום תרומה בכרטיס מסמן שולם אוטומטית">
+            {a.paid ? 'ביטול סימון' : 'סמן שולם'}
+          </Btn>
+          {!a.paid && <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>נדרש תשלום כדי להשלים</span>}
+        </div>
+      )}
 
       {ayinActionVisible(a) && (
         <div>
