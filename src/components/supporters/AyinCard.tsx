@@ -80,7 +80,9 @@ export function AyinCard(props: { supporter: Supporter }) {
   const item = itemLabel(cfg);
   const unit = unitLabel(cfg);
   const cur = stageIndex(a.stage);
-  const showNames = a.stage === 'new' || a.stage === 'lead' || a.stage === 'eyes';
+  // בקשת-בעלים 30.8: השמות נשארים על המסך גם בשלב 'מסירה' (answer) — יורדים
+  // מהמסך רק כשהתיק 'הושלם' (done), שאז הם בהיסטוריה. קודם נעלמו כבר במסירה.
+  const showNames = a.stage !== 'done';
   // גידור-דגלים (FLAGMAX): חזרה-לשלב / יומן-תשובות / "מתי לדבר שוב" / מחזור-חדש —
   // חסר-דגל = פעיל (עטיפה = אפס-שינוי-ברירת-מחדל); false מסתיר.
   const revertOn = featureOn(cfg, 'supporters.ayin.revert');
