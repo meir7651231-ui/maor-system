@@ -2864,10 +2864,13 @@ button.hm-tier:focus-visible {
 /* כפתור-חזרה מרחף קבוע בתחתית מסכי-הכרטיס (בקשת-בעלים 19.8) — `position: fixed`
    כדי שירחף **תמיד** מול חלון-התצוגה (גם בדסקטופ, ללא תלות במבנה-הגלילה),
    כך שהמשתמש לא צריך לגלול חזרה למעלה. פינה תחתונה-מתחילה (RTL = ימין). */
+/* כפתור-החזרה בצד-הנגדי לטוסטים (בקשת-בעלים 30.8: "כפתור החזרה תעשה בצד השניה
+   כי בכל עדכון הטוסט מסתיר אותו"). הטוסטים ב-inset-inline-start (z-index גבוה),
+   לכן החזרה עברה ל-inset-inline-end. */
 .sticky-back {
   position: fixed;
   bottom: 18px;
-  inset-inline-start: 18px;
+  inset-inline-end: 18px;
   z-index: 60;
   margin: 0;
   padding: 0;
@@ -2885,11 +2888,12 @@ button.hm-tier:focus-visible {
 }
 
 /* 📞 צ'יפ-קמפיין-צף (20.8) — קמפיין-חייגן פעיל נגיש מכל מסך; בצד הנגדי
-   לכפתור-החזרה (inset-inline-end), ובמובייל מעל הניווט-התחתון כמוהו */
+   לכפתור-החזרה (עבר ל-inset-inline-start אחרי שהחזרה עברה ל-end, 30.8),
+   ובמובייל מעל הניווט-התחתון כמוהו */
 .dialer-chip {
   position: fixed;
   bottom: 18px;
-  inset-inline-end: 18px;
+  inset-inline-start: 18px;
   z-index: 60;
   background: var(--accent-deep, #a05008);
   color: #fff;
