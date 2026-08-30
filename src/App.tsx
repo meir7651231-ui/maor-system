@@ -36,6 +36,7 @@ import { DayGate } from './components/wheel/DayGate';
 import { ChangePasswordModal } from './components/cloud/ChangePasswordModal';
 import { NetCheckModal } from './components/cloud/NetCheckModal';
 import { SupportChatModal, SupportInbox, TeamChatModal } from './components/support/SupportChat';
+import { latestTeamAt, teamUnreadCount, type TeamMsg } from './lib/supportChat';
 import { AdminHub, HubButton } from './components/AdminHub';
 import { LockScreen } from './components/lock/LockScreen';
 import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
@@ -326,8 +327,36 @@ export default function App() {
   // supportInboxOpen=תיבת-השיחות של מייל-העל. שניהם מ-❓, מגודרי ענן+התחברות.
   const [supportOpen, setSupportOpen] = useState(false);
   const [supportInboxOpen, setSupportInboxOpen] = useState(false);
-  // 💬 צ׳אט-צוות תוך-ארגוני (17.8) — מגודר shell.teamchat + ענן+התחברות
-  const [teamChatOpen, setTeamChatOpen] = useState(false);
+  // 💬 צ׳אט-צוות תוך-ארגוני (17.8) — מגודר shell.teamchat + ענן+התחברות.
+  // ‏#teamchat = כניסה מפורשת (מצ׳יפ-ההגדרות/פלטה) כמו #manage/#platform.
+  const [teamChatOpen, setTeamChatOpen] = useState(() => window.location.hash === '#teamchat');
+  // 🔴 חיווי "הודעת-צוות שלא-נקראה" על-המסך (בקשת-בעלים 30.8: "שיופיע על המסך
+  // כהודעה שלא נקראה וגם איפה נכנסים אליו"). מנוי-חי ברמת-האפליקציה — רק כשהצ׳אט
+  // זמין (shell.teamchat + ענן + התחברות). מונה טהור מול סימן-נקרא מקומי פר-ארגון
+  // (nsLsKey); פתיחת-הצ׳אט מסמנת הכול-נקרא. ההודעות-שלי לא נספרות.
+  const teamchatAvail = featureOn(config, 'shell.teamchat') && cloud.enabled && !!cloud.user;
+  const teamSlug = config.slug || 'default';
+  const [teamMsgs, setTeamMsgs] = useState<TeamMsg[]>([]);
+  const [teamReadAt, setTeamReadAt] = useState<string>(() => {
+    try { return localStorage.getItem(nsLsKey('maor_teamchat_read')) || ''; } catch { return ''; }
+  });
+  useEffect(() => {
+    if (!teamchatAvail) { setTeamMsgs([]); return; }
+    let unsub: (() => void) | undefined;
+    void import('./store/cloudSync').then((m) => { unsub = m.watchTeamMessages(teamSlug, setTeamMsgs); });
+    return () => unsub?.();
+  }, [teamchatAvail, teamSlug]);
+  const teamUnread = teamUnreadCount(teamMsgs, teamReadAt, (cloud.user?.email || '').toLowerCase());
+  const markTeamRead = () => {
+    const v = latestTeamAt(teamMsgs) || new Date().toISOString();
+    setTeamReadAt(v);
+    try { localStorage.setItem(nsLsKey('maor_teamchat_read'), v); } catch { /* אחסון חסום — לא קריטי */ }
+  };
+  // בזמן שהצ׳אט פתוח (וכשמגיעות הודעות תוך-כדי) — נשארים "נקרא".
+  useEffect(() => {
+    if (teamChatOpen) markTeamRead();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamChatOpen, teamMsgs]);
   // UX סבב-ב׳: 'עוד ▾' לרצועת-הניווט + ניווט-תחתון במובייל
   const [moreNavOpen, setMoreNavOpen] = useState(false);
   // 🔄 ריפוי-לשונית-תקועה (5.8 — "זה הרגע ראיתי אצל לקוח"): לשונית שנשארה
@@ -425,6 +454,7 @@ export default function App() {
       setTourOpen(window.location.hash === '#tour');
       setPlatformOpen(window.location.hash === '#platform');
       setManagerOpen(window.location.hash === '#manage');
+      setTeamChatOpen(window.location.hash === '#teamchat');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -716,15 +746,34 @@ export default function App() {
   // ❓ עזרה מאוחדת (UX סבב-א׳): כפתור אחד לשלושת השלדים — מדריך + סיור.
   const guideOn = featureOn(config, 'shell.guide');
   const demoOn = featureOn(config, 'shell.demo');
-  const helpGearBtn: ReactNode = (guideOn || demoOn) && (
-    <button type="button" className="nav-gear" onClick={() => setHelpOpen(true)} title="עזרה — מדריך וסיור" aria-label="עזרה">
+  // 🔴 באדג' הודעות-צוות שלא-נקראו — נקודה-אדומה עם מונה על כפתור-העזרה (נקודת-
+  // הכניסה לצ׳אט). ריק ⇒ null. הוצא לפונקציה כדי לרנדר עותק-טרי בכל משטח.
+  const teamBadgeEl = (): ReactNode =>
+    teamUnread > 0 ? (
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute', top: -3, insetInlineEnd: -3, minWidth: 16, height: 16,
+          padding: '0 4px', borderRadius: 9, background: 'var(--red, #d33)', color: '#fff',
+          fontSize: 10, fontWeight: 800, display: 'inline-flex', alignItems: 'center',
+          justifyContent: 'center', lineHeight: 1, boxShadow: '0 0 0 2px var(--panel, #fff)',
+        }}
+      >
+        {teamUnread > 99 ? '99+' : teamUnread}
+      </span>
+    ) : null;
+  const helpTitle = teamUnread > 0 ? `עזרה · ${teamUnread} הודעות-צוות חדשות 💬` : 'עזרה — מדריך וסיור';
+  const helpAria = teamUnread > 0 ? `עזרה, ${teamUnread} הודעות-צוות שלא נקראו` : 'עזרה';
+  const helpGearBtn: ReactNode = (guideOn || demoOn || teamchatAvail) && (
+    <button type="button" className="nav-gear" onClick={() => setHelpOpen(true)} title={helpTitle} aria-label={helpAria} style={{ position: 'relative' }}>
       <span aria-hidden>❓</span>
+      {teamBadgeEl()}
     </button>
   );
-  const helpSideBtn: ReactNode = (guideOn || demoOn) && (
-    <button type="button" className="side-link" onClick={() => setHelpOpen(true)} title="עזרה — מדריך וסיור" aria-label="עזרה">
-      <span className="side-ico" aria-hidden>❓</span>
-      <span className="nav-label">עזרה</span>
+  const helpSideBtn: ReactNode = (guideOn || demoOn || teamchatAvail) && (
+    <button type="button" className="side-link" onClick={() => setHelpOpen(true)} title={helpTitle} aria-label={helpAria} style={{ position: 'relative' }}>
+      <span className="side-ico" aria-hidden style={{ position: 'relative', display: 'inline-flex' }}>❓{teamBadgeEl()}</span>
+      <span className="nav-label">{teamUnread > 0 ? `עזרה · ${teamUnread} 💬` : 'עזרה'}</span>
     </button>
   );
 
@@ -1121,7 +1170,7 @@ export default function App() {
                 )}
                 {/* 💬 צ׳אט-צוות תוך-ארגוני — מגודר shell.teamchat (מתג באשף). */}
                 {featureOn(config, 'shell.teamchat') && (
-                  <HubButton emoji="👥" title="צ׳אט הצוות" sub="שיחה פנימית חיה בין אנשי-הצוות של הארגון" onClick={() => { setHelpOpen(false); setTeamChatOpen(true); }} />
+                  <HubButton emoji={teamUnread > 0 ? '🔴' : '👥'} title={teamUnread > 0 ? `צ׳אט הצוות · ${teamUnread} חדשות` : 'צ׳אט הצוות'} sub={teamUnread > 0 ? `יש ${teamUnread} הודעות-צוות שלא נקראו — לחצו לפתיחה` : 'שיחה פנימית חיה בין אנשי-הצוות של הארגון'} onClick={() => { setHelpOpen(false); setTeamChatOpen(true); }} />
                 )}
               </>
             )}
@@ -1131,7 +1180,7 @@ export default function App() {
       {featureOn(config, 'shell.netcheck') && netCheckOpen && <NetCheckModal onClose={() => setNetCheckOpen(false)} />}
       {featureOn(config, 'shell.support') && cloud.enabled && cloud.user && supportOpen && <SupportChatModal onClose={() => setSupportOpen(false)} />}
       {supportInboxOpen && <SupportInbox onClose={() => setSupportInboxOpen(false)} />}
-      {teamChatOpen && <TeamChatModal onClose={() => setTeamChatOpen(false)} />}
+      {teamChatOpen && <TeamChatModal onClose={() => { setTeamChatOpen(false); if (window.location.hash === '#teamchat') history.replaceState(null, '', window.location.pathname + window.location.search); }} />}
       {/* תפריט-החשבון (UX סבב-א׳) — מייל, סטטוס-סנכרון כטקסט, יציאה בשני צעדים */}
       {userMenuOpen && cloud.user && (
         <Modal title="החשבון שלי" onClose={() => setUserMenuOpen(false)}>

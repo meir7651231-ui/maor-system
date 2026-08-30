@@ -393,6 +393,10 @@ export const INTEGRATION_KEYS = [
  * מפתח-AI וכד' נשמרים מקומית-למכשיר בלבד.
  */
 export const INTEGRATION_SETTING_KEYS: Record<string, readonly string[]> = {
+  // whatsapp.mode='app' ⇒ קישורי-הוואטסאפ נפתחים דרך סכמת whatsapp:// (קריאה
+  // ישירה לאפליקציה) במקום https://wa.me — לסינון-כשר שחוסם את דומיין wa.me
+  // אך מתיר את האפליקציה עצמה (הכרעת-בעלים 24.8). חסר/'web' = wa.me (ביט-זהה).
+  whatsapp: ['mode'],
   payments: ['provider', 'payUrl', 'pullUrl', 'solaPullUrl', 'solaPayUrl'],
   campaign: ['url'],
   sheets: ['spreadsheetId'], // גל ד׳ — sheetsNightly קורא מכאן (platformOrgs.config)

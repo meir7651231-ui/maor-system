@@ -13,9 +13,14 @@ describe('📝 ratchet — הערה חופשית ליד מונה-העיניים'
     expect(domainSrc).toMatch(/note\?\s*:\s*string/);
   });
 
-  it('פעולת-store ayinSetNameNote — ריק ⇒ undefined (לא שומר מחרוזת-ריקה)', () => {
+  it('פעולת-store ayinSetNameNote — שומר raw (רווח לא נבלע), ריק/רווחים ⇒ undefined', () => {
     expect(storeSrc).toContain('ayinSetNameNote(id, nameId, note)');
-    expect(storeSrc).toMatch(/const t = note\.trim\(\);[\s\S]{0,160}note: t \|\| undefined/);
+    // 🐛 באג-שטח 30.8: הדפוס הישן `note: t || undefined` (t=note.trim()) בלע רווח-סופי
+    // בשדה controlled. התיקון: שומרים את ה-raw, ורק ריק/רווחים-בלבד ⇒ undefined.
+    expect(storeSrc).toContain('const val = note.trim() ? note : undefined;');
+    expect(storeSrc).toContain('note: val');
+    // הדפוס הישן חייב להיעלם (אחרת חוזר לבלוע רווח)
+    expect(storeSrc).not.toMatch(/ayinSetNameNote[\s\S]{0,120}note: t \|\| undefined/);
   });
 
   it('🛡 הגנת-מקור: תיבת-הערה ליד המונה בכרטיס, מחווטת ל-setNameNote', () => {

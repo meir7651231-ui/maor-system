@@ -12,8 +12,10 @@ import { Btn, Chip, Empty, PageHead } from '../ui';
 import type { OrgEvent } from '../../types/domain';
 import {
   allowItem,
+  buildDayGrid,
   buildGregorianGrid,
   buildHebrewGrid,
+  buildWeekGrid,
   DAY_NAMES,
   DEFAULT_FILTERS,
   EV_META,
@@ -30,6 +32,8 @@ import {
 } from './calLib';
 import { EventModal } from './EventModal';
 import { DayModal } from './DayModal';
+import { CalViewTabs } from './CalViewTabs';
+import type { CalViewMode } from '../../lib/monthGrid';
 import { CustomExport } from '../reports/CustomExport';
 import { IcsFeedModal } from './IcsFeedModal';
 
@@ -65,10 +69,13 @@ function DayCell(props: {
   onItem: (it: DayItem) => void;
   /** במסך מגע (pointer: coarse) הגלולות מכסות את התא — נגיעה בהן פותחת את תצוגת היום. */
   pillsOpenDay: boolean;
+  /** תקרת-גלולות (בתצוגת יום/שבוע מציגים הכול; חודש נשאר MAX_PILLS). */
+  maxPills?: number;
 }) {
   const { cell, onOpen, onItem } = props;
-  const pills = cell.items.slice(0, MAX_PILLS);
-  const more = cell.items.length - MAX_PILLS;
+  const limit = props.maxPills ?? MAX_PILLS;
+  const pills = cell.items.slice(0, limit);
+  const more = cell.items.length - limit;
   return (
     <div
       role="button"
@@ -176,6 +183,9 @@ export function CalendarView() {
   // דגל calendar.hebdefault: חסר=דלוק=עברי; false=לועזי (initialHebMode טהור)
   const [hebMode, setHebMode] = useState(() => initialHebMode(useApp.getState().config));
   const [hebAnchor, setHebAnchor] = useState(isoOf(now));
+  // 🗓 מצב-תצוגה יומי/שבועי/חודשי (בקשת-בעלים 30.8). ביום/שבוע — עוגן-טווח נפרד.
+  const [viewMode, setViewMode] = useState<CalViewMode>('month');
+  const [spanAnchor, setSpanAnchor] = useState(isoOf(now));
   const [modal, setModal] = useState<ModalState | null>(null);
   const [dayIso, setDayIso] = useState<string | null>(null);
   // בקשת "+ אירוע / + תזכורת" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
@@ -267,8 +277,15 @@ export function CalendarView() {
   }, [filters, layersOn, familiesModOn, coursesModOn, config]);
 
   const grid = useMemo(
-    () => (hebMode ? buildHebrewGrid(db, hebAnchor, config) : buildGregorianGrid(db, ym.y, ym.m, config)),
-    [db, hebMode, hebAnchor, ym, config],
+    () =>
+      viewMode === 'day'
+        ? buildDayGrid(db, spanAnchor, config, hebMode)
+        : viewMode === 'week'
+          ? buildWeekGrid(db, spanAnchor, config, hebMode)
+          : hebMode
+            ? buildHebrewGrid(db, hebAnchor, config)
+            : buildGregorianGrid(db, ym.y, ym.m, config),
+    [db, viewMode, spanAnchor, hebMode, hebAnchor, ym, config],
   );
   const cells = useMemo(
     () =>
@@ -301,6 +318,10 @@ export function CalendarView() {
   const famName = (id: string) => db.families.find((f) => f.id === id)?.name || '';
 
   function prevMonth() {
+    if (viewMode !== 'month') {
+      if (grid.prevIso) setSpanAnchor(grid.prevIso);
+      return;
+    }
     if (hebMode) {
       if (grid.prevIso) setHebAnchor(grid.prevIso);
       return;
@@ -308,6 +329,10 @@ export function CalendarView() {
     setYm((p) => (p.m === 0 ? { y: p.y - 1, m: 11 } : { y: p.y, m: p.m - 1 }));
   }
   function nextMonth() {
+    if (viewMode !== 'month') {
+      if (grid.nextIso) setSpanAnchor(grid.nextIso);
+      return;
+    }
     if (hebMode) {
       if (grid.nextIso) setHebAnchor(grid.nextIso);
       return;
@@ -318,6 +343,7 @@ export function CalendarView() {
     const t = new Date();
     setYm({ y: t.getFullYear(), m: t.getMonth() });
     setHebAnchor(isoOf(t));
+    setSpanAnchor(isoOf(t));
   }
   function toggleHeb() {
     if (!hebMode) {
@@ -354,13 +380,14 @@ export function CalendarView() {
         }
         actions={
           <>
-            <Btn onClick={prevMonth} title="חודש קודם">
+            <CalViewTabs mode={viewMode} onMode={(m) => { setViewMode(m); if (m !== 'month') setSpanAnchor(isoOf(new Date())); }} />
+            <Btn onClick={prevMonth} title={viewMode === 'day' ? 'יום קודם' : viewMode === 'week' ? 'שבוע קודם' : 'חודש קודם'}>
               ›
             </Btn>
-            <Btn onClick={nextMonth} title="חודש הבא">
+            <Btn onClick={nextMonth} title={viewMode === 'day' ? 'יום הבא' : viewMode === 'week' ? 'שבוע הבא' : 'חודש הבא'}>
               ‹
             </Btn>
-            {featureOn(config, 'calendar.hebtoggle') && (
+            {viewMode === 'month' && featureOn(config, 'calendar.hebtoggle') && (
               <Btn onClick={toggleHeb} title="החלפת הגריד: חודש עברי מלא (א׳–ל׳) או חודש לועזי">
                 {hebMode ? 'גריד עברי ✓' : 'גריד לועזי'}
               </Btn>
@@ -435,8 +462,8 @@ export function CalendarView() {
       </div>
 
       <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: 12 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
-          {DAY_NAMES.map((n) => (
+        <div style={{ display: 'grid', gridTemplateColumns: viewMode === 'day' ? '1fr' : 'repeat(7, 1fr)' }}>
+          {viewMode !== 'day' && DAY_NAMES.map((n) => (
             <div
               key={n}
               style={{
@@ -459,7 +486,8 @@ export function CalendarView() {
               // אבל כשגם calendar.addevent כבוי (לוח-לקריאה) — אין נתיב-יצירה עוקף: no-op.
               onOpen={() => (dayviewOn ? setDayIso(cell.iso) : addeventOn ? setModal({ ev: null, date: cell.iso }) : undefined)}
               onItem={onItem}
-              pillsOpenDay={dayviewOn && coarsePointer}
+              pillsOpenDay={dayviewOn && coarsePointer && viewMode === 'month'}
+              maxPills={viewMode === 'month' ? undefined : 40}
             />
           ))}
         </div>

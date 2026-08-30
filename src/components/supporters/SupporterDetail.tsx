@@ -98,6 +98,33 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       toast('⚠ ההכנסה לתור נכשלה — נסו שוב');
     }
   }
+  // 📧 שליחת-מייל ידנית (בקשת-בעלים 26.8) — מעל-mailOutbox הקיים (שמשמש
+  // אוטומטית לקבלות). ‏mailReady כבר מוגדר למטה (לצרור-הלילה); אנחנו רק מוסיפים
+  // מודאל-שליחה חופשי (נושא+תוכן) על תשתית-הקבלות הקיימת.
+  const [mailOpen, setMailOpen] = useState(false);
+  const [mailSubject, setMailSubject] = useState('');
+  const [mailBody, setMailBody] = useState('');
+  const [mailBusy, setMailBusy] = useState(false);
+  async function sendMail() {
+    const subj = mailSubject.trim();
+    const body = mailBody.trim();
+    if (!subj) return toast('כתבו נושא-מייל');
+    if (!body) return toast('כתבו תוכן קודם');
+    if (mailBusy) return;
+    setMailBusy(true);
+    try {
+      const mod = await import('../../store/cloudSync');
+      await mod.writeMailOutbox(sp.email.trim(), subj, body);
+      toast('📧 המייל נכנס לתור-השליחה');
+      setMailOpen(false);
+      setMailSubject('');
+      setMailBody('');
+    } catch {
+      toast('⚠ ההכנסה לתור נכשלה — ודאי שהמייל מוגדר בהרחבות');
+    } finally {
+      setMailBusy(false);
+    }
+  }
   const [aiDraft, setAiDraft] = useState('');
   const [aiBusy, setAiBusy] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
@@ -132,7 +159,6 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   // 🕯 סגולת 40 יום (בקשת-שטח) — opt-in; חסר-הדגל ⇒ מוסתר.
   const segulaOn = featureOn(config, 'supporters.segula');
   const seedSegulaReminders = useApp((s) => s.seedSegulaReminders);
-  const [segulaStart, setSegulaStart] = useState('');
   // 🔁 הו"ק (ROADMAP-100 ‏#2): הגדרה+רישום — התרומה דרך addDonation (קבלה רציפה)
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokOpen, setHokOpen] = useState(false);
@@ -225,6 +251,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const [armDelete, setArmDelete] = useState(false);
   // 📝 "על מה לדבר בפעם הבאה" — טיוטה מקומית, נשמרת ב-blur (בלי כתיבה-לכל-תו).
   const [nextNoteDraft, setNextNoteDraft] = useState(sp.nextNote || '');
+  // ✓ הבזק-אישור-שמירה גלוי (בקשת-בעלים 30.8 "כפתור שמירה שיראו בעיניים שזה בוצע").
+  const [nextSaved, setNextSaved] = useState(false);
   // P3 פריט 11 — לחיצה על תרומה מסמנת את יומה בלוח האישי
   const [calFocus, setCalFocus] = useState<string | null>(null);
 
@@ -271,13 +299,20 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     }
   }
 
-  /** שמירת "על מה לדבר בפעם הבאה" (ב-blur) — על התומך + רענון notes של תזכורת-הלוח. */
-  function saveNextNote() {
+  /** שמירת "על מה לדבר בפעם הבאה" — על התומך + רענון notes של תזכורת-הלוח.
+   *  `explicit` (לחיצת-כפתור) מציג אישור-גלוי גם כשאין שינוי; ‏blur נשאר שקט. */
+  function saveNextNote(explicit = false) {
     const v = nextNoteDraft.trim();
-    if (v === (sp.nextNote || '')) return;
-    const linked = sp.nextEventId ? events.find((e) => e.id === sp.nextEventId) : undefined;
-    if (linked) upsertEvent({ ...linked, notes: nextEventNotes(v) });
-    upsertSupporter({ ...sp, nextNote: v });
+    if (v !== (sp.nextNote || '')) {
+      const linked = sp.nextEventId ? events.find((e) => e.id === sp.nextEventId) : undefined;
+      if (linked) upsertEvent({ ...linked, notes: nextEventNotes(v) });
+      upsertSupporter({ ...sp, nextNote: v });
+    }
+    if (explicit) {
+      setNextSaved(true);
+      toast('📝 התזכורת נשמרה ✓');
+      window.setTimeout(() => setNextSaved(false), 2500);
+    }
   }
 
   /** 📞 תזכורת טלפון לתודה — נכנסת ללוח השנה כאירוע 'שיחה' ירוק להיום. */
@@ -476,6 +511,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                   📱 SMS
                 </Btn>
               )}
+              {mailReady && (
+                <Btn sm onClick={() => setMailOpen(true)} title="שליחת מייל דרך תור-הענן (דורש SMTP מוגדר בהרחבות)">
+                  📧 מייל
+                </Btn>
+              )}
               {telephonyOn(config) && sp.phone && <CallBtn phone={sp.phone} title={'חיוג ל' + sp.name} />}
               {integrationOn(config, 'whatsapp') && sp.phone && <WaBtn phone={sp.phone} title={'וואטסאפ ל' + sp.name} />}
             </div>
@@ -504,48 +544,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           {sp.notes && <InfoRow k="הערות" v={sp.notes} />}
         </div>
 
-        {/* 🔁 הוראת קבע (ROADMAP-100 ‏#2 צד-מערכת) — הגדרה + רישום-החודש-בקליק */}
-        {hokOn && (
-          <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <h3 style={{ fontSize: 15 }}>הוראת קבע 🔁</h3>
-              {/* חיווי מקושר-נדרים — extId נקלט לשיוך אך לא הוצג עד היום */}
-              {sp.extId && (
-                <span style={chipStyle('#e8f0fb', '#1d4ed8')} title={'מזהה-נדרים (ToremId): ' + sp.extId}>
-                  🔗 מקושר-נדרים
-                </span>
-              )}
-              <div style={{ flex: 1 }} />
-              <Btn sm onClick={() => setHokOpen(true)}>{sp.hok ? '✏️ עריכה' : '➕ הגדרה'}</Btn>
-            </div>
-            {sp.hok ? (
-              <>
-                <div style={{ fontSize: 13.5 }}>
-                  {(sp.hok.cur === '$' ? '$' : '₪') + sp.hok.amount.toLocaleString('he-IL') +
-                    ' · יום ' + sp.hok.day + ' בחודש · ' + hokMethodLabel(sp.hok.method) +
-                    (sp.hok.startedAt ? ' · מאז ' + fmtDate(sp.hok.startedAt) : '') +
-                    (sp.hok.active ? '' : ' · ⏸ מושהית')}
-                </div>
-                {sp.hok.note && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 2 }}>{sp.hok.note}</div>}
-                {sp.hok.active && canIssue && (
-                  hokRecordedThisMonth(sp, isoToday()) ? (
-                    <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 6 }}>✓ חיוב-החודש נרשם</div>
-                  ) : (
-                    <div style={{ marginTop: 8 }}>
-                      <Btn sm kind="primary" onClick={recordHok} title="רישום תרומת-ההו״ק של החודש — קבלה בסדרה הרציפה">
-                        🔁 רישום חיוב-החודש
-                      </Btn>
-                    </div>
-                  )
-                )}
-              </>
-            ) : (
-              <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-                אין הוראת-קבע. ההגדרה כאן = מעקב ותזכורת-חודשית; החיוב עצמו מוגדר אצל הסליקה/הבנק.
-              </div>
-            )}
-          </div>
-        )}
+        {/* 🔁 הוראת-קבע הועברה לתחתית הכרטיס (בקשת-בעלים 30.8: "הוראת קבע תוריד למטה") */}
 
         {/* 📅 חיובים-מתוכננים (בקשת-בעלים 25.8): פריסת-תשלומים עתידית בלי-קבלה
              עד שהחיוב באמת יורד. opt-in supporters.plannedcharges. */}
@@ -559,14 +558,37 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
               <HebDateInput value={sp.nextDate || ''} onChange={setNextDate} />
             </Field>
             <Field label="על מה לדבר בפעם הבאה (תזכורת)">
-              <input
-                type="text"
+              <textarea
                 value={nextNoteDraft}
-                onChange={(e) => setNextNoteDraft(e.currentTarget.value)}
-                onBlur={saveNextNote}
+                onChange={(e) => {
+                  setNextNoteDraft(e.currentTarget.value);
+                  if (nextSaved) setNextSaved(false);
+                }}
+                onBlur={() => saveNextNote()}
+                rows={4}
                 placeholder="למשל: לעדכן על הקבלה · לבקש חידוש הו״ק · לברר כתובת"
+                style={{ width: '100%', resize: 'vertical', minHeight: 88 }}
               />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                <Btn kind="primary" onClick={() => saveNextNote(true)}>💾 שמירה</Btn>
+                {nextSaved && (
+                  <span style={{ color: 'var(--green)', fontWeight: 600, fontSize: 13 }}>נשמר ✓</span>
+                )}
+              </div>
             </Field>
+            {/* 🕯 סגולת 40 יום — כפתור אחד שמחשב לבד מהיום וזורע תזכורות-סגולה
+                 לזיווג לתוך קשר-הבא/הלוח (בקשת-בעלים 30.8: "כפתור בשם 40 ימים
+                 שיחשב לבד וירשום תזכורת בקשר הבא, מוטבע קשר לזיווג"). */}
+            {segulaOn && (
+              <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+                <Btn kind="plain" sm onClick={() => seedSegulaReminders(sp.id, isoToday(), 'זיווג')}>
+                  🕯 40 ימים
+                </Btn>
+                <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
+                  זריעת {SEGULA_OFFSETS.length} תזכורות-סגולה לזיווג מהיום (ימים 1·7·21·35·40) — מחושב לבד, נכנס לקשר-הבא וללוח.
+                </div>
+              </div>
+            )}
             {sp.nextDate ? (
               <div style={{ fontSize: 13, color: sp.nextDate < isoToday() ? 'var(--red)' : 'var(--ink-soft)' }}>
                 {sp.nextDate < isoToday()
@@ -588,53 +610,10 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           </div>
         )}
 
-        {/* 🕯 סגולת 40 יום — תזכורות מדורגות מתאריך-התחלה (בקשת-שטח) */}
-        {segulaOn && (
-          <div className="card">
-            <h3 style={{ fontSize: 15, marginBottom: 8 }}>🕯 סגולת 40 יום</h3>
-            <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-              בחרו תאריך-התחלה — המערכת תזרע תזכורות ביומן בימים 1 · 7 · 21 · 35 · 40 (סיום), בלי לחשב ידני.
-            </div>
-            <Field label="תאריך התחלה">
-              <HebDateInput value={segulaStart} onChange={setSegulaStart} />
-            </Field>
-            <div style={{ marginTop: 8 }}>
-              <Btn
-                kind="primary"
-                disabled={!segulaStart}
-                onClick={() => {
-                  const n = seedSegulaReminders(sp.id, segulaStart);
-                  if (n) setSegulaStart('');
-                }}
-              >
-                🕯 זריעת {SEGULA_OFFSETS.length} תזכורות
-              </Btn>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* גלריית-תמונות מקומית (opt-in supporters.photos) */}
-      {photosOn && (
-        <div className="card">
-          <SupporterPhotos supporter={sp} />
-        </div>
-      )}
-
-      {/* מעקב טיפול רב-שלבי */}
-      {ayinOn && <AyinCard supporter={sp} />}
-
-      {/* לוח-חודש של תרומות (feature: supporters.doncal) */}
-      {featureOn(config, 'supporters.doncal') && dsp.donations.length > 0 && (
-        <div className="card">
-          <h3 style={{ fontSize: 15, marginBottom: 10 }}>
-            🗓 {termOf(config, 'entity.donations', 'תרומות')} לפי חודש
-          </h3>
-          <DonationCalendar supporter={dsp} focusIso={calFocus ?? undefined} />
-        </div>
-      )}
-
-      {/* היסטוריית תרומות */}
+      {/* היסטוריית תרומות — הועלתה לראש הכרטיס (בקשת-בעלים 30.8:
+          "תתן לי את כל התרומות במקום שעכשיו הוראות-קבע") */}
       <div className="card" style={{ padding: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
           <h3 style={{ fontSize: 15 }}>
@@ -712,6 +691,69 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         )}
       </div>
 
+      {/* גלריית-תמונות מקומית (opt-in supporters.photos) */}
+      {photosOn && (
+        <div className="card">
+          <SupporterPhotos supporter={sp} />
+        </div>
+      )}
+
+      {/* מעקב טיפול רב-שלבי */}
+      {ayinOn && <AyinCard supporter={sp} />}
+
+      {/* לוח-חודש של תרומות (feature: supporters.doncal) */}
+      {featureOn(config, 'supporters.doncal') && dsp.donations.length > 0 && (
+        <div className="card">
+          <h3 style={{ fontSize: 15, marginBottom: 10 }}>
+            🗓 {termOf(config, 'entity.donations', 'תרומות')} לפי חודש
+          </h3>
+          <DonationCalendar supporter={dsp} focusIso={calFocus ?? undefined} />
+        </div>
+      )}
+
+      {/* 🔁 הוראת קבע — למטה (בקשת-בעלים 30.8: "הוראת קבע תוריד למטה") */}
+      {hokOn && (
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <h3 style={{ fontSize: 15 }}>הוראת קבע 🔁</h3>
+            {/* חיווי מקושר-נדרים — extId נקלט לשיוך אך לא הוצג עד היום */}
+            {sp.extId && (
+              <span style={chipStyle('#e8f0fb', '#1d4ed8')} title={'מזהה-נדרים (ToremId): ' + sp.extId}>
+                🔗 מקושר-נדרים
+              </span>
+            )}
+            <div style={{ flex: 1 }} />
+            <Btn sm onClick={() => setHokOpen(true)}>{sp.hok ? '✏️ עריכה' : '➕ הגדרה'}</Btn>
+          </div>
+          {sp.hok ? (
+            <>
+              <div style={{ fontSize: 13.5 }}>
+                {(sp.hok.cur === '$' ? '$' : '₪') + sp.hok.amount.toLocaleString('he-IL') +
+                  ' · יום ' + sp.hok.day + ' בחודש · ' + hokMethodLabel(sp.hok.method) +
+                  (sp.hok.startedAt ? ' · מאז ' + fmtDate(sp.hok.startedAt) : '') +
+                  (sp.hok.active ? '' : ' · ⏸ מושהית')}
+              </div>
+              {sp.hok.note && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 2 }}>{sp.hok.note}</div>}
+              {sp.hok.active && canIssue && (
+                hokRecordedThisMonth(sp, isoToday()) ? (
+                  <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 6 }}>✓ חיוב-החודש נרשם</div>
+                ) : (
+                  <div style={{ marginTop: 8 }}>
+                    <Btn sm kind="primary" onClick={recordHok} title="רישום תרומת-ההו״ק של החודש — קבלה בסדרה הרציפה">
+                      🔁 רישום חיוב-החודש
+                    </Btn>
+                  </div>
+                )
+              )}
+            </>
+          ) : (
+            <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
+              אין הוראת-קבע. ההגדרה כאן = מעקב ותזכורת-חודשית; החיוב עצמו מוגדר אצל הסליקה/הבנק.
+            </div>
+          )}
+        </div>
+      )}
+
       {editOpen && <SupporterForm supporter={sp} onClose={() => setEditOpen(false)} />}
       {donOpen && <DonationModal supporter={sp} onClose={() => setDonOpen(false)} />}
       {hokOpen && <HokModal supporter={sp} onClose={() => setHokOpen(false)} />}
@@ -731,6 +773,35 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <div className="modal-actions">
             <Btn kind="primary" onClick={() => void sendSms()}>שליחה לתור</Btn>
             <Btn onClick={() => setSmsOpen(false)}>ביטול</Btn>
+          </div>
+        </Modal>
+      )}
+      {mailOpen && (
+        <Modal title={'📧 מייל אל ' + sp.name} onClose={() => setMailOpen(false)}>
+          <input
+            type="text"
+            value={mailSubject}
+            onChange={(e) => setMailSubject(e.target.value)}
+            placeholder="נושא-המייל…"
+            maxLength={200}
+            style={{ width: '100%', fontSize: 13.5, padding: 10, borderRadius: 10, border: '1px solid var(--line)', marginBottom: 8 }}
+          />
+          <textarea
+            value={mailBody}
+            onChange={(e) => setMailBody(e.target.value)}
+            rows={8}
+            maxLength={10000}
+            placeholder="תוכן המייל…"
+            style={{ width: '100%', fontSize: 13.5, padding: 10, borderRadius: 10, border: '1px solid var(--line)', resize: 'vertical' }}
+          />
+          <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 4 }}>
+            נשלח אל <span dir="ltr">{sp.email}</span> דרך תור-הענן (שרת-ההרחבות שולח מיד).
+          </div>
+          <div className="modal-actions">
+            <Btn kind="primary" onClick={() => void sendMail()} disabled={mailBusy}>
+              {mailBusy ? 'שולח…' : 'שליחה לתור'}
+            </Btn>
+            <Btn onClick={() => setMailOpen(false)}>ביטול</Btn>
           </div>
         </Modal>
       )}

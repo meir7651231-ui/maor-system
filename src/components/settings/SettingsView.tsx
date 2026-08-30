@@ -128,6 +128,12 @@ export function SettingsView() {
         {isManager && (
           <Chip onClick={() => { window.location.hash = '#manage'; }}>👥 ניהול העובדות</Chip>
         )}
+        {/* 💬 צ׳אט-הצוות — כניסה מפורשת מההגדרות (בקשת-בעלים 30.8: "אין כניסה
+            לצ׳אט הפנימי"). גלוי כשהדגל דלוק כדי שתמיד יימצא; החיבור-לענן/התחברות
+            נדרשים לפעולה בלבד — המודאל מנחה להתחבר אם צריך. נפתח דרך #teamchat. */}
+        {featureOn(config, 'shell.teamchat') && (
+          <Chip onClick={() => { window.location.hash = '#teamchat'; }}>💬 צ׳אט הצוות</Chip>
+        )}
       </div>
       {/* צ'יפי-הקפיצה של הקבוצה הפעילה — אותה יכולת-ניווט לסעיף, בתוך הלשונית */}
       {groupChips.length > 1 && (

@@ -69,7 +69,6 @@ import { attachChargeTo, attachChargesBulk, detectRecurringHok, planNedarimSync,
 import { hashPin, DEFAULT_LOCK_ZONES, lockKey, readLock, writeLock, type LockCfg } from '../lib/lock';
 import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
-import { enrollCount } from '../components/courses/lib';
 import { freshNextYearEnrollment, nextAcademicYearLabel, nextYearCourseDraft } from '../components/courses/reenroll-lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
 import { applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
@@ -341,7 +340,7 @@ interface AppState {
   /** 🗓 יצירת חוג לשנה הבאה (עותק עם תאריכים מוזזים + prevYearId). מחזיר את ה-id החדש. */
   openNextYearCourse: (courseId: string) => { ok: boolean; id?: string };
   /** 🗓 רישום שיבוץ יחיד לשנה הבאה — שיבוץ חדש בחוג-היעד, קישור מקור→יעד; שער-תפוסה. */
-  reenrollEnrollment: (enrollmentId: string, targetCourseId: string, group?: string) => { ok: boolean; id?: string };
+  reenrollEnrollment: (enrollmentId: string, targetCourseId: string, group?: string) => { ok: boolean; id?: string; reason?: string };
   /** 🗓 רישום המוני — כל ה"ממשיך" של חוג → חוג השנה-הבאה (נוצר אם חסר). מחזיר כמה נרשמו. */
   bulkReenrollCourse: (courseId: string) => { created: number; courseId?: string };
 
@@ -379,8 +378,9 @@ interface AppState {
   mergeSupportersGroup: (keepId: string, loserIds: string[]) => void;
   /** מיזוג-לפי-שדות (פאריטי משפחות): ids[0]=בסיס-השומר; ערכי-שדות לפי pick/edit. */
   mergeSupportersFields: (ids: string[], pick: Record<string, number>, edit: Record<string, string>) => void;
-  /** 🕯 סגולת 40 יום — זריעת תזכורות-לוח מדורגות לתורם מתאריך-התחלה. מחזיר כמה נוצרו. */
-  seedSegulaReminders: (supId: string, startIso: string) => number;
+  /** 🕯 סגולת 40 יום — זריעת תזכורות-לוח מדורגות לתורם מתאריך-התחלה. `purpose`
+   *  אופציונלי (למשל 'זיווג') מוטבע בכותרת/הערת-התזכורת. מחזיר כמה נוצרו. */
+  seedSegulaReminders: (supId: string, startIso: string, purpose?: string) => number;
   /** 🔄 יישום תוכנית-סנכרון נדרים (planNedarimSync): החלפת מערך-התומכים המלא +
    *  לוג. אחרי תצוגה-מקדימה+אישור בלבד (מסך הסנכרון). */
   applyNedarimSync: (supporters: Supporter[], note: string) => void;
@@ -553,6 +553,8 @@ interface AppState {
   ayinRevert: (id: string, stage: AyinStage) => void;
   ayinAddName: (id: string, name: string, eyes: number | '') => void;
   ayinToggleName: (id: string, nameId: string) => void;
+  /** 💳 סימון/ביטול "שולם" ידני בתיק-הטיפול (שער-התשלום). */
+  ayinSetPaid: (id: string, paid: boolean) => void;
   ayinSetNameEyes: (id: string, nameId: string, eyes: number | '') => void;
   ayinSetNameRate: (id: string, nameId: string, rate: number) => void;
   ayinSetNameNote: (id: string, nameId: string, note: string) => void;
@@ -1990,25 +1992,26 @@ export const useApp = create<AppState>()((set, get) => {
       // שהמנהל פתח ידנית) עדיין עובדת.
       const db = get().db;
       const src = db.enrollments.find((e) => e.id === enrollmentId);
-      if (!src) return { ok: false };
+      if (!src) return { ok: false, reason: 'שיבוץ-המקור לא נמצא' };
       if (src.renewedToId) return { ok: true, id: src.renewedToId }; // כבר נרשם — אידמפוטנטי
       const tid = targetCourseId || src.courseId;
       const target = db.courses.find((c) => c.id === tid);
-      if (!target) return { ok: false };
+      if (!target) return { ok: false, reason: 'חוג-היעד לא נמצא' };
       // תווית שנת-הלימודים החדשה — מחושבת מתאריך-פתיחת חוג-המקור (לא של-היעד):
       // "הרישום הוא-הוא המעבר לשנה הבאה", ולכן תמיד מתקדם +1 מהשנה של המקור.
       const srcCourse = db.courses.find((c) => c.id === src.courseId);
       const yearLabel = srcCourse ? nextAcademicYearLabel(srcCourse.start) : '';
-      // 🐛 באג 25.8 ("2 חסום, 0 נרשם"): כשה-tid == src.courseId (רישום-במקום למודל
-      // In-Card), enrollCount ספר את **שיבוצי-השנה-הנוכחית** ⇒ maxStudents=2 וכבר
-      // 2 תלמידות ⇒ 2>=2 ⇒ נחסם תמיד. במודל-השנים החדש, שיבוצים ישנים לא תופסים
-      // מקום פיזי בשנה החדשה — סופרים רק שיבוצי-אותה-שנת-יעד. שיבוץ בלי year (שנה-
-      // נוכחית) לא נחשב מול קיבולת של תווית-שנה. שלד: `renewedToId` על-המקור לא
-      // דורש בדיקה נפרדת — האידמפוטנטיות שומרת מקום למקור עצמו.
+      // 🐛 באג 25.8 ("2 חסום, 0 נרשם") + חיזוק 26.8: שער-התפוסה מונה רק שיבוצים
+      // שאינם-מוחלפים (‏!renewedToId). בלי החיזוק, שיבוצי-שנה-נוכחית שכבר קיבלו
+      // חלופה לשנה-הבאה עדיין נספרים ⇒ נחסם. עם yearLabel — סופרים רק שיבוצי-
+      // אותה-שנת-יעד; בלי yearLabel (חוג בלי-תאריך-פתיחה) — סופרים כל-שיבוץ-פעיל
+      // שאין לו renewedToId. שני המסלולים מחריגים ended/wait כי אינם תופסים מקום.
       const capUsed = yearLabel
         ? db.enrollments.filter((e) => e.courseId === tid && e.year === yearLabel && e.status !== 'ended' && e.status !== 'wait').length
-        : enrollCount(db, tid);
-      if (capUsed >= (target.maxStudents || 999)) return { ok: false };
+        : db.enrollments.filter((e) => e.courseId === tid && !e.renewedToId && e.status !== 'ended' && e.status !== 'wait').length;
+      if (capUsed >= (target.maxStudents || 999)) {
+        return { ok: false, reason: 'חוג-מלא (' + capUsed + '/' + target.maxStudents + ')' + (yearLabel ? ' בשנה ' + yearLabel : '') };
+      }
       const id = get().nextId('e');
       const fresh = freshNextYearEnrollment(src, tid, id, isoToday(), group, yearLabel);
       get().upsertEnrollment(fresh);
@@ -2282,22 +2285,24 @@ export const useApp = create<AppState>()((set, get) => {
       get().toast('הרשומות מוזגו לפי הבחירה ✓ — נשמרה רשומה אחת');
     },
 
-    seedSegulaReminders(supId, startIso) {
+    seedSegulaReminders(supId, startIso, purpose) {
       // 🕯 סגולת 40 יום — תזכורות-לוח מדורגות (call) עם spId, כדי שיופיעו על התורם
       // וביומן. דטרמיניסטי (segulaReminders); אינו נוגע בכספים/קבלות.
+      // `purpose` (למשל 'זיווג') מוטבע בכותרת ובהערה — בקשת-בעלים 30.8.
       const sp = get().db.supporters.find((s) => s.id === supId);
       if (!sp || !startIso) return 0;
       const target = Math.max(...SEGULA_OFFSETS);
       const reminders = segulaReminders(startIso);
+      const tag = (purpose || '').trim() ? ' · ' + (purpose || '').trim() : '';
       for (const r of reminders) {
         get().upsertEvent({
           id: get().nextId('ev'),
-          title: segulaTitle(sp.name, r, target),
+          title: segulaTitle(sp.name, r, target) + tag,
           date: r.date,
           time: '',
           type: 'call',
           customType: '',
-          notes: 'סגולת ' + target + ' יום · ' + (sp.phone || ''),
+          notes: 'סגולת ' + target + ' יום' + tag + ' · ' + (sp.phone || ''),
           price: 0,
           roomId: '',
           famId: '',
@@ -2306,7 +2311,7 @@ export const useApp = create<AppState>()((set, get) => {
           done: false,
         });
       }
-      logAudit('🕯 סגולת ' + target + ' יום', sp.name);
+      logAudit('🕯 סגולת ' + target + ' יום' + tag, sp.name);
       get().toast('נזרעו ' + reminders.length + ' תזכורות-סגולה ביומן 🕯');
       return reminders.length;
     },
@@ -2492,6 +2497,9 @@ export const useApp = create<AppState>()((set, get) => {
         return { ok: false };
       }
       const rid = 'D-' + get().db.donationSeq;
+      // 💳 שער-תשלום במעקב-הטיפול (בקשת-בעלים 25.8, opt-in): רישום-תרומה מסמן
+      // את תיק-הטיפול הפעיל כ"שולם" ⇒ מאפשר להתקדם ל"הושלם". כבוי ⇒ ביט-זהה.
+      const payGateOn = get().config.features?.['supporters.ayin.paygate'] === true;
       setDb((db) => ({
         donationSeq: db.donationSeq + 1,
         supporters: db.supporters.map((s) => {
@@ -2499,7 +2507,8 @@ export const useApp = create<AppState>()((set, get) => {
           const donations = [{ ...donation, rid }, ...s.donations];
           // מצבור = קבלות-בלבד (#14, hist מתווסף בתצוגה) — מקור-אמת יחיד עם migrate/audit.
           const agg = supporterAggregates({ donations, hist: s.hist });
-          return { ...s, donations, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
+          const ayin = payGateOn && s.ayin && s.ayin.stage !== 'done' && !s.ayin.paid ? { ...s.ayin, paid: true } : s.ayin;
+          return { ...s, ...(ayin ? { ayin } : {}), donations, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
         }),
       }));
       // מונח-דינמי גם בלוג — הרשומה מוצגת בטבלת-הלוג ובוורטיקל עסקי "תרומה" היא דליפה
@@ -3311,6 +3320,17 @@ export const useApp = create<AppState>()((set, get) => {
         patch = { ...patch, boardEventIds: { ...c.a.boardEventIds, [key]: evId } };
       }
       setAyin(id, patch);
+      // 🎯 ביטול-ייעוד בהשלמה (בקשת-בעלים 25.8, opt-in): תיק שהגיע ל'הושלם' —
+      // הייעוד (forWho) מתנקה ⇒ העובד/ת לא רואה אותו יותר (לא-משוייך = מנהל בלבד),
+      // עד שהמנהל מייעד מחדש. חסר-הדגל ⇒ ביט-זהה. רק כשיש ייעוד להסיר.
+      if (
+        patch.stage === 'done' &&
+        get().config.features?.['supporters.ayin.unassignondone'] === true &&
+        (c.sp.forWho || '').trim()
+      ) {
+        setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === id ? { ...s, forWho: '' } : s)) }));
+        logAudit('ביטול-ייעוד (הושלם)', c.sp.name);
+      }
       get().toast(plan.toast);
     },
     ayinRevert(id, stage) {
@@ -3351,6 +3371,12 @@ export const useApp = create<AppState>()((set, get) => {
       setAyin(id, plan.log ? { names: plan.names, log: plan.log } : { names: plan.names });
       get().toast('"' + name.trim() + '" נוסף לרשימה');
     },
+    ayinSetPaid(id, paid) {
+      const c = curAyin(id);
+      if (!c) return;
+      setAyin(id, { paid }, false);
+      get().toast(paid ? '💳 סומן כשולם ✓' : 'סימון-התשלום בוטל');
+    },
     ayinToggleName(id, nameId) {
       const c = curAyin(id);
       if (!c) return;
@@ -3379,8 +3405,11 @@ export const useApp = create<AppState>()((set, get) => {
     ayinSetNameNote(id, nameId, note) {
       const c = curAyin(id);
       if (!c) return;
-      const t = note.trim();
-      const names = c.a.names.map((n) => (n.id === nameId ? { ...n, note: t || undefined } : n));
+      // 🐛 באג-שטח (בקשת-בעלים 30.8): trim חי בכל תו בלע את הרווח (השדה controlled —
+      // רווח-סופי נחתך מיד ⇒ "אי אפשר להקליד רווח בהערות"). שומרים raw; רק
+      // ריק/רווחים-בלבד ⇒ undefined (בלי לחסום רווחים בין-מילים ובסוף).
+      const val = note.trim() ? note : undefined;
+      const names = c.a.names.map((n) => (n.id === nameId ? { ...n, note: val } : n));
       setAyin(id, { names });
     },
     ayinRemoveName(id, nameId) {

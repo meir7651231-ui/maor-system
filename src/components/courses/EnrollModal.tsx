@@ -71,27 +71,41 @@ export function EnrollModal(props: { course: Course; waitlist?: boolean; onClose
 
   const groups = groupsOn ? groupOptionsOf(c) : [];
 
+  // בקשת-בעלים 25.8: בשיבוץ-לחוג — טלפון ומצב-משפחתי בשורת-החיפוש. הטלפון תמיד;
+  // המצב-המשפחתי מגודר `families.marital` (רגיש בחלק מהענפים), כמו בשאר הרשימות.
+  const maritalOn = featureOn(cfg, 'families.marital');
+
   /** מועמדים לשיבוץ — כל בני המשפחות שעדיין לא משובצים לקורס הזה. */
   const options = useMemo(() => {
     const enrolledIds = new Set(db.enrollments.filter((e) => e.courseId === c.id).map((e) => e.memberId));
+    const famById = new Map(db.families.map((f) => [f.id, f]));
     return allMembers(db)
       .filter((m) => !enrolledIds.has(m.id))
-      .map((m) => ({
-        id: m.id,
-        gender: m.gender,
-        birth: m.birth,
-        grade: m.grade,
-        isParent: !!m.isParent,
-        label:
-          (m.isParent ? (m.gender === 'f' ? 'אמא — ' : 'אבא — ') : '') +
-          m.first +
-          ' · ' +
-          termOf(cfg, 'entity.familyOf', 'משפחת') +
-          ' ' +
-          m.famName,
-        terms: [m.first, m.famName, (m.phone || '').replace(/\D/g, ''), m.idNum].filter(Boolean),
-      }));
-  }, [db, c.id, cfg]);
+      .map((m) => {
+        const fam = famById.get(m.famId);
+        // טלפון-התלמיד או טלפון-המשפחה (אם לבן-המשפחה אין משלו)
+        const phone = m.phone || fam?.phone || '';
+        const marital = maritalOn ? (fam?.maritalStatus || '') : '';
+        return {
+          id: m.id,
+          gender: m.gender,
+          birth: m.birth,
+          grade: m.grade,
+          isParent: !!m.isParent,
+          phone,
+          marital,
+          label:
+            (m.isParent ? (m.gender === 'f' ? 'אמא — ' : 'אבא — ') : '') +
+            m.first +
+            ' · ' +
+            termOf(cfg, 'entity.familyOf', 'משפחת') +
+            ' ' +
+            m.famName,
+          // חיפוש: שם/משפחה/טלפון/ת"ז + מצב-משפחתי (כשגלוי)
+          terms: [m.first, m.famName, (phone || '').replace(/\D/g, ''), m.idNum, marital].filter(Boolean),
+        };
+      });
+  }, [db, c.id, cfg, maritalOn]);
 
   // המתאימים לחוג לפי גיל/מגדר — בלי תלות במתג, כדי שהמתג לא ייעלם אחרי "הצג הכל".
   // כיתה נבדקת רק כש-courses.gradeimg פעיל (P2 פער 28) — אותו "הצג הכל" רך.
@@ -304,6 +318,12 @@ export function EnrollModal(props: { course: Course; waitlist?: boolean; onClose
               }}
             >
               {o.label}
+              {/* טלפון + מצב-משפחתי בשורת-החיפוש (בקשת-בעלים 25.8) */}
+              {(o.phone || o.marital) && (
+                <span style={{ display: 'block', fontSize: 11.5, fontWeight: 500, color: 'var(--ink-faint)', marginTop: 2 }}>
+                  {[o.phone ? '📞 ' + formatIsraeliPhone(o.phone) : '', o.marital].filter(Boolean).join(' · ')}
+                </span>
+              )}
             </button>
           ))}
           {matches.length === 0 && (

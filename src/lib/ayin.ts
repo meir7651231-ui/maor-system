@@ -212,6 +212,11 @@ export function planAyinAdvance(
       toast: 'נמסר — נרשם בלוח היומי ובכרטיס',
     };
   }
+  // 💳 שער-תשלום (בקשת-בעלים 25.8, opt-in supporters.ayin.paygate): אי-אפשר
+  // להשלים תיק בלי שסומן "שולם". חסימה-רכה — patch ריק + טוסט (אין מעבר-שלב).
+  if (cfg.features?.['supporters.ayin.paygate'] === true && !a.paid) {
+    return { patch: {}, event: null, toast: '💳 יש לרשום תשלום (שולם) לפני השלמת הטיפול' };
+  }
   return {
     patch: { stage: 'done' },
     event: { title: `${feat}: ${stageLabel(cfg, 'done')} — ${name}`, done: true },
