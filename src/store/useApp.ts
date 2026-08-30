@@ -378,8 +378,9 @@ interface AppState {
   mergeSupportersGroup: (keepId: string, loserIds: string[]) => void;
   /** מיזוג-לפי-שדות (פאריטי משפחות): ids[0]=בסיס-השומר; ערכי-שדות לפי pick/edit. */
   mergeSupportersFields: (ids: string[], pick: Record<string, number>, edit: Record<string, string>) => void;
-  /** 🕯 סגולת 40 יום — זריעת תזכורות-לוח מדורגות לתורם מתאריך-התחלה. מחזיר כמה נוצרו. */
-  seedSegulaReminders: (supId: string, startIso: string) => number;
+  /** 🕯 סגולת 40 יום — זריעת תזכורות-לוח מדורגות לתורם מתאריך-התחלה. `purpose`
+   *  אופציונלי (למשל 'זיווג') מוטבע בכותרת/הערת-התזכורת. מחזיר כמה נוצרו. */
+  seedSegulaReminders: (supId: string, startIso: string, purpose?: string) => number;
   /** 🔄 יישום תוכנית-סנכרון נדרים (planNedarimSync): החלפת מערך-התומכים המלא +
    *  לוג. אחרי תצוגה-מקדימה+אישור בלבד (מסך הסנכרון). */
   applyNedarimSync: (supporters: Supporter[], note: string) => void;
@@ -2284,22 +2285,24 @@ export const useApp = create<AppState>()((set, get) => {
       get().toast('הרשומות מוזגו לפי הבחירה ✓ — נשמרה רשומה אחת');
     },
 
-    seedSegulaReminders(supId, startIso) {
+    seedSegulaReminders(supId, startIso, purpose) {
       // 🕯 סגולת 40 יום — תזכורות-לוח מדורגות (call) עם spId, כדי שיופיעו על התורם
       // וביומן. דטרמיניסטי (segulaReminders); אינו נוגע בכספים/קבלות.
+      // `purpose` (למשל 'זיווג') מוטבע בכותרת ובהערה — בקשת-בעלים 30.8.
       const sp = get().db.supporters.find((s) => s.id === supId);
       if (!sp || !startIso) return 0;
       const target = Math.max(...SEGULA_OFFSETS);
       const reminders = segulaReminders(startIso);
+      const tag = (purpose || '').trim() ? ' · ' + (purpose || '').trim() : '';
       for (const r of reminders) {
         get().upsertEvent({
           id: get().nextId('ev'),
-          title: segulaTitle(sp.name, r, target),
+          title: segulaTitle(sp.name, r, target) + tag,
           date: r.date,
           time: '',
           type: 'call',
           customType: '',
-          notes: 'סגולת ' + target + ' יום · ' + (sp.phone || ''),
+          notes: 'סגולת ' + target + ' יום' + tag + ' · ' + (sp.phone || ''),
           price: 0,
           roomId: '',
           famId: '',
@@ -2308,7 +2311,7 @@ export const useApp = create<AppState>()((set, get) => {
           done: false,
         });
       }
-      logAudit('🕯 סגולת ' + target + ' יום', sp.name);
+      logAudit('🕯 סגולת ' + target + ' יום' + tag, sp.name);
       get().toast('נזרעו ' + reminders.length + ' תזכורות-סגולה ביומן 🕯');
       return reminders.length;
     },

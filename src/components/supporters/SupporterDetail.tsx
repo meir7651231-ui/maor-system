@@ -159,7 +159,6 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   // 🕯 סגולת 40 יום (בקשת-שטח) — opt-in; חסר-הדגל ⇒ מוסתר.
   const segulaOn = featureOn(config, 'supporters.segula');
   const seedSegulaReminders = useApp((s) => s.seedSegulaReminders);
-  const [segulaStart, setSegulaStart] = useState('');
   // 🔁 הו"ק (ROADMAP-100 ‏#2): הגדרה+רישום — התרומה דרך addDonation (קבלה רציפה)
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokOpen, setHokOpen] = useState(false);
@@ -252,6 +251,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const [armDelete, setArmDelete] = useState(false);
   // 📝 "על מה לדבר בפעם הבאה" — טיוטה מקומית, נשמרת ב-blur (בלי כתיבה-לכל-תו).
   const [nextNoteDraft, setNextNoteDraft] = useState(sp.nextNote || '');
+  // ✓ הבזק-אישור-שמירה גלוי (בקשת-בעלים 30.8 "כפתור שמירה שיראו בעיניים שזה בוצע").
+  const [nextSaved, setNextSaved] = useState(false);
   // P3 פריט 11 — לחיצה על תרומה מסמנת את יומה בלוח האישי
   const [calFocus, setCalFocus] = useState<string | null>(null);
 
@@ -298,13 +299,20 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     }
   }
 
-  /** שמירת "על מה לדבר בפעם הבאה" (ב-blur) — על התומך + רענון notes של תזכורת-הלוח. */
-  function saveNextNote() {
+  /** שמירת "על מה לדבר בפעם הבאה" — על התומך + רענון notes של תזכורת-הלוח.
+   *  `explicit` (לחיצת-כפתור) מציג אישור-גלוי גם כשאין שינוי; ‏blur נשאר שקט. */
+  function saveNextNote(explicit = false) {
     const v = nextNoteDraft.trim();
-    if (v === (sp.nextNote || '')) return;
-    const linked = sp.nextEventId ? events.find((e) => e.id === sp.nextEventId) : undefined;
-    if (linked) upsertEvent({ ...linked, notes: nextEventNotes(v) });
-    upsertSupporter({ ...sp, nextNote: v });
+    if (v !== (sp.nextNote || '')) {
+      const linked = sp.nextEventId ? events.find((e) => e.id === sp.nextEventId) : undefined;
+      if (linked) upsertEvent({ ...linked, notes: nextEventNotes(v) });
+      upsertSupporter({ ...sp, nextNote: v });
+    }
+    if (explicit) {
+      setNextSaved(true);
+      toast('📝 התזכורת נשמרה ✓');
+      window.setTimeout(() => setNextSaved(false), 2500);
+    }
   }
 
   /** 📞 תזכורת טלפון לתודה — נכנסת ללוח השנה כאירוע 'שיחה' ירוק להיום. */
@@ -591,14 +599,37 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
               <HebDateInput value={sp.nextDate || ''} onChange={setNextDate} />
             </Field>
             <Field label="על מה לדבר בפעם הבאה (תזכורת)">
-              <input
-                type="text"
+              <textarea
                 value={nextNoteDraft}
-                onChange={(e) => setNextNoteDraft(e.currentTarget.value)}
-                onBlur={saveNextNote}
+                onChange={(e) => {
+                  setNextNoteDraft(e.currentTarget.value);
+                  if (nextSaved) setNextSaved(false);
+                }}
+                onBlur={() => saveNextNote()}
+                rows={4}
                 placeholder="למשל: לעדכן על הקבלה · לבקש חידוש הו״ק · לברר כתובת"
+                style={{ width: '100%', resize: 'vertical', minHeight: 88 }}
               />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                <Btn kind="primary" onClick={() => saveNextNote(true)}>💾 שמירה</Btn>
+                {nextSaved && (
+                  <span style={{ color: 'var(--green)', fontWeight: 600, fontSize: 13 }}>נשמר ✓</span>
+                )}
+              </div>
             </Field>
+            {/* 🕯 סגולת 40 יום — כפתור אחד שמחשב לבד מהיום וזורע תזכורות-סגולה
+                 לזיווג לתוך קשר-הבא/הלוח (בקשת-בעלים 30.8: "כפתור בשם 40 ימים
+                 שיחשב לבד וירשום תזכורת בקשר הבא, מוטבע קשר לזיווג"). */}
+            {segulaOn && (
+              <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+                <Btn kind="plain" sm onClick={() => seedSegulaReminders(sp.id, isoToday(), 'זיווג')}>
+                  🕯 40 ימים
+                </Btn>
+                <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
+                  זריעת {SEGULA_OFFSETS.length} תזכורות-סגולה לזיווג מהיום (ימים 1·7·21·35·40) — מחושב לבד, נכנס לקשר-הבא וללוח.
+                </div>
+              </div>
+            )}
             {sp.nextDate ? (
               <div style={{ fontSize: 13, color: sp.nextDate < isoToday() ? 'var(--red)' : 'var(--ink-soft)' }}>
                 {sp.nextDate < isoToday()
@@ -620,30 +651,6 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           </div>
         )}
 
-        {/* 🕯 סגולת 40 יום — תזכורות מדורגות מתאריך-התחלה (בקשת-שטח) */}
-        {segulaOn && (
-          <div className="card">
-            <h3 style={{ fontSize: 15, marginBottom: 8 }}>🕯 סגולת 40 יום</h3>
-            <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-              בחרו תאריך-התחלה — המערכת תזרע תזכורות ביומן בימים 1 · 7 · 21 · 35 · 40 (סיום), בלי לחשב ידני.
-            </div>
-            <Field label="תאריך התחלה">
-              <HebDateInput value={segulaStart} onChange={setSegulaStart} />
-            </Field>
-            <div style={{ marginTop: 8 }}>
-              <Btn
-                kind="primary"
-                disabled={!segulaStart}
-                onClick={() => {
-                  const n = seedSegulaReminders(sp.id, segulaStart);
-                  if (n) setSegulaStart('');
-                }}
-              >
-                🕯 זריעת {SEGULA_OFFSETS.length} תזכורות
-              </Btn>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* גלריית-תמונות מקומית (opt-in supporters.photos) */}
