@@ -109,6 +109,6 @@ describe('🔍 ratchet — סינון 2: חנות', () => {
     expect(tabSrc).toMatch(/moduleOn\(config, 'families'\)/);
     expect(catalogSrc).toContain('filterProducts(');
     expect(itemsSrc).toContain('filterItems(');
-    expect(calSrc).toContain('buildMonthGrid(shownEvents');
+    expect(calSrc).toContain('buildGrid(shownEvents');
   });
 });

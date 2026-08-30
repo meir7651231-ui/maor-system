@@ -11,7 +11,8 @@ import { isoToday } from '../../lib/date-util';
 import type { ShopEvent } from '../../types/domain';
 import { Btn, Chip } from '../ui';
 import { DAY_NAMES, PRIORITY_COLOR, SESSION_META } from '../calendar/calLib';
-import { buildMonthGrid } from '../../lib/monthGrid';
+import { buildGrid, type CalViewMode } from '../../lib/monthGrid';
+import { CalViewTabs } from '../calendar/CalViewTabs';
 import { assignmentRedeemed, holidayAllowed, itemOf } from './lib';
 import { ShopEventModal } from './ShopEventModal';
 
@@ -43,15 +44,18 @@ export function CalendarTab() {
   const shopEvents = useApp((s) => s.db.shopEvents);
   // נפתח בעברי — כמו הלוח הראשי בקובץ החי
   const [heb, setHeb] = useState(true);
+  const [mode, setMode] = useState<CalViewMode>('month');
   const [anchor, setAnchor] = useState(isoToday());
   const [dayIso, setDayIso] = useState<string | null>(null);
   const [modal, setModal] = useState<{ ev: ShopEvent | null; date: string } | null>(null);
-  // סינון סוגים (UX סינון 2) — ברירת הכול-דלוק; הסינון טהור, לפני buildMonthGrid
+  // סינון סוגים (UX סינון 2) — ברירת הכול-דלוק; הסינון טהור, לפני buildGrid
   const [kindsOff, setKindsOff] = useState<Set<ShopEvent['kind']>>(new Set());
   const shownEvents = useMemo(() => shopEvents.filter((e) => !kindsOff.has(e.kind)), [shopEvents, kindsOff]);
 
-  const grid = useMemo(() => buildMonthGrid(shownEvents, anchor, heb), [shownEvents, anchor, heb]);
-  const dayEvents = dayIso ? shownEvents.filter((e) => e.date === dayIso) : [];
+  const grid = useMemo(() => buildGrid(shownEvents, anchor, heb, mode), [shownEvents, anchor, heb, mode]);
+  // ביום — פאנל-היום נפתח על העוגן; בחודש/שבוע — על התא-שנלחץ.
+  const activeDay = mode === 'day' ? anchor : dayIso;
+  const dayEvents = activeDay ? shownEvents.filter((e) => e.date === activeDay) : [];
 
   // "🎁 N ממתינות" לתא-חג — שיוך פעיל עם מתנת-חג שטרם מומשה לאותו חג
   function pendingGifts(iso: string, holiday: string): number {
@@ -94,14 +98,16 @@ export function CalendarTab() {
         <Btn sm onClick={() => setAnchor(grid.nextIso)}>הבא ›</Btn>
         <div style={{ fontWeight: 800, fontSize: 16 }}>{grid.label}</div>
         <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{grid.subLabel}</div>
-        {/* דגל כבוי ⇒ הלוח נשאר בגריד העברי (ברירת הלגאסי) */}
-        {featureOn(config, 'shop.calendar.hebtoggle') && (
-          <span style={{ marginInlineStart: 'auto' }}>
+        <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+          <CalViewTabs mode={mode} onMode={setMode} />
+          {/* דגל כבוי ⇒ הלוח נשאר בגריד העברי (ברירת הלגאסי) */}
+          {featureOn(config, 'shop.calendar.hebtoggle') && (
             <Btn sm onClick={() => setHeb((v) => !v)}>{heb ? 'ללועזי' : 'לעברי'}</Btn>
-          </span>
-        )}
+          )}
+        </span>
       </div>
 
+      {mode !== 'day' && (
       <div className="card" style={{ padding: 8 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, fontSize: 11.5, fontWeight: 700, color: 'var(--ink-faint)', marginBottom: 4 }}>
           {DAY_NAMES.map((d) => (
@@ -171,12 +177,13 @@ export function CalendarTab() {
           })}
         </div>
       </div>
+      )}
 
-      {dayIso && (
+      {activeDay && (
         <section className="card" style={{ marginTop: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 800 }}>{dayIso}</h2>
-            <Btn kind="primary" sm onClick={() => setModal({ ev: null, date: dayIso })}>
+            <h2 style={{ fontSize: 15, fontWeight: 800 }}>{activeDay}</h2>
+            <Btn kind="primary" sm onClick={() => setModal({ ev: null, date: activeDay })}>
               ➕ הוספת אירוע
             </Btn>
           </div>
