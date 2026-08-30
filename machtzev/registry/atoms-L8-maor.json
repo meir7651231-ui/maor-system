@@ -5,7 +5,7 @@
   "name": "CLAUDE.md",
   "type": "OTHER",
   "date": null,
-  "lines": 113,
+  "lines": 115,
   "title": "maor-system («מאור החסד») — הוראות לכל סשן",
   "source": "maor/CLAUDE.md"
  },
@@ -750,6 +750,16 @@
   "source": "maor/knowledge/CLOSED-SWARM-2026-08-21.md"
  },
  {
+  "id": "L8:maor:knowledge/CLOSED-TRUST-2026-08-24.md",
+  "level": "L8-knowledge",
+  "name": "CLOSED-TRUST-2026-08-24.md",
+  "type": "CLOSED",
+  "date": "2026-08-24",
+  "lines": 46,
+  "title": "✅ CLOSED — לולאת-האמון (TRUST, 24.8.2026)",
+  "source": "maor/knowledge/CLOSED-TRUST-2026-08-24.md"
+ },
+ {
   "id": "L8:maor:knowledge/CLOSED-TZEDAKA-2026-07-30.md",
   "level": "L8-knowledge",
   "name": "CLOSED-TZEDAKA-2026-07-30.md",
@@ -798,6 +808,16 @@
   "lines": 38,
   "title": "☁️ CLOUD2 — עיצוב ארכיטקטוני: מ\"אתר עם קונפיגים\" לפלטפורמת SaaS",
   "source": "maor/knowledge/CLOUD2-DESIGN-2026-07-30.md"
+ },
+ {
+  "id": "L8:maor:knowledge/CUSTOMER-PROMISE-2026-08-24.md",
+  "level": "L8-knowledge",
+  "name": "CUSTOMER-PROMISE-2026-08-24.md",
+  "type": "OTHER",
+  "date": "2026-08-24",
+  "lines": 64,
+  "title": "🎁 הבטחת-הלקוח — מה הלקוח מקבל כשהאימפריה בנויה (24.8.2026)",
+  "source": "maor/knowledge/CUSTOMER-PROMISE-2026-08-24.md"
  },
  {
   "id": "L8:maor:knowledge/DECISIONS-2026-07-29.md",
@@ -1048,6 +1068,16 @@
   "lines": 184,
   "title": "📞 פלטפורמת-טלפוניה לעמותות — תוכנית-האב (self-configuring · 0→100)",
   "source": "maor/knowledge/TELEPHONY-PLATFORM-PLAN.md"
+ },
+ {
+  "id": "L8:maor:knowledge/VISION-AUTOPILOT-2026-08-24.md",
+  "level": "L8-knowledge",
+  "name": "VISION-AUTOPILOT-2026-08-24.md",
+  "type": "VISION",
+  "date": "2026-08-24",
+  "lines": 60,
+  "title": "🎯 חזון-היעד: מאור כ-Business Autopilot (הכרעת-בעלים 24.8.2026 — \"תשמור כיעד ותת",
+  "source": "maor/knowledge/VISION-AUTOPILOT-2026-08-24.md"
  },
  {
   "id": "L8:maor:knowledge/VISION-LIGHT-2026-08-23.md",

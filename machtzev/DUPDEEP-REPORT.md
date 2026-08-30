@@ -7,9 +7,9 @@
 | maor:src/components/courses/lib.ts#ageOf@66 ↔ maor:src/components/families/lib.ts#ageOf@24 |
 | maor:src/components/courses/lib.ts#groupLabelOf@148 ↔ maor:src/components/diary/lib.ts#groupLabelOf@51 |
 | maor:src/components/courses/lib.ts#paidOf@304 ↔ maor:src/components/reports/lib.ts#paidOf@39 |
-| maor:src/components/courses/lib.ts#chipStyle@432 ↔ maor:src/components/diary/lib.ts#chipStyle@277 ↔ maor:src/components/supporters/lib.ts#chipStyle@212 |
+| maor:src/components/courses/lib.ts#chipStyle@442 ↔ maor:src/components/diary/lib.ts#chipStyle@277 ↔ maor:src/components/supporters/lib.ts#chipStyle@232 |
 
-## 2. שם-זהה בקבצים שונים — 18 שמות
+## 2. שם-זהה בקבצים שונים — 19 שמות
 | שם | מופעים |
 |---|---|
 | fmtDate | 5 |
@@ -23,10 +23,10 @@
 | paidOf | 2 |
 | enrollStatusMeta | 2 |
 | planLabelOf | 2 |
+| normEmail | 2 |
 | needsCare | 2 |
 | campaignProgress | 2 |
 | normalizePhone | 2 |
-| normSearch | 2 |
 
 ## 3. regex זהה ≥3 מקומות — 2
 | תבנית | מופעים |

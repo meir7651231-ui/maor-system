@@ -38,7 +38,7 @@
    "ImpactWall",
    "DayGate"
   ],
-  "lines": 1343,
+  "lines": 1430,
   "source": "maor/src/App.tsx"
  },
  {
@@ -81,7 +81,7 @@
    "TextInput",
    "FormError"
   ],
-  "lines": 1910,
+  "lines": 1922,
   "source": "maor/src/components/builder/BuilderWizard.tsx"
  },
  {
@@ -103,6 +103,7 @@
   "level": "L3-screen",
   "name": "CalendarView",
   "composes": [
+   "CalViewTabs",
    "DayModal",
    "EventModal",
    "IcsFeedModal",
@@ -112,8 +113,15 @@
    "Empty",
    "PageHead"
   ],
-  "lines": 661,
+  "lines": 698,
   "source": "maor/src/components/calendar/CalendarView.tsx"
+ },
+ {
+  "id": "L1:maor:CalViewTabs@src/components/calendar/CalViewTabs.tsx",
+  "level": "L1-component",
+  "name": "CalViewTabs",
+  "lines": 36,
+  "source": "maor/src/components/calendar/CalViewTabs.tsx"
  },
  {
   "id": "L1:maor:DayModal@src/components/calendar/DayModal.tsx",
@@ -316,7 +324,7 @@
    "Select",
    "Empty"
   ],
-  "lines": 1001,
+  "lines": 1167,
   "source": "maor/src/components/courses/CourseDetail.tsx"
  },
  {
@@ -377,8 +385,23 @@
    "PageHead",
    "CourseWheel"
   ],
-  "lines": 661,
+  "lines": 699,
   "source": "maor/src/components/courses/CoursesView.tsx"
+ },
+ {
+  "id": "L1:maor:EnrollmentPlannedSection@src/components/courses/EnrollmentPlannedSection.tsx",
+  "level": "L3-screen",
+  "name": "EnrollmentPlannedSection",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select"
+  ],
+  "lines": 183,
+  "source": "maor/src/components/courses/EnrollmentPlannedSection.tsx"
  },
  {
   "id": "L1:maor:EnrollModal@src/components/courses/EnrollModal.tsx",
@@ -393,7 +416,7 @@
    "Select",
    "FormError"
   ],
-  "lines": 464,
+  "lines": 484,
   "source": "maor/src/components/courses/EnrollModal.tsx"
  },
  {
@@ -401,6 +424,7 @@
   "level": "L3-screen",
   "name": "ManageModal",
   "composes": [
+   "EnrollmentPlannedSection",
    "HebDateInput",
    "Btn",
    "Modal",
@@ -409,7 +433,7 @@
    "Select",
    "WaBtn"
   ],
-  "lines": 586,
+  "lines": 611,
   "source": "maor/src/components/courses/ManageModal.tsx"
  },
  {
@@ -423,14 +447,14 @@
   "id": "L1:maor:RegisterModal@src/components/courses/ReenrollModals.tsx",
   "level": "L1-component",
   "name": "RegisterModal",
-  "lines": 170,
+  "lines": 155,
   "source": "maor/src/components/courses/ReenrollModals.tsx"
  },
  {
   "id": "L1:maor:HistoryModal@src/components/courses/ReenrollModals.tsx",
   "level": "L1-component",
   "name": "HistoryModal",
-  "lines": 170,
+  "lines": 155,
   "source": "maor/src/components/courses/ReenrollModals.tsx"
  },
  {
@@ -446,7 +470,7 @@
    "Empty",
    "PageHead"
   ],
-  "lines": 349,
+  "lines": 343,
   "source": "maor/src/components/courses/ReenrollView.tsx"
  },
  {
@@ -600,7 +624,7 @@
    "Empty",
    "WaBtn"
   ],
-  "lines": 497,
+  "lines": 502,
   "source": "maor/src/components/families/FamilyDetail.tsx"
  },
  {
@@ -640,7 +664,7 @@
    "TextInput",
    "Empty"
   ],
-  "lines": 640,
+  "lines": 646,
   "source": "maor/src/components/families/FamilyPanels.tsx"
  },
  {
@@ -657,7 +681,7 @@
    "TextInput",
    "Empty"
   ],
-  "lines": 640,
+  "lines": 646,
   "source": "maor/src/components/families/FamilyPanels.tsx"
  },
  {
@@ -674,7 +698,7 @@
    "TextInput",
    "Empty"
   ],
-  "lines": 640,
+  "lines": 646,
   "source": "maor/src/components/families/FamilyPanels.tsx"
  },
  {
@@ -691,7 +715,7 @@
    "TextInput",
    "Empty"
   ],
-  "lines": 640,
+  "lines": 646,
   "source": "maor/src/components/families/FamilyPanels.tsx"
  },
  {
@@ -724,7 +748,7 @@
    "Select",
    "FormError"
   ],
-  "lines": 205,
+  "lines": 221,
   "source": "maor/src/components/families/MemberForm.tsx"
  },
  {
@@ -894,7 +918,7 @@
    "TextInput",
    "FormError"
   ],
-  "lines": 107,
+  "lines": 122,
   "source": "maor/src/components/lock/CloudUnlockScreen.tsx"
  },
  {
@@ -907,7 +931,7 @@
    "TextInput",
    "FormError"
   ],
-  "lines": 106,
+  "lines": 121,
   "source": "maor/src/components/lock/EncUnlockScreen.tsx"
  },
  {
@@ -915,7 +939,7 @@
   "level": "L3-screen",
   "name": "LockScreen",
   "composes": [],
-  "lines": 200,
+  "lines": 198,
   "source": "maor/src/components/lock/LockScreen.tsx"
  },
  {
@@ -1118,7 +1142,7 @@
    "TextInput",
    "FormError"
   ],
-  "lines": 186,
+  "lines": 190,
   "source": "maor/src/components/settings/CloudEncryptionSection.tsx"
  },
  {
@@ -1217,6 +1241,13 @@
   "source": "maor/src/components/settings/OrgSecretsSection.tsx"
  },
  {
+  "id": "L1:maor:OutboxSection@src/components/settings/OutboxSection.tsx",
+  "level": "L1-component",
+  "name": "OutboxSection",
+  "lines": 94,
+  "source": "maor/src/components/settings/OutboxSection.tsx"
+ },
+ {
   "id": "L1:maor:RoomsSection@src/components/settings/RoomsSection.tsx",
   "level": "L3-screen",
   "name": "RoomsSection",
@@ -1270,6 +1301,7 @@
    "SectionNote",
    "Toggle",
    "OrgSecretsSection",
+   "OutboxSection",
    "RoomsSection",
    "SecuritySection",
    "SupEnforceSection",
@@ -1282,7 +1314,7 @@
    "FormError",
    "PageHead"
   ],
-  "lines": 566,
+  "lines": 575,
   "source": "maor/src/components/settings/SettingsView.tsx"
  },
  {
@@ -1391,11 +1423,12 @@
   "level": "L3-screen",
   "name": "CalendarTab",
   "composes": [
+   "CalViewTabs",
    "ShopEventModal",
    "Btn",
    "Chip"
   ],
-  "lines": 209,
+  "lines": 216,
   "source": "maor/src/components/shop/CalendarTab.tsx"
  },
  {
@@ -1502,7 +1535,7 @@
    "Select",
    "FormError"
   ],
-  "lines": 166,
+  "lines": 203,
   "source": "maor/src/components/shop/RedeemModal.tsx"
  },
  {
@@ -1663,7 +1696,7 @@
   "id": "L1:maor:AyinCard@src/components/supporters/AyinCard.tsx",
   "level": "L1-component",
   "name": "AyinCard",
-  "lines": 602,
+  "lines": 630,
   "source": "maor/src/components/supporters/AyinCard.tsx"
  },
  {
@@ -1684,14 +1717,14 @@
   "id": "L1:maor:DonationCalendar@src/components/supporters/DonationCalendar.tsx",
   "level": "L1-component",
   "name": "DonationCalendar",
-  "lines": 294,
+  "lines": 331,
   "source": "maor/src/components/supporters/DonationCalendar.tsx"
  },
  {
   "id": "L1:maor:OrgDonationCalendar@src/components/supporters/DonationCalendar.tsx",
   "level": "L1-component",
   "name": "OrgDonationCalendar",
-  "lines": 294,
+  "lines": 331,
   "source": "maor/src/components/supporters/DonationCalendar.tsx"
  },
  {
@@ -1707,7 +1740,7 @@
    "Select",
    "FormError"
   ],
-  "lines": 189,
+  "lines": 231,
   "source": "maor/src/components/supporters/DonationModal.tsx"
  },
  {
@@ -1739,6 +1772,21 @@
   "source": "maor/src/components/supporters/OneFlow.tsx"
  },
  {
+  "id": "L1:maor:PlannedChargesSection@src/components/supporters/PlannedChargesSection.tsx",
+  "level": "L3-screen",
+  "name": "PlannedChargesSection",
+  "composes": [
+   "HebDateInput",
+   "Btn",
+   "Modal",
+   "Field",
+   "TextInput",
+   "Select"
+  ],
+  "lines": 212,
+  "source": "maor/src/components/supporters/PlannedChargesSection.tsx"
+ },
+ {
   "id": "L1:maor:SupDedupModal@src/components/supporters/SupDedupModal.tsx",
   "level": "L1-component",
   "name": "SupDedupModal",
@@ -1762,6 +1810,7 @@
    "AyinCard",
    "DonationCalendar",
    "DonationModal",
+   "PlannedChargesSection",
    "SupporterForm",
    "SupporterPhotos",
    "Btn",
@@ -1774,7 +1823,7 @@
    "Empty",
    "WaBtn"
   ],
-  "lines": 823,
+  "lines": 945,
   "source": "maor/src/components/supporters/SupporterDetail.tsx"
  },
  {
@@ -1788,7 +1837,7 @@
    "TextInput",
    "FormError"
   ],
-  "lines": 171,
+  "lines": 218,
   "source": "maor/src/components/supporters/SupporterForm.tsx"
  },
  {
@@ -1877,7 +1926,7 @@
    "ActionsMenu",
    "WaBtn"
   ],
-  "lines": 1416,
+  "lines": 1664,
   "source": "maor/src/components/supporters/SupportersView.tsx"
  },
  {
@@ -1920,7 +1969,7 @@
   "id": "L1:maor:CashRegister@src/components/timer/CashRegister.tsx",
   "level": "L1-component",
   "name": "CashRegister",
-  "lines": 862,
+  "lines": 881,
   "source": "maor/src/components/timer/CashRegister.tsx"
  },
  {
@@ -1958,12 +2007,13 @@
   "level": "L3-screen",
   "name": "CalendarTab",
   "composes": [
+   "CalViewTabs",
    "CalendarTab",
    "TzEventModal",
    "Btn",
    "Chip"
   ],
-  "lines": 177,
+  "lines": 184,
   "source": "maor/src/components/tzedaka/CalendarTab.tsx"
  },
  {
@@ -2190,7 +2240,7 @@
   "id": "L1:maor:WaBtn@src/components/WaBtn.tsx",
   "level": "L1-component",
   "name": "WaBtn",
-  "lines": 25,
+  "lines": 33,
   "source": "maor/src/components/WaBtn.tsx"
  },
  {

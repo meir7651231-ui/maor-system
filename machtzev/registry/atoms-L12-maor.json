@@ -144,292 +144,286 @@
   "source": "maor/src/components/courses/lib.ts:303"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:308:0",
-  "level": "L12-regex",
-  "pattern": "** יתרת חוב — max(0, סה\"כ עסקה - שולם). *",
-  "source": "maor/src/components/courses/lib.ts:308"
- },
- {
-  "id": "L12:maor:src/components/courses/lib.ts:313:0",
+  "id": "L12:maor:src/components/courses/lib.ts:323:0",
   "level": "L12-regex",
   "pattern": "** סטטוס-תשלום נגזר-אוטומטית (17.8, \"למה השולם לא מתעדכן לבד\"): *",
-  "source": "maor/src/components/courses/lib.ts:313"
+  "source": "maor/src/components/courses/lib.ts:323"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:353:0",
+  "id": "L12:maor:src/components/courses/lib.ts:363:0",
   "level": "L12-regex",
   "pattern": "** חיסורים-זכאים-להשלמה (makeup===true) — אופציונלית פר-חוג. לא-מתוזמנים קודם. *",
-  "source": "maor/src/components/courses/lib.ts:353"
+  "source": "maor/src/components/courses/lib.ts:363"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:367:0",
+  "id": "L12:maor:src/components/courses/lib.ts:377:0",
   "level": "L12-regex",
   "pattern": "** רשימת-ההמתנה של חוג — status 'wait', לפי סדר-ההצטרפות (FIFO). *",
-  "source": "maor/src/components/courses/lib.ts:367"
- },
- {
-  "id": "L12:maor:src/components/courses/lib.ts:390:0",
-  "level": "L12-regex",
-  "pattern": "** גיליון-נוכחות (roll-call) — שיבוצים פעילים",
-  "source": "maor/src/components/courses/lib.ts:390"
- },
- {
-  "id": "L12:maor:src/components/courses/lib.ts:395:0",
-  "level": "L12-regex",
-  "pattern": "** סיכום-נוכחות ליום: כמה מהרשימה מסומנים-נוכחים (presents כולל את התאריך). *",
-  "source": "maor/src/components/courses/lib.ts:395"
+  "source": "maor/src/components/courses/lib.ts:377"
  },
  {
   "id": "L12:maor:src/components/courses/lib.ts:400:0",
   "level": "L12-regex",
-  "pattern": "** ערכי הבחירה בטופס — verbatim מהמקור; '__other' פותח הקלדה חופשית. *",
+  "pattern": "** גיליון-נוכחות (roll-call) — שיבוצים פעילים",
   "source": "maor/src/components/courses/lib.ts:400"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:408:0",
+  "id": "L12:maor:src/components/courses/lib.ts:405:0",
+  "level": "L12-regex",
+  "pattern": "** סיכום-נוכחות ליום: כמה מהרשימה מסומנים-נוכחים (presents כולל את התאריך). *",
+  "source": "maor/src/components/courses/lib.ts:405"
+ },
+ {
+  "id": "L12:maor:src/components/courses/lib.ts:410:0",
+  "level": "L12-regex",
+  "pattern": "** ערכי הבחירה בטופס — verbatim מהמקור; '__other' פותח הקלדה חופשית. *",
+  "source": "maor/src/components/courses/lib.ts:410"
+ },
+ {
+  "id": "L12:maor:src/components/courses/lib.ts:418:0",
   "level": "L12-regex",
   "pattern": "** גווני רקע לכרטיסי הקורסים (כמו tints במקור). *",
-  "source": "maor/src/components/courses/lib.ts:408"
+  "source": "maor/src/components/courses/lib.ts:418"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:411:0",
+  "id": "L12:maor:src/components/courses/lib.ts:421:0",
   "level": "L12-regex",
   "pattern": "** תוויות סטטוס שיבוץ. *",
-  "source": "maor/src/components/courses/lib.ts:411"
+  "source": "maor/src/components/courses/lib.ts:421"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:420:0",
+  "id": "L12:maor:src/components/courses/lib.ts:430:0",
   "level": "L12-regex",
   "pattern": "** תווית המסלול בשורת תלמיד — כולל הקפאה",
-  "source": "maor/src/components/courses/lib.ts:420"
+  "source": "maor/src/components/courses/lib.ts:430"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:431:0",
+  "id": "L12:maor:src/components/courses/lib.ts:441:0",
   "level": "L12-regex",
   "pattern": "** צ'יפ קטן בסגנון אחיד. *",
-  "source": "maor/src/components/courses/lib.ts:431"
+  "source": "maor/src/components/courses/lib.ts:441"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:449:0",
+  "id": "L12:maor:src/components/courses/lib.ts:459:0",
   "level": "L12-regex",
   "pattern": "** האם החוג מתאים לפי מגדר וגיל — נתון חסר אינו מסנן (סינון רך, לא חוסם). *",
-  "source": "maor/src/components/courses/lib.ts:449"
+  "source": "maor/src/components/courses/lib.ts:459"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:450:0",
+  "id": "L12:maor:src/components/courses/lib.ts:460:0",
   "level": "L12-regex",
   "pattern": "* ---------- טווח כיתות (P2 פער 28, feature courses.gradeimg) ---------- *",
-  "source": "maor/src/components/courses/lib.ts:450"
+  "source": "maor/src/components/courses/lib.ts:460"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:452:0",
+  "id": "L12:maor:src/components/courses/lib.ts:462:0",
   "level": "L12-regex",
   "pattern": "** סולם הכיתות — גן ואז א׳–י\"ב. *",
-  "source": "maor/src/components/courses/lib.ts:452"
+  "source": "maor/src/components/courses/lib.ts:462"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:455:0",
+  "id": "L12:maor:src/components/courses/lib.ts:465:0",
   "level": "L12-regex",
   "pattern": "** אינדקס כיתה בסולם — סובלני לגרשיים ולקידומת \"כיתה\"; לא מזוהה = ‎-1. *",
-  "source": "maor/src/components/courses/lib.ts:455"
+  "source": "maor/src/components/courses/lib.ts:465"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:457:33",
+  "id": "L12:maor:src/components/courses/lib.ts:467:33",
   "level": "L12-regex",
   "pattern": "[\"'׳״]",
-  "source": "maor/src/components/courses/lib.ts:457"
+  "source": "maor/src/components/courses/lib.ts:467"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:457:56",
+  "id": "L12:maor:src/components/courses/lib.ts:467:56",
   "level": "L12-regex",
   "pattern": "^כיתה\\s*",
-  "source": "maor/src/components/courses/lib.ts:457"
+  "source": "maor/src/components/courses/lib.ts:467"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:481:1",
+  "id": "L12:maor:src/components/courses/lib.ts:491:1",
   "level": "L12-regex",
   "pattern": "** כיתת הילד",
-  "source": "maor/src/components/courses/lib.ts:481"
+  "source": "maor/src/components/courses/lib.ts:491"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:525:0",
+  "id": "L12:maor:src/components/courses/lib.ts:535:0",
   "level": "L12-regex",
   "pattern": "** נרמול שם להשוואה — כמו normName במקור. *",
-  "source": "maor/src/components/courses/lib.ts:525"
+  "source": "maor/src/components/courses/lib.ts:535"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:530:0",
+  "id": "L12:maor:src/components/courses/lib.ts:540:0",
   "level": "L12-regex",
   "pattern": "** האם להציע \"＋ משפחה חדשה\" עבור השאילתה — ≥2 תווים ואין משפחה בשם זהה. *",
-  "source": "maor/src/components/courses/lib.ts:530"
+  "source": "maor/src/components/courses/lib.ts:540"
  },
  {
-  "id": "L12:maor:src/components/courses/lib.ts:562:0",
+  "id": "L12:maor:src/components/courses/lib.ts:572:0",
   "level": "L12-regex",
   "pattern": "** זריון אישור-ניקוב — מזהה השיבוץ ורגע הזריון. *",
-  "source": "maor/src/components/courses/lib.ts:562"
+  "source": "maor/src/components/courses/lib.ts:572"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:14:0",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:15:0",
   "level": "L12-regex",
   "pattern": "** פרסור ISO לצהריים-מקומי — מוסכמת-התאריכים של הפרויקט (בלי היסט UTC). *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:14"
+  "source": "maor/src/components/courses/reenroll-lib.ts:15"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:25:0",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:41:0",
   "level": "L12-regex",
-  "pattern": "** תווית שנת-לימודים מתאריך-פתיחה (שנה\"ל מתחילה ב-1.9). לדוגמה 2026-09-01 → \"202",
-  "source": "maor/src/components/courses/reenroll-lib.ts:25"
+  "pattern": "** תווית שנת-הלימודים העברית **הבאה** אחרי תאריך-הפתיחה — למשל 2025-09-01 → \"תשפ",
+  "source": "maor/src/components/courses/reenroll-lib.ts:41"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:34:0",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:50:0",
   "level": "L12-regex",
   "pattern": "** תאריכי השנה הבאה — הזזת start",
-  "source": "maor/src/components/courses/reenroll-lib.ts:34"
+  "source": "maor/src/components/courses/reenroll-lib.ts:50"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:46:0",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:62:0",
   "level": "L12-regex",
   "pattern": "** ההחלטה הנוכחית של השיבוץ (חסר = טרם הוחלט). *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:46"
+  "source": "maor/src/components/courses/reenroll-lib.ts:62"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:51:0",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:67:0",
   "level": "L12-regex",
   "pattern": "** האם השיבוץ כבר נרשם לשנה הבאה (יש קישור לשיבוץ-היעד). *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:51"
- },
- {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:57:1",
-  "level": "L12-regex",
-  "pattern": "** מספר הנוכחויות שנרשמו (יומן presents). *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:57"
- },
- {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:59:1",
-  "level": "L12-regex",
-  "pattern": "** מספר החיסורים. *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:59"
- },
- {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:61:1",
-  "level": "L12-regex",
-  "pattern": "** מתוכם \"לא הגיע ללא הודעה\". *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:61"
- },
- {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:63:1",
-  "level": "L12-regex",
-  "pattern": "** יתרת-תשלום (₪) — 0",
-  "source": "maor/src/components/courses/reenroll-lib.ts:63"
- },
- {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:65:1",
-  "level": "L12-regex",
-  "pattern": "** סה\"כ ששולם (₪). *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:65"
- },
- {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:67:1",
-  "level": "L12-regex",
-  "pattern": "** תווית-סטטוס אשתקד. *",
   "source": "maor/src/components/courses/reenroll-lib.ts:67"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:69:1",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:73:1",
+  "level": "L12-regex",
+  "pattern": "** מספר הנוכחויות שנרשמו (יומן presents). *",
+  "source": "maor/src/components/courses/reenroll-lib.ts:73"
+ },
+ {
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:75:1",
+  "level": "L12-regex",
+  "pattern": "** מספר החיסורים. *",
+  "source": "maor/src/components/courses/reenroll-lib.ts:75"
+ },
+ {
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:77:1",
+  "level": "L12-regex",
+  "pattern": "** מתוכם \"לא הגיע ללא הודעה\". *",
+  "source": "maor/src/components/courses/reenroll-lib.ts:77"
+ },
+ {
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:79:1",
+  "level": "L12-regex",
+  "pattern": "** יתרת-תשלום (₪) — 0",
+  "source": "maor/src/components/courses/reenroll-lib.ts:79"
+ },
+ {
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:81:1",
+  "level": "L12-regex",
+  "pattern": "** סה\"כ ששולם (₪). *",
+  "source": "maor/src/components/courses/reenroll-lib.ts:81"
+ },
+ {
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:83:1",
+  "level": "L12-regex",
+  "pattern": "** תווית-סטטוס אשתקד. *",
+  "source": "maor/src/components/courses/reenroll-lib.ts:83"
+ },
+ {
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:85:1",
   "level": "L12-regex",
   "pattern": "** תאריך הנוכחות האחרונה (ISO) או '' אם אין. *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:69"
+  "source": "maor/src/components/courses/reenroll-lib.ts:85"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:80:0",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:96:0",
   "level": "L12-regex",
   "pattern": "** \"מה היה בעבר\" — סיכום דטרמיניסטי פר-שיבוץ מהשדות הקיימים. *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:80"
+  "source": "maor/src/components/courses/reenroll-lib.ts:96"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:109:0",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:125:0",
   "level": "L12-regex",
   "pattern": "** איתור בן",
-  "source": "maor/src/components/courses/reenroll-lib.ts:109"
- },
- {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:119:1",
-  "level": "L12-regex",
-  "pattern": "** צמצום לחוג יחיד (id) — ריק",
-  "source": "maor/src/components/courses/reenroll-lib.ts:119"
- },
- {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:121:1",
-  "level": "L12-regex",
-  "pattern": "** צמצום לפי החלטה — ריק = הכל; 'undecided' = טרם הוחלט. *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:121"
- },
- {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:123:1",
-  "level": "L12-regex",
-  "pattern": "** חיפוש טקסט חופשי (שם תלמיד",
-  "source": "maor/src/components/courses/reenroll-lib.ts:123"
- },
- {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:125:1",
-  "level": "L12-regex",
-  "pattern": "** האם לכלול שיבוצים שכבר נרשמו לשנה הבאה (ברירת-מחדל: כן). *",
   "source": "maor/src/components/courses/reenroll-lib.ts:125"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:183:0",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:135:1",
+  "level": "L12-regex",
+  "pattern": "** צמצום לחוג יחיד (id) — ריק",
+  "source": "maor/src/components/courses/reenroll-lib.ts:135"
+ },
+ {
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:137:1",
+  "level": "L12-regex",
+  "pattern": "** צמצום לפי החלטה — ריק = הכל; 'undecided' = טרם הוחלט. *",
+  "source": "maor/src/components/courses/reenroll-lib.ts:137"
+ },
+ {
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:139:1",
+  "level": "L12-regex",
+  "pattern": "** חיפוש טקסט חופשי (שם תלמיד",
+  "source": "maor/src/components/courses/reenroll-lib.ts:139"
+ },
+ {
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:141:1",
+  "level": "L12-regex",
+  "pattern": "** האם לכלול שיבוצים שכבר נרשמו לשנה הבאה (ברירת-מחדל: כן). *",
+  "source": "maor/src/components/courses/reenroll-lib.ts:141"
+ },
+ {
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:199:0",
   "level": "L12-regex",
   "pattern": "** מוני-התקדמות מעל שורות-הרישום. *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:183"
+  "source": "maor/src/components/courses/reenroll-lib.ts:199"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:197:0",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:213:0",
   "level": "L12-regex",
   "pattern": "** מי מיועד לרישום המוני — \"ממשיך\" שעדיין לא נרשם. *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:197"
+  "source": "maor/src/components/courses/reenroll-lib.ts:213"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:262:1",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:301:1",
   "level": "L12-regex",
   "pattern": "** תווית שנת-לימודים (החוג.year אם קיים, אחרת מחושב מתאריך-הפתיחה). *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:262"
+  "source": "maor/src/components/courses/reenroll-lib.ts:301"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:264:1",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:303:1",
   "level": "L12-regex",
   "pattern": "** תאריך-פתיחת החוג (ISO) — לצורך מיון וכיתוב. *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:264"
+  "source": "maor/src/components/courses/reenroll-lib.ts:303"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:268:1",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:307:1",
   "level": "L12-regex",
   "pattern": "** האם שיבוץ זה נולד מרישום-לשנה-הבאה (מישהו הצביע אליו ב-renewedToId). *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:268"
+  "source": "maor/src/components/courses/reenroll-lib.ts:307"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:270:1",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:309:1",
   "level": "L12-regex",
   "pattern": "** האם שיבוץ זה כבר חודש קדימה (יש לו renewedToId). *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:270"
+  "source": "maor/src/components/courses/reenroll-lib.ts:309"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:305:0",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:344:0",
   "level": "L12-regex",
   "pattern": "** טקסט קריא של ההיסטוריה (שורה להשתתפות) — לתדפיס",
-  "source": "maor/src/components/courses/reenroll-lib.ts:305"
+  "source": "maor/src/components/courses/reenroll-lib.ts:344"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:318:0",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:357:0",
   "level": "L12-regex",
   "pattern": "** שורות CSV לרשימת-הרישום (כותרת + נתונים). *",
-  "source": "maor/src/components/courses/reenroll-lib.ts:318"
+  "source": "maor/src/components/courses/reenroll-lib.ts:357"
  },
  {
-  "id": "L12:maor:src/components/courses/reenroll-lib.ts:337:0",
+  "id": "L12:maor:src/components/courses/reenroll-lib.ts:376:0",
   "level": "L12-regex",
   "pattern": "** טקסט-תדפיס קריא (שורה לתלמיד",
-  "source": "maor/src/components/courses/reenroll-lib.ts:337"
+  "source": "maor/src/components/courses/reenroll-lib.ts:376"
  },
  {
   "id": "L12:maor:src/components/diary/lib.ts:15:0",
@@ -1092,220 +1086,292 @@
   "source": "maor/src/components/supporters/lib.ts:14"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:105:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:125:0",
   "level": "L12-regex",
   "pattern": "** סה\"כ ₪ כולל היסטוריה. *",
-  "source": "maor/src/components/supporters/lib.ts:105"
+  "source": "maor/src/components/supporters/lib.ts:125"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:110:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:130:0",
   "level": "L12-regex",
   "pattern": "** סה\"כ $ כולל היסטוריה. *",
-  "source": "maor/src/components/supporters/lib.ts:110"
- },
- {
-  "id": "L12:maor:src/components/supporters/lib.ts:122:0",
-  "level": "L12-regex",
-  "pattern": "** התרומה האחרונה — המאוחר מבין הקבלות וההיסטוריה ('' כשאין). *",
-  "source": "maor/src/components/supporters/lib.ts:122"
- },
- {
-  "id": "L12:maor:src/components/supporters/lib.ts:129:0",
-  "level": "L12-regex",
-  "pattern": "** האם **התרומה האחרונה** של התורם נפלה בתקופה — שנה (yyyy) ו",
-  "source": "maor/src/components/supporters/lib.ts:129"
+  "source": "maor/src/components/supporters/lib.ts:130"
  },
  {
   "id": "L12:maor:src/components/supporters/lib.ts:142:0",
   "level": "L12-regex",
-  "pattern": "** שווי כולל בש\"ח — דולר לפי השער העריך (ברירת-מחדל 3.7, כמו במקור); כולל היסטור",
+  "pattern": "** התרומה האחרונה — המאוחר מבין הקבלות וההיסטוריה ('' כשאין). *",
   "source": "maor/src/components/supporters/lib.ts:142"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:171:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:149:0",
+  "level": "L12-regex",
+  "pattern": "** האם **התרומה האחרונה** של התורם נפלה בתקופה — שנה (yyyy) ו",
+  "source": "maor/src/components/supporters/lib.ts:149"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:162:0",
+  "level": "L12-regex",
+  "pattern": "** שווי כולל בש\"ח — דולר לפי השער העריך (ברירת-מחדל 3.7, כמו במקור); כולל היסטור",
+  "source": "maor/src/components/supporters/lib.ts:162"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:191:0",
   "level": "L12-regex",
   "pattern": "** דרגה לפי הציון — זהה לחלוקה ולצבעים במקור (800",
-  "source": "maor/src/components/supporters/lib.ts:171"
+  "source": "maor/src/components/supporters/lib.ts:191"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:181:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:201:0",
   "level": "L12-regex",
   "pattern": "* ---------- פאנל דרגות מורחב (P3 פריט 12) — טהור, נוסחאות הלגאסי ---------- *",
-  "source": "maor/src/components/supporters/lib.ts:181"
+  "source": "maor/src/components/supporters/lib.ts:201"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:183:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:203:0",
   "level": "L12-regex",
   "pattern": "** היסטוגרמת ציון — 10 סלים של 100 נקודות (legacy supBars:3018-3022). *",
-  "source": "maor/src/components/supporters/lib.ts:183"
+  "source": "maor/src/components/supporters/lib.ts:203"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:190:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:210:0",
   "level": "L12-regex",
   "pattern": "** ממוצע לתרומה — סה\"כ ₪-שקול (‎$×3.7‎) חלקי מספר התרומות (legacy supAvgDon:3024",
-  "source": "maor/src/components/supporters/lib.ts:190"
+  "source": "maor/src/components/supporters/lib.ts:210"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:197:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:217:0",
   "level": "L12-regex",
   "pattern": "** מונה \"תרמו ב-12 החודשים\" — התרומה האחרונה (כולל היסטוריה) בתוך 365 יום. *",
-  "source": "maor/src/components/supporters/lib.ts:197"
+  "source": "maor/src/components/supporters/lib.ts:217"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:211:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:231:0",
   "level": "L12-regex",
   "pattern": "** צ'יפ דרגה",
-  "source": "maor/src/components/supporters/lib.ts:211"
+  "source": "maor/src/components/supporters/lib.ts:231"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:234:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:264:5",
+  "level": "L12-regex",
+  "pattern": "^(\\+?972|00972)",
+  "source": "maor/src/components/supporters/lib.ts:264"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:268:5",
+  "level": "L12-regex",
+  "pattern": "^0\\d{8,9}$",
+  "source": "maor/src/components/supporters/lib.ts:268"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:269:5",
+  "level": "L12-regex",
+  "pattern": "^5\\d{8}$",
+  "source": "maor/src/components/supporters/lib.ts:269"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:279:1",
+  "level": "L12-regex",
+  "pattern": "** האם זהו המספר-הראשי (השדה phone) — להבחנה מהמספרים הנוספים. *",
+  "source": "maor/src/components/supporters/lib.ts:279"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:283:0",
+  "level": "L12-regex",
+  "pattern": "** כל הטלפונים של תורם — הראשי (phone) ואז phones[], עם סיווג-אזור. דטרמיניסטי. ",
+  "source": "maor/src/components/supporters/lib.ts:283"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:294:0",
+  "level": "L12-regex",
+  "pattern": "** האם לתורם יש מספר באזור המבוקש (לסינון חול",
+  "source": "maor/src/components/supporters/lib.ts:294"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:299:0",
+  "level": "L12-regex",
+  "pattern": "** ניקוי מערך-טלפונים לשמירה: fixPhone לכל מספר, סינון ריקים, שמירת שדות. *",
+  "source": "maor/src/components/supporters/lib.ts:299"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:308:0",
+  "level": "L12-regex",
+  "pattern": "** ברירת-מחדל: דילוגי-התזכורת עד יעד-הסגולה (40). מחר → שבוע → 21 → 35 → 40 (סיו",
+  "source": "maor/src/components/supporters/lib.ts:308"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:312:1",
+  "level": "L12-regex",
+  "pattern": "** מספר-הימים מתאריך-ההתחלה. *",
+  "source": "maor/src/components/supporters/lib.ts:312"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:314:1",
+  "level": "L12-regex",
+  "pattern": "** תאריך-היעד (ISO). *",
+  "source": "maor/src/components/supporters/lib.ts:314"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:316:1",
+  "level": "L12-regex",
+  "pattern": "** האם זו נקודת-הסיום (היום ה-40). *",
+  "source": "maor/src/components/supporters/lib.ts:316"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:337:0",
+  "level": "L12-regex",
+  "pattern": "** כותרת-תזכורת לסגולה (יום N מתוך היעד). *",
+  "source": "maor/src/components/supporters/lib.ts:337"
+ },
+ {
+  "id": "L12:maor:src/components/supporters/lib.ts:342:0",
   "level": "L12-regex",
   "pattern": "** \"₪1,200 + $300\" או \"—\" כשאין כלום — כולל היסטוריה (הכרעת 9.8). *",
-  "source": "maor/src/components/supporters/lib.ts:234"
+  "source": "maor/src/components/supporters/lib.ts:342"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:243:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:351:0",
   "level": "L12-regex",
   "pattern": "* ── \"כל התרומות\" — מיזוג קבלות + הקובץ ההיסטורי (feature supporters.hist) ── *",
-  "source": "maor/src/components/supporters/lib.ts:243"
+  "source": "maor/src/components/supporters/lib.ts:351"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:245:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:353:0",
   "level": "L12-regex",
   "pattern": "** שורת תצוגה ברשימת \"כל התרומות\" — קבלה, רשומת hist או ציון first",
-  "source": "maor/src/components/supporters/lib.ts:245"
+  "source": "maor/src/components/supporters/lib.ts:353"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:250:1",
+  "id": "L12:maor:src/components/supporters/lib.ts:358:1",
   "level": "L12-regex",
   "pattern": "** מקור השורה: 'קבלה R-N' ",
-  "source": "maor/src/components/supporters/lib.ts:250"
+  "source": "maor/src/components/supporters/lib.ts:358"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:250:48",
+  "id": "L12:maor:src/components/supporters/lib.ts:358:48",
   "level": "L12-regex",
   "pattern": " 'תרומה ראשונה (מהקובץ)'. *",
-  "source": "maor/src/components/supporters/lib.ts:250"
+  "source": "maor/src/components/supporters/lib.ts:358"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:303:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:411:0",
   "level": "L12-regex",
   "pattern": "** רשומת-יום בלוח התרומות — תרומה",
-  "source": "maor/src/components/supporters/lib.ts:303"
+  "source": "maor/src/components/supporters/lib.ts:411"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:313:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:421:0",
   "level": "L12-regex",
   "pattern": "** שורות הלוח האישי של תומכת — legacy supCalMine (2940-2944). *",
-  "source": "maor/src/components/supporters/lib.ts:313"
+  "source": "maor/src/components/supporters/lib.ts:421"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:325:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:433:0",
   "level": "L12-regex",
   "pattern": "** שורות הלוח הכלל-ארגוני — כל התומכות (legacy supCalAll, 2928-2937). *",
-  "source": "maor/src/components/supporters/lib.ts:325"
+  "source": "maor/src/components/supporters/lib.ts:433"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:339:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:450:0",
   "level": "L12-regex",
   "pattern": "** שורת סיכום החודש — 'N תרומות החודש · ₪X + $Y' (legacy supCalData monthLine). ",
-  "source": "maor/src/components/supporters/lib.ts:339"
+  "source": "maor/src/components/supporters/lib.ts:450"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:357:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:468:0",
   "level": "L12-regex",
   "pattern": "* ── ייבוא תומכות מ-CSV — עדכון-או-הוספה לפי שם מנורמל (טהור, נבדק ביחידה) ── *",
-  "source": "maor/src/components/supporters/lib.ts:357"
+  "source": "maor/src/components/supporters/lib.ts:468"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:359:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:470:0",
   "level": "L12-regex",
   "pattern": "** נרמול שם להשוואה — נרמול חיפוש עברי + הסרת רווחים. *",
-  "source": "maor/src/components/supporters/lib.ts:359"
+  "source": "maor/src/components/supporters/lib.ts:470"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:364:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:475:0",
   "level": "L12-regex",
   "pattern": "** שורת ייבוא תומכת אחת (העמודות מהתבנית). *",
-  "source": "maor/src/components/supporters/lib.ts:364"
+  "source": "maor/src/components/supporters/lib.ts:475"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:395:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:506:0",
   "level": "L12-regex",
   "pattern": "** מילות-מפתח לעמודת-השם. 'תורם' נוסף בשביל יצוא-הסליקה (כותרת \"תורם\"). *",
-  "source": "maor/src/components/supporters/lib.ts:395"
+  "source": "maor/src/components/supporters/lib.ts:506"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:472:60",
+  "id": "L12:maor:src/components/supporters/lib.ts:583:60",
   "level": "L12-regex",
   "pattern": "[^\\d.-]",
-  "source": "maor/src/components/supporters/lib.ts:472"
+  "source": "maor/src/components/supporters/lib.ts:583"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:476:41",
+  "id": "L12:maor:src/components/supporters/lib.ts:587:41",
   "level": "L12-regex",
   "pattern": "^\\d+(\\.\\d+)?$",
-  "source": "maor/src/components/supporters/lib.ts:476"
+  "source": "maor/src/components/supporters/lib.ts:587"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:484:15",
+  "id": "L12:maor:src/components/supporters/lib.ts:595:15",
   "level": "L12-regex",
   "pattern": "דולר|\\$|usd",
-  "source": "maor/src/components/supporters/lib.ts:484"
+  "source": "maor/src/components/supporters/lib.ts:595"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:490:43",
+  "id": "L12:maor:src/components/supporters/lib.ts:601:43",
   "level": "L12-regex",
   "pattern": "נדרים|nedarim",
-  "source": "maor/src/components/supporters/lib.ts:490"
+  "source": "maor/src/components/supporters/lib.ts:601"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:505:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:616:0",
   "level": "L12-regex",
   "pattern": "** פענוח טקסט CSV לשורות ייבוא (עוטף את [parseSupporterGrid] מעל [parseCsv]). *",
-  "source": "maor/src/components/supporters/lib.ts:505"
+  "source": "maor/src/components/supporters/lib.ts:616"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:510:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:621:0",
   "level": "L12-regex",
   "pattern": "** תוכנית ייבוא — אילו קיימות יעודכנו ואילו חדשות ייווצרו. *",
-  "source": "maor/src/components/supporters/lib.ts:510"
+  "source": "maor/src/components/supporters/lib.ts:621"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:512:1",
+  "id": "L12:maor:src/components/supporters/lib.ts:623:1",
   "level": "L12-regex",
   "pattern": "** עדכון תומכת קיימת (id) עם ערכי השורה. *",
-  "source": "maor/src/components/supporters/lib.ts:512"
+  "source": "maor/src/components/supporters/lib.ts:623"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:514:1",
+  "id": "L12:maor:src/components/supporters/lib.ts:625:1",
   "level": "L12-regex",
   "pattern": "** תומכות חדשות להוספה (אחרי מיזוג כפילויות בתוך הקובץ עצמו). *",
-  "source": "maor/src/components/supporters/lib.ts:514"
+  "source": "maor/src/components/supporters/lib.ts:625"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:548:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:659:0",
   "level": "L12-regex",
   "pattern": "** רשומת-היסטוריה בודדת (Supporter.hist) — כולל מטא-דאטת-הסליקה האופציונלית. *",
-  "source": "maor/src/components/supporters/lib.ts:548"
+  "source": "maor/src/components/supporters/lib.ts:659"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:651:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:762:0",
   "level": "L12-regex",
   "pattern": "** יצירת תומכת חדשה משורת ייבוא (מונים ותרומות מתחילים מאפס). *",
-  "source": "maor/src/components/supporters/lib.ts:651"
+  "source": "maor/src/components/supporters/lib.ts:762"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:681:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:792:0",
   "level": "L12-regex",
   "pattern": "** חודשים-אזרחיים מאז תאריך-ISO עד היום (0 = אותו חודש). ריק ⇒ Infinity. *",
-  "source": "maor/src/components/supporters/lib.ts:681"
+  "source": "maor/src/components/supporters/lib.ts:792"
  },
  {
-  "id": "L12:maor:src/components/supporters/lib.ts:744:0",
+  "id": "L12:maor:src/components/supporters/lib.ts:855:0",
   "level": "L12-regex",
   "pattern": "** תווית אמצעי-ההו\"ק לתצוגה. *",
-  "source": "maor/src/components/supporters/lib.ts:744"
+  "source": "maor/src/components/supporters/lib.ts:855"
  },
  {
   "id": "L12:maor:src/components/telephony/lib.ts:33:0",
@@ -1752,64 +1818,82 @@
   "source": "maor/src/lib/ayin.ts:166"
  },
  {
-  "id": "L12:maor:src/lib/ayin.ts:283:0",
+  "id": "L12:maor:src/lib/ayin.ts:288:0",
   "level": "L12-regex",
   "pattern": "** תצוגת תאריך DD",
-  "source": "maor/src/lib/ayin.ts:283"
+  "source": "maor/src/lib/ayin.ts:288"
  },
  {
-  "id": "L12:maor:src/lib/ayin.ts:322:0",
+  "id": "L12:maor:src/lib/ayin.ts:327:0",
   "level": "L12-regex",
   "pattern": "** שורת מסך-הטיפול — שם אחד מתוך תיק של תומכ",
-  "source": "maor/src/lib/ayin.ts:322"
+  "source": "maor/src/lib/ayin.ts:327"
  },
  {
-  "id": "L12:maor:src/lib/ayin.ts:334:0",
+  "id": "L12:maor:src/lib/ayin.ts:339:0",
   "level": "L12-regex",
   "pattern": "** כל השמות בכרטיסי מעקב-הטיפול — אותה סמנטיקה כמו ayinAllRows (שם ריק מדולג). *",
-  "source": "maor/src/lib/ayin.ts:334"
+  "source": "maor/src/lib/ayin.ts:339"
  },
  {
-  "id": "L12:maor:src/lib/ayin.ts:357:0",
+  "id": "L12:maor:src/lib/ayin.ts:362:0",
   "level": "L12-regex",
   "pattern": "** סינון מסך-הטיפול — טקסט חופשי (תומכ",
-  "source": "maor/src/lib/ayin.ts:357"
- },
- {
-  "id": "L12:maor:src/lib/ayin.ts:374:0",
-  "level": "L12-regex",
-  "pattern": "* ── גיליון העיניים — ייצוא",
-  "source": "maor/src/lib/ayin.ts:374"
+  "source": "maor/src/lib/ayin.ts:362"
  },
  {
   "id": "L12:maor:src/lib/ayin.ts:379:0",
   "level": "L12-regex",
-  "pattern": "** כותרת הגיליון — בדיוק כמו בלגאסי (legacy:196). *",
+  "pattern": "* ── גיליון העיניים — ייצוא",
   "source": "maor/src/lib/ayin.ts:379"
  },
  {
-  "id": "L12:maor:src/lib/ayin.ts:419:0",
+  "id": "L12:maor:src/lib/ayin.ts:384:0",
+  "level": "L12-regex",
+  "pattern": "** כותרת הגיליון — בדיוק כמו בלגאסי (legacy:196). *",
+  "source": "maor/src/lib/ayin.ts:384"
+ },
+ {
+  "id": "L12:maor:src/lib/ayin.ts:424:0",
   "level": "L12-regex",
   "pattern": "** עדכון אחד מהגיליון — הפניה לתומכת ולשם, וערכים שנמצאו בשורה (null = לא עודכן)",
-  "source": "maor/src/lib/ayin.ts:419"
+  "source": "maor/src/lib/ayin.ts:424"
  },
  {
-  "id": "L12:maor:src/lib/ayin.ts:432:1",
+  "id": "L12:maor:src/lib/ayin.ts:437:1",
   "level": "L12-regex",
   "pattern": "** שורות עם שם שלא הותאם לשם קיים במערכת. *",
-  "source": "maor/src/lib/ayin.ts:432"
+  "source": "maor/src/lib/ayin.ts:437"
  },
  {
-  "id": "L12:maor:src/lib/ayin.ts:434:1",
+  "id": "L12:maor:src/lib/ayin.ts:439:1",
   "level": "L12-regex",
   "pattern": "** שגיאת עמודות חובה (שם למסירה ",
-  "source": "maor/src/lib/ayin.ts:434"
+  "source": "maor/src/lib/ayin.ts:439"
  },
  {
-  "id": "L12:maor:src/lib/ayin.ts:458:28",
+  "id": "L12:maor:src/lib/ayin.ts:463:28",
   "level": "L12-regex",
   "pattern": "כן|yes|✓|v|שולם",
-  "source": "maor/src/lib/ayin.ts:458"
+  "source": "maor/src/lib/ayin.ts:463"
+ },
+ {
+  "id": "L12:maor:src/lib/bulkContact.ts:26:0",
+  "level": "L12-regex",
+  "pattern": "** מנרמל כתובת-מייל להשוואת-דדופ (case-insensitive, ‏trim). *",
+  "source": "maor/src/lib/bulkContact.ts:26"
+ },
+ {
+  "id": "L12:maor:src/lib/bulkContact.ts:31:0",
+  "level": "L12-regex",
+  "pattern": "** נמעני-מייל מרוכזים — מסונן ומדוד. שומר את השם",
+  "source": "maor/src/lib/bulkContact.ts:31"
+ },
+ {
+  "id": "L12:maor:src/lib/bulkContact.ts:47:0",
+  "level": "L12-regex",
+  "pattern": "** נמעני-וואטסאפ מרוכזים — מסונן ומדוד לפי-ספרות. *",
+  "source": "maor/src/lib/bulkContact.ts:47"
  },
  {
   "id": "L12:maor:src/lib/callerId.ts:39:0",
@@ -1872,40 +1956,40 @@
   "source": "maor/src/lib/cloud-diff.ts:86"
  },
  {
-  "id": "L12:maor:src/lib/cloud-diff.ts:108:1",
+  "id": "L12:maor:src/lib/cloud-diff.ts:109:1",
   "level": "L12-regex",
   "pattern": "** כתיבות (יצירה",
-  "source": "maor/src/lib/cloud-diff.ts:108"
+  "source": "maor/src/lib/cloud-diff.ts:109"
  },
  {
-  "id": "L12:maor:src/lib/cloud-diff.ts:110:1",
+  "id": "L12:maor:src/lib/cloud-diff.ts:111:1",
   "level": "L12-regex",
   "pattern": "** מחיקות לפי מזהה. *",
-  "source": "maor/src/lib/cloud-diff.ts:110"
+  "source": "maor/src/lib/cloud-diff.ts:111"
  },
  {
-  "id": "L12:maor:src/lib/cloud-diff.ts:112:1",
+  "id": "L12:maor:src/lib/cloud-diff.ts:113:1",
   "level": "L12-regex",
   "pattern": "** מסמך meta",
-  "source": "maor/src/lib/cloud-diff.ts:112"
+  "source": "maor/src/lib/cloud-diff.ts:113"
  },
  {
-  "id": "L12:maor:src/lib/cloud-diff.ts:116:0",
+  "id": "L12:maor:src/lib/cloud-diff.ts:117:0",
   "level": "L12-regex",
   "pattern": "** גוף מסמך meta",
-  "source": "maor/src/lib/cloud-diff.ts:116"
+  "source": "maor/src/lib/cloud-diff.ts:117"
  },
  {
-  "id": "L12:maor:src/lib/cloud-diff.ts:172:0",
+  "id": "L12:maor:src/lib/cloud-diff.ts:174:0",
   "level": "L12-regex",
   "pattern": "** ה-DB המלא כ-diff — להעלאה ראשונה של נתונים מקומיים לפרויקט ענן ריק. *",
-  "source": "maor/src/lib/cloud-diff.ts:172"
+  "source": "maor/src/lib/cloud-diff.ts:174"
  },
  {
-  "id": "L12:maor:src/lib/cloud-diff.ts:183:0",
+  "id": "L12:maor:src/lib/cloud-diff.ts:185:0",
   "level": "L12-regex",
   "pattern": "** האם ה-diff ריק — אין מה לדחוף. *",
-  "source": "maor/src/lib/cloud-diff.ts:183"
+  "source": "maor/src/lib/cloud-diff.ts:185"
  },
  {
   "id": "L12:maor:src/lib/cloud-merge.ts:72:0",
@@ -1920,184 +2004,190 @@
   "source": "maor/src/lib/cloud-merge.ts:105"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:78:0",
+  "id": "L12:maor:src/lib/cloud.ts:79:0",
   "level": "L12-regex",
   "pattern": "** קביעת תחום הארגון — נקרא מ-connectCloud עם ה-config הטעון. *",
-  "source": "maor/src/lib/cloud.ts:78"
+  "source": "maor/src/lib/cloud.ts:79"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:83:0",
+  "id": "L12:maor:src/lib/cloud.ts:84:0",
   "level": "L12-regex",
   "pattern": "** נתיב אוסף",
-  "source": "maor/src/lib/cloud.ts:83"
+  "source": "maor/src/lib/cloud.ts:84"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:97:0",
+  "id": "L12:maor:src/lib/cloud.ts:98:0",
   "level": "L12-regex",
   "pattern": "* ── מסלול-B: פיצול-תרומות (דגל-אב, off-by-default, מגודר גם מ-cloudRoot) ── *",
-  "source": "maor/src/lib/cloud.ts:97"
+  "source": "maor/src/lib/cloud.ts:98"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:99:0",
+  "id": "L12:maor:src/lib/cloud.ts:100:0",
   "level": "L12-regex",
   "pattern": "** נקבע מ-connectCloud לפי donationSplitOn(config). *",
-  "source": "maor/src/lib/cloud.ts:99"
+  "source": "maor/src/lib/cloud.ts:100"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:103:0",
+  "id": "L12:maor:src/lib/cloud.ts:104:0",
   "level": "L12-regex",
   "pattern": "** האם הסנכרון פועל במצב-פיצול (הצד-הדוחף שואל לפני push). *",
-  "source": "maor/src/lib/cloud.ts:103"
+  "source": "maor/src/lib/cloud.ts:104"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:121:0",
+  "id": "L12:maor:src/lib/cloud.ts:122:0",
   "level": "L12-regex",
   "pattern": "** נקבע מ-connectCloud",
-  "source": "maor/src/lib/cloud.ts:121"
+  "source": "maor/src/lib/cloud.ts:122"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:125:0",
+  "id": "L12:maor:src/lib/cloud.ts:126:0",
   "level": "L12-regex",
   "pattern": "** האם אכיפת-התומכים פעילה (הצד-הדוחף",
-  "source": "maor/src/lib/cloud.ts:125"
+  "source": "maor/src/lib/cloud.ts:126"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:137:0",
+  "id": "L12:maor:src/lib/cloud.ts:138:0",
   "level": "L12-regex",
   "pattern": "** נקבע מהחיבור: uid+email של המחובר, ו-canRead=מנהל",
-  "source": "maor/src/lib/cloud.ts:137"
+  "source": "maor/src/lib/cloud.ts:138"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:143:0",
+  "id": "L12:maor:src/lib/cloud.ts:144:0",
   "level": "L12-regex",
   "pattern": "** המייל שכותב את הלוג (לסינון הטבעת-הנדחפת לפעולות-שלו-בלבד). *",
-  "source": "maor/src/lib/cloud.ts:143"
+  "source": "maor/src/lib/cloud.ts:144"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:148:0",
+  "id": "L12:maor:src/lib/cloud.ts:149:0",
   "level": "L12-regex",
   "pattern": "** דחיפת טבעת-הלוג של המחובר למסמכו (auditlog",
-  "source": "maor/src/lib/cloud.ts:148"
+  "source": "maor/src/lib/cloud.ts:149"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:157:0",
+  "id": "L12:maor:src/lib/cloud.ts:158:0",
   "level": "L12-regex",
   "pattern": "** משיכת כל טבעות-הלוג וממוזגות (מנהל",
-  "source": "maor/src/lib/cloud.ts:157"
+  "source": "maor/src/lib/cloud.ts:158"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:240:0",
+  "id": "L12:maor:src/lib/cloud.ts:241:0",
   "level": "L12-regex",
   "pattern": "** אתחול חד-פעמי (idempotent) — קריאה חוזרת מחזירה את אותם singletons. *",
-  "source": "maor/src/lib/cloud.ts:240"
+  "source": "maor/src/lib/cloud.ts:241"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:256:3",
+  "id": "L12:maor:src/lib/cloud.ts:257:3",
   "level": "L12-regex",
   "pattern": "* דפדפן ללא IndexedDB ",
-  "source": "maor/src/lib/cloud.ts:256"
+  "source": "maor/src/lib/cloud.ts:257"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:272:0",
+  "id": "L12:maor:src/lib/cloud.ts:273:0",
   "level": "L12-regex",
   "pattern": "** ה-Firestore המאותחל — ל-cloudConfig (CLOUD2); זורק בעברית כשהענן לא אותחל. *",
-  "source": "maor/src/lib/cloud.ts:272"
+  "source": "maor/src/lib/cloud.ts:273"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:277:0",
+  "id": "L12:maor:src/lib/cloud.ts:278:0",
   "level": "L12-regex",
   "pattern": "** מיפוי קודי שגיאה של Firebase Auth להודעות בעברית. *",
-  "source": "maor/src/lib/cloud.ts:277"
+  "source": "maor/src/lib/cloud.ts:278"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:298:0",
+  "id": "L12:maor:src/lib/cloud.ts:299:0",
   "level": "L12-regex",
   "pattern": "** מעקב אחר מצב ההתחברות — מחזיר unsubscribe. *",
-  "source": "maor/src/lib/cloud.ts:298"
+  "source": "maor/src/lib/cloud.ts:299"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:305:0",
+  "id": "L12:maor:src/lib/cloud.ts:306:0",
   "level": "L12-regex",
   "pattern": "** כניסה באימייל+סיסמה — זורק Error עם הודעה בעברית. אין הרשמה עצמית. *",
-  "source": "maor/src/lib/cloud.ts:305"
+  "source": "maor/src/lib/cloud.ts:306"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:326:55",
+  "id": "L12:maor:src/lib/cloud.ts:327:55",
   "level": "L12-regex",
   "pattern": "* כשל-שליחה לא מפיל הרשמה *",
-  "source": "maor/src/lib/cloud.ts:326"
+  "source": "maor/src/lib/cloud.ts:327"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:342:3",
+  "id": "L12:maor:src/lib/cloud.ts:343:3",
   "level": "L12-regex",
   "pattern": "* ניתוק נכשל (רשת) — מצב ה-auth המקומי יתעדכן בהזדמנות הבאה *",
-  "source": "maor/src/lib/cloud.ts:342"
+  "source": "maor/src/lib/cloud.ts:343"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:346:0",
+  "id": "L12:maor:src/lib/cloud.ts:347:0",
   "level": "L12-regex",
   "pattern": "** שליחת מייל איפוס סיסמה — זורק Error בעברית. *",
-  "source": "maor/src/lib/cloud.ts:346"
+  "source": "maor/src/lib/cloud.ts:347"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:382:0",
+  "id": "L12:maor:src/lib/cloud.ts:383:0",
   "level": "L12-regex",
   "pattern": "** Firestore דוחה undefined — סיבוב JSON מנקה (וגם מנתק הפניות). *",
-  "source": "maor/src/lib/cloud.ts:382"
+  "source": "maor/src/lib/cloud.ts:383"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:392:0",
+  "id": "L12:maor:src/lib/cloud.ts:393:0",
   "level": "L12-regex",
   "pattern": "** מוני-הענן — מונוטוניים בלבד (רצף קבלות-מס). לעולם לא לרדת במסמך ה-meta. *",
-  "source": "maor/src/lib/cloud.ts:392"
+  "source": "maor/src/lib/cloud.ts:393"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:450:0",
+  "id": "L12:maor:src/lib/cloud.ts:451:0",
   "level": "L12-regex",
   "pattern": "* ============================ הצפנת-ענן — envelope + מיגרציה ==================",
-  "source": "maor/src/lib/cloud.ts:450"
+  "source": "maor/src/lib/cloud.ts:451"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:470:0",
+  "id": "L12:maor:src/lib/cloud.ts:471:0",
   "level": "L12-regex",
   "pattern": "** כתיבת ה-envelope (הפעלת הצפנה — פעולת-בעלים). לא failure-safe: כשל = זריקה. *",
-  "source": "maor/src/lib/cloud.ts:470"
+  "source": "maor/src/lib/cloud.ts:471"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:614:0",
+  "id": "L12:maor:src/lib/cloud.ts:615:0",
   "level": "L12-regex",
   "pattern": "* ─────────── גל ד׳ \"עד-השרת\" — צד-הלקוח של functions",
-  "source": "maor/src/lib/cloud.ts:614"
+  "source": "maor/src/lib/cloud.ts:615"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:620:0",
+  "id": "L12:maor:src/lib/cloud.ts:621:0",
   "level": "L12-regex",
   "pattern": "** תשלום-נכנס מחברת-הסליקה — ממתין לאישור-רישום של המזכירה. *",
-  "source": "maor/src/lib/cloud.ts:620"
+  "source": "maor/src/lib/cloud.ts:621"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:645:0",
+  "id": "L12:maor:src/lib/cloud.ts:646:0",
   "level": "L12-regex",
   "pattern": "** רשומת-תורם מנדרים (staged ב-nedarimDonors) — נקראת לסנכרון-כרטיסים. *",
-  "source": "maor/src/lib/cloud.ts:645"
+  "source": "maor/src/lib/cloud.ts:646"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:725:0",
+  "id": "L12:maor:src/lib/cloud.ts:726:0",
   "level": "L12-regex",
   "pattern": "** סימון תשלום-נכנס כ\"נרשם\" (אחרי שהמזכירה רשמה תרומה",
-  "source": "maor/src/lib/cloud.ts:725"
+  "source": "maor/src/lib/cloud.ts:726"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:751:0",
+  "id": "L12:maor:src/lib/cloud.ts:752:0",
   "level": "L12-regex",
   "pattern": "** הכנסת SMS לתור-השליחה (הרחבת sms — נשלח ע\"י ה-Function כל דקה). *",
-  "source": "maor/src/lib/cloud.ts:751"
+  "source": "maor/src/lib/cloud.ts:752"
  },
  {
-  "id": "L12:maor:src/lib/cloud.ts:761:0",
+  "id": "L12:maor:src/lib/cloud.ts:762:0",
   "level": "L12-regex",
   "pattern": "** הכנסת מייל לתור-השליחה (הרחבת mail, ROADMAP-100 ‏#1 — נשלח ע\"י mailOutbox בענ",
-  "source": "maor/src/lib/cloud.ts:761"
+  "source": "maor/src/lib/cloud.ts:762"
+ },
+ {
+  "id": "L12:maor:src/lib/cloud.ts:804:0",
+  "level": "L12-regex",
+  "pattern": "** 🔁 שליחה-חוזרת: החזרת הרשומה ל-pending — ה-Function הדקתית תרים אותה שוב. *",
+  "source": "maor/src/lib/cloud.ts:804"
  },
  {
   "id": "L12:maor:src/lib/cloudConfig.ts:16:0",
@@ -3432,16 +3522,52 @@
   "source": "maor/src/lib/lock.ts:69"
  },
  {
-  "id": "L12:maor:src/lib/lock.ts:72:0",
+  "id": "L12:maor:src/lib/lock.ts:93:0",
   "level": "L12-regex",
-  "pattern": "** גיבוב הקוד ל-hex של SHA-256 (עם מלח). *",
-  "source": "maor/src/lib/lock.ts:72"
+  "pattern": "** גיבוב קוד — פורמט v2 (PBKDF2 + מלח אקראי). קודים חדשים נשמרים כך בלבד. *",
+  "source": "maor/src/lib/lock.ts:93"
  },
  {
-  "id": "L12:maor:src/lib/lock.ts:81:0",
+  "id": "L12:maor:src/lib/lock.ts:99:0",
   "level": "L12-regex",
-  "pattern": "** בדיקת קוד מול גיבוב שמור. גיבוב חסר",
-  "source": "maor/src/lib/lock.ts:81"
+  "pattern": "** גיבוב-לגאסי (SHA-256 חד-סיבובי) — נשמר רק לאימות קודים ישנים. *",
+  "source": "maor/src/lib/lock.ts:99"
+ },
+ {
+  "id": "L12:maor:src/lib/lock.ts:105:0",
+  "level": "L12-regex",
+  "pattern": "** האם הגיבוב השמור בפורמט הישן — פתיחה מוצלחת צריכה לשדרג אותו. *",
+  "source": "maor/src/lib/lock.ts:105"
+ },
+ {
+  "id": "L12:maor:src/lib/lock.ts:110:0",
+  "level": "L12-regex",
+  "pattern": "** בדיקת קוד מול גיבוב שמור (v2 או לגאסי). גיבוב חסר",
+  "source": "maor/src/lib/lock.ts:110"
+ },
+ {
+  "id": "L12:maor:src/lib/lock.ts:145:0",
+  "level": "L12-regex",
+  "pattern": "** רישום כישלון: מונה+1 והשהיה לפי cooldownForFails. מחזיר את המצב החדש. *",
+  "source": "maor/src/lib/lock.ts:145"
+ },
+ {
+  "id": "L12:maor:src/lib/lock.ts:153:3",
+  "level": "L12-regex",
+  "pattern": "* מצב פרטי — ההשהיה תחיה בזיכרון הרכיב בלבד *",
+  "source": "maor/src/lib/lock.ts:153"
+ },
+ {
+  "id": "L12:maor:src/lib/lock.ts:162:3",
+  "level": "L12-regex",
+  "pattern": "* noop *",
+  "source": "maor/src/lib/lock.ts:162"
+ },
+ {
+  "id": "L12:maor:src/lib/lock.ts:166:0",
+  "level": "L12-regex",
+  "pattern": "** השהיה גדֵלה אחרי כשלונות: 3→5ש׳, 4→15ש׳, 5+→30ש׳ (זהה ללוח שנבדק ב-ratchet). ",
+  "source": "maor/src/lib/lock.ts:166"
  },
  {
   "id": "L12:maor:src/lib/mapsLink.ts:13:0",
@@ -3474,10 +3600,40 @@
   "source": "maor/src/lib/monthGrid.ts:28"
  },
  {
-  "id": "L12:maor:src/lib/monthGrid.ts:53:0",
+  "id": "L12:maor:src/lib/monthGrid.ts:35:0",
+  "level": "L12-regex",
+  "pattern": "** מצבי-תצוגה ללוחות (בקשת-בעלים 30.8): יומי ",
+  "source": "maor/src/lib/monthGrid.ts:35"
+ },
+ {
+  "id": "L12:maor:src/lib/monthGrid.ts:35:53",
+  "level": "L12-regex",
+  "pattern": " חודשי. *",
+  "source": "maor/src/lib/monthGrid.ts:35"
+ },
+ {
+  "id": "L12:maor:src/lib/monthGrid.ts:58:0",
+  "level": "L12-regex",
+  "pattern": "** אינדוקס אירועים לפי תאריך (משותף לכל הגרידים). *",
+  "source": "maor/src/lib/monthGrid.ts:58"
+ },
+ {
+  "id": "L12:maor:src/lib/monthGrid.ts:104:0",
+  "level": "L12-regex",
+  "pattern": "** 🗓 גריד-יום — תא יחיד (העוגן). ניווט prev",
+  "source": "maor/src/lib/monthGrid.ts:104"
+ },
+ {
+  "id": "L12:maor:src/lib/monthGrid.ts:122:0",
   "level": "L12-regex",
   "pattern": "** גריד חודשי לועזי",
-  "source": "maor/src/lib/monthGrid.ts:53"
+  "source": "maor/src/lib/monthGrid.ts:122"
+ },
+ {
+  "id": "L12:maor:src/lib/monthGrid.ts:178:0",
+  "level": "L12-regex",
+  "pattern": "** בורר-גריד לפי מצב-תצוגה (יומי",
+  "source": "maor/src/lib/monthGrid.ts:178"
  },
  {
   "id": "L12:maor:src/lib/navhist.ts:12:0",
@@ -3820,6 +3976,54 @@
   "level": "L12-regex",
   "pattern": "^data:image\\/(png|jpe?g|webp|gif);base64,",
   "source": "maor/src/lib/photoGallery.ts:21"
+ },
+ {
+  "id": "L12:maor:src/lib/plannedMatch.ts:17:0",
+  "level": "L12-regex",
+  "pattern": "** קלט לשיוך — פלן פתוח בכל ישות, עם קונטקסט לזיהוי-שם. *",
+  "source": "maor/src/lib/plannedMatch.ts:17"
+ },
+ {
+  "id": "L12:maor:src/lib/plannedMatch.ts:22:1",
+  "level": "L12-regex",
+  "pattern": "** שם הישות (תומכ",
+  "source": "maor/src/lib/plannedMatch.ts:22"
+ },
+ {
+  "id": "L12:maor:src/lib/plannedMatch.ts:26:0",
+  "level": "L12-regex",
+  "pattern": "** תוצאת-שיוך יחידה — פלן שנבחר עבור IncomingPayment ספציפי. *",
+  "source": "maor/src/lib/plannedMatch.ts:26"
+ },
+ {
+  "id": "L12:maor:src/lib/plannedMatch.ts:34:0",
+  "level": "L12-regex",
+  "pattern": "** מרחק-ימים דטרמיניסטי בין ISO-דייטים (חיובי; לא-תלוי-סדר). *",
+  "source": "maor/src/lib/plannedMatch.ts:34"
+ },
+ {
+  "id": "L12:maor:src/lib/plannedMatch.ts:43:0",
+  "level": "L12-regex",
+  "pattern": "** נורמליזציית-שם: הסרת תווי-פיסוק, ריווח-כפול, ניקוד. לא-מגזר תלוי-סדר. *",
+  "source": "maor/src/lib/plannedMatch.ts:43"
+ },
+ {
+  "id": "L12:maor:src/lib/plannedMatch.ts:47:12",
+  "level": "L12-regex",
+  "pattern": "[\"'.,\\-()]",
+  "source": "maor/src/lib/plannedMatch.ts:47"
+ },
+ {
+  "id": "L12:maor:src/lib/plannedMatch.ts:53:0",
+  "level": "L12-regex",
+  "pattern": "** האם שני שמות \"אותו-אדם\" — קבוצת-מילים חופפת מספקת. *",
+  "source": "maor/src/lib/plannedMatch.ts:53"
+ },
+ {
+  "id": "L12:maor:src/lib/plannedMatch.ts:70:0",
+  "level": "L12-regex",
+  "pattern": "** אוסף כל הפלנים הפתוחים בכל הישויות של ה-DB — עם שמות לצורך שיוך. *",
+  "source": "maor/src/lib/plannedMatch.ts:70"
  },
  {
   "id": "L12:maor:src/lib/pricing.ts:13:0",
@@ -4398,10 +4602,16 @@
   "source": "maor/src/lib/supportChat.ts:98"
  },
  {
-  "id": "L12:maor:src/lib/supportChat.ts:103:0",
+  "id": "L12:maor:src/lib/supportChat.ts:120:0",
+  "level": "L12-regex",
+  "pattern": "** הזמן האחרון בין הודעות-צוות (לסימון-נקרא) — '' כשאין הודעות. *",
+  "source": "maor/src/lib/supportChat.ts:120"
+ },
+ {
+  "id": "L12:maor:src/lib/supportChat.ts:127:0",
   "level": "L12-regex",
   "pattern": "** מיון רשימת-שיחות (לוח-הבקרה): לא-נקראות-לתמיכה קודם, ואז לפי lastAt יורד. *",
-  "source": "maor/src/lib/supportChat.ts:103"
+  "source": "maor/src/lib/supportChat.ts:127"
  },
  {
   "id": "L12:maor:src/lib/supporterPartition.ts:25:0",
@@ -4746,28 +4956,28 @@
   "source": "maor/src/lib/wa.ts:31"
  },
  {
-  "id": "L12:maor:src/lib/wa.ts:39:0",
+  "id": "L12:maor:src/lib/wa.ts:62:0",
   "level": "L12-regex",
   "pattern": "* ---------- תבניות-הודעה (גל ב׳ + עריכות #12) — טהורות; המשתמש עורך לפני שליחה ",
-  "source": "maor/src/lib/wa.ts:39"
+  "source": "maor/src/lib/wa.ts:62"
  },
  {
-  "id": "L12:maor:src/lib/wa.ts:51:0",
+  "id": "L12:maor:src/lib/wa.ts:74:0",
   "level": "L12-regex",
   "pattern": "** הודעת-מסירה (חלוקה): נשלחת למשפחה כשהמשלוח יוצא",
-  "source": "maor/src/lib/wa.ts:51"
+  "source": "maor/src/lib/wa.ts:74"
  },
  {
-  "id": "L12:maor:src/lib/wa.ts:56:0",
+  "id": "L12:maor:src/lib/wa.ts:79:0",
   "level": "L12-regex",
   "pattern": "** תזכורת-תשלום ידידותית (חוגים): שם-הפריט + היתרה. *",
-  "source": "maor/src/lib/wa.ts:56"
+  "source": "maor/src/lib/wa.ts:79"
  },
  {
-  "id": "L12:maor:src/lib/wa.ts:65:0",
+  "id": "L12:maor:src/lib/wa.ts:88:0",
   "level": "L12-regex",
   "pattern": "** ברכת יום-הולדת לחוגג",
-  "source": "maor/src/lib/wa.ts:65"
+  "source": "maor/src/lib/wa.ts:88"
  },
  {
   "id": "L12:maor:src/lib/warehouse.ts:12:1",

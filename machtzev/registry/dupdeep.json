@@ -33,9 +33,9 @@
   {
    "hash": "f929d0d67172",
    "members": [
-    "L6b:maor:src/components/courses/lib.ts#chipStyle@432",
+    "L6b:maor:src/components/courses/lib.ts#chipStyle@442",
     "L6b:maor:src/components/diary/lib.ts#chipStyle@277",
-    "L6b:maor:src/components/supporters/lib.ts#chipStyle@212"
+    "L6b:maor:src/components/supporters/lib.ts#chipStyle@232"
    ]
   }
  ],
@@ -86,7 +86,7 @@
   {
    "name": "enrollStatusMeta",
    "members": [
-    "L6b:maor:src/components/courses/lib.ts#enrollStatusMeta@412",
+    "L6b:maor:src/components/courses/lib.ts#enrollStatusMeta@422",
     "L6b:maor:src/components/diary/lib.ts#enrollStatusMeta@268"
    ],
    "count": 2
@@ -94,7 +94,7 @@
   {
    "name": "planLabelOf",
    "members": [
-    "L6b:maor:src/components/courses/lib.ts#planLabelOf@421",
+    "L6b:maor:src/components/courses/lib.ts#planLabelOf@431",
     "L6b:maor:src/components/diary/lib.ts#planLabelOf@261"
    ],
    "count": 2
@@ -102,12 +102,20 @@
   {
    "name": "chipStyle",
    "members": [
-    "L6b:maor:src/components/courses/lib.ts#chipStyle@432",
+    "L6b:maor:src/components/courses/lib.ts#chipStyle@442",
     "L6b:maor:src/components/diary/lib.ts#chipStyle@277",
     "L6b:maor:src/components/families/lib.ts#chipStyle@208",
-    "L6b:maor:src/components/supporters/lib.ts#chipStyle@212"
+    "L6b:maor:src/components/supporters/lib.ts#chipStyle@232"
    ],
    "count": 4
+  },
+  {
+   "name": "normEmail",
+   "members": [
+    "L6b:maor:src/components/platform/lib.ts#normEmail@77",
+    "L6b:maor:src/lib/bulkContact.ts#normEmail@27"
+   ],
+   "count": 2
   },
   {
    "name": "needsCare",
@@ -120,7 +128,7 @@
   {
    "name": "normName",
    "members": [
-    "L6b:maor:src/components/supporters/lib.ts#normName@360",
+    "L6b:maor:src/components/supporters/lib.ts#normName@471",
     "L6b:maor:src/lib/ayin.ts#normName@69",
     "L6b:maor:src/lib/validate.ts#normName@65"
    ],

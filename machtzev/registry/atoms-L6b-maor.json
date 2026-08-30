@@ -2676,16 +2676,16 @@
   "id": "L6b:maor:src/components/supporters/lib.ts#orgCalEntries@434",
   "level": "L6b-function",
   "name": "orgCalEntries",
-  "lines": 14,
+  "lines": 17,
   "calls": [
    "orgCalEntries",
    "supDonEvents"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:434-447"
+  "source": "maor/src/components/supporters/lib.ts:434-450"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#donCalMonthLine@448",
+  "id": "L6b:maor:src/components/supporters/lib.ts#donCalMonthLine@451",
   "level": "L6b-function",
   "name": "donCalMonthLine",
   "lines": 20,
@@ -2695,10 +2695,10 @@
    "inMonth"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:448-467"
+  "source": "maor/src/components/supporters/lib.ts:451-470"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#normName@468",
+  "id": "L6b:maor:src/components/supporters/lib.ts#normName@471",
   "level": "L6b-function",
   "name": "normName",
   "lines": 36,
@@ -2707,19 +2707,19 @@
    "normSearch"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:468-503"
+  "source": "maor/src/components/supporters/lib.ts:471-506"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#SUP_NAME_KEYS@504",
+  "id": "L6b:maor:src/components/supporters/lib.ts#SUP_NAME_KEYS@507",
   "level": "L6b-function",
   "name": "SUP_NAME_KEYS",
   "lines": 5,
   "calls": [],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:504-508"
+  "source": "maor/src/components/supporters/lib.ts:507-511"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#excelSerialToIso@509",
+  "id": "L6b:maor:src/components/supporters/lib.ts#excelSerialToIso@512",
   "level": "L6b-function",
   "name": "excelSerialToIso",
   "lines": 15,
@@ -2733,10 +2733,10 @@
    "getUTCFullYear"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:509-523"
+  "source": "maor/src/components/supporters/lib.ts:512-526"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#parseSupporterGrid@524",
+  "id": "L6b:maor:src/components/supporters/lib.ts#parseSupporterGrid@527",
   "level": "L6b-function",
   "name": "parseSupporterGrid",
   "lines": 90,
@@ -2747,10 +2747,10 @@
    "isFinite"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:524-613"
+  "source": "maor/src/components/supporters/lib.ts:527-616"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#parseSupporterCsv@614",
+  "id": "L6b:maor:src/components/supporters/lib.ts#parseSupporterCsv@617",
   "level": "L6b-function",
   "name": "parseSupporterCsv",
   "lines": 28,
@@ -2761,10 +2761,10 @@
    "fillEmpty"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:614-641"
+  "source": "maor/src/components/supporters/lib.ts:617-644"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#applyAyinNames@642",
+  "id": "L6b:maor:src/components/supporters/lib.ts#applyAyinNames@645",
   "level": "L6b-function",
   "name": "applyAyinNames",
   "lines": 23,
@@ -2775,10 +2775,10 @@
    "mkId"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:642-664"
+  "source": "maor/src/components/supporters/lib.ts:645-667"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#mergeHist@665",
+  "id": "L6b:maor:src/components/supporters/lib.ts#mergeHist@668",
   "level": "L6b-function",
   "name": "mergeHist",
   "lines": 41,
@@ -2786,10 +2786,10 @@
    "mergeHist"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:665-705"
+  "source": "maor/src/components/supporters/lib.ts:668-708"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#planSupporterImport@706",
+  "id": "L6b:maor:src/components/supporters/lib.ts#planSupporterImport@709",
   "level": "L6b-function",
   "name": "planSupporterImport",
   "lines": 39,
@@ -2799,10 +2799,10 @@
    "fillEmpty"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:706-744"
+  "source": "maor/src/components/supporters/lib.ts:709-747"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#mergeSupporterRow@745",
+  "id": "L6b:maor:src/components/supporters/lib.ts#mergeSupporterRow@748",
   "level": "L6b-function",
   "name": "mergeSupporterRow",
   "lines": 15,
@@ -2812,10 +2812,10 @@
    "fixPhone"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:745-759"
+  "source": "maor/src/components/supporters/lib.ts:748-762"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#newSupporterFromRow@760",
+  "id": "L6b:maor:src/components/supporters/lib.ts#newSupporterFromRow@763",
   "level": "L6b-function",
   "name": "newSupporterFromRow",
   "lines": 27,
@@ -2825,10 +2825,10 @@
    "mergeHist"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:760-786"
+  "source": "maor/src/components/supporters/lib.ts:763-789"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#HOK_CAT@787",
+  "id": "L6b:maor:src/components/supporters/lib.ts#HOK_CAT@790",
   "level": "L6b-function",
   "name": "HOK_CAT",
   "lines": 15,
@@ -2836,10 +2836,10 @@
    "monthsAgoIso"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:787-801"
+  "source": "maor/src/components/supporters/lib.ts:790-804"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#hokEffectivelyActive@802",
+  "id": "L6b:maor:src/components/supporters/lib.ts#hokEffectivelyActive@805",
   "level": "L6b-function",
   "name": "hokEffectivelyActive",
   "lines": 14,
@@ -2848,10 +2848,10 @@
    "monthsAgoIso"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:802-815"
+  "source": "maor/src/components/supporters/lib.ts:805-818"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#hokRecordedThisMonth@816",
+  "id": "L6b:maor:src/components/supporters/lib.ts#hokRecordedThisMonth@819",
   "level": "L6b-function",
   "name": "hokRecordedThisMonth",
   "lines": 18,
@@ -2859,10 +2859,10 @@
    "hokRecordedThisMonth"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:816-833"
+  "source": "maor/src/components/supporters/lib.ts:819-836"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#hokDue@834",
+  "id": "L6b:maor:src/components/supporters/lib.ts#hokDue@837",
   "level": "L6b-function",
   "name": "hokDue",
   "lines": 8,
@@ -2872,10 +2872,10 @@
    "hokRecordedThisMonth"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:834-841"
+  "source": "maor/src/components/supporters/lib.ts:837-844"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#hokMonthlyTotal@842",
+  "id": "L6b:maor:src/components/supporters/lib.ts#hokMonthlyTotal@845",
   "level": "L6b-function",
   "name": "hokMonthlyTotal",
   "lines": 11,
@@ -2885,10 +2885,10 @@
    "active"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:842-852"
+  "source": "maor/src/components/supporters/lib.ts:845-855"
  },
  {
-  "id": "L6b:maor:src/components/supporters/lib.ts#hokMethodLabel@853",
+  "id": "L6b:maor:src/components/supporters/lib.ts#hokMethodLabel@856",
   "level": "L6b-function",
   "name": "hokMethodLabel",
   "lines": 7,
@@ -2896,7 +2896,7 @@
    "hokMethodLabel"
   ],
   "pure": true,
-  "source": "maor/src/components/supporters/lib.ts:853-859"
+  "source": "maor/src/components/supporters/lib.ts:856-862"
  },
  {
   "id": "L6b:maor:src/components/telephony/lib.ts#emptyTelephonyConfig@34",
@@ -3203,25 +3203,25 @@
   "id": "L6b:maor:src/components/tzedaka/lib.ts#collectionsCsvRows@281",
   "level": "L6b-function",
   "name": "collectionsCsvRows",
-  "lines": 21,
+  "lines": 22,
   "calls": [
    "collectionsCsvRows",
    "termOf"
   ],
   "pure": true,
-  "source": "maor/src/components/tzedaka/lib.ts:281-301"
+  "source": "maor/src/components/tzedaka/lib.ts:281-302"
  },
  {
-  "id": "L6b:maor:src/components/tzedaka/lib.ts#buildTzGrid@302",
+  "id": "L6b:maor:src/components/tzedaka/lib.ts#buildTzGrid@303",
   "level": "L6b-function",
   "name": "buildTzGrid",
   "lines": 6,
   "calls": [
    "buildTzGrid",
-   "buildMonthGrid"
+   "buildGrid"
   ],
   "pure": true,
-  "source": "maor/src/components/tzedaka/lib.ts:302-307"
+  "source": "maor/src/components/tzedaka/lib.ts:303-308"
  },
  {
   "id": "L6b:maor:src/lib/a11y.ts#SCALE_MIN@13",
@@ -3721,7 +3721,7 @@
   "id": "L6b:maor:src/lib/ayin.ts#planAyinAdvance@175",
   "level": "L6b-function",
   "name": "planAyinAdvance",
-  "lines": 51,
+  "lines": 56,
   "calls": [
    "planAyinAdvance",
    "ayinActionVisible",
@@ -3732,10 +3732,10 @@
    "eyesTotal"
   ],
   "pure": true,
-  "source": "maor/src/lib/ayin.ts:175-225"
+  "source": "maor/src/lib/ayin.ts:175-230"
  },
  {
-  "id": "L6b:maor:src/lib/ayin.ts#planAddName@226",
+  "id": "L6b:maor:src/lib/ayin.ts#planAddName@231",
   "level": "L6b-function",
   "name": "planAddName",
   "lines": 23,
@@ -3745,10 +3745,10 @@
    "isoToday"
   ],
   "pure": true,
-  "source": "maor/src/lib/ayin.ts:226-248"
+  "source": "maor/src/lib/ayin.ts:231-253"
  },
  {
-  "id": "L6b:maor:src/lib/ayin.ts#ayinDailyRows@249",
+  "id": "L6b:maor:src/lib/ayin.ts#ayinDailyRows@254",
   "level": "L6b-function",
   "name": "ayinDailyRows",
   "lines": 47,
@@ -3762,10 +3762,10 @@
    "fmtD"
   ],
   "pure": true,
-  "source": "maor/src/lib/ayin.ts:249-295"
+  "source": "maor/src/lib/ayin.ts:254-300"
  },
  {
-  "id": "L6b:maor:src/lib/ayin.ts#ayinAllRows@296",
+  "id": "L6b:maor:src/lib/ayin.ts#ayinAllRows@301",
   "level": "L6b-function",
   "name": "ayinAllRows",
   "lines": 39,
@@ -3776,10 +3776,10 @@
    "stageLabel"
   ],
   "pure": true,
-  "source": "maor/src/lib/ayin.ts:296-334"
+  "source": "maor/src/lib/ayin.ts:301-339"
  },
  {
-  "id": "L6b:maor:src/lib/ayin.ts#ayinBoardItems@335",
+  "id": "L6b:maor:src/lib/ayin.ts#ayinBoardItems@340",
   "level": "L6b-function",
   "name": "ayinBoardItems",
   "lines": 23,
@@ -3788,10 +3788,10 @@
    "emptyAyin"
   ],
   "pure": true,
-  "source": "maor/src/lib/ayin.ts:335-357"
+  "source": "maor/src/lib/ayin.ts:340-362"
  },
  {
-  "id": "L6b:maor:src/lib/ayin.ts#filterAyinBoard@358",
+  "id": "L6b:maor:src/lib/ayin.ts#filterAyinBoard@363",
   "level": "L6b-function",
   "name": "filterAyinBoard",
   "lines": 22,
@@ -3800,19 +3800,19 @@
    "normSearch"
   ],
   "pure": true,
-  "source": "maor/src/lib/ayin.ts:358-379"
+  "source": "maor/src/lib/ayin.ts:363-384"
  },
  {
-  "id": "L6b:maor:src/lib/ayin.ts#AYIN_SHEET_HEADER@380",
+  "id": "L6b:maor:src/lib/ayin.ts#AYIN_SHEET_HEADER@385",
   "level": "L6b-function",
   "name": "AYIN_SHEET_HEADER",
   "lines": 16,
   "calls": [],
   "pure": true,
-  "source": "maor/src/lib/ayin.ts:380-395"
+  "source": "maor/src/lib/ayin.ts:385-400"
  },
  {
-  "id": "L6b:maor:src/lib/ayin.ts#ayinSheetRows@396",
+  "id": "L6b:maor:src/lib/ayin.ts#ayinSheetRows@401",
   "level": "L6b-function",
   "name": "ayinSheetRows",
   "lines": 47,
@@ -3820,10 +3820,10 @@
    "ayinSheetRows"
   ],
   "pure": true,
-  "source": "maor/src/lib/ayin.ts:396-442"
+  "source": "maor/src/lib/ayin.ts:401-447"
  },
  {
-  "id": "L6b:maor:src/lib/ayin.ts#parseAyinSheet@443",
+  "id": "L6b:maor:src/lib/ayin.ts#parseAyinSheet@448",
   "level": "L6b-function",
   "name": "parseAyinSheet",
   "lines": 59,
@@ -3834,10 +3834,10 @@
    "normName"
   ],
   "pure": true,
-  "source": "maor/src/lib/ayin.ts:443-501"
+  "source": "maor/src/lib/ayin.ts:448-506"
  },
  {
-  "id": "L6b:maor:src/lib/ayin.ts#applyAyinSheet@502",
+  "id": "L6b:maor:src/lib/ayin.ts#applyAyinSheet@507",
   "level": "L6b-function",
   "name": "applyAyinSheet",
   "lines": 45,
@@ -3845,7 +3845,40 @@
    "applyAyinSheet"
   ],
   "pure": true,
-  "source": "maor/src/lib/ayin.ts:502-546"
+  "source": "maor/src/lib/ayin.ts:507-551"
+ },
+ {
+  "id": "L6b:maor:src/lib/bulkContact.ts#normEmail@27",
+  "level": "L6b-function",
+  "name": "normEmail",
+  "lines": 5,
+  "calls": [
+   "normEmail"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/bulkContact.ts:27-31"
+ },
+ {
+  "id": "L6b:maor:src/lib/bulkContact.ts#bulkMailRecipients@32",
+  "level": "L6b-function",
+  "name": "bulkMailRecipients",
+  "lines": 16,
+  "calls": [
+   "normEmail"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/bulkContact.ts:32-47"
+ },
+ {
+  "id": "L6b:maor:src/lib/bulkContact.ts#bulkWaRecipients@48",
+  "level": "L6b-function",
+  "name": "bulkWaRecipients",
+  "lines": 15,
+  "calls": [
+   "waDigits"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/bulkContact.ts:48-62"
  },
  {
   "id": "L6b:maor:src/lib/callerId.ts#callerKindLabel@24",
@@ -7271,11 +7304,74 @@
   "source": "maor/src/lib/mapsLink.ts:26-41"
  },
  {
-  "id": "L6b:maor:src/lib/monthGrid.ts#buildMonthGrid@54",
+  "id": "L6b:maor:src/lib/monthGrid.ts#CAL_VIEW_MODES@37",
+  "level": "L6b-function",
+  "name": "CAL_VIEW_MODES",
+  "lines": 1,
+  "calls": [],
+  "pure": true,
+  "source": "maor/src/lib/monthGrid.ts:37-37"
+ },
+ {
+  "id": "L6b:maor:src/lib/monthGrid.ts#CAL_VIEW_LABEL@38",
+  "level": "L6b-function",
+  "name": "CAL_VIEW_LABEL",
+  "lines": 38,
+  "calls": [
+   "isoOf",
+   "holidayOf",
+   "getDate",
+   "getMonth",
+   "hpOf"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/monthGrid.ts:38-75"
+ },
+ {
+  "id": "L6b:maor:src/lib/monthGrid.ts#buildWeekGrid@76",
+  "level": "L6b-function",
+  "name": "buildWeekGrid",
+  "lines": 29,
+  "calls": [
+   "indexByDate",
+   "getFullYear",
+   "getMonth",
+   "getDate",
+   "getDay",
+   "cellOf",
+   "hpOf",
+   "isoOf",
+   "format"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/monthGrid.ts:76-104"
+ },
+ {
+  "id": "L6b:maor:src/lib/monthGrid.ts#buildDayGrid@105",
+  "level": "L6b-function",
+  "name": "buildDayGrid",
+  "lines": 18,
+  "calls": [
+   "indexByDate",
+   "cellOf",
+   "hpOf",
+   "format",
+   "gemYear",
+   "isoOf",
+   "getFullYear",
+   "getMonth",
+   "getDate"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/monthGrid.ts:105-122"
+ },
+ {
+  "id": "L6b:maor:src/lib/monthGrid.ts#buildMonthGrid@123",
   "level": "L6b-function",
   "name": "buildMonthGrid",
-  "lines": 61,
+  "lines": 56,
   "calls": [
+   "indexByDate",
    "getFullYear",
    "getMonth",
    "getDay",
@@ -7287,7 +7383,20 @@
    "gemYear"
   ],
   "pure": true,
-  "source": "maor/src/lib/monthGrid.ts:54-114"
+  "source": "maor/src/lib/monthGrid.ts:123-178"
+ },
+ {
+  "id": "L6b:maor:src/lib/monthGrid.ts#buildGrid@179",
+  "level": "L6b-function",
+  "name": "buildGrid",
+  "lines": 13,
+  "calls": [
+   "buildDayGrid",
+   "buildWeekGrid",
+   "buildMonthGrid"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/monthGrid.ts:179-191"
  },
  {
   "id": "L6b:maor:src/lib/navhist.ts#NAV_HIST_MAX@19",
@@ -8497,15 +8606,37 @@
   "id": "L6b:maor:src/lib/supportChat.ts#sortTeamMsgs@99",
   "level": "L6b-function",
   "name": "sortTeamMsgs",
-  "lines": 5,
+  "lines": 10,
   "calls": [
    "sortTeamMsgs"
   ],
   "pure": true,
-  "source": "maor/src/lib/supportChat.ts:99-103"
+  "source": "maor/src/lib/supportChat.ts:99-108"
  },
  {
-  "id": "L6b:maor:src/lib/supportChat.ts#sortSupportThreads@104",
+  "id": "L6b:maor:src/lib/supportChat.ts#teamUnreadCount@109",
+  "level": "L6b-function",
+  "name": "teamUnreadCount",
+  "lines": 12,
+  "calls": [
+   "teamUnreadCount"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supportChat.ts:109-120"
+ },
+ {
+  "id": "L6b:maor:src/lib/supportChat.ts#latestTeamAt@121",
+  "level": "L6b-function",
+  "name": "latestTeamAt",
+  "lines": 7,
+  "calls": [
+   "latestTeamAt"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/supportChat.ts:121-127"
+ },
+ {
+  "id": "L6b:maor:src/lib/supportChat.ts#sortSupportThreads@128",
   "level": "L6b-function",
   "name": "sortSupportThreads",
   "lines": 13,
@@ -8514,7 +8645,7 @@
    "supportUnread"
   ],
   "pure": true,
-  "source": "maor/src/lib/supportChat.ts:104-116"
+  "source": "maor/src/lib/supportChat.ts:128-140"
  },
  {
   "id": "L6b:maor:src/lib/supporterAgg.ts#supporterAggregates@27",
@@ -8997,18 +9128,44 @@
   "id": "L6b:maor:src/lib/wa.ts#waLink@32",
   "level": "L6b-function",
   "name": "waLink",
-  "lines": 20,
+  "lines": 13,
   "calls": [
    "waLink",
    "waDigits",
-   "encodeURIComponent",
+   "encodeURIComponent"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/wa.ts:32-44"
+ },
+ {
+  "id": "L6b:maor:src/lib/wa.ts#waAppLink@45",
+  "level": "L6b-function",
+  "name": "waAppLink",
+  "lines": 12,
+  "calls": [
+   "waAppLink",
+   "waDigits",
+   "encodeURIComponent"
+  ],
+  "pure": true,
+  "source": "maor/src/lib/wa.ts:45-56"
+ },
+ {
+  "id": "L6b:maor:src/lib/wa.ts#waHref@57",
+  "level": "L6b-function",
+  "name": "waHref",
+  "lines": 18,
+  "calls": [
+   "waHref",
+   "waAppLink",
+   "waLink",
    "orgOf"
   ],
   "pure": true,
-  "source": "maor/src/lib/wa.ts:32-51"
+  "source": "maor/src/lib/wa.ts:57-74"
  },
  {
-  "id": "L6b:maor:src/lib/wa.ts#waDeliveryText@52",
+  "id": "L6b:maor:src/lib/wa.ts#waDeliveryText@75",
   "level": "L6b-function",
   "name": "waDeliveryText",
   "lines": 5,
@@ -9018,10 +9175,10 @@
    "orgOf"
   ],
   "pure": true,
-  "source": "maor/src/lib/wa.ts:52-56"
+  "source": "maor/src/lib/wa.ts:75-79"
  },
  {
-  "id": "L6b:maor:src/lib/wa.ts#waPaymentText@57",
+  "id": "L6b:maor:src/lib/wa.ts#waPaymentText@80",
   "level": "L6b-function",
   "name": "waPaymentText",
   "lines": 9,
@@ -9031,10 +9188,10 @@
    "orgOf"
   ],
   "pure": true,
-  "source": "maor/src/lib/wa.ts:57-65"
+  "source": "maor/src/lib/wa.ts:80-88"
  },
  {
-  "id": "L6b:maor:src/lib/wa.ts#waBirthdayText@66",
+  "id": "L6b:maor:src/lib/wa.ts#waBirthdayText@89",
   "level": "L6b-function",
   "name": "waBirthdayText",
   "lines": 4,
@@ -9044,7 +9201,7 @@
    "orgOf"
   ],
   "pure": true,
-  "source": "maor/src/lib/wa.ts:66-69"
+  "source": "maor/src/lib/wa.ts:89-92"
  },
  {
   "id": "L6b:maor:src/lib/warehouse.ts#warehouseOverview@31",

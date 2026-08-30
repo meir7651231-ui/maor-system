@@ -1,6 +1,6 @@
 # ⚖️ מחצב — דוח הכרעת-כפילויות
 
-קבוצות: 4632 · 🏆 מנצח-קיים: 0 · 🧬 דורש-שילוב: 4632 · 🚨 ללא-הכרעה: 0
+קבוצות: 4671 · 🏆 מנצח-קיים: 0 · 🧬 דורש-שילוב: 4671 · 🚨 ללא-הכרעה: 0
 
 ## מנועים
 | קבוצה | הכרעה | ניקוד | כיסוי |
@@ -8,7 +8,7 @@
 | installKit.ts↔install_kit.dart | 🧬 שילוב | 52:83 | שילוב נדרש — ייחודי-למאור: kitProgress,DEFAULT_KIT_LABELS · ייחודי-ל-buildsmart: KitItem,recommendedKitForProduct,KitItem,KitItem,KitItem |
 | search.ts↔search.ts | 🧬 שילוב | 58:53 | שילוב נדרש — ייחודי-למאור: XLAT,levenshtein,scoreTerm,expandQuery,smartScore · ייחודי-ל-buildsmart: searchExact,searchFuzzy |
 
-## מחרוזות חוזרות (≥5 מופעים) — ‏4630 מועמדות למונח-יחיד
+## מחרוזות חוזרות (≥5 מופעים) — ‏4669 מועמדות למונח-יחיד
 | טקסט | מופעים |
 |---|---|
 | תיאור | 764 |

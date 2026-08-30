@@ -1081,46 +1081,46 @@
   "source": "maor/scripts/shot-wizard.mjs:69"
  },
  {
-  "id": "L9:maor:src/App.tsx:92:6:named-cap",
+  "id": "L9:maor:src/App.tsx:93:6:named-cap",
   "level": "L9-const",
   "kind": "named-cap",
   "value": "400",
   "name": "NED_LIVE_MAX",
   "hint": "const NED_LIVE_MAX = 400;",
-  "source": "maor/src/App.tsx:92"
+  "source": "maor/src/App.tsx:93"
  },
  {
-  "id": "L9:maor:src/App.tsx:219:58:list-cap",
+  "id": "L9:maor:src/App.tsx:220:58:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "10",
   "hint": "seedOverduePlannedReminders(new Date().toISOString().slice(0, 10));",
-  "source": "maor/src/App.tsx:219"
+  "source": "maor/src/App.tsx:220"
  },
  {
-  "id": "L9:maor:src/App.tsx:404:82:delay-ms",
+  "id": "L9:maor:src/App.tsx:433:82:delay-ms",
   "level": "L9-const",
   "kind": "delay-ms",
   "value": "3000",
   "hint": "const id = hasIdle ? w.requestIdleCallback!(warm, { timeout: 8000 }) :",
-  "source": "maor/src/App.tsx:404"
+  "source": "maor/src/App.tsx:433"
  },
  {
-  "id": "L9:maor:src/App.tsx:632:8:named-cap",
+  "id": "L9:maor:src/App.tsx:662:8:named-cap",
   "level": "L9-const",
   "kind": "named-cap",
   "value": "6",
   "name": "NAV_PRIMARY_MAX",
   "hint": "const NAV_PRIMARY_MAX = 6;",
-  "source": "maor/src/App.tsx:632"
+  "source": "maor/src/App.tsx:662"
  },
  {
-  "id": "L9:maor:src/App.tsx:859:12:list-cap",
+  "id": "L9:maor:src/App.tsx:908:12:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "4",
   "hint": "{nav.slice(0, 4).map((n) => (",
-  "source": "maor/src/App.tsx:859"
+  "source": "maor/src/App.tsx:908"
  },
  {
   "id": "L9:maor:src/components/builder/BuilderWizard.tsx:107:4:list-cap",
@@ -1172,12 +1172,12 @@
   "source": "maor/src/components/calendar/calLib.ts:312"
  },
  {
-  "id": "L9:maor:src/components/calendar/calLib.ts:558:20:threshold",
+  "id": "L9:maor:src/components/calendar/calLib.ts:593:20:threshold",
   "level": "L9-const",
   "kind": "threshold",
   "value": "400",
   "hint": "for (let i = 0; i < 400; i++) {",
-  "source": "maor/src/components/calendar/calLib.ts:558"
+  "source": "maor/src/components/calendar/calLib.ts:593"
  },
  {
   "id": "L9:maor:src/components/calendar/EventModal.tsx:202:37:threshold",
@@ -1194,6 +1194,14 @@
   "value": "400",
   "hint": "if (Date.now() - armedAt.current < 400) return; // מגן-דאבל-טאפ",
   "source": "maor/src/components/calendar/IcsFeedModal.tsx:99"
+ },
+ {
+  "id": "L9:maor:src/components/courses/CourseDetail.tsx:609:45:list-cap",
+  "level": "L9-const",
+  "kind": "list-cap",
+  "value": "2",
+  "hint": ": uniqueReasons.slice(0, 2).join(' · ');",
+  "source": "maor/src/components/courses/CourseDetail.tsx:609"
  },
  {
   "id": "L9:maor:src/components/courses/CourseFilesField.tsx:17:8:threshold",
@@ -1228,20 +1236,20 @@
   "source": "maor/src/components/courses/CoursesDashboard.tsx:117"
  },
  {
-  "id": "L9:maor:src/components/courses/EnrollModal.tsx:113:38:list-cap",
+  "id": "L9:maor:src/components/courses/EnrollModal.tsx:127:38:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "7",
   "hint": "if (!q.trim()) return shownOptions.slice(0, 7);",
-  "source": "maor/src/components/courses/EnrollModal.tsx:113"
+  "source": "maor/src/components/courses/EnrollModal.tsx:127"
  },
  {
-  "id": "L9:maor:src/components/courses/EnrollModal.tsx:138:80:list-cap",
+  "id": "L9:maor:src/components/courses/EnrollModal.tsx:152:80:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "6",
   "hint": "const list = famQ.trim() ? smartFilter(famQ, opts, (o) => o.terms, 6) ",
-  "source": "maor/src/components/courses/EnrollModal.tsx:138"
+  "source": "maor/src/components/courses/EnrollModal.tsx:152"
  },
  {
   "id": "L9:maor:src/components/courses/lib.ts:15:23:list-cap",
@@ -2007,20 +2015,20 @@
   "source": "maor/src/components/settings/SettingsView.tsx:81"
  },
  {
-  "id": "L9:maor:src/components/settings/SettingsView.tsx:542:35:list-cap",
+  "id": "L9:maor:src/components/settings/SettingsView.tsx:548:35:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "100",
   "hint": "const rows = [...audit].reverse().slice(0, 100);",
-  "source": "maor/src/components/settings/SettingsView.tsx:542"
+  "source": "maor/src/components/settings/SettingsView.tsx:548"
  },
  {
-  "id": "L9:maor:src/components/settings/SettingsView.tsx:556:62:list-cap",
+  "id": "L9:maor:src/components/settings/SettingsView.tsx:562:62:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "16",
   "hint": "<td dir=\"ltr\" style={{ fontSize: 12 }}>{r.at.slice(0, 16).replace('T',",
-  "source": "maor/src/components/settings/SettingsView.tsx:556"
+  "source": "maor/src/components/settings/SettingsView.tsx:562"
  },
  {
   "id": "L9:maor:src/components/settings/SupEnforceSection.tsx:36:8:delay-ms",
@@ -2039,12 +2047,12 @@
   "source": "maor/src/components/settings/TeachersSection.tsx:41"
  },
  {
-  "id": "L9:maor:src/components/shop/CalendarTab.tsx:145:28:list-cap",
+  "id": "L9:maor:src/components/shop/CalendarTab.tsx:151:28:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "3",
   "hint": "{cell.events.slice(0, 3).map((ev) => {",
-  "source": "maor/src/components/shop/CalendarTab.tsx:145"
+  "source": "maor/src/components/shop/CalendarTab.tsx:151"
  },
  {
   "id": "L9:maor:src/components/shop/CriteriaPanel.tsx:44:48:threshold",
@@ -2103,12 +2111,12 @@
   "source": "maor/src/components/supporters/askMaor.ts:83"
  },
  {
-  "id": "L9:maor:src/components/supporters/AyinCard.tsx:579:18:list-cap",
+  "id": "L9:maor:src/components/supporters/AyinCard.tsx:607:18:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "30",
   "hint": "{a.log.slice(0, 30).map((l, i) => (",
-  "source": "maor/src/components/supporters/AyinCard.tsx:579"
+  "source": "maor/src/components/supporters/AyinCard.tsx:607"
  },
  {
   "id": "L9:maor:src/components/supporters/cockpit.ts:58:10:threshold",
@@ -2151,12 +2159,12 @@
   "source": "maor/src/components/supporters/constellation.ts:41"
  },
  {
-  "id": "L9:maor:src/components/supporters/DonationCalendar.tsx:233:66:list-cap",
+  "id": "L9:maor:src/components/supporters/DonationCalendar.tsx:270:66:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "2",
   "hint": "<div style={{ textAlign: 'center' }}>{marks[0].src.slice(0, 2)}</div>",
-  "source": "maor/src/components/supporters/DonationCalendar.tsx:233"
+  "source": "maor/src/components/supporters/DonationCalendar.tsx:270"
  },
  {
   "id": "L9:maor:src/components/supporters/DonationModal.tsx:50:60:list-cap",
@@ -2415,36 +2423,36 @@
   "source": "maor/src/components/supporters/lib.ts:195"
  },
  {
-  "id": "L9:maor:src/components/supporters/lib.ts:528:4:list-cap",
+  "id": "L9:maor:src/components/supporters/lib.ts:531:4:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "15",
   "hint": ".slice(0, 15)",
-  "source": "maor/src/components/supporters/lib.ts:528"
+  "source": "maor/src/components/supporters/lib.ts:531"
  },
  {
-  "id": "L9:maor:src/components/supporters/lib.ts:792:20:list-cap",
+  "id": "L9:maor:src/components/supporters/lib.ts:795:20:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "7",
   "hint": "const [y, m] = iso.slice(0, 7).split('-').map(Number);",
-  "source": "maor/src/components/supporters/lib.ts:792"
+  "source": "maor/src/components/supporters/lib.ts:795"
  },
  {
-  "id": "L9:maor:src/components/supporters/lib.ts:793:27:list-cap",
+  "id": "L9:maor:src/components/supporters/lib.ts:796:27:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "7",
   "hint": "const [ty, tm] = todayIso.slice(0, 7).split('-').map(Number);",
-  "source": "maor/src/components/supporters/lib.ts:793"
+  "source": "maor/src/components/supporters/lib.ts:796"
  },
  {
-  "id": "L9:maor:src/components/supporters/lib.ts:818:24:list-cap",
+  "id": "L9:maor:src/components/supporters/lib.ts:821:24:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "7",
   "hint": "const month = todayIso.slice(0, 7);",
-  "source": "maor/src/components/supporters/lib.ts:818"
+  "source": "maor/src/components/supporters/lib.ts:821"
  },
  {
   "id": "L9:maor:src/components/supporters/portfolio.ts:21:13:named-cap",
@@ -2520,20 +2528,28 @@
   "source": "maor/src/components/supporters/SupporterCard.tsx:124"
  },
  {
-  "id": "L9:maor:src/components/supporters/SupporterDetail.tsx:306:13:delay-ms",
+  "id": "L9:maor:src/components/supporters/SupporterDetail.tsx:314:13:delay-ms",
+  "level": "L9-const",
+  "kind": "delay-ms",
+  "value": "2500",
+  "hint": "window.setTimeout(() => setNextSaved(false), 2500);",
+  "source": "maor/src/components/supporters/SupporterDetail.tsx:314"
+ },
+ {
+  "id": "L9:maor:src/components/supporters/SupporterDetail.tsx:341:13:delay-ms",
   "level": "L9-const",
   "kind": "delay-ms",
   "value": "4000",
   "hint": "window.setTimeout(() => setArmDelete(false), 4000);",
-  "source": "maor/src/components/supporters/SupporterDetail.tsx:306"
+  "source": "maor/src/components/supporters/SupporterDetail.tsx:341"
  },
  {
-  "id": "L9:maor:src/components/supporters/SupporterDetail.tsx:669:24:list-cap",
+  "id": "L9:maor:src/components/supporters/SupporterDetail.tsx:648:24:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "60",
   "hint": "{donRows.slice(0, 60).map((r, i) => (",
-  "source": "maor/src/components/supporters/SupporterDetail.tsx:669"
+  "source": "maor/src/components/supporters/SupporterDetail.tsx:648"
  },
  {
   "id": "L9:maor:src/components/supporters/SupporterForm.tsx:151:26:list-cap",
@@ -2690,44 +2706,44 @@
   "source": "maor/src/components/supporters/SupportersView.tsx:60"
  },
  {
-  "id": "L9:maor:src/components/supporters/SupportersView.tsx:441:4:delay-ms",
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:454:4:delay-ms",
   "level": "L9-const",
   "kind": "delay-ms",
   "value": "250",
   "hint": "setTimeout(() => document.getElementById(sectionId)?.scrollIntoView({ ",
-  "source": "maor/src/components/supporters/SupportersView.tsx:441"
+  "source": "maor/src/components/supporters/SupportersView.tsx:454"
  },
  {
-  "id": "L9:maor:src/components/supporters/SupportersView.tsx:717:34:threshold",
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:730:34:threshold",
   "level": "L9-const",
   "kind": "threshold",
   "value": "400",
   "hint": "title={nedPending > 400 ? 'החיבור-החי מושהה (מעל 400 ממתינים) — בצעו מ",
-  "source": "maor/src/components/supporters/SupportersView.tsx:717"
+  "source": "maor/src/components/supporters/SupportersView.tsx:730"
  },
  {
-  "id": "L9:maor:src/components/supporters/SupportersView.tsx:721:109:threshold",
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:734:109:threshold",
   "level": "L9-const",
   "kind": "threshold",
   "value": "400",
   "hint": "<span style={{ marginInlineStart: 6, fontSize: 11, fontWeight: 700, ba",
-  "source": "maor/src/components/supporters/SupportersView.tsx:721"
+  "source": "maor/src/components/supporters/SupportersView.tsx:734"
  },
  {
-  "id": "L9:maor:src/components/supporters/SupportersView.tsx:722:32:threshold",
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:735:32:threshold",
   "level": "L9-const",
   "kind": "threshold",
   "value": "400",
   "hint": "{nedPending > 400 ? '⏸ ' : ''}{nedPending.toLocaleString('he-IL')}",
-  "source": "maor/src/components/supporters/SupportersView.tsx:722"
+  "source": "maor/src/components/supporters/SupportersView.tsx:735"
  },
  {
-  "id": "L9:maor:src/components/supporters/SupportersView.tsx:739:43:list-cap",
+  "id": "L9:maor:src/components/supporters/SupportersView.tsx:752:43:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "4",
   "hint": "const year = isoToday().slice(0, 4);",
-  "source": "maor/src/components/supporters/SupportersView.tsx:739"
+  "source": "maor/src/components/supporters/SupportersView.tsx:752"
  },
  {
   "id": "L9:maor:src/components/supporters/tierMigration.ts:18:90:threshold",
@@ -2906,12 +2922,12 @@
   "source": "maor/src/components/TourOverlay.tsx:51"
  },
  {
-  "id": "L9:maor:src/components/tzedaka/CalendarTab.tsx:114:26:list-cap",
+  "id": "L9:maor:src/components/tzedaka/CalendarTab.tsx:120:26:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "3",
   "hint": "{cell.events.slice(0, 3).map((ev) => {",
-  "source": "maor/src/components/tzedaka/CalendarTab.tsx:114"
+  "source": "maor/src/components/tzedaka/CalendarTab.tsx:120"
  },
  {
   "id": "L9:maor:src/components/tzedaka/CoordinatorCard.tsx:243:25:list-cap",
@@ -3804,76 +3820,76 @@
   "source": "maor/src/store/persist.ts:901"
  },
  {
-  "id": "L9:maor:src/store/useApp.ts:735:26:list-cap",
+  "id": "L9:maor:src/store/useApp.ts:737:26:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "120",
   "hint": "return code || String(e).slice(0, 120);",
-  "source": "maor/src/store/useApp.ts:735"
+  "source": "maor/src/store/useApp.ts:737"
  },
  {
-  "id": "L9:maor:src/store/useApp.ts:773:69:list-cap",
+  "id": "L9:maor:src/store/useApp.ts:775:69:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "3",
   "hint": "const last3 = log.filter((e) => e.reason !== 'דעיכה — חוסר פעילות').sl",
-  "source": "maor/src/store/useApp.ts:773"
+  "source": "maor/src/store/useApp.ts:775"
  },
  {
-  "id": "L9:maor:src/store/useApp.ts:1556:6:delay-ms",
+  "id": "L9:maor:src/store/useApp.ts:1558:6:delay-ms",
   "level": "L9-const",
   "kind": "delay-ms",
   "value": "4000",
   "hint": "setTimeout(() => get().dismissToast(id), 4000);",
-  "source": "maor/src/store/useApp.ts:1556"
+  "source": "maor/src/store/useApp.ts:1558"
  },
  {
-  "id": "L9:maor:src/store/useApp.ts:1701:90:list-cap",
+  "id": "L9:maor:src/store/useApp.ts:1703:90:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "200",
   "hint": "log: [{ date: isoToday(), delta: applied, reason: entryReason }, ...lo",
-  "source": "maor/src/store/useApp.ts:1701"
+  "source": "maor/src/store/useApp.ts:1703"
  },
  {
-  "id": "L9:maor:src/store/useApp.ts:1736:15:list-cap",
+  "id": "L9:maor:src/store/useApp.ts:1738:15:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "200",
   "hint": "].slice(0, 200),",
-  "source": "maor/src/store/useApp.ts:1736"
+  "source": "maor/src/store/useApp.ts:1738"
  },
  {
-  "id": "L9:maor:src/store/useApp.ts:1936:17:list-cap",
+  "id": "L9:maor:src/store/useApp.ts:1938:17:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "200",
   "hint": "].slice(0, 200),",
-  "source": "maor/src/store/useApp.ts:1936"
+  "source": "maor/src/store/useApp.ts:1938"
  },
  {
-  "id": "L9:maor:src/store/useApp.ts:2257:82:list-cap",
+  "id": "L9:maor:src/store/useApp.ts:2260:82:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "6",
   "hint": "logAudit('מיזוג ' + dropList.length + ' תורמים', dropList.map((d) => d",
-  "source": "maor/src/store/useApp.ts:2257"
+  "source": "maor/src/store/useApp.ts:2260"
  },
  {
-  "id": "L9:maor:src/store/useApp.ts:2458:56:list-cap",
+  "id": "L9:maor:src/store/useApp.ts:2463:56:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "6",
   "hint": "logAudit('מחיקת ' + idSet.size + ' תומכ/ות', names.slice(0, 6).join(',",
-  "source": "maor/src/store/useApp.ts:2458"
+  "source": "maor/src/store/useApp.ts:2463"
  },
  {
-  "id": "L9:maor:src/store/useApp.ts:3500:80:list-cap",
+  "id": "L9:maor:src/store/useApp.ts:3529:80:list-cap",
   "level": "L9-const",
   "kind": "list-cap",
   "value": "30",
   "hint": "return { seq: db.seq + 1, ui: { ...db.ui, quoteTemplates: [tpl, ...pre",
-  "source": "maor/src/store/useApp.ts:3500"
+  "source": "maor/src/store/useApp.ts:3529"
  },
  {
   "id": "L9:maor:src/types/domain.ts:1234:13:named-cap",

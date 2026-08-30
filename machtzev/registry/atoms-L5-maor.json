@@ -4,321 +4,321 @@
   "level": "L5-term",
   "name": "nav.families",
   "default": "שם מסך המשפחות",
-  "source": "maor/src/types/features.ts:427"
+  "source": "maor/src/types/features.ts:431"
  },
  {
   "id": "L5:maor:term:nav.courses",
   "level": "L5-term",
   "name": "nav.courses",
   "default": "שם מסך החוגים",
-  "source": "maor/src/types/features.ts:428"
+  "source": "maor/src/types/features.ts:432"
  },
  {
   "id": "L5:maor:term:nav.calendar",
   "level": "L5-term",
   "name": "nav.calendar",
   "default": "שם לוח השנה",
-  "source": "maor/src/types/features.ts:429"
+  "source": "maor/src/types/features.ts:433"
  },
  {
   "id": "L5:maor:term:nav.diary",
   "level": "L5-term",
   "name": "nav.diary",
   "default": "שם יומן החדרים",
-  "source": "maor/src/types/features.ts:430"
+  "source": "maor/src/types/features.ts:434"
  },
  {
   "id": "L5:maor:term:nav.supporters",
   "level": "L5-term",
   "name": "nav.supporters",
   "default": "שם מסך התורמים",
-  "source": "maor/src/types/features.ts:431"
+  "source": "maor/src/types/features.ts:435"
  },
  {
   "id": "L5:maor:term:nav.reports",
   "level": "L5-term",
   "name": "nav.reports",
   "default": "שם מסך הדוחות",
-  "source": "maor/src/types/features.ts:432"
+  "source": "maor/src/types/features.ts:436"
  },
  {
   "id": "L5:maor:term:nav.timer",
   "level": "L5-term",
   "name": "nav.timer",
   "default": "שם טיימר הכסף",
-  "source": "maor/src/types/features.ts:433"
+  "source": "maor/src/types/features.ts:437"
  },
  {
   "id": "L5:maor:term:nav.cashbox",
   "level": "L5-term",
   "name": "nav.cashbox",
   "default": "שם הקופה הרושמת",
-  "source": "maor/src/types/features.ts:434"
+  "source": "maor/src/types/features.ts:438"
  },
  {
   "id": "L5:maor:term:nav.bodymap",
   "level": "L5-term",
   "name": "nav.bodymap",
   "default": "שם מפת אזורי הטיפול",
-  "source": "maor/src/types/features.ts:435"
+  "source": "maor/src/types/features.ts:439"
  },
  {
   "id": "L5:maor:term:nav.tzedaka",
   "level": "L5-term",
   "name": "nav.tzedaka",
   "default": "שם עמודת קופות הצדקה",
-  "source": "maor/src/types/features.ts:436"
+  "source": "maor/src/types/features.ts:440"
  },
  {
   "id": "L5:maor:term:entity.tzCoordinator",
   "level": "L5-term",
   "name": "entity.tzCoordinator",
   "default": "רכז/ת קופות",
-  "source": "maor/src/types/features.ts:437"
+  "source": "maor/src/types/features.ts:441"
  },
  {
   "id": "L5:maor:term:entity.tzBox",
   "level": "L5-term",
   "name": "entity.tzBox",
   "default": "קופת צדקה",
-  "source": "maor/src/types/features.ts:438"
+  "source": "maor/src/types/features.ts:442"
  },
  {
   "id": "L5:maor:term:entity.tzCampaign",
   "level": "L5-term",
   "name": "entity.tzCampaign",
   "default": "מבצע התרמה",
-  "source": "maor/src/types/features.ts:439"
+  "source": "maor/src/types/features.ts:443"
  },
  {
   "id": "L5:maor:term:nav.shop",
   "level": "L5-term",
   "name": "nav.shop",
   "default": "שם עמודת החנות",
-  "source": "maor/src/types/features.ts:440"
+  "source": "maor/src/types/features.ts:444"
  },
  {
   "id": "L5:maor:term:nav.shop7",
   "level": "L5-term",
   "name": "nav.shop7",
   "default": "שם עמודת החלוקה",
-  "source": "maor/src/types/features.ts:441"
+  "source": "maor/src/types/features.ts:445"
  },
  {
   "id": "L5:maor:term:entity.volunteer",
   "level": "L5-term",
   "name": "entity.volunteer",
   "default": "מתנדב",
-  "source": "maor/src/types/features.ts:442"
+  "source": "maor/src/types/features.ts:446"
  },
  {
   "id": "L5:maor:term:entity.volunteers",
   "level": "L5-term",
   "name": "entity.volunteers",
   "default": "מתנדבים (רבים)",
-  "source": "maor/src/types/features.ts:443"
+  "source": "maor/src/types/features.ts:447"
  },
  {
   "id": "L5:maor:term:entity.shopProduct",
   "level": "L5-term",
   "name": "entity.shopProduct",
   "default": "מוצר שירות",
-  "source": "maor/src/types/features.ts:444"
+  "source": "maor/src/types/features.ts:448"
  },
  {
   "id": "L5:maor:term:entity.shopStore",
   "level": "L5-term",
   "name": "entity.shopStore",
   "default": "חנות שותפה",
-  "source": "maor/src/types/features.ts:445"
+  "source": "maor/src/types/features.ts:449"
  },
  {
   "id": "L5:maor:term:entity.shopCriterion",
   "level": "L5-term",
   "name": "entity.shopCriterion",
   "default": "קריטריון זכאות",
-  "source": "maor/src/types/features.ts:446"
+  "source": "maor/src/types/features.ts:450"
  },
  {
   "id": "L5:maor:term:entity.shopAssignment",
   "level": "L5-term",
   "name": "entity.shopAssignment",
   "default": "שיוך מוצר",
-  "source": "maor/src/types/features.ts:447"
+  "source": "maor/src/types/features.ts:451"
  },
  {
   "id": "L5:maor:term:entity.shopItem",
   "level": "L5-term",
   "name": "entity.shopItem",
   "default": "פריט קטלוג",
-  "source": "maor/src/types/features.ts:448"
+  "source": "maor/src/types/features.ts:452"
  },
  {
   "id": "L5:maor:term:entity.family",
   "level": "L5-term",
   "name": "entity.family",
   "default": "משפחה (יחיד)",
-  "source": "maor/src/types/features.ts:451"
+  "source": "maor/src/types/features.ts:455"
  },
  {
   "id": "L5:maor:term:entity.familyOf",
   "level": "L5-term",
   "name": "entity.familyOf",
   "default": "משפחה (סמיכות: \"משפחת דוד\")",
-  "source": "maor/src/types/features.ts:453"
+  "source": "maor/src/types/features.ts:457"
  },
  {
   "id": "L5:maor:term:entity.member",
   "level": "L5-term",
   "name": "entity.member",
   "default": "בן/בת משפחה",
-  "source": "maor/src/types/features.ts:454"
+  "source": "maor/src/types/features.ts:458"
  },
  {
   "id": "L5:maor:term:entity.members",
   "level": "L5-term",
   "name": "entity.members",
   "default": "בני משפחה (רבים)",
-  "source": "maor/src/types/features.ts:455"
+  "source": "maor/src/types/features.ts:459"
  },
  {
   "id": "L5:maor:term:entity.course",
   "level": "L5-term",
   "name": "entity.course",
   "default": "חוג (יחיד)",
-  "source": "maor/src/types/features.ts:456"
+  "source": "maor/src/types/features.ts:460"
  },
  {
   "id": "L5:maor:term:entity.teacher",
   "level": "L5-term",
   "name": "entity.teacher",
   "default": "מורה",
-  "source": "maor/src/types/features.ts:457"
+  "source": "maor/src/types/features.ts:461"
  },
  {
   "id": "L5:maor:term:entity.room",
   "level": "L5-term",
   "name": "entity.room",
   "default": "חדר",
-  "source": "maor/src/types/features.ts:458"
+  "source": "maor/src/types/features.ts:462"
  },
  {
   "id": "L5:maor:term:entity.rooms",
   "level": "L5-term",
   "name": "entity.rooms",
   "default": "חדרים (רבים)",
-  "source": "maor/src/types/features.ts:459"
+  "source": "maor/src/types/features.ts:463"
  },
  {
   "id": "L5:maor:term:entity.student",
   "level": "L5-term",
   "name": "entity.student",
   "default": "תלמיד/ה",
-  "source": "maor/src/types/features.ts:460"
+  "source": "maor/src/types/features.ts:464"
  },
  {
   "id": "L5:maor:term:entity.students",
   "level": "L5-term",
   "name": "entity.students",
   "default": "תלמידים (רבים)",
-  "source": "maor/src/types/features.ts:461"
+  "source": "maor/src/types/features.ts:465"
  },
  {
   "id": "L5:maor:term:entity.supporter",
   "level": "L5-term",
   "name": "entity.supporter",
   "default": "תורם",
-  "source": "maor/src/types/features.ts:462"
+  "source": "maor/src/types/features.ts:466"
  },
  {
   "id": "L5:maor:term:entity.donation",
   "level": "L5-term",
   "name": "entity.donation",
   "default": "תרומה",
-  "source": "maor/src/types/features.ts:463"
+  "source": "maor/src/types/features.ts:467"
  },
  {
   "id": "L5:maor:term:entity.donations",
   "level": "L5-term",
   "name": "entity.donations",
   "default": "תרומות (רבים)",
-  "source": "maor/src/types/features.ts:464"
+  "source": "maor/src/types/features.ts:468"
  },
  {
   "id": "L5:maor:term:entity.enrollment",
   "level": "L5-term",
   "name": "entity.enrollment",
   "default": "שיבוץ",
-  "source": "maor/src/types/features.ts:465"
+  "source": "maor/src/types/features.ts:469"
  },
  {
   "id": "L5:maor:term:entity.enrollments",
   "level": "L5-term",
   "name": "entity.enrollments",
   "default": "שיבוצים (רבים)",
-  "source": "maor/src/types/features.ts:466"
+  "source": "maor/src/types/features.ts:470"
  },
  {
   "id": "L5:maor:term:entity.cred",
   "level": "L5-term",
   "name": "entity.cred",
   "default": "מדד אמינות",
-  "source": "maor/src/types/features.ts:467"
+  "source": "maor/src/types/features.ts:471"
  },
  {
   "id": "L5:maor:term:nav.ayin",
   "level": "L5-term",
   "name": "nav.ayin",
   "default": "שם מעקב הטיפול",
-  "source": "maor/src/types/features.ts:470"
+  "source": "maor/src/types/features.ts:474"
  },
  {
   "id": "L5:maor:term:entity.ayinItem",
   "level": "L5-term",
   "name": "entity.ayinItem",
   "default": "פריט למעקב (יחיד)",
-  "source": "maor/src/types/features.ts:471"
+  "source": "maor/src/types/features.ts:475"
  },
  {
   "id": "L5:maor:term:entity.ayinUnit",
   "level": "L5-term",
   "name": "entity.ayinUnit",
   "default": "מונה הפריט",
-  "source": "maor/src/types/features.ts:472"
+  "source": "maor/src/types/features.ts:476"
  },
  {
   "id": "L5:maor:term:ayin.stage.new",
   "level": "L5-term",
   "name": "ayin.stage.new",
   "default": "שלב מעקב 1",
-  "source": "maor/src/types/features.ts:473"
+  "source": "maor/src/types/features.ts:477"
  },
  {
   "id": "L5:maor:term:ayin.stage.lead",
   "level": "L5-term",
   "name": "ayin.stage.lead",
   "default": "שלב מעקב 2",
-  "source": "maor/src/types/features.ts:474"
+  "source": "maor/src/types/features.ts:478"
  },
  {
   "id": "L5:maor:term:ayin.stage.eyes",
   "level": "L5-term",
   "name": "ayin.stage.eyes",
   "default": "שלב מעקב 3",
-  "source": "maor/src/types/features.ts:475"
+  "source": "maor/src/types/features.ts:479"
  },
  {
   "id": "L5:maor:term:ayin.stage.answer",
   "level": "L5-term",
   "name": "ayin.stage.answer",
   "default": "שלב מעקב 4",
-  "source": "maor/src/types/features.ts:476"
+  "source": "maor/src/types/features.ts:480"
  },
  {
   "id": "L5:maor:term:ayin.stage.done",
   "level": "L5-term",
   "name": "ayin.stage.done",
   "default": "שלב מעקב 5",
-  "source": "maor/src/types/features.ts:477"
+  "source": "maor/src/types/features.ts:481"
  }
 ]

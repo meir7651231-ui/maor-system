@@ -1,29 +1,29 @@
 {
  "repo": "maor",
  "root": "/home/user/maor-system",
- "head": "8bed0e693f512ac1650b6ba822a62b0d98cee9b2",
+ "head": "4f8e8de7f89c33ed067ee990a53da22634094f1c",
  "generatedBy": "machtzev/census v1",
  "totals": {
-  "files": 1163,
-  "lines": 684116,
+  "files": 1182,
+  "lines": 689821,
   "orphans": 0
  },
  "byDomain": {
   "config": {
    "files": 12,
-   "lines": 899
+   "lines": 900
   },
   "data": {
    "files": 64,
-   "lines": 515506
+   "lines": 519432
   },
   "knowledge": {
    "files": 160,
    "lines": 25154
   },
   "tests": {
-   "files": 395,
-   "lines": 34290
+   "files": 412,
+   "lines": 35260
   },
   "server": {
    "files": 64,
@@ -31,7 +31,7 @@
   },
   "source": {
    "files": 169,
-   "lines": 19962
+   "lines": 20046
   },
   "assets": {
    "files": 38,
@@ -39,23 +39,23 @@
   },
   "tokens": {
    "files": 6,
-   "lines": 4522
+   "lines": 4529
   },
   "screens": {
-   "files": 165,
-   "lines": 45422
+   "files": 166,
+   "lines": 45907
   },
   "engines": {
-   "files": 84,
-   "lines": 15918
+   "files": 85,
+   "lines": 16113
   },
   "actions": {
    "files": 4,
-   "lines": 5419
+   "lines": 5448
   },
   "flags": {
    "files": 2,
-   "lines": 890
+   "lines": 898
   }
  },
  "opaqueDirs": [
@@ -122,7 +122,7 @@
    "path": ".gitignore",
    "bucket": "config",
    "domain": "config",
-   "lines": 25
+   "lines": 26
   },
   {
    "path": ".nvmrc",
@@ -147,6 +147,12 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 107
+  },
+  {
+   "path": "e2e/ayin-shot.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 67
   },
   {
    "path": "e2e/care-center-smoke.mjs",
@@ -183,6 +189,12 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 172
+  },
+  {
+   "path": "e2e/donor-board-shot.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 67
   },
   {
    "path": "e2e/filters-shot.mjs",
@@ -251,10 +263,22 @@
    "lines": 68
   },
   {
+   "path": "e2e/proof-shots.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 105
+  },
+  {
    "path": "e2e/rules-redteam.mjs",
    "bucket": "test",
    "domain": "tests",
    "lines": 179
+  },
+  {
+   "path": "e2e/shop-tzedaka-shot.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 72
   },
   {
    "path": "e2e/signup.mjs",
@@ -267,6 +291,12 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 85
+  },
+  {
+   "path": "e2e/teamchat-entry-shot.mjs",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 45
   },
   {
    "path": "e2e/toggle-matrix.mjs",
@@ -2102,7 +2132,7 @@
    "path": "machtzev/registry/atoms-L10-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 4430
+   "lines": 4925
   },
   {
    "path": "machtzev/registry/atoms-L10-yoman.json",
@@ -2156,7 +2186,7 @@
    "path": "machtzev/registry/atoms-L2-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 14562
+   "lines": 14989
   },
   {
    "path": "machtzev/registry/atoms-L2-yoman.json",
@@ -2174,7 +2204,7 @@
    "path": "machtzev/registry/atoms-L4-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 2620
+   "lines": 2655
   },
   {
    "path": "machtzev/registry/atoms-L4-yoman.json",
@@ -2210,7 +2240,7 @@
    "path": "machtzev/registry/atoms-L5b-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 56842
+   "lines": 58172
   },
   {
    "path": "machtzev/registry/atoms-L5b-yoman.json",
@@ -2246,7 +2276,7 @@
    "path": "machtzev/registry/atoms-L6b-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 8900
+   "lines": 9183
   },
   {
    "path": "machtzev/registry/atoms-L6b-yoman.json",
@@ -2300,7 +2330,7 @@
    "path": "machtzev/registry/atoms-L9-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 3086
+   "lines": 3896
   },
   {
    "path": "machtzev/registry/atoms-L9-yoman.json",
@@ -2318,7 +2348,7 @@
    "path": "machtzev/registry/census-maor.json",
    "bucket": "data",
    "domain": "data",
-   "lines": 6500
+   "lines": 7046
   },
   {
    "path": "machtzev/registry/census-yoman.json",
@@ -2594,7 +2624,7 @@
    "path": "src/App.tsx",
    "bucket": "source",
    "domain": "source",
-   "lines": 1381
+   "lines": 1430
   },
   {
    "path": "src/assets/hero.png",
@@ -2792,7 +2822,7 @@
    "path": "src/components/builder/__tests__/optin-keys.ts",
    "bucket": "test",
    "domain": "tests",
-   "lines": 39
+   "lines": 41
   },
   {
    "path": "src/components/builder/__tests__/optin-registry.test.ts",
@@ -2822,7 +2852,7 @@
    "path": "src/components/builder/BuilderWizard.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 1910
+   "lines": 1922
   },
   {
    "path": "src/components/builder/handoff.ts",
@@ -2847,6 +2877,12 @@
    "bucket": "source",
    "domain": "source",
    "lines": 139
+  },
+  {
+   "path": "src/components/calendar/__tests__/cal-viewmode-main.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 70
   },
   {
    "path": "src/components/calendar/__tests__/event-modal-fold.test.ts",
@@ -2894,13 +2930,19 @@
    "path": "src/components/calendar/CalendarView.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 670
+   "lines": 698
   },
   {
    "path": "src/components/calendar/calLib.ts",
    "bucket": "source",
    "domain": "source",
-   "lines": 737
+   "lines": 772
+  },
+  {
+   "path": "src/components/calendar/CalViewTabs.tsx",
+   "bucket": "screens",
+   "domain": "screens",
+   "lines": 36
   },
   {
    "path": "src/components/calendar/DayModal.tsx",
@@ -3041,6 +3083,12 @@
    "lines": 27
   },
   {
+   "path": "src/components/courses/__tests__/course-open-card.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 21
+  },
+  {
    "path": "src/components/courses/__tests__/course-paid.test.ts",
    "bucket": "test",
    "domain": "tests",
@@ -3081,6 +3129,12 @@
    "bucket": "test",
    "domain": "tests",
    "lines": 53
+  },
+  {
+   "path": "src/components/courses/__tests__/enroll-search-phone-marital.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 23
   },
   {
    "path": "src/components/courses/__tests__/grade-fit.test.ts",
@@ -3206,7 +3260,7 @@
    "path": "src/components/courses/CourseDetail.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 1127
+   "lines": 1167
   },
   {
    "path": "src/components/courses/CourseFilesField.tsx",
@@ -3254,7 +3308,7 @@
    "path": "src/components/courses/EnrollModal.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 464
+   "lines": 484
   },
   {
    "path": "src/components/courses/lib.ts",
@@ -4088,7 +4142,7 @@
    "path": "src/components/settings/SettingsView.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 569
+   "lines": 575
   },
   {
    "path": "src/components/settings/SupEnforceSection.tsx",
@@ -4262,7 +4316,7 @@
    "path": "src/components/shop/CalendarTab.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 209
+   "lines": 216
   },
   {
    "path": "src/components/shop/CatalogTab.tsx",
@@ -4415,10 +4469,28 @@
    "lines": 20
   },
   {
+   "path": "src/components/supporters/__tests__/ayin-names-visible.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 18
+  },
+  {
    "path": "src/components/supporters/__tests__/ayin-note.test.ts",
    "bucket": "test",
    "domain": "tests",
-   "lines": 27
+   "lines": 32
+  },
+  {
+   "path": "src/components/supporters/__tests__/bulk-contact-wiring.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 49
+  },
+  {
+   "path": "src/components/supporters/__tests__/card-layout-order.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 31
   },
   {
    "path": "src/components/supporters/__tests__/card-wiring.test.ts",
@@ -4490,7 +4562,7 @@
    "path": "src/components/supporters/__tests__/doncal-entries.test.ts",
    "bucket": "test",
    "domain": "tests",
-   "lines": 79
+   "lines": 94
   },
   {
    "path": "src/components/supporters/__tests__/galaxy-wiring.test.ts",
@@ -4556,7 +4628,7 @@
    "path": "src/components/supporters/__tests__/next-note.test.ts",
    "bucket": "test",
    "domain": "tests",
-   "lines": 37
+   "lines": 54
   },
   {
    "path": "src/components/supporters/__tests__/nextgen-term-guard.test.ts",
@@ -4640,7 +4712,7 @@
    "path": "src/components/supporters/__tests__/segula.test.ts",
    "bucket": "test",
    "domain": "tests",
-   "lines": 40
+   "lines": 62
   },
   {
    "path": "src/components/supporters/__tests__/signals.test.ts",
@@ -4730,7 +4802,7 @@
    "path": "src/components/supporters/AyinCard.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 602
+   "lines": 630
   },
   {
    "path": "src/components/supporters/AyinNamesBoard.tsx",
@@ -4766,7 +4838,7 @@
    "path": "src/components/supporters/DonationCalendar.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 294
+   "lines": 331
   },
   {
    "path": "src/components/supporters/DonationModal.tsx",
@@ -4808,7 +4880,7 @@
    "path": "src/components/supporters/lib.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 859
+   "lines": 862
   },
   {
    "path": "src/components/supporters/NedarimSyncModal.tsx",
@@ -4898,7 +4970,7 @@
    "path": "src/components/supporters/SupporterDetail.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 874
+   "lines": 945
   },
   {
    "path": "src/components/supporters/SupporterForm.tsx",
@@ -4952,7 +5024,7 @@
    "path": "src/components/supporters/SupportersView.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 1479
+   "lines": 1664
   },
   {
    "path": "src/components/supporters/SupportersViewSwitcher.tsx",
@@ -5114,7 +5186,7 @@
    "path": "src/components/tzedaka/CalendarTab.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 177
+   "lines": 184
   },
   {
    "path": "src/components/tzedaka/CollectModal.tsx",
@@ -5150,7 +5222,7 @@
    "path": "src/components/tzedaka/lib.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 307
+   "lines": 308
   },
   {
    "path": "src/components/tzedaka/ShowcaseTab.tsx",
@@ -5192,7 +5264,7 @@
    "path": "src/components/WaBtn.tsx",
    "bucket": "screens",
    "domain": "screens",
-   "lines": 25
+   "lines": 33
   },
   {
    "path": "src/components/wall/ImpactWall.tsx",
@@ -5273,6 +5345,12 @@
    "lines": 87
   },
   {
+   "path": "src/lib/__tests__/ayin-paygate.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 31
+  },
+  {
    "path": "src/lib/__tests__/ayin-sheet.test.ts",
    "bucket": "test",
    "domain": "tests",
@@ -5285,10 +5363,22 @@
    "lines": 386
   },
   {
+   "path": "src/lib/__tests__/bulk-contact.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 88
+  },
+  {
    "path": "src/lib/__tests__/bundle-light.test.ts",
    "bucket": "test",
    "domain": "tests",
    "lines": 106
+  },
+  {
+   "path": "src/lib/__tests__/cal-viewmode.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 62
   },
   {
    "path": "src/lib/__tests__/callerId.test.ts",
@@ -5750,7 +5840,7 @@
    "path": "src/lib/__tests__/support-chat.test.ts",
    "bucket": "test",
    "domain": "tests",
-   "lines": 126
+   "lines": 181
   },
   {
    "path": "src/lib/__tests__/supporter-agg.test.ts",
@@ -5825,6 +5915,12 @@
    "lines": 72
   },
   {
+   "path": "src/lib/__tests__/wa-app-scheme.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 33
+  },
+  {
    "path": "src/lib/__tests__/wa.test.ts",
    "bucket": "test",
    "domain": "tests",
@@ -5876,7 +5972,13 @@
    "path": "src/lib/ayin.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 546
+   "lines": 551
+  },
+  {
+   "path": "src/lib/bulkContact.ts",
+   "bucket": "engines",
+   "domain": "engines",
+   "lines": 62
   },
   {
    "path": "src/lib/callerId.ts",
@@ -6074,7 +6176,7 @@
    "path": "src/lib/monthGrid.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 114
+   "lines": 191
   },
   {
    "path": "src/lib/navhist.ts",
@@ -6182,7 +6284,7 @@
    "path": "src/lib/supportChat.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 116
+   "lines": 140
   },
   {
    "path": "src/lib/supporterAgg.ts",
@@ -6254,7 +6356,7 @@
    "path": "src/lib/wa.ts",
    "bucket": "engines",
    "domain": "engines",
-   "lines": 69
+   "lines": 92
   },
   {
    "path": "src/lib/warehouse.ts",
@@ -6287,10 +6389,22 @@
    "lines": 51
   },
   {
+   "path": "src/store/__tests__/ayin-name-note-space.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 48
+  },
+  {
    "path": "src/store/__tests__/ayin-revert.test.ts",
    "bucket": "test",
    "domain": "tests",
    "lines": 56
+  },
+  {
+   "path": "src/store/__tests__/ayin-unassign-done.test.ts",
+   "bucket": "test",
+   "domain": "tests",
+   "lines": 24
   },
   {
    "path": "src/store/__tests__/bughunt-9x9.test.ts",
@@ -6566,13 +6680,13 @@
    "path": "src/store/useApp.ts",
    "bucket": "actions",
    "domain": "actions",
-   "lines": 4035
+   "lines": 4064
   },
   {
    "path": "src/styles/global.css",
    "bucket": "tokens",
    "domain": "tokens",
-   "lines": 3048
+   "lines": 3055
   },
   {
    "path": "src/styles/orbit.css",
@@ -6596,7 +6710,7 @@
    "path": "src/types/config.ts",
    "bucket": "flags",
    "domain": "flags",
-   "lines": 411
+   "lines": 415
   },
   {
    "path": "src/types/domain.ts",
@@ -6608,7 +6722,7 @@
    "path": "src/types/features.ts",
    "bucket": "flags",
    "domain": "flags",
-   "lines": 479
+   "lines": 483
   },
   {
    "path": "src/types/fflate.d.ts",

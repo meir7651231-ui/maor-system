@@ -3,7 +3,7 @@
   "id": "L11:maor:icon:⚡",
   "level": "L11-icon",
   "glyph": "⚡",
-  "count": 32,
+  "count": 34,
   "source": "maor/src/App.tsx"
  },
  {
@@ -17,7 +17,7 @@
   "id": "L11:maor:icon:🔄",
   "level": "L11-icon",
   "glyph": "🔄",
-  "count": 51,
+  "count": 53,
   "source": "maor/src/App.tsx"
  },
  {
@@ -66,7 +66,7 @@
   "id": "L11:maor:icon:📅",
   "level": "L11-icon",
   "glyph": "📅",
-  "count": 33,
+  "count": 61,
   "source": "maor/src/App.tsx"
  },
  {
@@ -122,28 +122,42 @@
   "id": "L11:maor:icon:🔴",
   "level": "L11-icon",
   "glyph": "🔴",
-  "count": 10,
+  "count": 14,
   "source": "maor/src/App.tsx"
  },
  {
   "id": "L11:maor:icon:🐛",
   "level": "L11-icon",
   "glyph": "🐛",
-  "count": 88,
+  "count": 90,
   "source": "maor/src/App.tsx"
  },
  {
   "id": "L11:maor:icon:⚠",
   "level": "L11-icon",
   "glyph": "⚠",
-  "count": 120,
+  "count": 132,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🔍",
+  "level": "L11-icon",
+  "glyph": "🔍",
+  "count": 18,
+  "source": "maor/src/App.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📞",
+  "level": "L11-icon",
+  "glyph": "📞",
+  "count": 88,
   "source": "maor/src/App.tsx"
  },
  {
   "id": "L11:maor:icon:🌐",
   "level": "L11-icon",
   "glyph": "🌐",
-  "count": 6,
+  "count": 7,
   "source": "maor/src/App.tsx"
  },
  {
@@ -171,7 +185,7 @@
   "id": "L11:maor:icon:💬",
   "level": "L11-icon",
   "glyph": "💬",
-  "count": 37,
+  "count": 46,
   "source": "maor/src/App.tsx"
  },
  {
@@ -185,14 +199,14 @@
   "id": "L11:maor:icon:🔐",
   "level": "L11-icon",
   "glyph": "🔐",
-  "count": 31,
+  "count": 32,
   "source": "maor/src/App.tsx"
  },
  {
   "id": "L11:maor:icon:⛔",
   "level": "L11-icon",
   "glyph": "⛔",
-  "count": 9,
+  "count": 12,
   "source": "maor/src/App.tsx"
  },
  {
@@ -234,21 +248,7 @@
   "id": "L11:maor:icon:⏳",
   "level": "L11-icon",
   "glyph": "⏳",
-  "count": 32,
-  "source": "maor/src/App.tsx"
- },
- {
-  "id": "L11:maor:icon:📞",
-  "level": "L11-icon",
-  "glyph": "📞",
-  "count": 83,
-  "source": "maor/src/App.tsx"
- },
- {
-  "id": "L11:maor:icon:🔍",
-  "level": "L11-icon",
-  "glyph": "🔍",
-  "count": 14,
+  "count": 44,
   "source": "maor/src/App.tsx"
  },
  {
@@ -266,6 +266,13 @@
   "source": "maor/src/App.tsx"
  },
  {
+  "id": "L11:maor:icon:📛",
+  "level": "L11-icon",
+  "glyph": "📛",
+  "count": 3,
+  "source": "maor/src/App.tsx"
+ },
+ {
   "id": "L11:maor:icon:🔑",
   "level": "L11-icon",
   "glyph": "🔑",
@@ -276,7 +283,7 @@
   "id": "L11:maor:icon:🔒",
   "level": "L11-icon",
   "glyph": "🔒",
-  "count": 25,
+  "count": 26,
   "source": "maor/src/App.tsx"
  },
  {
@@ -325,14 +332,14 @@
   "id": "L11:maor:icon:➕",
   "level": "L11-icon",
   "glyph": "➕",
-  "count": 96,
+  "count": 103,
   "source": "maor/src/components/builder/BuilderWizard.tsx"
  },
  {
   "id": "L11:maor:icon:✅",
   "level": "L11-icon",
   "glyph": "✅",
-  "count": 18,
+  "count": 20,
   "source": "maor/src/components/builder/BuilderWizard.tsx"
  },
  {
@@ -409,7 +416,7 @@
   "id": "L11:maor:icon:💳",
   "level": "L11-icon",
   "glyph": "💳",
-  "count": 42,
+  "count": 57,
   "source": "maor/src/components/builder/BuilderWizard.tsx"
  },
  {
@@ -423,21 +430,21 @@
   "id": "L11:maor:icon:📱",
   "level": "L11-icon",
   "glyph": "📱",
-  "count": 9,
+  "count": 14,
   "source": "maor/src/components/builder/BuilderWizard.tsx"
  },
  {
   "id": "L11:maor:icon:📝",
   "level": "L11-icon",
   "glyph": "📝",
-  "count": 19,
+  "count": 23,
   "source": "maor/src/components/builder/BuilderWizard.tsx"
  },
  {
   "id": "L11:maor:icon:📧",
   "level": "L11-icon",
   "glyph": "📧",
-  "count": 11,
+  "count": 21,
   "source": "maor/src/components/builder/BuilderWizard.tsx"
  },
  {
@@ -451,7 +458,7 @@
   "id": "L11:maor:icon:🕯",
   "level": "L11-icon",
   "glyph": "🕯",
-  "count": 20,
+  "count": 28,
   "source": "maor/src/components/builder/BuilderWizard.tsx"
  },
  {
@@ -486,7 +493,7 @@
   "id": "L11:maor:icon:🛡",
   "level": "L11-icon",
   "glyph": "🛡",
-  "count": 5,
+  "count": 11,
   "source": "maor/src/components/builder/BuilderWizard.tsx"
  },
  {
@@ -500,21 +507,21 @@
   "id": "L11:maor:icon:🎯",
   "level": "L11-icon",
   "glyph": "🎯",
-  "count": 35,
+  "count": 39,
   "source": "maor/src/components/builder/BuilderWizard.tsx"
  },
  {
   "id": "L11:maor:icon:💰",
   "level": "L11-icon",
   "glyph": "💰",
-  "count": 46,
+  "count": 50,
   "source": "maor/src/components/builder/BuilderWizard.tsx"
  },
  {
   "id": "L11:maor:icon:🔗",
   "level": "L11-icon",
   "glyph": "🔗",
-  "count": 38,
+  "count": 40,
   "source": "maor/src/components/builder/BuilderWizard.tsx"
  },
  {
@@ -584,7 +591,7 @@
   "id": "L11:maor:icon:💾",
   "level": "L11-icon",
   "glyph": "💾",
-  "count": 4,
+  "count": 5,
   "source": "maor/src/components/builder/handoff.ts"
  },
  {
@@ -654,8 +661,15 @@
   "id": "L11:maor:icon:🔁",
   "level": "L11-icon",
   "glyph": "🔁",
-  "count": 54,
+  "count": 59,
   "source": "maor/src/components/builder/wizardLib.ts"
+ },
+ {
+  "id": "L11:maor:icon:🗓",
+  "level": "L11-icon",
+  "glyph": "🗓",
+  "count": 35,
+  "source": "maor/src/components/calendar/CalendarView.tsx"
  },
  {
   "id": "L11:maor:icon:🎂",
@@ -710,7 +724,7 @@
   "id": "L11:maor:icon:☑",
   "level": "L11-icon",
   "glyph": "☑",
-  "count": 2,
+  "count": 6,
   "source": "maor/src/components/cloud/SignupWizard.tsx"
  },
  {
@@ -745,7 +759,7 @@
   "id": "L11:maor:icon:🎉",
   "level": "L11-icon",
   "glyph": "🎉",
-  "count": 19,
+  "count": 20,
   "source": "maor/src/components/courses/CollectionCenter.tsx"
  },
  {
@@ -780,6 +794,20 @@
   "id": "L11:maor:icon:🎓",
   "level": "L11-icon",
   "glyph": "🎓",
+  "count": 10,
+  "source": "maor/src/components/courses/CourseDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🚀",
+  "level": "L11-icon",
+  "glyph": "🚀",
+  "count": 4,
+  "source": "maor/src/components/courses/CourseDetail.tsx"
+ },
+ {
+  "id": "L11:maor:icon:👤",
+  "level": "L11-icon",
+  "glyph": "👤",
   "count": 9,
   "source": "maor/src/components/courses/CourseDetail.tsx"
  },
@@ -822,7 +850,7 @@
   "id": "L11:maor:icon:💡",
   "level": "L11-icon",
   "glyph": "💡",
-  "count": 10,
+  "count": 12,
   "source": "maor/src/components/courses/CourseForm.tsx"
  },
  {
@@ -847,10 +875,10 @@
   "source": "maor/src/components/courses/CoursesDashboard.tsx"
  },
  {
-  "id": "L11:maor:icon:🗓",
+  "id": "L11:maor:icon:📚",
   "level": "L11-icon",
-  "glyph": "🗓",
-  "count": 21,
+  "glyph": "📚",
+  "count": 7,
   "source": "maor/src/components/courses/CoursesView.tsx"
  },
  {
@@ -875,18 +903,32 @@
   "source": "maor/src/components/courses/CoursesView.tsx"
  },
  {
+  "id": "L11:maor:icon:🏦",
+  "level": "L11-icon",
+  "glyph": "🏦",
+  "count": 3,
+  "source": "maor/src/components/courses/EnrollmentPlannedSection.tsx"
+ },
+ {
+  "id": "L11:maor:icon:💵",
+  "level": "L11-icon",
+  "glyph": "💵",
+  "count": 14,
+  "source": "maor/src/components/courses/EnrollmentPlannedSection.tsx"
+ },
+ {
+  "id": "L11:maor:icon:❌",
+  "level": "L11-icon",
+  "glyph": "❌",
+  "count": 6,
+  "source": "maor/src/components/courses/EnrollmentPlannedSection.tsx"
+ },
+ {
   "id": "L11:maor:icon:⏸",
   "level": "L11-icon",
   "glyph": "⏸",
   "count": 13,
   "source": "maor/src/components/courses/lib.ts"
- },
- {
-  "id": "L11:maor:icon:👤",
-  "level": "L11-icon",
-  "glyph": "👤",
-  "count": 7,
-  "source": "maor/src/components/courses/ManageModal.tsx"
  },
  {
   "id": "L11:maor:icon:👪",
@@ -908,13 +950,6 @@
   "glyph": "👋",
   "count": 4,
   "source": "maor/src/components/courses/parent.ts"
- },
- {
-  "id": "L11:maor:icon:🚀",
-  "level": "L11-icon",
-  "glyph": "🚀",
-  "count": 2,
-  "source": "maor/src/components/courses/ReenrollView.tsx"
  },
  {
   "id": "L11:maor:icon:🕘",
@@ -1004,7 +1039,7 @@
   "id": "L11:maor:icon:📥",
   "level": "L11-icon",
   "glyph": "📥",
-  "count": 8,
+  "count": 9,
   "source": "maor/src/components/families/FamilyForm.tsx"
  },
  {
@@ -1141,13 +1176,6 @@
   "source": "maor/src/components/home/widgets.tsx"
  },
  {
-  "id": "L11:maor:icon:💵",
-  "level": "L11-icon",
-  "glyph": "💵",
-  "count": 7,
-  "source": "maor/src/components/home/widgets.tsx"
- },
- {
   "id": "L11:maor:icon:🖥",
   "level": "L11-icon",
   "glyph": "🖥",
@@ -1172,7 +1200,7 @@
   "id": "L11:maor:icon:🕵",
   "level": "L11-icon",
   "glyph": "🕵",
-  "count": 5,
+  "count": 6,
   "source": "maor/src/components/platform/ManagerPanel.tsx"
  },
  {
@@ -1225,25 +1253,11 @@
   "source": "maor/src/components/public/PublicSite.tsx"
  },
  {
-  "id": "L11:maor:icon:🏦",
-  "level": "L11-icon",
-  "glyph": "🏦",
-  "count": 1,
-  "source": "maor/src/components/public/PublicSite.tsx"
- },
- {
   "id": "L11:maor:icon:✉",
   "level": "L11-icon",
   "glyph": "✉",
   "count": 1,
   "source": "maor/src/components/public/PublicSite.tsx"
- },
- {
-  "id": "L11:maor:icon:📚",
-  "level": "L11-icon",
-  "glyph": "📚",
-  "count": 3,
-  "source": "maor/src/components/reports/sections1.tsx"
  },
  {
   "id": "L11:maor:icon:📌",
@@ -1272,6 +1286,13 @@
   "glyph": "🗝",
   "count": 3,
   "source": "maor/src/components/settings/OrgSecretsSection.tsx"
+ },
+ {
+  "id": "L11:maor:icon:📤",
+  "level": "L11-icon",
+  "glyph": "📤",
+  "count": 4,
+  "source": "maor/src/components/settings/OutboxSection.tsx"
  },
  {
   "id": "L11:maor:icon:🤲",
@@ -1375,7 +1396,7 @@
   "id": "L11:maor:icon:🔧",
   "level": "L11-icon",
   "glyph": "🔧",
-  "count": 6,
+  "count": 8,
   "source": "maor/src/components/supporters/IncomingPayments.tsx"
  },
  {
@@ -1391,6 +1412,13 @@
   "glyph": "📉",
   "count": 2,
   "source": "maor/src/components/supporters/SupporterCard.tsx"
+ },
+ {
+  "id": "L11:maor:icon:🌍",
+  "level": "L11-icon",
+  "glyph": "🌍",
+  "count": 3,
+  "source": "maor/src/components/supporters/SupporterDetail.tsx"
  },
  {
   "id": "L11:maor:icon:🏭",
@@ -1456,6 +1484,13 @@
   "source": "maor/src/components/wheel/CourseWheel.tsx"
  },
  {
+  "id": "L11:maor:icon:🪦",
+  "level": "L11-icon",
+  "glyph": "🪦",
+  "count": 6,
+  "source": "maor/src/lib/cloud-diff.ts"
+ },
+ {
   "id": "L11:maor:icon:🧲",
   "level": "L11-icon",
   "glyph": "🧲",
@@ -1517,5 +1552,12 @@
   "glyph": "💻",
   "count": 2,
   "source": "maor/src/lib/verticalPacks.ts"
+ },
+ {
+  "id": "L11:maor:icon:🔵",
+  "level": "L11-icon",
+  "glyph": "🔵",
+  "count": 1,
+  "source": "maor/src/store/cloudSync.ts"
  }
 ]
