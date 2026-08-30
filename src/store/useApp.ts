@@ -3317,6 +3317,17 @@ export const useApp = create<AppState>()((set, get) => {
         patch = { ...patch, boardEventIds: { ...c.a.boardEventIds, [key]: evId } };
       }
       setAyin(id, patch);
+      // 🎯 ביטול-ייעוד בהשלמה (בקשת-בעלים 25.8, opt-in): תיק שהגיע ל'הושלם' —
+      // הייעוד (forWho) מתנקה ⇒ העובד/ת לא רואה אותו יותר (לא-משוייך = מנהל בלבד),
+      // עד שהמנהל מייעד מחדש. חסר-הדגל ⇒ ביט-זהה. רק כשיש ייעוד להסיר.
+      if (
+        patch.stage === 'done' &&
+        get().config.features?.['supporters.ayin.unassignondone'] === true &&
+        (c.sp.forWho || '').trim()
+      ) {
+        setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === id ? { ...s, forWho: '' } : s)) }));
+        logAudit('ביטול-ייעוד (הושלם)', c.sp.name);
+      }
       get().toast(plan.toast);
     },
     ayinRevert(id, stage) {
