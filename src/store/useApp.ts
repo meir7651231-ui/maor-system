@@ -3405,8 +3405,11 @@ export const useApp = create<AppState>()((set, get) => {
     ayinSetNameNote(id, nameId, note) {
       const c = curAyin(id);
       if (!c) return;
-      const t = note.trim();
-      const names = c.a.names.map((n) => (n.id === nameId ? { ...n, note: t || undefined } : n));
+      // 🐛 באג-שטח (בקשת-בעלים 30.8): trim חי בכל תו בלע את הרווח (השדה controlled —
+      // רווח-סופי נחתך מיד ⇒ "אי אפשר להקליד רווח בהערות"). שומרים raw; רק
+      // ריק/רווחים-בלבד ⇒ undefined (בלי לחסום רווחים בין-מילים ובסוף).
+      const val = note.trim() ? note : undefined;
+      const names = c.a.names.map((n) => (n.id === nameId ? { ...n, note: val } : n));
       setAyin(id, { names });
     },
     ayinRemoveName(id, nameId) {
