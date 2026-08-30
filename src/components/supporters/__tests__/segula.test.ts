@@ -9,6 +9,8 @@
  */
 import { describe, expect, it } from 'vitest';
 import { SEGULA_OFFSETS, segulaReminders, segulaTitle } from '../lib';
+import detailSrc from '../SupporterDetail.tsx?raw';
+import storeSrc from '../../../store/useApp.ts?raw';
 
 describe('🕯 ratchet — סגולת 40 יום', () => {
   it('1. חמש נקודות מדורגות, 40 = הסיום', () => {
@@ -35,5 +37,25 @@ describe('🕯 ratchet — סגולת 40 יום', () => {
     const target = Math.max(...SEGULA_OFFSETS);
     expect(segulaTitle('אורלי', r[0], target)).toBe('🕯 סגולה — אורלי · יום 1/40');
     expect(segulaTitle('אורלי', r[4], target)).toBe('🎯 סיום סגולה — אורלי · יום 40/40');
+  });
+
+  // בקשת-בעלים 30.8: "סגולת ארבעים יום תוריד ותכניס את זה כפתור בשם 40 ימים
+  // שיחשב לבד וירשום תזכרות בקשר הבא, מוטבע קשר לזיווג".
+  describe('🕯 wiring — כפתור "40 ימים" בקשר-הבא (מחושב לבד, לזיווג)', () => {
+    it('4. הקלף העצמאי הוסר — אין יותר בורר-תאריך-התחלה/מצב-מקומי', () => {
+      expect(detailSrc).not.toContain('segulaStart');
+      expect(detailSrc).not.toContain('בחרו תאריך-התחלה');
+      expect(detailSrc).not.toContain('זריעת תזכורות');
+    });
+
+    it('5. כפתור "🕯 40 ימים" בכרטיס קשר-הבא — מחושב מהיום (isoToday) עם ייעוד זיווג', () => {
+      expect(detailSrc).toContain('🕯 40 ימים');
+      expect(detailSrc).toContain("seedSegulaReminders(sp.id, isoToday(), 'זיווג')");
+    });
+
+    it('6. store: seedSegulaReminders מקבל purpose ומטביע אותו בכותרת/הערה', () => {
+      expect(storeSrc).toMatch(/seedSegulaReminders\(supId, startIso, purpose\)/);
+      expect(storeSrc).toContain('segulaTitle(sp.name, r, target) + tag');
+    });
   });
 });
