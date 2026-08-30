@@ -30,6 +30,7 @@ export const OPT_IN_KEYS = [
   // ▶ "פעולה אחת עכשיו" (VISION-LIGHT ‏#16, 23.8) — מסך-משימה-אחת opt-in
   'supporters.oneflow',
   'supporters.ayin.paygate',
+  'supporters.ayin.unassignondone',
   // 🕎 מנוע-העיתוי העברי (VISION-LIGHT ‏#37, 23.8) — "העונה שלהם" בקוקפיט
   'supporters.hebtiming',
   // 🌅 תדרוך-הבוקר (VISION-LIGHT ‏#29, 23.8) — "הבוקר שלך" במסך-הבית

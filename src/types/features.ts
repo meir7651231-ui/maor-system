@@ -162,6 +162,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'supporters.universe3d', label: 'היקום התלת-ממדי 🪐', desc: 'גלקסיית-התורמים על קליפת-כדור תלת-ממדית — גרירה-לסיבוב, פרספקטיבה בלי three.js; קליק על כוכב פותח כרטיס (opt-in)', module: 'supporters', optIn: true },
   { key: 'supporters.ayin.dailyreport', label: 'דוח יומי — מעקב טיפול', desc: 'כפתור ייצוא הדוח היומי של מעקב הטיפול (תת-דגל של מעקב טיפול)', module: 'supporters' },
   { key: 'supporters.ayin.paygate', label: 'תשלום לפני "הושלם"', desc: 'שער-תשלום במעקב הטיפול (opt-in): אי-אפשר להשלים תיק בלי שסומן "שולם"; רישום תרומה בכרטיס מסמן שולם אוטומטית. מגודר — כבוי=ביט-זהה להיום', module: 'supporters', optIn: true },
+  { key: 'supporters.ayin.unassignondone', label: 'ביטול-ייעוד בהשלמה', desc: 'כשתיק-טיפול מגיע ל"הושלם" — הייעוד (forWho) של התומך/ת מתבטל אוטומטית ⇒ העובד/ת לא רואה אותו יותר, רק המנהל, עד שהמנהל מייעד מחדש (opt-in). כבוי=ביט-זהה', module: 'supporters', optIn: true },
   { key: 'supporters.hist', label: 'תרומות מהקובץ ההיסטורי', desc: 'מיזוג התרומות שהגיעו מהקובץ ההיסטורי (גיבוי לגאסי) לרשימת "כל התרומות" בכרטיס', module: 'supporters' },
   { key: 'supporters.ayin.sheet', label: 'גיליון מעקב להורדה/ייבוא', desc: 'ייצוא גיליון מעקב הטיפול ל-CSV, מילוי מחוץ למערכת וייבוא חזרה (תת-דגל של מעקב טיפול)', module: 'supporters' },
   { key: 'supporters.ayin.boq', label: 'כתב-כמויות / הצעת-מחיר', desc: 'שורות הפריטים במעקב מקבלות מחיר-יחידה → סכום-שורה, סה"כ-הצעה ו-P&L מול הנגבה (ורטיקל מסחרי בלבד — מוסתר בעמותה)', module: 'supporters' },
