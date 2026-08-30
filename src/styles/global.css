@@ -2869,7 +2869,9 @@ button.hm-tier:focus-visible {
    לכן החזרה עברה ל-inset-inline-end. */
 .sticky-back {
   position: fixed;
-  bottom: 18px;
+  /* מעל ה-FAB-הנגישות (inset-inline-end:26, bottom:26, גובה 56 ⇒ מגיע ל-82px)
+     כדי שלא יוסתרו זה-את-זה באותה פינה (בקשת-בעלים 30.8). */
+  bottom: 92px;
   inset-inline-end: 18px;
   z-index: 60;
   margin: 0;
@@ -2879,10 +2881,11 @@ button.hm-tier:focus-visible {
 .sticky-back > button {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
 }
-/* במובייל — מעל סרגל-הניווט-התחתון הקבוע (z-index:90) ולא מוסתר מאחוריו. */
+/* במובייל — מעל סרגל-הניווט-התחתון הקבוע (z-index:90) וגם מעל ה-FAB-הנגישות
+   (אותה פינה inset-inline-end) ולא מוסתר מאחוריהם. */
 @media (max-width: 760px) {
   .sticky-back {
-    bottom: calc(70px + env(safe-area-inset-bottom));
+    bottom: calc(96px + env(safe-area-inset-bottom));
     z-index: 95;
   }
 }
