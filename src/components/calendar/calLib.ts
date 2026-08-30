@@ -9,7 +9,7 @@ import {
   type Db,
   type OrgEvent,
 } from '../../types/domain';
-import { gem, gemYear, hebParts, hebAnnualEq, holidayOf, type HebParts } from '../../lib/hebrew';
+import { gem, gemYear, hebParts, hebAnnualEq, hebDateFull, holidayOf, type HebParts } from '../../lib/hebrew';
 import { isoLocal } from '../../lib/date-util';
 import { featureOn, termOf } from '../../lib/config';
 import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
@@ -503,6 +503,41 @@ export function buildHebrewGrid(db: Db, anchorIso: string, config: OrgConfig = D
     hebLabel: fmtHebMonth.format(first) + ' ' + gemYear(fmtHebYear.format(first)),
     prevIso: isoOf(prevD),
     nextIso: isoOf(nextD),
+  };
+}
+
+/** רשת שבוע (ראשון–שבת) סביב תאריך עוגן — 7 תאים. בקשת-בעלים 30.8. */
+export function buildWeekGrid(db: Db, anchorIso: string, config: OrgConfig = DEFAULT_CONFIG, hebMode = false): CalGrid {
+  const anchor = dateOf(anchorIso);
+  const sunday = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - anchor.getDay());
+  const todayIso = isoOf(new Date());
+  const cells: CalCell[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + i);
+    cells.push(makeCell(db, d, true, todayIso, hebMode, config));
+  }
+  const sat = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 6);
+  const satIso = isoOf(sat);
+  const sunIso = isoOf(sunday);
+  return {
+    cells,
+    monthLabel: 'שבוע: ' + fmtD(sunIso) + ' – ' + fmtD(satIso),
+    hebLabel: hebDateFull(sunIso) + ' – ' + hebDateFull(satIso),
+    prevIso: isoOf(new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() - 7)),
+    nextIso: isoOf(new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 7)),
+  };
+}
+
+/** רשת יום — תא יחיד (העוגן). בקשת-בעלים 30.8. */
+export function buildDayGrid(db: Db, anchorIso: string, config: OrgConfig = DEFAULT_CONFIG, hebMode = false): CalGrid {
+  const anchor = dateOf(anchorIso);
+  const todayIso = isoOf(new Date());
+  return {
+    cells: [makeCell(db, anchor, true, todayIso, hebMode, config)],
+    monthLabel: fmtD(anchorIso),
+    hebLabel: hebDateFull(anchorIso),
+    prevIso: isoOf(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - 1)),
+    nextIso: isoOf(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + 1)),
   };
 }
 
