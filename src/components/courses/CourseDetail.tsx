@@ -68,6 +68,7 @@ type ModalState =
 export function CourseDetail(props: { course: Course }) {
   const db = useApp((s) => s.db);
   const selectCourse = useApp((s) => s.selectCourse);
+  const selectFamily = useApp((s) => s.selectFamily);
   const deleteCourse = useApp((s) => s.deleteCourse);
   const upsertCourse = useApp((s) => s.upsertCourse);
   const upsertEnrollment = useApp((s) => s.upsertEnrollment);
@@ -193,6 +194,11 @@ export function CourseDetail(props: { course: Course }) {
   // נתן O(מספר-שיבוצים × סה"כ-חברים). Map ממזהה→חבר הופך את זה ל-O(1) לשורה.
   const members = useMemo(() => allMembers(db), [db]);
   const memberById = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
+  // בקשת-בעלים 25.8: כניסה-לכרטיס-התלמיד מתוך החוג — קפיצה לכרטיס-המשפחה שלו/ה.
+  const openCard = (memberId: string) => {
+    const fid = memberById.get(memberId)?.famId;
+    if (fid) selectFamily(fid);
+  };
   const sessions = sessionsOf(c);
   // קבוצות כבויות בקונפיגורציה → התנהגות קבוצה-יחידה (אין בוררי קבוצה ואין עורך)
   const groups = groupsOn ? groupOptionsOf(c) : [];
@@ -657,7 +663,18 @@ export function CourseDetail(props: { course: Course }) {
                             </td>
                           )}
                           <td>
-                            <div style={{ fontWeight: 700 }}>{m?.first ?? '—'}</div>
+                            {m?.famId ? (
+                              <button
+                                type="button"
+                                onClick={() => openCard(e.memberId)}
+                                title={'פתיחת כרטיס ' + (m?.first ?? '')}
+                                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', fontWeight: 700, color: 'var(--accent-deep, var(--accent))', textDecoration: 'underline', textUnderlineOffset: 2 }}
+                              >
+                                👤 {m.first}
+                              </button>
+                            ) : (
+                              <div style={{ fontWeight: 700 }}>{m?.first ?? '—'}</div>
+                            )}
                             {age != null && (
                               <div style={{ fontSize: 11, color: 'var(--ink-faint)' }}>
                                 {(m?.gender === 'f' ? 'בת ' : 'בן ') + age}
@@ -792,7 +809,18 @@ export function CourseDetail(props: { course: Course }) {
                 <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
                   <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-faint)', width: 22 }}>{i + 1}.</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700 }}>{memberName(e.memberId)}</div>
+                    {memberById.get(e.memberId)?.famId ? (
+                      <button
+                        type="button"
+                        onClick={() => openCard(e.memberId)}
+                        title="פתיחת כרטיס"
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', fontWeight: 700, color: 'var(--accent-deep, var(--accent))', textDecoration: 'underline', textUnderlineOffset: 2 }}
+                      >
+                        👤 {memberName(e.memberId)}
+                      </button>
+                    ) : (
+                      <div style={{ fontWeight: 700 }}>{memberName(e.memberId)}</div>
+                    )}
                     <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>הצטרף/ה {fmtDate(e.enrolledAt)}</div>
                   </div>
                   <Btn
