@@ -327,8 +327,9 @@ export default function App() {
   // supportInboxOpen=תיבת-השיחות של מייל-העל. שניהם מ-❓, מגודרי ענן+התחברות.
   const [supportOpen, setSupportOpen] = useState(false);
   const [supportInboxOpen, setSupportInboxOpen] = useState(false);
-  // 💬 צ׳אט-צוות תוך-ארגוני (17.8) — מגודר shell.teamchat + ענן+התחברות
-  const [teamChatOpen, setTeamChatOpen] = useState(false);
+  // 💬 צ׳אט-צוות תוך-ארגוני (17.8) — מגודר shell.teamchat + ענן+התחברות.
+  // ‏#teamchat = כניסה מפורשת (מצ׳יפ-ההגדרות/פלטה) כמו #manage/#platform.
+  const [teamChatOpen, setTeamChatOpen] = useState(() => window.location.hash === '#teamchat');
   // 🔴 חיווי "הודעת-צוות שלא-נקראה" על-המסך (בקשת-בעלים 30.8: "שיופיע על המסך
   // כהודעה שלא נקראה וגם איפה נכנסים אליו"). מנוי-חי ברמת-האפליקציה — רק כשהצ׳אט
   // זמין (shell.teamchat + ענן + התחברות). מונה טהור מול סימן-נקרא מקומי פר-ארגון
@@ -453,6 +454,7 @@ export default function App() {
       setTourOpen(window.location.hash === '#tour');
       setPlatformOpen(window.location.hash === '#platform');
       setManagerOpen(window.location.hash === '#manage');
+      setTeamChatOpen(window.location.hash === '#teamchat');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -1178,7 +1180,7 @@ export default function App() {
       {featureOn(config, 'shell.netcheck') && netCheckOpen && <NetCheckModal onClose={() => setNetCheckOpen(false)} />}
       {featureOn(config, 'shell.support') && cloud.enabled && cloud.user && supportOpen && <SupportChatModal onClose={() => setSupportOpen(false)} />}
       {supportInboxOpen && <SupportInbox onClose={() => setSupportInboxOpen(false)} />}
-      {teamChatOpen && <TeamChatModal onClose={() => setTeamChatOpen(false)} />}
+      {teamChatOpen && <TeamChatModal onClose={() => { setTeamChatOpen(false); if (window.location.hash === '#teamchat') history.replaceState(null, '', window.location.pathname + window.location.search); }} />}
       {/* תפריט-החשבון (UX סבב-א׳) — מייל, סטטוס-סנכרון כטקסט, יציאה בשני צעדים */}
       {userMenuOpen && cloud.user && (
         <Modal title="החשבון שלי" onClose={() => setUserMenuOpen(false)}>

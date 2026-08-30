@@ -25,6 +25,7 @@ import chatSrc from '../../components/support/SupportChat.tsx?raw';
 import appSrc from '../../App.tsx?raw';
 import cloudCfgSrc from '../cloudConfig.ts?raw';
 import rulesSrc from '../../../firestore.rules?raw';
+import settingsSrc from '../../components/settings/SettingsView.tsx?raw';
 
 describe('💬 ratchet — צ׳אט-תמיכה: מנוע טהור', () => {
   it('sanitize: trim + חיתוך-לתקרה; שליחוּת', () => {
@@ -155,6 +156,17 @@ describe('👥 ratchet — צ׳אט-צוות תוך-ארגוני (17.8)', () => 
       expect(appSrc).toContain('teamBadgeEl()');
       expect(appSrc).toContain("nsLsKey('maor_teamchat_read')");
       expect(appSrc).toContain('if (teamChatOpen) markTeamRead()');
+    });
+
+    // בקשת-בעלים 30.8 "אין כניסה לצ׳אט הפנימי" — כניסה מפורשת מההגדרות דרך #teamchat.
+    it('🚪 כניסת-צ׳אט מפורשת: צ׳יפ בהגדרות + hash #teamchat ב-App', () => {
+      // צ׳יפ "💬 צ׳אט הצוות" גלוי כשהדגל דלוק (תמיד נמצא), מנווט ל-#teamchat
+      expect(settingsSrc).toContain('💬 צ׳אט הצוות');
+      expect(settingsSrc).toMatch(/featureOn\(config, 'shell\.teamchat'\) && \(\s*<Chip/);
+      expect(settingsSrc).toContain("window.location.hash = '#teamchat'");
+      // App פותח את הצ׳אט על #teamchat (אתחול + hashchange)
+      expect(appSrc).toContain("window.location.hash === '#teamchat'");
+      expect(appSrc).toContain("setTeamChatOpen(window.location.hash === '#teamchat')");
     });
   });
 
