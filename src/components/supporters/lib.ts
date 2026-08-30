@@ -440,6 +440,9 @@ export function orgCalEntries(supporters: Supporter[]): SupCalEntry[] {
     }
     for (const an of sp.ayin?.answers ?? []) out.push({ date: an.date, amount: 0, cur: '', src: '📞 תשובה: ' + an.note, name: sp.name, spId: sp.id });
     if (sp.ayin?.nextTalk) out.push({ date: sp.ayin.nextTalk, amount: 0, cur: '', src: '🔁 לדבר שוב', name: sp.name, spId: sp.id });
+    // 🎯 יעד קשר-הבא — מחווט גם ללוח-התורמים הכלל-ארגוני (בקשת-בעלים 30.8
+    // "קשר הבא לא מחווט ללוח תורמים"); בלוח האישי כבר קיים (personalCalEntries).
+    if (sp.nextDate) out.push({ date: sp.nextDate, amount: 0, cur: '', src: '🎯 יעד לקשר הבא' + (sp.nextNote ? ' · ' + sp.nextNote : ''), name: sp.name, spId: sp.id });
   }
   return out.filter((e) => !!e.date);
 }
