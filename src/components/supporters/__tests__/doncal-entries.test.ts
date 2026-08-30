@@ -9,6 +9,7 @@
 import { describe, expect, it } from 'vitest';
 import { donCalMonthLine, orgCalEntries, personalCalEntries } from '../lib';
 import { emptyAyin, type Supporter } from '../../../types/domain';
+import donCalSrc from '../DonationCalendar.tsx?raw';
 
 function sup(over: Partial<Supporter>): Supporter {
   return {
@@ -74,5 +75,15 @@ describe('🗓 ratchet — donCalMonthLine (legacy:1530)', () => {
   });
   it('רק רשומות מהקובץ ההיסטורי (סכום $) — מציג את ה-$', () => {
     expect(donCalMonthLine(entries, (iso) => iso.startsWith('2025-02'))).toBe('1 תרומות החודש · $200');
+  });
+
+  // בקשת-בעלים 30.8: "לוח תורמים תצוגה יומי שבועי חודשי"
+  it('🛡 לוח-התורמים: בורר יומי/שבועי/חודשי + offset-לפי-יחידה + פאנל-יום על העוגן', () => {
+    expect(donCalSrc).toContain('<CalViewTabs');
+    expect(donCalSrc).toContain("const [mode, setMode] = useState<CalViewMode>('month')");
+    expect(donCalSrc).toContain("if (mode === 'day')");
+    expect(donCalSrc).toContain("if (mode === 'week')");
+    // ביום — הרשימה על התא-היחיד (activeDay), לא רק על תא-שנלחץ
+    expect(donCalSrc).toContain("mode === 'day' ? view.cells[0]?.iso ?? null : dayIso");
   });
 });

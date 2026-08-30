@@ -11,6 +11,8 @@ import { isoToday } from '../../lib/date-util';
 import type { TzEvent } from '../../types/domain';
 import { Btn, Chip } from '../ui';
 import { PRIORITY_COLOR, SESSION_META } from '../calendar/calLib';
+import type { CalViewMode } from '../../lib/monthGrid';
+import { CalViewTabs } from '../calendar/CalViewTabs';
 import { buildTzGrid, DAY_NAMES } from './lib';
 import { TzEventModal } from './TzEventModal';
 
@@ -34,6 +36,7 @@ export function CalendarTab() {
   const config = useApp((s) => s.config);
   // נפתח בעברי — כמו הלוח הראשי בקובץ החי
   const [heb, setHeb] = useState(true);
+  const [mode, setMode] = useState<CalViewMode>('month');
   const [anchor, setAnchor] = useState(isoToday());
   const [dayIso, setDayIso] = useState<string | null>(null);
   const [modal, setModal] = useState<{ ev: TzEvent | null; date: string } | null>(null);
@@ -41,8 +44,9 @@ export function CalendarTab() {
   const [kindsOff, setKindsOff] = useState<Set<TzEvent['kind']>>(new Set());
   const shownEvents = useMemo(() => tzEvents.filter((e) => !kindsOff.has(e.kind)), [tzEvents, kindsOff]);
 
-  const grid = useMemo(() => buildTzGrid(shownEvents, anchor, heb), [shownEvents, anchor, heb]);
-  const dayEvents = dayIso ? shownEvents.filter((e) => e.date === dayIso) : [];
+  const grid = useMemo(() => buildTzGrid(shownEvents, anchor, heb, mode), [shownEvents, anchor, heb, mode]);
+  const activeDay = mode === 'day' ? anchor : dayIso;
+  const dayEvents = activeDay ? shownEvents.filter((e) => e.date === activeDay) : [];
 
   return (
     <div>
@@ -70,14 +74,16 @@ export function CalendarTab() {
         <Btn sm onClick={() => setAnchor(grid.nextIso)}>הבא ›</Btn>
         <div style={{ fontWeight: 800, fontSize: 16 }}>{grid.label}</div>
         <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{grid.subLabel}</div>
-        {/* דגל כבוי ⇒ הלוח נשאר בגריד העברי (ברירת הלגאסי) */}
-        {featureOn(config, 'tzedaka.calendar.hebtoggle') && (
-          <span style={{ marginInlineStart: 'auto' }}>
+        <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+          <CalViewTabs mode={mode} onMode={setMode} />
+          {/* דגל כבוי ⇒ הלוח נשאר בגריד העברי (ברירת הלגאסי) */}
+          {featureOn(config, 'tzedaka.calendar.hebtoggle') && (
             <Btn sm onClick={() => setHeb((v) => !v)}>{heb ? 'ללועזי' : 'לעברי'}</Btn>
-          </span>
-        )}
+          )}
+        </span>
       </div>
 
+      {mode !== 'day' && (
       <div className="card" style={{ padding: 8 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, fontSize: 11.5, fontWeight: 700, color: 'var(--ink-faint)', marginBottom: 4 }}>
           {DAY_NAMES.map((d) => (
@@ -139,12 +145,13 @@ export function CalendarTab() {
           ))}
         </div>
       </div>
+      )}
 
-      {dayIso && (
+      {activeDay && (
         <section className="card" style={{ marginTop: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 800 }}>{dayIso}</h2>
-            <Btn kind="primary" sm onClick={() => setModal({ ev: null, date: dayIso })}>
+            <h2 style={{ fontSize: 15, fontWeight: 800 }}>{activeDay}</h2>
+            <Btn kind="primary" sm onClick={() => setModal({ ev: null, date: activeDay })}>
               ➕ הוספת אירוע
             </Btn>
           </div>
