@@ -544,48 +544,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           {sp.notes && <InfoRow k="הערות" v={sp.notes} />}
         </div>
 
-        {/* 🔁 הוראת קבע (ROADMAP-100 ‏#2 צד-מערכת) — הגדרה + רישום-החודש-בקליק */}
-        {hokOn && (
-          <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <h3 style={{ fontSize: 15 }}>הוראת קבע 🔁</h3>
-              {/* חיווי מקושר-נדרים — extId נקלט לשיוך אך לא הוצג עד היום */}
-              {sp.extId && (
-                <span style={chipStyle('#e8f0fb', '#1d4ed8')} title={'מזהה-נדרים (ToremId): ' + sp.extId}>
-                  🔗 מקושר-נדרים
-                </span>
-              )}
-              <div style={{ flex: 1 }} />
-              <Btn sm onClick={() => setHokOpen(true)}>{sp.hok ? '✏️ עריכה' : '➕ הגדרה'}</Btn>
-            </div>
-            {sp.hok ? (
-              <>
-                <div style={{ fontSize: 13.5 }}>
-                  {(sp.hok.cur === '$' ? '$' : '₪') + sp.hok.amount.toLocaleString('he-IL') +
-                    ' · יום ' + sp.hok.day + ' בחודש · ' + hokMethodLabel(sp.hok.method) +
-                    (sp.hok.startedAt ? ' · מאז ' + fmtDate(sp.hok.startedAt) : '') +
-                    (sp.hok.active ? '' : ' · ⏸ מושהית')}
-                </div>
-                {sp.hok.note && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 2 }}>{sp.hok.note}</div>}
-                {sp.hok.active && canIssue && (
-                  hokRecordedThisMonth(sp, isoToday()) ? (
-                    <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 6 }}>✓ חיוב-החודש נרשם</div>
-                  ) : (
-                    <div style={{ marginTop: 8 }}>
-                      <Btn sm kind="primary" onClick={recordHok} title="רישום תרומת-ההו״ק של החודש — קבלה בסדרה הרציפה">
-                        🔁 רישום חיוב-החודש
-                      </Btn>
-                    </div>
-                  )
-                )}
-              </>
-            ) : (
-              <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-                אין הוראת-קבע. ההגדרה כאן = מעקב ותזכורת-חודשית; החיוב עצמו מוגדר אצל הסליקה/הבנק.
-              </div>
-            )}
-          </div>
-        )}
+        {/* 🔁 הוראת-קבע הועברה לתחתית הכרטיס (בקשת-בעלים 30.8: "הוראת קבע תוריד למטה") */}
 
         {/* 📅 חיובים-מתוכננים (בקשת-בעלים 25.8): פריסת-תשלומים עתידית בלי-קבלה
              עד שהחיוב באמת יורד. opt-in supporters.plannedcharges. */}
@@ -653,27 +612,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
 
       </div>
 
-      {/* גלריית-תמונות מקומית (opt-in supporters.photos) */}
-      {photosOn && (
-        <div className="card">
-          <SupporterPhotos supporter={sp} />
-        </div>
-      )}
-
-      {/* מעקב טיפול רב-שלבי */}
-      {ayinOn && <AyinCard supporter={sp} />}
-
-      {/* לוח-חודש של תרומות (feature: supporters.doncal) */}
-      {featureOn(config, 'supporters.doncal') && dsp.donations.length > 0 && (
-        <div className="card">
-          <h3 style={{ fontSize: 15, marginBottom: 10 }}>
-            🗓 {termOf(config, 'entity.donations', 'תרומות')} לפי חודש
-          </h3>
-          <DonationCalendar supporter={dsp} focusIso={calFocus ?? undefined} />
-        </div>
-      )}
-
-      {/* היסטוריית תרומות */}
+      {/* היסטוריית תרומות — הועלתה לראש הכרטיס (בקשת-בעלים 30.8:
+          "תתן לי את כל התרומות במקום שעכשיו הוראות-קבע") */}
       <div className="card" style={{ padding: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
           <h3 style={{ fontSize: 15 }}>
@@ -750,6 +690,69 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           </div>
         )}
       </div>
+
+      {/* גלריית-תמונות מקומית (opt-in supporters.photos) */}
+      {photosOn && (
+        <div className="card">
+          <SupporterPhotos supporter={sp} />
+        </div>
+      )}
+
+      {/* מעקב טיפול רב-שלבי */}
+      {ayinOn && <AyinCard supporter={sp} />}
+
+      {/* לוח-חודש של תרומות (feature: supporters.doncal) */}
+      {featureOn(config, 'supporters.doncal') && dsp.donations.length > 0 && (
+        <div className="card">
+          <h3 style={{ fontSize: 15, marginBottom: 10 }}>
+            🗓 {termOf(config, 'entity.donations', 'תרומות')} לפי חודש
+          </h3>
+          <DonationCalendar supporter={dsp} focusIso={calFocus ?? undefined} />
+        </div>
+      )}
+
+      {/* 🔁 הוראת קבע — למטה (בקשת-בעלים 30.8: "הוראת קבע תוריד למטה") */}
+      {hokOn && (
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <h3 style={{ fontSize: 15 }}>הוראת קבע 🔁</h3>
+            {/* חיווי מקושר-נדרים — extId נקלט לשיוך אך לא הוצג עד היום */}
+            {sp.extId && (
+              <span style={chipStyle('#e8f0fb', '#1d4ed8')} title={'מזהה-נדרים (ToremId): ' + sp.extId}>
+                🔗 מקושר-נדרים
+              </span>
+            )}
+            <div style={{ flex: 1 }} />
+            <Btn sm onClick={() => setHokOpen(true)}>{sp.hok ? '✏️ עריכה' : '➕ הגדרה'}</Btn>
+          </div>
+          {sp.hok ? (
+            <>
+              <div style={{ fontSize: 13.5 }}>
+                {(sp.hok.cur === '$' ? '$' : '₪') + sp.hok.amount.toLocaleString('he-IL') +
+                  ' · יום ' + sp.hok.day + ' בחודש · ' + hokMethodLabel(sp.hok.method) +
+                  (sp.hok.startedAt ? ' · מאז ' + fmtDate(sp.hok.startedAt) : '') +
+                  (sp.hok.active ? '' : ' · ⏸ מושהית')}
+              </div>
+              {sp.hok.note && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 2 }}>{sp.hok.note}</div>}
+              {sp.hok.active && canIssue && (
+                hokRecordedThisMonth(sp, isoToday()) ? (
+                  <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 6 }}>✓ חיוב-החודש נרשם</div>
+                ) : (
+                  <div style={{ marginTop: 8 }}>
+                    <Btn sm kind="primary" onClick={recordHok} title="רישום תרומת-ההו״ק של החודש — קבלה בסדרה הרציפה">
+                      🔁 רישום חיוב-החודש
+                    </Btn>
+                  </div>
+                )
+              )}
+            </>
+          ) : (
+            <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
+              אין הוראת-קבע. ההגדרה כאן = מעקב ותזכורת-חודשית; החיוב עצמו מוגדר אצל הסליקה/הבנק.
+            </div>
+          )}
+        </div>
+      )}
 
       {editOpen && <SupporterForm supporter={sp} onClose={() => setEditOpen(false)} />}
       {donOpen && <DonationModal supporter={sp} onClose={() => setDonOpen(false)} />}
