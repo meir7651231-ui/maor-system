@@ -28,6 +28,7 @@ import { CallerLookup } from './components/CallerLookup';
 import { GuideModal } from './components/GuideModal';
 import { TourOverlay } from './components/TourOverlay';
 import { A11yFab } from './components/A11yFab';
+import { UpdateBanner } from './components/UpdateBanner';
 import { HomeView } from './components/home/HomeView';
 import { CommandPalette } from './components/palette/CommandPalette';
 import { DemoDrop } from './components/DemoDrop';
@@ -359,33 +360,10 @@ export default function App() {
   }, [teamChatOpen, teamMsgs]);
   // UX סבב-ב׳: 'עוד ▾' לרצועת-הניווט + ניווט-תחתון במובייל
   const [moreNavOpen, setMoreNavOpen] = useState(false);
-  // 🔄 ריפוי-לשונית-תקועה (5.8 — "זה הרגע ראיתי אצל לקוח"): לשונית שנשארה
-  // פתוחה ימים לא נטענת מחדש לעולם ומציגה גרסה עתיקה (נצפה בשטח: מסך-Passkey
-  // מאיטרציה שנמחקה). ברגע שחוזרים ללשונית (visibilitychange) — משווים מול
-  // version.json הטרי (no-store); גרסה אחרת ⇒ רענון עצמי, פעם-אחת פר-גרסה
-  // (שומר-ריצה ב-sessionStorage מונע לולאה אם ה-fetch מוגש מתווך ישן).
-  useEffect(() => {
-    const check = () => {
-      if (document.visibilityState !== 'visible') return;
-      void fetch(import.meta.env.BASE_URL + 'version.json', { cache: 'no-store' })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((v: { id?: string } | null) => {
-          if (!v?.id || v.id === __BUILD_ID__) return;
-          const key = 'maor_ver_reload:' + v.id;
-          if (sessionStorage.getItem(key)) return;
-          sessionStorage.setItem(key, '1');
-          window.location.reload();
-        })
-        .catch(() => { /* אופליין — נבדוק בחזרה הבאה */ });
-    };
-    check();
-    document.addEventListener('visibilitychange', check);
-    const iv = window.setInterval(check, 15 * 60 * 1000);
-    return () => {
-      document.removeEventListener('visibilitychange', check);
-      window.clearInterval(iv);
-    };
-  }, []);
+  // 🔄 ריפוי-לשונית-תקועה (5.8) — לשונית שנשארה פתוחה ימים מציגה גרסה עתיקה.
+  // הבדיקה מול version.json והצגת ה"יש-גרסה-חדשה" עברו ל-<UpdateBanner/>
+  // (בקשת-בעלים 31.8): במקום רענון-שקט-פתע — באנר עדין עם "רענן עכשיו",
+  // כדי שהלקוח יֵדע שיצאה גרסה וישלוט ברגע-הרענון (לא יאבד עבודה).
 
   // PWA (6.8): רישום ה-service-worker (מגודר shell.pwa, מדולג ב-Playwright/דב)
   // + מניפסט פר-ארגון — לקוח מתקין אפליקציה עם השם שלו שנפתחת בארגון שלו.
@@ -1399,6 +1377,8 @@ export default function App() {
       )}
 
       {featureOn(config, 'shell.a11yfab') && <A11yFab />}
+
+      <UpdateBanner />
 
       {toastsEl}
     </div>
