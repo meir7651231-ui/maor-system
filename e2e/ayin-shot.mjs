@@ -41,6 +41,7 @@ await ctx.addInitScript(([sup, today]) => {
     localStorage.setItem('maor_org_config', JSON.stringify({
       slug: 'default', orgName: 'עמותת מאור החסד', theme: 'or-rishon', modules: {},
       features: { 'supporters.ayin.paygate': true, 'supporters.ayin.unassignondone': true },
+      integrations: { payments: { enabled: true, payUrl: 'https://www.matara.pro/nedarimplus/online/?mosad=1234' } },
     }));
     localStorage.setItem('maor_day', today);
     localStorage.setItem('maor_db', JSON.stringify({ v: 6, supporters: sup }));

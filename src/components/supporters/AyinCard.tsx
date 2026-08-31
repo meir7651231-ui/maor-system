@@ -24,7 +24,8 @@ import {
   stageLabel,
   unitLabel,
 } from '../../lib/ayin';
-import { featureOn } from '../../lib/config';
+import { featureOn, integrationOn, integrationSetting } from '../../lib/config';
+import { payLink } from '../../lib/payLink';
 import { scheduleTasks } from '../../lib/projectSchedule';
 import { kitProgress, DEFAULT_KIT_LABELS } from '../../lib/installKit';
 import { hebDateFull } from '../../lib/hebrew';
@@ -88,6 +89,12 @@ export function AyinCard(props: { supporter: Supporter }) {
   const revertOn = featureOn(cfg, 'supporters.ayin.revert');
   // 💳 שער-תשלום (בקשת-בעלים 25.8, opt-in) — חסר-הדגל ⇒ מוסתר, ביט-זהה להיום.
   const payGateOn = cfg.features?.['supporters.ayin.paygate'] === true;
+  // 💳 קישור-תשלום לנדרים בתוך השער (בקשת-בעלים 31.8: "בתשלום לפני הושלם
+  // תתן כרטיס לתשלום קישור לנדרים"). אותה בניית-קישור כמו בכרטיס-התומך —
+  // דורש הרחבת-תשלומים דלוקה + payUrl בקונפיג; אחרת null (אפס-שינוי).
+  const ayinPayHref = payGateOn && integrationOn(cfg, 'payments')
+    ? payLink(integrationSetting(cfg, 'payments', 'payUrl'), 0, sp.name)
+    : null;
   // כתב-כמויות/הצעת-מחיר — רק בהקשר מסחרי (§46 כבוי) + דגל. בעמותה מוסתר לגמרי.
   const boqOn = featureOn(cfg, 'supporters.ayin.boq') && !featureOn(cfg, 'core.taxreceipt');
   const timeOn = featureOn(cfg, 'supporters.ayin.time') && !featureOn(cfg, 'core.taxreceipt');
@@ -213,6 +220,21 @@ export function AyinCard(props: { supporter: Supporter }) {
           <Btn sm onClick={() => setPaid(sp.id, !a.paid)} title="סימון/ביטול תשלום — רישום תרומה בכרטיס מסמן שולם אוטומטית">
             {a.paid ? 'ביטול סימון' : 'סמן שולם'}
           </Btn>
+          {/* 💳 קישור-תשלום לנדרים — נפתח בעמוד-הסליקה של הארגון, השם ממולא.
+              מוצג רק כשטרם-שולם ויש עמוד-תרומה מוגדר (הרחבת-תשלומים דלוקה). */}
+          {!a.paid && ayinPayHref && (
+            <a
+              href={ayinPayHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="chip"
+              title="עמוד-התשלום בנדרים — קישור לתשלום מקוון, השם ממולא"
+              aria-label="פתיחת עמוד-התשלום בנדרים"
+              style={{ textDecoration: 'none' }}
+            >
+              💳 תשלום בנדרים
+            </a>
+          )}
           {!a.paid && <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>נדרש תשלום כדי להשלים</span>}
         </div>
       )}
