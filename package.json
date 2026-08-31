@@ -18,26 +18,26 @@
     "test:rules": "firebase emulators:exec --only firestore --project demo-maor 'node e2e/rules-redteam.mjs'"
   },
   "dependencies": {
-    "fflate": "^0.6.11",
-    "firebase": "^12.16.0",
+    "fflate": "^0.8.3",
+    "firebase": "^12.18.0",
     "idb": "^8.0.3",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "three": "^0.160.0",
-    "zustand": "^5.0.14"
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "three": "^0.185.1",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@firebase/rules-unit-testing": "^5.0.1",
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@types/node": "^24.13.2",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@types/three": "^0.160.0",
-    "@vitejs/plugin-react": "^6.0.3",
-    "firebase-tools": "^15.27.0",
-    "oxlint": "^1.71.0",
-    "playwright-core": "^1.61.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@types/three": "^0.185.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "firebase-tools": "^15.28.2",
+    "oxlint": "^1.80.0",
+    "playwright-core": "^1.62.1",
     "typescript": "~6.0.2",
-    "vite": "^8.1.1",
-    "vitest": "^4.1.10"
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
   }
 }
