@@ -398,7 +398,10 @@ export const AYIN_SHEET_HEADER = [
  * 'שולם'=paid ברמת התיק, 'תשובה'=answers[0].note או answeredNote (פסיקים→רווח),
  * 'עופרת בוצעה'='כן' כש-stage ∈ {eyes,answer,done}. eyes ריק נשאר ריק.
  */
-export function ayinSheetRows(supporters: Supporter[]): string[][] {
+export function ayinSheetRows(
+  supporters: Supporter[],
+  keep?: (supporterId: string, name: string) => boolean,
+): string[][] {
   const rows: string[][] = [[...AYIN_SHEET_HEADER]];
   for (const sp of supporters) {
     const a = sp.ayin;
@@ -406,6 +409,9 @@ export function ayinSheetRows(supporters: Supporter[]): string[][] {
     const lastAns = a.answers[0];
     const leadDone = ['eyes', 'answer', 'done'].includes(a.stage) ? 'כן' : 'לא';
     for (const n of a.names) {
+      // בקשת-בעלים 31.8: הורדה מסוננת — keep מגביל לשמות הגלויים בסינון הנוכחי.
+      // חסר-keep ⇒ כל השמות (ביט-זהה להורדה-המלאה שבהגדרות).
+      if (keep && !keep(sp.id, n.name)) continue;
       rows.push([
         sp.name,
         sp.phone || '',
