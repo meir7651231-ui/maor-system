@@ -12,7 +12,9 @@
     "supporters.card": true,
     "supporters.hokbulk": true,
     "supporters.photos": true,
-    "courses.cockpit": true
+    "courses.cockpit": true,
+    "supporters.ayin.paygate": true,
+    "supporters.ayin.unassignondone": true
   },
   "integrations": {
     "whatsapp": { "enabled": true, "mode": "app" },
