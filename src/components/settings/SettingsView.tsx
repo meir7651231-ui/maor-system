@@ -26,6 +26,7 @@ import { SupEnforceSection } from './SupEnforceSection';
 import { ThemeSection } from './ThemeSection';
 import { AuditSection } from './AuditSection';
 import { DonorImportSection } from './DonorImportSection';
+import { GContactsSection } from './GContactsSection';
 import { OrgSecretsSection } from './OrgSecretsSection';
 import { OutboxSection } from './OutboxSection';
 
@@ -58,7 +59,7 @@ const GROUPS = [
 type GroupId = (typeof GROUPS)[number]['id'];
 const SECTION_GROUP: Record<string, GroupId> = {
   'sec-org': 'org', 'sec-theme': 'org', 'sec-teachers': 'org', 'sec-rooms': 'org', 'sec-notif': 'org', 'sec-access': 'org',
-  'sec-backup': 'data', 'sec-export': 'data', 'sec-import': 'data', 'sec-donor-import': 'data', 'sec-audit': 'data',
+  'sec-backup': 'data', 'sec-export': 'data', 'sec-import': 'data', 'sec-donor-import': 'data', 'sec-gcontacts': 'data', 'sec-audit': 'data',
   'sec-security': 'security', 'sec-encryption': 'security', 'sec-cloud-encryption': 'security', 'sec-org-secrets': 'security', 'sec-donation-split': 'security', 'sec-outbox': 'security',
   'sec-ai': 'adv', 'sec-audittrail': 'adv', 'sec-verifyreceipt': 'adv', 'sec-reset': 'adv',
 };
@@ -105,6 +106,7 @@ export function SettingsView() {
     ...(featureOn(config, 'settings.audittrail') && isAdmin ? [{ id: 'sec-audittrail', label: 'לוג פעולות' }] : []),
     ...(featureOn(config, 'core.receipt.verifycode') ? [{ id: 'sec-verifyreceipt', label: 'אימות קבלה' }] : []),
     ...(isAdmin && integrationOn(config, 'payments') && cloudOn ? [{ id: 'sec-donor-import', label: 'ייבוא ' + termOf(config, 'nav.supporters', 'תורמים') }] : []),
+    ...(isAdmin && integrationOn(config, 'gcontacts') ? [{ id: 'sec-gcontacts', label: '📇 סנכרון Google' }] : []),
   ];
   const groupChips = [...sections, ...extraChips].filter((s) => SECTION_GROUP[s.id] === shownGroup);
 
@@ -164,6 +166,8 @@ export function SettingsView() {
           {secOn('sec-import') && <ImportSection />}
           {/* הכרעת-בעלים 23.8: ייבוא-התורמים (נדרים/סולה/הו"ק) רוכז כאן — מסך-מנהל */}
           <DonorImportSection />
+          {/* 📇 סנכרון אנשי-קשר ל-Google (1.9) — מגודר בעצמו (הרחבה+מנהל) */}
+          <GContactsSection />
           {secOn('sec-audit') && <AuditSection />}
         </>
       )}
