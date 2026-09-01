@@ -723,6 +723,24 @@ export async function pullSola(pullUrl: string, opts: { reset?: boolean } = {}):
   return j;
 }
 
+/** 📇 סנכרון אנשי-קשר ל-Google **בקליק** (1.9) — קורא ל-gcontactsSyncNow עם
+ *  טוקן-הכניסה; ה-refresh-token של גוגל יושב בכספת-הענן והפונקציה מריצה People API.
+ *  זהה בדפוס ל-pullSola: org נגזר מהתחום, vault מגשר ללקוח-השורש. */
+export async function syncGContacts(fnUrl: string): Promise<{ total?: number; created?: number; updated?: number; skipped?: string }> {
+  const clean = String(fnUrl || '').trim();
+  if (!/^https:\/\//i.test(clean)) throw new Error('כתובת-סנכרון לא-תקינה (חייבת https)');
+  const user = requireAuth().currentUser;
+  if (!user) throw new Error('נדרשת התחברות-ענן');
+  const token = await user.getIdToken();
+  const org = scope.cloudRoot ? 'root' : scope.slug;
+  const u = new URL(clean);
+  u.searchParams.set('org', org);
+  const r = await fetch(u.toString(), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+  const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; status?: { total?: number; created?: number; updated?: number; skipped?: string } };
+  if (!r.ok || j.ok === false) throw new Error(j.error || 'סנכרון נכשל (' + r.status + ')');
+  return j.status || {};
+}
+
 /** סימון תשלום-נכנס כ"נרשם" (אחרי שהמזכירה רשמה תרומה/תשלום במערכת). */
 export async function markIncomingPayment(id: string): Promise<void> {
   await updateDoc(doc(requireDb(), scopedCol('incomingPayments'), id), {

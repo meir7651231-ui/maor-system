@@ -418,3 +418,7 @@ Object.assign(exports, require('./nedarimPull'));
 
 // כיוון-נכנס · Sola Payments (חיווט-כמו-נדרים, 21.8) — משיכת-עסקאות + רשת-ביטחון.
 Object.assign(exports, require('./solaPull'));
+
+// 📇 סנכרון אנשי-קשר ל-Google (People API, 1.9) — מתוזמן-יומי + on-demand.
+// דורמנטי בלי GCONTACTS_CLIENT_ID/SECRET ו-refresh-token פר-ארגון בכספת.
+Object.assign(exports, require('./gcontactsSync'));
