@@ -44,13 +44,15 @@
    בחשבון-Google של הארגון.
 3. **Exchange authorization code for tokens** → העתיקו את ה-**Refresh token**.
 
-### 3. הזנת הסודות
-- **גלובלי (env של ה-Functions, פעם אחת):**
-  `firebase functions:secrets:set GCONTACTS_CLIENT_ID`
-  `firebase functions:secrets:set GCONTACTS_CLIENT_SECRET`
-- **פר-ארגון (הכספת):** ב-Firestore, מסמך `orgSecrets/<slug>` → שדה
-  `gcontactsRefresh` = ה-refresh-token מסעיף 2.
-  (לקוח-השורש: ה-slug הוא ה-slug האמיתי של הארגון, לא `default`.)
+### 3. הזנת הסודות — **הכל בתוך האתר** (בלי שורת-פקודה)
+הגדרות ← 🔐 אבטחה ← **כספת-המפתחות**, שלושה שדות:
+- **📇 Google Contacts — Client ID** = מסעיף 1.
+- **📇 Google Contacts — Client Secret** = מסעיף 1.
+- **📇 Google Contacts — Refresh Token** = מסעיף 2.
+
+הכל נכתב ל-`orgSecrets/<slug>` (read:false — איש לא קורא מהדפדפן, רק ה-Function).
+> נפילה-לאחור (אופציונלי): אפשר להזין את ה-Client ID/Secret גם כ-env גלובלי
+> ‏(`firebase functions:secrets:set GCONTACTS_CLIENT_ID` / `_SECRET`) — הכספת גוברת.
 
 ### 4. פריסה
 דרך ה-workflow `deploy-functions.yml` (Actions ידני, או push לענף
