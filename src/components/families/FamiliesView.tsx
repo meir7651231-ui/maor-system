@@ -526,7 +526,7 @@ export function FamiliesView() {
       ) : famView === 'grid' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
           {shownFams.map((f) => {
-            const st = STATUS_META[f.status];
+            const st = STATUS_META[f.status] ?? STATUS_META.active; // סטטוס לא-מוכר ⇒ לא קורסים
             const kids = kidsOf(f);
             const parents = [f.father, f.mother].filter(Boolean).join(' ו');
             return (
@@ -608,7 +608,7 @@ export function FamiliesView() {
             </thead>
             <tbody>
               {shownFams.map((f) => {
-                const st = STATUS_META[f.status];
+                const st = STATUS_META[f.status] ?? STATUS_META.active; // סטטוס לא-מוכר ⇒ לא קורסים
                 const kids = kidsOf(f);
                 const kidsLine = kids.length
                   ? kids

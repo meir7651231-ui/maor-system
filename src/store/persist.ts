@@ -529,6 +529,10 @@ export function migrate(raw: unknown): Db | null {
         members,
         docs: migrateDocs(f.docs),
         cred: migrateCred(f.cred),
+        // ריפוי-סטטוס (ביקורת-e2e 1.9): סטטוס לא-מוכר/חסר ⇒ 'active'. בלעדיו
+        // STATUS_META[f.status] היה undefined ⇒ .bg זורק ⇒ **כל האפליקציה קורסת**
+        // (error-boundary) מרשומה אחת פגומה. הערך התקין נשמר ביט-זהה.
+        status: f.status === 'active' || f.status === 'pending' || f.status === 'inactive' ? f.status : 'active',
       };
     })
     .filter((f) => !seen.has(f.id) && !!seen.add(f.id));

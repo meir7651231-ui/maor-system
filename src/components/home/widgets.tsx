@@ -1288,8 +1288,8 @@ function RecentWidget({ ctx }: { ctx: HomeCtx }) {
                   <td>{f.city || '—'}</td>
                   <td>{f.members.filter((m) => !m.isParent).length}</td>
                   <td>
-                    <span style={chipStyle(ctx, ST_META[f.status].bg, ST_META[f.status].c)}>
-                      {ST_META[f.status].label}
+                    <span style={chipStyle(ctx, (ST_META[f.status] ?? ST_META.active).bg, (ST_META[f.status] ?? ST_META.active).c)}>
+                      {(ST_META[f.status] ?? ST_META.active).label}
                     </span>
                   </td>
                   <td>{fmtD(f.createdAt)}</td>
