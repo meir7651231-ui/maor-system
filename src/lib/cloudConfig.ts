@@ -135,7 +135,7 @@ const ORG_SECRETS = 'orgSecrets';
 const ORG_SECRETS_META = 'orgSecretsMeta';
 
 /** המפתחות המוכרים — allowlist; כל השאר נזרק (כמו INTEGRATION_SETTING_KEYS). */
-export const ORG_SECRET_KEYS = ['yemotToken', 'nedarimMosad', 'nedarimApiPass', 'smsApiKey', 'smtpUrl', 'solaXKey'] as const;
+export const ORG_SECRET_KEYS = ['yemotToken', 'nedarimMosad', 'nedarimApiPass', 'smsApiKey', 'smtpUrl', 'solaXKey', 'gcontactsRefresh'] as const;
 export type OrgSecretKey = (typeof ORG_SECRET_KEYS)[number];
 
 /** כתיבת סודות (merge): ערך מלא = נשמר; '' = נמחק מהכספת; שדה שלא נשלח לא נגוע.
