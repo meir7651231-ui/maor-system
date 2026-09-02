@@ -735,6 +735,8 @@ export async function syncGContacts(fnUrl: string): Promise<{ total?: number; cr
   const org = scope.cloudRoot ? 'root' : scope.slug;
   const u = new URL(clean);
   u.searchParams.set('org', org);
+  // לקוח-השורש: הנתונים ב-root אבל הכספת (orgSecrets) נכתבת תחת ה-slug האמיתי — vault מגשר (כמו pullSola)
+  if (scope.cloudRoot && scope.slug && scope.slug !== 'default') u.searchParams.set('vault', scope.slug);
   const r = await fetch(u.toString(), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
   const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; status?: { total?: number; created?: number; updated?: number; skipped?: string } };
   if (!r.ok || j.ok === false) throw new Error(j.error || 'סנכרון נכשל (' + r.status + ')');
