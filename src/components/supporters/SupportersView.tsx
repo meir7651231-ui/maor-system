@@ -193,7 +193,10 @@ export function SupportersView() {
   // המנהל **הדליק** לו/ה את היכולת בכרטיס-העובד (features[key]===true בקונפיג-האפקטיבי).
   const isOrgMgr = useApp((s) => s.cloud.isManager) === true;
   const canBulkManage = isAdminUser(config, cloudEmail) || isOrgMgr;
-  const bulkGranted = (key: string) => canBulkManage || config.features?.[key] === true;
+  // חוזה-הדגלים (FLAGMAX, ביקורת-e2e 1.9): false מפורש **מכבה** גם למנהל — קודם
+  // canBulkManage קיצר-דרך והתעלם מהדגל, כך ש-supporters.bulkselect:false לא הסתיר
+  // את "☑ בחירה". חסר-הדגל ⇒ כמו קודם (מנהל רואה; לא-מנהל רק ב-opt-in מפורש).
+  const bulkGranted = (key: string) => config.features?.[key] !== false && (canBulkManage || config.features?.[key] === true);
   const desigLimit = purposeOn ? allowedDesignations : null;
   const [incomingOpen, setIncomingOpen] = useState(false);
   const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');

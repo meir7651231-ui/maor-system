@@ -219,7 +219,7 @@ export function FamilyDetail(props: { family: Family }) {
     setParentPrefill(undefined);
   }
 
-  const st = STATUS_META[fam.status];
+  const st = STATUS_META[fam.status] ?? STATUS_META.active; // סטטוס לא-מוכר ⇒ לא קורסים
   const parents = [fam.father, fam.mother].filter(Boolean).join(' ו');
   const addressLine = [fam.address, fam.city].filter(Boolean).join(', ');
 

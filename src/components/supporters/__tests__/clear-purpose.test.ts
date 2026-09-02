@@ -22,7 +22,8 @@ describe('🏷 ratchet — כפתור הסרת-ייעוד מפורש בבחיר�
   it('כל יכולות הבחירה-המרובה מגודרות bulkGranted (מנהל/בעלים או הדלקה-פר-עובד)', () => {
     // ההגדרה: מנהל/בעלים תמיד, אחרת רק אם features[key]===true בקונפיג-האפקטיבי
     expect(src).toContain('const canBulkManage = isAdminUser(config, cloudEmail) || isOrgMgr');
-    expect(src).toContain('const bulkGranted = (key: string) => canBulkManage || config.features?.[key] === true');
+    // ביקורת-e2e 1.9: false מפורש מכבה גם למנהל (חוזה-הדגלים) — הצורה המחוזקת
+    expect(src).toContain('const bulkGranted = (key: string) => config.features?.[key] !== false && (canBulkManage || config.features?.[key] === true)');
     // הכניסה (☑ בחירה) + מחיקה-המונית + שיוך/הסרת-ייעוד — כולן דרך bulkGranted
     expect(src).toContain("bulkGranted('supporters.bulkselect')");
     expect(src).toContain("bulkGranted('supporters.bulkdelete')");
