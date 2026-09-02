@@ -58,8 +58,8 @@ export function GContactsSection() {
       // ייבוא-עצל של שכבת-הענן — firebase נשאר מחוץ לבנדל-ההגדרות (ratchet bundle-light)
       const { syncGContacts } = await import('../../lib/cloud');
       const s = await syncGContacts(SYNC_FN);
-      if (s.skipped === 'no-refresh-token') {
-        setResult('הסנכרון-החי טרם חובר — ראו את מדריך-ההקמה (RUNBOOK-GCONTACTS). בינתיים ניתן לייצא vCard.');
+      if (s.skipped === 'no-refresh-token' || s.skipped === 'no-oauth-app') {
+        setResult('הסנכרון-החי טרם חובר — יש להזין את מפתחות Google בכספת (הגדרות←אבטחה) לפי מדריך-ההקמה. בינתיים ניתן לייצא vCard.');
       } else {
         setResult('סונכרן ✓ · ' + (s.created || 0) + ' חדשים · ' + (s.updated || 0) + ' עודכנו (מתוך ' + (s.total ?? stats.total) + ')');
       }

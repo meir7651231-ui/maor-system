@@ -132,17 +132,24 @@ if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || pro
     const CONTACT_COLS = ['families', 'supporters', 'volunteers'];
     const PERSON_FIELDS = 'names,clientData';
 
-    // רענון-הטוקן לארגון: הכספת גוברת (orgSecrets/{slug}.gcontactsRefresh).
-    async function refreshFor(db, slug) {
+    // אישורי-הארגון: **הכספת גוברת** (orgSecrets/{slug}) — refresh + client-id/secret;
+    // ‏env הוא נפילה-לאחור בלבד ל-client-id/secret. כך הבעלים מזין הכל בתוך האתר
+    // (הגדרות←אבטחה←כספת), בלי שורת-פקודה. חסר refresh ⇒ הארגון מדולג.
+    const clean = (s) => (typeof s === 'string' && s.trim() ? s.trim() : '');
+    async function credsFor(db, slug) {
       const doc = await db.doc('orgSecrets/' + slug).get();
-      const r = doc.exists ? doc.data().gcontactsRefresh : null;
-      return typeof r === 'string' && r.trim() ? r.trim() : null;
+      const d = doc.exists ? doc.data() : {};
+      return {
+        refresh: clean(d.gcontactsRefresh),
+        clientId: clean(d.gcontactsClientId) || clean(process.env.GCONTACTS_CLIENT_ID),
+        clientSecret: clean(d.gcontactsClientSecret) || clean(process.env.GCONTACTS_CLIENT_SECRET),
+      };
     }
 
-    function peopleClient(refreshToken) {
+    function peopleClient(creds) {
       const { google } = require('googleapis');
-      const oauth = new google.auth.OAuth2(process.env.GCONTACTS_CLIENT_ID, process.env.GCONTACTS_CLIENT_SECRET);
-      oauth.setCredentials({ refresh_token: refreshToken });
+      const oauth = new google.auth.OAuth2(creds.clientId, creds.clientSecret);
+      oauth.setCredentials({ refresh_token: creds.refresh });
       return google.people({ version: 'v1', auth: oauth });
     }
 
@@ -164,8 +171,9 @@ if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || pro
     }
 
     async function syncOneOrg(db, slug, cfg) {
-      const refresh = await refreshFor(db, slug);
-      if (!refresh) return { skipped: 'no-refresh-token' };
+      const creds = await credsFor(db, slug);
+      if (!creds.refresh) return { skipped: 'no-refresh-token' };
+      if (!creds.clientId || !creds.clientSecret) return { skipped: 'no-oauth-app' };
       const base = db.collection('orgs').doc(slug);
       const data = {};
       for (const col of CONTACT_COLS) {
@@ -174,7 +182,7 @@ if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || pro
       }
       const org = (cfg && cfg.orgName) || slug;
       const contacts = collectContacts(data, org);
-      const people = peopleClient(refresh);
+      const people = peopleClient(creds);
       const existing = await existingByKey(people);
       const { creates, updates } = planContactWrites(contacts, existing);
       let created = 0, updated = 0;
@@ -195,7 +203,7 @@ if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || pro
     }
 
     async function syncAll() {
-      if (!process.env.GCONTACTS_CLIENT_ID || !process.env.GCONTACTS_CLIENT_SECRET) return; // דורמנטי בלי אפליקציית-OAuth
+      // דורמנטי לפי-ארגון: syncOneOrg מדלג כשאין creds בכספת/env (no-refresh/no-oauth).
       const db = getFirestore();
       const orgs = await db.collection('platformOrgs').get();
       for (const org of orgs.docs) {
@@ -220,7 +228,6 @@ if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || pro
       { secrets: ['GCONTACTS_CLIENT_ID', 'GCONTACTS_CLIENT_SECRET'], timeoutSeconds: 300, memory: '256MiB', cors: true },
       async (req, res) => {
         try {
-          if (!process.env.GCONTACTS_CLIENT_ID) { res.status(503).json({ error: 'gcontacts-not-configured' }); return; }
           const db = getFirestore();
           const bearer = /^Bearer (.+)$/.exec(req.get('authorization') || '');
           const slug = clean(req.query.org) || clean((req.body || {}).org);

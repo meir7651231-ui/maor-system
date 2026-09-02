@@ -25,7 +25,9 @@ const FIELDS: { key: OrgSecretKey; label: string; ltr?: boolean }[] = [
   { key: 'smsApiKey', label: '📱 מפתח ספק-SMS', ltr: true },
   // סולה (Cardknox) — ה-xKey מזהה את חשבון-הסליקה; sandbox וייצור = מפתחות שונים.
   { key: 'solaXKey', label: '💳 Sola Payments — xKey', ltr: true },
-  { key: 'gcontactsRefresh', label: '📇 Google Contacts — refresh token', ltr: true },
+  { key: 'gcontactsClientId', label: '📇 Google Contacts — Client ID', ltr: true },
+  { key: 'gcontactsClientSecret', label: '📇 Google Contacts — Client Secret', ltr: true },
+  { key: 'gcontactsRefresh', label: '📇 Google Contacts — Refresh Token', ltr: true },
 ];
 
 export function OrgSecretsSection() {
