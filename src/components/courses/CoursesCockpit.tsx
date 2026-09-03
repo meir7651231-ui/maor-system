@@ -113,7 +113,7 @@ export function CoursesCockpit() {
         </Group>
       )}
 
-      <Group title={'⚠️ בסיכון-נשירה'} count={risk.length} empty="אין תלמידים בסיכון (3+ חיסורים)">
+      <Group title={'⚠️ בסיכון-נשירה'} count={risk.length} empty={'אין ' + termOf(config, 'entity.students', 'תלמידים') + ' בסיכון (3+ חיסורים)'}>
         {risk.slice(0, CAP).map(({ e, absences }) => (
           <Row key={e.id} onClick={() => selectCourse(e.courseId)} main={memberName(e.memberId)} sub={courseName(e.courseId)} tag={absences + ' חיסורים'} tagColor="#9a6414" />
         ))}

@@ -606,7 +606,8 @@ interface AppState {
   ayinApplySheet: (upds: AyinSheetUpd[]) => void;
 
   // גיבוי ושחזור
-  exportBackup: () => void;
+  /** מחזיר האם הקובץ ירד בפועל (ביקורת-עומק 2.9: גיבוי-סוף-יום מסמן 'בוצע-היום' רק על הצלחה). */
+  exportBackup: () => Promise<boolean>;
   restoreDb: (db: Db) => void;
   resetAll: () => void;
 
@@ -3733,14 +3734,15 @@ export const useApp = create<AppState>()((set, get) => {
       // בכרטיס-העובד) לא יכול להוריד גיבוי — חסימה גם ברמת-הפעולה, לא רק ה-UI.
       if (!featureOn(get().config, 'core.export')) {
         get().toast('⛔ הוצאת מידע חסומה עבורך על-ידי מנהל הארגון');
-        return;
+        return Promise.resolve(false);
       }
       logAudit('ייצוא גיבוי מלא', get().encrypted ? 'מוצפן' : 'גלוי');
-      void exportBackupFile(get().db).then(() => {
+      return exportBackupFile(get().db).then(() => {
         get().toast(
           get().encrypted ? 'גיבוי מוצפן ירד — שמרו את הסיסמה/מפתח השחזור ✓' : 'קובץ גיבוי מלא ירד למחשב ✓',
         );
-      }).catch(() => get().toast('⚠ הגיבוי נכשל — נסו שוב (ביקורת-עומק 2.9)'));
+        return true;
+      }).catch(() => { get().toast('⚠ הגיבוי נכשל — נסו שוב (ביקורת-עומק 2.9)'); return false; });
     },
     fixAllPhones() {
       let n = 0;

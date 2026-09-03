@@ -8,6 +8,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import type { Supporter } from '../../types/domain';
 import { Btn } from '../ui';
 import { isoToday } from '../../lib/date-util';
@@ -236,7 +237,7 @@ export function SupportersUniverse3D(props: {
               <Btn sm onClick={() => props.onOpen(n.id)} title="פתיחת כרטיס">פתח</Btn>
             </div>
           ))}
-          {shown.filter((n) => !tierHi || n.tier === tierHi).length === 0 ? <div style={{ padding: 20, textAlign: 'center', color: 'var(--ink-faint)' }}>אין תורמים להצגה.</div> : null}
+          {shown.filter((n) => !tierHi || n.tier === tierHi).length === 0 ? <div style={{ padding: 20, textAlign: 'center', color: 'var(--ink-faint)' }}>אין {termOf(props.config, 'nav.supporters', 'תורמים')} להצגה.</div> : null}
         </div>
       </div>
     </div>

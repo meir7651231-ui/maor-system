@@ -7,7 +7,7 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { useDbWatch } from '../../store/dbWatch';
-import { integrationOn } from '../../lib/config';
+import { integrationOn, termOf } from '../../lib/config';
 import { askClaude, readAiKey } from '../../lib/ai';
 import { Btn, Empty, Modal } from '../ui';
 import { chipStyle } from './lib';
@@ -107,7 +107,7 @@ export function RetentionCenter(props: { onClose: () => void }) {
       )}
 
       {insights.length === 0 ? (
-        <Empty>אין תלמידים בסיכון-נשירה כרגע 🎉</Empty>
+        <Empty>אין {termOf(config, 'entity.students', 'תלמידים')} בסיכון-נשירה כרגע 🎉</Empty>
       ) : (
         insights.map((ins) => {
           const nm = memberName(ins.memberId);
