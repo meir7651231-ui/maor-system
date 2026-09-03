@@ -40,7 +40,7 @@ export function hooksAfterEarlyReturn(files: string[]): string[] {
         name = m[3] || m[2];
         continue;
       }
-      if (inFn && /^}/.test(L)) {
+      if (inFn && L.startsWith('}')) {
         inFn = false;
         continue;
       }
