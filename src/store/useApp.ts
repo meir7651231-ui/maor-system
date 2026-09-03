@@ -7,7 +7,7 @@
  * - מזהים נוצרים אך ורק דרך nextId().
  */
 import { create } from 'zustand';
-import {
+import { mergeDelLogs,
   emptyAyin,
   emptyDb,
   type Absence,
@@ -46,9 +46,9 @@ import {
   type DistributionDay,
   type Delivery,
   type DialOutcome,
-  type WorkTask,
-} from '../types/domain';
+  type WorkTask } from '../types/domain';
 import { ENTITY_COLLECTIONS } from '../lib/cloud-diff';
+import { mergeDonationsPreserving } from '../lib/cloud-merge';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { advanceStatus } from '../components/shop7/lib';
@@ -777,6 +777,43 @@ function trendFactor(log: CredLogEntry[]): number {
   return 0.8 + 0.4 * (last3.filter((e) => e.delta > 0).length / last3.length);
 }
 
+/** מצבות לכל ישות שקיימת ב-prev ונעלמה ב-next (שחזור/איפוס עוקפים setDb) — איחוד טבעות. */
+/**
+ * מיזוג-אצווה של תוצאת-תוכנית (סנכרון-נדרים) מול המאגר-החי (ביקורת-עומק 2.9, כסף #2):
+ * לכל כרטיס-מתוכנן — אם קיים כרטיס-חי באותו id, המתוכנן מנצח על השדות, אך התרומות
+ * מאוחדות לפי rid (מונים=max, דרך mergeDonationsPreserving) ורשומות-hist שנוספו
+ * בחי מאז התצלום (לפי txn, או לפי d|a|ref כשאין txn) מצורפות. כרטיסים-חיים שאינם
+ * בתוכנית (נולדו אחרי התצלום) נשארים. טהור.
+ */
+export function reconcileNedarimApply(live: Supporter[], planned: Supporter[]): Supporter[] {
+  const liveById = new Map(live.map((s) => [s.id, s]));
+  const plannedIds = new Set(planned.map((s) => s.id));
+  const histKey = (h: NonNullable<Supporter['hist']>[number]) => (h.txn ? 'txn:' + h.txn : 'row:' + h.d + '|' + h.a + '|' + (h.ref ?? ''));
+  const merged = planned.map((p) => {
+    const l = liveById.get(p.id);
+    if (!l) return p;
+    const base = mergeDonationsPreserving('supporters', l as unknown as Record<string, unknown>, p as unknown as Record<string, unknown>) as unknown as Supporter;
+    const pHist = p.hist ?? [];
+    const keys = new Set(pHist.map(histKey));
+    const liveOnly = (l.hist ?? []).filter((h) => !keys.has(histKey(h)));
+    if (!liveOnly.length) return base;
+    return { ...base, hist: [...pHist, ...liveOnly] };
+  });
+  const born = live.filter((s) => !plannedIds.has(s.id));
+  return born.length ? [...merged, ...born] : merged;
+}
+
+function withRemovalTombstones(prev: Db, next: Db): Db {
+  const dels: DelEntry[] = [];
+  const at = new Date().toISOString();
+  for (const col of ENTITY_COLLECTIONS) {
+    const nextIds = new Set((next[col] as Array<{ id: string }>).map((x) => x.id));
+    for (const x of prev[col] as Array<{ id: string }>) if (!nextIds.has(x.id)) dels.push({ at, col, id: x.id });
+  }
+  const base = mergeDelLogs(prev.delLog ?? [], next.delLog ?? []);
+  return { ...next, delLog: dels.length ? pushDelLog(base, dels) : base };
+}
+
 export const useApp = create<AppState>()((set, get) => {
   /** טוסט "רעננו את הדף" לטאב-מיושן — מוגבל-קצב כדי לא להציף בכל עריכה. */
   let staleToastAt = 0;
@@ -799,7 +836,8 @@ export const useApp = create<AppState>()((set, get) => {
     saveTimer = setTimeout(async () => {
       if (get().staleTab) return; // הדגל נדלק בחלון ה-debounce — לא כותבים
       const saving = get().db;
-      const ok = await saveDb(saving);
+      let ok = false;
+      try { ok = await saveDb(saving); } catch { ok = false; } // ביקורת-עומק 2.9: reencrypt שזרק השאיר dirty בלי טוסט + unhandled rejection
       // 🐛 נחיל-עמוק (13.8): רק אם לא נכנסה עריכה חדשה תוך-כדי ה-await מנקים dirty.
       // אחרת החלון בין סיום-השמירה לשמירה-הבאה השאיר dirty=false בעוד עריכה ממתינה —
       // ושער ריבוי-הטאבים היה רשאי לדרוס אותה. השוואת-הפניה: כל setDb יוצר db חדש.
@@ -2045,6 +2083,8 @@ export const useApp = create<AppState>()((set, get) => {
         get().toast('⛔ רק המנהל מנפיק קבלות — פנו למנהל/ת הארגון');
         return { ok: false };
       }
+      // ביקורת-עומק 2.9: שער-סכום בליבה — הסדרה-הרציפה §46 לא נסמכת על משמעת-UI בלבד
+      if (!Number.isFinite(payment.amount) || payment.amount <= 0) { get().toast('סכום לא-תקין — התשלום לא נרשם'); return { ok: false }; }
       // שער לפני צריכת המונה: אם השיבוץ נעלם (למשל נמחק בסנכרון ממכשיר אחר בעוד
       // הטופס פתוח), אין לקדם את receiptSeq — אחרת מספר קבלה R-{n} מדולג לצמיתות
       // (פוגם ברציפות הקבלות) והתשלום אובד בשקט. עקבי עם addCred/deleteTeacher.
@@ -2320,8 +2360,14 @@ export const useApp = create<AppState>()((set, get) => {
       // התוכנית כבר מיזגה: מערך-סופי = קיימים-מועשרים + חדשים (superset — אף תומך
       // לא אבד). כתיבה אחת אטומית; count/ils/usd השמורים נותרו קבלות-בלבד (המנוע
       // הוסיף רק ל-hist). לוג-פעולות מתעד את היקף-הסנכרון.
+      // ביקורת-עומק 2.9 (כסף #2): התוכנית חושבה מתצלום-הכרטיסים ברגע פתיחת-המודאל;
+      // בזמן שהמודאל פתוח (קובץ נטען, המשתמש בוחן) יכולה להירשם תרומה/קבלה בטאב
+      // אחר או להגיע מהענן — כתיבה-גורפת הייתה דורסת אותה (קבלה בלי רשומה). לכן
+      // המיזוג נעשה **מול המאגר-החי ברגע-הלחיצה**: כרטיס-מתוכנן מנצח, אך תרומות
+      // (איחוד-rid, מונים=max) ורשומות-hist (איחוד-txn) שנוספו מאז נשמרות; כרטיס
+      // שנולד מאז נשאר.
       logAudit('🔄 סנכרון נדרים', note);
-      setDb(() => ({ supporters }));
+      setDb((db) => ({ supporters: reconcileNedarimApply(db.supporters, supporters) }));
       get().toast('🔄 סנכרון נדרים הושלם ✓ — ' + note);
     },
 
@@ -2490,6 +2536,8 @@ export const useApp = create<AppState>()((set, get) => {
         get().toast('⛔ רק המנהל מנפיק קבלות — פנו למנהל/ת הארגון');
         return { ok: false };
       }
+      // ביקורת-עומק 2.9: שער-סכום בליבה (finite, >0) לפני צריכת donationSeq
+      if (!Number.isFinite(donation.amount) || donation.amount <= 0) { get().toast('סכום לא-תקין — התרומה לא נרשמה'); return { ok: false }; }
       // שער לפני צריכת המונה: תומכ/ת שנעלם/ה (נמחק/ה בסנכרון בעוד הטופס פתוח) לא
       // יצרוך את donationSeq — אחרת D-{n} מדולג לצמיתות והתרומה אובדת בשקט.
       if (!get().db.supporters.some((s) => s.id === supporterId)) {
@@ -3692,7 +3740,7 @@ export const useApp = create<AppState>()((set, get) => {
         get().toast(
           get().encrypted ? 'גיבוי מוצפן ירד — שמרו את הסיסמה/מפתח השחזור ✓' : 'קובץ גיבוי מלא ירד למחשב ✓',
         );
-      });
+      }).catch(() => get().toast('⚠ הגיבוי נכשל — נסו שוב (ביקורת-עומק 2.9)'));
     },
     fixAllPhones() {
       let n = 0;
@@ -3978,7 +4026,7 @@ export const useApp = create<AppState>()((set, get) => {
         // ה-audit של הגיבוי (תמונת-עבר) נזנח. ריפוי: תמיד מערך.
         audit: Array.isArray(prev.audit) ? prev.audit : [],
       };
-      set({ db });
+      set({ db: withRemovalTombstones(prev, db) }); // ביקורת-עומק 2.9: מצבה לכל ישות שנגרעה בשחזור (אחרת אופליין מחיה)
       dirty = true; // 🐛 נחיל-עמוק (13.8): שחזור עוקף setDb ⇒ בלי סימון-dirty שער ריבוי-הטאבים דרס שחזור טרי
       scheduleSave();
       // 12.8: שחזור = החלפה מלאה ⇒ אותה החלפה סמכותית-מיידית כמו איפוס (אחרת
@@ -3990,7 +4038,7 @@ export const useApp = create<AppState>()((set, get) => {
     resetAll() {
       const prev = get().db;
       const db = emptyDb();
-      set({ db });
+      set({ db: withRemovalTombstones(prev, db) }); // ביקורת-עומק 2.9: איפוס = מצבה לכל ישות
       dirty = true; // 🐛 נחיל-עמוק (13.8): איפוס עוקף setDb ⇒ בלי סימון-dirty שער ריבוי-הטאבים דרס איפוס טרי
       scheduleSave();
       // 12.8: החלפה סמכותית מיידית — הזרימה המושהית הרגילה נתנה ל-snapshot-ענן

@@ -690,7 +690,8 @@ export function canGrantedAction(
   isManager: boolean,
   key: string,
 ): boolean {
-  return isManager || isAdminUser(config, email) || config.features?.[key] === true;
+  // ביקורת-עומק 2.9: false מפורש מכבה גם למנהל/מייל-על (אותה צורה כמו bulkGranted)
+  return config.features?.[key] !== false && (isManager || isAdminUser(config, email) || config.features?.[key] === true);
 }
 
 /** דריסת הריצה השמורה בדפדפן, אם קיימת ותקינה. */

@@ -35,7 +35,7 @@ import { fmtDate, supIls } from './lib';
 
 export function AyinCard(props: { supporter: Supporter }) {
   const sp = props.supporter;
-  const a = sp.ayin ?? emptyAyin();
+  const a = { ...emptyAyin(), ...(sp.ayin ?? {}) }; // ayin חלקי (גיבוי-ישן/ענן) — כל תת-מערך מובטח
   const cfg = useApp((s) => s.config);
   const advance = useApp((s) => s.ayinAdvance);
   const setPaid = useApp((s) => s.ayinSetPaid);
@@ -593,7 +593,7 @@ export function AyinCard(props: { supporter: Supporter }) {
             >
               ✎
             </button>
-            <button onClick={() => deleteAnswer(sp.id, i)} title="מחיקה" style={{ color: 'var(--ink-faint)', fontWeight: 700 }}>
+            <button onClick={() => { deleteAnswer(sp.id, i); setEditIdx(null); }} title="מחיקה" style={{ color: 'var(--ink-faint)', fontWeight: 700 }}>
               🗑
             </button>
           </div>

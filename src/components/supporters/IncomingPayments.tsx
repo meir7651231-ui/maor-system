@@ -262,7 +262,7 @@ export function IncomingPaymentsModal(props: { onClose: () => void }) {
           <input type="checkbox" checked={sel.has(p.id)} onChange={() => toggle(p.id)} style={{ width: 'auto', flexShrink: 0 }} aria-label="בחירת תשלום" />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700 }}>
-              {p.currency || '₪'}{p.amount.toLocaleString('he-IL')} · {p.name || 'ללא שם'}
+              {p.currency || '₪'}{Number(p.amount ?? 0).toLocaleString('he-IL')} · {p.name || 'ללא שם'}
               {p.kind === 'refund' ? <span style={{ fontSize: 11, color: 'var(--danger, #e05252)', marginInlineStart: 6 }}>↩️ זיכוי</span> : null}
               {p.kind === 'cancel' ? <span style={{ fontSize: 11, color: 'var(--ink-faint)', marginInlineStart: 6 }}>🚫 ביטול</span> : null}
               {p.kevaId ? <span style={{ fontSize: 11, color: 'var(--accent)', marginInlineStart: 6 }}>🔁 הו״ק</span> : null}
@@ -402,7 +402,9 @@ function MergeView(props: { pay: IncomingPayment; onBack: () => void; onMerged: 
         <Btn sm onClick={props.onBack}>← חזרה</Btn>
       </div>
 
-      {dest === 'fam' && pay.amount > 0 && (
+      {/* ביקורת-עומק 2.9: תשלום-$ נותב כ-R- בערך-נקוב ב-₪ (Payment בלי cur) — מסלול-המשפחות רק ל-₪ */}
+      {dest === 'fam' && pay.currency === '$' && <Empty>תשלום בדולר לא ניתן לניתוב כתשלום-חוג בשקלים — רשמו דרך התורמים (D-)</Empty>}
+      {dest === 'fam' && pay.amount > 0 && pay.currency !== '$' && (
         <>
           {enrollRows.length === 0 ? (
             <Empty>לא נמצאו שיבוצים תואמים — חפשו לפי שם-משפחה, שם-ילד/ה או טלפון</Empty>

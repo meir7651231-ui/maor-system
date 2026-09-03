@@ -16,7 +16,7 @@ import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 import { sessionsOf } from '../courses/lib';
 // sessionsOf — מקור-אמת יחיד בקורסים; מיוצא מחדש (wallData מייבא אותו מכאן)
 export { sessionsOf };
-import { EV_META, evLabel } from '../../lib/eventMeta';
+import { EV_META, evLabel, evMeta } from '../../lib/eventMeta';
 export { EV_META, evLabel }; // מיוצא מחדש — wallData מייבא evLabel מכאן
 import type { IcsOccurrence } from '../../lib/ics';
 
@@ -272,8 +272,8 @@ export function dayItems(db: Db, d: Date, config: OrgConfig = DEFAULT_CONFIG): D
       key: 'ev-' + ev.id,
       label: (ev.time ? ev.time + ' · ' : '') + ev.title,
       title: ev.title + (ev.done ? ' · בוצע ✓' : ''),
-      bg: EV_META[ev.type].bg,
-      c: EV_META[ev.type].c,
+      bg: evMeta(ev).bg,
+      c: evMeta(ev).c,
       typeLabel: evLabel(ev),
       sort: ev.priority === 'red' ? 0.5 : 1,
       prC: PRIORITY_COLOR[ev.priority] ?? 'transparent',
@@ -760,8 +760,8 @@ export function upcomingRows(db: Db, days = 14): UpcomingRow[] {
         title: ev.title,
         sub: fmtD(iso) + (ev.time ? ' · ' + ev.time : ''),
         typeLabel: evLabel(ev),
-        bg: EV_META[ev.type].bg,
-        c: EV_META[ev.type].c,
+        bg: evMeta(ev).bg,
+        c: evMeta(ev).c,
         prC: PRIORITY_COLOR[ev.priority] ?? 'transparent',
         ev,
       });

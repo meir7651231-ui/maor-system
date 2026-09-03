@@ -570,8 +570,10 @@ export function subscribeAll(
         ? query(collection(db, scopedCol(col)), where('skey', 'in', supAllowedKeys(allowedPurposes)))
         : collection(db, scopedCol(col)),
       (snap) => {
-        if (snap.metadata.hasPendingWrites) return;
-        const changes = snap.docChanges();
+        // ביקורת-עומק 2.9: דילוג על **כל** ה-snapshot כשיש כתיבה-מקומית-ממתינה הפיל
+        // שינויים-מרוחקים שהגיעו באותו snapshot — ו-docChanges() לא מחזיר אותם שוב
+        // (סטייה שקטה עד רענון). מסננים פר-מסמך: ההד-המקומי מדולג, המרוחקים מוחלים.
+        const changes = snap.docChanges().filter((ch) => !ch.doc.metadata.hasPendingWrites);
         if (!changes.length) return;
         // dek נעדר ⇒ נתיב ביט-זהה להיום. קיים ⇒ פענוח לפני onRemote (מחוקים אין מה לפענח).
         if (!dek) {
@@ -595,7 +597,10 @@ export function subscribeAll(
     onSnapshot(
       doc(db, scopedMeta()),
       (snap) => {
-        if (snap.metadata.hasPendingWrites || !snap.exists()) return;
+        // ביקורת-עומק 2.9: דילוג על meta כשיש כתיבה-ממתינה השאיר את מונה-הקבלות המקומי
+        // נמוך ממה שמכשיר אחר כבר הנפיק ⇒ **קבלת-מס כפולה**. applyMetaPartial הוא
+        // bump-only למונים ו-no-op (JSON-שווה) להד-שלנו ⇒ בטוח להחיל תמיד.
+        if (!snap.exists()) return;
         if (!dek) {
           onRemote({ meta: snap.data() });
           return;
@@ -735,6 +740,8 @@ export async function syncGContacts(fnUrl: string): Promise<{ total?: number; cr
   const org = scope.cloudRoot ? 'root' : scope.slug;
   const u = new URL(clean);
   u.searchParams.set('org', org);
+  // לקוח-השורש: הנתונים ב-root אבל הכספת (orgSecrets) נכתבת תחת ה-slug האמיתי — vault מגשר (כמו pullSola)
+  if (scope.cloudRoot && scope.slug && scope.slug !== 'default') u.searchParams.set('vault', scope.slug);
   const r = await fetch(u.toString(), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
   const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; status?: { total?: number; created?: number; updated?: number; skipped?: string } };
   if (!r.ok || j.ok === false) throw new Error(j.error || 'סנכרון נכשל (' + r.status + ')');

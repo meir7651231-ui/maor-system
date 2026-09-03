@@ -485,7 +485,7 @@ export function ManagerPanel(props: { onClose: () => void }) {
                           )}
                           {open.slice(0, 8).map((t) => (
                             <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '2px 0', color: 'var(--ink-soft)' }}>
-                              <span>{PRI_LABELS[t.pri].slice(0, 2)}</span>
+                              <span>{(PRI_LABELS[t.pri] ?? PRI_LABELS[2]).slice(0, 2)}</span>
                               <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
                               {t.due && <span style={{ color: t.due < today ? 'var(--red)' : 'var(--ink-faint)', whiteSpace: 'nowrap' }}>{t.due.slice(5).split('-').reverse().join('/')}</span>}
                               <Btn sm onClick={() => deleteWorkTask(t.id)} title="ביטול המשימה">🗑</Btn>

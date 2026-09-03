@@ -33,7 +33,7 @@ export function exportFamiliesCsv(): void {
     const ens = db.enrollments.filter((e) => memberIds.has(e.memberId));
     const bal = ens.reduce((a, e) => a + payBal(e), 0);
     rows.push([
-      f.name, STATUS_META[f.status].label, f.father, f.fatherId, f.mother, f.motherId, f.phone,
+      f.name, (STATUS_META[f.status] ?? STATUS_META.active).label, f.father, f.fatherId, f.mother, f.motherId, f.phone,
       f.phone2, f.email, f.city, f.address, f.community, f.maritalStatus, f.language, f.tzedaka,
       f.fullSefach ? 'כן' : 'לא', f.discount, f.cred?.score ?? '', f.members.length,
       f.members.filter((m) => !m.isParent).length, ens.length, bal, fmtDate(f.createdAt), f.notes,

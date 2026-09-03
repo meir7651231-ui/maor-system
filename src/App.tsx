@@ -130,6 +130,11 @@ const VIEWS: Record<View, ComponentType> = {
   settings: SettingsView,
 };
 
+/** decodeURIComponent חסין — hash פגום (#builder=%E0) זרק URIError בזמן-רינדור ⇒ האפליקציה לא עלתה (ביקורת-עומק 2.9). */
+function safeDecode(s: string): string {
+  try { return decodeURIComponent(s); } catch { return s; }
+}
+
 export default function App() {
   const ready = useApp((s) => s.ready);
   const view = useApp((s) => s.view);
@@ -218,7 +223,7 @@ export default function App() {
     // דילוג בסביבת Playwright (navigator.webdriver) — E2E לא מריץ ריפויים אוטומטיים
     if (typeof navigator !== 'undefined' && (navigator as { webdriver?: boolean }).webdriver) return;
     try {
-      seedOverduePlannedReminders(new Date().toISOString().slice(0, 10));
+      seedOverduePlannedReminders(isoToday()); // ביקורת-עומק 2.9: UTC-היום החסיר תזכורות 00:00–03:00 מקומי
     } catch {
       /* אל תפיל את-האפליקציה על שגיאת-תזכורת */
     }
@@ -290,7 +295,7 @@ export default function App() {
   // ‏#builder = אשף מקומי · ‏#builder=slug = אשף קשור-ענן ללקוח (RemoteWizard, 5.8)
   const [builderOpen, setBuilderOpen] = useState(() => window.location.hash.startsWith('#builder'));
   const remoteBuilderSlug = window.location.hash.startsWith('#builder=')
-    ? decodeURIComponent(window.location.hash.slice('#builder='.length))
+    ? safeDecode(window.location.hash.slice('#builder='.length))
     : null;
   // קיר ההשפעה — מצב ראווה במסך מלא, נפתח עם #wall (feature: home.impactwall)
   const [wallOpen, setWallOpen] = useState(() => window.location.hash === '#wall');
@@ -344,8 +349,9 @@ export default function App() {
   useEffect(() => {
     if (!teamchatAvail) { setTeamMsgs([]); return; }
     let unsub: (() => void) | undefined;
-    void import('./store/cloudSync').then((m) => { unsub = m.watchTeamMessages(teamSlug, setTeamMsgs); });
-    return () => unsub?.();
+    let alive = true; // ביקורת-עומק 2.9: הצ׳אנק נפתר אחרי unmount/החלפת-slug ⇒ onSnapshot יתום שמזין setState
+    void import('./store/cloudSync').then((m) => { if (alive) unsub = m.watchTeamMessages(teamSlug, setTeamMsgs); }).catch(() => { /* צ׳אנק לא נטען — הצ׳אט נשאר ריק */ });
+    return () => { alive = false; unsub?.(); };
   }, [teamchatAvail, teamSlug]);
   const teamUnread = teamUnreadCount(teamMsgs, teamReadAt, (cloud.user?.email || '').toLowerCase());
   const markTeamRead = () => {
@@ -445,7 +451,7 @@ export default function App() {
   useEffect(() => {
     const handleCall = () => {
       if (!window.location.hash.startsWith('#call=')) return;
-      const number = decodeURIComponent(window.location.hash.slice('#call='.length));
+      const number = safeDecode(window.location.hash.slice('#call='.length));
       // ניקוי ה-hash מיד — שלא יישאר בכתובת ולא יופעל שוב ברענון
       history.replaceState(null, '', window.location.pathname + window.location.search);
       if (!telephonyOn(useApp.getState().config) || !number.trim()) return;
@@ -812,7 +818,7 @@ export default function App() {
             <Current />
           </Suspense>
           {/* 📞 צ'יפ-קמפיין-צף (20.8) — קמפיין-חייגן פעיל נשאר נגיש מכל מסך */}
-          {featureOn(config, 'shell.dialerchip') && telephonyOn(config) && <DialerChip />}
+          {moduleOn(config, 'supporters') && featureOn(config, 'shell.dialerchip') && telephonyOn(config) && <DialerChip />}
         </>
       )}
     </main>

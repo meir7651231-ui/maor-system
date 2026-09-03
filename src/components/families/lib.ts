@@ -105,7 +105,7 @@ export function finderAxisValue(db: Db, f: Family, axis: string, config?: OrgCon
     case 'city': return f.city || '';
     case 'comm': return f.community || '';
     case 'marital': return f.maritalStatus || 'לא ידוע';
-    case 'status': return STATUS_META[f.status].label;
+    case 'status': return (STATUS_META[f.status] ?? STATUS_META.active).label;
     case 'cred': return tierOf(f.cred?.score ?? 700).label;
     case 'kids': return f.members.some((m) => !m.isParent) ? 'עם ילדים' : 'בלי ילדים';
     case 'enrolled': return famLiveEnrollments(db, f).length ? 'משתתפות ב' + T('nav.courses', 'חוגים') : 'לא משתתפות';

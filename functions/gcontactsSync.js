@@ -130,12 +130,16 @@ if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || pro
     require('firebase-admin/app');
 
     const CONTACT_COLS = ['families', 'supporters', 'volunteers'];
+    // לקוח-השורש (org='root'): הנתונים באוספי-השורש, לא ב-orgs/root/… (כמו incomingCol ב-solaPull).
+    const colFor = (db, org, name) => (org === 'root' ? db.collection(name) : db.collection('orgs').doc(org).collection(name));
+    const ORG_RE = /^[a-z0-9-]{2,40}$/;
+    // מיילי-העל: env + עוגן-קשיח (משקף את allowlist-השורש ב-firestore.rules) — **התאמה-מלאה**, לא substring.
+    const superSet = () => new Set(['meir7651231@gmail.com', ...String(process.env.SUPER_ADMIN_EMAILS || '').toLowerCase().split(/[,\s]+/).filter(Boolean)]);
     const PERSON_FIELDS = 'names,clientData';
 
     // אישורי-הארגון: **הכספת גוברת** (orgSecrets/{slug}) — refresh + client-id/secret;
     // ‏env הוא נפילה-לאחור בלבד ל-client-id/secret. כך הבעלים מזין הכל בתוך האתר
     // (הגדרות←אבטחה←כספת), בלי שורת-פקודה. חסר refresh ⇒ הארגון מדולג.
-    const clean = (s) => (typeof s === 'string' && s.trim() ? s.trim() : '');
     async function credsFor(db, slug) {
       const doc = await db.doc('orgSecrets/' + slug).get();
       const d = doc.exists ? doc.data() : {};
@@ -170,14 +174,13 @@ if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || pro
       return map;
     }
 
-    async function syncOneOrg(db, slug, cfg) {
-      const creds = await credsFor(db, slug);
+    async function syncOneOrg(db, slug, cfg, vaultOrg) {
+      const creds = await credsFor(db, vaultOrg || slug);
       if (!creds.refresh) return { skipped: 'no-refresh-token' };
       if (!creds.clientId || !creds.clientSecret) return { skipped: 'no-oauth-app' };
-      const base = db.collection('orgs').doc(slug);
       const data = {};
       for (const col of CONTACT_COLS) {
-        const snap = await base.collection(col).get();
+        const snap = await colFor(db, slug, col).get();
         data[col] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       }
       const org = (cfg && cfg.orgName) || slug;
@@ -198,7 +201,7 @@ if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || pro
         }).then(() => updated++).catch((e) => console.error('gcontacts update ' + slug + ': ' + String(e).slice(0, 200)));
       }
       const status = { at: new Date().toISOString(), total: contacts.length, created, updated };
-      await base.collection('gcontactsSync').doc('status').set(status, { merge: true }).catch(() => {});
+      await colFor(db, slug, 'gcontactsSync').doc('status').set(status, { merge: true }).catch(() => {});
       return status;
     }
 
@@ -231,21 +234,35 @@ if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || pro
           const db = getFirestore();
           const bearer = /^Bearer (.+)$/.exec(req.get('authorization') || '');
           const slug = clean(req.query.org) || clean((req.body || {}).org);
-          if (!slug) { res.status(400).json({ error: 'missing-org' }); return; }
+          if (!(ORG_RE.test(slug) || slug === 'root')) { res.status(400).json({ error: 'bad-org' }); return; }
+          // vault: רק ללקוח-השורש מותר להצביע על מגירת-הכספת של ה-slug האמיתי (כמו solaPull)
+          const vaultRaw = clean(req.query.vault) || clean((req.body || {}).vault);
+          const vaultOrg = slug === 'root' && ORG_RE.test(vaultRaw) ? vaultRaw : slug;
           const { getAuth } = require('firebase-admin/auth');
           let email = '';
           if (bearer) { try { email = (await getAuth().verifyIdToken(bearer[1])).email || ''; } catch { /* invalid */ } }
           if (!email) { res.status(401).json({ error: 'unauthorized' }); return; }
-          const orgDoc = await db.doc('platformOrgs/' + slug).get();
-          const od = orgDoc.exists ? orgDoc.data() : {};
           const el = email.toLowerCase();
-          const isMgr = clean(od.manager).toLowerCase() === el || (od.members || []).map((x) => String(x).toLowerCase()).includes(el);
-          const supers = String(process.env.SUPER_ADMIN_EMAILS || '').toLowerCase();
-          if (!isMgr && !supers.includes(el)) { res.status(403).json({ error: 'forbidden' }); return; }
-          const status = await syncOneOrg(db, slug, (od.config || {}));
+          const isSuper = superSet().has(el);
+          const orgDoc = slug === 'root' ? null : await db.doc('platformOrgs/' + slug).get();
+          const od = orgDoc && orgDoc.exists ? orgDoc.data() : {};
+          // root ⇒ מיילי-על בלבד (כמו solaPull); ארגון-פלטפורמה ⇒ מנהל/חבר או מייל-על
+          const isMgr = slug !== 'root' && (clean(od.manager).toLowerCase() === el || (od.members || []).map((x) => String(x).toLowerCase()).includes(el));
+          if (!isSuper && !isMgr) { res.status(403).json({ error: 'forbidden' }); return; }
+          // ארגון-פלטפורמה: ההרחבה חייבת להיות דלוקה (אותו שער כמו המתוזמן); root = קונפיג סטטי, השער אצל הלקוח
+          if (slug !== 'root') {
+            const cfg = od.config || {};
+            if (!cfg.integrations || !cfg.integrations.gcontacts || cfg.integrations.gcontacts.enabled !== true) { res.status(403).json({ error: 'gcontacts-disabled' }); return; }
+          }
+          // cooldown 60s פר-ארגון — מגן על מכסת People API מלחיצות-חוזרות
+          const prev = await colFor(db, slug, 'gcontactsSync').doc('status').get().catch(() => null);
+          const lastAt = prev && prev.exists ? Date.parse(prev.data().at || 0) : 0;
+          if (lastAt && Date.now() - lastAt < 60_000) { res.status(429).json({ error: 'cooldown' }); return; }
+          const status = await syncOneOrg(db, slug, (od.config || {}), vaultOrg);
           res.json({ ok: true, status });
         } catch (e) {
-          res.status(500).json({ error: String(e).slice(0, 300) });
+          console.error('gcontactsSyncNow: ' + String(e).slice(0, 300));
+          res.status(500).json({ error: 'sync-failed' });
         }
       },
     );

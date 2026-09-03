@@ -15,6 +15,7 @@
 // פוגע בעיצוב. כיבוי ממוקד של כלל ה-Fast-Refresh (רלוונטי רק ל-HMR בפיתוח, אפס
 // השפעה על המוצר) — קו-לוקיישן מכוון ומוצדק.
 /* oxlint-disable react/only-export-components */
+import { evMeta } from '../../lib/eventMeta';
 import { useEffect, useMemo, useState, type CSSProperties, type ReactElement, type ReactNode } from 'react';
 import { useApp, type View } from '../../store/useApp';
 import type { Db, Family, OrgEvent } from '../../types/domain';
@@ -40,7 +41,6 @@ import {
   credTodayTrend,
   DAY_NAMES,
   dueContacts,
-  EV_META,
   evLabel,
   fmtD,
   monthDonationSum,
@@ -179,7 +179,7 @@ function MyTasksWidget({ ctx }: { ctx: HomeCtx }) {
             onClick={() => jump(t)}
             title={t.ref ? 'לכרטיס ←' : undefined}
           >
-            <span aria-hidden>{PRI_LABELS[t.pri].slice(0, 2)}</span>
+            <span aria-hidden>{(PRI_LABELS[t.pri] ?? PRI_LABELS[2]).slice(0, 2)}</span>
             <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</span>
             {t.due && (
               <span style={{ marginInlineStart: 'auto', fontSize: 11.5, whiteSpace: 'nowrap', color: taskOverdue(t, todayIso) ? 'var(--red)' : 'var(--ink-faint)' }}>
@@ -897,7 +897,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
           onClick={() => ctx.navTo(ev.famId ? { kind: 'family', id: ev.famId } : { kind: 'calendar' })}
           title={ev.famId ? 'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה') : 'ללוח השנה'}
         >
-          <span style={chipStyle(ctx, EV_META[ev.type].bg, EV_META[ev.type].c)}>{evLabel(ev)}</span>
+          <span style={chipStyle(ctx, evMeta(ev).bg, evMeta(ev).c)}>{evLabel(ev)}</span>
           <span>
             {(ev.time ? ev.time + ' · ' : '') + ev.title}
             {ev.famId ? ' · ' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + famName(ev.famId) : ''}
