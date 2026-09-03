@@ -22,7 +22,8 @@ import type { AyinCase, AyinStage } from '../../types/domain';
 import { fmtDate, supporterVisibleForDesignations } from './lib';
 
 /** תבנית-הגריד של שורה ושל שורת-הכותרות — זהה, כדי שהעמודות יתיישרו. */
-const ROW_GRID = 'minmax(90px,.9fr) 1.6fr 1.1fr .8fr .8fr auto';
+// עמודה אחרונה ברוחב קבוע (לא auto): בשורות בלי כפתור-חכם הטראק היה 0px וה-fr-ים נדדו עד ~90px מול הכותרות (אימות-ריצה 3.9).
+const ROW_GRID = 'minmax(90px,.9fr) 1.6fr 1.1fr .8fr .8fr 140px';
 
 /** גלולות השלבים לשורה — הושלמו (ירוק) · נוכחי (כהה) · עתידיים (עמום). */
 function StageChips(props: { cfg: ReturnType<typeof useApp.getState>['config']; stage: AyinStage }) {
