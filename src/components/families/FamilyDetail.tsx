@@ -23,8 +23,10 @@ import { Shop7FamilyPanel } from '../shop7/Shop7FamilyPanel';
 import { ReenrollFamilyPanel } from './ReenrollFamilyPanel';
 import { useArmed } from '../useArmed';
 
-function InfoRow(props: { k: string; v: string; action?: ReactNode }) {
+function InfoRow(props: { k: string; v: string; action?: ReactNode; ltr?: boolean }) {
   // סגנון-flex רק כשיש action — בלי action ה-DOM ביט-זהה לקודם (ביקורת 4.8)
+  // ltr (swarm-b A-3): בידוד-כיווניות לטלפון/אימייל ב-span פנימי בלבד — dir על ה-span
+  // החיצוני היה מהפך את סדר action/ערך ב-inline-flex. בלי ltr ה-DOM ביט-זהה.
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '4px 0', fontSize: 14 }}>
       <span style={{ color: 'var(--ink-faint)', whiteSpace: 'nowrap' }}>{props.k}</span>
@@ -37,7 +39,7 @@ function InfoRow(props: { k: string; v: string; action?: ReactNode }) {
         }}
       >
         {props.action}
-        {props.v}
+        {props.ltr ? <span dir="ltr" style={{ unicodeBidi: 'isolate' }}>{props.v}</span> : props.v}
       </span>
     </div>
   );
@@ -374,9 +376,9 @@ export function FamilyDetail(props: { family: Family }) {
           <InfoRow k="שם האם" v={fam.mother || '—'} />
           <InfoRow k={'ת"ז האם'} v={maskId(fam.motherId, showIds)} />
           {/* הרחבות נמכרות: 📞 חיוג (מודול טלפוניה, opt-in) · 💬 wa.me · 🗺️ Maps — חסר=כבוי */}
-          <InfoRow k="טלפון ראשי" v={fam.phone || '—'} action={commsAction(fam.phone)} />
-          <InfoRow k="טלפון נוסף" v={fam.phone2 || '—'} action={commsAction(fam.phone2)} />
-          <InfoRow k="אימייל" v={fam.email || '—'} />
+          <InfoRow k="טלפון ראשי" v={fam.phone || '—'} action={commsAction(fam.phone)} ltr />
+          <InfoRow k="טלפון נוסף" v={fam.phone2 || '—'} action={commsAction(fam.phone2)} ltr />
+          <InfoRow k="אימייל" v={fam.email || '—'} ltr />
           <InfoRow
             k="כתובת"
             v={addressLine || '—'}

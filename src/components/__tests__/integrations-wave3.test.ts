@@ -105,7 +105,7 @@ describe('🛡 ratchet — הגנות-מקור גל ג׳: הכול מגודר, �
   it('🤖 SupporterDetail — הכפתור רק עם הרחבה+מפתח; ההגדרה מגודרת-מנהל', () => {
     expect(supDetailSrc).toContain("integrationOn(config, 'ai') && !!readAiKey()");
     expect(settingsSrc).toContain("integrationOn(config, 'ai')");
-    expect(settingsSrc).toContain('isAdminUser(config, cloudUser?.email)');
+    expect(settingsSrc).toContain('isAdminAuthority(config, cloudUser?.email, isManagerAi)');
   });
 
   it('✍️ Shop7 — לוח-חתימה רק עם esign; חתימה נשמרת על המסירה', () => {

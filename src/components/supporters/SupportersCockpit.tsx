@@ -215,7 +215,7 @@ export function SupportersCockpit(props: {
   const rate = props.usdRate || 3.7;
 
   const kpis = cockpitKpis(props.supporters, today, rate);
-  const queue = cockpitQueue(props.supporters, today, rate);
+  const queue = cockpitQueue(props.supporters, today, rate, props.config);
   const prog = cockpitProgress(queue, doneIds);
   // 🕎 מנוע-העיתוי העברי (VISION-LIGHT #37) — opt-in מפורש; אפס-השפעה בלי הדגל
   const hebOn = props.config.features?.['supporters.hebtiming'] === true;

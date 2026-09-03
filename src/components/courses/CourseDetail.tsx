@@ -443,12 +443,12 @@ export function CourseDetail(props: { course: Course }) {
               kind={armed === 'endsem-' + c.id ? 'danger' : undefined}
               onClick={() => {
                 const n = enrolledAll.filter((e) => e.status === 'active' || e.status === 'paused').length;
-                if (!confirmTwice('endsem-' + c.id, 'לסיים את הסמסטר? ' + n + ' שיבוצים יסומנו "הסתיים" (נשמרים בדוח ההיסטורי; אפשר לחדש).')) {
+                if (!confirmTwice('endsem-' + c.id, 'לסיים את הסמסטר? ' + n + ' ' + termOf(cfg, 'entity.enrollments', 'שיבוצים') + ' יסומנו "הסתיים" (נשמרים בדוח ההיסטורי; אפשר לחדש).')) {
                   toast('בטוחים? לחיצה נוספת תסיים את הסמסטר');
                   return;
                 }
                 const done = bulkEndCourse(c.id, isoToday());
-                toast('🎓 הסמסטר הסתיים — ' + done + ' שיבוצים עודכנו');
+                toast('🎓 הסמסטר הסתיים — ' + done + ' ' + termOf(cfg, 'entity.enrollments', 'שיבוצים') + ' עודכנו');
               }}
               title="סיום-סמסטר — כל השיבוצים הפעילים ⇒ הסתיים (נשמר בדוח, ניתן לחדש)"
             >

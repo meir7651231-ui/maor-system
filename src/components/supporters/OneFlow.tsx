@@ -34,7 +34,7 @@ export function OneFlow(props: {
   onClose: () => void;
 }) {
   const today = isoToday();
-  const queue = cockpitQueue(props.supporters, today, props.usdRate || 3.7);
+  const queue = cockpitQueue(props.supporters, today, props.usdRate || 3.7, props.config);
   const all: CockpitTask[] = [...queue.calls, ...queue.thanks, ...queue.hok];
   // בוצע/דלג = מצב-סשן בלבד (אפס-כתיבה ל-DB); "דלג" חוזר לסוף — כמו בחייגן
   const [handled, setHandled] = useState<ReadonlySet<string>>(new Set<string>());

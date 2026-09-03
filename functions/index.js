@@ -157,6 +157,32 @@ function slugOfQueueDoc(docSnap) {
 }
 
 /**
+ * 🔒 תביעת-מסמך-תור (swarm-b A5): ריצות onSchedule חופפות (20 שליחות SMTP עלולות
+ * לחרוג מ-60s) קראו את אותם pending ושלחו פעמיים (SMS בתשלום / מייל-קבלה כפול).
+ * טרנזקציה: pending ⇒ 'sending' (+claimedAt) — רק התובע שולח. תואם-לאחור: מסמכים
+ * קיימים נבדקים לפי status בלבד; 'sending' נראה ל-fetchOutboxIssues כלא-error/לא-pending.
+ */
+async function claimOutboxDoc(db, ref) {
+  return db.runTransaction(async (tx) => {
+    const s = await tx.get(ref);
+    if (!s.exists || s.data().status !== 'pending') return false;
+    tx.update(ref, { status: 'sending', claimedAt: new Date().toISOString() });
+    return true;
+  });
+}
+
+/** תביעה-תקועה = ריצה שקרסה באמצע: 'sending' ישן מ-10 דק׳ ⇒ חזרה ל-'pending' (ניסיון-חוזר). */
+const STALE_CLAIM_MS = 10 * 60_000;
+async function releaseStaleClaims(db, colName) {
+  const stuck = await db.collectionGroup(colName).where('status', '==', 'sending').limit(50).get();
+  const cutoff = Date.now() - STALE_CLAIM_MS;
+  for (const d of stuck.docs) {
+    const at = Date.parse(d.data().claimedAt || '');
+    if (!at || at < cutoff) await d.ref.update({ status: 'pending', claimedAt: null }).catch(() => {});
+  }
+}
+
+/**
  * 📱 smsOutbox — כל דקה: שולח הודעות שממתינות ב-smsOutbox (שורש) וב-
  * orgs/{slug}/smsOutbox (collectionGroup תופס את שניהם). האפליקציה כותבת
  * ‏{to, text}; כאן נשלח דרך הספק ומסומן sent/error. מוגבל 20/דקה.
@@ -164,13 +190,16 @@ function slugOfQueueDoc(docSnap) {
  */
 exports.smsOutbox = onSchedule({ schedule: 'every 1 minutes', secrets: ['SMS_API_KEY', 'SMS_PROVIDER', 'SMS_SENDER'] }, async () => {
   const db = getFirestore();
+  await releaseStaleClaims(db, 'smsOutbox');
   const pending = await db.collectionGroup('smsOutbox').where('status', '==', 'pending').limit(20).get();
   for (const doc of pending.docs) {
     const { to, text } = doc.data();
+    // המפתח נבדק **לפני** התביעה — בלי מפתח המסמך נשאר pending (לא 'sending' לנצח)
+    const sec = await orgSecretsOf(db, slugOfQueueDoc(doc));
+    const apiKey = sec.smsApiKey || process.env.SMS_API_KEY || '';
+    if (!apiKey) continue; // אין מפתח (ארגוני או גלובלי) — נשאר pending עד שיוגדר
+    if (!(await claimOutboxDoc(db, doc.ref).catch(() => false))) continue; // נתבע ע"י ריצה חופפת
     try {
-      const sec = await orgSecretsOf(db, slugOfQueueDoc(doc));
-      const apiKey = sec.smsApiKey || process.env.SMS_API_KEY || '';
-      if (!apiKey) continue; // אין מפתח (ארגוני או גלובלי) — נשאר pending עד שיוגדר
       await sendSmsVia(process.env.SMS_PROVIDER || '019', apiKey, process.env.SMS_SENDER || '', String(to), String(text));
       await doc.ref.update({ status: 'sent', sentAt: new Date().toISOString() });
     } catch (e) {
@@ -285,6 +314,7 @@ exports.sheetsNightly = onSchedule({ schedule: 'every day 03:00', secrets: ['GOO
 exports.mailOutbox = onSchedule({ schedule: 'every 1 minutes' }, async () => {
   const nodemailer = require('nodemailer');
   const db = getFirestore();
+  await releaseStaleClaims(db, 'mailOutbox');
   const pending = await db.collectionGroup('mailOutbox').where('status', '==', 'pending').limit(20).get();
   if (pending.empty) return;
   // ‏9.8: ‏SMTP פר-ארגון (orgSecrets.smtpUrl) גובר על הגלובלי; transport ממוטמן פר-URL
@@ -293,10 +323,12 @@ exports.mailOutbox = onSchedule({ schedule: 'every 1 minutes' }, async () => {
   const transportFor = (smtpUrl) => (transports[smtpUrl] ??= nodemailer.createTransport(smtpUrl));
   for (const doc of pending.docs) {
     const { to, subject, text } = doc.data();
+    // ה-SMTP נבדק **לפני** התביעה — בלי smtpUrl המסמך נשאר pending (לא 'sending' לנצח)
+    const sec = await orgSecretsOf(db, slugOfQueueDoc(doc));
+    const smtpUrl = sec.smtpUrl || process.env.SMTP_URL || '';
+    if (!smtpUrl) continue; // אין SMTP (ארגוני או גלובלי) — נשאר pending עד שיוגדר
+    if (!(await claimOutboxDoc(db, doc.ref).catch(() => false))) continue; // נתבע ע"י ריצה חופפת
     try {
-      const sec = await orgSecretsOf(db, slugOfQueueDoc(doc));
-      const smtpUrl = sec.smtpUrl || process.env.SMTP_URL || '';
-      if (!smtpUrl) continue; // אין SMTP (ארגוני או גלובלי) — נשאר pending עד שיוגדר
       // ✉️ כתובת-השולח (21.8): הפונקציה לא מצהירה secrets ⇒ MAIL_FROM תמיד ריק היה
       // שולח מיילים בלי From (ספאם/דחייה). הכרעת-הבעלים "מייל פר-לקוח" ⇒ השולח
       // נגזר מה-smtpUrl של הארגון עצמו: ה-username ב-URL הוא כתובת-המייל של הלקוח

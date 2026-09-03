@@ -6,6 +6,7 @@
  */
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
+import { termOf } from '../../lib/config';
 import {
   EMPTY_PORTAL_FORM, PORTAL_SENDER, PORTAL_SENDER_NAME, portalChannels, portalChatLine,
   portalHasChannels, portalValid, type PortalForm,
@@ -35,6 +36,9 @@ export function PortalEntry({ onEnter }: { onEnter: () => void }) {
 
   const hasChannels = portalHasChannels(config);
   const channels = portalValid(form) ? portalChannels(config, orgName, form) : [];
+  // מונחי-הארגון (swarm-b TP-14) — חסר ⇒ 'חוג'/'שיבוץ' ביט-זהה
+  const courseW = termOf(config, 'entity.course', 'חוג');
+  const enrollW = termOf(config, 'entity.enrollment', 'שיבוץ');
 
   const close = () => {
     setOpen(false);
@@ -98,7 +102,7 @@ export function PortalEntry({ onEnter }: { onEnter: () => void }) {
             style={{ width: '100%', maxWidth: 440, background: '#fff', borderRadius: 20, padding: '24px 22px', boxShadow: '0 30px 80px rgba(0,0,0,.35)', maxHeight: '90vh', overflowY: 'auto' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <strong style={{ fontSize: 19, color: '#2a2a2a' }}>{view === 'hub' ? '🚪 הצטרפות ל' + (orgName || 'ארגון') : '👪 הרשמת ילד/ה לחוג'}</strong>
+              <strong style={{ fontSize: 19, color: '#2a2a2a' }}>{view === 'hub' ? '🚪 הצטרפות ל' + (orgName || 'ארגון') : '👪 הרשמת ילד/ה ל' + courseW}</strong>
               <button type="button" onClick={close} aria-label="סגירה" style={{ border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', color: '#999', lineHeight: 1 }}>✕</button>
             </div>
 
@@ -112,7 +116,7 @@ export function PortalEntry({ onEnter }: { onEnter: () => void }) {
                 >
                   <span style={{ fontSize: 30 }}>👪</span>
                   <span style={{ textAlign: 'start' }}>
-                    <span style={{ display: 'block', fontWeight: 800, fontSize: 16, color: '#8a5a1a' }}>הרשמת ילד/ה לחוג</span>
+                    <span style={{ display: 'block', fontWeight: 800, fontSize: 16, color: '#8a5a1a' }}>{'הרשמת ילד/ה ל' + courseW}</span>
                     <span style={{ display: 'block', fontSize: 13, color: '#a5772f' }}>ממלאים פרטים — ואנחנו חוזרים אליכם</span>
                   </span>
                 </button>
@@ -134,7 +138,7 @@ export function PortalEntry({ onEnter }: { onEnter: () => void }) {
                 {field('שם הילד/ה', 'childName', 'שם מלא', true)}
                 {field('שם ההורה', 'parentName', 'שם מלא')}
                 {field('טלפון', 'phone', '050-0000000', true, 'tel')}
-                {field('חוג מבוקש', 'course', 'למשל: ציור, גיטרה…')}
+                {field(courseW + ' מבוקש', 'course', 'למשל: ציור, גיטרה…')}
                 {field('הערה', 'note', 'משהו שנרצה לדעת?')}
 
                 {!hasChannels ? (
@@ -160,7 +164,7 @@ export function PortalEntry({ onEnter }: { onEnter: () => void }) {
                         </a>
                       ))}
                     </div>
-                    <div style={{ fontSize: 11.5, color: '#999', marginTop: 10 }}>הבקשה נפתחת לעריכה לפני שליחה — אינה מחייבת. שיבוץ סופי מאושר ע"י הרכז.</div>
+                    <div style={{ fontSize: 11.5, color: '#999', marginTop: 10 }}>{'הבקשה נפתחת לעריכה לפני שליחה — אינה מחייבת. ' + enrollW + ' סופי מאושר ע"י הרכז.'}</div>
                   </div>
                 )}
 

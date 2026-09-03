@@ -679,6 +679,18 @@ export function isAdminUser(config: OrgConfig, email: string | null | undefined)
 }
 
 /**
+ * סמכות-מנהל אפקטיבית (נחיל ב׳ 3.9): ארגון-פלטפורמה נולד בלי adminEmails (allOffConfig) ⇒
+ * isAdminUser מחזיר true-לכולם — זו אינה סמכות. בארגון-ענן (firebase && !cloudRoot && slug≠default)
+ * בלי adminEmails: מנהל-ארגון/מייל-על בלבד. שורש/מאור-החסד/דמו/אופליין — isAdminUser כמו היום (ביט-זהה).
+ */
+export function isAdminAuthority(config: OrgConfig, email: string | null | undefined, isManager: boolean): boolean {
+  if (isManager || isSuperAdmin(email)) return true;
+  const platformOrg = !!config.firebase && config.cloudRoot !== true && config.slug !== 'default';
+  if (platformOrg && !config.adminEmails?.length) return false;
+  return isAdminUser(config, email);
+}
+
+/**
  * הרשאת פעולה-הרסנית/מוגבלת אחידה (בקשת-בעלים 23.8: "מנהל תמיד · הדלקה-פר-עובד"):
  * מנהל-ארגון/בעלים תמיד מורשים; עובד/ת רק אם הודלק/ה לו/ה במפורש (`features[key]===true`
  * בקונפיג-האפקטיבי — נגזרת effectiveConfigFor על GRANTABLE_STAFF_FEATURES). key שאינו
@@ -691,7 +703,8 @@ export function canGrantedAction(
   key: string,
 ): boolean {
   // ביקורת-עומק 2.9: false מפורש מכבה גם למנהל/מייל-על (אותה צורה כמו bulkGranted)
-  return config.features?.[key] !== false && (isManager || isAdminUser(config, email) || config.features?.[key] === true);
+  // נחיל ב׳ 3.9: הסמכות דרך isAdminAuthority — בארגון-פלטפורמה בלי adminEmails עובד/ת אינו/ה "מנהל"
+  return config.features?.[key] !== false && (isAdminAuthority(config, email, isManager) || config.features?.[key] === true);
 }
 
 /** דריסת הריצה השמורה בדפדפן, אם קיימת ותקינה. */

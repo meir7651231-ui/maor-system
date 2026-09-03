@@ -8,7 +8,7 @@
  */
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { allMembers, useApp, type View } from '../../store/useApp';
-import { featureOn, moduleOn, termOf } from '../../lib/config';
+import { featureOn, moduleOn, roleOf, termOf } from '../../lib/config';
 import { guardExport } from '../../lib/exportGate';
 import { supporterVisibleForDesignations } from '../supporters/lib';
 import { levenshtein, smartFilter } from '../../lib/search';
@@ -93,6 +93,11 @@ export function CommandPalette() {
   const punch = useApp((s) => s.punch);
   const toast = useApp((s) => s.toast);
   const config = useApp((s) => s.config);
+  // 🐛 נחיל ב׳ 3.9 (F3): מורה הגיע/ה למסך-ההגדרות דרך הפלטה — השלדים מסתירים את ⚙️
+  // (App.isTeacherUser) אבל פקודת-הניווט וכרטיסי-המורים (go('settings')) לא סוננו.
+  // אותו חישוב בדיוק כמו ב-App.
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
+  const isTeacherUser = featureOn(config, 'shell.roles') && roleOf(config, cloudEmail) === 'teacher';
   // 🐛 נחיל-9×9 (13.8): הפלטה עקפה את הרשאת-הייעוד (supporters.purpose) — עובד
   // מוגבל הקליד שם-תורם של ייעוד אחר ופתח את כרטיסו המלא. גידור זהה ל-SupportersView.
   const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
@@ -135,7 +140,7 @@ export function CommandPalette() {
   /** ניווט + פעולות — מוצגים גם כשאין שאילתה. */
   const baseCmds = useMemo<Cmd[]>(() => {
     // ניווט למודול כבוי חושף את המסך המלא (ל-App אין הפניה פר-מודול) — לכן
-    // מסננים פקודות ניווט לפי מצב המודול; בית והגדרות תמיד נגישים.
+    // מסננים פקודות ניווט לפי מצב המודול; בית תמיד נגיש, הגדרות — לא למורה (F3).
     const navOn: Partial<Record<View, boolean>> = {
       families: familiesOn,
       courses: coursesOn,
@@ -145,7 +150,7 @@ export function CommandPalette() {
       reports: reportsOn,
     };
     const nav: Cmd[] = NAV_CMDS.filter(
-      (n) => n.view === 'home' || n.view === 'settings' || navOn[n.view] !== false,
+      (n) => (n.view === 'settings' ? !isTeacherUser : n.view === 'home' || navOn[n.view] !== false),
     ).map((n) => {
       // תיוג-מחדש פר-עסק: בית/הגדרות ללא מונח (קבועים); שאר המסכים דרך termOf.
       // חיפוש כולל גם את התווית המותאמת וגם את ברירת-המחדל (alias) כדי שהשם הישן
@@ -467,6 +472,7 @@ export function CommandPalette() {
     openEventForm,
     openCourseForm,
     openSupporterForm,
+    isTeacherUser,
   ]);
 
   /** כרטיסיות מסתיימות — שיבוצי כרטיסייה פעילים עם ≤2 ניקובים שנותרו. */
@@ -561,7 +567,7 @@ export function CommandPalette() {
         },
       });
     }
-    for (const t of teachersOn && !zoneLocked('settings') ? db.teachers : []) {
+    for (const t of teachersOn && !zoneLocked('settings') && !isTeacherUser ? db.teachers : []) {
       out.push({
         key: 'tch-' + t.id,
         icon: '🧑‍🏫',
@@ -720,6 +726,7 @@ export function CommandPalette() {
     lockSecondary,
     lockZones,
     unlockedAdmin,
+    isTeacherUser,
   ]);
 
   /** דירוג חכם (smartFilter) על מונחי החיפוש המנורמלים. עד 12 תוצאות.

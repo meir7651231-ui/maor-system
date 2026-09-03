@@ -6,6 +6,7 @@
 import { useState, type ChangeEvent } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
+import { deviceTag, makeId } from '../../lib/ids';
 import { downloadCsv, readCsvFileText, toCsv } from '../../lib/csvx';
 import { Btn, Field, FormError } from '../ui';
 import {
@@ -98,7 +99,8 @@ export function SupporterImport(props: { onDone?: () => void }) {
     if (!p || !Array.isArray(p.updates)) return;
     setDb((db) => {
       let seq = db.seq;
-      const mkId = () => 'an' + seq++;
+      // ביקורת 3.9 (DS-1): תג-מכשיר כמו nextId — 'an'+seq גולמי התנגש בין מכשירים לא-מקוונים (#5)
+      const mkId = () => makeId('an', seq++, deviceTag());
       const updates = new Map(p.updates.map((u) => [u.id, u.row]));
       let supporters = db.supporters.map((sp) => {
         const row = updates.get(sp.id);
@@ -108,7 +110,7 @@ export function SupporterImport(props: { onDone?: () => void }) {
         return row.ayinNames?.length ? applyAyinNames(merged, row.ayinNames, mkId) : merged;
       });
       const inserts = p.inserts.map((r) => {
-        const fresh = newSupporterFromRow('sp' + seq++, r);
+        const fresh = newSupporterFromRow(makeId('sp', seq++, deviceTag()), r);
         return r.ayinNames?.length ? applyAyinNames(fresh, r.ayinNames, mkId) : fresh;
       });
       supporters = [...inserts, ...supporters];

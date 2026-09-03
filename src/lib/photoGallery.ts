@@ -10,10 +10,19 @@ export const PHOTO_MAX = 5;
 export const PHOTO_MAX_DIM = 800;
 /** תקרת-משקל למחרוזת-התמונה אחרי הקטנה (~450KB base64 ≈ ~330KB בינארי). */
 export const PHOTO_MAX_LEN = 460_000;
+/**
+ * נחיל ב׳ (3.9): תקציב-כולל לתורם — 5×460k = 2.3MB חרג מתקרת-מסמך-Firestore (1MB) ⇒ הדחיפה
+ * נכשלה לנצח (invalid-argument). <1MB גם עם ניפוח-הצפנה ~1.37×. (מספר = פשרת-מוצר — לבעלים.)
+ */
+export const PHOTO_TOTAL_MAX_LEN = 600_000;
 
-/** האם ניתן להוסיף עוד תמונה (מתחת לתקרה). */
-export function canAddPhoto(current: readonly string[] | undefined): boolean {
-  return (current?.length ?? 0) < PHOTO_MAX;
+/**
+ * האם ניתן להוסיף עוד תמונה — מתחת לתקרת-הכמות **וגם** לתקציב-המשקל-הכולל (כולל התמונה
+ * המועמדת, nextLen). בלי nextLen = בדיקת-כמות+משקל-קיים בלבד (תאימות-לאחור).
+ */
+export function canAddPhoto(current: readonly string[] | undefined, nextLen = 0): boolean {
+  const cur = current ?? [];
+  return cur.length < PHOTO_MAX && cur.reduce((a, p) => a + p.length, 0) + nextLen <= PHOTO_TOTAL_MAX_LEN;
 }
 
 /** מחרוזת היא תמונת-data תקינה (data:image/...;base64,...). */

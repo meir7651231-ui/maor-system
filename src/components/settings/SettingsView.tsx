@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import type { NotifPrefs } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { useDbWatch } from '../../store/dbWatch';
-import { featureOn, integrationOn, isAdminUser, isSuperAdmin, termOf } from '../../lib/config';
+import { featureOn, integrationOn, isAdminAuthority, isSuperAdmin, termOf } from '../../lib/config';
 import { readAiKey, writeAiKey } from '../../lib/ai';
 import { receiptVerifyCode } from '../../lib/receipt';
 import { Btn, Chip, Field, FormError, PageHead, TextInput } from '../ui';
@@ -71,7 +71,9 @@ export function SettingsView() {
   const cloudOn = useApp((s) => s.cloud.enabled);
   const sections = SECTIONS.filter((s) => !s.feature || featureOn(config, s.feature));
   const secOn = (id: string) => sections.some((s) => s.id === id);
-  const isAdmin = isAdminUser(config, cloudUser?.email);
+  // נחיל ב׳ 3.9 (F1): סמכות-מנהל אפקטיבית — ארגון-פלטפורמה נולד בלי adminEmails ⇒ isAdminUser
+  // היה true-לכולם והצ׳יפים/סעיפי-המנהל נחשפו לעובד/ת. שורש/אופליין — ביט-זהה להיום.
+  const isAdmin = isAdminAuthority(config, cloudUser?.email, !!isManager);
   const canPlatform = isSuperAdmin(cloudUser?.email);
 
   // בקשת-מיקוד ממסך אחר (קיצורי המשפחות וכד') — נפתחים בקבוצה הנכונה וגוללים
@@ -394,10 +396,23 @@ function ResetSection() {
   const exportBackup = useApp((s) => s.exportBackup);
   const cloudOn = useApp((s) => s.cloud.enabled);
   const config = useApp((s) => s.config);
+  const cloudUser = useApp((s) => s.cloud.user);
+  const isManager = useApp((s) => !!s.cloud.isManager);
   const teacher = termOf(config, 'entity.teacher', 'מורה');
   const teachersT = teacher === 'מורה' ? 'מורים' : teacher;
   const [confirmText, setConfirmText] = useState('');
   const armed = confirmText.trim() === 'מחיקה';
+  // 🔐 נחיל ב׳ 3.9 (F4): בארגון-ענן האיפוס דורס גם את הענן (withRemovalTombstones + cloudReplaceNow)
+  // לכל המכשירים — שמור למנהל/ת הארגון. אופליין/שורש (כל מחובר ב-adminEmails) — ביט-זהה להיום.
+  // הסעיף נשאר מרונדר (צ׳יפ sec-reset תקף) — רק ה-UI של האיפוס מוחלף בהערה.
+  const canReset = !cloudOn || isAdminAuthority(config, cloudUser?.email, isManager);
+  if (!canReset) {
+    return (
+      <Section id="sec-reset" title="🗑 איפוס נתונים מקומיים" sub="אזור מסוכן — פעולה בלתי הפיכה">
+        <SectionNote>פעולה זו שמורה למנהל/ת הארגון.</SectionNote>
+      </Section>
+    );
+  }
 
   return (
     <Section id="sec-reset" title="🗑 איפוס נתונים מקומיים" sub="אזור מסוכן — פעולה בלתי הפיכה">
@@ -456,7 +471,9 @@ function AiKeySection() {
   const cloudUser = useApp((s) => s.cloud.user);
   const toast = useApp((s) => s.toast);
   const [key, setKey] = useState(readAiKey());
-  if (!integrationOn(config, 'ai') || !isAdminUser(config, cloudUser?.email)) return null;
+  const isManagerAi = useApp((s) => !!s.cloud.isManager);
+  // נחיל ב׳ 3.9 (F1): סמכות-מנהל אפקטיבית — בארגון-פלטפורמה בלי adminEmails עובדת אינה מנהלת
+  if (!integrationOn(config, 'ai') || !isAdminAuthority(config, cloudUser?.email, isManagerAi)) return null;
   return (
     <Section id="sec-ai" title="🤖 עוזר חכם (AI)" sub="מפתח ה-API נשמר במכשיר זה בלבד — לא בענן ולא בגיבוי">
       <Field label="מפתח API (Anthropic)">
@@ -547,8 +564,10 @@ function AuditTrailSection() {
   // ⚠️ ברירת-המחדל מחוץ לסלקטור — `?? []` בתוך הסלקטור מייצר מערך חדש בכל
   // getSnapshot כשאין לוג ⇒ לולאת-רינדור אינסופית (React #185, נתפס ב-launch-readiness).
   const audit = useApp((s) => s.db.audit) ?? [];
+  const isManagerAudit = useApp((s) => !!s.cloud.isManager); // hook לפני כל return מוקדם (React #300)
   if (!featureOn(config, 'settings.audittrail')) return null;
-  if (!isAdminUser(config, cloudUser?.email)) return null;
+  // נחיל ב׳ 3.9 (F1): לוג-הפעולות (כולל logAccess של עמיתים) — רק לסמכות-מנהל אפקטיבית
+  if (!isAdminAuthority(config, cloudUser?.email, isManagerAudit)) return null;
   const rows = [...audit].reverse().slice(0, 100);
   return (
     <Section id="sec-audittrail" title="🧾 לוג פעולות" sub={'מי שינה מה ומתי — ' + audit.length + ' רשומות (נשמרות ' + 500 + ' האחרונות)'}>

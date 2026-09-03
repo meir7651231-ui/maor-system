@@ -124,7 +124,7 @@ describe('📇 הגנת-מקור — חיווט הסנכרון (דורמנטי, 
   it('הסעיף מגודר integrationOn(gcontacts)+מנהל, ומחווט להגדרות', async () => {
     const sec = await import('../../components/settings/GContactsSection.tsx?raw').then((m) => m.default);
     expect(sec).toContain("integrationOn(config, 'gcontacts')");
-    expect(sec).toContain('isAdminUser(config, cloudUser?.email)');
+    expect(sec).toContain('isAdminAuthority(config, cloudUser?.email, !!isManager)');
     // ייצוא-מיידי (vCard) + סנכרון-חי (lazy-import של הענן — firebase מחוץ לבנדל)
     expect(sec).toContain('contactsVcf(contacts)');
     expect(sec).toContain("await import('../../lib/cloud')");

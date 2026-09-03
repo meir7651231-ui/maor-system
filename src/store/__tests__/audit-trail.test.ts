@@ -37,7 +37,7 @@ describe('🧾 ratchet — לוג-פעולות (#10)', () => {
 
   it('🛡 מסך-הצפייה: מגודר דגל settings.audittrail + מנהל בלבד', () => {
     expect(settingsSrc).toContain("featureOn(config, 'settings.audittrail')");
-    expect(settingsSrc).toMatch(/AuditTrailSection[\s\S]{0,400}isAdminUser\(config, cloudUser\?\.email\)/);
+    expect(settingsSrc).toMatch(/AuditTrailSection[\s\S]{0,600}isAdminAuthority\(config, cloudUser\?\.email, isManagerAudit\)/);
   });
 
   it('🛡 הגנת-מקור: אין `?? []` בתוך סלקטור zustand — מערך-חדש-כל-snapshot ⇒ לולאת-רינדור React #185', () => {

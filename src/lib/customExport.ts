@@ -153,6 +153,13 @@ function fmtD(iso: string): string {
 }
 
 /**
+ * נחיל ב׳ (3.9): עיגול לאגורות לפני שרשור-למחרוזת — סכימת-float (10.1+20.2) הודפסה ל-CSV
+ * כ-"₪30.299999999999997" (המסך משתמש ב-toLocaleString, ה-CSV לא). זהות על שלמים. מקומי
+ * (לא round2 של reports/lib — חוצה-מודול; אותו דפוס כמו payLink.ts:18).
+ */
+const r2 = (x: number) => Math.round(x * 100) / 100;
+
+/**
  * בניית שורות הדו"ח — כותרת מהשדות הנבחרים בלבד, ואז שורת נתונים לכל רשומה.
  * selectedKeys קובע גם את הסדר (לפי סדר ה-defs, מסונן להנבחרים).
  */
@@ -216,12 +223,12 @@ export function buildCustomExport(
               const mi = memberInfo.get(e.memberId);
               if (!mi) return '';
               const paid = (e.payments || []).reduce((a, p) => a + (p.amount || 0), 0);
-              return mi.first + (mi.phone ? ' ' + mi.phone : '') + ' · יתרה ₪' + Math.max(0, (e.totalDue || 0) - paid);
+              return mi.first + (mi.phone ? ' ' + mi.phone : '') + ' · יתרה ₪' + Math.max(0, r2((e.totalDue || 0) - paid));
             })
             .filter(Boolean)
             .join(' | '),
-          pays: payN + ' תשלומים · ₪' + paySum,
-          revenue: '₪' + revenue,
+          pays: payN + ' תשלומים · ₪' + r2(paySum),
+          revenue: '₪' + r2(revenue),
           abs: absN + ' חיסורים',
           notes: c.notes || '',
         }),
@@ -299,10 +306,10 @@ export function buildCustomExport(
       city: sp.city || '',
       cat: sp.cat || '',
       forWho: sp.forWho || '',
-      dons: dons.length + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + ils + (usd ? ' + $' + usd : ''),
+      dons: dons.length + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + r2(ils) + (usd ? ' + $' + r2(usd) : ''),
       // "כל-הזמן" = הצבירה המוצגת (קבלות + היסטוריה) — הכרעת-בעלים 9.8 "לכולל":
       // CSV הוא משטח-תצוגה, לכן supCount/supIls/supUsd (כולל hist), לא המונים השמורים.
-      donsAll: supCount(sp) + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + supIls(sp) + (supUsd(sp) ? ' + $' + supUsd(sp) : ''),
+      donsAll: supCount(sp) + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + r2(supIls(sp)) + (supUsd(sp) ? ' + $' + r2(supUsd(sp)) : ''),
       tier: supTier(supScore(sp, db.usdRate)).label,
       notes: sp.notes || '',
     };

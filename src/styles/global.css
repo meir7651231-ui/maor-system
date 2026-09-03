@@ -3029,6 +3029,14 @@ button.hm-tier:focus-visible {
   .chip {
     min-height: 34px;
   }
+  /* swarm-b A-4: קישור tel: בשורת-תורם (17×21px) — יעד-מגע 40px במגע בלבד; בעכבר בלי שינוי-פריסה */
+  .tel-link {
+    display: inline-flex;
+    min-width: 40px;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 /* UX סבב-ג׳ (5.8.2026): עריכת-הלוח נגישה במגע — ✏️ גלוי מלא ו-44px בטאבלט

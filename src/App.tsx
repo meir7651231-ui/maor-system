@@ -502,6 +502,16 @@ export default function App() {
     return () => clearInterval(tick);
   }, [exportBackup]);
 
+  // תפקיד מורה (P3 פריט 15, הכרעה 2): כניסות ההגדרות (ודרכן הייבוא) מוסתרות.
+  // בלי ענן/בלי roles — false ⇒ התנהגות של היום בדיוק. דגל shell.roles.
+  // swarm-b (F3): מחושב לפני ה-return-ים המוקדמים כדי שה-effect שמתחתיו ישמור על סדר-hooks.
+  const isTeacherUser = featureOn(config, 'shell.roles') && roleOf(config, cloud.user?.email) === 'teacher';
+  // swarm-b (F3): צ׳וק יחיד — מורה שהגיע/ה להגדרות בעקיפין (פלטה/DayGate/goSettingsSection)
+  // מנותב/ת הביתה. השלדים עצמם כבר מסתירים את ⚙️; זה סוגר את הדלת האחורית.
+  useEffect(() => {
+    if (isTeacherUser && view === 'settings') go('home');
+  }, [isTeacherUser, view, go]);
+
   if (!ready) return <div className="empty">טוען…</div>;
 
   // 🌐 שער האתר-הציבורי — לפני שער-ההצפנה/הענן/הנעילה: המבקר רואה דף-נחיתה
@@ -616,9 +626,6 @@ export default function App() {
   const onAdminUnlock = () => markUnlocked('secondary');
   // מנהל-על לפי מייל (config.adminEmails) — רק הוא פותח את האשף ומשנה ערכת נושא.
   const isAdmin = isAdminUser(config, cloud.user?.email);
-  // תפקיד מורה (P3 פריט 15, הכרעה 2): כניסות ההגדרות (ודרכן הייבוא) מוסתרות.
-  // בלי ענן/בלי roles — false ⇒ התנהגות של היום בדיוק. דגל shell.roles.
-  const isTeacherUser = featureOn(config, 'shell.roles') && roleOf(config, cloud.user?.email) === 'teacher';
   // כניסת-הניהול הגלויה (ADMINHUB) — מגודרת isSuperAdmin **בלבד** (לא
   // isAdminUser, שמחזיר true לכולם כשאין adminEmails). אצל לקוח/משתמש רגיל
   // הכפתור פשוט לא קיים ב-DOM.
@@ -631,6 +638,32 @@ export default function App() {
     cloud.enabled && config.cloudRoot !== true && config.slug !== 'default'
       ? isSuperAdmin(cloud.user?.email)
       : isAdmin;
+  // swarm-b (N1): כפתור-החזרה של מסכי-האין-הרשאה (#builder / #builder=slug / #platform) —
+  // משותף, כדי שאף מסך-נעילה לא יהיה מבוי-סתום. מנקה את ה-hash וסוגר את המודאל.
+  const denyBackBtn = (close: () => void) => (
+    <button
+      type="button"
+      onClick={() => {
+        window.location.hash = '';
+        close();
+      }}
+      title="חזרה"
+      style={{
+        position: 'absolute',
+        insetInlineStart: 16,
+        top: 16,
+        zIndex: 1,
+        background: 'none',
+        border: 'none',
+        color: 'var(--ink-faint)',
+        fontSize: 13,
+        cursor: 'pointer',
+        padding: 8,
+      }}
+    >
+      ✕ חזרה
+    </button>
+  );
 
   const Current = VIEWS[view];
   const syncDot = SYNC_DOT[cloud.status] ?? SYNC_DOT.idle;
@@ -1224,31 +1257,16 @@ export default function App() {
           // אשף ההקמה — למנהל-על בלבד (לפי המייל). משתמש-לקוח שמנסה #builder
           // מקבל הודעת אין-הרשאה, לא את האשף.
           <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
-            <button
-              type="button"
-              onClick={() => {
-                window.location.hash = '';
-                setBuilderOpen(false);
-              }}
-              title="חזרה"
-              style={{
-                position: 'absolute',
-                insetInlineStart: 16,
-                top: 16,
-                zIndex: 1,
-                background: 'none',
-                border: 'none',
-                color: 'var(--ink-faint)',
-                fontSize: 13,
-                cursor: 'pointer',
-                padding: 8,
-              }}
-            >
-              ✕ חזרה
-            </button>
+            {denyBackBtn(() => setBuilderOpen(false))}
             <div className="empty" style={{ marginTop: 120 }}>
               🔒 אשף ההקמה זמין למנהל המערכת בלבד.
             </div>
+          </div>
+        ) : adminNeededFor('wizard') ? (
+          // swarm-b (N3): אזור-הנעילה 'wizard' (DEFAULT_LOCK_ZONES) לא נאכף מעולם — האשף
+          // (מקומי וגם קשור-ענן) נפתח בלי הקוד המשני. אותו LockScreen כמו האזור-המשני במסך.
+          <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
+            <LockScreen kind="secondary" onUnlock={onAdminUnlock} />
           </div>
         ) : remoteBuilderSlug ? (
           // אשף-הרכבה קשור-ענן (5.8) — עריכת לקוח-פלטפורמה באשף המלא; מיילי-על בלבד
@@ -1263,6 +1281,7 @@ export default function App() {
             </Suspense>
           ) : (
             <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
+              {denyBackBtn(() => setBuilderOpen(false))}
               <div className="empty" style={{ marginTop: 120 }}>🔒 עריכת לקוח-ענן זמינה למנהל הפלטפורמה בלבד.</div>
             </div>
           )
@@ -1291,6 +1310,7 @@ export default function App() {
           </Suspense>
         ) : (
           <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
+            {denyBackBtn(() => setPlatformOpen(false))}
             <div className="empty" style={{ marginTop: 120 }}>
               🔒 לוח הבקרה של הפלטפורמה זמין למנהל הפלטפורמה בלבד.
             </div>

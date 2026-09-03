@@ -563,8 +563,12 @@ export function subscribeAll(
   // אכיפת-נתונים (dormant): קילוף skey מאוספים-נאכפים; no-op בשאר האוספים.
   const clean = (col: string, data: Record<string, unknown>) =>
     (SUP_KEYED_COLS as readonly string[]).includes(col) ? stripSupKey(data) : data;
-  const unsubs = ENTITY_COLLECTIONS.map((col) =>
-    onSnapshot(
+  const unsubs = ENTITY_COLLECTIONS.map((col) => {
+    // נחיל ב׳ (3.9): בנתיב-המוצפן שני snapshots סמוכים פוענחו במקביל (Promise.all חופשי) ⇒ onRemote
+    // עלול היה להגיע בסדר הפוך והישן דרס את החדש. שרשרת-promise פר-אוסף שומרת על סדר-ההגעה.
+    // dek===null ⇒ הנתיב הסינכרוני ביט-זהה (אינווריאנט "אין envelope ⇒ ביט-זהה").
+    let chain: Promise<void> = Promise.resolve();
+    return onSnapshot(
       // עובד/ת מוגבל/ת ⇒ מנוי אוסף-נאכף מסונן ב-skey (Rules דוחים list לא-מסונן).
       supEnforceOn && (SUP_KEYED_COLS as readonly string[]).includes(col) && allowedPurposes
         ? query(collection(db, scopedCol(col)), where('skey', 'in', supAllowedKeys(allowedPurposes)))
@@ -580,19 +584,24 @@ export function subscribeAll(
           onRemote({ col, docs: changes.map((ch) => ({ id: ch.doc.id, data: clean(col, ch.doc.data()), deleted: ch.type === 'removed' })) });
           return;
         }
-        void Promise.all(
-          changes.map(async (ch) => ({
-            id: ch.doc.id,
-            data: ch.type === 'removed' ? clean(col, ch.doc.data()) : clean(col, await decryptDoc(ch.doc.data(), dek)),
-            deleted: ch.type === 'removed',
-          })),
-        )
+        chain = chain
+          .then(() =>
+            Promise.all(
+              changes.map(async (ch) => ({
+                id: ch.doc.id,
+                data: ch.type === 'removed' ? clean(col, ch.doc.data()) : clean(col, await decryptDoc(ch.doc.data(), dek)),
+                deleted: ch.type === 'removed',
+              })),
+            ),
+          )
           .then((docs) => onRemote({ col, docs }))
           .catch((e) => onError?.(e));
       },
       (e) => onError?.(e),
-    ),
-  );
+    );
+  });
+  // נחיל ב׳ (3.9): אותה שרשרת-סדר גם ל-meta (מונים bump-only — סדר הפוך היה רק מעכב, אך נשמר לעקביות)
+  let metaChain: Promise<void> = Promise.resolve();
   unsubs.push(
     onSnapshot(
       doc(db, scopedMeta()),
@@ -605,7 +614,9 @@ export function subscribeAll(
           onRemote({ meta: snap.data() });
           return;
         }
-        void decryptDoc(snap.data(), dek)
+        const data = snap.data();
+        metaChain = metaChain
+          .then(() => decryptDoc(data, dek))
           .then((meta) => onRemote({ meta }))
           .catch((e) => onError?.(e));
       },

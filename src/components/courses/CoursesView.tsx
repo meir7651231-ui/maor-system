@@ -2,7 +2,7 @@
  * מסך ניהול הקורסים — גריד/רשימה (db.ui.crsView), חיפוש וסינון לפי קטגוריה
  * וסמסטר, קורס חדש, וכרטיס קורס מלא בבחירה.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp, useCourse } from '../../store/useApp';
 import { featureOn, isSuperAdmin, roleOf, teacherIdOf, termOf } from '../../lib/config';
@@ -19,6 +19,14 @@ import { CoursesDashboard } from './CoursesDashboard';
 import { TeacherPanel } from './TeacherPanel';
 import { RetentionCenter } from './RetentionCenter';
 import { coursesOfTeacher, DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
+
+/** A-2 (3.9): שורת-חוג נפתחת גם במקלדת (Enter/רווח) — כמו שורות FamiliesView/SupportersView. */
+const openRowKey = (fn: () => void) => (e: KeyboardEvent<HTMLElement>) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fn();
+  }
+};
 
 type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2' | 'price3';
 
@@ -427,12 +435,13 @@ function CoursesList(props: { onOpenWheel: () => void }) {
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0' }}>
         <div style={{ flex: 1, minWidth: 200 }}>
-          <TextInput value={q} onChange={setQ} placeholder={'חיפוש לפי שם, ' + termOf(cfg, 'entity.teacher', 'מורה') + ', קהל או קטגוריה…'} />
+          <TextInput value={q} onChange={setQ} placeholder={'חיפוש לפי שם, ' + termOf(cfg, 'entity.teacher', 'מורה') + ', קהל או קטגוריה…'} ariaLabel="חיפוש" />
         </div>
         <div style={{ width: 170 }}>
           <Select
             value={cat}
             onChange={setCat}
+            ariaLabel="קטגוריה"
             options={[{ value: 'all', label: 'כל הקטגוריות' }, ...cats.map((x) => ({ value: x, label: x }))]}
           />
         </div>
@@ -440,6 +449,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
           <Select
             value={sem}
             onChange={setSem}
+            ariaLabel="סמסטר"
             options={[{ value: 'all', label: 'כל הסמסטרים' }, ...sems.map((x) => ({ value: x, label: x }))]}
           />
         </div>
@@ -597,7 +607,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                 const mm = modelMeta(c);
                 const n = (enrollCounts.get(c.id) || 0);
                 return (
-                  <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => selectCourse(c.id)}>
+                  <tr key={c.id} style={{ cursor: 'pointer' }} tabIndex={0} onClick={() => selectCourse(c.id)} onKeyDown={openRowKey(() => selectCourse(c.id))}>
                     <td style={{ fontWeight: 700 }}>{c.name}</td>
                     <td style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{c.audience || 'כללי'}</td>
                     <td>{teacherName(c.teacherId)}</td>

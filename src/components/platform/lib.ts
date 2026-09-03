@@ -217,7 +217,7 @@ export function effectiveConfigFor<
   const features = { ...orgConfig.features };
   for (const [k, v] of Object.entries(ov.features ?? {})) {
     if (v === false) features[k] = false;
-    else if (v === true && GRANTABLE_STAFF_FEATURES.has(k)) features[k] = true; // הדלקה פר-עובד
+    else if (v === true && GRANTABLE_STAFF_FEATURES.has(k) && orgConfig.features?.[k] !== false) features[k] = true; // הדלקה פר-עובד — לעולם לא מעל תקרת-הארגון
   }
   return { ...orgConfig, modules, features };
 }

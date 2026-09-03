@@ -755,7 +755,11 @@ export function SupportersView() {
                     const year = isoToday().slice(0, 4);
                     // 🔒 ייעוד-הרשאה: הדוח-לכולם יוצא רק על תורמים גלויים לעובדת, ובכל תורם
                     // רק התרומות בייעוד המותר (לא db.supporters הגולמי)
-                    const lines = annualAllLines(config.orgName || db.orgName, config.orgTaxId, year, visibleSupportersForDesignations(db.supporters, desigLimit));
+                    // TP-15: מונחי-הארגון לכותרות-הדוח (חבילות מסחריות: 'רכישות'/'תשלומים'); ברירת-המחדל ביט-זהה
+                    const lines = annualAllLines(config.orgName || db.orgName, config.orgTaxId, year, visibleSupportersForDesignations(db.supporters, desigLimit), undefined, {
+                      donations: termOf(config, 'entity.donations', 'תרומות'),
+                      supporter: 'ה' + termOf(config, 'entity.supporter', 'תורם/ת'),
+                    });
                     downloadAnnualReport('annual-all-' + year + '.txt', lines);
                     toast('📄 דוחות שנת ' + year + ' — הקובץ ירד (מקטע לכל ' + termOf(config, 'entity.supporter', 'תורם/ת') + ')');
                   },
@@ -968,11 +972,12 @@ export function SupportersView() {
 
       <div className="filterbar">
         <div className="fb-search">
-          <TextInput value={q} onChange={setQ} placeholder="חיפוש לפי שם, טלפון, מייל או קטגוריה…" />
+          <TextInput value={q} onChange={setQ} placeholder="חיפוש לפי שם, טלפון, מייל או קטגוריה…" ariaLabel="חיפוש" />
         </div>
         <Select
           value={cat}
           onChange={setCat}
+          ariaLabel="קטגוריה"
           options={[{ value: 'all', label: 'כל הקטגוריות' }, ...catOptions.map((c) => ({ value: c, label: c }))]}
         />
         {/* חיפוש-מפורש לפי תקופת-נתינה (בקשת-בעלים "לפי שנה לפי חודש") —
@@ -981,12 +986,14 @@ export function SupportersView() {
           <Select
             value={gaveYearF == null ? 'all' : String(gaveYearF)}
             onChange={(v) => setGaveYearF(v === 'all' ? null : +v)}
+            ariaLabel="שנת נתינה"
             options={[{ value: 'all', label: 'כל השנים' }, ...yearOptions.map((y) => ({ value: String(y), label: 'נתנו ב-' + y }))]}
           />
         )}
         <Select
           value={monthF == null ? 'all' : String(monthF)}
           onChange={(v) => setMonthF(v === 'all' ? null : +v)}
+          ariaLabel="חודש נתינה"
           options={[{ value: 'all', label: 'כל החודשים' }, ...MONTHS_HE.map((m, i) => ({ value: String(i + 1), label: m }))]}
         />
         {/* בקשת-בעלים "סינון לפי תרומה אחרונה של הלקוח": אותם בוררי שנה/חודש —
@@ -996,6 +1003,7 @@ export function SupportersView() {
           <Select
             value={periodMode}
             onChange={(v) => setPeriodMode(v === 'last' ? 'last' : 'gave')}
+            ariaLabel="מצב תקופה"
             options={[
               { value: 'gave', label: '📅 נתנו בתקופה' },
               { value: 'last', label: '🕐 תרומה אחרונה בתקופה' },
@@ -1006,6 +1014,7 @@ export function SupportersView() {
         <Select
           value={regionF}
           onChange={(v) => setRegionF(v as 'all' | 'il' | 'intl')}
+          ariaLabel="אזור טלפון"
           options={[
             { value: 'all', label: '🌐 כל הטלפונים' },
             { value: 'il', label: '🇮🇱 ישראל בלבד' },
@@ -1017,6 +1026,7 @@ export function SupportersView() {
           <Select
             value={purposeF}
             onChange={setPurposeF}
+            ariaLabel="ייעוד"
             // הכרעת-בעלים 19.8 (פריט ד'): עובד-סגור רואה בבורר רק את ייעודיו — בלי "כל הייעודים".
             options={[
               ...(desigLimit ? [] : [{ value: 'all', label: 'כל הייעודים' }]),
@@ -1339,7 +1349,7 @@ export function SupportersView() {
                       INTEGRATIONS גל א׳ — 💬 וואטסאפ לצדו (הרחבה נמכרת, חסר=כבוי) */}
                   <td onClick={(e) => e.stopPropagation()}>
                     {sp.phone && featureOn(config, 'supporters.click2call') ? (
-                      <a href={'tel:' + sp.phone.replace(/\D/g, '')} title={'חיוג ל' + sp.name + ' — ' + sp.phone} aria-label={'חיוג ל' + sp.name}>
+                      <a className="tel-link" href={'tel:' + sp.phone.replace(/\D/g, '')} title={'חיוג ל' + sp.name + ' — ' + sp.phone} aria-label={'חיוג ל' + sp.name}>
                         📞
                       </a>
                     ) : (

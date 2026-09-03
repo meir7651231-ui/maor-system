@@ -79,7 +79,12 @@ export function DocsPanel(props: { fam: Family }) {
           <span aria-hidden>🖇</span>
           <span style={{ flex: 1, fontWeight: 600 }}>{d.name}</span>
           <span style={{ color: 'var(--ink-faint)', fontSize: 12 }}>נוסף {fmtDate(d.addedAt)}</span>
-          <Btn sm kind={armedId === d.id ? 'danger' : 'plain'} onClick={() => removeDoc(d.id)}>
+          <Btn
+            sm
+            kind={armedId === d.id ? 'danger' : 'plain'}
+            title={'הסרת המסמך ' + d.name}
+            onClick={() => removeDoc(d.id)}
+          >
             {armedId === d.id ? 'לאשר הסרה?' : '✕'}
           </Btn>
         </div>
@@ -147,10 +152,18 @@ export function CredPanel(props: { fam: Family }) {
             <Btn sm onClick={() => addCred(props.fam.id, 15, 'פעולה קהילתית (תרומה/עזרה)')}>
               + פעולה קהילתית (15)
             </Btn>
-            <Btn sm onClick={() => addCred(props.fam.id, 5, 'התאמה ידנית של מנהל')}>
+            <Btn
+              sm
+              title="הוספת 5 נקודות אמינות"
+              onClick={() => addCred(props.fam.id, 5, 'התאמה ידנית של מנהל')}
+            >
               +5
             </Btn>
-            <Btn sm onClick={() => addCred(props.fam.id, -5, 'התאמה ידנית של מנהל')}>
+            <Btn
+              sm
+              title="הפחתת 5 נקודות אמינות"
+              onClick={() => addCred(props.fam.id, -5, 'התאמה ידנית של מנהל')}
+            >
               −5
             </Btn>
           </>

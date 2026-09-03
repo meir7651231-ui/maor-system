@@ -10,6 +10,8 @@
  * — הקוקפיט לא ממציא נתונים, רק מגיש את מה שכבר קיים כתור-פעולה.
  */
 import type { Supporter } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import { hokDue, hokMonthlyTotal, orgCalEntries, supCount, supIls, supLast, supUsd } from './lib';
 
 /** סף שקט (ימים) שמעליו תורם-שנתן-בעבר נחשב "בסיכון נטישה". */
@@ -52,12 +54,13 @@ function hasGiven(sp: Supporter): boolean {
   return supCount(sp) > 0 && !!supLast(sp);
 }
 
-/** תווית-ערך דטרמיניסטית לפי הסכום המצטבר (בלי supScore/שעון). */
-function valueTag(sp: Supporter, rate: number): string {
+/** תווית-ערך דטרמיניסטית לפי הסכום המצטבר (בלי supScore/שעון). cfg אופציונלי ⇒ מונח-הארגון (בלעדיו 'תורם/ת' — ביט-זהה). */
+function valueTag(sp: Supporter, rate: number, cfg?: OrgConfig): string {
   const ils = supIls(sp) + supUsd(sp) * rate;
-  if (ils >= 5000) return 'תורם/ת מרכזי/ת';
-  if (ils >= 1000) return 'תורם/ת מהותי/ת';
-  return 'תורם/ת';
+  const w = cfg ? termOf(cfg, 'entity.supporter', 'תורם/ת') : 'תורם/ת';
+  if (ils >= 5000) return w + ' מרכזי/ת';
+  if (ils >= 1000) return w + ' מהותי/ת';
+  return w;
 }
 
 /**
@@ -86,6 +89,7 @@ export function cockpitCalls(
   todayIso: string,
   rate = 3.7,
   silentDays = COCKPIT_SILENT_DAYS,
+  cfg?: OrgConfig,
 ): CockpitTask[] {
   const tasks: CockpitTask[] = [];
   const seen = new Set<string>();
@@ -121,7 +125,7 @@ export function cockpitCalls(
       name: sp.name,
       phone: sp.phone || '',
       email: sp.email || '',
-      reason: valueTag(sp, rate) + ' · שקט/ה ' + silent + ' יום',
+      reason: valueTag(sp, rate, cfg) + ' · שקט/ה ' + silent + ' יום',
       severity: 'risk',
       sort: silent,
     });
@@ -255,8 +259,9 @@ export function cockpitQueue(
   supporters: readonly Supporter[],
   todayIso: string,
   rate = 3.7,
+  cfg?: OrgConfig,
 ): CockpitQueue {
-  const calls = cockpitCalls(supporters, todayIso, rate);
+  const calls = cockpitCalls(supporters, todayIso, rate, COCKPIT_SILENT_DAYS, cfg);
   const thanks = cockpitThanks(supporters, todayIso);
   const hok = cockpitHokTasks(supporters, todayIso);
   const tasks = [...calls, ...thanks, ...hok];

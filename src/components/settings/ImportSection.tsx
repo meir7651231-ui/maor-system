@@ -10,6 +10,7 @@ import { emptyFamily, emptyMember, type Family, type Member, type Supporter } fr
 import { useApp } from '../../store/useApp';
 import { parseBackupFile } from '../../store/persist';
 import { featureOn, termOf } from '../../lib/config';
+import { deviceTag, makeId } from '../../lib/ids';
 import { normalizePhone, normSearch, formatIsraeliPhone } from '../../lib/validate';
 import { downloadCsv, parseAnyDate, parseCsv, readCsvFileText } from '../../lib/csvx';
 import { ayinSheetRows, featLabel, parseAyinSheet, type AyinSheetParse } from '../../lib/ayin';
@@ -84,9 +85,9 @@ export function ImportSection() {
         const fresh: Family[] = toAdd.map((f) => ({
           ...emptyFamily(),
           ...f,
-          id: 'f' + seq++,
+          id: makeId('f', seq++, deviceTag()),
           createdAt: f.createdAt || isoToday(),
-          members: (f.members ?? []).map((m) => ({ ...m, id: 'm' + seq++ })),
+          members: (f.members ?? []).map((m) => ({ ...m, id: makeId('m', seq++, deviceTag()) })),
           docs: f.docs ?? [],
           // ברירת-המחדל הקנונית 700 (emptyFamily) — 500 זרע בסיס-לקוחות מיובא שלם
           // נקודה אחת בלבד מעל סף-הסיכון (CRED_RED_THRESHOLD=500, "טעון שיפור")
@@ -167,7 +168,7 @@ export function ImportSection() {
         (skippedExisting ? ` · ${skippedExisting} דולגו (כבר קיימות)` : '') +
         (skippedNoName ? ` · ${skippedNoName} שורות ללא שם דולגו` : ''),
     );
-    toast('נוספו ' + added + ' משפחות');
+    toast('נוספו ' + added + ' ' + termOf(config, 'nav.families', 'משפחות'));
     if (added) setCsv('');
   }
 
@@ -343,7 +344,7 @@ function ContactsImport() {
       if (t === 'fam') {
         const fresh: Family[] = plan.news.map((r) => ({
           ...emptyFamily(),
-          id: 'f' + seq++,
+          id: makeId('f', seq++, deviceTag()),
           createdAt: isoToday(),
           name: r.name,
           phone: formatIsraeliPhone(r.phone),
@@ -356,7 +357,7 @@ function ContactsImport() {
         return { seq, families: [...db.families, ...fresh] };
       }
       const fresh: Supporter[] = plan.news.map((r) => ({
-        id: 's' + seq++,
+        id: makeId('s', seq++, deviceTag()),
         name: r.name,
         phone: formatIsraeliPhone(r.phone),
         email: r.email,
@@ -516,7 +517,7 @@ function Families13Import() {
       const fresh: Family[] = news.map((o) => ({
         ...emptyFamily(),
         ...o,
-        id: 'f' + seq++,
+        id: makeId('f', seq++, deviceTag()),
         createdAt: isoToday(),
         members: [],
         docs: [],
@@ -912,7 +913,7 @@ function KidsImport() {
       let families = db.families.map((f) => {
         const add = byFam.get(f.id);
         return add
-          ? { ...f, members: [...f.members, ...add.map((m) => ({ ...m, id: 'm' + seq++ }))] }
+          ? { ...f, members: [...f.members, ...add.map((m) => ({ ...m, id: makeId('m', seq++, deviceTag()) }))] }
           : f;
       });
       // ללא התאמה — משפחה חדשה; אחים באותו קובץ (שם+טלפון+עיר) מקובצים למשפחה אחת
@@ -925,12 +926,12 @@ function KidsImport() {
       }
       const fresh: Family[] = [...groups.values()].map((g) => ({
         ...emptyFamily(),
-        id: 'f' + seq++,
+        id: makeId('f', seq++, deviceTag()),
         createdAt: isoToday(),
         name: g.surname || '—',
         city: g.city,
         phone: formatIsraeliPhone(g.phone),
-        members: g.ms.map((m) => ({ ...m, id: 'm' + seq++ })),
+        members: g.ms.map((m) => ({ ...m, id: makeId('m', seq++, deviceTag()) })),
       }));
       newFams = fresh.length;
       families = [...families, ...fresh];

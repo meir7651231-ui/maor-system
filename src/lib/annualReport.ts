@@ -26,6 +26,19 @@ export interface AnnualReportInput {
   year: string;
   donations: AnnualDonation[];
   site?: string;
+  /**
+   * נחיל ב׳ (3.9 · TP-15): מונחי-ורטיקל אופציונליים — חבילות מסחריות מחליפות 'תרומות' ב'רכישות'/
+   * 'תשלומים' (entity.donations) אך הדוח-להורדה נשאר 'תרומות'. חסר ⇒ ביט-זהה ללקוח-החי.
+   * ⚠️ שורות-§46 (סעיף 46 / "אינו קבלה") = נוסח-משפטי, לא עוברות termOf (הכרעת-בעלים/רו"ח).
+   */
+  terms?: AnnualReportTerms;
+}
+
+/** מונחים לדוח-השנתי — ברירות-המחדל = הליטרלים ההיסטוריים ('תרומות' / 'התורם/ת' / 'תורמים'). */
+export interface AnnualReportTerms {
+  donations?: string;
+  supporter?: string;
+  supporters?: string;
 }
 
 /** השנים שבהן יש לתורם/ת תרומות — יורד (החדשה ראשונה). */
@@ -47,19 +60,22 @@ export function annualReportLines(inp: AnnualReportInput): string[] {
   const rows = donationsOfYear(inp.donations, inp.year);
   const ils = rows.filter((d) => d.cur !== '$').reduce((a, d) => a + (Number.isFinite(d.amount) ? d.amount : 0), 0);
   const usd = rows.filter((d) => d.cur === '$').reduce((a, d) => a + (Number.isFinite(d.amount) ? d.amount : 0), 0);
+  // מונחים (TP-15): חסר ⇒ הליטרל ההיסטורי — הפלט ביט-זהה
+  const D = inp.terms?.donations ?? 'תרומות';
+  const S = inp.terms?.supporter ?? 'התורם/ת';
   const out: string[] = [
     '='.repeat(46),
-    '        דוח תרומות שנתי — שנת ' + inp.year,
+    '        דוח ' + D + ' שנתי — שנת ' + inp.year,
     '='.repeat(46),
     '',
     'הארגון: ' + inp.orgName,
     ...(inp.orgTaxId ? ['מס׳ עמותה/מלכ"ר: ' + inp.orgTaxId] : []),
-    'התורם/ת: ' + inp.supporterName + (inp.payerId ? ' · ת"ז ' + inp.payerId : ''),
+    S + ': ' + inp.supporterName + (inp.payerId ? ' · ת"ז ' + inp.payerId : ''),
     '',
     '-'.repeat(46),
   ];
   if (rows.length === 0) {
-    out.push('אין תרומות רשומות בשנת ' + inp.year + '.');
+    out.push('אין ' + D + ' רשומות בשנת ' + inp.year + '.');
   } else {
     for (const d of rows) {
       out.push(
@@ -68,7 +84,7 @@ export function annualReportLines(inp: AnnualReportInput): string[] {
     }
   }
   out.push('-'.repeat(46));
-  out.push('סה"כ ' + rows.length + ' תרומות בשנת ' + inp.year);
+  out.push('סה"כ ' + rows.length + ' ' + D + ' בשנת ' + inp.year);
   if (ils > 0) out.push('סה"כ בשקלים: ' + money(ils));
   if (usd > 0) out.push('סה"כ בדולרים: ' + money(usd, '$'));
   if (inp.orgTaxId) {
@@ -90,6 +106,7 @@ export function annualAllLines(
   year: string,
   supporters: Array<{ name: string; idNum?: string; donations: AnnualDonation[] }>,
   site?: string,
+  terms?: AnnualReportTerms,
 ): string[] {
   const out: string[] = [];
   let count = 0;
@@ -97,11 +114,12 @@ export function annualAllLines(
     if (donationsOfYear(sp.donations, year).length === 0) continue;
     if (count > 0) out.push('', '\f', '');
     out.push(
-      ...annualReportLines({ orgName, orgTaxId, supporterName: sp.name, payerId: sp.idNum, year, donations: sp.donations, site }),
+      ...annualReportLines({ orgName, orgTaxId, supporterName: sp.name, payerId: sp.idNum, year, donations: sp.donations, site, terms }),
     );
     count++;
   }
-  if (count === 0) out.push('אין תורמים עם תרומות בשנת ' + year + '.');
+  // TP-15: פרמטר-זנב אופציונלי — חסר ⇒ 'תורמים'/'תרומות' ההיסטוריים (ביט-זהה)
+  if (count === 0) out.push('אין ' + (terms?.supporters ?? 'תורמים') + ' עם ' + (terms?.donations ?? 'תרומות') + ' בשנת ' + year + '.');
   return out;
 }
 

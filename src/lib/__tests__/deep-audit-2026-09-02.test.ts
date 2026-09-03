@@ -14,6 +14,16 @@ import useAppSrc from '../../store/useApp.ts?raw';
 import configSrc from '../config.ts?raw';
 import persistSrc from '../../store/persist.ts?raw';
 import appSrc from '../../App.tsx?raw';
+// נחיל ב׳ 3.9 — סמכות-מנהל אפקטיבית (isAdminAuthority) + הגנות-מקור למשטחים שעברו אליה
+import { canGrantedAction, isAdminAuthority } from '../config';
+import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
+import settingsSrc from '../../components/settings/SettingsView.tsx?raw';
+import backupSrc from '../../components/settings/BackupSection.tsx?raw';
+import donorImportSrc from '../../components/settings/DonorImportSection.tsx?raw';
+import gcontactsSrc from '../../components/settings/GContactsSection.tsx?raw';
+import themeSrc from '../../components/settings/ThemeSection.tsx?raw';
+import paletteSrc from '../../components/palette/CommandPalette.tsx?raw';
+import platformLibSrc from '../../components/platform/lib.ts?raw';
 
 const fn = readFileSync('functions/gcontactsSync.js', 'utf8');
 
@@ -71,7 +81,78 @@ describe('💰 כסף — שערים בליבה', () => {
 
 describe('🚩 חוזה-הדגלים', () => {
   it('canGrantedAction: false מפורש מכבה גם למנהל/מייל-על', () => {
-    expect(configSrc).toContain("return config.features?.[key] !== false && (isManager || isAdminUser(config, email) || config.features?.[key] === true);");
+    // נחיל ב׳ 3.9: הסמכות עברה ל-isAdminAuthority (ארגון-פלטפורמה בלי adminEmails ≠ "כולם מנהלים")
+    expect(configSrc).toContain("return config.features?.[key] !== false && (isAdminAuthority(config, email, isManager) || config.features?.[key] === true);");
+  });
+});
+
+describe('🔐 נחיל ב׳ 3.9 — סמכות-מנהל אפקטיבית (isAdminAuthority · F1/F2/F3/F4/DS-2)', () => {
+  // 🐛 ארגון-פלטפורמה נולד בלי adminEmails (allOffConfig) ⇒ isAdminUser החזיר true-לכולם ⇒
+  // canGrantedAction וסעיפי-המנהל בהגדרות נחשפו לכל עובד/ת. שורש/מאור-החסד/דמו/אופליין — ביט-זהה.
+  const cfgOf = (p: Partial<OrgConfig>): OrgConfig => ({ ...DEFAULT_CONFIG, ...p });
+  const FB = { apiKey: 'k', authDomain: 'a', projectId: 'p', appId: 'x' };
+  const platform = cfgOf({ slug: 'acme', firebase: FB, cloudRoot: false });
+
+  it('ארגון-פלטפורמה בלי adminEmails: עובד/ת אינו/ה סמכות; מנהל-ארגון ומייל-על כן', () => {
+    expect(isAdminAuthority(platform, 'emp@x.com', false)).toBe(false);
+    expect(canGrantedAction(platform, 'emp@x.com', false, 'families.delete')).toBe(false);
+    expect(isAdminAuthority(platform, 'emp@x.com', true)).toBe(true);
+    expect(canGrantedAction(platform, 'emp@x.com', true, 'families.delete')).toBe(true);
+    expect(isAdminAuthority(platform, 'meir7651231@gmail.com', false)).toBe(true);
+    expect(canGrantedAction(platform, 'meir7651231@gmail.com', false, 'families.delete')).toBe(true);
+    // הדלקה-פר-עובד (features[key]===true) עדיין מדליקה לעובד/ת
+    expect(canGrantedAction({ ...platform, features: { 'families.delete': true } }, 'emp@x.com', false, 'families.delete')).toBe(true);
+    // false מפורש מכבה גם למנהל (ביקורת-עומק 2.9 נשמרת)
+    expect(canGrantedAction({ ...platform, features: { 'families.delete': false } }, 'emp@x.com', true, 'families.delete')).toBe(false);
+  });
+
+  it('ארגון-פלטפורמה עם adminEmails ⇒ isAdminUser כמו היום (חבר true · לא-חבר false)', () => {
+    const c = { ...platform, adminEmails: ['boss@x.com'] };
+    expect(isAdminAuthority(c, 'boss@x.com', false)).toBe(true);
+    expect(isAdminAuthority(c, 'BOSS@X.com', false)).toBe(true);
+    expect(isAdminAuthority(c, 'emp@x.com', false)).toBe(false);
+  });
+
+  it('שורש (cloudRoot / slug=default) עם adminEmails — ביט-זהה ל-isAdminUser', () => {
+    const root = cfgOf({ slug: 'default', firebase: FB, cloudRoot: true, adminEmails: ['a@x.com'] });
+    expect(isAdminAuthority(root, 'a@x.com', false)).toBe(true);
+    expect(isAdminAuthority(root, 'z@x.com', false)).toBe(false);
+    const live = cfgOf({ slug: 'maor-hachesed', firebase: FB, cloudRoot: true, adminEmails: ['a@x.com'] });
+    expect(isAdminAuthority(live, 'a@x.com', false)).toBe(true);
+    expect(canGrantedAction(live, 'a@x.com', false, 'families.delete')).toBe(true);
+    // שורש בלי adminEmails (cloudRoot:true) — לא ארגון-פלטפורמה ⇒ כמו היום (true)
+    expect(isAdminAuthority(cfgOf({ slug: 'default', firebase: FB, cloudRoot: true }), 'anyone@x.com', false)).toBe(true);
+  });
+
+  it('בלי firebase (דמו/אופליין) ⇒ כל אחד סמכות (ביט-זהה להיום)', () => {
+    expect(isAdminAuthority(cfgOf({ slug: 'demo' }), 'anyone@x.com', false)).toBe(true);
+    expect(isAdminAuthority(cfgOf({}), null, false)).toBe(true);
+    expect(canGrantedAction(cfgOf({ slug: 'demo' }), null, false, 'families.delete')).toBe(true);
+  });
+
+  it('הגנות-מקור: סעיפי-המנהל בהגדרות · איפוס/שחזור · פלטה-למורה · תקרת-הארגון · אזהרת-orgName', () => {
+    // F1 — הצ׳יפים והסעיפים המגודרים-מנהל
+    expect(settingsSrc).toContain('const isAdmin = isAdminAuthority(config, cloudUser?.email, !!isManager);');
+    expect(donorImportSrc).toContain('isAdminAuthority(config, cloudUser?.email, !!isManager)');
+    expect(gcontactsSrc).toContain('isAdminAuthority(config, cloudUser?.email, !!isManager)');
+    expect(themeSrc).toContain('const isAdmin = isAdminAuthority(config, cloudUser?.email, !!isManager);');
+    // TP-8 — מונחי-הישויות ב-GContacts (fallback = הליטרל ההיסטורי)
+    expect(gcontactsSrc).toContain("termOf(config, 'entity.volunteers', 'מתנדבים')");
+    expect(gcontactsSrc).not.toContain('משפחות, תורמים ומתנדבים —');
+    // F4 — איפוס/שחזור בארגון-ענן למנהל/ת בלבד; הייצוא נשאר
+    expect(settingsSrc).toContain('const canReset = !cloudOn || isAdminAuthority(config, cloudUser?.email, isManager);');
+    expect(settingsSrc).toContain('פעולה זו שמורה למנהל/ת הארגון');
+    expect(backupSrc).toContain('const canRestore = !cloudOn || isAdminAuthority(config, cloudUser?.email, isManager);');
+    expect(backupSrc).toContain("if (!canRestore) { toast('שחזור בארגון-ענן — מנהל-הארגון בלבד'); setRestore(null); return; }");
+    expect(backupSrc).toContain('{canRestore && demoTotal > 0 && (');
+    expect(backupSrc).toContain("featureOn(useApp.getState().config, 'core.export') && (");
+    // DS-2 — אזהרת orgName-לא-תואם במודאל-האישור (additive)
+    expect(backupSrc).toContain('inc.orgName !== cur.orgName');
+    // F3 — הפלטה לא מנווטת מורה להגדרות (ניווט + כרטיסי-מורים)
+    expect(paletteSrc).toContain("n.view === 'settings' ? !isTeacherUser");
+    expect(paletteSrc).toContain("!zoneLocked('settings') && !isTeacherUser");
+    // F2 — הדלקה-פר-עובד לעולם לא מעל תקרת-הארגון
+    expect(platformLibSrc).toContain('GRANTABLE_STAFF_FEATURES.has(k) && orgConfig.features?.[k] !== false');
   });
 });
 

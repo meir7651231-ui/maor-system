@@ -174,7 +174,7 @@ export default function ReenrollView() {
           />
         </div>
         <div style={{ minWidth: 200, flex: 1 }}>
-          <TextInput value={q} onChange={setQ} placeholder={`חיפוש ${studentW} / משפחה / ${courseW}…`} ariaLabel="חיפוש" />
+          <TextInput value={q} onChange={setQ} placeholder={`חיפוש ${studentW} / ${termOf(cfg, 'entity.family', 'משפחה')} / ${courseW}…`} ariaLabel="חיפוש" />
         </div>
       </div>
 
