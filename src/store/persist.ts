@@ -538,6 +538,11 @@ export function migrate(raw: unknown): Db | null {
     .filter((f) => !seen.has(f.id) && !!seen.add(f.id));
   // שדות ארגון מגיבוי לגאסי (v:1 שומר orgName/orgSite/orgDonate ברמת השורש) —
   // ערך לא-מחרוזתי (undefined מפורש וכד') נופל לברירת המחדל ולא מזהם את ה-Db.
+  // ביקורת-עומק 2.9: סוג-אירוע לא-מוכר קרס את בניית-הלוח (EV_META[type].bg); pri לא-תקין
+  // במשימה קרס את ווידג'ט-הבית (PRI_LABELS[pri].slice). ריפוי בשער-הטעינה — ערך תקין ביט-זהה.
+  const EVT = new Set(['reminder', 'call', 'wedding', 'memorial', 'anniversary', 'bday', 'org', 'custom']);
+  merged.events = (merged.events as unknown as Array<Record<string, unknown>>).map((e) => (e && EVT.has(String(e.type)) ? e : { ...e, type: 'custom' })) as unknown as typeof merged.events;
+  merged.tasks = (merged.tasks as unknown as Array<Record<string, unknown>>).map((t) => (t && [1, 2, 3].includes(t.pri as number) ? t : { ...t, pri: 2 })) as unknown as typeof merged.tasks;
   if (typeof merged.orgName !== 'string') merged.orgName = base.orgName;
   if (typeof merged.orgSite !== 'string') merged.orgSite = base.orgSite;
   if (typeof merged.orgDonate !== 'string') merged.orgDonate = base.orgDonate;
@@ -719,15 +724,19 @@ export async function changeEncryptionPassword(oldPw: string, newPw: string): Pr
   if (!envelope || !dek) return false;
   const check = await openDek(envelope, oldPw, 'pass');
   if (!check) return false;
-  envelope = await rewrapPassword(envelope, dek, newPw);
-  await writeEnvelope(envelope);
+  const next = await rewrapPassword(envelope, dek, newPw);
+  // ביקורת-עומק 2.9: כתיבה-שנכשלה (מכסה/IDB) החזירה true ⇒ הסיסמה "הוחלפה" רק בזיכרון;
+  // אחרי רענון פתחה רק הישנה. עכשיו false אמיתי — והמעטפה-בזיכרון לא מוחלפת.
+  if (!(await writeEnvelope(next))) return false;
+  envelope = next;
   return true;
 }
 
 /** כתיבת מעטפת מוצפנת לשתי השכבות. */
-async function writeEnvelope(env: EncEnvelope): Promise<void> {
+async function writeEnvelope(env: EncEnvelope): Promise<boolean> {
   const json = JSON.stringify(env);
   let lsOk = false;
+  let idbOk = false;
   try {
     localStorage.setItem(LS_KEY, json);
     lsOk = true;
@@ -736,6 +745,7 @@ async function writeEnvelope(env: EncEnvelope): Promise<void> {
   }
   try {
     await (await getIdb()).put(IDB_STORE, env, 'current');
+    idbOk = true;
     // LS נכשל אך IDB הצליח → מוחקים את העותק הישן ב-LS כדי ש-readRaw ייפול
     // לעותק הטרי ב-IndexedDB במקום להחזיר snapshot מיושן וקריא.
     if (!lsOk) {
@@ -748,6 +758,7 @@ async function writeEnvelope(env: EncEnvelope): Promise<void> {
   } catch {
     /* IndexedDB נכשל */
   }
+  return lsOk || idbOk;
 }
 
 /**

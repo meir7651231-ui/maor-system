@@ -522,7 +522,7 @@ function familyReportLines(db: Db, f: Family, config: OrgConfig): string[] {
     'טלפון: ' + (f.phone || '—') + (f.phone2 ? ' · ' + f.phone2 : '') + (f.email ? ' · ' + f.email : ''),
     'כתובת: ' + ([f.address, f.city].filter(Boolean).join(', ') || '—'),
     'קהילה: ' + (f.community || '—') + ' · שפה: ' + (f.language || '—') + ' · מצב משפחתי: ' + (f.maritalStatus || '—'),
-    'סטטוס: ' + STATUS_META[f.status].label +
+    'סטטוס: ' + (STATUS_META[f.status] ?? STATUS_META.active).label +
       (f.createdAt ? ' · הצטרפה: ' + hebDateFull(f.createdAt) + ' (' + fmtDate(f.createdAt) + ')' : ''),
     'קופת צדקה: ' + (f.tzedaka || '—') + ' · הנחה: ' + (f.discount || '—') + ' · ספח מלא: ' + (f.fullSefach ? 'קיים' : 'חסר'),
     termOf(config, 'entity.cred', 'מדד אמינות') + ': ' + (f.cred?.score ?? '—') + ' (' + tier.label + ')',

@@ -570,8 +570,10 @@ export function subscribeAll(
         ? query(collection(db, scopedCol(col)), where('skey', 'in', supAllowedKeys(allowedPurposes)))
         : collection(db, scopedCol(col)),
       (snap) => {
-        if (snap.metadata.hasPendingWrites) return;
-        const changes = snap.docChanges();
+        // ביקורת-עומק 2.9: דילוג על **כל** ה-snapshot כשיש כתיבה-מקומית-ממתינה הפיל
+        // שינויים-מרוחקים שהגיעו באותו snapshot — ו-docChanges() לא מחזיר אותם שוב
+        // (סטייה שקטה עד רענון). מסננים פר-מסמך: ההד-המקומי מדולג, המרוחקים מוחלים.
+        const changes = snap.docChanges().filter((ch) => !ch.doc.metadata.hasPendingWrites);
         if (!changes.length) return;
         // dek נעדר ⇒ נתיב ביט-זהה להיום. קיים ⇒ פענוח לפני onRemote (מחוקים אין מה לפענח).
         if (!dek) {
@@ -595,7 +597,10 @@ export function subscribeAll(
     onSnapshot(
       doc(db, scopedMeta()),
       (snap) => {
-        if (snap.metadata.hasPendingWrites || !snap.exists()) return;
+        // ביקורת-עומק 2.9: דילוג על meta כשיש כתיבה-ממתינה השאיר את מונה-הקבלות המקומי
+        // נמוך ממה שמכשיר אחר כבר הנפיק ⇒ **קבלת-מס כפולה**. applyMetaPartial הוא
+        // bump-only למונים ו-no-op (JSON-שווה) להד-שלנו ⇒ בטוח להחיל תמיד.
+        if (!snap.exists()) return;
         if (!dek) {
           onRemote({ meta: snap.data() });
           return;

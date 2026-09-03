@@ -208,7 +208,7 @@ export function SupportChatModal({ onClose }: { onClose: () => void }) {
   const orgName = useApp((s) => s.config.orgName);
   const [mod, setMod] = useState<CloudMod | null>(null);
   useEffect(() => {
-    void import('../../store/cloudSync').then(setMod);
+    void import('../../store/cloudSync').then(setMod).catch(() => { /* צ׳אנק לא נטען */ });
   }, []);
   return (
     <Modal title="💬 צ׳אט עם התמיכה" onClose={onClose}>
@@ -234,11 +234,13 @@ export function SupportInbox({ onClose }: { onClose: () => void }) {
     // watchAllSupportThreads לא בוטל אף פעם (onSnapshot חי + setThreads על רכיב מפורק).
     // כמו TeamChatModal: unsub בסקופ-חיצוני + cleanup אמיתי מה-effect.
     let unsub: (() => void) | undefined;
+    let alive = true; // ביקורת-עומק 2.9: סגירה לפני פתרון-הצ׳אנק ⇒ onSnapshot יתום
     void import('../../store/cloudSync').then((m) => {
+      if (!alive) return;
       setMod(m);
       unsub = m.watchAllSupportThreads(setThreads);
-    });
-    return () => unsub?.();
+    }).catch(() => { /* צ׳אנק לא נטען */ });
+    return () => { alive = false; unsub?.(); };
   }, []);
 
   const shown = useMemo(() => {
@@ -323,11 +325,13 @@ export function TeamChatModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     let unsub: (() => void) | undefined;
+    let alive = true;
     void import('../../store/cloudSync').then((m) => {
+      if (!alive) return;
       setMod(m);
       unsub = m.watchTeamMessages(slug, setMsgs);
-    });
-    return () => unsub?.();
+    }).catch(() => { /* צ׳אנק לא נטען */ });
+    return () => { alive = false; unsub?.(); };
   }, [slug]);
 
   const sorted = useMemo(() => sortTeamMsgs(msgs), [msgs]);

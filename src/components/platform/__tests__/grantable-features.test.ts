@@ -26,7 +26,10 @@ describe('🔓 ratchet — הדלקה-פר-עובד (grantable) מנתחית', (
       'settings.teachers.delete',
       'shop.delete',
       'supporters.bulkdelete',
+      'supporters.bulkmail', // ביקורת-עומק 2.9: desc "המנהל מדליק לעובד/ת" ⇒ חייב להיות grantable
+      'supporters.bulkmerge',
       'supporters.bulkselect',
+      'supporters.bulkwa',
       'supporters.delete',
       'supporters.purpose',
       'tzedaka.delete',

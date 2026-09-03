@@ -75,10 +75,10 @@ export function ayinActive(a: AyinCase | null | undefined): boolean {
   if (!a) return false;
   return (
     a.stage !== 'new' ||
-    a.names.length > 0 ||
+    (a.names ?? []).length > 0 ||
     !!a.lastTouch ||
-    a.answers.length > 0 ||
-    a.log.length > 0
+    (a.answers ?? []).length > 0 ||
+    (a.log ?? []).length > 0
   );
 }
 

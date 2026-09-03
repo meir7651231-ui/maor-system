@@ -18,6 +18,10 @@ import { ENTITY_COLLECTIONS, type EntityCol } from './cloud-diff';
 const LIST_FIELDS: Record<string, readonly string[]> = {
   families: ['members', 'docs'],
   enrollments: ['payments', 'absences'],
+  // ביקורת-עומק 2.9: sessions חסר קרס בייצוא/עריכת-חוג (persist.ts מרפא ב-migrate; המיזוג-החי לא)
+  courses: ['sessions'],
+  // משימות — pri נבדק ב-healRecord
+  tasks: [],
   supporters: ['donations'],
   // קופות צדקה — ריקונים ולוג ניקוד (BUILD-ORDER-TZEDAKA)
   tzBoxes: ['collections'],
@@ -29,14 +33,32 @@ const LIST_FIELDS: Record<string, readonly string[]> = {
   shopItems: ['waits'],
 };
 
+/** ריפוי-רשומה פר-אוסף — משקף את migrate() (persist.ts) עבור המיזוג-החי: ערך-מפתח
+ *  לא-מוכר בשדה שמשמש כמפתח-לוקאפ (STATUS_META[status] / EV_META[type] / PRI_LABELS[pri])
+ *  קרס את כל האפליקציה (ביקורת-e2e 1.9 + ביקורת-עומק 2.9). ערך תקין נשמר ביט-זהה. */
+const FAMILY_STATUS = new Set(['active', 'pending', 'inactive']);
+const EVENT_TYPES = new Set(['reminder', 'call', 'wedding', 'memorial', 'anniversary', 'bday', 'org', 'custom']);
+function healRecord(col: string, item: Record<string, unknown>): Record<string, unknown> {
+  if (col === 'families') {
+    let out = item;
+    if (!FAMILY_STATUS.has(String(out.status))) out = { ...out, status: 'active' };
+    const cred = out.cred as { score?: unknown; log?: unknown } | undefined;
+    if (!cred || typeof cred !== 'object' || typeof cred.score !== 'number') out = { ...out, cred: { score: typeof cred?.score === 'number' ? cred.score : 700, log: Array.isArray(cred?.log) ? cred.log : [] } };
+    else if (!Array.isArray(cred.log)) out = { ...out, cred: { ...cred, log: [] } };
+    return out;
+  }
+  if (col === 'events' && !EVENT_TYPES.has(String(item.type))) return { ...item, type: 'custom' };
+  if (col === 'tasks' && ![1, 2, 3].includes(item.pri as number)) return { ...item, pri: 2 };
+  return item;
+}
+
 export function sanitizeIncoming(col: string, item: Record<string, unknown>): Record<string, unknown> {
   const fields = LIST_FIELDS[col];
-  if (!fields) return item;
   let out = item;
-  for (const f of fields) {
+  for (const f of fields ?? []) {
     if (!Array.isArray(out[f])) out = { ...out, [f]: [] };
   }
-  return out;
+  return healRecord(col, out);
 }
 
 /**
@@ -48,12 +70,24 @@ export function sanitizeIncoming(col: string, item: Record<string, unknown>): Re
  * הסקלריים לא-יורדים (max) — עקבי עם "מונים רק עולים". שאר השדות = הענן מנצח.
  * חל רק על supporters; לכל אוסף אחר מחזיר את המסמך המרוחק כמות-שהוא.
  */
+// ביקורת-עומק 2.9: האיחוד-לפי-rid הורחב מ-supporters.donations גם ל-enrollments.payments —
+// תשלום-R- שנרשם בשיבוץ ונדרס ע"י מסמך-ענן ישן = קבלת-מס שהונפקה בלי רשומה + פער במונה.
+const RID_UNION: Record<string, string> = { supporters: 'donations', enrollments: 'payments' };
+
 export function mergeDonationsPreserving(
   col: string,
   local: Record<string, unknown>,
   incoming: Record<string, unknown>,
 ): Record<string, unknown> {
-  if (col !== 'supporters') return incoming;
+  const field = RID_UNION[col];
+  if (!field) return incoming;
+  if (col === 'enrollments') {
+    const loc = Array.isArray(local[field]) ? (local[field] as Array<{ rid?: string }>) : [];
+    const inc = Array.isArray(incoming[field]) ? (incoming[field] as Array<{ rid?: string }>) : [];
+    const incRids = new Set(inc.map((d) => d && d.rid).filter(Boolean));
+    const only = loc.filter((d) => d && d.rid && !incRids.has(d.rid));
+    return only.length ? { ...incoming, [field]: [...inc, ...only] } : incoming;
+  }
   const localDon = Array.isArray(local.donations) ? (local.donations as Array<{ rid?: string }>) : [];
   const incDon = Array.isArray(incoming.donations) ? (incoming.donations as Array<{ rid?: string }>) : [];
   const incRids = new Set(incDon.map((d) => d && d.rid).filter(Boolean));

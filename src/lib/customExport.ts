@@ -10,7 +10,7 @@ import type { Cell } from './csvx';
 import { featureOn, termOf } from './config';
 import { featLabel, itemLabel, stageLabel, unitLabel } from './ayin';
 import { hebDateFull, hebParts, hebAnnualEq } from './hebrew';
-import { EV_META } from './eventMeta';
+import { evMeta } from './eventMeta';
 import { DAY_NAMES, enrollCount, sessionsOf } from '../components/courses/lib';
 import { supCount, supIls, supScore, supTier, supUsd } from '../components/supporters/lib';
 
@@ -38,7 +38,7 @@ export function expFieldDefs(cfg: OrgConfig, target: ExportTarget): ExpField[] {
   if (target === 'courses') {
     if (!full) {
       return [
-        { key: 'name', label: 'שם החוג' },
+        { key: 'name', label: 'שם ה' + termOf(cfg, 'entity.course', 'חוג') },
         { key: 'teacher', label: 'מורה + טלפון' },
         { key: 'model', label: 'מסלול ומחיר' },
         { key: 'occ', label: 'תפוסה' },
@@ -237,7 +237,7 @@ export function buildCustomExport(
       if (!ev.date) continue;
       const rec = {
         title: ev.title,
-        type: ev.customType || EV_META[ev.type].label,
+        type: ev.customType || evMeta(ev).label,
         time: ev.time || '',
         fam: db.families.find((f) => f.id === ev.famId)?.name || '',
         notes: ev.notes || '',

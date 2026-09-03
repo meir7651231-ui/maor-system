@@ -10,7 +10,7 @@ import type { OrgConfig } from '../types/config';
 import type { Cell } from './csvx';
 import { termOf } from './config';
 import { hebDateFull } from './hebrew';
-import { EV_META } from './eventMeta';
+import { evMeta } from './eventMeta';
 
 const PRIORITY_LABEL: Record<string, string> = {
   green: 'רגיל (ירוק)',
@@ -62,7 +62,7 @@ export function eventsCsvRows(db: Db, config?: OrgConfig): Cell[][] {
   for (const ev of evs) {
     rows.push([
       ev.title,
-      ev.customType || EV_META[ev.type].label,
+      ev.customType || evMeta(ev).label,
       ev.date ? hebDateFull(ev.date) : '',
       fmtD(ev.date),
       ev.time || '',

@@ -180,6 +180,10 @@ export function overrideOf(email: string, org: OrgCloudDoc): EmployeeOverride {
 export const GRANTABLE_STAFF_FEATURES: ReadonlySet<string> = new Set([
   'supporters.bulkselect',
   'supporters.bulkdelete',
+  // ביקורת-עומק 2.9: ה-desc מבטיח "המנהל מדליק לעובד/ת" — בלי הרישום כאן effectiveConfigFor זרק את ה-true
+  'supporters.bulkmail',
+  'supporters.bulkwa',
+  'supporters.bulkmerge',
   'supporters.purpose',
   'supporters.delete',
   'families.delete',

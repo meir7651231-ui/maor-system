@@ -6,6 +6,7 @@
  * ורושם לשנה הבאה — שיבוץ חדש בחוג של השנה הבאה, ששומר את ההיסטוריה (החוג הישן
  * לא נגע). כל הכבידה במנוע-הטהור `reenroll-lib.ts`; כאן רק חיווט + חייגן (FAB).
  */
+import { isoToday } from '../../lib/date-util';
 import { useMemo, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
@@ -109,7 +110,7 @@ export default function ReenrollView() {
   }
   function doExport() {
     if (!guardExport()) return;
-    downloadCsv('reenroll-' + academicYearLabel(new Date().toISOString().slice(0, 10)) + '.csv', reenrollCsvRows(rows) as Cell[][]);
+    downloadCsv('reenroll-' + academicYearLabel(isoToday()) + '.csv', reenrollCsvRows(rows) as Cell[][]);
     setDial(false);
   }
   function doCopy() {

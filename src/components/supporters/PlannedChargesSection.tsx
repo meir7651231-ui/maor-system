@@ -150,7 +150,7 @@ function AddPlanModal({ supporter, onClose }: { supporter: Supporter; onClose: (
   const [note, setNote] = useState('');
 
   const n = Math.max(1, parseInt(count || '0', 10) || 0);
-  const amt = Math.max(0, parseFloat(amount || '0') || 0);
+  const amt = Math.round(Math.max(0, parseFloat(amount || '0') || 0) * 100) / 100; // ביקורת-עומק 2.9: עיגול-אגורות — ספרות≠מילים על קבלת-מס
   const total = amt * n;
 
   function onSave(): void {

@@ -10,6 +10,7 @@
  * 3. cloudOnDbChange(prev, next) — נקרא מנתיב setDb של ה-store, debounce
  *    800ms, מחשב diffDb ודוחף. תור לא-מקוון מנוהל ע"י Firestore עצמו.
  */
+import { mergeDonationsPreserving } from '../lib/cloud-merge';
 import { mergeDelLogs, type AuditEntry, type Db } from '../types/domain';
 import { diffDb, emptyDiff, ENTITY_COLLECTIONS, fullDbDiff, stripSupporterDonations, type DbDiff } from '../lib/cloud-diff';
 import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
@@ -194,12 +195,21 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
       const tombs = new Set(mergeDelLogs(local.delLog, cloudDb.delLog).map((e) => e.col + '|' + e.id));
       merged.delLog = mergeDelLogs(local.delLog, cloudDb.delLog);
       for (const col of ENTITY_COLLECTIONS) {
-        const cloudList = cloudDb[col] as Array<{ id: string }>;
+        const localList = local[col] as Array<{ id: string }>;
+        const localById = new Map(localList.map((x) => [x.id, x]));
+        const localIds = new Set(localList.map((x) => x.id));
+        // ביקורת-עומק 2.9 (א): מצבה-מקומית על רשומה שעדיין בענן (המחיקה טרם נדחפה) ⇒
+        // המחיקה גוברת — לא מחיים אותה מהענן. (ב): id בשני הצדדים ⇒ **איחוד-לפי-rid**
+        // (תרומה/תשלום שנרשמו בזמן שהסנכרון לא היה פעיל אינם נדרסים — קבלה לא אובדת).
+        const cloudList = (cloudDb[col] as Array<{ id: string }>)
+          .filter((c) => !(local.delLog ?? []).some((e) => e.col === col && e.id === c.id && !localIds.has(c.id)))
+          .map((c) => {
+            const l = localById.get(c.id);
+            return l ? (mergeDonationsPreserving(col, l as unknown as Record<string, unknown>, c as unknown as Record<string, unknown>) as unknown as { id: string }) : c;
+          });
         const cloudIds = new Set(cloudList.map((x) => x.id));
-        const localOnly = (local[col] as Array<{ id: string }>).filter(
-          (x) => !cloudIds.has(x.id) && !tombs.has(col + '|' + x.id),
-        );
-        if (localOnly.length) (merged[col] as Array<{ id: string }>) = [...cloudList, ...localOnly];
+        const localOnly = localList.filter((x) => !cloudIds.has(x.id) && !tombs.has(col + '|' + x.id));
+        (merged[col] as Array<{ id: string }>) = [...cloudList, ...localOnly];
       }
       // 🐛 נחיל-עמוק (13.8): מוני-הקבלות חייבים לעלות בלבד. merged ירש את מונה-הענן
       // (אולי נמוך ממה שהמכשיר כבר הנפיק local-first לפני החיבור) ⇒ הקבלה הבאה קיבלה
