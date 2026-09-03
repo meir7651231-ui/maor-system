@@ -75,7 +75,7 @@ describe('🩺 AyinBoard — שורת-כותרות, מונה, יעד-שעבר, �
 
   it('מובייל: לשורה className="ayin-row" (הגריד ה-inline נשאר לדסקטופ)', () => {
     expect(boardSrc).toContain('className="ayin-row"');
-    expect(boardSrc).toContain("const ROW_GRID = 'minmax(90px,.9fr) 1.6fr 1.1fr .8fr .8fr auto'");
+    expect(boardSrc).toContain("const ROW_GRID = 'minmax(90px,.9fr) 1.6fr 1.1fr .8fr .8fr 140px'");
   });
 
   it('לא נגענו בנרמול-השלב של הסינון ובחיווט הכפתור-החכם', () => {
