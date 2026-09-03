@@ -6,13 +6,13 @@
  *     refresh-token בכספת); דורמנטי עד שהבעלים מקים OAuth (RUNBOOK-GCONTACTS).
  *  ⬇ **ייצוא vCard** — עובד מיד, בלי שרת: קובץ .vcf שמייבאים ל-contacts.google.com.
  *
- * מגודר `integrationOn(config,'gcontacts')` + `isAdminUser` — חסר ⇒ אינו מרונדר
+ * מגודר `integrationOn(config,'gcontacts')` + `isAdminAuthority` — חסר ⇒ אינו מרונדר
  * (ביט-זהה להיום). התצוגה נגזרת מהמאגר (משפחות+תורמים+מתנדבים); אפס-כסף/קבלות.
  */
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { useDbWatch } from '../../store/dbWatch';
-import { integrationOn, integrationSetting, isAdminUser } from '../../lib/config';
+import { integrationOn, integrationSetting, isAdminAuthority, termOf } from '../../lib/config';
 import { guardExport } from '../../lib/exportGate';
 import { collectOrgContacts, contactsVcf, syncStats, GCONTACTS_GROUP_DEFAULT } from '../../lib/googleContacts';
 import { Btn } from '../ui';
@@ -24,6 +24,7 @@ export function GContactsSection() {
   const db = useDbWatch('families', 'supporters', 'volunteers', 'orgName');
   const cloudUser = useApp((s) => s.cloud.user);
   const cloudOn = useApp((s) => s.cloud.enabled);
+  const isManager = useApp((s) => s.cloud.isManager);
   const toast = useApp((s) => s.toast);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState('');
@@ -35,9 +36,14 @@ export function GContactsSection() {
   const stats = syncStats(contacts);
 
   // גידור: ההרחבה נמכרה (opt-in) + מנהל. חסר ⇒ אינו מרונדר.
-  if (!integrationOn(config, 'gcontacts') || !isAdminUser(config, cloudUser?.email)) return null;
+  // נחיל ב׳ 3.9 (F1): סמכות-מנהל אפקטיבית — בארגון-פלטפורמה בלי adminEmails עובד/ת אינו/ה מנהל
+  if (!integrationOn(config, 'gcontacts') || !isAdminAuthority(config, cloudUser?.email, !!isManager)) return null;
 
   const group = integrationSetting(config, 'gcontacts', 'groupName') || GCONTACTS_GROUP_DEFAULT;
+  // TP-8 (נחיל ב׳ 3.9): מונחי-הישויות דרך termOf — ה-fallback = הליטרל ההיסטורי (ביט-זהה ללקוח-החי)
+  const fams = termOf(config, 'nav.families', 'משפחות');
+  const sups = termOf(config, 'nav.supporters', 'תורמים');
+  const vols = termOf(config, 'entity.volunteers', 'מתנדבים');
 
   function exportVcf() {
     if (!guardExport()) return; // 🔐 שער יציאת-מידע (core.export)
@@ -74,9 +80,9 @@ export function GContactsSection() {
     <section id="sec-gcontacts" style={{ marginTop: 18 }}>
       <h3 style={{ fontSize: 15, fontWeight: 700, margin: '10px 0 6px' }}>📇 סנכרון אנשי-קשר ל-Google</h3>
       <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-        כל אנשי-הקשר — משפחות, תורמים ומתנדבים — נשמרים ל-Google Contacts שלכם (קבוצה
+        כל אנשי-הקשר — {fams}, {sups} ו{vols} — נשמרים ל-Google Contacts שלכם (קבוצה
         "{group}"). הסנכרון מזהה כל איש-קשר לפי מפתח-פנימי, כך שריצה חוזרת מעדכנת
-        במקום לשכפל. סה"כ כרגע: <b>{stats.total}</b> ({stats.families} משפחות · {stats.supporters} תורמים · {stats.volunteers} מתנדבים).
+        במקום לשכפל. סה"כ כרגע: <b>{stats.total}</b> ({stats.families} {fams} · {stats.supporters} {sups} · {stats.volunteers} {vols}).
       </p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
         {cloudOn && (

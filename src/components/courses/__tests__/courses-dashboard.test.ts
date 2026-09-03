@@ -4,6 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { Course, Db, Enrollment } from '../../../types/domain';
+import type { OrgConfig } from '../../../types/config';
 import { emptyDb } from '../../../types/domain';
 import { courseDashboard, dashboardCsvRows } from '../dashboard';
 import dashSrc from '../CoursesDashboard.tsx?raw';
@@ -78,6 +79,12 @@ describe('📊 דשבורד-חוגים — מנוע', () => {
     expect(csv[0]).toEqual(['חוג', 'מורה', 'רשומים', 'מקסימום', 'תפוסה %', 'רשימת-המתנה', 'חוב (₪)', 'חיסורים', 'בסיכון']);
     expect(csv.length).toBe(3); // כותרת + 2 חוגים
   });
+  // 🐛 TP-1 (3.9): כותרות ה-CSV 'חוג'/'מורה' היו קשיחות — חבילה מסחרית ('חבילה'/'מטפל') הורידה קובץ במונחי-עמותה.
+  it('dashboardCsvRows עם cfg: כותרות לפי מונחי-הארגון; בלי cfg — ביט-זהה', () => {
+    const cfg = { terms: { 'entity.course': 'חבילה', 'entity.teacher': 'מטפל' } } as unknown as OrgConfig;
+    expect(dashboardCsvRows(courseDashboard(db()), cfg)[0].slice(0, 2)).toEqual(['חבילה', 'מטפל']);
+    expect(dashboardCsvRows(courseDashboard(db()))[0].slice(0, 2)).toEqual(['חוג', 'מורה']);
+  });
   it('חוג ללא-תקרה: תפוסה 0 ולא משתתף בממוצע', () => {
     const d = courseDashboard({ ...emptyDb(), courses: [crs('x', 'פתוח', { maxStudents: 0 })], enrollments: [enr({ courseId: 'x' })] });
     expect(d.rows[0].occupancy).toBe(0);
@@ -88,7 +95,8 @@ describe('📊 דשבורד-חוגים — מנוע', () => {
 describe('🛡 הגנות-מקור — דשבורד מחווט ומגודר', () => {
   it('CoursesDashboard: courseDashboard + downloadCsv + core.export, אפס-נגיעה-בקבלות', () => {
     expect(dashSrc).toContain('courseDashboard(db)');
-    expect(dashSrc).toContain('dashboardCsvRows(dash)');
+    expect(dashSrc).toContain('dashboardCsvRows(dash, config)'); // TP-1: ה-CSV מקבל את מונחי-הארגון
+    expect(dashSrc).not.toContain('title="📊 דשבורד חוגים — מבט-על"'); // TP-4: כותרת-המודאל דרך termOf
     expect(dashSrc).toContain('downloadCsv(');
     expect(dashSrc).toContain("featureOn(config, 'core.export')");
     expect(dashSrc).toContain('אפס-נגיעה-בקבלות');

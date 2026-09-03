@@ -5,7 +5,20 @@
  */
 import { describe, expect, it } from 'vitest';
 import { isAdminUser } from '../config';
+import { DEFAULT_LOCK_ZONES } from '../lock';
 import liveCfg from '../../../public/c/maor-hachesed/config.json';
+import appSrc from '../../App.tsx?raw';
+
+// swarm-b (N3, 3.9.2026): אזור-הנעילה 'wizard' הוגדר ב-DEFAULT_LOCK_ZONES (והוצג כמתג
+// ב-SecuritySection) אך לא נאכף מעולם — adminNeededFor נקרא רק עם `view`. האשף נפתח
+// בלי הקוד המשני. עכשיו ענף-האשף ב-App מגודר adminNeededFor('wizard') ⇒ LockScreen משני.
+describe('🔒 ratchet — אזור-הנעילה wizard נאכף באשף', () => {
+  it("DEFAULT_LOCK_ZONES כולל 'wizard' ו-App מגדר את האשף ב-adminNeededFor('wizard')", () => {
+    expect(DEFAULT_LOCK_ZONES).toContain('wizard');
+    expect(appSrc).toContain("adminNeededFor('wizard')");
+    expect(appSrc).toMatch(/adminNeededFor\('wizard'\) \? \([\s\S]{0,600}<LockScreen kind="secondary" onUnlock=\{onAdminUnlock\} \/>/);
+  });
+});
 
 describe('🔒 ratchet — נעילת-ניהול ללקוח החי', () => {
   it('config.json של maor-hachesed נועל את הניהול (adminEmails לא ריק)', () => {

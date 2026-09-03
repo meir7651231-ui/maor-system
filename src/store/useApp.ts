@@ -56,7 +56,7 @@ import { roomClashError } from '../components/calendar/calLib';
 import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManager, parseJoinFullCode } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, supEnforceOn, termOf, writeCloudConfigCache } from '../lib/config';
+import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isAdminAuthority, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, supEnforceOn, termOf, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
@@ -83,6 +83,7 @@ import {
   currentDbKey,
   readStoredPlainDb,
   setPersistNamespace,
+  nsLsKey,
   decryptAndLoad,
   beginEncryption,
   stopEncryption,
@@ -1050,6 +1051,8 @@ export const useApp = create<AppState>()((set, get) => {
             // ומגן קשיח על השורש; applyCloudDoc מחוּוט רק לארגון-פלטפורמה.
             if (orgDoc?.deleted) {
               void import('./persist').then((p) => p.wipeLocalOrgData(cfg.slug));
+              // swarm-b (S1): ה-db בזיכרון שלם ⇒ flush/scheduleSave היו כותבים אותו חזרה; staleTab חוסם.
+              set({ staleTab: true });
               setCloud({ membership: 'removed' });
               return;
             }
@@ -1059,6 +1062,9 @@ export const useApp = create<AppState>()((set, get) => {
             // (רק הגבלה); מנהל/מייל-על = מלא. מנהל משנה כרטיס ⇒ העובד רואה חי (watch).
             const eff = effectiveConfigFor(user.email, orgDoc, merged);
             set({ config: eff });
+            // swarm-b (N6): מודול שכובה חי אצל הבעלים בעוד המשתמש עומד עליו ⇒ הביתה (בית/הגדרות לא נוגעים).
+            const v = get().view as string;
+            if (v !== 'home' && v !== 'settings' && (eff.modules as Record<string, boolean | undefined>)?.[v] === false) set({ view: 'home' });
             // מסלול-B: מתג-הפיצול חי — הדלקה/כיבוי אצל הבעלים ⇒ שכבת-הסנכרון מיד,
             // בלי רענון (הצד-הדוחף/המושך שואל את donationSplitActive). שורש נשאר כבוי.
             mod.setDonationSplit(donationSplitOn(eff));
@@ -1082,6 +1088,8 @@ export const useApp = create<AppState>()((set, get) => {
               // חשוב: הניקוי רק על דגל-מצבת מפורש — לעולם לא על כשל-קריאה (null).
               if (orgDoc?.deleted) {
                 void import('./persist').then((p) => p.wipeLocalOrgData(cfg.slug));
+                // swarm-b (S1): כמו ב-applyCloudDoc — חוסמים כתיבה-חוזרת של ה-db שבזיכרון.
+                set({ staleTab: true });
                 setCloud({ membership: 'removed' });
                 return;
               }
@@ -1342,6 +1350,10 @@ export const useApp = create<AppState>()((set, get) => {
       // קוראים מחדש אחרי setPersistNamespace. מדיניות-המפתח לא השתנתה: readLock
       // עצמו כולל מיגרציה-רכה מהמפתח הגלובלי (הכרעת-בעלים 9.8 — PIN משותף נשמר).
       set({ lock: readLock() });
+      // swarm-b (S2): דגלי-הפתיחה של הסשן נקראו ב-import (מפתח גלובלי) בעוד הנעילה פר-ארגון
+      // ⇒ פתיחת PIN בארגון א' "פתחה" גם את ב' באותו טאב. קוראים מחדש ממורחב-שמות
+      // (nsLsKey(base)=base אצל default ⇒ שורש ביט-זהה).
+      set({ unlockedPrimary: readSess(nsLsKey(SESS.p)), unlockedAdmin: readSess(nsLsKey(SESS.a)) });
       const res = await loadDb();
       const cloudOn = !!config.firebase;
       if (res.encrypted) {
@@ -1580,6 +1592,9 @@ export const useApp = create<AppState>()((set, get) => {
 
     setConfig(cfg) {
       set({ config: cfg });
+      // swarm-b (N6): כיבוי-מודול באשף בעוד המסך שלו פתוח ⇒ הביתה (בית/הגדרות לא נוגעים).
+      const v = get().view as string;
+      if (v !== 'home' && v !== 'settings' && (cfg.modules as Record<string, boolean | undefined>)?.[v] === false) set({ view: 'home' });
       saveConfigOverride(cfg);
       const { db } = get();
       applyTheme(db.ui.theme ?? cfg.theme, db.ui.accent ?? cfg.accent, cfg.motion);
@@ -2256,8 +2271,9 @@ export const useApp = create<AppState>()((set, get) => {
       }
       const sp = get().db.supporters.find((x) => x.id === id);
       if (!sp) return;
-      if (!canAddPhoto(sp.photos)) {
-        get().toast('הגעתם לתקרת ' + PHOTO_MAX + ' תמונות — הסירו תמונה כדי להוסיף');
+      // swarm-b (P4): גם תקציב-משקל כולל לתורם (מסמך-ענן < 1MB) — לא רק כמות.
+      if (!canAddPhoto(sp.photos, dataUri.length)) {
+        get().toast('הגעתם לתקרת ' + PHOTO_MAX + ' תמונות או חריגה מתקציב-התמונות — הסירו תמונה כדי להוסיף');
         return;
       }
       setDb((db) => ({
@@ -2582,7 +2598,8 @@ export const useApp = create<AppState>()((set, get) => {
           if (!idSet.has(s.id)) return s;
           const hok = s.hok;
           // דילוג-בטיחות: הו״ק לא-פעילה או שכבר-נרשמה-החודש (בחירה מיושנת) ⇒ לא כופלים.
-          if (!hok || !hokEffectivelyActive(s, todayIso) || hokRecordedThisMonth(s, todayIso)) {
+          // ביקורת 3.9: שער-סכום זהה ל-addDonation — hok פגום מגיבוי/ענן לא צורך D-
+          if (!hok || !Number.isFinite(hok.amount) || hok.amount <= 0 || !hokEffectivelyActive(s, todayIso) || hokRecordedThisMonth(s, todayIso)) {
             failed++;
             return s;
           }
@@ -3574,7 +3591,7 @@ export const useApp = create<AppState>()((set, get) => {
       }
       setDb((db) => {
         const prev = (db.ui.quoteTemplates || []).filter((t) => t.name !== nm);
-        const tpl = { id: 'qt' + db.seq, name: nm, lines };
+        const tpl = { id: makeId('qt', db.seq, deviceTag()), name: nm, lines }; // ביקורת 3.9: מזהה חסין-התנגשות (ids.ts #5)
         return { seq: db.seq + 1, ui: { ...db.ui, quoteTemplates: [tpl, ...prev].slice(0, 30) } };
       });
       get().toast('התבנית "' + nm + '" נשמרה');
@@ -3586,7 +3603,7 @@ export const useApp = create<AppState>()((set, get) => {
       if (!tpl) return;
       const base = get().db.seq;
       let k = 0;
-      const add = templateLinesToNames(tpl.lines, () => 'an' + (base + k++));
+      const add = templateLinesToNames(tpl.lines, () => makeId('an', base + k++, deviceTag())); // ביקורת 3.9: כמו nextId
       if (!add.length) return;
       setDb((db) => ({ seq: db.seq + add.length }));
       setAyin(id, { names: [...c.a.names, ...add] });
@@ -3765,13 +3782,16 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     async setLockCode(kind, pin) {
+      // swarm-b (A10): הגיבוב (PBKDF2, מאות ms) קודם — ואז צילום-הנעילה; אחרת שינוי-אזורים
+      // מטאב אחר בזמן ה-await היה נדרס ע"י הצילום הישן.
+      const hash = pin === null ? null : await hashPin(pin);
       const lock: LockCfg = { ...get().lock };
-      if (pin === null) {
+      if (hash === null) {
         delete lock[kind];
         // הסרת הקוד המשני — מנקים גם את רשימת האזורים (מיותרת בלי קוד)
         if (kind === 'secondary') delete lock.zones;
       } else {
-        lock[kind] = await hashPin(pin);
+        lock[kind] = hash;
         if (kind === 'secondary' && !lock.zones) lock.zones = [...DEFAULT_LOCK_ZONES];
       }
       writeLock(lock);
@@ -3784,8 +3804,8 @@ export const useApp = create<AppState>()((set, get) => {
     },
     clearLock() {
       writeLock({});
-      writeSess(SESS.p, null);
-      writeSess(SESS.a, null);
+      writeSess(nsLsKey(SESS.p), null);
+      writeSess(nsLsKey(SESS.a), null);
       set({ lock: {}, unlockedPrimary: false, unlockedAdmin: false });
     },
 
@@ -3986,22 +4006,30 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     markUnlocked(kind) {
+      // swarm-b (S2): דגל-הפתיחה ממורחב-שמות פר-ארגון (הנעילה עצמה כבר פר-ארגון ב-lock.ts).
       if (kind === 'primary') {
-        writeSess(SESS.p, '1');
+        writeSess(nsLsKey(SESS.p), '1');
         set({ unlockedPrimary: true });
       } else {
-        writeSess(SESS.a, '1');
+        writeSess(nsLsKey(SESS.a), '1');
         set({ unlockedAdmin: true });
       }
     },
     lockNow() {
-      writeSess(SESS.p, null);
-      writeSess(SESS.a, null);
+      writeSess(nsLsKey(SESS.p), null);
+      writeSess(nsLsKey(SESS.a), null);
       set({ unlockedPrimary: false, unlockedAdmin: false, view: 'home' });
       get().toast('המערכת ננעלה 🔒');
     },
 
     restoreDb(db) {
+      // swarm-b (F4): בארגון-ענן שחזור = החלפה סמכותית של הענן (cloudReplaceNow) — עובד/ת
+      // בלי סמכות-מנהל לא מוחק/ת את הארגון. שורש/אופליין: isAdminAuthority ⇒ ביט-זהה.
+      const cl = get().cloud;
+      if (cl.enabled && !isAdminAuthority(get().config, cl.user?.email, !!cl.isManager)) {
+        get().toast('⛔ פעולה זו שמורה למנהל/ת הארגון');
+        return;
+      }
       logAudit('שחזור מגיבוי', 'החלפת כל הנתונים');
       const prev = get().db;
       // ניקוי security כמו ב-init/decryptUnlock: גיבוי/צילום/עותק-ענן ישן עלול
@@ -4038,6 +4066,12 @@ export const useApp = create<AppState>()((set, get) => {
       get().toast('הנתונים שוחזרו מהגיבוי ✓');
     },
     resetAll() {
+      // swarm-b (F4): אותו שער-סמכות כמו restoreDb — איפוס בארגון-ענן = מחיקת-הענן.
+      const cl = get().cloud;
+      if (cl.enabled && !isAdminAuthority(get().config, cl.user?.email, !!cl.isManager)) {
+        get().toast('⛔ פעולה זו שמורה למנהל/ת הארגון');
+        return;
+      }
       const prev = get().db;
       const db = emptyDb();
       set({ db: withRemovalTombstones(prev, db) }); // ביקורת-עומק 2.9: איפוס = מצבה לכל ישות
@@ -4080,6 +4114,9 @@ if (typeof window !== 'undefined') {
   // סגירת הטאב הייתה דורסת סינכרונית את הכתיבה של הטאב האחר.
   const flush = () => {
     const s = useApp.getState();
+    // 🐛 swarm-b: לפני סיום init ה-db הוא emptyDb() (savedAt טרי) — pagehide בזמן await loadOrgConfig/loadDb
+    // דרס את maor_db (ואצל ?org= — את מפתח-השורש) ב-DB ריק ש-migrate מקבל. needDecrypt: לא כותבים ריק-גלוי מעל מעטפת ב-IDB.
+    if (!s.ready || s.needDecrypt) return;
     if (!s.staleTab) flushSaveSync(s.db);
   };
   window.addEventListener('pagehide', flush);

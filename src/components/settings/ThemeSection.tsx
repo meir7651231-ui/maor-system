@@ -4,7 +4,7 @@
  * נעשית ב-store (applyTheme) — כאן רק תצוגה ופעולות.
  */
 import { useApp } from '../../store/useApp';
-import { isAdminUser } from '../../lib/config';
+import { isAdminAuthority } from '../../lib/config';
 import { Btn } from '../ui';
 import { Section, SectionNote } from './lib';
 
@@ -141,6 +141,7 @@ export function ThemeSection() {
   const uiAccent = useApp((s) => s.db.ui.accent);
   const config = useApp((s) => s.config);
   const cloudUser = useApp((s) => s.cloud.user);
+  const isManager = useApp((s) => s.cloud.isManager);
   const setTheme = useApp((s) => s.setTheme);
   const setAccent = useApp((s) => s.setAccent);
   const toast = useApp((s) => s.toast);
@@ -149,7 +150,8 @@ export function ThemeSection() {
   const activeDef = THEMES.find((t) => t.key === activeKey) ?? THEMES[0];
   const accent = uiAccent ?? config.accent ?? activeDef.accent;
   const customized = !!(uiAccent ?? config.accent);
-  const isAdmin = isAdminUser(config, cloudUser?.email);
+  // נחיל ב׳ 3.9 (F1): סמכות-מנהל אפקטיבית — בארגון-פלטפורמה בלי adminEmails עובד/ת אינו/ה מנהל
+  const isAdmin = isAdminAuthority(config, cloudUser?.email, !!isManager);
 
   // משתמש שאינו מנהל-על — תצוגה בלבד; שינוי ערכת נושא/צבע שמור למנהל.
   if (!isAdmin) {

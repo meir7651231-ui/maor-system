@@ -126,11 +126,18 @@ let idb: Promise<IDBPDatabase> | null = null;
 
 function getIdb(): Promise<IDBPDatabase> {
   if (!idb) {
-    idb = openDB(IDB_NAME, 1, {
+    // נחיל ב׳ (3.9): openDB שנכשל (IDB חסום/נעול רגעית) נשמר כ-promise-דחוי לצמיתות ⇒ כל
+    // שמירה/צילום עתידי נפל בלי ניסיון-חוזר עד רענון. בכשל מאפסים — רק אם זה עדיין אותו
+    // promise (בדיקת-זהות: החלפת-namespace כבר הציבה חיבור חדש שאסור לאפס).
+    const p = openDB(IDB_NAME, 1, {
       upgrade(d) {
         d.createObjectStore(IDB_STORE);
         d.createObjectStore(IDB_SNAPSHOTS);
       },
+    });
+    idb = p;
+    p.catch(() => {
+      if (idb === p) idb = null;
     });
   }
   return idb;
@@ -229,12 +236,15 @@ export function migrate(raw: unknown): Db | null {
     ...db,
     v: DB_VERSION,
     families: Array.isArray(db.families) ? db.families : [],
-    enrollments: Array.isArray(db.enrollments) ? db.enrollments : [],
-    courses: Array.isArray(db.courses) ? db.courses : [],
+    // נחיל ב׳ (3.9): איבר null בשיבוצים/חוגים/תומכים (JSON ערוך-ידנית/חלקי) זרק TypeError בתוך
+    // migrate (e.payments / c.sessions / s.donations) ⇒ loadDb נפל ⇒ האפליקציה נתקעה על מסך-
+    // הטעינה. מסננים כמו families (:515) — אידמפוטנטי, נתונים תקינים ביט-זהים.
+    enrollments: Array.isArray(db.enrollments) ? db.enrollments.filter(Boolean) : [],
+    courses: Array.isArray(db.courses) ? db.courses.filter(Boolean) : [],
     events: Array.isArray(db.events) ? db.events : [],
     rooms: Array.isArray(db.rooms) ? db.rooms : [],
     teachers: Array.isArray(db.teachers) ? db.teachers : [],
-    supporters: Array.isArray(db.supporters) ? db.supporters : [],
+    supporters: Array.isArray(db.supporters) ? db.supporters.filter(Boolean) : [],
     // קופות צדקה (מודול tzedaka) — תוספת אדיטיבית, DB_VERSION נשאר 5:
     // מפתח חסר בגיבוי ישן = מערך ריק מ-emptyDb
     tzCoordinators: Array.isArray(db.tzCoordinators) ? db.tzCoordinators : [],
@@ -284,11 +294,12 @@ export function migrate(raw: unknown): Db | null {
     }, 0);
   const rNext = maxRid(
     'R-',
-    merged.enrollments.flatMap((e) => (Array.isArray(e.payments) ? e.payments.map((p) => p.rid) : [])),
+    merged.enrollments.flatMap((e) => (Array.isArray(e.payments) ? e.payments.filter(Boolean).map((p) => p.rid) : [])),
   );
   const dNext = maxRid(
     'D-',
-    merged.supporters.flatMap((s) => (Array.isArray(s.donations) ? s.donations.map((d) => d.rid) : [])),
+    // נחיל ב׳ (3.9) EC-1: איבר-null בתרומות (מסמך פגום) נזרק כאן — לפני הריפוי המלא בהמשך
+    merged.supporters.flatMap((s) => (Array.isArray(s.donations) ? s.donations.filter(Boolean).map((d) => d.rid) : [])),
   );
   // אישורי S- של החנות — אותו דפוס זריעה (רציפות גם בגיבוי שקדם למונה)
   const sNext = maxRid(
@@ -327,7 +338,12 @@ export function migrate(raw: unknown): Db | null {
   merged.receiptSeq = rPlan.nextSeq;
   merged.supporters = merged.supporters.map((s) => ({
     ...s,
-    donations: Array.isArray(s.donations) ? s.donations : [],
+    // נחיל ב׳ (3.9): תרומה בלי date (מסמך-ענן/גיבוי חלקי) הקריסה d.date.startsWith ב-hokRecordedThisMonth/
+    // wallData ⇒ מסך-התורמים כולו נפל מרשומה אחת. ריפוי ⇒ '' (ה-rid לעולם לא נזרק — קבלה); איבר
+    // null נזרק (אין לו rid). תרומה תקינה נשמרת באותה הפניה (ביט-זהה).
+    donations: Array.isArray(s.donations)
+      ? s.donations.filter((d) => !!d && typeof d === 'object').map((d) => (typeof d.date === 'string' ? d : { ...d, date: '' }))
+      : [],
     // גלריית-תמונות: חיטוי-הגנתי (ייבוא/ענן/ישן) — רק data:URI תקינים מתחת-לתקרה.
     // נוגעים רק כשהשדה קיים ⇒ כרטיס בלי-תמונות נשאר ביט-זהה (undefined).
     ...(s.photos !== undefined ? { photos: sanitizePhotos(s.photos) } : {}),
@@ -589,6 +605,38 @@ async function readRaw(): Promise<unknown> {
   }
 }
 
+/**
+ * נחיל ב׳ (3.9): גשש-תחילית למעטפת מוצפנת — בלי לפרסר את כל ה-DB. encryptDb כותב `$enc` כמפתח
+ * הראשון (crypto.ts:89-90) וה-spread ב-saveDb משמר את הסדר; ל-Db אין מפתח `$enc`, ובתוך מחרוזת-
+ * JSON הגרשיים מוברחים (\") ולכן הליטרל לא יכול להופיע. ⇒ לכל מחרוזת שהכותבים שלנו מייצרים:
+ * isEncrypted(JSON.parse(s)) === ENC_PROBE.test(s).
+ */
+const ENC_PROBE = /^\{[^{}]{0,40}"\$enc":2/;
+
+/**
+ * המעטפת המאוחסנת (אם יש) — לשער ריבוי-הטאבים של saveDb. במקום readRaw (JSON.parse מלא של
+ * ~5MB בכל שמירה, רק כדי לבדוק isEncrypted) בודקים תחילית; מפרסרים רק בהתאמה. LS ריק/חסום ⇒
+ * IDB (שם הערך כבר אובייקט). null = גלוי/חסר.
+ */
+async function readStoredEnvelope(): Promise<EncEnvelope | null> {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      if (!ENC_PROBE.test(raw)) return null;
+      const parsed: unknown = JSON.parse(raw);
+      return isEncrypted(parsed) ? parsed : null;
+    }
+  } catch {
+    /* חסום או JSON פגום — ננסה IndexedDB */
+  }
+  try {
+    const v: unknown = await (await getIdb()).get(IDB_STORE, 'current');
+    return isEncrypted(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 /** מפתח ה-DB בתחום הנוכחי — לזיהוי אירוע storage הרלוונטי (שער ריבוי-הטאבים #3). */
 export function currentDbKey(): string {
   return LS_KEY;
@@ -776,9 +824,10 @@ export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<bo
   //  • טאב מוצפן שהמעטפת בזיכרונו התיישנה (טאב אחר החליף סיסמה) → מאמצים את
   //    עטיפת-הסיסמה הטרייה מהמאוחסן, אחרת reencryptDb היה משחזר את הסיסמה הישנה.
   if (!opts?.plaintext) {
-    const stored = await readRaw();
+    // נחיל ב׳ (3.9): גשש-תחילית (readStoredEnvelope) במקום readRaw — אותה תוצאה, בלי parse מלא בכל שמירה
+    const stored = await readStoredEnvelope();
     if (dek && envelope) {
-      if (isEncrypted(stored)) {
+      if (stored) {
         // wrapRec/saltRec זהים ⇒ אותו DEK (רק החלפת סיסמה) → מאמצים את עטיפת
         // הסיסמה הטרייה. שונים ⇒ הצפנה הופעלה מחדש עם DEK אחר בטאב אחר; ה-DEK
         // שבידינו מיושן וכתיבה תשחית — נמנעים מדריסה.
@@ -789,7 +838,7 @@ export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<bo
         }
       }
       // stored גלוי/חסר → המעטפת שבזיכרון מוסמכת (למשל מיד אחרי beginEncryption)
-    } else if (isEncrypted(stored)) {
+    } else if (stored) {
       return false; // טאב גלוי מול מעטפת מוצפנת של טאב אחר — לא דורסים
     }
   }
@@ -847,7 +896,8 @@ export function flushSaveSync(db: Db): void {
   }
   try {
     const cur = localStorage.getItem(LS_KEY);
-    if (cur && isEncrypted(JSON.parse(cur))) return; // טאב אחר הצפין — לא לדרוס גלוי
+    // נחיל ב׳ (3.9): גשש-תחילית לפני parse מלא (pagehide — כל מילישנייה חשובה); זהות: ראה ENC_PROBE
+    if (cur && ENC_PROBE.test(cur) && isEncrypted(JSON.parse(cur))) return; // טאב אחר הצפין — לא לדרוס גלוי
   } catch {
     /* JSON פגום — ממשיכים לכתיבה */
   }

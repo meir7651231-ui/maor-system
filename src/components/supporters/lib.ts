@@ -808,7 +808,8 @@ export function hokEffectivelyActive(sp: Supporter, todayIso: string): boolean {
   if (!h.kevaId) return true; // הו"ק ידני — אין לאפ-אוטומטי
   let last = '';
   // 🐛 נחיל-סולה C7: גם חיובי-סולה נחשבים "חיות" של הו"ק-סליקה
-  for (const e of sp.hist ?? []) if ((e.clearer === 'נדרים' || e.clearer === 'סולה') && (e.d || '') > last) last = e.d || '';
+  // ביקורת 3.9 (MN-5): זיכוי (a≤0) אינו "חיוב-חי" — לא מאריך את חלון-החיות (עקבי עם supCount/withNedarimHok)
+  for (const e of sp.hist ?? []) if ((e.clearer === 'נדרים' || e.clearer === 'סולה') && (e.a ?? 0) > 0 && (e.d || '') > last) last = e.d || '';
   if (!last) return true; // עדיין אין היסטוריית-נדרים — סומכים על הדגל
   return monthsAgoIso(last, todayIso) <= 2;
 }
@@ -828,7 +829,8 @@ export function hokRecordedThisMonth(sp: Supporter, todayIso: string): boolean {
   // משתנה, למשל שזוהתה-רטרואקטיבית, לא תוצג שגוי כ"ממתין"); נפילה: התאמת-סכום-מדויק
   // לרשומת-hist שאינה נדרים (מקור-ישן/לגאסי).
   return (sp.hist ?? []).some(
-    (h) => (h.d || '').startsWith(month) && (h.clearer === 'נדרים' || h.clearer === 'סולה' || (h.a === hok.amount && (h.c || '₪') === hok.cur)),
+    // ביקורת 3.9 (MN-5): זיכוי-נדרים/סולה (a≤0) החודש אינו "חיוב נרשם"
+    (h) => (h.d || '').startsWith(month) && (((h.clearer === 'נדרים' || h.clearer === 'סולה') && (h.a ?? 0) > 0) || (h.a === hok.amount && (h.c || '₪') === hok.cur)),
   );
 }
 

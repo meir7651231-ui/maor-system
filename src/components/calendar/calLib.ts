@@ -44,14 +44,17 @@ function dateOf(iso: string): Date {
 }
 
 /** חלקי תאריך עברי עם מטמון לפי ISO — Intl יקר, והרשת קוראת עשרות פעמים.
- *  מטמון חסום (HP_CACHE_MAX): ניווט-לוח ארוך הגדיל אותו ללא-גבול; בחריגה מנקים
- *  (hebParts טהור ⇒ בנייה-מחדש חינמית מבחינת נכונות). */
-const HP_CACHE_MAX = 3000;
+ *  מטמון חסום (HP_CACHE_MAX): ניווט-לוח ארוך הגדיל אותו ללא-גבול; בחריגה מפנים את הישן-ביותר
+ *  (hebParts טהור ⇒ בנייה-מחדש חינמית מבחינת נכונות).
+ *  נחיל ב׳ (3.9 · ביצועים): clear-all בתקרה 3000 גרם thrash — dayItems קורא hpOf לכל לידת-
+ *  בן-משפחה לכל תא; >3000 לידות ייחודיות ⇒ המטמון נמחק כמה פעמים **בכל בניית-גריד** (2.4s מול
+ *  11ms). תקרה 30k (מכסה 3000 משפחות×6 לידות + גריד; ~≤6MB) + פינוי-הישן-ביותר (Map שומר סדר-הכנסה). */
+const HP_CACHE_MAX = 30_000;
 const hpCache = new Map<string, HebParts>();
 export function hpOf(iso: string, d?: Date): HebParts {
   let hp = hpCache.get(iso);
   if (!hp) {
-    if (hpCache.size >= HP_CACHE_MAX) hpCache.clear();
+    if (hpCache.size >= HP_CACHE_MAX) hpCache.delete(hpCache.keys().next().value as string);
     hp = hebParts(d ?? dateOf(iso));
     hpCache.set(iso, hp);
   }

@@ -388,7 +388,7 @@ function MergeView(props: { pay: IncomingPayment; onBack: () => void; onMerged: 
             {'🎗 תרומה — ל' + nav}
           </Btn>
           <Btn sm kind={dest === 'fam' ? 'primary' : undefined} onClick={() => setDest('fam')} title="רישום כתשלום-חוג על השיבוץ של המשפחה — קבלת R- בסדרה הרציפה, לא נוגע בתורמים">
-            {'👪 תשלום ' + termOf(config, 'entity.course', 'חוג') + ' — למשפחה'}
+            {'👪 תשלום ' + termOf(config, 'entity.course', 'חוג') + ' — ל' + termOf(config, 'entity.family', 'משפחה')}
           </Btn>
         </div>
       )}
@@ -396,18 +396,18 @@ function MergeView(props: { pay: IncomingPayment; onBack: () => void; onMerged: 
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder={dest === 'fam' ? '🔎 חיפוש משפחה/חוג (שם או טלפון)…' : '🔎 חיפוש ' + nav + ' (שם או טלפון)…'}
+          placeholder={dest === 'fam' ? '🔎 חיפוש ' + termOf(config, 'entity.family', 'משפחה') + '/' + termOf(config, 'entity.course', 'חוג') + ' (שם או טלפון)…' : '🔎 חיפוש ' + nav + ' (שם או טלפון)…'}
           style={{ flex: 1, fontSize: 13, padding: '5px 8px' }}
         />
         <Btn sm onClick={props.onBack}>← חזרה</Btn>
       </div>
 
       {/* ביקורת-עומק 2.9: תשלום-$ נותב כ-R- בערך-נקוב ב-₪ (Payment בלי cur) — מסלול-המשפחות רק ל-₪ */}
-      {dest === 'fam' && pay.currency === '$' && <Empty>תשלום בדולר לא ניתן לניתוב כתשלום-חוג בשקלים — רשמו דרך התורמים (D-)</Empty>}
+      {dest === 'fam' && pay.currency === '$' && <Empty>{'תשלום בדולר לא ניתן לניתוב כתשלום-' + termOf(config, 'entity.course', 'חוג') + ' בשקלים — רשמו דרך ה' + termOf(config, 'nav.supporters', 'תורמים') + ' (D-)'}</Empty>}
       {dest === 'fam' && pay.amount > 0 && pay.currency !== '$' && (
         <>
           {enrollRows.length === 0 ? (
-            <Empty>לא נמצאו שיבוצים תואמים — חפשו לפי שם-משפחה, שם-ילד/ה או טלפון</Empty>
+            <Empty>{'לא נמצאו ' + termOf(config, 'entity.enrollments', 'שיבוצים') + ' תואמים — חפשו לפי שם-משפחה, שם-ילד/ה או טלפון'}</Empty>
           ) : (
             enrollRows.map((r) => (
               <div key={r.en.id} style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid var(--line)', borderRadius: 10, padding: '8px 10px', marginBottom: 6 }}>
@@ -433,7 +433,7 @@ function MergeView(props: { pay: IncomingPayment; onBack: () => void; onMerged: 
         </Empty>
       ) : (
         <>
-          {!q.trim() && <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>מועמדים (לפי מזהה-תורם / ת"ז / טלפון / אימייל / שם):</div>}
+          {!q.trim() && <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>{'מועמדים (לפי מזהה-' + termOf(config, 'entity.supporter', 'תורם') + ' / ת"ז / טלפון / אימייל / שם):'}</div>}
           {list.map((sp) => (
             <div key={sp.id} style={{ border: '1px solid var(--line)', borderRadius: 10, padding: 10, marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>

@@ -85,9 +85,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const smsReady = integrationOn(config, 'sms') && cloudReady && !!sp.phone;
   const [smsOpen, setSmsOpen] = useState(false);
   const [smsText, setSmsText] = useState('');
+  // ביקורת 3.9 (A6): מגן-כפילות כמו mailBusy — SMS בתשלום; לחיצה-כפולה לפני ה-await הכניסה שתי הודעות לתור
+  const [smsBusy, setSmsBusy] = useState(false);
   async function sendSms() {
     const t = smsText.trim();
     if (!t) return toast('כתבו הודעה קודם');
+    if (smsBusy) return;
+    setSmsBusy(true);
     try {
       const mod = await import('../../store/cloudSync');
       await mod.writeSmsOutbox(sp.phone, t);
@@ -96,6 +100,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       setSmsText('');
     } catch {
       toast('⚠ ההכנסה לתור נכשלה — נסו שוב');
+    } finally {
+      setSmsBusy(false);
     }
   }
   // 📧 שליחת-מייל ידנית (בקשת-בעלים 26.8) — מעל-mailOutbox הקיים (שמשמש
@@ -234,15 +240,21 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
 
   // צרור-הלילה (ROADMAP-100 ‏#1): קבלה במייל — תור mailOutbox, נשלח ע"י ה-Function
   const mailReady = integrationOn(config, 'mail') && cloudReady && !!sp.email;
+  // ביקורת 3.9 (A6): מגן-כפילות כמו mailBusy — לחיצה-כפולה שלחה את אותה קבלה פעמיים לתור
+  const [mailRcptBusy, setMailRcptBusy] = useState(false);
   async function mailReceipt(rid: string) {
     const info = receiptInfoFor(rid);
     if (!info) return;
+    if (mailRcptBusy) return;
+    setMailRcptBusy(true);
     try {
       const mod = await import('../../store/cloudSync');
       await mod.writeMailOutbox(sp.email, 'קבלה ' + rid + ' — ' + info.orgName, receiptLines(info).join('\n'));
       toast('📧 קבלה ' + rid + ' נכנסה לתור-המייל');
     } catch {
       toast('⚠ ההכנסה לתור נכשלה — נסו שוב');
+    } finally {
+      setMailRcptBusy(false);
     }
   }
 
@@ -432,6 +444,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                     payerId: sp.idNum,
                     year,
                     donations: dsp.donations,
+                    // TP-15: מונחי-הארגון לכותרות-הדוח (חבילות מסחריות); ברירת-המחדל ביט-זהה ('תרומות' / 'התורם/ת')
+                    terms: {
+                      donations: termOf(config, 'entity.donations', 'תרומות'),
+                      supporter: 'ה' + termOf(config, 'entity.supporter', 'תורם/ת'),
+                    },
                   }),
                 );
                 toast('📄 דוח שנת ' + year + ' ירד');
@@ -671,7 +688,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                             🧾 הורדה
                           </Btn>
                           {mailReady && (
-                            <Btn sm onClick={() => void mailReceipt(r.rid!)} title={'שליחת קבלה ' + r.rid + ' למייל ' + termOf(config, 'entity.supporter', 'התורם')}>
+                            <Btn sm onClick={() => void mailReceipt(r.rid!)} disabled={mailRcptBusy} title={'שליחת קבלה ' + r.rid + ' למייל ' + termOf(config, 'entity.supporter', 'התורם')}>
                               📧 מייל
                             </Btn>
                           )}
@@ -771,7 +788,9 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             נשלח אל {sp.phone} דרך תור-הענן (שרת-ההרחבות שולח תוך דקה).
           </div>
           <div className="modal-actions">
-            <Btn kind="primary" onClick={() => void sendSms()}>שליחה לתור</Btn>
+            <Btn kind="primary" onClick={() => void sendSms()} disabled={smsBusy}>
+              {smsBusy ? 'שולח…' : 'שליחה לתור'}
+            </Btn>
             <Btn onClick={() => setSmsOpen(false)}>ביטול</Btn>
           </div>
         </Modal>

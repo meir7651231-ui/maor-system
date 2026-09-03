@@ -3,7 +3,7 @@
  * רשימת-המתנה · חוב · חיסורים · בסיכון), סיכומים, ו"החוגים-המבוקשים". נגזרת טהורה
  * (dashboard.ts) — אפס-סכמה, אפס-נגיעה-בקבלות. ייצוא CSV דרך core.export.
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type KeyboardEvent } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { Btn, Empty, Modal } from '../ui';
@@ -21,6 +21,14 @@ function occColor(r: CourseRow): string {
   if (r.occupancy >= 80) return '#9a6414';
   return '#12803c';
 }
+
+/** A-2 (3.9): שורת-הדשבורד נפתחת גם במקלדת (Enter/רווח) — כמו שורות FamiliesView/SupportersView. */
+const openRowKey = (fn: () => void) => (e: KeyboardEvent<HTMLElement>) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fn();
+  }
+};
 
 export function CoursesDashboard(props: { onClose: () => void }) {
   const db = useApp((s) => s.db);
@@ -80,13 +88,13 @@ export function CoursesDashboard(props: { onClose: () => void }) {
   const s = dash.summary;
 
   return (
-    <Modal title="📊 דשבורד חוגים — מבט-על" onClose={props.onClose} wide>
+    <Modal title={'📊 דשבורד ' + termOf(config, 'nav.courses', 'חוגים') + ' — מבט-על'} onClose={props.onClose} wide>
       {db.courses.length === 0 ? (
         <Empty>עדיין אין {termOf(config, 'nav.courses', 'חוגים')} להצגה בדשבורד.</Empty>
       ) : (
         <>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-            {kpi('חוגים', String(s.courses))}
+            {kpi(termOf(config, 'nav.courses', 'חוגים'), String(s.courses))}
             {kpi('רשומים', String(s.enrolled))}
             {kpi('תפוסה ממוצעת', s.avgOccupancy + '%')}
             {kpi('רשימת-המתנה', String(s.waitlist), s.waitlist > 0 ? '#7c3aed' : undefined)}
@@ -95,14 +103,14 @@ export function CoursesDashboard(props: { onClose: () => void }) {
             <div style={{ flex: 1 }} />
             {exportOn && (
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <Btn sm onClick={() => downloadCsv('courses-dashboard-' + isoToday() + '.csv', dashboardCsvRows(dash))} title="ייצוא הדשבורד ל-CSV">
+                <Btn sm onClick={() => downloadCsv('courses-dashboard-' + isoToday() + '.csv', dashboardCsvRows(dash, config))} title="ייצוא הדשבורד ל-CSV">
                   ⬇ CSV
                 </Btn>
                 <Btn
                   sm
                   onClick={() => {
                     if (!guardExport()) return; // 🔐 שער יציאת-מידע
-                    void navigator.clipboard?.writeText(dashboardCsvRows(dash).map((r) => r.map(csvEscape).join('\t')).join('\n')); // csvEscape: בלי הזרקת-נוסחה בהדבקה לאקסל
+                    void navigator.clipboard?.writeText(dashboardCsvRows(dash, config).map((r) => r.map(csvEscape).join('\t')).join('\n')); // csvEscape: בלי הזרקת-נוסחה בהדבקה לאקסל
                     toast('הדשבורד הועתק');
                   }}
                 >
@@ -115,7 +123,7 @@ export function CoursesDashboard(props: { onClose: () => void }) {
           {/* 🔥 החוגים-המבוקשים — בעלי רשימת-ההמתנה הארוכה ביותר */}
           {dash.mostWanted.length > 0 && (
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-faint)' }}>🔥 החוגים המבוקשים:</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-faint)' }}>{'🔥 ה' + termOf(config, 'nav.courses', 'חוגים') + ' המבוקשים:'}</span>
               {dash.mostWanted.slice(0, 6).map((r) => (
                 <button
                   key={r.id}
@@ -124,7 +132,7 @@ export function CoursesDashboard(props: { onClose: () => void }) {
                     props.onClose();
                     selectCourse(r.id);
                   }}
-                  title="פתיחת כרטיס החוג"
+                  title={'פתיחת כרטיס ה' + termOf(config, 'entity.course', 'חוג')}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -149,8 +157,8 @@ export function CoursesDashboard(props: { onClose: () => void }) {
             <table className="table">
               <thead>
                 <tr>
-                  {thSort('name', 'חוג')}
-                  {thSort('teacher', 'מורה')}
+                  {thSort('name', termOf(config, 'entity.course', 'חוג'))}
+                  {thSort('teacher', termOf(config, 'entity.teacher', 'מורה'))}
                   {thSort('enrolled', 'רשומים')}
                   {thSort('occupancy', 'תפוסה')}
                   {thSort('waitlist', 'המתנה')}
@@ -161,7 +169,7 @@ export function CoursesDashboard(props: { onClose: () => void }) {
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => { props.onClose(); selectCourse(r.id); }}>
+                  <tr key={r.id} style={{ cursor: 'pointer' }} tabIndex={0} onClick={() => { props.onClose(); selectCourse(r.id); }} onKeyDown={openRowKey(() => { props.onClose(); selectCourse(r.id); })}>
                     <td style={{ fontWeight: 700 }}>{r.name}</td>
                     <td style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{r.teacher}</td>
                     <td style={{ fontWeight: 700 }}>{r.enrolled + '/' + (r.max || '∞')}</td>
@@ -177,7 +185,7 @@ export function CoursesDashboard(props: { onClose: () => void }) {
           </div>
 
           <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 10 }}>
-            נגזרת חיה מהחוגים והשיבוצים — אפס-נגיעה-בקבלות. לחיצה על שורה פותחת את כרטיס החוג.
+            {'נגזרת חיה מה' + termOf(config, 'nav.courses', 'חוגים') + ' וה' + termOf(config, 'entity.enrollments', 'שיבוצים') + ' — אפס-נגיעה-בקבלות. לחיצה על שורה פותחת את כרטיס ה' + termOf(config, 'entity.course', 'חוג') + '.'}
           </div>
         </>
       )}

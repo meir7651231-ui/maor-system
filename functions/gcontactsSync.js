@@ -246,8 +246,9 @@ if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || pro
           const isSuper = superSet().has(el);
           const orgDoc = slug === 'root' ? null : await db.doc('platformOrgs/' + slug).get();
           const od = orgDoc && orgDoc.exists ? orgDoc.data() : {};
-          // root ⇒ מיילי-על בלבד (כמו solaPull); ארגון-פלטפורמה ⇒ מנהל/חבר או מייל-על
-          const isMgr = slug !== 'root' && (clean(od.manager).toLowerCase() === el || (od.members || []).map((x) => String(x).toLowerCase()).includes(el));
+          // root ⇒ מיילי-על בלבד (כמו solaPull); ארגון-פלטפורמה ⇒ מנהל-ארגון או מייל-על
+          // (swarm-b F5: חבר-רגיל אינו מפעיל סנכרון — תואם להערת ה-endpoint "מנהל/מייל-על")
+          const isMgr = slug !== 'root' && clean(od.manager).toLowerCase() === el;
           if (!isSuper && !isMgr) { res.status(403).json({ error: 'forbidden' }); return; }
           // ארגון-פלטפורמה: ההרחבה חייבת להיות דלוקה (אותו שער כמו המתוזמן); root = קונפיג סטטי, השער אצל הלקוח
           if (slug !== 'root') {

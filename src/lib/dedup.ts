@@ -350,6 +350,10 @@ export function mergeSupporterInto(keep: Supporter, drop: Supporter): Supporter 
   // תקרת-האפליקציה (PHOTO_MAX), של השומר קודם; nextNote — של השומר גובר, ריק ⇒ של הנמחק.
   const photos = [...new Set([...(keep.photos ?? []), ...(drop.photos ?? [])])].slice(0, PHOTO_MAX);
   const nextNote = keep.nextNote || drop.nextNote;
+  // 🐛 נחיל ב׳ (3.9): חיובים-מתוכננים של הנמחק נזרקו בשקט (הבטחות-חיוב, לא קבלות — אך chargePlanned
+  // העתידי ותזכורות-הפיגור אבדו). איחוד לפי id, של השומר קודם (ids מ-nextId ייחודיים; דדופ-הגנתי).
+  const seenPc = new Set<string>();
+  const plannedCharges = [...(keep.plannedCharges ?? []), ...(drop.plannedCharges ?? [])].filter((p) => !seenPc.has(p.id) && !!seenPc.add(p.id));
   const ils = donations.filter((d) => d.cur !== '$').reduce((a, d) => a + d.amount, 0);
   const usd = donations.filter((d) => d.cur === '$').reduce((a, d) => a + d.amount, 0);
   const notes = [keep.notes, drop.notes].map((n) => (n || '').trim()).filter(Boolean);
@@ -369,6 +373,7 @@ export function mergeSupporterInto(keep: Supporter, drop: Supporter): Supporter 
     donations,
     ...(hist.length ? { hist } : {}),
     ...(photos.length ? { photos } : {}),
+    ...(plannedCharges.length ? { plannedCharges } : {}),
     count: donations.length,
     ils,
     usd,

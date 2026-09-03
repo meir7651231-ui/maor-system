@@ -26,6 +26,7 @@ import {
 import { Modal } from '../ui';
 import { parsePortalChat } from '../public/portal';
 import { waLink } from '../../lib/wa';
+import { termOf } from '../../lib/config';
 
 type CloudMod = typeof import('../../store/cloudSync');
 
@@ -36,10 +37,14 @@ type CloudMod = typeof import('../../store/cloudSync');
  */
 function PortalReqCard({ text, onClose }: { text: string; onClose: () => void }) {
   const openEnrollDraft = useApp((s) => s.openEnrollDraft);
+  const config = useApp((s) => s.config);
   const req = parsePortalChat(text);
   if (!req) return null;
+  // מונח-החוג של הארגון (swarm-b TP-14) — גם בטקסט-הוואטסאפ החוצה; חסר ⇒ 'חוג' ביט-זהה.
+  // הפענוח עצמו (parsePortalChat) נשאר על התוויות המילוליות — פרוטוקול-wire.
+  const course = termOf(config, 'entity.course', 'חוג');
   const tel = req.phone.replace(/[^\d+]/g, '');
-  const wa = req.phone ? waLink(req.phone, 'שלום, בנוגע לבקשת-ההרשמה לחוג — ') : null;
+  const wa = req.phone ? waLink(req.phone, 'שלום, בנוגע לבקשת-ההרשמה ל' + course + ' — ') : null;
   const row = (label: string, val: string) =>
     val ? (
       <div style={{ fontSize: 13 }}>
@@ -49,10 +54,10 @@ function PortalReqCard({ text, onClose }: { text: string; onClose: () => void })
     ) : null;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <div style={{ fontWeight: 800, fontSize: 13, color: '#8a5a1a' }}>📥 בקשת הרשמה לחוג</div>
+      <div style={{ fontWeight: 800, fontSize: 13, color: '#8a5a1a' }}>{'📥 בקשת הרשמה ל' + course}</div>
       {row('ילד/ה', req.childName)}
       {row('הורה', req.parentName)}
-      {row('חוג', req.course)}
+      {row(course, req.course)}
       {req.phone && <div style={{ fontSize: 13 }} dir="ltr">📞 {req.phone}</div>}
       {row('הערה', req.note)}
       <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>

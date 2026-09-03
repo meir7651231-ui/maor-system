@@ -121,7 +121,7 @@ export function deliveriesCsvRows(db: Db, config?: OrgConfig): (string | number)
   };
   const volName = (id: string) => db.volunteers.find((v) => v.id === id)?.name ?? '';
   // גל ב׳: עמודת כתובת (שדרוג-פורמט מתועד — ה-ratchet עודכן במודע)
-  const rows: (string | number)[][] = [['תאריך', T('entity.family', 'משפחה'), 'כתובת', 'מתנדב', 'סטטוס', 'הערה']];
+  const rows: (string | number)[][] = [['תאריך', T('entity.family', 'משפחה'), 'כתובת', T('entity.volunteer', 'מתנדב'), 'סטטוס', 'הערה']];
   for (const d of db.deliveries) {
     rows.push([dayDate(d.dayId), famName(d.familyId), famAddr(d.familyId), volName(d.volunteerId), statusLabel(d.status), d.note ?? '']);
   }

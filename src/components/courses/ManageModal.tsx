@@ -143,7 +143,9 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     const res = addPayment(en.id, { date, amount: amt, method });
     if (!res.ok || !res.rid) return; // ה-store כבר הציג טוסט דחייה
     const rid = res.rid;
-    const newBal = Math.max(0, (en.totalDue || 0) - (paid + amt));
+    // ביקורת 3.9 (MN-3): עיגול-לאגורות — paid+amt גולמי הדפיס ₪0.30000000000000004 בסיכום-הקבלה
+    const paidNow = Math.round((paid + amt) * 100) / 100;
+    const newBal = Math.max(0, Math.round(((en.totalDue || 0) - paidNow) * 100) / 100);
     // קבלות כבויות בקונפיגורציה → התשלום נרשם, אך ללא הורדת קבלה וללא טוסט הקבלה
     if (receiptsOn) {
       // 5.5d (הכרעה 9.8): מסירה לפי בחירת-הלקוח — קובץ טקסט או PDF/הדפסה
@@ -159,7 +161,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         mark: featureOn(cfg, 'core.receipt.copymark'),
         // שורות סיכום העסקה — רק כשהדגל דלוק (בלעדיו הקבלה כמו קודם)
         summary: receiptSummaryOn
-          ? { totalDue: en.totalDue || 0, paidSoFar: paid + amt, balance: newBal, nextDate: en.dueDate || undefined }
+          ? { totalDue: en.totalDue || 0, paidSoFar: paidNow, balance: newBal, nextDate: en.dueDate || undefined }
           : undefined,
       }, receiptFmtOf(cfg, useApp.getState().db.ui));
     }

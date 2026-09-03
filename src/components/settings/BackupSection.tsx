@@ -16,7 +16,7 @@ import {
   isCryptoActive,
 } from '../../store/persist';
 import { Btn, Field, FormError, Modal, TextInput } from '../ui';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn, isAdminAuthority, termOf } from '../../lib/config';
 import { Section, SectionNote } from './lib';
 import { fmtDate, fmtDateTime } from './helpers';
 
@@ -46,6 +46,14 @@ export function BackupSection() {
   const exportBackup = useApp((s) => s.exportBackup);
   const restoreDb = useApp((s) => s.restoreDb);
   const toast = useApp((s) => s.toast);
+  // 🔐 נחיל ב׳ 3.9 (F4): שחזור בארגון-ענן = דריסת הענן לכל המכשירים (withRemovalTombstones +
+  // cloudReplaceNow) — שמור למנהל/ת הארגון. אופליין/שורש (כל מחובר ב-adminEmails) — ביט-זהה
+  // להיום. הייצוא (⬇ הורדת גיבוי מלא) נשאר — רק טריגרי-השחזור מוסתרים.
+  const cloudOn = useApp((s) => s.cloud.enabled);
+  const cloudUser = useApp((s) => s.cloud.user);
+  const isManager = useApp((s) => !!s.cloud.isManager);
+  const config = useApp((s) => s.config);
+  const canRestore = !cloudOn || isAdminAuthority(config, cloudUser?.email, isManager);
 
   const [error, setError] = useState('');
   const [snaps, setSnaps] = useState<string[]>([]);
@@ -79,6 +87,7 @@ export function BackupSection() {
 
   function applyDemoCleanup() {
     if (!demoPlan || demoPlan.total === 0) return;
+    if (!canRestore) { toast('שחזור בארגון-ענן — מנהל-הארגון בלבד'); setDemoConfirm(false); return; }
     restoreDb(demoPlan.cleaned);
     setDemoConfirm(false);
     toast(`🧹 הוסרו ${demoPlan.total} רשומות-הדגמה — הנתונים האמיתיים נשמרו`);
@@ -146,6 +155,8 @@ export function BackupSection() {
   /** שלב האישור: הדריסה מתבצעת רק מהכפתור המפורש במודאל. */
   function applyRestore() {
     if (restore?.stage !== 'confirm') return;
+    // F4: שער-סמכות גם בפעולה עצמה (לא רק בהסתרת-הטריגר) — סמכות שהשתנתה תוך-כדי מודאל פתוח
+    if (!canRestore) { toast('שחזור בארגון-ענן — מנהל-הארגון בלבד'); setRestore(null); return; }
     restoreDb(restore.parsed);
     setRestore(null);
     void listSnapshots().then(setSnaps);
@@ -199,19 +210,24 @@ export function BackupSection() {
             ⬇ הורדת גיבוי מלא
           </Btn>
         )}
-        <label className="btn" style={{ cursor: 'pointer' }}>
-          ⬆ שחזור מקובץ גיבוי
-          <input
-            type="file"
-            accept=".json,application/json"
-            style={{ display: 'none' }}
-            onChange={(e) => void onRestoreFile(e)}
-          />
-        </label>
+        {canRestore && (
+          <label className="btn" style={{ cursor: 'pointer' }}>
+            ⬆ שחזור מקובץ גיבוי
+            <input
+              type="file"
+              accept=".json,application/json"
+              style={{ display: 'none' }}
+              onChange={(e) => void onRestoreFile(e)}
+            />
+          </label>
+        )}
       </div>
+      {!canRestore && (
+        <SectionNote>שחזור מגיבוי, מצילום יומי וניקוי-הדמו בארגון-ענן שמורים למנהל/ת הארגון.</SectionNote>
+      )}
 
-      {/* 🧹 ניקוי נתוני-הדגמה שהתערבבו — מופיע רק כשזוהו רשומות-דמו */}
-      {demoTotal > 0 && (
+      {/* 🧹 ניקוי נתוני-הדגמה שהתערבבו — מופיע רק כשזוהו רשומות-דמו (ולמנהל/ת בלבד בארגון-ענן) */}
+      {canRestore && demoTotal > 0 && (
         <div style={{ background: '#fdecec', border: '1px solid #f2b8b8', borderRadius: 12, padding: '14px 16px', margin: '4px 0 18px' }}>
           <h3 style={{ fontSize: 15, fontWeight: 800, color: '#a12222', margin: '0 0 6px' }}>🧹 זוהו נתוני-הדגמה שהתערבבו</h3>
           <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6, margin: '0 0 10px' }}>
@@ -243,9 +259,11 @@ export function BackupSection() {
                 <tr key={k}>
                   <td>{fmtDate(k)}</td>
                   <td>
-                    <Btn sm onClick={() => void onRestoreSnapshot(k)}>
-                      שחזור מצילום זה
-                    </Btn>
+                    {canRestore && (
+                      <Btn sm onClick={() => void onRestoreSnapshot(k)}>
+                        שחזור מצילום זה
+                      </Btn>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -319,13 +337,17 @@ export function BackupSection() {
             const cfg = useApp.getState().config;
             const inc = restore.parsed;
             return (
-              <p style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 10 }}>
-                {`שחזור ${restore.sourceLabel} ידרוס את כל הנתונים הנוכחיים במחשב זה `}
-                <b>{`(${cur.families.length} ${termOf(cfg, 'nav.families', 'משפחות')}, ${cur.courses.length} ${termOf(cfg, 'nav.courses', 'חוגים')}, ${cur.supporters.length} ${termOf(cfg, 'nav.supporters', 'תורמים')})`}</b>
-                {`. במקומם ייכנסו הנתונים מהגיבוי: `}
-                <b>{`${inc.families.length} ${termOf(cfg, 'nav.families', 'משפחות')}, ${inc.courses.length} ${termOf(cfg, 'nav.courses', 'חוגים')}`}</b>
-                {inc.savedAt ? ` (נשמר ב-${fmtDateTime(inc.savedAt)})` : ''}.
-              </p>
+              <>
+                <p style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 10 }}>
+                  {`שחזור ${restore.sourceLabel} ידרוס את כל הנתונים הנוכחיים במחשב זה `}
+                  <b>{`(${cur.families.length} ${termOf(cfg, 'nav.families', 'משפחות')}, ${cur.courses.length} ${termOf(cfg, 'nav.courses', 'חוגים')}, ${cur.supporters.length} ${termOf(cfg, 'nav.supporters', 'תורמים')})`}</b>
+                  {`. במקומם ייכנסו הנתונים מהגיבוי: `}
+                  <b>{`${inc.families.length} ${termOf(cfg, 'nav.families', 'משפחות')}, ${inc.courses.length} ${termOf(cfg, 'nav.courses', 'חוגים')}`}</b>
+                  {inc.savedAt ? ` (נשמר ב-${fmtDateTime(inc.savedAt)})` : ''}.
+                </p>
+                {/* DS-2 (נחיל ב׳ 3.9): רמז-additive כשהגיבוי שייך לארגון אחר — המשפט ההיסטורי נשאר ביט-זהה */}
+                {inc.orgName && inc.orgName !== cur.orgName && (<div style={{ color: '#9a6414', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>{'⚠ הגיבוי שייך ל"' + inc.orgName + '" — הארגון הנוכחי: "' + (cur.orgName || '—') + '"'}</div>)}
+              </>
             );
           })()}
           {restore.plainWarn && (

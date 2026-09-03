@@ -123,6 +123,18 @@ export function scoreTerm(q: string, term: string): number {
 }
 
 /**
+ * נחיל ב׳ (3.9 · ביצועים): XLAT מנורמל פעם-אחת ברמת-המודול — expandQuery נרמל 56 מפתחות
+ * + ~130 כינויים **בכל קריאה**, וקריאה הייתה לכל טוקן לכל פריט (3000 משפחות ⇒ 640ms להקשה).
+ * טהור: normSearch דטרמיניסטי ⇒ CSE בלבד, אותו פלט לכל q.
+ */
+const XLAT_NORM = Object.entries(XLAT).map(([heb, aliases]) => ({
+  heb,
+  nheb: normSearch(heb),
+  aliases,
+  naliases: aliases.map((a) => normSearch(a)),
+}));
+
+/**
  * הרחבת שאילתה דרך XLAT: אם השאילתה היא מפתח עברי — מוסיפים את הכינויים;
  * אם היא כינוי — מוסיפים את המפתח העברי. תמיד כולל את השאילתה עצמה.
  */
@@ -130,11 +142,24 @@ export function expandQuery(q: string): string[] {
   const nq = normSearch(q);
   const out = [q];
   if (!nq) return out;
-  for (const [heb, aliases] of Object.entries(XLAT)) {
-    if (normSearch(heb) === nq) out.push(...aliases);
-    else if (aliases.some((a) => normSearch(a) === nq)) out.push(heb);
+  for (const x of XLAT_NORM) {
+    if (x.nheb === nq) out.push(...x.aliases);
+    else if (x.naliases.includes(nq)) out.push(x.heb);
   }
   return [...new Set(out)];
+}
+
+/** תוכנית-שאילתה — ההרחבות מחושבות פעם-אחת לשאילתה (לא פר-פריט). */
+export interface QueryPlan {
+  toks: string[];
+  tokExp: string[][];
+  phraseExp: string[];
+}
+
+/** בניית תוכנית-שאילתה: טוקנים מנורמלים + הרחבת-XLAT לכל טוקן + הרחבת-הביטוי-השלם (רב-מילתי). */
+export function planQuery(q: string): QueryPlan {
+  const toks = normSearch(q).split(/\s+/).filter(Boolean);
+  return { toks, tokExp: toks.map(expandQuery), phraseExp: toks.length > 1 ? expandQuery(q.trim()) : [] };
 }
 
 /**
@@ -147,13 +172,22 @@ export function expandQuery(q: string): string[] {
  * ציון, כך שסמנטיקת ה-AND לשאילתות רגילות נשמרת.
  */
 export function smartScore(q: string, terms: string[]): number {
-  const toks = normSearch(q).split(/\s+/).filter(Boolean);
+  return smartScorePlanned(planQuery(q), terms);
+}
+
+/**
+ * ציון פריט מול תוכנית-שאילתה מוכנה (נחיל ב׳ 3.9) — אותו גוף-לולאה בדיוק כמו smartScore
+ * ההיסטורי, רק שההרחבות נלקחות מהתוכנית (p.phraseExp / p.tokExp[i]) במקום להיחשב פר-פריט.
+ * smartScore(q, t) ≡ smartScorePlanned(planQuery(q), t) — ננעל ב-ratchet (swarm-b-lib.test).
+ */
+export function smartScorePlanned(p: QueryPlan, terms: string[]): number {
+  const toks = p.toks;
   if (!toks.length) return 0;
 
   // מעבר ביטוי שלם (רק כשיש יותר ממילה אחת — אחרת זהה למעבר הרגיל)
   let phrase = 0;
   if (toks.length > 1) {
-    for (const exp of expandQuery(q.trim())) {
+    for (const exp of p.phraseExp) {
       for (const term of terms) {
         phrase = Math.max(phrase, scoreTerm(exp, term));
         if (phrase >= 100) break;
@@ -163,9 +197,9 @@ export function smartScore(q: string, terms: string[]): number {
   }
 
   let total = 0;
-  for (const tok of toks) {
+  for (let i = 0; i < toks.length; i++) {
     let best = 0;
-    for (const exp of expandQuery(tok)) {
+    for (const exp of p.tokExp[i]) {
       for (const term of terms) {
         best = Math.max(best, scoreTerm(exp, term));
         if (best >= 100) break;
@@ -192,9 +226,10 @@ export function smartFilter<T>(
   limit?: number,
 ): T[] {
   if (!normSearch(q)) return limit !== undefined ? items.slice(0, limit) : items.slice();
+  const plan = planQuery(q); // נחיל ב׳ (3.9): תוכנית אחת לשאילתה — לא הרחבת-XLAT פר-פריט
   const scored: { it: T; sc: number }[] = [];
   for (const it of items) {
-    const sc = smartScore(q, getTerms(it));
+    const sc = smartScorePlanned(plan, getTerms(it));
     if (sc > 0) scored.push({ it, sc });
   }
   scored.sort((a, b) => b.sc - a.sc); // sort יציב — שוויון שומר סדר מקורי

@@ -24,7 +24,7 @@ import {
 } from './lib';
 import { FEATURES } from '../../types/features';
 import { WIZARD_SECTIONS } from '../builder/sections';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import { agoLabel, goalProgress, quietWorkers, teamCsvRows, teamIntel, teamSummary, trendOf } from './teamIntel';
 import { openTasksFor, overdueContactTaskDrafts, PRI_LABELS, taskStatsFor } from '../../lib/worktasks';
@@ -336,7 +336,7 @@ export function ManagerPanel(props: { onClose: () => void }) {
                       {scope.length === 0 && <span style={{ fontSize: 12 }}>לא הודלקו מודולים לארגון.</span>}
                       {scope.map((m) => (
                         <Chip key={m} on={ov.modules?.[m] !== false} onClick={() => void toggleModuleFor(email, m)}>
-                          {MODULE_LABELS[m]}
+                          {termOf(config, 'nav.' + m, MODULE_LABELS[m])}
                         </Chip>
                       ))}
                     </div>
