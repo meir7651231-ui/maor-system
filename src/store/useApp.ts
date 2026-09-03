@@ -71,7 +71,7 @@ import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
 import { freshNextYearEnrollment, nextAcademicYearLabel, nextYearCourseDraft } from '../components/courses/reenroll-lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
-import { applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
+import { AYIN_STAGES, applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
 import { appendCall, applyOutcome, OUTCOME_LABELS, popCall, startCampaign, undoLast } from '../lib/dialer';
 import {
   dailySnapshot,
@@ -1282,7 +1282,11 @@ export const useApp = create<AppState>()((set, get) => {
   function curAyin(id: string): { sp: Supporter; a: AyinCase } | null {
     const sp = get().db.supporters.find((s) => s.id === id);
     if (!sp) return null;
-    return { sp, a: sp.ayin ?? emptyAyin() };
+    // לוח-מעקב 3.9: ayin חלקי/בלי-שלב (לגאסי/ענן שטרם עבר migrate) — מיזוג emptyAyin + שלב תקין,
+    // אחרת planAyinAdvance קרס ומפתח boardEventIds נכתב כ-"undefined".
+    const a: AyinCase = { ...emptyAyin(), ...sp.ayin };
+    if (!AYIN_STAGES.includes(a.stage)) a.stage = 'new';
+    return { sp, a };
   }
 
   /** החלת patch על תיק הטיפול — יוצר את התיק בשימוש הראשון; touch מעדכן lastTouch. */
@@ -3376,6 +3380,12 @@ export const useApp = create<AppState>()((set, get) => {
       if (!c) return;
       const plan = planAyinAdvance(get().config, c.sp.name, c.a);
       if (!plan) return;
+      // לוח-מעקב 3.9: חסימת-שער-התשלום החזירה patch ריק אך setAyin(id, {}) עדיין החתים lastTouch=היום
+      // ⇒ התורם/ת "עודכן/ה היום" ונכנס/ה לדוח-היומי בלי שום שינוי. חסום/ריק ⇒ טוסט בלבד.
+      if (plan.blocked || (!Object.keys(plan.patch).length && !plan.event)) {
+        get().toast(plan.toast);
+        return;
+      }
       let patch = plan.patch;
       if (plan.event) {
         // שומרים את מזהה אירוע-הלוח על התיק, לפי שלב-מקור המעבר (או 'answerPush'),
@@ -3404,7 +3414,8 @@ export const useApp = create<AppState>()((set, get) => {
       if (!c) return;
       // מוחקים אירועי-לוח של מעברים שכעת מבוטלים (סף לפי שלב-היעד של כל מעבר),
       // כדי שלא יישארו תזכורות יתומות בלוח ו-re-advance לא ייצור כפילות.
-      const KEEP_MIN: Record<string, number> = { new: 1, lead: 2, eyes: 3, answerPush: 3, answer: 4 };
+      // לוח-מעקב 3.9: 'again' = תזכורת-"שוב" ידנית (ayinCallAgain) — לא תלוית-שלב, נשמרת בכל revert.
+      const KEEP_MIN: Record<string, number> = { new: 1, lead: 2, eyes: 3, answerPush: 3, answer: 4, again: 0 };
       const si = stageIndex(stage);
       const kept: Partial<Record<string, string>> = {};
       const drop = new Set<string>();
@@ -3710,8 +3721,13 @@ export const useApp = create<AppState>()((set, get) => {
     ayinCallAgain(id) {
       const c = curAyin(id);
       if (!c) return;
-      ayinEvent(c.sp, c.a, featLabel(get().config) + ': לדבר שוב — ' + c.sp.name, false);
-      setAyin(id, {});
+      // לוח-מעקב 3.9: כל "🔁 שוב" יצר אירוע-לוח חדש בלי מעקב ⇒ כפילויות שהצטברו עד מחיקת התומך/ת.
+      // עוקבים אחריו ב-boardEventIds.again — מוחקים את הקודם (כמו ayinRevert) לפני יצירת החדש.
+      const prev = c.a.boardEventIds?.again;
+      if (prev) setDb((db) => ({ events: db.events.filter((e) => e.id !== prev) }));
+      const evId = get().nextId('ev');
+      ayinEvent(c.sp, c.a, featLabel(get().config) + ': לדבר שוב — ' + c.sp.name, false, evId);
+      setAyin(id, { boardEventIds: { ...c.a.boardEventIds, again: evId } });
       get().toast('נכנסת לתזכורת בלוח');
     },
     ayinLogEyes(id, eyes, name) {
@@ -3730,6 +3746,10 @@ export const useApp = create<AppState>()((set, get) => {
         nextTalk: '',
         nextTalkTime: '',
         answerPushed: false,
+        // לוח-מעקב 3.9: מחזור חדש = תשלום חדש (אחרת שער-התשלום נעקף במחזור השני) + מפתחות-אירועים
+        // נקיים (אחרת revert במחזור-2 מחק את אירועי-הלוח של מחזור-1 — אובדן היסטוריה).
+        paid: false,
+        boardEventIds: {},
       });
       get().toast('נפתח מחזור חדש מההתחלה — ההיסטוריה נשמרה');
     },

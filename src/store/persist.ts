@@ -10,8 +10,10 @@ import { openDB, type IDBPDatabase } from 'idb';
 import { isoLocal } from '../lib/date-util';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { sanitizePhotos } from '../lib/photoGallery';
+import { AYIN_STAGES } from '../lib/ayin';
 import {
   DB_VERSION,
+  emptyAyin,
   emptyDb,
   type CredLogEntry,
   type Db,
@@ -362,6 +364,13 @@ export function migrate(raw: unknown): Db | null {
             return { ...rest, ...(c === '$' || c === '₪' ? { c } : {}) };
           })
       : undefined,
+    // לוח-מעקב 3.9 — הלגאסי יוצר ayin חלקי (`legacy-main-script.js:1596` — {stage,eyes,note,nextTalk,lastTouch}
+    // בלי names/log/answers; המערכים נוצרים אצלו עצלנית) ⇒ eyesTotal (a.names.reduce) קרס את מסך-התורמים
+    // כולו על רשומה אחת. ריפוי בנקודת-הכניסה היחידה: מיזוג emptyAyin (שדות קיימים גוברים) + שלב לא-מוכר
+    // ⇒ 'new'. תומכ/ת בלי ayin נשאר/ת בלי המפתח (לא מוסיפים); ayin מלא ביט-זהה; אידמפוטנטי.
+    ...(s.ayin && typeof s.ayin === 'object'
+      ? { ayin: { ...emptyAyin(), ...s.ayin, stage: AYIN_STAGES.includes(s.ayin.stage) ? s.ayin.stage : 'new' } }
+      : {}),
   }));
   // key = מזהה-התומכ/ת + סכום/מטבע/קטגוריה — זהות יציבה בלי תלות בסדר-המערך (swarm-audit)
   const donCoords = merged.supporters.flatMap((s, si) =>

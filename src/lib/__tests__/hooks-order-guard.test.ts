@@ -45,9 +45,12 @@ export function hooksAfterEarlyReturn(files: string[]): string[] {
         continue;
       }
       if (!inFn) continue;
-      if (/^ {2}(if\s*\(.*\)\s*)?return\b/.test(L) && !/^ {2}return \(/.test(L) && !/^ {2}return </.test(L)) {
-        if (sawReturn < 0) sawReturn = i;
-      }
+      // return-מוקדם: `  if (...) return …` · `  if (...) {` ואחריו `    return` · וגם `  return (` שאינו האחרון בפונקציה
+      // (לוח-מעקב 3.9: `if (warehouseMode) { return (...) }` + useMemo אחריו ⇒ React #300 — לא נתפס בגרסה הקודמת).
+      const earlyInline = /^ {2}if\s*\(.*\)\s*return\b/.test(L);
+      const earlyBlock = /^ {2}if\s*\(.*\)\s*\{\s*$/.test(L) && /^ {4}return\b/.test(lines[i + 1] ?? '');
+      const bareReturn = /^ {2}return\b/.test(L) && lines.slice(i + 1).some((x) => /^ {2}(const|let|var)?\s*[[{]?[\w\s,[\]{}:]*=?\s*use[A-Z]\w*\(/.test(x) || /^ {2}use[A-Z]\w*\(/.test(x)) && !/^}/.test(lines.slice(i + 1).find((x) => /^\S/.test(x)) ?? '}');
+      if ((earlyInline || earlyBlock || bareReturn) && sawReturn < 0) sawReturn = i;
       const hook = /^ {2}(const|let|var)?\s*[[{]?[\w\s,[\]{}:]*=?\s*use[A-Z]\w*\(/.test(L) || /^ {2}use[A-Z]\w*\(/.test(L);
       if (sawReturn >= 0 && hook) hits.push(`${f.replace(ROOT + '/', '')}:${i + 1} hook after early return at line ${sawReturn + 1} (${name})`);
     }

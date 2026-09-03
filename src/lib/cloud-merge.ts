@@ -3,8 +3,9 @@
  * לבדוק ביחידה את הלוגיקה הרגישה ביותר: החלת שינוי מרוחק על ה-DB המקומי בלי
  * לדלוף, בלי לשכפל ובלי לקרוס על מסמך מרוחק פגום.
  */
-import { mergeDelLogs, type DelEntry, type Db } from '../types/domain';
+import { emptyAyin, mergeDelLogs, type AyinCase, type DelEntry, type Db } from '../types/domain';
 import { ENTITY_COLLECTIONS, type EntityCol } from './cloud-diff';
+import { AYIN_STAGES } from './ayin';
 
 /**
  * חיזוק מסמך ישות מרוחק: מסמך שנכתב בגרסה ישנה / נערך ידנית ב-Firestore עלול
@@ -49,6 +50,17 @@ function healRecord(col: string, item: Record<string, unknown>): Record<string, 
   }
   if (col === 'events' && !EVENT_TYPES.has(String(item.type))) return { ...item, type: 'custom' };
   if (col === 'tasks' && ![1, 2, 3].includes(item.pri as number)) return { ...item, pri: 2 };
+  // לוח-מעקב 3.9: ayin חלקי מהענן (מסמך שנכתב מהלגאסי/גרסה ישנה — בלי names/log/answers, או שלב
+  // לא-מוכר) קרס את מסך-התורמים (eyesTotal). משקף את הריפוי ב-migrate (persist.ts). תומכ/ת תקין/ה
+  // מוחזר/ת באותה הפניה (no-op ⇒ אין לולאת-הד); בלי ayin ⇒ לא מוסיפים את המפתח.
+  if (col === 'supporters') {
+    const ayin = item.ayin as Partial<AyinCase> | null | undefined;
+    if (ayin && typeof ayin === 'object') {
+      const stageOk = (AYIN_STAGES as readonly string[]).includes(String(ayin.stage));
+      const listsOk = Array.isArray(ayin.names) && Array.isArray(ayin.log) && Array.isArray(ayin.answers);
+      if (!stageOk || !listsOk) return { ...item, ayin: { ...emptyAyin(), ...ayin, stage: stageOk ? ayin.stage : 'new' } };
+    }
+  }
   return item;
 }
 

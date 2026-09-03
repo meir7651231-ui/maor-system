@@ -207,6 +207,9 @@ export function SupportersView() {
   const colFilterOn = featureOn(config, 'supporters.colfilter');
   const advFilterOn = featureOn(config, 'supporters.advfilter');
   const ayinNamesOn = featureOn(config, 'supporters.ayin.names');
+  // דליפת-מונח (ביקורת 3.9): "כל השמות"/הטוסטים — כשהארגון שינה את שם-הפריט (חבילות
+  // מסחריות) הנוסח עוקב; בלי מונח מותאם נשמר 'שמות' ההיסטורי ביט-זהה.
+  const ayinItemsLabel = termOf(config, 'entity.ayinItem', 'שמות');
   const toast = useApp((s) => s.toast);
   const go = useApp((s) => s.go);
   // תצוגת גריד (5.8, בקשת-בעלים) — נשמרת ב-db.ui.supView, אותו דפוס כמו famView
@@ -411,11 +414,11 @@ export function SupportersView() {
   function namesReport() {
     const rows = ayinAllRows(config, visibleSupportersForDesignations(db.supporters, desigLimit));
     if (rows.length <= 1) {
-      toast('עדיין לא נוספו שמות בכרטיסי מעקב-הטיפול');
+      toast('עדיין לא נוספו ' + ayinItemsLabel + ' בכרטיסי ' + termOf(config, 'nav.ayin', 'מעקב-הטיפול'));
       return;
     }
     downloadCsv('ayin-names-' + isoToday() + '.csv', rows);
-    toast('דוח שמות: ' + (rows.length - 1) + ' שמות — הקובץ ירד');
+    toast('דוח ' + ayinItemsLabel + ': ' + (rows.length - 1) + ' ' + ayinItemsLabel + ' — הקובץ ירד');
   }
 
   // 🐛 נחיל-9×9 (13.8): גם פתיחת-כרטיס-ישיר (מהפלטה/עומק) מכובדת להרשאת-הייעוד —
@@ -586,6 +589,14 @@ export function SupportersView() {
   const visibleBase = desigLimit
     ? db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit))
     : db.supporters;
+  // 🩺 מוני-הטיפול על בסיס-הראייה (ביקורת 3.9): הלוח סגור כברירת-מחדל ⇒ הכותרת
+  // המקופלת צריכה אות-גילוי (מונה-פעילים); "עודכן היום" נספר על visibleBase ולא על
+  // db.supporters — עובד/ת מוגבל/ת לייעוד לא יסיק מונה של תורמים מוסתרים.
+  // ⚠️ לא useMemo — יש return-מוקדם (warehouseMode) לפני הנקודה הזו ⇒ hook כאן = React #300 בפתיחת-כרטיס.
+  const ayinActiveCount = visibleBase.filter((sp) => ayinActive(sp.ayin)).length;
+  const ayinTodayCount = visibleBase.filter(
+    (sp) => sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today)),
+  ).length;
 
   let list = visibleBase.filter((sp) => {
     if (cat !== 'all' && (sp.cat || '') !== cat) return false;
@@ -764,9 +775,10 @@ export function SupportersView() {
                     toast('📄 דוחות שנת ' + year + ' — הקובץ ירד (מקטע לכל ' + termOf(config, 'entity.supporter', 'תורם/ת') + ')');
                   },
                 },
-                ayinOn && dailyReportOn && { label: '📋 דוח יומי', onClick: dailyReport },
+                // מונה "(N)" כמו בלגאסי (markup:1312 "🧿 דוח יומי (N)") — כמה טופלו היום
+                ayinOn && dailyReportOn && { label: '📋 דוח יומי (' + ayinTodayCount + ')', onClick: dailyReport },
                 // מסך-השמות המלא (20.8, בקשת-בעלים) — הרשימה פר-שם על-המסך, לא רק CSV
-                ayinOn && ayinNamesOn && { label: '📋 ' + featLabel(config) + ' — כל השמות', onClick: () => setAyinNamesOpen(true), title: 'כל השמות מכל הכרטיסים — טבלה חיה עם חיפוש וסינון' },
+                ayinOn && ayinNamesOn && { label: '📋 ' + featLabel(config) + ' — כל ה' + ayinItemsLabel, onClick: () => setAyinNamesOpen(true), title: 'כל ה' + ayinItemsLabel + ' מכל הכרטיסים — טבלה חיה עם חיפוש וסינון' },
                 ayinOn && isAdminUser(config, cloudEmail) && { label: '📥 דוח שמות (למנהל)', onClick: namesReport, title: 'כל השמות בכרטיסי מעקב-הטיפול — CSV' },
                 dedupCount > 0 && featureOn(config, 'supporters.dedup') && { label: '🔗 איחוד כפולים · ' + dedupCount, onClick: () => setDedupOpen(true) },
                 !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
@@ -905,16 +917,17 @@ export function SupportersView() {
       {ayinOn && (
         <div className="card" style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-            <h3 style={{ fontSize: 15 }}>🩺 לוח מעקב הטיפול</h3>
+            <h3 style={{ fontSize: 15 }}>{'🩺 לוח ' + featLabel(config)}</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {/* 📋 מסך-השמות המלא — הלוח הוא תור פר-תומכ/ת; כאן כל השמות פר-שם */}
               {ayinNamesOn && (
                 <Btn sm onClick={() => setAyinNamesOpen(true)} title={'כל ה' + itemLabel(config) + ' מכל הכרטיסים — טבלה חיה עם חיפוש וסינון'}>
-                  📋 כל השמות
+                  {'📋 כל ה' + ayinItemsLabel}
                 </Btn>
               )}
+              {/* מונה-פעילים על המתג — הלוח סגור כברירת-מחדל (19.8) ובלי מונה אין אות-גילוי */}
               <Btn sm onClick={() => setAyinBoardOpen((v) => !v)}>
-                {ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה'}
+                {(ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה') + (ayinActiveCount ? ' · ' + ayinActiveCount : '')}
               </Btn>
             </div>
           </div>
@@ -1105,10 +1118,10 @@ export function SupportersView() {
           {db.supporters.some((sp) => sp.hok) && (
             <>
               <Chip on={hokF === 'active'} onClick={() => setHokF(hokF === 'active' ? null : 'active')}>
-                {'🔁 פעילות · ' + db.supporters.filter((sp) => sp.hok?.active).length}
+                {'🔁 פעילות · ' + visibleBase.filter((sp) => sp.hok?.active).length}
               </Chip>
               <Chip on={hokF === 'due'} onClick={() => setHokF(hokF === 'due' ? null : 'due')}>
-                {'⏳ טרם נרשמו החודש · ' + hokDue(db.supporters, today).length}
+                {'⏳ טרם נרשמו החודש · ' + hokDue(visibleBase, today).length}
               </Chip>
               {/* לחיצה-אחת-שמבצעת (הכרעת-בעלים "בחירה ידנית מרשימה") — רישום-הו״ק
                   המוני, מגודר opt-in מפורש כי יוצר קבלות-מס אמיתיות. */}
@@ -1144,8 +1157,7 @@ export function SupportersView() {
             בלי מונה
           </Chip>
           <Chip on={ayinF === 'today'} onClick={() => setAyinF(ayinF === 'today' ? null : 'today')}>
-            {'עודכן היום · ' +
-              db.supporters.filter((sp) => sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today))).length}
+            {'עודכן היום · ' + ayinTodayCount}
           </Chip>
         </div>
       )}

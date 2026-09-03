@@ -70,11 +70,24 @@ export function normName(s: string): string {
   return normSearch(s).replace(/\s/g, '');
 }
 
+/**
+ * לוח-מעקב 3.9: שלב מנורמל — ayin בלי stage / שלב לא-מוכר (לגאסי/ענן) נחשב 'new'.
+ * בלי זה הכפתור-החכם הוצג עם תווית ריקה ולחיצה נפלה לענף 'answer' (כתיבה שגויה בשקט).
+ */
+function stageOf(a: Pick<AyinCase, 'stage'>): AyinStage {
+  return AYIN_STAGES.includes(a.stage) ? a.stage : 'new';
+}
+
+/** תיק מנורמל — כל המערכים קיימים (ayin חלקי מלגאסי/ענן) והשלב תקין. */
+function normAyin(a: AyinCase): AyinCase {
+  return { ...emptyAyin(), ...a, stage: stageOf(a) };
+}
+
 /** האם התיק "פעיל" — כלומר עבר אינטראקציה כלשהי ולכן מופיע בלוח הטיפול. */
 export function ayinActive(a: AyinCase | null | undefined): boolean {
   if (!a) return false;
   return (
-    a.stage !== 'new' ||
+    stageOf(a) !== 'new' ||
     (a.names ?? []).length > 0 ||
     !!a.lastTouch ||
     (a.answers ?? []).length > 0 ||
@@ -82,9 +95,9 @@ export function ayinActive(a: AyinCase | null | undefined): boolean {
   );
 }
 
-/** סכום המונים על פני כל הפריטים. */
+/** סכום המונים על פני כל הפריטים. ayin חלקי (בלי names) ⇒ 0 — לא קורס (לוח-מעקב 3.9). */
 export function eyesTotal(a: AyinCase): number {
-  return a.names.reduce((t, x) => t + (+x.eyes || 0), 0);
+  return (a.names ?? []).reduce((t, x) => t + (+x.eyes || 0), 0);
 }
 
 /**
@@ -143,20 +156,26 @@ export function templateLinesToNames(
  * שלב 'eyes' דורש שנרשם מונה לפחות לאחד הפריטים, 'done' מסתיים.
  */
 export function ayinActionVisible(a: AyinCase): boolean {
-  const st = a.stage;
+  const st = stageOf(a);
+  const names = a.names ?? [];
   if (st === 'done') return false;
-  if (st === 'new') return a.names.length > 0;
-  if (st === 'eyes') return a.names.some((n) => n.eyes !== '' && n.eyes != null);
+  if (st === 'new') return names.length > 0;
+  if (st === 'eyes') return names.some((n) => n.eyes !== '' && n.eyes != null);
   return true;
 }
 
 /** תווית הכפתור-החכם (המקדם לשלב הבא) לפי השלב הנוכחי. */
 export function ayinAdvanceLabel(cfg: OrgConfig, a: AyinCase): string {
-  const st = a.stage;
+  const st = stageOf(a);
   if (st === 'new') return stageLabel(cfg, 'lead') + ' ←';
   if (st === 'lead') return '✓ אישור — ' + stageLabel(cfg, 'lead');
   if (st === 'eyes') return stageLabel(cfg, 'answer') + ' ←';
-  if (st === 'answer') return a.answerPushed ? '✓ ' + stageLabel(cfg, 'done') : '📞 דחיפה ללוח';
+  if (st === 'answer') {
+    if (!a.answerPushed) return '📞 דחיפה ללוח';
+    // 💳 שער-תשלום (opt-in): הלוח הציג "✓ הושלם" ואז סירב בטוסט — הכפתור מכריז על מה שיקרה באמת.
+    if (cfg.features?.['supporters.ayin.paygate'] === true && !a.paid) return '💳 תשלום לפני הושלם';
+    return '✓ ' + stageLabel(cfg, 'done');
+  }
   return '';
 }
 
@@ -166,6 +185,8 @@ export interface AyinAdvancePlan {
   /** אירוע שיש לכתוב ללוח (null = אין). */
   event: { title: string; done: boolean } | null;
   toast: string;
+  /** נחסם ע"י שער-התשלום — טוסט בלבד, ה-store לא נוגע בתיק (ולא מחתים lastTouch). */
+  blocked?: boolean;
 }
 
 /**
@@ -175,8 +196,10 @@ export interface AyinAdvancePlan {
 export function planAyinAdvance(
   cfg: OrgConfig,
   name: string,
-  a: AyinCase,
+  raw: AyinCase,
 ): AyinAdvancePlan | null {
+  // לוח-מעקב 3.9: ayin חלקי/בלי-שלב (לגאסי/ענן) — מנרמלים לפני התכנון (בלי זה: TypeError או ענף-'answer' שגוי)
+  const a = normAyin(raw);
   if (!ayinActionVisible(a)) return null;
   const feat = featLabel(cfg);
   const item = itemLabel(cfg);
@@ -215,7 +238,7 @@ export function planAyinAdvance(
   // 💳 שער-תשלום (בקשת-בעלים 25.8, opt-in supporters.ayin.paygate): אי-אפשר
   // להשלים תיק בלי שסומן "שולם". חסימה-רכה — patch ריק + טוסט (אין מעבר-שלב).
   if (cfg.features?.['supporters.ayin.paygate'] === true && !a.paid) {
-    return { patch: {}, event: null, toast: '💳 יש לרשום תשלום (שולם) לפני השלמת הטיפול' };
+    return { patch: {}, event: null, toast: '💳 יש לרשום תשלום (שולם) לפני השלמת הטיפול', blocked: true };
   }
   return {
     patch: { stage: 'done' },
@@ -265,9 +288,9 @@ export function ayinDailyRows(cfg: OrgConfig, supporters: Supporter[], todayIso:
     // הדוח ואת מסך-התורמים. מיזוג עם emptyAyin מבטיח את כל המערכים.
     const a = { ...emptyAyin(), ...sp.ayin! };
     const logToday = a.log.filter((l) => l.date === todayIso);
-    const eyesToday = logToday.length
-      ? logToday.reduce((t, l) => t + (+l.eyes || 0), 0)
-      : eyesTotal(a) || '';
+    // לוח-מעקב 3.9: בלי רישום-log מהיום העמודה ריקה. הלגאסי (:1619) נפל למונה-פר-תיק `sp.ayin.eyes`
+    // (שדה שאין ב-React); הנפילה הקודמת ל-eyesTotal הציגה סכום-כל-הזמנים תחת כותרת "היום" — שגוי.
+    const eyesToday = logToday.length ? logToday.reduce((t, l) => t + (+l.eyes || 0), 0) : '';
     const namesLine = a.names
       .map((n) => n.name + (n.eyes !== '' && n.eyes != null ? ' ·' + n.eyes : '') + (n.done ? ' ✓' : ''))
       .join(' · ');
@@ -404,8 +427,9 @@ export function ayinSheetRows(
 ): string[][] {
   const rows: string[][] = [[...AYIN_SHEET_HEADER]];
   for (const sp of supporters) {
-    const a = sp.ayin;
-    if (!a) continue;
+    if (!sp.ayin) continue;
+    // לוח-מעקב 3.9: ayin חלקי (בלי answers/names) זרק TypeError בהורדת-הגיליון — מיזוג emptyAyin כמו ayinAllRows
+    const a = normAyin(sp.ayin);
     const lastAns = a.answers[0];
     const leadDone = ['eyes', 'answer', 'done'].includes(a.stage) ? 'כן' : 'לא';
     for (const n of a.names) {
@@ -525,7 +549,8 @@ export function applyAyinSheet(
   const out = supporters.map((sp) => {
     const mine = byId.get(sp.id);
     if (!mine || !sp.ayin) return sp;
-    let a: AyinCase = { ...sp.ayin };
+    // לוח-מעקב 3.9: ayin חלקי (בלי names/log/answers) קרס בייבוא-הגיליון — מנרמלים לפני ההחלה
+    let a: AyinCase = normAyin(sp.ayin);
     for (const u of mine) {
       const rec = a.names.find((n) => n.id === u.nameId);
       if (!rec) continue;
