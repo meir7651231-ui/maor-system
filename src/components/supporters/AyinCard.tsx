@@ -614,7 +614,13 @@ export function AyinCard(props: { supporter: Supporter }) {
             onChange={(e) => setNextTalk(sp.id, a.nextTalk || '', e.target.value)}
             style={{ width: 120 }}
           />
-          <Btn sm onClick={() => callAgain(sp.id)} title="כותב תזכורת ללוח השנה">
+          {/* כמו בלגאסי (script:2957): "🔁 שוב" רק כשיש מועד — בלי תאריך היה נכתב אירוע-להיום */}
+          <Btn
+            sm
+            onClick={() => callAgain(sp.id)}
+            disabled={!a.nextTalk}
+            title={a.nextTalk ? 'כותב תזכורת ללוח השנה' : 'בחרו קודם תאריך "מתי לדבר שוב" — אז התזכורת תיכתב ללוח'}
+          >
             🔁 שוב
           </Btn>
         </div>
@@ -636,6 +642,24 @@ export function AyinCard(props: { supporter: Supporter }) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ✓ באנר-סיום (לגאסי doneLine, markup:2730-2731) — ב'הושלם' השמות יורדים מהמסך,
+          והסיכום הזה מחליף אותם: כמה נמסרו וסה"כ המונה. */}
+      {a.stage === 'done' && (
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#12803c',
+            background: '#e4f5ea',
+            border: '1px solid #cde9d6',
+            borderRadius: 10,
+            padding: '8px 12px',
+          }}
+        >
+          {'✓ הטיפול הושלם · ' + a.names.length + ' ' + item + ' נמסרו · ' + unit + ' ' + eyesTotal(a)}
         </div>
       )}
 

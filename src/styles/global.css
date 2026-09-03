@@ -2971,6 +2971,26 @@ button.hm-tier:focus-visible {
   }
 }
 
+/* 🩺 לוח מעקב-הטיפול במובייל (ביקורת-ריצה 3.9, ממצא F2): גריד 6 העמודות גלש
+   מחוץ למסך-390 — עמודת-השמות קרסה ל-0px והכפתור-החכם נפל ל-x≈−65 (בלתי-נגיש).
+   מתחת ל-760px: שתי עמודות; השמות והכפתור כל אחד על שורה מלאה; שורת-הכותרות מוסתרת.
+   בדסקטופ הגריד ה-inline של הרכיב נשאר כמות-שהוא. */
+@media (max-width: 760px) {
+  .ayin-row {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .ayin-row > :nth-child(3) {
+    grid-column: 1 / -1;
+    white-space: normal !important;
+  }
+  .ayin-row > :last-child {
+    grid-column: 1 / -1;
+  }
+  .ayin-head {
+    display: none !important;
+  }
+}
+
 /* UX סבב-ב׳ (5.8.2026): ניווט-תחתון במובייל + הסתרת הרצועה הגולשת */
 .bottom-nav {
   display: none;
