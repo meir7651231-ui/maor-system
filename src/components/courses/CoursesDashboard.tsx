@@ -5,7 +5,7 @@
  */
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { Btn, Empty, Modal } from '../ui';
 import { guardExport } from '../../lib/exportGate';
 import { csvEscape, downloadCsv } from '../../lib/csvx';
@@ -82,7 +82,7 @@ export function CoursesDashboard(props: { onClose: () => void }) {
   return (
     <Modal title="📊 דשבורד חוגים — מבט-על" onClose={props.onClose} wide>
       {db.courses.length === 0 ? (
-        <Empty>עדיין אין חוגים להצגה בדשבורד.</Empty>
+        <Empty>עדיין אין {termOf(config, 'nav.courses', 'חוגים')} להצגה בדשבורד.</Empty>
       ) : (
         <>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>

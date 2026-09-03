@@ -83,13 +83,13 @@ function ddmm(iso: string): string {
 }
 
 /** נוסח-שיתוף להורה (WhatsApp/העתקה/הדפסה) — read-only, בלי לשון-קבלה. */
-export function parentCardText(card: ParentCardData, orgName: string): string {
+export function parentCardText(card: ParentCardData, orgName: string, coursesTerm = 'חוגים'): string {
   const lines: string[] = [];
   lines.push('👋 שלום, כאן ' + (orgName || 'העמותה') + '.');
   lines.push('סיכום עבור ' + card.childName + (card.familyName ? ' · משפחת ' + card.familyName : '') + ':');
   lines.push('');
   if (card.courses.length === 0) {
-    lines.push('אין חוגים פעילים כרגע.');
+    lines.push('אין ' + coursesTerm + ' פעילים כרגע.');
   } else {
     for (const l of card.courses) {
       const parts: string[] = ['• ' + l.courseName];

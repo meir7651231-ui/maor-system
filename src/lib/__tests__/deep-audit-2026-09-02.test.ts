@@ -86,3 +86,22 @@ describe('🔐 שרת gcontactsSync — הקשחה', () => {
     expect(fn).toContain("org === 'root' ? db.collection(name) : db.collection('orgs').doc(org).collection(name)");
   });
 });
+
+describe('ביקורת-עומק 2.9 — שאריות (PR המשך)', () => {
+  const read = (p: string) => readFileSync(new URL('../../' + p, import.meta.url), 'utf8');
+  it('מצבי-ריק עוברים termOf (7 דליפות: תלמידים/חוגים/תורמים)', () => {
+    expect(read('components/courses/CoursesCockpit.tsx')).toContain("'אין ' + termOf(config, 'entity.students', 'תלמידים') + ' בסיכון");
+    expect(read('components/courses/RetentionCenter.tsx')).toContain("אין {termOf(config, 'entity.students', 'תלמידים')} בסיכון-נשירה");
+    expect(read('components/courses/CoursesDashboard.tsx')).toContain("עדיין אין {termOf(config, 'nav.courses', 'חוגים')} להצגה");
+    expect(read('components/courses/ParentCard.tsx')).toContain("אין {termOf(config, 'nav.courses', 'חוגים')} פעילים");
+    expect(read('components/courses/parent.ts')).toContain("lines.push('אין ' + coursesTerm + ' פעילים כרגע.');");
+    expect(read('components/supporters/SupportersIntel.tsx')).toContain('אין {supPlural} עם היסטוריית-נתינה');
+    expect(read('components/supporters/SupportersUniverse3D.tsx')).toContain("אין {termOf(props.config, 'nav.supporters', 'תורמים')} להצגה");
+  });
+  it('גיבוי-סוף-יום: החותמת היומית רק אחרי הצלחת-ההורדה', () => {
+    const app = read('App.tsx');
+    expect(app).toContain("void exportBackup().then((ok) => { if (ok) localStorage.setItem(nsLsKey('maor_autoexp'), today); });");
+    expect(app).not.toMatch(/localStorage\.setItem\(nsLsKey\('maor_autoexp'\), today\);\s*\n\s*exportBackup\(\);/);
+    expect(read('store/useApp.ts')).toContain('exportBackup: () => Promise<boolean>;');
+  });
+});

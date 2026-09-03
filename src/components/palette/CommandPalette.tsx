@@ -186,7 +186,7 @@ export function CommandPalette() {
       sub: 'קובץ גיבוי JSON יורד למחשב',
       terms: toTerms(['הורדת גיבוי מלא', 'גיבוי', 'ייצוא', 'שמירה', 'backup']),
       run: () => {
-        exportBackup();
+        void exportBackup();
         setPalette(false);
       },
     });

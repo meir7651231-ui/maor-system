@@ -492,8 +492,9 @@ export default function App() {
         const now = new Date();
         if (now.getHours() * 60 + now.getMinutes() < endMin) return;
         if (!useApp.getState().db.families.length) return;
-        localStorage.setItem(nsLsKey('maor_autoexp'), today);
-        exportBackup();
+        // ביקורת-עומק 2.9: החותמת 'בוצע-היום' רק אחרי שהקובץ ירד בפועל — כשל שקט
+        // (Blob/הורדה חסומה) לא "שורף" את הניסיון היומי; הטיק הבא ינסה שוב.
+        void exportBackup().then((ok) => { if (ok) localStorage.setItem(nsLsKey('maor_autoexp'), today); });
       } catch {
         /* localStorage חסום — נדלג */
       }

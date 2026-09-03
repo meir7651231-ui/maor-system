@@ -5,7 +5,7 @@
  */
 import { useMemo } from 'react';
 import { useApp } from '../../store/useApp';
-import { integrationOn } from '../../lib/config';
+import { integrationOn, termOf } from '../../lib/config';
 import { Btn, Empty, Modal } from '../ui';
 import { WaBtn } from '../WaBtn';
 import { parentCard, parentCardText } from './parent';
@@ -52,7 +52,7 @@ export function ParentCard(props: { memberId: string; onClose: () => void }) {
   const card = useMemo(() => parentCard(db, props.memberId), [db, props.memberId]);
   const waOn = integrationOn(config, 'whatsapp');
   const orgName = config.orgName || db.orgName || '';
-  const text = parentCardText(card, orgName);
+  const text = parentCardText(card, orgName, termOf(config, 'nav.courses', 'חוגים'));
 
   const phone = useMemo(() => {
     for (const f of db.families) {
@@ -90,7 +90,7 @@ export function ParentCard(props: { memberId: string; onClose: () => void }) {
       </div>
 
       {card.courses.length === 0 ? (
-        <Empty>אין חוגים פעילים לילד/ה זו.</Empty>
+        <Empty>אין {termOf(config, 'nav.courses', 'חוגים')} פעילים לילד/ה זו.</Empty>
       ) : (
         <div className="card" style={{ padding: 0, overflowX: 'auto', overflowY: 'hidden' }}>
           <table className="table">
