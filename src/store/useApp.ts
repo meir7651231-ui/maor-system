@@ -60,7 +60,7 @@ import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isAdminAut
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
-import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, SEGULA_OFFSETS, segulaReminders, segulaTitle } from '../components/supporters/lib';
+import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, SEGULA_OFFSETS, segulaReminders, segulaStatus, segulaTitle } from '../components/supporters/lib';
 import { planCharges } from '../components/supporters/planned';
 import { findAllOpenPlans, matchAll } from '../lib/plannedMatch';
 import { canAddPhoto, isDataImage, PHOTO_MAX, PHOTO_MAX_LEN } from '../lib/photoGallery';
@@ -2352,6 +2352,12 @@ export const useApp = create<AppState>()((set, get) => {
       // `purpose` (למשל 'זיווג') מוטבע בכותרת ובהערה — בקשת-בעלים 30.8.
       const sp = get().db.supporters.find((s) => s.id === supId);
       if (!sp || !startIso) return 0;
+      // בקשת-בעלים 3.9 "40 יום לא מופיע": (א) סגולה פעילה לא נזרעת פעמיים; (ב) הסגולה
+      // נרשמת גם ב"קשר הבא" של הכרטיס (יעד = התזכורת הראשונה, הערה מסבירה) — לא רק ביומן.
+      if (segulaStatus(get().db.events, sp.id, startIso).active) {
+        get().toast('🕯 סגולה כבר פעילה לתומך/ת זה — התזכורות כבר ביומן');
+        return 0;
+      }
       const target = Math.max(...SEGULA_OFFSETS);
       const reminders = segulaReminders(startIso);
       const tag = (purpose || '').trim() ? ' · ' + (purpose || '').trim() : '';
@@ -2372,8 +2378,17 @@ export const useApp = create<AppState>()((set, get) => {
           done: false,
         });
       }
+      // קשר-הבא: היעד = התזכורת הראשונה (או היעד הקיים אם הוא מוקדם יותר ועתידי); ההערה מקבלת שורת-סגולה.
+      const first = reminders[0]?.date ?? '';
+      const cur = get().db.supporters.find((s) => s.id === supId);
+      if (cur && first) {
+        const keepExisting = !!cur.nextDate && cur.nextDate >= startIso && cur.nextDate < first;
+        const line = '🕯 סגולת ' + target + ' יום' + tag + ' — מ-' + startIso.slice(8, 10) + '/' + startIso.slice(5, 7) + ', סיום ' + (reminders[reminders.length - 1]?.date ?? '').slice(8, 10) + '/' + (reminders[reminders.length - 1]?.date ?? '').slice(5, 7);
+        const note = (cur.nextNote || '').includes('סגולת ' + target + ' יום') ? cur.nextNote || '' : [line, cur.nextNote || ''].filter(Boolean).join('\n');
+        get().upsertSupporter({ ...cur, nextDate: keepExisting ? cur.nextDate : first, nextNote: note });
+      }
       logAudit('🕯 סגולת ' + target + ' יום' + tag, sp.name);
-      get().toast('נזרעו ' + reminders.length + ' תזכורות-סגולה ביומן 🕯');
+      get().toast('נזרעו ' + reminders.length + ' תזכורות-סגולה ביומן 🕯 — נרשם גם בקשר-הבא');
       return reminders.length;
     },
 

@@ -13,6 +13,7 @@ import {
   ayinActionVisible,
   ayinActive,
   ayinAdvanceLabel,
+  ayinOnBoard,
   featLabel,
   stageIndex,
   stageLabel,
@@ -80,10 +81,13 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   // 💳 שער-תשלום (opt-in מפורש, כמו AyinCard) — חסר-הדגל ⇒ אין צ'יפ, ביט-זהה.
   const payGateOn = cfg.features?.['supporters.ayin.paygate'] === true;
 
-  const active = db.supporters.filter(
-    (sp) => ayinActive(sp.ayin) && supporterVisibleForDesignations(sp, desigLimit),
-  );
-  let rows = filter === 'all' ? active : active.filter((sp) => (sp.ayin!.stage || 'new') === filter);
+  // הכרעת-בעלים 3.9: מקרה שהושלם יורד מהלוח (ayinOnBoard); סינון "הושלם" עדיין מציג אותם.
+  const visible = db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit));
+  const active = visible.filter((sp) => ayinOnBoard(sp.ayin));
+  let rows =
+    filter === 'all' ? active
+    : filter === 'done' ? visible.filter((sp) => ayinActive(sp.ayin) && (sp.ayin!.stage || 'new') === 'done')
+    : active.filter((sp) => (sp.ayin!.stage || 'new') === filter);
   rows = [...rows].sort((sa, sb) => {
     const aa = sa.ayin!;
     const ab = sb.ayin!;

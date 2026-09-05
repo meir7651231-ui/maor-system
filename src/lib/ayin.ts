@@ -95,6 +95,15 @@ export function ayinActive(a: AyinCase | null | undefined): boolean {
   );
 }
 
+/**
+ * מי מופיע בלוח-המעקב (הכרעת-בעלים 3.9 "הלקוח לא נעלם ממעקב טיפול"): מקרה פעיל שעדיין
+ * **לא הושלם**. 'done' יורד מהלוח (נשאר בכרטיס, בדוחות, ובסינון "הושלם" של הלוח).
+ * הלגאסי השאיר גם מקרים שהושלמו — הבעלים ביקש שייעלמו.
+ */
+export function ayinOnBoard(a: AyinCase | null | undefined): boolean {
+  return !!a && ayinActive(a) && stageOf(a) !== 'done';
+}
+
 /** סכום המונים על פני כל הפריטים. ayin חלקי (בלי names) ⇒ 0 — לא קורס (לוח-מעקב 3.9). */
 export function eyesTotal(a: AyinCase): number {
   return (a.names ?? []).reduce((t, x) => t + (+x.eyes || 0), 0);

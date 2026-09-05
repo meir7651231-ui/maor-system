@@ -339,6 +339,51 @@ export function segulaTitle(name: string, r: SegulaReminder, target: number): st
   return (r.final ? '🎯 סיום סגולה' : '🕯 סגולה') + ' — ' + (name || '') + ' · יום ' + r.day + '/' + target;
 }
 
+/** תחילית-ההערה שמסמנת אירוע-סגולה (נכתבת ב-seedSegulaReminders). */
+export const SEGULA_NOTE_PREFIX = 'סגולת ';
+
+export interface SegulaStatus {
+  active: boolean;
+  /** תאריך-ההתחלה (יום 0) ותאריך-הסיום (היום ה-40). */
+  start: string;
+  end: string;
+  /** התזכורת הבאה שטרם עברה (או '' אחרי הסיום). */
+  next: string;
+  /** יום נוכחי בספירה (0..target) והיעד. */
+  day: number;
+  target: number;
+  /** כמה תזכורות כבר סומנו כבוצעו. */
+  done: number;
+  total: number;
+}
+
+/**
+ * מצב-הסגולה של תומך/ת — נגזרת טהורה מאירועי-הלוח שלו (type 'call', spId, הערה
+ * שמתחילה ב-SEGULA_NOTE_PREFIX). בקשת-בעלים 3.9 "40 יום לא מופיע": הכפתור זרע ליומן
+ * בלבד ולא הציג כלום בכרטיס. פעילה = יש אירועי-סגולה והסיום עוד לא עבר.
+ */
+export function segulaStatus(
+  events: readonly { spId?: string; type?: string; date: string; notes?: string; done?: boolean }[],
+  spId: string,
+  todayIso: string,
+): SegulaStatus {
+  const evs = events
+    .filter((e) => e.spId === spId && e.type === 'call' && (e.notes || '').startsWith(SEGULA_NOTE_PREFIX))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const empty: SegulaStatus = { active: false, start: '', end: '', next: '', day: 0, target: Math.max(...SEGULA_OFFSETS), total: 0, done: 0 };
+  if (!evs.length) return empty;
+  const end = evs[evs.length - 1].date;
+  const target = Math.max(...SEGULA_OFFSETS);
+  const endD = new Date(`${end}T12:00:00`);
+  const startD = new Date(endD);
+  startD.setDate(startD.getDate() - target);
+  const start = `${startD.getFullYear()}-${String(startD.getMonth() + 1).padStart(2, '0')}-${String(startD.getDate()).padStart(2, '0')}`;
+  const todayD = new Date(`${todayIso}T12:00:00`);
+  const day = Math.max(0, Math.round((todayD.getTime() - startD.getTime()) / 86_400_000));
+  const next = evs.find((e) => e.date >= todayIso && !e.done)?.date ?? '';
+  return { active: todayIso <= end, start, end, next, day: Math.min(day, target), target, total: evs.length, done: evs.filter((e) => e.done).length };
+}
+
 /** "₪1,200 + $300" או "—" כשאין כלום — כולל היסטוריה (הכרעת 9.8). */
 export function totalLabel(sp: Supporter): string {
   const i = supIls(sp);

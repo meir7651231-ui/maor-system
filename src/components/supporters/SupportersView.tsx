@@ -15,7 +15,8 @@ import { requestSettingsSection } from '../settings/lib';
 import { annualAllLines, downloadAnnualReport } from '../../lib/annualReport';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
-import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, itemLabel, stageIndex, stageLabel, unitLabel } from '../../lib/ayin';
+import { ayinAllRows, ayinDailyRows, ayinActive,
+  ayinOnBoard, eyesTotal, featLabel, itemLabel, stageIndex, stageLabel, unitLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { allSupPhones, chipStyle, fmtDate, hokDue, hokEffectivelyActive, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supHasRegion, supIls, supLast, supLastInPeriod, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
@@ -593,7 +594,7 @@ export function SupportersView() {
   // המקופלת צריכה אות-גילוי (מונה-פעילים); "עודכן היום" נספר על visibleBase ולא על
   // db.supporters — עובד/ת מוגבל/ת לייעוד לא יסיק מונה של תורמים מוסתרים.
   // ⚠️ לא useMemo — יש return-מוקדם (warehouseMode) לפני הנקודה הזו ⇒ hook כאן = React #300 בפתיחת-כרטיס.
-  const ayinActiveCount = visibleBase.filter((sp) => ayinActive(sp.ayin)).length;
+  const ayinActiveCount = visibleBase.filter((sp) => ayinOnBoard(sp.ayin)).length; // בלי 'הושלם' (הכרעת-בעלים 3.9)
   const ayinTodayCount = visibleBase.filter(
     (sp) => sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today)),
   ).length;
