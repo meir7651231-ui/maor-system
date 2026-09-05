@@ -39,10 +39,16 @@ export function UpdateBanner() {
     };
     check();
     document.addEventListener('visibilitychange', check);
+    // PWA/טאבלט (5.9): חזרה לאפליקציה מותקנת לא תמיד מייצרת visibilitychange (BFCache/pageshow,
+    // focus מחלון-אחר) ⇒ הבאנר לא הופיע והלקוח נשאר על build ישן — "זה עדיין לא עובד".
+    window.addEventListener('focus', check);
+    window.addEventListener('pageshow', check);
     const iv = window.setInterval(check, 15 * 60 * 1000);
     return () => {
       alive = false;
       document.removeEventListener('visibilitychange', check);
+      window.removeEventListener('focus', check);
+      window.removeEventListener('pageshow', check);
       window.clearInterval(iv);
     };
   }, [on]);

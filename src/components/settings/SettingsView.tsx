@@ -30,6 +30,28 @@ import { GContactsSection } from './GContactsSection';
 import { OrgSecretsSection } from './OrgSecretsSection';
 import { OutboxSection } from './OutboxSection';
 
+/** build-id (ISO) ⇒ "05/09 23:15" מקומי; קלט לא-ISO ⇒ כמות-שהוא. */
+function fmtBuildId(id: string): string {
+  const d = new Date(id);
+  if (Number.isNaN(d.getTime())) return id || '—';
+  const p = (n: number) => String(n).padStart(2, '0');
+  return p(d.getDate()) + '/' + p(d.getMonth() + 1) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+/** בדיקת-עדכון ידנית: version.json בלי מטמון; שונה ⇒ רענון-קשיח (ה-SW משרת index מהרשת). */
+async function checkForUpdate(): Promise<void> {
+  try {
+    const r = await fetch(import.meta.env.BASE_URL + 'version.json?t=' + Date.now(), { cache: 'no-store' });
+    const v = (await r.json()) as { id?: string };
+    if (v?.id && v.id !== __BUILD_ID__) {
+      useApp.getState().toast('נמצאה גרסה חדשה — מרענן…');
+      window.setTimeout(() => window.location.reload(), 400);
+    } else useApp.getState().toast('האתר מעודכן — זו הגרסה האחרונה ✓');
+  } catch {
+    useApp.getState().toast('לא ניתן לבדוק עדכון כרגע (אין רשת?)');
+  }
+}
+
 /** feature key פר-סעיף — הצ'יפ מוצג רק כשהסעיף עצמו מרונדר (אותו דגל בדיוק).
  *  ביקורת 6.8: ערכה/התראות/גיבוי/נגישות היו בלי מפתח ⇒ צ'יפ-מת כשהדגל כבוי;
  *  רק sec-org באמת בלתי-מוסתר. */
@@ -319,6 +341,13 @@ function OrgSection() {
       {featureOn(config, 'core.receipts') && featureOn(config, 'core.receipt.pdf') && (
         <ReceiptFmtRow />
       )}
+      {/* גרסת-האתר (5.9): "זה עדיין לא עובד" בענן = לרוב טאב/אפליקציה על build ישן. שורה גלויה + בדיקה-ידנית. */}
+      <div style={{ marginTop: 10, fontSize: 11.5, color: 'var(--ink-faint)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span>{'גרסת-האתר: ' + fmtBuildId(__BUILD_ID__)}</span>
+        <Btn sm kind="plain" onClick={() => { void checkForUpdate(); }} title="מוריד version.json מהשרת ומרענן אם יש build חדש">
+          🔄 בדוק עדכון
+        </Btn>
+      </div>
     </Section>
   );
 }
