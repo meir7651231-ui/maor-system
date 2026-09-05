@@ -16,7 +16,7 @@ import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field, FormError, Modal, Select, StickyBackBar, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, SEGULA_OFFSETS, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
+import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, SEGULA_OFFSETS, segulaStatus, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
 import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
@@ -164,6 +164,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const nextOn = featureOn(config, 'supporters.nextdate');
   // 🕯 סגולת 40 יום (בקשת-שטח) — opt-in; חסר-הדגל ⇒ מוסתר.
   const segulaOn = featureOn(config, 'supporters.segula');
+  // מצב-הסגולה נגזר מאירועי-הלוח של התומך/ת (בקשת-בעלים 3.9 "40 יום לא מופיע" — הכפתור זרע בשקט).
+  const segula = segulaOn ? segulaStatus(events, sp.id, isoToday()) : null;
   const seedSegulaReminders = useApp((s) => s.seedSegulaReminders);
   // 🔁 הו"ק (ROADMAP-100 ‏#2): הגדרה+רישום — התרומה דרך addDonation (קבלה רציפה)
   const hokOn = featureOn(config, 'supporters.hok');
@@ -596,7 +598,15 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             {/* 🕯 סגולת 40 יום — כפתור אחד שמחשב לבד מהיום וזורע תזכורות-סגולה
                  לזיווג לתוך קשר-הבא/הלוח (בקשת-בעלים 30.8: "כפתור בשם 40 ימים
                  שיחשב לבד וירשום תזכורת בקשר הבא, מוטבע קשר לזיווג"). */}
-            {segulaOn && (
+            {segulaOn && segula?.active && (
+              <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)', fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>
+                {'🕯 סגולה פעילה · יום ' + segula.day + ' מתוך ' + segula.target + (segula.next ? ' · תזכורת הבאה: ' + fmtDate(segula.next) : '') + ' · סיום: ' + fmtDate(segula.end)}
+                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginTop: 2 }}>
+                  {segula.done + '/' + segula.total + ' תזכורות בוצעו — התזכורות ביומן ובקשר-הבא'}
+                </div>
+              </div>
+            )}
+            {segulaOn && !segula?.active && (
               <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
                 <Btn kind="plain" sm onClick={() => seedSegulaReminders(sp.id, isoToday(), 'זיווג')}>
                   🕯 40 ימים

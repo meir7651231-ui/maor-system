@@ -116,7 +116,7 @@ describe('💛 SupportersView — כותרת-הלוח, מונה על המתג, �
     expect(viewSrc).toContain("ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה'");
     expect(viewSrc).toContain("(ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה') + (ayinActiveCount ? ' · ' + ayinActiveCount : '')");
     expect(viewSrc).toContain(
-      'const ayinActiveCount = visibleBase.filter((sp) => ayinActive(sp.ayin)).length;' /* לא useMemo — return-מוקדם (warehouseMode) לפניו */,
+      'const ayinActiveCount = visibleBase.filter((sp) => ayinOnBoard(sp.ayin)).length;' /* לא useMemo — return-מוקדם (warehouseMode) לפניו; ayinOnBoard = בלי הושלם (3.9) */,
     );
     // ברירת-המחדל נשארת סגורה (הרטצ'ט המקורי — ayin-board-default.test.ts)
     expect(viewSrc).toMatch(/const \[ayinBoardOpen, setAyinBoardOpen\] = useState\(false\)/);
