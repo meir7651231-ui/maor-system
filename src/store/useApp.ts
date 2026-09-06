@@ -62,6 +62,7 @@ import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, SEGULA_OFFSETS, segulaReminders, segulaStatus, segulaTitle } from '../components/supporters/lib';
 import { planCharges } from '../components/supporters/planned';
+import { planAddPrayerName, removePrayerName, setPrayerNote, togglePrayerName } from '../components/supporters/prayer';
 import { findAllOpenPlans, matchAll } from '../lib/plannedMatch';
 import { canAddPhoto, isDataImage, PHOTO_MAX, PHOTO_MAX_LEN } from '../lib/photoGallery';
 import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
@@ -379,6 +380,11 @@ interface AppState {
   mergeSupportersGroup: (keepId: string, loserIds: string[]) => void;
   /** מיזוג-לפי-שדות (פאריטי משפחות): ids[0]=בסיס-השומר; ערכי-שדות לפי pick/edit. */
   mergeSupportersFields: (ids: string[], pick: Record<string, number>, edit: Record<string, string>) => void;
+  /** 🙏 שמות לתפילה בכרטיס-התורם (בקשת-בעלים 5.9): הוספה (דדופ) · הערה · סימון · הסרה. */
+  addPrayerName: (supId: string, name: string, note: string) => boolean;
+  setPrayerNote: (supId: string, id: string, note: string) => void;
+  togglePrayerName: (supId: string, id: string) => void;
+  removePrayerName: (supId: string, id: string) => void;
   /** 🕯 סגולת 40 יום — זריעת תזכורות-לוח מדורגות לתורם מתאריך-התחלה. `purpose`
    *  אופציונלי (למשל 'זיווג') מוטבע בכותרת/הערת-התזכורת. מחזיר כמה נוצרו. */
   seedSegulaReminders: (supId: string, startIso: string, purpose?: string) => number;
@@ -2344,6 +2350,29 @@ export const useApp = create<AppState>()((set, get) => {
         events: db.events.filter((ev) => !dropEvIds.has(ev.id) && !(ev.spId && losers.has(ev.spId))),
       }));
       get().toast('הרשומות מוזגו לפי הבחירה ✓ — נשמרה רשומה אחת');
+    },
+
+    addPrayerName(supId, name, note) {
+      const sp = get().db.supporters.find((s) => s.id === supId);
+      if (!sp) return false;
+      const plan = planAddPrayerName(sp.prayerNames ?? [], get().nextId('pr'), name, note, isoTodayLocal());
+      if (plan.dup) {
+        get().toast('השם "' + name.trim() + '" כבר ברשימת-התפילה');
+        return false;
+      }
+      if (plan.list.length === (sp.prayerNames ?? []).length) return false;
+      setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === supId ? { ...s, prayerNames: plan.list } : s)) }));
+      get().toast('🙏 "' + name.trim() + '" נוסף לשמות-לתפילה');
+      return true;
+    },
+    setPrayerNote(supId, id, note) {
+      setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === supId ? { ...s, prayerNames: setPrayerNote(s.prayerNames ?? [], id, note) } : s)) }));
+    },
+    togglePrayerName(supId, id) {
+      setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === supId ? { ...s, prayerNames: togglePrayerName(s.prayerNames ?? [], id) } : s)) }));
+    },
+    removePrayerName(supId, id) {
+      setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === supId ? { ...s, prayerNames: removePrayerName(s.prayerNames ?? [], id) } : s)) }));
     },
 
     seedSegulaReminders(supId, startIso, purpose) {

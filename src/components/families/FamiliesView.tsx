@@ -7,6 +7,7 @@ import { useDeferredValue, useEffect, useMemo, useState, type KeyboardEvent } fr
 import { IncMoreCard, IncMoreRow, incSlice, useIncCap } from '../incremental';
 import type { Family } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { useListScrollRestore } from '../../lib/scrollMemory';
 import { featureOn, telephonyOn, termOf } from '../../lib/config';
 import { CallBtn } from '../CallBtn';
 import { levenshtein, smartFilter } from '../../lib/search';
@@ -66,6 +67,7 @@ export function FamiliesView() {
   const db = useApp((s) => s.db);
   const setDb = useApp((s) => s.setDb);
   const selFamilyId = useApp((s) => s.selFamilyId);
+  useListScrollRestore('families', !!selFamilyId); // חזרה מהכרטיס למיקום-הגלילה הקודם (5.9)
   const selectFamily = useApp((s) => s.selectFamily);
   const config = useApp((s) => s.config);
   const go = useApp((s) => s.go);

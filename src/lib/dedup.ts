@@ -354,6 +354,9 @@ export function mergeSupporterInto(keep: Supporter, drop: Supporter): Supporter 
   // העתידי ותזכורות-הפיגור אבדו). איחוד לפי id, של השומר קודם (ids מ-nextId ייחודיים; דדופ-הגנתי).
   const seenPc = new Set<string>();
   const plannedCharges = [...(keep.plannedCharges ?? []), ...(drop.plannedCharges ?? [])].filter((p) => !seenPc.has(p.id) && !!seenPc.add(p.id));
+  // 🙏 שמות-לתפילה (5.9): איחוד לפי id — שם של הכרטיס הנבלע לא אובד במיזוג.
+  const seenPr = new Set<string>();
+  const prayerNames = [...(keep.prayerNames ?? []), ...(drop.prayerNames ?? [])].filter((p) => !seenPr.has(p.id) && !!seenPr.add(p.id));
   const ils = donations.filter((d) => d.cur !== '$').reduce((a, d) => a + d.amount, 0);
   const usd = donations.filter((d) => d.cur === '$').reduce((a, d) => a + d.amount, 0);
   const notes = [keep.notes, drop.notes].map((n) => (n || '').trim()).filter(Boolean);
@@ -374,6 +377,7 @@ export function mergeSupporterInto(keep: Supporter, drop: Supporter): Supporter 
     ...(hist.length ? { hist } : {}),
     ...(photos.length ? { photos } : {}),
     ...(plannedCharges.length ? { plannedCharges } : {}),
+    ...(prayerNames.length ? { prayerNames } : {}),
     count: donations.length,
     ils,
     usd,

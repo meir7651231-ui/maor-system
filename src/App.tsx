@@ -43,6 +43,7 @@ import { LockScreen } from './components/lock/LockScreen';
 import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
 import { CloudUnlockScreen } from './components/lock/CloudUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
+import { useViewScrollMemory } from './lib/scrollMemory';
 
 /* ⚡ VISION-LIGHT ‏#13 — פיצול-chunks לפי מודולים: כל מסך-מודול נטען עצל
  * ‏(React.lazy) ב-chunk משלו; הבנדל הראשי נשאר בית+שלד. ה-loaders משותפים
@@ -158,6 +159,7 @@ export default function App() {
   const selectCourse = useApp((s) => s.selectCourse);
   const navHistLen = useApp((s) => s.navHist.length);
   const goBack = useApp((s) => s.goBack);
+  useViewScrollMemory(view); // ↩ חזרה בין מסכים — למיקום-הגלילה הקודם, לא לראש העמוד (5.9)
   const privacyMode = useApp((s) => s.privacyMode);
   const togglePrivacy = useApp((s) => s.togglePrivacy);
   const applyNedarimAuto = useApp((s) => s.applyNedarimAuto);

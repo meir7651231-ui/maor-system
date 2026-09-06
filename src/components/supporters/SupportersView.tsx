@@ -6,6 +6,7 @@ import { useDeferredValue, useEffect, useMemo, useState, type KeyboardEvent } fr
 import { IncMoreCard, IncMoreRow, incSlice, useIncCap } from '../incremental';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { useListScrollRestore } from '../../lib/scrollMemory';
 import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, integrationOn, integrationSetting, isAdminUser, safeHttpsUrl, telephonyOn, termOf } from '../../lib/config';
 import { DialerModal } from '../dialer/DialerModal';
@@ -309,6 +310,7 @@ export function SupportersView() {
   // שינוי חיפוש/סינון מחזיר את החלון להתחלה. הלוגיקה נשארת על הרשימה המלאה.
   const inc = useIncCap(JSON.stringify([dq, cat, purposeF, tierF, colF, ayinF, nextF, hokF, segF, monthF, acqYearF, gaveYearF, periodMode, sort]));
   const [selId, setSelId] = useState<string | null>(null);
+  useListScrollRestore('supporters', !!selId); // חזרה מהכרטיס למיקום-הגלילה הקודם (5.9)
   // בחירה-מרובה למחיקה (בקשת-בעלים 13.8) — מצב-בחירה + קבוצת-ids + אישור-הרסני.
   const [selMode, setSelMode] = useState(false);
   const [selSet, setSelSet] = useState<ReadonlySet<string>>(new Set<string>());

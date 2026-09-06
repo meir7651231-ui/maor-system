@@ -21,6 +21,7 @@ import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
+import { PrayerNames } from './PrayerNames';
 import { SupporterPhotos } from './SupporterPhotos';
 import { PlannedChargesSection } from './PlannedChargesSection';
 import { DonationCalendar } from './DonationCalendar';
@@ -202,6 +203,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     toast('🔁 חיוב-החודש נרשם' + (featureOn(config, 'core.receipts') ? ' — קבלה ' + res.rid : ''));
   }
   const ayinOn = featureOn(config, 'supporters.ayin');
+  const prayerOn = featureOn(config, 'supporters.prayernames'); // 🙏 שמות לתפילה (5.9)
   // 📅 חיובים-מתוכננים (בקשת-בעלים 25.8) — opt-in מפורש; חסר-הדגל ⇒ מוסתר.
   const plannedOn = config.features?.['supporters.plannedcharges'] === true;
   // גלריית-תמונות — opt-in מפורש (=== true), שומר על ברירת-המחדל ביט-זהה בלקוח-החי.
@@ -726,6 +728,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       )}
 
       {/* מעקב טיפול רב-שלבי */}
+      {prayerOn && <PrayerNames supporter={sp} />}
       {ayinOn && <AyinCard supporter={sp} />}
 
       {/* לוח-חודש של תרומות (feature: supporters.doncal) */}
