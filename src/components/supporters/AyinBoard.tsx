@@ -20,7 +20,7 @@ import {
   unitLabel,
 } from '../../lib/ayin';
 import type { AyinCase, AyinStage } from '../../types/domain';
-import { fmtDate, supporterVisibleForDesignations } from './lib';
+import { fmtDate, supHasRegion, supporterVisibleForDesignations } from './lib';
 
 /** תבנית-הגריד של שורה ושל שורת-הכותרות — זהה, כדי שהעמודות יתיישרו. */
 // עמודה אחרונה ברוחב קבוע (לא auto): בשורות בלי כפתור-חכם הטראק היה 0px וה-fr-ים נדדו עד ~90px מול הכותרות (אימות-ריצה 3.9).
@@ -75,6 +75,8 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
 
   const [filter, setFilter] = useState<'all' | AyinStage>('all');
   const [sort, setSort] = useState<'target' | 'last' | 'name' | 'stage'>('target');
+  // 🌍 סינון ישראל/חו"ל (בקשת-בעלים 6.9) — לפי אזור-הטלפון של התומך/ת (אותו מסווג כמו במסך-התורמים)
+  const [region, setRegion] = useState<'all' | 'il' | 'intl'>('all');
   // הקיפול היחיד הוא של העוטף ב-SupportersView ("▼ הצגה / ▲ הסתרה", הכרעת-בעלים 19.8) —
   // מתג-קיפול פנימי כפול הוסר (ביקורת 3.9).
   const today = isoToday();
@@ -82,7 +84,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   const payGateOn = cfg.features?.['supporters.ayin.paygate'] === true;
 
   // הכרעת-בעלים 3.9: מקרה שהושלם יורד מהלוח (ayinOnBoard); סינון "הושלם" עדיין מציג אותם.
-  const visible = db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit));
+  const visible = db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit) && (region === 'all' || supHasRegion(sp, region)));
   const active = visible.filter((sp) => ayinOnBoard(sp.ayin));
   let rows =
     filter === 'all' ? active
@@ -132,6 +134,11 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
           🗂 לוח {feat} · {filter === 'all' ? active.length : rows.length + ' מתוך ' + active.length}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <select value={region} onChange={(e) => setRegion(e.target.value as 'all' | 'il' | 'intl')} title="סינון לפי אזור-טלפון: ישראל / חו״ל" aria-label="אזור" style={selStyle}>
+            <option value="all">🌍 ישראל + חו״ל</option>
+            <option value="il">🇮🇱 ישראל</option>
+            <option value="intl">✈️ חו״ל</option>
+          </select>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as 'all' | AyinStage)}
