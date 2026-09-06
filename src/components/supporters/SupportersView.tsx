@@ -20,7 +20,7 @@ import { ayinAllRows, ayinDailyRows, ayinActive,
   ayinOnBoard, eyesTotal, featLabel, itemLabel, stageIndex, stageLabel, unitLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
-import { allSupPhones, chipStyle, fmtDate, hokDue, hokEffectivelyActive, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supHasRegion, supIls, supLast, supLastInPeriod, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
+import { allSupPhones, chipStyle, fmtDate, hokDue, hokEffectivelyActive, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supHasRegion, supIls, supLast, supLastInBucket, supLastInPeriod, LAST_BUCKETS, type LastBucket, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
 import { numMatch } from '../families/lib';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
@@ -260,6 +260,9 @@ export function SupportersView() {
   // או לפי **כל** תרומה בתקופה ('gave', ברירת-מחדל = התנהגות קיימת ביט-זהה) או לפי
   // ה**אחרונה** בלבד ('last'). מוצג רק כשנבחרה תקופה — אינרטי אחרת (אפס-שינוי).
   const [periodMode, setPeriodMode] = useState<'gave' | 'last'>('gave');
+  // 🕐 סינון עצמאי "תרומה אחרונה" (בקשת-בעלים 6.9 "נעלם הסינון") — תמיד-גלוי, דליי-זמן
+  // מהיום; נפרד מבורר-התקופה (שנה/חודש) שנשאר כמו-שהוא.
+  const [lastF, setLastF] = useState<LastBucket | null>(null);
   // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל אחד מתקפל.
   // הצ׳יפים והסינון נשמרים בדיוק — רק מתקפלים; החיפוש+קטגוריה גלויים תמיד.
   const [advOpen, setAdvOpen] = useState(false);
@@ -615,6 +618,7 @@ export function SupportersView() {
     if (tierF && supTier(supScore(sp, rate)).label !== tierF) return false;
     if (segF && !matchSegment(sp, segF, visibleBase, today, rate, atRiskIds)) return false;
     // תקופה: 'last' ⇒ רק מי שתרומתו האחרונה בתקופה; 'gave' ⇒ מי שנתן בכלל בתקופה.
+    if (lastF && !supLastInBucket(sp, today, lastF)) return false;
     if (monthF || gaveYearF) {
       const inPeriod = periodMode === 'last'
         ? supLastInPeriod(sp, gaveYearF, monthF)
@@ -670,7 +674,7 @@ export function SupportersView() {
   // 🐛 (21.8): hokF ו-purposeF מצמצמים את הרשימה אבל לא נכללו בדגל ⇒ הכותרת
   // הציגה "M תומכות" בלי "N מתוך" כשסיננו לפי הו"ק/ייעוד. עכשיו כל מסנן נספר.
   const filtered =
-    q.trim() !== '' || cat !== 'all' || purposeF !== 'all' || !!tierF || !!hokF || !!ayinF || nextF || !!segF || !!monthF || !!gaveYearF || !!acqYearF ||
+    q.trim() !== '' || cat !== 'all' || purposeF !== 'all' || !!tierF || !!hokF || !!ayinF || nextF || !!segF || !!lastF || !!monthF || !!gaveYearF || !!acqYearF ||
     colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';
   const segLabel = segF ? SEGMENTS.find((s) => s.key === segF)?.label : null;
   const MONTHS_HE = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
@@ -688,6 +692,7 @@ export function SupportersView() {
           : null;
   const drillChips: { label: string; clear: () => void }[] = [
     ...(segLabel ? [{ label: 'סגמנט: ' + segLabel, clear: () => setSegF(null) }] : []),
+    ...(lastF ? [{ label: '🕐 תרומה אחרונה ' + (LAST_BUCKETS.find((b) => b.key === lastF)?.label ?? ''), clear: () => setLastF(null) }] : []),
     ...(periodLabel ? [{ label: periodLabel, clear: () => { setMonthF(null); setGaveYearF(null); setPeriodMode('gave'); } }] : []),
     ...(acqYearF ? [{ label: 'גויסו ב-' + acqYearF, clear: () => setAcqYearF(null) }] : []),
   ];
@@ -725,6 +730,7 @@ export function SupportersView() {
     setAyinF(null);
     setNextF(false);
     setSegF(null);
+    setLastF(null);
     setMonthF(null);
     setGaveYearF(null);
     setAcqYearF(null);
@@ -1012,6 +1018,36 @@ export function SupportersView() {
           ariaLabel="חודש נתינה"
           options={[{ value: 'all', label: 'כל החודשים' }, ...MONTHS_HE.map((m, i) => ({ value: String(i + 1), label: m }))]}
         />
+        {/* 🕐 תרומה אחרונה — בורר עצמאי תמיד-גלוי (בקשת-בעלים 6.9 "נעלם הסינון של
+            תרומה אחרונה": הבורר-לפי-תקופה למטה מופיע רק אחרי בחירת שנה/חודש). */}
+        <Select
+          value={lastF ?? 'all'}
+          onChange={(v) => setLastF(v === 'all' ? null : (v as LastBucket))}
+          ariaLabel="תרומה אחרונה"
+          options={[{ value: 'all', label: '🕐 תרומה אחרונה: הכול' }, ...LAST_BUCKETS.map((b) => ({ value: b.key, label: '🕐 ' + b.label }))]}
+        />
+        {/* ↕ מיון בתצוגת-גריד — בגריד אין כותרות-טבלה ללחיצה ⇒ "תרומה אחרונה" ושאר
+            המיונים לא היו נגישים כלל (אותו sort של הטבלה). */}
+        {supView === 'grid' && sortOn && (
+          <Select
+            value={sort ? sort.key + ':' + (sort.dir > 0 ? 'asc' : 'desc') : 'none'}
+            onChange={(v) => {
+              if (v === 'none') return setSort(null);
+              const [k, d] = v.split(':');
+              setSort({ key: k as SortKey, dir: d === 'desc' ? -1 : 1 });
+            }}
+            ariaLabel="מיון"
+            options={[
+              { value: 'none', label: '↕ מיון: ללא' },
+              ...HEAD.filter((h) => ['name', 'count', 'ils', 'usd', 'last', 'nextDate', 'score'].includes(h.key))
+                .filter((h) => (nextOn || h.key !== 'nextDate') && (rfmOn || h.key !== 'score'))
+                .flatMap((h) => [
+                  { value: h.key + ':desc', label: '↓ ' + headLabel(h) + ' (יורד)' },
+                  { value: h.key + ':asc', label: '↑ ' + headLabel(h) + ' (עולה)' },
+                ]),
+            ]}
+          />
+        )}
         {/* בקשת-בעלים "סינון לפי תרומה אחרונה של הלקוח": אותם בוררי שנה/חודש —
             מצב "כל תרומה בתקופה" מול "התרומה האחרונה בתקופה". מוצג רק כשנבחרה
             תקופה (אחרת אינרטי) — ברירת-המחדל 'gave' = התנהגות קיימת ביט-זהה. */}
