@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp, useCourse } from '../../store/useApp';
+import { useListScrollRestore } from '../../lib/scrollMemory';
 import { featureOn, isSuperAdmin, roleOf, teacherIdOf, termOf } from '../../lib/config';
 import { normSearch } from '../../lib/validate';
 import { isoToday } from '../../lib/date-util';
@@ -34,6 +35,7 @@ const EMPTY_CRS_COLF = { name: '', audience: '', teacher: '', model: 'all', coun
 
 export function CoursesView() {
   const selCourseId = useApp((s) => s.selCourseId);
+  useListScrollRestore('courses', !!selCourseId); // חזרה מהכרטיס למיקום-הגלילה הקודם (5.9)
   const selected = useCourse(selCourseId);
   const cfg = useApp((s) => s.config);
   const wheelOn = featureOn(cfg, 'courses.wheel');
