@@ -343,7 +343,9 @@ export function TeamChatModal({ onClose }: { onClose: () => void }) {
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [sorted.length]);
 
   const myEmail = (user?.email ?? '').toLowerCase();
-  const myName = myEmail.split('@')[0] || 'אני';
+  const memberNames = useApp((s) => s.cloud.memberNames);
+  // שם-תצוגה מכרטיס-העובד (6.9) גובר על קידומת-המייל
+  const myName = memberNames?.[myEmail] || myEmail.split('@')[0] || 'אני';
 
   async function send() {
     const t = text;
@@ -404,7 +406,7 @@ export function TeamChatModal({ onClose }: { onClose: () => void }) {
                       }}
                     >
                       {!mine && (
-                        <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, opacity: 0.85, marginBottom: 1 }}>{m.name || (m.sender ?? '').split('@')[0]}</span>
+                        <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, opacity: 0.85, marginBottom: 1 }}>{memberNames?.[(m.sender ?? '').toLowerCase()] || m.name || (m.sender ?? '').split('@')[0]}</span>
                       )}
                       {/* פאזה 2: בקשת-שער מרונדרת ככרטיס-פעולה; אחרת טקסט רגיל */}
                       {parsePortalChat(m.text) ? <PortalReqCard text={m.text} onClose={onClose} /> : m.text}

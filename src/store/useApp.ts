@@ -53,7 +53,7 @@ import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { advanceStatus } from '../components/shop7/lib';
 import { roomClashError } from '../components/calendar/calLib';
-import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManager, parseJoinFullCode } from '../components/platform/lib';
+import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManager, memberNamesOf, parseJoinFullCode } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isAdminAuthority, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, supEnforceOn, termOf, writeCloudConfigCache } from '../lib/config';
@@ -142,6 +142,8 @@ export interface CloudState {
    * בלי הגבלה (מנהל/בעלים/לקוח-מקומי — רואה הכל). מערך = רק ייעודים אלו.
    */
   allowedDesignations?: string[] | null;
+  /** מייל⇒שם-תצוגה של עובדי-הארגון (memberConfigs[].displayName) — להצגת "מי" בלוג/צ׳אט (6.9). */
+  memberNames?: Record<string, string>;
   /**
    * סטטוס רישום-הבקשה (5.8 — "מאור נרשם ולא רואים בקשה"): 'ok' = הבקשה נכתבה
    * לענן; אחרת קוד-השגיאה של הכתיבה האחרונה (למשל permission-denied — ‏Rules).
@@ -1076,7 +1078,7 @@ export const useApp = create<AppState>()((set, get) => {
             mod.setDonationSplit(donationSplitOn(eff));
             mod.setSupEnforce(supEnforceOn(eff));
             // ג' (13.8) — ייעודי-התרומה שהעובד/ת רשאי/ת לראות (מתעדכן חי עם הכרטיס)
-            setCloud({ allowedDesignations: allowedDesignationsFor(user.email, orgDoc) });
+            setCloud({ allowedDesignations: allowedDesignationsFor(user.email, orgDoc), memberNames: memberNamesOf(orgDoc) });
             const { db } = get();
             applyTheme(db.ui.theme ?? eff.theme, db.ui.accent ?? eff.accent, eff.motion);
             writeCloudConfigCache(eff.slug, eff);
@@ -1109,7 +1111,7 @@ export const useApp = create<AppState>()((set, get) => {
                 orgIsManager ||
                 !!orgDoc?.members?.some((m) => m.trim().toLowerCase() === mail);
               const allowed = allowedDesignationsFor(user.email, orgDoc ?? {});
-              setCloud({ membership: member ? 'member' : 'pending', isManager: orgIsManager, allowedDesignations: allowed });
+              setCloud({ membership: member ? 'member' : 'pending', isManager: orgIsManager, allowedDesignations: allowed, memberNames: memberNamesOf(orgDoc) });
               // מסלול-B P3: שאילתת-donations מסוננת לעובד/ת מוגבל/ת (Rules דוחים list לא-מסוננת)
               mod.setAllowedPurposes(allowed);
               // לוג-מנהל מסונכרן: מנהל/מייל-על קורא את כל טבעות-הלוג; עובד/ת כותב/ת רק שלו/ה
