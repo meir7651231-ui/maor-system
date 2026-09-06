@@ -257,6 +257,29 @@ export function approveMember(org: OrgCloudDoc, email: string): { members: strin
 }
 
 /** קביעת כרטיס-עובד (טהור) — כותב/מעדכן את דריסות המייל. */
+/** שם-תצוגה של עובד/ת — memberConfigs[email].displayName, אחרת המייל עצמו. */
+export function memberDisplayName(org: OrgCloudDoc | null | undefined, email: string): string {
+  const nm = org?.memberConfigs?.[normEmail(email)]?.displayName?.trim();
+  return nm || email;
+}
+
+/** מפת מייל⇒שם-תצוגה (רק למי שהוגדר שם) — לסטור, כדי שכל המסכים יציגו שם במקום מייל. */
+export function memberNamesOf(org: OrgCloudDoc | null | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [email, ov] of Object.entries(org?.memberConfigs ?? {})) {
+    const nm = ov?.displayName?.trim();
+    if (nm) out[normEmail(email)] = nm;
+  }
+  return out;
+}
+
+/** תווית "מי" — שם-תצוגה אם ידוע, אחרת המחרוזת כמות-שהיא (מייל/'—'). טהור. */
+export function whoLabel(names: Record<string, string> | undefined, who: string | undefined): string {
+  const w = (who ?? '').trim();
+  if (!w) return '—';
+  return names?.[w.toLowerCase()] ?? w;
+}
+
 export function setEmployeeOverride(
   org: OrgCloudDoc,
   email: string,

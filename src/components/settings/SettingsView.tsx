@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import type { NotifPrefs } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { whoLabel } from '../platform/lib';
 import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, integrationOn, isAdminAuthority, isSuperAdmin, termOf } from '../../lib/config';
 import { readAiKey, writeAiKey } from '../../lib/ai';
@@ -590,6 +591,7 @@ function VerifyReceiptSection() {
 function AuditTrailSection() {
   const config = useApp((s) => s.config);
   const cloudUser = useApp((s) => s.cloud.user);
+  const memberNames = useApp((s) => s.cloud.memberNames); // שם-תצוגה במקום מייל (6.9)
   // ⚠️ ברירת-המחדל מחוץ לסלקטור — `?? []` בתוך הסלקטור מייצר מערך חדש בכל
   // getSnapshot כשאין לוג ⇒ לולאת-רינדור אינסופית (React #185, נתפס ב-launch-readiness).
   const audit = useApp((s) => s.db.audit) ?? [];
@@ -612,7 +614,7 @@ function AuditTrailSection() {
               {rows.map((r, i) => (
                 <tr key={i}>
                   <td dir="ltr" style={{ fontSize: 12 }}>{r.at.slice(0, 16).replace('T', ' ')}</td>
-                  <td style={{ fontSize: 12 }} dir="ltr">{r.who}</td>
+                  <td style={{ fontSize: 12 }} dir={memberNames?.[(r.who ?? '').toLowerCase()] ? 'rtl' : 'ltr'} title={r.who}>{whoLabel(memberNames, r.who)}</td>
                   <td style={{ fontWeight: 600 }}>{r.act}</td>
                   <td>{r.what}</td>
                 </tr>
