@@ -60,7 +60,7 @@ import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isAdminAut
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
-import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, SEGULA_OFFSETS, segulaReminders, segulaStatus, segulaTitle } from '../components/supporters/lib';
+import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, SEGULA_OFFSETS, segulaReminders, segulaStatus, segulaTitle, stripSegulaNote } from '../components/supporters/lib';
 import { planCharges } from '../components/supporters/planned';
 import { planAddPrayerName, removePrayerName, setPrayerNote, togglePrayerName } from '../components/supporters/prayer';
 import { findAllOpenPlans, matchAll } from '../lib/plannedMatch';
@@ -390,6 +390,14 @@ interface AppState {
   /** 🕯 סגולת 40 יום — זריעת תזכורות-לוח מדורגות לתורם מתאריך-התחלה. `purpose`
    *  אופציונלי (למשל 'זיווג') מוטבע בכותרת/הערת-התזכורת. מחזיר כמה נוצרו. */
   seedSegulaReminders: (supId: string, startIso: string, purpose?: string) => number;
+  /** ✖ ביטול הסגולה הנוכחית (בקשת-בעלים 6.9 "מה קורה עם הכפתור"): מוחק את אירועי-הריצה
+   *  הנוכחית (לא ריצות קודמות), מסיר את שורת-הסגולה מהערת-קשר-הבא ומנקה יעד-קשר
+   *  שהיה תזכורת-סגולה. מחזיר כמה אירועים הוסרו (0 = לא הייתה סגולה). */
+  cancelSegula: (supId: string) => number;
+  /** 🔄 התחלה-מחדש מהיום: ביטול + זריעה חדשה (שני שלבים, כתיבה אטומית לכל שלב). */
+  restartSegula: (supId: string, startIso: string, purpose?: string) => number;
+  /** ✓ הפיכת מצב-בוצע של אירוע-לוח (תזכורת-סגולה מהכרטיס; אותו upsertEvent). */
+  toggleEventDone: (eventId: string) => void;
   /** 🔄 יישום תוכנית-סנכרון נדרים (planNedarimSync): החלפת מערך-התומכים המלא +
    *  לוג. אחרי תצוגה-מקדימה+אישור בלבד (מסך הסנכרון). */
   applyNedarimSync: (supporters: Supporter[], note: string) => void;
@@ -2421,6 +2429,41 @@ export const useApp = create<AppState>()((set, get) => {
       logAudit('🕯 סגולת ' + target + ' יום' + tag, sp.name);
       get().toast('נזרעו ' + reminders.length + ' תזכורות-סגולה ביומן 🕯 — נרשם גם בקשר-הבא');
       return reminders.length;
+    },
+
+    cancelSegula(supId) {
+      const sp = get().db.supporters.find((s) => s.id === supId);
+      if (!sp) return 0;
+      const st = segulaStatus(get().db.events, sp.id, isoToday());
+      const ids = new Set(st.reminders.map((r) => r.id).filter(Boolean));
+      if (!ids.size) return 0;
+      const dates = new Set(st.reminders.map((r) => r.date));
+      // כתיבה אטומית אחת: אירועי-הריצה יורדים (מצבות דרך setDb), הכרטיס מנוקה משורת-הסגולה.
+      setDb((db) => ({
+        events: db.events.filter((e) => !ids.has(e.id)),
+        supporters: db.supporters.map((s) => {
+          if (s.id !== supId) return s;
+          const nextNote = stripSegulaNote(s.nextNote || '');
+          const nextDate = s.nextDate && dates.has(s.nextDate) ? '' : s.nextDate;
+          return { ...s, nextNote, nextDate };
+        }),
+      }));
+      logAudit('✖ ביטול סגולת ' + st.target + ' יום', sp.name);
+      get().toast('הסגולה בוטלה — ' + ids.size + ' תזכורות הוסרו מהיומן ומקשר-הבא');
+      return ids.size;
+    },
+
+    restartSegula(supId, startIso, purpose) {
+      const removed = get().cancelSegula(supId);
+      const n = get().seedSegulaReminders(supId, startIso, purpose);
+      if (removed && n) get().toast('🔄 הסגולה התחילה מחדש מהיום — ' + n + ' תזכורות חדשות');
+      return n;
+    },
+
+    toggleEventDone(eventId) {
+      const ev = get().db.events.find((e) => e.id === eventId);
+      if (!ev) return;
+      get().upsertEvent({ ...ev, done: !ev.done });
     },
 
     applyNedarimSync(supporters, note) {

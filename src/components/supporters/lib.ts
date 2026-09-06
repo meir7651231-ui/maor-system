@@ -342,6 +342,17 @@ export function segulaTitle(name: string, r: SegulaReminder, target: number): st
 /** תחילית-ההערה שמסמנת אירוע-סגולה (נכתבת ב-seedSegulaReminders). */
 export const SEGULA_NOTE_PREFIX = 'סגולת ';
 
+/** תזכורת-סגולה אחת מהריצה הנוכחית — לרשימה בכרטיס (סימון ✓ / ביטול). */
+export interface SegulaReminderState {
+  /** מזהה אירוע-הלוח (לסימון-בוצע/מחיקה). */
+  id: string;
+  date: string;
+  /** יום בספירה מתאריך-ההתחלה (1·7·21·35·40). */
+  day: number;
+  done: boolean;
+  final: boolean;
+}
+
 export interface SegulaStatus {
   active: boolean;
   /** תאריך-ההתחלה (יום 0) ותאריך-הסיום (היום ה-40). */
@@ -355,33 +366,55 @@ export interface SegulaStatus {
   /** כמה תזכורות כבר סומנו כבוצעו. */
   done: number;
   total: number;
+  /** תזכורות הריצה הנוכחית (האחרונה) ממוינות לפי תאריך — לרשימה בכרטיס. */
+  reminders: SegulaReminderState[];
+  /** סיום הריצה האחרונה גם כשאינה פעילה ('' כשלא הייתה סגולה מעולם) — "סגולה קודמת הסתיימה ב-". */
+  lastEnd: string;
 }
 
 /**
  * מצב-הסגולה של תומך/ת — נגזרת טהורה מאירועי-הלוח שלו (type 'call', spId, הערה
  * שמתחילה ב-SEGULA_NOTE_PREFIX). בקשת-בעלים 3.9 "40 יום לא מופיע": הכפתור זרע ליומן
  * בלבד ולא הציג כלום בכרטיס. פעילה = יש אירועי-סגולה והסיום עוד לא עבר.
+ * בקשת-בעלים 6.9 "מה קורה עם הכפתור": **ריצה נוכחית** = האירועים מתאריך-ההתחלה
+ * (סיום−40) ואילך — ריצה קודמת שהסתיימה לא מזייפת את המונים; הרשימה `reminders`
+ * מאפשרת ✓/ביטול/התחלה-מחדש מהכרטיס; `lastEnd` מציג "סגולה קודמת הסתיימה".
  */
 export function segulaStatus(
-  events: readonly { spId?: string; type?: string; date: string; notes?: string; done?: boolean }[],
+  events: readonly { id?: string; spId?: string; type?: string; date: string; notes?: string; done?: boolean }[],
   spId: string,
   todayIso: string,
 ): SegulaStatus {
   const evs = events
     .filter((e) => e.spId === spId && e.type === 'call' && (e.notes || '').startsWith(SEGULA_NOTE_PREFIX))
     .sort((a, b) => a.date.localeCompare(b.date));
-  const empty: SegulaStatus = { active: false, start: '', end: '', next: '', day: 0, target: Math.max(...SEGULA_OFFSETS), total: 0, done: 0 };
+  const target = Math.max(...SEGULA_OFFSETS);
+  const empty: SegulaStatus = { active: false, start: '', end: '', next: '', day: 0, target, total: 0, done: 0, reminders: [], lastEnd: '' };
   if (!evs.length) return empty;
   const end = evs[evs.length - 1].date;
-  const target = Math.max(...SEGULA_OFFSETS);
   const endD = new Date(`${end}T12:00:00`);
   const startD = new Date(endD);
   startD.setDate(startD.getDate() - target);
   const start = `${startD.getFullYear()}-${String(startD.getMonth() + 1).padStart(2, '0')}-${String(startD.getDate()).padStart(2, '0')}`;
+  // הריצה הנוכחית בלבד — אירועי ריצה קודמת (לפני תאריך-ההתחלה) לא נספרים.
+  const run = evs.filter((e) => e.date >= start);
+  const dayOf = (iso: string) => Math.round((new Date(`${iso}T12:00:00`).getTime() - startD.getTime()) / 86_400_000);
+  const reminders: SegulaReminderState[] = run.map((e) => ({ id: e.id ?? '', date: e.date, day: dayOf(e.date), done: !!e.done, final: e.date === end }));
   const todayD = new Date(`${todayIso}T12:00:00`);
   const day = Math.max(0, Math.round((todayD.getTime() - startD.getTime()) / 86_400_000));
-  const next = evs.find((e) => e.date >= todayIso && !e.done)?.date ?? '';
-  return { active: todayIso <= end, start, end, next, day: Math.min(day, target), target, total: evs.length, done: evs.filter((e) => e.done).length };
+  const next = run.find((e) => e.date >= todayIso && !e.done)?.date ?? '';
+  return { active: todayIso <= end, start, end, next, day: Math.min(day, target), target, total: run.length, done: run.filter((e) => e.done).length, reminders, lastEnd: end };
+}
+
+/**
+ * הסרת שורת-הסגולה מהערת-קשר-הבא (ביטול/התחלה-מחדש) — שורות שמכילות "סגולת N יום"
+ * יורדות, השאר נשמר ביט-זהה. טהור.
+ */
+export function stripSegulaNote(note: string, target: number = Math.max(...SEGULA_OFFSETS)): string {
+  return (note || '')
+    .split('\n')
+    .filter((l) => !l.includes(SEGULA_NOTE_PREFIX + target + ' יום'))
+    .join('\n');
 }
 
 /** "₪1,200 + $300" או "—" כשאין כלום — כולל היסטוריה (הכרעת 9.8). */
