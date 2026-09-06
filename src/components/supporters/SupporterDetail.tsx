@@ -23,6 +23,7 @@ import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
 import { PrayerNames } from './PrayerNames';
 import { SupporterPhotos } from './SupporterPhotos';
+import { useArmed } from '../useArmed';
 import { PlannedChargesSection } from './PlannedChargesSection';
 import { DonationCalendar } from './DonationCalendar';
 
@@ -168,6 +169,12 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   // מצב-הסגולה נגזר מאירועי-הלוח של התומך/ת (בקשת-בעלים 3.9 "40 יום לא מופיע" — הכפתור זרע בשקט).
   const segula = segulaOn ? segulaStatus(events, sp.id, isoToday()) : null;
   const seedSegulaReminders = useApp((s) => s.seedSegulaReminders);
+  // בקשת-בעלים 6.9 "מה קורה עם הכפתור": אחרי הזריעה הכפתור נעלם ונשארה שורת-מצב בלבד —
+  // עכשיו פאנל: רשימת 5 התזכורות (✓ בוצע), 🔄 התחלה-מחדש, ✖ ביטול (חימוש דו-לחיצתי).
+  const cancelSegula = useApp((s) => s.cancelSegula);
+  const restartSegula = useApp((s) => s.restartSegula);
+  const toggleEventDone = useApp((s) => s.toggleEventDone);
+  const { armed: segArmed, confirmTwice: segConfirm } = useArmed(featureOn(config, 'shell.armdel'));
   // 🔁 הו"ק (ROADMAP-100 ‏#2): הגדרה+רישום — התרומה דרך addDonation (קבלה רציפה)
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokOpen, setHokOpen] = useState(false);
@@ -601,15 +608,66 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                  לזיווג לתוך קשר-הבא/הלוח (בקשת-בעלים 30.8: "כפתור בשם 40 ימים
                  שיחשב לבד וירשום תזכורת בקשר הבא, מוטבע קשר לזיווג"). */}
             {segulaOn && segula?.active && (
-              <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)', fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>
-                {'🕯 סגולה פעילה · יום ' + segula.day + ' מתוך ' + segula.target + (segula.next ? ' · תזכורת הבאה: ' + fmtDate(segula.next) : '') + ' · סיום: ' + fmtDate(segula.end)}
+              <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)', fontSize: 13, color: 'var(--ink)' }}>
+                <div style={{ fontWeight: 700 }}>
+                  {'🕯 סגולה פעילה · יום ' + segula.day + ' מתוך ' + segula.target + (segula.next ? ' · תזכורת הבאה: ' + fmtDate(segula.next) : '') + ' · סיום: ' + fmtDate(segula.end)}
+                </div>
                 <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginTop: 2 }}>
-                  {segula.done + '/' + segula.total + ' תזכורות בוצעו — התזכורות ביומן ובקשר-הבא'}
+                  {segula.done + '/' + segula.total + ' תזכורות בוצעו — התזכורות ביומן ובקשר-הבא · לחיצה על תזכורת מסמנת ✓ בוצע'}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                  {segula.reminders.map((r) => (
+                    <button
+                      key={r.id || r.date}
+                      type="button"
+                      className="chip"
+                      onClick={() => r.id && toggleEventDone(r.id)}
+                      aria-pressed={r.done}
+                      title={r.done ? 'לחיצה מבטלת את הסימון' : 'לחיצה מסמנת שבוצע'}
+                      style={{
+                        cursor: 'pointer',
+                        fontSize: 12.5,
+                        padding: '4px 10px',
+                        borderRadius: 999,
+                        border: '1px solid ' + (r.done ? 'var(--green)' : r.date < isoToday() ? 'var(--red)' : 'var(--line)'),
+                        background: r.done ? 'color-mix(in srgb, var(--green) 12%, transparent)' : 'transparent',
+                        color: r.done ? 'var(--green)' : r.date < isoToday() ? 'var(--red)' : 'var(--ink)',
+                        textDecoration: r.done ? 'line-through' : 'none',
+                      }}
+                    >
+                      {(r.done ? '☑ ' : '☐ ') + (r.final ? '🎯 סיום · ' : '') + 'יום ' + r.day + ' · ' + fmtDate(r.date)}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                  <Btn
+                    kind="plain"
+                    sm
+                    onClick={() => {
+                      if (segConfirm('seg-restart', 'להתחיל את הסגולה מחדש מהיום? התזכורות הנוכחיות יוחלפו בחדשות.')) restartSegula(sp.id, isoToday(), 'זיווג');
+                    }}
+                  >
+                    {segArmed === 'seg-restart' ? '🔄 לחצו שוב לאישור' : '🔄 התחלה מחדש מהיום'}
+                  </Btn>
+                  <Btn
+                    kind="danger"
+                    sm
+                    onClick={() => {
+                      if (segConfirm('seg-cancel', 'לבטל את הסגולה? התזכורות יוסרו מהיומן ומקשר-הבא.')) cancelSegula(sp.id);
+                    }}
+                  >
+                    {segArmed === 'seg-cancel' ? '✖ לחצו שוב לאישור' : '✖ ביטול הסגולה'}
+                  </Btn>
                 </div>
               </div>
             )}
             {segulaOn && !segula?.active && (
               <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+                {segula?.lastEnd ? (
+                  <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 4 }}>
+                    {'🕯 סגולה קודמת הסתיימה ב-' + fmtDate(segula.lastEnd) + ' · ' + segula.done + '/' + segula.total + ' תזכורות בוצעו'}
+                  </div>
+                ) : null}
                 <Btn kind="plain" sm onClick={() => seedSegulaReminders(sp.id, isoToday(), 'זיווג')}>
                   🕯 40 ימים
                 </Btn>
