@@ -56,6 +56,10 @@ export const WIZARD_SECTIONS: WizardSectionDef[] = [
       'ayin.stage.eyes',
       'ayin.stage.answer',
       'ayin.stage.done',
+      'entity.ayinCase',
+      // טלפוניה (כרטיס-שיחה · יומן-חיוג)
+      'entity.callEntry',
+      'entity.dialLogEntry',
     ],
   },
   {
@@ -72,7 +76,7 @@ export const WIZARD_SECTIONS: WizardSectionDef[] = [
     module: 'shop',
     termKeys: ['nav.shop', 'entity.shopProduct', 'entity.shopStore', 'entity.shopCriterion', 'entity.shopAssignment', 'entity.shopItem'],
   },
-  { id: 'shop7', title: 'חלוקה', emoji: '🚚', module: 'shop7', termKeys: ['nav.shop7', 'entity.volunteer', 'entity.volunteers'] },
+  { id: 'shop7', title: 'חלוקה', emoji: '🚚', module: 'shop7', termKeys: ['nav.shop7', 'entity.volunteer', 'entity.volunteers', 'entity.delivery'] },
   { id: 'reports', title: 'דוחות', emoji: '📊', module: 'reports', termKeys: ['nav.reports'] },
   // הגאדג'טים (טיימר/קופה/מפת-טיפול) שייכים למעטפת-הבית — המונחים שלהם כאן
   { id: 'home', title: 'מסך הבית', emoji: '🏠', termKeys: ['nav.timer', 'nav.cashbox', 'nav.bodymap'] },

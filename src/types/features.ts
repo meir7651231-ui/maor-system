@@ -477,4 +477,9 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'ayin.stage.eyes', label: 'שלב מעקב 3', fallback: 'רישום' },
   { key: 'ayin.stage.answer', label: 'שלב מעקב 4', fallback: 'מסירה' },
   { key: 'ayin.stage.done', label: 'שלב מעקב 5', fallback: 'הושלם' },
+  // ——— ישויות-גרעין בלי מונח (המחולל, 6.9.2026): מסירה · שיחה · חיוג · תיק — additive, ברירת-מחדל ביט-זהה ———
+  { key: 'entity.delivery', label: 'מסירה (חלוקה, יחיד)', fallback: 'מסירה' },
+  { key: 'entity.callEntry', label: 'כרטיס-שיחה (יחיד)', fallback: 'שיחה' },
+  { key: 'entity.dialLogEntry', label: 'רשומת-חיוג (יחיד)', fallback: 'חיוג' },
+  { key: 'entity.ayinCase', label: 'תיק מעקב-טיפול (יחיד)', fallback: 'תיק' },
 ];
