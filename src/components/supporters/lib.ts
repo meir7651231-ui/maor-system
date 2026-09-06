@@ -146,6 +146,32 @@ export function supLast(sp: Supporter): string {
   return m;
 }
 
+/** 🕐 סינון עצמאי לפי "תרומה אחרונה" (בקשת-בעלים 6.9 "נעלם הסינון של תרומה אחרונה"):
+ *  הבורר הקודם ('🕐 תרומה אחרונה בתקופה') הופיע רק אחרי בחירת שנה/חודש — בלי תקופה
+ *  הוא לא היה קיים ⇒ נראה "נעלם". עכשיו בורר-דליים תמיד-גלוי; דטרמיניסטי (היום מוזרק). */
+export const LAST_BUCKETS = [
+  { key: 'm1', label: 'ב-30 הימים האחרונים' },
+  { key: 'm3', label: 'ב-3 החודשים האחרונים' },
+  { key: 'm6', label: 'ב-6 החודשים האחרונים' },
+  { key: 'm12', label: 'ב-12 החודשים האחרונים' },
+  { key: 'over12', label: 'לפני יותר משנה' },
+  { key: 'never', label: 'ללא תרומה' },
+] as const;
+export type LastBucket = (typeof LAST_BUCKETS)[number]['key'];
+
+const BUCKET_DAYS: Record<Exclude<LastBucket, 'over12' | 'never'>, number> = { m1: 30, m3: 91, m6: 182, m12: 365 };
+
+/** האם התרומה האחרונה (קבלות+היסטוריה, supLast) נופלת בדלי. תאריך-עתידי = "עכשיו" (0 ימים). */
+export function supLastInBucket(sp: Supporter, todayIso: string, bucket: LastBucket | null): boolean {
+  if (!bucket) return true;
+  const iso = supLast(sp);
+  if (bucket === 'never') return !iso;
+  if (!iso) return false;
+  const days = Math.max(0, Math.round((new Date(`${todayIso}T12:00:00`).getTime() - new Date(`${iso}T12:00:00`).getTime()) / 86_400_000));
+  if (bucket === 'over12') return days > 365;
+  return days <= BUCKET_DAYS[bucket];
+}
+
 /** האם **התרומה האחרונה** של התורם נפלה בתקופה — שנה (yyyy) ו/או חודש (1–12).
  *  ‏null=כל. משלים את supGaveInPeriod (שבודק אם נתן **בכלל** בתקופה): כאן נבדקת
  *  רק ה**אחרונה** (המאוחרת מבין קבלות+היסטוריה, דרך supLast) — "מי שתרם לאחרונה
