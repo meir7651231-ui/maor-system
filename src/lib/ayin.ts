@@ -359,6 +359,8 @@ export function ayinAllRows(cfg: OrgConfig, supporters: Supporter[]): Cell[][] {
 /** שורת מסך-הטיפול — שם אחד מתוך תיק של תומכ/ת, עם עוגן-הקפיצה לכרטיס. */
 export interface AyinBoardItem {
   supporterId: string;
+  /** מזהה-השם בכרטיס — לעריכה-במקום ממסך-השמות (9.9). */
+  nameId: string;
   supporter: string;
   phone: string;
   name: string;
@@ -378,6 +380,7 @@ export function ayinBoardItems(supporters: Supporter[]): AyinBoardItem[] {
       if (!n.name.trim()) continue;
       out.push({
         supporterId: sp.id,
+        nameId: n.id,
         supporter: sp.name,
         phone: sp.phone || '',
         name: n.name,
@@ -404,6 +407,9 @@ export function filterAyinBoard(
     if (status === 'done' && !it.done) return false;
     if (stage && it.stage !== stage) return false;
     if (!nq) return true;
+    // חיפוש-ספרות (בקשת-בעלים 9.9 "חיפוש לפי 4 ספרות"): רצף-ספרות מחפש בתוך הטלפון.
+    const qd = q.replace(/\D/g, '');
+    if (qd.length >= 3 && /^[\d\s-]+$/.test(q.trim()) && it.phone.replace(/\D/g, '').includes(qd)) return true;
     return normSearch([it.supporter, it.name, it.note].join(' ')).includes(nq);
   });
 }
