@@ -245,7 +245,7 @@ describe('ayinBoardItems + filterAyinBoard — מסך הטיפול', () => {
     const items = ayinBoardItems(two());
     expect(items).toHaveLength(2); // בלי-ayin מדולג, שם ריק מדולג
     expect(items[0]).toEqual({
-      supporterId: 's1', supporter: 'משה', phone: '050',
+      supporterId: 's1', nameId: 'n1', supporter: 'משה', phone: '050',
       name: 'רפואה שלמה', eyes: 3, note: 'דחוף', done: false, stage: 'eyes',
     });
     expect(items[1].done).toBe(true);

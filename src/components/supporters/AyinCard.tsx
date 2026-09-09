@@ -30,6 +30,7 @@ import { scheduleTasks } from '../../lib/projectSchedule';
 import { kitProgress, DEFAULT_KIT_LABELS } from '../../lib/installKit';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty } from '../ui';
+import { EditableText } from './EditableText';
 import { HebDateInput } from '../HebDateInput';
 import { fmtDate, supIls } from './lib';
 
@@ -45,6 +46,7 @@ export function AyinCard(props: { supporter: Supporter }) {
   const setNameEyes = useApp((s) => s.ayinSetNameEyes);
   const setNameRate = useApp((s) => s.ayinSetNameRate);
   const setNameNote = useApp((s) => s.ayinSetNameNote);
+  const setNameText = useApp((s) => s.ayinSetNameText);
   const removeName = useApp((s) => s.ayinRemoveName);
   const addAnswer = useApp((s) => s.ayinAddAnswer);
   const editAnswer = useApp((s) => s.ayinEditAnswer);
@@ -289,7 +291,7 @@ export function AyinCard(props: { supporter: Supporter }) {
                     padding: '6px 10px',
                   }}
                 >
-                  <span style={{ flex: 1, fontWeight: 600, fontSize: 13.5 }}>{n.name}</span>
+                  <EditableText value={n.name} onSave={(v) => setNameText(sp.id, n.id, v)} style={{ fontWeight: 600, fontSize: 13.5 }} />
                   <input
                     value={n.eyes === '' ? '' : String(n.eyes)}
                     onChange={(e) => {
@@ -491,7 +493,7 @@ export function AyinCard(props: { supporter: Supporter }) {
               return (
                 <div key={n.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: '6px 8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ flex: 1, minWidth: 90, fontWeight: 600, fontSize: 12.5 }}>{n.name}{t?.critical ? <span title="נתיב-קריטי" style={{ color: '#b91c1c', marginInlineStart: 5 }}>◆</span> : null}</span>
+                    <span style={{ flex: 1, minWidth: 90, fontWeight: 600, fontSize: 12.5, display: 'inline-flex', alignItems: 'center' }}><EditableText value={n.name} onSave={(v) => setNameText(sp.id, n.id, v)} />{t?.critical ? <span title="נתיב-קריטי" style={{ color: '#b91c1c', marginInlineStart: 5 }}>◆</span> : null}</span>
                     <label style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>ימים:
                       <input value={n.days ?? ''} onChange={(e) => setSchedule(sp.id, n.id, +e.target.value || 0, n.deps || [])}
                         dir="ltr" style={{ width: 44, marginInlineStart: 4, padding: '2px 4px', fontSize: 12 }} />

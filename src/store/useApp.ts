@@ -575,6 +575,8 @@ interface AppState {
   ayinSetNameEyes: (id: string, nameId: string, eyes: number | '') => void;
   ayinSetNameRate: (id: string, nameId: string, rate: number) => void;
   ayinSetNameNote: (id: string, nameId: string, note: string) => void;
+  /** ✏ עריכת-כתיב של שם-לטיפול (בקשת-בעלים 9.9 "לשנות בשמות בכתיבה שלהם"); ריק ⇒ לא נשמר. */
+  ayinSetNameText: (id: string, nameId: string, name: string) => void;
   ayinRemoveName: (id: string, nameId: string) => void;
   ayinAddAnswer: (id: string, note: string) => void;
   ayinEditAnswer: (id: string, index: number, note: string) => void;
@@ -3566,6 +3568,14 @@ export const useApp = create<AppState>()((set, get) => {
       const c = curAyin(id);
       if (!c) return;
       const names = c.a.names.map((n) => (n.id === nameId ? { ...n, rate: rate > 0 ? rate : undefined } : n));
+      setAyin(id, { names });
+    },
+    ayinSetNameText(id, nameId, name) {
+      const c = curAyin(id);
+      if (!c) return;
+      const val = name.trim();
+      if (!val) return;
+      const names = c.a.names.map((n) => (n.id === nameId ? { ...n, name: val } : n));
       setAyin(id, { names });
     },
     ayinSetNameNote(id, nameId, note) {
