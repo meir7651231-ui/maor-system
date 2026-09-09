@@ -421,18 +421,9 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
 
       {featureOn(cfg, 'courses.enroll.note') && (
         <Field label={'📝 הערה על ה' + termOf(cfg, 'entity.student', 'תלמיד/ה') + ' ב' + termOf(cfg, 'entity.course', 'חוג')}>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <TextInput value={note} onChange={setNote} placeholder="לדוגמה: רגישות, הסעה, העדפת קבוצה…" />
-            <Btn
-              sm
-              onClick={() => {
-                upsertEnrollment({ ...en, note: note.trim() });
-                toast(note.trim() ? 'ההערה נשמרה — מוצגת ברשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') : 'ההערה נמחקה');
-              }}
-            >
-              שמירה
-            </Btn>
-          </div>
+          {/* (7) בקשת-בעלים 9.9 "שמירה ביחד ולהוריד את השמירה ליד הערות": הכפתור הנפרד ירד —
+               ההערה נשמרת בכפתור-השמירה האחד בתחתית (💾 שמירה וסגירה). */}
+          <TextInput value={note} onChange={setNote} placeholder="לדוגמה: רגישות, הסעה, העדפת קבוצה…" />
         </Field>
       )}
 
@@ -603,8 +594,18 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         </Btn>
       </div>
       <div className="modal-actions">
-        <Btn kind="primary" onClick={props.onClose}>
-          סגירה
+        <Btn
+          kind="primary"
+          onClick={() => {
+            // שמירה-אחת: ההערה (אם השתנתה) + סגירה. שאר השדות כבר נשמרים מיד בשינוי.
+            if (note.trim() !== (en.note ?? '').trim()) {
+              upsertEnrollment({ ...en, note: note.trim() });
+              toast(note.trim() ? 'ההערה נשמרה — מוצגת ברשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') : 'ההערה נמחקה');
+            }
+            props.onClose();
+          }}
+        >
+          💾 שמירה וסגירה
         </Btn>
       </div>
     </Modal>

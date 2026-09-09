@@ -194,6 +194,8 @@ export function CourseDetail(props: { course: Course }) {
   // נתן O(מספר-שיבוצים × סה"כ-חברים). Map ממזהה→חבר הופך את זה ל-O(1) לשורה.
   const members = useMemo(() => allMembers(db), [db]);
   const memberById = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
+  // (6) בקשת-בעלים 9.9: מצב-משפחתי ליד כל משובץ/ת — נשאב מכרטיס-המשפחה; ריק ⇒ "אין".
+  const maritalByFam = useMemo(() => new Map(db.families.map((f) => [f.id, (f.maritalStatus || '').trim()])), [db.families]);
   // בקשת-בעלים 25.8: כניסה-לכרטיס-התלמיד מתוך החוג — קפיצה לכרטיס-המשפחה שלו/ה.
   const openCard = (memberId: string) => {
     const fid = memberById.get(memberId)?.famId;
@@ -624,6 +626,7 @@ export function CourseDetail(props: { course: Course }) {
                       {regMode && <th style={{ width: 32 }}></th>}
                       <th>{termOf(cfg, 'entity.student', 'תלמיד/ה')}</th>
                       <th>{termOf(cfg, 'entity.family', 'משפחה')}</th>
+                      <th>מצב משפחתי</th>
                       <th>קבוצה</th>
                       <th>מסלול</th>
                       <th>יתרה</th>
@@ -682,6 +685,7 @@ export function CourseDetail(props: { course: Course }) {
                             )}
                           </td>
                           <td>{m ? termOf(cfg, 'entity.familyOf', 'משפחת') + ' ' + m.famName : '—'}</td>
+                          <td>{m ? maritalByFam.get(m.famId) || 'אין' : '—'}</td>
                           <td>
                             {groups.length > 0 ? (
                               <select

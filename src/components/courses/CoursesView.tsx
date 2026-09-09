@@ -3,13 +3,16 @@
  * וסמסטר, קורס חדש, וכרטיס קורס מלא בבחירה.
  */
 import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from 'react';
-import type { Course } from '../../types/domain';
+import type { Course, Weekday } from '../../types/domain';
 import { useApp, useCourse } from '../../store/useApp';
 import { useListScrollRestore } from '../../lib/scrollMemory';
 import { featureOn, isSuperAdmin, roleOf, teacherIdOf, termOf } from '../../lib/config';
 import { normSearch } from '../../lib/validate';
 import { isoToday } from '../../lib/date-util';
 import { Btn, Empty, Modal, PageHead, Select, TextInput } from '../ui';
+
+/** ימי-פעילות לסינון (0=ראשון … 5=שישי — כמו Weekday). */
+const DAY_FILTER: { v: Weekday; t: string }[] = [[0, 'ראשון'], [1, 'שני'], [2, 'שלישי'], [3, 'רביעי'], [4, 'חמישי'], [5, 'שישי']].map(([v, t]) => ({ v: v as Weekday, t: t as string }));
 import { numMatch } from '../families/lib';
 import { CourseForm } from './CourseForm';
 import { CourseDetail } from './CourseDetail';
@@ -104,6 +107,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
   const [sem, setSem] = useState('all');
+  // בקשות-בעלים 9.9: (3) סינון לפי יום-בשבוע של המפגשים · (5) סינון לפי מורה "כמו שאר הסינון".
+  const [dayF, setDayF] = useState<'all' | Weekday>('all');
+  const [teacherF, setTeacherF] = useState('all');
   // 📚 סינון היסטוריה (בקשת-בעלים 24.8) — חוג שתאריך-הסיום שלו עבר נכנס
   // אוטומטית ל"היסטוריה". ברירת-המחדל 'active' ⇒ מסתיר חוגים ישנים.
   const [histF, setHistF] = useState<'active' | 'history' | 'all'>('active');
@@ -178,6 +184,8 @@ function CoursesList(props: { onOpenWheel: () => void }) {
     const list = coursesOfTeacher(db.courses, myTeacherId).filter((c) => {
       if (cat !== 'all' && c.cat !== cat) return false;
       if (sem !== 'all' && c.semester !== sem) return false;
+      if (dayF !== 'all' && !c.sessions.some((x) => x.day === dayF)) return false;
+      if (teacherF !== 'all' && c.teacherId !== teacherF) return false;
       // 📚 היסטוריה: c.end < today ⇒ נגמר. חוג בלי end כלול תמיד ב'active'.
       const isHistory = !!c.end && c.end < today;
       if (histF === 'active' && isHistory) return false;
@@ -211,7 +219,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       const cc = typeof va === 'string' ? va.localeCompare(String(vb), 'he') : va - (vb as number);
       return cc * sort.dir;
     });
-  }, [db, q, cat, sem, colF, sort, teacherName, enrollCounts, histF, today]);
+  }, [db, q, cat, sem, dayF, teacherF, colF, sort, teacherName, enrollCounts, histF, today]);
 
   const clickSort = (key: CrsSortKey) =>
     setSort((s) => (s?.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
@@ -455,6 +463,26 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             options={[{ value: 'all', label: 'כל הסמסטרים' }, ...sems.map((x) => ({ value: x, label: x }))]}
           />
         </div>
+        {/* (3) יום-בשבוע — חוג מוצג אם אחד ממפגשיו באותו יום */}
+        <div style={{ width: 150 }}>
+          <Select
+            value={dayF === 'all' ? 'all' : String(dayF)}
+            onChange={(v) => setDayF(v === 'all' ? 'all' : (+v as Weekday))}
+            ariaLabel="יום"
+            options={[{ value: 'all', label: '📅 כל הימים' }, ...DAY_FILTER.map((d) => ({ value: String(d.v), label: 'יום ' + d.t }))]}
+          />
+        </div>
+        {/* (5) מורה — כמו שאר הסינון (מוסתר כשאין מורות) */}
+        {db.teachers.length > 0 && (
+          <div style={{ width: 170 }}>
+            <Select
+              value={teacherF}
+              onChange={setTeacherF}
+              ariaLabel={termOf(cfg, 'entity.teacher', 'מורה')}
+              options={[{ value: 'all', label: 'כל המורות/ים' }, ...db.teachers.map((t) => ({ value: t.id, label: t.name }))]}
+            />
+          </div>
+        )}
         {view === 'list' && featureOn(cfg, 'courses.colfilter') && (
           <Btn
             onClick={() => setColFOn(!colFOn)}
