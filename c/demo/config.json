@@ -1,0 +1,102 @@
+{
+  "slug": "demo",
+  "orgName": "מרכז הדגמה · אורביט",
+  "theme": "kehila",
+  "modules": {},
+  "features": {},
+  "terms": {},
+  "site": {
+    "enabled": true,
+    "langs": ["he", "en"],
+    "icon": "🕯️",
+    "brandLine": { "he": "אור לכל בית", "en": "Light for every home" },
+    "heroTitle": { "he": "הבית של", "en": "A home for" },
+    "titleAccent": { "he": "הקהילה.", "en": "the community." },
+    "heroBadge": { "he": "2,800 משפחות איתנו היום", "en": "2,800 families with us today" },
+    "ticker": { "he": "קמפיין החג · ₪163,400 נאספו · מתעדכן חי", "en": "Holiday drive · ₪163,400 raised · live" },
+    "microCopy": { "he": "כל ₪9 = ארוחה חמה לילד ♡", "en": "Every ₪9 = a warm meal ♡" },
+    "marquee": [
+      { "he": "סל למשפחה = ₪90", "en": "A basket = ₪90" },
+      { "he": "92% מכל שקל — ישירות למשפחות", "en": "92% goes straight to families" },
+      { "he": "2,800 משפחות · 24 שנות נתינה", "en": "2,800 families · 24 years" },
+      { "he": "קבלה מוכרת · סעיף 46", "en": "Tax-deductible · §46" }
+    ],
+    "tagline": { "he": "הבית של האלמנות והיתומים", "en": "A home for widows and orphans" },
+    "heroWords": [
+      { "he": "נותנים בכבוד", "en": "Giving with dignity" },
+      { "he": "יד ביד", "en": "Hand in hand" },
+      { "he": "קהילה שלמה", "en": "A whole community" }
+    ],
+    "liveFamilies": true,
+    "liveFamiliesLabel": { "he": "משפחות בטיפול", "en": "families supported" },
+    "stats": [
+      { "value": "2,800", "label": { "he": "סלי מזון בשנה", "en": "food baskets / year" } },
+      { "value": "24", "label": { "he": "שנות פעילות", "en": "years active" } },
+      { "value": "180", "label": { "he": "מתנדבים", "en": "volunteers" } }
+    ],
+    "campaign": {
+      "title": { "he": "קמפיין חג — סלי מזון למשפחות", "en": "Holiday food-basket drive" },
+      "goal": 250000,
+      "raised": 163400,
+      "end": "2026-09-20",
+      "currency": "₪"
+    },
+    "servicesHeading": { "he": "שישה דרכים לחבק משפחה", "en": "Six ways to hold a family" },
+    "calc": { "unitAmount": 9, "unit": { "he": "ארוחות חמות", "en": "warm meals" }, "note": { "he": "כל ₪9 = ארוחה חמה לילד ♡", "en": "Every ₪9 = a warm meal ♡" } },
+    "services": [
+      { "icon": "🎉", "title": { "he": "שמחות", "en": "Celebrations" }, "text": { "he": "סיוע בהוצאות שמחה למשפחות נזקקות", "en": "Support for family celebrations" } },
+      { "icon": "👰", "title": { "he": "הכנסת כלה", "en": "Wedding fund" }, "text": { "he": "ליווי כלכלי לחתן ולכלה", "en": "Financial help for brides and grooms" } },
+      { "icon": "🏠", "title": { "he": "בית פתוח", "en": "Open house" }, "text": { "he": "מרחב חם לילדים אחרי הלימודים", "en": "A warm after-school space" } },
+      { "icon": "📚", "title": { "he": "אולפן וחוגים", "en": "Classes" }, "text": { "he": "העשרה, אמנות ולימוד לכל גיל", "en": "Enrichment and learning for all ages" } },
+      { "icon": "💆", "title": { "he": "טיפולי גוף ונפש", "en": "Body & soul" }, "text": { "he": "טיפולים רגשיים ופיזיים בהנחה", "en": "Subsidized emotional and physical care" } },
+      { "icon": "🚌", "title": { "he": "טיולים", "en": "Trips" }, "text": { "he": "ימי כיף ונופש למשפחות", "en": "Family day-trips and getaways" } }
+    ],
+    "news": { "he": "החודש חילקנו 240 סלי מזון לקראת החג, ופתחנו חוג אפייה חדש לאמהות. תודה לכל התורמים!", "en": "This month we distributed 240 baskets and opened a new baking class for mothers." },
+    "story": { "he": "מאור החסד קם לפני 24 שנה ממטבח ביתי אחד — היום אנחנו רשת שלמה של חסד: מזון, חינוך, שמחות וטיפול. כל שקל שנתרם הופך לחיוך של ילד ולנשימה של אמא.", "en": "Maor HaChesed began 24 years ago from a single home kitchen — today a full network of kindness." },
+    "storyTitle": { "he": "24 שנה של בית חם.", "en": "24 years of a warm home." },
+    "storyTitleAccent": { "he": "וזה רק מתחיל.", "en": "And it's only beginning." },
+    "storyBadge": { "he": "בברכת גדולי ישראל ♡", "en": "Blessed by Torah leaders ♡" },
+    "founder": {
+      "name": { "he": "המייסדת · מרכז ההדגמה", "en": "Founder · Demo Center" },
+      "quote": { "he": "\"חסד אמיתי זה לא לתת — זה להיות שם.\"", "en": "\"True kindness isn't giving — it's being there.\"" }
+    },
+    "timeline": [
+      { "year": "2002", "title": { "he": "ההתחלה" }, "note": { "he": "מטבח ביתי אחד" } },
+      { "year": "2015", "title": { "he": "1,000 משפחות" }, "note": { "he": "פריסה ארצית" } },
+      { "year": "2026", "title": { "he": "2,800 משפחות" }, "note": { "he": "ושלוש שפות" } }
+    ],
+    "growth": {
+      "label": { "he": "סלים שבועיים · 12 חודשים אחרונים", "en": "Weekly baskets · last 12 months" },
+      "delta": "+38%",
+      "points": [0.15, 0.23, 0.2, 0.36, 0.44, 0.4, 0.58, 0.68, 0.64, 0.83, 0.9, 1]
+    },
+    "transparency": {
+      "heading": { "he": "כל שקל מתועד. כל הדו״חות פתוחים.", "en": "Every shekel tracked." },
+      "text": { "he": "שקיפות היא כבוד — 92% מכל שקל ישירות למשפחות.", "en": "Transparency is dignity — 92% goes to families." },
+      "badges": [{ "he": "ניהול תקין 2026" }, { "he": "אישור סעיף 46" }, { "he": "דו״ח שנתי פתוח" }, { "he": "92% למשפחות" }]
+    },
+    "paymentMethods": [
+      { "label": { "he": "אונליין" }, "detail": { "he": "אשראי / ביט / PayPal — קבלה מיידית" } },
+      { "label": { "he": "העברה בנקאית" }, "detail": { "he": "בנק · סניף 000 · ח־ן 000000" } }
+    ],
+    "donateNote": { "he": "תרומות מוכרות למס לפי סעיף 46 · ביטול בכל רגע", "en": "Tax-deductible under §46 · cancel anytime" },
+    "testimonials": [
+      { "quote": { "he": "בפעם הראשונה מזה שנים, מישהי דפקה בדלת כדי לתת." }, "author": "ר׳", "role": { "he": "אם לשלושה" } },
+      { "quote": { "he": "כאן זה היחיד שבו אני רואה בדיוק לאן הכסף הלך." }, "author": "אבי כ׳", "role": { "he": "תורם חודשי" } },
+      { "quote": { "he": "להתנדב פה זה לראות נס קורה בזמן אמת." }, "author": "נועה ל׳", "role": { "he": "מתנדבת" } }
+    ],
+    "faq": [
+      { "q": { "he": "לאן הולך הכסף שלי?" }, "a": { "he": "92% מכל שקל ישירות למשפחות. כל הדו״חות פתוחים." } },
+      { "q": { "he": "האם התרומה מוכרת למס?" }, "a": { "he": "כן — קבלה מוכרת לפי סעיף 46, נשלחת אוטומטית." } }
+    ],
+    "contactForm": { "enabled": true, "note": { "he": "מענה תוך יום עסקים · דיסקרטיות מלאה", "en": "Reply within a business day" } },
+    "contact": {
+      "phones": ["03-000-0000", "050-000-0000"],
+      "whatsapp": "050-000-0000",
+      "email": "info@example.org",
+      "hours": { "he": "א׳–ה׳ 9:00–17:00 · ו׳ עד 12:00", "en": "Sun–Thu 9:00–17:00 · Fri until 12:00" },
+      "address": { "he": "רחוב החסד 1, לוצק", "en": "1 Chesed St." },
+      "taxNote": { "he": "מרכז הדגמה · הנתונים לדוגמה בלבד", "en": "Demo center · sample data only" }
+    }
+  }
+}
