@@ -28,6 +28,10 @@ describe('(8) כפתור-40 ענק בראש-הכרטיס — לא תלוי בק�
     // הכפתור לא נמצא עוד בתוך בלוק nextOn
     expect(src.indexOf('🕯 40 ימים — התחלת סגולה')).toBeLessThan(next);
   });
+  it('גם במצב "סגולה פעילה" יש פס ענק באותו גודל עם התווית "40 ימים" (בקשת-בעלים 10.9)', () => {
+    expect(src).toContain("{'🕯 40 ימים — סגולה פעילה · יום ' + segula.day + ' מתוך ' + segula.target + ' · סיום ' + fmtDate(segula.end)}");
+    expect((src.match(/minHeight: 64, fontSize: 20, fontWeight: 800/g) || []).length).toBe(2);
+  });
   it('כפתור ענק: רוחב-מלא, גובה ≥64, פונט 20', () => {
     expect(src).toContain("style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800");
     expect(src).toContain('🕯 40 ימים — התחלת סגולה לזיווג מהיום');

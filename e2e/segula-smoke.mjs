@@ -63,7 +63,7 @@ sp1?.nextDate && (sp1.nextNote || '').includes('סגולת 40 יום') ? ok('ק�
 (await btn.count()) === 0 ? ok('הכפתור הוחלף בפאנל-הסגולה') : fail('הכפתור עדיין מוצג אחרי הזריעה');
 const chips = pg.locator('button.chip', { hasText: 'יום ' }).filter({ hasText: /☐|☑/ });
 (await chips.count()) === 5 ? ok('פאנל: 5 תזכורות מוצגות (יום 1·7·21·35·40)') : fail('צפויות 5 תזכורות בפאנל, יש ' + (await chips.count()));
-(await pg.locator('text=סגולה פעילה').count()) === 1 ? ok('שורת-מצב "סגולה פעילה"') : fail('שורת-המצב חסרה');
+(await pg.locator('text=סגולה פעילה').count()) >= 1 && (await pg.locator('text=🕯 40 ימים — סגולה פעילה').count()) === 1 ? ok('פס-ענק "40 ימים — סגולה פעילה" + שורת-מצב') : fail('הפס/שורת-המצב חסרים');
 
 /* 3 · ✓ סימון תזכורת */
 await chips.first().click();
