@@ -491,7 +491,17 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
              שיחשב לבד וירשום תזכורת בקשר הבא, מוטבע קשר לזיווג"). */}
         {segulaOn && segula?.active && (
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)', fontSize: 13, color: 'var(--ink)' }}>
-            <div style={{ fontWeight: 700 }}>
+            {/* בקשת-בעלים 10.9 "כל התיקונים קיימים חוץ מ-40 יום": אצל תורם שכבר הופעלה לו סגולה
+                 הכפתור הענק הוחלף בשורת-טקסט קטנה ⇒ נראה "לא קיים". עכשיו גם המצב-הפעיל = פס ענק
+                 באותו גודל בדיוק (64px / 20px), עם אותה תווית "40 ימים". */}
+            <div
+              role="status"
+              className="btn primary"
+              style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxSizing: 'border-box' }}
+            >
+              {'🕯 40 ימים — סגולה פעילה · יום ' + segula.day + ' מתוך ' + segula.target + ' · סיום ' + fmtDate(segula.end)}
+            </div>
+            <div style={{ fontWeight: 700, marginTop: 8 }}>
               {'🕯 סגולה פעילה · יום ' + segula.day + ' מתוך ' + segula.target + (segula.next ? ' · תזכורת הבאה: ' + fmtDate(segula.next) : '') + ' · סיום: ' + fmtDate(segula.end)}
             </div>
             <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginTop: 2 }}>
