@@ -146,7 +146,7 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
 
   it('🛡 חיווט: בורר-מצב-תקופה (gave/last) + ענף-הסינון + תווית-הצ׳יפ (הגנת-מקור)', () => {
     // ברירת-מחדל 'gave' = ביט-זהה להתנהגות הקיימת
-    expect(viewSrc).toContain("useState<'gave' | 'last'>('gave')");
+    expect(viewSrc).toContain("useRemembered<'gave' | 'last'>('sup.periodMode', 'gave')"); // 10.9: זכור בין מסכים (filterMemory)
     // ענף-הסינון: 'last' ⇒ supLastInPeriod, אחרת supGaveInPeriod (שניהם על gaveYearF/monthF)
     expect(viewSrc).toContain('supLastInPeriod(sp, gaveYearF, monthF)');
     expect(viewSrc).toContain('supGaveInPeriod(sp, gaveYearF, monthF)');

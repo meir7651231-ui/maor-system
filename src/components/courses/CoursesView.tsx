@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from 'r
 import type { Course, Weekday } from '../../types/domain';
 import { useApp, useCourse } from '../../store/useApp';
 import { useListScrollRestore } from '../../lib/scrollMemory';
+import { useRemembered } from '../../lib/filterMemory';
 import { featureOn, isSuperAdmin, roleOf, teacherIdOf, termOf } from '../../lib/config';
 import { normSearch } from '../../lib/validate';
 import { isoToday } from '../../lib/date-util';
@@ -104,19 +105,19 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const rolesOn = featureOn(cfg, 'shell.roles');
   const myTeacherId = rolesOn && roleOf(cfg, userEmail) === 'teacher' ? teacherIdOf(cfg, userEmail) : null;
 
-  const [q, setQ] = useState('');
-  const [cat, setCat] = useState('all');
-  const [sem, setSem] = useState('all');
+  const [q, setQ] = useRemembered('crs.q', '');
+  const [cat, setCat] = useRemembered('crs.cat', 'all');
+  const [sem, setSem] = useRemembered('crs.sem', 'all');
   // בקשות-בעלים 9.9: (3) סינון לפי יום-בשבוע של המפגשים · (5) סינון לפי מורה "כמו שאר הסינון".
-  const [dayF, setDayF] = useState<'all' | Weekday>('all');
-  const [teacherF, setTeacherF] = useState('all');
+  const [dayF, setDayF] = useRemembered<'all' | Weekday>('crs.dayF', 'all');
+  const [teacherF, setTeacherF] = useRemembered('crs.teacherF', 'all');
   // 📚 סינון היסטוריה (בקשת-בעלים 24.8) — חוג שתאריך-הסיום שלו עבר נכנס
   // אוטומטית ל"היסטוריה". ברירת-המחדל 'active' ⇒ מסתיר חוגים ישנים.
-  const [histF, setHistF] = useState<'active' | 'history' | 'all'>('active');
+  const [histF, setHistF] = useRemembered<'active' | 'history' | 'all'>('crs.histF', 'active');
   const today = isoToday();
-  const [sort, setSort] = useState<{ key: CrsSortKey; dir: 1 | -1 } | null>(null);
-  const [colFOn, setColFOn] = useState(false);
-  const [colF, setColF] = useState(EMPTY_CRS_COLF);
+  const [sort, setSort] = useRemembered<{ key: CrsSortKey; dir: 1 | -1 } | null>('crs.sort', null);
+  const [colFOn, setColFOn] = useRemembered('crs.colFOn', false);
+  const [colF, setColF] = useRemembered('crs.colF', EMPTY_CRS_COLF);
   const [formOpen, setFormOpen] = useState(false);
   // בקשת-בעלים: תפריט-⋯ בכרטיס-החוג במסך-החיצוני — מציג את ההערות (התיאור)
   const [notesCourse, setNotesCourse] = useState<Course | null>(null);

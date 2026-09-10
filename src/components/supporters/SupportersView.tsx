@@ -7,6 +7,7 @@ import { IncMoreCard, IncMoreRow, incSlice, useIncCap } from '../incremental';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { useListScrollRestore } from '../../lib/scrollMemory';
+import { useRemembered } from '../../lib/filterMemory';
 import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, integrationOn, integrationSetting, isAdminUser, safeHttpsUrl, telephonyOn, termOf } from '../../lib/config';
 import { DialerModal } from '../dialer/DialerModal';
@@ -222,22 +223,22 @@ export function SupportersView() {
   const toggleSupView = () =>
     setDb((d) => ({ ui: { ...d.ui, supView: (d.ui.supView ?? 'list') === 'grid' ? 'list' : 'grid' } }));
 
-  const [q, setQ] = useState('');
+  const [q, setQ] = useRemembered('sup.q', '');
   // ⚡ מהירות (VISION-LIGHT ‏#4): ההקלדה בתיבת-החיפוש מיידית; הסינון-והמיון על
   // אלפי-תורמים רצים בעדיפות-נדחית (useDeferredValue) — האות מופיעה מיד.
   const dq = useDeferredValue(q);
-  const [cat, setCat] = useState('all');
+  const [cat, setCat] = useRemembered('sup.cat', 'all');
   // סינון אזור-טלפון (בקשת-שטח) — הפרדת מספרי חו"ל ממספרי ישראל.
-  const [regionF, setRegionF] = useState<'all' | 'il' | 'intl'>('all');
+  const [regionF, setRegionF] = useRemembered<'all' | 'il' | 'intl'>('sup.regionF', 'all');
   // בקשת-בעלים 15.8 ("פר תורם") — סינון לפי ייעוד-שעל-הכרטיס (forWho), מגודר supporters.purpose
-  const [purposeF, setPurposeF] = useState('all');
-  const [tierF, setTierF] = useState<string | null>(null);
+  const [purposeF, setPurposeF] = useRemembered('sup.purposeF', 'all');
+  const [tierF, setTierF] = useRemembered<string | null>('sup.tierF', null);
   // פילטרים פר-עמודה בתחביר numMatch — 'N' / 'N+' / 'N-M' (P3 פריט 13, לגאסי scf:2809-2811)
-  const [colF, setColF] = useState({ count: '', total: '', score: '' });
+  const [colF, setColF] = useRemembered('sup.colF', { count: '', total: '', score: '' });
   // סינון מעקב הטיפול (P3 פריט 14, לגאסי): עם מונה / בלי מונה / עודכן היום
-  const [ayinF, setAyinF] = useState<null | 'eyes' | 'noeyes' | 'today'>(null);
+  const [ayinF, setAyinF] = useRemembered<null | 'eyes' | 'noeyes' | 'today'>('sup.ayinF', null);
   // 📞 קוהרנטיות ווידג'ט↔יעד (20.8): סינון יעדי-קשר שהגיעו — הרשימה המלאה של ווידג'ט-הבית
-  const [nextF, setNextF] = useState(false);
+  const [nextF, setNextF] = useRemembered('sup.nextF', false);
   // 📋 מסך-השמות המלא (20.8, "מה עם המסך טיפול") — הרשימה פר-שם שהייתה CSV-בלבד
   const [ayinNamesOpen, setAyinNamesOpen] = useState(false);
   // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש
@@ -245,27 +246,32 @@ export function SupportersView() {
   // opt-in מפורש (=== true, לא featureOn) — יוצר קבלות-מס, חייב הפעלה מכוונת.
   const hokBulkOn = config.features?.['supporters.hokbulk'] === true;
   const [hokBulkOpen, setHokBulkOpen] = useState(false);
-  const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
+  const [hokF, setHokF] = useRemembered<null | 'active' | 'due'>('sup.hokF', null);
   // סינון-סגמנט מהקוקפיט/הבנדים — קליק על סגמנט מסנן את הטבלה (לא רק פותח מסך ריק).
   // אתחול-עצל: אם הבית ביקש נחיתה-על-סגמנט (התראת-סיכון) — נכנסים כבר מסונן.
-  const [segF, setSegF] = useState<SegmentKey | null>(() => takeSupportersSegment());
+  const [segF, setSegF] = useRemembered<SegmentKey | null>('sup.segF', null);
+  // בקשת-סגמנט מהבית (חד-פעמית) גוברת על הזיכרון — רק כשיש בקשה.
+  useEffect(() => {
+    const req = takeSupportersSegment();
+    if (req) setSegF(req);
+  }, []);
   // סינון-חודש (מפת-עונתיות) + שנת-גיוס (קוהורטה) — דריל-אין מהבנדים האנליטיים.
-  const [monthF, setMonthF] = useState<number | null>(null);
-  const [acqYearF, setAcqYearF] = useState<number | null>(null);
+  const [monthF, setMonthF] = useRemembered<number | null>('sup.monthF', null);
+  const [acqYearF, setAcqYearF] = useRemembered<number | null>('sup.acqYearF', null);
   // חיפוש-מפורש לפי תקופת-נתינה (בקשת-בעלים "חיפוש לפי שנה לפי חודש בקטגוריה"):
   // שנת-נתינה נבחרת (מובחנת משנת-הגיוס acqYearF); החודש חולק את monthF כדי
   // שדריל-אין מהעונתיות ובורר-החודש ישקפו זה את זה.
-  const [gaveYearF, setGaveYearF] = useState<number | null>(null);
+  const [gaveYearF, setGaveYearF] = useRemembered<number | null>('sup.gaveYearF', null);
   // מצב-התקופה (בקשת-בעלים "סינון לפי תרומה אחרונה"): אותם בוררי שנה/חודש מסננים
   // או לפי **כל** תרומה בתקופה ('gave', ברירת-מחדל = התנהגות קיימת ביט-זהה) או לפי
   // ה**אחרונה** בלבד ('last'). מוצג רק כשנבחרה תקופה — אינרטי אחרת (אפס-שינוי).
-  const [periodMode, setPeriodMode] = useState<'gave' | 'last'>('gave');
+  const [periodMode, setPeriodMode] = useRemembered<'gave' | 'last'>('sup.periodMode', 'gave');
   // 🕐 סינון עצמאי "תרומה אחרונה" (בקשת-בעלים 6.9 "נעלם הסינון") — תמיד-גלוי, דליי-זמן
   // מהיום; נפרד מבורר-התקופה (שנה/חודש) שנשאר כמו-שהוא.
-  const [lastF, setLastF] = useState<LastBucket | null>(null);
+  const [lastF, setLastF] = useRemembered<LastBucket | null>('sup.lastF', null);
   // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל אחד מתקפל.
   // הצ׳יפים והסינון נשמרים בדיוק — רק מתקפלים; החיפוש+קטגוריה גלויים תמיד.
-  const [advOpen, setAdvOpen] = useState(false);
+  const [advOpen, setAdvOpen] = useRemembered('sup.advOpen', false);
   // חלון-העבודה (הקוקפיט) — opt-in מפורש בלבד (‏featureOn ברירת-מחדל=on, לכן === true).
   // חסר במפורש בכל הלקוחות-החיים ⇒ אפס-השפעה על הפרודקשן.
   const cockpitOn = config.features?.['supporters.cockpit'] === true;
@@ -308,7 +314,7 @@ export function SupportersView() {
     [segF, db.supporters, today],
   );
   const rfmMax = Math.max(1, ...rfmBins);
-  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
+  const [sort, setSort] = useRemembered<{ key: SortKey; dir: 1 | -1 } | null>('sup.sort', null);
   // ⚡ ציור-מדורג (VISION-LIGHT ‏#15): חלון-שגדל-בגלילה במקום כל הרשימה בבת-אחת;
   // שינוי חיפוש/סינון מחזיר את החלון להתחלה. הלוגיקה נשארת על הרשימה המלאה.
   const inc = useIncCap(JSON.stringify([dq, cat, purposeF, tierF, colF, ayinF, nextF, hokF, segF, monthF, acqYearF, gaveYearF, periodMode, sort]));
