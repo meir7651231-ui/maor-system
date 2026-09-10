@@ -8,6 +8,7 @@ import { IncMoreCard, IncMoreRow, incSlice, useIncCap } from '../incremental';
 import type { Family } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { useListScrollRestore } from '../../lib/scrollMemory';
+import { useRemembered } from '../../lib/filterMemory';
 import { featureOn, telephonyOn, termOf } from '../../lib/config';
 import { CallBtn } from '../CallBtn';
 import { levenshtein, smartFilter } from '../../lib/search';
@@ -93,18 +94,18 @@ export function FamiliesView() {
     setTimeout(() => document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' }), 250);
   }
 
-  const [q, setQ] = useState('');
+  const [q, setQ] = useRemembered('fam.q', '');
   // ⚡ מהירות (VISION-LIGHT ‏#4): ההקלדה מיידית; החיפוש-החכם רץ בעדיפות-נדחית.
   const dq = useDeferredValue(q);
-  const [status, setStatus] = useState('all');
-  const [city, setCity] = useState('all');
-  const [comm, setComm] = useState('all');
-  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
-  const [colFOn, setColFOn] = useState(false);
-  const [colF, setColF] = useState(EMPTY_COLF);
-  const [advOn, setAdvOn] = useState(false);
-  const [adv, setAdv] = useState(EMPTY_ADV);
-  const [commMulti, setCommMulti] = useState<string[]>([]);
+  const [status, setStatus] = useRemembered('fam.status', 'all');
+  const [city, setCity] = useRemembered('fam.city', 'all');
+  const [comm, setComm] = useRemembered('fam.comm', 'all');
+  const [sort, setSort] = useRemembered<{ key: SortKey; dir: 1 | -1 } | null>('fam.sort', null);
+  const [colFOn, setColFOn] = useRemembered('fam.colFOn', false);
+  const [colF, setColF] = useRemembered('fam.colF', EMPTY_COLF);
+  const [advOn, setAdvOn] = useRemembered('fam.advOn', false);
+  const [adv, setAdv] = useRemembered('fam.adv', EMPTY_ADV);
+  const [commMulti, setCommMulti] = useRemembered<string[]>('fam.commMulti', []);
   const [finderOpen, setFinderOpen] = useState(false);
   const [fwLocks, setFwLocks] = useState<Record<string, string>>({});
   const [fwRot, setFwRot] = useState(0);
