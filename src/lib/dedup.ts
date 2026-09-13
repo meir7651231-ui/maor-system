@@ -353,6 +353,10 @@ export function mergeSupporterInto(keep: Supporter, drop: Supporter): Supporter 
   const ils = donations.filter((d) => d.cur !== '$').reduce((a, d) => a + d.amount, 0);
   const usd = donations.filter((d) => d.cur === '$').reduce((a, d) => a + d.amount, 0);
   const notes = [keep.notes, drop.notes].map((n) => (n || '').trim()).filter(Boolean);
+  // 🐛 (13.9): בליעה-שקטה — `keep.idNum || drop.idNum` זרק את ת"ז-הנמחק כשלשניהם ת"ז *שונה*
+  // (אולי אדם אחר, אולי טעות-הקלדה — למקבל-קבלת-§46 זו איבוד-מידע קריטי). שומרים את הת"ז-הנמחקת
+  // בהערות ⇒ אפס-אובדן; הת"ז-הראשית (keep.idNum) לא משתנה ⇒ אפס-השפעה על קבלות. זוהה ע"י מחולל-הסיכונים.
+  if (keep.idNum && drop.idNum && keep.idNum !== drop.idNum) notes.push(`ת"ז נוספת מכרטיס-כפול: ${drop.idNum}`);
   return {
     ...keep,
     phone: keep.phone || drop.phone,
