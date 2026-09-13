@@ -16,6 +16,7 @@ import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import { guardExport } from '../../lib/exportGate';
+import { isoToday } from '../../lib/date-util';
 import { Btn, Modal, TextInput } from '../ui';
 // מפתחות הקופה ממורחבי-שמות פר-ארגון (CONNECT חיבור 7 — חלק מבאג ידוע 3)
 import { nsLsKey } from '../../store/persist';
@@ -67,7 +68,7 @@ function readReceipts(): Receipt[] {
 }
 
 function isToday(iso: string): boolean {
-  return iso.slice(0, 10) === new Date().toISOString().slice(0, 10);
+  return iso.slice(0, 10) === isoToday();
 }
 
 /* ───────── משמרת / סגירת-קופה (גל-2) ───────── */

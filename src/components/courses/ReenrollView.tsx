@@ -12,6 +12,7 @@ import { featureOn, termOf } from '../../lib/config';
 import { Btn, Empty, PageHead, Select, TextInput } from '../ui';
 import { downloadCsv } from '../../lib/csvx';
 import { guardExport } from '../../lib/exportGate';
+import { isoToday } from '../../lib/date-util';
 import type { Cell } from '../../lib/csvx';
 import {
   academicYearLabel,
@@ -109,7 +110,7 @@ export default function ReenrollView() {
   }
   function doExport() {
     if (!guardExport()) return;
-    downloadCsv('reenroll-' + academicYearLabel(new Date().toISOString().slice(0, 10)) + '.csv', reenrollCsvRows(rows) as Cell[][]);
+    downloadCsv('reenroll-' + academicYearLabel(isoToday()) + '.csv', reenrollCsvRows(rows) as Cell[][]);
     setDial(false);
   }
   function doCopy() {

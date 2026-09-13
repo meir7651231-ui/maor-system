@@ -216,7 +216,7 @@ export default function App() {
     // דילוג בסביבת Playwright (navigator.webdriver) — E2E לא מריץ ריפויים אוטומטיים
     if (typeof navigator !== 'undefined' && (navigator as { webdriver?: boolean }).webdriver) return;
     try {
-      seedOverduePlannedReminders(new Date().toISOString().slice(0, 10));
+      seedOverduePlannedReminders(isoToday());
     } catch {
       /* אל תפיל את-האפליקציה על שגיאת-תזכורת */
     }
