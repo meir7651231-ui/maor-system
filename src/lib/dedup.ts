@@ -357,6 +357,10 @@ export function mergeSupporterInto(keep: Supporter, drop: Supporter): Supporter 
   // (אולי אדם אחר, אולי טעות-הקלדה — למקבל-קבלת-§46 זו איבוד-מידע קריטי). שומרים את הת"ז-הנמחקת
   // בהערות ⇒ אפס-אובדן; הת"ז-הראשית (keep.idNum) לא משתנה ⇒ אפס-השפעה על קבלות. זוהה ע"י מחולל-הסיכונים.
   if (keep.idNum && drop.idNum && keep.idNum !== drop.idNum) notes.push(`ת"ז נוספת מכרטיס-כפול: ${drop.idNum}`);
+  // 🐛 (13.9): אותה בליעה-שקטה על הו"ק — `keep.hok ?? drop.hok` זרק הוראת-קבע של הנמחק כששתיהן שונות
+  // (הו"ק = כסף חוזר; אובדן שקט = חיוב שנעלם). ההו"ק-הראשית לא משתנה; פרטי-הנמחקת נשמרים בהערות לבדיקה.
+  if (keep.hok && drop.hok && JSON.stringify(keep.hok) !== JSON.stringify(drop.hok))
+    notes.push(`הו"ק נוספת מכרטיס-כפול (לבדוק): ${drop.hok.amount}${drop.hok.cur}/יום-${drop.hok.day} — ${drop.hok.active ? 'פעילה' : 'לא-פעילה'}`);
   return {
     ...keep,
     phone: keep.phone || drop.phone,
