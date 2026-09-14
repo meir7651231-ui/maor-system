@@ -60,6 +60,7 @@ import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isAdminAut
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
+import { planDemoPurge, purgeSummary } from '../lib/demoPurge';
 import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, SEGULA_OFFSETS, segulaReminders, segulaStatus, segulaTitle, stripSegulaNote } from '../components/supporters/lib';
 import { planCharges } from '../components/supporters/planned';
 import { planAddPrayerName, removePrayerName, setPrayerNote, togglePrayerName } from '../components/supporters/prayer';
@@ -629,6 +630,11 @@ interface AppState {
   exportBackup: () => Promise<boolean>;
   restoreDb: (db: Db) => void;
   resetAll: () => void;
+  /** 🧹 הסרת נתוני-הדמו בלבד (14.9): מוחק רק רשומות שמזהיהן בקובץ-הדמו (planDemoPurge), עם
+   *  מצבות-מחיקה ⇒ נמחק גם בענן. מנהל-בלבד בארגון-ענן (כמו resetAll). מחזיר כמה הוסרו. */
+  purgeDemoData: (demo: Partial<Db>) => { total: number; removed: Record<string, number> };
+  /** תצוגה-מקדימה בלבד (בלי כתיבה): כמה רשומות-דמו יש במאגר-החי. */
+  previewDemoPurge: (demo: Partial<Db>) => { total: number; removed: Record<string, number> };
 
   /** תיקון טלפונים אוטומטי — השלמת 0 מוביל בכל המשפחות/בני המשפחה. */
   fixAllPhones: () => void;
@@ -4139,6 +4145,30 @@ export const useApp = create<AppState>()((set, get) => {
       writeSess(nsLsKey(SESS.a), null);
       set({ unlockedPrimary: false, unlockedAdmin: false, view: 'home' });
       get().toast('המערכת ננעלה 🔒');
+    },
+
+    previewDemoPurge(demo) {
+      const plan = planDemoPurge(get().db, demo);
+      return { total: plan.total, removed: plan.removed };
+    },
+
+    purgeDemoData(demo) {
+      const cl = get().cloud;
+      if (cl.enabled && !isAdminAuthority(get().config, cl.user?.email, !!cl.isManager)) {
+        get().toast('⛔ פעולה זו שמורה למנהל/ת הארגון');
+        return { total: 0, removed: {} };
+      }
+      const prev = get().db;
+      const plan = planDemoPurge(prev, demo);
+      if (!plan.total) {
+        get().toast('לא נמצאו רשומות-דמו במאגר ✓');
+        return { total: 0, removed: {} };
+      }
+      // מצבות לכל רשומה שהוסרה ⇒ הענן/מכשיר-אופליין לא יחזירו אותן (כמו resetAll/restoreDb).
+      set({ db: withRemovalTombstones(prev, plan.next) });
+      logAudit('🧹 הסרת נתוני-דמו', purgeSummary(plan.removed));
+      get().toast('🧹 הוסרו ' + plan.total + ' רשומות-דמו — ' + purgeSummary(plan.removed));
+      return { total: plan.total, removed: plan.removed };
     },
 
     restoreDb(db) {

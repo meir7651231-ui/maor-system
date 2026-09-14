@@ -4,6 +4,9 @@
  */
 import { useEffect, useState } from 'react';
 import type { NotifPrefs } from '../../types/domain';
+import { parseBackupFile } from '../../store/persist';
+import { purgeSummary } from '../../lib/demoPurge';
+import type { Db } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { whoLabel } from '../platform/lib';
 import { useDbWatch } from '../../store/dbWatch';
@@ -420,6 +423,66 @@ function NotifSection() {
   );
 }
 
+/** 🧹 הסרת נתוני-הדמו בלבד (בקשת-בעלים 14.9 "איפה אני מאפס את הנתונים דמו שנכנסו"):
+ *  בדיקה (מושכת demo.json ומונה התאמות במאגר-החי) ⇒ הסרה בשתי לחיצות. לא נוגע בשום
+ *  רשומה שמזהה שלה אינו בקובץ-הדמו — הכלי הבטוח מול "איפוס" שמוחק הכול. */
+function DemoPurgeBlock() {
+  // ⚡ בלי מנוי-מאגר-מלא (ratchet המנויים הממוקדים): התוכנית מחושבת בסטור מתצלום ברגע-הבדיקה.
+  const purgeDemoData = useApp((s) => s.purgeDemoData);
+  const previewDemoPurge = useApp((s) => s.previewDemoPurge);
+  const toast = useApp((s) => s.toast);
+  const [demo, setDemo] = useState<Partial<Db> | null>(null);
+  const [plan, setPlan] = useState<{ total: number; removed: Record<string, number> } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [armed, setArmed] = useState(false);
+  async function check() {
+    setBusy(true);
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}demo.json`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('קובץ הדמו לא נמצא');
+      const parsed = parseBackupFile(await res.text());
+      setDemo(parsed);
+      setPlan(previewDemoPurge(parsed));
+      setArmed(false);
+    } catch (e) {
+      toast('⚠ ' + (e instanceof Error ? e.message : 'הבדיקה נכשלה'));
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 14, background: 'var(--paper, transparent)' }}>
+      <div style={{ fontWeight: 700, marginBottom: 4 }}>🧹 הסרת נתוני-הדמו בלבד</div>
+      <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 8 }}>
+        אם נלחץ "📊 טעינת נתוני דמו" ונתוני-הדמו התערבבו בנתונים האמיתיים — כאן מסירים <b>רק</b> את רשומות-הדמו
+        (לפי המזהים בקובץ-הדמו), בלי לגעת בשאר. בענן ההסרה מסתנכרנת לכל המכשירים.
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <Btn sm onClick={() => void check()} disabled={busy}>{busy ? 'בודק…' : '🔍 בדיקה — כמה רשומות-דמו יש במאגר?'}</Btn>
+        {plan && plan.total === 0 && <span style={{ fontSize: 13, color: 'var(--green)', fontWeight: 600 }}>לא נמצאו רשומות-דמו ✓</span>}
+        {plan && plan.total > 0 && (
+          <>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>{'נמצאו ' + plan.total + ' רשומות-דמו: ' + purgeSummary(plan.removed)}</span>
+            <Btn
+              sm
+              kind="danger"
+              onClick={() => {
+                if (!armed) { setArmed(true); setTimeout(() => setArmed(false), 3500); return; }
+                purgeDemoData(demo!);
+                setArmed(false);
+                setDemo(null);
+                setPlan(null);
+              }}
+            >
+              {armed ? '🧹 לחצו שוב לאישור ההסרה' : '🧹 הסרת ' + plan.total + ' רשומות-הדמו'}
+            </Btn>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** (8) איפוס מלא — אישור בהקלדה, ללא דרך חזרה. */
 function ResetSection() {
   const resetAll = useApp((s) => s.resetAll);
@@ -446,6 +509,7 @@ function ResetSection() {
 
   return (
     <Section id="sec-reset" title="🗑 איפוס נתונים מקומיים" sub="אזור מסוכן — פעולה בלתי הפיכה">
+      <DemoPurgeBlock />
       <p style={{ fontSize: 14, color: 'var(--ink-soft)', marginBottom: 12, lineHeight: 1.6 }}>
         איפוס מוחק את <b>כל</b>{' הנתונים במחשב זה — ' + termOf(config, 'nav.families', 'משפחות') + ', ' + termOf(config, 'entity.members', 'בני משפחה') + ', ' + termOf(config, 'nav.courses', 'חוגים') + ', ' + termOf(config, 'entity.enrollments', 'שיבוצים') + ', תשלומים, אירועים, ' + termOf(config, 'nav.supporters', 'תורמים') + ', ' + teachersT + ', ' + termOf(config, 'entity.rooms', 'חדרים') + ' והגדרות. אין דרך לשחזר בלי קובץ גיבוי. מומלץ מאוד להוריד גיבוי מלא לפני.'}
       </p>
