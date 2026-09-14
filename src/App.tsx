@@ -847,7 +847,9 @@ export default function App() {
       ) : (
         <>
           {config.slug === 'demo' && <DemoRibbon />}
-          {featureOn(config, 'shell.demodrop') && famCount === 0 && <DemoDrop />}
+          {/* 14.9: בארגון-ענן (יש firebase, לא ?org=demo) המאגר-המקומי ריק לרגע לפני המשיכה מהענן —
+               כפתור-הדמו במצב הזה מיזג דמו לתוך נתונים אמיתיים. מוסתר שם; הדמו הציבורי נשאר. */}
+          {featureOn(config, 'shell.demodrop') && famCount === 0 && !(config.firebase && config.slug !== 'demo') && <DemoDrop />}
           <DayGate />
           {/* ⚡ ‏#13: המסך-הנוכחי עצל — נפילת-הטעינה מקומית, הכרום נשאר חי */}
           <Suspense fallback={<div className="empty">⏳ טוען את המסך…</div>}>
