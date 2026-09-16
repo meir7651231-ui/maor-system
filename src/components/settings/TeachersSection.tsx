@@ -11,6 +11,8 @@ import { Btn, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { canGrantedAction, featureOn, termOf } from '../../lib/config';
 import { HebDateInput } from '../HebDateInput';
 import { Section, SectionNote } from './lib';
+import { downloadCsv } from '../../lib/csvx';
+import { teachersCsvRows } from '../../lib/teachersCsv';
 
 export function TeachersSection() {
   const teachers = useApp((s) => s.db.teachers);
@@ -59,6 +61,16 @@ export function TeachersSection() {
       sub={'לחיצה על ✎ פותחת כרטיס מלא לעריכה · ' + teacher + ' עם ' + termOf(config, 'nav.courses', 'חוגים') + ' משויכים לא ניתן/ת למחיקה'}
     >
       <div style={{ marginBottom: 10 }}>
+        {/* בקשת-בעלים 16.9: הורדת רשימת-המורות המלאה — CSV (שער core.export ב-downloadCsv; ת"ז/תעריף רק בייצוא-מלא). */}
+        {teachers.length > 0 && (
+          <Btn
+            sm
+            onClick={() => downloadCsv('maor-teachers.csv', teachersCsvRows(teachers, courses, { full: featureOn(config, 'reports.export.full'), teacherLabel: teacher, courseLabel: termOf(config, 'nav.courses', 'חוגים') }))}
+            title={'הורדת רשימת כל ה' + teacher + ' — שם, טלפונים, אימייל, כתובת, תחום, ' + termOf(config, 'nav.courses', 'חוגים') + ' פעילים'}
+          >
+            {'⬇ רשימת ה' + teacher + ' (CSV)'}
+          </Btn>
+        )}
         <Btn kind="primary" sm onClick={() => setCreating(true)}>
           {'➕ הוספת ' + teacher}
         </Btn>

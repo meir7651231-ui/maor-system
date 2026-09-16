@@ -10,7 +10,7 @@ import type { Db } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { whoLabel } from '../platform/lib';
 import { useDbWatch } from '../../store/dbWatch';
-import { featureOn, integrationOn, isAdminAuthority, isSuperAdmin, termOf } from '../../lib/config';
+import { featureOn, integrationOn, isAdminAuthority, isSuperAdmin, termOf, moduleOn } from '../../lib/config';
 import { readAiKey, writeAiKey } from '../../lib/ai';
 import { receiptVerifyCode } from '../../lib/receipt';
 import { Btn, Chip, Field, FormError, PageHead, TextInput } from '../ui';
@@ -352,6 +352,9 @@ function OrgSection() {
           🔄 בדוק עדכון
         </Btn>
       </div>
+      {/* 🔎 אבחון-דגלים (16.9 — "הלקוח בענן לא רואה 40 יום"): מה הקונפיג-האפקטיבי אומר בפועל על המכשיר הזה.
+           קריא לכל משתמש (רק מצב-דגלים, לא נתונים) — הבעלים מבקש מהלקוח לצלם. */}
+      <FlagDiagnostics />
     </Section>
   );
 }
@@ -420,6 +423,38 @@ function NotifSection() {
       />
       <SectionNote>ההעדפות נשמרות אוטומטית ונכללות בקובץ הגיבוי.</SectionNote>
     </Section>
+  );
+}
+
+/** 🔎 אבחון-דגלים — מצב-אפקטיבי של מודולים/דגלים במכשיר הזה (16.9). קריאה-בלבד. */
+function FlagDiagnostics() {
+  const config = useApp((s) => s.config);
+  const cloudOn = useApp((s) => s.cloud.enabled);
+  const cloudEmail = useApp((s) => s.cloud.user?.email ?? '');
+  const isManager = useApp((s) => !!s.cloud.isManager);
+  const [open, setOpen] = useState(false);
+  const offModules = Object.entries(config.modules ?? {}).filter(([, v]) => v === false).map(([k]) => k);
+  const offFeatures = Object.entries(config.features ?? {}).filter(([, v]) => v === false).map(([k]) => k).sort();
+  const segula = featureOn(config, 'supporters.segula');
+  return (
+    <div style={{ marginTop: 6 }}>
+      <Btn sm kind="plain" onClick={() => setOpen((v) => !v)} title="מצב הדגלים והמודולים בפועל במכשיר הזה — לאבחון מרחוק">
+        {open ? '🔎 הסתרת האבחון' : '🔎 אבחון דגלים'}
+      </Btn>
+      {open && (
+        <pre dir="ltr" style={{ fontSize: 11.5, lineHeight: 1.5, background: 'var(--surface-2, #fafaf7)', border: '1px solid var(--line)', borderRadius: 8, padding: '8px 10px', marginTop: 6, whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+          {[
+            'org: ' + config.slug + (config.cloudRoot || config.slug === 'default' ? ' (root)' : ' (platform)'),
+            'cloud: ' + (cloudOn ? 'on' : 'off') + (cloudEmail ? ' · ' + cloudEmail + (isManager ? ' · manager' : '') : ''),
+            'build: ' + fmtBuildId(__BUILD_ID__),
+            'supporters module: ' + (moduleOn(config, 'supporters') ? 'on' : 'OFF'),
+            'supporters.segula (40 ימים): ' + (segula ? 'ON' : 'OFF') + ' · raw=' + String(config.features?.['supporters.segula']),
+            'modules off: ' + (offModules.length ? offModules.join(', ') : '—'),
+            'features off (' + offFeatures.length + '): ' + (offFeatures.length ? offFeatures.join(', ') : '—'),
+          ].join('\n')}
+        </pre>
+      )}
+    </div>
   );
 }
 
