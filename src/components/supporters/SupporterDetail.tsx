@@ -484,6 +484,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       </div>
       {/* 🕯 סגולת 40 יום — סעיף עצמאי בראש-הכרטיס (בקשת-בעלים 9.9: "כפתור ענק שיראו אותו";
            לא תלוי עוד בסעיף קשר-הבא / supporters.nextdate). */}
+      {/* 16.9 חקירת "הלקוח בענן לא רואה 40 יום": כשהדגל כבוי בקונפיג-הארגון — אומרים זאת בקול
+           במקום להעלים בשקט, כדי שהבעלים יידע מיד מה לפתוח באשף (supporters.segula). */}
+      {!segulaOn && (
+        <div className="card" style={{ marginBottom: 12, padding: '8px 12px', fontSize: 12.5, color: 'var(--ink-faint)' }}>
+          🕯 "40 ימים" כבוי בהגדרות-הארגון הזה (דגל <code dir="ltr">supporters.segula</code>) — המנהל/ת מדליק/ה באשף-ההקמה ← תורמים.
+        </div>
+      )}
       {segulaOn && (
         <div className="card" style={{ marginBottom: 12, padding: 12 }}>
         {/* 🕯 סגולת 40 יום — כפתור אחד שמחשב לבד מהיום וזורע תזכורות-סגולה
