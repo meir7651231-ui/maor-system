@@ -61,7 +61,7 @@ import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { planDemoPurge, purgeSummary } from '../lib/demoPurge';
-import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, SEGULA_OFFSETS, segulaReminders, segulaStatus, segulaTitle, stripSegulaNote } from '../components/supporters/lib';
+import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, recurDates, recurDef, recurStatus, SEGULA_OFFSETS, segulaTitle, stripRecurNote, type RecurMode } from '../components/supporters/lib';
 import { planCharges } from '../components/supporters/planned';
 import { planAddPrayerName, removePrayerName, setPrayerNote, togglePrayerName } from '../components/supporters/prayer';
 import { findAllOpenPlans, matchAll } from '../lib/plannedMatch';
@@ -390,13 +390,14 @@ interface AppState {
   removePrayerName: (supId: string, id: string) => void;
   /** 🕯 סגולת 40 יום — זריעת תזכורות-לוח מדורגות לתורם מתאריך-התחלה. `purpose`
    *  אופציונלי (למשל 'זיווג') מוטבע בכותרת/הערת-התזכורת. מחזיר כמה נוצרו. */
-  seedSegulaReminders: (supId: string, startIso: string, purpose?: string) => number;
+  /** 🔁 (16.9) mode: 'segula' (ברירת-מחדל, 40 יום) · 'daily' · 'weekly' · 'monthly'; count לסדרות החוזרות. */
+  seedSegulaReminders: (supId: string, startIso: string, purpose?: string, mode?: RecurMode, count?: number) => number;
   /** ✖ ביטול הסגולה הנוכחית (בקשת-בעלים 6.9 "מה קורה עם הכפתור"): מוחק את אירועי-הריצה
    *  הנוכחית (לא ריצות קודמות), מסיר את שורת-הסגולה מהערת-קשר-הבא ומנקה יעד-קשר
    *  שהיה תזכורת-סגולה. מחזיר כמה אירועים הוסרו (0 = לא הייתה סגולה). */
-  cancelSegula: (supId: string) => number;
+  cancelSegula: (supId: string, mode?: RecurMode) => number;
   /** 🔄 התחלה-מחדש מהיום: ביטול + זריעה חדשה (שני שלבים, כתיבה אטומית לכל שלב). */
-  restartSegula: (supId: string, startIso: string, purpose?: string) => number;
+  restartSegula: (supId: string, startIso: string, purpose?: string, mode?: RecurMode, count?: number) => number;
   /** ✓ הפיכת מצב-בוצע של אירוע-לוח (תזכורת-סגולה מהכרטיס; אותו upsertEvent). */
   toggleEventDone: (eventId: string) => void;
   /** 🔄 יישום תוכנית-סנכרון נדרים (planNedarimSync): החלפת מערך-התומכים המלא +
@@ -2393,30 +2394,33 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === supId ? { ...s, prayerNames: removePrayerName(s.prayerNames ?? [], id) } : s)) }));
     },
 
-    seedSegulaReminders(supId, startIso, purpose) {
+    seedSegulaReminders(supId, startIso, purpose, mode = 'segula', count) {
       // 🕯 סגולת 40 יום — תזכורות-לוח מדורגות (call) עם spId, כדי שיופיעו על התורם
       // וביומן. דטרמיניסטי (segulaReminders); אינו נוגע בכספים/קבלות.
       // `purpose` (למשל 'זיווג') מוטבע בכותרת ובהערה — בקשת-בעלים 30.8.
+      // 🔁 16.9: אותו מנוע גם ל-יומי/שבועי/חודשי (recurDates) — סדרה מזוהה בתחילית-הערה משלה.
       const sp = get().db.supporters.find((s) => s.id === supId);
       if (!sp || !startIso) return 0;
-      // בקשת-בעלים 3.9 "40 יום לא מופיע": (א) סגולה פעילה לא נזרעת פעמיים; (ב) הסגולה
+      const def = recurDef(mode);
+      // בקשת-בעלים 3.9 "40 יום לא מופיע": (א) סדרה פעילה לא נזרעת פעמיים; (ב) הסדרה
       // נרשמת גם ב"קשר הבא" של הכרטיס (יעד = התזכורת הראשונה, הערה מסבירה) — לא רק ביומן.
-      if (segulaStatus(get().db.events, sp.id, startIso).active) {
-        get().toast('🕯 סגולה כבר פעילה לתומך/ת זה — התזכורות כבר ביומן');
+      if (recurStatus(get().db.events, sp.id, startIso, mode).active) {
+        get().toast(def.emoji + ' ' + def.label + ' כבר פעילה לתומך/ת זה — התזכורות כבר ביומן');
         return 0;
       }
       const target = Math.max(...SEGULA_OFFSETS);
-      const reminders = segulaReminders(startIso);
+      const reminders = recurDates(startIso, mode, count);
       const tag = (purpose || '').trim() ? ' · ' + (purpose || '').trim() : '';
+      const seriesNote = mode === 'segula' ? 'סגולת ' + target + ' יום' : def.prefix + ' ×' + reminders.length;
       for (const r of reminders) {
         get().upsertEvent({
           id: get().nextId('ev'),
-          title: segulaTitle(sp.name, r, target) + tag,
+          title: (mode === 'segula' ? segulaTitle(sp.name, r, target) : def.emoji + ' ' + def.label + ' — ' + (sp.name || '') + ' · ' + r.day + '/' + reminders.length) + tag,
           date: r.date,
           time: '',
           type: 'call',
           customType: '',
-          notes: 'סגולת ' + target + ' יום' + tag + ' · ' + (sp.phone || ''),
+          notes: seriesNote + tag + ' · ' + (sp.phone || ''),
           price: 0,
           roomId: '',
           famId: '',
@@ -2425,46 +2429,48 @@ export const useApp = create<AppState>()((set, get) => {
           done: false,
         });
       }
-      // קשר-הבא: היעד = התזכורת הראשונה (או היעד הקיים אם הוא מוקדם יותר ועתידי); ההערה מקבלת שורת-סגולה.
+      // קשר-הבא: היעד = התזכורת הראשונה (או היעד הקיים אם הוא מוקדם יותר ועתידי); ההערה מקבלת שורת-סדרה.
       const first = reminders[0]?.date ?? '';
       const cur = get().db.supporters.find((s) => s.id === supId);
       if (cur && first) {
         const keepExisting = !!cur.nextDate && cur.nextDate >= startIso && cur.nextDate < first;
-        const line = '🕯 סגולת ' + target + ' יום' + tag + ' — מ-' + startIso.slice(8, 10) + '/' + startIso.slice(5, 7) + ', סיום ' + (reminders[reminders.length - 1]?.date ?? '').slice(8, 10) + '/' + (reminders[reminders.length - 1]?.date ?? '').slice(5, 7);
-        const note = (cur.nextNote || '').includes('סגולת ' + target + ' יום') ? cur.nextNote || '' : [line, cur.nextNote || ''].filter(Boolean).join('\n');
+        const lastIso = reminders[reminders.length - 1]?.date ?? '';
+        const line = def.emoji + ' ' + seriesNote + tag + ' — מ-' + startIso.slice(8, 10) + '/' + startIso.slice(5, 7) + ', סיום ' + lastIso.slice(8, 10) + '/' + lastIso.slice(5, 7);
+        const note = (cur.nextNote || '').includes(seriesNote) ? cur.nextNote || '' : [line, cur.nextNote || ''].filter(Boolean).join('\n');
         get().upsertSupporter({ ...cur, nextDate: keepExisting ? cur.nextDate : first, nextNote: note });
       }
-      logAudit('🕯 סגולת ' + target + ' יום' + tag, sp.name);
-      get().toast('נזרעו ' + reminders.length + ' תזכורות-סגולה ביומן 🕯 — נרשם גם בקשר-הבא');
+      logAudit(def.emoji + ' ' + seriesNote + tag, sp.name);
+      get().toast('נזרעו ' + reminders.length + ' תזכורות ביומן ' + def.emoji + ' — נרשם גם בקשר-הבא');
       return reminders.length;
     },
 
-    cancelSegula(supId) {
+    cancelSegula(supId, mode = 'segula') {
       const sp = get().db.supporters.find((s) => s.id === supId);
       if (!sp) return 0;
-      const st = segulaStatus(get().db.events, sp.id, isoToday());
+      const def = recurDef(mode);
+      const st = recurStatus(get().db.events, sp.id, isoToday(), mode);
       const ids = new Set(st.reminders.map((r) => r.id).filter(Boolean));
       if (!ids.size) return 0;
       const dates = new Set(st.reminders.map((r) => r.date));
-      // כתיבה אטומית אחת: אירועי-הריצה יורדים (מצבות דרך setDb), הכרטיס מנוקה משורת-הסגולה.
+      // כתיבה אטומית אחת: אירועי-הסדרה יורדים (מצבות דרך setDb), הכרטיס מנוקה משורת-הסדרה.
       setDb((db) => ({
         events: db.events.filter((e) => !ids.has(e.id)),
         supporters: db.supporters.map((s) => {
           if (s.id !== supId) return s;
-          const nextNote = stripSegulaNote(s.nextNote || '');
+          const nextNote = stripRecurNote(s.nextNote || '', mode);
           const nextDate = s.nextDate && dates.has(s.nextDate) ? '' : s.nextDate;
           return { ...s, nextNote, nextDate };
         }),
       }));
-      logAudit('✖ ביטול סגולת ' + st.target + ' יום', sp.name);
-      get().toast('הסגולה בוטלה — ' + ids.size + ' תזכורות הוסרו מהיומן ומקשר-הבא');
+      logAudit('✖ ביטול ' + def.label, sp.name);
+      get().toast(def.label + ' בוטלה — ' + ids.size + ' תזכורות הוסרו מהיומן ומקשר-הבא');
       return ids.size;
     },
 
-    restartSegula(supId, startIso, purpose) {
-      const removed = get().cancelSegula(supId);
-      const n = get().seedSegulaReminders(supId, startIso, purpose);
-      if (removed && n) get().toast('🔄 הסגולה התחילה מחדש מהיום — ' + n + ' תזכורות חדשות');
+    restartSegula(supId, startIso, purpose, mode = 'segula', count) {
+      const removed = get().cancelSegula(supId, mode);
+      const n = get().seedSegulaReminders(supId, startIso, purpose, mode, count);
+      if (removed && n) get().toast('🔄 ' + recurDef(mode).label + ' התחילה מחדש מהיום — ' + n + ' תזכורות חדשות');
       return n;
     },
 

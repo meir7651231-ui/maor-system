@@ -443,6 +443,102 @@ export function stripSegulaNote(note: string, target: number = Math.max(...SEGUL
     .join('\n');
 }
 
+/* ── 🔁 תזכורות-חוזרות — בחירה: 40 יום (סגולה) · יומי · שבועי · חודשי (בקשת-בעלים 16.9) ── */
+
+export type RecurMode = 'segula' | 'daily' | 'weekly' | 'monthly';
+
+export interface RecurModeDef {
+  key: RecurMode;
+  emoji: string;
+  /** תווית קצרה לצ׳יפ-הבחירה. */
+  chip: string;
+  /** תווית מלאה לכפתור/פאנל. */
+  label: string;
+  /** תחילית-ההערה שמזהה את הסדרה באירועי-הלוח (מפריד בין סדרות). */
+  prefix: string;
+  /** כמות תזכורות ברירת-מחדל (סגולה = קבוע 5). */
+  defaultCount: number;
+}
+
+export const RECUR_MODES: readonly RecurModeDef[] = [
+  { key: 'segula', emoji: '🕯', chip: '40 יום', label: 'סגולת 40 יום', prefix: SEGULA_NOTE_PREFIX, defaultCount: SEGULA_OFFSETS.length },
+  { key: 'daily', emoji: '📅', chip: 'יומי', label: 'תזכורת יומית', prefix: 'חזרה יומית', defaultCount: 30 },
+  { key: 'weekly', emoji: '📆', chip: 'שבועי', label: 'תזכורת שבועית', prefix: 'חזרה שבועית', defaultCount: 12 },
+  { key: 'monthly', emoji: '🗓', chip: 'חודשי', label: 'תזכורת חודשית', prefix: 'חזרה חודשית', defaultCount: 12 },
+];
+
+export function recurDef(mode: RecurMode): RecurModeDef {
+  return RECUR_MODES.find((m) => m.key === mode) ?? RECUR_MODES[0];
+}
+
+function addMonthsIso(startIso: string, months: number): string {
+  const d = new Date(`${startIso}T12:00:00`);
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + months);
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, last)); // 31.1 + חודש ⇒ 28/29.2 (לא גולש למרץ)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * תאריכי-הסדרה מתאריך-התחלה — דטרמיניסטי. סגולה = SEGULA_OFFSETS (day = מספר-ימים);
+ * יומי/שבועי/חודשי = count תזכורות, day = מספר-סידורי (1..count), האחרונה final.
+ */
+export function recurDates(startIso: string, mode: RecurMode, count?: number): SegulaReminder[] {
+  if (mode === 'segula') return segulaReminders(startIso);
+  const n = Math.max(1, Math.min(365, Math.floor(count ?? recurDef(mode).defaultCount)));
+  const out: SegulaReminder[] = [];
+  for (let i = 1; i <= n; i++) {
+    const date = mode === 'monthly' ? addMonthsIso(startIso, i) : segulaReminders(startIso, [mode === 'daily' ? i : i * 7])[0].date;
+    out.push({ day: i, date, final: i === n });
+  }
+  return out;
+}
+
+/**
+ * מצב-סדרה חוזרת של תומך/ת — לסגולה מאציל ל-segulaStatus (ריצה-נוכחית = 40 יום אחורה);
+ * לשאר: כל אירועי-הסדרה (type call, spId, הערה מתחילה בתחילית-המצב), target = כמות, day =
+ * המספר-הסידורי של התזכורת הבאה (או הכמות כשהסתיימה).
+ */
+export function recurStatus(
+  events: readonly { id?: string; spId?: string; type?: string; date: string; notes?: string; done?: boolean }[],
+  spId: string,
+  todayIso: string,
+  mode: RecurMode,
+): SegulaStatus {
+  if (mode === 'segula') return segulaStatus(events, spId, todayIso);
+  const def = recurDef(mode);
+  const evs = events
+    .filter((e) => e.spId === spId && e.type === 'call' && (e.notes || '').startsWith(def.prefix))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const empty: SegulaStatus = { active: false, start: '', end: '', next: '', day: 0, target: 0, total: 0, done: 0, reminders: [], lastEnd: '' };
+  if (!evs.length) return empty;
+  const start = evs[0].date;
+  const end = evs[evs.length - 1].date;
+  const reminders: SegulaReminderState[] = evs.map((e, i) => ({ id: e.id ?? '', date: e.date, day: i + 1, done: !!e.done, final: i === evs.length - 1 }));
+  const nextIdx = evs.findIndex((e) => e.date >= todayIso && !e.done);
+  return {
+    active: todayIso <= end,
+    start,
+    end,
+    next: nextIdx >= 0 ? evs[nextIdx].date : '',
+    day: nextIdx >= 0 ? nextIdx + 1 : evs.length,
+    target: evs.length,
+    total: evs.length,
+    done: evs.filter((e) => e.done).length,
+    reminders,
+    lastEnd: end,
+  };
+}
+
+/** הסרת שורת-הסדרה (לפי תחילית-המצב) מהערת-קשר-הבא — טהור. */
+export function stripRecurNote(note: string, mode: RecurMode): string {
+  if (mode === 'segula') return stripSegulaNote(note);
+  const pre = recurDef(mode).prefix;
+  return (note || '').split('\n').filter((l) => !l.includes(pre)).join('\n');
+}
+
 /** "₪1,200 + $300" או "—" כשאין כלום — כולל היסטוריה (הכרעת 9.8). */
 export function totalLabel(sp: Supporter): string {
   const i = supIls(sp);

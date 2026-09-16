@@ -54,8 +54,8 @@ describe('🕯 ratchet — סגולת 40 יום', () => {
     });
 
     it('6. store: seedSegulaReminders מקבל purpose ומטביע אותו בכותרת/הערה', () => {
-      expect(storeSrc).toMatch(/seedSegulaReminders\(supId, startIso, purpose\)/);
-      expect(storeSrc).toContain('segulaTitle(sp.name, r, target) + tag');
+      expect(storeSrc).toMatch(/seedSegulaReminders\(supId, startIso, purpose(, mode = 'segula', count)?\)/); // 16.9: הרחבה ל-mode/count (אותו שם, ברירת-מחדל סגולה)
+      expect(storeSrc).toContain('segulaTitle(sp.name, r, target)') // 16.9: בתוך ביטוי-מותנה לפי mode;
     });
   });
 });
