@@ -16,7 +16,7 @@ import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field, FormError, Modal, Select, StickyBackBar, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, SEGULA_OFFSETS, segulaStatus, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
+import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, RECUR_MODES, recurDef, recurStatus, SEGULA_OFFSETS, segulaStatus, supCount, type RecurMode, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
 import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
@@ -175,6 +175,16 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const restartSegula = useApp((s) => s.restartSegula);
   const toggleEventDone = useApp((s) => s.toggleEventDone);
   const { armed: segArmed, confirmTwice: segConfirm } = useArmed(featureOn(config, 'shell.armdel'));
+  // 🔁 בקשת-בעלים 16.9 "בחירה האם חזרה יומי שבועי חודשי או 40 יום": בורר-מצב + כמות; סדרות
+  // חוזרות פעילות (לא-סגולה) מוצגות בפאנלים משלהן. הסגולה נשארת כמו-שהיא.
+  const [recurMode, setRecurMode] = useState<RecurMode>('segula');
+  const [recurCount, setRecurCount] = useState(0); // 0 = ברירת-המחדל של המצב
+  const recurActive = segulaOn
+    ? RECUR_MODES.filter((m) => m.key !== 'segula').map((m) => ({ def: m, st: recurStatus(events, sp.id, isoToday(), m.key) })).filter((x) => x.st.active)
+    : [];
+  const recurSelDef = recurDef(recurMode);
+  const recurSelCount = recurCount > 0 ? recurCount : recurSelDef.defaultCount;
+  const recurSelActive = recurMode !== 'segula' && recurActive.some((x) => x.def.key === recurMode);
   // 🔁 הו"ק (ROADMAP-100 ‏#2): הגדרה+רישום — התרומה דרך addDonation (קבלה רציפה)
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokOpen, setHokOpen] = useState(false);
@@ -493,6 +503,86 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       )}
       {segulaOn && (
         <div className="card" style={{ marginBottom: 12, padding: 12 }}>
+        {/* 🔁 בורר-חזרה (16.9): 40 יום · יומי · שבועי · חודשי + כמות לסדרות החוזרות */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>חזרה:</span>
+          {RECUR_MODES.map((m) => (
+            <button
+              key={m.key}
+              type="button"
+              className={'chip' + (recurMode === m.key ? ' on' : '')}
+              aria-pressed={recurMode === m.key}
+              onClick={() => { setRecurMode(m.key); setRecurCount(0); }}
+              style={{ cursor: 'pointer' }}
+            >
+              {m.emoji + ' ' + m.chip}
+            </button>
+          ))}
+          {recurMode !== 'segula' && (
+            <label style={{ fontSize: 12.5, color: 'var(--ink-soft)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              כמות:
+              <input
+                type="number"
+                min={1}
+                max={365}
+                value={recurSelCount}
+                onChange={(e) => setRecurCount(Math.max(0, Math.min(365, Math.floor(+e.target.value || 0))))}
+                aria-label="כמות תזכורות"
+                dir="ltr"
+                style={{ width: 64, padding: '3px 6px', fontSize: 12.5 }}
+              />
+            </label>
+          )}
+        </div>
+        {/* 🔁 סדרות-חוזרות פעילות (יומי/שבועי/חודשי) — פאנל לכל אחת */}
+        {recurActive.map(({ def, st }) => (
+          <div key={def.key} style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)', fontSize: 13, color: 'var(--ink)' }}>
+            <div role="status" className="btn primary" style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxSizing: 'border-box' }}>
+              {def.emoji + ' ' + def.label + ' פעילה · תזכורת ' + st.day + ' מתוך ' + st.total + ' · סיום ' + fmtDate(st.end)}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginTop: 4 }}>
+              {st.done + '/' + st.total + ' בוצעו' + (st.next ? ' · הבאה: ' + fmtDate(st.next) : '') + ' — לחיצה על תזכורת מסמנת ✓ בוצע'}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6, maxHeight: 132, overflowY: 'auto' }}>
+              {st.reminders.map((r) => (
+                <button
+                  key={r.id || r.date}
+                  type="button"
+                  className="chip"
+                  onClick={() => r.id && toggleEventDone(r.id)}
+                  aria-pressed={r.done}
+                  style={{ cursor: 'pointer', fontSize: 12, padding: '3px 9px', borderRadius: 999, border: '1px solid ' + (r.done ? 'var(--green)' : r.date < isoToday() ? 'var(--red)' : 'var(--line)'), color: r.done ? 'var(--green)' : r.date < isoToday() ? 'var(--red)' : 'var(--ink)', textDecoration: r.done ? 'line-through' : 'none', background: 'transparent' }}
+                >
+                  {(r.done ? '☑ ' : '☐ ') + r.day + ' · ' + fmtDate(r.date)}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+              <Btn kind="plain" sm onClick={() => { if (segConfirm('rec-restart-' + def.key, 'להתחיל את הסדרה מחדש מהיום?')) restartSegula(sp.id, isoToday(), 'זיווג', def.key, st.total); }}>
+                {segArmed === 'rec-restart-' + def.key ? '🔄 לחצו שוב לאישור' : '🔄 התחלה מחדש מהיום'}
+              </Btn>
+              <Btn kind="danger" sm onClick={() => { if (segConfirm('rec-cancel-' + def.key, 'לבטל את הסדרה? התזכורות יוסרו מהיומן ומקשר-הבא.')) cancelSegula(sp.id, def.key); }}>
+                {segArmed === 'rec-cancel-' + def.key ? '✖ לחצו שוב לאישור' : '✖ ביטול ' + def.label}
+              </Btn>
+            </div>
+          </div>
+        ))}
+        {/* 🔁 כפתור-זריעה לסדרה חוזרת שנבחרה (לא-סגולה) — כשאינה פעילה */}
+        {recurMode !== 'segula' && !recurSelActive && (
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+            <button
+              type="button"
+              className="btn primary"
+              onClick={() => seedSegulaReminders(sp.id, isoToday(), 'זיווג', recurMode, recurSelCount)}
+              style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800, borderRadius: 14, letterSpacing: 0.2 }}
+            >
+              {recurSelDef.emoji + ' ' + recurSelDef.label + ' ×' + recurSelCount + ' — מהיום'}
+            </button>
+            <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
+              {'זריעת ' + recurSelCount + ' תזכורות ' + (recurMode === 'daily' ? 'יום אחרי יום' : recurMode === 'weekly' ? 'אחת לשבוע' : 'אחת לחודש') + ' מהיום — נכנס לקשר-הבא וללוח.'}
+            </div>
+          </div>
+        )}
         {/* 🕯 סגולת 40 יום — כפתור אחד שמחשב לבד מהיום וזורע תזכורות-סגולה
              לזיווג לתוך קשר-הבא/הלוח (בקשת-בעלים 30.8: "כפתור בשם 40 ימים
              שיחשב לבד וירשום תזכורת בקשר הבא, מוטבע קשר לזיווג"). */}
@@ -569,6 +659,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             ) : null}
             {/* בקשת-בעלים 9.9 "כפתור 40 יום עדיין לא קיים מצידי — כפתור ענק שיראו אותו":
                  יצא מסעיף קשר-הבא (היה תלוי ב-supporters.nextdate) לראש-הכרטיס, ברוחב מלא. */}
+            {recurMode === 'segula' && (
             <button
               type="button"
               className="btn primary"
@@ -577,9 +668,12 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             >
               🕯 40 ימים — התחלת סגולה לזיווג מהיום
             </button>
+            )}
+            {recurMode === 'segula' && (
             <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
               זריעת {SEGULA_OFFSETS.length} תזכורות-סגולה לזיווג מהיום (ימים 1·7·21·35·40) — מחושב לבד, נכנס לקשר-הבא וללוח.
             </div>
+            )}
           </div>
         )}
         </div>

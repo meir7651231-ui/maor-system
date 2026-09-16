@@ -30,7 +30,7 @@ describe('(8) כפתור-40 ענק בראש-הכרטיס — לא תלוי בק�
   });
   it('גם במצב "סגולה פעילה" יש פס ענק באותו גודל עם התווית "40 ימים" (בקשת-בעלים 10.9)', () => {
     expect(src).toContain("{'🕯 40 ימים — סגולה פעילה · יום ' + segula.day + ' מתוך ' + segula.target + ' · סיום ' + fmtDate(segula.end)}");
-    expect((src.match(/minHeight: 64, fontSize: 20, fontWeight: 800/g) || []).length).toBe(2);
+    expect((src.match(/minHeight: 64, fontSize: 20, fontWeight: 800/g) || []).length).toBeGreaterThanOrEqual(2); // 16.9: גם פסי-הסדרות-החוזרות באותו גודל
   });
   it('כפתור ענק: רוחב-מלא, גובה ≥64, פונט 20', () => {
     expect(src).toContain("style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800");
