@@ -70,3 +70,22 @@ export function useViewScrollMemory(view: string): void {
     }
   }, [view]);
 }
+
+/**
+ * מיכל-גלילה פנימי (מודאל/טבלה עם overflow) ⇄ זיכרון: משחזר scrollTop במעלה (double-rAF, אחרי
+ * הציור) ושומר בכל גלילה. בקשת-בעלים 17.9 "שומר-מסך גם במעקב-טיפול": טבלת מסך-השמות היא
+ * מיכל-גלילה משלה — זיכרון-החלון לא מכסה אותה.
+ */
+export function useElementScrollMemory<T extends HTMLElement = HTMLDivElement>(key: string) {
+  const ref = useRef<T | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const y = recallScroll(key);
+    if (y !== undefined) requestAnimationFrame(() => requestAnimationFrame(() => { el.scrollTop = y; }));
+    const onScroll = () => rememberScroll(key, el.scrollTop);
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [key]);
+  return ref;
+}

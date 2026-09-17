@@ -240,7 +240,8 @@ export function SupportersView() {
   // 📞 קוהרנטיות ווידג'ט↔יעד (20.8): סינון יעדי-קשר שהגיעו — הרשימה המלאה של ווידג'ט-הבית
   const [nextF, setNextF] = useRemembered('sup.nextF', false);
   // 📋 מסך-השמות המלא (20.8, "מה עם המסך טיפול") — הרשימה פר-שם שהייתה CSV-בלבד
-  const [ayinNamesOpen, setAyinNamesOpen] = useState(false);
+  // 17.9 שומר-מסך במעקב-טיפול: מסך-השמות נשאר "פתוח" גם בזמן הכרטיס (הרשימה לא מרונדרת) ⇒ חוזר מאליו ב-"→ כל התומכים".
+  const [ayinNamesOpen, setAyinNamesOpen] = useRemembered('sup.ayinNamesOpen', false);
   // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש
   const hokOn = featureOn(config, 'supporters.hok');
   // opt-in מפורש (=== true, לא featureOn) — יוצר קבלות-מס, חייב הפעלה מכוונת.
@@ -374,7 +375,7 @@ export function SupportersView() {
   // לוח התרומות הכלל-ארגוני (P1.4, legacy supCalOn/supCalAll) — מוצג בלחיצה
   const [orgCalOpen, setOrgCalOpen] = useState(false);
   // בקשת-בעלים 19.8 (פריט ז'): לוח מעקב-הטיפול מוסתר כברירת-מחדל — בחירה מפורשת להצגה.
-  const [ayinBoardOpen, setAyinBoardOpen] = useState(false);
+  const [ayinBoardOpen, setAyinBoardOpen] = useRemembered('sup.ayinBoardOpen', false); // 17.9: הלוח נשאר פתוח בחזרה מכרטיס/ממסך אחר
   const donCalOn = featureOn(config, 'supporters.doncal');
   // בקשת "+ תומכת" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
   const supFormReq = useApp((s) => s.supFormReq);
@@ -1458,8 +1459,8 @@ export function SupportersView() {
           config={config}
           supporters={visibleSupportersForDesignations(db.supporters, desigLimit)}
           onClose={() => setAyinNamesOpen(false)}
+          /* 17.9: לא סוגרים את מסך-השמות בפתיחת-כרטיס — הכרטיס מכסה אותו, וב-"→ כל התומכים" חוזרים לאותו מקום. */
           onOpenSupporter={(id) => {
-            setAyinNamesOpen(false);
             setSelId(id);
           }}
           onCsv={isAdminUser(config, cloudEmail) ? namesReport : null}

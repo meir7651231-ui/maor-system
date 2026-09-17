@@ -23,12 +23,12 @@ describe('מסווג', () => {
 
 describe('חיווט (הגנות-מקור)', () => {
   it('הלוח: select אזור עם 3 אפשרויות, מסנן את visible לפני הספירה', () => {
-    expect(boardSrc).toContain("const [region, setRegion] = useState<'all' | 'il' | 'intl'>('all');");
+    expect(boardSrc).toContain("const [region, setRegion] = useRemembered<'all' | 'il' | 'intl'>('ayin.region', 'all');"); // 17.9: זכור
     expect(boardSrc).toContain("(region === 'all' || supHasRegion(sp, region))");
     for (const o of ['🌍 ישראל + חו״ל', '🇮🇱 ישראל', '✈️ חו״ל']) expect(boardSrc).toContain(o);
   });
   it('מסך-השמות: צ׳יפים ישראל/חו״ל מסננים לפי supporterId', () => {
-    expect(namesSrc).toContain("const [regionF, setRegionF] = useState<'all' | 'il' | 'intl'>('all');");
+    expect(namesSrc).toContain("const [regionF, setRegionF] = useRemembered<'all' | 'il' | 'intl'>('names.regionF', 'all');"); // 17.9: זכור
     expect(namesSrc).toContain(".filter((it) => regionF === 'all' || regionIds.has(it.supporterId))");
     expect(namesSrc).toContain('🇮🇱 ישראל');
     expect(namesSrc).toContain('✈️ חו״ל');

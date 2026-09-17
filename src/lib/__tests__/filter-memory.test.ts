@@ -25,8 +25,8 @@ describe('חיווט — כל מסנני שלוש הרשימות זכורים', 
   const sup = src('../../components/supporters/SupportersView.tsx');
   const fam = src('../../components/families/FamiliesView.tsx');
   const crs = src('../../components/courses/CoursesView.tsx');
-  it('תורמים: 17 מסננים/מיון דרך useRemembered, אפס useState עבורם', () => {
-    for (const k of ['q', 'cat', 'regionF', 'purposeF', 'tierF', 'colF', 'ayinF', 'nextF', 'hokF', 'monthF', 'acqYearF', 'gaveYearF', 'periodMode', 'lastF', 'advOpen', 'sort', 'segF']) {
+  it('תורמים: 19 מסננים/מיון/מצב-מעקב דרך useRemembered, אפס useState עבורם', () => {
+    for (const k of ['q', 'cat', 'regionF', 'purposeF', 'tierF', 'colF', 'ayinF', 'nextF', 'hokF', 'monthF', 'acqYearF', 'gaveYearF', 'periodMode', 'lastF', 'advOpen', 'sort', 'segF', 'ayinBoardOpen', 'ayinNamesOpen']) {
       expect(sup, k).toMatch(new RegExp(`const \\[${k}, set[A-Za-z]+\\] = useRemembered(<[^\\n]*>)?\\('sup\\.${k}'`));
     }
     // בקשת-סגמנט מהבית (חד-פעמית) עדיין מכובדת
@@ -45,6 +45,6 @@ describe('חיווט — כל מסנני שלוש הרשימות זכורים', 
   it('מפתחות ייחודיים בין הרשימות (sup./fam./crs.)', () => {
     const keys = [...(sup + fam + crs).matchAll(/useRemembered(?:<[^\n]*>)?\('([a-z]+\.[A-Za-z]+)'/g)].map((m) => m[1]);
     expect(new Set(keys).size).toBe(keys.length);
-    expect(keys.length).toBe(17 + 10 + 9);
+    expect(keys.length).toBe(19 + 10 + 9); // 17.9: + sup.ayinBoardOpen + sup.ayinNamesOpen (שומר-מסך במעקב-טיפול)
   });
 });
