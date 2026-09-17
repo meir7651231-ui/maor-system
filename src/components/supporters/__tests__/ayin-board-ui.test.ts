@@ -119,7 +119,7 @@ describe('💛 SupportersView — כותרת-הלוח, מונה על המתג, �
       'const ayinActiveCount = visibleBase.filter((sp) => ayinOnBoard(sp.ayin)).length;' /* לא useMemo — return-מוקדם (warehouseMode) לפניו; ayinOnBoard = בלי הושלם (3.9) */,
     );
     // ברירת-המחדל נשארת סגורה (הרטצ'ט המקורי — ayin-board-default.test.ts)
-    expect(viewSrc).toMatch(/const \[ayinBoardOpen, setAyinBoardOpen\] = useState\(false\)/);
+    expect(viewSrc).toMatch(/const \[ayinBoardOpen, setAyinBoardOpen\] = useRemembered\('sup\.ayinBoardOpen', false\)/); // 17.9: זכור בין כרטיס/מסכים (שומר-מסך במעקב-טיפול)
   });
 
   it('"כל השמות" ותפריט-⋯ דרך מונח-הפריט — ברירת-המחדל "שמות" ביט-זהה (המונח יחיד: "שם לטיפול")', () => {

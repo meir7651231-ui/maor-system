@@ -3,7 +3,7 @@
  * וכפתור חכם לכל שורה. כל התוויות עוברות דרך מילון המונחים (feature כללי).
  * מוצג רק כשהפיצ'ר supporters.ayin דלוק (הגייטינג בקורא — SupportersView).
  */
-import { useState } from 'react';
+import { useRemembered } from '../../lib/filterMemory';
 import { useApp } from '../../store/useApp';
 import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, termOf } from '../../lib/config';
@@ -73,10 +73,10 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
   const desigLimit = featureOn(cfg, 'supporters.purpose') ? allowedDesignations : null;
 
-  const [filter, setFilter] = useState<'all' | AyinStage>('all');
-  const [sort, setSort] = useState<'target' | 'last' | 'name' | 'stage'>('target');
+  const [filter, setFilter] = useRemembered<'all' | AyinStage>('ayin.filter', 'all');
+  const [sort, setSort] = useRemembered<'target' | 'last' | 'name' | 'stage'>('ayin.sort', 'target');
   // 🌍 סינון ישראל/חו"ל (בקשת-בעלים 6.9) — לפי אזור-הטלפון של התומך/ת (אותו מסווג כמו במסך-התורמים)
-  const [region, setRegion] = useState<'all' | 'il' | 'intl'>('all');
+  const [region, setRegion] = useRemembered<'all' | 'il' | 'intl'>('ayin.region', 'all');
   // הקיפול היחיד הוא של העוטף ב-SupportersView ("▼ הצגה / ▲ הסתרה", הכרעת-בעלים 19.8) —
   // מתג-קיפול פנימי כפול הוסר (ביקורת 3.9).
   const today = isoToday();
