@@ -1,6 +1,6 @@
 /**
  * סמוק 16.9: (א) ⬇ רשימת-המורות (CSV) — הקובץ יורד עם כותרת נכונה; (ב) 🔎 אבחון-דגלים בהגדרות
- * מציג segula ON; (ג) קונפיג עם supporters.segula=false ⇒ בכרטיס-התורם הודעה גלויה במקום הכפתור.
+ * מציג 40 יום נראה ON; (ג) supporters.segula=false בעמותה ⇒ כפתור-40 עדיין מוצג (ברירת-מחדל), בלי הודעת-כבוי.
  */
 import { chromium } from 'playwright-core';
 import { createServer } from 'http';
@@ -51,22 +51,23 @@ const boot = async (cfg) => {
   (await diagBtn.count()) === 1 ? ok('כפתור "🔎 אבחון דגלים" ליד גרסת-האתר') : fail('כפתור-האבחון חסר');
   await diagBtn.click(); await pg.waitForTimeout(300);
   const pre = (await pg.locator('main pre').first().textContent()) || '';
-  pre.includes('supporters.segula (40 ימים): ON') && pre.includes('org: default (root)') ? ok('אבחון: segula ON · org default (root)') : fail('אבחון: ' + pre.slice(0, 200));
+  pre.includes('40 יום נראה: ON') && pre.includes('org: default (root)') ? ok('אבחון: 40 יום נראה ON · org default (root)') : fail('אבחון: ' + pre.slice(0, 200));
   errors.length === 0 ? ok('(א+ב) אפס שגיאות-קונסולה') : fail('שגיאות: ' + errors.join(' | '));
   await ctx.close();
 }
 
-/* (ג) — הדגל כבוי ⇒ הודעה גלויה בכרטיס */
+/* (ג) — הכרעת-בעלים 22.9: גם כשהדגל supporters.segula=false בעמותה, כפתור ה-40 יום
+        עדיין מוצג (דלוק ברירת-מחדל); אין יותר הודעת-דגל-כבוי. */
 {
   const { ctx, pg, errors } = await boot({ slug: 'default', orgName: 'x', theme: 'or-rishon', modules: {}, features: { 'supporters.segula': false } });
   await go(pg, 'תורמים');
   await pg.locator('main table tbody tr, main .card[role="button"]').first().click(); await pg.waitForTimeout(800);
-  (await pg.locator('button', { hasText: '40 ימים' }).count()) === 0 ? ok('דגל כבוי: אין כפתור 40 ימים') : fail('הכפתור מוצג למרות דגל כבוי');
-  (await pg.locator('text="40 ימים" כבוי בהגדרות-הארגון').count()) === 1 ? ok('דגל כבוי: הודעה גלויה עם שם-הדגל במקום העלמה שקטה') : fail('אין הודעת-דגל-כבוי');
+  (await pg.locator('button', { hasText: '40 ימים' }).count()) >= 1 ? ok('דגל false: כפתור 40 ימים עדיין מוצג (ברירת-מחדל לעמותה)') : fail('הכפתור נעלם למרות ברירת-מחדל דלוקה');
+  (await pg.locator('text="40 ימים" כבוי בהגדרות-הארגון').count()) === 0 ? ok('אין יותר הודעת-דגל-כבוי') : fail('הודעת-דגל-כבוי עדיין מוצגת');
   await go(pg, 'הגדרות');
   const diagBtn = pg.locator('button', { hasText: '🔎 אבחון דגלים' }).first(); if (await diagBtn.count()) { await diagBtn.click(); await pg.waitForTimeout(300); }
   const pre = (await pg.locator('main pre').first().textContent()) || '';
-  pre.includes('supporters.segula (40 ימים): OFF · raw=false') && pre.includes('features off (1): supporters.segula') ? ok('אבחון: segula OFF · raw=false · ברשימת-הכבויים') : fail('אבחון (כבוי): ' + pre.slice(0, 220));
+  pre.includes('40 יום נראה: ON') && pre.includes('raw supporters.segula=false') ? ok('אבחון: 40 יום נראה ON למרות raw=false') : fail('אבחון (false): ' + pre.slice(0, 220));
   errors.length === 0 ? ok('(ג) אפס שגיאות-קונסולה') : fail('שגיאות: ' + errors.join(' | '));
   await ctx.close();
 }

@@ -164,8 +164,10 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   }
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
-  // 🕯 סגולת 40 יום (בקשת-שטח) — opt-in; חסר-הדגל ⇒ מוסתר.
-  const segulaOn = featureOn(config, 'supporters.segula');
+  // 🕯 סגולת 40 יום — הכרעת-בעלים 22.9 ("שיהיה כפתור דלוק ברירת-מחדל"): דלוק כברירת-
+  // מחדל בכל עמותה, גם אם supporters.segula נכתב false בקונפיג-הענן של הלקוח; מוסתר רק
+  // בוורטיקל מסחרי (!core.taxreceipt — שם "העין"=פרויקטים והסגולה חסרת-משמעות).
+  const segulaOn = featureOn(config, 'core.taxreceipt');
   // מצב-הסגולה נגזר מאירועי-הלוח של התומך/ת (בקשת-בעלים 3.9 "40 יום לא מופיע" — הכפתור זרע בשקט).
   const segula = segulaOn ? segulaStatus(events, sp.id, isoToday()) : null;
   const seedSegulaReminders = useApp((s) => s.seedSegulaReminders);
@@ -494,13 +496,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       </div>
       {/* 🕯 סגולת 40 יום — סעיף עצמאי בראש-הכרטיס (בקשת-בעלים 9.9: "כפתור ענק שיראו אותו";
            לא תלוי עוד בסעיף קשר-הבא / supporters.nextdate). */}
-      {/* 16.9 חקירת "הלקוח בענן לא רואה 40 יום": כשהדגל כבוי בקונפיג-הארגון — אומרים זאת בקול
-           במקום להעלים בשקט, כדי שהבעלים יידע מיד מה לפתוח באשף (supporters.segula). */}
-      {!segulaOn && (
-        <div className="card" style={{ marginBottom: 12, padding: '8px 12px', fontSize: 12.5, color: 'var(--ink-faint)' }}>
-          🕯 "40 ימים" כבוי בהגדרות-הארגון הזה (דגל <code dir="ltr">supporters.segula</code>) — המנהל/ת מדליק/ה באשף-ההקמה ← תורמים.
-        </div>
-      )}
+      {/* 22.9 (הכרעת-בעלים "40 יום דלוק ברירת-מחדל"): אין יותר הודעת-דגל-כבוי — הסגולה
+           דלוקה בכל עמותה. בוורטיקל מסחרי היא פשוט מוסתרת (חסרת-משמעות שם). */}
       {segulaOn && (
         <div className="card" style={{ marginBottom: 12, padding: 12 }}>
         {/* 🔁 בורר-חזרה (16.9): 40 יום · יומי · שבועי · חודשי + כמות לסדרות החוזרות */}
