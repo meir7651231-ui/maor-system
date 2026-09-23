@@ -42,16 +42,19 @@ describe('הגנות-מקור', () => {
     expect(s).toContain("downloadCsv('maor-teachers.csv', teachersCsvRows(teachers, courses, { full: featureOn(config, 'reports.export.full')");
     expect(s).toContain("{'⬇ רשימת ה' + teacher + ' (CSV)'}");
   });
-  it('כרטיס-תורם: דגל כבוי ⇒ הודעה גלויה עם שם-הדגל (לא העלמה שקטה)', () => {
+  // הכרעת-בעלים 22.9 ("שיהיה כפתור דלוק ברירת-מחדל"): הנראות כבר לא תלויה בדגל
+  // supporters.segula אלא בעמותה (core.taxreceipt) — דגל false לא מסתיר; אין הודעת-כבוי.
+  it('כרטיס-תורם: 40 יום דלוק ברירת-מחדל לעמותה (core.taxreceipt), לא תלוי בדגל; אין הודעת-כבוי', () => {
     const s = src('../../components/supporters/SupporterDetail.tsx');
-    expect(s).toContain('{!segulaOn && (');
-    expect(s).toContain('"40 ימים" כבוי בהגדרות-הארגון הזה');
-    expect(s).toContain('supporters.segula</code>');
+    expect(s).toContain("const segulaOn = featureOn(config, 'core.taxreceipt');");
+    expect(s).not.toContain('{!segulaOn && (');
+    expect(s).not.toContain('"40 ימים" כבוי בהגדרות-הארגון הזה');
   });
-  it('הגדרות: 🔎 אבחון-דגלים — org/cloud/build/מודול/segula raw/רשימות-כבויים', () => {
+  it('הגדרות: 🔎 אבחון-דגלים — org/cloud/build/מודול/40-יום-נראה+raw/רשימות-כבויים', () => {
     const s = src('../../components/settings/SettingsView.tsx');
     expect(s).toContain('<FlagDiagnostics />');
-    expect(s).toContain("'supporters.segula (40 ימים): ' + (segula ? 'ON' : 'OFF') + ' · raw=' + String(config.features?.['supporters.segula'])");
+    expect(s).toContain("'40 יום נראה: ' + (segula ? 'ON' : 'OFF')");
+    expect(s).toContain("raw supporters.segula=' + String(config.features?.['supporters.segula'])");
     expect(s).toContain("'supporters module: ' + (moduleOn(config, 'supporters') ? 'on' : 'OFF')");
   });
 });
