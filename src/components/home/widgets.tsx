@@ -55,6 +55,7 @@ import {
   type HomeStats,
   type TodaySession,
 } from './homeData';
+import { sanitizeIds } from '../../lib/widgetLayout';
 
 /* ── סגנונות משותפים (הצ'יפים הצבעוניים נשארים data-driven מ-homeData) ── */
 
@@ -2175,9 +2176,6 @@ export const WIDGET_LIBRARY: readonly WidgetId[] = [
   'suggest',
 ];
 
-function isWidgetId(id: string): id is WidgetId {
-  return id in HOME_WIDGETS;
-}
 
 /**
  * נרמול פריסה שמורה (db.ui.homeLayout) לרשימת מזהים תקפה:
@@ -2188,11 +2186,8 @@ export function sanitizeLayout(
   raw: readonly string[] | undefined,
   fallback: readonly WidgetId[] = DEFAULT_LAYOUT,
 ): WidgetId[] {
-  if (!raw || raw.length === 0) return [...fallback];
-  const out: WidgetId[] = [];
-  for (const id of raw) {
-    if (isWidgetId(id) && !out.includes(id)) out.push(id);
-  }
+  // 5.10: הניקוי המשותף ב-lib/widgetLayout (גם כרטיס-התורם משתמש בו); כאן נשאר רק דין-ה-hero
+  const out = sanitizeIds(raw, Object.keys(HOME_WIDGETS), fallback) as WidgetId[];
   const i = out.indexOf('hero');
   if (i > 0) out.splice(i, 1);
   if (i !== 0) out.unshift('hero');
