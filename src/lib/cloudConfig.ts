@@ -128,9 +128,21 @@ export async function writeOrgCloudDoc(slug: string, data: Partial<OrgCloudDoc>)
   await setDoc(doc(cloudDb(), PLATFORM_ORGS, slug), JSON.parse(JSON.stringify(data)), { merge: true });
 }
 
-/** כתיבת קונפיג הארגון בשלמותו (כל מתג בלוח הבקרה ⇒ הלקוח רואה חי). */
+/**
+ * כתיבת קונפיג הארגון בשלמותו (כל מתג בלוח הבקרה ⇒ הלקוח רואה חי).
+ *
+ * 🐛 שורש "40 יום לא נשמר דלוק" (5.10.2026, הדיווח הרביעי של הבעלים — PR ‏#494/#496/#501
+ * לא עזרו): הכתיבה עברה דרך `setDoc(…, { merge: true })`, ו-merge:true **ממזג-עומק מפות**
+ * (features/modules/terms). באשף "הדלקה = מחיקת-המפתח" (חסר=דלוק) — אבל מפתח שנמחק
+ * מקומית פשוט לא נשלח, והערך הישן `false` נשאר בענן לנצח. כך `supporters.segula:false`
+ * (ולאחר #501 — `core.taxreceipt:false`) שרדו כל "הדלקה" בלוח-הבקרה/באשף-המרוחק, והלקוח
+ * המשיך לקבל false דרך onSnapshot. הוכח על אמולטור-Firestore (e2e/rules-redteam.mjs §י״א).
+ * התיקון: `mergeFields: ['config']` — שדה `config` מוחלף **בשלמותו** (מה שהאשף מחזיק =
+ * מה שבענן), ושאר שדות-המסמך (members/manager/memberConfigs/joinOpen…) לא נגועים.
+ * אותו לקח כבר נלמד נקודתית ב-21.8 ל-`weeklyGoal` (deleteField) ולא הוכלל — עכשיו כן.
+ */
 export async function writeOrgCloudConfig(slug: string, config: OrgConfig): Promise<void> {
-  await writeOrgCloudDoc(slug, { config: JSON.parse(JSON.stringify(config)) as unknown });
+  await setDoc(doc(cloudDb(), PLATFORM_ORGS, slug), { config: JSON.parse(JSON.stringify(config)) as unknown }, { mergeFields: ['config'] });
 }
 
 /* ── כספת-מפתחות פר-ארגון (בקשת-בעלים 9.8: "כל מנהל יש את הסודות שלו") ──
