@@ -38,6 +38,9 @@ export function AyinCard(props: { supporter: Supporter }) {
   const sp = props.supporter;
   const a = { ...emptyAyin(), ...(sp.ayin ?? {}) }; // ayin חלקי (גיבוי-ישן/ענן) — כל תת-מערך מובטח
   const cfg = useApp((s) => s.config);
+  const toast = useApp((s) => s.toast);
+  const setSupporterNext = useApp((s) => s.setSupporterNext);
+  const liveNext = useApp((s) => s.db.supporters.find((x) => x.id === props.supporter.id)?.nextDate || '');
   const advance = useApp((s) => s.ayinAdvance);
   const setPaid = useApp((s) => s.ayinSetPaid);
   const revert = useApp((s) => s.ayinRevert);
@@ -662,6 +665,24 @@ export function AyinCard(props: { supporter: Supporter }) {
           }}
         >
           {'✓ הטיפול הושלם · ' + a.names.length + ' ' + item + ' נמסרו · ' + unit + ' ' + eyesTotal(a)}
+        </div>
+      )}
+
+      {/* 🎯 קשר הבא אחרי «הושלם» (בקשת-בעלים 5.10) — אותו מנגנון של הכרטיס (store.setSupporterNext):
+          תאריך על התומך/ת + תזכורת-שיחה מקושרת בלוח-השנה הראשי; מגודר כמו הקובייה בכרטיס (supporters.nextdate) */}
+      {a.stage === 'done' && featureOn(cfg, 'supporters.nextdate') && (
+        <div style={{ border: '1px dashed var(--line)', borderRadius: 10, padding: '8px 12px' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>קשר הבא 🎯 — אחרי שהטיפול הושלם</div>
+          <HebDateInput
+            value={liveNext}
+            onChange={(iso) => {
+              setSupporterNext(sp.id, iso, 'אחרי סיום ' + feat);
+              toast(iso ? 'נקבע קשר הבא ' + hebDateFull(iso) + ' — נכנס ללוח השנה' : 'תאריך הקשר הבא נוקה');
+            }}
+          />
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 4 }}>
+            {liveNext ? hebDateFull(liveNext) + ' · תזכורת 📞 בלוח השנה ובכרטיס' : 'קביעת תאריך תוסיף תזכורת שיחה ללוח השנה — כמו «קשר הבא» בכרטיס'}
+          </div>
         </div>
       )}
 

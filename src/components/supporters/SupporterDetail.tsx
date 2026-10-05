@@ -55,6 +55,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const upsertEvent = useApp((s) => s.upsertEvent);
   const deleteEvent = useApp((s) => s.deleteEvent);
   const unlinkEvent = useApp((s) => s.unlinkEvent);
+  const setSupporterNext = useApp((s) => s.setSupporterNext);
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
   const setDb = useApp((s) => s.setDb);
@@ -314,30 +315,10 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       toast('תאריך היעד נוקה');
       return;
     }
-    const linked = sp.nextEventId ? events.find((e) => e.id === sp.nextEventId) : undefined;
-    if (linked) {
-      upsertEvent({ ...linked, title: 'יעד קשר — ' + termOf(config, 'entity.supporter', 'תומך/ת') + ': ' + sp.name, date: v, done: false, notes: nextEventNotes(nextNoteDraft) });
-      upsertSupporter({ ...sp, nextDate: v });
-      toast('נקבע תאריך יעד ' + hebDateFull(v) + ' — התזכורת בלוח השנה עודכנה');
-    } else {
-      const id = nextId('ev');
-      upsertEvent({
-        id,
-        title: 'יעד קשר — ' + termOf(config, 'entity.supporter', 'תומך/ת') + ': ' + sp.name,
-        date: v,
-        time: '',
-        type: 'call',
-        customType: '',
-        notes: nextEventNotes(nextNoteDraft),
-        price: 0,
-        roomId: '',
-        famId: '',
-        priority: 'orange',
-        done: false,
-      });
-      upsertSupporter({ ...sp, nextDate: v, nextEventId: id });
-      toast('נקבע תאריך יעד ' + hebDateFull(v) + ' — נוספה תזכורת ללוח השנה');
-    }
+    // 5.10: המנגנון עצמו ב-store (setSupporterNext) — משותף עם «קשר הבא» שאחרי «הושלם» במעקב-הטיפול
+    const hadLinked = !!(sp.nextEventId && events.some((e) => e.id === sp.nextEventId));
+    setSupporterNext(sp.id, v, nextNoteDraft);
+    toast('נקבע תאריך יעד ' + hebDateFull(v) + (hadLinked ? ' — התזכורת בלוח השנה עודכנה' : ' — נוספה תזכורת ללוח השנה'));
   }
 
   /** שמירת "על מה לדבר בפעם הבאה" — על התומך + רענון notes של תזכורת-הלוח.

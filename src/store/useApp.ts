@@ -355,6 +355,11 @@ interface AppState {
    * אטומי. תיקון באג ידוע #6: הניקוי השאיר אירוע יתום בלוח (המחיקות כן ניקו).
    */
   unlinkEvent: (kind: 'supporterNext' | 'enrollmentDue', id: string) => void;
+  /**
+   * «קשר הבא» של תומך/ת (5.10 — משותף לכרטיס ולמעקב-הטיפול): תאריך על התומך + תזכורת-שיחה **מקושרת** בלוח-השנה
+   * (יוצר פעם אחת, מעדכן את אותו אירוע בשינוי, '' ⇒ ניקוי דרך unlinkEvent). topic = «על מה לדבר» ⇒ בהערות-האירוע.
+   */
+  setSupporterNext: (id: string, dateIso: string, topic?: string) => void;
   upsertEvent: (ev: OrgEvent) => void;
   deleteEvent: (id: string) => void;
   /**
@@ -2242,6 +2247,24 @@ export const useApp = create<AppState>()((set, get) => {
           ...(en.dueEventId ? { events: db.events.filter((e) => e.id !== en.dueEventId) } : {}),
         };
       });
+    },
+    setSupporterNext(id, dateIso, topic = '') {
+      if (!dateIso) { get().unlinkEvent('supporterNext', id); return; }
+      const db = get().db;
+      const sp = db.supporters.find((s) => s.id === id);
+      if (!sp) return;
+      const cfg = get().config;
+      const title = 'יעד קשר — ' + termOf(cfg, 'entity.supporter', 'תומך/ת') + ': ' + sp.name;
+      const notes = termOf(cfg, 'entity.family', 'משפחה') + ' תומכת · ' + (sp.phone || '') + (sp.email ? ' · ' + sp.email : '') + (topic.trim() ? ' · 📝 ' + topic.trim() : '');
+      const linked = sp.nextEventId ? db.events.find((e) => e.id === sp.nextEventId) : undefined;
+      if (linked) {
+        get().upsertEvent({ ...linked, title, date: dateIso, done: false, notes });
+        get().upsertSupporter({ ...sp, nextDate: dateIso });
+        return;
+      }
+      const evId = get().nextId('ev');
+      get().upsertEvent({ id: evId, title, date: dateIso, time: '', type: 'call', customType: '', notes, price: 0, roomId: '', famId: '', priority: 'orange', done: false });
+      get().upsertSupporter({ ...sp, nextDate: dateIso, nextEventId: evId });
     },
     upsertEvent(ev) {
       setDb((db) => ({ events: upsertIn(db.events, ev) }));
