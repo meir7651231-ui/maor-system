@@ -33,4 +33,11 @@ describe('כרטיס-התורם · סידור קוביות', () => {
     expect(src).toContain('{layoutOn && !layoutEdit && (');
     expect(src).toContain('ui: { ...cur.ui, supCardLayout: supCardLayoutNext }');
   });
+  it('🐛 5.10 (נתפס בצילום-מסך בפרודקשן): אין הערת-/* */ רגילה בתוך JSX של קובייה — היא מרונדרת כטקסט גלוי', () => {
+    const a = src.indexOf('const cardWidgets: {'); const b = src.indexOf('\n  ];\n', a);
+    const region = src.slice(a, b);
+    for (const m of region.matchAll(/node: \(\n([\s\S]*?)\n\s*\) \},/g)) {
+      expect(m[1], m[1].slice(0, 80)).not.toMatch(/(?<!\{)\/\*[\s\S]*?\*\/(?!\})/);
+    }
+  });
 });

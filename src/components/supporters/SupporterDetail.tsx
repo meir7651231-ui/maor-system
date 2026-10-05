@@ -368,7 +368,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         { id: 'details', label: 'פרטי ' + termOf(config, 'entity.supporter', 'התומך/ת'), visible: true, node: (
         <div className="card">
           <h3 style={{ fontSize: 15, marginBottom: 8 }}>{'פרטי ' + termOf(config, 'entity.supporter', 'התומך/ת')}</h3>
-          /* INTEGRATIONS — פעולות-הרחבה: 💬 וואטסאפ · 💳 עמוד-תרומה · 🤖 מכתב-תודה */
+          {/* INTEGRATIONS — פעולות-הרחבה: 💬 וואטסאפ · 💳 עמוד-תרומה · 🤖 מכתב-תודה */}
           {(telephonyOn(config) || integrationOn(config, 'whatsapp') || integrationOn(config, 'payments') || aiReady || smsReady) && (
             <div style={{ textAlign: 'left', marginBottom: 2, display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
               {aiReady && (
@@ -420,7 +420,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             </div>
           )}
           <InfoRow k="טלפון" v={sp.phone || '—'} ltr />
-          /* טלפונים נוספים (ריבוי-טלפונים) — כל אחד עם תווית, הערה "ממי זה", סיווג ישראל/חו"ל, וכפתורי חיוג/וואטסאפ */
+          {/* טלפונים נוספים (ריבוי-טלפונים) — כל אחד עם תווית, הערה "ממי זה", סיווג ישראל/חו"ל, וכפתורי חיוג/וואטסאפ */}
           {(sp.phones ?? []).length > 0 && (
             <div style={{ margin: '2px 0 6px', display: 'flex', flexDirection: 'column', gap: 5 }}>
               {allSupPhones(sp).filter((r) => !r.primary).map((r, i) => (
@@ -449,7 +449,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <div className="card">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <h3 style={{ fontSize: 15 }}>הוראת קבע 🔁</h3>
-              /* חיווי מקושר-נדרים — extId נקלט לשיוך אך לא הוצג עד היום */
+              {/* חיווי מקושר-נדרים — extId נקלט לשיוך אך לא הוצג עד היום */}
               {sp.extId && (
                 <span style={chipStyle('#e8f0fb', '#1d4ed8')} title={'מזהה-נדרים (ToremId): ' + sp.extId}>
                   🔗 מקושר-נדרים
@@ -580,8 +580,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <h3 style={{ fontSize: 15 }}>
             {'כל ה' + termOf(config, 'entity.donations', 'תרומות') + ' — מתי וכמה'} ({donRows.length})
           </h3>
-          /* 🐛 FLAGMAX: הכפתור-התאום בכותרת מגודר canIssue (רק מנפיק-קבלות) —
-              זה נשכח ונחשף גם לעובד/ת; אותו תנאי בדיוק. */
+          {/* 🐛 FLAGMAX: הכפתור-התאום בכותרת מגודר canIssue (רק מנפיק-קבלות) —
+              זה נשכח ונחשף גם לעובד/ת; אותו תנאי בדיוק. */}
           {canIssue && (
             <Btn sm onClick={() => setDonOpen(true)}>
               ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
@@ -604,8 +604,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                 </tr>
               </thead>
               <tbody>
-                /* P3 פריט 11: קיטום תצוגה ל-60 (slice בלבד — הנתונים נשמרים);
-                    לחיצה על שורה מסמנת את יומה בלוח האישי (כמו בלגאסי) */
+                {/* P3 פריט 11: קיטום תצוגה ל-60 (slice בלבד — הנתונים נשמרים);
+                    לחיצה על שורה מסמנת את יומה בלוח האישי (כמו בלגאסי) */}
                 {donRows.slice(0, 60).map((r, i) => (
                   <tr
                     key={r.rid ?? r.src + '|' + r.date + '|' + i}
@@ -622,9 +622,9 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                     <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--ink-faint)' }}>
                       {histOn ? r.src : r.rid}
                     </td>
-                    /* 🧾 הורדה חוזרת פר-תרומה (P3, לגאסי supReceipt) — רק לתרומות עם קבלה.
+                    {/* 🧾 הורדה חוזרת פר-תרומה (P3, לגאסי supReceipt) — רק לתרומות עם קבלה.
                         היו אמוג׳י-בלבד (🧾/📧) עם title בלבד — נעלם-הפשר במגע. עכשיו תווית
-                        גלויה בכל כפתור (הטקסט = השם-הנגיש). אותם handlers — אפס שינוי-התנהגות. */
+                        גלויה בכל כפתור (הטקסט = השם-הנגיש). אותם handlers — אפס שינוי-התנהגות. */}
                     <td onClick={(e) => e.stopPropagation()} style={{ whiteSpace: 'nowrap' }}>
                       {r.rid && receiptsOn ? (
                         <>
