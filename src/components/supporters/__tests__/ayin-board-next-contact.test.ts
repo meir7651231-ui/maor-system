@@ -34,7 +34,6 @@ describe('לוח מעקב-הטיפול · קשר הבא 🎯', () => {
   });
 
   it('בסינון «הושלם» — כפתור 🎯 לכל תיק; תאריך-שנקבע מוצג ירוק; דילוג אפשרי', () => {
-    expect(src).toContain("{sp.nextDate ? '🎯 ' + fmtDate(sp.nextDate) : '🎯 קשר הבא'}");
     expect(src).toContain("{sp.nextDate ? 'סגירה' : 'דלג'}");
     expect(src).toContain('className="ayin-next-prompt"');
   });
@@ -48,5 +47,29 @@ describe('לוח מעקב-הטיפול · קשר הבא 🎯', () => {
     expect(src.match(/gridTemplateColumns: ROW_GRID/g)?.length).toBe(2);
     const i = src.indexOf('className="ayin-next-prompt"');
     expect(src.slice(i, i + 120)).toContain('onClick={(e) => e.stopPropagation()}');
+  });
+
+  it('🎯 «הגיע הזמן» (בקשת-בעלים 6.10) — תיק שהושלם עם קשר-הבא ≤ היום חוזר ללוח מעצמו, נגזרת-מצב (לא ההחזקה-של-הרגע)', () => {
+    expect(src).toContain("nextDateOn && ayinActive(sp.ayin) && (sp.ayin!.stage || 'new') === 'done' && !!sp.nextDate && sp.nextDate <= today;");
+    expect(src).toContain('const due = visible.filter(isDueNext);');
+    expect(src).toContain("filter === 'all' ? [...due, ...active]");
+    // היום מוזרק דרך isoToday (דטרמיניסטי), לא Date.now
+    expect(src).not.toMatch(/Date\.now\(/);
+  });
+
+  it('שורת «הגיע הזמן» — צבועה, היעד מציג את קשר-הבא, וכפתור «📞 הגיע הזמן»; פעולות: קשר-בוצע (מנקה+מוריד מהלוח) · מחזור-חדש (מגודר supporters.ayin.restart)', () => {
+    expect(src).toContain("background: dueNext ? '#fff4ea' : '#fff'");
+    expect(src).toContain("{(dueNext ? '📞 ' : '🎯 ') + fmtDate(sp.nextDate)}");
+    expect(src).toContain("{dueNext ? '📞 הגיע הזמן' : sp.nextDate ? '🎯 ' + fmtDate(sp.nextDate) : '🎯 קשר הבא'}");
+    expect(src).toContain("const restartOn = featureOn(cfg, 'supporters.ayin.restart');");
+    expect(src).toContain('{dueNext && restartOn && (');
+    // «הקשר בוצע» = ניקוי דרך אותו מנגנון (מסיר גם את תזכורת-הלוח — unlinkEvent ב-store)
+    expect(src).toContain("setSupporterNext(sp.id, '', '');");
+    expect(src).toContain('✓ הקשר בוצע');
+    expect(src).toContain('↻ מחזור טיפול חדש');
+  });
+
+  it('מיון «יעד קרוב» — לתיק שהושלם היעד הוא קשר-הבא (ולא nextTalk)', () => {
+    expect(src).toContain("const tgt = (sp: Supporter) => ((sp.ayin!.stage || 'new') === 'done' ? sp.nextDate : sp.ayin!.nextTalk) || '9999';");
   });
 });

@@ -22,7 +22,7 @@ import {
   stageLabel,
   unitLabel,
 } from '../../lib/ayin';
-import type { AyinCase, AyinStage } from '../../types/domain';
+import type { AyinCase, AyinStage, Supporter } from '../../types/domain';
 import { fmtDate, supHasRegion, supporterVisibleForDesignations } from './lib';
 
 /** תבנית-הגריד של שורה ושל שורת-הכותרות — זהה, כדי שהעמודות יתיישרו. */
@@ -76,7 +76,9 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   // תאריך על התומך/ת + תזכורת-שיחה בלוח-השנה. מגודר כמו הקובייה בכרטיס (supporters.nextdate).
   const setSupporterNext = useApp((s) => s.setSupporterNext);
   const toast = useApp((s) => s.toast);
+  const restart = useApp((s) => s.ayinRestart);
   const nextDateOn = featureOn(cfg, 'supporters.nextdate');
+  const restartOn = featureOn(cfg, 'supporters.ayin.restart');
   // התיק שסומן «✓ הושלם» מהלוח ברגע זה — נשאר על הלוח עם שאלת «קשר הבא?» עד שקובעים/מדלגים
   // (הכרעת-בעלים 3.9 «הושלם יורד מהלוח» נשמרת — זו עצירה של רגע אחד, לא שורה קבועה).
   const [nextPromptId, setNextPromptId] = useState<string | null>(null);
@@ -97,8 +99,13 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   // הכרעת-בעלים 3.9: מקרה שהושלם יורד מהלוח (ayinOnBoard); סינון "הושלם" עדיין מציג אותם.
   const visible = db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit) && (region === 'all' || supHasRegion(sp, region)));
   const active = visible.filter((sp) => ayinOnBoard(sp.ayin));
+  // 🎯 «הגיע הזמן» (בקשת-בעלים 6.10 «שיעלה בלוח ברגע שהזמן מגיע»): תיק שהושלם ונקבע לו «קשר הבא»
+  // חוזר ללוח ביום-היעד (ונשאר עד שמטפלים — קשר-בוצע / תאריך-חדש / מחזור-חדש). היום = isoToday, בלי Date.now.
+  const isDueNext = (sp: Supporter): boolean =>
+    nextDateOn && ayinActive(sp.ayin) && (sp.ayin!.stage || 'new') === 'done' && !!sp.nextDate && sp.nextDate <= today;
+  const due = visible.filter(isDueNext);
   let rows =
-    filter === 'all' ? active
+    filter === 'all' ? [...due, ...active]
     : filter === 'done' ? visible.filter((sp) => ayinActive(sp.ayin) && (sp.ayin!.stage || 'new') === 'done')
     : active.filter((sp) => (sp.ayin!.stage || 'new') === filter);
   if (nextPromptId && !rows.some((sp) => sp.id === nextPromptId)) {
@@ -111,7 +118,8 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
     if (sort === 'name') return sa.name.localeCompare(sb.name, 'he');
     if (sort === 'last') return (ab.lastTouch || '').localeCompare(aa.lastTouch || '');
     if (sort === 'stage') return stageIndex(aa.stage) - stageIndex(ab.stage);
-    return (aa.nextTalk || '9999').localeCompare(ab.nextTalk || '9999');
+    const tgt = (sp: Supporter) => ((sp.ayin!.stage || 'new') === 'done' ? sp.nextDate : sp.ayin!.nextTalk) || '9999';
+    return tgt(sa).localeCompare(tgt(sb));
   });
 
   const feat = featLabel(cfg);
@@ -216,6 +224,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
               // 🎯 יעד שעבר (ביקורת-ריצה 3.9, F4): מסומן באדום + ⚠ + title — לא זהה לעתידי.
               const overdue = !!a.nextTalk && a.nextTalk < today;
               const isDone = (a.stage || 'new') === 'done';
+              const dueNext = isDueNext(sp);
               const promptOpen = nextDateOn && isDone && nextPromptId === sp.id;
               return (
                 <div key={sp.id} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -236,8 +245,8 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                     gridTemplateColumns: ROW_GRID,
                     gap: 8,
                     alignItems: 'center',
-                    background: '#fff',
-                    border: '1px solid rgba(33,29,23,.07)',
+                    background: dueNext ? '#fff4ea' : '#fff',
+                    border: '1px solid ' + (dueNext ? '#f3c58a' : 'rgba(33,29,23,.07)'),
                     borderRadius: 11,
                     padding: '9px 12px',
                     cursor: 'pointer',
@@ -279,6 +288,14 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                       </span>
                     )}
                   </div>
+                  {isDone && sp.nextDate ? (
+                    <div
+                      style={{ fontSize: 11, color: dueNext ? '#b3261e' : '#12803c', fontWeight: 800 }}
+                      title={dueNext ? 'קשר הבא — הגיע הזמן' : 'קשר הבא שנקבע אחרי שהטיפול הושלם'}
+                    >
+                      {(dueNext ? '📞 ' : '🎯 ') + fmtDate(sp.nextDate)}
+                    </div>
+                  ) : (
                   <div
                     style={{ fontSize: 11, color: overdue ? '#b3261e' : '#9a6414', fontWeight: 800 }}
                     title={overdue ? 'באיחור' : undefined}
@@ -287,6 +304,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                       ? (overdue ? '⚠ ' : '') + fmtDate(a.nextTalk) + (a.nextTalkTime ? ' · ' + a.nextTalkTime : '')
                       : '—'}
                   </div>
+                  )}
                   <div style={{ fontSize: 11, color: '#8b8474', fontWeight: 700 }}>
                     {a.lastTouch ? fmtDate(a.lastTouch) : '—'}
                   </div>
@@ -298,11 +316,11 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                           e.stopPropagation();
                           setNextPromptId(promptOpen ? null : sp.id);
                         }}
-                        title={sp.nextDate ? 'קשר הבא: ' + hebDateFull(sp.nextDate) + ' — לחיצה לשינוי' : 'קביעת קשר הבא אחרי שהטיפול הושלם — נכנס ללוח השנה'}
+                        title={dueNext ? 'הגיע הזמן לקשר הבא — ' + hebDateFull(sp.nextDate!) : sp.nextDate ? 'קשר הבא: ' + hebDateFull(sp.nextDate) + ' — לחיצה לשינוי' : 'קביעת קשר הבא אחרי שהטיפול הושלם — נכנס ללוח השנה'}
                         style={{
-                          background: sp.nextDate ? '#e4f5ea' : '#fff',
-                          color: sp.nextDate ? '#12803c' : '#9a6414',
-                          border: '1px solid ' + (sp.nextDate ? '#cde9d6' : '#ecd9a8'),
+                          background: dueNext ? '#211d17' : sp.nextDate ? '#e4f5ea' : '#fff',
+                          color: dueNext ? '#f3c76b' : sp.nextDate ? '#12803c' : '#9a6414',
+                          border: '1px solid ' + (dueNext ? '#211d17' : sp.nextDate ? '#cde9d6' : '#ecd9a8'),
                           borderRadius: 9,
                           padding: '6px 10px',
                           fontSize: 10.5,
@@ -311,7 +329,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {sp.nextDate ? '🎯 ' + fmtDate(sp.nextDate) : '🎯 קשר הבא'}
+                        {dueNext ? '📞 הגיע הזמן' : sp.nextDate ? '🎯 ' + fmtDate(sp.nextDate) : '🎯 קשר הבא'}
                       </button>
                     )}
                     {showBtn && (
@@ -358,9 +376,37 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 12.5, fontWeight: 800, color: '#9a6414' }}>
-                        🎯 קשר הבא — {sp.name} · הטיפול הושלם
+                      <span style={{ fontSize: 12.5, fontWeight: 800, color: dueNext ? '#b3261e' : '#9a6414' }}>
+                        {dueNext ? '📞 הגיע הזמן לקשר הבא — ' + sp.name : '🎯 קשר הבא — ' + sp.name + ' · הטיפול הושלם'}
                       </span>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {dueNext && (
+                        <button
+                          onClick={() => {
+                            setSupporterNext(sp.id, '', '');
+                            setNextPromptId(null);
+                            toast('הקשר סומן כבוצע — התיק ירד מהלוח');
+                          }}
+                          title="הקשר בוצע — התזכורת יורדת מלוח-השנה והתיק יורד מהלוח (ההיסטוריה נשמרת)"
+                          style={{ background: '#e4f5ea', color: '#12803c', border: '1px solid #cde9d6', borderRadius: 9, padding: '3px 9px', fontSize: 10.5, fontWeight: 800, cursor: 'pointer' }}
+                        >
+                          ✓ הקשר בוצע
+                        </button>
+                      )}
+                      {dueNext && restartOn && (
+                        <button
+                          onClick={() => {
+                            setSupporterNext(sp.id, '', '');
+                            restart(sp.id);
+                            setNextPromptId(null);
+                            toast('נפתח מחזור טיפול חדש — התיק חזר ללוח בשלב הראשון');
+                          }}
+                          title="פתיחת מחזור טיפול חדש מההתחלה — ההיסטוריה נשמרת"
+                          style={{ background: '#211d17', color: '#f3c76b', border: 'none', borderRadius: 9, padding: '3px 9px', fontSize: 10.5, fontWeight: 800, cursor: 'pointer' }}
+                        >
+                          ↻ מחזור טיפול חדש
+                        </button>
+                      )}
                       <button
                         onClick={() => setNextPromptId(null)}
                         title="בלי קשר הבא כרגע — אפשר לקבוע אחר-כך מסינון «הושלם» או מהכרטיס"
@@ -368,6 +414,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                       >
                         {sp.nextDate ? 'סגירה' : 'דלג'}
                       </button>
+                      </div>
                     </div>
                     <HebDateInput
                       value={sp.nextDate || ''}
@@ -377,7 +424,9 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                       }}
                     />
                     <div style={{ fontSize: 11.5, color: '#8b8474' }}>
-                      {sp.nextDate ? hebDateFull(sp.nextDate) + ' · תזכורת 📞 בלוח השנה ובכרטיס' : 'קביעת תאריך תוסיף תזכורת שיחה ללוח השנה — כמו «קשר הבא» בכרטיס'}
+                      {dueNext
+                        ? 'התאריך הגיע · אפשר לסמן שהקשר בוצע, לקבוע תאריך חדש, או לפתוח מחזור טיפול חדש'
+                        : sp.nextDate ? hebDateFull(sp.nextDate) + ' · תזכורת 📞 בלוח השנה ובכרטיס' : 'קביעת תאריך תוסיף תזכורת שיחה ללוח השנה — כמו «קשר הבא» בכרטיס'}
                     </div>
                   </div>
                 )}
