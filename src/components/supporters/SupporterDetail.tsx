@@ -414,7 +414,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
            דלוקה בכל עמותה. בוורטיקל מסחרי היא פשוט מוסתרת (חסרת-משמעות שם). */
       { id: 'segula', label: 'סגולת 40 יום 🕯', visible: segulaOn, wide: true, node: (
         <div className="card" style={{ marginBottom: 12, padding: 12 }}>
-        /* 🔁 בורר-חזרה (16.9): 40 יום · יומי · שבועי · חודשי + כמות לסדרות החוזרות */
+        {/* 🔁 בורר-חזרה (16.9): 40 יום · יומי · שבועי · חודשי + כמות לסדרות החוזרות */}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>חזרה:</span>
           {RECUR_MODES.map((m) => (
@@ -445,7 +445,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             </label>
           )}
         </div>
-        /* 🔁 סדרות-חוזרות פעילות (יומי/שבועי/חודשי) — פאנל לכל אחת */
+        {/* 🔁 סדרות-חוזרות פעילות (יומי/שבועי/חודשי) — פאנל לכל אחת */}
         {recurActive.map(({ def, st }) => (
           <div key={def.key} style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)', fontSize: 13, color: 'var(--ink)' }}>
             <div role="status" className="btn primary" style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxSizing: 'border-box' }}>
@@ -478,7 +478,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             </div>
           </div>
         ))}
-        /* 🔁 כפתור-זריעה לסדרה חוזרת שנבחרה (לא-סגולה) — כשאינה פעילה */
+        {/* 🔁 כפתור-זריעה לסדרה חוזרת שנבחרה (לא-סגולה) — כשאינה פעילה */}
         {recurMode !== 'segula' && !recurSelActive && (
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
             <button
@@ -494,14 +494,14 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             </div>
           </div>
         )}
-        /* 🕯 סגולת 40 יום — כפתור אחד שמחשב לבד מהיום וזורע תזכורות-סגולה
+        {/* 🕯 סגולת 40 יום — כפתור אחד שמחשב לבד מהיום וזורע תזכורות-סגולה
              לזיווג לתוך קשר-הבא/הלוח (בקשת-בעלים 30.8: "כפתור בשם 40 ימים
-             שיחשב לבד וירשום תזכורת בקשר הבא, מוטבע קשר לזיווג"). */
+             שיחשב לבד וירשום תזכורת בקשר הבא, מוטבע קשר לזיווג"). */}
         {segulaOn && segula?.active && (
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)', fontSize: 13, color: 'var(--ink)' }}>
-            /* בקשת-בעלים 10.9 "כל התיקונים קיימים חוץ מ-40 יום": אצל תורם שכבר הופעלה לו סגולה
+            {/* בקשת-בעלים 10.9 "כל התיקונים קיימים חוץ מ-40 יום": אצל תורם שכבר הופעלה לו סגולה
                  הכפתור הענק הוחלף בשורת-טקסט קטנה ⇒ נראה "לא קיים". עכשיו גם המצב-הפעיל = פס ענק
-                 באותו גודל בדיוק (64px / 20px), עם אותה תווית "40 ימים". */
+                 באותו גודל בדיוק (64px / 20px), עם אותה תווית "40 ימים". */}
             <div
               role="status"
               className="btn primary"
@@ -568,8 +568,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                 {'🕯 סגולה קודמת הסתיימה ב-' + fmtDate(segula.lastEnd) + ' · ' + segula.done + '/' + segula.total + ' תזכורות בוצעו'}
               </div>
             ) : null}
-            /* בקשת-בעלים 9.9 "כפתור 40 יום עדיין לא קיים מצידי — כפתור ענק שיראו אותו":
-                 יצא מסעיף קשר-הבא (היה תלוי ב-supporters.nextdate) לראש-הכרטיס, ברוחב מלא. */
+            {/* בקשת-בעלים 9.9 "כפתור 40 יום עדיין לא קיים מצידי — כפתור ענק שיראו אותו":
+                 יצא מסעיף קשר-הבא (היה תלוי ב-supporters.nextdate) לראש-הכרטיס, ברוחב מלא. */}
             {recurMode === 'segula' && (
             <button
               type="button"
@@ -604,7 +604,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         { id: 'details', label: 'פרטי ' + termOf(config, 'entity.supporter', 'התומך/ת'), visible: true, node: (
         <div className="card">
           <h3 style={{ fontSize: 15, marginBottom: 8 }}>{'פרטי ' + termOf(config, 'entity.supporter', 'התומך/ת')}</h3>
-          /* INTEGRATIONS — פעולות-הרחבה: 💬 וואטסאפ · 💳 עמוד-תרומה · 🤖 מכתב-תודה */
+          {/* INTEGRATIONS — פעולות-הרחבה: 💬 וואטסאפ · 💳 עמוד-תרומה · 🤖 מכתב-תודה */}
           {(telephonyOn(config) || integrationOn(config, 'whatsapp') || integrationOn(config, 'payments') || aiReady || smsReady) && (
             <div style={{ textAlign: 'left', marginBottom: 2, display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
               {aiReady && (
@@ -656,7 +656,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             </div>
           )}
           <InfoRow k="טלפון" v={sp.phone || '—'} ltr />
-          /* טלפונים נוספים (ריבוי-טלפונים) — כל אחד עם תווית, הערה "ממי זה", סיווג ישראל/חו"ל, וכפתורי חיוג/וואטסאפ */
+          {/* טלפונים נוספים (ריבוי-טלפונים) — כל אחד עם תווית, הערה "ממי זה", סיווג ישראל/חו"ל, וכפתורי חיוג/וואטסאפ */}
           {(sp.phones ?? []).length > 0 && (
             <div style={{ margin: '2px 0 6px', display: 'flex', flexDirection: 'column', gap: 5 }}>
               {allSupPhones(sp).filter((r) => !r.primary).map((r, i) => (
@@ -741,8 +741,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <h3 style={{ fontSize: 15 }}>
             {'כל ה' + termOf(config, 'entity.donations', 'תרומות') + ' — מתי וכמה'} ({donRows.length})
           </h3>
-          /* 🐛 FLAGMAX: הכפתור-התאום בכותרת מגודר canIssue (רק מנפיק-קבלות) —
-              זה נשכח ונחשף גם לעובד/ת; אותו תנאי בדיוק. */
+          {/* 🐛 FLAGMAX: הכפתור-התאום בכותרת מגודר canIssue (רק מנפיק-קבלות) —
+              זה נשכח ונחשף גם לעובד/ת; אותו תנאי בדיוק. */}
           {canIssue && (
             <Btn sm onClick={() => setDonOpen(true)}>
               ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
@@ -765,8 +765,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                 </tr>
               </thead>
               <tbody>
-                /* P3 פריט 11: קיטום תצוגה ל-60 (slice בלבד — הנתונים נשמרים);
-                    לחיצה על שורה מסמנת את יומה בלוח האישי (כמו בלגאסי) */
+                {/* P3 פריט 11: קיטום תצוגה ל-60 (slice בלבד — הנתונים נשמרים);
+                    לחיצה על שורה מסמנת את יומה בלוח האישי (כמו בלגאסי) */}
                 {donRows.slice(0, 60).map((r, i) => (
                   <tr
                     key={r.rid ?? r.src + '|' + r.date + '|' + i}
@@ -783,9 +783,9 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                     <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--ink-faint)' }}>
                       {histOn ? r.src : r.rid}
                     </td>
-                    /* 🧾 הורדה חוזרת פר-תרומה (P3, לגאסי supReceipt) — רק לתרומות עם קבלה.
+                    {/* 🧾 הורדה חוזרת פר-תרומה (P3, לגאסי supReceipt) — רק לתרומות עם קבלה.
                         היו אמוג׳י-בלבד (🧾/📧) עם title בלבד — נעלם-הפשר במגע. עכשיו תווית
-                        גלויה בכל כפתור (הטקסט = השם-הנגיש). אותם handlers — אפס שינוי-התנהגות. */
+                        גלויה בכל כפתור (הטקסט = השם-הנגיש). אותם handlers — אפס שינוי-התנהגות. */}
                     <td onClick={(e) => e.stopPropagation()} style={{ whiteSpace: 'nowrap' }}>
                       {r.rid && receiptsOn ? (
                         <>
@@ -840,7 +840,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <h3 style={{ fontSize: 15 }}>הוראת קבע 🔁</h3>
-            /* חיווי מקושר-נדרים — extId נקלט לשיוך אך לא הוצג עד היום */
+            {/* חיווי מקושר-נדרים — extId נקלט לשיוך אך לא הוצג עד היום */}
             {sp.extId && (
               <span style={chipStyle('#e8f0fb', '#1d4ed8')} title={'מזהה-נדרים (ToremId): ' + sp.extId}>
                 🔗 מקושר-נדרים
