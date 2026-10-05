@@ -450,7 +450,8 @@ function FlagDiagnostics() {
             'cloud: ' + (cloudOn ? 'on' : 'off') + (cloudEmail ? ' · ' + cloudEmail + (isManager ? ' · manager' : '') : ''),
             'build: ' + fmtBuildId(__BUILD_ID__),
             'supporters module: ' + (moduleOn(config, 'supporters') ? 'on' : 'OFF'),
-            '40 יום נראה: ' + (segula ? 'ON' : 'OFF') + ' (ברירת-מחדל לעמותה) · raw supporters.segula=' + String(config.features?.['supporters.segula']),
+            // 5.10: גם הדגל שבאמת קובע (core.taxreceipt) — false תקוע בענן (merge:true) היה בלתי-נראה כאן
+            '40 יום נראה: ' + (segula ? 'ON' : 'OFF') + ' (ברירת-מחדל לעמותה) · raw supporters.segula=' + String(config.features?.['supporters.segula']) + ' · raw core.taxreceipt=' + String(config.features?.['core.taxreceipt']),
             'modules off: ' + (offModules.length ? offModules.join(', ') : '—'),
             'features off (' + offFeatures.length + '): ' + (offFeatures.length ? offFeatures.join(', ') : '—'),
           ].join('\n')}

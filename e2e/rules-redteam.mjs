@@ -172,6 +172,35 @@ await T('🔴 זר לא כותב לצ׳אט-צוות של acme', assertFails(set
 await T('🔴 הודעת-ענק בצ׳אט-צוות נחסמת', assertFails(setDoc(doc(emp, 'teamChats/acme/messages/big'), { sender: 'emp@acme.com', name: 'x', text: 'x'.repeat(5000), at: '2026-08-18T10:00:00.000Z' })));
 await T('🔴 שדה-זר בצ׳אט-צוות נחסם (hasOnly)', assertFails(setDoc(doc(emp, 'teamChats/acme/messages/j'), { sender: 'emp@acme.com', name: 'x', text: 'x', at: '2026-08-18T10:00:00.000Z', evil: 'y' })));
 
+console.log('\n═══ י״א · ⚙️ קונפיג-ארגון — "הדלקת דגל" חייבת להגיע לענן (שורש "40 יום לא נשמר דלוק", 5.10) ═══');
+// הרקע: האשף מדליק דגל ע"י **מחיקת-המפתח** (חסר=דלוק). writeOrgCloudConfig כתב עם merge:true,
+// ו-merge:true ממזג-עומק מפות ⇒ ה-false הישן שרד כל הדלקה. כאן מוכיחים על Firestore אמיתי:
+// (1) merge:true משאיר את ה-false (הבאג); (2) mergeFields:['config'] — הנתיב המתוקן — מחליף את
+// config בשלמותו ושומר members/manager; (3) Rules: רק מייל-על כותב config; מנהל-ארגון לא.
+await env.withSecurityRulesDisabled(async (ctx) => {
+  await setDoc(doc(ctx.firestore(), 'platformOrgs/stale'), {
+    members: ['boss@stale.com'], manager: 'boss@stale.com',
+    config: { slug: 'stale', orgName: 'Stale', features: { 'supporters.segula': false, 'core.taxreceipt': false }, modules: { shop: false } },
+  });
+});
+const onCfg = { slug: 'stale', orgName: 'Stale', features: { 'supporters.hok': false }, modules: { tzedaka: false } }; // הדגלים הודלקו = נמחקו
+await T('(הבאג) merge:true משאיר supporters.segula/core.taxreceipt=false אחרי "הדלקה"', (async () => {
+  await setDoc(doc(su, 'platformOrgs/stale'), { config: onCfg }, { merge: true });
+  const f = (await getDoc(doc(su, 'platformOrgs/stale'))).data().config.features;
+  if (f['supporters.segula'] !== false || f['core.taxreceipt'] !== false) throw new Error('merge:true כבר לא ממזג-עומק? ' + JSON.stringify(f));
+})());
+await T('(התיקון) mergeFields:[config] — הדגלים שהודלקו נעלמים מהענן, members/manager נשמרים', (async () => {
+  await setDoc(doc(su, 'platformOrgs/stale'), { config: onCfg }, { mergeFields: ['config'] });
+  const d = (await getDoc(doc(su, 'platformOrgs/stale'))).data();
+  const f = d.config.features;
+  if ('supporters.segula' in f || 'core.taxreceipt' in f) throw new Error('false תקוע נשאר: ' + JSON.stringify(f));
+  if (f['supporters.hok'] !== false || d.config.modules.tzedaka !== false || 'shop' in d.config.modules) throw new Error('config לא הוחלף בשלמותו: ' + JSON.stringify(d.config));
+  if (d.manager !== 'boss@stale.com' || !d.members.includes('boss@stale.com')) throw new Error('members/manager נפגעו: ' + JSON.stringify(d));
+})());
+const staleBoss = env.authenticatedContext('staleboss', { email: 'boss@stale.com' }).firestore();
+// (כתיבה **שונה** — כתיבה זהה-לקיים = affectedKeys ריק = לא-שינוי, ו-Rules מתירים no-op)
+await T('🔴 מנהל-ארגון לא כותב config (גם עם mergeFields)', assertFails(setDoc(doc(staleBoss, 'platformOrgs/stale'), { config: { ...onCfg, features: {} } }, { mergeFields: ['config'] })));
+
 await env.cleanup();
 console.log(`\n── סיכום red-team ── ${pass} עברו · ${fail} נכשלו`);
 if (fail > 0) { console.log('❌ יש חור-אבטחה — Rules לא חוסמים תרחיש-תקיפה!'); process.exit(1); }
