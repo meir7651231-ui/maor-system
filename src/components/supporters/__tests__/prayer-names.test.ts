@@ -58,7 +58,8 @@ describe('store + מיזוג + חיווט', () => {
     expect(FEATURES.some((f) => f.key === 'supporters.prayernames')).toBe(true);
     const detail = readFileSync(new URL('../SupporterDetail.tsx', import.meta.url), 'utf8');
     expect(detail).toContain("const prayerOn = featureOn(config, 'supporters.prayernames');");
-    expect(detail).toContain('{prayerOn && <PrayerNames supporter={sp} />}');
+    // 5.10: הקובייה ברשימת-הכרטיס (cardWidgets) — אותו גידור prayerOn, אותו רכיב
+    expect(detail).toContain("{ id: 'prayer', label: 'שמות לתפילה 🙏', visible: prayerOn, wide: true, node: <PrayerNames supporter={sp} /> }");
     const comp = readFileSync(new URL('../PrayerNames.tsx', import.meta.url), 'utf8');
     for (const a of ['s.addPrayerName', 's.setPrayerNote', 's.togglePrayerName', 's.removePrayerName', '📋 העתקת הרשימה', 'placeholder="הערה (למי / על מה)"']) expect(comp).toContain(a);
   });

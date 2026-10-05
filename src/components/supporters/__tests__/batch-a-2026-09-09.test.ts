@@ -21,9 +21,12 @@ describe('(8) כפתור-40 ענק בראש-הכרטיס — לא תלוי בק�
   const src = read('../SupporterDetail.tsx');
   it('הסעיף יושב מיד אחרי כותרת-הכרטיס, לפני קשר-הבא, ומגודר segulaOn בלבד', () => {
     const hdr = src.indexOf('{/* כותרת הכרטיס */}');
-    const sec = src.indexOf('{segulaOn && (');
-    const next = src.indexOf('{nextOn && (');
-    expect(sec).toBeGreaterThan(hdr);
+    // 5.10: הקוביות הן רשימה אחת (cardWidgets) — הסדר-החי נשמר כברירת-המחדל: סגולה לפני קשר-הבא, מגודרת segulaOn
+    const sec = src.indexOf("{ id: 'segula', label: 'סגולת 40 יום 🕯', visible: segulaOn");
+    const next = src.indexOf("{ id: 'next', label: 'קשר הבא 🎯', visible: nextOn");
+    // הכותרת מרונדרת לפני רשת-הקוביות (הקוביות מוצהרות לפני return, לכן ההשוואה היא על הרינדור)
+    expect(hdr).toBeLessThan(src.indexOf('{shownIds.map((id, i) => {'));
+    expect(sec).toBeGreaterThan(-1);
     expect(sec).toBeLessThan(next);
     // הכפתור לא נמצא עוד בתוך בלוק nextOn
     expect(src.indexOf('🕯 40 ימים — התחלת סגולה')).toBeLessThan(next);
