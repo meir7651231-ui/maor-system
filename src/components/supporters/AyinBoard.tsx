@@ -3,11 +3,14 @@
  * וכפתור חכם לכל שורה. כל התוויות עוברות דרך מילון המונחים (feature כללי).
  * מוצג רק כשהפיצ'ר supporters.ayin דלוק (הגייטינג בקורא — SupportersView).
  */
+import { useState } from 'react';
 import { useRemembered } from '../../lib/filterMemory';
 import { useApp } from '../../store/useApp';
 import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, termOf } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
+import { hebDateFull } from '../../lib/hebrew';
+import { HebDateInput } from '../HebDateInput';
 import {
   AYIN_STAGES,
   ayinActionVisible,
@@ -69,6 +72,14 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   const db = useDbWatch('supporters');
   const cfg = useApp((s) => s.config);
   const advance = useApp((s) => s.ayinAdvance);
+  // 🎯 «קשר הבא» מהלוח (בקשת-בעלים 6.10) — אותו מנגנון של הכרטיס ושל מעקב-הטיפול (store.setSupporterNext):
+  // תאריך על התומך/ת + תזכורת-שיחה בלוח-השנה. מגודר כמו הקובייה בכרטיס (supporters.nextdate).
+  const setSupporterNext = useApp((s) => s.setSupporterNext);
+  const toast = useApp((s) => s.toast);
+  const nextDateOn = featureOn(cfg, 'supporters.nextdate');
+  // התיק שסומן «✓ הושלם» מהלוח ברגע זה — נשאר על הלוח עם שאלת «קשר הבא?» עד שקובעים/מדלגים
+  // (הכרעת-בעלים 3.9 «הושלם יורד מהלוח» נשמרת — זו עצירה של רגע אחד, לא שורה קבועה).
+  const [nextPromptId, setNextPromptId] = useState<string | null>(null);
   // 🔒 ייעוד-הרשאה (13.8): לוח-הטיפול לא יחשוף שמות תורמים לעובד/ת שאינו מורשה לייעודם.
   const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
   const desigLimit = featureOn(cfg, 'supporters.purpose') ? allowedDesignations : null;
@@ -90,6 +101,10 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
     filter === 'all' ? active
     : filter === 'done' ? visible.filter((sp) => ayinActive(sp.ayin) && (sp.ayin!.stage || 'new') === 'done')
     : active.filter((sp) => (sp.ayin!.stage || 'new') === filter);
+  if (nextPromptId && !rows.some((sp) => sp.id === nextPromptId)) {
+    const held = visible.find((sp) => sp.id === nextPromptId && ayinActive(sp.ayin));
+    if (held) rows = [held, ...rows];
+  }
   rows = [...rows].sort((sa, sb) => {
     const aa = sa.ayin!;
     const ab = sb.ayin!;
@@ -131,7 +146,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
         }}
       >
         <span style={{ fontSize: 13.5, fontWeight: 800, color: '#9a6414' }}>
-          🗂 לוח {feat} · {filter === 'all' ? active.length : rows.length + ' מתוך ' + active.length}
+          🗂 לוח {feat} · {filter === 'all' || filter === 'done' ? rows.length : rows.length + ' מתוך ' + active.length}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <select value={region} onChange={(e) => setRegion(e.target.value as 'all' | 'il' | 'intl')} title="סינון לפי אזור-טלפון: ישראל / חו״ל" aria-label="אזור" style={selStyle}>
@@ -200,9 +215,11 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
               const showBtn = ayinActionVisible(a);
               // 🎯 יעד שעבר (ביקורת-ריצה 3.9, F4): מסומן באדום + ⚠ + title — לא זהה לעתידי.
               const overdue = !!a.nextTalk && a.nextTalk < today;
+              const isDone = (a.stage || 'new') === 'done';
+              const promptOpen = nextDateOn && isDone && nextPromptId === sp.id;
               return (
+                <div key={sp.id} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                 <div
-                  key={sp.id}
                   className="ayin-row"
                   role="button"
                   tabIndex={0}
@@ -274,11 +291,37 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                     {a.lastTouch ? fmtDate(a.lastTouch) : '—'}
                   </div>
                   <div>
+                    {/* 🎯 תיק שהושלם: כפתור «קשר הבא» במקום הכפתור-החכם (שאינו מוצג ב-done) */}
+                    {nextDateOn && isDone && !showBtn && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setNextPromptId(promptOpen ? null : sp.id);
+                        }}
+                        title={sp.nextDate ? 'קשר הבא: ' + hebDateFull(sp.nextDate) + ' — לחיצה לשינוי' : 'קביעת קשר הבא אחרי שהטיפול הושלם — נכנס ללוח השנה'}
+                        style={{
+                          background: sp.nextDate ? '#e4f5ea' : '#fff',
+                          color: sp.nextDate ? '#12803c' : '#9a6414',
+                          border: '1px solid ' + (sp.nextDate ? '#cde9d6' : '#ecd9a8'),
+                          borderRadius: 9,
+                          padding: '6px 10px',
+                          fontSize: 10.5,
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {sp.nextDate ? '🎯 ' + fmtDate(sp.nextDate) : '🎯 קשר הבא'}
+                      </button>
+                    )}
                     {showBtn && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          // «✓ הושלם» מהלוח ⇒ השורה נשארת רגע עם שאלת «קשר הבא?» (במקום להיעלם)
+                          const finishing = a.stage === 'answer' && !!a.answerPushed;
                           advance(sp.id);
+                          if (finishing && nextDateOn) setNextPromptId(sp.id);
                         }}
                         title="הכפתור החכם — מקדם לשלב הבא ומסנכרן ללוח"
                         style={{
@@ -297,6 +340,47 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                       </button>
                     )}
                   </div>
+                </div>
+                {promptOpen && (
+                  <div
+                    className="ayin-next-prompt"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      margin: '0 10px',
+                      background: '#fff',
+                      border: '1px dashed #ecd9a8',
+                      borderTop: 'none',
+                      borderRadius: '0 0 11px 11px',
+                      padding: '8px 12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 6,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 800, color: '#9a6414' }}>
+                        🎯 קשר הבא — {sp.name} · הטיפול הושלם
+                      </span>
+                      <button
+                        onClick={() => setNextPromptId(null)}
+                        title="בלי קשר הבא כרגע — אפשר לקבוע אחר-כך מסינון «הושלם» או מהכרטיס"
+                        style={{ background: 'transparent', border: '1px solid #ecd9a8', borderRadius: 9, padding: '3px 9px', fontSize: 10.5, fontWeight: 800, color: '#8b8474', cursor: 'pointer' }}
+                      >
+                        {sp.nextDate ? 'סגירה' : 'דלג'}
+                      </button>
+                    </div>
+                    <HebDateInput
+                      value={sp.nextDate || ''}
+                      onChange={(iso) => {
+                        setSupporterNext(sp.id, iso, 'אחרי סיום ' + feat);
+                        toast(iso ? 'נקבע קשר הבא ' + hebDateFull(iso) + ' — נכנס ללוח השנה' : 'תאריך הקשר הבא נוקה');
+                      }}
+                    />
+                    <div style={{ fontSize: 11.5, color: '#8b8474' }}>
+                      {sp.nextDate ? hebDateFull(sp.nextDate) + ' · תזכורת 📞 בלוח השנה ובכרטיס' : 'קביעת תאריך תוסיף תזכורת שיחה ללוח השנה — כמו «קשר הבא» בכרטיס'}
+                    </div>
+                  </div>
+                )}
                 </div>
               );
             })}
