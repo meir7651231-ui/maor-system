@@ -362,6 +362,8 @@ interface AppState {
    * (יוצר פעם אחת, מעדכן את אותו אירוע בשינוי, '' ⇒ ניקוי דרך unlinkEvent). topic = «על מה לדבר» ⇒ בהערות-האירוע.
    */
   setSupporterNext: (id: string, dateIso: string, topic?: string) => void;
+  /** 📝 «על מה לדבר בפעם הבאה» — על התומך/ת + רענון notes של תזכורת-הלוח המקושרת (6.10: משותף לכרטיס וללוח). */
+  setSupporterNextNote: (id: string, note: string) => void;
   upsertEvent: (ev: OrgEvent) => void;
   deleteEvent: (id: string) => void;
   /**
@@ -2267,6 +2269,20 @@ export const useApp = create<AppState>()((set, get) => {
       const evId = get().nextId('ev');
       get().upsertEvent({ id: evId, title, date: dateIso, time: '', type: 'call', customType: '', notes, price: 0, roomId: '', famId: '', priority: 'orange', done: false });
       get().upsertSupporter({ ...sp, nextDate: dateIso, nextEventId: evId });
+    },
+    setSupporterNextNote(id, note) {
+      const db = get().db;
+      const sp = db.supporters.find((s) => s.id === id);
+      if (!sp) return;
+      const v = note.trim();
+      if (v === (sp.nextNote || '')) return;
+      const cfg = get().config;
+      const linked = sp.nextEventId ? db.events.find((e) => e.id === sp.nextEventId) : undefined;
+      if (linked) {
+        const base = termOf(cfg, 'entity.family', 'משפחה') + ' תומכת · ' + (sp.phone || '') + (sp.email ? ' · ' + sp.email : '');
+        get().upsertEvent({ ...linked, notes: base + (v ? ' · 📝 ' + v : '') });
+      }
+      get().upsertSupporter({ ...sp, nextNote: v });
     },
     upsertEvent(ev) {
       setDb((db) => ({ events: upsertIn(db.events, ev) }));
