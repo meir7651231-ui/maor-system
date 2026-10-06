@@ -15,7 +15,8 @@ const src = readFileSync(resolve(__dirname, '../AyinBoard.tsx'), 'utf8');
 describe('לוח מעקב-הטיפול · קשר הבא 🎯', () => {
   it('מנגנון אחד — setSupporterNext מה-store, לא כתיבה ישירה', () => {
     expect(src).toContain('const setSupporterNext = useApp((s) => s.setSupporterNext);');
-    expect(src).toContain("setSupporterNext(sp.id, iso, 'אחרי סיום ' + feat)");
+    // 6.10: הנושא מהטיוטה «על מה לדבר» נכנס לתזכורת; ריק ⇒ ברירת-המחדל «אחרי סיום …»
+    expect(src).toContain("setSupporterNext(sp.id, iso, nextTopic.trim() || 'אחרי סיום ' + feat)");
     expect(src).not.toMatch(/upsertSupporter\(\{[^}]*nextDate/);
   });
 
@@ -27,7 +28,7 @@ describe('לוח מעקב-הטיפול · קשר הבא 🎯', () => {
 
   it('«✓ הושלם» מהלוח ⇒ השורה נשארת עם שאלת «קשר הבא?» (ולא רק נעלמת)', () => {
     expect(src).toContain('const finishing = a.stage === \'answer\' && !!a.answerPushed;');
-    expect(src).toContain('if (finishing && nextDateOn) setNextPromptId(sp.id);');
+    expect(src).toContain('if (finishing && nextDateOn) openNextPrompt(sp);');
     // השורה המוחזקת מצטרפת ל-rows רק אם היא עדיין תיק פעיל ונראה-להרשאה
     expect(src).toContain('if (nextPromptId && !rows.some((sp) => sp.id === nextPromptId)) {');
     expect(src).toContain('visible.find((sp) => sp.id === nextPromptId && ayinActive(sp.ayin))');
@@ -66,12 +67,30 @@ describe('לוח מעקב-הטיפול · קשר הבא 🎯', () => {
     expect(src).toContain('{dueNext && restartOn && (');
     // «הקשר בוצע» = ניקוי דרך אותו מנגנון (מסיר גם את תזכורת-הלוח — unlinkEvent ב-store)
     expect(src).toContain("setSupporterNext(sp.id, '', '');");
-    expect(src).toContain('✓ הקשר בוצע');
+    // 6.10 («חסר שמירה וטופל»): «✓ טופל» תמיד זמין (לא רק כשהגיע הזמן) — מנקה תאריך+תזכורת+הערה
+    expect(src).toContain("{dueNext ? '✓ טופל · הקשר בוצע' : '✓ טופל'}");
+    expect(src).toContain("setSupporterNextNote(sp.id, '');");
     expect(src).toContain('↻ מחזור טיפול חדש');
   });
 
   it('מיון «יעד קרוב» — לתיק שהושלם היעד הוא קשר-הבא (ולא nextTalk)', () => {
     // 6.10: תזכורת-סדרה שהגיע יומה קודמת ליעד; תומך/ת בלי תיק (?.) לא מפיל את המיון
     expect(src).toContain("const tgt = (sp: Supporter) => dueRemOf(sp)?.date || ((sp.ayin?.stage || 'new') === 'done' ? sp.nextDate : sp.ayin?.nextTalk) || '9999';");
+  });
+});
+
+describe('📝 «על מה לדבר» + 💾 שמירה + ✓ טופל בלוח (בקשת-בעלים 6.10 «בקשר הבא חסר במעקב טיפול על מה לדבר שמירה וטופל»)', () => {
+  it('טיוטת-הנושא נטענת מ-sp.nextNote בפתיחת-השאלה ונשמרת דרך store.setSupporterNextNote (אותו שדה של הכרטיס)', () => {
+    expect(src).toContain('const setSupporterNextNote = useApp((s) => s.setSupporterNextNote);');
+    expect(src).toContain("setNextTopic(sp.nextNote || '');");
+    expect(src).toContain('onBlur={() => setSupporterNextNote(sp.id, nextTopic)}');
+    expect(src).toContain('💾 שמירה');
+    expect(src).toContain('aria-label="על מה לדבר בפעם הבאה"');
+  });
+  it('store.setSupporterNextNote — מעדכן nextNote ומרענן notes של תזכורת-הלוח המקושרת; בלי שינוי = no-op', () => {
+    const store = readFileSync(resolve(__dirname, '../../../store/useApp.ts'), 'utf8');
+    expect(store).toContain('setSupporterNextNote(id, note) {');
+    expect(store).toContain("if (v === (sp.nextNote || '')) return;");
+    expect(store).toContain("get().upsertEvent({ ...linked, notes: base + (v ? ' · 📝 ' + v : '') });");
   });
 });
