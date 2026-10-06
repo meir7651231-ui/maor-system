@@ -435,9 +435,8 @@ function FlagDiagnostics() {
   const [open, setOpen] = useState(false);
   const offModules = Object.entries(config.modules ?? {}).filter(([, v]) => v === false).map(([k]) => k);
   const offFeatures = Object.entries(config.features ?? {}).filter(([, v]) => v === false).map(([k]) => k).sort();
-  // 22.9: הנראות של "40 יום" כבר לא תלויה בדגל supporters.segula אלא היא ברירת-מחדל
-  // לכל עמותה (core.taxreceipt); מוסתרת רק בוורטיקל מסחרי. מציגים גם את הדגל-הגולמי לאבחון.
-  const segula = featureOn(config, 'core.taxreceipt');
+  // 6.10: הנראות של "40 יום" = הדגל supporters.segula (חסר=דלוק); core.taxreceipt מוצג לאבחון בלבד.
+  const segula = featureOn(config, 'supporters.segula');
   return (
     <div style={{ marginTop: 6 }}>
       <Btn sm kind="plain" onClick={() => setOpen((v) => !v)} title="מצב הדגלים והמודולים בפועל במכשיר הזה — לאבחון מרחוק">
@@ -451,7 +450,7 @@ function FlagDiagnostics() {
             'build: ' + fmtBuildId(__BUILD_ID__),
             'supporters module: ' + (moduleOn(config, 'supporters') ? 'on' : 'OFF'),
             // 5.10: גם הדגל שבאמת קובע (core.taxreceipt) — false תקוע בענן (merge:true) היה בלתי-נראה כאן
-            '40 יום נראה: ' + (segula ? 'ON' : 'OFF') + ' (ברירת-מחדל לעמותה) · raw supporters.segula=' + String(config.features?.['supporters.segula']) + ' · raw core.taxreceipt=' + String(config.features?.['core.taxreceipt']),
+            '40 יום נראה: ' + (segula ? 'ON' : 'OFF') + ' (לפי supporters.segula; חסר=דלוק) · raw supporters.segula=' + String(config.features?.['supporters.segula']) + ' · raw core.taxreceipt=' + String(config.features?.['core.taxreceipt']),
             'modules off: ' + (offModules.length ? offModules.join(', ') : '—'),
             'features off (' + offFeatures.length + '): ' + (offFeatures.length ? offFeatures.join(', ') : '—'),
           ].join('\n')}

@@ -42,13 +42,19 @@ describe('הגנות-מקור', () => {
     expect(s).toContain("downloadCsv('maor-teachers.csv', teachersCsvRows(teachers, courses, { full: featureOn(config, 'reports.export.full')");
     expect(s).toContain("{'⬇ רשימת ה' + teacher + ' (CSV)'}");
   });
-  // הכרעת-בעלים 22.9 ("שיהיה כפתור דלוק ברירת-מחדל"): הנראות כבר לא תלויה בדגל
-  // supporters.segula אלא בעמותה (core.taxreceipt) — דגל false לא מסתיר; אין הודעת-כבוי.
-  it('כרטיס-תורם: 40 יום דלוק ברירת-מחדל לעמותה (core.taxreceipt), לא תלוי בדגל; אין הודעת-כבוי', () => {
+  // 6.10 (בעלים: "40 יום לא עובד אפילו שהפעלתי אותו"): #501 קשר את הנראות ל-core.taxreceipt —
+  // הבעלים הדליק את "סגולת 40 יום" (נשמר) והכפתור נשאר מוסתר כי §46 כבוי אצלו. הדגל ששמו
+  // "סגולת 40 יום" שולט; false מפורש ⇒ הודעה גלויה (כלל 16.9), לא העלמה; מסחרי ⇒ COMMERCIAL_OFF.
+  it('כרטיס-תורם: 40 יום נשלט ע"י supporters.segula (לא core.taxreceipt); false ⇒ הודעת-כבוי גלויה', () => {
     const s = src('../../components/supporters/SupporterDetail.tsx');
-    expect(s).toContain("const segulaOn = featureOn(config, 'core.taxreceipt');");
-    expect(s).not.toContain('{!segulaOn && (');
-    expect(s).not.toContain('"40 ימים" כבוי בהגדרות-הארגון הזה');
+    expect(s).toContain("const segulaOn = featureOn(config, 'supporters.segula');");
+    expect(s).not.toContain("const segulaOn = featureOn(config, 'core.taxreceipt');");
+    expect(s).toContain('{!segulaOn && (');
+    expect(s).toContain('"40 ימים" כבוי בהגדרות-הארגון הזה');
+  });
+  it('ורטיקל מסחרי מכבה את הסגולה במפורש (COMMERCIAL_OFF) — לא דרך פרוקסי §46', () => {
+    const s = src('../verticalPacks.ts');
+    expect(s).toContain("'supporters.segula': false,");
   });
   it('הגדרות: 🔎 אבחון-דגלים — org/cloud/build/מודול/40-יום-נראה+raw/רשימות-כבויים', () => {
     const s = src('../../components/settings/SettingsView.tsx');

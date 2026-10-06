@@ -56,18 +56,18 @@ const boot = async (cfg) => {
   await ctx.close();
 }
 
-/* (ג) — הכרעת-בעלים 22.9: גם כשהדגל supporters.segula=false בעמותה, כפתור ה-40 יום
-        עדיין מוצג (דלוק ברירת-מחדל); אין יותר הודעת-דגל-כבוי. */
+/* (ג) — 6.10: supporters.segula=false מפורש ⇒ הכפתור מוסתר, הודעה גלויה בכרטיס, אבחון OFF. */
 {
   const { ctx, pg, errors } = await boot({ slug: 'default', orgName: 'x', theme: 'or-rishon', modules: {}, features: { 'supporters.segula': false } });
   await go(pg, 'תורמים');
   await pg.locator('main table tbody tr, main .card[role="button"]').first().click(); await pg.waitForTimeout(800);
-  (await pg.locator('button', { hasText: '40 ימים' }).count()) >= 1 ? ok('דגל false: כפתור 40 ימים עדיין מוצג (ברירת-מחדל לעמותה)') : fail('הכפתור נעלם למרות ברירת-מחדל דלוקה');
-  (await pg.locator('text="40 ימים" כבוי בהגדרות-הארגון').count()) === 0 ? ok('אין יותר הודעת-דגל-כבוי') : fail('הודעת-דגל-כבוי עדיין מוצגת');
+  // 6.10: הדגל "סגולת 40 יום" שולט — false מפורש ⇒ הכפתור מוסתר + הודעה גלויה (כלל 16.9), לא העלמה
+  (await pg.locator('button', { hasText: '40 ימים' }).count()) === 0 ? ok('דגל false: כפתור 40 ימים מוסתר (הדגל שולט)') : fail('הכפתור מוצג למרות supporters.segula=false');
+  (await pg.locator('text="40 ימים" כבוי בהגדרות-הארגון').count()) === 1 ? ok('הודעת-דגל-כבוי גלויה בכרטיס') : fail('הודעת-דגל-כבוי חסרה');
   await go(pg, 'הגדרות');
   const diagBtn = pg.locator('button', { hasText: '🔎 אבחון דגלים' }).first(); if (await diagBtn.count()) { await diagBtn.click(); await pg.waitForTimeout(300); }
   const pre = (await pg.locator('main pre').first().textContent()) || '';
-  pre.includes('40 יום נראה: ON') && pre.includes('raw supporters.segula=false') ? ok('אבחון: 40 יום נראה ON למרות raw=false') : fail('אבחון (false): ' + pre.slice(0, 220));
+  pre.includes('40 יום נראה: OFF') && pre.includes('raw supporters.segula=false') ? ok('אבחון: 40 יום נראה OFF · raw supporters.segula=false') : fail('אבחון (false): ' + pre.slice(0, 220));
   errors.length === 0 ? ok('(ג) אפס שגיאות-קונסולה') : fail('שגיאות: ' + errors.join(' | '));
   await ctx.close();
 }

@@ -171,10 +171,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   }
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
-  // 🕯 סגולת 40 יום — הכרעת-בעלים 22.9 ("שיהיה כפתור דלוק ברירת-מחדל"): דלוק כברירת-
-  // מחדל בכל עמותה, גם אם supporters.segula נכתב false בקונפיג-הענן של הלקוח; מוסתר רק
-  // בוורטיקל מסחרי (!core.taxreceipt — שם "העין"=פרויקטים והסגולה חסרת-משמעות).
-  const segulaOn = featureOn(config, 'core.taxreceipt');
+  // 🕯 סגולת 40 יום — הדגל שנקרא "סגולת 40 יום" הוא זה ששולט (חסר=דלוק, רק false מכבה).
+  // 6.10 (בעלים: "40 יום לא עובד אפילו שהפעלתי אותו"): מאז #501 הנראות נגזרה מ-core.taxreceipt
+  // ("קבלת סעיף 46") — הבעלים הדליק את "סגולת 40 יום" בלוח-הבקרה (נשמר, raw=undefined) והכפתור
+  // נשאר מוסתר כי §46 כבוי אצלו. דגל חייב לשלוט במה ששמו אומר. ורטיקל מסחרי מכבה אותו
+  // דרך COMMERCIAL_OFF (verticalPacks) — לא דרך פרוקסי. ה-#501 נולד מ-false תקוע בענן
+  // (merge:true, תוקן ב-#504) — עכשיו הדלקה בלוח-הבקרה באמת נשמרת.
+  const segulaOn = featureOn(config, 'supporters.segula');
   // מצב-הסגולה נגזר מאירועי-הלוח של התומך/ת (בקשת-בעלים 3.9 "40 יום לא מופיע" — הכפתור זרע בשקט).
   const segula = segulaOn ? segulaStatus(events, sp.id, isoToday()) : null;
   const seedSegulaReminders = useApp((s) => s.seedSegulaReminders);
@@ -989,6 +992,12 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <Btn sm onClick={() => setLayoutDraft(allIds.filter(isVisible))}>איפוס לברירת-המחדל</Btn>
           <Btn sm onClick={() => setLayoutEdit(false)}>ביטול</Btn>
           <Btn sm kind="primary" onClick={saveLayout}>שמירה ✓</Btn>
+        </div>
+      )}
+      {/* 6.10 — כלל 16.9: דגל שמסתיר יכולת אומר זאת על המסך (לא העלמה שקטה). מוצג רק כשהדגל false מפורש. */}
+      {!segulaOn && (
+        <div className="card" style={{ padding: '8px 12px', fontSize: 12.5, color: 'var(--ink-faint)' }}>
+          🕯 "40 ימים" כבוי בהגדרות-הארגון הזה (דגל <code dir="ltr">supporters.segula</code>) — המנהל/ת מדליק/ה בלוח-הבקרה ← דגלים ← תורמים.
         </div>
       )}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
