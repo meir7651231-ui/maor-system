@@ -23,7 +23,7 @@ import {
   unitLabel,
 } from '../../lib/ayin';
 import type { AyinCase, AyinStage, Supporter } from '../../types/domain';
-import { fmtDate, supHasRegion, supporterVisibleForDesignations } from './lib';
+import { fmtDate, segulaStatus, supHasRegion, supporterVisibleForDesignations } from './lib';
 
 /** תבנית-הגריד של שורה ושל שורת-הכותרות — זהה, כדי שהעמודות יתיישרו. */
 // עמודה אחרונה ברוחב קבוע (לא auto): בשורות בלי כפתור-חכם הטראק היה 0px וה-fr-ים נדדו עד ~90px מול הכותרות (אימות-ריצה 3.9).
@@ -69,7 +69,8 @@ function namesLineOf(a: AyinCase): string {
 }
 
 export function AyinBoard(props: { onOpen: (id: string) => void }) {
-  const db = useDbWatch('supporters');
+  // 🕯 (6.10) אירועי-הלוח נצפים גם הם — מצב-הסגולה של כל שורה נגזר מהם (segulaStatus).
+  const db = useDbWatch('supporters', 'events');
   const cfg = useApp((s) => s.config);
   const advance = useApp((s) => s.ayinAdvance);
   // 🎯 «קשר הבא» מהלוח (בקשת-בעלים 6.10) — אותו מנגנון של הכרטיס ושל מעקב-הטיפול (store.setSupporterNext):
@@ -77,6 +78,11 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   const setSupporterNext = useApp((s) => s.setSupporterNext);
   const toast = useApp((s) => s.toast);
   const restart = useApp((s) => s.ayinRestart);
+  // 🕯 סגולת 40 יום מהלוח (בקשת-בעלים 6.10 «תכניס את הכפתור בלוח מעקב טיפול»): אותו מנגנון של הכרטיס
+  // (store.seedSegulaReminders — 5 תזכורות-לוח + קשר-הבא), מגודר באותו דגל (supporters.segula, חסר=דלוק).
+  // שורה שכבר רצה לה סגולה מציגה צ'יפ-מצב «🕯 יום N/40» במקום הכפתור (לא זורעים פעמיים).
+  const seedSegula = useApp((s) => s.seedSegulaReminders);
+  const segulaOn = featureOn(cfg, 'supporters.segula');
   const nextDateOn = featureOn(cfg, 'supporters.nextdate');
   const restartOn = featureOn(cfg, 'supporters.ayin.restart');
   // התיק שסומן «✓ הושלם» מהלוח ברגע זה — נשאר על הלוח עם שאלת «קשר הבא?» עד שקובעים/מדלגים
@@ -308,7 +314,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                   <div style={{ fontSize: 11, color: '#8b8474', fontWeight: 700 }}>
                     {a.lastTouch ? fmtDate(a.lastTouch) : '—'}
                   </div>
-                  <div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'stretch' }}>
                     {/* 🎯 תיק שהושלם: כפתור «קשר הבא» במקום הכפתור-החכם (שאינו מוצג ב-done) */}
                     {nextDateOn && isDone && !showBtn && (
                       <button
@@ -357,6 +363,49 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                         {ayinAdvanceLabel(cfg, a)}
                       </button>
                     )}
+                    {/* 🕯 סגולת 40 יום — כפתור לכל שורה (6.10); פעילה ⇒ צ'יפ-מצב; לחיצה על הצ'יפ פותחת את הכרטיס (ברירת-המחדל של השורה) */}
+                    {segulaOn && (() => {
+                      const seg = segulaStatus(db.events, sp.id, today);
+                      return seg.active ? (
+                        <span
+                          title={'סגולה פעילה · יום ' + seg.day + ' מתוך ' + seg.target + (seg.next ? ' · תזכורת הבאה: ' + fmtDate(seg.next) : '') + ' · סיום: ' + fmtDate(seg.end) + ' — לחיצה פותחת את הכרטיס'}
+                          style={{
+                            background: '#e4f5ea',
+                            color: '#12803c',
+                            border: '1px solid #cde9d6',
+                            borderRadius: 9,
+                            padding: '4px 10px',
+                            fontSize: 10.5,
+                            fontWeight: 800,
+                            whiteSpace: 'nowrap',
+                            textAlign: 'center',
+                          }}
+                        >
+                          {'🕯 יום ' + seg.day + '/' + seg.target}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            seedSegula(sp.id, today, 'זיווג');
+                          }}
+                          title="זריעת 5 תזכורות-סגולה לזיווג מהיום (ימים 1·7·21·35·40) — נכנס לקשר-הבא וללוח השנה"
+                          style={{
+                            background: '#fff',
+                            color: '#9a6414',
+                            border: '1px solid #ecd9a8',
+                            borderRadius: 9,
+                            padding: '5px 10px',
+                            fontSize: 10.5,
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          🕯 40 יום
+                        </button>
+                      );
+                    })()}
                   </div>
                 </div>
                 {promptOpen && (
