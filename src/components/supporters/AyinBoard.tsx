@@ -22,8 +22,8 @@ import {
   stageLabel,
   unitLabel,
 } from '../../lib/ayin';
-import type { AyinCase, AyinStage, Supporter } from '../../types/domain';
-import { fmtDate, supHasRegion, supporterVisibleForDesignations } from './lib';
+import { emptyAyin, type AyinCase, type AyinStage, type Supporter } from '../../types/domain';
+import { activeRecurSeries, dueRecurReminder, fmtDate, RECUR_MODES, recurDef, supHasRegion, supporterVisibleForDesignations, type RecurMode } from './lib';
 
 /** תבנית-הגריד של שורה ושל שורת-הכותרות — זהה, כדי שהעמודות יתיישרו. */
 // עמודה אחרונה ברוחב קבוע (לא auto): בשורות בלי כפתור-חכם הטראק היה 0px וה-fr-ים נדדו עד ~90px מול הכותרות (אימות-ריצה 3.9).
@@ -69,7 +69,8 @@ function namesLineOf(a: AyinCase): string {
 }
 
 export function AyinBoard(props: { onOpen: (id: string) => void }) {
-  const db = useDbWatch('supporters');
+  // 🕯 (6.10) אירועי-הלוח נצפים גם הם — מצב-הסגולה של כל שורה נגזר מהם (segulaStatus).
+  const db = useDbWatch('supporters', 'events');
   const cfg = useApp((s) => s.config);
   const advance = useApp((s) => s.ayinAdvance);
   // 🎯 «קשר הבא» מהלוח (בקשת-בעלים 6.10) — אותו מנגנון של הכרטיס ושל מעקב-הטיפול (store.setSupporterNext):
@@ -77,6 +78,14 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   const setSupporterNext = useApp((s) => s.setSupporterNext);
   const toast = useApp((s) => s.toast);
   const restart = useApp((s) => s.ayinRestart);
+  // 🕯 סגולת 40 יום מהלוח (בקשת-בעלים 6.10 «תכניס את הכפתור בלוח מעקב טיפול»): אותו מנגנון של הכרטיס
+  // (store.seedSegulaReminders — 5 תזכורות-לוח + קשר-הבא), מגודר באותו דגל (supporters.segula, חסר=דלוק).
+  // שורה שכבר רצה לה סגולה מציגה צ'יפ-מצב «🕯 יום N/40» במקום הכפתור (לא זורעים פעמיים).
+  const seedSegula = useApp((s) => s.seedSegulaReminders);
+  const toggleEventDone = useApp((s) => s.toggleEventDone);
+  const segulaOn = featureOn(cfg, 'supporters.segula');
+  // 🕯▾ תפריט-החזרה הפתוח (6.10 «יש גם שבועי ויומי»): 40 יום · יומי · שבועי · חודשי — כמו הבורר בכרטיס, בכמות ברירת-המחדל.
+  const [recurMenuId, setRecurMenuId] = useState<string | null>(null);
   const nextDateOn = featureOn(cfg, 'supporters.nextdate');
   const restartOn = featureOn(cfg, 'supporters.ayin.restart');
   // התיק שסומן «✓ הושלם» מהלוח ברגע זה — נשאר על הלוח עם שאלת «קשר הבא?» עד שקובעים/מדלגים
@@ -104,8 +113,12 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   const isDueNext = (sp: Supporter): boolean =>
     nextDateOn && ayinActive(sp.ayin) && (sp.ayin!.stage || 'new') === 'done' && !!sp.nextDate && sp.nextDate <= today;
   const due = visible.filter(isDueNext);
+  // 🕯 «הגיע הזמן» לתזכורת-סדרה (6.10 «האם הוא קופץ בלוח כמו הקשר הבא»): תזכורת שתאריכה ≤ היום ולא
+  // סומנה ✓ מעלה את התומך/ת ללוח — גם בלי תיק-טיפול פעיל — עד שמסמנים ✓ בוצע. נגזרת-מצב, היום מוזרק.
+  const dueRemOf = (sp: Supporter) => (segulaOn ? dueRecurReminder(db.events, sp.id, today) : null);
+  const dueRem = visible.filter((sp) => !!dueRemOf(sp));
   let rows =
-    filter === 'all' ? [...due, ...active]
+    filter === 'all' ? [...due, ...dueRem.filter((sp) => !due.includes(sp)), ...active.filter((sp) => !dueRem.includes(sp))]
     : filter === 'done' ? visible.filter((sp) => ayinActive(sp.ayin) && (sp.ayin!.stage || 'new') === 'done')
     : active.filter((sp) => (sp.ayin!.stage || 'new') === filter);
   if (nextPromptId && !rows.some((sp) => sp.id === nextPromptId)) {
@@ -113,12 +126,12 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
     if (held) rows = [held, ...rows];
   }
   rows = [...rows].sort((sa, sb) => {
-    const aa = sa.ayin!;
-    const ab = sb.ayin!;
+    const aa = sa.ayin ?? emptyAyin();
+    const ab = sb.ayin ?? emptyAyin();
     if (sort === 'name') return sa.name.localeCompare(sb.name, 'he');
     if (sort === 'last') return (ab.lastTouch || '').localeCompare(aa.lastTouch || '');
     if (sort === 'stage') return stageIndex(aa.stage) - stageIndex(ab.stage);
-    const tgt = (sp: Supporter) => ((sp.ayin!.stage || 'new') === 'done' ? sp.nextDate : sp.ayin!.nextTalk) || '9999';
+    const tgt = (sp: Supporter) => dueRemOf(sp)?.date || ((sp.ayin?.stage || 'new') === 'done' ? sp.nextDate : sp.ayin?.nextTalk) || '9999';
     return tgt(sa).localeCompare(tgt(sb));
   });
 
@@ -219,8 +232,12 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
               <span>הפעולה הבאה</span>
             </div>
             {rows.map((sp) => {
-              const a = sp.ayin!;
-              const showBtn = ayinActionVisible(a);
+              // תומך/ת שעלה ללוח רק בגלל תזכורת-סדרה (6.10) ייתכן בלי תיק-טיפול — מציגים «אין תיק» בלי כפתור-חכם.
+              const hasCase = !!sp.ayin;
+              const a = sp.ayin ?? emptyAyin();
+              const dueR = dueRemOf(sp);
+              const series = segulaOn ? activeRecurSeries(db.events, sp.id, today) : [];
+              const showBtn = hasCase && ayinActionVisible(a);
               // 🎯 יעד שעבר (ביקורת-ריצה 3.9, F4): מסומן באדום + ⚠ + title — לא זהה לעתידי.
               const overdue = !!a.nextTalk && a.nextTalk < today;
               const isDone = (a.stage || 'new') === 'done';
@@ -245,15 +262,15 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                     gridTemplateColumns: ROW_GRID,
                     gap: 8,
                     alignItems: 'center',
-                    background: dueNext ? '#fff4ea' : '#fff',
-                    border: '1px solid ' + (dueNext ? '#f3c58a' : 'rgba(33,29,23,.07)'),
+                    background: dueNext || dueR ? '#fff4ea' : '#fff',
+                    border: '1px solid ' + (dueNext || dueR ? '#f3c58a' : 'rgba(33,29,23,.07)'),
                     borderRadius: 11,
                     padding: '9px 12px',
                     cursor: 'pointer',
                   }}
                 >
                   <div style={{ fontWeight: 800, fontSize: 12.5, minWidth: 0 }}>{sp.name}</div>
-                  <StageChips cfg={cfg} stage={a.stage} />
+                  {hasCase ? <StageChips cfg={cfg} stage={a.stage} /> : <span style={{ fontSize: 10.5, color: '#b3ab9a', fontWeight: 700 }}>אין תיק טיפול</span>}
                   <div
                     style={{
                       fontSize: 11,
@@ -268,7 +285,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                       gap: 6,
                     }}
                   >
-                    <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{namesLineOf(a)}</span>
+                    <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{hasCase ? namesLineOf(a) : '—'}</span>
                     {/* 💰 סימון-שולם על השורה — רק כשהשער דלוק (opt-in); כבוי ⇒ ביט-זהה */}
                     {payGateOn && a.paid && (
                       <span
@@ -288,7 +305,14 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                       </span>
                     )}
                   </div>
-                  {isDone && sp.nextDate ? (
+                  {dueR ? (
+                    <div
+                      style={{ fontSize: 11, color: '#b3261e', fontWeight: 800 }}
+                      title={recurDef(dueR.mode).label + ' — תזכורת ' + dueR.day + '/' + dueR.target + (dueR.overdueDays ? ' · באיחור ' + dueR.overdueDays + ' ימים' : ' · היום')}
+                    >
+                      {recurDef(dueR.mode).emoji + ' הגיע הזמן · ' + fmtDate(dueR.date)}
+                    </div>
+                  ) : isDone && sp.nextDate ? (
                     <div
                       style={{ fontSize: 11, color: dueNext ? '#b3261e' : '#12803c', fontWeight: 800 }}
                       title={dueNext ? 'קשר הבא — הגיע הזמן' : 'קשר הבא שנקבע אחרי שהטיפול הושלם'}
@@ -308,7 +332,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                   <div style={{ fontSize: 11, color: '#8b8474', fontWeight: 700 }}>
                     {a.lastTouch ? fmtDate(a.lastTouch) : '—'}
                   </div>
-                  <div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'stretch' }}>
                     {/* 🎯 תיק שהושלם: כפתור «קשר הבא» במקום הכפתור-החכם (שאינו מוצג ב-done) */}
                     {nextDateOn && isDone && !showBtn && (
                       <button
@@ -356,6 +380,61 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                       >
                         {ayinAdvanceLabel(cfg, a)}
                       </button>
+                    )}
+                    {/* 🕯 סדרות-תזכורת (6.10): פעילה ⇒ צ'יפ-מצב לכל סדרה (לחיצה על השורה פותחת כרטיס); הגיע-הזמן ⇒ «✓ בוצע»;
+                        אין סדרה ⇒ «🕯 40 יום ▾» עם תפריט 40 יום · יומי · שבועי · חודשי (כמו הבורר בכרטיס, כמות ברירת-מחדל). */}
+                    {segulaOn && dueR && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleEventDone(dueR.id);
+                          toast('✓ ' + recurDef(dueR.mode).label + ' — תזכורת ' + dueR.day + '/' + dueR.target + ' סומנה כבוצעה');
+                        }}
+                        title={'סימון התזכורת שהגיע יומה כבוצעה — ' + recurDef(dueR.mode).label + ' ' + dueR.day + '/' + dueR.target}
+                        style={{ background: '#211d17', color: '#f3c76b', border: 'none', borderRadius: 9, padding: '6px 10px', fontSize: 10.5, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      >
+                        {'✓ בוצע · ' + recurDef(dueR.mode).emoji + ' ' + dueR.day + '/' + dueR.target}
+                      </button>
+                    )}
+                    {segulaOn && series.filter((x) => !dueR || x.mode !== dueR.mode).map(({ mode, st }) => (
+                      <span
+                        key={mode}
+                        title={recurDef(mode).label + ' פעילה · ' + (mode === 'segula' ? 'יום ' : 'תזכורת ') + st.day + ' מתוך ' + st.target + (st.next ? ' · הבאה: ' + fmtDate(st.next) : '') + ' · סיום: ' + fmtDate(st.end) + ' — לחיצה פותחת את הכרטיס'}
+                        style={{ background: '#e4f5ea', color: '#12803c', border: '1px solid #cde9d6', borderRadius: 9, padding: '4px 10px', fontSize: 10.5, fontWeight: 800, whiteSpace: 'nowrap', textAlign: 'center' }}
+                      >
+                        {recurDef(mode).emoji + (mode === 'segula' ? ' יום ' : ' ') + st.day + '/' + st.target}
+                      </span>
+                    ))}
+                    {segulaOn && series.length === 0 && !dueR && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRecurMenuId(recurMenuId === sp.id ? null : sp.id);
+                        }}
+                        title="התחלת סדרת-תזכורות מהיום: 40 יום (סגולה לזיווג) · יומי · שבועי · חודשי — נכנס לקשר-הבא וללוח השנה"
+                        aria-expanded={recurMenuId === sp.id}
+                        style={{ background: '#fff', color: '#9a6414', border: '1px solid #ecd9a8', borderRadius: 9, padding: '5px 10px', fontSize: 10.5, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      >
+                        🕯 40 יום ▾
+                      </button>
+                    )}
+                    {segulaOn && series.length === 0 && !dueR && recurMenuId === sp.id && (
+                      <div className="ayin-recur-menu" onClick={(e) => e.stopPropagation()} style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        {RECUR_MODES.map((m) => (
+                          <button
+                            key={m.key}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              seedSegula(sp.id, today, 'זיווג', m.key as RecurMode);
+                              setRecurMenuId(null);
+                            }}
+                            title={m.label + (m.key === 'segula' ? ' — ימים 1·7·21·35·40' : ' — ' + m.defaultCount + ' תזכורות מהיום')}
+                            style={{ background: '#faf7f0', color: '#4d463c', border: '1px solid #ecd9a8', borderRadius: 99, padding: '3px 8px', fontSize: 10, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                          >
+                            {m.emoji + ' ' + m.chip + (m.key === 'segula' ? '' : ' ×' + m.defaultCount)}
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>

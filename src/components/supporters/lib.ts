@@ -532,6 +532,58 @@ export function recurStatus(
   };
 }
 
+/** סדרה פעילה אחת של תומך/ת — לצ'יפי-המצב בלוח. */
+export interface ActiveRecur {
+  mode: RecurMode;
+  st: SegulaStatus;
+}
+
+/** כל הסדרות הפעילות של תומך/ת (סגולה/יומי/שבועי/חודשי) — נגזרת טהורה מאירועי-הלוח. */
+export function activeRecurSeries(
+  events: readonly { id?: string; spId?: string; type?: string; date: string; notes?: string; done?: boolean }[],
+  spId: string,
+  todayIso: string,
+): ActiveRecur[] {
+  return RECUR_MODES.map((m) => ({ mode: m.key, st: recurStatus(events, spId, todayIso, m.key) })).filter((x) => x.st.active);
+}
+
+/** תזכורת-סדרה שהגיע יומה (או באיחור) וטרם סומנה ✓ — לקפיצה בלוח מעקב-הטיפול. */
+export interface DueRecur {
+  /** מזהה אירוע-הלוח (לסימון ✓ בוצע דרך toggleEventDone). */
+  id: string;
+  date: string;
+  mode: RecurMode;
+  /** יום/מספר-סידורי של התזכורת בסדרה והיעד (40 לסגולה; הכמות לשאר). */
+  day: number;
+  target: number;
+  /** כמה ימים אחרי התאריך (0 = היום). */
+  overdueDays: number;
+}
+
+/**
+ * התזכורת המוקדמת-ביותר בכל הסדרות של תומך/ת שתאריכה ≤ היום ולא בוצעה — או null.
+ * בקשת-בעלים 6.10 «האם הוא קופץ בלוח מעקב טיפול כמו הקשר הבא»: זה המנגנון — נגזרת-מצב טהורה
+ * (כמו isDueNext), היום מוזרק, בלי Date.now. תזכורת שסומנה ✓ יורדת; הבאה תקפוץ ביומה.
+ */
+export function dueRecurReminder(
+  events: readonly { id?: string; spId?: string; type?: string; date: string; notes?: string; done?: boolean }[],
+  spId: string,
+  todayIso: string,
+): DueRecur | null {
+  const t = new Date(`${todayIso}T12:00:00`).getTime();
+  let best: DueRecur | null = null;
+  for (const m of RECUR_MODES) {
+    const st = recurStatus(events, spId, todayIso, m.key);
+    for (const r of st.reminders) {
+      if (r.done || !r.id || r.date > todayIso) continue;
+      if (!best || r.date < best.date) {
+        best = { id: r.id, date: r.date, mode: m.key, day: r.day, target: st.target, overdueDays: Math.max(0, Math.round((t - new Date(`${r.date}T12:00:00`).getTime()) / 86_400_000)) };
+      }
+    }
+  }
+  return best;
+}
+
 /** הסרת שורת-הסדרה (לפי תחילית-המצב) מהערת-קשר-הבא — טהור. */
 export function stripRecurNote(note: string, mode: RecurMode): string {
   if (mode === 'segula') return stripSegulaNote(note);
