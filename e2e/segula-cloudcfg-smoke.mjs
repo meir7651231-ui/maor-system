@@ -1,9 +1,9 @@
 /**
  * סמוק 5.10.2026 — "🕯 40 יום לא נשמר דלוק ולא עובד" (הדיווח הרביעי של הבעלים). שלושה תרחישים
  * על בייטי-ה-build, בלי ענן (אין מסך-התחברות):
- * (א) ארגון-פלטפורמה (?org=acme) שקיבל מהענן קונפיג עם `core.taxreceipt:false` **תקוע** (מה ש-merge:true
- *     השאיר) ⇒ הכפתור מוסתר והאבחון אומר זאת (OFF · raw core.taxreceipt=false); אותו ארגון עם
- *     `supporters.segula:false` בלבד ⇒ הכפתור מוצג (#501).
+ * (א) ארגון-פלטפורמה (?org=acme) שקיבל מהענן `supporters.segula:false` **תקוע** (מה ש-merge:true השאיר) ⇒
+ *     הכפתור מוסתר + הודעה גלויה, האבחון אומר זאת (OFF · raw supporters.segula=false); אותו ארגון עם
+ *     `core.taxreceipt:false` בלבד (§46 כבוי, המצב של הבעלים 6.10) ⇒ הכפתור מוצג — הדגל ששולט הוא "סגולת 40 יום".
  * (ב) לחיצה ⇒ 5 אירועי-סגולה ב-db.events ⇒ **רענון-דף** ⇒ האירועים שרדו (localStorage/IndexedDB) והפאנל פעיל.
  * (ג) בורר-החזרה (16.9) הוא מצב-מסך בלבד — אחרי רענון חוזר ל-"40 יום" (לא "נשמר"; זה צפוי ומתועד).
  * דורש build קודם.
@@ -53,26 +53,28 @@ const readDiag = async (pg) => {
   return (await pg.locator('main pre').first().textContent()) || '';
 };
 
-/* (א1) — הקונפיג-מהענן נושא core.taxreceipt:false תקוע ⇒ הכפתור מוסתר, האבחון מצביע על הדגל-הגולמי */
+/* (א1) — הקונפיג-מהענן נושא supporters.segula:false תקוע ⇒ הכפתור מוסתר + הודעה גלויה, האבחון מצביע על הדגל-הגולמי */
 {
-  const { ctx, pg, errors } = await boot({ 'core.taxreceipt': false, 'supporters.segula': false });
+  const { ctx, pg, errors } = await boot({ 'supporters.segula': false, 'core.taxreceipt': false });
   await openFirstSupporter(pg);
   const btn = pg.locator('button', { hasText: '🕯 40 ימים' });
-  (await btn.count()) === 0 ? ok('(א1) core.taxreceipt=false מהענן ⇒ כפתור 40 יום מוסתר — זה מה שהלקוח ראה') : fail('(א1) הכפתור מוצג למרות core.taxreceipt=false');
+  (await btn.count()) === 0 ? ok('(א1) supporters.segula=false מהענן ⇒ כפתור 40 יום מוסתר') : fail('(א1) הכפתור מוצג למרות supporters.segula=false');
+  (await pg.locator('text="40 ימים" כבוי בהגדרות-הארגון').count()) === 1 ? ok('(א1) הודעת-דגל-כבוי גלויה בכרטיס (לא העלמה שקטה)') : fail('(א1) הודעת-דגל-כבוי חסרה');
   const pre = await readDiag(pg);
-  pre.includes('40 יום נראה: OFF') && pre.includes('raw core.taxreceipt=false') && pre.includes('org: ' + SLUG + ' (platform)') ? ok('(א1) אבחון: "40 יום נראה: OFF · raw core.taxreceipt=false" — הסיבה גלויה על המסך') : fail('(א1) אבחון: ' + pre.slice(0, 260));
+  pre.includes('40 יום נראה: OFF') && pre.includes('raw supporters.segula=false') && pre.includes('raw core.taxreceipt=false') && pre.includes('org: ' + SLUG + ' (platform)') ? ok('(א1) אבחון: "40 יום נראה: OFF · raw supporters.segula=false · raw core.taxreceipt=false"') : fail('(א1) אבחון: ' + pre.slice(0, 260));
   errors.length === 0 ? ok('(א1) אפס שגיאות-קונסולה') : fail('(א1) שגיאות: ' + errors.join(' | '));
   await ctx.close();
 }
 
-/* (א2) — רק supporters.segula:false (המקרה של #501) ⇒ הכפתור מוצג */
+/* (א2) — 6.10 (המצב האמיתי של הבעלים): core.taxreceipt:false בלבד (§46 כבוי), supporters.segula חסר ⇒ הכפתור מוצג.
+        לפני התיקון (#501 קשר את הנראות ל-§46) הכפתור היה מוסתר כאן "אפילו שהפעלתי אותו". */
 {
-  const { ctx, pg, errors } = await boot({ 'supporters.segula': false });
+  const { ctx, pg, errors } = await boot({ 'core.taxreceipt': false });
   await openFirstSupporter(pg);
   const btn = pg.locator('button', { hasText: '🕯 40 ימים' });
-  (await btn.count()) === 1 && (await btn.first().isVisible()) ? ok('(א2) supporters.segula=false בלבד ⇒ הכפתור מוצג (ברירת-מחדל לעמותה, #501)') : fail('(א2) הכפתור חסר עם supporters.segula=false');
+  (await btn.count()) === 1 && (await btn.first().isVisible()) ? ok('(א2) core.taxreceipt=false + supporters.segula חסר ⇒ הכפתור מוצג (הדגל ששולט הוא "סגולת 40 יום")') : fail('(א2) הכפתור חסר — §46 עדיין מסתיר את 40 יום');
   const pre = await readDiag(pg);
-  pre.includes('40 יום נראה: ON') && pre.includes('raw supporters.segula=false') && pre.includes('raw core.taxreceipt=undefined') ? ok('(א2) אבחון: ON · raw segula=false · raw taxreceipt=undefined') : fail('(א2) אבחון: ' + pre.slice(0, 260));
+  pre.includes('40 יום נראה: ON') && pre.includes('raw supporters.segula=undefined') && pre.includes('raw core.taxreceipt=false') ? ok('(א2) אבחון: ON · raw segula=undefined · raw taxreceipt=false') : fail('(א2) אבחון: ' + pre.slice(0, 260));
   errors.length === 0 ? ok('(א2) אפס שגיאות-קונסולה') : fail('(א2) שגיאות: ' + errors.join(' | '));
   await ctx.close();
 }

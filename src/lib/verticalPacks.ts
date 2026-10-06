@@ -49,6 +49,8 @@ export const COMMERCIAL_OFF: Record<string, boolean> = {
   'home.credmetrics': false,
   'shell.privacy': false,
   'supporters.hist': false,
+  // 6.10: סגולת-40-יום (זיווג) חסרת-משמעות בעסק — מכובה כאן במפורש, במקום פרוקסי core.taxreceipt בכרטיס.
+  'supporters.segula': false,
 };
 
 export const VERTICAL_PACKS: VerticalPack[] = [
