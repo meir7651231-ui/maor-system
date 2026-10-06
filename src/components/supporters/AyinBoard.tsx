@@ -76,6 +76,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   // 🎯 «קשר הבא» מהלוח (בקשת-בעלים 6.10) — אותו מנגנון של הכרטיס ושל מעקב-הטיפול (store.setSupporterNext):
   // תאריך על התומך/ת + תזכורת-שיחה בלוח-השנה. מגודר כמו הקובייה בכרטיס (supporters.nextdate).
   const setSupporterNext = useApp((s) => s.setSupporterNext);
+  const setSupporterNextNote = useApp((s) => s.setSupporterNextNote);
   const toast = useApp((s) => s.toast);
   const restart = useApp((s) => s.ayinRestart);
   // 🕯 סגולת 40 יום מהלוח (בקשת-בעלים 6.10 «תכניס את הכפתור בלוח מעקב טיפול»): אותו מנגנון של הכרטיס
@@ -91,6 +92,13 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   // התיק שסומן «✓ הושלם» מהלוח ברגע זה — נשאר על הלוח עם שאלת «קשר הבא?» עד שקובעים/מדלגים
   // (הכרעת-בעלים 3.9 «הושלם יורד מהלוח» נשמרת — זו עצירה של רגע אחד, לא שורה קבועה).
   const [nextPromptId, setNextPromptId] = useState<string | null>(null);
+  // 📝 (6.10 «בקשר הבא חסר במעקב טיפול על מה לדבר, שמירה וטופל»): טיוטת «על מה לדבר» של השורה הפתוחה —
+  // נטענת מ-sp.nextNote בפתיחת-השאלה, נשמרת ב-💾 (ובסגירה) דרך store.setSupporterNextNote (אותו מנגנון של הכרטיס).
+  const [nextTopic, setNextTopic] = useState('');
+  const openNextPrompt = (sp: Supporter) => {
+    setNextTopic(sp.nextNote || '');
+    setNextPromptId(sp.id);
+  };
   // 🔒 ייעוד-הרשאה (13.8): לוח-הטיפול לא יחשוף שמות תורמים לעובד/ת שאינו מורשה לייעודם.
   const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
   const desigLimit = featureOn(cfg, 'supporters.purpose') ? allowedDesignations : null;
@@ -338,7 +346,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setNextPromptId(promptOpen ? null : sp.id);
+                          if (promptOpen) setNextPromptId(null); else openNextPrompt(sp);
                         }}
                         title={dueNext ? 'הגיע הזמן לקשר הבא — ' + hebDateFull(sp.nextDate!) : sp.nextDate ? 'קשר הבא: ' + hebDateFull(sp.nextDate) + ' — לחיצה לשינוי' : 'קביעת קשר הבא אחרי שהטיפול הושלם — נכנס ללוח השנה'}
                         style={{
@@ -363,7 +371,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                           // «✓ הושלם» מהלוח ⇒ השורה נשארת רגע עם שאלת «קשר הבא?» (במקום להיעלם)
                           const finishing = a.stage === 'answer' && !!a.answerPushed;
                           advance(sp.id);
-                          if (finishing && nextDateOn) setNextPromptId(sp.id);
+                          if (finishing && nextDateOn) openNextPrompt(sp);
                         }}
                         title="הכפתור החכם — מקדם לשלב הבא ומסנכרן ללוח"
                         style={{
@@ -459,19 +467,19 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                         {dueNext ? '📞 הגיע הזמן לקשר הבא — ' + sp.name : '🎯 קשר הבא — ' + sp.name + ' · הטיפול הושלם'}
                       </span>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      {dueNext && (
-                        <button
-                          onClick={() => {
-                            setSupporterNext(sp.id, '', '');
-                            setNextPromptId(null);
-                            toast('הקשר סומן כבוצע — התיק ירד מהלוח');
-                          }}
-                          title="הקשר בוצע — התזכורת יורדת מלוח-השנה והתיק יורד מהלוח (ההיסטוריה נשמרת)"
-                          style={{ background: '#e4f5ea', color: '#12803c', border: '1px solid #cde9d6', borderRadius: 9, padding: '3px 9px', fontSize: 10.5, fontWeight: 800, cursor: 'pointer' }}
-                        >
-                          ✓ הקשר בוצע
-                        </button>
-                      )}
+                      {/* ✓ טופל (6.10) — תמיד זמין (לא רק כשהגיע הזמן): הקשר בוצע ⇒ התאריך+התזכורת+ההערה יורדים, התיק יורד מהלוח */}
+                      <button
+                        onClick={() => {
+                          setSupporterNext(sp.id, '', '');
+                          setSupporterNextNote(sp.id, '');
+                          setNextPromptId(null);
+                          toast('✓ טופל — הקשר בוצע, התיק ירד מהלוח');
+                        }}
+                        title="הקשר בוצע/טופל — התזכורת יורדת מלוח-השנה, ההערה נמחקת והתיק יורד מהלוח (ההיסטוריה נשמרת)"
+                        style={{ background: '#e4f5ea', color: '#12803c', border: '1px solid #cde9d6', borderRadius: 9, padding: '3px 9px', fontSize: 10.5, fontWeight: 800, cursor: 'pointer' }}
+                      >
+                        {dueNext ? '✓ טופל · הקשר בוצע' : '✓ טופל'}
+                      </button>
                       {dueNext && restartOn && (
                         <button
                           onClick={() => {
@@ -487,7 +495,10 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                         </button>
                       )}
                       <button
-                        onClick={() => setNextPromptId(null)}
+                        onClick={() => {
+                          setSupporterNextNote(sp.id, nextTopic);
+                          setNextPromptId(null);
+                        }}
                         title="בלי קשר הבא כרגע — אפשר לקבוע אחר-כך מסינון «הושלם» או מהכרטיס"
                         style={{ background: 'transparent', border: '1px solid #ecd9a8', borderRadius: 9, padding: '3px 9px', fontSize: 10.5, fontWeight: 800, color: '#8b8474', cursor: 'pointer' }}
                       >
@@ -498,10 +509,35 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                     <HebDateInput
                       value={sp.nextDate || ''}
                       onChange={(iso) => {
-                        setSupporterNext(sp.id, iso, 'אחרי סיום ' + feat);
+                        // 6.10: הנושא מהטיוטה (על מה לדבר) נכנס ל-notes של תזכורת-הלוח; ריק ⇒ ברירת-המחדל «אחרי סיום …»
+                        setSupporterNext(sp.id, iso, nextTopic.trim() || 'אחרי סיום ' + feat);
+                        if (iso && nextTopic.trim()) setSupporterNextNote(sp.id, nextTopic);
                         toast(iso ? 'נקבע קשר הבא ' + hebDateFull(iso) + ' — נכנס ללוח השנה' : 'תאריך הקשר הבא נוקה');
                       }}
                     />
+                    {/* 📝 על מה לדבר בפעם הבאה + 💾 שמירה (6.10) — כמו בכרטיס, אותו שדה (sp.nextNote) */}
+                    <textarea
+                      value={nextTopic}
+                      onChange={(e) => setNextTopic(e.currentTarget.value)}
+                      onBlur={() => setSupporterNextNote(sp.id, nextTopic)}
+                      rows={2}
+                      placeholder="על מה לדבר בפעם הבאה — למשל: לעדכן על הקבלה · לבקש חידוש הו״ק · לברר כתובת"
+                      aria-label="על מה לדבר בפעם הבאה"
+                      style={{ width: '100%', resize: 'vertical', minHeight: 44, fontSize: 12, border: '1px solid #ecd9a8', borderRadius: 9, padding: '6px 8px' }}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button
+                        onClick={() => {
+                          setSupporterNextNote(sp.id, nextTopic);
+                          toast('📝 «על מה לדבר» נשמר ✓');
+                        }}
+                        title="שמירת «על מה לדבר» על התומך/ת ובתזכורת-הלוח"
+                        style={{ background: '#211d17', color: '#f3c76b', border: 'none', borderRadius: 9, padding: '4px 10px', fontSize: 10.5, fontWeight: 800, cursor: 'pointer' }}
+                      >
+                        💾 שמירה
+                      </button>
+                      {sp.nextNote ? <span style={{ fontSize: 11, color: '#4d463c' }}>📝 {sp.nextNote}</span> : null}
+                    </div>
                     <div style={{ fontSize: 11.5, color: '#8b8474' }}>
                       {dueNext
                         ? 'התאריך הגיע · אפשר לסמן שהקשר בוצע, לקבוע תאריך חדש, או לפתוח מחזור טיפול חדש'
