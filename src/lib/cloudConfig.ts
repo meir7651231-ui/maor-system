@@ -11,6 +11,7 @@
 import { addDoc, arrayRemove, arrayUnion, collection, deleteDoc, deleteField, doc, FieldPath, getDoc, getDocs, increment, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { cloudDb } from './cloud';
 import type { OrgConfig } from '../types/config';
+import type { ConfigPatchOp } from './configPatch';
 import { sanitizeSupportText, type SupportMsg, type SupportSide, type SupportThread, type TeamMsg } from './supportChat';
 
 /** אוסף מסמכי הארגונים של הפלטפורמה. */
@@ -71,6 +72,17 @@ export interface OrgCloudDoc {
   /** מצבת-מחיקה (5.8): הארגון נמחק — הלקוח מנקה מקומית ומקבל מסך "הוסר". */
   deleted?: boolean;
   deletedAt?: string;
+  /** 🩹 (6.10) חותמת הכתיבה האחרונה של config — לאבחון "מי שינה את הדגל" מהמכשיר של הלקוח. */
+  configMeta?: ConfigWriteMeta;
+}
+
+export interface ConfigWriteMeta {
+  at: string;
+  by?: string;
+  /** המשטח שכתב (platform / builder / full). */
+  via: string;
+  /** המפתחות שנכתבו (עד 12) — למשל features.supporters.segula. */
+  keys: string[];
 }
 
 /** בקשת-הצטרפות של עובד/ת — platformOrgs/{slug}/joinRequests/{uid}. create-only ע"י המבקש. */
@@ -141,8 +153,35 @@ export async function writeOrgCloudDoc(slug: string, data: Partial<OrgCloudDoc>)
  * מה שבענן), ושאר שדות-המסמך (members/manager/memberConfigs/joinOpen…) לא נגועים.
  * אותו לקח כבר נלמד נקודתית ב-21.8 ל-`weeklyGoal` (deleteField) ולא הוכלל — עכשיו כן.
  */
-export async function writeOrgCloudConfig(slug: string, config: OrgConfig): Promise<void> {
-  await setDoc(doc(cloudDb(), PLATFORM_ORGS, slug), { config: JSON.parse(JSON.stringify(config)) as unknown }, { mergeFields: ['config'] });
+export async function writeOrgCloudConfig(slug: string, config: OrgConfig, by?: string): Promise<void> {
+  const configMeta: ConfigWriteMeta = { at: new Date().toISOString(), via: 'full', keys: ['*'], ...(by ? { by } : {}) };
+  await setDoc(doc(cloudDb(), PLATFORM_ORGS, slug), { config: JSON.parse(JSON.stringify(config)) as unknown, configMeta }, { mergeFields: ['config', 'configMeta'] });
+}
+
+/**
+ * 🩹 כתיבה נקודתית של קונפיג-הארגון (6.10, "40 יום נדלק ונכבה לבד"): רק הפעולות ב-ops
+ * (diff של מה שהמשתמש שינה — configPatchOps) נכתבות, שדה-שדה ב-FieldPath; מחיקת-מפתח
+ * ("הדלקה" של דגל רגיל) = deleteField אמיתי. שני משטחים עם תצלומים שונים כבר לא דורסים
+ * זה את זה. מסמך שעדיין לא קיים ⇒ נופל לכתיבה-מלאה. חותמת configMeta לאבחון.
+ */
+export async function patchOrgCloudConfig(slug: string, ops: readonly ConfigPatchOp[], by?: string, via = 'patch', full?: OrgConfig): Promise<void> {
+  if (!ops.length) return;
+  const ref = doc(cloudDb(), PLATFORM_ORGS, slug);
+  const data: Array<unknown> = [];
+  for (const op of ops) {
+    data.push(new FieldPath('config', ...op.path), op.del ? deleteField() : JSON.parse(JSON.stringify(op.value ?? null)));
+  }
+  const keys = ops.slice(0, 12).map((o) => o.path.join('.'));
+  const configMeta: ConfigWriteMeta = { at: new Date().toISOString(), via, keys, ...(by ? { by } : {}) };
+  data.push(new FieldPath('configMeta'), configMeta);
+  const [first, firstVal, ...rest] = data;
+  try {
+    await updateDoc(ref, first as FieldPath, firstVal, ...rest);
+  } catch (e) {
+    if ((e as { code?: string } | undefined)?.code !== 'not-found' || !full) throw e;
+    // המסמך טרם נוצר (לידה בלי approve) — אין מה לתקן נקודתית; כתיבה-מלאה פעם אחת.
+    await writeOrgCloudConfig(slug, full, by);
+  }
 }
 
 /* ── כספת-מפתחות פר-ארגון (בקשת-בעלים 9.8: "כל מנהל יש את הסודות שלו") ──

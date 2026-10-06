@@ -72,14 +72,15 @@ describe('הגנות-מקור', () => {
   it('writeOrgCloudConfig כותב config עם mergeFields:[config] — לא merge:true ולא דרך writeOrgCloudDoc', () => {
     const s = src('../cloudConfig.ts');
     const fn = s.slice(s.indexOf('export async function writeOrgCloudConfig'), s.indexOf('/* ── כספת-מפתחות'));
-    expect(fn).toContain("{ mergeFields: ['config'] }");
+    expect(fn).toContain("{ mergeFields: ['config', 'configMeta'] }"); // 6.10: + חותמת-כותב לאבחון
     expect(fn).not.toContain('merge: true');
     expect(fn).not.toContain('writeOrgCloudDoc(');
   });
-  it('האשף-המרוחק ולוח-הבקרה כותבים קונפיג רק דרך writeOrgCloudConfig (הנתיב המתוקן)', () => {
+  it('האשף-המרוחק ולוח-הבקרה כותבים קונפיג רק נקודתית (patchOrgCloudConfig, 6.10) — לא תצלום-מלא', () => {
     for (const p of ['../../components/builder/RemoteWizard.tsx', '../../components/platform/PlatformPanel.tsx']) {
       const s = src(p);
-      expect(s).toContain('writeOrgCloudConfig(');
+      expect(s).toContain('patchOrgCloudConfig(');
+      expect(s).not.toContain('writeOrgCloudConfig(');
       // לידת-ארגון (approve) כותבת config על מסמך חדש דרך writeOrgCloudDoc — מותר (אין false ישן); עדכון-קונפיג לא.
       expect(s).not.toMatch(/writeOrgCloudDoc\([^)]*\{\s*config:\s*(next|s\.config|cfg)\b/);
     }

@@ -145,6 +145,8 @@ export interface CloudState {
   allowedDesignations?: string[] | null;
   /** מייל⇒שם-תצוגה של עובדי-הארגון (memberConfigs[].displayName) — להצגת "מי" בלוג/צ׳אט (6.9). */
   memberNames?: Record<string, string>;
+  /** 🩹 (6.10) חותמת הכתיבה האחרונה של קונפיג-הארגון בענן — לאבחון "מי שינה את הדגל". */
+  cfgMeta?: { at: string; by?: string; via: string; keys: string[] } | null;
   /**
    * סטטוס רישום-הבקשה (5.8 — "מאור נרשם ולא רואים בקשה"): 'ok' = הבקשה נכתבה
    * לענן; אחרת קוד-השגיאה של הכתיבה האחרונה (למשל permission-denied — ‏Rules).
@@ -1102,7 +1104,7 @@ export const useApp = create<AppState>()((set, get) => {
             mod.setDonationSplit(donationSplitOn(eff));
             mod.setSupEnforce(supEnforceOn(eff));
             // ג' (13.8) — ייעודי-התרומה שהעובד/ת רשאי/ת לראות (מתעדכן חי עם הכרטיס)
-            setCloud({ allowedDesignations: allowedDesignationsFor(user.email, orgDoc), memberNames: memberNamesOf(orgDoc) });
+            setCloud({ allowedDesignations: allowedDesignationsFor(user.email, orgDoc), memberNames: memberNamesOf(orgDoc), cfgMeta: orgDoc.configMeta ?? null });
             const { db } = get();
             applyTheme(db.ui.theme ?? eff.theme, db.ui.accent ?? eff.accent, eff.motion);
             writeCloudConfigCache(eff.slug, eff);
