@@ -432,6 +432,7 @@ function FlagDiagnostics() {
   const cloudOn = useApp((s) => s.cloud.enabled);
   const cloudEmail = useApp((s) => s.cloud.user?.email ?? '');
   const isManager = useApp((s) => !!s.cloud.isManager);
+  const cfgMeta = useApp((s) => s.cloud.cfgMeta ?? null);
   const [open, setOpen] = useState(false);
   const offModules = Object.entries(config.modules ?? {}).filter(([, v]) => v === false).map(([k]) => k);
   const offFeatures = Object.entries(config.features ?? {}).filter(([, v]) => v === false).map(([k]) => k).sort();
@@ -451,6 +452,8 @@ function FlagDiagnostics() {
             'supporters module: ' + (moduleOn(config, 'supporters') ? 'on' : 'OFF'),
             // 5.10: גם הדגל שבאמת קובע (core.taxreceipt) — false תקוע בענן (merge:true) היה בלתי-נראה כאן
             '40 יום נראה: ' + (segula ? 'ON' : 'OFF') + ' (לפי supporters.segula; חסר=דלוק) · raw supporters.segula=' + String(config.features?.['supporters.segula']) + ' · raw core.taxreceipt=' + String(config.features?.['core.taxreceipt']),
+            // 6.10 "נדלק ונכבה לבד": מי כתב את הקונפיג לאחרונה, מתי, מאיזה משטח ואילו מפתחות
+            'config last write: ' + (cfgMeta ? cfgMeta.at.replace('T', ' ').slice(0, 16) + ' · ' + (cfgMeta.by ?? '?') + ' · ' + cfgMeta.via + ' · ' + cfgMeta.keys.join(', ') : '—'),
             'modules off: ' + (offModules.length ? offModules.join(', ') : '—'),
             'features off (' + offFeatures.length + '): ' + (offFeatures.length ? offFeatures.join(', ') : '—'),
           ].join('\n')}

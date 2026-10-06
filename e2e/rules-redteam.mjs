@@ -6,7 +6,7 @@
  * הרצה: firebase emulators:exec --only firestore --project demo-maor 'node e2e/rules-redteam.mjs'
  */
 import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, FieldPath, deleteField } from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
 
 const SUPER = 'meir7651231@gmail.com'; // מייל-העל (superAdmin ב-Rules)
@@ -200,6 +200,28 @@ await T('(התיקון) mergeFields:[config] — הדגלים שהודלקו נ�
 const staleBoss = env.authenticatedContext('staleboss', { email: 'boss@stale.com' }).firestore();
 // (כתיבה **שונה** — כתיבה זהה-לקיים = affectedKeys ריק = לא-שינוי, ו-Rules מתירים no-op)
 await T('🔴 מנהל-ארגון לא כותב config (גם עם mergeFields)', assertFails(setDoc(doc(staleBoss, 'platformOrgs/stale'), { config: { ...onCfg, features: {} } }, { mergeFields: ['config'] })));
+
+console.log('\n═══ י״ב · 🩹 כתיבה נקודתית של קונפיג — שני תצלומים לא דורסים זה את זה ("40 יום נדלק ונכבה לבד", 6.10) ═══');
+// הרקע: לוח-הבקרה והאשף כתבו תצלום-מלא; שני משטחים עם תצלומים שונים התחלפו. עכשיו: updateDoc ב-FieldPath
+// פר-מפתח (מחיקה = deleteField). כאן מוכיחים על Firestore אמיתי: (1) דחיפת-A (הדלקת segula = מחיקה) +
+// דחיפת-B מתצלום ישן (כיבוי hok) ⇒ שתיהן שורדות; (2) מחיקה נקודתית לא מחיה false; (3) מנהל לא כותב config.
+await env.withSecurityRulesDisabled(async (ctx) => {
+  await setDoc(doc(ctx.firestore(), 'platformOrgs/patchy'), {
+    members: ['boss@patchy.com'], manager: 'boss@patchy.com',
+    config: { slug: 'patchy', orgName: 'P', features: { 'supporters.segula': false, 'supporters.hok': false }, modules: {} },
+  });
+});
+await T('(התיקון) A מדליק segula (deleteField) · B מתצלום ישן מכבה hok ⇒ שניהם שורדים, אין דריסה', (async () => {
+  const ref = doc(su, 'platformOrgs/patchy');
+  await updateDoc(ref, new FieldPath('config', 'features', 'supporters.segula'), deleteField(), new FieldPath('configMeta'), { at: 'a', via: 'platform', keys: ['features.supporters.segula'] });
+  await updateDoc(ref, new FieldPath('config', 'features', 'courses.broadcast'), false, new FieldPath('configMeta'), { at: 'b', via: 'builder', keys: ['features.courses.broadcast'] });
+  const d = (await getDoc(ref)).data();
+  if ('supporters.segula' in d.config.features) throw new Error('segula לא נמחק: ' + JSON.stringify(d.config.features));
+  if (d.config.features['supporters.hok'] !== false || d.config.features['courses.broadcast'] !== false) throw new Error('דריסה: ' + JSON.stringify(d.config.features));
+  if (d.manager !== 'boss@patchy.com' || d.configMeta.via !== 'builder') throw new Error('שאר המסמך נפגע: ' + JSON.stringify(d));
+})());
+const patchyBoss = env.authenticatedContext('patchyboss', { email: 'boss@patchy.com' }).firestore();
+await T('🔴 מנהל-ארגון לא כותב config נקודתית', assertFails(updateDoc(doc(patchyBoss, 'platformOrgs/patchy'), new FieldPath('config', 'features', 'supporters.hok'), deleteField())));
 
 await env.cleanup();
 console.log(`\n── סיכום red-team ── ${pass} עברו · ${fail} נכשלו`);
