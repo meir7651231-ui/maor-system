@@ -42,6 +42,72 @@ let envelope: EncEnvelope | null = null;
 // שכבת הגיבוי (IndexedDB) נכשלה בשמירה האחרונה בעוד localStorage הצליח.
 let idbBackupMissing = false;
 
+/**
+ * ⚡ משטר-מכסה (12.10.2026) — המדידה אצל הלקוח האמיתי (16,000 תורמים · 34MB JSON): localStorage
+ * (מכסה ~5M תווים) זרק QuotaExceeded **בכל** שמירה, אחרי ש-JSON.stringify של כל המסמך שרף
+ * 50–800ms (×4 האטת-CPU) — ואז IndexedDB שמר בפועל. מרגע שלמדנו שהמסמך לא נכנס ל-LS (זריקה
+ * ראשונה, או אורך מעל LS_MAX_CHARS) מדלגים על ה-stringify+setItem לצמיתות (עד רענון —
+ * טעינה מחדש לומדת שוב). במשטר-IDB-בלבד אין אירועי storage ⇒ שער ריבוי-הטאבים (#3) אינו
+ * פעיל — בדיוק כמו היום (setItem שנכשל מעולם לא פרסם אירוע).
+ */
+const LS_MAX_CHARS = 4_000_000;
+let lsDropped = false;
+/** הודעה חד-פעמית למשתמש (נצרכת ע"י ה-store דרך takeLsDroppedNotice — persist נקי מ-store). */
+let lsDroppedNotice = false;
+/**
+ * ⚡ (12.10) המסמך המאוחסן הוא מעטפת מוצפנת — דגל-בזיכרון במקום idb.get של כל המסמך (34MB
+ * structured-clone) לפני **כל** put רק כדי לבדוק isEncrypted. נלמד ב-loadDb, מתעדכן בכל כתיבה
+ * מוצלחת ל-IDB (saveDb/writeEnvelope/stopEncryption). ב-LS קריא הגשש-התחילי עדיין גובר.
+ */
+let storedIsEnvelope = false;
+/** מעטפת-עד (sentinel) למקרה שהדגל דלוק ואין מעטפת בזיכרון — רק truthiness נבדקת (טאב גלוי ⇒ סירוב). */
+const ENVELOPE_UNSEEN: EncEnvelope = { $enc: 2, iter: 0, saltPass: '', saltRec: '', wrapPass: '', wrapRec: '', data: '' };
+
+function dropLs(payloadLen: number, err?: unknown): void {
+  lsDropped = true;
+  // ההודעה — רק כשזה באמת "המסמך גדול" (מעל הסף, או שגיאת-מכסה מפורשת); חסימת-LS אחרת (מצב פרטי) שקטה כמו היום
+  const e = err as { name?: string; code?: number } | undefined;
+  if (payloadLen > LS_MAX_CHARS || (e && (/quota/i.test(e.name ?? '') || e.code === 22 || e.code === 1014))) lsDroppedNotice = true;
+}
+
+/** כתיבת המסמך ל-localStorage לפי משטר-המכסה. false = לא נכתב (נזנח/נכשל). */
+function lsWrite(payload: string): boolean {
+  if (lsDropped) return false;
+  if (payload.length > LS_MAX_CHARS) {
+    dropLs(payload.length);
+    return false;
+  }
+  try {
+    localStorage.setItem(LS_KEY, payload);
+    return true;
+  } catch (e) {
+    dropLs(payload.length, e); /* מכסה מלאה / מצב פרטי */
+    return false;
+  }
+}
+
+/** האם המסמך נשמר במשטר-IDB-בלבד (localStorage נזנח בסשן זה). */
+export function isLsDropped(): boolean {
+  return lsDropped;
+}
+
+/**
+ * צריכת ההודעה החד-פעמית "הנתונים גדולים — IDB בלבד": true פעם אחת **למכשיר/ארגון** (נרשם
+ * ב-localStorage — מפתח זעיר שנכנס גם כשהמסמך לא), כדי לא להטריד בכל פתיחה.
+ */
+export function takeLsDroppedNotice(): boolean {
+  if (!lsDroppedNotice) return false;
+  lsDroppedNotice = false;
+  const k = nsLsKey('maor_lsdrop_noticed');
+  try {
+    if (localStorage.getItem(k)) return false;
+    localStorage.setItem(k, '1');
+  } catch {
+    /* חסום — נציג פעם-בסשן */
+  }
+  return true;
+}
+
 /** האם השמירה הנוכחית מוצפנת (יש DEK בזיכרון). */
 export function isCryptoActive(): boolean {
   return !!dek && !!envelope;
@@ -50,6 +116,8 @@ export function isCryptoActive(): boolean {
 export function clearCrypto(): void {
   dek = null;
   envelope = null;
+  // ⚡ (12.10) דגל-המעטפת-המאוחסנת נלמד מחדש ב-loadDb הבא (הבדיקות מדמות כך "טאב חדש")
+  storedIsEnvelope = false;
 }
 
 let LS_KEY = 'maor_db';
@@ -72,6 +140,7 @@ export function setPersistNamespace(slug: string): void {
     LS_CORRUPT_KEY = 'maor_db_corrupt';
     IDB_NAME = 'maor';
     idb = null;
+    lsDropped = lsDroppedNotice = storedIsEnvelope = false; // ⚡ (12.10) משטר-המכסה ודגל-המעטפת הם פר-מפתח
     return;
   }
   nsSlug = slug;
@@ -79,6 +148,7 @@ export function setPersistNamespace(slug: string): void {
   LS_CORRUPT_KEY = `maor_db_corrupt:${slug}`;
   IDB_NAME = `maor:${slug}`;
   idb = null; // חיבור קודם (אם נפתח) מצביע ל-DB הלא נכון
+  lsDropped = lsDroppedNotice = storedIsEnvelope = false; // ⚡ (12.10) משטר-המכסה ודגל-המעטפת הם פר-מפתח
 }
 
 let nsSlug = '';
@@ -670,26 +740,24 @@ const ENC_PROBE = /^\{[^{}]{0,40}"\$enc":2/;
 
 /**
  * המעטפת המאוחסנת (אם יש) — לשער ריבוי-הטאבים של saveDb. במקום readRaw (JSON.parse מלא של
- * ~5MB בכל שמירה, רק כדי לבדוק isEncrypted) בודקים תחילית; מפרסרים רק בהתאמה. LS ריק/חסום ⇒
- * IDB (שם הערך כבר אובייקט). null = גלוי/חסר.
+ * ~5MB בכל שמירה, רק כדי לבדוק isEncrypted) בודקים תחילית; מפרסרים רק בהתאמה. null = גלוי/חסר.
+ * ⚡ (12.10): LS ריק/חסום/נזנח ⇒ **אין** idb.get של המסמך כולו (34MB structured-clone לפני כל
+ * put — המדידה: 3 מעברי-DB-מלאים לעריכה במשטר-המכסה); במקומו דגל-הזיכרון storedIsEnvelope.
+ * במשטר-IDB-בלבד השוואת-מעטפות בין טאבים (החלפת-סיסמה/הצפנה-מחדש בטאב אחר) אינה פעילה —
+ * כמו שער-ה-storage (#3), שגם הוא דורש LS; ההנחה המתועדת: טאב-יחיד בעבודה עם מסמך-ענק.
  */
 async function readStoredEnvelope(): Promise<EncEnvelope | null> {
   try {
-    const raw = localStorage.getItem(LS_KEY);
+    const raw = lsDropped ? null : localStorage.getItem(LS_KEY);
     if (raw) {
       if (!ENC_PROBE.test(raw)) return null;
       const parsed: unknown = JSON.parse(raw);
       return isEncrypted(parsed) ? parsed : null;
     }
   } catch {
-    /* חסום או JSON פגום — ננסה IndexedDB */
+    /* חסום או JSON פגום — נופלים לדגל-הזיכרון */
   }
-  try {
-    const v: unknown = await (await getIdb()).get(IDB_STORE, 'current');
-    return isEncrypted(v) ? v : null;
-  } catch {
-    return null;
-  }
+  return storedIsEnvelope ? (envelope ?? ENVELOPE_UNSEEN) : null;
 }
 
 /** מפתח ה-DB בתחום הנוכחי — לזיהוי אירוע storage הרלוונטי (שער ריבוי-הטאבים #3). */
@@ -718,6 +786,7 @@ export function readStoredPlainDb(raw?: string | null): Db | null {
 /** טעינה: localStorage תחילה, נפילה ל-IndexedDB, ואז DB ריק. מזהה מעטפת מוצפנת. */
 export async function loadDb(): Promise<LoadResult> {
   const raw = await readRaw();
+  storedIsEnvelope = isEncrypted(raw); // ⚡ (12.10) נלמד פעם אחת — saveDb לא קורא עוד את ה-IDB לפני put
   if (isEncrypted(raw)) {
     // מוצפן — לא מפענחים כאן (אין קוד). מחזירים דגל; App יבקש קוד.
     envelope = raw;
@@ -735,6 +804,7 @@ export async function loadDb(): Promise<LoadResult> {
   }
   if (idbRaw && idbRaw !== raw) {
     if (isEncrypted(idbRaw)) {
+      storedIsEnvelope = true;
       envelope = idbRaw as EncEnvelope;
       return { db: emptyDb(), corrupt: false, encrypted: true };
     }
@@ -815,6 +885,7 @@ export async function stopEncryption(db: Db): Promise<void> {
   try {
     // ודא שהעותק המוצפן הישן לא נשאר ב-IndexedDB
     await (await getIdb()).put(IDB_STORE, { ...db, savedAt: new Date().toISOString() }, 'current');
+    storedIsEnvelope = false;
   } catch {
     /* לא קריטי */
   }
@@ -838,17 +909,12 @@ export async function changeEncryptionPassword(oldPw: string, newPw: string): Pr
 /** כתיבת מעטפת מוצפנת לשתי השכבות. */
 async function writeEnvelope(env: EncEnvelope): Promise<boolean> {
   const json = JSON.stringify(env);
-  let lsOk = false;
   let idbOk = false;
-  try {
-    localStorage.setItem(LS_KEY, json);
-    lsOk = true;
-  } catch {
-    /* מכסה מלאה */
-  }
+  const lsOk = lsWrite(json); // ⚡ (12.10) משטר-המכסה — מעטפת של מסמך-ענק לא תיכנס ל-LS ממילא
   try {
     await (await getIdb()).put(IDB_STORE, env, 'current');
     idbOk = true;
+    storedIsEnvelope = true;
     // LS נכשל אך IDB הצליח → מוחקים את העותק הישן ב-LS כדי ש-readRaw ייפול
     // לעותק הטרי ב-IndexedDB במקום להחזיר snapshot מיושן וקריא.
     if (!lsOk) {
@@ -871,7 +937,10 @@ async function writeEnvelope(env: EncEnvelope): Promise<boolean> {
  */
 export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<boolean> {
   const doc: Db = { ...db, savedAt: new Date().toISOString() };
-  const json = JSON.stringify(doc);
+  // ⚡ (12.10): במשטר-IDB-בלבד וגלוי אין JSON.stringify כלל — ה-put עובד על האובייקט (structured
+  // clone). המדידה: 50–800ms של stringify לכל עריכה אצל הלקוח האמיתי, רק כדי ש-setItem ייכשל.
+  const encrypting = !!dek && !!envelope;
+  const json: string | null = encrypting || !lsDropped ? JSON.stringify(doc) : null;
   // ⚠️ רב-טאבי: מצב ההצפנה (dek/envelope) הוא ברמת-מודול ולכן פרטי לכל טאב,
   // בלי סנכרון בין טאבים. לפני שדורסים את הערך המאוחסן, קוראים אותו מחדש:
   //  • טאב גלוי (dek==null) שרואה מעטפת מוצפנת = טאב אחר הפעיל הצפנה → אסור
@@ -898,22 +967,18 @@ export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<bo
     }
   }
   // הצפנה פעילה → כותבים מעטפת מוצפנת (אותו DEK, data מעודכן)
-  const payload: string = dek && envelope ? JSON.stringify((envelope = await reencryptDb(envelope, dek, json))) : json;
+  const payload: string | null =
+    dek && envelope ? JSON.stringify((envelope = await reencryptDb(envelope, dek, json!))) : json;
   const idbValue: unknown = dek && envelope ? envelope : doc;
   let ok = false;
-  let lsOk = false;
   let idbOk = false;
-  try {
-    localStorage.setItem(LS_KEY, payload);
-    ok = true;
-    lsOk = true;
-  } catch {
-    /* מכסה מלאה / מצב פרטי */
-  }
+  const lsOk = payload !== null && lsWrite(payload);
+  if (lsOk) ok = true;
   try {
     await (await getIdb()).put(IDB_STORE, idbValue, 'current');
     ok = true;
     idbOk = true;
+    storedIsEnvelope = !!(dek && envelope); // ⚡ (12.10) מה שיש עכשיו ב-IDB — בלי לקרוא אותו
     // LS נכשל (מכסה מלאה) אך IDB הצליח → מוחקים את העותק הישן ב-LS. אחרת
     // readRaw היה מחזיר את ה-snapshot הקריא שקדם למכסה, וכל עריכה שנשמרה
     // רק ל-IndexedDB לאחר מכן הייתה נעלמת בטעינה הבאה (איבוד נתונים שקט).
@@ -949,6 +1014,12 @@ export function flushSaveSync(db: Db): void {
     void saveDb(db);
     return;
   }
+  // ⚡ (12.10): במשטר-IDB-בלבד אין כתיבה סינכרונית אפשרית (IDB אסינכרוני) — stringify של 34MB
+  // ב-pagehide רק כדי ש-setItem ייכשל שוב נחסך; במקומו כתיבה-מיטבית אסינכרונית כמו בנתיב-המוצפן.
+  if (lsDropped) {
+    void saveDb(db);
+    return;
+  }
   try {
     const cur = localStorage.getItem(LS_KEY);
     // נחיל ב׳ (3.9): גשש-תחילית לפני parse מלא (pagehide — כל מילישנייה חשובה); זהות: ראה ENC_PROBE
@@ -956,11 +1027,8 @@ export function flushSaveSync(db: Db): void {
   } catch {
     /* JSON פגום — ממשיכים לכתיבה */
   }
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify({ ...db, savedAt: new Date().toISOString() }));
-  } catch {
-    /* מכסה מלאה */
-  }
+  // ⚡ (12.10) אותו משטר-מכסה כמו saveDb: כישלון/חריגה-מהסף כאן נלמדים לשאר הסשן
+  if (!lsWrite(JSON.stringify({ ...db, savedAt: new Date().toISOString() }))) void saveDb(db);
 }
 
 /** צילום יומי ל-IndexedDB — טבעת של SNAPSHOT_KEEP ימים. מוצפן אם ההצפנה פעילה. */

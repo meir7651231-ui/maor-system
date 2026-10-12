@@ -82,6 +82,7 @@ import {
   saveDb,
   flushSaveSync,
   isIdbBackupMissing,
+  takeLsDroppedNotice,
   currentDbKey,
   readStoredPlainDb,
   setPersistNamespace,
@@ -888,6 +889,9 @@ export const useApp = create<AppState>()((set, get) => {
       } else if (!isIdbBackupMissing()) {
         idbWarned = false;
       }
+      // ⚡ משטר-מכסה (12.10): המסמך גדול מ-localStorage (34MB אצל הלקוח האמיתי — QuotaExceeded בכל
+      // שמירה) ⇒ persist עבר ל-IDB-בלבד; הודעה חד-פעמית למכשיר (persist נקי מ-store — דגל נצרך כאן).
+      if (ok && takeLsDroppedNotice()) get().toast('הנתונים גדולים — נשמרים במאגר הפנימי של הדפדפן בלבד');
     }, 500);
   }
 
