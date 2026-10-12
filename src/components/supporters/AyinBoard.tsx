@@ -3,7 +3,7 @@
  * וכפתור חכם לכל שורה. כל התוויות עוברות דרך מילון המונחים (feature כללי).
  * מוצג רק כשהפיצ'ר supporters.ayin דלוק (הגייטינג בקורא — SupportersView).
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRemembered } from '../../lib/filterMemory';
 import { useApp } from '../../store/useApp';
 import { useDbWatch } from '../../store/dbWatch';
@@ -23,7 +23,7 @@ import {
   unitLabel,
 } from '../../lib/ayin';
 import { emptyAyin, type AyinCase, type AyinStage, type Supporter } from '../../types/domain';
-import { activeRecurSeries, dueRecurReminder, fmtDate, RECUR_MODES, recurDef, supHasRegion, supporterVisibleForDesignations, type RecurMode } from './lib';
+import { activeRecurSeriesIndexed, buildRecurIndex, dueRecurReminderIndexed, fmtDate, RECUR_MODES, recurDef, supHasRegion, supporterVisibleForDesignations, type DueRecur, type RecurMode } from './lib';
 
 /** תבנית-הגריד של שורה ושל שורת-הכותרות — זהה, כדי שהעמודות יתיישרו. */
 // עמודה אחרונה ברוחב קבוע (לא auto): בשורות בלי כפתור-חכם הטראק היה 0px וה-fr-ים נדדו עד ~90px מול הכותרות (אימות-ריצה 3.9).
@@ -113,6 +113,14 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   // 💳 שער-תשלום (opt-in מפורש, כמו AyinCard) — חסר-הדגל ⇒ אין צ'יפ, ביט-זהה.
   const payGateOn = cfg.features?.['supporters.ayin.paygate'] === true;
 
+  // ⚡ אינדקס-סדרות (ביצועים 12.10.2026, נמדד על 16,000 תורמים — הלקוח האמיתי): מאז 6.10 הלוח קרא
+  // ל-dueRecurReminder/activeRecurSeries — שסורקים את **כל** db.events — ~4× לכל שורה-גלויה בכל רינדור
+  // (סינון «הגיע הזמן» · משווה-המיון ×2 · הרינדור) ⇒ 179 ms לסבב-אחד על 300 אירועים, **5.4 s** על 5,000.
+  // האינדקס (Map<spId, אירועי-סדרה>) נבנה פעם-אחת לכל שינוי-אירועים; מצב-כל-שורה נגזר ממנו דרך
+  // הגרסאות ה-Indexed (ביט-זהה לישנות — property-test ב-perf-panels.test). כל הנגזרת (visible → rows)
+  // ממומאזת על הקלטים שלה ⇒ setState מקומי (תפריט/שאלה) לא מחשב-מחדש 16k שורות.
+  const recurIndex = useMemo(() => buildRecurIndex(db.events), [db.events]);
+  const { active, rows, isDueNext, dueRemOf } = useMemo(() => {
   // הכרעת-בעלים 3.9: מקרה שהושלם יורד מהלוח (ayinOnBoard); סינון "הושלם" עדיין מציג אותם.
   const visible = db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit) && (region === 'all' || supHasRegion(sp, region)));
   const active = visible.filter((sp) => ayinOnBoard(sp.ayin));
@@ -123,7 +131,17 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   const due = visible.filter(isDueNext);
   // 🕯 «הגיע הזמן» לתזכורת-סדרה (6.10 «האם הוא קופץ בלוח כמו הקשר הבא»): תזכורת שתאריכה ≤ היום ולא
   // סומנה ✓ מעלה את התומך/ת ללוח — גם בלי תיק-טיפול פעיל — עד שמסמנים ✓ בוצע. נגזרת-מצב, היום מוזרק.
-  const dueRemOf = (sp: Supporter) => (segulaOn ? dueRecurReminder(db.events, sp.id, today) : null);
+  // ⚡ מחושב פעם-אחת לכל תומך/ת (מפה עצלה) — המיון (×2 להשוואה) והרינדור קוראים מהמפה.
+  const dueRemById = new Map<string, DueRecur | null>();
+  const dueRemOf = (sp: Supporter): DueRecur | null => {
+    if (!segulaOn) return null;
+    let v = dueRemById.get(sp.id);
+    if (v === undefined) {
+      v = dueRecurReminderIndexed(recurIndex, sp.id, today);
+      dueRemById.set(sp.id, v);
+    }
+    return v;
+  };
   const dueRem = visible.filter((sp) => !!dueRemOf(sp));
   let rows =
     filter === 'all' ? [...due, ...dueRem.filter((sp) => !due.includes(sp)), ...active.filter((sp) => !dueRem.includes(sp))]
@@ -142,6 +160,8 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
     const tgt = (sp: Supporter) => dueRemOf(sp)?.date || ((sp.ayin?.stage || 'new') === 'done' ? sp.nextDate : sp.ayin?.nextTalk) || '9999';
     return tgt(sa).localeCompare(tgt(sb));
   });
+  return { active, rows, isDueNext, dueRemOf };
+  }, [db.supporters, recurIndex, desigLimit, region, filter, sort, today, segulaOn, nextDateOn, nextPromptId]);
 
   const feat = featLabel(cfg);
   const selStyle: React.CSSProperties = {
@@ -244,7 +264,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
               const hasCase = !!sp.ayin;
               const a = sp.ayin ?? emptyAyin();
               const dueR = dueRemOf(sp);
-              const series = segulaOn ? activeRecurSeries(db.events, sp.id, today) : [];
+              const series = segulaOn ? activeRecurSeriesIndexed(recurIndex, sp.id, today) : [];
               const showBtn = hasCase && ayinActionVisible(a);
               // 🎯 יעד שעבר (ביקורת-ריצה 3.9, F4): מסומן באדום + ⚠ + title — לא זהה לעתידי.
               const overdue = !!a.nextTalk && a.nextTalk < today;

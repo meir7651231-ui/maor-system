@@ -102,8 +102,11 @@ export function segmentCounts(
   supporters: readonly Supporter[],
   todayIso: string,
   rate = 3.7,
+  /** ⚡ (12.10.2026) רשימת-הבסיכון שכבר חושבה ברינדור-הקוקפיט (cockpitAtRisk, סף ברירת-המחדל) —
+   *  חוסכת קריאה-מלאה שלישית (173 ms על 16k תורמים). חסר ⇒ מחושב כאן, ביט-זהה. */
+  atRisk?: readonly Supporter[],
 ): SegmentCount[] {
-  const atRiskCount = cockpitAtRisk(supporters, todayIso).length;
+  const atRiskCount = (atRisk ?? cockpitAtRisk(supporters, todayIso)).length;
   return SEGMENTS.map((seg) => ({
     key: seg.key,
     label: seg.label,

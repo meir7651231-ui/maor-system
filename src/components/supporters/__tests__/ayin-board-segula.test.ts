@@ -29,8 +29,14 @@ describe('לוח מעקב-הטיפול · 🕯 40 יום', () => {
   });
   it('מצב-הסגולה נגזר מאירועי-הלוח (segulaStatus) ⇒ events נצפה ב-useDbWatch (חוזה db-watch)', () => {
     expect(src).toContain("const db = useDbWatch('supporters', 'events');");
-    expect(src).toContain('const series = segulaOn ? activeRecurSeries(db.events, sp.id, today) : [];');
-    expect(src).toContain('const dueRemOf = (sp: Supporter) => (segulaOn ? dueRecurReminder(db.events, sp.id, today) : null);');
+    // ⚡ (12.10.2026) אותה כוונה — מצב-הסדרה נגזר מ-db.events הנצפים, היום מוזרק, מגודר segulaOn — אבל דרך
+    // אינדקס שנבנה פעם-אחת (buildRecurIndex על [db.events]) והגרסאות ה-Indexed (ביט-זהות לישנות, perf-panels.test).
+    expect(src).toContain('const recurIndex = useMemo(() => buildRecurIndex(db.events), [db.events]);');
+    expect(src).toContain('const series = segulaOn ? activeRecurSeriesIndexed(recurIndex, sp.id, today) : [];');
+    expect(src).toContain('const dueRemOf = (sp: Supporter): DueRecur | null => {');
+    expect(src).toContain('if (!segulaOn) return null;');
+    expect(src).toContain('v = dueRecurReminderIndexed(recurIndex, sp.id, today);');
+    expect(src).not.toMatch(/dueRecurReminder\(db\.events|activeRecurSeries\(db\.events/);
   });
   it('פעילה ⇒ צ\'יפ-מצב לכל סדרה (לא כפתור-זריעה); אין סדרה ⇒ «🕯 40 יום ▾» + תפריט 4 מצבים; stopPropagation (לא פותח כרטיס)', () => {
     expect(src).toContain("{recurDef(mode).emoji + (mode === 'segula' ? ' יום ' : ' ') + st.day + '/' + st.target}");

@@ -880,6 +880,52 @@ export function dueRecurReminder(
   return best;
 }
 
+/* ── ⚡ אינדקס-סדרות (ביצועים 12.10.2026) ──
+   נמדד על 16,000 תורמים (הלקוח האמיתי): recurStatus/dueRecurReminder/activeRecurSeries סורקים את **כל**
+   אירועי-הלוח בכל קריאה (4 מצבים × filter+sort), ולוח-המעקב קורא להם ~4× לכל שורה-גלויה בכל רינדור ⇒
+   16k × 300 אירועים = 179 ms לסבב-אחד, 16k × 5,000 אירועים = 5.4 s (Node, בלי האטה; ×4 במכשיר-איטי).
+   הפתרון: אינדקס Map<spId, אירועי-call-של-סדרה> שנבנה **פעם-אחת** לכל שינוי ב-db.events, והגרסאות
+   ה-Indexed קוראות לאותן פונקציות-ישנות על תת-הרשימה של התומך/ת בלבד. הסינון הישן (spId+type+תחילית)
+   אידמפוטנטי והסדר-המקורי נשמר (sort יציב) ⇒ התוצאה **ביט-זהה** (property-test ב-perf-panels.test).
+   הפונקציות הישנות נשארות לקוראים האחרים (כרטיס, store). */
+
+/** אירוע-לוח כפי שמנועי-הסדרה צורכים אותו (צורה מינימלית, לא OrgEvent מלא). */
+export type RecurEventLike = { id?: string; spId?: string; type?: string; date: string; notes?: string; done?: boolean };
+
+/** אינדקס לפי תומך/ת: רק אירועי 'call' עם spId שהערתם מתחילה באחת מתחיליות-הסדרה, בסדר-המקור. */
+export type RecurIndex = ReadonlyMap<string, readonly RecurEventLike[]>;
+
+const EMPTY_RECUR: readonly RecurEventLike[] = [];
+
+/** בניית האינדקס — מעבר-יחיד O(E). לקרוא פעם-אחת לכל שינוי-אירועים (useMemo על db.events). */
+export function buildRecurIndex(events: readonly RecurEventLike[]): RecurIndex {
+  const map = new Map<string, RecurEventLike[]>();
+  for (const e of events) {
+    if (e.type !== 'call' || typeof e.spId !== 'string') continue;
+    const notes = e.notes || '';
+    if (!RECUR_MODES.some((m) => notes.startsWith(m.prefix))) continue;
+    const list = map.get(e.spId);
+    if (list) list.push(e);
+    else map.set(e.spId, [e]);
+  }
+  return map;
+}
+
+/** = recurStatus(events, spId, todayIso, mode) — על האינדקס. */
+export function recurStatusIndexed(index: RecurIndex, spId: string, todayIso: string, mode: RecurMode): SegulaStatus {
+  return recurStatus(index.get(spId) ?? EMPTY_RECUR, spId, todayIso, mode);
+}
+
+/** = activeRecurSeries(events, spId, todayIso) — על האינדקס. */
+export function activeRecurSeriesIndexed(index: RecurIndex, spId: string, todayIso: string): ActiveRecur[] {
+  return activeRecurSeries(index.get(spId) ?? EMPTY_RECUR, spId, todayIso);
+}
+
+/** = dueRecurReminder(events, spId, todayIso) — על האינדקס. */
+export function dueRecurReminderIndexed(index: RecurIndex, spId: string, todayIso: string): DueRecur | null {
+  return dueRecurReminder(index.get(spId) ?? EMPTY_RECUR, spId, todayIso);
+}
+
 /** הסרת שורת-הסדרה (לפי תחילית-המצב) מהערת-קשר-הבא — טהור. */
 export function stripRecurNote(note: string, mode: RecurMode): string {
   if (mode === 'segula') return stripSegulaNote(note);

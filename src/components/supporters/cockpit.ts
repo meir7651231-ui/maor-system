@@ -72,13 +72,18 @@ export function cockpitAtRisk(
   todayIso: string,
   silentDays = COCKPIT_SILENT_DAYS,
 ): Supporter[] {
-  return supporters
-    .filter((sp) => {
-      if (!hasGiven(sp)) return false;
-      if (sp.nextDate) return false; // יש יעד מתוזמן (עתידי או עבר) ⇒ מטופל דרך השיחות
-      return daysSince(supLast(sp), todayIso) >= silentDays;
-    })
-    .sort((a, b) => daysSince(supLast(b), todayIso) - daysSince(supLast(a), todayIso));
+  // ⚡ ביצועים (12.10.2026, נמדד על 16,000 תורמים): המשווה הישן חישב supLast (סריקת hist) ×2 +
+  // 4 פרסורי-Date **לכל השוואה** ⇒ 173 ms לקריאה-אחת, והקוקפיט קרא לה 3× ברינדור. עכשיו מפתח-
+  // השקט מחושב פעם-אחת לכל תורם (decorate-sort-undecorate); המשווה זהה (b−a על אותם ערכים)
+  // ו-sort יציב ⇒ **אותו סדר בדיוק** (ratchet: perf-panels.test מול המשווה-הישן).
+  const keyed: { sp: Supporter; silent: number }[] = [];
+  for (const sp of supporters) {
+    if (!hasGiven(sp)) continue;
+    if (sp.nextDate) continue; // יש יעד מתוזמן (עתידי או עבר) ⇒ מטופל דרך השיחות
+    const silent = daysSince(supLast(sp), todayIso);
+    if (silent >= silentDays) keyed.push({ sp, silent });
+  }
+  return keyed.sort((a, b) => b.silent - a.silent).map((k) => k.sp);
 }
 
 /**
@@ -90,6 +95,9 @@ export function cockpitCalls(
   rate = 3.7,
   silentDays = COCKPIT_SILENT_DAYS,
   cfg?: OrgConfig,
+  /** ⚡ (12.10.2026) רשימת-הבסיכון שכבר חושבה ברינדור (cockpitAtRisk באותם supporters/todayIso/silentDays) —
+   *  חיסכון של קריאה-מלאה (173 ms על 16k). חסר ⇒ מחושב כאן, ביט-זהה. */
+  atRisk?: readonly Supporter[],
 ): CockpitTask[] {
   const tasks: CockpitTask[] = [];
   const seen = new Set<string>();
@@ -115,7 +123,7 @@ export function cockpitCalls(
   }
 
   // ── בסיכון-נטישה ──
-  for (const sp of cockpitAtRisk(supporters, todayIso, silentDays)) {
+  for (const sp of atRisk ?? cockpitAtRisk(supporters, todayIso, silentDays)) {
     if (seen.has(sp.id)) continue;
     const silent = daysSince(supLast(sp), todayIso);
     tasks.push({
@@ -234,6 +242,8 @@ export function cockpitKpis(
   supporters: readonly Supporter[],
   todayIso: string,
   rate = 3.7,
+  /** ⚡ (12.10.2026) רשימת-הבסיכון המשותפת של הרינדור (cockpitAtRisk, סף ברירת-המחדל) — חסר ⇒ מחושב כאן. */
+  atRisk?: readonly Supporter[],
 ): CockpitKpis {
   return {
     total: supporters.length,
@@ -241,7 +251,8 @@ export function cockpitKpis(
     // 🐛 (21.8): בלי todayIso הו"ק-נדרים שפגה (>2 חודשים שקט) נספרה ב"צפוי מהו״ק",
     // בעוד תור-המשימות (hokDue) כבר מחריג אותה — אותו-כלל לשני המשטחים.
     expectedHok: hokMonthlyTotal(supporters as Supporter[], rate, todayIso),
-    atRisk: cockpitAtRisk(supporters, todayIso).length,
+    // אותה אוכלוסייה כמו הסגמנט/הקליק (מקור-אמת יחיד) — רק החישוב משותף, לא ההגדרה.
+    atRisk: (atRisk ?? cockpitAtRisk(supporters, todayIso)).length,
   };
 }
 
@@ -260,8 +271,10 @@ export function cockpitQueue(
   todayIso: string,
   rate = 3.7,
   cfg?: OrgConfig,
+  /** ⚡ (12.10.2026) רשימת-הבסיכון המשותפת (cockpitAtRisk, סף ברירת-המחדל) — מועברת לשיחות. */
+  atRisk?: readonly Supporter[],
 ): CockpitQueue {
-  const calls = cockpitCalls(supporters, todayIso, rate, COCKPIT_SILENT_DAYS, cfg);
+  const calls = cockpitCalls(supporters, todayIso, rate, COCKPIT_SILENT_DAYS, cfg, atRisk);
   const thanks = cockpitThanks(supporters, todayIso);
   const hok = cockpitHokTasks(supporters, todayIso);
   const tasks = [...calls, ...thanks, ...hok];
@@ -302,14 +315,34 @@ export function cockpitWorkListText(queue: CockpitQueue): string {
 }
 
 /**
+ * ⚡ N הרשומות החדשות-ביותר (לפי date, מהחדש לישן) — **ביט-זהה** ל:
+ * `entries.filter(e => e.date).sort((a,b) => a.date<b.date ? 1 : a.date>b.date ? -1 : 0).slice(0, n)`
+ * (ratchet: property-test ב-perf-panels.test). שוויון-תאריך שומר את סדר-המקור (כמו sort יציב):
+ * מועמד מאוחר-יותר ברשימה נכנס רק אם תאריכו **גדול ממש** מהאחרון בחלון. O(E·n) במקום O(E·log E).
+ */
+export function topNewest<T extends { date: string }>(entries: readonly T[], n: number): T[] {
+  if (!(n > 0)) return [];
+  const top: T[] = [];
+  for (const e of entries) {
+    if (!e.date) continue;
+    if (top.length === n && !(e.date > top[n - 1].date)) continue;
+    // הכנסה ממוינת: אחרי כל רשומה שתאריכה ≥ (שוויון ⇒ המוקדם-ברשימה קודם)
+    let i = top.length;
+    while (i > 0 && top[i - 1].date < e.date) i--;
+    top.splice(i, 0, e);
+    if (top.length > n) top.pop();
+  }
+  return top;
+}
+
+/**
  * פעילות-חיה — N האירועים האחרונים מכל התורמים (תרומות/יעדים/מעקב), מהחדש לישן.
  * נגזר מ-orgCalEntries הקיים; קריאה-בלבד.
  */
 export function cockpitFeed(supporters: readonly Supporter[], limit = 8): CockpitFeedItem[] {
-  return orgCalEntries(supporters as Supporter[])
-    .filter((e) => e.date)
-    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
-    .slice(0, limit)
+  // ⚡ (12.10.2026): במקום למיין את **כל** אירועי-התרומה (16k תורמים ⇒ ~100k רשומות, 101 ms) כדי להציג 8 —
+  // בחירת-N-החדשים-ביותר במעבר-יחיד (topNewest), שמחזירה בדיוק את N הראשונים של המיון-היציב.
+  return topNewest(orgCalEntries(supporters as Supporter[]), limit)
     .map((e, i) => {
       const money =
         e.amount > 0
