@@ -3,7 +3,7 @@
  * עולה למעלה, וכל אריח/צ׳יפ הוא **מסנן** על הטבלה הקיימת. נגזרת טהורה של
  * הנתונים (portfolio + cockpit), memoized. מגודר opt-in (`supporters.rebrand`).
  */
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
 import { featureOn, termOf } from '../../lib/config';
@@ -25,7 +25,11 @@ function Tile(props: { label: string; value: string; tone?: string; onClick?: ()
   );
 }
 
-export function SupportersKpiStrip(props: {
+// ⚡ React.memo (12.10.2026, נמדד על 16k תורמים): הרצועה מריצה 5 מנועים-על-כל-ה-DB (portfolioIntel · collected ·
+// hokMonthlyTotal · hokDue · cockpitAtRisk). ה-useMemo-ים הפנימיים תלויים רק ב-props.supporters/today/rate/hokOn
+// (פרימיטיבים + מערך-הקלט — אפס object-literal-חדש-לרינדור); memo חוסך גם את רינדור-ה-JSX כשה-props זהים
+// (ברגע שהמסך מייצב את visibleBase והקולבקים). אפס שינוי-התנהגות — אותם ערכים, אותם קליקים.
+export const SupportersKpiStrip = memo(function SupportersKpiStrip(props: {
   supporters: Supporter[];
   config: OrgConfig;
   usdRate: number;
@@ -106,4 +110,4 @@ export function SupportersKpiStrip(props: {
       </div>
     </div>
   );
-}
+});

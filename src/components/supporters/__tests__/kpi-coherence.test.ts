@@ -67,7 +67,9 @@ describe('🛡 באג א — אריח קליקי מציג את האוכלוסי�
   });
 
   it('הקוקפיט עצמו כבר קוהרנטי (kpis.atRisk = cockpitAtRisk) — נשאר כך', () => {
-    expect(cockpitEngineSrc).toContain('atRisk: cockpitAtRisk(supporters, todayIso).length');
+    // ⚡ (12.10.2026) אותה כוונה: ה-KPI = אוכלוסיית cockpitAtRisk; הרשימה רק משותפת-לרינדור (atRisk ??) — לא הגדרה אחרת.
+    expect(cockpitEngineSrc).toContain('atRisk: (atRisk ?? cockpitAtRisk(supporters, todayIso)).length');
+    expect(cockpitViewSrc).toContain('const atRisk = useMemo(() => cockpitAtRisk(supporters, today), [supporters, today]);');
     expect(cockpitViewSrc).toContain('value={String(kpis.atRisk)}');
   });
 });
