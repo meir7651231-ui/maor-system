@@ -28,6 +28,7 @@ describe('⚡ ציור-מדורג — incSlice', () => {
 
 describe('🔒 הגנת-מקור — החיווט בתורמים ובמשפחות', () => {
   const sup = readFileSync('src/components/supporters/SupportersView.tsx', 'utf8');
+  const supLib = readFileSync('src/components/supporters/lib.ts', 'utf8');
   const fam = readFileSync('src/components/families/FamiliesView.tsx', 'utf8');
 
   it('התורמים: הציור על החלון, הלוגיקה על הרשימה המלאה, חיפוש-נדחה', () => {
@@ -42,8 +43,11 @@ describe('🔒 הגנת-מקור — החיווט בתורמים ובמשפחו�
     // אפס-אובדן-יכולת: בחר-הכול נשאר על הרשימה המלאה (לא על החלון!)
     expect(sup).toContain('setSelSet(new Set(list.map((sp) => sp.id)))');
     // הסינון עצמו רץ על הערך-הנדחה — ההקלדה לא חוסמת
-    expect(sup).toContain('const nq = normSearch(dq)');
-    expect(sup).toContain("if (!dq.trim()) return true;");
+    // ⚡ 12.10.2026 (ביצועים): הפרדיקט עבר ל-lib.ts (filterSupporterList) — המסך מזריק את dq (הנדחה), לא q
+    expect(sup).toContain('filterSupporterList(visibleBase, stats, { dq,');
+    expect(supLib).toContain('const nq = normSearch(dq)');
+    expect(supLib).toContain("if (!hasQ) return true;");
+    expect(supLib).toContain('const hasQ = !!dq.trim();');
   });
 
   it('המשפחות: אותו חוזה — חלון-ציור + חיפוש-נדחה + לוגיקה-מלאה', () => {

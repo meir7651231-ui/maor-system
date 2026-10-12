@@ -8,7 +8,8 @@ import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
 import { normSearch, formatIsraeliPhone } from '../../lib/validate';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
-import { planAddName } from '../../lib/ayin';
+import { eyesTotal, planAddName, stageIndex } from '../../lib/ayin';
+import { numMatch } from '../families/lib';
 import { parseAnyDate, parseCsv } from '../../lib/csvx';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
@@ -195,11 +196,15 @@ export function supTotalIls(sp: Supporter, rate = 3.7): number {
  * R — טריות (ימים מאז התרומה האחרונה), F — תדירות (מספר תרומות), M — סכום מצטבר.
  */
 export function supScore(sp: Supporter, rate = 3.7): number {
-  const tot = supTotalIls(sp, rate);
-  const last = supLast(sp);
-  const cnt = supCount(sp);
+  return rfmScore(supTotalIls(sp, rate), supLast(sp), supCount(sp), Date.now());
+}
+
+/** הנוסחה עצמה (R·F·M מהחלקים) — ⚡ ביצועים (12.10.2026): משותפת ל-supScore ול-
+ *  buildSupporterStats, כדי שמעבר-אחד על 16,000 תורמים יקרא Date.now() פעם-אחת
+ *  ויחשב את הציון מסכומים שכבר נצברו (במקום 4 מעברי-hist נוספים פר-תורם). */
+export function rfmScore(tot: number, last: string, cnt: number, nowMs: number): number {
   const days = last
-    ? Math.floor((Date.now() - new Date(last + 'T12:00:00').getTime()) / 86400000)
+    ? Math.floor((nowMs - new Date(last + 'T12:00:00').getTime()) / 86400000)
     : 9999;
   const R = days <= 30 ? 350 : days <= 90 ? 280 : days <= 180 ? 200 : days <= 365 ? 120 : 40;
   const F = cnt >= 10 ? 300 : cnt >= 5 ? 230 : cnt >= 3 ? 160 : cnt >= 2 ? 100 : 50;
@@ -223,6 +228,297 @@ export function supTier(sc: number): SupTier {
 }
 
 export const TIER_ORDER = ['זהב', 'כסף', 'ארד', 'רדומה'] as const;
+
+/* ── ⚡ ביצועים (12.10.2026) — סטטיסטיקת-תורם במעבר-אחד ─────────────────────────
+   נמדד על הלקוח-האמיתי (16,000 תורמים · 34MB JSON, CPU ×4): הקשה בחיפוש 1.1–1.4 שניות,
+   מיון 1.0 שנ׳, פתיחת-הטאב 2.1 שנ׳. הסיבה: כל רינדור של הרשימה חישב לכל תורם מחדש
+   supCount/supTotalIls/supScore (3 מסנני numMatch — גם כשריקים), supScore שוב ל-tierCounts,
+   שני reduce ל-tIls/tUsd, donationYears על כל תרומה, והמיון קרא supScore ‎N·logN‎ פעמים —
+   ‏~10 מעברי-hist פר-תורם פר-רינדור, ו-2–4 רינדורים לכל הקשה. ה-callbacks של ה-reduce
+   ב-supIls/supUsd היו הנקודה-החמה #1 בקוד-האפליקציה (5% מזמן-העיסוק כבר על 5k).
+   הפתרון: מעבר-אחד על donations+hist פר-תורם ⇒ Map(id→SupStats) שהמסך ממומואיז על
+   [visibleBase, rate, today]; הסינון, המיון והשורות קוראים מספרים מוכנים. הנוסחאות
+   זהות ביט-לביט לפונקציות-המקור (ratchet: supporter-stats.test). ──────────────── */
+
+/** כל המספרים-המוצגים של תורם — אותן נוסחאות של supIls/supUsd/supCount/supLast/
+ *  supTotalIls/supScore/supTier/supAcqYear, מחושבות פעם-אחת. */
+export interface SupStats {
+  ils: number;
+  usd: number;
+  count: number;
+  last: string;
+  totalIls: number;
+  score: number;
+  tier: SupTier;
+  acqYear: number | null;
+  /** שנות-הנתינה (donations+hist, גולמי — הסינון 1900<y<3000 בבורר). */
+  years: Set<number>;
+  /** טקסט-החיפוש המנורמל (normSearch על שם/מייל/קטגוריה/כתובת/ייעוד) — **עצל**: מתמלא בהקשה
+   *  הראשונה ונשמר במפה הממומואיזת (searchTextOf). נמדד: חישוב-מוקדם לכל 16k = +43ms
+   *  בפתיחת-הטאב (5 regex פר-תורם) — לא משלמים אותו כשלא מחפשים. */
+  search?: string;
+  /** ספרות כל הטלפונים (ראשי+נוספים) — עצל, כמו search (phoneDigitsOf). */
+  phoneDigits?: string[];
+}
+
+/** טקסט-החיפוש המנורמל של תורם — מחושב פעם-אחת לכל stats ונשמר (מטמון-נגזרת טהור). */
+export function searchTextOf(st: SupStats, sp: Supporter): string {
+  return st.search ?? (st.search = normSearch([sp.name, sp.email, sp.cat, sp.address, sp.forWho].join(' ')));
+}
+
+/** ספרות כל הטלפונים של תורם — מחושב פעם-אחת לכל stats ונשמר. */
+export function phoneDigitsOf(st: SupStats, sp: Supporter): string[] {
+  return st.phoneDigits ?? (st.phoneDigits = allSupPhones(sp).map((r) => r.num.replace(/\D/g, '')));
+}
+
+/** סטטיסטיקה של תורם-יחיד — מעבר-אחד על donations ועל hist. */
+export function supporterStats(sp: Supporter, rate = 3.7, nowMs = Date.now()): SupStats {
+  let hIls = 0;
+  let hUsd = 0;
+  let hCnt = 0;
+  let last = sp.last || '';
+  let min = '';
+  const years = new Set<number>();
+  for (const d of sp.donations ?? []) {
+    if (d.date && (!min || d.date < min)) min = d.date;
+    if (d.date) years.add(+String(d.date).slice(0, 4));
+  }
+  for (const h of sp.hist ?? []) {
+    // סדר-הסכימה זהה ל-reduce של supIls/supUsd (צבירה מ-0 לפי סדר-המערך, ואז + השמור)
+    if (h.c === '$') hUsd += h.a;
+    else hIls += h.a;
+    if ((h.a || 0) > 0) hCnt++;
+    if (h.d > last) last = h.d;
+    if (h.d && (!min || h.d < min)) min = h.d;
+    if (h.d) years.add(+String(h.d).slice(0, 4));
+  }
+  const ils = (sp.ils || 0) + hIls;
+  const usd = (sp.usd || 0) + hUsd;
+  const count = (sp.count || 0) + hCnt;
+  const totalIls = ils + usd * rate;
+  const score = rfmScore(totalIls, last, count, nowMs);
+  return {
+    ils,
+    usd,
+    count,
+    last,
+    totalIls,
+    score,
+    tier: supTier(score),
+    acqYear: min ? +min.slice(0, 4) : null,
+    years,
+  };
+}
+
+/** Map(id→SupStats) לכל הרשימה — Date.now() נקרא פעם-אחת לכל המעבר (כמו supScore פר-קריאה). */
+export function buildSupporterStats(supporters: readonly Supporter[], rate = 3.7, nowMs = Date.now()): Map<string, SupStats> {
+  const out = new Map<string, SupStats>();
+  for (const sp of supporters) out.set(sp.id, supporterStats(sp, rate, nowMs));
+  return out;
+}
+
+/** "₪1,200 + $300" מהסכומים המוכנים — אותו נוסח של totalLabel. */
+export function totalLabelOf(i: number, u: number): string {
+  const ils = i ? '₪' + i.toLocaleString('he-IL') : '';
+  const usd = u ? '$' + u.toLocaleString('he-IL') : '';
+  return ils && usd ? ils + ' + ' + usd : ils || usd || '—';
+}
+
+/** שנת-הגיוס (המתנה-הראשונה) — לדריל-אין מקוהורטת-הגיוס. null כשאין נתינה. */
+export function supAcqYear(sp: { donations: { date: string }[]; hist?: { d: string }[] }): number | null {
+  let min = '';
+  for (const d of sp.donations) if (d.date && (!min || d.date < min)) min = d.date;
+  if (sp.hist) for (const h of sp.hist) if (h.d && (!min || h.d < min)) min = h.d;
+  return min ? +min.slice(0, 4) : null;
+}
+/** האם התורם נתן בתקופה — שנה (yyyy) ו/או חודש (1–12). null=כל. חיפוש-מפורש. */
+export function supGaveInPeriod(
+  sp: { donations: { date: string }[]; hist?: { d: string }[] },
+  year: number | null,
+  month: number | null,
+): boolean {
+  if (year == null && month == null) return true;
+  const hit = (iso: string): boolean => {
+    if (!iso) return false;
+    if (year != null && +iso.slice(0, 4) !== year) return false;
+    if (month != null && +iso.slice(5, 7) !== month) return false;
+    return true;
+  };
+  if (sp.donations.some((d) => hit(String(d.date)))) return true;
+  return !!sp.hist?.some((h) => hit(String(h.d)));
+}
+/** כל שנות-הנתינה שקיימות במאגר — לבורר-השנה, מהחדשה לישנה. */
+export function donationYears(sups: { donations: { date: string }[]; hist?: { d: string }[] }[]): number[] {
+  const set = new Set<number>();
+  for (const sp of sups) {
+    for (const d of sp.donations) if (d.date) set.add(+String(d.date).slice(0, 4));
+    if (sp.hist) for (const h of sp.hist) if (h.d) set.add(+String(h.d).slice(0, 4));
+  }
+  return [...set].filter((y) => y > 1900 && y < 3000).sort((a, b) => b - a);
+}
+/** אותו בורר-שנים מתוך הסטטיסטיקה המוכנה (איחוד SupStats.years) — ביט-זהה ל-donationYears. */
+export function donationYearsFromStats(stats: Iterable<SupStats>): number[] {
+  const set = new Set<number>();
+  for (const st of stats) for (const y of st.years) set.add(y);
+  return [...set].filter((y) => y > 1900 && y < 3000).sort((a, b) => b - a);
+}
+
+/* ── סינון + מיון הרשימה — טהורים, קוראים מספרים מ-SupStats (12.10.2026) ──────────
+   הפרדיקט הועבר כמו-שהוא מגוף-המסך (SupportersView) כדי שאפשר יהיה להוכיח ב-ratchet
+   שהתוצאה זהה לפרדיקט-הישן (list-equivalence.test) — אותן שורות, אותו סדר. ──────── */
+
+export interface SupListFilters {
+  dq: string;
+  cat: string;
+  purposeF: string;
+  regionF: 'all' | 'il' | 'intl';
+  hokF: null | 'active' | 'due';
+  tierF: string | null;
+  lastF: LastBucket | null;
+  monthF: number | null;
+  gaveYearF: number | null;
+  periodMode: 'gave' | 'last';
+  acqYearF: number | null;
+  colF: { count: string; total: string; score: string };
+  nextF: boolean;
+  ayinF: null | 'eyes' | 'noeyes' | 'today';
+}
+
+/** סטטיסטיקה מהמפה, עם נפילה-רכה לחישוב-מקומי (רשומה שאינה במפה — לא אמור לקרות). */
+export function statOf(stats: ReadonlyMap<string, SupStats>, sp: Supporter, rate: number): SupStats {
+  return stats.get(sp.id) ?? supporterStats(sp, rate);
+}
+
+/**
+ * הסינון של מסך-התורמים — הפרדיקט המקורי שורה-בשורה; המספרים (מונה/₪-שקול/ציון/
+ * דרגה/שנת-גיוס) מגיעים מ-SupStats במקום חישוב-חוזר פר-תורם. סינון-הסגמנט מוזרק
+ * (matchSeg) כי segments.ts נשען על lib.ts (בלי ייבוא-מעגלי).
+ */
+export function filterSupporterList(
+  base: readonly Supporter[],
+  stats: ReadonlyMap<string, SupStats>,
+  f: SupListFilters,
+  today: string,
+  rate: number,
+  matchSeg: ((sp: Supporter) => boolean) | null,
+): Supporter[] {
+  const { dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF } = f;
+  const nq = normSearch(dq);
+  const qd = dq.replace(/\D/g, '');
+  const hasQ = !!dq.trim();
+  return base.filter((sp) => {
+    const st = statOf(stats, sp, rate);
+    if (cat !== 'all' && (sp.cat || '') !== cat) return false;
+    if (purposeF !== 'all' && (sp.forWho || '').trim() !== purposeF) return false;
+    // סינון אזור-טלפון (חול/ישראל) — לפי כל מספרי התורם (ראשי + נוספים).
+    if (regionF !== 'all' && !supHasRegion(sp, regionF)) return false;
+    // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): הוראות פעילות / רק שטרם-נרשמו-החודש
+    if (hokF === 'active' && !sp.hok?.active) return false;
+    // 🐛 קוהרנטיות (21.8): הצ'יפ "⏳ טרם נרשמו" מונה לפי hokDue (hokEffectivelyActive —
+    // הו"ק-נדרים ששתקה >2 חודשים מוחרגת), אבל הסינון השתמש ב-hok?.active הגולמי ⇒
+    // מונה-הצ'יפ ≠ שורות-הרשימה ≠ אוכלוסיית HokBulkModal. עכשיו אותו-כלל בדיוק.
+    if (hokF === 'due' && !(hokEffectivelyActive(sp, today) && !hokRecordedThisMonth(sp, today))) return false;
+    if (tierF && st.tier.label !== tierF) return false;
+    if (matchSeg && !matchSeg(sp)) return false;
+    // תקופה: 'last' ⇒ רק מי שתרומתו האחרונה בתקופה; 'gave' ⇒ מי שנתן בכלל בתקופה.
+    if (lastF && !supLastInBucket(sp, today, lastF)) return false;
+    if (monthF || gaveYearF) {
+      const inPeriod = periodMode === 'last'
+        ? supLastInPeriod(sp, gaveYearF, monthF)
+        : supGaveInPeriod(sp, gaveYearF, monthF);
+      if (!inPeriod) return false;
+    }
+    if (acqYearF && st.acqYear !== acqYearF) return false;
+    // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (לפי השער העריך) / ציון
+    if (!numMatch(colF.count, st.count)) return false;
+    if (!numMatch(colF.total, Math.round(st.totalIls))) return false;
+    if (!numMatch(colF.score, st.score)) return false;
+    // 📞 יעדי-קשר שהגיעו (20.8) — אותה סמנטיקה כמו dueContacts בווידג'ט-הבית
+    if (nextF && !(sp.nextDate && sp.nextDate <= today)) return false;
+    // סינון מעקב הטיפול (פריט 14)
+    if (ayinF === 'eyes' && !(sp.ayin && eyesTotal(sp.ayin) > 0)) return false;
+    if (ayinF === 'noeyes' && sp.ayin && eyesTotal(sp.ayin) > 0) return false;
+    if (ayinF === 'today' && !(sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today)))) return false;
+    if (!hasQ) return true;
+    // חיפוש-טלפון כולל את כל המספרים (ראשי + נוספים), לא רק phone.
+    const phoneHit = qd.length >= 3 && phoneDigitsOf(st, sp).some((n) => n.includes(qd));
+    const textHit = !!nq && searchTextOf(st, sp).includes(nq);
+    return phoneHit || textHit;
+  });
+}
+
+export type SupSortKey =
+  | 'name'
+  | 'cat'
+  | 'phone'
+  | 'email'
+  | 'count'
+  | 'ils'
+  | 'usd'
+  | 'last'
+  | 'nextDate'
+  | 'score'
+  | 'stage'
+  | 'eyes'
+  | 'paid';
+
+/** מפתח-המיון של שורה — אותם ערכים של sortVal המקורי, מהסטטיסטיקה המוכנה. */
+export function sortKeyOf(sp: Supporter, st: SupStats, key: SupSortKey): string | number {
+  switch (key) {
+    case 'name':
+      return sp.name;
+    case 'cat':
+      return sp.cat || '';
+    case 'phone':
+      return sp.phone || '';
+    case 'email':
+      return sp.email || '';
+    // הכרעת 9.8 "לכולל": מיון/סינון/תצוגה על הצבירה כולל-ההיסטוריה
+    case 'count':
+      return st.count;
+    case 'ils':
+      return st.ils;
+    case 'usd':
+      return st.usd;
+    case 'last':
+      return st.last;
+    case 'nextDate':
+      return sp.nextDate || '';
+    case 'score':
+      return st.score;
+    case 'stage':
+      return sp.ayin ? stageIndex(sp.ayin.stage) : -1;
+    case 'eyes':
+      return sp.ayin ? eyesTotal(sp.ayin) : -1;
+    case 'paid':
+      return sp.ayin?.paid ? 1 : 0;
+  }
+}
+
+const NUM_SORT_KEYS: ReadonlySet<SupSortKey> = new Set(['count', 'ils', 'usd', 'score', 'stage', 'eyes', 'paid']);
+
+/**
+ * מיון-מעוטר (decorate-sort): מפתח-אחד פר-שורה (במקום sortVal×2 לכל השוואה — מיון-ציון
+ * קרא supScore ‎N·logN‎ פעמים, 1.0 שנ׳ על 16k), Collator('he') יחיד. Array.prototype.sort
+ * יציב ⇒ סדר-השוויונים זהה למיון-המקורי (ratchet list-equivalence).
+ */
+export function sortSupporterList(
+  list: readonly Supporter[],
+  stats: ReadonlyMap<string, SupStats>,
+  key: SupSortKey,
+  dir: 1 | -1,
+  rate: number,
+): Supporter[] {
+  const keys = list.map((sp) => sortKeyOf(sp, statOf(stats, sp, rate), key));
+  const idx = list.map((_, i) => i);
+  if (NUM_SORT_KEYS.has(key)) {
+    idx.sort((a, b) => ((keys[a] as number) - (keys[b] as number)) * dir);
+  } else {
+    const col = new Intl.Collator('he');
+    idx.sort((a, b) => col.compare(String(keys[a]), String(keys[b])) * dir);
+  }
+  return idx.map((i) => list[i]);
+}
 
 /* ---------- פאנל דרגות מורחב (P3 פריט 12) — טהור, נוסחאות הלגאסי ---------- */
 

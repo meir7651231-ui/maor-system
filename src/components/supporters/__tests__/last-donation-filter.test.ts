@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { LAST_BUCKETS, supLastInBucket } from '../lib';
 import type { Supporter } from '../../../types/domain';
 import viewSrc from '../SupportersView.tsx?raw';
+import libSrc from '../lib.ts?raw';
 
 const TODAY = '2026-09-06';
 const sp = (last: string, hist: { d: string }[] = []): Supporter =>
@@ -44,7 +45,8 @@ describe('הגנת-מקור — הבורר תמיד-גלוי, מסנן, מנוק
     expect(viewSrc).toContain('ariaLabel="תרומה אחרונה"');
     // הבורר יושב לפני הגידור (monthF || gaveYearF) של בורר-התקופה
     expect(viewSrc.indexOf('ariaLabel="תרומה אחרונה"')).toBeLessThan(viewSrc.indexOf('{(monthF || gaveYearF) && ('));
-    expect(viewSrc).toContain('if (lastF && !supLastInBucket(sp, today, lastF)) return false;');
+    // ⚡ 12.10.2026 (ביצועים): הפרדיקט עבר שורה-בשורה ל-lib.ts (filterSupporterList, ממומואיז במסך) — אותו כלל, מקור חדש
+    expect(libSrc).toContain('if (lastF && !supLastInBucket(sp, today, lastF)) return false;');
     expect(viewSrc).toContain("|| !!segF || !!lastF ||");
     expect(viewSrc).toContain('setLastF(null);\n    setMonthF(null);');
     expect(viewSrc).toContain("clear: () => setLastF(null)");

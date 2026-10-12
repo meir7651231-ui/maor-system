@@ -20,6 +20,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import viewSrc from '../SupportersView.tsx?raw';
+import libSrc from '../lib.ts?raw';
 import kpiSrc from '../SupportersKpiStrip.tsx?raw';
 import intelViewSrc from '../SupportersIntel.tsx?raw';
 import cockpitEngineSrc from '../cockpit.ts?raw';
@@ -74,7 +75,8 @@ describe('🛡 באג א — אריח קליקי מציג את האוכלוסי�
 
 describe("🛡 באג ב — סינון-הו״ק 'due' באותו-כלל כמו הצ'יפ (hokDue)", () => {
   it('המסנן במסך משתמש ב-hokEffectivelyActive + !hokRecordedThisMonth', () => {
-    expect(viewSrc).toContain("hokF === 'due' && !(hokEffectivelyActive(sp, today) && !hokRecordedThisMonth(sp, today))");
+    // ⚡ 12.10.2026 (ביצועים): הפרדיקט עבר שורה-בשורה ל-lib.ts (filterSupporterList, ממומואיז במסך) — אותו כלל, מקור חדש
+    expect(libSrc).toContain("hokF === 'due' && !(hokEffectivelyActive(sp, today) && !hokRecordedThisMonth(sp, today))");
   });
 
   it('כלל-המסנן ≡ חברות ב-hokDue — גם על הו"ק-נדרים שפגה', () => {

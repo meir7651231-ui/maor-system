@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { sup12m, supAvgDon, supLastInPeriod, supScoreBins } from '../lib';
 import { numMatch } from '../../families/lib';
 import viewSrc from '../SupportersView.tsx?raw';
+import libSrc from '../lib.ts?raw';
 import donorImportSrc from '../../settings/DonorImportSection.tsx?raw';
 import type { Supporter } from '../../../types/domain';
 
@@ -40,10 +41,14 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     expect(numMatch('3+', 2)).toBe(false);
     expect(numMatch('1-5', 3)).toBe(true);
     expect(numMatch('7', 7)).toBe(true);
-    expect(viewSrc).toContain('numMatch(colF.total, Math.round(supTotalIls(sp, rate)))');
-    // הכרעת 9.8 "לכולל": המונה בסינון כולל את ההיסטוריה (supCount, לא sp.count)
-    expect(viewSrc).toContain('numMatch(colF.count, supCount(sp))');
-    expect(viewSrc).toContain('numMatch(colF.score, supScore(sp, rate))');
+    // ⚡ 12.10.2026 (ביצועים): המסננים קוראים מ-SupStats (totalIls≡supTotalIls(sp, rate), count≡supCount,
+    // score≡supScore — ביט-זהה, ratchet supporter-stats) בתוך filterSupporterList ב-lib.ts; השער עדיין מוזרק
+    expect(libSrc).toContain('numMatch(colF.total, Math.round(st.totalIls))');
+    expect(libSrc).toContain('const totalIls = ils + usd * rate;');
+    // הכרעת 9.8 "לכולל": המונה בסינון כולל את ההיסטוריה (SupStats.count ≡ supCount, לא sp.count)
+    expect(libSrc).toContain('numMatch(colF.count, st.count)');
+    expect(libSrc).toContain('numMatch(colF.score, st.score)');
+    expect(viewSrc).toContain('filterSupporterList(visibleBase, stats,');
     expect(viewSrc).toContain('const rate = db.usdRate');
   });
 
@@ -69,8 +74,12 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
   // סכם את sp.ils/sp.usd השמורים (קבלות-בלבד) בעוד כל שורה מציגה supIls/supUsd
   // (כולל hist) ⇒ עסקאות-הסליקה נעלמו מהכותרת. הנעילה: הכותרת דרך supIls/supUsd.
   it('🛡 סה"כ-הכותרת כולל hist — supIls/supUsd, לא sp.ils/sp.usd השמורים (הגנת-מקור)', () => {
-    expect(viewSrc).toContain('const tIls = visibleBase.reduce((a, x) => a + supIls(x), 0)');
-    expect(viewSrc).toContain('const tUsd = visibleBase.reduce((a, x) => a + supUsd(x), 0)');
+    // ⚡ 12.10.2026 (ביצועים): הכותרת מסכמת SupStats.ils/usd (≡ supIls/supUsd כולל hist — ratchet
+    // supporter-stats) בלולאה-אחת ממומואיזת; הצורה השמורה (sp.ils) עדיין אסורה
+    expect(viewSrc).toContain('tIls += st.ils;');
+    expect(viewSrc).toContain('tUsd += st.usd;');
+    expect(libSrc).toContain('const ils = (sp.ils || 0) + hIls;');
+    expect(libSrc).toContain('const usd = (sp.usd || 0) + hUsd;');
     // אסור שיחזור לצורה השמורה (קבלות-בלבד) שהקפיאה את הכותרת
     expect(viewSrc).not.toContain('(a, x) => a + (x.ils || 0)');
     expect(viewSrc).not.toContain('(a, x) => a + (x.usd || 0)');
@@ -83,7 +92,8 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     expect(viewSrc).toContain("supView === 'grid' ?");
     expect(viewSrc).toContain("repeat(auto-fill, minmax(220px, 1fr))");
     // המונח דינמי (ורטיקלים!) והסכום דרך totalLabel (₪+$ — לא ils בלבד)
-    expect(viewSrc).toMatch(/termOf\(config, 'entity\.donations', 'תרומות'\)[\s\S]{0,60}totalLabel\(sp\)/);
+    // ⚡ 12.10.2026: totalLabelOf(st.ils, st.usd) ≡ totalLabel(sp) (ratchet supporter-stats) — מהסטטיסטיקה המוכנה
+    expect(viewSrc).toMatch(/termOf\(config, 'entity\.donations', 'תרומות'\)[\s\S]{0,60}totalLabelOf\(st\.ils, st\.usd\)/);
   });
 
   // 🐛 ratchet — טבלת-14-עמודות גולשת אופקית בלי רמז: המשתמש לא ידע שיש עוד
@@ -148,8 +158,9 @@ describe('💛 ratchet — P3 מסך התומכות', () => {
     // ברירת-מחדל 'gave' = ביט-זהה להתנהגות הקיימת
     expect(viewSrc).toContain("useRemembered<'gave' | 'last'>('sup.periodMode', 'gave')"); // 10.9: זכור בין מסכים (filterMemory)
     // ענף-הסינון: 'last' ⇒ supLastInPeriod, אחרת supGaveInPeriod (שניהם על gaveYearF/monthF)
-    expect(viewSrc).toContain('supLastInPeriod(sp, gaveYearF, monthF)');
-    expect(viewSrc).toContain('supGaveInPeriod(sp, gaveYearF, monthF)');
+    // ⚡ 12.10.2026 (ביצועים): הפרדיקט עבר שורה-בשורה ל-lib.ts (filterSupporterList, ממומואיז במסך) — אותו כלל, מקור חדש
+    expect(libSrc).toContain('supLastInPeriod(sp, gaveYearF, monthF)');
+    expect(libSrc).toContain('supGaveInPeriod(sp, gaveYearF, monthF)');
     // בורר-המצב מוצג רק כשנבחרה תקופה
     expect(viewSrc).toContain('🕐 תרומה אחרונה בתקופה');
     // תווית-הצ׳יפ עוקבת אחרי המצב; ניקוי-הצ׳יפ מאפס גם את המצב

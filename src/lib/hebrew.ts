@@ -156,11 +156,20 @@ export function hebPartsOfIso(iso: string): HebParts {
  * וגורם לתאריך העברי לסטות ביום. צהריים חסין לכך ולשעון קיץ — עקבי עם שאר
  * שכבת התאריכים (hebToIsoEn · isoToHebParts · homeData).
  */
+const HDF_CACHE_MAX = 5_000;
+const hdfCache = new Map<string, string>();
 export function hebDateFull(iso: string): string {
   if (!iso) return '';
+  // ⚡ ביצועים (12.10.2026): רשימת-התורמים קראה hebDateFull לכל שורה (כותרת-ריחוף +
+  // "קשר הבא") — 3 פורמטי-ICU לא-ממוטמנים פר-שורה פר-רינדור, כשרוב התאריכים חוזרים.
+  // טהור לכל ISO ⇒ מטמון מוגבל (5k, פינוי-הישן-ביותר) — אותו דפוס כמו hebPartsOfIso.
+  const hit = hdfCache.get(iso);
+  if (hit !== undefined) return hit;
   const d = new Date(iso.slice(0, 10) + 'T12:00:00');
-  if (isNaN(d.getTime())) return '';
-  return `${gem(hebParts(d).day)} ${fmtHM.format(d)} ${gemYear(fmtHY.format(d))}`;
+  const out = isNaN(d.getTime()) ? '' : `${gem(hebParts(d).day)} ${fmtHM.format(d)} ${gemYear(fmtHY.format(d))}`;
+  if (hdfCache.size >= HDF_CACHE_MAX) hdfCache.delete(hdfCache.keys().next().value as string);
+  hdfCache.set(iso, out);
+  return out;
 }
 
 /** חגים ומועדים לפי 'חודש-אנגלי יום'. */

@@ -12,6 +12,7 @@ import { allowedDesignationsFor, canIssueReceipt } from '../../platform/lib';
 import useAppSrc from '../../../store/useApp.ts?raw';
 import formSrc from '../SupporterForm.tsx?raw';
 import viewSrc from '../SupportersView.tsx?raw';
+import libSrc from '../lib.ts?raw';
 import type { OrgCloudDoc } from '../../../lib/cloudConfig';
 
 const sup = (purposes: string[]): Pick<Supporter, 'donations'> =>
@@ -117,7 +118,8 @@ describe('ייעוד פר-תורם (forWho) — בקשת-בעלים 15.8 "פר �
   });
 
   it('הגנת-מקור: רשימת-התורמים מסננת לפי ייעוד-הכרטיס (forWho)', () => {
-    expect(viewSrc).toContain("(sp.forWho || '').trim() !== purposeF");
+    // ⚡ 12.10.2026 (ביצועים): הפרדיקט עבר שורה-בשורה ל-lib.ts (filterSupporterList, ממומואיז במסך) — אותו כלל, מקור חדש
+    expect(libSrc).toContain("(sp.forWho || '').trim() !== purposeF");
     expect(viewSrc).toContain('purposeOn && purposeOptions.length > 0');
   });
 
