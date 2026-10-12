@@ -313,8 +313,8 @@ describe('📒 ratchet — פרנסה׳לע 2: מיגרציה אדיטיבית (
     expect(db.prListings.some((x) => x.id === 'prl9')).toBe(false);
   });
 
-  it('(יא) סנכרון-סכמה: 27 אוספים · emptyDb · BACKUP-השרת (רשומה בלבד, בלי פריסה) · תוויות שחזור/דמו', () => {
-    expect(ENTITY_COLLECTIONS).toHaveLength(27);
+  it('(יא) סנכרון-סכמה: 27⇒30 אוספים (+3 של אירוח, 12.10) · emptyDb · BACKUP-השרת (רשומה בלבד, בלי פריסה) · תוויות שחזור/דמו', () => {
+    expect(ENTITY_COLLECTIONS).toHaveLength(30);
     for (const col of PR_COLLECTIONS) {
       expect(ENTITY_COLLECTIONS).toContain(col);
       expect(emptyDb()[col]).toEqual([]);

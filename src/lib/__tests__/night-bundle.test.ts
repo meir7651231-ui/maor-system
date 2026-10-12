@@ -39,7 +39,7 @@ describe('🌙 ratchet — צרור-הלילה (#1/#3/#9)', () => {
     expect(cloudSrc).toMatch(/writeMailOutbox[\s\S]{0,400}status: 'pending'/);
   });
 
-  it('🛡 השרת משקף את הלקוח: BACKUP_COLLECTIONS בגיבוי-הלילי מכיל את כל אוספי-הישויות (27 — כולל 4 אוספי פרנסה׳לע)', () => {
+  it('🛡 השרת משקף את הלקוח: BACKUP_COLLECTIONS בגיבוי-הלילי מכיל את כל אוספי-הישויות (30 — כולל 4 אוספי פרנסה׳לע ו-3 של אירוח)', () => {
     // סחף-סכמה: אוסף חדש ב-ENTITY_COLLECTIONS בלי עדכון הגיבוי = צילום-לילה חסר
     for (const col of ENTITY_COLLECTIONS) {
       expect(functionsSrc, 'אוסף ' + col + ' חסר ב-BACKUP_COLLECTIONS של backupNightly').toMatch(new RegExp("'" + col + "'"));

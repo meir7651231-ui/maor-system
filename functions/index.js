@@ -394,7 +394,7 @@ exports.remindersNightly = onSchedule({ schedule: 'every day 05:00', timeZone: '
 
 /**
  * 💾 backupNightly — צילום-לילי (02:30) של כל ארגון-פלטפורמה ל-Storage:
- * ‏backups/{slug}/{date}.json — ‏meta + envelope + 27 אוספי-הישויות, ושומר 30
+ * ‏backups/{slug}/{date}.json — ‏meta + envelope + 30 אוספי-הישויות, ושומר 30
  * צילומים אחרונים (טבעת כמו ה-IndexedDB המקומי). ארגון שהדליק הצפנת-ענן —
  * המסמכים כבר {enc,iv} ⇒ הצילום מוצפן מלידה; ארגון לא-מוצפן — הצילום באותה
  * רמת-הגנה כמו Firestore עצמו (אותו פרויקט, אותן הרשאות-Admin).
@@ -407,6 +407,7 @@ const BACKUP_COLLECTIONS = [
   'shopItems', 'shopProducts', 'shopStores', 'shopCriteria', 'shopAssignments', 'shopEvents', 'shopIntakes',
   'volunteers', 'distributionDays', 'deliveries', 'tasks', 'warehouse',
   'prListings', 'prRequests', 'prPosts', 'prAds',
+  'hostUnits', 'hostBookings', 'hostRecords',
 ];
 // 🔀 מסלול-B · פיצול-תרומות (21.8): ארגון עם donationSplit שומר את התרומות באוסף
 // נפרד orgs/{slug}/donations — **במכוון לא** ב-ENTITY_COLLECTIONS (ולכן לא

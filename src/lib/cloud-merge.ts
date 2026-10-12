@@ -7,6 +7,7 @@ import { emptyAyin, mergeDelLogs, type AyinCase, type DelEntry, type Db } from '
 import { ENTITY_COLLECTIONS, type EntityCol } from './cloud-diff';
 import { AYIN_STAGES } from './ayin';
 import { healPrRecord } from '../components/parnasa/model';
+import { healHostDoc } from '../components/hosting/model';
 
 /**
  * חיזוק מסמך ישות מרוחק: מסמך שנכתב בגרסה ישנה / נערך ידנית ב-Firestore עלול
@@ -59,6 +60,9 @@ function healRecord(col: string, item: Record<string, unknown>): Record<string, 
   // 📒 פרנסה׳לע: אותו ריפוי כמו migrate (מודל משותף) — status/kind/slot/category זרים ⇒ ברירת-מחדל
   // בטוחה (fail-closed), requester חסר ⇒ {name,phone}, quiet+job ⇒ job=false. תקין ⇒ אותה הפניה.
   if (col === 'prListings' || col === 'prRequests' || col === 'prPosts' || col === 'prAds') return healPrRecord(col, item);
+  // 🏡 אירוח משפחתי: אותו ריפוי כמו migrate (מודל משותף hosting/model.ts) — מערכים מקוננים (חדרים/חיובים/
+  // תשלומים/סועדים/מנות/הושבה) ⇒ תקינים, סטטוס/סוג זרים ⇒ ברירת-מחדל בטוחה. תקין ⇒ אותה הפניה.
+  if (col === 'hostUnits' || col === 'hostBookings' || col === 'hostRecords') return healHostDoc(col, item);
   // לוח-מעקב 3.9: ayin חלקי מהענן (מסמך שנכתב מהלגאסי/גרסה ישנה — בלי names/log/answers, או שלב
   // לא-מוכר) קרס את מסך-התורמים (eyesTotal). משקף את הריפוי ב-migrate (persist.ts). תומכ/ת תקין/ה
   // מוחזר/ת באותה הפניה (no-op ⇒ אין לולאת-הד); בלי ayin ⇒ לא מוסיפים את המפתח.

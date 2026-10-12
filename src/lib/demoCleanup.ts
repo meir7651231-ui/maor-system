@@ -41,6 +41,10 @@ const FP_FIELDS: Record<string, string[]> = {
   prRequests: ['text', 'category', 'area'],
   prPosts: ['kind', 'title', 'text', 'place'],
   prAds: ['advertiser', 'headline', 'phone'],
+  // 🏡 אירוח משפחתי — אין שורות-דמו (הכרעה 1: לא בדמו); הטביעות מוכנות אם ייזרעו
+  hostUnits: ['name', 'type'],
+  hostBookings: ['guestId', 'unitId', 'checkIn', 'checkOut'],
+  hostRecords: ['kind', 'name', 'mealName', 'desc', 'task'],
 };
 
 /** ישויות-בסיס שמזוהות לפי טביעת-אצבע (סדר-שמות לתצוגה: name/title). */

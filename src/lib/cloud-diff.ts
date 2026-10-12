@@ -8,8 +8,8 @@
 import type { Db } from '../types/domain';
 
 /**
- * 27 אוספי הישויות — שם האוסף ב-Firestore = שם השדה ב-Db. (ההערה הישנה "שבעה-עשר" הייתה
- * מיושנת מאז SHOP6; 24–27 = פרנסה׳לע.) כל אוסף חדש כאן ⇒ גם BACKUP_COLLECTIONS ב-functions
+ * 30 אוספי הישויות — שם האוסף ב-Firestore = שם השדה ב-Db. (ההערה הישנה "שבעה-עשר" הייתה
+ * מיושנת מאז SHOP6; 24–27 = פרנסה׳לע; 28–30 = אירוח משפחתי.) כל אוסף חדש כאן ⇒ גם BACKUP_COLLECTIONS ב-functions
  * (ratchet night-bundle), emptyDb + migrate (persist.ts), ותווית ב-BackupSection/demoPurge.
  */
 export const ENTITY_COLLECTIONS = [
@@ -41,6 +41,10 @@ export const ENTITY_COLLECTIONS = [
   'prRequests',
   'prPosts',
   'prAds',
+  // 🏡 אירוח משפחתי (opt-in, 12.10) — יחידות · הזמנות · רשומות-נלוות (מטופסות kind)
+  'hostUnits',
+  'hostBookings',
+  'hostRecords',
 ] as const;
 
 export type EntityCol = (typeof ENTITY_COLLECTIONS)[number];

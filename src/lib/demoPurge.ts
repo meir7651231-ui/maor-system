@@ -56,6 +56,7 @@ export const PURGE_LABELS: Record<string, string> = {
   shopEvents: 'אירועי-חנות', shopIntakes: 'קליטות', volunteers: 'מתנדבים', distributionDays: 'ימי-חלוקה', deliveries: 'מסירות',
   tasks: 'משימות', warehouse: 'מחסן',
   prListings: 'עסקים', prRequests: 'בקשות-תושבים', prPosts: 'מודעות-לוח', prAds: 'פרסומות',
+  hostUnits: 'יחידות-אירוח', hostBookings: 'הזמנות-אירוח', hostRecords: 'רשומות-אירוח',
 };
 
 export function purgeSummary(removed: Record<string, number>): string {

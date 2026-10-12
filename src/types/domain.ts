@@ -3,7 +3,7 @@
  * כל הישויות נשמרות יחד במסמך DB אחד (ראו store/persist.ts) עם גרסת סכמה.
  */
 
-/** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp/tzc/tzb/tzp/tze/tzl/shp/shs/shc/sha/shr/she/shi/prl/prq/prp/pra). */
+/** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp/tzc/tzb/tzp/tze/tzl/shp/shs/shc/sha/shr/she/shi/prl/prq/prp/pra/hu/hb/hr). */
 export type Id = string;
 
 /** תאריך בפורמט ISO ‏(YYYY-MM-DD). */
@@ -807,6 +807,8 @@ export interface UiPrefs {
   cashShifts?: CashShiftCloseRec[];
   /** 📒 הגדרות מודול פרנסה׳לע (opt-in) — חסר = ברירות-המחדל (מחוטא ב-migrate; מפתח לא-מוכר נשמר — תאימות-קדימה). */
   parnasa?: ParnasaPrefs;
+  /** 🏡 הגדרות מודול אירוח משפחתי (opt-in) — חסר = ברירות-המחדל של האפליקציה המקורית (מחוטא ב-migrate). */
+  hosting?: HostingPrefs;
 }
 
 /** רשומת אישור-תשלום של הקופה-הרושמת (שיקוף — המבנה של הרכיב). */
@@ -1404,7 +1406,361 @@ export interface ParnasaPrefs {
   zmanim?: ParnasaZmanimPrefs;
 }
 
-/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (27 מערכי ישויות). */
+/* ---------- 🏡 אירוח משפחתי (מודול hosting — opt-in ומבודד; BUILD-ORDER-HOSTING-2026-10-12) ----------
+ * צימרים · דירות-נופש · וילות · בתי-הארחה: יחידות (עם חדרים משותפים) · הזמנות + תיק-שהייה · אורחים ·
+ * ניקיון · מטבח (KDS, תפריט, צוות, קניות, מערך-שולחן, הושבה, טמפ׳) · שבת וכשרות · תחזוקה.
+ * שלושה אוספים בלבד (הכרעה 4): hostUnits · hostBookings · hostRecords (רשומה מטופסת kind).
+ * בידוד (הכרעה 2): אפס נגיעה בקבלות/תרומות/מונים/לוח-ראשי/חדרי-החוגים — התיק = חיובים+תשלומים
+ * (פנקס, לא קבלה) + payLink. החדרים של יחידה = subRooms (לא rooms — זה אוסף חדרי-החוגים).
+ * קבועי-ה-enum והריפוי — components/hosting/model.ts (משותף ל-migrate ולמיזוג-החי).
+ * הכול additive — DB_VERSION נשאר 6; גיבוי ישן בלי האוספים נטען עם [].
+ */
+
+/** מצב ידני של יחידה: פנויה · לניקיון · חסומה. "תפוסה" **נגזרת** משהייה פעילה — לא נשמרת. */
+export type HostUnitStatus = 'free' | 'dirty' | 'blocked';
+
+/** חדר ביחידה משותפת — משפחות שונות מזמינות חדרים שונים באותם תאריכים. מזהה מקומי-ליחידה. */
+export interface HostRoom {
+  id: string;
+  name: string;
+  beds: number;
+  /** מחיר החדר ללילה (₪). */
+  rate: number;
+}
+
+/** יחידת-אירוח (hu…). */
+export interface HostUnit {
+  id: Id;
+  name: string;
+  /** אחד מ-HOST_UNIT_TYPES (צימר · דירה · וילה · בית הארחה · מתחם); זר ⇒ 'צימר'. */
+  type: string;
+  beds: number;
+  /** קיבולת אורחים. */
+  cap: number;
+  /** מחיר ללילה (₪) — הזמנת היחידה כשלמה. */
+  rate: number;
+  status: HostUnitStatus;
+  /** חדרים — ריק = היחידה מוזמנת כשלמה. */
+  subRooms: HostRoom[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** סטטוס הזמנה: ממתינה · מאושרת · בשהייה · הושלמה · בוטלה (ביטול שומר היסטוריה; מחיקה = נפרדת). */
+export type HostBookingStatus = 'pending' | 'confirmed' | 'in' | 'done' | 'cancelled';
+
+/**
+ * סוג-חיוב בתיק: stay/cleaning/tax = מחושבים (מוחלפים בכל שמירה) · meal = הזמנת-מטבח משויכת (mealId) ·
+ * shabbat = חבילת-שבת · extra = חיוב ידני/מיובא. רק השלושה הראשונים מחושבים-מחדש (תיקון F3).
+ */
+export type HostChargeKind = 'stay' | 'cleaning' | 'tax' | 'meal' | 'shabbat' | 'extra';
+
+export interface HostCharge {
+  /** מזהה מקומי-להזמנה. */
+  id: string;
+  kind: HostChargeKind;
+  label: string;
+  /** ₪ — שורת-פנקס, לא קבלה. */
+  amount: number;
+  /** kind='meal' — הזמנת-המטבח שהחיוב שלה. */
+  mealId?: Id;
+}
+
+export interface HostPayment {
+  /** מזהה מקומי-להזמנה. */
+  id: string;
+  amount: number;
+  date: IsoDate;
+  /** מזומן / אשראי / העברה … */
+  note: string;
+}
+
+/** הזמנה (hb…) — אורח · יחידה (או חדרים בה) · לילות [checkIn, checkOut) · תיק-שהייה. */
+export interface HostBooking {
+  id: Id;
+  guestId: Id;
+  unitId: Id;
+  /** חדרים שהוזמנו ביחידה משותפת — ריק = כל היחידה. */
+  roomIds: string[];
+  checkIn: IsoDate;
+  checkOut: IsoDate;
+  adults: number;
+  kids: number;
+  status: HostBookingStatus;
+  charges: HostCharge[];
+  payments: HostPayment[];
+  notes: string;
+  /** חבילת-שבת הופעלה (אידמפוטנטי — תיקון F9). */
+  shabbat: boolean;
+  createdAt: string;
+  updatedAt: string;
+  checkedInAt?: string;
+  checkedOutAt?: string;
+  cancelledAt?: string;
+}
+
+/** סוגי-הרשומות באוסף hostRecords. */
+export type HostRecordKind = 'guest' | 'clean' | 'meal' | 'dish' | 'staff' | 'supply' | 'tableItem' | 'temp' | 'fault' | 'asset' | 'plan';
+
+interface HostRecordBase {
+  id: Id;
+  kind: HostRecordKind;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** אורח / משפחה מתארחת. */
+export interface HostGuest extends HostRecordBase {
+  kind: 'guest';
+  name: string;
+  phone: string;
+  email: string;
+  adults: number;
+  kids: number;
+  /** הערות / רגישויות. */
+  notes: string;
+}
+
+/** משימת-ניקיון ("ניקיון אחרי עזיבה" נפתחת אוטומטית בצ׳ק-אאוט). */
+export interface HostCleanTask extends HostRecordBase {
+  kind: 'clean';
+  unitId: Id;
+  type: string;
+  status: 'open' | 'done';
+  /** תאריך-הפתיחה. */
+  date: IsoDate;
+  /** ההזמנה שהצ׳ק-אאוט שלה פתח את המשימה (אם יש). */
+  bookingId?: Id;
+  doneAt?: string;
+}
+
+/** סטטוס הזמנת-מטבח: חדש → בהכנה → בקרת-איכות → מוכן → נמסר (או בוטל). */
+export type HostMealStatus = 'new' | 'prep' | 'qc' | 'ready' | 'served' | 'cancelled';
+
+/** משפחה סועדת — כמה מבוגרים וכמה ילדים ממנה אוכלים. */
+export interface HostDiner {
+  guestId: Id;
+  adults: number;
+  kids: number;
+}
+
+/** מנה בהזמנה — תמונת-מחיר ברגע ההזמנה (כמו במקור); dishId לקישור למתכון. */
+export interface HostMealItem {
+  name: string;
+  dishId?: Id;
+  price: number;
+  /** כמה מנות מהפריט. */
+  qty: number;
+  /** אלרגנים של המנה (מהתפריט). */
+  alg: string;
+  /** מי מכין את המנה ('' = לא שויך). */
+  by: Id | '';
+}
+
+/** משתתף בתוכנית-ההושבה (מזהה מקומי-לתוכנית). */
+export interface HostSeatPerson {
+  id: string;
+  name: string;
+  kind?: 'adult' | 'kid';
+  /** המשפחה (אורח) — לצביעה ולהושבה-לפי-משפחות. */
+  guestId?: Id;
+}
+
+export type HostTableShape = 'round' | 'rect' | 'square';
+
+export interface HostSeatTable {
+  id: string;
+  name: string;
+  cap: number;
+  shape: HostTableShape;
+  /** כיסא / כורסא / ספסל / כיסא-בר / כיסא-תינוק. */
+  chair: string;
+  /** מזהי-המשתתפים לפי סדר-הכיסאות. */
+  seated: string[];
+  /** שולחן-ראש 👑. */
+  head: boolean;
+  note: string;
+}
+
+export interface HostSeatPlan {
+  people: HostSeatPerson[];
+  tables: HostSeatTable[];
+}
+
+/** הזמנת-מטבח / ארוחה (משויכת להזמנה ⇒ מחויבת בתיק-השהייה). */
+export interface HostMeal extends HostRecordBase {
+  kind: 'meal';
+  mealName: string;
+  /** ההזמנה המשויכת ('' = בלי). */
+  bookingId: Id | '';
+  unitId: Id | '';
+  guestId: Id | '';
+  /** המשפחות הסועדות. */
+  diners: HostDiner[];
+  /** מס׳ הסועדים (סה״כ). */
+  dinerCount: number;
+  date: IsoDate | '';
+  /** שעת-הגשה HH:MM ('' = לא נקבעה). */
+  time: string;
+  cook: Id | '';
+  server: Id | '';
+  clearer: Id | '';
+  tableSetter: Id | '';
+  items: HostMealItem[];
+  status: HostMealStatus;
+  allergens: string;
+  notes: string;
+  seatPlan: HostSeatPlan;
+}
+
+/** מנה בתפריט + מתכון. רכיב = "שם · כמות" (כמו במקור; הכמות מוכפלת לפי סועדים). */
+export interface HostDish extends HostRecordBase {
+  kind: 'dish';
+  name: string;
+  /** בשרי · חלבי · פרווה · דגים · טבעוני · ללא גלוטן. */
+  type: string;
+  price: number;
+  allergens: string;
+  /** דקות (טקסט, כמו במקור). */
+  prepTime: string;
+  cookTime: string;
+  cookTemp: string;
+  baseServings: number;
+  ingredients: string[];
+  steps: string[];
+  notes: string;
+  /** טבח אחראי — ברירת-מחדל. */
+  defBy: Id | '';
+}
+
+/** איש-צוות מטבח. */
+export interface HostStaff extends HostRecordBase {
+  kind: 'staff';
+  name: string;
+  role: string;
+  phone: string;
+}
+
+/** מוצר נלווה ברשימת-הקניות (שתייה / חד-פעמי / נלווה / אחר). */
+export interface HostSupply extends HostRecordBase {
+  kind: 'supply';
+  name: string;
+  cat: string;
+  qty: string;
+  bought: boolean;
+}
+
+/** פריט במערך-השולחן — כמות לאורח (×מס׳ הסועדים הפעילים). */
+export interface HostTableItem extends HostRecordBase {
+  kind: 'tableItem';
+  name: string;
+  perGuest: number;
+}
+
+/** מדידת-טמפרטורה (בטיחות-מזון). */
+export interface HostTempLog extends HostRecordBase {
+  kind: 'temp';
+  /** מקרר · מקפיא · חימום. */
+  device: string;
+  temp: number;
+  ok: boolean;
+  /** חותמת ISO מלאה. */
+  at: string;
+}
+
+/** סטטוס קריאת-תחזוקה: פתוחה · בטיפול · טופלה. */
+export type HostFaultStatus = 'open' | 'inprogress' | 'done';
+
+/** קריאת-תחזוקה. P0/P1 חוסמות את היחידה (blocked=true ⇒ שחרור בסגירה). */
+export interface HostFault extends HostRecordBase {
+  kind: 'fault';
+  /** '' = כללי (למשל חריגת-טמפרטורה במטבח — תיקון F7). */
+  unitId: Id | '';
+  assetId: Id | '';
+  category: string;
+  /** 0–4 = P0 סכנת חיים … P4 שיפור. */
+  priority: number;
+  desc: string;
+  status: HostFaultStatus;
+  safety: boolean;
+  /** הקריאה חסמה את היחידה. */
+  blocked: boolean;
+}
+
+/** ציוד / נכס. */
+export interface HostAsset extends HostRecordBase {
+  kind: 'asset';
+  name: string;
+  category: string;
+  unitId: Id | '';
+  /** רגיל · גבוה · קריטי. */
+  crit: string;
+  /** טיפול הבא. */
+  next: IsoDate | '';
+}
+
+/** תוכנית תחזוקה-מונעת. */
+export interface HostPlan extends HostRecordBase {
+  kind: 'plan';
+  task: string;
+  assetId: Id | '';
+  freq: string;
+  due: IsoDate | '';
+}
+
+/** רשומה באוסף hostRecords (hr…). */
+export type HostRecord =
+  | HostGuest
+  | HostCleanTask
+  | HostMeal
+  | HostDish
+  | HostStaff
+  | HostSupply
+  | HostTableItem
+  | HostTempLog
+  | HostFault
+  | HostAsset
+  | HostPlan;
+
+/** מצב-שבת: כבוי · הכנות · שבת (פעולות אוטומטיות מושהות) · מוצאי שבת. */
+export type HostShabbatMode = 'off' | 'prep' | 'shabbat' | 'motzash';
+
+export interface HostShabbatPrefs {
+  mode?: HostShabbatMode;
+  /** כניסת שבת HH:MM. */
+  candle?: string;
+  /** צאת שבת HH:MM. */
+  havdalah?: string;
+  /** רמת כשרות. */
+  level?: string;
+  /** גוף / שם המשגיח. */
+  mashgiach?: string;
+}
+
+/** הגדרות מודול האירוח (db.ui.hosting) — כל שדה אופציונלי; חסר = ברירת-המחדל של המקור. */
+export interface HostingPrefs {
+  /** שם העסק (≤60) — חסר = שם הארגון. */
+  businessName?: string;
+  /** שעת צ׳ק-אין HH:MM — חסר = 15:00. */
+  checkin?: string;
+  /** שעת צ׳ק-אאוט HH:MM — חסר = 11:00. */
+  checkout?: string;
+  /** דמי ניקיון (₪) לכל הזמנה — חסר = 150. */
+  cleaningFee?: number;
+  /** מע״מ (%) על לינה+ניקיון — חסר = 17. */
+  taxPct?: number;
+  /** "להזמין חומרים · ימים לפני הארוחה" — חסר = 2. */
+  orderLeadDays?: number;
+  /** "שנה אורח ⇒ משפחה מתארחת" (מונח-אשף גובר). */
+  familyTerm?: boolean;
+  shabbat?: HostShabbatPrefs;
+  /** עגלת-הקניות: מפתח-מוצר ⇒ נלקח. */
+  shopGot?: Record<string, true>;
+  /** עגלת-הקניות: מפתח-מוצר ⇒ אמוג׳י שנבחר ידנית. */
+  shopEmoji?: Record<string, string>;
+}
+
+/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (30 מערכי ישויות). */
 export interface Db {
   /** גרסת סכמה — העלאה מחייבת מיגרציה ב-store/persist.ts. */
   v: number;
@@ -1451,6 +1807,10 @@ export interface Db {
   prRequests: PrRequest[];
   prPosts: PrPost[];
   prAds: PrAd[];
+  /** 🏡 אירוח משפחתי (opt-in, מבודד): יחידות · הזמנות · רשומות-נלוות — הישויות 28–30. */
+  hostUnits: HostUnit[];
+  hostBookings: HostBooking[];
+  hostRecords: HostRecord[];
   orgName: string;
   orgSite: string;
   orgDonate: string;
@@ -1593,6 +1953,9 @@ export function emptyDb(): Db {
     prRequests: [],
     prPosts: [],
     prAds: [],
+    hostUnits: [],
+    hostBookings: [],
+    hostRecords: [],
     orgName: 'מאור החסד',
     orgSite: '',
     orgDonate: '',

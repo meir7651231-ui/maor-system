@@ -12,6 +12,7 @@ import { supporterAggregates } from '../lib/supporterAgg';
 import { sanitizePhotos } from '../lib/photoGallery';
 import { AYIN_STAGES } from '../lib/ayin';
 import { healParnasaPrefs, healPrCollection } from '../components/parnasa/model';
+import { healHostCollection, healHostingPrefs } from '../components/hosting/model';
 import {
   DB_VERSION,
   emptyAyin,
@@ -276,6 +277,10 @@ export function migrate(raw: unknown): Db | null {
     prRequests: Array.isArray(db.prRequests) ? db.prRequests : [],
     prPosts: Array.isArray(db.prPosts) ? db.prPosts : [],
     prAds: Array.isArray(db.prAds) ? db.prAds : [],
+    // 🏡 אירוח משפחתי (opt-in, 12.10): שלושת האוספים — אדיטיבי (גיבוי/ענן ישן = מערך ריק)
+    hostUnits: Array.isArray(db.hostUnits) ? db.hostUnits : [],
+    hostBookings: Array.isArray(db.hostBookings) ? db.hostBookings : [],
+    hostRecords: Array.isArray(db.hostRecords) ? db.hostRecords : [],
     notif: { ...base.notif, ...db.notif },
     reports: { ...base.reports, ...db.reports },
     ui: { ...base.ui, ...db.ui },
@@ -585,6 +590,16 @@ export function migrate(raw: unknown): Db | null {
   if (merged.ui.parnasa !== undefined) {
     const prefs = healParnasaPrefs(merged.ui.parnasa);
     if (prefs !== merged.ui.parnasa) merged.ui = { ...merged.ui, parnasa: prefs };
+  }
+  // 🏡 אירוח משפחתי — ריפוי פר-רשומה (המודל המשותף למיזוג-החי: components/hosting/model.ts): איבר לא-תקין
+  // נזרק · מערכים מקוננים (חדרים · חיובים/תשלומים · סועדים/מנות/הושבה) ⇒ תקינים · סטטוס זר ⇒ ברירת-מחדל
+  // בטוחה (הזמנה ⇒ 'pending' — חוסמת-זמינות). אוסף תקין ⇒ אותו מערך; הגדרות מחוטאות רק כשקיימות.
+  merged.hostUnits = healHostCollection('hostUnits', merged.hostUnits);
+  merged.hostBookings = healHostCollection('hostBookings', merged.hostBookings);
+  merged.hostRecords = healHostCollection('hostRecords', merged.hostRecords);
+  if (merged.ui.hosting !== undefined) {
+    const hp = healHostingPrefs(merged.ui.hosting);
+    if (hp !== merged.ui.hosting) merged.ui = { ...merged.ui, hosting: hp };
   }
   if (typeof merged.orgName !== 'string') merged.orgName = base.orgName;
   if (typeof merged.orgSite !== 'string') merged.orgSite = base.orgSite;

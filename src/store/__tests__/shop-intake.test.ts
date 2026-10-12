@@ -87,7 +87,7 @@ describe('🛍 ratchet — חנות 25: קליטות מלאי', () => {
 
   it('ענן: shopIntakes באוספים (18) — diff set/delete ו-round-trip', () => {
     expect(ENTITY_COLLECTIONS).toContain('shopIntakes');
-    expect(ENTITY_COLLECTIONS).toHaveLength(27); // ורטיקל-הסטודיו: warehouse = הישות ה-23; פרנסה׳לע (12.10): prListings/prRequests/prPosts/prAds = 24–27
+    expect(ENTITY_COLLECTIONS).toHaveLength(30); // ורטיקל-הסטודיו: warehouse = הישות ה-23; פרנסה׳לע (12.10): prListings/prRequests/prPosts/prAds = 24–27; אירוח (12.10): hostUnits/hostBookings/hostRecords = 28–30
     const rec: ShopIntake = { id: 'shn1', ...intake({}) };
     const prev: Db = { ...emptyDb(), shopIntakes: [rec, { ...rec, id: 'shn2' }] };
     const next: Db = { ...emptyDb(), shopIntakes: [{ ...rec, qty: 9 }] };
