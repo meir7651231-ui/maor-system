@@ -46,12 +46,40 @@ import { mergeDelLogs,
   type DistributionDay,
   type Delivery,
   type DialOutcome,
-  type WorkTask } from '../types/domain';
+  type WorkTask,
+  type ParnasaPrefs,
+  type PrAd,
+  type PrListing,
+  type PrPost,
+  type PrRequest } from '../types/domain';
 import { ENTITY_COLLECTIONS } from '../lib/cloud-diff';
 import { mergeDonationsPreserving } from '../lib/cloud-merge';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { advanceStatus } from '../components/shop7/lib';
+// 📒 פרנסה׳לע — רק מעברי-המצב הקטנים (transitions) והמודל; המנוע הכבד (lib.ts) נשאר בצ'אנק-העצל
+import {
+  addResponse,
+  adDraftError,
+  approveListing,
+  approvePost,
+  closeRequest,
+  dialCodeTaken,
+  nextDialCode,
+  normalizePostDraft,
+  prCan,
+  rejectListing,
+  requireApprovalOf,
+  saveAd,
+  saveListing,
+  savePost,
+  saveRequest,
+  takeDownPost,
+  validDialCode,
+  type PrActor,
+  type PrGrantKey,
+} from '../components/parnasa/transitions';
+import { healParnasaPrefs, PR_CATEGORY_KEYS } from '../components/parnasa/model';
 import { roomClashError } from '../components/calendar/calLib';
 import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManager, memberNamesOf, parseJoinFullCode } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
@@ -604,6 +632,33 @@ interface AppState {
   /** מלאי-מחסן (ורטיקל-סטודיו): הוספה/עדכון + מחיקה של פריט-מלאי. */
   upsertWarehouseItem: (item: { id?: string; name: string; unit: string; qty: number; cost: number }) => void;
   deleteWarehouseItem: (id: string) => void;
+
+  // 📒 פרנסה׳לע (מודול parnasa — opt-in ומבודד; BUILD-ORDER-PARNASA-2026-10-12, אשכול 4).
+  // נכתב רק ל-prListings/prRequests/prPosts/prAds ול-db.ui.parnasa — הכסף (פרסום/חסות) = רישום +
+  // קישור-סליקה בלבד (הכרעה 4). אישור/מחיקה: מנהל/בעלים תמיד, עובד/ת רק בהדלקה (prCan).
+  /** שמירת עסק דרך מכונת-האישור: עריכת-תוכן ע"י לא-מאשר ⇒ ממתין; לא-מאשר לא משנה הדגשה/קוד/מקור. */
+  upsertPrListing: (l: PrListing) => { ok: boolean; listing?: PrListing };
+  /** 🗑 מחיקת עסק — parnasa.delete; פרסומות שקושרו אליו (לא-שער) מתנתקות (בלי יתומים). */
+  deletePrListing: (id: string) => boolean;
+  /** ✓/✕ החלטת-גבאי על עסק או מודעת-לוח — parnasa.approve + לוג-פעולות. אישור עסק בלי קוד ⇒ הקוד הבא. */
+  setPrStatus: (kind: 'listing' | 'post', id: string, status: 'approved' | 'rejected') => boolean;
+  /** בקשת-תושב ("מה צריך?") — שקטה ⇒ לעולם לא הצעת-עבודה; העריכה לא נוגעת בסטטוס/בתשובות. */
+  upsertPrRequest: (r: PrRequest) => { ok: boolean; request?: PrRequest };
+  /** "✋ זמין" — עסק = תשובה אחת (מחליפה את הקודמת שלו); נסגרה ⇒ נדחה. */
+  addPrResponse: (requestId: string, resp: { listingId: string; text: string }) => boolean;
+  /** סגירה ("נמצא") — רגילה ⇒ closed; 🛡 שקטה ⇒ נמחקת עם כל תשובותיה (מידע רגיש לא נשמר). */
+  closePrRequest: (id: string) => boolean;
+  /** 🗑 מחיקת בקשה — parnasa.delete. */
+  deletePrRequest: (id: string) => boolean;
+  /** מודעת-לוח / מניין / אירוע / מספר-חירום — של לא-מאשר ⇒ ממתינה לאישור. */
+  upsertPrPost: (p: PrPost) => { ok: boolean; post?: PrPost };
+  deletePrPost: (id: string) => boolean;
+  /** משבצת-פרסום/חסות — מחיר + סימון-תשלום לרישום ולקישור-סליקה בלבד; אפס קבלות. */
+  upsertPrAd: (a: PrAd) => { ok: boolean; ad?: PrAd };
+  deletePrAd: (id: string) => boolean;
+  /** ⚙ הגדרות המודול (db.ui.parnasa) — גבאי בלבד (parnasa.approve); מחוטא ב-healParnasaPrefs. undefined = מחיקת-מפתח. */
+  setParnasaPrefs: (patch: Partial<ParnasaPrefs>) => boolean;
+
   saveQuoteTemplate: (id: string, name: string) => void;
   applyQuoteTemplate: (id: string, templateId: string) => void;
   deleteQuoteTemplate: (templateId: string) => void;
@@ -1312,6 +1367,18 @@ export const useApp = create<AppState>()((set, get) => {
     const out = list.slice();
     out[i] = item;
     return out;
+  }
+
+  /** 📒 פרנסה׳לע — הרשאת-גבאי ברגע הפעולה (אותו prCan שהממשק מציג — מקור-אמת אחד). */
+  function prCanNow(key: PrGrantKey): boolean {
+    const s = get();
+    return prCan(s.config, s.cloud.user?.email, s.cloud.isManager === true, key);
+  }
+
+  /** 📒 המבצע למכונת-האישור: מאשר? + מצב-האישור של הקהילה (db.ui.parnasa) + מי (לחותמות). */
+  function prActorNow(): PrActor {
+    const s = get();
+    return { canApprove: prCanNow('parnasa.approve'), requireApproval: requireApprovalOf(s.db.ui.parnasa), who: s.cloud.user?.email ?? 'מקומי' };
   }
 
   /** תיק הטיפול הנוכחי של תומכ/ת (emptyAyin אם עדיין אין), או null. */
@@ -3746,6 +3813,229 @@ export const useApp = create<AppState>()((set, get) => {
     deleteWarehouseItem(id) {
       setDb((db) => ({ warehouse: db.warehouse.filter((w) => w.id !== id) }));
     },
+
+    // ── פרנסה׳לע (מודול parnasa — opt-in ומבודד; BUILD-ORDER-PARNASA אשכול 4) ──
+    // בידוד (הכרעה 4): כותבים רק ל-prListings/prRequests/prPosts/prAds ול-ui.parnasa — לא למוני-
+    // הקבלות, לא לתורמים/לתשלומים ולא ללוח-הראשי (ננעל ב-parnasa-isolation.test). שער לפני נגיעה
+    // ב-db (לקח באג-5): קלט לא-תקין / הרשאה חסרה ⇒ טוסט + {ok:false}, בלי לצרוך מזהה.
+    upsertPrListing(l) {
+      const cfg = get().config;
+      const word = termOf(cfg, 'entity.prListing', 'עסק');
+      const name = String(l.name ?? '').trim();
+      if (!name) {
+        get().toast('שם ה' + word + ' הוא שדה חובה');
+        return { ok: false };
+      }
+      const actor = prActorNow();
+      const prev = (l.id && get().db.prListings.find((x) => x.id === l.id)) || null;
+      const code = String(l.dialCode ?? '').trim();
+      // קוד-החיוג = שדה-גבאי: רק המאשר קובע אותו (ללא-מאשר saveListing לוקח את הקודם)
+      if (actor.canApprove && !validDialCode(code)) {
+        get().toast('קוד-חיוג: שלוש ספרות בין 101 ל-999 (או ריק)');
+        return { ok: false };
+      }
+      if (actor.canApprove && code && dialCodeTaken(get().db.prListings, code, prev?.id)) {
+        get().toast('קוד-החיוג ' + code + ' כבר תפוס — בחרו אחר');
+        return { ok: false };
+      }
+      // רשומה שנמחקה בינתיים (מכשיר אחר) לא "קמה" עם המזהה הישן — יש לה מצבה; מזהה חדש
+      const id = prev ? prev.id : get().nextId('prl');
+      const category = (PR_CATEGORY_KEYS as readonly string[]).includes(l.category) ? l.category : 'other';
+      let saved = saveListing(prev, { ...l, id, name, category, dialCode: code }, actor, new Date().toISOString());
+      // מאושר בלי קוד ⇒ הקוד הבא (מודפס בחוברת; עוגן לקו-הטלפון — הכרעה 5). לא ממחזר קודים.
+      if (saved.status === 'approved' && !saved.dialCode) saved = { ...saved, dialCode: nextDialCode(get().db.prListings) };
+      const final = saved;
+      setDb((db) => ({ prListings: upsertIn(db.prListings, final) }));
+      logAudit('שמירת ' + word, name);
+      return { ok: true, listing: final };
+    },
+    deletePrListing(id) {
+      const cfg = get().config;
+      if (!prCanNow('parnasa.delete')) {
+        get().toast('אין הרשאת מחיקה ב' + termOf(cfg, 'nav.parnasa', 'פרנסה׳לע') + ' — המנהל/ת מדליק/ה פר-עובד/ת');
+        return false;
+      }
+      const l = get().db.prListings.find((x) => x.id === id);
+      if (!l) return false;
+      setDb((db) => ({
+        prListings: db.prListings.filter((x) => x.id !== id),
+        // פרסומת שקושרה לעסק (לא חסות-שער) מתנתקת — בלי יתומים; הרישום שלה נשמר כמות-שהוא
+        prAds: db.prAds.some((a) => a.slot !== 'category' && a.target === id)
+          ? db.prAds.map((a) => (a.slot !== 'category' && a.target === id ? { ...a, target: '' } : a))
+          : db.prAds,
+      }));
+      logAudit('🗑 מחיקת ' + termOf(cfg, 'entity.prListing', 'עסק'), l.name);
+      return true;
+    },
+    setPrStatus(kind, id, status) {
+      const cfg = get().config;
+      if (!prCanNow('parnasa.approve')) {
+        get().toast('אישור ודחייה — רק ל' + termOf(cfg, 'entity.prGabbai', 'גבאי') + ' (מנהל/ת, או עובד/ת שהודלק/ה לו/ה)');
+        return false;
+      }
+      const who = get().cloud.user?.email ?? 'מקומי';
+      const nowIso = new Date().toISOString();
+      if (kind === 'listing') {
+        const l = get().db.prListings.find((x) => x.id === id);
+        if (!l) return false;
+        let next = status === 'approved' ? approveListing(l, who, nowIso) : rejectListing(l, who, nowIso);
+        if (next.status === 'approved' && !next.dialCode) next = { ...next, dialCode: nextDialCode(get().db.prListings) };
+        const final = next;
+        setDb((db) => ({ prListings: db.prListings.map((x) => (x.id === id ? final : x)) }));
+        logAudit((status === 'approved' ? '✓ אישור ' : '✕ דחיית ') + termOf(cfg, 'entity.prListing', 'עסק'), l.name);
+        return true;
+      }
+      const p = get().db.prPosts.find((x) => x.id === id);
+      if (!p) return false;
+      // דחייה/הורדה = לא-מאושרת + תוקף שפג אתמול (אין סטטוס-דחייה למודעות — takeDownPost)
+      const next = status === 'approved' ? approvePost(p, nowIso) : takeDownPost(p, isoDaysAgo(1), nowIso);
+      setDb((db) => ({ prPosts: db.prPosts.map((x) => (x.id === id ? next : x)) }));
+      logAudit((status === 'approved' ? '✓ אישור ' : '✕ הורדת ') + termOf(cfg, 'entity.prPost', 'מודעה'), p.title);
+      return true;
+    },
+    upsertPrRequest(r) {
+      const cfg = get().config;
+      const word = termOf(cfg, 'entity.prRequest', 'בקשה');
+      if (!String(r.text ?? '').trim()) {
+        get().toast('כתבו מה צריך — תוכן ה' + word + ' הוא שדה חובה');
+        return { ok: false };
+      }
+      const prev = (r.id && get().db.prRequests.find((x) => x.id === r.id)) || null;
+      const id = prev ? prev.id : get().nextId('prq');
+      const saved = saveRequest(prev, { ...r, id }, new Date().toISOString());
+      setDb((db) => ({ prRequests: upsertIn(db.prRequests, saved) }));
+      // 🛡 פרטיות: בלוג-הפעולות לעולם לא טקסט/שם/טלפון של מבקש — רק שנפתחה (ושהיא בשקט)
+      if (!prev) logAudit('➕ ' + word + (saved.quiet ? ' בשקט' : ''), '');
+      return { ok: true, request: saved };
+    },
+    addPrResponse(requestId, resp) {
+      const cfg = get().config;
+      const r = get().db.prRequests.find((x) => x.id === requestId);
+      if (!r || r.status === 'closed') {
+        get().toast('ה' + termOf(cfg, 'entity.prRequest', 'בקשה') + ' סגורה או לא נמצאה — המענה לא נרשם');
+        return false;
+      }
+      const listingId = String(resp.listingId ?? '');
+      if (listingId && !get().db.prListings.some((l) => l.id === listingId)) {
+        get().toast('ה' + termOf(cfg, 'entity.prListing', 'עסק') + ' לא נמצא — המענה לא נרשם');
+        return false;
+      }
+      const nowIso = new Date().toISOString();
+      const text = String(resp.text ?? '').trim();
+      setDb((db) => ({
+        prRequests: db.prRequests.map((x) => (x.id === requestId ? addResponse(x, { listingId, text, at: nowIso }, nowIso) : x)),
+      }));
+      return true;
+    },
+    closePrRequest(id) {
+      const cfg = get().config;
+      const r = get().db.prRequests.find((x) => x.id === id);
+      if (!r || r.status === 'closed') return false;
+      const word = termOf(cfg, 'entity.prRequest', 'בקשה');
+      const nowIso = new Date().toISOString();
+      if (closeRequest(r, nowIso) === null) {
+        // 🛡 שקטה ⇒ נמחקת יחד עם כל התשובות (מידע רגיש לא נשמר אחרי שנפתרה); הלוג בלי תוכן
+        setDb((db) => ({ prRequests: db.prRequests.filter((x) => x.id !== id) }));
+        logAudit('✓ ' + word + ' בשקט נסגרה ונמחקה', '');
+        return true;
+      }
+      setDb((db) => ({ prRequests: db.prRequests.map((x) => (x.id === id ? (closeRequest(x, nowIso) ?? x) : x)) }));
+      logAudit('✓ ' + word + ' נסגרה', '');
+      return true;
+    },
+    deletePrRequest(id) {
+      const cfg = get().config;
+      if (!prCanNow('parnasa.delete')) {
+        get().toast('אין הרשאת מחיקה ב' + termOf(cfg, 'nav.parnasa', 'פרנסה׳לע') + ' — המנהל/ת מדליק/ה פר-עובד/ת');
+        return false;
+      }
+      if (!get().db.prRequests.some((x) => x.id === id)) return false;
+      setDb((db) => ({ prRequests: db.prRequests.filter((x) => x.id !== id) }));
+      logAudit('🗑 מחיקת ' + termOf(cfg, 'entity.prRequest', 'בקשה'), '');
+      return true;
+    },
+    upsertPrPost(p) {
+      const cfg = get().config;
+      const word = termOf(cfg, 'entity.prPost', 'מודעה');
+      if (!String(p.title ?? '').trim()) {
+        get().toast('כותרת ה' + word + ' היא שדה חובה');
+        return { ok: false };
+      }
+      if (p.kind === 'emergency' && !String(p.phone ?? '').trim()) {
+        get().toast('למספר-חירום חובה טלפון');
+        return { ok: false };
+      }
+      const prev = (p.id && get().db.prPosts.find((x) => x.id === p.id)) || null;
+      const id = prev ? prev.id : get().nextId('prp');
+      const draft = normalizePostDraft({ ...p, id }, id);
+      if (!draft) return { ok: false };
+      const saved = savePost(prev, draft, prActorNow(), new Date().toISOString());
+      setDb((db) => ({ prPosts: upsertIn(db.prPosts, saved) }));
+      return { ok: true, post: saved };
+    },
+    deletePrPost(id) {
+      const cfg = get().config;
+      if (!prCanNow('parnasa.delete')) {
+        get().toast('אין הרשאת מחיקה ב' + termOf(cfg, 'nav.parnasa', 'פרנסה׳לע') + ' — המנהל/ת מדליק/ה פר-עובד/ת');
+        return false;
+      }
+      const p = get().db.prPosts.find((x) => x.id === id);
+      if (!p) return false;
+      setDb((db) => ({ prPosts: db.prPosts.filter((x) => x.id !== id) }));
+      logAudit('🗑 מחיקת ' + termOf(cfg, 'entity.prPost', 'מודעה'), p.title);
+      return true;
+    },
+    upsertPrAd(a) {
+      const cfg = get().config;
+      const err = adDraftError(a);
+      if (err) {
+        get().toast(err);
+        return { ok: false };
+      }
+      const prev = (a.id && get().db.prAds.find((x) => x.id === a.id)) || null;
+      const id = prev ? prev.id : get().nextId('pra');
+      const saved = saveAd(prev, { ...a, id }, new Date().toISOString());
+      setDb((db) => ({ prAds: upsertIn(db.prAds, saved) }));
+      // רישום-הנהלת-חשבונות בלבד (לא קבלה): שמירה חדשה / שינוי-מחיר / סימון-תשלום — ללוג
+      if (!prev || prev.price !== saved.price || prev.paid !== saved.paid) {
+        const act = saved.paid && !prev?.paid ? '💳 סימון תשלום ' : !saved.paid && prev?.paid ? '↩ ביטול סימון-תשלום ' : 'שמירת ';
+        logAudit(act + termOf(cfg, 'entity.prAd', 'פרסומת'), saved.advertiser + ' · ₪' + saved.price);
+      }
+      return { ok: true, ad: saved };
+    },
+    deletePrAd(id) {
+      const cfg = get().config;
+      if (!prCanNow('parnasa.delete')) {
+        get().toast('אין הרשאת מחיקה ב' + termOf(cfg, 'nav.parnasa', 'פרנסה׳לע') + ' — המנהל/ת מדליק/ה פר-עובד/ת');
+        return false;
+      }
+      const a = get().db.prAds.find((x) => x.id === id);
+      if (!a) return false;
+      setDb((db) => ({ prAds: db.prAds.filter((x) => x.id !== id) }));
+      logAudit('🗑 מחיקת ' + termOf(cfg, 'entity.prAd', 'פרסומת'), a.advertiser);
+      return true;
+    },
+    setParnasaPrefs(patch) {
+      const cfg = get().config;
+      // 🛡 גבאי בלבד: מצב-האישור (requireApproval) הוא חלק מההגדרות — עובד/ת שאינו/ה מאשר/ת לא
+      // יכול/ה לכבות את האישור ולהעלות עסקים בלי בדיקה.
+      if (!prCanNow('parnasa.approve')) {
+        get().toast('הגדרות ' + termOf(cfg, 'nav.parnasa', 'פרנסה׳לע') + ' — רק ל' + termOf(cfg, 'entity.prGabbai', 'גבאי'));
+        return false;
+      }
+      setDb((db) => {
+        const merged: Record<string, unknown> = { ...db.ui.parnasa };
+        for (const [k, v] of Object.entries(patch)) {
+          if (v === undefined) delete merged[k];
+          else merged[k] = v;
+        }
+        return { ui: { ...db.ui, parnasa: healParnasaPrefs(merged) } };
+      });
+      logAudit('⚙ הגדרות ' + termOf(cfg, 'nav.parnasa', 'פרנסה׳לע'), Object.keys(patch).join(', '));
+      return true;
+    },
+    // ── סוף פרנסה׳לע ──
+
     saveQuoteTemplate(id, name) {
       const c = curAyin(id);
       if (!c) return;

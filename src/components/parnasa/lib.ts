@@ -14,6 +14,7 @@
  *   · פרטיות בקשה-שקטה **נאכפת כאן**: תצוגת-העסקים (businessView) נבנית מרשימה-לבנה — בלי פרטי-
  *     המבקש, ועם השחרת טלפון/מייל שהוקלדו בגוף-הטקסט.
  *   · ממתינים-לאישור · דורש-טיפול · משבצות-פרסום פעילות (payLink בלבד) · קוד-חיוג הבא · CSV.
+ *   (מכונת-האישור ומעברי-המצב שה-store מפעיל — ב-transitions.ts הקטן, מיוצאים-מחדש כאן; אשכול 4.)
  * בידוד (הכרעה 4): אפס נגיעה בקבלות/תרומות/מונים/לוח-ראשי.
  */
 import type {
@@ -28,8 +29,6 @@ import type {
   PrRequest,
   PrRequester,
   PrRequestStatus,
-  PrResponse,
-  PrStatus,
 } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { PR_CATEGORY_KEYS, PR_PRICE_DEFAULTS, type PrCategoryKey } from './model';
@@ -92,12 +91,36 @@ export const PR_LANG_NAMES: Readonly<Record<string, string>> = { he: 'עברית
 /** "מתאים ל". */
 export const PR_AUD_NAMES: Readonly<Record<string, string>> = { all: 'לכולם', men: 'לגברים', women: 'לנשים' };
 
-/* ═══════════════ הגדרות-המודול ═══════════════ */
+/* ═══════════════ מעברי-המצב (transitions.ts — הקובץ הקטן שה-store מייבא) ═══════════════ */
+// מכונת-האישור, שמירת בקשה/תשובה/סגירה/פרסומת וקודי-החיוג חיים ב-transitions.ts, כדי שה-store
+// בבנדל-הראשי לא יגרור את המנוע הכבד (מילון/חיפוש/זמנים). כאן — ייצוא-מחדש, ה-API לא השתנה.
+export {
+  addResponse,
+  adDraftError,
+  approveListing,
+  approvePost,
+  closeRequest,
+  dialCodeTaken,
+  listingContentChanged,
+  listingStatusOnSave,
+  nextDialCode,
+  normalizePostDraft,
+  postApprovedOnSave,
+  PR_DIAL_MAX,
+  PR_DIAL_MIN,
+  prCan,
+  rejectListing,
+  requireApprovalOf,
+  saveAd,
+  saveListing,
+  savePost,
+  saveRequest,
+  takeDownPost,
+  validDialCode,
+} from './transitions';
+export type { PrActor, PrGrantKey } from './transitions';
 
-/** אישור-גבאי לכרטיס חדש — חסר/לא-בוליאני ⇒ true (ברירת-המקור). */
-export function requireApprovalOf(prefs?: ParnasaPrefs | null): boolean {
-  return prefs?.requireApproval !== false;
-}
+/* ═══════════════ הגדרות-המודול ═══════════════ */
 
 /** מחיר ממחירון-הגבאי (מספר סופי ≥0) או ברירת-המחדל. רישום/קישור-סליקה בלבד — אפס קבלות. */
 export function priceOf(prefs: ParnasaPrefs | null | undefined, key: PrPriceKey): number {
@@ -575,85 +598,7 @@ export function hoursText(l: PrListing): string {
   return parts.join(' · ');
 }
 
-/* ═══════════════ מכונת-האישור ═══════════════ */
-
-/** מי שומר: מאשר (גבאי — מנהל או בעל-הרשאה parnasa.approve) + מצב-האישור של הקהילה. */
-export interface PrActor {
-  canApprove: boolean;
-  requireApproval: boolean;
-  /** מזהה-המבצע (מייל / 'מקומי') — לחותמות-הביקורת. */
-  who?: string;
-}
-
-/** מפתח-התוכן הציבורי של עסק (נורמלי: חסר ≡ ברירת-מחדל) — שינוי בו = עריכת-תוכן. */
-function listingContentKey(l: PrListing): string {
-  return JSON.stringify([
-    l.name, l.title, l.category, l.area, l.city, l.phone, l.phone2, l.whatsapp,
-    Array.isArray(l.hours) ? l.hours : [], !!l.always, l.hoursNote,
-    Array.isArray(l.services) ? l.services : [], Array.isArray(l.languages) ? l.languages : [],
-    l.kashrut, !!l.emergency, l.desc, l.tagline ?? '', l.aud ?? 'all', !!l.disc, !!l.free,
-  ]);
-}
-
-/** האם השתנה תוכן ציבורי (לא: הדגשה/קוד-חיוג/הערה-פנימית/המלצות/חותמות). */
-export function listingContentChanged(prev: PrListing, next: PrListing): boolean {
-  return listingContentKey(prev) !== listingContentKey(next);
-}
-
-/**
- * הסטטוס אחרי שמירה:
- *   · חדש — מאשר / אישור-כבוי ⇒ approved; אחרת pending.
- *   · שינוי לא-תוכני (הדגשה/קוד/הערה) ⇒ הסטטוס נשמר.
- *   · עריכת המאשר עצמו ⇒ הסטטוס נשמר (אישור/דחייה = פעולות מפורשות).
- *   · 🛡 עריכת-תוכן ע"י מי שאינו מאשר ⇒ pending — גם לעסק מאושר (תיקון: במקור האישור היה
- *     חד-פעמי ועריכות אחריו עלו בלי בדיקה) וגם לנדחה (הגשה-מחדש). אישור-כבוי: מאושר נשאר מאושר.
- */
-export function listingStatusOnSave(prev: PrListing | null, next: PrListing, actor: PrActor): PrStatus {
-  if (!prev) return actor.canApprove || !actor.requireApproval ? 'approved' : 'pending';
-  if (!listingContentChanged(prev, next)) return prev.status;
-  if (actor.canApprove) return prev.status;
-  if (prev.status === 'approved' && !actor.requireApproval) return 'approved';
-  return 'pending';
-}
-
-/**
- * שמירת-עסק (טהור): מחשב סטטוס, חותמות, ומגן על שדות-הגבאי — מי שאינו מאשר לא משנה הדגשה
- * (featuredUntil — קידום בתשלום), קוד-חיוג ומקור-רישום (נלקחים מהקודם; חדש ⇒ ריק/owner).
- */
-export function saveListing(prev: PrListing | null, draft: PrListing, actor: PrActor, nowIso: string): PrListing {
-  const guarded: PrListing = actor.canApprove
-    ? draft
-    : { ...draft, featuredUntil: prev?.featuredUntil ?? '', dialCode: prev?.dialCode ?? '', source: prev?.source ?? 'owner' };
-  const status = listingStatusOnSave(prev, guarded, actor);
-  return { ...guarded, status, createdAt: prev?.createdAt || guarded.createdAt || nowIso, updatedAt: nowIso };
-}
-
-/** אישור-גבאי (pending/rejected ⇒ approved) עם חותמת-ביקורת. */
-export function approveListing(l: PrListing, who: string, nowIso: string): PrListing {
-  return { ...l, status: 'approved', reviewedAt: nowIso, reviewedBy: who };
-}
-
-/** דחייה/הסתרה (⇒ rejected) עם חותמת-ביקורת. */
-export function rejectListing(l: PrListing, who: string, nowIso: string): PrListing {
-  return { ...l, status: 'rejected', reviewedAt: nowIso, reviewedBy: who };
-}
-
-const postContentKey = (p: PrPost): string =>
-  JSON.stringify([p.kind, p.title, p.text, p.place, p.phone, p.noticeKind, p.prayers, p.days, p.date, p.time, p.until]);
-
-/** אותו כלל למודעות-הלוח: חדשה ⇒ מאושרת רק אם המאשר כתב; עריכת-תוכן ע"י לא-מאשר ⇒ ממתינה. */
-export function postApprovedOnSave(prev: PrPost | null, next: PrPost, actor: PrActor): boolean {
-  if (!prev) return actor.canApprove;
-  if (postContentKey(prev) === postContentKey(next)) return prev.approved;
-  if (actor.canApprove) return prev.approved;
-  return false;
-}
-
-/** שמירת-מודעה (טהור): approved לפי הכלל + חותמות. נעיצה = שדה-גבאי. */
-export function savePost(prev: PrPost | null, draft: PrPost, actor: PrActor, nowIso: string): PrPost {
-  const guarded: PrPost = actor.canApprove ? draft : { ...draft, pinned: prev?.pinned ?? false };
-  return { ...guarded, approved: postApprovedOnSave(prev, guarded, actor), createdAt: prev?.createdAt || guarded.createdAt || nowIso, updatedAt: nowIso };
-}
+/* ═══════════════ ממתינים-לאישור (מכונת-האישור עצמה — transitions.ts) ═══════════════ */
 
 /** ממתינים-לאישור (הוותיקים ראשונים): עסקים pending + מודעות לא-מאושרות שטרם פגו. */
 export interface PrPending {
@@ -863,26 +808,6 @@ export function communityRequests(requests: readonly PrRequest[], listings: read
     .map((r) => businessView(r, nowMs));
 }
 
-/** תשובה לבקשה (טהור): עסק = תשובה אחת (מחליפה את הקודמת שלו); open ⇒ answered. */
-export function addResponse(r: PrRequest, resp: PrResponse, nowIso: string): PrRequest {
-  const others = (Array.isArray(r.responses) ? r.responses : []).filter((x) => !(resp.listingId && x.listingId === resp.listingId));
-  return {
-    ...r,
-    responses: [...others, { listingId: resp.listingId, text: String(resp.text ?? ''), at: resp.at || nowIso }],
-    status: r.status === 'open' ? 'answered' : r.status,
-    updatedAt: nowIso,
-  };
-}
-
-/**
- * סגירת-בקשה (טהור): רגילה ⇒ closed + חותמת. **שקטה ⇒ null = למחוק אותה ואת כל תשובותיה**
- * (המקור: "נמצא, למחוק הכול" — מידע רגיש לא נשמר אחרי שהבקשה נפתרה).
- */
-export function closeRequest(r: PrRequest, nowIso: string): PrRequest | null {
-  if (r.quiet === true) return null;
-  return { ...r, status: 'closed', closedAt: nowIso, updatedAt: nowIso };
-}
-
 /* ═══════════════ דורש-טיפול ═══════════════ */
 
 export interface PrCareItem {
@@ -966,30 +891,6 @@ export function activeAds(ads: readonly PrAd[], slot: PrAdSlot, todayIso: IsoDat
 /** קישור-סליקה לפרסומת (payLink של הארגון, סכום+שם ממולאים). אין קבלה — רישום ידני. */
 export function adPayLink(ad: PrAd, payUrl: string): string | null {
   return payLink(payUrl, ad.price, ad.advertiser);
-}
-
-/* ═══════════════ קוד-חיוג ═══════════════ */
-
-export const PR_DIAL_MIN = 101;
-export const PR_DIAL_MAX = 999;
-
-/**
- * הקוד הבא (בן 3 ספרות): מקסימום-קיים + 1 (מינימום 101) — **לא ממחזרים** קוד של עסק שנמחק כל
- * עוד יש מקום (חוברת מודפסת עלולה עוד להפנות אליו); רק כשמגיעים ל-999 — הפער הנמוך הפנוי. אין ⇒ ''.
- */
-export function nextDialCode(listings: readonly PrListing[]): string {
-  const used = new Set<number>();
-  for (const l of listings) if (typeof l.dialCode === 'string' && /^\d{3}$/.test(l.dialCode)) used.add(Number(l.dialCode));
-  let max = PR_DIAL_MIN - 1;
-  for (const n of used) if (n > max) max = n;
-  if (max < PR_DIAL_MAX) return String(max + 1);
-  for (let n = PR_DIAL_MIN; n <= PR_DIAL_MAX; n++) if (!used.has(n)) return String(n);
-  return '';
-}
-
-/** האם קוד תפוס (חוץ מהעסק עצמו). */
-export function dialCodeTaken(listings: readonly PrListing[], code: string, exceptId?: string): boolean {
-  return listings.some((l) => l.id !== exceptId && l.dialCode === code);
 }
 
 /* ═══════════════ ייצוא CSV ═══════════════ */
