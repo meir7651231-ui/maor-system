@@ -20,6 +20,15 @@ import { simulateCall as rawSimulateCall, explainCall as rawExplainCall } from '
 import { trustReport as rawTrustReport } from '../../../telephony/lib/report.mjs';
 // @ts-expect-error — untyped .mjs resolved on disk (TS7016); typed via the casts below.
 import { hebrewClosedWindows as rawHebrewClosedWindows, CITIES as rawCITIES } from '../../../telephony/lib/zmanim.mjs';
+// 📒 פרנסה׳לע (12.10) — re-exports **אדיטיביים** לזמני-היום/השבוע של לוח-הקהילה והחוברת.
+// זהים-מקור: אותו מנוע (zmanim.mjs/hebcal.mjs/config.mjs) שכבר בבנדל דרך nextClosure — אפס
+// התנהגות-חדשה, אפס נגיעה ב-.mjs (golden-suite). שני הייבואים למטה = מפרט-הטיפוס בלבד.
+// @ts-expect-error — untyped .mjs resolved on disk (TS7016); typed via the casts below.
+import { sunrise as rawSunrise, sunset as rawSunset, shabbatTimes as rawShabbatTimes, geoOf as rawGeoOf } from '../../../telephony/lib/zmanim.mjs';
+// @ts-expect-error — untyped .mjs resolved on disk (TS7016); typed via the casts below.
+import { classifyDay as rawClassifyDay, hebParts as rawHebcalParts } from '../../../telephony/lib/hebcal.mjs';
+// @ts-expect-error — untyped .mjs resolved on disk (TS7016); typed via the casts below.
+import { isDiaspora as rawIsDiaspora } from '../../../telephony/lib/config.mjs';
 
 /** תוצאת אימות-דייר — ok + שגיאות/אזהרות + הדייר המנורמל (עובר לסימולטור). */
 export interface ValidateResult {
@@ -116,3 +125,50 @@ export interface CityGeo {
   candle: number;
 }
 export const CITIES = rawCITIES as Record<string, CityGeo>;
+
+/* ── 📒 re-exports אדיטיביים (פרנסה׳לע, 12.10) — חתימות-טיפוס בלבד מעל אותו מנוע ── */
+
+/** שעת-זריחה/שקיעה מקומית "HH:MM" (זניט 90.833°, DST דרך Intl) לתאריך+נ״צ+אזור-זמן; null בקוטב. */
+export const sunrise = rawSunrise as (iso: string, lat: number, lon: number, tz?: string) => string | null;
+export const sunset = rawSunset as (iso: string, lat: number, lon: number, tz?: string) => string | null;
+
+/** זמני-שבת/חג לתאריך: שקיעה, הדלקת-נרות (שקיעה−candle) וצאת (שקיעה+tzeis, ברירת 40). */
+export interface ShabbatTimes {
+  sunset: string;
+  candle: string;
+  tzeis: string;
+}
+export const shabbatTimes = rawShabbatTimes as (iso: string, tenant: unknown, opt?: { tzeis?: number }) => ShabbatTimes | null;
+
+/** גיאו אפקטיבי: tenant.geo{lat,lon,candle?} גובר, אחרת עיר, אחרת ברירת-מחדל (ירושלים). */
+export const geoOf = rawGeoOf as (tenant: unknown) => CityGeo;
+
+/** סיווג-יום עברי מלא (Intl בלבד): שבת/יו״ט/ערב-חג/חוה״מ/צום/ר״ח + סיבת-סגירה. */
+export interface DayClass {
+  iso: string;
+  monthHe: string;
+  day: number;
+  dow: number;
+  shabbat: boolean;
+  yomTov: string | null;
+  erevChag: string | null;
+  cholHamoed: string | null;
+  fast: string | null;
+  roshChodesh: boolean;
+  name: string | null;
+  closedReason: string | null;
+}
+export const classifyDay = rawClassifyDay as (iso: string, opt?: { diaspora?: boolean; tz?: string }) => DayClass;
+
+/** חלקי-התאריך-העברי לתאריך ISO (בצהריים, באזור-הזמן הנתון — דטרמיניסטי, בלי שעון-המכשיר). */
+export interface HebcalParts {
+  day: number;
+  monthName: string;
+  monthHe: string;
+  year: number;
+  dow: number;
+}
+export const hebcalParts = rawHebcalParts as (iso: string, tz?: string) => HebcalParts;
+
+/** האם אזור-הזמן מחוץ לישראל (יו״ט שני של גלויות) — ההכרעה המרוכזת של המנוע. */
+export const isDiaspora = rawIsDiaspora as (tz?: string) => boolean;
