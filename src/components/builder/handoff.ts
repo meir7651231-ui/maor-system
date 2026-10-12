@@ -3,7 +3,7 @@
  * מה קיבלתם, הכתובת, כללי הגיבוי, מדריך מזכירה מקוצר, וטבלת החשבונות
  * החיצוניים שנפתחים על שם העמותה.
  */
-import type { ModuleKey, OrgConfig } from '../../types/config';
+import { isOptInModule, moduleEnabledIn, type ModuleKey, type OrgConfig } from '../../types/config';
 import { FEATURES, type FeatureDef } from '../../types/features';
 import { featureEffectiveOn, featureModuleKey, WIZARD_SECTIONS } from './sections';
 import { SIZE_LABELS, shekel, type Quote } from '../../lib/pricing';
@@ -16,6 +16,8 @@ export const MODULE_LABELS: Record<string, string> = {
   diary: 'יומן חדרים ונוכחות',
   supporters: 'תורמים ותרומות',
   reports: 'דוחות וייצוא',
+  // מודול opt-in (12.10): מופיע ב"✅ מה קיבלתם" רק כשהודלק במפורש (moduleEnabledIn)
+  parnasa: 'פרנסה׳לע — מדריך עסקים, בקשות ולוח קהילה',
 };
 
 export const THEME_LABELS: Record<string, string> = {
@@ -105,7 +107,9 @@ function featureGroupName(cfg: OrgConfig, m: FeatureDef['module']): string {
  * featureEffectiveOn — אותה אמת כמו האשף והקוד.
  */
 export function removedFeatures(cfg: OrgConfig): FeatureDef[] {
-  return FEATURES.filter((f) => !featureEffectiveOn(cfg, f));
+  // 12.10 (פרנסה׳לע): מודול opt-in שלא הודלק לא "הוסר בהתאמה" — הוא לא נכלל בעסקה. בלי
+  // ההחרגה כל דף-מסירה של כל ארגון היה מונה את כל דגלי-המודול כ"הוסרו" (ביט-זהה לקיימים).
+  return FEATURES.filter((f) => !featureEffectiveOn(cfg, f) && !(isOptInModule(f.module) && !moduleEnabledIn(cfg.modules, f.module)));
 }
 
 /** מקטע הצעת-המחיר בדף המסירה — נבנה רק כשנמסר quote (אחרת ריק, ביט-זהה לקודם). */
@@ -175,7 +179,7 @@ function telephonySection(cfg: OrgConfig): string {
 export function buildHandoffHtml(cfg: OrgConfig, appUrl: string, installerName: string, quote?: Quote): string {
   const url = cfg.slug === 'default' ? appUrl : `${appUrl}${appUrl.includes('?') ? '&' : '?'}org=${cfg.slug}`;
   const modules = (Object.keys(MODULE_LABELS) as ModuleKey[])
-    .filter((k) => cfg.modules[k] !== false)
+    .filter((k) => moduleEnabledIn(cfg.modules, k))
     .map((k) => `<li>✅ ${esc(moduleDisplayName(cfg, k))}</li>`)
     .join('');
   const removed = removedFeatures(cfg);

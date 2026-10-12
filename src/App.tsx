@@ -11,6 +11,7 @@ import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode
 import { useApp, type View } from './store/useApp';
 import { nsLsKey, parseBackupFile } from './store/persist';
 import { applyFavicon, featureOn, integrationOn, isAdminUser, isSuperAdmin, moduleOn, publicSiteOn, roleOf, telephonyOn, termOf } from './lib/config';
+import { moduleEnabledIn } from './types/config';
 import { applyOrgManifest, isIos, isStandalone, promptInstall, registerPwa } from './lib/pwa';
 import { runOriginGuard } from './lib/originGuard';
 import { setExportBlocked } from './lib/exportGate';
@@ -59,6 +60,7 @@ const VIEW_LOADERS = {
   tzedaka: () => import('./components/tzedaka/TzedakaView'),
   shop: () => import('./components/shop/ShopView'),
   shop7: () => import('./components/shop7/Shop7View'),
+  parnasa: () => import('./components/parnasa/ParnasaView'),
   reports: () => import('./components/reports/ReportsView'),
   settings: () => import('./components/settings/SettingsView'),
 } as const;
@@ -71,6 +73,7 @@ const SupportersView = lazy(async () => ({ default: (await VIEW_LOADERS.supporte
 const TzedakaView = lazy(async () => ({ default: (await VIEW_LOADERS.tzedaka()).TzedakaView }));
 const ShopView = lazy(async () => ({ default: (await VIEW_LOADERS.shop()).ShopView }));
 const Shop7View = lazy(async () => ({ default: (await VIEW_LOADERS.shop7()).Shop7View }));
+const ParnasaView = lazy(async () => ({ default: (await VIEW_LOADERS.parnasa()).ParnasaView }));
 const ReportsView = lazy(async () => ({ default: (await VIEW_LOADERS.reports()).ReportsView }));
 const SettingsView = lazy(async () => ({ default: (await VIEW_LOADERS.settings()).SettingsView }));
 // משטחי-ניהול/כניסה נדירים — עצלים גם הם (מנהל-על/מרקטינג לא מכבידים על כולם)
@@ -112,6 +115,7 @@ const NAV: { view: View; icon: string; label: string }[] = [
   { view: 'tzedaka', icon: '🪙', label: 'קופות צדקה' },
   { view: 'shop', icon: '🛍', label: 'חנות' },
   { view: 'shop7', icon: '🚚', label: 'חלוקה' },
+  { view: 'parnasa', icon: '📒', label: 'פרנסה׳לע' },
   { view: 'reports', icon: '📊', label: 'דוחות' },
   { view: 'settings', icon: '⚙️', label: 'הגדרות' },
 ];
@@ -126,6 +130,7 @@ const VIEWS: Record<View, ComponentType> = {
   tzedaka: TzedakaView,
   shop: ShopView,
   shop7: Shop7View,
+  parnasa: ParnasaView,
   reports: ReportsView,
   reenroll: ReenrollView,
   settings: SettingsView,
@@ -405,13 +410,14 @@ export default function App() {
 
   // ⚡ חימום-ב-idle (VISION-LIGHT ‏#13): אחרי שהבית חי, מסכי המודולים הדלוקים
   // בלבד נטענים ברקע — ניווט מיידי בלי להכביד על הפתיחה; מודול כבוי לא יורד.
+  // דרך העוזר היחיד (12.10): מודול opt-in שלא הודלק (פרנסה׳לע) לא יורד גם כשהמפתח חסר.
   useEffect(() => {
     if (!ready) return;
     const warm = () => {
       const mods = useApp.getState().config.modules as Partial<Record<string, boolean>>;
       for (const k of Object.keys(VIEW_LOADERS) as (keyof typeof VIEW_LOADERS)[]) {
         const modKey = k === 'reenroll' ? 'courses' : k;
-        if (k === 'settings' || mods[modKey] !== false) void VIEW_LOADERS[k]().catch(() => { /* אופליין — ייטען בניווט */ });
+        if (k === 'settings' || moduleEnabledIn(mods, modKey)) void VIEW_LOADERS[k]().catch(() => { /* אופליין — ייטען בניווט */ });
       }
     };
     const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
@@ -672,10 +678,10 @@ export default function App() {
 
   // מיתוג: שם מהקונפיגורציה גובר על השם השמור בנתונים
   const orgName = config.orgName || dbOrgName;
-  // מודולים: בית תמיד; השאר לפי config.modules (חסר = פעיל).
-  // הגדרות עברו לאייקון/פריט ⚙️ נפרד — לא קישור ברצועה.
+  // מודולים: בית תמיד; השאר דרך העוזר היחיד moduleEnabledIn (רגיל: חסר = פעיל;
+  // opt-in — פרנסה׳לע: רק true מפורש). הגדרות עברו לאייקון/פריט ⚙️ נפרד — לא קישור ברצועה.
   const nav = NAV.filter(
-    (n) => n.view !== 'settings' && n.view !== 'reenroll' && (n.view === 'home' || config.modules[n.view] !== false),
+    (n) => n.view !== 'settings' && n.view !== 'reenroll' && (n.view === 'home' || moduleEnabledIn(config.modules, n.view)),
   );
   // UX סבב-ב׳: ברצועה העליונה עד 6 ראשיים; השאר ב'עוד ▾' (הכול נשאר נגיש).
   // בשלדי-הצד יש מקום אנכי — הרשימה המלאה נשארת שם.

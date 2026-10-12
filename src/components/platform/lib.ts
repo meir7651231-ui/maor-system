@@ -4,7 +4,7 @@
  * כבוי — בית והגדרות תמיד, הם אינם ModuleKey), וקישור הלקוח.
  * בלי store/DOM/firebase — נבדק ביחידה.
  */
-import { DEFAULT_CONFIG, type ModuleKey, type OrgConfig } from '../../types/config';
+import { DEFAULT_CONFIG, moduleEnabledIn, type ModuleKey, type OrgConfig } from '../../types/config';
 
 /** תעתיק אות עברית → לטינית (פשוט וצפוי — הבעלים עורך את התוצאה ממילא). */
 const HEB2LAT: Record<string, string> = {
@@ -35,8 +35,8 @@ export function isValidSlug(slug: string): boolean {
   return /^[a-z0-9-]{2,40}$/.test(slug);
 }
 
-/** כל 8 מפתחות המודולים — מקור אחד לפאנל ולקונפיג-הלידה. */
-export const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7'];
+/** כל מפתחות המודולים — מקור אחד לפאנל ולקונפיג-הלידה. ‏parnasa = opt-in (חסר = כבוי, OPT_IN_MODULES). */
+export const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7', 'parnasa'];
 
 /** תוויות המודולים לפאנל (בית והגדרות תמיד דלוקים — אינם ModuleKey). */
 export const MODULE_LABELS: Record<ModuleKey, string> = {
@@ -49,11 +49,13 @@ export const MODULE_LABELS: Record<ModuleKey, string> = {
   tzedaka: 'קופות צדקה',
   shop: 'חנות',
   shop7: 'חלוקה',
+  parnasa: 'פרנסה׳לע',
 };
 
 /**
- * קונפיג-הלידה של ארגון חדש (הכרעת ארכיטקט): ‏all-off — כל 8 המודולים
+ * קונפיג-הלידה של ארגון חדש (הכרעת ארכיטקט): ‏all-off — כל המודולים
  * ‏false מפורש (לא "חסר=דלוק"!); הבעלים מדליק בלייב מה שסוכם בשיחה.
+ * (מודול opt-in כבוי ממילא כשחסר — ה-false המפורש נשאר עקבי ומגן.)
  */
 export function allOffConfig(slug: string, orgName: string): OrgConfig {
   const modules: Partial<Record<ModuleKey, boolean>> = {};
@@ -133,7 +135,8 @@ export function isOrgManager(email: string, org: Pick<OrgCloudDoc, 'manager'>): 
  * את אלה המנהל מחלק בין העובדות (כרטיס-עובד); לעולם לא יכול לחרוג מהם.
  */
 export function orgEnabledModules(orgConfig: { modules?: Record<string, boolean> }): ModuleKey[] {
-  return ALL_MODULES.filter((m) => orgConfig.modules?.[m] !== false);
+  // דרך העוזר היחיד: מודול opt-in (פרנסה׳לע) בתקרה רק כשהודלק במפורש (true)
+  return ALL_MODULES.filter((m) => moduleEnabledIn(orgConfig.modules, m));
 }
 
 /**
@@ -192,6 +195,9 @@ export const GRANTABLE_STAFF_FEATURES: ReadonlySet<string> = new Set([
   'settings.teachers.delete',
   'shop.delete',
   'tzedaka.delete',
+  // פרנסה׳לע (12.10): אישורי-גבאי ומחיקות — מנהל תמיד, לעובד/ת רק בהדלקה פר-עובד
+  'parnasa.approve',
+  'parnasa.delete',
 ]);
 
 /** האם המפתח הוא יכולת-הדלקה-פר-עובד (מכבד `true` בכרטיס-העובד). */

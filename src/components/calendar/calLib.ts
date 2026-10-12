@@ -12,7 +12,7 @@ import {
 import { gem, gemYear, hebParts, hebAnnualEq, hebDateFull, holidayOf, type HebParts } from '../../lib/hebrew';
 import { isoLocal } from '../../lib/date-util';
 import { featureOn, termOf } from '../../lib/config';
-import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
+import { DEFAULT_CONFIG, moduleEnabledIn, type OrgConfig } from '../../types/config';
 import { sessionsOf } from '../courses/lib';
 // sessionsOf — מקור-אמת יחיד בקורסים; מיוצא מחדש (wallData מייבא אותו מכאן)
 export { sessionsOf };
@@ -678,7 +678,7 @@ export function icsWindowEvents(db: Db, fromIso: string, days: number, slug: str
 
 /** מודול-החוגים דלוק בקונפיג (למניעת ייצוא-מפגשים בארגון בלי חוגים). */
 function moduleActive(config: OrgConfig): boolean {
-  return config.modules.courses !== false;
+  return moduleEnabledIn(config.modules, 'courses');
 }
 
 /* ---------- צ׳יפי תאריכים מהירים (P2 פער 26) ---------- */

@@ -19,14 +19,14 @@ import { isoLocal } from '../../lib/date-util';
 // תוויות/צבעי סוגי אירועים — מקור-אמת יחיד ב-lib/eventMeta (מיוצא מחדש לתאימות)
 import { EV_META, evLabel } from '../../lib/eventMeta';
 export { EV_META, evLabel };
-import { DEFAULT_CONFIG } from '../../types/config';
+import { DEFAULT_CONFIG, moduleEnabledIn } from '../../types/config';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import { featureOn, termOf } from '../../lib/config';
 import { hokDue, hokMonthlyTotal, supIls, supUsd } from '../supporters/lib';
 import { cockpitAtRisk } from '../supporters/cockpit';
 import type { SegmentKey } from '../supporters/segments';
 
-/** מפת המודולים הפעילים (config.modules) — חסר = פעיל; false = כבוי. */
+/** מפת המודולים הפעילים (config.modules) — חסר = פעיל; false = כבוי (מודול opt-in: רק true — moduleEnabledIn). */
 export type ModulesMap = OrgConfig['modules'];
 
 /** ISO מקומי (מקור-אמת יחיד ב-date-util — ללא הזחת אזור זמן של toISOString). */
@@ -240,7 +240,7 @@ export function attentionItems(
   modules: ModulesMap,
   config: OrgConfig = DEFAULT_CONFIG,
 ): AttentionItem[] {
-  const on = (m: ModuleKey) => modules[m] !== false;
+  const on = (m: ModuleKey) => moduleEnabledIn(modules, m);
   const todayIso = isoOf(now);
   const members = allMembers(db);
   // ⚡ קלילות (19.8): מפות O(1) במקום find בלולאה — O(n+m) במקום O(n×m)
@@ -556,7 +556,7 @@ export function digestLines(
   /** ⚡ קלילות (19.8): attention שכבר חושב ב-HomeView — חוסך חישוב-כפול בכל רנדר. */
   precomputedAttention?: AttentionItem[],
 ): DigestLine[] {
-  const on = (m: ModuleKey) => modules[m] !== false;
+  const on = (m: ModuleKey) => moduleEnabledIn(modules, m);
   const members = allMembers(db);
   const out: DigestLine[] = [];
 
@@ -928,7 +928,7 @@ export function carouselItems(
   modules: ModulesMap = {},
   config: OrgConfig = DEFAULT_CONFIG,
 ): CarouselItem[] {
-  const on = (m: ModuleKey) => modules[m] !== false;
+  const on = (m: ModuleKey) => moduleEnabledIn(modules, m);
   const SPECIAL: ReadonlySet<EventType> = new Set([
     'wedding',
     'memorial',

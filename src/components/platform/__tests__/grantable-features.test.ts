@@ -23,6 +23,8 @@ describe('🔓 ratchet — הדלקה-פר-עובד (grantable) מנתחית', (
       'courses.bulkadmin',
       'courses.delete',
       'families.delete',
+      'parnasa.approve', // 12.10 פרנסה׳לע: אישורי-גבאי — מנהל תמיד, לעובד/ת בהדלקה פר-עובד
+      'parnasa.delete',
       'settings.teachers.delete',
       'shop.delete',
       'supporters.bulkdelete',
@@ -41,6 +43,8 @@ describe('🔓 ratchet — הדלקה-פר-עובד (grantable) מנתחית', (
     expect(isGrantableFeature('shop.delete')).toBe(true);
     expect(isGrantableFeature('tzedaka.delete')).toBe(true);
     expect(isGrantableFeature('courses.bulkadmin')).toBe(true);
+    expect(isGrantableFeature('parnasa.approve')).toBe(true);
+    expect(isGrantableFeature('parnasa.delete')).toBe(true);
     expect(isGrantableFeature('supporters.cockpit')).toBe(false);
   });
 

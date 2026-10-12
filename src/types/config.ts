@@ -9,9 +9,45 @@
  * חוזה המודולים: כיבוי מודול (false) לעולם אינו מוחק נתונים ולעולם אינו מפיל
  * את המערכת — הוא מסתיר את מסכי המודול *וגם* את כל המשטחים שלו במסכים אחרים
  * (מסך הבית, פלטת הפקודות, כרטיס המשפחה וכו'). הפעלה מחדש מחזירה הכול כפי
- * שהיה. הבדיקה נעשית תמיד דרך moduleOn() ב-lib/config.ts (מפתח חסר = פעיל).
+ * שהיה. הבדיקה נעשית תמיד דרך moduleOn() ב-lib/config.ts (מפתח חסר = פעיל),
+ * שמאציל לעוזר היחיד moduleEnabledIn() כאן למטה.
  */
-export type ModuleKey = 'families' | 'courses' | 'calendar' | 'diary' | 'supporters' | 'reports' | 'tzedaka' | 'shop' | 'shop7';
+export type ModuleKey = 'families' | 'courses' | 'calendar' | 'diary' | 'supporters' | 'reports' | 'tzedaka' | 'shop' | 'shop7' | 'parnasa';
+
+/**
+ * מודולי opt-in — **חסר = כבוי** (הכרעת-בעלים 12.10.2026, פרנסה׳לע — BUILD-ORDER-PARNASA
+ * הכרעה 1). הפוך מחוזה-המודולים: 9 המודולים הקיימים "חסר = פעיל, רק false מכבה";
+ * מודול כאן נדלק **רק** ב-true מפורש (אשף/לוח-בקרה כותבים true). הסיבה: הלקוח-החי,
+ * הדמו וכל ארגון קיים נושאים מפת-מודולים ריקה — מודול חדש בחוזה הרגיל היה נדלק
+ * אצלם בשקט (לקח #16, "מוסך קיבל קופות צדקה"). ratchet: optin-module.test.
+ */
+export const OPT_IN_MODULES: readonly ModuleKey[] = ['parnasa'];
+
+/** האם המפתח הוא מודול opt-in (חסר = כבוי). */
+export function isOptInModule(m: string): boolean {
+  return (OPT_IN_MODULES as readonly string[]).includes(m);
+}
+
+/**
+ * **העוזר היחיד** שמפרש מפת-מודולים של ארגון — כל קריאה ממפת-המודולים בקוד עוברת
+ * כאן (moduleOn, הניווט, חימום-ה-chunks, הקפצה-הביתה, האשף, לוח-הבקרה, תקרת-המנהל,
+ * התמחור, דף-המסירה, מסך-הבית). מודול רגיל: חסר = פעיל, רק false מכבה (ביט-זהה
+ * להיום); מודול opt-in: רק true מדליק (גם "true" כמחרוזת מענן עוין = כבוי).
+ * סריקת-מקור ב-optin-module.test חוסמת קריאה גולמית מחוץ לקובץ הזה.
+ */
+export function moduleEnabledIn(modules: Partial<Record<string, boolean>> | null | undefined, m: string): boolean {
+  const v = modules?.[m];
+  return isOptInModule(m) ? v === true : v !== false;
+}
+
+/**
+ * כרטיס-עובד (EmployeeOverride.modules) — **הגבלה בלבד**: רק false מסתיר; חסר = יורש
+ * מהארגון — גם במודול opt-in (התקרה נקבעת ב-moduleEnabledIn של קונפיג-הארגון, וכרטיס-
+ * עובד לעולם אינו מדליק). סמנטיקה שונה ממפת-הארגון ⇒ עוזר נפרד (לא moduleEnabledIn).
+ */
+export function moduleRestrictedIn(overrideModules: Partial<Record<string, boolean>> | null | undefined, m: string): boolean {
+  return overrideModules?.[m] === false;
+}
 
 /**
  * סגנונות-תנועה (זהות-ורטיקל) — נכתבים כ-data-motion על ה-root ומכווננים

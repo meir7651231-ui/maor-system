@@ -5,7 +5,7 @@
  * (טווחי-שוק לעמותות בישראל) שהבעלים דורס בפועל דרך האשף. המנוע לא קובע מחיר,
  * רק מחשב סכום מטבלת-מחירים נתונה. נשמר מקומית (מכשיר-המטמיע), לא בקונפיג-הלקוח.
  */
-import type { ModuleKey } from '../types/config';
+import { moduleEnabledIn, type ModuleKey } from '../types/config';
 import { ALL_MODULES } from '../components/platform/lib';
 
 export type OrgSize = 'small' | 'medium' | 'large';
@@ -157,7 +157,8 @@ export function computeQuote(
   addons: AddonInput[] = [],
   mode: DealMode = 'subscription',
 ): Quote {
-  const onModules = ALL_MODULES.filter((m) => cfg.modules?.[m] !== false);
+  // דרך העוזר היחיד: מודול opt-in (פרנסה׳לע) נכנס להצעה רק כשהודלק במפורש
+  const onModules = ALL_MODULES.filter((m) => moduleEnabledIn(cfg.modules, m));
   const all: QuoteLine[] = onModules.map((m) => ({ key: m, label: nameOf(m), price: prices.modules[m] ?? 0, kind: 'module' as const }));
   const addonLines: QuoteLine[] = addons.map((a) => ({ key: a.key, label: a.label, price: prices.integrations[a.key] ?? 0, kind: 'integration' as const }));
   const lines = [...all.filter((l) => l.price > 0), ...addonLines.filter((l) => l.price > 0)];

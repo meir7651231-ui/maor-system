@@ -73,12 +73,14 @@ describe('⚡ bundle-light — Firebase מחוץ לבנדל הראשי', () => {
     const app = readFileSync('src/App.tsx', 'utf8');
     // כל מסכי-המודולים נטענים lazy דרך VIEW_LOADERS (הבית נשאר סטטי — first paint)
     expect(app).toContain('const VIEW_LOADERS = {');
-    for (const v of ['families', 'courses', 'calendar', 'diary', 'supporters', 'tzedaka', 'shop', 'shop7', 'reports', 'reenroll', 'settings']) {
+    for (const v of ['families', 'courses', 'calendar', 'diary', 'supporters', 'tzedaka', 'shop', 'shop7', 'parnasa', 'reports', 'reenroll', 'settings']) {
       expect(app, 'loader חסר למסך ' + v).toMatch(new RegExp('\\b' + v + ": \\(\\) => import\\('"));
     }
     expect(app).toContain("import { HomeView } from './components/home/HomeView'");
-    // חימום-ב-idle רק למודולים דלוקים — מודול כבוי לא יורד ("שוקל רק מה שהדלקת")
-    expect(app).toContain("mods[modKey] !== false) void VIEW_LOADERS[k]()");
+    // חימום-ב-idle רק למודולים דלוקים — מודול כבוי לא יורד ("שוקל רק מה שהדלקת").
+    // 12.10 (פרנסה׳לע, שינוי-נעילה מכוון): הנוסח הגולמי `!== false` היה מוריד ברקע את
+    // ה-chunk של מודול opt-in רדום (חסר = כבוי) אצל הלקוח-החי ⇒ הכוונה ננעלת דרך העוזר היחיד.
+    expect(app).toContain('moduleEnabledIn(mods, modKey)) void VIEW_LOADERS[k]()');
     // משטחי-הניהול/כניסה עצלים — בלי ייבוא-ערך סטטי שמחזיר אותם לבנדל
     for (const c of ['BuilderWizard', 'RemoteWizard', 'PlatformPanel', 'ManagerPanel', 'PublicSite', 'LoginScreen']) {
       expect(app, c + ' חזר לייבוא סטטי').not.toMatch(new RegExp("^import .*\\{[^}]*\\b" + c + "\\b[^}]*\\} from", 'm'));

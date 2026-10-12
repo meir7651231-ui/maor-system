@@ -14,6 +14,7 @@ import { ALL_MODULES, MODULE_LABELS as MODULE_SHORT } from '../platform/lib';
 import { computeQuote, readPrices, shekel, writePrices, SIZE_LABELS, type DealMode, type OrgSize, type PriceTable } from '../../lib/pricing';
 import {
   DEFAULT_CONFIG,
+  moduleEnabledIn,
   type LocalizedText,
   type ModuleKey,
   type OrgConfig,
@@ -395,8 +396,9 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   const setName = (orgName: string) =>
     patch({ orgName, ...(slugTouched ? {} : { slug: suggestSlug(orgName) || 'default' }) });
 
+  // דרך העוזר היחיד: כבוי ⇒ כותב true מפורש (חובה למודול opt-in — פרנסה׳לע); דלוק ⇒ false
   const toggleModule = (k: ModuleKey) =>
-    patch({ modules: { ...config.modules, [k]: config.modules[k] === false } });
+    patch({ modules: { ...config.modules, [k]: !moduleEnabledIn(config.modules, k) } });
 
   /** הדלקה = מחיקת המפתח (חסר = פעיל) — שומר על config.json נקי מרעש.
       ⚠️ חריג opt-in (20.8): דגל שהקוד דורש בו `=== true` (קוקפיט/מודיעין/גלקסיה/
@@ -620,7 +622,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
       (!searching || 'פיצול תרומות פר-ייעוד אכיפת הרשאה לעובדות ייעוד'.includes(q));
     if ((searching || filtering) && !visFeats.length && !visTerms.length && !showSplit) return null;
 
-    const modOn = mk ? config.modules[mk] !== false : true;
+    const modOn = mk ? moduleEnabledIn(config.modules, mk) : true;
     // opt-in-aware: דגל-optIn חסר = כבוי; דגל-רגיל חסר = דלוק (featureEffectiveOn).
     const onCount = feats.filter((f) => featureEffectiveOn(config, f)).length;
     const secChanged = feats.filter((f) => diff.features.includes(f.key)).length +
@@ -1264,7 +1266,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                   ([k]) =>
                     INTEGRATION_STATUS[k] === 'included' &&
                     // כנות: קבלות-§46 חיות במודול התורמים — כבוי ⇒ לא "כלול" (ביקורת 4.8)
-                    (k !== 'receipts' || config.modules.supporters !== false),
+                    (k !== 'receipts' || moduleEnabledIn(config.modules, 'supporters')),
                 )
                 .map(([, label]) => label)
                 .join(' · ')}

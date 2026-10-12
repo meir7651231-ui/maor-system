@@ -186,6 +186,14 @@ for (const profile of PROFILES) {
     t('מודול חוגים מוסתר (מכוון)', !(await page.locator('nav').textContent()).includes(crsLabel));
   }
 
+  // ── פרנסה׳לע (opt-in, 12.10 — BUILD-ORDER-PARNASA הכרעה 1): חסר = כבוי ⇒ אף פרופיל-ברירת-מחדל
+  //    לא מציג את הקישור (מפת-מודולים {} — כמו הלקוח-החי והדמו); רק modules.parnasa === true מדליק ──
+  {
+    const parnasaOn = profile.config?.modules?.parnasa === true;
+    const navNow = (await page.locator('nav').first().textContent()) ?? '';
+    t('קישור "פרנסה׳לע" ' + (parnasaOn ? 'קיים' : 'נעדר (opt-in — חסר = כבוי)'), navNow.includes('פרנסה') === parnasaOn);
+  }
+
   // ── קופות צדקה (BUILD-ORDER-TZEDAKA): קישור לפי המודול + זרימה מלאה בברירת המחדל ──
   const tzedakaOn = modulesOff.tzedaka !== false;
   {
@@ -493,9 +501,50 @@ for (const profile of PROFILES) {
   t('אין "קופות צדקה" כשהמודול כבוי', !navTxt.includes('קופות צדקה'));
   // חנות (מודול shop) — כבוי ⇒ הקישור נעלם
   t('אין "חנות" כשהמודול כבוי', !navTxt.includes('חנות'));
+  // פרנסה׳לע (opt-in) — לא הודלק ⇒ אין קישור
+  t('אין "פרנסה׳לע" (opt-in — חסר = כבוי)', !navTxt.includes('פרנסה'));
   t('אפס שגיאות JS בפרופיל', errors.length === 0, errors.slice(0, 2).join(' | '));
 
   console.log('\n📦 קיצון — הכול כבוי (בדיקת דליפות)');
+  console.log(log.join('\n'));
+  await ctx.close();
+}
+
+// ── פרנסה׳לע מודלק במפורש (opt-in, 12.10): הקישור מופיע, ה-chunk העצל נטען, המסך מציג מצב-ריק,
+//    ו-9 המודולים הקיימים לא זזים (חסר = פעיל) ──
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 950 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  const log = [];
+  const t = (name, ok, extra = '') => {
+    log.push(`  ${ok ? '✅' : '❌'} ${name}${extra ? ' — ' + extra : ''}`);
+    if (!ok) failures++;
+  };
+
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem(
+      'maor_org_config',
+      JSON.stringify({ slug: 'default', orgName: 'עמותת מבחן', theme: 'or-rishon', modules: { parnasa: true } }),
+    );
+    localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10));
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+
+  const navTxt = (await page.locator('nav').first().textContent()) ?? '';
+  t('קישור "פרנסה׳לע" קיים (modules.parnasa === true)', navTxt.includes('פרנסה׳לע'));
+  t('המודולים הקיימים נשארו דלוקים (חסר = פעיל)', navTxt.includes('קופות צדקה') && navTxt.includes('חלוקה') && navTxt.includes('דוחות'));
+  await page.locator('nav >> text=פרנסה׳לע').click();
+  await page.waitForTimeout(700);
+  const main = (await page.locator('main').textContent()) ?? '';
+  t('מסך פרנסה׳לע נטען — מצב-ריק "המודול בבנייה"', main.includes('המודול בבנייה'));
+  t('אפס שגיאות JS בפרופיל', errors.length === 0, errors.slice(0, 2).join(' | '));
+
+  console.log('\n📦 פרנסה׳לע מודלק במפורש (opt-in)');
   console.log(log.join('\n'));
   await ctx.close();
 }

@@ -6,17 +6,21 @@
  * 2. fetch('./config.json') — קובץ סטטי יחסי ל-base (פר-פריסה של ארגון).
  * 3. DEFAULT_CONFIG — כשאין קובץ / הקובץ פגום (404, JSON שבור).
  */
-import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, MOTION_KEYS, SITE_LANGS, type FirebaseOrgConfig, type LocalizedText, type ModuleKey, type OrgConfig, type PublicSiteContent, type SiteLang, type TelNumber, type TelephonyConfig } from '../types/config';
+import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, MOTION_KEYS, SITE_LANGS, moduleEnabledIn, type FirebaseOrgConfig, type LocalizedText, type ModuleKey, type OrgConfig, type PublicSiteContent, type SiteLang, type TelNumber, type TelephonyConfig } from '../types/config';
 import { TEMPLATE_KEYS } from './templates';
 
 const LS_CONFIG_KEY = 'maor_org_config';
 
-/** האם מודול פעיל בקונפיגורציה — מפתח חסר = פעיל; רק false מכבה. */
+/**
+ * האם מודול פעיל בקונפיגורציה — מאציל לעוזר היחיד moduleEnabledIn (types/config):
+ * מודול רגיל — מפתח חסר = פעיל, רק false מכבה; מודול opt-in (OPT_IN_MODULES,
+ * פרנסה׳לע) — רק true מפורש מדליק.
+ */
 export function moduleOn(cfg: OrgConfig, m: ModuleKey): boolean {
-  return cfg.modules[m] !== false;
+  return moduleEnabledIn(cfg.modules, m);
 }
 
-/** תשעת מודולי הניווט הניתנים לכיבוי — קידומות של פיצ'רים שכפופות לטוגל מודול. */
+/** מודולי הניווט הניתנים לכיבוי — קידומות של פיצ'רים שכפופות לטוגל מודול. */
 const NAV_MODULE_KEYS: readonly ModuleKey[] = [
   'families',
   'courses',
@@ -27,6 +31,8 @@ const NAV_MODULE_KEYS: readonly ModuleKey[] = [
   'tzedaka',
   'shop',
   'shop7',
+  // opt-in (12.10): חסר = כבוי ⇒ featureOn('parnasa.*') כבוי עד הדלקה מפורשת של המודול
+  'parnasa',
 ];
 
 /**

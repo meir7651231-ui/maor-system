@@ -3,7 +3,7 @@
  * כל מקטע מאגד: טוגל-אב למודול (אם קיים), הפיצ'רים שלו מ-FEATURES (לפי module),
  * והמונחים הרלוונטיים מ-TERM_DEFS המוצגים כשדות ✏️ שינוי-שם.
  */
-import type { ModuleKey, OrgConfig } from '../../types/config';
+import { moduleEnabledIn, type ModuleKey, type OrgConfig } from '../../types/config';
 import type { FeatureDef } from '../../types/features';
 
 export interface WizardSectionDef {
@@ -73,6 +73,14 @@ export const WIZARD_SECTIONS: WizardSectionDef[] = [
     termKeys: ['nav.shop', 'entity.shopProduct', 'entity.shopStore', 'entity.shopCriterion', 'entity.shopAssignment', 'entity.shopItem'],
   },
   { id: 'shop7', title: 'חלוקה', emoji: '🚚', module: 'shop7', termKeys: ['nav.shop7', 'entity.volunteer', 'entity.volunteers'] },
+  // מודול opt-in (12.10): הטוגל מתחיל כבוי כשהמפתח חסר; הדלקה כותבת true מפורש
+  {
+    id: 'parnasa',
+    title: 'פרנסה׳לע',
+    emoji: '📒',
+    module: 'parnasa',
+    termKeys: ['nav.parnasa', 'entity.prListing', 'entity.prListings', 'entity.prRequest', 'entity.prPost', 'entity.prAd', 'entity.prGabbai'],
+  },
   { id: 'reports', title: 'דוחות', emoji: '📊', module: 'reports', termKeys: ['nav.reports'] },
   // הגאדג'טים (טיימר/קופה/מפת-טיפול) שייכים למעטפת-הבית — המונחים שלהם כאן
   { id: 'home', title: 'מסך הבית', emoji: '🏠', termKeys: ['nav.timer', 'nav.cashbox', 'nav.bodymap'] },
@@ -90,7 +98,8 @@ export function featureModuleKey(m: FeatureDef['module']): ModuleKey | null {
 /** האם פיצ'ר פעיל בפועל — גם הדגל שלו וגם המודול-האב חייבים להיות דלוקים. */
 export function featureEffectiveOn(cfg: OrgConfig, f: FeatureDef): boolean {
   const mk = featureModuleKey(f.module);
-  if (mk && cfg.modules[mk] === false) return false;
+  // דרך העוזר היחיד — מודול opt-in (פרנסה׳לע) כבוי כשחסר ⇒ כל הדגלים שלו כבויים באשף
+  if (mk && !moduleEnabledIn(cfg.modules, mk)) return false;
   // דגל-opt-in (20.8): הקוד דורש true מפורש — חסר = כבוי. בלי זה האשף הציג
   // "דלוק" על מסך שבפועל כבוי (קוקפיט/מודיעין/גלקסיה/ריברנד) — באג-תצוגה אמיתי.
   if (f.optIn) return cfg.features?.[f.key] === true;

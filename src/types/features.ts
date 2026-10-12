@@ -31,6 +31,7 @@ export interface FeatureDef {
     | 'tzedaka'
     | 'shop'
     | 'shop7'
+    | 'parnasa'
     | 'home'
     | 'settings'
     | 'core'
@@ -251,6 +252,21 @@ export const FEATURES: FeatureDef[] = [
   { key: 'shop7.export', label: 'תדפיס וייצוא מסירות', desc: 'תדפיס מסירות פר-מתנדב (ליום) + ייצוא CSV של כל המסירות — כולל סטטוס (שקיפות)', module: 'shop7' },
   { key: 'shop7.capacity', label: 'קיבולת מתנדב', desc: 'שדה "קיבולת מסירות ליום" + התרעת עומס-יתר על מתנדב', module: 'shop7' },
 
+  // ——— פרנסה׳לע (parnasa — BUILD-ORDER-PARNASA-2026-10-12) ———
+  // המודול עצמו opt-in (OPT_IN_MODULES: חסר = כבוי) ⇒ featureOn משרשר כיבוי לכל parnasa.*
+  // עד הדלקה מפורשת. בתוך מודול דלוק — החוזה הרגיל (חסר = פעיל). 🔓 = מנהל/בעלים תמיד,
+  // לעובד/ת דרך canGrantedAction (GRANTABLE_STAFF_FEATURES) — כבוי עד שהמנהל מדליק פר-עובד.
+  { key: 'parnasa.care', label: 'לשונית טיפול ואישורים', desc: 'לשונית "🏠 טיפול" — מה ממתין לאישור-גבאי (עסקים/בקשות/מודעות) ומה דורש טיפול (תוקף שפג, פרטים חסרים)', module: 'parnasa' },
+  { key: 'parnasa.directory', label: 'מדריך העסקים', desc: 'לשונית "📇 מדריך" — בעלי-מקצוע ועסקים בשכונה: חיפוש לפי תחום/אזור, "פתוח עכשיו", חיוג/וואטסאפ', module: 'parnasa' },
+  { key: 'parnasa.requests', label: 'מה צריך? — בקשות תושבים', desc: 'לשונית "🙋 מה צריך?" — בקשות תושבים והתאמתן לעסקים; לא ציבורי, ובקשה שקטה נשמרת בלי פרטי-המבקש בתצוגת-העסקים', module: 'parnasa' },
+  { key: 'parnasa.board', label: 'לוח קהילה', desc: 'לשונית "📌 לוח קהילה" — מניינים, שיעורים, הודעות, שמחות ומספרי-חירום', module: 'parnasa' },
+  { key: 'parnasa.zmanim', label: 'זמני היום', desc: 'זמנים (זריחה/שקיעה/הדלקת-נרות/צאת) לפי אזור-הזמן של ישראל, ומניינים יחסיים לזמנים — בלוח הקהילה ובחוברת', module: 'parnasa' },
+  { key: 'parnasa.booklet', label: 'חוברת להדפסה', desc: 'לשונית "📖 חוברת" — חוברת A5 להדפסה/PDF: אינדקס לפי תחום, קוד-חיוג בן 3 ספרות לכל עסק, דף מספרי-חירום וזמני השבוע', module: 'parnasa' },
+  { key: 'parnasa.ads', label: 'משבצות פרסום וחסות', desc: 'לשונית "📣 פרסומות" — משבצות פרסום/חסות בחוברת ובלוח; תשלום בקישור-סליקה בלבד, אפס קבלות', module: 'parnasa' },
+  { key: 'parnasa.export', label: 'תדפיס וייצוא', desc: 'ייצוא CSV של המדריך ותדפיסים — דרך שער הוצאת-המידע', module: 'parnasa' },
+  { key: 'parnasa.approve', label: 'אישורי גבאי 🔓', desc: 'אישור/דחייה של עסקים, בקשות ומודעות לפני פרסום (עריכת עסק מאושר מחזירה אותו לממתין); מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'parnasa' },
+  { key: 'parnasa.delete', label: 'מחיקה בפרנסה׳לע 🔓', desc: 'כפתורי 🗑 (שתי-לחיצות) על עסק/בקשה/מודעה/פרסומת — פעולות-הרסניות; מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'parnasa' },
+
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },
   { key: 'settings.teachers', label: 'ניהול מורים', desc: 'הוספה ועריכה של מורים בהגדרות', module: 'settings' },
@@ -453,6 +469,14 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'entity.shopCriterion', label: 'קריטריון זכאות', fallback: 'קריטריון' },
   { key: 'entity.shopAssignment', label: 'שיוך מוצר', fallback: 'שיוך' },
   { key: 'entity.shopItem', label: 'פריט קטלוג', fallback: 'פריט' },
+  // ——— פרנסה׳לע (מודול opt-in) ———
+  { key: 'nav.parnasa', label: 'שם עמודת פרנסה׳לע', fallback: 'פרנסה׳לע' },
+  { key: 'entity.prListing', label: 'עסק / בעל-מקצוע במדריך', fallback: 'עסק' },
+  { key: 'entity.prListings', label: 'עסקים (רבים)', fallback: 'עסקים' },
+  { key: 'entity.prRequest', label: 'בקשת תושב ("מה צריך?")', fallback: 'בקשה' },
+  { key: 'entity.prPost', label: 'מודעה בלוח הקהילה', fallback: 'מודעה' },
+  { key: 'entity.prAd', label: 'משבצת פרסום / חסות', fallback: 'פרסומת' },
+  { key: 'entity.prGabbai', label: 'גבאי / מאשר הפרסומים', fallback: 'גבאי' },
 
   // ——— ישויות ———
   { key: 'entity.family', label: 'משפחה (יחיד)', fallback: 'משפחה' },

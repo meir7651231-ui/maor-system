@@ -33,6 +33,8 @@ const SKIP_WORDS = new Set(['חדש', 'בהכנה', 'רישום', 'מסירה', 
 const EXCEPTIONS = ['משפחה / שם משפחה', 'שם משפחה', 'חוגג', 'משפחתי', 'תמורה', 'אמורה', 'מרכז', 'תלמידה שסיימה'];
 
 const NAV_KEYS = ['families', 'courses', 'calendar', 'diary', 'supporters', 'tzedaka', 'shop', 'shop7', 'reports'];
+/** מודולי opt-in (OPT_IN_MODULES ב-types/config — חסר = כבוי, 12.10): דלוקים רק ב-true מפורש בחבילה. */
+const OPT_IN_NAV_KEYS = ['parnasa'];
 
 const server = createServer((req, res) => {
   let p = join(DIST, decodeURIComponent(req.url.split('?')[0].split('#')[0]));
@@ -103,8 +105,8 @@ for (const pack of DATA.packs) {
   }
 
   // הניווט: אילו מודולים אמורים להופיע
-  const expectedOn = NAV_KEYS.filter((k) => pack.modules[k] !== false);
-  const expectedOff = NAV_KEYS.filter((k) => pack.modules[k] === false);
+  const expectedOn = [...NAV_KEYS.filter((k) => pack.modules[k] !== false), ...OPT_IN_NAV_KEYS.filter((k) => pack.modules[k] === true)];
+  const expectedOff = [...NAV_KEYS.filter((k) => pack.modules[k] === false), ...OPT_IN_NAV_KEYS.filter((k) => pack.modules[k] !== true)];
 
   const navTexts = await page.locator('.side-link, .nav-btn').allInnerTexts();
   const navJoined = navTexts.join(' | ');

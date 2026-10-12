@@ -10,7 +10,7 @@ import { useApp } from '../../store/useApp';
 import { normalizeConfig } from '../../lib/config';
 import { featureEffectiveOn } from '../builder/sections';
 import { FEATURES, TERM_DEFS } from '../../types/features';
-import type { OrgConfig } from '../../types/config';
+import { moduleEnabledIn, type OrgConfig } from '../../types/config';
 import { THEME_LABELS } from '../builder/handoff';
 import { VERTICAL_PACKS, applyVerticalPack } from '../../lib/verticalPacks';
 import { industryLabel, needLabel, sizeLabel } from '../../lib/signupWizard';
@@ -445,8 +445,8 @@ export function PlatformPanel(props: { onClose: () => void }) {
                 {ALL_MODULES.map((m) => (
                   <Chip
                     key={m}
-                    on={cfg.modules[m] !== false}
-                    onClick={() => updateCfg({ ...cfg, modules: { ...cfg.modules, [m]: cfg.modules[m] === false } })}
+                    on={moduleEnabledIn(cfg.modules, m)}
+                    onClick={() => updateCfg({ ...cfg, modules: { ...cfg.modules, [m]: !moduleEnabledIn(cfg.modules, m) } })}
                   >
                     {MODULE_LABELS[m]}
                   </Chip>

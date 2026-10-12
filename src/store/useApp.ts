@@ -55,7 +55,7 @@ import { advanceStatus } from '../components/shop7/lib';
 import { roomClashError } from '../components/calendar/calLib';
 import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManager, memberNamesOf, parseJoinFullCode } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
-import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
+import { DEFAULT_CONFIG, moduleEnabledIn, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isAdminAuthority, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, supEnforceOn, termOf, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
@@ -105,6 +105,7 @@ export type View =
   | 'tzedaka'
   | 'shop'
   | 'shop7'
+  | 'parnasa'
   | 'reports'
   | 'reenroll'
   | 'settings';
@@ -1097,8 +1098,9 @@ export const useApp = create<AppState>()((set, get) => {
             const eff = effectiveConfigFor(user.email, orgDoc, merged);
             set({ config: eff });
             // swarm-b (N6): מודול שכובה חי אצל הבעלים בעוד המשתמש עומד עליו ⇒ הביתה (בית/הגדרות לא נוגעים).
+            // דרך העוזר היחיד (12.10): גם מודול opt-in שאינו דלוק במפורש (פרנסה׳לע) מקפיץ הביתה.
             const v = get().view as string;
-            if (v !== 'home' && v !== 'settings' && (eff.modules as Record<string, boolean | undefined>)?.[v] === false) set({ view: 'home' });
+            if (v !== 'home' && v !== 'settings' && !moduleEnabledIn(eff.modules, v)) set({ view: 'home' });
             // מסלול-B: מתג-הפיצול חי — הדלקה/כיבוי אצל הבעלים ⇒ שכבת-הסנכרון מיד,
             // בלי רענון (הצד-הדוחף/המושך שואל את donationSplitActive). שורש נשאר כבוי.
             mod.setDonationSplit(donationSplitOn(eff));
@@ -1631,8 +1633,9 @@ export const useApp = create<AppState>()((set, get) => {
     setConfig(cfg) {
       set({ config: cfg });
       // swarm-b (N6): כיבוי-מודול באשף בעוד המסך שלו פתוח ⇒ הביתה (בית/הגדרות לא נוגעים).
+      // דרך העוזר היחיד (12.10): גם מודול opt-in שאינו דלוק במפורש (פרנסה׳לע) מקפיץ הביתה.
       const v = get().view as string;
-      if (v !== 'home' && v !== 'settings' && (cfg.modules as Record<string, boolean | undefined>)?.[v] === false) set({ view: 'home' });
+      if (v !== 'home' && v !== 'settings' && !moduleEnabledIn(cfg.modules, v)) set({ view: 'home' });
       saveConfigOverride(cfg);
       const { db } = get();
       applyTheme(db.ui.theme ?? cfg.theme, db.ui.accent ?? cfg.accent, cfg.motion);

@@ -30,7 +30,7 @@ import { agoLabel, goalProgress, quietWorkers, teamCsvRows, teamIntel, teamSumma
 import { openTasksFor, overdueContactTaskDrafts, PRI_LABELS, taskStatsFor } from '../../lib/worktasks';
 import { downloadCsv } from '../../lib/csvx';
 import { allDonationPurposes } from '../supporters/lib';
-import type { ModuleKey, OrgConfig } from '../../types/config';
+import { moduleRestrictedIn, type ModuleKey, type OrgConfig } from '../../types/config';
 import type { EmployeeOverride, OrgCloudDoc, OrgJoinRequestDoc } from '../../lib/cloudConfig';
 
 type CloudMod = typeof import('../../store/cloudSync');
@@ -174,7 +174,7 @@ export function ManagerPanel(props: { onClose: () => void }) {
   async function toggleModuleFor(email: string, m: ModuleKey) {
     if (!mod || !org) return;
     const ov = overrideOf(email, org);
-    const curOff = ov.modules?.[m] === false;
+    const curOff = moduleRestrictedIn(ov.modules, m); // כרטיס-עובד = הגבלה-בלבד (חסר = יורש)
     const nextModules = { ...ov.modules, [m]: curOff ? true : false }; // curOff→הדלקה · דלוק→כיבוי
     const { memberConfigs } = setEmployeeOverride(org, email, { ...ov, modules: nextModules });
     await mod.writeOrgCloudDoc(slug, { memberConfigs });
@@ -371,7 +371,7 @@ export function ManagerPanel(props: { onClose: () => void }) {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                       {scope.length === 0 && <span style={{ fontSize: 12 }}>לא הודלקו מודולים לארגון.</span>}
                       {scope.map((m) => (
-                        <Chip key={m} on={ov.modules?.[m] !== false} onClick={() => void toggleModuleFor(email, m)}>
+                        <Chip key={m} on={!moduleRestrictedIn(ov.modules, m)} onClick={() => void toggleModuleFor(email, m)}>
                           {termOf(config, 'nav.' + m, MODULE_LABELS[m])}
                         </Chip>
                       ))}

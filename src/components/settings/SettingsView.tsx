@@ -11,6 +11,7 @@ import { useApp } from '../../store/useApp';
 import { whoLabel } from '../platform/lib';
 import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, integrationOn, isAdminAuthority, isSuperAdmin, termOf, moduleOn } from '../../lib/config';
+import { OPT_IN_MODULES } from '../../types/config';
 import { readAiKey, writeAiKey } from '../../lib/ai';
 import { receiptVerifyCode } from '../../lib/receipt';
 import { Btn, Chip, Field, FormError, PageHead, TextInput } from '../ui';
@@ -455,6 +456,8 @@ function FlagDiagnostics() {
             // 6.10 "נדלק ונכבה לבד": מי כתב את הקונפיג לאחרונה, מתי, מאיזה משטח ואילו מפתחות
             'config last write: ' + (cfgMeta ? cfgMeta.at.replace('T', ' ').slice(0, 16) + ' · ' + (cfgMeta.by ?? '?') + ' · ' + cfgMeta.via + ' · ' + cfgMeta.keys.join(', ') : '—'),
             'modules off: ' + (offModules.length ? offModules.join(', ') : '—'),
+            // 12.10: מודולי opt-in (חסר = כבוי) — "כבוי" שלהם אינו false מפורש, אז אומרים זאת על המסך
+            'opt-in modules (missing=off): ' + OPT_IN_MODULES.map((m) => m + '=' + (moduleOn(config, m) ? 'ON' : 'off')).join(', '),
             'features off (' + offFeatures.length + '): ' + (offFeatures.length ? offFeatures.join(', ') : '—'),
           ].join('\n')}
         </pre>

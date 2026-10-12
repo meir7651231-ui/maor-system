@@ -7,7 +7,8 @@
 import { describe, expect, it } from 'vitest';
 import { VERTICAL_PACKS, applyVerticalPack, COMMERCIAL_OFF } from '../verticalPacks';
 import { TERM_DEFS } from '../../types/features';
-import { DEFAULT_CONFIG, MOTION_KEYS, type ModuleKey, type OrgConfig } from '../../types/config';
+import { DEFAULT_CONFIG, MOTION_KEYS, isOptInModule, type ModuleKey, type OrgConfig } from '../../types/config';
+import { ALL_MODULES as REAL_ALL_MODULES } from '../../components/platform/lib';
 import packSrc from '../verticalPacks.ts?raw';
 import appSrc from '../../App.tsx?raw';
 
@@ -109,7 +110,10 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
     // חוזה הדגלים "חסר=דלוק" הפך מודול חדש לדלוק-בשקט בכל ורטיקל. מעתה: כל
     // מודול חייב עמדה — או מפתח מפורש ב-modules, או רישום כאן כ-ON-מכוון.
     // ⇒ המודול הבא שיתווסף ל-ModuleKey ישבור את הבדיקה עד שכל ורטיקל יכריע.
-    const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7'];
+    // 12.10 (פרנסה׳לע): הרשימה הקשיחה לא נשברה מעצמה כשנוסף מודול (פער שתועד במפת-השילוב) —
+    // מעתה היא ננעלת מול ALL_MODULES האמיתי, כך שמודול חדש בלי הכרעה ⇒ אדום מיידי.
+    const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7', 'parnasa'];
+    expect([...ALL_MODULES].sort(), 'מודול נוסף ל-ALL_MODULES — הכריעו עמדה לכל ורטיקל והוסיפו כאן').toEqual([...REAL_ALL_MODULES].sort());
     const INTENTIONAL_ON: Record<string, ModuleKey[]> = {
       chesed: ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7'], // הלקוח החי — הכול דלוק במכוון
       clinic: ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports'],
@@ -129,7 +133,9 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
       const on = INTENTIONAL_ON[p.id];
       expect(on, `חבילה ${p.id} — חסרה רשומת INTENTIONAL_ON`).toBeDefined();
       for (const m of ALL_MODULES) {
-        const stated = m in p.modules || on.includes(m);
+        // מודול opt-in (OPT_IN_MODULES — חסר = כבוי): העמדה מוצהרת בחוזה עצמו — כבוי בכל
+        // pack שלא כותב true במפורש; לכן "מוצהר" כברירת-מחדל (אין דליפה-שקטה אפשרית).
+        const stated = m in p.modules || on.includes(m) || isOptInModule(m);
         expect(stated, `חבילה ${p.id} — למודול ${m} אין עמדה (לא ב-modules ולא ב-INTENTIONAL_ON)`).toBe(true);
       }
     }

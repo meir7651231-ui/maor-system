@@ -4,7 +4,7 @@
  * קיבוץ-משנה אוטומטי לפי קידומת-המפתח, וחיפוש-כולל (יכולות+מונחים+הרחבות).
  * אין כאן React/store — הכול נבדק ביחידה.
  */
-import type { OrgConfig } from '../../types/config';
+import { isOptInModule, moduleEnabledIn, OPT_IN_MODULES, type OrgConfig } from '../../types/config';
 import type { FeatureDef, TermDef } from '../../types/features';
 import { featureEffectiveOn } from './sections';
 
@@ -15,8 +15,10 @@ export interface WizardDiff {
   features: string[];
   /** מפתחות-מונח עם דריסה בפועל (שונה מברירת-המחדל). */
   terms: string[];
-  /** מודולים כבויים. */
+  /** מודולים כבויים (false מפורש; מודול opt-in — false הוא ברירת-המחדל ⇒ אינו שינוי). */
   modulesOff: string[];
+  /** מודולי opt-in שהודלקו (true מפורש — חסר = כבוי ⇒ ההדלקה היא השינוי). */
+  modulesOn: string[];
   /** הרחבות דלוקות (חסר=כבוי ⇒ enabled=true הוא תמיד שינוי). */
   integrationsOn: string[];
 }
@@ -35,17 +37,18 @@ export function wizardDiff(cfg: OrgConfig, features: FeatureDef[], terms: TermDe
     })
     .map((t) => t.key);
   const modulesOff = Object.entries(cfg.modules ?? {})
-    .filter(([, v]) => v === false)
+    .filter(([k, v]) => v === false && !isOptInModule(k))
     .map(([k]) => k);
+  const modulesOn = OPT_IN_MODULES.filter((m) => moduleEnabledIn(cfg.modules, m));
   const integrationsOn = Object.entries(cfg.integrations ?? {})
     .filter(([, v]) => v?.enabled === true)
     .map(([k]) => k);
-  return { features: featChanged, terms: termChanged, modulesOff, integrationsOn };
+  return { features: featChanged, terms: termChanged, modulesOff, modulesOn, integrationsOn };
 }
 
 /** סך-השינויים — למונה שבכותרת. */
 export function diffCount(d: WizardDiff): number {
-  return d.features.length + d.terms.length + d.modulesOff.length + d.integrationsOn.length;
+  return d.features.length + d.terms.length + d.modulesOff.length + d.modulesOn.length + d.integrationsOn.length;
 }
 
 /* ── סינון-שורות: הכול / דלוקות / כבויות / opt-in / שונו ── */
