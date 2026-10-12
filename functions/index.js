@@ -20,6 +20,7 @@ const { onRequest } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
+const { getAuth } = require('firebase-admin/auth');
 const { getStorage } = require('firebase-admin/storage');
 const crypto = require('crypto');
 const { mapPaymentCallback, sanitizeDedupKey } = require('./paymentMap');
@@ -212,21 +213,49 @@ exports.smsOutbox = onSchedule({ schedule: 'every 1 minutes', secrets: ['SMS_API
  * 📞 yemotProxy — פרוקסי לימות-המשיח (אין CORS אצלם ⇒ הדפדפן לא יכול ישירות).
  * האפליקציה קוראת עם action+params; הפונקציה מוסיפה את הטוקן ומעבירה.
  */
+/** 🔒 מי רשאי להפעיל את ימות-המשיח דרך הפרוקסי (12.10.2026): מייל-על, או מנהל/חבר של
+ * platformOrgs/{org}. בלי ?org (הטוקן הגלובלי של השורש) ⇒ מיילי-על בלבד. אותו כלל כמו
+ * isOrgAdmin ב-solaPull/nedarimPull. לפני התיקון הפונקציה לא בדקה זהות בכלל (CORS ‏*),
+ * כך שכל אחד יכל להפעיל פעולות-ימות עם הטוקן של הארגון. */
+async function yemotCallerOk(req, org) {
+  const bearer = /^Bearer (.+)$/.exec(req.get('authorization') || '');
+  if (!bearer) return false;
+  try {
+    const tok = await getAuth().verifyIdToken(bearer[1]);
+    const email = String(tok.email || '').toLowerCase();
+    if (!email) return false;
+    const supers = new Set(['meir7651231@gmail.com',
+      ...String(process.env.SUPER_ADMIN_EMAILS || '').toLowerCase().split(/[,\s]+/).filter(Boolean)]);
+    if (supers.has(email)) return true;
+    if (!org) return false;
+    const d = await getFirestore().doc('platformOrgs/' + org).get();
+    const data = d.exists ? (d.data() || {}) : {};
+    if (String(data.manager || '').toLowerCase() === email) return true;
+    const members = Array.isArray(data.members) ? data.members.map((x) => String(x).toLowerCase()) : [];
+    return members.includes(email);
+  } catch {
+    return false;
+  }
+}
+
 exports.yemotProxy = onRequest({ secrets: ['YEMOT_TOKEN'] }, async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Headers', 'authorization, content-type');
   if (req.method === 'OPTIONS') return res.status(204).send('');
   const action = String(req.query.action ?? '');
   if (!/^[A-Za-z]{2,40}$/.test(action)) return res.status(400).send('bad action');
   // ‏9.8: ‏?org=slug ⇒ הטוקן של הארגון מהכספת; בלעדיו — הגלובלי (השורש)
   const org = String(req.query.org ?? '');
   if (org && !/^[a-z0-9-]{1,40}$/.test(org)) return res.status(400).send('bad org');
+  // 🔒 12.10: אימות-קורא לפני כל שימוש בטוקן (Bearer ID-token של מייל-על/מנהל/חבר)
+  if (!(await yemotCallerOk(req, org))) return res.status(403).send('forbidden');
   const sec = org ? await orgSecretsOf(getFirestore(), org) : {};
   const token = sec.yemotToken || process.env.YEMOT_TOKEN || '';
   if (!token) return res.status(503).send('no token');
   const url = new URL('https://www.call2all.co.il/ym/api/' + action);
   url.searchParams.set('token', token);
   for (const [k, v] of Object.entries(req.query)) {
-    if (k !== 'action' && k !== 'org') url.searchParams.set(k, String(v));
+    if (k !== 'action' && k !== 'org' && k !== 'token') url.searchParams.set(k, String(v));
   }
   const r = await fetch(url.toString());
   res.status(r.status).send(await r.text());

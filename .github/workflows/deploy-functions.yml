@@ -119,7 +119,9 @@ jobs:
         run: |
           for fn in backupNightly remindersNightly mailOutbox solaPull; do
             echo "═══ $fn ═══"
-            npx firebase-tools@13 functions:log --project maor-system --only "$fn" -n 25 --non-interactive || true
+            # 🔒 12.10: רק זמן · חומרה · שם-פונקציה — תוכן-ההודעות עלול לכלול פרטים אישיים
+            # והריפו ציבורי. את התוכן המלא רואים בקונסולת-Firebase.
+            npx firebase-tools@13 functions:log --project maor-system --only "$fn" -n 25 --non-interactive 2>/dev/null | awk '{print $1, $2, $3}' || true
           done
 
       # 🔎 הצצת-סולה (23.8, "אתה יכול לראות מה הוא מושך") — קורא ל-solaPull?peek=1
@@ -132,17 +134,30 @@ jobs:
         run: |
           SEC=$(npx firebase-tools@13 functions:secrets:access PAY_SECRET --project maor-system 2>/dev/null | tail -1)
           echo "::add-mask::$SEC"
+          # 🔒 12.10: הריפו ציבורי ⇒ יומני-ההרצה פתוחים לכולם. לא מדפיסים גוף-תשובה
+          # (שמות/טלפונים/מיילים של תורמים) — רק את המבנה: שמות-שדות, מספרים ואורכי-רשימות.
+          shape() { python3 -c 'import json,sys
+          raw=sys.stdin.read()
+          try: d=json.loads(raw)
+          except Exception: print("  (לא JSON, %d בתים — הגוף לא מודפס)" % len(raw)); sys.exit()
+          def sh(v):
+              if isinstance(v,dict): return "{" + ", ".join(sorted(v)) + "}"
+              if isinstance(v,list): return "list[%d]" % len(v) + (" of " + sh(v[0]) if v else "")
+              if isinstance(v,(bool,int,float)) or v is None: return repr(v)
+              return "str"
+          for k in (sorted(d) if isinstance(d,dict) else []): print("  " + k + " = " + sh(d[k]))
+          if not isinstance(d,dict): print("  " + sh(d))'; }
           echo "═══ solaPull peek (org=root, נפילת-כספת דינמית) ═══"
-          curl -s "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=root&peek=1&secret=$SEC" | head -c 6000
+          curl -s "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=root&peek=1&secret=$SEC" | shape
           echo ""
           # 🧮 בדיקת-התאמה (23.8, "תבדוק אם נמשך הכל והמספרים תואמים") — קריאה-בלבד:
           # הדוח המלא מהשער מול התור של הארגון-החי (mavr-hchsd — שם יושבות המשיכות).
           echo "═══ solaPull audit (org=mavr-hchsd) ═══"
-          curl -s --max-time 240 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&audit=1&secret=$SEC" | head -c 6000
+          curl -s --max-time 240 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&audit=1&secret=$SEC" | shape
           echo ""
           # 🔎 גישוש-לקוחות (peek=2): אילו נקודות-קצה מחזירות טלפון/אימייל של תורם
           echo "═══ solaPull customer-probe (peek=2) ═══"
-          curl -s --max-time 120 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=root&peek=2&secret=$SEC" | head -c 6000
+          curl -s --max-time 120 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=root&peek=2&secret=$SEC" | shape
           echo ""
 
       # 🔄 משיכת-סולה מהקונסולה (23.8): reset-משיכה מלאה לארגון-החי — כל השורות
@@ -155,11 +170,24 @@ jobs:
         run: |
           SEC=$(npx firebase-tools@13 functions:secrets:access PAY_SECRET --project maor-system 2>/dev/null | tail -1)
           echo "::add-mask::$SEC"
+          # 🔒 12.10: הריפו ציבורי ⇒ יומני-ההרצה פתוחים לכולם. לא מדפיסים גוף-תשובה
+          # (שמות/טלפונים/מיילים של תורמים) — רק את המבנה: שמות-שדות, מספרים ואורכי-רשימות.
+          shape() { python3 -c 'import json,sys
+          raw=sys.stdin.read()
+          try: d=json.loads(raw)
+          except Exception: print("  (לא JSON, %d בתים — הגוף לא מודפס)" % len(raw)); sys.exit()
+          def sh(v):
+              if isinstance(v,dict): return "{" + ", ".join(sorted(v)) + "}"
+              if isinstance(v,list): return "list[%d]" % len(v) + (" of " + sh(v[0]) if v else "")
+              if isinstance(v,(bool,int,float)) or v is None: return repr(v)
+              return "str"
+          for k in (sorted(d) if isinstance(d,dict) else []): print("  " + k + " = " + sh(d[k]))
+          if not isinstance(d,dict): print("  " + sh(d))'; }
           echo "═══ solaPull reset-run (org=mavr-hchsd) ═══"
-          curl -s --max-time 280 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&reset=1&secret=$SEC" | head -c 2000
+          curl -s --max-time 280 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&reset=1&secret=$SEC" | shape
           echo ""
           echo "═══ audit אחרי המשיכה ═══"
-          curl -s --max-time 240 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&audit=1&secret=$SEC" | head -c 6000
+          curl -s --max-time 240 "https://us-central1-maor-system.cloudfunctions.net/solaPull?org=mavr-hchsd&audit=1&secret=$SEC" | shape
           echo ""
 
       # פריסת אינדקסי-Firestore (firestore.indexes.json) — למשל האינדקס
