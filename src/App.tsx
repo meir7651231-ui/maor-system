@@ -483,7 +483,11 @@ export default function App() {
 
   // גיבוי סוף-יום: פעם ביום, אחרי שעת הסיום שנקבעה בפתיחת היום
   // (localStorage 'maor_dayend', ברירת מחדל 17:00), יורד קובץ גיבוי אוטומטית
+  // ⚡ (12.10.2026): הגיבוי רץ ב-requestIdleCallback (timeout 30s) ורק כשהטאב גלוי — המדידה אצל
+  // הלקוח האמיתי: הסריאל של 123MB (מרווח; עכשיו קומפקטי — ראה persist.backupFileContent) קפא
+  // את הממשק 30.9s באמצע עבודה. טאב מוסתר ⇒ הטיק הבא (דקה) ינסה שוב; עדיין פעם ביום.
   useEffect(() => {
+    let pending = false; // תוזמן ל-idle וטרם רץ — לא לתזמן שוב מהטיק הבא
     const tick = setInterval(() => {
       try {
         if (!featureOn(useApp.getState().config, 'core.dayendbackup')) return;
@@ -494,9 +498,22 @@ export default function App() {
         const now = new Date();
         if (now.getHours() * 60 + now.getMinutes() < endMin) return;
         if (!useApp.getState().db.families.length) return;
-        // ביקורת-עומק 2.9: החותמת 'בוצע-היום' רק אחרי שהקובץ ירד בפועל — כשל שקט
-        // (Blob/הורדה חסומה) לא "שורף" את הניסיון היומי; הטיק הבא ינסה שוב.
-        void exportBackup().then((ok) => { if (ok) localStorage.setItem(nsLsKey('maor_autoexp'), today); });
+        if (pending || document.visibilityState !== 'visible') return;
+        pending = true;
+        const run = () => {
+          pending = false;
+          try {
+            if (localStorage.getItem(nsLsKey('maor_autoexp')) === today) return; // ירד בינתיים (ידני)
+            // ביקורת-עומק 2.9: החותמת 'בוצע-היום' רק אחרי שהקובץ ירד בפועל — כשל שקט
+            // (Blob/הורדה חסומה) לא "שורף" את הניסיון היומי; הטיק הבא ינסה שוב.
+            void exportBackup().then((ok) => { if (ok) localStorage.setItem(nsLsKey('maor_autoexp'), today); });
+          } catch {
+            /* localStorage חסום — נדלג */
+          }
+        };
+        const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+        if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(run, { timeout: 30_000 });
+        else window.setTimeout(run, 1000);
       } catch {
         /* localStorage חסום — נדלג */
       }

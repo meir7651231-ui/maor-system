@@ -1108,14 +1108,22 @@ export async function loadSnapshot(key: string): Promise<Db | null> {
   }
 }
 
-/** ייצוא קובץ גיבוי JSON (הורדה בדפדפן). מוצפן אם ההצפנה פעילה. */
-export async function exportBackupFile(db: Db): Promise<void> {
+/**
+ * תוכן קובץ-הגיבוי (טהור-יחסית — בלי DOM): JSON **קומפקטי**. מוצפן אם ההצפנה פעילה.
+ * ⚡ ידע (12.10.2026): עד היום הקובץ היה מרווח (JSON.stringify(doc, null, 1)) — אצל הלקוח
+ * האמיתי זה 123MB במקום 34MB, וגיבוי-סוף-היום האוטומטי הקפיא את הממשק 30.9s באמצע עבודה.
+ * מעכשיו הקובץ קומפקטי (לא "יפה" לעין, אבל אותו JSON בדיוק) — parseBackupFile/decryptBackupFile
+ * מקבלים אותו ללא שינוי (ratchet perf-backup-compact: ייצוא⇒ייבוא שווה-ערך).
+ */
+export async function backupFileContent(db: Db): Promise<string> {
   const doc = { ...db, savedAt: new Date().toISOString() };
   // הצפנה פעילה → הגיבוי יורד מוצפן (שחזור ידרוש סיסמה/מפתח שחזור)
-  const content =
-    dek && envelope
-      ? JSON.stringify((envelope = await reencryptDb(envelope, dek, JSON.stringify(doc))), null, 1)
-      : JSON.stringify(doc, null, 1);
+  return dek && envelope ? JSON.stringify((envelope = await reencryptDb(envelope, dek, JSON.stringify(doc)))) : JSON.stringify(doc);
+}
+
+/** ייצוא קובץ גיבוי JSON (הורדה בדפדפן). מוצפן אם ההצפנה פעילה. */
+export async function exportBackupFile(db: Db): Promise<void> {
+  const content = await backupFileContent(db);
   const blob = new Blob([content], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
