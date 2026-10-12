@@ -112,7 +112,8 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
     // ⇒ המודול הבא שיתווסף ל-ModuleKey ישבור את הבדיקה עד שכל ורטיקל יכריע.
     // 12.10 (פרנסה׳לע): הרשימה הקשיחה לא נשברה מעצמה כשנוסף מודול (פער שתועד במפת-השילוב) —
     // מעתה היא ננעלת מול ALL_MODULES האמיתי, כך שמודול חדש בלי הכרעה ⇒ אדום מיידי.
-    const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7', 'parnasa'];
+    // 12.10 (BUILD-ORDER-HOSTING): נוסף hosting — opt-in (חסר = כבוי), כבוי בכל pack ⇒ "מוצהר" בחוזה עצמו
+    const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7', 'parnasa', 'hosting'];
     expect([...ALL_MODULES].sort(), 'מודול נוסף ל-ALL_MODULES — הכריעו עמדה לכל ורטיקל והוסיפו כאן').toEqual([...REAL_ALL_MODULES].sort());
     const INTENTIONAL_ON: Record<string, ModuleKey[]> = {
       chesed: ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7'], // הלקוח החי — הכול דלוק במכוון

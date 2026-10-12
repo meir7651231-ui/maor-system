@@ -1,6 +1,6 @@
 /**
  * ratchet — לוח הבקרה של הבעלים (CLOUD2 ענן 4).
- * ‏slugify טהור (עברית→לטינית, ייחודיות); קונפיג-הלידה all-off — כל 10
+ * ‏slugify טהור (עברית→לטינית, ייחודיות); קונפיג-הלידה all-off — כל 11
  * המודולים false **מפורש** (לא "חסר=דלוק"); הגנות-מקור: הפאנל מאחורי
  * מייל-על (#platform, דפוס #builder), כל מתג נכתב מיד לענן.
  */
@@ -51,11 +51,13 @@ describe('☁️ ratchet — ענן 4: לוח הבקרה', () => {
     expect(isValidSlug('ab')).toBe(true);
   });
 
-  it('קונפיג-הלידה all-off: כל 10 המודולים false מפורש — מסך כמעט ריק ללקוח חדש', () => {
+  it('קונפיג-הלידה all-off: כל 11 המודולים false מפורש — מסך כמעט ריק ללקוח חדש', () => {
     const c = allOffConfig('test-demo', 'עמותת בדיקה');
     // 12.10: ‏9⇒10 — נוסף parnasa (פרנסה׳לע, opt-in: כבוי ממילא כשחסר; ה-false המפורש עקבי ומגן)
-    expect(ALL_MODULES).toHaveLength(10);
+    // 12.10: ‏10⇒11 — נוסף hosting (אירוח משפחתי, opt-in כמו parnasa: כבוי ממילא כשחסר)
+    expect(ALL_MODULES).toHaveLength(11);
     expect(ALL_MODULES).toContain('parnasa');
+    expect(ALL_MODULES).toContain('hosting');
     for (const m of ALL_MODULES) expect(c.modules[m], m).toBe(false);
     expect(c.slug).toBe('test-demo');
     expect(c.orgName).toBe('עמותת בדיקה');

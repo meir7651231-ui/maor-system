@@ -73,7 +73,7 @@ describe('⚡ bundle-light — Firebase מחוץ לבנדל הראשי', () => {
     const app = readFileSync('src/App.tsx', 'utf8');
     // כל מסכי-המודולים נטענים lazy דרך VIEW_LOADERS (הבית נשאר סטטי — first paint)
     expect(app).toContain('const VIEW_LOADERS = {');
-    for (const v of ['families', 'courses', 'calendar', 'diary', 'supporters', 'tzedaka', 'shop', 'shop7', 'parnasa', 'reports', 'reenroll', 'settings']) {
+    for (const v of ['families', 'courses', 'calendar', 'diary', 'supporters', 'tzedaka', 'shop', 'shop7', 'parnasa', 'hosting', 'reports', 'reenroll', 'settings']) {
       expect(app, 'loader חסר למסך ' + v).toMatch(new RegExp('\\b' + v + ": \\(\\) => import\\('"));
     }
     expect(app).toContain("import { HomeView } from './components/home/HomeView'");

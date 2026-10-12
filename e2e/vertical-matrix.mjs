@@ -34,7 +34,7 @@ const EXCEPTIONS = ['משפחה / שם משפחה', 'שם משפחה', 'חוגג
 
 const NAV_KEYS = ['families', 'courses', 'calendar', 'diary', 'supporters', 'tzedaka', 'shop', 'shop7', 'reports'];
 /** מודולי opt-in (OPT_IN_MODULES ב-types/config — חסר = כבוי, 12.10): דלוקים רק ב-true מפורש בחבילה. */
-const OPT_IN_NAV_KEYS = ['parnasa'];
+const OPT_IN_NAV_KEYS = ['parnasa', 'hosting'];
 
 const server = createServer((req, res) => {
   let p = join(DIST, decodeURIComponent(req.url.split('?')[0].split('#')[0]));

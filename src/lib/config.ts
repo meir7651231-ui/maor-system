@@ -33,6 +33,8 @@ const NAV_MODULE_KEYS: readonly ModuleKey[] = [
   'shop7',
   // opt-in (12.10): חסר = כבוי ⇒ featureOn('parnasa.*') כבוי עד הדלקה מפורשת של המודול
   'parnasa',
+  // opt-in (12.10, BUILD-ORDER-HOSTING): אותו שרשור ל-hosting.*
+  'hosting',
 ];
 
 /**

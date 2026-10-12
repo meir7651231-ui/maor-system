@@ -32,6 +32,7 @@ export interface FeatureDef {
     | 'shop'
     | 'shop7'
     | 'parnasa'
+    | 'hosting'
     | 'home'
     | 'settings'
     | 'core'
@@ -268,6 +269,20 @@ export const FEATURES: FeatureDef[] = [
   { key: 'parnasa.approve', label: 'אישורי גבאי 🔓', desc: 'אישור/דחייה של עסקים, בקשות ומודעות לפני פרסום (עריכת עסק מאושר מחזירה אותו לממתין); מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'parnasa' },
   { key: 'parnasa.delete', label: 'מחיקה בפרנסה׳לע 🔓', desc: 'כפתורי 🗑 (שתי-לחיצות) על עסק/בקשה/מודעה/פרסומת — פעולות-הרסניות; מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'parnasa' },
 
+  // ——— אירוח משפחתי (hosting — BUILD-ORDER-HOSTING-2026-10-12) ———
+  // המודול opt-in (OPT_IN_MODULES: חסר = כבוי) ⇒ featureOn משרשר כיבוי לכל hosting.* עד הדלקה
+  // מפורשת. בתוך מודול דלוק — החוזה הרגיל (חסר = פעיל). מטבח/שבת/תחזוקה = שלושת "מודולי-הצוות" של
+  // האפליקציה המקורית. 🔓 = מנהל/בעלים תמיד, לעובד/ת דרך canGrantedAction (GRANTABLE_STAFF_FEATURES).
+  { key: 'hosting.calendar', label: 'יומן תפוסה', desc: 'לשונית "📅 יומן" — גריד יחידות×ימים עם פס לכל הזמנה, שבת/יו״ט מהלוח העברי, מעבר עברי↔לועזי, לחיצה על תא ⇒ הזמנה חדשה', module: 'hosting' },
+  { key: 'hosting.housekeeping', label: 'ניקיון ומשק בית', desc: 'לשונית "🧹 ניקיון" — משימות ניקיון (צ׳ק-אאוט פותח משימה אוטומטית), סיום ⇒ היחידה זמינה', module: 'hosting' },
+  { key: 'hosting.kitchen', label: 'צוות מטבח', desc: 'לשונית "🍳 מטבח" — הזמנות-מטבח (לוח KDS), תפריט ומתכונים, צוות, רשימת קניות, מערך שולחן, תוכנית הושבה ויומן טמפרטורה; ארוחה משויכת מחויבת בתיק-השהייה', module: 'hosting' },
+  { key: 'hosting.shabbat', label: 'צוות שבת וכשרות', desc: 'לשונית "🕯️ שבת" — מצב-שבת (באנר בכל מסך), זמנים, מדיניות כשרות וחבילות שבת להזמנות', module: 'hosting' },
+  { key: 'hosting.maint', label: 'צוות תחזוקה', desc: 'לשונית "🔧 תחזוקה" — קריאות לפי עדיפות (P0/P1 חוסמות יחידה), ציוד ותחזוקה מונעת', module: 'hosting' },
+  { key: 'hosting.reports', label: 'מרכז הדוחות', desc: 'לשונית "📈 דוחות" — הכנסות · תפוסה · אורחים · מטבח · גבייה · סיכום מנהלים, לפי טווח-תאריכים', module: 'hosting' },
+  { key: 'hosting.export', label: 'ייצוא, הדפסה וגיבוי', desc: 'הדפסה/PDF, העתקה, CSV, שליחה ו-HTML של הדוחות + גיבוי-המודול (JSON) — דרך שער הוצאת-המידע', module: 'hosting' },
+  { key: 'hosting.delete', label: 'מחיקה באירוח 🔓', desc: 'מחיקה לצמיתות של הזמנה/יחידה/אורח/ארוחה/מנה/איש-צוות ואיפוס נתוני-המודול — מנהל/בעלים תמיד, לעובד/ת כבוי כברירת-מחדל (המנהל מדליק פר-עובד)', module: 'hosting' },
+  { key: 'hosting.manage', label: 'הגדרות האירוח 🔓', desc: 'לשונית "⚙️ הגדרות" — שם-העסק, שעות צ׳ק-אין/אאוט, דמי-ניקיון, מע״מ, ימי-הזמנת-חומרים, "משפחה מתארחת" ושחזור מקובץ — מנהל/בעלים תמיד, לעובד/ת בהדלקה פר-עובד', module: 'hosting' },
+
   // ——— הגדרות ———
   { key: 'settings.rooms', label: 'ניהול חדרים', desc: 'הוספה ועריכה של חדרים בהגדרות', module: 'settings' },
   { key: 'settings.teachers', label: 'ניהול מורים', desc: 'הוספה ועריכה של מורים בהגדרות', module: 'settings' },
@@ -478,6 +493,14 @@ export const TERM_DEFS: TermDef[] = [
   { key: 'entity.prPost', label: 'מודעה בלוח הקהילה', fallback: 'מודעה' },
   { key: 'entity.prAd', label: 'משבצת פרסום / חסות', fallback: 'פרסומת' },
   { key: 'entity.prGabbai', label: 'גבאי / מאשר הפרסומים', fallback: 'גבאי' },
+  // ——— אירוח משפחתי (מודול opt-in) ———
+  { key: 'nav.hosting', label: 'שם עמודת האירוח', fallback: 'אירוח משפחתי' },
+  { key: 'entity.hostUnit', label: 'יחידת אירוח (יחיד)', fallback: 'יחידה' },
+  { key: 'entity.hostUnits', label: 'יחידות אירוח (רבים)', fallback: 'יחידות' },
+  { key: 'entity.hostGuest', label: 'אורח / משפחה מתארחת (יחיד)', fallback: 'אורח' },
+  { key: 'entity.hostGuests', label: 'אורחים (רבים)', fallback: 'אורחים' },
+  { key: 'entity.hostBooking', label: 'הזמנת אירוח (יחיד)', fallback: 'הזמנה' },
+  { key: 'entity.hostBookings', label: 'הזמנות אירוח (רבים)', fallback: 'הזמנות' },
 
   // ——— ישויות ———
   { key: 'entity.family', label: 'משפחה (יחיד)', fallback: 'משפחה' },

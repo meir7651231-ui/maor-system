@@ -23,6 +23,8 @@ describe('🔓 ratchet — הדלקה-פר-עובד (grantable) מנתחית', (
       'courses.bulkadmin',
       'courses.delete',
       'families.delete',
+      'hosting.delete', // 12.10 אירוח משפחתי: מחיקה-לצמיתות/איפוס-המודול — מנהל תמיד, לעובד/ת בהדלקה
+      'hosting.manage', // 12.10 אירוח משפחתי: הגדרות-המודול + שחזור
       'parnasa.approve', // 12.10 פרנסה׳לע: אישורי-גבאי — מנהל תמיד, לעובד/ת בהדלקה פר-עובד
       'parnasa.delete',
       'settings.teachers.delete',
@@ -45,6 +47,8 @@ describe('🔓 ratchet — הדלקה-פר-עובד (grantable) מנתחית', (
     expect(isGrantableFeature('courses.bulkadmin')).toBe(true);
     expect(isGrantableFeature('parnasa.approve')).toBe(true);
     expect(isGrantableFeature('parnasa.delete')).toBe(true);
+    expect(isGrantableFeature('hosting.delete')).toBe(true);
+    expect(isGrantableFeature('hosting.manage')).toBe(true);
     expect(isGrantableFeature('supporters.cockpit')).toBe(false);
   });
 

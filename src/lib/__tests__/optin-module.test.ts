@@ -17,6 +17,9 @@
  *
  * בדיקת-מוטציה (בוצעה 12.10): moduleEnabledIn ⇒ `v !== false` לכל מפתח (חסר = פעיל) ⇒ (א)+(ב)
  * אדומים; החזרת הקריאה הגולמית לניווט ב-App ⇒ (ד) אדום; שחזור ⇒ ירוק.
+ *
+ * 12.10 (BUILD-ORDER-HOSTING): המודול השני באותו חוזה — hosting ("אירוח משפחתי"). הבלוק 🏡 בסוף
+ * מריץ את אותן (א)/(ב) על hosting, את שרשרת-הרישום שלו, ואת הבידוד ההדדי (הדלקת אחד לא מדליקה את השני).
  */
 import { describe, expect, it, vi } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -50,6 +53,7 @@ import { useApp } from '../../store/useApp';
 import type { OrgCloudDoc } from '../cloudConfig';
 import appSrc from '../../App.tsx?raw';
 import stubSrc from '../../components/parnasa/ParnasaView.tsx?raw';
+import hostingViewSrc from '../../components/hosting/HostingView.tsx?raw';
 import configLibSrc from '../config.ts?raw';
 
 /* ───────────── קונפיגים אמיתיים (כמו שהאפליקציה טוענת — דרך normalizeConfig) ───────────── */
@@ -92,9 +96,10 @@ const quoteKeys = (cfg: OrgConfig): string[] => {
 };
 
 describe('🔒 מודול opt-in — העוזר היחיד moduleEnabledIn', () => {
-  it('OPT_IN_MODULES נעול: רק parnasa (הוספה = הכרעת-בעלים מפורשת)', () => {
-    expect([...OPT_IN_MODULES]).toEqual(['parnasa']);
+  it('OPT_IN_MODULES נעול: parnasa + hosting (הוספה = הכרעת-בעלים מפורשת)', () => {
+    expect([...OPT_IN_MODULES]).toEqual(['parnasa', 'hosting']);
     expect(isOptInModule('parnasa')).toBe(true);
+    expect(isOptInModule('hosting')).toBe(true);
     for (const m of EXISTING_MODULES) expect(isOptInModule(m), m).toBe(false);
   });
 
@@ -382,7 +387,8 @@ describe('📒 שרשרת-הרישום של parnasa (אשכול 0)', () => {
     expect(ALL_MODULES).toContain('parnasa');
     expect(MODULE_LABELS.parnasa).toBe('פרנסה׳לע');
     // NAV_MODULE_KEYS — כיבוי/אי-הדלקה של המודול משרשר לכל parnasa.* (נבדק התנהגותית ב-(א)/(ב))
-    expect(configLibSrc).toMatch(/const NAV_MODULE_KEYS[\s\S]*?'parnasa',\s*\];/);
+    // 12.10 (hosting נוסף אחריו): נעילת-כוונה — parnasa בתוך הרשימה, לא "האחרון בה" (לקח 3.9: ratchet-נוסח)
+    expect(configLibSrc).toMatch(/const NAV_MODULE_KEYS[\s\S]*?'parnasa',[\s\S]*?\];/);
   });
 
   it('FEATURES: תת-דגלים בחוזה הרגיל (לא optIn) + 2 פעולות grantable 🔓', () => {
@@ -415,5 +421,161 @@ describe('📒 שרשרת-הרישום של parnasa (אשכול 0)', () => {
     expect(stubSrc).not.toContain('המודול בבנייה');
     expect(stubSrc).toContain("featureOn(config, 'parnasa.directory')");
     expect(stubSrc).toContain("termOf(config, 'nav.parnasa', 'פרנסה׳לע')");
+  });
+});
+
+/* ═══════════════════════ 🏡 hosting — "אירוח משפחתי" באותו חוזה opt-in ═══════════════════════ */
+
+const enableHosting = (cfg: OrgConfig): OrgConfig => ({ ...cfg, modules: { ...cfg.modules, hosting: true } });
+const HOSTING_FEATURES = FEATURES.filter((f) => f.module === 'hosting');
+const HOSTING_TERMS = ['nav.hosting', 'entity.hostUnit', 'entity.hostUnits', 'entity.hostGuest', 'entity.hostGuests', 'entity.hostBooking', 'entity.hostBookings'];
+
+describe('🏡 (א) hosting — כל קונפיג אמיתי + קונפיג ריק: כבוי בכל המשטחים', () => {
+  it('הסורק חי: 9 דגלי hosting.* והקישור בניווט', () => {
+    expect(HOSTING_FEATURES.length).toBe(9);
+    expect(NAV_VIEWS).toContain('hosting');
+  });
+
+  for (const { name, cfg } of CONFIGS) {
+    it(name, () => {
+      expect(cfg.modules.hosting, name + ' — הקונפיג עצמו לא נגע ב-hosting').toBeUndefined();
+      expect(moduleOn(cfg, 'hosting')).toBe(false);
+      expect(visibleNav(cfg)).not.toContain('hosting');
+      for (const f of HOSTING_FEATURES) {
+        expect(featureOn(cfg, f.key), f.key).toBe(false);
+        expect(featureEffectiveOn(cfg, f), 'אשף: ' + f.key).toBe(false);
+      }
+      expect(orgEnabledModules(cfg)).not.toContain('hosting');
+      expect(orgEnabledFeatures(cfg, FEATURES).filter((f) => f.module === 'hosting')).toEqual([]);
+      expect(quoteKeys(cfg)).not.toContain('hosting');
+      expect(buildHandoffHtml(cfg, 'https://example.org/', 'מטמיע')).not.toContain('אירוח משפחתי');
+      expect(removedFeatures(cfg).filter((f) => f.module === 'hosting')).toEqual([]);
+      expect(wizardDiff(cfg, FEATURES, TERM_DEFS).modulesOn).not.toContain('hosting');
+    });
+  }
+
+  it('כל חבילת-ורטיקל משאירה את hosting כבוי (גם מעל קונפיג שהדליק אותו)', () => {
+    for (const p of VERTICAL_PACKS) {
+      expect(p.modules.hosting, p.id).toBeUndefined();
+      expect(moduleOn(applyVerticalPack(enableHosting(DEFAULT_CONFIG), p.id), 'hosting'), p.id).toBe(false);
+    }
+  });
+
+  it('קונפיג-הלידה all-off: hosting false מפורש, כבוי, ולא "שינוי" בדוח-האשף', () => {
+    const c = allOffConfig('new-org', 'ארגון חדש');
+    expect(c.modules.hosting).toBe(false);
+    expect(moduleOn(c, 'hosting')).toBe(false);
+    expect(wizardDiff(c, FEATURES, TERM_DEFS).modulesOff).not.toContain('hosting');
+  });
+
+  it('הקפצה-הביתה (store): מסך hosting פתוח + קונפיג בלי הדלקה ⇒ הביתה', () => {
+    vi.stubGlobal('document', { documentElement: { dataset: {}, style: { setProperty() {}, removeProperty() {} } } });
+    try {
+      useApp.setState({ view: 'hosting' });
+      useApp.getState().setConfig(enableHosting(DEFAULT_CONFIG));
+      expect(useApp.getState().view).toBe('hosting');
+      useApp.getState().setConfig({ ...DEFAULT_CONFIG, modules: {} });
+      expect(useApp.getState().view).toBe('home');
+      // הדלקת parnasa בלבד לא פותחת את hosting
+      useApp.setState({ view: 'hosting' });
+      useApp.getState().setConfig(enable(DEFAULT_CONFIG));
+      expect(useApp.getState().view).toBe('home');
+    } finally {
+      useApp.setState({ view: 'home', config: DEFAULT_CONFIG });
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
+describe('🏡 (ב) modules.hosting === true — דלוק בכל המשטחים, ובלי לגעת ב-parnasa', () => {
+  for (const { name, cfg: base } of CONFIGS) {
+    it(name + ' + hosting:true', () => {
+      const cfg = enableHosting(base);
+      expect(moduleOn(cfg, 'hosting')).toBe(true);
+      expect(moduleOn(cfg, 'parnasa')).toBe(false); // בידוד הדדי
+      expect(visibleNav(cfg)).toContain('hosting');
+      expect(visibleNav(cfg)).not.toContain('parnasa');
+      for (const f of HOSTING_FEATURES) {
+        expect(featureOn(cfg, f.key), f.key).toBe(true);
+        expect(featureEffectiveOn(cfg, f), 'אשף: ' + f.key).toBe(true);
+      }
+      expect(orgEnabledModules(cfg)).toContain('hosting');
+      expect(orgEnabledFeatures(cfg, FEATURES).filter((f) => f.module === 'hosting')).toHaveLength(HOSTING_FEATURES.length);
+      expect(quoteKeys(cfg)).toContain('hosting');
+      expect(buildHandoffHtml(cfg, 'https://example.org/', 'מטמיע')).toContain('✅ אירוח משפחתי');
+      expect(wizardDiff(cfg, FEATURES, TERM_DEFS).modulesOn).toEqual(['hosting']);
+    });
+  }
+
+  it('שני המודולים דלוקים יחד — שניהם בניווט ובדוח-השינויים', () => {
+    const both = enableHosting(enable(DEFAULT_CONFIG));
+    expect(visibleNav(both)).toEqual(expect.arrayContaining(['parnasa', 'hosting']));
+    expect(wizardDiff(both, FEATURES, TERM_DEFS).modulesOn).toEqual(['parnasa', 'hosting']);
+    expect(diffCount(wizardDiff(both, FEATURES, TERM_DEFS))).toBe(2);
+  });
+
+  it('תת-דגל כבוי בתוך מודול דלוק — החוזה הרגיל + שרשור-הקידומת', () => {
+    const cfg = { ...enableHosting(DEFAULT_CONFIG), features: { 'hosting.kitchen': false } };
+    expect(featureOn(cfg, 'hosting.kitchen')).toBe(false);
+    expect(featureOn(cfg, 'hosting.shabbat')).toBe(true);
+    expect(removedFeatures(cfg).filter((f) => f.module === 'hosting').map((f) => f.key)).toEqual(['hosting.kitchen']);
+    const off = { ...DEFAULT_CONFIG, modules: { hosting: false }, features: { 'hosting.maint': true } };
+    expect(featureOn(off, 'hosting.maint')).toBe(false);
+  });
+
+  it('כרטיס-עובד: מגביל בלבד — לא מדליק hosting שהארגון לא הדליק', () => {
+    const org = { manager: 'boss@x.org', members: ['emp@x.org'], memberConfigs: {} } as OrgCloudDoc;
+    const restrict = { ...org, memberConfigs: { 'emp@x.org': { modules: { hosting: false } } } } as OrgCloudDoc;
+    const grantOn = { ...org, memberConfigs: { 'emp@x.org': { modules: { hosting: true } } } } as OrgCloudDoc;
+    expect(moduleOn(effectiveConfigFor('emp@x.org', restrict, enableHosting(DEFAULT_CONFIG)), 'hosting')).toBe(false);
+    expect(moduleOn(effectiveConfigFor('emp@x.org', org, enableHosting(DEFAULT_CONFIG)), 'hosting')).toBe(true);
+    expect(moduleOn(effectiveConfigFor('emp@x.org', grantOn, { ...DEFAULT_CONFIG, modules: {} }), 'hosting')).toBe(false);
+  });
+
+  it('🔓 מחיקה/הגדרות: grantable — מנהל תמיד, עובד/ת רק בהדלקה; מודול כבוי ⇒ אף אחד', () => {
+    const platform: OrgConfig = { ...enableHosting(DEFAULT_CONFIG), slug: 'tzimer-x', cloudRoot: false, firebase: { apiKey: 'k', authDomain: 'a', projectId: 'p', appId: 'x' } };
+    const gate = (cfg: OrgConfig, email: string, mgr: boolean, k: string) => featureOn(cfg, k) && canGrantedAction(cfg, email, mgr, k);
+    for (const k of ['hosting.delete', 'hosting.manage']) {
+      expect(isGrantableFeature(k), k).toBe(true);
+      expect(gate(platform, 'boss@x.org', true, k), 'מנהל ' + k).toBe(true);
+      expect(gate(platform, 'emp@x.org', false, k), 'עובד/ת בלי הדלקה ' + k).toBe(false);
+      const org = { manager: 'boss@x.org', members: ['emp@x.org'], memberConfigs: { 'emp@x.org': { features: { [k]: true } } } } as OrgCloudDoc;
+      expect(gate(effectiveConfigFor('emp@x.org', org, platform), 'emp@x.org', false, k), 'עובד/ת עם הדלקה ' + k).toBe(true);
+      expect(gate({ ...platform, modules: {} }, 'boss@x.org', true, k), 'מודול כבוי ' + k).toBe(false);
+    }
+  });
+});
+
+describe('🏡 שרשרת-הרישום של hosting (אשכול 0)', () => {
+  it('ModuleKey/ALL_MODULES/MODULE_LABELS/NAV_MODULE_KEYS', () => {
+    expect(ALL_MODULES).toContain('hosting');
+    expect(MODULE_LABELS.hosting).toBe('אירוח משפחתי');
+    expect(configLibSrc).toMatch(/const NAV_MODULE_KEYS[\s\S]*?'parnasa',[\s\S]*?'hosting',\s*\];/);
+  });
+
+  it('FEATURES: 9 תת-דגלים בחוזה הרגיל (לא optIn) + 2 פעולות grantable 🔓', () => {
+    expect(HOSTING_FEATURES.map((f) => f.key).sort()).toEqual(
+      ['hosting.calendar', 'hosting.delete', 'hosting.export', 'hosting.housekeeping', 'hosting.kitchen', 'hosting.maint', 'hosting.manage', 'hosting.reports', 'hosting.shabbat'],
+    );
+    for (const f of HOSTING_FEATURES) expect(f.optIn, f.key + ' — המודול הוא ה-opt-in, לא הדגל').toBeUndefined();
+    for (const k of ['hosting.delete', 'hosting.manage']) expect(FEATURES.find((f) => f.key === k)!.label, k).toContain('🔓');
+  });
+
+  it('TERM_DEFS + מקטע-אשף (מונחים חשופים לשינוי-שם)', () => {
+    for (const k of HOSTING_TERMS) expect(TERM_DEFS.some((t) => t.key === k), k).toBe(true);
+    expect(TERM_DEFS.find((t) => t.key === 'nav.hosting')!.fallback).toBe('אירוח משפחתי');
+    const sec = WIZARD_SECTIONS.find((s) => s.id === 'hosting');
+    expect(sec?.module).toBe('hosting');
+    expect(sec?.emoji).toBe('🏡');
+    expect(sec?.termKeys).toEqual(HOSTING_TERMS);
+  });
+
+  it('App: VIEW_LOADERS (chunk עצל) · lazy · NAV · VIEWS · המסך', () => {
+    expect(appSrc).toContain("hosting: () => import('./components/hosting/HostingView'),");
+    expect(appSrc).toContain('const HostingView = lazy(async () => ({ default: (await VIEW_LOADERS.hosting()).HostingView }));');
+    expect(appSrc).toContain("{ view: 'hosting', icon: '🏡', label: 'אירוח משפחתי' }");
+    expect(appSrc).toContain('hosting: HostingView,');
+    expect(hostingViewSrc).toContain('export function HostingView()');
+    expect(hostingViewSrc).toContain("termOf(config, 'nav.hosting', 'אירוח משפחתי')");
   });
 });

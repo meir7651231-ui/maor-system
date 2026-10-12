@@ -193,6 +193,12 @@ for (const profile of PROFILES) {
     const navNow = (await page.locator('nav').first().textContent()) ?? '';
     t('קישור "פרנסה׳לע" ' + (parnasaOn ? 'קיים' : 'נעדר (opt-in — חסר = כבוי)'), navNow.includes('פרנסה') === parnasaOn);
   }
+  // ── אירוח משפחתי (opt-in, 12.10 — BUILD-ORDER-HOSTING הכרעה 1): אותו חוזה — רק modules.hosting === true מדליק ──
+  {
+    const hostingOn = profile.config?.modules?.hosting === true;
+    const navNow = (await page.locator('nav').first().textContent()) ?? '';
+    t('קישור "אירוח משפחתי" ' + (hostingOn ? 'קיים' : 'נעדר (opt-in — חסר = כבוי)'), navNow.includes('אירוח משפחתי') === hostingOn);
+  }
 
   // ── קופות צדקה (BUILD-ORDER-TZEDAKA): קישור לפי המודול + זרימה מלאה בברירת המחדל ──
   const tzedakaOn = modulesOff.tzedaka !== false;
@@ -503,6 +509,8 @@ for (const profile of PROFILES) {
   t('אין "חנות" כשהמודול כבוי', !navTxt.includes('חנות'));
   // פרנסה׳לע (opt-in) — לא הודלק ⇒ אין קישור
   t('אין "פרנסה׳לע" (opt-in — חסר = כבוי)', !navTxt.includes('פרנסה'));
+  // אירוח משפחתי (opt-in) — לא הודלק ⇒ אין קישור
+  t('אין "אירוח משפחתי" (opt-in — חסר = כבוי)', !navTxt.includes('אירוח משפחתי'));
   t('אפס שגיאות JS בפרופיל', errors.length === 0, errors.slice(0, 2).join(' | '));
 
   console.log('\n📦 קיצון — הכול כבוי (בדיקת דליפות)');

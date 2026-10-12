@@ -12,7 +12,7 @@
  * שהיה. הבדיקה נעשית תמיד דרך moduleOn() ב-lib/config.ts (מפתח חסר = פעיל),
  * שמאציל לעוזר היחיד moduleEnabledIn() כאן למטה.
  */
-export type ModuleKey = 'families' | 'courses' | 'calendar' | 'diary' | 'supporters' | 'reports' | 'tzedaka' | 'shop' | 'shop7' | 'parnasa';
+export type ModuleKey = 'families' | 'courses' | 'calendar' | 'diary' | 'supporters' | 'reports' | 'tzedaka' | 'shop' | 'shop7' | 'parnasa' | 'hosting';
 
 /**
  * מודולי opt-in — **חסר = כבוי** (הכרעת-בעלים 12.10.2026, פרנסה׳לע — BUILD-ORDER-PARNASA
@@ -20,8 +20,9 @@ export type ModuleKey = 'families' | 'courses' | 'calendar' | 'diary' | 'support
  * מודול כאן נדלק **רק** ב-true מפורש (אשף/לוח-בקרה כותבים true). הסיבה: הלקוח-החי,
  * הדמו וכל ארגון קיים נושאים מפת-מודולים ריקה — מודול חדש בחוזה הרגיל היה נדלק
  * אצלם בשקט (לקח #16, "מוסך קיבל קופות צדקה"). ratchet: optin-module.test.
+ * 12.10 (BUILD-ORDER-HOSTING הכרעה 1): נוסף hosting — "אירוח משפחתי", באותו חוזה בדיוק.
  */
-export const OPT_IN_MODULES: readonly ModuleKey[] = ['parnasa'];
+export const OPT_IN_MODULES: readonly ModuleKey[] = ['parnasa', 'hosting'];
 
 /** האם המפתח הוא מודול opt-in (חסר = כבוי). */
 export function isOptInModule(m: string): boolean {

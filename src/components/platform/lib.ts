@@ -35,8 +35,8 @@ export function isValidSlug(slug: string): boolean {
   return /^[a-z0-9-]{2,40}$/.test(slug);
 }
 
-/** כל מפתחות המודולים — מקור אחד לפאנל ולקונפיג-הלידה. ‏parnasa = opt-in (חסר = כבוי, OPT_IN_MODULES). */
-export const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7', 'parnasa'];
+/** כל מפתחות המודולים — מקור אחד לפאנל ולקונפיג-הלידה. ‏parnasa/hosting = opt-in (חסר = כבוי, OPT_IN_MODULES). */
+export const ALL_MODULES: ModuleKey[] = ['families', 'courses', 'calendar', 'diary', 'supporters', 'reports', 'tzedaka', 'shop', 'shop7', 'parnasa', 'hosting'];
 
 /** תוויות המודולים לפאנל (בית והגדרות תמיד דלוקים — אינם ModuleKey). */
 export const MODULE_LABELS: Record<ModuleKey, string> = {
@@ -50,6 +50,7 @@ export const MODULE_LABELS: Record<ModuleKey, string> = {
   shop: 'חנות',
   shop7: 'חלוקה',
   parnasa: 'פרנסה׳לע',
+  hosting: 'אירוח משפחתי',
 };
 
 /**
@@ -198,6 +199,9 @@ export const GRANTABLE_STAFF_FEATURES: ReadonlySet<string> = new Set([
   // פרנסה׳לע (12.10): אישורי-גבאי ומחיקות — מנהל תמיד, לעובד/ת רק בהדלקה פר-עובד
   'parnasa.approve',
   'parnasa.delete',
+  // אירוח משפחתי (12.10): מחיקה-לצמיתות/איפוס והגדרות-המודול — מנהל תמיד, לעובד/ת רק בהדלקה פר-עובד
+  'hosting.delete',
+  'hosting.manage',
 ]);
 
 /** האם המפתח הוא יכולת-הדלקה-פר-עובד (מכבד `true` בכרטיס-העובד). */

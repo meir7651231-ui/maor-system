@@ -61,6 +61,7 @@ const VIEW_LOADERS = {
   shop: () => import('./components/shop/ShopView'),
   shop7: () => import('./components/shop7/Shop7View'),
   parnasa: () => import('./components/parnasa/ParnasaView'),
+  hosting: () => import('./components/hosting/HostingView'),
   reports: () => import('./components/reports/ReportsView'),
   settings: () => import('./components/settings/SettingsView'),
 } as const;
@@ -74,6 +75,7 @@ const TzedakaView = lazy(async () => ({ default: (await VIEW_LOADERS.tzedaka()).
 const ShopView = lazy(async () => ({ default: (await VIEW_LOADERS.shop()).ShopView }));
 const Shop7View = lazy(async () => ({ default: (await VIEW_LOADERS.shop7()).Shop7View }));
 const ParnasaView = lazy(async () => ({ default: (await VIEW_LOADERS.parnasa()).ParnasaView }));
+const HostingView = lazy(async () => ({ default: (await VIEW_LOADERS.hosting()).HostingView }));
 const ReportsView = lazy(async () => ({ default: (await VIEW_LOADERS.reports()).ReportsView }));
 const SettingsView = lazy(async () => ({ default: (await VIEW_LOADERS.settings()).SettingsView }));
 // משטחי-ניהול/כניסה נדירים — עצלים גם הם (מנהל-על/מרקטינג לא מכבידים על כולם)
@@ -116,6 +118,7 @@ const NAV: { view: View; icon: string; label: string }[] = [
   { view: 'shop', icon: '🛍', label: 'חנות' },
   { view: 'shop7', icon: '🚚', label: 'חלוקה' },
   { view: 'parnasa', icon: '📒', label: 'פרנסה׳לע' },
+  { view: 'hosting', icon: '🏡', label: 'אירוח משפחתי' },
   { view: 'reports', icon: '📊', label: 'דוחות' },
   { view: 'settings', icon: '⚙️', label: 'הגדרות' },
 ];
@@ -131,6 +134,7 @@ const VIEWS: Record<View, ComponentType> = {
   shop: ShopView,
   shop7: Shop7View,
   parnasa: ParnasaView,
+  hosting: HostingView,
   reports: ReportsView,
   reenroll: ReenrollView,
   settings: SettingsView,

@@ -18,6 +18,8 @@ export const MODULE_LABELS: Record<string, string> = {
   reports: 'דוחות וייצוא',
   // מודול opt-in (12.10): מופיע ב"✅ מה קיבלתם" רק כשהודלק במפורש (moduleEnabledIn)
   parnasa: 'פרנסה׳לע — מדריך עסקים, בקשות ולוח קהילה',
+  // מודול opt-in (12.10, BUILD-ORDER-HOSTING): רק כשהודלק במפורש
+  hosting: 'אירוח משפחתי — הזמנות, יחידות, ניקיון, מטבח ושבת',
 };
 
 export const THEME_LABELS: Record<string, string> = {

@@ -81,6 +81,14 @@ export const WIZARD_SECTIONS: WizardSectionDef[] = [
     module: 'parnasa',
     termKeys: ['nav.parnasa', 'entity.prListing', 'entity.prListings', 'entity.prRequest', 'entity.prPost', 'entity.prAd', 'entity.prGabbai'],
   },
+  // מודול opt-in (12.10, BUILD-ORDER-HOSTING): כמו פרנסה׳לע — כבוי כשחסר, הדלקה כותבת true מפורש
+  {
+    id: 'hosting',
+    title: 'אירוח משפחתי',
+    emoji: '🏡',
+    module: 'hosting',
+    termKeys: ['nav.hosting', 'entity.hostUnit', 'entity.hostUnits', 'entity.hostGuest', 'entity.hostGuests', 'entity.hostBooking', 'entity.hostBookings'],
+  },
   { id: 'reports', title: 'דוחות', emoji: '📊', module: 'reports', termKeys: ['nav.reports'] },
   // הגאדג'טים (טיימר/קופה/מפת-טיפול) שייכים למעטפת-הבית — המונחים שלהם כאן
   { id: 'home', title: 'מסך הבית', emoji: '🏠', termKeys: ['nav.timer', 'nav.cashbox', 'nav.bodymap'] },

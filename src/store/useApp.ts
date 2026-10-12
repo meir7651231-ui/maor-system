@@ -134,6 +134,7 @@ export type View =
   | 'shop'
   | 'shop7'
   | 'parnasa'
+  | 'hosting'
   | 'reports'
   | 'reenroll'
   | 'settings';
