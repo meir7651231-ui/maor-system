@@ -77,11 +77,13 @@ import { AYIN_STAGES, applyAyinSheet, featLabel, namesToTemplateLines, planAddNa
 import { appendCall, applyOutcome, OUTCOME_LABELS, popCall, startCampaign, undoLast } from '../lib/dialer';
 import {
   dailySnapshot,
+  scheduleDailySnapshot,
   exportBackupFile,
   loadDb,
   saveDb,
   flushSaveSync,
   isIdbBackupMissing,
+  takeLsDroppedNotice,
   currentDbKey,
   readStoredPlainDb,
   setPersistNamespace,
@@ -712,6 +714,12 @@ function writeSess(k: string, v: string | null): void {
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 let dirty = false; // עריכה מקומית שטרם נשמרה — שער ריבוי-הטאבים לא ידרוס אותה (#3)
+/**
+ * ⚡ (12.10.2026) ה-db האחרון שנשמר בהצלחה (הפניה) — או שנטען מהאחסון. flush ביציאה/הסתרה
+ * מדלג כשאין מה לכתוב: עד היום כל מעבר-טאב/מזעור הסריאל את כל המסמך סינכרונית (34MB אצל הלקוח
+ * האמיתי — 0.5–0.8s קיפאון ב-pagehide) גם כשלא השתנה דבר מאז השמירה האחרונה.
+ */
+let lastSaved: Db | null = null;
 let mtGuardOn = false; // מאזין ה-storage מותקן פעם אחת
 let idbWarned = false; // אזהרת "שכבת גיבוי חסרה" ניתנת פעם אחת לסשן (השמירה כל 500ms)
 let toastSeq = 1;
@@ -878,6 +886,7 @@ export const useApp = create<AppState>()((set, get) => {
       // אחרת החלון בין סיום-השמירה לשמירה-הבאה השאיר dirty=false בעוד עריכה ממתינה —
       // ושער ריבוי-הטאבים היה רשאי לדרוס אותה. השוואת-הפניה: כל setDb יוצר db חדש.
       if (ok && get().db === saving) dirty = false;
+      if (ok) lastSaved = saving; // ⚡ (12.10) מה שמונח כעת באחסון — flush ישווה אליו
       if (ok !== get().saveOk) set({ saveOk: ok });
       if (!ok) {
         get().toast('⚠ השמירה נכשלה — הורידו גיבוי מלא ובדקו מקום פנוי בדפדפן');
@@ -888,6 +897,9 @@ export const useApp = create<AppState>()((set, get) => {
       } else if (!isIdbBackupMissing()) {
         idbWarned = false;
       }
+      // ⚡ משטר-מכסה (12.10): המסמך גדול מ-localStorage (34MB אצל הלקוח האמיתי — QuotaExceeded בכל
+      // שמירה) ⇒ persist עבר ל-IDB-בלבד; הודעה חד-פעמית למכשיר (persist נקי מ-store — דגל נצרך כאן).
+      if (ok && takeLsDroppedNotice()) get().toast('הנתונים גדולים — נשמרים במאגר הפנימי של הדפדפן בלבד');
     }, 500);
   }
 
@@ -964,7 +976,8 @@ export const useApp = create<AppState>()((set, get) => {
     applyTheme(db.ui.theme ?? config.theme, db.ui.accent ?? config.accent, config.motion);
     // אין לצלם DB פגום/ריק — אחרת emptyDb ידרוס את הצילום היומי התקין של היום
     // (dailySnapshot כותב לפי מפתח-היום ללא תנאי) ויאבד את גיבוי-הבטיחות.
-    if (!corrupt) void dailySnapshot(db);
+    // ⚡ (12.10): נדחה ל-idle וכשהטאב גלוי (34MB structured-clone בזמן הציור הראשון — ראה persist).
+    if (!corrupt) scheduleDailySnapshot(() => get().db);
     if (corrupt) {
       get().toast('⚠ הנתונים השמורים נמצאו פגומים — נשמר עותק בצד. שחזרו מגיבוי דרך הגדרות ← ייבוא');
     }
@@ -973,6 +986,8 @@ export const useApp = create<AppState>()((set, get) => {
     // התנאי מתקיים (חג-מתקרב חוזר שנה-בשנה, גיל-בי"ס נמשך חודשים) — אחרת
     // ההצעה שהוסתרה צצה-מחדש אחרי 30 יום; "איפוס סימוני טופל" עדיין מנקה הכל.
     const stale = Object.entries(db.attnDone ?? {}).filter(([k, d]) => !k.startsWith('sug:') && d < pruneCutoff);
+    // ⚡ (12.10): setDb (⇒ scheduleSave ⇒ שמירה מלאה של 34MB חצי-שנייה אחרי הציור הראשון) **רק** אם
+    // הגיזום באמת הסיר משהו — טעינה נקייה לא מתזמנת שמירה (ratchet perf-load-clean).
     if (stale.length) {
       setDb((cur) => {
         const attnDone = { ...cur.attnDone };
@@ -1427,6 +1442,7 @@ export const useApp = create<AppState>()((set, get) => {
         needDecrypt: false,
         cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle', membership: 'na' },
       });
+      lastSaved = db; // ⚡ (12.10) נטען מהאחסון = כבר שם; flush לא יסריאל אותו שוב בלי עריכה
       // חיבור ענן — opt-in פר-ארגון; בלי config.firebase שום דבר לא משתנה
       if (config.firebase) void connectCloud(config.firebase, config);
       postLoad(db, corrupt);
@@ -1807,8 +1823,9 @@ export const useApp = create<AppState>()((set, get) => {
       const cutoff = isoDaysAgo(14);
       const today = isoToday();
       let n = 0;
-      setDb((db) => ({
-        families: db.families.map((f) => {
+      // ⚡ (12.10): הדעיכה רצה פעם ביום בטעינה; setDb בלי-תנאי יצר db חדש ⇒ scheduleSave ⇒ שמירה מלאה
+      // (34MB) גם כשאף משפחה לא דעכה. מחשבים קודם, וכותבים רק אם n>0 — אותה תוצאה בדיוק.
+      const families = get().db.families.map((f) => {
           const score = f.cred?.score ?? 700;
           if (score <= 0) return f; // אין לאן לרדת
           // אידמפוטנטיות: אם כבר נרשמה דעיכה היום (טעינה חוזרת, מצב פרטי שאיפס את
@@ -1830,11 +1847,10 @@ export const useApp = create<AppState>()((set, get) => {
               ].slice(0, 200),
             },
           };
-        }),
-      }));
-      if (n > 0) {
-        get().toast('Batch יומי: הפחתת אי-פעילות (‎-2) ל-' + n + ' ' + termOf(get().config, 'nav.families', 'משפחות'));
-      }
+        });
+      if (n === 0) return;
+      setDb({ families });
+      get().toast('Batch יומי: הפחתת אי-פעילות (‎-2) ל-' + n + ' ' + termOf(get().config, 'nav.families', 'משפחות'));
     },
 
     markAttnDone(key) {
@@ -3986,6 +4002,7 @@ export const useApp = create<AppState>()((set, get) => {
       if (!db) return false;
       if (db.security?.primary || db.security?.secondary || db.security?.zones) db.security = {};
       set({ db, encrypted: true, needDecrypt: false, corrupt: false });
+      lastSaved = db; // ⚡ (12.10) פוענח מהאחסון = כבר שם (ראה init)
       // חיבור ענן לארגון מוצפן: init חוזר מוקדם במסלול res.encrypted (לפני
       // connectCloud), ולכן החיבור לא נעשה שם. בלי זה, ארגון עם config.firebase
       // שהופעלה בו הצפנה נתקע לצמיתות על "מתחבר…" (cloud.enabled && !authReady)
@@ -4310,6 +4327,9 @@ if (typeof window !== 'undefined') {
   // סגירת הטאב הייתה דורסת סינכרונית את הכתיבה של הטאב האחר.
   const flush = () => {
     const s = useApp.getState();
+    // ⚡ (12.10): אין עריכה ממתינה (dirty) וה-db הוא בדיוק מה שנשמר/נטען ⇒ אין מה לכתוב. לפני כן
+    // כל הסתרת-טאב הסריאלה את כל המסמך סינכרונית (34MB ⇒ 0.5–0.8s קיפאון) לשווא.
+    if (!dirty && s.db === lastSaved) return;
     // 🐛 swarm-b: לפני סיום init ה-db הוא emptyDb() (savedAt טרי) — pagehide בזמן await loadOrgConfig/loadDb
     // דרס את maor_db (ואצל ?org= — את מפתח-השורש) ב-DB ריק ש-migrate מקבל. needDecrypt: לא כותבים ריק-גלוי מעל מעטפת ב-IDB.
     if (!s.ready || s.needDecrypt) return;
