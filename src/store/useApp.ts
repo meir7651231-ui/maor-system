@@ -77,6 +77,7 @@ import { AYIN_STAGES, applyAyinSheet, featLabel, namesToTemplateLines, planAddNa
 import { appendCall, applyOutcome, OUTCOME_LABELS, popCall, startCampaign, undoLast } from '../lib/dialer';
 import {
   dailySnapshot,
+  scheduleDailySnapshot,
   exportBackupFile,
   loadDb,
   saveDb,
@@ -975,7 +976,8 @@ export const useApp = create<AppState>()((set, get) => {
     applyTheme(db.ui.theme ?? config.theme, db.ui.accent ?? config.accent, config.motion);
     // אין לצלם DB פגום/ריק — אחרת emptyDb ידרוס את הצילום היומי התקין של היום
     // (dailySnapshot כותב לפי מפתח-היום ללא תנאי) ויאבד את גיבוי-הבטיחות.
-    if (!corrupt) void dailySnapshot(db);
+    // ⚡ (12.10): נדחה ל-idle וכשהטאב גלוי (34MB structured-clone בזמן הציור הראשון — ראה persist).
+    if (!corrupt) scheduleDailySnapshot(() => get().db);
     if (corrupt) {
       get().toast('⚠ הנתונים השמורים נמצאו פגומים — נשמר עותק בצד. שחזרו מגיבוי דרך הגדרות ← ייבוא');
     }
@@ -984,6 +986,8 @@ export const useApp = create<AppState>()((set, get) => {
     // התנאי מתקיים (חג-מתקרב חוזר שנה-בשנה, גיל-בי"ס נמשך חודשים) — אחרת
     // ההצעה שהוסתרה צצה-מחדש אחרי 30 יום; "איפוס סימוני טופל" עדיין מנקה הכל.
     const stale = Object.entries(db.attnDone ?? {}).filter(([k, d]) => !k.startsWith('sug:') && d < pruneCutoff);
+    // ⚡ (12.10): setDb (⇒ scheduleSave ⇒ שמירה מלאה של 34MB חצי-שנייה אחרי הציור הראשון) **רק** אם
+    // הגיזום באמת הסיר משהו — טעינה נקייה לא מתזמנת שמירה (ratchet perf-load-clean).
     if (stale.length) {
       setDb((cur) => {
         const attnDone = { ...cur.attnDone };
@@ -1819,8 +1823,9 @@ export const useApp = create<AppState>()((set, get) => {
       const cutoff = isoDaysAgo(14);
       const today = isoToday();
       let n = 0;
-      setDb((db) => ({
-        families: db.families.map((f) => {
+      // ⚡ (12.10): הדעיכה רצה פעם ביום בטעינה; setDb בלי-תנאי יצר db חדש ⇒ scheduleSave ⇒ שמירה מלאה
+      // (34MB) גם כשאף משפחה לא דעכה. מחשבים קודם, וכותבים רק אם n>0 — אותה תוצאה בדיוק.
+      const families = get().db.families.map((f) => {
           const score = f.cred?.score ?? 700;
           if (score <= 0) return f; // אין לאן לרדת
           // אידמפוטנטיות: אם כבר נרשמה דעיכה היום (טעינה חוזרת, מצב פרטי שאיפס את
@@ -1842,11 +1847,10 @@ export const useApp = create<AppState>()((set, get) => {
               ].slice(0, 200),
             },
           };
-        }),
-      }));
-      if (n > 0) {
-        get().toast('Batch יומי: הפחתת אי-פעילות (‎-2) ל-' + n + ' ' + termOf(get().config, 'nav.families', 'משפחות'));
-      }
+        });
+      if (n === 0) return;
+      setDb({ families });
+      get().toast('Batch יומי: הפחתת אי-פעילות (‎-2) ל-' + n + ' ' + termOf(get().config, 'nav.families', 'משפחות'));
     },
 
     markAttnDone(key) {

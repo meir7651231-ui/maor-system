@@ -1049,6 +1049,42 @@ export async function dailySnapshot(db: Db): Promise<void> {
   }
 }
 
+/**
+ * ⚡ (12.10.2026) הרצה ב-idle **וכשהטאב גלוי**: requestIdleCallback (עם timeout — מובטח לרוץ),
+ * נפילה ל-setTimeout בדפדפן בלי rIC (Safari); טאב מוסתר בטעינה ⇒ ממתינים ל-visibilitychange
+ * הראשון לגלוי ורק אז מתזמנים. הכול חד-פעמי. (בלי window/document — מיד.)
+ */
+export function runWhenIdleVisible(fn: () => void, timeoutMs: number): void {
+  const w = typeof window !== 'undefined'
+    ? (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number })
+    : null;
+  const doc = typeof document !== 'undefined' ? document : null;
+  const go = () => {
+    if (w && typeof w.requestIdleCallback === 'function') w.requestIdleCallback(fn, { timeout: timeoutMs });
+    else setTimeout(fn, w ? Math.min(timeoutMs, 3000) : 0);
+  };
+  if (doc && doc.visibilityState === 'hidden') {
+    const onVis = () => {
+      if (doc.visibilityState !== 'visible') return;
+      doc.removeEventListener('visibilitychange', onVis);
+      go();
+    };
+    doc.addEventListener('visibilitychange', onVis);
+    return;
+  }
+  go();
+}
+
+/**
+ * ⚡ (12.10) הצילום היומי — נדחה ל-idle במקום מיד אחרי הציור הראשון: המדידה אצל הלקוח
+ * האמיתי — dailySnapshot עשה structured-clone של 34MB ל-IDB בזמן שהמשתמש מחכה לבית (טעינה
+ * 3.3s CPU / 6s קיר). getDb נקרא רק ברגע הריצה ⇒ הצילום משקף את המצב-החי דאז (לא ישן יותר).
+ * עדיין מובטח פעם ביום (rIC עם timeout של 10s; מפתח-היום ב-dailySnapshot לא השתנה).
+ */
+export function scheduleDailySnapshot(getDb: () => Db): void {
+  runWhenIdleVisible(() => void dailySnapshot(getDb()), 10_000);
+}
+
 export async function listSnapshots(): Promise<string[]> {
   try {
     const d = await getIdb();
