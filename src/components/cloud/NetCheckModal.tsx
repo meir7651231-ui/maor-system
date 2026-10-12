@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { netCheckScript, netCheckTargets, runNetCheck, type NetCheckResult } from '../../lib/netcheck';
+import { edgeForThisDevice } from '../../lib/edgeProxy';
 import { Btn, Modal } from '../ui';
 
 export function NetCheckModal({ onClose, orbit }: { onClose: () => void; orbit?: boolean }) {
@@ -19,7 +20,8 @@ export function NetCheckModal({ onClose, orbit }: { onClose: () => void; orbit?:
 
   async function run() {
     setResults(null);
-    const r = await runNetCheck(netCheckTargets(window.location.origin, config.firebase));
+    // 🌉 מכשיר מנותב דרך מתווך-הקצה ⇒ בודקים אותו (null בלי config.edgeProxy — כמו היום)
+    const r = await runNetCheck(netCheckTargets(window.location.origin, config.firebase, edgeForThisDevice(config)?.host));
     setResults(r);
   }
 

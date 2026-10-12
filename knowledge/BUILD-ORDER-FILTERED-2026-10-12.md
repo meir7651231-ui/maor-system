@@ -275,3 +275,26 @@ Enforcement **כבוי**; אם למפתח-ה-API יש הגבלת HTTP-referrer �
 - **ש4** כפתור "🌉 עבור למצב-מסונן" בתוך 🩺 (במקום קישור) — המשך אפשרי.
 - **ש5** חשיפה באשף (לקח 16): זה שדה-תשתית bootstrap, לא דגל-פיצ'ר; כרגע קובץ-קונפיג בלבד
   ולא ניתן-להגדרה מהענן — במכוון (§4).
+
+---
+
+## 9. סטטוס (12.10.2026, ענף `claude/orbit-filtered-261012`) — נבנה, רדום
+- **קומיט 2 — המתווך:** `edge-proxy/worker.js` + README + `worker.test.mjs` (79 בדיקות). מוטציה:
+  11/11 שבירות נתפסו (בלי בדיקת-מפתח · העברת-עוגיות · הד-לכל-Origin · console · follow-redirect ·
+  בלי בדיקת-database · set-cookie עובר · התאמת-תחילית-מארח · בלי allowlist-פונקציות · בלי
+  Expose-Headers · preflight לגוגל).
+- **קומיט 3 — החיווט:** `lib/edgeProxy.ts` (טהור) · `EdgeProxyConfig`/`EDGE_HOST_SUFFIXES` · normalizeConfig ·
+  resolveOrgConfig · initCloud(fb, edge) · connectCloud · viaEdge ×3 · 🩺. ‏89 בדיקות חדשות:
+  `edge-init` (10, SDK מדומה — **(א) נכתב והורץ ירוק לפני השינוי**), `edge-proxy` (69, כולל חוצה-משטחים
+  מול ה-Worker האמיתי), `edge-sdk-canary` (8), `edge-config-golden` (2). מוטציה: 14/14 נתפסו.
+- **(ד) ביט-זהה — הוכחה כפולה:** golden של 95 פריטים (3 קבצים סטטיים · DEFAULT · 52 = 13 חבילות×4
+  בסיסים · 39 זוגות resolveOrgConfig) הוקלט על הקוד שלפני השינוי; ודאמפ-מלא של כל הפלטים לפני/אחרי —
+  sha256 זהה (`3edbb086…9a12`, ‏95 שורות). (ה"53" בפקודה = DEFAULT + 52 וריאנטי-החבילות.)
+- **ה-SDK האמיתי (לא מדומה) — `e2e/edge-mode-smoke.mjs`** (bundle בנוי, UA אייפון, כל תעבורה חיצונית
+  מיורטת — אפס בקשות לגוגל): ישיר = identitytoolkit/firestore + **apis.google.com** (gapi יזום במובייל —
+  מאשש את §1 שורה 5); רדום = אותם מארחים בדיוק, מתג לא נכתב; ‎`?edge=on`‎ = כניסה/lookup/WebChannel
+  רק דרך `edge.orbit-il.com` (database של הפרויקט), אפס googleapis/apis.google.com/firebaseapp.com, בלי
+  באנר, וכל 7 הבקשות שה-SDK שלח עוברות ב-Worker; allDevices מנותב בלי קישור; ‎`?edge=off`‎ חוזר לישיר.
+  החריג היחיד: ‎`www.google.com/images/cleardot.gif`‎ (פינג-אבחון של WebChannel אחרי שגיאת-רשת — §1 שורה 6).
+  16/16; מוטציה (lookup הוסר מה-Worker) ⇒ אדום.
+- **נותר — חלון-בעלים בלבד:** §5 (Worker + Custom Domain + שורת-קונפיג + בדיקה על קו מסונן) ו-§8 ש1–ש5.

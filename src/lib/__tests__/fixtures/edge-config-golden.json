@@ -1,0 +1,382 @@
+{
+ "static:public/c/demo/config.json": {
+  "in": "4ff1db9b8b799452f0d3",
+  "out": "8cb45bbc6589c0407e55"
+ },
+ "static:public/c/maor-hachesed/config.json": {
+  "in": "6dc68f69e30cabc9f2b6",
+  "out": "b890df215334576c6a10"
+ },
+ "static:public/config.json": {
+  "in": "95cf267246081c1c8b44",
+  "out": "de319f5b47eccc6cc193"
+ },
+ "default": {
+  "in": "928db41a0ec01d050d6b",
+  "out": "4faba570abbfb07c3012"
+ },
+ "pack:chesed@default": {
+  "in": "4faba570abbfb07c3012",
+  "out": "4faba570abbfb07c3012"
+ },
+ "pack:clinic@default": {
+  "in": "8a2d72a9da992b88e7f7",
+  "out": "8a2d72a9da992b88e7f7"
+ },
+ "pack:shop@default": {
+  "in": "0cc5932fe1c34b806185",
+  "out": "0cc5932fe1c34b806185"
+ },
+ "pack:services@default": {
+  "in": "2bbc76df84397ba6dc7f",
+  "out": "2bbc76df84397ba6dc7f"
+ },
+ "pack:rooms@default": {
+  "in": "62363832d6f8d9e631a1",
+  "out": "62363832d6f8d9e631a1"
+ },
+ "pack:fleet@default": {
+  "in": "b52fea8582194fda3943",
+  "out": "b52fea8582194fda3943"
+ },
+ "pack:garage@default": {
+  "in": "ee104642537024f7a5b4",
+  "out": "ee104642537024f7a5b4"
+ },
+ "pack:hospitality@default": {
+  "in": "648502ae6c235f08ee92",
+  "out": "648502ae6c235f08ee92"
+ },
+ "pack:gemach@default": {
+  "in": "5b90d98b402553cadfa6",
+  "out": "5b90d98b402553cadfa6"
+ },
+ "pack:tzedakot@default": {
+  "in": "254dac3f936e81629258",
+  "out": "254dac3f936e81629258"
+ },
+ "pack:digital@default": {
+  "in": "a926b4b17799f9cff809",
+  "out": "a926b4b17799f9cff809"
+ },
+ "pack:build@default": {
+  "in": "e43d4498b73c978135d2",
+  "out": "e43d4498b73c978135d2"
+ },
+ "pack:studio@default": {
+  "in": "17a2d8f28377a763634d",
+  "out": "17a2d8f28377a763634d"
+ },
+ "pack:chesed@public/c/demo/config.json": {
+  "in": "3bf761aad773a510862e",
+  "out": "9aacada0d64e5d73105a"
+ },
+ "pack:clinic@public/c/demo/config.json": {
+  "in": "9362a6a5687f4164482b",
+  "out": "7cd1f81f52acd114dca6"
+ },
+ "pack:shop@public/c/demo/config.json": {
+  "in": "8afc3e61de5cdcd9b1bb",
+  "out": "c6471815d75fe660e6f8"
+ },
+ "pack:services@public/c/demo/config.json": {
+  "in": "93dc6b609f3adc3de428",
+  "out": "90ac57f9d8cdf72e0abd"
+ },
+ "pack:rooms@public/c/demo/config.json": {
+  "in": "7de35f9bee8243b92002",
+  "out": "adb5157a332e4f78c839"
+ },
+ "pack:fleet@public/c/demo/config.json": {
+  "in": "71266da30001d12b71d7",
+  "out": "5d6adf291013bbf62138"
+ },
+ "pack:garage@public/c/demo/config.json": {
+  "in": "c5ff89d24f675fb31bb2",
+  "out": "56c0d20eb77593602a06"
+ },
+ "pack:hospitality@public/c/demo/config.json": {
+  "in": "8ec9f429d03a2bc219ef",
+  "out": "e4ec35bc50224d3169d9"
+ },
+ "pack:gemach@public/c/demo/config.json": {
+  "in": "690eeeacd632b7daf206",
+  "out": "1868dc28ebdea8da6ac3"
+ },
+ "pack:tzedakot@public/c/demo/config.json": {
+  "in": "b5197470c9cd9a618910",
+  "out": "64ae701ace65872b0b8b"
+ },
+ "pack:digital@public/c/demo/config.json": {
+  "in": "7bd31b7a788f1cd9149a",
+  "out": "61cf5dbb85e95a24d459"
+ },
+ "pack:build@public/c/demo/config.json": {
+  "in": "85a7ac781c12d65b7438",
+  "out": "dacb08ee68d35282c4b6"
+ },
+ "pack:studio@public/c/demo/config.json": {
+  "in": "9eacaebe15f55a0cd511",
+  "out": "68e7096a8bd0796e72f4"
+ },
+ "pack:chesed@public/c/maor-hachesed/config.json": {
+  "in": "6dc68f69e30cabc9f2b6",
+  "out": "b890df215334576c6a10"
+ },
+ "pack:clinic@public/c/maor-hachesed/config.json": {
+  "in": "29d3d2731340ccc4bae6",
+  "out": "e264ad01b1efec55dc0a"
+ },
+ "pack:shop@public/c/maor-hachesed/config.json": {
+  "in": "97d119e2d0b0a64fb745",
+  "out": "3c4fe36b5de690d86475"
+ },
+ "pack:services@public/c/maor-hachesed/config.json": {
+  "in": "e9a83038951a38003326",
+  "out": "1933077c854dcfab912a"
+ },
+ "pack:rooms@public/c/maor-hachesed/config.json": {
+  "in": "56301209f6312a7cf96d",
+  "out": "ce364cdde1cec082ea14"
+ },
+ "pack:fleet@public/c/maor-hachesed/config.json": {
+  "in": "37e68f3a2c5d855b4505",
+  "out": "15ea38126a362ba26a29"
+ },
+ "pack:garage@public/c/maor-hachesed/config.json": {
+  "in": "bab5d444c2b9bf63fa6b",
+  "out": "7daddb6adc5a3d7575ee"
+ },
+ "pack:hospitality@public/c/maor-hachesed/config.json": {
+  "in": "b1ec22803b038ec89c03",
+  "out": "a2940f135c8ce0afc7fe"
+ },
+ "pack:gemach@public/c/maor-hachesed/config.json": {
+  "in": "6d0c7a097493317c2daf",
+  "out": "ba0cfe4fabe8937c60bc"
+ },
+ "pack:tzedakot@public/c/maor-hachesed/config.json": {
+  "in": "1ec9d23091b0cc9fd2d2",
+  "out": "c049f2626b0d43d33adc"
+ },
+ "pack:digital@public/c/maor-hachesed/config.json": {
+  "in": "025b44356204eaba3475",
+  "out": "3d1079e951189efe2265"
+ },
+ "pack:build@public/c/maor-hachesed/config.json": {
+  "in": "2f899430052815ff07bb",
+  "out": "ab4df5ece76bee14033e"
+ },
+ "pack:studio@public/c/maor-hachesed/config.json": {
+  "in": "3f3bba0a0d39c3d3bf57",
+  "out": "6b67f6eee882bf91120b"
+ },
+ "pack:chesed@public/config.json": {
+  "in": "2c002b97ea8bd4228ec7",
+  "out": "77621b061edfac17d639"
+ },
+ "pack:clinic@public/config.json": {
+  "in": "9bb36ae0f9975725ce00",
+  "out": "dcb7fe30662556d9e035"
+ },
+ "pack:shop@public/config.json": {
+  "in": "22e888886dd604beb89e",
+  "out": "deb60bc83130d65593dc"
+ },
+ "pack:services@public/config.json": {
+  "in": "8e1656dcb731926a1621",
+  "out": "f165d3f27b89a9c30680"
+ },
+ "pack:rooms@public/config.json": {
+  "in": "632db30b27010ac9d26a",
+  "out": "50fae9142d71eb07d0cf"
+ },
+ "pack:fleet@public/config.json": {
+  "in": "92f43bb7beb6fdb5e52a",
+  "out": "acd3ebda8556af055995"
+ },
+ "pack:garage@public/config.json": {
+  "in": "2e2edb717a8bc2da0fd3",
+  "out": "54ec304db60bc2bc9b96"
+ },
+ "pack:hospitality@public/config.json": {
+  "in": "190c59eec5ac6fcb1009",
+  "out": "4e29e989bea764f28207"
+ },
+ "pack:gemach@public/config.json": {
+  "in": "3744dae09f52e90d04e3",
+  "out": "4319f2982290aa544579"
+ },
+ "pack:tzedakot@public/config.json": {
+  "in": "fbdaab5bfa2ca05eecde",
+  "out": "3c274790fc3411af64d7"
+ },
+ "pack:digital@public/config.json": {
+  "in": "0f99b1ef3260e59382a4",
+  "out": "62671a9b97de49697f6e"
+ },
+ "pack:build@public/config.json": {
+  "in": "369be91cf46850f9355f",
+  "out": "c689440211f386569f16"
+ },
+ "pack:studio@public/config.json": {
+  "in": "d1428d8b1c1807f75226",
+  "out": "3991a011d88c7547cce9"
+ },
+ "resolve:public/c/demo/config.json+chesed": {
+  "in": "ddd2e9a4632294bb4d38",
+  "out": "c710f7e920be4e8e6055"
+ },
+ "resolve:public/c/demo/config.json+clinic": {
+  "in": "0dc30d1f47641e8a8a22",
+  "out": "d7c905f0e45192c86194"
+ },
+ "resolve:public/c/demo/config.json+shop": {
+  "in": "5723ac4f49f91f8acef9",
+  "out": "f9574e5db26d24663457"
+ },
+ "resolve:public/c/demo/config.json+services": {
+  "in": "5c6c14d3c5a7a6238452",
+  "out": "156b2e905bc1441309af"
+ },
+ "resolve:public/c/demo/config.json+rooms": {
+  "in": "d7bfb225dba926bcf573",
+  "out": "2ef6d35612a5f2f87b0b"
+ },
+ "resolve:public/c/demo/config.json+fleet": {
+  "in": "102877f39fd6b0080b98",
+  "out": "5a214d21fe8be27bb437"
+ },
+ "resolve:public/c/demo/config.json+garage": {
+  "in": "9b0882c7975710ebe484",
+  "out": "63dbd047e42babdf9587"
+ },
+ "resolve:public/c/demo/config.json+hospitality": {
+  "in": "e72343c63ee3d414f43c",
+  "out": "4d7b986dd3cde3f45ac4"
+ },
+ "resolve:public/c/demo/config.json+gemach": {
+  "in": "8b9e26f31bd305f92eaf",
+  "out": "9ecf3919bdaf5f507ce9"
+ },
+ "resolve:public/c/demo/config.json+tzedakot": {
+  "in": "0e4e8b09c2328ec0fb15",
+  "out": "1026dc279afb9dd44de5"
+ },
+ "resolve:public/c/demo/config.json+digital": {
+  "in": "5efa972edd638f9eb37c",
+  "out": "ff24c1b9ee29f328c220"
+ },
+ "resolve:public/c/demo/config.json+build": {
+  "in": "3cfc4aed15051b9536c7",
+  "out": "c3df60d729e7d317ff85"
+ },
+ "resolve:public/c/demo/config.json+studio": {
+  "in": "c0fab54a2f610463d916",
+  "out": "6de23958f080babfd7d5"
+ },
+ "resolve:public/c/maor-hachesed/config.json+chesed": {
+  "in": "ab0e0748a0b54a68bce7",
+  "out": "cbdfd9028d5592a18162"
+ },
+ "resolve:public/c/maor-hachesed/config.json+clinic": {
+  "in": "d61e9f48694c88cb2b95",
+  "out": "bfc12e53e8ccf43bd9b1"
+ },
+ "resolve:public/c/maor-hachesed/config.json+shop": {
+  "in": "fb97915c8769568cf749",
+  "out": "87e520e0367fb3d326ec"
+ },
+ "resolve:public/c/maor-hachesed/config.json+services": {
+  "in": "e57d3c8e5324dfddff66",
+  "out": "c10d28bf476d251e7847"
+ },
+ "resolve:public/c/maor-hachesed/config.json+rooms": {
+  "in": "de8423836818937845ea",
+  "out": "b6e9988eced9e9787bae"
+ },
+ "resolve:public/c/maor-hachesed/config.json+fleet": {
+  "in": "c54486f4884824def384",
+  "out": "3ca80d80d657fa95762b"
+ },
+ "resolve:public/c/maor-hachesed/config.json+garage": {
+  "in": "1fbd76ac68588342423a",
+  "out": "ec62ca35219e4ff322ca"
+ },
+ "resolve:public/c/maor-hachesed/config.json+hospitality": {
+  "in": "d985ad95e23bb6f4a06c",
+  "out": "7dcad397378eb5df6528"
+ },
+ "resolve:public/c/maor-hachesed/config.json+gemach": {
+  "in": "530c33a241f1954c82bb",
+  "out": "7807363372235a1b54c8"
+ },
+ "resolve:public/c/maor-hachesed/config.json+tzedakot": {
+  "in": "25e6085d921fd38e86dd",
+  "out": "5b6c18e898200932dd48"
+ },
+ "resolve:public/c/maor-hachesed/config.json+digital": {
+  "in": "3caa702fa3452380bda6",
+  "out": "a9a639bcad4bcbe0b0c5"
+ },
+ "resolve:public/c/maor-hachesed/config.json+build": {
+  "in": "7a6266fde5c0aba24a7e",
+  "out": "b2aa9c3d1070b5094d97"
+ },
+ "resolve:public/c/maor-hachesed/config.json+studio": {
+  "in": "1f0008a7d104ded591bd",
+  "out": "95bd02ac2d460330680f"
+ },
+ "resolve:public/config.json+chesed": {
+  "in": "163439ac730f7e92b389",
+  "out": "6c6050230a479a70703e"
+ },
+ "resolve:public/config.json+clinic": {
+  "in": "c94480dcb24ee2260fe2",
+  "out": "460202f54c379e96464c"
+ },
+ "resolve:public/config.json+shop": {
+  "in": "e8029f094c01290a2eef",
+  "out": "e462d6bcf5a46b1c53c7"
+ },
+ "resolve:public/config.json+services": {
+  "in": "2ae202a832d27ac2d1bb",
+  "out": "6d87dce415f67640716c"
+ },
+ "resolve:public/config.json+rooms": {
+  "in": "e40338e91871f051ae82",
+  "out": "04e9becc9bacda0db1cd"
+ },
+ "resolve:public/config.json+fleet": {
+  "in": "293162f308e7ce0071ed",
+  "out": "6b5374f4146c566cb59b"
+ },
+ "resolve:public/config.json+garage": {
+  "in": "f6f793ba206a09567c19",
+  "out": "dd6eae5bd1020c856d1f"
+ },
+ "resolve:public/config.json+hospitality": {
+  "in": "8c26173b2798c43d1817",
+  "out": "a11a13c4fe68ebe7aa54"
+ },
+ "resolve:public/config.json+gemach": {
+  "in": "fb87c6cdad08c1276066",
+  "out": "9a30e6825f6014a94dda"
+ },
+ "resolve:public/config.json+tzedakot": {
+  "in": "ee4231b81c5faab2f0c8",
+  "out": "bafa730ba9e02e6e1b94"
+ },
+ "resolve:public/config.json+digital": {
+  "in": "6da48ae72530fc8963f8",
+  "out": "bb635095961c2f9211c1"
+ },
+ "resolve:public/config.json+build": {
+  "in": "cbaf600325ecda84a579",
+  "out": "145584d24e0c1bb14326"
+ },
+ "resolve:public/config.json+studio": {
+  "in": "9be274d595d5c695b8d5",
+  "out": "ead4158f1bf8387997b9"
+ }
+}

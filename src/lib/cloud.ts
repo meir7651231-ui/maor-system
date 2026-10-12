@@ -12,8 +12,13 @@ import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { initAppCheck } from './appCheck';
 import {
   EmailAuthProvider,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  connectAuthEmulator,
   createUserWithEmailAndPassword,
   getAuth,
+  indexedDBLocalPersistence,
+  initializeAuth,
   onAuthStateChanged,
   reauthenticateWithCredential,
   sendEmailVerification,
@@ -45,7 +50,8 @@ import {
   type Firestore,
   type WriteBatch,
 } from 'firebase/firestore';
-import type { FirebaseOrgConfig } from '../types/config';
+import type { EdgeProxyConfig, FirebaseOrgConfig } from '../types/config';
+import { edgeAuthUrl, edgeFirestoreSettings, viaEdge } from './edgeProxy';
 import { AUDIT_CAP, DB_VERSION, type AuditEntry, type Db, type Donation } from '../types/domain';
 import { migrate } from '../store/persist';
 import { ENTITY_COLLECTIONS, colPath, donationsPath, envPath, fullDbDiff, metaPath, type DbDiff } from './cloud-diff';
@@ -68,6 +74,8 @@ export interface CloudUser {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let fsDb: Firestore | null = null;
+/** 🌉 מתווך-הקצה הפעיל במכשיר (מצב-מסונן) — null = ישירות לגוגל, כמו היום. */
+let edgeHost: string | null = null;
 
 /**
  * תחום הארגון (CLOUD2 ענן 1) — קובע את נתיבי האוספים. ברירת המחדל הבטוחה:
@@ -238,26 +246,55 @@ export async function migrateSupportersToKeyed(
   return supporters.length + events.length;
 }
 
-/** אתחול חד-פעמי (idempotent) — קריאה חוזרת מחזירה את אותם singletons. */
-export function initCloud(fb: FirebaseOrgConfig): { auth: Auth; db: Firestore } {
+/**
+ * אתחול חד-פעמי (idempotent) — קריאה חוזרת מחזירה את אותם singletons.
+ *
+ * 🌉 מצב-מסונן (12.10.2026): `edge` = מתווך-הקצה הפעיל במכשיר (edgeForThisDevice). בלי edge —
+ * **בדיוק** הקריאות של היום (ratchet edge-init). עם edge — אותו SDK, רק הכתובות מופנות:
+ * Auth ‏⇒ connectAuthEmulator(https://<edge>) (ה-SDK שם את מארח-גוגל כמקטע-הנתיב הראשון);
+ * Firestore ⇒ host/ssl הרשמיים; Functions ⇒ viaEdge. תכנון: BUILD-ORDER-FILTERED-2026-10-12.
+ */
+export function initCloud(fb: FirebaseOrgConfig, edge: EdgeProxyConfig | null = null): { auth: Auth; db: Firestore } {
   if (app && auth && fsDb) return { auth, db: fsDb };
   app = initializeApp(fb);
   // הגנת-מקור (16.8) — App Check: כשהוגדר firebase.appCheckKey, רק האפליקציה-
   // הרשמית (attestation) מדברת עם ה-Firestore הזה; עותק-מגורר נחסם. דורמנטי בלי מפתח.
   initAppCheck(app, (fb as FirebaseOrgConfig & { appCheckKey?: string }).appCheckKey);
-  auth = getAuth(app);
+  if (edge) {
+    // אותה היררכיית-התמדה של getAuth (משתמש מחובר נשאר מחובר במעבר-מצב), אבל **בלי**
+    // popupRedirectResolver: אורביט = אימייל+סיסמה בלבד, וה-resolver טוען במובייל יזומות
+    // את apis.google.com + iframe מ-firebaseapp.com — חסומים בקו מסונן (ומעכבים את העלייה).
+    auth = initializeAuth(app, { persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence] });
+    // מיד אחרי האתחול ולפני כל בקשת-רשת (חוזה ה-SDK). disableWarnings ⇒ בלי באנר-אמולטור.
+    connectAuthEmulator(auth, edgeAuthUrl(edge), { disableWarnings: true });
+    edgeHost = edge.host;
+  } else {
+    auth = getAuth(app);
+  }
   // מיילי-Auth (איפוס סיסמה, אימות) בשפת המכשיר — דפדפן עברי ⇒ מייל בעברית
   auth.useDeviceLanguage();
+  const edgeFs = edge ? edgeFirestoreSettings(edge) : null;
   try {
     // התמדה לא-מקוונת + תיאום בין טאבים — Firestore מתזמר תור כתיבות בעצמו
     fsDb = initializeFirestore(app, {
       localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+      ...edgeFs,
     });
   } catch {
-    /* דפדפן ללא IndexedDB / initializeFirestore כבר נקרא — נמשיך בלי cache מתמיד */
-    fsDb = getFirestore(app);
+    /* דפדפן ללא IndexedDB / initializeFirestore כבר נקרא — נמשיך בלי cache מתמיד.
+       במצב-מסונן לא getFirestore לבדו: מופע-חדש שלו היה פונה ישירות לגוגל (החסום). */
+    fsDb = edgeFs ? edgeFirestoreFallback(app, edgeFs) : getFirestore(app);
   }
   return { auth, db: fsDb };
+}
+
+/** נפילת-Firestore במצב-מסונן: מופע בלי מטמון-מתמיד אבל דרך המתווך; אם כבר אותחל — הקיים. */
+function edgeFirestoreFallback(a: FirebaseApp, settings: ReturnType<typeof edgeFirestoreSettings>): Firestore {
+  try {
+    return initializeFirestore(a, settings);
+  } catch {
+    return getFirestore(a);
+  }
 }
 
 function requireAuth(): Auth {
@@ -712,7 +749,8 @@ export async function pullNedarim(pullUrl: string, opts: { reset?: boolean } = {
   u.searchParams.set('org', org);
   u.searchParams.set('full', '1');
   if (opts.reset) u.searchParams.set('reset', '1');
-  const r = await fetch(u.toString(), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+  // 🌉 viaEdge: בלי מתווך — אותה כתובת בדיוק; במצב-מסונן — דרך edge.<הדומיין>.
+  const r = await fetch(viaEdge(u.toString(), edgeHost), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
   const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; donors?: number; added?: number; pages?: number };
   if (!r.ok || j.ok === false) throw new Error(j.error || 'משיכה נכשלה (' + r.status + ')');
   return j;
@@ -733,7 +771,8 @@ export async function pullSola(pullUrl: string, opts: { reset?: boolean } = {}):
   // vault מגשר כדי שהפונקציה תמצא את ה-xKey שהוזן בהגדרות.
   if (scope.cloudRoot && scope.slug && scope.slug !== 'default') u.searchParams.set('vault', scope.slug);
   if (opts.reset) u.searchParams.set('reset', '1');
-  const r = await fetch(u.toString(), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+  // 🌉 viaEdge: בלי מתווך — אותה כתובת בדיוק; במצב-מסונן — דרך edge.<הדומיין>.
+  const r = await fetch(viaEdge(u.toString(), edgeHost), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
   const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; added?: number; scanned?: number; window?: string; debug?: string };
   if (!r.ok || j.ok === false) throw new Error(j.error || 'משיכה נכשלה (' + r.status + ')');
   return j;
@@ -753,7 +792,8 @@ export async function syncGContacts(fnUrl: string): Promise<{ total?: number; cr
   u.searchParams.set('org', org);
   // לקוח-השורש: הנתונים ב-root אבל הכספת (orgSecrets) נכתבת תחת ה-slug האמיתי — vault מגשר (כמו pullSola)
   if (scope.cloudRoot && scope.slug && scope.slug !== 'default') u.searchParams.set('vault', scope.slug);
-  const r = await fetch(u.toString(), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+  // 🌉 viaEdge: בלי מתווך — אותה כתובת בדיוק; במצב-מסונן — דרך edge.<הדומיין>.
+  const r = await fetch(viaEdge(u.toString(), edgeHost), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
   const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; status?: { total?: number; created?: number; updated?: number; skipped?: string } };
   if (!r.ok || j.ok === false) throw new Error(j.error || 'סנכרון נכשל (' + r.status + ')');
   return j.status || {};

@@ -37,13 +37,32 @@ export interface NetCheckResult extends NetCheckTarget {
   ms: number;
 }
 
-/** יעדי-הבדיקה — googleapis רק כשלארגון יש ענן (מקומי-בלבד לא תלוי בהם). */
-export function netCheckTargets(origin: string, firebase?: FirebaseOrgConfig | null): NetCheckTarget[] {
+/**
+ * יעדי-הבדיקה — googleapis רק כשלארגון יש ענן (מקומי-בלבד לא תלוי בהם).
+ * 🌉 מצב-מסונן (12.10): כשהמכשיר מנותב דרך מתווך-הקצה (`edgeHost`), האפליקציה כבר לא פונה
+ * לגוגל — בודקים את המתווך במקום שלושת מארחי-גוגל, וטקסט-הבקשה לחברת-הסינון יבקש אותו.
+ * בלי edgeHost ⇒ בדיוק היעדים של היום.
+ */
+export function netCheckTargets(origin: string, firebase?: FirebaseOrgConfig | null, edgeHost?: string | null): NetCheckTarget[] {
   const bust = 'netcheck=' + Math.random().toString(36).slice(2);
   // מזהה-פרויקט/מפתח מהקונפיג — לבניית נתיב-API אמיתי שמחזיר CORS. חסר ⇒ ערך-בדיקה
   // ניטרלי (התשובה עדיין נושאת CORS — מודדים נגישות-רשת, לא תקינות-הבקשה).
   const projectId = firebase?.projectId || 'netcheck';
   const apiKey = firebase?.apiKey || 'netcheck';
+  if (firebase && edgeHost) {
+    return [
+      { key: 'site', label: 'האתר עצמו', url: origin + '/version.json?' + bust, domain: new URL(origin).host },
+      {
+        key: 'edge',
+        label: 'מתווך-הקצה (כניסה + סנכרון)',
+        // נתיב שה-Worker מתיר (רענון-טוקן, מפתח-הפרויקט); גוגל עונה 400 עם CORS ⇒ נגיש.
+        url: 'https://' + edgeHost + '/securetoken.googleapis.com/v1/token?key=' + encodeURIComponent(apiKey) + '&' + bust,
+        method: 'POST' as const,
+        body: 'grant_type=refresh_token&refresh_token=netcheck',
+        domain: edgeHost,
+      },
+    ];
+  }
   return [
     { key: 'site', label: 'האתר עצמו', url: origin + '/version.json?' + bust, domain: new URL(origin).host },
     ...(firebase

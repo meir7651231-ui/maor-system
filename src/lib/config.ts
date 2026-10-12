@@ -8,6 +8,7 @@
  */
 import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, MOTION_KEYS, SITE_LANGS, type FirebaseOrgConfig, type LocalizedText, type ModuleKey, type OrgConfig, type PublicSiteContent, type SiteLang, type TelNumber, type TelephonyConfig } from '../types/config';
 import { TEMPLATE_KEYS } from './templates';
+import { normalizeEdgeProxy } from './edgeProxy';
 
 const LS_CONFIG_KEY = 'maor_org_config';
 
@@ -627,6 +628,11 @@ export function normalizeConfig(raw: unknown): OrgConfig | null {
     if (hosts.length) cfg.allowedHosts = hosts;
     else delete cfg.allowedHosts;
   } else delete cfg.allowedHosts;
+  // 🌉 מצב-מסונן (12.10) — מתווך-קצה: allowlist מלא (host https-בלבד תחת EDGE_HOST_SUFFIXES,
+  // allDevices/forceLongPolling רק true). חסר/פגום ⇒ מוסר ⇒ ביט-זהה (ratchet edge-config-golden).
+  const edge = normalizeEdgeProxy(c.edgeProxy);
+  if (edge) cfg.edgeProxy = edge;
+  else delete cfg.edgeProxy;
   return cfg;
 }
 
@@ -819,6 +825,10 @@ export function resolveOrgConfig(staticCfg: OrgConfig, cloudRaw: unknown): OrgCo
   if (!cloud) return staticCfg;
   const merged: OrgConfig = { ...cloud, slug: staticCfg.slug };
   if (!merged.firebase && staticCfg.firebase) merged.firebase = staticCfg.firebase;
+  // 🌉 מתווך-הקצה = bootstrap (חייב להיות ידוע לפני כל קריאת-ענן): רק מהקונפיג הסטטי/המקומי.
+  // מסמך-ענן לא יכול להדליק/להפנות את תעבורת-הכניסה (סיסמאות/טוקנים) — ערך ממנו נמחק.
+  if (staticCfg.edgeProxy) merged.edgeProxy = staticCfg.edgeProxy;
+  else delete merged.edgeProxy;
   return merged;
 }
 

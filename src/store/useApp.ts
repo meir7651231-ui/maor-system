@@ -57,6 +57,7 @@ import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManag
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isAdminAuthority, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, supEnforceOn, termOf, writeCloudConfigCache } from '../lib/config';
+import { edgeForThisDevice } from '../lib/edgeProxy';
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
@@ -1006,7 +1007,8 @@ export const useApp = create<AppState>()((set, get) => {
     try {
       const mod = await import('./cloudSync');
       cloudMod = mod;
-      mod.initCloud(fb);
+      // 🌉 מצב-מסונן (12.10): מתווך-הקצה הפעיל במכשיר — null בלי config.edgeProxy (ביט-זהה להיום).
+      mod.initCloud(fb, edgeForThisDevice(cfg));
       // תחום הנתיבים (CLOUD2 ענן 1): הלקוח הקיים (cloudRoot:true) = שורש —
       // ביט-זהה להיום; ארגון-פלטפורמה = orgs/{slug}/
       mod.setCloudScope(cfg.slug, cfg.cloudRoot === true);

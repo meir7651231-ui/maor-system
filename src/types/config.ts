@@ -334,6 +334,15 @@ export interface OrgConfig {
     appCheckKey?: string;
   };
   /**
+   * 🌉 מצב-מסונן (12.10.2026) — מתווך-קצה (Cloudflare Worker, ‏edge-proxy/) על תת-דומיין
+   * של האתר, שדרכו עוברת תעבורת-הענן (Firestore/Auth/Functions) — ללקוחות על אינטרנט
+   * מסונן (נטפרי/רימון) שהסנן חוסם את googleapis. **חסר ⇒ ביט-זהה להיום.** קיים ⇒ רק
+   * מכשיר שהופעל בקישור ‎?edge=on‎ מנותב, או כל המכשירים כש-allDevices:true. מחוטא
+   * ב-normalizeConfig (EDGE_HOST_SUFFIXES); נקבע רק מהקונפיג הסטטי/המקומי — מסמך-ענן לא
+   * יכול להפנות את תעבורת-הכניסה (resolveOrgConfig). תכנון: BUILD-ORDER-FILTERED-2026-10-12.
+   */
+  edgeProxy?: EdgeProxyConfig;
+  /**
    * הגנת-מקור (16.8) — allowlist מארחים (hostnames) שבהם האתר רשאי לרוץ. כשמוגדר,
    * טעינה ממארח לא-מוכר (עותק-מגורר) מזוהה ⇒ אזהרת-זכויות בקונסולה (הרתעה+זיהוי).
    * חסר ⇒ אין בדיקה (ביט-זהה להיום). לא-חוסם (frontend ניתן-לעריכה) — שכבת-הרתעה.
@@ -376,6 +385,23 @@ export interface OrgConfig {
 
 /** קונפיגורציית Firebase של ארגון — קיצור נוחות. */
 export type FirebaseOrgConfig = NonNullable<OrgConfig['firebase']>;
+
+/** 🌉 מתווך-הקצה (מצב-מסונן) — ראו OrgConfig.edgeProxy ו-lib/edgeProxy.ts. */
+export interface EdgeProxyConfig {
+  /** hostname נקי של המתווך (https בלבד) — תת-דומיין של אחת מ-EDGE_HOST_SUFFIXES. */
+  host: string;
+  /** true ⇒ כל מכשירי-הארגון מנותבים (חוץ ממכשיר שכיבה ב-‎?edge=off‎). חסר ⇒ רק מכשיר שהופעל ב-‎?edge=on‎. */
+  allDevices?: boolean;
+  /** true ⇒ Firestore בכפיית long-polling (סנן שאוגר תשובות-זרם). חסר ⇒ ברירת-ה-SDK (זיהוי-אוטומטי). */
+  forceLongPolling?: boolean;
+}
+
+/**
+ * allowlist הדומיינים שתחתיהם מותר מתווך-קצה (סיומת עם נקודה מובילה ⇒ תת-דומיין בלבד).
+ * דרך המתווך עוברות סיסמאות וטוקנים — לכן אסור שקונפיג מיובא, דריסה מקומית או מסמך-ענן
+ * יפנו לשום מארח שאינו של הבעלים. הוספת דומיין = שינוי-קוד מכוון ונבדק.
+ */
+export const EDGE_HOST_SUFFIXES = ['.orbit-il.com'] as const;
 
 /**
  * מפתחות-ההרחבות החוקיים (INTEGRATIONS) — מקור-אמת יחיד: normalizeConfig מחטא
