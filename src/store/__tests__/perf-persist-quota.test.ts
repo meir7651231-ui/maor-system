@@ -146,6 +146,9 @@ describe('🧷 הגנת-מקור — החיווט נשאר', () => {
     expect(persistSrc).toContain("const json: string | null = encrypting || !lsDropped ? JSON.stringify(doc) : null;");
     expect(persistSrc).toContain('const stored = await readStoredEnvelope();');
     expect(persistSrc).not.toMatch(/readStoredEnvelope\(\)[\s\S]{0,900}getIdb\(\)\)\.get\(IDB_STORE, 'current'\)/);
-    expect(useAppSrc).toContain("if (ok && takeLsDroppedNotice()) get().toast('הנתונים גדולים — נשמרים במאגר הפנימי של הדפדפן בלבד');");
+    // אינטגרציה (12.10): ההודעה נדחית ל-idle (runWhenIdleVisible) — עדכון-store סינכרוני מתוך callback של
+    // IDB-put באמצע רינדור-המעבר של הטאב גרם ל-React לזרוק את הרינדור ולהתחיל מחדש (פתיחת-טאב 2.4s ⇒ 3.6s ב-×4).
+    expect(useAppSrc).toContain("if (ok && takeLsDroppedNotice()) runWhenIdleVisible(() => get().toast('הנתונים גדולים — נשמרים במאגר הפנימי של הדפדפן בלבד'), 5_000);");
+    expect(useAppSrc).not.toMatch(/takeLsDroppedNotice\(\)\) get\(\)\.toast\(/);
   });
 });

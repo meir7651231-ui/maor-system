@@ -84,6 +84,7 @@ import {
   flushSaveSync,
   isIdbBackupMissing,
   takeLsDroppedNotice,
+  runWhenIdleVisible,
   currentDbKey,
   readStoredPlainDb,
   setPersistNamespace,
@@ -899,7 +900,10 @@ export const useApp = create<AppState>()((set, get) => {
       }
       // ⚡ משטר-מכסה (12.10): המסמך גדול מ-localStorage (34MB אצל הלקוח האמיתי — QuotaExceeded בכל
       // שמירה) ⇒ persist עבר ל-IDB-בלבד; הודעה חד-פעמית למכשיר (persist נקי מ-store — דגל נצרך כאן).
-      if (ok && takeLsDroppedNotice()) get().toast('הנתונים גדולים — נשמרים במאגר הפנימי של הדפדפן בלבד');
+      // ⚡ אינטגרציה (12.10): ההודעה נדחית ל-idle — ה-put של IDB מסתיים בדיוק בזמן ציור-הטאב (×4 האטה),
+      // ועדכון-store סינכרוני באמצע רינדור-מעבר של 16k שורות גרם ל-React לזרוק את הרינדור ולהתחיל מחדש
+      // (נמדד: פתיחת-טאב 2.4s ⇒ 3.6s, כל ה-useMemo-ים רצו פעמיים). ב-idle אין רינדור-בתהליך להפריע לו.
+      if (ok && takeLsDroppedNotice()) runWhenIdleVisible(() => get().toast('הנתונים גדולים — נשמרים במאגר הפנימי של הדפדפן בלבד'), 5_000);
     }, 500);
   }
 
