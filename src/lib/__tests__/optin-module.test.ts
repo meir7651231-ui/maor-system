@@ -403,13 +403,16 @@ describe('📒 שרשרת-הרישום של parnasa (אשכול 0)', () => {
     expect(sec?.termKeys).toEqual(keys);
   });
 
-  it('App: VIEW_LOADERS (chunk עצל) · lazy · NAV · VIEWS · ה-stub מציג מצב-ריק', () => {
+  it('App: VIEW_LOADERS (chunk עצל) · lazy · NAV · VIEWS · המסך (אשכול 5: הלשוניות האמיתיות במקום ה-stub)', () => {
     expect(appSrc).toContain("parnasa: () => import('./components/parnasa/ParnasaView'),");
     expect(appSrc).toContain('const ParnasaView = lazy(async () => ({ default: (await VIEW_LOADERS.parnasa()).ParnasaView }));');
     expect(appSrc).toContain("{ view: 'parnasa', icon: '📒', label: 'פרנסה׳לע' }");
     expect(appSrc).toContain('parnasa: ParnasaView,');
     expect(stubSrc).toContain('export function ParnasaView()');
-    expect(stubSrc).toContain('המודול בבנייה');
+    // 12.10 אשכול 5 (שינוי-נעילה מכוון): ה-stub "המודול בבנייה" הוחלף בצ'יפ-לשוניות מגודרות-תת-דגל
+    // — הנעילה המלאה ב-components/parnasa/__tests__/parnasa-shell.test.ts
+    expect(stubSrc).not.toContain('המודול בבנייה');
+    expect(stubSrc).toContain("featureOn(config, 'parnasa.directory')");
     expect(stubSrc).toContain("termOf(config, 'nav.parnasa', 'פרנסה׳לע')");
   });
 });

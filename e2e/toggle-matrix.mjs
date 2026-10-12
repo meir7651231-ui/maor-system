@@ -510,8 +510,8 @@ for (const profile of PROFILES) {
   await ctx.close();
 }
 
-// ── פרנסה׳לע מודלק במפורש (opt-in, 12.10): הקישור מופיע, ה-chunk העצל נטען, המסך מציג מצב-ריק,
-//    ו-9 המודולים הקיימים לא זזים (חסר = פעיל) ──
+// ── פרנסה׳לע מודלק במפורש (opt-in, 12.10): הקישור מופיע, ה-chunk העצל נטען, 9 המודולים הקיימים לא זזים
+//    (חסר = פעיל); אשכול 5: הלשוניות האמיתיות — ➕ עסק ⇒ קוד-חיוג, "מה צריך?", "לא מצאתי" ⇒ בקשה, כל לשונית ──
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 950 } });
   const page = await ctx.newPage();
@@ -541,7 +541,51 @@ for (const profile of PROFILES) {
   await page.locator('nav >> text=פרנסה׳לע').click();
   await page.waitForTimeout(700);
   const main = (await page.locator('main').textContent()) ?? '';
-  t('מסך פרנסה׳לע נטען — מצב-ריק "המודול בבנייה"', main.includes('המודול בבנייה'));
+  // אשכול 5 (12.10): ה-stub "המודול בבנייה" הוחלף בלשוניות האמיתיות — מקומי בלי adminEmails = סמכות-גבאי
+  const PR_TABS = ['🏠 טיפול ואישורים', '📇 מדריך', '🙋 בקשות', '📌 לוח קהילה', '📖 חוברת', '📣 פרסומות', '⚙ הגדרות'];
+  t('מסך פרנסה׳לע נטען — 6 הלשוניות + ⚙ הגדרות (גבאי)', PR_TABS.every((x) => main.includes(x)), PR_TABS.filter((x) => !main.includes(x)).join(', '));
+  t('ה-stub הישן לא חזר', !main.includes('המודול בבנייה'));
+  const prTab = (label) => page.locator('main button.chip', { hasText: label }).first().click();
+
+  // ➕ עסק (גבאי ⇒ מאושר מיד + קוד-החיוג הבא) ⇒ הכרטיס המלא נפתח
+  await prTab('📇 מדריך');
+  await page.waitForTimeout(300);
+  await page.locator('main button', { hasText: '➕ הוספת עסק' }).click();
+  await page.locator('.modal input[placeholder="ר׳ יעקב כהן"]').fill('אינסטלציה-מטריצה');
+  await page.locator('.modal input[placeholder="חשמלאי מוסמך, תיקוני קצרים ולוחות"]').fill('נזילות וסתימות');
+  await page.locator('.modal select').first().selectOption('elec');
+  await page.locator('.modal input[placeholder="050-0000000"]').fill('050-0000101');
+  await page.locator('.modal label', { hasText: 'קיבלתי את הסכמת' }).locator('input').check();
+  await page.locator('.modal button', { hasText: 'הוספה למדריך' }).click();
+  await page.waitForTimeout(500);
+  let prMain = (await page.locator('main').textContent()) ?? '';
+  t('עסק חדש של הגבאי — מאושר עם קוד-חיוג 101, הכרטיס המלא נפתח', prMain.includes('אינסטלציה-מטריצה') && prMain.includes('קוד חיוג 101') && prMain.includes('שעות פעילות'));
+  await page.locator('button', { hasText: '→ חזרה למדריך' }).first().click();
+  await page.waitForTimeout(300);
+
+  // "מה צריך?" — שאילתת-בעיה מוצאת את בעל-המקצוע
+  await page.locator('main input[placeholder="נזילה, קצר בחשמל, מלמד…"]').fill('יש לי נזילה בכיור');
+  await page.waitForTimeout(300);
+  prMain = (await page.locator('main').textContent()) ?? '';
+  t('"מה צריך?" — "נזילה בכיור" מוצא את אינסטלציה-מטריצה', prMain.includes('אינסטלציה-מטריצה') && prMain.includes('אינסטלציה'));
+
+  // "לא מצאתי" ⇒ בקשה ממולאת ⇒ לשונית-הבקשות עם שורת-המסלול
+  await page.locator('main input[placeholder="נזילה, קצר בחשמל, מלמד…"]').fill('מחפש מלמד לגמרא');
+  await page.waitForTimeout(300);
+  await page.locator('main button', { hasText: '➕ פתיחת בקשה' }).click();
+  await page.waitForTimeout(300);
+  await page.locator('.modal button', { hasText: 'שמירת הבקשה' }).click();
+  await page.waitForTimeout(400);
+  prMain = (await page.locator('main').textContent()) ?? '';
+  t('"לא מצאתי" ⇒ בקשה נפתחה ומנותבת (פתוחה לקהילה — אין עסק בתחום)', prMain.includes('מחפש מלמד לגמרא') && prMain.includes('פתוחה לכל הקהילה'));
+
+  // כל לשונית מתרנדרת בדפדפן בלי שגיאה
+  for (const label of PR_TABS) {
+    await prTab(label);
+    await page.waitForTimeout(250);
+  }
+  prMain = (await page.locator('main').textContent()) ?? '';
+  t('⚙ הגדרות נטענו (מיקום הזמנים)', prMain.includes('מיקום הזמנים'));
   t('אפס שגיאות JS בפרופיל', errors.length === 0, errors.slice(0, 2).join(' | '));
 
   console.log('\n📦 פרנסה׳לע מודלק במפורש (opt-in)');
