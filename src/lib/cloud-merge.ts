@@ -6,6 +6,7 @@
 import { emptyAyin, mergeDelLogs, type AyinCase, type DelEntry, type Db } from '../types/domain';
 import { ENTITY_COLLECTIONS, type EntityCol } from './cloud-diff';
 import { AYIN_STAGES } from './ayin';
+import { healPrRecord } from '../components/parnasa/model';
 
 /**
  * חיזוק מסמך ישות מרוחק: מסמך שנכתב בגרסה ישנה / נערך ידנית ב-Firestore עלול
@@ -32,6 +33,11 @@ const LIST_FIELDS: Record<string, readonly string[]> = {
   shopAssignments: ['redemptions', 'criterionIds'],
   // רשימת ההמתנה על הפריט (SHOP6 חנות 27)
   shopItems: ['waits'],
+  // 📒 פרנסה׳לע — שעות/שירותים/המלצות/שפות · תשובות-לבקשה · תפילות-מניין+ימים (BUILD-ORDER-PARNASA);
+  // ה-enum-ים (status/kind/slot/category…) נבדקים ב-healRecord דרך המודל המשותף (parnasa/model.ts)
+  prListings: ['hours', 'services', 'recs', 'languages'],
+  prRequests: ['responses'],
+  prPosts: ['prayers', 'days'],
 };
 
 /** ריפוי-רשומה פר-אוסף — משקף את migrate() (persist.ts) עבור המיזוג-החי: ערך-מפתח
@@ -50,6 +56,9 @@ function healRecord(col: string, item: Record<string, unknown>): Record<string, 
   }
   if (col === 'events' && !EVENT_TYPES.has(String(item.type))) return { ...item, type: 'custom' };
   if (col === 'tasks' && ![1, 2, 3].includes(item.pri as number)) return { ...item, pri: 2 };
+  // 📒 פרנסה׳לע: אותו ריפוי כמו migrate (מודל משותף) — status/kind/slot/category זרים ⇒ ברירת-מחדל
+  // בטוחה (fail-closed), requester חסר ⇒ {name,phone}, quiet+job ⇒ job=false. תקין ⇒ אותה הפניה.
+  if (col === 'prListings' || col === 'prRequests' || col === 'prPosts' || col === 'prAds') return healPrRecord(col, item);
   // לוח-מעקב 3.9: ayin חלקי מהענן (מסמך שנכתב מהלגאסי/גרסה ישנה — בלי names/log/answers, או שלב
   // לא-מוכר) קרס את מסך-התורמים (eyesTotal). משקף את הריפוי ב-migrate (persist.ts). תומכ/ת תקין/ה
   // מוחזר/ת באותה הפניה (no-op ⇒ אין לולאת-הד); בלי ayin ⇒ לא מוסיפים את המפתח.

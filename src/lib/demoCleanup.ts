@@ -36,6 +36,11 @@ const FP_FIELDS: Record<string, string[]> = {
   shopIntakes: ['name', 'note'],
   tasks: ['title', 'note', 'desc'],
   warehouse: ['name', 'sku', 'note'],
+  // 📒 פרנסה׳לע — אין כרגע שורות-דמו (הכרעה 7: לא בדמו); הטביעות מוכנות אם ייזרעו
+  prListings: ['name', 'title', 'phone', 'city'],
+  prRequests: ['text', 'category', 'area'],
+  prPosts: ['kind', 'title', 'text', 'place'],
+  prAds: ['advertiser', 'headline', 'phone'],
 };
 
 /** ישויות-בסיס שמזוהות לפי טביעת-אצבע (סדר-שמות לתצוגה: name/title). */

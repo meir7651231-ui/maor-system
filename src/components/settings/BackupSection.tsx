@@ -37,6 +37,7 @@ const ENT_LABEL: Record<string, string> = {
   shopItems: 'פריטי חנות', shopStores: 'חנויות', shopCriteria: 'קריטריונים',
   shopProducts: 'מוצרי חנות', shopAssignments: 'שיוכי חנות', shopEvents: 'אירועי חנות',
   shopIntakes: 'קליטות', tasks: 'משימות', warehouse: 'מחסן',
+  prListings: 'עסקים במדריך', prRequests: 'בקשות תושבים', prPosts: 'מודעות לוח-קהילה', prAds: 'פרסומות וחסויות',
 };
 
 export function BackupSection() {

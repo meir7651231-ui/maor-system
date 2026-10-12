@@ -11,6 +11,7 @@ import { isoLocal } from '../lib/date-util';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { sanitizePhotos } from '../lib/photoGallery';
 import { AYIN_STAGES } from '../lib/ayin';
+import { healParnasaPrefs, healPrCollection } from '../components/parnasa/model';
 import {
   DB_VERSION,
   emptyAyin,
@@ -270,6 +271,11 @@ export function migrate(raw: unknown): Db | null {
     tasks: Array.isArray(db.tasks) ? db.tasks : [],
     // ורטיקל-הסטודיו: מלאי-מחסן — אדיטיבי (גיבוי/ענן ישן = מערך ריק)
     warehouse: Array.isArray(db.warehouse) ? db.warehouse : [],
+    // 📒 פרנסה׳לע (opt-in, 12.10): ארבעת האוספים — אדיטיבי (גיבוי/ענן ישן = מערך ריק)
+    prListings: Array.isArray(db.prListings) ? db.prListings : [],
+    prRequests: Array.isArray(db.prRequests) ? db.prRequests : [],
+    prPosts: Array.isArray(db.prPosts) ? db.prPosts : [],
+    prAds: Array.isArray(db.prAds) ? db.prAds : [],
     notif: { ...base.notif, ...db.notif },
     reports: { ...base.reports, ...db.reports },
     ui: { ...base.ui, ...db.ui },
@@ -568,6 +574,18 @@ export function migrate(raw: unknown): Db | null {
   const EVT = new Set(['reminder', 'call', 'wedding', 'memorial', 'anniversary', 'bday', 'org', 'custom']);
   merged.events = (merged.events as unknown as Array<Record<string, unknown>>).map((e) => (e && EVT.has(String(e.type)) ? e : { ...e, type: 'custom' })) as unknown as typeof merged.events;
   merged.tasks = (merged.tasks as unknown as Array<Record<string, unknown>>).map((t) => (t && [1, 2, 3].includes(t.pri as number) ? t : { ...t, pri: 2 })) as unknown as typeof merged.tasks;
+  // 📒 פרנסה׳לע — ריפוי פר-רשומה (המודל המשותף למיזוג-החי: components/parnasa/model.ts): איבר
+  // לא-אובייקט נזרק · מערכים מקוננים (hours/services/recs · responses · prayers/days) ⇒ [] ·
+  // enum זר ⇒ ברירת-מחדל בטוחה (סטטוס ⇒ 'pending', approved ⇒ false — לא מפרסמים מה שלא אושר).
+  // אוסף תקין ⇒ אותו מערך (ביט-זהה); הגדרות-המודול מחוטאות רק כשקיימות (ui בלי parnasa — ללא נגיעה).
+  merged.prListings = healPrCollection('prListings', merged.prListings);
+  merged.prRequests = healPrCollection('prRequests', merged.prRequests);
+  merged.prPosts = healPrCollection('prPosts', merged.prPosts);
+  merged.prAds = healPrCollection('prAds', merged.prAds);
+  if (merged.ui.parnasa !== undefined) {
+    const prefs = healParnasaPrefs(merged.ui.parnasa);
+    if (prefs !== merged.ui.parnasa) merged.ui = { ...merged.ui, parnasa: prefs };
+  }
   if (typeof merged.orgName !== 'string') merged.orgName = base.orgName;
   if (typeof merged.orgSite !== 'string') merged.orgSite = base.orgSite;
   if (typeof merged.orgDonate !== 'string') merged.orgDonate = base.orgDonate;

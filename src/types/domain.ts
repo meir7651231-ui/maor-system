@@ -3,7 +3,7 @@
  * כל הישויות נשמרות יחד במסמך DB אחד (ראו store/persist.ts) עם גרסת סכמה.
  */
 
-/** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp/tzc/tzb/tzp/tze/tzl/shp/shs/shc/sha/shr/she/shi). */
+/** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp/tzc/tzb/tzp/tze/tzl/shp/shs/shc/sha/shr/she/shi/prl/prq/prp/pra). */
 export type Id = string;
 
 /** תאריך בפורמט ISO ‏(YYYY-MM-DD). */
@@ -805,6 +805,8 @@ export interface UiPrefs {
   cashReceipts?: CashReceiptRec[];
   cashShift?: CashShiftRec | null;
   cashShifts?: CashShiftCloseRec[];
+  /** 📒 הגדרות מודול פרנסה׳לע (opt-in) — חסר = ברירות-המחדל (מחוטא ב-migrate; מפתח לא-מוכר נשמר — תאימות-קדימה). */
+  parnasa?: ParnasaPrefs;
 }
 
 /** רשומת אישור-תשלום של הקופה-הרושמת (שיקוף — המבנה של הרכיב). */
@@ -1149,7 +1151,260 @@ export interface DistributionDay {
   createdAt: IsoDate;
 }
 
-/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (21 מערכי ישויות). */
+/* ---------- 📒 פרנסה׳לע (מודול parnasa — opt-in ומבודד; BUILD-ORDER-PARNASA-2026-10-12) ----------
+ * מדריך-עסקים שכונתי · "מה צריך?" (בקשות תושבים) · לוח-קהילה · חוברת A5 · משבצות-פרסום.
+ * בידוד (הכרעה 4): אפס נגיעה בקבלות/תרומות/מונים/לוח-ראשי — פרסום/חסות = payLink בלבד.
+ * ההגדרות ב-db.ui.parnasa (ParnasaPrefs — רוכבות על meta, בלי שדה-Db סקלרי חדש).
+ * קבועי-ה-enum והריפוי — components/parnasa/model.ts (משותף ל-migrate ולמיזוג-החי).
+ * כל השדות additive — DB_VERSION נשאר 6; גיבוי ישן בלי האוספים נטען עם [].
+ */
+
+/** סטטוס-אישור-גבאי: ממתין · מאושר · נדחה. */
+export type PrStatus = 'pending' | 'approved' | 'rejected';
+
+/**
+ * מקור-הרישום: owner = בעל-העסק מסר/נרשם בעצמו (זמין דיגיטלית — נספר כמקבל-בקשות) ·
+ * gabbai = הוזן ע"י הגבאי בהסכמה (טלפון כשר/בלי אינטרנט — **לא** נספר בניתוב-בקשות,
+ * אחרת בקשה בתחום שיש בו רק רשומות-גבאי "נתקעת" 3 שעות מול אף-אחד — תיקון מול המקור).
+ */
+export type PrSource = 'owner' | 'gabbai';
+
+/**
+ * חלון-פעילות שבועי של עסק. dow: 0=ראשון … 6=מוצאי-שבת (סגירת שבת/יו"ט נאכפת במנוע —
+ * חלון במוצ"ש נפתח רק אחרי צאת). from>to = חוצה-חצות (22:00→02:00).
+ */
+export interface PrHours {
+  dow: number;
+  from: TimeHM;
+  to: TimeHM;
+}
+
+/** שירות במחירון-העסק — המחיר הוא טקסט-תצוגה חופשי ("150" / "מ־300" / "לפי הצעה"), לא שדה-כספי. */
+export interface PrService {
+  name: string;
+  price: string;
+  note: string;
+}
+
+/** המלצה מהקהילה על עסק (רישום פנימי; נספרת בדירוג "מה צריך?"). */
+export interface PrRec {
+  /** שם הממליץ/ה ('' = בלי שם). */
+  by: string;
+  text: string;
+  /** חותמת ISO מלאה. */
+  at: string;
+}
+
+/** עסק / בעל-מקצוע במדריך (prl…). */
+export interface PrListing {
+  id: Id;
+  source: PrSource;
+  /** שם מלא / שם העסק. */
+  name: string;
+  /** במה עובדים — משפט קצר (נכנס לחיפוש). */
+  title: string;
+  /** אחד מ-15 שערי-המקצוע (PR_CATEGORY_KEYS ב-model.ts); לא-מוכר ⇒ 'other'. */
+  category: string;
+  /** אזורי-שירות — טקסט חופשי ("ירושלים והסביבה"). */
+  area: string;
+  /** עיר / שכונה. */
+  city: string;
+  phone: string;
+  phone2: string;
+  /** מספר וואטסאפ ('' = אין וואטסאפ; לרוב = phone). */
+  whatsapp: string;
+  hours: PrHours[];
+  /** זמין תמיד — חוץ משבת/יו"ט, שנאכפים במנוע. */
+  always: boolean;
+  /** שעות במילים לתצוגה ("א׳–ה׳ 8:00–19:00, ו׳ עד 12:00"). */
+  hoursNote: string;
+  services: PrService[];
+  /** שפות-שירות: he/yi/en/fr/ru. */
+  languages: string[];
+  /** השגחה (לעסקי מזון) — '' = לא רלוונטי. */
+  kashrut: string;
+  /** זמינים לקריאות חירום. */
+  emergency: boolean;
+  /** על העסק — טקסט ציבורי (נכנס לחיפוש ולחוברת). */
+  desc: string;
+  /** הערה פנימית לגבאי — לא בחוברת, לא בייצוא, לא בחיפוש. */
+  notes: string;
+  status: PrStatus;
+  /** קוד-חיוג בן 3 ספרות (מודפס בחוברת; עוגן לקו-טלפון עתידי — הכרעה 5) — '' = טרם הוקצה. */
+  dialCode: string;
+  /** כרטיס מודגש עד תאריך (כולל) — '' = לא מודגש. */
+  featuredUntil: IsoDate | '';
+  recs: PrRec[];
+  /** משפט-מפתח (נכנס לחיפוש) — אופציונלי. */
+  tagline?: string;
+  /** מתאים ל: כולם/גברים/נשים — חסר = כולם. */
+  aud?: 'all' | 'men' | 'women';
+  /** הנחה לאנשי הקהילה. */
+  disc?: boolean;
+  /** גמ"ח / בהתנדבות. */
+  free?: boolean;
+  /** חותמות ISO מלאות. */
+  createdAt: string;
+  updatedAt: string;
+  /** אישור/דחייה אחרונים (גבאי). */
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
+/** סטטוס בקשת-תושב: פתוחה · נענתה (≥1 תשובה) · נסגרה. */
+export type PrRequestStatus = 'open' | 'answered' | 'closed';
+
+/** תשובת-עסק לבקשה ("אני זמין" / תשובה עיוורת לבקשה שקטה) — אחת לכל עסק. */
+export interface PrResponse {
+  /** העסק העונה ('' = מענה ידני של הגבאי). */
+  listingId: Id | '';
+  text: string;
+  /** חותמת ISO מלאה. */
+  at: string;
+}
+
+/** פרטי-המבקש/ת — נשמרים בנפרד מגוף-הבקשה; לבקשה שקטה לעולם לא בתצוגת-העסקים (נאכף במנוע). */
+export interface PrRequester {
+  name: string;
+  phone: string;
+}
+
+/** בקשת תושב — "מה צריך?" (prq…). לא ציבורית (הכרעה 6). */
+export interface PrRequest {
+  id: Id;
+  /** מה צריך — במילים של המבקש/ת. */
+  text: string;
+  /** שער-מקצוע, או '' = "לא משנה". */
+  category: string;
+  area: string;
+  /** דחוף (צריך היום) — חלון-המקצוע מתקצר לשעה. */
+  urgent: boolean;
+  /** בשקט — נושא רגיש: בלי שם וטלפון בתצוגת-העסקים, לא עוברת לקהילה. לעולם לא יחד עם job. */
+  quiet: boolean;
+  /** הצעת-עבודה (מחפשים עובד) — אין לה מקבלי-מקצוע; ישר לקהילה. */
+  job: boolean;
+  requester: PrRequester;
+  status: PrRequestStatus;
+  responses: PrResponse[];
+  /** חותמת ISO מלאה — עוגן חלון-הניתוב (3 שעות; שעה בדחוף). */
+  createdAt: string;
+  updatedAt: string;
+  closedAt?: string;
+}
+
+/** סוג-מודעה בלוח-הקהילה: הודעה · מניין · אירוע · מספר-חירום. */
+export type PrPostKind = 'notice' | 'minyan' | 'event' | 'emergency';
+
+/** זמני-תפילה של בית-כנסת — כל זמן: "HH:MM" · ‏"sh±N" (שקיעה±דק׳) · ‏"tz±N" (צאת±דק׳) · ‏"nz±N" (נץ±דק׳). */
+export interface PrPrayerTimes {
+  /** שם-התפילה (שחרית / מנחה / מעריב …). */
+  prayer: string;
+  times: string[];
+}
+
+/** מודעה בלוח-הקהילה (prp…). */
+export interface PrPost {
+  id: Id;
+  kind: PrPostKind;
+  /** כותרת / שם בית-הכנסת / שם המוקד (חירום). */
+  title: string;
+  text: string;
+  /** מקום / כתובת. */
+  place: string;
+  /** טלפון (חירום / לפרטים). */
+  phone: string;
+  /** סוג-הודעה (simcha/avel/shiur/refuah/gemach/mosad/lost/kiddush/sale) — '' = כללי. */
+  noticeKind: string;
+  /** מניין בלבד — זמני-התפילות. */
+  prayers: PrPrayerTimes[];
+  /** ימי-השבוע (0–6) שהמניין/האירוע תקף בהם — ריק = כל יום. */
+  days: number[];
+  /** תאריך האירוע/ההודעה — '' = ללא. */
+  date: IsoDate | '';
+  /** שעה ("HH:MM" או טוקן-יחסי) — '' = ללא. */
+  time: string;
+  /** יורד מהלוח אחרי התאריך (כולל) — '' = עד שיוסר. */
+  until: IsoDate | '';
+  /** אושר ע"י הגבאי (מודעה של מי שאינו מאשר ממתינה). */
+  approved: boolean;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** משבצת-פרסום: חוברת (עמוד/חצי/קטנה) · חסות על שער-מקצוע · שורת-חסות בלוח. */
+export type PrAdSlot = 'booklet' | 'category' | 'board';
+
+/** גודל/צורה: full/half/small (חוברת) · line (שורת-חסות). */
+export type PrAdKind = 'full' | 'half' | 'small' | 'line';
+
+/**
+ * משבצת-פרסום/חסות (pra…). הכסף: מחיר-מוסכם לרישום ולקישור-סליקה (payLink) בלבד —
+ * **אפס קבלות**, אפס נגיעה בתרומות/מונים (הכרעה 4, בידוד כמו tzedaka/shop).
+ */
+export interface PrAd {
+  id: Id;
+  slot: PrAdSlot;
+  kind: PrAdKind;
+  /** יעד: slot=category ⇒ מפתח-השער; אחרת '' (או מזהה-עסק לקישור). */
+  target: string;
+  advertiser: string;
+  headline: string;
+  body: string;
+  phone: string;
+  /** תקופה (כוללנית) — קצה ריק = פתוח. */
+  from: IsoDate | '';
+  to: IsoDate | '';
+  /** מחיר מוסכם ב-₪ — רישום + סכום לקישור-הסליקה. לא קבלה. */
+  price: number;
+  /** סימון-תשלום ידני (הנהלת-החשבונות של הגבאי). */
+  paid: boolean;
+  /** חותמת-הסימון ('' = לא שולם). */
+  paidAt: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** מפתחות-המחירון (₪) — ברירות-המחדל ב-model.ts ‏(PR_PRICE_DEFAULTS). */
+export type PrPriceKey = 'featured' | 'sponsor' | 'board' | 'dedication' | 'full' | 'half' | 'small';
+
+/** מיקום-הזמנים של הקהילה (db.ui.parnasa.zmanim) — כל שדה אופציונלי. */
+export interface ParnasaZmanimPrefs {
+  /** מפתח-עיר ממנוע-הזמנים (bneibrak/jerusalem/…) — חסר = ברירת-המחדל של המודול. */
+  city?: string;
+  /** נ"צ מותאם (גובר על city; נדרשים שניהם). */
+  lat?: number;
+  lon?: number;
+  /** גובה במטרים — נשמר; הזמנים מישוריים (מנוע-הזמנים אינו מקבל גובה). */
+  elevation?: number;
+  /** אזור-זמן IANA — חסר = Asia/Jerusalem (לא שעון-המכשיר). */
+  tz?: string;
+  /** שם-המקום לתצוגה ("לפי אופק …"). */
+  label?: string;
+  /** דקות לפני-השקיעה להדלקת-נרות — חסר = מנהג-העיר. */
+  candleMin?: number;
+  /** דקות אחרי-השקיעה לצאת-הכוכבים/צאת-השבת — חסר = 40. */
+  tzeisMin?: number;
+}
+
+/** הגדרות מודול פרנסה׳לע (db.ui.parnasa) — כל שדה אופציונלי; חסר = ברירת-מחדל. */
+export interface ParnasaPrefs {
+  /** שם הקהילה / החסידות (≤60). */
+  communityName?: string;
+  /** כרטיס חדש מופיע רק אחרי אישור-גבאי — חסר = true. */
+  requireApproval?: boolean;
+  /** טלפון לפרסום ולחסויות (מוצג בחוברת). */
+  contactPhone?: string;
+  /** נוסח ההקדשה (≤140). */
+  dedication?: string;
+  /** נוסח-ההקדשה בחוברת (≤240) — חסר = dedication. */
+  bookletDedication?: string;
+  prices?: Partial<Record<PrPriceKey, number>>;
+  zmanim?: ParnasaZmanimPrefs;
+}
+
+/** מסמך ה-DB המלא — יחידת השמירה, הייצוא והגיבוי (27 מערכי ישויות). */
 export interface Db {
   /** גרסת סכמה — העלאה מחייבת מיגרציה ב-store/persist.ts. */
   v: number;
@@ -1191,6 +1446,11 @@ export interface Db {
   tasks: WorkTask[];
   /** 🏭 מלאי-מחסן חוצה-פרויקטים (ורטיקל-הסטודיו) — הישות ה-23; מסחרי, additive. */
   warehouse: WarehouseItem[];
+  /** 📒 פרנסה׳לע (opt-in, מבודד): עסקים · בקשות-תושבים · לוח-קהילה · פרסומות — הישויות 24–27. */
+  prListings: PrListing[];
+  prRequests: PrRequest[];
+  prPosts: PrPost[];
+  prAds: PrAd[];
   orgName: string;
   orgSite: string;
   orgDonate: string;
@@ -1329,6 +1589,10 @@ export function emptyDb(): Db {
     deliveries: [],
     tasks: [],
     warehouse: [],
+    prListings: [],
+    prRequests: [],
+    prPosts: [],
+    prAds: [],
     orgName: 'מאור החסד',
     orgSite: '',
     orgDonate: '',

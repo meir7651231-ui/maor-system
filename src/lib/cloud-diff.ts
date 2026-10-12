@@ -7,7 +7,11 @@
  */
 import type { Db } from '../types/domain';
 
-/** שבעה-עשר אוספי הישויות — שם האוסף ב-Firestore = שם השדה ב-Db. */
+/**
+ * 27 אוספי הישויות — שם האוסף ב-Firestore = שם השדה ב-Db. (ההערה הישנה "שבעה-עשר" הייתה
+ * מיושנת מאז SHOP6; 24–27 = פרנסה׳לע.) כל אוסף חדש כאן ⇒ גם BACKUP_COLLECTIONS ב-functions
+ * (ratchet night-bundle), emptyDb + migrate (persist.ts), ותווית ב-BackupSection/demoPurge.
+ */
 export const ENTITY_COLLECTIONS = [
   'families',
   'courses',
@@ -32,6 +36,11 @@ export const ENTITY_COLLECTIONS = [
   'deliveries',
   'tasks',
   'warehouse',
+  // 📒 פרנסה׳לע (opt-in, 12.10) — עסקים · בקשות-תושבים · לוח-קהילה · פרסומות
+  'prListings',
+  'prRequests',
+  'prPosts',
+  'prAds',
 ] as const;
 
 export type EntityCol = (typeof ENTITY_COLLECTIONS)[number];
