@@ -146,6 +146,17 @@ const CSS = [
 
 const ltr = (s: string): string => '<span dir="ltr">' + escHtml(s) + '</span>';
 
+/**
+ * טקסט-שעות כ-HTML (אשכול 8): כל טווח "08:00–19:00" בבידוד-LTR. בלי זה, בפסקה RTL מקף-הטווח (ON)
+ * מפצל את שני המספרים והטווח מודפס הפוך ("19:00–08:00") לצד טבלת-הזמנים שמוצגת LTR. escaping מלא.
+ */
+export function hoursHtml(s: string): string {
+  return String(s ?? '')
+    .split(/(\d{1,2}:\d{2}\s*[–-]\s*(?:\d{1,2}:\d{2}|חצות))/)
+    .map((p, i) => (i % 2 ? ltr(p) : escHtml(p)))
+    .join('');
+}
+
 function entryHtml(l: PrListing, todayIso: IsoDate): string {
   const feat = isFeatured(l, todayIso);
   const marks: string[] = [];
@@ -154,13 +165,14 @@ function entryHtml(l: PrListing, todayIso: IsoDate): string {
   if (l.aud === 'men' || l.aud === 'women') marks.push(PR_AUD_NAMES[l.aud]);
   if (l.emergency) marks.push('זמינים לקריאות חירום');
   if (l.kashrut.trim()) marks.push('השגחה: ' + l.kashrut.trim());
-  const meta = [l.city, hoursText(l)].filter((x) => x && x.trim()).join(' · ');
+  const hours = hoursText(l);
+  const meta = [l.city.trim() ? escHtml(l.city) : '', hours.trim() ? hoursHtml(hours) : ''].filter(Boolean).join(' · ');
   return (
     '<div class="entry' + (feat ? ' feat' : '') + '">' +
     '<div class="nm">' + escHtml(l.name) + (feat ? '<span class="seal">👑 מומלץ</span>' : '') + '</div>' +
     (l.title ? '<div class="ti">' + escHtml(l.title) + '</div>' : '') +
     '<div class="ph">' + ltr(l.phone) + (l.dialCode ? '<span class="code">☎ קוד ' + escHtml(l.dialCode) + '</span>' : '') + '</div>' +
-    (meta ? '<div class="meta">' + escHtml(meta) + '</div>' : '') +
+    (meta ? '<div class="meta">' + meta + '</div>' : '') +
     (marks.length ? '<div class="marks">' + escHtml(marks.join(' · ')) + '</div>' : '') +
     '</div>'
   );

@@ -1,14 +1,17 @@
 /**
- * 📒 פרנסה׳לע — לשונית 📖 חוברת (אשכול 5): אפשרויות-ההפקה + תוכן-העניינים החי (bookletPlan) והערכת
- * עמודי-A5 — כולל "כפולה של 4" לחוברת מקופלת. רק עסקים מאושרים; הערות-פנימיות ובקשות-תושבים לעולם
- * לא נכנסות לחוברת (המנוע). זמני-השבוע — רק כשהדגל parnasa.zmanim דלוק; מודעות — רק כש-parnasa.ads.
+ * 📒 פרנסה׳לע — לשונית 📖 חוברת (אשכולות 5+8): אפשרויות-ההפקה, תוכן-העניינים החי (bookletPlan) והערכת
+ * עמודי-A5 (כולל "כפולה של 4" לחוברת מקופלת), והפקה: 🖨 הדפסה / שמירה כ-PDF (iframe נסתר) או ⬇ קובץ
+ * ‎.html לבית-הדפוס. רק עסקים מאושרים, עם **קוד-חיוג בן 3 ספרות** ליד כל עסק; הערות-פנימיות ובקשות-תושבים
+ * לעולם לא בחוברת (המנוע). ההפקה מגודרת parnasa.export ועוברת את שער יציאת-המידע (guardExport), ונרשמת
+ * ביומן-הגישה (logAccess) רק כשיצאה בפועל. זמני-השבוע — רק ב-parnasa.zmanim; מודעות — רק ב-parnasa.ads.
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
-import { Chip, Field } from '../ui';
-import { bookletPlan, type PrBookletOpts } from './booklet';
-import type { PrNow } from './hooks';
+import { Btn, Chip, Field } from '../ui';
+import { bookletHtml, bookletPlan, type PrBookletOpts } from './booklet';
+import { downloadHtmlDoc, printHtmlDoc } from './exportDoc';
+import { usePrPerms, type PrNow } from './hooks';
 
 export function BookletTab(props: { now: PrNow }) {
   const config = useApp((s) => s.config);
@@ -16,13 +19,19 @@ export function BookletTab(props: { now: PrNow }) {
   const ads = useApp((s) => s.db.prAds);
   const posts = useApp((s) => s.db.prPosts);
   const prefs = useApp((s) => s.db.ui.parnasa);
+  const setParnasaPrefs = useApp((s) => s.setParnasaPrefs);
+  const logAccess = useApp((s) => s.logAccess);
+  const toast = useApp((s) => s.toast);
+  const { canApprove } = usePrPerms();
   const adsOn = featureOn(config, 'parnasa.ads');
   const zmanimOn = featureOn(config, 'parnasa.zmanim');
+  const exportOn = featureOn(config, 'parnasa.export');
   const [dedication, setDedication] = useState(() => String(prefs?.bookletDedication ?? prefs?.dedication ?? ''));
   const [includeAds, setIncludeAds] = useState(true);
   const [paidOnly, setPaidOnly] = useState(false);
   const [ink, setInk] = useState(false);
   const [withZmanim, setWithZmanim] = useState(true);
+  const [done, setDone] = useState<'' | 'print' | 'file'>('');
 
   const brand = termOf(config, 'nav.parnasa', 'פרנסה׳לע');
   const opts: PrBookletOpts = {
@@ -37,6 +46,19 @@ export function BookletTab(props: { now: PrNow }) {
   const snap = { listings, ads, posts, prefs };
   const plan = bookletPlan(snap, opts);
   const words = termOf(config, 'entity.prListings', 'עסקים');
+  const adCount = plan.ads.full.length + plan.ads.half.length + plan.ads.small.length;
+
+  function produce(kind: 'print' | 'file') {
+    const html = bookletHtml(snap, opts);
+    const ok = kind === 'print' ? printHtmlDoc(html) : downloadHtmlDoc('parnasa-booklet-' + props.now.todayIso + '.html', html);
+    if (!ok) return; // שער יציאת-המידע סירב (הטוסט — מהשער)
+    logAccess('📖 הפקת חוברת ' + brand + (kind === 'print' ? ' (הדפסה)' : ' (קובץ)'), plan.listings + ' ' + words + ' · ' + adCount + ' מודעות');
+    // נוסח-ההקדשה נשמר בהפקה (המקור) — לגבאי בלבד, ורק כשהשתנה
+    const saved = String(prefs?.bookletDedication ?? prefs?.dedication ?? '').trim();
+    if (canApprove && dedication.trim() !== saved) setParnasaPrefs({ bookletDedication: dedication.trim() || undefined });
+    setDone(kind);
+    if (kind === 'print') toast('נפתח חלון-ההדפסה — בחרו גודל נייר A5, או ״שמירה כ־PDF״');
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -68,6 +90,23 @@ export function BookletTab(props: { now: PrNow }) {
             חיסכון בדיו (כריכה לבנה)
           </Chip>
         </div>
+        {exportOn ? (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+            <Btn kind="primary" onClick={() => produce('print')} disabled={plan.listings === 0}>
+              🖨 הדפסה / שמירה כ-PDF
+            </Btn>
+            <Btn onClick={() => produce('file')} disabled={plan.listings === 0}>
+              ⬇ הורדת החוברת (קובץ HTML)
+            </Btn>
+          </div>
+        ) : (
+          <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>הפקת החוברת כבויה באשף (תדפיס וייצוא).</div>
+        )}
+        {done === 'file' && (
+          <div role="status" style={{ fontSize: 12.5, border: '1px solid var(--line)', borderRadius: 8, padding: '6px 8px' }}>
+            החוברת נשמרה. פתחו את הקובץ בדפדפן, לחצו Ctrl+P, בחרו גודל נייר A5 והדפיסו, או בחרו ״שמירה כ־PDF״ ושלחו לבית הדפוס.
+          </div>
+        )}
       </section>
 
       <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13.5 }}>

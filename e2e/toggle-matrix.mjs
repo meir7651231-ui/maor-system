@@ -579,6 +579,29 @@ for (const profile of PROFILES) {
   prMain = (await page.locator('main').textContent()) ?? '';
   t('"לא מצאתי" ⇒ בקשה נפתחה ומנותבת (פתוחה לקהילה — אין עסק בתחום)', prMain.includes('מחפש מלמד לגמרא') && prMain.includes('פתוחה לכל הקהילה'));
 
+  // אשכול 8 · 📖 החוברת יורדת כקובץ HTML (שער יציאת-המידע פתוח) — העסק וקוד-החיוג מודפסים
+  await prTab('📖 חוברת');
+  await page.waitForTimeout(250);
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.locator('main button', { hasText: '⬇ הורדת החוברת' }).click()]);
+  const dlPath = await dl.path();
+  const bookletTxt = dlPath ? readFileSync(dlPath, 'utf8') : '';
+  t(
+    '📖 חוברת ירדה כקובץ HTML — העסק + קוד-חיוג 101, בלי סקריפט',
+    dl.suggestedFilename().startsWith('parnasa-booklet-') && bookletTxt.includes('אינסטלציה-מטריצה') && bookletTxt.includes('☎ קוד 101') && !bookletTxt.includes('<script'),
+  );
+
+  // אשכול 8 · 📣 פרסומת ⇒ סימון-תשלום ידני (רישום בלבד, אפס קבלות)
+  await prTab('📣 פרסומות');
+  await page.waitForTimeout(250);
+  await page.locator('main button', { hasText: '➕ הוספת פרסומת' }).click();
+  await page.locator('.modal input').first().fill('מפרסם-מטריצה');
+  await page.locator('.modal button', { hasText: 'שמירה' }).first().click();
+  await page.waitForTimeout(300);
+  await page.locator('main button', { hasText: '✓ סימון כשולם' }).first().click();
+  await page.waitForTimeout(300);
+  prMain = (await page.locator('main').textContent()) ?? '';
+  t('📣 פרסומת נשמרה וסומנה כשולמה (הפנקס מתעדכן)', prMain.includes('מפרסם-מטריצה') && prMain.includes('ביטול סימון התשלום') && prMain.includes('נגבה'));
+
   // כל לשונית מתרנדרת בדפדפן בלי שגיאה
   for (const label of PR_TABS) {
     await prTab(label);

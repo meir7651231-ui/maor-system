@@ -893,6 +893,64 @@ export function adPayLink(ad: PrAd, payUrl: string): string | null {
   return payLink(payUrl, ad.price, ad.advertiser);
 }
 
+/** סבב-המשבצת ביום נתון (אשכול 8). */
+export interface PrAdRotation {
+  /** כל הפעילות במשבצת היום (activeAds — לפי מפרסם). */
+  active: PrAd[];
+  /** התורנית של היום — null כשאין. */
+  today: PrAd | null;
+  index: number;
+}
+
+/** מספר-יום מוחלט של תאריך ISO (ימים מ-1970, צהרי-UTC — בלי תלות באזור-הזמן). פגום ⇒ 0. */
+function dayNumber(iso: IsoDate): number {
+  const t = Date.parse(String(iso) + 'T12:00:00Z');
+  return Number.isFinite(t) ? Math.floor(t / 86_400_000) : 0;
+}
+
+/**
+ * סבב-יומי במשבצת (המקור §4.5: offset = floor(now/day) % n — כל משלם מקבל את תורו): כמה פעילות
+ * באותה משבצת/יעד ⇒ אחת "בתורנות" היום, מתחלפת בכל יום. דטרמיניסטי (היום מוזרק).
+ */
+export function adRotation(ads: readonly PrAd[], slot: PrAdSlot, todayIso: IsoDate, target?: string): PrAdRotation {
+  const active = activeAds(ads, slot, todayIso, target);
+  if (!active.length) return { active, today: null, index: -1 };
+  const index = ((dayNumber(todayIso) % active.length) + active.length) % active.length;
+  return { active, today: active[index], index };
+}
+
+/** פנקס-הפרסום (הכנסות-חזויות/נגבו/ממתין — רישום בלבד, לא קבלות). */
+export interface PrAdsLedger {
+  /** פרסומות פעילות שטרם פגו (כולל עתידיות). */
+  count: number;
+  paidCount: number;
+  /** סה"כ מחירים (₪). */
+  total: number;
+  /** סומנו "שולם". */
+  paid: number;
+  /** ממתין לגבייה — התחילו ולא שולמו. */
+  due: number;
+  /** עתידיות שטרם שולמו (עוד לא בגבייה). */
+  upcoming: number;
+}
+
+/** סיכום-הפרסומות להיום: מושהות ופגות לא נספרות (המקור: "ממתין לגבייה" = לא שולם). */
+export function adsLedger(ads: readonly PrAd[], todayIso: IsoDate): PrAdsLedger {
+  const out: PrAdsLedger = { count: 0, paidCount: 0, total: 0, paid: 0, due: 0, upcoming: 0 };
+  for (const a of ads) {
+    if (a.active === false || (a.to && a.to < todayIso)) continue;
+    const price = typeof a.price === 'number' && Number.isFinite(a.price) && a.price > 0 ? a.price : 0;
+    out.count++;
+    out.total += price;
+    if (a.paid) {
+      out.paidCount++;
+      out.paid += price;
+    } else if (!a.from || a.from <= todayIso) out.due += price;
+    else out.upcoming += price;
+  }
+  return out;
+}
+
 /* ═══════════════ ייצוא CSV ═══════════════ */
 
 /**

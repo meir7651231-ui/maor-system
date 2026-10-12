@@ -103,7 +103,7 @@ export function RequestForm(props: { request: PrRequest | null; draft?: Partial<
       </div>
       {f.category && (
         <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 6 }}>
-          {'במדריך יש ' + inCat + ' ' + words + ' ב' + categoryOf(f.category).short + ' · ' + recipients + ' מהם מקבלים ' + word + 'ות ישירות (השאר — דרך ה' + gabbai + ')'}
+          {'במדריך יש ' + inCat + ' ' + words + ' ב' + categoryOf(f.category).short + ' · ' + recipients + ' מהם מקבלים ניתוב ישיר (השאר — דרך ה' + gabbai + ')'}
         </div>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13.5, margin: '6px 0' }}>

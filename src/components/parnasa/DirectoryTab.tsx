@@ -12,15 +12,28 @@ import { featureOn, termOf } from '../../lib/config';
 import { useRemembered } from '../../lib/filterMemory';
 import { useListScrollRestore } from '../../lib/scrollMemory';
 import { downloadCsv } from '../reports/csv';
-import type { PrListing, PrRequest } from '../../types/domain';
+import type { PrAd, PrListing, PrRequest } from '../../types/domain';
 import { Btn, Chip, Empty, TextInput } from '../ui';
-import { categoryOf, filterListings, listingsCsvRows, PR_CATEGORIES, PR_CONCEPTS, searchListings } from './lib';
+import { adRotation, categoryOf, filterListings, listingsCsvRows, PR_CATEGORIES, PR_CONCEPTS, searchListings } from './lib';
 import { ListingCard } from './ListingCard';
 import { ListingDetail } from './ListingDetail';
 import { ListingForm } from './ListingForm';
 import { usePrBrand, usePrPerms, type PrNow } from './hooks';
 
 type Aud = 'all' | 'men' | 'women';
+
+/** תיבת-החסות בראש השער (התורנית של היום — סבב-יומי מהמנוע). */
+function GateSponsor(props: { ad: PrAd | null }) {
+  const a = props.ad;
+  if (!a) return null;
+  return (
+    <div style={{ fontSize: 12.5, border: '1px dashed #b08d2e', borderRadius: 8, padding: '4px 10px' }}>
+      {'👑 השער בחסות '}
+      <b>{a.advertiser}</b>
+      {[a.headline, a.phone].filter((x) => x && x.trim()).map((x) => ' · ' + x).join('')}
+    </div>
+  );
+}
 
 export function DirectoryTab(props: {
   now: PrNow;
@@ -33,6 +46,7 @@ export function DirectoryTab(props: {
 }) {
   const config = useApp((s) => s.config);
   const listings = useApp((s) => s.db.prListings);
+  const ads = useApp((s) => s.db.prAds);
   const logAccess = useApp((s) => s.logAccess);
   const toast = useApp((s) => s.toast);
   const brand = usePrBrand();
@@ -54,6 +68,7 @@ export function DirectoryTab(props: {
   const words = termOf(config, 'entity.prListings', 'עסקים');
   const reqWord = termOf(config, 'entity.prRequest', 'בקשה');
   const exportOn = featureOn(config, 'parnasa.export');
+  const adsOn = featureOn(config, 'parnasa.ads');
 
   /** מסננים משותפים לשני המצבים (חיפוש ⇒ אחרי הדירוג). */
   const passes = useMemo(() => {
@@ -212,6 +227,7 @@ export function DirectoryTab(props: {
             <h2 style={{ fontSize: 15, fontWeight: 800, borderBottom: '2px solid ' + g.cat.color, paddingBottom: 3 }}>
               {g.cat.num + ' · ' + g.cat.icon + ' ' + g.cat.name + ' — ' + g.items.length + ' כרטיסים'}
             </h2>
+            {adsOn && <GateSponsor ad={adRotation(ads, 'category', now.todayIso, g.cat.key).today} />}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
               {g.items.map((l) => (
                 <ListingCard key={l.id} listing={l} now={now} brand={brand} onOpen={() => props.setSelId(l.id)} />

@@ -104,7 +104,7 @@ export function RequestsTab(props: {
 
       <div className="filterbar">
         <div className="fb-search">
-          <TextInput value={q} onChange={setQ} placeholder={'חיפוש ב' + word + 'ות — טקסט, אזור או תחום'} ariaLabel={'חיפוש ב' + word + 'ות'} />
+          <TextInput value={q} onChange={setQ} placeholder="חיפוש — טקסט, אזור או תחום" ariaLabel={'חיפוש ' + word} />
         </div>
         <Select
           ariaLabel="תחום"
@@ -116,7 +116,7 @@ export function RequestsTab(props: {
 
       {groups.length === 0 && (
         <Empty>
-          <div style={{ fontWeight: 800 }}>{filter === 'job' ? 'אין כרגע הצעות עבודה' : 'אין ' + word + 'ות פתוחות'}</div>
+          <div style={{ fontWeight: 800 }}>{filter === 'job' ? 'אין כרגע הצעות עבודה' : 'אין כרגע ' + word + ' פתוחה'}</div>
           <div>{word + ' חדשה תופיע כאן, עם המסלול שלה.'}</div>
         </Empty>
       )}

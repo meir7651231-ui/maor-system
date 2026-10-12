@@ -17,6 +17,7 @@ import { Btn, Chip, Empty } from '../ui';
 import { useArmed } from '../useArmed';
 import { CallBtn } from '../CallBtn';
 import { buildZmanimBoard, emergencyDrafts, hmToMin, postActiveOn, PR_ZMANIM_NOTE, weekZmanim, type PrMinyanTime } from './zmanimBoard';
+import { adRotation } from './lib';
 import { PostForm } from './PostForm';
 import { ZmanimLocationEditor } from './ZmanimLocationEditor';
 import { usePrPerms, type PrNow } from './hooks';
@@ -52,6 +53,7 @@ function PlaceLink(props: { place: string; mapsOn: boolean }) {
 export function BoardTab(props: { now: PrNow; onSearch: ((q: string) => void) | null }) {
   const config = useApp((s) => s.config);
   const posts = useApp((s) => s.db.prPosts);
+  const ads = useApp((s) => s.db.prAds);
   const setPrStatus = useApp((s) => s.setPrStatus);
   const deletePrPost = useApp((s) => s.deletePrPost);
   const upsertPrPost = useApp((s) => s.upsertPrPost);
@@ -75,6 +77,8 @@ export function BoardTab(props: { now: PrNow; onSearch: ((q: string) => void) | 
   const telOn = telephonyOn(config);
   const active = seg === 'zmanim' && !zmanimOn ? 'notices' : seg === 'edit' && !canApprove ? 'notices' : seg;
   const today = now.todayIso;
+  // שורת-החסות של הלוח — התורנית של היום (סבב-יומי מהמנוע); רק כשמשבצות-הפרסום דלוקות
+  const sponsor = featureOn(config, 'parnasa.ads') ? adRotation(ads, 'board', today).today : null;
 
   const notices = posts
     .filter((p) => p.kind === 'notice' && (postActiveOn(p, today) || (canApprove && !p.approved && (!p.until || p.until >= today))))
@@ -145,6 +149,13 @@ export function BoardTab(props: { now: PrNow; onSearch: ((q: string) => void) | 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>הזמנים, המניינים והמודעות של השכונה, במקום אחד.</div>
+      {sponsor && (
+        <div className="card" style={{ fontSize: 13, padding: '6px 12px' }}>
+          {'📌 הלוח בחסות '}
+          <b>{sponsor.advertiser}</b>
+          {[sponsor.headline, sponsor.phone].filter((x) => x && x.trim()).map((x) => ' · ' + x).join('')}
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {zmanimOn && (
           <Chip on={active === 'zmanim'} onClick={() => setSeg('zmanim')}>

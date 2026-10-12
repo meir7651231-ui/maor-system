@@ -235,13 +235,13 @@ export function ListingDetail(props: { listing: PrListing; now: PrNow; onBack: (
 
       {requestsOn && l.status === 'approved' && (
         <section className="card" style={SECTION}>
-          <h2 style={{ fontSize: 15, fontWeight: 800 }}>{'🙋 ' + reqWord + 'ות בתחום (' + inTrade.length + ')'}</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 800 }}>{'🙋 מה מבקשים בתחום (' + inTrade.length + ')'}</h2>
           <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>
             {l.source === 'gabbai'
-              ? 'הוזן ע״י ה' + gabbai + ' — לא מקבל ' + reqWord + 'ות אוטומטית (טלפון כשר); ה' + gabbai + ' מתקשר/ת כשמתאים.'
-              : 'כך ה' + word + ' רואה את ה' + reqWord + 'ות: ' + reqWord + ' בשקט — בלי שם ובלי טלפון של הפונה.'}
+              ? 'הוזן ע״י ה' + gabbai + ' — לא מקבל ניתוב אוטומטי (טלפון כשר); ה' + gabbai + ' מתקשר/ת כשמתאים.'
+              : 'כך ה' + word + ' רואה כל ' + reqWord + ': ' + reqWord + ' בשקט — בלי שם ובלי טלפון של הפונה.'}
           </div>
-          {inTrade.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{'אין כרגע ' + reqWord + 'ות פתוחות בתחום.'}</div>}
+          {inTrade.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{'אין כרגע ' + reqWord + ' פתוחה בתחום.'}</div>}
           {inTrade.map((v) => (
             <div key={v.id} style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '7px 10px', fontSize: 13 }}>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
