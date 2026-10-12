@@ -321,72 +321,118 @@ export function migrate(raw: unknown): Db | null {
   // מנרמלים גם את שדות-הרשימה הפנימיים ל-[] כשהם חסרים (לא רק כשהם כבר מערך) —
   // מסמך שהגיע מהענן/גיבוי ללא payments/absences/donations היה משאיר undefined,
   // וקוד ש-.map/.filter עליהם (paidOf, sessionsOf, דוחות) היה קורס.
-  merged.enrollments = merged.enrollments.map((e) => ({
-    ...e,
-    payments: Array.isArray(e.payments) ? e.payments : [],
-    absences: Array.isArray(e.absences) ? e.absences : [],
-  }));
+  // ⚡ ביצועים (12.10.2026): migrate רץ בכל טעינה (ובכל משיכת-ענן) — אצל הלקוח האמיתי
+  // (16,000 תורמים · 34MB) כל פס שמשכפל רשומה "נקייה" עלה זמן-CPU + זיכרון לשווא: רשומה
+  // שאין בה מה לרפא מוחזרת **באותה הפניה**; רק רשומה פגומה משוכפלת — תוצאת-הריפוי ביט-זהה.
+  merged.enrollments = merged.enrollments.map((e) =>
+    Array.isArray(e.payments) && Array.isArray(e.absences)
+      ? e
+      : {
+          ...e,
+          payments: Array.isArray(e.payments) ? e.payments : [],
+          absences: Array.isArray(e.absences) ? e.absences : [],
+        },
+  );
   // 🐛 נחיל-9×9 (13.8): חוג מגיבוי-ישן/ענן-חלקי יכול להגיע עם sessions===undefined —
   // כל קוד ש-.length/.map עליו (יצוא-CSV, עריכת-חוג) קרס. ריפוי: מערך תמיד.
-  merged.courses = merged.courses.map((c) => ({ ...c, sessions: Array.isArray(c.sessions) ? c.sessions : [] }));
+  merged.courses = merged.courses.map((c) => (Array.isArray(c.sessions) ? c : { ...c, sessions: [] }));
   // key = מזהה-השיבוץ + סכום — זהות יציבה שסדר-המערך (מיזוג-ענן) אינו משנה (swarm-audit)
   const payCoords = merged.enrollments.flatMap((e, ei) =>
     e.payments.map((p, pi) => ({ ei, pi, rid: p.rid, date: p.date, key: e.id + '|' + p.amount + '|' + (p.method ?? '') })),
   );
   const rPlan = planRidRenumber(payCoords, merged.receiptSeq, 'R-');
   payCoords.forEach((c, k) => {
-    if (rPlan.newRid[k]) merged.enrollments[c.ei].payments[c.pi] = { ...merged.enrollments[c.ei].payments[c.pi], rid: rPlan.newRid[k]! };
+    if (!rPlan.newRid[k]) return;
+    // ⚡ (12.10): copy-on-write — מערך-התשלומים של רשומה נקייה הוא כעת הפניית-הקלט; לא כותבים לתוכו
+    const e = merged.enrollments[c.ei];
+    const payments = e.payments.slice();
+    payments[c.pi] = { ...payments[c.pi], rid: rPlan.newRid[k]! };
+    merged.enrollments[c.ei] = { ...e, payments };
   });
   merged.receiptSeq = rPlan.nextSeq;
-  merged.supporters = merged.supporters.map((s) => ({
-    ...s,
+  merged.supporters = merged.supporters.map((s) => {
     // נחיל ב׳ (3.9): תרומה בלי date (מסמך-ענן/גיבוי חלקי) הקריסה d.date.startsWith ב-hokRecordedThisMonth/
     // wallData ⇒ מסך-התורמים כולו נפל מרשומה אחת. ריפוי ⇒ '' (ה-rid לעולם לא נזרק — קבלה); איבר
     // null נזרק (אין לו rid). תרומה תקינה נשמרת באותה הפניה (ביט-זהה).
-    donations: Array.isArray(s.donations)
-      ? s.donations.filter((d) => !!d && typeof d === 'object').map((d) => (typeof d.date === 'string' ? d : { ...d, date: '' }))
-      : [],
+    // ⚡ (12.10): מערך שכל איבריו תקינים נשמר באותה הפניה (במקום filter+map חדשים לכל תורם —
+    // 80,000 תרומות אצל הלקוח האמיתי).
+    const donations: Supporter['donations'] = !Array.isArray(s.donations)
+      ? []
+      : s.donations.every((d) => !!d && typeof d === 'object' && typeof d.date === 'string')
+        ? s.donations
+        : s.donations.filter((d) => !!d && typeof d === 'object').map((d) => (typeof d.date === 'string' ? d : { ...d, date: '' }));
     // גלריית-תמונות: חיטוי-הגנתי (ייבוא/ענן/ישן) — רק data:URI תקינים מתחת-לתקרה.
     // נוגעים רק כשהשדה קיים ⇒ כרטיס בלי-תמונות נשאר ביט-זהה (undefined).
-    ...(s.photos !== undefined ? { photos: sanitizePhotos(s.photos) } : {}),
+    // ⚡ (12.10): חיטוי שלא זרק/קיצץ דבר ⇒ אותו מערך (אותם איברים, אותו אורך).
+    let photos = s.photos;
+    if (photos !== undefined) {
+      const clean = sanitizePhotos(photos);
+      if (!Array.isArray(photos) || clean.length !== photos.length || clean.some((p, i) => p !== photos![i])) photos = clean;
+    }
     // hist מהקובץ ההיסטורי (לגאסי {d,a,c}) — נרמול: לא-מערך → undefined;
     // איברים בלי תאריך d או סכום a מספרי — נזרקים. מטבע לא-מוכר → ברירת ₪ בתצוגה.
     // 🐛 נחיל-עמוק (13.8): המיגרציה שכתבה {d,a,c} בלבד ומחקה את מטא-דאטת-הסליקה
     // (ref/txn/receipt/brand/last4/clearer/pays/status — additive 13.8) בכל טעינה.
     // כעת שומרים את כל השדות ורק מנרמלים מטבע לא-מוכר.
-    hist: Array.isArray(s.hist)
-      ? s.hist
-          .filter((h): h is NonNullable<Supporter['hist']>[number] =>
-            !!h && typeof h === 'object' && !!(h as { d?: unknown }).d &&
-            typeof (h as { a?: unknown }).a === 'number' && Number.isFinite((h as { a?: unknown }).a as number))
-          .map((h) => {
+    // ⚡ (12.10): hist שכל איבריו תקינים (d · a מספרי · c חסר או ₪/$) נשמר באותה הפניה — לפני
+    // כן כל טעינה שכפלה כל שורת-hist ({...rest, c}); 128,000 שורות אצל הלקוח האמיתי.
+    const histOk = (h: unknown): h is NonNullable<Supporter['hist']>[number] =>
+      !!h && typeof h === 'object' && !!(h as { d?: unknown }).d &&
+      typeof (h as { a?: unknown }).a === 'number' && Number.isFinite((h as { a?: unknown }).a as number);
+    const curOk = (c: unknown): boolean => c === '$' || c === '₪';
+    const hist: Supporter['hist'] = !Array.isArray(s.hist)
+      ? undefined
+      : s.hist.every((h) => histOk(h) && (!('c' in h) || curOk(h.c)))
+        ? s.hist
+        : s.hist.filter(histOk).map((h) => {
             const { c, ...rest } = h;
-            return { ...rest, ...(c === '$' || c === '₪' ? { c } : {}) };
-          })
-      : undefined,
+            return { ...rest, ...(curOk(c) ? { c } : {}) };
+          });
     // לוח-מעקב 3.9 — הלגאסי יוצר ayin חלקי (`legacy-main-script.js:1596` — {stage,eyes,note,nextTalk,lastTouch}
     // בלי names/log/answers; המערכים נוצרים אצלו עצלנית) ⇒ eyesTotal (a.names.reduce) קרס את מסך-התורמים
     // כולו על רשומה אחת. ריפוי בנקודת-הכניסה היחידה: מיזוג emptyAyin (שדות קיימים גוברים) + שלב לא-מוכר
     // ⇒ 'new'. תומכ/ת בלי ayin נשאר/ת בלי המפתח (לא מוסיפים); ayin מלא ביט-זהה; אידמפוטנטי.
-    ...(s.ayin && typeof s.ayin === 'object'
-      ? { ayin: { ...emptyAyin(), ...s.ayin, stage: AYIN_STAGES.includes(s.ayin.stage) ? s.ayin.stage : 'new' } }
-      : {}),
-  }));
+    // ⚡ (12.10): ayin שכל מפתחות-הבסיס קיימים בו והשלב מוכר — אותה הפניה (המיזוג היה מחזיר ערכים זהים).
+    let ayin = s.ayin;
+    if (ayin && typeof ayin === 'object') {
+      const base = emptyAyin();
+      const full = AYIN_STAGES.includes(ayin.stage) && Object.keys(base).every((k) => k in ayin!);
+      if (!full) ayin = { ...base, ...ayin, stage: AYIN_STAGES.includes(ayin.stage) ? ayin.stage : 'new' };
+    }
+    if (donations === s.donations && photos === s.photos && hist === s.hist && ayin === s.ayin) return s;
+    return {
+      ...s,
+      donations,
+      ...(photos !== undefined ? { photos } : {}),
+      hist,
+      ...(ayin && typeof ayin === 'object' ? { ayin } : {}),
+    };
+  });
   // key = מזהה-התומכ/ת + סכום/מטבע/קטגוריה — זהות יציבה בלי תלות בסדר-המערך (swarm-audit)
   const donCoords = merged.supporters.flatMap((s, si) =>
     s.donations.map((d, di) => ({ si, di, rid: d.rid, date: d.date, key: s.id + '|' + d.amount + '|' + (d.cur ?? '') + '|' + (d.cat ?? '') })),
   );
   const dPlan = planRidRenumber(donCoords, merged.donationSeq, 'D-');
   donCoords.forEach((c, k) => {
-    if (dPlan.newRid[k]) merged.supporters[c.si].donations[c.di] = { ...merged.supporters[c.si].donations[c.di], rid: dPlan.newRid[k]! };
+    if (!dPlan.newRid[k]) return;
+    // ⚡ (12.10): copy-on-write — מערך-התרומות של תורם נקי הוא כעת הפניית-הקלט; לא כותבים לתוכו
+    const s = merged.supporters[c.si];
+    const donations = s.donations.slice();
+    donations[c.di] = { ...donations[c.di], rid: dPlan.newRid[k]! };
+    merged.supporters[c.si] = { ...s, donations };
   });
   merged.donationSeq = dPlan.nextSeq;
   // ריפוי-עצמי של מצבורי-התומכת (#14, הכרעת בעלים "כל מה שיעלה בקובץ"): count/ils/
   // usd = קבלות-בלבד (hist מתווסף בתצוגה, supporters/lib) — נמנע כפל-ספירה. first/last —
   // המחושב, ובהיעדר תאריכים נשמר הסימון הישן (fallback ל-supDonEvents לא נשבר).
+  // ⚡ (12.10): מצבורים שכבר נכונים ⇒ אותה הפניה (הפס השני שכפל כל תורם בכל טעינה; 16,000
+  // אצל הלקוח האמיתי). NaN שמור ≠ NaN מחושב ⇒ עדיין משוכפל ומרופא, כמו קודם.
   merged.supporters = merged.supporters.map((s) => {
     const agg = supporterAggregates(s);
-    return { ...s, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
+    const first = agg.first || s.first;
+    const last = agg.last || s.last;
+    if (s.count === agg.count && s.ils === agg.ils && s.usd === agg.usd && s.first === first && s.last === last) return s;
+    return { ...s, count: agg.count, ils: agg.ils, usd: agg.usd, first, last };
   });
   // קופות צדקה — ריפוי פר-רשומה (מודול מבודד, אותה רוח כמו שאר הריפויים):
   // רכז: score לא-מספרי → 0, scoreLog לא-מערך → []; קופה: collections
