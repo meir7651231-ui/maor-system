@@ -13,10 +13,10 @@ import type { OrgConfig } from '../types/config';
 import { termOf } from './config';
 
 /** המסכים שהסיור עובר בהם — תת-קבוצה של View. */
-export type TourView = 'home' | 'families' | 'courses' | 'calendar' | 'tzedaka' | 'shop' | 'settings';
+export type TourView = 'home' | 'families' | 'courses' | 'calendar' | 'tzedaka' | 'shop' | 'parnasa' | 'settings';
 
 /** מודול שמסתיר צעד כשהוא כבוי (בית/הגדרות — תמיד פעילים). */
-export type TourModule = 'families' | 'courses' | 'calendar' | 'tzedaka' | 'shop';
+export type TourModule = 'families' | 'courses' | 'calendar' | 'tzedaka' | 'shop' | 'parnasa';
 
 export interface TourStep {
   /** המסך שהצעד מתרחש בו — הסיור מנווט אליו בפועל. */
@@ -51,6 +51,8 @@ export const TOUR_STEPS: TourStep[] = [
   // העמודות המבודדות (CONNECT חיבור 5) — צעד לכל עמודה, מגודר במודול שלה
   { view: 'tzedaka', module: 'tzedaka', caption: '🪙 קופות צדקה — רכזים, קופות בבתים, ריקונים ומבצעים' },
   { view: 'shop', module: 'shop', caption: '🛍 החנות — חבילות שירות, מלאי משותף ומימושים עם אישור' },
+  // פרנסה׳לע (אשכול 7) — opt-in: הצעד קיים רק כשהמודול הודלק במפורש (moduleOn — חסר = כבוי)
+  { view: 'parnasa', module: 'parnasa', caption: '📒 "מה צריך?" — מדריך הקהילה' },
   { view: 'settings', caption: '⚙ ארגון, התראות, דוחות, מנוע אמינות' },
   { view: 'home', caption: 'ובחזרה הביתה — הכל התעדכן' },
   { view: 'home', caption: 'זו המערכת. חיה, מלאה, במקום אחד ✦' },

@@ -8,9 +8,10 @@
  *   📌 לוח קהילה (parnasa.board) · 📖 חוברת (parnasa.booklet) · 📞 הקו (parnasa.phone — סימולטור, לא
  *   קו חי; אשכול 6ב) · 📣 פרסומות (parnasa.ads) · ⚙ הגדרות — גבאי בלבד (prCan parnasa.approve).
  * הניווט בין הלשוניות (קפיצה מטיפול לכרטיס/לבקשה, "לא מצאתי" ⇒ בקשה, צ'יפ-עזרה בלוח ⇒ חיפוש) — מצב
- * מקומי בלבד (בידוד: אין ניווט חוצה-מסכים דרך ה-store).
+ * מקומי בלבד (בידוד: אין ניווט חוצה-מסכים דרך ה-store). הכניסה היחידה מבחוץ: תוצאת-עסק בפלטת-החיפוש
+ * (אשכול 7) ⇒ requestOpenListing (paletteLink — תיבה בלי store) ⇒ כאן נפתח כרטיס-העסק במדריך.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { useRemembered } from '../../lib/filterMemory';
@@ -18,6 +19,7 @@ import type { PrRequest } from '../../types/domain';
 import { Chip, Empty, PageHead } from '../ui';
 import { needsCare, pendingApprovals } from './lib';
 import { usePrNow, usePrPerms } from './hooks';
+import { prOpenBox } from './paletteLink';
 import { CareTab, type CareJump } from './CareTab';
 import { DirectoryTab } from './DirectoryTab';
 import { RequestsTab } from './RequestsTab';
@@ -58,6 +60,24 @@ export function ParnasaView() {
   ];
   const isOn = (k: PrTab) => tabs.some((t) => t.key === k && t.on);
   const active: PrTab | null = isOn(tab) ? tab : (tabs.find((t) => t.on)?.key ?? null);
+  const directoryOn = isOn('directory');
+
+  // 🔎 פלטת-החיפוש ביקשה עסק (אשכול 7): צורכים מהתיבה בעלייה, ותולים צלצול לבקשות בזמן שהמסך פתוח.
+  //    הבקשה נצרכת פעם אחת; מדריך כבוי ⇒ נזרקת.
+  useEffect(() => {
+    const open = (): void => {
+      const id = prOpenBox.id;
+      prOpenBox.id = '';
+      if (!id || !directoryOn) return;
+      setSelListing(id);
+      setTab('directory');
+    };
+    open();
+    prOpenBox.ring = open;
+    return () => {
+      if (prOpenBox.ring === open) prOpenBox.ring = undefined;
+    };
+  }, [directoryOn, setSelListing, setTab]);
 
   // מונה-הטיפול על הצ'יפ (ממתינים + דורש-טיפול)
   const careCount = useMemo(

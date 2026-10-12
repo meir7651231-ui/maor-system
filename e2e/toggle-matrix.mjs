@@ -638,6 +638,30 @@ for (const profile of PROFILES) {
   prMain = (await page.locator('main').textContent()) ?? '';
   t('📣 פרסומת נשמרה וסומנה כשולמה (הפנקס מתעדכן)', prMain.includes('מפרסם-מטריצה') && prMain.includes('ביטול סימון התשלום') && prMain.includes('נגבה'));
 
+  // אשכול 7 · 🔎 פלטת-החיפוש: עסק כתוצאת-ישות (שם · מקצוע · ☎ קוד) ⇒ Enter ⇒ כרטיס-העסק נפתח במדריך — גם כשהמסך
+  //    עולה מחדש (יוצאים קודם הביתה): בקשה חוצה-מסכים בלי store (paletteLink)
+  await page.locator('nav >> text=בית').first().click();
+  await page.waitForTimeout(300);
+  await page.keyboard.press('Control+k');
+  await page.waitForTimeout(300);
+  await page.locator('.palette input').first().fill('אינסטלציה-מטריצה');
+  await page.waitForTimeout(300);
+  const palTxt = (await page.locator('.palette').textContent()) ?? '';
+  t('🔎 הפלטה מוצאת את העסק (שם · מקצוע · ☎ 101) תחת "פרנסה׳לע"', palTxt.includes('אינסטלציה-מטריצה — עסק') && palTxt.includes('נזילות וסתימות · ☎ 101') && palTxt.includes('פרנסה׳לע'));
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(800);
+  prMain = (await page.locator('main').textContent()) ?? '';
+  t('🔎 Enter ⇒ מסך פרנסה׳לע עם כרטיס-העסק פתוח (קוד חיוג 101 · שעות פעילות)', prMain.includes('אינסטלציה-מטריצה') && prMain.includes('קוד חיוג 101') && prMain.includes('שעות פעילות'));
+  // אשכול 7 · 📖 המדריך המהיר — שורת פרנסה׳לע (רק כשהמודול דלוק; כבוי ⇒ ביט-זהה — נבדק ביחידה)
+  await page.evaluate(() => {
+    window.location.hash = '#guide';
+  });
+  await page.waitForTimeout(400);
+  const guideTxt = (await page.locator('.modal').first().textContent().catch(() => '')) ?? '';
+  t('📖 המדריך המהיר — שורת פרנסה׳לע ("מה צריך?" · חוברת עם קוד חיוג)', guideTxt.includes('פרנסה׳לע') && guideTxt.includes('חוברת עם קוד חיוג'));
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
+
   // כל לשונית מתרנדרת בדפדפן בלי שגיאה
   for (const label of PR_TABS) {
     await prTab(label);

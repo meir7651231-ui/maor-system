@@ -1,11 +1,11 @@
 /**
  * מבט הנהלה (SHOP10 · מדדי הנהלה) — סיכום תפעולי חוצה-מודולים: חלוקה, חנות,
- * קופות צדקה ומשפחות. קריאה בלבד (אגרגציה טהורה), מגודר reports.management.
- * אפס נגיעה בנתונים — תצוגה/ייצוא בלבד.
+ * קופות צדקה ומשפחות — ופרנסה׳לע כשהודלק (אשכול 7; מודול opt-in). קריאה בלבד
+ * (אגרגציה טהורה), מגודר reports.management. אפס נגיעה בנתונים — תצוגה/ייצוא בלבד.
  */
 import type { Db } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
-import type { ModuleKey } from '../../types/config';
+import { moduleEnabledIn, type ModuleKey } from '../../types/config';
 import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { useApp } from '../../store/useApp';
 import type { Cell } from './csv';
@@ -24,7 +24,8 @@ export function managementMetrics(db: Db, config?: OrgConfig): MetricGroup[] {
   const show = (k: string) => !config || featureOn(config, k); // בלי config (טסטים) = מוצג
   // גידור-מודול לקבוצות-הבסיס: מודול כבוי ⇒ הקבוצה לא נדחפת (היו רוכבות מאופסות
   // למסך+CSV גם כשהמודול כבוי, בעוד הקבוצות האופציונליות כבר מגודרות show()).
-  const mod = (m: ModuleKey) => !config || moduleOn(config, m);
+  // בלי config — כמו מפת-מודולים ריקה: רגיל = מוצג (כמו קודם), opt-in (פרנסה׳לע) = כבוי.
+  const mod = (m: ModuleKey) => (config ? moduleOn(config, m) : moduleEnabledIn(undefined, m));
   const T = (k: string, fb: string) => (config ? termOf(config, k, fb) : fb);
   const deliveries = db.deliveries;
   const delivered = deliveries.filter((d) => d.status === 'delivered').length;
@@ -62,6 +63,20 @@ export function managementMetrics(db: Db, config?: OrgConfig): MetricGroup[] {
   if (mod('shop')) groups.push({ title: '🛍 ' + T('nav.shop', 'חנות'), rows: [['שיוכים פעילים', activeAssign], ['מימושים', redemptions], ['אצוות פג/עומד-לפוג', expiringIntakes(db, isoToday()).length]] });
   if (mod('tzedaka')) groups.push({ title: '🪙 ' + T('nav.tzedaka', 'קופות צדקה'), rows: [['קופות', db.tzBoxes.length], ['ריקונים', collections], ['סה"כ נאסף (₪)', tzTotal]] });
   if (mod('families')) groups.push({ title: '👨‍👩‍👧 ' + T('nav.families', 'משפחות'), rows: [[T('nav.families', 'משפחות') + ' פעילות', activeFams], ['סה"כ ' + T('nav.families', 'משפחות'), db.families.length]] });
+  // 📒 פרנסה׳לע (אשכול 7) — ספירות בלבד, בלי המנוע הכבד ובלי כסף (רישום-הפרסום נשאר במודול)
+  if (mod('parnasa')) {
+    const today = isoToday();
+    groups.push({
+      title: '📒 ' + T('nav.parnasa', 'פרנסה׳לע'),
+      rows: [
+        [T('entity.prListings', 'עסקים') + ' במדריך', db.prListings.filter((l) => l.status === 'approved').length],
+        // אותן הגדרות כמו pendingApprovals / adActiveOn של המודול (בלי לייבא אותו לצ'אנק-הדוחות)
+        ['ממתינים לאישור', db.prListings.filter((l) => l.status === 'pending').length + db.prPosts.filter((p) => !p.approved && (!p.until || p.until >= today)).length],
+        ['בקשות פתוחות', db.prRequests.filter((r) => r.status !== 'closed').length],
+        ['פרסומות פעילות', db.prAds.filter((a) => a.active !== false && (!a.from || a.from <= today) && (!a.to || a.to >= today)).length],
+      ],
+    });
+  }
 
   const sponsorTotal = [...sponsor.values()].reduce((a, g) => a + g.ils, 0);
   if (sponsor.size > 0 && show('reports.management.sponsor')) {

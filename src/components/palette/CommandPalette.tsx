@@ -18,6 +18,7 @@ import { groupPaletteResults } from '../../lib/paletteGroups';
 import { todaySessions } from '../home/homeData';
 import { beneficiaryLabel } from '../shop/lib';
 import { exportFamiliesCsv } from '../settings/ExportSection';
+import { requestOpenListing } from '../parnasa/paletteLink';
 
 /** פריט בר-הפעלה בפלטה: אייקון + כותרת + שורת משנה + פעולה. */
 interface Cmd {
@@ -114,6 +115,9 @@ export function CommandPalette() {
   // העמודות המבודדות (CONNECT חיבור 1) — הפלטה מנווטת לעמודה; deep-link פנימי = שאלת מוצר עתידית
   const tzedakaOn = moduleOn(config, 'tzedaka');
   const shopOn = moduleOn(config, 'shop');
+  // פרנסה׳לע (אשכול 7) — מודול opt-in: חסר = כבוי ⇒ אף תוצאה (הלקוח-החי והדמו ביט-זהים); התוצאה פותחת
+  // את כרטיס-העסק במדריך, ולכן גם parnasa.directory
+  const parnasaOn = moduleOn(config, 'parnasa') && featureOn(config, 'parnasa.directory');
   const diaryOn = moduleOn(config, 'diary');
   const reportsOn = moduleOn(config, 'reports');
   const teachersOn = featureOn(config, 'settings.teachers');
@@ -707,6 +711,24 @@ export function CommandPalette() {
         },
       });
     }
+    // פרנסה׳לע (אשכול 7) — עסקים מאושרים וממתינים (status/dialCode מרופאים ב-persist): שם · מקצוע · ☎ קוד;
+    // הפעולה פותחת את כרטיס-העסק במדריך (paletteLink — בקשה חוצה-מסכים בלי store)
+    const prWord = termOf(config, 'entity.prListing', 'עסק');
+    for (const l of parnasaOn ? db.prListings : []) {
+      if (l.status === 'rejected') continue;
+      out.push({
+        key: 'prl-' + l.id,
+        icon: '📒',
+        title: l.name + ' — ' + prWord,
+        sub: [l.title, l.dialCode && '☎ ' + l.dialCode].filter(Boolean).join(' · '),
+        terms: toTerms([l.name, l.title, l.dialCode, prWord]),
+        run: () => {
+          requestOpenListing(l.id);
+          go('parnasa');
+          setPalette(false);
+        },
+      });
+    }
     return out;
   }, [
     db,
@@ -722,6 +744,7 @@ export function CommandPalette() {
     calendarOn,
     tzedakaOn,
     shopOn,
+    parnasaOn,
     config,
     lockSecondary,
     lockZones,

@@ -35,6 +35,8 @@ function buckets(config?: OrgConfig): [prefix: string, label: string][] {
     ['doc-', 'מסמכים'],
     ['ev-', 'אירועים'],
     ['punch-', 'כרטיסיות'],
+    // פרנסה׳לע (אשכול 7, opt-in) — אחרון: בלי פריטי prl- (מודול כבוי) הקיבוץ ביט-זהה
+    ['prl-', T('nav.parnasa', 'פרנסה׳לע')],
   ];
 }
 
