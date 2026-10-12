@@ -387,7 +387,8 @@ describe('📒 שרשרת-הרישום של parnasa (אשכול 0)', () => {
 
   it('FEATURES: תת-דגלים בחוזה הרגיל (לא optIn) + 2 פעולות grantable 🔓', () => {
     expect(PARNASA_FEATURES.map((f) => f.key).sort()).toEqual(
-      ['parnasa.ads', 'parnasa.approve', 'parnasa.board', 'parnasa.booklet', 'parnasa.care', 'parnasa.delete', 'parnasa.directory', 'parnasa.export', 'parnasa.requests', 'parnasa.zmanim'],
+      // 6ב (12.10): + parnasa.phone — לשונית "📞 הקו" (סימולטור, לא קו חי), בחוזה הרגיל כמו שאר הלשוניות
+      ['parnasa.ads', 'parnasa.approve', 'parnasa.board', 'parnasa.booklet', 'parnasa.care', 'parnasa.delete', 'parnasa.directory', 'parnasa.export', 'parnasa.phone', 'parnasa.requests', 'parnasa.zmanim'],
     );
     for (const f of PARNASA_FEATURES) expect(f.optIn, f.key + ' — המודול הוא ה-opt-in, לא הדגל').toBeUndefined();
     for (const k of ['parnasa.approve', 'parnasa.delete']) expect(FEATURES.find((f) => f.key === k)!.label, k).toContain('🔓');

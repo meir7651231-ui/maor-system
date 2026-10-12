@@ -542,8 +542,9 @@ for (const profile of PROFILES) {
   await page.waitForTimeout(700);
   const main = (await page.locator('main').textContent()) ?? '';
   // אשכול 5 (12.10): ה-stub "המודול בבנייה" הוחלף בלשוניות האמיתיות — מקומי בלי adminEmails = סמכות-גבאי
-  const PR_TABS = ['🏠 טיפול ואישורים', '📇 מדריך', '🙋 בקשות', '📌 לוח קהילה', '📖 חוברת', '📣 פרסומות', '⚙ הגדרות'];
-  t('מסך פרנסה׳לע נטען — 6 הלשוניות + ⚙ הגדרות (גבאי)', PR_TABS.every((x) => main.includes(x)), PR_TABS.filter((x) => !main.includes(x)).join(', '));
+  // אשכול 6ב (12.10): + 📞 הקו — סימולטור (לא קו חי)
+  const PR_TABS = ['🏠 טיפול ואישורים', '📇 מדריך', '🙋 בקשות', '📌 לוח קהילה', '📖 חוברת', '📞 הקו', '📣 פרסומות', '⚙ הגדרות'];
+  t('מסך פרנסה׳לע נטען — 7 הלשוניות + ⚙ הגדרות (גבאי)', PR_TABS.every((x) => main.includes(x)), PR_TABS.filter((x) => !main.includes(x)).join(', '));
   t('ה-stub הישן לא חזר', !main.includes('המודול בבנייה'));
   const prTab = (label) => page.locator('main button.chip', { hasText: label }).first().click();
 
@@ -588,6 +589,41 @@ for (const profile of PROFILES) {
   t(
     '📖 חוברת ירדה כקובץ HTML — העסק + קוד-חיוג 101, בלי סקריפט',
     dl.suggestedFilename().startsWith('parnasa-booklet-') && bookletTxt.includes('אינסטלציה-מטריצה') && bookletTxt.includes('☎ קוד 101') && !bookletTxt.includes('<script'),
+  );
+
+  // אשכול 6ב · 📞 הקו — סימולטור, לא קו חי: 1 ⇒ תחומי-המקצוע · "אמרו משהו" ⇒ צומת-אישור, לעולם לא חיבור
+  await prTab('📞 הקו');
+  await page.waitForTimeout(300);
+  prMain = (await page.locator('main').textContent()) ?? '';
+  t('📞 באנר "הקו עוד לא חי" + הקו מתרנדר', prMain.includes('תצוגה בלבד — הקו עוד לא חי') && prMain.includes('הקו של פרנסה׳לע'));
+  // ההרצה בזמן-אמת: בשבת/חג הקו סגור (הודעת-הסגירה בלבד) — בודקים אותה, ועוברים לתצוגת "ביום חול" לתפריט
+  if (prMain.includes('🕯 סגור ברגע')) {
+    t('📞 בשבת/חג — הודעת-הסגירה, המקלדת מושבתת', prMain.includes('אין תפריט, אין קוד ואין חיבור') && (await page.getByRole('button', { name: 'מקש 1', exact: true }).isDisabled()));
+    await page.locator('main button.chip', { hasText: '☀ ביום חול' }).click();
+    await page.waitForTimeout(300);
+  }
+  await page.getByRole('button', { name: 'מקש 1', exact: true }).click();
+  await page.waitForTimeout(250);
+  prMain = (await page.locator('main').textContent()) ?? '';
+  t(
+    '📞 מקש 1 ⇒ תחומי המקצוע (נוסח-התחומים + חשמל, אינסטלציה ומיזוג)',
+    prMain.includes('אמרו מה אתם צריכים, או הקישו את מספר התחום') && prMain.includes('חשמל, אינסטלציה ומיזוג'),
+  );
+  await page.locator('#pr-phone-say').fill('יש לי נזילה בכיור');
+  await page.locator('main button', { hasText: '🎙 אמירה' }).click();
+  await page.waitForTimeout(250);
+  prMain = (await page.locator('main').textContent()) ?? '';
+  t(
+    '📞 "אמרו משהו" ⇒ צומת-אישור ("שמעתי…" + "לאישור הקישו 1") — אף פעם לא חיבור',
+    prMain.includes('שמעתי: יש לי נזילה בכיור') && prMain.includes('אינסטלציה-מטריצה') && prMain.includes('לאישור הקישו 1') &&
+      !prMain.includes('מחברים אתכם') && !prMain.includes('כאן הקו היה מחבר'),
+  );
+  const [sdl] = await Promise.all([page.waitForEvent('download'), page.locator('main button', { hasText: '⬇ תסריט הקו' }).click()]);
+  const sdlPath = await sdl.path();
+  const scriptTxt = sdlPath ? readFileSync(sdlPath, 'utf8') : '';
+  t(
+    '📞 תסריט הקו ירד כקובץ טקסט — צמתים, העסק וקוד-החיוג 101',
+    sdl.suggestedFilename().startsWith('parnasa-line-script-') && scriptTxt.includes('תסריט הקריינות') && scriptTxt.includes('אינסטלציה-מטריצה') && scriptTxt.includes('הקוד בקו: אחת אפס אחת'),
   );
 
   // אשכול 8 · 📣 פרסומת ⇒ סימון-תשלום ידני (רישום בלבד, אפס קבלות)

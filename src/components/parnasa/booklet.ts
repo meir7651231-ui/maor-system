@@ -9,7 +9,7 @@
  * רק עסקים **מאושרים**; הערה-פנימית ובקשות-תושבים לעולם לא נכנסות לחוברת.
  */
 import type { IsoDate, ParnasaPrefs, PrAd, PrListing, PrPost } from '../../types/domain';
-import { approvedListings, categoryOf, groupByCategory, hoursText, isFeatured, PR_AUD_NAMES, activeAds } from './lib';
+import { approvedListings, categoryOf, groupByCategory, hoursText, isFeatured, PR_AUD_NAMES, PR_MARK_LABELS, activeAds } from './lib';
 import { emergencyNumbers, hebDateText, isIsoDate, locNote, PR_ZMANIM_NOTE, resolveZmanimLoc, weekZmanim } from './zmanimBoard';
 import { hebcalParts } from '../../lib/telephony/engine';
 import { gemYear } from '../../lib/hebrew';
@@ -160,10 +160,10 @@ export function hoursHtml(s: string): string {
 function entryHtml(l: PrListing, todayIso: IsoDate): string {
   const feat = isFeatured(l, todayIso);
   const marks: string[] = [];
-  if (l.disc) marks.push('הנחה לקהילה');
-  if (l.free) marks.push('גמ״ח');
+  if (l.disc) marks.push(PR_MARK_LABELS.disc);
+  if (l.free) marks.push(PR_MARK_LABELS.free);
   if (l.aud === 'men' || l.aud === 'women') marks.push(PR_AUD_NAMES[l.aud]);
-  if (l.emergency) marks.push('זמינים לקריאות חירום');
+  if (l.emergency) marks.push(PR_MARK_LABELS.emergency);
   if (l.kashrut.trim()) marks.push('השגחה: ' + l.kashrut.trim());
   const hours = hoursText(l);
   const meta = [l.city.trim() ? escHtml(l.city) : '', hours.trim() ? hoursHtml(hours) : ''].filter(Boolean).join(' · ');

@@ -36,13 +36,14 @@ const src = (name: string): string => {
   return hit![1];
 };
 
-const SUB_FLAGS = ['parnasa.care', 'parnasa.directory', 'parnasa.requests', 'parnasa.board', 'parnasa.booklet', 'parnasa.ads', 'parnasa.zmanim', 'parnasa.export'];
+const SUB_FLAGS = ['parnasa.care', 'parnasa.directory', 'parnasa.requests', 'parnasa.board', 'parnasa.booklet', 'parnasa.phone', 'parnasa.ads', 'parnasa.zmanim', 'parnasa.export'];
 const TAB_LABELS: Record<string, string> = {
   'parnasa.care': '🏠 טיפול ואישורים',
   'parnasa.directory': '📇 מדריך',
   'parnasa.requests': '🙋 בקשות',
   'parnasa.board': '📌 לוח קהילה',
   'parnasa.booklet': '📖 חוברת',
+  'parnasa.phone': '📞 הקו', // אשכול 6ב — סימולטור, לא קו חי (נעילה מלאה: parnasa-phone.test)
   'parnasa.ads': '📣 פרסומות',
 };
 
@@ -114,7 +115,7 @@ describe('📒 (ב) opt-in: כבוי כשחסר — לא נגיש; דלוק ⇒ 
 /* ═══════════════ (ג) לשוניות מגודרות ═══════════════ */
 
 describe('📒 (ג) כל לשונית מגודרת בתת-הדגל שלה (רינדור-שרת)', () => {
-  it('הכול דלוק (מקומי = סמכות-מנהל) ⇒ 6 הלשוניות + ⚙ הגדרות', () => {
+  it('הכול דלוק (מקומי = סמכות-מנהל) ⇒ 7 הלשוניות + ⚙ הגדרות', () => {
     setup(ON());
     const html = render(createElement(ParnasaView));
     for (const label of Object.values(TAB_LABELS)) expect(html, label).toContain(label);

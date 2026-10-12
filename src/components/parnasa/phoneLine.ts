@@ -27,14 +27,17 @@ import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
 import {
   categoryOf,
+  dialCodeHolders,
+  dialCodeOf,
   groupByCategory,
   listingStatus,
   PR_AUD_NAMES,
   PR_CONCEPTS,
+  PR_MARK_LABELS,
   prNorm,
   redactContact,
   searchListings,
-  type PrGate,
+  uniqueGates,
   type PrOpenState,
   type PrSearchCtx,
 } from './lib';
@@ -251,30 +254,10 @@ export function speakDigits(tel: string): string {
 const bizId = (id: unknown): string => 'biz/' + encodeURIComponent(String(id));
 const nameOf = (l: PrListing): string => said(l.name, CAP.name) || said(l.title, CAP.name) || 'ללא שם';
 const statusText = (st: PrOpenState | null, full: boolean): string => (st ? expand(full && st.sub ? st.t + ', ' + st.sub : st.t) : '');
-const dialOf = (l: PrListing): string => {
-  const s = String(l.dialCode ?? '').trim();
-  return /^\d{3}$/.test(s) ? s : '';
-};
 
 /** שורת-רשימה: שם · אזור · פתוח/סגור עכשיו. */
 function listingLine(l: PrListing, st: PrOpenState | null): string {
   return [nameOf(l), said(l.area || l.city, CAP.area), statusText(st, false)].filter(Boolean).join(', ');
-}
-
-/** שערים בלי עסק כפול-מזהה (הראשון גובר) — רשומה פגומה לא יוצרת שני צמתים באותו מזהה. */
-function uniqueGates(gates: readonly PrGate[]): PrGate[] {
-  const seen = new Set<string>();
-  return gates
-    .map((g) => ({
-      cat: g.cat,
-      items: g.items.filter((l) => {
-        const k = String(l.id);
-        if (seen.has(k)) return false;
-        seen.add(k);
-        return true;
-      }),
-    }))
-    .filter((g) => g.items.length > 0);
 }
 
 /* ═══════════════ עימוד ═══════════════ */
@@ -477,17 +460,12 @@ export function buildPhoneMenu(input: PhoneMenuInput): PhoneMenu {
     if (!statusCache.has(k)) statusCache.set(k, listingStatus(l, clock, closureAt));
     return statusCache.get(k) ?? null;
   };
-  const codeCount = new Map<string, number>();
-  for (const g of gates) {
-    for (const l of g.items) {
-      const c = dialOf(l);
-      if (c) codeCount.set(c, (codeCount.get(c) ?? 0) + 1);
-    }
-  }
+  // קוד-חיוג: אותו כלל כמו "דורש טיפול" של הגבאי (lib.ts — dialCodeHolders), כדי שכל קוד שהקו מסרב לו יוצג שם
+  const holders = dialCodeHolders(gates);
   /** קוד תקין וייחודי — כפול לא נענה בקו (fail-closed: לא מחברים לעסק הלא-נכון). */
   const codeOf = (l: PrListing): string => {
-    const c = dialOf(l);
-    return c && codeCount.get(c) === 1 ? c : '';
+    const c = dialCodeOf(l);
+    return c && holders.get(c)?.length === 1 ? c : '';
   };
   const codes: Record<string, string> = {};
   for (const g of gates) {
@@ -543,9 +521,9 @@ export function buildPhoneMenu(input: PhoneMenuInput): PhoneMenu {
     const kashrut = said(l.kashrut, CAP.area);
     const marks = [
       l.aud === 'men' || l.aud === 'women' ? PR_AUD_NAMES[l.aud] : '',
-      l.disc === true ? 'הנחה לקהילה' : '',
-      l.free === true ? 'גמ״ח' : '',
-      l.emergency === true ? 'זמינים לקריאות חירום' : '',
+      l.disc === true ? PR_MARK_LABELS.disc : '',
+      l.free === true ? PR_MARK_LABELS.free : '',
+      l.emergency === true ? PR_MARK_LABELS.emergency : '',
       kashrut ? 'השגחה: ' + kashrut : '',
     ].filter(Boolean);
     const back = opt('0', 'לחזרה הקישו 0', backTo);
@@ -764,6 +742,31 @@ export function resolveSpeech(menu: PhoneMenu, nodeId: string, utterance: string
 
 /* ═══════════════ סימולטור · תסריט ═══════════════ */
 
+/** צעד אחד בקו: הצומת הנוכחי + הספרות שנאספו בצומת-הקשה. */
+export interface PhoneStepResult {
+  node: PhoneNode;
+  buf: string;
+  /** false — הספרה רק נאספה (הצומת לא התחלף, כלום לא נאמר). */
+  moved: boolean;
+}
+
+/**
+ * מקש אחד ('0'–'9' '*' '#') — הלב של walkPhone, מיוצא לסימולטור (לשונית "📞 הקו") כדי שההליכה שם
+ * תהיה **אותה** הליכה: מקש לא-חוקי ⇒ הקו חוזר על הצומת · צומת-הקשה אוסף ספרות עד collect ⇒
+ * resolveDialCode (צומת-אישור דינמי) · צומת סופי (חיבור/סגירה) ⇒ null — הקו לא מקשיב.
+ */
+export function phoneStep(menu: PhoneMenu, at: { node: PhoneNode; buf: string }, key: string): PhoneStepResult | null {
+  const cur = at.node;
+  if (!cur.options.length && !cur.collect) return null;
+  if (cur.collect && /\d/.test(key)) {
+    const buf = at.buf + key;
+    if (buf.length < cur.collect) return { node: cur, buf, moved: false };
+    return { node: resolveDialCode(menu, buf).confirm, buf: '', moved: true };
+  }
+  const o: PhoneOption | undefined = cur.options.find((x) => x.digit === key);
+  return { node: o && Object.hasOwn(menu.nodes, o.to) ? menu.nodes[o.to] : cur, buf: '', moved: true };
+}
+
 /**
  * סימולטור-מקשים (לבדיקות ולתצוגה-מקדימה): מהשורש, מקש אחר מקש ('0'–'9' '*' '#'; שאר התווים
  * מדולגים) ⇒ הצמתים שבהם ביקר. מקש לא-חוקי ⇒ הקו חוזר על הצומת. צומת-הקשה אוסף ספרות עד
@@ -771,24 +774,15 @@ export function resolveSpeech(menu: PhoneMenu, nodeId: string, utterance: string
  */
 export function walkPhone(menu: PhoneMenu, keys: string | readonly string[]): PhoneNode[] {
   const seq = (typeof keys === 'string' ? keys : keys.join('')).replace(/[^0-9*#]/g, '');
-  let cur: PhoneNode | undefined = Object.hasOwn(menu.nodes, menu.root) ? menu.nodes[menu.root] : undefined;
-  if (!cur) return [];
-  const out: PhoneNode[] = [cur];
-  let buf = '';
+  const root: PhoneNode | undefined = Object.hasOwn(menu.nodes, menu.root) ? menu.nodes[menu.root] : undefined;
+  if (!root) return [];
+  const out: PhoneNode[] = [root];
+  let at = { node: root, buf: '' };
   for (const k of seq) {
-    if (!cur.options.length && !cur.collect) break;
-    if (cur.collect && /\d/.test(k)) {
-      buf += k;
-      if (buf.length < cur.collect) continue;
-      cur = resolveDialCode(menu, buf).confirm;
-      buf = '';
-      out.push(cur);
-      continue;
-    }
-    buf = '';
-    const o: PhoneOption | undefined = cur.options.find((x) => x.digit === k);
-    cur = o && Object.hasOwn(menu.nodes, o.to) ? menu.nodes[o.to] : cur;
-    out.push(cur);
+    const r = phoneStep(menu, at, k);
+    if (!r) break;
+    at = { node: r.node, buf: r.buf };
+    if (r.moved) out.push(r.node);
   }
   return out;
 }
@@ -798,7 +792,8 @@ export function nodeSpeech(node: PhoneNode): string {
   return [node.prompt, ...node.options.map((o) => o.say + '.')].filter(Boolean).join(' ');
 }
 
-const KIND_HE: Readonly<Record<PhoneNodeKind, string>> = {
+/** סוג-הצומת בעברית — לתסריט ולתצוגה (לשונית "📞 הקו"). */
+export const PHONE_KIND_LABELS: Readonly<Record<PhoneNodeKind, string>> = {
   menu: 'תפריט',
   list: 'רשימה',
   listing: 'כרטיס עסק',
@@ -809,7 +804,8 @@ const KIND_HE: Readonly<Record<PhoneNodeKind, string>> = {
   input: 'הקשת קוד',
   closed: 'הקו סגור',
 };
-const keyName = (d: string): string => (d === '*' ? 'כוכבית' : d === '#' ? 'סולמית' : d);
+/** שם-המקש להקראה/תצוגה: כוכבית · סולמית · ספרה. */
+export const phoneKeyName = (d: string): string => (d === '*' ? 'כוכבית' : d === '#' ? 'סולמית' : d);
 
 /** תסריט-קריינות בטקסט-פשוט (להקלטת-הנוסחים בעתיד): כל צומת — מזהה, סוג, הנוסח, המקשים והפעולה. */
 export function phoneScriptText(menu: PhoneMenu): string {
@@ -821,11 +817,11 @@ export function phoneScriptText(menu: PhoneMenu): string {
   ];
   for (const id of ids) {
     const n = menu.nodes[id];
-    const tags = [KIND_HE[n.kind], n.id === menu.root ? 'שורש' : '', n.speech ? 'דיבור או מקשים' : '', n.collect ? `איסוף ${n.collect} ספרות` : '']
+    const tags = [PHONE_KIND_LABELS[n.kind], n.id === menu.root ? 'שורש' : '', n.speech ? 'דיבור או מקשים' : '', n.collect ? `איסוף ${n.collect} ספרות` : '']
       .filter(Boolean)
       .join(' · ');
     out.push('', `[${n.id}] ${tags}`, n.prompt);
-    for (const o of n.options) out.push(`  ${keyName(o.digit)} — ${o.say} ← ${o.to}`);
+    for (const o of n.options) out.push(`  ${phoneKeyName(o.digit)} — ${o.say} ← ${o.to}`);
     if (n.action?.kind === 'connect') out.push(`  [פעולה] חיבור שיחה אל ${n.action.label}: ${n.action.tel}`);
     else if (n.action?.kind === 'readNumber') out.push(`  [פעולה] הקראת המספר ספרה-ספרה: ${n.action.groups.join('-')}`);
   }

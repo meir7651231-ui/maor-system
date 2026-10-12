@@ -23,6 +23,7 @@ import {
   closeRequest,
   communityRequests,
   dialCodeTaken,
+  duplicateDialCodes,
   filterListings,
   groupByCategory,
   hoursText,
@@ -475,6 +476,32 @@ describe('🧰 דורש-טיפול · פרסומות · קוד-חיוג · CSV',
     ]);
     expect(care.find((c) => c.kind === 'noDialCode')!.label).toBe('2 עסקים בלי קוד-חיוג'); // סת״ם + אינסטלציה
     expect(JSON.stringify(care)).not.toContain('סודי ביותר'); // 🛡 לעולם לא זהות-מבקש
+  });
+  // 🛡 6ב (12.10): הקו מסרב לענות לקוד-חיוג כפול (fail-closed) — בלי שורת-טיפול הגבאי לא ידע שהקוד "מת"
+  it('needsCare: ☎ קוד-חיוג כפול בין המאושרים — שורה לכל קוד (לפי הקוד), קפיצה לכרטיס הראשון; ממתין/נדחה לא נספרים', () => {
+    const listings = [
+      L({ id: 't2', name: 'תאום ב', category: 'edu', dialCode: '150' }),
+      L({ id: 't1', name: 'תאום א', category: 'edu', dialCode: ' 150 ' }), // רווחים — אותו קוד כפי שהקו קורא אותו
+      L({ id: 'w1', name: 'אלף', category: 'home', dialCode: '120' }),
+      L({ id: 'w2', name: 'בית', category: 'elec', dialCode: '120' }),
+      L({ id: 'p1', name: 'ממתין', category: 'home', dialCode: '130', status: 'pending' }),
+      L({ id: 'p2', name: 'מאושר', category: 'home', dialCode: '130' }),
+      L({ id: 'r1', name: 'נדחה', category: 'home', dialCode: '140', status: 'rejected' }),
+      L({ id: 'r2', name: 'יחיד', category: 'home', dialCode: '140' }),
+    ];
+    const care = needsCare({ prListings: listings, prRequests: [], prAds: [] }, TODAY, Date.parse('2026-10-14T09:00:00.000Z'), DEFAULT_CONFIG);
+    const dup = care.filter((c) => c.kind === 'dupDialCode');
+    expect(dup.map((c) => c.label)).toEqual(['קוד-חיוג 120 כפול — 2 עסקים', 'קוד-חיוג 150 כפול — 2 עסקים']);
+    // בסדר-השערים (חשמל לפני בית; בתוך שער — לפי שם): הראשון = יעד-הקפיצה
+    expect(dup.map((c) => c.id)).toEqual(['w2', 't1']);
+    expect(dup[1].hint).toBe('תאום א · תאום ב — הקו לא עונה לקוד כפול; תנו לאחד מהם קוד אחר');
+    expect(duplicateDialCodes(listings, TODAY).map((d) => d.code)).toEqual(['120', '150']);
+    // שורת-הטיפול באה לפני שורת "בלי קוד-חיוג" (חמורה ממנה)
+    const withMissing = needsCare({ prListings: [...listings, L({ id: 'n1', name: 'בלי קוד' })], prRequests: [], prAds: [] }, TODAY, 0, DEFAULT_CONFIG);
+    expect(withMissing.map((c) => c.kind).slice(-3)).toEqual(['dupDialCode', 'dupDialCode', 'noDialCode']);
+    // מונח-הארגון
+    const named = needsCare({ prListings: listings, prRequests: [], prAds: [] }, TODAY, 0, { ...DEFAULT_CONFIG, terms: { 'entity.prListings': 'בעלי מקצוע' } });
+    expect(named.find((c) => c.kind === 'dupDialCode')!.label).toBe('קוד-חיוג 120 כפול — 2 בעלי מקצוע');
   });
   it('activeAds: משבצת/יעד/תקופה, לפי מפרסם; adPayLink = payLink בלבד (https)', () => {
     const ads = [

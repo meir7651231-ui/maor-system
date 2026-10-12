@@ -1,5 +1,6 @@
 /**
- * 📒 פרנסה׳לע — יציאת מסמך HTML מלא (החוברת) — הדפסה דרך iframe נסתר / הורדת קובץ (אשכול 8).
+ * 📒 פרנסה׳לע — יציאת מסמך HTML מלא (החוברת) — הדפסה דרך iframe נסתר / הורדת קובץ (אשכול 8) — ותסריט-הקו
+ * כקובץ-טקסט (אשכול 6ב).
  * אותו דפוס כמו הדפסת-המסמך של הקבלה (iframe נסתר + srcdoc) ו-downloadTextFile (builder/handoff), בלי
  * לייבא אותם (בידוד: המודול לא נוגע בעולם-הקבלות). **כל נתיב עובר קודם את שער יציאת-המידע (guardExport — core.export
  * כבוי בכרטיס-העובד ⇒ אין הדפסה ואין הורדה)**. מחזיר האם המסמך יצא בפועל — הקורא רושם ליומן-הגישה
@@ -35,6 +36,20 @@ export function downloadHtmlDoc(filename: string, html: string): boolean {
   if (!guardExport()) return false; // 🔐 שער יציאת-מידע
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  return true;
+}
+
+/**
+ * הורדת מסמך-טקסט (‎.txt — תסריט-הקו, אשכול 6ב) — **אותו** שער יציאת-מידע, באותו דפוס כמו החוברת.
+ * BOM בראש הקובץ, כדי שעורכי-טקסט ישנים יזהו UTF-8 (עברית) ולא יציגו ג'יבריש.
+ */
+export function downloadTextDoc(filename: string, text: string): boolean {
+  if (!guardExport()) return false; // 🔐 שער יציאת-מידע
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF' + text], { type: 'text/plain;charset=utf-8' }));
   a.download = filename;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);

@@ -90,6 +90,12 @@ export function categoryIndex(key: string): number {
 export const PR_LANG_NAMES: Readonly<Record<string, string>> = { he: 'עברית', yi: 'אידיש', en: 'אנגלית', fr: 'צרפתית', ru: 'רוסית' };
 /** "מתאים ל". */
 export const PR_AUD_NAMES: Readonly<Record<string, string>> = { all: 'לכולם', men: 'לגברים', women: 'לנשים' };
+/**
+ * תוויות-האמון של עסק — נוסח **אחד** לחוברת (booklet.ts) ולקו (phoneLine.ts), כדי שמה שמודפס ומה
+ * שנאמר בקול לא יתפצלו. הסדר נשאר אצל כל קורא (החוברת: הנחה · גמ״ח · מתאים · חירום; הקו: מתאים ·
+ * הנחה · גמ״ח · חירום).
+ */
+export const PR_MARK_LABELS = { disc: 'הנחה לקהילה', free: 'גמ״ח', emergency: 'זמינים לקריאות חירום' } as const;
 
 /* ═══════════════ מעברי-המצב (transitions.ts — הקובץ הקטן שה-store מייבא) ═══════════════ */
 // מכונת-האישור, שמירת בקשה/תשובה/סגירה/פרסומת וקודי-החיוג חיים ב-transitions.ts, כדי שה-store
@@ -490,6 +496,59 @@ export function groupByCategory(listings: readonly PrListing[], todayIso: IsoDat
   return gates;
 }
 
+/* ═══════════════ קוד-חיוג בקו (כלל אחד לקו ולרשימת-הטיפול) ═══════════════ */
+
+/** קוד-החיוג של עסק כפי שהקו קורא אותו: 3 ספרות (אחרי ניקוי-רווחים), אחרת ''. */
+export function dialCodeOf(l: PrListing): string {
+  const s = String(l.dialCode ?? '').trim();
+  return /^\d{3}$/.test(s) ? s : '';
+}
+
+/** שערים בלי עסק כפול-מזהה (הראשון גובר) — רשומה פגומה לא יוצרת שני צמתים באותו מזהה ולא נספרת פעמיים. */
+export function uniqueGates(gates: readonly PrGate[]): PrGate[] {
+  const seen = new Set<string>();
+  return gates
+    .map((g) => ({
+      cat: g.cat,
+      items: g.items.filter((l) => {
+        const k = String(l.id);
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      }),
+    }))
+    .filter((g) => g.items.length > 0);
+}
+
+/**
+ * מי נושא כל קוד-חיוג בשערים (מאושרים, בסדר-השערים). קוד שנושא יותר מעסק אחד = כפול, והקו **לא
+ * עונה לו** (fail-closed — לא מחברים לעסק הלא-נכון); לכן needsCare מציג אותו לגבאי.
+ */
+export function dialCodeHolders(gates: readonly PrGate[]): Map<string, PrListing[]> {
+  const out = new Map<string, PrListing[]>();
+  for (const g of gates) {
+    for (const l of g.items) {
+      const c = dialCodeOf(l);
+      if (c) out.set(c, [...(out.get(c) ?? []), l]);
+    }
+  }
+  return out;
+}
+
+/** קוד כפול וכל נושאיו (לפי הקוד). */
+export interface PrDupDialCode {
+  code: string;
+  listings: PrListing[];
+}
+
+/** הקודים הכפולים בין המאושרים — **בדיוק** מה שהקו מסרב לענות לו (אותם שערים, אותו כלל); לפי הקוד. */
+export function duplicateDialCodes(listings: readonly PrListing[], todayIso: IsoDate): PrDupDialCode[] {
+  return [...dialCodeHolders(uniqueGates(groupByCategory(listings, todayIso)))]
+    .filter(([, ls]) => ls.length > 1)
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([code, ls]) => ({ code, listings: ls }));
+}
+
 /* ═══════════════ פתוח-עכשיו (שעון-הקהילה + סגירת שבת/יו״ט) ═══════════════ */
 
 interface Win {
@@ -811,7 +870,8 @@ export function communityRequests(requests: readonly PrRequest[], listings: read
 /* ═══════════════ דורש-טיפול ═══════════════ */
 
 export interface PrCareItem {
-  kind: 'quietNoBiz' | 'urgent' | 'unanswered' | 'adUnpaid' | 'adEnding' | 'featuredEnding' | 'noDialCode';
+  kind: 'quietNoBiz' | 'urgent' | 'unanswered' | 'adUnpaid' | 'adEnding' | 'featuredEnding' | 'dupDialCode' | 'noDialCode';
+  /** dupDialCode — מזהה העסק הראשון בקוד (הקפיצה לכרטיס שלו). */
   id: string;
   label: string;
   hint: string;
@@ -825,7 +885,8 @@ const snippet = (s: string, n = 60): string => {
 /**
  * רשימת-הטיפול של הגבאי (מעבר לממתינים-לאישור): בקשה שקטה בלי עסק בתחום · דחופה בלי מענה ·
  * פתוחה לקהילה בלי מענה ≥24ש׳ · פרסומת שהחלה ולא שולמה · פרסומת שמסתיימת ≤14 יום · הדגשה
- * שמסתיימת ≤7 ימים · עסקים מאושרים בלי קוד-חיוג (שורה מסכמת). לעולם לא שם/טלפון של מבקש.
+ * שמסתיימת ≤7 ימים · ☎ קוד-חיוג כפול בין המאושרים (שורה לכל קוד — **הקו לא עונה לקוד כפול**, אותו
+ * כלל בדיוק: dialCodeHolders) · עסקים מאושרים בלי קוד-חיוג (שורה מסכמת). לעולם לא שם/טלפון של מבקש.
  */
 export function needsCare(db: Pick<Db, 'prListings' | 'prRequests' | 'prAds'>, todayIso: IsoDate, nowMs: number, config?: OrgConfig): PrCareItem[] {
   const T = (k: string, fb: string): string => (config ? termOf(config, k, fb) : fb);
@@ -869,6 +930,15 @@ export function needsCare(db: Pick<Db, 'prListings' | 'prRequests' | 'prAds'>, t
     if (l.status !== 'approved') continue;
     if (isFeatured(l, todayIso) && l.featuredUntil <= soon7) out.push({ kind: 'featuredEnding', id: l.id, label: 'ההדגשה של ' + l.name + ' מסתיימת ב-' + l.featuredUntil, hint: 'לחדש או להסיר' });
     if (!l.dialCode) noCode++;
+  }
+  // ☎ קוד כפול — בדיוק מה שהקו מסרב לענות לו (duplicateDialCodes: אותם שערים, אותו כלל)
+  for (const d of duplicateDialCodes(db.prListings, todayIso)) {
+    out.push({
+      kind: 'dupDialCode',
+      id: d.listings[0].id,
+      label: 'קוד-חיוג ' + d.code + ' כפול — ' + d.listings.length + ' ' + listingsWord,
+      hint: snippet(d.listings.map((l) => l.name).join(' · '), 80) + ' — הקו לא עונה לקוד כפול; תנו לאחד מהם קוד אחר',
+    });
   }
   if (noCode) out.push({ kind: 'noDialCode', id: 'dialcodes', label: noCode + ' ' + listingsWord + ' בלי קוד-חיוג', hint: 'הקוד מודפס בחוברת ומשמש את קו-הטלפון העתידי' });
   return out;

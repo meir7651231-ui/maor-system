@@ -3,7 +3,8 @@
  *   · ⏳ ממתינים לאישור (pendingApprovals — הוותיקים ראשונים): עסקים חדשים/שנערכו + מודעות-לוח;
  *     אישור/דחייה/מחיקה רק בהרשאה (prCan — נאכף גם ב-store); לא-מאשר רואה מה ממתין.
  *   · 🔔 דורש טיפול (needsCare): בקשה שקטה בלי עסק בתחום · דחופה בלי מענה · פתוחה לקהילה בלי מענה ·
- *     פרסומת שלא שולמה/מסתיימת · הדגשה שמסתיימת · עסקים בלי קוד-חיוג — כל שורה קופצת למקום.
+ *     פרסומת שלא שולמה/מסתיימת · הדגשה שמסתיימת · ☎ קוד-חיוג כפול (הקו לא עונה לו — קפיצה לכרטיס
+ *     הראשון בקוד) · עסקים בלי קוד-חיוג — כל שורה קופצת למקום.
  * 🛡 לעולם לא שם/טלפון של מבקש (needsCare בונה מתצוגה מושחרת).
  */
 import { useApp } from '../../store/useApp';
@@ -30,6 +31,7 @@ function jumpOf(item: PrCareItem): CareJump {
     case 'adEnding':
       return { tab: 'ads' };
     case 'featuredEnding':
+    case 'dupDialCode':
       return { tab: 'directory', id: item.id };
     default:
       return { tab: 'directory', id: null };

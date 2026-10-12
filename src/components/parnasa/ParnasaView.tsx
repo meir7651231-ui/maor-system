@@ -5,8 +5,8 @@
  * ב-types/config); כבוי ⇒ אין קישור ואין מסך, וכל parnasa.* כבויים (שרשור featureOn).
  * צ'יפ-לשוניות, כל אחת מגודרת בתת-הדגל שלה (החוזה הרגיל בתוך מודול דלוק — חסר = פעיל):
  *   🏠 טיפול ואישורים (parnasa.care) · 📇 מדריך (parnasa.directory) · 🙋 בקשות (parnasa.requests) ·
- *   📌 לוח קהילה (parnasa.board) · 📖 חוברת (parnasa.booklet) · 📣 פרסומות (parnasa.ads) ·
- *   ⚙ הגדרות — גבאי בלבד (prCan parnasa.approve).
+ *   📌 לוח קהילה (parnasa.board) · 📖 חוברת (parnasa.booklet) · 📞 הקו (parnasa.phone — סימולטור, לא
+ *   קו חי; אשכול 6ב) · 📣 פרסומות (parnasa.ads) · ⚙ הגדרות — גבאי בלבד (prCan parnasa.approve).
  * הניווט בין הלשוניות (קפיצה מטיפול לכרטיס/לבקשה, "לא מצאתי" ⇒ בקשה, צ'יפ-עזרה בלוח ⇒ חיפוש) — מצב
  * מקומי בלבד (בידוד: אין ניווט חוצה-מסכים דרך ה-store).
  */
@@ -23,10 +23,11 @@ import { DirectoryTab } from './DirectoryTab';
 import { RequestsTab } from './RequestsTab';
 import { BoardTab } from './BoardTab';
 import { BookletTab } from './BookletTab';
+import { PhoneTab } from './PhoneTab';
 import { AdsTab } from './AdsTab';
 import { SettingsTab } from './SettingsTab';
 
-type PrTab = 'care' | 'directory' | 'requests' | 'board' | 'booklet' | 'ads' | 'settings';
+type PrTab = 'care' | 'directory' | 'requests' | 'board' | 'booklet' | 'phone' | 'ads' | 'settings';
 
 export function ParnasaView() {
   const config = useApp((s) => s.config);
@@ -51,6 +52,7 @@ export function ParnasaView() {
     { key: 'requests', label: '🙋 בקשות', on: featureOn(config, 'parnasa.requests') },
     { key: 'board', label: '📌 לוח קהילה', on: featureOn(config, 'parnasa.board') },
     { key: 'booklet', label: '📖 חוברת', on: featureOn(config, 'parnasa.booklet') },
+    { key: 'phone', label: '📞 הקו', on: featureOn(config, 'parnasa.phone') },
     { key: 'ads', label: '📣 פרסומות', on: featureOn(config, 'parnasa.ads') },
     { key: 'settings', label: '⚙ הגדרות', on: canApprove },
   ];
@@ -140,6 +142,7 @@ export function ParnasaView() {
         />
       )}
       {active === 'booklet' && <BookletTab now={now} />}
+      {active === 'phone' && <PhoneTab now={now} />}
       {active === 'ads' && <AdsTab now={now} />}
       {active === 'settings' && <SettingsTab />}
     </div>

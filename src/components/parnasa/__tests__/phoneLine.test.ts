@@ -24,6 +24,7 @@ import {
   PHONE_SAY_MAX,
   phonePrompt,
   phoneScriptText,
+  phoneStep,
   phoneTel,
   resolveDialCode,
   resolveSpeech,
@@ -296,6 +297,19 @@ describe('🗣 דיבור ⇒ צומת-אישור, לעולם לא פעולה', 
     const r = resolveSpeech(MENU, 'main', 'נזילה, תחזרו אליי ל-052-1234567', DEMO, ctx);
     expect(r.found).toBe(true);
     expect(r.confirm.prompt).not.toMatch(/1234567|052/);
+  });
+});
+
+describe('👣 phoneStep — צעד אחד (הלב של walkPhone, מיוצא לסימולטור "📞 הקו", 6ב)', () => {
+  it('מקש ⇒ הצומת הבא · לא-חוקי ⇒ אותו צומת · צומת-הקשה: ספרה נאספת (moved=false) ⇒ אישור · סופי ⇒ null', () => {
+    const main = MENU.nodes.main;
+    expect(phoneStep(MENU, { node: main, buf: '' }, '1')).toEqual({ node: MENU.nodes['cats/1'], buf: '', moved: true });
+    expect(phoneStep(MENU, { node: main, buf: '' }, '7')).toEqual({ node: main, buf: '', moved: true });
+    const code = MENU.nodes.code;
+    expect(phoneStep(MENU, { node: code, buf: '' }, '1')).toEqual({ node: code, buf: '1', moved: false });
+    expect(phoneStep(MENU, { node: code, buf: '10' }, '1')).toMatchObject({ node: { id: 'confirm/code/101', kind: 'confirm' }, buf: '', moved: true });
+    expect(phoneStep(MENU, { node: code, buf: '10' }, '*')).toEqual({ node: main, buf: '', moved: true }); // כוכבית = ביטול
+    expect(phoneStep(MENU, { node: MENU.nodes['biz/b101/call'], buf: '' }, '1')).toBeNull();
   });
 });
 

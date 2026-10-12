@@ -144,7 +144,7 @@ describe('🔐 (ג) יציאת-המסמך — שער לפני DOM', () => {
   });
 
   it('הגנת-מקור: השער ראשון בכל פונקציה; הטאב רושם ליומן רק אחרי הצלחה ומגודר parnasa.export', () => {
-    for (const fn of ['printHtmlDoc', 'downloadHtmlDoc']) {
+    for (const fn of ['printHtmlDoc', 'downloadHtmlDoc', 'downloadTextDoc' /* 6ב — תסריט-הקו */]) {
       const body = exportDocSrc.slice(exportDocSrc.indexOf('export function ' + fn));
       expect(body.indexOf('if (!guardExport()) return false;'), fn).toBeGreaterThan(0);
       expect(body.indexOf('if (!guardExport()) return false;'), fn + ' — שער לפני document').toBeLessThan(body.indexOf('document.'));
