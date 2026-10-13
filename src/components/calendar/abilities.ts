@@ -11,7 +11,8 @@
  * תאריך פגום (לא-מחרוזת · "2026-02-31" · "abc") ⇒ valid:false עם שדות ריקים — לעולם לא זורק.
  * בידוד: קריאה-בלבד; אין כאן כתיבה ללוח-הראשי, כסף, קבלות או חדרים. נטען בעצלות דרך מסך-הלוח (export * as calendarProvider).
  */
-import { ability, isoAt, type SwitchCtx } from '../../lib/switchboard/contract';
+// ייבוא-טיפוסים בלבד מהחוזה: ייבוא-ריצה ממסך-הלוח פיצל את contract ל-chunk נפרד והוסיף 65B gzip לבנדל-הראשי (נמדד 13.10)
+import type { Ability, SwitchCtx } from '../../lib/switchboard/contract';
 import { gem, gemYear, hebParts, holidayOf } from '../../lib/hebrew';
 import { monthHeOf } from '../../lib/hebdate';
 import { FULL_HOLIDAYS } from './calLib';
@@ -48,6 +49,18 @@ export interface DayInfoOutput {
 }
 
 const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'] as const;
+
+/** שעון-הארגון (= contract.ORG_TZ) — "היום" כשלא נמסר iso. */
+const ORG_TZ = 'Asia/Jerusalem';
+let ilFmt: Intl.DateTimeFormat | null = null;
+
+/** תאריך ISO של רגע בשעון-ישראל (כמו contract.isoAt; רגע פגום ⇒ epoch 0) — en-CA = YYYY-MM-DD. */
+function isoInIsrael(ms: number): string {
+  ilFmt ??= new Intl.DateTimeFormat('en-CA', { timeZone: ORG_TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
+  const parts = ilFmt.formatToParts(Number.isFinite(ms) ? ms : 0);
+  const get = (t: Intl.DateTimeFormatPartTypes): string => parts.find((p) => p.type === t)?.value ?? '';
+  return get('year') + '-' + get('month') + '-' + get('day');
+}
 
 /** ימים-טובים = החגים-המלאים של הלוח, בלי צום ט׳ באב (צום — לא יו״ט; כמו hosting.sacredDayOf). */
 export const YOM_TOV: readonly string[] = FULL_HOLIDAYS.filter((h) => h !== 'תשעה באב');
@@ -113,11 +126,13 @@ export function dayInfoOf(iso: unknown): DayInfoOutput {
 
 function dayInfo(ctx: SwitchCtx, input: DayInfoInput): DayInfoOutput {
   const raw: unknown = input?.iso;
-  return dayInfoOf(raw === undefined ? isoAt(ctx.nowMs) : raw);
+  return dayInfoOf(raw === undefined ? isoInIsrael(ctx.nowMs) : raw);
 }
 
 /* ═══════════════ היכולות ═══════════════ */
 
+const dayInfoAbility: Ability<DayInfoInput, DayInfoOutput> = { run: dayInfo };
+
 export const abilities = {
-  'calendar.dayInfo': ability<DayInfoInput, DayInfoOutput>({ run: dayInfo }),
+  'calendar.dayInfo': dayInfoAbility,
 };

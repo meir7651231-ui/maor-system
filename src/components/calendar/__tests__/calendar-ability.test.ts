@@ -135,3 +135,16 @@ describe('📅 (ה) "היום" = הרגע המוזרק בשעון-ישראל', (
     expect(lateNight).toMatchObject({ ok: true, value: { iso: '2026-10-15', hebDayMonth: 'ד׳ חשוון' } });
   });
 });
+
+describe('📅 (ו) משקל-ההפעלה', () => {
+  it('הספק מייבא מהחוזה טיפוסים בלבד (ייבוא-ריצה פיצל את contract ל-chunk והגדיל את הבנדל-הראשי) · "היום" = contract.isoAt', async () => {
+    const src = (await import('../abilities.ts?raw')).default as string;
+    expect(src).not.toMatch(/^import (?!type )[^\n]*switchboard\/contract/m);
+    const { isoAt } = await import('../../../lib/switchboard/contract');
+    installProvider('calendar', abilities);
+    for (const ms of [NOW_MS, Date.parse('2026-10-14T22:30:00Z'), Date.parse('2026-03-27T22:30:00Z'), Date.parse('2026-12-31T23:30:00Z'), NaN]) {
+      const r = ask('calendar.dayInfo', ctxOf(DEFAULT_CONFIG, ms), {});
+      expect(r.ok && r.value.iso, String(ms)).toBe(isoAt(ms));
+    }
+  });
+});
