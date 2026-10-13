@@ -12,9 +12,10 @@ import manageSrc from '../ManageModal.tsx?raw';
 describe('(3)+(5) סינון יום/מורה במסך-החוגים', () => {
   it('בוררים + סינון ב-shown + תלויות-memo', () => {
     expect(viewSrc).toContain('ariaLabel="יום"');
-    expect(viewSrc).toContain("if (dayF !== 'all' && !c.sessions.some((x) => x.day === dayF)) return false;");
+    // 13.10: sessionsOf (גם חוג בלי sessions — fallback ל-weekday); תאריך-מסוים גובר על בורר-היום
+    expect(viewSrc).toContain("} else if (dayF !== 'all' && !sessionsOf(c).some((x) => x.day === dayF)) return false;");
     expect(viewSrc).toContain("if (teacherF !== 'all' && c.teacherId !== teacherF) return false;");
-    expect(viewSrc).toContain('db, q, cat, sem, dayF, teacherF, colF');
+    expect(viewSrc).toContain('db, q, cat, sem, dayF, dateF, teacherF, colF');
     expect(viewSrc).toContain("db.teachers.map((t) => ({ value: t.id, label: t.name }))");
     // 0=ראשון … 5=שישי — כמו Weekday (אין שבת)
     expect(viewSrc).toContain("[[0, 'ראשון'], [1, 'שני'], [2, 'שלישי'], [3, 'רביעי'], [4, 'חמישי'], [5, 'שישי']]");

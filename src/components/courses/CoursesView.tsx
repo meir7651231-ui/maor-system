@@ -23,7 +23,9 @@ import { CollectionCenter } from './CollectionCenter';
 import { CoursesDashboard } from './CoursesDashboard';
 import { TeacherPanel } from './TeacherPanel';
 import { RetentionCenter } from './RetentionCenter';
-import { coursesOfTeacher, DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
+import { blockReason } from '../calendar/calLib';
+import { hebDateFull } from '../../lib/hebrew';
+import { courseMeetsOn, coursesOfTeacher, DAY_LETTERS, sessionsOf, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
 
 /** A-2 (3.9): שורת-חוג נפתחת גם במקלדת (Enter/רווח) — כמו שורות FamiliesView/SupportersView. */
 const openRowKey = (fn: () => void) => (e: KeyboardEvent<HTMLElement>) => {
@@ -111,6 +113,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   // בקשות-בעלים 9.9: (3) סינון לפי יום-בשבוע של המפגשים · (5) סינון לפי מורה "כמו שאר הסינון".
   const [dayF, setDayF] = useRemembered<'all' | Weekday>('crs.dayF', 'all');
   const [teacherF, setTeacherF] = useRemembered('crs.teacherF', 'all');
+  // 📅 13.10 (בקשת-בעלים "סינון לפי תאריך מסוים"): חוגים שמתקיימים בתאריך שנבחר (טווח החוג + יום-המפגש).
+  // כשנבחר תאריך — הוא גובר על בורר-היום ועל סינון-ההיסטוריה (תאריך-עבר מציג גם חוג שכבר נגמר).
+  const [dateF, setDateF] = useRemembered('crs.dateF', '');
   // 📚 סינון היסטוריה (בקשת-בעלים 24.8) — חוג שתאריך-הסיום שלו עבר נכנס
   // אוטומטית ל"היסטוריה". ברירת-המחדל 'active' ⇒ מסתיר חוגים ישנים.
   const [histF, setHistF] = useRemembered<'active' | 'history' | 'all'>('crs.histF', 'active');
@@ -185,12 +190,14 @@ function CoursesList(props: { onOpenWheel: () => void }) {
     const list = coursesOfTeacher(db.courses, myTeacherId).filter((c) => {
       if (cat !== 'all' && c.cat !== cat) return false;
       if (sem !== 'all' && c.semester !== sem) return false;
-      if (dayF !== 'all' && !c.sessions.some((x) => x.day === dayF)) return false;
+      if (dateF) {
+        if (!courseMeetsOn(c, dateF)) return false;
+      } else if (dayF !== 'all' && !sessionsOf(c).some((x) => x.day === dayF)) return false; // 🐛 13.10: גם חוג בלי sessions (fallback ל-weekday)
       if (teacherF !== 'all' && c.teacherId !== teacherF) return false;
       // 📚 היסטוריה: c.end < today ⇒ נגמר. חוג בלי end כלול תמיד ב'active'.
       const isHistory = !!c.end && c.end < today;
-      if (histF === 'active' && isHistory) return false;
-      if (histF === 'history' && !isHistory) return false;
+      if (!dateF && histF === 'active' && isHistory) return false;
+      if (!dateF && histF === 'history' && !isHistory) return false;
       if (colF.name.trim() && !normSearch(c.name).includes(normSearch(colF.name))) return false;
       if (colF.audience.trim() && !normSearch(c.audience || '').includes(normSearch(colF.audience))) return false;
       if (colF.teacher.trim() && !normSearch(teacherName(c.teacherId)).includes(normSearch(colF.teacher))) return false;
@@ -220,7 +227,9 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       const cc = typeof va === 'string' ? va.localeCompare(String(vb), 'he') : va - (vb as number);
       return cc * sort.dir;
     });
-  }, [db, q, cat, sem, dayF, teacherF, colF, sort, teacherName, enrollCounts, histF, today]);
+  }, [db, q, cat, sem, dayF, dateF, teacherF, colF, sort, teacherName, enrollCounts, histF, today]);
+  // חסימת היום שנבחר (שבת/חג/שישי/חול-המועד) — אותו כלל של הלוח
+  const dateBlock = dateF ? blockReason(new Date(dateF + 'T12:00:00'), 'course') : null;
 
   const clickSort = (key: CrsSortKey) =>
     setSort((s) => (s?.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
@@ -473,6 +482,16 @@ function CoursesList(props: { onOpenWheel: () => void }) {
             options={[{ value: 'all', label: '📅 כל הימים' }, ...DAY_FILTER.map((d) => ({ value: String(d.v), label: 'יום ' + d.t }))]}
           />
         </div>
+        {/* 📅 תאריך מסוים (13.10) — אילו חוגים מתקיימים בתאריך הזה */}
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>
+          תאריך:
+          <input type="date" value={dateF} onChange={(e) => setDateF(e.target.value)} aria-label="סינון לפי תאריך" dir="ltr" style={{ padding: '6px 8px' }} />
+          {dateF && (
+            <button type="button" className="chip" onClick={() => setDateF('')} aria-label="ניקוי תאריך" title="ניקוי התאריך" style={{ cursor: 'pointer' }}>
+              ✕
+            </button>
+          )}
+        </label>
         {/* (5) מורה — כמו שאר הסינון (מוסתר כשאין מורות) */}
         {db.teachers.length > 0 && (
           <div style={{ width: 170 }}>
@@ -494,6 +513,13 @@ function CoursesList(props: { onOpenWheel: () => void }) {
           </Btn>
         )}
       </div>
+      {/* 📅 שורת-מצב לתאריך שנבחר (13.10) — כמה מתקיימים, ואזהרה כשהיום חסום (שבת/חג/שישי/חול-המועד) */}
+      {dateF && (
+        <div className="crs-date-status" role="status" style={{ fontSize: 13, margin: '-4px 0 12px', color: dateBlock ? 'var(--red)' : 'var(--ink-soft)', fontWeight: 600 }}>
+          {'📅 ' + hebDateFull(dateF) + ' · ' + dateF.slice(8, 10) + '/' + dateF.slice(5, 7) + '/' + dateF.slice(0, 4) + ' — ' + shown.length + ' ' + termOf(cfg, 'nav.courses', 'חוגים') + ' לפי לוח-הזמנים'}
+          {dateBlock && ' · ⚠ ' + dateBlock + ' — ה' + termOf(cfg, 'nav.courses', 'חוגים') + ' לא מתקיימים ביום זה'}
+        </div>
+      )}
 
       {shown.length === 0 ? (
         <Empty>

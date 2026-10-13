@@ -86,6 +86,19 @@ export function sessionsOf(c: Course): CourseSession[] {
 }
 
 /**
+ * 📅 האם החוג מתקיים בתאריך מסוים (בקשת-בעלים 13.10 "סינון לפי תאריך מסוים"): התאריך בטווח
+ * start..end (חסר = פתוח) ואחד מהמפגשים (sessionsOf — כולל ה-fallback) ביום-בשבוע של התאריך.
+ * חסימת-חג/שבת נבדקת אצל הקורא (blockReason בלוח) — כאן רק לוח-הזמנים של החוג. טהור.
+ */
+export function courseMeetsOn(c: Course, iso: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+  if (c.start && iso < c.start) return false;
+  if (c.end && iso > c.end) return false;
+  const dow = new Date(iso + 'T12:00:00').getDay();
+  return sessionsOf(c).some((x) => x.day === dow);
+}
+
+/**
  * הצעת מספר קבוצות מטקסט קהל-היעד (P3 פריט 1; לגאסי: regex 'קבוצות|פעמים').
  * הצעה בלבד — לא דריסה; מחוץ ל-2–12 או בלי התאמה ⇒ null.
  */
