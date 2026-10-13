@@ -34,6 +34,7 @@ import { AdminTab, adminSegsOf, type AdminSeg } from './AdminTab';
 import { Band, CalmBanner, Colophon, Page, TabBar } from './Shell';
 import { cx, PnDefs, PnPortal, PnSkinCtx, skinAttrs, vars, type PnSkin } from './skin';
 import { useDeviceDark, useHintsOff, useQuickDial, useReducedMotion, useSkinPrefs } from './skinPrefs';
+import { claimIntro, GoldDust, PnIntro } from './Ambient';
 import { dedicationOf, eveOf, hebMonthStartIso, hebNow, helpCount, periodOf, pushkeFill, pushkeText } from './shell';
 import { clink, setSoundState, wakeSound } from './sound';
 import { pkHit } from './coinFx';
@@ -55,6 +56,9 @@ export function ParnasaView() {
   const sp = useSkinPrefs();
   const deviceDark = useDeviceDark();
   const reduced = useReducedMotion();
+  // עיצוב 6ב: "רגע הפושקע" — פעם בסשן (לא בתנועה-מופחתת/אוטומציה) · "אבק הזהב" ופרצי-הניצוצות שלו
+  const [intro, setIntro] = useState(() => claimIntro(reduced));
+  const [dustBurst, setDustBurst] = useState(0);
   const hintsOff = useHintsOff();
   const [tab, setTab] = useRemembered<PrTab>('parnasa.tab', 'directory');
   const [seg, setSeg] = useRemembered<AdminSeg>('parnasa.admin.seg', 'appr');
@@ -380,6 +384,7 @@ export function ParnasaView() {
       >
         <PnDefs />
         <div className="pn-dusk" aria-hidden="true" />
+        <GoldDust on={!reduced && !calm} dark={dark} burst={dustBurst} />
         <div className="pn-cn-fly" aria-hidden="true" />
         <Band
           brand={name}
@@ -447,6 +452,7 @@ export function ParnasaView() {
           />
         ) : null}
         {prevDraft ? <BizSheet draft={prevDraft} qtext="" ctx={bizCtx} onClose={() => setPrevDraft(null)} onOpen={() => {}} /> : null}
+        {intro ? <PnIntro brand={name} onBurst={() => setDustBurst((n) => n + 1)} onDone={() => setIntro(false)} /> : null}
         <PnPortal>
           <div className={cx('pn-toast', pnToast && 'pn-on')} role="status" aria-live="polite">
             {pnToast ? (

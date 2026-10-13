@@ -18,7 +18,7 @@ for themselves; the port is a gabbai/staff tool inside Orbit — residents' requ
 is no owner login).
 
 **Before the re-skin** (design phase, 164 capabilities in A–K): **30 present · 65 partial · 69 missing**.
-**Now (after cluster 6 — ניהול וחוברת)**: **144 present · 13 partial · 7 missing**
+**Now (after cluster 6b — האווירה)**: **145 present · 14 partial · 5 missing**
 
 **Design-phase breakdown** (before the re-skin): of the 134 partial+missing rows, the main blocker is: 93 UI-only · 26 need new data fields (DATA, usually with UI) · 15 need a server or public access (SERVER, out of scope). A parenthetical "(+DATA…)"/"(+SERVER…)" marks a secondary, smaller part of the gap.
 
@@ -26,7 +26,7 @@ Current counts per area (recomputed from the rows after every cluster):
 
 | area | present | partial | missing |
 |---|---|---|---|
-| A. Shell & brand | 12 | 2 | 3 |
+| A. Shell & brand | 13 | 3 | 1 |
 | B. Home | 19 | 2 | 0 |
 | C. Results | 10 | 0 | 1 |
 | D. Browse | 8 | 0 | 0 |
@@ -52,8 +52,8 @@ Current counts per area (recomputed from the rows after every cluster):
 | A8 | "מצב לילה" / "מצב יום" — full night palette, follows the system by default, `alfon.theme` | present | skinPrefs.ts · ParnasaView.tsx (`data-pn-theme`) | UI | full night palette; follows the device by default, Orbit's dark 'היכל' theme ⇒ night, the viewer's choice wins (`maor_pn_theme`) |
 | A9 | "צלילים" — synthesized coin clinks (WebAudio), silent in the Three Weeks, `alfon.mute` | present | sound.ts (`clink`/`plink`) | UI | WebAudio synth created on the first gesture only, per-viewer mute (`maor_pn_mute`), silent in the Three Weeks; coin sounds fire from the coins (cluster 2) |
 | A10 | Floating glass bottom tab bar אלפון · לוח בקשות · לוח הקהילה · העסק שלי · ניהול, gold sliding indicator, badges (open requests · pending notices · fresh requests in my trade · pending pages) | partial | ParnasaView.tsx · Shell.tsx `TabBar` | UI (+SERVER for העסק שלי) | the original's floating glass tab bar (sticky above Orbit's mobile nav) with the gold indicator: אלפון · לוח בקשות · לוח הקהילה · העסק שלי · ניהול; badges: open requests · pending notices (gabbai) · pending + care queue on ניהול. Every port tab kept: care → ניהול/אישורים, booklet + ads → מודעות וחוברת, 📞 הקו and הגדרות → ניהול segments. Missing: the 'fresh requests in my trade' badge on העסק שלי (cluster 4) |
-| A11 | Once-per-session intro: 3D pushke (three.js r128 from cdnjs) with CSS fallback, skippable | missing | — | UI | the CSS fallback (mark + letter-by-letter wordmark) is enough; three.js would have to be bundled |
-| A12 | Gold-dust canvas behind the page (off for reduced motion and Shabbat) | missing | — | UI | |
+| A11 | Once-per-session intro: 3D pushke (three.js r128 from cdnjs) with CSS fallback, skippable | partial | Ambient.tsx `PnIntro` / `claimIntro` · ParnasaView.tsx | UI (3D = owner decision N10) | the original's own CSS path of the intro, once per session (≤2.1 s, a tap / any key / resize / hiding the tab skips, never blocks): the light line, then the pushke pops in, the wordmark letters land one by one, the diamond geresh flashes, "א פרנסה׳לע פאר יעדן איד", a burst of gold dust, and the pushke "lands" into the header mark (FLIP). Skipped for reduced motion and in automation (navigator.webdriver, like the PWA registration). The WebGL pushke (three.js r128 from cdnjs) is not loaded — no CDN in Orbit; reusing Orbit's lazy three.js chunk is owner decision N10 |
+| A12 | Gold-dust canvas behind the page (off for reduced motion and Shabbat) | present | Ambient.tsx `GoldDust` · ParnasaView.tsx | UI | the original's gold dust: a fixed canvas behind the page (under the content, `.pn-wrap` z1), ≤46 twinkling motes rising slowly, glowing (lighter) at night and soft by day; off for reduced motion and on Shabbat/yom tov (calm), paused while the tab is hidden; bursts with the intro |
 | A13 | Footer colophon: mark · "פרנסה׳לע · א פרנסה׳לע פאר יעדן איד" · "נבנה לתועלת הקהילה · לחיזוק הפרנסה של אנשינו" · "לחסות על שער, להקדשה ולפרסום בחוברת השנתית: פנו לגבאי בטלפון …" | present | Shell.tsx `Colophon` | UI | verbatim, with the publicity phone from the settings |
 | A14 | Toast with an action button ("לצפייה", "שעת צורך, להמשיך") | present | ParnasaView.tsx `toastAct` · `PnPortal` (`.pn-toast`) | UI | the original's toast with an action button, in a skin portal above Orbit: "לצפייה" after posting a request, "שעת צורך, להמשיך" on the Shabbat gentle lock; auto-hides after 4.5 s |
 | A15 | Keyboard: "/" focuses the search anywhere; ↑↓ / Enter (WhatsApp) / Esc in results; W on a banner; F or כ flips a coin | present | ParnasaView.tsx ("/") · DirectoryTab.tsx `onKeyDown` · coinFx.ts (F/כ) | UI | "/" anywhere in the module focuses and selects the question (from any tab); ↑↓ move the selection in the results, Enter = WhatsApp of the selected banner (no banner ⇒ the prefilled request), Esc clears; W on a focused banner ⇒ WhatsApp; F or כ on a focused coin flips it |
@@ -304,5 +304,5 @@ owner decides; nothing here is half-built.
 | N7 | Image storage | E12/I13–I15 at scale | photos live in the DB (data URLs, page ≤240 KB, org budget 6M chars — `PR_IMG`); a big community needs IndexedDB blobs or Cloud Storage |
 | N8 | Automatic parsha | H6 | a parsha schedule (Israel/diaspora) in the zmanim engine; the original only showed a settings value nobody could edit |
 | N9 | Zmanim methods | H4 · H6 | the port keeps one dawn for luach/booklet/📞 line (72 min) and the gabbai's minutes for tzeit/candles (Bnei Brak 22); the original showed 16.1° / 8.5° and 30 min — a rabbinic call per community |
-| N10 | The 3D pushke intro | A11 | the original loaded three.js r128 from cdnjs (no CDN in Orbit); Orbit already ships three.js as a lazy chunk for the sign-up hero — reusing it is a bundle decision |
+| N10 | The 3D pushke intro | A11 | the original's CSS path plays today (cluster 6b); the WebGL pushke loaded three.js r128 from cdnjs (no CDN in Orbit) — Orbit already ships three.js as a lazy chunk for the sign-up hero, so reusing it for the intro is a bundle decision |
 
