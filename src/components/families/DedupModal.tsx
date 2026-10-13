@@ -12,6 +12,7 @@ import { DUP_FIELDS, findDuplicateGroups, mergeFamilies } from '../../lib/dedup'
 import { featureOn, termOf } from '../../lib/config';
 import { Btn, Empty, Modal } from '../ui';
 import { useArmed } from '../useArmed';
+import { allFamilyPhones } from './lib';
 
 export function DedupModal({ onClose }: { onClose: () => void }) {
   const families = useApp((s) => s.db.families);
@@ -79,7 +80,8 @@ export function DedupModal({ onClose }: { onClose: () => void }) {
                         />
                         <span style={{ fontWeight: keeperId === f.id ? 800 : 600 }}>{f.name}</span>
                         <span style={{ color: 'var(--ink-faint)', fontSize: 12, direction: 'ltr' }}>
-                          {[f.phone, f.city].filter(Boolean).join(' · ')}
+                          {/* כל הטלפונים (13.10) — הכפילות עשויה להימצא על מספר נוסף */}
+                          {[allFamilyPhones(f).join(' · '), f.city].filter(Boolean).join(' · ')}
                         </span>
                         <span style={{ color: 'var(--ink-faint)', fontSize: 11 }}>
                           {f.members.length} {termOf(config, 'entity.members', 'בני משפחה')} · {enrollCount(memIds)} {termOf(config, 'entity.enrollments', 'שיבוצים')}
@@ -179,6 +181,7 @@ export function DedupModal({ onClose }: { onClose: () => void }) {
                     <b>תצוגה מקדימה לאחר מיזוג:</b> {preview.name} · {previewMembers.size} {termOf(config, 'entity.members', 'בני משפחה')} ·{' '}
                     {enrollCount(previewMembers)} {termOf(config, 'entity.enrollments', 'שיבוצים')}{preview.phone ? ' · ' + preview.phone : ''}
                     {preview.phone2 ? ' / ' + preview.phone2 : ''}
+                    {preview.phones?.length ? ' · 📞 +' + preview.phones.length + ' טלפונים נוספים נשמרים' : ''}
                   </div>
                 )}
 

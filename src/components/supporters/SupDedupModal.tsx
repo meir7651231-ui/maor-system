@@ -13,7 +13,7 @@ import { useApp } from '../../store/useApp';
 import { findSupporterDupGroups, SUP_DUP_FIELDS } from '../../lib/dedup';
 import { featureOn, termOf } from '../../lib/config';
 import { Btn, Empty, Modal } from '../ui';
-import { supCount, totalLabel } from './lib';
+import { allSupPhones, supCount, totalLabel } from './lib';
 
 export function SupDedupModal(props: { onClose: () => void }) {
   const supporters = useApp((s) => s.db.supporters);
@@ -64,7 +64,8 @@ export function SupDedupModal(props: { onClose: () => void }) {
                       style={{ width: 'auto' }}
                     />
                     <span style={{ fontWeight: keepId === sp.id ? 800 : 600, flex: 1 }}>{sp.name}</span>
-                    <span style={{ fontSize: 12, color: 'var(--ink-faint)', direction: 'ltr' }}>{sp.phone || sp.email || sp.idNum || '—'}</span>
+                    {/* כל הטלפונים (13.10) — הכפילות עשויה להימצא על מספר נוסף; בלי זה לא רואים למה קובצו */}
+                    <span style={{ fontSize: 12, color: 'var(--ink-faint)', direction: 'ltr' }}>{allSupPhones(sp).map((r) => r.num).join(' · ') || sp.email || sp.idNum || '—'}</span>
                     <span style={{ fontSize: 12 }}>{supCount(sp) + ' · ' + totalLabel(sp)}</span>
                     {keepId === sp.id && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-deep, var(--accent))' }}>← שומר</span>}
                     {fieldsOn && (

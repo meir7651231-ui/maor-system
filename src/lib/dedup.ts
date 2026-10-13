@@ -5,9 +5,10 @@
  * שהשיבוצים/התשלומים שלהם נשארים תקינים (ה-store רק ממזג ומפנה אירועים, בלי
  * מפל-המחיקה של deleteFamily).
  */
-import type { Family, Member, FamilyDoc, Supporter } from '../types/domain';
+import type { Family, Member, FamilyDoc, Supporter, SupPhone } from '../types/domain';
 import { nameSortKey } from './validate';
-import { mergeHist } from '../components/supporters/lib';
+import { allSupPhones, mergeHist } from '../components/supporters/lib';
+import { allFamilyPhones } from '../components/families/lib';
 import { PHOTO_MAX } from './photoGallery';
 
 /** ספרות בלבד, נרמול קידומת ישראלית (972→0) — להשוואת טלפונים.
@@ -30,10 +31,62 @@ function nameCityKey(f: Family): string {
   return n && c ? n + '|' + c : '';
 }
 
-/** כל הטלפונים המנורמלים של משפחה (ראשי + נוסף), לא-ריקים. */
+/** כל הטלפונים המנורמלים של משפחה (ראשי + נוסף + phones[] — בקשת-בעלים 13.10), לא-ריקים. */
 function phonesOf(f: Family): string[] {
-  return [normPhone(f.phone), normPhone(f.phone2)].filter((p) => p.length >= 7);
+  return allFamilyPhones(f).map(normPhone).filter((p) => p.length >= 7);
 }
+
+/** מפתח-השוואה לטלפון: מנורמל (≥7 ספרות) — אחרת הטקסט-החתוך עצמו, כדי שגם מספר "חריג" לא ייבלע. */
+function phoneKeyOf(num: string): string {
+  const n = normPhone(num);
+  return n.length >= 7 ? n : 'raw:' + num.trim();
+}
+
+/** רשומת-מקור למיזוג-טלפונים: השדות-הראשיים שלה + רשימת-הנוספים. */
+export interface PhoneSource {
+  id: string;
+  name: string;
+  mains: string[];
+  phones?: SupPhone[];
+}
+
+/**
+ * איחוד טלפונים במיזוג — **אף מספר לא נמחק** (בקשת-בעלים 13.10: "במיזוג שישאר כל הטלפונים").
+ * `primary` = המספרים שיושבים בשדות-הראשיים של התוצאה; `sources` = הרשומות-הממוזגות (השומר ראשון).
+ * מחזיר את phones[] של התוצאה: כל מספר שאינו ראשי — פעם אחת (השוואה מנורמלת), בסדר-המקור,
+ * עם התווית/ההערה שלו. מספר שהיה בשדה-ראשי של כרטיס אחר הופך לנוסף עם הערה "מכרטיס: <שם>".
+ * טהור ודטרמיניסטי (מזהה ph-m-<מקור>-<n> למספר שהומר משדה-ראשי).
+ */
+export function mergeExtraPhones(primary: string[], sources: PhoneSource[]): SupPhone[] {
+  const seen = new Set(primary.map((p) => (p || '').trim()).filter(Boolean).map(phoneKeyOf));
+  const seenIds = new Set<string>();
+  const out: SupPhone[] = [];
+  const take = (ph: SupPhone) => {
+    const num = (ph.num || '').trim();
+    if (!num) return;
+    const key = phoneKeyOf(num);
+    if (seen.has(key) || seenIds.has(ph.id)) return;
+    seen.add(key);
+    seenIds.add(ph.id);
+    out.push({ ...ph, num });
+  };
+  sources.forEach((src, si) => {
+    src.mains.forEach((m, k) => {
+      if ((m || '').trim()) take({ id: `ph-m-${src.id}-${k}`, num: m, label: '', note: si === 0 ? '' : 'מכרטיס: ' + src.name, wa: false });
+    });
+    for (const ph of Array.isArray(src.phones) ? src.phones : []) if (ph) take(ph);
+  });
+  return out;
+}
+
+/** מחליף את phones[] של רשומה: המפתח נכתב רק כשיש מספרים (אחרת נמחק — ביט-זהה לנתון בלי נוספים). */
+function withExtraPhones<T extends { phones?: SupPhone[] }>(rec: T, phones: SupPhone[]): T {
+  const { phones: _old, ...rest } = rec;
+  return (phones.length ? { ...rest, phones } : rest) as T;
+}
+
+const famSource = (f: Family): PhoneSource => ({ id: f.id, name: f.name, mains: [f.phone, f.phone2], phones: f.phones });
+const supSource = (s: Supporter): PhoneSource => ({ id: s.id, name: s.name, mains: [s.phone], phones: s.phones });
 
 /**
  * קבוצות כפילות — רכיבי-קשירות של משפחות שחולקות טלפון מנורמל, או שם+עיר זהים.
@@ -144,7 +197,9 @@ export function mergeFamilies(keeper: Family, losers: Family[]): Family {
   const baseNotes = [...new Set(notesParts)].join(' · ');
   const notes = loserNames ? (baseNotes ? baseNotes + ' ' : '') + '| מוזג: ' + loserNames : baseNotes;
 
-  return {
+  // 🐛 (13.10): רק phone/phone2 שרדו — מספר שלישי ואילך, ו-phones[] של הנבלעים, נזרקו בשקט.
+  // עכשיו כל מספר שאינו ראשי עובר ל-phones[] (בקשת-בעלים "במיזוג שישאר כל הטלפונים").
+  return withExtraPhones<Family>({
     ...keeper,
     father: keeper.father?.trim() || firstNonEmpty((f) => f.father),
     fatherId: keeper.fatherId?.trim() || firstNonEmpty((f) => f.fatherId),
@@ -168,7 +223,7 @@ export function mergeFamilies(keeper: Family, losers: Family[]): Family {
     docs,
     createdAt,
     notes,
-  };
+  }, mergeExtraPhones([phone, phone2], all.map(famSource)));
 }
 
 /* ── פער 21 (P2 ב׳) · מיזוג שדה-שדה — לגאסי dupFieldMerge ─────────────────────
@@ -251,7 +306,8 @@ export function mergeFamiliesByFields(
       case 'notes': out.notes = val; break;
     }
   }
-  return out;
+  // הטלפונים שלא נבחרו לשדות-הראשיים לא נמחקים — עוברים ל-phones[] (בקשת-בעלים 13.10).
+  return withExtraPhones(out, mergeExtraPhones([out.phone, out.phone2], fams.map(famSource)));
 }
 
 /* ─────────── 🔗 כפולי-תורמים (ROADMAP-100 ‏#13, 5.8.2026) ───────────
@@ -315,8 +371,12 @@ export function findSupporterDupGroups(supporters: Supporter[]): string[][] {
     else map.set(key, id);
   };
   for (const sp of supporters) {
-    const p = normPhone(sp.phone);
-    link(byPhone, p.length >= 7 ? p : '', sp.id);
+    // 🐛 (13.10): רק sp.phone נבדק — כפילות על מספר מתוך phones[] (וואטסאפ/בית/עבודה) לא זוהתה.
+    // עכשיו כל הטלפונים (בקשת-בעלים "כפילות צריך גם את כל הטלפונים").
+    for (const r of allSupPhones(sp)) {
+      const p = normPhone(r.num);
+      link(byPhone, p.length >= 7 ? p : '', sp.id);
+    }
     link(byEmail, (sp.email || '').trim().toLowerCase(), sp.id);
     link(byId, normId(sp.idNum), sp.id);
     link(byExt, (sp.extId || '').trim(), sp.id);
@@ -368,9 +428,12 @@ export function mergeSupporterInto(keep: Supporter, drop: Supporter): Supporter 
   // (הו"ק = כסף חוזר; אובדן שקט = חיוב שנעלם). ההו"ק-הראשית לא משתנה; פרטי-הנמחקת נשמרים בהערות לבדיקה.
   if (keep.hok && drop.hok && JSON.stringify(keep.hok) !== JSON.stringify(drop.hok))
     notes.push(`הו"ק נוספת מכרטיס-כפול (לבדוק): ${drop.hok.amount}${drop.hok.cur}/יום-${drop.hok.day} — ${drop.hok.active ? 'פעילה' : 'לא-פעילה'}`);
-  return {
+  // 🐛 (13.10): `keep.phone || drop.phone` זרק את טלפון-הנמחק כשלשניהם טלפון, ו-phones[] של הנמחק
+  // לא עבר בכלל (`...keep` לקח רק את של השומר). עכשיו כל מספר שאינו הראשי עובר ל-phones[].
+  const phone = keep.phone || drop.phone;
+  return withExtraPhones<Supporter>({
     ...keep,
-    phone: keep.phone || drop.phone,
+    phone,
     email: keep.email || drop.email,
     address: keep.address || drop.address,
     city: keep.city || drop.city,
@@ -394,7 +457,7 @@ export function mergeSupporterInto(keep: Supporter, drop: Supporter): Supporter 
     ...(keep.extId || drop.extId ? { extId: keep.extId || drop.extId } : {}),
     ...(keep.hok || drop.hok ? { hok: keep.hok ?? drop.hok } : {}),
     ...(keep.ayin || drop.ayin ? { ayin: keep.ayin ?? drop.ayin } : {}),
-  };
+  }, mergeExtraPhones([phone], [supSource(keep), supSource(drop)]));
 }
 
 /**
@@ -465,5 +528,6 @@ export function mergeSupportersByFields(
       case 'notes': out.notes = val; break;
     }
   }
-  return out;
+  // טלפון שלא נבחר לשדה-הראשי לא נמחק — עובר ל-phones[] (בקשת-בעלים 13.10).
+  return withExtraPhones(out, mergeExtraPhones([out.phone], sups.map(supSource)));
 }
