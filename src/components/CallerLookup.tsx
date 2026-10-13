@@ -7,7 +7,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../store/useApp';
-import { callerKindLabel, findCaller, familyContext } from '../lib/callerId';
+import { callerKindLabel, findCallers, familyContext, type Caller } from '../lib/callerId';
 import { integrationOn, moduleOn, termOf } from '../lib/config';
 import { Modal, Btn } from './ui';
 import { WaBtn } from './WaBtn';
@@ -21,7 +21,10 @@ export function CallerLookup({ initialNumber, onClose }: { initialNumber?: strin
   const [num, setNum] = useState(initialNumber ?? '');
 
   const trimmed = num.trim();
-  const caller = trimmed ? findCaller(db, num) : null;
+  // כל ההתאמות (13.10): הראשונה = הכרטיס הראשי (כמו תמיד); השאר — "המספר שייך גם ל…"
+  const callers = trimmed ? findCallers(db, num) : [];
+  const caller = callers[0] ?? null;
+  const others = callers.slice(1);
   const fam = caller?.famId ? db.families.find((f) => f.id === caller.famId) : null;
   const memberNames = fam ? (fam.members || []).map((m) => m.first).filter(Boolean).join(' · ') : '';
   const searched = trimmed.replace(/\D/g, '').length >= 3;
@@ -40,10 +43,10 @@ export function CallerLookup({ initialNumber, onClose }: { initialNumber?: strin
     careChips.push('🛍 ' + n + (n === 1 ? ' חבילה פעילה' : ' חבילות פעילות'));
   }
 
-  const openCard = () => {
-    if (!caller) return;
-    if (caller.famId) selectFamily(caller.famId);
-    else go(caller.view);
+  const openCard = (c: Caller | null = caller) => {
+    if (!c) return;
+    if (c.famId) selectFamily(c.famId);
+    else go(c.view);
     onClose();
   };
   const newFamily = () => {
@@ -107,6 +110,7 @@ export function CallerLookup({ initialNumber, onClose }: { initialNumber?: strin
                     {callerKindLabel(config, caller.kind)}
                   </span>{' '}
                   <span dir="ltr">{caller.phone}</span>
+                  {caller.phoneNote && <span> · 📞 {caller.phoneNote}</span>}
                 </div>
               </div>
             </div>
@@ -150,12 +154,31 @@ export function CallerLookup({ initialNumber, onClose }: { initialNumber?: strin
 
             {/* פעולות-מהירות */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-              <Btn kind="primary" onClick={openCard}>
+              <Btn kind="primary" onClick={() => openCard()}>
                 📂 פתח כרטיס מלא
               </Btn>
               {waOn && caller.phone && <WaBtn phone={caller.phone} title={'וואטסאפ ל' + caller.name} />}
               <CallBtn phone={caller.phone} title={'חיוג חוזר ל' + caller.name} />
             </div>
+          </div>
+        )}
+
+        {/* המספר שייך גם ל… (13.10) — כל התאמה נוספת עם הסוג שלה (תורם/משפחה/…) ופתיחה */}
+        {searched && others.length > 0 && (
+          <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-soft)' }}>המספר שייך גם ל:</div>
+            {others.map((c) => (
+              <div key={c.kind + c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ background: 'var(--accent)', color: 'var(--dark, #fff)', borderRadius: 999, padding: '1px 9px', fontWeight: 700, fontSize: 11.5 }}>
+                  {callerKindLabel(config, c.kind)}
+                </span>
+                <span style={{ fontWeight: 700, flex: 1, minWidth: 0 }}>
+                  {c.name}
+                  {c.phoneNote && <span style={{ fontWeight: 400, color: 'var(--ink-faint)', fontSize: 12.5 }}> · 📞 {c.phoneNote}</span>}
+                </span>
+                <Btn sm onClick={() => openCard(c)}>📂 פתח</Btn>
+              </div>
+            ))}
           </div>
         )}
 

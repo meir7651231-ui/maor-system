@@ -13,6 +13,7 @@
 import type { Db } from '../types/domain';
 import type { OrgConfig } from '../types/config';
 import { termOf } from './config';
+import { allSupPhones } from '../components/supporters/lib';
 
 export type CallerKind = 'family' | 'member' | 'supporter' | 'volunteer' | 'coordinator';
 
@@ -47,6 +48,8 @@ export interface Caller {
   view: 'families' | 'supporters' | 'tzedaka' | 'shop7';
   /** מזהה-המשפחה לפתיחת כרטיס-משפחה (למשפחה/בן-משפחה). */
   famId?: string;
+  /** כשההתאמה על מספר-נוסף (phones[]) — התווית/ממי-זה שלו ("עבודה · של הבן"), לתצוגה. */
+  phoneNote?: string;
 }
 
 /**
@@ -63,37 +66,56 @@ export function phoneKey(raw: string): string {
   return d;
 }
 
+/** תווית+ממי-זה של מספר-נוסף, לתצוגה ("עבודה · של הבן"). */
+const noteOf = (p: { label?: string; note?: string }) => [p.label, p.note].map((s) => (s || '').trim()).filter(Boolean).join(' · ');
+
 /**
- * מזהה את המתקשר לפי מספרו — הראשון שמתאים לפי סדר-עדיפות: משפחה (טלפון ראשי/
- * נוסף) → בן-משפחה → תורם → מתנדב → רכז. בלי התאמה/מספר-קצר ⇒ null.
+ * **כל** מי שהמספר שייך לו (בקשת-בעלים 13.10: "שיגיד מי זה — תורם או משפחה"), לפי סדר-עדיפות:
+ * משפחה → בן-משפחה → תורם → מתנדב → רכז. כל ישות פעם אחת. בודק את **כל** הטלפונים —
+ * כולל phones[] של משפחות ותורמים (🐛 עד 13.10: תורם הותאם רק על s.phone, ונעצר בהתאמה הראשונה,
+ * כך שמספר של משפחה *וגם* תורם הציג רק את המשפחה). בלי התאמה/מספר-קצר ⇒ [].
  */
-export function findCaller(db: Db, raw: string): Caller | null {
+export function findCallers(db: Db, raw: string): Caller[] {
   const key = phoneKey(raw);
-  if (key.length < 6) return null; // קצר מדי = לא בר-התאמה בטוחה (הימנעות מ-false-positive)
+  if (key.length < 6) return []; // קצר מדי = לא בר-התאמה בטוחה (הימנעות מ-false-positive)
   const hit = (p: string | undefined) => !!p && phoneKey(p) === key;
+  const out: Caller[] = [];
 
   for (const f of db.families) {
     if (hit(f.phone) || hit(f.phone2)) {
-      return { kind: 'family', name: f.name, phone: f.phone || f.phone2, id: f.id, view: 'families', famId: f.id };
+      out.push({ kind: 'family', name: f.name, phone: f.phone || f.phone2, id: f.id, view: 'families', famId: f.id });
+      continue;
     }
+    const x = (Array.isArray(f.phones) ? f.phones : []).find((p) => hit(p?.num));
+    if (x) out.push({ kind: 'family', name: f.name, phone: x.num, id: f.id, view: 'families', famId: f.id, ...(noteOf(x) ? { phoneNote: noteOf(x) } : {}) });
   }
   for (const f of db.families) {
     for (const m of f.members || []) {
       if (hit(m.phone) || hit(m.phone2)) {
-        return { kind: 'member', name: m.first + ' · ' + f.name, phone: m.phone || m.phone2, id: m.id, view: 'families', famId: f.id };
+        out.push({ kind: 'member', name: m.first + ' · ' + f.name, phone: m.phone || m.phone2, id: m.id, view: 'families', famId: f.id });
       }
     }
   }
   for (const s of db.supporters) {
-    if (hit(s.phone)) return { kind: 'supporter', name: s.name, phone: s.phone, id: s.id, view: 'supporters' };
+    const r = allSupPhones(s).find((row) => hit(row.num));
+    if (!r) continue;
+    out.push({ kind: 'supporter', name: s.name, phone: r.num, id: s.id, view: 'supporters', ...(!r.primary && noteOf(r) ? { phoneNote: noteOf(r) } : {}) });
   }
   for (const v of db.volunteers || []) {
-    if (hit(v.phone)) return { kind: 'volunteer', name: v.name, phone: v.phone, id: v.id, view: 'shop7' };
+    if (hit(v.phone)) out.push({ kind: 'volunteer', name: v.name, phone: v.phone, id: v.id, view: 'shop7' });
   }
   for (const c of db.tzCoordinators || []) {
-    if (hit(c.phone)) return { kind: 'coordinator', name: c.name, phone: c.phone, id: c.id, view: 'tzedaka' };
+    if (hit(c.phone)) out.push({ kind: 'coordinator', name: c.name, phone: c.phone, id: c.id, view: 'tzedaka' });
   }
-  return null;
+  return out;
+}
+
+/**
+ * המתקשר הראשי — הראשון לפי סדר-העדיפות של findCallers (משפחה → בן-משפחה → תורם → מתנדב → רכז).
+ * בלי התאמה/מספר-קצר ⇒ null. שומר את החוזה ההיסטורי לכרטיס-השיחה.
+ */
+export function findCaller(db: Db, raw: string): Caller | null {
+  return findCallers(db, raw)[0] ?? null;
 }
 
 /**
