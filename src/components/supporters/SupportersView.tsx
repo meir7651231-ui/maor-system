@@ -43,6 +43,7 @@ import { AyinBoard, AyinDueBadge } from './AyinBoard';
 import { AyinNamesBoard } from './AyinNamesBoard';
 import { OrgDonationCalendar } from './DonationCalendar';
 import { SupDedupModal } from './SupDedupModal';
+import { NameSplitModal } from './NameSplitModal';
 import { HokBulkModal } from './HokBulkModal';
 import { findSupporterDupGroups } from '../../lib/dedup';
 import { bulkMailRecipients, bulkWaRecipients } from '../../lib/bulkContact';
@@ -387,6 +388,8 @@ export function SupportersView() {
   // כאן (מגודר hokOn) — מוצג רק כשיש חיובי-נדרים ב-hist, לא-דורס-הו"ק-ידני, no-op כשריק.
   // 🔗 איחוד-כפולים (#13) — הכפתור מוצג רק כשיש מה לאחד
   const [dedupOpen, setDedupOpen] = useState(false);
+  // 🪪 פיצול שם פרטי/משפחה לכל התורמים הקיימים (הכרעת-בעלים 13.10) — למנהל, עם תצוגה-מקדימה
+  const [nameSplitOpen, setNameSplitOpen] = useState(false);
   // 🐛 נחיל-9×9 (13.8): Union-Find על כל התורמים רץ בכל render (כל הקשה/סינון) —
   // ממומואיז על db.supporters בלבד.
   const dedupCount = useMemo(() => findSupporterDupGroups(db.supporters).length, [db.supporters]);
@@ -893,6 +896,7 @@ export function SupportersView() {
                 ayinOn && isAdminUser(config, cloudEmail) && { label: '📥 דוח שמות (למנהל)', onClick: namesReport, title: 'כל השמות בכרטיסי מעקב-הטיפול — CSV' },
                 featureOn(config, 'supporters.prayernames') && { label: '🙏 שמות לתפילה — קובץ מסודר', onClick: prayerAllDoc, title: 'כל השמות הפעילים מכל הכרטיסים, מקובצים לפי תורם — להדפסה או שמירה כ-PDF' },
                 dedupCount > 0 && featureOn(config, 'supporters.dedup') && { label: '🔗 איחוד כפולים · ' + dedupCount, onClick: () => setDedupOpen(true) },
+                lastNameOn && canBulkManage && { label: '🪪 פיצול שם פרטי / משפחה', onClick: () => setNameSplitOpen(true), title: 'הצעת פיצול לכל השמות הקיימים — בודקים ומאשרים לפני שמירה; השם על הקבלה לא משתנה' },
                 !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
               ]}
             />
@@ -1477,6 +1481,7 @@ export function SupportersView() {
       )}
 
       {dedupOpen && <SupDedupModal onClose={() => setDedupOpen(false)} />}
+      {nameSplitOpen && <NameSplitModal onClose={() => setNameSplitOpen(false)} />}
       {hokBulkOpen && <HokBulkModal config={config} onClose={() => setHokBulkOpen(false)} />}
       {/* 📋 מסך-השמות המלא (20.8) — הרשימה פר-שם מכל הכרטיסים; שורה ⇒ כרטיס */}
       {ayinNamesOpen && (

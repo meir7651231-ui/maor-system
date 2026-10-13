@@ -382,6 +382,9 @@ interface AppState {
   deleteTeacher: (id: string) => { ok: boolean; error?: string };
   upsertRoom: (r: Room) => void;
   upsertSupporter: (s: Supporter) => void;
+  /** 🪪 פיצול-שמות מרוכז (13.10) — כתיבה אטומית אחת של firstName/lastName לתורמים שעוד לא פוצלו.
+   *  `name` (השם על הקבלה) לא נגע; תורם שבינתיים פוצל — מדולג. מחזיר כמה עודכנו. */
+  applyNameSplit: (rows: { id: string; first: string; last: string }[]) => number;
   /** גלריית-תמונות: הוספת תמונה מוקטנת (data:URI) לתורם, עד PHOTO_MAX. */
   addSupporterPhoto: (id: string, dataUri: string) => void;
   /** גלריית-תמונות: הסרת תמונה לפי אינדקס. */
@@ -2385,6 +2388,27 @@ export const useApp = create<AppState>()((set, get) => {
         }),
       }));
     },
+    applyNameSplit(rows) {
+      const want = new Map<string, { first: string; last: string }>();
+      for (const r of rows) {
+        const first = (r.first || '').trim();
+        const last = (r.last || '').trim();
+        if (first || last) want.set(r.id, { first, last });
+      }
+      if (!want.size) return 0;
+      let n = 0;
+      setDb((db) => ({
+        supporters: db.supporters.map((s) => {
+          const w = want.get(s.id);
+          if (!w || (s.firstName || '').trim() || (s.lastName || '').trim()) return s;
+          n++;
+          return { ...s, ...(w.first ? { firstName: w.first } : {}), ...(w.last ? { lastName: w.last } : {}) };
+        }),
+      }));
+      if (n) logAudit('🪪 פיצול שם פרטי/משפחה', n + ' ' + termOf(get().config, 'entity.supporters', 'תורמים'));
+      return n;
+    },
+
     mergeSupporters(keepId, dropId) {
       const { supporters } = get().db;
       const keep = supporters.find((s) => s.id === keepId);
