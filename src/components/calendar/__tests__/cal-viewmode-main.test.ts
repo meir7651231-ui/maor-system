@@ -52,7 +52,8 @@ describe('🗓 ratchet — לוח-שנה: מצבי יומי/שבועי/חודש�
 
   it('🛡 CalendarView: בורר-מצב + עוגן-טווח + ניווט/פאנל מודעי-מצב', () => {
     expect(calViewSrc).toContain('<CalViewTabs');
-    expect(calViewSrc).toContain("useState<CalViewMode>('month')");
+    // מ-13.10 נזכר במעבר-מסך (useRemembered) — ברירת-המחדל נשארת 'month'.
+    expect(calViewSrc).toContain("useRemembered<CalViewMode>('cal.viewMode', 'month')");
     expect(calViewSrc).toContain('buildWeekGrid(db, spanAnchor');
     expect(calViewSrc).toContain('buildDayGrid(db, spanAnchor');
     // ניווט prev/next קופץ ביחידת-המצב, לא רק חודש

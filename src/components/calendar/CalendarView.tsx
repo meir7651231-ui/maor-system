@@ -5,6 +5,7 @@
  */
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
+import { useRemembered } from '../../lib/filterMemory';
 import { featureOn, integrationOn, moduleOn, termOf } from '../../lib/config';
 import { visibleEventsForDesignations } from '../supporters/lib';
 import { buildIcs, downloadIcs } from '../../lib/ics';
@@ -181,10 +182,12 @@ export function CalendarView() {
   const [ym, setYm] = useState({ y: now.getFullYear(), m: now.getMonth() });
   // הלוח נפתח בגריד העברי כברירת מחדל (P1.1, legacy calHebMode:true) —
   // דגל calendar.hebdefault: חסר=דלוק=עברי; false=לועזי (initialHebMode טהור)
-  const [hebMode, setHebMode] = useState(() => initialHebMode(useApp.getState().config));
+  // 🐛 (13.10): מצבי-התצוגה והסינון היו useState ⇒ מעבר-מסך מחק אותם ("עובר למסך אחר והוא חוזר למצב ללא סינון").
+  // עכשיו useRemembered — כמו תורמים/משפחות/חוגים (filterMemory, זיכרון-סשן).
+  const [hebMode, setHebMode] = useRemembered('cal.hebMode', () => initialHebMode(useApp.getState().config));
   const [hebAnchor, setHebAnchor] = useState(isoOf(now));
   // 🗓 מצב-תצוגה יומי/שבועי/חודשי (בקשת-בעלים 30.8). ביום/שבוע — עוגן-טווח נפרד.
-  const [viewMode, setViewMode] = useState<CalViewMode>('month');
+  const [viewMode, setViewMode] = useRemembered<CalViewMode>('cal.viewMode', 'month');
   const [spanAnchor, setSpanAnchor] = useState(isoOf(now));
   const [modal, setModal] = useState<ModalState | null>(null);
   const [dayIso, setDayIso] = useState<string | null>(null);
@@ -197,7 +200,7 @@ export function CalendarView() {
       ackEventForm();
     }
   }, [evFormReq, ackEventForm]);
-  const [filters, setFilters] = useState<CalFilters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useRemembered<CalFilters>('cal.filters', DEFAULT_FILTERS);
   const [expOpen, setExpOpen] = useState(false);
   // 🔗 מנוי-יומן חי (gcal, 9.8) — רק לארגון-ענן (הפיד יושב ב-Firestore)
   const [feedOpen, setFeedOpen] = useState(false);
