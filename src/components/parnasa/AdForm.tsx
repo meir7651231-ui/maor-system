@@ -8,6 +8,7 @@ import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import type { PrAd, PrAdKind, PrAdSlot, PrPriceKey } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
+import { OrbitLayer } from './skin';
 import { adDraftError, PR_CATEGORIES, priceOf } from './lib';
 import { PR_AD_KIND_LABELS, PR_AD_SLOT_LABELS } from './labels';
 
@@ -65,6 +66,7 @@ export function AdForm(props: { ad: PrAd | null; slot?: PrAdSlot; target?: strin
   }
 
   return (
+    <OrbitLayer>
     <Modal title={(base ? '✎ עריכת ' : '➕ הוספת ') + word} onClose={props.onClose}>
       <FormError error={error} />
       <div className="form-grid">
@@ -142,5 +144,6 @@ export function AdForm(props: { ad: PrAd | null; slot?: PrAdSlot; target?: strin
         <Btn onClick={props.onClose}>ביטול</Btn>
       </div>
     </Modal>
+    </OrbitLayer>
   );
 }

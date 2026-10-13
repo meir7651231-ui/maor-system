@@ -9,6 +9,7 @@ import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import type { PrPost, PrPostKind } from '../../types/domain';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
+import { OrbitLayer } from './skin';
 import { addDaysIso, dayTimes, resolveTimeToken } from './zmanimBoard';
 import { usePrNow, usePrPerms } from './hooks';
 import { PR_NOTICE_KIND_LABELS, PR_POST_KIND_LABELS, PR_PRAYERS } from './labels';
@@ -82,6 +83,7 @@ export function PostForm(props: { post: PrPost | null; kind?: PrPostKind; onClos
   }
 
   return (
+    <OrbitLayer>
     <Modal title={(base ? '✎ עריכת ' : '➕ הוספת ') + (f.kind === 'notice' ? word : PR_POST_KIND_LABELS[f.kind].replace(/^\S+\s/, ''))} onClose={props.onClose}>
       <FormError error={error} />
       {!base && (
@@ -247,5 +249,6 @@ export function PostForm(props: { post: PrPost | null; kind?: PrPostKind; onClos
         <Btn onClick={props.onClose}>ביטול</Btn>
       </div>
     </Modal>
+    </OrbitLayer>
   );
 }

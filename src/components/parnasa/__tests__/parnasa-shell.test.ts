@@ -3,7 +3,9 @@
  *  (א) חיווט: NAV/VIEWS/VIEW_LOADERS (chunk עצל) ב-App; הניווט מסנן דרך העוזר היחיד moduleEnabledIn.
  *  (ב) מודול כבוי (opt-in — המפתח חסר) ⇒ לא נגיש: אין קישור, כל parnasa.* כבויים, view פתוח קופץ
  *      הביתה; דלוק ⇒ תת-הדגלים בחוזה הרגיל (חסר = פעיל, רק false מכבה).
- *  (ג) כל לשונית מגודרת בתת-הדגל שלה (רינדור-שרת אמיתי של המסך, לא רק סריקה); ⚙ הגדרות — גבאי בלבד.
+ *  (ג) עיצוב 1 — הניווט של המקור (אלפון · לוח בקשות · לוח הקהילה · העסק שלי · ניהול): כל לשונית מגודרת בתת-הדגל
+ *      שלה (רינדור-שרת אמיתי של המסך, לא רק סריקה); "ניהול" = אזורי-המקור (אישורים · הכנסות · חסויות · מודעות
+ *      וחוברת · 📞 הקו · הגדרות) — כל אזור בדגל שלו, הגדרות — גבאי בלבד; אף לשונית של הפורט לא אבדה.
  *  (ד) מוסכמות-הממשק (CLAUDE.md): "➕ הוספת {termOf}" (חוזה ה-e2e) · useRemembered + useListScrollRestore ·
  *      מחיקה = useArmed + הרשאה · וואטסאפ/חיוג/מפות מגודרי-הרחבה · אפס דיאלוג-ילידי · אפס מנוי-DB-מלא.
  *  (ה) 🛡 פרטיות-שקט בממשק: בקשה שקטה מתרנדרת בלי שם/טלפון הפונה; מה שנשלח לעסקים — מ-businessView;
@@ -25,6 +27,8 @@ import { BoardTab } from '../BoardTab';
 import { BookletTab } from '../BookletTab';
 import { AdsTab } from '../AdsTab';
 import { SettingsTab } from '../SettingsTab';
+import { AdminTab, adminSegsOf } from '../AdminTab';
+import { MeTab } from '../MeTab';
 import { clockAt, makeClosureFn, resolveZmanimLoc } from '../zmanimBoard';
 import type { PrNow } from '../hooks';
 import appSrc from '../../../App.tsx?raw';
@@ -37,15 +41,26 @@ const src = (name: string): string => {
 };
 
 const SUB_FLAGS = ['parnasa.care', 'parnasa.directory', 'parnasa.requests', 'parnasa.board', 'parnasa.booklet', 'parnasa.phone', 'parnasa.ads', 'parnasa.zmanim', 'parnasa.export'];
+/** לשוניות-המקור (פס-הלשוניות) ⇐ תת-הדגל שמגדר כל אחת. */
 const TAB_LABELS: Record<string, string> = {
-  'parnasa.care': '🏠 טיפול ואישורים',
-  'parnasa.directory': '📇 מדריך',
-  'parnasa.requests': '🙋 בקשות',
-  'parnasa.board': '📌 לוח קהילה',
-  'parnasa.booklet': '📖 חוברת',
-  'parnasa.phone': '📞 הקו', // אשכול 6ב — סימולטור, לא קו חי (נעילה מלאה: parnasa-phone.test)
-  'parnasa.ads': '📣 פרסומות',
+  directory: 'אלפון',
+  requests: 'לוח בקשות',
+  board: 'לוח הקהילה',
+  me: 'העסק שלי',
+  admin: 'ניהול',
 };
+const TAB_FLAG: Record<string, string> = { directory: 'parnasa.directory', requests: 'parnasa.requests', board: 'parnasa.board', me: 'parnasa.directory' };
+/** אזורי "ניהול" ⇐ תת-הדגל (הכנסות/חסויות/מודעות — parnasa.ads; מודעות וחוברת — גם parnasa.booklet). */
+const SEG_LABELS: Record<string, string> = { appr: 'אישורים', rev: 'הכנסות', spon: 'חסויות', ads: 'מודעות וחוברת', phone: '📞 הקו', set: 'הגדרות' };
+
+/** פס-הלשוניות מתוך רינדור-השרת (התוויות מופיעות גם בטקסטים אחרים — "כל האלפון", "האלפון במנוחה"). */
+function tabbar(html: string): string {
+  const m = /<nav class="pn-tabbar"[\s\S]*?<\/nav>/.exec(html);
+  return m ? m[0] : '';
+}
+function tabKeys(html: string): string[] {
+  return [...tabbar(html).matchAll(/data-tab="(\w+)"/g)].map((m) => m[1]);
+}
 
 const ON = (features: Record<string, boolean> = {}, extra: Partial<OrgConfig> = {}): OrgConfig => ({ ...DEFAULT_CONFIG, modules: { parnasa: true }, features, ...extra });
 
@@ -112,44 +127,98 @@ describe('📒 (ב) opt-in: כבוי כשחסר — לא נגיש; דלוק ⇒ 
   });
 });
 
-/* ═══════════════ (ג) לשוניות מגודרות ═══════════════ */
+/* (ג) משתמש בנתוני-העשן שלמטה (DATA/nowOf) — נקראים בזמן-הריצה של הבדיקה, אחרי אתחול-המודול. */
+/* ═══════════════ (ג) הניווט של המקור — לשוניות מגודרות ═══════════════ */
 
-describe('📒 (ג) כל לשונית מגודרת בתת-הדגל שלה (רינדור-שרת)', () => {
-  it('הכול דלוק (מקומי = סמכות-מנהל) ⇒ 7 הלשוניות + ⚙ הגדרות', () => {
+describe('📒 (ג) הניווט של המקור — כל לשונית ואזור מגודרים בתת-הדגל שלהם (רינדור-שרת)', () => {
+  it('הכול דלוק (מקומי = סמכות-מנהל) ⇒ 5 הלשוניות של המקור, בסדר שלו, עם אייקוני-הקו', () => {
     setup(ON());
     const html = render(createElement(ParnasaView));
-    for (const label of Object.values(TAB_LABELS)) expect(html, label).toContain(label);
-    expect(html).toContain('⚙ הגדרות');
+    expect(tabKeys(html)).toEqual(['directory', 'requests', 'board', 'me', 'admin']);
+    for (const [k, label] of Object.entries(TAB_LABELS)) expect(tabbar(html), k).toContain('<span>' + label + '</span>');
+    expect(tabbar(html)).toContain('#pn-i-tab-alfon');
+    expect(tabbar(html)).toContain('#pn-i-tab-admin');
+    // ברירת-המחדל = האלפון (הלשונית הראשונה של המקור)
+    expect(tabbar(html)).toMatch(/aria-selected="true" data-tab="directory"/);
   });
 
-  it('תת-דגל false ⇒ הלשונית שלו נעלמת, השאר נשארות', () => {
-    for (const [flag, label] of Object.entries(TAB_LABELS)) {
+  it('תת-דגל false ⇒ הלשונית שלו נעלמת, השאר נשארות (directory ⇒ גם "העסק שלי")', () => {
+    for (const flag of ['parnasa.directory', 'parnasa.requests', 'parnasa.board']) {
       setup(ON({ [flag]: false }));
-      const html = render(createElement(ParnasaView));
-      expect(html, flag + ' כבוי ⇒ ' + label + ' נעלם').not.toContain(label);
-      for (const [other, l2] of Object.entries(TAB_LABELS)) if (other !== flag) expect(html, flag + ' כבוי ⇒ ' + l2 + ' נשאר').toContain(l2);
+      const keys = tabKeys(render(createElement(ParnasaView)));
+      for (const [k, f] of Object.entries(TAB_FLAG)) expect(keys.includes(k), flag + ' כבוי ⇒ ' + k).toBe(f !== flag);
+      expect(keys, flag + ' כבוי ⇒ ניהול נשאר').toContain('admin');
     }
   });
 
-  it('⚙ הגדרות — רק לגבאי: עובד/ת בלי parnasa.approve לא רואה; עם הדלקה-פר-עובד — רואה', () => {
-    setup(ON({}, { adminEmails: ['gabbai@x.org'] }), {}, 'staff@x.org');
-    expect(render(createElement(ParnasaView))).not.toContain('⚙ הגדרות');
-    setup(ON({ 'parnasa.approve': true }, { adminEmails: ['gabbai@x.org'] }), {}, 'staff@x.org');
-    expect(render(createElement(ParnasaView))).toContain('⚙ הגדרות');
+  it('אזורי "ניהול": כל אזור בדגל שלו; הגדרות — רק לגבאי; בלי אף אזור ⇒ אין לשונית "ניהול"', () => {
+    const keysOf = (c: OrgConfig, approve: boolean) => adminSegsOf(c, approve).filter((x) => x.on).map((x) => x.key);
+    expect(keysOf(ON(), true)).toEqual(['appr', 'rev', 'spon', 'ads', 'phone', 'set']);
+    expect(keysOf(ON(), false)).toEqual(['appr', 'rev', 'spon', 'ads', 'phone']);
+    expect(keysOf(ON({ 'parnasa.care': false }), true)).not.toContain('appr');
+    expect(keysOf(ON({ 'parnasa.ads': false }), true)).toEqual(['appr', 'ads', 'phone', 'set']); // החוברת עדיין במודעות וחוברת
+    expect(keysOf(ON({ 'parnasa.ads': false, 'parnasa.booklet': false }), true)).toEqual(['appr', 'phone', 'set']);
+    expect(keysOf(ON({ 'parnasa.phone': false }), true)).not.toContain('phone');
+    // עובד/ת בלי parnasa.approve ושכל האזורים האחרים כבויים ⇒ אין "ניהול"; עם הדלקה-פר-עובד ⇒ יש (הגדרות)
+    const allOff = { 'parnasa.care': false, 'parnasa.ads': false, 'parnasa.booklet': false, 'parnasa.phone': false };
+    setup(ON(allOff, { adminEmails: ['gabbai@x.org'] }), {}, 'staff@x.org');
+    expect(tabKeys(render(createElement(ParnasaView)))).not.toContain('admin');
+    setup(ON({ ...allOff, 'parnasa.approve': true }, { adminEmails: ['gabbai@x.org'] }), {}, 'staff@x.org');
+    expect(tabKeys(render(createElement(ParnasaView)))).toContain('admin');
+  });
+
+  it('"ניהול" מתרנדר עם פס-האזורים של המקור (div.seg) — כל התוויות, והאזור הפעיל עם התוכן שלו', () => {
+    setup(ON(), DATA);
+    const now = nowOf();
+    const segs = adminSegsOf(ON(), true);
+    const html = render(
+      createElement(AdminTab, { now, segs, seg: 'appr', setSeg: () => {}, counts: { appr: 3, ads: 1 }, onJump: () => {}, canJump: () => true, adsOn: true, bookletOn: true }),
+    );
+    expect(html).toContain('גבאי האלפון');
+    expect(html).toContain('<h1>ניהול</h1>');
+    for (const label of Object.values(SEG_LABELS)) expect(html, label).toContain(label);
+    expect(html).toMatch(/aria-selected="true">אישורים<span class="pn-sc">3<\/span>/);
+    expect(html).toContain('ממתינים לאישור');
+    // מודעות וחוברת = המודעות + "חוברת להדפסה" (תת-האזור book של המקור)
+    const ads = render(
+      createElement(AdminTab, { now, segs, seg: 'ads', setSeg: () => {}, counts: {}, onJump: () => {}, canJump: () => true, adsOn: true, bookletOn: true }),
+    );
+    expect(ads).toContain('data-sub="book"');
+    expect(ads).toContain('מפתח המקצועות');
+  });
+
+  it('"העסק שלי": כותרת-המקור + רשימת-העסקים עם מצב-האישור + ➕ הוספה', () => {
+    setup(ON(), DATA);
+    const html = render(createElement(MeTab, { onOpen: () => {} }));
+    expect(html).toContain('לבעלי עסקים');
+    expect(html).toContain('<h1>העסק שלי</h1>');
+    expect(html).toContain('אינסטלציה זילברמן');
+    expect(html).toContain('מופיע באלפון');
+    expect(html).toContain('ממתין לאישור');
+    expect(html).toContain('➕ הוספת עסק');
   });
 
   it('כל הלשוניות כבויות ⇒ מצב-ריק מסביר, לא מסך שבור', () => {
-    const allOff = Object.fromEntries(Object.keys(TAB_LABELS).map((k) => [k, false]));
+    const allOff = Object.fromEntries(SUB_FLAGS.map((k) => [k, false]));
     setup(ON(allOff, { adminEmails: ['gabbai@x.org'] }), {}, 'staff@x.org');
-    expect(render(createElement(ParnasaView))).toContain('כבויות באשף');
+    const html = render(createElement(ParnasaView));
+    expect(html).toContain('כבויות באשף');
+    expect(tabKeys(html)).toEqual([]);
   });
 
-  it('הגנת-מקור: כל לשונית ב-tabs נושאת featureOn(config, \'parnasa.<x>\') משלה', () => {
+  it('הגנת-מקור: כל לשונית נושאת featureOn(config, \'parnasa.<x>\') משלה; ניהול — כשיש אזור; הגדרות — canApprove', () => {
     const view = src('ParnasaView');
-    for (const flag of Object.keys(TAB_LABELS)) {
-      expect(view, flag).toMatch(new RegExp("label: '[^']+', on: featureOn\\(config, '" + flag.replace('.', '\\.') + "'\\)"));
+    for (const [k, flag] of Object.entries(TAB_FLAG)) {
+      expect(view, k).toMatch(new RegExp("key: '" + k + "', label: '" + TAB_LABELS[k] + "', icon: '[\\w-]+', on: featureOn\\(config, '" + flag.replace('.', '\\.') + "'\\)"));
     }
-    expect(view).toMatch(/key: 'settings', label: '⚙ הגדרות', on: canApprove/);
+    expect(view).toMatch(/key: 'admin', label: 'ניהול', icon: 'tab-admin', on: segs\.some\(\(s\) => s\.on\)/);
+    const admin = src('AdminTab');
+    expect(admin).toMatch(/key: 'appr', label: 'אישורים', on: featureOn\(config, 'parnasa\.care'\)/);
+    expect(admin).toMatch(/key: 'phone', label: '📞 הקו', on: featureOn\(config, 'parnasa\.phone'\)/);
+    expect(admin).toMatch(/key: 'set', label: 'הגדרות', on: canApprove/);
+    // המודול מייבא את הסקין רק מהמסך העצל (‎parnasa.css בצ'אנק של ParnasaView)
+    for (const [path, s2] of Object.entries(UI_SRC)) if (!path.endsWith('/ParnasaView.tsx')) expect(s2, path).not.toContain("import './parnasa.css'");
+    expect(view).toContain("import './parnasa.css';");
   });
 });
 

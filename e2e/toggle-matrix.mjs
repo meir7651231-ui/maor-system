@@ -551,13 +551,25 @@ for (const profile of PROFILES) {
   const main = (await page.locator('main').textContent()) ?? '';
   // אשכול 5 (12.10): ה-stub "המודול בבנייה" הוחלף בלשוניות האמיתיות — מקומי בלי adminEmails = סמכות-גבאי
   // אשכול 6ב (12.10): + 📞 הקו — סימולטור (לא קו חי)
-  const PR_TABS = ['🏠 טיפול ואישורים', '📇 מדריך', '🙋 בקשות', '📌 לוח קהילה', '📖 חוברת', '📞 הקו', '📣 פרסומות', '⚙ הגדרות'];
-  t('מסך פרנסה׳לע נטען — 7 הלשוניות + ⚙ הגדרות (גבאי)', PR_TABS.every((x) => main.includes(x)), PR_TABS.filter((x) => !main.includes(x)).join(', '));
+  // עיצוב 1 (13.10): הניווט של המקור — פס-הלשוניות הצף (5 לשוניות) + אזורי "ניהול"; אף לשונית של הפורט לא אבדה
+  const PR_TABS = ['אלפון', 'לוח בקשות', 'לוח הקהילה', 'העסק שלי', 'ניהול'];
+  const PR_SEGS = ['אישורים', 'הכנסות', 'חסויות', 'מודעות וחוברת', '📞 הקו', 'הגדרות'];
+  const barTxt = (await page.locator('main .pn-tabbar').textContent().catch(() => '')) ?? '';
+  t('מסך פרנסה׳לע נטען בסקין המקורי — הפס, 5 הלשוניות של המקור', main.includes('ב״ה') && PR_TABS.every((x) => barTxt.includes(x)), PR_TABS.filter((x) => !barTxt.includes(x)).join(', '));
   t('ה-stub הישן לא חזר', !main.includes('המודול בבנייה'));
-  const prTab = (label) => page.locator('main button.chip', { hasText: label }).first().click();
+  const prTab = (label) => page.locator('main .pn-tabbar button', { hasText: label }).first().click();
+  const prSeg = async (label) => {
+    await prTab('ניהול');
+    await page.waitForTimeout(250);
+    await page.locator('main .pn-seg button', { hasText: label }).first().click();
+  };
+  await prTab('ניהול');
+  await page.waitForTimeout(300);
+  const segTxt = (await page.locator('main .pn-seg').textContent().catch(() => '')) ?? '';
+  t('"ניהול" — 6 אזורי-הניהול (טיפול, פרסום, חוברת, הקו, הגדרות-גבאי)', PR_SEGS.every((x) => segTxt.includes(x)), PR_SEGS.filter((x) => !segTxt.includes(x)).join(', '));
 
   // ➕ עסק (גבאי ⇒ מאושר מיד + קוד-החיוג הבא) ⇒ הכרטיס המלא נפתח
-  await prTab('📇 מדריך');
+  await prTab('אלפון');
   await page.waitForTimeout(300);
   await page.locator('main button', { hasText: '➕ הוספת עסק' }).click();
   await page.locator('.modal input[placeholder="ר׳ יעקב כהן"]').fill('אינסטלציה-מטריצה');
@@ -589,7 +601,7 @@ for (const profile of PROFILES) {
   t('"לא מצאתי" ⇒ בקשה נפתחה ומנותבת (פתוחה לקהילה — אין עסק בתחום)', prMain.includes('מחפש מלמד לגמרא') && prMain.includes('פתוחה לכל הקהילה'));
 
   // אשכול 8 · 📖 החוברת יורדת כקובץ HTML (שער יציאת-המידע פתוח) — העסק וקוד-החיוג מודפסים
-  await prTab('📖 חוברת');
+  await prSeg('מודעות וחוברת');
   await page.waitForTimeout(250);
   const [dl] = await Promise.all([page.waitForEvent('download'), page.locator('main button', { hasText: '⬇ הורדת החוברת' }).click()]);
   const dlPath = await dl.path();
@@ -600,7 +612,7 @@ for (const profile of PROFILES) {
   );
 
   // אשכול 6ב · 📞 הקו — סימולטור, לא קו חי: 1 ⇒ תחומי-המקצוע · "אמרו משהו" ⇒ צומת-אישור, לעולם לא חיבור
-  await prTab('📞 הקו');
+  await prSeg('📞 הקו');
   await page.waitForTimeout(300);
   prMain = (await page.locator('main').textContent()) ?? '';
   t('📞 באנר "הקו עוד לא חי" + הקו מתרנדר', prMain.includes('תצוגה בלבד — הקו עוד לא חי') && prMain.includes('הקו של פרנסה׳לע'));
@@ -635,7 +647,7 @@ for (const profile of PROFILES) {
   );
 
   // אשכול 8 · 📣 פרסומת ⇒ סימון-תשלום ידני (רישום בלבד, אפס קבלות)
-  await prTab('📣 פרסומות');
+  await prSeg('הכנסות');
   await page.waitForTimeout(250);
   await page.locator('main button', { hasText: '➕ הוספת פרסומת' }).click();
   await page.locator('.modal input').first().fill('מפרסם-מטריצה');
@@ -670,9 +682,13 @@ for (const profile of PROFILES) {
   await page.keyboard.press('Escape');
   await page.waitForTimeout(300);
 
-  // כל לשונית מתרנדרת בדפדפן בלי שגיאה
+  // כל לשונית וכל אזור-ניהול מתרנדרים בדפדפן בלי שגיאה
   for (const label of PR_TABS) {
     await prTab(label);
+    await page.waitForTimeout(250);
+  }
+  for (const label of PR_SEGS) {
+    await prSeg(label);
     await page.waitForTimeout(250);
   }
   prMain = (await page.locator('main').textContent()) ?? '';

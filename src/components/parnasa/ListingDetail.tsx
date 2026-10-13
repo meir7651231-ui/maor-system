@@ -8,6 +8,7 @@ import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import type { PrListing } from '../../types/domain';
 import { Btn, Chip, Field, Modal, StickyBackBar, TextInput } from '../ui';
+import { OrbitLayer } from './skin';
 import { useArmed } from '../useArmed';
 import { categoryOf, isFeatured, PR_AUD_NAMES, PR_LANG_NAMES, requestsForListing } from './lib';
 import { minToHm, hmToMin, PR_DAY_NAMES } from './zmanimBoard';
@@ -266,9 +267,12 @@ export function ListingDetail(props: { listing: PrListing; now: PrNow; onBack: (
         </section>
       )}
 
-      <StickyBackBar onBack={props.onBack} label="→ חזרה למדריך" />
+      <OrbitLayer>
+        <StickyBackBar onBack={props.onBack} label="→ חזרה למדריך" />
+      </OrbitLayer>
       {editOpen && <ListingForm listing={l} onClose={() => setEditOpen(false)} />}
       {respondTo && (
+        <OrbitLayer>
         <Modal title={respondTo.quiet ? 'שליחת תשובה (בשקט)' : '✋ סימון זמין'} onClose={() => setRespondTo(null)}>
           {respondTo.quiet && (
             <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
@@ -290,6 +294,7 @@ export function ListingDetail(props: { listing: PrListing; now: PrNow; onBack: (
             <Btn onClick={() => setRespondTo(null)}>ביטול</Btn>
           </div>
         </Modal>
+        </OrbitLayer>
       )}
     </div>
   );

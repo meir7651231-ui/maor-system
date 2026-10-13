@@ -9,6 +9,7 @@ import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import type { PrRequest } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
+import { OrbitLayer } from './skin';
 import { analyzeQuery, categoryOf, PR_CATEGORIES, PR_CONCEPTS, requestRecipients, sensitiveTopic } from './lib';
 
 export function emptyPrRequest(): PrRequest {
@@ -70,6 +71,7 @@ export function RequestForm(props: { request: PrRequest | null; draft?: Partial<
   }
 
   return (
+    <OrbitLayer>
     <Modal title={(base ? '✎ עריכת ' : '➕ הוספת ') + word} onClose={props.onClose}>
       <FormError error={error} />
       <Field label="מה אתם מחפשים? *">
@@ -149,5 +151,6 @@ export function RequestForm(props: { request: PrRequest | null; draft?: Partial<
         <Btn onClick={props.onClose}>ביטול</Btn>
       </div>
     </Modal>
+    </OrbitLayer>
   );
 }

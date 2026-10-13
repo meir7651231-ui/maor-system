@@ -6,6 +6,8 @@
  *   · רשימה לפי משבצת: עריכה, סימון/ביטול-תשלום, 💳 קישור-סליקה (payLink — מגודר-הרחבה), שליחתו
  *     בוואטסאפ, מחיקה בשתי-לחיצות בהרשאה.
  * **רישום בלבד** (הכרעה 4): מחיר + סימון-תשלום ידני; אפס קבלות/מונים/תרומות.
+ * עיצוב 1: מוצג בתוך "ניהול" של המקור — section מפצל לפי אזורי-הניהול: הכנסות (הפנקס + כל הרשימות) ·
+ * חסויות (התורנות: שורת-הלוח + 15 השערים, ורשימות שער/לוח) · מודעות וחוברת (מודעות-החוברת). בלי section — הכול.
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
@@ -23,7 +25,11 @@ const SLOTS: readonly PrAdSlot[] = ['booklet', 'category', 'board'];
 const ROW = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '6px 0', borderBottom: '1px solid var(--line)', fontSize: 13 } as const;
 const nis = (n: number): string => n.toLocaleString('he-IL') + ' ₪';
 
-export function AdsTab(props: { now: PrNow }) {
+/** אזור-ניהול של המקור (seg) — חסר = הכול. */
+export type AdsSection = 'rev' | 'spon' | 'ads';
+const SECTION_SLOTS: Readonly<Record<AdsSection, readonly PrAdSlot[]>> = { rev: SLOTS, spon: ['category', 'board'], ads: ['booklet'] };
+
+export function AdsTab(props: { now: PrNow; section?: AdsSection }) {
   const config = useApp((s) => s.config);
   const ads = useApp((s) => s.db.prAds);
   const listings = useApp((s) => s.db.prListings);
@@ -35,6 +41,11 @@ export function AdsTab(props: { now: PrNow }) {
   const { canDelete } = usePrPerms();
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const [form, setForm] = useState<{ ad: PrAd | null; slot?: PrAdSlot; target?: string } | null>(null);
+  const sec = props.section;
+  const showRev = !sec || sec === 'rev';
+  const showSpon = !sec || sec === 'spon';
+  const showAds = !sec || sec === 'ads';
+  const slots = sec ? SECTION_SLOTS[sec] : SLOTS;
 
   const today = props.now.todayIso;
   const word = termOf(config, 'entity.prAd', 'פרסומת');
@@ -71,6 +82,7 @@ export function AdsTab(props: { now: PrNow }) {
         </span>
       </div>
 
+      {showRev && (
       <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', fontSize: 13.5 }}>
           <span>
@@ -95,9 +107,12 @@ export function AdsTab(props: { now: PrNow }) {
           {'💳 התשלום — ' + (payUrl ? 'בקישור-הסליקה של הארגון' : 'ישירות לגבאי (הרחבת התשלומים כבויה)') + '; הסימון "שולם" ידני. אין כאן קבלות.'}
         </div>
       </section>
+      )}
 
+      {(showSpon || showAds) && (
       <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         <h2 style={{ fontSize: 15, fontWeight: 800 }}>היום בתורנות</h2>
+        {showSpon && (
         <div style={ROW}>
           <b>📌 שורת החסות בלוח הקהילה</b>
           {board.today ? (
@@ -114,6 +129,8 @@ export function AdsTab(props: { now: PrNow }) {
             </Btn>
           </span>
         </div>
+        )}
+        {showAds && (
         <div style={{ ...ROW, borderBottom: 'none' }}>
           <b>📖 מודעות בחוברת</b>
           <span>
@@ -124,6 +141,9 @@ export function AdsTab(props: { now: PrNow }) {
               bookletLive.length}
           </span>
         </div>
+        )}
+        {showSpon && (
+        <>
         <h3 style={{ fontSize: 13.5, fontWeight: 800, marginTop: 6 }}>👑 חסות על השערים</h3>
         <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>שם נותן-החסות בראש השער במדריך ובחוברת · שער עמוס שווה יותר</div>
         {PR_CATEGORIES.map((c) => {
@@ -148,11 +168,14 @@ export function AdsTab(props: { now: PrNow }) {
             </div>
           );
         })}
+        </>
+        )}
       </section>
+      )}
 
       {ads.length === 0 && <Empty>{'עוד אין אף ' + word + '. חסות על שער מופיעה בראש השער ובחוברת; מודעות — בדפי-המודעות של החוברת.'}</Empty>}
 
-      {SLOTS.map((slot) => {
+      {slots.map((slot) => {
         const items = ads.filter((a) => a.slot === slot).sort((a, b) => a.advertiser.localeCompare(b.advertiser, 'he') || a.id.localeCompare(b.id));
         if (!items.length) return null;
         return (

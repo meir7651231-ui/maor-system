@@ -12,6 +12,7 @@ import { useRemembered } from '../../lib/filterMemory';
 import { smartFilter } from '../../lib/search';
 import type { PrListing, PrRequest } from '../../types/domain';
 import { Btn, Chip, Empty, Field, Modal, Select, TextInput } from '../ui';
+import { OrbitLayer } from './skin';
 import { useArmed } from '../useArmed';
 import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
@@ -295,6 +296,7 @@ function RequestCard(props: {
       </div>
 
       {respondOpen && (
+        <OrbitLayer>
         <Modal title={'✋ רישום מענה ל' + word} onClose={() => setRespondOpen(false)}>
           <Field label={'מי עונה'}>
             <Select
@@ -313,9 +315,11 @@ function RequestCard(props: {
             <Btn onClick={() => setRespondOpen(false)}>ביטול</Btn>
           </div>
         </Modal>
+        </OrbitLayer>
       )}
 
       {sendOpen && (
+        <OrbitLayer>
         <Modal title={'📤 שליחה לעסקים בתחום'} onClose={() => setSendOpen(false)}>
           <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>
             {r.quiet ? '🔒 בקשה בשקט — ההודעה בלי שם ובלי טלפון של הפונה (ופרטי-קשר שהוקלדו בטקסט מושחרים).' : 'ההודעה כוללת רק את תוכן ה' + word + '.'}
@@ -341,6 +345,7 @@ function RequestCard(props: {
             <Btn onClick={() => setSendOpen(false)}>סגירה</Btn>
           </div>
         </Modal>
+        </OrbitLayer>
       )}
     </div>
   );

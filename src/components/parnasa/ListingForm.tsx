@@ -8,6 +8,7 @@ import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import type { PrHours, PrListing, PrService } from '../../types/domain';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
+import { OrbitLayer } from './skin';
 import { dialCodeTaken, nextDialCode, PR_CATEGORIES, PR_LANG_NAMES, requireApprovalOf, validDialCode } from './lib';
 import { hmToMin } from './zmanimBoard';
 import { usePrPerms } from './hooks';
@@ -96,6 +97,7 @@ export function ListingForm(props: { listing: PrListing | null; onClose: () => v
   const saveLabel = !isNew ? 'שמירה' : !canApprove && requireApproval ? 'שליחה לאישור ה' + gabbai : 'הוספה למדריך';
 
   return (
+    <OrbitLayer>
     <Modal title={(isNew ? '➕ הוספת ' : '✎ עריכת ') + word} onClose={props.onClose} wide>
       <FormError error={error} />
       <div className="form-grid">
@@ -302,5 +304,6 @@ export function ListingForm(props: { listing: PrListing | null; onClose: () => v
         <Btn onClick={props.onClose}>ביטול</Btn>
       </div>
     </Modal>
+    </OrbitLayer>
   );
 }
