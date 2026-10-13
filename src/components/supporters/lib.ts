@@ -263,7 +263,22 @@ export interface SupStats {
 
 /** טקסט-החיפוש המנורמל של תורם — מחושב פעם-אחת לכל stats ונשמר (מטמון-נגזרת טהור). */
 export function searchTextOf(st: SupStats, sp: Supporter): string {
-  return st.search ?? (st.search = normSearch([sp.name, sp.email, sp.cat, sp.address, sp.forWho].join(' ')));
+  // שם-פרטי/משפחה (13.10) נוספים רק כשקיימים ⇒ תורם בלי פיצול — טקסט-חיפוש ביט-זהה.
+  const split = sp.firstName || sp.lastName ? ' ' + [sp.firstName, sp.lastName].filter(Boolean).join(' ') : '';
+  return st.search ?? (st.search = normSearch([sp.name, sp.email, sp.cat, sp.address, sp.forWho].join(' ') + split));
+}
+
+/** שם-מלא משם-פרטי+משפחה (13.10): "ישראל" + "כהן" ⇒ "ישראל כהן"; ריקים מסוננים. */
+export function composeName(first: string, last: string): string {
+  return [first, last].map((s) => (s || '').trim()).filter(Boolean).join(' ');
+}
+
+/**
+ * שם-המשפחה לסינון/מיון: השדה-המפוצל אם קיים; אחרת — השם המלא (כך שגם תורם שעוד לא פוצל
+ * נמצא בסינון ונכנס למיון במקום סביר, במקום ש-16k תורמים קיימים "ייעלמו" מהסינון).
+ */
+export function supLastNameKey(sp: Pick<Supporter, 'lastName' | 'name'>): string {
+  return (sp.lastName || '').trim() || (sp.name || '').trim();
 }
 
 /** ספרות כל הטלפונים של תורם — מחושב פעם-אחת לכל stats ונשמר. */
@@ -387,6 +402,8 @@ export interface SupListFilters {
   colF: { count: string; total: string; score: string };
   nextF: boolean;
   ayinF: null | 'eyes' | 'noeyes' | 'today';
+  /** סינון לפי שם-משפחה (13.10) — אופציונלי; ריק/חסר ⇒ אפס-השפעה. */
+  lastNameF?: string;
 }
 
 /** סטטיסטיקה מהמפה, עם נפילה-רכה לחישוב-מקומי (רשומה שאינה במפה — לא אמור לקרות). */
@@ -411,8 +428,11 @@ export function filterSupporterList(
   const nq = normSearch(dq);
   const qd = dq.replace(/\D/g, '');
   const hasQ = !!dq.trim();
+  const nLast = normSearch(f.lastNameF ?? '');
   return base.filter((sp) => {
     const st = statOf(stats, sp, rate);
+    // 🪪 שם-משפחה (13.10): לפי השדה-המפוצל, ובתורם שעוד לא פוצל — לפי השם המלא
+    if (nLast && !normSearch(supLastNameKey(sp)).includes(nLast)) return false;
     if (cat !== 'all' && (sp.cat || '') !== cat) return false;
     if (purposeF !== 'all' && (sp.forWho || '').trim() !== purposeF) return false;
     // סינון אזור-טלפון (חול/ישראל) — לפי כל מספרי התורם (ראשי + נוספים).
@@ -454,6 +474,7 @@ export function filterSupporterList(
 
 export type SupSortKey =
   | 'name'
+  | 'lastName'
   | 'cat'
   | 'phone'
   | 'email'
@@ -472,6 +493,8 @@ export function sortKeyOf(sp: Supporter, st: SupStats, key: SupSortKey): string 
   switch (key) {
     case 'name':
       return sp.name;
+    case 'lastName':
+      return supLastNameKey(sp);
     case 'cat':
       return sp.cat || '';
     case 'phone':
@@ -1083,6 +1106,9 @@ export function normName(s: string): string {
 /** שורת ייבוא תומכת אחת (העמודות מהתבנית). */
 export interface SupporterImportRow {
   name: string;
+  /** 🪪 13.10 — מעמודות "שם פרטי"/"שם משפחה" בקובץ, כשקיימות. */
+  firstName?: string;
+  lastName?: string;
   phone: string;
   email: string;
   idNum: string;
@@ -1140,7 +1166,11 @@ export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
     .findIndex((r) => r.some((h) => SUP_NAME_KEYS.some((k) => (h ?? '').includes(k))));
   const header = (hdrIdx >= 0 ? rows[hdrIdx] : rows[0]).map((h) => (h ?? '').trim());
   const find = (keys: string[]) => header.findIndex((h) => keys.some((k) => h.includes(k)));
-  let iName = find(SUP_NAME_KEYS);
+  // 🪪 13.10: עמודות "שם פרטי"/"שם משפחה" נפרדות. 🐛 'שם' הוא תת-מחרוזת של שתיהן — עמודת-השם
+  // הכללית תפסה את הראשונה מביניהן ואיבדה את השנייה. עכשיו הן מוחרגות מזיהוי-השם הכללי.
+  const iFirst = find(['שם פרטי']);
+  const iLast = find(['שם משפחה']);
+  let iName = header.findIndex((h, i) => i !== iFirst && i !== iLast && SUP_NAME_KEYS.some((k) => h.includes(k)));
   let iPhone = find(['טלפון', 'נייד']);
   let iEmail = find(['אימייל', 'מייל', 'email']);
   let iId = find(['ת"ז', 'תז', 'זהות']);
@@ -1162,7 +1192,7 @@ export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
   const iPays = find(['תשלומים']);
   const iStatus = find(['סטטוס']);
   let start = hdrIdx >= 0 ? hdrIdx + 1 : 1;
-  if (iName < 0) {
+  if (iName < 0 && iFirst < 0 && iLast < 0) {
     // אין שורת כותרות מזוהה — סדר עמודות קבוע
     iName = 0;
     iPhone = 1;
@@ -1176,7 +1206,10 @@ export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
   const g = (r: string[], i: number) => (i >= 0 ? (r[i] ?? '').trim() : '');
   const out: SupporterImportRow[] = [];
   for (const r of rows.slice(start)) {
-    const name = g(r, iName);
+    const firstName = g(r, iFirst);
+    const lastName = g(r, iLast);
+    // שם-מלא: העמודה הכללית אם יש; אחרת צירוף פרטי+משפחה
+    const name = g(r, iName) || composeName(firstName, lastName);
     if (!name) continue;
     const row: SupporterImportRow = {
       name,
@@ -1186,6 +1219,8 @@ export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
       address: g(r, iAddr),
       cat: g(r, iCat),
       forWho: g(r, iFor),
+      ...(firstName ? { firstName } : {}),
+      ...(lastName ? { lastName } : {}),
     };
     if (iAmount >= 0 && iTxDate >= 0) {
       const amount = Math.round(Number(g(r, iAmount).replace(/[^\d.-]/g, '')) * 100) / 100;
@@ -1319,18 +1354,30 @@ export function planSupporterImport(
   existing: Supporter[],
 ): SupporterImportPlan {
   const byName = new Map<string, string>();
-  for (const sp of existing) byName.set(normName(sp.name), sp.id);
+  const nameById = new Map<string, string>();
+  for (const sp of existing) {
+    byName.set(normName(sp.name), sp.id);
+    nameById.set(sp.id, sp.name);
+  }
   const updates: SupporterImportPlan['updates'] = [];
   // קיבוץ-עדכונים פר-id (9.8): קובץ-עסקאות מכיל שורות רבות לאותו תורם קיים —
   // בלעדיו רק השורה האחרונה שרדה (ה-Map בצד-הרכיב) וכל ההיסטוריה אבדה.
   const updateIdx = new Map<string, number>();
   const inserts: SupporterImportRow[] = [];
   const insertIdx = new Map<string, number>();
-  for (const r of rows) {
+  for (const row of rows) {
+    let r = row;
     const nm = r.name.trim();
     if (!nm) continue;
     const key = normName(nm);
-    const existId = byName.get(key);
+    // 🪪 13.10: שורה מעמודות פרטי+משפחה צורפה "ישראל כהן" — תורם קיים עשוי להיות שמור "כהן ישראל"
+    // (סדר-נדרים). בודקים גם את הסדר ההפוך — רק לשורות-מפוצלות (ייבוא רגיל: אפס-שינוי).
+    // בהתאמה-הפוכה השם-המלא הקיים נשמר (הוא מה שעל הקבלה) — לא נהפך בשקט.
+    let existId = byName.get(key);
+    if (!existId && r.firstName && r.lastName) {
+      existId = byName.get(normName(r.lastName + ' ' + r.firstName));
+      if (existId) r = { ...r, name: nameById.get(existId) ?? r.name };
+    }
     if (existId) {
       const ui = updateIdx.get(existId);
       if (ui != null) updates[ui] = { id: existId, row: fillEmpty(updates[ui].row, r) };
@@ -1364,6 +1411,8 @@ export function mergeSupporterRow(sp: Supporter, row: SupporterImportRow): Suppo
     address: row.address.trim() || sp.address,
     cat: row.cat.trim() || sp.cat,
     forWho: row.forWho.trim() || sp.forWho,
+    ...(row.firstName?.trim() ? { firstName: row.firstName.trim() } : {}),
+    ...(row.lastName?.trim() ? { lastName: row.lastName.trim() } : {}),
   };
 }
 
@@ -1387,6 +1436,8 @@ export function newSupporterFromRow(id: string, row: SupporterImportRow): Suppor
     nextDate: '',
     donations: [],
     ...(row.hist?.length ? { hist: mergeHist([], row.hist) } : {}),
+    ...(row.firstName?.trim() ? { firstName: row.firstName.trim() } : {}),
+    ...(row.lastName?.trim() ? { lastName: row.lastName.trim() } : {}),
   };
 }
 

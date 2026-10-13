@@ -8,7 +8,7 @@ import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { normSearch, validIsraeliId } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, TextInput } from '../ui';
-import { allDonationPurposes, cleanSupPhones, fixPhone } from './lib';
+import { allDonationPurposes, cleanSupPhones, composeName, fixPhone } from './lib';
 import { PhonesEditor } from '../PhonesEditor';
 
 export interface SupporterFormProps {
@@ -25,8 +25,11 @@ export function SupporterForm(props: SupporterFormProps) {
   const config = useApp((s) => s.config);
 
   const sp = props.supporter;
+  const lastNameOn = featureOn(config, 'supporters.lastname'); // 🪪 שם פרטי/משפחה בנפרד (13.10)
   const [f, setF] = useState({
     name: sp?.name ?? '',
+    firstName: sp?.firstName ?? '',
+    lastName: sp?.lastName ?? '',
     phone: sp?.phone ?? '',
     email: sp?.email ?? '',
     address: sp?.address ?? '',
@@ -41,6 +44,14 @@ export function SupporterForm(props: SupporterFormProps) {
   const [error, setError] = useState('');
 
   const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v });
+  // הקלדת שם-פרטי/משפחה ממלאת את השם-המלא **רק** כשהוא ריק או עדיין זהה לצירוף הקודם —
+  // שם-מלא שהוקלד/יובא אחרת (למשל "כהן ישראל" מנדרים) לא נדרס בשקט (הוא מה שמודפס על הקבלה).
+  const setSplit = (k: 'firstName' | 'lastName') => (v: string) =>
+    setF((p) => {
+      const next = { ...p, [k]: v };
+      const follows = !p.name.trim() || p.name.trim() === composeName(p.firstName, p.lastName);
+      return follows ? { ...next, name: composeName(next.firstName, next.lastName) } : next;
+    });
 
   function save() {
     if (!f.name.trim()) {
@@ -64,9 +75,16 @@ export function SupporterForm(props: SupporterFormProps) {
       notes: f.notes.trim(),
       phones: cleanSupPhones(phones),
     };
+    // 🪪 שם פרטי/משפחה — המפתחות נכתבים רק כשיש ערך (תורם בלי פיצול נשאר ביט-זהה; ניקוי ⇒ הסרה)
+    const withSplit = (rec: Supporter): Supporter => {
+      const { firstName: _f, lastName: _l, ...rest } = rec;
+      const fn = f.firstName.trim();
+      const ln = f.lastName.trim();
+      return { ...rest, ...(fn ? { firstName: fn } : {}), ...(ln ? { lastName: ln } : {}) };
+    };
 
     if (sp) {
-      upsertSupporter({ ...sp, ...vals });
+      upsertSupporter(withSplit({ ...sp, ...vals }));
       toast('כרטיס ' + termOf(config, 'entity.supporter', 'התומך/ת') + ' עודכן — משתקף מיד בטבלה, בחיפוש ובגיבוי');
       props.onClose();
       return;
@@ -87,7 +105,7 @@ export function SupporterForm(props: SupporterFormProps) {
     }
 
     const id = nextId('sp');
-    upsertSupporter({
+    upsertSupporter(withSplit({
       id,
       ...vals,
       count: 0,
@@ -97,7 +115,7 @@ export function SupporterForm(props: SupporterFormProps) {
       last: '',
       nextDate: '',
       donations: [],
-    });
+    }));
     toast('ה' + termOf(config, 'entity.supporter', 'תומך/ת') + ' "' + vals.name + '" נוסף/ה — אפשר לרשום ' + termOf(config, 'entity.donation', 'תרומה') + ' בכרטיס');
     props.onClose(id);
   }
@@ -113,7 +131,17 @@ export function SupporterForm(props: SupporterFormProps) {
     >
       <FormError error={error} />
       <div className="form-grid">
-        <Field label="שם מלא *">
+        {lastNameOn && (
+          <>
+            <Field label="שם פרטי">
+              <TextInput value={f.firstName} onChange={setSplit('firstName')} placeholder="ישראל" />
+            </Field>
+            <Field label="שם משפחה">
+              <TextInput value={f.lastName} onChange={setSplit('lastName')} placeholder="כהן" />
+            </Field>
+          </>
+        )}
+        <Field label={lastNameOn ? 'שם מלא (מופיע על הקבלה) *' : 'שם מלא *'}>
           <TextInput value={f.name} onChange={set('name')} placeholder={'שם התומכ/ת או ה' + termOf(config, 'entity.family', 'משפחה')} />
         </Field>
         <Field label="טלפון ראשי">

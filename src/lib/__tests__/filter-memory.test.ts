@@ -45,6 +45,6 @@ describe('חיווט — כל מסנני שלוש הרשימות זכורים', 
   it('מפתחות ייחודיים בין הרשימות (sup./fam./crs.)', () => {
     const keys = [...(sup + fam + crs).matchAll(/useRemembered(?:<[^\n]*>)?\('([a-z]+\.[A-Za-z]+)'/g)].map((m) => m[1]);
     expect(new Set(keys).size).toBe(keys.length);
-    expect(keys.length).toBe(19 + 10 + 9); // 17.9: + sup.ayinBoardOpen + sup.ayinNamesOpen (שומר-מסך במעקב-טיפול)
+    expect(keys.length).toBe(20 + 10 + 9); // 17.9: + sup.ayinBoardOpen + sup.ayinNamesOpen (שומר-מסך במעקב-טיפול) · 13.10: + sup.lastNameF
   });
 });

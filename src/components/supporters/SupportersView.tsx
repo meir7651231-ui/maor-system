@@ -53,6 +53,8 @@ type SortKey = SupSortKey;
 
 const HEAD: { key: SortKey; label: string }[] = [
   { key: 'name', label: 'תומכ/ת' },
+  // 🪪 שם-משפחה (13.10) — עמודה ממוינת+מסוננת; מוצגת רק כש-supporters.lastname דלוק
+  { key: 'lastName', label: 'שם משפחה' },
   { key: 'cat', label: 'קטגוריה' },
   { key: 'phone', label: 'טלפון' },
   { key: 'email', label: 'אימייל' },
@@ -93,6 +95,7 @@ interface RowProps {
   nextOn: boolean;
   rfmOn: boolean;
   ayinOn: boolean;
+  lastNameOn: boolean;
   click2call: boolean;
   waOn: boolean;
   config: OrgConfig;
@@ -102,7 +105,7 @@ interface RowProps {
 }
 
 const SupporterRow = memo(function SupporterRow(props: RowProps) {
-  const { sp, st, config, today, selMode, nextOn, rfmOn, ayinOn } = props;
+  const { sp, st, config, today, selMode, nextOn, rfmOn, ayinOn, lastNameOn } = props;
   return (
     <tr
       onClick={() => (selMode ? props.onToggle(sp.id) : props.onOpen(sp.id))}
@@ -128,6 +131,7 @@ const SupporterRow = memo(function SupporterRow(props: RowProps) {
           </div>
         )}
       </td>
+      {lastNameOn && <td>{sp.lastName || '—'}</td>}
       <td>{sp.cat || '—'}</td>
       <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.phone || '—'}</td>
       <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.email || '—'}</td>
@@ -182,7 +186,7 @@ const SupporterRow = memo(function SupporterRow(props: RowProps) {
 });
 
 /* תצוגת גריד (5.8) — כרטיסים ידידותיים-למובייל; אותו דפוס כמו המשפחות (ממומואיז, 12.10.2026) */
-const SupporterGridCard = memo(function SupporterGridCard(props: Omit<RowProps, 'ayinOn' | 'click2call' | 'waOn'>) {
+const SupporterGridCard = memo(function SupporterGridCard(props: Omit<RowProps, 'ayinOn' | 'click2call' | 'waOn' | 'lastNameOn'>) {
   const { sp, st, config, today, selMode, nextOn, rfmOn } = props;
   const tier = st.tier;
   return (
@@ -284,6 +288,7 @@ export function SupportersView() {
   // גידור-דגלים (FLAGMAX): מיון-כותרות / סינון-עמודות / פאנל-מתקדם / מסך-השמות —
   // חסר-דגל = פעיל (עטיפה = אפס-שינוי-ברירת-מחדל); false מסתיר, לא מנטרל.
   const sortOn = featureOn(config, 'supporters.sort');
+  const lastNameOn = featureOn(config, 'supporters.lastname'); // 🪪 13.10
   const colFilterOn = featureOn(config, 'supporters.colfilter');
   const advFilterOn = featureOn(config, 'supporters.advfilter');
   const ayinNamesOn = featureOn(config, 'supporters.ayin.names');
@@ -312,6 +317,9 @@ export function SupportersView() {
   const [tierF, setTierF] = useRemembered<string | null>('sup.tierF', null);
   // פילטרים פר-עמודה בתחביר numMatch — 'N' / 'N+' / 'N-M' (P3 פריט 13, לגאסי scf:2809-2811)
   const [colF, setColF] = useRemembered('sup.colF', { count: '', total: '', score: '' });
+  // 🪪 סינון שם-משפחה (13.10) — בשורת-הסינון שמתחת לכותרות, נזכר במעבר-מסך כמו שאר המסננים
+  const [lastNameF, setLastNameF] = useRemembered('sup.lastNameF', '');
+  const dLastNameF = useDeferredValue(lastNameF);
   // סינון מעקב הטיפול (P3 פריט 14, לגאסי): עם מונה / בלי מונה / עודכן היום
   const [ayinF, setAyinF] = useRemembered<null | 'eyes' | 'noeyes' | 'today'>('sup.ayinF', null);
   // 📞 קוהרנטיות ווידג'ט↔יעד (20.8): סינון יעדי-קשר שהגיעו — הרשימה המלאה של ווידג'ט-הבית
@@ -652,8 +660,8 @@ export function SupportersView() {
     [segF, visibleBase, today, rate, atRiskIds],
   );
   const matched = useMemo(
-    () => filterSupporterList(visibleBase, stats, { dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF }, today, rate, matchSeg),
-    [visibleBase, stats, dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF, today, rate, matchSeg],
+    () => filterSupporterList(visibleBase, stats, { dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF, lastNameF: lastNameOn ? dLastNameF : '' }, today, rate, matchSeg),
+    [visibleBase, stats, dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF, lastNameOn, dLastNameF, today, rate, matchSeg],
   );
   // מיון-מעוטר: מפתח-אחד פר-שורה (היה sortVal×2 לכל השוואה; מיון-ציון = supScore ‎N·logN‎)
   const list = useMemo(() => (sort ? sortSupporterList(matched, stats, sort.key, sort.dir, rate) : matched), [matched, stats, sort, rate]);
@@ -772,7 +780,8 @@ export function SupportersView() {
   // הציגה "M תומכות" בלי "N מתוך" כשסיננו לפי הו"ק/ייעוד. עכשיו כל מסנן נספר.
   const filtered =
     q.trim() !== '' || cat !== 'all' || purposeF !== 'all' || !!tierF || !!hokF || !!ayinF || nextF || !!segF || !!lastF || !!monthF || !!gaveYearF || !!acqYearF ||
-    colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';
+    colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '' ||
+    (lastNameOn && lastNameF.trim() !== '');
   const segLabel = segF ? SEGMENTS.find((s) => s.key === segF)?.label : null;
   const MONTHS_HE = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
   // תווית-התקופה: שנה+חודש = "נתנו ב-8/2025"; רק-חודש = "נתנו בחודש אוגוסט";
@@ -828,6 +837,7 @@ export function SupportersView() {
     setAcqYearF(null);
     setPeriodMode('gave');
     setColF({ count: '', total: '', score: '' });
+    setLastNameF('');
   };
 
   return (
@@ -1132,7 +1142,7 @@ export function SupportersView() {
             ariaLabel="מיון"
             options={[
               { value: 'none', label: '↕ מיון: ללא' },
-              ...HEAD.filter((h) => ['name', 'count', 'ils', 'usd', 'last', 'nextDate', 'score'].includes(h.key))
+              ...HEAD.filter((h) => ['name', 'count', 'ils', 'usd', 'last', 'nextDate', 'score'].includes(h.key) || (lastNameOn && h.key === 'lastName'))
                 .filter((h) => (nextOn || h.key !== 'nextDate') && (rfmOn || h.key !== 'score'))
                 .flatMap((h) => [
                   { value: h.key + ':desc', label: '↓ ' + headLabel(h) + ' (יורד)' },
@@ -1334,6 +1344,7 @@ export function SupportersView() {
                 {selMode && <th aria-hidden style={{ width: 34 }} />}
                 {HEAD.filter(
                   (h) =>
+                    (lastNameOn || h.key !== 'lastName') &&
                     (nextOn || h.key !== 'nextDate') &&
                     (rfmOn || h.key !== 'score') &&
                     (ayinOn || (h.key !== 'stage' && h.key !== 'eyes' && h.key !== 'paid')),
@@ -1369,11 +1380,22 @@ export function SupportersView() {
                 {selMode && <th />}
                 {HEAD.filter(
                   (h) =>
+                    (lastNameOn || h.key !== 'lastName') &&
                     (nextOn || h.key !== 'nextDate') &&
                     (rfmOn || h.key !== 'score') &&
                     (ayinOn || (h.key !== 'stage' && h.key !== 'eyes' && h.key !== 'paid')),
                 ).map((h) =>
-                  h.key === 'count' || h.key === 'ils' || h.key === 'score' ? (
+                  h.key === 'lastName' ? (
+                    <th key={h.key} style={{ padding: '3px 8px' }}>
+                      <input
+                        value={lastNameF}
+                        onChange={(e) => setLastNameF(e.target.value)}
+                        placeholder="סינון: כהן"
+                        aria-label="סינון לפי שם משפחה"
+                        className="colfilter"
+                      />
+                    </th>
+                  ) : h.key === 'count' || h.key === 'ils' || h.key === 'score' ? (
                     <th key={h.key} style={{ padding: '3px 8px' }}>
                       <input
                         value={h.key === 'count' ? colF.count : h.key === 'ils' ? colF.total : colF.score}
@@ -1409,6 +1431,7 @@ export function SupportersView() {
                   nextOn={nextOn}
                   rfmOn={rfmOn}
                   ayinOn={ayinOn}
+                  lastNameOn={lastNameOn}
                   click2call={click2call}
                   waOn={waOn}
                   config={config}

@@ -455,6 +455,9 @@ export function mergeSupporterInto(keep: Supporter, drop: Supporter): Supporter 
     first: donations[0]?.date ?? keep.first ?? '',
     last: donations[donations.length - 1]?.date ?? keep.last ?? '',
     ...(keep.extId || drop.extId ? { extId: keep.extId || drop.extId } : {}),
+    // 🪪 שם פרטי/משפחה (13.10): של השומר, ריק ⇒ של הנמחק — לא נבלע במיזוג
+    ...(keep.firstName || drop.firstName ? { firstName: keep.firstName || drop.firstName } : {}),
+    ...(keep.lastName || drop.lastName ? { lastName: keep.lastName || drop.lastName } : {}),
     ...(keep.hok || drop.hok ? { hok: keep.hok ?? drop.hok } : {}),
     ...(keep.ayin || drop.ayin ? { ayin: keep.ayin ?? drop.ayin } : {}),
   }, mergeExtraPhones([phone], [supSource(keep), supSource(drop)]));
