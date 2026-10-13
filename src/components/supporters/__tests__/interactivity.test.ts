@@ -41,7 +41,9 @@ describe('💛 ratchet — אינטראקטיביות המסכים החדשים'
     // ₪ בסכנה במודיעין
     expect(intelSrc).toContain("props.onSegment!('atrisk')");
     // רצועת-KPI — אריח-הסיכון
-    expect(viewSrc).toContain("onRisk={() => setSegF(segF === 'atrisk' ? null : 'atrisk')}");
+    // ⚠️ ביקורת (12.10): הקולבק יציב (useCallback) כדי שה-React.memo של הרצועה יפגע — אותה כוונה: אריח-הסיכון ⇒ סגמנט 'atrisk'
+    expect(viewSrc).toContain("const onKpiRisk = useCallback(() => setSegF(segF === 'atrisk' ? null : 'atrisk'), [segF, setSegF]);");
+    expect(viewSrc).toContain('onRisk={onKpiRisk}');
     // קוקפיט KPI — אריח-הסיכון
     expect(cockpitSrc).toContain("props.onSegment!('atrisk')");
   });

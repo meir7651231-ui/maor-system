@@ -40,7 +40,8 @@
  *   4. ממפה את פריימי-הפרופיל המוקטנים למקור דרך קובצי ה-.js.map שליד הבנדלים.
  *
  * "היום" לדטרמיניזם: 2026-10-12 (התאריכים מחוללים יחסית לקבוע הזה).
- * תלות: חבילת source-map (תלות-עקיפה הקיימת ב-node_modules) — למיפוי הפרופיל למקור.
+ * תלות: חבילת source-map (תלות-עקיפה, לא מוצהרת) — למיפוי הפרופיל למקור; ⚠️ ביקורת (12.10): נטענת
+ *   דינמית ואופציונלית — בלעדיה המדידה רצה והמיפוי-למקור מדולג (הודעה בלוג), במקום קריסה ב-import.
  */
 import { chromium } from 'playwright-core';
 import { createServer } from 'http';
@@ -48,7 +49,8 @@ import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync, readdirSy
 import { join, extname, dirname, resolve, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { deflateSync } from 'zlib';
-import { SourceMapConsumer } from 'source-map';
+const SourceMapConsumer = await import('source-map').then((m) => m.SourceMapConsumer).catch(() => null);
+if (!SourceMapConsumer) console.log('[perf] חבילת source-map לא זמינה — מיפוי הפרופיל למקור מדולג');
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..');
@@ -296,7 +298,7 @@ function consumerFor(url) {
   try {
     const file = join(DIST, new URL(url).pathname);
     const mapFile = file + '.map';
-    if (existsSync(mapFile)) c = new SourceMapConsumer(JSON.parse(readFileSync(mapFile, 'utf8')));
+    if (SourceMapConsumer && existsSync(mapFile)) c = new SourceMapConsumer(JSON.parse(readFileSync(mapFile, 'utf8')));
   } catch { /* no map */ }
   mapCache.set(url, c);
   return c;

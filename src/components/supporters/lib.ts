@@ -310,10 +310,15 @@ export function supporterStats(sp: Supporter, rate = 3.7, nowMs = Date.now()): S
   };
 }
 
-/** Map(id→SupStats) לכל הרשימה — Date.now() נקרא פעם-אחת לכל המעבר (כמו supScore פר-קריאה). */
-export function buildSupporterStats(supporters: readonly Supporter[], rate = 3.7, nowMs = Date.now()): Map<string, SupStats> {
-  const out = new Map<string, SupStats>();
-  for (const sp of supporters) out.set(sp.id, supporterStats(sp, rate, nowMs));
+/**
+ * Map(רשומה→SupStats) לכל הרשימה — Date.now() נקרא פעם-אחת לכל המעבר (כמו supScore פר-קריאה).
+ * ⚠️ ביקורת (12.10): המפתח הוא **הרשומה עצמה** (זהות-אובייקט), לא sp.id — migrate אינו מאחד מזהי-תורם
+ * כפולים (רק rid/מזהי-חברים), ומפה-לפי-id הייתה מציגה/ממיינת/מסכמת שורה אחת במספרי השנייה
+ * (עד היום כל שורה חושבה מעצמה). אותה עלות, חסין-כפילות.
+ */
+export function buildSupporterStats(supporters: readonly Supporter[], rate = 3.7, nowMs = Date.now()): Map<Supporter, SupStats> {
+  const out = new Map<Supporter, SupStats>();
+  for (const sp of supporters) out.set(sp, supporterStats(sp, rate, nowMs));
   return out;
 }
 
@@ -385,8 +390,8 @@ export interface SupListFilters {
 }
 
 /** סטטיסטיקה מהמפה, עם נפילה-רכה לחישוב-מקומי (רשומה שאינה במפה — לא אמור לקרות). */
-export function statOf(stats: ReadonlyMap<string, SupStats>, sp: Supporter, rate: number): SupStats {
-  return stats.get(sp.id) ?? supporterStats(sp, rate);
+export function statOf(stats: ReadonlyMap<Supporter, SupStats>, sp: Supporter, rate: number): SupStats {
+  return stats.get(sp) ?? supporterStats(sp, rate);
 }
 
 /**
@@ -396,7 +401,7 @@ export function statOf(stats: ReadonlyMap<string, SupStats>, sp: Supporter, rate
  */
 export function filterSupporterList(
   base: readonly Supporter[],
-  stats: ReadonlyMap<string, SupStats>,
+  stats: ReadonlyMap<Supporter, SupStats>,
   f: SupListFilters,
   today: string,
   rate: number,
@@ -504,15 +509,24 @@ const NUM_SORT_KEYS: ReadonlySet<SupSortKey> = new Set(['count', 'ils', 'usd', '
  */
 export function sortSupporterList(
   list: readonly Supporter[],
-  stats: ReadonlyMap<string, SupStats>,
+  stats: ReadonlyMap<Supporter, SupStats>,
   key: SupSortKey,
   dir: 1 | -1,
   rate: number,
 ): Supporter[] {
   const keys = list.map((sp) => sortKeyOf(sp, statOf(stats, sp, rate), key));
   const idx = list.map((_, i) => i);
-  if (NUM_SORT_KEYS.has(key)) {
+  // ⚠️ ביקורת (12.10): הענף-המספרי רק כשכל המפתחות באמת מספרים — ההשוואה המקורית הכריעה פר-ערך
+  // (typeof va === 'number'); רשומת-ענן פגומה (ils:'5' מחרוזת, healRecord לא מרפא ils/usd) מוינה
+  // בהשוואת-מחרוזות ⇒ אותו כלל פר-זוג כדי לשמור סדר ביט-זהה גם אז.
+  if (NUM_SORT_KEYS.has(key) && keys.every((k) => typeof k === 'number')) {
     idx.sort((a, b) => ((keys[a] as number) - (keys[b] as number)) * dir);
+  } else if (NUM_SORT_KEYS.has(key)) {
+    idx.sort((a, b) => {
+      const va = keys[a];
+      const vb = keys[b];
+      return (typeof va === 'number' ? va - (vb as number) : String(va).localeCompare(String(vb), 'he')) * dir;
+    });
   } else {
     const col = new Intl.Collator('he');
     idx.sort((a, b) => col.compare(String(keys[a]), String(keys[b])) * dir);

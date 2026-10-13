@@ -5,7 +5,7 @@
  * (~10 מעברי-hist פר-תורם). הנעילה: כל שדה ב-SupStats **שווה ביט-לביט** לפונקציית-המקור
  * על תורמים אקראיים — כולל hist ריק/חסר, שורות '$', סכומים שליליים/אפס ושדות חסרים.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   buildSupporterStats, donationYears, donationYearsFromStats, supAcqYear, supCount, supIls, supLast, supScore, supTier,
   supTotalIls, supUsd, supporterStats, totalLabel, totalLabelOf, rfmScore, searchTextOf, phoneDigitsOf,
@@ -25,7 +25,7 @@ describe('buildSupporterStats ≡ הפונקציות המקוריות (property,
       const stats = buildSupporterStats(sups, RATE, now);
       expect(stats.size).toBe(sups.length);
       for (const sp of sups) {
-        const st = stats.get(sp.id)!;
+        const st = stats.get(sp)!; // ⚠️ ביקורת (12.10): המפתח = הרשומה (חסין מזהים-כפולים)
         expect(st).toBeDefined();
         // NaN≡NaN (toEqual) — שדה חסר ב-hist מניב NaN בשתי הדרכים, לא ערך שונה
         expect(st.ils).toEqual(supIls(sp));
@@ -49,14 +49,37 @@ describe('buildSupporterStats ≡ הפונקציות המקוריות (property,
 
   it('supScore ≡ rfmScore עם Date.now() (הנוסחה המשותפת — אותם ספים)', () => {
     const sups = randomSupporters(50, 3);
-    for (const sp of sups) {
-      const now = Date.now();
-      const a = supScore(sp, RATE);
-      const b = rfmScore(supTotalIls(sp, RATE), supLast(sp), supCount(sp), now);
-      // שתי הקריאות באותה אלפית-שנייה (לכל היותר חציית-יום בין שתיהן — זניח; נועל את הנוסחה)
-      expect(Math.abs(a - b) <= 350).toBe(true);
-      expect(a).toBe(b);
+    // ⚠️ ביקורת (12.10): "עכשיו" אחד מוזרק לשתי הדרכים (Date.now מרוגל) — בלי זה הבדיקה הייתה
+    // תלויה בשעון (שתי קריאות Date.now סביב 12:00 המקומי) והסובלנות ‎≤350‎ שלצידה הייתה מתה.
+    const now = Date.now();
+    const spy = vi.spyOn(Date, 'now').mockReturnValue(now);
+    try {
+      for (const sp of sups) {
+        expect(supScore(sp, RATE)).toBe(rfmScore(supTotalIls(sp, RATE), supLast(sp), supCount(sp), now));
+      }
+    } finally {
+      spy.mockRestore();
     }
+  });
+
+  it('⚠️ ביקורת (12.10): הציון מתחלף ב-12:00 המקומי (עיגון T12:00:00) — memo-הרשימה חייב להתרענן אז', () => {
+    const sp = { id: 'n', name: 'נ', donations: [], count: 5, ils: 2000, usd: 0, last: '2026-09-11', hist: [] } as unknown as Supporter;
+    const T = (hm: string) => new Date('2026-10-12T' + hm + ':00').getTime(); // 31 ימים ⇒ גבול 30 נחצה בצהריים
+    const before = buildSupporterStats([sp], 3.7, T('11:59')).get(sp)!;
+    const after = buildSupporterStats([sp], 3.7, T('12:00')).get(sp)!;
+    expect(before.score).toBe(860); // R=350 (30 יום) + F=230 + M=280
+    expect(before.tier.label).toBe('זהב');
+    expect(after.score).toBe(790); // R=280 (31 יום)
+    expect(after.tier.label).toBe('כסף');
+  });
+
+  it('⚠️ ביקורת (12.10): שני תורמים עם אותו id — כל שורה במספרים של עצמה (מפתח = הרשומה, לא ה-id)', () => {
+    const a = { id: 'dup', name: 'א', donations: [], count: 1, ils: 100, usd: 0, last: '2026-01-01', hist: [] } as unknown as Supporter;
+    const b = { id: 'dup', name: 'ב', donations: [], count: 9, ils: 9000, usd: 0, last: '2026-10-01', hist: [] } as unknown as Supporter;
+    const stats = buildSupporterStats([a, b], 3.7, Date.now());
+    expect(stats.size).toBe(2);
+    expect(stats.get(a)!.ils).toBe(100);
+    expect(stats.get(b)!.ils).toBe(9000);
   });
 
   it('מקרי-קצה מפורשים: hist חסר/ריק · שורת $ · שורה שלילית · שדות חסרים · hist עתידי', () => {
@@ -86,6 +109,6 @@ describe('buildSupporterStats ≡ הפונקציות המקוריות (property,
   it('ברירת-מחדל השער 3.7 — כמו supTotalIls/supScore', () => {
     const sp = randomSupporters(1, 9)[0];
     const now = Date.now();
-    expect(buildSupporterStats([sp], undefined, now).get(sp.id)!.totalIls).toEqual(supTotalIls(sp));
+    expect(buildSupporterStats([sp], undefined, now).get(sp)!.totalIls).toEqual(supTotalIls(sp));
   });
 });

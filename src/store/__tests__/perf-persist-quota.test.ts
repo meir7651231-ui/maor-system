@@ -7,9 +7,11 @@
  * ⇒ 3 מעברי-DB-מלאים לכל עריכה (edit→persist 5.4s). על מסמך סינתטי 16k (19M תווים):
  * כל saveDb 126ms ⇒ השמירה השנייה ~0ms של stringify (רק ה-put).
  *
- * הכלל: זריקה ראשונה / אורך מעל LS_MAX_CHARS ⇒ מדלגים על setItem לשאר הסשן, ולא קוראים
- * את ה-IDB לפני put (דגל-מעטפת בזיכרון, נלמד ב-loadDb). ה-IDB בבדיקה: stub שסופר open —
- * get ו-put פותחים חיבור כל אחד (החיבור הכושל אינו נשמר) ⇒ מספר-ה-open = מספר הגישות.
+ * הכלל: זריקה ראשונה ⇒ מדלגים על setItem לשאר הסשן, ולא קוראים את **המסמך** מה-IDB לפני put
+ * (דגל-מעטפת בזיכרון, נלמד ב-loadDb; ⚠️ ביקורת 12.10: במקומו נקראת כותרת-מעטפת זעירה — בייטים).
+ * ⚠️ ביקורת (12.10): **אין סף-מקדים** (היה 4,000,000 תווים — 1.24M מתחת למכסה האמיתית של Chromium,
+ * 5,242,675 תווים למפתח, נמדד): הדפדפן מכריע; מסמך שנכנס נשאר ב-LS. ה-IDB בבדיקה: stub שסופר
+ * open — get ו-put פותחים חיבור כל אחד (החיבור הכושל אינו נשמר) ⇒ מספר-ה-open = מספר הגישות.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { emptyDb, type Db } from '../../types/domain';
@@ -22,6 +24,7 @@ import {
   setPersistNamespace,
   isLsDropped,
   takeLsDroppedNotice,
+  markLsDroppedNoticed,
   flushSaveSync,
 } from '../persist';
 import persistSrc from '../persist.ts?raw';
@@ -60,19 +63,19 @@ beforeEach(() => {
 });
 
 describe('⚡ ratchet — QuotaExceeded פעם אחת ⇒ אין setItem ואין idb.get בשמירות הבאות', () => {
-  it('השמירה השנייה: אפס setItem · open יחיד (ה-put בלבד; לפני: get+put) · isLsDropped', async () => {
+  it('IDB חסום + מכסה: כל שמירה = ניסיון-אחרון אחד ב-LS (ביקורת 12.10 — כמו היום, לא איבוד-שמירה) · open של כותרת+put בלבד', async () => {
     ls.quotaKeys.add('maor_db');
     await loadDb(); // טאב טרי — הדגל נלמד: אין מעטפת
     idbOpens = 0;
-    await saveDb(seed());
+    expect(await saveDb(seed())).toBe(false);
     expect(dbSets()).toBe(1); // הניסיון הראשון — כמו היום
     expect(isLsDropped()).toBe(true);
     const opensAfterFirst = idbOpens;
-    await saveDb(seed({ orgName: 'עריכה שנייה' }));
-    expect(dbSets()).toBe(1); // לא ניסינו שוב
-    expect(idbOpens - opensAfterFirst).toBe(1); // רק put; בלי get של המסמך כולו
-    await saveDb(seed({ orgName: 'עריכה שלישית' }));
-    expect(dbSets()).toBe(1);
+    expect(await saveDb(seed({ orgName: 'עריכה שנייה' }))).toBe(false);
+    expect(dbSets()).toBe(2); // שתי השכבות נכשלו ⇒ ניסיון-אחרון ישיר ב-LS (לא דרך lsWrite — המשטר נשאר)
+    expect(isLsDropped()).toBe(true);
+    expect(idbOpens - opensAfterFirst).toBe(2); // get(כותרת-מעטפת, בייטים) + put; בלי get של המסמך כולו
+    // (המקרה שבו IDB עובד — אפס setItem מהשמירה השנייה — ננעל ב-perf-review-envelope-gate עם מוק-IDB חי)
   });
 
   it('ההודעה "הנתונים גדולים" — פעם אחת בלבד (נרשמת במפתח זעיר), ולא לפני הזריקה', async () => {
@@ -82,16 +85,33 @@ describe('⚡ ratchet — QuotaExceeded פעם אחת ⇒ אין setItem ואי�
     await saveDb(seed());
     expect(takeLsDroppedNotice()).toBe(true);
     expect(takeLsDroppedNotice()).toBe(false);
+    // ⚠️ ביקורת (12.10): החותמת נרשמת רק בהצגה (markLsDroppedNoticed) — לא ב-take (טאב שנסגר בחלון-הדחייה)
+    expect(ls.getItem('maor_lsdrop_noticed')).toBeNull();
+    expect(markLsDroppedNoticed()).toBe(true);
     expect(ls.getItem('maor_lsdrop_noticed')).toBe('1');
+    expect(markLsDroppedNoticed()).toBe(false);
   });
 
-  it('מסמך מעל LS_MAX_CHARS (4,000,000 תווים) ⇒ אין ניסיון setItem בכלל', async () => {
+  it('⚠️ ביקורת (12.10): מסמך של 4.1M תווים שהדפדפן מקבל ⇒ נשאר ב-LS (אין סף-מקדים שמנחש מכסה)', async () => {
     await loadDb();
     const big = seed({ orgNotes: 'א'.repeat(4_100_000) } as Partial<Db>);
-    await saveDb(big);
-    expect(dbSets()).toBe(0);
+    expect(await saveDb(big)).toBe(true);
+    expect(dbSets()).toBe(1);
+    expect(isLsDropped()).toBe(false);
+    expect(ls.getItem('maor_db')!.length).toBeGreaterThan(4_000_000);
+    expect(takeLsDroppedNotice()).toBe(false);
+    expect(ls.removeCalls).not.toContain('maor_db'); // העותק הקיים לא נזרק
+  });
+
+  it('⚠️ ביקורת (12.10): IDB חסום + מסמך שנזנח ב-LS ⇒ ניסיון-אחרון ב-LS (ספק-יחיד-LS לא מאבד שמירה)', async () => {
+    ls.quotaKeys.add('maor_db');
+    await loadDb();
+    expect(await saveDb(seed())).toBe(false); // שתי השכבות נכשלו — כמו היום
     expect(isLsDropped()).toBe(true);
-    expect(takeLsDroppedNotice()).toBe(true);
+    ls.quotaKeys.clear(); // המסמך הצטמצם / המכסה התפנתה
+    expect(await saveDb(seed({ orgName: 'הצטמצם' }))).toBe(true);
+    expect(ls.getItem('maor_db')).toContain('הצטמצם');
+    expect(isLsDropped()).toBe(false); // LS שוב שכבה חיה
   });
 
   it('מסמך רגיל ⇒ LS נכתב כמו היום (המשטר לא נדלק); flushSaveSync כותב סינכרונית', async () => {
@@ -148,7 +168,7 @@ describe('🧷 הגנת-מקור — החיווט נשאר', () => {
     expect(persistSrc).not.toMatch(/readStoredEnvelope\(\)[\s\S]{0,900}getIdb\(\)\)\.get\(IDB_STORE, 'current'\)/);
     // אינטגרציה (12.10): ההודעה נדחית ל-idle (runWhenIdleVisible) — עדכון-store סינכרוני מתוך callback של
     // IDB-put באמצע רינדור-המעבר של הטאב גרם ל-React לזרוק את הרינדור ולהתחיל מחדש (פתיחת-טאב 2.4s ⇒ 3.6s ב-×4).
-    expect(useAppSrc).toContain("if (ok && takeLsDroppedNotice()) runWhenIdleVisible(() => get().toast('הנתונים גדולים — נשמרים במאגר הפנימי של הדפדפן בלבד'), 5_000);");
+    expect(useAppSrc).toContain("if (ok && takeLsDroppedNotice()) runWhenIdleVisible(() => { if (markLsDroppedNoticed()) get().toast('הנתונים גדולים — נשמרים במאגר הפנימי של הדפדפן בלבד'); }, 5_000);");
     expect(useAppSrc).not.toMatch(/takeLsDroppedNotice\(\)\) get\(\)\.toast\(/);
   });
 });

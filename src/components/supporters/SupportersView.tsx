@@ -383,6 +383,11 @@ export function SupportersView() {
   const rfmBins = useMemo(() => supScoreBins(db.supporters, rate), [db.supporters, rate]);
   // "היום" המקומי — פעם-אחת לרנדר (isoToday, לא UTC), משמש גם את סינון-הרשימה למטה.
   const today = isoToday();
+  // ⚠️ ביקורת (12.10): מונה-הימים של הציון (rfmScore) מעוגן ל-12:00 המקומי של התרומה האחרונה ⇒ R יכול
+  // להתחלף רק על שעה-עגולה-מצהריים (12:00, ועם הפרש-שעון-קיץ 11:00/13:00). memo-הסטטיסטיקה תלוי
+  // בדלי-השעה-מצהריים ⇒ בכל רינדור אחרי חציית-גבול (30/90/180/365 יום) הרשימה/דרגה/צ'יפים/מיון
+  // שווים ל-supScore הטרי של הכרטיס — כמו קודם, כשהציון חושב בכל רינדור (בלי זה: דרגה ישנה עד חצות).
+  const hourFromNoon = Math.floor((Date.now() - new Date(today + 'T12:00:00').getTime()) / 3600000);
   // 🐛 ביצועים (21.8): סינון-סגמנט 'atrisk' הריץ cockpitAtRisk (סינון+מיון+פרסור-תאריכים)
   // פר-תורם ⇒ O(n²) על כל הקשה. ה-Set מחושב פעם-אחת (useMemo) ומוזרק ל-matchSegment.
   const atRiskIds = useMemo(
@@ -393,8 +398,8 @@ export function SupportersView() {
   const [sort, setSort] = useRemembered<{ key: SortKey; dir: 1 | -1 } | null>('sup.sort', null);
   // ⚡ ציור-מדורג (VISION-LIGHT ‏#15): חלון-שגדל-בגלילה במקום כל הרשימה בבת-אחת;
   // שינוי חיפוש/סינון מחזיר את החלון להתחלה. הלוגיקה נשארת על הרשימה המלאה.
-  // 🐛 (12.10.2026): regionF ו-lastF מסננים אבל לא איפסו את החלון ⇒ cap ענק נגרר אחרי גלילה-ארוכה.
-  const inc = useIncCap(JSON.stringify([dq, cat, purposeF, regionF, lastF, tierF, colF, ayinF, nextF, hokF, segF, monthF, acqYearF, gaveYearF, periodMode, sort]));
+  // (regionF/lastF לא במפתח — כמו היום; ביקורת 12.10: שינוי-התנהגות מחוץ למנדט-הזהות, יידון בנפרד.)
+  const inc = useIncCap(JSON.stringify([dq, cat, purposeF, tierF, colF, ayinF, nextF, hokF, segF, monthF, acqYearF, gaveYearF, periodMode, sort]));
   const [selId, setSelId] = useState<string | null>(null);
   useListScrollRestore('supporters', !!selId); // חזרה מהכרטיס למיקום-הגלילה הקודם (5.9)
   // בחירה-מרובה למחיקה (בקשת-בעלים 13.8) — מצב-בחירה + קבוצת-ids + אישור-הרסני.
@@ -588,8 +593,9 @@ export function SupportersView() {
     [db.supporters, desigLimit],
   );
   // המספרים של כל תורם במעבר-אחד (supIls/supUsd/supCount/supLast/supTotalIls/supScore/
-  // supTier/supAcqYear — ביט-זהה, ratchet). `today` בתלויות: הציון תלוי-בזמן (R) — מתרענן ביום-חדש.
-  const stats = useMemo(() => buildSupporterStats(visibleBase, rate, Date.now()), [visibleBase, rate, today]);
+  // supTier/supAcqYear — ביט-זהה, ratchet). `today`+`hourFromNoon` בתלויות: הציון תלוי-בזמן (R) —
+  // מתרענן ביום-חדש ובכל שעה-עגולה-מצהריים (הגבולות היחידים שבהם R משתנה; ביקורת 12.10).
+  const stats = useMemo(() => buildSupporterStats(visibleBase, rate, Date.now()), [visibleBase, rate, today, hourFromNoon]);
   // מצברי-הכותרת — על בסיס-הראייה, פעם-אחת לשינוי-נתונים (לא פר-הקשה)
   const agg = useMemo(() => {
     // 🩺 מוני-הטיפול על בסיס-הראייה (ביקורת 3.9): הלוח סגור כברירת-מחדל ⇒ הכותרת
@@ -633,6 +639,11 @@ export function SupportersView() {
   );
   // מיון-מעוטר: מפתח-אחד פר-שורה (היה sortVal×2 לכל השוואה; מיון-ציון = supScore ‎N·logN‎)
   const list = useMemo(() => (sort ? sortSupporterList(matched, stats, sort.key, sort.dir, rate) : matched), [matched, stats, sort, rate]);
+  // ⚠️ ביקורת (12.10): הקולבקים של רצועת-ה-KPI יציבים — אחרת ה-React.memo של SupportersKpiStrip מעולם לא פגע
+  // (arrow-חדש בכל רינדור). useRemembered ⇒ setter של useState (יציב); התלות היא הערך הנוכחי בלבד.
+  const onKpiTier = useCallback((t: string) => setTierF(tierF === t ? null : t), [tierF, setTierF]);
+  const onKpiHokDue = useCallback(() => setHokF(hokF === 'due' ? null : 'due'), [hokF, setHokF]);
+  const onKpiRisk = useCallback(() => setSegF(segF === 'atrisk' ? null : 'atrisk'), [segF, setSegF]);
   // ⚡ ‏#15: החלון-לציור — כל הלוגיקה (בחירה/CSV/סיכומים) נשארת על `list` המלאה
   const shownRows = incSlice(list, inc.cap);
 
@@ -1034,9 +1045,9 @@ export function SupportersView() {
           config={config}
           usdRate={db.usdRate}
           activeTier={tierF}
-          onTier={(t) => setTierF(tierF === t ? null : t)}
-          onHokDue={() => setHokF(hokF === 'due' ? null : 'due')}
-          onRisk={() => setSegF(segF === 'atrisk' ? null : 'atrisk')}
+          onTier={onKpiTier}
+          onHokDue={onKpiHokDue}
+          onRisk={onKpiRisk}
         />
       )}
 

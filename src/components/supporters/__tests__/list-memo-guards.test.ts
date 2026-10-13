@@ -10,6 +10,7 @@ import viewSrc from '../SupportersView.tsx?raw';
 import incSrc from '../../incremental.tsx?raw';
 import libSrc from '../lib.ts?raw';
 import { hebDateFull } from '../../../lib/hebrew';
+import hebrewSrc from '../../../lib/hebrew.ts?raw';
 
 const body = (name: string): string => {
   const i = viewSrc.indexOf(name);
@@ -37,8 +38,14 @@ describe('🛡 כל ה-hooks לפני ה-return המוקדם הראשון (סד�
 describe('🛡 הצינור ממומואיז וקורא מספרים מוכנים', () => {
   it('buildSupporterStats · visibleBase · agg · filter · sort — כולם useMemo על התלויות הנכונות', () => {
     expect(viewSrc).toContain('buildSupporterStats(visibleBase, rate, Date.now())');
+    // ⚠️ ביקורת (12.10): הציון (R) מתחלף על שעה-עגולה-מצהריים ⇒ דלי-השעה-מצהריים בתלויות (לא רק today)
+    expect(viewSrc).toContain("const hourFromNoon = Math.floor((Date.now() - new Date(today + 'T12:00:00').getTime()) / 3600000);");
+    expect(viewSrc).toContain('[visibleBase, rate, today, hourFromNoon]);');
+    // ⚠️ ביקורת (12.10): קולבקים יציבים לרצועת-ה-KPI — אחרת ה-React.memo שלה מת
+    expect(viewSrc).toContain('const onKpiTier = useCallback(');
+    expect(viewSrc).toMatch(/onTier=\{onKpiTier\}\s*onHokDue=\{onKpiHokDue\}\s*onRisk=\{onKpiRisk\}/);
     expect(viewSrc).toMatch(/const visibleBase = useMemo\([\s\S]{0,200}\[db\.supporters, desigLimit\]/);
-    expect(viewSrc).toMatch(/const stats = useMemo\([\s\S]{0,120}\[visibleBase, rate, today\]/);
+    expect(viewSrc).toMatch(/const stats = useMemo\([\s\S]{0,120}\[visibleBase, rate, today, hourFromNoon\]/);
     expect(viewSrc).toMatch(/const agg = useMemo\(/);
     expect(viewSrc).toMatch(/const matched = useMemo\(\s*\(\) => filterSupporterList\(visibleBase, stats, \{ dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF \}, today, rate, matchSeg\)/);
     expect(viewSrc).toContain('[visibleBase, stats, dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF, today, rate, matchSeg]');
@@ -50,8 +57,8 @@ describe('🛡 הצינור ממומואיז וקורא מספרים מוכני�
     expect(viewSrc).not.toContain('const nq = normSearch(dq)');
   });
 
-  it('מפתח-האיפוס של useIncCap כולל regionF ו-lastF (היו חסרים)', () => {
-    expect(viewSrc).toContain('useIncCap(JSON.stringify([dq, cat, purposeF, regionF, lastF, tierF, colF, ayinF, nextF, hokF, segF, monthF, acqYearF, gaveYearF, periodMode, sort]))');
+  it('מפתח-האיפוס של useIncCap — כמו היום (regionF/lastF לא במפתח; ביקורת 12.10: שינוי-התנהגות מחוץ למנדט)', () => {
+    expect(viewSrc).toContain('useIncCap(JSON.stringify([dq, cat, purposeF, tierF, colF, ayinF, nextF, hokF, segF, monthF, acqYearF, gaveYearF, periodMode, sort]))');
     expect(incSrc).toContain('export function useIncCap(resetKey: string');
   });
 
@@ -112,5 +119,11 @@ describe('🛡 hebDateFull — מטמון מוגבל (אותו טקסט; כות�
       seen.set(iso, hebDateFull(iso));
     }
     for (const [iso, v] of [...seen].slice(0, 50)) expect(hebDateFull(iso)).toBe(v);
+  });
+
+  it('⚠️ ביקורת (12.10): המטמון באמת קיים (הגנת-מקור) — הסרתו החזירה 3 פורמטי-ICU פר-שורה בלי שהבדיקה תיפול', () => {
+    expect(hebrewSrc).toContain('const hit = hdfCache.get(iso);');
+    expect(hebrewSrc).toContain('hdfCache.set(iso, out);');
+    expect(hebrewSrc).toMatch(/const hit = hdfCache\.get\(iso\);\s*\n\s*if \(hit !== undefined\) return hit;/);
   });
 });

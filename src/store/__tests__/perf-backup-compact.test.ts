@@ -1,11 +1,11 @@
 /**
- * ⚡ ratchet — ביצועי ההתמדה (12.10.2026): קובץ-הגיבוי קומפקטי + גיבוי-סוף-היום ב-idle.
+ * ⚡ ratchet — ביצועי ההתמדה (12.10.2026): גיבוי-סוף-היום ב-idle; פורמט הקובץ **לא השתנה**.
  *
  * המדידה אצל הלקוח האמיתי (16,000 תורמים): הגיבוי האוטומטי של סוף-היום הסריאל
  * JSON.stringify(doc, null, 1) — 123MB במקום 34MB — והקפיא את הממשק 30.9s באמצע עבודה.
- * הכלל: הקובץ קומפקטי (אותו JSON, בלי רווחים), parseBackupFile/decryptBackupFile מקבלים
- * אותו ללא שינוי (ייצוא ⇒ ייבוא שווה-ערך), והריצה האוטומטית ב-requestIdleCallback
- * (timeout 30s) רק כשהטאב גלוי.
+ * ⚠️ ביקורת (12.10): קובץ קומפקטי = קובץ אחר למשתמש (ייצוא-ידני, רשתות-הביטחון-לענן, סוף-היום) —
+ * מחוץ למנדט "אותם קבצים" ⇒ ברירת-המחדל נשארה מרווחת ביט-זהה; הקומפקטי זמין כ-opt-in (`compact`)
+ * שאינו מחובר עד הכרעת-בעלים. הריצה האוטומטית ב-requestIdleCallback (timeout 30s), גם בטאב ברקע.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { emptyDb, type Db } from '../../types/domain';
@@ -20,6 +20,7 @@ import {
 } from '../persist';
 import persistSrc from '../persist.ts?raw';
 import appSrc from '../../App.tsx?raw';
+import useAppSrc from '../useApp.ts?raw';
 
 class MemStorage {
   m = new Map<string, string>();
@@ -46,45 +47,52 @@ const seed = (): Db => ({
 
 beforeEach(() => { localStorage.clear(); clearCrypto(); });
 
-describe('⚡ ratchet — קובץ-גיבוי קומפקטי: ייצוא ⇒ ייבוא שווה-ערך', () => {
-  it('גלוי: בלי מעברי-שורה/הזחה; parseBackupFile מחזיר את אותם הנתונים', async () => {
+describe('⚠️ ביקורת (12.10) — קובץ-הגיבוי נשאר **מרווח** (ביט-זהה להיום); קומפקטי = opt-in שאינו מחובר', () => {
+  it('גלוי: ברירת-המחדל = JSON.stringify(doc, null, 1) בדיוק; ה-compact מחזיר אותו JSON בלי רווחים', async () => {
     const db = seed();
-    const content = await backupFileContent(db);
-    expect(content.startsWith('{"')).toBe(true);
-    expect(content).not.toMatch(/\n /); // אין הזחה (null, 1) — קומפקטי
-    expect(content.length).toBeLessThan(JSON.stringify({ ...db, savedAt: '' }, null, 1).length);
-    const back = parseBackupFile(content);
-    const expected = migrate(JSON.parse(JSON.stringify(db)))!;
-    expect(back.supporters).toEqual(expected.supporters);
-    expect(back.orgName).toBe(db.orgName);
-    expect(back.donationSeq).toBe(expected.donationSeq);
-    expect(typeof back.savedAt).toBe('string');
-    // ה-JSON עצמו = המסמך בדיוק (+savedAt)
-    const raw = JSON.parse(content);
-    expect({ ...raw, savedAt: undefined }).toEqual({ ...JSON.parse(JSON.stringify(db)), savedAt: undefined });
+    const pretty = await backupFileContent(db);
+    expect(pretty.startsWith('{\n "')).toBe(true); // הזחה של רווח-אחד — הפורמט ההיסטורי
+    expect(pretty).toBe(JSON.stringify(JSON.parse(pretty), null, 1));
+    const compact = await backupFileContent(db, { compact: true });
+    expect(compact.startsWith('{"')).toBe(true);
+    expect(compact).not.toMatch(/\n /);
+    expect({ ...JSON.parse(compact), savedAt: 0 }).toEqual({ ...JSON.parse(pretty), savedAt: 0 });
+    for (const content of [pretty, compact]) {
+      const back = parseBackupFile(content);
+      const expected = migrate(JSON.parse(JSON.stringify(db)))!;
+      expect(back.supporters).toEqual(expected.supporters);
+      expect(back.orgName).toBe(db.orgName);
+      expect(back.donationSeq).toBe(expected.donationSeq);
+      expect(typeof back.savedAt).toBe('string');
+    }
   });
 
-  it('מוצפן: הקובץ מעטפת קומפקטית; decryptBackupFile מחזיר את הנתונים', async () => {
+  it('מוצפן: המעטפת מרווחת כברירת-מחדל; decryptBackupFile מחזיר את הנתונים (שני הפורמטים)', async () => {
     await beginEncryption(seed(), 'pw-גיבוי');
-    const content = await backupFileContent(seed());
-    expect(content).not.toMatch(/\n /);
-    expect(isEncryptedBackup(content)).toBe(true);
-    expect(content).not.toContain('כהן');
-    const back = await decryptBackupFile(content, 'pw-גיבוי', 'pass');
+    const pretty = await backupFileContent(seed());
+    expect(pretty.startsWith('{\n "$enc": 2')).toBe(true);
+    expect(isEncryptedBackup(pretty)).toBe(true);
+    expect(pretty).not.toContain('כהן');
+    const back = await decryptBackupFile(pretty, 'pw-גיבוי', 'pass');
     expect(back?.supporters[0].name).toBe('כהן');
     expect(back?.supporters[0].donations).toHaveLength(2);
+    const compact = await backupFileContent(seed(), { compact: true });
+    expect(compact).not.toMatch(/\n /);
+    expect((await decryptBackupFile(compact, 'pw-גיבוי', 'pass'))?.supporters[0].name).toBe('כהן');
   }, 60_000);
 });
 
-describe('🧷 הגנת-מקור — גיבוי-סוף-היום ב-idle, רק כשהטאב גלוי', () => {
-  it('App: requestIdleCallback(timeout 30s) + visibilityState; exportBackupFile ⇒ backupFileContent (קומפקטי)', () => {
+describe('🧷 הגנת-מקור — גיבוי-סוף-היום ב-idle; הקובץ דרך backupFileContent; ה-compact לא מחובר', () => {
+  it('App: requestIdleCallback(timeout 30s) בלי תנאי-גלוי (ביקורת 12.10 — כמו היום, גם בטאב ברקע)', () => {
     const block = appSrc.slice(appSrc.indexOf("'core.dayendbackup'"), appSrc.indexOf('}, [exportBackup]);'));
-    expect(block).toContain("if (pending || document.visibilityState !== 'visible') return;");
+    expect(block).toContain('if (pending) return;');
+    expect(block).not.toContain("visibilityState");
     expect(block).toContain('w.requestIdleCallback(run, { timeout: 30_000 })');
     expect(block).toContain("void exportBackup().then((ok) => { if (ok) localStorage.setItem(nsLsKey('maor_autoexp'), today); });");
     expect(persistSrc).toContain('const content = await backupFileContent(db);');
-    // בקוד (לא בהערות-הידע) אין עוד JSON.stringify מרווח
-    const codeLines = persistSrc.split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l));
-    expect(codeLines.some((l) => /JSON\.stringify\([^)]*,\s*null,\s*\d\)/.test(l))).toBe(false);
+    // ברירת-המחדל מרווחת (null, 1) — ואף קורא לא מבקש compact (הכרעת-בעלים פתוחה)
+    expect(persistSrc).toContain("(opts?.compact ? JSON.stringify(v) : JSON.stringify(v, null, 1))");
+    expect(useAppSrc).not.toContain('compact: true');
+    expect(appSrc).not.toContain('compact: true');
   });
 });

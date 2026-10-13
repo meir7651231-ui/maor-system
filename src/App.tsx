@@ -483,9 +483,10 @@ export default function App() {
 
   // גיבוי סוף-יום: פעם ביום, אחרי שעת הסיום שנקבעה בפתיחת היום
   // (localStorage 'maor_dayend', ברירת מחדל 17:00), יורד קובץ גיבוי אוטומטית
-  // ⚡ (12.10.2026): הגיבוי רץ ב-requestIdleCallback (timeout 30s) ורק כשהטאב גלוי — המדידה אצל
-  // הלקוח האמיתי: הסריאל של 123MB (מרווח; עכשיו קומפקטי — ראה persist.backupFileContent) קפא
-  // את הממשק 30.9s באמצע עבודה. טאב מוסתר ⇒ הטיק הבא (דקה) ינסה שוב; עדיין פעם ביום.
+  // ⚡ (12.10.2026): הגיבוי רץ ב-requestIdleCallback (timeout 30s) — המדידה אצל הלקוח האמיתי:
+  // הסריאל של 123MB (מרווח — הפורמט נשמר, ראה persist.backupFileContent) קפא את הממשק 30.9s
+  // באמצע עבודה. ⚠️ ביקורת (12.10): בלי תנאי-גלוי — עד היום הקובץ ירד בשעת-הסיום גם בטאב ברקע
+  // (ושם הקיפאון לא מפריע לאיש); עדיין פעם ביום.
   useEffect(() => {
     let pending = false; // תוזמן ל-idle וטרם רץ — לא לתזמן שוב מהטיק הבא
     const tick = setInterval(() => {
@@ -498,7 +499,7 @@ export default function App() {
         const now = new Date();
         if (now.getHours() * 60 + now.getMinutes() < endMin) return;
         if (!useApp.getState().db.families.length) return;
-        if (pending || document.visibilityState !== 'visible') return;
+        if (pending) return;
         pending = true;
         const run = () => {
           pending = false;

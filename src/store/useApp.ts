@@ -84,6 +84,8 @@ import {
   flushSaveSync,
   isIdbBackupMissing,
   takeLsDroppedNotice,
+  markLsDroppedNoticed,
+  takeMigrateHealed,
   runWhenIdleVisible,
   currentDbKey,
   readStoredPlainDb,
@@ -903,7 +905,8 @@ export const useApp = create<AppState>()((set, get) => {
       // ⚡ אינטגרציה (12.10): ההודעה נדחית ל-idle — ה-put של IDB מסתיים בדיוק בזמן ציור-הטאב (×4 האטה),
       // ועדכון-store סינכרוני באמצע רינדור-מעבר של 16k שורות גרם ל-React לזרוק את הרינדור ולהתחיל מחדש
       // (נמדד: פתיחת-טאב 2.4s ⇒ 3.6s, כל ה-useMemo-ים רצו פעמיים). ב-idle אין רינדור-בתהליך להפריע לו.
-      if (ok && takeLsDroppedNotice()) runWhenIdleVisible(() => get().toast('הנתונים גדולים — נשמרים במאגר הפנימי של הדפדפן בלבד'), 5_000);
+      // ⚠️ ביקורת (12.10): החותמת "הוצג-במכשיר" נרשמת בתוך ה-callback (markLsDroppedNoticed) — טאב שנסגר בחלון-הדחייה לא שורף את ההודעה.
+      if (ok && takeLsDroppedNotice()) runWhenIdleVisible(() => { if (markLsDroppedNoticed()) get().toast('הנתונים גדולים — נשמרים במאגר הפנימי של הדפדפן בלבד'); }, 5_000);
     }, 500);
   }
 
@@ -1447,6 +1450,9 @@ export const useApp = create<AppState>()((set, get) => {
         cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle', membership: 'na' },
       });
       lastSaved = db; // ⚡ (12.10) נטען מהאחסון = כבר שם; flush לא יסריאל אותו שוב בלי עריכה
+      // ⚠️ ביקורת (12.10): migrate ריפא (מספור-קבלות/מצברים/מונים/גרסה) ⇒ שמירה אחת — הריפוי שהוצג חייב
+      // להיות עמיד (עד היום הגיע לדיסק דרך runDecay בלי-תנאי). מסמך נקי ⇒ אפס שמירה (הרווח נשמר).
+      if (takeMigrateHealed()) { lastSaved = null; scheduleSave(); }
       // חיבור ענן — opt-in פר-ארגון; בלי config.firebase שום דבר לא משתנה
       if (config.firebase) void connectCloud(config.firebase, config);
       postLoad(db, corrupt);
@@ -4007,6 +4013,7 @@ export const useApp = create<AppState>()((set, get) => {
       if (db.security?.primary || db.security?.secondary || db.security?.zones) db.security = {};
       set({ db, encrypted: true, needDecrypt: false, corrupt: false });
       lastSaved = db; // ⚡ (12.10) פוענח מהאחסון = כבר שם (ראה init)
+      if (takeMigrateHealed()) { lastSaved = null; scheduleSave(); } // ⚠️ ביקורת (12.10): ריפוי-בטעינה נשמר (ראה init)
       // חיבור ענן לארגון מוצפן: init חוזר מוקדם במסלול res.encrypted (לפני
       // connectCloud), ולכן החיבור לא נעשה שם. בלי זה, ארגון עם config.firebase
       // שהופעלה בו הצפנה נתקע לצמיתות על "מתחבר…" (cloud.enabled && !authReady)
