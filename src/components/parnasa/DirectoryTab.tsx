@@ -77,6 +77,8 @@ export function DirectoryTab(props: {
   onNewRequest: ((draft: Partial<PrRequest>) => void) | null;
   /** פתיחה ישר ב"כל האלפון" (מצב browse) — לרינדור-שרת/בדיקות; אחרת הזיכרון. */
   initialBrowse?: boolean;
+  /** "לראות אותם" (לוח-הבקשות) — פותח את "כל האלפון" בשער (n = בקשה חדשה). */
+  seeCat?: { cat: string; n: number } | null;
 }) {
   const config = useApp((s) => s.config);
   const listings = useApp((s) => s.db.prListings);
@@ -101,6 +103,15 @@ export function DirectoryTab(props: {
   const [seek, setSeek] = useRemembered<boolean>('parnasa.dir.seek', false);
   const [bq, setBq] = useRemembered<string>('parnasa.dir.bq', '');
   const [showAll, setShowAll] = useRemembered<boolean>('parnasa.dir.all', false);
+  const seeN = props.seeCat?.n ?? 0;
+  const seeCat = props.seeCat?.cat ?? '';
+  useEffect(() => {
+    if (!seeN) return;
+    setBrowse(true);
+    setCat(seeCat);
+    setBq('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- בקשה חד-פעמית לכל n
+  }, [seeN]);
   const [pin, setPin] = useState<{ q: string; cat: string } | null>(null);
   const [selIdx, setSelIdx] = useState(0);
   const [kb, setKb] = useState(false);

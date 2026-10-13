@@ -621,10 +621,29 @@ for (const profile of PROFILES) {
     await shabNeed.first().click();
     await page.waitForTimeout(300);
   }
-  await page.locator('.modal button', { hasText: 'שמירת הבקשה' }).click();
-  await page.waitForTimeout(400);
+  // עיצוב 5: הטופס של המקור נפתח בתוך הלוח (לא חלון) — "פרסום בלוח"; הטופס מתאפס ונשאר פתוח
+  await page.locator('main .pn-reqForm button[type=submit]').click();
+  await page.waitForTimeout(500);
   prMain = (await page.locator('main').textContent()) ?? '';
-  t('"לא מצאתי" ⇒ בקשה נפתחה ומנותבת (פתוחה לקהילה — אין עסק בתחום)', prMain.includes('מחפש מלמד לגמרא') && prMain.includes('פתוחה לכל הקהילה'));
+  t('"לא מצאתי" ⇒ הטופס בתוך הלוח ⇒ "פרסום בלוח" ⇒ הבקשה בלוח ומנותבת (פתוחה לקהילה — אין עסק בתחום)', prMain.includes('מחפש מלמד לגמרא') && prMain.includes('פתוחה לכל הקהילה'));
+  // הכרטיס נפתח (details) ⇒ "⋯ ניהול" ⇒ "סמן שנמצא" ⇒ ב"הכול" — קבוצת "נמצאו"
+  const reqCard = page.locator('main .pn-reqList details.pn-req', { hasText: 'מחפש מלמד לגמרא' }).first();
+  await reqCard.locator('summary.pn-rq-sum').click();
+  await reqCard.locator('details.pn-rq-adm > summary').click();
+  await reqCard.locator('.pn-rq-adm-b button', { hasText: 'סמן שנמצא' }).click();
+  await page.waitForTimeout(400);
+  await page.locator('main .pn-reqfilter button', { hasText: 'הכול' }).click();
+  await page.waitForTimeout(300);
+  t('"סמן שנמצא" ⇒ קבוצת "נמצאו" והתג "נמצא" (לוח-הבקשות של המקור)', (await page.locator('main .pn-reqList details.pn-req.pn-closed', { hasText: 'מחפש מלמד לגמרא' }).count()) === 1);
+  await page.locator('main .pn-reqfilter button', { hasText: 'פתוחות' }).click();
+  // לוח הקהילה — הקיר של המקור (מנורה · "לוח הקהילה" · המתג) ולוח-המודעות עם הדוגמאות כשריק
+  await prTab('לוח הקהילה');
+  await page.waitForTimeout(400);
+  t('📌 "לוח הקהילה" — הקיר של המקור: הכתר, שעון-הדפים, "המניין הבא"', (await page.locator('main .pl-crest .pl-clock .pl-flip').count()) === 4 && (await page.locator('main .pl-next').count()) === 1);
+  await page.locator('main .pl-seg button', { hasText: 'לוח המודעות' }).click();
+  await page.waitForTimeout(300);
+  t('📌 לוח המודעות — לבד, שלט, ופתקי-הדוגמה של המקור כשאין מודעות', (await page.locator('main .pl-plaque').count()) === 1 && (await page.locator('main .pl-notes .pl-note').count()) === 8 && (await page.locator('main .pl-exb').count()) === 1);
+  await page.locator('main .pl-seg button', { hasText: 'לוח הזמנים' }).click();
 
   // אשכול 8 · 📖 החוברת יורדת כקובץ HTML (שער יציאת-המידע פתוח) — העסק וקוד-החיוג מודפסים
   await prSeg('מודעות וחוברת');

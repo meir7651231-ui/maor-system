@@ -52,6 +52,7 @@ export const PR_PRICE_LABELS: ReadonlyArray<readonly [PrPriceKey, string, string
   ['sponsor', 'חסות על שער', 'לחודש'],
   ['board', 'שורת חסות בלוח הקהילה', 'לחודש'],
   ['dedication', 'הקדשה', 'לחודש'],
+  ['job', 'משרה מקודמת', 'לפרסום'],
   ['full', 'מודעה בחוברת: עמוד שלם', 'לחוברת'],
   ['half', 'מודעה בחוברת: חצי עמוד', 'לחוברת'],
   ['small', 'מודעה בחוברת: מודעה קטנה', 'לחוברת'],
@@ -93,6 +94,11 @@ export function agoText(iso: string, nowMs: number): string {
   if (h < 24) return h === 1 ? 'לפני שעה' : h === 2 ? 'לפני שעתיים' : 'לפני ' + h + ' שעות';
   const d = Math.floor(h / 24);
   return d === 1 ? 'אתמול' : d === 2 ? 'שלשום' : 'לפני ' + d + ' ימים';
+}
+
+/** רבים למונח בנקבה ("בקשה" ⇒ "בקשות", "מודעה" ⇒ "מודעות"); מונח אחר — כמות-שהוא. */
+export function pluralOf(w: string): string {
+  return /ה$/.test(w) ? w.slice(0, -1) + 'ות' : w;
 }
 
 /** dd/mm מתאריך ISO. */

@@ -2173,3 +2173,26 @@ html.pn-scroll-lock{overflow:hidden}
 .pn form.pn-ed.pn-dirty .pn-edsave{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
 @media (max-width:760px){.pn form.pn-ed.pn-dirty .pn-edsave{bottom:calc(142px + env(safe-area-inset-bottom,0px))}}
 @media (orientation:landscape) and (max-height:500px){.pn form.pn-ed.pn-dirty .pn-edsave{bottom:calc(62px + env(safe-area-inset-bottom,0px))}}
+/* ═════════ לוח הקהילה בתוך אורביט (עיצוב 5) ═════════ */
+/* במקור הלוח בתוך shadow root; כאן תחת ‎.pl — המארח הוא ‎.pn-luHost.pl, והשכבות (פתק פתוח / תליית מודעה) בפורטל:
+   מעל כרום אורביט, מתחת למודאלים שלו (100) ולטוסט של הסקין */
+.pl .pl-ov{z-index:98}
+.pn.pn-portal>.pl{color:var(--pl-cream);font-family:var(--pl-f-b);font-size:15px;line-height:1.5;direction:rtl}
+/* תוספות-הפורט על הקיר — באותה שפה: עריכת-הגבאי (גלולת נחושת קטנה), שורת-החסות, זמני-השבוע, מספרי-החירום */
+.pl .pl-gab{margin-top:6px;border:0;border-radius:99px;padding:6px 14px;font-weight:800;font-size:calc(.8*var(--pn-rem));cursor:pointer;color:#d8c49c;background:rgba(0,0,0,.35);box-shadow:inset 0 0 0 1px rgba(226,183,92,.35)}
+.pl .pl-gab[aria-pressed="true"]{background:linear-gradient(180deg,var(--pl-gold2),var(--pl-gold) 50%,var(--pl-gold3));color:#2a1606}
+.pl .pl-spon{margin:4px 0 0;font-size:calc(.82*var(--pn-rem));color:#d8c49c}
+.pl .pl-spon b{color:var(--pl-gold2)}
+.pl .pl-sh small a,.pl .pl-e small a{color:inherit;text-decoration:underline;text-underline-offset:.2em}
+.pl .pl-emg .pl-t a{color:inherit;text-decoration:none}
+.pl .pl-wk{display:flex;justify-content:center;margin-top:14px}
+.pl .pl-wk button{border:0;border-radius:99px;padding:8px 18px;font-weight:800;cursor:pointer;color:#d8c49c;background:rgba(0,0,0,.35);box-shadow:inset 0 0 0 1px rgba(226,183,92,.35)}
+.pl .pl-wk button[aria-pressed="true"]{background:linear-gradient(180deg,var(--pl-gold2),var(--pl-gold) 50%,var(--pl-gold3));color:#2a1606}
+.pl .pl-week{margin-top:12px}
+.pl .pl-tblw{overflow-x:auto}
+.pl .pl-tbl{width:100%;border-collapse:collapse;font-size:calc(.8*var(--pn-rem));font-variant-numeric:tabular-nums;white-space:nowrap}
+.pl .pl-tbl th{color:var(--pl-gold);font-weight:800;text-align:start;padding:6px 8px;border-bottom:1px solid rgba(226,183,92,.35)}
+.pl .pl-tbl td{padding:5px 8px;border-bottom:1px solid rgba(226,183,92,.12);color:var(--pl-cream)}
+.pl .pl-edit{display:grid;gap:12px;padding:14px;border-radius:14px;background:var(--pl-paper);color:var(--pl-ink);box-shadow:0 10px 24px -12px rgba(0,0,0,.8)}
+.pl .pl-frm .pl-pinl{display:flex;gap:8px;align-items:center;font-weight:700}
+.pl .pl-frm .pl-pinl input{width:18px;height:18px}

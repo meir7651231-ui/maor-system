@@ -385,7 +385,7 @@ describe('📒 עשן-רינדור לכל לשונית (נתונים אמיתי�
     expect(html).not.toContain('גולדברג');
     expect(html).not.toContain('9876543');
     expect(html).toContain('יעקב כהן');
-    expect(html).toContain('🧭');
+    expect(html).toContain('class="pn-rq-route'); // שורת-המסלול של המקור (עיצוב 5)
     expect(html).toContain('👁 הצגת פרטי הפונה'); // מקומי = מאשר
     setup(ON({}, { adminEmails: ['gabbai@x.org'] }), DATA, 'staff@x.org');
     expect(render(createElement(RequestsTab, { now, focusId: null, onFocusConsumed: noop, draft: null, onDraftConsumed: noop, onOpenListing: noop }))).not.toContain('👁 הצגת פרטי הפונה');

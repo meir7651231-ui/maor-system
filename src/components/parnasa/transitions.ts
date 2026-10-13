@@ -13,7 +13,7 @@
 import type { IsoDate, ParnasaPrefs, PrAd, PrListing, PrPost, PrRequest, PrResponse, PrStatus } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { canGrantedAction, featureOn } from '../../lib/config';
-import { docBytes, healPrAd, healPrPost, listingImageLen, optKeys, orgImageLen, PR_AD_SLOTS, PR_CATEGORY_KEYS, PR_IMG, PR_LISTING_EXTRA, PR_LISTING_PROMO } from './model';
+import { docBytes, healPrAd, healPrPost, listingImageLen, optKeys, orgImageLen, PR_AD_SLOTS, PR_CATEGORY_KEYS, PR_IMG, PR_LISTING_EXTRA, PR_LISTING_PROMO, PR_PRICE_DEFAULTS } from './model';
 import { isDataImage } from '../../lib/photoGallery';
 
 /* ═══════════════ הרשאת-גבאי ═══════════════ */
@@ -196,7 +196,31 @@ export function saveRequest(prev: PrRequest | null, draft: PrRequest, nowIso: st
   };
   if (prev?.closedAt) out.closedAt = prev.closedAt;
   else delete out.closedAt;
+  // קידום-משרה = שדה-גבאי (setPrJobPromo): שמירת-בקשה לעולם לא קובעת אותו — נשאר מהקודם
+  for (const k of ['promoAt', 'promoPrice'] as const) {
+    if (prev && prev[k] !== undefined) (out as unknown as Record<string, unknown>)[k] = prev[k];
+    else delete out[k];
+  }
   return out;
+}
+
+/** משרה מקודמת (jobpromo במקור): הצעת-עבודה פתוחה שקודמה — ראשונה בלוח, במסגרת זהב. */
+export function isPromotedJob(r: PrRequest): boolean {
+  return r.job === true && r.status !== 'closed' && !!r.promoAt;
+}
+
+/** קידום/ביטול (טהור): רק להצעת-עבודה פתוחה; הקידום רושם את מחיר "משרה מקודמת" מהמחירון ברגע הזה. null = לא חל. */
+export function setJobPromo(r: PrRequest, on: boolean, prefs: ParnasaPrefs | null | undefined, nowIso: string): PrRequest | null {
+  if (on && (r.job !== true || r.status === 'closed')) return null;
+  if (!on) {
+    if (!r.promoAt) return null;
+    const out: PrRequest = { ...r, updatedAt: nowIso };
+    delete out.promoAt;
+    delete out.promoPrice;
+    return out;
+  }
+  const p = prefs?.prices?.job;
+  return { ...r, promoAt: nowIso, promoPrice: typeof p === 'number' && Number.isFinite(p) && p >= 0 ? p : PR_PRICE_DEFAULTS.job, updatedAt: nowIso };
 }
 
 /** תשובה לבקשה (טהור): עסק = תשובה אחת (מחליפה את הקודמת שלו); open ⇒ answered. */

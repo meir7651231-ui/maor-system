@@ -78,6 +78,8 @@ export function ParnasaView() {
   const [meAdd, setMeAdd] = useState(0);
   const meAddDone = useCallback(() => setMeAdd(0), []);
   const [reqDraft, setReqDraft] = useState<Partial<PrRequest> | null>(null);
+  // "לראות אותם" מלוח-הבקשות ⇒ השער ב"כל האלפון"
+  const [seeCat, setSeeCat] = useState<{ cat: string; n: number } | null>(null);
   const quick = useQuickDial();
   const rootRef = useRef<HTMLDivElement>(null);
   const [focusTick, setFocusTick] = useState(0);
@@ -279,6 +281,7 @@ export function ParnasaView() {
         setQ={setDirQ}
         selId={selListing}
         setSelId={openBiz}
+        seeCat={seeCat}
         onNewRequest={
           isOn('requests')
             ? (draft) => {
@@ -293,38 +296,43 @@ export function ParnasaView() {
     body = (
       <section className="pn-view pn-on pn-v-req" aria-label="לוח בקשות">
         <Page k="הקהילה עוזרת" title="לוח בקשות" sub="לא מצאתם באלפון? כתבו כאן. מחפשים עובד? גם כאן. אנשי הקהילה יראו ויחזרו אליכם.">
-          <div className="pn-orbit">
-            <RequestsTab
-              now={now}
-              focusId={focusReq}
-              onFocusConsumed={() => setFocusReq(null)}
-              draft={reqDraft}
-              onDraftConsumed={() => setReqDraft(null)}
-              onOpenListing={
-                directoryOn ? (id) => openBiz(id) : null
-              }
-            />
-          </div>
+          <RequestsTab
+            now={now}
+            focusId={focusReq}
+            onFocusConsumed={() => setFocusReq(null)}
+            draft={reqDraft}
+            onDraftConsumed={() => setReqDraft(null)}
+            onOpenListing={directoryOn ? (id) => openBiz(id) : null}
+            onSeeCat={
+              directoryOn
+                ? (cat) => {
+                    setSeeCat((x) => ({ cat, n: (x?.n ?? 0) + 1 }));
+                    go('directory');
+                  }
+                : null
+            }
+            toast={toastAct}
+          />
         </Page>
       </section>
     );
   else if (active === 'board')
     body = (
       <section className="pn-view pn-on pn-v-luach" aria-label="לוח הקהילה">
-        <div className="pn-luwrap pn-orbit">
-          <BoardTab
-            now={now}
-            onSearch={
-              directoryOn
-                ? (q) => {
-                    setDirQ(q);
-                    setSelListing(null);
-                    go('directory');
-                  }
-                : null
-            }
-          />
-        </div>
+        <BoardTab
+          now={now}
+          calm={calm}
+          toast={toastAct}
+          onSearch={
+            directoryOn
+              ? (q) => {
+                  setDirQ(q);
+                  setSelListing(null);
+                  go('directory');
+                }
+              : null
+          }
+        />
       </section>
     );
   else if (active === 'me')

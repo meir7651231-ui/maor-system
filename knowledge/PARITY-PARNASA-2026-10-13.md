@@ -18,7 +18,7 @@ for themselves; the port is a gabbai/staff tool inside Orbit — residents' requ
 is no owner login).
 
 **Before the re-skin** (design phase, 164 capabilities in A–K): **30 present · 65 partial · 69 missing**.
-**Now (after cluster 4 — העסק שלי)**: **117 present · 32 partial · 15 missing**
+**Now (after cluster 5 — לוח בקשות ולוח הקהילה)**: **133 present · 23 partial · 8 missing**
 
 **Design-phase breakdown** (before the re-skin): of the 134 partial+missing rows, the main blocker is: 93 UI-only · 26 need new data fields (DATA, usually with UI) · 15 need a server or public access (SERVER, out of scope). A parenthetical "(+DATA…)"/"(+SERVER…)" marks a secondary, smaller part of the gap.
 
@@ -32,8 +32,8 @@ Current counts per area (recomputed from the rows after every cluster):
 | D. Browse | 8 | 0 | 0 |
 | E. Business page | 23 | 1 | 1 |
 | F. Contact | 3 | 0 | 1 |
-| G. Requests | 6 | 9 | 4 |
-| H. Community board | 6 | 5 | 3 |
+| G. Requests | 16 | 3 | 0 |
+| H. Community board | 12 | 2 | 0 |
 | I. העסק שלי | 21 | 3 | 0 |
 | J. Admin | 5 | 7 | 2 |
 | K. Booklet | 4 | 3 | 0 |
@@ -158,44 +158,44 @@ Current counts per area (recomputed from the rows after every cluster):
 
 | # | original | status | port file | gap | notes |
 |---|---|---|---|---|---|
-| G1 | Header "הקהילה עוזרת · לוח בקשות · לא מצאתם באלפון? כתבו כאן…" | missing | RequestsTab.tsx | UI | |
-| G2 | Velvet "＋ בקשה חדשה — מחפשים בעל מקצוע או עובד? הקהילה תעזור" | partial | RequestsTab.tsx | UI | ordinary button |
-| G3 | Form: "מה אתם מחפשים?", "תחום" (לא משנה + 15), "טלפון לחזרה (רשות)", "דחוף (צריך היום)", "בשקט (לא בלוח, בלי השם)", "זו הצעת עבודה" | present | RequestForm.tsx | UI | port adds requester name and area (gabbai-entered) |
-| G4 | Sensitivity detection auto-ticks "בשקט" + "זיהינו נושא רגיש (…)" hint; quiet hides the phone | present | RequestForm.tsx, lib.ts `sensitiveTopic` | UI | |
-| G5 | Match line "באלפון יש N בעלי מקצוע ב{cat} · לראות אותם" | missing | — | UI | |
-| G6 | "מי עוד יכול לעזור לך" — related trades for the occasion (בר מצווה, חתונה, ברית ולידה, מעבר דירה, שיפוץ, תקלה בבית, לימודים, שבת וחג, אבלות) with up to 2 businesses each or "עוד לא באלפון" | missing | — | UI | static table (spec A17) |
-| G7 | Job note "משרה מקודמת: 90 ₪ …" | missing | — | DATA + UI | job-promotion price |
-| G8 | Filters "פתוחות · הצעות עבודה · הכול" | present | RequestsTab.tsx | UI | |
-| G9 | Groups "דחוף · פתוחות · נמצאו" with sub-labels and counts | present | RequestsTab.tsx | UI | |
-| G10 | Sort promoted job → urgent → newest | partial | RequestsTab.tsx | DATA + UI | no promoted jobs |
-| G11 | Card as `<details>`: closed tab = trade (or "הצעת עבודה"/"בקשה כללית"), 2-line preview, "יום ג׳ · ב׳ חשוון · עכשיו"; badges בשקט / בתחום שלך / אצל העסקים / דחוף / משרה מקודמת / נמצא | partial | RequestsTab.tsx | UI | always-open cards with chips |
-| G12 | Urgent styling: red frame + pulsing dot (urgent flag or text starting "דחוף", <48h) | partial | RequestsTab.tsx, lib.ts `isUrgent` | UI | chip only |
-| G13 | Route line ("נשלחה ל־N עסקים בתחום · אם אף אחד לא יענה, תעבור לכל הקהילה בעוד …", "N עסקים זמינים", quiet variants) | present | lib.ts `routeRequest`, `routeSummary` | UI | |
-| G14 | "אני זמין" pressed by the businesses of the trade (+ WhatsApp to the requester), "סימנת שאתה זמין" | partial | RequestsTab.tsx ("✋ רישום מענה", "📤 שליחה לעסקים") | SERVER | the gabbai records answers on the businesses' behalf |
-| G15 | Quiet requests: sealed card "בקשה חסויה בתחום שלך" that self-wipes 15 minutes after opening; blind replies; the requester opens sealed "תשובה חסויה" cards | partial | RequestsTab.tsx, lib.ts `businessView` / `redactContact` | SERVER | privacy is enforced; the flow is gabbai-mediated |
-| G16 | Contact the requester ("וואטסאפ": "ראיתי את הבקשה שלך ב…", "חיוג", "העתקת המספר") + swipe on the row | partial | RequestsTab.tsx | UI (+SERVER) | gabbai-only WaBtn/CallBtn |
-| G17 | Requester block "הבקשה שלך": "סמן שנמצא" → gold coins fly to the pushke ("נמצא! מטבע זהב ל…") / "מחיקה"; quiet: "נמצא, למחוק הכול" | partial | RequestsTab.tsx | UI (+SERVER) | gabbai "✓ סמן שנמצא"/delete; no coin flight |
-| G18 | Gabbai "⋯ ניהול · רק הגבאי רואה": סמן שנמצא · "קידום המשרה · 90 ₪" / "ביטול הקידום" · "הסרת הבקשה" | partial | RequestsTab.tsx | DATA + UI | no job promotion |
-| G19 | Empty "אין בקשות פתוחות" / "אין כרגע הצעות עבודה" | present | RequestsTab.tsx | UI | |
+| G1 | Header "הקהילה עוזרת · לוח בקשות · לא מצאתם באלפון? כתבו כאן…" | present | ParnasaView.tsx (`Page`) · RequestsTab.tsx | UI | "הקהילה עוזרת · לוח בקשות · לא מצאתם באלפון? כתבו כאן…" verbatim; the extra explanation line of the old port is gone |
+| G2 | Velvet "＋ בקשה חדשה — מחפשים בעל מקצוע או עובד? הקהילה תעזור" | present | RequestsTab.tsx (`.pn-reqnew`) | UI | the velvet card with the gold "＋" disc and "מחפשים בעל מקצוע או עובד? הקהילה תעזור"; its label follows the project's add-button convention "➕ הוספת {termOf}" (CLAUDE.md: never "X חדש") instead of "בקשה חדשה"; it opens the form in place (aria-expanded) |
+| G3 | Form: "מה אתם מחפשים?", "תחום" (לא משנה + 15), "טלפון לחזרה (רשות)", "דחוף (צריך היום)", "בשקט (לא בלוח, בלי השם)", "זו הצעת עבודה" | present | RequestForm.tsx (`.pn-reqForm`) | UI | the original's form inside the board (not a dialog): "מה אתם מחפשים?", "תחום" (לא משנה + 15), "טלפון לחזרה (רשות)", דחוף · בשקט · הצעת עבודה, "פרסום בלוח" / "שליחה בשקט" · "סגירה"; after posting it resets and stays open; the port adds the requester's name and area (the gabbai fills it in) and editing an existing request |
+| G4 | Sensitivity detection auto-ticks "בשקט" + "זיהינו נושא רגיש (…)" hint; quiet hides the phone | present | RequestForm.tsx (`.pn-quiet-hint`) · lib.ts `sensitiveTopic` | UI | auto-ticks "בשקט" until touched; "זיהינו נושא רגיש (…)" / "בקשה בשקט." + the original's sentence; the phone stays (kept for the gabbai only) — the port's custody note |
+| G5 | Match line "באלפון יש N בעלי מקצוע ב{cat} · לראות אותם" | present | RequestForm.tsx (`.pn-rq-match`) · requests.ts `matchCount` · DirectoryTab.tsx (`seeCat`) | UI | "באלפון יש N בעלי מקצוע ב{gate}" + "אולי מישהו מהם מתאים…"; after posting "הבקשה פורסמה. בינתיים, …" / "אפשר כבר לפנות אליהם ישירות"; "לראות אותם" opens that gate in "כל האלפון" |
+| G6 | "מי עוד יכול לעזור לך" — related trades for the occasion (בר מצווה, חתונה, ברית ולידה, מעבר דירה, שיפוץ, תקלה בבית, לימודים, שבת וחג, אבלות) with up to 2 businesses each or "עוד לא באלפון" | present | requests.ts `PN_OCCASIONS`/`relatedFor` · RequestForm.tsx (`.pn-rel`) | UI | the original's 9 occasions verbatim (with a Hebrew word boundary instead of \b), up to 2 approved businesses per need (button ⇒ the business page) or "עוד לא באלפון", 250 ms after typing |
+| G7 | Job note "משרה מקודמת: 90 ₪ …" | present | RequestForm.tsx · model.ts (`PR_PRICE_DEFAULTS.job` = 90) · labels.ts ("משרה מקודמת · לפרסום") | DATA + UI | "רוצים שהמשרה תופיע ראשונה בלוח, במסגרת זהב? משרה מקודמת: 90 ₪. אחרי הפרסום פנו לגבאי בטלפון …"; the price is editable in the price list |
+| G8 | Filters "פתוחות · הצעות עבודה · הכול" | present | RequestsTab.tsx (`.pn-reqfilter`) | UI | the segmented "פתוחות · הצעות עבודה · הכול" (aria-pressed, remembered); the port keeps its search + gate filter under it in the original's filter look |
+| G9 | Groups "דחוף · פתוחות · נמצאו" with sub-labels and counts | present | RequestsTab.tsx (`.pn-rq-grp`) · requests.ts `PN_REQ_GROUPS` | UI | "דחוף · צריך היום" / "פתוחות · מחכות למישהו שיכיר" / "נמצאו · הקהילה עזרה" with counts (only when more than one group; not under "הצעות עבודה"); the port's separate "נענו" group is folded into פתוחות like the original |
+| G10 | Sort promoted job → urgent → newest | present | requests.ts `boardRequests` · transitions.ts `isPromotedJob` | DATA + UI | promoted job → urgent → newest, then grouped (stable) |
+| G11 | Card as `<details>`: closed tab = trade (or "הצעת עבודה"/"בקשה כללית"), 2-line preview, "יום ג׳ · ב׳ חשוון · עכשיו"; badges בשקט / בתחום שלך / אצל העסקים / דחוף / משרה מקודמת / נמצא | present | RequestsTab.tsx `ReqCard` (`details.pn-req`) | UI | summary: the gate name (or "הצעת עבודה" / "בקשה כללית"), two-line preview, "יום ג׳ · ב׳ חשוון · לפני …", badges בשקט · אצל העסקים · דחוף · משרה מקודמת (gold seal) / הצעת עבודה · נמצא; open cards remembered; a jump from the care queue opens, scrolls and flashes the card |
+| G12 | Urgent styling: red frame + pulsing dot (urgent flag or text starting "דחוף", <48h) | present | RequestsTab.tsx · lib.ts `isUrgent` | UI | red frame, red title and the pulsing-dot badge (urgent flag or text starting "דחוף", <48h) |
+| G13 | Route line ("נשלחה ל־N עסקים בתחום · אם אף אחד לא יענה, תעבור לכל הקהילה בעוד …", "N עסקים זמינים", quiet variants) | present | RequestsTab.tsx `RouteLine` | UI | the original's four route lines with their icons: בשקט (shield) · "N עסקים זמינים" with the businesses as chips (⇒ their page) · "נשלחה ל־N עסקים בתחום · אם אף אחד לא יענה…" with the countdown · "פתוחה לכל הקהילה" (hand) |
+| G14 | "אני זמין" pressed by the businesses of the trade (+ WhatsApp to the requester), "סימנת שאתה זמין" | partial | RequestsTab.tsx ("רישום מענה") · InTrade.tsx ("אני זמין" / "סימנת שאתה זמין") | SERVER | the gabbai records a business's answer ("רישום מענה", or "אני זמין" on the business page / in העסק שלי, with the done state); businesses pressing it themselves needs owner logins (SERVER) |
+| G15 | Quiet requests: sealed card "בקשה חסויה בתחום שלך" that self-wipes 15 minutes after opening; blind replies; the requester opens sealed "תשובה חסויה" cards | partial | RequestsTab.tsx · lib.ts `businessView` / `redactContact` | SERVER | quiet requests show "בקשה חסויה · פתחו כדי לקרוא" in the list to non-approvers, only the redacted text inside, no identity, no swipe or contact buttons; the approver may reveal (logged). Each owner's own self-wiping seal and blind replies between residents need logins (SERVER) |
+| G16 | Contact the requester ("וואטסאפ": "ראיתי את הבקשה שלך ב…", "חיוג", "העתקת המספר") + swipe on the row | present | RequestsTab.tsx (`.pn-contact`) · Home.tsx `Rsw` | UI | "וואטסאפ" ("שלום, ראיתי את הבקשה שלך ב…"), "חיוג", "העתקת המספר" and the row swipe (right ⇒ WhatsApp, left ⇒ call) — WhatsApp only with the integration, calls only with telephony; never for a quiet request. Residents contacting each other is SERVER |
+| G17 | Requester block "הבקשה שלך": "סמן שנמצא" → gold coins fly to the pushke ("נמצא! מטבע זהב ל…") / "מחיקה"; quiet: "נמצא, למחוק הכול" | partial | RequestsTab.tsx (`closeIt`) · coinFx.ts `foundCoins` | UI (+SERVER) | "סמן שנמצא" (gabbai menu) ⇒ gold coins fly into the pushke, one per business that answered ("נמצא! מטבע זהב ל…"); quiet ⇒ "נמצא, למחוק הכול" (press twice). The requester's own "הבקשה שלך" block needs resident logins (SERVER) |
+| G18 | Gabbai "⋯ ניהול · רק הגבאי רואה": סמן שנמצא · "קידום המשרה · 90 ₪" / "ביטול הקידום" · "הסרת הבקשה" | present | RequestsTab.tsx (`details.pn-rq-adm`) · useApp.ts `setPrJobPromo` | DATA + UI | "⋯ ניהול · רק הגבאי רואה": סמן שנמצא · "קידום המשרה · 90 ₪" / "ביטול הקידום" (approver only) · "הסרת הבקשה" (press twice); the port adds "שליחה לעסקים" and "עריכה" |
+| G19 | Empty "אין בקשות פתוחות" / "אין כרגע הצעות עבודה" | present | RequestsTab.tsx (`.pn-empty`) | UI | "אין בקשות פתוחות" / "אין כרגע הצעות עבודה" + "בקשה חדשה תופיע כאן לכל חברי הקהילה." |
 
 ## H. לוח הקהילה (community board)
 
 | # | original | status | port file | gap | notes |
 |---|---|---|---|---|---|
-| H1 | Walnut wall with a brass lamp and light cone; "בית המדרש · פרנסה׳לע"; gold "לוח הקהילה"; segmented "לוח הזמנים \| לוח המודעות" (remembered) | missing | BoardTab.tsx | UI | chips; the original isolates this look in a shadow root |
-| H2 | Zmanim crest: crown, "זמני היום", Hebrew + civil date, split-flap clock, "לפי אופק …" | partial | BoardTab.tsx, zmanimBoard.ts | UI | data present |
-| H3 | Bulb marquee "המניין הבא · {prayer} · {shul}" with countdown / "אין עוד מניינים היום" | present | BoardTab.tsx, zmanimBoard.ts `nextMinyan` | UI | |
-| H4 | "זמני היום" — 12 brass plates, past dimmed, next highlighted | present | BoardTab.tsx, zmanimBoard.ts `markZmanim` | UI | |
-| H5 | "מניינים בשכונה" — per-shul time chips, past struck, next glowing | present | BoardTab.tsx, PostForm.tsx | UI | port lets the gabbai edit shuls (the original had no UI) |
-| H6 | "שבת קודש" — "השבת הקרובה", "פרשת {parsha}" or "שבת קודש", "שבת מברכים", הדלקת נרות · צאת השבת · רבנו תם | partial | BoardTab.tsx, zmanimBoard.ts `shabbatOf` | UI | no parsha (the original took it from settings) |
-| H7 | "בקהילה השבוע" — events (day label, title, subtitle) | present | BoardTab.tsx, PostForm.tsx | UI | |
-| H8 | Notice board: mitred brass frame, green felt, plaque "לוח המודעות · קהילת השכונה", kind filters, paper notes styled per kind (מזל טוב gold foil · אבלות black border · שיעורים lined paper · לרפואה Tehillim card · גמ״ח kraft + stamp · אבידות/מכירה tear-off tabs · מוסדות letterhead + seal · קידושא invitation) with pins/tape and "ממתין לאישור הגבאי" | partial | BoardTab.tsx, labels.ts | UI | list with kind labels and emoji |
-| H9 | Opened note + "מי בקהילה יכול לעזור" chips that search the alfon | present | BoardTab.tsx, labels.ts `PR_NOTICE_HELP` | UI | |
-| H10 | "תליית מודעה": kind buttons, כותרת, פרטים, מקום, מתי, "יורד מהלוח בתאריך" (+7 days); gabbai approval | present | PostForm.tsx | UI | port adds minyan/event/emergency kinds |
-| H11 | Hanging a notice is blocked on Shabbat ("שבת קודש. אפשר לתלות מודעה במוצאי שבת") | missing | PostForm.tsx | UI | |
-| H12 | Example notes/shuls/events while empty ("כך ייראה הלוח…", "(דוגמה)") | missing | — | UI | |
-| H13 | Moderation: gabbai "אישור ותלייה" / "דחייה" / "הורדה מהלוח"; author "מחיקת המודעה שלי" | partial | BoardTab.tsx | SERVER (authors) | gabbai only |
-| H14 | Footer "כל מודעה עוברת אצל הגבאי…" / "N מודעות ממתינות לאישור שלך" | partial | BoardTab.tsx | UI | pending count in the tab chip |
+| H1 | Walnut wall with a brass lamp and light cone; "בית המדרש · פרנסה׳לע"; gold "לוח הקהילה"; segmented "לוח הזמנים \| לוח המודעות" (remembered) | present | BoardTab.tsx (`.pl` wall) · Luach.tsx `LampSvg` | UI | the walnut wall, brass lamp and light cone, "בית המדרש · פרנסה׳לע", gold "לוח הקהילה", the segmented "לוח הזמנים | לוח המודעות" (remembered); the original's shadow-root sheet is scoped under `.pl`; the approver's "⚙ עריכת הגבאי" is a small brass pill under it |
+| H2 | Zmanim crest: crown, "זמני היום", Hebrew + civil date, split-flap clock, "לפי אופק …" | present | BoardTab.tsx (`.pl-crest`) · Luach.tsx `FlipClock` | UI | crown, "זמני היום", "יום שלישי, ב׳ חשוון תשפ״ז" (the original prints Intl's "2 בחשוון 5787"; the port keeps the Hebrew-letter date used everywhere else in the module; switches to "ליל …" at sunset — the port's fix), civil date, the split-flap clock (each digit flips on change), "לפי אופק …" / "· הגבאי יכול לשנות"; Shabbat/yom-tov closure line |
+| H3 | Bulb marquee "המניין הבא · {prayer} · {shul}" with countdown / "אין עוד מניינים היום" | present | BoardTab.tsx (`.pl-marq`) · luach.ts `minsUntil` | UI | |
+| H4 | "זמני היום" — 12 brass plates, past dimmed, next highlighted | present | BoardTab.tsx (`.pl-z`) · luach.ts `luachZmanim` · zmanimBoard.ts `sunAngleTime` | UI | the original's 12 plates from the port's zmanim engine (Israel time), including "זמן ציצית ותפילין · משיכיר" (11.5°, the same NOAA algorithm as the engine with an angle — luach only, so the 📞 line and the booklet are unchanged); past dimmed, the next outlined. Deliberate: "עלות השחר" stays the engine's 72 minutes before sunrise (the original's 16.1° plate differs in summer — keeping one dawn time across the luach, the booklet and the phone line; owner decision) and "צאת הכוכבים" is the gabbai's "N דק׳ אחרי השקיעה" (the original's 8.5°) |
+| H5 | "מניינים בשכונה" — per-shul time chips, past struck, next glowing | present | BoardTab.tsx (`.pl-shul`) · luach.ts `shulRows` | UI | per-shul prayer rows of time chips, past struck, next glowing, in the order the shuls were defined (the original's settings order — not by the day's first minyan); addresses link to maps with the integration; the port lets the gabbai edit shuls |
+| H6 | "שבת קודש" — "השבת הקרובה", "פרשת {parsha}" or "שבת קודש", "שבת מברכים", הדלקת נרות · צאת השבת · רבנו תם | partial | BoardTab.tsx (`.pl-shab`) · zmanimBoard.ts `shabbatOf` | UI (+DATA) | the original's panel: "השבת הקרובה" ("השבת" during it), the Hebrew day and month ("ו׳ חשוון", as the original), "שבת מברכים", plates הדלקת נרות (ערש״ק) · צאת השבת · רבנו תם — candle lighting follows the engine's city custom (Bnei Brak 22 min; the original's default was 30) and the gabbai's minutes; the title is "שבת קודש" or the yom-tov — "פרשת …" came from a settings value the original never let anyone edit; an automatic parsha (Israel/diaspora schedule) = owner decision |
+| H7 | "בקהילה השבוע" — events (day label, title, subtitle) | present | BoardTab.tsx (`.pl-ev`) | UI | day badge (weekday letter + date) · title · time/text/place |
+| H8 | Notice board: mitred brass frame, green felt, plaque "לוח המודעות · קהילת השכונה", kind filters, paper notes styled per kind (מזל טוב gold foil · אבלות black border · שיעורים lined paper · לרפואה Tehillim card · גמ״ח kraft + stamp · אבידות/מכירה tear-off tabs · מוסדות letterhead + seal · קידושא invitation) with pins/tape and "ממתין לאישור הגבאי" | present | BoardTab.tsx (`.pl-nb`) · Luach.tsx `NoteCard` · luach.ts | UI | the brass frame and green felt, plaque "לוח המודעות · קהילת השכונה", kind filters (הכול + kinds in use), every kind's paper (gold foil · black border · lined · Tehillim card · kraft + stamp · tear-off tabs · letterhead + seal · invitation), pin or tape, rotation, "ממתין לאישור הגבאי"; the port adds a phone line |
+| H9 | Opened note + "מי בקהילה יכול לעזור" chips that search the alfon | present | Luach.tsx `NoteOverlay` | UI | the big note, "מי בקהילה יכול לעזור לשמחה" / "הקהילה עוזרת לבית האבל" chips ⇒ the alfon search; Esc / ✕ / backdrop close |
+| H10 | "תליית מודעה": kind buttons, כותרת, פרטים, מקום, מתי, "יורד מהלוח בתאריך" (+7 days); gabbai approval | present | Luach.tsx `NoticeForm` | UI | "תליית מודעה בלוח": the 9 kind buttons, כותרת, פרטים, מקום, מתי, "יורד מהלוח בתאריך" (+7 days), "שליחה לגבאי" / "ביטול"; the port adds a phone and pinning (approver); shuls, events and emergency numbers stay in "עריכת הגבאי" |
+| H11 | Hanging a notice is blocked on Shabbat ("שבת קודש. אפשר לתלות מודעה במוצאי שבת") | present | BoardTab.tsx `addNotice` | UI | "שבת קודש. אפשר לתלות מודעה במוצאי שבת" |
+| H12 | Example notes/shuls/events while empty ("כך ייראה הלוח…", "(דוגמה)") | present | luach.ts `LU_EX_SHULS`/`LU_EX_EVENTS`/`LU_EX_NOTES` · BoardTab.tsx | UI | the original's examples verbatim, "(דוגמה)", "כך ייראה הלוח…" and the footer; the example shuls also drive "המניין הבא" like the original |
+| H13 | Moderation: gabbai "אישור ותלייה" / "דחייה" / "הורדה מהלוח"; author "מחיקת המודעה שלי" | partial | Luach.tsx `NoteOverlay` (`.pl-adm`) | SERVER (authors) | on the opened note: "אישור ותלייה" / "דחייה" / "הורדה מהלוח" (approver), עריכה, מחיקה (press twice); the author's "מחיקת המודעה שלי" needs resident logins (SERVER) |
+| H14 | Footer "כל מודעה עוברת אצל הגבאי…" / "N מודעות ממתינות לאישור שלך" | present | BoardTab.tsx · luach.ts `noticeFoot` | UI | "כל מודעה עוברת אצל הגבאי…" / "N מודעות ממתינות לאישור שלך. לחיצה על מודעה פותחת את האישור"; the count also on the seg |
 
 ## I. העסק שלי (owner dashboard and editor)
 
@@ -271,7 +271,7 @@ Current counts per area (recomputed from the rows after every cluster):
 | `seek` ("פנוי ללקוחות נוספים") | browse toggle, booklet mark (D4) | `PrListing.seek?` (healed; cluster 2; "פנויים לעבודה" toggle — cluster 3) |
 | promo `{price, tagline, url, until, note}` | featured block, revenue (E8, J6–J8) | `featuredUntil` + gabbai-only `promoLine`/`promoUrl`/`promoPrice`/`promoNote` (healed; a non-approver's save keeps them) |
 | sponsors `home`, `coin {cat, mono}`, `url` on every sponsor | home line, platinum coin (B9, B14, J9) | slot `board` = the home line; `PrAd.coin?` + `mono?` = the platinum coin (kept out of the gate rotation); `PrAd.url?` (https only) |
-| `jobpromo` + job price | board sort, gold frame (G7, G10, G18) | — |
+| `jobpromo` + job price | board sort, gold frame (G7, G10, G18) | `PrRequest.promoAt?`/`promoPrice?` (healed; a gabbai field — only `setPrJobPromo`, approver-gated; saving a request never touches it) + price key `job` (90) — cluster 5 |
 | `promoreq` | promotion inbox (I8, J5) | — |
 | `contacts/{key}/by/{uid}` | "פניות מהאלפון" (F3, I6) | — (SERVER) |
 | notices `nm` (refuah name), `org` (mosad) | refuah / mosad note faces | — (also never collected by the original's form) |

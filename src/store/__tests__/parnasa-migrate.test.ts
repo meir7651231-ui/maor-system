@@ -204,6 +204,18 @@ describe('📒 ratchet — פרנסה׳לע 2: מיגרציה אדיטיבית (
     expect(migrate(raw({ prRequests: [partial] }))!.prRequests[0].requester).toEqual({ name: 'א', phone: '' });
   });
 
+  it('(ה2) עיצוב 5 — משרה מקודמת (promoAt/promoPrice) ומחיר "משרה מקודמת" (job): תקין ⇒ אותה הפניה; זר ⇒ נמחק', () => {
+    const ok = { ...request(), job: true, promoAt: '2026-10-12T09:00:00.000Z', promoPrice: 90 };
+    const out = migrate(raw({ prRequests: [ok] }))!;
+    expect(out.prRequests[0]).toBe(ok as unknown as PrRequest);
+    const bad = { ...request(), job: true, promoAt: 5, promoPrice: -1 };
+    const fixed = migrate(raw({ prRequests: [bad] }))!.prRequests[0];
+    expect(fixed.promoAt).toBeUndefined();
+    expect(fixed.promoPrice).toBeUndefined();
+    expect(healParnasaPrefs({ prices: { job: 120 } })).toEqual({ prices: { job: 120 } });
+    expect(healParnasaPrefs({ prices: { job: -5 } })).toEqual({ prices: {} });
+  });
+
   it('(ו) מודעה פגומה — kind זר ⇒ notice; approved לא-בוליאני ⇒ false; prayers/days מתוקנים', () => {
     const bad = {
       ...post(),

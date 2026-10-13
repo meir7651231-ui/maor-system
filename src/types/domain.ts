@@ -1316,6 +1316,13 @@ export interface PrRequest {
   createdAt: string;
   updatedAt: string;
   closedAt?: string;
+  /**
+   * משרה מקודמת (jobpromo במקור, עיצוב 5): מתי קודמה — חסר = לא מקודמת. שדה-גבאי (setPrJobPromo בלבד;
+   * שמירת-בקשה לא נוגעת בו). רק להצעת-עבודה פתוחה: ראשונה בלוח, במסגרת זהב.
+   */
+  promoAt?: string;
+  /** המחיר שנרשם בקידום (₪, מהמחירון ברגע הקידום) — רישום בלבד, אפס קבלות. */
+  promoPrice?: number;
 }
 
 /** סוג-מודעה בלוח-הקהילה: הודעה · מניין · אירוע · מספר-חירום. */
@@ -1400,7 +1407,7 @@ export interface PrAd {
 }
 
 /** מפתחות-המחירון (₪) — ברירות-המחדל ב-model.ts ‏(PR_PRICE_DEFAULTS). */
-export type PrPriceKey = 'featured' | 'sponsor' | 'board' | 'dedication' | 'full' | 'half' | 'small';
+export type PrPriceKey = 'featured' | 'sponsor' | 'board' | 'dedication' | 'job' | 'full' | 'half' | 'small';
 
 /** מיקום-הזמנים של הקהילה (db.ui.parnasa.zmanim) — כל שדה אופציונלי. */
 export interface ParnasaZmanimPrefs {

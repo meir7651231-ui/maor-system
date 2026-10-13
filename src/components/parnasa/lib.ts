@@ -107,6 +107,7 @@ export {
   approvePost,
   closeRequest,
   dialCodeTaken,
+  isPromotedJob,
   listingContentChanged,
   listingStatusOnSave,
   nextDialCode,
@@ -121,6 +122,7 @@ export {
   saveListing,
   savePost,
   saveRequest,
+  setJobPromo,
   takeDownPost,
   validDialCode,
 } from './transitions';

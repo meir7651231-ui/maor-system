@@ -264,6 +264,47 @@ async function cnFly(tile: HTMLElement, done: () => void): Promise<void> {
   }
 }
 
+/**
+ * "נמצא!" (foundCoins במקור): מטבעות-זהב (עד 5 — אחד לכל עסק שעזר) עפים בקשת מהכפתור אל חריץ-הפושקע, ובכל נחיתה —
+ * נקישה והפושקע מקפץ; קונפטי מהכפתור. התנועה מחושבת מהמיקום שנמדד **לפני** שהבקשה נסגרה (הכפתור נעלם אחרי).
+ * תנועה-מופחתת / שבת / בלי חריץ ⇒ רק זוהר בפושקע.
+ */
+export function foundCoins(from: DOMRect, root: Element | null, k: number): void {
+  const slot = root?.querySelector('.pn-cnSlot');
+  const layer = (root?.querySelector(':scope > .pn-cn-fly') as HTMLElement | null) ?? null;
+  if (!slot || !layer || reduced() || CN.calm || typeof layer.animate !== 'function') {
+    pkHit(root, 'cn-glow');
+    return;
+  }
+  const to = slot.getBoundingClientRect();
+  for (let i = 0; i < Math.min(Math.max(1, k), 5); i++)
+    setTimeout(() => {
+      const c = document.createElement('i');
+      c.className = 'pn-pk-coin pn-big';
+      const x0 = from.left + from.width / 2 - 14;
+      const y0 = from.top;
+      Object.assign(c.style, { left: x0 + 'px', top: y0 + 'px' });
+      layer.appendChild(c);
+      const dx = to.left + to.width / 2 - 14 - x0;
+      const dy = to.top - y0 - 10;
+      const cx = dx * 0.3 + (i % 2 ? -60 : 60);
+      const cy = Math.min(dy, 0) - 80;
+      const fr: Keyframe[] = [];
+      for (let j = 0; j <= 14; j++) {
+        const t = j / 14;
+        const u = 1 - t;
+        fr.push({ transform: `translate(${(2 * u * t * cx + t * t * dx).toFixed(1)}px,${(2 * u * t * cy + t * t * dy).toFixed(1)}px) rotateY(${t * 720}deg) scale(${(1.2 - 0.7 * t).toFixed(2)})`, offset: t });
+      }
+      const a = c.animate(fr, { duration: 1100, easing: 'cubic-bezier(.4,0,.3,1)' });
+      a.onfinish = () => {
+        c.remove();
+        pkHit(root, 'cn-bump');
+        clink();
+      };
+    }, i * 180);
+  setTimeout(() => cnConfetti(layer, from.left + from.width / 2, from.top), 120);
+}
+
 /** נגיעה במטבע: אחרי לחיצה-ארוכה — כלום; הפוך — חוזר; אחרת — מעוף ואז run. */
 export function coinTap(tile: HTMLElement, run: () => void): void {
   const s = st(tile);

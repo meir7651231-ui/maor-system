@@ -237,6 +237,58 @@ export function dayTimes(iso: IsoDate, loc: PrZmanimLoc): PrDayTimes {
   });
 }
 
+/* ---------- זווית-שמש (משיכיר של "לוח הקהילה") ---------- */
+
+const RAD = Math.PI / 180;
+
+/**
+ * הרגע (דקות-UTC מחצות, שבר) שבו מרכז-השמש `dep` מעלות מתחת לאופק — בבוקר (rise) או בערב. אותו אלגוריתם
+ * NOAA של מנוע-הזמנים (telephony/lib/zmanim.mjs, שמחשב רק זניט 90.833° ולא נוגעים בו), עם זניט 90+dep.
+ * null כשהשמש לא מגיעה לזווית (קוטב / קיץ צפוני).
+ */
+function noaaUtcMin(iso: IsoDate, lat: number, lon: number, dep: number, rise: boolean): number | null {
+  const [y0, m0, d] = iso.split('-').map(Number);
+  const y = m0 <= 2 ? y0 - 1 : y0;
+  const m = m0 <= 2 ? m0 + 12 : m0;
+  const A = Math.floor(y / 100);
+  const JD = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + (2 - A + Math.floor(A / 4)) - 1524.5;
+  const T = (JD - 2451545.0) / 36525.0;
+  const L0 = (280.46646 + T * (36000.76983 + T * 0.0003032)) % 360;
+  const M = 357.52911 + T * (35999.05029 - 0.0001537 * T);
+  const e = 0.016708634 - T * (0.000042037 + 0.0000001267 * T);
+  const C = Math.sin(M * RAD) * (1.914602 - T * (0.004817 + 0.000014 * T)) + Math.sin(2 * M * RAD) * (0.019993 - 0.000101 * T) + Math.sin(3 * M * RAD) * 0.000289;
+  const lambda = L0 + C - 0.00569 - 0.00478 * Math.sin((125.04 - 1934.136 * T) * RAD);
+  const eps0 = 23 + (26 + (21.448 - T * (46.815 + T * (0.00059 - T * 0.001813))) / 60) / 60;
+  const eps = eps0 + 0.00256 * Math.cos((125.04 - 1934.136 * T) * RAD);
+  const decl = Math.asin(Math.sin(eps * RAD) * Math.sin(lambda * RAD)) / RAD;
+  const yv = Math.tan((eps / 2) * RAD) ** 2;
+  const eqTime =
+    (4 / RAD) *
+    (yv * Math.sin(2 * L0 * RAD) -
+      2 * e * Math.sin(M * RAD) +
+      4 * e * yv * Math.sin(M * RAD) * Math.cos(2 * L0 * RAD) -
+      0.5 * yv * yv * Math.sin(4 * L0 * RAD) -
+      1.25 * e * e * Math.sin(2 * M * RAD));
+  const cosHA = Math.cos((90 + dep) * RAD) / (Math.cos(lat * RAD) * Math.cos(decl * RAD)) - Math.tan(lat * RAD) * Math.tan(decl * RAD);
+  if (!(cosHA >= -1 && cosHA <= 1)) return null;
+  const HA = Math.acos(cosHA) / RAD;
+  const utc = 720 - 4 * (lon + (rise ? HA : -HA)) - eqTime;
+  return ((utc % 1440) + 1440) % 1440;
+}
+
+/**
+ * שעת-קיר (באזור-הזמן של הקהילה) שבה השמש `dep` מעלות מתחת לאופק — למשל משיכיר = 11.5° בבוקר. עיגול לפי
+ * mode (זמן-התחלה ⇒ 'ceil', לחומרא). '' בקלט פגום / כשהשמש לא מגיעה לזווית.
+ */
+export function sunAngleTime(iso: IsoDate, loc: PrZmanimLoc, dep: number, rise: boolean, mode: 'floor' | 'ceil' | 'round' = 'round'): TimeHM | '' {
+  if (!isIsoDate(iso) || !Number.isFinite(dep)) return '';
+  const u = noaaUtcMin(iso, loc.lat, loc.lon, dep, rise);
+  if (u === null) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  const mm = mode === 'floor' ? Math.floor(u) : mode === 'ceil' ? Math.ceil(u) : Math.round(u);
+  return clockAt(Date.UTC(y, m - 1, d) + mm * 60000, loc.tz).hhmm;
+}
+
 /* ---------- סגירת שבת/יו״ט ברגע נתון ---------- */
 
 /** מצב-סגירה ברגע: מהדלקת-הנרות בערב ועד צאת ביום-הסגור האחרון של הרצף. */
@@ -303,6 +355,13 @@ export interface PrHebDate {
   text: string;
   /** אחרי השקיעה (ליל היום העברי הבא). */
   night: boolean;
+}
+
+/** היום והחודש העבריים בלי שנה ("ב׳ חשוון" — rdate של לוח-הבקשות במקור). */
+export function hebDayMonth(iso: string, tz: string = PR_TZ): string {
+  if (!isIsoDate(iso)) return '';
+  const p = hebcalParts(iso, tz);
+  return p.day ? gem(p.day) + ' ' + p.monthHe : '';
 }
 
 /** תאריך במילים (dateFmt של המקור, לבוררי-התאריך): "יום ד׳, 11 בנובמבר 2026 · א׳ כסלו". */

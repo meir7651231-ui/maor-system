@@ -35,7 +35,7 @@ export const PR_AD_KINDS = ['full', 'half', 'small', 'line'] as const;
 export const PR_BOOKLET_KINDS = ['full', 'half', 'small'] as const;
 export const PR_LANGS = ['he', 'yi', 'en', 'fr', 'ru'] as const;
 export const PR_AUDS = ['all', 'men', 'women'] as const;
-export const PR_PRICE_KEYS = ['featured', 'sponsor', 'board', 'dedication', 'full', 'half', 'small'] as const;
+export const PR_PRICE_KEYS = ['featured', 'sponsor', 'board', 'dedication', 'job', 'full', 'half', 'small'] as const;
 
 /** מחירון ברירת-מחדל (₪) — מהמקור; הגבאי דורס ב-db.ui.parnasa.prices. רישום/קישור-סליקה בלבד, אפס קבלות. */
 export const PR_PRICE_DEFAULTS: Readonly<Record<PrPriceKey, number>> = {
@@ -43,6 +43,7 @@ export const PR_PRICE_DEFAULTS: Readonly<Record<PrPriceKey, number>> = {
   sponsor: 300,
   board: 300,
   dedication: 500,
+  job: 90,
   full: 1200,
   half: 550,
   small: 200,
@@ -188,6 +189,7 @@ export function healPrRequest(raw: unknown, fallbackId = ''): PrRequest | null {
   // בקשה שקטה לעולם אינה הצעת-עבודה (המקור: quiet never together with job)
   if ((p.quiet ?? raw.quiet) === true && (p.job ?? raw.job) === true) p.job = false;
   fixObjList(raw, p, 'responses');
+  fixOpt(raw, p, 'promoAt:s promoPrice:n');
   const rq = raw.requester;
   if (!isObj(rq)) p.requester = { name: '', phone: '' };
   else if (typeof rq.name !== 'string' || typeof rq.phone !== 'string') {

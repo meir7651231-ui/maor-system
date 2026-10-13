@@ -85,6 +85,7 @@ import {
   listingImagesWhy,
   savePost,
   saveRequest,
+  setJobPromo,
   takeDownPost,
   validDialCode,
   type PrActor,
@@ -743,6 +744,8 @@ interface AppState extends HostingActions {
   closePrRequest: (id: string) => boolean;
   /** 🗑 מחיקת בקשה — parnasa.delete. */
   deletePrRequest: (id: string) => boolean;
+  /** ⭐ קידום הצעת-עבודה לראש הלוח / ביטול — parnasa.approve; המחיר מהמחירון (רישום בלבד). */
+  setPrJobPromo: (id: string, on: boolean) => boolean;
   /** מודעת-לוח / מניין / אירוע / מספר-חירום — של לא-מאשר ⇒ ממתינה לאישור. */
   upsertPrPost: (p: PrPost) => { ok: boolean; post?: PrPost };
   deletePrPost: (id: string) => boolean;
@@ -4090,6 +4093,14 @@ export const useApp = create<AppState>()((set, get) => {
       if (!get().db.prRequests.some((x) => x.id === id)) return false;
       setDb((db) => ({ prRequests: db.prRequests.filter((x) => x.id !== id) }));
       logAudit('🗑 מחיקת ' + termOf(cfg, 'entity.prRequest', 'בקשה'), '');
+      return true;
+    },
+    setPrJobPromo(id, on) {
+      const r = prCanNow('parnasa.approve') && get().db.prRequests.find((x) => x.id === id);
+      const next = r && setJobPromo(r, on, get().db.ui.parnasa, new Date().toISOString());
+      if (!next) return false;
+      setDb((db) => ({ prRequests: upsertIn(db.prRequests, next) }));
+      logAudit(on ? '⭐ קידום משרה' : 'ביטול קידום משרה', '');
       return true;
     },
     upsertPrPost(p) {

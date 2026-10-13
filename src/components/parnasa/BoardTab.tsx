@@ -1,11 +1,13 @@
 /**
- * 📒 פרנסה׳לע — לשונית 📌 לוח קהילה (אשכול 5, "לוח הקהילה" של המקור §3.10):
- *   · 🕰 לוח הזמנים (parnasa.zmanim) — buildZmanimBoard: זמני-היום (עבר מעומעם, הבא מודגש), המניין
- *     הבא + ספירה-לאחור, מניינים בשכונה, שבת קודש (בשבת — הנוכחית), בקהילה השבוע, מספרי-חירום;
- *     זמני-השבוע בטבלה. אזור-הזמן של הקהילה, התאריך העברי מתחלף בשקיעה (המנוע).
- *   · 📌 לוח המודעות — מאושרות ושלא פגו (ממתינות — למאשר בלבד, מסומנות), סינון לפי סוג, צ'יפי
- *     "מי בקהילה יכול לעזור" שמחפשים במדריך.
- *   · ⚙ עריכת הגבאי (מאשר/ת בלבד) — מיקום-הזמנים, בתי-כנסת/מניינים, אירועים, מספרי-חירום.
+ * 📒 פרנסה׳לע — "לוח הקהילה" של המקור (עיצוב 5, renderLuach): קיר בית-מדרש מעץ אגוז עם מנורת-נחושת, "בית המדרש ·
+ * {שם}", "לוח הקהילה", ומתג "לוח הזמנים | לוח המודעות" (זכור).
+ *   · לוח הזמנים — הכתר, "זמני היום", התאריך העברי והלועזי, שעון-הדפים, "לפי אופק …"; נורות "המניין הבא" עם
+ *     הספירה; לוחיות-הנחושת של זמני-היום (עבר מעומעם, הבא מסומן); "מניינים בשכונה" (שבבים: עבר / הבא); "שבת
+ *     קודש" (בשבת — הנוכחית); "בקהילה השבוע". כשאין — הדוגמאות של המקור "(דוגמה)".
+ *   · לוח המודעות — לבד ירוק במסגרת נחושת, השלט, סינון לפי סוג, הפתקים לפי סוג (נעיצה/סלוטייפ, "ממתין לאישור
+ *     הגבאי"), הפתק הפתוח ("מי בקהילה יכול לעזור" ⇒ האלפון; אישור/הורדה), "תליית מודעה" (חסום בשבת).
+ * תוספות-הפורט בשפת-המקור: מספרי-חירום, זמני-השבוע, שורת-החסות, "⚙ עריכת הגבאי" (מיקום-הזמנים, בתי-כנסת
+ * ומניינים, אירועים, מספרי-חירום — למקור לא היה ממשק), ההגבלה בשבת/חג (closure), התאריך העברי שמתחלף בשקיעה.
  */
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
@@ -13,51 +15,33 @@ import { featureOn, integrationOn, telephonyOn, termOf } from '../../lib/config'
 import { useRemembered } from '../../lib/filterMemory';
 import { mapsSearchUrl } from '../../lib/mapsLink';
 import type { PrPost, PrPostKind } from '../../types/domain';
-import { Btn, Chip, Empty } from '../ui';
+import { Btn } from '../ui';
 import { useArmed } from '../useArmed';
-import { CallBtn } from '../CallBtn';
-import { buildZmanimBoard, emergencyDrafts, hmToMin, postActiveOn, PR_ZMANIM_NOTE, weekZmanim, type PrMinyanTime } from './zmanimBoard';
+import { buildZmanimBoard, dayZmanim, emergencyDrafts, hebDayMonth, locNote, markZmanim, postActiveOn, PR_ZMANIM_NOTE, weekZmanim } from './zmanimBoard';
 import { adRotation } from './lib';
 import { PostForm } from './PostForm';
 import { ZmanimLocationEditor } from './ZmanimLocationEditor';
 import { usePrPerms, type PrNow } from './hooks';
-import { ddmm, PR_NOTICE_HELP, PR_NOTICE_KIND_ICONS, PR_NOTICE_KIND_LABELS, PR_POST_KIND_LABELS } from './labels';
+import { ddmm, pluralOf, PR_NOTICE_KIND_LABELS, PR_POST_KIND_LABELS } from './labels';
+import { LU_EX_EVENTS, LU_EX_SHULS, luachNotes, luachZmanim, minsUntil, noticeFoot, shulRows } from './luach';
+import { CrestCrown, FlipClock, LampSvg, NoteCard, NoteOverlay, NoticeForm } from './Luach';
+import { cx } from './skin';
 
 type Seg = 'zmanim' | 'notices' | 'edit';
 
-const PANEL = { display: 'flex', flexDirection: 'column', gap: 4 } as const;
+const WD_LONG = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'] as const;
+const WD_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'] as const;
 
-/** ספירה-לאחור עד שעה (אותו יום): "בעוד 25 דקות" / "בעוד 1:40 שעות". */
-function countdown(hhmm: string, nowHm: string): string {
-  const a = hmToMin(hhmm);
-  const b = hmToMin(nowHm);
-  if (a === null || b === null) return '';
-  const d = a - b;
-  if (d <= 0) return 'עכשיו';
-  return d < 60 ? 'בעוד ' + d + ' דקות' : 'בעוד ' + Math.floor(d / 60) + ':' + String(d % 60).padStart(2, '0') + ' שעות';
-}
-
-/** כתובת ⇒ קישור-מפה (מגודר-הרחבה אצל הקורא). */
-function PlaceLink(props: { place: string; mapsOn: boolean }) {
-  const url = props.mapsOn ? mapsSearchUrl(props.place) : null;
-  if (!props.place) return null;
-  return url ? (
-    <a href={url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12.5 }} title="פתיחה במפות">
-      {'📍 ' + props.place}
-    </a>
-  ) : (
-    <span style={{ fontSize: 12.5 }}>{'📍 ' + props.place}</span>
-  );
-}
-
-export function BoardTab(props: { now: PrNow; onSearch: ((q: string) => void) | null }) {
+export function BoardTab(props: { now: PrNow; onSearch: ((q: string) => void) | null; toast?: (m: string) => void; calm?: boolean }) {
   const config = useApp((s) => s.config);
   const posts = useApp((s) => s.db.prPosts);
   const ads = useApp((s) => s.db.prAds);
+  const prefs = useApp((s) => s.db.ui.parnasa);
   const setPrStatus = useApp((s) => s.setPrStatus);
   const deletePrPost = useApp((s) => s.deletePrPost);
   const upsertPrPost = useApp((s) => s.upsertPrPost);
-  const toast = useApp((s) => s.toast);
+  const orbitToast = useApp((s) => s.toast);
+  const toast = props.toast ?? orbitToast;
   const { canApprove, canDelete } = usePrPerms();
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const zmanimOn = featureOn(config, 'parnasa.zmanim');
@@ -65,50 +49,60 @@ export function BoardTab(props: { now: PrNow; onSearch: ((q: string) => void) | 
   const [kindFilter, setKindFilter] = useRemembered<string>('parnasa.board.kind', '');
   const [week, setWeek] = useRemembered<boolean>('parnasa.board.week', false);
   const [form, setForm] = useState<{ post: PrPost | null; kind: PrPostKind } | null>(null);
-  const [openNotice, setOpenNotice] = useState<string | null>(null);
+  const [noticeForm, setNoticeForm] = useState<{ post: PrPost | null } | null>(null);
+  const [openNote, setOpenNote] = useState<string | null>(null);
 
   const { now } = props;
-  const board = useMemo(() => buildZmanimBoard(now.clock, now.loc, posts), [now.clock, now.loc, posts]);
+  const today = now.todayIso;
+  // בלי מניינים אמיתיים — בתי-הכנסת לדוגמה של המקור (גם "המניין הבא" מחושב מהם)
+  const exShuls = !posts.some((p) => p.kind === 'minyan' && postActiveOn(p, today));
+  const board = useMemo(() => buildZmanimBoard(now.clock, now.loc, exShuls ? [...posts, ...LU_EX_SHULS] : posts), [now.clock, now.loc, posts, exShuls]);
   const weekRows = useMemo(() => (week ? weekZmanim(now.clock.iso, now.loc, 7) : []), [week, now.clock.iso, now.loc]);
+  // 12 הלוחיות של המקור: זמני-המנוע + "זמן ציצית ותפילין · משיכיר" (רק בלוח)
+  const plates = useMemo(() => markZmanim(luachZmanim(dayZmanim(now.clock.iso, now.loc), now.clock.iso, now.loc), now.clock), [now.clock, now.loc]);
 
   const word = termOf(config, 'entity.prPost', 'מודעה');
   const gabbai = termOf(config, 'entity.prGabbai', 'גבאי');
   const mapsOn = integrationOn(config, 'maps');
   const telOn = telephonyOn(config);
-  const active = seg === 'zmanim' && !zmanimOn ? 'notices' : seg === 'edit' && !canApprove ? 'notices' : seg;
-  const today = now.todayIso;
+  const active: Seg = seg === 'zmanim' && !zmanimOn ? 'notices' : seg === 'edit' && !canApprove ? 'notices' : seg;
   // שורת-החסות של הלוח — התורנית של היום (סבב-יומי מהמנוע); רק כשמשבצות-הפרסום דלוקות
   const sponsor = featureOn(config, 'parnasa.ads') ? adRotation(ads, 'board', today).today : null;
 
-  const notices = posts
-    .filter((p) => p.kind === 'notice' && (postActiveOn(p, today) || (canApprove && !p.approved && (!p.until || p.until >= today))))
-    .filter((p) => !kindFilter || p.noticeKind === kindFilter)
-    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || String(b.createdAt).localeCompare(String(a.createdAt)));
-  const kindsPresent = [...new Set(posts.filter((p) => p.kind === 'notice' && postActiveOn(p, today) && p.noticeKind).map((p) => p.noticeKind))];
+  const notes = luachNotes(posts, today, canApprove);
+  const used = [...new Set(notes.xs.map((n) => n.k).filter((k) => PR_NOTICE_KIND_LABELS[k]))];
+  const filt = kindFilter && used.includes(kindFilter) ? kindFilter : '';
   const pendingNotices = posts.filter((p) => p.kind === 'notice' && !p.approved && (!p.until || p.until >= today)).length;
   const eventsWeek = posts
     .filter((p) => p.kind === 'event' && postActiveOn(p, today) && (!p.date || p.date >= today))
     .sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999') || a.title.localeCompare(b.title, 'he'));
-  const byShul = new Map<string, { shul: string; place: string; rows: PrMinyanTime[] }>();
-  for (const m of board.minyanim) {
-    const cur = byShul.get(m.postId) ?? { shul: m.shul, place: m.place, rows: [] };
-    cur.rows.push(m);
-    byShul.set(m.postId, cur);
-  }
+  const exEvents = !eventsWeek.length;
+  const shuls = shulRows(
+    board.minyanim,
+    board.nextMinyan,
+    now.clock.hhmm,
+    (exShuls ? [...posts, ...LU_EX_SHULS] : posts).filter((p) => p.kind === 'minyan').map((p) => p.id),
+  );
+  const nm = board.nextMinyan;
+  const nz = plates.find((z) => z.next) ?? null;
+  const left = nm ? minsUntil(nm.time, now.clock.hhmm) : null;
+  const night = board.hebDate.night;
+  const hd = (night ? 'ליל ' + WD_LONG[(now.clock.dow + 1) % 7] : 'יום ' + WD_LONG[now.clock.dow]) + ', ' + board.hebDate.text;
+  const gd = new Date(now.clock.iso + 'T12:00:00').toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' });
+  const customLoc = !!(prefs?.zmanim && (prefs.zmanim.city || prefs.zmanim.lat !== undefined));
+  const openN = openNote !== null ? notes.xs.findIndex((n) => n.id === openNote) : -1;
 
-  function decide(p: PrPost, status: 'approved' | 'rejected') {
+  function decide(p: PrPost, status: 'approved' | 'rejected'): void {
     if (setPrStatus('post', p.id, status)) toast(status === 'approved' ? 'נתלה בלוח' : 'ירד מהלוח');
   }
-
-  function remove(p: PrPost) {
+  function remove(p: PrPost): void {
     if (!confirmTwice('prp-' + p.id, 'למחוק את "' + p.title + '"?')) {
       toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תמחק לצמיתות');
       return;
     }
     if (deletePrPost(p.id)) toast('נמחק');
   }
-
-  function seedEmergency() {
+  function seedEmergency(): void {
     let n = 0;
     for (const d of emergencyDrafts()) {
       const res = upsertPrPost({ id: '', kind: 'emergency', title: d.title, text: d.text, place: '', phone: d.phone, noticeKind: '', prayers: [], days: [], date: '', time: '', until: '', approved: false, pinned: false, createdAt: '', updatedAt: '' });
@@ -116,8 +110,13 @@ export function BoardTab(props: { now: PrNow; onSearch: ((q: string) => void) | 
     }
     toast(n + ' מספרי-חירום נוצרו לעריכה');
   }
+  function addNotice(): void {
+    // שבת קודש — "אפשר לתלות מודעה במוצאי שבת" (luForm במקור)
+    if (props.calm) return toast('שבת קודש. אפשר לתלות ' + word + ' במוצאי שבת');
+    setNoticeForm({ post: null });
+  }
 
-  /** שורת-ניהול לפריט בלוח (עריכה / אישור / הורדה / מחיקה). */
+  /** שורת-ניהול לפריט בעריכת-הגבאי (עריכה / אישור / הורדה / מחיקה). */
   function rowActions(p: PrPost) {
     return (
       <span style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginInlineStart: 'auto' }}>
@@ -142,308 +141,343 @@ export function BoardTab(props: { now: PrNow; onSearch: ((q: string) => void) | 
       </span>
     );
   }
-
   const status = (p: PrPost): string =>
     !p.approved ? (p.until && p.until < today ? ' · ירד מהלוח' : ' · ⏳ ממתין לאישור') : p.until && p.until < today ? ' · פג' : '';
+  const place = (s: string) => {
+    const url = mapsOn && s ? mapsSearchUrl(s) : null;
+    return url ? (
+      <a href={url} target="_blank" rel="noopener noreferrer" title="פתיחה במפות">
+        {s}
+      </a>
+    ) : (
+      s
+    );
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>הזמנים, המניינים והמודעות של השכונה, במקום אחד.</div>
-      {sponsor && (
-        <div className="card" style={{ fontSize: 13, padding: '6px 12px' }}>
-          {'📌 הלוח בחסות '}
-          <b>{sponsor.advertiser}</b>
-          {[sponsor.headline, sponsor.phone].filter((x) => x && x.trim()).map((x) => ' · ' + x).join('')}
-        </div>
-      )}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {zmanimOn && (
-          <Chip on={active === 'zmanim'} onClick={() => setSeg('zmanim')}>
-            🕰 לוח הזמנים
-          </Chip>
-        )}
-        <Chip on={active === 'notices'} onClick={() => setSeg('notices')}>
-          {'📌 לוח המודעות' + (canApprove && pendingNotices ? ' (' + pendingNotices + ' ממתינות)' : '')}
-        </Chip>
-        {canApprove && (
-          <Chip on={active === 'edit'} onClick={() => setSeg('edit')}>
-            {'⚙ עריכת ה' + gabbai}
-          </Chip>
-        )}
-      </div>
-
-      {active === 'zmanim' && (
-        <>
-          <div className="card" style={{ display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center' }}>
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{ fontWeight: 800, fontSize: 16 }}>{'זמני היום · ' + board.hebDate.text}</div>
-              <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-                {ddmm(now.clock.iso) + '/' + now.clock.iso.slice(0, 4) + (board.dayName ? ' · ' + board.dayName : '') + (board.hebDate.night ? ' · אחרי השקיעה' : '')}
-              </div>
-            </div>
-            <div dir="ltr" aria-label="השעה" style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
-              {now.clock.hhmm}
-            </div>
-          </div>
-          {board.closure.closed && (
-            <div className="card" style={{ fontWeight: 700 }}>
-              {'🕯 ' + board.closure.reason + ' · עד צאת ' + board.closure.endTime + ' (' + board.closure.motzei + ')'}
-            </div>
-          )}
-          <div className="card" style={{ fontSize: 14 }}>
-            <b>המניין הבא: </b>
-            {board.nextMinyan
-              ? board.nextMinyan.prayer + ' · ' + board.nextMinyan.shul + ' · ' + board.nextMinyan.time + ' · ' + countdown(board.nextMinyan.time, now.clock.hhmm)
-              : 'אין עוד מניינים היום'}
-            {board.nextZman && (
-              <span style={{ color: 'var(--ink-faint)' }}>{' · הזמן הבא: ' + board.nextZman.label + (board.nextZman.sub ? ' (' + board.nextZman.sub + ')' : '') + ' ' + board.nextZman.time}</span>
-            )}
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
-            <section className="card" style={PANEL}>
-              <h2 style={{ fontSize: 15, fontWeight: 800 }}>זמני היום</h2>
-              {board.zmanim.map((z) => (
-                <div
-                  key={z.key}
-                  style={{ display: 'flex', gap: 8, fontSize: 13, opacity: z.past ? 0.45 : 1, fontWeight: z.next ? 800 : 400, color: z.next ? 'var(--accent)' : undefined }}
-                >
-                  <span>{z.label}</span>
-                  {z.sub && <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{z.sub}</span>}
-                  <span style={{ marginInlineStart: 'auto' }}>
-                    <span dir="ltr">{z.time || '—'}</span>
-                  </span>
-                </div>
-              ))}
-            </section>
-
-            <section className="card" style={PANEL}>
-              <h2 style={{ fontSize: 15, fontWeight: 800 }}>מניינים בשכונה</h2>
-              {byShul.size === 0 && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{'אין מניינים היום. ה' + gabbai + ' מוסיף/ה בתי-כנסת ב"⚙ עריכת ה' + gabbai + '".'}</div>}
-              {[...byShul.entries()].map(([id, s]) => (
-                <div key={id} style={{ borderBottom: '1px dotted var(--line)', paddingBottom: 4 }}>
-                  <div style={{ fontWeight: 700, fontSize: 13.5 }}>{s.shul}</div>
-                  <PlaceLink place={s.place} mapsOn={mapsOn} />
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 2 }}>
-                    {s.rows.map((m, i) => {
-                      const past = m.time < now.clock.hhmm;
-                      const next = board.nextMinyan === m;
-                      return (
-                        <span
-                          key={i}
-                          style={{
-                            fontSize: 12,
-                            border: '1px solid var(--line)',
-                            borderRadius: 6,
-                            padding: '0 5px',
-                            textDecoration: past ? 'line-through' : undefined,
-                            opacity: past ? 0.5 : 1,
-                            fontWeight: next ? 800 : 400,
-                          }}
-                        >
-                          {m.prayer + ' ' + m.time}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </section>
-
-            <section className="card" style={PANEL}>
-              <h2 style={{ fontSize: 15, fontWeight: 800 }}>שבת קודש</h2>
-              <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-                {(board.shabbat.current ? 'השבת · ' : 'השבת הקרובה · ') + board.shabbat.hebDate + (board.shabbat.mevarchim ? ' · שבת מברכים חודש ' + board.shabbat.mevarchim : '') + (board.shabbat.holiday ? ' · ' + board.shabbat.holiday : '')}
-              </div>
-              {[
-                ['הדלקת נרות (ערש״ק)', board.shabbat.candle],
-                ['צאת השבת', board.shabbat.end],
-                ['רבנו תם', board.shabbat.rabbeinuTam],
-              ].map(([label, time]) => (
-                <div key={label} style={{ display: 'flex', fontSize: 13 }}>
-                  <span>{label}</span>
-                  <span style={{ marginInlineStart: 'auto' }}>
-                    <span dir="ltr">{time || '—'}</span>
-                  </span>
-                </div>
-              ))}
-            </section>
-
-            <section className="card" style={PANEL}>
-              <h2 style={{ fontSize: 15, fontWeight: 800 }}>בקהילה השבוע</h2>
-              {eventsWeek.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>אין אירועים קרובים.</div>}
-              {eventsWeek.map((e) => (
-                <div key={e.id} style={{ fontSize: 13 }}>
-                  <b>{[e.date ? ddmm(e.date) : '', e.time].filter(Boolean).join(' · ') || '—'}</b>
-                  {' · ' + e.title}
-                  {e.text && <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{e.text}</div>}
-                  <PlaceLink place={e.place} mapsOn={mapsOn} />
-                </div>
-              ))}
-            </section>
-
-            <section className="card" style={PANEL}>
-              <h2 style={{ fontSize: 15, fontWeight: 800 }}>🚑 מספרי חירום</h2>
-              {board.emergency.map((e) => (
-                <div key={e.label + e.phone} style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 13.5 }}>
-                  <b>{e.label}</b>
-                  {e.note && <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{e.note}</span>}
-                  <span style={{ marginInlineStart: 'auto', fontWeight: 800 }}>
-                    <span dir="ltr">{e.phone}</span>
-                  </span>
-                  {telOn ? <CallBtn phone={e.phone} title={'חיוג ל' + e.label} /> : null}
-                </div>
-              ))}
-            </section>
-          </div>
-
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Chip on={week} onClick={() => setWeek(!week)}>
-              📅 זמני השבוע
-            </Chip>
-            <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{board.note}</span>
-          </div>
-          {week && (
-            <div style={{ overflowX: 'auto', overflowY: 'hidden' }}>
-              <table className="table">
-                <thead>
-                  <tr>
-                    {['יום', 'תאריך', 'עלות', 'נץ', 'סוף ק״ש (גר״א)', 'חצות', 'שקיעה', 'צאת', 'הערות'].map((h) => (
-                      <th key={h}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {weekRows.map((r) => (
-                    <tr key={r.iso}>
-                      <td>{r.dayName}</td>
-                      <td>{r.hebDate}</td>
-                      <td dir="ltr">{r.alot}</td>
-                      <td dir="ltr">{r.sunrise}</td>
-                      <td dir="ltr">{r.shmaGra}</td>
-                      <td dir="ltr">{r.chatzot}</td>
-                      <td dir="ltr">{r.sunset}</td>
-                      <td dir="ltr">{r.tzeis}</td>
-                      <td>{[r.candle ? 'הדלקה ' + r.candle : '', r.end ? (r.dow === 6 ? 'צאת השבת ' : 'צאת החג ') + r.end : '', r.holiday].filter(Boolean).join(' · ')}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{PR_ZMANIM_NOTE}</div>
-            </div>
-          )}
-        </>
-      )}
-
-      {active === 'notices' && (
-        <>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-            <Chip on={!kindFilter} onClick={() => setKindFilter('')}>
-              הכול
-            </Chip>
-            {kindsPresent.map((k) => (
-              <Chip key={k} on={kindFilter === k} onClick={() => setKindFilter(kindFilter === k ? '' : k)}>
-                {(PR_NOTICE_KIND_ICONS[k] ?? '') + ' ' + (PR_NOTICE_KIND_LABELS[k] ?? k)}
-              </Chip>
-            ))}
-            <span style={{ marginInlineStart: 'auto' }}>
-              <Btn kind="primary" onClick={() => setForm({ post: null, kind: 'notice' })}>
-                ➕ הוספת {termOf(config, 'entity.prPost', 'מודעה')}
-              </Btn>
-            </span>
-          </div>
-          {notices.length === 0 && (
-            <Empty>{'הלוח ריק — ' + word + ' חדשה נתלית אחרי אישור ה' + gabbai + ', ויורדת לבד אחרי האירוע.'}</Empty>
-          )}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
-            {notices.map((p) => {
-              const help = PR_NOTICE_HELP[p.noticeKind];
-              return (
-                <div key={p.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 4, ...(p.noticeKind === 'avel' ? { borderTop: '3px solid #111' } : {}) }}>
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', fontSize: 12 }}>
-                    <span>{(PR_NOTICE_KIND_ICONS[p.noticeKind] ?? '📌') + ' ' + (PR_NOTICE_KIND_LABELS[p.noticeKind] ?? 'הודעה')}</span>
-                    {p.pinned && <span>📍 נעוץ</span>}
-                    {!p.approved && <span style={{ color: '#a16207', fontWeight: 700 }}>{'ממתין לאישור ה' + gabbai}</span>}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setOpenNotice(openNotice === p.id ? null : p.id)}
-                    style={{ background: 'none', border: 'none', padding: 0, textAlign: 'start', cursor: 'pointer', fontWeight: 800, fontSize: 15, color: 'inherit' }}
-                  >
-                    {p.title}
+    <div className="pn-luwrap">
+      <div className="pn-luHost pl">
+        <div className="pl-lw">
+          <div className="pl-wrap">
+            <header className="pl-top">
+              <LampSvg />
+              <span className="pl-lightcone" aria-hidden="true" />
+              <span className="pl-k">{'בית המדרש · ' + termOf(config, 'nav.parnasa', 'פרנסה׳לע')}</span>
+              <h1>לוח הקהילה</h1>
+              <p>הזמנים, המניינים, והמודעות של השכונה, במקום אחד</p>
+              {zmanimOn ? (
+                <div className="pl-seg" role="tablist" aria-label="לוח">
+                  <button role="tab" type="button" id="pl-tZ" aria-selected={active === 'zmanim'} aria-controls="pl-pZ" onClick={() => setSeg('zmanim')}>
+                    לוח הזמנים
                   </button>
-                  {p.text && <div style={{ fontSize: 13, whiteSpace: 'pre-line' }}>{p.text}</div>}
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 12.5 }}>
-                    <PlaceLink place={p.place} mapsOn={mapsOn} />
-                    {p.time && <span>{'🕒 ' + p.time}</span>}
-                    {p.phone && <span dir="ltr">{'☎ ' + p.phone}</span>}
-                    {p.until && <span style={{ color: 'var(--ink-faint)' }}>{'יורד ב-' + ddmm(p.until)}</span>}
+                  <button role="tab" type="button" id="pl-tN" aria-selected={active === 'notices'} aria-controls="pl-pN" onClick={() => setSeg('notices')}>
+                    {'לוח ה' + pluralOf(word) + (canApprove && pendingNotices ? ' (' + pendingNotices + ')' : '')}
+                  </button>
+                </div>
+              ) : null}
+              {canApprove ? (
+                <button className="pl-gab" type="button" aria-pressed={active === 'edit'} onClick={() => setSeg(active === 'edit' ? (zmanimOn ? 'zmanim' : 'notices') : 'edit')}>
+                  {'⚙ עריכת ה' + gabbai}
+                </button>
+              ) : null}
+              {sponsor ? (
+                <p className="pl-spon">
+                  {'📌 הלוח בחסות '}
+                  <b>{sponsor.advertiser}</b>
+                  {[sponsor.headline, sponsor.phone].filter((x) => x && x.trim()).map((x) => ' · ' + x).join('')}
+                </p>
+              ) : null}
+            </header>
+
+            {active === 'zmanim' ? (
+              <section id="pl-pZ" role="tabpanel" aria-labelledby="pl-tZ">
+                <div className="pl-board">
+                  <div className="pl-crest">
+                    <CrestCrown />
+                    <h2>זמני היום</h2>
+                    <span className="pl-hd">{hd}</span>
+                    <span className="pl-gd">{gd + (board.dayName ? ' · ' + board.dayName : '')}</span>
+                    <FlipClock hhmm={now.clock.hhmm} />
+                    <span className="pl-gd">{locNote(now.loc) + (customLoc ? '' : ' · ה' + gabbai + ' יכול לשנות')}</span>
+                    {board.closure.closed ? <span className="pl-gd">{'🕯 ' + board.closure.reason + ' · עד צאת ' + board.closure.endTime}</span> : null}
                   </div>
-                  {openNotice === p.id && help && props.onSearch && (
-                    <div style={{ borderTop: '1px solid var(--line)', paddingTop: 4 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 700 }}>{help.title}</div>
-                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 3 }}>
-                        {help.chips.map((c) => (
-                          <Chip key={c} onClick={() => props.onSearch?.(c)}>
-                            {'🔎 ' + c}
-                          </Chip>
+                  <div className="pl-marq">
+                    <div className="pl-next">
+                      <span className="pl-bulb" aria-hidden="true" />
+                      {nm && left ? (
+                        <>
+                          <span>
+                            <small>המניין הבא</small>
+                            <b>{nm.prayer + ' · ' + nm.shul}</b>
+                            <small>{nm.time + (nz ? ' · ' + nz.label + (nz.sub ? ' ' + nz.sub : '') + ' ב־' + nz.time : '')}</small>
+                          </span>
+                          <span className="pl-in">
+                            {left.n}
+                            <small>{left.unit}</small>
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span>
+                            <b>אין עוד מניינים היום</b>
+                            <small>{nz ? nz.label + ' ב־' + nz.time : ''}</small>
+                          </span>
+                          <span />
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="pl-cols">
+                    <div className="pl-panel">
+                      <h3>זמני היום</h3>
+                      <div className="pl-zl">
+                        {plates.map((z) => (
+                          <div key={z.key} className={cx('pl-z', z.past && 'pl-past', z.next && 'pl-now')}>
+                            <span className="pl-n">
+                              {z.label}
+                              {z.sub ? <small>{z.sub}</small> : null}
+                            </span>
+                            <span className="pl-t">{z.time || '—'}</span>
+                          </div>
                         ))}
                       </div>
                     </div>
-                  )}
-                  <div style={{ display: 'flex' }}>{rowActions(p)}</div>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>
-            {'כל ' + word + ' עוברת אצל ה' + gabbai + ' לפני שהיא נתלית, ויורדת לבד אחרי האירוע.' + (canApprove && pendingNotices ? ' · ' + pendingNotices + ' ממתינות לאישור שלך' : '')}
-          </div>
-        </>
-      )}
-
-      {active === 'edit' && (
-        <>
-          <section className="card">
-            <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 6 }}>📍 מיקום הזמנים</h2>
-            <ZmanimLocationEditor />
-          </section>
-          {(['minyan', 'event', 'emergency'] as const).map((k) => {
-            const items = posts.filter((p) => p.kind === k).sort((a, b) => a.title.localeCompare(b.title, 'he'));
-            return (
-              <section key={k} className="card" style={PANEL}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <h2 style={{ fontSize: 15, fontWeight: 800 }}>{PR_POST_KIND_LABELS[k] + ' (' + items.length + ')'}</h2>
-                  <span style={{ marginInlineStart: 'auto' }}>
-                    <Btn sm kind="primary" onClick={() => setForm({ post: null, kind: k })}>
-                      {'➕ ' + PR_POST_KIND_LABELS[k].replace(/^\S+\s/, '')}
-                    </Btn>
-                  </span>
-                </div>
-                {k === 'emergency' && items.length === 0 && (
-                  <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-                    {'מוצגים מספרי ברירת-המחדל (' + board.emergency.map((e) => e.label + ' ' + e.phone).join(' · ') + '). '}
-                    <Btn sm onClick={seedEmergency}>
-                      ✎ עריכה — יצירת רשומות מברירת-המחדל
-                    </Btn>
+                    <div className="pl-panel">
+                      <h3>מניינים בשכונה</h3>
+                      <div className="pl-mn">
+                        {shuls.map((s) => (
+                          <div key={s.id} className="pl-shul">
+                            <div className="pl-sh">
+                              <b>{s.shul}</b>
+                              <small>
+                                {place(s.place)}
+                                {exShuls ? ' (דוגמה)' : ''}
+                              </small>
+                            </div>
+                            <div className="pl-tf">
+                              {s.prayers.map((p) => [
+                                <span key={'n' + p.prayer}>{p.prayer}</span>,
+                                <div key={'t' + p.prayer}>
+                                  {p.times.map((t, i) => (
+                                    <b key={i} className={cx('pl-chip', t.past && 'pl-past', t.next && 'pl-nx')}>
+                                      {t.time}
+                                    </b>
+                                  ))}
+                                </div>,
+                              ])}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="pl-panel pl-shab">
+                      <h3>שבת קודש</h3>
+                      <div className="pl-parsha">
+                        <small>{board.shabbat.current ? 'השבת' : 'השבת הקרובה'}</small>
+                        <b>{board.shabbat.holiday || 'שבת קודש'}</b>
+                        <span>{hebDayMonth(board.shabbat.satIso, now.loc.tz) + (board.shabbat.mevarchim ? ' · שבת מברכים' : '')}</span>
+                      </div>
+                      <div className="pl-zl">
+                        {(
+                          [
+                            ['הדלקת נרות', board.shabbat.candle, 'ערש״ק'],
+                            ['צאת השבת', board.shabbat.end, ''],
+                            ['רבנו תם', board.shabbat.rabbeinuTam, ''],
+                          ] as const
+                        ).map(([l, t, s]) => (
+                          <div key={l} className="pl-z">
+                            <span className="pl-n">
+                              {l}
+                              {s ? <small>{s}</small> : null}
+                            </span>
+                            <span className="pl-t">{t || '—'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="pl-panel">
+                      <h3>בקהילה השבוע</h3>
+                      <div className="pl-ev">
+                        {exEvents
+                          ? LU_EX_EVENTS.map((e) => (
+                              <div key={e.t} className="pl-e">
+                                <span className="pl-d">
+                                  <b>{e.d.split(' ')[0]}</b>
+                                  <small>{e.d.split(' ').slice(1).join(' ')}</small>
+                                </span>
+                                <span className="pl-x">
+                                  <b>{e.t}</b>
+                                  <small>{e.s + ' (דוגמה)'}</small>
+                                </span>
+                              </div>
+                            ))
+                          : eventsWeek.map((e) => (
+                              <div key={e.id} className="pl-e">
+                                <span className="pl-d">
+                                  <b>{e.date ? WD_SHORT[new Date(e.date + 'T12:00:00').getDay()] : '·'}</b>
+                                  <small>{e.date ? ddmm(e.date) : ''}</small>
+                                </span>
+                                <span className="pl-x">
+                                  <b>{e.title}</b>
+                                  <small>
+                                    {[e.time, e.text].filter(Boolean).join(' · ')}
+                                    {e.place ? (
+                                      <>
+                                        {e.time || e.text ? ' · ' : ''}
+                                        {place(e.place)}
+                                      </>
+                                    ) : null}
+                                  </small>
+                                </span>
+                              </div>
+                            ))}
+                      </div>
+                    </div>
+                    <div className="pl-panel pl-emg">
+                      <h3>מספרי חירום</h3>
+                      <div className="pl-zl">
+                        {board.emergency.map((e) => (
+                          <div key={e.label + e.phone} className="pl-z">
+                            <span className="pl-n">
+                              {e.label}
+                              {e.note ? <small>{e.note}</small> : null}
+                            </span>
+                            <span className="pl-t">{telOn ? <a href={'tel:' + e.phone.replace(/[^\d+*#]/g, '')}>{e.phone}</a> : e.phone}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                )}
-                {items.map((p) => (
-                  <div key={p.id} style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', fontSize: 13, borderBottom: '1px dotted var(--line)', padding: '3px 0' }}>
-                    <b>{p.title}</b>
-                    <span style={{ color: 'var(--ink-faint)', fontSize: 12 }}>
-                      {(k === 'minyan' ? p.prayers.map((x) => x.prayer + ' ' + x.times.join('/')).join(' · ') : k === 'emergency' ? p.phone : [p.date ? ddmm(p.date) : '', p.time].filter(Boolean).join(' · ')) + status(p)}
-                    </span>
-                    {rowActions(p)}
+                  <div className="pl-wk">
+                    <button type="button" aria-pressed={week} onClick={() => setWeek(!week)}>
+                      זמני השבוע
+                    </button>
                   </div>
-                ))}
+                  {week ? (
+                    <div className="pl-panel pl-week">
+                      <h3>זמני השבוע</h3>
+                      <div className="pl-tblw">
+                        <table className="pl-tbl">
+                          <thead>
+                            <tr>
+                              {['יום', 'תאריך', 'עלות', 'נץ', 'סוף ק״ש (גר״א)', 'חצות', 'שקיעה', 'צאת', 'הערות'].map((h) => (
+                                <th key={h}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {weekRows.map((r) => (
+                              <tr key={r.iso}>
+                                <td>{r.dayName}</td>
+                                <td>{r.hebDate}</td>
+                                <td>{r.alot}</td>
+                                <td>{r.sunrise}</td>
+                                <td>{r.shmaGra}</td>
+                                <td>{r.chatzot}</td>
+                                <td>{r.sunset}</td>
+                                <td>{r.tzeis}</td>
+                                <td>{[r.candle ? 'הדלקה ' + r.candle : '', r.end ? (r.dow === 6 ? 'צאת השבת ' : 'צאת החג ') + r.end : '', r.holiday].filter(Boolean).join(' · ')}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               </section>
-            );
-          })}
-        </>
-      )}
+            ) : null}
 
-      {form && <PostForm post={form.post} kind={form.kind} onClose={() => setForm(null)} />}
+            {active === 'notices' ? (
+              <section id="pl-pN" role="tabpanel" aria-labelledby="pl-tN">
+                <div className="pl-nb">
+                  <div className="pl-felt">
+                    <div className="pl-plaque">{'לוח ה' + pluralOf(word) + ' · קהילת השכונה'}</div>
+                    <div className="pl-filters" role="group" aria-label={'סוג ' + word}>
+                      <button type="button" aria-pressed={!filt} onClick={() => setKindFilter('')}>
+                        הכול
+                      </button>
+                      {used.map((k) => (
+                        <button key={k} type="button" aria-pressed={filt === k} onClick={() => setKindFilter(k)}>
+                          {PR_NOTICE_KIND_LABELS[k]}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="pl-notes">
+                      {notes.ex ? <p className="pl-exb">{'כך ייראה הלוח. אלה ' + pluralOf(word) + ' לדוגמה, עד שתיתלה ה' + word + ' הראשונה'}</p> : null}
+                      {notes.xs.map((n, i) => (!filt || n.k === filt ? <NoteCard key={n.id} n={n} i={i} gabbai={gabbai} onOpen={() => setOpenNote(n.id)} /> : null))}
+                    </div>
+                  </div>
+                  <button className="pl-add" type="button" onClick={addNotice}>
+                    ➕ הוספת {termOf(config, 'entity.prPost', 'מודעה')}
+                  </button>
+                </div>
+                <p className="pl-foot" style={{ marginTop: 40 }}>
+                  {noticeFoot(pendingNotices, canApprove, gabbai, word)}
+                </p>
+              </section>
+            ) : null}
+
+            {active === 'edit' ? (
+              <section className="pl-edit pn-orbit" aria-label={'עריכת ה' + gabbai}>
+                <section className="card">
+                  <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 6 }}>📍 מיקום הזמנים</h2>
+                  <ZmanimLocationEditor />
+                </section>
+                {(['minyan', 'event', 'emergency'] as const).map((k) => {
+                  const items = posts.filter((p) => p.kind === k).sort((a, b) => a.title.localeCompare(b.title, 'he'));
+                  return (
+                    <section key={k} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <h2 style={{ fontSize: 15, fontWeight: 800 }}>{PR_POST_KIND_LABELS[k] + ' (' + items.length + ')'}</h2>
+                        <span style={{ marginInlineStart: 'auto' }}>
+                          <Btn sm kind="primary" onClick={() => setForm({ post: null, kind: k })}>
+                            {'➕ ' + PR_POST_KIND_LABELS[k].replace(/^\S+\s/, '')}
+                          </Btn>
+                        </span>
+                      </div>
+                      {k === 'emergency' && items.length === 0 && (
+                        <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
+                          {'מוצגים מספרי ברירת-המחדל (' + board.emergency.map((e) => e.label + ' ' + e.phone).join(' · ') + '). '}
+                          <Btn sm onClick={seedEmergency}>
+                            ✎ עריכה — יצירת רשומות מברירת-המחדל
+                          </Btn>
+                        </div>
+                      )}
+                      {items.map((p) => (
+                        <div key={p.id} style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', fontSize: 13, borderBottom: '1px dotted var(--line)', padding: '3px 0' }}>
+                          <b>{p.title}</b>
+                          <span style={{ color: 'var(--ink-faint)', fontSize: 12 }}>
+                            {(k === 'minyan' ? p.prayers.map((x) => x.prayer + ' ' + x.times.join('/')).join(' · ') : k === 'emergency' ? p.phone : [p.date ? ddmm(p.date) : '', p.time].filter(Boolean).join(' · ')) + status(p)}
+                          </span>
+                          {rowActions(p)}
+                        </div>
+                      ))}
+                    </section>
+                  );
+                })}
+              </section>
+            ) : null}
+
+            <p className="pl-foot">{(exShuls || exEvents ? 'המניינים והאירועים כאן לדוגמה. ה' + gabbai + ' מעדכן אותם ב״עריכת ה' + gabbai + '״. ' : '') + PR_ZMANIM_NOTE}</p>
+          </div>
+        </div>
+      </div>
+      {openN >= 0 ? (
+        <NoteOverlay
+          n={notes.xs[openN]}
+          i={openN}
+          toast={toast}
+          onClose={() => setOpenNote(null)}
+          onSearch={props.onSearch}
+          onEdit={(p) => {
+            setOpenNote(null);
+            setNoticeForm({ post: p });
+          }}
+        />
+      ) : null}
+      {noticeForm ? <NoticeForm base={noticeForm.post} todayIso={today} toast={toast} onClose={() => setNoticeForm(null)} /> : null}
+      {form ? <PostForm post={form.post} kind={form.kind} onClose={() => setForm(null)} /> : null}
     </div>
   );
 }
