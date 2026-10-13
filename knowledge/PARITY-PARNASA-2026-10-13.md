@@ -18,7 +18,7 @@ for themselves; the port is a gabbai/staff tool inside Orbit — residents' requ
 is no owner login).
 
 **Before the re-skin** (design phase, 164 capabilities in A–K): **30 present · 65 partial · 69 missing**.
-**Now (after cluster 1 — skin + shell)**: **41 present · 63 partial · 60 missing**
+**Now (after cluster 2 — home + photo banners)**: **70 present · 56 partial · 38 missing**
 
 **Design-phase breakdown** (before the re-skin): of the 134 partial+missing rows, the main blocker is: 93 UI-only · 26 need new data fields (DATA, usually with UI) · 15 need a server or public access (SERVER, out of scope). A parenthetical "(+DATA…)"/"(+SERVER…)" marks a secondary, smaller part of the gap.
 
@@ -26,12 +26,12 @@ Current counts per area (recomputed from the rows after every cluster):
 
 | area | present | partial | missing |
 |---|---|---|---|
-| A. Shell & brand | 10 | 3 | 4 |
-| B. Home | 1 | 5 | 15 |
-| C. Results | 1 | 4 | 6 |
+| A. Shell & brand | 12 | 2 | 3 |
+| B. Home | 18 | 3 | 0 |
+| C. Results | 10 | 0 | 1 |
 | D. Browse | 1 | 6 | 1 |
 | E. Business page | 3 | 10 | 12 |
-| F. Contact | 1 | 1 | 2 |
+| F. Contact | 2 | 1 | 1 |
 | G. Requests | 6 | 9 | 4 |
 | H. Community board | 6 | 5 | 3 |
 | I. העסק שלי | 3 | 10 | 11 |
@@ -55,8 +55,8 @@ Current counts per area (recomputed from the rows after every cluster):
 | A11 | Once-per-session intro: 3D pushke (three.js r128 from cdnjs) with CSS fallback, skippable | missing | — | UI | the CSS fallback (mark + letter-by-letter wordmark) is enough; three.js would have to be bundled |
 | A12 | Gold-dust canvas behind the page (off for reduced motion and Shabbat) | missing | — | UI | |
 | A13 | Footer colophon: mark · "פרנסה׳לע · א פרנסה׳לע פאר יעדן איד" · "נבנה לתועלת הקהילה · לחיזוק הפרנסה של אנשינו" · "לחסות על שער, להקדשה ולפרסום בחוברת השנתית: פנו לגבאי בטלפון …" | present | Shell.tsx `Colophon` | UI | verbatim, with the publicity phone from the settings |
-| A14 | Toast with an action button ("לצפייה", "שעת צורך, להמשיך") | partial | Orbit toast | UI | |
-| A15 | Keyboard: "/" focuses the search anywhere; ↑↓ / Enter (WhatsApp) / Esc in results; W on a banner; F or כ flips a coin | missing | — | UI | |
+| A14 | Toast with an action button ("לצפייה", "שעת צורך, להמשיך") | present | ParnasaView.tsx `toastAct` · `PnPortal` (`.pn-toast`) | UI | the original's toast with an action button, in a skin portal above Orbit: "לצפייה" after posting a request, "שעת צורך, להמשיך" on the Shabbat gentle lock; auto-hides after 4.5 s |
+| A15 | Keyboard: "/" focuses the search anywhere; ↑↓ / Enter (WhatsApp) / Esc in results; W on a banner; F or כ flips a coin | present | ParnasaView.tsx ("/") · DirectoryTab.tsx `onKeyDown` · coinFx.ts (F/כ) | UI | "/" anywhere in the module focuses and selects the question (from any tab); ↑↓ move the selection in the results, Enter = WhatsApp of the selected banner (no banner ⇒ the prefilled request), Esc clears; W on a focused banner ⇒ WhatsApp; F or כ on a focused coin flips it |
 | A16 | Deep link `#b-<key>` opens a business page ("העסק הזה לא נמצא באלפון") | missing | — | SERVER | needs a public URL; an in-app hash is UI |
 | A17 | Per-viewer memory: last tab, admin segment, board tab, usage hints only in the first 3 visits | partial | ParnasaView.tsx (`useRemembered`) · skinPrefs.ts `useHintsOff` | UI | last tab + admin segment + filters remembered (session); usage hints only in the first 3 visits (`maor_pn_hints`); board tab memory with the board re-skin (cluster 5) |
 
@@ -64,26 +64,26 @@ Current counts per area (recomputed from the rows after every cluster):
 
 | # | original | status | port file | gap | notes |
 |---|---|---|---|---|---|
-| B1 | Greeting line: בוקר טוב / צהריים טובים / ערב טוב / לילה טוב, "שבת שלום", "שבוע טוב"; Hebrew day+month; zman chip (שקיעה · בעוד…, הדלקת נרות · בעוד…, צאת השבת); period chip (היום N ימים לעומר · בין המצרים · תשעת הימים · חודש אלול) | missing | (zmanimBoard.ts `dayTimes`, `shabbatOf`) | UI | sunset/candles/tzeis exist; Omer count, Three Weeks and Elul need small pure functions |
-| B2 | "מה צריך?" at up to 7.4rem + "כותבים את הבעיה במילים שלכם, ומקבלים את האדם הנכון." (Shabbat: "שבת שלום. לשעת צורך, האדם הנכון כאן.") | partial | DirectoryTab.tsx | UI | 16px label in a card |
-| B3 | Omnibox: 4rem pill, gold lens, gold ring spinning on focus, "/" hint, clear; typing switches to answer mode | partial | DirectoryTab.tsx | UI | `TextInput` + "✕ ניקוי" |
-| B4 | "חיפושים נפוצים" — 5 chips per season | missing | — | UI | table in `assets/maps.json` → `SEASONS[*].pop` |
-| B5 | "חיוג מהיר" — favourites ★ (≤20) and recents (≤10) as medallions with a green open-now dot; replaces B4 when not empty | missing | (lib.ts `openNow`) | UI | per-viewer local state |
-| B6 | "בעונה הזו · {edition}" + season title; 6 minted coins per Hebrew season (editions: Sukkot weave, Chanukah silver, Purim masks + confetti, Pesach matzah) | missing | (lib.ts `searchCount` — "מטבעות-העונה במקור", unused) | UI | coin art in `assets/coins/` |
-| B7 | Tap a coin → it flies into the header pushke with a clink, then its query runs | missing | — | UI | |
-| B8 | Long-press / F → the coin flips to its live count ("N בעלי מקצוע"); hint "לחיצה: חיפוש · לחיצה ארוכה: כמה בעלי מקצוע יש" | missing | — | UI | |
-| B9 | Platinum sponsor coin (full width, monogram, ribbon "בחסות") opening the sponsor's trade with their card pinned; gabbai placeholder "כאן יופיע מטבע פלטינה בחסות · למכירה · 300 ₪ לחודש · רק הגבאי רואה" | missing | — | DATA + UI | new sponsorship slot `coin` {trade, monogram} |
-| B10 | "שבוע טוב!" card on Motzei Shabbat ("N בקשות חיכו לכם מהשבת" / "שבוע של פרנסה טובה ובשורות טובות"), dismissible | missing | — | UI | requests are gabbai-only in the port, so the list part would be gabbai-only |
-| B11 | "החודש בקהילה" pulse: "N בקשות נמצאו · N פעמים בעלי מקצוע ענו · N תודות מהקהילה" (30 days) | missing | — | UI | data exists |
-| B12 | "מבקשים עכשיו" — 3 open community-visible requests (urgent first) with "מכיר מישהו?" + "לכל הבקשות" | missing | — | SERVER | requests are not public in the port |
-| B13 | "מומלצי השבוע" (crown) — up to 3 featured banners rotating daily + "עוד N מומלצים"; gabbai placeholder "כאן יופיעו כרטיסים מודגשים · למכירה · 45 ₪ לחודש" | missing | (lib.ts `isFeatured`) | UI | `featuredUntil` exists |
-| B14 | Home sponsor line "פרנסה׳לע השבוע בחסות" — name, line, call, site | partial | BoardTab.tsx, AdsTab.tsx (slot `board`) | UI (+DATA: url) | the port's "שורת חסות בלוח" is shown on the board tab, not on a home |
-| B15 | "כל האלפון" velvet button + "עוד באלפון" expander ("כל התחומים · מצטרפים חדשים") | missing | — | UI | |
-| B16 | "כל התחומים" — two-row rail of the 15 trades with mini coins and counts + "לכל האלפון" | partial | DirectoryTab.tsx | UI | chip row with emoji + counts |
-| B17 | "חדש בפרנסה׳לע" — up to 6 joined/updated in 60 days ("הצטרפו או עודכנו לאחרונה") | missing | — | UI | `createdAt`/`updatedAt` exist |
-| B18 | Business CTA "לבעלי עסקים · יש לך עסק? · הצטרפות בחינם" / "הדף שלכם באלפון · לעריכת הדף" / pending text | missing | — | SERVER | owner self-service |
-| B19 | Stats line "N בעלי מקצוע · N תחומים · N בקשות פתוחות" (counts up when scrolled into view) | missing | — | UI | |
-| B20 | Shabbat calm: banner with candles, once-per-Shabbat overlay "שבת שלום / האלפון נח עד צאת השבת", gentle lock on WhatsApp/call/post ("שעת צורך, להמשיך" → 15 min), statuses "חוזר במוצ״ש", motion stilled | partial | Shell.tsx `CalmBanner` · ParnasaView.tsx (`data-calm`) | UI | candle banner (Shabbat wording verbatim; a Yom Tov variant), motion stilled and WhatsApp desaturated via the original's `[data-calm]` rules, from the engine's closure (community time zone). Overlay + gentle lock: cluster 2 |
+| B1 | Greeting line: בוקר טוב / צהריים טובים / ערב טוב / לילה טוב, "שבת שלום", "שבוע טוב"; Hebrew day+month; zman chip (שקיעה · בעוד…, הדלקת נרות · בעוד…, צאת השבת); period chip (היום N ימים לעומר · בין המצרים · תשעת הימים · חודש אלול) | present | home.ts `greetingOf` · Home.tsx `AskStage` | UI | בוקר טוב … לילה טוב, שבת שלום / חג שמח, שבוע טוב on Motzei Shabbat; Hebrew day+month; zman chip (שקיעה · בעוד…, הדלקת נרות · בעוד… on Friday, צאת השבת/החג on Shabbat) from the community's zmanim; period chip (Omer, בין המצרים, תשעת הימים, חודש אלול) from shell.ts `periodOf` |
+| B2 | "מה צריך?" at up to 7.4rem + "כותבים את הבעיה במילים שלכם, ומקבלים את האדם הנכון." (Shabbat: "שבת שלום. לשעת צורך, האדם הנכון כאן.") | present | Home.tsx `AskStage` (`h2.pn-q`) | UI | the original's huge "מה צריך?" with the gold question mark and both sub-lines verbatim (the Shabbat one during the closure) |
+| B3 | Omnibox: 4rem pill, gold lens, gold ring spinning on focus, "/" hint, clear; typing switches to answer mode | present | Home.tsx `AskStage` (`.pn-box`/`.pn-ask`) · DirectoryTab.tsx | UI | 4rem pill, gold lens, gold ring spinning on focus, "/" hint, clear button; typing switches the screen to answer mode (`data-mode`) with the coins shrinking into pills |
+| B4 | "חיפושים נפוצים" — 5 chips per season | present | home.ts `PN_SEASONS[*].pop` · Home.tsx (`.pn-pop`) | UI | 5 popular-search chips per season, verbatim from the original's season table |
+| B5 | "חיוג מהיר" — favourites ★ (≤20) and recents (≤10) as medallions with a green open-now dot; replaces B4 when not empty | partial | skinPrefs.ts `useQuickDial` · home.ts `quickDialList` · Home.tsx (`.pn-dial`) | UI | medallions with the green open-now dot, replacing the popular searches when not empty; recents (≤10, per viewer, namespaced) are recorded on open / WhatsApp / call / copy. The ★ that adds a favourite (≤20) sits on the business page — cluster 3 |
+| B6 | "בעונה הזו · {edition}" + season title; 6 minted coins per Hebrew season (editions: Sukkot weave, Chanukah silver, Purim masks + confetti, Pesach matzah) | present | home.ts `PN_SEASONS`/`PN_EDITIONS`/`seasonOf` · coins.ts · Home.tsx `AskStage` | UI | "בעונה הזו · {edition}" + the season title; 6 minted coins per Hebrew season with the original's coin art (generated 1:1 from its code: metals, rims, reliefs, editions — Sukkot weave, Chanukah silver, Purim masks + confetti, Pesach matzah) and each coin's live count (`searchCount`) |
+| B7 | Tap a coin → it flies into the header pushke with a clink, then its query runs | present | coinFx.ts `coinTap`/`cnFly` · sound.ts | UI | tap ⇒ the coin flies into the header pushke (bump + clink; an off-screen pushke glows instead), then its query runs; reduced motion ⇒ straight to the query |
+| B8 | Long-press / F → the coin flips to its live count ("N בעלי מקצוע"); hint "לחיצה: חיפוש · לחיצה ארוכה: כמה בעלי מקצוע יש" | present | coinFx.ts `cnFlip` · Home.tsx | UI | long-press or F/כ flips the coin to its live count ("N בעלי מקצוע"); hint verbatim (only in the first 3 visits) |
+| B9 | Platinum sponsor coin (full width, monogram, ribbon "בחסות") opening the sponsor's trade with their card pinned; gabbai placeholder "כאן יופיע מטבע פלטינה בחסות · למכירה · 300 ₪ לחודש · רק הגבאי רואה" | present | AdForm.tsx ("מטבע פלטינה בחסות") · lib.ts `coinSponsor` · Home.tsx `AskStage` · DirectoryTab.tsx | DATA + UI | a sponsorship marked as the platinum coin (additive `PrAd.coin` + `mono`) shows full-width with the monogram and the "בחסות" ribbon and opens the sponsor's trade with their own card pinned; gabbai placeholder "כאן יופיע מטבע פלטינה בחסות · למכירה · N ₪ לחודש · רק הגבאי רואה" (price from the price list) jumps to the sponsorships. Registration + pay link only — no receipts |
+| B10 | "שבוע טוב!" card on Motzei Shabbat ("N בקשות חיכו לכם מהשבת" / "שבוע של פרנסה טובה ובשורות טובות"), dismissible | present | home.ts `weekWaiting` · Home.tsx (`.pn-week`) | UI | on Motzei Shabbat: "שבוע טוב!" with the requests that waited since candle-lighting (non-quiet, swipeable rows) or "שבוע של פרנסה טובה ובשורות טובות"; dismissible for the evening |
+| B11 | "החודש בקהילה" pulse: "N בקשות נמצאו · N פעמים בעלי מקצוע ענו · N תודות מהקהילה" (30 days) | present | home.ts `pulseOf` · Home.tsx (`.pn-pulse`) | UI | 30 days: found (closed non-quiet requests) · answers · thanks, verbatim wording with singular forms |
+| B12 | "מבקשים עכשיו" — 3 open community-visible requests (urgent first) with "מכיר מישהו?" + "לכל הבקשות" | partial | home.ts `askingNow` · Home.tsx `RqRow` | SERVER | live for the module's users: 3 open non-quiet requests routed to the whole community, urgent first, with the requester's name (or "חבר הקהילה"), "מכיר מישהו?" (WhatsApp with the original's message, or the request on the board) + "לכל הבקשות"; rows swipe right ⇒ WhatsApp, left ⇒ call (only the actions the org turned on; the number itself is never shown in the row). Residents seeing it publicly = owner decision (SERVER) |
+| B13 | "מומלצי השבוע" (crown) — up to 3 featured banners rotating daily + "עוד N מומלצים"; gabbai placeholder "כאן יופיעו כרטיסים מודגשים · למכירה · 45 ₪ לחודש" | present | home.ts `featuredRotation` · Home.tsx (`.pn-hFeat`) | UI | up to 3 featured photo banners rotating daily (every paying card reaches the top) + "עוד N מומלצים באלפון"; gabbai placeholder "כאן יופיעו כרטיסים מודגשים · למכירה · N ₪ לחודש" from the price list |
+| B14 | Home sponsor line "פרנסה׳לע השבוע בחסות" — name, line, call, site | present | Home.tsx `SponsorLine` · lib.ts `adRotation` (slot `board`) · AdForm.tsx (url) | UI (+DATA: url) | "פרנסה׳לע השבוע בחסות" on the home — name, line, call, site (additive `PrAd.url`, http(s) only); still also on the community board |
+| B15 | "כל האלפון" velvet button + "עוד באלפון" expander ("כל התחומים · מצטרפים חדשים") | present | Home.tsx (`.pn-hmore-r`) | UI | velvet "כל האלפון" + the "עוד באלפון" expander ("כל התחומים · מצטרפים חדשים") |
+| B16 | "כל התחומים" — two-row rail of the 15 trades with mini coins and counts + "לכל האלפון" | present | home.ts `tradeRail` · Home.tsx (`.pn-trail`) | UI | two-row rail of the 15 trades with mini coins (the edition's metal) and counts + "לכל האלפון" |
+| B17 | "חדש בפרנסה׳לע" — up to 6 joined/updated in 60 days ("הצטרפו או עודכנו לאחרונה") | present | home.ts `newJoiners` · Home.tsx (`.pn-hNew`) | UI | up to 6 joined or updated in 60 days, "הצטרפו או עודכנו לאחרונה" |
+| B18 | Business CTA "לבעלי עסקים · יש לך עסק? · הצטרפות בחינם" / "הדף שלכם באלפון · לעריכת הדף" / pending text | partial | Home.tsx (`.pn-cta`) | SERVER | the CTA card verbatim ("לבעלי עסקים · יש לך עסק? · הצטרפות בחינם") — "הצטרפות בחינם" opens the add-business form for whoever may add cards. The owner's own page ("הדף שלכם באלפון · לעריכת הדף", pending text) needs owner logins = owner decision (SERVER) |
+| B19 | Stats line "N בעלי מקצוע · N תחומים · N בקשות פתוחות" (counts up when scrolled into view) | present | Home.tsx (`.pn-statl`) · DirectoryTab.tsx | UI | "N בעלי מקצוע · N תחומים · N בקשות פתוחות", counting up once when scrolled into view (still for reduced motion) |
+| B20 | Shabbat calm: banner with candles, once-per-Shabbat overlay "שבת שלום / האלפון נח עד צאת השבת", gentle lock on WhatsApp/call/post ("שעת צורך, להמשיך" → 15 min), statuses "חוזר במוצ״ש", motion stilled | present | Shell.tsx `CalmBanner` · ParnasaView.tsx (`data-calm`, Shabbat overlay, gentle lock) · lib.ts `listingStatus` | UI | candle banner; once-per-Shabbat overlay "שבת שלום / האלפון נח עד צאת השבת · HH:MM" (7 s, per device); gentle lock on WhatsApp/call/post ("שבת קודש. האלפון נח עד…" + "שעת צורך, להמשיך" ⇒ 15 min); statuses "חוזר במוצ״ש"; motion stilled — all from the engine's closure in the community's time zone (Yom Tov variants) |
 | B21 | Friday-afternoon dusk tint; period skins (Omer seam fills to 49, Elul blue seam, Three Weeks desaturated and silent) | present | shell.ts `eveOf`/`periodOf` · ParnasaView.tsx (`--pn-eve`, `data-period`, `--pn-omer`) | UI | Friday-afternoon dusk tint inside the module; Omer seam fills to 49, Elul and Three Weeks skins from the original CSS; sounds silent in the Three Weeks |
 
 ## C. אלפון — results ("answer" mode)
@@ -91,16 +91,16 @@ Current counts per area (recomputed from the rows after every cluster):
 | # | original | status | port file | gap | notes |
 |---|---|---|---|---|---|
 | C1 | Deterministic matching: 25 problem concepts, prefixes, stems, typos, name, location, phone digits; rank coverage → tier → featured → open → recommendations → name | present | lib.ts `analyzeQuery`, `searchListings` | — | |
-| C2 | Echo line "״{q}״ ← concept chips · שם · אזור" with matched words highlighted (`mark`) and "↑↓ בחירה · Enter וואטסאפ · Esc ניקוי" | partial | DirectoryTab.tsx | UI | chips present; no highlighting, no hint |
-| C3 | Photo banners: trade photo with an animated SVG live layer, logo/trade-icon medallion, name in silver or warm gradient, title, area with pin, "הנחה לקהילה"/"גמ״ח" badges, gold "מבצע" ribbon with a "עד D.M" seal, "מומלץ" seal or "בחסות · מוצמד ראשון", gold/platinum frames | missing | ListingCard.tsx | UI + DATA | generic card with emoji and a coloured border; needs `logo`, `offer {text, until}` and the 18 photos (`assets/photos/`) |
-| C4 | First result as a full banner, the rest as compact rows; two-up at ≥960px with a sticky side column | missing | DirectoryTab.tsx | UI | grid of cards |
-| C5 | Swipe right → WhatsApp (or copy number), left → call; one-time nudge "ימינה לוואטסאפ · שמאלה לחיוג" | missing | — | UI | |
-| C6 | The season coins shrink into a pill row under the search | missing | — | UI | |
-| C7 | "לא מצאתי" / "רק N תוצאות? בקשו מהקהילה": "פרסום" (posts at once; quiet automatically if sensitive), "עם טלפון" (prefilled form), "ללוח הבקשות" | partial | DirectoryTab.tsx → RequestsTab.tsx | UI (+SERVER for residents) | prefilled request draft for the gabbai |
+| C2 | Echo line "״{q}״ ← concept chips · שם · אזור" with matched words highlighted (`mark`) and "↑↓ בחירה · Enter וואטסאפ · Esc ניקוי" | present | Home.tsx `Understood`/`HiName` | UI | echo line "״{q}״ ← concept chips · שם · אזור", matched words highlighted with `mark` in names and titles, hint "↑↓ בחירה · Enter וואטסאפ · Esc ניקוי" |
+| C3 | Photo banners: trade photo with an animated SVG live layer, logo/trade-icon medallion, name in silver or warm gradient, title, area with pin, "הנחה לקהילה"/"גמ״ח" badges, gold "מבצע" ribbon with a "עד D.M" seal, "מומלץ" seal or "בחסות · מוצמד ראשון", gold/platinum frames | present | Home.tsx `Banner`/`Medal` · banners.ts (`pbLayers`, 18 photos in `public/parnasa/photos/`) · bannerFx.ts | UI + DATA | the original's photo banners 1:1: trade photo (lazy, ≤4 live) under the animated SVG layer, logo/trade-icon medallion, silver or warm name, title, area pin, הנחה לקהילה / גמ״ח badges, gold "מבצע" ribbon with the "עד D.M" seal, "מומלץ" seal or "בחסות · מוצמד ראשון", gold/platinum frames. `logo`/`offer`/`palette` are healed additive fields (their editor = cluster 4) |
+| C4 | First result as a full banner, the rest as compact rows; two-up at ≥960px with a sticky side column | present | Home.tsx `Answers` (`.pn-bns`) | UI | first result as a full banner, the rest as compact rows, "עוד N באלפון המלא"; two-up at ≥960px with the sticky side column (the original's CSS) |
+| C5 | Swipe right → WhatsApp (or copy number), left → call; one-time nudge "ימינה לוואטסאפ · שמאלה לחיוג" | present | bannerFx.ts (swipe, `pbNudge`) | UI | swipe right ⇒ WhatsApp (or copy the number when WhatsApp is off), left ⇒ call; the one-time nudge "ימינה לוואטסאפ · שמאלה לחיוג" (per session); ripple on tap |
+| C6 | The season coins shrink into a pill row under the search | present | parnasa.css (`[data-mode=answer] .pn-probs`) | UI | the season coins shrink into a pill row under the search |
+| C7 | "לא מצאתי" / "רק N תוצאות? בקשו מהקהילה": "פרסום" (posts at once; quiet automatically if sensitive), "עם טלפון" (prefilled form), "ללוח הבקשות" | present | Home.tsx `NotFound` · DirectoryTab.tsx `postNow` → RequestsTab.tsx | UI (+SERVER for residents) | "לא מצאתי" / "רק N תוצאות? בקשו מהקהילה" / "פרסום בלוח הבקשות": "פרסום" posts at once (quiet automatically when the topic is sensitive — "נשלח בשקט, רק לבעלי המקצוע בתחום") with "לצפייה"; "עם טלפון" opens the prefilled form; hidden when the requests board is off |
 | C8 | "לא בטוחים? שאלו את העוזר של פרנסה׳לע" → "מצא לי" (Claude: up to 4 picks with a reason line + a tip box) | missing | — | SERVER | LLM call; Orbit has a dormant Claude path in `src/lib/ai.ts` |
-| C9 | Zero results "עוד אין לנו תשובה לזה." + "אבל הקהילה כן…" + post + AI | partial | DirectoryTab.tsx | UI | same sentence in an `Empty` |
-| C10 | Platinum-coin results: the sponsor's trade with the sponsor's own listing pinned (matched by phone/name) or a sponsor card "בחסות · מוצמד ראשון" | missing | — | DATA + UI | |
-| C11 | Empty directory "האלפון עוד מתמלא"; loading "האלפון נטען, עוד רגע…" | partial | DirectoryTab.tsx | UI | different wording |
+| C9 | Zero results "עוד אין לנו תשובה לזה." + "אבל הקהילה כן…" + post + AI | present | Home.tsx `Answers` | UI | "עוד אין לנו תשובה לזה." + "אבל הקהילה כן. בקשה אחת בלוח, וכולם רואים." + post; the AI box = C8 |
+| C10 | Platinum-coin results: the sponsor's trade with the sponsor's own listing pinned (matched by phone/name) or a sponsor card "בחסות · מוצמד ראשון" | present | home.ts `pinnedHits` · Home.tsx `SponsorCard` | DATA + UI | the coin opens the sponsor's trade with the sponsor's own card pinned first (matched by the last 9 phone digits or the normalised name), else the sponsor card "בחסות · מוצמד ראשון" with WhatsApp/phone/site; like the original, pinned results are not ranked — no name/area highlights |
+| C11 | Empty directory "האלפון עוד מתמלא"; loading "האלפון נטען, עוד רגע…" | present | Home.tsx `Answers` | UI | "האלפון עוד מתמלא" + the post box, verbatim; no loading state — the port's data is local |
 
 ## D. אלפון — browse "כל האלפון" and the trade gates
 
@@ -150,9 +150,9 @@ Current counts per area (recomputed from the rows after every cluster):
 | # | original | status | port file | gap | notes |
 |---|---|---|---|---|---|
 | F1 | WhatsApp `wa.me/972…` with "שלום, הגעתי אליך דרך {brand}." + " צריך עזרה: {q}" | present | ListingCard.tsx `waIntro` + `WaBtn` | — | |
-| F2 | Call `tel:`; copy number → "המספר … הועתק" | partial | ListingCard.tsx `CallBtn` | UI | no copy |
+| F2 | Call `tel:`; copy number → "המספר … הועתק" | partial | ListingCard.tsx `CallBtn` · Home.tsx `Banner` · DirectoryTab.tsx `copyPhone` | UI | banners: swipe-left/`tel:` call and the copy fallback "המספר … הועתק" when WhatsApp is off; the business page's contact bar = cluster 3 |
 | F3 | Once-per-viewer "someone reached out" marker → owner's "פניות מהאלפון"; recents | missing | — | SERVER | |
-| F4 | Shabbat gentle lock on contact | missing | — | UI | see B20 |
+| F4 | Shabbat gentle lock on contact | present | ParnasaView.tsx (gentle lock) | UI | see B20 — WhatsApp, call and post links are held on Shabbat with "שעת צורך, להמשיך" (15 min) |
 
 ## G. לוח בקשות (request board)
 
@@ -261,21 +261,21 @@ Current counts per area (recomputed from the rows after every cluster):
 
 | original field / collection | used by | port today |
 |---|---|---|
-| `palette` (8 keys) | cover tint, accents, medallion colour (B, C3, E2–E4, I13) | — |
-| `logo` (data URL ≤256px/25 KB) | banners, medallions, cover, mini header | — |
-| `photos[≤4]` (≤900px/45 KB each) | gallery (E12), completeness | — |
-| `offer {text ≤60, until}` | gold ribbon on banners, cover pill (C3, E4, I12) | — |
-| `faq[≤4] {q,a}` | FAQ accordion (E15) | — |
-| `pay[]` (cash, transfer, bit, credit, checks) | details tile (E14) | — |
-| `years`, `cert` | trust badges (E6) | — (only `kashrut`) |
-| `seek` ("פנוי ללקוחות נוספים") | browse toggle, booklet mark (D4) | — |
-| promo `{price, tagline, url, until, note}` | featured block, revenue (E8, J6–J8) | `featuredUntil` only |
-| sponsors `home`, `coin {cat, mono}`, `url` on every sponsor | home line, platinum coin (B9, B14, J9) | ad slots `category`/`board`, no url |
+| `palette` (8 keys) | cover tint, accents, medallion colour (B, C3, E2–E4, I13) | `PrListing.palette?` (healed; cluster 2) — editor cluster 4 |
+| `logo` (data URL ≤256px/25 KB) | banners, medallions, cover, mini header | `PrListing.logo?` (healed; shown on banners/medallions, cluster 2) — upload cluster 3/4 |
+| `photos[≤4]` (≤900px/45 KB each) | gallery (E12), completeness | `PrListing.photos?` (healed; cluster 2) — gallery cluster 3 |
+| `offer {text ≤60, until}` | gold ribbon on banners, cover pill (C3, E4, I12) | `PrListing.offer?` (healed; ribbon + seal on banners, cluster 2) |
+| `faq[≤4] {q,a}` | FAQ accordion (E15) | `PrListing.faq?` (healed; cluster 2) |
+| `pay[]` (cash, transfer, bit, credit, checks) | details tile (E14) | `PrListing.pay?` (healed; cluster 2) |
+| `years`, `cert` | trust badges (E6) | `PrListing.years?`/`cert?` (healed; cluster 2) + `kashrut` |
+| `seek` ("פנוי ללקוחות נוספים") | browse toggle, booklet mark (D4) | `PrListing.seek?` (healed; cluster 2) |
+| promo `{price, tagline, url, until, note}` | featured block, revenue (E8, J6–J8) | `featuredUntil` + gabbai-only `promoLine`/`promoUrl`/`promoPrice`/`promoNote` (healed; a non-approver's save keeps them) |
+| sponsors `home`, `coin {cat, mono}`, `url` on every sponsor | home line, platinum coin (B9, B14, J9) | slot `board` = the home line; `PrAd.coin?` + `mono?` = the platinum coin (kept out of the gate rotation); `PrAd.url?` (https only) |
 | `jobpromo` + job price | board sort, gold frame (G7, G10, G18) | — |
 | `promoreq` | promotion inbox (I8, J5) | — |
 | `contacts/{key}/by/{uid}` | "פניות מהאלפון" (F3, I6) | — (SERVER) |
 | notices `nm` (refuah name), `org` (mosad) | refuah / mosad note faces | — (also never collected by the original's form) |
-| per-viewer `favs`, `recents`, `theme`, `big`, `mute`, `hints` | quick dial, toggles | — (local only) |
+| per-viewer `favs`, `recents`, `theme`, `big`, `mute`, `hints` | quick dial, toggles | skinPrefs.ts — per device in localStorage (never in the DB/cloud/backup); `favs`/`recents` namespaced per org (`nsLsKey`) |
 
 ## M. In the port but not in the original (keep)
 

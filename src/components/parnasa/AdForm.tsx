@@ -57,6 +57,12 @@ export function AdForm(props: { ad: PrAd | null; slot?: PrAdSlot; target?: strin
   function save() {
     const price = Number(priceText.trim());
     const draft: PrAd = { ...f, price: Number.isFinite(price) ? price : NaN, advertiser: f.advertiser.trim(), headline: f.headline.trim(), body: f.body.trim(), phone: f.phone.trim() };
+    // תוספות-העיצוב (אתר · מטבע-פלטינה · מונוגרמה) — ריק ⇒ חסר (בלי שדות-ריקים ברשומה)
+    const url = (f.url ?? '').trim();
+    const mono = (f.mono ?? '').trim();
+    draft.url = url && f.slot !== 'booklet' ? url : undefined;
+    draft.coin = f.slot === 'category' && f.coin ? true : undefined;
+    draft.mono = draft.coin && mono ? mono : undefined;
     const err = adDraftError(draft);
     if (err) return setError(err);
     const res = upsertPrAd(draft);
@@ -87,7 +93,7 @@ export function AdForm(props: { ad: PrAd | null; slot?: PrAdSlot; target?: strin
           </Field>
         )}
         {f.slot === 'category' && (
-          <Field label="השער שבחסות *">
+          <Field label={f.coin ? 'התחום שהמטבע פותח *' : 'השער שבחסות *'}>
             <Select
               value={f.target}
               onChange={(v) => set({ target: v })}
@@ -104,6 +110,16 @@ export function AdForm(props: { ad: PrAd | null; slot?: PrAdSlot; target?: strin
         <Field label="טלפון">
           <TextInput value={f.phone} onChange={(v) => set({ phone: v.slice(0, 20) })} dir="ltr" />
         </Field>
+        {f.slot !== 'booklet' && (
+          <Field label="אתר (רשות)">
+            <TextInput value={f.url ?? ''} onChange={(v) => set({ url: v.slice(0, 120) })} dir="ltr" />
+          </Field>
+        )}
+        {f.slot === 'category' && f.coin && (
+          <Field label="מונוגרמה (שתי אותיות על המטבע)">
+            <TextInput value={f.mono ?? ''} onChange={(v) => set({ mono: v.slice(0, 3) })} placeholder="למשל ש״מ" />
+          </Field>
+        )}
         <Field label="מתאריך (ריק = מיד)">
           <input type="date" dir="ltr" value={f.from} onChange={(e) => set({ from: e.target.value })} />
         </Field>
@@ -127,6 +143,12 @@ export function AdForm(props: { ad: PrAd | null; slot?: PrAdSlot; target?: strin
         </Field>
       )}
       <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 13.5, margin: '6px 0' }}>
+        {f.slot === 'category' && (
+          <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <input type="checkbox" checked={!!f.coin} onChange={(e) => set({ coin: e.target.checked })} />
+            מטבע פלטינה בחסות (בדף הבית, במקום חסות על השער)
+          </label>
+        )}
         <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <input type="checkbox" checked={f.paid} onChange={(e) => set({ paid: e.target.checked })} />
           שולם

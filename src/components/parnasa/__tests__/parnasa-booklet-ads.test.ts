@@ -22,7 +22,8 @@ import { downloadHtmlDoc, printHtmlDoc } from '../exportDoc';
 import { AdsTab } from '../AdsTab';
 import { BoardTab } from '../BoardTab';
 import { BookletTab } from '../BookletTab';
-import { DirectoryTab } from '../DirectoryTab';
+import { DirectoryTab, type DirCtx } from '../DirectoryTab';
+import { hebNow } from '../shell';
 import { clockAt, makeClosureFn, resolveZmanimLoc } from '../zmanimBoard';
 import type { PrNow } from '../hooks';
 import bookletTabSrc from '../BookletTab.tsx?raw';
@@ -185,6 +186,22 @@ function nowOf(): PrNow {
   const clock = clockAt(NOW_MS, loc.tz);
   return { nowMs: NOW_MS, loc, clock, todayIso: clock.iso, closureAt: makeClosureFn(loc) };
 }
+/** הקשר-המסך של האלפון (השלד מספק אותו). */
+function dirCtx(): DirCtx {
+  const now = nowOf();
+  return {
+    now,
+    heb: hebNow(now.clock, now.loc),
+    closure: now.closureAt(now.clock.iso, now.clock.hhmm),
+    reduced: false,
+    focusTick: 0,
+    quick: { favs: [], recents: [], toggleFav: () => false, touch: () => {} },
+    toastAct: () => {},
+    goReq: () => {},
+    goAdmin: () => {},
+    goJoin: () => {},
+  };
+}
 const ADS: PrAd[] = [
   A({ id: 'bd', slot: 'board', advertiser: 'מאפיית השכונה', headline: 'חלות לשבת', price: 300 }),
   A({ id: 'sp', slot: 'category', target: 'elec', advertiser: 'חשמל אור הגנוז', price: 300, paid: true, paidAt: '2026-10-01T10:00:00.000Z' }),
@@ -216,11 +233,11 @@ describe('📣 (ה) התצוגה', () => {
   it('שורת-החסות בלוח ותיבת-החסות בראש השער — רק כשמשבצות-הפרסום דלוקות', () => {
     setup(ON(), { prAds: ADS, prListings: [L({})] });
     expect(renderToStaticMarkup(createElement(BoardTab, { now, onSearch: null }))).toContain('📌 הלוח בחסות');
-    const dir = renderToStaticMarkup(createElement(DirectoryTab, { now, q: '', setQ: () => {}, selId: null, setSelId: () => {}, onNewRequest: null }));
+    const dir = renderToStaticMarkup(createElement(DirectoryTab, { ctx: dirCtx(), q: '', setQ: () => {}, selId: null, setSelId: () => {}, onNewRequest: null, initialBrowse: true }));
     expect(dir).toContain('👑 השער בחסות');
     setup(ON({ 'parnasa.ads': false }), { prAds: ADS, prListings: [L({})] });
     expect(renderToStaticMarkup(createElement(BoardTab, { now, onSearch: null }))).not.toContain('הלוח בחסות');
-    expect(renderToStaticMarkup(createElement(DirectoryTab, { now, q: '', setQ: () => {}, selId: null, setSelId: () => {}, onNewRequest: null }))).not.toContain('השער בחסות');
+    expect(renderToStaticMarkup(createElement(DirectoryTab, { ctx: dirCtx(), q: '', setQ: () => {}, selId: null, setSelId: () => {}, onNewRequest: null, initialBrowse: true }))).not.toContain('השער בחסות');
   });
 
   it('לשונית החוברת: כפתורי-ההפקה רק ב-parnasa.export (וכשיש עסקים); כבוי ⇒ הסבר', () => {

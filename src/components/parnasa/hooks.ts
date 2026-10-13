@@ -4,7 +4,9 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { termOf } from '../../lib/config';
+import { integrationOn, integrationSetting, telephonyOn, termOf } from '../../lib/config';
+import { waHref } from '../../lib/wa';
+import { telHref } from '../../lib/tel';
 import { prCan } from './transitions';
 import { clockAt, makeClosureFn, resolveZmanimLoc, type PrClock, type PrClosureFn, type PrZmanimLoc } from './zmanimBoard';
 
@@ -54,4 +56,26 @@ export function usePrBrand(): string {
   const name = termOf(config, 'nav.parnasa', 'פרנסה׳לע');
   const c = (community ?? '').trim();
   return c ? name + ' של ' + c : name;
+}
+
+/**
+ * קשר בסקין-המקור (עיצוב 2): וואטסאפ — **מגודר-הרחבה** (integrationOn whatsapp; מצב-אפליקציה whatsapp:// כמו WaBtn);
+ * חיוג — **מגודר-טלפוניה** (telephonyOn, tel: כמו CallBtn). null = אין כפתור (המספר עצמו תמיד גלוי/להעתקה).
+ */
+export interface PnContact {
+  wa: (phone: string, text: string) => { href: string; app: boolean } | null;
+  tel: (phone: string) => string | null;
+}
+export function usePnContact(): PnContact {
+  const config = useApp((s) => s.config);
+  const waOn = integrationOn(config, 'whatsapp');
+  const app = integrationSetting(config, 'whatsapp', 'mode') === 'app';
+  const telOn = telephonyOn(config);
+  return useMemo(
+    () => ({
+      wa: (phone: string, text: string) => (waOn && phone ? waHref(phone, text, app) : null),
+      tel: (phone: string) => (telOn && phone ? telHref(phone) : null),
+    }),
+    [waOn, app, telOn],
+  );
 }

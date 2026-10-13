@@ -91,6 +91,31 @@ function ensureId(o: Rec, p: Rec, fallbackId: string): boolean {
   p.id = fallbackId;
   return true;
 }
+/**
+ * תוספות-"עיצוב" (13.10, אופציונליות): סוג שגוי ⇒ המפתח מתאפס (= חסר). מפרט "שם:סוג" — s מחרוזת · n מספר≥0 ·
+ * b בוליאני · S רשימת-מחרוזות · O רשימת-אובייקטים · o אובייקט. תוכן-עומק (data:image, תקרות) — בממשק/בעורך.
+ */
+const OPT_OK: Readonly<Record<string, (v: unknown) => boolean>> = {
+  s: (v) => typeof v === 'string',
+  n: (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0,
+  b: (v) => typeof v === 'boolean',
+  S: (v) => Array.isArray(v) && v.every((x) => typeof x === 'string'),
+  O: (v) => Array.isArray(v) && v.every(isObj),
+  o: isObj,
+};
+function fixOpt(o: Rec, p: Rec, spec: string): void {
+  for (const f of spec.split(' ')) {
+    const k = f.slice(0, -2);
+    if (o[k] !== undefined && !OPT_OK[f.slice(-1)](o[k])) p[k] = undefined;
+  }
+}
+/** שדות-התוכן הנוספים של עסק (דף-העסק של המקור) — גם במפתח-התוכן של מכונת-האישור. */
+export const PR_LISTING_EXTRA = 'palette:s logo:s photos:S offer:o faq:O pay:S years:n cert:s seek:b';
+/** שדות-הקידום — שדות-גבאי (כמו featuredUntil): לא-מאשר לא משנה אותם. */
+export const PR_LISTING_PROMO = 'promoLine:s promoUrl:s promoPrice:n promoNote:s';
+/** שמות-השדות ממפרט. */
+export const optKeys = (spec: string): string[] => spec.split(' ').map((f) => f.slice(0, -2));
+
 /** אותה הפניה כשאין תיקון; אחרת עותק עם התיקונים בלבד. */
 function done<T>(o: Rec, p: Rec): T {
   return (Object.keys(p).length ? { ...o, ...p } : o) as unknown as T;
@@ -120,6 +145,7 @@ export function healPrListing(raw: unknown, fallbackId = ''): PrListing | null {
   if (raw.aud !== undefined && !inList(PR_AUDS, raw.aud)) p.aud = 'all';
   if (raw.tagline !== undefined && typeof raw.tagline !== 'string') p.tagline = '';
   for (const k of ['disc', 'free']) if (raw[k] !== undefined && typeof raw[k] !== 'boolean') p[k] = false;
+  fixOpt(raw, p, PR_LISTING_EXTRA + ' ' + PR_LISTING_PROMO);
   return done<PrListing>(raw, p);
 }
 
@@ -184,6 +210,7 @@ export function healPrAd(raw: unknown, fallbackId = ''): PrAd | null {
   if (!(typeof raw.price === 'number' && Number.isFinite(raw.price) && raw.price >= 0)) p.price = 0;
   fixBools(raw, p, ['paid'], false);
   fixBools(raw, p, ['active'], true);
+  fixOpt(raw, p, 'url:s coin:b mono:s');
   return done<PrAd>(raw, p);
 }
 

@@ -13,7 +13,7 @@
 import type { IsoDate, ParnasaPrefs, PrAd, PrListing, PrPost, PrRequest, PrResponse, PrStatus } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { canGrantedAction, featureOn } from '../../lib/config';
-import { healPrAd, healPrPost, PR_AD_SLOTS, PR_CATEGORY_KEYS } from './model';
+import { healPrAd, healPrPost, optKeys, PR_AD_SLOTS, PR_CATEGORY_KEYS, PR_LISTING_EXTRA, PR_LISTING_PROMO } from './model';
 
 /* ═══════════════ הרשאת-גבאי ═══════════════ */
 
@@ -45,13 +45,19 @@ export interface PrActor {
   who?: string;
 }
 
-/** מפתח-התוכן הציבורי של עסק (נורמלי: חסר ≡ ברירת-מחדל) — שינוי בו = עריכת-תוכן. */
+const EXTRA_KEYS = optKeys(PR_LISTING_EXTRA);
+const PROMO_KEYS = optKeys(PR_LISTING_PROMO);
+/** ריק (''/false/0/[]/חסר) ≡ חסר — במפתח-התוכן. */
+const blank = (v: unknown): unknown => (v === '' || v === false || v === 0 || v == null || (Array.isArray(v) && !v.length) ? null : v);
+
+/** מפתח-התוכן הציבורי של עסק (נורמלי: חסר ≡ ברירת-מחדל) — שינוי בו = עריכת-תוכן (כולל דף-העסק: לוגו/תמונות/מבצע…). */
 function listingContentKey(l: PrListing): string {
   return JSON.stringify([
     l.name, l.title, l.category, l.area, l.city, l.phone, l.phone2, l.whatsapp,
     Array.isArray(l.hours) ? l.hours : [], !!l.always, l.hoursNote,
     Array.isArray(l.services) ? l.services : [], Array.isArray(l.languages) ? l.languages : [],
     l.kashrut, !!l.emergency, l.desc, l.tagline ?? '', l.aud ?? 'all', !!l.disc, !!l.free,
+    ...EXTRA_KEYS.map((k) => blank((l as unknown as Record<string, unknown>)[k])),
   ]);
 }
 
@@ -83,7 +89,14 @@ export function listingStatusOnSave(prev: PrListing | null, next: PrListing, act
 export function saveListing(prev: PrListing | null, draft: PrListing, actor: PrActor, nowIso: string): PrListing {
   const guarded: PrListing = actor.canApprove
     ? draft
-    : { ...draft, featuredUntil: prev?.featuredUntil ?? '', dialCode: prev?.dialCode ?? '', source: prev?.source ?? 'owner' };
+    : {
+        ...draft,
+        featuredUntil: prev?.featuredUntil ?? '',
+        dialCode: prev?.dialCode ?? '',
+        source: prev?.source ?? 'owner',
+        // קידום = שדות-גבאי (שורת-פרסום/אתר/מחיר/הערה) — נלקחים מהקודם
+        ...Object.fromEntries(PROMO_KEYS.map((k) => [k, (prev as unknown as Record<string, unknown> | null)?.[k]])),
+      };
   const status = listingStatusOnSave(prev, guarded, actor);
   return { ...guarded, status, createdAt: prev?.createdAt || guarded.createdAt || nowIso, updatedAt: nowIso };
 }

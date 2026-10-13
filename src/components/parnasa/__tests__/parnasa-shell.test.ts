@@ -31,6 +31,8 @@ import { AdminTab, adminSegsOf } from '../AdminTab';
 import { MeTab } from '../MeTab';
 import { clockAt, makeClosureFn, resolveZmanimLoc } from '../zmanimBoard';
 import type { PrNow } from '../hooks';
+import type { DirCtx } from '../DirectoryTab';
+import { hebNow } from '../shell';
 import appSrc from '../../../App.tsx?raw';
 
 const UI_SRC = import.meta.glob('../*.tsx', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
@@ -226,7 +228,7 @@ describe('📒 (ג) הניווט של המקור — כל לשונית ואזו�
 
 describe('📒 (ד) מוסכמות-הממשק', () => {
   it('כפתורי-הוספה במוסכמת "➕ הוספת {termOf}" (חוזה ה-e2e)', () => {
-    expect(src('DirectoryTab')).toMatch(/➕ הוספת \{termOf\(config, 'entity\.prListing', 'עסק'\)\}/);
+    expect(src('MeTab')).toMatch(/➕ הוספת \{termOf\(config, 'entity\.prListing', 'עסק'\)\}/);
     expect(src('RequestsTab')).toMatch(/➕ הוספת \{termOf\(config, 'entity\.prRequest', 'בקשה'\)\}/);
     expect(src('BoardTab')).toMatch(/➕ הוספת \{termOf\(config, 'entity\.prPost', 'מודעה'\)\}/);
     expect(src('AdsTab')).toMatch(/➕ הוספת \{termOf\(config, 'entity\.prAd', 'פרסומת'\)\}/);
@@ -270,6 +272,21 @@ function nowOf(): PrNow {
   const clock = clockAt(NOW_MS, loc.tz);
   return { nowMs: NOW_MS, loc, clock, todayIso: clock.iso, closureAt: makeClosureFn(loc) };
 }
+/** הקשר-המסך של האלפון (השלד מספק אותו). */
+function dirCtx(now: PrNow): DirCtx {
+  return {
+    now,
+    heb: hebNow(now.clock, now.loc),
+    closure: now.closureAt(now.clock.iso, now.clock.hhmm),
+    reduced: false,
+    focusTick: 0,
+    quick: { favs: [], recents: [], toggleFav: () => false, touch: () => {} },
+    toastAct: () => {},
+    goReq: () => {},
+    goAdmin: () => {},
+    goJoin: () => {},
+  };
+}
 
 function L(over: Partial<PrListing>): PrListing {
   return {
@@ -305,32 +322,50 @@ describe('📒 עשן-רינדור לכל לשונית (נתונים אמיתי�
     expect(html).not.toContain('רחל');
   });
 
-  it('📇 מדריך: עיון לפי שער — הכרטיס, קוד-החיוג, פתוח-עכשיו; הערה-פנימית לא בכרטיס', () => {
+  it('📇 אלפון — "כל האלפון": עיון לפי שער — הכרטיס, קוד-החיוג, פתוח-עכשיו; הערה-פנימית לא בכרטיס', () => {
     setup(ON(), DATA);
-    const html = render(createElement(DirectoryTab, { now, q: '', setQ: noop, selId: null, setSelId: noop, onNewRequest: noop }));
+    const html = render(createElement(DirectoryTab, { ctx: dirCtx(now), q: '', setQ: noop, selId: null, setSelId: noop, onNewRequest: noop, initialBrowse: true }));
+    expect(html).toContain('data-mode="browse"');
+    expect(html).toContain('כל האלפון');
     expect(html).toContain('אינסטלציה זילברמן');
     expect(html).toContain('☎ 101');
     expect(html).toContain('פנוי עכשיו');
     expect(html).not.toContain('סוד פנימי');
-    expect(html).toContain('מה צריך?');
+  });
+
+  it('📇 אלפון — הבית של המקור: "מה צריך?", מטבעות-העונה (6) עם הספירה, חיפושים נפוצים, שורת-הסיכום', () => {
+    setup(ON(), DATA);
+    const html = render(createElement(DirectoryTab, { ctx: dirCtx(now), q: '', setQ: noop, selId: null, setSelId: noop, onNewRequest: noop }));
+    expect(html).toContain('data-mode="ask"');
+    expect(html).toContain('מה צריך<span class="pn-qm">?</span>');
+    expect(html).toContain('placeholder="נזילה, קצר בחשמל, מלמד…"');
+    expect(html.match(/class="pn-pb pn-ct"/g)?.length).toBe(6);
+    expect(html).toContain('חיפושים נפוצים');
+    expect(html).toContain('בעונה הזו');
+    expect(html).toContain('ימי החורף'); // ג׳ חשוון
+    expect(html).toContain('1 בעל מקצוע'.replace('1 בעל מקצוע', 'בעל מקצוע'));
+    expect(html).not.toContain('סוד פנימי');
   });
 
   it('📇 מדריך: "מה צריך?" — שאילתת-בעיה מוצאת את בעל-המקצוע (מושג "אינסטלציה")', () => {
     setup(ON(), DATA);
-    const html = render(createElement(DirectoryTab, { now, q: 'יש לי נזילה בכיור', setQ: noop, selId: null, setSelId: noop, onNewRequest: noop }));
+    const html = render(createElement(DirectoryTab, { ctx: dirCtx(now), q: 'יש לי נזילה בכיור', setQ: noop, selId: null, setSelId: noop, onNewRequest: noop }));
+    expect(html).toContain('data-mode="answer"');
     expect(html).toContain('אינסטלציה זילברמן');
     expect(html).toContain('אינסטלציה');
+    expect(html).toContain('class="pn-bn pn-pbn'); // באנר-תמונה
+    expect(html).toContain('<mark>נזילה</mark>'); // שורת-ההבנה מדגישה
   });
 
   it('📇 כרטיס-העסק המלא: שעות, שירותים, המלצות; הערה-פנימית רק למאשר', () => {
     setup(ON(), DATA);
-    const html = render(createElement(DirectoryTab, { now, q: '', setQ: noop, selId: 'prl1', setSelId: noop, onNewRequest: noop }));
+    const html = render(createElement(DirectoryTab, { ctx: dirCtx(now), q: '', setQ: noop, selId: 'prl1', setSelId: noop, onNewRequest: noop }));
     expect(html).toContain('שעות פעילות');
     expect(html).toContain('פתיחת סתימה');
     expect(html).toContain('250 ₪');
     expect(html).toContain('סוד פנימי'); // מקומי = מאשר
     setup(ON({}, { adminEmails: ['gabbai@x.org'] }), DATA, 'staff@x.org');
-    expect(render(createElement(DirectoryTab, { now, q: '', setQ: noop, selId: 'prl1', setSelId: noop, onNewRequest: noop }))).not.toContain('סוד פנימי');
+    expect(render(createElement(DirectoryTab, { ctx: dirCtx(now), q: '', setQ: noop, selId: 'prl1', setSelId: noop, onNewRequest: noop }))).not.toContain('סוד פנימי');
   });
 
   it('🙋 (ה) בקשה שקטה מתרנדרת בלי שם/טלפון הפונה (וגם לא טלפון שהוקלד בטקסט); רגילה — עם הפרטים', () => {

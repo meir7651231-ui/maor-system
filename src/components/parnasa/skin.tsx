@@ -85,7 +85,7 @@ export function StPill(props: { st: PrOpenState | null; brief?: boolean }) {
 }
 
 /** HTML-SVG סטטי (מטבע/פושקע/באנר/defs) — רק ממחוללי-המקור; טקסט-משתמש בתוכו עבר esc(). */
-export function RawHtml(props: { html: string; className?: string; style?: CSSProperties; tag?: 'span' | 'div' }) {
+export function RawHtml(props: { html: string; className?: string; style?: CSSProperties; tag?: 'span' | 'div' | 'g' }) {
   const Tag = props.tag ?? 'span';
   return <Tag className={props.className} style={props.style} dangerouslySetInnerHTML={{ __html: props.html }} />;
 }

@@ -1245,6 +1245,30 @@ export interface PrListing {
   disc?: boolean;
   /** גמ"ח / בהתנדבות. */
   free?: boolean;
+  /* ── עיצוב (13.10): דף-העסק של המקור — כולם אופציונליים (additive, DB_VERSION נשאר 6) ── */
+  /** פלטת-הדף (velvet/tekhelet/emerald/midnight/olive/copper/plum/slate) — חסר = velvet. */
+  palette?: string;
+  /** לוגו — data:image (webp/jpeg/png), ≤256px. */
+  logo?: string;
+  /** גלריה — עד 4 תמונות data:image (≤900px). */
+  photos?: string[];
+  /** מבצע לקהילה (≤60) עד תאריך (כולל; '' = בלי תוקף). */
+  offer?: { text: string; until: IsoDate | '' };
+  /** שאלות נפוצות (עד 4). */
+  faq?: Array<{ q: string; a: string }>;
+  /** אמצעי-תשלום: cash/transfer/bit/credit/checks. */
+  pay?: string[];
+  /** שנות-ניסיון (ותק). */
+  years?: number;
+  /** תעודה/הסמכה. */
+  cert?: string;
+  /** "פנוי ללקוחות נוספים". */
+  seek?: boolean;
+  /** קידום (שדות-גבאי, כמו featuredUntil): שורת-פרסום · אתר · מחיר-לחודש (רישום) · הערה-פנימית. */
+  promoLine?: string;
+  promoUrl?: string;
+  promoPrice?: number;
+  promoNote?: string;
   /** חותמות ISO מלאות. */
   createdAt: string;
   updatedAt: string;
@@ -1364,6 +1388,13 @@ export interface PrAd {
   /** חותמת-הסימון ('' = לא שולם). */
   paidAt: string;
   active: boolean;
+  /* ── עיצוב (13.10), additive ── */
+  /** אתר הנותן (https; חסות). */
+  url?: string;
+  /** מטבע-הפלטינה בחסות (slot='category', target = השער שהמטבע פותח) — לא נכלל בסבב חסות-השער. */
+  coin?: boolean;
+  /** מונוגרמה על מטבע-הפלטינה (שתי אותיות; חסר = ראשי-תיבות השם). */
+  mono?: string;
   createdAt: string;
   updatedAt: string;
 }

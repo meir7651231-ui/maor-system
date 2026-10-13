@@ -137,7 +137,7 @@ describe('📒 (א) parnasa.css — מוגבל-שורש, בלי CDN, בלי זו
   });
 
   it('אפס CDN: אין @import, אין url(http…) — הגופנים מאורחים-עצמית וקיימים בתיקיית-המודול', () => {
-    expect(atRules.filter((a) => /^@import/.test(a))).toEqual([]);
+    expect(atRules.filter((a) => a.startsWith('@import'))).toEqual([]);
     expect(css).not.toMatch(/url\(\s*['"]?(https?:)?\/\//);
     const fonts = [...css.matchAll(/url\('\.\/fonts\/([\w.-]+\.woff2)'\)/g)].map((m) => m[1]);
     expect(fonts.length).toBeGreaterThanOrEqual(6);
@@ -168,7 +168,7 @@ describe('📒 (א) parnasa.css — מוגבל-שורש, בלי CDN, בלי זו
   it('"אותיות גדולות" מגדיל רק את המודול: rem ⇒ calc(N*var(--pn-rem)) (אין rem חשוף בכללי-המקור)', () => {
     const noData = css.replace(/url\("data:[^"]*"\)/g, '').replace(/url\('data:[^']*'\)/g, '');
     const bareRem = noData.match(/[\s:(,/*+-]-?\d*\.?\d+rem\b/g) ?? [];
-    expect(bareRem.filter((x) => !/^\.pn\{--pn-rem/.test(x)).length).toBeLessThanOrEqual(2); // רק ההגדרה של ‎--pn-rem עצמה
+    expect(bareRem.filter((x) => !x.startsWith('.pn{--pn-rem')).length).toBeLessThanOrEqual(2); // רק ההגדרה של ‎--pn-rem עצמה
     expect(css).toContain('.pn.pn-big{--pn-rem:1.15625rem}');
   });
 });

@@ -951,11 +951,22 @@ export function adActiveOn(ad: PrAd, todayIso: IsoDate): boolean {
   return ad.active !== false && (!ad.from || ad.from <= todayIso) && (!ad.to || ad.to >= todayIso);
 }
 
-/** הפרסומות הפעילות במשבצת (ובאופציה ליעד — שער/עסק), לפי המפרסם (עברית) ואז מזהה. */
+/**
+ * הפרסומות הפעילות במשבצת (ובאופציה ליעד — שער/עסק), לפי המפרסם (עברית) ואז מזהה. מטבע-הפלטינה (coin) אינו חסות-שער —
+ * לא נכלל כאן (coinSponsor).
+ */
 export function activeAds(ads: readonly PrAd[], slot: PrAdSlot, todayIso: IsoDate, target?: string): PrAd[] {
   return ads
-    .filter((a) => a.slot === slot && adActiveOn(a, todayIso) && (target === undefined || a.target === target))
+    .filter((a) => a.slot === slot && !a.coin && adActiveOn(a, todayIso) && (target === undefined || a.target === target))
     .sort((a, b) => a.advertiser.localeCompare(b.advertiser, 'he') || a.id.localeCompare(b.id));
+}
+
+/** מטבע-הפלטינה בחסות של היום (sponsors/coin במקור): פעיל, בשער מוכר; כמה ⇒ סבב-יומי. */
+export function coinSponsor(ads: readonly PrAd[], todayIso: IsoDate): PrAd | null {
+  const list = ads
+    .filter((a) => a.slot === 'category' && a.coin === true && adActiveOn(a, todayIso) && categoryOf(a.target).key === a.target && a.advertiser.trim())
+    .sort((a, b) => a.advertiser.localeCompare(b.advertiser, 'he') || a.id.localeCompare(b.id));
+  return list.length ? list[((dayNumber(todayIso) % list.length) + list.length) % list.length] : null;
 }
 
 /** קישור-סליקה לפרסומת (payLink של הארגון, סכום+שם ממולאים). אין קבלה — רישום ידני. */

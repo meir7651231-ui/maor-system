@@ -3,7 +3,7 @@
  * מנהל את הכרטיסים בשם בעליהם (בהסכמה) — ולכן כאן רשימת-העסקים עם מצב-האישור, ➕ הוספה ו-✎ עריכה (אותו
  * ListingForm, אותה מכונת-אישור ב-store), ו"לכרטיס ←" שפותח את דף-העסק באלפון. העורך המלא בן 8 החלקים — אשכול 4.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import type { PrListing } from '../../types/domain';
@@ -15,10 +15,13 @@ import { Page } from './Shell';
 const ROW = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '6px 0', borderBottom: '1px solid var(--line)', fontSize: 13 } as const;
 const STATUS: Record<PrListing['status'], string> = { approved: 'מופיע באלפון', pending: 'ממתין לאישור', rejected: 'מוסתר' };
 
-export function MeTab(props: { onOpen: ((id: string) => void) | null }) {
+export function MeTab(props: { onOpen: ((id: string) => void) | null; /** מונה — "הצטרפות בחינם" מהבית ⇒ טופס-הוספה פתוח. */ addTick?: number }) {
   const config = useApp((s) => s.config);
   const listings = useApp((s) => s.db.prListings);
   const [form, setForm] = useState<{ listing: PrListing | null } | null>(null);
+  useEffect(() => {
+    if (props.addTick) setForm({ listing: null });
+  }, [props.addTick]);
   const word = termOf(config, 'entity.prListing', 'עסק');
   const sorted = [...listings].sort((a, b) => a.name.localeCompare(b.name, 'he') || a.id.localeCompare(b.id));
 
@@ -58,7 +61,7 @@ export function MeTab(props: { onOpen: ((id: string) => void) | null }) {
           </section>
         )}
       </div>
-      {form && <ListingForm listing={form.listing} onClose={() => setForm(null)} />}
+      {form && <ListingForm listing={form.listing} onClose={() => setForm(null)} onSaved={(l) => !form.listing && props.onOpen?.(l.id)} />}
     </Page>
   );
 }

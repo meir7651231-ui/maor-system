@@ -15,7 +15,7 @@
  * מקומי בלבד (בידוד: אין ניווט חוצה-מסכים דרך ה-store). הכניסה היחידה מבחוץ: תוצאת-עסק בפלטת-החיפוש
  * (אשכול 7) ⇒ requestOpenListing (paletteLink — תיבה בלי store) ⇒ כאן נפתח כרטיס-העסק באלפון.
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { useRemembered } from '../../lib/filterMemory';
@@ -24,16 +24,18 @@ import { needsCare, pendingApprovals } from './lib';
 import { usePrNow, usePrPerms } from './hooks';
 import { prOpenBox } from './paletteLink';
 import type { CareJump } from './CareTab';
-import { DirectoryTab } from './DirectoryTab';
+import { DirectoryTab, type DirCtx } from './DirectoryTab';
 import { RequestsTab } from './RequestsTab';
 import { BoardTab } from './BoardTab';
 import { MeTab } from './MeTab';
 import { AdminTab, adminSegsOf, type AdminSeg } from './AdminTab';
 import { Band, CalmBanner, Colophon, Page, TabBar } from './Shell';
-import { cx, PnDefs, PnSkinCtx, skinAttrs, vars, type PnSkin } from './skin';
-import { useDeviceDark, useHintsOff, useReducedMotion, useSkinPrefs } from './skinPrefs';
+import { cx, PnDefs, PnPortal, PnSkinCtx, skinAttrs, vars, type PnSkin } from './skin';
+import { useDeviceDark, useHintsOff, useQuickDial, useReducedMotion, useSkinPrefs } from './skinPrefs';
 import { dedicationOf, eveOf, hebMonthStartIso, hebNow, helpCount, periodOf, pushkeFill, pushkeText } from './shell';
 import { clink, setSoundState, wakeSound } from './sound';
+import { pkHit } from './coinFx';
+import { hm } from './home';
 import './parnasa.css';
 
 type PrTab = 'directory' | 'requests' | 'board' | 'me' | 'admin';
@@ -57,12 +59,19 @@ export function ParnasaView() {
   const [dirQ, setDirQ] = useRemembered<string>('parnasa.dir.q', '');
   const [selListing, setSelListing] = useRemembered<string | null>('parnasa.dir.sel', null);
   const [focusReq, setFocusReq] = useState<string | null>(null);
+  const [meAdd, setMeAdd] = useState(0);
   const [reqDraft, setReqDraft] = useState<Partial<PrRequest> | null>(null);
-  const [bump, setBump] = useState('');
-  const bumpT = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => {
-    if (bumpT.current) clearTimeout(bumpT.current);
-  }, []);
+  const quick = useQuickDial();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [focusTick, setFocusTick] = useState(0);
+  // טוסט-עם-פעולה של המקור ("לצפייה", "שעת צורך, להמשיך") — שכבת-פורטל בסקין; הודעות רגילות — הטוסט של אורביט
+  const [pnToast, setPnToast] = useState<{ msg: string; action?: { label: string; run: () => void }; n: number } | null>(null);
+  const toastAct = useCallback((msg: string, action?: { label: string; run: () => void }) => setPnToast((t) => ({ msg, action, n: (t?.n ?? 0) + 1 })), []);
+  useEffect(() => {
+    if (!pnToast) return;
+    const t = setTimeout(() => setPnToast(null), 4500);
+    return () => clearTimeout(t);
+  }, [pnToast]);
 
   const name = termOf(config, 'nav.parnasa', 'פרנסה׳לע');
   const segs = adminSegsOf(config, canApprove);
@@ -144,35 +153,121 @@ export function ParnasaView() {
   }
 
   function tapPushke() {
-    if (bumpT.current) clearTimeout(bumpT.current);
-    setBump('cn-bump');
-    bumpT.current = setTimeout(() => setBump(''), 950);
+    pkHit(rootRef.current, 'cn-bump');
     toast(pushkeText(helped));
   }
+
+  // "/" מכל מקום (לא בתוך שדה) ⇒ לאלפון, מיקוד בתיבת-השאלה (המקור)
+  useEffect(() => {
+    if (!directoryOn) return;
+    const onKey = (e: KeyboardEvent): void => {
+      const a = document.activeElement as HTMLElement | null;
+      if (e.key !== '/' || e.ctrlKey || e.metaKey || (a && (/INPUT|TEXTAREA|SELECT/.test(a.tagName) || a.isContentEditable))) return;
+      if (document.querySelector('.modal-back')) return;
+      e.preventDefault();
+      setTab('directory');
+      setSelListing(null);
+      setFocusTick((n) => n + 1);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [directoryOn, setTab, setSelListing]);
+
+  // 🕯 שבת: פנייה נחה בעדינות — וואטסאפ/חיוג/פרסום ננעלים, עם "שעת צורך, להמשיך" (15 דקות) — המקור
+  const shabOk = useRef(0);
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || !calm) return;
+    // SHAB_LOCK של המקור (גם העתקת-המספר — .bn-wa.cp — נחה) + "מכיר מישהו?" של הבית
+    const LOCK = 'a[data-act="wa"],a[data-act="call"],.pn-bpwa,.pn-bn-wa,.pn-rsw-a,[data-act="postNow"],.pn-reqSubmit,[data-act="qrSend"],[data-act="imAvail"],[data-act="postPrefill"],a.pn-rq-b';
+    const onClick = (e: MouseEvent): void => {
+      if (shabOk.current > Date.now()) return;
+      const t = (e.target as Element | null)?.closest?.(LOCK) as HTMLElement | null;
+      if (!t) return;
+      e.preventDefault();
+      e.stopPropagation();
+      toastAct('שבת קודש. האלפון נח עד ' + hm(closure.endTime), {
+        label: 'שעת צורך, להמשיך',
+        run: () => {
+          shabOk.current = Date.now() + 15 * 60_000;
+          t.click();
+        },
+      });
+    };
+    root.addEventListener('click', onClick, true);
+    return () => root.removeEventListener('click', onClick, true);
+  }, [calm, closure.endTime, toastAct]);
+  // 🕯 כניסת-השבת: "שבת שלום" פעם אחת לכל שבת (במכשיר)
+  const [shabOv, setShabOv] = useState<'' | 'on' | 'out'>('');
+  useEffect(() => {
+    if (!calm) return;
+    const key = 'maor_pn_shab_' + (closure.endIso || now.clock.iso);
+    let seen = false;
+    try {
+      seen = localStorage.getItem(key) === '1';
+      localStorage.setItem(key, '1');
+    } catch {
+      seen = true;
+    }
+    if (seen) return;
+    setShabOv('on');
+    const t = setTimeout(() => setShabOv('out'), 7000);
+    return () => clearTimeout(t);
+  }, [calm, closure.endIso, now.clock.iso]);
+  useEffect(() => {
+    if (shabOv !== 'out') return;
+    const t = setTimeout(() => setShabOv(''), 600);
+    return () => clearTimeout(t);
+  }, [shabOv]);
+
+  const dirCtx: DirCtx = {
+    now,
+    heb,
+    closure,
+    reduced,
+    focusTick,
+    quick,
+    toastAct,
+    goReq: isOn('requests')
+      ? (id?: string) => {
+          if (id) setFocusReq(id);
+          go('requests');
+        }
+      : null,
+    goAdmin:
+      segOn('rev') || segOn('spon')
+        ? (sg: AdminSeg) => {
+            setSeg(sg);
+            go('admin');
+          }
+        : null,
+    goJoin: isOn('me')
+      ? () => {
+          setMeAdd((n) => n + 1);
+          go('me');
+        }
+      : null,
+  };
 
   let body: ReactNode = null;
   if (active === null) body = <div className="pn-notice">{'כל הלשוניות של ' + name + ' כבויות באשף — הדליקו לפחות אחת.'}</div>;
   else if (active === 'directory')
     body = (
-      <section className="pn-view pn-on pn-v-dir" data-mode="ask" aria-label="אלפון">
-        <div className="pn-orbit">
-          <DirectoryTab
-            now={now}
-            q={dirQ}
-            setQ={setDirQ}
-            selId={selListing}
-            setSelId={setSelListing}
-            onNewRequest={
-              isOn('requests')
-                ? (draft) => {
-                    setReqDraft(draft);
-                    go('requests');
-                  }
-                : null
-            }
-          />
-        </div>
-      </section>
+      <DirectoryTab
+        ctx={dirCtx}
+        q={dirQ}
+        setQ={setDirQ}
+        selId={selListing}
+        setSelId={setSelListing}
+        onNewRequest={
+          isOn('requests')
+            ? (draft) => {
+                setReqDraft(draft);
+                go('requests');
+              }
+            : null
+        }
+      />
     );
   else if (active === 'requests')
     body = (
@@ -221,6 +316,7 @@ export function ParnasaView() {
     body = (
       <section className="pn-view pn-on pn-v-me" aria-label="העסק שלי">
         <MeTab
+          addTick={meAdd}
           onOpen={(id) => {
             setSelListing(id);
             go('directory');
@@ -249,6 +345,7 @@ export function ParnasaView() {
   return (
     <PnSkinCtx.Provider value={skin}>
       <div
+        ref={rootRef}
         className={cx('pn pn-root', sp.big && 'pn-big', hintsOff && 'pn-hints-off')}
         {...skinAttrs(skin)}
         style={vars({ eve: eve.toFixed(3), omer: period.k === 'omer' ? String((period.n ?? 0) / 49) : '0' })}
@@ -257,6 +354,7 @@ export function ParnasaView() {
       >
         <PnDefs />
         <div className="pn-dusk" aria-hidden="true" />
+        <div className="pn-cn-fly" aria-hidden="true" />
         <Band
           brand={name}
           community={(prefs?.communityName ?? '').trim()}
@@ -264,7 +362,7 @@ export function ParnasaView() {
           dedication={dedicationOf(prefs?.dedication)}
           calm={calm}
           reducedMotion={reduced}
-          pushke={{ goldH: pushkeFill(helped, approvedN), title: pushkeText(helped), bump, onTap: tapPushke }}
+          pushke={{ goldH: pushkeFill(helped, approvedN), title: pushkeText(helped), bump: '', onTap: tapPushke }}
           tools={{
             big: sp.big,
             dark,
@@ -294,6 +392,50 @@ export function ParnasaView() {
         {shown.length > 0 && active && (
           <TabBar tabs={shown.map((t) => ({ key: t.key, label: t.label, icon: t.icon, badge: badges[t.key] }))} active={active} onGo={go} />
         )}
+        <PnPortal>
+          <div className={cx('pn-toast', pnToast && 'pn-on')} role="status" aria-live="polite">
+            {pnToast ? (
+              <>
+                {pnToast.msg}
+                {pnToast.action ? (
+                  <>
+                    {' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const a = pnToast.action;
+                        setPnToast(null);
+                        a?.run();
+                      }}
+                    >
+                      {pnToast.action.label}
+                    </button>
+                  </>
+                ) : null}
+              </>
+            ) : null}
+          </div>
+          {shabOv ? (
+            <div className={cx('pn-shab-ov', shabOv === 'out' && 'pn-out')} role="dialog" aria-label="שבת שלום">
+              <div className="pn-so-in">
+                <div className="pn-so-c" aria-hidden="true">
+                  <span className="pn-so-candle">
+                    <i />
+                  </span>
+                  <span className="pn-so-candle">
+                    <i />
+                  </span>
+                </div>
+                <h2>{closure.kind === 'yomtov' ? 'חג שמח' : 'שבת שלום'}</h2>
+                <p>{(closure.kind === 'yomtov' ? 'האלפון נח עד צאת החג · ' : 'האלפון נח עד צאת השבת · ') + hm(closure.endTime)}</p>
+                <p className="pn-so-k">{closure.kind === 'yomtov' ? 'בעלי המקצוע חוזרים במוצאי ' + closure.reason : 'בעלי המקצוע חוזרים במוצאי שבת קודש'}</p>
+                <button type="button" className="pn-so-b" onClick={() => setShabOv('out')}>
+                  {closure.kind === 'yomtov' ? 'חג שמח' : 'שבת שלום'}
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </PnPortal>
       </div>
     </PnSkinCtx.Provider>
   );

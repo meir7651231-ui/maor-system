@@ -568,8 +568,8 @@ for (const profile of PROFILES) {
   const segTxt = (await page.locator('main .pn-seg').textContent().catch(() => '')) ?? '';
   t('"ניהול" — 6 אזורי-הניהול (טיפול, פרסום, חוברת, הקו, הגדרות-גבאי)', PR_SEGS.every((x) => segTxt.includes(x)), PR_SEGS.filter((x) => !segTxt.includes(x)).join(', '));
 
-  // ➕ עסק (גבאי ⇒ מאושר מיד + קוד-החיוג הבא) ⇒ הכרטיס המלא נפתח
-  await prTab('אלפון');
+  // ➕ עסק (גבאי ⇒ מאושר מיד + קוד-החיוג הבא) ⇒ הכרטיס המלא נפתח — עיצוב 2: ההוספה ב"העסק שלי" (כמו המקור)
+  await prTab('העסק שלי');
   await page.waitForTimeout(300);
   await page.locator('main button', { hasText: '➕ הוספת עסק' }).click();
   await page.locator('.modal input[placeholder="ר׳ יעקב כהן"]').fill('אינסטלציה-מטריצה');
@@ -590,11 +590,20 @@ for (const profile of PROFILES) {
   prMain = (await page.locator('main').textContent()) ?? '';
   t('"מה צריך?" — "נזילה בכיור" מוצא את אינסטלציה-מטריצה', prMain.includes('אינסטלציה-מטריצה') && prMain.includes('אינסטלציה'));
 
-  // "לא מצאתי" ⇒ בקשה ממולאת ⇒ לשונית-הבקשות עם שורת-המסלול
+  // עיצוב 2: התשובות כבאנרי-תמונה של המקור + שורת-ההבנה
+  t('"מה צריך?" — באנר-תמונה ושורת-ההבנה של המקור', (await page.locator('main .pn-answers .pn-pbn').count()) > 0 && (await page.locator('main .pn-understood').count()) === 1);
+  // "לא מצאתי" ⇒ "עם טלפון" ⇒ בקשה ממולאת ⇒ לשונית-הבקשות עם שורת-המסלול
   await page.locator('main input[placeholder="נזילה, קצר בחשמל, מלמד…"]').fill('מחפש מלמד לגמרא');
   await page.waitForTimeout(300);
-  await page.locator('main button', { hasText: '➕ פתיחת בקשה' }).click();
+  await page.locator('main button', { hasText: 'עם טלפון' }).click();
   await page.waitForTimeout(300);
+  // בשבת/חג (הרצה בזמן-אמת) הפנייה נחה בעדינות — "שעת צורך, להמשיך" פותח (המקור)
+  const shabNeed = page.locator('.pn-toast button', { hasText: 'שעת צורך, להמשיך' });
+  if (await shabNeed.count()) {
+    t('🕯 בשבת/חג — "עם טלפון" נח בעדינות, "שעת צורך, להמשיך" ממשיך', true);
+    await shabNeed.first().click();
+    await page.waitForTimeout(300);
+  }
   await page.locator('.modal button', { hasText: 'שמירת הבקשה' }).click();
   await page.waitForTimeout(400);
   prMain = (await page.locator('main').textContent()) ?? '';
