@@ -19,6 +19,8 @@ import { hebDateFull } from '../../lib/hebrew';
 import { ayinAllRows, ayinDailyRows, ayinActive,
   ayinOnBoard, eyesTotal, featLabel, itemLabel, stageLabel, unitLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
+import { printHtmlDoc } from '../../lib/printDoc';
+import { prayerDocHtml, prayerGroups } from './prayer';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { buildSupporterStats, chipStyle, donationYearsFromStats, filterSupporterList, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sortSupporterList, statOf, sup12m, supAvgDon, supCount, LAST_BUCKETS, type LastBucket, supScoreBins, supTier, type SupSortKey, type SupStats, supporterVisibleForDesignations, totalLabelOf, visibleSupportersForDesignations, TIER_ORDER } from './lib';
 import type { OrgConfig } from '../../types/config';
@@ -37,10 +39,11 @@ import { SupportersKpiStrip } from './SupportersKpiStrip';
 import { SupportersViewSwitcher } from './SupportersViewSwitcher';
 import { CommandPalette } from './CommandPalette';
 import type { Command } from './commands';
-import { AyinBoard } from './AyinBoard';
+import { AyinBoard, AyinDueBadge } from './AyinBoard';
 import { AyinNamesBoard } from './AyinNamesBoard';
 import { OrgDonationCalendar } from './DonationCalendar';
 import { SupDedupModal } from './SupDedupModal';
+import { NameSplitModal } from './NameSplitModal';
 import { HokBulkModal } from './HokBulkModal';
 import { findSupporterDupGroups } from '../../lib/dedup';
 import { bulkMailRecipients, bulkWaRecipients } from '../../lib/bulkContact';
@@ -51,6 +54,8 @@ type SortKey = SupSortKey;
 
 const HEAD: { key: SortKey; label: string }[] = [
   { key: 'name', label: 'תומכ/ת' },
+  // 🪪 שם-משפחה (13.10) — עמודה ממוינת+מסוננת; מוצגת רק כש-supporters.lastname דלוק
+  { key: 'lastName', label: 'שם משפחה' },
   { key: 'cat', label: 'קטגוריה' },
   { key: 'phone', label: 'טלפון' },
   { key: 'email', label: 'אימייל' },
@@ -91,6 +96,7 @@ interface RowProps {
   nextOn: boolean;
   rfmOn: boolean;
   ayinOn: boolean;
+  lastNameOn: boolean;
   click2call: boolean;
   waOn: boolean;
   config: OrgConfig;
@@ -100,7 +106,7 @@ interface RowProps {
 }
 
 const SupporterRow = memo(function SupporterRow(props: RowProps) {
-  const { sp, st, config, today, selMode, nextOn, rfmOn, ayinOn } = props;
+  const { sp, st, config, today, selMode, nextOn, rfmOn, ayinOn, lastNameOn } = props;
   return (
     <tr
       onClick={() => (selMode ? props.onToggle(sp.id) : props.onOpen(sp.id))}
@@ -126,6 +132,7 @@ const SupporterRow = memo(function SupporterRow(props: RowProps) {
           </div>
         )}
       </td>
+      {lastNameOn && <td>{sp.lastName || '—'}</td>}
       <td>{sp.cat || '—'}</td>
       <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.phone || '—'}</td>
       <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.email || '—'}</td>
@@ -180,7 +187,7 @@ const SupporterRow = memo(function SupporterRow(props: RowProps) {
 });
 
 /* תצוגת גריד (5.8) — כרטיסים ידידותיים-למובייל; אותו דפוס כמו המשפחות (ממומואיז, 12.10.2026) */
-const SupporterGridCard = memo(function SupporterGridCard(props: Omit<RowProps, 'ayinOn' | 'click2call' | 'waOn'>) {
+const SupporterGridCard = memo(function SupporterGridCard(props: Omit<RowProps, 'ayinOn' | 'click2call' | 'waOn' | 'lastNameOn'>) {
   const { sp, st, config, today, selMode, nextOn, rfmOn } = props;
   const tier = st.tier;
   return (
@@ -282,6 +289,7 @@ export function SupportersView() {
   // גידור-דגלים (FLAGMAX): מיון-כותרות / סינון-עמודות / פאנל-מתקדם / מסך-השמות —
   // חסר-דגל = פעיל (עטיפה = אפס-שינוי-ברירת-מחדל); false מסתיר, לא מנטרל.
   const sortOn = featureOn(config, 'supporters.sort');
+  const lastNameOn = featureOn(config, 'supporters.lastname'); // 🪪 13.10
   const colFilterOn = featureOn(config, 'supporters.colfilter');
   const advFilterOn = featureOn(config, 'supporters.advfilter');
   const ayinNamesOn = featureOn(config, 'supporters.ayin.names');
@@ -310,6 +318,9 @@ export function SupportersView() {
   const [tierF, setTierF] = useRemembered<string | null>('sup.tierF', null);
   // פילטרים פר-עמודה בתחביר numMatch — 'N' / 'N+' / 'N-M' (P3 פריט 13, לגאסי scf:2809-2811)
   const [colF, setColF] = useRemembered('sup.colF', { count: '', total: '', score: '' });
+  // 🪪 סינון שם-משפחה (13.10) — בשורת-הסינון שמתחת לכותרות, נזכר במעבר-מסך כמו שאר המסננים
+  const [lastNameF, setLastNameF] = useRemembered('sup.lastNameF', '');
+  const dLastNameF = useDeferredValue(lastNameF);
   // סינון מעקב הטיפול (P3 פריט 14, לגאסי): עם מונה / בלי מונה / עודכן היום
   const [ayinF, setAyinF] = useRemembered<null | 'eyes' | 'noeyes' | 'today'>('sup.ayinF', null);
   // 📞 קוהרנטיות ווידג'ט↔יעד (20.8): סינון יעדי-קשר שהגיעו — הרשימה המלאה של ווידג'ט-הבית
@@ -377,6 +388,8 @@ export function SupportersView() {
   // כאן (מגודר hokOn) — מוצג רק כשיש חיובי-נדרים ב-hist, לא-דורס-הו"ק-ידני, no-op כשריק.
   // 🔗 איחוד-כפולים (#13) — הכפתור מוצג רק כשיש מה לאחד
   const [dedupOpen, setDedupOpen] = useState(false);
+  // 🪪 פיצול שם פרטי/משפחה לכל התורמים הקיימים (הכרעת-בעלים 13.10) — למנהל, עם תצוגה-מקדימה
+  const [nameSplitOpen, setNameSplitOpen] = useState(false);
   // 🐛 נחיל-9×9 (13.8): Union-Find על כל התורמים רץ בכל render (כל הקשה/סינון) —
   // ממומואיז על db.supporters בלבד.
   const dedupCount = useMemo(() => findSupporterDupGroups(db.supporters).length, [db.supporters]);
@@ -520,6 +533,22 @@ export function SupportersView() {
     toast('דוח ' + ayinItemsLabel + ': ' + (rows.length - 1) + ' ' + ayinItemsLabel + ' — הקובץ ירד');
   }
 
+  /**
+   * 🙏 שמות לתפילה — קובץ מסודר של כל הארגון (בקשת-בעלים 13.10): השמות הפעילים מכל התורמים,
+   * מקובצים לפי תורם, להדפסה/שמירה כ-PDF. 🔒 רק תורמים גלויים לעובד/ת (ייעוד-הרשאה).
+   * מחושב רק בלחיצה — לא מעבר נוסף על כל התורמים בכל רינדור (ביצועי-16k).
+   */
+  function prayerAllDoc() {
+    const groups = prayerGroups(visibleSupportersForDesignations(db.supporters, desigLimit));
+    const n = groups.reduce((s, g) => s + g.names.length, 0);
+    if (!n) {
+      toast('אין עדיין שמות פעילים לתפילה בכרטיסי ה' + termOf(config, 'entity.supporters', 'תורמים'));
+      return;
+    }
+    const html = prayerDocHtml(groups, { title: '🙏 שמות לתפילה', dateLabel: fmtDate(isoToday()) });
+    if (printHtmlDoc(html)) toast(n + ' שמות · נפתח חלון הדפסה — אפשר לבחור "שמירה כ-PDF"');
+  }
+
   // 🐛 נחיל-9×9 (13.8): גם פתיחת-כרטיס-ישיר (מהפלטה/עומק) מכובדת להרשאת-הייעוד —
   // id מחוץ-להיקף לא ייפתח (הגנה-בעומק מעל סינון visibleBase).
   // ⌘K — פלטת-הפיקוד (קופיילוט). מגודרת opt-in (cockpitOn); עוטפת פעולות קיימות.
@@ -634,8 +663,8 @@ export function SupportersView() {
     [segF, visibleBase, today, rate, atRiskIds],
   );
   const matched = useMemo(
-    () => filterSupporterList(visibleBase, stats, { dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF }, today, rate, matchSeg),
-    [visibleBase, stats, dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF, today, rate, matchSeg],
+    () => filterSupporterList(visibleBase, stats, { dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF, lastNameF: lastNameOn ? dLastNameF : '' }, today, rate, matchSeg),
+    [visibleBase, stats, dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF, lastNameOn, dLastNameF, today, rate, matchSeg],
   );
   // מיון-מעוטר: מפתח-אחד פר-שורה (היה sortVal×2 לכל השוואה; מיון-ציון = supScore ‎N·logN‎)
   const list = useMemo(() => (sort ? sortSupporterList(matched, stats, sort.key, sort.dir, rate) : matched), [matched, stats, sort, rate]);
@@ -754,7 +783,8 @@ export function SupportersView() {
   // הציגה "M תומכות" בלי "N מתוך" כשסיננו לפי הו"ק/ייעוד. עכשיו כל מסנן נספר.
   const filtered =
     q.trim() !== '' || cat !== 'all' || purposeF !== 'all' || !!tierF || !!hokF || !!ayinF || nextF || !!segF || !!lastF || !!monthF || !!gaveYearF || !!acqYearF ||
-    colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';
+    colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '' ||
+    (lastNameOn && lastNameF.trim() !== '');
   const segLabel = segF ? SEGMENTS.find((s) => s.key === segF)?.label : null;
   const MONTHS_HE = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
   // תווית-התקופה: שנה+חודש = "נתנו ב-8/2025"; רק-חודש = "נתנו בחודש אוגוסט";
@@ -810,6 +840,7 @@ export function SupportersView() {
     setAcqYearF(null);
     setPeriodMode('gave');
     setColF({ count: '', total: '', score: '' });
+    setLastNameF('');
   };
 
   return (
@@ -863,7 +894,9 @@ export function SupportersView() {
                 // מסך-השמות המלא (20.8, בקשת-בעלים) — הרשימה פר-שם על-המסך, לא רק CSV
                 ayinOn && ayinNamesOn && { label: '📋 ' + featLabel(config) + ' — כל ה' + ayinItemsLabel, onClick: () => setAyinNamesOpen(true), title: 'כל ה' + ayinItemsLabel + ' מכל הכרטיסים — טבלה חיה עם חיפוש וסינון' },
                 ayinOn && isAdminUser(config, cloudEmail) && { label: '📥 דוח שמות (למנהל)', onClick: namesReport, title: 'כל השמות בכרטיסי מעקב-הטיפול — CSV' },
+                featureOn(config, 'supporters.prayernames') && { label: '🙏 שמות לתפילה — קובץ מסודר', onClick: prayerAllDoc, title: 'כל השמות הפעילים מכל הכרטיסים, מקובצים לפי תורם — להדפסה או שמירה כ-PDF' },
                 dedupCount > 0 && featureOn(config, 'supporters.dedup') && { label: '🔗 איחוד כפולים · ' + dedupCount, onClick: () => setDedupOpen(true) },
+                lastNameOn && canBulkManage && { label: '🪪 פיצול שם פרטי / משפחה', onClick: () => setNameSplitOpen(true), title: 'הצעת פיצול לכל השמות הקיימים — בודקים ומאשרים לפני שמירה; השם על הקבלה לא משתנה' },
                 !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
               ]}
             />
@@ -1008,6 +1041,8 @@ export function SupportersView() {
                   {'📋 כל ה' + ayinItemsLabel}
                 </Btn>
               )}
+              {/* ⏰ 13.10: תזכורות שהגיע זמנן — גלוי גם כשהלוח סגור; לחיצה פותחת (והן ברצועה בראש הלוח) */}
+              <AyinDueBadge onOpen={() => setAyinBoardOpen(true)} />
               {/* מונה-פעילים על המתג — הלוח סגור כברירת-מחדל (19.8) ובלי מונה אין אות-גילוי */}
               <Btn sm onClick={() => setAyinBoardOpen((v) => !v)}>
                 {(ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה') + (ayinActiveCount ? ' · ' + ayinActiveCount : '')}
@@ -1113,7 +1148,7 @@ export function SupportersView() {
             ariaLabel="מיון"
             options={[
               { value: 'none', label: '↕ מיון: ללא' },
-              ...HEAD.filter((h) => ['name', 'count', 'ils', 'usd', 'last', 'nextDate', 'score'].includes(h.key))
+              ...HEAD.filter((h) => ['name', 'count', 'ils', 'usd', 'last', 'nextDate', 'score'].includes(h.key) || (lastNameOn && h.key === 'lastName'))
                 .filter((h) => (nextOn || h.key !== 'nextDate') && (rfmOn || h.key !== 'score'))
                 .flatMap((h) => [
                   { value: h.key + ':desc', label: '↓ ' + headLabel(h) + ' (יורד)' },
@@ -1315,6 +1350,7 @@ export function SupportersView() {
                 {selMode && <th aria-hidden style={{ width: 34 }} />}
                 {HEAD.filter(
                   (h) =>
+                    (lastNameOn || h.key !== 'lastName') &&
                     (nextOn || h.key !== 'nextDate') &&
                     (rfmOn || h.key !== 'score') &&
                     (ayinOn || (h.key !== 'stage' && h.key !== 'eyes' && h.key !== 'paid')),
@@ -1350,11 +1386,22 @@ export function SupportersView() {
                 {selMode && <th />}
                 {HEAD.filter(
                   (h) =>
+                    (lastNameOn || h.key !== 'lastName') &&
                     (nextOn || h.key !== 'nextDate') &&
                     (rfmOn || h.key !== 'score') &&
                     (ayinOn || (h.key !== 'stage' && h.key !== 'eyes' && h.key !== 'paid')),
                 ).map((h) =>
-                  h.key === 'count' || h.key === 'ils' || h.key === 'score' ? (
+                  h.key === 'lastName' ? (
+                    <th key={h.key} style={{ padding: '3px 8px' }}>
+                      <input
+                        value={lastNameF}
+                        onChange={(e) => setLastNameF(e.target.value)}
+                        placeholder="סינון: כהן"
+                        aria-label="סינון לפי שם משפחה"
+                        className="colfilter"
+                      />
+                    </th>
+                  ) : h.key === 'count' || h.key === 'ils' || h.key === 'score' ? (
                     <th key={h.key} style={{ padding: '3px 8px' }}>
                       <input
                         value={h.key === 'count' ? colF.count : h.key === 'ils' ? colF.total : colF.score}
@@ -1390,6 +1437,7 @@ export function SupportersView() {
                   nextOn={nextOn}
                   rfmOn={rfmOn}
                   ayinOn={ayinOn}
+                  lastNameOn={lastNameOn}
                   click2call={click2call}
                   waOn={waOn}
                   config={config}
@@ -1433,6 +1481,7 @@ export function SupportersView() {
       )}
 
       {dedupOpen && <SupDedupModal onClose={() => setDedupOpen(false)} />}
+      {nameSplitOpen && <NameSplitModal onClose={() => setNameSplitOpen(false)} />}
       {hokBulkOpen && <HokBulkModal config={config} onClose={() => setHokBulkOpen(false)} />}
       {/* 📋 מסך-השמות המלא (20.8) — הרשימה פר-שם מכל הכרטיסים; שורה ⇒ כרטיס */}
       {ayinNamesOpen && (

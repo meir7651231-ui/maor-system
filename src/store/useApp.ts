@@ -61,7 +61,7 @@ import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { planDemoPurge, purgeSummary } from '../lib/demoPurge';
-import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, recurDates, recurDef, recurStatus, SEGULA_OFFSETS, segulaTitle, stripRecurNote, type RecurMode } from '../components/supporters/lib';
+import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, recurDates, recurDef, recurStatus, SEGULA_OFFSETS, segulaTitle, stripRecurNote, type RecurMode, type RecurDatesOpts } from '../components/supporters/lib';
 import { planCharges } from '../components/supporters/planned';
 import { planAddPrayerName, removePrayerName, setPrayerNote, togglePrayerName } from '../components/supporters/prayer';
 import { findAllOpenPlans, matchAll } from '../lib/plannedMatch';
@@ -382,6 +382,9 @@ interface AppState {
   deleteTeacher: (id: string) => { ok: boolean; error?: string };
   upsertRoom: (r: Room) => void;
   upsertSupporter: (s: Supporter) => void;
+  /** 🪪 פיצול-שמות מרוכז (13.10) — כתיבה אטומית אחת של firstName/lastName לתורמים שעוד לא פוצלו.
+   *  `name` (השם על הקבלה) לא נגע; תורם שבינתיים פוצל — מדולג. מחזיר כמה עודכנו. */
+  applyNameSplit: (rows: { id: string; first: string; last: string }[]) => number;
   /** גלריית-תמונות: הוספת תמונה מוקטנת (data:URI) לתורם, עד PHOTO_MAX. */
   addSupporterPhoto: (id: string, dataUri: string) => void;
   /** גלריית-תמונות: הסרת תמונה לפי אינדקס. */
@@ -405,13 +408,13 @@ interface AppState {
   /** 🕯 סגולת 40 יום — זריעת תזכורות-לוח מדורגות לתורם מתאריך-התחלה. `purpose`
    *  אופציונלי (למשל 'זיווג') מוטבע בכותרת/הערת-התזכורת. מחזיר כמה נוצרו. */
   /** 🔁 (16.9) mode: 'segula' (ברירת-מחדל, 40 יום) · 'daily' · 'weekly' · 'monthly'; count לסדרות החוזרות. */
-  seedSegulaReminders: (supId: string, startIso: string, purpose?: string, mode?: RecurMode, count?: number) => number;
+  seedSegulaReminders: (supId: string, startIso: string, purpose?: string, mode?: RecurMode, count?: number, opts?: RecurDatesOpts) => number;
   /** ✖ ביטול הסגולה הנוכחית (בקשת-בעלים 6.9 "מה קורה עם הכפתור"): מוחק את אירועי-הריצה
    *  הנוכחית (לא ריצות קודמות), מסיר את שורת-הסגולה מהערת-קשר-הבא ומנקה יעד-קשר
    *  שהיה תזכורת-סגולה. מחזיר כמה אירועים הוסרו (0 = לא הייתה סגולה). */
   cancelSegula: (supId: string, mode?: RecurMode) => number;
   /** 🔄 התחלה-מחדש מהיום: ביטול + זריעה חדשה (שני שלבים, כתיבה אטומית לכל שלב). */
-  restartSegula: (supId: string, startIso: string, purpose?: string, mode?: RecurMode, count?: number) => number;
+  restartSegula: (supId: string, startIso: string, purpose?: string, mode?: RecurMode, count?: number, opts?: RecurDatesOpts) => number;
   /** ✓ הפיכת מצב-בוצע של אירוע-לוח (תזכורת-סגולה מהכרטיס; אותו upsertEvent). */
   toggleEventDone: (eventId: string) => void;
   /** 🔄 יישום תוכנית-סנכרון נדרים (planNedarimSync): החלפת מערך-התומכים המלא +
@@ -2385,6 +2388,27 @@ export const useApp = create<AppState>()((set, get) => {
         }),
       }));
     },
+    applyNameSplit(rows) {
+      const want = new Map<string, { first: string; last: string }>();
+      for (const r of rows) {
+        const first = (r.first || '').trim();
+        const last = (r.last || '').trim();
+        if (first || last) want.set(r.id, { first, last });
+      }
+      if (!want.size) return 0;
+      let n = 0;
+      setDb((db) => ({
+        supporters: db.supporters.map((s) => {
+          const w = want.get(s.id);
+          if (!w || (s.firstName || '').trim() || (s.lastName || '').trim()) return s;
+          n++;
+          return { ...s, ...(w.first ? { firstName: w.first } : {}), ...(w.last ? { lastName: w.last } : {}) };
+        }),
+      }));
+      if (n) logAudit('🪪 פיצול שם פרטי/משפחה', n + ' ' + termOf(get().config, 'entity.supporters', 'תורמים'));
+      return n;
+    },
+
     mergeSupporters(keepId, dropId) {
       const { supporters } = get().db;
       const keep = supporters.find((s) => s.id === keepId);
@@ -2461,7 +2485,7 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === supId ? { ...s, prayerNames: removePrayerName(s.prayerNames ?? [], id) } : s)) }));
     },
 
-    seedSegulaReminders(supId, startIso, purpose, mode = 'segula', count) {
+    seedSegulaReminders(supId, startIso, purpose, mode = 'segula', count, opts) {
       // 🕯 סגולת 40 יום — תזכורות-לוח מדורגות (call) עם spId, כדי שיופיעו על התורם
       // וביומן. דטרמיניסטי (segulaReminders); אינו נוגע בכספים/קבלות.
       // `purpose` (למשל 'זיווג') מוטבע בכותרת ובהערה — בקשת-בעלים 30.8.
@@ -2476,9 +2500,12 @@ export const useApp = create<AppState>()((set, get) => {
         return 0;
       }
       const target = Math.max(...SEGULA_OFFSETS);
-      const reminders = recurDates(startIso, mode, count);
+      // 13.10: opts = תאריך-נבחר-הוא-הראשונה + לוח עברי/לועזי. חסר ⇒ ביט-זהה להתנהגות הקודמת.
+      const reminders = recurDates(startIso, mode, count, opts);
       const tag = (purpose || '').trim() ? ' · ' + (purpose || '').trim() : '';
-      const seriesNote = mode === 'segula' ? 'סגולת ' + target + ' יום' : def.prefix + ' ×' + reminders.length;
+      // סימון "עברי" אחרי התחילית — הזיהוי (startsWith) לא נפגע.
+      const heb = opts?.cal === 'heb' && !!def.calChoice ? ' עברי' : '';
+      const seriesNote = mode === 'segula' ? 'סגולת ' + target + ' יום' : def.prefix + heb + ' ×' + reminders.length;
       for (const r of reminders) {
         get().upsertEvent({
           id: get().nextId('ev'),
@@ -2534,10 +2561,10 @@ export const useApp = create<AppState>()((set, get) => {
       return ids.size;
     },
 
-    restartSegula(supId, startIso, purpose, mode = 'segula', count) {
+    restartSegula(supId, startIso, purpose, mode = 'segula', count, opts) {
       const removed = get().cancelSegula(supId, mode);
-      const n = get().seedSegulaReminders(supId, startIso, purpose, mode, count);
-      if (removed && n) get().toast('🔄 ' + recurDef(mode).label + ' התחילה מחדש מהיום — ' + n + ' תזכורות חדשות');
+      const n = get().seedSegulaReminders(supId, startIso, purpose, mode, count, opts);
+      if (removed && n) get().toast('🔄 ' + recurDef(mode).label + ' התחילה מחדש מ-' + startIso.slice(8, 10) + '/' + startIso.slice(5, 7) + ' — ' + n + ' תזכורות חדשות');
       return n;
     },
 

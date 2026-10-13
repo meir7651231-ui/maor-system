@@ -47,8 +47,9 @@ describe('🛡 הצינור ממומואיז וקורא מספרים מוכני�
     expect(viewSrc).toMatch(/const visibleBase = useMemo\([\s\S]{0,200}\[db\.supporters, desigLimit\]/);
     expect(viewSrc).toMatch(/const stats = useMemo\([\s\S]{0,120}\[visibleBase, rate, today, hourFromNoon\]/);
     expect(viewSrc).toMatch(/const agg = useMemo\(/);
-    expect(viewSrc).toMatch(/const matched = useMemo\(\s*\(\) => filterSupporterList\(visibleBase, stats, \{ dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF \}, today, rate, matchSeg\)/);
-    expect(viewSrc).toContain('[visibleBase, stats, dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF, today, rate, matchSeg]');
+    // 13.10: + סינון שם-משפחה (lastNameF, מושהה דרך useDeferredValue) — גם בקלט וגם בתלויות.
+    expect(viewSrc).toMatch(/const matched = useMemo\(\s*\(\) => filterSupporterList\(visibleBase, stats, \{ dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF, lastNameF: lastNameOn \? dLastNameF : '' \}, today, rate, matchSeg\)/);
+    expect(viewSrc).toContain('[visibleBase, stats, dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF, lastNameOn, dLastNameF, today, rate, matchSeg]');
     expect(viewSrc).toContain("const list = useMemo(() => (sort ? sortSupporterList(matched, stats, sort.key, sort.dir, rate) : matched), [matched, stats, sort, rate]);");
     expect(viewSrc).toContain('const shownRows = incSlice(list, inc.cap)');
     // הרשימה-הישנה (סינון אינליין + sortVal) נעלמה מהמסך

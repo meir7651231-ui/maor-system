@@ -97,7 +97,7 @@ describe('cancelSegula / restartSegula / toggleEventDone', () => {
     expect(src).toContain('onClick={() => r.id && toggleEventDone(r.id)}');
     expect(src).toContain("segConfirm('seg-restart'");
     expect(src).toContain("segConfirm('seg-cancel'");
-    expect(src).toContain("restartSegula(sp.id, isoToday(), 'זיווג')");
+    expect(src).toContain("restartSegula(sp.id, recurStart, 'זיווג')"); // 13.10: מהתאריך שנבחר (ברירת-מחדל היום)
     expect(src).toContain('cancelSegula(sp.id)');
     expect(src).toContain("'🕯 סגולה קודמת הסתיימה ב-'");
     expect(src).toContain('{segulaOn && !segula?.active && (');

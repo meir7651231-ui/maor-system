@@ -8,6 +8,16 @@ import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
 
+/**
+ * כל הטלפונים של משפחה — ראשי, נוסף, ואז phones[] (בקשת-בעלים 13.10). ריקים מסוננים, סדר יציב.
+ * מקור-אמת אחד לזיהוי-כפילויות ולזיהוי-מתקשר — אף מספר לא נשכח.
+ */
+export function allFamilyPhones(f: Pick<Family, 'phone' | 'phone2' | 'phones'>): string[] {
+  // Array.isArray: רשומה פגומה אחת (מהענן/ייבוא) לא תפיל סריקה על כל המשפחות.
+  const extra = Array.isArray(f.phones) ? f.phones.map((p) => p?.num) : [];
+  return [f.phone, f.phone2, ...extra].map((p) => (typeof p === 'string' ? p.trim() : '')).filter(Boolean);
+}
+
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
   if (!iso) return '—';

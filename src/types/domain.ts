@@ -77,6 +77,8 @@ export interface Family {
   motherId: string;
   phone: string;
   phone2: string;
+  /** טלפונים נוספים מעבר לשניים (בקשת-בעלים 13.10) — additive; חסר = אין. אותו מבנה כמו בתורמים. */
+  phones?: SupPhone[];
   email: string;
   city: string;
   address: string;
@@ -590,7 +592,7 @@ export interface Hok {
   kevaId?: string;
 }
 
-/** מספר-טלפון נוסף לתורם (ריבוי-טלפונים) — additive. */
+/** מספר-טלפון נוסף (ריבוי-טלפונים) — לתורם ולמשפחה; additive. */
 export interface SupPhone {
   id: Id;
   /** המספר עצמו (מפורמט דרך fixPhone). */
@@ -615,6 +617,10 @@ export interface PrayerName {
 export interface Supporter {
   id: Id;
   name: string;
+  /** שם פרטי / שם משפחה בנפרד (בקשת-בעלים 13.10 "שיכול לעשות סינון והכל") — additive; חסר = לא פוצל.
+   *  `name` נשאר השם-המלא הקנוני (קבלות §46, תצוגה) — לא נדרס בשקט. ⚠️ `first`/`last` למטה = תאריכי-תרומה. */
+  firstName?: string;
+  lastName?: string;
   phone: string;
   /** טלפונים נוספים (וואטסאפ/בית/עבודה/…) — additive, אין מיגרציה. השדה `phone`
    *  נשאר המספר-הראשי (מקור-אמת לכל המשטחים הקיימים); כאן רק מספרים נוספים.

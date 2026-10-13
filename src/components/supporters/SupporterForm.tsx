@@ -8,7 +8,8 @@ import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { normSearch, validIsraeliId } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, TextInput } from '../ui';
-import { allDonationPurposes, cleanSupPhones, fixPhone, phoneRegion } from './lib';
+import { allDonationPurposes, cleanSupPhones, composeName, fixPhone } from './lib';
+import { PhonesEditor } from '../PhonesEditor';
 
 export interface SupporterFormProps {
   /** null — תומכת חדשה. */
@@ -24,8 +25,11 @@ export function SupporterForm(props: SupporterFormProps) {
   const config = useApp((s) => s.config);
 
   const sp = props.supporter;
+  const lastNameOn = featureOn(config, 'supporters.lastname'); // 🪪 שם פרטי/משפחה בנפרד (13.10)
   const [f, setF] = useState({
     name: sp?.name ?? '',
+    firstName: sp?.firstName ?? '',
+    lastName: sp?.lastName ?? '',
     phone: sp?.phone ?? '',
     email: sp?.email ?? '',
     address: sp?.address ?? '',
@@ -40,10 +44,14 @@ export function SupporterForm(props: SupporterFormProps) {
   const [error, setError] = useState('');
 
   const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v });
-  const nextIdFn = useApp((s) => s.nextId);
-  const addPhone = () => setPhones([...phones, { id: nextIdFn('ph'), num: '', label: '', note: '', wa: false }]);
-  const setPhone = (i: number, patch: Partial<SupPhone>) => setPhones(phones.map((p, j) => (j === i ? { ...p, ...patch } : p)));
-  const removePhone = (i: number) => setPhones(phones.filter((_, j) => j !== i));
+  // הקלדת שם-פרטי/משפחה ממלאת את השם-המלא **רק** כשהוא ריק או עדיין זהה לצירוף הקודם —
+  // שם-מלא שהוקלד/יובא אחרת (למשל "כהן ישראל" מנדרים) לא נדרס בשקט (הוא מה שמודפס על הקבלה).
+  const setSplit = (k: 'firstName' | 'lastName') => (v: string) =>
+    setF((p) => {
+      const next = { ...p, [k]: v };
+      const follows = !p.name.trim() || p.name.trim() === composeName(p.firstName, p.lastName);
+      return follows ? { ...next, name: composeName(next.firstName, next.lastName) } : next;
+    });
 
   function save() {
     if (!f.name.trim()) {
@@ -67,9 +75,16 @@ export function SupporterForm(props: SupporterFormProps) {
       notes: f.notes.trim(),
       phones: cleanSupPhones(phones),
     };
+    // 🪪 שם פרטי/משפחה — המפתחות נכתבים רק כשיש ערך (תורם בלי פיצול נשאר ביט-זהה; ניקוי ⇒ הסרה)
+    const withSplit = (rec: Supporter): Supporter => {
+      const { firstName: _f, lastName: _l, ...rest } = rec;
+      const fn = f.firstName.trim();
+      const ln = f.lastName.trim();
+      return { ...rest, ...(fn ? { firstName: fn } : {}), ...(ln ? { lastName: ln } : {}) };
+    };
 
     if (sp) {
-      upsertSupporter({ ...sp, ...vals });
+      upsertSupporter(withSplit({ ...sp, ...vals }));
       toast('כרטיס ' + termOf(config, 'entity.supporter', 'התומך/ת') + ' עודכן — משתקף מיד בטבלה, בחיפוש ובגיבוי');
       props.onClose();
       return;
@@ -90,7 +105,7 @@ export function SupporterForm(props: SupporterFormProps) {
     }
 
     const id = nextId('sp');
-    upsertSupporter({
+    upsertSupporter(withSplit({
       id,
       ...vals,
       count: 0,
@@ -100,7 +115,7 @@ export function SupporterForm(props: SupporterFormProps) {
       last: '',
       nextDate: '',
       donations: [],
-    });
+    }));
     toast('ה' + termOf(config, 'entity.supporter', 'תומך/ת') + ' "' + vals.name + '" נוסף/ה — אפשר לרשום ' + termOf(config, 'entity.donation', 'תרומה') + ' בכרטיס');
     props.onClose(id);
   }
@@ -116,7 +131,17 @@ export function SupporterForm(props: SupporterFormProps) {
     >
       <FormError error={error} />
       <div className="form-grid">
-        <Field label="שם מלא *">
+        {lastNameOn && (
+          <>
+            <Field label="שם פרטי">
+              <TextInput value={f.firstName} onChange={setSplit('firstName')} placeholder="ישראל" />
+            </Field>
+            <Field label="שם משפחה">
+              <TextInput value={f.lastName} onChange={setSplit('lastName')} placeholder="כהן" />
+            </Field>
+          </>
+        )}
+        <Field label={lastNameOn ? 'שם מלא (מופיע על הקבלה) *' : 'שם מלא *'}>
           <TextInput value={f.name} onChange={set('name')} placeholder={'שם התומכ/ת או ה' + termOf(config, 'entity.family', 'משפחה')} />
         </Field>
         <Field label="טלפון ראשי">
@@ -167,44 +192,8 @@ export function SupporterForm(props: SupporterFormProps) {
         </Field>
       </div>
 
-      {/* ריבוי-טלפונים (בקשת-שטח) — וואטסאפ/בית/עבודה, כל אחד עם תווית והערה "ממי זה" */}
-      <div style={{ marginTop: 12, borderTop: '1px solid var(--line, #e6ddce)', paddingTop: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
-          <span style={{ fontWeight: 700, fontSize: 13.5 }}>📞 טלפונים נוספים</span>
-          <Btn sm onClick={addPhone}>➕ הוסף טלפון</Btn>
-        </div>
-        {phones.length === 0 ? (
-          <div style={{ fontSize: 12, color: 'var(--ink-faint, #8a8378)' }}>אפשר להוסיף וואטסאפ, בית, עבודה — עם הערה ממי המספר.</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {phones.map((p, i) => {
-              const reg = p.num ? phoneRegion(p.num) : null;
-              return (
-                <div key={p.id} style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-                  <div style={{ flex: '1 1 140px', minWidth: 120 }}>
-                    <TextInput value={p.num} onChange={(v) => setPhone(i, { num: v })} dir="ltr" placeholder="מספר" ariaLabel="מספר טלפון נוסף" />
-                  </div>
-                  <div style={{ flex: '0 1 110px' }}>
-                    <TextInput value={p.label ?? ''} onChange={(v) => setPhone(i, { label: v })} placeholder="תווית (בית/עבודה)" ariaLabel="תווית" />
-                  </div>
-                  <div style={{ flex: '1 1 130px', minWidth: 110 }}>
-                    <TextInput value={p.note ?? ''} onChange={(v) => setPhone(i, { note: v })} placeholder="ממי זה" ariaLabel="ממי המספר" />
-                  </div>
-                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, whiteSpace: 'nowrap' }}>
-                    <input type="checkbox" checked={!!p.wa} onChange={(e) => setPhone(i, { wa: e.target.checked })} /> 💬 וואטסאפ
-                  </label>
-                  {reg && (
-                    <span style={{ fontSize: 11, color: reg === 'intl' ? '#a5651a' : '#2f7d52', fontWeight: 700 }}>{reg === 'intl' ? '🌍 חו"ל' : '🇮🇱 ישראל'}</span>
-                  )}
-                  <button type="button" onClick={() => removePhone(i)} aria-label="הסר מספר" title="הסר" style={{ cursor: 'pointer', border: 0, background: 'transparent', fontSize: 15 }}>
-                    ✕
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      {/* ריבוי-טלפונים (בקשת-שטח) — וואטסאפ/בית/עבודה, כל אחד עם תווית והערה "ממי זה" (רכיב משותף עם משפחות) */}
+      <PhonesEditor phones={phones} onChange={setPhones} />
 
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>

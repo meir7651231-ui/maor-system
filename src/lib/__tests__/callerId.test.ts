@@ -79,7 +79,9 @@ describe('callerId — זיהוי-שיחה-נכנסת', () => {
     expect(appSrc).toContain("=== '#caller'");
     expect(appSrc).toContain('<CallerLookup');
     expect(appSrc).toContain('callerOpen && telephonyOn(config)');
-    expect(lookupSrc).toContain('findCaller('); // אותו מנוע כמו השיחה-האוטומטית
+    // אותו מנוע כמו השיחה-האוטומטית. מ-13.10 הכרטיס מציג את *כל* ההתאמות דרך findCallers
+    // (findCaller = findCallers(...)[0] — אותו מנוע, אותו סדר-עדיפות; ראו caller-all-matches).
+    expect(lookupSrc).toContain('findCallers(');
     expect(widgetsSrc).toContain("'#caller'"); // כפתור-הבית פותח את התיבה
     expect(widgetsSrc).toContain('מי מתקשר?');
   });

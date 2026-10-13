@@ -11,6 +11,7 @@ import { isoToday as isoTodayLocal } from '../../lib/date-util';
 import { eyesTotal, planAddName, stageIndex } from '../../lib/ayin';
 import { numMatch } from '../families/lib';
 import { parseAnyDate, parseCsv } from '../../lib/csvx';
+import { hebAnnualEq, hebPartsOfIso } from '../../lib/hebrew';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
@@ -263,7 +264,22 @@ export interface SupStats {
 
 /** טקסט-החיפוש המנורמל של תורם — מחושב פעם-אחת לכל stats ונשמר (מטמון-נגזרת טהור). */
 export function searchTextOf(st: SupStats, sp: Supporter): string {
-  return st.search ?? (st.search = normSearch([sp.name, sp.email, sp.cat, sp.address, sp.forWho].join(' ')));
+  // שם-פרטי/משפחה (13.10) נוספים רק כשקיימים ⇒ תורם בלי פיצול — טקסט-חיפוש ביט-זהה.
+  const split = sp.firstName || sp.lastName ? ' ' + [sp.firstName, sp.lastName].filter(Boolean).join(' ') : '';
+  return st.search ?? (st.search = normSearch([sp.name, sp.email, sp.cat, sp.address, sp.forWho].join(' ') + split));
+}
+
+/** שם-מלא משם-פרטי+משפחה (13.10): "ישראל" + "כהן" ⇒ "ישראל כהן"; ריקים מסוננים. */
+export function composeName(first: string, last: string): string {
+  return [first, last].map((s) => (s || '').trim()).filter(Boolean).join(' ');
+}
+
+/**
+ * שם-המשפחה לסינון/מיון: השדה-המפוצל אם קיים; אחרת — השם המלא (כך שגם תורם שעוד לא פוצל
+ * נמצא בסינון ונכנס למיון במקום סביר, במקום ש-16k תורמים קיימים "ייעלמו" מהסינון).
+ */
+export function supLastNameKey(sp: Pick<Supporter, 'lastName' | 'name'>): string {
+  return (sp.lastName || '').trim() || (sp.name || '').trim();
 }
 
 /** ספרות כל הטלפונים של תורם — מחושב פעם-אחת לכל stats ונשמר. */
@@ -387,6 +403,8 @@ export interface SupListFilters {
   colF: { count: string; total: string; score: string };
   nextF: boolean;
   ayinF: null | 'eyes' | 'noeyes' | 'today';
+  /** סינון לפי שם-משפחה (13.10) — אופציונלי; ריק/חסר ⇒ אפס-השפעה. */
+  lastNameF?: string;
 }
 
 /** סטטיסטיקה מהמפה, עם נפילה-רכה לחישוב-מקומי (רשומה שאינה במפה — לא אמור לקרות). */
@@ -411,8 +429,11 @@ export function filterSupporterList(
   const nq = normSearch(dq);
   const qd = dq.replace(/\D/g, '');
   const hasQ = !!dq.trim();
+  const nLast = normSearch(f.lastNameF ?? '');
   return base.filter((sp) => {
     const st = statOf(stats, sp, rate);
+    // 🪪 שם-משפחה (13.10): לפי השדה-המפוצל, ובתורם שעוד לא פוצל — לפי השם המלא
+    if (nLast && !normSearch(supLastNameKey(sp)).includes(nLast)) return false;
     if (cat !== 'all' && (sp.cat || '') !== cat) return false;
     if (purposeF !== 'all' && (sp.forWho || '').trim() !== purposeF) return false;
     // סינון אזור-טלפון (חול/ישראל) — לפי כל מספרי התורם (ראשי + נוספים).
@@ -454,6 +475,7 @@ export function filterSupporterList(
 
 export type SupSortKey =
   | 'name'
+  | 'lastName'
   | 'cat'
   | 'phone'
   | 'email'
@@ -472,6 +494,8 @@ export function sortKeyOf(sp: Supporter, st: SupStats, key: SupSortKey): string 
   switch (key) {
     case 'name':
       return sp.name;
+    case 'lastName':
+      return supLastNameKey(sp);
     case 'cat':
       return sp.cat || '';
     case 'phone':
@@ -755,7 +779,11 @@ export function stripSegulaNote(note: string, target: number = Math.max(...SEGUL
 
 /* ── 🔁 תזכורות-חוזרות — בחירה: 40 יום (סגולה) · יומי · שבועי · חודשי (בקשת-בעלים 16.9) ── */
 
-export type RecurMode = 'segula' | 'daily' | 'weekly' | 'monthly';
+/** 13.10 (בקשת-בעלים "40 · 7 · 1 · כל ראש חודש · דו-חודשי · שנתי — עברי/לועזי"): + bimonthly · yearly · roshchodesh. */
+export type RecurMode = 'segula' | 'daily' | 'weekly' | 'monthly' | 'bimonthly' | 'yearly' | 'roshchodesh';
+
+/** לוח-השנה לחישוב סדרה חודשית/דו-חודשית/שנתית: לועזי (ברירת-מחדל, ביט-זהה) או עברי. */
+export type RecurCal = 'greg' | 'heb';
 
 export interface RecurModeDef {
   key: RecurMode;
@@ -768,13 +796,21 @@ export interface RecurModeDef {
   prefix: string;
   /** כמות תזכורות ברירת-מחדל (סגולה = קבוע 5). */
   defaultCount: number;
+  /** האם יש בחירה עברי/לועזי (חודשי · דו-חודשי · שנתי). ראש-חודש תמיד עברי; יומי/שבועי/40 — ספירת-ימים. */
+  calChoice?: boolean;
+  /** תקרת-כמות (שנתי — 50; השאר 365). */
+  maxCount?: number;
 }
 
+// ⚠️ תחיליות זרות זו לזו (אף אחת אינה תחילית של אחרת) — הסדרה מזוהה ב-startsWith על ההערה.
 export const RECUR_MODES: readonly RecurModeDef[] = [
   { key: 'segula', emoji: '🕯', chip: '40 יום', label: 'סגולת 40 יום', prefix: SEGULA_NOTE_PREFIX, defaultCount: SEGULA_OFFSETS.length },
   { key: 'daily', emoji: '📅', chip: 'יומי', label: 'תזכורת יומית', prefix: 'חזרה יומית', defaultCount: 30 },
   { key: 'weekly', emoji: '📆', chip: 'שבועי', label: 'תזכורת שבועית', prefix: 'חזרה שבועית', defaultCount: 12 },
-  { key: 'monthly', emoji: '🗓', chip: 'חודשי', label: 'תזכורת חודשית', prefix: 'חזרה חודשית', defaultCount: 12 },
+  { key: 'monthly', emoji: '🗓', chip: 'חודשי', label: 'תזכורת חודשית', prefix: 'חזרה חודשית', defaultCount: 12, calChoice: true },
+  { key: 'bimonthly', emoji: '🔂', chip: 'חודשיים', label: 'תזכורת דו-חודשית', prefix: 'חזרה דו-חודשית', defaultCount: 6, calChoice: true },
+  { key: 'yearly', emoji: '🎗', chip: 'שנתי', label: 'תזכורת שנתית', prefix: 'חזרה שנתית', defaultCount: 5, calChoice: true, maxCount: 50 },
+  { key: 'roshchodesh', emoji: '🌙', chip: 'ראש חודש', label: 'תזכורת ראש-חודש', prefix: 'חזרה ראש-חודש', defaultCount: 12 },
 ];
 
 export function recurDef(mode: RecurMode): RecurModeDef {
@@ -791,19 +827,101 @@ function addMonthsIso(startIso: string, months: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+const addDaysIso = (iso: string, days: number): string => segulaReminders(iso, [days])[0].date;
+
+/**
+ * חודשי/דו-חודשי **עברי** (13.10): כל step חודשים עבריים, באותו יום-בחודש כמו העוגן.
+ * סריקה קדימה יום-אחר-יום (hebPartsOfIso ממוטמן) — מעבר-חודש = יום א׳. בלי חשבון-לוח ידני:
+ * שנה מעוברת (אדר א׳+ב׳) נספרת טבעית כחודש נוסף. כלל ל׳ (הכרעת-בעלים "במקום ל אז א"): עוגן ל׳
+ * בחודש שאין בו ל׳ ⇒ א׳ בחודש הבא — אותו כלל כמו hebAnnualEq.
+ */
+function hebMonthlyDates(startIso: string, step: number, n: number, firstOnStart: boolean): string[] {
+  const anchor = hebPartsOfIso(startIso).day;
+  const out: string[] = firstOnStart ? [startIso] : [];
+  let iso = startIso;
+  let monthsSince = 0; // חודשים מאז חודש-ההתחלה
+  let inTarget = false; // האם החודש הנוכחי הוא חודש-יעד
+  let found = false; // האם כבר נמצא יום-העוגן בחודש-היעד הנוכחי
+  for (let guard = 0; out.length < n && guard < n * step * 31 + 62; guard++) {
+    iso = addDaysIso(iso, 1);
+    const p = hebPartsOfIso(iso);
+    if (p.day === 1) {
+      // חודש-יעד נגמר בלי יום-העוגן (ל׳ חסר) ⇒ היום (א׳ בחודש הבא) הוא התאריך
+      if (inTarget && !found) out.push(iso);
+      monthsSince++;
+      inTarget = monthsSince % step === 0;
+      found = false;
+      if (out.length >= n) break;
+    }
+    if (inTarget && !found && p.day === anchor) {
+      out.push(iso);
+      found = true;
+    }
+  }
+  return out.slice(0, n);
+}
+
+/** שנתי **עברי** (13.10): אותו תאריך עברי כל שנה — דרך hebAnnualEq (מקור-האמת: כללי אדר וכלל ל׳). */
+function hebYearlyDates(startIso: string, n: number, firstOnStart: boolean): string[] {
+  const a = hebPartsOfIso(startIso);
+  const out: string[] = firstOnStart ? [startIso] : [];
+  let iso = startIso;
+  for (let guard = 0; out.length < n && guard < n * 390 + 30; guard++) {
+    iso = addDaysIso(iso, 1);
+    const q = hebPartsOfIso(iso);
+    if (q.year > a.year && hebAnnualEq({ day: a.day, month: a.month }, q)) out.push(iso);
+  }
+  return out.slice(0, n);
+}
+
+/** ראש-חודש (13.10): כל א׳ בחודש עברי — הראשון הוא ההתחלה עצמה (אם היא ראש-חודש וזה firstOnStart) או הבא אחריה. */
+function roshChodeshDates(startIso: string, n: number, firstOnStart: boolean): string[] {
+  const out: string[] = firstOnStart && hebPartsOfIso(startIso).day === 1 ? [startIso] : [];
+  let iso = startIso;
+  for (let guard = 0; out.length < n && guard < n * 31 + 31; guard++) {
+    iso = addDaysIso(iso, 1);
+    if (hebPartsOfIso(iso).day === 1) out.push(iso);
+  }
+  return out.slice(0, n);
+}
+
+/** אפשרויות-זריעה (13.10). חסר ⇒ ההתנהגות ההיסטורית בדיוק (לועזי; התזכורת הראשונה = צעד אחד אחרי ההתחלה). */
+export interface RecurDatesOpts {
+  cal?: RecurCal;
+  /** התאריך שנבחר הוא התזכורת הראשונה (בקשת-בעלים "לבחור את התאריך הראשוני ואז את המסלול").
+   *  סגולה לא מושפעת — אצלה ההתחלה היא יום 0 והתזכורות בימים 1·7·21·35·40. */
+  firstOnStart?: boolean;
+}
+
 /**
  * תאריכי-הסדרה מתאריך-התחלה — דטרמיניסטי. סגולה = SEGULA_OFFSETS (day = מספר-ימים);
- * יומי/שבועי/חודשי = count תזכורות, day = מספר-סידורי (1..count), האחרונה final.
+ * שאר המצבים = count תזכורות, day = מספר-סידורי (1..count), האחרונה final.
+ * ברירת-המחדל (בלי opts) ביט-זהה ל-16.9: התזכורת הראשונה צעד-אחד אחרי ההתחלה, לועזי.
  */
-export function recurDates(startIso: string, mode: RecurMode, count?: number): SegulaReminder[] {
+export function recurDates(startIso: string, mode: RecurMode, count?: number, opts: RecurDatesOpts = {}): SegulaReminder[] {
   if (mode === 'segula') return segulaReminders(startIso);
-  const n = Math.max(1, Math.min(365, Math.floor(count ?? recurDef(mode).defaultCount)));
-  const out: SegulaReminder[] = [];
-  for (let i = 1; i <= n; i++) {
-    const date = mode === 'monthly' ? addMonthsIso(startIso, i) : segulaReminders(startIso, [mode === 'daily' ? i : i * 7])[0].date;
-    out.push({ day: i, date, final: i === n });
+  const def = recurDef(mode);
+  const n = Math.max(1, Math.min(def.maxCount ?? 365, Math.floor(count ?? def.defaultCount)));
+  const first = !!opts.firstOnStart;
+  const heb = opts.cal === 'heb' && !!def.calChoice;
+  let dates: string[];
+  if (mode === 'roshchodesh') dates = roshChodeshDates(startIso, n, first);
+  else if (heb && mode === 'yearly') dates = hebYearlyDates(startIso, n, first);
+  else if (heb) dates = hebMonthlyDates(startIso, mode === 'bimonthly' ? 2 : 1, n, first);
+  else {
+    dates = [];
+    const off = first ? 0 : 1;
+    for (let i = 0; i < n; i++) {
+      const k = i + off;
+      dates.push(
+        mode === 'monthly' ? addMonthsIso(startIso, k)
+          : mode === 'bimonthly' ? addMonthsIso(startIso, 2 * k)
+            : mode === 'yearly' ? addMonthsIso(startIso, 12 * k)
+              : addDaysIso(startIso, mode === 'daily' ? k : k * 7),
+      );
+    }
   }
-  return out;
+  return dates.map((date, i) => ({ day: i + 1, date, final: i === dates.length - 1 }));
 }
 
 /**
@@ -1083,6 +1201,9 @@ export function normName(s: string): string {
 /** שורת ייבוא תומכת אחת (העמודות מהתבנית). */
 export interface SupporterImportRow {
   name: string;
+  /** 🪪 13.10 — מעמודות "שם פרטי"/"שם משפחה" בקובץ, כשקיימות. */
+  firstName?: string;
+  lastName?: string;
   phone: string;
   email: string;
   idNum: string;
@@ -1140,7 +1261,11 @@ export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
     .findIndex((r) => r.some((h) => SUP_NAME_KEYS.some((k) => (h ?? '').includes(k))));
   const header = (hdrIdx >= 0 ? rows[hdrIdx] : rows[0]).map((h) => (h ?? '').trim());
   const find = (keys: string[]) => header.findIndex((h) => keys.some((k) => h.includes(k)));
-  let iName = find(SUP_NAME_KEYS);
+  // 🪪 13.10: עמודות "שם פרטי"/"שם משפחה" נפרדות. 🐛 'שם' הוא תת-מחרוזת של שתיהן — עמודת-השם
+  // הכללית תפסה את הראשונה מביניהן ואיבדה את השנייה. עכשיו הן מוחרגות מזיהוי-השם הכללי.
+  const iFirst = find(['שם פרטי']);
+  const iLast = find(['שם משפחה']);
+  let iName = header.findIndex((h, i) => i !== iFirst && i !== iLast && SUP_NAME_KEYS.some((k) => h.includes(k)));
   let iPhone = find(['טלפון', 'נייד']);
   let iEmail = find(['אימייל', 'מייל', 'email']);
   let iId = find(['ת"ז', 'תז', 'זהות']);
@@ -1162,7 +1287,7 @@ export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
   const iPays = find(['תשלומים']);
   const iStatus = find(['סטטוס']);
   let start = hdrIdx >= 0 ? hdrIdx + 1 : 1;
-  if (iName < 0) {
+  if (iName < 0 && iFirst < 0 && iLast < 0) {
     // אין שורת כותרות מזוהה — סדר עמודות קבוע
     iName = 0;
     iPhone = 1;
@@ -1176,7 +1301,10 @@ export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
   const g = (r: string[], i: number) => (i >= 0 ? (r[i] ?? '').trim() : '');
   const out: SupporterImportRow[] = [];
   for (const r of rows.slice(start)) {
-    const name = g(r, iName);
+    const firstName = g(r, iFirst);
+    const lastName = g(r, iLast);
+    // שם-מלא: העמודה הכללית אם יש; אחרת צירוף פרטי+משפחה
+    const name = g(r, iName) || composeName(firstName, lastName);
     if (!name) continue;
     const row: SupporterImportRow = {
       name,
@@ -1186,6 +1314,8 @@ export function parseSupporterGrid(rows: string[][]): SupporterImportRow[] {
       address: g(r, iAddr),
       cat: g(r, iCat),
       forWho: g(r, iFor),
+      ...(firstName ? { firstName } : {}),
+      ...(lastName ? { lastName } : {}),
     };
     if (iAmount >= 0 && iTxDate >= 0) {
       const amount = Math.round(Number(g(r, iAmount).replace(/[^\d.-]/g, '')) * 100) / 100;
@@ -1319,18 +1449,30 @@ export function planSupporterImport(
   existing: Supporter[],
 ): SupporterImportPlan {
   const byName = new Map<string, string>();
-  for (const sp of existing) byName.set(normName(sp.name), sp.id);
+  const nameById = new Map<string, string>();
+  for (const sp of existing) {
+    byName.set(normName(sp.name), sp.id);
+    nameById.set(sp.id, sp.name);
+  }
   const updates: SupporterImportPlan['updates'] = [];
   // קיבוץ-עדכונים פר-id (9.8): קובץ-עסקאות מכיל שורות רבות לאותו תורם קיים —
   // בלעדיו רק השורה האחרונה שרדה (ה-Map בצד-הרכיב) וכל ההיסטוריה אבדה.
   const updateIdx = new Map<string, number>();
   const inserts: SupporterImportRow[] = [];
   const insertIdx = new Map<string, number>();
-  for (const r of rows) {
+  for (const row of rows) {
+    let r = row;
     const nm = r.name.trim();
     if (!nm) continue;
     const key = normName(nm);
-    const existId = byName.get(key);
+    // 🪪 13.10: שורה מעמודות פרטי+משפחה צורפה "ישראל כהן" — תורם קיים עשוי להיות שמור "כהן ישראל"
+    // (סדר-נדרים). בודקים גם את הסדר ההפוך — רק לשורות-מפוצלות (ייבוא רגיל: אפס-שינוי).
+    // בהתאמה-הפוכה השם-המלא הקיים נשמר (הוא מה שעל הקבלה) — לא נהפך בשקט.
+    let existId = byName.get(key);
+    if (!existId && r.firstName && r.lastName) {
+      existId = byName.get(normName(r.lastName + ' ' + r.firstName));
+      if (existId) r = { ...r, name: nameById.get(existId) ?? r.name };
+    }
     if (existId) {
       const ui = updateIdx.get(existId);
       if (ui != null) updates[ui] = { id: existId, row: fillEmpty(updates[ui].row, r) };
@@ -1364,6 +1506,8 @@ export function mergeSupporterRow(sp: Supporter, row: SupporterImportRow): Suppo
     address: row.address.trim() || sp.address,
     cat: row.cat.trim() || sp.cat,
     forWho: row.forWho.trim() || sp.forWho,
+    ...(row.firstName?.trim() ? { firstName: row.firstName.trim() } : {}),
+    ...(row.lastName?.trim() ? { lastName: row.lastName.trim() } : {}),
   };
 }
 
@@ -1387,6 +1531,8 @@ export function newSupporterFromRow(id: string, row: SupporterImportRow): Suppor
     nextDate: '',
     donations: [],
     ...(row.hist?.length ? { hist: mergeHist([], row.hist) } : {}),
+    ...(row.firstName?.trim() ? { firstName: row.firstName.trim() } : {}),
+    ...(row.lastName?.trim() ? { lastName: row.lastName.trim() } : {}),
   };
 }
 

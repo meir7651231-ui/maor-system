@@ -16,7 +16,8 @@ const sup = (id: string): Supporter =>
 
 describe('recurDates — דטרמיניסטי', () => {
   it('ארבעה מצבים; סגולה = 1·7·21·35·40; יומי ×3 = 3 ימים עוקבים; שבועי ×2 = +7,+14', () => {
-    expect(RECUR_MODES.map((m) => m.key)).toEqual(['segula', 'daily', 'weekly', 'monthly']);
+    // 13.10: + דו-חודשי · שנתי · ראש-חודש (בקשת-בעלים); הארבעה המקוריים בסדר-המקורי ובהתנהגות-המקורית
+    expect(RECUR_MODES.map((m) => m.key)).toEqual(['segula', 'daily', 'weekly', 'monthly', 'bimonthly', 'yearly', 'roshchodesh']);
     expect(recurDates(TODAY, 'segula').map((r) => r.day)).toEqual([1, 7, 21, 35, 40]);
     expect(recurDates(TODAY, 'daily', 3).map((r) => r.date)).toEqual(['2026-09-17', '2026-09-18', '2026-09-19']);
     expect(recurDates(TODAY, 'weekly', 2).map((r) => r.date)).toEqual(['2026-09-23', '2026-09-30']);
@@ -94,9 +95,11 @@ describe('הגנת-מקור — הכרטיס', () => {
     expect(src).toContain('{RECUR_MODES.map((m) => (');
     expect(src).toContain('aria-label="כמות תזכורות"');
     expect(src).toContain('{recurActive.map(({ def, st }) => (');
-    expect(src).toContain("seedSegulaReminders(sp.id, isoToday(), 'זיווג', recurMode, recurSelCount)");
+    // 13.10: תאריך-ההתחלה נבחר בכרטיס (recurStart, ברירת-מחדל היום) + לוח עברי/לועזי (recurOpts)
+    expect(src).toContain("seedSegulaReminders(sp.id, recurStart, 'זיווג', recurMode, recurSelCount, recurOpts)");
+    expect(src).toContain('const [recurStart, setRecurStart] = useState(() => isoToday());');
     expect(src).toContain("cancelSegula(sp.id, def.key)");
-    expect(src).toContain("seedSegulaReminders(sp.id, isoToday(), 'זיווג')}");
+    expect(src).toContain("seedSegulaReminders(sp.id, recurStart, 'זיווג')}");
     expect(src).toContain("{recurMode === 'segula' && (");
   });
 });

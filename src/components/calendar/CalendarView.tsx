@@ -5,6 +5,7 @@
  */
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
+import { usePersisted } from '../../lib/filterMemory';
 import { featureOn, integrationOn, moduleOn, termOf } from '../../lib/config';
 import { visibleEventsForDesignations } from '../supporters/lib';
 import { buildIcs, downloadIcs } from '../../lib/ics';
@@ -29,6 +30,9 @@ import {
   type CalCell,
   type CalFilters,
   type DayItem,
+  keepBool,
+  keepCalFilters,
+  keepViewMode,
 } from './calLib';
 import { EventModal } from './EventModal';
 import { DayModal } from './DayModal';
@@ -181,10 +185,13 @@ export function CalendarView() {
   const [ym, setYm] = useState({ y: now.getFullYear(), m: now.getMonth() });
   // הלוח נפתח בגריד העברי כברירת מחדל (P1.1, legacy calHebMode:true) —
   // דגל calendar.hebdefault: חסר=דלוק=עברי; false=לועזי (initialHebMode טהור)
-  const [hebMode, setHebMode] = useState(() => initialHebMode(useApp.getState().config));
+  // 🐛 (13.10): מצבי-התצוגה והסינון היו useState ⇒ מעבר-מסך מחק אותם ("עובר למסך אחר והוא חוזר למצב ללא סינון").
+  // עכשיו useRemembered — כמו תורמים/משפחות/חוגים (filterMemory, זיכרון-סשן).
+  // 13.10 (הכרעת-בעלים "כן — גם אחרי רענון"): usePersisted — נשמר גם במכשיר (פר-ארגון).
+  const [hebMode, setHebMode] = usePersisted('cal.hebMode', () => initialHebMode(useApp.getState().config), keepBool);
   const [hebAnchor, setHebAnchor] = useState(isoOf(now));
   // 🗓 מצב-תצוגה יומי/שבועי/חודשי (בקשת-בעלים 30.8). ביום/שבוע — עוגן-טווח נפרד.
-  const [viewMode, setViewMode] = useState<CalViewMode>('month');
+  const [viewMode, setViewMode] = usePersisted<CalViewMode>('cal.viewMode', 'month', keepViewMode);
   const [spanAnchor, setSpanAnchor] = useState(isoOf(now));
   const [modal, setModal] = useState<ModalState | null>(null);
   const [dayIso, setDayIso] = useState<string | null>(null);
@@ -197,7 +204,7 @@ export function CalendarView() {
       ackEventForm();
     }
   }, [evFormReq, ackEventForm]);
-  const [filters, setFilters] = useState<CalFilters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = usePersisted<CalFilters>('cal.filters', DEFAULT_FILTERS, keepCalFilters);
   const [expOpen, setExpOpen] = useState(false);
   // 🔗 מנוי-יומן חי (gcal, 9.8) — רק לארגון-ענן (הפיד יושב ב-Firestore)
   const [feedOpen, setFeedOpen] = useState(false);

@@ -47,11 +47,16 @@ describe('לוח מעקב-הטיפול · 🕯 40 יום', () => {
   });
   it('«הגיע הזמן» לתזכורת-סדרה (6.10 «האם הוא קופץ בלוח כמו הקשר הבא»): שורה עולה ללוח גם בלי תיק, צבועה, «✓ בוצע» דרך toggleEventDone', () => {
     expect(src).toContain('const dueRem = visible.filter((sp) => !!dueRemOf(sp));');
-    expect(src).toContain("filter === 'all' ? [...due, ...dueRem.filter((sp) => !due.includes(sp)), ...active.filter((sp) => !dueRem.includes(sp))]");
+    // 13.10 (בקשת-בעלים «בתצוגה של תזכורת, לא במצב רישום או תשלום»): תזכורות-סדרה שהגיע יומן עברו לרצועה
+    // נפרדת בראש הלוח (reminders) — הטבלה = קשר-הבא-שהגיע + תיקי-טיפול לפי שלב
+    expect(src).toContain("filter === 'all' ? [...due, ...active.filter((sp) => !due.includes(sp))]");
     expect(src).toContain('const toggleEventDone = useApp((s) => s.toggleEventDone);');
-    expect(src).toContain('toggleEventDone(dueR.id);');
-    expect(src).toContain("background: dueNext || dueR ? '#fff4ea' : '#fff',");
-    expect(src).toContain("{recurDef(dueR.mode).emoji + ' הגיע הזמן · ' + fmtDate(dueR.date)}");
+    // 13.10: הרצועה — לחיצה על השורה = כניסה לטיפול (onOpen), «✓ בוצע» דרך toggleEventDone, תמיד גלויה (לא תלויה בסינון-השלב)
+    expect(src).toContain('toggleEventDone(r.id);');
+    expect(src).toContain("{'⏰ תזכורות שהגיע זמנן · ' + reminders.length}");
+    expect(src).toContain('{reminders.length > 0 && (');
+    expect(src).toContain('▶ לטיפול');
+    expect(src).toContain("background: dueNext ? '#fff4ea' : '#fff',");
     // תומך/ת בלי תיק-טיפול לא מפיל את הלוח (sp.ayin! הוסר מהשורה ומהמיון)
     expect(src).toContain('const a = sp.ayin ?? emptyAyin();');
     expect(src).toContain('const showBtn = hasCase && ayinActionVisible(a);');

@@ -3,12 +3,14 @@
  * מצב משפחתי ושפה תומכים בדפוס '__other' (הקלדה חופשית); ת"ז הורים נבדקת עם ספרת ביקורת.
  */
 import { useState } from 'react';
-import { emptyFamily, type Family, type FamilyStatus } from '../../types/domain';
+import { emptyFamily, type Family, type FamilyStatus, type SupPhone } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import { validIsraeliId, formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { isoToday, LANGUAGE_OPTIONS, MARITAL_OPTIONS, OTHER, OTHER_LABEL } from './lib';
+import { cleanSupPhones } from '../supporters/lib';
+import { PhonesEditor } from '../PhonesEditor';
 
 interface FamFormState {
   name: string;
@@ -128,6 +130,8 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void; 
   const communities = [...new Set(families.map((fam) => fam.community).filter(Boolean))];
 
   const [f, setF] = useState<FamFormState>(() => initState(props.family, props.draft));
+  // טלפונים נוספים מעבר לשניים (בקשת-בעלים 13.10) — אותו עורך כמו בתורמים.
+  const [phones, setPhones] = useState<SupPhone[]>(() => (props.family?.phones ?? []).map((p) => ({ ...p })));
   const [error, setError] = useState('');
   // UX סבב-ה׳: משפחה חדשה — הליבה בלבד; עריכה — הכול פתוח
   const [moreOpen, setMoreOpen] = useState(!!props.family);
@@ -169,12 +173,18 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void; 
       kidsMarried: Math.max(0, Number(f.kidsMarried) || 0),
     };
 
+    // phones: המפתח נכתב רק כשיש מספרים — משפחה בלי טלפונים-נוספים נשארת ביט-זהה (אפס-שינוי-צורה).
+    const extraPhones = cleanSupPhones(phones);
+    const withPhones = (fam: Family): Family => {
+      const { phones: _old, ...rest } = fam;
+      return extraPhones.length ? { ...rest, phones: extraPhones } : rest;
+    };
     if (props.family) {
-      upsertFamily({ ...props.family, ...fields });
+      upsertFamily(withPhones({ ...props.family, ...fields }));
       toast('פרטי ה' + termOf(config, 'entity.family', 'משפחה') + ' עודכנו');
     } else {
       const id = nextId('f');
-      upsertFamily({ ...emptyFamily(), ...fields, id, createdAt: isoToday() });
+      upsertFamily(withPhones({ ...emptyFamily(), ...fields, id, createdAt: isoToday() }));
       selectFamily(id);
       toast('יצירת ' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + name + ' הושלמה');
     }
@@ -322,6 +332,8 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void; 
           ))}
         </div>
       )}
+      {/* טלפונים נוספים (בקשת-בעלים 13.10) — בחלק "פרטים נוספים"; אחרי צ'יפי תת-הקהילה (שצמודים לשדה שלהם) */}
+      {moreOpen && <PhonesEditor phones={phones} onChange={setPhones} />}
       <Field label="הערות">
         <textarea rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} />
       </Field>

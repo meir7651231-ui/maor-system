@@ -63,6 +63,9 @@ function oldFilter(visibleBase: Supporter[], f: F, today: string, rate: number, 
 function sortVal(sp: Supporter, key: SupSortKey, rate = 3.7): string | number {
   switch (key) {
     case 'name': return sp.name;
+    // 🪪 13.10 — מפתח חדש (לא היה במיון-הישן); המפרט שלו מוגדר כאן במנותק מהמימוש:
+    // שם-המשפחה המפוצל, ובתורם שעוד לא פוצל — השם המלא.
+    case 'lastName': return (sp.lastName || '').trim() || (sp.name || '').trim();
     case 'cat': return sp.cat || '';
     case 'phone': return sp.phone || '';
     case 'email': return sp.email || '';
@@ -119,7 +122,7 @@ function randomFilters(r: () => number): F {
   };
 }
 
-const SORT_KEYS: SupSortKey[] = ['name', 'cat', 'phone', 'email', 'count', 'ils', 'usd', 'last', 'nextDate', 'score', 'stage', 'eyes', 'paid'];
+const SORT_KEYS: SupSortKey[] = ['name', 'lastName', 'cat', 'phone', 'email', 'count', 'ils', 'usd', 'last', 'nextDate', 'score', 'stage', 'eyes', 'paid'];
 
 describe('filterSupporterList ≡ הפרדיקט-האינליין המקורי (אותן שורות, אותו סדר)', () => {
   it('200 קומבינציות-מסננים אקראיות על 600 תורמים אקראיים — זהות מלאה', () => {

@@ -25,6 +25,40 @@ import {
 import { emptyAyin, type AyinCase, type AyinStage, type Supporter } from '../../types/domain';
 import { activeRecurSeriesIndexed, buildRecurIndex, dueRecurReminderIndexed, fmtDate, RECUR_MODES, recurDef, supHasRegion, supporterVisibleForDesignations, type DueRecur, type RecurMode } from './lib';
 
+/**
+ * ⏰ מונה «תזכורות שהגיע זמנן» על כותרת הלוח (13.10) — הלוח סגור כברירת-מחדל, אז בלי המונה התזכורת
+ * לא נראית. רכיב נפרד שצופה ב-events בעצמו ⇒ מסך-התורמים (16k) לא מתרנדר על כל שינוי-אירוע.
+ * האינדקס מכיל רק תומכים עם סדרות ⇒ הספירה זולה. כבוי-סגולה ⇒ לא מוצג (כמו ברצועה בלוח).
+ */
+export function AyinDueBadge(props: { onOpen: () => void }) {
+  const db = useDbWatch('supporters', 'events');
+  const cfg = useApp((s) => s.config);
+  const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
+  const desigLimit = featureOn(cfg, 'supporters.purpose') ? allowedDesignations : null;
+  const segulaOn = featureOn(cfg, 'supporters.segula');
+  const today = isoToday();
+  const count = useMemo(() => {
+    if (!segulaOn) return 0;
+    const idx = buildRecurIndex(db.events);
+    if (!idx.size) return 0;
+    let n = 0;
+    for (const sp of db.supporters) if (idx.has(sp.id) && supporterVisibleForDesignations(sp, desigLimit) && dueRecurReminderIndexed(idx, sp.id, today)) n++;
+    return n;
+  }, [db.events, db.supporters, desigLimit, segulaOn, today]);
+  if (!count) return null;
+  return (
+    <button
+      type="button"
+      className="btn sm"
+      onClick={props.onOpen}
+      title="תזכורות (40 יום / שבועי / חודשי…) שהגיע יומן — לחיצה פותחת את הלוח, והן בראשו"
+      style={{ background: '#fff4ea', color: '#b3261e', border: '1px solid #f3c58a', fontWeight: 800 }}
+    >
+      {'⏰ ' + count + (count === 1 ? ' תזכורת הגיעה' : ' תזכורות הגיעו')}
+    </button>
+  );
+}
+
 /** תבנית-הגריד של שורה ושל שורת-הכותרות — זהה, כדי שהעמודות יתיישרו. */
 // עמודה אחרונה ברוחב קבוע (לא auto): בשורות בלי כפתור-חכם הטראק היה 0px וה-fr-ים נדדו עד ~90px מול הכותרות (אימות-ריצה 3.9).
 const ROW_GRID = 'minmax(90px,.9fr) 1.6fr 1.1fr .8fr .8fr 140px';
@@ -120,7 +154,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
   // הגרסאות ה-Indexed (ביט-זהה לישנות — property-test ב-perf-panels.test). כל הנגזרת (visible → rows)
   // ממומאזת על הקלטים שלה ⇒ setState מקומי (תפריט/שאלה) לא מחשב-מחדש 16k שורות.
   const recurIndex = useMemo(() => buildRecurIndex(db.events), [db.events]);
-  const { active, rows, isDueNext, dueRemOf } = useMemo(() => {
+  const { active, rows, isDueNext, dueRemOf, reminders } = useMemo(() => {
   // הכרעת-בעלים 3.9: מקרה שהושלם יורד מהלוח (ayinOnBoard); סינון "הושלם" עדיין מציג אותם.
   const visible = db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit) && (region === 'all' || supHasRegion(sp, region)));
   const active = visible.filter((sp) => ayinOnBoard(sp.ayin));
@@ -143,8 +177,12 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
     return v;
   };
   const dueRem = visible.filter((sp) => !!dueRemOf(sp));
+  // ⏰ 13.10 (בקשת-בעלים «תזכורת שהגיע זמנה תיפתח בתחילת המעקב — לא במצב רישום או תשלום אלא בתצוגה
+  // של תזכורת, ובלחיצה נכנסים לטיפול»): התזכורות שהגיע יומן יוצאות מטבלת-השלבים לרצועה נפרדת בראש
+  // הלוח — תמיד גלויה (לא תלויה בסינון-השלב), הוותיקה ראשונה. הטבלה חוזרת להציג רק תיקי-טיפול לפי שלב.
+  const reminders = [...dueRem].sort((x, y) => dueRemOf(x)!.date.localeCompare(dueRemOf(y)!.date) || x.name.localeCompare(y.name, 'he'));
   let rows =
-    filter === 'all' ? [...due, ...dueRem.filter((sp) => !due.includes(sp)), ...active.filter((sp) => !dueRem.includes(sp))]
+    filter === 'all' ? [...due, ...active.filter((sp) => !due.includes(sp))]
     : filter === 'done' ? visible.filter((sp) => ayinActive(sp.ayin) && (sp.ayin!.stage || 'new') === 'done')
     : active.filter((sp) => (sp.ayin!.stage || 'new') === filter);
   if (nextPromptId && !rows.some((sp) => sp.id === nextPromptId)) {
@@ -157,10 +195,10 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
     if (sort === 'name') return sa.name.localeCompare(sb.name, 'he');
     if (sort === 'last') return (ab.lastTouch || '').localeCompare(aa.lastTouch || '');
     if (sort === 'stage') return stageIndex(aa.stage) - stageIndex(ab.stage);
-    const tgt = (sp: Supporter) => dueRemOf(sp)?.date || ((sp.ayin?.stage || 'new') === 'done' ? sp.nextDate : sp.ayin?.nextTalk) || '9999';
+    const tgt = (sp: Supporter) => ((sp.ayin?.stage || 'new') === 'done' ? sp.nextDate : sp.ayin?.nextTalk) || '9999';
     return tgt(sa).localeCompare(tgt(sb));
   });
-  return { active, rows, isDueNext, dueRemOf };
+  return { active, rows, isDueNext, dueRemOf, reminders };
   }, [db.supporters, recurIndex, desigLimit, region, filter, sort, today, segulaOn, nextDateOn, nextPromptId]);
 
   const feat = featLabel(cfg);
@@ -230,8 +268,62 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
         </div>
       </div>
 
+      {reminders.length > 0 && (
+        <div className="ayin-reminders" style={{ background: '#fff4ea', border: '1px solid #f3c58a', borderRadius: 12, padding: '8px 10px', marginBottom: 10 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 800, color: '#b3261e', marginBottom: 6 }}>{'⏰ תזכורות שהגיע זמנן · ' + reminders.length}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {reminders.map((sp) => {
+              const r = dueRemOf(sp)!;
+              const def = recurDef(r.mode);
+              return (
+                <div
+                  key={sp.id}
+                  className="ayin-reminder-row"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => props.onOpen(sp.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      props.onOpen(sp.id);
+                    }
+                  }}
+                  title={'לחיצה — כניסה לטיפול (פתיחת כרטיס ' + termOf(cfg, 'entity.supporter', 'התומך/ת') + ')'}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: '#fff', border: '1px solid #f3c58a', borderRadius: 10, padding: '7px 10px', cursor: 'pointer' }}
+                >
+                  <span style={{ fontWeight: 800, fontSize: 12.5, minWidth: 0 }}>{sp.name}</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#9a6414' }}>{def.emoji + ' ' + def.label + ' · תזכורת ' + r.day + '/' + r.target}</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#b3261e' }}>{fmtDate(r.date) + (r.overdueDays ? ' · באיחור ' + r.overdueDays + ' ימים' : ' · היום')}</span>
+                  <span style={{ flex: 1 }} />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      props.onOpen(sp.id);
+                    }}
+                    style={{ background: '#fff', color: '#9a6414', border: '1px solid #ecd9a8', borderRadius: 9, padding: '5px 10px', fontSize: 10.5, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    ▶ לטיפול
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleEventDone(r.id);
+                      toast('✓ ' + def.label + ' — תזכורת ' + r.day + '/' + r.target + ' סומנה כבוצעה');
+                    }}
+                    title={'סימון התזכורת שהגיע יומה כבוצעה — ' + def.label + ' ' + r.day + '/' + r.target}
+                    style={{ background: '#211d17', color: '#f3c76b', border: 'none', borderRadius: 9, padding: '6px 10px', fontSize: 10.5, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    {'✓ בוצע · ' + def.emoji + ' ' + r.day + '/' + r.target}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {rows.length === 0 ? (
-        <div style={{ fontSize: 12.5, color: '#9a8a63', padding: '6px 2px' }}>
+        reminders.length > 0 ? null : <div style={{ fontSize: 12.5, color: '#9a8a63', padding: '6px 2px' }}>
           {active.length > 0
             ? 'אין פריטים בשלב זה'
             : 'אין פריטים פעילים בלוח — פתחו כרטיס ' + termOf(cfg, 'entity.supporter', 'תומך/ת') + ' והתחילו מעקב.'}
@@ -263,6 +355,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
               // תומך/ת שעלה ללוח רק בגלל תזכורת-סדרה (6.10) ייתכן בלי תיק-טיפול — מציגים «אין תיק» בלי כפתור-חכם.
               const hasCase = !!sp.ayin;
               const a = sp.ayin ?? emptyAyin();
+              // ⏰ 13.10: התזכורת שהגיע יומה מוצגת ברצועה למעלה — כאן רק כדי לא להציע «🕯 40 יום ▾» כשיש תזכורת פתוחה.
               const dueR = dueRemOf(sp);
               const series = segulaOn ? activeRecurSeriesIndexed(recurIndex, sp.id, today) : [];
               const showBtn = hasCase && ayinActionVisible(a);
@@ -290,8 +383,8 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                     gridTemplateColumns: ROW_GRID,
                     gap: 8,
                     alignItems: 'center',
-                    background: dueNext || dueR ? '#fff4ea' : '#fff',
-                    border: '1px solid ' + (dueNext || dueR ? '#f3c58a' : 'rgba(33,29,23,.07)'),
+                    background: dueNext ? '#fff4ea' : '#fff',
+                    border: '1px solid ' + (dueNext ? '#f3c58a' : 'rgba(33,29,23,.07)'),
                     borderRadius: 11,
                     padding: '9px 12px',
                     cursor: 'pointer',
@@ -333,14 +426,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                       </span>
                     )}
                   </div>
-                  {dueR ? (
-                    <div
-                      style={{ fontSize: 11, color: '#b3261e', fontWeight: 800 }}
-                      title={recurDef(dueR.mode).label + ' — תזכורת ' + dueR.day + '/' + dueR.target + (dueR.overdueDays ? ' · באיחור ' + dueR.overdueDays + ' ימים' : ' · היום')}
-                    >
-                      {recurDef(dueR.mode).emoji + ' הגיע הזמן · ' + fmtDate(dueR.date)}
-                    </div>
-                  ) : isDone && sp.nextDate ? (
+                  {isDone && sp.nextDate ? (
                     <div
                       style={{ fontSize: 11, color: dueNext ? '#b3261e' : '#12803c', fontWeight: 800 }}
                       title={dueNext ? 'קשר הבא — הגיע הזמן' : 'קשר הבא שנקבע אחרי שהטיפול הושלם'}
@@ -411,20 +497,7 @@ export function AyinBoard(props: { onOpen: (id: string) => void }) {
                     )}
                     {/* 🕯 סדרות-תזכורת (6.10): פעילה ⇒ צ'יפ-מצב לכל סדרה (לחיצה על השורה פותחת כרטיס); הגיע-הזמן ⇒ «✓ בוצע»;
                         אין סדרה ⇒ «🕯 40 יום ▾» עם תפריט 40 יום · יומי · שבועי · חודשי (כמו הבורר בכרטיס, כמות ברירת-מחדל). */}
-                    {segulaOn && dueR && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleEventDone(dueR.id);
-                          toast('✓ ' + recurDef(dueR.mode).label + ' — תזכורת ' + dueR.day + '/' + dueR.target + ' סומנה כבוצעה');
-                        }}
-                        title={'סימון התזכורת שהגיע יומה כבוצעה — ' + recurDef(dueR.mode).label + ' ' + dueR.day + '/' + dueR.target}
-                        style={{ background: '#211d17', color: '#f3c76b', border: 'none', borderRadius: 9, padding: '6px 10px', fontSize: 10.5, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}
-                      >
-                        {'✓ בוצע · ' + recurDef(dueR.mode).emoji + ' ' + dueR.day + '/' + dueR.target}
-                      </button>
-                    )}
-                    {segulaOn && series.filter((x) => !dueR || x.mode !== dueR.mode).map(({ mode, st }) => (
+                    {segulaOn && series.map(({ mode, st }) => (
                       <span
                         key={mode}
                         title={recurDef(mode).label + ' פעילה · ' + (mode === 'segula' ? 'יום ' : 'תזכורת ') + st.day + ' מתוך ' + st.target + (st.next ? ' · הבאה: ' + fmtDate(st.next) : '') + ' · סיום: ' + fmtDate(st.end) + ' — לחיצה פותחת את הכרטיס'}

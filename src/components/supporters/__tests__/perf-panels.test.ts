@@ -195,7 +195,7 @@ describe('🔒 הגנות-מקור — החיווט נשאר ממומאז', () =
   it('AyinBoard: אינדקס-אירועים פעם-אחת + הנגזרת כולה ממומאזת; הישנות (סריקה-מלאה) לא נקראות', () => {
     const s = read('../AyinBoard.tsx');
     expect(s).toContain('const recurIndex = useMemo(() => buildRecurIndex(db.events), [db.events]);');
-    expect(s).toContain('const { active, rows, isDueNext, dueRemOf } = useMemo(() => {');
+    expect(s).toContain('const { active, rows, isDueNext, dueRemOf, reminders } = useMemo(() => {'); // 13.10: + רצועת-התזכורות
     expect(s).toContain('}, [db.supporters, recurIndex, desigLimit, region, filter, sort, today, segulaOn, nextDateOn, nextPromptId]);');
     expect(s).toContain('const series = segulaOn ? activeRecurSeriesIndexed(recurIndex, sp.id, today) : [];');
     expect(s).not.toMatch(/\bdueRecurReminder\(|\bactiveRecurSeries\(|\brecurStatus\(/);

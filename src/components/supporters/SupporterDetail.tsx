@@ -16,7 +16,7 @@ import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field, FormError, Modal, Select, StickyBackBar, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, RECUR_MODES, recurDef, recurStatus, SEGULA_OFFSETS, segulaStatus, supCount, type RecurMode, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
+import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, RECUR_MODES, recurDates, recurDef, recurStatus, SEGULA_OFFSETS, segulaStatus, supCount, type RecurCal, type RecurMode, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
 import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
@@ -27,6 +27,17 @@ import { useArmed } from '../useArmed';
 import { PlannedChargesSection } from './PlannedChargesSection';
 import { DonationCalendar } from './DonationCalendar';
 import { addId, persistLayout, removeId, sanitizeIds, shiftId } from '../../lib/widgetLayout';
+
+/** תיאור-קצב לשורת-ההסבר מתחת לכפתור-הזריעה (13.10). */
+const RECUR_PACE: Record<RecurMode, string> = {
+  segula: 'בימים 1·7·21·35·40',
+  daily: 'יום אחרי יום',
+  weekly: 'אחת לשבוע',
+  monthly: 'אחת לחודש',
+  bimonthly: 'אחת לחודשיים',
+  yearly: 'אחת לשנה',
+  roshchodesh: 'בכל ראש חודש',
+};
 
 function InfoRow(props: { k: string; v: string; ltr?: boolean }) {
   return (
@@ -197,6 +208,16 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const recurSelDef = recurDef(recurMode);
   const recurSelCount = recurCount > 0 ? recurCount : recurSelDef.defaultCount;
   const recurSelActive = recurMode !== 'segula' && recurActive.some((x) => x.def.key === recurMode);
+  // 📅 13.10 (בקשת-בעלים "לבחור את התאריך הראשוני ואז את המסלול"): תאריך-התחלה נבחר (ברירת-מחדל היום)
+  // + לוח עברי/לועזי לחודשי/דו-חודשי/שנתי. בסדרות-החוזרות התאריך שנבחר = התזכורת הראשונה;
+  // בסגולה הוא יום 0 (התזכורות בימים 1·7·21·35·40 ממנו).
+  const [recurStart, setRecurStart] = useState(() => isoToday());
+  const [recurCal, setRecurCal] = useState<RecurCal>('greg');
+  const recurOpts = { cal: recurCal, firstOnStart: true };
+  const recurStartLabel = recurStart === isoToday() ? 'מהיום' : 'מ-' + fmtDate(recurStart);
+  const recurMax = recurSelDef.maxCount ?? 365;
+  // תצוגה-מקדימה של 6 התאריכים הראשונים (זול — 6 בלבד, גם בשנתי-עברי).
+  const recurPreview = recurStart ? recurDates(recurStart, recurMode, Math.min(6, recurSelCount), recurOpts) : [];
   // 🔁 הו"ק (ROADMAP-100 ‏#2): הגדרה+רישום — התרומה דרך addDonation (קבלה רציפה)
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokOpen, setHokOpen] = useState(false);
@@ -399,8 +420,22 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       { id: 'segula', label: 'סגולת 40 יום 🕯', visible: segulaOn, wide: true, node: (
         <div className="card" style={{ marginBottom: 12, padding: 12 }}>
         {/* 🔁 בורר-חזרה (16.9): 40 יום · יומי · שבועי · חודשי + כמות לסדרות החוזרות */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
+          <label style={{ fontSize: 12.5, color: 'var(--ink-soft)', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+            {recurMode === 'segula' ? '📅 תאריך תחילת הסגולה:' : '📅 תאריך התזכורת הראשונה:'}
+            <input
+              type="date"
+              value={recurStart}
+              onChange={(e) => setRecurStart(e.target.value || isoToday())}
+              aria-label="תאריך התחלה"
+              dir="ltr"
+              style={{ padding: '3px 6px', fontSize: 12.5 }}
+            />
+          </label>
+          {recurStart && <span style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{hebDateFull(recurStart)}</span>}
+        </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>חזרה:</span>
+          <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>מסלול:</span>
           {RECUR_MODES.map((m) => (
             <button
               key={m.key}
@@ -419,16 +454,30 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
               <input
                 type="number"
                 min={1}
-                max={365}
+                max={recurMax}
                 value={recurSelCount}
-                onChange={(e) => setRecurCount(Math.max(0, Math.min(365, Math.floor(+e.target.value || 0))))}
+                onChange={(e) => setRecurCount(Math.max(0, Math.min(recurMax, Math.floor(+e.target.value || 0))))}
                 aria-label="כמות תזכורות"
                 dir="ltr"
                 style={{ width: 64, padding: '3px 6px', fontSize: 12.5 }}
               />
             </label>
           )}
+          {recurSelDef.calChoice && (
+            <span role="group" aria-label="לוח שנה" style={{ display: 'inline-flex', gap: 4 }}>
+              {(['greg', 'heb'] as const).map((c) => (
+                <button key={c} type="button" className={'chip' + (recurCal === c ? ' on' : '')} aria-pressed={recurCal === c} onClick={() => setRecurCal(c)} style={{ cursor: 'pointer' }}>
+                  {c === 'heb' ? 'עברי' : 'לועזי'}
+                </button>
+              ))}
+            </span>
+          )}
         </div>
+        {recurPreview.length > 0 && (
+          <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 6 }}>
+            {'התאריכים: ' + recurPreview.map((r) => (recurMode === 'roshchodesh' || (recurSelDef.calChoice && recurCal === 'heb') ? hebDateFull(r.date) : fmtDate(r.date))).join(' · ') + (recurSelCount > recurPreview.length ? ' …' : '')}
+          </div>
+        )}
         {/* 🔁 סדרות-חוזרות פעילות (יומי/שבועי/חודשי) — פאנל לכל אחת */}
         {recurActive.map(({ def, st }) => (
           <div key={def.key} style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)', fontSize: 13, color: 'var(--ink)' }}>
@@ -453,8 +502,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
               ))}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-              <Btn kind="plain" sm onClick={() => { if (segConfirm('rec-restart-' + def.key, 'להתחיל את הסדרה מחדש מהיום?')) restartSegula(sp.id, isoToday(), 'זיווג', def.key, st.total); }}>
-                {segArmed === 'rec-restart-' + def.key ? '🔄 לחצו שוב לאישור' : '🔄 התחלה מחדש מהיום'}
+              <Btn kind="plain" sm onClick={() => { if (segConfirm('rec-restart-' + def.key, 'להתחיל את הסדרה מחדש ' + recurStartLabel + '?')) restartSegula(sp.id, recurStart, 'זיווג', def.key, st.total, recurOpts); }}>
+                {segArmed === 'rec-restart-' + def.key ? '🔄 לחצו שוב לאישור' : '🔄 התחלה מחדש ' + recurStartLabel}
               </Btn>
               <Btn kind="danger" sm onClick={() => { if (segConfirm('rec-cancel-' + def.key, 'לבטל את הסדרה? התזכורות יוסרו מהיומן ומקשר-הבא.')) cancelSegula(sp.id, def.key); }}>
                 {segArmed === 'rec-cancel-' + def.key ? '✖ לחצו שוב לאישור' : '✖ ביטול ' + def.label}
@@ -468,13 +517,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             <button
               type="button"
               className="btn primary"
-              onClick={() => seedSegulaReminders(sp.id, isoToday(), 'זיווג', recurMode, recurSelCount)}
+              onClick={() => seedSegulaReminders(sp.id, recurStart, 'זיווג', recurMode, recurSelCount, recurOpts)}
               style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800, borderRadius: 14, letterSpacing: 0.2 }}
             >
-              {recurSelDef.emoji + ' ' + recurSelDef.label + ' ×' + recurSelCount + ' — מהיום'}
+              {recurSelDef.emoji + ' ' + recurSelDef.label + (recurSelDef.calChoice ? (recurCal === 'heb' ? ' (עברי)' : ' (לועזי)') : '') + ' ×' + recurSelCount + ' — ' + recurStartLabel}
             </button>
             <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
-              {'זריעת ' + recurSelCount + ' תזכורות ' + (recurMode === 'daily' ? 'יום אחרי יום' : recurMode === 'weekly' ? 'אחת לשבוע' : 'אחת לחודש') + ' מהיום — נכנס לקשר-הבא וללוח.'}
+              {'זריעת ' + recurSelCount + ' תזכורות ' + RECUR_PACE[recurMode] + ' ' + recurStartLabel + ' — נכנס לקשר-הבא וללוח.'}
             </div>
           </div>
         )}
@@ -528,10 +577,10 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                 kind="plain"
                 sm
                 onClick={() => {
-                  if (segConfirm('seg-restart', 'להתחיל את הסגולה מחדש מהיום? התזכורות הנוכחיות יוחלפו בחדשות.')) restartSegula(sp.id, isoToday(), 'זיווג');
+                  if (segConfirm('seg-restart', 'להתחיל את הסגולה מחדש ' + recurStartLabel + '? התזכורות הנוכחיות יוחלפו בחדשות.')) restartSegula(sp.id, recurStart, 'זיווג');
                 }}
               >
-                {segArmed === 'seg-restart' ? '🔄 לחצו שוב לאישור' : '🔄 התחלה מחדש מהיום'}
+                {segArmed === 'seg-restart' ? '🔄 לחצו שוב לאישור' : '🔄 התחלה מחדש ' + recurStartLabel}
               </Btn>
               <Btn
                 kind="danger"
@@ -558,15 +607,15 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             <button
               type="button"
               className="btn primary"
-              onClick={() => seedSegulaReminders(sp.id, isoToday(), 'זיווג')}
+              onClick={() => seedSegulaReminders(sp.id, recurStart, 'זיווג')}
               style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800, borderRadius: 14, letterSpacing: 0.2 }}
             >
-              🕯 40 ימים — התחלת סגולה לזיווג מהיום
+              {'🕯 40 ימים — התחלת סגולה לזיווג ' + recurStartLabel}
             </button>
             )}
             {recurMode === 'segula' && (
             <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
-              זריעת {SEGULA_OFFSETS.length} תזכורות-סגולה לזיווג מהיום (ימים 1·7·21·35·40) — מחושב לבד, נכנס לקשר-הבא וללוח.
+              {'זריעת ' + SEGULA_OFFSETS.length + ' תזכורות-סגולה לזיווג ' + recurStartLabel + ' (ימים 1·7·21·35·40) — מחושב לבד, נכנס לקשר-הבא וללוח.'}
             </div>
             )}
           </div>
