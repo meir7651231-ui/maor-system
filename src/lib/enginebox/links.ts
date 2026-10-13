@@ -7,11 +7,12 @@
  *   · DEFAULT_LINKS — בדיוק החיבורים שחווטו היום בקוד בין הכלים (כל אחד מאומת file:line בדוח-הסגירה).
  *   · sanitizeLinks — חיטוי רשימה שמורה: רק חיבורים תקינים · בלי כפילויות · מיון יציב · תקרה 500; לא-מערך ⇒ undefined.
  *   · effectiveLinks — הרשימה שבתוקף: חסר ⇒ ברירת-המחדל; קיים (גם []) ⇒ הרשימה המחוטאת.
- *   · healEngineLinksIn — ריפוי `ui.engineLinks` ב-migrate ובמיזוג-הענן: חסר נשאר חסר, תקין ⇒ אותה הפניה.
+ *   · healEngineLinksIn — (ב-`./linkShape`, בלי ייבואים) ריפוי **צורה** של `ui.engineLinks` ב-migrate ובמיזוג-הענן;
+ *     האימות מול הקטלוג נעשה כאן, בזמן-השימוש (effectiveLinks/isLinked).
  *
  * שלב א׳: הרשימה **רק מתארת** — היא עוד לא מדליקה/מכבה דבר בכלים (החיבורים של היום קשיחים בקוד). את המתג האמיתי
- * יחבר שלב ב׳. טהור: בלי React/store/DOM/שעון. קל במכוון — נטען גם מהבנדל-הראשי (persist/cloud-merge) ולכן לא מייבא
- * את המרכזייה ולא את config.
+ * יחבר שלב ב׳. טהור: בלי React/store/DOM/שעון. לא נטען מהבנדל-הראשי (persist/cloud-merge מייבאים רק את `./linkShape`),
+ * ובכל זאת לא מייבא את המרכזייה ולא את config.
  */
 import { PARTS, partById } from './parts';
 
@@ -95,23 +96,5 @@ export function isLinked(stored: readonly string[] | null | undefined, giver: st
   return effectiveLinks(stored).has(linkKey(giver, plug, needer));
 }
 
-const sameList = (a: readonly string[], b: readonly string[]): boolean => a.length === b.length && a.every((v, i) => v === b[i]);
-
-/**
- * ריפוי `engineLinks` בתוך אובייקט-ui (migrate · מיזוג meta מהענן). בלי המפתח / לא-אובייקט ⇒ אותו ערך (ביט-זהה);
- * רשימה תקינה וממוינת ⇒ אותה הפניה; אחרת — עותק עם הרשימה המחוטאת, או בלי המפתח כשהערך אינו מערך.
- */
-export function healEngineLinksIn<T>(ui: T): T {
-  if (!ui || typeof ui !== 'object' || Array.isArray(ui) || !('engineLinks' in ui)) return ui;
-  const rec = ui as Record<string, unknown>;
-  const cur = rec.engineLinks;
-  if (cur === undefined) return ui;
-  const clean = sanitizeLinks(cur);
-  if (clean === undefined) {
-    const out = { ...rec };
-    delete out.engineLinks;
-    return out as T;
-  }
-  if (Array.isArray(cur) && sameList(cur as readonly string[], clean)) return ui;
-  return { ...rec, engineLinks: clean } as T;
-}
+/** ריפוי-הצורה (migrate/ענן) גר בקובץ-בלי-ייבואים `./linkShape` — כאן רק ייצוא-חוזר לנוחות. */
+export { healEngineLinksIn } from './linkShape';

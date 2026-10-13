@@ -40,6 +40,7 @@ import {
   VALID_LINKS,
   type Part,
 } from '..';
+import { MAX_LINK_SHAPES, sanitizeLinkShapes } from '../linkShape';
 
 const HEB = /[֐-׿]/;
 const ROOT = resolve(__dirname, '../../../..');
@@ -313,6 +314,22 @@ describe('🧰 (ה) חיטוי · מיגרציה · מיזוג-ענן', () => {
     expect(healEngineLinksIn(null)).toBeNull();
   });
 
+  // תיקון משקל-טעינה A2: הריפוי בבנדל-הראשי הוא ריפוי-**צורה** בלבד (בלי הקטלוג). מפתח בצורה תקינה שאינו בקטלוג נשמר
+  // ב-DB — אבל לעולם לא "מחובר", כי effectiveLinks/isLinked מסננים מול הקטלוג בזמן-השימוש. וכל חיבור-אמת חייב לעבור
+  // את מסננת-הצורה (אחרת migrate היה מוחק חיבורים שהלקוח בחר).
+  it('ריפוי-צורה: trim · מבנה חלק>מחבר>חלק · מפתח-זר-בצורה-תקינה נשמר אך לא מחובר · כל חיבור-אמת עובר', () => {
+    const ghost = 'zz.ghost>times.shabbat>host.stay';
+    const healed = healEngineLinksIn({ engineLinks: [' ' + A + ' ', ghost, 'a>b', 'A>b>c', 'a>b>c>d', 'a b>c>d', 7, A] });
+    expect(healed.engineLinks).toEqual([A, ghost].sort());
+    expect(effectiveLinks(healed.engineLinks as string[]).has(ghost)).toBe(false);
+    expect(isLinked(healed.engineLinks as string[], 'zz.ghost', 'times.shabbat', 'host.stay')).toBe(false);
+    expect([...effectiveLinks(healed.engineLinks as string[])]).toEqual([A]);
+    expect(sanitizeLinkShapes([...VALID_LINKS])).toEqual([...VALID_LINKS].sort());
+    expect(sanitizeLinkShapes([...DEFAULT_LINKS])).toEqual([...DEFAULT_LINKS].sort());
+    expect(MAX_LINK_SHAPES).toBe(MAX_LINKS);
+    expect(sanitizeLinkShapes(Array.from({ length: 900 }, (_, i) => 'p' + i + '>x>q'))!.length).toBe(500);
+  });
+
   it('migrate: DB בלי המפתח ⇒ ביט-זהה (בלי engineLinks), ואידמפוטנטי', () => {
     const once = migrate(JSON.parse(JSON.stringify(emptyDb())))!;
     expect('engineLinks' in once.ui).toBe(false);
@@ -412,8 +429,8 @@ describe('🧰 (ו) מוטציה', () => {
 const SRC = import.meta.glob(['../*.ts'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 
 describe('🧰 (ז) הגנות-מקור', () => {
-  it('ה-glob חי: 5 קבצים', () => {
-    expect(Object.keys(SRC).map((p) => p.split('/').pop()).sort()).toEqual(['index.ts', 'links.ts', 'match.ts', 'parts.ts', 'plugs.ts']);
+  it('ה-glob חי: 6 קבצים', () => {
+    expect(Object.keys(SRC).map((p) => p.split('/').pop()).sort()).toEqual(['index.ts', 'linkShape.ts', 'links.ts', 'match.ts', 'parts.ts', 'plugs.ts']);
   });
 
   it('טוהר: בלי Date.now / new Date() / Math.random / store / DOM / React', () => {
@@ -437,8 +454,20 @@ describe('🧰 (ז) הגנות-מקור', () => {
     }
     const persistSrc = readFileSync(resolve(ROOT, 'src/store/persist.ts'), 'utf8');
     const mergeSrc = readFileSync(resolve(ROOT, 'src/lib/cloud-merge.ts'), 'utf8');
-    expect(persistSrc).toContain("from '../lib/enginebox/links'");
-    expect(mergeSrc).toContain("from './enginebox/links'");
-    for (const s of [persistSrc, mergeSrc]) expect(s).not.toMatch(/enginebox(\/index|\/match|')/);
+    expect(persistSrc).toContain("from '../lib/enginebox/linkShape'");
+    expect(mergeSrc).toContain("from './enginebox/linkShape'");
+  });
+
+  // תיקון משקל-טעינה A2 (13.10): ייבוא `links` מ-persist/cloud-merge גרר את כל הקטלוג (parts+plugs) ל-chunk ה-persist
+  // שנטען-מראש לכל ארגון: ‎+3,279 bytes gzip — על כלי opt-in ובלתי-נראה. הבנדל-הראשי מייבא מארגז-המנועים **רק** את
+  // linkShape, ו-linkShape עצמו בלי שום ייבוא — כדי שאף אחד לא יחזיר את הקטלוג לטעינה-הראשונית בשקט.
+  it('משקל-טעינה: persist/cloud-merge מייבאים מארגז-המנועים רק את linkShape, ו-linkShape בלי ייבואים', () => {
+    for (const f of ['src/store/persist.ts', 'src/lib/cloud-merge.ts']) {
+      const src = readFileSync(resolve(ROOT, f), 'utf8');
+      const specs = [...src.matchAll(/(?:from|import)\s*\(?\s*'([^']*enginebox[^']*)'/g)].map((m) => m[1]!.split('/').pop());
+      expect(specs.length, f).toBeGreaterThan(0);
+      for (const sp of specs) expect(sp, f).toBe('linkShape');
+    }
+    expect(SRC['../linkShape.ts']!).not.toMatch(/^\s*import\b|\bimport\s*\(|\brequire\(|^\s*export\s[^;]*\bfrom\s/m);
   });
 });

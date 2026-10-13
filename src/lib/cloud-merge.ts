@@ -8,7 +8,7 @@ import { ENTITY_COLLECTIONS, type EntityCol } from './cloud-diff';
 import { AYIN_STAGES } from './ayin';
 import { healPrRecord } from '../components/parnasa/model';
 import { healHostDoc } from '../components/hosting/model';
-import { healEngineLinksIn } from './enginebox/links';
+import { healEngineLinksIn } from './enginebox/linkShape';
 
 /**
  * חיזוק מסמך ישות מרוחק: מסמך שנכתב בגרסה ישנה / נערך ידנית ב-Firestore עלול
