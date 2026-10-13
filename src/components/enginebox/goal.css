@@ -1,0 +1,52 @@
+/* 🎯 ארגז המנועים — "להתחיל מהסוף". רק tokens (ערכות-נושא + מצב-כהה + ניגודיות-גבוהה מגיעים חינם),
+   mobile-first ל-390px, יעדי-מגע ≥ 40px, RTL. נטען רק עם ה-chunk העצל של המסך. */
+.eg-panel { display: flex; flex-direction: column; gap: 12px; }
+.eg-title { font-size: 18px; font-weight: 700; color: var(--ink); }
+.eg-input {
+  width: 100%; box-sizing: border-box; min-height: 64px; padding: 10px 12px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--card-bg, var(--panel)); color: var(--ink);
+  font: inherit; font-size: 16px; line-height: 1.5; resize: vertical;
+}
+.eg-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eg-examples { display: flex; flex-wrap: wrap; gap: 8px; }
+.eg-example {
+  min-height: 40px; padding: 6px 12px; border-radius: 999px; cursor: pointer; text-align: right;
+  border: 1px dashed var(--accent); background: var(--bg); color: var(--ink); font: inherit; font-size: 13.5px;
+}
+.eg-example:hover { background: var(--panel); }
+.eg-example:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.eg-understood { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.eg-understood-label { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+.eg-word {
+  font-size: 12.5px; padding: 3px 10px; border-radius: 999px; font-weight: 600;
+  border: 1px solid var(--accent); color: var(--ink);
+}
+.eg-empty { font-size: 15px; }
+
+.eg-routes, .eg-missing-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.eg-route {
+  border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+  background: var(--card-bg, var(--panel)); display: flex; flex-direction: column; gap: 8px;
+}
+.eg-route.eg-linked { border-color: var(--green); border-width: 2px; }
+.eg-route-title { font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+.eg-steps { margin: 0; padding-inline-start: 22px; display: flex; flex-direction: column; gap: 6px; }
+.eg-step { font-size: 16px; font-weight: 600; color: var(--ink); line-height: 1.5; }
+.eg-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.eg-actions .btn, .eg-missing-item .btn { min-height: 40px; justify-content: center; }
+.eg-on { color: var(--green); font-weight: 700; }
+.eg-note { font-size: 13px; color: var(--ink-soft); }
+
+.eg-sub-title { font-size: 15px; font-weight: 700; margin: 6px 0 8px; color: var(--ink-soft); }
+.eg-missing-item {
+  border: 1px dashed var(--line); border-radius: 12px; padding: 10px 12px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+}
+.eg-missing-line { font-size: 15px; font-weight: 700; color: var(--ink); }
+.eg-missing-item.eg-off .eg-missing-line { color: var(--ink-soft); }
+
+@media (max-width: 420px) {
+  .eg-step { font-size: 15px; }
+  .eg-actions .btn, .eg-missing-item .btn { width: 100%; }
+}
